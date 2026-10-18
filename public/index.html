@@ -17447,11 +17447,15 @@ function histCandDupKey(dt, amountSigned, merchant){
   const norm=String(merchant||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g," ").trim();
   return dia+"|"+Math.round(amountSigned*100)+"|"+norm;
 }
-// BOOK con referencia propia no puede consumir otro cargo bancario ya contabilizado.
-// Sin referencia o con un pendiente se mantiene la comparación histórica anterior.
-function histDistinctBookRef(x,e){
-  return !!(x.bookRef && x.id && e.extId && esFilaDeBanco(e) && !e.obPending &&
+// La prueba BOOK pertenece a esta respuesta, incluso si su fila ya guardada se filtra.
+const histBookResponses=new WeakMap();
+function histDifferentBankRef(x,e){
+  return !!(x.bookRef && x.id && e.extId && esFilaDeBanco(e) &&
     expenseBankOf(e)===x.ent && String(x.id)!==String(e.extId));
+}
+function histDistinctBookRef(x,e){
+  const books=histBookResponses.get(x);
+  return histDifferentBankRef(x,e) && !!(e.obPendingRef || (books&&books.has(x.ent+"|"+e.extId)));
 }
 function histDeletedBookRefs(state){
   const deleted=new Set((state&&state.deleted)||[]), refs=new Set(), slots=new Set();
@@ -17504,7 +17508,10 @@ function histCandExisting(cands, expenses){
       return !histDistinctBookRef(x,e) && (!sinComercioReal(x.merchant) || !x.ent || expenseBankOf(e)===x.ent);
     });
     if(idx<0) return;
-    out[i]=list.splice(idx,1)[0];
+    const e=list[idx];
+    // Una referencia sin prueba BOOK no identifica cuál de varios candidatos sería el mismo.
+    // Todos quedan visibles para decidir; los emparejamientos ciertos siguen siendo 1:1.
+    out[i]=histDifferentBankRef(x,e) ? e : list.splice(idx,1)[0];
   });
   return out;
 }
@@ -17545,7 +17552,7 @@ function histCandCercanos(cands, expenses, yaExactos, emparejados){
       return !(emparejados && avisoYaEmparejado(emparejados, e));
     });
     if(hit<0) return;
-    usados[hit]=1;
+    if(!histDifferentBankRef(x,expenses[hit])) usados[hit]=1;
     out[i]=expenses[hit];
   });
   return out;
@@ -17655,7 +17662,7 @@ function histFlattenHistoryLinks(res, expenses, allow){
     else seenLegacy[e.extId]=1;
   });
   let bankReported=0, bankPayload=0, skippedAllow=0, skippedBad=0, skippedExt=0, skippedUniq=0, acctAtCap=0;
-  const out=[], groups={}, groupOrder=[];
+  const out=[], groups={}, groupOrder=[], books=new Set();
   const kOf=function(dt,am,mc){ return String(dt).slice(0,10)+"|"+am+"|"+(mc||""); };
   const quality=function(tx){ return (tx.ext_id?2:0)+(/book|post/i.test(String(tx.status||""))?1:0); };
   const bookRef=function(tx){ return !!(tx.ext_id && String(tx.status||"").toUpperCase()==="BOOK"); };
@@ -17680,10 +17687,12 @@ function histFlattenHistoryLinks(res, expenses, allow){
     accts.forEach(function(ac,ai){
       // Dos cuentas del mismo banco pueden tener el mismo cargo el mismo día. La cuenta forma
       // parte de la identidad; una repetición de paginación sí conserva la misma cuenta.
-      const acct=entKey+"|"+((ac&&(ac.uid||ac.iban))||("#"+ai));
+      const obAcc=ac&&(ac.iban||ac.uid);
+      const acct=entKey+"|"+(obAcc||("#"+ai));
       ((ac&&ac.transactions)||[]).forEach(function(tx){
         const dt=String(tx.date||"").slice(0,10), am=Number(tx.amount)||0;
         if(!dt || !am){ skippedBad++; return; }
+        if(bookRef(tx)) books.add(entKey+"|"+tx.ext_id);
         const isIn=am<0, abs=Math.abs(am);
         // El fallback no se traduce: también forma parte de la identidad que comparte el sync
         // diario. Si dependiera del idioma, el mismo ingreso cabría dos veces en la nube.
@@ -17707,7 +17716,7 @@ function histFlattenHistoryLinks(res, expenses, allow){
            Es la MISMA familia que los otros dos de hoy: una clave de identidad sin banco. */
         const cloudK=entKey+"|"+kOf(dt,isIn?-abs:abs,merchant);
         let g=groups[cloudK]; if(!g){ g=groups[cloudK]={rows:[],byAcct:{},refs:new Set()}; groupOrder.push(cloudK); }
-        const row={tx:tx,dt:dt,abs:abs,isIn:isIn,merchant:merchant,entKey:entKey,entLabel:entLabel,acct:acct};
+        const row={tx:tx,dt:dt,abs:abs,isIn:isIn,merchant:merchant,entKey:entKey,entLabel:entLabel,acct:acct,obAcc:obAcc};
         const refKey=acct+"|"+String(tx.ext_id);
         const prevI=g.byAcct[acct];
         if(prevI!=null){
@@ -17742,7 +17751,9 @@ function histFlattenHistoryLinks(res, expenses, allow){
         ...(tx.mcc?{mcc:tx.mcc}:{}),
         ...(tx.concept?{concept:tx.concept}:{}),
         note:tx.note||"", card:!!tx.card, ent:row.entKey, entLabel:row.entLabel,
-        ...(bookRef(tx)?{bookRef:true,obOrd:slot+1,obAcc:row.acct.slice(row.entKey.length+1)}:{}),
+        ...(bookRef(tx)?{bookRef:true,obOrd:slot+1}:{}),
+        ...(row.obAcc?{obAcc:row.obAcc}:{}),
+        ...(obIsPending(tx)?{obPending:true}:{}),
         stamp:bookRef(tx) ? fechaConOrdinal(histDate(row.dt),slot+1) : (slot ? histDate(row.dt,"ob-slot|"+cloudK+"|"+slot) : histDate(row.dt)),
         kind:row.isIn?"in":"out"
       });
@@ -17751,6 +17762,7 @@ function histFlattenHistoryLinks(res, expenses, allow){
   // Reutiliza la identidad del diario antes de filtrar referencias ya importadas: una lectura
   // truncada con solo B debe reservar la ranura de A que ya está en local o bajó de la nube.
   histNumberBookRefs(out,expenses);
+  out.forEach(function(x){histBookResponses.set(x,books);});
   for(let i=out.length-1;i>=0;i--){
     const x=out[i];
     if(x.id && (seen[x.ent+"|"+x.id]||seenLegacy[x.id])){ skippedExt++;out.splice(i,1); }
@@ -17857,6 +17869,7 @@ function histFilaGasto(x, c, cat, batchId){
   if(x.id) e.extId=x.id;
   if(x.obOrd>1) e.obOrd=x.obOrd;
   if(x.obAcc) e.obAcc=x.obAcc;
+  if(x.obPending) e.obPending=true;
   return e;
 }
 function histSignSuspectByBank(cands){
@@ -17941,6 +17954,8 @@ function histClassifyCandidates(cands, state){
   const cuotas=histCuotasDeDeuda(cands, state, function(i){ return !!(existing[i] || lapidas[i] || cercanos[i] || pares.entrada[i] || pares.salida[i]); });
   const rows=(cands||[]).map(function(x,i){
     if(!x) return null;
+    if(!lapidas[i] && existing[i] && histDifferentBankRef(x,existing[i]))
+      return { status:"maybe", reason:"cercano", match:existing[i], defDest:null, suggestRecibo:false, category:null };
     // `cashback-par`: el abono del Saveback con su compra gemela (ver `histParesCashback`).
     if(existing[i] || lapidas[i] || (!cercanos[i] && pares.entrada[i])) return { status:"dup", reason:(existing[i]||lapidas[i])?"existing":"cashback-par", match:existing[i]||null, defDest:null, suggestRecibo:false, category:null };
     if(cercanos[i]) return { status:"maybe", reason:"cercano", match:cercanos[i], defDest:null, suggestRecibo:false, category:null };
@@ -17980,7 +17995,7 @@ function histClassifyCandidates(cands, state){
   });
   rows.forEach(function(c,i){
     const x=cands[i];
-    if(x&&x.bookRef) c.bankIdentity={date:x.stamp,obOrd:x.obOrd,obAcc:x.obAcc};
+    if(x&&(x.bookRef||x.obPending||x.obAcc)) c.bankIdentity={date:x.stamp,obOrd:x.obOrd,obAcc:x.obAcc,obPending:x.obPending};
   });
   return { rows:rows, signSuspect:histSignSuspectByBank(cands) };
 }
@@ -18016,6 +18031,7 @@ function histKeepAmbiguity(e,c){
     e.date=c.bankIdentity.date;
     if(c.bankIdentity.obOrd>1) e.obOrd=c.bankIdentity.obOrd;
     if(c.bankIdentity.obAcc) e.obAcc=c.bankIdentity.obAcc;
+    if(c.bankIdentity.obPending) e.obPending=true;
   }
   if(e&&c&&c.status==="maybe"){
     e.possibleDup=true;
@@ -18048,6 +18064,7 @@ function histBuildCommit(cands, classifications, state, opts){
     if(x.id) e.extId=x.id;
     if(x.obOrd>1) e.obOrd=x.obOrd;
     if(x.obAcc) e.obAcc=x.obAcc;
+    if(x.obPending) e.obPending=true;
     // Cuota de deuda (4.22.0), salvo que él la haya pasado a otra categoría en la vista previa.
     if(c.debtId && e.category==="deudas") e.debtId=c.debtId;
     expAdds.push(e);
