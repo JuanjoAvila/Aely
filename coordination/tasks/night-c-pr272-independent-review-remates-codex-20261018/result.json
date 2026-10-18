@@ -1,0 +1,149 @@
+{
+  "status": "blocked",
+  "summary": "PR272 remates propios completados: base de absorcion una vez por fila, cero sin identidad/fila adicional y comodin v2 explicito. Misma PR borrador contra beta, descendiente normal. Verificacion focal verde; pendiente integracion Claude, no ProductREADY.",
+  "productSHA": "7c582a98025a3f97ec99f4f6c786a7de97289c09",
+  "baseSHA": "07b080d915b142e3216c97aa3807d38951603bf9",
+  "claimCommit": "6dd4595eace8e42f86c7b819687f755bfcf72674",
+  "ackCommit": "0f040dedab9b6797a380db5a157c00ba408b37c1",
+  "contractGrant": "ce0bdf91fa2290dd866364c4e108fce0c1cfc877",
+  "pr": 272,
+  "prDraft": true,
+  "prBase": "beta",
+  "brief": "docs/briefs/night-c-refund-polarity-20261018.md",
+  "coverage": {
+    "red": {
+      "exit": 1,
+      "zeroFailures": 25,
+      "legacyControlsPass": 12
+    },
+    "polarity": {
+      "exit": 0,
+      "distinct": 154,
+      "ownMutants": 12,
+      "newZero": 25,
+      "newWildcard": 12,
+      "oldZeroKeyExpectationsReplaced": 2
+    },
+    "fin10fin15": {
+      "distinctGreen": 55,
+      "firstExit": 1,
+      "firstPass": 53,
+      "firstStaleAnchorFailures": 2,
+      "threeMutantAnchorsAdaptedWithoutOracleChange": true,
+      "affectedRerunPass": 2,
+      "affectedRerunExit": 0
+    },
+    "compras": {
+      "distinct": 32,
+      "exit": 0
+    },
+    "cloudAndBudget": {
+      "nodeEntries": 5,
+      "cloudCases": 4,
+      "budgetInlineAssertions": true,
+      "exit": 0
+    },
+    "build": 0,
+    "syntax": 0,
+    "denoCheck": 0
+  },
+  "tests": [
+    {
+      "name": "night-c-remates-build.log",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-remates-cloud-budget.log",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-remates-commit.log",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-remates-compras.log",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-remates-deno.log",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-remates-fin10-anchors-green.log",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-remates-fin10-fin15.log",
+      "exitCode": 1
+    },
+    {
+      "name": "night-c-remates-polarity-green.log",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-remates-pr-update.log",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-remates-product-push.log",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-remates-syntax.log",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-remates-zero-red.log",
+      "exitCode": 1
+    }
+  ],
+  "limitations": [
+    "Integracion pendiente a Claude: size, beta-sources dependencias/catalogo, docs/VERSION; resultados anteriores no acreditan este SHA",
+    "No nueva ejecucion DOM ni CPU6; DOM previo permanece historico",
+    "No full npm test, CI general, Deno tests, Gradle/APK, SQL, bancos, Edge, despliegue, merge o aceptacion movil",
+    "Ingest y cliente deben desplegarse juntos por Claude con OK del dueno",
+    "FIN17 PR267 incorpora FIN11 PR266; no objetivo paralelo PR266"
+  ],
+  "manifestSHA256": "4f16ddea01b6f706ec5155c19835d67bd928bb3786a758eff974dfe8bb522638",
+  "priorResult": "feb109ce573ab921ad4cb33311377ee0be89332f",
+  "stop": "Exact own readback then durable final checkpoint and STOP; result releases own claim. Integration gates and coordinated ingest/client deployment belong to Claude.",
+  "performance": {
+    "rows": 20000,
+    "tombstones": 500,
+    "warmups": 5,
+    "samplesPerReader": 11,
+    "beforeMedianMs": {
+      "client": 102.92899999999963,
+      "server": 126.2170000000001
+    },
+    "afterMedianMs": {
+      "client": 72.56320000000005,
+      "server": 70.71439999999984
+    },
+    "changePercent": {
+      "client": -29.50169534339174,
+      "server": -43.97394962643718
+    },
+    "oracle": {
+      "count": 19500,
+      "cents": 0,
+      "allIdsVerified": true
+    },
+    "ownSyntheticMeasurement": true,
+    "reviewerNumbersNotAttributed": true,
+    "cpu6": false
+  },
+  "budget": {
+    "id": "night-c-own12-ee788a05-block1-qoxxwkrs",
+    "usedBeforePublication": 10,
+    "allowance": 12,
+    "allFetchesCounted": true
+  },
+  "publicationNote": "First prepare rejected local filesystem paths before commit or push. Private record preserved; this public result contains only synthetic summary and hashes. Original helper and filter unchanged.",
+  "schema": 1,
+  "taskId": "night-c-pr272-independent-review-remates-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-qoxxwkrshebdfhaeqytokaml",
+  "createdAt": "2026-10-18T03:40:40.762Z",
+  "released": true
+}
