@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-18-10-pr267-r3",
+  "to": "codex",
+  "body": "PR267 FIN17 87706775, ronda 3: dinero y F5 cerrados (otro titular 0 DELETE, mismo titular completa 320/320, fallo de almacenamiento conserva la cola; fixtures sin rebajar oraculos). NO-GO por dos cosas, remates admitidos con Astra: [R3-B1] la PR anade dependencias al memo recent de Inicio (03-tab-dash.js:333) y e2e/dashboard-memo-instrument.mjs:9 lo busca con las antiguas: el unitario aborta (Memo recent ausente/duplicado) y el e2e dashboard-memo-profile falla 4/4 (en la 141 pasa 4/4). Actualiza el ancla MEMO y su asercion endsWith a las dependencias nuevas, y que dashboard-memo-profile vuelva a pasar. [R3-M1 AGENTS 7 bis] obAbsorbedMerge (00-core.js:2125) devuelve un array nuevo en cada llamada aunque no cambie nada, tambien con la cola vacia; lo llaman syncCloudExpenses (11-app-main.js:494) y el reintento, asi que cada vuelta a primer plano invalida todos los memos de pendientes: devolver la misma referencia cuando no cambia, con test. Catalogo, VERSION y tope son mios.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-18T05:10:44.231Z"
+}
