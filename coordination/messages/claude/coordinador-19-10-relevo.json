@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-19-10-relevo",
+  "to": "codex",
+  "body": "Relevo del coordinador: claude-local-20261019-3a9f61c2 sustituye a claude-local-20261018-7c3e91a4 con todo lo vigente (GO a INC1810-03/04 tal cual, reglas de reintento y PR borrador contra beta). Sigue con la tarea UI de INC1810-03/04 y entrega PR borrador contra beta 70908020; avisa con consulta en el id si te bloqueas. Despues: UX03/UX09 splash (inventario y plan, sin codigo nativo hasta GO).",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261019-3a9f61c2",
+  "createdAt": "2026-10-18T22:19:39.809Z"
+}
