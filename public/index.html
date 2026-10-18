@@ -6381,7 +6381,10 @@ const LANG = {
     // INC-0810 es: fin del patrimonio de ahora.
     v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Es la mitad de la app: sin un tope al mes no se puede saber cuánto te queda. Puedes cambiarlo cuando quieras.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Un viaje, un colchón, lo que sea: la app te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
     v4_upcoming:"Próximos cargos", 
-    v4_charges_overdue:"Cargos vencidos", v4_charge_unconfirmed:"Sin pago acreditado", v4_payment_pending:"Pendiente de confirmar",
+    v4_charges_overdue:"Cargos vencidos", v4_charge_unconfirmed:"Sin pago acreditado", v4_payment_pending:"Por confirmar",
+    v4_payment_due:"Por pagar", v4_payment_due_hint:"Se suma a lo que queda por pagar.", v4_payment_pending_hint:"No se suma a lo que queda por pagar.",
+    v4_payment_all_except_one:"Todo pagado, salvo {n} cargo por confirmar.", v4_payment_all_except:"Todo pagado, salvo {n} cargos por confirmar.",
+    v4_plan_transfers:"Traspasos previstos", f_link_unconfirmed:"{name} · sin confirmar",
     v4_charge_actual:"Cargo {x}", v4_charge_expected:"Previsto {x}",
     v4_your_goals:"Tus metas", v4_recent:"Últimos movimientos", v4_recent_empty:"Aún no hay movimientos. Apunta el primero con +.",
     v4_all:"Todos ›", v4_plan_title:"Tu plan del mes", v4_plan_recibos:"Recibos", v4_plan_deudas:"Deudas", v4_plan_metas:"Metas",
@@ -12273,6 +12276,15 @@ function PeriodMoreSheet({open, onClose, preset, setPreset}){
 }
 
 /* Sheet detalle/edición de un movimiento. Layout alineado con Apuntar/Cartera (feedback 2026-07-17). */
+// La marca explícita puede seguir puesta aunque el cargo no acredite el pago. Nombrarla
+// con un matiz evita contradecir el chip seleccionado, sin convertirla en prueba financiera.
+function expensePaymentLabelUI(state,e,kind,relation){
+  if(relation&&relation.kind===kind) return relation.name||"—";
+  var id=kind==="debt"?e.debtId:e.reciboId;
+  if(!id) return t("f_no");
+  var rows=(kind==="debt"?state.debts||[]:(state.fixed||[]).concat(state.oneoffs||[])).filter(function(x){return x&&x.id===id;});
+  return rows.length===1&&String(rows[0].name||"").trim()?tf("f_link_unconfirmed",{name:rows[0].name}):"—";
+}
 function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus}){
   /* UNA SOLA CONDICIÓN para pintarse y para los candados. Iban por separado (`!!exp` en los hooks,
      `!exp || !editExp` para pintar) y en cuanto se separaban el sheet desaparecía dejando el
@@ -12403,9 +12415,9 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   const adjustments=React.createElement("div",{className:"v4-ficha-adjust"},
     // Con marca de recibo la fila sale siempre: si no, «No es este recibo» quedaba inalcanzable
     // cuando la marca venía de un puntual o la categoría era neutra.
-    !isIncome&&!exp.possibleDup&&(reciboDe||receiptPuntuales.length>0||(!CAT_NEUTRAS[exp.category]&&(state.fixed||[]).length>0))&&React.createElement(React.Fragment,null,
+    !isIncome&&!exp.possibleDup&&(exp.reciboId||reciboDe||receiptPuntuales.length>0||(!CAT_NEUTRAS[exp.category]&&(state.fixed||[]).length>0))&&React.createElement(React.Fragment,null,
       React.createElement("button",{type:"button",className:"v4-ficha-adjust-row","data-testid":"exp-receipt",onClick:function(){ setAdjustOpen(adjustOpen==="receipt"?null:"receipt"); }},
-        React.createElement("span",null,t("f_receipt_row")),React.createElement("span",{className:"value","data-testid":"exp-receipt-value"},paymentRelation&&paymentRelation.kind==="fixed"?paymentRelation.name:t("f_no")),React.createElement("span",{className:"chev"},"›")),
+        React.createElement("span",null,t("f_receipt_row")),React.createElement("span",{className:"value","data-testid":"exp-receipt-value"},expensePaymentLabelUI(state,exp,"fixed",paymentRelation)),React.createElement("span",{className:"chev"},"›")),
       adjustOpen==="receipt"&&React.createElement("div",{className:"v4-ficha-adjust-open","data-testid":"exp-receipt-options"},
         React.createElement("div",{className:"hint"},t("f_receipt_hint")),
         React.createElement("div",{className:"v4-chips wrap"},
@@ -12423,9 +12435,9 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
       React.createElement("input",{className:"v4-exp-note-in",value:editExp.note||"",maxLength:160,placeholder:t("v4_exp_note_ph"),
         onChange:function(e){ const v=e.target.value; setEditExp(function(p){ return Object.assign({},p,{note:v}); }); },
         onBlur:function(){ saveNote(exp,editExp.note); },"aria-label":t("v4_exp_note")})),
-    !isIncome && debtOptions.length>0 && React.createElement(React.Fragment,null,
+    !isIncome && (exp.debtId||debtOptions.length>0) && React.createElement(React.Fragment,null,
       React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",onClick:function(){ setAdjustOpen(adjustOpen==="debt"?null:"debt"); }},
-        React.createElement("span",null,t("f_debt_row")),React.createElement("span",{className:"value"},paymentRelation&&paymentRelation.kind==="debt"?paymentRelation.name:t("f_no")),React.createElement("span",{className:"chev"},"›")),
+        React.createElement("span",null,t("f_debt_row")),React.createElement("span",{className:"value"},expensePaymentLabelUI(state,exp,"debt",paymentRelation)),React.createElement("span",{className:"chev"},"›")),
       adjustOpen==="debt" && React.createElement("div",{className:"v4-chips wrap v4-ficha-adjust-open","data-testid":"exp-cuota-de"},
         debtOptions.map(function(d){ const on=exp.category==="deudas"&&exp.debtId===d.id; return React.createElement("button",{key:d.id,type:"button",className:"v4-chip"+(on?" on":""),
           onClick:function(){ if(!on) setCuota(exp,d.id); }},DEUDA_CAT.icon+" "+(String(d.name||"").trim()||catName("deudas"))); }))),
@@ -24587,7 +24599,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
   },[state.fixed,state.debts,state.oneoffs,state.flows,state.bankTx,state.accounts,state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,totals.curMonth,totals.curYear,totals.today]);
   const evidence=useMemo(function(){ return paymentEvidenceUI(state,totals.curYear,totals.curMonth,totals.today); },
     [state.fixed,state.debts,state.oneoffs,state.bankTx,state.accounts,state.expenses,state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,totals.curMonth,totals.curYear,totals.today]);
-  const unconfirmed=charges.paidBills.some(function(x){return evidence.confirmed[x.id]===false;});
+  const unconfirmed=charges.paidBills.filter(function(x){return evidence.confirmed[x.id]===false;}).length;
   const pick=useMemo(function(){
     return planCoverPickBank(totals, charges.pendingByBank, charges.pendingBills, charges.paidBills);
   },[totals.minByBank,totals.minDayByBank,totals.mainBank,charges.pendingByBank,charges.pendingBills,charges.paidBills]);
@@ -24614,7 +24626,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
   // Frases propias: todo pagado / sin día (minDay 0) — NUNCA «el día ya» (review Claude 1845Z).
   const coverPhrase=(!billsEuroTotal)
     ? t("v4_plan_state_none")
-    : (allBillsPaid&&unconfirmed?t("v4_payment_pending"):(allBillsPaid
+    : (allBillsPaid&&unconfirmed?tf(unconfirmed===1?"v4_payment_all_except_one":"v4_payment_all_except",{n:unconfirmed}):(allBillsPaid
       ? (coverBank&&balKnown
         ? tf("v4_plan_state_all_paid",{x:eur0(balNow),bank:bankLab})
         : t("v4_plan_state_all_paid_nobank"))
@@ -24879,8 +24891,9 @@ function PlanBills({state, set, totals, charges, evidence, manageOpen, setManage
   const paidPanelId="v4-paid-panel";
   const month=totals.curMonth;
   const pack=charges||planChargesMonth(state, totals.curMonth, totals.curYear, totals.today);
-  // «Lo que aún saldrá» = recibos + traspasos pendientes. Ingresos NUNCA aquí (NO-GO 17/9).
-  const pending=pack.pendingBills.concat(pack.transfersPending);
+  // Solo recibos/cuotas suman en el restante. Los traspasos conservan su lista aparte
+  // para que la explicación de esta sección no los presente como otro pago pendiente.
+  const pending=pack.pendingBills;
   const proof=evidence||paymentEvidenceUI(state,totals.curYear,totals.curMonth,totals.today);
   const unconfirmed=pack.paidBills.filter(function(x){return proof.confirmed[x.id]===false;}).map(function(x){return Object.assign({},x,{paid:false,unconfirmed:true});});
   const paid=pack.paidBills.filter(function(x){return proof.confirmed[x.id]!==false;});
@@ -24898,10 +24911,10 @@ function PlanBills({state, set, totals, charges, evidence, manageOpen, setManage
     else try{ window.dispatchEvent(new CustomEvent("mc-open-bills")); }catch(e){}
   };
   const rowSub=function(x){
-    if(x.unconfirmed) return t("v4_payment_pending");
+    if(x.unconfirmed) return entOf(x.bank).label;
     // El recibo conserva el banco previsto; el cargo confirmado puede haber salido de otro.
     var bank=x.paid&&x.paidBank?x.paidBank:x.bank;
-    if(x.overdue) return entOf(x.bank).label+" · "+t("v4_charge_unconfirmed");
+    if(x.overdue) return entOf(x.bank).label;
     if(simple){
       if(x.kind==="income") return tf("v4s_row_income",{bank:entOf(x.bank).label});
       if(x.kind==="transfer"){
@@ -24965,12 +24978,13 @@ function PlanBills({state, set, totals, charges, evidence, manageOpen, setManage
         })()
       )
     ),
-    React.createElement("div",{className:"v4-section"},
+    React.createElement("div",{className:"v4-section","data-testid":"plan-due"},
       React.createElement("div",{className:"v4-section-h"},
-        React.createElement("span",null,simple?t("v4_aun_saldra"):t("v4_pendiente")),
+        React.createElement("span",null,t("v4_payment_due")),
         // Sencillo: sin «Gestionar» aquí — solo Ajustes → Cambiar mis recibos (NO-GO §5bis.2).
         !simple && React.createElement("button",{type:"button",className:"link",onClick:openManage}, t("v4_gestionar"))
       ),
+      pending.length>0&&React.createElement("div",{className:"ph"},t("v4_payment_due_hint")),
       pending.length===0
         ? React.createElement("div",{className:"ph",style:{padding:"8px 4px 4px"}}, t("v4_aun_saldra_empty"))
         : (pendExpanded?pending:pending.slice(0,3)).map(row),
@@ -24978,7 +24992,10 @@ function PlanBills({state, set, totals, charges, evidence, manageOpen, setManage
         pendExpanded ? t("v4_ver_menos") : tf("v4_ver_mas",{n:pending.length-3}))
     ),
     unconfirmed.length>0 && React.createElement("div",{className:"v4-section","data-testid":"plan-unconfirmed"},
-      React.createElement("div",{className:"v4-section-h"},t("v4_payment_pending")),unconfirmed.map(row)),
+      React.createElement("div",{className:"v4-section-h"},t("v4_payment_pending")+" · "+unconfirmed.length),
+      React.createElement("div",{className:"ph"},t("v4_payment_pending_hint")),unconfirmed.map(row)),
+    pack.transfersPending.length>0&&React.createElement("div",{className:"v4-section","data-testid":"plan-transfers"},
+      React.createElement("div",{className:"v4-section-h"},t("v4_plan_transfers")),pack.transfersPending.map(row)),
     incomePend.length>0 && React.createElement("div",{className:"v4-section"},
       React.createElement("div",{className:"v4-section-h"},
         React.createElement("span",null,t("v4_aun_entrara"))

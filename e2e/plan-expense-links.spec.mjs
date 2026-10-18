@@ -2,6 +2,65 @@ import {test,expect} from '@playwright/test';
 import {seedLoggedInDashboard,dismissNews} from './fixtures.mjs';
 import {paymentFixture} from '../tests/fixtures/payment-ui.mjs';
 
+async function openRound2(page,state,settings={}){
+  await page.clock.install({time:new Date('2026-10-18T12:00:00+02:00')});
+  await page.route('**/*',route=>new URL(route.request().url()).hostname==='127.0.0.1'?route.continue():route.abort());
+  await seedLoggedInDashboard(page,{...state,lastBackup:'2026-10-18',__seedOnce:true,settings:{autoPrices:false,theme:'green',lang:'es',expenseBanks:['sabadell'],...settings}});
+  await page.addInitScript(()=>{
+    const descriptor=Object.getOwnPropertyDescriptor(window,'supabase');window.__paymentWrites=[];
+    Object.defineProperty(window,'supabase',{...descriptor,set(lib){descriptor.set(lib);const mock=descriptor.get();if(!mock)return;
+      const create=mock.createClient;mock.createClient=function(...args){const client=create(...args),from=client.from.bind(client);
+        client.from=function(table){const q=from(table);for(const method of ['insert','update','upsert','delete'])if(q[method]){const original=q[method];q[method]=function(...args){window.__paymentWrites.push({table,method});return original.apply(this,args);};}return q;};return client;};}});
+  });
+  await page.goto('/');await expect(page.locator('.botnav')).toBeVisible();await page.waitForFunction(()=>!document.getElementById('mc-load'));await dismissNews(page);await page.clock.runFor(6000);
+  await page.evaluate(()=>{window.__paymentWrites=[];window.__paymentBefore=JSON.stringify(mcLoadRaw(mcStateKey()));});
+}
+async function unchangedRound2(page){
+  expect(await page.evaluate(()=>JSON.stringify(mcLoadRaw(mcStateKey()))===window.__paymentBefore)).toBe(true);
+  expect(await page.evaluate(()=>window.__paymentWrites)).toEqual([]);
+}
+for(const kind of ['debt','receipt'])for(const missing of [false,true])test('R1 '+kind+' explicit '+(missing?'missing ID':'amount mismatch'),async({page})=>{
+  const s=paymentFixture(kind==='debt'?'linked-debt':'receipt'),e=s.expenses[0];
+  if(kind==='debt')e.amount=197.50;
+  else {e.reciboId=s.fixed[0].id;e.amount=30.49;}
+  if(missing)e[kind==='debt'?'debtId':'reciboId']='missing-synthetic';
+  await openRound2(page,s);
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:e.merchant}).click();
+  const row=page.locator('.v4-exp-sheet .v4-ficha-adjust-row').filter({hasText:kind==='debt'?'Es la cuota de una deuda':'Paga un recibo'});
+  await expect(row.locator('.value')).toHaveText(missing?'—':(kind==='debt'?s.debts[0].name:s.fixed[0].name)+' · sin confirmar');
+  if(kind==='debt'&&!missing){await row.click();await expect(page.getByTestId('exp-cuota-de').locator('.v4-chip.on')).toContainText(s.debts[0].name);}
+  expect(await page.evaluate(()=>{const s=mcLoadRaw(mcStateKey());return expensePaymentRelationUI(s,s.expenses[0]);})).toBeNull();
+  await unchangedRound2(page);
+});
+const round2Text={
+  es:{due:'Por pagar',inside:'Se suma a lo que queda por pagar.',outside:'No se suma a lo que queda por pagar.',pending:'Por confirmar · 1',one:'Todo pagado, salvo 1 cargo por confirmar.',many:'Todo pagado, salvo 2 cargos por confirmar.'},
+  en:{due:'Still to pay',inside:'Included in the amount left to pay.',outside:'Not included in the amount left to pay.',pending:'To confirm · 1',one:'Everything paid, except 1 charge awaiting confirmation.',many:'Everything paid, except 2 charges awaiting confirmation.'},
+  ca:{due:'Per pagar',inside:'Se suma al que queda per pagar.',outside:'No se suma al que queda per pagar.',pending:'Per confirmar · 1',one:'Tot pagat, excepte 1 càrrec per confirmar.',many:'Tot pagat, excepte 2 càrrecs per confirmar.'}
+};
+for(const lang of ['es','en','ca']){
+  test('R2 separate remaining and confirmation '+lang,async({page},info)=>{
+    const s=paymentFixture('debt'),txt=round2Text[lang];await openRound2(page,s,{lang});
+    await page.locator('.botnav-tab[data-tour="plan"]').click();
+    const plan=page.locator('div[data-seg="recibos"]'),pending=page.getByTestId('plan-unconfirmed');
+    await expect.soft(plan).toContainText(txt.inside);await expect.soft(pending).toContainText(txt.outside);
+    await expect.soft(pending.locator('.v4-section-h')).toHaveText(txt.pending);
+    const row=pending.locator('.v4-charge');await expect.soft(row.locator('.sub')).toHaveText('Sabadell');
+    await expect(row).toContainText('197');await expect(plan.locator('.v4-card-hero .serif')).toContainText('42');
+    await pending.screenshot({path:info.outputPath('confirmation.png')});await unchangedRound2(page);
+  });
+  for(const count of [1,2])test('R3 complete summary '+lang+' '+count,async({page},info)=>{
+    const s=paymentFixture('debt');s.fixed=[];
+    // Un importe distinto evita que el arranque vincule el cargo existente a la segunda deuda.
+    if(count===2)s.debts.push({...s.debts[0],id:'second-debt',name:'Segunda deuda sintetica',monthly:153});
+    await openRound2(page,s,{lang,simpleMode:true});await page.locator('.botnav-tab[data-tour="plan"]').click();
+    expect(await page.evaluate(()=>{const s=mcLoadRaw(mcStateKey()),pack=planChargesMonth(s,10,2026,18),confirmed=paymentEvidenceUI(s,2026,10,18).confirmed;return pack.paidBills.filter(x=>!confirmed[x.id]).length;})).toBe(count);
+    await expect(page.locator('.v4-plan-cover-simple')).toContainText(count===1?round2Text[lang].one:round2Text[lang].many);
+    await page.locator('.v4-plan-cover-simple').screenshot({path:info.outputPath('cover.png')});
+    await unchangedRound2(page);
+  });
+}
+
 for(const kind of ['debt','receipt','linked-debt'])test(kind+' payment evidence agrees in Plan and detail',async({page},info)=>{
   test.info().annotations.push({type:'own-clock'});
   await page.clock.install({time:new Date('2026-10-18T12:00:00+02:00')});
@@ -35,7 +94,8 @@ for(const kind of ['debt','receipt','linked-debt'])test(kind+' payment evidence 
   await expect(row).toBeInViewport({ratio:0.9});
   if(kind==='debt'){
     await expect.soft(row).not.toHaveClass(/v4-paid/);
-    await expect.soft(row).toContainText('Pendiente de confirmar');
+    await expect.soft(row.locator('.sub')).toHaveText('Sabadell');
+    await expect.soft(page.getByTestId('plan-unconfirmed')).toContainText('Por confirmar · 1');
     await expect.soft(row).not.toContainText('✓');
   }else await expect.soft(row).toHaveClass(/v4-paid/);
   await row.screenshot({path:info.outputPath('plan-row.png')});
@@ -63,7 +123,7 @@ test('confirmed withdrawal retains cash warning',async({page})=>{
   await expect(page.locator('.v4-exp-sheet')).toContainText('Esta retirada no suma dinero');
 });
 
-for(const [lang,label] of [['es','Pendiente de confirmar'],['en','Awaiting confirmation'],['ca','Pendent de confirmar']])test('simple Plan calendar label '+lang,async({page},info)=>{
+for(const lang of ['es','en','ca'])test('simple Plan calendar label '+lang,async({page},info)=>{
   await page.clock.install({time:new Date('2026-10-18T12:00:00+02:00')});
   await page.route('**/*',route=>new URL(route.request().url()).hostname==='127.0.0.1'?route.continue():route.abort());
   const state=paymentFixture('debt');state.fixed=[];
@@ -71,8 +131,8 @@ for(const [lang,label] of [['es','Pendiente de confirmar'],['en','Awaiting confi
   await page.goto('/');await expect(page.locator('.botnav')).toBeVisible();await page.waitForFunction(()=>!document.getElementById('mc-load'));await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   const pending=page.getByTestId('plan-unconfirmed');
-  await expect(pending).toContainText(label);await expect(pending).not.toContainText('✓');
-  await expect(page.locator('.v4-plan-cover-simple')).toContainText(label);
+  await expect(pending).toContainText(round2Text[lang].pending);await expect(pending).not.toContainText('✓');
+  await expect(page.locator('.v4-plan-cover-simple')).toContainText(round2Text[lang].one);
   await expect(page.locator('.v4-paid-fold')).toHaveCount(0);
   await pending.screenshot({path:info.outputPath('pending.png')});
 });

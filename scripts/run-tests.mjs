@@ -61,6 +61,7 @@ const steps = [
   ["supabase-workflow", ["node", "tests/supabase-workflow.test.mjs"]],
   ["debt-payment-state", ["node", "tests/debt-payment-state.test.mjs"]],
   ["payment-evidence-ui", ["node", "tests/payment-evidence-ui.test.mjs"]],
+  ["payment-presentation", ["node", "tests/payment-presentation.test.mjs"]],
 
   ["gastos-periodo", ["node", "tests/gastos-periodo.test.mjs"]],
   ["retirada-bancaria", ["node", "tests/retirada-bancaria.test.mjs"]],

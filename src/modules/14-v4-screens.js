@@ -15,7 +15,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
   },[state.fixed,state.debts,state.oneoffs,state.flows,state.bankTx,state.accounts,state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,totals.curMonth,totals.curYear,totals.today]);
   const evidence=useMemo(function(){ return paymentEvidenceUI(state,totals.curYear,totals.curMonth,totals.today); },
     [state.fixed,state.debts,state.oneoffs,state.bankTx,state.accounts,state.expenses,state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,totals.curMonth,totals.curYear,totals.today]);
-  const unconfirmed=charges.paidBills.some(function(x){return evidence.confirmed[x.id]===false;});
+  const unconfirmed=charges.paidBills.filter(function(x){return evidence.confirmed[x.id]===false;}).length;
   const pick=useMemo(function(){
     return planCoverPickBank(totals, charges.pendingByBank, charges.pendingBills, charges.paidBills);
   },[totals.minByBank,totals.minDayByBank,totals.mainBank,charges.pendingByBank,charges.pendingBills,charges.paidBills]);
@@ -42,7 +42,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
   // Frases propias: todo pagado / sin día (minDay 0) — NUNCA «el día ya» (review Claude 1845Z).
   const coverPhrase=(!billsEuroTotal)
     ? t("v4_plan_state_none")
-    : (allBillsPaid&&unconfirmed?t("v4_payment_pending"):(allBillsPaid
+    : (allBillsPaid&&unconfirmed?tf(unconfirmed===1?"v4_payment_all_except_one":"v4_payment_all_except",{n:unconfirmed}):(allBillsPaid
       ? (coverBank&&balKnown
         ? tf("v4_plan_state_all_paid",{x:eur0(balNow),bank:bankLab})
         : t("v4_plan_state_all_paid_nobank"))
@@ -307,8 +307,9 @@ function PlanBills({state, set, totals, charges, evidence, manageOpen, setManage
   const paidPanelId="v4-paid-panel";
   const month=totals.curMonth;
   const pack=charges||planChargesMonth(state, totals.curMonth, totals.curYear, totals.today);
-  // «Lo que aún saldrá» = recibos + traspasos pendientes. Ingresos NUNCA aquí (NO-GO 17/9).
-  const pending=pack.pendingBills.concat(pack.transfersPending);
+  // Solo recibos/cuotas suman en el restante. Los traspasos conservan su lista aparte
+  // para que la explicación de esta sección no los presente como otro pago pendiente.
+  const pending=pack.pendingBills;
   const proof=evidence||paymentEvidenceUI(state,totals.curYear,totals.curMonth,totals.today);
   const unconfirmed=pack.paidBills.filter(function(x){return proof.confirmed[x.id]===false;}).map(function(x){return Object.assign({},x,{paid:false,unconfirmed:true});});
   const paid=pack.paidBills.filter(function(x){return proof.confirmed[x.id]!==false;});
@@ -326,10 +327,10 @@ function PlanBills({state, set, totals, charges, evidence, manageOpen, setManage
     else try{ window.dispatchEvent(new CustomEvent("mc-open-bills")); }catch(e){}
   };
   const rowSub=function(x){
-    if(x.unconfirmed) return t("v4_payment_pending");
+    if(x.unconfirmed) return entOf(x.bank).label;
     // El recibo conserva el banco previsto; el cargo confirmado puede haber salido de otro.
     var bank=x.paid&&x.paidBank?x.paidBank:x.bank;
-    if(x.overdue) return entOf(x.bank).label+" · "+t("v4_charge_unconfirmed");
+    if(x.overdue) return entOf(x.bank).label;
     if(simple){
       if(x.kind==="income") return tf("v4s_row_income",{bank:entOf(x.bank).label});
       if(x.kind==="transfer"){
@@ -393,12 +394,13 @@ function PlanBills({state, set, totals, charges, evidence, manageOpen, setManage
         })()
       )
     ),
-    React.createElement("div",{className:"v4-section"},
+    React.createElement("div",{className:"v4-section","data-testid":"plan-due"},
       React.createElement("div",{className:"v4-section-h"},
-        React.createElement("span",null,simple?t("v4_aun_saldra"):t("v4_pendiente")),
+        React.createElement("span",null,t("v4_payment_due")),
         // Sencillo: sin «Gestionar» aquí — solo Ajustes → Cambiar mis recibos (NO-GO §5bis.2).
         !simple && React.createElement("button",{type:"button",className:"link",onClick:openManage}, t("v4_gestionar"))
       ),
+      pending.length>0&&React.createElement("div",{className:"ph"},t("v4_payment_due_hint")),
       pending.length===0
         ? React.createElement("div",{className:"ph",style:{padding:"8px 4px 4px"}}, t("v4_aun_saldra_empty"))
         : (pendExpanded?pending:pending.slice(0,3)).map(row),
@@ -406,7 +408,10 @@ function PlanBills({state, set, totals, charges, evidence, manageOpen, setManage
         pendExpanded ? t("v4_ver_menos") : tf("v4_ver_mas",{n:pending.length-3}))
     ),
     unconfirmed.length>0 && React.createElement("div",{className:"v4-section","data-testid":"plan-unconfirmed"},
-      React.createElement("div",{className:"v4-section-h"},t("v4_payment_pending")),unconfirmed.map(row)),
+      React.createElement("div",{className:"v4-section-h"},t("v4_payment_pending")+" · "+unconfirmed.length),
+      React.createElement("div",{className:"ph"},t("v4_payment_pending_hint")),unconfirmed.map(row)),
+    pack.transfersPending.length>0&&React.createElement("div",{className:"v4-section","data-testid":"plan-transfers"},
+      React.createElement("div",{className:"v4-section-h"},t("v4_plan_transfers")),pack.transfersPending.map(row)),
     incomePend.length>0 && React.createElement("div",{className:"v4-section"},
       React.createElement("div",{className:"v4-section-h"},
         React.createElement("span",null,t("v4_aun_entrara"))
