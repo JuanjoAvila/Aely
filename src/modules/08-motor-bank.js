@@ -1500,6 +1500,8 @@ function importObExpenses(s, txs, links){
   /* PRIMERA PASADA: la fila que ENTRARÍA por cada apunte, con todos los filtros de siempre
      (estado, ventana, modelados, id ya visto) pero SIN decidir todavía si ya la tenemos. */
   const prepara=function(tx){
+    // Descartar antes del alta evita reimportar y avisar de la misma preautorización en cada pull.
+    if(tx.amount===0)return null;
     if(tx.id&&(deletedRefs[(tx.ent||"")+"|"+tx.id]||deletedSignedRefs[obReferenceKey(tx.ent,tx.id,tx.amount)]))return null;
     if(tx.id&&(settled.coveredBooks.has(obReferenceKey(tx.ent,tx.id,tx.amount))||(obIsPending(tx)&&coveredPending.has(obPendingGroup(tx)+"|"+tx.id))))return null;
     const esIngreso = tx.amount<0;

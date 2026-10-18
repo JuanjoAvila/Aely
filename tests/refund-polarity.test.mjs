@@ -111,7 +111,7 @@ run('mutant-delete-link-loses-version',()=>{
 });
 
 // Remates de revisión: una preautorización a cero nunca reserva la referencia del cargo.
-for(const amount of [0,-0,'0'])for(const reverse of [false,true])for(const path of ['merge','cloudBatch','cloudSequential','server'])run('remate-zero/'+typeof amount+'/'+(Object.is(amount,-0)?'-0':amount)+'/'+reverse+'/'+path,()=>{
+for(const amount of [0,-0])for(const reverse of [false,true])for(const path of ['merge','cloudBatch','cloudSequential','server'])run('remate-zero/'+typeof amount+'/'+(Object.is(amount,-0)?'-0':amount)+'/'+reverse+'/'+path,()=>{
  const zero={...purchase,id:'zero-preauth',amount,obPending:true};
  const es=reverse?[purchase,zero]:[zero,purchase],out=paths[path](es);
  assert.equal(out.length,1);assert.equal(net(out),1234);assert.equal(out[0].id,purchase.id);
@@ -136,4 +136,65 @@ for(const version of [true,2])for(const sign of [-1,1])for(const missing of ['ro
    assert.equal(server.filasComoLaApp([toRow(other)],[marker]).length,1);
   }
  }
+});
+
+// Ronda 2: ejecutar los bloques reales de importación/aviso/subida y mezcla del pull.
+function zeroCycle(f,raw=clientSource,initial=[]){
+ const {c,state,purchase,toRow}=f,uploaded=[],notices=[],rounds=[];
+ let s=state(initial);const ref={get current(){return s;}};
+ const set=fn=>{s=fn(s);};class Clock extends Date{constructor(...a){super(...(a.length?a:[now]));}static now(){return now;}}
+ const links=[{aspsp:'CaixaBank',syncFrom:'2026-10-01',transactions:[{ext_id:'zero-cycle',date:purchase.date.slice(0,10),amount:0,merchant:'Synthetic zero',status:'PDNG'}]}];
+ const a=raw.indexOf('      set(function(prev){',raw.indexOf('obAckPend.current=')),b=raw.indexOf('      // INC-2909-03:',a);
+ const p=raw.indexOf('      const delSet={};',raw.indexOf('const syncCloudExpenses=')),q=raw.indexOf('        const rec=reconcileObDupes',p);
+ assert.ok(a>=0&&b>a&&p>=0&&q>p,'bloques reales encontrados');
+ const names=['flattenBankTx','importObExpenses','applyInvestBuy','cuotasDeDeudaPorMarcar','gemelosDeImportacion','pushGemelos','reconcileGemelosAutomaticos','enrichNotesFromBankTx','tagObAccountsFromBankTx','reconcileFixedPaymentProofs','reconcileEarlyIncomeAnchors','applyBankBalances','bankIssuesOf','expenseFromRow','expenseIsTombstoned','keyOfExpense','keepCategoryChoices','mergeExpensesFromCloud','fusionarGemelos'];
+ const namesExtra=['set','links','dbLinks','DEUDA_CAT','Date','at','setTimeout','subirGasto','opts','showToast','tf','stateRef','rows','readStartedAt','cloudGemelos','cloud'];
+ const invoke=(code,rows)=>new Function(...names,...namesExtra,code)(...names.map(n=>c[n]),set,links,[],{id:'deudas'},Clock,now,fn=>fn(),e=>uploaded.push(e),{},msg=>notices.push(msg),(k,o)=>[k,o.n],ref,rows,now,[],{});
+ for(let i=0;i<3;i++){
+  const u=uploaded.length,n=notices.length;
+  invoke('let obAdded=[];'+raw.slice(a,b),[]);
+  const previous=s.expenses;
+  invoke(raw.slice(p,q)+'return base;\n      });',uploaded.map(toRow));
+  if(initial.length)assert.ok(uploaded.slice(u).every(e=>initial.some(old=>old.id===e.id)),"solo backfill de filas locales previas");
+  rounds.push({uploads:uploaded.length-u,notices:notices.length-n,rewrite:s.expenses!==previous,count:s.expenses.length});
+ }
+ return rounds;
+}
+run('zero-cycle-r2/three-real-sync-pull-rounds',()=>{
+ const rounds=zeroCycle({c,state,purchase,toRow});console.log(JSON.stringify({zeroCycle:rounds}));
+ assert.deepEqual(rounds,Array.from({length:3},()=>({uploads:0,notices:0,rewrite:false,count:0})));
+});
+for(const source of ['manual','wallet','macrodroid','supabase','ob','ob-hist'])for(const amount of [null,undefined,'0',0,12.34,-12.34])run('zero-cycle-r2/boundary/'+source+'/'+typeof amount+'/'+amount,()=>{
+ const e={...purchase,source,amount},drop=(source==='ob'||source==='ob-hist')&&amount===0;
+ assert.equal(c.expenseIsTombstoned(e,{}),drop);
+ for(const out of [c.mergeExpenses([e],[]),c.mergeExpenses([],[e]),c.mergeExpensesFromCloud([e],[]),c.mergeExpensesFromCloud([],[e])]){
+  assert.equal(out.list.length,drop?0:1);if(!drop)assert.equal(out.list[0],e,'preserva objeto local');
+ }
+ if(!drop)assert.equal(c.mergeExpensesFromCloud([e],[]).changed,false);
+ if(source==='ob'||source==='ob-hist'){
+  assert.equal(c.obReferenceKey(e.ent,e.extId,e.amount)==='',drop);
+  assert.equal(c.obAbsorptionKey(e)===null,drop);
+ }
+});
+run('zero-cycle-r2/import-zero-return-null',()=>{
+ for(const amount of [0,-0])assert.equal(c.importObExpenses(state([]),[{...tx(purchase),amount,status:'PDNG'}],[{aspsp:'CaixaBank',syncFrom:'2026-10-01'}]),null);
+});
+run('zero-cycle-r2/nonzero-signs-and-distinct-reference',()=>{
+ const es=[purchase,refund,{...purchase,extId:'another-ref',id:'another-id',amount:3.20}],out=ingest([],es);
+ assert.equal(out.length,3);assert.equal(net(out),320);
+});
+
+run('zero-cycle-r2/local-other-sources-survive-real-pull',()=>{
+ const initial=[{...purchase,source:'manual',amount:null},{...purchase,id:'notice-zero',source:'wallet',amount:0}];
+ // El backfill previo de null sigue activo; ninguna subida es de la preautorización cero.
+ assert.deepEqual(zeroCycle({c,state,purchase,toRow},clientSource,initial),Array.from({length:3},()=>({uploads:1,notices:0,rewrite:false,count:2})));
+});
+for(const [name,from,to,check] of [
+ ['import-guard','if(tx.amount===0)return null;','',f=>assert.deepEqual(zeroCycle(f),Array.from({length:3},()=>({uploads:0,notices:0,rewrite:false,count:0})))],
+ ['source-guard','e&&esFilaDeBanco(e)&&e.amount===0','e&&e.amount===0',f=>assert.equal(f.c.expenseIsTombstoned({...f.purchase,source:'manual',amount:0},{}),false)],
+ ['null-coercion','esFilaDeBanco(e)&&e.amount===0','esFilaDeBanco(e)&&Number(e.amount)===0',f=>assert.equal(f.c.expenseIsTombstoned({...f.purchase,amount:null},{}),false)],
+ ['cloud-source-guard','if(esFilaDeBanco(e)&&e.amount===0){zeroRemoved=true;return;}','if(e.amount===0){zeroRemoved=true;return;}',f=>assert.equal(f.c.mergeExpensesFromCloud([{...f.purchase,source:'manual',amount:0}],[]).list.length,1)]
+])run('zero-cycle-r2/mutant/'+name,()=>{
+ const changed=clientSource.replace(from,to);assert.notEqual(changed,clientSource,'mutacion aplicada');
+ check({c,state,purchase,toRow});const f=fixture(changed);assert.throws(()=>check(f),{code:'ERR_ASSERTION'});
 });

@@ -1819,7 +1819,7 @@ function keyOfExpense(e){
 // Una devolución puede reutilizar la referencia de su compra: el signo separa ambas,
 // sin partir el mismo cargo cuando cambia de importe o fecha al contabilizarse.
 function obPolarity(amount){ return Number(amount)>0?1:Number(amount)<0?-1:0; }
-function obReferenceKey(bank,ref,amount){ return Number(amount)===0 ? "" : (bank||"")+"|"+ref+"|"+obPolarity(amount); }
+function obReferenceKey(bank,ref,amount){ return amount===0 ? "" : (bank||"")+"|"+ref+"|"+obPolarity(amount); }
 function bankDeletionLink(e){
   const g={aviso:"",banco:keyOfExpense(e)};
   if(e.extId){g.bankRef=String(e.extId);g.ent=expenseBankOf(e)||"";g.bankRefV=2;g.bankRefSign=obPolarity(e.amount);}
@@ -1853,7 +1853,7 @@ function obAbsorptionMatches(e,delSet){
 }
 /* Lápidas anteriores al Paso 0 guardaban la clave sin id: siguen ocultando ese manual. */
 function expenseIsTombstoned(e, delSet){
-  if(e&&Number(e.amount)===0)return true; // Una preautorización a cero no es un movimiento.
+  if(e&&esFilaDeBanco(e)&&e.amount===0)return true; // Una preautorización a cero no es un movimiento.
   if(!delSet) return false;
   if(obAbsorptionMatches(e,delSet))return true;
   const k=keyOfExpense(e);
@@ -1864,7 +1864,7 @@ function expenseIsTombstoned(e, delSet){
 /* Signo, cuenta y día acotan las absorciones nuevas. Las claves antiguas se conservan solo
    para leer lo ya borrado: sus datos perdidos no permiten reparar colisiones históricas. */
 function obAbsorptionKey(e,legacy){
-  if(e&&Number(e.amount)===0)return null;
+  if(e&&esFilaDeBanco(e)&&e.amount===0)return null;
   const bank=e&&expenseBankOf(e);
   const base=e&&esFilaDeBanco(e)&&bank&&e.extId ? encodeURIComponent(bank)+"|"+encodeURIComponent(String(e.extId))+"|"+obOrdinalOf(e) : null;
   return base ? (legacy===true?"ob-absorbed|"+base:(legacy===2?"ob-absorbed2|":"ob-absorbed3|")+base+"|"+encodeURIComponent(String(e.obAcc||""))+"|"+String(e.date||"").slice(0,10)+(legacy===2?"":"|"+obPolarity(e.amount))) : null;
@@ -2904,9 +2904,9 @@ function mergeExpenses(prevList, incoming){
   prevList=rows.slice(0,previousLength); incoming=rows.slice(previousLength);
   const seen={}; const list=[]; const refs=new Map();
   const mergeKey=function(e){const ref=esFilaDeBanco(e)&&e.extId&&obReferenceKey(expenseBankOf(e),e.extId,e.amount);let k=ref&&refs.get(ref);if(!k){k=keyOfExpense(e);if(ref)refs.set(ref,k);}return k;};
-  (prevList||[]).forEach(function(e){ if(Number(e.amount)===0)return; const k=mergeKey(e); if(!seen[k]){ seen[k]=1; list.push(e); } });
+  (prevList||[]).forEach(function(e){ if(esFilaDeBanco(e)&&e.amount===0)return; const k=mergeKey(e); if(!seen[k]){ seen[k]=1; list.push(e); } });
   let nuevos=0;
-  (incoming||[]).forEach(function(e){ if(Number(e.amount)===0)return; const k=mergeKey(e); if(!seen[k]){ seen[k]=1; list.push(e); nuevos++; } });
+  (incoming||[]).forEach(function(e){ if(esFilaDeBanco(e)&&e.amount===0)return; const k=mergeKey(e); if(!seen[k]){ seen[k]=1; list.push(e); nuevos++; } });
   return { list:list, nuevos:nuevos };
 }
 /* Refresca una fila LOCAL con lo que manda la nube SIN sustituir el array entero (12/9).
@@ -2987,7 +2987,7 @@ function mergeExpensesFromCloud(prevList, incoming, readStartedAt){
   const byKey={}; const order=[]; const refs=new Map(); let zeroRemoved=false;
   const mergeKey=function(e){const ref=esFilaDeBanco(e)&&e.extId&&obReferenceKey(expenseBankOf(e),e.extId,e.amount);let k=ref&&refs.get(ref);if(!k){k=keyOfExpense(e);if(ref)refs.set(ref,k);}return k;};
   (prevList||[]).forEach(function(e){
-    if(Number(e.amount)===0){zeroRemoved=true;return;}
+    if(esFilaDeBanco(e)&&e.amount===0){zeroRemoved=true;return;}
     const k=mergeKey(e);
     if(!byKey[k]){ byKey[k]=e; order.push(k); }
   });
@@ -3024,7 +3024,7 @@ function mergeExpensesFromCloud(prevList, incoming, readStartedAt){
     if(merged!==loc){ byKey[k]=merged; changed=true; }
   };
   (incoming||[]).forEach(function(inc){
-    if(Number(inc.amount)===0)return;
+    if(esFilaDeBanco(inc)&&inc.amount===0)return;
     const k=mergeKey(inc);
     if(seen[k]){
       if(!ganaAviso(k,inc) && !hecha[k] && inc.id===byKey[k].id){ hecha[k]=1; delete espera[k]; refresca(k,inc); }
