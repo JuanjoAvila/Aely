@@ -266,13 +266,13 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
   const bud=dashboardBudgetStats(state);
     return bud;
   },
-    [state.expenses,state.deleted,state.accounts,state.settings,state.flows,state.budget,state.reservaLog,seriesToday]);
+    [state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.accounts,state.settings,state.flows,state.budget,state.reservaLog,seriesToday]);
   const budAmt=bud.budget!=null?bud.budget:(state.budget||0);
   const spentAgainst=Math.max(0,bud.against), rem=bud.remaining!=null?bud.remaining:budAmt-spentAgainst;
   const timing=cycleTiming(bud), paceState=cyclePaceState(spentAgainst,budAmt,timing.elapsed,timing.days);
   const dailyMoney=budAmt>0?cycleDailyMoney(rem,timing.left):null;
   const series=useMemo(function(){ return netWorthSeries(state,{today:seriesToday,liquid:tt.liquid,invested:tt.invested,debtTotal:tt.debtTotal,balanceInputs:tt}); },
-    [state.accounts,state.obAccounts,state.accountBalanceHistory,state.invHistory,state.investments,state.assets,state.assetValueHistory,state.debts,state.expenses,state.deleted,state.flows,state.fixed,state.oneoffs,state.bankTx,state.aportaciones,state.settings,state.fx,state.fxRates,tt,seriesToday]);
+    [state.accounts,state.obAccounts,state.accountBalanceHistory,state.invHistory,state.investments,state.assets,state.assetValueHistory,state.debts,state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.flows,state.fixed,state.oneoffs,state.bankTx,state.aportaciones,state.settings,state.fx,state.fxRates,tt,seriesToday]);
 
   const overdue=[];
   // La fecha prevista no es un pago: la misma lectura de evidencia que Plan conserva los
@@ -330,7 +330,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
   // La fila del banco de una pareja automática (`autoGemelo`) queda oculta: la compra con comercio
   // ya está en la lista y repetirla enseñaba «Movimiento · Otros» con el mismo importe. Misma regla
   // que Gastos (visto por el dueño en la beta 4.26.131, 14/10/2026).
-  const recent=useMemo((s=state)=>(s.expenses||[]).filter(e=>!e.autoGemelo&&!expenseIsTombstoned(e,expenseDeletedSet(s))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted]);
+  const recent=useMemo((s=state)=>(s.expenses||[]).filter(e=>!e.autoGemelo&&!expenseIsTombstoned(e,expenseDeletedSet(s))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
   const ringPct=budAmt>0?Math.max(0,Math.min(1,rem/budAmt)):0;
   // Un céntimo disponible no debe confundirse con un presupuesto agotado por el redondeo visual.
   const ringLabel=Math.round(rem*100)>0&&Math.round(ringPct*100)===0?t("v42_cycle_under_one"):Math.round(ringPct*100)+"%";

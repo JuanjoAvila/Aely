@@ -140,8 +140,47 @@ function clavePreferenciaBook(f: FilaGasto): string {
  * gastos que él ya borró y notis gemelas que la lista ya fusionó.
  * Lápidas viejas (sin id) siguen ocultando manuales borrados antes del Paso 0.
  */
-export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefined, deleted: string[] | null | undefined): T[] {
+type ConfirmacionOb = { owner?: string; id?: string; key?: string; keepKey?: string; keepId?: string; ackAt?: unknown };
+/** El hash agrupa colisiones; solo el testigo completo puede excluir un movimiento. */
+export function confirmadasOb(value: unknown, owner?: string | null): ConfirmacionOb[] {
+  if (Array.isArray(value)) return value;
+  if (!value || typeof value !== "object") return [];
+  const p = value as { v?: number; o?: string; d?: unknown[]; r?: Record<string, unknown> };
+  if (p.v !== 1 || p.o !== owner || !Array.isArray(p.d) || !p.d.every(s => typeof s === "string") || !p.r || typeof p.r !== "object" || Array.isArray(p.r)) return [];
+  const out: ConfirmacionOb[] = [], d = p.d as string[];
+  for (const bucket of Object.values(p.r)) {
+    if (!Array.isArray(bucket)) return [];
+    for (const row of bucket) {
+      if (!Array.isArray(row) || row.length !== 5 || !row.slice(0,4).every(n => Number.isInteger(n) && n >= 0 && n < d.length)) return [];
+      out.push({owner:owner!,id:d[row[0]],key:d[row[1]],keepId:d[row[2]],keepKey:d[row[3]],ackAt:row[4]});
+    }
+  }
+  return out;
+}
+export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefined, deleted: string[] | null | undefined,
+  pending?: { owner?: string; key?: string }[] | null, owner?: string | null,
+  confirmed?: unknown): T[] {
   const lap = new Set(deleted || []);
+  const validKey = (k?: string) => /^ob-absorbed2\|[^|]+\|[^|]+\|[1-9]\d{0,5}\|[^|]*\|\d{4}-\d{2}-\d{2}$/.test(k || "");
+  const uuid = (id?: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id || "");
+  const own = confirmadasOb(confirmed,owner).filter(p => owner && p?.owner === owner && uuid(p.id) && uuid(p.keepId) && p.id !== p.keepId && validKey(p.key) && validKey(p.keepKey) && Object.prototype.hasOwnProperty.call(p,"ackAt"));
+  const gone = new Set(own.map(p => p.key!)), kept = new Set(own.map(p => p.keepKey!)), keepIds = new Set(own.map(p => p.keepId));
+  const index = (keys: Set<string>) => {
+    const any = new Set<string>(), missing = new Set<string>();
+    for (const key of keys) { const p = key.split("|"), base = p.slice(0,4).join("|") + "|" + p[5]; any.add(base); if (!p[4]) missing.add(base); }
+    return { any, missing };
+  };
+  const goneIndex = index(gone), keptIndex = index(kept);
+  const matches = (f: T, keys: Set<string>, ix: ReturnType<typeof index>) => {
+    const key = claveAbsorcionOb(f); if (!key) return false;
+    if (keys.has(key)) return true;
+    const p = key.split("|"), base = p.slice(0,4).join("|") + "|" + p[5];
+    return cuentaDeSource(f.source) ? ix.missing.has(base) : ix.any.has(base);
+  };
+  // Las no confirmadas tienen su propio tope y no caducan con las 500 lápidas normales.
+  for (const p of Array.isArray(pending) ? pending : []) {
+    if (owner && p?.owner === owner && /^ob-absorbed2\|[^|]+\|[^|]+\|[1-9]\d{0,5}\|[^|]*\|\d{4}-\d{2}-\d{2}$/.test(p.key || "")) lap.add(p.key!);
+  }
   // La ausencia de cuenta en cualquiera de los lados es el mismo comodín que usa
   // el escritor para proteger a la superviviente; ambos índices se calculan una vez.
   const sinCuenta = new Set<string>();
@@ -156,6 +195,9 @@ export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefine
   const live: T[] = [], books = new Map<string, T>();
   for (const f of filas || []) {
     if (Number(f.importe) === 0) continue; // Preautorización sin importe: no reserva identidad.
+    // Igual que FIN10 cliente: primero superviviente, cuenta/día/ordinal completos;
+    // una fila confirmada no puede consumir la referencia antes de quedar oculta.
+    if (!keepIds.has(String(f.id)) && !matches(f,kept,keptIndex) && matches(f,gone,goneIndex)) continue;
     const k = claveComoLaApp(f);
     if (lap.has(k)) continue;
     const absorbed = claveAbsorcionOb(f);

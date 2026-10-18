@@ -139,6 +139,10 @@ function mcLogText(raw){
 const GASTO_ORIGENES=["v4-apuntar","gastos-apuntar","gastos-editar","gastos-borrar","gastos-deshacer","gastos-dup","ob-import","ob-absorbed","backfill"];
 function mcLogEvent(kind,message,detail){
   const m=String(message||"");
+  if(kind==="error"&&m==="ob_absorbed"){
+    let p;try{p=JSON.parse(detail);}catch(e){return null;}
+    return p&&["full","persist","merge","retry","owner","confirmed_full","confirmed_persist","confirmed_merge"].includes(p.code)?{message:m,detail:JSON.stringify({code:p.code})}:null;
+  }
   if(kind==="error" && m==="GOALS_SYNC_CONFLICT") return {message:"goals_sync_conflict",detail:'{"code":"goals_sync_conflict"}'};
   if(kind==="use") return USO_OK.indexOf(m)>=0?{message:m,detail:null}:null;
   if(kind==="perf"){
@@ -765,7 +769,7 @@ function mcLoadRaw(key){
     base._goalSync=Object.assign({},meta,{conflicts:disk && (!disk.owner || disk.owner===meta.owner)?goalSyncRecords(disk.records):[]});
     if(legacy) mcSaveRaw(key,base,{expenses:false});
   }
-  return base;
+  return obConfirmedRestore(obAbsorbedRestore(base,key),key);
 }
 /* SE GUARDA LO QUE SE HA PINTADO, NO LO QUE SE CALCULÓ (INC-0410, 4/10/2026).
    Antes `set()` apuntaba el volcado pendiente DENTRO del updater. React puede ejecutar un updater
@@ -796,6 +800,8 @@ function mcSaveRaw(key, s, opts){
   if(key.endsWith("_goal_conflicts")){ store.set(key,{owner:s.owner,records:goalSyncRecords(s.records)}); return; }
   const rest=Object.assign({},s);
   delete rest.expenses;
+  if(s._historyOwner&&Array.isArray(s.obAbsorbedConfirmed)&&(!s.obAbsorbedConfirmed.length||obConfirmedPersist(s._historyOwner,s.obAbsorbedConfirmed,key)))delete rest.obAbsorbedConfirmed;
+  delete rest.obAbsorbedIssue;
   if(s._goalSync){
     goalSyncStore(key,s._goalSync);
     rest._goalSync=Object.assign({},s._goalSync); delete rest._goalSync.conflicts;
@@ -1130,6 +1136,7 @@ async function mcPullExpensesPaged(fetchPage){
 
 const cloud = (function(){
   let sb = null;
+  const statePushCache=new Map();
   try {
     if (window.supabase && CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY) {
       sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
@@ -1138,7 +1145,7 @@ const cloud = (function(){
   return {
     enabled(){ return !!sb; },
     async session(){ if(!sb) return null; const {data}=await sb.auth.getSession(); return data.session; },
-    onAuth(cb){ const sub=sb&&sb.auth.onAuthStateChange((ev,s)=>{ cb(s,ev); }); return ()=>{ if(sub) sub.data.subscription.unsubscribe(); }; },
+    onAuth(cb){ const sub=sb&&sb.auth.onAuthStateChange((ev,s)=>{ if(ev==="SIGNED_OUT")statePushCache.clear();cb(s,ev); }); return ()=>{ if(sub) sub.data.subscription.unsubscribe(); }; },
     async signIn(email){
       if(!sb) throw new Error("nube no disponible");
       const {error}=await sb.auth.signInWithOtp({ email:email, options:{ emailRedirectTo: location.href.split('#')[0] } });
@@ -1157,6 +1164,14 @@ const cloud = (function(){
     },
     async pushState(uid, data, lastKnownUpdatedAt){
       if(!sb || !uid) return null;
+      const current=await this.session();if(!current||current.user.id!==uid)throw new Error("ob_confirmed_owner");
+      const confirmed=obConfirmedMerge(data,null,uid);if(!confirmed)throw new Error("ob_confirmed_merge");
+      data=Object.assign({},data,{obAbsorbedConfirmed:obConfirmedPack(confirmed,uid)});delete data.obAbsorbedIssue;
+      if((data.obAbsorbedPending||[]).some(function(p){return !obAbsorbedValid(p,uid);})||(data.obAbsorbedPending||[]).length>OB_ABSORBED_MAX)throw new Error("ob_absorbed_owner");
+      const semantic=Object.assign({},data);delete semantic._savedAt;
+      const body=obStateCanonical(semantic),cached=statePushCache.get(uid);
+      if(lastKnownUpdatedAt&&cached&&cached.revision===lastKnownUpdatedAt&&cached.body===body)return {updated_at:lastKnownUpdatedAt,unchanged:true};
+      statePushCache.delete(uid);
       const now=new Date().toISOString();
       if(lastKnownUpdatedAt){
         const {data:rows,error}=await sb.from('app_state')
@@ -1165,12 +1180,14 @@ const cloud = (function(){
           .select('updated_at');
         if(error) throw error;
         if(!rows || !rows.length) return { conflict:true };
+        statePushCache.set(uid,{body:body,revision:rows[0].updated_at});
         return { updated_at:rows[0].updated_at };
       }
       const {data:rows,error}=await sb.from('app_state')
         .upsert({ user_id:uid, data:data, updated_at:now }, { onConflict:'user_id' })
         .select('updated_at');
       if(error) throw error;
+      if(rows&&rows[0]&&rows[0].updated_at)statePushCache.set(uid,{body:body,revision:rows[0].updated_at});
       return { updated_at: rows && rows[0] && rows[0].updated_at };
     },
     async pullExpenses(readProof){
@@ -1208,6 +1225,7 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))return null;
       // source lleva el banco embebido (ob:caixa…) para filtrar en Gastos tras reinstalación
       // sin columna nueva en Supabase (feedback 2026-07-16).
       const base={ user_id:session.user.id, fecha:e.date, importe:e.amount, comercio:e.merchant, cat:e.category, source:expenseSourceForCloud(e), no_card:!!e.noCard };
@@ -1222,8 +1240,10 @@ const cloud = (function(){
       // Cómo lo llamaba el banco (migración 0021). Sin esto, renombrar el «Movimiento» de Trade
       // Republic hacía que el siguiente sync no reconociera la fila y metiera el gasto otra vez.
       const obn={ ob_name:(e.obName!=null?String(e.obName).slice(0,160):null) };
+      let denied=false;
       const r=await withNotaFallback(
-        function(conNota, conDivisa, conObName){
+        async function(conNota, conDivisa, conObName){
+          if(!await obConfirmedCanUpload(e,session.user.id,sb)){denied=true;return {data:null,error:null};}
           let fila=base;
           if(conNota) fila=Object.assign({},fila,nota);
           if(conDivisa) fila=Object.assign({},fila,divisa);
@@ -1240,6 +1260,7 @@ const cloud = (function(){
           return e.reciboId ? q.select('id') : q;
         }
       );
+      if(denied)return null;
       return !!(r && r.data && r.data.length);
     },
     /* LA MARCA DE RECIBO DE UNA FILA QUE YA ESTÁ EN LA NUBE: la pone si `e` la lleva y la quita
@@ -1253,7 +1274,8 @@ const cloud = (function(){
       if(!sb || !e.ent) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
-      const {data,error}=await sb.from('expenses').select('id,source')
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))return;
+      const {data,error}=await sb.from('expenses').select('id,source,fecha,importe,comercio')
         .eq('user_id',session.user.id).eq('fecha',e.date).eq('importe',e.amount).eq('comercio',e.merchant);
       if(error) throw error;
       for(const r of data||[]){
@@ -1261,6 +1283,7 @@ const cloud = (function(){
         if(!m || m[2]!==e.ent || (e.reciboId && m[4].indexOf("#dup")>=0)) continue;
         const src=m[1]+":"+m[2]+reciboSufijo(e.reciboId)+m[4];
         if(src===r.source) continue;
+        if(!await obConfirmedCanUpload(expenseFromRow(r),session.user.id,sb))continue;
         const w=await sb.from('expenses').update({ source:src }).eq('user_id',session.user.id).eq('id',r.id);
         if(w.error) throw w.error;
       }
@@ -1272,11 +1295,19 @@ const cloud = (function(){
       if(!sb) return { cloudIds:[], offline:true };
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return { cloudIds:[], offline:true };
-      const list=(expenses||[]).filter(Boolean);
+      const candidates=(expenses||[]).filter(Boolean),list=[];
+      for(const e of candidates)if(await obConfirmedCanUpload(e,session.user.id,sb))list.push(e);
       if(!list.length) return { cloudIds:[], offline:false };
       const uid=session.user.id;
-      const r=await withNotaFallback(function(conNota, conDivisa, conObName){
-        const filas=list.map(function(e){
+      const r=await withNotaFallback(async function(conNota, conDivisa, conObName){
+        const checked=[];for(const e of list)if(await obConfirmedCanUpload(e,uid,sb))checked.push(e);
+        // Una fila posterior puede haber cambiado de sesión después de aprobar la anterior.
+        // Desde esta barrera hasta construir el envío no hay más awaits; el registro se relee después.
+        const current=await sb.auth.getSession(),activeSession=!current.error&&current.data&&current.data.session;
+        if(!activeSession||!activeSession.user||activeSession.user.id!==uid||(activeSession.expires_at!=null&&(!Number.isFinite(Number(activeSession.expires_at))||Number(activeSession.expires_at)*1000<=Date.now())))return {data:[],error:null};
+        const records=obConfirmedRead(uid);
+        const active=records&&!obConfirmedBlocked.has(uid)?checked.filter(function(e){return !obConfirmedMatches(e,records,uid);}):[];
+        const filas=active.map(function(e){
           const base={ user_id:uid, fecha:e.date, importe:e.amount, comercio:e.merchant, cat:e.category, source:expenseSourceForCloud(e), no_card:!!e.noCard };
           if(isExpenseUuid(e&&e.id)) base.id=e.id;
           let fila=base;
@@ -1285,6 +1316,7 @@ const cloud = (function(){
           if(conObName) fila=Object.assign({},fila,{ ob_name:(e.obName!=null?String(e.obName).slice(0,160):null) });
           return fila;
         });
+        if(!filas.length)return {data:[],error:null};
         return sb.from('expenses').upsert(
           filas,
           { onConflict:'user_id,fecha,importe,comercio', ignoreDuplicates:true }
@@ -1310,6 +1342,7 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
+      if(!await obConfirmedCanUpload(e,session.user.id,sb)||!await obConfirmedCanUpload(Object.assign({},e,{ent:ent||undefined}),session.user.id,sb))return;
       const src=expenseSourceForCloud(Object.assign({},e,{ent:ent||undefined}));
       const {error}=await expenseCloudEq(sb.from('expenses').update({ source:src }), session.user.id, e);
       if(error) throw error;
@@ -1322,6 +1355,7 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))return;
       const src=expenseSourceForCloud(Object.assign({},e,{possibleDup:!!isDup}));
       const {error}=await expenseCloudEq(sb.from('expenses').update({ source:src }), session.user.id, e);
       if(error) throw error;
@@ -1331,6 +1365,7 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))return;
       const {error}=await expenseCloudEq(sb.from('expenses').update({ no_card:!!noCard }), session.user.id, e);
       if(error) throw error;
     },
@@ -1340,6 +1375,7 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))return;
       // Si la migración 0017 aún no está aplicada, esto no puede hacer nada útil: se avisa al
       // llamante en vez de fallar mudo (aquí el concepto ES el dato que el usuario quiere guardar).
       const {error}=await expenseCloudEq(sb.from('expenses').update({ nota:String(note||"").slice(0,160)||null, nota_edit:true }), session.user.id, e);
@@ -1352,6 +1388,7 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))return 0;
       const upd={ cat:String(cat||"otros") };
       // Sacar una cuota de «Deudas» a mano le quita también la marca en la nube; si no, el
       // siguiente pull le devolvería el `debtId` (4.21.0).
@@ -1375,6 +1412,7 @@ const cloud = (function(){
       if(read.error) throw read.error;
       const row=read.data;
       if(!withdrawalRowMatches(e,row)) throw new Error("withdrawal identity changed");
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))throw new Error("withdrawal unavailable");
       // El vínculo puede llegar mientras se consulta la fila: no neutralizar un pago compartido.
       if(!ready()) throw new Error("withdrawal unavailable");
       if(row.cat==="traspaso") return row;
@@ -1397,6 +1435,7 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))return;
       const {error}=await expenseCloudEq(sb.from('expenses').update({ cat:"deudas", source:expenseSourceForCloud(e) }), session.user.id, e);
       if(error) throw error;
     },
@@ -1406,6 +1445,50 @@ const cloud = (function(){
       if(!session) return;
       const {error}=await expenseCloudEq(sb.from('expenses').delete(), session.user.id, e);
       if(error) throw error;
+    },
+    // El acuse pertenece al objetivo leído, nunca a una referencia compartida con la superviviente.
+    async settleObAbsorbed(p, currentOwner){
+      if(!sb||mcSandbox()||!obAbsorbedValid(p,p&&p.owner)) return false;
+      const owner=p.owner, controller=new AbortController(), timer=setTimeout(function(){controller.abort();},8000);
+      const active=async function(){
+        if(currentOwner()!==owner)return false;
+        const r=await sb.auth.getSession(),s=r.data&&r.data.session;
+        return !r.error&&s&&s.user.id===owner&&(s.expires_at==null||Number.isFinite(Number(s.expires_at))&&Number(s.expires_at)*1000>Date.now())&&currentOwner()===owner;
+      };
+      const query=async function(q){const r=await q.abortSignal(controller.signal);if(r.error||!Array.isArray(r.data))throw new Error("ob_absorbed_read");return r.data;};
+      const columns="id,fecha,importe,comercio,source,ob_name";
+      const find=async function(){
+        if(!await active())throw new Error("ob_absorbed_owner");
+        const exact=await query(sb.from('expenses').select(columns).eq('user_id',owner).eq('id',p.id).limit(2));
+        if(exact.length>1)throw new Error("ob_absorbed_cardinality");
+        if(exact.length){if(!obAbsorbedCandidate(p,exact[0],false))throw new Error("ob_absorbed_changed");return exact[0];}
+        const day=p.key.split("|")[5],end=new Date(Date.parse(day+"T00:00:00Z")+86400000).toISOString();
+        const rows=await query(sb.from('expenses').select(columns).eq('user_id',owner).gte('fecha',day+"T00:00:00Z").lt('fecha',end).limit(201));
+        if(rows.length>=201)throw new Error("ob_absorbed_incomplete");
+        const possible=rows.filter(function(r){return obAbsorbedPossible(p,r);});
+        if(possible.length>1||possible.length===1&&!obAbsorbedCandidate(p,possible[0],true))throw new Error("ob_absorbed_ambiguous");
+        return possible[0]||null;
+      };
+      try{
+        if(p.idsOnly){
+          if(!await active())return false;
+          const keep=await query(sb.from('expenses').select(columns).eq('user_id',owner).eq('id',p.keepId).limit(2));
+          if(keep.length!==1)return false;
+          const witness=expenseFromRow(keep[0]),key=obAbsorptionKey(witness);
+          if(!key||(key!==p.keepKey&&key!==p.keepRefKey)||!Number.isFinite(witness.amount)||witness.amount<=0)return false;
+          // El importe y comercio se acreditan de nuevo con la superviviente, nunca con el objetivo.
+          p=Object.assign({},p,{amount:witness.amount,merchant:witness.merchant||""});delete p.idsOnly;
+        }
+        const target=await find();
+        if(!target)return !!await active();
+        if(!await active())return false;
+        const rows=await query(sb.from('expenses').delete().eq('user_id',owner).eq('id',target.id)
+          .eq('source',target.source).eq('fecha',target.fecha).eq('importe',target.importe).eq('comercio',target.comercio).select('id'));
+        if(rows.length===1&&rows[0].id===target.id)return !!await active();
+        // Cero filas puede ser una carrera o una respuesta perdida: volver a leer, no inventar éxito.
+        return rows.length===0&&!await find()&&!!await active();
+      }catch(e){obAbsorbedWarn("retry",p.owner);return false;}
+      finally{clearTimeout(timer);}
     },
     async prices(symbols){
       if(!sb) throw new Error("nube no disponible");
@@ -1846,7 +1929,7 @@ function bankDeletionLink(e){
 }
 // El mapa de lápidas se cachea por la referencia de deleted. Su índice también: recorrer
 // 500 claves por cada fila convertía un render de 20000 movimientos en diez millones.
-const obAbsorptionIndexes=new WeakMap();
+const obAbsorptionIndexes=new WeakMap(),expenseConfirmedSets=new WeakMap();
 function obAbsorptionIndex(delSet){
   let index=obAbsorptionIndexes.get(delSet);if(index)return index;
   index={any:Object.create(null),missing:Object.create(null)};
@@ -1874,6 +1957,8 @@ function obAbsorptionMatches(e,delSet){
 function expenseIsTombstoned(e, delSet){
   if(e&&esFilaDeBanco(e)&&e.amount===0)return true; // Una preautorización a cero no es un movimiento.
   if(!delSet) return false;
+  const confirmed=expenseConfirmedSets.get(delSet);
+  if(confirmed&&obConfirmedMatches(e,confirmed.list,confirmed.owner))return true;
   if(obAbsorptionMatches(e,delSet))return true;
   const k=keyOfExpense(e);
   if(delSet[k]) return true;
@@ -1888,12 +1973,290 @@ function obAbsorptionKey(e,legacy){
   const base=e&&esFilaDeBanco(e)&&bank&&e.extId ? encodeURIComponent(bank)+"|"+encodeURIComponent(String(e.extId))+"|"+obOrdinalOf(e) : null;
   return base ? (legacy===true?"ob-absorbed|"+base:(legacy===2?"ob-absorbed2|":"ob-absorbed3|")+base+"|"+encodeURIComponent(String(e.obAcc||""))+"|"+String(e.date||"").slice(0,10)+(legacy===2?"":"|"+obPolarity(e.amount))) : null;
 }
+/* FIN-11: la intención sobrevive al cierre y a la poda de las 500 lápidas. Guardar primero
+   en una partición pequeña con readback: el fallback en memoria no acredita persistencia. */
+const OB_ABSORBED_MAX=200,obAbsorbedWarnings=new Set(),obAbsorbedRuns=new Map(),obAbsorbedNotices=new Map();
+function obAbsorbedNoticeKey(owner){return mcStateKey()+"_obissue_"+encodeURIComponent(owner||"");}
+function obAbsorbedTakeNotice(owner){
+  const key=obAbsorbedNoticeKey(owner),notice=obAbsorbedNotices.get(key)||store.get(key);
+  if(!notice||notice.shown)return false;
+  const shown=Object.assign({},notice,{shown:true});obAbsorbedNotices.set(key,shown);store.set(key,shown);return true;
+}
+function obAbsorbedClearNotice(owner){
+  const key=obAbsorbedNoticeKey(owner);obAbsorbedNotices.delete(key);store.del(key);
+}
+function obAbsorbedWarn(code,owner){
+  if(!["full","persist","merge","retry","owner","confirmed_full","confirmed_persist","confirmed_merge"].includes(code))return;
+  const key=obAbsorbedNoticeKey(owner);
+  if(!obAbsorbedNotices.has(key)&&!store.get(key)){const notice={code:code,shown:false};obAbsorbedNotices.set(key,notice);store.set(key,notice);}
+  if(!obAbsorbedWarnings.has(code)){
+    obAbsorbedWarnings.add(code);
+    try{Promise.resolve(cloud.logEvent("error","ob_absorbed",JSON.stringify({code:code}))).catch(function(){});}catch(e){}
+  }
+  // El aviso se pinta fuera del updater financiero; tampoco transporta datos del movimiento.
+  Promise.resolve().then(function(){try{window.dispatchEvent(new CustomEvent("mc-ob-absorbed-warning",{detail:owner||""}));}catch(e){}});
+}
+/* FIN17: un ACK no es una intención pendiente. Esta memoria tiene su propio límite y
+   nunca desaparece al podar las lápidas normales. No es un cerco atómico del servidor. */
+const OB_CONFIRMED_MAX=1000,OB_CONFIRMED_AGE=90*86400000,obConfirmedBlocked=new Set(),obConfirmedIndexes=new WeakMap(),obConfirmedReadCache=new Map();
+function obStateCanonical(value){
+  return JSON.stringify(value,function(k,v){if(v&&typeof v==="object"&&!Array.isArray(v)){const sorted={};Object.keys(v).sort().forEach(function(key){sorted[key]=v[key];});return sorted;}return v;});
+}
+function obConfirmedHash(text){
+  let h=2166136261;for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(36);
+}
+function obConfirmedPack(list,owner){
+  const d=[],seen=new Map(),r=Object.create(null),put=function(s){if(!seen.has(s)){seen.set(s,d.length);d.push(s);}return seen.get(s);};
+  // El hash solo agrupa: cada colisión conserva TODOS los testigos exactos, nunca decide un match.
+  const rows=list.map(function(p){return [p.id,p.key,p.keepId,p.keepKey,typeof p.ackAt==="number"&&Number.isFinite(p.ackAt)&&p.ackAt>0?p.ackAt:null];});
+  rows.sort(function(a,b){const x=JSON.stringify(a),y=JSON.stringify(b);return x<y?-1:x>y?1:0;});
+  rows.forEach(function(row){const hash=obConfirmedHash(JSON.stringify(row.slice(0,4))),bucket=r[hash]||(r[hash]=[]);bucket.push(row.slice(0,4).map(put).concat([row[4]]));});
+  return {v:1,o:owner,d:d,r:r};
+}
+function obConfirmedUnpack(value,owner){
+  if(value==null||Array.isArray(value))return value;
+  if(value.v!==1||value.o!==owner||!Array.isArray(value.d)||!value.d.every(function(s){return typeof s==="string";})||!value.r||typeof value.r!=="object"||Array.isArray(value.r))return null;
+  const list=[];
+  for(const bucket of Object.values(value.r)){
+    if(!Array.isArray(bucket))return null;
+    for(const row of bucket){
+      if(!Array.isArray(row)||row.length!==5||!row.slice(0,4).every(function(n){return Number.isInteger(n)&&n>=0&&n<value.d.length;}))return null;
+      list.push({owner:owner,id:value.d[row[0]],key:value.d[row[1]],keepId:value.d[row[2]],keepKey:value.d[row[3]],ackAt:row[4]});
+    }
+  }
+  return list;
+}
+function obConfirmedValid(p,owner){
+  const key=function(k){const a=String(k||"").split("|");return a.length===6&&a[0]==="ob-absorbed2"&&!!a[1]&&!!a[2]&&/^[1-9]\d{0,5}$/.test(a[3])&&/^\d{4}-\d{2}-\d{2}$/.test(a[5]);};
+  return !!p&&!!owner&&p.owner===owner&&isExpenseUuid(p.id)&&isExpenseUuid(p.keepId)&&p.id!==p.keepId&&key(p.key)&&key(p.keepKey)&&Object.prototype.hasOwnProperty.call(p,"ackAt");
+}
+function obConfirmedJoin(a,b,owner,evict,now){
+  const left=a,right=b;a=obConfirmedUnpack(a,owner);b=obConfirmedUnpack(b,owner);
+  if(left!=null&&a==null||right!=null&&b==null)return null;
+  if(a!=null&&!Array.isArray(a)||b!=null&&!Array.isArray(b))return null;
+  const out=[],seen=new Map();
+  for(const p of (Array.isArray(a)?a:[]).concat(Array.isArray(b)?b:[])){
+    if(p&&p.owner!==owner)continue;
+    if(!obConfirmedValid(p,owner))return null;
+    const k=JSON.stringify([p.key,p.keepKey,p.keepId]),i=seen.get(k);
+    if(i==null){seen.set(k,out.length);out.push(p);}
+    else{
+      const q=out[i],valid=function(n){return typeof n==="number"&&Number.isFinite(n)&&n>0;};
+      const at=valid(q.ackAt)&&valid(p.ackAt)?Math.max(q.ackAt,p.ackAt):null;
+      if(q.ackAt!==at)out[i]=Object.assign({},q,{ackAt:at});
+    }
+  }
+  if(out.length>OB_CONFIRMED_MAX){
+    if(!evict)return out;
+    const cut=(now==null?Date.now():now)-OB_CONFIRMED_AGE;
+    const eligible=out.filter(function(p){return typeof p.ackAt==="number"&&Number.isFinite(p.ackAt)&&p.ackAt>0&&p.ackAt<cut;}).sort(function(x,y){return x.ackAt-y.ackAt;});
+    const n=Math.min(out.length-OB_CONFIRMED_MAX,eligible.length);
+    const drop=new Set(eligible.slice(0,n)),kept=out.filter(function(p){return !drop.has(p);});
+    // El tope no autoriza perder ACK recientes ni parar toda la cartera (revisión FIN17).
+    if(kept.length>OB_CONFIRMED_MAX&&!obAbsorbedWarnings.has("confirmed_full")){
+      obAbsorbedWarnings.add("confirmed_full");
+      try{Promise.resolve(cloud.logEvent("error","ob_absorbed",JSON.stringify({code:"confirmed_full"}))).catch(function(){});}catch(e){}
+    }
+    return kept;
+  }
+  return Array.isArray(a)&&out.length===a.length&&out.every(function(p,i){return p===a[i];})?a:out;
+}
+function obConfirmedMatches(e,list,owner){
+  if(!Array.isArray(list)||!list.length)return false;
+  let index=obConfirmedIndexes.get(list);
+  if(!index||index.owner!==owner){
+    index={owner:owner,keep:Object.create(null),gone:Object.create(null),ids:new Set()};
+    list.forEach(function(p){if(obConfirmedValid(p,owner)){index.keep[p.keepKey]=1;index.gone[p.key]=1;index.ids.add(p.keepId);}});
+    obConfirmedIndexes.set(list,index);
+  }
+  // El veto de TODAS las supervivientes precede al match: jamás se oculta una por referencia.
+  if(e&&index.ids.has(e.id)||obAbsorptionMatches(e,index.keep))return false;
+  return obAbsorptionMatches(e,index.gone);
+}
+function obConfirmedStorageKey(owner,key){return (key||mcStateKey())+"_oback_"+encodeURIComponent(owner);}
+function obConfirmedStorage(){return typeof localStorage!=="undefined"?localStorage:window.localStorage;}
+function obConfirmedRead(owner,key){
+  if(!owner)return null;
+  try{const storageKey=obConfirmedStorageKey(owner,key),raw=obConfirmedStorage().getItem(storageKey),cached=obConfirmedReadCache.get(storageKey);
+    if(cached&&cached.raw===raw)return cached.list;
+    if(raw==null){const empty=[];obConfirmedReadCache.set(storageKey,{raw:raw,list:empty});return empty;}
+    const p=JSON.parse(raw);if(p.v!==1&&(p.owner!==owner||!Array.isArray(p.confirmed)))return null;
+    const list=obConfirmedJoin(p.v===1?p:p.confirmed,[],owner);if(list)obConfirmedReadCache.set(storageKey,{raw:raw,list:list});return list;
+  }catch(e){return null;}
+}
+function obConfirmedPersist(owner,list,key){
+  if(!owner||!Array.isArray(list)||list.some(function(p){return !obConfirmedValid(p,owner);}))return false;
+  // JSON omite undefined: una edad ilegible se conserva como null, nunca como pérdida del ACK.
+  const durable=list.map(function(p){return typeof p.ackAt==="number"&&Number.isFinite(p.ackAt)&&p.ackAt>0?p:Object.assign({},p,{ackAt:null});});
+  try{const body=JSON.stringify(obConfirmedPack(durable,owner)),k=obConfirmedStorageKey(owner,key);
+    const storage=obConfirmedStorage();if(storage.getItem(k)!==body)storage.setItem(k,body);return storage.getItem(k)===body;
+  }catch(e){return false;}
+}
+function obConfirmedMerge(local,remote,owner,key){
+  const disk=obConfirmedRead(owner,key),own=local&&local._historyOwner===owner?local.obAbsorbedConfirmed:[];
+  const joined=disk&&obConfirmedJoin(disk,own,owner),list=joined&&obConfirmedJoin(joined,remote&&remote.obAbsorbedConfirmed,owner,true);
+  // Una unión vacía no incorpora ningún ACK: no necesita inventar una escritura durable vacía.
+  if(!list||list.length&&!obConfirmedPersist(owner,list,key)){obConfirmedBlocked.add(owner);obAbsorbedWarn("confirmed_merge",owner);return null;}
+  obConfirmedBlocked.delete(owner);return list;
+}
+function obConfirmedRestore(s,key){
+  const owner=s&&s._historyOwner;if(!owner)return s;
+  const list=obConfirmedMerge(s,null,owner,key);
+  const next=Object.assign({},s);delete next.obAbsorbedIssue;
+  if(list)next.obAbsorbedConfirmed=list;return next;
+}
+function obConfirmedAck(s,p,owner){
+  const disk=obConfirmedRead(owner),own=disk&&obConfirmedJoin(disk,s.obAbsorbedConfirmed,owner);
+  const record={owner:owner,id:p.id,key:p.key,keepId:p.keepId,keepKey:p.keepKey,ackAt:Date.now()};
+  const list=own&&obConfirmedJoin(own,[record],owner,true);
+  if(!list){obAbsorbedWarn("confirmed_full",owner);return null;}
+  if(!obConfirmedPersist(owner,list)){obAbsorbedWarn("confirmed_persist",owner);return null;}
+  return list;
+}
+async function obConfirmedCanUpload(e,owner,sdk){
+  // Revalidar el MISMO SDK que enviará la escritura, incluso en métodos ligados a otra instancia.
+  if(!sdk||!sdk.auth||typeof sdk.auth.getSession!=="function")return false;
+  const response=await sdk.auth.getSession(),session=!response.error&&response.data&&response.data.session;
+  if(!session||!session.user||session.user.id!==owner||(session.expires_at!=null&&(!Number.isFinite(Number(session.expires_at))||Number(session.expires_at)*1000<=Date.now())))return false;
+  const list=obConfirmedRead(owner);
+  if(!list||obConfirmedBlocked.has(owner)){obAbsorbedWarn("confirmed_merge",owner);return false;}
+  return !obConfirmedMatches(e,list,owner);
+}
+function obAbsorbedValid(p,owner){
+  if(!p||!owner||p.owner!==owner||!isExpenseUuid(p.id)||!isExpenseUuid(p.keepId)||p.id===p.keepId)return false;
+  const a=String(p.key||"").split("|"),b=String(p.keepKey||"").split("|");
+  return a.length===6&&a[0]==="ob-absorbed2"&&!!a[1]&&!!a[2]&&/^[1-9]\d{0,5}$/.test(a[3])&&/^\d{4}-\d{2}-\d{2}$/.test(a[5])
+    &&b.length===6&&b[0]==="ob-absorbed2"&&(p.idsOnly===true
+      ?Object.keys(p).every(function(k){return ["owner","id","key","keepId","keepKey","keepRefKey","idsOnly"].includes(k);})
+        &&(p.keepRefKey==null||typeof p.keepRefKey==="string"&&p.keepRefKey.split("|").length===6&&p.keepRefKey.indexOf("ob-absorbed2|")===0)
+      :typeof p.merchant==="string"&&typeof p.amount==="number"&&Number.isFinite(p.amount)&&p.amount>0);
+}
+function obAbsorbedJoin(a,b,owner){
+  const out=[],seen=new Set();
+  (Array.isArray(a)?a:[]).concat(Array.isArray(b)?b:[]).forEach(function(p){
+    if(!obAbsorbedValid(p,owner))return;
+    const key=p.id+"|"+p.key;if(!seen.has(key)){seen.add(key);out.push(p);}
+  });
+  if(out.length>OB_ABSORBED_MAX){obAbsorbedWarn("merge",owner);return null;}
+  return Array.isArray(a)&&out.length===a.length&&out.every(function(p,i){return p===a[i];})?a:out;
+}
+function obAbsorbedStorageKey(owner,key){return (key||mcStateKey())+"_obabs_"+encodeURIComponent(owner);}
+function obAbsorbedIdsKey(owner,key){return (key||mcStateKey())+"_obabs_ids_"+encodeURIComponent(owner);}
+function obAbsorbedDisk(owner,key,ids){
+  try{
+    const raw=localStorage.getItem(ids?obAbsorbedIdsKey(owner,key):obAbsorbedStorageKey(owner,key));if(raw==null)return [];
+    const pack=JSON.parse(raw),list=obAbsorbedJoin(pack.pending,[],owner);
+    if(pack.owner===owner&&list&&Array.isArray(pack.pending)&&list.length===pack.pending.length)return list;
+  }catch(e){}
+  obAbsorbedWarn("persist",owner);return null;
+}
+function obAbsorbedMerge(a,b,owner,key){
+  const disk=obAbsorbedDisk(owner,key,false),ids=obAbsorbedDisk(owner,key,true),list=obAbsorbedJoin(a,b,owner);
+  if(!disk||!ids||!list)return null;
+  const durable=obAbsorbedJoin(ids,disk,owner),merged=durable&&obAbsorbedJoin(durable,list,owner);
+  // El disco conserva prioridad; releer el mismo contenido no debe invalidar los memos.
+  return merged&&Array.isArray(a)&&merged.length===a.length&&merged.every(function(p,i){
+    const q=a[i];return p===q||q&&Object.keys(p).length===Object.keys(q).length&&Object.keys(p).every(function(k){return Object.prototype.hasOwnProperty.call(q,k)&&p[k]===q[k];});
+  })?a:merged;
+}
+function obAbsorbedSignOut(owner,s){
+  if(!owner)return;
+  const list=obAbsorbedMerge(s&&s._historyOwner===owner?s.obAbsorbedPending:[],[],owner);if(!list)return;
+  try{
+    if(list.length){
+      const pending=list.map(function(p){
+        const keep=s&&s._historyOwner===owner&&(s.expenses||[]).find(function(e){return e.id===p.keepId&&obAbsorptionKey(e)===p.keepKey;});
+        const ref=keep&&keep.obPendingRef?obAbsorptionKey(Object.assign({},keep,{extId:keep.obPendingRef})):p.keepRefKey;
+        const id={owner:owner,id:p.id,key:p.key,keepId:p.keepId,keepKey:p.keepKey,idsOnly:true};if(ref)id.keepRefKey=ref;return id;
+      });
+      const key=obAbsorbedIdsKey(owner),body=JSON.stringify({owner:owner,pending:pending});
+      localStorage.setItem(key,body);if(localStorage.getItem(key)!==body)throw new Error("ob_absorbed_readback");
+    }
+    localStorage.removeItem(obAbsorbedStorageKey(owner));
+  }catch(e){obAbsorbedWarn("persist",owner);}
+}
+function obAbsorbedIdsAck(owner,p){
+  const list=obAbsorbedDisk(owner,undefined,true);if(!list)return false;
+  const next=list.filter(function(q){return q.id!==p.id||q.key!==p.key;});if(next.length===list.length)return true;
+  try{
+    const key=obAbsorbedIdsKey(owner),body=JSON.stringify({owner:owner,pending:next});
+    if(next.length)localStorage.setItem(key,body);else localStorage.removeItem(key);
+    if(localStorage.getItem(key)===(next.length?body:null))return true;
+  }catch(e){}
+  obAbsorbedWarn("persist",owner);return false;
+}
+function obAbsorbedPersist(owner,list){
+  if(!owner||!Array.isArray(list)||list.length>OB_ABSORBED_MAX||list.some(function(p){return !obAbsorbedValid(p,owner);}))return false;
+  try{
+    const key=obAbsorbedStorageKey(owner),body=JSON.stringify({owner:owner,pending:list});
+    localStorage.setItem(key,body);if(localStorage.getItem(key)===body)return true;
+  }catch(e){}
+  obAbsorbedWarn("persist",owner);return false;
+}
+function obAbsorbedRestore(s,key){
+  const owner=s&&s._historyOwner;if(!owner)return s;
+  const list=obAbsorbedMerge(s.obAbsorbedPending,[],owner,key);
+  return list?Object.assign({},s,{obAbsorbedPending:list}):s;
+}
+function obAbsorbedEnqueue(s,e,keep){
+  const owner=s&&s._historyOwner;
+  const p={owner:owner,id:e.id,key:obAbsorptionKey(e),keepId:keep.id,keepKey:obAbsorptionKey(keep),amount:e.amount,merchant:e.merchant||""};
+  if(!obAbsorbedValid(p,owner)){obAbsorbedWarn("owner",owner);return null;}
+  const list=obAbsorbedJoin(s.obAbsorbedPending,[p],owner);
+  if(!list){obAbsorbedWarn("full",owner);return null;}
+  return obAbsorbedPersist(owner,list)?list:null;
+}
+function obAbsorbedCandidate(p,row,alias){
+  if(!row||!isExpenseUuid(row.id)||row.id===p.keepId||typeof row.source!=="string"||typeof row.fecha!=="string"||typeof row.comercio!=="string")return false;
+  const e=expenseFromRow(row),key=obAbsorptionKey(e);
+  if(e.obPending||e.amount!==p.amount||e.merchant!==p.merchant||!key||!obAbsorptionMatches(e,{[p.key]:1})||obAbsorptionMatches(e,{[p.keepKey]:1}))return false;
+  // Sin UUID compartido, una cuenta ausente ya no acredita una coincidencia destructiva.
+  return !alias||!!p.key.split("|")[4]&&!!e.obAcc&&key===p.key;
+}
+// No encontrar un candidato borrable no prueba ausencia: un alias editado/legacy es incertidumbre.
+function obAbsorbedPossible(p,row){
+  if(!row||!row.id||typeof row.source!=="string")return true;
+  const e=expenseFromRow(row),key=obAbsorptionKey(e);
+  if(key)return obAbsorptionMatches(e,{[p.key]:1});
+  return esFilaDeBanco(e)&&encodeURIComponent(expenseBankOf(e)||"")===p.key.split("|")[1]
+    &&String(e.date||"").slice(0,10)===p.key.split("|")[5]&&e.amount===p.amount&&e.merchant===p.merchant;
+}
+async function obAbsorbedRetry(getState,getOwner,apply,offset){
+  const owner=getOwner(),s=getState();
+  if(!owner||!s||s._historyOwner!==owner||mcSandbox()||!cloud.enabled())return offset||0;
+  if(obAbsorbedRuns.has(owner))return obAbsorbedRuns.get(owner);
+  const list=obAbsorbedMerge(s.obAbsorbedPending,[],owner);if(!list)return offset||0;
+  apply(function(prev){return getOwner()===owner&&prev._historyOwner===owner?Object.assign({},prev,{obAbsorbedPending:list}):prev;});
+  const start=(offset||0)%Math.max(1,list.length);
+  const batch=list.slice(start).concat(list.slice(0,start)).slice(0,4);
+  const run=(async function(){
+    for(const p of batch){
+      if(getOwner()!==owner)break;
+      if(!await cloud.settleObAbsorbed(p,getOwner)||getOwner()!==owner)continue;
+      apply(function(prev){
+        if(getOwner()!==owner||prev._historyOwner!==owner)return prev;
+        const before=prev.obAbsorbedPending||[],next=before.filter(function(q){return q.id!==p.id||q.key!==p.key;});
+        if(next.length===before.length)return prev;
+        const confirmed=obConfirmedAck(prev,p,owner);if(!confirmed)return prev;
+        if(!obAbsorbedPersist(owner,next))return Object.assign({},prev,{obAbsorbedConfirmed:confirmed});
+        if(!obAbsorbedIdsAck(owner,p))return Object.assign({},prev,{obAbsorbedConfirmed:confirmed});
+        const state=Object.assign({},prev,{obAbsorbedPending:next,obAbsorbedConfirmed:confirmed});
+        if(!next.length){obAbsorbedClearNotice(owner);delete state.obAbsorbedIssue;}
+        return state;
+      });
+    }
+    return (start+batch.length)%Math.max(1,list.length);
+  })();
+  obAbsorbedRuns.set(owner,run);
+  try{return await run;}finally{obAbsorbedRuns.delete(owner);}
+}
 function _errCloudMsg(err){
   return mcLogCode(err);
 }
 function subirGasto(e, donde){
   if(!cloud.enabled()) return Promise.resolve();
   return cloud.addExpense(e).then(function(nueva){
+    if(nueva===null)return; // denegado por confirmación: no es un duplicado que haya que retocar
     /* El alta ignora duplicados: si la fila ya estaba en la nube sin la marca de recibo (otro
        móvil la importó antes), allí seguiría como una compra y el widget contaría lo que la app
        no cuenta. Solo entonces se le pone; la que acaba de entrar ya la lleva (la primera
@@ -1924,7 +2287,7 @@ function borrarGastoNube(e, donde){
 
    Si añades un método a `cloud` que ESCRIBA algo, añádelo a esta lista. */
 const CLOUD_WRITES=[
-  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","setExpenseRecibo","deleteExpense","deleteExpensesByIds",
+  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","setExpenseRecibo","deleteExpense","deleteExpensesByIds","settleObAbsorbed",
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
   "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",
@@ -3446,7 +3809,7 @@ function goalSyncMetadataOnly(prev,next){
   return [...new Set([...Object.keys(prev),...Object.keys(next)])].every(function(k){ return k==="_goalSync" || k==="_savedAt" || prev[k]===next[k]; });
 }
 function slimForCloud(s){
-  const c=perfilSinDatosBanco(Object.assign({},s));delete c.expenses;delete c.bankTx;
+  const c=perfilSinDatosBanco(Object.assign({},s));delete c.expenses;delete c.bankTx;delete c.obAbsorbedIssue;
   delete c._goalSync;
   if(s.accountBalanceHistory){
     const hist={};Object.keys(s.accountBalanceHistory).forEach(function(key){hist[key]=s.accountBalanceHistory[key].slice(-14);});

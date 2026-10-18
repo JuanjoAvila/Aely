@@ -398,6 +398,16 @@ function App(){
     // permission denied del ingest) eran invisibles para el admin (bug 2026-07-11).
     try{ const s=String(m||""); if(/^[✕⚠✗]/.test(s)) cloud.logEvent('error','TOAST: '+s.slice(0,300)); }catch(e){}
   };
+  useEffect(function(){
+    const warning=function(event){
+      const owner=stateRef.current&&stateRef.current._historyOwner;
+      if(event&&event.detail&&event.detail!==owner)return;
+      if(obAbsorbedTakeNotice(owner)||obAbsorbedTakeNotice(""))showToast("⚠ "+t("ob_absorbed_review"));
+    };
+    window.addEventListener("mc-ob-absorbed-warning",warning);
+    warning();
+    return function(){window.removeEventListener("mc-ob-absorbed-warning",warning);};
+  },[]);
   // Moneda de visualización: convierte todos los importes (en €) a la moneda elegida en Ajustes.
   // GBP/CHF usan fxRates (XXX→EUR, del BCE) — si aún no ha llegado el FX, se queda en € antes
   // que enseñar un número inventado (regla de la casa: nunca inventar un tipo de cambio).
@@ -414,6 +424,14 @@ function App(){
   const [session,setSession]=useState(null);
   const uid = session && session.user ? session.user.id : null;
   const stateRef=useRef(state); useEffect(function(){ stateRef.current=state; });
+  const obAbsorbedLive=useRef(true),obAbsorbedCursor=useRef({owner:null,offset:0}),obAbsorbedWriteBlocked=useRef(false);
+  useEffect(function(){obAbsorbedLive.current=true;return function(){obAbsorbedLive.current=false;};},[]);
+  const retryObAbsorbedCloud=function(){
+    const getOwner=function(){return obAbsorbedLive.current&&sessionRef.current&&sessionRef.current.user&&sessionRef.current.user.id;};
+    const owner=getOwner(),cursor=obAbsorbedCursor.current;
+    if(cursor.owner!==owner){cursor.owner=owner;cursor.offset=0;}
+    return obAbsorbedRetry(function(){return stateRef.current;},getOwner,set,cursor.offset).then(function(offset){if(getOwner()===owner)cursor.offset=offset;});
+  };
   const sessionRef=useRef(null);
   const cloudUpdatedAtRef=useRef(null);   // sello del servidor para sync sin pisar otro dispositivo
   // La base corresponde al payload confirmado, no al estado que pudo editarse durante el envío.
@@ -492,6 +510,13 @@ function App(){
   const syncCloudExpenses=function(){
     const readStartedAt=Date.now();
     const readOwner=sessionRef.current&&sessionRef.current.user&&sessionRef.current.user.id;
+    if(readOwner){
+      const confirmed=obConfirmedMerge(stateRef.current,null,readOwner);
+      if(!confirmed)return Promise.reject(new Error("ob_confirmed_merge"));
+      const pending=obAbsorbedMerge(stateRef.current._historyOwner===readOwner?stateRef.current.obAbsorbedPending:[],[],readOwner);
+      if(!pending)return Promise.reject(new Error("ob_absorbed_merge"));
+      set(function(prev){return prev._historyOwner===readOwner?Object.assign({},prev,{obAbsorbedConfirmed:confirmed,obAbsorbedPending:pending}):prev;});
+    }
     const ps=++wS.current;
     wR.current=false;
     wRead.current=null;
@@ -527,7 +552,7 @@ function App(){
       wC.current=rows;
       // FIN-07: el paginador solo resuelve al terminar; un error intermedio no mezcla ni
       // confirma páginas sueltas. La ausencia sigue sin significar borrado, incluso al terminar.
-      const delSet={}; (stateRef.current.deleted||[]).forEach(function(k){ delSet[k]=1; });
+      const delSet=expenseDeletedSet(stateRef.current);
       const incoming=rows.map(expenseFromRow).filter(function(e){ return e.amount!==0 && !expenseIsTombstoned(e, delSet); });
       // Backfill: sube a la tabla TODO gasto local que aún no esté en ella (no solo los manuales).
       // Esto garantiza que la tabla sea la fuente de verdad COMPLETA antes de dejar de duplicar
@@ -599,8 +624,15 @@ function App(){
       });
       });
     });
-    wP.current=pull;
-    return pull;
+    const completed=pull.then(function(result){
+      if(ps!==wS.current)return result;
+      // La barrera del banco espera el pull completo, pero no los DELETE de la cola (FIN11).
+      // Su fallo conserva la intención y no invalida la lectura que ya se mezcló.
+      Promise.resolve().then(retryObAbsorbedCloud).catch(function(){});
+      return result;
+    });
+    wP.current=completed;
+    return completed;
   };
 
   // Al iniciar sesión: adopta el estado de la nube (o sube el local la 1ª vez) y trae gastos.
@@ -615,6 +647,16 @@ function App(){
       mensualPuerta.lee(cloudPack);
       // INC-0410 mensual: límite de la lectura válida.
       const cloudState=cloudPack ? cloudPack.data : null;
+      if(!sessionRef.current||sessionRef.current.user.id!==u)return;
+      // Si dos colas llenas no caben juntas, no se pierde ninguna ni se sobrescribe la remota.
+      // El CAS se conserva sin avanzar hasta poder unirlas; el refresco siguiente puede reintentarlo.
+      if(cloudState){
+        if(!obConfirmedMerge(stateRef.current,cloudState,u)){obAbsorbedWriteBlocked.current=true;return;}
+        const own=stateRef.current._historyOwner===u?stateRef.current.obAbsorbedPending:[];
+        const pending=obAbsorbedMerge(own,cloudState.obAbsorbedPending,u);
+        if(!pending||pending.length&&!obAbsorbedPersist(u,pending)){obAbsorbedWriteBlocked.current=true;return;}
+      }
+      obAbsorbedWriteBlocked.current=false;
       if(cloudPack && cloudPack.updated_at) cloudUpdatedAtRef.current=cloudPack.updated_at;
       if(cloudState && validCloudState(cloudState)){
         // LAST-WRITE-WINS: si lo LOCAL es más reciente (p.ej. cambios hechos sin conexión),
@@ -639,6 +681,7 @@ function App(){
           const goalState=goalSyncPull(prev,cloudState,u,cloudPack.updated_at,!sameOwner,localNewer);
           if(goalState._goalSync.cloudOnly) baseObj=Object.assign({},prev,cloudState,{expenses:merged.list,bankTx:prev.bankTx});
           Object.assign(baseObj,goalState);
+          delete baseObj.obAbsorbedIssue;
           const reserveSource=goalState._goalSync.keepLocalReserves?prev:cloudState;
           baseObj.settings=Object.assign({},baseObj.settings,{reservaRules:goalSyncCopy((reserveSource.settings||{}).reservaRules||[])});
           baseObj.reservaLog=goalSyncCopy(reserveSource.reservaLog||[]);
@@ -649,6 +692,12 @@ function App(){
             if(prev.deleted||cloudState.deleted) Object.assign(baseObj, lapidasUnion(prev, cloudState));
             if(prev.reciboBorrado||cloudState.reciboBorrado) Object.assign(baseObj, recibosBorradosUnion(baseObj, prev, cloudState));
           }
+          const pending=obAbsorbedMerge(sameOwner?prev.obAbsorbedPending:[],cloudState.obAbsorbedPending,u);
+          if(!pending||pending.length&&!obAbsorbedPersist(u,pending)){obAbsorbedWriteBlocked.current=true;return prev;}
+          const confirmed=obConfirmedMerge(sameOwner?prev:null,cloudState,u);
+          if(!confirmed){obAbsorbedWriteBlocked.current=true;return prev;}
+          baseObj.obAbsorbedPending=pending;
+          baseObj.obAbsorbedConfirmed=confirmed;
           // La nube lleva una ventana corta: un cliente antiguo no debe borrar los cierres
           // locales. El marcador sólo delimita este historial, nunca concede una sesión.
           if(sessionRef.current&&sessionRef.current.user&&sessionRef.current.user.id===u){
@@ -1109,8 +1158,16 @@ function App(){
       // Cerrar sesión rompe la asociación implícita del extracto local con el titular. El
       // próximo login no debe heredar sus apuntes, aunque no exista cartera en la nube.
       if(!s&&ev==="SIGNED_OUT"){
+        // El evento ya trae sesión nula: la partición pertenece a la sesión saliente.
+        const owner=prev&&prev.user&&prev.user.id;
+        if(owner){
+          const key=obConfirmedStorageKey(owner);
+          try{obConfirmedStorage().removeItem(key);}catch(e){}
+          obConfirmedReadCache.delete(key);obConfirmedBlocked.delete(owner);
+          obAbsorbedClearNotice(owner);
+        }
         if(prev&&prev.user)goalSyncClear(mcStateKey(),prev.user.id);
-        set(p=>Object.assign({},p,{bankTx:[],_goalSync:null}));
+        set(p=>{obAbsorbedSignOut(owner,p);return Object.assign({},p,{bankTx:[],_goalSync:null,obAbsorbedPending:[],obAbsorbedConfirmed:[]});});
       }
       // Vuelta del email de recuperación: abre el panel para poner contraseña nueva.
       if(ev==="PASSWORD_RECOVERY"){ setRecovery(true); setShowAuth(true); }
@@ -1138,6 +1195,7 @@ function App(){
       if(!uid||mcSandboxTransition()) return;
       tmr=setTimeout(function(){
         tmr=null;
+        if(obAbsorbedWriteBlocked.current||!sessionRef.current||sessionRef.current.user.id!==uid)return;
         pushAppState(uid,uploadState).then(function(r){
           if(r && r.conflict){ showToast(t("st_sync_conflict")); syncFromCloud(sessionRef.current); return; }
         }).catch(function(){});
@@ -1553,9 +1611,11 @@ function App(){
     return function(){ window.removeEventListener("online",on); window.removeEventListener("offline",off); };
   },[]);
   useEffect(function(){
-    if(online && !wasOnline.current && uid){ pushAppState(uid,stateRef.current).then(function(r){
+    if(online && !wasOnline.current && uid){ retryObAbsorbedCloud().then(function(){
+      if(obAbsorbedWriteBlocked.current||!sessionRef.current||sessionRef.current.user.id!==uid)return;
+      return pushAppState(uid,stateRef.current).then(function(r){
       if(r && r.conflict){ showToast(t("st_sync_conflict")); syncFromCloud(sessionRef.current); return; }
-    }).catch(function(){}); }   // reconectó → sube lo de offline
+    }); }).catch(function(){}); }   // reconectó → sube lo de offline
     wasOnline.current=online;
   },[online,uid]);
 
@@ -2118,7 +2178,7 @@ function App(){
   // el buscador, al salir un toast… Con las porciones reales solo se recalcula cuando cambia el
   // dinero de verdad (parte gorda del «se ralentiza cuanto más la uso» — 2026-07-24).
   },[state.accounts,state.expenses,state.bankTx,state.investments,state.assets,state.debts,state.fixed,
-     state.flows,state.oneoffs,state.deleted,state.aportaciones,state.obAccounts,(state.settings||{}).accountShare,
+     state.flows,state.oneoffs,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.aportaciones,state.obAccounts,(state.settings||{}).accountShare,
      state.trRewardsTotal,state.fx,state.fxRates,state.reciboNo,calendarDay]);
 
   const budgetMonth=budgetYmKey();
@@ -2130,7 +2190,7 @@ function App(){
   /* Una sola racha compartida por Inicio y el detector de logros. Con históricos grandes,
      calcularla otra vez dentro de cada pantalla triplicaba el recorrido al terminar un sync. */
   const budgetStreak=useMemo(function(){ return underBudgetStreak(state); },
-    [state.expenses,state.deleted,state.budgetByMonth,state.accounts,state.reservaLog,
+    [state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.budgetByMonth,state.accounts,state.reservaLog,
      state.settings&&state.settings.expenseBanks,state.settings&&state.settings.gTotalMode,budgetMonth]);
 
   const [pricing,setPricing]=useState(false);
@@ -2333,7 +2393,7 @@ function App(){
     };
   // Otra lectura con filas idénticas también recupera el legado: no depender sólo de
   // cifras o del reloj, que puede coincidir con el último lastSync.
-  },[budW.shown,budW.against,budW.cycle,budW.periodStart,budW.budget,wV2,wScope,CURLANG,state.budget,state.deleted,state.lastSync,widgetCash,trAccW&&trAccW.ent,widgetBudgetLeft,widgetSafeLiq,calendarDay,uid,wRead.current]);
+  },[budW.shown,budW.against,budW.cycle,budW.periodStart,budW.budget,wV2,wScope,CURLANG,state.budget,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.lastSync,widgetCash,trAccW&&trAccW.ent,widgetBudgetLeft,widgetSafeLiq,calendarDay,uid,wRead.current]);
   // Tour de bienvenida: 1ª vez tras el onboarding (tourSeen=false), con la app ya pintada
   useEffect(function(){
     // No arrancar el tour encima del login (showAuth) ni con el cajón abierto: causaba el caos
@@ -2455,7 +2515,7 @@ function App(){
         }).catch(run);
       }catch(e){ run(); }
     } else run();
-  },[state.onboarded,locked,showAuth,state.fixed,state.debts,state.expenses,state.bankTx,state.deleted,totals.today,totals.curMonth,totals.curYear]);
+  },[state.onboarded,locked,showAuth,state.fixed,state.debts,state.expenses,state.bankTx,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,totals.today,totals.curMonth,totals.curYear]);
 
   // Empuja el calendario de recibos del mes al NATIVO (APK ≥29): AlertCheckWorker avisa la
   // víspera aunque la app esté CERRADA. Intercambio de sellos para no avisar dos veces:
@@ -2505,7 +2565,7 @@ function App(){
       const nat=natPlugin();
       if(nat&&nat.showNotification){ try{ nat.showNotification({title:"Aely",body:msg}).catch(function(){}); }catch(e){} }
     });
-  },[state.onboarded,locked,state.expenses,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings]);
+  },[state.onboarded,locked,state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.budget,state.reservaLog,state.accounts,state.settings]);
   // Snapshot diario del total invertido (€) para el gráfico de evolución (#6). Se actualiza si cambia valor/coste hoy.
   const invSnapRef=useRef("");
   useEffect(function(){

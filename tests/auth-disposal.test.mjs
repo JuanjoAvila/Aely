@@ -72,16 +72,19 @@ const metas141=[{"file":"src/modules/00-core.js","function":"goalSyncClear"},{"f
 assert.deepEqual(currentReg[id],{...historicalReg[id],web:[{...historicalReg[id].web[0],members:historicalReg[id].web[0].members.concat('deleteExpense','logEvent')},...historicalReg[id].web.slice(1)].concat({file:'src/modules/00-core.js',function:'mergeAccountBalanceHistory'},...emparejadoAuto130,...compras135,...metas141)},'contrato106 completo más la dependencia nueva del escritor de historial, el cierre del emparejado automático, el de las compras idénticas (4.26.135) y el de Metas a tres vías (4.26.141)');
 // Partir el historial cambia los lectores/escritores compartidos, aunque no cambie auth.
 // No se hereda el OK106: se acredita por separado el contrato auth y el cambio de identidad.
-// La 141 (PR 263) hace que cerrar sesión también limpie el estado de Metas entre móviles (`goalSyncClear`, `_goalSync:null`): es la única diferencia del efecto de auth con la 106.
-const auth106=authFragments(history106('src/modules/00-core.js'),history106('src/modules/11-app-main.js')),viejoSalida="      if(!s&&ev===\"SIGNED_OUT\") set(p=>Object.assign({},p,{bankTx:[]}));",nuevoSalida="      if(!s&&ev===\"SIGNED_OUT\"){\n        if(prev&&prev.user)goalSyncClear(mcStateKey(),prev.user.id);\n        set(p=>Object.assign({},p,{bankTx:[],_goalSync:null}));\n      }";
+// Metas141 y FIN17 amplían la limpieza al salir. Se fija el bloque exacto; FIN17S prueba además conservación de IDs, ACK y aislamiento entre titulares.
+const auth106=authFragments(history106('src/modules/00-core.js'),history106('src/modules/11-app-main.js')),viejoSalida="      if(!s&&ev===\"SIGNED_OUT\") set(p=>Object.assign({},p,{bankTx:[]}));",nuevoSalida="      if(!s&&ev===\"SIGNED_OUT\"){\n        // El evento ya trae sesión nula: la partición pertenece a la sesión saliente.\n        const owner=prev&&prev.user&&prev.user.id;\n        if(owner){\n          const key=obConfirmedStorageKey(owner);\n          try{obConfirmedStorage().removeItem(key);}catch(e){}\n          obConfirmedReadCache.delete(key);obConfirmedBlocked.delete(owner);\n          obAbsorbedClearNotice(owner);\n        }\n        if(prev&&prev.user)goalSyncClear(mcStateKey(),prev.user.id);\n        set(p=>{obAbsorbedSignOut(owner,p);return Object.assign({},p,{bankTx:[],_goalSync:null,obAbsorbedPending:[],obAbsorbedConfirmed:[]});});\n      }";
 assert.equal(auth106.effect.split(viejoSalida).length,2,'la salida de sesión de la 106 está una sola vez');
-assert.deepEqual(parts,{...auth106,effect:auth106.effect.replace(viejoSalida,nuevoSalida)});
+const cacheSalida='if(ev==="SIGNED_OUT")statePushCache.clear();';
+assert.equal(parts.method.split(cacheSalida).length,2,"FIN17 invalida exactamente una vez su cache al salir");
+assert.deepEqual(parts,{method:auth106.method.replace(" cb(s,ev);", " "+cacheSalida+"cb(s,ev);"),effect:auth106.effect.replace(viejoSalida,nuevoSalida)});
 const storage=['mcLoadRaw','mcSaveRaw','mcResetSandbox'],file='src/modules/00-core.js';
-let previousStorage=core;
+assert.equal(core.split('  const statePushCache=new Map();\n').length,2,'cache FIN17 declarada una sola vez en cloud');
+let previousStorage=core.replace(parts.method,auth106.method).replace('  const statePushCache=new Map();\n','');
 for(const name of storage)previousStorage=previousStorage.replace(scopeText({file,function:name},read),scopeText({file,function:name},history106));
 const guardado106=historicalReg[id].web.find(u=>u.from&&u.from.includes('INC-0410 guardado')),appFile='src/modules/11-app-main.js';
 // El `set` de App (dentro del bloque del guardado) gana en la 130 el emparejado automático: también es persistencia, no auth.
-// Y la salida de sesión que limpia Metas (141) es la otra diferencia con la 106, también ajena al contrato auth.
+// Se normalizan únicamente las ampliaciones explícitas de Metas/FIN17; el contrato de cancelación y callbacks permanece íntegro.
 const previousApp=read(appFile).replace(scopeText(guardado106,read),scopeText(guardado106,history106)).replace(nuevoSalida,viejoSalida);
 assert.deepEqual(betaRevision(id,f=>f===file?previousStorage:f===appFile?previousApp:read(f),undefined,historicalReg[id]),betaRevision(id,history106,undefined,historicalReg[id]),'sólo la persistencia (y el emparejado del set) cambia la identidad auth; resto del contrato106 intacto');
 assert.notEqual(betaRevision(id,read).codigo,betaRevision(id,history106,undefined,historicalReg[id]).codigo,'persistencia y su unión nueva exigen revisión, nunca aprobación106');

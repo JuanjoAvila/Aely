@@ -590,7 +590,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const mad=madridYmdParts(Date.now()), madridDay=mad.ym+"-"+mad.d;
   const cycle=useMemo(()=>cycleEnabled?budgetPaydayOf(state,null,expensesDef)
     :lastPaydayOf(expensesDef,null,expenseDeletedSet(state)),
-    [expensesDef,state.deleted,state.flows,cycleEnabled,todayKey]);
+    [expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.flows,cycleEnabled,todayKey]);
   // Bancos presentes en el período (o configurados como gasto) → chips de filtro.
   // "_manual" = apuntados a mano / sin banco conocido (no mezclar con OB).
   // Chips de banco: baratos y SIEMPRE visibles (no dependen de heavyOk → sin flash).
@@ -650,7 +650,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     return sortExpensesForDisplay(out,state);
     // `state.settings`/`state.accounts` van en las dependencias porque `expenseBucket` los lee
     // (qué bancos son de gasto diario): cambiar eso tiene que re-filtrar la lista.
-  },[expensesDef,state.deleted,bounds,sel,bankSel,bucketSel,q,state.settings,state.accounts,state.fixed,state.oneoffs,state.reciboNo]);
+  },[expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,bounds,sel,bankSel,bucketSel,q,state.settings,state.accounts,state.fixed,state.oneoffs,state.reciboNo]);
 
   /* El asa reclama el dedo desde el principio: dejar que la fila entera fuera arrastrable
      convertiría un scroll normal en cambios de orden accidentales. El destino se resuelve contra
@@ -698,13 +698,13 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       month:monthLong(day.m-1), cycle:!!selectedPeriod.cycle,
       periodLabel:periodLabel, budgetApplies:budgetApplies
     };
-  },[expensesDef,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,preset,range,budgetApplies,todayKey,madridDay]);
+  },[expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.budget,state.reservaLog,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,preset,range,budgetApplies,todayKey,madridDay]);
   // Desglose por categoría: misma regla/ventana que la cabecera. categoryBudgets en deps
   // porque una fila a 0 con límite tiene que aparecer aunque no haya gastos nuevos.
   const catBreakdown=useMemo(function(){
     const rows=categorySpentByMonth(Object.assign({},state,{expenses:expensesDef}),null,null,selectedPeriod);
     return budgetApplies?rows:rows.filter(function(row){ return row.spent>0; }).map(function(row){ return {id:row.id,spent:row.spent,limit:null}; });
-  },[expensesDef,state.deleted,state.categoryBudgets,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,budgetApplies,todayKey,madridDay]);
+  },[expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.categoryBudgets,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,budgetApplies,todayKey,madridDay]);
   /* Abierto o plegado, por cuenta. `!==false` y no `!!`: quien nunca lo ha tocado lo ve ABIERTO
      —es como está hoy y como él lo aprobó—, y solo se pliega quien lo pliegue a mano. */
   const catsOpen=!(state.settings && state.settings.gastosCatsOff);

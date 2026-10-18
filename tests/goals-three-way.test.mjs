@@ -22,7 +22,8 @@ function block(source,token){
  assert.equal(depth,0);return source.slice(start,end);
 }
 function logic(){
- const c=loadPureLogicFromFile();vm.createContext(c);
+ const c=loadPureLogicFromFile(),storage=new Map();vm.createContext(c);
+ c.localStorage={getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,String(v)),removeItem:k=>storage.delete(k)};c.window.localStorage=c.localStorage;
  for(const name of [...core.matchAll(/^function (goalSync\w+|mergeGoalsThreeWay)\(/gm)].map(m=>m[1]).concat(["slimForCloud","mcLogEvent"])){vm.runInContext(block(core,"function "+name+"("),c);}
  return c;
 }
@@ -70,12 +71,12 @@ function transport(){
  class Clock extends Date{constructor(...a){super(...(a.length?a:[clock]));}static now(){return clock;}}
  const seed={budget:1000,accounts:[],investments:[],debts:[],fixed:[],expenses:[],goals:goals(),settings:{reservaRules:[]},reservaLog:[],_savedAt:clock-10000,_historyOwner:owner};
  let row={user_id:owner,data:clone(seed),updated_at:"r0"};let conflicts=0;
- const sb={from(){let body,mode="read",filters=[];const q={update(v){body=v;mode="update";return q;},upsert(v){body=v;mode="upsert";return q;},eq(k,v){filters.push([k,v]);return q;},select(){if(mode==="read")return q;const match=mode==="upsert"||filters.every(([k,v])=>row[k]===v);if(match)row=clone(body);else conflicts++;return Promise.resolve({data:match?[{updated_at:row.updated_at}]:[],error:null});},maybeSingle:async()=>({data:clone(row),error:null})};return q;}};
+ const sb={auth:{getSession:async()=>({data:{session:{user:{id:owner}}},error:null})},from(){let body,mode="read",filters=[];const q={update(v){body=v;mode="update";return q;},upsert(v){body=v;mode="upsert";return q;},eq(k,v){filters.push([k,v]);return q;},select(){if(mode==="read")return q;const match=mode==="upsert"||filters.every(([k,v])=>row[k]===v);if(match)row=clone(body);else conflicts++;return Promise.resolve({data:match?[{updated_at:row.updated_at}]:[],error:null});},maybeSingle:async()=>({data:clone(row),error:null})};return q;}};
  function device(){
   const c=logic();c.Date=Clock;let state=clone(seed);Object.assign(state,c.goalSyncPull(state,seed,owner,"r0",false));
   const stateRef={current:state},cloudUpdatedAtRef={current:"r0"},pullOkRef={current:null},sessionRef={current:{user:{id:owner}}};
-  const cloud=vm.runInContext("(function(sb){return {"+["async pullState(","async pushState("].map(t=>block(core,t)).join(",")+"};})",c)(sb);
-  const deps={cloud,stateRef,cloudUpdatedAtRef,pullOkRef,sessionRef,uid:owner,useCallback:f=>f,setStateRaw:f=>{state=f(state);stateRef.current=state;},
+  const cloud=vm.runInContext("(function(sb){const statePushCache=new Map();return {"+["async session(","async pullState(","async pushState("].map(t=>block(core,t)).join(",")+"};})",c)(sb);
+  const deps={obAbsorbedWriteBlocked:{current:false},cloud,stateRef,cloudUpdatedAtRef,pullOkRef,sessionRef,uid:owner,useCallback:f=>f,setStateRaw:f=>{state=f(state);stateRef.current=state;},
    reconcileGemelosAutomaticos:x=>x,syncCloudExpenses:()=>Promise.resolve(),showToast:()=>{},mcBootReady:()=>{},t:x=>x,navigator:{onLine:true},
    seedFlows:x=>x,fixMovInvasion:x=>x,fixRevoDupes:x=>x,fixInvAuto:x=>x,fixInvSold:x=>x,reconcileTR:x=>x,reconcileEarlyIncomeAnchors:x=>x,reservaMensualAlDia:()=>Promise.resolve()};
   const start=app.indexOf("const set=useCallback((updater)=>"),end=app.indexOf("},[]);",start)+"},[]);".length;
@@ -130,7 +131,7 @@ test("acople: ACK retiene reglas y log enviados; sin divergencia las metas disju
 test("registro privado: backupState real tampoco sube base ni estado local en conflicto",async()=>{
  const c=logic(),sent=[];
  const sb={from:()=>({upsert:async v=>{sent.push(v);return {error:null};},delete:()=>({eq:()=>({lt:async()=>({})})})})};
- const backup=vm.runInContext("(function(sb){return {"+block(core,"async backupState(")+"};})",c)(sb);
+ const backup=vm.runInContext("(function(sb){const statePushCache=new Map();return {"+block(core,"async backupState(")+"};})",c)(sb);
  const state={goals:goals(),expenses:[],_goalSync:{owner,base:goals(),conflicts:[{code:"goals_reserve_conflict",local:{unknown:"solo-local"}}]}};
  await backup.backupState(owner,state);assert.equal(sent.length,1);assert.equal(sent[0].data._goalSync,undefined);
  assert.deepEqual(clean(sent[0].data.goals),state.goals);assert.equal(state._goalSync.conflicts[0].local.unknown,"solo-local");
@@ -139,7 +140,7 @@ test("ACK de metadata conserva el timer de una edición posterior al envío",()=
  const c=logic(),refs=[],timers=new Map();let hook=0,effect=null,next=0,sent=null;
  const start=app.indexOf("const cloudEffectState=useRef("),end=app.indexOf("// Al volver, los gastos",start);
  assert.ok(start>=0&&end>start);const source=app.slice(start,end);
- const run=vm.runInContext("(function(state,uid,useRef,useEffect,setTimeout,clearTimeout,pushAppState,t,showToast,syncFromCloud,sessionRef){"+source+"})",c);
+ const run=vm.runInContext("(function(state,uid,useRef,useEffect,setTimeout,clearTimeout,pushAppState,t,showToast,syncFromCloud,sessionRef){const obAbsorbedWriteBlocked={current:false};"+source+"})",c);
  const render=state=>{hook=0;run(state,owner,v=>refs[hook++]||(refs[hook-1]={current:v}),(fn,deps)=>{
   if(!effect||deps.some((v,i)=>v!==effect.deps[i])){if(effect&&effect.cleanup)effect.cleanup();effect={deps,cleanup:fn()};}
  },fn=>{timers.set(++next,fn);return next;},id=>timers.delete(id),(u,s)=>{sent=s;return Promise.resolve(null);},x=>x,()=>{},()=>{},{current:{user:{id:owner}}});};

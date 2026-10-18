@@ -12,7 +12,7 @@ const row={id:expense.id,fecha:expense.date,comercio:expense.merchant,importe:80
 const core=fs.readFileSync("src/modules/00-core.js","utf8");
 const body=core.match(/async confirmExpenseWithdrawal\(e, readState\)\{([\s\S]*?)\n    \},/)[1];
 const AsyncFunction=Object.getPrototypeOf(async function(){}).constructor;
-const method=new AsyncFunction("sb","isExpenseUuid","canRecognizeWithdrawal","withdrawalRowMatches","e","readState",body);
+const method=new AsyncFunction("sb","isExpenseUuid","canRecognizeWithdrawal","withdrawalRowMatches","obConfirmedCanUpload","e","readState",body);
 function client(opts={}){
   const data=structuredClone(opts.row||row), ops=[];
   let updates=0;
@@ -35,7 +35,7 @@ function client(opts={}){
       return q;
     }}};
 }
-const run=(c,e=expense,readState=()=>({expenses:[e],fixed:[]}))=>method(c.sb,ctx.isExpenseUuid,ctx.canRecognizeWithdrawal,ctx.withdrawalRowMatches,e,readState);
+const run=(c,e=expense,readState=()=>({expenses:[e],fixed:[]}))=>method(c.sb,ctx.isExpenseUuid,ctx.canRecognizeWithdrawal,ctx.withdrawalRowMatches,ctx.obConfirmedCanUpload,e,readState);
 let cases=0;
 async function check(name,fn){await fn();cases++;console.log("✓ "+name);}
 

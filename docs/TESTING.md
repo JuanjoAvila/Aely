@@ -2,6 +2,14 @@
 
 `e2e/inicio-ciclo-porcentaje.spec.mjs` cubre el cambio Mi ciclo → Mes, importes de 1/49/50/51 céntimos, agotado y exceso, navegación, recarga y cierre civil de mes en Madrid. El margen positivo pequeño muestra `<1 %` en es/ca y `<1%` en en; las cifras mantienen los céntimos. Diez casos dirigidos con estado sintético, un worker y cero reintentos. El spec está registrado para Inicio en `relevant-tests`. [Contrato y límites](briefs/night-g-cycle-percent-20261018.md).
 
+FIN-11: Node `fin11-absorption-pending` y Deno `_shared/ob-absorbed-pending.test.ts`
+registrados en el runner; DOM `e2e/fin11-absorption-pending.spec.mjs` en Gastos.
+Cubren persistencia/reapertura, confirmación, saturación, aliases inciertos y la
+protección pendiente antes de consumir la referencia FIN-15 en otro día, con
+mutante causal de cero céntimos. El port af387 añade control200/guardia201 con alias
+único y mutación exclusiva de la guardia; barrera real `nubeLista` con limpieza
+pendiente/fallida y pull fallido, más mutación que restaura la espera del DELETE.
+[Evidencia y límites](briefs/fin11-absorciones-pendientes-20261017.md).
 ## INC-0410 · verificación del port a beta 141
 
 Los cuatro tests goals-three-way, goals-review-remates, goals-review2-remates y goals-review3-reserve-conflict están registrados en run-tests y se ejecutan sobre el HTML/fuentes de este checkout, junto a metas-pull-transport y reserva-dinero. Cubren tres vías, partición privada, ACK/M9/M12, reservas unilaterales/iguales y replay mensual17000c con un asiento; la subida inversa requiere replay manual20. E2E dirigidos de Metas y persistencia con datos sintéticos, puerto propio, un worker y cero reintentos; sin suite general ni CPU6. Resultados reales y gates pendientes en el [brief](briefs/inc-0410-lww-rechazo-20261017.md). Las evidencias de la fuente original permanecen separadas.
@@ -1278,3 +1286,8 @@ Son dobles locales, sin bancos ni SQL vivos; no acreditan CI general, integraci�
 ## OPS-08 — guardas de rotación MyInvestor
 
 `myinvestor-token-race.test.ts` está registrado en el runner junto a `myinvestor-counter.test.ts`. Ambos leen únicamente fuentes bajo `supabase/functions`, sin permisos de red ni entorno: `deno test --node-modules-dir=none --allow-read=supabase/functions supabase/functions/_shared/myinvestor-token-race.test.ts supabase/functions/_shared/myinvestor-counter.test.ts`. El primero ejecuta handlers/helper reales, simulando Supabase, cifrado y proveedor; cubre ambos intercalados, reconexión, rechazo, refresh ausente en respuesta, acuse perdido, error de lectura, cero filas y recifrado legacy. Los Node de keepalive/sync cargan el helper real, sin sustituir su decisión. Mutaciones focales y límites en el [brief](briefs/ops08-refresh-cas.md).
+
+
+## FIN17: revisión F1–F5
+
+`fin17-confirmed-absorptions.test.mjs` cubre unión sobre1000, expulsión estricta>90d, aviso local, pack y colisiones forzadas, CAS, SIGNED_OUT con guardado posterior y conflicto de Metas beta141. M9/M11/M12 reconstruidos tienen ejecuciones causales independientes. El spec homónimo abre Gastos, reabre la aplicación, verifica avisos es/en/ca, consumo por incidencia y limpieza tras SIGNED_OUT. Datos/SDK sintéticos, sin aceptación móvil ni despliegue. [Mediciones y alcance](briefs/fin17-confirmed-absorptions-20261018.md).

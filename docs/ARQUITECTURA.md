@@ -1,5 +1,14 @@
 # Arquitectura — Aely
 
+FIN-11 candidata privada desde FIN-10/FIN-15 coexistentes: `obAbsorbedPending`
+protege por titular fuera de la poda de lápidas. Una partición local con readback
+precede a la retirada; refresco cloud/online reintenta hasta cuatro objetivos y
+solo retira la intención tras confirmación remota y ACK durable. BankSync no borra.
+La limpieza corre en segundo plano después del pull completo: su espera o fallo no
+retiene `nubeLista`; un pull fallido sigue impidiendo consultar el banco.
+Los lectores filtran pendientes antes de consumir la referencia FIN-15 entre días;
+comodín de cuenta simétrico FIN-10 intacto. Un alias sin cuenta no autoriza DELETE.
+[Contrato, evidencia y límites](briefs/fin11-absorciones-pendientes-20261017.md).
 ## INC-0410 · port privado para beta 141
 
 La sincronización de Metas conserva por titular una base de metas/reglas/asientos. Fusiona metas a tres vías por campos, con saved/target/done/doneAt indivisibles y nube más registro local ante conflicto, sin sumar saldos absolutos. Las reservas locales se conservan si sus metas afectadas no tienen conflicto de campo; la divergencia distinta de ambos lados o ese acople rechaza la foto financiera completa y guarda el local saneado. Conflictos cap3 en clave privada por modo/titular, fuera de pushes/backups; ACK sin re-sello/bucle y notificación durable única. El caso A120/Z50 llega a17000c tras replay mensual; en el inverso de subida se mantiene15000c y los17000c requieren reaplicación manual20. Port de lógica revisada, preservando beta v4. [Contrato y límites](briefs/inc-0410-lww-rechazo-20261017.md).
@@ -1022,3 +1031,8 @@ Contrato, pruebas y límites de entrega: [TR NO-GO 2](briefs/tr-emparejado-nogo2
 ## Candidata OPS-08: escritura de tokens MyInvestor
 
 Keepalive y sync usan `_shared/myinvestor-refresh-save.ts`: CAS por usuario/conexión/refresh almacenado, más acceso cuando no rota el refresh. Hasta dos intentos del mismo patch cifrado, con readback propio/competidor/indeterminado; ningún reintento del banco. Sync recifra legacy bajo esa guarda antes de releer el snapshot. Cero filas no es éxito. La serialización del consumo externo queda fuera (propuesta OPS-09). Sin despliegue acreditado por esta candidata. [Contrato](briefs/ops08-refresh-cas.md).
+
+
+## FIN17: confirmadas tras ACK, candidata F1–F5
+
+El registro confirmado se une fuera de LWW; el umbral1000 nunca bloquea sincronización por capacidad. El pack v1 conserva testigos completos tras hashes con colisión, se persiste por propietario solo si cambia y no se duplica en el estado ligero. Push completo omitido solo con payload semántico y CAS iguales; los lectores servidor deben admitir el pack antes de publicar el cliente. Aviso local consumible y limpieza de particiones en SIGNED_OUT. [Contrato y límites](briefs/fin17-confirmed-absorptions-20261018.md).

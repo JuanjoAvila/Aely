@@ -118,7 +118,7 @@ test("setExpenseCat cuenta filas: cero filas o un error no son una confirmación
   const core = fs.readFileSync(new URL("../src/modules/00-core.js", import.meta.url), "utf8");
   const body = core.match(/async setExpenseCat\(e, cat\)\{([\s\S]*?)\r?\n    \},/)[1];
   const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
-  const run = new AsyncFunction("sb", "expenseCloudEq", "expenseSourceForCloud", "e", "cat", body);
+  const run = new AsyncFunction("sb", "expenseCloudEq", "expenseSourceForCloud", "obConfirmedCanUpload", "e", "cat", body);
   const tabla = (rows, fallo) => {
     const escritos = [];
     const sb = {
@@ -137,7 +137,7 @@ test("setExpenseCat cuenta filas: cero filas o un error no son una confirmación
     };
     return { sb, escritos };
   };
-  const call = (t, e) => run(t.sb, cli.expenseCloudEq, cli.expenseSourceForCloud, e, "bares");
+  const call = (t, e) => run(t.sb, cli.expenseCloudEq, cli.expenseSourceForCloud, cli.obConfirmedCanUpload, e, "bares");
   const rows = [{ id: uuid(1), cat: "recibos" }];
   const ok = tabla(rows);
   assert.equal(await call(ok, { id: uuid(1) }), 1);

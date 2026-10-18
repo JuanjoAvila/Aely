@@ -104,7 +104,8 @@ test("revision1: inicio inválido no inventa origen y asOf no lo sustituye",()=>
 });
 test("revision1: nube real proyecta, push/pull y merge conservan startMonth",async()=>{
   const plain=x=>JSON.parse(JSON.stringify(x));let row=null;const writes=[];
-  const db={from(table){
+  const storage=new Map();c.localStorage={getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,String(v)),removeItem:k=>storage.delete(k)};c.window.localStorage=c.localStorage;
+  const db={auth:{getSession:async()=>({data:{session:{user:{id:"synthetic"}}},error:null})},from(table){
     assert.equal(table,"app_state");
     const write=value=>{row=plain(value);writes.push(row);return {select:async()=>({data:[{updated_at:row.updated_at}],error:null})};};
     return {
@@ -118,16 +119,18 @@ test("revision1: nube real proyecta, push/pull y merge conservan startMonth",asy
   }};
   const a=html.indexOf('const cloud = (function(){'),b=html.indexOf('\n})();',a),start=html.indexOf('  return {',a);
   assert.ok(a>=0&&b>start&&start>a);
-  const cloud=vm.runInContext('(function(sb){'+html.slice(start,b)+'})',c)(db);
+  const cloud=vm.runInContext('(function(sb){const statePushCache=new Map();'+html.slice(start,b)+'})',c)(db);
   const d=atOctober(()=>manualDebt({paid:"3"})),remote={...fixture([d]),_savedAt:20,_dynBalAnchored:true};
   await cloud.pushState("synthetic",c.slimForCloud(remote),null);
   let pack=await cloud.pullState();assert.equal(pack.data.debts[0].startMonth,2026*12+7);
   await cloud.pushState("synthetic",c.slimForCloud(pack.data),pack.updated_at);
+  assert.equal(writes.length,1,'payload idéntico y mismo CAS no reenvían el estado');
+  await cloud.pushState("synthetic",c.slimForCloud({...pack.data,budget:1234}),pack.updated_at);
   pack=await cloud.pullState();assert.equal(writes.length,2);
   assert.deepEqual(pack.data.debts,plain(remote.debts),"el transporte JSON conserva todos los campos de la deuda");
   const app=fs.readFileSync(new URL("../src/modules/11-app-main.js",import.meta.url),"utf8");
   const body=callbackBody(app.slice(app.indexOf("const syncFromCloud=function(")),"function(prev){");
-  const factory=vm.runInContext("(function(sessionRef,cloudState,cloudPack,u,opts,freshLogin,mergeExpenses,fixMovInvasion,fixRevoDupes,fixInvAuto,fixInvSold,reconcileTR,seedFlows,reconcileEarlyIncomeAnchors){return function(prev){"+body+"};})",c);
+  const factory=vm.runInContext("(function(sessionRef,cloudState,cloudPack,u,opts,freshLogin,mergeExpenses,fixMovInvasion,fixRevoDupes,fixInvAuto,fixInvSold,reconcileTR,seedFlows,reconcileEarlyIncomeAnchors){const obAbsorbedWriteBlocked={current:false};return function(prev){"+body+"};})",c);
   const identity=x=>x;
   const merge=(local,freshLogin=false)=>factory({current:{user:{id:"synthetic"}}},pack.data,pack,"synthetic",{},freshLogin,(a,b)=>({list:a}),identity,identity,identity,identity,identity,c.seedFlows,identity)(local);
   for(const local of [{...fixture([]),_savedAt:10},{...fixture([{...d,name:"Cambio local"}]),_savedAt:30}]){

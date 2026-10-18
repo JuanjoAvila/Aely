@@ -10,6 +10,7 @@
 // Y los de la revisión de aquel arreglo: «Deshacer» el borrado de un recibo, versiones mezcladas,
 // editar 10 → 12 → 10 (el gasto desaparecía) y editar sin conexión.
 // Los bloques de pantalla se ejecutan sacados del bundle servido (`public/index.html`).
+import {withOwnerStorage} from "./helpers/owner-storage-fixture.mjs";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
@@ -20,7 +21,7 @@ import { loadPureLogic, extractPureLogicSource, createLogicSandbox } from "../sc
 const source=file=>fs.readFileSync(new URL("../"+file,import.meta.url),"utf8");
 const order=JSON.parse(source("src/build-order.json"));
 const js=order.map(file=>source("src/modules/"+file)).join("\n");
-const c=loadPureLogic(source("src/shell.html").replace("<!--MC_APP_SCRIPT-->",()=>js));
+const c=withOwnerStorage(loadPureLogic(source("src/shell.html").replace("<!--MC_APP_SCRIPT-->",()=>js)));
 vm.runInNewContext(source("src/modules/14-v4-screens.js"),c);
 const bundle=source("public/index.html");
 const { statsDelMes }=await import("data:text/javascript;base64,"+Buffer.from(transformSync(source("supabase/functions/_shared/presupuesto.ts"),{loader:"ts",format:"esm"}).code).toString("base64"));
@@ -56,7 +57,7 @@ const sube=(s,savedAt)=>{ const x=clon(c.slimForCloud(s)); if(savedAt!=null) x._
 // El bloque REAL con el que App aplica el estado que baja de la nube (`syncFromCloud`).
 const mBaja=/const sameOwner=![^\n]*\n\s*const preferenceDeleted=[\s\S]*?if\(freshLogin\s*&&\s*\(cloudState\.accounts/.exec(bundle);
 assert.ok(mBaja,"no se encuentra el bloque de último-que-escribe en syncFromCloud");
-const bloqueBaja=vm.runInContext("(function(prev,cloudState,freshLogin,opts,sessionRef,u,cloudPack){"+mBaja[0].replace(/if\(freshLogin\s*&&\s*\(cloudState\.accounts$/,"")+"\nreturn baseObj;})",c);
+const bloqueBaja=vm.runInContext("(function(prev,cloudState,freshLogin,opts,sessionRef,u,cloudPack){const obAbsorbedWriteBlocked={current:false};"+mBaja[0].replace(/if\(freshLogin\s*&&\s*\(cloudState\.accounts$/,"")+"\nreturn baseObj;})",c);
 const baja=(prev,nube,freshLogin)=>bloqueBaja(prev,nube,!!freshLogin,null,{current:{user:{id:"u1"}}},"u1",{updated_at:"synthetic"});
 
 const viejo=(ym,imp,rec)=>({id:"v-"+ym+"-"+imp,date:ym+"-05T10:00:00.000Z",merchant:rec?"ENDESA ENERGIA XXI":"CARREFOUR",obName:rec?"ENDESA ENERGIA XXI":"CARREFOUR",amount:imp,category:rec?"recibos":"super",source:"ob",ent:"bbva",extId:"x-"+ym+"-"+imp,reciboId:rec?"luz":undefined});

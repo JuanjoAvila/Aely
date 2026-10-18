@@ -44,7 +44,7 @@ function banco(){
     settings:{reservaRules:[{id:"r",goalId:"g",kind:"fixed",value:100,mensual:true}]},
     reservaLog:[{id:"mensual|r|2026-10",incomeKey:"mensual|r|2026-10",ruleId:"r",goalId:"g",amount:100,mensual:"2026-10",date:"2026-10-31T12:00:00Z"}]};
   const pulls=[],expenses=[],identity=x=>x;
-  const deps={
+  const deps={obAbsorbedWriteBlocked:{current:false},
     cloud:{pullState:function(){ const d=diferida(); pulls.push(d); return d.promise; },pushState:()=>Promise.resolve({updated_at:"2026-11-02"})},
     set:function(updater){ state=updater(state); },stateRef:{current:state},cloudUpdatedAtRef:{current:null},pullOkRef:{current:null},
     setStateRaw:function(updater){ state=updater(state); },
