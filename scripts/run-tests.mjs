@@ -193,6 +193,7 @@ const steps = [
   ["hist-fecha-que-baila", ["node", "tests/hist-fecha-que-baila.test.mjs"]],
   ["fechas-cache", ["node", "tests/fechas-cache.test.mjs"]],
   ["hist-uniq-por-banco", ["node", "tests/hist-uniq-por-banco.test.mjs"]],
+  ["hist-book-reference", ["node", "tests/hist-book-reference.test.mjs"]],
   ["sync-manual-un-aviso", ["node", "tests/sync-manual-un-aviso.test.mjs"]],
   ["broker-sync-outcomes", ["node", "tests/broker-sync-outcomes.test.mjs"]],
   ["myinvestor-sync-outcomes", ["node", "tests/myinvestor-sync-outcomes.test.mjs"]],
