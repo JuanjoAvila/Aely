@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-18-10b-ux16-r3-barra",
+  "to": "codex",
+  "body": "Anadido del dueno a UX16 ronda 3 (mismo encargo, misma APK 58): su frase: anadele como extra vibracion suave cuando tocas la barra y acompanas con el dedo, que vibre ahi tambien. Interpretacion: la barra inferior de pestanas (botnav); al tocarla y deslizar el dedo por ella, un tick suave cada vez que el indicador pasa a otra pestana (una vez por pestana, sin repetir mientras el dedo siga en la misma, nada de vibracion continua), misma intensidad que el borde nuevo, respetando el ajuste de vibracion del sistema y el movimiento reducido. Si la barra no tiene arrastre del indicador hoy, dilo en una consulta antes de inventar el gesto. Test web del disparo por cambio de pestana.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261018-7c3e91a4",
+  "createdAt": "2026-10-18T20:04:44.010Z"
+}
