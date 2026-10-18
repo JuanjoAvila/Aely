@@ -54,7 +54,7 @@ const fila=e=>({id:e.id,user_id:"u1",fecha:e.date,importe:e.amount,comercio:e.me
 const sube=(s,savedAt)=>{ const x=clon(c.slimForCloud(s)); if(savedAt!=null) x._savedAt=savedAt; return x; };
 
 // El bloque REAL con el que App aplica el estado que baja de la nube (`syncFromCloud`).
-const mBaja=/const merged=mergeExpenses\(prev\.expenses,\s*cloudState\.expenses\|\|\[\]\);[\s\S]*?if\(freshLogin\s*&&\s*\(cloudState\.accounts/.exec(bundle);
+const mBaja=/const sameOwner=![^\n]*\n\s*const preferenceDeleted=[\s\S]*?if\(freshLogin\s*&&\s*\(cloudState\.accounts/.exec(bundle);
 assert.ok(mBaja,"no se encuentra el bloque de último-que-escribe en syncFromCloud");
 const bloqueBaja=vm.runInContext("(function(prev,cloudState,freshLogin,opts,sessionRef,u,cloudPack){"+mBaja[0].replace(/if\(freshLogin\s*&&\s*\(cloudState\.accounts$/,"")+"\nreturn baseObj;})",c);
 const baja=(prev,nube,freshLogin)=>bloqueBaja(prev,nube,!!freshLogin,null,{current:{user:{id:"u1"}}},"u1",{updated_at:"synthetic"});

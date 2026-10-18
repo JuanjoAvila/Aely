@@ -793,9 +793,11 @@ const bundle=source("public/index.html");
 test("al bajar el estado de la nube, App une los vetos con `reciboNoUnion` (el bloque REAL de syncFromCloud)", ()=>{
   const m=/(?:const|let) baseObj = localNewer[\s\S]*?if\(freshLogin && \(cloudState\.accounts/.exec(bundle)||/(?:const|let) baseObj\s*=\s*localNewer[\s\S]*?if\(freshLogin\s*&&\s*\(cloudState\.accounts/.exec(bundle);
   assert.ok(m,"no se encuentra el bloque de último-que-escribe en syncFromCloud");
+  const owner=/const sameOwner=![^\n]*;/.exec(bundle);
+  assert.ok(owner,"no se encuentra la guarda real de titular anterior al merge");
   // Desde la unión con Inicio v4.2 (4.26.122) el mismo bloque une además el historial de cuentas
   // para el titular de la sesión: se le da la sesión de ese titular y la unión real.
-  const bloque=new Function("prev","cloudState","freshLogin","localNewer","merged","opts","reciboNoUnion","fusionarGemelos","sessionRef","u","mergeAccountBalanceHistory","cloudPack","goalSyncPull","goalSyncCopy",m[0].replace(/if\(freshLogin\s*&&\s*\(cloudState\.accounts$/,"")+"\nreturn baseObj;");
+  const bloque=new Function("prev","cloudState","freshLogin","localNewer","merged","opts","reciboNoUnion","fusionarGemelos","sessionRef","u","mergeAccountBalanceHistory","cloudPack","goalSyncPull","goalSyncCopy",owner[0]+"\n"+m[0].replace(/if\(freshLogin\s*&&\s*\(cloudState\.accounts$/,"")+"\nreturn baseObj;");
   // La 141 (Metas a tres vías) hace que el bloque lea `cloudPack.updated_at` y llame a `goalSyncPull`/`goalSyncCopy`: se le dan los reales del bundle.
   const adopta=(...a)=>bloque(...a,{current:{user:{id:"titular"}}},"titular",c.mergeAccountBalanceHistory,{updated_at:"synthetic"},c.goalSyncPull,c.goalSyncCopy);
   const prev={_savedAt:1,expenses:[],reciboNo:["com|x"],reciboNoAt:{"com|x":10}}, nube={_savedAt:2,reciboNo:[],reciboNoAt:{"com|x":20}};

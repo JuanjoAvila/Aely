@@ -559,7 +559,7 @@ function App(){
         // Refrescar una sola vez conserva el guardado partido: no reescribir el histórico
         // por página ni cuando las filas recibidas son iguales a las que ya había.
         const kept=keepCategoryChoices(prev.expenses, incoming, readStartedAt);
-        const merged=mergeExpensesFromCloud(kept.prev, kept.incoming, readStartedAt);
+        const merged=mergeExpensesFromCloud(kept.prev, kept.incoming, readStartedAt, expenseDeletedSet(prev));
         const next=merged.list;
         // El aviso ganó a un cargo de recibo: su fila del banco deja de llevar la marca en la nube,
         // o el servidor contaría una u otra según el orden en que las lea.
@@ -626,7 +626,9 @@ function App(){
           // Cerrar sesión mientras llega el pull no autoriza aplicar una cartera vieja
           // ni sustituir los 400 cierres locales por la ventana corta de nube.
           if(!sessionRef.current||!sessionRef.current.user||sessionRef.current.user.id!==u)return prev;
-          const merged=mergeExpenses(prev.expenses, cloudState.expenses||[]);
+          const sameOwner=!(opts&&opts.dropTx)&&(!freshLogin||prev._historyOwner===u)&&(!prev._historyOwner||prev._historyOwner===u);
+          const preferenceDeleted=expenseDeletedSet({deleted:(cloudState.deleted||[]).concat(sameOwner?prev.deleted||[]:[])});
+          const merged=mergeExpenses(prev.expenses, cloudState.expenses||[], preferenceDeleted);
           const localNewer=!freshLogin && (prev._savedAt||0) > (cloudState._savedAt||0);
           let baseObj = localNewer ? Object.assign({},prev,{expenses:merged.list})
                                      : Object.assign({},prev,cloudState,{expenses:merged.list});
@@ -634,7 +636,6 @@ function App(){
           // lo deshace el estado más antiguo del otro. Ver `lapidasUnion` y `recibosBorradosUnion`.
           // Solo con lo local del MISMO titular: la lápida de otra cuenta que hubo en este móvil
           // escondería un gasto de esta que coincidiera en día, importe y comercio.
-          const sameOwner=!(opts&&opts.dropTx)&&(!freshLogin||prev._historyOwner===u)&&(!prev._historyOwner||prev._historyOwner===u);
           const goalState=goalSyncPull(prev,cloudState,u,cloudPack.updated_at,!sameOwner,localNewer);
           if(goalState._goalSync.cloudOnly) baseObj=Object.assign({},prev,cloudState,{expenses:merged.list,bankTx:prev.bankTx});
           Object.assign(baseObj,goalState);

@@ -552,11 +552,11 @@ t("backfill: una fila local con lápida no se resube en cada pull", () => {
 
 /* ── 14. `gemelos` entre dos móviles: unión, gane quien gane el estado ──────────────────── */
 t("dos móviles: el vínculo de A sobrevive al estado de B (y al revés) con el bloque REAL de syncFromCloud", () => {
-  const m = mainSrc.match(/const merged=mergeExpenses\(prev\.expenses[\s\S]*?if\(gem!==baseObj\.gemelos\) baseObj\.gemelos=gem;/);
+  const m = mainSrc.match(/const sameOwner=![^\n]*\n\s*const preferenceDeleted=[\s\S]*?if\(gem!==baseObj\.gemelos\) baseObj\.gemelos=gem;/);
   assert.ok(m, "no se encuentra el bloque de último-que-escribe en syncFromCloud");
   // La 141 (Metas a tres vías) hace que el bloque lea `cloudPack.updated_at` y llame a `goalSyncPull`/`goalSyncCopy`: se le dan los reales del bundle.
-  const bloque = new Function("prev", "cloudState", "freshLogin", "mergeExpenses", "fusionarGemelos", "opts", "u", "cloudPack", "goalSyncPull", "goalSyncCopy", m[0] + "\nreturn baseObj;");
-  const adopta = (p, cs, fl, me, fg) => bloque(p, cs, fl, me, fg, {}, "synthetic", { updated_at: "synthetic" }, c.goalSyncPull, c.goalSyncCopy);
+  const bloque = new Function("prev", "cloudState", "freshLogin", "mergeExpenses", "fusionarGemelos", "opts", "u", "cloudPack", "goalSyncPull", "goalSyncCopy", "expenseDeletedSet", m[0] + "\nreturn baseObj;");
+  const adopta = (p, cs, fl, me, fg) => bloque(p, cs, fl, me, fg, {}, "synthetic", { updated_at: "synthetic" }, c.goalSyncPull, c.goalSyncCopy, c.expenseDeletedSet);
   const mezcla = (p) => ({ list: p });
   const A = estado(), B = estado();
   const av = aviso(-3, 10, 29.9, "Decathlon"); A.expenses.unshift(av); B.expenses.unshift(Object.assign({}, av));
