@@ -28,7 +28,7 @@ function client(db,label,state=seed(),source=original){
  const e={db,label,storage,state:copy(state),owner:uid,sessions:0,advanceDays:n=>{now+=n*864e5;}};
  const sdk={auth:{getSession:async()=>{if(db.onSession)db.onSession(e,++e.sessions);return {data:{session:{user:{id:e.owner},expires_at:now/1000+3600}},error:null};}},from(table){
   if(table==='app_events')return{insert:async row=>{db.events.push({client:label,row:copy(row)});return{error:null};}};
-  if(table==='app_state'){const q={update(row){db.stateWrite=copy(row);return q;},upsert(row){db.stateWrite=copy(row);return q;},eq(){return q;},select(){return q;},maybeSingle:async()=>({data:db.appState||null,error:null}),then(resolve,reject){return Promise.resolve({data:[{updated_at:'synthetic-state-ack'}],error:null}).then(resolve,reject);}};return q;}
+  if(table==='app_state'){const save=row=>{db.stateWrite=copy(row);(db.stateWrites||(db.stateWrites=[])).push(copy(row));};const q={update(row){save(row);return q;},upsert(row){save(row);return q;},eq(){return q;},select(){return q;},maybeSingle:async()=>({data:db.appState||null,error:null}),then(resolve,reject){return Promise.resolve({data:db.stateConflict?[]:[{updated_at:'synthetic-state-ack'}],error:db.stateError||null}).then(resolve,reject);}};return q;}
   assert.equal(table,'expenses');let op='select',limit=Infinity,order=null,payload=null,options=null,returning=false;const filters=[];
   const q={select(){returning=true;return q;},delete(){op='delete';return q;},update(row){op='update';payload=copy(row);return q;},upsert(row,opts){op='upsert';payload=copy(row);options=copy(opts);return q;},eq(k,v){filters.push(['eq',k,v]);return q;},gte(k,v){filters.push(['gte',k,v]);return q;},lt(k,v){filters.push(['lt',k,v]);return q;},limit(n){limit=n;return q;},order(k,o){order=[k,o.ascending];return q;},abortSignal(){return q;},then(resolve,reject){
    const promise=Promise.resolve().then(()=>{
@@ -58,10 +58,15 @@ function client(db,label,state=seed(),source=original){
  e.spent=()=>Math.round(c.dashboardBudgetStats(e.state).spent*100);
  e.serverSpent=()=>Math.round(server.statsDelMes(server.filasComoLaApp(db.rows,e.state.deleted,e.state.obAbsorbedPending,e.state._historyOwner,e.state.obAbsorbedConfirmed),e.state,Date.parse('2026-10-01T00:00:00Z')).spent*100);
  e.prune=()=>{const key=c.obAbsorptionKey(booked),at=e.state.deletedAt[key];for(let i=0;i<500;i++){const delta=c.lapidaPon(e.state,'synthetic-newer-'+i,at+i+1);e.state={...e.state,...delta};}assert.ok(!e.state.deleted.includes(key));return key;};
- e.sync=async()=>{
-  const a=main.indexOf('  const syncCloudExpenses=function(){'),z=main.indexOf('\n  // Al iniciar sesión:',a);assert.ok(a>=0&&z>a);
-  const factory=vm.runInContext('(function(state,session){const stateRef={current:state},sessionRef={current:session};const wR={current:false},wS={current:0},wP={current:null},wC={current:[]},wRead={current:null};const set=fn=>stateRef.current=fn(stateRef.current);const drains=[];const retryObAbsorbedCloud=()=>{const p=obAbsorbedRetry(()=>stateRef.current,()=>sessionRef.current.user.id,set);drains.push(p);return p;};'+main.slice(a,z)+'return {run:syncCloudExpenses,state:()=>stateRef.current,drains};})',c);
+ e.sync=async(mainSource=main)=>{
+  const a=mainSource.indexOf('  const syncCloudExpenses=function(){'),z=mainSource.indexOf('\n  // Al iniciar sesión:',a);assert.ok(a>=0&&z>a);
+  const factory=vm.runInContext('(function(state,session){const stateRef={current:state},sessionRef={current:session};const wR={current:false},wS={current:0},wP={current:null},wC={current:[]},wRead={current:null};const set=fn=>stateRef.current=fn(stateRef.current);const drains=[];const retryObAbsorbedCloud=()=>{const p=obAbsorbedRetry(()=>stateRef.current,()=>sessionRef.current.user.id,set);drains.push(p);return p;};'+mainSource.slice(a,z)+'return {run:syncCloudExpenses,state:()=>stateRef.current,drains};})',c);
   const api=factory(e.state,{user:{id:e.owner}});await api.run();await Promise.all(db.pendingWrites);await Promise.all(api.drains);e.state=api.state();
+ };
+ e.pull=async(mainSource=main)=>{
+  const a=mainSource.indexOf('  const syncFromCloud=function(s, opts){'),z=mainSource.indexOf('\n  // CAPA 2',a);assert.ok(a>=0&&z>a);
+  const factory=vm.runInContext('(function(state,session){const stateRef={current:state},sessionRef={current:session},cloudUpdatedAtRef={current:null},obAbsorbedWriteBlocked={current:false},pullOkRef={current:null};const set=fn=>stateRef.current=fn(stateRef.current),syncCloudExpenses=()=>Promise.resolve(),reservaMensualAlDia=()=>{},showToast=()=>{},pushAppState=()=>{throw Error("unexpected push in pull fixture")};'+mainSource.slice(a,z)+'return {run:()=>{syncFromCloud(session);return pullOkRef.current;},state:()=>stateRef.current};})',c);
+  const api=factory(e.state,{user:{id:e.owner}});assert.equal(await api.run(),true,'real pull completes');e.state=api.state();
  };
  return e;
 }

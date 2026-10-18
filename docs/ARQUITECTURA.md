@@ -1031,3 +1031,8 @@ Contrato, pruebas y límites de entrega: [TR NO-GO 2](briefs/tr-emparejado-nogo2
 ## Candidata OPS-08: escritura de tokens MyInvestor
 
 Keepalive y sync usan `_shared/myinvestor-refresh-save.ts`: CAS por usuario/conexión/refresh almacenado, más acceso cuando no rota el refresh. Hasta dos intentos del mismo patch cifrado, con readback propio/competidor/indeterminado; ningún reintento del banco. Sync recifra legacy bajo esa guarda antes de releer el snapshot. Cero filas no es éxito. La serialización del consumo externo queda fuera (propuesta OPS-09). Sin despliegue acreditado por esta candidata. [Contrato](briefs/ops08-refresh-cas.md).
+
+
+## FIN17: confirmadas tras ACK, candidata F1–F5
+
+El registro confirmado se une fuera de LWW; el umbral1000 nunca bloquea sincronización por capacidad. El pack v1 conserva testigos completos tras hashes con colisión, se persiste por propietario solo si cambia y no se duplica en el estado ligero. Push completo omitido solo con payload semántico y CAS iguales; los lectores servidor deben admitir el pack antes de publicar el cliente. Aviso local consumible y limpieza de particiones en SIGNED_OUT. [Contrato y límites](briefs/fin17-confirmed-absorptions-20261018.md).

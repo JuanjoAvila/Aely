@@ -1282,3 +1282,8 @@ Son dobles locales, sin bancos ni SQL vivos; no acreditan CI general, integraci�
 ## OPS-08 — guardas de rotación MyInvestor
 
 `myinvestor-token-race.test.ts` está registrado en el runner junto a `myinvestor-counter.test.ts`. Ambos leen únicamente fuentes bajo `supabase/functions`, sin permisos de red ni entorno: `deno test --node-modules-dir=none --allow-read=supabase/functions supabase/functions/_shared/myinvestor-token-race.test.ts supabase/functions/_shared/myinvestor-counter.test.ts`. El primero ejecuta handlers/helper reales, simulando Supabase, cifrado y proveedor; cubre ambos intercalados, reconexión, rechazo, refresh ausente en respuesta, acuse perdido, error de lectura, cero filas y recifrado legacy. Los Node de keepalive/sync cargan el helper real, sin sustituir su decisión. Mutaciones focales y límites en el [brief](briefs/ops08-refresh-cas.md).
+
+
+## FIN17: revisión F1–F5
+
+`fin17-confirmed-absorptions.test.mjs` cubre unión sobre1000, expulsión estricta>90d, aviso local, pack y colisiones forzadas, CAS, SIGNED_OUT con guardado posterior y conflicto de Metas beta141. M9/M11/M12 reconstruidos tienen ejecuciones causales independientes. El spec homónimo abre Gastos, reabre la aplicación, verifica avisos es/en/ca, consumo por incidencia y limpieza tras SIGNED_OUT. Datos/SDK sintéticos, sin aceptación móvil ni despliegue. [Mediciones y alcance](briefs/fin17-confirmed-absorptions-20261018.md).

@@ -25,3 +25,26 @@ for(const [lang,message,kind] of [['es','Hay movimientos pendientes de revisar',
  },{b,kept,entry,kind});
  expect(amount).toBe(640);await expect(page.getByText('⚠ '+message,{exact:true})).toBeVisible();
 });
+
+test('FIN17 F2 aviso no reaparece tras reabrir y vuelve en una incidencia nueva',async({page})=>{
+ await installFixtureClock(page);await seedLoggedInDashboard(page,{...base,settings:{lang:'es',autoPrices:false,expenseBanks:['caixabank']},expenses:[]});
+ await page.goto('/');await dismissNews(page);await expect(page.locator('.botnav')).toBeVisible();
+ const notice=page.getByText('⚠ Hay movimientos pendientes de revisar',{exact:true});
+ await page.evaluate(()=>obAbsorbedWarn('full','e2e-user'));await expect(notice).toBeVisible();
+ await page.reload();await dismissNews(page);await expect(page.locator('.botnav')).toBeVisible();
+ await page.evaluate(()=>obAbsorbedWarn('full','e2e-user'));await expect(notice).toHaveCount(0);
+ await page.evaluate(()=>{obAbsorbedClearNotice('e2e-user');obAbsorbedWarn('full','e2e-user');});await expect(notice).toBeVisible();
+});
+
+test('FIN17 F5 SIGNED_OUT borra particiones incluso tras guardar el estado',async({page})=>{
+ await installFixtureClock(page);await seedLoggedInDashboard(page,{...base,__authEvent:'SIGNED_OUT',__authEventDelayMs:3000,settings:{lang:'es',autoPrices:false,expenseBanks:['caixabank']},expenses:[kept,b],obAbsorbedConfirmed:[entry]});
+ await page.goto('/');await expect(page.locator('.botnav')).toBeVisible();
+ await page.evaluate(({entry,b})=>{
+  obAbsorbedPersist('e2e-user',[{...entry,amount:b.amount,merchant:b.merchant}]);
+  localStorage.setItem(obConfirmedStorageKey('other-owner'),'other-confirmed');localStorage.setItem(obAbsorbedStorageKey('other-owner'),'other-pending');
+ },{entry,b});
+ await expect.poll(()=>page.evaluate(()=>localStorage.getItem(obConfirmedStorageKey('e2e-user')))).toBeNull();
+ await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem(mcStateKey())||'{}').obAbsorbedPending?.length)).toBe(0);
+ const keys=await page.evaluate(()=>({confirmed:localStorage.getItem(obConfirmedStorageKey('e2e-user')),pending:localStorage.getItem(obAbsorbedStorageKey('e2e-user')),otherConfirmed:localStorage.getItem(obConfirmedStorageKey('other-owner')),otherPending:localStorage.getItem(obAbsorbedStorageKey('other-owner'))}));
+ expect(keys).toEqual({confirmed:null,pending:null,otherConfirmed:'other-confirmed',otherPending:'other-pending'});
+});

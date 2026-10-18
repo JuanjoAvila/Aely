@@ -1,10 +1,39 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import vm from 'node:vm';
+import crypto from 'node:crypto';
+import {transformSync} from 'esbuild';
+import {fakeDb,post} from './helpers/ingest-handler-fixture.mjs';
 import {client,database,seed,pending,booked,kept,uid,uuid,h1,h2,server,original,read} from './helpers/fin17-fixture.mjs';
 const make=()=>{const db=database(),a=client(db,'A');db.rows=[a.wire(pending),a.wire(booked)];return{db,a};};
 const record=(a,n=0,ackAt=1792324800000)=>({owner:uid,id:uuid(100+n),key:a.c.obAbsorptionKey(n?{...booked,extId:'confirmed-'+n}:booked),keepId:kept.id,keepKey:a.c.obAbsorptionKey(kept),ackAt});
 const boundCloud=e=>{const s=read('src/modules/00-core.js'),a=s.indexOf('const cloud = (function(){'),b=s.indexOf('\n})();',a),start=s.indexOf('  return {',a);assert.ok(a>=0&&b>start);return vm.runInContext('(function(sb){'+s.slice(start,b)+'})',e.c)(e.sdk);};
+const mutation=(id,file,from,to)=>{const source=read(file);assert.equal(source.split(from).length,2,id+' ancla unica');const changed=source.replace(from,to),sha=s=>crypto.createHash('sha256').update(s).digest('hex');console.log(JSON.stringify({reconstructed:true,authority:'55d1f423',id,file,from,to,sourceSHA256:sha(source),mutantSHA256:sha(changed)}));return changed;};
+
+test('FIN17R F4 M9 reconstruido: pull guarda union en estado incluso si local gana LWW',async()=>{
+ const check=async source=>{const {a,db}=make();a.state._savedAt=999;delete a.state.obAbsorbedConfirmed;db.appState={data:{...seed(),expenses:[],_savedAt:1,obAbsorbedConfirmed:[record(a)]},updated_at:'remote-cas'};
+ await a.pull(source);assert.equal(a.c.obConfirmedRead(uid).length,1,'disco acredita union');assert.equal(a.state.obAbsorbedConfirmed?.length,1,'estado tambien acredita union');assert.equal(a.spent(),320);};
+ if(!process.env.FIN17_RECONSTRUCTED_MUTANT)await check();const changed=mutation('M9','src/modules/11-app-main.js','          baseObj.obAbsorbedConfirmed=confirmed;','          /* M9 reconstruido: union solo en disco */');
+ if(process.env.FIN17_RECONSTRUCTED_MUTANT==='M9')return check(changed);
+ await assert.rejects(()=>check(changed),e=>e.code==='ERR_ASSERTION'&&e.message.includes('estado tambien'),'M9 muerto por estado, no por preparacion');
+});
+test('FIN17R F4 M12 reconstruido: sync mezcla disco sin presembrar confirmed en estado',async()=>{
+ const check=async source=>{const {a}=make();delete a.state.obAbsorbedConfirmed;a.c.obConfirmedPersist(uid,[record(a)]);await a.sync(source);assert.equal(a.spent(),320,'sync debe incorporar confirmado durable al estado');};
+ if(!process.env.FIN17_RECONSTRUCTED_MUTANT)await check();const changed=mutation('M12','src/modules/11-app-main.js','const confirmed=obConfirmedMerge(stateRef.current,null,readOwner);','const confirmed=stateRef.current.obAbsorbedConfirmed||[];');
+ if(process.env.FIN17_RECONSTRUCTED_MUTANT==='M12')return check(changed);
+ await assert.rejects(()=>check(changed),e=>e.code==='ERR_ASSERTION'&&e.message.includes('sync debe incorporar'),'M12 muerto por resultado financiero');
+});
+test('FIN17R F4 M11 reconstruido: handler notificacion calcula month con confirmadas',async()=>{
+ const check=async code=>{const {a}=make(),date=new Date().toISOString().slice(0,10),p={...pending,date:date+'T10:00:00.000Z'},b={...booked,date:date+'T10:00:00.001Z'};
+ const r={...record(a),owner:'user',key:a.c.obAbsorptionKey(b),keepKey:a.c.obAbsorptionKey(p)};
+ const env=fakeDb({state:{...seed(),_historyOwner:'user',expenses:[],obAbsorbedConfirmed:[r]},rows:[p,b].map(e=>({...a.wire(e),user_id:'user'}))});
+ const result=await post(env,{fuente:'tr',titulo:'Trade Republic',texto:'Has gastado 0,01 € en Otra cuenta sintetica',fecha:String(Date.now()),evento:'fin17-m11'},undefined,code);
+ assert.equal(result.status,200);assert.ok(result.data.month,'handler devuelve month');assert.equal(Math.round(result.data.month.spent*100),320,'month no cuenta BOOK confirmado');};
+ if(!process.env.FIN17_RECONSTRUCTED_MUTANT)await check();const changed=mutation('M11','supabase/functions/ingest/index.ts','st?.data?.obAbsorbedPending, userId, st?.data?.obAbsorbedConfirmed);','st?.data?.obAbsorbedPending, userId);');
+ const code=transformSync(changed.replace(/^import\s[\s\S]*?from\s+"[^"]+";\r?\n/gm,''),{loader:'ts'}).code;
+ if(process.env.FIN17_RECONSTRUCTED_MUTANT==='M11')return check(code);
+ await assert.rejects(()=>check(code),e=>e.code==='ERR_ASSERTION'&&e.message.includes('month no cuenta'),'M11 muerto por respuesta real');
+});
 
 test('FIN17R F1 union1001 conserva recientes y permite alta manual ajena',async()=>{
  const {a,db}=make(),many=Array.from({length:1000},(_,i)=>record(a,i+1));a.c.obConfirmedPersist(uid,many);
@@ -39,6 +68,49 @@ test('FIN17R F3 persistencia identica no reescribe registro',()=>{
  const {a}=make(),list=Array.from({length:1000},(_,i)=>record(a,i+1));let writes=0;const set=a.storage.setItem;a.storage.setItem=(k,v)=>{if(k.includes('_oback_'))writes++;return set(k,v);};
  assert.equal(a.c.obConfirmedPersist(uid,list),true);assert.equal(a.c.obConfirmedPersist(uid,list),true);assert.equal(writes,1,'solo una escritura para datos iguales');
 });
+test('FIN17R F3 mismo payload semantico y CAS no reenvia; cambio real o CAS si',async()=>{
+ const {a,db}=make(),state={...seed(),obAbsorbedConfirmed:[record(a)]};
+ const first=await a.cloud.pushState(uid,a.c.slimForCloud(state),'cas1');
+ await a.cloud.pushState(uid,a.c.slimForCloud({...state,_savedAt:999}),first.updated_at);
+ assert.equal(db.stateWrites.length,1,'solo cambio de sello local no vuelve a enviar');
+ await a.cloud.pushState(uid,a.c.slimForCloud({...state,budget:900}),first.updated_at);assert.equal(db.stateWrites.length,2,'cambio real se envia con el registro');
+ await a.cloud.pushState(uid,a.c.slimForCloud({...state,budget:900}),'cas2');assert.equal(db.stateWrites.length,3,'otro CAS no se omite');
+});
+test('FIN17R F3 guardado ligero no duplica registro durable en estado principal',()=>{
+ const {a}=make(),state={...seed(),obAbsorbedConfirmed:[record(a)]};a.c.mcSaveRaw('micartera_v3',state);
+ const raw=JSON.parse(a.storage.getItem('micartera_v3'));assert.equal(Object.hasOwn(raw,'obAbsorbedConfirmed'),false,'registro vive solo en particion con readback');
+ assert.equal(a.c.mcLoadRaw('micartera_v3').obAbsorbedConfirmed.length,1);
+});
+test('FIN17R F3 colision forzada conserva testigos y paridad servidor; legacy migra sin perdida',()=>{
+ const source=original.replace('function obConfirmedHash(text){','function obConfirmedHash(text){return "collision";');assert.notEqual(source,original);
+ const a=client(database(),'collision',seed(),source),records=[record(a),record(a,1)],pack=a.c.obConfirmedPack(records,uid);
+ assert.equal(Object.keys(pack.r).length,1);assert.equal(pack.r.collision.length,2);
+ const decoded=a.c.obConfirmedUnpack(pack,uid);assert.equal(decoded.length,2);
+ for(const expense of [booked,{...booked,extId:'confirmed-1'}])assert.equal(a.c.obConfirmedMatches(expense,decoded,uid),true);
+ for(const expense of [kept,{...booked,extId:'unrelated'},{...booked,obAcc:'another-account'},{...booked,obOrd:3},{...booked,date:'2026-10-15T12:00:00Z'}]){
+  assert.equal(a.c.obConfirmedMatches(expense,decoded,uid),false);assert.equal(server.filasComoLaApp([a.wire(expense)],[],[],uid,pack).length,1);
+ }
+ assert.equal(server.filasComoLaApp([a.wire(booked)],[],[],uid,pack).length,0);
+ assert.equal(server.filasComoLaApp([a.wire(booked)],[],[],'other-owner',pack).length,1);
+ const legacy=JSON.stringify({owner:uid,confirmed:records});a.storage.setItem(a.c.obConfirmedStorageKey(uid),legacy);assert.equal(a.c.obConfirmedRead(uid).length,2);
+ a.c.obConfirmedMerge(a.state,null,uid);assert.equal(JSON.parse(a.storage.getItem(a.c.obConfirmedStorageKey(uid))).v,1);assert.equal(a.c.obConfirmedRead(uid).length,2);
+});
+test('FIN17R F3 conflicto o error no marca push como confirmado',async()=>{
+ const {a,db}=make(),state=a.c.slimForCloud({...seed(),obAbsorbedConfirmed:[record(a)]});db.stateConflict=true;
+ assert.equal((await a.cloud.pushState(uid,state,'cas')).conflict,true);db.stateConflict=false;await a.cloud.pushState(uid,state,'cas');assert.equal(db.stateWrites.length,2);
+ db.stateError={code:'synthetic-error'};await assert.rejects(()=>a.cloud.pushState(uid,{...state,budget:900},'synthetic-state-ack'));delete db.stateError;
+ await a.cloud.pushState(uid,{...state,budget:900},'synthetic-state-ack');assert.equal(db.stateWrites.length,4,'error no permite saltarse el siguiente envio');
+});
+test('FIN17R beta141 conflicto de reservas conserva cloudOnly y union compacta',async()=>{
+ const {a,db}=make(),goal={id:'synthetic-goal',name:'Meta sintetica',target:1000,saved:100,done:false,doneAt:null};
+ const base={...seed(),goals:[goal],settings:{...seed().settings,reservaRules:[{id:'rule',goalId:goal.id,kind:'fixed',value:50,mensual:true}]},reservaLog:[]};
+ a.state={...base,...a.c.goalSyncPull(base,base,uid,'base-cas',false),_savedAt:999};
+ a.state.goals=[{...goal,saved:150}];a.state.settings={...base.settings,reservaRules:[{...base.settings.reservaRules[0],value:100}]};
+ const remote={...base,_savedAt:1,goals:[{...goal,saved:300}],obAbsorbedConfirmed:a.c.obConfirmedPack([record(a)],uid)};
+ db.appState={data:remote,updated_at:'remote-cas'};await a.pull();
+ assert.equal(a.state._goalSync.cloudOnly,true);assert.equal(a.state.goals[0].saved,300);assert.equal(a.state.settings.reservaRules[0].value,50);
+ assert.equal(a.state.obAbsorbedConfirmed.length,1);assert.equal(a.spent(),320);assert.equal(a.c.obConfirmedRead(uid).length,1);
+});
 test('FIN17R F3 registro compacto reduce bytes conservando identidad',()=>{
  const {a}=make(),list=Array.from({length:1000},(_,i)=>record(a,i+1));const before=Buffer.byteLength(JSON.stringify({owner:uid,confirmed:list}));a.c.obConfirmedPersist(uid,list);
  const raw=a.storage.getItem(a.c.obConfirmedStorageKey(uid));assert.ok(Buffer.byteLength(raw)<before*0.8,'reduccion minima20porciento con fixture identica');
@@ -52,6 +124,7 @@ test('FIN17R F5 SIGNED_OUT elimina solo particiones salientes',()=>{
  const factory=vm.runInContext('(function(state,session){let alive=true;const stateRef={current:state},sessionRef={current:session};const set=fn=>stateRef.current=fn(stateRef.current);const setSession=()=>{},setRecovery=()=>{},setShowAuth=()=>{},syncFromCloud=()=>{};'+source.slice(start,end)+'return ()=>stateRef.current;})',a.c);
  const state=factory(a.state,{user:{id:uid}});fire('TOKEN_REFRESHED',{user:{id:uid}});ownKeys.forEach(k=>assert.notEqual(a.storage.getItem(k),null));fire('SIGNED_OUT',null);
  ownKeys.forEach(k=>assert.equal(a.storage.getItem(k),null,'particion saliente eliminada'));otherKeys.forEach(k=>assert.equal(a.storage.getItem(k),'synthetic-other-unchanged'));assert.equal(state().obAbsorbedConfirmed.length,0);
+ a.c.mcSaveRaw('micartera_v3',state());ownKeys.forEach(k=>assert.equal(a.storage.getItem(k),null,'guardado posterior no recrea particion saliente'));
 });
 
 for(const [phase,switchAt] of [['candidate-filter',3],['fallback-checked',5]])test('FIN17 batch session barrier '+phase+': dos filas,cambio A→B exige0SDKupserts',async()=>{
@@ -136,10 +209,10 @@ test('FIN17 confirmed antes que clear: fallo de clear/reapertura conserva ambos'
  a.c.mcSaveRaw('micartera_v3',a.state);const restored=a.c.mcLoadRaw('micartera_v3');assert.equal(restored.obAbsorbedConfirmed.length,1);assert.equal(restored.obAbsorbedPending.length,1);
 });
 
-test('FIN17 cap1000: jóvenes/exact90/futuros/edad inválida no se expulsan y pending sigue',async()=>{
+test('FIN17 cap1000: jóvenes/exact90/futuros/edad inválida se conservan sin bloquear ACK',async()=>{
  for(const at of [1792324800000,1792324800000-90*864e5,1792324800000+864e5,null]){
   const {a}=make();a.stage();const list=Array.from({length:1000},(_,i)=>record(a,i+1,at));a.state.obAbsorbedConfirmed=list;assert.equal(a.c.obConfirmedPersist(uid,list),true);
-  await a.drain();assert.equal(a.state.obAbsorbedPending.length,1);assert.equal(a.state.obAbsorbedConfirmed.length,1000);
+  await a.drain();assert.equal(a.state.obAbsorbedPending.length,0);assert.equal(a.state.obAbsorbedConfirmed.length,1001);
  }
 });
 
@@ -156,21 +229,21 @@ test('FIN17 edad indefinida no pierde la protección en serialización/reapertur
  assert.equal(a.c.obConfirmedMatches(booked,restored,uid),true);
 });
 
-test('FIN17 unión independiente LWW/CAS y overflow no trunca ni avanza escritura',async()=>{
+test('FIN17 unión independiente LWW/CAS y overflow no trunca ni bloquea escritura ajena',async()=>{
  const {a,db}=make(),r=record(a),other=record(a,1);a.c.obConfirmedPersist(uid,[r]);
  const remote={...seed(),_savedAt:1,obAbsorbedConfirmed:[other]};const local={...seed(),_savedAt:999,obAbsorbedConfirmed:[r]};
  const joined=a.c.obConfirmedMerge(local,remote,uid);assert.equal(joined.length,2);
- await a.cloud.pushState(uid,a.c.slimForCloud(local),'old-cas');assert.equal(db.stateWrite.data.obAbsorbedConfirmed.length,2);assert.equal(db.stateWrite.data.expenses,undefined);
+ await a.cloud.pushState(uid,a.c.slimForCloud(local),'old-cas');assert.equal(a.c.obConfirmedUnpack(db.stateWrite.data.obAbsorbedConfirmed,uid).length,2);assert.equal(db.stateWrite.data.expenses,undefined);
  const many=Array.from({length:1000},(_,i)=>record(a,i+10));a.c.obConfirmedPersist(uid,many);
- assert.equal(a.c.obConfirmedMerge({...local,obAbsorbedConfirmed:many},remote,uid),null);
- const writes=db.queries.length;assert.equal(await a.cloud.addExpense(booked),null);assert.equal(db.queries.length,writes);
- assert.equal(a.c.obConfirmedRead(uid).length,1000);
+ assert.equal(a.c.obConfirmedMerge({...local,obAbsorbedConfirmed:many},remote,uid).length,1001);
+ const otherExpense={...booked,id:uuid(9999),extId:'unrelated',date:'2026-10-18T11:00:00Z'};await a.cloud.addExpense(otherExpense);assert.ok(db.rows.some(r=>r.id===otherExpense.id));
+ assert.equal(a.c.obConfirmedRead(uid).length,1001);
 });
 
 test('FIN17 H2 conserva640 incierto con aviso/código cerrado; no rebaja el RED histórico320',async()=>{
  for(const kind of ['full','missing-owner']){const r=h2(kind);assert.equal(r.local,640);assert.equal(r.server,640);}
  const {a,db}=make();delete a.state._historyOwner;a.stage();await new Promise(r=>setImmediate(r));
- assert.equal(a.state.obAbsorbedIssue,'owner');assert.ok(db.events.some(e=>e.row.message==='ob_absorbed'&&e.row.detail==='{"code":"owner"}'));
+ assert.equal(a.state.obAbsorbedIssue,undefined);assert.equal(a.c.obAbsorbedTakeNotice(''),true);assert.ok(db.events.some(e=>e.row.message==='ob_absorbed'&&e.row.detail==='{"code":"owner"}'));
  assert.equal(a.c.mcLogEvent('error','ob_absorbed','{"code":"owner","amount":999,"owner":"private"}').detail,'{"code":"owner"}');
  assert.equal(a.c.mcLogEvent('error','ob_absorbed','{"code":"private"}'),null);
  assert.equal(vm.runInContext('LANG.es.ob_absorbed_review',a.c),'Hay movimientos pendientes de revisar');

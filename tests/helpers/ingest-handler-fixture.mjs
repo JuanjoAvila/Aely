@@ -129,7 +129,7 @@ function fakeDb(opts = {}) {
   return { db: { from: table }, rows, events };
 }
 
-function makeHandler(db, classifier=logic) {
+function makeHandler(db, classifier=logic, code=handlerJs) {
   let handler;
   const Deno = { serve: (f) => { handler = f; }, env: { get: (k) => ({
     SUPABASE_URL: "https://db.invalid", SUPABASE_SERVICE_ROLE_KEY: "role",
@@ -143,7 +143,7 @@ function makeHandler(db, classifier=logic) {
     "widgetSnapshot", "widgetStart", "readWidgetRows",
     "INGEST_MAX_BODY", "INGEST_MAX_COMERCIO", "INGEST_MAX_NOTA", "INGEST_MAX_TEXTO", "recortar", "timingSafeEqual",
   ];
-  new Function(...names, handlerJs)(
+  new Function(...names, code)(
     Deno, () => db, classifier.categorizar, classifier.clasificarConMotivo, logic.extraerComercio,
     logic.extraerConcepto, logic.extraerImporte, logic.extraerPersona, logic.limpiarTexto,
     wallet.aEuros, wallet.parseWallet, identity.claveEvento, identity.esGemeloIngest,
@@ -158,8 +158,8 @@ function makeHandler(db, classifier=logic) {
   return handler;
 }
 
-async function post(env, body, classifier=logic) {
-  const res = await makeHandler(env.db, classifier)(new Request("https://app.invalid/ingest", {
+async function post(env, body, classifier=logic, code=handlerJs) {
+  const res = await makeHandler(env.db, classifier, code)(new Request("https://app.invalid/ingest", {
     method: "POST", headers: { "x-ingest-token": "token", "content-type": "application/json" },
     body: JSON.stringify(body),
   }));

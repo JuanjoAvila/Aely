@@ -800,6 +800,8 @@ function mcSaveRaw(key, s, opts){
   if(key.endsWith("_goal_conflicts")){ store.set(key,{owner:s.owner,records:goalSyncRecords(s.records)}); return; }
   const rest=Object.assign({},s);
   delete rest.expenses;
+  if(s._historyOwner&&Array.isArray(s.obAbsorbedConfirmed)&&(!s.obAbsorbedConfirmed.length||obConfirmedPersist(s._historyOwner,s.obAbsorbedConfirmed,key)))delete rest.obAbsorbedConfirmed;
+  delete rest.obAbsorbedIssue;
   if(s._goalSync){
     goalSyncStore(key,s._goalSync);
     rest._goalSync=Object.assign({},s._goalSync); delete rest._goalSync.conflicts;
@@ -1115,6 +1117,7 @@ async function mcPullExpensesPaged(fetchPage){
 
 const cloud = (function(){
   let sb = null;
+  const statePushCache=new Map();
   try {
     if (window.supabase && CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY) {
       sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
@@ -1123,7 +1126,7 @@ const cloud = (function(){
   return {
     enabled(){ return !!sb; },
     async session(){ if(!sb) return null; const {data}=await sb.auth.getSession(); return data.session; },
-    onAuth(cb){ const sub=sb&&sb.auth.onAuthStateChange((ev,s)=>{ cb(s,ev); }); return ()=>{ if(sub) sub.data.subscription.unsubscribe(); }; },
+    onAuth(cb){ const sub=sb&&sb.auth.onAuthStateChange((ev,s)=>{ if(ev==="SIGNED_OUT")statePushCache.clear();cb(s,ev); }); return ()=>{ if(sub) sub.data.subscription.unsubscribe(); }; },
     async signIn(email){
       if(!sb) throw new Error("nube no disponible");
       const {error}=await sb.auth.signInWithOtp({ email:email, options:{ emailRedirectTo: location.href.split('#')[0] } });
@@ -1144,8 +1147,12 @@ const cloud = (function(){
       if(!sb || !uid) return null;
       const current=await this.session();if(!current||current.user.id!==uid)throw new Error("ob_confirmed_owner");
       const confirmed=obConfirmedMerge(data,null,uid);if(!confirmed)throw new Error("ob_confirmed_merge");
-      data=Object.assign({},data,{obAbsorbedConfirmed:confirmed});delete data.obAbsorbedIssue;
+      data=Object.assign({},data,{obAbsorbedConfirmed:obConfirmedPack(confirmed,uid)});delete data.obAbsorbedIssue;
       if((data.obAbsorbedPending||[]).some(function(p){return !obAbsorbedValid(p,uid);})||(data.obAbsorbedPending||[]).length>OB_ABSORBED_MAX)throw new Error("ob_absorbed_owner");
+      const semantic=Object.assign({},data);delete semantic._savedAt;
+      const body=obStateCanonical(semantic),cached=statePushCache.get(uid);
+      if(lastKnownUpdatedAt&&cached&&cached.revision===lastKnownUpdatedAt&&cached.body===body)return {updated_at:lastKnownUpdatedAt,unchanged:true};
+      statePushCache.delete(uid);
       const now=new Date().toISOString();
       if(lastKnownUpdatedAt){
         const {data:rows,error}=await sb.from('app_state')
@@ -1154,12 +1161,14 @@ const cloud = (function(){
           .select('updated_at');
         if(error) throw error;
         if(!rows || !rows.length) return { conflict:true };
+        statePushCache.set(uid,{body:body,revision:rows[0].updated_at});
         return { updated_at:rows[0].updated_at };
       }
       const {data:rows,error}=await sb.from('app_state')
         .upsert({ user_id:uid, data:data, updated_at:now }, { onConflict:'user_id' })
         .select('updated_at');
       if(error) throw error;
+      if(rows&&rows[0]&&rows[0].updated_at)statePushCache.set(uid,{body:body,revision:rows[0].updated_at});
       return { updated_at: rows && rows[0] && rows[0].updated_at };
     },
     async pullExpenses(readProof){
@@ -1953,11 +1962,40 @@ function obAbsorbedWarn(code,owner){
 /* FIN17: un ACK no es una intención pendiente. Esta memoria tiene su propio límite y
    nunca desaparece al podar las lápidas normales. No es un cerco atómico del servidor. */
 const OB_CONFIRMED_MAX=1000,OB_CONFIRMED_AGE=90*86400000,obConfirmedBlocked=new Set(),obConfirmedIndexes=new WeakMap(),obConfirmedReadCache=new Map();
+function obStateCanonical(value){
+  return JSON.stringify(value,function(k,v){if(v&&typeof v==="object"&&!Array.isArray(v)){const sorted={};Object.keys(v).sort().forEach(function(key){sorted[key]=v[key];});return sorted;}return v;});
+}
+function obConfirmedHash(text){
+  let h=2166136261;for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(36);
+}
+function obConfirmedPack(list,owner){
+  const d=[],seen=new Map(),r=Object.create(null),put=function(s){if(!seen.has(s)){seen.set(s,d.length);d.push(s);}return seen.get(s);};
+  // El hash solo agrupa: cada colisión conserva TODOS los testigos exactos, nunca decide un match.
+  const rows=list.map(function(p){return [p.id,p.key,p.keepId,p.keepKey,typeof p.ackAt==="number"&&Number.isFinite(p.ackAt)&&p.ackAt>0?p.ackAt:null];});
+  rows.sort(function(a,b){const x=JSON.stringify(a),y=JSON.stringify(b);return x<y?-1:x>y?1:0;});
+  rows.forEach(function(row){const hash=obConfirmedHash(JSON.stringify(row.slice(0,4))),bucket=r[hash]||(r[hash]=[]);bucket.push(row.slice(0,4).map(put).concat([row[4]]));});
+  return {v:1,o:owner,d:d,r:r};
+}
+function obConfirmedUnpack(value,owner){
+  if(value==null||Array.isArray(value))return value;
+  if(value.v!==1||value.o!==owner||!Array.isArray(value.d)||!value.d.every(function(s){return typeof s==="string";})||!value.r||typeof value.r!=="object"||Array.isArray(value.r))return null;
+  const list=[];
+  for(const bucket of Object.values(value.r)){
+    if(!Array.isArray(bucket))return null;
+    for(const row of bucket){
+      if(!Array.isArray(row)||row.length!==5||!row.slice(0,4).every(function(n){return Number.isInteger(n)&&n>=0&&n<value.d.length;}))return null;
+      list.push({owner:owner,id:value.d[row[0]],key:value.d[row[1]],keepId:value.d[row[2]],keepKey:value.d[row[3]],ackAt:row[4]});
+    }
+  }
+  return list;
+}
 function obConfirmedValid(p,owner){
   const key=function(k){const a=String(k||"").split("|");return a.length===6&&a[0]==="ob-absorbed2"&&!!a[1]&&!!a[2]&&/^[1-9]\d{0,5}$/.test(a[3])&&/^\d{4}-\d{2}-\d{2}$/.test(a[5]);};
   return !!p&&!!owner&&p.owner===owner&&isExpenseUuid(p.id)&&isExpenseUuid(p.keepId)&&p.id!==p.keepId&&key(p.key)&&key(p.keepKey)&&Object.prototype.hasOwnProperty.call(p,"ackAt");
 }
 function obConfirmedJoin(a,b,owner,evict,now){
+  const left=a,right=b;a=obConfirmedUnpack(a,owner);b=obConfirmedUnpack(b,owner);
+  if(left!=null&&a==null||right!=null&&b==null)return null;
   if(a!=null&&!Array.isArray(a)||b!=null&&!Array.isArray(b))return null;
   const out=[],seen=new Map();
   for(const p of (Array.isArray(a)?a:[]).concat(Array.isArray(b)?b:[])){
@@ -2005,16 +2043,16 @@ function obConfirmedRead(owner,key){
   try{const storageKey=obConfirmedStorageKey(owner,key),raw=obConfirmedStorage().getItem(storageKey),cached=obConfirmedReadCache.get(storageKey);
     if(cached&&cached.raw===raw)return cached.list;
     if(raw==null){const empty=[];obConfirmedReadCache.set(storageKey,{raw:raw,list:empty});return empty;}
-    const p=JSON.parse(raw);if(p.owner!==owner||!Array.isArray(p.confirmed))return null;
-    const list=obConfirmedJoin(p.confirmed,[],owner);if(list)obConfirmedReadCache.set(storageKey,{raw:raw,list:list});return list;
+    const p=JSON.parse(raw);if(p.v!==1&&(p.owner!==owner||!Array.isArray(p.confirmed)))return null;
+    const list=obConfirmedJoin(p.v===1?p:p.confirmed,[],owner);if(list)obConfirmedReadCache.set(storageKey,{raw:raw,list:list});return list;
   }catch(e){return null;}
 }
 function obConfirmedPersist(owner,list,key){
   if(!owner||!Array.isArray(list)||list.some(function(p){return !obConfirmedValid(p,owner);}))return false;
   // JSON omite undefined: una edad ilegible se conserva como null, nunca como pérdida del ACK.
   const durable=list.map(function(p){return typeof p.ackAt==="number"&&Number.isFinite(p.ackAt)&&p.ackAt>0?p:Object.assign({},p,{ackAt:null});});
-  try{const body=JSON.stringify({owner:owner,confirmed:durable}),k=obConfirmedStorageKey(owner,key);
-    const storage=obConfirmedStorage();storage.setItem(k,body);return storage.getItem(k)===body;
+  try{const body=JSON.stringify(obConfirmedPack(durable,owner)),k=obConfirmedStorageKey(owner,key);
+    const storage=obConfirmedStorage();if(storage.getItem(k)!==body)storage.setItem(k,body);return storage.getItem(k)===body;
   }catch(e){return false;}
 }
 function obConfirmedMerge(local,remote,owner,key){
