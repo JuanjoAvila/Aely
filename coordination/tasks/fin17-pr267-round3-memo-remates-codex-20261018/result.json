@@ -1,0 +1,98 @@
+{
+  "status": "blocked",
+  "summary": "PR267 round3 complete as normal descendant: memo instrument anchor and callback retain all five production dependencies; validated durable pending merge reuses unchanged array including empty queue. Durable priority, full payload changes, queue growth, corruption and overflow controls retained. Financial F5 contract untouched. Same draft PR, integration pending; release own claim and STOP.",
+  "productSHA": "307419e6f18105a9c67c7516e7883725fc53db32",
+  "baseSHA": "87706775ea6c9e4593fe1467286c91d4a8ee29d2",
+  "PR": 267,
+  "draft": true,
+  "normalPushExit": 0,
+  "remoteHeadExact": true,
+  "PRHeadBaseBodyExact": true,
+  "claimCommit": "61992b7436645018d89ab841d8f4aa17393d856e",
+  "ACKCommit": "62c68ce1ab66a34f56ae23caaedbac55f5286c12",
+  "grant": "ed79f501093866b1103c6fb3af6f961f65d3ecd6",
+  "previousResult": "2aba962ca0d0d0c0821d813c803398c2590c4331",
+  "tests": [
+    {
+      "name": "redInstrumentExit",
+      "exitCode": 1
+    },
+    {
+      "name": "newQueueRed",
+      "exit": 1,
+      "pass": 3,
+      "fail": 3
+    },
+    {
+      "name": "newQueueGreen",
+      "UTC": 6,
+      "Madrid": 6,
+      "exit": 0
+    },
+    {
+      "name": "instrumentGreen",
+      "UTC": 0,
+      "Madrid": 0
+    },
+    {
+      "name": "mutants",
+      "killedByAssertion": 3,
+      "exits": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "DOM",
+      "pass": 4,
+      "fail": 0,
+      "skip": 0,
+      "flaky": 0,
+      "workers": 1,
+      "retries": 0,
+      "cpuRate": 1,
+      "exit": 0,
+      "exactProductAndHarnessBytes": true
+    },
+    {
+      "name": "syntaxExit",
+      "exitCode": 0
+    },
+    {
+      "name": "privacyExit",
+      "exitCode": 0
+    },
+    {
+      "name": "diffCheckExit",
+      "exitCode": 0
+    }
+  ],
+  "intermediateFailures": [
+    "New unit callback extraction cut at inner semicolon; retained EXIT1 then repaired harness boundary and final EXIT0 in both zones"
+  ],
+  "remaining": [
+    "Independent review and integration by Claude",
+    "Prior auth-disposal-fit beta-sources docs-frescura memoria-espejo and size failures not rerun",
+    "No general CI served publication mobile acceptance",
+    "No repeated entireNode CPU6 Deno SQL banks Edge GradleAPK deploymerge"
+  ],
+  "noProductReady": true,
+  "candidateManifestSHA256": "eed74ea0ca37bd7fc961d320f9cb74a82af987a1d294f62e688c06292a94bee3",
+  "candidateCheckpointSHA256": "8b79b4d0552c11134e6dd13ad5bb70caf1c55f2c3733829f34fe6ebd353e1f76",
+  "budget": {
+    "id": "fin17-own12-7-db3299cd-fcf546f2",
+    "previous": 82,
+    "usedBeforeResult": 3,
+    "allowance": 12,
+    "firstInternalReadbacksCount": true,
+    "minSpacingMs": 30000
+  },
+  "stop": "Own exact readback then final durable manifest checkpoint and STOP; no ROOT64 or ROOT65 message",
+  "schema": 1,
+  "taskId": "fin17-pr267-round3-memo-remates-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-fcf546f25c8b1b50",
+  "createdAt": "2026-10-18T06:01:44.635Z",
+  "released": true
+}
