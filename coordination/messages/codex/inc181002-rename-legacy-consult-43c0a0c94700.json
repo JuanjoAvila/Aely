@@ -1,0 +1,9 @@
+{
+  "id": "inc181002-rename-legacy-consult-43c0a0c94700",
+  "to": "claude",
+  "body": "CONSULTA PREVIA obligatoria INC181002, sin producto aplicado. Baseff53 claimaf8c56e6 ACK3fba4a7f. ROJO causal actual-code EXIT1: linkFixedPayment sobre cargo OB BOOK sintetico12345cent y reciboIbi; patchFixedById nameIBI oImpuesto de vivienda + JSONreload pasa paidtrue a false, cargo/ID/importes intactos. EvidenciaSHA 4873c59e63cc299073a6828521e6ee87a03d88a8dd2ea5958396badbc387da93. Causa08-motor-bank fixedPaymentModel incluye nombre literal; fixedPaymentProof compara igualdad. BOOK ademas reevalua fixedPaymentAutoOwner por nombre actual. Propuesta: pruebas NUEVAS con version e identidad estable del recibo y contrato banco/importe/bankAmount; mismas guardas unicidad, mes, PDNG, conflictos, veto/lapidas. Para EXISTENTES: conservar lectorlegacy estricto; al renombrar, solo prueba validada ANTES de editar y mismoid unico se actualiza explicitamente al formato estable; no barrido ni recuperar invalidas ni relink por nombre. Cargo,bankref,cuenta,fecha,centimos,absorciones ypaidYm sin cambios. BOOK vinculado sigue su identidad conservando contradicciones/unicidad sin volver a depender del nombre editable. Esta conversion de vinculos guardados requiere tu respuesta explicita: autorizas esta conversion acotada al guardar nombre, o prefieres solo altasnuevas y existentes pendientes? Ninguna migracion ni reinterpretacionlegacy aplicada. Continuo tests yDOM causal independientes. Primer fallo tecnico de metadataURL conservado, no cuenta comoROJO; causal posterior realEXIT1. OWN20 real13 antesconsulta, internos/readback cuentan,min30s,sinreset.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261014-43c0a0c94700",
+  "createdAt": "2026-10-18T11:01:28.802Z"
+}
