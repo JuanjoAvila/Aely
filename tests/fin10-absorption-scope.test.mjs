@@ -92,20 +92,21 @@ test("FIN10 remates indice se renueva al recibir otro conjunto de lapidas",()=>{
 test("FIN10 remates mutantes propios de simetria escritor/lectores y coste mueren",()=>{
  const localCases=[
   ["M1-escritor-asimetrico",s=>s.replace('obAbsorptionMatches(keep,{[key]:1})','key===obAbsorptionKey(keep)'),ctx=>rematesScenario(ctx,server,false,true,1)],
-  ["M2-lector-cliente-asimetrico",s=>s.replace('e.obAcc ? index.missing[k] : index.any[k]','e.obAcc ? false : index.any[k]'),ctx=>visibility(ctx,server,{...gone,obAcc:"synthetic-account-a"},[ctx.obAbsorptionKey({...gone,obAcc:undefined})],true)],
+  ["M2-lector-cliente-asimetrico",s=>s.replace('e.obAcc?index.missing:index.any','e.obAcc?{}:index.any'),ctx=>visibility(ctx,server,{...gone,obAcc:"synthetic-account-a"},[ctx.obAbsorptionKey({...gone,obAcc:undefined})],true)],
   ["M3-indice-recalculado-por-fila",s=>s.replace('obAbsorptionIndexes.get(delSet)','null'),ctx=>rematesCost(ctx,200)]
  ];
  for(const [name,mutate,check] of localCases){
   check(c);const changed=mutate(html);assert.notEqual(changed,html,name);
   assert.throws(()=>check(loadPureLogic(changed)),{code:"ERR_ASSERTION"},name);
  }
- const changed=source.replace('cuentaAusente.has(base) || ','');assert.notEqual(changed,source,"M4-lector-servidor-asimetrico");
+ const changed=source.replace('p && p[4] ? cuentaAusente : sinCuenta','p && p[4] ? new Set<string>() : sinCuenta');assert.notEqual(changed,source,"M4-lector-servidor-asimetrico");
  assert.throws(()=>visibility(c,serverModule(changed),{...gone,obAcc:"synthetic-account-a"},[c.obAbsorptionKey({...gone,obAcc:undefined})],true),{code:"ERR_ASSERTION"});
  console.log("FIN10 remates: M1/M2/M3/M4 muertos por centimos y coste real");
 });
 
-test("FIN10 escritor real emite solo v2 y ambos lectores conservan cuenta/dia",()=>{
- const s=absorbed();assert.deepEqual(Array.from(s.deleted),[key]);assert.equal(s.deletedAt[key],123456789);
+test("FIN10 escritor real emite v3 con signo y ambos lectores conservan cuenta/dia",()=>{
+ const signed=key.replace("ob-absorbed2|","ob-absorbed3|")+"|1";
+ const s=absorbed();assert.deepEqual(Array.from(s.deleted),[signed]);assert.equal(s.deletedAt[signed],123456789);
  assert.equal(s.expenses.length,1);assert.equal(s.expenses[0].id,pending.id);
  visibility(c,server,gone,s.deleted,true);visibility(c,server,otherAccount,s.deleted,false);visibility(c,server,otherDay,s.deleted,false);
  visibility(c,server,s.expenses[0],s.deleted,false);
@@ -160,7 +161,7 @@ test("FIN14 guarda UUID de retirada acepta source legacy y rechaza otra cuenta c
 });
 test("FIN10 dia literal almacenado, sin reinterpretar zona horaria",()=>{
  const e={...gone,date:day(-2)+"T23:59:00-03:00"};
- assert.equal(c.obAbsorptionKey(e),key);visibility(c,server,e,[key],true);
+ assert.equal(c.obAbsorptionKey(e),key.replace("ob-absorbed2|","ob-absorbed3|")+"|1");visibility(c,server,e,[key],true);
 });
 test("FIN15 importador real no duplica referencia estable cuando reaparece otro dia",()=>{
  const state={accounts:[{id:"cx",ent:"caixabank",role:"diario",spendFrom:true,value:1000}],settings:{expenseBanks:["caixabank"]},expenses:[],gemelos:[],deleted:[],fixed:[],debts:[],oneoffs:[],flows:[],investments:[],goals:[],assets:[],budget:1000,bankTx:[]};
@@ -175,11 +176,11 @@ test("FIN10 mutantes propios de cliente/escritor mueren por comportamiento",()=>
  const checks={
   account:ctx=>{const s=absorbed(ctx);assert.equal(ctx.expenseIsTombstoned(otherAccount,ctx.expenseDeletedSet(s)),false);},
   day:ctx=>{const s=absorbed(ctx);assert.equal(ctx.expenseIsTombstoned(otherDay,ctx.expenseDeletedSet(s)),false);},
-  writer:ctx=>{assert.deepEqual(Array.from(absorbed(ctx).deleted),[key]);},
+  writer:ctx=>{assert.deepEqual(Array.from(absorbed(ctx).deleted),[key.replace("ob-absorbed2|","ob-absorbed3|")+"|1"]);},
   transport:ctx=>assert.equal(ctx.expenseFromRow(wire(gone,ctx)).obAcc,gone.obAcc)
  };
  const mutants=[
-  ["account",s=>s.replace('e.obAcc ? index.missing[k] : index.any[k]','index.any[k]')],
+  ["account",s=>s.replace('e.obAcc?index.missing:index.any','index.any')],
   ["day",s=>s.replace('String(e.date||"\").slice(0,10)','""')],
   ["writer",s=>s.replace('const key=obAbsorptionKey(e);if(!key','const key=obAbsorptionKey(e,true);if(!key')],
   ["transport",s=>s.replace('obAcc: source==="ob"||source==="ob-hist" ? bankRefDeSource(raw,"acc") : undefined,','obAcc: undefined,')]

@@ -42,6 +42,7 @@ const steps = [
   ["deudas-metas-edicion", ["node", "tests/deudas-metas-edicion.test.mjs"]],
   ["deudas-metas-revision", ["node", "tests/deudas-metas-revision.test.mjs", "--mutations"]],
   ["deudas-plazo-cuota", ["node", "tests/deudas-plazo-cuota.test.mjs"]],
+  ["refund-polarity", ["node", "--test", "tests/refund-polarity.test.mjs"]],
   ["fin10-absorption-scope", ["node", "--test", "tests/fin10-absorption-scope.test.mjs"]],
   ["deudas-plazo-aviso", ["node", "tests/deudas-plazo-aviso.test.mjs"]],
   ["deudas-plazo-submit", ["node", "tests/deudas-plazo-submit.test.mjs"]],
