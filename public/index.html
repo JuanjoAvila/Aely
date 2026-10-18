@@ -16008,7 +16008,11 @@ function applyBankBalances(s, links){
       if(!usable(accs[j])){ accounts[i]=Object.assign({},a,{balanceStale:true}); changed=true; }
     });
     const free=accs.map(function(ac,k){return ac&&(ac.uid||ac.iban)&&ownerOf[k]==null&&!blocked[k]?k:-1;}).filter(function(k){return k>=0;});
-    if(unbound.length===1 && free.length===1){
+    // Primera conexión con una sola principal sin vínculo: como en la base, la primera
+    // libre es la principal y las demás son extras. Un UID previo o varias principales
+    // conservan la restricción de pareja única; los IBAN exactos ya están reservados.
+    const firstConnection=unbound.length===1 && !uidOf(accounts[unbound[0]]) && accounts.filter(function(a){return a.ent===ent;}).length===1;
+    if(unbound.length===1 && free.length && (free.length===1 || firstConnection)){
       ownerOf[free[0]]=unbound[0]; usedPrimary[unbound[0]]=true;
     } else if(unbound.length){
       // Varias identidades desconocidas no acreditan qué principal corresponde a cuál.
