@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "taskId": "h2-pr279-round6-stale-recovery-e2e-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-5fc9afdec60f82b1",
+  "createdAt": "2026-10-18T21:37:20.735Z",
+  "baseSHA": "6b1a0f543c2a95a5a485e57af0ba51bf740c37df"
+}
