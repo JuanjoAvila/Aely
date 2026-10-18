@@ -1,0 +1,86 @@
+{
+  "status": "blocked",
+  "released": true,
+  "phase": "INVESTIGATION_COMPLETE_PROPOSAL_PENDING_CLAUDE",
+  "baseSHA": "7090802099ac0c7956c0d3597a9936a82c52a95f",
+  "productSHA": null,
+  "productChanged": false,
+  "PR": null,
+  "productReady": false,
+  "realIncidentClosed": false,
+  "claimCommit": "397f46a3c343377046d25768cf76549e1277f4e6",
+  "ackCommit": "f6d84e6f9daabec592d1608bfc93c70a14e70ee7",
+  "consultationCommit": "11e19f5598ce9b053dd8b338dd7398d4cb90470d",
+  "manifestSHA256": "c9f13f8414c8d98db89154c56d2b67f3771fa45c2c833268e1964330ec243335",
+  "checkpointSHA256": "31970035cbbe76def4a67510f5c47070060fda41796cbf87b709130ab56b3e5e",
+  "report": {
+    "path": "work/inc181003-04/diagnostico-propuesta.txt",
+    "sha256": "ed7a7bc6c0b02223f384af845580346909efb1c6f9b5204f2c5cb49ffbf68533"
+  },
+  "tests": [
+    {
+      "name": "Private actual-bundle DOM causal discrepancies",
+      "exitCode": 1,
+      "scenarios": 2,
+      "diagnosticAssertions": 5,
+      "workers": 1,
+      "retries": 0,
+      "port": 59419
+    },
+    {
+      "name": "Visible Plan rows follow-up only",
+      "exitCode": 0,
+      "passed": 2,
+      "workers": 1,
+      "retries": 0
+    },
+    {
+      "name": "Actual-bundle diagnostic controls",
+      "exitCode": 1,
+      "passed": 13,
+      "harnessExpectationFailures": 1
+    },
+    {
+      "name": "Only corrected identity control",
+      "exitCode": 0,
+      "passed": 1
+    },
+    {
+      "name": "Exact Git source and prior artifacts",
+      "exitCode": 0,
+      "sourceFiles": 11,
+      "priorArtifacts": 3,
+      "clean": true
+    }
+  ],
+  "summary": "Investigation INC18100304 complete on exact70908020, no product edits. Three distinct causes reproduced: debtPaymentState paid by elapsed due day without expense evidence19700c while detail requires debtId; receipt2999c valid BOOK proof recognized by Plan but detail reads only expense proof or reciboId; ATM warning uses manual eligibility as affirmative classification. Pending4200c receipt offered for19700c charge by existing manual eligibility, never confirmed. Synthetic current IDs/cents preserved, no attribution to real family row. DOM2 RED scenarios5diagnostic assertions EXIT1; separate2 visiblePlan checks EXIT0 close initial transition-text gap. Controls13 pass and1 harness expectation failure preserved; only failed identity control corrected EXIT0, not full14green suite. Different refs/accounts share contentidentity and legacykey while cloudsource differs: automatic backfill unsafe. Proposal separates calendar/confirmed presentation, read-only validated relation and conditional withdrawal wording; no matching, persisted links, migration or financial contract changed. Consultation11e19f55 exactreadback sent for Claude decision. Private report with source lines, writer inventory and bounded regressions; manifest42evidence11sources and3prior artifacts exact, clean source. No speculativePR, build/fullsuiteCPU6GradleAPK/liveSQLbanksEdge/deploymerge/served/mobile. Own releasedblocked for review and STOP.",
+  "limitations": [
+    "Synthetic mechanism only; real incident row/date/proof not accessed or attributed.",
+    "No product GREEN or product mutants because implementation is not authorized.",
+    "First DOM Plan text read during transition was empty; separate visible-only tests2PASS supplied evidence; initial artifacts retained.",
+    "Initial identity control expected distinct keyOfExpense incorrectly; EXIT1 retained, focused corrected test proves equal content keys and distinct cloud source, no complete suite14PASS claimed.",
+    "Diagnostic RED does not authorize linking debt or enabling duplicate manual receipt linking.",
+    "No product change, saved-link rewrite, migration, remote persistence, PR, builds, general CI, fullsuite, CPU6, Gradle/APK, live banks/SQL/Edge, deployment/merge or mobile acceptance."
+  ],
+  "budgetBeforeResult": {
+    "used": 8,
+    "allowance": 12,
+    "remaining": 4,
+    "priorFrozen": [
+      14,
+      6,
+      7,
+      7,
+      10,
+      12
+    ],
+    "minimumSeconds": 30,
+    "noResetOrInheritance": true
+  },
+  "nextAction": "Exact own canonical readback, durable closure, released investigation and STOP; Claude review/new authority required for product.",
+  "schema": 1,
+  "taskId": "inc181003-04-plan-expense-link-investigation-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-46b86e3686e19bf3",
+  "createdAt": "2026-10-18T22:07:57.217Z"
+}
