@@ -5106,7 +5106,7 @@ test("la referencia histórica visible vigila el texto completo en los tres idio
 test("Recientes106 reanclada conserva expresión, identidad y recibo completos",()=>{
   const id="inc-0810-dashboard-recents-memo",file="src/modules/03-tab-dash.js";
   const actual=JSON.parse(read("scripts/beta-sources.json"))[id];
-  const anchor={file,from:"  const recent=useMemo",to:",[state.expenses,state.deleted]);",includeTo:true};
+  const anchor={file,from:"  const recent=useMemo",to:",[state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);",includeTo:true};
   assert.deepEqual(actual.web[0],anchor);
   const currentText=scopeText(anchor,read),current=betaRevision(id,read);
   // Desde la120 `keyOfExpense` lleva el ordinal de los apuntes iguales, y Recientes lee las lápidas
@@ -5114,18 +5114,18 @@ test("Recientes106 reanclada conserva expresión, identidad y recibo completos",
   // dos unidades que el descriptor gana). La igualdad con los commits históricos se sigue
   // comprobando, pero contra la beta119 (788432f4), la última con la clave de entonces.
   const actual119=JSON.parse(source119("scripts/beta-sources.json"))[id],current119=betaRevision(id,source119,undefined,actual119);
-  assert.deepEqual(actual.web.slice(0,actual119.web.length),actual119.web,"el descriptor119 sigue entero y en su orden");
+  assert.deepEqual(actual.web.slice(0,actual119.web.length).map(sinAbsorcion143),actual119.web,"el descriptor119 sigue entero y en su orden");
   assert.deepEqual(actual.web.slice(actual119.web.length,actual119.web.length+2).map(u=>[u.file,u.function]),[["src/modules/00-core.js","obOrdinalSufijo"],["src/modules/00-core.js","obOrdinalOf"]],"en la120 sólo gana la regla del ordinal");
   // Desde la122 la fila de Recientes dice de qué recibo es el cargo (`reciboEtiqueta`): el descriptor
   // gana detrás esa función y lo que lee, que Catálogo122 fija unidad a unidad. La expresión del
   // memo, que es lo que esta prueba ancla, sigue igual.
   const actual121=JSON.parse(source121("scripts/beta-sources.json"))[id];
-  assert.deepEqual(actual121.web,actual.web.slice(0,actual119.web.length+2),"el descriptor de la121 era el de la119 más el ordinal");
+  assert.deepEqual(actual121.web,actual.web.slice(0,actual119.web.length+2).map(sinAbsorcion143),"el descriptor de la121 era el de la119 más el ordinal");
   assert.ok(actual.web.slice(actual121.web.length).some(u=>u.function==="reciboEtiqueta"),"en la122 gana la etiqueta de recibo y sus dependencias");
   // La 132 añade `!e.autoGemelo&&` al filtro (la pareja automática de Trade Republic no se pinta dos veces): es lo único que cambia respecto a la 119.
-  const sinAuto132=currentText.replace("filter(e=>!e.autoGemelo&&!expenseIsTombstoned(","filter(e=>!expenseIsTombstoned(");
+  const sinAuto132=currentText.replace("filter(e=>!e.autoGemelo&&!expenseIsTombstoned(","filter(e=>!expenseIsTombstoned(").replace(",state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]","]");
   assert.notEqual(sinAuto132,currentText,"la 132 excluye autoGemelo");
-  assert.equal(sinAuto132,scopeText(anchor,source119),"la expresión de Recientes no cambia en la120 ni en la122, salvo el filtro de la132");
+  assert.equal(sinAuto132,scopeText(sinAbsorcion143(anchor),source119),"la expresión de Recientes no cambia en la120 ni en la122, salvo el filtro de la132");
   assert.notEqual(current.web,current119.web,"la clave con ordinal mueve la identidad: no se conserva la de la119");
   const cache=new Map(),at=(sha,f)=>{const k=sha+":"+f;if(!cache.has(k))cache.set(k,execFileSync("git",["show",k],{encoding:"utf8",maxBuffer:10e6}));return cache.get(k);};
   for(const sha of ["23a7808f65ef6d28e8a906f7100ffdf229917abb","f4ffb9340adfd0a13b631271e8158d2c630613c0","b1ad23f34f2a94933e57246dfdf12c451f5360a1"]){
@@ -5133,14 +5133,14 @@ test("Recientes106 reanclada conserva expresión, identidad y recibo completos",
     assert.ok(before,"el baseline debe contener la unidad106 real");
     assert.deepEqual({...actual,web:before.web},before,"ningún descriptor ajeno ni metadata106 cambia");
     assert.deepEqual(actual119.web.slice(1),before.web.slice(1),"todas las dependencias reales siguen presentes");
-    assert.equal(sinAuto132,scopeText(before.web[0],source),"reanclaje no recorta ni amplía el contenido");
-    assert.equal(scopeText(anchor,source),scopeText(before.web[0],source),"el cierre también funciona en lectores históricos");
+    assert.equal(sinAuto132,scopeText(before.web[0],source),"reanclaje no recorta ni amplía el contenido (la 143 solo añade a las dependencias del memo lo que lee FIN-17)");
+    assert.equal(scopeText(sinAbsorcion143(anchor),source),scopeText(before.web[0],source),"el cierre también funciona en lectores históricos");
     assert.equal(current119.web,betaRevision(id,source,undefined,before).web,"identidad recalculada, sin copiar huella anterior");
     assert.equal(current119.web,betaRevision(id,source,undefined,actual119).web,"no absorbe constp del renderer histórico");
   }
   for(const [from,to] of [
     ["recent=useMemo","recent=useState"],
-    ["[state.expenses,state.deleted]","[state.expenses]"],
+    ["[state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]","[state.expenses]"],
     ["!expenseIsTombstoned(e,expenseDeletedSet(s))","expenseIsTombstoned(e,expenseDeletedSet(s))"],
     ["expenseDeletedSet(s)","expenseDeletedSet({})"],
     [".slice(0,3)",".slice(0,2)"]

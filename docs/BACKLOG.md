@@ -24,6 +24,7 @@
 - FIN-03 · identidad de gastos de extremo a extremo, incluidos dos bancos el mismo día: **aparcado**. La preferencia BOOK frente a PDNG no autoriza resolver el defecto de otro banco con el mismo contenido.
 - PRO-09 · round-up de TR desde «Round up Invertido»: **diseño** pendiente de emparejamiento con Open Banking; sin implementación ni aceptación por asociación con UX-15.
 - Saldo de cuenta · PR268 (`7fbcb9e0` sobre la 141), borrador en revisión independiente; resultado `blocked/released`, sin GO ni entrega acreditados en este corte.
+- PRO-20 · Colchón / fondo de emergencia (evolutivo pedido por el dueño 18/10; decisiones suyas del 18/10, falta solo el diseño visual con su OK): sección de ahorro TOTAL a la que el usuario elige qué cuentas, metas e inversiones suman (opt-in por elemento: hay inversiones que no quiere contar). Gasto para sobrevivir = los recibos obligatorios (Plan → Recibos). Muestra cuántos meses aguanta el colchón con esos recibos más un presupuesto de vida que el usuario elige (con más presupuesto salen menos meses), y una recomendación del tipo «con X € al mes aguantas N meses». Vive en Plan, como sección propia junto a Deudas, Metas y Recibos; en Inicio, como mucho, una línea con los meses que aguanta. Si falta dato, «—» y por qué; nunca inventar cifras.
 
 **1 · Dinero · otros pendientes conservados**
 
