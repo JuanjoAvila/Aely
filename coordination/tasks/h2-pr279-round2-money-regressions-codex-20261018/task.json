@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "id": "h2-pr279-round2-money-regressions-codex-20261018",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r68-1141875c91e6e665",
+  "createdAt": "2026-10-18T12:44:19.361Z",
+  "to": "codex",
+  "kind": "worker",
+  "model": "gpt-6-astra",
+  "priority": 1,
+  "baseSHA": "099e36de8d8186d679f27e52c9fb00b469622215",
+  "originalBetaBaseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "claudeGrant": "f96e3cd0cc503efe1966949220f80ccc095d6d13",
+  "previousTaskId": "h2-balance-transactions-candidate-codex-20261018",
+  "previousResult": "ff56f366d004ae5858b4f883afc356dc356b9b28",
+  "PR": 279,
+  "branch": "codex/h2-balance-transactions-20261018",
+  "objective": "Remedy independent Claude NO-GO on PR279 in round2 same branch with original Astra holder: eliminate manual-account binding, reconnect UID and disappeared-account money regressions while preserving independent phase outcomes, exact-cent contract and conservative cursor/ACK.",
+  "scope": [
+    "PR279 applyBankBalances account binding and retention strictly needed for B1/B2/B3, plus actual-base bundle comparison controls",
+    "Bank transaction failure normalization, balance diagnostic logging, UID-filtered account completion and useful-balance telemetry strictly required by B4 and remates",
+    "Focused synthetic RED then implementation/GREEN and meaningful mutants, necessary relevant DOM, test registration and focused documentation only"
+  ],
+  "requirements": [
+    "Same original H Astra holder, own original session/helper/filter/runtime/cwd and same branch from exact HEAD099e36de8. Previous own resultff56 released; fresh task OWN claim/readback/ACK mandatory before edits. No foreign claim/lease inheritance. Preserve PR275/276/278 and all foreign WIP/returns.",
+    "Claude NO-GO exact body is binding and must be read fully before work: PR279 H2 099e36de: NO-GO de revision independiente. El origen queda corregido (22500c) pero applyBankBalances mete regresiones de dinero; remates admitidos, ronda 2 misma rama con Astra. B1: cuenta manual sin bankIban/bankUid ya no se asigna a la primera cuenta libre del banco; queda balanceStale y bloquea todas las del banco (medido: conexion nueva con manual previa base 7000c PR 5000c; dos manuales una vinculada y banco con dos cuentas base 10000c PR 9000c) y no hay UI para elegir. Recupera la asignacion (por IBAN, si no la primera libre) cuando no hay ambiguedad. B2: cuenta sin IBAN que vuelve con uid nuevo tras reconectar: la vieja queda rancia a 50 y entra la nueva a 70, PR 12000c vs base 7000c, con servidor viejo y nuevo, tambien con obAccount. Reconcilia el cambio de uid sin IBAN como hacia uidCambia. B3: una cuenta que el banco deja de mandar se conserva rancia para siempre e infla el patrimonio; retener SOLO las que llegan con balanceOk false. B4: tests/bank-download-incomplete pasa de 51/0 a 48/3: el codigo de fallo se traduce dos veces (row.transactionError=obReadFailureCode(err) y luego obReadFailureCode(a.error||a.transactionError)): transactions_budget sale provider_error en vez de page_limit, eb_503 se registra unavailable; y obReadLogDetails no registra balanceError. Remates: el cursor exige acctOut.length===acctList.length y una cuenta sin uid en link.accounts lo bloquea para siempre (contar solo cuentas con uid en allBalances/allRead); la telemetria de sync ok sin saldo utilizable puede saltar en falso; el cliente viejo de prueba es un fixture copiado: anade tests contra el bundle REAL de ff53b0e7 (public/index.html) para los tres casos de identidad. Bien y a conservar: escenarios del contrato al centimo, cursor/ACK nunca avanzan con movimientos incompletos, compatibilidad legacy real, tiempos y llamadas en serie, seguridad.",
+    "B1 reproduce and restore nonambiguous prior manual account assignment: prefer IBAN; absent identity use first free account only when not ambiguous. Claude measured base7000c versus candidate5000c for new connection plus prior manual and base10000c versus9000c for two manuals/one linked/two bank accounts. Do not invent a UI or broaden arbitrary identity merging; show exact-cent controls and preserve genuinely distinct accounts.",
+    "B2 reconnect without IBAN with changed UID must reconcile old50/new70 as7000c, never12000c, for old/new servers and obAccount representation. B3 retain only accounts actually returned with balanceOkfalse; absent accounts must not inflate assets forever. Prove new semantics against actual ff53b0e7 public/index.html bundle for all three identity cases, not solely a copied legacy fixture.",
+    "B4 preserve failure categories without double-normalizing: transactions_budget remains page_limit, eb_503 classification and obReadLogDetails balanceError must match real contract. Run newly necessary targeted bank-download-incomplete regression after RED (Claude baseline51/0 versus48/3), no masking assertions/oracle changes. UID-less link accounts must not permanently block allBalances/allRead/cursor; count valid UIDs consistently. Avoid false sync-ok telemetry with no useful balance.",
+    "Preserve existing H2 exact22500c, valid10000c despite transaction failure, validzero versusmissing/error, failed-account freshness, complete-transaction-only cursor/ACK, local durable persistence, guarded affected rows/auth versions, replay/dedup/book/pending/tombstones/cents, explicit overflow/90day limits, serial calls and existing60s/15s/12calls/2000rows. Both-direction REAL compatibility with no money loss/duplication; explain residual identity ambiguities.",
+    "Prior manifestbf96d7c2/report ed10e601 and all340evidence/25sources/58commandrecords verified exact privately by ROOT; previous candidate remains valid provenance but NOT independent review green. Do not repeat completed controls without source change or new failure justification; new regression failures and source edits justify targeted reruns. No fullsuite/CPU6/Gradle/APK. Use own directed1worker0retry if new DOM materially needed.",
+    "Continue same holder actual OWN20, closing candidate reports17/20,total39,remaining3; verify own ledger before next fetch, no reset. All first/internal/readbacks count min30s; if a claim+ACK cannot fit remaining3, stop at exhaustion and only then activate next OWN20 under b0390 via own notice/exactreadback. ROOT budget/identity not inherited.",
+    "Supabase skill/current official references already read for this candidate: recheck only relevant new source needs. No live SQL/bank/Edge/auth/schema/cloud writes/deploy. Do not bump VERSION/catalogue/caps or weaken size/docs/beta-source gates; report exact unexecuted/failed gates. No general suite, release, branch main-beta push or merge.",
+    "Deliver updated same draftPR279 against beta, exact finalHEAD/manifest/checkpoint and real commands/EXITs including necessary RED/new controls/mutants and limits. Publish own released blocked result pending independent Claude review/integration; canonical readback then STOP. UX03/UX09 remains queued, not assumed. Public no PC paths or URLs."
+  ],
+  "deliverable": "PR279 round2 financial regression repairs and REAL-base compatibility evidence, released blocked for new Claude review; no deployment."
+}
