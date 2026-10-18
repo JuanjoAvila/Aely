@@ -1,0 +1,82 @@
+{
+  "status": "done",
+  "outcome": "NO_REPRO",
+  "summary": "NO_REPRO cerrado por criterio expreso Claude6c1a4cdf. Nueve casos funcionales Chromium sin salto al escribir y un control positivo de traslado a h1 detectado; el aviso procedia del arnes de revisionPR248. Sin producto ni PR.",
+  "sourceSHA": "503d23267091eb5aa0b0e37dd94fac20ea37bd08",
+  "version": "4.26.140",
+  "claimBaseSHA": "503d23267091eb5aa0b0e37dd94fac20ea37bd08",
+  "alignedCheckoutSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "alignmentVersion": "4.26.141",
+  "alignedBrowserRun": false,
+  "closureCriterion": "6c1a4cdf8ac75f01cb98e6e266b1355d7130141f",
+  "functionalCases": 9,
+  "positiveControls": 1,
+  "distinctCompleted": 10,
+  "completedTestsRepeated": 0,
+  "workers": 1,
+  "retries": 0,
+  "productModified": false,
+  "productReady": false,
+  "pr": null,
+  "tests": [
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "label": "base-build",
+      "sourceSHA": "503d23267091eb5aa0b0e37dd94fac20ea37bd08"
+    },
+    {
+      "command": "node node_modules/@playwright/test/cli.js test --config=../config.mjs --workers=1 --retries=0 --max-failures=1",
+      "exitCode": 1,
+      "label": "baseline",
+      "sourceSHA": "503d23267091eb5aa0b0e37dd94fac20ea37bd08"
+    },
+    {
+      "command": "node node_modules/@playwright/test/cli.js test --config=../config.mjs --workers=1 --retries=0 --max-failures=1 --grep-invert Preguntame.*: es$|fixed es$",
+      "exitCode": 1,
+      "label": "remaining-after-harness",
+      "sourceSHA": "503d23267091eb5aa0b0e37dd94fac20ea37bd08"
+    },
+    {
+      "command": "node node_modules/@playwright/test/cli.js test --config=../config.mjs --workers=1 --retries=0 --max-failures=1 --grep-invert Preguntame.*: es$|fixed es$",
+      "exitCode": 0,
+      "label": "remaining-selection-fixed",
+      "sourceSHA": "503d23267091eb5aa0b0e37dd94fac20ea37bd08"
+    }
+  ],
+  "evidence": {
+    "summarySHA256": "5dc796a2b925f9f7517595966adaa73c19e6942ad61a9adbb814211e4bdc31e2",
+    "alignmentSHA256": "46f0cdb496d4b0be1e85ffbf6ae143004d44434dd9e76ae2d469d9313455994a",
+    "preClosureManifestSHA256": "395af1f2f332d435a71dd718847cfb54b6b519a22cebfff493412ceecc93a273",
+    "fsync": true,
+    "readbackExact": true
+  },
+  "limitations": [
+    "Sintetico Chromium;sin IME fisico ni WebView Android.",
+    "Dos fallos privados preservados y corregidos bajo bc1c5e1d:calendariofixture y seleccion por dobleclic. Dos casos ya terminados excluidos de relanzamientos.",
+    "NO causalRED deproducto;controlpositivo inyectado no es bugproducto.",
+    "DOM solo ejecutado sobre503/version140. Alineacion141fastforward y paridaddebytes focales;sin fingir DOM141,CI,servido ni movil.",
+    "No suites generales,CPU6,Gradle,APK,SQL,bancos,Edge,deploy,merge ni cambiosVERSION/catalogo/caps.",
+    "STOP F;G solo tras resultFcanonico y despachoROOTexacto con Astra y otrocheckout."
+  ],
+  "fetchBudget": {
+    "priorOwn10Frozen": {
+      "used": 10,
+      "limit": 10,
+      "sha256": "e3d9156aca186d73a3de01d4eb231c617630b98f30bf252e5fed0dddb6c1c219"
+    },
+    "additionalOwn12": {
+      "grant": "ee788a05f3e02cc1dc574704273b713c543d5d69",
+      "usedBeforeResult": 2,
+      "limit": 12,
+      "activationReadback": "e66ecc8cb3a51a287cfbdcefca81e9f4bd330553"
+    },
+    "allInternalFetchesCounted": true
+  },
+  "schema": 1,
+  "taskId": "night-f-ux17-wizard-focus-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261018-ux17-69406f6b6a28",
+  "createdAt": "2026-10-18T01:06:14.968Z",
+  "released": true
+}
