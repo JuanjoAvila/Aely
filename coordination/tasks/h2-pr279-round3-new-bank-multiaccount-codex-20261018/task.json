@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "id": "h2-pr279-round3-new-bank-multiaccount-codex-20261018",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r68-1141875c91e6e665",
+  "createdAt": "2026-10-18T13:10:06.411Z",
+  "to": "codex",
+  "kind": "worker",
+  "model": "gpt-6-astra",
+  "priority": 1,
+  "baseSHA": "78fc534305d21304295a69ab9ff65ac7a92d1629",
+  "originalBetaBaseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "claudeGrant": "ef88c551916c3b26bd76fd40a5fc1a39ea0659b8",
+  "previousTaskId": "h2-pr279-round2-money-regressions-codex-20261018",
+  "previousResult": "1c4e672d08a4d51f543ad5d47a18088b80515268",
+  "PR": 279,
+  "branch": "codex/h2-balance-transactions-20261018",
+  "objective": "Round3 only: restore real-base behavior for NEW bank connection with two or more accounts and ONE existing unlinked manual principal. Reanchor that principal to first free bank account unless exact IBAN identity takes precedence, and add remaining free accounts as extras; exact10000c rather than stale5000c.",
+  "scope": [
+    "src/modules/08-motor-bank.js applyBankBalances single-unlinked-principal multiple-free-accounts branch only",
+    "Actual ff53b0e7 public/index.html bundle comparisons and smallest focused synthetic RED/GREEN plus meaningful mutant controls needed for the one case",
+    "Generated artifact and exact evidence/private report; minimal strictly necessary registration or scoped brief only"
+  ],
+  "requirements": [
+    "Read full Claude grant: PR279 ronda 2 78fc5343: B1 a B4 cerrados y todo lo demas verde, pero NO-GO por un unico caso (regresion frente a la base), ronda 3 admitida sin preguntar: conexion NUEVA de un banco con dos o mas cuentas cuando el usuario ya tiene UNA cuenta manual de ese banco sin vincular. Base con el bundle real: 10000c (la principal se re-ancla a 70 y la otra entra como extra con 30). PR: 5000c, la principal queda rancia en 50 y la otra no aparece nunca; igual con servidor viejo y nuevo. Es el caso tipico de conectar corriente y ahorro. Remate: con una sola principal sin vinculo y varias cuentas libres, comportamiento de la base (la primera libre a la principal, el resto como extras), salvo que haya identidad exacta por IBAN, que manda. Test con el bundle real de la base para este caso. Lo demas no se toca.",
+    "SAME original H Astra holder, existing session/helper/filter/runtime/cwd; same PR279 branch from exact78fc5343. Fresh task OWN claim/readback/ACK after previous released result; no claims or leases transferred. Preserve PR275/276/278 and previous evidence/WIP/returns.",
+    "RED first for one unlinked manual50 plus new bank70and30 -> base10000c versus candidate5000c, with OLD and NEW server, using REAL public/index.html fromff53b0e7 and actual candidate consumer. No copied fixture as sole comparator; preserve exact IBAN priority and cents. Then minimal product correction: one unlinked principal receives first free bank account, others become extras. Do not broaden multiple-principal ambiguity or identity merging.",
+    "Claude declares B1-B4 otherwise closed; nothing else touched. Preserve phases22500c/10000c/cero/dates, old/new compatibility, cursor/ACK/localpersistence/auth affectedrows, diagnostics, UIDvalidcounts, usefulbalance telemetry, serialtime/call limits and overflow90day limitations. Do not alter money oracles, gates, catalogue, VERSION or caps.",
+    "Reuse prior round2 evidence as provenance: manifestb616a7b6,21new+27phases+51unchangeddownload,17mutants,2DOM. ROOT privately verified188evidence/20sources/35commandrecords exact and20GitLFparity, not independent GO. New changed-source targeted validation only when necessary, no repeated finished tests without new source/failure justification; no general/fullsuite/CPU6/Gradle/APK or unnecessary DOM.",
+    "Continue SAME holder OWN20block4 actual ledger: closed10+12+20,total42; round2closing3/20,total45,remaining17; verify actual before reads. Count all first/internal/readbacks min30s, guard insidefetch. Preserve prior40to41=22.729249s violation disclosedbfa70, no retroactive compliance or reset. Next20 only upon actual exhaustion +own notice/readback underb0390; noROOTbudget.",
+    "Update same draftPR279 beta, exactHEAD/result/checkpoint/manifest, realcommands/exits/limitations. Own released blocked pending another independent Claude review/integration; canonicalreadbackthenSTOP. UX03/UX09 inventory remains queued after H, not assumed.",
+    "No backend/Edge/server/SQL/livebank/auth/cloudwrites changes or deployment; no mainbeta merge/push, release metadata, locks or foreign process cleanup. Keep existing size/docs/catalogue failures visible without relaxing them. No new chat or other-chat message. Public channel numericPR/SHA only, noPCpaths/URLs."
+  ],
+  "deliverable": "PR279 round3 narrowly corrected single-principal multiple-bank-account case with REAL-base RED/GREEN, immutable evidence and own released blocked result for Claude."
+}
