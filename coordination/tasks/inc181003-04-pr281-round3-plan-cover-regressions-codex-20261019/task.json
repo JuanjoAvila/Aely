@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "id": "inc181003-04-pr281-round3-plan-cover-regressions-codex-20261019",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r73-b132dc8db089d0ba",
+  "createdAt": "2026-10-18T23:20:14.357Z",
+  "to": "codex",
+  "kind": "worker",
+  "priority": 1,
+  "model": "gpt-6-astra",
+  "PR": 281,
+  "baseSHA": "564efba46b31464a3a0f2dbf1b13c83878f8266e",
+  "integrationBaseSHA": "7090802099ac0c7956c0d3597a9936a82c52a95f",
+  "previousTaskId": "inc181003-04-pr281-round2-ui-remates-codex-20261019",
+  "previousResult": "0cced9c9e24616a6c4e445ae58ccc245b5cee5e0",
+  "assignedPublicSessionId": "codex-local-20261016-46b86e3686e19bf3",
+  "claudeGrant": "70b60fcdd7bf7e28620e0a25448af270f3aeaf26",
+  "objective": "PR281 round3 before splash: preserve overdue receipt payment evidence status, fix simple cover negative balance presentation, restore unrequested simple grouping/title and Catalan, validate every relevant E2E_MAP spec.",
+  "scope": [
+    "A1 overdue receipt status in Plan and entire inicio-cargos21 cases7x3 languages",
+    "A2 plan-cover five authorized paidYm expectation updates and real negative-balance display fix",
+    "A3 restore beta simple title and transfer grouping unless indispensable and explained; Catalan Es suma",
+    "All E2E_MAP specs touching14-v4-screens or04-tab-gastos with actualEXIT, exact financial/persistence invariants"
+  ],
+  "requirements": [
+    "Read full Claude70b60fc and task. New own claim canonical push/readback/ACK before product, original FIN15 Astra owner same runtime/cwd/session/helper/filter/ledger. Previous research/phase1/R2 results and artifacts immutable; new task/result only, same draft PR281 beta branch. Reuse own clean PR281 checkout or equivalent own isolated checkout on same branch at564efba4, no rebase/newPR/foreign checkout edits.",
+    "A1 high:14-v4-screens around330 must retain Sin pago acreditado for overdue receipts in Plan, showing that the charge should have occurred but no payment evidence was observed. Do not remove it while retaining distinct pending-confirmation presentation. Entire e2e inicio-cargos must pass21 cases7x3 languages; include relevant causal RED before fix.",
+    "A2 plan-cover has6 red tests since round1 perClaude. Rewrite only5 tests that expect paidYm alone as paid to match explicitly approved design (payment confirmation/evidence distinction), with meaningful assertions, not blanket acceptance. Sixth is a REAL bug: with negative balance minus8000c and pending-confirmation charge, simple cover must still display negative balance and must not say Todo pagado. CausalRED and preserve negative-balance amount/financial state.",
+    "A3 low: simple mode must use beta title Lo que aun saldra and beta transfer grouping; undo unrequested rename/separation unless indispensable. If indispensable explain/consultClaude, do not silently expand design. Catalan uses Es suma, never Se suma. Preserve R1-R3 approved contracts except exact A1-A3 corrections.",
+    "Read E2E_MAP and enumerate ALL specs mapped to14-v4-screens and04-tab-gastos, not only worker-owned specs. Run every relevant spec on final source with actualEXIT, including whole inicio-cargos and plan-cover. This explicit fresh-source regression validation is authorized; do not repeat unrelated finished tests or weaken financial oracles. Use synthetic own fixtures/port1worker0retry. Preserve every initial failure and harness correction, and distinguish combined suiteEXIT from separate subsets.",
+    "ROJO first for newly approved real contracts, then minimal presentation fix and relevantGREEN. Exact-cent Inicio/Plan/widget oracles versus564efba4 and709 provenance, byte-equivalent saved snapshots on view opening, zero added cloud/bank writes. Matching, financial totals, balance computation, paid contract, savedpaidYm/debtId/reciboId/proofs, aliases, vetoes, writers, backfill and migration remain unchanged. ConsultClaude if impossible without financial edits.",
+    "Claude reports money identical and R1-R3 correct; current NO-GO is presentation and tests only. No VERSION catalogue caps or weakened size/docs gates, Claude reconciles integration. No fullsuiteCPU6/performance/nativeGradleAPK/backendSQLlivebanksEdge/deploymainbetamerge by carryover. Broader E2E_MAP scope does not grant unrelated fullsuite or performance lease.",
+    "Splash web holder has accepted preemption70b60fc, stopped substance and is sealing own partial blockedreleased. Preserve all splash WIP/results; do not take it. This round3 precedes resumption; do not run splash in parallel or infer resumption after localgreen.",
+    "Budget last reported OWN20used8 remaining12 afterR2, previous frozen14,6,7,7,10,12,12; verify live counters, minimum30s every first/internal/readback. Next20 only after actual exhaustion and ownnotice/readback underb0390, no reset/inheritance/lease transfer.",
+    "Deliver same PR281 updated head/branch remote readback, manifest/checkpoint/actualEXITs for every mappedE2E, before-after causal evidence, meaningful mutants of changed presentation contracts, invariant oracles and limitations. New own released result statusblocked when review/integration/gates/served/mobile pending, privatecheckout/report and STOP after exact canonical readback."
+  ],
+  "deliverable": "Same PR281 round3 with A1-A3 corrections and full relevantE2E_MAP evidence, exact-cent/persistence invariants, immutable released result and bounded integration limits."
+}
