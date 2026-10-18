@@ -109,7 +109,7 @@ const LANG = {
     // INC-0810 es: fin del patrimonio de ahora.
     v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Es la mitad de la app: sin un tope al mes no se puede saber cuánto te queda. Puedes cambiarlo cuando quieras.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Un viaje, un colchón, lo que sea: la app te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
     v4_upcoming:"Próximos cargos", 
-    v4_charges_overdue:"Cargos vencidos", v4_charge_unconfirmed:"Sin pago acreditado",
+    v4_charges_overdue:"Cargos vencidos", v4_charge_unconfirmed:"Sin pago acreditado", v4_payment_pending:"Pendiente de confirmar",
     v4_charge_actual:"Cargo {x}", v4_charge_expected:"Previsto {x}",
     v4_your_goals:"Tus metas", v4_recent:"Últimos movimientos", v4_recent_empty:"Aún no hay movimientos. Apunta el primero con +.",
     v4_all:"Todos ›", v4_plan_title:"Tu plan del mes", v4_plan_recibos:"Recibos", v4_plan_deudas:"Deudas", v4_plan_metas:"Metas",
@@ -400,7 +400,7 @@ const LANG = {
     // INC-0810 en: fin del patrimonio de ahora.
     v4_nobud_t:"Set a monthly budget", v4_nobud_p:"It is half the app: without a monthly cap there is no way to know what you have left. You can change it whenever you want.", v4_nobud_cta:"Set a budget", v4_noup_t:"No bills yet", v4_noup_p:"Connect your bank and this month's bills show up on their own, with day and amount.", v4_noup_cta:"Connect your bank", v4_nogoal_t:"Set your first goal", v4_nogoal_p:"A trip, a safety net, anything: the app tells you how much is missing and when you get there.", v4_nogoal_cta:"Create a goal", v4_see_gastos:"See spending ›", v4_see_plan:"See plan ›",
     v4_upcoming:"Upcoming", 
-    v4_charges_overdue:"Overdue charges", v4_charge_unconfirmed:"Payment unconfirmed",
+    v4_charges_overdue:"Overdue charges", v4_charge_unconfirmed:"Payment unconfirmed", v4_payment_pending:"Awaiting confirmation",
     v4_charge_actual:"Charge {x}", v4_charge_expected:"Expected {x}",
     v4_your_goals:"Your goals", v4_recent:"Latest activity", v4_recent_empty:"No activity yet. Add the first one with +.",
     v4_all:"All ›", v4_plan_title:"Your month plan", v4_plan_recibos:"Bills", v4_plan_deudas:"Debts", v4_plan_metas:"Goals",
@@ -678,7 +678,7 @@ const LANG = {
     // INC-0810 ca: fin del patrimonio de ahora.
     v4_nobud_t:"Posa-li un pressupost", v4_nobud_p:"És la meitat de l'app: sense un límit al mes no es pot saber quant et queda. El pots canviar quan vulguis.", v4_nobud_cta:"Posa-li un pressupost", v4_noup_t:"Encara no hi ha rebuts", v4_noup_p:"Connecta el teu banc i els rebuts del mes apareixen sols, amb el seu dia i el seu import.", v4_noup_cta:"Connecta el teu banc", v4_nogoal_t:"Posa't el teu primer objectiu", v4_nogoal_p:"Un viatge, un coixí, el que sigui: l'app et diu quant falta i quan hi arribes.", v4_nogoal_cta:"Crear un objectiu", v4_see_gastos:"Veure despeses ›", v4_see_plan:"Veure pla ›",
     v4_upcoming:"Pròxims càrrecs", 
-    v4_charges_overdue:"Càrrecs vençuts", v4_charge_unconfirmed:"Sense pagament acreditat",
+    v4_charges_overdue:"Càrrecs vençuts", v4_charge_unconfirmed:"Sense pagament acreditat", v4_payment_pending:"Pendent de confirmar",
     v4_charge_actual:"Càrrec {x}", v4_charge_expected:"Previst {x}",
     v4_your_goals:"Les teves metes", v4_recent:"Últims moviments", v4_recent_empty:"Encara no hi ha moviments. Apunta el primer amb +.",
     v4_all:"Tots ›", v4_plan_title:"El teu pla del mes", v4_plan_recibos:"Rebuts", v4_plan_deudas:"Deutes", v4_plan_metas:"Metes",
