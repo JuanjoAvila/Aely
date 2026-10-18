@@ -74,6 +74,7 @@ export const E2E_MAP = [
   { file: "src/modules/04-tab-gastos.js", specs: [
     "e2e/fin17-confirmed-absorptions.spec.mjs",
     "e2e/fin11-absorption-pending.spec.mjs",
+    "e2e/recibos-renombrar.spec.mjs",
     "e2e/gastos-sincronizar-alcance.spec.mjs",
     "e2e/gastos-suscripciones-movil.spec.mjs",
     "e2e/compras-identicas-ids.spec.mjs",
@@ -169,6 +170,7 @@ export const E2E_MAP = [
   { file: "src/modules/12-boot.js", specs: ["e2e/splash.spec.mjs", "e2e/smoke.spec.mjs", "e2e/csp.spec.mjs"] },
   { file: "src/modules/13-hogar.js", specs: ["e2e/cartera-orden-hogar.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: [
+    "e2e/recibos-renombrar.spec.mjs",
     "e2e/cartera-bienes-completo.spec.mjs",
     "e2e/cartera-bienes-toque.spec.mjs",
     "e2e/inicio-cargos.spec.mjs",

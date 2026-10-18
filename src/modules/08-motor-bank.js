@@ -100,6 +100,16 @@ function reconcileEarlyIncomeAnchors(s,y,m,today){
 function fixedPaymentModel(e,m){
   return JSON.stringify([e.name||"",accOf(e),occAmountIn(e,m),e.bankAmount>0?e.bankAmount:null]);
 }
+function fixedPaymentContract(e,m){
+  return JSON.stringify([e.id,accOf(e),occAmountIn(e,m),e.bankAmount>0?e.bankAmount:null]);
+}
+function fixedPaymentModelMatches(p,e,m){
+  // Las pruebas antiguas siguen siendo estrictas: no recuperar un pago roto al leerlo.
+  return p.modelVersion==null?p.model===fixedPaymentModel(e,m):p.modelVersion===2&&p.receiptId===e.id&&typeof p.receiptName==="string"&&p.model===fixedPaymentContract(e,m);
+}
+function fixedPaymentBind(p,e,m){
+  return Object.assign({},p,{modelVersion:2,receiptId:e.id,receiptName:e.name||"",model:fixedPaymentContract(e,m)});
+}
 function fixedPaymentDate(date,y,m,today){
   var ds=String(date||"").slice(0,10),d=recDay(ds),now=new Date();
   return y*12+m<=now.getFullYear()*12+now.getMonth()+1&&/^\d{4}-\d{2}-\d{2}$/.test(ds)&&ds.slice(0,7)===y+"-"+String(m).padStart(2,"0")&&d>=1&&d<=today&&d<=new Date(y,m,0).getDate();
@@ -166,10 +176,21 @@ function fixedPaymentUnique(s,e){
   // La misma guarda protege la confirmación y su prueba al viajar entre móviles.
   return !!e.id&&(s.fixed||[]).filter(function(f){ return f.id===e.id; }).length===1;
 }
-function fixedPaymentAutoOwner(s,e,y,m,bank,merchant,amount,category,book){
+function fixedPaymentBookRival(s,e,y,m,identity){
+  var p=e.paymentProofs&&e.paymentProofs[y*12+m];
+  // La ambigüedad puede invalidar el pago, pero no regalar su cargo al recibo nuevo.
+  // Solo esta identidad y este mes conservan el nombre que vinculó el BOOK al id.
+  return p&&p.kind==="book"&&p.modelVersion===2&&p.identity===identity&&
+    fixedPaymentUnique(s,e)&&occursIn(e,m)&&fixedPaymentModelMatches(p,e,m)&&p.bank===accOf(e)&&
+    p.identity===fixedPaymentIdentity(p.bank,p)&&!reciboVetado(s,e.id,identity)?p:null;
+}
+function fixedPaymentAutoOwner(s,e,y,m,bank,merchant,amount,category,book,identity){
   if(!fixedPaymentUnique(s,e)) return false;
   var name=recNorm(merchant),best=-1,winners=[];
   fixedPaymentContenders(s,y,m).forEach(function(f){
+    var other=book&&identity&&f.kind==="fixed"&&f.id!==e.id&&(s.fixed||[]).find(function(r){ return r.id===f.id; });
+    var rival=other&&fixedPaymentBookRival(s,other,y,m,identity);
+    if(rival) f=Object.assign({},f,{name:rival.receiptName});
     var n=recNorm(f.name),full=recFrase(n,name);
     var exact=Math.round(Number(f.amount)*100)===Math.round(Number(amount)*100);
     if(book){
@@ -238,7 +259,7 @@ function reciboNoUnion(local,nube){
 function fixedPaymentProof(s,e,y,m,today){
   var p=e.paymentProofs&&e.paymentProofs[y*12+m];
   if(p&&reciboVetado(s,e.id,p.identity)) return null;
-  if(!p||!fixedPaymentUnique(s,e)||!p.identity||!(p.amount>0)||!p.bank||!occursIn(e,m)||p.model!==fixedPaymentModel(e,m)||!fixedPaymentDate(p.date,y,m,today)) return null;
+  if(!p||!fixedPaymentUnique(s,e)||!p.identity||!(p.amount>0)||!p.bank||!occursIn(e,m)||!fixedPaymentModelMatches(p,e,m)||!fixedPaymentDate(p.date,y,m,today)) return null;
   if(p.kind!=="expense"&&p.kind!=="book") return null;
   if(p.kind==="expense"){
     if(!fixedPaymentFeedClear(s,p.identity)) return null;
@@ -249,20 +270,27 @@ function fixedPaymentProof(s,e,y,m,today){
     if(rows.length>1||rows.some(function(x){ return !fixedExpenseEligible(s,x,e,y,m,today)||fixedPaymentIdentity(expenseBankOf(x),x)!==p.identity; })) return null;
   } else {
     var target=e.bankAmount>0?e.bankAmount:occAmountIn(e,m);
+    // La atribución queda ligada al id. Para comprobar ambigüedad conservamos el nombre
+    // que identificó el BOOK al vincularlo, nunca el rótulo que se está editando ahora.
+    var owner=e,owners=s;
+    if(p.modelVersion===2){
+      owner=Object.assign({},e,{name:p.receiptName});
+      owners=Object.assign({},s,{fixed:(s.fixed||[]).map(function(f){ return f.id===e.id?owner:f; })});
+    }
     if((s.bankTx||[]).some(function(tx){
       return fixedPaymentIdentity(tx.ent,tx)===p.identity&&(tx.possibleDup||String(tx.status||"").toUpperCase()!=="BOOK");
     })) return null;
     if((s.accounts||[]).filter(function(a){ return a.ent===p.bank&&accFixed(a); }).length!==1||
-      !fixedPaymentAutoOwner(s,e,y,m,p.bank,p.merchant,p.amount,null,true)) return null;
+      !fixedPaymentAutoOwner(owners,owner,y,m,p.bank,p.merchant,p.amount,null,true,p.identity)) return null;
     if((s.bankTx||[]).filter(function(tx){
-      return tx.ent===p.bank&&String(tx.status||"").toUpperCase()==="BOOK"&&fixedPaymentDate(tx.date,y,m,today)&&Number(tx.amount)>0&&recNameMatch(e.name,tx.merchant)&&recAmtClose(target,Number(tx.amount));
+      return tx.ent===p.bank&&String(tx.status||"").toUpperCase()==="BOOK"&&fixedPaymentDate(tx.date,y,m,today)&&Number(tx.amount)>0&&recNameMatch(owner.name,tx.merchant)&&recAmtClose(target,Number(tx.amount));
     }).length>1) return null;
   }
   // La identidad elegida viaja en app_state, incluso si este móvil no tiene extracto. No cambia
   // paidYm: ese campo interviene en los saldos; acreditar el recibo solo cambia su estado visual.
   if((s.fixed||[]).some(function(f){
     var q=f.paymentProofs&&f.paymentProofs[y*12+m];
-    return f.id!==e.id&&q&&q.identity===p.identity&&q.model===fixedPaymentModel(f,m);
+    return f.id!==e.id&&q&&q.identity===p.identity&&fixedPaymentModelMatches(q,f,m);
   })) return null;
   return p;
 }
@@ -299,6 +327,7 @@ function linkFixedPayment(s,expenseId,fixedId,y,m,today,expected){
       tx&&fixedPaymentIdentity(tx.ent,tx)===fixedPaymentIdentity(expenseBankOf(x),x);
   })) return s;
   var p={kind:"expense",key:key,identity:fixedPaymentIdentity(expenseBankOf(x),x),expenseId:x.id,expenseKey:keyOfExpense(x),expenseLegacyKey:keyOfExpenseLegacy(x),date:String(x.date).slice(0,10),bank:expenseBankOf(x),amount:Number(x.amount),model:fixedPaymentModel(e,m)};
+  p=fixedPaymentBind(p,e,m);
   return Object.assign({},s,{fixed:(s.fixed||[]).map(function(f){
     return f.id===fixedId?Object.assign({},f,{paymentProofs:Object.assign({},f.paymentProofs,{[ym]:p})}):f;
   })});
@@ -307,10 +336,14 @@ function reconcileFixedPaymentProofs(s,y,m,today){
   var changed=false,ym=y*12+m;
   var fixed=(s.fixed||[]).map(function(e){
     if(!occursIn(e,m)||fixedPaymentProof(s,e,y,m,today)) return e;
+    // Una prueba existente inválida necesita confirmación expresa, no una conversión
+    // por coincidencia de nombre al sincronizar (incluido Ibi → IBI).
+    if(e.paymentProofs&&Object.prototype.hasOwnProperty.call(e.paymentProofs,ym)) return e;
     var status=fixedPaymentState(s,e,y,m,today),tx=status.bankTx;
     if(!tx) return e;
     changed=true;
     var p={kind:"book",key:tx.ent+"|"+(tx.id||[tx.date,tx.amount,tx.merchant].join("|")),identity:fixedPaymentIdentity(tx.ent,tx),date:tx.date,bank:tx.ent,merchant:tx.merchant,amount:Number(tx.amount),model:fixedPaymentModel(e,m)};
+    p=fixedPaymentBind(p,e,m);
     return Object.assign({},e,{paymentProofs:Object.assign({},e.paymentProofs,{[ym]:p})});
   });
   return changed?Object.assign({},s,{fixed:fixed}):s;
@@ -324,7 +357,7 @@ function rekeyFixedPaymentExpense(s,old,next){
       if(!p||p.kind!=="expense"||p.identity!==fixedPaymentIdentity(expenseBankOf(old),old)) return;
       var y=Math.floor((Number(ym)-1)/12),m=Number(ym)-y*12,now=new Date();
       var today=y===now.getFullYear()&&m===now.getMonth()+1?now.getDate():new Date(y,m,0).getDate();
-      if(p.model!==fixedPaymentModel(f,m)||!fixedExpenseEligible(s,next,f,y,m,today)||(s.fixed||[]).some(function(other){
+      if(!fixedPaymentModelMatches(p,f,m)||!fixedExpenseEligible(s,next,f,y,m,today)||(s.fixed||[]).some(function(other){
         var q=other.paymentProofs&&other.paymentProofs[ym]; return other.id!==f.id&&q&&q.identity===p.identity;
       })) return;
       if(!copy) copy=Object.assign({},proofs);
@@ -351,7 +384,7 @@ function fixedPaymentState(s,e,y,m,today){
   var tx=matches.length===1?matches[0]:null;
   if(tx){
     if((s.fixed||[]).some(function(f){
-      var p=fixedPaymentProof(s,f,y,m,today);
+      var p=fixedPaymentProof(s,f,y,m,today)||fixedPaymentBookRival(s,f,y,m,fixedPaymentIdentity(tx.ent,tx));
       return f.id!==e.id&&p&&p.identity===fixedPaymentIdentity(tx.ent,tx);
     })) tx=null;
   }
@@ -359,7 +392,7 @@ function fixedPaymentState(s,e,y,m,today){
     // El feed solo identifica entidad: exige una cuenta y un único ganador antes de
     // guardarlo. Una cuota o un puntual también pueden reclamar este mismo cargo.
     var accounts=(s.accounts||[]).filter(function(a){ return a.ent===bank&&accFixed(a); });
-    if(accounts.length!==1||!fixedPaymentAutoOwner(s,e,y,m,bank,tx.merchant,Number(tx.amount),null,true)) tx=null;
+    if(accounts.length!==1||!fixedPaymentAutoOwner(s,e,y,m,bank,tx.merchant,Number(tx.amount),null,true,fixedPaymentIdentity(tx.ent,tx))) tx=null;
   }
   var proof=fixedPaymentProof(s,e,y,m,today),expense=null;
   // El extracto es local, pero Gastos conserva el cargo importado o notificado. El
@@ -3734,6 +3767,20 @@ function patchFixedById(set, id, p){
       const n=Object.assign({},e,p);
       if(("day" in p)&&!p.day) delete n.day;
       if(n.freq==="mes"){ delete n.months; delete n.schedule; }
+      // Convertir sólo la prueba válida ANTES del renombrado, en esta misma escritura.
+      // Ni el arranque ni el sync rescatan vínculos ya rotos; tampoco cambia el cargo.
+      if(p.name!==e.name&&("name" in p)&&n.id===e.id&&fixedPaymentUnique(s,e)){
+        var proofs=null,now=new Date();
+        Object.keys(e.paymentProofs||{}).forEach(function(ym){
+          var y=Math.floor((Number(ym)-1)/12),m=Number(ym)-y*12;
+          var today=y===now.getFullYear()&&m===now.getMonth()+1?now.getDate():new Date(y,m,0).getDate();
+          var q=e.paymentProofs[ym];
+          if(!q||q.modelVersion!=null||!occursIn(n,m)||fixedPaymentContract(e,m)!==fixedPaymentContract(n,m)||!fixedPaymentProof(s,e,y,m,today)) return;
+          if(!proofs) proofs=Object.assign({},e.paymentProofs);
+          proofs[ym]=fixedPaymentBind(q,e,m);
+        });
+        if(proofs) n.paymentProofs=proofs;
+      }
       it=n; return n;
     });
     const n=Object.assign({},s,{fixed:fx});
