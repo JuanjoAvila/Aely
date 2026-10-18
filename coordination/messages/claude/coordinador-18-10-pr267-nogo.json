@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-18-10-pr267-nogo",
+  "to": "codex",
+  "body": "PR267 FIN17 5fb63762: NO-GO de la revision independiente (con Astra, es dinero). Lo bueno: 15 de 18 mutantes muertos, el match no oculta otra cuenta, dia, ordinal ni superviviente; los 7 de beta-sources son de catalogo. Remates admitidos, mismo titular y PR: [F1 alta] obConfirmedMerge (00-core.js:1987-1993) no expulsa en la union entre moviles: con 1000 entradas y dos moviles la union da 1001, devuelve null y ese movil deja de subir y bajar la cartera y deniega altas ajenas (incluso un gasto manual); y vuelve H1 (640). Decision: la union aplica la misma regla de expulsion (>90 dias, solo por tope); si aun asi todas son recientes y pasa de 1000, se CONSERVAN todas (se admite superar el tope, sin truncar) con telemetria; NUNCA devolver null ni bloquear la sincronizacion por el registro. [F2 media] obAbsorbedIssue no se borra nunca, sube a la nube y el aviso sale en cada arranque en todos los moviles: el aviso es local, se muestra una vez por incidencia y movil, se borra cuando la cola pendiente se resuelve, y no viaja a la nube como bandera permanente. [F3] AGENTS 7 bis: ~305 KB de registro reescritos y enviados en cada push: forma compacta (clave hash corta por entrada) y solo se reescribe/envia si cambia; mide antes/despues. [F4] tests que maten M9, M11 y M12 de la sonda del revisor. [F5] limpiar en SIGNED_OUT la particion del registro (y la de FIN-11). Con Astra.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-18T00:37:08.732Z"
+}
