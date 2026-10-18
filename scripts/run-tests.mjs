@@ -124,6 +124,8 @@ const steps = [
   ["finance-core", ["node", "tests/finance-core.test.mjs"]],
   ["ob-ingresos", ["node", "tests/ob-ingresos.test.mjs"]],
   ["manual-income-review", ["node", "tests/manual-income-review.test.mjs"]],
+  ["h2-account-phases", ["node", "tests/h2-account-phases.test.mjs"]],
+  ["h2-account-identity", ["node", "tests/h2-account-identity.test.mjs"]],
   ["bank-sync-paging", ["node", "tests/bank-sync-paging.test.mjs"]],
   ["bank-rate-contracts", ["node", "tests/bank-rate-contracts.test.mjs"]],
   ["bank-callback-state", ["node", "tests/bank-callback-state.test.mjs"]],

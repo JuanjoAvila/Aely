@@ -695,6 +695,9 @@ function promoteObAccount(s, totals, key, role, id){
   const acc={ id:id||uid(), ent:o.ent, name:name, value:base, role:"fijos", spendFrom:false,
     accountOrderKey:"ob:"+o.key };
   if(o.iban) acc.bankIban=o.iban;                            // el sync del banco la re-ancla por IBAN
+  else if(o.key) acc.bankUid=String(o.key);
+  if(o.balanceAt) acc.balanceAt=o.balanceAt;
+  if(o.stale) acc.balanceStale=true;
   let ns=Object.assign({},s,{ accounts:(s.accounts||[]).concat([acc]), obAccounts:(s.obAccounts||[]).filter(function(x){ return x.key!==key; }) });
   if(role && role!=="fijos") ns=applyAccountRole(ns, totals, acc.id, role);
   /* Si era la última OB, el orden mixto ya contiene toda la lista: alinear `accounts` aquí evita
@@ -755,7 +758,7 @@ function applyBankBalances(s, links){
   const dailyEnt=dailyAcc&&dailyAcc.ent;
   const porBanco=gastoDelMesPorBanco(monthExp, dailyEnt);
   links.forEach(function(lk){
-    if(lk && lk.ok===false){
+    if(lk && lk.ok===false && lk.accountPhases!==1){
       // Banco que falló/caducó este sync: CONSERVA sus cuentas sincronizadas tal y como estaban,
       // marcadas rancias (stale) para que Patrimonio enseñe «caducado» en vez de esfumarlas.
       // (Bug CaixaBank 2026-07-11: al reconstruir obAccounts sin el banco caído, desaparecía.)
@@ -778,13 +781,27 @@ function applyBankBalances(s, links){
     };
     // cuentas del banco: shape nuevo (lk.accounts) o antiguo (una sola, de lk.balances)
     const accs=(Array.isArray(lk.accounts)&&lk.accounts.length)
-      ? lk.accounts.filter(function(a){ return a && a.ok!==false; })
+      ? lk.accounts.filter(function(a){ return !!a; })
       : [{ uid:lk.iban||lk.aspsp, iban:lk.iban||null, name:null, balances:(lk&&lk.balances) }];
     if(!accs.length){ keepStale(); return; }
+    // H2 conserva la asignación de la base (IBAN y después orden, sin heurísticas UID).
+    // La disponibilidad del saldo se evalúa DESPUÉS de asignar, nunca elimina una
+    // cuenta y desplaza la hermana a su principal. El legado expresa fallo con ok:false.
+    const failedBalance=function(ac){return (lk.accountPhases===1 ? ac.balanceOk===false : ac.ok===false) || pickBankBalanceInfo(ac.balances).valor==null;};
+    const kept={};
+    const keepFailedExtra=function(ac){
+      const key=String(ac.uid||ac.iban||lk.aspsp), asp=String(lk.aspsp||"").toLowerCase();
+      (s.obAccounts||[]).forEach(function(o,i){
+        if(!kept[i] && String(o.aspsp||"").toLowerCase()===asp && String(o.key)===key){
+          obAccts.push(Object.assign({},o,{stale:true,staleKind:lk.expired?"expired":"temporary"})); kept[i]=true;
+        }
+      });
+    };
+
     if(ent==null){   // banco SIN cuenta manual en la app → TODAS sus cuentas van a obAccounts
-      let pushed=0;
-      accs.forEach(function(ac){ const inf=pickBankBalanceInfo(ac.balances); if(inf.valor!=null){ obAccts.push(mkObAcct(lk,ac,inf.valor,inf)); pushed++; } });
-      if(!pushed) keepStale();
+      let pushed=0, failed=0;
+      accs.forEach(function(ac){ if(failedBalance(ac)){keepFailedExtra(ac);failed++;return;} const inf=pickBankBalanceInfo(ac.balances); if(inf.valor!=null){ obAccts.push(mkObAcct(lk,ac,inf.valor,inf)); pushed++; } });
+      if(!pushed && !failed) keepStale();
       return;
     }
     // hay ent conocido: re-ancla CADA cuenta MANUAL de ese banco (puede haber varias desde que
@@ -801,8 +818,15 @@ function applyBankBalances(s, links){
       if(j<0) return;
       ownerOf[j]=i; usedPrimary[i]=true;
     });
-    let contributed=0;
+    let contributed=0, failed=0;
     accs.forEach(function(ac,k){
+      if(failedBalance(ac)){
+        failed++;
+        if(ownerOf[k]!=null){
+          accounts[ownerOf[k]]=Object.assign({},accounts[ownerOf[k]],{balanceStale:true}); changed=true;
+        } else keepFailedExtra(ac);
+        return;
+      }
       const inf=pickBankBalanceInfo(ac.balances); const bal=inf.valor; if(bal==null) return;
       contributed++;
       if(ownerOf[k]!=null){
@@ -846,12 +870,17 @@ function applyBankBalances(s, links){
             uidCambia?{bankUid:String(ac.uid)}:null);
           changed=true;
         }
+        if(Object.prototype.hasOwnProperty.call(a,"balanceStale")){
+          accounts[ownerOf[k]]=Object.assign({},accounts[ownerOf[k]]);
+          delete accounts[ownerOf[k]].balanceStale;
+          changed=true;
+        }
       } else {
         obAccts.push(mkObAcct(lk,ac,bal,inf));
         synced.push({ ent:ent, bal:bal, iban:ac.iban||null });
       }
     });
-    if(!contributed) keepStale();
+    if(!contributed && !failed) keepStale();
   });
   const obChanged=JSON.stringify(s.obAccounts||[])!==JSON.stringify(obAccts);
   const newState=(changed||obChanged) ? Object.assign({},s,{accounts:accounts, obAccounts:obAccts}) : s;
@@ -2930,6 +2959,7 @@ function bankReadWarnings(links, expectedLinks, includeEmpty){
     else if(reasons.some(function(r){ return r==="provider_error"||r==="invalid_response"||r==="repeated_cursor"; })) key="bank_read_interrupted";
     else if(l.ok===false || failed.length) key="bank_read_interrupted";
     else if(l.truncated || accts.some(function(a){ return a&&(a.truncated||a.transactionError); })) key="bank_read_partial";
+    else if(accts.some(function(a){return a&&a.balanceOk===false;})) key="bank_read_balance";
     else if(l.gapPending) key="bank_read_pending";
     else if(includeEmpty && accts.length && accts.every(function(a){
       return a&&a.ok!==false && ((typeof a.count==="number"?a.count:((a.transactions||[]).length))===0);

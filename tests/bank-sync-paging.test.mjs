@@ -36,8 +36,9 @@ async function sync(links, reply, body={}, clock=null) {
       const filters=[];
       const q={eq:(col,v)=>{filters.push(l=>l[col]===v);return q;},
         is:(col,v)=>{filters.push(l=>(l[col]==null?null:l[col])===v);return q;},
+        select:()=>q,
         lt:(col,v)=>{filters.push(l=>l[col]!=null&&Date.parse(l[col])<Date.parse(v));return q;},
-        then:(ok,ko)=>{const matches=links.filter(l=>filters.every(f=>f(l)));if(matches.length){writes.push(x);matches.forEach(l=>Object.assign(l,x));}return Promise.resolve({}).then(ok,ko);}};
+        then:(ok,ko)=>{const matches=links.filter(l=>filters.every(f=>f(l)));if(matches.length){writes.push(x);matches.forEach(l=>Object.assign(l,x));}return Promise.resolve({data:matches.map(l=>({id:l.id}))}).then(ok,ko);}};
       return q;
     },insert:async x=>{events.push(x);return {};}
   })};
@@ -243,7 +244,9 @@ await t("con otra cuenta del banco leída la sesión vive: no se consulta y el 4
   const dos=conSesion("CaixaBank"); dos.accounts=[{uid:"a"},{uid:"b"}];
   const reply=falla(p=>p.includes("/a/")?"EB 401 UNAUTHORIZED_ACCESS":"");
   const r=await sync([dos],reply);
-  assert.equal(r.data.links[0].ok,true);
+  // Cliente antiguo: retener el banco completo si falta un saldo; la sesión sigue viva.
+  assert.equal(r.data.links[0].ok,false);
+  assert.equal(r.data.links[0].accounts[1].balanceOk,true);
   assert.equal(r.data.links[0].expired,false);
   assert.equal(consultas(r).length,0);
   assert.deepEqual(JSON.parse(errores(r)[0].detail),{code:"eb_401",error:"UNAUTHORIZED_ACCESS",session:"NO_CONSULTADA"});
@@ -368,7 +371,9 @@ await t("una página cortada o un 429 no adelantan last_sync",async()=>{
   assert.equal(JSON.parse(demandEvent(cut.events)[0].detail).truncated,true);
   const rate=await sync([caixa],()=>{throw new Error("EB 429");},{recoverGaps:true},FakeDate);
   assert.equal(rate.writes.at(-1).last_sync,undefined);
-  assert.equal(rate.data.links[0].accounts[0].ok,false);
+  // Proyección legacy: saldo válido aunque el extracto falle; el cursor sigue quieto.
+  assert.equal(rate.data.links[0].accounts[0].ok,true);
+  assert.equal(rate.data.links[0].accounts[0].transactionError,"eb_429");
 });
 await t("la ventana paginada y el tramo comparten el contador de llamadas",async()=>{
   const ms=Date.parse("2026-10-10T12:00:00Z");

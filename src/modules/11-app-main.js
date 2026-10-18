@@ -774,7 +774,7 @@ function App(){
          dispositivo cuando sus filas ya estaban en disco (`obAckLoad`, 00-core). `acks` va
          siempre, aunque esté vacío: es lo que le dice al servidor que espere al acuse en vez
          de avanzar por su cuenta. */
-      return Promise.all([cloud.bankSync({recoverGaps:true,acks:obAckLoad()}), pDb]);
+      return Promise.all([cloud.bankSync({recoverGaps:true,acks:obAckLoad(),accountPhases:1}), pDb]);
     }).then(function(par){
       const res=par[0], dbLinks=par[1]||[];
       const links=(res&&res.links)||[];
@@ -785,8 +785,9 @@ function App(){
         links.forEach(function(l){
           if(!l || l.ok===false) return;
           const accs=Array.isArray(l.accounts)?l.accounts:[];
-          const usable=accs.filter(function(a){ return a && a.ok!==false && pickBankBalance(a.balances)!=null; }).length;
-          if(accs.length && !usable){
+          const claimed=accs.filter(function(a){ return a && (l.accountPhases===1?a.balanceOk===true:a.ok!==false); });
+          const usable=claimed.some(function(a){ return pickBankBalance(a.balances)!=null; });
+          if(claimed.length && !usable){
             cloud.logEvent('error','OB '+(l.aspsp||'?')+': sync ok pero sin cuentas con saldo utilizable',
               JSON.stringify(accs.slice(0,6).map(function(a){ return {ok:a&&a.ok, nbal:((a&&a.balances)||[]).length, types:((a&&a.balances)||[]).map(function(b){ return b&&b.type; })}; })));
           }

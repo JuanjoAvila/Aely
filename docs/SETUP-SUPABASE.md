@@ -3,6 +3,8 @@ con el titular autenticado, además de `deleted`. La protección se aplica antes
 la deduplicación FIN-15. Sin SQL ni despliegue; servidor nuevo antes del cliente,
 por el coordinador tras revisión. [Contrato](briefs/fin11-absorciones-pendientes-20261017.md).
 
+H2 candidata de `bank-sync`, ronda 2: reserva hasta 5 s de saldo dentro de los 15 s por cuenta; movimientos con el resto, serialidad y topes intactos. Cuenta solo UID válidos; conserva códigos cerrados y registra fallo de saldo. El cliente antiguo mantiene la parada de movimientos tras fallo de saldo; el capaz separa ambas fases. ACK exige fila actualizada. Sin despliegue: Edge requiere OK del dueño después de su beta. [Contrato y límites](briefs/h2-saldos-movimientos-20261018.md).
+
 FIN-15 (beta 4.26.138, 16/10/2026): `filasComoLaApp` deduplica una referencia bancaria estable
 por banco + `#ref`, aunque cambie el día al contabilizar. Aplica `deleted` y `ob-absorbed`
 antes de consumir la referencia; conserva el comportamiento de filas antiguas sin `#ref`.

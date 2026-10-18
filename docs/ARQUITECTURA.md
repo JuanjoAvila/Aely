@@ -1,3 +1,5 @@
+H2 candidata, ronda 2: saldo y movimientos independientes por cuenta, valor/fecha de identidades devueltas fallidas retenidos por UID/IBAN; cuentas extra omitidas retiradas y asignación única libre tras reservar vínculos exactos. Capacidad explícita y fallback conservador para móviles antiguos. Cursor y ACK siguen movimientos y persistencia local, con la excepción de desbordamiento existente. [Contrato y límites](briefs/h2-saldos-movimientos-20261018.md).
+
 # Arquitectura — Aely
 
 FIN-11 candidata privada desde FIN-10/FIN-15 coexistentes: `obAbsorbedPending`
