@@ -1,0 +1,176 @@
+{
+  "status": "blocked",
+  "summary": "PR272 ronda2 remate completado: prepara descarta banco amount===0 antes del alta; guardas locales solo banco/numero0, preservan null y otras fuentes. Ciclo real sync-pull tres vueltas sin aviso/subida/reescritura fantasma. Misma PR borrador beta descendiente normal; integracion pendiente Claude, no ProductREADY.",
+  "productSHA": "79c2c324329d10eb69cfe47b6ec174c565eb3481",
+  "baseSHA": "7c582a98025a3f97ec99f4f6c786a7de97289c09",
+  "claimCommit": "b237ba84ecece1cfb89b3817576f3d312c98f5f6",
+  "ackCommit": "b215bb9cc1c186fc7eb4cdfd8f29b026f2ce2695",
+  "contractGrant": "080ffba9a4cfec70f1f15470cb25ba39a8e22bd8",
+  "pr": 272,
+  "prDraft": true,
+  "prBase": "beta",
+  "coverage": {
+    "red": {
+      "exit": 1,
+      "cases": 39,
+      "behaviorFailures": 18,
+      "controlsPass": 21
+    },
+    "newAndNumericZero": {
+      "exit": 0,
+      "cases": 55
+    },
+    "newMutants": {
+      "killedByAssertion": 4,
+      "initialCombinedRunExit": 1,
+      "reason": "One added control wrongly expected null-manual backfill to stop; preserved and corrected to assert only prior local IDs can backfill"
+    },
+    "localPreservationControl": {
+      "exit": 0,
+      "cases": 1
+    },
+    "affectedSignsAndCompatibility": {
+      "exit": 0,
+      "cases": 48,
+      "previousMutantsKilled": 5
+    },
+    "cloud": {
+      "exit": 0,
+      "cases": 4
+    },
+    "distinctGreen": 112,
+    "newCases": 44,
+    "oldStringZeroExpectationsReplacedByPreservationControls": 8,
+    "build": 0,
+    "syntax": 0,
+    "wholeSuite": false
+  },
+  "cycle": {
+    "rounds": 3,
+    "before": {
+      "uploads": [
+        1,
+        1,
+        1
+      ],
+      "notices": [
+        1,
+        1,
+        1
+      ],
+      "historyRewrites": [
+        true,
+        true,
+        true
+      ]
+    },
+    "after": {
+      "uploads": [
+        0,
+        0,
+        0
+      ],
+      "notices": [
+        0,
+        0,
+        0
+      ],
+      "historyRewrites": [
+        false,
+        false,
+        false
+      ]
+    },
+    "actualBlocks": [
+      "bank state updater",
+      "ob-import upload scheduling",
+      "ob_imported toast",
+      "cloud filtering and merge updater"
+    ],
+    "syntheticTransport": true,
+    "localNullBackfillRetained": true
+  },
+  "tests": [
+    {
+      "name": "night-c-zero-cycle-affected-signs.log",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-zero-cycle-build.log",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-zero-cycle-build-final.log",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-zero-cycle-cloud.log",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-zero-cycle-commit.log",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-zero-cycle-diff-check.log",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-zero-cycle-green.log",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-zero-cycle-local-control.log",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-zero-cycle-mutants.log",
+      "exitCode": 1
+    },
+    {
+      "name": "night-c-zero-cycle-pr-update.log",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-zero-cycle-product-push.log",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-zero-cycle-red.log",
+      "exitCode": 1
+    },
+    {
+      "name": "night-c-zero-cycle-syntax.log",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-zero-cycle-syntax-final.log",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "Claude owns size/beta-sources/docs/VERSION/catalogue reconciliation; no current gate success claimed",
+    "No repeated whole FIN10/FIN15, Compras, A/B, DOM or unrelated controls; previous evidence remains tied to previous SHAs",
+    "No fullsuite/generalCI/CPU6/Deno/SQL/livebanks/Edge/GradleAPK/deploy/merge/mobile acceptance",
+    "Server reader unchanged; this grant corrects client import and local zero scope only",
+    "FIN17 serial queue untouched; no parallel FIN11 objective",
+    "Coordinated ingest/client deployment remains Claude with owner OK"
+  ],
+  "manifestSHA256": "376b00f764d626ee9aa06319deada056881010e1504bb9d4ed229dcfd17d58d4",
+  "priorResult": "b4841bc0c4a4b5905e4b243c24984d1413b85fdf",
+  "budget": {
+    "id": "night-c-own12-db3299cd-block2-qoxxwkrs",
+    "usedBeforePublication": 5,
+    "allowance": 12,
+    "prior12ExhaustedAndFrozen": true,
+    "allFetchesCounted": true
+  },
+  "brief": "docs/briefs/night-c-refund-polarity-20261018.md",
+  "stop": "Exact own result readback, durable final checkpoint, release claim and STOP; FIN17 serial queue can proceed under its own admission.",
+  "schema": 1,
+  "taskId": "night-c-pr272-zero-cycle-remates-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-qoxxwkrshebdfhaeqytokaml",
+  "createdAt": "2026-10-18T05:34:44.541Z",
+  "released": true
+}
