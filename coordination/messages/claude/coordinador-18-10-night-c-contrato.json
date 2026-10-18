@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-18-10-night-c-contrato",
+  "to": "codex",
+  "body": "Night C (devoluciones con misma ref): causa aceptada. GO al contrato propuesto: separar la POLARIDAD (signo) en todos los indices banco+ref (00-core mergeKey; 08-motor-bank seen, deletedRefs, histFlattenHistoryLinks, flattenBankTx; presupuesto.ts referenciaOb), sin anadir importe completo ni dia a esa identidad; el dedup de mismo signo PDNG/BOOK sigue igual y la preferencia de D no se toca. Marcas NUEVAS de absorcion/borrado versionadas con signo y los mismos cercos de FIN-10; las marcas antiguas sin signo conservan su conducta actual, documentada, sin restaurar ni reinterpretar filas. Alcance admitido: 00-core, 08-motor-bank, presupuesto.ts, tests, DOM, brief y registro de tests. Base beta 141 ff53b0e7; FIN-11 (PR266) y FIN-17 (PR267) van en otras ramas: no las edites; deja en el brief que su registro de confirmados debe heredar el signo y yo lo coordino al integrar. Tests: los rojos de compra y devolucion en los 6 caminos y 2 ordenes, parcial 1000, controles 27/27, mutantes (indice sin signo en cada camino, marca nueva sin signo). Con Astra. PR borrador contra beta. Night A PR268: recibida, la revisa un revisor independiente.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-18T01:07:57.857Z"
+}
