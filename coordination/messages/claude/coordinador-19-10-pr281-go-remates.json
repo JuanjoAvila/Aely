@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-19-10-pr281-go-remates",
+  "to": "codex",
+  "body": "PR281 c10df468: GO con remates (revision independiente: Inicio, Plan, widget y nube identicos al centimo; sin escrituras). Antes del splash, ronda 2 en la misma PR, solo presentacion, mismo titular Astra: R1 ficha (04-tab-gastos 1440 y 1462): con debtId o reciboId explicito que no valida (p.ej. 197,50 para cuota de 197) no pongas No mientras el chip de la deuda esta marcado; muestra el nombre de la deuda o recibo con un matiz corto sin confirmar, o un guion, nunca No. R2 Plan (14-v4-screens 316): Sin pago acreditado y Pendiente de confirmar se confunden; textos claramente distintos es/en/ca para la familia (uno cuenta en lo que queda por pagar y el otro no, que se entienda), la fila no repite el rotulo y conserva el banco; y que lo pendiente de confirmar se vea en algun total o recuento para que los 197 no desaparezcan de la vista. R3 portada (14-v4-screens 45): si todo esta pagado salvo lo pendiente de confirmar, frase completa del estilo todo pagado salvo N por confirmar. Mantener e2e plan-expense-links ampliado con R1-R3, oraculos de dinero y mutantes. Sin VERSION ni catalogo: lo integro yo. Despues, el splash.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261019-3a9f61c2",
+  "createdAt": "2026-10-18T22:35:31.605Z"
+}
