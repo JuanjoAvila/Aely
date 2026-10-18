@@ -4946,6 +4946,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "histDeletedRefHit"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentBookRival"
       },
       {
@@ -32766,6 +32770,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "histDeletedRefHit"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "histNumberBookRefs"
       },
       {
@@ -35694,6 +35702,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "histDistinctBookRef"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDeletedRefHit"
       },
       {
         "file": "src/modules/08-motor-bank.js",

@@ -311,8 +311,8 @@ const PRESUPUESTO = {
   // saldo de cuenta con atrás, Mi ciclo «<1 %») y la nota con tres tandas: 1.393.484 B / 386.591 B gzip con sello .99999 y reserva de 95 B (1360,8 / 377,5 KiB). SUBE por lógica de producto,
   // no se recorta (mandato 11/10). Mínimos: 1362 KiB minificado (quedan 1,2 KiB) y gzip a 379 KiB (quedan 1,5 KiB).
   // Integración 4.26.144 (18/10): cuatro PR sobre la 143 (vibración nativa y borde por inercia, aviso de Guardar en Deudas, pruebas de recibo v2 que sobreviven a renombrar, identidad histórica de CaixaBank)
-  // y la nota con tres tandas: 1.400.232 B / 388.598 B gzip con sello .99999 y reserva de 95 B (1367,4 / 379,5 KiB). SUBE por lógica de producto, no se recorta (mandato 11/10).
-  // Mínimos: 1368 KiB minificado (quedan 600 B) y gzip a 380 KiB (quedan 522 B).
+  // y la nota con tres tandas: 1.400.558 B / 388.709 B gzip con sello .99999 y reserva de 95 B (1367,7 / 379,6 KiB). SUBE por lógica de producto, no se recorta (mandato 11/10).
+  // Mínimos: 1368 KiB minificado (quedan 274 B) y gzip a 380 KiB (quedan 411 B).
   minificado: 1368 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;

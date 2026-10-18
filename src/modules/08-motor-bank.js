@@ -2788,21 +2788,28 @@ function histDifferentBankRef(x,e){
 }
 function histDistinctBookRef(x,e){
   const books=histBookResponses.get(x);
-  return histDifferentBankRef(x,e) && !!(e.obPendingRef || (books&&books.has(x.ent+"|"+e.extId)));
+  return histDifferentBankRef(x,e) && !!(e.obPendingRef || (books&&books.has(obReferenceKey(x.ent,e.extId,e.amount))));
 }
 function histDeletedBookRefs(state){
   const deleted=new Set((state&&state.deleted)||[]), refs=new Set(), slots=new Set();
   ((state&&state.gemelos)||[]).forEach(function(g){
     if(g && g.aviso==="" && g.bankRef && deleted.has(g.banco)){
-      refs.add((g.ent||"")+"|"+g.bankRef); slots.add((g.ent||"")+"|"+g.banco);
+      // Igual que el diario (PR 272): una lápida v2 lleva el signo de la referencia, así que borrar la compra R1
+      // no esconde la devolución R1; la antigua (sin v2) sigue valiendo para cualquier signo.
+      refs.add(g.bankRefV===2&&[-1,0,1].includes(g.bankRefSign)?obReferenceKey(g.ent||"",g.bankRef,g.bankRefSign):(g.ent||"")+"|"+g.bankRef);
+      slots.add((g.ent||"")+"|"+g.banco);
     }
   });
   return {refs:refs,slots:slots};
 }
 // Prepara los mismos candidatos que importa la pantalla, antes de seleccionar. Conserva
 // ordinales conocidos y reserva los borrados con referencia, igual que el importador diario.
+function histDeletedRefHit(deleted, x){
+  if(!deleted||!x||x.id==null) return false;
+  return deleted.refs.has(x.ent+"|"+x.id) || deleted.refs.has(obReferenceKey(x.ent,x.id,x.kind==="in"?-Math.abs(x.amount||0):Math.abs(x.amount||0)));
+}
 function histNumberBookRefs(cands, expenses, deleted){
-  const booked=(cands||[]).filter(function(x){ return x.bookRef && !(deleted&&deleted.refs.has(x.ent+"|"+x.id)); });
+  const booked=(cands||[]).filter(function(x){ return x.bookRef && !histDeletedRefHit(deleted,x); });
   if(!booked.length) return;
   const seed=expenses||[];
   const numbered=expenseBankIdOrdinals(seed.concat(booked.map(function(x){
@@ -3025,7 +3032,8 @@ function histFlattenHistoryLinks(res, expenses, allow){
       ((ac&&ac.transactions)||[]).forEach(function(tx){
         const dt=String(tx.date||"").slice(0,10), am=Number(tx.amount)||0;
         if(!dt || !am){ skippedBad++; return; }
-        if(bookRef(tx)) books.add(entKey+"|"+tx.ext_id);
+        // Con signo: una devolución BOOK de la misma referencia no prueba la compra (PR 272).
+        if(bookRef(tx)) books.add(obReferenceKey(entKey,tx.ext_id,am));
         const isIn=am<0, abs=Math.abs(am);
         // El fallback no se traduce: también forma parte de la identidad que comparte el sync
         // diario. Si dependiera del idioma, el mismo ingreso cabría dos veces en la nube.
@@ -3273,7 +3281,7 @@ function histCandLapidas(cands, state, deletedBooks){
     const e={date:x.stamp||histDate(x.date),amount:signed,merchant:x.merchant||(x.kind==="in"?"Ingreso":"Compra"),source:"ob-hist",ent:x.ent,extId:x.id,obOrd:x.obOrd,obAcc:x.obAcc};
     const legacy=keyOfExpenseLegacy(e);
     if((claves[legacy] && !(x.bookRef&&deletedBooks.slots.has(x.ent+"|"+legacy))) ||
-      expenseIsTombstoned(e,claves) || deletedBooks.refs.has(x.ent+"|"+x.id)) out[i]=true;
+      expenseIsTombstoned(e,claves) || histDeletedRefHit(deletedBooks,x)) out[i]=true;
   });
   return out;
 }

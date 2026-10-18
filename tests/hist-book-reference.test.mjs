@@ -239,6 +239,27 @@ test("r2-ya-importada-por-signo",async()=>{
  const got=flat(payload([tx("R1"),tx("R1",{amount:-12.5,merchant:"Devolución sintética"})]),state([e]));
  assert.deepEqual(Array.from(got,x=>x.kind),["in"],"la compra ya importada sale; la devolución con la misma referencia se queda");
 });
+test("r2-devolucion-tras-compra-borrada",async()=>{
+ // PR 272 firma la referencia: borrar la compra R1 deja una lápida v2 con signo, y la devolución R1 (−12,50) es otro movimiento.
+ // El histórico buscaba `ent|ref` sin signo y la daba por «dup»; el diario sí la importa. La compra borrada releída sigue dup.
+ const gone=c.histBuildCommit(flat(payload([tx("R1")])),c.histClassifyCandidates(flat(payload([tx("R1")])),state()).rows,state()).expAdds[0];
+ const s=state();s.deleted=[c.keyOfExpense(gone)];s.gemelos=[c.bankDeletionLink(gone)];
+ assert.equal(s.gemelos[0].bankRefV,2);
+ const out=flat(payload([tx("R1"),tx("R1",{amount:-12.5,merchant:"Devolución sintética"})]),s),rows=c.histClassifyCandidates(out,s).rows;
+ const i=Array.from(out,x=>x.kind),buy=i.indexOf("out"),back=i.indexOf("in");
+ assert.equal(rows[buy].status,"dup","la compra borrada releída sigue dup");
+ assert.equal(rows[back].status,"new","la devolución con la misma referencia entra");
+ const old=state();old.deleted=s.deleted;old.gemelos=[{...s.gemelos[0],bankRefV:undefined,bankRefSign:undefined}];
+ const o2=flat(payload([tx("R1"),tx("R1",{amount:-12.5,merchant:"Devolución sintética"})]),old);
+ assert.ok(c.histClassifyCandidates(o2,old).rows.every(r=>r.status==="dup"),"una lápida antigua sin v2 vale para cualquier signo");
+});
+test("r2-devolucion-book-no-prueba-la-compra",async()=>{
+ const e={id:"e",extId:"R1",ent:"caixabank",amount:12.5,date:"2026-10-17T12:00:00Z",source:"ob",merchant:"Tienda sintética H"};
+ const solo=flat(payload([tx("R2"),tx("R1",{amount:-12.5})]),state()).find(x=>x.id==="R2");
+ const con=flat(payload([tx("R2"),tx("R1")]),state()).find(x=>x.id==="R2");
+ assert.equal(c.histDistinctBookRef(solo,e),false,"una devolución BOOK R1 no prueba la compra R1");
+ assert.equal(c.histDistinctBookRef(con,e),true,"la propia compra BOOK R1 sí");
+});
 const only=process.env.HIST_CASE;let failed=0,passed=0;
 for(const {name,fn} of tests){if(only&&!new RegExp(only).test(name))continue;try{await fn();passed++;console.log("PASS "+name);}catch(e){failed++;console.error("FAIL "+name+"\n"+e.stack);}}
 assert.ok(passed+failed>0,"HIST_CASE debe ejecutar al menos una prueba");
