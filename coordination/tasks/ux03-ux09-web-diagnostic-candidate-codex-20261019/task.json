@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "id": "ux03-ux09-web-diagnostic-candidate-codex-20261019",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r73-b132dc8db089d0ba",
+  "createdAt": "2026-10-18T23:09:16.496Z",
+  "to": "codex",
+  "kind": "worker",
+  "priority": 4,
+  "baseSHA": "7090802099ac0c7956c0d3597a9936a82c52a95f",
+  "previousTaskId": "ux03-ux09-splash-inventory-continuation-codex-20261019",
+  "previousResult": "2bfdb7f66c27c463e7aece43cfdfa76da41148c3",
+  "assignedPublicSessionId": "codex-local-20261016-5fc9afdec60f82b1",
+  "claudeGrant": "b0a553fcf490f70d7e6f6b63752e4c2e17eaae50",
+  "objective": "UX03 UX09 phase0 artifact identity and bounded web diagnosis up to8 scenarios, persisted oracle; only if measured cause is web, focused web fix candidate draft against beta; native remains plan only.",
+  "scope": [
+    "Phase0 identity and classification from verifiable artifacts, missing device evidence explicitly recorded",
+    "Private synthetic web diagnostic harness, at most8 scenarios selected from completed report; causal evidence and persisted-state oracle",
+    "Conditional scoped web-only fix for measured veil/theme/PWA cause, causal RED and before-after E2E, draft beta PR"
+  ],
+  "requirements": [
+    "Read full task and Claudeb0a553fc, completed inventory2bfdb7f6 and report/manifest/checkpoint/closure. New exact own claim push/readback/ACK before work; original Astra H2 holder with same identity/runtime/cwd/helper/filter/ledger. Preserve partialf348410a, completed result2bfdb7f6, H2 PR279 and PR275 sources/evidence unchanged.",
+    "Worker last reported block5 actual17of20 total79 remaining3; verify live counter, count every first/internal/readback minimum30s. Exhaustion does not reset; permanentb0390 nextown20 only after real exhaustion, normal own notice/readback and frozen prior62. No inherited budget, claim or runner lease.",
+    "Use own NEW isolated checkout/branch at exact7090802099ac0c7956c0d3597a9936a82c52a95f for diagnostics or conditional product. Existing inventory readonly checkout remains unchanged; never edit or rebase H2/UX16/PR281 sources or another holder checkout. Read applicable AGENTS EMPIEZA and protocol fully.",
+    "Phase0 record actual web source/served bundle identity and evidence available locally, version/manifest/hash where verifiable; distinguish base from currently served and installed APK/OTA. No personal data. No device launch, installation, native execution or inaccessible physical observation inferred. Identify missing affected-device metadata explicitly; zero APK.",
+    "Bound web diagnosis to up to8 justified synthetic scenarios from completed plan, own port/fixtures, persisted exact snapshot and zero added cloud/bank writes. Reuse relevant existing evidence; no Cartesian matrix or unrelated finished tests. Separate cause evidence, timing observations, inference and absent physical proof.",
+    "Claude reports another suite and performance A/B in progress. Performance measurements must be alone on machine; consult Claude via own canonical request BEFORE CPU6 or performance measurement and wait for express runner availability/admission. No CPU6 lease by clock PID absence lock or inherited grant. Preparation/static identity may continue; directed non-performance correctness only under existing027aeb19 rules own1worker0retry. Preserve measurement blockers and do not claim representative timing from concurrent work.",
+    "Only if measurement demonstrates web-layer cause in veil, theme color or PWA manifest, make minimal web-only fix with causal RED first, before-after E2E and exact persisted-state/cent oracle. If cause is native, inconclusive or requires performance without admission, deliver diagnosis/blocked limits and consult Claude; no speculative patch.",
+    "Do not duplicate existing UX03 second-wait and halo code or port old splash WIP wholesale. No Android Java resources native theme bridge Gradle APK device runs or installations until a NEW explicit GO. Keep native intervention and resource cost as plan only.",
+    "No financial matching, balances, amounts, paid contract, saved links, writers, cloud state/backfill/migration, backend SQL live banks Edge deployment or main/beta merge. No VERSION catalogue caps or weakened gates. Presentation reserved files only when directly required by approved causal web fix, consult before expanding scope.",
+    "If web fix justified, deliver NEW draft PR against beta exact709 base with head/branch readback, source manifest, actualEXITs, causal before-after, meaningful mutants for changed contract and limitations. Gates size/docs/integration remain real; never claim ProductREADY from focused green. No PR if diagnosis-only.",
+    "Deliver own immutable released result with actual checkout privately, phase0 identity evidence, diagnostic cases and timing/admission provenance, financial persisted oracles, any bounded candidate and native plan/cost. STOP after exact canonical result readback. Claude review/integration/served/mobile are separate."
+  ],
+  "deliverable": "Bounded phase0 and web causal diagnosis, conditional minimal web draft candidate only after measured cause, no native or APK; released result with evidence and STOP."
+}
