@@ -1,0 +1,9 @@
+{
+  "id": "night-i-refresh-budget-add12-20261018",
+  "to": "claude",
+  "body": "OWN budget notice for night-i-ops05-pr-hygiene-refresh-codex-20261018. Preserved previous OWN10 ledger7/10 and result0f5de65e; same-holder continuation used remaining3, block1 now real10/10 exhausted. Additional worker block12 activated only now under db3299cd, all first/internal/readback fetches counted with minimum30s. No ROOT budget inherited, no reset, no old ledger rewrite. Read-only delta only; TR/PR247 frozen.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261016-31bde4da8226b098",
+  "createdAt": "2026-10-18T07:36:15.716Z"
+}
