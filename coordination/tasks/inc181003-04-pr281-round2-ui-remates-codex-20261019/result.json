@@ -1,0 +1,108 @@
+{
+  "status": "blocked",
+  "released": true,
+  "phase": "ROUND2_UI_CANDIDATE_PENDING_CLAUDE_INTEGRATION",
+  "baseSHA": "c10df468e6780dfc15b27ef688daa2d38ba8e2b6",
+  "integrationBaseSHA": "7090802099ac0c7956c0d3597a9936a82c52a95f",
+  "productSHA": "564efba46b31464a3a0f2dbf1b13c83878f8266e",
+  "productChanged": true,
+  "PR": 281,
+  "productReady": false,
+  "realIncidentClosed": false,
+  "claimCommit": "7c0eef72302d9261b631e60aa1123a4ed7a29794",
+  "ackCommit": "ce394c5837ea0bb1e64dab74eb0dbd521c86d3ed",
+  "claudeGrant": "38b7bb27e1f2f48371acaf8bf5ff24eda91acd07",
+  "manifestSHA256": "ab1c7eb4337f79ff8889d75e743b4eb8190d35f0d6ed03f7eb3f482bdef686e5",
+  "checkpointSHA256": "ad225d6b813da638cee5106bfe09cb15554f0a74cef759ec2e395ccaed0c9987",
+  "report": {
+    "path": "work/inc181003-04-r2/delivery-report.txt",
+    "sha256": "6b3607f61a9c73d933e6eb4e42714b92e4e94866fe8b138f77599bffbab2ddef"
+  },
+  "counts": {
+    "newBrowserRedFailures": 13,
+    "focusedPresentationChecks": 14,
+    "finalBrowserPass": 20,
+    "financialScenarios": 21,
+    "baseComparisons": 42,
+    "semanticMutantsKilled": 7
+  },
+  "tests": [
+    {
+      "name": "red",
+      "exitCode": 1
+    },
+    {
+      "name": "pure-red",
+      "exitCode": 1
+    },
+    {
+      "name": "pure-green1",
+      "exitCode": 0
+    },
+    {
+      "name": "registered-green",
+      "exitCode": 0
+    },
+    {
+      "name": "build1",
+      "exitCode": 0
+    },
+    {
+      "name": "i18n",
+      "exitCode": 0
+    },
+    {
+      "name": "syntax",
+      "exitCode": 0
+    },
+    {
+      "name": "size",
+      "exitCode": 1
+    },
+    {
+      "name": "oracles-mutants",
+      "exitCode": 0
+    },
+    {
+      "name": "green1",
+      "exitCode": 1
+    },
+    {
+      "name": "plural-diagnostic",
+      "exitCode": 1
+    },
+    {
+      "name": "green-final",
+      "exitCode": 0
+    }
+  ],
+  "summary": "Same draft PR281 beta updated to564efba46b31464a3a0f2dbf1b13c83878f8266e exact branch and PR readback. R1 explicit unresolved name plus qualifier or dash, R2 distinct due versus confirmation scope hints with bank and separate count, R3 complete singular/plural es/en/ca and normal paid/unpaid retained. Presentation only; motor08 reader, core00 and writer11 unchanged against c10. New causal DOM13RED, final20PASS worker1 retries0 own59421; focused14PASS, 21 scenarios42 exact financial comparisons with c10 and709, exact saved snapshots and zero new mocked cloud writes. Seven semantic mutants fail assertions. Build syntax i18n registration pass. Green1 17of20 and plural diagnostic preserved: startup linked equal-amount fixture second debt; fixture corrected distinct installment and actual-count assertion, no motor change. SizeEXIT1 1374of1368KiB gzip381of380KiB; prior docs-frescuraEXIT1 unresolved. VERSIONcataloguecaps unchanged. Phase1 investigation and NightD hashes/evidence preserved. No fullsuite CPU6 native backend livebanks deployment or merge. Final Claude review integration served mobile pending. Releasedblocked and STOP after exact own result readback.",
+  "limitations": [
+    "Synthetic Chromium evidence only; no physical or real family incident acceptance.",
+    "Green1 plural fixture startup assignment and diagnostic preserved separately; corrected fixture asserts actual unconfirmed count.",
+    "Size EXIT1: minified1374of1368KiB gzip381of380KiB. Prior docs-frescura EXIT1 unresolved; integration reconciliation belongs to Claude.",
+    "General CI/fullsuite/CPU6/native/Gradle/APK/backend/SQL/livebanks/Edge/deploy/merge/mobile not run."
+  ],
+  "budgetBeforeResult": {
+    "grant": "b0390ba0cad563401e1a8ac472262af6b1f39750",
+    "budget": 20,
+    "used": 7,
+    "remaining": 13,
+    "priorFrozen": [
+      14,
+      6,
+      7,
+      7,
+      10,
+      12,
+      12
+    ],
+    "noInheritance": true
+  },
+  "nextAction": "Claude final review and integration. Return exact checkout privately to ROOT73 and STOP after canonical own result readback.",
+  "schema": 1,
+  "taskId": "inc181003-04-pr281-round2-ui-remates-codex-20261019",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-46b86e3686e19bf3",
+  "createdAt": "2026-10-18T22:56:24.004Z"
+}
