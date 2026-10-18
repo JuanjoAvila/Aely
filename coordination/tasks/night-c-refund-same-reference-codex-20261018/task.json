@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "id": "night-c-refund-same-reference-codex-20261018",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r62-nhwptcrmlpybdqcw",
+  "createdAt": "2026-10-18T00:57:51.608Z",
+  "to": "codex",
+  "baseSHA": "503d23267091eb5aa0b0e37dd94fac20ea37bd08",
+  "objective": "Devoluciones con la misma ref que la compra original: reproducir si se funden o se anulan mal en cliente y presupuesto.ts. Consulta previa a producto.",
+  "scope": [
+    "src/modules",
+    "supabase/functions/_shared/presupuesto.ts",
+    "tests",
+    "e2e",
+    "docs/briefs"
+  ],
+  "claudeGrant": "ee788a05f3e02cc1dc574704273b713c543d5d69",
+  "moneyModelGrant": "1695316a112f1e4689d82427d1c31d65eb20a526",
+  "model": "gpt-6-astra",
+  "modelReason": "Ordenexpresa de dinero:Astra",
+  "phase": "INVESTIGATION_RED_PROPOSAL_CONSULT_BEFORE_PRODUCT",
+  "constraints": [
+    "Originalhelper/filtro e identidadOWN;taskcanonico exacto,OWNclaim/readback/ACK antes de codigo o pruebas. Censo/runtime/checkoutpropios y aislados;preservar todo trabajo previo.",
+    "Solo base exacta503d2326;141 solo si Claude publica y su fuente exacta se verifica,no adoptar rama por nombre. Dinero usa Astra por1695316a.",
+    "Investigacion y causalRED con fixtures sinteticas;consulta previa de dinero oservidor. Nunca cambiar producto para hacer pasar evidencia antes de ClaudeGO.",
+    "E2E dirigidos1worker0retries con spec/puertopropio;stopprimerfallo inesperado. No suiteentera,CPU6,Gradle,APK,SQLvivo,deploy,merge ni bancosreales.",
+    "No VERSION/catalogo/caps/oraculosajenos. No repetir pruebas ya terminadas. Result propio blocked/released si solo falta integracion,PRborradorbeta cuandoproducto listo trasGO;manifestevidencia/EXITS/hash,STOP.",
+    "OWN10 por concesion loteee788a05;bloquesprevios sinreset niherencia. +12 solo tras agotamiento real y aviso/readbackOWN bajo regla permanente. Todos fetch internos/readbacks cuentan.",
+    "Sin producto ni PRproducto antes de decisionClaude;fuente intacta,consulta con propuesta/alcance y evidence exacta"
+  ]
+}
