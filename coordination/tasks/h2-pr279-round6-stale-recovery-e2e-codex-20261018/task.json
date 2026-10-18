@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "id": "h2-pr279-round6-stale-recovery-e2e-codex-20261018",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r72-bae09af555e9ad9d",
+  "createdAt": "2026-10-18T21:33:04.807Z",
+  "to": "codex",
+  "kind": "worker",
+  "model": "gpt-6-astra",
+  "priority": 1,
+  "baseSHA": "6b1a0f543c2a95a5a485e57af0ba51bf740c37df",
+  "originalBetaBaseSHA": "7090802099ac0c7956c0d3597a9936a82c52a95f",
+  "oracleSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "previousTaskId": "h2-pr279-round5-base-identity-phases-codex-20261018",
+  "previousResult": "2aaaced43e28ea9b54533f37d8f10566a7ee099c",
+  "claudeGrant": "1c152dd5e8f6fa67a65605ce00c04208bbbaf1ff",
+  "assignedPublicSessionId": "codex-local-20261016-5fc9afdec60f82b1",
+  "PR": 279,
+  "branch": "codex/h2-balance-transactions-20261018",
+  "objective": "PR279 R6 under Claude NO-GO: clear an existing balanceStale on successful re-anchor/recovery, including promoted stale obAccount; align h2-account-phases e2e without introducing new balanceAt; verify actual PR head.",
+  "scope": [
+    "src/modules/08-motor-bank.js strictly existing balanceStale clearing on valid balance/re-anchor/promotion",
+    "e2e/h2-account-phases.spec.mjs and strictly necessary focused recovery tests/private harness",
+    "Generated public/index.html and scoped brief/manifest"
+  ],
+  "requirements": [
+    "Same original H2 Astra holder/session/helper/filter/cwd/branch and draftPR279. R5 own released result is preserved. Fresh own claim, canonical readback and ACK before product; no claim/lease/budget transfer. Count every first/internal/readback,min30s; verify real own ledger; no old block reset.",
+    "Binding full Claude instruction is message coordinador-18-10b-pr279-r6 at grant1c152dd5. Claude reports independent4000scenarios x2forms0identitydifferences; money/fases/B4/rebase accepted. NO-GO remains only stale recovery and e2e mismatch; not ProductREADY.",
+    "RED first: failed principal balance then valid recovery must remove stale flag while applying valid amount; repeat recovery with another valid amount. Cover stale obAccount promotion copied into principal. Preserve previous amount/date on failed assigned account. Use synthetic data, exact cents.",
+    "On a valid successful re-anchor remove balanceStale ONLY when that account already had it. All-OK cases must preserve exact complete state equality to REAL ff53 oracle, including field presence. No new identity, ordering, matching or date contract.",
+    "Do NOT start writing new balanceAt fields. Align h2-account-phases e2e to R5 contract: amounts, stale appears on failed balance and disappears on valid recovery, previous date preserved for failed account. Claude reports5of6red; document causalRED and focusedGREEN actualexits. Do not fake dates or weaken correct oracle.",
+    "Preserve full matrix50scenarios56comparisons and29phasecontrols as provenance, rerun focused changed-source verification needed for R6 only; meaningful recovery mutants. No completed unrelated DOM/general/fullsuiteCPU6/GradleAPK reruns. Directed e2e ownport1worker0retry under standing grant.",
+    "Verify branch remote AND GitHub actual PR279 head/pull ref match final newHEAD, exact base beta and draft state. Claude saw old0ad88ec8 in pull ref during review; record actual checks. Push0 alone is not canonical/PR head readback.",
+    "No server/auth/ACK/telemetry/oracle/VERSION/catalogue/caps changes, repins or weakening; no livebanksSQL/Edge/backend/deploy/mainbetapushmerge. Preserve financial phase boundaries, sister22500/10000/zero and closed error/legacy contracts.",
+    "Same draftPR new source/evidence/manifest/checkpoint and own releasedblocked result pending NEW Claude review; exact canonical readback thenSTOP. UX16r3 with chart and INC181003/04 follow only after R6."
+  ],
+  "deliverable": "PR279 R6 source plus actual focused RED/GREEN/mutants and PR head confirmation; own blocked/released result and STOP for independent Claude review."
+}
