@@ -1,0 +1,106 @@
+{
+  "status": "blocked",
+  "summary": "G entregada PR273 DRAFTbeta head7ee69d4ca38d88a6ac0c7ad4740ac25cbcbcf465 sobre141ff53. GOd259eba8: solo etiqueta del anillo para restoalcentimo positivo yporcentajeredondeado0,menorque1porciento es/en/ca. Importes,formula,arco,servidor intactos. DiezDOM distintos completados8+2,1worker0retry0flaky;buildsyntaxi18nmapregistro ysize EXIT0. Docs-frescura EXIT1 por2modulos despuesanclaVERSION. Beta-sources noejecutado;CIgeneral revisionintegracion servido movil pendientes. Ownblocked/released,congelar ySTOP,no ProductREADY.",
+  "productSHA": "7ee69d4ca38d88a6ac0c7ad4740ac25cbcbcf465",
+  "baseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "PR": 273,
+  "prDraft": true,
+  "productReady": false,
+  "claimCommit": "26fc66213380bf2e62d3b1e02e9273ca6caf8f15",
+  "ACKCommit": "207f83e7dbaba33b53d9c8d067e27fa02a554681",
+  "GO": "d259eba8dbe237f7d708582915d0a2b056855072",
+  "tests": [
+    {
+      "label": "green-build",
+      "exitCode": 0
+    },
+    {
+      "label": "green-discovery",
+      "exitCode": 0
+    },
+    {
+      "label": "green-dom",
+      "exitCode": 1
+    },
+    {
+      "label": "green-dom-en-ca",
+      "exitCode": 0
+    },
+    {
+      "label": "green-syntax",
+      "exitCode": 0
+    },
+    {
+      "label": "green-i18n",
+      "exitCode": 0
+    },
+    {
+      "label": "green-map",
+      "exitCode": 0
+    },
+    {
+      "label": "green-registry",
+      "exitCode": 0
+    },
+    {
+      "label": "green-size",
+      "exitCode": 0
+    },
+    {
+      "label": "green-docs-committed",
+      "exitCode": 1
+    }
+  ],
+  "DOM": {
+    "distinctCompleted": 10,
+    "blocks": [
+      8,
+      2
+    ],
+    "workers": 1,
+    "retries": 0,
+    "flaky": 0,
+    "finishedRepeated": 0
+  },
+  "size": {
+    "exitCode": 0,
+    "minKiB": 1327,
+    "minCap": 1328,
+    "gzipKiB": 369,
+    "gzipCap": 370,
+    "blockingFiles": "3/3",
+    "numbersRounded": true
+  },
+  "evidence": {
+    "manifestSHA256": "51d6781aa1bf99ebff48a49702674a7aa791e30ecf1f6ce7348abdc472dbb6eb",
+    "summarySHA256": "8a4b11e472612cd85934f9cf41a22a05d1382612ca48275c0983355ff89b1e90",
+    "checkpointSHA256": "5ebc2215d735fbda362ebab7115b2b308d5b4f01888038a4d8fec11e11e0c75c",
+    "HTMLSHA256": "ee46236cba2cc6d5db5d1b6b7e9b4b409b764f70737c779575584b132a9a3316",
+    "exactPRAndRemoteReadback": true
+  },
+  "limitations": [
+    "General suite/CPU6 not run",
+    "No live SQL,banks,Edge,deploy,merge,APK or physical Android",
+    "No served-beta/mobile acceptance",
+    "Docs-frescura EXIT1: two source modules after version anchor; no VERSION/catalogue/caps change",
+    "Historical baselineF and G tests not repeated; initial G eight Node controls are historical, not rerun on candidate",
+    "Initial candidate DOM EXIT1 was own English money-format expectation,not product; only unfinished en/ca resumed toEXIT0.",
+    "Baseline G causalRED and harness failures preserved. No financial loss or original device incident cause proven.",
+    "No new mutation run; code change is limited to displayed label."
+  ],
+  "budget": {
+    "frozenOwn10": 10,
+    "frozenFirstAdditional12": 12,
+    "currentOwn12BeforeResult": 4,
+    "allowance": 12,
+    "grant": "db3299cd69020ccf15563e787d1a1f4b69e8a753",
+    "activationReadback": "5c0ed1e09c5de784fd2001dde13d9e2526363a84",
+    "allFetchesCounted": true
+  },
+  "schema": 1,
+  "taskId": "night-g-cycle-rounding-zero-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261018-ux17-69406f6b6a28",
+  "createdAt": "2026-10-18T01:48:16.311Z",
+  "released": true
+}
