@@ -1,3 +1,4 @@
+import {withOwnerStorage} from "./helpers/owner-storage-fixture.mjs";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
@@ -6,7 +7,7 @@ import {test} from "node:test";
 import {loadPureLogic} from "../scripts/load-pure-logic.mjs";
 const html=fs.readFileSync(new URL("../public/index.html",import.meta.url),"utf8");
 const NOW=Date.parse("2026-10-14T12:00:00Z"),clone=x=>JSON.parse(JSON.stringify(x));
-function context(source=html){const c=loadPureLogic(source);c.Date=class extends Date{constructor(...a){super(...(a.length?a:[NOW]));}static now(){return NOW;}};return c;}
+function context(source=html){const c=withOwnerStorage(loadPureLogic(source));c.Date=class extends Date{constructor(...a){super(...(a.length?a:[NOW]));}static now(){return NOW;}};return c;}
 const state=(expenses=[])=>({accounts:[{id:"tr",ent:"trade_republic",role:"diario",spendFrom:true,value:1000}],settings:{expenseBanks:["trade_republic"]},expenses,gemelos:[],deleted:[],fixed:[],debts:[],oneoffs:[],flows:[],investments:[],budget:1000});
 const notice=(id="a",day="2026-10-08",amount=10)=>({id,date:day+"T10:00:00Z",amount,merchant:"Compra "+id,category:"otros",source:"macrodroid",ent:"trade_republic"});
 const tx=(day="2026-10-08",amount=10)=>({date:day,amount,merchant:"Movimiento",ent:"trade_republic",status:"BOOK"});
@@ -20,7 +21,7 @@ async function cloudSync(c,initial,remote,opts={},source=html){
  let live=initial;const trace=[],writes=[],timers=[],ref={current:live},session={current:{user:{id:"synthetic-owner"}}},update=updater(c,source);
  const cloud={pullState:async()=>{trace.push("state");if(opts.stateError)throw Error("synthetic state read failed");if(opts.changeOwner)session.current={user:{id:"other-synthetic-owner"}};return {data:clone(c.slimForCloud(remote))};},pullExpenses:async proof=>{trace.push("expenses");proof.valid=true;proof.userId="synthetic-owner";return (opts.expenseState||remote).expenses.map(e=>wire(c,e));},setExpenseDup:async(e,dup)=>{writes.push({id:e.id,dup});},setExpenseRecibo:async()=>{},setExpenseCat:async()=>0};
  const set=fn=>{live=update(live,fn);ref.current=live;};
- const factory=vm.runInContext("(function(stateRef,set,cloud,sessionRef,subirGasto,setTimeout,clearTimeout,natPlugin,mcSandbox){const wS={current:0},wR={current:false},wRead={current:null},wP={current:null},wC={current:[]};"+source.slice(start,end)+"return syncCloudExpenses;})",c);
+ const factory=vm.runInContext("(function(stateRef,set,cloud,sessionRef,subirGasto,setTimeout,clearTimeout,natPlugin,mcSandbox){const retryObAbsorbedCloud=()=>obAbsorbedRetry(()=>stateRef.current,()=>sessionRef.current&&sessionRef.current.user.id,set);const wS={current:0},wR={current:false},wRead={current:null},wP={current:null},wC={current:[]};"+source.slice(start,end)+"return syncCloudExpenses;})",c);
  const run=factory(ref,set,cloud,session,()=>Promise.resolve(),fn=>{timers.push(fn);return timers.length;},()=>{},()=>null,()=>false);
  await run();timers.forEach(fn=>fn());return {state:live,trace,writes};
 }

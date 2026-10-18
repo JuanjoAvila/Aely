@@ -16,6 +16,7 @@
 //   · un recibo borrado no deja filas fuera de las cuentas ni mueve el saldo;
 //   · el cargo de un recibo no se puede reconocer como retirada de efectivo.
 // Datos sintéticos; el reloj es fijo y se mueve a mano para cruzar de mes.
+import {withOwnerStorage} from "./helpers/owner-storage-fixture.mjs";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
@@ -26,7 +27,7 @@ import { loadPureLogic, extractPureLogicSource, createLogicSandbox } from "../sc
 const source=file=>fs.readFileSync(new URL("../"+file,import.meta.url),"utf8");
 const order=JSON.parse(source("src/build-order.json"));
 const js=order.map(file=>source("src/modules/"+file)).join("\n");
-const c=loadPureLogic(source("src/shell.html").replace("<!--MC_APP_SCRIPT-->",()=>js));
+const c=withOwnerStorage(loadPureLogic(source("src/shell.html").replace("<!--MC_APP_SCRIPT-->",()=>js)));
 vm.runInNewContext(source("src/modules/14-v4-screens.js"),c);
 vm.runInNewContext(source("src/modules/13-hogar.js"),c);   // la foto del hogar vive tras el corte de la lógica pura
 const OCT12=new Date("2026-10-12T18:00:00+02:00").getTime();
@@ -547,7 +548,7 @@ function nubeFalsa(previas){
       const res={data:null,error:null};
       return {then:(ok,ko)=>Promise.resolve(res).then(ok,ko),select:()=>Promise.resolve({data:nuevas,error:null})};
     },
-    select(){ return consulta(hit=>{ log.push("lee "+hit.length); return hit.map(r=>({id:r.id,source:r.source})); }); },
+    select(columns){ return consulta(hit=>{ log.push("lee "+hit.length); return hit.map(r=>Object.fromEntries(columns.split(",").map(k=>[k,r[k]]))); }); },
     update(patch){ return consulta(hit=>{ log.push("cambia "+hit.length); hit.forEach(r=>Object.assign(r,patch)); return null; }); },
   });
   const consulta=hace=>{ const conds=[]; const q={ eq(col,val){ conds.push([col,val]); return q; },
@@ -795,9 +796,9 @@ test("al bajar el estado de la nube, App une los vetos con `reciboNoUnion` (el b
   assert.ok(m,"no se encuentra el bloque de último-que-escribe en syncFromCloud");
   // Desde la unión con Inicio v4.2 (4.26.122) el mismo bloque une además el historial de cuentas
   // para el titular de la sesión: se le da la sesión de ese titular y la unión real.
-  const bloque=new Function("prev","cloudState","freshLogin","localNewer","merged","opts","reciboNoUnion","fusionarGemelos","sessionRef","u","mergeAccountBalanceHistory","cloudPack","goalSyncPull","goalSyncCopy",m[0].replace(/if\(freshLogin\s*&&\s*\(cloudState\.accounts$/,"")+"\nreturn baseObj;");
+  const bloque=new Function("prev","cloudState","freshLogin","localNewer","merged","opts","reciboNoUnion","fusionarGemelos","sessionRef","u","mergeAccountBalanceHistory","cloudPack","goalSyncPull","goalSyncCopy","obAbsorbedMerge","obAbsorbedPersist","obConfirmedMerge","obAbsorbedWriteBlocked",m[0].replace(/if\(freshLogin\s*&&\s*\(cloudState\.accounts$/,"")+"\nreturn baseObj;");
   // La 141 (Metas a tres vías) hace que el bloque lea `cloudPack.updated_at` y llame a `goalSyncPull`/`goalSyncCopy`: se le dan los reales del bundle.
-  const adopta=(...a)=>bloque(...a,{current:{user:{id:"titular"}}},"titular",c.mergeAccountBalanceHistory,{updated_at:"synthetic"},c.goalSyncPull,c.goalSyncCopy);
+  const adopta=(...a)=>bloque(...a,{current:{user:{id:"titular"}}},"titular",c.mergeAccountBalanceHistory,{updated_at:"synthetic"},c.goalSyncPull,c.goalSyncCopy,c.obAbsorbedMerge,c.obAbsorbedPersist,c.obConfirmedMerge,{current:false});
   const prev={_savedAt:1,expenses:[],reciboNo:["com|x"],reciboNoAt:{"com|x":10}}, nube={_savedAt:2,reciboNo:[],reciboNoAt:{"com|x":20}};
   const fus=(a,b)=>a||b;
   // La nube lo levantó después: aquí deja de estar. Y un veto local más reciente sobrevive a una nube que no lo trae.

@@ -1,3 +1,4 @@
+import {withOwnerStorage} from "./helpers/owner-storage-fixture.mjs";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
@@ -7,7 +8,7 @@ import { test } from "node:test";
 import { transformSync } from "esbuild";
 import { loadPureLogic, loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
 const html=fs.readFileSync(new URL("../public/index.html",import.meta.url),"utf8");
-const c=loadPureLogicFromFile(), clone=x=>JSON.parse(JSON.stringify(x));
+const c=withOwnerStorage(loadPureLogicFromFile()), clone=x=>JSON.parse(JSON.stringify(x));
 const NOW=Date.parse("2026-10-13T12:00:00Z"), DAY=86400000;
 const clock=ctx=>{ctx.Date=class extends Date{constructor(...a){super(...(a.length?a:[NOW]));}static now(){return NOW;}};return ctx;};clock(c);
 const state=(expenses=[])=>({accounts:[{id:"tr",ent:"trade_republic",role:"diario",spendFrom:true,value:1000}],settings:{expenseBanks:["trade_republic"]},expenses,gemelos:[],fixed:[],debts:[],oneoffs:[],flows:[],deleted:[],budget:1000,investments:[]});
@@ -169,7 +170,7 @@ test("el pull REAL no trae decisiones de la cuenta anterior",()=>{
   const block=/const merged=mergeExpenses\(prev\.expenses,\s*cloudState\.expenses\|\|\[\]\);([\s\S]*?)if\(freshLogin && \(cloudState\.accounts/.exec(html);
   assert.ok(block);
   const source=block[0].slice(0,block[0].lastIndexOf("if(freshLogin"));
-  const pull=vm.runInContext("(function(prev,cloudState,freshLogin,opts,sessionRef,u,cloudPack){"+source+"return baseObj;})",c);
+  const pull=vm.runInContext("(function(prev,cloudState,freshLogin,opts,sessionRef,u,cloudPack){const obAbsorbedWriteBlocked={current:false};"+source+"return baseObj;})",c);
   const s=c.separarGemeloAutomatico(sync(c,state([aviso()]),[tx()]),"a",1234);
   const next=pull({...s,_historyOwner:"before"},state(),true,{dropTx:true},{current:{user:{id:"after"}}},"after",{updated_at:"synthetic"});
   assert.equal(next.gemelos.length,0);
