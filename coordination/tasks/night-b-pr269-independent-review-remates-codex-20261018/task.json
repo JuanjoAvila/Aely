@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "id": "night-b-pr269-independent-review-remates-codex-20261018",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r64-2616c5a28afe44cf",
+  "createdAt": "2026-10-18T03:24:51.086Z",
+  "to": "codex",
+  "baseSHA": "242aa5769f940392938c0c6bf0f104f5e6b78476",
+  "objective": "Clauded4411f32 PR269: adapt existing deterministic R1/M5 day and residual-balance cases at deudas-metas-edicion-v4 lines146/150 to confirm askback and assert its term-change text. Fix singular1month in es/en/ca and add unit guard linking submit to confirmation dialog; preserve accepted term,storedvalue,cancel,back and animatedclose contract.",
+  "scope": [
+    "src/modules/09-tab-debts-goals.js",
+    "src/modules/01-i18n.js",
+    "e2e/deudas-metas-edicion-v4.spec.mjs",
+    "tests",
+    "docs/briefs"
+  ],
+  "claudeGrant": "d4411f32e0a8605e3f1ed455bc941c2ec0af8d65",
+  "model": "gpt-6-astra",
+  "modelReason": "Explicit original money-model authority1695316a and sameholder Claude remates",
+  "holderSession": "codex-local-20261014-43c0a0c94700",
+  "samePR": 269,
+  "previousTaskId": "night-b-debt-term-warning-codex-20261018",
+  "instructions": "Same original holder/public session/helper/filter and Astra; new own successor claim normalpush plus canonical readback and ACK before code/tests. Continue actual worker fetch ledger without reset or inheritance; permanent additional12 only after actual exhaustion and own notice/readback; first/internal fetches count,min30s. Preserve prior claims/results/sources/WIP/failures. Same draft PR against beta,normal descendant/no force. Claude handles integration gates; no VERSION/catalogue/caps or foreign oracle relaxation. No CPU6/full npmtest/Gradle/APK/SQL/live banks/deploy/merge. Report real EXITs,mutation provenance,source/head and private manifest/checkpoint; own result blocked/released if integration pending;STOP. Do not repeat completed controls unrelated to new remates. Run deudas-metas-edicion-v4 ENTIRE spec before delivery under express grant; 1worker0retry,own synthetic port/spec; stop unexpected failure,own harness correction only per bc1c5e1d. New singular es/en/ca and submit-dialog unit controls. Locate existing i18n source by repository inventory,do not invent file."
+}
