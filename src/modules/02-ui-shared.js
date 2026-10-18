@@ -567,16 +567,13 @@ function mcHaptic(method, args){
   }catch(e){}
 }
 function mcBindEdgeHaptics(root, blocked){
-  let g=null;
+  let g=null, states=new WeakMap();
   const end=function(){ g=null; };
   const boundary=function(el){
     const max=el.scrollHeight-el.clientHeight, y=el.scrollTop;
     return max>1?(y<=1?"top":y>=max-1?"bottom":null):null;
   };
-  const start=function(e){
-    g=null;
-    if(!e.touches||e.touches.length!==1||blocked()||mcReduced()) return;
-    const target=e.target;
+  const scroller=function(target){
     if(!target||!target.closest||target.closest("[data-noswipe]")) return;
     for(let el=target;el&&el!==document.body;el=el.parentElement){
       const css=getComputedStyle(el);
@@ -584,10 +581,40 @@ function mcBindEdgeHaptics(root, blocked){
       if(el.scrollHeight<=el.clientHeight+1||!/^(auto|scroll)$/.test(css.overflowY)) continue;
       // Un scroller interior sin ola no debe delegar su borde en la página exterior.
       if(css.overscrollBehaviorY==="none"||(el.classList.contains("page")&&!el.classList.contains("page-scroll-host"))) return;
-      const t=e.touches[0];
-      g={el:el,id:t.identifier,x:t.clientX,y:t.clientY,lastY:t.clientY,anchor:t.clientY,edge:boundary(el),fired:false};
-      return;
+      return el;
     }
+  };
+  const quiet=function(){ return blocked()||mcReduced()||document.hidden; };
+  const stateOf=function(el){
+    let s=states.get(el);
+    if(!s){ s={edge:boundary(el),latched:null,armed:!boundary(el)}; states.set(el,s); }
+    return s;
+  };
+  const pulse=function(el,edge){
+    const s=stateOf(el);
+    if(s.latched===edge||quiet()) return;
+    s.latched=edge; s.armed=false;
+    mcHaptic("edge");
+  };
+  const scroll=function(e){
+    const el=scroller(e.target);
+    if(!el||el!==e.target) return;
+    const s=stateOf(el),edge=boundary(el),max=el.scrollHeight-el.clientHeight;
+    if(quiet()){ s.edge=edge; s.latched=edge; s.armed=false; return; }
+    // El rebote de unos píxeles y otro touchstart no son una nueva llegada al mismo borde.
+    const gap=Math.min(12,max/2);
+    if((s.latched==="top"&&el.scrollTop>=gap)||(s.latched==="bottom"&&max-el.scrollTop>=gap)) s.latched=null;
+    if(!edge&&!s.latched) s.armed=true;
+    if(edge&&edge!==s.edge&&s.armed) pulse(el,edge);
+    s.edge=edge;
+  };
+  const start=function(e){
+    g=null;
+    if(!e.touches||e.touches.length!==1||quiet()) return;
+    const el=scroller(e.target);
+    if(!el) return;
+    const t=e.touches[0]; stateOf(el);
+    g={el:el,id:t.identifier,x:t.clientX,y:t.clientY,lastY:t.clientY,anchor:t.clientY,edge:boundary(el),fired:false};
   };
   const move=function(e){
     if(!g) return;
@@ -604,11 +631,13 @@ function mcBindEdgeHaptics(root, blocked){
     const outward=edge==="top"?t.clientY-g.anchor:g.anchor-t.clientY;
     if(outward<10) return;
     g.fired=true;
-    mcHaptic("edge");
+    pulse(g.el,edge);
   };
   const listeners={touchstart:start,touchmove:move,touchend:end,touchcancel:end,visibilitychange:end};
   Object.keys(listeners).forEach(function(type){ root.addEventListener(type,listeners[type],{passive:true}); });
-  return function(){ end(); Object.keys(listeners).forEach(function(type){ root.removeEventListener(type,listeners[type]); }); };
+  // scroll no burbujea: captura también las llegadas de inercia después del touchend.
+  root.addEventListener("scroll",scroll,{passive:true,capture:true});
+  return function(){ end(); states=new WeakMap(); root.removeEventListener("scroll",scroll,true); Object.keys(listeners).forEach(function(type){ root.removeEventListener(type,listeners[type]); }); };
 }
 // Un solo objetivo: cambiar esta línea selecciona otra animación sin multiplicar disparos.
 const MC_INICIO_HAPTIC={selector:".v42-cycle-draw",animation:"v42-cycle-draw"};
