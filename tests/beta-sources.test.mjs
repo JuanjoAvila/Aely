@@ -78,6 +78,8 @@ const sourceBeta135=sourceAt("bad396a41fb2cc6678b632ebda3a58c53c3c3e10");
 const sourceProd136=sourceAt("4941a0619bc6befa04d75334409cc288dc827a11");
 // Catálogo137 pasa a histórico en la promoción 137: se lee de la beta 4.26.137.1 aprobada (6f18228c), lo último que probó el móvil y lo que sube entero.
 const sourceBeta137=sourceAt("6f18228cbd81c1cc9abfa7fabce0a878819234f4");
+// Promoción137 pasa a histórico con el hotfix 4.26.142 (18/10), que sí cambia producto y nota: se lee de la producción 137 tal cual se fusionó.
+const sourceProd137=sourceAt("a9916c3cdb21c93f9d3a47653c0608e630ce50ab");
 // La122 añade un método a `cloud` (`setExpenseRecibo`) y los alcances que listan los métodos que
 // leen lo ganan al final de su lista. Las comparaciones con descriptores anteriores lo descuentan;
 // Catálogo122 fija en lista cerrada cuáles son.
@@ -3841,8 +3843,8 @@ test("Catálogo137 histórico añade la tanda de MyInvestor sobre la producción
 // sincronizaciones chocan o el sello final falla, y solo propone reconectar tras un intento manual). Producto, servidor y nativo son los de la beta 137.1 (6f18228c) byte a
 // byte y lo único que cambia es el catálogo: la MISMA nota familiar, ya sin tanda, sobre el historial de la producción 136 (233 notas). Sin APK nueva (sigue la 55). La
 // migración 0026 y `myinvestor-connect` ya están en producción; `myinvestor-sync` se despliega SOLO cuando este cliente esté servido.
-test("Promoción137 muestra una nota y el historial de producción, retira la tanda aprobada y no toca producto, descriptores ni APK",()=>{
-  const tanda="myinvestor-contador-a-cero",beta=f=>sourceBeta137(f).replace(/\r\n/g,"\n"),source=f=>read(f).replace(/\r\n/g,"\n");
+test("Promoción137 histórico muestra una nota y el historial de producción, retira la tanda aprobada y no toca producto, descriptores ni APK",()=>{
+  const tanda="myinvestor-contador-a-cero",beta=f=>sourceBeta137(f).replace(/\r\n/g,"\n"),source=f=>sourceProd137(f).replace(/\r\n/g,"\n");
   const production=JSON.parse(sourceProd136("src/data/release-notes.json")),before=JSON.parse(beta("src/data/release-notes.json"));
   assert.equal(production.length,233);assert.equal(production[0].v,"4.26.136");assert.deepEqual(production[0].tandas,[]);
   const panel=before.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id]));

@@ -1,5 +1,26 @@
 [
   {
+    "v": "4.26.142",
+    "d": "2026-10-18",
+    "t": {
+      "es": "Presupuesto: quitar una regla de reservar lo devuelve",
+      "en": "Budget: removing a reserve rule gives it back",
+      "ca": "Pressupost: treure una regla de reservar el retorna"
+    },
+    "items": {
+      "es": [
+        "Si quitaste una regla de «Reservar dinero» y el presupuesto del mes seguía bajado, ya vuelve a su cifra de siempre. Lo que ya habías aportado a tus metas no se toca."
+      ],
+      "en": [
+        "If you removed a «Reserve money» rule and this month’s budget stayed lower, it now goes back to its usual amount. What you had already added to your goals is not touched."
+      ],
+      "ca": [
+        "Si vas treure una regla de «Reservar diners» i el pressupost del mes seguia rebaixat, ja torna a la seva xifra de sempre. El que ja havies aportat a les teves metes no es toca."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.137",
     "d": "2026-10-16",
     "t": {

@@ -296,7 +296,9 @@ const PRESUPUESTO = {
   // Integración 4.26.135 (15/10), compras idénticas (ordinal por banco y referencia, lápida `ob-absorbed` y borrado en la nube de la fila
   // absorbida) sobre la producción 134: 1.328.724 B crudo / 368.967 B gzip con sello .99999 y reserva de 95 B. El job `beta` lo tumbó
   // el tope: SUBE por lógica de dinero, no se recorta (mandato 11/10). 1298 KiB es el mínimo (quedan 428 B).
-  minificado: 1298 * 1024,
+  // Hotfix 4.26.142 (18/10), lo reservado por una regla borrada vuelve al presupuesto, sobre la producción 137: ~1.329.6 KB crudo
+  // con sello y reserva, unos 500 B por encima. SUBE 1 KiB por lógica de dinero (mandato 11/10).
+  minificado: 1299 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
