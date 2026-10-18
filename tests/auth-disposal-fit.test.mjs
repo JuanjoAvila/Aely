@@ -44,7 +44,7 @@ for(const cfg of [{},{offline:true},{navThrows:true},{disposed:true},{disposed:t
 const reader=f=>read(f),scope=JSON.parse(read('scripts/beta-sources.json'))['inc-0710-auth-disposal'],revision=betaRevision('inc-0710-auth-disposal',reader).web;
 let fns=0,data=0;for(const f of scopeDependencies(scope,reader)){assert.notEqual(betaRevision('inc-0710-auth-disposal',x=>x===f.file?mutateLogic(read(x),f):read(x)).web,revision,f.name);fns++;}
 for(const d of scopeDataDependencies(scope,reader)){assert.notEqual(betaRevision('inc-0710-auth-disposal',x=>x===d.file?mutateData(read(x),d):read(x)).web,revision,d.name);data++;}
-assert.equal(fns,54,'las siete funciones originales, la unión de historial transitiva del escritor, el cierre del emparejado automático (130), el de las compras idénticas (135) y el de Metas a tres vías (141)');assert.equal(data,22);
+assert.equal(fns,82,'las siete funciones originales, la unión de historial transitiva del escritor, el cierre del emparejado automático (130), el de las compras idénticas (135), el de Metas a tres vías (141) y el de las colas de absorción FIN-17 y la preferencia BOOK/signo de referencia (143: obConfirmedStorageKey, preferBookedExpenses, obBookedPreferenceKey, obPolarity)');assert.equal(data,32);
 const notes=JSON.parse(history106('src/data/release-notes.json')),oldNotes=JSON.parse(old('src/data/release-notes.json'));
 // La unidad106 añade una sola nota y alcance; el histórico102 conserva todos sus datos.
 assert.equal(notes[0].v,'4.26.106');assert.deepEqual(notes[0].tandas.map(g=>g.id),['inc-0810-dashboard-recents-memo']);
@@ -95,8 +95,10 @@ for(const [id,codigo,web]of [
  // La 124 cambia un comentario dentro del tramo de la barra que vigila el indicador (Plan ya no pone `mc-touch-own`):
  // su huella viva se declara de nuevo. Que solo cambia ese comentario lo prueba Catálogo124 de beta-sources.
  // La 129 (limpieza) borra `tabOrderState` y la ancla pasa a `const tabIds = tabOrderOf(state);`: su huella viva se declara de nuevo.
+
+ // La 143 añade `mcSandboxTransition` (banco de pruebas, PR 265) al cierre de lectores de backclose: su huella viva se declara de nuevo.
  // La 140 toca `_mcBackCloseNative`, `_mcBackInitOnce`, `useEdgePageClose` (atrás con teclado abierto, PR 248) y `useSheetSwipe` (el velo baja con la hoja): su huella viva se declara de nuevo; el ancla beta fija de abajo no se toca.
- const vivo=id==='inc-0810-nav-indicator'?{web:'ac693e0804b2487eec011a79c831bb34ac4a8babd94f551cc694d6b1c86d906b',codigo:'dac7dfae2bd713f803b8e52cce4592c150f430661887a79b0838b82897c33901'}:id==='inc-0810-backclose-handover'?{web:'b351f551311d940dfd167ef523e28d80d12a273b88803271d4f7a3689ef2380c',codigo:'684344a037693ff91981983bb18ea10eb898d6c3d275d411f50c25e3e520e75d'}:{web,codigo};
+ const vivo=id==='inc-0810-nav-indicator'?{web:'ac693e0804b2487eec011a79c831bb34ac4a8babd94f551cc694d6b1c86d906b',codigo:'dac7dfae2bd713f803b8e52cce4592c150f430661887a79b0838b82897c33901'}:id==='inc-0810-backclose-handover'?{web:'dfbb643ac5282d8c576bd681309580798dd1a4d8f7eb72236f4f98877749bf70',codigo:'f2bab178149a083f260d10591f69d0fb889f743b3c2956f2dbf710494aecd7ed'}:{web,codigo};
  assert.deepEqual(betaRevision(id,id==='inc-0810-metas-editar-regla'?mainRead:read,undefined,id==='inc-0810-metas-editar-regla'?reg[id]:liveReg[id]),vivo,id+': identidad aprobada, histórica sólo para edición de regla');
  assert.deepEqual(betaRevision(id,selected,undefined,selectedReg[id]),{web,codigo},id+': ancla beta fija aprobada');
  for(const key of ['historial','auditoria','codigosCompatibles','compatibilidadGit'])assert.equal(reg[id][key],undefined,id+': sin aprobación heredada '+key);

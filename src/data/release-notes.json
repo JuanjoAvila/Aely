@@ -1,5 +1,117 @@
 [
   {
+    "v": "4.26.143",
+    "d": "2026-10-18",
+    "t": {
+      "es": "Avisos de plazo al editar una deuda, y arreglos en cuentas, Inicio y el banco de pruebas",
+      "en": "Term notices when editing a debt, and fixes for accounts, Home and the test bank",
+      "ca": "Avisos de termini en editar un deute, i millores en comptes, Inici i el banc de proves"
+    },
+    "items": {
+      "es": [
+        "Al cambiar el saldo o el día de cobro de una deuda, la app avisa si eso cambia el plazo total y las cuotas que faltan, y te deja confirmar o cancelar.",
+        "Si escribes un saldo nuevo en una cuenta y sales con el gesto de atrás, se guarda bien y la ficha baja suave.",
+        "En Inicio, cuando te queda un margen muy pequeño del ciclo, el porcentaje dice «<1 %» en lugar de 0 %.",
+        "El banco de pruebas ya no muestra un aviso de reinicio sin motivo y protege mejor tu cartera real.",
+        "Las devoluciones de un pago y las compras pendientes del banco se cuentan con más cuidado, sin cambios visibles."
+      ],
+      "en": [
+        "When you change a debt's balance or payment day, the app tells you if that changes the total term and the remaining instalments, and lets you confirm or cancel.",
+        "If you type a new balance on an account and leave with the back gesture, it is saved correctly and the sheet slides down smoothly.",
+        "On Home, when only a very small margin of the cycle is left, the percentage reads «<1%» instead of 0%.",
+        "The test bank no longer shows a restart notice for no reason and protects your real portfolio better.",
+        "Refunds of a payment and pending purchases from the bank are counted more carefully, with no visible changes."
+      ],
+      "ca": [
+        "En canviar el saldo o el dia de cobrament d'un deute, l'app avisa si això canvia el termini total i les quotes que falten, i et deixa confirmar o cancel·lar.",
+        "Si escrius un saldo nou en un compte i surts amb el gest d'enrere, es desa bé i la fitxa baixa suau.",
+        "A Inici, quan et queda un marge molt petit del cicle, el percentatge diu «<1 %» en lloc de 0 %.",
+        "El banc de proves ja no mostra un avís de reinici sense motiu i protegeix millor la teva cartera real.",
+        "Les devolucions d'un pagament i les compres pendents del banc es compten amb més cura, sense canvis visibles."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "deudas-aviso-plazo",
+        "t": {
+          "es": "Deudas: aviso al cambiar el plazo",
+          "en": "Debts: notice when the term changes",
+          "ca": "Deutes: avís en canviar el termini"
+        },
+        "items": {
+          "es": [
+            "1. Abre Plan, pestaña Deudas, toca una deuda que tenga cuotas y súbele unos euros al saldo pendiente. Toca «Guardar cambios».",
+            "2. Si ese cambio mueve el plazo, sale un aviso con los meses totales y las cuotas pendientes de antes y de después. Toca «Cancelar»: la ficha sigue abierta con lo que escribiste y no se guarda nada.",
+            "3. Vuelve a tocar «Guardar cambios» y confirma: la deuda queda con el plazo que anunciaba el aviso. Si no sale aviso, el plazo no cambiaba: prueba con una subida mayor."
+          ],
+          "en": [
+            "1. Open Plan, Debts tab, tap a debt that has instalments and raise its pending balance by a few euros. Tap «Guardar cambios».",
+            "2. If that change moves the term, a notice shows the total months and pending instalments before and after. Tap «Cancelar»: the sheet stays open with what you typed and nothing is saved.",
+            "3. Tap «Guardar cambios» again and confirm: the debt keeps the term the notice announced. If no notice appears, the term did not change: try a bigger raise."
+          ],
+          "ca": [
+            "1. Obre Pla, pestanya Deutes, toca un deute que tingui quotes i puja-li uns euros al saldo pendent. Toca «Guardar cambios».",
+            "2. Si aquest canvi mou el termini, surt un avís amb els mesos totals i les quotes pendents d'abans i de després. Toca «Cancelar»: la fitxa continua oberta amb el que has escrit i no es desa res.",
+            "3. Torna a tocar «Guardar cambios» i confirma: el deute queda amb el termini que anunciava l'avís. Si no surt avís, el termini no canviava: prova amb una pujada més gran."
+          ]
+        }
+      },
+      {
+        "id": "cuenta-saldo-cierre-atras",
+        "t": {
+          "es": "Cuentas: el saldo escrito se guarda al salir con atrás",
+          "en": "Accounts: the typed balance is saved when leaving with back",
+          "ca": "Comptes: el saldo escrit es desa en sortir amb enrere"
+        },
+        "items": {
+          "es": [
+            "1. Abre Cartera y toca una cuenta de efectivo, de las que no están conectadas a un banco.",
+            "2. Cambia su saldo escribiendo un importe nuevo, sin tocar «Guardar».",
+            "3. Sal con el gesto de atrás: la ficha baja suave.",
+            "4. Vuelve a abrir la misma cuenta: enseña el saldo que escribiste, no el anterior."
+          ],
+          "en": [
+            "1. Open Portfolio and tap a cash account, one that is not connected to a bank.",
+            "2. Change its balance by typing a new amount, without tapping «Guardar».",
+            "3. Leave with the back gesture: the sheet slides down smoothly.",
+            "4. Open the same account again: it shows the balance you typed, not the previous one."
+          ],
+          "ca": [
+            "1. Obre Cartera i toca un compte d'efectiu, d'aquells que no estan connectats a un banc.",
+            "2. Canvia'n el saldo escrivint un import nou, sense tocar «Guardar».",
+            "3. Surt amb el gest d'enrere: la fitxa baixa suau.",
+            "4. Torna a obrir el mateix compte: mostra el saldo que has escrit, no l'anterior."
+          ]
+        }
+      },
+      {
+        "id": "banco-pruebas-sin-aviso",
+        "t": {
+          "es": "Banco de pruebas: entrar y salir sin aviso falso",
+          "en": "Test bank: enter and leave without a false notice",
+          "ca": "Banc de proves: entrar i sortir sense avís fals"
+        },
+        "items": {
+          "es": [
+            "1. Abre Ajustes (en Inicio, desliza desde el borde de la pantalla) y toca «Banco de pruebas». Confirma «Entrar al banco de pruebas».",
+            "2. La app se recarga sola y arranca dentro del banco de pruebas, sin ningún aviso de cerrar y volver a abrir la app.",
+            "3. Abre Ajustes otra vez, toca «Banco de pruebas: DENTRO» y confirma «Salir a mi cartera real»: vuelves a tu cartera real, también sin aviso y con tus datos de siempre."
+          ],
+          "en": [
+            "1. Open Ajustes (on Home, swipe from the screen edge) and tap «Banco de pruebas». Confirm «Entrar al banco de pruebas».",
+            "2. The app reloads by itself and starts inside the test bank, with no notice asking you to close and reopen the app.",
+            "3. Open Ajustes again, tap «Banco de pruebas: DENTRO» and confirm «Salir a mi cartera real»: you are back in your real portfolio, also without a notice and with your usual data."
+          ],
+          "ca": [
+            "1. Obre Ajustes (a Inici, llisca des de la vora de la pantalla) i toca «Banco de pruebas». Confirma «Entrar al banco de pruebas».",
+            "2. L'app es recarrega sola i arrenca dins del banc de proves, sense cap avís de tancar i tornar a obrir l'app.",
+            "3. Obre Ajustes un altre cop, toca «Banco de pruebas: DENTRO» i confirma «Salir a mi cartera real»: tornes a la teva cartera real, també sense avís i amb les teves dades de sempre."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.141",
     "d": "2026-10-17",
     "t": {
@@ -30,62 +142,7 @@
         "Més protecció en connectar amb els bancs, sense canvis visibles."
       ]
     },
-    "tandas": [
-      {
-        "id": "fichas-cierre-suave-atras",
-        "t": {
-          "es": "Fichas: cierre suave también con atrás",
-          "en": "Sheets: smooth close with back too",
-          "ca": "Fitxes: tancament suau també amb enrere"
-        },
-        "items": {
-          "es": [
-            "1. Abre Plan, pestaña Deudas, toca una deuda y toca «Guardar cambios» sin cambiar nada: la ficha baja suave, sin rebote ni parpadeo.",
-            "2. Abre otra vez la deuda, toca el nombre para que salga el teclado y haz atrás: se esconde el teclado. Haz atrás otra vez: la ficha baja suave, igual que con la ✕.",
-            "3. Haz lo mismo con una meta, con Apuntar (el +) y con la ficha de un gasto en Gastos: todas bajan suave con el gesto de atrás."
-          ],
-          "en": [
-            "1. Open Plan, Debts tab, tap a debt and tap «Save changes» without changing anything: the sheet slides down smoothly, with no bounce or flicker.",
-            "2. Open the debt again, tap the name so the keyboard appears and go back: the keyboard hides. Go back again: the sheet slides down smoothly, just like with the ✕.",
-            "3. Do the same with a goal, with Add (the +) and with an expense sheet in Expenses: all of them slide down smoothly with the back gesture."
-          ],
-          "ca": [
-            "1. Obre Pla, pestanya Deutes, toca un deute i toca «Desa els canvis» sense canviar res: la fitxa baixa suau, sense rebot ni parpelleig.",
-            "2. Obre el deute un altre cop, toca el nom perquè surti el teclat i fes enrere: s'amaga el teclat. Fes enrere un altre cop: la fitxa baixa suau, igual que amb la ✕.",
-            "3. Fes el mateix amb una meta, amb Apuntar (el +) i amb la fitxa d'una despesa a Despeses: totes baixen suaus amb el gest d'enrere."
-          ]
-        }
-      },
-      {
-        "id": "vibracion-borde-y-mi-ciclo",
-        "t": {
-          "es": "Vibración al final de pantalla y en Mi ciclo",
-          "en": "Vibration at the end of a screen and in My cycle",
-          "ca": "Vibració al final de pantalla i a El meu cicle"
-        },
-        "items": {
-          "es": [
-            "0. Instala la app nueva de Aely que te llega (versión 4.26.141).",
-            "1. Abre Inicio: mientras se rellena el anillo de Mi ciclo notas una vibración suave que acompaña el relleno.",
-            "2. En Gastos, desliza hasta arriba del todo y sigue tirando: un toque corto, uno solo por gesto.",
-            "3. Si quitas la vibración táctil en los ajustes de Android, ya no vibra."
-          ],
-          "en": [
-            "0. Install the new Aely app that reaches you (version 4.26.141).",
-            "1. Open Home: while the My cycle ring fills you feel a gentle vibration that goes with the fill.",
-            "2. In Expenses, scroll all the way to the top and keep pulling: one short tap, only one per gesture.",
-            "3. If you turn off touch vibration in Android settings, it no longer vibrates."
-          ],
-          "ca": [
-            "0. Instal·la l'app nova d'Aely que et arriba (versió 4.26.141).",
-            "1. Obre Inici: mentre s'omple l'anell de El meu cicle notes una vibració suau que acompanya el farciment.",
-            "2. A Despeses, llisca fins dalt de tot i continua estirant: un toc curt, només un per gest.",
-            "3. Si treus la vibració tàctil als ajustos d'Android, ja no vibra."
-          ]
-        },
-        "apk": 56
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.140",

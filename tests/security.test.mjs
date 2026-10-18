@@ -104,7 +104,7 @@ console.log("security");
   const timers=new Map(),listeners=new Map(),uploads=[],durable=[],acks=[];let next=0,blocked=false;
   const state={budget:501.23,settings:{pending:'real-edit'},_savedAt:12345};
   const cloudUpdatedAtRef={current:'base-stamp'};
-  const ctx=vm.createContext({state,uid:'synthetic-user',cloudUpdatedAtRef,sessionRef:{current:{user:{id:'synthetic-user'}}},
+  const ctx=vm.createContext({state,uid:'synthetic-user',cloudUpdatedAtRef,sessionRef:{current:{user:{id:'synthetic-user'}}},obAbsorbedWriteBlocked:{current:false},
     useRef:value=>({current:value}),goalSyncMetadataOnly:()=>false,
     setStateRaw:fn=>fn(state),goalSyncAck:(prev,uid,sent,expected,updated)=>{acks.push({prev,uid,sent,expected,updated});return prev;},
     useEffect:fn=>fn(),setTimeout:fn=>{const id=++next;timers.set(id,fn);return id;},clearTimeout:id=>timers.delete(id),
