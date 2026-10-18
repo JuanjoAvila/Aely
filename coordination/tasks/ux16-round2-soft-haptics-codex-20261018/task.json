@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "id": "ux16-round2-soft-haptics-codex-20261018",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r67-675cb9d046e22371",
+  "createdAt": "2026-10-18T09:32:41.367Z",
+  "to": "codex",
+  "kind": "worker",
+  "baseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "previousTaskId": "ux16-edge-haptic-codex-20261017",
+  "previousResultSource": "8a34391adb65634c55ee8fd4535c5bd308b22da0",
+  "claudeGrant": "b0390ba0cad563401e1a8ac472262af6b1f39750",
+  "scopeGrant": "8515ba8daf48438d2d71afde9fbfd3e35df8e35c",
+  "priority": 1,
+  "objective": "UX16 round2: soften Mi ciclo haptics throughout actual fill and edge haptics including inertial arrival, preserving system tactile setting.",
+  "scope": [
+    "src/modules",
+    "src/shell.html",
+    "android/app/src/main/java/com/micartera/app/AelyHapticsPlugin.java",
+    "android/app/src/main/java/com/micartera/app/HapticPlan.java",
+    "android/app/src/test/java/com/micartera/app/HapticPlanTest.java",
+    "tests",
+    "e2e",
+    "docs/briefs"
+  ],
+  "requirements": [
+    "Diagnose selected native path on API36; amplitude-controlled low increasing waveform when available, otherwise supported LOW_TICK low scale and very soft fallback. Actual fill timing, no strong single pulse.",
+    "Edge softest applicable signal, one arrival at zero/max including inertia without finger; no repeat on same edge until separation. Respect USAGE_TOUCH and system tactile setting.",
+    "JVM path-choice tests and web inertial trigger tests; fresh causal RED, focused GREEN and meaningful mutants with actual EXIT evidence. No repetition of completed first-round tests as new evidence.",
+    "Same original UX16 holder only, own current identity/runtime/cwd/census, original helper/filter, new isolated branch and checkout from exact beta ff53b0e7. Fresh own claim canonical readback and ACK before product.",
+    "Preserve original task result, source, WIP and every closed ledger. Actual prior OWN10/10 and additional12/12 remain closed. General b0390ba0 allows next OWN20 after actual exhaustion with own normal notice/readback; count first/internal/readback,min30s. No ROOT/session/claim/lease inheritance.",
+    "No money/08-motor-bank history changes: H historical identity runs separately in its own checkout. No PR265-273 changes, Gradle/APK/fullsuite/CPU6/livebanks/SQL/Edge/deploy/main-beta push/merge, VERSION/catalogue/caps/oracle weakening.",
+    "Draft PR against beta and own immutable released result, exact SHA/commands/EXITs/manifest/limitations. Native motor/system acceptance, integration, served beta and mobile remain unverified."
+  ],
+  "deliverable": "Draft PR against beta and own result with focused JVM/web evidence, no Gradle."
+}
