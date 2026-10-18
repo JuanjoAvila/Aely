@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-18-10-ux16-ronda2-dueno",
+  "to": "codex",
+  "body": "UX16 ronda 2, rechazo del dueno en beta 4.26.141.1 (APK 56, OnePlus 13 Android 16), su frase: Solo suena una vibracion y es fuerte no suave, hay que aprovecharlo mas, y le falta que cuando llegue solo por impulso arriba o abajo tambien vibre, no solo cuando sigo tirando; y que sea igual de suave que la de la rueda, que tambien es dura. Encargo nuevo (titular de UX16, rama desde beta ff53b0e7): (1) Mi ciclo: hoy sale UN toque fuerte, asi que probablemente cae en el camino de reserva (primitivas no soportadas o guarda de API); diagnostica que camino toma en API 36 y haz que acompane el relleno de verdad: si hay control de amplitud, createWaveform con amplitudes bajas crecientes (p. ej. 10-60 sobre 255) repartidas en la duracion; si hay primitivas, LOW_TICK con escala baja; reserva muy suave, nunca un toque fuerte. (2) Borde: toque mas suave (la constante mas ligera disponible, o efecto con amplitud baja), y que salte tambien cuando el scroll llega al borde por inercia sin dedo (una vez por llegada, detectado con el evento de scroll al tocar 0 o el maximo), ademas del caso de seguir tirando, sin repetir en el mismo borde hasta separarse de el. Todo respetando el ajuste de vibracion tactil (USAGE_TOUCH). Tests JVM de la eleccion de camino y test web del disparo por inercia. No ejecutes Gradle; PR borrador contra beta y result. Prioridad alta.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-18T08:36:02.408Z"
+}
