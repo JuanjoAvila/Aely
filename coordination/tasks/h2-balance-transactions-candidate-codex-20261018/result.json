@@ -1,0 +1,88 @@
+{
+  "status": "blocked",
+  "released": true,
+  "productSHA": "099e36de8d8186d679f27e52c9fb00b469622215",
+  "implementationSHA": "1cb4fc910b62ee91a59569ccc685466c9d605490",
+  "baseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "PR": 279,
+  "draft": true,
+  "productReady": false,
+  "realIncidentClosed": false,
+  "manifestSHA256": "bf96d7c2ae1cf51e4321e7a94fa35cac17a5bdb51f10619c656acccc091cf778",
+  "checkpointSHA256": "535930a5477a79c7d85128158260f0a564b58da0372cd44b19b61c5d821addfe",
+  "tests": [
+    {
+      "name": "H2 new focused",
+      "exitCode": 0,
+      "passed": 27
+    },
+    {
+      "name": "H2 semantic mutants",
+      "exitCodes": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "Directed DOM 3 languages + UID account sheet",
+      "exitCodes": [
+        0,
+        0
+      ],
+      "passed": 4,
+      "workers": 1,
+      "retries": 0
+    },
+    {
+      "name": "Receipt financial regression",
+      "exitCode": 0,
+      "extracts": 775,
+      "cases": 60
+    },
+    {
+      "name": "syntax privacy languages registration diff",
+      "exitCode": 0
+    },
+    {
+      "name": "size",
+      "exitCode": 1
+    },
+    {
+      "name": "docs-frescura product commit",
+      "exitCode": 1
+    },
+    {
+      "name": "frozen catalogue",
+      "exitCode": 1,
+      "mismatches": 10
+    },
+    {
+      "name": "full beta-sources",
+      "exitCode": 4294967295,
+      "completed": false,
+      "qualifiesFinalSHA": false
+    }
+  ],
+  "summary": "H2 candidata conjunta entregada en draft PR279, HEAD099e36de8 y producto1cb4fc910 desdeff53b0e7. Conserva22500c y fecha anterior por UID/IBAN; saldo10000c se aplica aunque falle extracto. Capacidad explicita accountPhases1, pruebas reales cliente nuevo/servidor base y cliente legacy/servidor nuevo; legado retiene banco entero si falta saldo. ACK por movimientos y persistencia local, fila afectada y version de autorizacion; diagnostico401 conservado. Reserva saldo5s/resto15 dentro60s, serialidad y caps12/2000 intactos; overflow y90dias explicitos. GREEN27 EXIT0, diezmutantes EXIT1, DOM3+1 EXIT0 con1worker0retry; regresiones financieras775extractos/60casos y oraculos monetarios intactos. Fixtures con identidad explicita. Gates reales: tamaño1330/1328 EXIT1, docs-frescura productoEXIT1 y catalogo congelado10huellas EXIT1. Beta-sources extenso interrumpido OWN EXIT4294967295 sin calificarSHA porque hubo cambiosduranteejecucion; suite general/CI/revision/integracion/servido/movil pendientes. Sin VERSION/catalogo/caps/deploy/SQLreal/auth/CLOUD_WRITES/merge/fullsuiteCPU6GradleAPK. Push0, PR draftbaseheadbody y remoto exactos. PR275/278 intactos. Informe/manifiesto/checkpoint sellados, releasedblocked ySTOP. Edge solo OKdueno trasbeta; splash no asumido.",
+  "budgetBeforeResult": {
+    "frozen": 22,
+    "own20Used": 16,
+    "total": 38,
+    "expectedAfterReadback": 17,
+    "minSeconds": 30
+  },
+  "nextAction": "STOP after exact canonical readback; no next task assumed",
+  "schema": 1,
+  "taskId": "h2-balance-transactions-candidate-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-5fc9afdec60f82b1",
+  "createdAt": "2026-10-18T12:35:28.995Z"
+}
