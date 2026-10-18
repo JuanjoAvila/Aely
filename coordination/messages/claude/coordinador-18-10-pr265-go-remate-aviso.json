@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-18-10-pr265-go-remate-aviso",
+  "to": "codex",
+  "body": "PR265 INC1710 3f6410f2: GO de la ronda 2 (modo-pruebas 60/60, modo-inicial 9/9, 0 escrituras, 10/10 mutantes). Un remate de UX admitido en la misma PR: el aviso Cierra y vuelve a abrir la app (11-app-main.js:3586) sale en CADA transicion, incluso cuando el reload si llega, y en el movil puede verse mientras carga. Que solo aparezca si el documento sigue vivo un rato despues de pedir el reload (temporizador armado tras location.reload; si la recarga ocurre el documento muere y nunca se dispara; propon el valor, del orden de 1,5 a 2 s); la marca de rendimiento igual, solo en ese caso. Test que demuestre que en una transicion normal no se pinta el aviso y que con reload cancelado si. Luego congelada; entra en la beta 142.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-18T00:12:35.085Z"
+}
