@@ -2955,10 +2955,10 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
                 row("sbx", sandbox?"🧪":"🏦", sandbox?"Banco de pruebas: DENTRO":"Banco de pruebas", null, function(){
                   if(sandbox){
                     askConfirm({ title:"¿Salir del banco de pruebas?", sub:"Vuelves a tu cartera real. La de pruebas se queda guardada por si quieres seguir otro día.", ok:"Salir a mi cartera real", terminal:true })
-                      .then(function(yes){ if(!yes) return; mcExitSandbox(); location.reload(); });
+                      .then(function(yes){ if(!yes) return; mcExitSandbox(); mcSandboxReload(); });
                   }else{
                     askConfirm({ title:"¿Entrar al banco de pruebas?", sub:"Se copia tu cartera actual a un espacio aparte. Dentro NO se escribe nada en la nube: puedes trastear a gusto y tu cartera real (y la de tu padre y tu pareja) no se entera.", ok:"Entrar a probar", terminal:true })
-                      .then(function(yes){ if(!yes) return; mcEnterSandbox(state); location.reload(); });
+                      .then(function(yes){ if(!yes) return; mcEnterSandbox(state); mcSandboxReload(); });
                   }
                 }, sw(sandbox)),
                 // MODO INICIAL: la app como recien instalada, dentro del banco de pruebas. Sin esto

@@ -2,17 +2,27 @@
 const SYNC_SIN_NUBE={motivo:"sync-sin-nube"};
 function App(){
   const [state,setStateRaw]=useState(loadState);
-  const [modeChangePending,setModeChangePending]=useState(mcSandboxTransition);
+  const [modeChangePending,setModeChangePending]=useState(false);
   useEffect(function(){
+    let timer=null;
+    const clear=function(){ if(timer!==null){ clearTimeout(timer); timer=null; } };
     const changed=function(){
-      const pending=mcSandboxTransition();
-      setModeChangePending(pending);
-      // Diagnóstico local de vocabulario cerrado; tampoco la telemetría puede saltarse
-      // CLOUD_WRITES durante la transición. El documento siguiente empieza sin esta marca.
-      if(pending) performance.mark("mc_mode_change_reopen_required");
+      if(!mcSandboxTransition()){ clear(); setModeChangePending(false); }
+    };
+    const requested=function(){
+      if(!mcSandboxTransition()||timer!==null) return;
+      timer=setTimeout(function(){
+        timer=null;
+        if(!mcSandboxTransition()) return;
+        setModeChangePending(true);
+        // Diagnóstico local cerrado: solo si sigue vivo este documento después del reload.
+        performance.mark("mc_mode_change_reopen_required");
+      },1800);
     };
     window.addEventListener("mc-sandbox-transition",changed);
-    return function(){ window.removeEventListener("mc-sandbox-transition",changed); };
+    window.addEventListener("mc-sandbox-reload-requested",requested);
+    window.addEventListener("pagehide",clear);
+    return function(){ clear(); window.removeEventListener("mc-sandbox-transition",changed); window.removeEventListener("mc-sandbox-reload-requested",requested); window.removeEventListener("pagehide",clear); };
   },[]);
   const [tab,setTab]=useState(0);
   // Lazy mount: solo monta pestañas visitadas + vecinas (swipe) → menos trabajo en arranque.
@@ -3600,7 +3610,7 @@ function App(){
     // Banda de MODO PRUEBAS, siempre visible (2026-07-24). Sin ella es cuestión de tiempo apuntar
     // un gasto de verdad en la cartera de mentira y volverse loco buscándolo. Tocarla te saca.
     mcSandbox() && React.createElement("button",{type:"button",className:"sandbox-bar",
-      onClick:function(){ mcExitSandbox(); location.reload(); }},
+      onClick:function(){ mcExitSandbox(); mcSandboxReload(); }},
       "🧪 MODO PRUEBAS · los datos no son reales · toca para salir"),
     React.createElement("div",{className:"app-shell"+(hostTab>=0?" scroll-host-on":"")+(navBlurOff.current?" nav-sin-blur":""),ref:appShellRef},
       React.createElement("div",{className:"viewport"+(hostTab>=0?" scroll-host-open":""),ref:viewportRef},

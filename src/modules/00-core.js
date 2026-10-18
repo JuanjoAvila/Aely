@@ -860,6 +860,12 @@ function mcSandboxTransition(on){
   }
   return _mcSandboxTransition;
 }
+// El aviso de recuperación se arma DESPUÉS de pedir la recarga. Si el documento
+// se descarga normalmente, nunca llega al plazo del fallback de App.
+function mcSandboxReload(){
+  location.reload();
+  window.dispatchEvent(new CustomEvent("mc-sandbox-reload-requested"));
+}
 function mcSandbox(){
   if(_mcSandboxPinned===null) _mcSandboxPinned=mcSandboxFlag();
   return _mcSandboxPinned;
@@ -954,7 +960,7 @@ function mcRecargarSinVolcar(){
   // Solo el estado de PRUEBAS viejo puede pisar su semilla. Si salimos de REAL,
   // pagehide debe conservar las ediciones reales pendientes en su clave fijada.
   if(mcSandbox()) mcMarcarNoVolcar();
-  location.reload();
+  mcSandboxReload();
 }
 /* Tira la cartera de pruebas y empieza otra desde cero copiando la real otra vez.
    Las DOS mitades: borrar solo la ligera dejaba `micartera_sandbox_exp` huérfana, y la siguiente

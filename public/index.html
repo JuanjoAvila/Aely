@@ -3199,6 +3199,12 @@ function mcSandboxTransition(on){
   }
   return _mcSandboxTransition;
 }
+// El aviso de recuperación se arma DESPUÉS de pedir la recarga. Si el documento
+// se descarga normalmente, nunca llega al plazo del fallback de App.
+function mcSandboxReload(){
+  location.reload();
+  window.dispatchEvent(new CustomEvent("mc-sandbox-reload-requested"));
+}
 function mcSandbox(){
   if(_mcSandboxPinned===null) _mcSandboxPinned=mcSandboxFlag();
   return _mcSandboxPinned;
@@ -3293,7 +3299,7 @@ function mcRecargarSinVolcar(){
   // Solo el estado de PRUEBAS viejo puede pisar su semilla. Si salimos de REAL,
   // pagehide debe conservar las ediciones reales pendientes en su clave fijada.
   if(mcSandbox()) mcMarcarNoVolcar();
-  location.reload();
+  mcSandboxReload();
 }
 /* Tira la cartera de pruebas y empieza otra desde cero copiando la real otra vez.
    Las DOS mitades: borrar solo la ligera dejaba `micartera_sandbox_exp` huérfana, y la siguiente
@@ -22975,10 +22981,10 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
                 row("sbx", sandbox?"🧪":"🏦", sandbox?"Banco de pruebas: DENTRO":"Banco de pruebas", null, function(){
                   if(sandbox){
                     askConfirm({ title:"¿Salir del banco de pruebas?", sub:"Vuelves a tu cartera real. La de pruebas se queda guardada por si quieres seguir otro día.", ok:"Salir a mi cartera real", terminal:true })
-                      .then(function(yes){ if(!yes) return; mcExitSandbox(); location.reload(); });
+                      .then(function(yes){ if(!yes) return; mcExitSandbox(); mcSandboxReload(); });
                   }else{
                     askConfirm({ title:"¿Entrar al banco de pruebas?", sub:"Se copia tu cartera actual a un espacio aparte. Dentro NO se escribe nada en la nube: puedes trastear a gusto y tu cartera real (y la de tu padre y tu pareja) no se entera.", ok:"Entrar a probar", terminal:true })
-                      .then(function(yes){ if(!yes) return; mcEnterSandbox(state); location.reload(); });
+                      .then(function(yes){ if(!yes) return; mcEnterSandbox(state); mcSandboxReload(); });
                   }
                 }, sw(sandbox)),
                 // MODO INICIAL: la app como recien instalada, dentro del banco de pruebas. Sin esto
@@ -25722,17 +25728,27 @@ function HelpHost(){
 const SYNC_SIN_NUBE={motivo:"sync-sin-nube"};
 function App(){
   const [state,setStateRaw]=useState(loadState);
-  const [modeChangePending,setModeChangePending]=useState(mcSandboxTransition);
+  const [modeChangePending,setModeChangePending]=useState(false);
   useEffect(function(){
+    let timer=null;
+    const clear=function(){ if(timer!==null){ clearTimeout(timer); timer=null; } };
     const changed=function(){
-      const pending=mcSandboxTransition();
-      setModeChangePending(pending);
-      // Diagnóstico local de vocabulario cerrado; tampoco la telemetría puede saltarse
-      // CLOUD_WRITES durante la transición. El documento siguiente empieza sin esta marca.
-      if(pending) performance.mark("mc_mode_change_reopen_required");
+      if(!mcSandboxTransition()){ clear(); setModeChangePending(false); }
+    };
+    const requested=function(){
+      if(!mcSandboxTransition()||timer!==null) return;
+      timer=setTimeout(function(){
+        timer=null;
+        if(!mcSandboxTransition()) return;
+        setModeChangePending(true);
+        // Diagnóstico local cerrado: solo si sigue vivo este documento después del reload.
+        performance.mark("mc_mode_change_reopen_required");
+      },1800);
     };
     window.addEventListener("mc-sandbox-transition",changed);
-    return function(){ window.removeEventListener("mc-sandbox-transition",changed); };
+    window.addEventListener("mc-sandbox-reload-requested",requested);
+    window.addEventListener("pagehide",clear);
+    return function(){ clear(); window.removeEventListener("mc-sandbox-transition",changed); window.removeEventListener("mc-sandbox-reload-requested",requested); window.removeEventListener("pagehide",clear); };
   },[]);
   const [tab,setTab]=useState(0);
   // Lazy mount: solo monta pestañas visitadas + vecinas (swipe) → menos trabajo en arranque.
@@ -29320,7 +29336,7 @@ function App(){
     // Banda de MODO PRUEBAS, siempre visible (2026-07-24). Sin ella es cuestión de tiempo apuntar
     // un gasto de verdad en la cartera de mentira y volverse loco buscándolo. Tocarla te saca.
     mcSandbox() && React.createElement("button",{type:"button",className:"sandbox-bar",
-      onClick:function(){ mcExitSandbox(); location.reload(); }},
+      onClick:function(){ mcExitSandbox(); mcSandboxReload(); }},
       "🧪 MODO PRUEBAS · los datos no son reales · toca para salir"),
     React.createElement("div",{className:"app-shell"+(hostTab>=0?" scroll-host-on":"")+(navBlurOff.current?" nav-sin-blur":""),ref:appShellRef},
       React.createElement("div",{className:"viewport"+(hostTab>=0?" scroll-host-open":""),ref:viewportRef},
