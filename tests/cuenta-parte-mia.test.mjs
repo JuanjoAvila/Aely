@@ -23,8 +23,8 @@ function base(extra = {}) {
     accounts: [{ id: "sab", ent: "sabadell", name: "Nómina", value: 2000, role: "fijos" }],
     obAccounts: [], investments: [], assets: [], debts: [], fixed: [], flows: [], oneoffs: [], aportaciones: [],
     settings: {}, accountBalanceHistory: {}, ...extra,
-    // Un apunte a cero el 1/10 abre la serie antes de los movimientos que se comprueban.
-    expenses: [{ id: "alta", date: "2026-10-01T10:00:00.000Z", amount: 0, merchant: "Alta", category: "otros", source: "ob", ent: "revolut" }].concat(extra.expenses || []),
+    // Un apunte a cero el 1/10 abre la serie antes de los movimientos que se comprueban. Es de «wallet», no de banco: desde la 143 una preautorización de banco sin importe no es un movimiento y no abriría nada.
+    expenses: [{ id: "alta", date: "2026-10-01T10:00:00.000Z", amount: 0, merchant: "Alta", category: "otros", source: "wallet", ent: "revolut" }].concat(extra.expenses || []),
   };
 }
 const ob = (key, iban, value, name = "Titular Sintético") => ({ key, ent: "revolut", iban, name, value, cur: "EUR", aspsp: "Revolut" });
@@ -70,7 +70,7 @@ function comprobar(m) {
 
   // Cuenta manual (sin banco) con cierres guardados: hoy 800 €, el 1/10 tenía 600 €.
   const hucha = { id: "h", ent: "efectivo", name: "Hucha compartida", value: 800, role: "fijos" };
-  const manual = base({ accounts: [base().accounts[0], hucha], accountBalanceHistory: { "acc:h": [{ day: "2026-10-01", value: 600 }, { day: "2026-10-05", value: 800 }] }, expenses: [mov("x", "2026-09-20", 0, { ent: "sabadell" })] });
+  const manual = base({ accounts: [base().accounts[0], hucha], accountBalanceHistory: { "acc:h": [{ day: "2026-10-01", value: 600 }, { day: "2026-10-05", value: 800 }] }, expenses: [mov("x", "2026-09-20", 0, { ent: "sabadell", source: "wallet" })] });
   const m0 = S(manual), m50 = S(share(manual, hucha, "account", 50));
   assert.deepEqual([at(m0, "2026-10-02"), at(m0, today)], [2600, 2800]);
   assert.deepEqual([at(m50, "2026-09-25"), at(m50, "2026-10-02"), at(m50, today)], [2300, 2300, 2400], "manual al 50 %: su cierre de entonces y el de hoy, a la mitad");
@@ -127,7 +127,7 @@ function comprobar(m) {
   // Patas en días distintos (sale el 13/9 de la personal, llega el 15/9 a la conjunta): sin bache
   // de −1.000 mientras viaja; solo los −500 el día de la salida. El 14/9 es justo el «mismo día del
   // mes pasado» de la comparación de 1M, y cae en el hueco.
-  const viaje = S(dos([mov("abre", "2026-08-20", 0, { obAcc: MINE }), mov("s1", "2026-09-13", 1000, { obAcc: MINE, category: "traspaso" }), mov("s2", "2026-09-15", -1000, { obAcc: JOINT, category: "traspaso" })]));
+  const viaje = S(dos([mov("abre", "2026-08-20", 0, { obAcc: MINE, source: "wallet" }), mov("s1", "2026-09-13", 1000, { obAcc: MINE, category: "traspaso" }), mov("s2", "2026-09-15", -1000, { obAcc: JOINT, category: "traspaso" })]));
   assert.deepEqual(["2026-09-12", "2026-09-13", "2026-09-14", "2026-09-15", "2026-09-16"].map(d => at(viaje, d)), [4000, 3500, 3500, 3500, 3500], "solo la diferencia, el día de la salida");
   assert.equal(m.netWorthCompare(viaje, "1m", today, 0).delta, 0, "1M compara con el 14/9, en el hueco: sin la caída inventada");
   // Entre dos bancos al 100 % el traspaso sigue neutro, como siempre.

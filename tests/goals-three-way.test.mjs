@@ -25,6 +25,8 @@ function logic(){
  const c=loadPureLogicFromFile(),storage=new Map();vm.createContext(c);
  c.localStorage={getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,String(v)),removeItem:k=>storage.delete(k)};c.window.localStorage=c.localStorage;
  for(const name of [...core.matchAll(/^function (goalSync\w+|mergeGoalsThreeWay)\(/gm)].map(m=>m[1]).concat(["slimForCloud","mcLogEvent"])){vm.runInContext(block(core,"function "+name+"("),c);}
+ // El efecto de subida escucha la transición del banco de pruebas (PR 265): sin transición abierta, no hay nada que cancelar.
+ c.window.addEventListener=()=>{};c.window.removeEventListener=()=>{};c.mcSandboxTransition=()=>false;
  return c;
 }
 const clone=x=>JSON.parse(JSON.stringify(x)),owner="synthetic-owner";
@@ -80,7 +82,7 @@ function transport(){
    reconcileGemelosAutomaticos:x=>x,syncCloudExpenses:()=>Promise.resolve(),showToast:()=>{},mcBootReady:()=>{},t:x=>x,navigator:{onLine:true},
    seedFlows:x=>x,fixMovInvasion:x=>x,fixRevoDupes:x=>x,fixInvAuto:x=>x,fixInvSold:x=>x,reconcileTR:x=>x,reconcileEarlyIncomeAnchors:x=>x,reservaMensualAlDia:()=>Promise.resolve()};
   const start=app.indexOf("const set=useCallback((updater)=>"),end=app.indexOf("},[]);",start)+"},[]);".length;
-  const ef=app.indexOf("// Empuja el estado a la nube (debounced)"),a=app.indexOf("const tmr=setTimeout(function(){",ef)+"const tmr=setTimeout(function(){".length,b=app.indexOf("}, 1200);",a);
+  const ef=app.indexOf("// Empuja el estado a la nube (debounced)"),a=app.indexOf("tmr=setTimeout(function(){",ef)+"tmr=setTimeout(function(){".length,b=app.indexOf("}, 1200);",a);
   const send=app.slice(a,b).replace("pushAppState(uid,","return pushAppState(uid,");
   const names=Object.keys(deps),factory=vm.runInContext("(function("+names.join(",")+"){"+app.slice(start,end)+block(app,"const pushAppState=function(")+";"+block(app,"const syncFromCloud=function(")+";return {set,send:function(state){const uploadState=state;"+send+"}};})",c);
   const api=factory(...names.map(k=>deps[k]));
