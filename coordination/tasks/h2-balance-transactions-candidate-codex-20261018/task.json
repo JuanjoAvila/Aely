@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "id": "h2-balance-transactions-candidate-codex-20261018",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r68-1141875c91e6e665",
+  "createdAt": "2026-10-18T11:58:08.559Z",
+  "to": "codex",
+  "kind": "worker",
+  "model": "gpt-6-astra",
+  "priority": 1,
+  "baseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "claudeGrant": "e3a0078bbb9a3ce23efcc74afa7ec8e990c0329d",
+  "previousTaskId": "h2-balance-transactions-investigation-codex-20261018",
+  "dependencies": [
+    {
+      "taskId": "h2-balance-transactions-investigation-codex-20261018",
+      "result": "947df6600247aeebfe8892d4f5ef7889e5136375",
+      "status": "blocked",
+      "released": true
+    },
+    {
+      "taskId": "inc181002-pr278-round2-book-ambiguity-codex-20261018",
+      "result": "f1a6e6ede5b27d61fbd689413e2421fd415ccd01",
+      "sourceSHA": "b9bc6f871b5c6d43be58352dffd91ae06bcfb1a5",
+      "status": "blocked",
+      "released": true
+    }
+  ],
+  "objective": "Implement the H2 candidate authorized by Claude after delivered PR278 remate: independent balance and transaction outcomes per account, previous failed-account balance and timestamp retained, valid balance applied even when transactions fail, cursor and ACK based solely on complete transactions, backward-compatible server-client contract without money loss or duplicate ingestion.",
+  "scope": [
+    "supabase/functions/bank-sync/index.ts and bank-sync demand-window helpers strictly necessary for independent per-account phase outcomes and transaction-only cursor/ACK contract",
+    "src/modules/08-motor-bank.js balance/transaction consumer and strictly necessary app integration for per-account freshness and partial-state feedback",
+    "focused synthetic tests, necessary directed DOM, test registration and architecture/backend brief documentation"
+  ],
+  "requirements": [
+    "Same original H holder Astra, public session/helper/filter and own runtime/cwd/census. Fresh task OWN claim/readback/ACK before product, separate isolated checkout/branch from exact beta ff53b0e7. Frozen PR275 source2b5e14a1 and earlier WIP/results/claims/returns untouched. No ROOT/Recibos budget or lease inheritance.",
+    "Previous investigation result947df660 and consultation673e177d are complete. Verify and reuse reportc728e8ba, manifest4c89ff27, original9 controls+3RED and2 newRED; do not rerun completed RED as fresh evidence. New change validation must run on the new source with actual-code synthetic controls, no invented execution. Root integrity review has verified immutable final references and Git-equivalent sources; historical mutable work descriptors are explicitly separated.",
+    "Preserve each account balance value and original freshness date if its balance phase fails. A healthy sister must never remove its prior12500c: exact22500c control. Valid10000c balance must apply even when its first transactions page fails. Valid zero differs from absent/error. Match actual account UID/IBAN and promotion identity; never bank name or array position. No false fresh timestamps.",
+    "Allow transactions despite a transient balance failure; independent per-account errors/phase completeness and visible stale/partial status. Cursor/day seal and ACK may advance only when transactions complete across all required accounts and local persistence succeeds; balance failure alone does not block complete transactions. Preserve response-loss replay, dedup/ref/account/PDNG/BOOK/tombstones/cents, authorization-version predicates, nonzero affected-row verification, durable cursor and guarded ACK semantics.",
+    "Prove compatibility both ways: new client with old server and old client with new server. No lost balances or duplicated movements from phase changes; use a capability-compatible response strategy and conservative fallback. Include multi-account, failure-by-phase, stale timestamps, validzero, missingprior, pagination/partial/timeout, lostresponse/replay/localpersistencefailure and rejected or stale ACK controls where relevant. Existing overflow exception and90day limit remain explicit; no universal no-loss claim.",
+    "No higher caps or extra PSD2 concurrency. Preserve60s global/15s account/12calls/2000rows and queued access. Choose and document the least-risk time allocation within existing budgets, using controlled-clock evidence;5s balance/rest is a proposal rather than a measured optimum. If a further decision would change financial/auth contract beyond GO, consult Claude before that portion.",
+    "Supabase skill and current official changelog/docs before implementation. No dependency additions. Own directed1worker0retry and own port/census, necessary focal GREEN/meaningful mutants and relevant DOM for rendered partial/freshness feedback. Tests registered. No completed tests repeated as new phase evidence; no fullsuite/CPU6/Gradle/APK. Do not relax size/docs/beta-source/catalogue/oracle gates or bump VERSION.",
+    "Continue actual SAME holder OWN20: prior investigation stopped after expected12/20,total34 from closed10+12; verify actual ledger and remaining before reads. All first/internal/readbacks count,min30s, no reset. Next20 under b0390 only after actual exhaustion plus own notice/exactreadback.",
+    "Deliver new draft PR against exact beta source, candidate code and immutable manifest/checkpoint with real commands/EXITs/newSHA/limitations; OWN released blocked while independent review/integration pending. No changes to PR275/278 or other frozen PRs. STOP after delivery; splash inventory/plan remains queued, do not assume.",
+    "NO deployment. Edge deployment ONLY with owner OK after its beta. No livebanks/Supabase SQL/migration/schema/token/auth/CLOUD_WRITES changes, no main-beta push/merge/releasemetadata/VERSION/catalogue/caps, no foreign process/lock/lease cleanup. Claude integrates; browser/CI alone is not serving or physical mobile acceptance. No other-chat messages."
+  ],
+  "deliverable": "Joint server-client H2 candidate and bidirectional compatibility proof, new draft beta PR, exact evidence and own immutable released result for Claude review; no deployment."
+}
