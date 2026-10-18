@@ -332,6 +332,8 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
   // que Gastos (visto por el dueño en la beta 4.26.131, 14/10/2026).
   const recent=useMemo((s=state)=>(s.expenses||[]).filter(e=>!e.autoGemelo&&!expenseIsTombstoned(e,expenseDeletedSet(s))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted]);
   const ringPct=budAmt>0?Math.max(0,Math.min(1,rem/budAmt)):0;
+  // Un céntimo disponible no debe confundirse con un presupuesto agotado por el redondeo visual.
+  const ringLabel=Math.round(rem*100)>0&&Math.round(ringPct*100)===0?t("v42_cycle_under_one"):Math.round(ringPct*100)+"%";
   /* P6 — el anillo usa una animación de montaje, con estado final directo si se reduce
      el movimiento. Pausarla hasta que salga el splash evita gastarla detrás de la cortina. */
   const monthName=monthLong(new Date().getMonth());
@@ -416,7 +418,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
             React.createElement("circle",{className:"v42-cycle-draw",cx:38,cy:38,r:32,fill:"none",stroke:"currentColor",strokeWidth:6,
               strokeLinecap:"round",pathLength:100,strokeDasharray:(ringPct*100)+" 100",transform:"rotate(-90 38 38)",
               style:{"--cycle-pct":ringPct*100}})),
-          React.createElement("div",{className:"v42-cycle-percent num"},Math.round(ringPct*100),React.createElement("span",null,"%"))),
+          React.createElement("div",{className:"v42-cycle-percent num"},ringLabel.slice(0,-1),React.createElement("span",null,"%"))),
         React.createElement("div",{className:"v4-budget-txt"},
           React.createElement("div",{className:"ph v42-cycle-amount"},
             React.createElement("span",{className:"serif num",style:{color:paceState.id==="over"?"var(--coral)":"var(--text)"}},cycleMoney(rem)),

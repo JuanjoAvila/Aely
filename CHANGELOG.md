@@ -1,3 +1,7 @@
+## Pendiente de integración · INC-290902 · 2026-10-18
+
+- El redondeo entero del anillo podía mostrar 0% con un céntimo disponible. La etiqueta muestra ahora `<1 %` (es/ca) o `<1%` (en) si el resto redondeado a céntimos es positivo y el porcentaje entero da cero. Conserva 0% para agotado/exceso; no cambia importes, fórmula, arco ni servidor. Diez e2e dirigidos y límites en `docs/briefs/night-g-cycle-percent-20261018.md`. Candidata sobre beta 141, sin publicación ni aceptación móvil.
+
 ## [4.26.141] — 2026-10-17 · Candidata de beta: fichas que cierran suave con atrás, vibración (APK 56), Metas sin pérdidas entre móviles, FIN-10 y SEC-03
 
 - **Qué lleva.** La beta 4.26.140 (`503d2326`) más cinco integraciones con merge normal y en este orden: `claude/hoja-141` (`9e30757b`), PR 264 FIN-10 port (`af387031`), PR 263 INC-0410 port (`600d5021`), PR 261 SEC-03 (`fc2a7bf3`, sobre la PR 249 ya integrada) y PR 260 UX-16 (`8a34391a`, con Java/Kotlin en `android/`). Único conflicto real: texto de `docs/TESTING.md` en dos merges (PR 261 y PR 260), conservando los dos lados; `public/index.html` conflictó en los merges de PR 264 y 263 y se regeneró con `npm run build` (nunca a mano). Sin SQL.

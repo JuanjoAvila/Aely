@@ -1,3 +1,7 @@
+## INC-290902 · porcentaje positivo inferior al redondeo
+
+`e2e/inicio-ciclo-porcentaje.spec.mjs` cubre el cambio Mi ciclo → Mes, importes de 1/49/50/51 céntimos, agotado y exceso, navegación, recarga y cierre civil de mes en Madrid. El margen positivo pequeño muestra `<1 %` en es/ca y `<1%` en en; las cifras mantienen los céntimos. Diez casos dirigidos con estado sintético, un worker y cero reintentos. El spec está registrado para Inicio en `relevant-tests`. [Contrato y límites](briefs/night-g-cycle-percent-20261018.md).
+
 ## INC-0410 · verificación del port a beta 141
 
 Los cuatro tests goals-three-way, goals-review-remates, goals-review2-remates y goals-review3-reserve-conflict están registrados en run-tests y se ejecutan sobre el HTML/fuentes de este checkout, junto a metas-pull-transport y reserva-dinero. Cubren tres vías, partición privada, ACK/M9/M12, reservas unilaterales/iguales y replay mensual17000c con un asiento; la subida inversa requiere replay manual20. E2E dirigidos de Metas y persistencia con datos sintéticos, puerto propio, un worker y cero reintentos; sin suite general ni CPU6. Resultados reales y gates pendientes en el [brief](briefs/inc-0410-lww-rechazo-20261017.md). Las evidencias de la fuente original permanecen separadas.
