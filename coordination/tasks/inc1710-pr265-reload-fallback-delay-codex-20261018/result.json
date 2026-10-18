@@ -1,0 +1,95 @@
+{
+  "status": "blocked",
+  "summary": "PR265 actualizada normalnoforce a d7212fd5 sobre141 ff53, conserva3f y ff53 ancestros. Aviso y marca local solo1800ms despues del reload si documento sobrevive. Ida/vuelta normal PASS sinaviso/marca;entrada/salida canceladas PASS con1799sin y1800con ambos y31escritores bloqueados cadauna,reapertura correcta. pushAppState y uploadState141 exactos,dependencias141 y guardatransicion conservadas;PlanEditSheet modulo141 exacto. Solo candidata bloqueada por revisionindependiente e integracionCIgeneralservidomovil pendientes,nofallo focal. Claim propio released,checkpoint durable ySTOP;no ProductREADY.",
+  "productSHA": "d7212fd5b42c9f1c3d5753f5f19f081dce4b807a",
+  "baseSHA": "3f6410f29a9c617443c9c3b1d8751a4afa5ebad1",
+  "alignedBaseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "PR": 265,
+  "productReady": false,
+  "tests": [
+    {
+      "label": "causal RED unchanged3f normal reload",
+      "exitCode": 1,
+      "expected": true
+    },
+    {
+      "label": "pre141 build",
+      "exitCode": 0
+    },
+    {
+      "label": "pre141 normal PASS and canceled harness viewport failure",
+      "exitCode": 1,
+      "normalPassed": 1,
+      "canceledDeadlineNotReached": true
+    },
+    {
+      "label": "aligned141 build",
+      "exitCode": 0
+    },
+    {
+      "label": "aligned141 normal roundtrip PASS and canceled Performance stub failure",
+      "exitCode": 1,
+      "normalPassed": 1,
+      "noProductFailureClaim": true
+    },
+    {
+      "label": "aligned141 canceled entry and exit native Performance",
+      "exitCode": 0,
+      "passed": 2,
+      "workers": 1,
+      "retries": 0,
+      "deadlineMs": 1800,
+      "earlyMs": 1799,
+      "writersBlockedEach": 31
+    },
+    {
+      "label": "merged actual scheduler and uploader focal",
+      "exitCode": 0,
+      "checks": 3
+    },
+    {
+      "label": "bundle syntax",
+      "exitCode": 0
+    },
+    {
+      "label": "test registry",
+      "exitCode": 0
+    },
+    {
+      "label": "normal push and exact PR head base body remote readbacks",
+      "exitCode": 0
+    }
+  ],
+  "evidence": {
+    "manifestSHA256": "6567d47abbaecac880cc9f5cabb05682b519889188ebf2f900878a264295f24f",
+    "deliverySHA256": "b3d8e8cfe8c03281f0329e1baf856355aea3ce33d1a410411a0ebc8c4ded2734",
+    "localHTMLSHA256": "4c425c5abf0ca2abe4b7464198b148fbb0030ed79b92d62a94e971f8f024ffd2",
+    "runtimeStable": true,
+    "serversStopped": true,
+    "oldEvidencePreserved": true,
+    "priorPRFrozenSeparate": true
+  },
+  "limits": [
+    "Tests synthetic Chromium with external network blocked;no physical Android,liveSQL,banks,Edge or deployment.",
+    "Old60/60,9/9,mutants and24 stability not repeated;historical evidence never attributed to141.",
+    "Normal141 completed once;only canceled directions rerun after private clock repair.",
+    "Private parity/documentation syntax errors and fsync handle error retained;corrected before delivery,not product RED.",
+    "General CI,fullsuite,docs-frescura,beta-sources,official size,served artifact,mobile acceptance not executed or verified here. PR check rollup empty at readback.",
+    "VERSION,sourcecatalogues,caps,financialoracles unchanged from141;generated artifacts from own build.",
+    "No main/beta merge or deployment;local artifact is unstamped and not servedbeta/APK evidence."
+  ],
+  "budget": {
+    "oldBlock4": 12,
+    "oldLimit": 12,
+    "additionalBlock5Grant": "db3299cd69020ccf15563e787d1a1f4b69e8a753",
+    "additionalLimit": 12,
+    "allFetchesCounted": true,
+    "noReset": true
+  },
+  "schema": 1,
+  "taskId": "inc1710-pr265-reload-fallback-delay-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-8e50dcf4186a58d7",
+  "createdAt": "2026-10-18T01:29:38.965Z",
+  "released": true
+}
