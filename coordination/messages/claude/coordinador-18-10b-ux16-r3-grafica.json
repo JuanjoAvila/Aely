@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-18-10b-ux16-r3-grafica",
+  "to": "codex",
+  "body": "CORRECCION del dueno, anula mi mensaje anterior coordinador-18-10b-ux16-r3-barra: NO es la barra de pestanas. Es la barra/cursor de la GRAFICA (la grafica de Inicio que se toca y se recorre con el dedo para ver cada punto). Encargo dentro de UX16 ronda 3, APK 58: al tocar la grafica y arrastrar el cursor, un tick suave cada vez que el cursor salta a otro punto/dia de la serie (uno por punto, sin repetir si el dedo no cambia de punto, con limite de frecuencia para que en un barrido rapido no sea un zumbido continuo, p.ej. minimo 30-40 ms entre ticks), misma intensidad suave que el borde nuevo, respetando el ajuste de vibracion del sistema y movimiento reducido. Ojo: la grafica de Inicio traga el swipe a proposito (stopSwipe): no cambies el arbitraje de gestos. Coste por frame minimo (AGENTS 7 bis). Test web del disparo por cambio de punto. Nada en la barra de pestanas.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261018-7c3e91a4",
+  "createdAt": "2026-10-18T20:10:26.067Z"
+}
