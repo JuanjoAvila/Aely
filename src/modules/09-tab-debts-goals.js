@@ -152,7 +152,7 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,showToast}){
   // El rechazo puede quedar bajo el borde de la hoja. Cada Guardar vuelve a mostrarlo, incluso
   // si se repite el mismo error: el borrador y las guardas financieras no cambian (18/10).
   useLayoutEffect(function(){
-    if(save.error&&errorRef.current){ errorRef.current.focus({preventScroll:true}); errorRef.current.scrollIntoView({block:"nearest"}); }
+    if(save.error&&errorRef.current){ errorRef.current.focus({preventScroll:true}); errorRef.current.scrollIntoView({block:"center"}); }
   },[save.error,save.range,attempt]);
   const input=function(key,label,mode){ return React.createElement("label",{key:key},t(label),
     React.createElement("input",{className:"af-in"+(mode?" num":""),inputMode:mode||"text",value:form[key],"data-debt-field":key,
