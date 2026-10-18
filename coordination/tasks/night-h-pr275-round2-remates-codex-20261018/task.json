@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "id": "night-h-pr275-round2-remates-codex-20261018",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r67-675cb9d046e22371",
+  "createdAt": "2026-10-18T10:39:22.557Z",
+  "to": "codex",
+  "kind": "worker",
+  "baseSHA": "dd77f859dd2203c957d0faafc71a1a867e3904ec",
+  "originalBetaBaseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "previousTaskId": "night-h-caixabank-missing-charges-codex-20261018",
+  "previousResult": "48ff7c9fcd2d86ad84c23e17077960a8d268d6f6",
+  "claudeGrant": "55ce93f8add4b2272bddfd3d744b43044d396530",
+  "queueGrant": "4e1e9f695fb656c5220477841095320ea39dcbd8",
+  "model": "gpt-6-astra",
+  "priority": 2,
+  "dependency": {
+    "taskId": "inc181001-debt-save-sheet-codex-20261018",
+    "result": "fe4bb496c30a440309940ecf1ad1cbfc4d8a4faf",
+    "status": "blocked",
+    "released": true,
+    "scope": "Candidate delivered, not integration/mobile acceptance"
+  },
+  "PR": 275,
+  "branch": "codex/night-h-caixa-20261018",
+  "sameBranch": true,
+  "objective": "Apply two admitted independent-review NO-GO remates on PR275 same branch: prove saved rows BOOK before distinct-ref new classification; align historical account identity with daily IBAN-first.",
+  "scope": [
+    "src/modules/08-motor-bank.js",
+    "tests/hist-book-reference.test.mjs",
+    "docs/briefs/night-h-caixabank-history-20261018.md"
+  ],
+  "requirements": [
+    "Same original H holder Astra, own identity/runtime/cwd/census and original helper/filter. Old result stays immutable released; fresh successor claim/readback/ACK before code, no claim/lease transfer. Continue same PR275 branch from exact dd77f859; no new baseline/rebase or other PR edits.",
+    "ALTO1: For a SAVED row, a different reference is another charge only if saved row is proven BOOK: its extId arrives BOOK in the same response, or it has obPendingRef. Without that proof classify maybe, unchecked and visible, never new. Preserve two explicit distinct BOOK references in same response and same-reference re-read0-new.",
+    "Mark obPending when candidate is PDNG in BOTH histFilaGasto and histBuildCommit. New causalRED includes old daily P1 without obPending -> BOOK B1 same content; historicalPDNG P9 -> BOOK B9, including income. Preserve pending/BOOK ambiguity, exact cents, cloud identity and tombstones, no guessed automatic rejoin.",
+    "ALTO2: historical obAcc = ac.iban||ac.uid to match daily. If both absent omit; never invent positional account. Test account with BOTH IBAN and uid, accountOwnsMovement/obAbsorptionKey/absorption tombstones and own-part behavior.",
+    "Remove jargon log docs/briefs/night-h-caixabank-history-20261018.md from PR as expressly requested; preserve original as private evidence. Do not change integration receipt hashes, release notes/VERSION/catalogue/caps/financial oracles; Claude handles integration.",
+    "Focused new RED/GREEN and meaningful mutants with actual EXITs, preserve all first-round logs/failures/size-docs reds and interrupted beta-sources. Do not rerun completed old tests without change justification. No server/CLOUD_WRITES/balance-transactions product change, livebanks/SQL/Edge/fullsuite/CPU6/Gradle/APK/deploy/merge/main-beta push or other frozenPR265-273/hotfix274.",
+    "Verify remaining own budget actual. Last closure: original10 exhausted, additional12 used9/rem3 total19; do not reset or inherit ROOT. b0390ba0 next own20 only after actual exhaustion and own notice/readback,min30s, every first/internal/readback counted.",
+    "Update SAME draftPR275 against beta, new exact source and own successor immutable result released blocked while review/integration pending; checkpoint/manifest with SHA/EXIT/limits. Recibos181002 is next only after this delivery."
+  ],
+  "deliverable": "Same PR275 updated on same branch, fresh successor result with two high remates and exact evidence; independent Claude re-review required."
+}
