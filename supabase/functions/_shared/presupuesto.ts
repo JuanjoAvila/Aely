@@ -148,20 +148,19 @@ export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefine
   const vistas = new Map<string, Set<string>>(), referencias = new Set<string>();
   const out: T[] = [];
   for (const f of filas || []) {
+    if (Number(f.importe) === 0) continue; // Preautorización sin importe: no reserva identidad.
     const k = claveComoLaApp(f);
     if (lap.has(k)) continue;
     const absorbed = claveAbsorcionOb(f);
     if (absorbed && lap.has(absorbed)) continue;
-    const legacy = claveAbsorcionOb(f, true);
+    // Reutilizar la base evita decodificar y codificar la referencia tres veces por fila.
+    const p = absorbed ? absorbed.split("|") : null, base = p ? p.slice(1, 4).join("|") : "";
+    const legacy = p ? "ob-absorbed|" + base : null;
     if (legacy && lap.has(legacy)) continue;
-    const old = claveAbsorcionOb(f, 2);
+    const old = p ? "ob-absorbed2|" + base + "|" + p[4] + "|" + p[5] : null;
     if (old && lap.has(old)) continue;
-    let omitida = false;
-    for (const key of [absorbed, old]) {
-      if (!key) continue;
-      const p = key.split("|"), base = p.slice(0, 4).join("|") + "||" + p[5] + (p.length === 7 ? "|" + p[6] : "");
-      if (cuentaAusente.has(base) || (!cuentaDeSource(f.source) && sinCuenta.has(base))) omitida = true;
-    }
+    const lookup = p && p[4] ? cuentaAusente : sinCuenta;
+    const omitida = p && (lookup.has("ob-absorbed3|" + base + "||" + p[5] + "|" + p[6]) || lookup.has("ob-absorbed2|" + base + "||" + p[5]));
     if (omitida) continue;
     if (esSourceManual(f.source) && lap.has(claveLegacySinId(f))) continue;
     // La fecha contable puede cambiar al pasar de PDNG a BOOK. El cliente identifica

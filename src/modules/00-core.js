@@ -1819,7 +1819,7 @@ function keyOfExpense(e){
 // Una devolución puede reutilizar la referencia de su compra: el signo separa ambas,
 // sin partir el mismo cargo cuando cambia de importe o fecha al contabilizarse.
 function obPolarity(amount){ return Number(amount)>0?1:Number(amount)<0?-1:0; }
-function obReferenceKey(bank,ref,amount){ return (bank||"")+"|"+ref+"|"+obPolarity(amount); }
+function obReferenceKey(bank,ref,amount){ return Number(amount)===0 ? "" : (bank||"")+"|"+ref+"|"+obPolarity(amount); }
 function bankDeletionLink(e){
   const g={aviso:"",banco:keyOfExpense(e)};
   if(e.extId){g.bankRef=String(e.extId);g.ent=expenseBankOf(e)||"";g.bankRefV=2;g.bankRefSign=obPolarity(e.amount);}
@@ -1843,16 +1843,17 @@ function obAbsorptionIndex(delSet){
    cuenta en cualquiera de los dos lados, nunca puede alcanzar a la superviviente. */
 function obAbsorptionMatches(e,delSet){
   const absorbed=obAbsorptionKey(e);if(absorbed&&delSet[absorbed])return true;
-  const legacy=obAbsorptionKey(e,true);if(legacy&&delSet[legacy])return true;
   if(!absorbed)return false;
-  const old=obAbsorptionKey(e,2);if(old&&delSet[old])return true;
-  const index=obAbsorptionIndex(delSet);
-  return [absorbed,old].some(function(key){const p=key.split("|"),k=p.slice(0,4).join("|")+"|"+p[5]+(p.length===7?"|"+p[6]:"");
-    return !!(e.obAcc ? index.missing[k] : index.any[k]);
-  });
+  // Las tres versiones comparten base: codificarla tres veces penalizaba cada render.
+  const p=absorbed.split("|"),base=p.slice(1,4).join("|");
+  const legacy="ob-absorbed|"+base;if(delSet[legacy])return true;
+  const old="ob-absorbed2|"+base+"|"+p[4]+"|"+p[5];if(delSet[old])return true;
+  const index=obAbsorptionIndex(delSet),lookup=e.obAcc?index.missing:index.any;
+  return !!(lookup["ob-absorbed3|"+base+"|"+p[5]+"|"+p[6]]||lookup["ob-absorbed2|"+base+"|"+p[5]]);
 }
 /* Lápidas anteriores al Paso 0 guardaban la clave sin id: siguen ocultando ese manual. */
 function expenseIsTombstoned(e, delSet){
+  if(e&&Number(e.amount)===0)return true; // Una preautorización a cero no es un movimiento.
   if(!delSet) return false;
   if(obAbsorptionMatches(e,delSet))return true;
   const k=keyOfExpense(e);
@@ -1863,6 +1864,7 @@ function expenseIsTombstoned(e, delSet){
 /* Signo, cuenta y día acotan las absorciones nuevas. Las claves antiguas se conservan solo
    para leer lo ya borrado: sus datos perdidos no permiten reparar colisiones históricas. */
 function obAbsorptionKey(e,legacy){
+  if(e&&Number(e.amount)===0)return null;
   const bank=e&&expenseBankOf(e);
   const base=e&&esFilaDeBanco(e)&&bank&&e.extId ? encodeURIComponent(bank)+"|"+encodeURIComponent(String(e.extId))+"|"+obOrdinalOf(e) : null;
   return base ? (legacy===true?"ob-absorbed|"+base:(legacy===2?"ob-absorbed2|":"ob-absorbed3|")+base+"|"+encodeURIComponent(String(e.obAcc||""))+"|"+String(e.date||"").slice(0,10)+(legacy===2?"":"|"+obPolarity(e.amount))) : null;
@@ -2902,9 +2904,9 @@ function mergeExpenses(prevList, incoming){
   prevList=rows.slice(0,previousLength); incoming=rows.slice(previousLength);
   const seen={}; const list=[]; const refs=new Map();
   const mergeKey=function(e){const ref=esFilaDeBanco(e)&&e.extId&&obReferenceKey(expenseBankOf(e),e.extId,e.amount);let k=ref&&refs.get(ref);if(!k){k=keyOfExpense(e);if(ref)refs.set(ref,k);}return k;};
-  (prevList||[]).forEach(function(e){ const k=mergeKey(e); if(!seen[k]){ seen[k]=1; list.push(e); } });
+  (prevList||[]).forEach(function(e){ if(Number(e.amount)===0)return; const k=mergeKey(e); if(!seen[k]){ seen[k]=1; list.push(e); } });
   let nuevos=0;
-  (incoming||[]).forEach(function(e){ const k=mergeKey(e); if(!seen[k]){ seen[k]=1; list.push(e); nuevos++; } });
+  (incoming||[]).forEach(function(e){ if(Number(e.amount)===0)return; const k=mergeKey(e); if(!seen[k]){ seen[k]=1; list.push(e); nuevos++; } });
   return { list:list, nuevos:nuevos };
 }
 /* Refresca una fila LOCAL con lo que manda la nube SIN sustituir el array entero (12/9).
@@ -2982,13 +2984,14 @@ function mergeExpensesFromCloud(prevList, incoming, readStartedAt){
   const previousLength=(prevList||[]).length;
   const identitiesChanged=rows.some(function(e,i){return i<previousLength&&e!==prevList[i];});
   prevList=rows.slice(0,previousLength); incoming=rows.slice(previousLength);
-  const byKey={}; const order=[]; const refs=new Map();
+  const byKey={}; const order=[]; const refs=new Map(); let zeroRemoved=false;
   const mergeKey=function(e){const ref=esFilaDeBanco(e)&&e.extId&&obReferenceKey(expenseBankOf(e),e.extId,e.amount);let k=ref&&refs.get(ref);if(!k){k=keyOfExpense(e);if(ref)refs.set(ref,k);}return k;};
   (prevList||[]).forEach(function(e){
+    if(Number(e.amount)===0){zeroRemoved=true;return;}
     const k=mergeKey(e);
     if(!byKey[k]){ byKey[k]=e; order.push(k); }
   });
-  let changed=identitiesChanged; let nuevos=0; const seen={};
+  let changed=identitiesChanged||zeroRemoved; let nuevos=0; const seen={};
   /* EL AVISO DEL MÓVIL GANA AL CARGO DE RECIBO DE SU MISMO DÍA, IMPORTE Y COMERCIO, llegue cuando
      llegue (cuarta revisión, 13/10/2026). Con el aviso ya en la lista el banco no añade su fila y
      el aviso cuenta, como siempre; si el aviso bajaba después, se fundía con la fila marcada y
@@ -3021,6 +3024,7 @@ function mergeExpensesFromCloud(prevList, incoming, readStartedAt){
     if(merged!==loc){ byKey[k]=merged; changed=true; }
   };
   (incoming||[]).forEach(function(inc){
+    if(Number(inc.amount)===0)return;
     const k=mergeKey(inc);
     if(seen[k]){
       if(!ganaAviso(k,inc) && !hecha[k] && inc.id===byKey[k].id){ hecha[k]=1; delete espera[k]; refresca(k,inc); }

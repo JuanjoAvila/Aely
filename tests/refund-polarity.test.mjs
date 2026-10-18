@@ -38,7 +38,7 @@ for(const version of [true,2])run('legacy-mark-'+version,()=>{
  assert.equal(c.expenseIsTombstoned(refund,deleted),true);
  assert.equal(server.filasComoLaApp([purchase,refund].map(toRow),[marker]).length,0);
 });
-for(const sign of [-1,0,1])for(const account of [undefined,'synthetic-account-a'])run('signed-mark-scope/'+sign+'/'+account,()=>{
+for(const sign of [-1,1])for(const account of [undefined,'synthetic-account-a'])run('signed-mark-scope/'+sign+'/'+account,()=>{
  const gone={...purchase,amount:sign*12.34,obAcc:account},marker=c.obAbsorptionKey(gone),deleted={[marker]:true};
  assert.match(marker,/^ob-absorbed3\|/);assert.equal(marker.split('|').at(-1),String(sign));
  const otherSign={...gone,amount:sign===1?-12.34:12.34};
@@ -108,4 +108,32 @@ run('mutant-delete-link-loses-version',()=>{
  const f=fixture(clientSource.replace(from,'')),s=f.state([]);
  s.deleted=[f.c.keyOfExpense(f.purchase)];s.gemelos=f.c.pushGemelos([],[f.c.bankDeletionLink(f.purchase)]);
  assert.throws(()=>assert.equal((f.c.importObExpenses(s,[f.tx(f.refund)],[{aspsp:'CaixaBank',syncFrom:'2026-10-01'}])||[]).length,1),assert.AssertionError);
+});
+
+// Remates de revisión: una preautorización a cero nunca reserva la referencia del cargo.
+for(const amount of [0,-0,'0'])for(const reverse of [false,true])for(const path of ['merge','cloudBatch','cloudSequential','server'])run('remate-zero/'+typeof amount+'/'+(Object.is(amount,-0)?'-0':amount)+'/'+reverse+'/'+path,()=>{
+ const zero={...purchase,id:'zero-preauth',amount,obPending:true};
+ const es=reverse?[purchase,zero]:[zero,purchase],out=paths[path](es);
+ assert.equal(out.length,1);assert.equal(net(out),1234);assert.equal(out[0].id,purchase.id);
+});
+run('remate-zero-no-identity-or-visible-row',()=>{
+ const zero={...purchase,amount:0};
+ assert.equal(c.obReferenceKey(zero.ent,zero.extId,zero.amount),'');
+ assert.equal(c.obAbsorptionKey(zero),null);
+ assert.equal(c.expenseIsTombstoned(zero,{}),true);
+ assert.equal(server.filasComoLaApp([toRow(zero)],[]).length,0);
+ assert.equal(c.mergeExpensesFromCloud([zero],[]).changed,true);
+});
+for(const version of [true,2])for(const sign of [-1,1])for(const missing of ['row','mark','both'])run('remate-wildcard-v'+version+'/'+sign+'/'+missing,()=>{
+ const gone={...purchase,amount:sign*12.34,obAcc:missing==='mark'||missing==='both'?undefined:purchase.obAcc};
+ const marker=c.obAbsorptionKey(gone,version),deleted={[marker]:true};
+ for(const amount of [12.34,-12.34]){
+  const row={...purchase,amount,obAcc:missing==='row'||missing==='both'?undefined:purchase.obAcc};
+  assert.equal(c.expenseIsTombstoned(row,deleted),true);
+  assert.equal(server.filasComoLaApp([toRow(row)],[marker]).length,0);
+  for(const patch of [{extId:'another-reference'},...(version===2?[{date:'2026-10-16T12:00:00Z'},{obOrd:2}]:[])]){
+   const other={...row,...patch};assert.equal(c.expenseIsTombstoned(other,deleted),false);
+   assert.equal(server.filasComoLaApp([toRow(other)],[marker]).length,1);
+  }
+ }
 });

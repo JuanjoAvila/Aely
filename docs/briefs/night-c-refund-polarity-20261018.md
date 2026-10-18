@@ -10,7 +10,8 @@ filtro de filas del servidor, en ambos órdenes. La devolución parcial de
 2,34 euros debe conservar dos filas y un neto de 1.000 céntimos.
 
 La identidad por banco y referencia ahora incluye solamente la polaridad
-(-1, 0, 1), sin añadir importe completo ni día. Se aplica también al histórico,
+(-1, 1), sin añadir importe completo ni día. Las filas a cero no generan
+identidad ni aparecen como movimientos. Se aplica también al histórico,
 a las respuestas bancarias parciales, a los alias de pendientes y al
 enriquecimiento por referencia. La deduplicación del mismo signo conserva su
 contrato. La preferencia PDNG/BOOK de Night D y las colisiones entre bancos
@@ -24,9 +25,10 @@ No se reinterpreta ni se restaura ninguna fila borrada históricamente.
 Los vínculos nuevos de borrado conservan `bankRefV: 2` y `bankRefSign` al
 pasar por `pushGemelos`; los vínculos antiguos sin versión siguen sin signo.
 
-FIN11 (PR266) y FIN17 (PR267) tienen ramas independientes. Su registro de
-confirmados deberá heredar la polaridad al integrarse; Claude coordina esa
-composición. Esta candidata no modifica esas ramas ni acredita su integración.
+FIN17 (PR267) ya incorpora FIN11 (PR266), según la revisión de Claude
+`181d74fd`. Su registro de confirmados deberá conservar la polaridad al
+integrarse; Claude coordina esa composición. Esta candidata no modifica
+esas ramas ni acredita su integración.
 
 ## Verificación focal
 
@@ -75,3 +77,45 @@ y notas solo incorporan las huellas recalculadas por el build.
 La validación focal no acredita CI general, integración, artefacto publicado,
 despliegue Edge, aceptación móvil ni ProductREADY. No se ejecutan bancos,
 SQL, escrituras de nube reales, suite completa, CPU6, Gradle o APK.
+
+## Remates de revisión independiente de PR272
+
+Sucesor `night-c-pr272-independent-review-remates-codex-20261018`, sobre
+`07b080d915b142e3216c97aa3807d38951603bf9`, autorizado por `ce0bdf91`.
+Cliente y servidor construyen una sola clave de absorción por fila y derivan
+de ella las versiones antiguas y sus comodines. El filtro descarta ceros
+antes de reservar una identidad; la fusión elimina también ceros locales y
+señala `changed` para que el llamador guarde esa limpieza. No se escribe
+ninguna lápida para una preautorización a cero.
+
+Medición propia Node 24.16, sintética, 20.000 filas y 500 lápidas v2/v3,
+cinco calentamientos y once muestras por lector. Se contrastan todos los
+identificadores supervivientes: 19.500 filas, neto exacto cero céntimos.
+
+| Lector | Mediana antes | Mediana después | Cambio |
+| --- | ---: | ---: | ---: |
+| `expenseIsTombstoned` | 102,929 ms | 72,563 ms | -29,5 % |
+| `filasComoLaApp` | 126,217 ms | 70,714 ms | -44,0 % |
+
+Son medidas locales propias, no las cifras del revisor ni una aceptación
+CPU6/móvil. El script y las once muestras quedan en la evidencia privada
+`night-c-remates-perf.mjs` y `night-c-remates-perf-{before,after}.json`.
+
+- ROJO causal: EXIT1, 25 fallos de cero y 12 controles antiguos verdes.
+- Verde de polaridad: EXIT0, 154 casos, incluidos los 12 mutantes existentes,
+  25 casos nuevos de cero y 12 controles explícitos v1/v2 con ambos signos.
+  Dos expectativas anteriores de clave con signo cero se sustituyen por el
+  contrato autorizado de ausencia de identidad; los céntimos no cambian.
+- FIN10/FIN15: 53 casos verdes inicialmente y dos fallos por anclas antiguas.
+  Se adaptan tres sustituciones de mutantes a la nueva selección del índice,
+  manteniendo sus aserciones monetarias; los dos casos afectados pasan con
+  EXIT0. Los fallos iniciales se conservan. Total distinto: 55 casos verdes.
+- Compras: 32 casos, EXIT0. Fusión de nube y paridad de presupuesto: EXIT0
+  (cuatro casos de nube y el archivo de presupuesto con sus controles).
+- Build, sintaxis y Deno `check --no-remote`: EXIT0 sobre este remate.
+
+Tamaño, beta-sources y docs/VERSION siguen pendientes de reconciliación por
+Claude; sus resultados anteriores se conservan y no se repiten aquí. No se
+ejecutan DOM nuevo, CI general, CPU6, suite completa, Gradle/APK, SQL, bancos
+ni despliegue. Ingest y cliente deben desplegarse coordinadamente por Claude
+con el OK del dueño. Entrega bloqueada para integración; no ProductREADY.
