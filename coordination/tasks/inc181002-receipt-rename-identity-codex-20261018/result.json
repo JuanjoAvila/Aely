@@ -1,0 +1,71 @@
+{
+  "status": "blocked",
+  "productSHA": "7796389b695c81d483b9f179800354df062ba4dc",
+  "baseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "PR": 278,
+  "draft": true,
+  "productReady": false,
+  "realIncidentClosed": false,
+  "authorization": "05c0fb49520415872ae21192ff27b68bb141f9ed",
+  "tests": [
+    {
+      "name": "Causal Node and DOM RED",
+      "exitCode": 1
+    },
+    {
+      "name": "Receipt rename Node",
+      "passed": 21,
+      "exitCode": 0
+    },
+    {
+      "name": "Payment regression",
+      "passed": 41,
+      "exitCode": 0
+    },
+    {
+      "name": "Receipt invariant",
+      "passed": 22,
+      "exitCode": 0
+    },
+    {
+      "name": "Receipt controls",
+      "passed": 60,
+      "exitCode": 0
+    },
+    {
+      "name": "Own directed DOM",
+      "passed": 5,
+      "exitCode": 0,
+      "workers": 1,
+      "retries": 0,
+      "skipped": 0,
+      "flaky": 0
+    },
+    {
+      "name": "Eight semantic mutants",
+      "exitCodes": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "Fixed day, build, syntax and registration",
+      "exitCode": 0
+    }
+  ],
+  "manifestSHA256": "9c6f93beeeba069da0a1d3977ab7a54d53594817a4c5da20bfb41253f3aa0b7c",
+  "checkpointSHA256": "24e085439db0a7917fcea574b8a4e18a18842e604d6ab292009b0d13e89e9e38",
+  "summary": "INC181002 entregado PR278 DRAFTbeta fuente 7796389b695c81d483b9f179800354df062ba4dc. ROJO causal Node y DOM: Ibi aIBI y cambio sustantivo invalidaban modelo por nombre literal. Nuevas pruebas v2 ligadas aIDrecibo y contrato banco/importe/bankAmount; BOOK conserva nombre original solo para guardas de ambiguedad, no busca otrocargo con nombreeditado. Consulta1df9cf69 y AUTORIZACION05c0fb49 antesproducto: lectorlegacy estricto; convertir SOLO prueba valida antes de renombrar, mismoidunico y contratofinanciero, mismaescritura. Sin barrido/conversionautomaticasync/recuperacioninvalidas. Cargo/ref/cuenta/fecha/centimos/absorciones/paidYm intactos. Camino UI existente para vinculoYAroto probado: Gastos, abrircargo, Paga un recibo, Deshacer vinculo, elegirIBI, confirmar; reload pagado12345cent sin tocarcargo/cuenta. No recuperacion realdueno. GREEN21+41+22+60Node yreconciliacionfecha, DOM5de5 EXIT0 1worker0retry0skip0flaky,8mutantesnuevos detectados EXIT1; build/sintaxis/registro EXIT0. Fixture/selector/mapeo/ancla y preflighttrim fallidos preservados; aserciones financieras sin debilitar. DOM final sobrebase dirty antescommit porfallopreflight; bytesmodulo/spec/todospublic yGitLF iguales alSHAfinal verificados. PushEXIT0 PRhead/base/draft/bodyexactos. Solo08producto, tests/registro/brief yHTML/beta-delivery normalbuild. Sin VERSION/catalogofuente/caps/backend/CLOUD_WRITES niPR239/240/269/277. GeneralesCI,size,docs-frescura,betaSources,fullsuiteCPU6,GradleAPK,SQLbancosEdge,servido/movil noejecutados; revisionintegracionpendientes, noProductREADY. OWN10+12+12 congelados; mismoOWN20 usado17 antesresultado, sus2fetch completan19/rem1,min30s,sinreset/herencia. Manifiesto 9c6f93beeeba069da0a1d3977ab7a54d53594817a4c5da20bfb41253f3aa0b7c checkpoint 24e085439db0a7917fcea574b8a4e18a18842e604d6ab292009b0d13e89e9e38. Result propio blocked/released ySTOP; H2/splash noasumidos.",
+  "schema": 1,
+  "taskId": "inc181002-receipt-rename-identity-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261014-43c0a0c94700",
+  "createdAt": "2026-10-18T11:12:58.127Z",
+  "released": true
+}
