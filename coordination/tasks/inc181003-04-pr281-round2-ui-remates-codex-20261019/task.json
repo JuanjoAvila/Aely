@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "id": "inc181003-04-pr281-round2-ui-remates-codex-20261019",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r73-b132dc8db089d0ba",
+  "createdAt": "2026-10-18T22:42:15.124Z",
+  "to": "codex",
+  "kind": "worker",
+  "priority": 1,
+  "model": "gpt-6-astra",
+  "baseSHA": "c10df468e6780dfc15b27ef688daa2d38ba8e2b6",
+  "integrationBaseSHA": "7090802099ac0c7956c0d3597a9936a82c52a95f",
+  "previousTaskId": "inc181003-04-plan-expense-link-ui-fix-codex-20261019",
+  "assignedPublicSessionId": "codex-local-20261016-46b86e3686e19bf3",
+  "claudeGrant": "38b7bb27e1f2f48371acaf8bf5ff24eda91acd07",
+  "PR": 281,
+  "objective": "PR281 round2 before splash: R1 explicit unresolved relation presentation, R2 distinct family payment-status labels and visible confirmation count, R3 complete home summary; preserve every financial cent and saved field.",
+  "scope": [
+    "Expense detail R1 presentation only",
+    "Plan and home R2 R3 presentation with short es/en/ca labels",
+    "Expanded plan-expense-links E2E, new causal RED and focused GREEN, exact financial and persistence oracles, semantic mutants and scoped docs"
+  ],
+  "requirements": [
+    "New exact task, same original Astra holder. Own claim canonical readback and ACK before product. Continue existing own session/helper/filter/runtime/cwd/ledger; every first/internal/readback counts minimum30s; real exhaustion and own notice/readback before new budget, no reset or inheritance.",
+    "Preserve research61f863c3, phase1 resultec690f56 and all prior evidence. Same draft PR281 against beta, current sourcec10df468. Use own clean isolated checkout and same PR branch; no rebase or new PR and no edits to another holder checkout. New immutable result belongs to this task only.",
+    "R1 at04-tab-gastos detail: explicit debtId or reciboId that fails validated payment relation must not display No while explicit chip is marked. Display referenced debt or receipt name with a short unconfirmed qualifier, or a dash when unavailable. Never make a financial relation valid just to align the labels. Include synthetic19750c versus19700c and receipt equivalent, absent/invalid IDs and normal validated links.",
+    "R2 at14-v4-screens Plan: clearly distinct short family es/en/ca labels for payment still due versus calendar-paid but not accredited, conveying which contributes to remaining-to-pay and which does not. Do not repeat the status label in the row; keep bank display. Pending confirmation must appear in a separate presentation count or summary so19700c does not disappear from view; do not add it to existing financial totals or change financial semantics.",
+    "R3 at14-v4-screens home: when every charge is paid except those pending confirmation, use a full family sentence equivalent to all paid except N awaiting confirmation. Correct singular/plural and es/en/ca, and preserve normal fully-paid and actual-unpaid cases.",
+    "Claude38b7bb27 reports independent Inicio/Plan/widget/cloud invariance review green. Preserve that exact-cent contract: no money calculations, matching, paid contract, amounts, balance, saved paidYm/debtId/reciboId/proofs, aliases, vetoes, writers, cloud state, backfill or migration changes. Consult Claude before any need outside presentation.",
+    "ROJO first on newly approved R1-R3 contracts before edits; then focused GREEN and extend plan-expense-links E2E to R1-R3. Exact cents and persisted snapshot equality versus approvedc10df468 and existing709 provenance; no new cloud writes. Meaningful mutants must fail assertions. Only changed-scope tests required; preserve previous phase failures and green artifacts, no rerun of unrelated completed tests.",
+    "Directed tests use own synthetic fixtures and port, one worker zero retries. No fullsuite, CPU6, native code, Gradle, APK, backend, live banks, SQL, Edge, deployment, main/beta push or merge. No VERSION, catalogue or caps changes. Docs and size integration reconciliation belongs to Claude; never weaken gates or claim general CI green.",
+    "UX03UX09 has been preempted by its own holder after claim/ACK and is closing partial blockedreleased, not complete. This round2 precedes splash; do not take over, resume or implement splash. Its source, documents, partial evidence, claim and result remain untouched.",
+    "Deliver same PR281 exact updated branch and PR head, manifest, checkpoint, actual EXITs, mutants, limitations and own released result. Claude final review/integration/served/mobile are separate. Return actual checkout privately and STOP after exact result readback."
+  ],
+  "deliverable": "Same PR281 updated for R1-R3 with causal RED, expanded focused E2E, exact-cent and no-persistence invariants, semantic mutants, immutable released result and bounded limitations."
+}
