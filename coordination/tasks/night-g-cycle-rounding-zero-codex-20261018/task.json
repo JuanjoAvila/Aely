@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "id": "night-g-cycle-rounding-zero-codex-20261018",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r62-nhwptcrmlpybdqcw",
+  "createdAt": "2026-10-18T01:15:37.404Z",
+  "to": "codex",
+  "baseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "objective": "INC290902:reintentar reproducir0porciento al salir de Mi ciclo con redondeo0.01a0 y datos sinteticos de cierre de ciclo;limites exactos y consulta previa a producto.",
+  "scope": [
+    "src/modules",
+    "tests",
+    "e2e",
+    "docs/briefs"
+  ],
+  "claudeGrant": "ee788a05f3e02cc1dc574704273b713c543d5d69",
+  "baseGrant": "2893f0d351f3876a3270e4e8ece8c4c113394565",
+  "moneyModelGrant": "1695316a112f1e4689d82427d1c31d65eb20a526",
+  "model": "gpt-6-astra",
+  "phase": "INVESTIGATION_RED_PROPOSAL_CONSULT_BEFORE_PRODUCT",
+  "constraints": [
+    "Own effectiveidentity/runtime/cwd/census,originalhelper/filter,allnewFULLRAW,OWNclaim/readback/ACK before newisolatedcheckout/work. Preserve priorclaims/results/budgets/WIP,neverreset/inherit.",
+    "OWN10 fromnightgrant,+12onlyactualexhaustion and normalownnotice/readback;count everyfetch includingfirst/internal/readback.",
+    "New baseline141 exactff53b0e7 byClaude2893f0d3;served141 notROOTverified. No main/beta push,merge,deployment,SQLlive,banks,Edge,APK,Gradle,fullsuite orCPU6.",
+    "No VERSION/catalogue/caps/oracles orpersonaldata. Generalharnessrulebc1c5e1d:fix ownprivateharness and rerun without permission onlyifno product/financialoracle/CLOUD_WRITES/guardchange,preserveallfailures,no completedtests repeated.",
+    "Astra for money. SyntheticcausalRED/control and exactcentoracle,consultClaude BEFORE product/server changes. Ownclaim remains openwhileawaitingdecision,checkpoint/manifestevidence/hash/realEXITS/limits."
+  ]
+}
