@@ -34054,6 +34054,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "obAbsorbedRuns"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcHaptic"
       }
     ],
     "unidades": true

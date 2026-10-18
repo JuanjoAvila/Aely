@@ -2911,11 +2911,15 @@ test("Catálogo145 añade la tanda de vibración con APK 58 sobre la beta 144, q
     return web;
   };
   // El descriptor de la gráfica de Inicio con significado ya no tiene sus bloques en la fuente desde antes de la 141: se conserva tal cual, sin recalcular.
+  // El tick de la gráfica de Inicio (PR 280) llama a mcHaptic desde NetWorthNow: el guardián de Inicio v4.2 exige ese lector en su alcance.
+  const añadidos={"inicio-patrimonio-flujos":[fn(U,"mcHaptic")]},unidad=u=>JSON.stringify(u);
   const congelados=new Set(["inc-0810-inicio-grafica-significado"]);
   for(const [id,scope] of Object.entries(integrated)){
     if(congelados.has(id)){assert.deepEqual(rest[id],scope,"descriptor congelado: "+id);continue;}
-    const web=closure(scope.web||[]);
-    assert.deepEqual(rest[id],{...scope,web},"cierre de lectores recalculado, ni se recorta ni crece sin declararlo: "+id);
+    const web=closure((scope.web||[]).concat(añadidos[id]||[]));
+    // El hotfix 142 de main metió sus dos unidades a mitad de la lista de varios alcances y la beta añade al final: mismo conjunto, otro orden.
+    assert.deepEqual({...rest[id],web:rest[id].web.map(unidad).sort()},{...scope,web:web.map(unidad).sort()},"cierre de lectores recalculado, ni se recorta ni crece sin declararlo: "+id);
+    assert.equal(rest[id].web.length,web.length,"sin unidades repetidas: "+id);
   }
   assert.deepEqual(Object.keys(rest),Object.keys(integrated),"ningún descriptor ajeno nuevo ni retirado");
   for(const id of tandas){
