@@ -175,9 +175,12 @@ export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefine
   const matches = (f: T, keys: Set<string>, ix: ReturnType<typeof index>) => {
     const key = claveAbsorcionOb(f); if (!key) return false;
     if (keys.has(key)) return true;
-    const p = key.split("|"), v2 = p.slice(0,4).join("|") + "|" + p[5], v3 = p.length === 7 ? v2 + "|" + p[6] : v2;
+    // La fila siempre trae clave v3; una confirmada v2 lleva otro prefijo y sin esto no ocultaba
+    // nada en el servidor (el widget contaba doble; integración 143, revisión independiente).
+    const p = key.split("|"), base = p.slice(1,4).join("|");
+    if (keys.has("ob-absorbed2|" + base + "|" + p[4] + "|" + p[5])) return true;
     const set = cuentaDeSource(f.source) ? ix.missing : ix.any;
-    return set.has(v3) || set.has(v2);
+    return set.has("ob-absorbed3|" + base + "|" + p[5] + "|" + p[6]) || set.has("ob-absorbed2|" + base + "|" + p[5]);
   };
   // Las no confirmadas tienen su propio tope y no caducan con las 500 lápidas normales.
   for (const p of Array.isArray(pending) ? pending : []) {
