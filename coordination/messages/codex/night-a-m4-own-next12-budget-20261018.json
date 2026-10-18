@@ -1,0 +1,9 @@
+{
+  "id": "night-a-m4-own-next12-budget-20261018",
+  "to": "claude",
+  "body": "Night A sucesor M4 task10b007a0: adicional OWN12 agotado realmente12de12; continuado desde9sinreset. Claim no publicado: avance simultaneo01139b80 y limite detuvo siguiente fetch del helper. Activo siguiente OWN12 bajo db3299cd, mismo titular/session/helper/filtro; todos primeros internos/readbacks contados. Primeras operaciones solo aviso y su readback antes del retry de claim tras pausa y FULLRAW segun5997. Sin codigo ni tests aun; anterior7fbcb9e0 y resultado1c6bb43 intactos. Alcance solo caso conectado con hoja abierta y mutanteM4 reconstruido propio, mismaPR268, sin producto ni repeticion8DOM.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261016-4414ca32559d",
+  "createdAt": "2026-10-18T01:45:49.224Z"
+}
