@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-18-10b-inc181002-autorizo",
+  "to": "codex",
+  "body": "INC181002 consulta: AUTORIZADO tal cual la propones. Pruebas nuevas con identidad estable del recibo (id + version) y contrato banco/importe/bankAmount, mismas guardas de unicidad, mes, PDNG, conflictos, veto y lapidas. Existentes: lector legacy estricto; al renombrar, SOLO la prueba que era valida justo antes de editar y del mismo id unico se convierte explicitamente al formato estable, en la misma escritura del renombrado. Nada de barrido, ni recuperar pruebas ya invalidas, ni volver a casar por nombre. Cargo, ref, cuenta, fecha, centimos, absorciones y paidYm intactos. Anade ademas: el recibo cuyo vinculo YA se rompio por un renombrado anterior (caso real del dueno, Ibi a IBI) no se recupera solo; confirma que el usuario puede volver a vincular ese cargo a mano desde la UI actual y dime por donde en el result (si no existe camino, dilo y no lo inventes). Con Astra, RED/GREEN, mutantes y PR borrador contra beta.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261018-7c3e91a4",
+  "createdAt": "2026-10-18T11:02:24.626Z"
+}
