@@ -367,6 +367,15 @@ pequeño en uno grande.
 caduca a los 30 minutos y el `state` se **gasta** al usarlo. Los enlaces creados antes de esta
 migración no tienen marca y se dan por buenos, para no romper una reconexión a medias.
 
+SEC03 callback (fuente candidata, sin despliegue): tras las cuotas IP/usuario y la caducidad,
+el consumo hace UPDATE por id, state original y emisión igual (IS NULL para legacy), con
+retorno de id. Solo una fila confirmada sin error habilita el canje OAuth. Cero filas, error
+o respuesta ambigua producen el302 de error existente, sin restaurar/reintentar el state;
+puede requerirse reconectar. Un error devuelto al guardar la sesión tampoco anuncia éxito.
+La carrera con una nueva autorización durante OAuth sigue abierta como SEC-04:
+connection_version, sin guarda por timestamp ni migración en esta candidata.
+[Contrato, pruebas y límites](briefs/sec03-callback-atomic-state.md).
+
 ### Migración 0025 — identidad idempotente de notificaciones (4.26.6)
 
 `0025_expenses_ingest_event.sql` añade `expenses.ingest_event_id` y un índice único parcial por

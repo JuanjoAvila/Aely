@@ -6,6 +6,16 @@ mutante causal de cero céntimos. El port af387 añade control200/guardia201 con
 único y mutación exclusiva de la guardia; barrera real `nubeLista` con limpieza
 pendiente/fallida y pull fallido, más mutación que restaura la espera del DELETE.
 [Evidencia y límites](briefs/fin11-absorciones-pendientes-20261017.md).
+## INC-0410 · verificación del port a beta 141
+
+Los cuatro tests goals-three-way, goals-review-remates, goals-review2-remates y goals-review3-reserve-conflict están registrados en run-tests y se ejecutan sobre el HTML/fuentes de este checkout, junto a metas-pull-transport y reserva-dinero. Cubren tres vías, partición privada, ACK/M9/M12, reservas unilaterales/iguales y replay mensual17000c con un asiento; la subida inversa requiere replay manual20. E2E dirigidos de Metas y persistencia con datos sintéticos, puerto propio, un worker y cero reintentos; sin suite general ni CPU6. Resultados reales y gates pendientes en el [brief](briefs/inc-0410-lww-rechazo-20261017.md). Las evidencias de la fuente original permanecen separadas.
+
+UX16 (candidata sin APK): `tests/ux16-haptics.test.mjs` está registrado en `run-tests`;
+`e2e/ux16-haptics.spec.mjs`, en el mapa de UI compartida, Inicio y navegación.
+Comprueban guardas y animaciones con transporte nativo sintético; `HapticPlanTest`
+prueba en JVM el reparto acotado, contando la duración de cada primitiva.
+La fuente del plugin completo, el APK y el motor físico requieren revisión aparte.
+[Contrato y límites](briefs/ux16-haptics.md).
 
 FIN-15 (beta 4.26.138): `tests/fin15-pendiente-contabilizada.test.mjs` registrado en `run-tests` ejecuta
 cliente, month legacy y widget v2 con PDNG/BOOK en días distintos, en ambos órdenes.
@@ -61,6 +71,14 @@ ejecuciones válidas, con un fallo inicial de resolución npm conservado y 15,65
 incluyéndolo. Los nueve archivos verdes iniciales no se repitieron; lifecycle se
 volvió a ejecutar solo tras cambiar su resolución a caché global. No es CI ni
 una pasada única de la suite general. Fuente y resultados: [acta de remates](briefs/deno-pr255-runtime-real-tests-20261017.md).
+
+SEC03 callback: `tests/bank-callback-state.test.mjs` ejecuta el handler y helpers reales con
+BD stateful, barrera de dos snapshots y OAuth sintético. Registrado en steps y recorte servidor.
+37 casos cubren ganador único, replay, cero filas, error/throw/respuesta perdida/cardinalidad,
+emisión legacy, guardado final fallido, cuotas/orden, caducidad, cursor y302 web/APK.
+`SEC03_MUTANT=sin-state|acepta-cero|acepta-error|exito-sin-guardar` selecciona cuatro mutaciones
+textuales del handler con los mismos oráculos; cada proceso debe terminar EXIT1 por aserción.
+No acredita Postgres, gateway ni banco real. [Acta y límites](briefs/sec03-callback-atomic-state.md).
 
 Compras con referencias distintas: `tests/compras-identicas-ids.test.mjs` registrado en Node y
 `e2e/compras-identicas-ids.spec.mjs` en Gastos. Handlers reales con fixtures sintéticas,

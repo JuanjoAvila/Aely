@@ -9,6 +9,9 @@ retiene `nubeLista`; un pull fallido sigue impidiendo consultar el banco.
 Los lectores filtran pendientes antes de consumir la referencia FIN-15 entre días;
 comodín de cuenta simétrico FIN-10 intacto. Un alias sin cuenta no autoriza DELETE.
 [Contrato, evidencia y límites](briefs/fin11-absorciones-pendientes-20261017.md).
+## INC-0410 · port privado para beta 141
+
+La sincronización de Metas conserva por titular una base de metas/reglas/asientos. Fusiona metas a tres vías por campos, con saved/target/done/doneAt indivisibles y nube más registro local ante conflicto, sin sumar saldos absolutos. Las reservas locales se conservan si sus metas afectadas no tienen conflicto de campo; la divergencia distinta de ambos lados o ese acople rechaza la foto financiera completa y guarda el local saneado. Conflictos cap3 en clave privada por modo/titular, fuera de pushes/backups; ACK sin re-sello/bucle y notificación durable única. El caso A120/Z50 llega a17000c tras replay mensual; en el inverso de subida se mantiene15000c y los17000c requieren reaplicación manual20. Port de lógica revisada, preservando beta v4. [Contrato y límites](briefs/inc-0410-lww-rechazo-20261017.md).
 
 FIN-15 (beta 4.26.138): el lector servidor `filasComoLaApp` usa banco + referencia `#ref`
 para reconocer el mismo apunte en días distintos, como las mezclas del cliente. Aplica

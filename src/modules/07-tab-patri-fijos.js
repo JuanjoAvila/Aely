@@ -279,8 +279,8 @@ function AssetSheet({asset,set,onClose}){
   const [name,setName]=useState(asset.name||"");
   const [raw,setRaw]=useState(asset.value==null?"":String(asset.value));
   const [kind,setKind]=useState(asset.kind||"piso");
-  useBackClose(true,onClose);
   const swipe=useSheetSwipe(true,onClose);
+  useBackClose(true,swipe.close);
   const amount=Number(raw.replace(",","."));
   const valid=name.trim()&&/^\d+(?:[.,]\d{1,2})?$/.test(raw)&&Number.isSafeInteger(Math.round(amount*100));
   const save=function(){

@@ -370,10 +370,10 @@ assert.deepEqual(plain(editHistory["old-car"]),[{day:"2026-09-04",value:15000,le
 const appSource=fs.readFileSync(new URL("../src/modules/11-app-main.js",import.meta.url),"utf8");
 const cloudApply=callback(appSource,"function(prev){",appSource.indexOf("const syncFromCloud=function("));
 const identity=x=>x,sessionRef={current:null};
-const applyCloud=vm.runInContext("(function(sessionRef,cloudState,u,opts,mergeExpenses,fixMovInvasion,fixRevoDupes,fixInvAuto,fixInvSold,reconcileTR,seedFlows,reconcileEarlyIncomeAnchors){const freshLogin=false;return "+cloudApply+";})",c);
+const applyCloud=vm.runInContext("(function(sessionRef,cloudState,cloudPack,u,opts,mergeExpenses,fixMovInvasion,fixRevoDupes,fixInvAuto,fixInvSold,reconcileTR,seedFlows,reconcileEarlyIncomeAnchors){const freshLogin=false;return "+cloudApply+";})",c);
 const localHistory={...cloudState,_historyOwner:"same-owner",assetValueHistory:{home:points}};
 const incomingHistory={...cloudState,accountBalanceHistory:{"acc:history-0":largeHistory["acc:history-0"].slice(-14)},assetValueHistory:{home:points.slice(-14)}};
-const cloudCallback=applyCloud(sessionRef,incomingHistory,"same-owner",{},(a,b)=>({list:a}),identity,identity,identity,identity,identity,identity,identity);
+const cloudCallback=applyCloud(sessionRef,incomingHistory,{updated_at:"synthetic"},"same-owner",{},(a,b)=>({list:a}),identity,identity,identity,identity,identity,identity,identity);
 assert.equal(cloudCallback(localHistory),localHistory,"sesión nula al ejecutar el callback conserva el estado entero y los400 cierres");
 sessionRef.current={user:{id:"other-owner"}};
 assert.equal(cloudCallback(localHistory),localHistory,"un pull tardío tampoco sustituye el historial de otro dueño");

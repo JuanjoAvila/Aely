@@ -1166,8 +1166,8 @@ function filterSelLabel(id, debts){
   return d&&d.name||catName("deudas");
 }
 function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, bucketSel, setBucketSel, bankOpts, diarioEnts, debts}){
-  useBackClose(!!open, onClose);
   const swipe=useSheetSwipe(!!open, onClose);
+  useBackClose(!!open, swipe.close);
   const [qCat,setQCat]=useState("");
   const [filterCatsOpen,setFilterCatsOpen]=useState(false);
   useEffect(function(){
@@ -1291,8 +1291,8 @@ function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, buc
    único sheet que no se podía cerrar tirando hacia abajo («el más de la foto» — feedback
    2026-07-18) ni con el gesto atrás. Mismo patrón que BudgetSheet. */
 function PeriodMoreSheet({open, onClose, preset, setPreset}){
-  useBackClose(!!open, onClose);
   const swipe=useSheetSwipe(!!open, onClose);
+  useBackClose(!!open, swipe.close);
   if(!open) return null;
   return ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:onClose},

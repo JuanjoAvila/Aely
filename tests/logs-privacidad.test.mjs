@@ -132,7 +132,7 @@ await t("limitador Edge: error y excepción no envían message/bucket",async()=>
 await t("callback Edge: query hostil y fallo BD no salen a consola/app_events",async()=>{
  const entrada=ts(read("supabase/functions/_shared/entrada.ts"));const src=ts(read("supabase/functions/_shared/ratelimit.ts"))+ts(read("supabase/functions/bank-callback/index.ts"));
  for(const query of ["?error=sec03_secret_credential&error_description="+encodeURIComponent(sensitive),"?code=synthetic&state=synthetic"]){
-  const logs=[],rows=[];let handler;const db={rpc:async()=>({data:true,error:null}),from:()=>({select:()=>({eq:()=>({maybeSingle:async()=>({data:{id:"synthetic",user_id:"synthetic-user"}})})}),update:()=>({eq:async()=>{throw error();}}),insert:async x=>{rows.push(x);}})};
+  const logs=[],rows=[];let handler;const db={rpc:async()=>({data:true,error:null}),from:()=>({select:()=>({eq:()=>({maybeSingle:async()=>({data:{id:"synthetic",user_id:"synthetic-user"}})})}),update:()=>{const q={eq(){return q;},is(){return q;},select(){return q;},then(ok,bad){return Promise.reject(error()).then(ok,bad);}};return q;},insert:async x=>{rows.push(x);}})};
   new Function("Deno","createClient","console","encryptSessionId","ebApi","ebConfig","makeJWT",entrada+src)({env:{get:()=>"https://app.invalid/"},serve:f=>{handler=f;}},()=>db,{error:(...a)=>logs.push(a)},async()=>"encrypted",async()=>({}),()=>({}),async()=>"jwt");
   const res=await handler(new Request("https://edge.invalid/"+query));assert.equal(res.status,302);clean(logs);clean(rows);assert.equal(logs.length,1);
  }

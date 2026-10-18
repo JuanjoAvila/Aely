@@ -112,15 +112,16 @@ export function baseDatos(rows, { user = "synthetic", failUpdate = null, trasLee
   let leido = false;
   const consulta = (apply) => {
     const filters = [];
+    let returning = false;
     const q = {
       eq(col, v) { filters.push((r) => r[col] === v); return q; },
       in(col, vs) { filters.push((r) => vs.includes(r[col])); return q; },
       lt(col, v) { filters.push((r) => r[col] != null && Date.parse(r[col]) < Date.parse(v)); return q; },
       is(col, v) { filters.push((r) => (r[col] == null ? null : r[col]) === v); return q; },
-      select() { return q; },
+      select() { returning = true; return q; },
       maybeSingle() { return q.then((res) => ({ data: (res.data || [])[0] || null, error: null })); },
       then(ok, ko) {
-        return Promise.resolve().then(() => apply(rows.filter((r) => filters.every((f) => f(r))))).then(ok, ko);
+        return Promise.resolve().then(() => apply(rows.filter((r) => filters.every((f) => f(r))), returning)).then(ok, ko);
       },
     };
     return q;
@@ -131,10 +132,10 @@ export function baseDatos(rows, { user = "synthetic", failUpdate = null, trasLee
       if (trasLeer && !leido) { leido = true; trasLeer(rows); }
       return { data, error: null };
     }),
-    update: (patch) => consulta((hit) => {
+    update: (patch) => consulta((hit, returning) => {
       if (failUpdate && failUpdate(patch, hit)) return { error: { message: "synthetic" } };
       hit.forEach((r) => Object.assign(r, patch));
-      return { error: null };
+      return { error: null, ...(returning ? { data: hit.map(r => ({ id: r.id })) } : {}) };
     }),
     delete: () => consulta((hit) => { const data=hit.map(r=>({id:r.id}));hit.forEach((r) => rows.splice(rows.indexOf(r), 1)); return { data, error: null }; }),
     upsert: async (row, { onConflict }) => {

@@ -557,6 +557,79 @@ function mcReduced(){
   try{ return document.documentElement.classList.contains("reduce-motion")||(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches); }catch(e){ return false; }
 }
 
+// UX16: la web observa el dedo; solo Android decide si el ajuste táctil permite el toque.
+function mcHaptic(method, args){
+  if(mcReduced()||document.hidden) return;
+  try{
+    const cap=window.Capacitor, plugin=cap&&cap.Plugins&&cap.Plugins.AelyHaptics;
+    if(!plugin||typeof plugin[method]!=="function") return;
+    Promise.resolve(plugin[method](args||{})).catch(function(){});
+  }catch(e){}
+}
+function mcBindEdgeHaptics(root, blocked){
+  let g=null;
+  const end=function(){ g=null; };
+  const boundary=function(el){
+    const max=el.scrollHeight-el.clientHeight, y=el.scrollTop;
+    return max>1?(y<=1?"top":y>=max-1?"bottom":null):null;
+  };
+  const start=function(e){
+    g=null;
+    if(!e.touches||e.touches.length!==1||blocked()||mcReduced()) return;
+    const target=e.target;
+    if(!target||!target.closest||target.closest("[data-noswipe]")) return;
+    for(let el=target;el&&el!==document.body;el=el.parentElement){
+      const css=getComputedStyle(el);
+      if(el.scrollWidth>el.clientWidth+4&&/^(auto|scroll)$/.test(css.overflowX)) return;
+      if(el.scrollHeight<=el.clientHeight+1||!/^(auto|scroll)$/.test(css.overflowY)) continue;
+      // Un scroller interior sin ola no debe delegar su borde en la página exterior.
+      if(css.overscrollBehaviorY==="none"||(el.classList.contains("page")&&!el.classList.contains("page-scroll-host"))) return;
+      const t=e.touches[0];
+      g={el:el,id:t.identifier,x:t.clientX,y:t.clientY,lastY:t.clientY,anchor:t.clientY,edge:boundary(el),fired:false};
+      return;
+    }
+  };
+  const move=function(e){
+    if(!g) return;
+    if(!e.touches||e.touches.length!==1||e.touches[0].identifier!==g.id||blocked()||e.defaultPrevented){ end(); return; }
+    if(g.fired) return;
+    const t=e.touches[0], dx=t.clientX-g.x, dy=t.clientY-g.y, step=t.clientY-g.lastY;
+    g.lastY=t.clientY;
+    if(Math.abs(dx)>8&&Math.abs(dx)>Math.abs(dy)){ end(); return; }
+    const edge=boundary(g.el);
+    // Al aterrizar en el borde se empieza a contar desde allí: el recorrido de scroll no vale.
+    if(!edge||edge!==g.edge){ g.edge=edge; g.anchor=t.clientY; return; }
+    if((edge==="top"&&step<0)||(edge==="bottom"&&step>0)){ g.anchor=t.clientY; return; }
+    if(Math.abs(dy)<=Math.abs(dx)*1.2) return;
+    const outward=edge==="top"?t.clientY-g.anchor:g.anchor-t.clientY;
+    if(outward<10) return;
+    g.fired=true;
+    mcHaptic("edge");
+  };
+  const listeners={touchstart:start,touchmove:move,touchend:end,touchcancel:end,visibilitychange:end};
+  Object.keys(listeners).forEach(function(type){ root.addEventListener(type,listeners[type],{passive:true}); });
+  return function(){ end(); Object.keys(listeners).forEach(function(type){ root.removeEventListener(type,listeners[type]); }); };
+}
+// Un solo objetivo: cambiar esta línea selecciona otra animación sin multiplicar disparos.
+const MC_INICIO_HAPTIC={selector:".v42-cycle-draw",animation:"v42-cycle-draw"};
+function mcInicioFillHaptic(e){
+  const el=e.target;
+  if(!el||!el.matches(MC_INICIO_HAPTIC.selector)||e.animationName!==MC_INICIO_HAPTIC.animation||e.elapsedTime!==0||mcReduced()||document.hidden) return;
+  if(!window.__mcSplashGone&&document.getElementById("mc-load")) return;
+  const page=el.closest(".page");
+  if(!page||!page.classList.contains("page-scroll-host")) return;
+  try{
+    const animation=el.getAnimations().find(function(a){ return a.animationName===MC_INICIO_HAPTIC.animation; });
+    if(!animation||animation.playState!=="running") return;
+    const duration=animation.effect.getComputedTiming().duration;
+    const seen=mcInicioFillHaptic.seen||(mcInicioFillHaptic.seen=new WeakSet());
+    if(seen.has(animation)||!Number.isFinite(duration)||duration<=0) return;
+    seen.add(animation);
+    // animationstart sucede DESPUÉS del delay CSS y de la pausa del splash: sin segundo reloj.
+    mcHaptic("fill",{durationMs:duration});
+  }catch(err){}
+}
+
 /* Count-up compartido (B2). `ready` es la puerta: Inicio espera `mc-splash-gone`; Cartera espera
    el bus `mcOnCarteraActive`. Sin puerta, la animación se gasta con la pestaña premontada (o
    detrás del splash) y al llegar el número ya está puesto — peor que no animar. */
@@ -1214,6 +1287,8 @@ function _mcBackInitOnce(){
     _mcBackSchedule();
   });
 }
+/* Una hoja con useSheetSwipe pasa aquí `swipe.close`, no su onClose: con el pelado, atrás la
+   desmontaba de golpe sin bajar ni aclarar el velo (Filtros, Más…, bienes, aportar a meta; 2026-10-17). */
 function useBackClose(open, onClose, identity){
   const close=useRef(null);
   // Conserva la closure de apertura y las refs financieras existentes. Sólo los propietarios
@@ -1455,7 +1530,7 @@ function useSheetSwipe(open, onClose, opts){
     }
     if(e.cancelable) e.preventDefault();
   };
-  const closeAnimated=function(done){
+  const runClose=function(done,fromDrag){
     if(closing.current) return;
     const finish=typeof done==="function"?done:onClose;
     const el=sheetRef.current;
@@ -1464,11 +1539,16 @@ function useSheetSwipe(open, onClose, opts){
     // El transform arranca antes del setState/guardado que pueda ejecutar quien cierra: al vivir
     // en el compositor sigue avanzando aunque React tenga que recalcular la lista de Gastos.
     el.classList.remove("dragging");
-    const ms=opts.closeMs||300;
+    // Soltar tras arrastrar sigue con la curva rápida: continúa la velocidad del dedo. Atrás, ✕,
+    // Guardar y tocar el velo salen de parado, y con esa curva la hoja hacía el 71 % del camino en
+    // 66 ms y el velo se aclaraba igual de golpe: en su móvil desaparecía en ~120 ms por atrás,
+    // borde o ✕ («se baja rápido y no suave» en todas las hojas; en Deudas, la más alta, se leía
+    // como parpadeo — beta 4.26.140.1, 2026-10-17). Sin dedo, el ritmo pausado de la apertura.
+    const ms=fromDrag?(opts.closeMs||300):420;
     // El fondo se libera al empezar la salida, no al desmontar: esperar esos 200–320 ms
     // recupera el tirón que ya se había eliminado (revisión independiente 2026-09-24).
     if(lockHeld.current){ lockHeld.current=false; mcSheetUnlock(); }
-    const ease=opts.closeEase||"cubic-bezier(.32,.72,0,1)";
+    const ease=fromDrag?(opts.closeEase||"cubic-bezier(.32,.72,0,1)"):"cubic-bezier(.3,0,.2,1)";
     el.style.transition="transform "+ms+"ms "+ease;
     el.style.transform="translate3d(0,110%,0)";
     // El velo se va con la hoja, mismo tiempo y curva. Antes solo bajaba la hoja y el velo se
@@ -1485,6 +1565,7 @@ function useSheetSwipe(open, onClose, opts){
       finish();
     },ms);
   };
+  const closeAnimated=function(done){ runClose(done,false); };
   const onTouchEnd=function(e){
     if(e&&e.stopPropagation) e.stopPropagation();
     if(closing.current) return;
@@ -1495,14 +1576,17 @@ function useSheetSwipe(open, onClose, opts){
     if(!el){ if(dist>80) onClose(); return; }
     el.classList.remove("dragging");
     if(dist>80){
-      closeAnimated();
+      runClose(null,true);
     } else if(mcReduced()){
       el.style.transition=""; el.style.transform="";
     } else {
       const snapMs=opts.snapMs||280;
       el.style.transition="transform "+snapMs+"ms "+(opts.snapEase||"cubic-bezier(.32,.72,0,1)");
       el.style.transform="translate3d(0,0,0)";
-      setTimeout(function(){ try{ el.style.transition=""; el.style.transform=""; }catch(err){} },snapMs);
+      // Un toque en ✕ o Guardar también pasa por aquí (touchend antes del click que cierra). Si la
+      // hoja ya está saliendo, borrar su transform la devolvía arriba antes de desmontarse: en su
+      // móvil, la hoja de Deudas reaparecía de golpe al final del cierre (medido 2026-10-17).
+      setTimeout(function(){ if(closing.current) return; try{ el.style.transition=""; el.style.transform=""; }catch(err){} },snapMs);
     }
   };
   const onTouchCancel=function(e){

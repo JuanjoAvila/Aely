@@ -51,7 +51,7 @@ function handler(name, opts = {}, sources = source) {
         const matches = filters.every(([k, v]) => link[k] === v);
         if (op === "read") calls.reads++;
         else { calls.writes.push({ table, op, patch: plain(patch) }); if (table === "bank_links" && op === "update" && matches) Object.assign(link, patch); }
-        return { data: table === "bank_links" ? (name === "bank-callback" ? matches && !opts.unknown ? plain(link) : null : [plain(link)]) : [], error: null };
+        return { data: table === "bank_links" ? (name === "bank-callback" && op === "read" ? matches && !opts.unknown ? plain(link) : null : matches ? [plain(link)] : []) : [], error: null };
       };
       q.maybeSingle = async () => result(); q.then = (yes, no) => Promise.resolve(result()).then(yes, no); return q;
     },

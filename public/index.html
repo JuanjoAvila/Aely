@@ -2478,10 +2478,7 @@ function mcLogText(raw){
 const GASTO_ORIGENES=["v4-apuntar","gastos-apuntar","gastos-editar","gastos-borrar","gastos-deshacer","gastos-dup","ob-import","ob-absorbed","backfill"];
 function mcLogEvent(kind,message,detail){
   const m=String(message||"");
-  if(kind==="error"&&m==="ob_absorbed"){
-    let p;try{p=JSON.parse(detail);}catch(e){return null;}
-    return p&&["full","persist","merge","retry","owner","confirmed_full","confirmed_persist","confirmed_merge"].includes(p.code)?{message:m,detail:JSON.stringify({code:p.code})}:null;
-  }
+  if(kind==="error" && m==="GOALS_SYNC_CONFLICT") return {message:"goals_sync_conflict",detail:'{"code":"goals_sync_conflict"}'};
   if(kind==="use") return USO_OK.indexOf(m)>=0?{message:m,detail:null}:null;
   if(kind==="perf"){
     const match=m.match(/^([a-z_]+) (\d+(?:\.\d)?)s$/);
@@ -3074,6 +3071,7 @@ function mergeAccountBalanceHistory(local, incoming){
   return out;
 }
 function mcLoadRaw(key){
+  if(key.endsWith("_goal_conflicts")) return store.get(key);
   const base=store.get(key);
   if(!base) return null;
   const exp=store.get(key+EXP_SUFFIX);
@@ -3100,7 +3098,13 @@ function mcLoadRaw(key){
   const saved=mcSaveRaw.balanceHistory||(mcSaveRaw.balanceHistory={});
   saved[key]={ref:history,history:history,body:body,revision:revision,owner:base._historyOwner,partition:JSON.stringify(partition),durable:durable&&hist&&hist.schema===1&&(!hist.owner||hist.owner===base._historyOwner)&&JSON.stringify(hist.history)===body};
   delete base._balHistoryRevision;
-  return obConfirmedRestore(obAbsorbedRestore(base,key),key);
+  if(base._goalSync){
+    const meta=base._goalSync,legacy=Object.prototype.hasOwnProperty.call(meta,"conflicts");
+    const disk=legacy?{records:goalSyncStore(key,meta)}:mcLoadRaw(key+"_goal_conflicts");
+    base._goalSync=Object.assign({},meta,{conflicts:disk && (!disk.owner || disk.owner===meta.owner)?goalSyncRecords(disk.records):[]});
+    if(legacy) mcSaveRaw(key,base,{expenses:false});
+  }
+  return base;
 }
 /* SE GUARDA LO QUE SE HA PINTADO, NO LO QUE SE CALCULÓ (INC-0410, 4/10/2026).
    Antes `set()` apuntaba el volcado pendiente DENTRO del updater. React puede ejecutar un updater
@@ -3128,8 +3132,13 @@ function mcPersistCommit(p, prev, state, schedule){
    exista la clave partida, los gastos se escriben SIEMPRE. */
 function mcSaveRaw(key, s, opts){
   if(!s) return;
+  if(key.endsWith("_goal_conflicts")){ store.set(key,{owner:s.owner,records:goalSyncRecords(s.records)}); return; }
   const rest=Object.assign({},s);
   delete rest.expenses;
+  if(s._goalSync){
+    goalSyncStore(key,s._goalSync);
+    rest._goalSync=Object.assign({},s._goalSync); delete rest._goalSync.conflicts;
+  }
   // La caché pertenece a este escritor; su inicialización queda dentro de la función
   // que vigilan las revisiones, sin otro dato global compartido fuera de su alcance.
   const saved=mcSaveRaw.balanceHistory||(mcSaveRaw.balanceHistory={});
@@ -3290,7 +3299,7 @@ function mcRecargarSinVolcar(){
    Las DOS mitades: borrar solo la ligera dejaba `micartera_sandbox_exp` huérfana, y la siguiente
    entrada al banco de pruebas se encontraba los gastos de la sesión anterior mezclados con la
    copia nueva de la cartera real. */
-function mcResetSandbox(){ store.del(STATE_KEY_TEST); store.del(STATE_KEY_TEST+EXP_SUFFIX); store.del(STATE_KEY_TEST+"_balhist"); if(mcSaveRaw.balanceHistory) delete mcSaveRaw.balanceHistory[STATE_KEY_TEST]; try{ localStorage.removeItem("_mcSandboxVacio"); }catch(e){} }
+function mcResetSandbox(){ store.del(STATE_KEY_TEST); store.del(STATE_KEY_TEST+EXP_SUFFIX); store.del(STATE_KEY_TEST+"_balhist"); store.del(STATE_KEY_TEST+"_goal_conflicts"); delete _mem[STATE_KEY_TEST+"_goal_conflicts"]; if(goalSyncStore.cache)delete goalSyncStore.cache[STATE_KEY_TEST]; if(mcSaveRaw.balanceHistory) delete mcSaveRaw.balanceHistory[STATE_KEY_TEST]; try{ localStorage.removeItem("_mcSandboxVacio"); }catch(e){} }
 
 /* ---------- ACUSE del cursor de bancos: LOCAL a este dispositivo (12/10/2026) ----------
    `bank-sync` no mueve su cursor al leer del banco: entrega en cada respuesta el que le tocaría
@@ -3468,10 +3477,6 @@ const cloud = (function(){
     },
     async pushState(uid, data, lastKnownUpdatedAt){
       if(!sb || !uid) return null;
-      const current=await this.session();if(!current||current.user.id!==uid)throw new Error("ob_confirmed_owner");
-      const confirmed=obConfirmedMerge(data,null,uid);if(!confirmed)throw new Error("ob_confirmed_merge");
-      data=Object.assign({},data,{obAbsorbedConfirmed:confirmed});
-      if((data.obAbsorbedPending||[]).some(function(p){return !obAbsorbedValid(p,uid);})||(data.obAbsorbedPending||[]).length>OB_ABSORBED_MAX)throw new Error("ob_absorbed_owner");
       const now=new Date().toISOString();
       if(lastKnownUpdatedAt){
         const {data:rows,error}=await sb.from('app_state')
@@ -3523,7 +3528,6 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
-      if(!await obConfirmedCanUpload(e,session.user.id,sb))return null;
       // source lleva el banco embebido (ob:caixa…) para filtrar en Gastos tras reinstalación
       // sin columna nueva en Supabase (feedback 2026-07-16).
       const base={ user_id:session.user.id, fecha:e.date, importe:e.amount, comercio:e.merchant, cat:e.category, source:expenseSourceForCloud(e), no_card:!!e.noCard };
@@ -3538,10 +3542,8 @@ const cloud = (function(){
       // Cómo lo llamaba el banco (migración 0021). Sin esto, renombrar el «Movimiento» de Trade
       // Republic hacía que el siguiente sync no reconociera la fila y metiera el gasto otra vez.
       const obn={ ob_name:(e.obName!=null?String(e.obName).slice(0,160):null) };
-      let denied=false;
       const r=await withNotaFallback(
-        async function(conNota, conDivisa, conObName){
-          if(!await obConfirmedCanUpload(e,session.user.id,sb)){denied=true;return {data:null,error:null};}
+        function(conNota, conDivisa, conObName){
           let fila=base;
           if(conNota) fila=Object.assign({},fila,nota);
           if(conDivisa) fila=Object.assign({},fila,divisa);
@@ -3558,7 +3560,6 @@ const cloud = (function(){
           return e.reciboId ? q.select('id') : q;
         }
       );
-      if(denied)return null;
       return !!(r && r.data && r.data.length);
     },
     /* LA MARCA DE RECIBO DE UNA FILA QUE YA ESTÁ EN LA NUBE: la pone si `e` la lleva y la quita
@@ -3572,8 +3573,7 @@ const cloud = (function(){
       if(!sb || !e.ent) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
-      if(!await obConfirmedCanUpload(e,session.user.id,sb))return;
-      const {data,error}=await sb.from('expenses').select('id,source,fecha,importe,comercio')
+      const {data,error}=await sb.from('expenses').select('id,source')
         .eq('user_id',session.user.id).eq('fecha',e.date).eq('importe',e.amount).eq('comercio',e.merchant);
       if(error) throw error;
       for(const r of data||[]){
@@ -3581,7 +3581,6 @@ const cloud = (function(){
         if(!m || m[2]!==e.ent || (e.reciboId && m[4].indexOf("#dup")>=0)) continue;
         const src=m[1]+":"+m[2]+reciboSufijo(e.reciboId)+m[4];
         if(src===r.source) continue;
-        if(!await obConfirmedCanUpload(expenseFromRow(r),session.user.id,sb))continue;
         const w=await sb.from('expenses').update({ source:src }).eq('user_id',session.user.id).eq('id',r.id);
         if(w.error) throw w.error;
       }
@@ -3593,19 +3592,11 @@ const cloud = (function(){
       if(!sb) return { cloudIds:[], offline:true };
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return { cloudIds:[], offline:true };
-      const candidates=(expenses||[]).filter(Boolean),list=[];
-      for(const e of candidates)if(await obConfirmedCanUpload(e,session.user.id,sb))list.push(e);
+      const list=(expenses||[]).filter(Boolean);
       if(!list.length) return { cloudIds:[], offline:false };
       const uid=session.user.id;
-      const r=await withNotaFallback(async function(conNota, conDivisa, conObName){
-        const checked=[];for(const e of list)if(await obConfirmedCanUpload(e,uid,sb))checked.push(e);
-        // Una fila posterior puede haber cambiado de sesión después de aprobar la anterior.
-        // Desde esta barrera hasta construir el envío no hay más awaits; el registro se relee después.
-        const current=await sb.auth.getSession(),activeSession=!current.error&&current.data&&current.data.session;
-        if(!activeSession||!activeSession.user||activeSession.user.id!==uid||(activeSession.expires_at!=null&&(!Number.isFinite(Number(activeSession.expires_at))||Number(activeSession.expires_at)*1000<=Date.now())))return {data:[],error:null};
-        const records=obConfirmedRead(uid);
-        const active=records&&!obConfirmedBlocked.has(uid)?checked.filter(function(e){return !obConfirmedMatches(e,records,uid);}):[];
-        const filas=active.map(function(e){
+      const r=await withNotaFallback(function(conNota, conDivisa, conObName){
+        const filas=list.map(function(e){
           const base={ user_id:uid, fecha:e.date, importe:e.amount, comercio:e.merchant, cat:e.category, source:expenseSourceForCloud(e), no_card:!!e.noCard };
           if(isExpenseUuid(e&&e.id)) base.id=e.id;
           let fila=base;
@@ -3614,7 +3605,6 @@ const cloud = (function(){
           if(conObName) fila=Object.assign({},fila,{ ob_name:(e.obName!=null?String(e.obName).slice(0,160):null) });
           return fila;
         });
-        if(!filas.length)return {data:[],error:null};
         return sb.from('expenses').upsert(
           filas,
           { onConflict:'user_id,fecha,importe,comercio', ignoreDuplicates:true }
@@ -3640,7 +3630,6 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
-      if(!await obConfirmedCanUpload(e,session.user.id,sb)||!await obConfirmedCanUpload(Object.assign({},e,{ent:ent||undefined}),session.user.id,sb))return;
       const src=expenseSourceForCloud(Object.assign({},e,{ent:ent||undefined}));
       const {error}=await expenseCloudEq(sb.from('expenses').update({ source:src }), session.user.id, e);
       if(error) throw error;
@@ -3653,7 +3642,6 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
-      if(!await obConfirmedCanUpload(e,session.user.id,sb))return;
       const src=expenseSourceForCloud(Object.assign({},e,{possibleDup:!!isDup}));
       const {error}=await expenseCloudEq(sb.from('expenses').update({ source:src }), session.user.id, e);
       if(error) throw error;
@@ -3663,7 +3651,6 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
-      if(!await obConfirmedCanUpload(e,session.user.id,sb))return;
       const {error}=await expenseCloudEq(sb.from('expenses').update({ no_card:!!noCard }), session.user.id, e);
       if(error) throw error;
     },
@@ -3673,7 +3660,6 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
-      if(!await obConfirmedCanUpload(e,session.user.id,sb))return;
       // Si la migración 0017 aún no está aplicada, esto no puede hacer nada útil: se avisa al
       // llamante en vez de fallar mudo (aquí el concepto ES el dato que el usuario quiere guardar).
       const {error}=await expenseCloudEq(sb.from('expenses').update({ nota:String(note||"").slice(0,160)||null, nota_edit:true }), session.user.id, e);
@@ -3686,7 +3672,6 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
-      if(!await obConfirmedCanUpload(e,session.user.id,sb))return 0;
       const upd={ cat:String(cat||"otros") };
       // Sacar una cuota de «Deudas» a mano le quita también la marca en la nube; si no, el
       // siguiente pull le devolvería el `debtId` (4.21.0).
@@ -3710,7 +3695,6 @@ const cloud = (function(){
       if(read.error) throw read.error;
       const row=read.data;
       if(!withdrawalRowMatches(e,row)) throw new Error("withdrawal identity changed");
-      if(!await obConfirmedCanUpload(e,session.user.id,sb))throw new Error("withdrawal unavailable");
       // El vínculo puede llegar mientras se consulta la fila: no neutralizar un pago compartido.
       if(!ready()) throw new Error("withdrawal unavailable");
       if(row.cat==="traspaso") return row;
@@ -3733,7 +3717,6 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
-      if(!await obConfirmedCanUpload(e,session.user.id,sb))return;
       const {error}=await expenseCloudEq(sb.from('expenses').update({ cat:"deudas", source:expenseSourceForCloud(e) }), session.user.id, e);
       if(error) throw error;
     },
@@ -3743,41 +3726,6 @@ const cloud = (function(){
       if(!session) return;
       const {error}=await expenseCloudEq(sb.from('expenses').delete(), session.user.id, e);
       if(error) throw error;
-    },
-    // El acuse pertenece al objetivo leído, nunca a una referencia compartida con la superviviente.
-    async settleObAbsorbed(p, currentOwner){
-      if(!sb||mcSandbox()||!obAbsorbedValid(p,p&&p.owner)) return false;
-      const owner=p.owner, controller=new AbortController(), timer=setTimeout(function(){controller.abort();},8000);
-      const active=async function(){
-        if(currentOwner()!==owner)return false;
-        const r=await sb.auth.getSession(),s=r.data&&r.data.session;
-        return !r.error&&s&&s.user.id===owner&&(s.expires_at==null||Number.isFinite(Number(s.expires_at))&&Number(s.expires_at)*1000>Date.now())&&currentOwner()===owner;
-      };
-      const query=async function(q){const r=await q.abortSignal(controller.signal);if(r.error||!Array.isArray(r.data))throw new Error("ob_absorbed_read");return r.data;};
-      const columns="id,fecha,importe,comercio,source,ob_name";
-      const find=async function(){
-        if(!await active())throw new Error("ob_absorbed_owner");
-        const exact=await query(sb.from('expenses').select(columns).eq('user_id',owner).eq('id',p.id).limit(2));
-        if(exact.length>1)throw new Error("ob_absorbed_cardinality");
-        if(exact.length){if(!obAbsorbedCandidate(p,exact[0],false))throw new Error("ob_absorbed_changed");return exact[0];}
-        const day=p.key.split("|")[5],end=new Date(Date.parse(day+"T00:00:00Z")+86400000).toISOString();
-        const rows=await query(sb.from('expenses').select(columns).eq('user_id',owner).gte('fecha',day+"T00:00:00Z").lt('fecha',end).limit(201));
-        if(rows.length>=201)throw new Error("ob_absorbed_incomplete");
-        const possible=rows.filter(function(r){return obAbsorbedPossible(p,r);});
-        if(possible.length>1||possible.length===1&&!obAbsorbedCandidate(p,possible[0],true))throw new Error("ob_absorbed_ambiguous");
-        return possible[0]||null;
-      };
-      try{
-        const target=await find();
-        if(!target)return !!await active();
-        if(!await active())return false;
-        const rows=await query(sb.from('expenses').delete().eq('user_id',owner).eq('id',target.id)
-          .eq('source',target.source).eq('fecha',target.fecha).eq('importe',target.importe).eq('comercio',target.comercio).select('id'));
-        if(rows.length===1&&rows[0].id===target.id)return !!await active();
-        // Cero filas puede ser una carrera o una respuesta perdida: volver a leer, no inventar éxito.
-        return rows.length===0&&!await find()&&!!await active();
-      }catch(e){obAbsorbedWarn("retry");return false;}
-      finally{clearTimeout(timer);}
     },
     async prices(symbols){
       if(!sb) throw new Error("nube no disponible");
@@ -3808,11 +3756,12 @@ const cloud = (function(){
     // Copia de seguridad diaria del estado COMPLETO (idempotente por día) + poda a 30 días.
     // Best-effort: si la tabla aún no existe (migración 0002 sin aplicar), simplemente falla y se ignora.
     async backupState(uid, data){
+      const snapshot=Object.assign({},data); delete snapshot._goalSync;
       if(!sb || !uid) return;
       const today=new Date().toISOString().slice(0,10);
       const {error}=await sb.from('state_backups').upsert(
         // Sin los datos tipo banco del perfil (decisión del dueño, 14/10/2026): la copia también sale de aquí.
-        { user_id:uid, day:today, data:perfilSinDatosBanco(data) },
+        { user_id:uid, day:today, data:perfilSinDatosBanco(snapshot) },
         { onConflict:'user_id,day' }
       );
       if(error) throw error;
@@ -4213,7 +4162,7 @@ function bankDeletionLink(e){
 }
 // El mapa de lápidas se cachea por la referencia de deleted. Su índice también: recorrer
 // 500 claves por cada fila convertía un render de 20000 movimientos en diez millones.
-const obAbsorptionIndexes=new WeakMap(),expenseConfirmedSets=new WeakMap();
+const obAbsorptionIndexes=new WeakMap();
 function obAbsorptionIndex(delSet){
   let index=obAbsorptionIndexes.get(delSet);if(index)return index;
   index={any:Object.create(null),missing:Object.create(null)};
@@ -4237,8 +4186,6 @@ function obAbsorptionMatches(e,delSet){
 /* Lápidas anteriores al Paso 0 guardaban la clave sin id: siguen ocultando ese manual. */
 function expenseIsTombstoned(e, delSet){
   if(!delSet) return false;
-  const confirmed=expenseConfirmedSets.get(delSet);
-  if(confirmed&&obConfirmedMatches(e,confirmed.list,confirmed.owner))return true;
   if(obAbsorptionMatches(e,delSet))return true;
   const k=keyOfExpense(e);
   if(delSet[k]) return true;
@@ -4252,193 +4199,12 @@ function obAbsorptionKey(e,legacy){
   const base=e&&esFilaDeBanco(e)&&bank&&e.extId ? encodeURIComponent(bank)+"|"+encodeURIComponent(String(e.extId))+"|"+obOrdinalOf(e) : null;
   return base ? (legacy?"ob-absorbed|"+base:"ob-absorbed2|"+base+"|"+encodeURIComponent(String(e.obAcc||""))+"|"+String(e.date||"").slice(0,10)) : null;
 }
-/* FIN-11: la intención sobrevive al cierre y a la poda de las 500 lápidas. Guardar primero
-   en una partición pequeña con readback: el fallback en memoria no acredita persistencia. */
-const OB_ABSORBED_MAX=200,obAbsorbedWarnings=new Set(),obAbsorbedRuns=new Map();
-function obAbsorbedWarn(code){
-  if(!["full","persist","merge","retry","owner","confirmed_full","confirmed_persist","confirmed_merge"].includes(code)||obAbsorbedWarnings.has(code))return;
-  obAbsorbedWarnings.add(code);
-  try{Promise.resolve(cloud.logEvent("error","ob_absorbed",JSON.stringify({code:code}))).catch(function(){});}catch(e){}
-  // El aviso se pinta fuera del updater financiero; tampoco transporta datos del movimiento.
-  Promise.resolve().then(function(){try{window.dispatchEvent(new CustomEvent("mc-ob-absorbed-warning",{detail:code}));}catch(e){}});
-}
-/* FIN17: un ACK no es una intención pendiente. Esta memoria tiene su propio límite y
-   nunca desaparece al podar las lápidas normales. No es un cerco atómico del servidor. */
-const OB_CONFIRMED_MAX=1000,OB_CONFIRMED_AGE=90*86400000,obConfirmedBlocked=new Set(),obConfirmedIndexes=new WeakMap(),obConfirmedReadCache=new Map();
-function obConfirmedValid(p,owner){
-  const key=function(k){const a=String(k||"").split("|");return a.length===6&&a[0]==="ob-absorbed2"&&!!a[1]&&!!a[2]&&/^[1-9]\d{0,5}$/.test(a[3])&&/^\d{4}-\d{2}-\d{2}$/.test(a[5]);};
-  return !!p&&!!owner&&p.owner===owner&&isExpenseUuid(p.id)&&isExpenseUuid(p.keepId)&&p.id!==p.keepId&&key(p.key)&&key(p.keepKey)&&Object.prototype.hasOwnProperty.call(p,"ackAt");
-}
-function obConfirmedJoin(a,b,owner,evict,now){
-  if(a!=null&&!Array.isArray(a)||b!=null&&!Array.isArray(b))return null;
-  const out=[],seen=new Map();
-  for(const p of (Array.isArray(a)?a:[]).concat(Array.isArray(b)?b:[])){
-    if(p&&p.owner!==owner)continue;
-    if(!obConfirmedValid(p,owner))return null;
-    const k=JSON.stringify([p.key,p.keepKey,p.keepId]),i=seen.get(k);
-    if(i==null){seen.set(k,out.length);out.push(p);}
-    else{
-      const q=out[i],valid=function(n){return typeof n==="number"&&Number.isFinite(n)&&n>0;};
-      const at=valid(q.ackAt)&&valid(p.ackAt)?Math.max(q.ackAt,p.ackAt):null;
-      if(q.ackAt!==at)out[i]=Object.assign({},q,{ackAt:at});
-    }
-  }
-  if(out.length>OB_CONFIRMED_MAX){
-    if(!evict)return null;
-    const cut=(now==null?Date.now():now)-OB_CONFIRMED_AGE;
-    const eligible=out.filter(function(p){return typeof p.ackAt==="number"&&Number.isFinite(p.ackAt)&&p.ackAt>0&&p.ackAt<cut;}).sort(function(x,y){return x.ackAt-y.ackAt;});
-    const n=out.length-OB_CONFIRMED_MAX;if(eligible.length<n)return null;
-    const drop=new Set(eligible.slice(0,n));return out.filter(function(p){return !drop.has(p);});
-  }
-  return Array.isArray(a)&&out.length===a.length&&out.every(function(p,i){return p===a[i];})?a:out;
-}
-function obConfirmedMatches(e,list,owner){
-  if(!Array.isArray(list)||!list.length)return false;
-  let index=obConfirmedIndexes.get(list);
-  if(!index||index.owner!==owner){
-    index={owner:owner,keep:Object.create(null),gone:Object.create(null),ids:new Set()};
-    list.forEach(function(p){if(obConfirmedValid(p,owner)){index.keep[p.keepKey]=1;index.gone[p.key]=1;index.ids.add(p.keepId);}});
-    obConfirmedIndexes.set(list,index);
-  }
-  // El veto de TODAS las supervivientes precede al match: jamás se oculta una por referencia.
-  if(e&&index.ids.has(e.id)||obAbsorptionMatches(e,index.keep))return false;
-  return obAbsorptionMatches(e,index.gone);
-}
-function obConfirmedStorageKey(owner,key){return (key||mcStateKey())+"_oback_"+encodeURIComponent(owner);}
-function obConfirmedStorage(){return typeof localStorage!=="undefined"?localStorage:window.localStorage;}
-function obConfirmedRead(owner,key){
-  if(!owner)return null;
-  try{const storageKey=obConfirmedStorageKey(owner,key),raw=obConfirmedStorage().getItem(storageKey),cached=obConfirmedReadCache.get(storageKey);
-    if(cached&&cached.raw===raw)return cached.list;
-    if(raw==null){const empty=[];obConfirmedReadCache.set(storageKey,{raw:raw,list:empty});return empty;}
-    const p=JSON.parse(raw);if(p.owner!==owner||!Array.isArray(p.confirmed))return null;
-    const list=obConfirmedJoin(p.confirmed,[],owner);if(list)obConfirmedReadCache.set(storageKey,{raw:raw,list:list});return list;
-  }catch(e){return null;}
-}
-function obConfirmedPersist(owner,list,key){
-  if(!owner||!Array.isArray(list)||list.length>OB_CONFIRMED_MAX||list.some(function(p){return !obConfirmedValid(p,owner);}))return false;
-  // JSON omite undefined: una edad ilegible se conserva como null, nunca como pérdida del ACK.
-  const durable=list.map(function(p){return typeof p.ackAt==="number"&&Number.isFinite(p.ackAt)&&p.ackAt>0?p:Object.assign({},p,{ackAt:null});});
-  try{const body=JSON.stringify({owner:owner,confirmed:durable}),k=obConfirmedStorageKey(owner,key);
-    const storage=obConfirmedStorage();storage.setItem(k,body);return storage.getItem(k)===body;
-  }catch(e){return false;}
-}
-function obConfirmedMerge(local,remote,owner,key){
-  const disk=obConfirmedRead(owner,key),own=local&&local._historyOwner===owner?local.obAbsorbedConfirmed:[];
-  const joined=disk&&obConfirmedJoin(disk,own,owner),list=joined&&obConfirmedJoin(joined,remote&&remote.obAbsorbedConfirmed,owner);
-  // Una unión vacía no incorpora ningún ACK: no necesita inventar una escritura durable vacía.
-  if(!list||list.length&&!obConfirmedPersist(owner,list,key)){obConfirmedBlocked.add(owner);obAbsorbedWarn("confirmed_merge");return null;}
-  obConfirmedBlocked.delete(owner);return list;
-}
-function obConfirmedRestore(s,key){
-  const owner=s&&s._historyOwner;if(!owner)return s;
-  const list=obConfirmedMerge(s,null,owner,key);
-  return list?Object.assign({},s,{obAbsorbedConfirmed:list}):Object.assign({},s,{obAbsorbedIssue:"confirmed_merge"});
-}
-function obConfirmedAck(s,p,owner){
-  const disk=obConfirmedRead(owner),own=disk&&obConfirmedJoin(disk,s.obAbsorbedConfirmed,owner);
-  const record={owner:owner,id:p.id,key:p.key,keepId:p.keepId,keepKey:p.keepKey,ackAt:Date.now()};
-  const list=own&&obConfirmedJoin(own,[record],owner,true);
-  if(!list){obAbsorbedWarn("confirmed_full");return null;}
-  if(!obConfirmedPersist(owner,list)){obAbsorbedWarn("confirmed_persist");return null;}
-  return list;
-}
-async function obConfirmedCanUpload(e,owner,sdk){
-  // Revalidar el MISMO SDK que enviará la escritura, incluso en métodos ligados a otra instancia.
-  if(!sdk||!sdk.auth||typeof sdk.auth.getSession!=="function")return false;
-  const response=await sdk.auth.getSession(),session=!response.error&&response.data&&response.data.session;
-  if(!session||!session.user||session.user.id!==owner||(session.expires_at!=null&&(!Number.isFinite(Number(session.expires_at))||Number(session.expires_at)*1000<=Date.now())))return false;
-  const list=obConfirmedRead(owner);
-  if(!list||obConfirmedBlocked.has(owner)){obAbsorbedWarn("confirmed_merge");return false;}
-  return !obConfirmedMatches(e,list,owner);
-}
-function obAbsorbedValid(p,owner){
-  if(!p||!owner||p.owner!==owner||!isExpenseUuid(p.id)||!isExpenseUuid(p.keepId)||p.id===p.keepId)return false;
-  const a=String(p.key||"").split("|"),b=String(p.keepKey||"").split("|");
-  return a.length===6&&a[0]==="ob-absorbed2"&&!!a[1]&&!!a[2]&&/^[1-9]\d{0,5}$/.test(a[3])&&/^\d{4}-\d{2}-\d{2}$/.test(a[5])
-    &&b.length===6&&b[0]==="ob-absorbed2"&&typeof p.merchant==="string"&&typeof p.amount==="number"&&Number.isFinite(p.amount)&&p.amount>0;
-}
-function obAbsorbedJoin(a,b,owner){
-  const out=[],seen=new Set();
-  (Array.isArray(a)?a:[]).concat(Array.isArray(b)?b:[]).forEach(function(p){
-    if(!obAbsorbedValid(p,owner))return;
-    const key=p.id+"|"+p.key;if(!seen.has(key)){seen.add(key);out.push(p);}
-  });
-  if(out.length>OB_ABSORBED_MAX){obAbsorbedWarn("merge");return null;}
-  return Array.isArray(a)&&out.length===a.length&&out.every(function(p,i){return p===a[i];})?a:out;
-}
-function obAbsorbedStorageKey(owner,key){return (key||mcStateKey())+"_obabs_"+encodeURIComponent(owner);}
-function obAbsorbedPersist(owner,list){
-  if(!owner||!Array.isArray(list)||list.length>OB_ABSORBED_MAX||list.some(function(p){return !obAbsorbedValid(p,owner);}))return false;
-  try{
-    const key=obAbsorbedStorageKey(owner),body=JSON.stringify({owner:owner,pending:list});
-    localStorage.setItem(key,body);if(localStorage.getItem(key)===body)return true;
-  }catch(e){}
-  obAbsorbedWarn("persist");return false;
-}
-function obAbsorbedRestore(s,key){
-  const owner=s&&s._historyOwner;if(!owner)return s;
-  try{
-    const raw=localStorage.getItem(obAbsorbedStorageKey(owner,key));if(raw==null)return s;
-    const pack=JSON.parse(raw),list=obAbsorbedJoin(pack.pending,[],owner);
-    if(pack.owner===owner&&list&&Array.isArray(pack.pending)&&list.length===pack.pending.length)return Object.assign({},s,{obAbsorbedPending:list});
-  }catch(e){}
-  return s;
-}
-function obAbsorbedEnqueue(s,e,keep){
-  const owner=s&&s._historyOwner;
-  const p={owner:owner,id:e.id,key:obAbsorptionKey(e),keepId:keep.id,keepKey:obAbsorptionKey(keep),amount:e.amount,merchant:e.merchant||""};
-  if(!obAbsorbedValid(p,owner)){obAbsorbedWarn("owner");return null;}
-  const list=obAbsorbedJoin(s.obAbsorbedPending,[p],owner);
-  if(!list){obAbsorbedWarn("full");return null;}
-  return obAbsorbedPersist(owner,list)?list:null;
-}
-function obAbsorbedCandidate(p,row,alias){
-  if(!row||!isExpenseUuid(row.id)||row.id===p.keepId||typeof row.source!=="string"||typeof row.fecha!=="string"||typeof row.comercio!=="string")return false;
-  const e=expenseFromRow(row),key=obAbsorptionKey(e);
-  if(e.obPending||e.amount!==p.amount||e.merchant!==p.merchant||!key||!obAbsorptionMatches(e,{[p.key]:1})||obAbsorptionMatches(e,{[p.keepKey]:1}))return false;
-  // Sin UUID compartido, una cuenta ausente ya no acredita una coincidencia destructiva.
-  return !alias||!!p.key.split("|")[4]&&!!e.obAcc&&key===p.key;
-}
-// No encontrar un candidato borrable no prueba ausencia: un alias editado/legacy es incertidumbre.
-function obAbsorbedPossible(p,row){
-  if(!row||!row.id||typeof row.source!=="string")return true;
-  const e=expenseFromRow(row),key=obAbsorptionKey(e);
-  if(key)return obAbsorptionMatches(e,{[p.key]:1});
-  return esFilaDeBanco(e)&&encodeURIComponent(expenseBankOf(e)||"")===p.key.split("|")[1]
-    &&String(e.date||"").slice(0,10)===p.key.split("|")[5]&&e.amount===p.amount&&e.merchant===p.merchant;
-}
-async function obAbsorbedRetry(getState,getOwner,apply,offset){
-  const owner=getOwner(),s=getState();
-  if(!owner||!s||s._historyOwner!==owner||mcSandbox()||!cloud.enabled())return offset||0;
-  if(obAbsorbedRuns.has(owner))return obAbsorbedRuns.get(owner);
-  const list=obAbsorbedJoin(s.obAbsorbedPending,[],owner)||[],start=(offset||0)%Math.max(1,list.length);
-  const batch=list.slice(start).concat(list.slice(0,start)).slice(0,4);
-  const run=(async function(){
-    for(const p of batch){
-      if(getOwner()!==owner)break;
-      if(!await cloud.settleObAbsorbed(p,getOwner)||getOwner()!==owner)continue;
-      apply(function(prev){
-        if(getOwner()!==owner||prev._historyOwner!==owner)return prev;
-        const before=prev.obAbsorbedPending||[],next=before.filter(function(q){return q.id!==p.id||q.key!==p.key;});
-        if(next.length===before.length)return prev;
-        const confirmed=obConfirmedAck(prev,p,owner);if(!confirmed)return prev;
-        if(!obAbsorbedPersist(owner,next))return Object.assign({},prev,{obAbsorbedConfirmed:confirmed});
-        return Object.assign({},prev,{obAbsorbedPending:next,obAbsorbedConfirmed:confirmed});
-      });
-    }
-    return (start+batch.length)%Math.max(1,list.length);
-  })();
-  obAbsorbedRuns.set(owner,run);
-  try{return await run;}finally{obAbsorbedRuns.delete(owner);}
-}
 function _errCloudMsg(err){
   return mcLogCode(err);
 }
 function subirGasto(e, donde){
   if(!cloud.enabled()) return Promise.resolve();
   return cloud.addExpense(e).then(function(nueva){
-    if(nueva===null)return; // denegado por confirmación: no es un duplicado que haya que retocar
     /* El alta ignora duplicados: si la fila ya estaba en la nube sin la marca de recibo (otro
        móvil la importó antes), allí seguiría como una compra y el widget contaría lo que la app
        no cuenta. Solo entonces se le pone; la que acaba de entrar ya la lleva (la primera
@@ -4469,7 +4235,7 @@ function borrarGastoNube(e, donde){
 
    Si añades un método a `cloud` que ESCRIBA algo, añádelo a esta lista. */
 const CLOUD_WRITES=[
-  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","setExpenseRecibo","deleteExpense","deleteExpensesByIds","settleObAbsorbed",
+  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","setExpenseRecibo","deleteExpense","deleteExpensesByIds",
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
   "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",
@@ -5831,8 +5597,142 @@ function perfilSinDatosBanco(s){
 /* Para el push FRECUENTE a la nube (cada ~1,2s): los gastos viven en su tabla `expenses`
    (fuente de verdad), así que NO los duplicamos en el JSONB de app_state → se mantiene ligero
    aunque haya miles de gastos. El backup diario sí guarda el estado completo. */
+// INC-0410: la base y los borradores en conflicto son privados de ESTE dispositivo.
+// Comparar por campo permite conservar dos ediciones disjuntas sin sumar saldos absolutos.
+function goalSyncEqual(a,b){
+  if(a===b) return true;
+  if(!a || !b || typeof a!=="object" || typeof b!=="object" || Array.isArray(a)!==Array.isArray(b)) return false;
+  const ak=Object.keys(a),bk=Object.keys(b);
+  return ak.length===bk.length && ak.every(function(k){ return Object.prototype.hasOwnProperty.call(b,k) && goalSyncEqual(a[k],b[k]); });
+}
+function goalSyncCopy(v){ return v===undefined?undefined:JSON.parse(JSON.stringify(v)); }
+function goalSyncReserves(s){ return {rules:(s.settings||{}).reservaRules||[],log:s.reservaLog||[]}; }
+function goalSyncSnapshot(s){
+  // La copia recuperable conserva también cuentas/deudas y campos desconocidos, sin duplicar históricos.
+  const prune=function(v){
+    if(v==null || typeof v!=="object")return v;
+    if(Array.isArray(v))return v.map(prune);
+    const out={};Object.keys(v).forEach(function(k){
+      if(["expenses","bankTx","profile","_goalSync","_balHistoryRevision"].indexOf(k)>=0 || /(?:history|histories|historico|historicos)$/i.test(k))return;
+      Object.defineProperty(out,k,{value:prune(v[k]),enumerable:true,writable:true,configurable:true});
+    });return out;
+  };
+  return prune(s);
+}
+function goalSyncRecords(list){
+  const out=[];
+  (Array.isArray(list)?list:[]).forEach(function(r){
+    if(!r || !r.local) return;
+    const v={code:r.code,local:goalSyncSnapshot(r.local)};
+    if(r.goalId) v.goalId=r.goalId; if(r.fields) v.fields=goalSyncCopy(r.fields); if(r.notified) v.notified=true;
+    const same=function(x){const a=Object.assign({},x),b=Object.assign({},v);delete a.notified;delete b.notified;return goalSyncEqual(a,b);};
+    const i=out.findIndex(same);if(i<0) out.push(v);else if(v.notified) out[i].notified=true;
+  });
+  return out.slice(-3);
+}
+function goalSyncStore(key,meta){
+  const blocked=goalSyncStore.blocked||(goalSyncStore.blocked={});
+  if(blocked[key]===meta.owner) return [];
+  const cache=goalSyncStore.cache||(goalSyncStore.cache={}),cached=cache[key];
+  if(cached && cached.owner===meta.owner && cached.input===meta.conflicts)return cached.records;
+  const part=key+"_goal_conflicts",disk=mcLoadRaw(part),records=goalSyncRecords(meta.conflicts);
+  records.forEach(function(r){
+    if(disk && disk.owner===meta.owner && (disk.records||[]).some(function(old){const a=Object.assign({},old),b=Object.assign({},r);delete a.notified;delete b.notified;return old.notified && goalSyncEqual(a,b);})) r.notified=true;
+  });
+  const next={owner:meta.owner,records:records};
+  if(!goalSyncEqual(disk,next)) mcSaveRaw(part,next);
+  cache[key]={owner:meta.owner,input:meta.conflicts,records:records};
+  return records;
+}
+function goalSyncNotify(key,meta,emit){
+  const records=goalSyncStore(key,meta),pending=records.filter(function(r){return !r.notified;});
+  if(!pending.length) return;
+  pending.forEach(function(r){r.notified=true;});
+  const next={owner:meta.owner,records:records},part=key+"_goal_conflicts";mcSaveRaw(part,next);
+  // Sin confirmación durable no se emite: el fallback en memoria no prueba un próximo arranque.
+  try{if(!goalSyncEqual(JSON.parse(localStorage.getItem(part)),next)){delete goalSyncStore.cache[key];return;}}catch(e){delete goalSyncStore.cache[key];return;}
+  pending.forEach(function(){emit();});
+}
+function goalSyncClear(key,owner){
+  const disk=mcLoadRaw(key+"_goal_conflicts");
+  if(disk && disk.owner===owner){store.del(key+"_goal_conflicts");delete _mem[key+"_goal_conflicts"];}
+  const blocked=goalSyncStore.blocked||(goalSyncStore.blocked={});blocked[key]=owner;
+  if(goalSyncStore.cache)delete goalSyncStore.cache[key];
+}
+function goalSyncActivate(key,owner){
+  const blocked=goalSyncStore.blocked;if(blocked && blocked[key]===owner)delete blocked[key];
+}
+function mergeGoalsThreeWay(base,local,remote){
+  local=Array.isArray(local)?local:[]; remote=Array.isArray(remote)?remote:[];
+  const index=function(rows){ const m=new Map(); for(const g of rows){ if(!g || typeof g.id!=="string" || !g.id || m.has(g.id)) return null; m.set(g.id,g); } return m; };
+  const l=index(local),r=index(remote),b=Array.isArray(base)?index(base):null;
+  if(!l || !r || !b){
+    return {goals:goalSyncCopy(remote),conflicts:goalSyncEqual(local,remote)?[]:[{code:"goals_base_missing",local:goalSyncCopy(local)}]};
+  }
+  const goals=[],conflicts=[],ids=new Set([...r.keys(),...l.keys(),...b.keys()]);
+  ids.forEach(function(id){
+    const old=b.get(id),left=l.get(id),right=r.get(id);
+    if(!left && !right) return;
+    // Una ausencia respecto a la base borra, salvo una edición concurrente de esa misma meta.
+    if(!left){ if(!old || !goalSyncEqual(right,old)) goals.push(goalSyncCopy(right)); return; }
+    if(!right){ if(!old || !goalSyncEqual(left,old)) goals.push(goalSyncCopy(left)); return; }
+    const merged={},fields=[],keys=new Set([...Object.keys(right),...Object.keys(left),...Object.keys(old||{})]);
+    const financial=["saved","target","done","doneAt"],groups=[financial];
+    keys.forEach(function(k){if(financial.indexOf(k)<0)groups.push([k]);});
+    groups.forEach(function(group){
+      const has=function(o,k){ return !!o && Object.prototype.hasOwnProperty.call(o,k); };
+      const same=function(a,c){ return group.every(function(k){return has(a,k)===has(c,k) && (!has(a,k) || goalSyncEqual(a[k],c[k]));}); };
+      let source=right;
+      if(same(left,old)) source=right;
+      else if(same(right,old)) source=left;
+      else if(!same(left,right)) fields.push.apply(fields,group);
+      group.forEach(function(k){if(has(source,k))Object.defineProperty(merged,k,{value:goalSyncCopy(source[k]),enumerable:true,writable:true,configurable:true});});
+    });
+    goals.push(merged);
+    if(fields.length) conflicts.push({code:"goals_field_conflict",goalId:id,fields:fields,local:goalSyncCopy(left)});
+  });
+  return {goals:goals,conflicts:conflicts};
+}
+function goalSyncReserveGoalConflict(base,local,conflicts){
+  const touched=new Set();
+  ["rules","log"].forEach(function(k){
+    const old=new Map((base[k]||[]).filter(Boolean).map(function(r){return [r.id,r];}));
+    (local[k]||[]).forEach(function(r){if(r && r.goalId && !goalSyncEqual(r,old.get(r.id)))touched.add(r.goalId);});
+  });
+  return conflicts.some(function(c){return c.code==="goals_field_conflict" && touched.has(c.goalId);});
+}
+function goalSyncPull(prev,remote,owner,revision,dropLocal,localNewer){
+  const kept=!dropLocal && prev._goalSync && prev._goalSync.owner===owner?prev._goalSync:null;
+  const reserves=goalSyncReserves(remote),baseReserves=kept&&kept.reserves||reserves;
+  const newer=localNewer===undefined?(prev._savedAt||0)>(remote._savedAt||0):localNewer;
+  const localReserves=goalSyncReserves(prev),localChanged=!goalSyncEqual(localReserves,baseReserves),remoteChanged=!goalSyncEqual(reserves,baseReserves);
+  // Una reserva local no puede quedar aplicada si el conflicto de su meta descarta el dinero.
+  const keepLocalReserves=!dropLocal && (kept?localChanged&&!remoteChanged:newer);
+  const goalMerge=kept?mergeGoalsThreeWay(kept?kept.base:null,prev.goals,remote.goals):null;
+  const reserveGoalConflict=!!kept && keepLocalReserves && goalSyncReserveGoalConflict(baseReserves,localReserves,goalMerge.conflicts);
+  const reject=!!kept && !dropLocal && localChanged && remoteChanged && !goalSyncEqual(localReserves,reserves) || reserveGoalConflict;
+  let merged;
+  if(!kept){
+    merged={goals:goalSyncCopy(!dropLocal && newer?prev.goals||[]:remote.goals||[]),conflicts:[]};
+  } else if(reject){
+    merged={goals:goalSyncCopy(remote.goals||[]),conflicts:[{code:"goals_reserve_conflict",local:goalSyncSnapshot(prev)}]};
+  } else merged=goalMerge;
+  const conflicts=kept?goalSyncRecords(kept.conflicts):[];
+  merged.conflicts.forEach(function(c){ if(!conflicts.some(function(v){ return goalSyncEqual(v,c); })) conflicts.push(c); });
+  return {goals:merged.goals,_goalSync:{owner:owner,revision:revision||null,base:goalSyncCopy(remote.goals||[]),reserves:goalSyncCopy(reserves),keepLocalReserves:keepLocalReserves && !reject,cloudOnly:reject,conflicts:goalSyncRecords(conflicts)}};
+}
+function goalSyncAck(prev,owner,sent,expected,revision){
+  const meta=prev._goalSync;
+  if(meta && (meta.owner!==owner || meta.revision!==expected)) return prev;
+  return Object.assign({},prev,{_goalSync:{owner:owner,revision:revision,base:goalSyncCopy(sent.goals||[]),reserves:goalSyncCopy(goalSyncReserves(sent)),conflicts:meta?(meta.conflicts||[]):[]}});
+}
+function goalSyncMetadataOnly(prev,next){
+  if(!prev || prev._goalSync===next._goalSync) return false;
+  return [...new Set([...Object.keys(prev),...Object.keys(next)])].every(function(k){ return k==="_goalSync" || k==="_savedAt" || prev[k]===next[k]; });
+}
 function slimForCloud(s){
   const c=perfilSinDatosBanco(Object.assign({},s));delete c.expenses;delete c.bankTx;
+  delete c._goalSync;
   if(s.accountBalanceHistory){
     const hist={};Object.keys(s.accountBalanceHistory).forEach(function(key){hist[key]=s.accountBalanceHistory[key].slice(-14);});
     c.accountBalanceHistory=hist;
@@ -7064,19 +6964,15 @@ function sameEntList(a,b){
    «Todos los bancos» enseña el extracto entero. Contabilidad: solo los marcados. A mano (sin
    ent) sí cuenta. Pedido 2026-08-17: Revolut+TR marcados → los dos se ven y cuentan. */
 const expenseDeletedSets=new WeakMap();
-Object.assign(LANG.es,{ob_absorbed_review:"Hay movimientos pendientes de revisar"});
-
-
 function expenseDeletedSet(s){
-  const deleted=s&&s.deleted,pending=s&&s.obAbsorbedPending,confirmed=s&&s.obAbsorbedConfirmed,owner=s&&s._historyOwner;
-  if((!Array.isArray(deleted)||!deleted.length)&&(!Array.isArray(pending)||!pending.length)&&(!Array.isArray(confirmed)||!confirmed.length))return null;
-  const ref=Array.isArray(deleted)?deleted:Array.isArray(pending)?pending:confirmed,cached=expenseDeletedSets.get(ref);
-  if(cached&&cached.pending===pending&&cached.confirmed===confirmed&&cached.owner===owner)return cached.map;
-  const delSet=Object.create(null);
-  (Array.isArray(deleted)?deleted:[]).forEach(function(k){delSet[k]=1;});
-  (Array.isArray(pending)?pending:[]).forEach(function(p){if(obAbsorbedValid(p,owner))delSet[p.key]=1;});
-  expenseConfirmedSets.set(delSet,{list:confirmed,owner:owner});
-  expenseDeletedSets.set(ref,{pending:pending,confirmed:confirmed,owner:owner,map:delSet});
+  const deleted=s&&s.deleted;
+  if(!Array.isArray(deleted)||!deleted.length) return null;
+  let delSet=expenseDeletedSets.get(deleted);
+  if(!delSet){
+    delSet=Object.create(null);
+    deleted.forEach(function(k){ delSet[k]=1; });
+    expenseDeletedSets.set(deleted,delSet);
+  }
   return delSet;
 }
 function expenseCountsCash(e, s){
@@ -8672,6 +8568,79 @@ function mcReduced(){
   try{ return document.documentElement.classList.contains("reduce-motion")||(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches); }catch(e){ return false; }
 }
 
+// UX16: la web observa el dedo; solo Android decide si el ajuste táctil permite el toque.
+function mcHaptic(method, args){
+  if(mcReduced()||document.hidden) return;
+  try{
+    const cap=window.Capacitor, plugin=cap&&cap.Plugins&&cap.Plugins.AelyHaptics;
+    if(!plugin||typeof plugin[method]!=="function") return;
+    Promise.resolve(plugin[method](args||{})).catch(function(){});
+  }catch(e){}
+}
+function mcBindEdgeHaptics(root, blocked){
+  let g=null;
+  const end=function(){ g=null; };
+  const boundary=function(el){
+    const max=el.scrollHeight-el.clientHeight, y=el.scrollTop;
+    return max>1?(y<=1?"top":y>=max-1?"bottom":null):null;
+  };
+  const start=function(e){
+    g=null;
+    if(!e.touches||e.touches.length!==1||blocked()||mcReduced()) return;
+    const target=e.target;
+    if(!target||!target.closest||target.closest("[data-noswipe]")) return;
+    for(let el=target;el&&el!==document.body;el=el.parentElement){
+      const css=getComputedStyle(el);
+      if(el.scrollWidth>el.clientWidth+4&&/^(auto|scroll)$/.test(css.overflowX)) return;
+      if(el.scrollHeight<=el.clientHeight+1||!/^(auto|scroll)$/.test(css.overflowY)) continue;
+      // Un scroller interior sin ola no debe delegar su borde en la página exterior.
+      if(css.overscrollBehaviorY==="none"||(el.classList.contains("page")&&!el.classList.contains("page-scroll-host"))) return;
+      const t=e.touches[0];
+      g={el:el,id:t.identifier,x:t.clientX,y:t.clientY,lastY:t.clientY,anchor:t.clientY,edge:boundary(el),fired:false};
+      return;
+    }
+  };
+  const move=function(e){
+    if(!g) return;
+    if(!e.touches||e.touches.length!==1||e.touches[0].identifier!==g.id||blocked()||e.defaultPrevented){ end(); return; }
+    if(g.fired) return;
+    const t=e.touches[0], dx=t.clientX-g.x, dy=t.clientY-g.y, step=t.clientY-g.lastY;
+    g.lastY=t.clientY;
+    if(Math.abs(dx)>8&&Math.abs(dx)>Math.abs(dy)){ end(); return; }
+    const edge=boundary(g.el);
+    // Al aterrizar en el borde se empieza a contar desde allí: el recorrido de scroll no vale.
+    if(!edge||edge!==g.edge){ g.edge=edge; g.anchor=t.clientY; return; }
+    if((edge==="top"&&step<0)||(edge==="bottom"&&step>0)){ g.anchor=t.clientY; return; }
+    if(Math.abs(dy)<=Math.abs(dx)*1.2) return;
+    const outward=edge==="top"?t.clientY-g.anchor:g.anchor-t.clientY;
+    if(outward<10) return;
+    g.fired=true;
+    mcHaptic("edge");
+  };
+  const listeners={touchstart:start,touchmove:move,touchend:end,touchcancel:end,visibilitychange:end};
+  Object.keys(listeners).forEach(function(type){ root.addEventListener(type,listeners[type],{passive:true}); });
+  return function(){ end(); Object.keys(listeners).forEach(function(type){ root.removeEventListener(type,listeners[type]); }); };
+}
+// Un solo objetivo: cambiar esta línea selecciona otra animación sin multiplicar disparos.
+const MC_INICIO_HAPTIC={selector:".v42-cycle-draw",animation:"v42-cycle-draw"};
+function mcInicioFillHaptic(e){
+  const el=e.target;
+  if(!el||!el.matches(MC_INICIO_HAPTIC.selector)||e.animationName!==MC_INICIO_HAPTIC.animation||e.elapsedTime!==0||mcReduced()||document.hidden) return;
+  if(!window.__mcSplashGone&&document.getElementById("mc-load")) return;
+  const page=el.closest(".page");
+  if(!page||!page.classList.contains("page-scroll-host")) return;
+  try{
+    const animation=el.getAnimations().find(function(a){ return a.animationName===MC_INICIO_HAPTIC.animation; });
+    if(!animation||animation.playState!=="running") return;
+    const duration=animation.effect.getComputedTiming().duration;
+    const seen=mcInicioFillHaptic.seen||(mcInicioFillHaptic.seen=new WeakSet());
+    if(seen.has(animation)||!Number.isFinite(duration)||duration<=0) return;
+    seen.add(animation);
+    // animationstart sucede DESPUÉS del delay CSS y de la pausa del splash: sin segundo reloj.
+    mcHaptic("fill",{durationMs:duration});
+  }catch(err){}
+}
+
 /* Count-up compartido (B2). `ready` es la puerta: Inicio espera `mc-splash-gone`; Cartera espera
    el bus `mcOnCarteraActive`. Sin puerta, la animación se gasta con la pestaña premontada (o
    detrás del splash) y al llegar el número ya está puesto — peor que no animar. */
@@ -9329,6 +9298,8 @@ function _mcBackInitOnce(){
     _mcBackSchedule();
   });
 }
+/* Una hoja con useSheetSwipe pasa aquí `swipe.close`, no su onClose: con el pelado, atrás la
+   desmontaba de golpe sin bajar ni aclarar el velo (Filtros, Más…, bienes, aportar a meta; 2026-10-17). */
 function useBackClose(open, onClose, identity){
   const close=useRef(null);
   // Conserva la closure de apertura y las refs financieras existentes. Sólo los propietarios
@@ -9570,7 +9541,7 @@ function useSheetSwipe(open, onClose, opts){
     }
     if(e.cancelable) e.preventDefault();
   };
-  const closeAnimated=function(done){
+  const runClose=function(done,fromDrag){
     if(closing.current) return;
     const finish=typeof done==="function"?done:onClose;
     const el=sheetRef.current;
@@ -9579,11 +9550,16 @@ function useSheetSwipe(open, onClose, opts){
     // El transform arranca antes del setState/guardado que pueda ejecutar quien cierra: al vivir
     // en el compositor sigue avanzando aunque React tenga que recalcular la lista de Gastos.
     el.classList.remove("dragging");
-    const ms=opts.closeMs||300;
+    // Soltar tras arrastrar sigue con la curva rápida: continúa la velocidad del dedo. Atrás, ✕,
+    // Guardar y tocar el velo salen de parado, y con esa curva la hoja hacía el 71 % del camino en
+    // 66 ms y el velo se aclaraba igual de golpe: en su móvil desaparecía en ~120 ms por atrás,
+    // borde o ✕ («se baja rápido y no suave» en todas las hojas; en Deudas, la más alta, se leía
+    // como parpadeo — beta 4.26.140.1, 2026-10-17). Sin dedo, el ritmo pausado de la apertura.
+    const ms=fromDrag?(opts.closeMs||300):420;
     // El fondo se libera al empezar la salida, no al desmontar: esperar esos 200–320 ms
     // recupera el tirón que ya se había eliminado (revisión independiente 2026-09-24).
     if(lockHeld.current){ lockHeld.current=false; mcSheetUnlock(); }
-    const ease=opts.closeEase||"cubic-bezier(.32,.72,0,1)";
+    const ease=fromDrag?(opts.closeEase||"cubic-bezier(.32,.72,0,1)"):"cubic-bezier(.3,0,.2,1)";
     el.style.transition="transform "+ms+"ms "+ease;
     el.style.transform="translate3d(0,110%,0)";
     // El velo se va con la hoja, mismo tiempo y curva. Antes solo bajaba la hoja y el velo se
@@ -9600,6 +9576,7 @@ function useSheetSwipe(open, onClose, opts){
       finish();
     },ms);
   };
+  const closeAnimated=function(done){ runClose(done,false); };
   const onTouchEnd=function(e){
     if(e&&e.stopPropagation) e.stopPropagation();
     if(closing.current) return;
@@ -9610,14 +9587,17 @@ function useSheetSwipe(open, onClose, opts){
     if(!el){ if(dist>80) onClose(); return; }
     el.classList.remove("dragging");
     if(dist>80){
-      closeAnimated();
+      runClose(null,true);
     } else if(mcReduced()){
       el.style.transition=""; el.style.transform="";
     } else {
       const snapMs=opts.snapMs||280;
       el.style.transition="transform "+snapMs+"ms "+(opts.snapEase||"cubic-bezier(.32,.72,0,1)");
       el.style.transform="translate3d(0,0,0)";
-      setTimeout(function(){ try{ el.style.transition=""; el.style.transform=""; }catch(err){} },snapMs);
+      // Un toque en ✕ o Guardar también pasa por aquí (touchend antes del click que cierra). Si la
+      // hoja ya está saliendo, borrar su transform la devolvía arriba antes de desmontarse: en su
+      // móvil, la hoja de Deudas reaparecía de golpe al final del cierre (medido 2026-10-17).
+      setTimeout(function(){ if(closing.current) return; try{ el.style.transition=""; el.style.transform=""; }catch(err){} },snapMs);
     }
   };
   const onTouchCancel=function(e){
@@ -10212,13 +10192,13 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
   const bud=dashboardBudgetStats(state);
     return bud;
   },
-    [state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.accounts,state.settings,state.flows,state.budget,state.reservaLog,seriesToday]);
+    [state.expenses,state.deleted,state.accounts,state.settings,state.flows,state.budget,state.reservaLog,seriesToday]);
   const budAmt=bud.budget!=null?bud.budget:(state.budget||0);
   const spentAgainst=Math.max(0,bud.against), rem=bud.remaining!=null?bud.remaining:budAmt-spentAgainst;
   const timing=cycleTiming(bud), paceState=cyclePaceState(spentAgainst,budAmt,timing.elapsed,timing.days);
   const dailyMoney=budAmt>0?cycleDailyMoney(rem,timing.left):null;
   const series=useMemo(function(){ return netWorthSeries(state,{today:seriesToday,liquid:tt.liquid,invested:tt.invested,debtTotal:tt.debtTotal,balanceInputs:tt}); },
-    [state.accounts,state.obAccounts,state.accountBalanceHistory,state.invHistory,state.investments,state.assets,state.assetValueHistory,state.debts,state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.flows,state.fixed,state.oneoffs,state.bankTx,state.aportaciones,state.settings,state.fx,state.fxRates,tt,seriesToday]);
+    [state.accounts,state.obAccounts,state.accountBalanceHistory,state.invHistory,state.investments,state.assets,state.assetValueHistory,state.debts,state.expenses,state.deleted,state.flows,state.fixed,state.oneoffs,state.bankTx,state.aportaciones,state.settings,state.fx,state.fxRates,tt,seriesToday]);
 
   const overdue=[];
   // La fecha prevista no es un pago: la misma lectura de evidencia que Plan conserva los
@@ -10276,14 +10256,14 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
   // La fila del banco de una pareja automática (`autoGemelo`) queda oculta: la compra con comercio
   // ya está en la lista y repetirla enseñaba «Movimiento · Otros» con el mismo importe. Misma regla
   // que Gastos (visto por el dueño en la beta 4.26.131, 14/10/2026).
-  const recent=useMemo((s=state)=>(s.expenses||[]).filter(e=>!e.autoGemelo&&!expenseIsTombstoned(e,expenseDeletedSet(s))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
+  const recent=useMemo((s=state)=>(s.expenses||[]).filter(e=>!e.autoGemelo&&!expenseIsTombstoned(e,expenseDeletedSet(s))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted]);
   const ringPct=budAmt>0?Math.max(0,Math.min(1,rem/budAmt)):0;
   /* P6 — el anillo usa una animación de montaje, con estado final directo si se reduce
      el movimiento. Pausarla hasta que salga el splash evita gastarla detrás de la cortina. */
   const monthName=monthLong(new Date().getMonth());
   const closedCard=closedMonthCardOf(state);
 
-  return React.createElement("div",{className:"v4-screen"},
+  return React.createElement("div",{className:"v4-screen",onAnimationStart:mcInicioFillHaptic},
     React.createElement("div",{className:"v4-inicio-head rise"},
       React.createElement("div",null,
         React.createElement("div",{className:"v4-inicio-date"}, new Date().toLocaleDateString(loc(),{weekday:"long",day:"numeric",month:"long"})),
@@ -11099,7 +11079,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const mad=madridYmdParts(Date.now()), madridDay=mad.ym+"-"+mad.d;
   const cycle=useMemo(()=>cycleEnabled?budgetPaydayOf(state,null,expensesDef)
     :lastPaydayOf(expensesDef,null,expenseDeletedSet(state)),
-    [expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.flows,cycleEnabled,todayKey]);
+    [expensesDef,state.deleted,state.flows,cycleEnabled,todayKey]);
   // Bancos presentes en el período (o configurados como gasto) → chips de filtro.
   // "_manual" = apuntados a mano / sin banco conocido (no mezclar con OB).
   // Chips de banco: baratos y SIEMPRE visibles (no dependen de heavyOk → sin flash).
@@ -11159,7 +11139,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     return sortExpensesForDisplay(out,state);
     // `state.settings`/`state.accounts` van en las dependencias porque `expenseBucket` los lee
     // (qué bancos son de gasto diario): cambiar eso tiene que re-filtrar la lista.
-  },[expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,bounds,sel,bankSel,bucketSel,q,state.settings,state.accounts,state.fixed,state.oneoffs,state.reciboNo]);
+  },[expensesDef,state.deleted,bounds,sel,bankSel,bucketSel,q,state.settings,state.accounts,state.fixed,state.oneoffs,state.reciboNo]);
 
   /* El asa reclama el dedo desde el principio: dejar que la fila entera fuera arrastrable
      convertiría un scroll normal en cambios de orden accidentales. El destino se resuelve contra
@@ -11207,13 +11187,13 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       month:monthLong(day.m-1), cycle:!!selectedPeriod.cycle,
       periodLabel:periodLabel, budgetApplies:budgetApplies
     };
-  },[expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.budget,state.reservaLog,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,preset,range,budgetApplies,todayKey,madridDay]);
+  },[expensesDef,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,preset,range,budgetApplies,todayKey,madridDay]);
   // Desglose por categoría: misma regla/ventana que la cabecera. categoryBudgets en deps
   // porque una fila a 0 con límite tiene que aparecer aunque no haya gastos nuevos.
   const catBreakdown=useMemo(function(){
     const rows=categorySpentByMonth(Object.assign({},state,{expenses:expensesDef}),null,null,selectedPeriod);
     return budgetApplies?rows:rows.filter(function(row){ return row.spent>0; }).map(function(row){ return {id:row.id,spent:row.spent,limit:null}; });
-  },[expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.categoryBudgets,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,budgetApplies,todayKey,madridDay]);
+  },[expensesDef,state.deleted,state.categoryBudgets,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,budgetApplies,todayKey,madridDay]);
   /* Abierto o plegado, por cuenta. `!==false` y no `!!`: quien nunca lo ha tocado lo ve ABIERTO
      —es como está hoy y como él lo aprobó—, y solo se pliega quien lo pliegue a mano. */
   const catsOpen=!(state.settings && state.settings.gastosCatsOff);
@@ -11675,8 +11655,8 @@ function filterSelLabel(id, debts){
   return d&&d.name||catName("deudas");
 }
 function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, bucketSel, setBucketSel, bankOpts, diarioEnts, debts}){
-  useBackClose(!!open, onClose);
   const swipe=useSheetSwipe(!!open, onClose);
+  useBackClose(!!open, swipe.close);
   const [qCat,setQCat]=useState("");
   const [filterCatsOpen,setFilterCatsOpen]=useState(false);
   useEffect(function(){
@@ -11800,8 +11780,8 @@ function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, buc
    único sheet que no se podía cerrar tirando hacia abajo («el más de la foto» — feedback
    2026-07-18) ni con el gesto atrás. Mismo patrón que BudgetSheet. */
 function PeriodMoreSheet({open, onClose, preset, setPreset}){
-  useBackClose(!!open, onClose);
   const swipe=useSheetSwipe(!!open, onClose);
+  useBackClose(!!open, swipe.close);
   if(!open) return null;
   return ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:onClose},
@@ -14120,8 +14100,8 @@ function AssetSheet({asset,set,onClose}){
   const [name,setName]=useState(asset.name||"");
   const [raw,setRaw]=useState(asset.value==null?"":String(asset.value));
   const [kind,setKind]=useState(asset.kind||"piso");
-  useBackClose(true,onClose);
   const swipe=useSheetSwipe(true,onClose);
+  useBackClose(true,swipe.close);
   const amount=Number(raw.replace(",","."));
   const valid=name.trim()&&/^\d+(?:[.,]\d{1,2})?$/.test(raw)&&Number.isSafeInteger(Math.round(amount*100));
   const save=function(){
@@ -16095,15 +16075,8 @@ function obPendingAbsorbedState(s,prev){
     const keep=adopted.get(expenseBankOf(e)+"|"+e.extId);
     if(!keep||obPendingGroup(e)!==obPendingGroup(keep)||e.obAcc&&keep.obAcc&&e.obAcc!==keep.obAcc)return;
     const key=obAbsorptionKey(e);if(!key||obAbsorptionMatches(keep,{[key]:1})||(out.deleted||[]).indexOf(key)>=0)return;
-    if(cloud.enabled()&&!mcSandbox()){
-      const pending=obAbsorbedEnqueue(out,e,keep);
-      if(!pending){
-        // Sin espacio o sin escritura durable no se declara segura una retirada nueva.
-        out=Object.assign({},out,{obAbsorbedIssue:!out._historyOwner?"owner":(out.obAbsorbedPending||[]).length>=200?"full":"persist",expenses:(out.expenses||[]).map(function(x){return x.id===keep.id?before.get(keep.id):x;}).concat([e])});return;
-      }
-      out=Object.assign({},out,{obAbsorbedPending:pending});
-    }
     out=Object.assign({},out,lapidaPon(out,key,s.lastBankSync||Date.now()));
+    borrarGastoNube(e,"ob-absorbed");
   });
   return out;
 }
@@ -16168,7 +16141,7 @@ function importObExpenses(s, txs, links){
   const keys={}; (s.expenses||[]).forEach(function(e){ keys[scopedKOf(e)]=1; });
   /* Lápidas: «es el mismo» borra la fila OB y deja clave en `deleted`. Sin esto el siguiente
      sync de TR volvería a meter el Movimiento y a marcarlo otra vez contra la noti. */
-  const delSet=expenseDeletedSet(s)||{};
+  const delSet={}; (s.deleted||[]).forEach(function(k){ delSet[k]=1; });
   const deletedRefs={}, deletedSlots={};
   (s.gemelos||[]).forEach(function(g){
     if(g&&g.aviso===""&&g.bankRef&&delSet[g.banco]){deletedRefs[(g.ent||"")+"|"+g.bankRef]=1;deletedSlots[g.banco]=1;}
@@ -18652,7 +18625,7 @@ function usePlanEditSave({state,set,field,item,onClose,showToast}){
     if(!pending||!outcome.current) return;
     if(outcome.current.error){ sending.current=false; setPending(null); setError("plan_edit_changed"); return; }
     const rows=(state[field]||[]).filter(function(x){ return x.id===item.id; });
-    // La hoja ya no se desmonta aquí sino tras bajar: durante esos 300 ms otra escritura (la nube,
+    // La hoja ya no se desmonta aquí sino tras bajar: durante esa salida otra escritura (la nube,
     // un sync) volvía a pasar por este efecto y repetía el cierre y el «Cambios guardados».
     if(rows.length===1&&planEditSame(rows[0],pending)){ outcome.current=null; onClose(); if(showToast) showToast(t("plan_edit_saved")); }
   },[pending,state[field]]);
@@ -19034,7 +19007,7 @@ function ReservaRules({state, set}){
   const blank={name:"",kind:"fixed",value:"",goalId:goals[0]&&goals[0].id||""};
   const [form,setForm]=useState(blank);
   const [err,setErr]=useState("");
-  const cycle=useMemo(function(){ return lastPaydayOf(state.expenses,null,expenseDeletedSet(state)); },[state.expenses,state.deleted,state.obAbsorbedConfirmed,state._historyOwner]);
+  const cycle=useMemo(function(){ return lastPaydayOf(state.expenses,null,expenseDeletedSet(state)); },[state.expenses,state.deleted]);
   const st=reservaEstadoDe(state,cycle);
   // La línea de cada regla mensual dice lo que ESTE mes tiene asentado, no lo que «debería».
   const clave=reservaMensualClave();
@@ -19151,7 +19124,7 @@ function ReservaRules({state, set}){
 // no se ha repartido ni descartado. Nunca aplica en silencio — siempre pide confirmación, porque
 // aunque solo mueva cifras dentro de la app, es DINERO DE VERDAD para quien lo mira.
 function ReservaDetect({state, set, showToast}){
-  const cycle=useMemo(function(){ return lastPaydayOf(state.expenses,null,expenseDeletedSet(state)); },[state.expenses,state.deleted,state.obAbsorbedConfirmed,state._historyOwner]);
+  const cycle=useMemo(function(){ return lastPaydayOf(state.expenses,null,expenseDeletedSet(state)); },[state.expenses,state.deleted]);
   const st=reservaEstadoDe(state,cycle);
   if(st.estado!=="pendiente") return null;
   const income=st.income;
@@ -19377,8 +19350,8 @@ function ContributeGoalSheet({goal, state, onClose, onContribute}){
       setBank(goal.fromBank || (daily&&daily.ent) || (bankOpts[0]||null));
     }
   },[goal]);
-  useBackClose(!!goal, onClose);
   const swipe=useSheetSwipe(!!goal, onClose);
+  useBackClose(!!goal, swipe.close);
   if(!goal) return null;
   const amt=parseNumPadRaw(raw);
   const save=function(){
@@ -22420,7 +22393,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="3efb0a0a6ae1b8e15849cea1f8f86976d4ad93874c739d51b60113ba3967b1b6";
+var _rnSha="6a1d5a193a4810d41bd994377509d90685e4652b63f70e61d6685f4166f9fb51";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -23849,7 +23822,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     : [{id:"recibos",lab:t("v4_plan_recibos")},{id:"deudas",lab:t("v4_plan_deudas")},{id:"metas",lab:t("v4_plan_metas")}];
   const charges=useMemo(function(){
     return planChargesMonth(state, totals.curMonth, totals.curYear, totals.today);
-  },[state.fixed,state.debts,state.oneoffs,state.flows,state.bankTx,state.accounts,state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,totals.curMonth,totals.curYear,totals.today]);
+  },[state.fixed,state.debts,state.oneoffs,state.flows,state.bankTx,state.accounts,state.expenses,state.deleted,totals.curMonth,totals.curYear,totals.today]);
   const pick=useMemo(function(){
     return planCoverPickBank(totals, charges.pendingByBank, charges.pendingBills, charges.paidBills);
   },[totals.minByBank,totals.minDayByBank,totals.mainBank,charges.pendingByBank,charges.pendingBills,charges.paidBills]);
@@ -26349,12 +26322,6 @@ function App(){
     // permission denied del ingest) eran invisibles para el admin (bug 2026-07-11).
     try{ const s=String(m||""); if(/^[✕⚠✗]/.test(s)) cloud.logEvent('error','TOAST: '+s.slice(0,300)); }catch(e){}
   };
-  useEffect(function(){
-    const warning=function(){showToast("⚠ "+t("ob_absorbed_review"));};
-    window.addEventListener("mc-ob-absorbed-warning",warning);
-    if(stateRef.current&&stateRef.current.obAbsorbedIssue)warning();
-    return function(){window.removeEventListener("mc-ob-absorbed-warning",warning);};
-  },[]);
   // Moneda de visualización: convierte todos los importes (en €) a la moneda elegida en Ajustes.
   // GBP/CHF usan fxRates (XXX→EUR, del BCE) — si aún no ha llegado el FX, se queda en € antes
   // que enseñar un número inventado (regla de la casa: nunca inventar un tipo de cambio).
@@ -26371,16 +26338,27 @@ function App(){
   const [session,setSession]=useState(null);
   const uid = session && session.user ? session.user.id : null;
   const stateRef=useRef(state); useEffect(function(){ stateRef.current=state; });
-  const obAbsorbedLive=useRef(true),obAbsorbedCursor=useRef({owner:null,offset:0}),obAbsorbedWriteBlocked=useRef(false);
-  useEffect(function(){obAbsorbedLive.current=true;return function(){obAbsorbedLive.current=false;};},[]);
-  const retryObAbsorbedCloud=function(){
-    const getOwner=function(){return obAbsorbedLive.current&&sessionRef.current&&sessionRef.current.user&&sessionRef.current.user.id;};
-    const owner=getOwner(),cursor=obAbsorbedCursor.current;
-    if(cursor.owner!==owner){cursor.owner=owner;cursor.offset=0;}
-    return obAbsorbedRetry(function(){return stateRef.current;},getOwner,set,cursor.offset).then(function(offset){if(getOwner()===owner)cursor.offset=offset;});
-  };
   const sessionRef=useRef(null);
   const cloudUpdatedAtRef=useRef(null);   // sello del servidor para sync sin pisar otro dispositivo
+  // La base corresponde al payload confirmado, no al estado que pudo editarse durante el envío.
+  const pushAppState=function(u,snapshot){
+    const sent=slimForCloud(snapshot),expected=cloudUpdatedAtRef.current;
+    return cloud.pushState(u,sent,expected).then(function(r){
+      if(!sessionRef.current || !sessionRef.current.user || sessionRef.current.user.id!==u) return null;
+      if(r && r.updated_at && cloudUpdatedAtRef.current===expected){
+        cloudUpdatedAtRef.current=r.updated_at;
+        setStateRaw(function(prev){ return goalSyncAck(prev,u,sent,expected,r.updated_at); });
+      }
+      return r;
+    });
+  };
+  const notifyGoalConflicts=function(){
+    const meta=state._goalSync;
+    if(meta && meta.owner===uid) goalSyncNotify(mcStateKey(),meta,function(){cloud.logEvent("error","GOALS_SYNC_CONFLICT");});
+  };
+  useEffect(function(){
+    notifyGoalConflicts();
+  },[state._goalSync,uid]);
   const bankSyncing=useRef(false);          // evita syncs de banco solapados
   // Promesa → true si el pull de arranque (estado + gastos) terminó bien. La espera `runBankSync`.
   const pullOkRef=useRef(null);
@@ -26438,11 +26416,6 @@ function App(){
   const syncCloudExpenses=function(){
     const readStartedAt=Date.now();
     const readOwner=sessionRef.current&&sessionRef.current.user&&sessionRef.current.user.id;
-    if(readOwner){
-      const confirmed=obConfirmedMerge(stateRef.current,null,readOwner);
-      if(!confirmed)return Promise.reject(new Error("ob_confirmed_merge"));
-      set(function(prev){return prev._historyOwner===readOwner?Object.assign({},prev,{obAbsorbedConfirmed:confirmed}):prev;});
-    }
     const ps=++wS.current;
     wR.current=false;
     wRead.current=null;
@@ -26478,7 +26451,7 @@ function App(){
       wC.current=rows;
       // FIN-07: el paginador solo resuelve al terminar; un error intermedio no mezcla ni
       // confirma páginas sueltas. La ausencia sigue sin significar borrado, incluso al terminar.
-      const delSet=expenseDeletedSet(stateRef.current);
+      const delSet={}; (stateRef.current.deleted||[]).forEach(function(k){ delSet[k]=1; });
       const incoming=rows.map(expenseFromRow).filter(function(e){ return e.amount!==0 && !expenseIsTombstoned(e, delSet); });
       // Backfill: sube a la tabla TODO gasto local que aún no esté en ella (no solo los manuales).
       // Esto garantiza que la tabla sea la fuente de verdad COMPLETA antes de dejar de duplicar
@@ -26550,21 +26523,15 @@ function App(){
       });
       });
     });
-    const completed=pull.then(function(result){
-      if(ps!==wS.current)return result;
-      // La barrera del banco espera el pull completo, pero no los DELETE de la cola (FIN11).
-      // Su fallo conserva la intención y no invalida la lectura que ya se mezcló.
-      Promise.resolve().then(retryObAbsorbedCloud).catch(function(){});
-      return result;
-    });
-    wP.current=completed;
-    return completed;
+    wP.current=pull;
+    return pull;
   };
 
   // Al iniciar sesión: adopta el estado de la nube (o sube el local la 1ª vez) y trae gastos.
   const syncFromCloud=function(s, opts){
     if(!s || !s.user) return;
     const u=s.user.id;
+    goalSyncActivate(mcStateKey(),u);
     const freshLogin=!!(opts&&opts.freshLogin);   // acaba de INICIAR SESIÓN (no un reconecta del mismo user)
     // INC-0410 mensual: el asiento solo vale si ESTE pull leyó un estado válido (o aún no hay ninguno).
     const mensualPuerta=reservaMensualPuerta();
@@ -26572,16 +26539,6 @@ function App(){
       mensualPuerta.lee(cloudPack);
       // INC-0410 mensual: límite de la lectura válida.
       const cloudState=cloudPack ? cloudPack.data : null;
-      if(!sessionRef.current||sessionRef.current.user.id!==u)return;
-      // Si dos colas llenas no caben juntas, no se pierde ninguna ni se sobrescribe la remota.
-      // El CAS se conserva sin avanzar hasta poder unirlas; el refresco siguiente puede reintentarlo.
-      if(cloudState){
-        if(!obConfirmedMerge(stateRef.current,cloudState,u)){obAbsorbedWriteBlocked.current=true;return;}
-        const own=stateRef.current._historyOwner===u?stateRef.current.obAbsorbedPending:[];
-        const pending=obAbsorbedJoin(own,cloudState.obAbsorbedPending,u);
-        if(!pending||pending.length&&!obAbsorbedPersist(u,pending)){obAbsorbedWriteBlocked.current=true;return;}
-      }
-      obAbsorbedWriteBlocked.current=false;
       if(cloudPack && cloudPack.updated_at) cloudUpdatedAtRef.current=cloudPack.updated_at;
       if(cloudState && validCloudState(cloudState)){
         // LAST-WRITE-WINS: si lo LOCAL es más reciente (p.ej. cambios hechos sin conexión),
@@ -26595,13 +26552,19 @@ function App(){
           if(!sessionRef.current||!sessionRef.current.user||sessionRef.current.user.id!==u)return prev;
           const merged=mergeExpenses(prev.expenses, cloudState.expenses||[]);
           const localNewer=!freshLogin && (prev._savedAt||0) > (cloudState._savedAt||0);
-          const baseObj = localNewer ? Object.assign({},prev,{expenses:merged.list})
+          let baseObj = localNewer ? Object.assign({},prev,{expenses:merged.list})
                                      : Object.assign({},prev,cloudState,{expenses:merged.list});
           // Igual las lápidas y los recibos borrados (13/10/2026): un borrado que vio un móvil no
           // lo deshace el estado más antiguo del otro. Ver `lapidasUnion` y `recibosBorradosUnion`.
           // Solo con lo local del MISMO titular: la lápida de otra cuenta que hubo en este móvil
           // escondería un gasto de esta que coincidiera en día, importe y comercio.
           const sameOwner=!(opts&&opts.dropTx)&&(!freshLogin||prev._historyOwner===u)&&(!prev._historyOwner||prev._historyOwner===u);
+          const goalState=goalSyncPull(prev,cloudState,u,cloudPack.updated_at,!sameOwner,localNewer);
+          if(goalState._goalSync.cloudOnly) baseObj=Object.assign({},prev,cloudState,{expenses:merged.list,bankTx:prev.bankTx});
+          Object.assign(baseObj,goalState);
+          const reserveSource=goalState._goalSync.keepLocalReserves?prev:cloudState;
+          baseObj.settings=Object.assign({},baseObj.settings,{reservaRules:goalSyncCopy((reserveSource.settings||{}).reservaRules||[])});
+          baseObj.reservaLog=goalSyncCopy(reserveSource.reservaLog||[]);
           // Una separación pertenece a su titular; la cuenta anterior de este móvil no decide aquí.
           const gem=sameOwner?fusionarGemelos(prev.gemelos,cloudState.gemelos):(cloudState.gemelos||[]);
           if(gem!==baseObj.gemelos) baseObj.gemelos=gem;
@@ -26609,12 +26572,6 @@ function App(){
             if(prev.deleted||cloudState.deleted) Object.assign(baseObj, lapidasUnion(prev, cloudState));
             if(prev.reciboBorrado||cloudState.reciboBorrado) Object.assign(baseObj, recibosBorradosUnion(baseObj, prev, cloudState));
           }
-          const pending=obAbsorbedJoin(sameOwner?prev.obAbsorbedPending:[],cloudState.obAbsorbedPending,u);
-          if(!pending||pending.length&&!obAbsorbedPersist(u,pending)){obAbsorbedWriteBlocked.current=true;return prev;}
-          const confirmed=obConfirmedMerge(sameOwner?prev:null,cloudState,u);
-          if(!confirmed){obAbsorbedWriteBlocked.current=true;return prev;}
-          baseObj.obAbsorbedPending=pending;
-          baseObj.obAbsorbedConfirmed=confirmed;
           // La nube lleva una ventana corta: un cliente antiguo no debe borrar los cierres
           // locales. El marcador sólo delimita este historial, nunca concede una sesión.
           if(sessionRef.current&&sessionRef.current.user&&sessionRef.current.user.id===u){
@@ -26640,12 +26597,8 @@ function App(){
       } else if(cloudState){
         // llegó algo pero con forma inválida (corrupto/parcial) → NO machacar lo local; resube lo bueno
         showToast("⚠ Nube con formato inesperado: se conservan tus datos locales");
-        return cloud.pushState(u, slimForCloud(stateRef.current), cloudUpdatedAtRef.current).then(function(r){
-          if(r && r.updated_at) cloudUpdatedAtRef.current=r.updated_at;
-        });
-      } else { return cloud.pushState(u, slimForCloud(stateRef.current), cloudUpdatedAtRef.current).then(function(r){
-          if(r && r.updated_at) cloudUpdatedAtRef.current=r.updated_at;
-        }); }   // primera vez: sube lo que ya tienes
+        return pushAppState(u,stateRef.current);
+      } else { return pushAppState(u,stateRef.current); }   // primera vez: sube lo que ya tienes
     }).then(function(){ return syncCloudExpenses(); });
     pullOkRef.current=pull.then(function(){ return true; }, function(){ return false; });
     reservaMensualAlDia(pullOkRef.current.then(mensualPuerta.vale));
@@ -27078,7 +27031,10 @@ function App(){
       setSession(sessionRef.current=s);
       // Cerrar sesión rompe la asociación implícita del extracto local con el titular. El
       // próximo login no debe heredar sus apuntes, aunque no exista cartera en la nube.
-      if(!s&&ev==="SIGNED_OUT") set(p=>Object.assign({},p,{bankTx:[],obAbsorbedPending:[],obAbsorbedConfirmed:[]}));
+      if(!s&&ev==="SIGNED_OUT"){
+        if(prev&&prev.user)goalSyncClear(mcStateKey(),prev.user.id);
+        set(p=>Object.assign({},p,{bankTx:[],_goalSync:null}));
+      }
       // Vuelta del email de recuperación: abre el panel para poner contraseña nueva.
       if(ev==="PASSWORD_RECOVERY"){ setRecovery(true); setShowAuth(true); }
       // login ya acredita otro titular si había sesión; dropTx no debe releer esos IDs.
@@ -27092,17 +27048,21 @@ function App(){
   // OJO con el nombre del timer: se llamaba `t` y TAPABA la función global de i18n `t()` — dentro
   // del callback `t("st_sync_conflict")` petaba («t is not a function»), el `.catch` se lo tragaba y
   // el conflicto de dos móviles NUNCA se resolvía (ni aviso ni re-sync). Bug encontrado 2026-07-24.
+  const cloudEffectState=useRef(null);
+  const cloudUploadState=useRef(state);
+  // Un ACK privado no debe limpiar el debounce de una edición posterior que sigue pendiente.
+  if(!goalSyncMetadataOnly(cloudEffectState.current,state)) cloudUploadState.current=state;
+  cloudEffectState.current=state;
+  const uploadState=cloudUploadState.current;
   useEffect(function(){
     if(!uid) return;
     const tmr=setTimeout(function(){
-      if(obAbsorbedWriteBlocked.current||!sessionRef.current||sessionRef.current.user.id!==uid)return;
-      cloud.pushState(uid, slimForCloud(state), cloudUpdatedAtRef.current).then(function(r){
+      pushAppState(uid,uploadState).then(function(r){
         if(r && r.conflict){ showToast(t("st_sync_conflict")); syncFromCloud(sessionRef.current); return; }
-        if(r && r.updated_at) cloudUpdatedAtRef.current=r.updated_at;
       }).catch(function(){});
     }, 1200);
     return function(){ clearTimeout(tmr); };
-  },[state,uid]);
+  },[uploadState,uid]);
 
   // Al volver, los gastos pueden haber cambiado en la nube aunque el pull anterior sea reciente.
   // Bancos OB siguen sin consulta automática; su cupo PSD2 no depende de esta lectura.
@@ -27501,12 +27461,9 @@ function App(){
     return function(){ window.removeEventListener("online",on); window.removeEventListener("offline",off); };
   },[]);
   useEffect(function(){
-    if(online && !wasOnline.current && uid){ retryObAbsorbedCloud().then(function(){
-      if(obAbsorbedWriteBlocked.current||!sessionRef.current||sessionRef.current.user.id!==uid)return;
-      return cloud.pushState(uid, slimForCloud(stateRef.current), cloudUpdatedAtRef.current).then(function(r){
+    if(online && !wasOnline.current && uid){ pushAppState(uid,stateRef.current).then(function(r){
       if(r && r.conflict){ showToast(t("st_sync_conflict")); syncFromCloud(sessionRef.current); return; }
-      if(r && r.updated_at) cloudUpdatedAtRef.current=r.updated_at;
-    }); }).catch(function(){}); }   // reconectó → sube lo de offline
+    }).catch(function(){}); }   // reconectó → sube lo de offline
     wasOnline.current=online;
   },[online,uid]);
 
@@ -28069,7 +28026,7 @@ function App(){
   // el buscador, al salir un toast… Con las porciones reales solo se recalcula cuando cambia el
   // dinero de verdad (parte gorda del «se ralentiza cuanto más la uso» — 2026-07-24).
   },[state.accounts,state.expenses,state.bankTx,state.investments,state.assets,state.debts,state.fixed,
-     state.flows,state.oneoffs,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.aportaciones,state.obAccounts,(state.settings||{}).accountShare,
+     state.flows,state.oneoffs,state.deleted,state.aportaciones,state.obAccounts,(state.settings||{}).accountShare,
      state.trRewardsTotal,state.fx,state.fxRates,state.reciboNo,calendarDay]);
 
   const budgetMonth=budgetYmKey();
@@ -28081,7 +28038,7 @@ function App(){
   /* Una sola racha compartida por Inicio y el detector de logros. Con históricos grandes,
      calcularla otra vez dentro de cada pantalla triplicaba el recorrido al terminar un sync. */
   const budgetStreak=useMemo(function(){ return underBudgetStreak(state); },
-    [state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.budgetByMonth,state.accounts,state.reservaLog,
+    [state.expenses,state.deleted,state.budgetByMonth,state.accounts,state.reservaLog,
      state.settings&&state.settings.expenseBanks,state.settings&&state.settings.gTotalMode,budgetMonth]);
 
   const [pricing,setPricing]=useState(false);
@@ -28284,7 +28241,7 @@ function App(){
     };
   // Otra lectura con filas idénticas también recupera el legado: no depender sólo de
   // cifras o del reloj, que puede coincidir con el último lastSync.
-  },[budW.shown,budW.against,budW.cycle,budW.periodStart,budW.budget,wV2,wScope,CURLANG,state.budget,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.lastSync,widgetCash,trAccW&&trAccW.ent,widgetBudgetLeft,widgetSafeLiq,calendarDay,uid,wRead.current]);
+  },[budW.shown,budW.against,budW.cycle,budW.periodStart,budW.budget,wV2,wScope,CURLANG,state.budget,state.deleted,state.lastSync,widgetCash,trAccW&&trAccW.ent,widgetBudgetLeft,widgetSafeLiq,calendarDay,uid,wRead.current]);
   // Tour de bienvenida: 1ª vez tras el onboarding (tourSeen=false), con la app ya pintada
   useEffect(function(){
     // No arrancar el tour encima del login (showAuth) ni con el cajón abierto: causaba el caos
@@ -28406,7 +28363,7 @@ function App(){
         }).catch(run);
       }catch(e){ run(); }
     } else run();
-  },[state.onboarded,locked,showAuth,state.fixed,state.debts,state.expenses,state.bankTx,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,totals.today,totals.curMonth,totals.curYear]);
+  },[state.onboarded,locked,showAuth,state.fixed,state.debts,state.expenses,state.bankTx,state.deleted,totals.today,totals.curMonth,totals.curYear]);
 
   // Empuja el calendario de recibos del mes al NATIVO (APK ≥29): AlertCheckWorker avisa la
   // víspera aunque la app esté CERRADA. Intercambio de sellos para no avisar dos veces:
@@ -28456,7 +28413,7 @@ function App(){
       const nat=natPlugin();
       if(nat&&nat.showNotification){ try{ nat.showNotification({title:"Aely",body:msg}).catch(function(){}); }catch(e){} }
     });
-  },[state.onboarded,locked,state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.budget,state.reservaLog,state.accounts,state.settings]);
+  },[state.onboarded,locked,state.expenses,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings]);
   // Snapshot diario del total invertido (€) para el gráfico de evolución (#6). Se actualiza si cambia valor/coste hoy.
   const invSnapRef=useRef("");
   useEffect(function(){
@@ -29288,6 +29245,15 @@ function App(){
   },[tab, tabIds]);
   const gestRef=useRef({});
   gestRef.current={ s:onStart, m:onMove, e:onEnd, c:onCancel };
+  const hapticBlockRef=useRef(null);
+  hapticBlockRef.current=function(){
+    return locked||state.onboarded===false||gestureMode.current==="profile"||gestureMode.current==="drawer"||gestureMode.current==="tab"||
+      (dDrag.current&&dAx.current==="x")||(pDrag.current&&pOwn.current&&pAx.current==="y");
+  };
+  useEffect(function(){
+    // Observador pasivo aparte: no reclama el gesto ni cambia la física de los scrollers.
+    return mcBindEdgeHaptics(document,function(){ return hapticBlockRef.current(); });
+  },[]);
   useEffect(function(){
     const el=viewportRef.current; if(!el) return undefined;
     const s=function(e){ gestRef.current.s(e); };
