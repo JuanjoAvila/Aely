@@ -45,7 +45,7 @@ for(const inside of [false,true])test('INC1710 delay canceled '+(inside?'exit':'
     await Promise.all([page.waitForEvent('dialog'),ok.click({force:true})]);
     await expect.poll(()=>page.evaluate(()=>JSON.parse(sessionStorage.getItem('_incDelayEvents')).some(e=>e.kind==='reload-returned'&&e.boot===Number(sessionStorage.getItem('_incDelayBoot'))))).toBe(true);
     const before=await snapshot(page);expect(before.warnings).toBe(0);expect(before.marks).toBe(0);expect(before.pinned).toBe(inside);expect(before.flag).toBe(!inside);expect(before.transition).toBe(true);
-    const probes=await page.evaluate(async()=>{const result=[];for(const name of CLOUD_WRITES)result.push({name,blocked:await cloud[name]()===null});return result;});expect(probes).toHaveLength(31);expect(probes.every(p=>p.blocked)).toBe(true);
+    const probes=await page.evaluate(async()=>{const result=[];for(const name of CLOUD_WRITES)result.push({name,blocked:await cloud[name]()===null});return result;});expect(probes).toHaveLength(32);expect(probes.every(p=>p.blocked)).toBe(true);
     await page.clock.runFor(1799);const early=await snapshot(page);expect(early.warnings).toBe(0);expect(early.marks).toBe(0);
     await page.clock.runFor(1);await expect(page.locator('.mode-change-warning')).toBeVisible();outcome=await snapshot(page);expect(outcome.marks).toBe(1);expect(outcome.events.filter(e=>e.kind==='fallback-mark'&&e.boot===boot)).toHaveLength(1);
     const requested=outcome.events.find(e=>e.kind==='reload-returned'&&e.boot===boot),marked=outcome.events.find(e=>e.kind==='fallback-mark'&&e.boot===boot);expect(marked.at-requested.at).toBe(1800);phases.push({inside,before,early,after:outcome,probes});
