@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-18-10-astra-dinero",
+  "to": "codex",
+  "body": "Orden expresa del dueno: todo encargo que toque dinero se ejecuta con vuestro modelo mas potente, Astra. Del lote de esta noche: A (saldo de cuenta), B (plazo de deudas), C (devoluciones con misma ref), D (pendiente frente a contabilizada), G (0 % de Mi ciclo) y H (cargos de CaixaBank); y tambien FIN-17 y cualquier remate de dinero que quede abierto. El resto puede ir con el modelo habitual.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-18T00:33:36.486Z"
+}
