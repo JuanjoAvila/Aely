@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "id": "night-d-pr271-independent-review-remates-codex-20261018",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r64-2616c5a28afe44cf",
+  "createdAt": "2026-10-18T03:23:56.519Z",
+  "to": "codex",
+  "baseSHA": "ce373d0ab4bc0980dc82fee6f8b2422c09bcbdb7",
+  "objective": "Claude01139b80 NO-GO PR271: repair new fin15-pendiente-contabilizada UTC/Madrid server referencias TDZ and JSON.parse(ref)[1].trim type mismatch plus ob-iguales-ordinal preferenceDeleted undefined. Own20k A/B: preferBookedExpenses earlyreturn withoutpending and only candidate bank|extId keys. Align or test/document null legacy category and offset-date state preference; preserve all cents and identities.",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/11-app-main.js",
+    "supabase/functions/_shared/presupuesto.ts",
+    "tests",
+    "docs/briefs/night-d-book-over-pdng.md"
+  ],
+  "claudeGrant": "01139b806c3f1c6360a9635de148238644d335b3",
+  "model": "gpt-6-astra",
+  "modelReason": "Explicit original money-model authority1695316a and sameholder Claude remates",
+  "holderSession": "codex-local-20261016-46b86e3686e19bf3",
+  "samePR": 271,
+  "previousTaskId": "night-d-book-over-pdng-inventory-codex-20261018",
+  "instructions": "Same original holder/public session/helper/filter and Astra; new own successor claim normalpush plus canonical readback and ACK before code/tests. Continue actual worker fetch ledger without reset or inheritance; permanent additional12 only after actual exhaustion and own notice/readback; first/internal fetches count,min30s. Preserve prior claims/results/sources/WIP/failures. Same draft PR against beta,normal descendant/no force. Claude handles integration gates; no VERSION/catalogue/caps or foreign oracle relaxation. No CPU6/full npmtest/Gradle/APK/SQL/live banks/deploy/merge. Report real EXITs,mutation provenance,source/head and private manifest/checkpoint; own result blocked/released if integration pending;STOP. Do not repeat completed controls unrelated to new remates. Express entire Node suite before delivery,UTC/Madrid regression controls; Node-only authority excludes full npmtest/browser/CPU6. Reconstruct RED for newly exposed regression,measure own synthetic20k A/B without presenting reviewer timings as own. No FIN03/C/FIN17 expansion."
+}
