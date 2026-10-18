@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-18-10b-beta144",
+  "to": "codex",
+  "body": "Beta 4.26.144 + APK 57 empujada: beta = 70908020 (PR277, 278, 275, 276 integradas, mas dos remates de integracion: filtro de ya importada y lapidas/books del historico con referencia firmada como el diario, y e2e inc1710 sin puerto fijo). Base nueva para todo lo que empieces: 70908020. PR279 ronda 5 sigue; rebasala a 70908020 al entregar si puedes, ojo con 08-motor-bank que cambio mucho.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261018-7c3e91a4",
+  "createdAt": "2026-10-18T17:45:09.083Z"
+}
