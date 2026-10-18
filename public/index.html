@@ -5235,8 +5235,13 @@ function obBookedPreferenceKey(e){
   return JSON.stringify([bank,String(e.extId),day,obOrdinalOf(e),String(e.obAcc||""),cents,e.merchant,e.category||"",marks]);
 }
 function preferBookedExpenses(rows,delSet){
+  // Sin pendientes no hay estado que promover. La referencia barata solo recorta
+  // candidatas; la clave completa sigue exigiendo cuenta, día, dinero y marcas.
+  const candidates=new Set();
+  rows.forEach(function(e){if(e&&e.obPending&&esFilaDeBanco(e)&&e.extId)candidates.add(expenseBankOf(e)+"|"+e.extId);});
+  if(!candidates.size)return rows;
   const books=new Set(); let out=rows;
-  rows.forEach(function(e){if(e&&!e.obPending&&!expenseIsTombstoned(e,delSet)){const k=obBookedPreferenceKey(e);if(k)books.add(k);}});
+  rows.forEach(function(e){if(e&&!e.obPending&&e.extId&&candidates.has(expenseBankOf(e)+"|"+e.extId)&&!expenseIsTombstoned(e,delSet)){const k=obBookedPreferenceKey(e);if(k)books.add(k);}});
   rows.forEach(function(e,i){
     if(!e||!e.obPending||expenseIsTombstoned(e,delSet))return;
     const k=obBookedPreferenceKey(e);if(!k||!books.has(k))return;

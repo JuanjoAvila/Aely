@@ -67,6 +67,30 @@ export function exclusions(api){
  }
 }
 if(!process.env.FIN15_MUTATION_IMPORT){
+ test('Night D remates: no pending avoids keys; only candidate bank/ref is inspected',()=>{
+  const c=current.client,original=c.obBookedPreferenceKey;
+  const rows=Array.from({length:20000},(_,i)=>c.expenseFromRow(row('b'+i,false,{source:'ob:caixabank#ref'+i+'#accA'})));
+  let calls=0;c.obBookedPreferenceKey=e=>{calls++;return original(e);};
+  try{
+   assert.equal(c.preferBookedExpenses(rows),rows);assert.equal(calls,0,'no pending must not calculate full keys');
+   const pending={...rows[123],id:'pending',obPending:true};calls=0;
+   const out=c.preferBookedExpenses([...rows,pending]);
+   assert.equal(calls,2,'only pending and matching bank/ref BOOK need complete keys');
+   assert.equal(out.at(-1).id,pending.id);assert.equal(!!out.at(-1).obPending,false);
+   assert.equal(cent(out),cent([...rows,pending]));assert.equal(pending.obPending,true);
+  }finally{c.obBookedPreferenceKey=original;}
+ });
+ test('Night D remates: raw legacy category and offset dates retain documented state boundaries',()=>{
+  const cases=[['null category',{cat:null}],['legacy category',{cat:'legacy-unknown'}],['offset date',{fecha:'2026-10-07T00:30:00+02:00'}]];
+  for(const [name,extra] of cases)for(const rows of orders([{...p,...extra},b])){
+   const firstPending=rows[0].id===p.id;
+   for(const kind of ['mergeExpenses','mergeExpensesFromCloud','server']){
+    const out=outcome(current,kind,[],rows);assert.equal(out.length,1);assert.equal(cent(out),320);
+    const pending=kind==='server'?/#pdng(?:#|$)/.test(out[0].source):!!out[0].obPending;
+    assert.equal(pending,kind==='server'&&firstPending,name+' '+kind+' stored-state boundary');
+   }
+  }
+ });
  test('Night D: five RED causes green in both orders and existing-local directions',()=>positive(current));
  test('Night D: identity boundaries unchanged, including FIN03 and different amounts',()=>boundaries(current));
  test('Night D: FIN10 exclusions precede preference and preserve survivor',()=>exclusions(current));

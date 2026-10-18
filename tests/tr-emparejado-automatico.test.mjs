@@ -166,7 +166,7 @@ test("el updater REAL de App migra antes de pintar y conserva arrays en cambios 
   assert.equal(onlyTheme.expenses,next.expenses);
 });
 test("el pull REAL no trae decisiones de la cuenta anterior",()=>{
-  const block=/const merged=mergeExpenses\(prev\.expenses,\s*cloudState\.expenses\|\|\[\]\);([\s\S]*?)if\(freshLogin && \(cloudState\.accounts/.exec(html);
+  const block=/const sameOwner=![^\n]*\n\s*const preferenceDeleted=[\s\S]*?if\(freshLogin && \(cloudState\.accounts/.exec(html);
   assert.ok(block);
   const source=block[0].slice(0,block[0].lastIndexOf("if(freshLogin"));
   const pull=vm.runInContext("(function(prev,cloudState,freshLogin,opts,sessionRef,u,cloudPack){"+source+"return baseObj;})",c);

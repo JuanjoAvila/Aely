@@ -143,7 +143,12 @@ function accountlessWildcardSurvivor(server){
 test("FIN15 comodin sin cuenta: fila oculta no consume referencia superviviente",()=>{
  accountlessWildcardSurvivor(budget);
  const source=read("supabase/functions/_shared/presupuesto.ts");
- const result=mutationResult(source,"comodin consume referencia antes de retirar fila",s=>s.replace(
+ // La preferencia BOOK separa filtrado y dedup: el mutante debe compartir el
+ // índice entre ambas fases para que falle por perder dinero, no por la TDZ.
+ const result=mutationResult(source,"comodin consume referencia antes de retirar fila",s=>s
+ .replace('const live: T[] = [], books = new Map<string, T>();','const referencias = new Set<string>(); const live: T[] = [], books = new Map<string, T>();')
+ .replace('const vistas = new Map<string, Set<string>>(), referencias = new Set<string>();','const vistas = new Map<string, Set<string>>();')
+ .replace(
   'if (cuentaAusente.has(base) || (!cuentaDeSource(f.source) && sinCuenta.has(base))) continue;',
   'if (cuentaAusente.has(base) || (!cuentaDeSource(f.source) && sinCuenta.has(base))) { const hiddenRef = referenciaOb(f); if (hiddenRef) referencias.add(hiddenRef); continue; }'
  ),accountlessWildcardSurvivor);
@@ -167,7 +172,9 @@ test("FIN15 mutaciones semanticas de identidad servidor",()=>{
  const mutations=[
   ["sin dedup por referencia",s=>s.replace('if (ref && referencias.has(ref)) continue;','')],
   ["referencia vuelve a depender del dia",s=>s.replace('JSON.stringify([bank, decodeURIComponent(ref[1])])','JSON.stringify([bank, decodeURIComponent(ref[1]), f.fecha])')],
-  ["pierde ambito de banco",s=>s.replace('JSON.stringify([bank, decodeURIComponent(ref[1])])','JSON.stringify([decodeURIComponent(ref[1])])')],
+  // Conserva la forma [banco,ref] usada también por la preferencia: se elimina
+  // solo la separación entre bancos, sin provocar un TypeError ajeno al oráculo.
+  ["pierde ambito de banco",s=>s.replace('JSON.stringify([bank, decodeURIComponent(ref[1])])','JSON.stringify(["mutated-bank", decodeURIComponent(ref[1])])')],
   ["funde referencias distintas por contenido",s=>s.replace('if (anteriores && (!ref || anteriores.has(""))) continue;','if (anteriores) continue;')],
   ["ignora lapida de absorcion",s=>s.replace('if (legacy && lap.has(legacy)) continue;','')],
   ["ignora lapida v2 antes de identidad FIN15",s=>s.replace('if (absorbed && lap.has(absorbed)) continue;','')],
