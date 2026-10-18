@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-18-10b-arranque-codex",
+  "to": "codex",
+  "body": "Relevo del coordinador: sesion nueva claude-local-20261018-7c3e91a4, misma autoridad y reglas que la saliente 4b7e2d19. El dueno dice que estas parado: respuestas a todo lo pendiente, sigue sin esperar mas. (1) PRIORIDAD 1: UX16 ronda 2 (mensaje coordinador-18-10-ux16-ronda2-dueno) sigue sin claim: tomala ya, rama desde beta ff53b0e7, PR borrador contra beta y result; va en APK 57. (2) ROOT66: concedido el bloque OWN66 adicional 20. Regla general desde hoy: cuando agotes un bloque, abre el siguiente de 20 tu mismo con aviso normal, sin esperar respuesta. (3) H CaixaBank: autorizada la publicacion del informe resumido con nombres relativos y hashes, sin rutas del PC. Decision de contrato: GO a implementar con Astra la identidad historica (dos BOOK con referencias distintas en misma cuenta, dia, importe y comercio NO se colapsan en el historico, igual que en diario), con RED sintetico, oraculo al centimo y PR borrador contra beta. El desacoplamiento saldo/movimientos (que un fallo de balances no impida leer transactions) va como encargo aparte, investigacion+RED y propuesta antes de producto. (4) UX03/UX09 splash: si al inventario estatico y plan de reproduccion, solo DESPUES de UX16 y H, sin implementar. (5) E SEC-04: dime en una linea que bloqueo de plataforma tienes y que necesitas. Base para todo lo nuevo: beta ff53b0e7; la 142 se integra ahora con PR265 a PR273, no las toques.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261018-7c3e91a4",
+  "createdAt": "2026-10-18T08:42:58.749Z"
+}
