@@ -77,9 +77,9 @@ function extracto({rol,bancos,nombres,importes,semilla}){
   if(r()<0.5) txs.push({ext_id:"p-nfx",ent:principal,date:"2026-10-21",amount:14,merchant:"NETFLIX SHOP MERCH",status:"BOOK",card:true});
   if(r()<0.3) txs.push({ext_id:"p-seg",ent:principal,date:"2026-10-06",amount:41.5,merchant:"SEGURO DENTAL SANITAS",status:"BOOK",card:false});
   COMPRAS.forEach(function([id,fecha,importe,comercio]){ txs.push({ext_id:id,ent:r()<0.25&&segundo?segundo:principal,date:fecha,amount:importe,merchant:comercio,status:"BOOK",card:true}); });
-  const accounts=rol==="recibos"?[{id:"a",ent:principal,bankUid:principal,role:"fijos",value:3000},{id:"tr",ent:"trade_republic",bankUid:"trade_republic",role:"diario",spendFrom:true,value:500}]
-    :[{id:"a",ent:principal,bankUid:principal,role:rol==="todo"?"ambos":"diario",spendFrom:true,value:3000}];
-  if(segundo) accounts.push({id:"b",ent:segundo,bankUid:segundo,role:"fijos",value:1200});
+  const accounts=rol==="recibos"?[{id:"a",ent:principal,role:"fijos",value:3000},{id:"tr",ent:"trade_republic",role:"diario",spendFrom:true,value:500}]
+    :[{id:"a",ent:principal,role:rol==="todo"?"ambos":"diario",spendFrom:true,value:3000}];
+  if(segundo) accounts.push({id:"b",ent:segundo,role:"fijos",value:1200});
   const settings=segundo&&r()<0.5?{expenseBanks:[segundo]}:{};
   const saldos={[principal]:+(1500+r()*1000).toFixed(2)}; if(segundo) saldos[segundo]=+(600+r()*500).toFixed(2);
   return {estado:{accounts,settings,fixed,debts:[],oneoffs:[],flows:[],expenses:[],bankTx:[],deleted:[],budget:800,investments:[],assets:[],aportaciones:[],trAnchor:"2026-10"},txs,saldos};
@@ -143,7 +143,7 @@ test("los ocho recibos de la revisión, banco para todo: el mismo gastado antes 
   const fixed=RECIBOS.map(([id,plan,importe,dia])=>({id,name:plan,amount:importe,freq:"mes",day:dia,account:"caixabank"}));
   const txs=RECIBOS.map(([id,,importe,dia,banco])=>({ext_id:"r-"+id,ent:"caixabank",date:"2026-10-"+String(dia).padStart(2,"0"),amount:importe,merchant:id==="seg"?"MAPFRE":banco,status:"BOOK",card:false}))
     .concat(COMPRAS.map(([id,fecha,importe,comercio])=>({ext_id:id,ent:"caixabank",date:fecha,amount:importe,merchant:comercio,status:"BOOK",card:true})));
-  const ex={estado:{accounts:[{id:"a",ent:"caixabank",bankUid:"caixabank",role:"ambos",spendFrom:true,value:3000}],settings:{},fixed,debts:[],oneoffs:[],flows:[],expenses:[],bankTx:[],deleted:[],budget:800,trAnchor:"2026-10"},txs,saldos:{caixabank:2351.01}};
+  const ex={estado:{accounts:[{id:"a",ent:"caixabank",role:"ambos",spendFrom:true,value:3000}],settings:{},fixed,debts:[],oneoffs:[],flows:[],expenses:[],bankTx:[],deleted:[],budget:800,trAnchor:"2026-10"},txs,saldos:{caixabank:2351.01}};
   const a=recorre(base,ex), b=recorre(cand,ex);
   assert.deepEqual(b.pasos,a.pasos);
   assert.equal(b.pasos.sync.presupuesto.spent,572.6);
@@ -156,7 +156,7 @@ test("la fila de recibo no gasta el «posible repetido» que le toca a otro movi
   // Recibo llamado como el texto genérico del banco, un aviso del móvil de 20 € y dos movimientos
   // de 20 €: el primero casa con el recibo (se tiraba); el segundo, sin nombre, es el gemelo del
   // aviso y tiene que seguir entrando como «posible repetido», sin contar.
-  const ex={estado:{accounts:[{id:"a",ent:"caixabank",bankUid:"caixabank",role:"ambos",spendFrom:true,value:3000}],settings:{},fixed:[{id:"mv",name:"Movimiento",amount:20.4,freq:"mes",day:6,account:"caixabank"}],
+  const ex={estado:{accounts:[{id:"a",ent:"caixabank",role:"ambos",spendFrom:true,value:3000}],settings:{},fixed:[{id:"mv",name:"Movimiento",amount:20.4,freq:"mes",day:6,account:"caixabank"}],
       debts:[],oneoffs:[],flows:[],bankTx:[],deleted:[],budget:800,trAnchor:"2026-10",
       expenses:[{id:"w1",date:"2026-10-06T09:00:00.000Z",merchant:"Bar Paco",amount:20,category:"bares",source:"wallet",ent:"caixabank"}]},
     // El del recibo va con fecha posterior: el extracto se recorre de nuevo a viejo y es el que llega antes.
@@ -209,11 +209,11 @@ const dd=n=>String(n).padStart(2,"0");
 function extractoAmplio(semilla){
   const r=azar(semilla), uno=l=>l[Math.floor(r()*l.length)], p=x=>r()<x;
   const forma=semilla%5;
-  const accounts=forma===0?[{id:"a",ent:"bbva",bankUid:"bbva",role:"ambos",spendFrom:true,value:3000}]
-    :forma===1?[{id:"a",ent:"bbva",bankUid:"bbva",role:"diario",spendFrom:true,value:2000},{id:"b",ent:"ing",bankUid:"ing",role:"fijos",value:1500}]
-    :forma===2?[{id:"a",ent:"bbva",bankUid:"bbva",role:"fijos",value:2000},{id:"b",ent:"ing",bankUid:"ing",role:"diario",spendFrom:true,value:800}]
-    :forma===3?[{id:"a",ent:"bbva",bankUid:"bbva",role:"ambos",spendFrom:true,value:2500},{id:"b",ent:"ing",bankUid:"ing",value:400}]
-    :[{id:"a",ent:"bbva",bankUid:"bbva",value:2100},{id:"b",ent:"ing",bankUid:"ing",spendFrom:true,value:650}];
+  const accounts=forma===0?[{id:"a",ent:"bbva",role:"ambos",spendFrom:true,value:3000}]
+    :forma===1?[{id:"a",ent:"bbva",role:"diario",spendFrom:true,value:2000},{id:"b",ent:"ing",role:"fijos",value:1500}]
+    :forma===2?[{id:"a",ent:"bbva",role:"fijos",value:2000},{id:"b",ent:"ing",role:"diario",spendFrom:true,value:800}]
+    :forma===3?[{id:"a",ent:"bbva",role:"ambos",spendFrom:true,value:2500},{id:"b",ent:"ing",value:400}]
+    :[{id:"a",ent:"bbva",value:2100},{id:"b",ent:"ing",spendFrom:true,value:650}];
   const diaria=accounts.find(a=>a.spendFrom);
   if(p(0.5)) diaria.roundup=uno([1,2]);
   const ents=accounts.map(a=>a.ent), settings={};
@@ -366,7 +366,7 @@ test("la excepción, con nombre y apellidos: el seguro anual cobrado a fin de me
     ["recibo trimestral",{fixed:[{id:"bas",name:"Basuras",amount:48,day:29,account:"bbva",freq:"trimestral"}]},{amount:48,merchant:"AYUNTAMIENTO TASA BASURAS",date:"2026-10-29"}],
     ["puntual",{oneoffs:[{id:"od",name:"Dentista",amount:120,year:2026,month:10,day:29,account:"bbva"}]},{amount:119.6,merchant:"DENTISTA",date:"2026-10-29"}],
   ]){
-    const ex={estado:Object.assign({accounts:[{id:"a",ent:"bbva",bankUid:"bbva",role:"ambos",spendFrom:true,value:3000}],settings:{budgetCycle:true},fixed:[],debts:[],oneoffs:[],flows:[],expenses:[],bankTx:[],deleted:[],budget:800,investments:[],assets:[],aportaciones:[],trAnchor:"2026-10"},plan),
+    const ex={estado:Object.assign({accounts:[{id:"a",ent:"bbva",role:"ambos",spendFrom:true,value:3000}],settings:{budgetCycle:true},fixed:[],debts:[],oneoffs:[],flows:[],expenses:[],bankTx:[],deleted:[],budget:800,investments:[],assets:[],aportaciones:[],trAnchor:"2026-10"},plan),
       txs:[Object.assign({ext_id:"x1",ent:"bbva",status:"BOOK",card:false},cargo),{ext_id:"nom",ent:"bbva",date:"2026-10-10",amount:-1800,merchant:"NOMINA ACME SL",status:"BOOK",card:false}],
       d1:31,d2:31,dn:2,saldos:[{bbva:2500},{bbva:2500},{bbva:2400}]};
     const r=compara(ex,caso);
@@ -383,7 +383,7 @@ test("la excepción, segunda forma: subir el importe de un recibo y volver a sin
   for(const rol of ["diario","ambos"]){
     const tras=function({c,reloj}){
       reloj.t=aLas(10,12);
-      const s0={accounts:[{id:"a",ent:"bbva",bankUid:"bbva",role:rol,spendFrom:true,value:500}],settings:{},fixed:[{id:"luz",name:"Luz Endesa",amount:62.4,freq:"mes",day:5,account:"bbva"}],debts:[],oneoffs:[],flows:[],bankTx:[],deleted:[],budget:800,investments:[],assets:[],aportaciones:[],trAnchor:"2026-10",expenses:[]};
+      const s0={accounts:[{id:"a",ent:"bbva",role:rol,spendFrom:true,value:500}],settings:{},fixed:[{id:"luz",name:"Luz Endesa",amount:62.4,freq:"mes",day:5,account:"bbva"}],debts:[],oneoffs:[],flows:[],bankTx:[],deleted:[],budget:800,investments:[],assets:[],aportaciones:[],trAnchor:"2026-10",expenses:[]};
       const primera=sincroniza(c,s0,txs,{bbva:397.6});
       const subido=Object.assign({},primera,{fixed:primera.fixed.map(f=>Object.assign({},f,{amount:80}))});
       return [cifras(c,primera,2026,10,12),cifras(c,sincroniza(c,subido,txs,{bbva:397.6}),2026,10,12)];
@@ -398,7 +398,7 @@ test("la excepción, segunda forma: subir el importe de un recibo y volver a sin
 });
 
 test("un cargo que solo casa con una deuda no se marca como recibo: entra como su cuota, igual que antes", ()=>{
-  const ex={estado:{accounts:[{id:"a",ent:"bbva",bankUid:"bbva",role:"ambos",spendFrom:true,value:3000}],settings:{},fixed:[{id:"gim","name":"Gimnasio",amount:34.9,freq:"mes",day:3,account:"bbva"}],
+  const ex={estado:{accounts:[{id:"a",ent:"bbva",role:"ambos",spendFrom:true,value:3000}],settings:{},fixed:[{id:"gim","name":"Gimnasio",amount:34.9,freq:"mes",day:3,account:"bbva"}],
       debts:[{id:"dc",name:"Prestamo coche",monthly:189.5,account:"bbva",day:5,value:5000}],oneoffs:[],flows:[],expenses:[],bankTx:[],deleted:[],budget:800,investments:[],assets:[],aportaciones:[],trAnchor:"2026-10"},
     txs:[{ext_id:"x1",ent:"bbva",date:"2026-10-05",amount:189.5,merchant:"PRESTAMO COCHE FINANC",status:"BOOK",card:false},{ext_id:"x2",ent:"bbva",date:"2026-10-03",amount:34.9,merchant:"GIMNASIO FITUP",status:"BOOK",card:false}],
     d1:12,d2:12,dn:2,saldos:[{bbva:2775.6},{bbva:2775.6},{bbva:2775.6}]};
@@ -410,7 +410,7 @@ test("un cargo que solo casa con una deuda no se marca como recibo: entra como s
 test("el cierre estima el redondeo igual con el cargo de un recibo en la lista que sin él", ()=>{
   // El banco de gasto diario solo trae el recibo; las compras con tarjeta están apuntadas a mano.
   // La 119 no tenía ninguna fila del banco y al cerrar restaba el redondeo estimado.
-  const ex={estado:{accounts:[{id:"a",ent:"bbva",bankUid:"bbva",role:"diario",spendFrom:true,value:800,roundup:1}],settings:{},fixed:[{id:"hog",name:"Seguro hogar",amount:220,day:23,account:"bbva",freq:"año",months:[10]}],
+  const ex={estado:{accounts:[{id:"a",ent:"bbva",role:"diario",spendFrom:true,value:800,roundup:1}],settings:{},fixed:[{id:"hog",name:"Seguro hogar",amount:220,day:23,account:"bbva",freq:"año",months:[10]}],
       debts:[],oneoffs:[],flows:[],bankTx:[],deleted:[],budget:1200,investments:[],assets:[],aportaciones:[],trAnchor:"2026-10",
       expenses:[{id:"m1",date:"2026-10-03T12:00:00.000Z",merchant:"Mercado",amount:18.2,category:"super",source:"manual",ent:"bbva"}]},
     txs:[{ext_id:"x5",ent:"bbva",date:"2026-10-22",amount:220,merchant:"OCASO SEGURO",status:"BOOK",card:true}],d1:28,d2:28,dn:2,saldos:[{bbva:1777.52},{bbva:1777.52},{bbva:1700}]};
@@ -428,7 +428,7 @@ test("el cierre estima el redondeo igual con el cargo de un recibo en la lista q
 test("dos cargos iguales del mismo día que casan con un recibo: entran los dos marcados, el segundo con su ordinal, y nada cuenta", ()=>{
   for(const rol of ["ambos","diario"]){
     const igual={ext_id:null,ent:"bbva",date:"2026-10-05",amount:10.99,merchant:"SPOTIFY AB",status:"BOOK",card:true};
-    const ex={estado:{accounts:[{id:"a",ent:"bbva",bankUid:"bbva",role:rol,spendFrom:true,value:3000}],settings:{},fixed:[{id:"spo",name:"Spotify",amount:10.99,freq:"mes",day:5,account:"bbva"}],
+    const ex={estado:{accounts:[{id:"a",ent:"bbva",role:rol,spendFrom:true,value:3000}],settings:{},fixed:[{id:"spo",name:"Spotify",amount:10.99,freq:"mes",day:5,account:"bbva"}],
         debts:[],oneoffs:[],flows:[],expenses:[],bankTx:[],deleted:[],budget:800,investments:[],assets:[],aportaciones:[],trAnchor:"2026-10"},
       // Dos iguales del recibo y, aparte, dos compras iguales sin id que no son de ningún recibo.
       txs:[igual,Object.assign({},igual),{ext_id:null,ent:"bbva",date:"2026-10-06",amount:5,merchant:"BIZUM A PEPE",status:"BOOK",card:false},{ext_id:null,ent:"bbva",date:"2026-10-06",amount:5,merchant:"BIZUM A PEPE",status:"BOOK",card:false}],

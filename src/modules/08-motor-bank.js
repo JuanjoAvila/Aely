@@ -787,14 +787,14 @@ function applyBankBalances(s, links){
     const prior=(s.obAccounts||[]).filter(function(o){return String(o.aspsp||"").toLowerCase()===String(lk.aspsp||"").toLowerCase();}).concat(accounts.filter(function(a){return a.ent===ent;}));
     const usable=function(ac){ return ac && (ac.iban||ac.uid) && accs.filter(function(x){return x&&overlaps(x,ac);}).length===1 && !prior.some(function(o){return overlaps(o,ac)&&!same(o,ac);}) &&
       (lk.accountPhases===1 ? ac.balanceOk===true : ac.ok!==false) && pickBankBalanceInfo(ac.balances).valor!=null; };
-    const ownerOf={}, blocked={};
+    const ownerOf={}, blocked={}, unbound=[];
     accounts.forEach(function(a,i){
       if(a.ent!==ent || usedPrimary[i]) return;
       const matches=accs.map(function(ac,k){return ac&&same(a,ac)?k:-1;}).filter(function(k){return k>=0;});
       if(matches.length!==1 || ownerOf[matches[0]]!=null){
-        // Una principal sin vínculo requiere elección explícita: no se le asigna por orden,
-        // ni se suma otra vez la misma cuenta como extra mientras la identidad sea ambigua.
-        if(!a.bankIban&&!a.bankUid&&!a.accountOrderKey) accs.forEach(function(ac,k){if(!blocked[k])blocked[k]="unbound";});
+        // Sin IBAN, un UID puede cambiar al reconectar. Primero reservamos TODOS los vínculos
+        // exactos (también los que fallaron), después la única pareja libre inequívoca.
+        if(!matches.length && !a.bankIban) unbound.push(i);
         if(matches.length===1 && ownerOf[matches[0]]!=null){
           blocked[matches[0]]=true;
           accounts[ownerOf[matches[0]]]=Object.assign({},accounts[ownerOf[matches[0]]],{balanceStale:true});
@@ -805,13 +805,21 @@ function applyBankBalances(s, links){
       const j=matches[0]; ownerOf[j]=i; usedPrimary[i]=true;
       if(!usable(accs[j])){ accounts[i]=Object.assign({},a,{balanceStale:true}); changed=true; }
     });
-    Object.keys(ownerOf).forEach(function(k){if(blocked[k]==="unbound")delete blocked[k];});
-    // Retener solo la identidad no actualizada; también cuando una respuesta vieja omite
-    // una cuenta. Su valor y fecha quedan byte a byte, salvo la marca visible de antigüedad.
+    const free=accs.map(function(ac,k){return ac&&(ac.uid||ac.iban)&&ownerOf[k]==null&&!blocked[k]?k:-1;}).filter(function(k){return k>=0;});
+    if(unbound.length===1 && free.length===1){
+      ownerOf[free[0]]=unbound[0]; usedPrimary[unbound[0]]=true;
+    } else if(unbound.length){
+      // Varias identidades desconocidas no acreditan qué principal corresponde a cuál.
+      // No asignarlas por orden ni sumar sus posibles duplicados como cuentas extra.
+      free.forEach(function(k){blocked[k]=true;});
+    }
+    // Solo una identidad DEVUELTA sin saldo usable conserva valor/fecha. Las omitidas
+    // desaparecen como en la base: retenerlas sumaba la cuenta vieja tras reconectar.
     (s.obAccounts||[]).forEach(function(o){
       if(String(o.aspsp||"").toLowerCase()!==String(lk.aspsp||"").toLowerCase()) return;
-      const matches=accs.map(function(ac,k){return ac&&same(o,ac)?k:-1;}).filter(function(k){return k>=0;});
-      if(matches.length!==1 || !usable(accs[matches[0]]) || blocked[matches[0]])
+      const matches=accs.map(function(ac,k){return ac&&overlaps(o,ac)?k:-1;}).filter(function(k){return k>=0;});
+      if(matches.length && !matches.some(function(k){return ownerOf[k]!=null;}) &&
+        (matches.length!==1 || !usable(accs[matches[0]]) || blocked[matches[0]]))
         obAccts.push(Object.assign({},o,{stale:true,staleKind:lk.expired?"expired":"temporary"}));
     });
     accs.forEach(function(ac,k){
@@ -867,9 +875,6 @@ function applyBankBalances(s, links){
       }
     });
 
-  });
-  (s.obAccounts||[]).forEach(function(o){
-    if(!links.some(function(l){return String(l&&l.aspsp||"").toLowerCase()===String(o.aspsp||"").toLowerCase();})) obAccts.push(o);
   });
   const obChanged=JSON.stringify(s.obAccounts||[])!==JSON.stringify(obAccts);
   const newState=(changed||obChanged) ? Object.assign({},s,{accounts:accounts, obAccounts:obAccts}) : s;

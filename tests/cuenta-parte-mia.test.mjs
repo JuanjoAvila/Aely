@@ -115,7 +115,7 @@ function comprobar(m) {
   const sUid = S(conUid);
   assert.equal(at(sUid, "2026-10-09"), 3700, "principal sin IBAN al 50 %: 200, no 400");
   assert.ok(!sUid.coverage.some(g => g.unsplit), "y la «i» no lo llama antiguo");
-  const reanclada = m.applyBankBalances(base({ accounts: [{ id: "p", ent: "revolut", accountOrderKey: "ob:u-p", name: "Principal", value: 1000, role: "fijos" }] }),
+  const reanclada = m.applyBankBalances(base({ accounts: [{ id: "p", ent: "revolut", name: "Principal", value: 1000, role: "fijos" }] }),
     [{ aspsp: "Revolut", ok: true, accounts: [{ uid: "u-p", iban: null, ok: true, balances: [{ type: "ITAV", amount: "1000", currency: "EUR" }] }] }]).state;
   assert.equal(reanclada.accounts[0].bankUid, "u-p", "al re-anclar sin IBAN, la principal guarda el uid del banco");
   // Las dos cuentas con la misma parte: da igual de cuál saliera.

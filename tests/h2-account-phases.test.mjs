@@ -1,13 +1,12 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import vm from 'node:vm';
 import {execFileSync} from 'node:child_process';
 import {loadPureLogic,loadPureLogicFromFile} from '../scripts/load-pure-logic.mjs';
 import {sync,link,movement,handlerSource} from './helpers/h2-sync.mjs';
 import {contexto,STATE_KEY,ACK_KEY} from './helpers/banco-sintetico.mjs';
 
-const L=process.env.H2_CLIENT_FILE?loadPureLogic(fs.readFileSync(process.env.H2_CLIENT_FILE,'utf8')):loadPureLogicFromFile(), old=loadPureLogicFromFile();
-vm.runInContext(fs.readFileSync(new URL('./fixtures/h2-legacy-client.js',import.meta.url),'utf8'),old);
+const L=process.env.H2_CLIENT_FILE?loadPureLogic(fs.readFileSync(process.env.H2_CLIENT_FILE,'utf8')):loadPureLogicFromFile();
+const old=loadPureLogic(execFileSync('git',['show','ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13:public/index.html'],{encoding:'utf8',maxBuffer:8*1024*1024}));
 const stamp='2026-10-18T01:00:00.000Z', prior='2026-10-16T01:00:00.000Z';
 let now=Date.parse(stamp);
 class Clock extends Date { constructor(...a){super(...(a.length?a:[now]));} static now(){return now;} }
@@ -90,14 +89,15 @@ await t('promoted UID and IBAN identities survive reorder; failed main retains v
  const ib={...s,accounts:[{...s.accounts[0],bankIban:'IBAN-A'}]};l.accounts[1].iban='IBAN-A';l.accounts[1].uid='changed';
  assert.equal(L.applyBankBalances(ib,[l]).state.accounts[0].value,125);
 });
-await t('principal without identity is not rebound to first healthy account',()=>{
+await t('principal without identity binds the only free account',()=>{
  const s={...state(),accounts:[{ent:'caixabank',role:'fijos',value:125}],obAccounts:[]};
  const links=[{aspsp:'CaixaBank',ok:true,accounts:[{uid:'b',balances:[{type:'ITAV',amount:100}]}]}];
- const got=L.applyBankBalances(s,links).state;assert.equal(got.accounts[0].value,125);assert.equal(got.accounts[0].bankUid,undefined);assert.equal(got.obAccounts.length,0);
+ const got=L.applyBankBalances(s,links).state;assert.equal(got.accounts[0].value,100);assert.equal(got.accounts[0].bankUid,'b');assert.equal(got.obAccounts.length,0);
 });
-await t('unreported bank retains original accounts unchanged',()=>{
+await t('unreported bank follows real base removal; explicit failed bank retains its money',()=>{
  const s=state();s.obAccounts.push({key:'other',aspsp:'Other',value:17,cur:'EUR'});
- const got=L.applyBankBalances(s,[{aspsp:'CaixaBank',ok:false}]).state;assert.ok(got.obAccounts.some(a=>a.key==='other'&&a.value===17));
+ const links=[{aspsp:'CaixaBank',ok:false}], got=L.applyBankBalances(s,links).state;
+ assert.equal(cents(got),cents(old.applyBankBalances(s,links).state));assert.equal(cents(got),20500);assert.equal(got.obAccounts.some(a=>a.key==='other'),false);
 });
 await t('pagination failure retains prefix, prior rows and forbids ACK; replay no duplicates',async()=>{
  const b=bank();b.accounts=[{uid:'a'}];const r=await sync([b],u=>{if(u.searchParams.has('continuation_key'))throw Error('EB 503');return {...tx(),continuation_key:'opaque +/='};},body,Clock);
@@ -171,7 +171,7 @@ await t('promotion without IBAN preserves UID and original freshness through nex
 await t('UID still matches when a response omits a previously known IBAN',()=>{
  const s=state();s.obAccounts[0].iban='IBAN-A';
  const l={aspsp:'CaixaBank',ok:true,accountPhases:1,accounts:[{uid:'a',balanceOk:true,balances:[{type:'ITAV',amount:100}]}]};
- const got=L.applyBankBalances(s,[l]).state;assert.equal(cents(got),18000);assert.equal(got.obAccounts.length,2);
+ const got=L.applyBankBalances(s,[l]).state;assert.equal(cents(got),10000);assert.equal(got.obAccounts.length,1);
  assert.equal(got.obAccounts.find(a=>a.key==='a').iban,'IBAN-A');assert.equal(got.obAccounts.find(a=>a.key==='a').balanceAt,prior);
 });
 await t('duplicate principal owners are both retained stale, never chosen by array order',()=>{

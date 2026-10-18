@@ -785,8 +785,9 @@ function App(){
         links.forEach(function(l){
           if(!l || l.ok===false) return;
           const accs=Array.isArray(l.accounts)?l.accounts:[];
-          const usable=accs.filter(function(a){ return a && a.ok!==false && pickBankBalance(a.balances)!=null; }).length;
-          if(accs.length && !usable){
+          const claimed=accs.filter(function(a){ return a && (l.accountPhases===1?a.balanceOk===true:a.ok!==false); });
+          const usable=claimed.some(function(a){ return pickBankBalance(a.balances)!=null; });
+          if(claimed.length && !usable){
             cloud.logEvent('error','OB '+(l.aspsp||'?')+': sync ok pero sin cuentas con saldo utilizable',
               JSON.stringify(accs.slice(0,6).map(function(a){ return {ok:a&&a.ok, nbal:((a&&a.balances)||[]).length, types:((a&&a.balances)||[]).map(function(b){ return b&&b.type; })}; })));
           }

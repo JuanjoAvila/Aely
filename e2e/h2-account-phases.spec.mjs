@@ -1,6 +1,23 @@
 import {test,expect} from '@playwright/test';
 import {seedLoggedInDashboard,dismissNews,installFixtureClock} from './fixtures.mjs';
 const previous='2026-09-20T01:00:00.000Z',fresh='2026-09-26T11:59:00.000Z';
+for(const reconnect of [false,true])test('round2 '+(reconnect?'UID reconnect':'new connection')+' binds principal and removes absent extra',async({page})=>{
+ await page.route('**/*',r=>new URL(r.request().url()).hostname==='127.0.0.1'?r.continue():r.abort());
+ await installFixtureClock(page);
+ await seedLoggedInDashboard(page,{hasBankLink:true,accounts:[{id:'main',name:'Principal sintética',ent:'caixabank',role:'fijos',value:50,...(reconnect?{bankUid:'old'}:{})}],
+  obAccounts:[{key:'gone',ent:'caixabank',aspsp:'CaixaBank',name:'Cuenta retirada',value:30,cur:'EUR'}],
+  expenses:[],fixed:[],debts:[],oneoffs:[],flows:[],investments:[],bankTx:[],settings:{autoPrices:false,lang:'es',theme:'green'},
+  __cloudRows:{bank_links:[{aspsp_name:'CaixaBank',status:'active'}]},
+  __cloudFns:{'bank-sync':{error:null,data:{ok:true,links:[{aspsp:'CaixaBank',ok:true,accountPhases:1,accounts:[{uid:'new',ok:true,balanceOk:true,balanceAt:fresh,balances:[{type:'ITAV',amount:70,currency:'EUR'}],transactions:[]}]}]}}}});
+ await page.goto('/');await expect(page.locator('.botnav')).toBeVisible();await page.waitForFunction(()=>!document.getElementById('mc-load'));await dismissNews(page);
+ await page.locator('.botnav-tab[data-tour="cartera"]').click();
+ await page.getByRole('button',{name:await page.evaluate(()=>t('v4_sync_banks')),exact:true}).click();
+ await expect.poll(()=>page.evaluate(()=>{const s=JSON.parse(localStorage.getItem('micartera_v3')||'{}');return Math.round([...(s.accounts||[]),...(s.obAccounts||[])].reduce((n,a)=>n+a.value,0)*100);})).toBe(7000);
+ const principal=page.locator('.v4-card-list button.v4-mov').filter({hasText:'Principal sintética'}).first();
+ await expect(principal).toContainText('70');await expect(page.locator('[data-ob-key="gone"]')).toHaveCount(0);await expect(page.locator('[data-ob-key="new"]')).toHaveCount(0);
+ const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('micartera_v3')));
+ expect(saved.accounts[0].bankUid).toBe('new');expect(saved.accounts[0].balanceAt).toBe(fresh);expect(saved.obAccounts).toHaveLength(0);
+});
 for(const [lang,warning,stale] of [['es','no se ha podido actualizar algún saldo','sin actualizar'],['en','some balances could not be updated','not updated'],['ca','no s’ha pogut actualitzar algun saldo','sense actualitzar']]){
  test(lang+' H2 retains failed-account amount and shows partial balance warning',async({page})=>{
   await page.route('**/*',r=>new URL(r.request().url()).hostname==='127.0.0.1'?r.continue():r.abort());

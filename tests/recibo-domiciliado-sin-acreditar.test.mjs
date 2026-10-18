@@ -45,7 +45,7 @@ const ASPSP={sabadell:"Banco de Sabadell",caixabank:"CaixaBank"};
 // Respuesta de `bank-sync`: un enlace por banco, con su saldo real y sus movimientos.
 const enlaces=(txs,saldos)=>Object.keys(saldos).map(ent=>({aspsp:ASPSP[ent]||ent,ok:true,
   accounts:[{uid:ent,ok:true,balances:[{type:"ITAV",amount:saldos[ent],currency:"EUR"}],transactions:txs.filter(t=>t.ent===ent)}]}));
-const unaCuenta=[{id:"sb",ent:"sabadell",bankUid:"sabadell",role:"fijos",value:2000},{id:"tr",ent:"trade_republic",bankUid:"trade_republic",role:"diario",spendFrom:true,value:500}];
+const unaCuenta=[{id:"sb",ent:"sabadell",role:"fijos",value:2000},{id:"tr",ent:"trade_republic",role:"diario",spendFrom:true,value:500}];
 const estado=o=>Object.assign({accounts:clon(unaCuenta),fixed:clon(fijos),bankTx:[],debts:[],oneoffs:[],expenses:[],flows:[],settings:{},deleted:[]},o);
 // Lo mismo que hace `runBankSync` con la respuesta: importar, guardar extracto y pruebas, anclar.
 function sincroniza(s,txs,saldos){
@@ -93,9 +93,9 @@ const TX_LUZ=T("c1","caixabank","2026-10-03",61.4,"LUZ HOGAR SL");
 const control=ent=>({id:"ctl-"+ent,date:"2026-10-06T10:00:00.000Z",merchant:"Compra de control",obName:"Compra de control",amount:20,category:"otros",source:"ob",ent:ent,extId:"ctl-"+ent});
 const TX_CTL=["sabadell","caixabank"].map(ent=>T("ctl-"+ent,ent,"2026-10-06",20,"Compra de control",{card:true}));
 const ROLES=[
-  ["solo recibos",[{id:"sb",ent:"sabadell",bankUid:"sabadell",role:"fijos",value:2000},{id:"cx",ent:"caixabank",bankUid:"caixabank",role:"fijos",value:900},{id:"tr",ent:"trade_republic",bankUid:"trade_republic",role:"diario",spendFrom:true,value:500}],{}],
-  ["para todo",[{id:"sb",ent:"sabadell",bankUid:"sabadell",role:"ambos",spendFrom:true,value:2000},{id:"cx",ent:"caixabank",bankUid:"caixabank",role:"fijos",value:900}],{expenseBanks:["caixabank"]}],
-  ["gasto diario",[{id:"sb",ent:"sabadell",bankUid:"sabadell",role:"diario",spendFrom:true,value:2000},{id:"cx",ent:"caixabank",bankUid:"caixabank",role:"fijos",value:900}],{}],
+  ["solo recibos",[{id:"sb",ent:"sabadell",role:"fijos",value:2000},{id:"cx",ent:"caixabank",role:"fijos",value:900},{id:"tr",ent:"trade_republic",role:"diario",spendFrom:true,value:500}],{}],
+  ["para todo",[{id:"sb",ent:"sabadell",role:"ambos",spendFrom:true,value:2000},{id:"cx",ent:"caixabank",role:"fijos",value:900}],{expenseBanks:["caixabank"]}],
+  ["gasto diario",[{id:"sb",ent:"sabadell",role:"diario",spendFrom:true,value:2000},{id:"cx",ent:"caixabank",role:"fijos",value:900}],{}],
 ];
 const BANCO={sabadell:1848,caixabank:838.6};
 for(const [rol,accounts,settings] of ROLES){
@@ -145,7 +145,7 @@ for(const [rol,accounts,settings] of ROLES){
 }
 
 // ───── Qué se marca y con qué etiqueta: lo mismo que se tiraba; lo dudoso, con pregunta ─────
-const todo=o=>estado(Object.assign({accounts:[{id:"sb",ent:"sabadell",bankUid:"sabadell",role:"ambos",spendFrom:true,value:2000}],settings:{}},o));
+const todo=o=>estado(Object.assign({accounts:[{id:"sb",ent:"sabadell",role:"ambos",spendFrom:true,value:2000}],settings:{}},o));
 for(const [nombre,recibo,txs,esperado,cuenta] of [
   ["«Agua» y una compra en AGUACATES de importe parecido: se tiraba, ahora se ve con la pregunta",F("ag","Agua",30,10),
     [T("a1","sabadell","2026-10-08",30.2,"AGUACATES DEL SUR",{card:true})],[["AGUACATES DEL SUR","ag","¿Recibo: Agua?"]],0],
@@ -192,7 +192,7 @@ test("un cargo que casa con dos recibos se asigna al que el motor da por pagado;
 
 test("pendiente → contabilizado: la etiqueta pasa a firme y el saldo es el del banco en todo momento", ()=>{
   for(const rol of ["ambos","diario"]){
-    const s=todo({accounts:[{id:"sb",ent:"sabadell",bankUid:"sabadell",role:rol,spendFrom:true,value:2000}],fixed:[F("nf","Netflix",12.99,5)]});
+    const s=todo({accounts:[{id:"sb",ent:"sabadell",role:rol,spendFrom:true,value:2000}],fixed:[F("nf","Netflix",12.99,5)]});
     const pend=sincroniza(s,[T("n1","sabadell","2026-10-05",12.99,"NETFLIX.COM",{status:"PDNG",card:true})],{sabadell:1987.01});
     assert.equal(etiquetas(pend.add,pend.state),j([["NETFLIX.COM","nf","¿Recibo: Netflix?"]]));
     assert.equal(mostrado(pend.state)[0],1987.01,rol);
@@ -244,7 +244,7 @@ test("un puntual del Plan marca su cargo, y la etiqueta es firme solo con nombre
 });
 
 test("un recibo que cuesta lo mismo que el aporte mensual no compra participaciones", ()=>{
-  const s=todo({accounts:[{id:"sb",ent:"sabadell",bankUid:"sabadell",role:"ambos",spendFrom:true,value:2000,monthlyInvest:50,rewardInv:"fondo"}],
+  const s=todo({accounts:[{id:"sb",ent:"sabadell",role:"ambos",spendFrom:true,value:2000,monthlyInvest:50,rewardInv:"fondo"}],
     investments:[{id:"fondo",value:1000,cost:1000,shares:10,cur:"EUR"}],fixed:[F("com","Comunidad",50,12)]});
   const r=sincroniza(s,[TX_COM,T("a2","sabadell","2026-10-02",50,"Aporte plan",{card:false})],{sabadell:1900});
   assert.equal(j(r.add.map(e=>[e.merchant,e.reciboId||null,e.category==="inversion"])),j([["COMUNIDAD DE PROPIETARIOS","com",false],["Aporte plan",null,true]]));
@@ -277,7 +277,7 @@ test("lo que él importó a mano el 12/10 no se duplica ni se toca; confirmar el
   const sinId=suyas.map(e=>{ const x=Object.assign({},e); delete x.extId; return x; });
   assert.equal(sincroniza(estado({expenses:sinId}),[TX_COM,TX_MOV].map(t=>Object.assign({},t,{ext_id:null}))).add.length,0,"sin id: día, importe y nombre");
   for(const rol of ["fijos","ambos","diario"]){
-    const acc=rol==="fijos"?clon(unaCuenta):[{id:"sb",ent:"sabadell",bankUid:"sabadell",role:rol,spendFrom:true,value:2000}];
+    const acc=rol==="fijos"?clon(unaCuenta):[{id:"sb",ent:"sabadell",role:rol,spendFrom:true,value:2000}];
     // Recibo con otro nombre que el del banco: nada lo acredita solo y hace falta el vínculo a mano.
     const r=sincroniza(estado({accounts:acc,expenses:clon(suyas),fixed:[F("com","Cuota vecinos",50,12),F("mov","Pepe Mobile, S.L.U.",102,5)]}),[TX_COM,TX_MOV]);
     assert.equal(r.add.length,0,"mismo id del banco");
@@ -511,7 +511,7 @@ test("la marca que baja de la nube se adopta; la cuota de deuda manda sobre la d
 });
 
 test("los lectores que suman gastos por su cuenta tampoco cuentan el cargo de un recibo", ()=>{
-  const r=sincroniza(todo({accounts:[{id:"sb",ent:"sabadell",bankUid:"sabadell",role:"ambos",spendFrom:true,value:2000,roundup:1}]}),[TX_COM,TX_MOV].concat([T("p1","sabadell","2026-10-07",3.4,"Panadería Sol",{card:true})]),{sabadell:1844.6});
+  const r=sincroniza(todo({accounts:[{id:"sb",ent:"sabadell",role:"ambos",spendFrom:true,value:2000,roundup:1}]}),[TX_COM,TX_MOV].concat([T("p1","sabadell","2026-10-07",3.4,"Panadería Sol",{card:true})]),{sabadell:1844.6});
   const foto=c.buildHouseholdSnapshot(r.state,{},"a@b.c");
   assert.equal(+[...foto.expensesByCat].reduce((n,x)=>n+x.spent,0).toFixed(2),3.4,"la foto del hogar ya lleva los recibos en sus fijos");
   // La tarjeta de redondeo de Cartera: solo redondea la compra, no los recibos.
@@ -633,7 +633,7 @@ for(const [lista,id] of [["fixed","com"],["oneoffs","o1"]]){
 }
 
 test("el aviso del móvil gana al cargo de recibo de su mismo día, importe y comercio, baje antes o después", ()=>{
-  const s0=()=>todo({accounts:[{id:"tr",ent:"trade_republic",bankUid:"trade_republic",role:"ambos",spendFrom:true,value:500}],fixed:[F("spo","Spotify",10.99,5,"trade_republic")]});
+  const s0=()=>todo({accounts:[{id:"tr",ent:"trade_republic",role:"ambos",spendFrom:true,value:500}],fixed:[F("spo","Spotify",10.99,5,"trade_republic")]});
   const txs=[T("x1","trade_republic","2026-10-05",10.99,"Spotify",{card:true})];
   const aviso=c.expenseFromRow({id:"11111111-1111-4111-8111-111111111111",fecha:"2026-10-05T10:00:00.000Z",importe:10.99,comercio:"Spotify",cat:"ocio",source:"macrodroid",ingest_event_id:"ev1"});
   const marcadaNube=c.expenseFromRow({id:"22222222-2222-4222-8222-222222222222",fecha:"2026-10-05T10:00:00.000Z",importe:10.99,comercio:"Spotify",cat:"ocio",source:"ob:trade_republic~recibo.spo",ob_name:"Spotify"});
@@ -727,7 +727,7 @@ test("con «Mi ciclo», el periodo en curso es el ciclo: lo anterior a la nómin
 test("«No es este recibo» sobre UNO de varios cargos iguales suelta solo ese, en la app y en la nube", async ()=>{
   const o={id:"itv",name:"Spotify",amount:10.99,account:"trade_republic",month:10,year:2026,day:5};
   const igual=T(null,"trade_republic","2026-10-05",10.99,"Spotify",{card:true});
-  const r=sincroniza(todo({accounts:[{id:"tr",ent:"trade_republic",bankUid:"trade_republic",role:"ambos",spendFrom:true,value:500}],fixed:[],oneoffs:[o]}),[igual,Object.assign({},igual)],{trade_republic:478.02}).state;
+  const r=sincroniza(todo({accounts:[{id:"tr",ent:"trade_republic",role:"ambos",spendFrom:true,value:500}],fixed:[],oneoffs:[o]}),[igual,Object.assign({},igual)],{trade_republic:478.02}).state;
   const filas=r.expenses.slice().sort((a,b)=>(a.obOrd||1)-(b.obOrd||1));
   assert.equal(j(filas.map(e=>[e.reciboId,e.obOrd||1,c.expenseSourceForCloud(e)])),j([["itv",1,"ob:trade_republic~recibo.itv#acctrade_republic"],["itv",2,"ob:trade_republic~recibo.itv#acctrade_republic#n2"]]));
   // El segundo viaja con su fecha un milisegundo después: si no, chocaría con el primero en la nube.
@@ -760,7 +760,7 @@ test("«No es este recibo» sobre UNO de varios cargos iguales suelta solo ese, 
 
 test("cuando el aviso gana al cargo marcado, la fila conserva lo que él puso a mano y la nube deja de depender del orden", async ()=>{
   const {filasComoLaApp}=await import("data:text/javascript;base64,"+Buffer.from(transformSync(source("supabase/functions/_shared/presupuesto.ts"),{loader:"ts",format:"esm"}).code).toString("base64"));
-  const s0=todo({accounts:[{id:"tr",ent:"trade_republic",bankUid:"trade_republic",role:"ambos",spendFrom:true,value:500}],fixed:[F("spo","Spotify",10.99,5,"trade_republic")]});
+  const s0=todo({accounts:[{id:"tr",ent:"trade_republic",role:"ambos",spendFrom:true,value:500}],fixed:[F("spo","Spotify",10.99,5,"trade_republic")]});
   const banco=sincroniza(s0,[T("x1","trade_republic","2026-10-05",10.99,"Spotify",{card:true})],{trade_republic:489.01}).state;
   // Lo que él tocó en esa fila antes de que bajara el aviso.
   const suya=Object.assign({},banco.expenses[0],{category:"ocio",note:"la cuenta familiar",noteEdited:true,noCard:true});

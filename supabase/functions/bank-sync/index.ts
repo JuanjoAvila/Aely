@@ -31,6 +31,8 @@ function obLogBank(raw: unknown): string {
 
 function obReadFailureCode(err: unknown) {
   const msg = String((err as Error)?.message || err || "");
+  // Una segunda pasada recibe ya el código cerrado; no debe perder su causa.
+  if (/^(?:eb_\d{3}|timeout|page_limit|invalid_response|unavailable)$/.test(msg)) return msg;
   const status = msg.match(/\bEB\s+(\d{3})\b/i);
   if (status) return `eb_${status[1]}`;
   if (/abort|timeout/i.test(msg)) return "timeout";
@@ -49,6 +51,11 @@ function obReadLogDetails(accounts: any[]) {
       ? a.readReason : code === "timeout" || a.transactionError === "timeout" ? "time_limit" : code === "invalid_response" ? "invalid_response" : code === "page_limit" ? "page_limit" : a.transactionError || a.ok === false ? "provider_error" : a.truncated ? "incomplete" : null;
     if (reason && !reasons.includes(reason)) reasons.push(reason);
     if (["timeout", "page_limit", "invalid_response", "unavailable", "eb_400", "eb_401", "eb_403", "eb_404", "eb_408", "eb_422", "eb_429", "eb_500", "eb_502", "eb_503", "eb_504"].includes(code) && !failureCodes.includes(code)) failureCodes.push(code);
+    // El saldo puede fallar con movimientos completos: registrar su causa sin fingir un corte.
+    if (a.balanceError) {
+      const balanceCode = obReadFailureCode(a.balanceError);
+      if (!failureCodes.includes(balanceCode)) failureCodes.push(balanceCode);
+    }
   }
   if (!accounts || !accounts.length) reasons.push("no_accounts");
   return { reasons, failureCodes };
@@ -200,7 +207,7 @@ Deno.serve(withCors(async (req: Request) => {
         const linkDeadline = deadline - 5000;
         // deno-lint-ignore no-explicit-any
         const acctList: any[] = (Array.isArray(link.accounts) && link.accounts.length)
-          ? link.accounts
+          ? link.accounts.filter((ac: any) => ac && typeof ac.uid === "string" && ac.uid.trim())
           : (link.account_uid ? [{ uid: link.account_uid, iban: link.iban, name: null }] : []);
         // deno-lint-ignore no-explicit-any
         const accts: any[] = [];
@@ -257,7 +264,7 @@ Deno.serve(withCors(async (req: Request) => {
       // que el fallo de una (o el banco caído) no tumbe a las demás.
       // deno-lint-ignore no-explicit-any
       const acctList: any[] = (Array.isArray(link.accounts) && link.accounts.length)
-        ? link.accounts
+        ? link.accounts.filter((ac: any) => ac && typeof ac.uid === "string" && ac.uid.trim())
         : (link.account_uid ? [{ uid: link.account_uid, iban: link.iban, name: null, currency: null }] : []);
       if (!acctList.length) {
         await sameLinkVersion(admin.from("bank_links")
@@ -343,8 +350,9 @@ Deno.serve(withCors(async (req: Request) => {
           row.balanceError = balController.signal.aborted ? "timeout" : obReadFailureCode(err);
         } finally { clearTimeout(balTimer); }
         // Una autorización cerrada/401 no se usa para otra llamada. Los fallos transitorios
-        // del saldo sí dejan consultar movimientos con el tiempo restante de ESTA cuenta.
-        if (balanceFailure && (balanceFailure.sessionEnded || balanceFailure.status === 401)) {
+        // del saldo dejan consultar movimientos con el tiempo restante de ESTA cuenta si
+        // el cliente entiende las fases; el legado conserva su parada previa y reintenta.
+        if ((!phaseClient && !row.balanceOk) || (balanceFailure && (balanceFailure.sessionEnded || balanceFailure.status === 401))) {
           row.transactionError = row.balanceError;
         } else try {
           const tx = await fetchBankTransactions(jwt, uid, plan.windowStart, counted(uid, false), accountDeadline - Date.now());

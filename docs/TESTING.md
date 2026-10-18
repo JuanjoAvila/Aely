@@ -11,7 +11,7 @@ mutante causal de cero céntimos. El port af387 añade control200/guardia201 con
 pendiente/fallida y pull fallido, más mutación que restaura la espera del DELETE.
 [Evidencia y límites](briefs/fin11-absorciones-pendientes-20261017.md).
 
-H2 candidata: Node `h2-account-phases` y DOM `h2-account-phases.spec.mjs` registrados; handler/cliente/persistencia reales con banco sintético, compatibilidad bidireccional, conservación exacta de 22500 céntimos, identidad y frescura. DOM es/en/ca con un worker y cero reintentos; mutantes semánticos privados y evidencia completa en el handoff. [Contrato y límites](briefs/h2-saldos-movimientos-20261018.md).
+H2 candidata, ronda 2: Node `h2-account-phases`/`h2-account-identity` y DOM `h2-account-phases.spec.mjs` registrados; handler/cliente/persistencia reales con banco sintético y bundle base real por Git. Compatibilidad bidireccional, 22500 céntimos, conexión nueva/reconexión/retirada de cuentas, diagnósticos y UID válido. Fixtures financieras originales restauradas; descarga incompleta 51/51 sin cambiar oráculos. DOM dirigido con un worker y cero reintentos; mutantes privados y límites en el handoff. [Contrato y límites](briefs/h2-saldos-movimientos-20261018.md).
 
 ## INC-0410 · verificación del port a beta 141
 
