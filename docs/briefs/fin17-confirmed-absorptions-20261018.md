@@ -1,5 +1,23 @@
 # FIN17 · memoria de absorciones confirmadas
 
+Ronda 3 sobre `87706775`: la unión de intenciones conserva el array anterior cuando
+el resultado durable tiene las mismas entradas, orden, claves y valores, incluida la cola
+vacía. La comparación ocurre después de validar y unir; se mantiene la prioridad de
+identificadores durables sobre disco completo y estado. Un cambio de testigo, contenido,
+forma o cola devuelve el resultado nuevo; almacenamiento ilegible y desbordamiento siguen
+fallando cerrados. No cambia el contrato financiero ni el de cierre de sesión F5.
+
+El instrumento de recientes conserva las cinco dependencias reales: gastos, borrados,
+pendientes, confirmadas y titular. La ancla y el callback instrumentado se verifican por
+separado. Se reproduce el fallo anterior del instrumento y tres rojos de identidad;
+los seis casos nuevos pasan en UTC y Madrid, y tres mutantes fallan por aserción.
+`dashboard-memo-profile` pasa sus cuatro escenarios dirigidos con 1 worker, 0 retries
+y `MC_DASH_CPU_RATE=1`, en puerto propio y sin llamadas bancarias. Es validación del
+contrato y DOM sintético, no una cualificación de rendimiento CPU6 ni aceptación móvil.
+El valor predeterminado del perfil sigue siendo 6 para futuras pasadas autorizadas.
+No se repite la suite Node completa ni los gates de integración: catálogo, VERSION,
+topes y publicación siguen a cargo del coordinador. La PR continúa en borrador.
+
 Fuente desde `fbff73ee`, contrato Claude `066532de` y `0036b768`. Investigación, rojos
 históricos y fallos intermedios se conservan en la evidencia privada del titular.
 

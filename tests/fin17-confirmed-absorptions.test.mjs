@@ -10,6 +10,49 @@ const record=(a,n=0,ackAt=1792324800000)=>({owner:uid,id:uuid(100+n),key:a.c.obA
 const boundCloud=e=>{const s=read('src/modules/00-core.js'),a=s.indexOf('const cloud = (function(){'),b=s.indexOf('\n})();',a),start=s.indexOf('  return {',a);assert.ok(a>=0&&b>start);return vm.runInContext('(function(sb){'+s.slice(start,b)+'})',e.c)(e.sdk);};
 const mutation=(id,file,from,to)=>{const source=read(file);assert.equal(source.split(from).length,2,id+' ancla unica');const changed=source.replace(from,to),sha=s=>crypto.createHash('sha256').update(s).digest('hex');console.log(JSON.stringify({reconstructed:true,authority:'55d1f423',id,file,from,to,sourceSHA256:sha(source),mutantSHA256:sha(changed)}));return changed;};
 
+test('FIN17T M1 cola vacia conserva referencia tras disco vacio y sync repetido',async()=>{
+ const {a,db}=make(),empty=[];a.state.obAbsorbedPending=empty;
+ assert.equal(a.c.obAbsorbedMerge(empty,[],uid),empty,'cola vacia sin cambios');
+ a.c.obAbsorbedPersist(uid,empty);assert.equal(a.c.obAbsorbedMerge(empty,[],uid),empty,'cola vacia durable');
+ db.rows=[];a.state.expenses=[];
+ for(let i=0;i<3;i++){await a.sync();assert.equal(a.state.obAbsorbedPending,empty,'sync sin cambio mantiene referencia');}
+});
+test('FIN17T M1 cola durable identica conserva referencia y precedencia',()=>{
+ const {a}=make();a.stage();const list=a.state.obAbsorbedPending;
+ assert.equal(a.c.obAbsorbedMerge(list,[],uid),list,'JSON del disco no invalida estado identico');
+ const reversed=Object.fromEntries(Object.entries(list[0]).reverse());
+ a.storage.setItem(a.c.obAbsorbedStorageKey(uid),JSON.stringify({owner:uid,pending:[reversed]}));
+ assert.equal(a.c.obAbsorbedMerge(list,[{...list[0],amount:99}],uid),list,'orden de claves no cambia; disco sigue ganando a b');
+ a.c.obAbsorbedSignOut(uid,a.state);const restored=a.c.obAbsorbedMerge([],[],uid);
+ assert.equal(restored[0].idsOnly,true);assert.equal(a.c.obAbsorbedMerge(restored,[],uid),restored,'identificadores iguales no invalidan');
+});
+test('FIN17T M1 cambios reales de payload durable nunca reutilizan referencia',()=>{
+ for(const patch of [{amount:6.4},{merchant:'Cambio sintetico'},{keepId:uuid(987)},{keepKey:'ob-absorbed2|caixabank|otra|1|3.2|2026-10-16'},{keepRefKey:'ob-absorbed2|caixabank|ref|1|3.2|2026-10-16'},{extra:'dato conservado'}]){
+  const {a}=make();a.stage();const before=a.state.obAbsorbedPending,changed={...before[0],...patch};
+  assert.equal(a.c.obAbsorbedPersist(uid,[changed]),true);const after=a.c.obAbsorbedMerge(before,[],uid);
+  assert.notEqual(after,before,'cambio real '+Object.keys(patch));assert.deepEqual(JSON.parse(JSON.stringify(after)),[changed]);
+ }
+});
+test('FIN17T M1 idsOnly durable mantiene prioridad y elimina payload antiguo',()=>{
+ const {a}=make();a.stage();const before=a.state.obAbsorbedPending;a.c.obAbsorbedSignOut(uid,a.state);
+ const after=a.c.obAbsorbedMerge(before,[],uid);assert.notEqual(after,before);assert.equal(after[0].idsOnly,true);assert.equal(Object.hasOwn(after[0],'amount'),false);
+ a.storage.setItem(a.c.obAbsorbedIdsKey(uid),JSON.stringify({owner:uid,pending:[{...after[0],keepRefKey:undefined}]}));
+ const next=a.c.obAbsorbedMerge(after,[],uid);assert.notEqual(next,after,'retirar campo tambien cambia payload');assert.equal(Object.hasOwn(next[0],'keepRefKey'),false);
+});
+test('FIN17T M1 altas orden saneado y limite conservan contrato de cola',()=>{
+ const {a}=make();a.stage();const before=a.state.obAbsorbedPending,p=before[0],other={...p,id:uuid(998)};
+ const added=a.c.obAbsorbedMerge(before,[other],uid);assert.notEqual(added,before);assert.equal(added.length,2);assert.equal(added[1],other);
+ a.c.obAbsorbedPersist(uid,[other,p]);const reordered=a.c.obAbsorbedMerge([p,other],[],uid);assert.equal(reordered[0].id,other.id);
+ a.storage.removeItem(a.c.obAbsorbedStorageKey(uid));const dirty=[{...p,owner:'otro'},p,p],clean=a.c.obAbsorbedMerge(dirty,[],uid);assert.notEqual(clean,dirty);assert.equal(clean.length,1);
+ const max=Array.from({length:200},(_,i)=>({...p,id:uuid(1000+i)}));assert.equal(a.c.obAbsorbedMerge(max,[],uid),max,'limite estable');
+ assert.equal(a.c.obAbsorbedMerge(max,[other],uid),null,'desbordamiento no devuelve estado anterior');
+});
+test('FIN17T M1 disco ilegible conserva fallo cerrado aunque estado no cambie',()=>{
+ const {a}=make();a.stage();const before=a.state.obAbsorbedPending;
+ a.storage.setItem(a.c.obAbsorbedStorageKey(uid),'invalid');assert.equal(a.c.obAbsorbedMerge(before,[],uid),null);
+ a.storage.removeItem(a.c.obAbsorbedStorageKey(uid));a.storage.setItem(a.c.obAbsorbedIdsKey(uid),'invalid');assert.equal(a.c.obAbsorbedMerge(before,[],uid),null);
+});
+
 test('FIN17R F4 M9 reconstruido: pull guarda union en estado incluso si local gana LWW',async()=>{
  const check=async source=>{const {a,db}=make();a.state._savedAt=999;delete a.state.obAbsorbedConfirmed;db.appState={data:{...seed(),expenses:[],_savedAt:1,obAbsorbedConfirmed:[record(a)]},updated_at:'remote-cas'};
  await a.pull(source);assert.equal(a.c.obConfirmedRead(uid).length,1,'disco acredita union');assert.equal(a.state.obAbsorbedConfirmed?.length,1,'estado tambien acredita union');assert.equal(a.spent(),320);};

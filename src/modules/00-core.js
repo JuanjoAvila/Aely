@@ -2125,7 +2125,11 @@ function obAbsorbedDisk(owner,key,ids){
 function obAbsorbedMerge(a,b,owner,key){
   const disk=obAbsorbedDisk(owner,key,false),ids=obAbsorbedDisk(owner,key,true),list=obAbsorbedJoin(a,b,owner);
   if(!disk||!ids||!list)return null;
-  const durable=obAbsorbedJoin(ids,disk,owner);return durable&&obAbsorbedJoin(durable,list,owner);
+  const durable=obAbsorbedJoin(ids,disk,owner),merged=durable&&obAbsorbedJoin(durable,list,owner);
+  // El disco conserva prioridad; releer el mismo contenido no debe invalidar los memos.
+  return merged&&Array.isArray(a)&&merged.length===a.length&&merged.every(function(p,i){
+    const q=a[i];return p===q||q&&Object.keys(p).length===Object.keys(q).length&&Object.keys(p).every(function(k){return Object.prototype.hasOwnProperty.call(q,k)&&p[k]===q[k];});
+  })?a:merged;
 }
 function obAbsorbedSignOut(owner,s){
   if(!owner)return;

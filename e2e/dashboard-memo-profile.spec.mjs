@@ -10,6 +10,9 @@ import { instrumentDashboard, installDashboardProfile } from "./dashboard-memo-i
 test.use({serviceWorkers:"block"});
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const html=readFileSync("public/index.html","utf8");
+// El contrato dirigido puede comprobarse sin reservar una pasada de rendimiento CPU6.
+const cpuRate=Number(process.env.MC_DASH_CPU_RATE||6);
+if(![1,6].includes(cpuRate))throw new Error("MC_DASH_CPU_RATE debe ser 1 o 6");
 
 const guionSHA256=createHash("sha256").update(readFileSync(new URL(import.meta.url))).digest("hex");
 
@@ -59,9 +62,9 @@ for(const size of [3000,5200])for(const variant of ["baseline","memo"])test("Das
   });
   await installFixtureClock(page);await seedLoggedInDashboard(page,fixture(size));
   await page.addInitScript(installDashboardProfile);
-  const cdp=await page.context().newCDPSession(page);await cdp.send("Emulation.setCPUThrottlingRate",{rate:6});
+  const cdp=await page.context().newCDPSession(page);await cdp.send("Emulation.setCPUThrottlingRate",{rate:cpuRate});
   // Git sólo aporta identidad: si se bloquea, no debe dejar el perfil sin un límite propio.
-  const report={schema:1,sourceSHA:execFileSync("git",["rev-parse","HEAD"],{encoding:"utf8",timeout:5000}).trim(),declaredSourceSHA:process.env.MC_DASH_SOURCE_SHA||null,size,variant,cpuRate:6,guionSHA256,
+  const report={schema:1,sourceSHA:execFileSync("git",["rev-parse","HEAD"],{encoding:"utf8",timeout:5000}).trim(),declaredSourceSHA:process.env.MC_DASH_SOURCE_SHA||null,size,variant,cpuRate,guionSHA256,
     htmlSHA256:instrumented.sourceSHA256,instrumentedSHA256:instrumented.instrumentedSHA256,scenarioSHA256:instrumented.scenarioSHA256,
     model:"App real; fixture Supabase; hook React real expenses/deleted; no red bancaria",phases:[],controls:[],status:"running"};
   const output=testInfo.outputPath("dashboard-memo-profile.json");mkdirSync(testInfo.outputDir,{recursive:true});
