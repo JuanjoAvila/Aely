@@ -1,5 +1,9 @@
 # UX16 · hápticos de borde e Inicio
 
+Acta histórica de la primera ronda, cerrada. Su contrato de rearme y reserva fue
+sustituido en la [segunda ronda](ux16-round2-soft-haptics.md); las pruebas de abajo
+pertenecen a sus fuentes originales y no acreditan la candidata nueva.
+
 Candidata privada sobre beta `a9c9e45d`, sin publicación ni APK. El claim conserva su
 base original; la implementación usa una rama nueva para revisión contra `beta`.
 Decisión de coordinación `6a7b12f4` del 17/10/2026: señal web permitida, diagnóstico
