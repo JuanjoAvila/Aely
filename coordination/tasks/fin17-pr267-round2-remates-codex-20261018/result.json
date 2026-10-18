@@ -1,0 +1,163 @@
+{
+  "status": "blocked",
+  "summary": "PR267 round2 delivered as normal descendant. F5 preserves unacknowledged FIN11 deletion intent as owner-bound identifiers, restores before backfill and retries only after owner and survivor checks. Durable ACK consumes only its intent. Storage failure retains prior queue. Named fixtures fixed without weakening money oracles; additional Node fixtures supplied session and real guard dependencies. Entire Node suite completed with real integration failures retained. Same draft PR, no catalogue or caps changes, no ProductREADY; release own claim then STOP.",
+  "productSHA": "87706775ea6c9e4593fe1467286c91d4a8ee29d2",
+  "baseSHA": "1c774ec613830a538919d6b63eb6d54cfe4c0046",
+  "PR": 267,
+  "draft": true,
+  "normalPushExit": 0,
+  "remoteHeadExact": true,
+  "PRHeadBaseBodyExact": true,
+  "claimCommit": "e5a5178aed64002cb9443ae3132bf013d38b90bd",
+  "ACKCommit": "109b88a0273f9731a3f9ea9f249dd4bfb9074090",
+  "grant": "181d74fd575b30ce83b93a00d5ef8d7834437b36",
+  "tests": [
+    {
+      "name": "FIN17",
+      "UTC": 40,
+      "Madrid": 40,
+      "exitCode": 0
+    },
+    {
+      "name": "affected Node files Madrid",
+      "files": 19,
+      "exitCodes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "entire Node UTC",
+      "source": "37214b2c77522705f602a2239eff20218af004df",
+      "steps": 181,
+      "passed": 164,
+      "failed": [
+        "auth-disposal-fit",
+        "dashboard-memo-instrument",
+        "beta-sources",
+        "docs-frescura",
+        "memoria-espejo",
+        "logos-bancos",
+        "logos-inversiones",
+        "categoria-manual-persistente",
+        "presupuesto-rendimiento",
+        "widget-puente-ciclo",
+        "recibo-domiciliado-sin-acreditar",
+        "recibos-bajas-y-union",
+        "tr-emparejado-automatico",
+        "tr-emparejado-nogo2",
+        "ob-iguales-ordinal",
+        "expense-id-cloud",
+        "pull-historico-entero"
+      ],
+      "exitCode": 1
+    },
+    {
+      "name": "post-suite fixture and runtime rechecks",
+      "fixtureFiles": 8,
+      "runtimeSteps": 3,
+      "exitCode": 0,
+      "productIdenticalToWholeSuite": true,
+      "remainingSteps": [
+        "auth-disposal-fit",
+        "dashboard-memo-instrument",
+        "beta-sources",
+        "docs-frescura",
+        "memoria-espejo",
+        "presupuesto-rendimiento"
+      ],
+      "singleFullRunOnFinalCommit": false
+    },
+    {
+      "name": "new backfill causal probe",
+      "control": 0,
+      "mutant": 1,
+      "assertion": true
+    },
+    {
+      "name": "F5 base causal RED",
+      "exitCode": 1,
+      "assertions": 3
+    }
+  ],
+  "partialPass": {
+    "complete": false,
+    "exitCode": 4294967295,
+    "reason": "own suite stopped to fix newly reproduced F5 backfill order; logs and process identities preserved"
+  },
+  "integration": {
+    "failedSteps": [
+      "auth-disposal-fit",
+      "dashboard-memo-instrument",
+      "beta-sources",
+      "docs-frescura",
+      "memoria-espejo",
+      "presupuesto-rendimiento"
+    ],
+    "authAndDashboardPreexistingOnBase": true,
+    "owner": "Claude",
+    "capsUntouched": true,
+    "catalogueUntouched": true
+  },
+  "scope": {
+    "productFiles": [
+      "src/modules/00-core.js",
+      "src/modules/11-app-main.js"
+    ],
+    "testsAndBrief": true,
+    "generatedIndex": true,
+    "VERSIONUnchanged": true
+  },
+  "limitations": [
+    "ID persistence failure retains full previous queue; cleanup incomplete in that case",
+    "missing or changed survivor retains intent without ACK",
+    "FIN18 atomic server fence and legacy writers outside scope",
+    "server reader compatibility and Night C integration before publication"
+  ],
+  "notRun": [
+    "new browser",
+    "CPU6",
+    "dedicated Deno",
+    "general CI",
+    "Gradle/APK",
+    "live SQL",
+    "banks",
+    "Edge deployment",
+    "merge",
+    "mobile acceptance"
+  ],
+  "priorResult": "e6551e6d1fd349adf7cd121ddd3f65f6b11486ba",
+  "manifestSHA256": "03189b400b4914eb5c1d4bbe4de2ef8552a9026f60bb1ef9b416c28f311ad54a",
+  "checkpointSHA256": "fc0f90575752bdfae37b88c7f6ef98ca9af6ccdd1d028de5838c92691ecff9fd",
+  "budget": {
+    "id": "fin17-own12-6-db3299cd-fcf546f2",
+    "previous": 70,
+    "usedBeforePublication": 9,
+    "allowance": 12,
+    "allOwnFetchesCounted": true
+  },
+  "stop": "Exact own canonical result readback, durable final checkpoint, STOP. FIN11 PR266 already included; no separate task.",
+  "schema": 1,
+  "taskId": "fin17-pr267-round2-remates-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-fcf546f25c8b1b50",
+  "createdAt": "2026-10-18T04:11:50.695Z",
+  "released": true
+}
