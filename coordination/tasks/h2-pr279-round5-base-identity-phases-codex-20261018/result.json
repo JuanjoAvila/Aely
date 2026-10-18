@@ -1,0 +1,78 @@
+{
+  "status": "blocked",
+  "released": true,
+  "productSHA": "6b1a0f543c2a95a5a485e57af0ba51bf740c37df",
+  "baseSHA": "7090802099ac0c7956c0d3597a9936a82c52a95f",
+  "oracleSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "PR": 279,
+  "draft": true,
+  "productReady": false,
+  "realIncidentClosed": false,
+  "manifestSHA256": "2998acb5b51031440ec2f678836e35f1ead19dc4e0e05539caada96b9785398c",
+  "checkpointSHA256": "d93414dafde66b8f1e367d0b38c432f4cc6b8f0e3b495ba1fa90e89e17f68094",
+  "baseIdentityBacklog": [
+    "base manual order may consume later linked IBAN",
+    "base UID is not assignment priority; missing IBAN falls back",
+    "base duplicates and contradictions not deduplicated",
+    "base healthy date/stale shape retained, recovery metadata unresolved"
+  ],
+  "tests": [
+    {
+      "name": "R5 RED full real base",
+      "exitCode": 1,
+      "passed": 0,
+      "failed": 50
+    },
+    {
+      "name": "identity before and after rebase",
+      "exitCodes": [
+        0,
+        0
+      ],
+      "passed": 50,
+      "fullComparisons": 56,
+      "replay": true
+    },
+    {
+      "name": "phases before and after rebase",
+      "exitCodes": [
+        0,
+        0
+      ],
+      "passed": 29
+    },
+    {
+      "name": "mutants",
+      "driverExit": 0,
+      "exitCodes": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "syntax privacy map i18n diff",
+      "exitCode": 0
+    },
+    {
+      "name": "size docs catalogue11",
+      "exitCodes": [
+        1,
+        1,
+        1
+      ]
+    }
+  ],
+  "summary": "PR279 R5 HEAD 6b1a0f543c2a95a5a485e57af0ba51bf740c37df rebasada a beta7090802099ac0c7956c0d3597a9936a82c52a95f; oraculo REAL ff53b0e7 intacto. AllbalancesOK resultado completo igual base, sin quitar campos, con replay: asignacion por orden IBAN/primera libre, UIDcambia/extras originales. H2 solo conserva valor/fecha de cuenta BASE asignada fallida. RED50FAIL antesproducto; GREEN50 escenarios/56comparaciones +29fases EXIT0 antes/despuesrebase,8mutantes EXIT1 driver0. Cuatro descuadres17000vs10000,14000vs9000,15500vs10500,15000vs10000 corregidos. Matriz44 con contrapartesallOK yB4 mas6revision; expectativas anteriores incompatibles explicitamente sustituidas. Backlogbase: manual anterior consume IBAN posterior, UID no manda, duplicados/contradicciones sin dedup, frescura sana conserva limitaciones base. No se repara vinculada mal asignada fueraH2. Rebase6commits con dos pausasconflictoEXIT1 docs/mapa/JSON resueltas conservandoambos;08fueraH2 exactobeta,apply exactoR5previo,servidor intacto,5fixtures exactasnuevabeta. Preservados ACKdurableauthlegacyB4/22500/10000/cero/limites90d. Sintaxisprivacidadmapaidiomasdiff0. Size1369/1368 docsPOSTcommit catalog11 EXIT1; VERSIONcatalogocaps igualesbeta sinrepin. CI sinchecks; finalGOClaude/integracion/servido/movil pendientes. Pushlease0 PRdraftbaseheadbody/remoto exactos clean20fuentesGitLF; anteriorb55fef62 preservado. Claim9d2e3163 ACKd0ebed64 exactos; primerACK NFF, FULLyretry52.59s. OWNblock4 antesresult18/20total60 previsto19/20total61, intervalos>=30s; infraccionprevia40to41=22.729249 preservada. NoDOMgeneralCPU6GradleAPK/liveSQLdeploymerge/otroschats. Evidencias previas procedencia; nuevos manifesto/checkpoint sellados. blockedreleased nueva revision ySTOP, UX03/09cola.",
+  "nextAction": "STOP after exact canonical readback.",
+  "schema": 1,
+  "taskId": "h2-pr279-round5-base-identity-phases-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-5fc9afdec60f82b1",
+  "createdAt": "2026-10-18T21:23:02.648Z"
+}
