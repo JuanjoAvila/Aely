@@ -1,0 +1,82 @@
+{
+  "status": "blocked",
+  "released": true,
+  "phase": "DRAFT_CANDIDATE_BLOCKED_INTEGRATION",
+  "baseSHA": "48d5ef8106ecb8ac119a3af0e7b79ca10878359b",
+  "productSHA": "10677f7d4f237fed9221c3bf0c9f755af2e8c69c",
+  "PR": "JuanjoAvila/Aely#283",
+  "productReady": false,
+  "tests": [
+    {
+      "label": "build-final",
+      "exitCode": 0
+    },
+    {
+      "label": "build-green1",
+      "exitCode": 0
+    },
+    {
+      "label": "build-red",
+      "exitCode": 0
+    },
+    {
+      "label": "gates",
+      "exitCode": 1
+    },
+    {
+      "label": "green-cas",
+      "exitCode": 0
+    },
+    {
+      "label": "green-final",
+      "exitCode": 0
+    },
+    {
+      "label": "green-first",
+      "exitCode": 0
+    },
+    {
+      "label": "privacy",
+      "exitCode": 0
+    },
+    {
+      "label": "red-first",
+      "exitCode": 1
+    },
+    {
+      "label": "regression-clock-fixed",
+      "exitCode": 0
+    },
+    {
+      "label": "regressions",
+      "exitCode": 1
+    },
+    {
+      "label": "size-exact",
+      "exitCode": 1
+    },
+    {
+      "label": "size",
+      "exitCode": 1
+    },
+    {
+      "label": "syntax",
+      "exitCode": 0
+    },
+    {
+      "label": "unit-order",
+      "exitCode": 0
+    }
+  ],
+  "reportPath": "work/broker-block-order/informe.txt",
+  "reportSHA256": "cfb0614452a8e2010220d2946d8f5b8bbb31e3997b017ced39dd0f0cdb572417",
+  "manifestSHA256": "15bb9a4fce645e9edd7645e7f31c367ec8bdf8cc55e1aedd119104dcc24147d7",
+  "checkpointSHA256": "b2198137ea37cd79065952ed34c063395f029b5c34912850c5f2509bab31902c",
+  "summary": "INC-2709-08 candidata draft beta. RED causal antes producto en dos vistas; GREEN long press reorder reload y push CAS mas pull en segundo navegador simulado. Cuatro grupos cinco posiciones con membresias y objetos financieros completos intactos. Mismo mecanismo de cuentas extraido useListLongPress, persistencia secOrder existente; ternas originales conservadas y orden antiguo sin duplicados. Tres casos nuevos DOM y seis Node; regresion Inversiones21 cuentas3 secciones3 verde por cobertura: primera26PASS mas un fallo reloj de arnes y solo ese caso1PASS al alinear fecha. CPU6 excluido expresamente; no afirmar27PASS conjunto. Tamaño minificado bloqueante por161bytes, gzip y bloqueantes verdes. Docs-frescura rojo por5 fuentes posteriores al ancla sin bump autorizado. Catalogo146 falla por nota literal modificada; beta-sources historico interrumpido tras33min, incompleto y sin PASS. Seguridad i18n registro y huellas verdes; limites en informe, sin debilitar ni cambiar VERSION catalogo caps. Sin backend nativo APK bancos reales fullsuite local perfilado despliegue merge. Fuente y head remoto exactos; manifiesto checkpoint y evidencias propias. H2 PR275 splash UX11 y sus cierres intactos. Pendiente Claude revision integracion CI artefacto servido y movil. OWN conteo antes resultado en checkpoint, mismo helper identidad filtro; sin reset ni herencia. Handoff ROOT74 por archivo privado y STOP, sin respuesta nativa.",
+  "nextAction": "Claude review/integration and resolution of real gates. STOP after exact readback and private ROOT74 file handoff.",
+  "schema": 1,
+  "taskId": "inc270908-broker-block-order-codex-20261019",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-5fc9afdec60f82b1",
+  "createdAt": "2026-10-19T10:29:24.522Z"
+}
