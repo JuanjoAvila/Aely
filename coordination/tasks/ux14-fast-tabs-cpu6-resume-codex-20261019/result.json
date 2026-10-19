@@ -1,0 +1,94 @@
+{
+  "status": "done",
+  "summary": "UX14 causal continuity fix, draftPR284 againstbeta. Exactbase48d5ef810; CPU6 ABAB90and2000 rows: base3backsteps perchain up133px,candidate0;96of96 landed. rAFover32 retained, no general frame-time improvement claimed. Minimal horizontal handoff cancels prior settle and uses visible origin. 2causalRED EXIT1,3UX14GREEN plus8swipecontrols EXIT0;initialharnesserror preserved. ProductREADYfalse; integration,CI,catalogue,served,mobile pending.",
+  "baseSHA": "48d5ef8106ecb8ac119a3af0e7b79ca10878359b",
+  "productSHA": "e2a00f24f6b0e18b3020efab456b28eec0766d94",
+  "pullRequestNumber": 284,
+  "branch": "codex/ux14-fast-tabs-fix-20261019",
+  "productReady": false,
+  "manifestSHA256": "b250cf96a9c560efcb2c0e88b42d84967d3ec92a2b6bf54e2dda6130af80fb1d",
+  "tests": [
+    {
+      "command": "rendimiento-tabs UX14 on base90and2000",
+      "exitCode": 1,
+      "cases": 2,
+      "expectedRED": true
+    },
+    {
+      "command": "rendimiento-tabs UX14 on candidate",
+      "exitCode": 0,
+      "passed": 3
+    },
+    {
+      "command": "swipe-pestanas candidate",
+      "exitCode": 0,
+      "passed": 8
+    }
+  ],
+  "checks": [
+    {
+      "command": "repo tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "candidate tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "candidate scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "candidate tests/docs-frescura.test.mjs",
+      "exitCode": 0
+    }
+  ],
+  "runnerReturn": {
+    "ownCPUrate": 1,
+    "ownBrowsersClosed": true,
+    "ownServerClosed": true,
+    "port48514Free": true,
+    "foreignProcessesModified": false
+  },
+  "concurrency": "Explicit4ff grant; fresh census includes foreign beta-sources and Edge; ABAB actual alternate order, no exclusive-machine claim.",
+  "hashes": {
+    "baselineHTML": "fabcd05ea64be1eae050122385aad2b820ecc04121934638af398f9862dcad51",
+    "candidateHTML": "51b3e2300222a9364fceae6f12621ba091d8fcb2141e3a0456ed14cba4c1c17c"
+  },
+  "calibration": {
+    "chains": 16,
+    "landed": 192,
+    "discarded": 0,
+    "outlierRepeats": 0
+  },
+  "fetchBudget": {
+    "idbudget": "ux14-own20-b1-82dbe59f",
+    "allowance": 20,
+    "usedBeforeResult": 4,
+    "previousBlocksPreserved": true,
+    "spacing30s": true
+  },
+  "artifacts": [
+    "outputs/ux14-abab-manifest.json",
+    "outputs/ux14-abab-evidencia.json",
+    "outputs/ux14-abab-informe.md"
+  ],
+  "limitations": [
+    "General/full CI",
+    "Catalogue beta-sources integration reconciliation",
+    "Current beta147 union and current served artifact",
+    "Physical Android/WebView/120Hz and mobile acceptance",
+    "Native inertia/overscroll qualification"
+  ],
+  "mutations": [
+    "Own web tab swipe source and generatedHTML",
+    "Existing performance spec and docs"
+  ],
+  "forbiddenMutations": [],
+  "schema": 1,
+  "taskId": "ux14-fast-tabs-cpu6-resume-codex-20261019",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-19T12:42:43.259Z",
+  "released": true
+}
