@@ -301,6 +301,11 @@ function fixedExpenseEligible(s,x,e,y,m,today){
     fixedPaymentDate(x.date,y,m,today)&&!expenseIsTombstoned(x,expenseDeletedSet(s))&&fixedPaymentFeedClear(s,fixedPaymentIdentity(expenseBankOf(x),x))&&
     (fixedPaymentExpenses(s,String(x.date||"").slice(0,7)).identity.get(fixedPaymentIdentity(expenseBankOf(x),x))||[]).length===1;
 }
+/* Lo que de verdad acredita un recibo: una prueba guardada, el BOOK del extracto o la fila de
+   Gastos que el motor adopta. `paidYm` a secas es calendario y Plan ya lo enseña «Por confirmar»:
+   si además bloqueaba el enlace a mano, el cargo real no había forma de confirmarlo (INC-1810-04,
+   YouTube Premium, rechazo de beta 4.26.145). */
+function fixedPaymentEvidence(st){ return !!(st&&(st.proof||st.bankTx||st.expense)); }
 function linkFixedPayment(s,expenseId,fixedId,y,m,today,expected){
   var x=(s.expenses||[]).find(function(r){ return r.id===expenseId; });
   if(!x) return s;
@@ -319,7 +324,7 @@ function linkFixedPayment(s,expenseId,fixedId,y,m,today,expected){
   var e=(s.fixed||[]).find(function(f){ return f.id===fixedId; });
   if(!e||!fixedExpenseEligible(s,x,e,y,m,today)) return s;
   if(expected&&expected.model!==fixedPaymentModel(e,m)) return s;
-  if(fixedPaymentState(s,e,y,m,today).paid) return s;
+  if(fixedPaymentEvidence(fixedPaymentState(s,e,y,m,today))) return s;
   if((s.fixed||[]).some(function(f){
     var p=fixedPaymentProof(s,f,y,m,today);
     var tx=fixedPaymentState(s,f,y,m,today).bankTx;
@@ -529,6 +534,20 @@ function paymentEvidenceUI(s,y,m,today){
     if(rows.length===1) add(rows[0],"fixed",f);
   });
   return {confirmed:confirmed,byExpense:byExpense};
+}
+/* «Sí, es este recibo» (INC-1810-04): un cargo con la marca de un recibo fijo que Plan no adopta
+   (importe distinto, nombre con prefijo del banco…) solo ofrecía quitar la marca. Devuelve ese
+   recibo si confirmarlo enlazaría de verdad por el camino de siempre; si no, null. Solo lectura:
+   el enlace se escribe únicamente cuando lo pulsan. */
+function reciboConfirmableUI(s,x,relation){
+  var f=cargoDeRecibo(x,s);
+  if(!f||!(s.fixed||[]).some(function(r){ return r===f; })) return null;
+  var rel=relation!==undefined?relation:expensePaymentRelationUI(s,x);
+  if(rel&&rel.kind==="fixed"&&rel.id===f.id) return null;
+  var ds=String(x.date||"").slice(0,10),y=Number(ds.slice(0,4)),m=Number(ds.slice(5,7)),now=new Date();
+  if(!(y>0&&m>=1&&m<=12)||y*12+m>now.getFullYear()*12+now.getMonth()+1) return null;
+  var today=y===now.getFullYear()&&m===now.getMonth()+1?now.getDate():new Date(y,m,0).getDate();
+  return linkFixedPayment(s,x.id,f.id,y,m,today)!==s?f:null;
 }
 function expensePaymentRelationUI(s,e){
   if(!e) return null;
