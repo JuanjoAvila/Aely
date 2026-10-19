@@ -283,6 +283,8 @@ Gastos → Mes pasado, Rango, Últimos3meses yTodo muestran su resumen sin colum
 
 Diagnóstico de rendimiento Dashboard: guardianes de frecuencia de recientes, A/B virtual y control positivo separados, con fuente y límites en `docs/briefs/inc-0710-dashboard-react-profile.md`. La medición no declara resuelto el lag acumulativo.
 
+UX14, candidata local sin integrar: encadenar cambios de pestaña y volver entrega el arrastre desde la posición visible. A/B CPU6 y límites en [el acta de continuidad](docs/briefs/ux14-swipes-encadenados.md); pendiente de aceptación móvil.
+
 Verificación específica de la promoción106: `node scripts/verify-selective106.mjs --candidate=SHA` ([acta y retirada diferida](docs/briefs/promocion-aprobadas-local26.md)).
 
 Pruebas manuales focales: en Tests, el input opcional focal_spec ejecuta el spec solicitado

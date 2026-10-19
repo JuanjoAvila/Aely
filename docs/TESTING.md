@@ -1,3 +1,13 @@
+## UX14 · swipes encadenados, candidata local 19/10/2026
+
+Tres casos `UX14` en `e2e/rendimiento-tabs.spec.mjs` (ya registrado en CROSSCUTTING y en
+la fase de rendimiento): cadenas rápidas de 90/2.000 gastos y control pausado. CPU6,
+splash fuera, aterrizaje comprobado, sin trazas ni polling de locators en la ventana;
+rAF inline y retrocesos del track contra el dedo. Dos RED causales en la base48d5ef810,
+tres GREEN de candidata y ocho controles de `swipe-pestanas`, sin retry. Tabla ABAB,
+concurrencia autorizada, duración CDP real y límites en [el acta](briefs/ux14-swipes-encadenados.md).
+No declara resuelto el lag general ni validado el móvil.
+
 ## INC-290902 · porcentaje positivo inferior al redondeo
 
 `e2e/inicio-ciclo-porcentaje.spec.mjs` cubre el cambio Mi ciclo → Mes, importes de 1/49/50/51 céntimos, agotado y exceso, navegación, recarga y cierre civil de mes en Madrid. El margen positivo pequeño muestra `<1 %` en es/ca y `<1%` en en; las cifras mantienen los céntimos. Diez casos dirigidos con estado sintético, un worker y cero reintentos. El spec está registrado para Inicio en `relevant-tests`. [Contrato y límites](briefs/night-g-cycle-percent-20261018.md).

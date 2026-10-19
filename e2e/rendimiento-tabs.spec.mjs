@@ -1,5 +1,8 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, installFixtureClock } from "./fixtures.mjs";
+
+// Una traza de reintento tampoco sirve para medir tiempos a CPU6 (AGENTS §7 bis).
+test.use({ trace: "off" });
 
 /* ENTRAR EN UNA PESTAÑA NO DEBE CONGELAR LA APP (feedback del móvil, 2026-07-26):
    «en deudas y metas cuando se accede la app se relentiza de manera muy bestia» y «las primeras
@@ -248,4 +251,106 @@ test("abrir el perfil y esconder la barra no arrastran a las cuatro pestañas", 
   await page.evaluate(() => { document.querySelector(".v4-avatar").click(); });
   await expect(page.locator(".profile-pull")).toHaveClass(/open/, { timeout: 10_000 });
   await expect(page.locator(".profile-pull")).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 0)", { timeout: 5_000 });
+});
+
+/* UX14, 19/10: los frames pueden seguir a 16,7 ms y el track pegar un salto contrario al
+   dedo. El asiento anterior seguía vivo al empezar el siguiente arrastre, y éste arrancaba
+   desde el destino final. Vigilar solo longtask o el destino de la pestaña dejaba pasar el bug.
+   Se conserva rAF crudo y >32 ms como diagnóstico; la regresión es continuidad de la posición,
+   no prometer un frame máximo estable bajo cualquier carga de CI. Este fichero ya corre solo
+   en la fase de rendimiento y está registrado en CROSSCUTTING. */
+test.describe("UX14 continuidad al encadenar pestañas", () => {
+  test.use({ serviceWorkers: "block" });
+  for (const [n, rapido] of [[90, true], [2000, true], [90, false]]) {
+    test(`${n} gastos, ${rapido ? "rápido" : "pausado"}: el track sigue al dedo`, async ({ page, baseURL }, info) => {
+      await installFixtureClock(page);
+      await seedLoggedInDashboard(page, {
+        expenses: Array.from({ length: n }, (_, i) => ({ id: "ux14-" + i,
+          date: "2026-09-" + String(26 - i % 20).padStart(2, "0") + "T12:00:00Z",
+          amount: 12.34, ent: "sabadell", category: "super", merchant: "Compra sintética " + i, source: "manual" })),
+        settings: { autoPrices: false, theme: "green", lang: "es" },
+      });
+      const origin = new URL(baseURL).origin;
+      await page.route("**/*", route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort("blockedbyclient"));
+      await page.addInitScript(() => {
+        const frames = [], longtasks = [];
+        const observer = new PerformanceObserver(list => {
+          for (const e of list.getEntries()) longtasks.push({ t: e.startTime, duration: e.duration });
+        });
+        observer.observe({ entryTypes: ["longtask"] });
+        window.__ux14Continuidad = {
+          begin() {
+            const track = document.querySelector(".track"), tabs = Array.from(document.querySelectorAll(".botnav-tab[data-tour]"));
+            if (!track || tabs.length !== 4 || document.getElementById("mc-load")) throw Error("UX14 no está lista");
+            this.start = performance.now(); this.running = true;
+            const tick = t => {
+              if (!this.running) return;
+              // Solo valores inline: ninguna lectura de layout ni estilo calculado por frame.
+              frames.push({ t, x: Number(track.style.transform.match(/translate3d\((-?[\d.]+)/)?.[1]),
+                dragging: track.classList.contains("dragging"), active: tabs.findIndex(b => b.classList.contains("active")) });
+              this.raf = requestAnimationFrame(tick);
+            };
+            this.raf = requestAnimationFrame(tick);
+          },
+          end() {
+            this.running = false; cancelAnimationFrame(this.raf); observer.disconnect();
+            return { start: this.start, end: performance.now(), frames, longtasks: longtasks.filter(e => e.t >= this.start) };
+          },
+        };
+      });
+      const cdp = await page.context().newCDPSession(page);
+      await cdp.send("Emulation.setCPUThrottlingRate", { rate: RATE });
+      let data; const gestures = [];
+      try {
+        await page.goto("/");
+        await page.waitForFunction(() => !document.getElementById("mc-load") && document.querySelectorAll(".botnav-tab[data-tour]").length === 4);
+        await dismissNews(page); await page.waitForTimeout(1600);
+        await page.evaluate(() => window.__ux14Continuidad.begin());
+        let from = 0;
+        for (const to of [1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0]) {
+          const left = to > from, x = left ? 300 : 90, y = 200;
+          const start = await page.evaluate(({ x, y }) => {
+            const target = document.elementFromPoint(x, y);
+            if (!target?.closest(".page") || target.closest("[data-noswipe]")) throw Error("UX14 aterriza fuera de la página");
+            for (let el = target; el && !el.classList.contains("page"); el = el.parentElement) {
+              if (el.scrollWidth > el.clientWidth + 4 && /auto|scroll/.test(getComputedStyle(el).overflowX)) throw Error("UX14 aterriza en un scroller horizontal");
+            }
+            return performance.now();
+          }, { x, y });
+          await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x, y }] });
+          const steps = rapido ? 4 : 9, duration = rapido ? 90 : 360, hostStart = performance.now();
+          for (let i = 1; i <= steps; i++) {
+            await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: x + (left ? -230 : 230) * i / steps, y }] });
+            const remaining = hostStart + duration * i / steps - performance.now();
+            if (remaining > 0) await page.waitForTimeout(remaining);
+          }
+          await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+          const end = await page.evaluate(() => performance.now());
+          gestures.push({ from, to, start, end, left }); from = to;
+          await page.waitForTimeout(rapido ? 20 : 520);
+        }
+        await page.waitForTimeout(600);
+      } finally {
+        data = await page.evaluate(() => window.__ux14Continuidad?.end());
+        await cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 });
+      }
+      const deltas = data.frames.slice(1).map((f, i) => f.t - data.frames[i].t), backsteps = [];
+      for (const [index, g] of gestures.entries()) {
+        const frames = data.frames.filter(f => f.t >= g.start && f.t <= g.end);
+        for (let i = 1; i < frames.length; i++) {
+          if (!frames[i - 1].dragging || !frames[i].dragging) continue;
+          const delta = frames[i].x - frames[i - 1].x, wrong = g.left ? delta : -delta;
+          if (wrong > 8) backsteps.push({ gesture: index, t: frames[i].t, px: wrong });
+        }
+      }
+      const landed = gestures.map((g, i) => data.frames.some(f => f.t >= g.end && f.t < (gestures[i + 1]?.start ?? data.end) && f.active === g.to));
+      await info.attach("ux14-raf.json", { body: JSON.stringify({ n, rapido, gestures, landed, backsteps,
+        framesOver32: deltas.filter(d => d > 32).length, maxFrameMs: Math.max(...deltas), ...data }), contentType: "application/json" });
+      expect(gestures).toHaveLength(12);
+      expect(landed, "un gesto no cambió realmente de pestaña").toEqual(Array(12).fill(true));
+      expect(backsteps, "el track retrocedió contra el dedo durante el arrastre").toEqual([]);
+      await expect(page.locator(".track")).not.toHaveClass(/dragging/);
+      await expect(page.locator(".app-shell")).not.toHaveClass(/nav-sin-blur/);
+    });
+  }
 });
