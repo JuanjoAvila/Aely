@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "id": "fin04-pr286-r2-review-corrections-codex-20261019",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261019-r74-36ea75cf98e01bbf",
+  "createdAt": "2026-10-19T15:57:32.365Z",
+  "to": "codex",
+  "kind": "worker",
+  "priority": 4,
+  "model": "gpt-6-astra",
+  "baseSHA": "1aa1fb8a14826de89d19bf690096dea66f9eb039",
+  "assignedPublicSessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "claudeGrant": "3ef8b38d62a915287868a3f706da6679bdfd25f8",
+  "dependsOnReleasedResult": "aeea7c7bc4306118a74673c8ae24476a8015ac6e",
+  "previousRunnerReturn": "eb199c432a55cc955bdcd7a5c8e04501f76a2194",
+  "pullRequest": 286,
+  "objective": "PR286 R2: fix independent review B1-B4 before SES01; preserve legacy money, metadata, offline rename and sandbox write guard.",
+  "scope": [
+    "B1 update actual CLOUD_WRITES inventory/spec to include renameExpense and verify sandbox e2e",
+    "B2 tombstone-aware unstamped legacy duplicate selection with exact base/candidate cents",
+    "B3 preserve edited category debtId noCard and never blindly discard divergent amounts",
+    "B4 restore offline/unuploaded rename queue and truthful pending/saved UI, plus killing mutants in merge-expenses-cloud and expense-note"
+  ],
+  "requirements": [
+    "Read complete Claude3ef8b38d NO-GO and task. ASTRA required. R2 in SAME draftPR286 before SES01. Starting exacthead1aa1fb8a14826de89d19bf690096dea66f9eb039. Prior eight browser cases and unit passes did not establish required legacy/offline safety; do not present R1 as accepted. Claude owns size/docs/catalogue reconciliation under6a186140; preserve their actual R1 EXITs and timeout.",
+    "NEW own claim/readback/ACK before edits, same own identity/session/helper/filter. Verify current actual OWN20b2, closure11/20 is historical. Every first/internal/readback counted >=30s, preserve frozen ledger prefixes and earlier failures; nextOWN20 only after actual exhaustion and normal notice/readback underb0390. No reset/inheritance/general permission requests. No inherited runner lease.",
+    "NEW isolated working checkout starting exactR1 head, preserve R1 source checkout and all FIN04 phase1/research previous sources tests manifests archives/checkpoints and PR270/284/285 byte-for-byte. Read complete AGENTS EMPIEZA protocol and relevant Supabase skill. Update same PR branch by normal fast-forward from1aa1fb8a, no force rewrite of R1, no new PR. Freeze new R2 evidence separately.",
+    "B1 reproduce e2e modo-pruebas4of12 failure: CLOUD_WRITES inventory grows to33 with renameExpense but spec expects32 at lines147/236. Update exact inventory/spec for intended new writer and verify actual no-production-write sandbox boundary; adding expected writer must not weaken the zero real-production-write assertion or omit renameExpense from tested guards. Focused relevant e2e is expressly required despite earlier R1 omissions.",
+    "B2 causal RED using REALISTIC SYNTHETIC LEGACY duplicates with NO intent clocks: first copy often tombstoned, live row must not disappear from totals or be persisted away by loadState. Pass deletion set to UUID dedup, prefer non-tombstoned copy and at equal eligibility the last copy as Claude requires. Test base versus candidate cents, identity and stored/reloaded state; no invented timestamps to make fixture pass. Preserve all-tombstoned deletion semantics and distinct UUID/reference identities.",
+    "B3 dedup must preserve edited category, debtId and noCard from either copy as well as note, respecting explicit user intent and clears where represented. Add independent witnesses for each metadata field. For sameUUID divergent amounts never choose blindly: retain both conflicting records or select the one confirmed by cloud as expressly authorized; do not silently lose money or collapse different bank references. Strict uniqueUUID rule has this explicit financial-conflict exception under new grant. Exact cents/cardinality and category/sign/source/payment links must be audited across local storage, pull and reload.",
+    "B4 preserve working offline rename and not-yet-uploaded rows via existing queue semantics. No network must not silently drop rename or claim a new merchant name is saved while unconfirmed. Test offline edit, reconnect/retry, reload and absent cloud row, separate local draft/pending/confirmed and late ACK from new user intent. No new schema/server/backfill and no general note/fixed/debt convergence redesign.",
+    "Add meaningful mutants killed by merge-expenses-cloud and expense-note covering the identified gaps, not merely mirrors of implementation. Preserve causal RED before fixes and actual mutation exit/witness evidence. Test exact base/candidate cents with unstamped legacy duplicates, unequal amounts, tombstones, metadata, unrelated expenses and testmode. Do not relax money/category/sign/source/privacy oracle, raise caps or bump VERSION/catalogue.",
+    "Own fresh runner census/admission and own port,1worker0retry stop first failure per run; preserve raw failure histories. Two real isolated browser contexts actual SDK shared deterministic mocks for applicable flows. External writes guarded/aborted, no live cloud/auth/brokers/SQL/Edge/schema/migrations/backfill/CPU6/profiler/tracing/Gradle/APK/deploy/merge by inference. Only required directed tests including B1 e2e, not full general suite.",
+    "SES01 session-duration investigation authorized6a186140 is queued and MUST NOT start until R2 reviewed by Claude. Phase2 receipt/debt LWW remains deferred. Report exact limits rather than infer live RLS/offline durability or deployed artifact from local tests.",
+    "Deliver samePR286 new append-only source head with B1-B4 evidence and actual red/green/mutant/financial commands EXITs, manifest/checkpoint/archive closure and prior preservation. Own RETURN then released result exactreadbacks, private ROOT74 handoff then STOP. Attach updated PR when continuing it. No ProductREADY/served/mobile claim or native reply to ROOT74."
+  ],
+  "deliverable": "PR286 round2 addressing all B1-B4 with legacy duplicate cent oracle and killing mutants; same PR, preserved R1, own released result/RETURN private handoff then STOP."
+}
