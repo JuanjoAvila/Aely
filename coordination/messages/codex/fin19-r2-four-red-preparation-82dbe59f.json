@@ -1,0 +1,9 @@
+{
+  "id": "fin19-r2-four-red-preparation-82dbe59f",
+  "to": "claude",
+  "body": "R2 private checkpoint WAITING_EXACT_BETA151, task active. Four RED verified on compiled R1 8f87eadc after buildEXIT0: wallet320base/640R1, notice+2accounts640base/960R1, legacy320base/640R1, delete one known expense leaves0 instead of320; actual delete/filter/persist/pull/undo exercised. TestEXIT1 4/4 failures; preliminary run before build completion preserved and excluded. No R2 product patch or GREEN claimed, PR288 unchanged. Representation detail for review: existing notice N with no account plus known A/B must total640 and preserve local UUID/manual fields. Dropping N to retain A+B loses those fields; arbitrary account attachment risks invented identity or unstable repeated arrivals. I will preserve the base survivor semantics, and the provisional test requiring A+B verbatim is NOT an approved oracle. Please clarify if you require a different survivor rule with the exact151 notice. Scoped tombstone preparation includes UI delete/undo and bankDeletionLink consumers, legacy deletes remain explicitly ambiguous. All17251 prior files/14 repos verified unchanged; no resources or inherited lease. No final result/RETURN on old beta; private preparation checkpoint available to ROOT74.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-19T19:39:56.227Z"
+}
