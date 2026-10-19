@@ -1,5 +1,99 @@
 [
   {
+    "v": "4.26.148",
+    "d": "2026-10-19",
+    "t": {
+      "es": "Recibos que se enlazan a mano, y vibración nueva",
+      "en": "Bills you can link by hand, and new vibration",
+      "ca": "Rebuts que s'enllacen a mà, i vibració nova"
+    },
+    "items": {
+      "es": [
+        "Si un cargo lleva la marca de un recibo, ya se puede confirmar con «Sí, es este recibo».",
+        "Un recibo que solo había vencido ya se puede enlazar a mano.",
+        "Vibración nueva: el anillo de Mi ciclo vibra solo mientras se rellena; el borde vibra y repite al seguir tirando; la gráfica da un toque en cada punto."
+      ],
+      "en": [
+        "If a charge carries the mark of a bill, you can now confirm it with «Yes, this is the bill».",
+        "A bill that had only fallen due can now be linked by hand.",
+        "New vibration: the My cycle ring vibrates only while it fills; reaching the end of a list vibrates and repeats as you keep pulling; the chart gives a tap at each point."
+      ],
+      "ca": [
+        "Si un càrrec porta la marca d'un rebut, ja es pot confirmar amb «Sí, és aquest rebut».",
+        "Un rebut que només havia vençut ja es pot enllaçar a mà.",
+        "Vibració nova: l'anell de El meu cicle vibra només mentre s'omple; la vora vibra i es repeteix en continuar estirant; el gràfic fa un toc a cada punt."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "youtube-enlazar-recibo",
+        "t": {
+          "es": "Recibos: enlazar el cargo de YouTube Premium",
+          "en": "Bills: link the YouTube Premium charge",
+          "ca": "Rebuts: enllaçar el càrrec de YouTube Premium"
+        },
+        "items": {
+          "es": [
+            "1. Abre Gastos y toca el cargo de YouTube Premium (tu frase: «Sigue sin estar enlazado con YouTube premium y no deja enlazarlo»).",
+            "2. Si sale «Sí, es este recibo», púlsalo y confirma. MAL: no sale ni eso ni la lista de recibos.",
+            "3. Si no sale, en «Paga un recibo» elige YouTube Premium y confirma. MAL: no te deja.",
+            "4. Abre Plan → Recibos: YouTube sale ✓ pagado. MAL: sigue «Por confirmar».",
+            "5. El dinero disponible de Inicio y de Plan no cambia, salvo por el propio recibo. MAL: cualquier otra diferencia."
+          ],
+          "en": [
+            "1. Open Spending and tap the YouTube Premium charge (your words: «Sigue sin estar enlazado con YouTube premium y no deja enlazarlo», it is still not linked to YouTube Premium and will not let you link it).",
+            "2. If «Yes, this is the bill» shows, tap it and confirm. WRONG: neither that nor the list of bills shows.",
+            "3. If it does not show, under «Pays a bill» choose YouTube Premium and confirm. WRONG: it will not let you.",
+            "4. Open Plan → Bills: YouTube shows ✓ paid. WRONG: it is still «To confirm».",
+            "5. The available money in Home and in Plan does not change, apart from the bill itself. WRONG: any other difference."
+          ],
+          "ca": [
+            "1. Obre Despeses i toca el càrrec de YouTube Premium (la teva frase: «Sigue sin estar enlazado con YouTube premium y no deja enlazarlo», encara no està enllaçat amb YouTube Premium i no deixa enllaçar-lo).",
+            "2. Si surt «Sí, és aquest rebut», prem-lo i confirma. MALAMENT: no surt ni això ni la llista de rebuts.",
+            "3. Si no surt, a «Paga un rebut» tria YouTube Premium i confirma. MALAMENT: no et deixa.",
+            "4. Obre Pla → Rebuts: YouTube surt ✓ pagat. MALAMENT: continua «Per confirmar».",
+            "5. Els diners disponibles d'Inici i de Pla no canvien, tret del propi rebut. MALAMENT: qualsevol altra diferència."
+          ]
+        }
+      },
+      {
+        "id": "vibracion-ajustador",
+        "t": {
+          "es": "Vibración: ajústala a tu gusto y pruébala",
+          "en": "Vibration: tune it to your liking and try it",
+          "ca": "Vibració: ajusta-la al teu gust i prova-la"
+        },
+        "items": {
+          "es": [
+            "0. Instala la app nueva de Aely que te llega (APK 59, versión 4.26.148). Tu frase: «vibra un montón desde el principio y dura un montón… No vibra apenas nada».",
+            "1. Abre Ajustes → Vibración: mueve los deslizadores y pulsa «Probar» hasta que te guste cada una. MAL: «Probar» no vibra.",
+            "2. Mira el anillo de Mi ciclo: vibra solo mientras se rellena. MAL: sigue vibrando después o empieza fuerte.",
+            "3. Llega al final de una lista y sigue tirando: vibra y repite. MAL: no repite.",
+            "4. Mueve el dedo por la gráfica de Inicio: un toque por punto. MAL: no se nota.",
+            "5. Pulsa «Copiar valores» y pégalos en el chat a Claude."
+          ],
+          "en": [
+            "0. Install the new Aely app you receive (APK 59, version 4.26.148). Your words: «vibra un montón desde el principio y dura un montón… No vibra apenas nada» (it vibrates a lot from the start and lasts a lot… it barely vibrates at all).",
+            "1. Open Settings → Vibration: move the sliders and tap «Try» until you like each one. WRONG: «Try» does not vibrate.",
+            "2. Watch the My cycle ring: it vibrates only while it fills. WRONG: it keeps vibrating afterwards or starts strong.",
+            "3. Reach the end of a list and keep pulling: it vibrates and repeats. WRONG: it does not repeat.",
+            "4. Move your finger along the Home chart: one tap per point. WRONG: you cannot feel it.",
+            "5. Tap «Copy values» and paste them into the chat to Claude."
+          ],
+          "ca": [
+            "0. Instal·la l'app nova d'Aely que et arriba (APK 59, versió 4.26.148). La teva frase: «vibra un montón desde el principio y dura un montón… No vibra apenas nada» (vibra molt des del principi i dura molt… gairebé no vibra).",
+            "1. Obre Ajustos → Vibració: mou els lliscadors i prem «Provar» fins que t'agradi cadascuna. MALAMENT: «Provar» no vibra.",
+            "2. Mira l'anell de El meu cicle: vibra només mentre s'omple. MALAMENT: continua vibrant després o comença fort.",
+            "3. Arriba al final d'una llista i continua estirant: vibra i es repeteix. MALAMENT: no es repeteix.",
+            "4. Mou el dit pel gràfic d'Inici: un toc per punt. MALAMENT: no se nota.",
+            "5. Prem «Copiar valors» i enganxa'ls al xat a Claude."
+          ]
+        },
+        "apk": 59
+      }
+    ]
+  },
+  {
     "v": "4.26.147",
     "d": "2026-10-19",
     "t": {
@@ -176,68 +270,7 @@
         "L'avís de retirada d'efectiu només surt quan de veritat ho és."
       ]
     },
-    "tandas": [
-      {
-        "id": "vibracion-suave-ronda-3",
-        "t": {
-          "es": "Vibración suave y progresiva en Mi ciclo, el borde y la gráfica",
-          "en": "Soft, gradual vibration in My cycle, the edge and the chart",
-          "ca": "Vibració suau i progressiva a El meu cicle, la vora i el gràfic"
-        },
-        "items": {
-          "es": [
-            "0. Instala la app nueva de Aely que te llega (APK 58, versión 4.26.145). Tu última frase fue «tienes que ser más suavecito y sutil, de más suave a más fuerte»: esta ronda lo busca.",
-            "1. Abre Inicio y mira el anillo de Mi ciclo mientras se rellena: la vibración debe empezar casi imperceptible y subir poco a poco, sin golpes. MAL: un golpe o varios toques separados, que empiece fuerte, o que no vibre nada.",
-            "2. Ve a Gastos (o cualquier lista larga), lanza la lista con el dedo y suelta. Al llegar al final ella sola, sin dedo encima, debe vibrar una vez, suave, un pelín más que la rueda. MAL: un golpe fuerte, o que al llegar por impulso no vibre.",
-            "3. Con la lista ya en el borde, tira más allá con el dedo y mantenlo: debe repetir un toque suave mientras sigues tirando, y parar al soltar. MAL: un golpe fuerte, que solo vibre una vez aunque sigas tirando, o que siga vibrando después de soltar.",
-            "4. En Inicio, pon el dedo sobre la gráfica y desplázalo despacio: un toque suave cada vez que cambia el punto (el día) que marca el cursor. MAL: un golpe fuerte, que vibre sin que cambie el punto, o que no vibre nada."
-          ],
-          "en": [
-            "0. Install the new Aely app you receive (APK 58, version 4.26.145). Your last words were «tienes que ser más suavecito y sutil, de más suave a más fuerte» (you have to be softer and subtler, from softer to stronger): this round aims at that.",
-            "1. Open Home and watch the My cycle ring while it fills: the vibration should start almost unnoticeable and rise little by little, with no thumps. WRONG: a thump or several separate taps, starting strong, or no vibration at all.",
-            "2. Go to Spending (or any long list), flick the list with your finger and let go. When it reaches the end by itself, with no finger on it, it should vibrate once, softly, a touch more than the ring. WRONG: a hard thump, or no vibration when it arrives by momentum.",
-            "3. With the list already at the edge, pull past it with your finger and hold: it should repeat a soft tap while you keep pulling, and stop when you let go. WRONG: a hard thump, vibrating only once even if you keep pulling, or still vibrating after you let go.",
-            "4. On Home, put your finger on the chart and slide it slowly: one soft tap each time the point (the day) marked by the cursor changes. WRONG: a hard thump, vibrating without the point changing, or no vibration at all."
-          ],
-          "ca": [
-            "0. Instal·la l'app nova d'Aely que et arriba (APK 58, versió 4.26.145). La teva última frase va ser «tienes que ser más suavecito y sutil, de más suave a más fuerte» (has de ser més suau i subtil, de més suau a més fort): aquesta ronda ho busca.",
-            "1. Obre Inici i mira l'anell de El meu cicle mentre s'omple: la vibració ha de començar gairebé imperceptible i pujar a poc a poc, sense cops. MALAMENT: un cop o diversos tocs separats, que comenci fort, o que no vibri gens.",
-            "2. Ves a Despeses (o qualsevol llista llarga), llança la llista amb el dit i deixa-la anar. En arribar al final ella sola, sense dit a sobre, ha de vibrar una vegada, suau, una mica més que l'anell. MALAMENT: un cop fort, o que en arribar per impuls no vibri.",
-            "3. Amb la llista ja a la vora, estira més enllà amb el dit i mantén-lo: ha de repetir un toc suau mentre continues estirant, i parar en deixar-lo anar. MALAMENT: un cop fort, que vibri només una vegada encara que continuïs estirant, o que continuï vibrant en deixar-lo anar.",
-            "4. A Inici, posa el dit sobre el gràfic i desplaça'l a poc a poc: un toc suau cada vegada que canvia el punt (el dia) que marca el cursor. MALAMENT: un cop fort, que vibri sense que canviï el punt, o que no vibri gens."
-          ]
-        },
-        "apk": 58
-      },
-      {
-        "id": "plan-por-confirmar-prestamo-youtube",
-        "t": {
-          "es": "Plan: solo pagado si se ve el cargo (préstamo de 197 € y YouTube Premium)",
-          "en": "Plan: paid only when the charge is seen (197 € loan and YouTube Premium)",
-          "ca": "Pla: només pagat si es veu el càrrec (préstec de 197 € i YouTube Premium)"
-        },
-        "items": {
-          "es": [
-            "1. Abre Plan y busca la cuota del préstamo de 197 € (la que pagaste por transferencia y que te salía como pagada sin serlo). Si su cargo no está enlazado, debe salir «Por confirmar», no con el ✓. MAL: sale con ✓ sin que haya cargo.",
-            "2. Ve a Gastos y abre la transferencia de 197 €: no debe salir el aviso de retirada de efectivo (no era una retirada). MAL: sale el aviso.",
-            "3. En Gastos, abre el cargo de YouTube Premium. Si Plan lo da por pagado, la ficha debe decir «Paga un recibo: YouTube Premium»; si Plan dice «Por confirmar», la ficha no debe darlo por enlazado. MAL: que Plan y la ficha digan cosas distintas.",
-            "4. Mira el dinero disponible de Inicio y de Plan: debe ser el mismo que antes de actualizar la app. MAL: cualquier diferencia."
-          ],
-          "en": [
-            "1. Open Plan and find the instalment of the 197 € loan (the one you paid by transfer and that showed as paid without being so). If its charge is not linked, it must show «To confirm», not the ✓. WRONG: it shows ✓ with no charge.",
-            "2. Go to Spending and open the 197 € transfer: the cash withdrawal notice must not show (it was not a withdrawal). WRONG: the notice shows.",
-            "3. In Spending, open the YouTube Premium charge. If Plan counts it as paid, the sheet must say «Pays a bill: YouTube Premium»; if Plan says «To confirm», the sheet must not show it as linked. WRONG: Plan and the sheet saying different things.",
-            "4. Check the available money in Home and in Plan: it must be the same as before updating the app. WRONG: any difference."
-          ],
-          "ca": [
-            "1. Obre Pla i busca la quota del préstec de 197 € (la que vas pagar per transferència i que sortia com a pagada sense ser-ho). Si el seu càrrec no està enllaçat, ha de sortir «Per confirmar», no amb el ✓. MALAMENT: surt amb ✓ sense càrrec.",
-            "2. Ves a Despeses i obre la transferència de 197 €: no ha de sortir l'avís de retirada d'efectiu (no era una retirada). MALAMENT: surt l'avís.",
-            "3. A Despeses, obre el càrrec de YouTube Premium. Si Pla el dona per pagat, la fitxa ha de dir «Paga un rebut: YouTube Premium»; si Pla diu «Per confirmar», la fitxa no l'ha de donar per enllaçat. MALAMENT: que Pla i la fitxa diguin coses diferents.",
-            "4. Mira els diners disponibles d'Inici i de Pla: han de ser els mateixos que abans d'actualitzar l'app. MALAMENT: qualsevol diferència."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.144",

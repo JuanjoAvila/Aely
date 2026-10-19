@@ -322,7 +322,9 @@ const PRESUPUESTO = {
   // Integración 4.26.147 (19/10): la 146 más la PR 282 (alargar el plazo al bajar la cuota de una deuda, con su cálculo compartido y textos en tres idiomas) y la nota con una tanda:
   // 1.414.560 B / 392.315 B gzip con sello .99999 y reserva de 95 B (1381,4 / 383,1 KiB). SUBE por lógica de producto, no se recorta (mandato 11/10).
   // Con la PR 283 (reordenar brókers con el gesto de las cuentas): 1.415.954 B / 392.712 B gzip (1382,8 / 383,5 KiB). Mínimos: 1384 KiB minificado (quedan 1.262 B); el gzip se queda en 384 KiB (quedan 504 B).
-  minificado: 1384 * 1024,
+  // Integración 4.26.148 (19/10): la 147 más el enlace a mano de recibos (INC-1810-04), el ajustador de vibración (UX-16, ~170 unidades de lógica y textos en tres idiomas) y la nota con dos tandas. SUBE por lógica de producto, no se recorta (mandato 11/10).
+  // Mínimos medidos: 1392 KiB minificado y 387 KiB gzip (medían ~1391 / ~386 KiB).
+  minificado: 1392 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -352,7 +354,7 @@ const PRESUPUESTO = {
   // Integración 4.26.130: 363.055 B gzip, 6.465 B más que la 129. Mínimo medido: 355 KiB (quedan 465 B).
   // Integración 4.26.131: 365.878 B gzip, 2.823 B más que la 130. Mínimo medido: 358 KiB (quedan 714 B).
   // Integración 4.26.135: 368.967 B gzip, 2.375 B sobre 358 KiB. Mínimo medido: 361 KiB (quedan 697 B).
-  gzip: 384 * 1024,
+  gzip: 387 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

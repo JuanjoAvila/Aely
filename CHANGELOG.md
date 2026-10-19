@@ -1,3 +1,10 @@
+## [4.26.148] — 2026-10-19 · Candidata de beta: enlazar recibos a mano (INC-1810-04) y vibración con ajustador (UX-16), con APK nueva (4.26.148 / code 59)
+
+- **Qué lleva.** La beta 4.26.147 (`ccb798376`) más `3bc25a8dc` (`claude/youtube-enlace`) y `352cf25f9` (`claude/vibra-ajustador`).
+- **Recibos (INC-1810-04).** Un cargo marcado sin acreditar se puede confirmar con «Sí, es este recibo», y un recibo pagado solo por calendario (`paidYm` sin prueba) se puede enlazar a mano sin que el enlace pise un `paidYm` llegado con el diálogo abierto. El porqué: la tanda de la 145 (`plan-por-confirmar-prestamo-youtube`) se rechazó con «Sigue sin estar enlazado con YouTube premium y no deja enlazarlo».
+- **Vibración (UX-16).** Ajustador en Ajustes → Vibración, solo en beta (valores en `localStorage`, botones Probar y Copiar valores); el anillo de Mi ciclo vibra solo mientras se rellena, el borde repite al seguir tirando y la gráfica da un toque por punto. Cambio nativo (`AelyHapticsPlugin`, `HapticPlan`): hace falta la APK 59. `sha256` y `sourceSha` de `public/apk.json` quedan por rellenar tras compilar.
+- **Panel.** Dos tandas nuevas, `youtube-enlazar-recibo` y `vibracion-ajustador`, que citan las frases rechazadas. Las de la 145 (`plan-por-confirmar-prestamo-youtube`, `vibracion-suave-ronda-3`) pasan a `tandas: []`; las de la 146 y la 147 se quedan.
+
 ## [4.26.147] — 2026-10-19 · Candidata de beta: alargar el plazo al bajar la cuota de una deuda (PR 282, INC-1910-01) y reordenar brókers (PR 283, INC-2709-08), solo web y sin APK nueva
 
 - **Qué lleva.** La beta 4.26.146 (`48d5ef810`) más la PR 282 (`9f7daa51`): la edición de deuda propone un plazo explícito cuando FIN16 rechaza bajar la cuota. Se comparte el cálculo lineal existente; el botón modifica solo el borrador. Legado con TAE positiva y sin amortización conocida muestra un límite claro. [Contrato, consulta y pruebas](docs/briefs/deudas-alargar-plazo-20261019.md).

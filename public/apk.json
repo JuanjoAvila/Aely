@@ -1,8 +1,8 @@
 {
-  "versionCode": 58,
-  "versionName": "4.26.145",
-  "url": "https://github.com/JuanjoAvila/Aely/releases/download/beta/Aely-4.26.145-beta-58.apk",
-  "notes": "Vibración suave y progresiva al rellenarse el anillo de Mi ciclo, toque algo más notorio que se repite al tirar del borde y toque suave al mover el dedo por la gráfica de Inicio. Se instala encima sin perder datos.",
+  "versionCode": 59,
+  "versionName": "4.26.148",
+  "url": "https://github.com/JuanjoAvila/Aely/releases/download/beta/Aely-4.26.148-beta-59.apk",
+  "notes": "Vibración nueva: el anillo de Mi ciclo vibra solo mientras se rellena, el borde vibra y repite al seguir tirando y la gráfica da un toque en cada punto; en Ajustes puedes ajustar cada vibración y probarla. Se instala encima sin perder datos.",
   "revisiones": {
     "fin05-widget-reentrada": "78ff9b2c46f59b55936bb1390580044fdb1715a4c5583189259eeece4db230e4",
     "fin05-pago-cerrada": "8a6f5aefbe66677ca3685ba430208766d5adc791e2fb50d1013a3d54d8397e50",
@@ -13,7 +13,8 @@
     "widget-ciclo-puente": "8a6f5aefbe66677ca3685ba430208766d5adc791e2fb50d1013a3d54d8397e50",
     "vibracion-borde-y-mi-ciclo": "c8ed347785c723e4690c4a1f6664b9f3d34421c65b3798f902223abb33f10080",
     "vibracion-suave-ronda-2": "cad0f5b6d33aa6cff3c1e588315cd5cd1a73364e1cb497109696efb0b2cc7b9f",
-    "vibracion-suave-ronda-3": "beadff92e6fdbe48cb39eea6a715097d00502426d273856609ee0da341d8fe83"
+    "vibracion-suave-ronda-3": "beadff92e6fdbe48cb39eea6a715097d00502426d273856609ee0da341d8fe83",
+    "vibracion-ajustador": "8cdb680d5a5e5c958236c0aa3174503f62927b2662b18b232b83bf692461786d"
   },
   "sha256": "c3323380e82ee1a11346a9b698c8a458452c50f016ec25efcaee6c4e8808f1e5",
   "sourceSha": "c594c1fa5b478c478c8b11abf92042d1abdf8829"
