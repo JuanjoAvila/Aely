@@ -1,0 +1,288 @@
+{
+  "status": "blocked",
+  "summary": "R2 delivered on SAME draft PR286 at 628d62925f9214db08a798cce86086997fa3b077, normal append from R1. B1-B4 corrected with causal REDs,13 browser PASS,12 sandbox PASS,12 meaningful killed mutants and financial regressions PASS. R1 evidence and failures retained. Size/docs/catalogue reconciliation remains Claude-owned. No VERSION/cap/schema changes. Synthetic SDK only, ProductREADY=false. Phase2 deferred and SES01 queued.",
+  "baseSHA": "1aa1fb8a14826de89d19bf690096dea66f9eb039",
+  "productSHA": "628d62925f9214db08a798cce86086997fa3b077",
+  "pullRequest": 286,
+  "productReady": false,
+  "manifestSHA256": "fdaf320c7099c509d6bacc70e2f3a4aadc730cb9223a21e8311146001d6e8f23",
+  "tests": [
+    {
+      "run": "browser rename-note",
+      "exitCode": 0,
+      "passed": 8
+    },
+    {
+      "run": "browser note-api",
+      "exitCode": 0,
+      "passed": 5
+    },
+    {
+      "run": "browser note-zero",
+      "exitCode": 0,
+      "passed": 6
+    },
+    {
+      "run": "browser sandbox",
+      "exitCode": 0,
+      "passed": 3
+    },
+    {
+      "run": "browser late-note-ack",
+      "exitCode": 0,
+      "passed": 4
+    },
+    {
+      "run": "browser late-rename-ack",
+      "exitCode": 0,
+      "passed": 3
+    },
+    {
+      "run": "browser legacy-duplicates",
+      "exitCode": 0,
+      "passed": 3
+    },
+    {
+      "run": "browser rename-unrelated",
+      "exitCode": 0,
+      "passed": 9
+    },
+    {
+      "run": "browser offline-rename",
+      "exitCode": 0,
+      "passed": 8
+    },
+    {
+      "run": "browser unuploaded-rename",
+      "exitCode": 0,
+      "passed": 8
+    },
+    {
+      "run": "browser late-rename-intent",
+      "exitCode": 0,
+      "passed": 4
+    },
+    {
+      "run": "browser legacy-unstamped",
+      "exitCode": 0,
+      "passed": 2
+    },
+    {
+      "run": "browser legacy-amounts",
+      "exitCode": 0,
+      "passed": 2
+    },
+    {
+      "run": "sandbox complete12",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "run": "build-base",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "run": "build-dedup",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "run": "build-guards2",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "run": "build-queue1",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "run": "build-stale3",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "run": "docs-r2-exact-head",
+      "exitCode": 1
+    },
+    {
+      "command": "node --test tests/merge-expenses-cloud.test.mjs",
+      "run": "green-dedup1",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/merge-expenses-cloud.test.mjs",
+      "run": "merge-final",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test tests/merge-expenses-cloud.test.mjs",
+      "run": "merge-mutants1",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test tests/merge-expenses-cloud.test.mjs",
+      "run": "merge-mutants2",
+      "exitCode": 1
+    },
+    {
+      "command": "node --test tests/merge-expenses-cloud.test.mjs",
+      "run": "merge-mutants3",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/expense-note.test.mjs",
+      "run": "note-final",
+      "exitCode": 1
+    },
+    {
+      "command": "node tests/expense-note.test.mjs",
+      "run": "note-final2",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/expense-note.test.mjs",
+      "run": "note-mutants1",
+      "exitCode": 1
+    },
+    {
+      "command": "node tests/expense-note.test.mjs",
+      "run": "note-mutants2",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin17-confirmed-absorptions.test.mjs",
+      "run": "r2-fin17-final",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/i18n-keys.test.mjs",
+      "run": "r2-i18n",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "run": "r2-privacy-final",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/expense-id-cloud.test.mjs",
+      "run": "r2-regression-expense-id-cloud",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/fin10-absorption-scope.test.mjs",
+      "run": "r2-regression-fin10-absorption-scope",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/fin11-absorption-pending.test.mjs",
+      "run": "r2-regression-fin11-absorption-pending",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/fin15-book-preference.test.mjs",
+      "run": "r2-regression-fin15-book-preference",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/fin15-pendiente-contabilizada.test.mjs",
+      "run": "r2-regression-fin15-pendiente-contabilizada",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/recibos-bajas-y-union.test.mjs",
+      "run": "r2-regression-recibos-bajas-y-union",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/recibos-renombrar.test.mjs",
+      "run": "r2-regression-recibos-renombrar",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/refund-polarity.test.mjs",
+      "run": "r2-regression-refund-polarity",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/retirada-bancaria.test.mjs",
+      "run": "r2-regression-retirada-bancaria",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "run": "r2-relevant-map",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "run": "r2-security-final",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "run": "r2-syntax-final",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-name-pattern=tombstone tests/merge-expenses-cloud.test.mjs",
+      "run": "red-b2",
+      "exitCode": 1
+    },
+    {
+      "command": "node --test --test-name-pattern=amounts tests/merge-expenses-cloud.test.mjs",
+      "run": "red-b3-amount",
+      "exitCode": 1
+    },
+    {
+      "command": "node --test --test-name-pattern=metadata tests/merge-expenses-cloud.test.mjs",
+      "run": "red-b3-metadata",
+      "exitCode": 1
+    },
+    {
+      "command": "node --test --test-name-pattern=legacy.*tombstone tests/merge-expenses-cloud.test.mjs",
+      "run": "red-stale-tombstone",
+      "exitCode": 1
+    },
+    {
+      "command": "node --test tests/fin04-rename-note-ack.test.mjs",
+      "run": "regression-fin04-final",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "run": "size-r2",
+      "exitCode": 1
+    }
+  ],
+  "returnCommit": "720b0c9d36e8fb8636aa8138a51e29fcb6adb09b",
+  "priorArtifactsUnchanged": true,
+  "artifacts": [
+    "outputs/fin04-r2-informe.md",
+    "outputs/fin04-r2-evidencia.json",
+    "outputs/fin04-r2-manifest.json"
+  ],
+  "limitations": [
+    "Synthetic auth/shared transport, real bundled SDK and two isolated browser contexts; no live RLS/SQL or device acceptance. Offline is a REST route abort; local static app remains reachable for reload.",
+    "Same-UUID conflicting amounts or references remain separate rather than silently losing money. No inferred clear from absent legacy property. Existing explicit false/null/empty note clears are retained.",
+    "Recovered category/debt/card guards are local and release when matching cloud values arrive. This does not implement general field-level LWW or phase2 fixed/debt convergence.",
+    "Rename retries while Gastos is mounted, on expense change or online; durable intent survives closure, but no background sync while app is closed. Old clients and concurrent amount/date editing are outside this correction.",
+    "Generated output was tested privately and frozen, then restored before source-only commit. No VERSION/catalogue/cap relaxation. Claude owns size/docs/catalogue reconciliation.",
+    "No full suite, CPU6, profiling, tracing, general CI completion, deployment, served artifact, native/APK or physical mobile acceptance. SES01 remains queued until Claude reviews R2.",
+    "Playwright uses maxFailures1,1worker,0retry. The standalone Node --test command can report remaining cases in its current file after one fails; the directed file runner stops before the next file. expense-note now executes sequentially and stops on first assertion.",
+    "R2 exact gates: size EXIT1 at1402/1392KB and gzip389/387KB; docs exact-head EXIT1 because three modules changed after VERSION anchor408d8d3. Catalogue R2 unrun, R1 timeout preserved."
+  ],
+  "fetchBudget": {
+    "idbudget": "fin04-own20-b2-82dbe59f",
+    "usedBeforeResult": 17,
+    "allowance": 20
+  },
+  "schema": 1,
+  "taskId": "fin04-pr286-r2-review-corrections-codex-20261019",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-19T16:27:10.168Z",
+  "released": true
+}
