@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "id": "fin04-phase1-expense-rename-note-ack-codex-20261019",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261019-r74-36ea75cf98e01bbf",
+  "createdAt": "2026-10-19T15:11:44.897Z",
+  "to": "codex",
+  "kind": "worker",
+  "priority": 4,
+  "model": "gpt-6-astra",
+  "baseSHA": "408d8d3484568e1c02fa25dcd2df30ad71477bf1",
+  "assignedPublicSessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "claudeGrant": "9e5f226601b68d84c888c2ced05fb2546187767f",
+  "dependsOnReleasedResult": "540d4fb08a767d5412a4edae59031a64136c1e67",
+  "previousRunnerReturn": "a8625abf9fd49b3f1a4e5e9e9e0bd765abf1b970",
+  "objective": "FIN04 phase1 client-only: preserve peer human note and local unique UUID after expense rename/reload; require explicit note write ACK, draft PR against exact beta408.",
+  "scope": [
+    "Expense rename preserving latest human note and one local entry per exact UUID after reload",
+    "Explicit note write confirmation and zero-row failure, retry or visible unconfirmed state",
+    "Causal research RED to GREEN and exact financial/test-mode no-production-write oracles; draft PR beta"
+  ],
+  "requirements": [
+    "Read FULL Claude9e5f2266 and this NEW task. ASTRA expressly required. Phase1 GO only. Exact base408d8d3484568e1c02fa25dcd2df30ad71477bf1 beta149 is explicitly permitted; use a NEW isolated checkout so completed research source and evidence remain immutable. Do not inherit other workers work or runner leases.",
+    "Same original own identity/session/helper/filter. NEW own claim exact readback and ACK before edits. Live OWN20b2 actual5/20 at research closure is historical; verify own current counter and preserve all previous blocks, ledgers and failure records. Every first/internal/readback counts >=30s. Open nextOWN20 only after actual exhaustion plus normal notice/readback underb0390, no reset or inheritance. No general permission questions.",
+    "Read AGENTS EMPIEZA protocol and relevant Supabase skill before code. Client changes only, focused original modules and necessary regression tests. Preserve PR270 PR284R1/R2 PR285 FIN04 research reports manifests ZIPs checkouts and rawresults byte-for-byte. No migration/schema/backfill SQL/livecloud banks Edge backend native/APK deploy merge. No mechanical port of oldPR43.",
+    "Start with causal RED from frozen research: expense-rename A note write accepted then B rename from stale object must not restore older note; after pull and both reloads clientA must not retain two local entries with the same exact UUID. Deduplicate by UUID while retaining the newest user intent; distinct UUIDs/references remain distinct even if amount/date/merchant match. Do not hide data loss by deleting the newer row or weakening the oracle.",
+    "A note mutation affecting zero rows must not become confirmed success. Define and test explicit ACK through actual production SDK path; without ACK preserve pending intent and retry boundedly or visibly notify failure. Missing session, error and inconsistent response must not be disguised as success. UI must represent the authorized pending/error outcome; no fake persisted confirmation. Existing category ACK and unrelated mutation semantics must remain valid.",
+    "Preserve financial values exactly: every unrelated expense amount category and sign unchanged, no changed principal/card/bank/source relations to make a scenario pass. Test exact cents and row identity/cardinality in remote mock AND both local clients before/after pull/reload; preserve modern source suffixes, receipt/debt/payment links, tombstones and absorption safeguards. Identity must never be recovered by approximate amount/merchant matching.",
+    "Two real isolated browser contexts shared deterministic synthetic backend through bundled SDK and actual client UI/save/pull/reload. Reuse frozen scenarios as causal baselines without modifying their files; new versioned harness/tests and results. Cover peer note accepted before stale rename, final same UUID local cardinality and latest intent, zero affected note rows and confirmed single-row success, and test/sandbox mode no production writes. Guard/abort external writes, no real sessions or cloud/RLS claims.",
+    "Own focused runner admission/census and own port, one worker zero automatic retries, stop first product failure in each run and preserve raw EXITs/setup failures. Harness corrections must retain earlier errors and financial/privacy oracles. No CPU6 profiler tracing fullsuite or native device work by inference. Run repository checks appropriate to changed code; actual docs/size/catalogue failures must be reported without cap/version relaxation.",
+    "Phase2 receipt/debt convergence and whole-object LWW expressly deferred: do not begin. General note merge/source redesign, oldPR43 full port or new shared household editing are not phase1 authority. If client-only contract cannot protect latest note with supported identity/writers, document exact conflict and consult Claude instead of expanding to schema/server/backfill.",
+    "Deliver draft PR against beta with exact base/head and red/green commands EXITs. Freeze manifest evidence/archive checkpoint closure including source/prior preservation, limits and unrun gates. Own canonical released result exact readback plus RETURN own browser/server/resources, private ROOT74 handoff then STOP. Attach every created PR. Local/focal green is not integration/served/mobile ProductREADY. No native message back to ROOT74."
+  ],
+  "deliverable": "Phase1 draft PR preserving concurrent human note during rename, unique exact UUID in local reload state, explicit note ACK and exact financial/no-production-test-write evidence. Own released result/RETURN private handoff then STOP."
+}
