@@ -1,5 +1,13 @@
 ## UX14 · swipes encadenados, candidata local 19/10/2026
 
+R2 añade dos casos `UX14 bordes` en el mismo spec: encadenar durante un asiento hacia la
+primera/última pestaña conserva el origen visible de la banda; se registran checkpoints,
+toques nativos, rAF/>32 ms, hash servido y snapshots financieros. Cuatro RED causales R1
+y cuatro GREEN ABAB; fallo inicial del clasificador de llegada conservado y corregido sin
+alargar pausas. [Acta de R2](briefs/ux14-swipes-bordes-r2.md). El cierre privado separa ese
+fallo de las regresiones dirigidas completas pedidas (`rendimiento-tabs`, `swipe-pestanas`,
+`botnav-*`, un worker y cero retry).
+
 Tres casos `UX14` en `e2e/rendimiento-tabs.spec.mjs` (ya registrado en CROSSCUTTING y en
 la fase de rendimiento): cadenas rápidas de 90/2.000 gastos y control pausado. CPU6,
 splash fuera, aterrizaje comprobado, sin trazas ni polling de locators en la ventana;

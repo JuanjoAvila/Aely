@@ -5,6 +5,12 @@ con 90/2.000 gastos; sin mejora general de frames >32 ms acreditada. Dos RED cau
 tres GREEN focales y ocho controles de swipe. [Acta y límites](docs/briefs/ux14-swipes-encadenados.md).
 Sin nueva versión, catálogo ni APK; notas de versión pendientes de integración.
 
+Remate UX14 de la misma PR284 sobre e2a00f24: las ramas de la banda en primera y última
+pestaña usan también el origen visible. Cuatro RED causales sobre R1 y cuatro GREEN ABAB
+con el tope y el factor de goma conservados. La sonda de llegada distingue el commit de
+React previo al siguiente eje horizontal y conserva su falso negativo inicial. Regresiones
+dirigidas y límites en [el acta R2](docs/briefs/ux14-swipes-bordes-r2.md).
+
 ## [4.26.146] — 2026-10-19 · Candidata de beta: vuelta a primer plano sin tirón (`claude/perf-vuelta`, `fff05adca`), solo web y sin APK nueva (sigue la 4.26.145 / code 58)
 
 - **Por qué.** Diagnóstico de lag del 19/10 (`E:/wt-perf-lag/INFORME-LAG.md`): cada vuelta a primer plano (y el arranque) llama a `syncCloudExpenses`, que baja el histórico ENTERO y lo convertía todo de forma síncrona. `rows.map(expenseFromRow)` volvía a adivinar la categoría de cada fila sin categoría propia (`autoCategory`: NFD + barrido de `KW`, ~0,3 ms por fila a CPU×6), cada fila salía como objeto nuevo, y aunque la nube trajera lo mismo el estado se rehacía entero por `lastSync: Date.now()`: repintado de las cuatro pestañas y 18 KB de `micartera_v3` reescritos en cada vuelta. Crece lineal con el histórico, que encaja con «cada vez peor».

@@ -285,6 +285,8 @@ Diagnóstico de rendimiento Dashboard: guardianes de frecuencia de recientes, A/
 
 UX14, candidata local sin integrar: encadenar cambios de pestaña y volver entrega el arrastre desde la posición visible. A/B CPU6 y límites en [el acta de continuidad](docs/briefs/ux14-swipes-encadenados.md); pendiente de aceptación móvil.
 
+El [remate de los bordes de UX14](docs/briefs/ux14-swipes-bordes-r2.md) conserva ese origen también al llegar a la primera o última pestaña. Misma PR284, pendiente de revisión e integración.
+
 Verificación específica de la promoción106: `node scripts/verify-selective106.mjs --candidate=SHA` ([acta y retirada diferida](docs/briefs/promocion-aprobadas-local26.md)).
 
 Pruebas manuales focales: en Tests, el input opcional focal_spec ejecuta el spec solicitado

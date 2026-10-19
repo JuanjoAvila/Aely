@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import crypto from "node:crypto";
 import { seedLoggedInDashboard, dismissNews, installFixtureClock } from "./fixtures.mjs";
 
 // Una traza de reintento tampoco sirve para medir tiempos a CPU6 (AGENTS §7 bis).
@@ -343,14 +344,160 @@ test.describe("UX14 continuidad al encadenar pestañas", () => {
           if (wrong > 8) backsteps.push({ gesture: index, t: frames[i].t, px: wrong });
         }
       }
-      const landed = gestures.map((g, i) => data.frames.some(f => f.t >= g.end && f.t < (gestures[i + 1]?.start ?? data.end) && f.active === g.to));
-      await info.attach("ux14-raf.json", { body: JSON.stringify({ n, rapido, gestures, landed, backsteps,
+      /* La marca `start` va ANTES del touchStart CDP. Un commit de React puede pintar entre
+         esa marca y el eje del siguiente arrastre: cortarlo ahí dio un falso «no aterrizó»
+         por 0,5 ms, pese a que Cartera era visible antes del arrastre de vuelta. Exigir la
+         llegada antes del siguiente eje horizontal, sin alargar pausas ni aceptar que llegue
+         durante ese arrastre. Se conserva la ventana usada junto al rAF crudo. */
+      const landingUntil = gestures.map((g, i) => {
+        const next = gestures[i + 1];
+        return next ? (data.frames.find(f => f.t >= next.start && f.dragging)?.t ?? next.end) : data.end;
+      });
+      const landed = gestures.map((g, i) => data.frames.some(f => f.t >= g.end && f.t < landingUntil[i] && f.active === g.to));
+      await info.attach("ux14-raf.json", { body: JSON.stringify({ n, rapido, gestures, landed, landingUntil, backsteps,
         framesOver32: deltas.filter(d => d > 32).length, maxFrameMs: Math.max(...deltas), ...data }), contentType: "application/json" });
       expect(gestures).toHaveLength(12);
       expect(landed, "un gesto no cambió realmente de pestaña").toEqual(Array(12).fill(true));
       expect(backsteps, "el track retrocedió contra el dedo durante el arrastre").toEqual([]);
       await expect(page.locator(".track")).not.toHaveClass(/dragging/);
       await expect(page.locator(".app-shell")).not.toHaveClass(/nav-sin-blur/);
+    });
+  }
+});
+
+/* El borde también tiene que partir del asiento interrumpido. Monotonía sola no basta:
+   saltar 100 px de golpe en el MISMO sentido del dedo también rompe la continuidad. Se
+   compara el desplazamiento visible con el de la banda: 0 en Inicio y 0,28 en Cartera.
+   En Inicio se reclama primero hacia la siguiente pestaña y se invierte el dedo en el mismo
+   gesto; empezar a la derecha abriría Ajustes y nunca ejercitaría esta rama del track. */
+test.describe("UX14 bordes durante un asiento", () => {
+  test.use({ serviceWorkers: "block" });
+  for (const borde of ["primera", "ultima"]) {
+    test(`${borde}: la banda continúa desde la posición visible`, async ({ page, baseURL }, info) => {
+      await installFixtureClock(page);
+      await seedLoggedInDashboard(page, {
+        expenses: Array.from({ length: 90 }, (_, i) => ({ id: "ux14-borde-" + i,
+          date: "2026-09-20T12:00:00Z", amount: 12.34, category: "super", ent: "sabadell",
+          merchant: "Compra sintética " + i, source: "manual" })),
+        settings: { autoPrices: false, theme: "green", lang: "es" },
+      });
+      const origin = new URL(baseURL).origin;
+      await page.route("**/*", route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort("blockedbyclient"));
+      await page.addInitScript(() => {
+        const frames = [], longtasks = [], touches = [];
+        const observer = new PerformanceObserver(list => {
+          for (const e of list.getEntries()) longtasks.push({ t: e.startTime, duration: e.duration });
+        });
+        observer.observe({ entryTypes: ["longtask"] });
+        const probe = window.__ux14Borde = { running: false, phase: "setup", finger: null };
+        for (const type of ["touchstart", "touchmove", "touchend", "touchcancel"]) {
+          document.addEventListener(type, e => {
+            if (!probe.running) return;
+            if (e.touches[0]) probe.finger = e.touches[0].clientX;
+            touches.push({ t: performance.now(), type, x: probe.finger, phase: probe.phase });
+          }, { capture: true, passive: true });
+        }
+        const financial = () => {
+          const s = JSON.parse(localStorage.getItem("micartera_v3") || "{}");
+          return JSON.stringify({ expenses: localStorage.getItem("micartera_v3_exp"),
+            accounts: s.accounts, obAccounts: s.obAccounts, investments: s.investments,
+            debts: s.debts, goals: s.goals, fixed: s.fixed, budget: s.budget,
+            flows: s.flows, oneoffs: s.oneoffs, assets: s.assets });
+        };
+        probe.read = () => {
+          const track = document.querySelector(".track");
+          return { t: performance.now(), phase: probe.phase,
+            x: Number(track.style.transform.match(/translate3d\((-?[\d.]+)/)?.[1] ?? track.style.left.replace("px", "")),
+            dragging: track.classList.contains("dragging"),
+            active: Array.from(document.querySelectorAll(".botnav-tab[data-tour]")).findIndex(b => b.classList.contains("active")),
+            drawer: !!document.querySelector(".settings-push.open") };
+        };
+        probe.begin = () => {
+          if (document.getElementById("mc-load")) throw Error("Splash tapa el gesto");
+          probe.financialBefore = financial(); probe.start = performance.now(); probe.running = true;
+          const tick = t => {
+            if (!probe.running) return;
+            // Valores inline, sin layout por frame; el dedo se registra en el listener pasivo.
+            frames.push({ ...probe.read(), t, finger: probe.finger });
+            probe.raf = requestAnimationFrame(tick);
+          };
+          probe.raf = requestAnimationFrame(tick);
+        };
+        probe.end = () => {
+          probe.running = false; cancelAnimationFrame(probe.raf); observer.disconnect();
+          return { start: probe.start, end: performance.now(), frames, touches,
+            longtasks: longtasks.filter(e => e.t >= probe.start),
+            financialBefore: probe.financialBefore, financialAfter: financial() };
+        };
+      });
+      const cdp = await page.context().newCDPSession(page);
+      await cdp.send("Emulation.setCPUThrottlingRate", { rate: RATE });
+      const checkpoints = [], landings = []; let data, htmlSHA;
+      const touch = (type, x) => cdp.send("Input.dispatchTouchEvent", { type,
+        touchPoints: type === "touchEnd" ? [] : [{ x, y: 200 }] });
+      const checkpoint = async phase => {
+        await page.evaluate(phase => { window.__ux14Borde.phase = phase; }, phase);
+        // Dos rAF con el dedo quieto: comparar la posición asentada del arrastre, sin polling.
+        await page.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+        const point = await page.evaluate(() => window.__ux14Borde.read()); checkpoints.push(point); return point;
+      };
+      const start = async x => {
+        landings.push(await page.evaluate(x => {
+          const target = document.elementFromPoint(x, 200);
+          let consumed = !!target?.closest("[data-noswipe]");
+          for (let el = target; el && !el.classList.contains("page"); el = el.parentElement) {
+            if (el.scrollWidth > el.clientWidth + 4 && /auto|scroll/.test(getComputedStyle(el).overflowX)) consumed = true;
+          }
+          return { x, page: !!target?.closest(".page"), consumed };
+        }, x));
+        await touch("touchStart", x);
+      };
+      const last = borde === "ultima", expectedTab = last ? 3 : 0;
+      try {
+        const response = await page.goto("/");
+        htmlSHA = crypto.createHash("sha256").update(await response.body()).digest("hex");
+        if (process.env.UX14_EXPECTED_HTML) expect(htmlSHA).toBe(process.env.UX14_EXPECTED_HTML);
+        await page.waitForFunction(() => !document.getElementById("mc-load") && document.querySelectorAll(".botnav-tab[data-tour]").length === 4);
+        await dismissNews(page); await page.waitForTimeout(1600);
+        await page.evaluate(last => document.querySelector('.botnav-tab[data-tour="' + (last ? "plan" : "gastos") + '"]').click(), last);
+        await page.waitForTimeout(600);
+        await page.evaluate(() => window.__ux14Borde.begin());
+        await start(last ? 300 : 90);
+        const hostStart = performance.now();
+        for (let i = 1; i <= 4; i++) {
+          await touch("touchMove", (last ? 300 : 90) + (last ? -230 : 230) * i / 4);
+          const remaining = hostStart + 90 * i / 4 - performance.now();
+          if (remaining > 0) await page.waitForTimeout(remaining);
+        }
+        await touch("touchEnd"); await page.waitForTimeout(20);
+        const partial = await checkpoint("asiento-parcial");
+        await start(240); await touch("touchMove", 190);
+        const anchor = await checkpoint("ancla");
+        await touch("touchMove", last ? 140 : 240);
+        const band1 = await checkpoint("banda-1");
+        await touch("touchMove", last ? 90 : 260);
+        const band2 = await checkpoint("banda-2");
+        await touch("touchEnd"); await page.waitForTimeout(650);
+        await checkpoint("final");
+        data = await page.evaluate(() => window.__ux14Borde.end());
+        const deltas = data.frames.slice(1).map((f, i) => f.t - data.frames[i].t);
+        const errors = [band1.x - anchor.x - (last ? -50 * 0.28 : 0),
+          band2.x - anchor.x - (last ? -100 * 0.28 : 0)];
+        await info.attach("ux14-borde-raf.json", { body: JSON.stringify({ borde, htmlSHA, landings, checkpoints, errors,
+          frameDeltas: deltas, framesOver32: deltas.filter(d => d > 32).length, maxFrameMs: Math.max(...deltas), ...data }), contentType: "application/json" });
+        expect(landings.every(p => p.page && !p.consumed && p.x > 52)).toBe(true);
+        expect(partial.active, "el gesto anterior debe llegar a la pestaña de borde").toBe(expectedTab);
+        expect(Math.abs(partial.x + expectedTab * page.viewportSize().width), "el asiento anterior ya había acabado: caso inválido").toBeGreaterThan(10);
+        expect([anchor, band1, band2].every(p => p.dragging && !p.drawer)).toBe(true);
+        for (const e of errors) expect(Math.abs(e), "salto al entrar en la banda de goma").toBeLessThan(8);
+        expect(checkpoints.at(-1).active).toBe(expectedTab);
+        expect(checkpoints.at(-1).dragging).toBe(false);
+        expect(checkpoints.at(-1).drawer).toBe(false);
+        expect(data.financialAfter).toBe(data.financialBefore);
+      } finally {
+        if (!data) await page.evaluate(() => window.__ux14Borde?.end());
+        await cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 });
+      }
     });
   }
 });
