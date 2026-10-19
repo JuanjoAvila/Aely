@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "taskId": "inc270908-broker-block-order-codex-20261019",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-5fc9afdec60f82b1",
+  "createdAt": "2026-10-19T09:43:54.981Z",
+  "baseSHA": "48d5ef8106ecb8ac119a3af0e7b79ca10878359b"
+}
