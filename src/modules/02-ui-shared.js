@@ -1448,10 +1448,17 @@ function useBackClose(open, onClose, identity){
 /* Pantallas hijas a página completa: dentro de la WebView se puede volver desde cualquier punto,
    como en Inversiones; en Android 14+ el borde pertenece al sistema y llega por su progreso
    predictivo. La hija acompaña al dedo y solo se desmonta después de cerrar. */
-function useEdgePageClose(open,onClose,on,ref){
+function useEdgePageClose(open,onClose,on,ref,opts){
+  opts=opts||{};
   const tm=useRef(null), busy=useRef(false);
   const cb=useRef(onClose); cb.current=onClose;
   const dr=useRef(null);
+  const restTimer=useRef(null), restGen=useRef(0);
+  const stopRest=function(){
+    restGen.current++;
+    if(restTimer.current){ clearTimeout(restTimer.current); restTimer.current=null; }
+  };
+  useEffect(function(){ return function(){ stopRest(); }; },[]);
   useEffect(function(){
     // Una misma pantalla puede montar varias hijas seguidas sin cerrar el push padre. Cada vez
     // que esta capa vuelve a ser la activa necesita recuperar el gesto (review Claude 24/9).
@@ -1460,6 +1467,7 @@ function useEdgePageClose(open,onClose,on,ref){
   },[open,on]);
   const close=function(){
     if(busy.current) return;
+    stopRest();
     const el=ref.current;
     if(!el||mcReduced()){ cb.current&&cb.current(); return; }
     busy.current=true;
@@ -1473,6 +1481,7 @@ function useEdgePageClose(open,onClose,on,ref){
     },420);
   };
   const reset=function(){
+    stopRest();
     const el=ref.current; if(!el) return;
     el.classList.remove("mc-page-dragging");
     if(mcReduced()){
@@ -1482,9 +1491,22 @@ function useEdgePageClose(open,onClose,on,ref){
     el.style.transition="transform .24s cubic-bezier(.32,.72,0,1), opacity .2s ease";
     el.style.setProperty("transform","translate3d(0,0,0)","important");
     el.style.opacity="1";
+    if(opts.plainScroll){
+      /* Una matriz identidad sigue creando una capa/containing block. Al cancelar debe
+         volver el CSS sin transform, incluso si el hub deja de ser activo al abrir una hija.
+         Un arrastre nuevo o un cierre invalidan esta limpieza para no borrar su movimiento. */
+      const gen=restGen.current;
+      restTimer.current=setTimeout(function(){
+        if(gen!==restGen.current) return;
+        restTimer.current=null;
+        if(ref.current!==el||busy.current||el.classList.contains("mc-page-dragging")) return;
+        el.style.transition=""; el.style.transform=""; el.style.opacity="";
+      },250);
+    }
   };
   const move=function(x,p){
     const el=ref.current; if(!el||busy.current||mcReduced()) return;
+    stopRest();
     el.classList.add("mc-page-dragging");
     // Gestionar conserva `transform:none!important` para que Android pinte su ola nativa; el
     // compositor debe ganar solo mientras el gesto está vivo y no puede fiarlo a una clase.
@@ -1565,6 +1587,8 @@ function useEdgePageClose(open,onClose,on,ref){
   const fin=function(no){
     const d=dr.current; dr.current=null;
     if(!d) return;
+    // Un toque para abrir categoría no ha arrastrado nada: no imponer una matriz al scroller.
+    if(opts.plainScroll&&(d.axis!=="x"||d.d<=0)) return;
     const w=(ref.current&&ref.current.clientWidth)||window.innerWidth||360;
     if(!no&&(d.d>w*.28||(d.d/Math.max(1,Date.now()-d.t)>.45&&d.d>52))){ close(); return; }
     reset();

@@ -98,6 +98,8 @@ const sourceBeta146=sourceAt("48d5ef8106ecb8ac119a3af0e7b79ca10878359b");
 const sourceBeta147=sourceAt("ccb7983767bfac37cde989a3b5af62dc399b3e16");
 // Catálogo148 pasa a histórico con la 149: se lee de la beta 4.26.148 servida (78b54d61d), lo que probó el móvil y sobre lo que la 149 añade su tanda de pestañas.
 const sourceBeta148=sourceAt("78b54d61d690ff25965a4bffafc13c92287157cc");
+// Catálogo149 pasa a histórico con la 150: se lee de la beta 4.26.149 servida (408d8d348), lo que probó el móvil y sobre lo que la 150 añade su tanda de Gestionar plan.
+const sourceBeta149=sourceAt("408d8d3484568e1c02fa25dcd2df30ad71477bf1");
 // Catálogo137 pasa a histórico en la promoción 137: se lee de la beta 4.26.137.1 aprobada (6f18228c), lo último que probó el móvil y lo que sube entero.
 const sourceBeta137=sourceAt("6f18228cbd81c1cc9abfa7fabce0a878819234f4");
 // Promoción137 pasa a histórico con el hotfix 4.26.142 (18/10), que sí cambia producto y nota: se lee de la producción 137 tal cual se fusionó (nombre propio: la beta 138 ya usa `sourceProd137` para otro commit).
@@ -233,7 +235,7 @@ test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CS
   // La base es la integración120 (apuntes iguales de Trade Republic): Inicio no puede retirar su alcance ni heredar su revisión.
   const integrated=JSON.parse(source120("scripts/beta-sources.json"));
   // Detrás de Inicio sólo ha entrado el alcance de la122 (el cargo de recibo en Gastos).
-  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","limpieza-ajustes-perfil","tr-empareja-sin-preguntar","cuenta-parte-mia","inicio-recientes-sin-repetidos","scroll-borde-barra","inicio-grafica-reservas","compras-identicas-ids","myinvestor-contador-a-cero","deudas-metas-hoja-edicion","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","gastos-suscripciones-botones","compras-pendientes-otro-dia","deudas-plazo-cuota-encaja","deudas-metas-hoja-sin-parpadeo","deudas-metas-hoja-cierre-suave","teclado-atras-conserva","fichas-cierre-suave-atras","vibracion-borde-y-mi-ciclo","deudas-aviso-plazo","cuenta-saldo-cierre-atras","banco-pruebas-sin-aviso","vibracion-suave-ronda-2","deudas-guardar-motivo","recibo-renombrado-sigue-pagado","vibracion-suave-ronda-3","plan-por-confirmar-prestamo-youtube","vuelta-sin-tiron","deuda-bajar-cuota-alarga-plazo","cartera-ordenar-brokers","youtube-enlazar-recibo","vibracion-ajustador","pestanas-swipe-rapido"),"Inicio y las altas de la122, la124, la126, la127, la128, la129, la130, la131, la132, la133, la134, la135, la137, la138, la139, la140, la141, la143, la144, la145, la146, la147, la148 y la149, sin retirar historia120");
+  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","limpieza-ajustes-perfil","tr-empareja-sin-preguntar","cuenta-parte-mia","inicio-recientes-sin-repetidos","scroll-borde-barra","inicio-grafica-reservas","compras-identicas-ids","myinvestor-contador-a-cero","deudas-metas-hoja-edicion","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","gastos-suscripciones-botones","compras-pendientes-otro-dia","deudas-plazo-cuota-encaja","deudas-metas-hoja-sin-parpadeo","deudas-metas-hoja-cierre-suave","teclado-atras-conserva","fichas-cierre-suave-atras","vibracion-borde-y-mi-ciclo","deudas-aviso-plazo","cuenta-saldo-cierre-atras","banco-pruebas-sin-aviso","vibracion-suave-ronda-2","deudas-guardar-motivo","recibo-renombrado-sigue-pagado","vibracion-suave-ronda-3","plan-por-confirmar-prestamo-youtube","vuelta-sin-tiron","deuda-bajar-cuota-alarga-plazo","cartera-ordenar-brokers","youtube-enlazar-recibo","vibracion-ajustador","pestanas-swipe-rapido","gestionar-plan-sin-ola"),"Inicio y las altas de la122, la124, la126, la127, la128, la129, la130, la131, la132, la133, la134, la135, la137, la138, la139, la140, la141, la143, la144, la145, la146, la147, la148, la149 y la150, sin retirar historia120");
   for(const [key,value] of Object.entries(integrated))if(key!=="inicio-grafica-vuelve"){assert.deepEqual(scopes[key].native,value.native);assert.deepEqual(scopes[key].edge,value.edge);for(const part of (value.web||[]).map(limpieza129).filter(Boolean))assert.ok(scopes[key].web.some(s=>JSON.stringify(sinMetodo122(s))===JSON.stringify(part)||JSON.stringify(sinPull130(sinMetodo122(s)))===JSON.stringify(sinPull130(sinMetodo122(part)))||JSON.stringify(sinAbsorcion143(sinCompras135(sinPull130(sinMetodo122(s)))))===JSON.stringify(sinCompras135(sinPull130(sinMetodo122(part))))),key+": no recortar descriptor ajeno120");}
   assert.equal(scope.unidades,true);
   for(const key of ["historial","auditoria","codigosCompatibles","compatibilidadGit","compatibilidadSha"])
@@ -3321,10 +3323,10 @@ test("Catálogo148 histórico añade las tandas de enlazar recibo y de vibració
 const expected149={"v":"4.26.149","d":"2026-10-19","t":{"es":"Deslizar rápido entre pestañas ya no da saltos hacia atrás","en":"Swiping quickly between tabs no longer jumps backwards","ca":"Lliscar ràpid entre pestanyes ja no fa salts enrere"},"items":{"es":["Deslizar rápido varias veces entre pestañas ya no da saltos hacia atrás: la pantalla sigue al dedo."],"en":["Swiping quickly several times between tabs no longer jumps backwards: the screen follows your finger."],"ca":["Lliscar ràpid diverses vegades entre pestanyes ja no fa salts enrere: la pantalla segueix el dit."]},"tandas":[{"id":"pestanas-swipe-rapido","t":{"es":"Pestañas: deslizar rápido varias veces seguidas","en":"Tabs: swiping quickly several times in a row","ca":"Pestanyes: lliscar ràpid diverses vegades seguides"},"items":{"es":["1. Desliza rápido varias veces seguidas entre Inicio, Gastos, Plan y Cartera, ida y vuelta.","2. La pantalla sigue el dedo sin saltar hacia atrás. MAL: da un tirón o un salto atrás.","3. Llega a Cartera y sigue deslizando hacia la izquierda; luego ve a Inicio y desliza a la derecha. MAL: un salto raro. En Inicio, deslizar desde el borde izquierdo sigue abriendo Ajustes.","4. Siempre acabas en la pestaña que marca la barra de abajo. MAL: no coincide."],"en":["1. Swipe quickly several times in a row between Home, Spending, Plan and Portfolio, back and forth.","2. The screen follows your finger without jumping backwards. WRONG: a jerk or a jump back.","3. Reach Portfolio and keep swiping left; then go to Home and swipe right. WRONG: an odd jump. On Home, swiping from the left edge still opens Settings.","4. You always end up on the tab the bottom bar shows. WRONG: they do not match."],"ca":["1. Llisca ràpid diverses vegades seguides entre Inici, Despeses, Pla i Cartera, anada i tornada.","2. La pantalla segueix el dit sense saltar enrere. MALAMENT: dóna un estirament o un salt enrere.","3. Arriba a Cartera i continua lliscant cap a l'esquerra; després ves a Inici i llisca cap a la dreta. MALAMENT: un salt estrany. A Inici, lliscar des de la vora esquerra continua obrint Ajustos.","4. Sempre acabes a la pestanya que marca la barra de baix. MALAMENT: no coincideix."]}}]};
 // 4.26.149 (19/10/2026): integración rápida, solo web y sin APK, sobre la beta 4.26.148 servida (78b54d61d): PR 284 (708b98a6, UX-14), los swipes encadenados entre pestañas arrancan desde la posición visible.
 // Una tanda NUEVA (pestanas-swipe-rapido); las de la 148, la 147, la 146 y la 144 se quedan como están. apk.json y build.gradle no cambian (sigue la APK 59).
-test("Catálogo149 añade la tanda de swipes rápidos entre pestañas sobre la beta 148, solo web, con alcance propio, y declara cada huella que mueve",()=>{
+test("Catálogo149 histórico añade la tanda de swipes rápidos entre pestañas sobre la beta 148, solo web, con alcance propio, y declara cada huella que mueve",()=>{
   const tandas=["pestanas-swipe-rapido"],pasos=[4];
   const integrated=JSON.parse(sourceBeta148("scripts/beta-sources.json")),before=JSON.parse(sourceBeta148("src/data/release-notes.json"));
-  const source=f=>read(f).replace(/\r\n/g,"\n"),old=f=>sourceBeta148(f).replace(/\r\n/g,"\n");
+  const source=f=>sourceBeta149(f).replace(/\r\n/g,"\n"),old=f=>sourceBeta148(f).replace(/\r\n/g,"\n");
   assert.equal(before[0].v,"4.26.148");
   const expectedNotes=[expected149,...before];
   const notes=JSON.parse(source("src/data/release-notes.json"));
@@ -3378,7 +3380,7 @@ test("Catálogo149 añade la tanda de swipes rápidos entre pestañas sobre la b
   }
   assert.equal(source("public/apk.json"),old("public/apk.json"),"sin APK nueva: apk.json no se toca");
   assert.equal(source("android/app/build.gradle"),old("android/app/build.gradle"),"sin APK nueva: build.gradle no se toca");
-  assert.equal(execFileSync("git",["diff","--name-only","78b54d61d690ff25965a4bffafc13c92287157cc","HEAD","--","supabase/migrations","android"],{encoding:"utf8"}).trim(),"","sin SQL ni nativo");
+  assert.equal(execFileSync("git",["diff","--name-only","78b54d61d690ff25965a4bffafc13c92287157cc","408d8d3484568e1c02fa25dcd2df30ad71477bf1","--","supabase/migrations","android"],{encoding:"utf8"}).trim(),"","sin SQL ni nativo");
   const expectedMoves={"inc-0810-nav-indicator":["web"]};
   const previous=new Map();
   const measure=reader=>{
@@ -3405,6 +3407,99 @@ test("Catálogo149 añade la tanda de swipes rápidos entre pestañas sobre la b
   }
   const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes);
   assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),[...tandas,"youtube-enlazar-recibo","vibracion-ajustador","deuda-bajar-cuota-alarga-plazo","cartera-ordenar-brokers","vuelta-sin-tiron","deudas-guardar-motivo"],"lo que el build entrega al panel");
+  const g0=built[0].tandas[0];
+  assert.equal(g0.web,currents[tandas[0]].web);assert.equal(g0.native,undefined);assert.equal(g0.edge,undefined);assert.equal(g0.apk,undefined);assert.equal(receipt.web[tandas[0]],currents[tandas[0]].web);
+  for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g0[key],undefined,"identidad nueva sin "+key);
+  assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
+});
+
+const expected150={"v":"4.26.150","d":"2026-10-19","t":{"es":"Gestionar plan: la lista ya no ondula al tocar una categoría","en":"Manage plan: the list no longer ripples when you tap a category","ca":"Gestionar pla: la llista ja no ondula en tocar una categoria"},"items":{"es":["Al tocar una categoría en Gestionar plan, la lista ya no se mueve ni hace una «ola»."],"en":["When you tap a category in Manage plan, the list no longer moves or ripples."],"ca":["En tocar una categoria a Gestionar pla, la llista ja no es mou ni fa una «ona»."]},"tandas":[{"id":"gestionar-plan-sin-ola","t":{"es":"Plan: Gestionar plan sin ola","en":"Plan: Manage plan without the ripple","ca":"Pla: Gestionar pla sense ona"},"items":{"es":["1. Abre Plan → Gestionar plan.","2. Toca una categoría y suelta, o empieza a arrastrar y cancela. La lista no se mueve ni ondula. MAL: se desplaza o hace una ola.","3. Desplaza la lista y cierra la hoja: se cierra suave. MAL: da un salto."],"en":["1. Open Plan → Manage plan.","2. Tap a category and let go, or start dragging and cancel. The list does not move or ripple. WRONG: it shifts or ripples.","3. Scroll the list and close the sheet: it closes smoothly. WRONG: it jumps."],"ca":["1. Obre Pla → Gestionar pla.","2. Toca una categoria i deixa-la anar, o comença a arrossegar i cancel·la. La llista no es mou ni ondula. MALAMENT: es desplaça o fa una ona.","3. Desplaça la llista i tanca la fitxa: es tanca suau. MALAMENT: fa un salt."]}}]};
+// 4.26.150 (19/10/2026): integración rápida, solo web y sin APK, sobre la beta 4.26.149 servida (408d8d348): PR 285 (4f79352a, INC-2709-03 y UX-08), Gestionar plan sin ola al tocar una categoría.
+// Una tanda NUEVA (gestionar-plan-sin-ola); las de la 149, la 148, la 147, la 146 y la 144 se quedan como están. apk.json y build.gradle no cambian (sigue la APK 59).
+test("Catálogo150 añade la tanda de Gestionar plan sin ola sobre la beta 149, solo web, con alcance propio, y declara cada huella que mueve",()=>{
+  const tandas=["gestionar-plan-sin-ola"],pasos=[3];
+  const integrated=JSON.parse(sourceBeta149("scripts/beta-sources.json")),before=JSON.parse(sourceBeta149("src/data/release-notes.json"));
+  const source=f=>read(f).replace(/\r\n/g,"\n"),old=f=>sourceBeta149(f).replace(/\r\n/g,"\n");
+  assert.equal(before[0].v,"4.26.149");
+  const expectedNotes=[expected150,...before];
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.deepEqual(notes,expectedNotes,"la nota 150 literal delante y todo lo demás intacto");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.150",tandas[0],0],["4.26.149","pestanas-swipe-rapido",0],["4.26.148","youtube-enlazar-recibo",0],["4.26.148","vibracion-ajustador",59],["4.26.147","deuda-bajar-cuota-alarga-plazo",0],["4.26.147","cartera-ordenar-brokers",0],["4.26.146","vuelta-sin-tiron",0],["4.26.144","deudas-guardar-motivo",0]],"el panel enseña ocho tandas: la nueva es web y no exige APK");
+  assert.equal(notes.length,247);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
+  assert.deepEqual(Object.keys(notes[0].tandas[0]),["id","t","items"],"identidad nueva, sin alias, revisión heredada ni APK");
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,1,lang+": un punto familiar");
+    const steps=notes[0].tandas[0].items[lang];assert.equal(steps.length,pasos[0],lang+": pasos");
+    steps.forEach((step,j)=>assert.ok(step.startsWith((j+1)+". "),lang+": paso numerado "+j));
+    for(const text of steps)assert.equal(/borra|quita este|delete|remove|esborra|treu aquest|mañana|tomorrow|demà/i.test(text),false,lang+": ningún paso borra nada ni espera a otro día: "+text);
+    for(const text of steps.slice(1))assert.ok(/MAL|WRONG|MALAMENT/.test(text),lang+": cada paso de comprobación dice qué es MAL: "+text);
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|FIN-|SES-|\d+\.\d+\.\d+/i.test(text),false,lang+": sin jerga: "+text);
+  }
+  const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
+  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verifyNotes(twice),assert.AssertionError,"no duplicar una tanda");
+  const quitada=structuredClone(notes);quitada[1].tandas=[];assert.throws(()=>verifyNotes(quitada),assert.AssertionError,"las tandas de la 149 se quedan como están");
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),rest={...scopes};for(const id of tandas)delete rest[id];
+  for(const id of tandas)assert.equal(integrated[id],undefined,"identidad que no existía: "+id);
+  assert.deepEqual(Object.keys(scopes).slice(-tandas.length),tandas);
+  const E="src/modules/02-ui-shared.js";
+  const propias={"gestionar-plan-sin-ola":[{file:E,function:"useEdgePageClose"},{file:"src/modules/14-v4-screens.js",function:"BillsManagePush"},{file:"src/shell.html",from:"  .settings-push.v4-bills-push{will-change:auto;",to:"transition:none;}"},{file:"src/modules/11-app-main.js",from:"  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",to:"  // INC-0410 guardado: límite."}]};
+  const fns=logicFunctions(source),dat=logicData(source);
+  const closure=start=>{
+    let web=start.slice();
+    for(let ronda=0;ronda<40;ronda++){
+      const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];
+      for(const f of scopeDependencies({web},source,fns))if(!tiene(f.file,f.name,"function"))extra.push({file:f.file,function:f.name});
+      for(const d of scopeDataDependencies({web},source,fns,dat))if(!tiene(d.file,d.name,"data"))extra.push({file:d.file,data:d.name});
+      if(!extra.length)break;web=web.concat(extra);
+    }
+    return web;
+  };
+  const congelados=new Set(["inc-0810-inicio-grafica-significado"]),unidad=u=>JSON.stringify(u);
+  for(const [id,scope] of Object.entries(integrated)){
+    if(congelados.has(id)){assert.deepEqual(rest[id],scope,"descriptor congelado: "+id);continue;}
+    const web=closure(scope.web||[]);
+    assert.deepEqual({...rest[id],web:rest[id].web.map(unidad).sort()},{...scope,web:web.map(unidad).sort()},"cierre de lectores recalculado, ni se recorta ni crece sin declararlo: "+id);
+    assert.equal(rest[id].web.length,web.length,"sin unidades repetidas: "+id);
+  }
+  assert.deepEqual(Object.keys(rest),Object.keys(integrated),"ningún descriptor ajeno nuevo ni retirado");
+  for(const id of tandas){
+    const added=scopes[id],own=propias[id];
+    assert.deepEqual(added.web.slice(0,own.length),own,id+": las unidades propias de la tanda, en este orden");
+    assert.equal(added.unidades,true);assert.deepEqual(Object.keys(added),["web","unidades"],id+": solo web");
+    const web=closure(own),clave=u=>JSON.stringify(u);
+    assert.equal(added.web.length,web.length,id+": el cierre de lectores del descriptor es exactamente el calculado");
+    assert.deepEqual(new Set(added.web.map(clave)),new Set(web.map(clave)),id+": el cierre de lectores del descriptor es exactamente el calculado");
+    for(const u of added.web)assert.ok(scopeText(u,source).length>0,"la unidad existe en la fuente: "+JSON.stringify(u));
+  }
+  assert.equal(source("public/apk.json"),old("public/apk.json"),"sin APK nueva: apk.json no se toca");
+  assert.equal(source("android/app/build.gradle"),old("android/app/build.gradle"),"sin APK nueva: build.gradle no se toca");
+  assert.equal(execFileSync("git",["diff","--name-only","408d8d3484568e1c02fa25dcd2df30ad71477bf1","HEAD","--","supabase/migrations","android"],{encoding:"utf8"}).trim(),"","sin SQL ni nativo");
+  const expectedMoves={"teclado-atras-conserva":["web"]};
+  const previous=new Map();
+  const measure=reader=>{
+    const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};
+    for(const [key,scope] of Object.entries(integrated)){
+      if(key===archiveId||congelados.has(key))continue;
+      if(!previous.has(key))previous.set(key,betaRevision(key,sourceBeta149,undefined,scope));
+      const a=previous.get(key),b=betaRevision(key,reader,undefined,now[key]);
+      const surfaces=["web","native","edge"].filter(x=>a[x]!==b[x]);
+      if(surfaces.length)moved[key]=surfaces;
+    }
+    return moved;
+  };
+  const verify=(reader,expected=expectedMoves)=>assert.deepEqual(measure(reader),expected,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  verify(source);
+  const currents=Object.fromEntries(tandas.map(id=>[id,betaRevision(id,source,undefined,scopes[id])]));
+  for(const id of tandas){assert.ok(currents[id].web);assert.equal(currents[id].native,undefined);assert.equal(currents[id].edge,undefined);}
+  for(const [id,file,a,b] of [
+    [tandas[0],E,"const restTimer=useRef(null), restGen=useRef(0);","const restTimer=useRef(null), restGen=useRef(1);"]
+  ]){
+    assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
+    const mutated=betaRevision(id,f=>f===file?source(f).replace(a,()=>b):source(f),undefined,scopes[id]);
+    assert.notEqual(mutated.web,currents[id].web,id+" reabre la tanda: "+a);
+  }
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes);
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),[...tandas,"pestanas-swipe-rapido","youtube-enlazar-recibo","vibracion-ajustador","deuda-bajar-cuota-alarga-plazo","cartera-ordenar-brokers","vuelta-sin-tiron","deudas-guardar-motivo"],"lo que el build entrega al panel");
   const g0=built[0].tandas[0];
   assert.equal(g0.web,currents[tandas[0]].web);assert.equal(g0.native,undefined);assert.equal(g0.edge,undefined);assert.equal(g0.apk,undefined);assert.equal(receipt.web[tandas[0]],currents[tandas[0]].web);
   for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g0[key],undefined,"identidad nueva sin "+key);
@@ -5308,11 +5403,12 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   const marca="INC-0410 guardado: de aquí al límite";
   const dependientes=Object.keys(registro).filter(id=>registro[id].web.some(x=>x.from&&x.from.includes(marca)));
   const ajenas=Object.keys(registro).filter(id=>!dependientes.includes(id));
-  assert.equal(dependientes.length,47);
+  assert.equal(dependientes.length,48);
   for(const id of ["deudas-metas-hoja-edicion","deudas-plazo-cuota-encaja","deudas-metas-hoja-cierre-suave","fichas-cierre-suave-atras","gastos-suscripciones-botones"])assert.ok(dependientes.includes(id),id+": las hojas de Deudas y Metas y SubRow escriben estado con el set real y llevan el bloque del guardado");
   assert.ok(dependientes.includes("myinvestor-contador-a-cero"),"la sincronización de brókers de App escribe posiciones con el set real y lleva el bloque del guardado");
   assert.ok(dependientes.includes("compras-identicas-ids"),"las compras idénticas fusionan filas y guardan lápidas con el set real y llevan el bloque del guardado");
   assert.ok(dependientes.includes("cuenta-saldo-cierre-atras"),"el saldo tecleado de una cuenta se guarda con el set real al cerrar por atrás y lleva el bloque del guardado");
+  assert.ok(dependientes.includes("gestionar-plan-sin-ola"),"Gestionar plan escribe recibos con el set real y lleva el bloque del guardado");
   assert.ok(dependientes.includes("vibracion-ajustador"),"el ajustador de Ajustes guarda con el set real y lleva el bloque del guardado");
   assert.ok(dependientes.includes("cuenta-parte-mia"),"la parte mía de una cuenta guarda con el set real (ficha de cuenta, sincronización) y lleva el bloque del guardado");
   assert.ok(dependientes.includes("tr-empareja-sin-preguntar"),"el emparejado borra, edita y deshace con el set real y lleva el bloque del guardado");

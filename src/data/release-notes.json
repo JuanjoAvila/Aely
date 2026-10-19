@@ -1,5 +1,52 @@
 [
   {
+    "v": "4.26.150",
+    "d": "2026-10-19",
+    "t": {
+      "es": "Gestionar plan: la lista ya no ondula al tocar una categoría",
+      "en": "Manage plan: the list no longer ripples when you tap a category",
+      "ca": "Gestionar pla: la llista ja no ondula en tocar una categoria"
+    },
+    "items": {
+      "es": [
+        "Al tocar una categoría en Gestionar plan, la lista ya no se mueve ni hace una «ola»."
+      ],
+      "en": [
+        "When you tap a category in Manage plan, the list no longer moves or ripples."
+      ],
+      "ca": [
+        "En tocar una categoria a Gestionar pla, la llista ja no es mou ni fa una «ona»."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "gestionar-plan-sin-ola",
+        "t": {
+          "es": "Plan: Gestionar plan sin ola",
+          "en": "Plan: Manage plan without the ripple",
+          "ca": "Pla: Gestionar pla sense ona"
+        },
+        "items": {
+          "es": [
+            "1. Abre Plan → Gestionar plan.",
+            "2. Toca una categoría y suelta, o empieza a arrastrar y cancela. La lista no se mueve ni ondula. MAL: se desplaza o hace una ola.",
+            "3. Desplaza la lista y cierra la hoja: se cierra suave. MAL: da un salto."
+          ],
+          "en": [
+            "1. Open Plan → Manage plan.",
+            "2. Tap a category and let go, or start dragging and cancel. The list does not move or ripple. WRONG: it shifts or ripples.",
+            "3. Scroll the list and close the sheet: it closes smoothly. WRONG: it jumps."
+          ],
+          "ca": [
+            "1. Obre Pla → Gestionar pla.",
+            "2. Toca una categoria i deixa-la anar, o comença a arrossegar i cancel·la. La llista no es mou ni ondula. MALAMENT: es desplaça o fa una ona.",
+            "3. Desplaça la llista i tanca la fitxa: es tanca suau. MALAMENT: fa un salt."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.149",
     "d": "2026-10-19",
     "t": {

@@ -1,3 +1,9 @@
+## [4.26.150] — 2026-10-19 · Candidata de beta: Gestionar plan sin ola al tocar una categoría (PR 285, INC-2709-03 y UX-08), solo web y sin APK nueva (sigue la 4.26.148 / code 59)
+
+- **Qué lleva.** La beta 4.26.149 (`408d8d348`) más la PR 285 (`4f79352a`): Gestionar y la pantalla de categoría conservan el scroller sin promoción de capa en reposo (`useEdgePageClose` con `plainScroll`), la cascada no repone `will-change:transform` y cancelar limpia la identidad inline tras su retorno sin borrar un gesto posterior; la hija `fixed` ya no se desplaza con el padre.
+- **Panel.** Una tanda nueva, `gestionar-plan-sin-ola` (pasos 1-3). Las de la 149, 148, 147, 146 y 144 se quedan. Falta confirmar en el móvil la ola visual de Android (la PR no la acredita).
+- **Acta de la PR.** INC-2709-03/UX-08, candidata web sin integrar (19/10/2026): Gestionar y categoría conservan el scroller sin promoción en reposo; la cascada no repone will-change:transform y cancelar limpia la identidad inline tras su retorno, sin borrar un gesto posterior. Corrige la hija fixed desplazada21px con el padre. Cuatro RED causales y cuatro GREEN más nueve guardianes; persistencia exacta. No acredita la ola visual de Android. [Acta](docs/briefs/inc270903-ux08-ola-web.md). Sin nueva VERSION, catálogo o APK; integración y notas pendientes.
+
 ## [4.26.149] — 2026-10-19 · Candidata de beta: swipes encadenados entre pestañas (PR 284, UX-14), solo web y sin APK nueva (sigue la 4.26.148 / code 59)
 
 - **Qué lleva.** La beta 4.26.148 (`78b54d61d`) más la PR 284 (`708b98a6`): al encadenar otro swipe antes de que acabe el asiento anterior, el carrusel cancela ese asiento y arranca desde la posición visible, también en los bordes (primera y última pestaña). Antes el arrastre partía de la pestaña ya terminada y, al invertir el dedo, el track retrocedía hacia el destino viejo.

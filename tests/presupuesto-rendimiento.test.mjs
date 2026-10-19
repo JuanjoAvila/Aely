@@ -324,7 +324,8 @@ const PRESUPUESTO = {
   // Con la PR 283 (reordenar brókers con el gesto de las cuentas): 1.415.954 B / 392.712 B gzip (1382,8 / 383,5 KiB). Mínimos: 1384 KiB minificado (quedan 1.262 B); el gzip se queda en 384 KiB (quedan 504 B).
   // Integración 4.26.148 (19/10): la 147 más el enlace a mano de recibos (INC-1810-04), el ajustador de vibración (UX-16, ~170 unidades de lógica y textos en tres idiomas) y la nota con dos tandas. SUBE por lógica de producto, no se recorta (mandato 11/10).
   // Mínimos medidos: 1392 KiB minificado y 387 KiB gzip (medían ~1391 / ~386 KiB).
-  minificado: 1392 * 1024,
+  // Integración 4.26.150 (19/10): la 149 más Gestionar plan sin ola (PR 285, ~1,4 KB de lógica de reposo y CSS) y la nota con una tanda. SUBE por lógica de producto: 1393 KiB minificado; el gzip se queda en 387 KiB.
+  minificado: 1393 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.

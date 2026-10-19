@@ -104,7 +104,7 @@ Fuente: veredictos del panel (`scripts/errores.mjs --kind=beta`), CHANGELOG, not
 - INC-1810-01 · Deudas: en la hoja de gestionar/editar una deuda, pulsar Guardar no responde y la hoja no se cierra (en Metas sí). Pedido del dueño 18/10, sin reproducir ni asignar; mirar primero si la regla nueva de plazo y cuota (FIN-16) rechaza el guardado sin avisar, en producción 4.26.137 y en beta. Estado 18/10: la beta 4.26.144 (PR 277) hace que el aviso del rechazo se vea entero; no acredita ser la causa del bloqueo total, pendiente de su OK.
 - SES-01 · las sesiones de Trade Republic y MyInvestor duran horas (pedido suyo 15/10). La instrumentación y las guardas de keepalive/sync tienen entregas técnicas separadas; no acreditan resolver la duración de la sesión real.
 - INC-2709-09 (con UX-01) · lag sostenido: parcial en 4.26.146 (vuelta de segundo plano)
-- INC-2709-03 (con UX-08) · ola nativa en Gestionar plan
+- INC-2709-03 (con UX-08) · ola nativa en Gestionar plan — en beta 4.26.150 (PR 285), tanda `gestionar-plan-sin-ola`, falta confirmar en el móvil
 - UX-03 (con INC-2709-01) · splash y arranque; UX-09 · splash con el verde por defecto
 - UX-11 · salto vertical tras cerrar una hoja: informe sin parche aceptado; no reproducido en 48 casos sintéticos, sigue abierto para evidencia del dispositivo.
 - UX-12 · Deudas y Metas al estilo v4 (en curso, Codex)
