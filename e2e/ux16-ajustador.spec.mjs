@@ -16,8 +16,8 @@ async function boot(page,channel){
     if(ch==='beta') localStorage.setItem('_mcChannel','beta'); else localStorage.removeItem('_mcChannel');
     window.__ux16={edge:[],fill:[]};
     window.Capacitor={Plugins:{AelyHaptics:{
-      edge(p){window.__ux16.edge.push({...p,at:performance.now()});return Promise.resolve({tunable:true});},
-      fill(p){window.__ux16.fill.push(p);return Promise.resolve({tunable:true});}}}};
+      edge(p){window.__ux16.edge.push({...p,at:performance.now()});return Promise.resolve({tunable:true,shaped:true,amplitudeControl:true});},
+      fill(p){window.__ux16.fill.push(p);return Promise.resolve({tunable:true,shaped:true,amplitudeControl:true});}}}};
   },channel);
   await page.goto('/');
   await expect(page.locator('.botnav')).toBeVisible({timeout:15_000});
@@ -87,12 +87,14 @@ test('UX16 ajustador: en beta se mueve, se guarda, se prueba y lo obedecen borde
     box.scrollTop=200;box.dispatchEvent(new Event('scroll'));box.scrollTop=500;box.dispatchEvent(new Event('scroll'));
     const arrival=calls.at(-1);await sleep(200);
     const before=calls.length;touch('touchstart',250);touch('touchmove',230);const immediate=calls.length-before;
-    await sleep(140);const repeated=calls.length-before;touch('touchend',230);box.remove();
-    return {arrival,immediate,repeated};
+    await sleep(140);const held=calls.length-before;
+    touch('touchmove',215);const repeated=calls.length-before;touch('touchend',215);box.remove();
+    return {arrival,immediate,held,repeated};
   });
   expect(r.arrival).toMatchObject({amplitude:180});
   expect(r.immediate,'seguir tirando estando abajo vibra al momento').toBe(1);
-  expect(r.repeated,'y repite con el intervalo elegido').toBeGreaterThanOrEqual(2);
+  expect(r.held,'con el dedo quieto no repite').toBe(1);
+  expect(r.repeated,'y vuelve a vibrar al seguir tirando').toBe(2);
 });
 
 test('UX16 ajustador: en el canal estable no aparece',async({page})=>{

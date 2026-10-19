@@ -71,3 +71,25 @@ test('grafica de Inicio: el tick usa los valores del ajustador',()=>{
   const dash=fs.readFileSync(new URL('../src/modules/03-tab-dash.js',import.meta.url),'utf8');
   assert.match(dash,/mcHaptic\("edge",\{amplitude:v\.tickAmp,durationMs:v\.tickMs\}\)/);
 });
+test('borde (ronda 5): con el dedo quieto no repite; cada recorrido nuevo contra el borde, si',()=>{
+  const x=setup(JSON.stringify({edgeEvery:100}));const clock={t:1000};x.context.performance.now=()=>clock.t;
+  x.context.document.body={};
+  x.context.getComputedStyle=()=>({overflowX:'visible',overflowY:'auto',overscrollBehaviorY:'auto'});
+  const listeners={};const root={addEventListener:(type,fn)=>{listeners[type]=fn;},removeEventListener(){}};
+  const el={scrollHeight:600,clientHeight:100,scrollWidth:100,clientWidth:100,scrollTop:500,isConnected:true,parentElement:null,
+    closest:()=>null,classList:{contains:()=>false}};
+  x.context.mcBindEdgeHaptics(root,()=>false);
+  const touch=(type,y)=>listeners[type]({target:el,touches:/end/.test(type)?[]:[{identifier:0,clientX:50,clientY:y}],defaultPrevented:false});
+  const edges=()=>x.calls.filter(c=>c.method==='edge').length;
+  touch('touchstart',300);touch('touchmove',285);
+  assert.equal(edges(),1,'tirar estando abajo avisa al momento');
+  clock.t+=1000;
+  assert.equal(edges(),1,'un segundo con el dedo quieto: ningun toque mas');
+  touch('touchmove',283);assert.equal(edges(),1,'un temblor de 2 px no cuenta como seguir tirando');
+  touch('touchmove',270);assert.equal(edges(),2,'seguir tirando hacia el borde vuelve a avisar');
+  touch('touchmove',255);assert.equal(edges(),2,'sin pasar el intervalo no se encadena');
+  clock.t+=150;assert.equal(edges(),2,'el reloj solo no repite');
+  touch('touchmove',254);assert.equal(edges(),3,'el recorrido que el intervalo freno cuenta en el siguiente movimiento');
+  clock.t+=150;touch('touchmove',250);assert.equal(edges(),3,'4 px nuevos no bastan');
+  touch('touchend');clock.t+=500;assert.equal(edges(),3,'soltar no deja nada pendiente');
+});

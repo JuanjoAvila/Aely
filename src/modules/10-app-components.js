@@ -2354,7 +2354,12 @@ function HapticTuner({showToast}){
   // La APK 58 no entiende fuerza ni duración: mejor decirlo que dejarle probando a ciegas.
   const said=function(p){
     if(!p){ if(!mcReduced()) showToast(t(typeof _mcNative!=="undefined"&&_mcNative?"hv_need_apk":"hv_no_native")); return; }
-    p.then(function(r){ if(!r||!r.tunable) showToast(t("hv_need_apk")); });
+    // Ronda 5: además se dice qué motor tiene su móvil, para no volver a adivinar si la fuerza
+    // llega como amplitud o solo como tiempo encendido.
+    p.then(function(r){
+      if(!r||!r.shaped){ showToast(t("hv_need_apk")); return; }
+      showToast(t(r.amplitudeControl?"hv_motor_amp":"hv_motor_onoff"));
+    });
   };
   const later=function(ms,fn){ timers.current.push(setTimeout(fn,ms)); };
   const tryFill=function(){
