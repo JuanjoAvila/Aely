@@ -6706,7 +6706,7 @@ const LANG = {
     f_cta_add:"Apuntar {x}", f_cta_add_in:"Apuntar ingreso de {x}", f_autosaved:"Se guarda al momento ✓", f_del:"Borrar gasto",
     f_note_row:"Nota", f_note_none:"Sin nota", f_debt_row:"Es la cuota de una deuda", f_income_row:"Es un ingreso, no un gasto", f_no:"No",
     f_receipt_row:"Paga un recibo", f_receipt_hint:"Elige el recibo que paga este cargo. Se confirma para el mes del movimiento y puedes deshacerlo. El cargo conserva su importe, banco y clasificación.",
-    f_receipt_none:"No hay recibos pendientes de ese mes que puedan vincularse a este cargo.",
+    f_receipt_none:"No hay recibos pendientes de ese mes que puedan vincularse a este cargo.", f_receipt_diag:"Copiar diagnóstico",
     f_receipt_confirm:"Confirmar pago de {name}", f_receipt_confirm_sub:"Cargo: {merchant} · {amount} · {bank} · {date}. Previsto: {expected} · {planned}. Confirma solo si este cargo paga el recibo completo, aunque el importe haya variado. Si es parcial, cancela. El importe previsto, el saldo y el presupuesto se conservan.",
     f_receipt_yes:"Confirmar pago completo", f_receipt_unlink:"Deshacer vínculo",
     f_recibo_marca:"Es el cargo de tu recibo «{name}»: ya está contado en tu Plan y aquí no suma otra vez.", f_recibo_quiza:"Parece el cargo de tu recibo «{name}»: por eso aquí no suma otra vez. Si no lo es, dilo y contará como un gasto más.", f_recibo_no:"No es este recibo", f_recibo_si:"Sí, es este recibo",
@@ -12806,6 +12806,18 @@ function PeriodMoreSheet({open, onClose, preset, setPreset}){
     ), document.body);
 }
 
+// Copia para pegar en el chat; el textarea es la salida de las WebView sin `navigator.clipboard`.
+function copiarTexto(txt,showToast){
+  const viejo=function(){
+    try{
+      const ta=document.createElement("textarea"); ta.value=txt; ta.setAttribute("readonly",""); ta.style.position="fixed"; ta.style.opacity="0";
+      document.body.appendChild(ta); ta.select(); const ok=document.execCommand("copy"); ta.remove();
+      if(showToast) showToast(ok?t("hv_copied"):t("hv_copy_fail"));
+    }catch(e){ if(showToast) showToast(t("hv_copy_fail")); }
+  };
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function(){ if(showToast) showToast(t("hv_copied")); },viejo);
+  else viejo();
+}
 /* Sheet detalle/edición de un movimiento. Layout alineado con Apuntar/Cartera (feedback 2026-07-17). */
 // La marca explícita puede seguir puesta aunque el cargo no acredite el pago. Nombrarla
 // con un matiz evita contradecir el chip seleccionado, sin convertirla en prueba financiera.
@@ -12828,6 +12840,16 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     [abierto,exp,paymentDay,state.fixed,state.debts,state.oneoffs,state.expenses,state.bankTx,state.accounts,state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
   const swipe=useSheetSwipe(abierto, onClose);
   useBackClose(abierto, swipe.close);
+  // Diagnóstico de «Paga un recibo»: canal beta o la APK .debug de pruebas, nunca en la estable.
+  const [diagDebug,setDiagDebug]=useState(false);
+  useEffect(function(){
+    let vivo=true;
+    try{
+      const plugin=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.AelyHaptics;
+      if(plugin&&typeof plugin.info==="function") Promise.resolve(plugin.info()).then(function(r){ if(vivo&&r&&r.debug) setDiagDebug(true); },function(){});
+    }catch(e){}
+    return function(){ vivo=false; };
+  },[]);
   const [calOpen,setCalOpen]=useState(false);
   const [bankOpen,setBankOpen]=useState(false);
   const [allCatsOpen,setAllCatsOpen]=useState(false);
@@ -12967,7 +12989,9 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
             onClick:function(){ setReceipt(exp,f.id); }},f.name+" · "+eur(occAmountIn(f,receiptMonth))); }),
           !receiptLinked&&!reciboDe&&receiptPuntuales.map(function(o){ return React.createElement("button",{key:o.id,type:"button",className:"v4-chip","data-testid":"exp-receipt-"+o.id,
             onClick:function(){ setReceipt(exp,o.id); }},o.name+" · "+eur(o.amount)); })),
-        !paymentRelation&&!receiptLinked&&!reciboDe&&!receiptOptions.length&&!receiptPuntuales.length&&React.createElement("div",{className:"hint"},t("f_receipt_none")))),
+        !paymentRelation&&!receiptLinked&&!reciboDe&&!receiptOptions.length&&!receiptPuntuales.length&&React.createElement("div",{className:"hint"},t("f_receipt_none")),
+        (mcChannel()==="beta"||diagDebug)&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-receipt-diag",style:{fontSize:12,padding:"4px 10px",marginTop:8},
+          onClick:function(){ copiarTexto(reciboDiagText(state,exp),showToast); }},t("f_receipt_diag")))),
     React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",onClick:function(){ setAdjustOpen(adjustOpen==="note"?null:"note"); }},
       React.createElement("span",null,t("f_note_row")),React.createElement("span",{className:"value"},editExp.note||t("f_note_none")),React.createElement("span",{className:"chev"},"›")),
     adjustOpen==="note" && React.createElement("div",{className:"v4-ficha-adjust-open"},
@@ -16171,17 +16195,28 @@ function debtPaymentState(s,d,y,m,today){
    pero una fecha pasada no demuestra un pago (INC-1810-03/04). Nunca escribe vínculos.
    Plan puede acreditar un BOOK sin histórico local; la ficha necesita además UNA fila
    inequívoca. Las referencias y cuentas conocidas no se sustituyen por igual contenido. */
+/* Por qué una fila NO puede ser la prueba visible de un pago (null = puede). Es la misma
+   condición que usaba `paymentEvidenceUI`; sale fuera para que el diagnóstico de beta diga el
+   motivo exacto en vez de un sí o un no. */
+function paymentEvidenceRowIssue(s,x,index,deleted){
+  if(!x||!x.id) return "sin id";
+  if((index.id.get(x.id)||[]).length!==1) return "id repetido en Gastos";
+  if(x.possibleDup) return "posible repetido";
+  if(x.obPending) return "pendiente en el banco";
+  if(x.status&&String(x.status).toUpperCase()!=="BOOK") return "status "+x.status;
+  if(expenseIsTombstoned(x,deleted)) return "borrado";
+  var identity=fixedPaymentIdentity(expenseBankOf(x),x),rows=fixedPaymentExpenses(s,String(x.date).slice(0,7)).identity.get(identity)||[];
+  if(rows.length!==1) return rows.length+" filas con la misma identidad";
+  if(!fixedPaymentFeedClear(s,identity)) return "extracto no limpio";
+  var bad=(s.bankTx||[]).filter(function(tx){return fixedPaymentIdentity(tx.ent,tx)===identity;}).map(function(tx){
+    return x.extId&&tx.id&&String(x.extId)!==String(tx.id)?"ref distinta en el extracto":x.obAcc&&tx.acc&&String(x.obAcc)!==String(tx.acc)?"cuenta distinta en el extracto":null;
+  }).filter(Boolean);
+  return bad.length?bad[0]:null;
+}
 function paymentEvidenceUI(s,y,m,today){
   var confirmed=Object.create(null),byExpense=new Map(),index=fixedPaymentExpenses(s,y+"-"+String(m).padStart(2,"0"));
   var deleted=expenseDeletedSet(s);
-  var current=function(x){
-    if(!x||!x.id||(index.id.get(x.id)||[]).length!==1||x.possibleDup||x.obPending||
-      x.status&&String(x.status).toUpperCase()!=="BOOK"||expenseIsTombstoned(x,deleted)) return false;
-    var identity=fixedPaymentIdentity(expenseBankOf(x),x),rows=fixedPaymentExpenses(s,String(x.date).slice(0,7)).identity.get(identity)||[];
-    return rows.length===1&&fixedPaymentFeedClear(s,identity)&&(s.bankTx||[]).filter(function(tx){return fixedPaymentIdentity(tx.ent,tx)===identity;}).every(function(tx){
-      return !(x.extId&&tx.id&&String(x.extId)!==String(tx.id))&&!(x.obAcc&&tx.acc&&String(x.obAcc)!==String(tx.acc));
-    });
-  };
+  var current=function(x){ return !paymentEvidenceRowIssue(s,x,index,deleted); };
   var add=function(x,kind,f){
     if(!current(x)) return;
     if(kind==="fixed"&&(x.debtId||x.reciboId&&x.reciboId!==f.id||reciboVetado(s,f.id,reciboNoIdentidad(x),x.id))) return;
@@ -16242,6 +16277,37 @@ function reciboConfirmableUI(s,x,relation){
   if(!(y>0&&m>=1&&m<=12)||y*12+m>now.getFullYear()*12+now.getMonth()+1) return null;
   var today=y===now.getFullYear()&&m===now.getMonth()+1?now.getDate():new Date(y,m,0).getDate();
   return linkFixedPayment(s,x.id,f.id,y,m,today)!==s?f:null;
+}
+/* Diagnóstico de «Paga un recibo» SOLO para beta y la APK de pruebas (INC-1810-04): su móvil
+   es una APK release sin depuración y su estado local (el extracto no sube a la nube) no se puede
+   leer de otra forma. Texto para pegar en el chat: sin importes de otros gastos y sin cuentas
+   enteras. Solo lectura. */
+function reciboDiagText(s,x){
+  var cola=function(v){ return v==null||v===""?"-":"…"+String(v).slice(-4); };
+  var ds=String(x.date||"").slice(0,10),y=Number(ds.slice(0,4)),m=Number(ds.slice(5,7)),now=new Date();
+  var today=y===now.getFullYear()&&m===now.getMonth()+1?now.getDate():new Date(y,m,0).getDate();
+  var ym=y+"-"+String(m).padStart(2,"0"),bank=expenseBankOf(x),identity=fixedPaymentIdentity(bank,x);
+  var index=fixedPaymentExpenses(s,ym),deleted=expenseDeletedSet(s),rel=expensePaymentRelationUI(s,x);
+  var out=["Aely "+CONFIG.APP_VERSION+" · diag recibo · hoy "+now.toISOString().slice(0,10),
+    "CARGO "+ds+" "+bank+" "+Number(x.amount).toFixed(2)+" cat:"+(x.category||"-")+" source:"+(x.source||"-")+" cloud:"+String(expenseSourceForCloud(x)).replace(/#acc[^#~]*/g,function(a){ return "#acc"+cola(a.slice(4)); }),
+    " extId:"+(x.extId||"-")+" obAcc:"+cola(x.obAcc)+" obPending:"+!!x.obPending+" status:"+(x.status||"-")+" obName:"+(x.obName!=null?JSON.stringify(x.obName):"-")+" merchant:"+JSON.stringify(x.merchant||"")+" reciboId:"+(x.reciboId||"-")+" debtId:"+(x.debtId?"sí":"-")+" possibleDup:"+!!x.possibleDup,
+    " relación:"+(rel?rel.kind+":"+rel.id:"null")+" current:"+(paymentEvidenceRowIssue(s,x,index,deleted)||"ok")+" filasIdentidad:"+(index.identity.get(identity)||[]).length];
+  var txs=(s.bankTx||[]).filter(function(tx){ return fixedPaymentIdentity(tx.ent,tx)===identity; });
+  out.push("EXTRACTO misma identidad: "+(txs.length?txs.map(function(tx){ return "id:"+(tx.id||"-")+" acc:"+cola(tx.acc)+" status:"+(tx.status||"-")+(tx.possibleDup?" dup":""); }).join(" | "):"ninguno")+" · extracto total "+(s.bankTx||[]).length);
+  (s.fixed||[]).forEach(function(f){
+    if(!occursIn(f,m)) return;
+    var st=fixedPaymentState(s,f,y,m,today),target=f.bankAmount>0?f.bankAmount:occAmountIn(f,m);
+    var ev=st.proof?"prueba:"+st.proof.kind+(st.proof.identity===identity?"(este)":""):st.bankTx?"extracto:"+(fixedPaymentIdentity(st.bankTx.ent,st.bankTx)===identity?"este":"otro"):st.expense?"fila:"+(st.expense.id===x.id?"este":"otra"):"";
+    var motivo=reciboVetado(s,f.id,reciboNoIdentidad(x),x.id)?"vetado para este cargo":
+      !fixedPaymentUnique(s,f)?"id de recibo repetido":x.possibleDup?"cargo posible repetido":x.debtId?"cargo es cuota":
+      x.status&&String(x.status).toUpperCase()!=="BOOK"?"cargo no BOOK":!bank?"cargo sin banco":CAT_NEUTRAS[x.category]?"categoría neutra":x.category==="ingreso"?"es ingreso":
+      !(Number(x.amount)>0)||!(target>0)?"importe":!fixedPaymentDate(x.date,y,m,today)?"fecha fuera del mes":expenseIsTombstoned(x,deleted)?"cargo borrado":
+      !fixedPaymentFeedClear(s,identity)?"extracto no limpio":(index.identity.get(identity)||[]).length!==1?"filas repetidas":ev?"ya acreditado ("+ev+")":"entra";
+    out.push("RECIBO "+f.id+" "+JSON.stringify(f.name||"")+" "+Number(target).toFixed(2)+" "+accOf(f)+" día:"+(dayIn(f,m)==null?"-":dayIn(f,m))+" paidYm:"+(f.paidYm==null?"-":f.paidYm===y*12+m?"este mes":f.paidYm)+" paidDay:"+(f.paidDay==null?"-":f.paidDay)+
+      " pagado:"+st.paid+(ev?" "+ev:st.paid?" solo calendario":"")+(st.overdue?" vencido":"")+" pruebaGuardada:"+!!(f.paymentProofs&&f.paymentProofs[y*12+m])+" → "+motivo);
+  });
+  // Por si algún campo trajera una cuenta entera: nunca sale más que su cola.
+  return out.join("\n").replace(/\b[A-Z]{2}\d{2}[A-Z0-9]{10,30}\b/g,function(a){ return "…"+a.slice(-4); });
 }
 function expensePaymentRelationUI(s,e){
   if(!e) return null;
@@ -23741,7 +23807,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="b1168b05d289c86475e942ef2eba38ee9869b6f0219dd6c9a8d4f0f345370ae8";
+var _rnSha="778d0eb4fb5d53e6bdadea0cdbbd53837f7a9a3536ea28d51f7ba1ed7a90bee3";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

@@ -479,17 +479,28 @@ function debtPaymentState(s,d,y,m,today){
    pero una fecha pasada no demuestra un pago (INC-1810-03/04). Nunca escribe vínculos.
    Plan puede acreditar un BOOK sin histórico local; la ficha necesita además UNA fila
    inequívoca. Las referencias y cuentas conocidas no se sustituyen por igual contenido. */
+/* Por qué una fila NO puede ser la prueba visible de un pago (null = puede). Es la misma
+   condición que usaba `paymentEvidenceUI`; sale fuera para que el diagnóstico de beta diga el
+   motivo exacto en vez de un sí o un no. */
+function paymentEvidenceRowIssue(s,x,index,deleted){
+  if(!x||!x.id) return "sin id";
+  if((index.id.get(x.id)||[]).length!==1) return "id repetido en Gastos";
+  if(x.possibleDup) return "posible repetido";
+  if(x.obPending) return "pendiente en el banco";
+  if(x.status&&String(x.status).toUpperCase()!=="BOOK") return "status "+x.status;
+  if(expenseIsTombstoned(x,deleted)) return "borrado";
+  var identity=fixedPaymentIdentity(expenseBankOf(x),x),rows=fixedPaymentExpenses(s,String(x.date).slice(0,7)).identity.get(identity)||[];
+  if(rows.length!==1) return rows.length+" filas con la misma identidad";
+  if(!fixedPaymentFeedClear(s,identity)) return "extracto no limpio";
+  var bad=(s.bankTx||[]).filter(function(tx){return fixedPaymentIdentity(tx.ent,tx)===identity;}).map(function(tx){
+    return x.extId&&tx.id&&String(x.extId)!==String(tx.id)?"ref distinta en el extracto":x.obAcc&&tx.acc&&String(x.obAcc)!==String(tx.acc)?"cuenta distinta en el extracto":null;
+  }).filter(Boolean);
+  return bad.length?bad[0]:null;
+}
 function paymentEvidenceUI(s,y,m,today){
   var confirmed=Object.create(null),byExpense=new Map(),index=fixedPaymentExpenses(s,y+"-"+String(m).padStart(2,"0"));
   var deleted=expenseDeletedSet(s);
-  var current=function(x){
-    if(!x||!x.id||(index.id.get(x.id)||[]).length!==1||x.possibleDup||x.obPending||
-      x.status&&String(x.status).toUpperCase()!=="BOOK"||expenseIsTombstoned(x,deleted)) return false;
-    var identity=fixedPaymentIdentity(expenseBankOf(x),x),rows=fixedPaymentExpenses(s,String(x.date).slice(0,7)).identity.get(identity)||[];
-    return rows.length===1&&fixedPaymentFeedClear(s,identity)&&(s.bankTx||[]).filter(function(tx){return fixedPaymentIdentity(tx.ent,tx)===identity;}).every(function(tx){
-      return !(x.extId&&tx.id&&String(x.extId)!==String(tx.id))&&!(x.obAcc&&tx.acc&&String(x.obAcc)!==String(tx.acc));
-    });
-  };
+  var current=function(x){ return !paymentEvidenceRowIssue(s,x,index,deleted); };
   var add=function(x,kind,f){
     if(!current(x)) return;
     if(kind==="fixed"&&(x.debtId||x.reciboId&&x.reciboId!==f.id||reciboVetado(s,f.id,reciboNoIdentidad(x),x.id))) return;
@@ -550,6 +561,37 @@ function reciboConfirmableUI(s,x,relation){
   if(!(y>0&&m>=1&&m<=12)||y*12+m>now.getFullYear()*12+now.getMonth()+1) return null;
   var today=y===now.getFullYear()&&m===now.getMonth()+1?now.getDate():new Date(y,m,0).getDate();
   return linkFixedPayment(s,x.id,f.id,y,m,today)!==s?f:null;
+}
+/* Diagnóstico de «Paga un recibo» SOLO para beta y la APK de pruebas (INC-1810-04): su móvil
+   es una APK release sin depuración y su estado local (el extracto no sube a la nube) no se puede
+   leer de otra forma. Texto para pegar en el chat: sin importes de otros gastos y sin cuentas
+   enteras. Solo lectura. */
+function reciboDiagText(s,x){
+  var cola=function(v){ return v==null||v===""?"-":"…"+String(v).slice(-4); };
+  var ds=String(x.date||"").slice(0,10),y=Number(ds.slice(0,4)),m=Number(ds.slice(5,7)),now=new Date();
+  var today=y===now.getFullYear()&&m===now.getMonth()+1?now.getDate():new Date(y,m,0).getDate();
+  var ym=y+"-"+String(m).padStart(2,"0"),bank=expenseBankOf(x),identity=fixedPaymentIdentity(bank,x);
+  var index=fixedPaymentExpenses(s,ym),deleted=expenseDeletedSet(s),rel=expensePaymentRelationUI(s,x);
+  var out=["Aely "+CONFIG.APP_VERSION+" · diag recibo · hoy "+now.toISOString().slice(0,10),
+    "CARGO "+ds+" "+bank+" "+Number(x.amount).toFixed(2)+" cat:"+(x.category||"-")+" source:"+(x.source||"-")+" cloud:"+String(expenseSourceForCloud(x)).replace(/#acc[^#~]*/g,function(a){ return "#acc"+cola(a.slice(4)); }),
+    " extId:"+(x.extId||"-")+" obAcc:"+cola(x.obAcc)+" obPending:"+!!x.obPending+" status:"+(x.status||"-")+" obName:"+(x.obName!=null?JSON.stringify(x.obName):"-")+" merchant:"+JSON.stringify(x.merchant||"")+" reciboId:"+(x.reciboId||"-")+" debtId:"+(x.debtId?"sí":"-")+" possibleDup:"+!!x.possibleDup,
+    " relación:"+(rel?rel.kind+":"+rel.id:"null")+" current:"+(paymentEvidenceRowIssue(s,x,index,deleted)||"ok")+" filasIdentidad:"+(index.identity.get(identity)||[]).length];
+  var txs=(s.bankTx||[]).filter(function(tx){ return fixedPaymentIdentity(tx.ent,tx)===identity; });
+  out.push("EXTRACTO misma identidad: "+(txs.length?txs.map(function(tx){ return "id:"+(tx.id||"-")+" acc:"+cola(tx.acc)+" status:"+(tx.status||"-")+(tx.possibleDup?" dup":""); }).join(" | "):"ninguno")+" · extracto total "+(s.bankTx||[]).length);
+  (s.fixed||[]).forEach(function(f){
+    if(!occursIn(f,m)) return;
+    var st=fixedPaymentState(s,f,y,m,today),target=f.bankAmount>0?f.bankAmount:occAmountIn(f,m);
+    var ev=st.proof?"prueba:"+st.proof.kind+(st.proof.identity===identity?"(este)":""):st.bankTx?"extracto:"+(fixedPaymentIdentity(st.bankTx.ent,st.bankTx)===identity?"este":"otro"):st.expense?"fila:"+(st.expense.id===x.id?"este":"otra"):"";
+    var motivo=reciboVetado(s,f.id,reciboNoIdentidad(x),x.id)?"vetado para este cargo":
+      !fixedPaymentUnique(s,f)?"id de recibo repetido":x.possibleDup?"cargo posible repetido":x.debtId?"cargo es cuota":
+      x.status&&String(x.status).toUpperCase()!=="BOOK"?"cargo no BOOK":!bank?"cargo sin banco":CAT_NEUTRAS[x.category]?"categoría neutra":x.category==="ingreso"?"es ingreso":
+      !(Number(x.amount)>0)||!(target>0)?"importe":!fixedPaymentDate(x.date,y,m,today)?"fecha fuera del mes":expenseIsTombstoned(x,deleted)?"cargo borrado":
+      !fixedPaymentFeedClear(s,identity)?"extracto no limpio":(index.identity.get(identity)||[]).length!==1?"filas repetidas":ev?"ya acreditado ("+ev+")":"entra";
+    out.push("RECIBO "+f.id+" "+JSON.stringify(f.name||"")+" "+Number(target).toFixed(2)+" "+accOf(f)+" día:"+(dayIn(f,m)==null?"-":dayIn(f,m))+" paidYm:"+(f.paidYm==null?"-":f.paidYm===y*12+m?"este mes":f.paidYm)+" paidDay:"+(f.paidDay==null?"-":f.paidDay)+
+      " pagado:"+st.paid+(ev?" "+ev:st.paid?" solo calendario":"")+(st.overdue?" vencido":"")+" pruebaGuardada:"+!!(f.paymentProofs&&f.paymentProofs[y*12+m])+" → "+motivo);
+  });
+  // Por si algún campo trajera una cuenta entera: nunca sale más que su cola.
+  return out.join("\n").replace(/\b[A-Z]{2}\d{2}[A-Z0-9]{10,30}\b/g,function(a){ return "…"+a.slice(-4); });
 }
 function expensePaymentRelationUI(s,e){
   if(!e) return null;
