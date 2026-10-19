@@ -90,6 +90,8 @@ const sourceBeta141=sourceAt("ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13");
 const sourceBeta143=sourceAt("983f46282f702205b5d65737744e90d584377bcf");
 // Catálogo144 pasa a histórico con la 145: se lee de la beta 4.26.144 servida (70908020), lo que probó el móvil y sobre lo que la 145 añade su tanda de vibración.
 const sourceBeta144=sourceAt("7090802099ac0c7956c0d3597a9936a82c52a95f");
+// Catálogo145 pasa a histórico con la 146: se lee de la beta 4.26.145 servida (656194916), lo que probó el móvil y sobre lo que la 146 añade su tanda web.
+const sourceBeta145=sourceAt("656194916c61e8fd6d3ca50450d072d2980784e1");
 // Catálogo137 pasa a histórico en la promoción 137: se lee de la beta 4.26.137.1 aprobada (6f18228c), lo último que probó el móvil y lo que sube entero.
 const sourceBeta137=sourceAt("6f18228cbd81c1cc9abfa7fabce0a878819234f4");
 // Promoción137 pasa a histórico con el hotfix 4.26.142 (18/10), que sí cambia producto y nota: se lee de la producción 137 tal cual se fusionó (nombre propio: la beta 138 ya usa `sourceProd137` para otro commit).
@@ -225,7 +227,7 @@ test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CS
   // La base es la integración120 (apuntes iguales de Trade Republic): Inicio no puede retirar su alcance ni heredar su revisión.
   const integrated=JSON.parse(source120("scripts/beta-sources.json"));
   // Detrás de Inicio sólo ha entrado el alcance de la122 (el cargo de recibo en Gastos).
-  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","limpieza-ajustes-perfil","tr-empareja-sin-preguntar","cuenta-parte-mia","inicio-recientes-sin-repetidos","scroll-borde-barra","inicio-grafica-reservas","compras-identicas-ids","myinvestor-contador-a-cero","deudas-metas-hoja-edicion","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","gastos-suscripciones-botones","compras-pendientes-otro-dia","deudas-plazo-cuota-encaja","deudas-metas-hoja-sin-parpadeo","deudas-metas-hoja-cierre-suave","teclado-atras-conserva","fichas-cierre-suave-atras","vibracion-borde-y-mi-ciclo","deudas-aviso-plazo","cuenta-saldo-cierre-atras","banco-pruebas-sin-aviso","vibracion-suave-ronda-2","deudas-guardar-motivo","recibo-renombrado-sigue-pagado","vibracion-suave-ronda-3","plan-por-confirmar-prestamo-youtube"),"Inicio y las altas de la122, la124, la126, la127, la128, la129, la130, la131, la132, la133, la134, la135, la137, la138, la139, la140, la141, la143, la144 y la145, sin retirar historia120");
+  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","limpieza-ajustes-perfil","tr-empareja-sin-preguntar","cuenta-parte-mia","inicio-recientes-sin-repetidos","scroll-borde-barra","inicio-grafica-reservas","compras-identicas-ids","myinvestor-contador-a-cero","deudas-metas-hoja-edicion","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","gastos-suscripciones-botones","compras-pendientes-otro-dia","deudas-plazo-cuota-encaja","deudas-metas-hoja-sin-parpadeo","deudas-metas-hoja-cierre-suave","teclado-atras-conserva","fichas-cierre-suave-atras","vibracion-borde-y-mi-ciclo","deudas-aviso-plazo","cuenta-saldo-cierre-atras","banco-pruebas-sin-aviso","vibracion-suave-ronda-2","deudas-guardar-motivo","recibo-renombrado-sigue-pagado","vibracion-suave-ronda-3","plan-por-confirmar-prestamo-youtube","vuelta-sin-tiron"),"Inicio y las altas de la122, la124, la126, la127, la128, la129, la130, la131, la132, la133, la134, la135, la137, la138, la139, la140, la141, la143, la144, la145 y la146, sin retirar historia120");
   for(const [key,value] of Object.entries(integrated))if(key!=="inicio-grafica-vuelve"){assert.deepEqual(scopes[key].native,value.native);assert.deepEqual(scopes[key].edge,value.edge);for(const part of (value.web||[]).map(limpieza129).filter(Boolean))assert.ok(scopes[key].web.some(s=>JSON.stringify(sinMetodo122(s))===JSON.stringify(part)||JSON.stringify(sinPull130(sinMetodo122(s)))===JSON.stringify(sinPull130(sinMetodo122(part)))||JSON.stringify(sinAbsorcion143(sinCompras135(sinPull130(sinMetodo122(s)))))===JSON.stringify(sinCompras135(sinPull130(sinMetodo122(part))))),key+": no recortar descriptor ajeno120");}
   assert.equal(scope.unidades,true);
   for(const key of ["historial","auditoria","codigosCompatibles","compatibilidadGit","compatibilidadSha"])
@@ -2864,10 +2866,10 @@ const expected145={"v":"4.26.145","d":"2026-10-19","t":{"es":"Vibración más su
 // 4.26.145 (19/10/2026): tres integraciones sobre la beta 4.26.144 servida (70908020): PR 279 (H2, saldo por fases, 3940e1b2; toca la Edge bank-sync, sin desplegar y sin tanda), PR 280 (vibración UX-16
 // ronda 3, nativo, 5ee28328) y origin/main (hotfix de producción 4.26.142, abd76706, liberarReservasHuerfanas). Una tanda NUEVA (vibración, APK 58); la 144 conserva solo la de Guardar en Deudas (sin votar):
 // la de vibración ronda 2 (rechazada) y la de recibo renombrado (aprobada) salen del panel. La 143 y la 142 quedan con `tandas: []`.
-test("Catálogo145 añade la tanda de vibración con APK 58 sobre la beta 144, que conserva solo Guardar en Deudas, con alcance propio, y declara cada huella que mueve",()=>{
+test("Catálogo145 histórico añade la tanda de vibración con APK 58 sobre la beta 144, que conserva solo Guardar en Deudas, con alcance propio, y declara cada huella que mueve",()=>{
   const tandas=["vibracion-suave-ronda-3","plan-por-confirmar-prestamo-youtube"],pasos=[5,4],sobrevive="deudas-guardar-motivo";
   const integrated=JSON.parse(sourceBeta144("scripts/beta-sources.json")),before=JSON.parse(sourceBeta144("src/data/release-notes.json"));
-  const source=f=>read(f).replace(/\r\n/g,"\n"),old=f=>sourceBeta144(f).replace(/\r\n/g,"\n");
+  const source=f=>sourceBeta145(f).replace(/\r\n/g,"\n"),old=f=>sourceBeta144(f).replace(/\r\n/g,"\n");
   assert.equal(before[0].v,"4.26.144");assert.deepEqual(before[0].tandas.map(g=>g.id),["vibracion-suave-ronda-2","deudas-guardar-motivo","recibo-renombrado-sigue-pagado"],"la beta 144 llevaba tres tandas");
   const kept=before[0].tandas.filter(g=>g.id===sobrevive);assert.equal(kept.length,1);
   const hotfix=JSON.parse(sourceAt("abd767060ebc6d631a01f6aa00a1064021560185")("src/data/release-notes.json")).find(n=>n.v==="4.26.142");
@@ -2945,7 +2947,7 @@ test("Catálogo145 añade la tanda de vibración con APK 58 sobre la beta 144, q
   for(const [id,h] of Object.entries(apkOld.revisiones||{}))assert.equal(apk.revisiones[id],h,"conserva la revisión nativa "+id);
   assert.ok(apk.revisiones[tandas[0]],"acredita la tanda nativa nueva");
   assert.match(source("android/app/build.gradle"),/versionCode 58\s+versionName "4\.26\.145"/,"build.gradle anuncia la APK 58");
-  assert.equal(execFileSync("git",["diff","--name-only","7090802099ac0c7956c0d3597a9936a82c52a95f","HEAD","--","supabase/migrations"],{encoding:"utf8"}).trim(),"","sin SQL ni migraciones");
+  assert.equal(execFileSync("git",["diff","--name-only","7090802099ac0c7956c0d3597a9936a82c52a95f","656194916c61e8fd6d3ca50450d072d2980784e1","--","supabase/migrations"],{encoding:"utf8"}).trim(),"","sin SQL ni migraciones");
   // Huellas que se mueven, lista cerrada: todo alcance que lee lo que tocan PR 279, PR 280 y el hotfix 142.
   const expectedMoves={"inc-3009-01-cargos":["web"],"tr-descripcion-clasificacion":["edge"],"inc-3009-nomina-anticipada":["web"],"inc-2909-03-retirada":["web"],"inc-0210-01-plan-cuota":["web"],"inc-0310-01-meta-regla":["web"],"feature-0310-01-movilidad":["web"],"inc-0810-metas-editar-regla":["web"],"inicio-grafica-vuelve":["web"],"bancos-sin-hueco":["web"],"recibos-cargo-unico":["web"],"bancos-acuse-reconexion":["web","edge"],"tr-iguales-ordinal":["web"],"inicio-patrimonio-flujos":["web"],"recibo-cargo-en-gastos":["web"],"bancos-reconexion-revoca":["web","edge"],"inicio-mes-pasado-mismo-dia":["web"],"limpieza-ajustes-perfil":["web"],"tr-empareja-sin-preguntar":["web"],"cuenta-parte-mia":["web"],"compras-identicas-ids":["web"],"vibracion-borde-y-mi-ciclo":["web","native"],"cuenta-saldo-cierre-atras":["web"],"vibracion-suave-ronda-2":["web","native"]};
   const previous=new Map();
@@ -2989,6 +2991,101 @@ test("Catálogo145 añade la tanda de vibración con APK 58 sobre la beta 144, q
     assert.equal(receipt.web[id],currents[id].web);
     if(i<2)for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(group[key],undefined,id+": identidad nueva sin "+key);
   });
+  assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
+});
+
+
+const expected146={"v":"4.26.146","d":"2026-10-19","t":{"es":"La app va más fluida al volver a ella y al abrirla","en":"The app feels smoother when you come back to it and when you open it","ca":"L'app va més fluida en tornar-hi i en obrir-la"},"items":{"es":["Al volver a la app después de usar otra, y al abrirla, ya no se queda un momento parada: va más fluida, sobre todo si tienes mucho historial.","Tus gastos y tu dinero disponible siguen siendo exactamente los mismos."],"en":["When you come back to the app after using another one, and when you open it, it no longer freezes for a moment: it feels smoother, especially with a lot of history.","Your expenses and your available money are exactly the same."],"ca":["En tornar a l'app després d'usar-ne una altra, i en obrir-la, ja no es queda un moment aturada: va més fluida, sobretot si tens molt d'historial.","Les teves despeses i els teus diners disponibles continuen sent exactament els mateixos."]},"tandas":[{"id":"vuelta-sin-tiron","t":{"es":"Volver a la app sin tirones","en":"Coming back to the app without stutter","ca":"Tornar a l'app sense estrebades"},"items":{"es":["1. Abre la app y ve a Gastos.","2. Sal a otra app durante 1 minuto y vuelve a Aely.","3. Desliza la lista nada más volver: no se queda congelada ni da un tirón. MAL: se para medio segundo o más.","4. Cierra la app del todo, ábrela y desliza en cuanto salga Inicio. MAL: tirón al primer deslizamiento.","5. Comprueba que los gastos y el dinero disponible son los mismos que antes. MAL: cualquier diferencia."],"en":["1. Open the app and go to Spending.","2. Switch to another app for 1 minute and come back to Aely.","3. Scroll the list right after coming back: it does not freeze or stutter. WRONG: it stops for half a second or more.","4. Close the app completely, open it and scroll as soon as Home shows. WRONG: a stutter on the first scroll.","5. Check that the expenses and the available money are the same as before. WRONG: any difference."],"ca":["1. Obre l'app i ves a Despeses.","2. Surt a una altra app durant 1 minut i torna a Aely.","3. Llisca la llista just en tornar: no es queda congelada ni dona una estrebada. MALAMENT: s'atura mig segon o més.","4. Tanca l'app del tot, obre-la i llisca tan bon punt surti Inici. MALAMENT: estrebada al primer lliscament.","5. Comprova que les despeses i els diners disponibles són els mateixos que abans. MALAMENT: qualsevol diferència."]}}]};
+// 4.26.146 (19/10/2026): una integración rápida, solo web y sin APK, sobre la beta 4.26.145 servida (656194916): claude/perf-vuelta (fff05adca), la vuelta a primer plano y el arranque sin rehacer el
+// historial entero. Una tanda NUEVA (vuelta-sin-tiron); las tres de la 145 y la de la 144 se quedan como están. apk.json y build.gradle no cambian (sigue la APK 58).
+test("Catálogo146 añade la tanda de la vuelta sin tirón sobre la beta 145, solo web, con alcance propio, y declara cada huella que mueve",()=>{
+  const tandas=["vuelta-sin-tiron"],pasos=[5];
+  const integrated=JSON.parse(sourceBeta145("scripts/beta-sources.json")),before=JSON.parse(sourceBeta145("src/data/release-notes.json"));
+  const source=f=>read(f).replace(/\r\n/g,"\n"),old=f=>sourceBeta145(f).replace(/\r\n/g,"\n");
+  assert.equal(before[0].v,"4.26.145");
+  const expectedNotes=[expected146,...before];
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.deepEqual(notes,expectedNotes,"la nota 146 literal delante y todo lo demás, tandas de la 145 incluidas, intacto");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.146",tandas[0],0],["4.26.145","vibracion-suave-ronda-3",58],["4.26.145","plan-por-confirmar-prestamo-youtube",0],["4.26.144","deudas-guardar-motivo",0]],"el panel enseña cuatro tandas: la nueva es web y no exige APK");
+  assert.equal(notes.length,243);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
+  assert.deepEqual(Object.keys(notes[0].tandas[0]),["id","t","items"],"identidad nueva, sin alias, revisión heredada ni APK");
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,2,lang+": dos puntos familiares");
+    const steps=notes[0].tandas[0].items[lang];assert.equal(steps.length,pasos[0],lang+": pasos");
+    steps.forEach((step,j)=>assert.ok(step.startsWith((j+1)+". "),lang+": paso numerado "+j));
+    for(const text of steps)assert.equal(/borra|quita este|delete|remove|esborra|treu aquest|mañana|tomorrow|demà/i.test(text),false,lang+": ningún paso borra nada ni espera a otro día: "+text);
+    for(const text of steps.slice(2))assert.ok(/MAL|WRONG|MALAMENT/.test(text),lang+": cada paso de comprobación dice qué es MAL: "+text);
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|FIN-|SES-|\d+\.\d+\.\d+/i.test(text),false,lang+": sin jerga: "+text);
+  }
+  const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
+  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verifyNotes(twice),assert.AssertionError,"no duplicar una tanda");
+  const quitada=structuredClone(notes);quitada[1].tandas=[];assert.throws(()=>verifyNotes(quitada),assert.AssertionError,"las tandas de la 145 se quedan como están");
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),rest={...scopes};for(const id of tandas)delete rest[id];
+  for(const id of tandas)assert.equal(integrated[id],undefined,"identidad que no existía: "+id);
+  assert.deepEqual(Object.keys(scopes).slice(-tandas.length),tandas);
+  const C="src/modules/00-core.js",fn=(file,function_)=>({file,function:function_});
+  const propias={"vuelta-sin-tiron":[...["autoCategory","autoCategoryKw","expenseFromRow","expensesFromRows","mcOnGastosActive"].map(n=>fn(C,n)),fn("src/modules/04-tab-gastos.js","Expenses"),{file:"src/modules/11-app-main.js",from:"  const syncCloudExpenses=function(){",to:"  };"}]};
+  const fns=logicFunctions(source),dat=logicData(source);
+  const closure=start=>{
+    let web=start.slice();
+    for(let ronda=0;ronda<40;ronda++){
+      const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];
+      for(const f of scopeDependencies({web},source,fns))if(!tiene(f.file,f.name,"function"))extra.push({file:f.file,function:f.name});
+      for(const d of scopeDataDependencies({web},source,fns,dat))if(!tiene(d.file,d.name,"data"))extra.push({file:d.file,data:d.name});
+      if(!extra.length)break;web=web.concat(extra);
+    }
+    return web;
+  };
+  const congelados=new Set(["inc-0810-inicio-grafica-significado"]),unidad=u=>JSON.stringify(u);
+  for(const [id,scope] of Object.entries(integrated)){
+    if(congelados.has(id)){assert.deepEqual(rest[id],scope,"descriptor congelado: "+id);continue;}
+    const web=closure(scope.web||[]);
+    // La rama de la vuelta metió sus unidades a mitad de la lista de varios alcances y la integración añade al final: mismo conjunto, otro orden.
+    assert.deepEqual({...rest[id],web:rest[id].web.map(unidad).sort()},{...scope,web:web.map(unidad).sort()},"cierre de lectores recalculado, ni se recorta ni crece sin declararlo: "+id);
+    assert.equal(rest[id].web.length,web.length,"sin unidades repetidas: "+id);
+  }
+  assert.deepEqual(Object.keys(rest),Object.keys(integrated),"ningún descriptor ajeno nuevo ni retirado");
+  for(const id of tandas){
+    const added=scopes[id],own=propias[id];
+    assert.deepEqual(added.web.slice(0,own.length),own,id+": las unidades propias de la tanda, en este orden");
+    assert.equal(added.unidades,true);assert.deepEqual(Object.keys(added),["web","unidades"],id+": solo web");
+    const web=closure(own),clave=u=>JSON.stringify(u);
+    assert.equal(added.web.length,web.length,id+": el cierre de lectores del descriptor es exactamente el calculado");
+    assert.deepEqual(new Set(added.web.map(clave)),new Set(web.map(clave)),id+": el cierre de lectores del descriptor es exactamente el calculado");
+    for(const u of added.web)assert.ok(scopeText(u,source).length>0,"la unidad existe en la fuente: "+JSON.stringify(u));
+  }
+  assert.equal(source("public/apk.json"),old("public/apk.json"),"sin APK nueva: apk.json no se toca");
+  assert.equal(source("android/app/build.gradle"),old("android/app/build.gradle"),"sin APK nueva: build.gradle no se toca");
+  assert.equal(execFileSync("git",["diff","--name-only","656194916c61e8fd6d3ca50450d072d2980784e1","HEAD","--","supabase/migrations","android"],{encoding:"utf8"}).trim(),"","sin SQL ni nativo");
+  const expectedMoves={"inc-3009-01-cargos":["web"],"fin05-widget-reentrada":["web"],"fin05-pago-cerrada":["web"],"tr-descripcion-clasificacion":["web"],"widget-banco":["web"],"widget-app-cerrada":["web"],"inc-2909-02-inicio-natural":["web"],"inc-3009-nomina-anticipada":["web"],"inc-2909-03-retirada":["web"],"inc-2909-01-widget-periodo":["web"],"inc-0210-03-gastos-periodo":["web"],"feature-0210-01-gasolina-taxi":["web"],"inc-0210-02-categoria-elegida":["web"],"feature-0310-01-movilidad":["web"],"inc-0310-gastos-sin-limite":["web"],"inc-0710-gastos-mes-madrid":["web"],"inc-0710-auth-disposal":["web"],"inc-0810-metas-editar-regla":["web"],"inicio-grafica-vuelve":["web"],"widget-pago-app-cerrada":["web"],"bancos-sin-hueco":["web"],"widget-ciclo-puente":["web"],"recibos-cargo-unico":["web"],"bancos-acuse-reconexion":["web"],"tr-iguales-ordinal":["web"],"recibo-cargo-en-gastos":["web"],"limpieza-ajustes-perfil":["web"],"tr-empareja-sin-preguntar":["web"],"cuenta-parte-mia":["web"],"compras-identicas-ids":["web"],"deudas-metas-hoja-edicion":["web"],"gastos-suscripciones-botones":["web"],"deudas-plazo-cuota-encaja":["web"],"deudas-metas-hoja-cierre-suave":["web"],"fichas-cierre-suave-atras":["web"],"cuenta-saldo-cierre-atras":["web"],"banco-pruebas-sin-aviso":["web"],"recibo-renombrado-sigue-pagado":["web"],"plan-por-confirmar-prestamo-youtube":["web"]};
+  const previous=new Map();
+  const measure=reader=>{
+    const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};
+    for(const [key,scope] of Object.entries(integrated)){
+      if(key===archiveId||congelados.has(key))continue;
+      if(!previous.has(key))previous.set(key,betaRevision(key,sourceBeta145,undefined,scope));
+      const a=previous.get(key),b=betaRevision(key,reader,undefined,now[key]);
+      const surfaces=["web","native","edge"].filter(x=>a[x]!==b[x]);
+      if(surfaces.length)moved[key]=surfaces;
+    }
+    return moved;
+  };
+  const verify=(reader,expected=expectedMoves)=>assert.deepEqual(measure(reader),expected,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  verify(source);
+  const currents=Object.fromEntries(tandas.map(id=>[id,betaRevision(id,source,undefined,scopes[id])]));
+  assert.ok(currents[tandas[0]].web);assert.equal(currents[tandas[0]].native,undefined);assert.equal(currents[tandas[0]].edge,undefined);
+  for(const [id,file,a,b] of [
+    [tandas[0],C,'if(_AC_KW.size>=5000) _AC_KW.clear();','if(_AC_KW.size>=5001) _AC_KW.clear();']
+  ]){
+    assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
+    const mutated=betaRevision(id,f=>f===file?source(f).replace(a,()=>b):source(f),undefined,scopes[id]);
+    assert.notEqual(mutated.web,currents[id].web,id+" reabre la tanda: "+a);
+  }
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes);
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),["vuelta-sin-tiron","vibracion-suave-ronda-3","plan-por-confirmar-prestamo-youtube","deudas-guardar-motivo"],"lo que el build entrega al panel");
+  const g0=built[0].tandas[0];
+  assert.equal(g0.web,currents[tandas[0]].web);assert.equal(g0.native,undefined);assert.equal(g0.edge,undefined);assert.equal(g0.apk,undefined);assert.equal(receipt.web[tandas[0]],currents[tandas[0]].web);
+  for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g0[key],undefined,"identidad nueva sin "+key);
   assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
 });
 

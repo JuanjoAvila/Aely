@@ -236,6 +236,7 @@ const steps = [
   ["expense-note", ["node", "tests/expense-note.test.mjs"]],
   ["expense-id-cloud", ["node", "tests/expense-id-cloud.test.mjs"]],
   ["pull-historico-entero", ["node", "tests/pull-historico-entero.test.mjs"]],
+  ["pull-sin-cambios", ["node", "tests/pull-sin-cambios.test.mjs"]],
   ["bank-connect-once", ["node", "tests/bank-connect-once.test.mjs"]],
   ["inv-dashboard", ["node", "tests/inv-dashboard.test.mjs"]],
   ["financing", ["node", "tests/financing.test.mjs"]],

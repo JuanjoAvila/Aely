@@ -1,5 +1,61 @@
 [
   {
+    "v": "4.26.146",
+    "d": "2026-10-19",
+    "t": {
+      "es": "La app va más fluida al volver a ella y al abrirla",
+      "en": "The app feels smoother when you come back to it and when you open it",
+      "ca": "L'app va més fluida en tornar-hi i en obrir-la"
+    },
+    "items": {
+      "es": [
+        "Al volver a la app después de usar otra, y al abrirla, ya no se queda un momento parada: va más fluida, sobre todo si tienes mucho historial.",
+        "Tus gastos y tu dinero disponible siguen siendo exactamente los mismos."
+      ],
+      "en": [
+        "When you come back to the app after using another one, and when you open it, it no longer freezes for a moment: it feels smoother, especially with a lot of history.",
+        "Your expenses and your available money are exactly the same."
+      ],
+      "ca": [
+        "En tornar a l'app després d'usar-ne una altra, i en obrir-la, ja no es queda un moment aturada: va més fluida, sobretot si tens molt d'historial.",
+        "Les teves despeses i els teus diners disponibles continuen sent exactament els mateixos."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "vuelta-sin-tiron",
+        "t": {
+          "es": "Volver a la app sin tirones",
+          "en": "Coming back to the app without stutter",
+          "ca": "Tornar a l'app sense estrebades"
+        },
+        "items": {
+          "es": [
+            "1. Abre la app y ve a Gastos.",
+            "2. Sal a otra app durante 1 minuto y vuelve a Aely.",
+            "3. Desliza la lista nada más volver: no se queda congelada ni da un tirón. MAL: se para medio segundo o más.",
+            "4. Cierra la app del todo, ábrela y desliza en cuanto salga Inicio. MAL: tirón al primer deslizamiento.",
+            "5. Comprueba que los gastos y el dinero disponible son los mismos que antes. MAL: cualquier diferencia."
+          ],
+          "en": [
+            "1. Open the app and go to Spending.",
+            "2. Switch to another app for 1 minute and come back to Aely.",
+            "3. Scroll the list right after coming back: it does not freeze or stutter. WRONG: it stops for half a second or more.",
+            "4. Close the app completely, open it and scroll as soon as Home shows. WRONG: a stutter on the first scroll.",
+            "5. Check that the expenses and the available money are the same as before. WRONG: any difference."
+          ],
+          "ca": [
+            "1. Obre l'app i ves a Despeses.",
+            "2. Surt a una altra app durant 1 minut i torna a Aely.",
+            "3. Llisca la llista just en tornar: no es queda congelada ni dona una estrebada. MALAMENT: s'atura mig segon o més.",
+            "4. Tanca l'app del tot, obre-la i llisca tan bon punt surti Inici. MALAMENT: estrebada al primer lliscament.",
+            "5. Comprova que les despeses i els diners disponibles són els mateixos que abans. MALAMENT: qualsevol diferència."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.145",
     "d": "2026-10-19",
     "t": {

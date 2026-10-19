@@ -48,6 +48,29 @@ function mcOnGastosActive(cb){
   };
 }
 
+/* CUÁNDO TERMINÓ LA ÚLTIMA LECTURA DE GASTOS DE LA NUBE (19/10/2026). Antes lo decía solo
+   `state.lastSync`, y por eso cada vuelta a primer plano rehacía el estado entero aunque la nube no
+   trajera nada nuevo: un frame de 150-300 ms con un histórico grande. Ahora una lectura sin
+   cambios deja el estado como estaba y avisa por aquí, que es lo que necesitan el widget (tiene
+   que recibir la prueba de lectura, FIN-05) y la línea «Última sincronización» de Gastos. */
+var _mcLecturaNube=0;
+var _mcLecturaNubeCbs=[];
+function mcSetLecturaNube(ms){
+  _mcLecturaNube=ms;
+  for(var i=0;i<_mcLecturaNubeCbs.length;i++){
+    try{ _mcLecturaNubeCbs[i](ms); }catch(e){}
+  }
+}
+function mcOnLecturaNube(cb){
+  if(typeof cb!=="function") return function(){};
+  _mcLecturaNubeCbs.push(cb);
+  try{ cb(_mcLecturaNube); }catch(e){}
+  return function(){
+    var i=_mcLecturaNubeCbs.indexOf(cb);
+    if(i>=0) _mcLecturaNubeCbs.splice(i,1);
+  };
+}
+
 /* B2 — Cartera necesita el mismo aviso «eres la activa» que Gastos, y por el MISMO motivo: si
    viaja como prop, entrar en Cartera reconstruye el árbol encima del gesto. El count-up no puede
    engancharse al montaje (las pestañas vecinas se premontan) ni a IntersectionObserver (los
@@ -581,16 +604,32 @@ function isAtmWithdrawal(merchant){
   if(/\batm\b/.test(c)) return true;
   return false;
 }
+/* Cada vuelta a primer plano rebaja el histórico entero y `expenseFromRow` vuelve a adivinar la
+   categoría de TODAS las filas sin categoría propia: ~0,3 ms por fila a CPU×6, un frame congelado
+   de 300-480 ms con 3.500 gastos justo al volver (diagnóstico de lag, 19/10/2026). Las palabras
+   clave son constantes, así que el barrido se recuerda por texto normalizado; los overrides del
+   usuario se siguen leyendo en vivo porque cambian al recategorizar. Con tope para no crecer.
+   ⚠ Si `KW`, `KW_PALABRA`, `KW_INICIO` o `MERCHANT_OVERRIDES` llegan a cambiar en ejecución
+   (palabras aprendidas…), ese punto tiene que vaciar `_AC_KW` o devolvería categorías viejas. */
+const _AC_KW=new Map();
 function autoCategory(merchant){
   const c=(merchant||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
   const key=c.trim();
+  if(USER_OVERRIDES[key] && !CAT_NEUTRAS[USER_OVERRIDES[key]]) return USER_OVERRIDES[key];
+  let cat=_AC_KW.get(c);
+  if(cat===undefined){
+    if(_AC_KW.size>=5000) _AC_KW.clear();
+    cat=autoCategoryKw(c); _AC_KW.set(c,cat);
+  }
+  return cat;
+}
+function autoCategoryKw(c){
   // "Inversi\u00f3n" NUNCA se adivina por comercio (2026-08-04). Es una categor\u00eda de DESTINO del dinero,
   // no un tipo de tienda: solo la pone el aporte autom\u00e1tico reconocido por importe exacto
   // (`importObExpenses`) o el usuario a mano. Sin este blindaje, un override envenenado \u2014el que
   // dej\u00f3 el bug de "Movimiento", ver `fixMovInvasion`\u2014 convierte en Inversi\u00f3n CUALQUIER gasto que
   // pase por aqu\u00ed: fue lo que volvi\u00f3 a marcar solo un parking de zona azul de 9,50 \u20ac cada vez que
   // abr\u00eda la app, porque `migrate` re-categoriza todo lo que est\u00e9 en "otros" y no sea manual.
-  if(USER_OVERRIDES[key] && !CAT_NEUTRAS[USER_OVERRIDES[key]]) return USER_OVERRIDES[key];   // lo que T\u00da has aprendido a mano
   for(const k in MERCHANT_OVERRIDES){ if(c.indexOf(k)!==-1) return MERCHANT_OVERRIDES[k]; }  // overrides de ejemplo
   // Keywords cortas (bar, bus…) con límite de palabra: si no, "Barcelona" caía en bares
   // por el substring «bar» (bug Kinepolis 2026-07-17).
@@ -3280,6 +3319,49 @@ function expenseFromRow(r){
     obPendingRef: source==="ob"||source==="ob-hist" ? bankRefDeSource(raw,"prevref") : undefined,
     obAcc: source==="ob"||source==="ob-hist" ? bankRefDeSource(raw,"acc") : undefined,
   };
+}
+/* LA FILA QUE NO HA CAMBIADO NO SE VUELVE A CONVERTIR (diagnóstico de lag, 19/10/2026).
+   `syncCloudExpenses` baja el histórico ENTERO en cada vuelta a primer plano y lo pasaba todo por
+   `expenseFromRow`: con 3.500 gastos, un frame congelado justo al volver, y además cada gasto
+   salía como objeto NUEVO, así que la mezcla nunca podía devolver el mismo array y el estado se
+   rehacía entero aunque la nube dijera exactamente lo mismo que antes.
+   Se reutiliza el gasto de la lectura anterior SOLO si es indistinguible del que saldría ahora:
+     · las 13 columnas que lee `expenseFromRow` son idénticas (`Object.is`: null ≠ ausente, "5" ≠ 5);
+     · la categoría se vuelve a resolver en vivo —depende de lo que él aprendió a mano, que cambia
+       sin que cambie la fila— y tiene que dar lo mismo;
+     · el objeto no lo ha tocado nadie desde entonces (se compara con su copia campo a campo).
+   Ante cualquier diferencia se reconstruye: un gasto con un dato viejo es peor que un frame lento.
+   ⚠ Si `expenseFromRow` empieza a leer otra columna, va en `EXPENSE_ROW_COLS` (lo vigila
+   `tests/pull-sin-cambios.test.mjs`) o esa columna dejaría de refrescarse. */
+const EXPENSE_ROW_COLS=["id","fecha","comercio","importe","cat","source","ingest_event_id","no_card","nota","nota_edit","importe_orig","divisa","ob_name"];
+let _expRowMemo=new Map();
+// De quién es la memoria (dueño del histórico | modo pruebas). Al cambiar se olvida entera, y
+// también la hora de la última lectura: nunca se reutiliza un gasto de otra cuenta ni del banco
+// de pruebas, aunque hoy saliera igual (revisión independiente, 19/10/2026).
+let _expRowCtx=null;
+function expenseRowMemoReset(){ _expRowMemo=new Map(); _expRowCtx=null; mcSetLecturaNube(0); }
+function expenseRowMemoOk(h, r){
+  for(let i=0;i<EXPENSE_ROW_COLS.length;i++){ if(!Object.is(h.r[i], r[EXPENSE_ROW_COLS[i]])) return false; }
+  let n=0;
+  for(const k in h.snap){ if(!Object.prototype.hasOwnProperty.call(h.e,k) || !Object.is(h.e[k], h.snap[k])) return false; n++; }
+  for(const k in h.e) n--;
+  return n===0 && h.e.category===resolveCategory(r.cat, r.comercio || "");
+}
+function expensesFromRows(rows, owner){
+  const ctx=String(owner||"")+"|"+(mcSandbox()?1:0);
+  if(ctx!==_expRowCtx){ if(_expRowCtx!==null) expenseRowMemoReset(); _expRowCtx=ctx; }
+  const prev=_expRowMemo, next=new Map(), out=new Array(rows.length);
+  for(let i=0;i<rows.length;i++){
+    const r=rows[i];
+    const h=r && r.id!=null ? prev.get(r.id) : null;
+    if(h && expenseRowMemoOk(h, r)){ out[i]=h.e; next.set(r.id, h); continue; }
+    const e=expenseFromRow(r);
+    out[i]=e;
+    if(r && r.id!=null) next.set(r.id, { r:EXPENSE_ROW_COLS.map(function(c){ return r[c]; }), e:e, snap:Object.assign({}, e) });
+  }
+  // Solo lo de esta lectura: lo que ya no baja se olvida y la memoria no crece con el tiempo.
+  _expRowMemo=next;
+  return out;
 }
 
 /* La preferencia de estado no acredita una compra: exige la misma identidad y dinero.

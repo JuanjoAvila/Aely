@@ -316,7 +316,10 @@ const PRESUPUESTO = {
   // Integración 4.26.145 (19/10): PR 279 (saldo por fases en el cliente), PR 280 (rampa continua, tirón repetido y tick en la gráfica de Inicio), el hotfix 4.26.142 de producción (liberación de
   // reservas huérfanas), PR 281 (Plan «Por confirmar», pruebas de pago en la ficha del gasto y aviso de retirada estricto) y la nota con dos tandas: 1.410.340 B / 391.165 B gzip con sello .99999
   // y reserva de 95 B (1377,3 / 382,0 KiB). SUBE por lógica de producto, no se recorta (mandato 11/10). Mínimos: 1378 KiB minificado (quedan 732 B) y gzip a 383 KiB (quedan 1.027 B; en 382 quedaban 3 B).
-  minificado: 1378 * 1024,
+  // Integración 4.26.146 (19/10): la 145 más `claude/perf-vuelta` (memoria de la categoría por palabra clave, filas reutilizadas, pull sin cambios y hora de lectura aparte) y la nota con una tanda:
+  // 1.412.935 B / 391.940 B gzip con sello .99999 y reserva de 95 B (1379,8 / 382,8 KiB). Es código, sin textos nuevos de peso. SUBE por lógica de producto, no se recorta (mandato 11/10).
+  // Mínimos: 1381 KiB minificado (quedan 1.209 B) y gzip a 384 KiB (quedan 1.276 B; en 383 quedaban 252 B).
+  minificado: 1381 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -346,7 +349,7 @@ const PRESUPUESTO = {
   // Integración 4.26.130: 363.055 B gzip, 6.465 B más que la 129. Mínimo medido: 355 KiB (quedan 465 B).
   // Integración 4.26.131: 365.878 B gzip, 2.823 B más que la 130. Mínimo medido: 358 KiB (quedan 714 B).
   // Integración 4.26.135: 368.967 B gzip, 2.375 B sobre 358 KiB. Mínimo medido: 361 KiB (quedan 697 B).
-  gzip: 383 * 1024,
+  gzip: 384 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

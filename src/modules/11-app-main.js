@@ -515,7 +515,12 @@ function App(){
       if(!confirmed)return Promise.reject(new Error("ob_confirmed_merge"));
       const pending=obAbsorbedMerge(stateRef.current._historyOwner===readOwner?stateRef.current.obAbsorbedPending:[],[],readOwner);
       if(!pending)return Promise.reject(new Error("ob_absorbed_merge"));
-      set(function(prev){return prev._historyOwner===readOwner?Object.assign({},prev,{obAbsorbedConfirmed:confirmed,obAbsorbedPending:pending}):prev;});
+      // Releer lo mismo no rehace el estado: esto corre en cada vuelta a primer plano (19/10/2026).
+      set(function(prev){
+        if(prev._historyOwner!==readOwner) return prev;
+        if(pending===prev.obAbsorbedPending&&Array.isArray(prev.obAbsorbedConfirmed)&&JSON.stringify(prev.obAbsorbedConfirmed)===JSON.stringify(confirmed)) return prev;
+        return Object.assign({},prev,{obAbsorbedConfirmed:confirmed,obAbsorbedPending:pending});
+      });
     }
     const ps=++wS.current;
     wR.current=false;
@@ -553,7 +558,8 @@ function App(){
       // FIN-07: el paginador solo resuelve al terminar; un error intermedio no mezcla ni
       // confirma páginas sueltas. La ausencia sigue sin significar borrado, incluso al terminar.
       const delSet=expenseDeletedSet(stateRef.current);
-      const incoming=rows.map(expenseFromRow).filter(function(e){ return e.amount!==0 && !expenseIsTombstoned(e, delSet); });
+      // Las filas iguales a las de la lectura anterior conservan su gasto (ver `expensesFromRows`).
+      const incoming=expensesFromRows(rows, stateRef.current._historyOwner).filter(function(e){ return e.amount!==0 && !expenseIsTombstoned(e, delSet); });
       // Backfill: sube a la tabla TODO gasto local que aún no esté en ella (no solo los manuales).
       // Esto garantiza que la tabla sea la fuente de verdad COMPLETA antes de dejar de duplicar
       // los gastos en app_state (ver slimForCloud). Upsert idempotente (ignoreDuplicates).
@@ -613,6 +619,16 @@ function App(){
           if(!readProof.valid||!sessionRef.current||!sessionRef.current.user||sessionRef.current.user.id!==readProof.userId) return;
           repairs.forEach(function(r){ cloud.setExpenseDup(r.expense,r.dup).catch(function(){}); });
         },0);
+        /* Si la nube no trajo nada nuevo, el estado se queda como estaba (19/10/2026): solo
+           cambiaría `lastSync`, y eso bastaba para repintar las cuatro pestañas y reescribir la
+           cartera en CADA vuelta a primer plano. La hora de la lectura viaja por `mcSetLecturaNube`. */
+        let mismo=Object.prototype.hasOwnProperty.call(prev,"lastSync");
+        if(mismo){
+          let n=0;
+          for(const k in rec.state){ n++; if(k!=="lastSync" && rec.state[k]!==prev[k]){ mismo=false; break; } }
+          if(mismo){ for(const k in prev) n--; mismo=n===0; }
+        }
+        if(mismo) return prev;
         return rec.state;
       });
       wR.current=true;
@@ -620,6 +636,7 @@ function App(){
       const current=sessionRef.current;
       wRead.current=readProof.valid && current && current.user && readProof.userId===current.user.id
         && !mcSandbox() && mark && typeof mark.readGeneration==="string" && typeof mark.nativeCut==="string"?mark:null;
+      mcSetLecturaNube(Date.now());
       return { total:incoming.length, nuevos:count };
       });
       });
@@ -1159,6 +1176,8 @@ function App(){
       setSession(sessionRef.current=s);
       // Cerrar sesión rompe la asociación implícita del extracto local con el titular. El
       // próximo login no debe heredar sus apuntes, aunque no exista cartera en la nube.
+      // Otra cuenta (o ninguna): ni gastos memorizados ni hora de lectura de la anterior.
+      if(login&&prev||!s&&ev==="SIGNED_OUT") expenseRowMemoReset();
       if(!s&&ev==="SIGNED_OUT"){
         // El evento ya trae sesión nula: la partición pertenece a la sesión saliente.
         const owner=prev&&prev.user&&prev.user.id;
@@ -2058,6 +2077,11 @@ function App(){
 
   const madridDay=function(){ return new Date().toLocaleDateString("en-CA",{timeZone:MC_TZ}); };
   const [calendarDay,setCalendarDay]=useState(madridDay);
+  // Una lectura de la nube sin cambios ya no toca `state.lastSync`; el widget tiene que recibir
+  // su prueba de lectura igual (FIN-05), así que la escucha aparte. Repinta App, no las pestañas.
+  // Contador y no la hora: dos lecturas en el mismo milisegundo tienen que contar como dos.
+  const [lecturaNube,setLecturaNube]=useState(0);
+  useEffect(function(){ return mcOnLecturaNube(function(){ setLecturaNube(function(n){ return n+1; }); }); },[]);
   useEffect(function(){
     const onVis=function(){ if(document.visibilityState==="visible") setCalendarDay(madridDay()); };
     document.addEventListener("visibilitychange",onVis);
@@ -2395,7 +2419,7 @@ function App(){
     };
   // Otra lectura con filas idénticas también recupera el legado: no depender sólo de
   // cifras o del reloj, que puede coincidir con el último lastSync.
-  },[budW.shown,budW.against,budW.cycle,budW.periodStart,budW.budget,wV2,wScope,CURLANG,state.budget,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.lastSync,widgetCash,trAccW&&trAccW.ent,widgetBudgetLeft,widgetSafeLiq,calendarDay,uid,wRead.current]);
+  },[budW.shown,budW.against,budW.cycle,budW.periodStart,budW.budget,wV2,wScope,CURLANG,state.budget,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.lastSync,lecturaNube,widgetCash,trAccW&&trAccW.ent,widgetBudgetLeft,widgetSafeLiq,calendarDay,uid,wRead.current]);
   // Tour de bienvenida: 1ª vez tras el onboarding (tourSeen=false), con la app ya pintada
   useEffect(function(){
     // No arrancar el tour encima del login (showAuth) ni con el cajón abierto: causaba el caos

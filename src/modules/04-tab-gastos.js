@@ -1031,7 +1031,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     React.createElement("p",{className:"hint",id:"gastos-refresh-scope"},t("g_refresh_expenses_hint")),
     React.createElement("div",{className:"sync-note"},
       React.createElement("span",{className:"sync-dot "+(syncStatus.type||"idle")}),
-      syncStatus.msg || (state.lastSync?tf("g_lastsync",{d:new Date(state.lastSync).toLocaleString(loc(),{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}):t("g_nosync"))
+      React.createElement(SyncHora,{msg:syncStatus.msg,lastSync:state.lastSync})
     ),
 /* Alta de gasto/ingreso: FAB Apuntar (SPEC §7). */
     (function(){
@@ -1103,6 +1103,16 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         React.createElement("span",null,t(undoDelete.paired?"g_auto_deleted":"f_undo_deleted")),
         React.createElement("button",{type:"button",onClick:undoLastDelete},t("f_undo"))),document.body)
   );
+}
+
+/* La hora de «Última sincronización» escucha la lectura de la nube por su cuenta (19/10/2026): una lectura sin
+   cambios ya no reescribe `state.lastSync` (ver `mcSetLecturaNube`), y pasarla como prop de
+   Expenses la reconstruiría entera en cada vuelta a primer plano, que es lo que se quitó. */
+function SyncHora({msg, lastSync}){
+  const [leida,setLeida]=useState(0);
+  useEffect(function(){ return mcOnLecturaNube(setLeida); },[]);
+  const at=Math.max(lastSync||0, leida||0);
+  return msg || (at?tf("g_lastsync",{d:new Date(at).toLocaleString(loc(),{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}):t("g_nosync"));
 }
 
 /* ---------- Fila del histórico ----------

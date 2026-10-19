@@ -2,6 +2,57 @@
 
 **Fuente para empezar: esta lista.** Corte documental del lote de coordinación del 18/10 (`ee788a05`), sobre beta 4.26.141 en rama (`ff53b0e7`). Lo que hay debajo conserva el historial. «Cerrado» en esta ronda significa cierre del encargo técnico por Claude: un GO, una PR en borrador o un resultado `released` no acreditan por sí solos integración, despliegue, artefacto servido ni aceptación móvil. Claude anuncia la 141 servida; esta revisión no verifica sus hashes servidos ni declara ProductREADY.
 
+## Auditoría del backlog · 19/10/2026 (cierres con su evidencia)
+
+Fuente: veredictos del panel (`scripts/errores.mjs --kind=beta`), CHANGELOG, notas y git. Lo de abajo sustituye al estado antiguo de cada fila.
+
+**HECHO**
+
+- INC-2709-12 · línea Cyberpunk sobre el +: aprobada `4.26.77/inc-2709-12-cyber-fab` 1/10; confirmado por el dueño 19/10.
+- INC-2709-10 · casillas gigantes del perfil: aprobada `4.26.77/inc-2709-10-perfil` 1/10; confirmado por el dueño 19/10.
+- INC-2709-14 · botón Preguntar separado del borde: aprobada `4.26.77/inc-2709-14-preguntar` 1/10.
+- INC-2709-13 · círculo del + e indicador recortados: rechazada 97 (6/10), aprobadas `4.26.98/inc-2709-13-fab-contorno` 7/10 y `4.26.107/inc-0810-nav-indicator` 9/10.
+- INC-2709-07 · Bienes sin toque/edición: aprobadas `4.26.111/inc-2709-07-bienes-toque` y `4.26.113/bienes-completo` 10/10.
+- INC-2709-02 · Deudas terminadas, confirmar y archivar: aprobada `4.26.70/inc-2709-02-deudas-archivo` 29/9.
+- INC-2709-04 · crash al abrir Cuotas de deuda: cerrada en 4.26.59.
+- INC-2709-05 · cifras incompatibles Inicio/Gastos: superada por 4.26.66/73/61/62/78; aprobadas `inicio-solo-actual` 10/10, `inicio-solape-gastos` 11/10, `inicio-tarjeta-ciclo-limpia` 13/10.
+- INC-2709-01 · arranque con poca conexión: aprobada `4.26.69/inc-2709-01-arranque-red` 29/9 (lo demás del arranque vive en UX-03).
+- INC-0710-01 · salto de scroll en Plan: aprobada `4.26.124/plan-scroll-lento` 13/10.
+- INC-3009-01 · gas ya pagado como próximo cargo: aprobada `4.26.74/inc-3009-01-cargos` 1/10.
+- INC-3009-02 · nómina Sabadell anticipada: aprobada `4.26.78/inc-3009-nomina-anticipada` 1/10.
+- INC-2909-03 · retiradas del banco: aprobada `4.26.79/inc-2909-03-retirada` 1/10.
+- INC-2809-01 / INC-2809-02 · Inicio y Mi ciclo, ayuda de Mi ciclo: aprobadas `4.26.67/inc-2809-01-inicio-ciclo` y `4.26.68/inc-2809-02-ayuda-ciclo` 29/9.
+- INC-2909-01 / FIN-05 · widget (periodo, modo, pago con app cerrada): aprobadas `4.26.80/inc-2909-01-widget-periodo` 1/10, `widget-app-cerrada` 4/10 y `4.26.116/widget-ciclo-puente` 12/10.
+- INC-1810-02 · renombrar recibo: aprobada `4.26.144/recibo-renombrado-sigue-pagado` 18/10 (vínculos ya rotos se rehacen a mano).
+- FIN-16 · plazo y cuota a la vez: aprobada `4.26.139/deudas-plazo-cuota-encaja` 17/10.
+- FIN-15 · compra pendiente y contabilizada doble: aprobadas `4.26.138/compras-pendientes-otro-dia` 17/10 y `4.26.135/compras-identicas-ids` 15/10.
+- UX-15 · «Sincronizar» de Gastos: aprobada `4.26.138/gastos-actualizar-gastos` 17/10 (lo de leer bancos es PRO-09 round-up).
+- UX-12 · Deudas y Metas estilo v4: aprobadas `4.26.138/deudas-metas-hoja-edicion` 16/10 y `4.26.141/fichas-cierre-suave-atras` 18/10.
+- UX-13 · atrás con teclado: aprobada `4.26.141/fichas-cierre-suave-atras` 18/10.
+- UX-07 · temas: publicados; la línea de Cyberpunk quedó con INC-2709-12.
+- PRO-02 · proyección de fin de mes: aprobadas 125/126/134 (15/10).
+- INC-2709-06 · cargos de CaixaBank: sin quejas del dueño, su padre ni su pareja (19/10); vigilar.
+- INC-2709-11 · círculo de Inicio recortado: el rediseño v42 lo arregló (respuesta del dueño 19/10).
+
+**CERRADO (obsoleto)**
+
+- INC-2709-15 · botones de suscripciones recortados: esa zona ya no existe (respuesta del dueño 19/10; rechazada «No sale eso» en `4.26.138/gastos-suscripciones-botones`).
+
+**Respuestas del dueño (19/10 ~07:40)**
+
+- INC-1810-01 Guardar en Deudas: subir la cuota guarda bien; bajarla da el error «no encaja» (FIN-16, aprobada). Pendiente: al bajarla, ofrecer alargar el plazo → INC-1910-01.
+- INC-2709-08 reordenar brókers con pulsación larga como las cuentas: lo quiere; encargado a Codex tras UX-11.
+
+**Parcial**
+
+- INC-2709-09 / UX-01 · lag sostenido: parcial en 4.26.146 (vuelta de segundo plano y arranque, tanda `vuelta-sin-tiron`); el síntoma humano completo sigue abierto.
+
+**Nuevas**
+
+- INC-1910-01 · Deudas: al bajar la cuota de una deuda, ofrecer alargar el plazo en vez de solo rechazar con «no encaja». Encargado a Codex (19/10).
+- INC-2709-08 · Cartera: reordenar los bloques de brókers con pulsación mantenida, como las cuentas. Lo quiere el dueño; encargado a Codex (19/10), tras UX-11.
+
+
 **Cerrados técnicamente en esta ronda**
 
 | Encargo | Alcance y reserva de entrega |
@@ -48,7 +99,7 @@
 
 - INC-1810-01 · Deudas: en la hoja de gestionar/editar una deuda, pulsar Guardar no responde y la hoja no se cierra (en Metas sí). Pedido del dueño 18/10, sin reproducir ni asignar; mirar primero si la regla nueva de plazo y cuota (FIN-16) rechaza el guardado sin avisar, en producción 4.26.137 y en beta. Estado 18/10: la beta 4.26.144 (PR 277) hace que el aviso del rechazo se vea entero; no acredita ser la causa del bloqueo total, pendiente de su OK.
 - SES-01 · las sesiones de Trade Republic y MyInvestor duran horas (pedido suyo 15/10). La instrumentación y las guardas de keepalive/sync tienen entregas técnicas separadas; no acreditan resolver la duración de la sesión real.
-- INC-2709-09 (con UX-01) · lag sostenido
+- INC-2709-09 (con UX-01) · lag sostenido: parcial en 4.26.146 (vuelta de segundo plano)
 - INC-2709-03 (con UX-08) · ola nativa en Gestionar plan
 - UX-03 (con INC-2709-01) · splash y arranque; UX-09 · splash con el verde por defecto
 - UX-11 · salto vertical tras cerrar una hoja: informe sin parche aceptado; no reproducido en 48 casos sintéticos, sigue abierto para evidencia del dispositivo.
