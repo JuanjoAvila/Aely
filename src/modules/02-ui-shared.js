@@ -557,17 +557,93 @@ function mcReduced(){
   try{ return document.documentElement.classList.contains("reduce-motion")||(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches); }catch(e){ return false; }
 }
 
+/* UX16 ronda 4: cuatro rondas adivinando fuerzas y él las rechazó todas («no vibra apenas nada»,
+   «dura un montón»). Ahora las elige él con el ajustador de Ajustes (solo en beta) y se quedan
+   en ESTE móvil: es una preferencia del motor de su teléfono, no un dato que viaje a la nube.
+   Por defecto, los de la ronda 3 salvo borde y gráfica, que pedían «un pelín más». */
+const MC_HAPTIC_KEY="_mcHapticTune";
+const MC_HAPTIC_DEF={fillAmp:30,fillMs:1100,edgeAmp:70,edgeMs:12,edgeEvery:150,tickAmp:70,tickMs:10};
+const MC_HAPTIC_RANGE={fillAmp:[1,255],fillMs:[300,2500],edgeAmp:[1,255],edgeMs:[4,60],edgeEvery:[60,400],tickAmp:[1,255],tickMs:[4,40]};
+function mcHapticClamp(raw){
+  const out={};
+  Object.keys(MC_HAPTIC_DEF).forEach(function(k){
+    const v=raw&&typeof raw[k]==="number"&&Number.isFinite(raw[k])?Math.round(raw[k]):MC_HAPTIC_DEF[k];
+    out[k]=Math.max(MC_HAPTIC_RANGE[k][0],Math.min(MC_HAPTIC_RANGE[k][1],v));
+  });
+  return out;
+}
+function mcHapticTune(){
+  try{ return mcHapticClamp(JSON.parse(localStorage.getItem(MC_HAPTIC_KEY)||"null")); }catch(e){ return mcHapticClamp(null); }
+}
+// La duración del relleno manda también sobre la animación del anillo: así la vibración dura
+// exactamente lo que se ve rellenarse, la mueva él a donde la mueva.
+function mcHapticApplyCss(tune){
+  try{ document.documentElement.style.setProperty("--v42-cycle-ms",(tune||mcHapticTune()).fillMs+"ms"); }catch(e){}
+}
+function mcHapticTuneSave(patch){
+  const next=mcHapticClamp(Object.assign({},mcHapticTune(),patch||{}));
+  try{ localStorage.setItem(MC_HAPTIC_KEY,JSON.stringify(next)); }catch(e){}
+  mcHapticApplyCss(next);
+  return next;
+}
+function mcHapticTuneReset(){
+  try{ localStorage.removeItem(MC_HAPTIC_KEY); }catch(e){}
+  mcHapticApplyCss(MC_HAPTIC_DEF);
+  return mcHapticClamp(null);
+}
+mcHapticApplyCss();
+// El texto que él copia y nos manda: corto y sin nada personal, solo los siete números.
+function mcHapticTuneText(tune){
+  const v=tune||mcHapticTune();
+  return "Vibración · ciclo "+v.fillAmp+"/"+v.fillMs+"ms · borde "+v.edgeAmp+"/"+v.edgeMs+"ms cada "+v.edgeEvery+"ms · gráfica "+v.tickAmp+"/"+v.tickMs+"ms";
+}
+// Misma curva que `.v42-cycle-draw` en shell.html: si cambia allí, cambia aquí.
+const MC_CYCLE_EASE=[.65,0,.35,1];
+function mcBezierY(x,p){
+  // Bisección sobre la x de la cúbica: 24 vueltas sobran para 60 tramos de onda.
+  let lo=0,hi=1,tt=x;
+  const bx=function(s){ return 3*(1-s)*(1-s)*s*p[0]+3*(1-s)*s*s*p[2]+s*s*s; };
+  for(let i=0;i<24;i++){ tt=(lo+hi)/2; if(bx(tt)<x) lo=tt; else hi=tt; }
+  return 3*(1-tt)*(1-tt)*tt*p[1]+3*(1-tt)*tt*tt*p[3]+tt*tt*tt;
+}
+/* La onda del anillo sigue al TRAZO: cada tramo vibra en proporción a cuánto arco se pinta en
+   él (la velocidad de la curva), escalado por el porcentaje del ciclo. Así un 20 % apenas roza y
+   un 90 % se nota entero, arranca y acaba suave como el dibujo, y no queda zumbando con el
+   anillo ya quieto — «vibra un montón desde el principio y dura un montón» (ronda 3). */
+function mcCycleWave(durationMs,fraction,amp){
+  const frac=Math.max(0,Math.min(1,fraction)), dur=Math.round(durationMs);
+  if(!(dur>0)||!(frac>0)) return null;
+  const n=Math.max(1,Math.min(60,Math.round(dur/20))), timings=[], speeds=[];
+  let prev=0, top=0;
+  for(let i=0;i<n;i++){
+    const y=mcBezierY((i+1)/n,MC_CYCLE_EASE), s=Math.max(0,y-prev);
+    prev=y; speeds.push(s); if(s>top) top=s;
+    timings.push(Math.floor(dur/n)+(i<dur%n?1:0));
+  }
+  const amplitudes=speeds.map(function(s){ return top>0?Math.round(amp*frac*s/top):0; });
+  return amplitudes.some(function(a){ return a>0; })?{timings:timings,amplitudes:amplitudes}:null;
+}
+
 // UX16: la web observa el dedo; solo Android decide si el ajuste táctil permite el toque.
 function mcHaptic(method, args){
   if(mcReduced()||document.hidden) return;
   try{
     const cap=window.Capacitor, plugin=cap&&cap.Plugins&&cap.Plugins.AelyHaptics;
     if(!plugin||typeof plugin[method]!=="function") return;
-    Promise.resolve(plugin[method](args||{})).catch(function(){});
+    // Devuelve lo que contesta Android (null si falla): el ajustador lo usa para saber si la APK
+    // instalada ya entiende fuerza y duración.
+    return Promise.resolve(plugin[method](args||{})).catch(function(){ return null; });
   }catch(e){}
 }
+// Un toque del borde con los valores que haya elegido él. La APK 58 ignora fuerza y duración y
+// sigue dando su toque fijo; desde la 59 manda lo del ajustador.
+function mcEdgeHaptic(){
+  const v=mcHapticTune();
+  mcHaptic("edge",{amplitude:v.edgeAmp,durationMs:v.edgeMs});
+}
 function mcBindEdgeHaptics(root, blocked){
-  let g=null, states=new WeakMap(), pullTimer=0;
+  let g=null, states=new WeakMap(), pullTimer=0, lastAt=-Infinity;
+  const buzz=function(){ lastAt=performance.now(); mcEdgeHaptic(); };
   const stopPull=function(){ clearTimeout(pullTimer); pullTimer=0; if(g) g.pulling=false; };
   const end=function(){ stopPull(); g=null; };
   const boundary=function(el){
@@ -595,7 +671,7 @@ function mcBindEdgeHaptics(root, blocked){
     const s=stateOf(el);
     if(s.latched===edge||quiet()) return;
     s.latched=edge; s.armed=false;
-    mcHaptic("edge");
+    buzz();
   };
   const repeatPull=function(){
     const own=g;
@@ -604,8 +680,8 @@ function mcBindEdgeHaptics(root, blocked){
       pullTimer=0;
       if(g!==own||!own.pulling) return;
       if(quiet()||!own.el.isConnected||scroller(own.el)!==own.el||boundary(own.el)!==own.edge){ stopPull(); return; }
-      mcHaptic("edge"); repeatPull();
-    },150);
+      buzz(); repeatPull();
+    },mcHapticTune().edgeEvery);
   };
   const scroll=function(e){
     const el=scroller(e.target);
@@ -629,7 +705,10 @@ function mcBindEdgeHaptics(root, blocked){
   };
   const move=function(e){
     if(!g) return;
-    if(!e.touches||e.touches.length!==1||e.touches[0].identifier!==g.id||blocked()||e.defaultPrevented){ end(); return; }
+    if(!e.touches||e.touches.length!==1||e.touches[0].identifier!==g.id||blocked()){ end(); return; }
+    // Inicio corta el rebote de arriba con preventDefault antes de fijar eje: ese movimiento se
+    // salta, pero el gesto sigue siendo nuestro (antes lo soltábamos y arriba no vibraba nunca).
+    if(e.defaultPrevented) return;
     const t=e.touches[0], dx=t.clientX-g.x, dy=t.clientY-g.y, step=t.clientY-g.lastY;
     g.lastY=t.clientY;
     if(Math.abs(dx)>8&&Math.abs(dx)>Math.abs(dy)){ end(); return; }
@@ -640,7 +719,12 @@ function mcBindEdgeHaptics(root, blocked){
     if(Math.abs(dy)<=Math.abs(dx)*1.2) return;
     const outward=edge==="top"?t.clientY-g.anchor:g.anchor-t.clientY;
     if(outward<10){ stopPull(); return; }
+    const resumed=!g.pulling;
     pulse(g.el,edge);
+    // Seguir tirando con el borde ya alcanzado —también tras llegar por inercia— avisa YA, no
+    // tras el intervalo: «no vibra cuando sigues bajando estando abajo» (ronda 3). El intervalo
+    // sí se respeta para no encadenar dos toques pegados.
+    if(resumed&&!quiet()&&performance.now()-lastAt>=mcHapticTune().edgeEvery) buzz();
     g.pulling=true; repeatPull();
   };
   const listeners={touchstart:start,touchmove:move,touchend:end,touchcancel:end,visibilitychange:end};
@@ -665,7 +749,12 @@ function mcInicioFillHaptic(e){
     if(seen.has(animation)||!Number.isFinite(duration)||duration<=0) return;
     seen.add(animation);
     // animationstart sucede DESPUÉS del delay CSS y de la pausa del splash: sin segundo reloj.
-    mcHaptic("fill",{durationMs:duration});
+    // Anillo vacío = nada que rellenar = silencio.
+    const fraction=parseFloat(el.style&&el.style.getPropertyValue("--cycle-pct"))/100;
+    const v=mcHapticTune(), wave=mcCycleWave(duration,fraction,v.fillAmp);
+    if(!wave) return;
+    // La APK 58 solo entiende durationMs (su rampa fija); desde la 59 toca la onda de aquí.
+    mcHaptic("fill",{durationMs:duration,amplitude:v.fillAmp,fraction:fraction,timings:wave.timings,amplitudes:wave.amplitudes});
   }catch(err){}
 }
 

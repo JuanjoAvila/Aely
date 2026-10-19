@@ -28,6 +28,7 @@ UX16 (candidata sin APK): `tests/ux16-haptics.test.mjs` está registrado en `run
 Comprueban guardas y animaciones con transporte nativo sintético; `HapticPlanTest`
 prueba en JVM el reparto acotado, contando la duración de cada primitiva.
 La fuente del plugin completo, el APK y el motor físico requieren revisión aparte.
+Ronda 4: `tests/ux16-ajustador.test.mjs` (lee/guarda el ajustador y `mcHaptic` lo usa) y `e2e/ux16-ajustador.spec.mjs` (Ajustes en beta, mover un deslizador, guardar, probar, borde que repite).
 [Contrato y límites](briefs/ux16-haptics.md).
 
 FIN-15 (beta 4.26.138): `tests/fin15-pendiente-contabilizada.test.mjs` registrado en `run-tests` ejecuta

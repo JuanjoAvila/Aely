@@ -91,4 +91,23 @@ public class HapticPlanTest {
             if(i>0) assertTrue(wave.amplitudes[i]>=wave.amplitudes[i-1] && wave.amplitudes[i]-wave.amplitudes[i-1]<=1);
         }
     }
+    @Test public void round4CustomWaveFromWeb() {
+        HapticPlan.Wave wave = HapticPlan.custom(new long[]{20,20,20}, new int[]{0,300,-5});
+        assertNotNull(wave);
+        assertArrayEquals(new int[]{0,255,0}, wave.amplitudes);
+        assertEquals(60, HapticPlan.total(wave));
+        assertNull("todo a cero no vibra", HapticPlan.custom(new long[]{20}, new int[]{0}));
+        assertNull("longitudes distintas", HapticPlan.custom(new long[]{20,20}, new int[]{9}));
+        assertNull("tramo nulo", HapticPlan.custom(new long[]{0}, new int[]{9}));
+        assertNull("tramo larguísimo", HapticPlan.custom(new long[]{201}, new int[]{9}));
+        assertNull("más de tres segundos", HapticPlan.custom(new long[]{200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200}, new int[]{9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9}));
+        assertNull("sin onda", HapticPlan.custom(new long[0], new int[0]));
+    }
+    @Test public void round4EdgeScaleKeepsLegacyDefault() {
+        assertEquals(HapticPlan.EDGE_SCALE, HapticPlan.scaleFor(HapticPlan.EDGE_AMPLITUDE), .001f);
+        assertEquals(1f, HapticPlan.scaleFor(255), .001f);
+        assertTrue(HapticPlan.scaleFor(1) > 0);
+        assertEquals(255, HapticPlan.clamp(999, 1, 255));
+        assertEquals(1, HapticPlan.clamp(-3, 1, 255));
+    }
 }

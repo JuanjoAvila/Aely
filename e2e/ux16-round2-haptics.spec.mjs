@@ -23,7 +23,7 @@ export async function ux16Round2BrowserCases(){
   before=calls.edge.length;await scroll(0);
   check('inercia superior despues de soltar',calls.edge.length-before,1);
   before=calls.edge.length;await scroll(0);touch('touchstart');touch('touchmove',200,285);touch('touchend');
-  check('mismo borde no rearma por otro dedo',calls.edge.length,before);
+  check('otro dedo antes del intervalo no duplica',calls.edge.length,before);
   await scroll(3);await scroll(0);check('rebote menor que separacion no repite',calls.edge.length,before);
   await scroll(100);await scroll(0);check('separarse y volver rearma superior',calls.edge.length-before,1);
   await scroll(250);before=calls.edge.length;await scroll(500);

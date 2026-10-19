@@ -324,3 +324,5 @@ La composición LOW_TICK requiere API 33+, soporte de primitivas, permiso normal
 VIBRATE y atributos USAGE_TOUCH; no se cambia min/compile/target SDK. La web sin
 plugin o con movimiento reducido es silenciosa. [Contrato y límites](briefs/ux16-haptics.md).
 Integrado en la beta 4.26.141 con `versionCode` 56 / `versionName` 4.26.141 (la tanda `vibracion-borde-y-mi-ciclo` exige esa APK). La APK de beta se compila con la receta de siempre y su asset aún no está publicado: `public/apk.json` sigue en la 55 hasta que exista. Aceptación física en el móvil pendiente.
+
+**Ronda 4 (ajustador, rama `claude/vibra-ajustador`, necesita APK 59):** `edge({amplitude 1–255, durationMs 1–100})` y `fill({timings[], amplitudes[]})` con la onda calculada en la web (`mcCycleWave`, ≤120 tramos de ≤200 ms, ≤3 s; si no cuadra, la rampa de siempre). Sin parámetros se comporta como la APK 58; la respuesta lleva `tunable:true` para que el ajustador de Ajustes (solo beta) avise si la APK instalada es anterior. Los valores viven en `localStorage._mcHapticTune` del móvil.

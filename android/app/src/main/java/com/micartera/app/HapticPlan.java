@@ -4,6 +4,27 @@ package com.micartera.app;
 final class HapticPlan {
     static final int EDGE_AMPLITUDE = 30;
     static final float EDGE_SCALE = .25f;
+    static final int EDGE_MS = 8, MAX_EDGE_MS = 100;
+    // Topes de la onda que manda la web: ni un zumbido de segundos ni un array sin fin.
+    static final int MAX_STEPS = 120, MAX_STEP_MS = 200, MAX_CUSTOM_MS = 3000;
+    static int clamp(int value, int lo, int hi) { return Math.max(lo, Math.min(hi, value)); }
+    // Escala de primitiva para motores sin amplitud: 30 (el borde de siempre) sigue dando .25.
+    static float scaleFor(int amplitude) { return Math.max(.02f, Math.min(1f, amplitude / 120f)); }
+    static long total(Wave wave) { long sum = 0; for (long t : wave.timings) sum += t; return sum; }
+    static Wave custom(long[] timings, int[] amplitudes) {
+        if (timings == null || amplitudes == null || timings.length == 0 || timings.length != amplitudes.length || timings.length > MAX_STEPS) return null;
+        Wave wave = new Wave(timings.length);
+        long sum = 0;
+        boolean audible = false;
+        for (int i = 0; i < timings.length; i++) {
+            if (timings[i] <= 0 || timings[i] > MAX_STEP_MS) return null;
+            sum += timings[i];
+            wave.timings[i] = timings[i];
+            wave.amplitudes[i] = clamp(amplitudes[i], 0, 255);
+            audible |= wave.amplitudes[i] > 0;
+        }
+        return audible && sum <= MAX_CUSTOM_MS ? wave : null;
+    }
     enum Path { NONE, WAVEFORM, LOW_TICK, SOFT_TICK }
     static Path select(int api, boolean allowed, boolean amplitudeControl, boolean lowTick, int primitiveMs) {
         if (!allowed) return Path.NONE;
