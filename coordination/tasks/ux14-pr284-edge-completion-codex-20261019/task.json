@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "id": "ux14-pr284-edge-completion-codex-20261019",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261019-r74-36ea75cf98e01bbf",
+  "createdAt": "2026-10-19T12:57:38.685Z",
+  "to": "codex",
+  "kind": "worker",
+  "priority": 1,
+  "baseSHA": "e2a00f24f6b0e18b3020efab456b28eec0766d94",
+  "assignedPublicSessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "claudeGrant": "1ab889a5f24efabae297dd9716ed3dd1305a7065",
+  "previousTaskId": "ux14-fast-tabs-cpu6-resume-codex-20261019",
+  "dependsOnReleasedResult": "27b3c4b1ae0cfbfd049c22202bfb2d4557b1c69b",
+  "previousRunnerReturn": "5a8b2af9b12aac9c54a33c938a89c5c7a1bbd542",
+  "objective": "Complete SAME draft PR284 edge rubber-band continuity: use visible arrastreDesde in both boundary branches and add chained first/last-tab regression.",
+  "scope": [
+    "Two boundary offset branches in11-app-main",
+    "rendimiento-tabs chained first/last-edge regression",
+    "SamePR284 update and directed rendimiento-tabs swipe-pestanas botnav tests1worker"
+  ],
+  "requirements": [
+    "Read FULL Claude1ab889a5 GOremate and522babf7 queue. This completion has PRIORITY BEFORE wave. Same original UX14 holder; new task claim/readback/ACK before code. Previous released27b3c4b1 and RETURN5a8b2af9 are immutable historical R1; do not amend them or inherit a lease. Source exacte2a00f24, update SAME PR284 branchcodex/ux14-fast-tabs-fix-20261019 owned by you, no newPR. Preserve original R1 manifests/raw runs/closure/ZIP/checkpoint/handoff and prior WIP.",
+    "Verify actual OWN runtime/cwd/helper/filter/ledger and currentbudget. Latest closure OWN20b1used5/20 is historical snapshot, continue real counter no reset; prior12/Jblocks and NFF preserved. Every first/internal/readback>=30s; next20 only after actual exhaustion plus normalnotice/readback underb0390. No ROOT budget inheritance or general permission questions.",
+    "In11-app-main last tab dxVis<0 and first tab dxVis>0 currently recalculate off from -tab*100. PerClaude use arrastreDesde for both to avoid a jump when chaining during a partial settle into rubber band. Preserve axis ownership navigation thresholds EDGE52 consumption cancel/vertical handling and financial state exactly; minimal change only.",
+    "Add meaningful causal RED on R1 at first AND last tab edges with chained gestures before prior settle completes, then GREEN after fix. Assert continuity/no opposite jump, actual edge touch and correct destination. Preserve all raw cases/initial failures. Existing rendimiento-tabs is mapped; extend existing spec rather than unrelated suite. Do not claim general lag improvement from continuity fix.",
+    "Claude explicitly requires rendimiento-tabs, swipe-pestanas and botnav-* with1worker. Use own fixtures port0retry and exact own build served identity, financial snapshots unchanged. Run those required directed regressions after new correction; do not repeat unrelated finished PR282/283 or old private calibrations.",
+    "For this UX14 performance followup use current explicit4ff63f89 concurrentABAB methodology plus new1ab889a5 scope: fresh OWN census/task admission before CPU6, previous RETURN does NOT carry a lease. Known light suites permitted, no exclusive-machine claim or foreign cleanup. Baseline R1 then candidate alternate ABAB for performance comparison if needed; preserve outliers and declare permitted repeats. AGENTS7bis splash absent landed gestures rAF deltas frames>32ms noProfiler/tracing in timing windows.",
+    "Own source may continue same clean branch/checkout because Claude expressly requests SAMEPR, but write NEW private followup evidence and preserve original R1 bytes referenced by sourceSHA. Verify exact remote/head before and after, no forcepush or rewriting previous commit. No VERSION/catalogue/caps backend/nativoAPK deploymerge money changes; real gates retained with actual EXITs and limits.",
+    "Deliver new own immutable released R2result with samePR newhead, causal tests actualEXITs source/evidence manifest checkpoint closure, own exact resultreadback and private ROOT74 handoff. Return own CPUrate1/contexts/server/port with readback before STOP. Wave is QUEUED and requires next ROOT dispatch after this completion; do not start it now. ProductREADY false pending Claude review/integration/currentserved/mobile."
+  ],
+  "deliverable": "Same draftPR284 edge completion with causal first/last regressions, required directed checks and immutable released R2result/RETURN then STOP."
+}
