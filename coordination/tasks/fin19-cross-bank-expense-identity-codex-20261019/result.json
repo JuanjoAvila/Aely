@@ -1,0 +1,54 @@
+{
+  "status": "blocked",
+  "summary": "FIN19 draft PR288 head8f87eadc4e6f018a2d50a33808ee0945f171876c. Local cross-bank/account identity corrected. RED320 versus640 cents; GREEN14 focal and236 reported directed cases, two mutants killed in both merges. Size/docs integration gates red; catalogue unverified without recoverable exit. Sealed manifest031e75ff486174636262265d23f13cb8562c8a9463145a463a2e47cacc891163 ZIPfd0419b990f1d21aa174e417aa2bdc26a5b4282b40e5bbcbc48dde6728d5c1c4, all entry hashes verified. RETURN990ef40860fa69cf32bd48e17bd46e195210c847 exact. Prior16109 files and13 checkouts exact. No runner lease or services left; private handoff then STOP. Local-only; no ProductREADY or PR287 notice.",
+  "tests": [
+    {
+      "command": "node --test --test-concurrency=1 tests/fin15-book-preference.test.mjs tests/recibo-domiciliado-sin-acreditar.test.mjs tests/ob-iguales-ordinal.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-cross-bank-identity.test.mjs tests/merge-expenses-cloud.test.mjs tests/expense-bank.test.mjs tests/categoria-manual-persistente.test.mjs tests/compras-identicas-ids.test.mjs tests/fin10-absorption-scope.test.mjs tests/fin11-absorption-pending.test.mjs tests/fin15-pendiente-contabilizada.test.mjs tests/pull-historico-entero.test.mjs tests/pull-sin-cambios.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 1
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1
+    }
+  ],
+  "productSHA": "8f87eadc4e6f018a2d50a33808ee0945f171876c",
+  "limitations": [
+    "Catalogue UNVERIFIED: invocation ended without result receipt or recoverable EXIT; unknown cause; no agent termination or rerun",
+    "Local identity correction only; server reader, database uniqueness and legacy backfill convergence remain outside scope",
+    "No recovery of transactions already lost; persistent tombstone formats unchanged",
+    "Size gate EXIT1:1394/1393KB; gzip387/387KB",
+    "Docs exact-head EXIT1: two source files after VERSION anchor",
+    "No fullsuite/general CI/browser/CPU6/native build/live broker or cloud/SQL/Edge/deploy/merge/mobile acceptance",
+    "No ProductREADY; integration review remains required"
+  ],
+  "schema": 1,
+  "taskId": "fin19-cross-bank-expense-identity-codex-20261019",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-19T19:11:22.885Z",
+  "released": true
+}
