@@ -1,0 +1,20 @@
+{
+  "status": "done",
+  "summary": "SES01 research delivered on exact beta dca4c71c640e3ebbc26256f9e79572fdda94e39e, source unchanged. No analyzable real episode export identified in the permitted evidence set: observed duration, start/end and lower bounds unknown for both brokers; no universal TTL claimed. Historical deployment inventory checked12Oct resolves exact local source blobs, not current deployed state. Beta OPS08 CAS prevents stale saves but not simultaneous external refresh consumption. Deployment-only improvements require schema0026, compatible connect/manual client, cron and dependency prerequisites; current state unverified. TR pending-pause lifecycle risk is a source hypothesis, not a reproduced cause. Private cause/confidence/gaps matrix and phased plan sealed: report SHA256 df30202c3034ca7de835313cccac2b2cfff61b1f1965f28995496843bbbe5e5d; manifest c263efe2117fa195f16512721d2c4bc8ddb49f5aa64da34d7feef5d28390dff5; archive ecbc7adfae31f0dbbb1a97a162eb7ffefca3149855d4732c4183c1fcfcc3488b,98 entries verified.31 beta source files and19 historical files pinned; one public source credential literal omitted from evidence copy with original blob/hash retained. RETURN252a7d75613ee74dda187ee3a5cb749c81f37445 exact own readback; no runner lease, ports or services.14844 prior files and12 prior checkouts unchanged. Private handoff after exact released result readback then STOP.",
+  "tests": [],
+  "productSHA": "dca4c71c640e3ebbc26256f9e79572fdda94e39e",
+  "limitations": [
+    "Research complete with missing real telemetry; SES01 session issue not claimed resolved.",
+    "No current deployed hash, actual cron/schema, installed APK/WebView or real episode duration verified.",
+    "No product edits, new PR, broker/login/refresh/reconnect requests, live cloud/log/SQL/Edge operations, deployment or mobile acceptance.",
+    "No product tests executed; source/blob/manifest/archive integrity checks only. Private tool spacing/syntax/privacy-scan failures preserved and corrected without bypass.",
+    "CAS does not serialize external refresh consumption; pending-pause TR hypothesis needs isolated future reproduction.",
+    "No ProductREADY or premature PR287 served-beta notice."
+  ],
+  "schema": 1,
+  "taskId": "ses01-broker-session-duration-investigation-codex-20261019",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-19T18:27:51.591Z",
+  "released": true
+}
