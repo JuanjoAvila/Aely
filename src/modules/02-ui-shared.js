@@ -641,10 +641,12 @@ function mcEdgeHaptic(){
   const v=mcHapticTune();
   mcHaptic("edge",{amplitude:v.edgeAmp,durationMs:v.edgeMs});
 }
+// Píxeles de arrastre nuevo contra el borde que valen otro toque: menos es el temblor del dedo.
+const MC_EDGE_PULL_STEP=8;
 function mcBindEdgeHaptics(root, blocked){
-  let g=null, states=new WeakMap(), pullTimer=0, lastAt=-Infinity;
+  let g=null, states=new WeakMap(), lastAt=-Infinity;
   const buzz=function(){ lastAt=performance.now(); mcEdgeHaptic(); };
-  const stopPull=function(){ clearTimeout(pullTimer); pullTimer=0; if(g) g.pulling=false; };
+  const stopPull=function(){ if(g) g.pulling=false; };
   const end=function(){ stopPull(); g=null; };
   const boundary=function(el){
     const max=el.scrollHeight-el.clientHeight, y=el.scrollTop;
@@ -672,16 +674,6 @@ function mcBindEdgeHaptics(root, blocked){
     if(s.latched===edge||quiet()) return;
     s.latched=edge; s.armed=false;
     buzz();
-  };
-  const repeatPull=function(){
-    const own=g;
-    if(pullTimer||!own||!own.pulling) return;
-    pullTimer=setTimeout(function(){
-      pullTimer=0;
-      if(g!==own||!own.pulling) return;
-      if(quiet()||!own.el.isConnected||scroller(own.el)!==own.el||boundary(own.el)!==own.edge){ stopPull(); return; }
-      buzz(); repeatPull();
-    },mcHapticTune().edgeEvery);
   };
   const scroll=function(e){
     const el=scroller(e.target);
@@ -719,13 +711,21 @@ function mcBindEdgeHaptics(root, blocked){
     if(Math.abs(dy)<=Math.abs(dx)*1.2) return;
     const outward=edge==="top"?t.clientY-g.anchor:g.anchor-t.clientY;
     if(outward<10){ stopPull(); return; }
-    const resumed=!g.pulling;
-    pulse(g.el,edge);
-    // Seguir tirando con el borde ya alcanzado —también tras llegar por inercia— avisa YA, no
-    // tras el intervalo: «no vibra cuando sigues bajando estando abajo» (ronda 3). El intervalo
-    // sí se respeta para no encadenar dos toques pegados.
-    if(resumed&&!quiet()&&performance.now()-lastAt>=mcHapticTune().edgeEvery) buzz();
-    g.pulling=true; repeatPull();
+    const every=mcHapticTune().edgeEvery;
+    if(!g.pulling){
+      pulse(g.el,edge);
+      // Seguir tirando con el borde ya alcanzado —también tras llegar por inercia— avisa YA, no
+      // tras el intervalo: «no vibra cuando sigues bajando estando abajo» (ronda 3).
+      if(!quiet()&&performance.now()-lastAt>=every) buzz();
+      g.pulling=true; g.mark=t.clientY;
+      return;
+    }
+    /* Solo repite con recorrido NUEVO del dedo contra el borde, nunca con el dedo quieto: «si
+       bajo y sigo haciendo el gesto de bajar sí, pero si mantengo abajo no debería vibrar todo el
+       rato» (ronda 4; antes un reloj repetía mientras el dedo seguía puesto). El intervalo
+       sigue poniendo el ritmo máximo para que un arrastre rápido no sea un zumbido. */
+    const travel=edge==="top"?t.clientY-g.mark:g.mark-t.clientY;
+    if(travel>=MC_EDGE_PULL_STEP&&!quiet()&&performance.now()-lastAt>=every){ buzz(); g.mark=t.clientY; }
   };
   const listeners={touchstart:start,touchmove:move,touchend:end,touchcancel:end,visibilitychange:end};
   Object.keys(listeners).forEach(function(type){ root.addEventListener(type,listeners[type],{passive:true}); });

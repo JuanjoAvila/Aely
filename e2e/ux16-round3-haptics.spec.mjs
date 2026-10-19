@@ -16,15 +16,20 @@ export async function ux16Round3BrowserCases(){
   }
   const box=document.createElement('div');box.style.cssText='height:100px;overflow-y:auto;overscroll-behavior:auto';box.innerHTML='<div style="height:600px">Sintetico</div>';document.body.append(box);
   let before=calls.length;
+  // Ronda 5: con el dedo QUIETO en el borde no se repite; solo con recorrido nuevo contra él.
   touch(box,'touchstart',200,250);const prevented=touch(box,'touchmove',200,275);await sleep(365);
-  check('tiron mantenido produce ticks adicionales',calls.length-before>=3,true);
+  check('dedo quieto en el borde no repite',calls.length-before,1);
+  for(let y=290;y<=350;y+=15){await sleep(170);touch(box,'touchmove',200,y);}
+  check('seguir tirando repite con cada recorrido nuevo',calls.length-before>=4,true);
   const pull=calls.slice(before);check('tiron limitado al menos120ms',pull.slice(1).every((p,i)=>p.at-pull[i].at>=120),true);
-  touch(box,'touchend',200,275);before=calls.length;await sleep(210);check('soltar detiene inmediatamente',calls.length,before);
+  before=calls.length;touch(box,'touchmove',200,353);await sleep(170);touch(box,'touchmove',200,356);
+  check('temblor de unos pixeles no repite',calls.length,before);
+  touch(box,'touchend',200,356);before=calls.length;await sleep(210);check('soltar detiene inmediatamente',calls.length,before);
   touch(box,'touchstart',200,250);touch(box,'touchmove',200,275);await sleep(180);touch(box,'touchcancel',200,275);
   before=calls.length;await sleep(180);check('cancelar detiene ticks',calls.length,before);
   touch(box,'touchstart',200,250);touch(box,'touchmove',200,275);touch(box,'touchmove',200,260);
-  before=calls.length;await sleep(180);check('dejar de tirar detiene ticks',calls.length,before);
-  touch(box,'touchend',200,260);
+  before=calls.length;await sleep(180);touch(box,'touchmove',200,262);check('dar marcha atras no repite',calls.length,before);
+  touch(box,'touchend',200,262);
   box.scrollTop=200;box.dispatchEvent(new Event('scroll'));box.scrollTop=500;box.dispatchEvent(new Event('scroll'));
   before=calls.length;await sleep(330);check('inercia no inicia repeticion sin dedo',calls.length,before);
   touch(box,'touchstart',200,250);touch(box,'touchmove',200,225);await sleep(180);

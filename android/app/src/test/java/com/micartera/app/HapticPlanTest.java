@@ -4,110 +4,77 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class HapticPlanTest {
-    @Test public void round3FillCeiling() {
-        HapticPlan.Wave wave = HapticPlan.waveform(1100);
-        long total = 0;
-        for (int i = 0; i < wave.amplitudes.length; i++) {
-            total += wave.timings[i];
-            assertTrue("fill never exceeds soft edge", wave.amplitudes[i] > 0 && wave.amplitudes[i] <= 30);
+    private static int maxAmp(HapticPlan.Wave w) { int m = 0; for (int a : w.amplitudes) m = Math.max(m, a); return m; }
+
+    @Test public void round5StrengthChangesAmplitudeWithControl() {
+        int prevAmp = 0; long prevOn = 0;
+        for (int s : new int[]{1, 30, 70, 128, 200, 255}) {
+            HapticPlan.Wave w = HapticPlan.shape(HapticPlan.single(12, s), true);
+            assertNotNull(w);
+            assertTrue("amplitud crece con la fuerza", maxAmp(w) > prevAmp);
+            assertTrue("y el tiempo encendido no baja", HapticPlan.onTime(w) >= prevOn);
+            prevAmp = maxAmp(w); prevOn = HapticPlan.onTime(w);
         }
-        assertEquals(1100,total);
-        assertTrue("starts more softly than edge",wave.amplitudes[0] <= 5);
+        assertEquals(HapticPlan.MIN_FELT, maxAmp(HapticPlan.shape(HapticPlan.single(12, 1), true)));
+        assertEquals(255, maxAmp(HapticPlan.shape(HapticPlan.single(12, 255), true)));
     }
-    @Test public void round3EdgeBudget() {
-        HapticPlan plan = HapticPlan.create(12,12);
-        assertEquals(1,plan.scales.length);
-        assertEquals(.25f,plan.scales[0],.001f);
+    @Test public void round5StrengthChangesPatternWithoutControl() {
+        HapticPlan.Wave soft = HapticPlan.shape(HapticPlan.single(12, 1), false);
+        HapticPlan.Wave mid = HapticPlan.shape(HapticPlan.single(12, 128), false);
+        HapticPlan.Wave hard = HapticPlan.shape(HapticPlan.single(12, 255), false);
+        for (HapticPlan.Wave w : new HapticPlan.Wave[]{soft, mid, hard})
+            for (int a : w.amplitudes) assertTrue("sin control: solo encendido o apagado", a == 0 || a == HapticPlan.ON_AMPLITUDE);
+        assertTrue("fuerza 1 sigue vibrando", HapticPlan.onTime(soft) > 0);
+        assertTrue(HapticPlan.onTime(soft) < HapticPlan.onTime(mid));
+        assertTrue(HapticPlan.onTime(mid) < HapticPlan.onTime(hard));
+        assertEquals("fuerza máxima = encendido continuo", 1, hard.timings.length);
+        assertEquals(12, hard.timings[0]);
+        assertTrue("el patrón suave alterna", soft.timings.length > 1);
     }
-    @Test public void singlePrimitiveUsesEdgeBudget() {
-        HapticPlan plan = HapticPlan.create(1100, 12);
-        assertEquals(1,plan.scales.length);
-        assertEquals(.25f, plan.scales[0], .001f);
-    }
-    @Test public void singlePrimitiveDoesNotTrainFill() {
-        HapticPlan plan = HapticPlan.create(1100, 12);
-        assertEquals(1, plan.delays.length);
-        int total = 0;
-        for (int delay : plan.delays) { assertTrue(delay >= 0); total += delay + 12; }
-        assertEquals(12, total);
-        assertEquals(.25f, plan.scales[0], .001f);
-    }
-    @Test public void capsDurationAndCountAcrossMotorDurations() {
-        for (int duration : new int[]{1,10,200,1100,1200,5000,Integer.MAX_VALUE}) {
-            for (int primitive : new int[]{1,6,20,100,400,1200,2000}) {
-                HapticPlan plan = HapticPlan.create(duration, primitive);
-                if (primitive > Math.min(1200, duration)) { assertNull(plan); continue; }
-                assertNotNull(plan);assertEquals(1,plan.delays.length);
-                int total = 0;
-                for (int delay : plan.delays) { assertTrue(delay >= 0); total += delay + primitive; }
-                assertTrue(total <= Math.min(1200, duration));
-            }
+    @Test public void round5ShapeKeepsDurationAndBudget() {
+        for (int ms : new int[]{1, 4, 8, 12, 60, 100}) for (int s : new int[]{1, 64, 255}) {
+            HapticPlan.Wave w = HapticPlan.shape(HapticPlan.single(ms, s), true);
+            assertTrue(HapticPlan.total(w) <= ms);
+            assertTrue(HapticPlan.onTime(w) > 0);
+            for (long t : w.timings) assertTrue(t > 0);
+            assertTrue("termina encendido, sin silencio de cola", w.amplitudes[w.amplitudes.length - 1] > 0);
         }
+        assertNull(HapticPlan.shape(HapticPlan.single(12, 0), true));
+        assertNull(HapticPlan.shape(null, true));
     }
-    @Test public void invalidOrUnknownDurationsRequireFallback() {
-        assertNull(HapticPlan.create(0, 12));assertNull(HapticPlan.create(-1, 12));
-        assertNull(HapticPlan.create(1100, 0));assertNull(HapticPlan.create(1100, -1));
-        assertNull(HapticPlan.create(8, 12));
-    }
-    @Test public void round2PathCapabilities() {
-        assertEquals(HapticPlan.Path.WAVEFORM, HapticPlan.select(36,true,true,true,12));
-        assertEquals(HapticPlan.Path.WAVEFORM, HapticPlan.select(36,true,true,false,0));
-        assertEquals(HapticPlan.Path.LOW_TICK, HapticPlan.select(36,true,false,true,12));
-        assertEquals(HapticPlan.Path.SOFT_TICK, HapticPlan.select(36,true,false,false,0));
-        assertEquals(HapticPlan.Path.SOFT_TICK, HapticPlan.select(36,true,false,true,0));
-        assertEquals(HapticPlan.Path.NONE, HapticPlan.select(36,false,true,true,12));
-        assertEquals(HapticPlan.Path.NONE, HapticPlan.select(32,true,true,true,12));
-        assertEquals(HapticPlan.Path.NONE, HapticPlan.select(33,true,false,false,0));
-        assertEquals(HapticPlan.Path.LOW_TICK, HapticPlan.select(33,true,false,true,12));
-    }
-    @Test public void waveformBudget() {
-        for (int duration : new int[]{1,2,8,11,12,40,1100,1200,5000,Integer.MAX_VALUE}) {
-            HapticPlan.Wave wave = HapticPlan.waveform(duration);
-            long sum = 0;
-            assertTrue(wave.timings.length <= 60);
-            for (int i = 0; i < wave.timings.length; i++) {
-                assertTrue(wave.timings[i] > 0);sum += wave.timings[i];
-                assertTrue(wave.amplitudes[i] >= 3 && wave.amplitudes[i] <= 30);
-                if (i > 0) assertTrue(wave.amplitudes[i] >= wave.amplitudes[i-1]);
-            }
-            assertEquals(Math.min(1200,duration),sum);
-            assertEquals(3,wave.amplitudes[0]);
-            if (duration > 1) assertEquals(30,wave.amplitudes[wave.amplitudes.length-1]);
+    @Test public void round5FillFollowsStrengthPerSegment() {
+        HapticPlan.Wave raw = HapticPlan.custom(new long[]{20, 20, 20}, new int[]{0, 40, 200});
+        HapticPlan.Wave w = HapticPlan.shape(raw, false);
+        assertTrue(HapticPlan.total(w) <= 60);
+        long onSecond = 0, onThird = 0, at = 0;
+        for (int i = 0; i < w.timings.length; i++) {
+            if (w.amplitudes[i] > 0) { if (at >= 40) onThird += w.timings[i]; else if (at >= 20) onSecond += w.timings[i]; }
+            at += w.timings[i];
         }
-        assertNull(HapticPlan.waveform(0));assertNull(HapticPlan.waveform(-1));
+        assertTrue("tramo más fuerte, más rato encendido", onThird > onSecond);
+        assertEquals("el tramo a 0 calla", 0, w.amplitudes[0]);
     }
-    @Test public void round3ContinuousChoice() {
-        assertEquals(HapticPlan.Path.WAVEFORM,HapticPlan.selectFill(36,true,true));
-        assertEquals(HapticPlan.Path.NONE,HapticPlan.selectFill(36,true,false));
-        assertEquals(HapticPlan.Path.NONE,HapticPlan.selectFill(36,false,true));
-        assertEquals(HapticPlan.Path.NONE,HapticPlan.selectFill(32,true,true));
+    @Test public void legacyRampStillShapes() {
+        HapticPlan.Wave raw = HapticPlan.waveform(1100);
+        assertEquals(1100, HapticPlan.total(raw));
+        HapticPlan.Wave w = HapticPlan.shape(raw, true);
+        assertTrue(HapticPlan.total(w) <= 1100 && HapticPlan.total(w) > 1000);
+        assertNull(HapticPlan.waveform(0));
     }
-    @Test public void round3RampSampling() {
-        HapticPlan.Wave wave=HapticPlan.waveform(1100);
-        assertEquals(60,wave.timings.length);
-        assertEquals(3,wave.amplitudes[0]);assertEquals(30,wave.amplitudes[59]);
-        for(int i=0;i<60;i++) {
-            assertTrue(wave.timings[i]>0 && wave.timings[i]<=20);
-            if(i>0) assertTrue(wave.amplitudes[i]>=wave.amplitudes[i-1] && wave.amplitudes[i]-wave.amplitudes[i-1]<=1);
-        }
-    }
-    @Test public void round4CustomWaveFromWeb() {
+    @Test public void customWaveFromWebIsBounded() {
         HapticPlan.Wave wave = HapticPlan.custom(new long[]{20,20,20}, new int[]{0,300,-5});
         assertNotNull(wave);
         assertArrayEquals(new int[]{0,255,0}, wave.amplitudes);
-        assertEquals(60, HapticPlan.total(wave));
         assertNull("todo a cero no vibra", HapticPlan.custom(new long[]{20}, new int[]{0}));
         assertNull("longitudes distintas", HapticPlan.custom(new long[]{20,20}, new int[]{9}));
         assertNull("tramo nulo", HapticPlan.custom(new long[]{0}, new int[]{9}));
         assertNull("tramo larguísimo", HapticPlan.custom(new long[]{201}, new int[]{9}));
-        assertNull("más de tres segundos", HapticPlan.custom(new long[]{200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200}, new int[]{9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9}));
         assertNull("sin onda", HapticPlan.custom(new long[0], new int[0]));
     }
-    @Test public void round4EdgeScaleKeepsLegacyDefault() {
-        assertEquals(HapticPlan.EDGE_SCALE, HapticPlan.scaleFor(HapticPlan.EDGE_AMPLITUDE), .001f);
-        assertEquals(1f, HapticPlan.scaleFor(255), .001f);
-        assertTrue(HapticPlan.scaleFor(1) > 0);
-        assertEquals(255, HapticPlan.clamp(999, 1, 255));
-        assertEquals(1, HapticPlan.clamp(-3, 1, 255));
+    @Test public void pathNeedsVibratorAndApi33() {
+        assertEquals(HapticPlan.Path.WAVEFORM, HapticPlan.select(36, true, true));
+        assertEquals(HapticPlan.Path.NONE, HapticPlan.select(36, false, true));
+        assertEquals(HapticPlan.Path.NONE, HapticPlan.select(36, true, false));
+        assertEquals(HapticPlan.Path.NONE, HapticPlan.select(32, true, true));
     }
 }
