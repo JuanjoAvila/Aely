@@ -1,0 +1,48 @@
+{
+  "status": "done",
+  "released": true,
+  "phase": "NO_REPRO_DIRECTED_WEB",
+  "baseSHA": "656194916c61e8fd6d3ca50450d072d2980784e1",
+  "productSHA": "656194916c61e8fd6d3ca50450d072d2980784e1",
+  "productChanged": false,
+  "PR": null,
+  "productReady": false,
+  "realIncidentClosed": false,
+  "tests": [
+    {
+      "exitCode": 0,
+      "label": "build-base",
+      "commandEvidence": "build-base.json"
+    },
+    {
+      "exitCode": 1,
+      "label": "repro-first",
+      "commandEvidence": "repro-first.json"
+    },
+    {
+      "exitCode": 0,
+      "label": "repro-expense",
+      "commandEvidence": "repro-expense.json"
+    }
+  ],
+  "reportPath": "work/ux11-sheet-scroll/informe.txt",
+  "reportSHA256": "791205919678d4d31a16b8d0e9009a692f5f180b62e8f86e46cb71bee6d194c2",
+  "manifestSHA256": "5176460dda0a92a9b900525b430c6f0bf066beb2cee93b1e172c99cab2ee8254",
+  "checkpointSHA256": "ac503fd71cd23c0e8c305d4cb1c6b1f6e44eafaad0d823c6953add1a410d8e12",
+  "coverage": "4 unique flows =3 initial PASS plus1 remaining PASS; first run EXIT1 harness precondition, no combined4of4 EXIT0",
+  "summary": "NO_REPRO acotado en cuatro hojas reales a media pagina sobre656194916. HTML propio3df253bf exacto HTTP58641 en todoscasos. Deudas1878 Metas1796 Recibos694 Gasto1294 conservan scrollTop, primera fila e identidad y ancla con delta0 en antes abierta cierreiniciado y asentado; cuatro PNG antesdespues identicos. Recibos contenedor settings-push real en Gestionar Servicios, demaspage-scroll-host. Snapshotsraw y objetos financieros completos antesdespues exactos; cero cloudwrites invokes externos de escritura, mocksin sesion y red externa abortada. BuildEXIT0; primer DOM EXIT1 tresPASS y gasto falla preparacion por paginacion12filas; corregido soloarnes con sentinelreal esperando30, restanteGasto1PASS EXIT0. No repetir3PASS ni afirmar4of4EXIT0. Capturas12 y JSON4 privados verificados. Fuente limpia producto0 PRninguna; NO_REPRO no valida movil ni todosgestoscierre. Solo cierreporfondo y muestrasdiscretas, sinCPU6rendimientoAPKbackenddineroVERSIONcatalogocapsdeploymerge. Preservadosfuentes32privados59 y cierrespreviosH2PR275splash. OWN antesresult13de20 total95 quedan7; guard30s previo rechazo antespushfetch preservado sinconsumo, infraccionhistorica40a41 intacta. STOP trasreadback y handoffprivadoROOT74 porarchivo, sinmensajenativo. Brokersnoiniciados splashaparcado.",
+  "limitations": [
+    "Visible backdrop close only",
+    "Four discrete geometry samples, not every animation frame",
+    "Native WebView, touch inertia, drag/back/keyboard/save paths not tested",
+    "Disconnected mock and blocked external network; no live data",
+    "No product candidate or integration gates executed"
+  ],
+  "nextAction": "STOP. ROOT74 review NO_REPRO evidence; new dispatch required for any additional work.",
+  "publicationNote": "Primer prepare EXIT1 rechazado por filtroprivacidad antespushfetch: argv privado llevaba ruta local de CLI. Original intacto privado; payloadpublico usa label EXIT y referenciarelativa, filtro sin cambios.",
+  "schema": 1,
+  "taskId": "ux11-sheet-scroll-jump-codex-20261019",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-5fc9afdec60f82b1",
+  "createdAt": "2026-10-19T09:38:13.303Z"
+}
