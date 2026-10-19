@@ -24,7 +24,7 @@ function ringEvent(pct,duration=1100){
 }
 test('valores por defecto: los de la ronda 3 y algo mas de fuerza en borde y grafica',()=>{
   const x=setup();const v=x.context.mcHapticTune();
-  assert.equal(v.fillAmp,30);assert.equal(v.fillMs,1100);assert.equal(v.edgeEvery,150);
+  assert.equal(v.fillAmp,40,"ronda 7: el anillo, suave por defecto");assert.equal(v.fillMs,1100);assert.equal(v.edgeEvery,150);
   assert.ok(v.edgeAmp>30&&v.tickAmp>30,'borde y grafica por encima del 30 de la ronda 3');
   assert.equal(x.css['--v42-cycle-ms'],'1100ms','el anillo arranca con la duracion de siempre');
 });
@@ -40,25 +40,28 @@ test('guardar: persiste, se recorta al rango y otro arranque lo lee',()=>{
   assert.equal(y.store.has('_mcHapticTune'),false);
 });
 test('almacen roto o con basura vuelve a los de serie sin romper',()=>{
-  const x=setup('{no es json');assert.equal(x.context.mcHapticTune().fillAmp,30);
-  const y=setup(JSON.stringify({fillAmp:'fuerte',edgeMs:null}));assert.equal(y.context.mcHapticTune().fillAmp,30);
+  const x=setup('{no es json');assert.equal(x.context.mcHapticTune().fillAmp,40);
+  const y=setup(JSON.stringify({fillAmp:'fuerte',edgeMs:null}));assert.equal(y.context.mcHapticTune().fillAmp,40);
 });
 test('borde: mcHaptic lleva la fuerza y duracion guardadas',()=>{
   const x=setup(JSON.stringify({edgeAmp:140,edgeMs:20}));
   x.context.mcEdgeHaptic();
   assert.deepEqual(x.calls.map(c=>[c.method,c.amplitude,c.durationMs]),[['edge',140,20]]);
 });
-test('Mi ciclo: dura la animacion, sigue al trazo y es proporcional al porcentaje',()=>{
-  const big=setup(JSON.stringify({fillAmp:200}));big.context.mcInicioFillHaptic(ringEvent(90));
-  const small=setup(JSON.stringify({fillAmp:200}));small.context.mcInicioFillHaptic(ringEvent(20));
-  const [b]=big.calls,[s]=small.calls;
-  assert.equal(b.method,'fill');assert.equal(b.durationMs,1100);assert.equal(b.amplitude,200);
-  assert.equal(b.timings.reduce((a,t)=>a+t,0),1100,'la onda dura lo que la animacion');
-  assert.equal(b.timings.length,b.amplitudes.length);
-  assert.equal(Math.max(...b.amplitudes),Math.round(200*.9));assert.equal(Math.max(...s.amplitudes),Math.round(200*.2));
-  const sum=w=>w.amplitudes.reduce((a,x)=>a+x,0);assert.ok(sum(b)>sum(s)*3,'mas lleno, mas vibracion');
-  const peak=b.amplitudes.indexOf(Math.max(...b.amplitudes));
-  assert.ok(b.amplitudes[0]<b.amplitudes[peak]/3&&b.amplitudes.at(-1)<b.amplitudes[peak]/3,'arranca y acaba suave, como el trazo');
+test('Mi ciclo (ronda 7): unos toques cortos con la fuerza, la duracion y el uso del ajustador',()=>{
+  const tune=JSON.stringify({fillAmp:120,fillMs:1500,usage:'hardware'});
+  const full=setup(tune);full.context.mcInicioFillHaptic(ringEvent(100,1500));
+  const fifth=setup(tune);fifth.context.mcInicioFillHaptic(ringEvent(20,1500));
+  const [b]=full.calls,[s]=fifth.calls;
+  assert.equal(b.method,'fill');assert.equal(b.usage,'hardware','el relleno lleva el uso elegido');
+  const on=w=>[...w.amplitudes].filter(a=>a>0);
+  assert.deepEqual(on(b),[120,120,120,120,120],'anillo lleno: cinco toques a la fuerza del deslizador');
+  assert.deepEqual(on(s),[120],'un quinto del ciclo: un solo toque');
+  b.timings.forEach((t,i)=>{ if(b.amplitudes[i]>0) assert.ok(t<=8,'cada toque es corto'); assert.ok(t>0&&t<=200,'tramos que la APK acepta'); });
+  const total=b.timings.reduce((a,t)=>a+t,0);assert.ok(total<=1500&&total>1400,'repartidos a lo largo de la duracion elegida');
+  const onMs=b.timings.reduce((a,t,i)=>a+(b.amplitudes[i]>0?t:0),0);assert.ok(onMs<=40,'en total, menos de 40 ms de vibracion');
+  const def=setup();def.context.mcInicioFillHaptic(ringEvent(100));
+  assert.ok(Math.max(...def.calls[0].amplitudes)<=40,'por defecto, suave');
   const empty=setup();empty.context.mcInicioFillHaptic(ringEvent(0));assert.equal(empty.calls.length,0,'anillo vacio no vibra');
 });
 test('texto para copiar: corto y con los siete numeros',()=>{
@@ -71,7 +74,7 @@ test('grafica de Inicio: el tick usa los valores del ajustador',()=>{
   const dash=fs.readFileSync(new URL('../src/modules/03-tab-dash.js',import.meta.url),'utf8');
   assert.match(dash,/mcHaptic\("edge",\{amplitude:v\.tickAmp,durationMs:v\.tickMs\}\)/);
 });
-test('borde (ronda 5): con el dedo quieto no repite; cada recorrido nuevo contra el borde, si',()=>{
+test('borde (ronda 7): una vibracion por arrastre; volver atras y empujar otra vez si',()=>{
   const x=setup(JSON.stringify({edgeEvery:100}));const clock={t:1000};x.context.performance.now=()=>clock.t;
   x.context.document.body={};
   x.context.getComputedStyle=()=>({overflowX:'visible',overflowY:'auto',overscrollBehaviorY:'auto'});
@@ -83,15 +86,22 @@ test('borde (ronda 5): con el dedo quieto no repite; cada recorrido nuevo contra
   const edges=()=>x.calls.filter(c=>c.method==='edge').length;
   touch('touchstart',300);touch('touchmove',285);
   assert.equal(edges(),1,'tirar estando abajo avisa al momento');
-  clock.t+=1000;
-  assert.equal(edges(),1,'un segundo con el dedo quieto: ningun toque mas');
-  touch('touchmove',283);assert.equal(edges(),1,'un temblor de 2 px no cuenta como seguir tirando');
-  touch('touchmove',270);assert.equal(edges(),2,'seguir tirando hacia el borde vuelve a avisar');
-  touch('touchmove',255);assert.equal(edges(),2,'sin pasar el intervalo no se encadena');
-  clock.t+=150;assert.equal(edges(),2,'el reloj solo no repite');
-  touch('touchmove',254);assert.equal(edges(),3,'el recorrido que el intervalo freno cuenta en el siguiente movimiento');
-  clock.t+=150;touch('touchmove',250);assert.equal(edges(),3,'4 px nuevos no bastan');
-  touch('touchend');clock.t+=500;assert.equal(edges(),3,'soltar no deja nada pendiente');
+  for(let y=270;y>=150;y-=15){clock.t+=200;touch('touchmove',y);}
+  assert.equal(edges(),1,'seguir arrastrando contra el borde no repite');
+  clock.t+=1000;assert.equal(edges(),1,'ni con el dedo quieto');
+  clock.t+=200;touch('touchmove',155);touch('touchmove',145);touch('touchmove',130);
+  assert.equal(edges(),1,'un temblor hacia atras no rearma');
+  clock.t+=200;touch('touchmove',150);touch('touchmove',130);touch('touchmove',110);
+  assert.equal(edges(),2,'volver atras de verdad y empujar otra vez es otro gesto');
+  touch('touchend');clock.t+=200;touch('touchstart',300);touch('touchmove',280);
+  assert.equal(edges(),3,'soltar y volver a tirar, otro');
+  touch('touchend');
+});
+test('segmentos (ronda 7): el tick de la grafica',()=>{
+  const x=setup(JSON.stringify({tickAmp:55,tickMs:9}));x.context.mcTickHaptic();
+  assert.deepEqual(x.calls.map(c=>[c.method,c.amplitude,c.durationMs]),[["edge",55,9]]);
+  const plan=fs.readFileSync(new URL('../src/modules/14-v4-screens.js',import.meta.url),'utf8');
+  assert.match(plan,/if\(seg!==s\.id\) mcTickHaptic\(\); setSeg\(s\.id\)/,'Plan: tick al cambiar de segmento');
 });
 test('uso de la vibracion (ronda 6): se guarda, viaja en cada llamada y la basura vuelve a toque',()=>{
   const x=setup();assert.equal(x.context.mcHapticTune().usage,'touch','por defecto, el de siempre');

@@ -6698,7 +6698,7 @@ const LANG = {
     v4_set_appear:"Apariencia", v4_set_easy:"Para empezar fácil", v4_set_conn:"Conexiones",
     v4_set_money:"Dinero", v4_set_app:"App",
     v4_set_tour:"Ver el tutorial", v4_set_adv:"Avanzado",
-   hv_title:"Vibración", hv_usage:"Tipo de vibración", hv_usage_hint:"Si al probar todas las fuerzas se notan igual, prueba otro tipo.", hv_u_touch:"Toque", hv_u_hardware:"Botones", hv_u_media:"Multimedia", hv_u_unknown:"Genérica", hv_motor_amp:"Tu móvil ajusta la fuerza y el ritmo de la vibración.", hv_motor_onoff:"Tu móvil no ajusta la fuerza: se nota como toques más largos o más cortos.", hv_intro:"Busca la vibración que te guste. Se guarda solo en este móvil.", hv_cycle:"Mi ciclo (el anillo de Inicio)", hv_cycle_hint:"Vibra mientras se rellena el anillo, más cuanto más lleno esté.", hv_edge:"Al llegar arriba o abajo", hv_tick:"Cursor de la gráfica de Inicio", hv_strength:"Fuerza", hv_length:"Duración", hv_every:"Repite cada (si sigues tirando)", hv_try:"Probar", hv_copy:"Copiar valores", hv_copied:"Valores copiados", hv_copy_fail:"No se pudieron copiar", hv_reset:"Volver a los de serie", hv_need_apk:"Para notar estos valores hay que instalar la última versión de la app.", hv_no_native:"La vibración solo funciona en la app de Android.",
+   hv_title:"Vibración", hv_usage:"Tipo de vibración", hv_usage_hint:"Si al probar todas las fuerzas se notan igual, prueba otro tipo.", hv_u_touch:"Toque", hv_u_hardware:"Botones", hv_u_media:"Multimedia", hv_u_unknown:"Genérica", hv_motor_amp:"Tu móvil ajusta la fuerza y el ritmo de la vibración.", hv_motor_onoff:"Tu móvil no ajusta la fuerza: se nota como toques más largos o más cortos.", hv_intro:"Busca la vibración que te guste. Se guarda solo en este móvil.", hv_cycle:"Mi ciclo (el anillo de Inicio)", hv_cycle_hint:"Unos toques suaves mientras se rellena el anillo: más toques cuanto más lleno esté.", hv_edge:"Al llegar arriba o abajo", hv_tick:"Cursor de la gráfica de Inicio", hv_strength:"Fuerza", hv_length:"Duración", hv_every:"Repite cada (si sigues tirando)", hv_try:"Probar", hv_copy:"Copiar valores", hv_copied:"Valores copiados", hv_copy_fail:"No se pudieron copiar", hv_reset:"Volver a los de serie", hv_need_apk:"Para notar estos valores hay que instalar la última versión de la app.", hv_no_native:"La vibración solo funciona en la app de Android.",
     v4_moved_cat:"Movido a {cat}", 
     v4_exp_del:"Borrar", v4_exp_del_q:"¿Borrar «{name}»?", v4_exp_del_sub:"Podrás recuperarlo durante 5 segundos.",
     f_amount_aria:"Importe", f_concept_ph:"Toca para escribir el concepto", f_cat:"Categoría",
@@ -9259,7 +9259,7 @@ function mcReduced(){
    en ESTE móvil: es una preferencia del motor de su teléfono, no un dato que viaje a la nube.
    Por defecto, los de la ronda 3 salvo borde y gráfica, que pedían «un pelín más». */
 const MC_HAPTIC_KEY="_mcHapticTune";
-const MC_HAPTIC_DEF={fillAmp:30,fillMs:1100,edgeAmp:70,edgeMs:12,edgeEvery:150,tickAmp:70,tickMs:10};
+const MC_HAPTIC_DEF={fillAmp:40,fillMs:1100,edgeAmp:70,edgeMs:12,edgeEvery:150,tickAmp:70,tickMs:10};
 const MC_HAPTIC_RANGE={fillAmp:[1,255],fillMs:[300,2500],edgeAmp:[1,255],edgeMs:[4,60],edgeEvery:[60,400],tickAmp:[1,255],tickMs:[4,40]};
 /* Ronda 6: con uso «toque» su OnePlus 13 tira nuestra onda y toca su efecto de serie (dumpsys,
    OplusPrebakedSegment de 45 ms). El ajustador deja elegir el uso hasta ver cuál la respeta. */
@@ -9307,21 +9307,33 @@ function mcBezierY(x,p){
   for(let i=0;i<24;i++){ tt=(lo+hi)/2; if(bx(tt)<x) lo=tt; else hi=tt; }
   return 3*(1-tt)*(1-tt)*tt*p[1]+3*(1-tt)*tt*tt*p[3]+tt*tt*tt;
 }
-/* La onda del anillo sigue al TRAZO: cada tramo vibra en proporción a cuánto arco se pinta en
-   él (la velocidad de la curva), escalado por el porcentaje del ciclo. Así un 20 % apenas roza y
-   un 90 % se nota entero, arranca y acaba suave como el dibujo, y no queda zumbando con el
-   anillo ya quieto — «vibra un montón desde el principio y dura un montón» (ronda 3). */
+// Momento (0–1 de la animación) en que el trazo llega a la fracción `y` de su recorrido.
+function mcBezierXAt(y,p){
+  let lo=0,hi=1,x=y;
+  for(let i=0;i<24;i++){ x=(lo+hi)/2; if(mcBezierY(x,p)<y) lo=x; else hi=x; }
+  return x;
+}
+const MC_CYCLE_TICKS=5, MC_CYCLE_TICK_MS=8, MC_WAVE_STEP_MAX=200;
+/* El anillo ya no es una onda continua: son unos pocos toques como el punto de la gráfica (el
+   que le gusta), repartidos donde el trazo va llegando, uno por cada quinto del ciclo lleno.
+   Un 20 % es un toque y un 100 % son cinco; con silencio entre medias. La onda continua de la
+   ronda 4, troceada por la APK en ranuras, salía como una ristra de 1,1 s a fuerza mínima 60
+   aunque el deslizador estuviera en 1 — «al entrar vibra una locura» (ronda 7). */
 function mcCycleWave(durationMs,fraction,amp){
   const frac=Math.max(0,Math.min(1,fraction)), dur=Math.round(durationMs);
-  if(!(dur>0)||!(frac>0)) return null;
-  const n=Math.max(1,Math.min(60,Math.round(dur/20))), timings=[], speeds=[];
-  let prev=0, top=0;
-  for(let i=0;i<n;i++){
-    const y=mcBezierY((i+1)/n,MC_CYCLE_EASE), s=Math.max(0,y-prev);
-    prev=y; speeds.push(s); if(s>top) top=s;
-    timings.push(Math.floor(dur/n)+(i<dur%n?1:0));
+  if(!(dur>0)||!(frac>0)||!(amp>0)) return null;
+  const n=Math.max(1,Math.round(frac*MC_CYCLE_TICKS)), timings=[], amplitudes=[];
+  let at=0;
+  // La APK rechaza tramos de más de 200 ms: el silencio largo va en trozos.
+  const gap=function(ms){ while(ms>0){ const d=Math.min(MC_WAVE_STEP_MAX,ms); timings.push(d); amplitudes.push(0); ms-=d; } };
+  for(let i=1;i<=n;i++){
+    const end=Math.round(mcBezierXAt(i/n,MC_CYCLE_EASE)*dur), startAt=Math.max(at,end-MC_CYCLE_TICK_MS);
+    if(startAt>=dur) break;
+    gap(startAt-at);
+    const len=Math.min(MC_CYCLE_TICK_MS,dur-startAt);
+    timings.push(len); amplitudes.push(Math.round(amp));
+    at=startAt+len;
   }
-  const amplitudes=speeds.map(function(s){ return top>0?Math.round(amp*frac*s/top):0; });
   return amplitudes.some(function(a){ return a>0; })?{timings:timings,amplitudes:amplitudes}:null;
 }
 
@@ -9342,11 +9354,17 @@ function mcEdgeHaptic(){
   const v=mcHapticTune();
   mcHaptic("edge",{amplitude:v.edgeAmp,durationMs:v.edgeMs});
 }
-// Píxeles de arrastre nuevo contra el borde que valen otro toque: menos es el temblor del dedo.
-const MC_EDGE_PULL_STEP=8;
+// Píxeles de vuelta atrás que convierten el siguiente empuje en otro gesto: menos es temblor.
+const MC_EDGE_REARM=12;
+// Cambiar de segmento suena como un punto de la gráfica: el tick que le gusta (ronda 7).
+function mcTickHaptic(){
+  const v=mcHapticTune();
+  return mcHaptic("edge",{amplitude:v.tickAmp,durationMs:v.tickMs});
+}
 function mcBindEdgeHaptics(root, blocked){
   let g=null, states=new WeakMap(), lastAt=-Infinity;
-  const buzz=function(){ lastAt=performance.now(); mcEdgeHaptic(); };
+  // Un toque por arrastre: también la llegada al borde con el dedo puesto cuenta como el de ese gesto.
+  const buzz=function(){ lastAt=performance.now(); if(g) g.done=true; mcEdgeHaptic(); };
   const stopPull=function(){ if(g) g.pulling=false; };
   const end=function(){ stopPull(); g=null; };
   const boundary=function(el){
@@ -9407,26 +9425,26 @@ function mcBindEdgeHaptics(root, blocked){
     if(Math.abs(dx)>8&&Math.abs(dx)>Math.abs(dy)){ end(); return; }
     const edge=boundary(g.el);
     // Al aterrizar en el borde se empieza a contar desde allí: el recorrido de scroll no vale.
-    if(!edge||edge!==g.edge){ stopPull(); g.edge=edge; g.anchor=t.clientY; return; }
-    if((edge==="top"&&step<0)||(edge==="bottom"&&step>0)){ stopPull(); g.anchor=t.clientY; return; }
-    if(Math.abs(dy)<=Math.abs(dx)*1.2) return;
-    const outward=edge==="top"?t.clientY-g.anchor:g.anchor-t.clientY;
-    if(outward<10){ stopPull(); return; }
-    const every=mcHapticTune().edgeEvery;
-    if(!g.pulling){
-      pulse(g.el,edge);
-      // Seguir tirando con el borde ya alcanzado —también tras llegar por inercia— avisa YA, no
-      // tras el intervalo: «no vibra cuando sigues bajando estando abajo» (ronda 3).
-      if(!quiet()&&performance.now()-lastAt>=every) buzz();
-      g.pulling=true; g.mark=t.clientY;
+    if(!edge||edge!==g.edge){ stopPull(); g.edge=edge; g.anchor=t.clientY; g.peak=t.clientY; return; }
+    const out=edge==="top"?1:-1;   // signo del empuje contra el borde
+    if(step*out<0){
+      stopPull(); g.anchor=t.clientY;
+      // Volver atrás de verdad rearma: el siguiente empuje ya es otro gesto contra el borde.
+      if(g.peak!=null&&(g.peak-t.clientY)*out>=MC_EDGE_REARM) g.done=false;
       return;
     }
-    /* Solo repite con recorrido NUEVO del dedo contra el borde, nunca con el dedo quieto: «si
-       bajo y sigo haciendo el gesto de bajar sí, pero si mantengo abajo no debería vibrar todo el
-       rato» (ronda 4; antes un reloj repetía mientras el dedo seguía puesto). El intervalo
-       sigue poniendo el ritmo máximo para que un arrastre rápido no sea un zumbido. */
-    const travel=edge==="top"?t.clientY-g.mark:g.mark-t.clientY;
-    if(travel>=MC_EDGE_PULL_STEP&&!quiet()&&performance.now()-lastAt>=every){ buzz(); g.mark=t.clientY; }
+    if(step*out>0) g.peak=t.clientY;
+    if(Math.abs(dy)<=Math.abs(dx)*1.2) return;
+    const outward=(t.clientY-g.anchor)*out;
+    if(outward<10){ stopPull(); return; }
+    if(g.pulling) return;
+    g.pulling=true;
+    pulse(g.el,edge);
+    /* UNA vibración por arrastre contra el borde, nunca una ristra: «si mantengo el dedo y lo
+       muevo vibra una locura, no de fuerza sino muchas veces» (ronda 7; la 5 repetía cada 8 px).
+       Seguir tirando estando ya en el borde —también tras llegar por inercia— avisa al momento
+       (ronda 3); otra solo tras soltar o tras volver atrás y empujar de nuevo. */
+    if(!g.done&&!quiet()&&performance.now()-lastAt>=mcHapticTune().edgeEvery) buzz();
   };
   const listeners={touchstart:start,touchmove:move,touchend:end,touchcancel:end,visibilitychange:end};
   Object.keys(listeners).forEach(function(type){ root.addEventListener(type,listeners[type],{passive:true}); });
@@ -10845,8 +10863,8 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
     React.createElement("div",{className:"v4-sheet-body v4-ficha-body","data-testid":testPrefix||"expense-ficha"},
       React.createElement("div",{className:"v4-ficha-head"},
         React.createElement("div",{className:"v4-seg v4-ficha-seg"},
-          React.createElement("button",{type:"button",className:"v4-seg-btn"+(!isIn?" on":""),onClick:function(){ onKind("gasto"); }},t("v4_gasto")),
-          React.createElement("button",{type:"button",className:"v4-seg-btn"+(isIn?" on":""),onClick:function(){ onKind("ingreso"); }},t("v4_ingreso"))),
+          React.createElement("button",{type:"button",className:"v4-seg-btn"+(!isIn?" on":""),onClick:function(){ if(isIn) mcTickHaptic(); onKind("gasto"); }},t("v4_gasto")),
+          React.createElement("button",{type:"button",className:"v4-seg-btn"+(isIn?" on":""),onClick:function(){ if(!isIn) mcTickHaptic(); onKind("ingreso"); }},t("v4_ingreso"))),
         React.createElement("button",{type:"button",className:"v4-ficha-date",onClick:onDate},dateLabel)),
       React.createElement("div",{className:"v4-ficha-amount-row"},
         React.createElement("button",{type:"button",className:"v4-ficha-amount v4-apuntar-amt serif num"+(amountEmpty?" empty":""),
@@ -23741,7 +23759,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="b1168b05d289c86475e942ef2eba38ee9869b6f0219dd6c9a8d4f0f345370ae8";
+var _rnSha="664d26155c91aaaf6dafd5a1827cb8f6621c48e8f6016ec356d995a12d01da3b";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -25487,7 +25505,8 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       const vel=dyRaw/dt;
       const pasa=allowCommit && (dyRaw>(window.innerHeight||700)*TH || (vel>FLICK_V && dyRaw>FLICK_MIN));
       if(pasa){
-        try{ if(navigator.vibrate) navigator.vibrate(8); }catch(err){}
+        // El mismo tick que los botones de segmento y la gráfica; sin la APK, el de siempre.
+        if(!mcTickHaptic()){ try{ if(navigator.vibrate) navigator.vibrate(8); }catch(err){} }
         const i=order.indexOf(seg);
         const nextId=order[(i+(dir>0?1:-1)+order.length)%order.length];
         cleanup(el);
@@ -25545,7 +25564,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     !simple && React.createElement("div",{className:"v4-seg",role:"tablist"},
       segs.map(function(s){
         return React.createElement("button",{key:s.id,type:"button",role:"tab","aria-selected":seg===s.id,"data-seg":s.id,
-          className:"v4-seg-btn"+(seg===s.id?" on":""),onClick:function(){ setSeg(s.id); }}, s.lab);
+          className:"v4-seg-btn"+(seg===s.id?" on":""),onClick:function(){ if(seg!==s.id) mcTickHaptic(); setSeg(s.id); }}, s.lab);
       })
     ),
     capa("recibos", React.createElement(PlanBills,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen,simple:simple})),

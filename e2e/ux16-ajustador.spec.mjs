@@ -70,7 +70,8 @@ test('UX16 ajustador: en beta se mueve, se guarda, se prueba y lo obedecen borde
   await tuner.locator('[data-group="fill"] .chip').click();
   const fill=await page.evaluate(()=>window.__ux16.fill.at(-1));
   expect(fill.timings.reduce((a,t)=>a+t,0)).toBe(1500);
-  expect(fill.amplitude).toBe(30);
+  expect(fill.amplitude).toBe(40);
+  expect(fill.amplitudes.filter(a=>a>0)).toEqual([40,40,40,40,40]);
 
   // Copiar deja en el portapapeles el texto corto que él nos manda.
   await page.evaluate(()=>{window.__copied=null;navigator.clipboard.writeText=t=>{window.__copied=t;return Promise.resolve();};});
@@ -101,7 +102,7 @@ test('UX16 ajustador: en beta se mueve, se guarda, se prueba y lo obedecen borde
   expect(r.arrival).toMatchObject({amplitude:180});
   expect(r.immediate,'seguir tirando estando abajo vibra al momento').toBe(1);
   expect(r.held,'con el dedo quieto no repite').toBe(1);
-  expect(r.repeated,'y vuelve a vibrar al seguir tirando').toBe(2);
+  expect(r.repeated,'ni al seguir arrastrando: uno por arrastre').toBe(1);
 });
 
 test('UX16 ajustador: en el canal estable no aparece',async({page})=>{
@@ -110,4 +111,19 @@ test('UX16 ajustador: en el canal estable no aparece',async({page})=>{
   await expect(page.getByRole('heading',{name:/Ajustes|Settings|Ajustos/i})).toBeVisible({timeout:8_000});
   await expect(page.locator('.set-row',{hasText:'Vibración'})).toHaveCount(0);
   await expect(page.locator('.hv-tuner')).toHaveCount(0);
+});
+
+test('UX16 ronda 7: cambiar de segmento en Plan da el tick de la grafica',async({page})=>{
+  await boot(page,'beta');
+  await page.evaluate(()=>localStorage.setItem('_mcHapticTune',JSON.stringify({tickAmp:66,tickMs:9})));
+  await page.locator('.botnav-tab[data-tour="plan"]').click();
+  const deudas=page.locator('.v4-seg-btn[data-seg="deudas"]').last();
+  await expect(deudas).toBeVisible({timeout:8_000});
+  const before=await page.evaluate(()=>window.__ux16.edge.length);
+  await deudas.click();
+  await expect.poll(()=>page.evaluate(()=>window.__ux16.edge.length)).toBe(before+1);
+  expect(await page.evaluate(()=>window.__ux16.edge.at(-1))).toMatchObject({amplitude:66,durationMs:9});
+  await deudas.click();
+  await page.waitForTimeout(150);
+  expect(await page.evaluate(()=>window.__ux16.edge.length),'pulsar el segmento ya activo no vibra').toBe(before+1);
 });

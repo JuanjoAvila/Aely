@@ -233,7 +233,8 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       const vel=dyRaw/dt;
       const pasa=allowCommit && (dyRaw>(window.innerHeight||700)*TH || (vel>FLICK_V && dyRaw>FLICK_MIN));
       if(pasa){
-        try{ if(navigator.vibrate) navigator.vibrate(8); }catch(err){}
+        // El mismo tick que los botones de segmento y la gráfica; sin la APK, el de siempre.
+        if(!mcTickHaptic()){ try{ if(navigator.vibrate) navigator.vibrate(8); }catch(err){} }
         const i=order.indexOf(seg);
         const nextId=order[(i+(dir>0?1:-1)+order.length)%order.length];
         cleanup(el);
@@ -291,7 +292,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     !simple && React.createElement("div",{className:"v4-seg",role:"tablist"},
       segs.map(function(s){
         return React.createElement("button",{key:s.id,type:"button",role:"tab","aria-selected":seg===s.id,"data-seg":s.id,
-          className:"v4-seg-btn"+(seg===s.id?" on":""),onClick:function(){ setSeg(s.id); }}, s.lab);
+          className:"v4-seg-btn"+(seg===s.id?" on":""),onClick:function(){ if(seg!==s.id) mcTickHaptic(); setSeg(s.id); }}, s.lab);
       })
     ),
     capa("recibos", React.createElement(PlanBills,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen,simple:simple})),
