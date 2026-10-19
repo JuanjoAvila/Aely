@@ -1801,12 +1801,12 @@ for(const lang of ["es","en","ca"])test(`beta147: la nota nueva con alargar el p
   const production=JSON.parse(execFileSync("git",["show","5d4c8da771e3658954d4b7e8d16a5f2a0101836c:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:8e6}));
   expect(production.length).toBe(234);
   const catalog=await page.evaluate(()=>RELEASE_NOTES.map(n=>[n.v,Array.isArray(n.tandas)?n.tandas.length:-1]));
-  expect(catalog).toEqual([["4.26.147",1],["4.26.146",1],["4.26.145",2],["4.26.144",1],["4.26.143",0],["4.26.142",0],["4.26.141",0],["4.26.140",0],["4.26.139",0],["4.26.138",0],...production.map(n=>[n.v,0])]);
+  expect(catalog).toEqual([["4.26.147",2],["4.26.146",1],["4.26.145",2],["4.26.144",1],["4.26.143",0],["4.26.142",0],["4.26.141",0],["4.26.140",0],["4.26.139",0],["4.26.138",0],...production.map(n=>[n.v,0])]);
   const pack=await page.evaluate(()=>{CONFIG.APP_VERSION="4.26.147.1";const p=betaChecklist(CONFIG.APP_VERSION,"4.26.117",55);return {tandas:p.tandas.length,items:p.items.length};});
-  expect(pack).toEqual({tandas:5,items:22});
+  expect(pack).toEqual({tandas:6,items:27});
   const title=await page.evaluate(lang=>rnT(RELEASE_NOTES[0].t,lang),lang);
   const items=await page.evaluate(lang=>rnItems(RELEASE_NOTES[0],lang),lang);
-  expect(items.length).toBe(1);
+  expect(items.length).toBe(2);
   await page.evaluate(()=>{
     const host=document.createElement("div");document.body.appendChild(host);
     ReactDOM.createRoot(host).render(React.createElement(WhatsNew,{onClose:()=>{}}));

@@ -321,8 +321,8 @@ const PRESUPUESTO = {
   // Mínimos: 1381 KiB minificado (quedan 1.209 B) y gzip a 384 KiB (quedan 1.276 B; en 383 quedaban 252 B).
   // Integración 4.26.147 (19/10): la 146 más la PR 282 (alargar el plazo al bajar la cuota de una deuda, con su cálculo compartido y textos en tres idiomas) y la nota con una tanda:
   // 1.414.560 B / 392.315 B gzip con sello .99999 y reserva de 95 B (1381,4 / 383,1 KiB). SUBE por lógica de producto, no se recorta (mandato 11/10).
-  // Mínimos: 1382 KiB minificado (quedan 608 B); el gzip se queda en 384 KiB (quedan 901 B).
-  minificado: 1382 * 1024,
+  // Con la PR 283 (reordenar brókers con el gesto de las cuentas): 1.415.954 B / 392.712 B gzip (1382,8 / 383,5 KiB). Mínimos: 1384 KiB minificado (quedan 1.262 B); el gzip se queda en 384 KiB (quedan 504 B).
+  minificado: 1384 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.

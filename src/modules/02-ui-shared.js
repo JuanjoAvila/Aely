@@ -1669,13 +1669,103 @@ function useEditable(items, onChange, opts){
   return { editing, start, save, draft, setDraft };
 }
 
+/* Cuentas y brókers comparten el mismo HOLD y arrastre. La callback ref vuelve a enlazar
+   cuando se remonta una lista; el callback de movimiento lee el estado actual sin desmontar
+   listeners durante el gesto (19/10/2026). Cada pantalla conserva su modelo de orden. */
+function useListLongPress(selector, attribute, enabled, onMove){
+  const moveRef=React.useRef(onMove); moveRef.current=onMove;
+  const listCleanRef=React.useRef(null);
+  const dragRef=React.useRef(null);
+  const suppressClickRef=React.useRef(0);
+  const [drag,setDrag]=React.useState(null);
+  const bindListDrag=React.useCallback(function(node){
+    if(listCleanRef.current){ listCleanRef.current(); listCleanRef.current=null; }
+    if(!node || !enabled) return;
+    const HOLD=380;
+    const onTS=function(e){
+      const btn=e.target.closest&&e.target.closest(selector);
+      if(!btn||!node.contains(btn)) return;
+      if(e.target.closest&&e.target.closest(".edit-link,.v4-link-mini,a,input")) return;
+      const tch=e.touches&&e.touches[0]; if(!tch) return;
+      const id=btn.getAttribute(attribute);
+      const d={from:id,to:id,startX:tch.clientX,startY:tch.clientY,active:false,timer:null};
+      d.timer=setTimeout(function(){
+        d.active=true;
+        node.classList.add("reordering");
+        dragRef.current=d;
+        setDrag({from:d.from,to:d.to});
+        try{ navigator.vibrate&&navigator.vibrate(15); }catch(_){}
+      },HOLD);
+      dragRef.current=d;
+    };
+    const onTM=function(e){
+      const d=dragRef.current; if(!d) return;
+      const tch=e.touches&&e.touches[0]; if(!tch) return;
+      if(!d.active){
+        if(Math.abs(tch.clientX-d.startX)>10||Math.abs(tch.clientY-d.startY)>10){
+          clearTimeout(d.timer); dragRef.current=null;
+        }
+        return;
+      }
+      e.preventDefault();
+      e.stopPropagation();
+      const hit=document.elementFromPoint(tch.clientX,tch.clientY);
+      const row=hit&&hit.closest&&hit.closest(selector);
+      if(!row||!node.contains(row)) return;
+      const to=row.getAttribute(attribute);
+      if(!to||to===d.to) return;
+      d.to=to; setDrag({from:d.from,to:d.to});
+    };
+    const onTE=function(){
+      const d=dragRef.current; if(!d) return;
+      clearTimeout(d.timer);
+      if(d.active){
+        node.classList.remove("reordering");
+        suppressClickRef.current=Date.now()+450;
+        if(d.from!==d.to) moveRef.current(d.from,d.to);
+        setDrag(null);
+      }
+      dragRef.current=null;
+    };
+    node.addEventListener("touchstart",onTS,{passive:true});
+    node.addEventListener("touchmove",onTM,{passive:false});
+    node.addEventListener("touchend",onTE);
+    node.addEventListener("touchcancel",onTE);
+    listCleanRef.current=function(){
+      node.removeEventListener("touchstart",onTS);
+      node.removeEventListener("touchmove",onTM);
+      node.removeEventListener("touchend",onTE);
+      node.removeEventListener("touchcancel",onTE);
+      clearTimeout((dragRef.current&&dragRef.current.timer)||0);
+    };
+  },[enabled,selector,attribute]);
+  React.useEffect(function(){
+    return function(){ if(listCleanRef.current){ listCleanRef.current(); listCleanRef.current=null; } };
+  },[]);
+  return {bind:bindListDrag,drag:drag,suppressClickRef:suppressClickRef};
+}
+
 /* Secciones ordenables por pestaña (petición 2026-07-11): como el orden de widgets del Resumen,
    pero para los bloques de Cartera (las fichas de las demás pestañas se retiraron). El orden se guarda en
    settings.secOrder[tab]; onMove opcional para pestañas cuyo orden vive en los propios datos
    (deudas, metas → se reordena el array del estado y sincroniza igual que todo lo demás). */
 function secOrderOf(s, tab, allIds){
-  const saved=((((s&&s.settings)||{}).secOrder||{})[tab]||[]).filter(function(id){ return allIds.indexOf(id)>=0; });
+  const stored=(((s&&s.settings)||{}).secOrder||{})[tab];
+  const saved=(Array.isArray(stored)?stored:[]).filter(function(id,i,a){ return allIds.indexOf(id)>=0&&a.indexOf(id)===i; });
   return saved.concat(allIds.filter(function(id){ return saved.indexOf(id)<0; }));
+}
+// Solo se mueve una clave visual; los objetos financieros y las demás preferencias se conservan.
+function moveSectionInList(s, tab, allIds, from, to){
+  const order=secOrderOf(s,tab,allIds), i=order.indexOf(from), j=order.indexOf(to);
+  if(i<0||j<0||i===j) return s;
+  order.splice(i,1); order.splice(j,0,from);
+  return Object.assign({},s,{settings:Object.assign({},s.settings,{secOrder:Object.assign({},(s.settings||{}).secOrder,{[tab]:order})})});
+}
+function brokerGroupsInOrder(s, groups){
+  // Devuelve las TERNAS originales: convertirlas en ids hizo desaparecer todos los brókers en 4.7.1.
+  return secOrderOf(s,"inv",groups.map(function(g){ return g[0]; })).map(function(id){
+    return groups.find(function(g){ return g[0]===id; });
+  });
 }
 function OrderableSections({tab, state, set, items, onMove}){
   const [ordering,setOrdering]=useState(false);
@@ -1688,8 +1778,7 @@ function OrderableSections({tab, state, set, items, onMove}){
     set(function(s){
       const o=secOrderOf(s,tab,allIds); const i=o.indexOf(id), j=i+dir;
       if(i<0||j<0||j>=o.length) return s;
-      const n=o.slice(); n[i]=o[j]; n[j]=id;
-      return Object.assign({},s,{settings:Object.assign({},s.settings,{secOrder:Object.assign({},((s.settings||{}).secOrder)||{},{[tab]:n})})});
+      return moveSectionInList(s,tab,allIds,id,o[j]);
     });
   };
   return React.createElement(React.Fragment,null,

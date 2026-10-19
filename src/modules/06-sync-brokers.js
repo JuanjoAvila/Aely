@@ -762,10 +762,14 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
   // Solo los brókers donde el usuario TIENE posiciones se pintan como tarjetas (antes salían
   // tres bloques vacíos y parecían conexiones activas — feedback pareja 2026-07-10).
   const groupsBase=brokerOptions.filter(function(g){ return state.investments.some(function(i){ return i.ent===g[0]; }); });
-  // Orden fijo de los brókers (2026-07-23: se borró la UI de ordenación en Herramientas;
-  // mantengo el orden por defecto de groupsBase). OJO: `groups` son las TERNAS
-  // [id, nombre, subtítulo] — abajo se leen g[0]/g[1]/g[2]. No mapear a solo el id.
-  const groups=groupsBase;
+  const groups=brokerGroupsInOrder(state,groupsBase);
+  const brokerDrag=useListLongPress("button.v4-mov[data-broker-key]","data-broker-key",!editing,function(from,to){
+    set(function(s){ return moveSectionInList(s,"inv",groupsBase.map(function(g){ return g[0]; }),from,to); });
+  });
+  const brokerRowClass=function(id){
+    const d=brokerDrag.drag;
+    return "v4-mov"+(d&&d.from===id?" dragging":"")+(d&&d.to===id&&d.from!==id?" drag-over":"");
+  };
   const start=()=>{ const d={}; state.investments.forEach(i=>d[i.id]={value:i.value,cost:i.cost}); setDraft(d); setEditing(true); };
   const cancel=()=>{ setEditing(false); setShowCost(false); };
   const save=()=>{
@@ -979,7 +983,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
     const heroBase=completeCost?Math.max(0,Math.min(costTotal,total)):Math.max(total,1);
     const heroGain=completeCost?Math.max(0,gainTotal):0;
     const heroSum=Math.max(1,heroBase+heroGain);
-    return React.createElement("div",{className:"v4-investments-full"},
+    return React.createElement("div",{className:"v4-investments-full",ref:brokerDrag.bind},
       React.createElement("section",{className:"v4-card v4-card-hero rise","data-inv-hero":"1",style:{padding:20}},
         React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}},
           React.createElement("div",null,
@@ -1051,8 +1055,8 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
         const isEditing=editing&&editBroker===gid;
         const panelId="iv_broker_"+gid;
         return React.createElement("div",{key:gid,className:"v4-card","data-inv-broker":gid,style:{padding:0,overflow:"hidden",borderColor:open?"var(--mint-deep)":"var(--line-soft)"}},
-          React.createElement("button",{type:"button",className:"v4-mov",style:{margin:0,border:0,background:"transparent"},"aria-expanded":open,"aria-controls":panelId,
-            onClick:function(){ setBrokerOpen(function(v){ return Object.assign({},v,{[gid]:!v[gid]}); }); }},
+          React.createElement("button",{type:"button",className:brokerRowClass(gid),"data-broker-key":gid,style:{margin:0,border:0,background:"transparent"},"aria-expanded":open,"aria-controls":panelId,
+            onClick:function(){ if(Date.now()<brokerDrag.suppressClickRef.current) return; setBrokerOpen(function(v){ return Object.assign({},v,{[gid]:!v[gid]}); }); }},
             React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:gid,size:44})),
             React.createElement("div",{className:"nm"},
               React.createElement("div",null,g[1]),
@@ -1119,7 +1123,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
     // En Cartera: mismas fichas que «Tus cuentas» (v4-mov). El resumen completo
     // vive en su pantalla hija para no montar dos veces toda la herramienta antigua.
     React.createElement(React.Fragment,null,
-      React.createElement("div",{className:"v4-card-list"},
+      React.createElement("div",{className:"v4-card-list",ref:brokerDrag.bind},
         groups.map(function(g){
         const items=state.investments.filter(function(i){ return i.ent===g[0]; });
         if(items.length===0) return null;
@@ -1127,8 +1131,8 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
         // Editando: todos los brókers desplegados con sus inputs (si no, había que ir uno a uno).
         const open=editing||!!brokerOpen[g[0]];
         return React.createElement(React.Fragment,{key:g[0]},
-          React.createElement("button",{type:"button",className:"v4-mov",
-            onClick:function(){ if(!editing) setBrokerOpen(function(o){ return Object.assign({},o,{[g[0]]:!o[g[0]]}); }); }},
+          React.createElement("button",{type:"button",className:brokerRowClass(g[0]),"data-broker-key":g[0],
+            onClick:function(){ if(Date.now()<brokerDrag.suppressClickRef.current) return; if(!editing) setBrokerOpen(function(o){ return Object.assign({},o,{[g[0]]:!o[g[0]]}); }); }},
             React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:g[0],size:44})),
             React.createElement("div",{className:"nm"},
               React.createElement("div",null,g[1]),

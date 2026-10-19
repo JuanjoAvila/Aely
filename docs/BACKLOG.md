@@ -43,6 +43,10 @@ Fuente: veredictos del panel (`scripts/errores.mjs --kind=beta`), CHANGELOG, not
 - INC-1810-01 Guardar en Deudas: subir la cuota guarda bien; bajarla da el error «no encaja» (FIN-16, aprobada). Pendiente: al bajarla, ofrecer alargar el plazo → INC-1910-01.
 - INC-2709-08 reordenar brókers con pulsación larga como las cuentas: lo quiere; encargado a Codex tras UX-11.
 
+**CERRADO (no reproducible)**
+
+- UX-11 · saltito vertical al deslizar tras cerrar una hoja: NO_REPRO (Codex, 19/10; 48 casos sintéticos sin reproducirlo).
+
 **Parcial**
 
 - INC-2709-09 / UX-01 · lag sostenido: parcial en 4.26.146 (vuelta de segundo plano y arranque, tanda `vuelta-sin-tiron`); el síntoma humano completo sigue abierto.
@@ -50,7 +54,7 @@ Fuente: veredictos del panel (`scripts/errores.mjs --kind=beta`), CHANGELOG, not
 **Nuevas**
 
 - INC-1910-01 · Deudas: al bajar la cuota de una deuda, ofrecer alargar el plazo en vez de solo rechazar con «no encaja». En beta 4.26.147 (PR 282); tanda `deuda-bajar-cuota-alarga-plazo`, pendiente de su veredicto.
-- INC-2709-08 · Cartera: reordenar los bloques de brókers con pulsación mantenida, como las cuentas. Lo quiere el dueño; encargado a Codex (19/10), tras UX-11.
+- INC-2709-08 · Cartera: reordenar los bloques de brókers con pulsación mantenida, como las cuentas. Lo quiere el dueño. En beta 4.26.147 (PR 283); tanda `cartera-ordenar-brokers`, pendiente de su veredicto.
 
 
 **Cerrados técnicamente en esta ronda**

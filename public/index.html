@@ -1098,19 +1098,19 @@
   html.reduce-motion .v4-mov.dragging{transform:none;}
   /* Cartera → Tus cuentas: long-press eleva la fila (12/9: «efecto chulo… smooth»). No reutilizar
      el `.dragging` de Gastos (ese baja opacidad): aquí se LEVANTA. */
-  .v4-card-list.reordering{touch-action:none;}
-  .v4-card-list button.v4-mov.dragging{
+  :is(.v4-card-list,.v4-investments-full).reordering{touch-action:none;}
+  :is(.v4-card-list,.v4-investments-full) button.v4-mov.dragging{
     opacity:1;z-index:2;position:relative;
     transform:translateY(-6px) scale(1.035);
     border-color:var(--mint);
     box-shadow:0 16px 32px -12px rgba(0,0,0,.55),0 0 0 1.5px rgba(95,208,138,.55);
     transition:transform .22s cubic-bezier(.32,.72,0,1),box-shadow .22s ease;
   }
-  .v4-card-list button.v4-mov.drag-over{
+  :is(.v4-card-list,.v4-investments-full) button.v4-mov.drag-over{
     border-color:var(--mint-dim);
     background:rgba(95,208,138,.08);
   }
-  html.reduce-motion .v4-card-list button.v4-mov.dragging{
+  html.reduce-motion :is(.v4-card-list,.v4-investments-full) button.v4-mov.dragging{
     transform:none;box-shadow:0 0 0 1.5px var(--mint);
   }
   .v4-gastos-list{background:transparent;}
@@ -10200,13 +10200,103 @@ function useEditable(items, onChange, opts){
   return { editing, start, save, draft, setDraft };
 }
 
+/* Cuentas y brókers comparten el mismo HOLD y arrastre. La callback ref vuelve a enlazar
+   cuando se remonta una lista; el callback de movimiento lee el estado actual sin desmontar
+   listeners durante el gesto (19/10/2026). Cada pantalla conserva su modelo de orden. */
+function useListLongPress(selector, attribute, enabled, onMove){
+  const moveRef=React.useRef(onMove); moveRef.current=onMove;
+  const listCleanRef=React.useRef(null);
+  const dragRef=React.useRef(null);
+  const suppressClickRef=React.useRef(0);
+  const [drag,setDrag]=React.useState(null);
+  const bindListDrag=React.useCallback(function(node){
+    if(listCleanRef.current){ listCleanRef.current(); listCleanRef.current=null; }
+    if(!node || !enabled) return;
+    const HOLD=380;
+    const onTS=function(e){
+      const btn=e.target.closest&&e.target.closest(selector);
+      if(!btn||!node.contains(btn)) return;
+      if(e.target.closest&&e.target.closest(".edit-link,.v4-link-mini,a,input")) return;
+      const tch=e.touches&&e.touches[0]; if(!tch) return;
+      const id=btn.getAttribute(attribute);
+      const d={from:id,to:id,startX:tch.clientX,startY:tch.clientY,active:false,timer:null};
+      d.timer=setTimeout(function(){
+        d.active=true;
+        node.classList.add("reordering");
+        dragRef.current=d;
+        setDrag({from:d.from,to:d.to});
+        try{ navigator.vibrate&&navigator.vibrate(15); }catch(_){}
+      },HOLD);
+      dragRef.current=d;
+    };
+    const onTM=function(e){
+      const d=dragRef.current; if(!d) return;
+      const tch=e.touches&&e.touches[0]; if(!tch) return;
+      if(!d.active){
+        if(Math.abs(tch.clientX-d.startX)>10||Math.abs(tch.clientY-d.startY)>10){
+          clearTimeout(d.timer); dragRef.current=null;
+        }
+        return;
+      }
+      e.preventDefault();
+      e.stopPropagation();
+      const hit=document.elementFromPoint(tch.clientX,tch.clientY);
+      const row=hit&&hit.closest&&hit.closest(selector);
+      if(!row||!node.contains(row)) return;
+      const to=row.getAttribute(attribute);
+      if(!to||to===d.to) return;
+      d.to=to; setDrag({from:d.from,to:d.to});
+    };
+    const onTE=function(){
+      const d=dragRef.current; if(!d) return;
+      clearTimeout(d.timer);
+      if(d.active){
+        node.classList.remove("reordering");
+        suppressClickRef.current=Date.now()+450;
+        if(d.from!==d.to) moveRef.current(d.from,d.to);
+        setDrag(null);
+      }
+      dragRef.current=null;
+    };
+    node.addEventListener("touchstart",onTS,{passive:true});
+    node.addEventListener("touchmove",onTM,{passive:false});
+    node.addEventListener("touchend",onTE);
+    node.addEventListener("touchcancel",onTE);
+    listCleanRef.current=function(){
+      node.removeEventListener("touchstart",onTS);
+      node.removeEventListener("touchmove",onTM);
+      node.removeEventListener("touchend",onTE);
+      node.removeEventListener("touchcancel",onTE);
+      clearTimeout((dragRef.current&&dragRef.current.timer)||0);
+    };
+  },[enabled,selector,attribute]);
+  React.useEffect(function(){
+    return function(){ if(listCleanRef.current){ listCleanRef.current(); listCleanRef.current=null; } };
+  },[]);
+  return {bind:bindListDrag,drag:drag,suppressClickRef:suppressClickRef};
+}
+
 /* Secciones ordenables por pestaña (petición 2026-07-11): como el orden de widgets del Resumen,
    pero para los bloques de Cartera (las fichas de las demás pestañas se retiraron). El orden se guarda en
    settings.secOrder[tab]; onMove opcional para pestañas cuyo orden vive en los propios datos
    (deudas, metas → se reordena el array del estado y sincroniza igual que todo lo demás). */
 function secOrderOf(s, tab, allIds){
-  const saved=((((s&&s.settings)||{}).secOrder||{})[tab]||[]).filter(function(id){ return allIds.indexOf(id)>=0; });
+  const stored=(((s&&s.settings)||{}).secOrder||{})[tab];
+  const saved=(Array.isArray(stored)?stored:[]).filter(function(id,i,a){ return allIds.indexOf(id)>=0&&a.indexOf(id)===i; });
   return saved.concat(allIds.filter(function(id){ return saved.indexOf(id)<0; }));
+}
+// Solo se mueve una clave visual; los objetos financieros y las demás preferencias se conservan.
+function moveSectionInList(s, tab, allIds, from, to){
+  const order=secOrderOf(s,tab,allIds), i=order.indexOf(from), j=order.indexOf(to);
+  if(i<0||j<0||i===j) return s;
+  order.splice(i,1); order.splice(j,0,from);
+  return Object.assign({},s,{settings:Object.assign({},s.settings,{secOrder:Object.assign({},(s.settings||{}).secOrder,{[tab]:order})})});
+}
+function brokerGroupsInOrder(s, groups){
+  // Devuelve las TERNAS originales: convertirlas en ids hizo desaparecer todos los brókers en 4.7.1.
+  return secOrderOf(s,"inv",groups.map(function(g){ return g[0]; })).map(function(id){
+    return groups.find(function(g){ return g[0]===id; });
+  });
 }
 function OrderableSections({tab, state, set, items, onMove}){
   const [ordering,setOrdering]=useState(false);
@@ -10219,8 +10309,7 @@ function OrderableSections({tab, state, set, items, onMove}){
     set(function(s){
       const o=secOrderOf(s,tab,allIds); const i=o.indexOf(id), j=i+dir;
       if(i<0||j<0||j>=o.length) return s;
-      const n=o.slice(); n[i]=o[j]; n[j]=id;
-      return Object.assign({},s,{settings:Object.assign({},s.settings,{secOrder:Object.assign({},((s.settings||{}).secOrder)||{},{[tab]:n})})});
+      return moveSectionInList(s,tab,allIds,id,o[j]);
     });
   };
   return React.createElement(React.Fragment,null,
@@ -14037,10 +14126,14 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
   // Solo los brókers donde el usuario TIENE posiciones se pintan como tarjetas (antes salían
   // tres bloques vacíos y parecían conexiones activas — feedback pareja 2026-07-10).
   const groupsBase=brokerOptions.filter(function(g){ return state.investments.some(function(i){ return i.ent===g[0]; }); });
-  // Orden fijo de los brókers (2026-07-23: se borró la UI de ordenación en Herramientas;
-  // mantengo el orden por defecto de groupsBase). OJO: `groups` son las TERNAS
-  // [id, nombre, subtítulo] — abajo se leen g[0]/g[1]/g[2]. No mapear a solo el id.
-  const groups=groupsBase;
+  const groups=brokerGroupsInOrder(state,groupsBase);
+  const brokerDrag=useListLongPress("button.v4-mov[data-broker-key]","data-broker-key",!editing,function(from,to){
+    set(function(s){ return moveSectionInList(s,"inv",groupsBase.map(function(g){ return g[0]; }),from,to); });
+  });
+  const brokerRowClass=function(id){
+    const d=brokerDrag.drag;
+    return "v4-mov"+(d&&d.from===id?" dragging":"")+(d&&d.to===id&&d.from!==id?" drag-over":"");
+  };
   const start=()=>{ const d={}; state.investments.forEach(i=>d[i.id]={value:i.value,cost:i.cost}); setDraft(d); setEditing(true); };
   const cancel=()=>{ setEditing(false); setShowCost(false); };
   const save=()=>{
@@ -14254,7 +14347,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
     const heroBase=completeCost?Math.max(0,Math.min(costTotal,total)):Math.max(total,1);
     const heroGain=completeCost?Math.max(0,gainTotal):0;
     const heroSum=Math.max(1,heroBase+heroGain);
-    return React.createElement("div",{className:"v4-investments-full"},
+    return React.createElement("div",{className:"v4-investments-full",ref:brokerDrag.bind},
       React.createElement("section",{className:"v4-card v4-card-hero rise","data-inv-hero":"1",style:{padding:20}},
         React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}},
           React.createElement("div",null,
@@ -14326,8 +14419,8 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
         const isEditing=editing&&editBroker===gid;
         const panelId="iv_broker_"+gid;
         return React.createElement("div",{key:gid,className:"v4-card","data-inv-broker":gid,style:{padding:0,overflow:"hidden",borderColor:open?"var(--mint-deep)":"var(--line-soft)"}},
-          React.createElement("button",{type:"button",className:"v4-mov",style:{margin:0,border:0,background:"transparent"},"aria-expanded":open,"aria-controls":panelId,
-            onClick:function(){ setBrokerOpen(function(v){ return Object.assign({},v,{[gid]:!v[gid]}); }); }},
+          React.createElement("button",{type:"button",className:brokerRowClass(gid),"data-broker-key":gid,style:{margin:0,border:0,background:"transparent"},"aria-expanded":open,"aria-controls":panelId,
+            onClick:function(){ if(Date.now()<brokerDrag.suppressClickRef.current) return; setBrokerOpen(function(v){ return Object.assign({},v,{[gid]:!v[gid]}); }); }},
             React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:gid,size:44})),
             React.createElement("div",{className:"nm"},
               React.createElement("div",null,g[1]),
@@ -14394,7 +14487,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
     // En Cartera: mismas fichas que «Tus cuentas» (v4-mov). El resumen completo
     // vive en su pantalla hija para no montar dos veces toda la herramienta antigua.
     React.createElement(React.Fragment,null,
-      React.createElement("div",{className:"v4-card-list"},
+      React.createElement("div",{className:"v4-card-list",ref:brokerDrag.bind},
         groups.map(function(g){
         const items=state.investments.filter(function(i){ return i.ent===g[0]; });
         if(items.length===0) return null;
@@ -14402,8 +14495,8 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
         // Editando: todos los brókers desplegados con sus inputs (si no, había que ir uno a uno).
         const open=editing||!!brokerOpen[g[0]];
         return React.createElement(React.Fragment,{key:g[0]},
-          React.createElement("button",{type:"button",className:"v4-mov",
-            onClick:function(){ if(!editing) setBrokerOpen(function(o){ return Object.assign({},o,{[g[0]]:!o[g[0]]}); }); }},
+          React.createElement("button",{type:"button",className:brokerRowClass(g[0]),"data-broker-key":g[0],
+            onClick:function(){ if(Date.now()<brokerDrag.suppressClickRef.current) return; if(!editing) setBrokerOpen(function(o){ return Object.assign({},o,{[g[0]]:!o[g[0]]}); }); }},
             React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:g[0],size:44})),
             React.createElement("div",{className:"nm"},
               React.createElement("div",null,g[1]),
@@ -14772,79 +14865,10 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
     if(window.__mcBootReady) ready();
     return function(){ window.removeEventListener("mc-boot-ready",ready); };
   },[balanceReady]);
-  /* Long-press ordenar cuentas (refs SIEMPRE arriba: no pueden vivir dentro de `if(v4Embed)`).
-     Callback ref (no solo useEffect): `OrderableSections` puede remontar el bloque y el efecto
-     se quedaba con listeners en un nodo muerto → el HOLD nunca encendía. */
-  const listRef=React.useRef(null);
-  const listCleanRef=React.useRef(null);
-  const dragAccRef=React.useRef(null);
-  const suppressSheetRef=React.useRef(0);
-  const [dragAcc,setDragAcc]=React.useState(null);
-  const bindListDrag=React.useCallback(function(node){
-    if(listCleanRef.current){ listCleanRef.current(); listCleanRef.current=null; }
-    listRef.current=node;
-    if(!node || parte==="bienes") return;
-    const HOLD=380;
-    const onTS=function(e){
-      const btn=e.target.closest&&e.target.closest("button.v4-mov[data-account-key]");
-      if(!btn||!node.contains(btn)) return;
-      if(e.target.closest&&e.target.closest(".edit-link,.v4-link-mini,a,input")) return;
-      const tch=e.touches&&e.touches[0]; if(!tch) return;
-      const id=btn.getAttribute("data-account-key");
-      const d={from:id,to:id,startX:tch.clientX,startY:tch.clientY,active:false,timer:null};
-      d.timer=setTimeout(function(){
-        d.active=true;
-        node.classList.add("reordering");
-        dragAccRef.current=d;
-        setDragAcc({from:d.from,to:d.to});
-        try{ navigator.vibrate&&navigator.vibrate(15); }catch(_){}
-      },HOLD);
-      dragAccRef.current=d;
-    };
-    const onTM=function(e){
-      const d=dragAccRef.current; if(!d) return;
-      const tch=e.touches&&e.touches[0]; if(!tch) return;
-      if(!d.active){
-        if(Math.abs(tch.clientX-d.startX)>10||Math.abs(tch.clientY-d.startY)>10){
-          clearTimeout(d.timer); dragAccRef.current=null;
-        }
-        return;
-      }
-      e.preventDefault();
-      e.stopPropagation();
-      const hit=document.elementFromPoint(tch.clientX,tch.clientY);
-      const row=hit&&hit.closest&&hit.closest("button.v4-mov[data-account-key]");
-      if(!row||!node.contains(row)) return;
-      const to=row.getAttribute("data-account-key");
-      if(!to||to===d.to) return;
-      d.to=to; setDragAcc({from:d.from,to:d.to});
-    };
-    const onTE=function(){
-      const d=dragAccRef.current; if(!d) return;
-      clearTimeout(d.timer);
-      if(d.active){
-        node.classList.remove("reordering");
-        suppressSheetRef.current=Date.now()+450;
-        if(d.from!==d.to) set(function(s){ return moveAccountInList(s,d.from,d.to); });
-        setDragAcc(null);
-      }
-      dragAccRef.current=null;
-    };
-    node.addEventListener("touchstart",onTS,{passive:true});
-    node.addEventListener("touchmove",onTM,{passive:false});
-    node.addEventListener("touchend",onTE);
-    node.addEventListener("touchcancel",onTE);
-    listCleanRef.current=function(){
-      node.removeEventListener("touchstart",onTS);
-      node.removeEventListener("touchmove",onTM);
-      node.removeEventListener("touchend",onTE);
-      node.removeEventListener("touchcancel",onTE);
-      clearTimeout((dragAccRef.current&&dragAccRef.current.timer)||0);
-    };
-  },[parte,set]);
-  React.useEffect(function(){
-    return function(){ if(listCleanRef.current){ listCleanRef.current(); listCleanRef.current=null; } };
-  },[]);
+  const accountDrag=useListLongPress("button.v4-mov[data-account-key]","data-account-key",parte!=="bienes",function(from,to){
+    set(function(s){ return moveAccountInList(s,from,to); });
+  });
+  const bindListDrag=accountDrag.bind, dragAcc=accountDrag.drag, suppressSheetRef=accountDrag.suppressClickRef;
   // Quitar a mano una cuenta manual del patrimonio (la del onboarding no se va sola al desloguear el banco:
   // las manuales viven en state.accounts, no en obAccounts, y bankDisconnect solo purga obAccounts).
   const removeAccount=(id)=>{
@@ -23357,7 +23381,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="f4022fcae1200e4148b2631052e744ce63355b6c8731fbe74c534eb4d27446fd";
+var _rnSha="e3225d11fd0bf73c36a521313adbac714b7f12eb551c5ec1905e1a6d03ac9200";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

@@ -3,19 +3,22 @@
     "v": "4.26.147",
     "d": "2026-10-19",
     "t": {
-      "es": "Bajar la cuota de una deuda: la app te ofrece alargar el plazo",
-      "en": "Lowering a debt payment: the app offers to extend the term",
-      "ca": "Baixar la quota d'un deute: l'app t'ofereix allargar el termini"
+      "es": "Deudas: alargar el plazo al bajar la cuota, y ordenar tus brókers",
+      "en": "Debts: extend the term when lowering the payment, and sort your brokers",
+      "ca": "Deutes: allargar el termini en baixar la quota, i ordenar els teus bròquers"
     },
     "items": {
       "es": [
-        "Si bajas la cuota de una deuda y no cuadra con el plazo, en vez de solo un error la app te ofrece alargar el plazo con un toque."
+        "Si bajas la cuota de una deuda y no cuadra con el plazo, en vez de solo un error la app te ofrece alargar el plazo con un toque.",
+        "Mantén pulsado un bróker y arrástralo sobre otro para cambiar su orden. Se conserva al volver a abrir la app."
       ],
       "en": [
-        "If you lower the payment of a debt and it does not fit the term, instead of just an error the app offers to extend the term with one tap."
+        "If you lower the payment of a debt and it does not fit the term, instead of just an error the app offers to extend the term with one tap.",
+        "Press and hold a broker, then drag it over another to change their order. The order stays when you reopen the app."
       ],
       "ca": [
-        "Si baixes la quota d'un deute i no quadra amb el termini, en lloc de només un error l'app t'ofereix allargar el termini amb un toc."
+        "Si baixes la quota d'un deute i no quadra amb el termini, en lloc de només un error l'app t'ofereix allargar el termini amb un toc.",
+        "Mantén premut un bróker i arrossega'l sobre un altre per canviar-ne l'ordre. Es conserva en tornar a obrir l'app."
       ]
     },
     "tandas": [
@@ -47,6 +50,37 @@
             "3. Prem-lo i toca «Desa els canvis»: es desa amb el termini nou i la fitxa es tanca. MALAMENT: no es desa.",
             "4. El saldo pendent del deute i els diners disponibles d'Inici i de Pla no canvien. MALAMENT: qualsevol canvi.",
             "5. Puja la quota d'un altre deute: funciona igual que abans. MALAMENT: res diferent de sempre."
+          ]
+        }
+      },
+      {
+        "id": "cartera-ordenar-brokers",
+        "t": {
+          "es": "Cartera: ordenar los bloques de brókers",
+          "en": "Portfolio: sort the broker blocks",
+          "ca": "Cartera: ordenar els blocs de bròquers"
+        },
+        "items": {
+          "es": [
+            "1. Abre Cartera → Inversiones, mantén pulsado un bloque de bróker y arrástralo a otra posición.",
+            "2. Suéltalo: el orden se queda. MAL: vuelve a su sitio o desaparece algún bloque.",
+            "3. Cierra la app del todo y ábrela: el orden se mantiene. MAL: se pierde.",
+            "4. Los importes de cada bróker son los mismos que antes. MAL: cualquier cambio.",
+            "5. Reordena también tus cuentas como siempre: sigue funcionando igual. MAL: algo distinto a lo de siempre."
+          ],
+          "en": [
+            "1. Open Portfolio → Investments, press and hold a broker block and drag it to another position.",
+            "2. Let go: the order stays. WRONG: it goes back to its place or a block disappears.",
+            "3. Close the app completely and open it: the order is kept. WRONG: it is lost.",
+            "4. The amounts of each broker are the same as before. WRONG: any change.",
+            "5. Also reorder your accounts as usual: it works as before. WRONG: anything different from usual."
+          ],
+          "ca": [
+            "1. Obre Cartera → Inversions, mantén premut un bloc de bròquer i arrossega'l a una altra posició.",
+            "2. Deixa'l anar: l'ordre es queda. MALAMENT: torna al seu lloc o desapareix algun bloc.",
+            "3. Tanca l'app del tot i obre-la: l'ordre es manté. MALAMENT: es perd.",
+            "4. Els imports de cada bròquer són els mateixos que abans. MALAMENT: qualsevol canvi.",
+            "5. Reordena també els teus comptes com sempre: continua funcionant igual. MALAMENT: res diferent del de sempre."
           ]
         }
       }

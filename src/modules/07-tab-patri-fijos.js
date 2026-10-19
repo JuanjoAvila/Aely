@@ -335,79 +335,10 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
     if(window.__mcBootReady) ready();
     return function(){ window.removeEventListener("mc-boot-ready",ready); };
   },[balanceReady]);
-  /* Long-press ordenar cuentas (refs SIEMPRE arriba: no pueden vivir dentro de `if(v4Embed)`).
-     Callback ref (no solo useEffect): `OrderableSections` puede remontar el bloque y el efecto
-     se quedaba con listeners en un nodo muerto → el HOLD nunca encendía. */
-  const listRef=React.useRef(null);
-  const listCleanRef=React.useRef(null);
-  const dragAccRef=React.useRef(null);
-  const suppressSheetRef=React.useRef(0);
-  const [dragAcc,setDragAcc]=React.useState(null);
-  const bindListDrag=React.useCallback(function(node){
-    if(listCleanRef.current){ listCleanRef.current(); listCleanRef.current=null; }
-    listRef.current=node;
-    if(!node || parte==="bienes") return;
-    const HOLD=380;
-    const onTS=function(e){
-      const btn=e.target.closest&&e.target.closest("button.v4-mov[data-account-key]");
-      if(!btn||!node.contains(btn)) return;
-      if(e.target.closest&&e.target.closest(".edit-link,.v4-link-mini,a,input")) return;
-      const tch=e.touches&&e.touches[0]; if(!tch) return;
-      const id=btn.getAttribute("data-account-key");
-      const d={from:id,to:id,startX:tch.clientX,startY:tch.clientY,active:false,timer:null};
-      d.timer=setTimeout(function(){
-        d.active=true;
-        node.classList.add("reordering");
-        dragAccRef.current=d;
-        setDragAcc({from:d.from,to:d.to});
-        try{ navigator.vibrate&&navigator.vibrate(15); }catch(_){}
-      },HOLD);
-      dragAccRef.current=d;
-    };
-    const onTM=function(e){
-      const d=dragAccRef.current; if(!d) return;
-      const tch=e.touches&&e.touches[0]; if(!tch) return;
-      if(!d.active){
-        if(Math.abs(tch.clientX-d.startX)>10||Math.abs(tch.clientY-d.startY)>10){
-          clearTimeout(d.timer); dragAccRef.current=null;
-        }
-        return;
-      }
-      e.preventDefault();
-      e.stopPropagation();
-      const hit=document.elementFromPoint(tch.clientX,tch.clientY);
-      const row=hit&&hit.closest&&hit.closest("button.v4-mov[data-account-key]");
-      if(!row||!node.contains(row)) return;
-      const to=row.getAttribute("data-account-key");
-      if(!to||to===d.to) return;
-      d.to=to; setDragAcc({from:d.from,to:d.to});
-    };
-    const onTE=function(){
-      const d=dragAccRef.current; if(!d) return;
-      clearTimeout(d.timer);
-      if(d.active){
-        node.classList.remove("reordering");
-        suppressSheetRef.current=Date.now()+450;
-        if(d.from!==d.to) set(function(s){ return moveAccountInList(s,d.from,d.to); });
-        setDragAcc(null);
-      }
-      dragAccRef.current=null;
-    };
-    node.addEventListener("touchstart",onTS,{passive:true});
-    node.addEventListener("touchmove",onTM,{passive:false});
-    node.addEventListener("touchend",onTE);
-    node.addEventListener("touchcancel",onTE);
-    listCleanRef.current=function(){
-      node.removeEventListener("touchstart",onTS);
-      node.removeEventListener("touchmove",onTM);
-      node.removeEventListener("touchend",onTE);
-      node.removeEventListener("touchcancel",onTE);
-      clearTimeout((dragAccRef.current&&dragAccRef.current.timer)||0);
-    };
-  },[parte,set]);
-  React.useEffect(function(){
-    return function(){ if(listCleanRef.current){ listCleanRef.current(); listCleanRef.current=null; } };
-  },[]);
+  const accountDrag=useListLongPress("button.v4-mov[data-account-key]","data-account-key",parte!=="bienes",function(from,to){
+    set(function(s){ return moveAccountInList(s,from,to); });
+  });
+  const bindListDrag=accountDrag.bind, dragAcc=accountDrag.drag, suppressSheetRef=accountDrag.suppressClickRef;
   // Quitar a mano una cuenta manual del patrimonio (la del onboarding no se va sola al desloguear el banco:
   // las manuales viven en state.accounts, no en obAccounts, y bankDisconnect solo purga obAccounts).
   const removeAccount=(id)=>{

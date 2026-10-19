@@ -1,8 +1,12 @@
-## [4.26.147] — 2026-10-19 · Candidata de beta: alargar el plazo al bajar la cuota de una deuda (PR 282, INC-1910-01), solo web y sin APK nueva
+## [4.26.147] — 2026-10-19 · Candidata de beta: alargar el plazo al bajar la cuota de una deuda (PR 282, INC-1910-01) y reordenar brókers (PR 283, INC-2709-08), solo web y sin APK nueva
 
 - **Qué lleva.** La beta 4.26.146 (`48d5ef810`) más la PR 282 (`9f7daa51`): la edición de deuda propone un plazo explícito cuando FIN16 rechaza bajar la cuota. Se comparte el cálculo lineal existente; el botón modifica solo el borrador. Legado con TAE positiva y sin amortización conocida muestra un límite claro. [Contrato, consulta y pruebas](docs/briefs/deudas-alargar-plazo-20261019.md).
 - **Dinero.** Con GO de la revisión de dinero. No cambia el saldo pendiente ni ninguna guarda financiera: el botón solo rellena el borrador y Guardar sigue pasando por FIN-16.
-- **Panel.** Una tanda nueva, `deuda-bajar-cuota-alarga-plazo` (pasos 1-5, cita «si la bajo me dice error de que no encaja»). Las de la 145 y la 146 se quedan como están.
+- **Panel.** Dos tandas nuevas: `deuda-bajar-cuota-alarga-plazo` (pasos 1-5, cita «si la bajo me dice error de que no encaja») y `cartera-ordenar-brokers` (pasos 1-5). Las de la 145 y la 146 se quedan como están.
+- **Reordenar brókers (PR 283, `10677f7d`, INC-2709-08).** Cuentas y brókers comparten `useListLongPress`: HOLD de 380 ms, cancelación del HOLD al desplazarse, indicador de destino y supresión del toque al soltar. Cuentas conserva `moveAccountInList`; brókers reutiliza `settings.secOrder.inv` y el guardado/push/pull del estado. No cambia cálculos ni escritores cloud.
+  El render conserva las ternas originales y completa órdenes antiguos sin duplicados ni grupos huérfanos, para evitar la regresión de 4.7.1. Se conserva la clase del desplegable y la reducción de movimiento.
+  E2E dirigido de gesto, recarga y sincronización simulada en las dos vistas; comparación íntegra de inversiones, relaciones de cuenta y demás objetos financieros. Candidata sin publicación ni aceptación móvil.
+
 
 ## [4.26.146] — 2026-10-19 · Candidata de beta: vuelta a primer plano sin tirón (`claude/perf-vuelta`, `fff05adca`), solo web y sin APK nueva (sigue la 4.26.145 / code 58)
 
