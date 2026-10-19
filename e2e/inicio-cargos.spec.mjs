@@ -239,7 +239,8 @@ for(const lang of ["es","en","ca"]){
   }
   test(lang+": vincula y deshace un pago con otro nombre y banco sin descontar otra vez",async({page,browser})=>{
     const cargo={id:"cargo-tr",date:"2026-09-25T12:00:00.000Z",merchant:"PROVEEDOR SINTETICO SA",obName:"PROVEEDOR SINTETICO SA",amount:42,ent:"trade_republic",category:"otros",source:"ob"};
-    await open(page,lang,{
+    // Sin ack del servidor el renombrado sigue pendiente (la nube tarda): la lista ya enseña el nombre nuevo.
+    await open(page,lang,{__cloudDelays:{expenses:600000},
       accounts:[{id:"sb",ent:"sabadell",name:"Cuenta ficticia",value:800,role:"fijos"},{id:"tr",ent:"trade_republic",name:"Diaria ficticia",value:300,role:"diario",spendFrom:true}],expenses:[cargo]});
     await expect(page.locator('.page-scroll-host .v4-charge').filter({hasText:"Gas ficticio"})).toHaveCount(1);
     await page.locator('.botnav-tab[data-tour="gastos"]').click();
@@ -293,6 +294,33 @@ for(const lang of ["es","en","ca"]){
     await page.locator('.v4-exp-sheet .v4-ficha-done').click();
     await page.locator('.botnav-tab[data-tour="inicio"]').click();
     await expect(page.locator('.page-scroll-host .v4-charge').filter({hasText:"Gas ficticio"})).toHaveCount(1);
+  });
+  test(lang+": la lista de Gastos enseña el renombrado pendiente, y vuelve al guardado si queda en cuarentena",async({page})=>{
+    const base={id:"cargo-ren",date:"2026-09-25T12:00:00.000Z",merchant:"PROVEEDOR SINTETICO SA",amount:42,ent:"trade_republic",category:"otros",source:"ob"};
+    const rows=page.locator('.v4-gastos-list-body button.v4-mov');
+    // Pendiente: nombre nuevo + marca, y `merchant` guardado intacto hasta el ack.
+    // La nube tarda: sin ack el renombrado se queda pendiente (si no, el reintento falla y lo manda a cuarentena).
+    await open(page,lang,{__cloudDelays:{expenses:600000},expenses:[Object.assign({},base,{renamePending:{merchant:"Nombre pendiente",at:1}})]});
+    await page.locator('.botnav-tab[data-tour="gastos"]').click();
+    await expect(rows.filter({hasText:"Nombre pendiente"})).toHaveCount(1);
+    await expect(rows.filter({hasText:"Nombre pendiente"}).getByTestId("mov-rename-pending")).toHaveCount(1);
+    await expect(rows.filter({hasText:base.merchant})).toHaveCount(0);
+  });
+  test(lang+": renombrado en cuarentena: la lista vuelve al nombre guardado y la ficha mantiene el aviso",async({page})=>{
+    const base={id:"cargo-ren",date:"2026-09-25T12:00:00.000Z",merchant:"PROVEEDOR SINTETICO SA",amount:42,ent:"trade_republic",category:"otros",source:"ob",renamePending:{merchant:"Nombre pendiente",at:1,failures:3,quarantined:true}};
+    await open(page,lang,{__cloudDelays:{expenses:600000},expenses:[base]});
+    await page.locator('.botnav-tab[data-tour="gastos"]').click();
+    const rows=page.locator('.v4-gastos-list-body button.v4-mov');
+    await expect(rows.filter({hasText:base.merchant})).toHaveCount(1);
+    await expect(page.getByTestId("mov-rename-pending")).toHaveCount(0);
+    await rows.filter({hasText:base.merchant}).click();
+    await expect(page.getByTestId("expense-rename-pending")).toHaveCount(1);
+  });
+  test(lang+": tras el ack del renombrado la lista muestra el nombre guardado sin marca",async({page})=>{
+    await open(page,lang,{expenses:[{id:"cargo-ack",date:"2026-09-25T12:00:00.000Z",merchant:"Nombre confirmado",amount:42,ent:"trade_republic",category:"otros",source:"ob"}]});
+    await page.locator('.botnav-tab[data-tour="gastos"]').click();
+    await expect(page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:"Nombre confirmado"})).toHaveCount(1);
+    await expect(page.getByTestId("mov-rename-pending")).toHaveCount(0);
   });
   test(lang+": el gas confirmado desaparece de Inicio aunque siga en espera",async({page})=>{
     await open(page,lang,{bankTx:[tx]});
