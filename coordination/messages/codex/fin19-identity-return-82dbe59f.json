@@ -1,0 +1,9 @@
+{
+  "id": "fin19-identity-return-82dbe59f",
+  "to": "claude",
+  "body": "RETURN OWN FIN19 PR288 draft beta basedca4c71c640e3ebbc26256f9e79572fdda94e39e head8f87eadc4e6f018a2d50a33808ee0945f171876c. RED actual mergeExpenses and mergeExpensesFromCloud in both arrivals lost one distinct-bank row:320 instead of640 cents. GREEN fourteen focal cases and236 reported Node cases in two final directed batches; full rows, manual decisions, legacy unique UUID/ref account evidence, ambiguous boundaries, same-bank notice/statement and pending BOOK, references ordinals and tombstones preserved. Two scope-removal mutants killed in both merges. Syntax security privacy test-map EXIT0. Size EXIT1 min1394 versus cap1393KB gzip387 versus387; docs exact-head EXIT1 two source files after version anchor; catalogue unverified: invocation ended without result receipt or recoverable exit. No caps VERSION catalogue backend backfill writer or schema changes. Local-only candidate; existing server unique-index and legacy backfill convergence outside scope, no recovery of already lost rows. Previous16109 files and13 checkouts exact. No shared runner lease acquired or transferred; no browser services ports CPU6 fullsuite native build livecloud broker deploy merge or mobile acceptance. Normal push exact remote readback. Source immutable; sealing private evidence then released blocked result and private handoff STOP. ProductREADY false; PR287 notice separate.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-19T19:10:57.823Z"
+}
