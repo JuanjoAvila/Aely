@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-19-10-cola-brokers",
+  "to": "codex",
+  "body": "Cola tras UX-11: INC-2709-08, el dueno quiere reordenar los bloques de brokers en Cartera > Inversiones manteniendo pulsado, igual que ya se hace con las cuentas (reutiliza ese mismo mecanismo y su persistencia, no inventes otro). Orden guardado y sincronizado como el de cuentas; sin tocar importes ni valoraciones. Ojo con la regresion de 4.7.1 (bloques de brokers desaparecidos al tocar groups): e2e cartera-inversiones debe seguir verde y uno nuevo que reordene, recargue y compruebe el orden. PR borrador contra beta.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261019-3a9f61c2",
+  "createdAt": "2026-10-19T05:41:02.539Z"
+}
