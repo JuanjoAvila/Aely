@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "id": "ses01-broker-session-duration-investigation-codex-20261019",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261019-r74-36ea75cf98e01bbf",
+  "createdAt": "2026-10-19T18:12:42.787Z",
+  "to": "codex",
+  "kind": "worker",
+  "priority": 4,
+  "model": "gpt-6-astra",
+  "baseSHA": "dca4c71c640e3ebbc26256f9e79572fdda94e39e",
+  "assignedPublicSessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "claudeGrant": "2ee7716ed79c3d38fc5499165ff70d8dcf53bd51",
+  "originalScopeGrant": "6a18614058a6dac44561fd41bee750a36dd6d3ca",
+  "dependsOnReleasedResult": "3161e8dd3e0d19775e893dfa8bc5454764441b87",
+  "previousRunnerReturn": "e0ccffe595b09bb5de5cab33f7025a638e85e628",
+  "objective": "SES01 research only: existing telemetry and exact source explain TR/MyInvestor observed session duration, expiration causes, undeployed OPS08 sync/keepalive effects and phased proposal; no deployment.",
+  "scope": [
+    "Trade Republic/MyInvestor observed session lifetime from already-existing sanitized telemetry",
+    "Refresh/keepalive OPS08 and app-kill cookie/session persistence causes, distinguish measured from configured/inferred",
+    "Which existing beta myinvestor-sync/keepalive deployment would address versus client/backend code still needed; report/phased plan only"
+  ],
+  "requirements": [
+    "Read FULL current2ee7716e and original6a186140 scope, plus task. PR287 delivered blocked/released3161e8dd and RETURN e0ccffe5; Claude independently reviews/integrates wave. SES01 now expressly resumes. Exact current remote beta dca4c71c640e3ebbc26256f9e79572fdda94e39e verified by ROOT; pin source snapshots and distinguish any later deployed version actually evidenced.",
+    "Same original own identity/session/helper/filter, NEW claim/readback/ACK before research. Verify current OWN20b4 actual6/20 at wave closure historical only, count all first/internal/readback>=30s, no reset/inheritance or general permissions. Next budget only true exhaustion and normal notice/readback b0390. NEW isolated READ-ONLY source checkout and private report directory; preserve all PR287/286R1R2R3/285/research source/evidence manifests archives checkpoints byte-for-byte.",
+    "Read AGENTS EMPIEZA protocol and relevant Supabase SKILL before Edge/source analysis. Research ONLY: no product edits commits PRs, migrations schema backfill SQL/backend operations/Edge invocation/cron changes/refresh tests/broker requests/login/reconnect/live session manipulation/native build/deploy/merge. No CPU6/profile/tracing/fullsuite/runner lease inherited; no new performance or browser product tests required for this report.",
+    "Use ONLY telemetry already captured and existing code/configuration/evidence. No real calls to TradeRepublic or MyInvestor, no calls that consume refresh tokens, rotate credentials or extend/terminate sessions. No new live cloud/RLS/log/SQL queries by inference. Inspect existing sanitized telemetry and source without printing personal data/token/cookie/authorization values; do not read credential stores or browser profiles. If logs contain secrets, restrict extraction to allowlisted status/timestamps/reason codes and private aggregate results, never emit secrets into tool/channel/report.",
+    "Separate brokers and session layers: app login/auth, access token, refresh token/version rotation, broker authorization/session and persisted cookies/WebView/client storage. For each state what duration is ACTUALLY observed from existing timestamps and censoring window versus configured expiry/theoretical ceiling. Include number of observed episodes, start/end evidence and lower bounds/unknowns; no invented universal TTL or assumed cause from coincident times.",
+    "Trace expiration pathways: refresh conflicts/OPS08 CAS and token-consumption risk, keepalive scheduling/last_sync/counter/version guards, network/reauth statuses, and app kill cookie persistence. Determine which are source facts, telemetry-correlated causes or unverified hypotheses. Inspect current TradeRepublic and MyInvestor source paths read-only; no access to real broker sessions. If kill behavior has no captured evidence, explicitly mark hypothesis and propose isolated future verification, do not simulate it against personal account.",
+    "Compare existing beta myinvestor-sync and myinvestor-keepalive/OPS08 changes with exact recorded deployment provenance if already available. Enumerate what deploying the ALREADY-IN-BETA Edge code would likely fix and what it cannot fix, with source SHA/functions/config prerequisites and residual client/broker constraints. If actual deployed version/hash/logs unavailable say unverified; do not query production or assume that repository beta equals deployed. No deployment itself.",
+    "Deliver report matrix broker/session layer/observed window/configured TTL/evidence/source/cause/confidence/missing evidence, and phased proposal separating operational deployment-only action from necessary code and future tests. Preserve concurrency/token-version safety, financial freshness and privacy in proposed phases. Prioritize concrete causes without overstating persistence or promising broker session longevity beyond evidence.",
+    "Existing local technical telemetry is permitted for this task; do not expand into chat/session histories or dump coordination archives. Targeted references and sanitized aggregate evidence only, no personal identifiers or balances in public channel. Missing telemetry is a research limitation rather than reason to contact brokers, collect new live logs or ask general permissions.",
+    "Seal report and exactsource/evidence manifest archive/checkpoint/closure with actual read/analysis commands EXITs and limitations; no fictitious test PASS because no product tests are needed. Own released result exactreadback, RETURN any own resources used or explicit none, private ROOT74 handoff then STOP without native reply. No newPR/ProductREADY/deployment/mobile claim. Pending wave notice remains ROOT-only after Claude review/integration and served exact beta with URL/mobile steps; never send premature or duplicate notice."
+  ],
+  "deliverable": "SES01 sanitized research report with measured versus inferred session lifetimes and causes, current beta vs recorded deployed OPS08/Edge gap and phased proposal; no code/deploy/broker calls; immutable own released result/RETURN private handoff then STOP."
+}
