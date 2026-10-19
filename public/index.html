@@ -6698,7 +6698,7 @@ const LANG = {
     v4_set_appear:"Apariencia", v4_set_easy:"Para empezar fácil", v4_set_conn:"Conexiones",
     v4_set_money:"Dinero", v4_set_app:"App",
     v4_set_tour:"Ver el tutorial", v4_set_adv:"Avanzado",
-   hv_title:"Vibración", hv_motor_amp:"Tu móvil ajusta la fuerza y el ritmo de la vibración.", hv_motor_onoff:"Tu móvil no ajusta la fuerza: se nota como toques más largos o más cortos.", hv_intro:"Busca la vibración que te guste. Se guarda solo en este móvil.", hv_cycle:"Mi ciclo (el anillo de Inicio)", hv_cycle_hint:"Vibra mientras se rellena el anillo, más cuanto más lleno esté.", hv_edge:"Al llegar arriba o abajo", hv_tick:"Cursor de la gráfica de Inicio", hv_strength:"Fuerza", hv_length:"Duración", hv_every:"Repite cada (si sigues tirando)", hv_try:"Probar", hv_copy:"Copiar valores", hv_copied:"Valores copiados", hv_copy_fail:"No se pudieron copiar", hv_reset:"Volver a los de serie", hv_need_apk:"Para notar estos valores hay que instalar la última versión de la app.", hv_no_native:"La vibración solo funciona en la app de Android.",
+   hv_title:"Vibración", hv_usage:"Tipo de vibración", hv_usage_hint:"Si al probar todas las fuerzas se notan igual, prueba otro tipo.", hv_u_touch:"Toque", hv_u_hardware:"Botones", hv_u_media:"Multimedia", hv_u_unknown:"Genérica", hv_motor_amp:"Tu móvil ajusta la fuerza y el ritmo de la vibración.", hv_motor_onoff:"Tu móvil no ajusta la fuerza: se nota como toques más largos o más cortos.", hv_intro:"Busca la vibración que te guste. Se guarda solo en este móvil.", hv_cycle:"Mi ciclo (el anillo de Inicio)", hv_cycle_hint:"Vibra mientras se rellena el anillo, más cuanto más lleno esté.", hv_edge:"Al llegar arriba o abajo", hv_tick:"Cursor de la gráfica de Inicio", hv_strength:"Fuerza", hv_length:"Duración", hv_every:"Repite cada (si sigues tirando)", hv_try:"Probar", hv_copy:"Copiar valores", hv_copied:"Valores copiados", hv_copy_fail:"No se pudieron copiar", hv_reset:"Volver a los de serie", hv_need_apk:"Para notar estos valores hay que instalar la última versión de la app.", hv_no_native:"La vibración solo funciona en la app de Android.",
     v4_moved_cat:"Movido a {cat}", 
     v4_exp_del:"Borrar", v4_exp_del_q:"¿Borrar «{name}»?", v4_exp_del_sub:"Podrás recuperarlo durante 5 segundos.",
     f_amount_aria:"Importe", f_concept_ph:"Toca para escribir el concepto", f_cat:"Categoría",
@@ -9261,12 +9261,16 @@ function mcReduced(){
 const MC_HAPTIC_KEY="_mcHapticTune";
 const MC_HAPTIC_DEF={fillAmp:30,fillMs:1100,edgeAmp:70,edgeMs:12,edgeEvery:150,tickAmp:70,tickMs:10};
 const MC_HAPTIC_RANGE={fillAmp:[1,255],fillMs:[300,2500],edgeAmp:[1,255],edgeMs:[4,60],edgeEvery:[60,400],tickAmp:[1,255],tickMs:[4,40]};
+/* Ronda 6: con uso «toque» su OnePlus 13 tira nuestra onda y toca su efecto de serie (dumpsys,
+   OplusPrebakedSegment de 45 ms). El ajustador deja elegir el uso hasta ver cuál la respeta. */
+const MC_HAPTIC_USAGES=["touch","hardware","media","unknown"];
 function mcHapticClamp(raw){
   const out={};
   Object.keys(MC_HAPTIC_DEF).forEach(function(k){
     const v=raw&&typeof raw[k]==="number"&&Number.isFinite(raw[k])?Math.round(raw[k]):MC_HAPTIC_DEF[k];
     out[k]=Math.max(MC_HAPTIC_RANGE[k][0],Math.min(MC_HAPTIC_RANGE[k][1],v));
   });
+  out.usage=raw&&MC_HAPTIC_USAGES.indexOf(raw.usage)>=0?raw.usage:MC_HAPTIC_USAGES[0];
   return out;
 }
 function mcHapticTune(){
@@ -9292,7 +9296,7 @@ mcHapticApplyCss();
 // El texto que él copia y nos manda: corto y sin nada personal, solo los siete números.
 function mcHapticTuneText(tune){
   const v=tune||mcHapticTune();
-  return "Vibración · ciclo "+v.fillAmp+"/"+v.fillMs+"ms · borde "+v.edgeAmp+"/"+v.edgeMs+"ms cada "+v.edgeEvery+"ms · gráfica "+v.tickAmp+"/"+v.tickMs+"ms";
+  return "Vibración ("+v.usage+") · ciclo "+v.fillAmp+"/"+v.fillMs+"ms · borde "+v.edgeAmp+"/"+v.edgeMs+"ms cada "+v.edgeEvery+"ms · gráfica "+v.tickAmp+"/"+v.tickMs+"ms";
 }
 // Misma curva que `.v42-cycle-draw` en shell.html: si cambia allí, cambia aquí.
 const MC_CYCLE_EASE=[.65,0,.35,1];
@@ -9329,7 +9333,7 @@ function mcHaptic(method, args){
     if(!plugin||typeof plugin[method]!=="function") return;
     // Devuelve lo que contesta Android (null si falla): el ajustador lo usa para saber si la APK
     // instalada ya entiende fuerza y duración.
-    return Promise.resolve(plugin[method](args||{})).catch(function(){ return null; });
+    return Promise.resolve(plugin[method](Object.assign({usage:mcHapticTune().usage},args||{}))).catch(function(){ return null; });
   }catch(e){}
 }
 // Un toque del borde con los valores que haya elegido él. La APK 58 ignora fuerza y duración y
@@ -23737,7 +23741,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="2ee6bae4a51369fa341beed34e0939f6e885767797ab7647f925ee12be159dfd";
+var _rnSha="b1168b05d289c86475e942ef2eba38ee9869b6f0219dd6c9a8d4f0f345370ae8";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -24001,6 +24005,14 @@ function HapticTuner({showToast}){
     group("fill",t("hv_cycle"),t("hv_cycle_hint"),[slider("fillAmp",t("hv_strength")),slider("fillMs",t("hv_length")," ms")],tryFill),
     group("edge",t("hv_edge"),null,[slider("edgeAmp",t("hv_strength")),slider("edgeMs",t("hv_length")," ms"),slider("edgeEvery",t("hv_every")," ms")],tryEdge),
     group("tick",t("hv_tick"),null,[slider("tickAmp",t("hv_strength")),slider("tickMs",t("hv_length")," ms")],tryTick),
+    React.createElement("div",{className:"hv-usage",style:{padding:"10px 14px",borderTop:"1px solid var(--line)"}},
+      React.createElement("div",{style:{fontWeight:800,fontSize:14}},t("hv_usage")),
+      React.createElement("div",{className:"hint",style:{marginTop:2}},t("hv_usage_hint")),
+      React.createElement("div",{className:"row",style:{flexWrap:"wrap",gap:6,marginTop:8}},
+        MC_HAPTIC_USAGES.map(function(u){
+          return React.createElement("button",{type:"button",key:u,className:"chip"+(v.usage===u?" active":""),"aria-pressed":v.usage===u,"data-usage":u,
+            onClick:function(){ put("usage",u); }},t("hv_u_"+u));
+        }))),
     React.createElement("div",{className:"row",style:{padding:"10px 14px 12px",gap:8}},
       React.createElement("button",{type:"button",className:"btn btn-primary",onClick:copy},t("hv_copy")),
       React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){ setV(mcHapticTuneReset()); }},t("hv_reset"))));
@@ -24083,6 +24095,16 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   const [events,setEvents]=useState(null);
   const [actOpen,setActOpen]=useState(false);   // pantalla «Actividad» (antes acordeón: crecía sin fin)
   const [betaOpen,setBetaOpen]=useState(false);  // pantalla «Revisar la beta» (solo en canal beta)
+  // La APK .debug de pruebas nativas enseña el ajustador sin pasar al canal beta (que bajaría otra web).
+  const [hapticDebug,setHapticDebug]=useState(false);
+  useEffect(function(){
+    let vivo=true;
+    try{
+      const plugin=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.AelyHaptics;
+      if(plugin&&typeof plugin.info==="function") Promise.resolve(plugin.info()).then(function(r){ if(vivo&&r&&r.debug) setHapticDebug(true); },function(){});
+    }catch(e){}
+    return function(){ vivo=false; };
+  },[]);
   /* El arranque pide reabrir el panel cuando salió de la app para probar un punto y Android le
      mató la WebView (ver BETA_ABIERTO_KEY). Se hace por evento y no por prop porque Ajustes se
      monta al abrir el cajón, así que quien arranca no puede pasarle nada todavía. */
@@ -24555,8 +24577,8 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
       // («Personalizar widgets del Resumen» se retiró el 2026-07-18: era del Dashboard v3.)
       totals && row("report","📸",t("rp_btn").replace(/^[^ ]+ /,""),null,function(){ shareMonthReport(state, totals, showToast); })
     ),
-    // Solo en beta: es el banco donde él busca su vibración; en estable no hay nada que ajustar.
-    (typeof mcChannel==="function") && mcChannel()==="beta" &&
+    // Solo en beta (o en la APK .debug de pruebas): es el banco donde él busca su vibración.
+    ((typeof mcChannel==="function" && mcChannel()==="beta")||hapticDebug) &&
       grp("vibra","📳",t("hv_title"),"vibracion vibration vibracio haptic",null,React.createElement(HapticTuner,{showToast:showToast})),
 
     // Admin al FINAL (fuera del flujo diario). Sentry de prueba quitado: no aporta en móvil.

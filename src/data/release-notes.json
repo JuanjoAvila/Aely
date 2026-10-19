@@ -11,17 +11,20 @@
       "es": [
         "En Gestionar plan vuelve la ola al llegar al final y la hoja ya no salta al cerrar.",
         "El ajuste de fuerza de la vibración se nota.",
-        "El borde solo vibra si sigues moviendo el dedo."
+        "El borde solo vibra si sigues moviendo el dedo.",
+        "Puedes elegir el tipo de vibración que mejor se note en tu móvil."
       ],
       "en": [
         "In Manage plan the ripple is back when you reach the end, and the sheet no longer jumps when it closes.",
         "The vibration strength setting can be felt.",
-        "Reaching the end of a list only vibrates while you keep moving your finger."
+        "Reaching the end of a list only vibrates while you keep moving your finger.",
+        "You can choose the type of vibration that is best felt on your phone."
       ],
       "ca": [
         "A Gestionar pla torna l'ona en arribar al final i la fitxa ja no salta en tancar.",
         "L'ajust de força de la vibració se nota.",
-        "La vora només vibra si continues movent el dit."
+        "La vora només vibra si continues movent el dit.",
+        "Pots triar el tipus de vibració que millor es noti al teu mòbil."
       ]
     },
     "tandas": [
@@ -60,21 +63,24 @@
         "items": {
           "es": [
             "0. Instala la app nueva de Aely que te llega (APK 60, versión 4.26.152). Tus frases: «en cualquier potencia vibra igual» y «si mantengo abajo no debería vibrar todo el rato».",
-            "1. Ajustes → Vibración: el deslizador de fuerza se nota de 1 a 255. MAL: suena igual.",
-            "2. Al final de una lista, tira y mueve el dedo: vibra. Con el dedo quieto: NO vibra. MAL: vibra con el dedo quieto.",
-            "3. Pulsa «Copiar valores» y pégalos en el chat a Claude."
+            "1. Ajustes → Vibración → «Tipo de vibración»: prueba cada tipo con «Probar» del borde, con la fuerza a 1 y a 255. MAL: en todos los tipos suena igual con 1 y con 255.",
+            "2. Deja elegido el tipo con el que SÍ notes la diferencia y ajusta las fuerzas a tu gusto. MAL: no hay ningún tipo con el que se note la diferencia.",
+            "3. Al final de una lista, tira moviendo el dedo: vibra. Con el dedo quieto, no. MAL: vibra con el dedo quieto.",
+            "4. Pulsa «Copiar valores» y pégalos en el chat a Claude; deben incluir el tipo elegido."
           ],
           "en": [
             "0. Install the new Aely app you receive (APK 60, version 4.26.152). Your words: «en cualquier potencia vibra igual» (at any strength it vibrates the same) and «si mantengo abajo no debería vibrar todo el rato» (if I hold it down it should not vibrate all the time).",
-            "1. Settings → Vibration: the strength slider can be felt from 1 to 255. WRONG: it feels the same.",
-            "2. At the end of a list, pull and move your finger: it vibrates. With your finger still: it does NOT vibrate. WRONG: it vibrates with your finger still.",
-            "3. Tap «Copy values» and paste them into the chat to Claude."
+            "1. Settings → Vibration → «Vibration type»: try each type with the edge «Try» button, with the strength at 1 and at 255. WRONG: in every type it feels the same at 1 and at 255.",
+            "2. Leave selected the type where you DO feel the difference and set the strengths to your liking. WRONG: no type lets you feel the difference.",
+            "3. At the end of a list, pull while moving your finger: it vibrates. With your finger still, it does not. WRONG: it vibrates with your finger still.",
+            "4. Tap «Copy values» and paste them into the chat to Claude; they must include the chosen type."
           ],
           "ca": [
             "0. Instal·la l'app nova d'Aely que et arriba (APK 60, versió 4.26.152). Les teves frases: «en cualquier potencia vibra igual» (a qualsevol potència vibra igual) i «si mantengo abajo no debería vibrar todo el rato» (si mantinc avall no hauria de vibrar tot el temps).",
-            "1. Ajustos → Vibració: el lliscador de força se nota d'1 a 255. MALAMENT: sona igual.",
-            "2. Al final d'una llista, estira i mou el dit: vibra. Amb el dit quiet: NO vibra. MALAMENT: vibra amb el dit quiet.",
-            "3. Prem «Copiar valors» i enganxa'ls al xat a Claude."
+            "1. Ajustos → Vibració → «Tipus de vibració»: prova cada tipus amb «Provar» de la vora, amb la força a 1 i a 255. MALAMENT: en tots els tipus sona igual amb 1 i amb 255.",
+            "2. Deixa triat el tipus amb el qual SÍ notis la diferència i ajusta les forces al teu gust. MALAMENT: cap tipus deixa notar la diferència.",
+            "3. Al final d'una llista, estira movent el dit: vibra. Amb el dit quiet, no. MALAMENT: vibra amb el dit quiet.",
+            "4. Prem «Copiar valors» i enganxa'ls al xat a Claude; han d'incloure el tipus triat."
           ]
         },
         "apk": 60

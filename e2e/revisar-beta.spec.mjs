@@ -1803,10 +1803,10 @@ for(const lang of ["es","en","ca"])test(`beta152: la nota nueva con la ola de Ge
   const catalog=await page.evaluate(()=>RELEASE_NOTES.map(n=>[n.v,Array.isArray(n.tandas)?n.tandas.length:-1]));
   expect(catalog).toEqual([["4.26.152",2],["4.26.151",1],["4.26.150",0],["4.26.149",1],["4.26.148",1],["4.26.147",2],["4.26.146",1],["4.26.145",0],["4.26.144",1],["4.26.143",0],["4.26.142",0],["4.26.141",0],["4.26.140",0],["4.26.139",0],["4.26.138",0],...production.map(n=>[n.v,0])]);
   const pack=await page.evaluate(()=>{CONFIG.APP_VERSION="4.26.152.1";const p=betaChecklist(CONFIG.APP_VERSION,"4.26.117",55);return {tandas:p.tandas.length,items:p.items.length};});
-  expect(pack).toEqual({tandas:9,items:38});
+  expect(pack).toEqual({tandas:9,items:39});
   const title=await page.evaluate(lang=>rnT(RELEASE_NOTES[0].t,lang),lang);
   const items=await page.evaluate(lang=>rnItems(RELEASE_NOTES[0],lang),lang);
-  expect(items.length).toBe(3);
+  expect(items.length).toBe(4);
   await page.evaluate(()=>{
     const host=document.createElement("div");document.body.appendChild(host);
     ReactDOM.createRoot(host).render(React.createElement(WhatsNew,{onClose:()=>{}}));

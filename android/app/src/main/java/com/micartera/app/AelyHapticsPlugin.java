@@ -28,6 +28,14 @@ public class AelyHapticsPlugin extends Plugin {
         play(call, true, HapticPlan.single(duration, amplitude));
     }
 
+    // El ajustador pregunta si es la APK .debug: ahí se enseña aunque el canal no sea beta.
+    @PluginMethod
+    public void info(PluginCall call) {
+        JSObject result = new JSObject();
+        result.put("debug", BuildConfig.DEBUG);result.put("api", Build.VERSION.SDK_INT);
+        call.resolve(result);
+    }
+
     @PluginMethod
     public void fill(PluginCall call) {
         // La onda llega hecha desde la web (sigue al trazo del anillo); si falta o no cuadra, la rampa de siempre.
@@ -65,7 +73,28 @@ public class AelyHapticsPlugin extends Plugin {
             && view.performHapticFeedback(HapticFeedbackConstants.SEGMENT_FREQUENT_TICK) ? "SOFT_TICK" : "NONE";
     }
 
+    /* UX16 ronda 6: el dumpsys de su OnePlus 13 enseña que con usage TOUCH el sistema tira
+       nuestra onda y toca su efecto de serie de 45 ms (OplusPrebakedSegment, dos fuerzas), y que
+       las de HARDWARE_FEEDBACK sí suenan con su forma. El usage lo elige el ajustador de beta
+       mientras se comprueba cuál respeta la onda; sin él, TOUCH como hasta ahora. */
+    private static int usageConstant(HapticPlan.Usage usage) {
+        switch (usage) {
+            case HARDWARE: return VibrationAttributes.USAGE_HARDWARE_FEEDBACK;
+            case MEDIA: return VibrationAttributes.USAGE_MEDIA;
+            case UNKNOWN: return VibrationAttributes.USAGE_UNKNOWN;
+            default: return VibrationAttributes.USAGE_TOUCH;
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    private static void vibrate(Vibrator vibrator, VibrationEffect effect, HapticPlan.Usage usage) {
+        // VibrationAttributes existe desde API 33; antes, la onda va sin atributos.
+        if (Build.VERSION.SDK_INT >= 33) vibrator.vibrate(effect, new VibrationAttributes.Builder().setUsage(usageConstant(usage)).build());
+        else vibrator.vibrate(effect);
+    }
+
     private void play(PluginCall call, boolean edge, HapticPlan.Wave raw) {
+        HapticPlan.Usage usage = HapticPlan.usage(call.getString("usage", null));
         getActivity().runOnUiThread(() -> {
             JSObject result = new JSObject();
             String path = "NONE";
@@ -76,7 +105,7 @@ public class AelyHapticsPlugin extends Plugin {
                 view = getBridge().getWebView();
                 if (raw != null && allowed(view)) {
                     Vibrator vibrator = (Vibrator) getContext().getSystemService(Context.VIBRATOR_SERVICE);
-                    boolean present = Build.VERSION.SDK_INT >= 33 && vibrator != null && vibrator.hasVibrator();
+                    boolean present = vibrator != null && vibrator.hasVibrator();
                     if (present) amplitude = vibrator.hasAmplitudeControl();
                     HapticPlan.Path selected = HapticPlan.select(Build.VERSION.SDK_INT, true, present);
                     HapticPlan.Wave wave = selected == HapticPlan.Path.WAVEFORM ? HapticPlan.shape(raw, amplitude) : null;
@@ -84,7 +113,7 @@ public class AelyHapticsPlugin extends Plugin {
                         // Sin control de amplitud Android trata cualquier valor distinto de 0 como «encendido»:
                         // el troceo en ranuras es entonces lo único que hace de fuerza, y basta.
                         VibrationEffect effect = VibrationEffect.createWaveform(wave.timings, wave.amplitudes, -1);
-                        vibrator.vibrate(effect, new VibrationAttributes.Builder().setUsage(VibrationAttributes.USAGE_TOUCH).build());
+                        vibrate(vibrator, effect, usage);
                         path = selected.name();
                         onMs = HapticPlan.onTime(wave);
                     } else if (edge) path = softFallback(view);
@@ -98,7 +127,7 @@ public class AelyHapticsPlugin extends Plugin {
             result.put("amplitudeControl", amplitude);result.put("onMs", onMs);
             result.put("continuous", !edge && path.equals("WAVEFORM"));
             // La web pregunta esto para avisar de que la APK instalada aún no entiende el ajustador.
-            result.put("tunable", true);result.put("shaped", true);
+            result.put("tunable", true);result.put("shaped", true);result.put("usage", usage.name());
             call.resolve(result);
         });
     }

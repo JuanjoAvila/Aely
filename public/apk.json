@@ -2,7 +2,7 @@
   "versionCode": 60,
   "versionName": "4.26.152",
   "url": "https://github.com/JuanjoAvila/Aely/releases/download/beta/Aely-4.26.152-beta-60.apk",
-  "notes": "La fuerza de la vibración se nota de verdad en el ajustador, y el borde solo vibra mientras sigues moviendo el dedo; Gestionar plan recupera la ola al llegar al final. Se instala encima sin perder datos.",
+  "notes": "La fuerza de la vibración se nota de verdad en el ajustador, que ahora deja elegir el tipo de vibración que mejor se note en tu móvil, y el borde solo vibra mientras sigues moviendo el dedo; Gestionar plan recupera la ola al llegar al final. Se instala encima sin perder datos.",
   "revisiones": {
     "fin05-widget-reentrada": "78ff9b2c46f59b55936bb1390580044fdb1715a4c5583189259eeece4db230e4",
     "fin05-pago-cerrada": "8a6f5aefbe66677ca3685ba430208766d5adc791e2fb50d1013a3d54d8397e50",
@@ -15,7 +15,7 @@
     "vibracion-suave-ronda-2": "cad0f5b6d33aa6cff3c1e588315cd5cd1a73364e1cb497109696efb0b2cc7b9f",
     "vibracion-suave-ronda-3": "beadff92e6fdbe48cb39eea6a715097d00502426d273856609ee0da341d8fe83",
     "vibracion-ajustador": "8cdb680d5a5e5c958236c0aa3174503f62927b2662b18b232b83bf692461786d",
-    "vibracion-ajustador-r2": "5dd24129f3217e615de53c8d2509db776d426f65a1d4fc5961d5cbec3b5538b4"
+    "vibracion-ajustador-r2": "dc4468fdf99b83a27c95efbe84e939b573d15a9ca1fa47c7a879abef1e7ee588"
   },
   "sha256": "b569f4cdda410cb7538ad63832a1c6a866349a977489774aeb3cc6afc118776f",
   "sourceSha": "5dc8b8f4a2697aedd9127b7cfed2d25d75eca0e5"

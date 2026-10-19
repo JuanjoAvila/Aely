@@ -93,3 +93,12 @@ test('borde (ronda 5): con el dedo quieto no repite; cada recorrido nuevo contra
   clock.t+=150;touch('touchmove',250);assert.equal(edges(),3,'4 px nuevos no bastan');
   touch('touchend');clock.t+=500;assert.equal(edges(),3,'soltar no deja nada pendiente');
 });
+test('uso de la vibracion (ronda 6): se guarda, viaja en cada llamada y la basura vuelve a toque',()=>{
+  const x=setup();assert.equal(x.context.mcHapticTune().usage,'touch','por defecto, el de siempre');
+  x.context.mcHapticTuneSave({usage:'hardware'});
+  assert.equal(setup(x.store.get('_mcHapticTune')).context.mcHapticTune().usage,'hardware');
+  x.context.mcEdgeHaptic();assert.equal(x.calls.at(-1).usage,'hardware','el borde lo lleva');
+  x.context.mcHaptic('edge',{amplitude:9,durationMs:9,usage:'media'});assert.equal(x.calls.at(-1).usage,'media','quien llama puede forzarlo');
+  assert.equal(setup(JSON.stringify({usage:'vibracion-total'})).context.mcHapticTune().usage,'touch');
+  assert.match(x.context.mcHapticTuneText(),/hardware/,'el texto copiado dice que uso se probo');
+});

@@ -15,10 +15,19 @@ final class HapticPlan {
     // Fuerza 1 sigue encendiendo un tercio de cada ranura: «en 1 no vibra nada» era el otro fallo.
     static final float DUTY_MIN = .3f;
     enum Path { NONE, WAVEFORM }
+    // Con qué «uso» se pide la vibración: en OxygenOS el de toque se sustituye por un efecto de serie.
+    enum Usage { TOUCH, HARDWARE, MEDIA, UNKNOWN }
+    static Usage usage(String name) {
+        if ("hardware".equals(name)) return Usage.HARDWARE;
+        if ("media".equals(name)) return Usage.MEDIA;
+        if ("unknown".equals(name)) return Usage.UNKNOWN;
+        return Usage.TOUCH;
+    }
 
     static int clamp(int value, int lo, int hi) { return Math.max(lo, Math.min(hi, value)); }
+    // createWaveform con amplitudes existe desde API 26; los atributos de uso, desde la 33.
     static Path select(int api, boolean allowed, boolean hasVibrator) {
-        return allowed && api >= 33 && hasVibrator ? Path.WAVEFORM : Path.NONE;
+        return allowed && api >= 26 && hasVibrator ? Path.WAVEFORM : Path.NONE;
     }
     // Por debajo de MIN_FELT un toque corto no mueve el motor: la fuerza 1 empieza ahí.
     static int felt(int strength) {

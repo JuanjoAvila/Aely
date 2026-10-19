@@ -2,6 +2,7 @@
 
 - **Qué lleva.** La 4.26.151 local (`fa138e12c`, aún sin empujar) más la PR 287 (`36b01eaf`), `c84de633` (`claude/vibra-aj-r2`) y `c4ce8075` (`claude/youtube-enlace-r2`, solo un test guardián) y `8aae4cef` (test lifecycle-inflight).
 - **Gestionar plan (INC-2709-03 y UX-08).** Vuelve la ola nativa al llegar al final y la hoja de recibo ya no salta al cerrar; la ficha deja de cerrarse arrastrando desde el contenido y se cierra solo desde la barrita, con Atrás o tocando fuera.
+- **Tipo de vibración (`92dff0ea`).** En el OnePlus 13 / OxygenOS el sistema sustituye las vibraciones de uso TOUCH por un efecto de serie de 45 ms (`dumpsys vibrator_manager`); el ajustador deja elegir el uso (Toque, Botones, Multimedia, Genérica) y «Copiar valores» lo incluye.
 - **Vibración (UX-16 R2).** La fuerza del ajustador se siente en el motor (troceo en ranuras) y el borde solo vibra mientras el dedo se mueve. Cambio nativo: hace falta la APK 60. `sha256` y `sourceSha` de `public/apk.json` quedan por rellenar tras compilar.
 - **Panel.** Dos tandas nuevas, `gestionar-plan-ola` y `vibracion-ajustador-r2`. La `gestionar-plan-sin-ola` de la 150 y la `vibracion-ajustador` de la 148 pasan a vacías; la de YouTube de la 148 se queda.
 - **Test.** `8aae4cef` (`claude/fix-lifecycle-test`): `lifecycle-inflight` ya no espera que `lastSync` avance en una lectura idéntica (desde perf-vuelta no avanza a propósito); arregla el rojo del job tests de la 150.

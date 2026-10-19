@@ -564,12 +564,16 @@ function mcReduced(){
 const MC_HAPTIC_KEY="_mcHapticTune";
 const MC_HAPTIC_DEF={fillAmp:30,fillMs:1100,edgeAmp:70,edgeMs:12,edgeEvery:150,tickAmp:70,tickMs:10};
 const MC_HAPTIC_RANGE={fillAmp:[1,255],fillMs:[300,2500],edgeAmp:[1,255],edgeMs:[4,60],edgeEvery:[60,400],tickAmp:[1,255],tickMs:[4,40]};
+/* Ronda 6: con uso «toque» su OnePlus 13 tira nuestra onda y toca su efecto de serie (dumpsys,
+   OplusPrebakedSegment de 45 ms). El ajustador deja elegir el uso hasta ver cuál la respeta. */
+const MC_HAPTIC_USAGES=["touch","hardware","media","unknown"];
 function mcHapticClamp(raw){
   const out={};
   Object.keys(MC_HAPTIC_DEF).forEach(function(k){
     const v=raw&&typeof raw[k]==="number"&&Number.isFinite(raw[k])?Math.round(raw[k]):MC_HAPTIC_DEF[k];
     out[k]=Math.max(MC_HAPTIC_RANGE[k][0],Math.min(MC_HAPTIC_RANGE[k][1],v));
   });
+  out.usage=raw&&MC_HAPTIC_USAGES.indexOf(raw.usage)>=0?raw.usage:MC_HAPTIC_USAGES[0];
   return out;
 }
 function mcHapticTune(){
@@ -595,7 +599,7 @@ mcHapticApplyCss();
 // El texto que él copia y nos manda: corto y sin nada personal, solo los siete números.
 function mcHapticTuneText(tune){
   const v=tune||mcHapticTune();
-  return "Vibración · ciclo "+v.fillAmp+"/"+v.fillMs+"ms · borde "+v.edgeAmp+"/"+v.edgeMs+"ms cada "+v.edgeEvery+"ms · gráfica "+v.tickAmp+"/"+v.tickMs+"ms";
+  return "Vibración ("+v.usage+") · ciclo "+v.fillAmp+"/"+v.fillMs+"ms · borde "+v.edgeAmp+"/"+v.edgeMs+"ms cada "+v.edgeEvery+"ms · gráfica "+v.tickAmp+"/"+v.tickMs+"ms";
 }
 // Misma curva que `.v42-cycle-draw` en shell.html: si cambia allí, cambia aquí.
 const MC_CYCLE_EASE=[.65,0,.35,1];
@@ -632,7 +636,7 @@ function mcHaptic(method, args){
     if(!plugin||typeof plugin[method]!=="function") return;
     // Devuelve lo que contesta Android (null si falla): el ajustador lo usa para saber si la APK
     // instalada ya entiende fuerza y duración.
-    return Promise.resolve(plugin[method](args||{})).catch(function(){ return null; });
+    return Promise.resolve(plugin[method](Object.assign({usage:mcHapticTune().usage},args||{}))).catch(function(){ return null; });
   }catch(e){}
 }
 // Un toque del borde con los valores que haya elegido él. La APK 58 ignora fuerza y duración y

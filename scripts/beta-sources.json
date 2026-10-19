@@ -58563,6 +58563,10 @@
         "data": "MC_CYCLE_EASE"
       },
       {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "MC_HAPTIC_USAGES"
+      },
+      {
         "file": "src/modules/10-app-components.js",
         "function": "HapticTuner"
       },
