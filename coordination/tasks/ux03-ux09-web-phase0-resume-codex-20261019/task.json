@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "id": "ux03-ux09-web-phase0-resume-codex-20261019",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261019-r74-36ea75cf98e01bbf",
+  "createdAt": "2026-10-19T04:44:50.396Z",
+  "to": "codex",
+  "kind": "worker",
+  "priority": 4,
+  "baseSHA": "7090802099ac0c7956c0d3597a9936a82c52a95f",
+  "previousTaskId": "ux03-ux09-web-diagnostic-candidate-codex-20261019",
+  "previousResult": "6b37ea4a05bef2d006e3fe82416b829836ff903c",
+  "assignedPublicSessionId": "codex-local-20261016-5fc9afdec60f82b1",
+  "claudeGrant": "85da4c689280d6b65747079fc27a71b2961136f0",
+  "dependsOnReleasedResult": "c8aa7ea4a3a275071d49aed63af74b7928bd588d",
+  "objective": "Resume and conclude phase0 web splash diagnosis from preserved inventory and partial evidence; diagnosis only, no CPU6, native, APK or product changes.",
+  "scope": [
+    "Phase0 verifiable artifact identity and classification",
+    "Synthesize existing eight synthetic web correctness cases and exact persistence oracles without repeating finished tests",
+    "Bounded diagnosis with missing physical evidence and explicit performance blocker; next-step recommendation only"
+  ],
+  "requirements": [
+    "Read full Claude85da4c68 and task. ROOT verified R3 resultc8aa7ea4 releasedblocked sourceb09d0945, all11 source and387 evidence hashes and protected prior artifacts; Claude received R3 in review. This NEW task authorizes resumption; original partial6b37ea4a and completed inventory2bfdb7f6 remain immutable.",
+    "Original H2 holder only, same own public session/runtime/cwd/helper/filter/ledger. New exact own claim push/readback and ACK before substance. Verify OWN effective runtime/access before operations; human authorization persists, do not ask general permissions or treat parent full access as proof for your runtime. On actual denial preserve exact error, stop that action and report privately; no alternate identity, proxy, route or new chat to bypass it.",
+    "Verify live OWN budget; preserve prior frozen blocks, all NFF and historical spacing violations. Last partial reported block6 after result about6of20 total88; do not assume those are current. Count first/internal/readbacks minimum30s; next block only after actual exhaustion and normal own notice/readback under applicable permanent grants, no reset or inheritance.",
+    "Reuse original OWN clean diagnostic checkout/branch at exact70908020 after hash/status verification, read applicable AGENTS EMPIEZA and channel protocol fully. Preserve old source32files/private59files/closure evidence and prior H2/PR275/inventories without mutation. Write only NEW private diagnostic evidence; no product edits or new PR in this task.",
+    "The prior eight unique correctness scenarios are already covered4 initialPASS plus4 corrected remainingPASS. Preserve whole EXIT1s and subset EXIT0, no single8of8EXIT0 claim. Reuse these finished scenarios and persisted-state/cent oracles; do not rerun them or expand a matrix just to make a combined green run.",
+    "Complete remaining phase0 identity/classification and synthesis using existing evidence. Distinguish local base and own served bundle from current public artifacts and installed APK/OTA; refresh an artifact identity only if needed and record exact version/hash/source. Missing affected-device/physical evidence remains missing, no inferred device acceptance.",
+    "Latest Claude85da4c68 scope is phase0 WEB diagnosis only: NO CPU6, profiling or representative performance measurements, native execution, device runs, Gradle or APK. If cause cannot be established without performance, consult Claude canonically and WAIT for express libre/admission; do not acquire a lease by time, PID, absentlock or old task. Static synthesis may conclude blocked.",
+    "No speculative fix or product changes even if prior b0a553fc described a conditional candidate. Any candidate needs a NEW explicit Claude scope after phase0 diagnosis. No financial totals, matching, paid contract, saved links, writers, cloud/backfill, backend SQL/livebanks/Edge, VERSION/catalogue/caps, deployment or merge.",
+    "Deliver new immutable own released result with actual commands/EXITs only if newly run, existing-evidence provenance, source and evidence manifest/checkpoint/closure, cause versus inference, missing device/performance limits and next-step recommendation. Keep old partial and completed inventory distinct. No ProductREADY; STOP after exact own canonical result readback and private ROOT74 handoff."
+  ],
+  "deliverable": "Phase0 web diagnostic conclusion and remaining blockers, evidence only, original eight scenarios reused without repetition; immutable released result and STOP."
+}
