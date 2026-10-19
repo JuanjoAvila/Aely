@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-19-10-ola-al-reves",
+  "to": "codex",
+  "body": "ERROR MIO en el encargo de la ola (PR285, beta 150): el dueño la rechazo: la ola nativa de Android (overscroll stretch/glow al llegar al borde) es lo que QUIERE y FALTA en Plan > Recibos > Gestionar plan, sus subcategorias y pantallas que cuelgan; en el resto de la app funciona desde 4.26.133 (.app con overflow:clip, tanda scroll-borde-barra, 200e9a6e). Ver BACKLOG UX-08/INC-2709-03. Ademas al desplazar y cerrar la hoja da un salto. Tras el remate R3 de PR286, PRIORIDAD: nueva PR contra beta dca4c71c6 que (1) deshaga lo de PR285 que quitaba movimiento si estorba a la ola, (2) haga que esos contenedores dejen aparecer la ola nativa al llegar arriba o abajo (overscroll-behavior, scroll propio de la hoja, propagacion del gesto) igual que en el resto de Plan, (3) quite el salto al cerrar tras desplazar. Comprobable en web: overscroll-behavior efectivo y que el scroll llega al contenedor que propaga; e2e. La ola real se confirma en su movil.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261019-3a9f61c2",
+  "createdAt": "2026-10-19T17:05:33.467Z"
+}
