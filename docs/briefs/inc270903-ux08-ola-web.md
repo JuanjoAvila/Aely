@@ -97,6 +97,6 @@ minificado (redondeado1392 KiB frente a1392 KiB); gzip386/387 KiB y bloqueantes3
 No se cambian topes. El chequeo documental del commit final se conserva en el cierre, separado
 de esta evidencia focal y de la reconciliación de versión al integrar.
 
-Texto de familia propuesto para integrar: ES «Las categorías de Gestionar plan mantienen su
-cabecera al desplazarse»; EN «Manage plan categories keep their header in place while scrolling»;
-CA «Les categories de Gestionar el pla mantenen la capçalera en desplaçar-se».
+Texto de familia propuesto para integrar: ES «Las categorías de Gestionar plan se abren con
+la cabecera completa»; EN «Manage plan categories open with their full header visible»;
+CA «Les categories de Gestionar el pla s'obren amb la capçalera completa».
