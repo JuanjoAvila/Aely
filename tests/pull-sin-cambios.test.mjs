@@ -33,7 +33,7 @@ const real = main.slice(a, z);
    con ella y la comparación sigue midiendo solo los atajos. Cada sustitución tiene que aplicarse. */
 function sinAtajos(src) {
   const swaps = [
-    ["expensesFromRows(rows)", "rows.map(expenseFromRow)"],
+    ["expensesFromRows(rows, stateRef.current._historyOwner)", "rows.map(expenseFromRow)"],
     ["if(mismo) return prev;", "if(false) return prev;"],
     ["if(pending===prev.obAbsorbedPending&&", "if(false&&pending===prev.obAbsorbedPending&&"],
   ];
@@ -185,6 +185,36 @@ test("lo aprendido a mano cambia la categoría aunque la fila sea la misma", asy
   assert.equal(e.calls.row, 1, "solo esa fila se reconstruye");
 });
 
+test("otro dueño del histórico o el modo pruebas no reutilizan nada de la lectura anterior", async () => {
+  const e = entorno(real);
+  e.stateRef.current = estado();
+  e.rows = filas();
+  await e.pull(); await e.pull();
+  assert.equal(e.calls.row, 0, "premisa: con el mismo dueño, nada se reconvierte");
+  const lecturas = [];
+  const off = vm.runInContext("mcOnLecturaNube", e.c)((ms) => lecturas.push(ms));
+  // Otra cuenta con las mismas filas: se reconstruyen todas y la hora de la anterior se olvida.
+  e.stateRef.current = Object.assign({}, e.stateRef.current, { _historyOwner: "otra-cuenta" });
+  await e.pull();
+  assert.equal(e.calls.row, e.rows.length, "otro dueño: todas las filas se reconstruyen");
+  assert.ok(lecturas.slice(1).includes(0), "otro dueño: la hora de lectura anterior se olvida");
+  await e.pull();
+  assert.equal(e.calls.row, 0, "mismo dueño otra vez: ya se reutiliza");
+  // Modo pruebas con las mismas filas y el mismo dueño: también se reconstruye, y al salir igual.
+  vm.runInContext("_mcSandboxPinned=true;", e.c);
+  await e.pull();
+  assert.equal(e.calls.row, e.rows.length, "entrar en modo pruebas: todas las filas se reconstruyen");
+  vm.runInContext("_mcSandboxPinned=false;", e.c);
+  await e.pull();
+  assert.equal(e.calls.row, e.rows.length, "salir del modo pruebas: todas las filas se reconstruyen");
+  // Cerrar sesión (o entrar con otra) también la olvida, sin esperar a un pull.
+  lecturas.length = 0;
+  vm.runInContext("expenseRowMemoReset()", e.c);
+  assert.deepEqual(lecturas, [0]);
+  assert.equal(vm.runInContext("_expRowMemo.size", e.c), 0);
+  off();
+});
+
 test("un gasto tocado en sitio tras la lectura no se reutiliza", async () => {
   const e = entorno(real);
   e.stateRef.current = estado();
@@ -193,7 +223,9 @@ test("un gasto tocado en sitio tras la lectura no se reutiliza", async () => {
   const tocado = e.stateRef.current.expenses.find((x) => x.id === uuid(4));
   tocado.merchant = "Mutado en sitio";   // nadie debería hacerlo; si pasa, la memoria no lo propaga
   const memo = vm.runInContext("_expRowMemo", e.c);
-  const out = vm.runInContext("expensesFromRows", e.c)(e.rows.map((r) => ({ ...r })));
+  e.calls.row = 0;
+  const out = vm.runInContext("expensesFromRows", e.c)(e.rows.map((r) => ({ ...r })), OWNER);
+  assert.equal(e.calls.row, 1, "solo se reconstruye la tocada: el resto sigue memorizado para este dueño");
   assert.equal(out.find((x) => x.id === uuid(4)).merchant, "Netflix");
   assert.notEqual(out.find((x) => x.id === uuid(4)), tocado);
   assert.ok(memo.size > 0);

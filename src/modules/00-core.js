@@ -3335,6 +3335,11 @@ function expenseFromRow(r){
    `tests/pull-sin-cambios.test.mjs`) o esa columna dejaría de refrescarse. */
 const EXPENSE_ROW_COLS=["id","fecha","comercio","importe","cat","source","ingest_event_id","no_card","nota","nota_edit","importe_orig","divisa","ob_name"];
 let _expRowMemo=new Map();
+// De quién es la memoria (dueño del histórico | modo pruebas). Al cambiar se olvida entera, y
+// también la hora de la última lectura: nunca se reutiliza un gasto de otra cuenta ni del banco
+// de pruebas, aunque hoy saliera igual (revisión independiente, 19/10/2026).
+let _expRowCtx=null;
+function expenseRowMemoReset(){ _expRowMemo=new Map(); _expRowCtx=null; mcSetLecturaNube(0); }
 function expenseRowMemoOk(h, r){
   for(let i=0;i<EXPENSE_ROW_COLS.length;i++){ if(!Object.is(h.r[i], r[EXPENSE_ROW_COLS[i]])) return false; }
   let n=0;
@@ -3342,7 +3347,9 @@ function expenseRowMemoOk(h, r){
   for(const k in h.e) n--;
   return n===0 && h.e.category===resolveCategory(r.cat, r.comercio || "");
 }
-function expensesFromRows(rows){
+function expensesFromRows(rows, owner){
+  const ctx=String(owner||"")+"|"+(mcSandbox()?1:0);
+  if(ctx!==_expRowCtx){ if(_expRowCtx!==null) expenseRowMemoReset(); _expRowCtx=ctx; }
   const prev=_expRowMemo, next=new Map(), out=new Array(rows.length);
   for(let i=0;i<rows.length;i++){
     const r=rows[i];

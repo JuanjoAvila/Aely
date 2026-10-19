@@ -5674,6 +5674,11 @@ function expenseFromRow(r){
    `tests/pull-sin-cambios.test.mjs`) o esa columna dejaría de refrescarse. */
 const EXPENSE_ROW_COLS=["id","fecha","comercio","importe","cat","source","ingest_event_id","no_card","nota","nota_edit","importe_orig","divisa","ob_name"];
 let _expRowMemo=new Map();
+// De quién es la memoria (dueño del histórico | modo pruebas). Al cambiar se olvida entera, y
+// también la hora de la última lectura: nunca se reutiliza un gasto de otra cuenta ni del banco
+// de pruebas, aunque hoy saliera igual (revisión independiente, 19/10/2026).
+let _expRowCtx=null;
+function expenseRowMemoReset(){ _expRowMemo=new Map(); _expRowCtx=null; mcSetLecturaNube(0); }
 function expenseRowMemoOk(h, r){
   for(let i=0;i<EXPENSE_ROW_COLS.length;i++){ if(!Object.is(h.r[i], r[EXPENSE_ROW_COLS[i]])) return false; }
   let n=0;
@@ -5681,7 +5686,9 @@ function expenseRowMemoOk(h, r){
   for(const k in h.e) n--;
   return n===0 && h.e.category===resolveCategory(r.cat, r.comercio || "");
 }
-function expensesFromRows(rows){
+function expensesFromRows(rows, owner){
+  const ctx=String(owner||"")+"|"+(mcSandbox()?1:0);
+  if(ctx!==_expRowCtx){ if(_expRowCtx!==null) expenseRowMemoReset(); _expRowCtx=ctx; }
   const prev=_expRowMemo, next=new Map(), out=new Array(rows.length);
   for(let i=0;i<rows.length;i++){
     const r=rows[i];
@@ -27270,7 +27277,7 @@ function App(){
       // confirma páginas sueltas. La ausencia sigue sin significar borrado, incluso al terminar.
       const delSet=expenseDeletedSet(stateRef.current);
       // Las filas iguales a las de la lectura anterior conservan su gasto (ver `expensesFromRows`).
-      const incoming=expensesFromRows(rows).filter(function(e){ return e.amount!==0 && !expenseIsTombstoned(e, delSet); });
+      const incoming=expensesFromRows(rows, stateRef.current._historyOwner).filter(function(e){ return e.amount!==0 && !expenseIsTombstoned(e, delSet); });
       // Backfill: sube a la tabla TODO gasto local que aún no esté en ella (no solo los manuales).
       // Esto garantiza que la tabla sea la fuente de verdad COMPLETA antes de dejar de duplicar
       // los gastos en app_state (ver slimForCloud). Upsert idempotente (ignoreDuplicates).
@@ -27885,6 +27892,8 @@ function App(){
       setSession(sessionRef.current=s);
       // Cerrar sesión rompe la asociación implícita del extracto local con el titular. El
       // próximo login no debe heredar sus apuntes, aunque no exista cartera en la nube.
+      // Otra cuenta (o ninguna): ni gastos memorizados ni hora de lectura de la anterior.
+      if(login&&prev||!s&&ev==="SIGNED_OUT") expenseRowMemoReset();
       if(!s&&ev==="SIGNED_OUT"){
         // El evento ya trae sesión nula: la partición pertenece a la sesión saliente.
         const owner=prev&&prev.user&&prev.user.id;

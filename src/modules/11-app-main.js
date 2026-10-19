@@ -559,7 +559,7 @@ function App(){
       // confirma páginas sueltas. La ausencia sigue sin significar borrado, incluso al terminar.
       const delSet=expenseDeletedSet(stateRef.current);
       // Las filas iguales a las de la lectura anterior conservan su gasto (ver `expensesFromRows`).
-      const incoming=expensesFromRows(rows).filter(function(e){ return e.amount!==0 && !expenseIsTombstoned(e, delSet); });
+      const incoming=expensesFromRows(rows, stateRef.current._historyOwner).filter(function(e){ return e.amount!==0 && !expenseIsTombstoned(e, delSet); });
       // Backfill: sube a la tabla TODO gasto local que aún no esté en ella (no solo los manuales).
       // Esto garantiza que la tabla sea la fuente de verdad COMPLETA antes de dejar de duplicar
       // los gastos en app_state (ver slimForCloud). Upsert idempotente (ignoreDuplicates).
@@ -1174,6 +1174,8 @@ function App(){
       setSession(sessionRef.current=s);
       // Cerrar sesión rompe la asociación implícita del extracto local con el titular. El
       // próximo login no debe heredar sus apuntes, aunque no exista cartera en la nube.
+      // Otra cuenta (o ninguna): ni gastos memorizados ni hora de lectura de la anterior.
+      if(login&&prev||!s&&ev==="SIGNED_OUT") expenseRowMemoReset();
       if(!s&&ev==="SIGNED_OUT"){
         // El evento ya trae sesión nula: la partición pertenece a la sesión saliente.
         const owner=prev&&prev.user&&prev.user.id;

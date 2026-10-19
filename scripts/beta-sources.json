@@ -2842,6 +2842,10 @@
       },
       {
         "file": "src/modules/00-core.js",
+        "function": "expenseRowMemoReset"
+      },
+      {
+        "file": "src/modules/00-core.js",
         "function": "expenseRowMemoOk"
       },
       {
@@ -2851,6 +2855,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_AC_KW"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_expRowCtx"
       },
       {
         "file": "src/modules/00-core.js",
@@ -4134,6 +4142,10 @@
       },
       {
         "file": "src/modules/00-core.js",
+        "function": "expenseRowMemoReset"
+      },
+      {
+        "file": "src/modules/00-core.js",
         "function": "expenseRowMemoOk"
       },
       {
@@ -4143,6 +4155,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_AC_KW"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_expRowCtx"
       },
       {
         "file": "src/modules/00-core.js",
@@ -7651,6 +7667,10 @@
       },
       {
         "file": "src/modules/00-core.js",
+        "function": "expenseRowMemoReset"
+      },
+      {
+        "file": "src/modules/00-core.js",
         "function": "expenseRowMemoOk"
       },
       {
@@ -7660,6 +7680,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_AC_KW"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_expRowCtx"
       },
       {
         "file": "src/modules/00-core.js",
@@ -11923,6 +11947,10 @@
       },
       {
         "file": "src/modules/00-core.js",
+        "function": "expenseRowMemoReset"
+      },
+      {
+        "file": "src/modules/00-core.js",
         "function": "expenseRowMemoOk"
       },
       {
@@ -11932,6 +11960,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "histBookResponses"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_expRowCtx"
       },
       {
         "file": "src/modules/00-core.js",
@@ -13012,6 +13044,10 @@
       },
       {
         "file": "src/modules/00-core.js",
+        "function": "expenseRowMemoReset"
+      },
+      {
+        "file": "src/modules/00-core.js",
         "function": "expenseRowMemoOk"
       },
       {
@@ -13021,6 +13057,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_AC_KW"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_expRowCtx"
       },
       {
         "file": "src/modules/00-core.js",
@@ -14289,6 +14329,10 @@
       },
       {
         "file": "src/modules/00-core.js",
+        "function": "expenseRowMemoReset"
+      },
+      {
+        "file": "src/modules/00-core.js",
         "function": "expenseRowMemoOk"
       },
       {
@@ -14298,6 +14342,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_AC_KW"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_expRowCtx"
       },
       {
         "file": "src/modules/00-core.js",
@@ -19320,6 +19368,10 @@
       },
       {
         "file": "src/modules/00-core.js",
+        "function": "expenseRowMemoReset"
+      },
+      {
+        "file": "src/modules/00-core.js",
         "function": "expenseRowMemoOk"
       },
       {
@@ -19329,6 +19381,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_AC_KW"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_expRowCtx"
       },
       {
         "file": "src/modules/00-core.js",
@@ -23007,6 +23063,30 @@
       {
         "file": "src/modules/00-core.js",
         "data": "obAbsorbedRuns"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseRowMemoReset"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSetLecturaNube"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_expRowMemo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_expRowCtx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcLecturaNube"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcLecturaNubeCbs"
       }
     ],
     "unidades": true
@@ -27059,6 +27139,10 @@
       },
       {
         "file": "src/modules/00-core.js",
+        "function": "expenseRowMemoReset"
+      },
+      {
+        "file": "src/modules/00-core.js",
         "function": "expenseRowMemoOk"
       },
       {
@@ -27068,6 +27152,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_AC_KW"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_expRowCtx"
       },
       {
         "file": "src/modules/00-core.js",
@@ -29454,6 +29542,10 @@
       },
       {
         "file": "src/modules/00-core.js",
+        "function": "expenseRowMemoReset"
+      },
+      {
+        "file": "src/modules/00-core.js",
         "function": "expenseRowMemoOk"
       },
       {
@@ -29463,6 +29555,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_AC_KW"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_expRowCtx"
       },
       {
         "file": "src/modules/00-core.js",
@@ -33238,6 +33334,10 @@
       },
       {
         "file": "src/modules/00-core.js",
+        "function": "expenseRowMemoReset"
+      },
+      {
+        "file": "src/modules/00-core.js",
         "function": "expenseRowMemoOk"
       },
       {
@@ -33251,6 +33351,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_AC_KW"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_expRowCtx"
       },
       {
         "file": "src/modules/00-core.js",
@@ -36197,6 +36301,10 @@
       },
       {
         "file": "src/modules/00-core.js",
+        "function": "expenseRowMemoReset"
+      },
+      {
+        "file": "src/modules/00-core.js",
         "function": "expenseRowMemoOk"
       },
       {
@@ -36206,6 +36314,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "histBookResponses"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_expRowCtx"
       },
       {
         "file": "src/modules/00-core.js",
@@ -40182,6 +40294,10 @@
       },
       {
         "file": "src/modules/00-core.js",
+        "function": "expenseRowMemoReset"
+      },
+      {
+        "file": "src/modules/00-core.js",
         "function": "expenseRowMemoOk"
       },
       {
@@ -40191,6 +40307,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_AC_KW"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_expRowCtx"
       },
       {
         "file": "src/modules/00-core.js",
@@ -43082,6 +43202,10 @@
       },
       {
         "file": "src/modules/00-core.js",
+        "function": "expenseRowMemoReset"
+      },
+      {
+        "file": "src/modules/00-core.js",
         "function": "expenseRowMemoOk"
       },
       {
@@ -43091,6 +43215,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_AC_KW"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_expRowCtx"
       },
       {
         "file": "src/modules/00-core.js",
