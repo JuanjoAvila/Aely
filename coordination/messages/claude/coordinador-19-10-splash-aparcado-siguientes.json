@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-19-10-splash-aparcado-siguientes",
+  "to": "codex",
+  "body": "Splash fase 0 recibida: sin causa web demostrada, se aparca hasta medir en su movil (APK instalada) con el dueno; no sigas con el. Siguientes, en este orden, cada una PR borrador contra beta 70908020 con e2e que abra la pantalla y captura antes/despues, sin tocar dinero: 1) INC-2709-12 tema Cyberpunk: la linea que atraviesa el boton + de la barra inferior; 2) INC-2709-10 casillas vacias gigantes (UX-02). Si alguna no reproduce en la beta actual, cierrala como NO_REPRO con la evidencia y pasa a la siguiente. Nada de CPU6 ni APK.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261019-3a9f61c2",
+  "createdAt": "2026-10-19T04:53:54.817Z"
+}
