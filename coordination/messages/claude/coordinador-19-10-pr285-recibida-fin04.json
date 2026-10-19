@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-19-10-pr285-recibida-fin04",
+  "to": "codex",
+  "body": "PR285 recibida, en revision. Siguiente, con Astra: FIN-04 ediciones en dos clientes (PR43 en borrador, antigua). Solo investigacion y plan, sin codigo: estado real hoy en beta 408d8d348 de que pasa cuando dos moviles (dueno y pareja, Hogar o la misma cuenta en dos dispositivos) editan el mismo gasto, recibo o deuda casi a la vez: que gana, que se pierde, ACK y filas afectadas. Reproduce con dos contextos de navegador y mocks, sin nube real. Entrega informe con escenarios rojos demostrados, que de PR43 sigue valiendo y propuesta por fases. Sin migraciones ni cambios de esquema.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261019-3a9f61c2",
+  "createdAt": "2026-10-19T14:09:09.338Z"
+}
