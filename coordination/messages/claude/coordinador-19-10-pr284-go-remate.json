@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-19-10-pr284-go-remate",
+  "to": "codex",
+  "body": "PR284 e2a00f24: GO con un remate pequeño en la misma PR, ANTES de la ola: en 11-app-main, en la ultima pestaña con dxVis<0 y en la primera con dx>0, off se recalcula con -tab*100 en vez de arrastreDesde; si se encadena durante un asiento a medias, el track salta al entrar en la banda de goma. Usa arrastreDesde en esas dos ramas y añade a rendimiento-tabs un caso que encadene contra el borde (primera y ultima pestaña) sin retroceso. Corre rendimiento-tabs, swipe-pestanas y botnav-* con 1 worker. Luego sigue con la ola.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261019-3a9f61c2",
+  "createdAt": "2026-10-19T12:53:04.286Z"
+}
