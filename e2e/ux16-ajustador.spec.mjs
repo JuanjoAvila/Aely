@@ -58,6 +58,13 @@ test('UX16 ajustador: en beta se mueve, se guarda, se prueba y lo obedecen borde
   expect(probe.every(p=>p.amplitude===180)).toBe(true);
   expect(probe[1].at-probe[0].at).toBeGreaterThanOrEqual(80);
 
+  // Ronda 6: el tipo de vibración se elige con chips y viaja en cada llamada al motor.
+  await tuner.locator('[data-usage="hardware"]').click();
+  await expect(tuner.locator('[data-usage="hardware"]')).toHaveAttribute('aria-pressed','true');
+  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('_mcHapticTune')).usage)).toBe('hardware');
+  await tuner.locator('[data-group="tick"] .chip').click();
+  await expect.poll(()=>page.evaluate(()=>window.__ux16.edge.at(-1).usage)).toBe('hardware');
+
   await slide(page,'fillMs',1500);
   expect(await page.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--v42-cycle-ms').trim())).toBe('1500ms');
   await tuner.locator('[data-group="fill"] .chip').click();

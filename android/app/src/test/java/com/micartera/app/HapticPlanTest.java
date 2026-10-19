@@ -71,10 +71,19 @@ public class HapticPlanTest {
         assertNull("tramo larguísimo", HapticPlan.custom(new long[]{201}, new int[]{9}));
         assertNull("sin onda", HapticPlan.custom(new long[0], new int[0]));
     }
-    @Test public void pathNeedsVibratorAndApi33() {
+    @Test public void pathNeedsVibratorAndApi26() {
         assertEquals(HapticPlan.Path.WAVEFORM, HapticPlan.select(36, true, true));
+        assertEquals(HapticPlan.Path.WAVEFORM, HapticPlan.select(26, true, true));
         assertEquals(HapticPlan.Path.NONE, HapticPlan.select(36, false, true));
         assertEquals(HapticPlan.Path.NONE, HapticPlan.select(36, true, false));
-        assertEquals(HapticPlan.Path.NONE, HapticPlan.select(32, true, true));
+        assertEquals(HapticPlan.Path.NONE, HapticPlan.select(25, true, true));
+    }
+    @Test public void round6UsageFromWeb() {
+        assertEquals(HapticPlan.Usage.HARDWARE, HapticPlan.usage("hardware"));
+        assertEquals(HapticPlan.Usage.MEDIA, HapticPlan.usage("media"));
+        assertEquals(HapticPlan.Usage.UNKNOWN, HapticPlan.usage("unknown"));
+        assertEquals("sin elegir, el de siempre", HapticPlan.Usage.TOUCH, HapticPlan.usage(null));
+        assertEquals(HapticPlan.Usage.TOUCH, HapticPlan.usage("touch"));
+        assertEquals("basura = el de siempre", HapticPlan.Usage.TOUCH, HapticPlan.usage("HARDWARE; drop"));
     }
 }
