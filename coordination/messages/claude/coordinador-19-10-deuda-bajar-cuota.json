@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-19-10-deuda-bajar-cuota",
+  "to": "codex",
+  "body": "Peticion del dueno, PRIORIDAD sobre UX-11 y brokers (si ya empezaste UX-11, terminala y luego esta): en la ficha de editar Deuda, al BAJAR la cuota con el plazo fijado hoy sale error de que no encaja (regla FIN-16, que se mantiene). En vez de solo el error, ofrecer un boton claro Alargar el plazo a N meses (N calculado con la misma formula que ya valida FIN-16, sin formula nueva) y, al pulsarlo, ajustar el plazo y dejar guardar. Subir la cuota sigue igual. Dinero con Astra: el saldo pendiente, cuotas ya pagadas, paidYm, vinculos y proyecciones de Plan no cambian salvo por el plazo elegido; test con oraculo de la cuota y del numero de meses, casos limite (cuota que no cubre intereses = sin boton y mensaje claro, ultimo mes parcial). Textos es/en/ca para la familia. e2e que abra Deudas, baje la cuota, pulse el boton y guarde. PR borrador contra beta.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261019-3a9f61c2",
+  "createdAt": "2026-10-19T05:42:46.040Z"
+}
