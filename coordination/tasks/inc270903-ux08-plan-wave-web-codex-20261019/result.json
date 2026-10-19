@@ -1,0 +1,184 @@
+{
+  "status": "blocked",
+  "summary": "WEB composition reproduced and corrected, NEWdraftPR285 source4f79352ad61d921002653ecf1cbd0211a490b533 exactbase78b54d61d. Category child yminus21 to0; raw finances exact. CSS layer promotion scoped, plainScroll reset cleanup guarded against new drag. Four causalRED,13final directedPASS one worker0retry. Initial harness and intermediate candidate failures retained. Syntax/mapEXIT0, rawmin sizeEXIT1, exacthead docsEXIT1; nativeAndroidwave unverified, ProductREADYfalse.",
+  "baseSHA": "78b54d61d690ff25965a4bffafc13c92287157cc",
+  "productSHA": "4f79352ad61d921002653ecf1cbd0211a490b533",
+  "pullRequestNumber": 285,
+  "branch": "codex/inc270903-ux08-plan-wave-20261019",
+  "productReady": false,
+  "manifestSHA256": "b22026e398e3f44edc281806acc242be867702b15c410a56029cd252bba829a6",
+  "classification": "WEB_COMPOSITION_AND_GEOMETRY_REPRODUCED; NATIVE_ANDROID_WAVE_UNVERIFIED",
+  "tests": [
+    {
+      "run": "green-candidate",
+      "exitCode": 1,
+      "passed": 1,
+      "failed": 1,
+      "didNotRun": 2,
+      "flaky": 0
+    },
+    {
+      "run": "green-final",
+      "exitCode": 0,
+      "passed": 4,
+      "failed": 0,
+      "didNotRun": 0,
+      "flaky": 0
+    },
+    {
+      "run": "green-rested",
+      "exitCode": 1,
+      "passed": 3,
+      "failed": 1,
+      "didNotRun": 0,
+      "flaky": 0
+    },
+    {
+      "run": "green-scoped-final",
+      "exitCode": 0,
+      "passed": 4,
+      "failed": 0,
+      "didNotRun": 0,
+      "flaky": 0
+    },
+    {
+      "run": "guardians",
+      "exitCode": 0,
+      "passed": 9,
+      "failed": 0,
+      "didNotRun": 0,
+      "flaky": 0
+    },
+    {
+      "run": "guardians-scoped-final",
+      "exitCode": 0,
+      "passed": 9,
+      "failed": 0,
+      "didNotRun": 0,
+      "flaky": 0
+    },
+    {
+      "run": "red-cancel",
+      "exitCode": 1,
+      "passed": 0,
+      "failed": 1,
+      "didNotRun": 0,
+      "flaky": 0
+    },
+    {
+      "run": "red-category",
+      "exitCode": 1,
+      "passed": 0,
+      "failed": 1,
+      "didNotRun": 0,
+      "flaky": 0
+    },
+    {
+      "run": "red-category-rested",
+      "exitCode": 1,
+      "passed": 0,
+      "failed": 1,
+      "didNotRun": 0,
+      "flaky": 0
+    },
+    {
+      "run": "red-css",
+      "exitCode": 1,
+      "passed": 0,
+      "failed": 1,
+      "didNotRun": 0,
+      "flaky": 0
+    },
+    {
+      "run": "red-reduced",
+      "exitCode": 1,
+      "passed": 0,
+      "failed": 1,
+      "didNotRun": 0,
+      "flaky": 0
+    },
+    {
+      "run": "red-reduced-rested",
+      "exitCode": 1,
+      "passed": 0,
+      "failed": 1,
+      "didNotRun": 0,
+      "flaky": 0
+    }
+  ],
+  "checks": [
+    {
+      "command": "scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 1
+    },
+    {
+      "command": "--test tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "sourceSHA": "4f79352ad61d921002653ecf1cbd0211a490b533",
+      "exitCode": 1
+    }
+  ],
+  "comparison": [
+    {
+      "run": "baseline-frames740",
+      "htmlSHA": "c829c5f2dfe3a298c58492ae02feb819a16f9302136d7318ae71dfd98808b34f",
+      "PNGframes": 250,
+      "financialExact": true,
+      "categoryY": -21,
+      "closed": true
+    },
+    {
+      "run": "candidate-final-frames740",
+      "htmlSHA": "c706e1d38e71bf54e8709a936f21beca6cc149f385c371dadfec6a236b072ab9",
+      "PNGframes": 242,
+      "financialExact": true,
+      "categoryY": 0,
+      "closed": true
+    }
+  ],
+  "runnerReturn": {
+    "CPUThrottlingCalls": 0,
+    "ProfilerCalls": 0,
+    "TracingCalls": 0,
+    "ownBrowserClosed": true,
+    "ownContextsClosed": true,
+    "ownServerClosed": true,
+    "port48518Free": true,
+    "foreignResourcesModified": false
+  },
+  "priorR1R2Unchanged": true,
+  "artifacts": [
+    "outputs/plan-wave-manifest.json",
+    "outputs/plan-wave-informe.md",
+    "outputs/plan-wave-evidencia.json"
+  ],
+  "limitations": [
+    "Raw minified size gate EXIT1; caps unchanged",
+    "Version-history docs-frescura EXIT1; VERSION changes out of scope",
+    "Catalogue reconciliation and general CI not verified",
+    "Current served artifact and physical mobile acceptance pending",
+    "Android/WebView glow/stretch and120Hz not established; no native cause inferred from desktop absence",
+    "Emulated back events in guardians do not prove native behavior"
+  ],
+  "returnCommit": "e590b502f05a7889bb99926db7d8771a352ed339",
+  "fetchBudget": {
+    "idbudget": "ux14-own20-b1-82dbe59f",
+    "usedBeforeResult": 17,
+    "allowance": 20,
+    "sameOwnerContinuation": true,
+    "noResetOrInheritance": true
+  },
+  "schema": 1,
+  "taskId": "inc270903-ux08-plan-wave-web-codex-20261019",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-19T14:08:03.348Z",
+  "released": true
+}
