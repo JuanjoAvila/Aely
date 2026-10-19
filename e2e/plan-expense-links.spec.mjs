@@ -147,11 +147,12 @@ for(const lang of ['es','en','ca'])test('simple Plan calendar label '+lang,async
   await pending.screenshot({path:info.outputPath('pending.png')});
 });
 
-// INC-1810-04 (YouTube Premium, rechazo de beta 4.26.145): «no deja enlazarlo». Abrir no escribe;
+// INC-1810-04 (YouTube Premium, rechazos de beta 4.26.145 y 4.26.148): «no deja enlazarlo». Abrir no escribe;
 // el enlace solo existe tras pulsar y confirmar, y entonces Plan y la ficha lo cuentan igual.
-for(const kind of ['marked','calendar'])test('INC-1810-04 '+kind+' charge can be linked by the user',async({page})=>{
+// `overdue`: vencido por calendario, sin paidYm ni prueba, con un cargo del mismo comercio (4.26.148).
+for(const kind of ['marked','calendar','overdue'])test('INC-1810-04 '+kind+' charge can be linked by the user',async({page})=>{
   const s=paymentFixture();s.bankTx=[];delete s.fixed[0].paymentProofs;s.expenses[0].amount=30.49;
-  if(kind==='marked')s.expenses[0].reciboId=s.fixed[0].id;else Object.assign(s.fixed[0],{paidYm:24322,paidDay:10});
+  if(kind==='marked')s.expenses[0].reciboId=s.fixed[0].id;else if(kind==='calendar')Object.assign(s.fixed[0],{paidYm:24322,paidDay:10});
   await openRound2(page,s);
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   await expect(page.locator('div[data-seg="recibos"] .v4-charge').filter({hasText:'YouTube Premium'})).not.toHaveClass(/v4-paid/);
