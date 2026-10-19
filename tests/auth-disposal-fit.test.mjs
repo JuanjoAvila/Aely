@@ -44,7 +44,7 @@ for(const cfg of [{},{offline:true},{navThrows:true},{disposed:true},{disposed:t
 const reader=f=>read(f),scope=JSON.parse(read('scripts/beta-sources.json'))['inc-0710-auth-disposal'],revision=betaRevision('inc-0710-auth-disposal',reader).web;
 let fns=0,data=0;for(const f of scopeDependencies(scope,reader)){assert.notEqual(betaRevision('inc-0710-auth-disposal',x=>x===f.file?mutateLogic(read(x),f):read(x)).web,revision,f.name);fns++;}
 for(const d of scopeDataDependencies(scope,reader)){assert.notEqual(betaRevision('inc-0710-auth-disposal',x=>x===d.file?mutateData(read(x),d):read(x)).web,revision,d.name);data++;}
-assert.equal(fns,82,'las siete funciones originales, la unión de historial transitiva del escritor, el cierre del emparejado automático (130), el de las compras idénticas (135), el de Metas a tres vías (141) y el de las colas de absorción FIN-17 y la preferencia BOOK/signo de referencia (143: obConfirmedStorageKey, preferBookedExpenses, obBookedPreferenceKey, obPolarity)');assert.equal(data,32);
+assert.equal(fns,84,'las siete funciones originales, la unión de historial transitiva del escritor, el cierre del emparejado automático (130), el de las compras idénticas (135), el de Metas a tres vías (141) y el de las colas de absorción FIN-17 y la preferencia BOOK/signo de referencia (143: obConfirmedStorageKey, preferBookedExpenses, obBookedPreferenceKey, obPolarity)');assert.equal(data,36);
 const notes=JSON.parse(history106('src/data/release-notes.json')),oldNotes=JSON.parse(old('src/data/release-notes.json'));
 // La unidad106 añade una sola nota y alcance; el histórico102 conserva todos sus datos.
 assert.equal(notes[0].v,'4.26.106');assert.deepEqual(notes[0].tandas.map(g=>g.id),['inc-0810-dashboard-recents-memo']);

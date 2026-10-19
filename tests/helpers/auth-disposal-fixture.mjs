@@ -17,7 +17,7 @@ export function authWorld(parts,{enabled=true,offline=false}={}){
     mcBootReady(){trace.push({type:'boot'});},setSession(s){trace.push({type:'session',uid:s?.user?.id??null});},
     mcScheduleIdle(fn){idles.push(fn);},syncFromCloud(s,opts){trace.push({type:'sync',uid:s.user.id,opts:opts||null});},
     set(fn){const result=fn({bankTx:['synthetic']});trace.push({type:'state',bankTx:result.bankTx});},
-    mcStateKey(){return 'synthetic';},goalSyncClear(){},obAbsorbedSignOut(){},
+    mcStateKey(){return 'synthetic';},goalSyncClear(){},expenseRowMemoReset(){},obAbsorbedSignOut(){},
     obConfirmedStorageKey:owner=>'synthetic_oback_'+owner,obAbsorbedStorageKey:owner=>'synthetic_obabs_'+owner,
     obConfirmedStorage:()=>({removeItem(){}}),obConfirmedReadCache:new Map(),obConfirmedBlocked:new Set(),obAbsorbedClearNotice(){},
     setRecovery(v){trace.push({type:'recovery',v});},setShowAuth(v){trace.push({type:'showAuth',v});}};
