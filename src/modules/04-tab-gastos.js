@@ -487,13 +487,21 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // Guarda el CONCEPTO escrito a mano (2026-07-24). `noteEdited` blinda el texto: el siguiente
   // sync del banco rellena conceptos vacíos, pero nunca pisa lo que ha escrito el usuario.
   // Vacío = se borra la nota, y también queda marcado (si no, el banco la volvería a poner).
+  const noteSequence=useRef(0);
   const saveNote=function(ex, note){
     const raw=String(note||"").trim().slice(0,160);
-    if(raw===String(ex.note||"").trim()) return;   // sin cambios: ni set ni viaje a la nube
+    if(raw===String(ex.note||"").trim()&&!ex.notePending) return;
+    const pending=cloud.enabled()&&!mcSandbox()&&!mcSandboxTransition();
+    const at=noteSequence.current=Math.max(Date.now(),noteSequence.current+1,(ex.noteEditAt||0)+1);
     set(function(s){ return Object.assign({},s,{expenses:s.expenses.map(function(e){
-      return e.id===ex.id ? Object.assign({},e,{note:raw||undefined, noteEdited:true}) : e;
+      return e.id===ex.id ? Object.assign({},e,{note:raw||undefined, noteEdited:true,noteEditAt:at,notePending:pending}) : e;
     })}); });
-    if(cloud.enabled()) cloud.setExpenseNote(ex,raw).catch(function(){});
+    if(pending) cloud.setExpenseNote(ex,raw).then(function(ack){
+      if(!ack)throw new Error("note unconfirmed");
+      set(function(s){return Object.assign({},s,{expenses:s.expenses.map(function(e){
+        return e.id===ex.id&&e.noteEditAt===at?Object.assign({},e,{notePending:false}):e;
+      })});});
+    }).catch(function(){showToast(t("g_note_unconfirmed"));});
   };
   // EDITAR un gasto (comercio / importe / gasto↔ingreso): para corregir lo que la ingesta parsea
   // mal (financiación Cofidis que notifica el TOTAL pero TR solo cobra la cuota, bizums antiguos
@@ -575,6 +583,26 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
        borra en vez de arrastrarlo. Un dato viejo al lado de uno nuevo no es media verdad, es una
        mentira — y en el detalle se leerían juntos como si fueran el mismo pago. */
     if(signed!==orig.amount){ delete upd.origAmount; delete upd.origCur; }
+    if(signed===orig.amount&&newDay===origDay&&cloud.enabled()&&!mcSandbox()&&!mcSandboxTransition()){
+      // Espera el ACK del renombrado. Nunca envía la nota de esta copia; tampoco deja que una
+      // respuesta tardía borre otra nota escrita aquí mientras viajaba la petición.
+      editCola.current.fin=editCola.current.fin.then(function(){return cloud.renameExpense(orig,merch);}).then(function(ack){
+        if(!ack)throw new Error("rename unconfirmed");
+        set(function(s){
+          let before,after;
+          const list=s.expenses.map(function(e){
+            if(e.id!==orig.id||e.merchant!==orig.merchant||e.amount!==orig.amount||e.date!==orig.date)return e;
+            before=e;after=Object.assign({},e,{merchant:ack.comercio,expenseEditAt:Date.now()});
+            if(ack.ob_name!=null)after.obName=ack.ob_name;
+            if(!e.notePending&&(e.noteEditAt||0)===(orig.noteEditAt||0)&&e.note===orig.note&&ack.nota_edit){after.note=ack.nota||undefined;after.noteEdited=true;}
+            return after;
+          });
+          return before?rekeyFixedPaymentExpense(Object.assign({},s,{expenses:list},lapidasAlEditar(s,keyOfE(before),keyOfE(after))),before,after):s;
+        });
+        showToast(t("g_edited"));
+      }).catch(function(){showToast(t("g_edit_unconfirmed"));});
+      return;
+    }
     set(function(s){ return rekeyFixedPaymentExpense(Object.assign({},s,{
       expenses:s.expenses.map(function(x){ return x.id===orig.id?upd:x; })
     },lapidasAlEditar(s, keyOfE(orig), keyOfE(upd))),orig,upd); });
@@ -1483,6 +1511,8 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
       React.createElement("input",{className:"v4-exp-note-in",value:editExp.note||"",maxLength:160,placeholder:t("v4_exp_note_ph"),
         onChange:function(e){ const v=e.target.value; setEditExp(function(p){ return Object.assign({},p,{note:v}); }); },
         onBlur:function(){ saveNote(exp,editExp.note); },"aria-label":t("v4_exp_note")})),
+    exp.notePending&&React.createElement("div",{className:"hint",role:"status","data-testid":"expense-note-pending"},
+      t("g_note_unconfirmed")," ",React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){saveNote(exp,exp.note);}},t("g_note_retry"))),
     !isIncome && (exp.debtId||debtOptions.length>0) && React.createElement(React.Fragment,null,
       React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",onClick:function(){ setAdjustOpen(adjustOpen==="debt"?null:"debt"); }},
         React.createElement("span",null,t("f_debt_row")),React.createElement("span",{className:"value"},expensePaymentLabelUI(state,exp,"debt",paymentRelation)),React.createElement("span",{className:"chev"},"›")),

@@ -1,3 +1,8 @@
+FIN04 fase 1, candidata sin publicar: renombrar un gasto actualiza solo su comercio con ACK,
+sin restaurar la nota de otra copia; carga/pull conservan una entrada por UUID. Una nota sin
+confirmación queda pendiente con aviso y reintento. [Contrato y límites](docs/briefs/fin04-fase1-renombrar-nota.md).
+No cambia VERSION ni catálogo: las notas de versión quedan para la integración de Claude.
+
 ## [4.26.149] — 2026-10-19 · Candidata de beta: swipes encadenados entre pestañas (PR 284, UX-14), solo web y sin APK nueva (sigue la 4.26.148 / code 59)
 
 - **Qué lleva.** La beta 4.26.148 (`78b54d61d`) más la PR 284 (`708b98a6`): al encadenar otro swipe antes de que acabe el asiento anterior, el carrusel cancela ese asiento y arranca desde la posición visible, también en los bordes (primera y última pestaña). Antes el arrastre partía de la pestaña ya terminada y, al invertir el dedo, el track retrocedía hacia el destino viejo.

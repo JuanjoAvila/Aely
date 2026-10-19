@@ -1411,14 +1411,49 @@ const cloud = (function(){
     // Concepto escrito a mano (o corregido) por el usuario. `nota_edit` lo blinda: el siguiente
     // sync del banco no lo pisa con la descripción cruda del extracto (2026-07-24).
     async setExpenseNote(e, note){
-      if(!sb) return;
-      const {data:{session}}=await sb.auth.getSession();
-      if(!session) return;
-      if(!await obConfirmedCanUpload(e,session.user.id,sb))return;
+      if(!sb) throw new Error("cloud unavailable");
+      const auth=await sb.auth.getSession(), session=!auth.error&&auth.data&&auth.data.session;
+      if(!session) throw new Error("session unavailable");
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))throw new Error("expense unavailable");
       // Si la migración 0017 aún no está aplicada, esto no puede hacer nada útil: se avisa al
       // llamante en vez de fallar mudo (aquí el concepto ES el dato que el usuario quiere guardar).
-      const {error}=await expenseCloudEq(sb.from('expenses').update({ nota:String(note||"").slice(0,160)||null, nota_edit:true }), session.user.id, e);
+      const raw=String(note||"").slice(0,160)||null;
+      const q=expenseCloudEq(sb.from('expenses').update({ nota:raw, nota_edit:true }), session.user.id, e);
+      if(typeof q.select!=="function")throw new Error("note identity unavailable");
+      const {data,error}=await q.select("id,user_id,fecha,importe,comercio,nota,nota_edit");
       if(error){ if(_isMissingNotaCol(error)) _mcNotaCols=false; throw error; }
+      const current=await sb.auth.getSession(), active=!current.error&&current.data&&current.data.session;
+      const row=Array.isArray(data)&&data.length===1&&data[0], k=expenseCloudKeys(e);
+      // Éxito HTTP con cero filas no confirma nada. Tampoco una respuesta de otra identidad
+      // o una sesión que cambió mientras se guardaba (FIN04, 19/10/2026).
+      if(!active||active.user.id!==session.user.id||!row||!isExpenseUuid(row.id)||row.user_id!==session.user.id||row.nota!==raw||row.nota_edit!==true||
+        (k.by==="id"?row.id!==k.id:k.by!=="attrs"||Date.parse(row.fecha)!==Date.parse(k.fecha)||Number(row.importe)!==Number(k.importe)||row.comercio!==k.comercio))throw new Error("note unconfirmed");
+      return row;
+    },
+    // Renombrar solo cambia el comercio: DELETE+alta restauraba la nota antigua que llevaba
+    // el otro móvil. La fila y sus importes, categoría, source y vínculos permanecen intactos.
+    async renameExpense(e, merchant){
+      if(!sb)throw new Error("cloud unavailable");
+      const auth=await sb.auth.getSession(), session=!auth.error&&auth.data&&auth.data.session;
+      if(!session)throw new Error("session unavailable");
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))throw new Error("expense unavailable");
+      const q=expenseCloudEq(sb.from('expenses').select('*'),session.user.id,e);
+      const read=await q, rows=read.data;
+      if(read.error)throw read.error;
+      const row=Array.isArray(rows)&&rows.length===1&&rows[0], name=String(merchant||"").trim();
+      if(!row||!name||!isExpenseUuid(row.id)||row.user_id!==session.user.id||Date.parse(row.fecha)!==Date.parse(e.date)||Number(row.importe)!==Number(e.amount)||row.comercio!==(e.merchant||""))throw new Error("rename identity changed");
+      if(!await obConfirmedCanUpload(e,session.user.id,sb)||!await obConfirmedCanUpload(expenseFromRow(row),session.user.id,sb))throw new Error("expense unavailable");
+      const current=await sb.auth.getSession(), active=!current.error&&current.data&&current.data.session;
+      if(!active||active.user.id!==session.user.id)throw new Error("session unavailable");
+      const patch={comercio:name};
+      if(/^(ob|ob-hist):/.test(row.source||"")&&row.ob_name==null)patch.ob_name=row.comercio;
+      const result=await sb.from('expenses').update(patch).eq('user_id',session.user.id).eq('id',row.id)
+        .eq('fecha',row.fecha).eq('importe',row.importe).eq('comercio',row.comercio).eq('source',row.source).select('*');
+      if(result.error)throw result.error;
+      const ack=Array.isArray(result.data)&&result.data.length===1&&result.data[0];
+      const after=await sb.auth.getSession(), still=!after.error&&after.data&&after.data.session;
+      if(!still||still.user.id!==session.user.id||!ack||ack.id!==row.id||ack.user_id!==session.user.id||ack.comercio!==name||Number(ack.importe)!==Number(row.importe)||Date.parse(ack.fecha)!==Date.parse(row.fecha)||ack.source!==row.source)throw new Error("rename unconfirmed");
+      return ack;
     },
     // CATEGORÍA en la tabla. Sin esto, `syncCloudExpenses` —que reemplaza los gastos de origen
     // "supabase" con lo que hay en la tabla— pisaba en el siguiente pull cualquier recategorización
@@ -2330,7 +2365,7 @@ function borrarGastoNube(e, donde){
 
    Si añades un método a `cloud` que ESCRIBA algo, añádelo a esta lista. */
 const CLOUD_WRITES=[
-  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","setExpenseRecibo","deleteExpense","deleteExpensesByIds","settleObAbsorbed",
+  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","renameExpense","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","setExpenseRecibo","deleteExpense","deleteExpensesByIds","settleObAbsorbed",
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
   "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",
@@ -3471,19 +3506,36 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
 /* Mezcla el pull con lo local: refresca campos de claves ya vistas y solo AÑADE las nuevas.
    Nunca elimina una clave que solo exista en local (contención 4.18.6 / FIN-07). */
 function esFilaDeBanco(e){ return e.source==="ob" || e.source==="ob-hist"; }
+/* El nombre forma parte de la clave histórica, pero no crea otra fila con el MISMO UUID.
+   En copias locales antiguas conserva por separado la última edición y la última nota humana;
+   sin reloj de intención, la primera nota humana es la conservadora. No une UUID diferentes. */
+function uniqueExpenseUuids(rows){
+  const at=new Map(), out=[]; let changed=false;
+  (rows||[]).forEach(function(e){
+    const id=e&&isExpenseUuid(e.id)&&e.id;
+    if(!id||!at.has(id)){if(id)at.set(id,out.length);out.push(e);return;}
+    changed=true;const i=at.get(id), a=out[i];
+    const winner=(e.expenseEditAt||0)>(a.expenseEditAt||0)?e:a;
+    const note=(e.noteEditAt||0)>(a.noteEditAt||0)||(!(a.noteEditAt>0)&&!a.noteEdited&&e.noteEdited)?e:a;
+    out[i]=Object.assign({},winner,{note:note.note,noteEdited:note.noteEdited,noteEditAt:note.noteEditAt,notePending:note.notePending});
+  });
+  return changed?out:rows;
+}
 function mergeExpensesFromCloud(prevList, incoming, readStartedAt, delSet){
+  const unique=uniqueExpenseUuids(prevList), deduped=unique!==prevList;
+  prevList=unique;
   const rows=expenseBankIdOrdinals(preferBookedExpenses((prevList||[]).concat(incoming||[]),delSet));
   const previousLength=(prevList||[]).length;
   const identitiesChanged=rows.some(function(e,i){return i<previousLength&&e!==prevList[i];});
   prevList=rows.slice(0,previousLength); incoming=rows.slice(previousLength);
-  const byKey={}; const order=[]; const refs=new Map(); let zeroRemoved=false;
-  const mergeKey=function(e){const ref=esFilaDeBanco(e)&&e.extId&&obReferenceKey(expenseBankOf(e),e.extId,e.amount);let k=ref&&refs.get(ref);if(!k){k=keyOfExpense(e);if(ref)refs.set(ref,k);}return k;};
+  const byKey={}; const order=[]; const refs=new Map(), ids=new Map(); let zeroRemoved=false;
+  const mergeKey=function(e){const id=isExpenseUuid(e.id)&&e.id;if(id&&ids.has(id))return ids.get(id);const ref=esFilaDeBanco(e)&&e.extId&&obReferenceKey(expenseBankOf(e),e.extId,e.amount);let k=ref&&refs.get(ref);if(!k){k=keyOfExpense(e);if(ref)refs.set(ref,k);}if(id)ids.set(id,k);return k;};
   (prevList||[]).forEach(function(e){
     if(esFilaDeBanco(e)&&e.amount===0){zeroRemoved=true;return;}
     const k=mergeKey(e);
     if(!byKey[k]){ byKey[k]=e; order.push(k); }
   });
-  let changed=identitiesChanged||zeroRemoved; let nuevos=0; const seen={};
+  let changed=deduped||identitiesChanged||zeroRemoved; let nuevos=0; const seen={};
   /* EL AVISO DEL MÓVIL GANA AL CARGO DE RECIBO DE SU MISMO DÍA, IMPORTE Y COMERCIO, llegue cuando
      llegue (cuarta revisión, 13/10/2026). Con el aviso ya en la lista el banco no añade su fila y
      el aviso cuenta, como siempre; si el aviso bajaba después, se fundía con la fila marcada y

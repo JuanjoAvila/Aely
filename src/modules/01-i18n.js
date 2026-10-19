@@ -3641,12 +3641,18 @@ const THEMES=[["green","Verde","#5FD08A"],["dark","Oscuro","#3A3A40"],["light","
     otono:["🍂","🍁","🍄","🌰","🍁"],
     primavera:["🌸","🌿","🦋","🌼","🌸"]
   };
+Object.assign(LANG.es,{g_note_unconfirmed:"Nota sin confirmar en la nube. Se conserva en este dispositivo.",g_note_retry:"Reintentar",g_edit_unconfirmed:"No se pudo guardar el cambio. Vuelve a intentarlo."});
+Object.assign(LANG.en,{g_note_unconfirmed:"Note not confirmed in the cloud. Kept on this device.",g_note_retry:"Retry",g_edit_unconfirmed:"Could not save the change. Please try again."});
+Object.assign(LANG.ca,{g_note_unconfirmed:"Nota sense confirmar al núvol. Es conserva en aquest dispositiu.",g_note_retry:"Torna-ho a provar",g_edit_unconfirmed:"No s'ha pogut desar el canvi. Torna-ho a provar."});
 function loadState(){
   const saved = mcLoadRaw(mcStateKey());
   if(saved && saved.accounts){
+    const unique=uniqueExpenseUuids(saved.expenses);
+    const uuidChanged=unique!==saved.expenses;
+    if(uuidChanged)saved.expenses=unique;
     // Capturar ANTES de seedFlows (muta in-place): evita stringify de toda la cartera en cada
     // apertura fría — feedback 2026-07-16.
-    var writeBack=!(saved._dataVer>=6) || !saved._dynBalAnchored;
+    var writeBack=uuidChanged || !(saved._dataVer>=6) || !saved._dynBalAnchored;
     // Call site 1/3 de fixMovInvasion (loadState / arranque). Contención dentro de la fn, no aquí.
     const seeded = seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR((saved._dataVer>=6) ? saved : migrate(saved)))))));
     const now=new Date(), s=liberarReservasHuerfanas(perfilSinDatosBanco(reconcileGemelosAutomaticos(reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate()))));

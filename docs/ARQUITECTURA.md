@@ -2,6 +2,11 @@ H2 candidata, ronda 2: saldo y movimientos independientes por cuenta, valor/fech
 
 # Arquitectura — Aely
 
+FIN04 fase 1 candidata: renombrado parcial con ACK; nota local pendiente hasta confirmación
+exacta de su intención; carga/mezcla por UUID conserva una sola entrada y la nota más reciente.
+Sin cambios de esquema, servidor ni LWW de recibos/deudas.
+[Contrato y límites](briefs/fin04-fase1-renombrar-nota.md).
+
 FIN-11 candidata privada desde FIN-10/FIN-15 coexistentes: `obAbsorbedPending`
 protege por titular fuera de la poda de lápidas. Una partición local con readback
 precede a la retirada; refresco cloud/online reintenta hasta cuatro objetivos y
