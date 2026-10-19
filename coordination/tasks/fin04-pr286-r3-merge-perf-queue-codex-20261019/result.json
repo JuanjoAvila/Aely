@@ -1,0 +1,269 @@
+{
+  "status": "blocked",
+  "summary": "R3 same draft PR286 normal append at 1226311697a0f3817262c478c18e90253818a35e. Direct UUID field comparisons, finite3-failure durable quarantine/one notice/queue progress, final5browser PASS20mutants killed, directed financial/shortcut PASS. CPU6 ABAB20k authorized repeat PASS EXIT0 ratios1.030984/0.996570<=1.10 versus beta408d8d348; all5runs280samples retained including same-source earlier FAIL. Original100ms criterion corrected by Claude13f1766e, no100ms claim. CPU1 and own lease returned. Size/docs/catalogue remain blocked or unrun and Claude-owned. ProductREADY=false.",
+  "baseSHA": "628d62925f9214db08a798cce86086997fa3b077",
+  "productSHA": "1226311697a0f3817262c478c18e90253818a35e",
+  "pullRequest": 286,
+  "productReady": false,
+  "manifestSHA256": "079631bbfdc0a4a25cd1d3aa7b984f31cb6365464599f9c75b9681a62b0a0508",
+  "tests": [
+    {
+      "run": "CPU6 ABAB20k authorized repeat",
+      "exitCode": 0,
+      "status": "PASS_WITH_VARIANCE_RESERVE"
+    },
+    {
+      "run": "CPU6 ABAB20k same candidate first",
+      "exitCode": 1,
+      "status": "TARGET_FAILED"
+    },
+    {
+      "run": "browser legacy-duplicates",
+      "exitCode": 0,
+      "passed": 3
+    },
+    {
+      "run": "browser rename-unrelated",
+      "exitCode": 0,
+      "passed": 9
+    },
+    {
+      "run": "browser legacy-amounts",
+      "exitCode": 0,
+      "passed": 2
+    },
+    {
+      "run": "browser permanent-rename",
+      "exitCode": 0,
+      "passed": 10
+    },
+    {
+      "run": "browser late-rename-failure",
+      "exitCode": 0,
+      "passed": 3
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "run": "build-empty-guard",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "run": "build-field-identity",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "run": "build-queue-candidate1",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "run": "build-queue2",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "run": "build-r2-base",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "run": "build-shared-index",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "run": "docs-r3-exact-head",
+      "exitCode": 1
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/merge-expenses-cloud.test.mjs",
+      "run": "identity-green1",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/merge-expenses-cloud.test.mjs",
+      "run": "identity-mutants-field",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/merge-expenses-cloud.test.mjs",
+      "run": "merge-empty-guard",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/merge-expenses-cloud.test.mjs",
+      "run": "merge-shared-index",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/expense-note.test.mjs",
+      "run": "note-field-final",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/expense-note.test.mjs",
+      "run": "queue-green1",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/expense-note.test.mjs",
+      "run": "queue-mutants1",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin17-confirmed-absorptions.test.mjs",
+      "run": "r3-fin17-final",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/i18n-keys.test.mjs",
+      "run": "r3-i18n",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "run": "r3-privacy",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/expense-id-cloud.test.mjs",
+      "run": "r3-regression-expense-id-cloud",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/fin10-absorption-scope.test.mjs",
+      "run": "r3-regression-fin10-absorption-scope",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/fin11-absorption-pending.test.mjs",
+      "run": "r3-regression-fin11-absorption-pending",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/fin15-book-preference.test.mjs",
+      "run": "r3-regression-fin15-book-preference",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/fin15-pendiente-contabilizada.test.mjs",
+      "run": "r3-regression-fin15-pendiente-contabilizada",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "run": "r3-relevant-map",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "run": "r3-security",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "run": "r3-syntax",
+      "exitCode": 0
+    },
+    {
+      "command": "node ../empty-tombstone-red.mjs",
+      "run": "red-empty-tombstone",
+      "exitCode": 1
+    },
+    {
+      "command": "node --test --test-name-pattern=R3 identidad tests/merge-expenses-cloud.test.mjs",
+      "run": "red-identity-serialization",
+      "exitCode": 1
+    },
+    {
+      "command": "node tests/expense-note.test.mjs",
+      "run": "red-permanent-queue",
+      "exitCode": 1
+    },
+    {
+      "command": "node ../index-red.mjs",
+      "run": "red-rebuilt-identity-index",
+      "exitCode": 1
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/pull-sin-cambios.test.mjs",
+      "run": "shortcut-r3",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/pull-sin-cambios.test.mjs",
+      "run": "shortcut-v4",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "run": "size-r3",
+      "exitCode": 1
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "run": "size-v4",
+      "exitCode": 1
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "run": "syntax-v4",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin17-confirmed-absorptions.test.mjs",
+      "run": "v4-fin17-final",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/fin10-absorption-scope.test.mjs",
+      "run": "v4-regression-fin10-absorption-scope",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/fin11-absorption-pending.test.mjs",
+      "run": "v4-regression-fin11-absorption-pending",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/fin15-book-preference.test.mjs",
+      "run": "v4-regression-fin15-book-preference",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/fin15-pendiente-contabilizada.test.mjs",
+      "run": "v4-regression-fin15-pendiente-contabilizada",
+      "exitCode": 0
+    }
+  ],
+  "returnCommit": "6835ff45640ad6622b2507ce39367c63c43b1a60",
+  "priorArtifactsUnchanged": true,
+  "artifacts": [
+    "outputs/fin04-r3-informe.md",
+    "outputs/fin04-r3-evidencia.json",
+    "outputs/fin04-r3-manifest.json"
+  ],
+  "limitations": [
+    "Original absolute100ms criterion failed and remains preserved. Claude13f1766e corrected it because Node without throttling was not comparable: beta408d8d348 vs B median<=1.10A per mode. Final authorized full replication passes (1.030984/0.996570); earlier same-candidate run fails (1.202745/1.116316). Machine variability remains a review reserve, no universal speedup claim.",
+    "Synthetic browser auth and guarded real SDK; permanent refusal is synthetic HTTP409. No live cloud/RLS/SQL or physical-device acceptance.",
+    "N=3 failures persists in the existing local expense partition, then quarantine blocks automatic remount/reload/online retries. Explicit Retry or a different name creates a new intent. No background work when the app is closed.",
+    "R2 invariants retained: exact signed cents, distinct conflicting amounts/bank references, metadata, tombstones and newest intent. General fixed/debt LWW remains deferred.",
+    "Five cases freshly passed on final shared-index/empty-tombstone runtime. Earlier R3 ten regression cases and two new cases passed on the prior string-signature candidate; those outputs remain distinct. R2 thirteen browser and twelve sandbox cases are immutable reuse for unaffected paths, not fresh R3 reruns.",
+    "Generated runtime tested and frozen privately; source-only append, VERSION/catalogue/caps unchanged. Claude owns size/docs/catalogue reconciliation.",
+    "No full suite, profiling, tracing, general CI completion, deployment, served artifact, native/APK or physical mobile acceptance. Catalogue R3 unrun; R1 timeout180s/null/SIGTERM and R2 failures preserved.",
+    "Claude9d49ae020 changes next priority to Android overscroll wave after R3; no wave or SES01 code in this task. ROOT74 decides follow-up after this private handoff."
+  ],
+  "fetchBudget": {
+    "idbudget": "fin04-own20-b3-82dbe59f",
+    "usedBeforeResult": 18,
+    "allowance": 20
+  },
+  "schema": 1,
+  "taskId": "fin04-pr286-r3-merge-perf-queue-codex-20261019",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-19T17:28:35.577Z",
+  "released": true
+}
