@@ -1,0 +1,116 @@
+{
+  "status": "blocked",
+  "released": true,
+  "phase": "DRAFT_PR_BLOCKED_REVIEW_INTEGRATION",
+  "baseSHA": "656194916c61e8fd6d3ca50450d072d2980784e1",
+  "originalBaseSHA": "7090802099ac0c7956c0d3597a9936a82c52a95f",
+  "productSHA": "9f7daa51344a5ea60418b22dfb406cf874752840",
+  "productChanged": true,
+  "PR": 282,
+  "draft": true,
+  "productReady": false,
+  "claimCommit": "d643b41eccfb780d0c56e72a4e3b763737ef71f5",
+  "ackCommit": "c9fd84d293b991168a550ae6748722935fdcb7e7",
+  "scopeGO": "62d20aa2002f63b38fd90ab2d16c2ba6e32ffb8a",
+  "manifestSHA256": "d1d1be28e8ee4c41bbe89885728794eced82be633ae03379931d4bdd42d2066b",
+  "checkpointSHA256": "ba5b08d87ef822df9fcbe11492f29bf8a0ded08c0afbed000295fb403b75ada9",
+  "summary": "PR282 NUEVA draft beta, head exacto remoto y PR verificados. Rebase656194916 por GO62d20aa2; RED sobre709 con modulo09 identico. Accion explicita Alargar plazo solo bajada rechazada FIN16; mismo ceil lineal centimos, cambia borrador y Guardar existente. Pendiente120000c pagadas4 paidYm identidades enlaces pruebas intactos, cuota200a100 propone total16 quedan12. Legado sin amort y TAE positiva sin boton con mensaje es en ca. Cobertura intereses FUERA alcance por GO, subir cuota igual. GREEN Node22 y FIN16 62 EXIT0, DOM7de7 EXIT0 un worker cero retry; snapshots recarga Plan y capturas sinteticas. Seis mutantes muertos con aserciones, preservando unsafe inicial superviviente EXIT0 y driver EXIT1 antes corregir dato extremo; followup EXIT1 y original22 EXIT0. Build sintaxis privacidad idiomas y registros EXIT0. Size real EXIT1 min1379 sobre1378KB, gzip382de383 y bloqueantes3de3 cumplen; docs EXIT1 sin nuevaVERSION. Error inicial nombre size inexistente EXIT1 preservado y no contado como gate. Producto probado coincide con commit; fuentes VERSION catalogo topes backend nativo sin cambios. Reportes provisionales blocked superados por GO y nunca publicados. Evidencia final y handoff privado ROOT74 guardados. PR previas y claimestilo original intactos. Revision integracion servido movil pendientes; blocked released NO ProductREADY. STOP tras readback exacto.",
+  "tests": [
+    {
+      "label": "build1",
+      "exitCode": 0
+    },
+    {
+      "label": "syntax1",
+      "exitCode": 0
+    },
+    {
+      "label": "unit-red",
+      "exitCode": 1
+    },
+    {
+      "label": "unit-green1",
+      "exitCode": 0
+    },
+    {
+      "label": "unit-final",
+      "exitCode": 0
+    },
+    {
+      "label": "regression-fin16",
+      "exitCode": 0
+    },
+    {
+      "label": "i18n",
+      "exitCode": 0
+    },
+    {
+      "label": "registration",
+      "exitCode": 0
+    },
+    {
+      "label": "registry-only",
+      "exitCode": 0
+    },
+    {
+      "label": "privacy",
+      "exitCode": 0
+    },
+    {
+      "label": "docs",
+      "exitCode": 1
+    },
+    {
+      "label": "size",
+      "exitCode": 1
+    },
+    {
+      "label": "size-real",
+      "exitCode": 1
+    },
+    {
+      "label": "unsafe-mutant-followup",
+      "exitCode": 1
+    }
+  ],
+  "browser": {
+    "redExit": 1,
+    "redCausal": true,
+    "greenExit": 0,
+    "passed": 7,
+    "retries": 0,
+    "workers": 1
+  },
+  "mutants": {
+    "killed": 6,
+    "initialUnsafeSurvived": true,
+    "correctedWitnessKilled": true
+  },
+  "unexecuted": [
+    "full local suite",
+    "complete beta-sources catalogue gate",
+    "CPU6 and performance",
+    "native and APK",
+    "backend live banks",
+    "deployment and merge",
+    "served artifact",
+    "real mobile acceptance"
+  ],
+  "budgetBeforeResult": {
+    "used": 3,
+    "remaining": 17,
+    "priorFrozen": [
+      10,
+      12,
+      12,
+      20,
+      20
+    ]
+  },
+  "nextAction": "Claude and ROOT74 review draft PR282 and real integration gates. Own exact result readback, immutable closure, private handoff and STOP.",
+  "schema": 1,
+  "taskId": "deudas-bajar-cuota-alargar-plazo-codex-20261019",
+  "actor": "codex",
+  "sessionId": "codex-local-20261014-43c0a0c94700",
+  "createdAt": "2026-10-19T09:15:40.084Z"
+}
