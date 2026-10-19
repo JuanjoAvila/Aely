@@ -180,6 +180,8 @@ export const E2E_MAP = [
   { file: "src/modules/14-v4-screens.js", specs: [
     "e2e/plan-ola-web.spec.mjs",
     "e2e/plan-native-wave.spec.mjs",
+    // Un solo candidato a scroller raíz con Gestionar abierto: sin eso no hay ola nativa.
+    "e2e/ola-root.spec.mjs",
     "e2e/plan-expense-links.spec.mjs",
     "e2e/recibos-renombrar.spec.mjs",
     "e2e/cartera-bienes-completo.spec.mjs",
