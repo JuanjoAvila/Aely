@@ -1793,7 +1793,7 @@ for(const lang of ["es","en","ca"])test(`promoción117: entrega por superficies,
 
 });
 
-/* Beta 4.26.145 (19/10/2026): la nota nueva (vibración ronda 3) con su tanda (5 pasos) más la de Guardar en Deudas de la 144, sin votar (3 pasos), ÚNICAS del panel, encima de la
+/* Beta 4.26.145 (19/10/2026): la nota nueva (vibración ronda 3) con sus dos tandas (5 y 4 pasos: vibración y Plan por confirmar) más la de Guardar en Deudas de la 144, sin votar (3 pasos), ÚNICAS del panel, encima de la
  * 4.26.143 y el hotfix 4.26.142, que quedan con `tandas:[]` (propiedad presente), y del historial de la producción 4.26.137 (5d4c8da7). Aquí no se inyecta nada: se mira el catálogo
  * que lleva el bundle. Las versiones se leen fila a fila (ver la nota del 12/10 sobre «v4.26.11» + «22 sep»). */
 for(const lang of ["es","en","ca"])test(`beta145: la nota nueva con una tanda y la de Guardar en Deudas de la 144 sobre la 143 y la 142 vacías y el historial de producción (${lang})`,async({page})=>{
@@ -1801,12 +1801,12 @@ for(const lang of ["es","en","ca"])test(`beta145: la nota nueva con una tanda y 
   const production=JSON.parse(execFileSync("git",["show","5d4c8da771e3658954d4b7e8d16a5f2a0101836c:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:8e6}));
   expect(production.length).toBe(234);
   const catalog=await page.evaluate(()=>RELEASE_NOTES.map(n=>[n.v,Array.isArray(n.tandas)?n.tandas.length:-1]));
-  expect(catalog).toEqual([["4.26.145",1],["4.26.144",1],["4.26.143",0],["4.26.142",0],["4.26.141",0],["4.26.140",0],["4.26.139",0],["4.26.138",0],...production.map(n=>[n.v,0])]);
+  expect(catalog).toEqual([["4.26.145",2],["4.26.144",1],["4.26.143",0],["4.26.142",0],["4.26.141",0],["4.26.140",0],["4.26.139",0],["4.26.138",0],...production.map(n=>[n.v,0])]);
   const pack=await page.evaluate(()=>{CONFIG.APP_VERSION="4.26.145.1";const p=betaChecklist(CONFIG.APP_VERSION,"4.26.117",55);return {tandas:p.tandas.length,items:p.items.length};});
-  expect(pack).toEqual({tandas:2,items:8});
+  expect(pack).toEqual({tandas:3,items:12});
   const title=await page.evaluate(lang=>rnT(RELEASE_NOTES[0].t,lang),lang);
   const items=await page.evaluate(lang=>rnItems(RELEASE_NOTES[0],lang),lang);
-  expect(items.length).toBe(3);
+  expect(items.length).toBe(6);
   await page.evaluate(()=>{
     const host=document.createElement("div");document.body.appendChild(host);
     ReactDOM.createRoot(host).render(React.createElement(WhatsNew,{onClose:()=>{}}));

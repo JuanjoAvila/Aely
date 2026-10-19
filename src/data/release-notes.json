@@ -3,25 +3,34 @@
     "v": "4.26.145",
     "d": "2026-10-19",
     "t": {
-      "es": "Vibración más suave y progresiva, también en la gráfica de Inicio",
-      "en": "Softer, gradual vibration, also on the Home chart",
-      "ca": "Vibració més suau i progressiva, també al gràfic d'Inici"
+      "es": "Vibración más suave, y Plan que solo da por pagado lo que ve",
+      "en": "Softer vibration, and Plan only marks as paid what it can see",
+      "ca": "Vibració més suau, i Pla que només dona per pagat el que veu"
     },
     "items": {
       "es": [
         "La vibración del anillo de Mi ciclo empieza casi imperceptible y va subiendo poco a poco mientras se rellena. Necesita instalar la app nueva.",
         "Al llegar al final de una pantalla, el toque es un pelín más notorio, y si sigues tirando del borde se repite suave mientras lo mantienes.",
-        "Al mover el dedo por la gráfica de Inicio, notas un toque suave cada vez que cambias de día."
+        "Al mover el dedo por la gráfica de Inicio, notas un toque suave cada vez que cambias de día.",
+        "En Plan, un recibo o una cuota solo salen como pagados cuando se ve el cargo; si solo ha pasado la fecha, aparecen como «Por confirmar».",
+        "La ficha de un gasto dice qué recibo o qué deuda paga.",
+        "El aviso de retirada de efectivo solo sale cuando de verdad lo es."
       ],
       "en": [
         "The vibration of the My cycle ring starts almost unnoticeable and rises little by little while it fills. It needs the new version of the app.",
         "When you reach the end of a screen the tap is slightly more noticeable, and if you keep pulling past the end it repeats softly while you hold on.",
-        "When you move your finger along the Home chart, you feel a soft tap each time you change day."
+        "When you move your finger along the Home chart, you feel a soft tap each time you change day.",
+        "In Plan, a bill or an instalment only shows as paid when its charge is seen; if the date has merely passed, it shows as «To confirm».",
+        "The sheet of an expense says which bill or which debt it pays.",
+        "The cash withdrawal notice only shows when it really is one."
       ],
       "ca": [
         "La vibració de l'anell de El meu cicle comença gairebé imperceptible i va pujant a poc a poc mentre s'omple. Cal instal·lar l'app nova.",
         "En arribar al final d'una pantalla, el toc és una mica més notori, i si continues estirant de la vora es repeteix suau mentre la mantens.",
-        "En moure el dit pel gràfic d'Inici, notes un toc suau cada vegada que canvies de dia."
+        "En moure el dit pel gràfic d'Inici, notes un toc suau cada vegada que canvies de dia.",
+        "A Pla, un rebut o una quota només surten com a pagats quan es veu el càrrec; si només ha passat la data, apareixen com a «Per confirmar».",
+        "La fitxa d'una despesa diu quin rebut o quin deute paga.",
+        "L'avís de retirada d'efectiu només surt quan de veritat ho és."
       ]
     },
     "tandas": [
@@ -56,6 +65,34 @@
           ]
         },
         "apk": 58
+      },
+      {
+        "id": "plan-por-confirmar-prestamo-youtube",
+        "t": {
+          "es": "Plan: solo pagado si se ve el cargo (préstamo de 197 € y YouTube Premium)",
+          "en": "Plan: paid only when the charge is seen (197 € loan and YouTube Premium)",
+          "ca": "Pla: només pagat si es veu el càrrec (préstec de 197 € i YouTube Premium)"
+        },
+        "items": {
+          "es": [
+            "1. Abre Plan y busca la cuota del préstamo de 197 € (la que pagaste por transferencia y que te salía como pagada sin serlo). Si su cargo no está enlazado, debe salir «Por confirmar», no con el ✓. MAL: sale con ✓ sin que haya cargo.",
+            "2. Ve a Gastos y abre la transferencia de 197 €: no debe salir el aviso de retirada de efectivo (no era una retirada). MAL: sale el aviso.",
+            "3. En Gastos, abre el cargo de YouTube Premium. Si Plan lo da por pagado, la ficha debe decir «Paga un recibo: YouTube Premium»; si Plan dice «Por confirmar», la ficha no debe darlo por enlazado. MAL: que Plan y la ficha digan cosas distintas.",
+            "4. Mira el dinero disponible de Inicio y de Plan: debe ser el mismo que antes de actualizar la app. MAL: cualquier diferencia."
+          ],
+          "en": [
+            "1. Open Plan and find the instalment of the 197 € loan (the one you paid by transfer and that showed as paid without being so). If its charge is not linked, it must show «To confirm», not the ✓. WRONG: it shows ✓ with no charge.",
+            "2. Go to Spending and open the 197 € transfer: the cash withdrawal notice must not show (it was not a withdrawal). WRONG: the notice shows.",
+            "3. In Spending, open the YouTube Premium charge. If Plan counts it as paid, the sheet must say «Pays a bill: YouTube Premium»; if Plan says «To confirm», the sheet must not show it as linked. WRONG: Plan and the sheet saying different things.",
+            "4. Check the available money in Home and in Plan: it must be the same as before updating the app. WRONG: any difference."
+          ],
+          "ca": [
+            "1. Obre Pla i busca la quota del préstec de 197 € (la que vas pagar per transferència i que sortia com a pagada sense ser-ho). Si el seu càrrec no està enllaçat, ha de sortir «Per confirmar», no amb el ✓. MALAMENT: surt amb ✓ sense càrrec.",
+            "2. Ves a Despeses i obre la transferència de 197 €: no ha de sortir l'avís de retirada d'efectiu (no era una retirada). MALAMENT: surt l'avís.",
+            "3. A Despeses, obre el càrrec de YouTube Premium. Si Pla el dona per pagat, la fitxa ha de dir «Paga un rebut: YouTube Premium»; si Pla diu «Per confirmar», la fitxa no l'ha de donar per enllaçat. MALAMENT: que Pla i la fitxa diguin coses diferents.",
+            "4. Mira els diners disponibles d'Inici i de Pla: han de ser els mateixos que abans d'actualitzar l'app. MALAMENT: qualsevol diferència."
+          ]
+        }
       }
     ]
   },
