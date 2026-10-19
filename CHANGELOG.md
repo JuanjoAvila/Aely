@@ -1,3 +1,5 @@
+Candidata sin versión nueva — 19/10/2026: la edición de deuda propone un plazo explícito cuando FIN16 rechaza bajar la cuota. Se comparte el cálculo lineal existente; el botón modifica solo el borrador. Legado con TAE positiva y sin amortización conocida muestra un límite claro. [Contrato, consulta y pruebas](docs/briefs/deudas-alargar-plazo-20261019.md).
+
 ## [4.26.145] — 2026-10-19 · Candidata de beta: vibración ronda 3 (APK 58), saldo del banco por fases (H2), hotfix 4.26.142 y Plan por confirmar (INC-1810-03/04)
 
 - **Qué lleva.** La beta 4.26.144 (`70908020`) más cuatro merges normales y en este orden: PR 279 H2 saldo por fases (`3940e1b2`), PR 280 vibración UX-16 ronda 3, nativo (`5ee28328`), `origin/main` (hotfix de producción 4.26.142, `liberarReservasHuerfanas`) y PR 281 INC-1810-03/04 (`b09d0945`). Con APK nueva: 4.26.145 / code 58.
