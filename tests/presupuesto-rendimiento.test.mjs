@@ -313,7 +313,11 @@ const PRESUPUESTO = {
   // Integración 4.26.144 (18/10): cuatro PR sobre la 143 (vibración nativa y borde por inercia, aviso de Guardar en Deudas, pruebas de recibo v2 que sobreviven a renombrar, identidad histórica de CaixaBank)
   // y la nota con tres tandas: 1.400.558 B / 388.709 B gzip con sello .99999 y reserva de 95 B (1367,7 / 379,6 KiB). SUBE por lógica de producto, no se recorta (mandato 11/10).
   // Mínimos: 1368 KiB minificado (quedan 274 B) y gzip a 380 KiB (quedan 411 B).
-  minificado: 1368 * 1024,
+  // Vuelta a primer plano sin tirón (19/10, `claude/perf-vuelta`, sobre 70908020): memoria de la categoría por palabra clave, gasto reutilizado por fila igual,
+  // estado intacto si la nube trae lo mismo y aviso aparte de la hora de lectura (widget y «Última sincronización»). Mismo host y minificador, sello .99999 y
+  // reserva de 95 B: 1.400.558/388.709 → 1.402.839/389.384 B (+2.281/+675). Es código, sin textos ni dependencias. 1370 KiB dejaba 41 B, menos que un sello:
+  // 1371 KiB minificado (quedan 1.065 B) y gzip a 381 KiB (quedan 760 B). La integración que la una a otras tandas mide de nuevo.
+  minificado: 1371 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -343,7 +347,8 @@ const PRESUPUESTO = {
   // Integración 4.26.130: 363.055 B gzip, 6.465 B más que la 129. Mínimo medido: 355 KiB (quedan 465 B).
   // Integración 4.26.131: 365.878 B gzip, 2.823 B más que la 130. Mínimo medido: 358 KiB (quedan 714 B).
   // Integración 4.26.135: 368.967 B gzip, 2.375 B sobre 358 KiB. Mínimo medido: 361 KiB (quedan 697 B).
-  gzip: 380 * 1024,
+  // Vuelta a primer plano sin tirón (19/10): 389.384 B gzip, 264 B sobre 380 KiB. Mínimo medido: 381 KiB (quedan 760 B).
+  gzip: 381 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

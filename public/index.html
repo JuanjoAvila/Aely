@@ -2387,6 +2387,29 @@ function mcOnGastosActive(cb){
   };
 }
 
+/* CUÁNDO TERMINÓ LA ÚLTIMA LECTURA DE GASTOS DE LA NUBE (19/10/2026). Antes lo decía solo
+   `state.lastSync`, y por eso cada vuelta a primer plano rehacía el estado entero aunque la nube no
+   trajera nada nuevo: un frame de 150-300 ms con un histórico grande. Ahora una lectura sin
+   cambios deja el estado como estaba y avisa por aquí, que es lo que necesitan el widget (tiene
+   que recibir la prueba de lectura, FIN-05) y la línea «Última sincronización» de Gastos. */
+var _mcLecturaNube=0;
+var _mcLecturaNubeCbs=[];
+function mcSetLecturaNube(ms){
+  _mcLecturaNube=ms;
+  for(var i=0;i<_mcLecturaNubeCbs.length;i++){
+    try{ _mcLecturaNubeCbs[i](ms); }catch(e){}
+  }
+}
+function mcOnLecturaNube(cb){
+  if(typeof cb!=="function") return function(){};
+  _mcLecturaNubeCbs.push(cb);
+  try{ cb(_mcLecturaNube); }catch(e){}
+  return function(){
+    var i=_mcLecturaNubeCbs.indexOf(cb);
+    if(i>=0) _mcLecturaNubeCbs.splice(i,1);
+  };
+}
+
 /* B2 — Cartera necesita el mismo aviso «eres la activa» que Gastos, y por el MISMO motivo: si
    viaja como prop, entrar en Cartera reconstruye el árbol encima del gesto. El count-up no puede
    engancharse al montaje (las pestañas vecinas se premontan) ni a IntersectionObserver (los
@@ -2920,16 +2943,32 @@ function isAtmWithdrawal(merchant){
   if(/\batm\b/.test(c)) return true;
   return false;
 }
+/* Cada vuelta a primer plano rebaja el histórico entero y `expenseFromRow` vuelve a adivinar la
+   categoría de TODAS las filas sin categoría propia: ~0,3 ms por fila a CPU×6, un frame congelado
+   de 300-480 ms con 3.500 gastos justo al volver (diagnóstico de lag, 19/10/2026). Las palabras
+   clave son constantes, así que el barrido se recuerda por texto normalizado; los overrides del
+   usuario se siguen leyendo en vivo porque cambian al recategorizar. Con tope para no crecer.
+   ⚠ Si `KW`, `KW_PALABRA`, `KW_INICIO` o `MERCHANT_OVERRIDES` llegan a cambiar en ejecución
+   (palabras aprendidas…), ese punto tiene que vaciar `_AC_KW` o devolvería categorías viejas. */
+const _AC_KW=new Map();
 function autoCategory(merchant){
   const c=(merchant||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
   const key=c.trim();
+  if(USER_OVERRIDES[key] && !CAT_NEUTRAS[USER_OVERRIDES[key]]) return USER_OVERRIDES[key];
+  let cat=_AC_KW.get(c);
+  if(cat===undefined){
+    if(_AC_KW.size>=5000) _AC_KW.clear();
+    cat=autoCategoryKw(c); _AC_KW.set(c,cat);
+  }
+  return cat;
+}
+function autoCategoryKw(c){
   // "Inversi\u00f3n" NUNCA se adivina por comercio (2026-08-04). Es una categor\u00eda de DESTINO del dinero,
   // no un tipo de tienda: solo la pone el aporte autom\u00e1tico reconocido por importe exacto
   // (`importObExpenses`) o el usuario a mano. Sin este blindaje, un override envenenado \u2014el que
   // dej\u00f3 el bug de "Movimiento", ver `fixMovInvasion`\u2014 convierte en Inversi\u00f3n CUALQUIER gasto que
   // pase por aqu\u00ed: fue lo que volvi\u00f3 a marcar solo un parking de zona azul de 9,50 \u20ac cada vez que
   // abr\u00eda la app, porque `migrate` re-categoriza todo lo que est\u00e9 en "otros" y no sea manual.
-  if(USER_OVERRIDES[key] && !CAT_NEUTRAS[USER_OVERRIDES[key]]) return USER_OVERRIDES[key];   // lo que T\u00da has aprendido a mano
   for(const k in MERCHANT_OVERRIDES){ if(c.indexOf(k)!==-1) return MERCHANT_OVERRIDES[k]; }  // overrides de ejemplo
   // Keywords cortas (bar, bus…) con límite de palabra: si no, "Barcelona" caía en bares
   // por el substring «bar» (bug Kinepolis 2026-07-17).
@@ -5619,6 +5658,42 @@ function expenseFromRow(r){
     obPendingRef: source==="ob"||source==="ob-hist" ? bankRefDeSource(raw,"prevref") : undefined,
     obAcc: source==="ob"||source==="ob-hist" ? bankRefDeSource(raw,"acc") : undefined,
   };
+}
+/* LA FILA QUE NO HA CAMBIADO NO SE VUELVE A CONVERTIR (diagnóstico de lag, 19/10/2026).
+   `syncCloudExpenses` baja el histórico ENTERO en cada vuelta a primer plano y lo pasaba todo por
+   `expenseFromRow`: con 3.500 gastos, un frame congelado justo al volver, y además cada gasto
+   salía como objeto NUEVO, así que la mezcla nunca podía devolver el mismo array y el estado se
+   rehacía entero aunque la nube dijera exactamente lo mismo que antes.
+   Se reutiliza el gasto de la lectura anterior SOLO si es indistinguible del que saldría ahora:
+     · las 13 columnas que lee `expenseFromRow` son idénticas (`Object.is`: null ≠ ausente, "5" ≠ 5);
+     · la categoría se vuelve a resolver en vivo —depende de lo que él aprendió a mano, que cambia
+       sin que cambie la fila— y tiene que dar lo mismo;
+     · el objeto no lo ha tocado nadie desde entonces (se compara con su copia campo a campo).
+   Ante cualquier diferencia se reconstruye: un gasto con un dato viejo es peor que un frame lento.
+   ⚠ Si `expenseFromRow` empieza a leer otra columna, va en `EXPENSE_ROW_COLS` (lo vigila
+   `tests/pull-sin-cambios.test.mjs`) o esa columna dejaría de refrescarse. */
+const EXPENSE_ROW_COLS=["id","fecha","comercio","importe","cat","source","ingest_event_id","no_card","nota","nota_edit","importe_orig","divisa","ob_name"];
+let _expRowMemo=new Map();
+function expenseRowMemoOk(h, r){
+  for(let i=0;i<EXPENSE_ROW_COLS.length;i++){ if(!Object.is(h.r[i], r[EXPENSE_ROW_COLS[i]])) return false; }
+  let n=0;
+  for(const k in h.snap){ if(!Object.prototype.hasOwnProperty.call(h.e,k) || !Object.is(h.e[k], h.snap[k])) return false; n++; }
+  for(const k in h.e) n--;
+  return n===0 && h.e.category===resolveCategory(r.cat, r.comercio || "");
+}
+function expensesFromRows(rows){
+  const prev=_expRowMemo, next=new Map(), out=new Array(rows.length);
+  for(let i=0;i<rows.length;i++){
+    const r=rows[i];
+    const h=r && r.id!=null ? prev.get(r.id) : null;
+    if(h && expenseRowMemoOk(h, r)){ out[i]=h.e; next.set(r.id, h); continue; }
+    const e=expenseFromRow(r);
+    out[i]=e;
+    if(r && r.id!=null) next.set(r.id, { r:EXPENSE_ROW_COLS.map(function(c){ return r[c]; }), e:e, snap:Object.assign({}, e) });
+  }
+  // Solo lo de esta lectura: lo que ya no baja se olvida y la memoria no crece con el tiempo.
+  _expRowMemo=next;
+  return out;
 }
 
 /* La preferencia de estado no acredita una compra: exige la misma identidad y dinero.
@@ -11997,7 +12072,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     React.createElement("p",{className:"hint",id:"gastos-refresh-scope"},t("g_refresh_expenses_hint")),
     React.createElement("div",{className:"sync-note"},
       React.createElement("span",{className:"sync-dot "+(syncStatus.type||"idle")}),
-      syncStatus.msg || (state.lastSync?tf("g_lastsync",{d:new Date(state.lastSync).toLocaleString(loc(),{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}):t("g_nosync"))
+      React.createElement(SyncHora,{msg:syncStatus.msg,lastSync:state.lastSync})
     ),
 /* Alta de gasto/ingreso: FAB Apuntar (SPEC §7). */
     (function(){
@@ -12069,6 +12144,16 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         React.createElement("span",null,t(undoDelete.paired?"g_auto_deleted":"f_undo_deleted")),
         React.createElement("button",{type:"button",onClick:undoLastDelete},t("f_undo"))),document.body)
   );
+}
+
+/* La hora de «Última sincronización» escucha la lectura de la nube por su cuenta (19/10/2026): una lectura sin
+   cambios ya no reescribe `state.lastSync` (ver `mcSetLecturaNube`), y pasarla como prop de
+   Expenses la reconstruiría entera en cada vuelta a primer plano, que es lo que se quitó. */
+function SyncHora({msg, lastSync}){
+  const [leida,setLeida]=useState(0);
+  useEffect(function(){ return mcOnLecturaNube(setLeida); },[]);
+  const at=Math.max(lastSync||0, leida||0);
+  return msg || (at?tf("g_lastsync",{d:new Date(at).toLocaleString(loc(),{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}):t("g_nosync"));
 }
 
 /* ---------- Fila del histórico ----------
@@ -23073,7 +23158,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="4d864eaae0b040134c1bb4eeb99e24350f57c9032e7b86e0e99c066430b1ee1f";
+var _rnSha="2469b76d6bd80ab08efda771da045e0d3a4d880800da39d0368bec4d13a37fef";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -27141,7 +27226,12 @@ function App(){
       if(!confirmed)return Promise.reject(new Error("ob_confirmed_merge"));
       const pending=obAbsorbedMerge(stateRef.current._historyOwner===readOwner?stateRef.current.obAbsorbedPending:[],[],readOwner);
       if(!pending)return Promise.reject(new Error("ob_absorbed_merge"));
-      set(function(prev){return prev._historyOwner===readOwner?Object.assign({},prev,{obAbsorbedConfirmed:confirmed,obAbsorbedPending:pending}):prev;});
+      // Releer lo mismo no rehace el estado: esto corre en cada vuelta a primer plano (19/10/2026).
+      set(function(prev){
+        if(prev._historyOwner!==readOwner) return prev;
+        if(pending===prev.obAbsorbedPending&&Array.isArray(prev.obAbsorbedConfirmed)&&JSON.stringify(prev.obAbsorbedConfirmed)===JSON.stringify(confirmed)) return prev;
+        return Object.assign({},prev,{obAbsorbedConfirmed:confirmed,obAbsorbedPending:pending});
+      });
     }
     const ps=++wS.current;
     wR.current=false;
@@ -27179,7 +27269,8 @@ function App(){
       // FIN-07: el paginador solo resuelve al terminar; un error intermedio no mezcla ni
       // confirma páginas sueltas. La ausencia sigue sin significar borrado, incluso al terminar.
       const delSet=expenseDeletedSet(stateRef.current);
-      const incoming=rows.map(expenseFromRow).filter(function(e){ return e.amount!==0 && !expenseIsTombstoned(e, delSet); });
+      // Las filas iguales a las de la lectura anterior conservan su gasto (ver `expensesFromRows`).
+      const incoming=expensesFromRows(rows).filter(function(e){ return e.amount!==0 && !expenseIsTombstoned(e, delSet); });
       // Backfill: sube a la tabla TODO gasto local que aún no esté en ella (no solo los manuales).
       // Esto garantiza que la tabla sea la fuente de verdad COMPLETA antes de dejar de duplicar
       // los gastos en app_state (ver slimForCloud). Upsert idempotente (ignoreDuplicates).
@@ -27239,6 +27330,16 @@ function App(){
           if(!readProof.valid||!sessionRef.current||!sessionRef.current.user||sessionRef.current.user.id!==readProof.userId) return;
           repairs.forEach(function(r){ cloud.setExpenseDup(r.expense,r.dup).catch(function(){}); });
         },0);
+        /* Si la nube no trajo nada nuevo, el estado se queda como estaba (19/10/2026): solo
+           cambiaría `lastSync`, y eso bastaba para repintar las cuatro pestañas y reescribir la
+           cartera en CADA vuelta a primer plano. La hora de la lectura viaja por `mcSetLecturaNube`. */
+        let mismo=Object.prototype.hasOwnProperty.call(prev,"lastSync");
+        if(mismo){
+          let n=0;
+          for(const k in rec.state){ n++; if(k!=="lastSync" && rec.state[k]!==prev[k]){ mismo=false; break; } }
+          if(mismo){ for(const k in prev) n--; mismo=n===0; }
+        }
+        if(mismo) return prev;
         return rec.state;
       });
       wR.current=true;
@@ -27246,6 +27347,7 @@ function App(){
       const current=sessionRef.current;
       wRead.current=readProof.valid && current && current.user && readProof.userId===current.user.id
         && !mcSandbox() && mark && typeof mark.readGeneration==="string" && typeof mark.nativeCut==="string"?mark:null;
+      mcSetLecturaNube(Date.now());
       return { total:incoming.length, nuevos:count };
       });
       });
@@ -28682,6 +28784,11 @@ function App(){
 
   const madridDay=function(){ return new Date().toLocaleDateString("en-CA",{timeZone:MC_TZ}); };
   const [calendarDay,setCalendarDay]=useState(madridDay);
+  // Una lectura de la nube sin cambios ya no toca `state.lastSync`; el widget tiene que recibir
+  // su prueba de lectura igual (FIN-05), así que la escucha aparte. Repinta App, no las pestañas.
+  // Contador y no la hora: dos lecturas en el mismo milisegundo tienen que contar como dos.
+  const [lecturaNube,setLecturaNube]=useState(0);
+  useEffect(function(){ return mcOnLecturaNube(function(){ setLecturaNube(function(n){ return n+1; }); }); },[]);
   useEffect(function(){
     const onVis=function(){ if(document.visibilityState==="visible") setCalendarDay(madridDay()); };
     document.addEventListener("visibilitychange",onVis);
@@ -29019,7 +29126,7 @@ function App(){
     };
   // Otra lectura con filas idénticas también recupera el legado: no depender sólo de
   // cifras o del reloj, que puede coincidir con el último lastSync.
-  },[budW.shown,budW.against,budW.cycle,budW.periodStart,budW.budget,wV2,wScope,CURLANG,state.budget,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.lastSync,widgetCash,trAccW&&trAccW.ent,widgetBudgetLeft,widgetSafeLiq,calendarDay,uid,wRead.current]);
+  },[budW.shown,budW.against,budW.cycle,budW.periodStart,budW.budget,wV2,wScope,CURLANG,state.budget,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.lastSync,lecturaNube,widgetCash,trAccW&&trAccW.ent,widgetBudgetLeft,widgetSafeLiq,calendarDay,uid,wRead.current]);
   // Tour de bienvenida: 1ª vez tras el onboarding (tourSeen=false), con la app ya pintada
   useEffect(function(){
     // No arrancar el tour encima del login (showAuth) ni con el cajón abierto: causaba el caos

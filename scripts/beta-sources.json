@@ -1397,6 +1397,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContract"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
       }
     ],
     "unidades": true
@@ -2813,6 +2821,18 @@
         "data": "obAbsorbedRuns"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "expensesFromRows"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSetLecturaNube"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentBookRival"
       },
@@ -2821,8 +2841,32 @@
         "function": "fixedPaymentModelMatches"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "expenseRowMemoOk"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContract"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_expRowMemo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXPENSE_ROW_COLS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcLecturaNube"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcLecturaNubeCbs"
       }
     ],
     "native": [
@@ -4069,6 +4113,18 @@
         "data": "obAbsorbedRuns"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "expensesFromRows"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSetLecturaNube"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentBookRival"
       },
@@ -4077,8 +4133,32 @@
         "function": "fixedPaymentModelMatches"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "expenseRowMemoOk"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContract"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_expRowMemo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXPENSE_ROW_COLS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcLecturaNube"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcLecturaNubeCbs"
       }
     ],
     "native": [
@@ -4929,6 +5009,10 @@
         "data": "STATE_KEY_REAL"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "histDistinctBookRef"
       },
@@ -4959,6 +5043,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContract"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -6278,6 +6366,10 @@
         "data": "obAbsorbedRuns"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentBookRival"
       },
@@ -6288,6 +6380,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContract"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
       }
     ],
     "native": [
@@ -7534,6 +7630,18 @@
         "data": "obAbsorbedRuns"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "expensesFromRows"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSetLecturaNube"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentBookRival"
       },
@@ -7542,8 +7650,32 @@
         "function": "fixedPaymentModelMatches"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "expenseRowMemoOk"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContract"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_expRowMemo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXPENSE_ROW_COLS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcLecturaNube"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcLecturaNubeCbs"
       }
     ],
     "native": [
@@ -9351,6 +9483,10 @@
         "data": "obAbsorbedRuns"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentBookRival"
       },
@@ -9361,6 +9497,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContract"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
       }
     ],
     "unidades": true
@@ -11758,6 +11898,10 @@
         "function": "fixedPaymentBind"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentModelMatches"
       },
@@ -11766,12 +11910,44 @@
         "function": "fixedPaymentBookRival"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "expensesFromRows"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSetLecturaNube"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContract"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "expenseRowMemoOk"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "data": "histBookResponses"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_expRowMemo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXPENSE_ROW_COLS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcLecturaNube"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcLecturaNubeCbs"
       }
     ],
     "unidades": true
@@ -12811,6 +12987,14 @@
         "data": "obAbsorbedRuns"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "expensesFromRows"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSetLecturaNube"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentBind"
       },
@@ -12823,8 +13007,36 @@
         "function": "fixedPaymentModelMatches"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseRowMemoOk"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContract"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_expRowMemo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXPENSE_ROW_COLS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcLecturaNube"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcLecturaNubeCbs"
       }
     ],
     "unidades": true
@@ -14056,6 +14268,18 @@
         "data": "obAbsorbedRuns"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "expensesFromRows"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSetLecturaNube"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentBookRival"
       },
@@ -14064,8 +14288,32 @@
         "function": "fixedPaymentModelMatches"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "expenseRowMemoOk"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContract"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_expRowMemo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXPENSE_ROW_COLS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcLecturaNube"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcLecturaNubeCbs"
       }
     ],
     "native": [
@@ -15570,6 +15818,10 @@
         "function": "fixedPaymentBind"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentModelMatches"
       },
@@ -15580,6 +15832,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContract"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
       }
     ],
     "unidades": true
@@ -16353,6 +16609,14 @@
       {
         "file": "src/modules/00-core.js",
         "data": "obAbsorbedRuns"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
       }
     ],
     "unidades": true
@@ -17058,6 +17322,14 @@
       {
         "file": "src/modules/00-core.js",
         "data": "obAbsorbedRuns"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
       }
     ],
     "unidades": true
@@ -19023,6 +19295,18 @@
         "data": "obAbsorbedRuns"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expensesFromRows"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSetLecturaNube"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentBind"
       },
@@ -19035,8 +19319,32 @@
         "function": "fixedPaymentBookRival"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "expenseRowMemoOk"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContract"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_expRowMemo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXPENSE_ROW_COLS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcLecturaNube"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcLecturaNubeCbs"
       }
     ],
     "edge": [
@@ -20817,6 +21125,10 @@
         "function": "fixedPaymentBind"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentModelMatches"
       },
@@ -20827,6 +21139,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContract"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
       }
     ],
     "unidades": true
@@ -22177,6 +22493,10 @@
         "function": "fixedPaymentBind"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentModelMatches"
       },
@@ -22187,6 +22507,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContract"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
       }
     ],
     "unidades": true
@@ -23739,6 +24063,14 @@
       {
         "file": "src/modules/00-core.js",
         "data": "CATEGORIES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
       }
     ],
     "unidades": true
@@ -25450,6 +25782,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedExpenseKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
       }
     ],
     "unidades": true
@@ -26698,6 +27038,18 @@
         "data": "obAbsorbedRuns"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "expensesFromRows"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSetLecturaNube"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentBookRival"
       },
@@ -26706,8 +27058,32 @@
         "function": "fixedPaymentModelMatches"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "expenseRowMemoOk"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContract"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_expRowMemo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXPENSE_ROW_COLS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcLecturaNube"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcLecturaNubeCbs"
       }
     ],
     "native": [
@@ -27816,8 +28192,16 @@
         "function": "fixedPaymentBookRival"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContract"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
       }
     ],
     "unidades": true
@@ -29049,6 +29433,18 @@
         "data": "obAbsorbedRuns"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "expensesFromRows"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSetLecturaNube"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentBookRival"
       },
@@ -29057,8 +29453,32 @@
         "function": "fixedPaymentModelMatches"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "expenseRowMemoOk"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContract"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_expRowMemo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXPENSE_ROW_COLS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcLecturaNube"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcLecturaNubeCbs"
       }
     ],
     "native": [
@@ -30266,6 +30686,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContract"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
       }
     ],
     "unidades": true
@@ -31367,8 +31795,16 @@
         "function": "fixedPaymentBookRival"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContract"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
       }
     ],
     "edge": [
@@ -32777,8 +33213,20 @@
         "function": "histNumberBookRefs"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "expensesFromRows"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSetLecturaNube"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentBind"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -32789,12 +33237,36 @@
         "function": "fixedPaymentBookRival"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "expenseRowMemoOk"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContract"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "histBookResponses"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_expRowMemo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXPENSE_ROW_COLS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcLecturaNube"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcLecturaNubeCbs"
       }
     ],
     "edge": [
@@ -35696,6 +36168,14 @@
         "function": "histDifferentBankRef"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "expensesFromRows"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSetLecturaNube"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentBind"
       },
@@ -35708,12 +36188,40 @@
         "function": "histDeletedRefHit"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContract"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "expenseRowMemoOk"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "data": "histBookResponses"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_expRowMemo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXPENSE_ROW_COLS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcLecturaNube"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcLecturaNubeCbs"
       }
     ],
     "edge": [
@@ -38152,6 +38660,14 @@
       {
         "file": "src/modules/00-core.js",
         "data": "OB_CONFIRMED_AGE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
       }
     ],
     "unidades": true
@@ -39641,6 +40157,14 @@
         "data": "OB_CONFIRMED_AGE"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "expensesFromRows"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSetLecturaNube"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentBind"
       },
@@ -39653,8 +40177,36 @@
         "function": "fixedPaymentModelMatches"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseRowMemoOk"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContract"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_expRowMemo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXPENSE_ROW_COLS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcLecturaNube"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcLecturaNubeCbs"
       }
     ],
     "unidades": true
@@ -40690,6 +41242,10 @@
         "data": "obAbsorbedRuns"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentBookRival"
       },
@@ -40700,6 +41256,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContract"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
       }
     ],
     "unidades": true
@@ -42497,8 +43057,20 @@
         "data": "OB_CONFIRMED_AGE"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "expensesFromRows"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSetLecturaNube"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentBind"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -42509,8 +43081,32 @@
         "function": "fixedPaymentBookRival"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "expenseRowMemoOk"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContract"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_expRowMemo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXPENSE_ROW_COLS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcLecturaNube"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcLecturaNubeCbs"
       }
     ],
     "edge": [
@@ -43773,6 +44369,14 @@
       {
         "file": "src/modules/00-core.js",
         "data": "CATEGORIES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
       }
     ],
     "unidades": true
@@ -44510,6 +45114,14 @@
       {
         "file": "src/modules/00-core.js",
         "data": "KW"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
       }
     ],
     "unidades": true
@@ -45392,6 +46004,14 @@
       {
         "file": "src/modules/00-core.js",
         "data": "CATEGORIES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
       }
     ],
     "unidades": true
@@ -46055,6 +46675,14 @@
       {
         "file": "src/modules/00-core.js",
         "data": "CATEGORIES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
       }
     ],
     "unidades": true
@@ -46790,6 +47418,14 @@
       {
         "file": "src/modules/00-core.js",
         "data": "KW"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
       }
     ],
     "unidades": true
@@ -47662,6 +48298,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedExpenseKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
       }
     ],
     "unidades": true
@@ -48164,6 +48808,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "isManualExpenseSource"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
       }
     ],
     "unidades": true
@@ -48940,6 +49592,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "autoCategory"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
       }
     ],
     "unidades": true
