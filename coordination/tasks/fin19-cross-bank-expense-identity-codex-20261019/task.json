@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "id": "fin19-cross-bank-expense-identity-codex-20261019",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261019-r74-36ea75cf98e01bbf",
+  "createdAt": "2026-10-19T18:43:04.765Z",
+  "to": "codex",
+  "kind": "worker",
+  "priority": 3,
+  "model": "gpt-6-astra",
+  "assignedPublicSessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "baseSHA": "dca4c71c640e3ebbc26256f9e79572fdda94e39e",
+  "claudeGrant": "db6f81334fa3899ad1b3fb95a5281045da4960cd",
+  "dependsOnReleasedResult": "7682c28106becbf773751116b69d04907d94e535",
+  "previousRunnerReturn": "252a7d75613ee74dda187ee3a5cb749c81f37445",
+  "objective": "FIN19: RED then minimal fix for distinct-bank expenses incorrectly merged when date amount and merchant coincide; preserve legitimate same-bank deduplication and every cent; draft PR against beta.",
+  "scope": [
+    "mergeExpensesFromCloud and relevant local expense identity indices",
+    "Bank/account identity ent/obAcc or established equivalent, preserving legitimate same-bank notification/statement and pending/booked reconciliation",
+    "Synthetic exact-cent regression evidence and draft PR against beta"
+  ],
+  "requirements": [
+    "Read FULL Claude db6f81334fa3899ad1b3fb95a5281045da4960cd. SES01 delivered result7682c281 RETURN252a7d75 verified97manifest98ZIP14844prior/13cleancheckouts; Claude PARKED SES01 until real mobile telemetry. No more SES01 work or collecting live telemetry. FIN19 explicitly next with Astra. Exact current remote beta dca4c71c640e3ebbc26256f9e79572fdda94e39e verified by ROOT; baseline is this beta, not PR286 candidate.",
+    "NEW own claim/readback/ACK before code; same original holder82dbe59f and current Astra model. Read AGENTS, EMPIEZA and coordination/runner protocol. Verify OWN20b4 actual13/20 at SES01 closure historical only; no reset/inheritance, all initial/internal/readback>=30s. New block only actual exhaustion and normal notice/readback under b0390. Create NEW isolated checkout and dossier; preserve every previous PR287/286R1R2R3/285/SES01/research source, manifest, archives and results byte-exact. Do not alter old PRs or checkouts.",
+    "Financial RED FIRST on exact beta: synthetic two expenses from distinct banks/accounts, identical date amount merchant, through actual mergeExpensesFromCloud/production identity path; demonstrate one incorrectly disappears and exact expected vs actual cents/count/IDs, preserve original RED outputs before minimal fix. Include positive expense and relevant existing path variants; no invented identity or universal dedupe rule.",
+    "Trace all relevant identity indices and call paths: ent/obAcc/established account identity must distinguish bank/account boundaries consistently. Inspect missing/legacy identity behavior and avoid normalizing unrelated banks/accounts into one bucket. Define evidence for fallback without silently inventing bank identity; do not broaden ambiguous matching and do not change stable unrelated expense IDs or fields.",
+    "Preserve legitimate dedupe within SAME bank/account: notification+statement, pending+BOOK, reconcileObDupes and existing reference/ordinal/tombstone absorption semantics. Distinct real bank references or different amounts remain distinct; two same-day same-merchant purchases must not collapse merely because bank matches. Tests must reach production functions rather than restating a new key helper. Cover equivalent known bank identity encodings only where supported by current source.",
+    "Exact-cent oracles compare complete before/after multiset and money totals: only previously lost transaction is restored. Existing fields, manual notes/category/debtId/noCard, tombstones, UUID/reference identities, imported/manual flows and merge order/idempotence must not change incidentally. Exercise both cloud/local arrival orders, repeated merge and synthetic same-bank controls; select relevant meaningful existing regressions. Kill at least targeted regression mutant restoring cross-bank key omission if practical; never call unexecuted gates PASS.",
+    "Minimal FIN19 patch only. No migration/backfill/schema/cloud/SQL/broker/Edge calls, no live balances/account credentials, no native Gradle/APK/backend/deploy/merge. No porting PR286 wholesale, no new algorithm for unrelated FIN04/FIN15/notes, no modifying caps VERSION catalogue shell or reserved product modules outside directly needed identity path without reporting scope issue.",
+    "Tests synthetic CPU1/standard only, no CPU6/fullsuite/profile/tracing by inference. Fresh OWN runner census and exact admission if applicable before using shared runner; never inherit old lease or claim by PID/time/absentlock. Prefer own isolated permitted process/port, preserve foreign processes. Record service ownership and close only own resources; exact OWN RETURN/readback before released result.",
+    "Normal draft PR against beta from new branch, no force push, no merge/deploy; preserve prior WIP. Run required relevant checks once final patch; size/docs/catalogue failures remain genuine Claude integration gates, no weakening tests/caps/bypassing hooks or changing VERSION out of scope. Distinguish focal green, general CI, integration, served beta and actual mobile acceptance.",
+    "Deliver concise report with base/product SHA, RED/GREEN exactcent outputs, relevant test names/counts/actual EXITs, mutants if executed, source diff rationale and limitations. Seal source/evidence manifest ZIP checkpoint/closure; verify prior sources intact. Own released result and RETURN exact readbacks, private ROOT74 handoff then STOP without native reply. No ProductREADY or human beta notice; PR287 remains separate pending Claude review/integration/NEW served beta version/source/manifest/hash URL/mobile steps."
+  ],
+  "deliverable": "FIN19 minimal draft beta PR, preserved RED and synthetic exact-cent GREEN/regressions, immutable evidence/source package, own RETURN/released result and private handoff then STOP."
+}
