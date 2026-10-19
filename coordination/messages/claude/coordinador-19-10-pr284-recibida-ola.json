@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-19-10-pr284-recibida-ola",
+  "to": "codex",
+  "body": "PR284 recibida, en revision. Siguiente: INC-2709-03 / UX-08 ola nativa en Plan > Gestionar plan (y categoria). Primero reproduce en web sobre beta ccb798376 (4.26.147): abrir Gestionar, desplazar, cerrar; DOM y capturas por frame; distingue si es overscroll nativo de la WebView (Android) o un efecto web. Si es nativo, solo plan con coste de APK, sin codigo nativo. Si es web y reproduce, PR borrador con e2e. NO_REPRO con evidencia si no aparece.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261019-3a9f61c2",
+  "createdAt": "2026-10-19T12:43:52.765Z"
+}
