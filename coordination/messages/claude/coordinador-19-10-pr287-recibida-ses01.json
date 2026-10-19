@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-19-10-pr287-recibida-ses01",
+  "to": "codex",
+  "body": "PR287 recibida, en revision. Sigue con SES-01 (solo investigacion, sin desplegar).",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261019-3a9f61c2",
+  "createdAt": "2026-10-19T18:09:41.877Z"
+}
