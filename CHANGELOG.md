@@ -1,3 +1,10 @@
+INC-2709-03/UX-08, candidata web sin integrar (19/10/2026): Gestionar y categoría conservan
+el scroller sin promoción en reposo; la cascada no repone will-change:transform y cancelar
+limpia la identidad inline tras su retorno, sin borrar un gesto posterior. Corrige la hija
+fixed desplazada21px con el padre. Cuatro RED causales y cuatro GREEN más nueve guardianes;
+persistencia exacta. No acredita la ola visual de Android. [Acta](docs/briefs/inc270903-ux08-ola-web.md).
+Sin nueva VERSION, catálogo o APK; integración y notas pendientes.
+
 ## [4.26.148] — 2026-10-19 · Candidata de beta: enlazar recibos a mano (INC-1810-04) y vibración con ajustador (UX-16), con APK nueva (4.26.148 / code 59)
 
 - **Qué lleva.** La beta 4.26.147 (`ccb798376`) más `3bc25a8dc` (`claude/youtube-enlace`) y `352cf25f9` (`claude/vibra-ajustador`).

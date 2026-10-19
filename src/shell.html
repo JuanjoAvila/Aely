@@ -1251,6 +1251,10 @@
   .v4-bills-push{z-index:72;padding:calc(14px + env(safe-area-inset-top,0px)) 16px calc(24px + env(safe-area-inset-bottom,0px));
     transform:none!important;will-change:auto;touch-action:auto;contain:none;overflow-y:auto;
     -webkit-overflow-scrolling:touch;overscroll-behavior:auto;overscroll-behavior-y:auto;}
+  /* Ganar a `.settings-push` en la promoción de capa: con transform none, will-change también
+     anclaba la hija fixed al scroll del padre (19/10). El cierre/retorno ponen su transición
+     inline; al limpiarla, no volver a animar la matriz identidad hacia none. */
+  .settings-push.v4-bills-push{will-change:auto;transition:none;}
   /* La subpantalla queda por encima del hub para que Atrás enseñe su destino mientras acompaña
      al dedo, igual que Inversiones. Ella es su propio scroller y no dibuja barra lateral. */
   /* Un píxel de recorrido conserva la ola también con una cartera vacía, sin alterar el aspecto. */

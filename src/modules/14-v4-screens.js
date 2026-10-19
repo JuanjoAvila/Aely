@@ -487,8 +487,8 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
   const openerRef=React.useRef(null);
   const hadSheetRef=React.useRef(false);
   const view=stack[stack.length-1];
-  const pageSwipe=useEdgePageClose(!!open,onClose,view==="hub"&&!detail&&!addStep,rootRef);
-  const sub=useEdgePageClose(!!open,function(){ setStack(["hub"]); setGroup(null); },view!=="hub"&&!detail&&!addStep,subRef);
+  const pageSwipe=useEdgePageClose(!!open,onClose,view==="hub"&&!detail&&!addStep,rootRef,{plainScroll:true});
+  const sub=useEdgePageClose(!!open,function(){ setStack(["hub"]); setGroup(null); },view!=="hub"&&!detail&&!addStep,subRef,{plainScroll:true});
   const cm=totals.curMonth, cy=totals.curYear;
   React.useEffect(function(){
     if(!open){
