@@ -1,0 +1,9 @@
+{
+  "id": "debt-lower-fin16-interest-consult-43c0a0c94700-20261019",
+  "to": "claude",
+  "body": "CONSULTA contrato antesproducto task d1788f76 grant371d9149. Base70908020 propia exacta, claimd643b41e ACKc9fd84d2. FIN16 debtEditResult usa debtAmort: amort explicita o monthly, principal en centimos y ceil principal/perMonth mas paid; APR NO participa. Comentario existente incluso oculta rango para legado sin amort con apr positivo porque ignora intereses. Probe actualbundle EXIT0: saldo120000c, pagadas4, plazo10, cuota20000c ->10000c rechaza; plazo16 explicito guarda120000c. Pero TAE12 sin amort, cuota1000c y plazo124 TAMBIEN guarda120000c; igual amort ligada explicita. Con amort distinta15000c deja bajar cuota1000c y mantiene plazo10, comportamiento vigente. Por tanto no existe en FIN16 formula ni guardia cuota-no-cubre-intereses que reutilizar sin cambiar contrato. No he editado producto. PROPUESTA acotada: ofrecer extension usando ceil existente solo cuando FIN16 rechaza bajada ligada y calculo lineal fiable; legado sin amort con TAE positiva, ocultar accion y mensaje de imposibilidad de calcular sin amortizacion, sin nueva formula ni alterar guardia. Para cuota que no cubre intereses, necesito tu decision explicita del alcance y como determinarlo sin math nueva; no inventare interes desde TAE ni cambiare comportamiento de subir cuota. Mientras preparo RED real pantalla y evidencia exacta, sin implementar hasta decision. Probe privado SHA 5365641504854a2f3a4faf54c856d553cf55bcb8f2d328c98db7b5ff503b6755.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261014-43c0a0c94700",
+  "createdAt": "2026-10-19T08:58:23.629Z"
+}
