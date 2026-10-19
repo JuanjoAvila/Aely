@@ -468,6 +468,85 @@ function debtPaymentState(s,d,y,m,today){
   return {paid:!!x||day!=null&&day<=today,day:sameMonth?recDay(x.date):day,
     paidBank:x?expenseBankOf(x):null,paidAmount:x?Number(x.amount):null,expense:x};
 }
+/* Lectura de presentación: el calendario financiero sigue descontando vencimientos,
+   pero una fecha pasada no demuestra un pago (INC-1810-03/04). Nunca escribe vínculos.
+   Plan puede acreditar un BOOK sin histórico local; la ficha necesita además UNA fila
+   inequívoca. Las referencias y cuentas conocidas no se sustituyen por igual contenido. */
+function paymentEvidenceUI(s,y,m,today){
+  var confirmed=Object.create(null),byExpense=new Map(),index=fixedPaymentExpenses(s,y+"-"+String(m).padStart(2,"0"));
+  var deleted=expenseDeletedSet(s);
+  var current=function(x){
+    if(!x||!x.id||(index.id.get(x.id)||[]).length!==1||x.possibleDup||x.obPending||
+      x.status&&String(x.status).toUpperCase()!=="BOOK"||expenseIsTombstoned(x,deleted)) return false;
+    var identity=fixedPaymentIdentity(expenseBankOf(x),x),rows=fixedPaymentExpenses(s,String(x.date).slice(0,7)).identity.get(identity)||[];
+    return rows.length===1&&fixedPaymentFeedClear(s,identity)&&(s.bankTx||[]).filter(function(tx){return fixedPaymentIdentity(tx.ent,tx)===identity;}).every(function(tx){
+      return !(x.extId&&tx.id&&String(x.extId)!==String(tx.id))&&!(x.obAcc&&tx.acc&&String(x.obAcc)!==String(tx.acc));
+    });
+  };
+  var add=function(x,kind,f){
+    if(!current(x)) return;
+    if(kind==="fixed"&&(x.debtId||x.reciboId&&x.reciboId!==f.id||reciboVetado(s,f.id,reciboNoIdentidad(x),x.id))) return;
+    // Dos propietarios nunca eligen por orden de arrays.
+    byExpense.set(x.id,byExpense.has(x.id)?null:{kind:kind,id:f.id,name:f.name});
+  };
+  (s.fixed||[]).forEach(function(f){
+    var st=fixedPaymentState(s,f,y,m,today),p=st.proof,tx=st.bankTx;
+    confirmed["fixed_"+f.id]=!!(p||tx||st.expense);
+    if(st.expense){ add(st.expense,"fixed",f);return; }
+    var identity=p?p.identity:tx?fixedPaymentIdentity(tx.ent,tx):null;
+    if(!identity) return;
+    var rows=index.identity.get(identity)||[];
+    if(rows.length!==1) return;
+    var x=rows[0];
+    if(!fixedExpenseEligible(s,x,f,y,m,today)) return;
+    if(p&&p.kind==="expense"&&p.expenseId&&p.expenseId!==x.id) return;
+    // La prueba BOOK conserva la referencia original incluso sin feed o tras renombrar.
+    if(p&&p.kind==="book"&&x.extId&&p.key!==p.bank+"|"+x.extId) return;
+    if(p&&p.kind==="book"&&x.obAcc){
+      var account=(s.accounts||[]).find(function(a){return a.ent===p.bank&&accFixed(a);});
+      var known=account?[account.bankIban,account.bankUid].filter(Boolean).map(String):[];
+      if(known.length&&known.indexOf(String(x.obAcc))<0) return;
+    }
+    if(tx&&x.extId&&tx.id&&String(x.extId)!==String(tx.id)) return;
+    add(x,"fixed",f);
+  });
+  (s.debts||[]).filter(debtActive).forEach(function(d){
+    var x=debtPaymentState(s,d,y,m,today).expense,ok=!!x&&current(x);
+    confirmed["debt_"+d.id]=ok;confirmed["balloon_"+d.id]=ok;
+    if(ok) add(x,"debt",d);
+  });
+  (s.oneoffs||[]).forEach(function(f){
+    // El puntual no tiene prueba guardada: solo leer su marca explícita y firme,
+    // con un cargo bancario único. El vencimiento por sí solo sigue sin acreditarlo.
+    var unique=f.id&&(s.oneoffs||[]).concat(s.fixed||[]).filter(function(o){return o.id===f.id;}).length===1;
+    var rows=unique&&oneoffOccurs(f,y,m)?(s.expenses||[]).filter(function(x){
+      return x&&x.reciboId===f.id&&!x.debtId&&current(x)&&fixedPaymentDate(x.date,y,m,today)&&
+        Number(x.amount)>0&&!CAT_NEUTRAS[x.category]&&cargoDeReciboFirme(x,s)&&
+        ((x.source==="ob"||x.source==="ob-hist")&&String(x.status||"").toUpperCase()==="BOOK"||
+          (s.bankTx||[]).some(function(tx){return fixedPaymentIdentity(tx.ent,tx)===fixedPaymentIdentity(expenseBankOf(x),x);}));
+    }):[];
+    confirmed["oneoff_"+f.id]=rows.length===1;
+    if(rows.length===1) add(rows[0],"fixed",f);
+  });
+  return {confirmed:confirmed,byExpense:byExpense};
+}
+function expensePaymentRelationUI(s,e){
+  if(!e) return null;
+  var rows=(s.expenses||[]).filter(function(x){return x&&x.id===e.id;});
+  if(rows.length!==1||fixedPaymentIdentity(expenseBankOf(rows[0]),rows[0])!==fixedPaymentIdentity(expenseBankOf(e),e)||expenseSourceForCloud(rows[0])!==expenseSourceForCloud(e)) return null;
+  var date=String(e.date||""),y=Number(date.slice(0,4)),m=Number(date.slice(5,7)),now=new Date();
+  // Una cuota del último día puede acreditar el vencimiento del mes siguiente.
+  if(e.debtId){
+    var debts=(s.debts||[]).filter(function(d){return d.id===e.debtId;});
+    if(debts.length===1){var charge=cuotaCargoCercano(debts[0],dateMs(e.date));if(charge&&charge.key){var parts=charge.key.split("-");y=Number(parts[0]);m=Number(parts[1]);}}
+  }
+  if(!(y>0&&m>=1&&m<=12)||y*12+m>now.getFullYear()*12+now.getMonth()+1) return null;
+  var today=y===now.getFullYear()&&m===now.getMonth()+1?now.getDate():new Date(y,m,0).getDate();
+  return paymentEvidenceUI(s,y,m,today).byExpense.get(e.id)||null;
+}
+function withdrawalConfirmedUI(e){
+  return !!e&&e.category==="traspaso"&&Number.isFinite(e.withdrawalConfirmedAt)&&e.withdrawalConfirmedAt>0;
+}
 function planChargesMonth(s,m,y,today){
   s=s||{};
   var r=[];

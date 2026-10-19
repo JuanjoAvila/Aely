@@ -13,6 +13,9 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
   const charges=useMemo(function(){
     return planChargesMonth(state, totals.curMonth, totals.curYear, totals.today);
   },[state.fixed,state.debts,state.oneoffs,state.flows,state.bankTx,state.accounts,state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,totals.curMonth,totals.curYear,totals.today]);
+  const evidence=useMemo(function(){ return paymentEvidenceUI(state,totals.curYear,totals.curMonth,totals.today); },
+    [state.fixed,state.debts,state.oneoffs,state.bankTx,state.accounts,state.expenses,state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,totals.curMonth,totals.curYear,totals.today]);
+  const unconfirmed=charges.paidBills.filter(function(x){return evidence.confirmed[x.id]===false;}).length;
   const pick=useMemo(function(){
     return planCoverPickBank(totals, charges.pendingByBank, charges.pendingBills, charges.paidBills);
   },[totals.minByBank,totals.minDayByBank,totals.mainBank,charges.pendingByBank,charges.pendingBills,charges.paidBills]);
@@ -39,7 +42,9 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
   // Frases propias: todo pagado / sin día (minDay 0) — NUNCA «el día ya» (review Claude 1845Z).
   const coverPhrase=(!billsEuroTotal)
     ? t("v4_plan_state_none")
-    : (allBillsPaid
+    : (allBillsPaid&&unconfirmed?(balKnown&&balNow<0
+      ? tf("help_cue_balance",{x:eur0(balNow),bank:bankLab})
+      : tf(unconfirmed===1?"v4_payment_all_except_one":"v4_payment_all_except",{n:unconfirmed})):(allBillsPaid
       ? (coverBank&&balKnown
         ? tf("v4_plan_state_all_paid",{x:eur0(balNow),bank:bankLab})
         : t("v4_plan_state_all_paid_nobank"))
@@ -47,7 +52,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
         ? tf((coverTone==="bad"?"v4_plan_state_bad":(coverTone==="warn"?"v4_plan_state_warn":"v4_plan_state_ok"))+(hasMinDay?"":"_noday"),{
             left:eur0(leftForPhrase), end:eur0(cover.min), bank:bankLab, day:hasMinDay?String(cover.minDay):"", min:eur0(cover.min)
           })
-        : t("v4_plan_state_none")));
+        : t("v4_plan_state_none"))));
   const coverAria=coverHead+". "+coverPhrase;
   // Puerta viva desde Ajustes: flag pendiente si Plan aún no montó (cold start / idle).
   useEffect(function(){
@@ -289,7 +294,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
           className:"v4-seg-btn"+(seg===s.id?" on":""),onClick:function(){ setSeg(s.id); }}, s.lab);
       })
     ),
-    capa("recibos", React.createElement(PlanBills,{state:state,set:set,totals:totals,charges:charges,manageOpen:manageOpen,setManageOpen:setManageOpen,simple:simple})),
+    capa("recibos", React.createElement(PlanBills,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen,simple:simple})),
     !simple && capa("deudas", React.createElement(Debts,{state:state,set:set,showToast:showToast})),
     !simple && capa("metas", React.createElement(Goals,{state:state,set:set,totals:totals,showToast:showToast}))
   );
@@ -298,15 +303,19 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
 /* Recibos conserva la portada compacta que ya funcionaba: el diagnóstico largo y el anillo
    convertían Plan en un mensaje gigante y alejaban lo que la familia viene a mirar. «Gestionar»
    sí se mantiene como puerta al editor nuevo (feedback real 2026-09-17). */
-function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simple}){
+function PlanBills({state, set, totals, charges, evidence, manageOpen, setManageOpen, simple}){
   const [paidExpanded,setPaidExpanded]=useState(false);
   const [pendExpanded,setPendExpanded]=useState(false);
   const paidPanelId="v4-paid-panel";
   const month=totals.curMonth;
   const pack=charges||planChargesMonth(state, totals.curMonth, totals.curYear, totals.today);
-  // «Lo que aún saldrá» = recibos + traspasos pendientes. Ingresos NUNCA aquí (NO-GO 17/9).
-  const pending=pack.pendingBills.concat(pack.transfersPending);
-  const paid=pack.paidBills;
+  // Sencillo conserva las salidas juntas; el matiz aclara que mover dinero no suma recibos.
+  const pending=simple?pack.pendingBills.concat(pack.transfersPending):pack.pendingBills;
+  const proof=evidence||paymentEvidenceUI(state,totals.curYear,totals.curMonth,totals.today);
+  const unconfirmed=pack.paidBills.filter(function(x){return proof.confirmed[x.id]===false;}).map(function(x){return Object.assign({},x,{paid:false,unconfirmed:true});});
+  const paid=pack.paidBills.filter(function(x){return proof.confirmed[x.id]!==false;});
+  // Solo el subtotal de esta lista cambia; la previsión financiera del pack queda intacta.
+  const paidTotal=paid.reduce(function(sum,x){return sum+Math.abs(x.amount);},0);
   // La factura variable acredita su bruto real, pero no permite inventar la parte propia
   // de un compartido: conservar la previsión y nombrarla separada del cargo bancario.
   const changedPaid=function(x){ return x.paid&&x.paidAmount>0&&Math.abs(x.paidAmount-x.plannedBankAmount)>=0.005; };
@@ -319,6 +328,7 @@ function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simp
     else try{ window.dispatchEvent(new CustomEvent("mc-open-bills")); }catch(e){}
   };
   const rowSub=function(x){
+    if(x.unconfirmed) return entOf(x.bank).label;
     // El recibo conserva el banco previsto; el cargo confirmado puede haber salido de otro.
     var bank=x.paid&&x.paidBank?x.paidBank:x.bank;
     if(x.overdue) return entOf(x.bank).label+" · "+t("v4_charge_unconfirmed");
@@ -362,10 +372,10 @@ function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simp
       React.createElement("div",{className:"am"+(income?" pos":"")}, income?"+":"",amountLabel)
     );
   };
-  const paidTotalLabel=hasChangedPaid?tf("v4_charge_expected",{x:eur0(pack.paidBillsTotal)}):eur0(pack.paidBillsTotal);
-  const paidLabel=pack.paidBills.length===1
+  const paidTotalLabel=hasChangedPaid?tf("v4_charge_expected",{x:eur0(paidTotal)}):eur0(paidTotal);
+  const paidLabel=paid.length===1
     ? tf("v4_paid_fold_one",{n:1,amount:paidTotalLabel})
-    : tf("v4_paid_fold",{n:pack.paidBills.length,amount:paidTotalLabel});
+    : tf("v4_paid_fold",{n:paid.length,amount:paidTotalLabel});
   return React.createElement(React.Fragment,null,
     !simple && React.createElement("div",{className:"v4-card v4-card-hero rise"},
       React.createElement("div",{className:"v4-micro"}, tf("v4_plan_left",{month:monthLong(month-1)})),
@@ -385,18 +395,24 @@ function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simp
         })()
       )
     ),
-    React.createElement("div",{className:"v4-section"},
+    React.createElement("div",{className:"v4-section","data-testid":"plan-due"},
       React.createElement("div",{className:"v4-section-h"},
-        React.createElement("span",null,simple?t("v4_aun_saldra"):t("v4_pendiente")),
+        React.createElement("span",null,simple?t("v4_aun_saldra"):t("v4_payment_due")),
         // Sencillo: sin «Gestionar» aquí — solo Ajustes → Cambiar mis recibos (NO-GO §5bis.2).
         !simple && React.createElement("button",{type:"button",className:"link",onClick:openManage}, t("v4_gestionar"))
       ),
+      pending.length>0&&React.createElement("div",{className:"ph"},t(simple&&pack.transfersPending.length?"v4_payment_mixed_hint":"v4_payment_due_hint")),
       pending.length===0
         ? React.createElement("div",{className:"ph",style:{padding:"8px 4px 4px"}}, t("v4_aun_saldra_empty"))
         : (pendExpanded?pending:pending.slice(0,3)).map(row),
       pending.length>3 && React.createElement("button",{type:"button",className:"v4-link-mini",onClick:function(){ setPendExpanded(function(v){ return !v; }); }},
         pendExpanded ? t("v4_ver_menos") : tf("v4_ver_mas",{n:pending.length-3}))
     ),
+    unconfirmed.length>0 && React.createElement("div",{className:"v4-section","data-testid":"plan-unconfirmed"},
+      React.createElement("div",{className:"v4-section-h"},t("v4_payment_pending")+" · "+unconfirmed.length),
+      React.createElement("div",{className:"ph"},t("v4_payment_pending_hint")),unconfirmed.map(row)),
+    !simple&&pack.transfersPending.length>0&&React.createElement("div",{className:"v4-section","data-testid":"plan-transfers"},
+      React.createElement("div",{className:"v4-section-h"},t("v4_plan_transfers")),pack.transfersPending.map(row)),
     incomePend.length>0 && React.createElement("div",{className:"v4-section"},
       React.createElement("div",{className:"v4-section-h"},
         React.createElement("span",null,t("v4_aun_entrara"))
@@ -404,12 +420,12 @@ function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simp
       incomePend.map(row)
     ),
     !simple && React.createElement("div",{className:"v4-section"},
-      React.createElement("div",{className:"v4-section-h"},t("v4_ya_pagado")+" · "+(hasChangedPaid?tf("v4_charge_expected",{x:eur(pack.paidBillsTotal)}):eur(pack.paidBillsTotal))),
+      React.createElement("div",{className:"v4-section-h"},t("v4_ya_pagado")+" · "+(hasChangedPaid?tf("v4_charge_expected",{x:eur(paidTotal)}):eur(paidTotal))),
       (paidExpanded?paid:paid.slice(0,3)).map(row),
       paid.length>3 && React.createElement("button",{type:"button",className:"v4-link-mini",onClick:function(){ setPaidExpanded(function(v){ return !v; }); }},
         paidExpanded?t("v4_ver_menos"):tf("v4_ver_mas",{n:paid.length-3}))
     ),
-    simple && pack.paidBills.length>0 && React.createElement("button",{type:"button",className:"v4-paid-fold",
+    simple && paid.length>0 && React.createElement("button",{type:"button",className:"v4-paid-fold",
       id:"v4-paid-fold-btn","aria-expanded":paidExpanded?"true":"false","aria-controls":paidPanelId,
       onClick:function(){ setPaidExpanded(function(v){ return !v; }); }},
       React.createElement("span",null, paidLabel),React.createElement("span",{"aria-hidden":true}, paidExpanded?"▾":"▸")),

@@ -72,6 +72,7 @@ export const E2E_MAP = [
     "e2e/pulido-vacios.spec.mjs","e2e/inicio-grafica-significado.spec.mjs","e2e/indicador-arco.spec.mjs", "e2e/smoke.spec.mjs", "e2e/informe-mes.spec.mjs",
     "e2e/ultima-cuota-descartar.spec.mjs", "e2e/inicio-offline.spec.mjs", "e2e/presupuesto-fluido.spec.mjs", "e2e/inicio-mes-natural.spec.mjs", "e2e/cartera-parte-mia.spec.mjs"] },
   { file: "src/modules/04-tab-gastos.js", specs: [
+    "e2e/plan-expense-links.spec.mjs",
     "e2e/fin17-confirmed-absorptions.spec.mjs",
     "e2e/fin11-absorption-pending.spec.mjs",
     "e2e/recibos-renombrar.spec.mjs",
@@ -109,6 +110,7 @@ export const E2E_MAP = [
   ] },
   { file: "src/modules/08-motor-bank.js", specs: [
     "e2e/h2-account-phases.spec.mjs",
+    "e2e/plan-expense-links.spec.mjs",
     "e2e/inicio-deuda-futura.spec.mjs",
     "e2e/metas-editar-regla.spec.mjs",
     "e2e/metas-borrar-regla.spec.mjs",
@@ -172,6 +174,7 @@ export const E2E_MAP = [
   { file: "src/modules/12-boot.js", specs: ["e2e/splash.spec.mjs", "e2e/smoke.spec.mjs", "e2e/csp.spec.mjs"] },
   { file: "src/modules/13-hogar.js", specs: ["e2e/cartera-orden-hogar.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: [
+    "e2e/plan-expense-links.spec.mjs",
     "e2e/recibos-renombrar.spec.mjs",
     "e2e/cartera-bienes-completo.spec.mjs",
     "e2e/cartera-bienes-toque.spec.mjs",
