@@ -1,0 +1,136 @@
+{
+  "status": "done",
+  "summary": "Research and phased plan complete on408 beta4.26.149, no implementation. Eleven scenarios6RED5controls41PASS7FAIL. Independent fields in fixed/debts can lose intent after CAS/LWW; notes do not converge after reload; rename DELETEinsert overwrites a persisted peer note; notezero-row lacks ACK. Same-revision CAS and ownuser Hogar controls pass. All11centoracles and368query mock replay pass. PR43 actualhead and originalbase reviewed; oldparser incompatible with modernsource. Synthetic SDK/browser evidence only, no livecloud or mobile acceptance. ProductREADYfalse.",
+  "baseSHA": "408d8d3484568e1c02fa25dcd2df30ad71477bf1",
+  "productSHA": "408d8d3484568e1c02fa25dcd2df30ad71477bf1",
+  "researchOnly": true,
+  "productReady": false,
+  "implementation": false,
+  "manifestSHA256": "90bab1ada42419d56f138ba76e878126a333931cb1ee0a7bd4e84853cf59d0b5",
+  "tests": [
+    {
+      "run": "debt-independent",
+      "classification": "PRODUCT_RED",
+      "exitCode": 1,
+      "passed": 4,
+      "failed": 1
+    },
+    {
+      "run": "debt-same",
+      "classification": "CONTROL_PASS",
+      "exitCode": 0,
+      "passed": 4,
+      "failed": 0
+    },
+    {
+      "run": "receipt-independent-v2",
+      "classification": "PRODUCT_RED",
+      "exitCode": 1,
+      "passed": 4,
+      "failed": 1
+    },
+    {
+      "run": "receipt-same",
+      "classification": "CONTROL_PASS",
+      "exitCode": 0,
+      "passed": 4,
+      "failed": 0
+    },
+    {
+      "run": "expense-independent",
+      "classification": "PRODUCT_RED",
+      "exitCode": 1,
+      "passed": 4,
+      "failed": 1
+    },
+    {
+      "run": "expense-same",
+      "classification": "PRODUCT_RED",
+      "exitCode": 1,
+      "passed": 3,
+      "failed": 1
+    },
+    {
+      "run": "expense-rename",
+      "classification": "PRODUCT_RED",
+      "exitCode": 1,
+      "passed": 3,
+      "failed": 2
+    },
+    {
+      "run": "api-zero",
+      "classification": "PRODUCT_RED",
+      "exitCode": 1,
+      "passed": 1,
+      "failed": 1
+    },
+    {
+      "run": "api-source",
+      "classification": "CONTROL_PASS",
+      "exitCode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "run": "cas-control-v2",
+      "classification": "CONTROL_PASS",
+      "exitCode": 0,
+      "passed": 5,
+      "failed": 0
+    },
+    {
+      "run": "hogar-isolation-v2",
+      "classification": "CONTROL_PASS",
+      "exitCode": 0,
+      "passed": 8,
+      "failed": 0
+    }
+  ],
+  "checks": [
+    {
+      "run": "independent money oracles",
+      "cases": 11,
+      "exitCode": 0
+    },
+    {
+      "run": "independent mock semantics audit",
+      "businessQueries": 368,
+      "exitCode": 0
+    },
+    {
+      "run": "source and prior preservation",
+      "sourceFiles": 958,
+      "priorFiles": 7266,
+      "exitCode": 0
+    }
+  ],
+  "returnCommit": "a8625abf9fd49b3f1a4e5e9e9e0bd765abf1b970",
+  "sourceUnchanged": true,
+  "priorArtifactsUnchanged": true,
+  "artifacts": [
+    "outputs/fin04-informe.md",
+    "outputs/fin04-evidencia.json",
+    "outputs/fin04-manifest.json"
+  ],
+  "limitations": [
+    "Synthetic PostgREST/RLS subset with real bundled SDK; no live cloud/auth/db/bank.",
+    "Some successful minimal POST writes mocked as204 rather than server201: same SDK null-data/error-null semantics; no claim of full database emulation.",
+    "No snapshot isolation, SQL engine, triggers, network outage, timeout-after-commit, full interleaving enumeration, mobile or device validation.",
+    "One harness process attempted own busy port while Hogar running; rejected before browser creation, preserved cas-control error; next run only after own previous completion.",
+    "Initial auth bootstrap and private HTML assembly/parser failures preserved. No product changes.",
+    "API source control bypasses normal UI restrictions on manual duplicate actions; it is an illustrative helper observation, not a user-facing reproduced bug.",
+    "No product fix or new PR; no release build, general CI, served artifact, live RLS, APK or two-device acceptance.",
+    "Initial harness assembly, selector, startup and busy-own-port failures preserved; earlier Household selector failure reclassified as harness oracle error."
+  ],
+  "fetchBudget": {
+    "idbudget": "fin04-own20-b2-82dbe59f",
+    "allowance": 20,
+    "usedBeforeResult": 4
+  },
+  "schema": 1,
+  "taskId": "fin04-two-client-edits-investigation-codex-20261019",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-19T14:47:02.148Z",
+  "released": true
+}
