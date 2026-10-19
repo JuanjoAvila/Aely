@@ -36734,6 +36734,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_mcSandboxTransition"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedMonthlyOf"
       }
     ],
     "edge": [
@@ -42061,6 +42065,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "obConfirmedReadCache"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedMonthlyOf"
       }
     ],
     "unidades": true

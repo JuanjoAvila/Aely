@@ -584,7 +584,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
     return undefined;
   },[detail, addStep, open]);
   const hero=billsHeroTotal(state,totals);
-  const shownHero=useCountUp(hero,!!open,true);
+  const shownHero=useCountUp(hero,!!open);
   if(!open) return null;
   const banks=Array.from(new Set((state.accounts||[]).map(function(a){ return a.ent; }).filter(Boolean)));
   if(!banks.length) banks.push("sabadell");

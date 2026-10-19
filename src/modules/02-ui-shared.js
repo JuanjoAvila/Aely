@@ -780,31 +780,26 @@ function mcInicioFillHaptic(e){
   }catch(err){}
 }
 
-/* Count-up compartido (B2). `ready` es la puerta: Inicio espera `mc-splash-gone`; Cartera espera
-   el bus `mcOnCarteraActive`. Sin puerta, la animación se gasta con la pestaña premontada (o
-   detrás del splash) y al llegar el número ya está puesto — peor que no animar. */
-function useCountUp(target, ready, replay){
-  const [shown,setShown]=useState(0);
+/* Cifra con transición compartida (B2). Ya NO cuenta desde 0: mientras la pestaña entraba
+   deslizándose (`ready` aún en false) Cartera pintaba «0,00 €», y en «Tus recibos» quien tocaba un
+   grupo antes de los 950 ms se quedaba viendo una cifra a medias (1518,65 por 1526,87, vídeo de la
+   beta 4.26.150). Un número que no es el real es peor que no animar (AGENTS §1): se pinta la cifra
+   real desde el primer frame y solo se anima el paso de un valor real a otro mientras se mira. */
+function useCountUp(target, ready){
+  const tgt0=+(target||0);
+  const [shown,setShown]=useState(tgt0);
   const rafRef=useRef(0);
-  const shownRef=useRef(0);
-  const primeraRef=useRef(true);
+  const shownRef=useRef(tgt0);
   useEffect(function(){
-    /* Gestionar queda montado detrás de Plan. Si solo paramos el RAF al cerrarlo, conserva el
-       total final y la siguiente entrada ya no tiene animación; `replay` devuelve el contador a
-       cero mientras está oculto sin cambiar Inicio ni Cartera (feedback 2026-09-18). */
-    if(!ready){
-      if(replay){ shownRef.current=0; primeraRef.current=true; setShown(0); }
-      return undefined;
-    }
     const tgt=+(target||0);
     cancelAnimationFrame(rafRef.current);
-    if(mcReduced()){
-      shownRef.current=tgt; setShown(tgt); primeraRef.current=false;
+    // Oculta, sin movimiento o ya en su sitio: la cifra salta a su valor real.
+    if(!ready||mcReduced()||shownRef.current===tgt){
+      shownRef.current=tgt; setShown(tgt);
       return undefined;
     }
     let cancelado=false;
-    const start=primeraRef.current?0:shownRef.current;
-    primeraRef.current=false;
+    const start=shownRef.current;
     const t0=performance.now(), dur=950;
     const ease=function(x){ return 1-Math.pow(1-x,3); };
     const step=function(now){
@@ -817,8 +812,9 @@ function useCountUp(target, ready, replay){
     };
     rafRef.current=requestAnimationFrame(step);
     return function(){ cancelado=true; cancelAnimationFrame(rafRef.current); };
-  },[target, ready, replay]);
-  return shown;
+  },[target, ready]);
+  // Oculta, el render ya lleva el valor real aunque el efecto aún no haya corrido.
+  return ready?shown:+(target||0);
 }
 
 function recordAccountBalances(hist, day, rows){

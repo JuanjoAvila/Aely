@@ -264,7 +264,7 @@ test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CS
     ["src/modules/03-tab-dash.js",'Math.min(1,rem/budAmt)','Math.min(1,spentAgainst/budAmt)'],
     ["src/modules/03-tab-dash.js",'Math.round((local-4)/312*(points.length-1))','0'],
     ["src/modules/02-ui-shared.js",'const t0=performance.now(), dur=950;','const t0=performance.now(), dur=1;'],
-    ["src/modules/02-ui-shared.js",'if(mcReduced()){','if(false){'],
+    ["src/modules/02-ui-shared.js",'if(!ready||mcReduced()||shownRef.current===tgt){','if(!ready||false||shownRef.current===tgt){'],
     ["src/modules/02-ui-shared.js",'document.documentElement.classList.contains("reduce-motion")','false'],
     ["src/modules/01-i18n.js",'Math.abs((n||0)*DISP.k)','Math.abs(n||0)'],
     ["src/modules/01-i18n.js",'sign:n<0?"-":""','sign:""'],
