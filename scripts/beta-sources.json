@@ -50710,6 +50710,11 @@
         "to": "  };"
       },
       {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",
+        "to": "  // INC-0410 guardado: límite."
+      },
+      {
         "file": "src/modules/00-core.js",
         "function": "partirEntDeuda"
       },
@@ -51812,6 +51817,62 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseCloudKeys"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSaveRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPersistCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mergeAccountBalanceHistory"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedRestore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedRestore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXP_SUFFIX"
       }
     ],
     "unidades": true

@@ -3024,7 +3024,7 @@ test("Catálogo146 añade la tanda de la vuelta sin tirón sobre la beta 145, so
   for(const id of tandas)assert.equal(integrated[id],undefined,"identidad que no existía: "+id);
   assert.deepEqual(Object.keys(scopes).slice(-tandas.length),tandas);
   const C="src/modules/00-core.js",fn=(file,function_)=>({file,function:function_});
-  const propias={"vuelta-sin-tiron":[...["autoCategory","autoCategoryKw","expenseFromRow","expensesFromRows","mcOnGastosActive"].map(n=>fn(C,n)),fn("src/modules/04-tab-gastos.js","Expenses"),{file:"src/modules/11-app-main.js",from:"  const syncCloudExpenses=function(){",to:"  };"}]};
+  const propias={"vuelta-sin-tiron":[...["autoCategory","autoCategoryKw","expenseFromRow","expensesFromRows","mcOnGastosActive"].map(n=>fn(C,n)),fn("src/modules/04-tab-gastos.js","Expenses"),{file:"src/modules/11-app-main.js",from:"  const syncCloudExpenses=function(){",to:"  };"},{file:"src/modules/11-app-main.js",from:"  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",to:"  // INC-0410 guardado: límite."}]};
   const fns=logicFunctions(source),dat=logicData(source);
   const closure=start=>{
     let web=start.slice();
