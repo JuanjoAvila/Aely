@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "id": "fin19-pr288-r2-unknown-identity-tombstones-codex-20261019",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261019-r74-36ea75cf98e01bbf",
+  "createdAt": "2026-10-19T19:27:53.224Z",
+  "to": "codex",
+  "kind": "worker",
+  "priority": 1,
+  "model": "gpt-6-astra",
+  "assignedPublicSessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "baseSHA": "8f87eadc4e6f018a2d50a33808ee0945f171876c",
+  "originalBetaSHA": "dca4c71c640e3ebbc26256f9e79572fdda94e39e",
+  "claudeGrant": "a69c43469006a0eb691a5e211ebb0609666bcf65",
+  "dependsOnReleasedResult": "f2be31fb6c085ccfa1fb39128c67787b76f4e665",
+  "previousRunnerReturn": "990ef40860fa69cf32bd48e17bd46e195210c847",
+  "PR": 288,
+  "finalBeta151AwaitClaudeNotice": true,
+  "objective": "PR288 R2 money NO-GO: preserve base dedupe for unknown bank/account, separate only fully known distinct identities, consistent tombstones; prepare now then integrate exact beta151 after Claude notice. FIN04 phase2 deferred.",
+  "scope": [
+    "Four Claude NO-GO financial cases and exact-cent base versus candidate oracles",
+    "Local merge/index identity with unknown bank/account preserving base grouping; consistent delete/undo tombstone identity",
+    "Compatibility with PR286 after Claude supplies exact beta151 integration base, same draft PR288"
+  ],
+  "requirements": [
+    "Read FULL Claude a69c43469006a0eb691a5e211ebb0609666bcf65 and earlier d41eaacb58a8109e9fc11edccc273b5f03441e55. NO-GO has PRIORITY over FIN04 phase2 design. Do not start FIN04 design or SES01. R1 resultf2be31fb RETURN990ef408 released, package89manifest90ZIP16109prior14cleancheckouts verified by ROOT. R1 head8f87eadc retained immutable and rejected functionally despite focal green.",
+    "NEW own claim/readback/ACK before code; same original session82dbe59f/Astra current. Verify OWN20b4 closure actual19/20 historical only, count all initial/internal/readbacks>=30s; actually consume20 then freeze and next normal notice/readback under b0390, no reset/inheritance/extra silent fetch. Read AGENTS/EMPIEZA/protocol. NEW isolated R2 checkout/dossier starting immutable R1 head, preserve all old WTs/source/evidence/manifests/results byte-exact; own prior global resources none, no inherited lease.",
+    "RED FIRST reproduce four money failures in actual production paths, compare original beta dca4c71c6 versus R1 and later R2. (1) Wallet notification without known bank (expenseFromRow currently no wallet branch) plus Sabadell statement: expected320, R1 640. (2) One bank notice with two known bank accounts: expected640, R1 960. (3) Legacy row no extId/obAcc plus cloud row with account: expected320, R1 640; correct wrong R1 test, never freeze duplication as intended. (4) Two known distinct expenses separated: delete one must not hide both; test actual delete/filter/persist/pull/undo and both orders, not only key helper.",
+    "Claude exact rule: separate only if BOTH sides carry known bank AND known account and the identities differ. Unknown bank or unknown account retains previous base grouping, never becomes a distinct synthetic bank/account. Preserve base monetary behavior for unknown/legacy/notice rows. Two known distinct transactions must remain distinct even with one unknown notification present: do not transitively collapse their accounts through a wildcard or count notification a third time. Deterministic both-order/repeated-merge behavior, no guessing real bank from missing metadata.",
+    "Tombstones MUST use the same corrected bank/account identity as separation. Scope owned delete/undo/readback/filter paths, including persisted and already-legacy tombstone compatibility. Preserve ability to honor prior legitimate deletes without broadening a new tombstone to hide unrelated known bank/account. Document legacy ambiguity and explicit compatibility choice, no destructive mass conversion/backfill. Synthetic tests must go through real product call chain rather than assert unchanged bankless keys are enough.",
+    "Retain legitimate samebank notification+statement, PDNG/BOOK, reconcileObDupes, references/ordinals/absorbed tombstones, stable UUID and manual note/category/debtId/noCard decisions. Exact cents and full multiset expected per scenario, unrelated existing rows/fields unchanged except correction. Cases with different true references/amounts retain base legitimate semantics. Mutation evidence target restoring each wrong grouping/delete behavior where feasible; preserve RED and all intermediate actual EXITs.",
+    "Claude says new integration base is beta151 when he pushes and notifies; until then PREPARE fix/repro privately. Do NOT invent integration branch/head or final base from remote timing. Await canonical exact beta151 notice, read FULL and pin SHA; report WAITING_EXACT_BETA151 if not yet supplied. No touching Claude local integration checkout. Once authorized exact151 known reconcile conflict with PR286 mergeExpensesFromCloud without losing either fix; use isolated candidate and preserve R1 commit evidence. Same draft PR288 normal update only without force; if history rewrite would be required report before doing it. No final publication/complete claim on old beta.",
+    "No schema/migration/backfill/live bank/cloud/SQL/Edge/native APK/deploy/merge. A new scoped local tombstone representation if necessary is within requested correction, not a database migration. No VERSION/caps/catalogue edits or weakened tests. CPU1 directed synthetic tests only; no CPU6/fullsuite/profile/shared runner by inference, own census/admission if applicable, preserve foreign processes and return only own resources.",
+    "R1 236 directed cases were two batches70+166 incl14focal and are historical only, not R2 validation. Size/docs EXIT1 and catalogue UNVERIFIED missing EXIT remain open, do not relabel diffcheck as catalogue. Run relevant R2 tests once final source changed and exact151 integrated; record real output counts/EXITs. Distinguish financial focal acceptance from required integration/CI/served/mobile gates.",
+    "Deliver samePR288 reviewable source diff from new exact151, RED/GREEN fourcase base/R1/R2 cents/fullrow matrix, compatibility evidence with PR286, targeted regressions/mutants and limitations. Seal new source/evidence manifestZIP checkpointclosure, verify all prior files/checkouts, exact OWN RETURN and released result readbacks, private ROOT74 handoff then STOP with no native reply. If awaiting151 keep task active with precise private preparation checkpoint and no repeated tests or busy polling; ROOT can relay new canonical grant. No ProductREADY or premature PR287 beta/mobile notice."
+  ],
+  "deliverable": "R2 financial NO-GO correction in same draft PR288 after exact beta151 notice/integration, fourcase base/R1/R2 money oracles and matching tombstones, immutable package/RETURN/released result; until151 preparation only."
+}
