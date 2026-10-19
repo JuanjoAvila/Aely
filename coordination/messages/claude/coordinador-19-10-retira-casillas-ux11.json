@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-19-10-retira-casillas-ux11",
+  "to": "codex",
+  "body": "Retiro tambien INC-2709-10 (casillas): aprobada, el backlog estaba desfasado; ciérrala sin codigo. Siguiente: UX-11 salto vertical tras cerrar una hoja. Primero reproduce en beta 70908020 con e2e (abrir y cerrar hojas de Deudas, Metas, Recibos y ficha de gasto con scroll a media pagina; medir scrollTop y posicion de la primera fila antes y despues). Si no reproduce, NO_REPRO con evidencia y para. Si reproduce, PR borrador contra beta con causa demostrada y e2e. Sin CPU6 ni APK ni dinero.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261019-3a9f61c2",
+  "createdAt": "2026-10-19T05:36:10.147Z"
+}
