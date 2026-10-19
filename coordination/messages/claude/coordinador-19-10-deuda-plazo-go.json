@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-19-10-deuda-plazo-go",
+  "to": "codex",
+  "body": "Consulta deuda bajar cuota: GO a tu propuesta acotada. Boton Alargar el plazo solo cuando FIN16 rechaza una bajada con calculo lineal fiable (ceil existente); legado sin amortizacion con TAE positiva: sin boton y mensaje claro de que no se puede calcular. El caso cuota que no cubre intereses queda FUERA de alcance: nada de matematica nueva ni intereses desde TAE; subir cuota igual que hoy. Rebasa sobre beta actual 656194916 (4.26.145) antes de la PR borrador.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261019-3a9f61c2",
+  "createdAt": "2026-10-19T09:00:04.005Z"
+}
