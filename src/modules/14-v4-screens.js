@@ -491,6 +491,18 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
   const pageSwipe=useEdgePageClose(!!open,onClose,view==="hub"&&!detail&&!addStep,rootRef,{plainScroll:true});
   const sub=useEdgePageClose(!!open,function(){ setStack(["hub"]); setGroup(null); },view!=="hub"&&!detail&&!addStep,subRef,{plainScroll:true});
   const cm=totals.curMonth, cy=totals.curYear;
+  // Ola nativa (INC-2709-03, 19/10): Android solo la pinta en el scroller RAÍZ, y Chromium
+  // promociona un `fixed` a pantalla completa como raíz implícita SOLO si es el único candidato
+  // (RootScrollerController: «only promote if we have a unique match»). Con Gestionar abierto
+  // seguían desplazables debajo el host de Plan (y Ajustes si se entró desde ahí): dos o tres
+  // candidatos → ninguno raíz → sin ola. Lo de debajo deja de desplazar mientras esto está
+  // abierto; `overflow:hidden` conserva su scrollTop para la vuelta.
+  React.useEffect(function(){
+    if(!open) return undefined;
+    var h=document.documentElement;
+    h.classList.add("bills-open");
+    return function(){ h.classList.remove("bills-open"); };
+  },[open]);
   React.useEffect(function(){
     if(!open){
       setStack(["hub"]); setGroup(null); setQ(""); setDetail(null); setAddStep(null);
@@ -725,7 +737,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
   const screenAttr=view==="list"?"bills-group":(view==="afford"?"bills-afford":"bills-home");
   return ReactDOM.createPortal(
     React.createElement(React.Fragment,null,
-      React.createElement("div",{ref:rootRef,className:"settings-push open v4-bills-push mc-page-enter","data-bills-manage":"1","data-screen":screenAttr,
+      React.createElement("div",{ref:rootRef,className:"settings-push open v4-bills-push mc-page-enter","data-bills-manage":"1","data-screen":screenAttr,"data-covered":view!=="hub"?"1":null,
         role:"dialog","aria-modal":"true","aria-labelledby":"bills-manage-title"},
         hub,
         view!=="hub" && React.createElement("div",{ref:subRef,className:"settings-push open v4-bills-push mc-page-enter"}, view==="list"?listView:affordView)),
