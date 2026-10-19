@@ -146,3 +146,30 @@ for(const lang of ['es','en','ca'])test('simple Plan calendar label '+lang,async
   await expect(page.locator('.v4-paid-fold')).toHaveCount(0);
   await pending.screenshot({path:info.outputPath('pending.png')});
 });
+
+// INC-1810-04 (YouTube Premium, rechazo de beta 4.26.145): «no deja enlazarlo». Abrir no escribe;
+// el enlace solo existe tras pulsar y confirmar, y entonces Plan y la ficha lo cuentan igual.
+for(const kind of ['marked','calendar'])test('INC-1810-04 '+kind+' charge can be linked by the user',async({page})=>{
+  const s=paymentFixture();s.bankTx=[];delete s.fixed[0].paymentProofs;s.expenses[0].amount=30.49;
+  if(kind==='marked')s.expenses[0].reciboId=s.fixed[0].id;else Object.assign(s.fixed[0],{paidYm:24322,paidDay:10});
+  await openRound2(page,s);
+  await page.locator('.botnav-tab[data-tour="plan"]').click();
+  await expect(page.locator('div[data-seg="recibos"] .v4-charge').filter({hasText:'YouTube Premium'})).not.toHaveClass(/v4-paid/);
+  if(kind==='calendar')await expect(page.getByTestId('plan-unconfirmed')).toContainText('YouTube Premium');
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:'YOUTUBE PREMIUM'}).click();
+  await expect(page.getByTestId('exp-receipt-value')).toHaveText(kind==='marked'?'YouTube Premium · sin confirmar':'No');
+  if(kind==='marked')await page.getByTestId('exp-recibo-si').click();
+  else{await page.getByTestId('exp-receipt').click();await page.getByTestId('exp-receipt-receipt-synthetic').click();}
+  const confirm=page.locator('.askback');
+  await expect(confirm).toContainText('30,49');await expect(confirm).toContainText('29,99');
+  await unchangedRound2(page);
+  await confirm.locator('button.btn-primary').click();
+  await expect(page.getByTestId('exp-receipt-value')).toHaveText('YouTube Premium');
+  await expect(page.getByTestId('exp-recibo-si')).toHaveCount(0);
+  await page.locator('.v4-exp-sheet .v4-ficha-done').click();
+  // El guardado va con retardo: se espera a que llegue, sin adelantar el reloj.
+  await expect.poll(()=>page.evaluate(()=>{const f=mcLoadRaw(mcStateKey()).fixed[0],p=f.paymentProofs&&f.paymentProofs[24322];return [p?p.kind:null,f.paidYm||null];})).toEqual(['expense',kind==='calendar'?24322:null]);
+  await page.locator('.botnav-tab[data-tour="plan"]').click();
+  await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:'YouTube Premium'})).toHaveCount(1);
+});

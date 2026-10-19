@@ -444,7 +444,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     const ds=String(ex.date||"").slice(0,10),y=Number(ds.slice(0,4)),m=Number(ds.slice(5,7)),now=new Date();
     const today=y===now.getFullYear()&&m===now.getMonth()+1?now.getDate():new Date(y,m,0).getDate();
     const f=(state.fixed||[]).find(function(x){ return x.id===fixedId; });
-    const expected={identity:fixedPaymentIdentity(expenseBankOf(ex),ex),model:f&&fixedPaymentModel(f,m)};
+    const expected={identity:fixedPaymentIdentity(expenseBankOf(ex),ex),model:f&&fixedPaymentModel(f,m),paidYm:f&&f.paidYm,paidDay:f&&f.paidDay};
     const save=function(){
       if(withdrawalPending.current[ex.id]){ showToast(t("f_withdraw_receipt_pending")); return; }
       let subir=null;
@@ -1415,10 +1415,14 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
       React.createElement("button",{type:"button",className:"btn btn-primary",style:{flex:1},onClick:function(){ resolveDup&&resolveDup(exp,true); onClose(true); }},t("g_dup_same")),
       React.createElement("button",{type:"button",className:"btn btn-ghost",style:{flex:1},onClick:function(){ resolveDup&&resolveDup(exp,false); onClose(true); }},t("g_dup_diff"))));
   const reciboDe=cargoDeRecibo(exp,state), reciboMarca=reciboDe?reciboDe.name||t("bp_hist_recibo"):"";
+  // Marcado pero sin acreditar: hasta INC-1810-04 la única salida era quitar la marca.
+  const reciboConfirmable=reciboDe&&reciboConfirmableUI(state,exp,paymentRelation);
+  const reciboSi=reciboConfirmable&&React.createElement("button",{type:"button",className:"v4-chip","data-testid":"exp-recibo-si",onClick:function(){ setReceipt(exp,reciboConfirmable.id); }},t("f_recibo_si"));
   // A la vista al abrir la ficha, sin desplegar nada: un parecido dudoso se corrige de un toque.
   const reciboAviso=reciboDe&&React.createElement("div",{className:"hint","data-testid":"exp-recibo-marca",style:{margin:"0 0 12px",padding:"10px 12px",borderRadius:12,background:"var(--surface-2)"}},
     React.createElement("div",{style:{marginBottom:8}},tf(paymentRelation&&paymentRelation.kind==="fixed"&&paymentRelation.id===reciboDe.id?"f_recibo_marca":"f_recibo_quiza",{name:reciboMarca})),
-    React.createElement("button",{type:"button",className:"v4-chip","data-testid":"exp-recibo-no",onClick:function(){ quitarRecibo(exp); }},t("f_recibo_no")));
+    React.createElement("div",{className:"v4-chips wrap"},reciboSi,
+      React.createElement("button",{type:"button",className:"v4-chip","data-testid":"exp-recibo-no",onClick:function(){ quitarRecibo(exp); }},t("f_recibo_no"))));
   const afterMeta=React.createElement(React.Fragment,null,
     calOpen && React.createElement(McCal,{value:dateIso,onPick:function(iso){ setCalOpen(false); saveEdit(exp,{date:iso}); }}),
     bankOpen && !auto && bankOpts.length>0 && React.createElement("div",{className:"v4-chips wrap","data-testid":"exp-bank-list"},
@@ -1448,8 +1452,9 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
      dos cargos iguales el motor no admite vínculo a mano con ninguno, la opción no salía y el
      veto de uno de ellos no tenía vuelta atrás desde la ficha. */
   const receiptOptions=(state.fixed||[]).filter(function(f){
+    // Bloquea solo una prueba real: un `paidYm` sin cargo detrás no puede esconder el cargo que lo paga (INC-1810-04).
     return vetadoAqui(f)||fixedExpenseEligible(state,exp,f,receiptYear,receiptMonth,receiptToday)&&
-      (!fixedPaymentState(state,f,receiptYear,receiptMonth,receiptToday).paid||(receiptLinked&&receiptLinked.id===f.id));
+      (!fixedPaymentEvidence(fixedPaymentState(state,f,receiptYear,receiptMonth,receiptToday))||(receiptLinked&&receiptLinked.id===f.id));
   });
   // Los puntuales no se vinculan a mano; solo se ofrece el que se vetó para ESTE cargo (cuarta revisión).
   const receiptPuntuales=(state.oneoffs||[]).filter(vetadoAqui);
@@ -1464,6 +1469,8 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
         React.createElement("div",{className:"v4-chips wrap"},
           // Un cargo marcado ya es de un recibo aunque no tenga vínculo a mano: primero se deshace
           // (es lo que pide el aviso de la retirada), y solo entonces se ofrece confirmar otro.
+          reciboConfirmable&&React.createElement("button",{type:"button",className:"v4-chip","data-testid":"exp-receipt-"+reciboConfirmable.id,
+            onClick:function(){ setReceipt(exp,reciboConfirmable.id); }},reciboConfirmable.name+" · "+eur(occAmountIn(reciboConfirmable,receiptMonth))),
           (receiptLinked||reciboDe)&&React.createElement("button",{type:"button",className:"v4-chip","data-testid":"exp-receipt-unlink",onClick:function(){ setReceipt(exp,null); }},t("f_receipt_unlink")),
           !receiptLinked&&!reciboDe&&receiptOptions.map(function(f){ return React.createElement("button",{key:f.id,type:"button",className:"v4-chip","data-testid":"exp-receipt-"+f.id,
             onClick:function(){ setReceipt(exp,f.id); }},f.name+" · "+eur(occAmountIn(f,receiptMonth))); }),
