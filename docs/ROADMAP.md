@@ -1,3 +1,5 @@
+FIN19 (19/10/2026), candidata local sobre beta4.26.150: identidad por banco/cuenta en mezcla, categorías y contador del pull; 236 comprobaciones Node reportadas en lotes finales, dos mutantes. Sin integración, publicación ni aceptación móvil. [Acta](briefs/fin19-cross-bank-identity.md).
+
 Beta 4.26.150 (19/10/2026), candidata de beta sobre la 4.26.149, solo web y sin APK nueva (sigue la 4.26.148/code59): al tocar una categoría en Gestionar plan, la lista ya no se mueve ni hace una «ola» (PR 285, INC-2709-03 y UX-08; falta confirmarlo en el móvil). Sin SQL. Una tanda nueva (`gestionar-plan-sin-ola`) además de las de la 149, la 148, la 147, la 146 y la 144. Integración rápida: PR 285 (`4f79352a`) sobre la beta 4.26.149 servida (`408d8d348`).
 
 Beta 4.26.149 (19/10/2026), candidata de beta sobre la 4.26.148, solo web y sin APK nueva (sigue la 4.26.148/code59): deslizar rápido varias veces entre pestañas ya no da saltos hacia atrás (PR 284, UX-14). Sin SQL. Una tanda nueva (`pestanas-swipe-rapido`) además de las de la 148, la 147, la 146 y la 144. Integración rápida: PR 284 (`708b98a6`) sobre la beta 4.26.148 servida (`78b54d61d`).

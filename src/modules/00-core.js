@@ -1926,20 +1926,21 @@ function fechaConOrdinal(iso, ord){
 /* Dos referencias distintas no pueden compartir ranura: además de fundirse al bajar la nube,
    chocarían con su índice único al subir. Se reutiliza el ordinal de TR, conservando las
    ranuras ya guardadas y sin tocar los avisos ni el primer cargo (14/10/2026). */
-function expenseBankIdOrdinals(list,reserved){
+function expenseBankIdOrdinals(list,reserved,identityScope){
+  const scope=identityScope||expenseIdentityScopes(list);
   const groups=new Map(); let out=list;
   // Un pull anterior al asiento puede traer el mismo UUID aún pendiente: no puede restaurar
   // su referencia vieja ni reservar otra ranura para una fila que ya se contabilizó.
   const versions=new Map(),previousRefs=new Map();
-  (list||[]).forEach(function(e){if(!e||!esFilaDeBanco(e)||!e.id||!e.extId)return;const k=expenseBankOf(e)+"|"+e.id,old=versions.get(k);if(!old||(old.obPending&&!e.obPending))versions.set(k,e);if(e.obPendingRef&&!e.obPending)previousRefs.set(obReferenceKey(expenseBankOf(e),e.obPendingRef,e.amount),e);});
+  (list||[]).forEach(function(e){if(!e||!esFilaDeBanco(e)||!e.id||!e.extId)return;const k=scope(e)+"|"+e.id,old=versions.get(k);if(!old||(old.obPending&&!e.obPending))versions.set(k,e);if(e.obPendingRef&&!e.obPending)previousRefs.set(obReferenceKey(scope(e),e.obPendingRef,e.amount),e);});
   (list||[]).forEach(function(e,i){
     if(!e||!e.obPending||!esFilaDeBanco(e))return;
-    const alias=previousRefs.get(obReferenceKey(expenseBankOf(e),e.extId,e.amount)),v=alias&&keyOfExpenseLegacy(alias)===keyOfExpenseLegacy(e)?alias:versions.get(expenseBankOf(e)+"|"+e.id);
+    const alias=previousRefs.get(obReferenceKey(scope(e),e.extId,e.amount)),v=alias&&keyOfExpenseLegacy(alias)===keyOfExpenseLegacy(e)?alias:versions.get(scope(e)+"|"+e.id);
     if(v&&!v.obPending){if(out===list)out=list.slice();out[i]=Object.assign({},e,{extId:v.extId,date:v.date,obOrd:v.obOrd,obPendingRef:v.obPendingRef,obPending:undefined});}
   });
   (out||[]).forEach(function(e,i){
     if(!e||!esFilaDeBanco(e)||!e.extId||!isFinite(dateMs(e.date)))return;
-    const key=(expenseBankOf(e)||"")+"|"+String(e.date).slice(0,10)+"|"+e.amount+"|"+(e.obName!=null?e.obName:e.merchant||"");
+    const key=scope(e)+"|"+String(e.date).slice(0,10)+"|"+e.amount+"|"+(e.obName!=null?e.obName:e.merchant||"");
     let g=groups.get(key); if(!g){g={ids:new Map(),slots:new Set()};groups.set(key,g);}
     let n=g.ids.get(String(e.extId));
     if(!n){n=obOrdinalOf(e);while(g.slots.has(n)||(reserved&&reserved(e,n)))n++;g.ids.set(String(e.extId),n);g.slots.add(n);}
@@ -1955,6 +1956,34 @@ function keyOfExpense(e){
   if(isManualExpenseSource(e&&e.source)) return base+"|"+String((e&&e.id)||"");
   return base+obOrdinalSufijo(e);
 }
+/* FIN19: ámbito local, sin cambiar filas ni lápidas. Una cuenta antigua ausente solo toma
+   ámbito por UUID/referencia inequívocos del MISMO banco. El aviso sin cuenta conserva su
+   unión por contenido si hay una sola cuenta candidata; con dos, no se elige ninguna. */
+function expenseIdentityScopes(rows){
+  const ids=new Map(),refs=new Map(),contents=new Map(),notices=new Set();
+  const put=function(map,key,acc){ if(!map.has(key))map.set(key,acc);else if(map.get(key)!==acc)map.set(key,null); };
+  const bankKey=function(e){ return JSON.stringify(expenseBankOf(e)||"")+"|"; };
+  const isNotice=function(e){ return e.source==="macrodroid"||e.source==="wallet"||e.source==="tr"; };
+  (rows||[]).forEach(function(e){
+    if(e&&expenseBankOf(e)&&isNotice(e))notices.add(bankKey(e)+keyOfExpense(e));
+    if(!e||!e.obAcc||!expenseBankOf(e)||isManualExpenseSource(e.source))return;
+    const bank=bankKey(e),acc=String(e.obAcc);
+    if(e.id)put(ids,bank+e.id,acc);
+    if(esFilaDeBanco(e)&&e.extId)put(refs,obReferenceKey(bank,e.extId,e.amount),acc);
+    put(contents,bank+keyOfExpense(e),acc);
+  });
+  return function(e){
+    const bank=expenseBankOf(e)||"";let acc=String(e&&e.obAcc||"");
+    if(!acc&&bank&&!isManualExpenseSource(e.source)){
+      const prefix=bankKey(e),id=e.id&&ids.get(prefix+e.id),ref=esFilaDeBanco(e)&&e.extId&&refs.get(obReferenceKey(prefix,e.extId,e.amount));
+      if(id!==null&&ref!==null&&!(id&&ref&&id!==ref))acc=id||ref||"";
+      const content=prefix+keyOfExpense(e);
+      if(!acc&&id!==null&&ref!==null&&(isNotice(e)||esFilaDeBanco(e)&&!e.extId&&notices.has(content)))acc=contents.get(content)||"";
+    }
+    return JSON.stringify([bank,acc]);
+  };
+}
+function expenseMergeKey(e,scope){ return isManualExpenseSource(e&&e.source)?keyOfExpense(e):(scope?scope(e):JSON.stringify([expenseBankOf(e)||"",String(e&&e.obAcc||"")]))+"|"+keyOfExpense(e); }
 /* El vínculo «sin aviso» ya acompaña al borrado; conserva también su referencia, sin gastar
    otra lápida ni reducir las 500 existentes. Deshacer desactiva el vínculo al levantarla. */
 // Una devolución puede reutilizar la referencia de su compra: el signo separa ambas,
@@ -3391,11 +3420,12 @@ function preferBookedExpenses(rows,delSet){
 /* Une gastos en la lista local con dedup. ADITIVO: nunca borra los que ya tenías.
    Manuales: clave con id (Paso 0, 2026-09-11) — no se comen entre sí ni con el banco. */
 function mergeExpenses(prevList, incoming, delSet){
-  const rows=expenseBankIdOrdinals(preferBookedExpenses((prevList||[]).concat(incoming||[]),delSet));
+  const combined=preferBookedExpenses((prevList||[]).concat(incoming||[]),delSet),scope=expenseIdentityScopes(combined);
+  const rows=expenseBankIdOrdinals(combined,null,scope);
   const previousLength=(prevList||[]).length;
   prevList=rows.slice(0,previousLength); incoming=rows.slice(previousLength);
   const seen={}; const list=[]; const refs=new Map();
-  const mergeKey=function(e){const ref=esFilaDeBanco(e)&&e.extId&&obReferenceKey(expenseBankOf(e),e.extId,e.amount);let k=ref&&refs.get(ref);if(!k){k=keyOfExpense(e);if(ref)refs.set(ref,k);}return k;};
+  const mergeKey=function(e){const ref=esFilaDeBanco(e)&&e.extId&&obReferenceKey(scope(e),e.extId,e.amount);let k=ref&&refs.get(ref);if(!k){k=expenseMergeKey(e,scope);if(ref)refs.set(ref,k);}return k;};
   (prevList||[]).forEach(function(e){ if(esFilaDeBanco(e)&&e.amount===0)return; const k=mergeKey(e); if(!seen[k]){ seen[k]=1; list.push(e); } });
   let nuevos=0;
   (incoming||[]).forEach(function(e){ if(esFilaDeBanco(e)&&e.amount===0)return; const k=mergeKey(e); if(!seen[k]){ seen[k]=1; list.push(e); nuevos++; } });
@@ -3472,12 +3502,13 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
    Nunca elimina una clave que solo exista en local (contención 4.18.6 / FIN-07). */
 function esFilaDeBanco(e){ return e.source==="ob" || e.source==="ob-hist"; }
 function mergeExpensesFromCloud(prevList, incoming, readStartedAt, delSet){
-  const rows=expenseBankIdOrdinals(preferBookedExpenses((prevList||[]).concat(incoming||[]),delSet));
+  const combined=preferBookedExpenses((prevList||[]).concat(incoming||[]),delSet),scope=expenseIdentityScopes(combined);
+  const rows=expenseBankIdOrdinals(combined,null,scope);
   const previousLength=(prevList||[]).length;
   const identitiesChanged=rows.some(function(e,i){return i<previousLength&&e!==prevList[i];});
   prevList=rows.slice(0,previousLength); incoming=rows.slice(previousLength);
   const byKey={}; const order=[]; const refs=new Map(); let zeroRemoved=false;
-  const mergeKey=function(e){const ref=esFilaDeBanco(e)&&e.extId&&obReferenceKey(expenseBankOf(e),e.extId,e.amount);let k=ref&&refs.get(ref);if(!k){k=keyOfExpense(e);if(ref)refs.set(ref,k);}return k;};
+  const mergeKey=function(e){const ref=esFilaDeBanco(e)&&e.extId&&obReferenceKey(scope(e),e.extId,e.amount);let k=ref&&refs.get(ref);if(!k){k=expenseMergeKey(e,scope);if(ref)refs.set(ref,k);}return k;};
   (prevList||[]).forEach(function(e){
     if(esFilaDeBanco(e)&&e.amount===0){zeroRemoved=true;return;}
     const k=mergeKey(e);
@@ -3561,10 +3592,10 @@ function catStaleAfter(e, newCat){
 }
 // La nube confirmó que escribió `cat` en esa fila: desde `at`, lo que lea de ella es verdad.
 function ackCategoryWrite(list, row, cat, at){
-  const k=keyOfExpense(row);
+  const scope=expenseIdentityScopes((list||[]).concat([row])),k=expenseMergeKey(row,scope);
   let out=list;
   (list||[]).forEach(function(e,i){
-    if(!e.catStale || e.category!==cat || e.catAckAt!=null || keyOfExpense(e)!==k) return;
+    if(!e.catStale || e.category!==cat || e.catAckAt!=null || expenseMergeKey(e,scope)!==k) return;
     if(out===list) out=list.slice();
     out[i]=Object.assign({},e,{catAckAt:at});
   });
@@ -3572,8 +3603,9 @@ function ackCategoryWrite(list, row, cat, at){
 }
 function keepCategoryChoices(prevList, incoming, readStartedAt){
   const out={ prev:prevList, incoming:incoming, recat:[] };
+  const scope=expenseIdentityScopes((prevList||[]).concat(incoming||[]));
   const stale={}; let hayStale=false;
-  (prevList||[]).forEach(function(e,i){ if(e && e.catStale){ stale[keyOfExpense(e)]=i; hayStale=true; } });
+  (prevList||[]).forEach(function(e,i){ if(e && e.catStale){ stale[expenseMergeKey(e,scope)]=i; hayStale=true; } });
   let minAt=Infinity;
   for(const k in USER_CAT_RULES){ const at=USER_CAT_RULES[k]&&USER_CAT_RULES[k].at; if(Number.isFinite(at) && at<minAt) minAt=at; }
   if(!hayStale && minAt===Infinity) return out;
@@ -3581,7 +3613,7 @@ function keepCategoryChoices(prevList, incoming, readStartedAt){
   const minIso=minAt===Infinity ? "" : new Date(minAt).toISOString();
   let prevKeys=null;
   const esNueva=function(k){
-    if(!prevKeys){ prevKeys={}; (prevList||[]).forEach(function(e){ prevKeys[keyOfExpense(e)]=1; }); }
+    if(!prevKeys){ prevKeys={}; (prevList||[]).forEach(function(e){ prevKeys[expenseMergeKey(e,scope)]=1; }); }
     return !prevKeys[k];
   };
   const swap=function(i, row){ if(out.incoming===incoming) out.incoming=incoming.slice(); out.incoming[i]=row; };
@@ -3592,7 +3624,7 @@ function keepCategoryChoices(prevList, incoming, readStartedAt){
   };
   (incoming||[]).forEach(function(inc, i){
     if(hayStale){
-      const at=stale[keyOfExpense(inc)];
+      const at=stale[expenseMergeKey(inc,scope)];
       if(at!=null){
         const loc=out.prev[at];
         if(!loc.catStale) return;   // misma clave repetida en el pull: ya se resolvió arriba
@@ -3616,7 +3648,7 @@ function keepCategoryChoices(prevList, incoming, readStartedAt){
     const ms=Date.parse(inc.date);
     const rule=USER_CAT_RULES[catRuleKey(inc)];
     if(!rule || rule.cat===inc.category || !CAT[rule.cat] || !(ms>rule.at)) return;
-    if(!esNueva(keyOfExpense(inc))) return;
+    if(!esNueva(expenseMergeKey(inc,scope))) return;
     swap(i, Object.assign({},inc,{category:rule.cat, catStale:[inc.category]}));
     out.recat.push({ expense:inc, cat:rule.cat });
   });

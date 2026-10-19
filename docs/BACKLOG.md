@@ -1,3 +1,7 @@
+## FIN19 · candidata pendiente de integración · 19/10/2026
+
+Corregida localmente la pérdida de cargos entre bancos/cuentas al coincidir día, importe y comercio. RED320/640 y GREEN640, con campos completos y controles de conciliación. No recupera filas ya perdidas ni acredita convergencia servidor. Revisión, gates y entrega pendientes. [Acta](briefs/fin19-cross-bank-identity.md).
+
 ## Estado vivo · 18/10/2026
 
 **Fuente para empezar: esta lista.** Corte documental del lote de coordinación del 18/10 (`ee788a05`), sobre beta 4.26.141 en rama (`ff53b0e7`). Lo que hay debajo conserva el historial. «Cerrado» en esta ronda significa cierre del encargo técnico por Claude: un GO, una PR en borrador o un resultado `released` no acreditan por sí solos integración, despliegue, artefacto servido ni aceptación móvil. Claude anuncia la 141 servida; esta revisión no verifica sus hashes servidos ni declara ProductREADY.

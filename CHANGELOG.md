@@ -1,3 +1,7 @@
+## FIN19 · candidata local, sin integrar · 19/10/2026
+
+La mezcla de gastos distingue banco y cuenta: dos cargos de 3,20 EUR conservan 640 céntimos y sus filas. Mantiene aviso/extracto, PDNG/BOOK, datos manuales y claves persistidas. [Acta y límites](docs/briefs/fin19-cross-bank-identity.md). Sin cambio de VERSION ni backend; integración y aceptación pendientes.
+
 ## [4.26.150] — 2026-10-19 · Candidata de beta: Gestionar plan sin ola al tocar una categoría (PR 285, INC-2709-03 y UX-08), solo web y sin APK nueva (sigue la 4.26.148 / code 59)
 
 - **Qué lleva.** La beta 4.26.149 (`408d8d348`) más la PR 285 (`4f79352a`): Gestionar y la pantalla de categoría conservan el scroller sin promoción de capa en reposo (`useEdgePageClose` con `plainScroll`), la cascada no repone `will-change:transform` y cancelar limpia la identidad inline tras su retorno sin borrar un gesto posterior; la hija `fixed` ya no se desplaza con el padre.

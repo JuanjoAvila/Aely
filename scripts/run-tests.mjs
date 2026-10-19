@@ -115,6 +115,7 @@ const steps = [
   ["move-account", ["node", "tests/move-account.test.mjs"]],
   ["broker-order", ["node", "tests/broker-order.test.mjs"]],
   ["merge-expenses-cloud", ["node", "tests/merge-expenses-cloud.test.mjs"]],
+  ["fin19-cross-bank-identity", ["node", "--test", "--test-concurrency=1", "tests/fin19-cross-bank-identity.test.mjs"]],
   // La categoría que él elige no la deshace un pull ni la palabra clave del servidor (INC-0210-02).
   ["categoria-manual-persistente", ["node", "tests/categoria-manual-persistente.test.mjs"]],
   ["security", ["node", "tests/security.test.mjs"]],
