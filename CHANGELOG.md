@@ -1,3 +1,13 @@
+## [4.26.153] — 2026-10-19 · Candidata de beta: vibración ronda 3, ola en Gestionar plan (raíz única), diagnóstico de recibo y lista de Gastos con el renombrado pendiente, solo web
+
+- **Qué lleva.** Cuatro ramas locales ya revisadas sobre la beta 4.26.152 servida (`31907016f`), con `--no-ff`: `0572ca55` (`claude/vibra-r3`), `e6553e07` (`claude/diag-recibo`), `2e11b279` (`claude/ola-root`) y `93289498` (`claude/rename-lista`). Sin APK nueva (sigue la 4.26.152/code60), sin SQL ni Edge.
+- **Vibración (UX-16 R3).** El borde vibra una vez por arrastre en lugar de repetir mientras el dedo se mueve; hay un tick al cambiar de Recibos a Deudas o Metas y de gasto a ingreso; el anillo de Mi ciclo respeta el ajustador. Tras su rechazo de la 152 («vibra una locura… debería ser 1 vez cada vez que muevo el dedo»).
+- **Ola en Gestionar plan (UX-08).** `Gestionar plan` queda como único candidato a scroller raíz, que es lo que necesita la ola nativa. Tras su «no hay manera, ola no funciona en recibos».
+- **Diagnóstico de recibo (FIN-04).** «Paga un recibo» gana «Copiar diagnóstico», solo en beta: sin los datos reales del cargo de YouTube Premium no se sabe por qué no se enlaza.
+- **Renombrado pendiente (FIN-04 fase 1).** `MovRow` pinta el nombre nuevo con ⏳ mientras el renombrado no está confirmado, igual que la ficha.
+- **Conflictos de integración.** Los generados de `public/` (`index.html`, `i18n`, `release-notes.json`, `beta-delivery.json`) se resolvieron con `build` tras los merges, no a mano.
+- **Panel.** Cuatro tandas nuevas: `gestionar-plan-ola-r2`, `vibracion-r3`, `youtube-diagnostico`, `renombrar-lista-al-momento`. `gestionar-plan-ola` y `vibracion-ajustador-r2` (152) y `youtube-enlazar-recibo` (148) pasan a `tandas: []`: rechazadas, y su arreglo viaja en tandas nuevas. Las aprobadas sin entregar a producción (`pestanas-swipe-rapido`) y las aún sin veredicto se quedan visibles.
+
 ## [4.26.152] — 2026-10-19 · Candidata de beta: ola nativa en Gestionar plan (PR 287) y vibración del ajustador ronda 2 (UX-16), con APK nueva (4.26.152 / code 60)
 
 - **Qué lleva.** La 4.26.151 local (`fa138e12c`, aún sin empujar) más la PR 287 (`36b01eaf`), `c84de633` (`claude/vibra-aj-r2`) y `c4ce8075` (`claude/youtube-enlace-r2`, solo un test guardián) y `8aae4cef` (test lifecycle-inflight).

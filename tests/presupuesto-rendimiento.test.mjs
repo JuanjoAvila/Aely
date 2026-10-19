@@ -327,7 +327,8 @@ const PRESUPUESTO = {
   // Integración 4.26.150 (19/10): la 149 más Gestionar plan sin ola (PR 285, ~1,4 KB de lógica de reposo y CSS) y la nota con una tanda. SUBE por lógica de producto: 1393 KiB minificado; el gzip se queda en 387 KiB.
   // Integración 4.26.151 (19/10): la 150 más FIN-04 fase 1 (PR 286: renombrar y notas con ACK, cola durable y fusión por uuid; Codex midió 1403/389 KiB) y la nota con una tanda: 1404/390 KiB medidos. SUBE por lógica de dinero: 1405 KiB minificado y 391 KiB gzip.
   // Integración 4.26.152 (19/10): la 151 más la ola nativa de Gestionar plan (PR 287), el ajustador de vibración ronda 2 con selector de tipo y la nota con dos tandas: 1406 KiB minificado medidos. SUBE por producto: 1407 KiB minificado; el gzip se queda en 391 KiB.
-  minificado: 1407 * 1024,
+  // Integración 4.26.153 (19/10): la 152 más vibración ronda 3, ola con raíz única, diagnóstico de recibo, MovRow con renombrado pendiente y la nota con cuatro tandas: 1412 KiB minificado y 392 KiB gzip medidos. SUBE por producto: 1413 / 392 KiB.
+  minificado: 1413 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -357,7 +358,7 @@ const PRESUPUESTO = {
   // Integración 4.26.130: 363.055 B gzip, 6.465 B más que la 129. Mínimo medido: 355 KiB (quedan 465 B).
   // Integración 4.26.131: 365.878 B gzip, 2.823 B más que la 130. Mínimo medido: 358 KiB (quedan 714 B).
   // Integración 4.26.135: 368.967 B gzip, 2.375 B sobre 358 KiB. Mínimo medido: 361 KiB (quedan 697 B).
-  gzip: 391 * 1024,
+  gzip: 392 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

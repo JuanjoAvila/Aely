@@ -104,6 +104,8 @@ const sourceBeta149=sourceAt("408d8d3484568e1c02fa25dcd2df30ad71477bf1");
 const sourceBeta150=sourceAt("dca4c71c640e3ebbc26256f9e79572fdda94e39e");
 // Catálogo151 pasa a histórico con la 152: se lee de la 4.26.151 integrada (fa138e12c, aún sin empujar), sobre la que la 152 añade sus dos tandas.
 const sourceBeta151=sourceAt("fa138e12cc898fc1a1190b44fb0f91cd3d09cbc9");
+// Catálogo152 pasa a histórico con la 153: se lee de la 4.26.152 servida en beta (31907016f), sobre la que la 153 añade sus cuatro tandas.
+const sourceBeta152=sourceAt("31907016f9fdd5b584cff9323bf56a614bfb97c1");
 // Catálogo137 pasa a histórico en la promoción 137: se lee de la beta 4.26.137.1 aprobada (6f18228c), lo último que probó el móvil y lo que sube entero.
 const sourceBeta137=sourceAt("6f18228cbd81c1cc9abfa7fabce0a878819234f4");
 // Promoción137 pasa a histórico con el hotfix 4.26.142 (18/10), que sí cambia producto y nota: se lee de la producción 137 tal cual se fusionó (nombre propio: la beta 138 ya usa `sourceProd137` para otro commit).
@@ -3606,7 +3608,7 @@ test("Catálogo151 histórico añade la tanda de renombrar y notas seguras sobre
 const expected152={"v":"4.26.152","d":"2026-10-19","t":{"es":"Gestionar plan con ola, y vibración más ajustable","en":"Manage plan with the ripple, and more tunable vibration","ca":"Gestionar pla amb ona, i vibració més ajustable"},"items":{"es":["En Gestionar plan vuelve la ola al llegar al final y la hoja ya no salta al cerrar.","El ajuste de fuerza de la vibración se nota.","El borde solo vibra si sigues moviendo el dedo.","Puedes elegir el tipo de vibración que mejor se note en tu móvil."],"en":["In Manage plan the ripple is back when you reach the end, and the sheet no longer jumps when it closes.","The vibration strength setting can be felt.","Reaching the end of a list only vibrates while you keep moving your finger.","You can choose the type of vibration that is best felt on your phone."],"ca":["A Gestionar pla torna l'ona en arribar al final i la fitxa ja no salta en tancar.","L'ajust de força de la vibració se nota.","La vora només vibra si continues movent el dit.","Pots triar el tipus de vibració que millor es noti al teu mòbil."]},"tandas":[{"id":"gestionar-plan-ola","t":{"es":"Plan: la ola vuelve en Gestionar plan","en":"Plan: the ripple is back in Manage plan","ca":"Pla: l'ona torna a Gestionar pla"},"items":{"es":["1. Abre Plan → Recibos → Gestionar plan, desplaza hasta arriba y hasta abajo y tira (tu frase: «al revés tienes que hacer la ola»). Sale la ola. MAL: no sale.","2. Entra en una categoría y haz lo mismo. MAL: no sale la ola.","3. Abre un recibo, desplaza y ciérralo desde la barrita de arriba, con Atrás o tocando fuera: se cierra suave, sin salto. Ojo: la ficha ya no se cierra arrastrando desde el contenido, solo desde la barrita. MAL: da un salto."],"en":["1. Open Plan → Bills → Manage plan, scroll to the top and to the bottom and pull (your words: «al revés tienes que hacer la ola», you have to do the ripple the other way round). The ripple shows. WRONG: it does not.","2. Go into a category and do the same. WRONG: no ripple.","3. Open a bill, scroll and close it from the little bar at the top, with Back or by tapping outside: it closes smoothly, with no jump. Note: the sheet no longer closes by dragging from its content, only from the bar. WRONG: it jumps."],"ca":["1. Obre Pla → Rebuts → Gestionar pla, desplaça fins a dalt i fins a baix i estira (la teva frase: «al revés tienes que hacer la ola», has de fer l'ona al revés). Surt l'ona. MALAMENT: no surt.","2. Entra en una categoria i fes el mateix. MALAMENT: no surt l'ona.","3. Obre un rebut, desplaça i tanca'l des de la barreta de dalt, amb Enrere o tocant fora: es tanca suau, sense salt. Compte: la fitxa ja no es tanca arrossegant des del contingut, només des de la barreta. MALAMENT: fa un salt."]}},{"id":"vibracion-ajustador-r2","t":{"es":"Vibración: la fuerza se nota y el borde solo vibra si mueves el dedo","en":"Vibration: strength can be felt and the edge only vibrates if you move your finger","ca":"Vibració: la força se nota i la vora només vibra si mous el dit"},"items":{"es":["0. Instala la app nueva de Aely que te llega (APK 60, versión 4.26.152). Tus frases: «en cualquier potencia vibra igual» y «si mantengo abajo no debería vibrar todo el rato».","1. Ajustes → Vibración → «Tipo de vibración»: prueba cada tipo con «Probar» del borde, con la fuerza a 1 y a 255. MAL: en todos los tipos suena igual con 1 y con 255.","2. Deja elegido el tipo con el que SÍ notes la diferencia y ajusta las fuerzas a tu gusto. MAL: no hay ningún tipo con el que se note la diferencia.","3. Al final de una lista, tira moviendo el dedo: vibra. Con el dedo quieto, no. MAL: vibra con el dedo quieto.","4. Pulsa «Copiar valores» y pégalos en el chat a Claude; deben incluir el tipo elegido."],"en":["0. Install the new Aely app you receive (APK 60, version 4.26.152). Your words: «en cualquier potencia vibra igual» (at any strength it vibrates the same) and «si mantengo abajo no debería vibrar todo el rato» (if I hold it down it should not vibrate all the time).","1. Settings → Vibration → «Vibration type»: try each type with the edge «Try» button, with the strength at 1 and at 255. WRONG: in every type it feels the same at 1 and at 255.","2. Leave selected the type where you DO feel the difference and set the strengths to your liking. WRONG: no type lets you feel the difference.","3. At the end of a list, pull while moving your finger: it vibrates. With your finger still, it does not. WRONG: it vibrates with your finger still.","4. Tap «Copy values» and paste them into the chat to Claude; they must include the chosen type."],"ca":["0. Instal·la l'app nova d'Aely que et arriba (APK 60, versió 4.26.152). Les teves frases: «en cualquier potencia vibra igual» (a qualsevol potència vibra igual) i «si mantengo abajo no debería vibrar todo el rato» (si mantinc avall no hauria de vibrar tot el temps).","1. Ajustos → Vibració → «Tipus de vibració»: prova cada tipus amb «Provar» de la vora, amb la força a 1 i a 255. MALAMENT: en tots els tipus sona igual amb 1 i amb 255.","2. Deixa triat el tipus amb el qual SÍ notis la diferència i ajusta les forces al teu gust. MALAMENT: cap tipus deixa notar la diferència.","3. Al final d'una llista, estira movent el dit: vibra. Amb el dit quiet, no. MALAMENT: vibra amb el dit quiet.","4. Prem «Copiar valors» i enganxa'ls al xat a Claude; han d'incloure el tipus triat."]},"apk":60}]};
 // 4.26.152 (19/10/2026): integración rápida con APK nueva (60) sobre la 4.26.151 local (fa138e12c, aún sin empujar): PR 287 (36b01eaf, ola nativa en Gestionar plan), claude/vibra-aj-r2 (c84de633, UX-16 ronda 2)
 // y claude/youtube-enlace-r2 (c4ce8075, solo un test guardián). Dos tandas NUEVAS; la de la 150 y la vibracion-ajustador de la 148 pasan a tandas:[]; la de YouTube de la 148 y las demás se quedan.
-test("Catálogo152 añade las tandas de la ola en Gestionar plan y de la vibración ronda 2 (APK 60) sobre la 151, con alcance propio, y declara cada huella que mueve",()=>{
+test("Catálogo152 histórico añade las tandas de la ola en Gestionar plan y de la vibración ronda 2 (APK 60) sobre la 151, con alcance propio, y declara cada huella que mueve",()=>{
   const tandas=["gestionar-plan-ola","vibracion-ajustador-r2"],pasos=[3,5];
   const integrated=JSON.parse(sourceBeta151("scripts/beta-sources.json")),before=JSON.parse(sourceBeta151("src/data/release-notes.json"));
   const source=f=>read(f).replace(/\r\n/g,"\n"),old=f=>sourceBeta151(f).replace(/\r\n/g,"\n");
@@ -3685,7 +3687,7 @@ test("Catálogo152 añade las tandas de la ola en Gestionar plan y de la vibraci
   assert.equal(apk.sha256,apkOld.sha256,"sha256 sin tocar hasta compilar");assert.equal(apk.sourceSha,apkOld.sourceSha,"sourceSha sin tocar hasta compilar");
   assert.ok(apk.revisiones[tandas[1]],"acredita la tanda nativa nueva");
   assert.match(source("android/app/build.gradle"),/versionCode 60\s+versionName "4\.26\.152"/,"build.gradle anuncia la APK 60");
-  assert.equal(execFileSync("git",["diff","--name-only","fa138e12cc898fc1a1190b44fb0f91cd3d09cbc9","HEAD","--","supabase/migrations"],{encoding:"utf8"}).trim(),"","sin SQL ni migraciones");
+  assert.equal(execFileSync("git",["diff","--name-only","fa138e12cc898fc1a1190b44fb0f91cd3d09cbc9","31907016f9fdd5b584cff9323bf56a614bfb97c1","--","supabase/migrations"],{encoding:"utf8"}).trim(),"","sin SQL ni migraciones");
   const expectedMoves={"inc-0810-backclose-handover":["web"],"inicio-patrimonio-flujos":["web"],"inicio-mes-pasado-mismo-dia":["web"],"limpieza-ajustes-perfil":["web"],"deudas-metas-hoja-cierre-suave":["web"],"fichas-cierre-suave-atras":["web"],"vibracion-borde-y-mi-ciclo":["web","native"],"cuenta-saldo-cierre-atras":["web"],"vibracion-suave-ronda-2":["web","native"],"vibracion-suave-ronda-3":["web","native"],"vibracion-ajustador":["web","native"]};
   const previous=new Map();
   const measure=reader=>{
@@ -3719,6 +3721,117 @@ test("Catálogo152 añade las tandas de la ola en Gestionar plan y de la vibraci
   assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),[...tandas,"renombrar-y-notas-seguras","pestanas-swipe-rapido","youtube-enlazar-recibo","deuda-bajar-cuota-alarga-plazo","cartera-ordenar-brokers","vuelta-sin-tiron","deudas-guardar-motivo"],"lo que el build entrega al panel");
   built[0].tandas.forEach((g0,i)=>{
     assert.equal(g0.web,currents[tandas[i]].web);assert.equal(g0.edge,undefined);assert.equal(g0.native,i?currents[tandas[i]].native:undefined);assert.equal(g0.apk,i?60:undefined);assert.equal(receipt.web[tandas[i]],currents[tandas[i]].web);
+    for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g0[key],undefined,"identidad nueva sin "+key);
+  });
+  assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
+});
+
+const expected153={"v":"4.26.153","d":"2026-10-19","t":{"es":"Vibración más tranquila, ola en Gestionar plan y nombres al momento","en":"Calmer vibration, ripple in Manage plan and names at once","ca":"Vibració més tranquil·la, ona a Gestionar pla i noms a l'instant"},"items":{"es":["El borde de las listas vibra una sola vez por gesto.","Toque suave al cambiar entre Recibos, Deudas y Metas.","El anillo de Mi ciclo vibra poco y se regula en Ajustes.","En Gestionar plan aparece la ola al llegar al final.","Al renombrar un gasto, la lista enseña el nombre nuevo al momento."],"en":["The border of lists vibrates only once per gesture.","A soft tap when switching between Bills, Debts and Goals.","The My cycle ring vibrates only a little and can be tuned in Settings.","In Manage plan the ripple shows when you reach the end.","When you rename an expense, the list shows the new name at once."],"ca":["La vora de les llistes vibra un sol cop per gest.","Toc suau en canviar entre Rebuts, Deutes i Metes.","L'anell de El meu cicle vibra poc i es regula a Ajustos.","A Gestionar pla apareix l'ona en arribar al final.","En reanomenar una despesa, la llista mostra el nom nou a l'instant."]},"tandas":[{"id":"gestionar-plan-ola-r2","t":{"es":"Plan: la ola en Gestionar plan, otra vez","en":"Plan: the ripple in Manage plan, once more","ca":"Pla: l'ona a Gestionar pla, un cop més"},"items":{"es":["1. Abre Plan → Recibos → Gestionar plan, desplázate hasta el final y tira (tu frase: «no hay manera, ola no funciona en recibos»). Sale la ola. MAL: no sale.","2. Entra en una categoría y haz lo mismo. MAL: no sale la ola.","3. Cierra Gestionar plan: Plan sigue donde estaba. MAL: Plan aparece en otro punto."],"en":["1. Open Plan → Bills → Manage plan, scroll to the end and pull (your words: «no hay manera, ola no funciona en recibos», there is no way, the ripple does not work in bills). The ripple shows. WRONG: it does not.","2. Go into a category and do the same. WRONG: no ripple.","3. Close Manage plan: Plan stays where it was. WRONG: Plan shows at another spot."],"ca":["1. Obre Pla → Rebuts → Gestionar pla, desplaça fins al final i estira (la teva frase: «no hay manera, ola no funciona en recibos», no hi ha manera, l'ona no funciona als rebuts). Surt l'ona. MALAMENT: no surt.","2. Entra en una categoria i fes el mateix. MALAMENT: no surt l'ona.","3. Tanca Gestionar pla: Pla continua on era. MALAMENT: Pla apareix en un altre punt."]}},{"id":"vibracion-r3","t":{"es":"Vibración: una vez por gesto y más tranquila al entrar","en":"Vibration: once per gesture and calmer on opening","ca":"Vibració: un cop per gest i més tranquil·la en entrar"},"items":{"es":["1. Al final de una lista, mantén y mueve el dedo (tu frase: «vibra una locura… debería ser 1 vez cada vez que muevo el dedo»). Una sola vibración por gesto. MAL: vibra varias veces seguidas.","2. Cambia entre Recibos, Deudas y Metas, y entre gasto e ingreso al apuntar: un toque suave en cada cambio. MAL: no se nota nada o es fuerte.","3. Abre la app (tu frase: «al entrar en la app… vibra una locura»): el anillo de Mi ciclo vibra poco. En Ajustes → Vibración se regula. MAL: vibra mucho o el ajuste no hace nada.","4. Pulsa «Copiar valores» y pégalos en el chat a Claude."],"en":["1. At the end of a list, hold and move your finger (your words: «vibra una locura… debería ser 1 vez cada vez que muevo el dedo», it vibrates like crazy, it should be once each time I move my finger). One single vibration per gesture. WRONG: it vibrates several times in a row.","2. Switch between Bills, Debts and Goals, and between expense and income when adding: a soft tap on each change. WRONG: you feel nothing or it is strong.","3. Open the app (your words: «al entrar en la app… vibra una locura», when opening the app it vibrates like crazy): the My cycle ring vibrates only a little. In Settings → Vibration you can tune it. WRONG: it vibrates a lot or the setting does nothing.","4. Tap «Copy values» and paste them into the chat to Claude."],"ca":["1. Al final d'una llista, mantén i mou el dit (la teva frase: «vibra una locura… debería ser 1 vez cada vez que muevo el dedo», vibra com un boig, hauria de ser un cop cada vegada que moc el dit). Una sola vibració per gest. MALAMENT: vibra diverses vegades seguides.","2. Canvia entre Rebuts, Deutes i Metes, i entre despesa i ingrés en apuntar: un toc suau a cada canvi. MALAMENT: no se sent res o és fort.","3. Obre l'app (la teva frase: «al entrar en la app… vibra una locura», en entrar a l'app vibra com un boig): l'anell de El meu cicle vibra poc. A Ajustos → Vibració es regula. MALAMENT: vibra molt o l'ajust no fa res.","4. Prem «Copiar valors» i enganxa'ls al xat a Claude."]}},{"id":"youtube-diagnostico","t":{"es":"YouTube Premium: copiar el diagnóstico del recibo","en":"YouTube Premium: copy the bill diagnosis","ca":"YouTube Premium: copiar el diagnòstic del rebut"},"items":{"es":["1. Abre Gastos, entra en el cargo de YouTube Premium, toca «Paga un recibo» y luego «Copiar diagnóstico». MAL: no aparece el botón.","2. Pégalo en el chat a Claude. Es la única forma de saber por qué no se enlaza."],"en":["1. Open Expenses, go into the YouTube Premium charge, tap «Pays a bill» and then «Copy diagnosis». WRONG: the button does not show.","2. Paste it into the chat to Claude. It is the only way to know why it does not link."],"ca":["1. Obre Despeses, entra al càrrec de YouTube Premium, toca «Paga un rebut» i després «Copiar diagnòstic». MALAMENT: no apareix el botó.","2. Enganxa'l al xat a Claude. És l'única manera de saber per què no s'enllaça."]}},{"id":"renombrar-lista-al-momento","t":{"es":"Gastos: el nombre nuevo se ve al momento","en":"Expenses: the new name shows at once","ca":"Despeses: el nom nou es veu a l'instant"},"items":{"es":["1. Abre un gasto en Gastos, cámbiale el nombre y guarda. La lista enseña el nombre nuevo al instante, con ⏳ hasta que se guarde. MAL: la lista sigue con el nombre viejo.","2. Espera unos segundos: la lista conserva el nombre nuevo y desaparece el ⏳. MAL: vuelve el nombre viejo."],"en":["1. Open an expense in Expenses, rename it and save. The list shows the new name at once, with ⏳ until it is saved. WRONG: the list keeps the old name.","2. Wait a few seconds: the list keeps the new name and the ⏳ goes away. WRONG: the old name comes back."],"ca":["1. Obre una despesa a Despeses, canvia-li el nom i desa. La llista mostra el nom nou a l'instant, amb ⏳ fins que es desi. MALAMENT: la llista continua amb el nom vell.","2. Espera uns segons: la llista conserva el nom nou i desapareix el ⏳. MALAMENT: torna el nom vell."]}}]};
+// 4.26.153 (19/10/2026): integración rápida, solo web (la APK sigue siendo la 60), sobre la beta 4.26.152 servida (31907016f): claude/vibra-r3 (0572ca55), claude/diag-recibo (e6553e07),
+// claude/ola-root (2e11b279) y claude/rename-lista (93289498). Cuatro tandas NUEVAS; gestionar-plan-ola y vibracion-ajustador-r2 (152, rechazadas) y youtube-enlazar-recibo (148, rechazada) pasan a tandas:[]; las demás se quedan.
+test("Catálogo153 añade las tandas de la ola con raíz única, la vibración ronda 3, el diagnóstico de YouTube y el renombrado en la lista sobre la 152, solo web, con alcance propio, y declara cada huella que mueve",()=>{
+  const tandas=["gestionar-plan-ola-r2","vibracion-r3","youtube-diagnostico","renombrar-lista-al-momento"],pasos=[3,4,2,2];
+  const integrated=JSON.parse(sourceBeta152("scripts/beta-sources.json")),before=JSON.parse(sourceBeta152("src/data/release-notes.json"));
+  const source=f=>read(f).replace(/\r\n/g,"\n"),old=f=>sourceBeta152(f).replace(/\r\n/g,"\n");
+  assert.equal(before[0].v,"4.26.152");
+  const e152=before[0],e148=before.find(n=>n.v==="4.26.148");
+  assert.deepEqual(e152.tandas.map(g=>g.id),["gestionar-plan-ola","vibracion-ajustador-r2"],"la 152 llevaba dos");assert.deepEqual(e148.tandas.map(g=>g.id),["youtube-enlazar-recibo"],"la 148 llevaba una");
+  const expectedNotes=[expected153,...before.map(n=>n.v==="4.26.152"||n.v==="4.26.148"?{...n,tandas:[]}:n)];
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.deepEqual(notes,expectedNotes,"la nota 153 literal delante, la 152 y la 148 vacías y todo lo demás intacto");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[...tandas.map(id=>["4.26.153",id,0]),["4.26.151","renombrar-y-notas-seguras",0],["4.26.149","pestanas-swipe-rapido",0],["4.26.147","deuda-bajar-cuota-alarga-plazo",0],["4.26.147","cartera-ordenar-brokers",0],["4.26.146","vuelta-sin-tiron",0],["4.26.144","deudas-guardar-motivo",0]],"el panel enseña diez tandas: las cuatro nuevas, las sin veredicto y la aprobada pendiente de producción");
+  assert.equal(notes.length,250);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
+  notes[0].tandas.forEach(g=>assert.deepEqual(Object.keys(g),["id","t","items"],"identidad nueva, sin alias ni revisión heredada: "+g.id));
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,5,lang+": cinco puntos familiares");
+    notes[0].tandas.forEach((g,i)=>{
+      const steps=g.items[lang];assert.equal(steps.length,pasos[i],lang+": pasos de "+g.id);
+      steps.forEach((step,j)=>assert.ok(step.startsWith((j+1)+". "),lang+": paso numerado de "+g.id+" "+j));
+      for(const text of steps)assert.equal(/borra|quita este|delete|remove|esborra|treu aquest|mañana|tomorrow|demà/i.test(text),false,lang+": ningún paso borra nada ni espera a otro día: "+text);
+      // Los pasos de pegar en el chat (vibración 4, YouTube 2) no son comprobaciones: no llevan MAL.
+      for(const text of steps.filter((x,j)=>!((i===1&&j===3)||(i===2&&j===1))))assert.ok(/MAL|WRONG|MALAMENT/.test(text),lang+": cada paso de comprobación dice qué es MAL: "+text);
+    });
+    assert.ok(/no hay manera, ola no funciona en recibos/.test(notes[0].tandas[0].items[lang][0]),lang+": cita su frase de la ola");
+    assert.ok(/vibra una locura… debería ser 1 vez cada vez que muevo el dedo/.test(notes[0].tandas[1].items[lang][0])&&/al entrar en la app… vibra una locura/.test(notes[0].tandas[1].items[lang][2]),lang+": cita sus dos frases de la vibración");
+    for(const g of notes[0].tandas)assert.equal(/APK \d/.test(g.items[lang].join(" ")),false,lang+": ninguna tanda pide instalar APK: "+g.id);
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|FIN-|SES-|\d+\.\d+\.\d+/i.test(text),false,lang+": sin jerga: "+text);
+  }
+  const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
+  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verifyNotes(twice),assert.AssertionError,"no duplicar una tanda");
+  const revived=structuredClone(notes);revived.find(n=>n.v==="4.26.152").tandas=structuredClone(e152.tandas);assert.throws(()=>verifyNotes(revived),assert.AssertionError,"las tandas rechazadas de la 152 no vuelven al panel");
+  const revivedYt=structuredClone(notes);revivedYt.find(n=>n.v==="4.26.148").tandas=structuredClone(e148.tandas);assert.throws(()=>verifyNotes(revivedYt),assert.AssertionError,"la tanda de YouTube de la 148 no vuelve al panel");
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),rest={...scopes};for(const id of tandas)delete rest[id];
+  for(const id of tandas)assert.equal(integrated[id],undefined,"identidad que no existía: "+id);
+  assert.deepEqual(Object.keys(scopes).slice(-tandas.length),tandas);
+  const U="src/modules/02-ui-shared.js",V="src/modules/14-v4-screens.js",G="src/modules/04-tab-gastos.js",M="src/modules/08-motor-bank.js",fn=(file,function_)=>({file,function:function_});
+  const propias={"gestionar-plan-ola-r2":[fn(V,"BillsManagePush"),{file:"src/shell.html",from:"  /* Un único candidato a scroller raíz (INC-2709-03, 19/10).",to:".v4-bills-push[data-covered]{overflow-y:hidden;}"}],
+    "vibracion-r3":[fn(U,"mcBezierY"),fn(U,"mcCycleWave"),fn(U,"mcEdgeHaptic"),fn(U,"mcBindEdgeHaptics"),fn(U,"ExpenseFichaLayout"),fn(V,"PlanTab")],
+    "youtube-diagnostico":[fn(G,"ExpenseDetailSheet"),fn(M,"debtPaymentState"),fn(M,"paymentEvidenceUI"),fn(M,"reciboConfirmableUI")],
+    "renombrar-lista-al-momento":[{file:G,data:"MovRow"}]};
+  const fns=logicFunctions(source),dat=logicData(source);
+  const closure=start=>{
+    let web=start.slice();
+    for(let ronda=0;ronda<40;ronda++){
+      const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];
+      for(const f of scopeDependencies({web},source,fns))if(!tiene(f.file,f.name,"function"))extra.push({file:f.file,function:f.name});
+      for(const d of scopeDataDependencies({web},source,fns,dat))if(!tiene(d.file,d.name,"data"))extra.push({file:d.file,data:d.name});
+      if(!extra.length)break;web=web.concat(extra);
+    }
+    return web;
+  };
+  const congelados=new Set(["inc-0810-inicio-grafica-significado"]),unidad=u=>JSON.stringify(u);
+  for(const [id,scope] of Object.entries(integrated)){
+    if(congelados.has(id)){assert.deepEqual(rest[id],scope,"descriptor congelado: "+id);continue;}
+    const web=closure(scope.web||[]);
+    assert.deepEqual({...rest[id],web:rest[id].web.map(unidad).sort()},{...scope,web:web.map(unidad).sort()},"cierre de lectores recalculado, ni se recorta ni crece sin declararlo: "+id);
+    assert.equal(rest[id].web.length,web.length,"sin unidades repetidas: "+id);
+  }
+  assert.deepEqual(Object.keys(rest),Object.keys(integrated),"ningún descriptor ajeno nuevo ni retirado");
+  for(const id of tandas){
+    const added=scopes[id],own=propias[id];
+    assert.deepEqual(added.web.slice(0,own.length),own,id+": las unidades propias de la tanda, en este orden");
+    assert.equal(added.unidades,true);
+    assert.deepEqual(Object.keys(added),["web","unidades"],id+": solo web, sin APK ni servidor");
+    const web=closure(own),clave=u=>JSON.stringify(u);
+    assert.equal(added.web.length,web.length,id+": el cierre de lectores del descriptor es exactamente el calculado");
+    assert.deepEqual(new Set(added.web.map(clave)),new Set(web.map(clave)),id+": el cierre de lectores del descriptor es exactamente el calculado");
+    for(const u of added.web)assert.ok(scopeText(u,source).length>0,"la unidad existe en la fuente: "+JSON.stringify(u));
+  }
+  // Solo web: la APK 60 de la 152 sigue tal cual.
+  assert.deepEqual(JSON.parse(source("public/apk.json")),JSON.parse(old("public/apk.json")),"apk.json sin tocar: sigue la APK 60");
+  assert.equal(source("android/app/build.gradle"),old("android/app/build.gradle"),"build.gradle sin tocar");
+  assert.equal(execFileSync("git",["diff","--name-only","31907016f9fdd5b584cff9323bf56a614bfb97c1","HEAD","--","supabase/migrations","android"],{encoding:"utf8"}).trim(),"","sin SQL ni nativo");
+  const expectedMoves=__MOVES__;
+  const previous=new Map();
+  const measure=reader=>{
+    const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};
+    for(const [key,scope] of Object.entries(integrated)){
+      if(key===archiveId||congelados.has(key))continue;
+      if(!previous.has(key))previous.set(key,betaRevision(key,sourceBeta152,undefined,scope));
+      const a=previous.get(key),b=betaRevision(key,reader,undefined,now[key]);
+      const surfaces=["web","native","edge"].filter(x=>a[x]!==b[x]);
+      if(surfaces.length)moved[key]=surfaces;
+    }
+    return moved;
+  };
+  const verify=(reader,expected=expectedMoves)=>assert.deepEqual(measure(reader),expected,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  verify(source);
+  const currents=Object.fromEntries(tandas.map(id=>[id,betaRevision(id,source,undefined,scopes[id])]));
+  for(const id of tandas){assert.ok(currents[id].web);assert.equal(currents[id].edge,undefined);assert.equal(currents[id].native,undefined);}
+  for(const [id,file,a,b] of [
+    [tandas[0],V,"function BillsManagePush(","function BillsManagePush(/*x*/"],
+    [tandas[1],U,"function mcEdgeHaptic(","function mcEdgeHaptic(/*x*/"],
+    [tandas[2],M,"function paymentEvidenceUI(","function paymentEvidenceUI(/*x*/"],
+    [tandas[3],G,"const MovRow=React.memo(","const MovRow=React.memo(/*x*/"]
+  ]){
+    assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
+    const mutated=betaRevision(id,f=>f===file?source(f).replace(a,()=>b):source(f),undefined,scopes[id]);
+    assert.notEqual(mutated.web,currents[id].web,id+" reabre la tanda: "+a);
+  }
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes);
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),[...tandas,"renombrar-y-notas-seguras","pestanas-swipe-rapido","deuda-bajar-cuota-alarga-plazo","cartera-ordenar-brokers","vuelta-sin-tiron","deudas-guardar-motivo"],"lo que el build entrega al panel");
+  built[0].tandas.forEach((g0,i)=>{
+    assert.equal(g0.web,currents[tandas[i]].web);assert.equal(g0.edge,undefined);assert.equal(g0.native,undefined);assert.equal(g0.apk,undefined);assert.equal(receipt.web[tandas[i]],currents[tandas[i]].web);
     for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g0[key],undefined,"identidad nueva sin "+key);
   });
   assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");

@@ -1,5 +1,136 @@
 [
   {
+    "v": "4.26.153",
+    "d": "2026-10-19",
+    "t": {
+      "es": "Vibración más tranquila, ola en Gestionar plan y nombres al momento",
+      "en": "Calmer vibration, ripple in Manage plan and names at once",
+      "ca": "Vibració més tranquil·la, ona a Gestionar pla i noms a l'instant"
+    },
+    "items": {
+      "es": [
+        "El borde de las listas vibra una sola vez por gesto.",
+        "Toque suave al cambiar entre Recibos, Deudas y Metas.",
+        "El anillo de Mi ciclo vibra poco y se regula en Ajustes.",
+        "En Gestionar plan aparece la ola al llegar al final.",
+        "Al renombrar un gasto, la lista enseña el nombre nuevo al momento."
+      ],
+      "en": [
+        "The border of lists vibrates only once per gesture.",
+        "A soft tap when switching between Bills, Debts and Goals.",
+        "The My cycle ring vibrates only a little and can be tuned in Settings.",
+        "In Manage plan the ripple shows when you reach the end.",
+        "When you rename an expense, the list shows the new name at once."
+      ],
+      "ca": [
+        "La vora de les llistes vibra un sol cop per gest.",
+        "Toc suau en canviar entre Rebuts, Deutes i Metes.",
+        "L'anell de El meu cicle vibra poc i es regula a Ajustos.",
+        "A Gestionar pla apareix l'ona en arribar al final.",
+        "En reanomenar una despesa, la llista mostra el nom nou a l'instant."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "gestionar-plan-ola-r2",
+        "t": {
+          "es": "Plan: la ola en Gestionar plan, otra vez",
+          "en": "Plan: the ripple in Manage plan, once more",
+          "ca": "Pla: l'ona a Gestionar pla, un cop més"
+        },
+        "items": {
+          "es": [
+            "1. Abre Plan → Recibos → Gestionar plan, desplázate hasta el final y tira (tu frase: «no hay manera, ola no funciona en recibos»). Sale la ola. MAL: no sale.",
+            "2. Entra en una categoría y haz lo mismo. MAL: no sale la ola.",
+            "3. Cierra Gestionar plan: Plan sigue donde estaba. MAL: Plan aparece en otro punto."
+          ],
+          "en": [
+            "1. Open Plan → Bills → Manage plan, scroll to the end and pull (your words: «no hay manera, ola no funciona en recibos», there is no way, the ripple does not work in bills). The ripple shows. WRONG: it does not.",
+            "2. Go into a category and do the same. WRONG: no ripple.",
+            "3. Close Manage plan: Plan stays where it was. WRONG: Plan shows at another spot."
+          ],
+          "ca": [
+            "1. Obre Pla → Rebuts → Gestionar pla, desplaça fins al final i estira (la teva frase: «no hay manera, ola no funciona en recibos», no hi ha manera, l'ona no funciona als rebuts). Surt l'ona. MALAMENT: no surt.",
+            "2. Entra en una categoria i fes el mateix. MALAMENT: no surt l'ona.",
+            "3. Tanca Gestionar pla: Pla continua on era. MALAMENT: Pla apareix en un altre punt."
+          ]
+        }
+      },
+      {
+        "id": "vibracion-r3",
+        "t": {
+          "es": "Vibración: una vez por gesto y más tranquila al entrar",
+          "en": "Vibration: once per gesture and calmer on opening",
+          "ca": "Vibració: un cop per gest i més tranquil·la en entrar"
+        },
+        "items": {
+          "es": [
+            "1. Al final de una lista, mantén y mueve el dedo (tu frase: «vibra una locura… debería ser 1 vez cada vez que muevo el dedo»). Una sola vibración por gesto. MAL: vibra varias veces seguidas.",
+            "2. Cambia entre Recibos, Deudas y Metas, y entre gasto e ingreso al apuntar: un toque suave en cada cambio. MAL: no se nota nada o es fuerte.",
+            "3. Abre la app (tu frase: «al entrar en la app… vibra una locura»): el anillo de Mi ciclo vibra poco. En Ajustes → Vibración se regula. MAL: vibra mucho o el ajuste no hace nada.",
+            "4. Pulsa «Copiar valores» y pégalos en el chat a Claude."
+          ],
+          "en": [
+            "1. At the end of a list, hold and move your finger (your words: «vibra una locura… debería ser 1 vez cada vez que muevo el dedo», it vibrates like crazy, it should be once each time I move my finger). One single vibration per gesture. WRONG: it vibrates several times in a row.",
+            "2. Switch between Bills, Debts and Goals, and between expense and income when adding: a soft tap on each change. WRONG: you feel nothing or it is strong.",
+            "3. Open the app (your words: «al entrar en la app… vibra una locura», when opening the app it vibrates like crazy): the My cycle ring vibrates only a little. In Settings → Vibration you can tune it. WRONG: it vibrates a lot or the setting does nothing.",
+            "4. Tap «Copy values» and paste them into the chat to Claude."
+          ],
+          "ca": [
+            "1. Al final d'una llista, mantén i mou el dit (la teva frase: «vibra una locura… debería ser 1 vez cada vez que muevo el dedo», vibra com un boig, hauria de ser un cop cada vegada que moc el dit). Una sola vibració per gest. MALAMENT: vibra diverses vegades seguides.",
+            "2. Canvia entre Rebuts, Deutes i Metes, i entre despesa i ingrés en apuntar: un toc suau a cada canvi. MALAMENT: no se sent res o és fort.",
+            "3. Obre l'app (la teva frase: «al entrar en la app… vibra una locura», en entrar a l'app vibra com un boig): l'anell de El meu cicle vibra poc. A Ajustos → Vibració es regula. MALAMENT: vibra molt o l'ajust no fa res.",
+            "4. Prem «Copiar valors» i enganxa'ls al xat a Claude."
+          ]
+        }
+      },
+      {
+        "id": "youtube-diagnostico",
+        "t": {
+          "es": "YouTube Premium: copiar el diagnóstico del recibo",
+          "en": "YouTube Premium: copy the bill diagnosis",
+          "ca": "YouTube Premium: copiar el diagnòstic del rebut"
+        },
+        "items": {
+          "es": [
+            "1. Abre Gastos, entra en el cargo de YouTube Premium, toca «Paga un recibo» y luego «Copiar diagnóstico». MAL: no aparece el botón.",
+            "2. Pégalo en el chat a Claude. Es la única forma de saber por qué no se enlaza."
+          ],
+          "en": [
+            "1. Open Expenses, go into the YouTube Premium charge, tap «Pays a bill» and then «Copy diagnosis». WRONG: the button does not show.",
+            "2. Paste it into the chat to Claude. It is the only way to know why it does not link."
+          ],
+          "ca": [
+            "1. Obre Despeses, entra al càrrec de YouTube Premium, toca «Paga un rebut» i després «Copiar diagnòstic». MALAMENT: no apareix el botó.",
+            "2. Enganxa'l al xat a Claude. És l'única manera de saber per què no s'enllaça."
+          ]
+        }
+      },
+      {
+        "id": "renombrar-lista-al-momento",
+        "t": {
+          "es": "Gastos: el nombre nuevo se ve al momento",
+          "en": "Expenses: the new name shows at once",
+          "ca": "Despeses: el nom nou es veu a l'instant"
+        },
+        "items": {
+          "es": [
+            "1. Abre un gasto en Gastos, cámbiale el nombre y guarda. La lista enseña el nombre nuevo al instante, con ⏳ hasta que se guarde. MAL: la lista sigue con el nombre viejo.",
+            "2. Espera unos segundos: la lista conserva el nombre nuevo y desaparece el ⏳. MAL: vuelve el nombre viejo."
+          ],
+          "en": [
+            "1. Open an expense in Expenses, rename it and save. The list shows the new name at once, with ⏳ until it is saved. WRONG: the list keeps the old name.",
+            "2. Wait a few seconds: the list keeps the new name and the ⏳ goes away. WRONG: the old name comes back."
+          ],
+          "ca": [
+            "1. Obre una despesa a Despeses, canvia-li el nom i desa. La llista mostra el nom nou a l'instant, amb ⏳ fins que es desi. MALAMENT: la llista continua amb el nom vell.",
+            "2. Espera uns segons: la llista conserva el nom nou i desapareix el ⏳. MALAMENT: torna el nom vell."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.152",
     "d": "2026-10-19",
     "t": {
@@ -27,65 +158,7 @@
         "Pots triar el tipus de vibració que millor es noti al teu mòbil."
       ]
     },
-    "tandas": [
-      {
-        "id": "gestionar-plan-ola",
-        "t": {
-          "es": "Plan: la ola vuelve en Gestionar plan",
-          "en": "Plan: the ripple is back in Manage plan",
-          "ca": "Pla: l'ona torna a Gestionar pla"
-        },
-        "items": {
-          "es": [
-            "1. Abre Plan → Recibos → Gestionar plan, desplaza hasta arriba y hasta abajo y tira (tu frase: «al revés tienes que hacer la ola»). Sale la ola. MAL: no sale.",
-            "2. Entra en una categoría y haz lo mismo. MAL: no sale la ola.",
-            "3. Abre un recibo, desplaza y ciérralo desde la barrita de arriba, con Atrás o tocando fuera: se cierra suave, sin salto. Ojo: la ficha ya no se cierra arrastrando desde el contenido, solo desde la barrita. MAL: da un salto."
-          ],
-          "en": [
-            "1. Open Plan → Bills → Manage plan, scroll to the top and to the bottom and pull (your words: «al revés tienes que hacer la ola», you have to do the ripple the other way round). The ripple shows. WRONG: it does not.",
-            "2. Go into a category and do the same. WRONG: no ripple.",
-            "3. Open a bill, scroll and close it from the little bar at the top, with Back or by tapping outside: it closes smoothly, with no jump. Note: the sheet no longer closes by dragging from its content, only from the bar. WRONG: it jumps."
-          ],
-          "ca": [
-            "1. Obre Pla → Rebuts → Gestionar pla, desplaça fins a dalt i fins a baix i estira (la teva frase: «al revés tienes que hacer la ola», has de fer l'ona al revés). Surt l'ona. MALAMENT: no surt.",
-            "2. Entra en una categoria i fes el mateix. MALAMENT: no surt l'ona.",
-            "3. Obre un rebut, desplaça i tanca'l des de la barreta de dalt, amb Enrere o tocant fora: es tanca suau, sense salt. Compte: la fitxa ja no es tanca arrossegant des del contingut, només des de la barreta. MALAMENT: fa un salt."
-          ]
-        }
-      },
-      {
-        "id": "vibracion-ajustador-r2",
-        "t": {
-          "es": "Vibración: la fuerza se nota y el borde solo vibra si mueves el dedo",
-          "en": "Vibration: strength can be felt and the edge only vibrates if you move your finger",
-          "ca": "Vibració: la força se nota i la vora només vibra si mous el dit"
-        },
-        "items": {
-          "es": [
-            "0. Instala la app nueva de Aely que te llega (APK 60, versión 4.26.152). Tus frases: «en cualquier potencia vibra igual» y «si mantengo abajo no debería vibrar todo el rato».",
-            "1. Ajustes → Vibración → «Tipo de vibración»: prueba cada tipo con «Probar» del borde, con la fuerza a 1 y a 255. MAL: en todos los tipos suena igual con 1 y con 255.",
-            "2. Deja elegido el tipo con el que SÍ notes la diferencia y ajusta las fuerzas a tu gusto. MAL: no hay ningún tipo con el que se note la diferencia.",
-            "3. Al final de una lista, tira moviendo el dedo: vibra. Con el dedo quieto, no. MAL: vibra con el dedo quieto.",
-            "4. Pulsa «Copiar valores» y pégalos en el chat a Claude; deben incluir el tipo elegido."
-          ],
-          "en": [
-            "0. Install the new Aely app you receive (APK 60, version 4.26.152). Your words: «en cualquier potencia vibra igual» (at any strength it vibrates the same) and «si mantengo abajo no debería vibrar todo el rato» (if I hold it down it should not vibrate all the time).",
-            "1. Settings → Vibration → «Vibration type»: try each type with the edge «Try» button, with the strength at 1 and at 255. WRONG: in every type it feels the same at 1 and at 255.",
-            "2. Leave selected the type where you DO feel the difference and set the strengths to your liking. WRONG: no type lets you feel the difference.",
-            "3. At the end of a list, pull while moving your finger: it vibrates. With your finger still, it does not. WRONG: it vibrates with your finger still.",
-            "4. Tap «Copy values» and paste them into the chat to Claude; they must include the chosen type."
-          ],
-          "ca": [
-            "0. Instal·la l'app nova d'Aely que et arriba (APK 60, versió 4.26.152). Les teves frases: «en cualquier potencia vibra igual» (a qualsevol potència vibra igual) i «si mantengo abajo no debería vibrar todo el rato» (si mantinc avall no hauria de vibrar tot el temps).",
-            "1. Ajustos → Vibració → «Tipus de vibració»: prova cada tipus amb «Provar» de la vora, amb la força a 1 i a 255. MALAMENT: en tots els tipus sona igual amb 1 i amb 255.",
-            "2. Deixa triat el tipus amb el qual SÍ notis la diferència i ajusta les forces al teu gust. MALAMENT: cap tipus deixa notar la diferència.",
-            "3. Al final d'una llista, estira movent el dit: vibra. Amb el dit quiet, no. MALAMENT: vibra amb el dit quiet.",
-            "4. Prem «Copiar valors» i enganxa'ls al xat a Claude; han d'incloure el tipus triat."
-          ]
-        },
-        "apk": 60
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.151",
@@ -239,39 +312,7 @@
         "Vibració nova: l'anell de El meu cicle vibra només mentre s'omple; la vora vibra i es repeteix en continuar estirant; el gràfic fa un toc a cada punt."
       ]
     },
-    "tandas": [
-      {
-        "id": "youtube-enlazar-recibo",
-        "t": {
-          "es": "Recibos: enlazar el cargo de YouTube Premium",
-          "en": "Bills: link the YouTube Premium charge",
-          "ca": "Rebuts: enllaçar el càrrec de YouTube Premium"
-        },
-        "items": {
-          "es": [
-            "1. Abre Gastos y toca el cargo de YouTube Premium (tu frase: «Sigue sin estar enlazado con YouTube premium y no deja enlazarlo»).",
-            "2. Si sale «Sí, es este recibo», púlsalo y confirma. MAL: no sale ni eso ni la lista de recibos.",
-            "3. Si no sale, en «Paga un recibo» elige YouTube Premium y confirma. MAL: no te deja.",
-            "4. Abre Plan → Recibos: YouTube sale ✓ pagado. MAL: sigue «Por confirmar».",
-            "5. El dinero disponible de Inicio y de Plan no cambia, salvo por el propio recibo. MAL: cualquier otra diferencia."
-          ],
-          "en": [
-            "1. Open Spending and tap the YouTube Premium charge (your words: «Sigue sin estar enlazado con YouTube premium y no deja enlazarlo», it is still not linked to YouTube Premium and will not let you link it).",
-            "2. If «Yes, this is the bill» shows, tap it and confirm. WRONG: neither that nor the list of bills shows.",
-            "3. If it does not show, under «Pays a bill» choose YouTube Premium and confirm. WRONG: it will not let you.",
-            "4. Open Plan → Bills: YouTube shows ✓ paid. WRONG: it is still «To confirm».",
-            "5. The available money in Home and in Plan does not change, apart from the bill itself. WRONG: any other difference."
-          ],
-          "ca": [
-            "1. Obre Despeses i toca el càrrec de YouTube Premium (la teva frase: «Sigue sin estar enlazado con YouTube premium y no deja enlazarlo», encara no està enllaçat amb YouTube Premium i no deixa enllaçar-lo).",
-            "2. Si surt «Sí, és aquest rebut», prem-lo i confirma. MALAMENT: no surt ni això ni la llista de rebuts.",
-            "3. Si no surt, a «Paga un rebut» tria YouTube Premium i confirma. MALAMENT: no et deixa.",
-            "4. Obre Pla → Rebuts: YouTube surt ✓ pagat. MALAMENT: continua «Per confirmar».",
-            "5. Els diners disponibles d'Inici i de Pla no canvien, tret del propi rebut. MALAMENT: qualsevol altra diferència."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.147",
