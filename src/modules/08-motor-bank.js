@@ -3974,7 +3974,7 @@ function fixedMonthlyOf(e){
   return (Number(e.amount)||0)*(FREQ_M[e.freq]||1);
 }
 function billsHeroTotal(state, totals){
-  /* Misma cifra que Plan › Recibos / totals.fijosMensual: servicios + cuotas activas. */
+  /* Misma cifra que Plan › Recibos / totals.fijosMensual (los dos suman `fixedMonthlyOf`). */
   if(totals&&Number.isFinite(totals.fijosMensual)) return totals.fijosMensual;
   const serv=(state.fixed||[]).reduce(function(a,e){ return a+fixedMonthlyOf(e); },0);
   const cuotas=(state.debts||[]).reduce(function(a,d){ return a+(debtActive(d)?(d.monthly||0):0); },0);
