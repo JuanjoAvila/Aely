@@ -2,8 +2,9 @@ H2 candidata, ronda 2: saldo y movimientos independientes por cuenta, valor/fech
 
 # Arquitectura — Aely
 
-FIN04 fase 1 candidata: renombrado parcial con ACK; nota local pendiente hasta confirmación
-exacta de su intención; carga/mezcla por UUID conserva una sola entrada y la nota más reciente.
+FIN04 fase 1 candidata R2: renombrado parcial con ACK y cola durable; nota local pendiente
+hasta confirmación exacta. Carga/mezcla de UUID prefiere la copia viva, conserva metadatos
+editados y mantiene separados importes o referencias conflictivos.
 Sin cambios de esquema, servidor ni LWW de recibos/deudas.
 [Contrato y límites](briefs/fin04-fase1-renombrar-nota.md).
 

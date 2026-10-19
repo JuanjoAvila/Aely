@@ -509,12 +509,28 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // de la fila vieja (deleted + deleteExpense) y se inserta la corregida, o el pull la resucitaría.
   const [editExp,setEditExp]=useState(null);   // {id, merchant, amount, income} — usado por el sheet de detalle
   const editCola=useRef({pend:[], fin:Promise.resolve()});   // escrituras de `saveEdit` en la nube
+  const renameState=useRef(state);renameState.current=state;
+  const renameSequence=useRef(0);
+  const retryRenames=function(){
+    if(!cloud.enabled()||mcSandbox()||mcSandboxTransition())return;
+    const s=renameState.current, owner=s._historyOwner,deleted=expenseDeletedSet(s);
+    (s.expenses||[]).forEach(function(e){
+      const pending=e.renamePending;
+      if(!pending||expenseIsTombstoned(e,deleted)||editCola.current.pend.some(function(p){return p.rename&&p.id===e.id&&p.rename.at===pending.at;}))return;
+      editCola.current.pend.push({id:e.id,rename:pending,current:function(){
+        const fresh=renameState.current;if(fresh._historyOwner!==owner)return null;
+        return (fresh.expenses||[]).find(function(x){return x.id===e.id&&x.date===e.date&&x.amount===e.amount&&x.renamePending&&x.renamePending.at===pending.at&&!expenseIsTombstoned(x,expenseDeletedSet(fresh));});
+      },ack:function(orig,ack){set(function(fresh){return fresh._historyOwner===owner?expenseRenameAck(fresh,orig,pending,ack):fresh;});},fail:function(){showToast(t("g_rename_pending"));}});
+    });
+    if(editCola.current.pend.length)subeEdicionesDeGasto(editCola.current);
+  };
   // Lo que se editó sin conexión se sube al volver: ver `subeEdicionesDeGasto`.
   useEffect(function(){
-    const alVolver=function(){ if(editCola.current.pend.length) subeEdicionesDeGasto(editCola.current); };
+    const alVolver=function(){retryRenames();};
+    retryRenames();
     window.addEventListener("online",alVolver);
     return function(){ window.removeEventListener("online",alVolver); };
-  },[]);
+  },[state.expenses]);
   const [detailId,setDetailId]=useState(null);     // id del gasto abierto en sheet (SPEC §14)
   // PUNTO 5: al tocar la noti de un gasto, App pasa focusExp ({amount,merchant}) → abrimos la ficha
   // del gasto que casa (mismo importe y comercio parecido, el más reciente; si no, el último gasto).
@@ -565,7 +581,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     };
     const origDay=String(orig.date||"").slice(0,10);
     const newDay=String(ed.date||origDay).slice(0,10);
-    if(signed===orig.amount && merch===(orig.merchant||"") && newDay===origDay){ sincroniza(orig); return; }   // sin cambios
+    if(signed===orig.amount && merch===(orig.merchant||"") && newDay===origDay&&!orig.renamePending){ sincroniza(orig); return; }   // sin cambios
     const cat = ed.income ? "ingreso" : (orig.category==="ingreso" ? autoCategory(merch) : orig.category);
     const splitByEdit=(signed!==orig.amount||newDay!==origDay)&&!!gemeloAutomaticoDe(state,orig);
     if(splitByEdit) separarGemelo(orig);
@@ -584,23 +600,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
        mentira — y en el detalle se leerían juntos como si fueran el mismo pago. */
     if(signed!==orig.amount){ delete upd.origAmount; delete upd.origCur; }
     if(signed===orig.amount&&newDay===origDay&&cloud.enabled()&&!mcSandbox()&&!mcSandboxTransition()){
-      // Espera el ACK del renombrado. Nunca envía la nota de esta copia; tampoco deja que una
-      // respuesta tardía borre otra nota escrita aquí mientras viajaba la petición.
-      editCola.current.fin=editCola.current.fin.then(function(){return cloud.renameExpense(orig,merch);}).then(function(ack){
-        if(!ack)throw new Error("rename unconfirmed");
-        set(function(s){
-          let before,after;
-          const list=s.expenses.map(function(e){
-            if(e.id!==orig.id||e.merchant!==orig.merchant||e.amount!==orig.amount||e.date!==orig.date)return e;
-            before=e;after=Object.assign({},e,{merchant:ack.comercio,expenseEditAt:Date.now()});
-            if(ack.ob_name!=null)after.obName=ack.ob_name;
-            if(!e.notePending&&(e.noteEditAt||0)===(orig.noteEditAt||0)&&e.note===orig.note&&ack.nota_edit){after.note=ack.nota||undefined;after.noteEdited=true;}
-            return after;
-          });
-          return before?rekeyFixedPaymentExpense(Object.assign({},s,{expenses:list},lapidasAlEditar(s,keyOfE(before),keyOfE(after))),before,after):s;
-        });
-        showToast(t("g_edited"));
-      }).catch(function(){showToast(t("g_edit_unconfirmed"));});
+      if(orig.renamePending&&orig.renamePending.merchant===merch){retryRenames();return;}
+      const at=renameSequence.current=Math.max(Date.now(),renameSequence.current+1,(orig.renamePending&&orig.renamePending.at||0)+1);
+      set(function(s){return expenseRenameDraft(s,orig,merch,at);});
       return;
     }
     set(function(s){ return rekeyFixedPaymentExpense(Object.assign({},s,{
@@ -853,7 +855,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const openDetail=useCallback(function(e){
     if(Date.now()<suppressOpenRef.current) return;
     setDetailId(e.id);
-    setEditExp({id:e.id, merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',','), income:e.amount<0, note:e.note||"", date:String(e.date||"").slice(0,10)});
+    setEditExp({id:e.id, merchant:e.renamePending?e.renamePending.merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',','), income:e.amount<0, note:e.note||"", date:String(e.date||"").slice(0,10)});
   },[]);
   // Invalida las filas memoizadas cuando cambia el idioma o la moneda de visualización (las leen
   // de globales que React.memo no ve).
@@ -1457,6 +1459,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
       React.createElement("button",{type:"button",className:"v4-chip"+(!bk?" on":""),onClick:function(){ setBank(exp,null); setBankOpen(false); }},t("ap_bank_none")),
       bankOpts.map(function(b){ return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bk===b?" on":""),
         onClick:function(){ setBank(exp,b); setBankOpen(false); }},"🏦 "+entOf(b).label); })),
+    exp.renamePending&&React.createElement("div",{className:"hint",role:"status","data-testid":"expense-rename-pending"},t("g_rename_pending")," ",React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){saveEdit(exp,{merchant:exp.renamePending.merchant});}},t("g_note_retry"))),
     trace,duplicate,paired,reciboAviso,
     canRecognizeWithdrawal(exp) && React.createElement("div",{className:"hint","data-testid":"exp-withdrawal-info"},
       React.createElement("div",null,t("f_withdraw_fields")),

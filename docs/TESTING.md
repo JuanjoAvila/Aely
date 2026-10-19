@@ -1,6 +1,9 @@
 FIN04 fase 1: `fin04-rename-note-ack.test.mjs` en el runner Node y `fin04-rename-note-ack.spec.mjs`
 en el mapa de Gastos. Dos contextos y SDK real con transporte simulado; ACK exacto, identidad
-local, nota concurrente, reintento y cero escrituras en modo pruebas. [Contrato y límites](briefs/fin04-fase1-renombrar-nota.md).
+local, nota concurrente, reintento y cero escrituras en modo pruebas (33 escritores). R2 añade
+legacy sin timestamps, lápidas, metadatos en ambos órdenes, importes conflictivos, red caída,
+fila aún no subida y ACK de renombrado tardío. Mutantes ejecutables en merge-expenses-cloud
+y expense-note. [Contrato y límites](briefs/fin04-fase1-renombrar-nota.md).
 
 Deudas: `deudas-alargar-plazo.test.mjs` está en el runner Node; `deudas-alargar-plazo.spec.mjs` está en el mapa de `09-tab-debts-goals.js`. Cubre elección explícita, guardado, datos conservados y tres idiomas. [Casos y límites](briefs/deudas-alargar-plazo-20261019.md).
 

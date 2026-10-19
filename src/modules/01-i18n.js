@@ -3644,10 +3644,13 @@ const THEMES=[["green","Verde","#5FD08A"],["dark","Oscuro","#3A3A40"],["light","
 Object.assign(LANG.es,{g_note_unconfirmed:"Nota sin confirmar en la nube. Se conserva en este dispositivo.",g_note_retry:"Reintentar",g_edit_unconfirmed:"No se pudo guardar el cambio. Vuelve a intentarlo."});
 Object.assign(LANG.en,{g_note_unconfirmed:"Note not confirmed in the cloud. Kept on this device.",g_note_retry:"Retry",g_edit_unconfirmed:"Could not save the change. Please try again."});
 Object.assign(LANG.ca,{g_note_unconfirmed:"Nota sense confirmar al núvol. Es conserva en aquest dispositiu.",g_note_retry:"Torna-ho a provar",g_edit_unconfirmed:"No s'ha pogut desar el canvi. Torna-ho a provar."});
+Object.assign(LANG.es,{g_rename_pending:"Nombre pendiente de confirmar. Se conserva en este dispositivo y se reintentará al volver la conexión."});
+Object.assign(LANG.en,{g_rename_pending:"Name awaiting confirmation. Kept on this device and retried when the connection returns."});
+Object.assign(LANG.ca,{g_rename_pending:"Nom pendent de confirmar. Es conserva en aquest dispositiu i es tornarà a intentar quan torni la connexió."});
 function loadState(){
   const saved = mcLoadRaw(mcStateKey());
   if(saved && saved.accounts){
-    const unique=uniqueExpenseUuids(saved.expenses);
+    const unique=uniqueExpenseUuids(saved.expenses,expenseDeletedSet(saved));
     const uuidChanged=unique!==saved.expenses;
     if(uuidChanged)saved.expenses=unique;
     // Capturar ANTES de seedFlows (muta in-place): evita stringify de toda la cartera en cada

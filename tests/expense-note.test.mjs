@@ -8,18 +8,16 @@
  * dinero el ruido cuesta más que el hueco.
  */
 import assert from "node:assert/strict";
-import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
+import { loadPureLogicFromFile,loadPureLogic } from "../scripts/load-pure-logic.mjs";
+import fs from 'node:fs';
+import {renameWitness} from './fin04-rename-witnesses.mjs';
 
 const ctx = loadPureLogicFromFile();
 
 // Acepta casos síncronos y async (los de la red de seguridad de `nota` devuelven promesa).
 const pendientes = [];
 function t(name, fn) {
-  const run = Promise.resolve().then(fn).then(
-    () => console.log(`  ✓ ${name}`),
-    (e) => { console.error(`  ✗ ${name}`); throw e; },
-  );
-  pendientes.push(run);
+  pendientes.push({name,fn});
 }
 
 console.log("expense-note");
@@ -137,6 +135,7 @@ t("bankIssuesOf: caducados y sin-cuentas sí; hipos pasajeros no", () => {
    ENTERO y los gastos dejarían de subir a la nube — en silencio, porque los llamantes hacen
    .catch(){}. Con la red de seguridad se pierde el concepto (comodidad), nunca el gasto (dato). */
 t("withNotaFallback: sin la columna, reintenta sin ella y NO pierde el gasto", async () => {
+  const ctx=loadPureLogicFromFile();
   const errCol = { message: 'column "nota" of relation "expenses" does not exist' };
   const intentos = [];
   const r = await ctx.withNotaFallback(function (conNota) {
@@ -148,6 +147,7 @@ t("withNotaFallback: sin la columna, reintenta sin ella y NO pierde el gasto", a
 });
 
 t("withNotaFallback: con la columna puesta, va a la primera", async () => {
+  const ctx=loadPureLogicFromFile();
   const intentos = [];
   const r = await ctx.withNotaFallback(function (conNota) {
     intentos.push(conNota);
@@ -158,6 +158,7 @@ t("withNotaFallback: con la columna puesta, va a la primera", async () => {
 });
 
 t("withNotaFallback: un error que NO es de la columna se propaga (no se traga)", async () => {
+  const ctx=loadPureLogicFromFile();
   const otro = { message: "permission denied for table expenses" };
   await assert.rejects(
     ctx.withNotaFallback(function () { return Promise.resolve({ error: otro }); }),
@@ -165,5 +166,18 @@ t("withNotaFallback: un error que NO es de la columna se propaga (no se traga)",
   );
 });
 
-await Promise.all(pendientes);
+t('FIN04 R2 renombrado pendiente, ACK exacto, tardío y reintento',()=>renameWitness(loadPureLogicFromFile()));
+for(const [name,from,to] of [
+  ['nombre falsamente confirmado','{renamePending:{merchant:merchant,at:at}}','{merchant:merchant,renamePending:{merchant:merchant,at:at}}'],
+  ['ACK viejo consume intención nueva','after.renamePending&&after.renamePending.at===intent.at','after.renamePending'],
+  ['ACK de otro nombre','if(!ack||ack.comercio!==intent.merchant||Number(ack.importe)','if(!ack||Number(ack.importe)'],
+  ['red caída pierde cola','.catch(function(){if(p.fail)p.fail();});','.catch(function(){cola.pend.shift();if(p.fail)p.fail();});']
+])t('FIN04 R2 mutante cazado: '+name,async()=>{
+  const html=fs.readFileSync(new URL('../public/index.html',import.meta.url),'utf8');assert.ok(html.includes(from),'mutante aplica');
+  const mutated=loadPureLogic(html.replace(from,to));await assert.rejects(renameWitness(mutated),{name:'AssertionError'});
+});
+for(const {name,fn} of pendientes){
+  try{await fn();console.log(`  ✓ ${name}`);}
+  catch(e){console.error(`  ✗ ${name}`);throw e;}
+}
 console.log("\nexpense-note: OK");

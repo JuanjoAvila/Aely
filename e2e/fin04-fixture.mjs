@@ -11,7 +11,7 @@ const ids=[owner,owner];
 const db={app_state:[...new Set(ids)].map(uid=>({user_id:uid,data:{...clone(base),_historyOwner:uid},updated_at:'2026-10-19T10:00:00.000Z'})),expenses:[clone(expense)],households:[{id:house,name:'Hogar sintético',created_by:owner}],household_members:[{household_id:house,user_id:owner,role:'owner'},{household_id:house,user_id:partner,role:'member'}],household_snapshots:[]};
 if(scenario==='rename-unrelated')db.expenses.push({...clone(expense),id:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',importe:-8.97,comercio:'Otro movimiento',cat:'ingreso',nota:'Intocable'});
 const evidence={scenario,baseSHA:'408d8d3484568e1c02fa25dcd2df30ad71477bf1',startedAt:new Date().toISOString(),workers:1,retries:0,CPU6Calls:0,profileCalls:0,traceCalls:0,initial:clone(db),requests:[],blockedExternal:[],pageErrors:[],snapshots:[],assertions:[],events:[]};
-let seq=0,hold=null,held=[],contexts=[];
+let seq=0,hold=null,held=[],contexts=[];const offline=new Set();
 function record(label,data){evidence.events.push({seq:++seq,label,data:clone(data),at:Date.now()});}
 function check(name,actual,expected){let ok=true,error;try{assert.deepEqual(actual,expected);}catch(e){ok=false;error=e.message;}evidence.assertions.push({name,ok,actual:clone(actual),expected:clone(expected),error});if(!ok)throw Object.assign(new Error(name),{productFailure:true});return ok;}
 function matches(row,params){for(const [k,v] of params){if(['select','order','limit','offset','on_conflict'].includes(k))continue;const ix=v.indexOf('.'),op=v.slice(0,ix),rhs=v.slice(ix+1),val=row[k];if(op==='eq'&&String(val)!==rhs)return false;if(op==='lt'&&!(val<rhs))return false;if(op==='gt'&&!(val>rhs))return false;if(op==='is'&&rhs==='null'&&val!=null)return false;if(op==='in'&&!rhs.slice(1,-1).split(',').map(x=>x.replaceAll('"','')).includes(String(val)))return false;if(!['eq','lt','gt','is','in'].includes(op))throw Error('Unsupported filter '+k+':'+v);}return true;}
@@ -41,7 +41,7 @@ function processQuery(req,actor,uid){const u=new URL(req.url()),table=u.pathname
 }
 async function execute(route,actor,uid){const answer=processQuery(route.request(),actor,uid);await route.fulfill({status:answer.status,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:answer.status===204?'':JSON.stringify(answer.data)});}
 async function install(ctx,actor,uid){await ctx.route('**/*',async route=>{const url=new URL(route.request().url());if(url.origin===baseURL)return route.continue();
- if(url.hostname.endsWith('.supabase.co')&&url.pathname.startsWith('/rest/v1/')){const q={route,actor,uid};if(hold&&hold(route.request(),actor)){held.push(q);record('held',{actor,urlPath:url.pathname,method:route.request().method()});return;}return execute(route,actor,uid);}
+ if(url.hostname.endsWith('.supabase.co')&&url.pathname.startsWith('/rest/v1/')){if(offline.has(actor))return route.abort('internetdisconnected');const q={route,actor,uid};if(hold&&hold(route.request(),actor)){held.push(q);record('held',{actor,urlPath:url.pathname,method:route.request().method()});return;}return execute(route,actor,uid);}
  if(url.hostname.endsWith('.supabase.co')&&url.pathname.startsWith('/functions/v1/')){record('mock-function',{actor,name:url.pathname.split('/').at(-1)});return route.fulfill({status:200,contentType:'application/json',body:'{}'});}
  evidence.blockedExternal.push({actor,method:route.request().method(),host:url.hostname,path:url.pathname});await route.abort();});
  await ctx.addInitScript(({base,uid,actor,scenario})=>{
@@ -137,6 +137,55 @@ try{
   await pages[0].reload();await ready(pages[0]);const s=await snap('legacy-duplicate-reload',pages);
   check('legacy same UUID only once',s.clients[0].state.expenses.length,1);check('latest local note preserved',s.clients[0].state.expenses[0].note,'Intención nueva');
   check('same cents and category',s.clients[0].state.expenses.map(e=>[Math.round(e.amount*100),e.category,Math.sign(e.amount)]),[[1234,'super',1]]);
+ }else if(scenario==='late-rename-intent'){
+  await expOpen(pages[0]);hold=req=>req.method()==='PATCH'&&new URL(req.url()).pathname.endsWith('/expenses')&&Object.hasOwn(req.postDataJSON(),'comercio');
+  const edit=async name=>{await pages[0].locator('input.v4-ficha-concept').fill(name);await pages[0].locator('input.v4-ficha-concept').press('Tab');};
+  await edit('Primero');await waitHeld(1);await edit('Segundo');
+  await pages[0].waitForFunction(()=>loadState().expenses[0].renamePending?.merchant==='Segundo');
+  await release('A');await waitHeld(1);
+  let s=await snap('old-rename-ack-new-intent',pages);
+  check('old rename ACK keeps latest durable intention',s.clients[0].state.expenses[0].renamePending?.merchant,'Segundo');
+  check('new rename remains visibly pending',await pages[0].getByTestId('expense-rename-pending').count(),1);
+  await release('A');hold=null;await pages[0].waitForFunction(()=>loadState().expenses[0].merchant==='Segundo'&&!loadState().expenses[0].renamePending);
+  for(const p of pages){await p.reload();await ready(p);}s=await snap('latest-rename-confirmed-reloaded',pages);
+  check('both clients see only latest ACK and unchanged cents',s.clients.map(x=>x.state.expenses.map(e=>[e.id,e.merchant,Math.round(e.amount*100),e.note,!!e.renamePending])),[[[expenseId,'Segundo',1234,'Nota inicial',false]],[[expenseId,'Segundo',1234,'Nota inicial',false]]]);
+  check('rename intentions never DELETE',evidence.requests.filter(x=>x.table==='expenses'&&x.method==='DELETE').length,0);
+ }else if(scenario==='legacy-unstamped'||scenario==='legacy-amounts'){
+  offline.add('A');offline.add('B');
+  for(let i=0;i<pages.length;i++)await pages[i].evaluate(({i,scenario})=>{
+    const s=loadState(),e=s.expenses[0],old={...e,merchant:'Nombre borrado'},live={...e};
+    delete old.expenseEditAt;delete live.expenseEditAt;delete old.noteEditAt;delete live.noteEditAt;
+    if(scenario==='legacy-amounts'){old.amount=-8.97;s.expenses=[old,live];}
+    else{
+      const edited=i?live:old;Object.assign(edited,{category:'ocio',catStale:['super'],debtId:'debt-fin04',noCard:true,note:'Humana legacy',noteEdited:true});
+      const other=i?old:live;delete other.debtId;delete other.noCard;delete other.note;delete other.noteEdited;
+      s.expenses=i?[live,old]:[old,live];s.deleted=[keyOfExpense(old)];
+    }
+    mcSaveRaw(mcStateKey(),s);
+  },{i,scenario});
+  for(const p of pages){await p.reload();await ready(p);}let s=await snap('legacy-offline-reload',pages);
+  const amounts=x=>x.state.expenses.filter(e=>!e.deleted).map(e=>Math.round(e.amount*100)).sort((a,b)=>a-b);
+  if(scenario==='legacy-amounts')check('conflicting signed amounts survive both load and split storage',s.clients.map(amounts),[[-897,1234],[-897,1234]]);
+  else check('live UUID and metadata from either copy survive reload',s.clients.map(x=>x.state.expenses.map(e=>[e.merchant,Math.round(e.amount*100),e.category,e.debtId,e.noCard,e.note])),[[['Compra sintética',1234,'ocio','debt-fin04',true,'Humana legacy']],[['Compra sintética',1234,'ocio','debt-fin04',true,'Humana legacy']]]);
+  offline.clear();for(const p of pages){await p.reload();await ready(p);}s=await snap('legacy-online-stale-pull',pages);
+  if(scenario==='legacy-amounts')check('cloud pull preserves both conflicting amounts',s.clients.map(amounts),[[-897,1234],[-897,1234]]);
+  else check('stale pull keeps recovered category debt card and human note',s.clients.map(x=>x.state.expenses.map(e=>[Math.round(e.amount*100),e.category,e.debtId,e.noCard,e.note])),[[[1234,'ocio','debt-fin04',true,'Humana legacy']],[[1234,'ocio','debt-fin04',true,'Humana legacy']]]);
+ }else if(scenario==='offline-rename'||scenario==='unuploaded-rename'){
+  await expOpen(pages[0]);offline.add('A');if(scenario==='unuploaded-rename')db.expenses=[];
+  await pages[0].locator('input.v4-ficha-concept').fill('Nombre pendiente');await pages[0].locator('input.v4-ficha-concept').press('Tab');await sleep(650);
+  let s=await snap('offline-rename-queued',pages);
+  check('offline rename retains durable intention',s.clients[0].state.expenses[0].renamePending?.merchant,'Nombre pendiente');
+  check('offline rename does not claim confirmed merchant',s.clients[0].state.expenses[0].merchant,'Compra sintética');
+  check('offline rename visibly pending',await pages[0].getByTestId('expense-rename-pending').count(),1);
+  await pages[0].reload();await ready(pages[0]);await expOpen(pages[0]);
+  check('offline rename draft survives reload',await pages[0].locator('input.v4-ficha-concept').inputValue(),'Nombre pendiente');
+  check('pending survives reload',await pages[0].getByTestId('expense-rename-pending').count(),1);
+  offline.delete('A');await pages[0].evaluate(()=>window.dispatchEvent(new Event('online')));
+  await pages[0].waitForFunction(()=>loadState().expenses[0].merchant==='Nombre pendiente'&&!loadState().expenses[0].renamePending);
+  for(const p of pages){await p.reload();await ready(p);}s=await snap('rename-reconnected-reloaded',pages);
+  check('one remote row exact money source and note',db.expenses.map(e=>[e.id,e.comercio,Math.round(e.importe*100),e.cat,e.source,e.nota]),[[expenseId,'Nombre pendiente',1234,'super','manual:sabadell','Nota inicial']]);
+  check('both local clients confirmed rename',s.clients.map(x=>x.state.expenses.map(e=>[e.id,e.merchant,Math.round(e.amount*100),e.category,!!e.renamePending])),[[[expenseId,'Nombre pendiente',1234,'super',false]],[[expenseId,'Nombre pendiente',1234,'super',false]]]);
+  check('rename queue never deletes the cloud expense',evidence.requests.filter(x=>x.table==='expenses'&&x.method==='DELETE').length,0);
  }else throw Error('Unknown scenario '+scenario);
 
 
