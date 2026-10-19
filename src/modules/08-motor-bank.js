@@ -324,6 +324,8 @@ function linkFixedPayment(s,expenseId,fixedId,y,m,today,expected){
   var e=(s.fixed||[]).find(function(f){ return f.id===fixedId; });
   if(!e||!fixedExpenseEligible(s,x,e,y,m,today)) return s;
   if(expected&&expected.model!==fixedPaymentModel(e,m)) return s;
+  // Un `paidYm` que llega con el diálogo abierto es otra confirmación: no se escribe encima.
+  if(expected&&((expected.paidYm||null)!==(e.paidYm||null)||(expected.paidDay||null)!==(e.paidDay||null))) return s;
   if(fixedPaymentEvidence(fixedPaymentState(s,e,y,m,today))) return s;
   if((s.fixed||[]).some(function(f){
     var p=fixedPaymentProof(s,f,y,m,today);

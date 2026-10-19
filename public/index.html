@@ -11432,7 +11432,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     const ds=String(ex.date||"").slice(0,10),y=Number(ds.slice(0,4)),m=Number(ds.slice(5,7)),now=new Date();
     const today=y===now.getFullYear()&&m===now.getMonth()+1?now.getDate():new Date(y,m,0).getDate();
     const f=(state.fixed||[]).find(function(x){ return x.id===fixedId; });
-    const expected={identity:fixedPaymentIdentity(expenseBankOf(ex),ex),model:f&&fixedPaymentModel(f,m)};
+    const expected={identity:fixedPaymentIdentity(expenseBankOf(ex),ex),model:f&&fixedPaymentModel(f,m),paidYm:f&&f.paidYm,paidDay:f&&f.paidDay};
     const save=function(){
       if(withdrawalPending.current[ex.id]){ showToast(t("f_withdraw_receipt_pending")); return; }
       let subir=null;
@@ -15566,6 +15566,8 @@ function linkFixedPayment(s,expenseId,fixedId,y,m,today,expected){
   var e=(s.fixed||[]).find(function(f){ return f.id===fixedId; });
   if(!e||!fixedExpenseEligible(s,x,e,y,m,today)) return s;
   if(expected&&expected.model!==fixedPaymentModel(e,m)) return s;
+  // Un `paidYm` que llega con el diálogo abierto es otra confirmación: no se escribe encima.
+  if(expected&&((expected.paidYm||null)!==(e.paidYm||null)||(expected.paidDay||null)!==(e.paidDay||null))) return s;
   if(fixedPaymentEvidence(fixedPaymentState(s,e,y,m,today))) return s;
   if((s.fixed||[]).some(function(f){
     var p=fixedPaymentProof(s,f,y,m,today);
