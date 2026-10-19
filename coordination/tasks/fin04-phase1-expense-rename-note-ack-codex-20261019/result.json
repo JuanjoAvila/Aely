@@ -1,0 +1,232 @@
+{
+  "status": "blocked",
+  "summary": "Phase1 implementation delivered as draftPR286 exacthead1aa1fb8a on permitted408. Rename preserves peer note, exactUUID reload unique, notezero-row rejected with persistent pending/retry UI. FourcausalRED;7finalbrowser+1unrelatedrow browserPASS;6unitgroupsPASS and financialguardsPASS. Integration blocked:size1397of1392KB gzip388of387,docs VERSIONguardEXIT1,catalogue180s timeout childnullSIGTERM. No relaxations. Synthetic SDK evidence only. ProductREADYfalse.",
+  "baseSHA": "408d8d3484568e1c02fa25dcd2df30ad71477bf1",
+  "productSHA": "1aa1fb8a14826de89d19bf690096dea66f9eb039",
+  "pullRequest": 286,
+  "productReady": false,
+  "manifestSHA256": "a7bcf5739a2b45e72fe3ae96e5ac9b230f99cd0dd4b6020815f5de8c684bd72d",
+  "tests": [
+    {
+      "run": "browser rename-note",
+      "exitCode": 0,
+      "passed": 7
+    },
+    {
+      "run": "browser note-api",
+      "exitCode": 0,
+      "passed": 5
+    },
+    {
+      "run": "browser note-zero",
+      "exitCode": 0,
+      "passed": 6
+    },
+    {
+      "run": "browser sandbox",
+      "exitCode": 0,
+      "passed": 3
+    },
+    {
+      "run": "browser late-note-ack",
+      "exitCode": 0,
+      "passed": 4
+    },
+    {
+      "run": "browser late-rename-ack",
+      "exitCode": 0,
+      "passed": 3
+    },
+    {
+      "run": "browser legacy-duplicates",
+      "exitCode": 0,
+      "passed": 3
+    },
+    {
+      "run": "browser rename-unrelated",
+      "exitCode": 0,
+      "passed": 9
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "run": "build-final",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "run": "build1",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs",
+      "run": "catalogue-final",
+      "exitCode": null,
+      "signal": "SIGTERM",
+      "error": "private harness timeout; see evidence"
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "run": "docs-exact-head",
+      "exitCode": 1
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "run": "docs-precommit",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin17-confirmed-absorptions.test.mjs",
+      "run": "fin17-final",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/i18n-keys.test.mjs",
+      "run": "i18n",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "run": "privacy-final",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/expense-id-cloud.test.mjs",
+      "run": "regression-expense-id-cloud",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/expense-note.test.mjs",
+      "run": "regression-expense-note",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/fin10-absorption-scope.test.mjs",
+      "run": "regression-fin10-absorption-scope",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/fin11-absorption-pending.test.mjs",
+      "run": "regression-fin11-absorption-pending",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/fin15-book-preference.test.mjs",
+      "run": "regression-fin15-book-preference",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/fin15-pendiente-contabilizada.test.mjs",
+      "run": "regression-fin15-pendiente-contabilizada",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/fin17-confirmed-absorptions.test.mjs",
+      "run": "regression-fin17-confirmed-absorptions",
+      "exitCode": 1
+    },
+    {
+      "command": "node tests/merge-expenses-cloud.test.mjs",
+      "run": "regression-merge-expenses-cloud",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/recibos-bajas-y-union.test.mjs",
+      "run": "regression-recibos-bajas-y-union",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/recibos-renombrar.test.mjs",
+      "run": "regression-recibos-renombrar",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/refund-polarity.test.mjs",
+      "run": "regression-refund-polarity",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/retirada-bancaria.test.mjs",
+      "run": "regression-retirada-bancaria",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "run": "relevant-map",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "run": "security-final",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "run": "security",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "run": "size-final",
+      "exitCode": 1
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "run": "syntax-final",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "run": "syntax",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test tests/fin04-rename-note-ack.test.mjs",
+      "run": "unit-final",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test tests/fin04-rename-note-ack.test.mjs",
+      "run": "unit-unrelated-final",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test tests/fin04-rename-note-ack.test.mjs",
+      "run": "unit1",
+      "exitCode": 1
+    },
+    {
+      "command": "node --test tests/fin04-rename-note-ack.test.mjs",
+      "run": "unit2",
+      "exitCode": 0
+    }
+  ],
+  "returnCommit": "eb199c432a55cc955bdcd7a5c8e04501f76a2194",
+  "priorArtifactsUnchanged": true,
+  "artifacts": [
+    "outputs/fin04-phase1-informe.md",
+    "outputs/fin04-phase1-evidencia.json",
+    "outputs/fin04-phase1-manifest.json"
+  ],
+  "limitations": [
+    "Synthetic shared transport and auth with real bundled SDK; no live RLS, database, bank, schema, Edge or native work.",
+    "Mock minimal POST204 rather than201 has equivalent SDK null-data/error-null behavior; not a SQL/transaction emulator.",
+    "Phase2 fixed/debt LWW and general note convergence deferred. Old DELETEinsert clients and amount/date edits unchanged. No durable offline rename queue.",
+    "Legacy duplicate notes without intent clocks retain first human note; chronology cannot be inferred. Distinct UUID dedup exclusion and distinct bank references tested; historical non-UUID content merge remains unchanged.",
+    "No full suite, CPU6, profiler, tracing, full CI completion, served artifact, deployment, APK or physical two-device acceptance.",
+    "Generated build was tested and sealed privately, then restored to base in source-only PR. Seven final browser cases plus a separate eighth case; no claim of a single eight-case batch.",
+    "Catalogue stopped by private180s timeout with child exit null/SIGTERM; not a proven catalogue assertion failure.",
+    "Earlier unit sandbox-global fixture error, storage debounce fixture error and invalid income category fixture error are preserved. FIN17 note expectation updated to rejection while zero-query assertion retained.",
+    "Own premature fetch spacing rejection and subsequent missing-read error preserved; actual fetch count never reset."
+  ],
+  "fetchBudget": {
+    "idbudget": "fin04-own20-b2-82dbe59f",
+    "usedBeforeResult": 10,
+    "allowance": 20
+  },
+  "schema": 1,
+  "taskId": "fin04-phase1-expense-rename-note-ack-codex-20261019",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-19T15:42:59.579Z",
+  "released": true
+}
