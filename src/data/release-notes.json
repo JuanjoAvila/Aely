@@ -10,15 +10,18 @@
     "items": {
       "es": [
         "Al volver a la app después de usar otra, y al abrirla, ya no se queda un momento parada: va más fluida, sobre todo si tienes mucho historial.",
-        "Tus gastos y tu dinero disponible siguen siendo exactamente los mismos."
+        "Tus gastos y tu dinero disponible siguen siendo exactamente los mismos.",
+        "Mantén pulsado un bróker y arrástralo sobre otro para cambiar su orden. Se conserva al volver a abrir la app."
       ],
       "en": [
         "When you come back to the app after using another one, and when you open it, it no longer freezes for a moment: it feels smoother, especially with a lot of history.",
-        "Your expenses and your available money are exactly the same."
+        "Your expenses and your available money are exactly the same.",
+        "Press and hold a broker, then drag it over another to change their order. The order stays when you reopen the app."
       ],
       "ca": [
         "En tornar a l'app després d'usar-ne una altra, i en obrir-la, ja no es queda un moment aturada: va més fluida, sobretot si tens molt d'historial.",
-        "Les teves despeses i els teus diners disponibles continuen sent exactament els mateixos."
+        "Les teves despeses i els teus diners disponibles continuen sent exactament els mateixos.",
+        "Mantén premut un bróker i arrossega'l sobre un altre per canviar-ne l'ordre. Es conserva en tornar a obrir l'app."
       ]
     },
     "tandas": [

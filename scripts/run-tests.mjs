@@ -111,6 +111,7 @@ const steps = [
   // Se relanza solo con TZ=Europe/Madrid — en una máquina en UTC el fallo es invisible.
   ["dia-local-no-utc", ["node", "tests/dia-local-no-utc.test.mjs"]],
   ["move-account", ["node", "tests/move-account.test.mjs"]],
+  ["broker-order", ["node", "tests/broker-order.test.mjs"]],
   ["merge-expenses-cloud", ["node", "tests/merge-expenses-cloud.test.mjs"]],
   // La categoría que él elige no la deshace un pull ni la palabra clave del servidor (INC-0210-02).
   ["categoria-manual-persistente", ["node", "tests/categoria-manual-persistente.test.mjs"]],

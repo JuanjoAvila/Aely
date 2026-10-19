@@ -1,3 +1,9 @@
+## Pendiente de integrar · INC-2709-08 · orden de brókers
+
+- Cuentas y brókers comparten `useListLongPress`: HOLD de 380 ms, cancelación del HOLD al desplazarse, indicador de destino y supresión del toque al soltar. Cuentas conserva `moveAccountInList`; brókers reutiliza `settings.secOrder.inv` y el guardado/push/pull del estado. No cambia cálculos ni escritores cloud.
+- El render conserva las ternas originales y completa órdenes antiguos sin duplicados ni grupos huérfanos, para evitar la regresión de 4.7.1. Se conserva la clase del desplegable y la reducción de movimiento.
+- E2E dirigido de gesto, recarga y sincronización simulada en las dos vistas; comparación íntegra de inversiones, relaciones de cuenta y demás objetos financieros. Candidata sin publicación ni aceptación móvil.
+
 ## [4.26.146] — 2026-10-19 · Candidata de beta: vuelta a primer plano sin tirón (`claude/perf-vuelta`, `fff05adca`), solo web y sin APK nueva (sigue la 4.26.145 / code 58)
 
 - **Por qué.** Diagnóstico de lag del 19/10 (`E:/wt-perf-lag/INFORME-LAG.md`): cada vuelta a primer plano (y el arranque) llama a `syncCloudExpenses`, que baja el histórico ENTERO y lo convertía todo de forma síncrona. `rows.map(expenseFromRow)` volvía a adivinar la categoría de cada fila sin categoría propia (`autoCategory`: NFD + barrido de `KW`, ~0,3 ms por fila a CPU×6), cada fila salía como objeto nuevo, y aunque la nube trajera lo mismo el estado se rehacía entero por `lastSync: Date.now()`: repintado de las cuatro pestañas y 18 KB de `micartera_v3` reescritos en cada vuelta. Crece lineal con el histórico, que encaja con «cada vez peor».
