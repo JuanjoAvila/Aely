@@ -10,8 +10,10 @@ const expense={id:expenseId,user_id:owner,fecha:new Date().toISOString(),importe
 const ids=[owner,owner];
 const db={app_state:[...new Set(ids)].map(uid=>({user_id:uid,data:{...clone(base),_historyOwner:uid},updated_at:'2026-10-19T10:00:00.000Z'})),expenses:[clone(expense)],households:[{id:house,name:'Hogar sintético',created_by:owner}],household_members:[{household_id:house,user_id:owner,role:'owner'},{household_id:house,user_id:partner,role:'member'}],household_snapshots:[]};
 if(scenario==='rename-unrelated')db.expenses.push({...clone(expense),id:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',importe:-8.97,comercio:'Otro movimiento',cat:'ingreso',nota:'Intocable'});
+if(scenario==='permanent-rename')db.expenses.push({...clone(expense),id:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',importe:4.56,comercio:'Otra compra',cat:'ocio',nota:'Intocable'});
 const evidence={scenario,baseSHA:'408d8d3484568e1c02fa25dcd2df30ad71477bf1',startedAt:new Date().toISOString(),workers:1,retries:0,CPU6Calls:0,profileCalls:0,traceCalls:0,initial:clone(db),requests:[],blockedExternal:[],pageErrors:[],snapshots:[],assertions:[],events:[]};
 let seq=0,hold=null,held=[],contexts=[];const offline=new Set();
+const rejectedNames=new Set(scenario==='permanent-rename'?['Nombre bloqueado']:scenario==='late-rename-failure'?['Primero']:[]);
 function record(label,data){evidence.events.push({seq:++seq,label,data:clone(data),at:Date.now()});}
 function check(name,actual,expected){let ok=true,error;try{assert.deepEqual(actual,expected);}catch(e){ok=false;error=e.message;}evidence.assertions.push({name,ok,actual:clone(actual),expected:clone(expected),error});if(!ok)throw Object.assign(new Error(name),{productFailure:true});return ok;}
 function matches(row,params){for(const [k,v] of params){if(['select','order','limit','offset','on_conflict'].includes(k))continue;const ix=v.indexOf('.'),op=v.slice(0,ix),rhs=v.slice(ix+1),val=row[k];if(op==='eq'&&String(val)!==rhs)return false;if(op==='lt'&&!(val<rhs))return false;if(op==='gt'&&!(val>rhs))return false;if(op==='is'&&rhs==='null'&&val!=null)return false;if(op==='in'&&!rhs.slice(1,-1).split(',').map(x=>x.replaceAll('"','')).includes(String(val)))return false;if(!['eq','lt','gt','is','in'].includes(op))throw Error('Unsupported filter '+k+':'+v);}return true;}
@@ -39,7 +41,13 @@ function processQuery(req,actor,uid){const u=new URL(req.url()),table=u.pathname
  if(error){status=error.code==='23505'?409:error.code==='42501'?403:status;data=error;}
  entry.status=status;entry.response=clone(data);evidence.requests.push(entry);return {status,data};
 }
-async function execute(route,actor,uid){const answer=processQuery(route.request(),actor,uid);await route.fulfill({status:answer.status,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:answer.status===204?'':JSON.stringify(answer.data)});}
+async function execute(route,actor,uid){
+ const req=route.request();if(req.method()==='PATCH'&&new URL(req.url()).pathname.endsWith('/expenses')&&rejectedNames.has(req.postDataJSON()?.comercio)){
+  evidence.requests.push({seq:++seq,actor,uid,table:'expenses',method:'PATCH',body:req.postDataJSON(),status:409,syntheticPermanentError:true,affectedRows:0});
+  return route.fulfill({status:409,contentType:'application/json',body:JSON.stringify({code:'synthetic_permanent',message:'Synthetic permanent refusal'})});
+ }
+ const answer=processQuery(req,actor,uid);await route.fulfill({status:answer.status,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:answer.status===204?'':JSON.stringify(answer.data)});
+}
 async function install(ctx,actor,uid){await ctx.route('**/*',async route=>{const url=new URL(route.request().url());if(url.origin===baseURL)return route.continue();
  if(url.hostname.endsWith('.supabase.co')&&url.pathname.startsWith('/rest/v1/')){if(offline.has(actor))return route.abort('internetdisconnected');const q={route,actor,uid};if(hold&&hold(route.request(),actor)){held.push(q);record('held',{actor,urlPath:url.pathname,method:route.request().method()});return;}return execute(route,actor,uid);}
  if(url.hostname.endsWith('.supabase.co')&&url.pathname.startsWith('/functions/v1/')){record('mock-function',{actor,name:url.pathname.split('/').at(-1)});return route.fulfill({status:200,contentType:'application/json',body:'{}'});}
@@ -58,6 +66,8 @@ async function install(ctx,actor,uid){await ctx.route('**/*',async route=>{const
   if(scenario==='sandbox'){localStorage.setItem('_mcSandbox','1');if(!localStorage.getItem('micartera_sandbox'))localStorage.setItem('micartera_sandbox',JSON.stringify({...base,_historyOwner:uid}));}
   if(!localStorage.getItem('__finSeeded')){localStorage.setItem('micartera_v3',JSON.stringify({...base,_historyOwner:uid}));localStorage.setItem('__finSeeded','1');}
   localStorage.setItem('_seenVersion','dev');['dash','metas','gastos','fijos','inv'].forEach(k=>localStorage.setItem('_coach_'+k,'1'));localStorage.setItem('_mr2026-10','1');
+  window.__finToastCalls=[];const nativeTimeout=window.setTimeout.bind(window);
+  window.setTimeout=function(fn,delay,...args){if((delay===4000||delay===2200)&&new Error().stack.includes('showToast'))window.__finToastCalls.push({at:Date.now(),delay});return nativeTimeout(fn,delay,...args);};
   window.__finToasts=[];addEventListener('DOMContentLoaded',()=>new MutationObserver(()=>{for(const e of document.querySelectorAll('.toast')){const t=e.textContent;if(t&&!window.__finToasts.some(x=>x.text===t))window.__finToasts.push({text:t,at:Date.now()});}}).observe(document.body,{subtree:true,childList:true,characterData:true}));
  },{base,uid,actor,scenario});}
 async function snap(label,pages){const clients=[];for(const p of pages)clients.push(await p.evaluate(()=>({state:loadState(),main:localStorage.getItem('micartera_v3'),exp:localStorage.getItem('micartera_v3_exp'),toasts:window.__finToasts,text:document.body.innerText})));const data={label,at:Date.now(),clients,db:clone(db)};evidence.snapshots.push(data);return data;}
@@ -170,6 +180,31 @@ try{
   offline.clear();for(const p of pages){await p.reload();await ready(p);}s=await snap('legacy-online-stale-pull',pages);
   if(scenario==='legacy-amounts')check('cloud pull preserves both conflicting amounts',s.clients.map(amounts),[[-897,1234],[-897,1234]]);
   else check('stale pull keeps recovered category debt card and human note',s.clients.map(x=>x.state.expenses.map(e=>[Math.round(e.amount*100),e.category,e.debtId,e.noCard,e.note])),[[[1234,'ocio','debt-fin04',true,'Humana legacy']],[[1234,'ocio','debt-fin04',true,'Humana legacy']]]);
+ }else if(scenario==='permanent-rename'){
+  await expOpen(pages[0]);const noticeStart=await pages[0].evaluate(()=>window.__finToastCalls.length);await pages[0].locator('input.v4-ficha-concept').fill('Nombre bloqueado');await pages[0].locator('input.v4-ficha-concept').press('Tab');
+  await sleep(800);for(let i=0;i<3;i++){await pages[0].evaluate(()=>window.dispatchEvent(new Event('online')));await sleep(120);}
+  check('one actual showToast call despite repeated online events',await pages[0].evaluate(()=>window.__finToastCalls.length)-noticeStart,1);
+  await pages[0].waitForFunction(()=>loadState().expenses.find(e=>e.id==='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa').renamePending?.quarantined);
+  let s=await snap('three-failures-quarantined',pages);const rejected=()=>evidence.requests.filter(x=>x.syntheticPermanentError).length;
+  check('exactly three permanent failures',rejected(),3);check('single paused notice',s.clients[0].toasts.filter(x=>x.text.startsWith('No se ha podido confirmar el nombre.')).length,1);
+  check('failed merchant remains unconfirmed',s.clients[0].state.expenses.find(e=>e.id===expenseId).merchant,'Compra sintética');
+  await pages[0].locator('.v4-ficha-done').click();await sleep(450);await pages[0].locator('[data-expense-id="bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"]').click();
+  await pages[0].locator('input.v4-ficha-concept').fill('Independiente');await pages[0].locator('input.v4-ficha-concept').press('Tab');
+  await pages[0].waitForFunction(()=>loadState().expenses.some(e=>e.merchant==='Independiente'&&!e.renamePending));
+  check('later independent edit reaches server',db.expenses.find(e=>e.id!==expenseId).comercio,'Independiente');check('closing sheet does not retry quarantine',rejected(),3);
+  await pages[0].reload();await ready(pages[0]);for(let i=0;i<5;i++){await pages[0].evaluate(()=>window.dispatchEvent(new Event('online')));await sleep(80);}await expOpen(pages[0]);
+  s=await snap('quarantine-reloaded-online',pages);check('reload and online do not restart automatic failures',rejected(),3);check('quarantine durable with exact attempt count',s.clients[0].state.expenses.find(e=>e.id===expenseId).renamePending,{merchant:'Nombre bloqueado',at:s.clients[0].state.expenses.find(e=>e.id===expenseId).renamePending.at,failures:3,quarantined:true});
+  check('reload does not repeat notice',s.clients[0].toasts.filter(x=>x.text.startsWith('No se ha podido confirmar el nombre.')).length,0);
+  rejectedNames.clear();await pages[0].getByTestId('expense-rename-pending').getByRole('button',{name:'Reintentar',exact:true}).click();
+  await pages[0].waitForFunction(()=>loadState().expenses.some(e=>e.merchant==='Nombre bloqueado'&&!e.renamePending));
+  for(const p of pages){await p.reload();await ready(p);}s=await snap('explicit-retry-both-clients',pages);
+  check('both clients retain money category note and identity',s.clients.map(x=>x.state.expenses.map(e=>[e.id,Math.round(e.amount*100),e.category,e.note,e.merchant,!!e.renamePending]).sort()),Array.from({length:2},()=>[[expenseId,1234,'super','Nota inicial','Nombre bloqueado',false],['bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',456,'ocio','Intocable','Independiente',false]].sort()));
+ }else if(scenario==='late-rename-failure'){
+  await expOpen(pages[0]);hold=req=>req.method()==='PATCH'&&req.postDataJSON()?.comercio==='Primero';
+  await pages[0].locator('input.v4-ficha-concept').fill('Primero');await pages[0].locator('input.v4-ficha-concept').press('Tab');await waitHeld(1);
+  await pages[0].locator('input.v4-ficha-concept').fill('Segundo');await pages[0].locator('input.v4-ficha-concept').press('Tab');await pages[0].waitForFunction(()=>loadState().expenses[0].renamePending?.merchant==='Segundo');
+  await release('A');hold=null;await pages[0].waitForFunction(()=>loadState().expenses[0].merchant==='Segundo'&&!loadState().expenses[0].renamePending);const s=await snap('old-failure-new-intent',pages);
+  check('old failure cannot quarantine new intent',s.clients[0].state.expenses[0].merchant,'Segundo');check('no false paused notice',s.clients[0].toasts.some(x=>x.text.startsWith('No se ha podido confirmar el nombre.')),false);check('latest intent persisted with exact amount',db.expenses.map(e=>[e.id,e.comercio,Math.round(e.importe*100)]),[[expenseId,'Segundo',1234]]);
  }else if(scenario==='offline-rename'||scenario==='unuploaded-rename'){
   await expOpen(pages[0]);offline.add('A');if(scenario==='unuploaded-rename')db.expenses=[];
   await pages[0].locator('input.v4-ficha-concept').fill('Nombre pendiente');await pages[0].locator('input.v4-ficha-concept').press('Tab');await sleep(650);
@@ -181,6 +216,7 @@ try{
   check('offline rename draft survives reload',await pages[0].locator('input.v4-ficha-concept').inputValue(),'Nombre pendiente');
   check('pending survives reload',await pages[0].getByTestId('expense-rename-pending').count(),1);
   offline.delete('A');await pages[0].evaluate(()=>window.dispatchEvent(new Event('online')));
+  if(await pages[0].evaluate(()=>loadState().expenses[0].renamePending?.quarantined))await pages[0].getByTestId('expense-rename-pending').getByRole('button',{name:'Reintentar',exact:true}).click();
   await pages[0].waitForFunction(()=>loadState().expenses[0].merchant==='Nombre pendiente'&&!loadState().expenses[0].renamePending);
   for(const p of pages){await p.reload();await ready(p);}s=await snap('rename-reconnected-reloaded',pages);
   check('one remote row exact money source and note',db.expenses.map(e=>[e.id,e.comercio,Math.round(e.importe*100),e.cat,e.source,e.nota]),[[expenseId,'Nombre pendiente',1234,'super','manual:sabadell','Nota inicial']]);

@@ -2661,7 +2661,13 @@ function subeEdicionesDeGasto(cola){
       return cloud.renameExpense(orig,p.rename.merchant,true).then(function(ack){
         if(!ack)throw new Error("rename unconfirmed");
         cola.pend.shift();p.ack(orig,ack);
-      }).catch(function(){if(p.fail)p.fail();}); // sigue pendiente para online/reintento
+      }).catch(function(){
+        const failures=Math.max(p.failures||0,orig.renamePending&&orig.renamePending.failures||0)+1;
+        p.failures=failures;const quarantined=failures>=3;
+        if(quarantined)cola.pend.shift();
+        if(p.fail)p.fail(orig,failures,quarantined);
+        if(quarantined)return paso(); // un rechazo persistente no retiene otras ediciones
+      });
     }
     return borrarGastoNube(p.orig, "gastos-editar").then(function(ok){
       if(!ok) return;
@@ -2677,6 +2683,14 @@ function subeEdicionesDeGasto(cola){
 function expenseRenameDraft(s,orig,merchant,at){
   const rows=(s.expenses||[]).map(function(e){return e.id===orig.id&&e.date===orig.date&&e.amount===orig.amount?Object.assign({},e,{renamePending:{merchant:merchant,at:at}}):e;});
   return Object.assign({},s,{expenses:rows});
+}
+function expenseRenameFailure(s,orig,intent,failures){
+  let changed=false;
+  const rows=(s.expenses||[]).map(function(e){
+    if(e.id!==orig.id||e.date!==orig.date||e.amount!==orig.amount||!e.renamePending||e.renamePending.at!==intent.at)return e;
+    changed=true;return Object.assign({},e,{renamePending:Object.assign({},e.renamePending,{failures:failures,quarantined:failures>=3})});
+  });
+  return changed?Object.assign({},s,{expenses:rows}):s;
 }
 function expenseRenameAck(s,orig,intent,ack){
   if(!ack||ack.comercio!==intent.merchant||Number(ack.importe)!==orig.amount||Date.parse(ack.fecha)!==Date.parse(orig.date)||(isExpenseUuid(orig.id)&&ack.id!==orig.id))return s;
@@ -3480,6 +3494,7 @@ function mergeExpenses(prevList, incoming, delSet){
    Caso medido: Aigües en nube=`energia` y el móvil seguía en `viajes` tras «Ya estás al día».
    Reglas: no pisar `cat` de un apunte manual; no pisar `note` si él la editó; nunca borrar. */
 function refreshExpenseFromCloud(local, incoming, readStartedAt){
+  if(local===incoming)return local;
   if(!local||!incoming) return local||incoming;
   const manual=isManualExpenseSource(local.source);
   let out=local;
@@ -3555,16 +3570,24 @@ function esFilaDeBanco(e){ return e.source==="ob" || e.source==="ob-hist"; }
    En copias locales antiguas conserva por separado la última edición y la última nota humana;
    sin reloj, prefiere la copia viva y, a igualdad, la última. Un importe o referencia
    conflictivos se conservan por separado: la unicidad no puede borrar dinero. */
-function expenseUuidIdentity(e){
+function expenseUuidIdentity(e,index){
   // Un UUID legacy conflictivo no autoriza a borrar dinero ni otra referencia bancaria.
-  return e&&isExpenseUuid(e.id)?JSON.stringify([e.id,e.amount,expenseBankOf(e)||"",e.extId||""]):null;
+  if(!e)return null;
+  const first=index.get(e.id);
+  if(!first&&!isExpenseUuid(e.id))return null;
+  for(let p=first;p;p=p.next){
+    const a=p.row;
+    if(a===e||(a.amount===e.amount&&(expenseBankOf(a)||"")===(expenseBankOf(e)||"")&&(a.extId||"")===(e.extId||"")))return p;
+  }
+  // Casi todos los UUID son únicos: solo se comparan campos al volver a ver uno.
+  const entry={row:e,next:first};index.set(e.id,entry);return entry;
 }
-function uniqueExpenseUuids(rows,delSet){
-  const at=new Map(), out=[]; let changed=false;
+function uniqueExpenseUuids(rows,delSet,index){
+  const at=index||new Map(), out=[]; let changed=false;
   (rows||[]).forEach(function(e){
-    const id=expenseUuidIdentity(e);
-    if(!id||!at.has(id)){if(id)at.set(id,out.length);out.push(e);return;}
-    changed=true;const i=at.get(id), a=out[i];
+    const id=expenseUuidIdentity(e,at);
+    if(!id||id.at===undefined){if(id)id.at=out.length;out.push(e);return;}
+    changed=true;const i=id.at, a=out[i];
     const ad=expenseIsTombstoned(a,delSet),ed=expenseIsTombstoned(e,delSet);
     const winner=ad!==ed?(ad?e:a):((e.expenseEditAt||0)>=(a.expenseEditAt||0)?e:a);
     const note=(e.noteEditAt||0)!==(a.noteEditAt||0)?((e.noteEditAt||0)>(a.noteEditAt||0)?e:a):(e.noteEdited?e:a.noteEdited?a:winner);
@@ -3588,14 +3611,14 @@ function uniqueExpenseUuids(rows,delSet){
   return changed?out:rows;
 }
 function mergeExpensesFromCloud(prevList, incoming, readStartedAt, delSet){
-  const unique=uniqueExpenseUuids(prevList,delSet), deduped=unique!==prevList;
+  const ids=new Map(),unique=uniqueExpenseUuids(prevList,delSet,ids), deduped=unique!==prevList;
   prevList=unique;
   const rows=expenseBankIdOrdinals(preferBookedExpenses((prevList||[]).concat(incoming||[]),delSet));
   const previousLength=(prevList||[]).length;
   const identitiesChanged=rows.some(function(e,i){return i<previousLength&&e!==prevList[i];});
   prevList=rows.slice(0,previousLength); incoming=rows.slice(previousLength);
-  const byKey={}; const order=[]; const refs=new Map(), ids=new Map(); let zeroRemoved=false;
-  const mergeKey=function(e){const id=expenseUuidIdentity(e);if(id&&ids.has(id))return ids.get(id);const ref=esFilaDeBanco(e)&&e.extId&&obReferenceKey(expenseBankOf(e),e.extId,e.amount);let k=ref&&refs.get(ref);if(!k){k=keyOfExpense(e);if(ref)refs.set(ref,k);}if(id)ids.set(id,k);return k;};
+  const byKey={}; const order=[]; const refs=new Map(); let zeroRemoved=false;
+  const mergeKey=function(e){const id=expenseUuidIdentity(e,ids);if(id&&id.key!==undefined)return id.key;const ref=esFilaDeBanco(e)&&e.extId&&obReferenceKey(expenseBankOf(e),e.extId,e.amount);let k=ref&&refs.get(ref);if(!k){k=keyOfExpense(e);if(ref)refs.set(ref,k);}if(id)id.key=k;return k;};
   (prevList||[]).forEach(function(e){
     if(esFilaDeBanco(e)&&e.amount===0){zeroRemoved=true;return;}
     const k=mergeKey(e);
@@ -3629,8 +3652,11 @@ function mergeExpensesFromCloud(prevList, incoming, readStartedAt, delSet){
      aviso. Sin ninguna con su id (lo subió otro móvil), la primera, como siempre: esa espera
      en `espera` hasta ver si detrás viene la suya, sin otra pasada por la tabla. */
   const espera={}, hecha={}; let hayEspera=false;
+  // Un mapa vacío sin confirmados no contiene nada que pueda ocultar la fila.
+  // Los confirmados viven en WeakMap: su presencia mantiene la comprobación completa.
+  const checkDeleted=delSet&&(Object.keys(delSet).length>0||expenseConfirmedSets.has(delSet));
   const refresca=function(k,inc){
-    if(expenseIsTombstoned(inc,delSet)&&!expenseIsTombstoned(byKey[k],delSet))return;
+    if(checkDeleted&&expenseIsTombstoned(inc,delSet)&&!expenseIsTombstoned(byKey[k],delSet))return;
     const loc=byKey[k], merged=refreshExpenseFromCloud(loc, inc, readStartedAt);
     if(merged!==loc){ byKey[k]=merged; changed=true; }
   };

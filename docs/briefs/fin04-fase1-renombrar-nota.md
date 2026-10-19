@@ -1,4 +1,4 @@
-# FIN04 fase 1 · PR286 revisión R2 (19/10/2026)
+# FIN04 fase 1 · PR286 revisión R3 (19/10/2026)
 
 Implementación cliente pendiente de revisión e integración. No es una entrega servida ni
 aceptación móvil. VERSION, catálogo, esquema y servidor no cambian; las notas de la versión
@@ -22,6 +22,13 @@ resolvía sin error, y la ficha no avisaba.
   recargar y reintenta al volver la conexión o montar Gastos. Un ACK perdido se recupera
   leyendo la fila ya renombrada. Un ACK antiguo no consume una intención posterior.
   Una nota escrita mientras viajaba la petición conserva su intención.
+- Tras **tres fallos consecutivos por intención**, el renombrado se aparta de la cola activa
+  y deja continuar las ediciones siguientes. Contador y estado apartado viven dentro de
+  `renamePending`, sobreviven a recargar y no se reactivan por online o por cerrar/abrir Gastos.
+  Solo el tercer fallo muestra un aviso; la ficha conserva el nombre confirmado y el borrador.
+  **Reintentar** crea una intención nueva y rearma el contador. Cambiar el texto también;
+  cerrar la ficha con el mismo borrador no. Fallos y ACK anteriores no consumen la intención
+  nueva. El aviso persistente explica que hace falta pulsar Reintentar.
 - `setExpenseNote` devuelve una representación única con dueño/identidad, nota exacta y
   `nota_edit=true`. Ausencia de sesión, errores y respuestas vacías/inconsistentes no son éxito.
   La nota local conserva `notePending` hasta el ACK de su propia intención `noteEditAt`.
@@ -38,6 +45,11 @@ resolvía sin error, y la ficha no avisaba.
   recuperados de categoría/deuda/tarjeta frente a lecturas antiguas, en la misma partición
   local; libera cada campo cuando la nube devuelve ese valor. No añade columnas ni se sube
   como metadato servidor. La ausencia de un campo legacy no permite inferir un borrado.
+- La identidad se busca por UUID y compara importe, banco y referencia al encontrar otro
+  igual, sin construir firmas ni usar `JSON.stringify` por fila. Un objeto idéntico se devuelve
+  directamente al refrescar; el índice se reutiliza dentro de la misma fusión, sin cachear entre
+  operaciones. El memo del pull y su atajo sin cambios permanecen intactos. Un mapa de lápidas
+  vacío solo evita construir claves cuando tampoco existe registro oculto de confirmados.
 - `renameExpense` pertenece a `CLOUD_WRITES`. El modo pruebas bloquea nota y renombrado
   antes de consultar/escribir; sus cambios locales viven en la partición de pruebas. El
   contrato de la suite sandbox enumera los 33 escritores, incluido renameExpense, y sigue
@@ -55,6 +67,14 @@ R2 añade copias legacy sin relojes con lápidas/metadatos en ambos órdenes, im
 conflictivos firmados, red caída simulada, fila todavía no subida y dos renombrados con ACK
 tardío. `merge-expenses-cloud` y `expense-note` ejecutan mutantes sobre código cargado real:
 eliminar cada guarda debe romper el oráculo de dinero, metadatos, ACK o cola correspondiente.
+R3 añade errores permanentes, edición independiente posterior, contador tras recarga,
+aviso único, reintento explícito y fallo tardío. Los mutantes vuelven a introducir serialización,
+cola bloqueada, avisos repetidos, contador reiniciado o una respuesta vieja sobre intención nueva.
+La cualificación de rendimiento compara la beta `408d8d348` sin PR286 y la candidata en navegador
+real, 20.000 filas sintéticas idénticas, CPU6 y orden ABAB. Retiene calentamientos y todas las
+muestras; la mediana de B debe ser como máximo 1,10 veces la de A en ambos modos: filas nuevas
+iguales y mismos objetos. El objetivo inicial de 100 ms procedía de Node sin limitación y fue
+corregido por no ser comparable; la prueba inicial fallida se conserva. No acredita rendimiento móvil.
 
 No es una prueba de RLS ni de transacciones PostgreSQL. No resuelve escritores antiguos,
 edición concurrente de importe/fecha, convergencia general de notas ni LWW de recibos/deudas

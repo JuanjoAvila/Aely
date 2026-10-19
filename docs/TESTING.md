@@ -4,6 +4,10 @@ local, nota concurrente, reintento y cero escrituras en modo pruebas (33 escrito
 legacy sin timestamps, lápidas, metadatos en ambos órdenes, importes conflictivos, red caída,
 fila aún no subida y ACK de renombrado tardío. Mutantes ejecutables en merge-expenses-cloud
 y expense-note. [Contrato y límites](briefs/fin04-fase1-renombrar-nota.md).
+R3 añade fallo permanente, contador durable, cola posterior, aviso único y fallo tardío;
+mutantes de esos contratos, serialización por fila, índices reconstruidos y cálculos de lápidas
+sin hechos de borrado; el registro oculto de confirmados conserva la guarda. `pull-sin-cambios` conserva su oráculo
+de cero filas convertidas, misma referencia y resultado equivalente sin atajos.
 
 Deudas: `deudas-alargar-plazo.test.mjs` está en el runner Node; `deudas-alargar-plazo.spec.mjs` está en el mapa de `09-tab-debts-goals.js`. Cubre elección explícita, guardado, datos conservados y tres idiomas. [Casos y límites](briefs/deudas-alargar-plazo-20261019.md).
 

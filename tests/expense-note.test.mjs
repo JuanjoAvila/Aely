@@ -11,6 +11,7 @@ import assert from "node:assert/strict";
 import { loadPureLogicFromFile,loadPureLogic } from "../scripts/load-pure-logic.mjs";
 import fs from 'node:fs';
 import {renameWitness} from './fin04-rename-witnesses.mjs';
+import {queueWitness,durableQueueWitness} from './fin04-queue-witnesses.mjs';
 
 const ctx = loadPureLogicFromFile();
 
@@ -167,11 +168,22 @@ t("withNotaFallback: un error que NO es de la columna se propaga (no se traga)",
 });
 
 t('FIN04 R2 renombrado pendiente, ACK exacto, tardío y reintento',()=>renameWitness(loadPureLogicFromFile()));
+t('FIN04 R3 fallo permanente libera cola con aviso único',()=>queueWitness(loadPureLogicFromFile()));
+t('FIN04 R3 contador durable e intención más reciente',()=>durableQueueWitness(loadPureLogicFromFile()));
+for(const [name,from,to,witness] of [
+  ['nunca apartar','const quarantined=failures>=3;','const quarantined=false;',queueWitness],
+  ['avisar cada fallo','p.fail(orig,failures,quarantined)','p.fail(orig,failures,true)',queueWitness],
+  ['no avanzar cola','if(quarantined)return paso();','if(quarantined)return;',queueWitness],
+  ['recarga reinicia contador','orig.renamePending&&orig.renamePending.failures||0','0',durableQueueWitness],
+  ['fallo viejo aparta nueva intención','||e.renamePending.at!==intent.at)return e;',' )return e;',durableQueueWitness]
+])t('FIN04 R3 mutante cazado: '+name,async()=>{
+  const html=fs.readFileSync(new URL('../public/index.html',import.meta.url),'utf8');assert.ok(html.includes(from),'mutante aplica');const mutated=loadPureLogic(html.replace(from,to));await assert.rejects(witness(mutated),{name:'AssertionError'});
+});
 for(const [name,from,to] of [
   ['nombre falsamente confirmado','{renamePending:{merchant:merchant,at:at}}','{merchant:merchant,renamePending:{merchant:merchant,at:at}}'],
   ['ACK viejo consume intención nueva','after.renamePending&&after.renamePending.at===intent.at','after.renamePending'],
   ['ACK de otro nombre','if(!ack||ack.comercio!==intent.merchant||Number(ack.importe)','if(!ack||Number(ack.importe)'],
-  ['red caída pierde cola','.catch(function(){if(p.fail)p.fail();});','.catch(function(){cola.pend.shift();if(p.fail)p.fail();});']
+  ['red caída pierde cola','if(quarantined)cola.pend.shift();','if(true)cola.pend.shift();']
 ])t('FIN04 R2 mutante cazado: '+name,async()=>{
   const html=fs.readFileSync(new URL('../public/index.html',import.meta.url),'utf8');assert.ok(html.includes(from),'mutante aplica');
   const mutated=loadPureLogic(html.replace(from,to));await assert.rejects(renameWitness(mutated),{name:'AssertionError'});
