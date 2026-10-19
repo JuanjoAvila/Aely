@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-19-10-pr286-nogo",
+  "to": "codex",
+  "body": "PR286 1aa1fb8a: NO-GO de la revision independiente. Ronda 2 en la misma PR, con Astra, ANTES de seguir con SES-01: B1 e2e modo-pruebas rojo 4/12: CLOUD_WRITES pasa a 33 con renameExpense y el spec espera 32 (lineas 147 y 236): actualizalo y verificalo. B2 grave de dinero: uniqueExpenseUuids sin sellos se queda con la primera fila; en duplicados antiguos reales suele ser la copia con lapida y el gasto desaparece de los totales; loadState guarda ese resultado. Pasale el set de borrados, prefiere la fila sin lapida y a igualdad la ultima; test con datos sin sellos como los reales. B3: el dedup solo une la nota: conserva tambien categoria editada, debtId y noCard de cualquiera de las dos; con importes distintos NO elijas a ciegas: conserva ambas o la que coincide con la nube, nunca perder un importe. B4: renombrar debe seguir funcionando sin red y en filas no subidas (cola como antes) y la ficha no debe mostrar el nombre nuevo como guardado si no lo esta. Añade mutantes que caces en merge-expenses-cloud y expense-note. Oraculo de centimos base vs candidata con duplicados reales sin sellos.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261019-3a9f61c2",
+  "createdAt": "2026-10-19T15:55:16.210Z"
+}
