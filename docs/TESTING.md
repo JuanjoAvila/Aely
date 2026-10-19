@@ -9,6 +9,8 @@ mutantes de esos contratos, serialización por fila, índices reconstruidos y c�
 sin hechos de borrado; el registro oculto de confirmados conserva la guarda. `pull-sin-cambios` conserva su oráculo
 de cero filas convertidas, misma referencia y resultado equivalente sin atajos.
 
+UX08: `plan-native-wave.spec.mjs` protege scroll nativo del contenido, geometría de los grupos y simulador, retorno del alta y cancelación durante la salida después de desplazar la ficha. Oráculos de frames y persistencia cruda; tacto real CDP, un worker, cero retry y red externa abortada. Dos RED independientes. [Contrato y límites](briefs/ux08-native-wave-close-jump.md).
+
 INC-2709-03/UX-08: `plan-ola-web.spec.mjs` está en el mapa de `14-v4-screens`; CORE de shell/02 se mantiene. Cuatro RED causales y cuatro GREEN web, más nueve guardianes de Gestionar (un worker, cero retry). Compara capas de reposo, geometría fixed, tacto real, normal/reducido y cancelación/reanudación, con persistencia cruda exacta. DOM y PNG por frame son observaciones visuales, sin CPU6 ni perfilado; no acreditan ola nativa Android. [Acta y fallos conservados](briefs/inc270903-ux08-ola-web.md).
 
 Deudas: `deudas-alargar-plazo.test.mjs` está en el runner Node; `deudas-alargar-plazo.spec.mjs` está en el mapa de `09-tab-debts-goals.js`. Cubre elección explícita, guardado, datos conservados y tres idiomas. [Casos y límites](briefs/deudas-alargar-plazo-20261019.md).

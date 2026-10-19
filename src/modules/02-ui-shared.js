@@ -1653,6 +1653,9 @@ function useSheetSwipe(open, onClose, opts){
     if(e&&e.stopPropagation) e.stopPropagation();
     if(closing.current) return;
     if(!(e.touches&&e.touches[0])) return;
+    // En las fichas de Gestionar, el contenido conserva el overscroll del navegador.
+    // El asa sigue permitiendo bajar la hoja; el gesto lateral de Atrás es independiente.
+    if(opts.nativeScroll&&!(e.target&&e.target.closest&&e.target.closest(".v4-sheet-handle"))) return;
     armed.current=true;
     dragging.current=true; dy.current=0; axis.current=null;
     startY.current=e.touches[0].clientY; startX.current=e.touches[0].clientX;
@@ -1758,6 +1761,9 @@ function useSheetSwipe(open, onClose, opts){
   };
   const onTouchCancel=function(e){
     if(e&&e.stopPropagation) e.stopPropagation();
+    // Un segundo toque cancelado durante la salida no puede borrar su transform:
+    // devolvía la ficha a su sitio antes de que el temporizador la desmontase.
+    if(closing.current) return;
     // Android puede cancelar un toque al entregar el scroll al WebView. No es un `touchend`:
     // confirmar aquí el cierre hacía que una ficha desapareciera o rebotara sin que él la soltara.
     dragging.current=false; armed.current=false; axis.current=null; dy.current=0; scrollHost.current=null;
