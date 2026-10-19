@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "id": "ux11-sheet-scroll-jump-codex-20261019",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261019-r74-36ea75cf98e01bbf",
+  "createdAt": "2026-10-19T09:27:37.899Z",
+  "to": "codex",
+  "kind": "worker",
+  "priority": 4,
+  "baseSHA": "656194916c61e8fd6d3ca50450d072d2980784e1",
+  "assignedPublicSessionId": "codex-local-20261016-5fc9afdec60f82b1",
+  "claudeGrant": "7bb5421dcca7fcd732d668ee269327184f8bd45f",
+  "originalScopeGrant": "2bffe34bdf2a1e2b6e67da72f0773ce195cb28b6",
+  "dependsOnReleasedResult": "13579de89e5f6bffa8c965a8b2956cfd56962899",
+  "objective": "UX-11: reproduce vertical scroll jump after closing sheets; NO_REPRO evidence and STOP, or demonstrated causal fix and new draft PR beta.",
+  "requirements": [
+    "Read complete Claude7bb5421d and2bffe34b, current task, applicable AGENTS EMPIEZA and channel protocol. Latest base656194916 (4.26.145) supersedes original70908020. PR282 released and Claude received in review; ROOT verified source/evidence hashes without reruns. Brokers remain queued AFTER this task; splash remains parked, no resumption.",
+    "Original H2 holder same own identity/session/runtime/cwd/helper/filter only. New own claim push/readback and ACK before substantive work. Own fresh runtime access verification; no general permission questions. Actual denial must be preserved and action stopped, no proxy alternate identity route or new chat bypass.",
+    "Verify OWN current ledger and frozen blocks before fetch. Preserve all historical NFF and counters; first/internal/readbacks count minimum30s. Next OWN20 only after real exhaustion and notice/readback under existing permanent grant. No counter inheritance or reset.",
+    "Create a NEW isolated checkout/branch from exact656194916 with clean source provenance; preserve original H2 PR275, splash, inventory, sources, WIP and all prior results byte-for-byte. No old checkout mutations.",
+    "First reproduce in real browser directed E2E: scroll to mid page, open/close Deudas, Metas, Recibos sheets and expense detail sheet. Record actual scroll container scrollTop plus first visible row position/identity before opening and after closing/settling. Use synthetic deterministic fixtures, correct target sheet and stable measurement; record raw values and screenshots. Do not run performance or CPU6.",
+    "Own spec/fixtures/port one worker zero retries under027aeb19, guards and no live bank/cloud writes. Same-holder private harness corrections underbc1c5e1 permitted with earlier failures retained; no arbitrary repeated finished tests. On infrastructure permitted rerun only exact allowed class and preserve original error. No foreign process lock mutations.",
+    "If no causal reproduction: deliver NO_REPRO with evidence for all four flows and STOP, no speculative fix or PR. If causal reproduction: preserve RED before fix, make only minimal scroll/sheet correction, meaningful targeted GREEN and related existing guardian checks, then new draft beta PR. Do not change financial contracts amounts paidYm links proofs data writers theme or unrelated shell behavior. Consult Claude if required scope exceeds scroll/sheet behavior.",
+    "No fullsuite CPU6 performance native Gradle APK backend SQL Edge livebanks VERSION catalogue caps deploy merge. Real integration gate failures remain real; no raising caps or weakening checks. Claude owns PR282 size/docs and root will not assign them here.",
+    "Deliver immutable own released result actual commands and EXITs source/evidence manifest checkpoint closure exact own result readback and private ROOT74 handoff, then STOP. Distinguish NO_REPRO or focal candidate from general CI integration served artifact and real mobile acceptance. No ProductREADY."
+  ],
+  "deliverable": "UX11 NO_REPRO evidence and STOP, or causal RED/fix/GREEN new draft beta with immutable blocked released result; brokers not included.",
+  "scope": [
+    "Four directed sheet open/close scroll reproduction flows on exact beta656194916",
+    "NO_REPRO evidence and STOP, or causal minimal scroll correction with targeted E2E",
+    "No financial, performance, native or release changes"
+  ]
+}
