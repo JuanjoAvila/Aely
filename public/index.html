@@ -9485,31 +9485,26 @@ function mcInicioFillHaptic(e){
   }catch(err){}
 }
 
-/* Count-up compartido (B2). `ready` es la puerta: Inicio espera `mc-splash-gone`; Cartera espera
-   el bus `mcOnCarteraActive`. Sin puerta, la animación se gasta con la pestaña premontada (o
-   detrás del splash) y al llegar el número ya está puesto — peor que no animar. */
-function useCountUp(target, ready, replay){
-  const [shown,setShown]=useState(0);
+/* Cifra con transición compartida (B2). Ya NO cuenta desde 0: mientras la pestaña entraba
+   deslizándose (`ready` aún en false) Cartera pintaba «0,00 €», y en «Tus recibos» quien tocaba un
+   grupo antes de los 950 ms se quedaba viendo una cifra a medias (1518,65 por 1526,87, vídeo de la
+   beta 4.26.150). Un número que no es el real es peor que no animar (AGENTS §1): se pinta la cifra
+   real desde el primer frame y solo se anima el paso de un valor real a otro mientras se mira. */
+function useCountUp(target, ready){
+  const tgt0=+(target||0);
+  const [shown,setShown]=useState(tgt0);
   const rafRef=useRef(0);
-  const shownRef=useRef(0);
-  const primeraRef=useRef(true);
+  const shownRef=useRef(tgt0);
   useEffect(function(){
-    /* Gestionar queda montado detrás de Plan. Si solo paramos el RAF al cerrarlo, conserva el
-       total final y la siguiente entrada ya no tiene animación; `replay` devuelve el contador a
-       cero mientras está oculto sin cambiar Inicio ni Cartera (feedback 2026-09-18). */
-    if(!ready){
-      if(replay){ shownRef.current=0; primeraRef.current=true; setShown(0); }
-      return undefined;
-    }
     const tgt=+(target||0);
     cancelAnimationFrame(rafRef.current);
-    if(mcReduced()){
-      shownRef.current=tgt; setShown(tgt); primeraRef.current=false;
+    // Oculta, sin movimiento o ya en su sitio: la cifra salta a su valor real.
+    if(!ready||mcReduced()||shownRef.current===tgt){
+      shownRef.current=tgt; setShown(tgt);
       return undefined;
     }
     let cancelado=false;
-    const start=primeraRef.current?0:shownRef.current;
-    primeraRef.current=false;
+    const start=shownRef.current;
     const t0=performance.now(), dur=950;
     const ease=function(x){ return 1-Math.pow(1-x,3); };
     const step=function(now){
@@ -9522,8 +9517,9 @@ function useCountUp(target, ready, replay){
     };
     rafRef.current=requestAnimationFrame(step);
     return function(){ cancelado=true; cancelAnimationFrame(rafRef.current); };
-  },[target, ready, replay]);
-  return shown;
+  },[target, ready]);
+  // Oculta, el render ya lleva el valor real aunque el efecto aún no haya corrido.
+  return ready?shown:+(target||0);
 }
 
 function recordAccountBalances(hist, day, rows){
@@ -19763,7 +19759,7 @@ function fixedMonthlyOf(e){
   return (Number(e.amount)||0)*(FREQ_M[e.freq]||1);
 }
 function billsHeroTotal(state, totals){
-  /* Misma cifra que Plan › Recibos / totals.fijosMensual: servicios + cuotas activas. */
+  /* Misma cifra que Plan › Recibos / totals.fijosMensual (los dos suman `fixedMonthlyOf`). */
   if(totals&&Number.isFinite(totals.fijosMensual)) return totals.fijosMensual;
   const serv=(state.fixed||[]).reduce(function(a,e){ return a+fixedMonthlyOf(e); },0);
   const cuotas=(state.debts||[]).reduce(function(a,d){ return a+(debtActive(d)?(d.monthly||0):0); },0);
@@ -23838,7 +23834,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="fad8acf5a6e632b9757c2c5db15e5aed91d2a85fb2b18ea87413808569f6a9c4";
+var _rnSha="3e9afd0735b7c71a1b2a634d3f503c3996f21e35d3128499808754c1fa2bb716";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -25109,7 +25105,8 @@ function buildHouseholdSnapshot(state, totals, email){
   }).sort(function(a,b){ return b.spent-a.spent; }).slice(0,8);
   // Fijos: total mensual + top 5 (nombre + importe, sin cuentas bancarias)
   const fixedTop=(state.fixed||[]).map(function(f){
-    return { name:f.name||"?", amount:+Number((f.amount||0)*(FREQ_M[f.freq]||1)).toFixed(2) };
+    // Misma mensualidad que el total de arriba (`fixedMonthlyOf`): respeta los importes por cobro.
+    return { name:f.name||"?", amount:+Number(fixedMonthlyOf(f)).toFixed(2) };
   }).filter(function(f){ return f.amount>0; })
     .sort(function(a,b){ return b.amount-a.amount; }).slice(0,5);
   return {
@@ -25935,7 +25932,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
     return undefined;
   },[detail, addStep, open]);
   const hero=billsHeroTotal(state,totals);
-  const shownHero=useCountUp(hero,!!open,true);
+  const shownHero=useCountUp(hero,!!open);
   if(!open) return null;
   const banks=Array.from(new Set((state.accounts||[]).map(function(a){ return a.ent; }).filter(Boolean)));
   if(!banks.length) banks.push("sabadell");
@@ -29649,7 +29646,10 @@ function App(){
     const debtTotal=state.debts.reduce((a,d)=>a+debtBalance(d),0);   // saldo proyectado (baja solo cada mes)
     const activos=liquid+invested+assetsTotal;
     const netWorth=activos-debtTotal;
-    const fijosVar=state.fixed.reduce((a,e)=>a+e.amount*(FREQ_M[e.freq]||1),0);
+    // La mensualidad de cada recibo sale de `fixedMonthlyOf`, la misma que los grupos de «Tus
+    // recibos»: con `amount×FREQ_M` un recibo de importe distinto por cobro (seguro 172,05 + 166,94)
+    // ignoraba su `schedule` y la cabecera no cuadraba con la suma de sus grupos (beta 4.26.150).
+    const fijosVar=state.fixed.reduce((a,e)=>a+fixedMonthlyOf(e),0);
     const cuotas=state.debts.reduce((a,d)=>a+(debtActive(d)?(d.monthly||0):0),0);
     const fijosMensual=fijosVar+cuotas;
     const ahorroMensual=state.aportaciones.reduce((a,x)=>a+x.amount,0);

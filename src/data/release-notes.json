@@ -13,21 +13,27 @@
         "Toque suave al cambiar entre Recibos, Deudas y Metas.",
         "El anillo de Mi ciclo vibra poco y se regula en Ajustes.",
         "En Gestionar plan aparece la ola al llegar al final.",
-        "Al renombrar un gasto, la lista enseña el nombre nuevo al momento."
+        "Al renombrar un gasto, la lista enseña el nombre nuevo al momento.",
+        "«Se te van cada mes» cuadra con la suma de sus grupos cuando hay recibos con calendario propio, como los seguros semestrales.",
+        "Las cifras ya no cuentan desde 0 al entrar en una pantalla."
       ],
       "en": [
         "The border of lists vibrates only once per gesture.",
         "A soft tap when switching between Bills, Debts and Goals.",
         "The My cycle ring vibrates only a little and can be tuned in Settings.",
         "In Manage plan the ripple shows when you reach the end.",
-        "When you rename an expense, the list shows the new name at once."
+        "When you rename an expense, the list shows the new name at once.",
+        "«Se te van cada mes» (monthly total) now matches the sum of its groups when bills have their own calendar, such as half-yearly insurance.",
+        "Figures no longer count up from 0 when you open a screen."
       ],
       "ca": [
         "La vora de les llistes vibra un sol cop per gest.",
         "Toc suau en canviar entre Rebuts, Deutes i Metes.",
         "L'anell de El meu cicle vibra poc i es regula a Ajustos.",
         "A Gestionar pla apareix l'ona en arribar al final.",
-        "En reanomenar una despesa, la llista mostra el nom nou a l'instant."
+        "En reanomenar una despesa, la llista mostra el nom nou a l'instant.",
+        "«Se te van cada mes» (total mensual) quadra amb la suma dels seus grups quan hi ha rebuts amb calendari propi, com les assegurances semestrals.",
+        "Les xifres ja no compten des de 0 en entrar a una pantalla."
       ]
     },
     "tandas": [
@@ -125,6 +131,28 @@
           "ca": [
             "1. Obre una despesa a Despeses, canvia-li el nom i desa. La llista mostra el nom nou a l'instant, amb ⏳ fins que es desi. MALAMENT: la llista continua amb el nom vell.",
             "2. Espera uns segons: la llista conserva el nom nou i desapareix el ⏳. MALAMENT: torna el nom vell."
+          ]
+        }
+      },
+      {
+        "id": "recibos-cifra-cuadra",
+        "t": {
+          "es": "Recibos: la cifra mensual cuadra y no cuenta desde 0",
+          "en": "Bills: the monthly figure adds up and does not count from 0",
+          "ca": "Rebuts: la xifra mensual quadra i no compta des de 0"
+        },
+        "items": {
+          "es": [
+            "1. Abre Plan → Recibos: «Se te van cada mes» es igual a la suma de los grupos de debajo. MAL: no cuadra.",
+            "2. Entra en Cartera y en Inicio: la cifra grande sale directamente, sin pasar por 0,00 €. MAL: se ve 0."
+          ],
+          "en": [
+            "1. Open Plan → Bills: «Se te van cada mes» equals the sum of the groups below. WRONG: it does not add up.",
+            "2. Go into Wallet and Home: the big figure shows straight away, without passing through 0,00 €. WRONG: you see 0."
+          ],
+          "ca": [
+            "1. Obre Pla → Rebuts: «Se te van cada mes» és igual a la suma dels grups de sota. MALAMENT: no quadra.",
+            "2. Entra a Cartera i a Inici: la xifra gran surt directament, sense passar per 0,00 €. MALAMENT: es veu 0."
           ]
         }
       }
