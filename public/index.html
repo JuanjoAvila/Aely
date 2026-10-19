@@ -1255,6 +1255,9 @@
      anclaba la hija fixed al scroll del padre (19/10). El cierre/retorno ponen su transición
      inline; al limpiarla, no volver a animar la matriz identidad hacia none. */
   .settings-push.v4-bills-push{will-change:auto;transition:none;}
+  /* El contenido de estas hijas también entrega sus bordes al navegador. La promoción de
+     capa solo hace falta durante el arrastre/salida; no mantener una textura en reposo. */
+  .v4-sheet[data-sheet="bill"],.v4-sheet[data-sheet="bill-add"]{will-change:auto;}
   /* La subpantalla queda por encima del hub para que Atrás enseñe su destino mientras acompaña
      al dedo, igual que Inversiones. Ella es su propio scroller y no dibuja barra lateral. */
   /* Un píxel de recorrido conserva la ola también con una cartera vacía, sin alterar el aspecto. */
@@ -6695,7 +6698,7 @@ const LANG = {
     v4_set_appear:"Apariencia", v4_set_easy:"Para empezar fácil", v4_set_conn:"Conexiones",
     v4_set_money:"Dinero", v4_set_app:"App",
     v4_set_tour:"Ver el tutorial", v4_set_adv:"Avanzado",
-   hv_title:"Vibración", hv_intro:"Busca la vibración que te guste. Se guarda solo en este móvil.", hv_cycle:"Mi ciclo (el anillo de Inicio)", hv_cycle_hint:"Vibra mientras se rellena el anillo, más cuanto más lleno esté.", hv_edge:"Al llegar arriba o abajo", hv_tick:"Cursor de la gráfica de Inicio", hv_strength:"Fuerza", hv_length:"Duración", hv_every:"Repite cada (si sigues tirando)", hv_try:"Probar", hv_copy:"Copiar valores", hv_copied:"Valores copiados", hv_copy_fail:"No se pudieron copiar", hv_reset:"Volver a los de serie", hv_need_apk:"Para notar estos valores hay que instalar la última versión de la app.", hv_no_native:"La vibración solo funciona en la app de Android.",
+   hv_title:"Vibración", hv_motor_amp:"Tu móvil ajusta la fuerza y el ritmo de la vibración.", hv_motor_onoff:"Tu móvil no ajusta la fuerza: se nota como toques más largos o más cortos.", hv_intro:"Busca la vibración que te guste. Se guarda solo en este móvil.", hv_cycle:"Mi ciclo (el anillo de Inicio)", hv_cycle_hint:"Vibra mientras se rellena el anillo, más cuanto más lleno esté.", hv_edge:"Al llegar arriba o abajo", hv_tick:"Cursor de la gráfica de Inicio", hv_strength:"Fuerza", hv_length:"Duración", hv_every:"Repite cada (si sigues tirando)", hv_try:"Probar", hv_copy:"Copiar valores", hv_copied:"Valores copiados", hv_copy_fail:"No se pudieron copiar", hv_reset:"Volver a los de serie", hv_need_apk:"Para notar estos valores hay que instalar la última versión de la app.", hv_no_native:"La vibración solo funciona en la app de Android.",
     v4_moved_cat:"Movido a {cat}", 
     v4_exp_del:"Borrar", v4_exp_del_q:"¿Borrar «{name}»?", v4_exp_del_sub:"Podrás recuperarlo durante 5 segundos.",
     f_amount_aria:"Importe", f_concept_ph:"Toca para escribir el concepto", f_cat:"Categoría",
@@ -9335,10 +9338,12 @@ function mcEdgeHaptic(){
   const v=mcHapticTune();
   mcHaptic("edge",{amplitude:v.edgeAmp,durationMs:v.edgeMs});
 }
+// Píxeles de arrastre nuevo contra el borde que valen otro toque: menos es el temblor del dedo.
+const MC_EDGE_PULL_STEP=8;
 function mcBindEdgeHaptics(root, blocked){
-  let g=null, states=new WeakMap(), pullTimer=0, lastAt=-Infinity;
+  let g=null, states=new WeakMap(), lastAt=-Infinity;
   const buzz=function(){ lastAt=performance.now(); mcEdgeHaptic(); };
-  const stopPull=function(){ clearTimeout(pullTimer); pullTimer=0; if(g) g.pulling=false; };
+  const stopPull=function(){ if(g) g.pulling=false; };
   const end=function(){ stopPull(); g=null; };
   const boundary=function(el){
     const max=el.scrollHeight-el.clientHeight, y=el.scrollTop;
@@ -9366,16 +9371,6 @@ function mcBindEdgeHaptics(root, blocked){
     if(s.latched===edge||quiet()) return;
     s.latched=edge; s.armed=false;
     buzz();
-  };
-  const repeatPull=function(){
-    const own=g;
-    if(pullTimer||!own||!own.pulling) return;
-    pullTimer=setTimeout(function(){
-      pullTimer=0;
-      if(g!==own||!own.pulling) return;
-      if(quiet()||!own.el.isConnected||scroller(own.el)!==own.el||boundary(own.el)!==own.edge){ stopPull(); return; }
-      buzz(); repeatPull();
-    },mcHapticTune().edgeEvery);
   };
   const scroll=function(e){
     const el=scroller(e.target);
@@ -9413,13 +9408,21 @@ function mcBindEdgeHaptics(root, blocked){
     if(Math.abs(dy)<=Math.abs(dx)*1.2) return;
     const outward=edge==="top"?t.clientY-g.anchor:g.anchor-t.clientY;
     if(outward<10){ stopPull(); return; }
-    const resumed=!g.pulling;
-    pulse(g.el,edge);
-    // Seguir tirando con el borde ya alcanzado —también tras llegar por inercia— avisa YA, no
-    // tras el intervalo: «no vibra cuando sigues bajando estando abajo» (ronda 3). El intervalo
-    // sí se respeta para no encadenar dos toques pegados.
-    if(resumed&&!quiet()&&performance.now()-lastAt>=mcHapticTune().edgeEvery) buzz();
-    g.pulling=true; repeatPull();
+    const every=mcHapticTune().edgeEvery;
+    if(!g.pulling){
+      pulse(g.el,edge);
+      // Seguir tirando con el borde ya alcanzado —también tras llegar por inercia— avisa YA, no
+      // tras el intervalo: «no vibra cuando sigues bajando estando abajo» (ronda 3).
+      if(!quiet()&&performance.now()-lastAt>=every) buzz();
+      g.pulling=true; g.mark=t.clientY;
+      return;
+    }
+    /* Solo repite con recorrido NUEVO del dedo contra el borde, nunca con el dedo quieto: «si
+       bajo y sigo haciendo el gesto de bajar sí, pero si mantengo abajo no debería vibrar todo el
+       rato» (ronda 4; antes un reloj repetía mientras el dedo seguía puesto). El intervalo
+       sigue poniendo el ritmo máximo para que un arrastre rápido no sea un zumbido. */
+    const travel=edge==="top"?t.clientY-g.mark:g.mark-t.clientY;
+    if(travel>=MC_EDGE_PULL_STEP&&!quiet()&&performance.now()-lastAt>=every){ buzz(); g.mark=t.clientY; }
   };
   const listeners={touchstart:start,touchmove:move,touchend:end,touchcancel:end,visibilitychange:end};
   Object.keys(listeners).forEach(function(type){ root.addEventListener(type,listeners[type],{passive:true}); });
@@ -10347,6 +10350,9 @@ function useSheetSwipe(open, onClose, opts){
     if(e&&e.stopPropagation) e.stopPropagation();
     if(closing.current) return;
     if(!(e.touches&&e.touches[0])) return;
+    // En las fichas de Gestionar, el contenido conserva el overscroll del navegador.
+    // El asa sigue permitiendo bajar la hoja; el gesto lateral de Atrás es independiente.
+    if(opts.nativeScroll&&!(e.target&&e.target.closest&&e.target.closest(".v4-sheet-handle"))) return;
     armed.current=true;
     dragging.current=true; dy.current=0; axis.current=null;
     startY.current=e.touches[0].clientY; startX.current=e.touches[0].clientX;
@@ -10452,6 +10458,9 @@ function useSheetSwipe(open, onClose, opts){
   };
   const onTouchCancel=function(e){
     if(e&&e.stopPropagation) e.stopPropagation();
+    // Un segundo toque cancelado durante la salida no puede borrar su transform:
+    // devolvía la ficha a su sitio antes de que el temporizador la desmontase.
+    if(closing.current) return;
     // Android puede cancelar un toque al entregar el scroll al WebView. No es un `touchend`:
     // confirmar aquí el cierre hacía que una ficha desapareciera o rebotara sin que él la soltara.
     dragging.current=false; armed.current=false; axis.current=null; dy.current=0; scrollHost.current=null;
@@ -23728,7 +23737,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="87623adf7b792cf058d808fe7ec124b985dbc055550c5c3e22f3dad92f1d6639";
+var _rnSha="2ee6bae4a51369fa341beed34e0939f6e885767797ab7647f925ee12be159dfd";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -23935,7 +23944,12 @@ function HapticTuner({showToast}){
   // La APK 58 no entiende fuerza ni duración: mejor decirlo que dejarle probando a ciegas.
   const said=function(p){
     if(!p){ if(!mcReduced()) showToast(t(typeof _mcNative!=="undefined"&&_mcNative?"hv_need_apk":"hv_no_native")); return; }
-    p.then(function(r){ if(!r||!r.tunable) showToast(t("hv_need_apk")); });
+    // Ronda 5: además se dice qué motor tiene su móvil, para no volver a adivinar si la fuerza
+    // llega como amplitud o solo como tiempo encendido.
+    p.then(function(r){
+      if(!r||!r.shaped){ showToast(t("hv_need_apk")); return; }
+      showToast(t(r.amplitudeControl?"hv_motor_amp":"hv_motor_onoff"));
+    });
   };
   const later=function(ms,fn){ timers.current.push(setTimeout(fn,ms)); };
   const tryFill=function(){
@@ -25981,8 +25995,8 @@ function BillsItemSheet({row, set, banks, simple, onClose, onRemove}){
   const hasSched=hasSchedule(item);
   const titleRef=React.useRef(null);
   const sideRef=React.useRef(null);
-  const swipe=useSheetSwipe(true,onClose);
-  const side=useEdgePageClose(true,onClose,true,sideRef);
+  const swipe=useSheetSwipe(true,onClose,{nativeScroll:true});
+  const side=useEdgePageClose(true,onClose,true,sideRef,{plainScroll:true});
   const sheetRef=swipe.sheetRef;
   const titleId="bills-item-title";
   React.useEffect(function(){ setAmount(""); },[row.id]);
@@ -26114,7 +26128,7 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, onSa
   const sideRef=React.useRef(null);
   const onCloseRef=React.useRef(onClose);
   onCloseRef.current=onClose;
-  const swipe=useSheetSwipe(true,function(){ onCloseRef.current&&onCloseRef.current(); });
+  const swipe=useSheetSwipe(true,function(){ onCloseRef.current&&onCloseRef.current(); },{nativeScroll:true});
   const sheetRef=swipe.sheetRef;
   const titleId="bills-add-title";
   stepRef.current=step; formRef.current=form;
@@ -26132,7 +26146,7 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, onSa
   stepBackRef.current=stepBack;
   useBackClose(true,function(){ stepBackRef.current(); },step);
   // El primer paso ya sale con la ola: el callback de Atrás desmonta sin otra salida vertical.
-  const side=useEdgePageClose(true,stepBack,step,sideRef);
+  const side=useEdgePageClose(true,stepBack,step,sideRef,{plainScroll:true});
   React.useLayoutEffect(function(){
     // El fondo persiste entre pasos; cada Atrás debe dejar el anterior centrado y listo para otro.
     const el=sideRef.current; if(!el) return;

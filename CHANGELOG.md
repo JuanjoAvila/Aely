@@ -1,3 +1,12 @@
+## [4.26.152] — 2026-10-19 · Candidata de beta: ola nativa en Gestionar plan (PR 287) y vibración del ajustador ronda 2 (UX-16), con APK nueva (4.26.152 / code 60)
+
+- **Qué lleva.** La 4.26.151 local (`fa138e12c`, aún sin empujar) más la PR 287 (`36b01eaf`), `c84de633` (`claude/vibra-aj-r2`) y `c4ce8075` (`claude/youtube-enlace-r2`, solo un test guardián) y `8aae4cef` (test lifecycle-inflight).
+- **Gestionar plan (INC-2709-03 y UX-08).** Vuelve la ola nativa al llegar al final y la hoja de recibo ya no salta al cerrar; la ficha deja de cerrarse arrastrando desde el contenido y se cierra solo desde la barrita, con Atrás o tocando fuera.
+- **Vibración (UX-16 R2).** La fuerza del ajustador se siente en el motor (troceo en ranuras) y el borde solo vibra mientras el dedo se mueve. Cambio nativo: hace falta la APK 60. `sha256` y `sourceSha` de `public/apk.json` quedan por rellenar tras compilar.
+- **Panel.** Dos tandas nuevas, `gestionar-plan-ola` y `vibracion-ajustador-r2`. La `gestionar-plan-sin-ola` de la 150 y la `vibracion-ajustador` de la 148 pasan a vacías; la de YouTube de la 148 se queda.
+- **Test.** `8aae4cef` (`claude/fix-lifecycle-test`): `lifecycle-inflight` ya no espera que `lastSync` avance en una lectura idéntica (desde perf-vuelta no avanza a propósito); arregla el rojo del job tests de la 150.
+- **Acta de la PR 287.** Candidata UX08 sin versión nueva (19/10/2026): el contenido de ficha/alta de recibos conserva el scroll vertical nativo y el asa mantiene el cierre. `useSheetSwipe.onTouchCancel` ya no borra una salida activa, que hacía retroceder la hoja antes de desmontarse. Limpieza lateral y capa de reposo acotadas a estas fichas. [Causas reproducidas y límites](docs/briefs/ux08-native-wave-close-jump.md); aceptación Android e integración pendientes.
+
 ## [4.26.151] — 2026-10-19 · Candidata de beta: renombrar gastos y notas seguros con dos móviles (PR 286, FIN-04 fase 1), solo web y sin APK nueva (sigue la 4.26.148 / code 59)
 
 - **Qué lleva.** La beta 4.26.150 (`dca4c71c6`) más la PR 286 (`12263116`), con GO de dinero en tres rondas: renombrar actualiza solo el comercio con ACK, sin restaurar la nota de otra copia; la fusión conserva la copia viva y los metadatos legacy sin colapsar importes o referencias conflictivos; nota y nombre sin confirmar quedan pendientes con aviso y reintento durable (tres fallos apartan el renombrado con un aviso).

@@ -65,10 +65,10 @@ for(const terminal of ["success","error"])test("lifecycle drena lectura retenida
   await page.waitForFunction(()=>window.__inflight.records[1]?.phase==="rejected"&&window.__inflight.records[1].settled);
   expect(await page.evaluate(()=>window.__inflight.records[0].phase)).toBe("held-before-delivery");
   await visibility(page,"hidden");await context.setOffline(false);
-  const beforeC=await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).lastSync);
   expect((await visibility(page,"visible")).online).toBe(true);
-  await page.waitForFunction(()=>window.__inflight.records[2]?.phase==="fulfilled"&&JSON.parse(localStorage.getItem("micartera_v3")).lastSync>0);
-  await page.waitForFunction(before=>JSON.parse(localStorage.getItem("micartera_v3")).lastSync>before,beforeC);
+  // Una lectura con filas idénticas deja el estado como estaba y ya no sube `lastSync` (perf-vuelta,
+  // 19/10/2026): C se acredita por su promesa cumplida, no por el sello persistido.
+  await page.waitForFunction(()=>window.__inflight.records[2]?.phase==="fulfilled"&&window.__inflight.records[2].settled);
   await frames(page);await visibility(page,"hidden");
   const afterC=await raw(page);
   const preRelease=await page.evaluate(()=>({phases:window.__inflight.records.map(r=>r.phase),inFlight:window.__inflight.inFlight,
@@ -87,13 +87,14 @@ for(const terminal of ["success","error"])test("lifecycle drena lectura retenida
    limits:"same synthetic payload; hidden getters+visibilitychange, Chromium offline, explicit promise rejection; no socket cancellation, OS suspension, bank transport or lag conclusion"}));
  }finally{
   // Libera cualquier A retenido incluso si falló un readback; no queda una operación colgada.
-  await page.evaluate(async()=>{
+  // Con la página ya cerrada (timeout) evaluar aquí taparía la causa real con «Target closed».
+  if(!page.isClosed())await page.evaluate(async()=>{
    const p=window.__inflight;if(!p)return;
    p.records.forEach(r=>r.release?.("success"));await Promise.allSettled(p.promises);
    if(p.originalPull)cloud.pullExpenses=p.originalPull;if(p.originalBank)cloud.bankSync=p.originalBank;
    if(p.originalPut)Storage.prototype.setItem=p.originalPut;
    window.removeEventListener("unhandledrejection",p.onUnhandled);p.visibility="visible";
   });
-  await context.setOffline(false);page.off("pageerror",pageError);
+  if(!page.isClosed())await context.setOffline(false);page.off("pageerror",pageError);
  }
 });
