@@ -50,7 +50,7 @@ export async function ux16BrowserCases(){
   check('borde superior: una vez por gesto',calls.edge.length-before,1);
   check('listener haptico no impide scroll',prevented,false);
   before=calls.edge.length;start();move(220);end();
-  check('otro touchstart en el mismo borde no rearma',calls.edge.length-before,0);
+  check('otro tiron antes del intervalo no duplica',calls.edge.length-before,0);
   before=calls.edge.length;box.scrollTop=500;start();move(180);move(155);end();
   check('borde inferior: una vez',calls.edge.length-before,1);
   before=calls.edge.length;box.scrollTop=200;box.dispatchEvent(new Event('scroll'));start();move(170);box.scrollTop=500;

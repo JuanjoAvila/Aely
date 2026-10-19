@@ -977,7 +977,8 @@
   .v42-cycle-of{font-size:13px;color:var(--muted);white-space:nowrap;}
   .v42-cycle-pace{font-size:12.5px;color:var(--muted);margin-top:4px;}
   .v42-cycle-pace b{font-weight:700;color:var(--cycle-color);}
-  .v42-cycle-draw{animation:v42-cycle-draw 1.1s .15s cubic-bezier(.65,0,.35,1) both;animation-play-state:var(--v42-play,running);}
+  /* La duración la fija el ajustador de vibración (mcHapticApplyCss): anillo y onda, a la par. */
+  .v42-cycle-draw{animation:v42-cycle-draw var(--v42-cycle-ms,1.1s) .15s cubic-bezier(.65,0,.35,1) both;animation-play-state:var(--v42-play,running);}
   @keyframes v42-cycle-draw{from{stroke-dasharray:0 100;}to{stroke-dasharray:var(--cycle-pct) 100;}}
   @media(prefers-reduced-motion:reduce){
     .v42-net-reveal,.v42-net-fill,.v42-net-dot,.v42-cycle-draw{animation:none;}

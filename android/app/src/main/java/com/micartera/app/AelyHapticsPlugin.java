@@ -8,23 +8,49 @@ import android.os.Vibrator;
 import android.provider.Settings;
 import android.view.HapticFeedbackConstants;
 import android.view.View;
+import com.getcapacitor.JSArray;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import org.json.JSONException;
 
 /** La web propone el momento; el ajuste táctil del sistema sigue mandando en ambos métodos. */
 @CapacitorPlugin(name = "AelyHaptics")
 public class AelyHapticsPlugin extends Plugin {
+    /* UX16 ronda 4: fuerza y duración las elige él en el ajustador de la web (beta). Sin ellas,
+       los valores de la APK 58, así una web vieja sobre esta APK no cambia nada. */
     @PluginMethod
-    public void edge(PluginCall call) { play(call, true, 8); }
+    public void edge(PluginCall call) {
+        int amplitude = HapticPlan.clamp(intArg(call, "amplitude", HapticPlan.EDGE_AMPLITUDE), 1, 255);
+        int duration = HapticPlan.clamp(intArg(call, "durationMs", HapticPlan.EDGE_MS), 1, HapticPlan.MAX_EDGE_MS);
+        play(call, true, duration, amplitude, null);
+    }
 
     @PluginMethod
     public void fill(PluginCall call) {
+        // La onda llega hecha desde la web (sigue al trazo del anillo); si falta o no cuadra, la rampa de siempre.
+        HapticPlan.Wave custom = customWave(call);
         Double requested = call.getDouble("durationMs", 0.0);
         int duration = requested == null || Double.isNaN(requested) || Double.isInfinite(requested) || requested <= 0 ? 0 : (int) Math.min(1200, requested);
-        play(call, false, duration);
+        play(call, false, custom != null ? (int) HapticPlan.total(custom) : duration, HapticPlan.EDGE_AMPLITUDE, custom);
+    }
+
+    private static int intArg(PluginCall call, String key, int fallback) {
+        Double value = call.getDouble(key, null);
+        return value == null || Double.isNaN(value) || Double.isInfinite(value) ? fallback : (int) Math.round(Math.max(-1e6, Math.min(1e6, value)));
+    }
+
+    private static HapticPlan.Wave customWave(PluginCall call) {
+        JSArray timings = call.getArray("timings", null), amplitudes = call.getArray("amplitudes", null);
+        if (timings == null || amplitudes == null || timings.length() != amplitudes.length() || timings.length() > HapticPlan.MAX_STEPS) return null;
+        long[] t = new long[timings.length()];
+        int[] a = new int[amplitudes.length()];
+        try {
+            for (int i = 0; i < t.length; i++) { t[i] = timings.getLong(i); a[i] = amplitudes.getInt(i); }
+        } catch (JSONException bad) { return null; }
+        return HapticPlan.custom(t, a);
     }
 
     @SuppressWarnings("deprecation")
@@ -39,7 +65,7 @@ public class AelyHapticsPlugin extends Plugin {
             && view.performHapticFeedback(HapticFeedbackConstants.SEGMENT_FREQUENT_TICK) ? "SOFT_TICK" : "NONE";
     }
 
-    private void play(PluginCall call, boolean edge, int duration) {
+    private void play(PluginCall call, boolean edge, int duration, int edgeAmplitude, HapticPlan.Wave custom) {
         getActivity().runOnUiThread(() -> {
             JSObject result = new JSObject();
             String path = "NONE";
@@ -65,14 +91,15 @@ public class AelyHapticsPlugin extends Plugin {
                         : HapticPlan.selectFill(Build.VERSION.SDK_INT, true, amplitude);
                     VibrationEffect effect = null;
                     if (selected == HapticPlan.Path.WAVEFORM) {
-                        if (edge) effect = VibrationEffect.createOneShot(8, HapticPlan.EDGE_AMPLITUDE);
+                        if (edge) effect = VibrationEffect.createOneShot(duration, edgeAmplitude);
                         else {
-                            HapticPlan.Wave wave = HapticPlan.waveform(duration);
+                            HapticPlan.Wave wave = custom != null ? custom : HapticPlan.waveform(duration);
                             effect = VibrationEffect.createWaveform(wave.timings, wave.amplitudes, -1);
                         }
                     } else if (selected == HapticPlan.Path.LOW_TICK) {
                         HapticPlan plan = HapticPlan.create(edge ? primitiveMs : duration, primitiveMs);
                         if (plan != null) {
+                            if (edge) plan.scales[0] = HapticPlan.scaleFor(edgeAmplitude);
                             VibrationEffect.Composition composition = VibrationEffect.startComposition();
                             for (int i = 0; i < plan.delays.length; i++)
                                 composition.addPrimitive(VibrationEffect.Composition.PRIMITIVE_LOW_TICK, plan.scales[i], plan.delays[i]);
@@ -91,6 +118,8 @@ public class AelyHapticsPlugin extends Plugin {
             result.put("path", path);result.put("api", Build.VERSION.SDK_INT);
             result.put("amplitudeControl", amplitude);result.put("lowTick", lowTick);result.put("primitiveMs", primitiveMs);
             result.put("continuous", !edge && path.equals("WAVEFORM"));
+            // La web pregunta esto para avisar de que la APK instalada aún no entiende el ajustador.
+            result.put("tunable", true);
             call.resolve(result);
         });
     }

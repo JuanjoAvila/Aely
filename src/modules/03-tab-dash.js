@@ -136,7 +136,9 @@ function NetWorthNow({tt, simple, series, splashGone}){
       frameRef.current=0;
       const index=fingerRef.current, day=points[index]&&points[index].day, h=hapticRef.current;
       // Solo el punto que realmente se pinta: sin búsquedas, layouts ni ticks por cada touchmove.
-      if(day!==h.day){ h.day=day; const now=performance.now(); if(day&&now-h.at>=35){ h.at=now; mcHaptic("edge"); } }
+      // Un tick por CADA punto nuevo («no se nota apenas NADA», ronda 3): el único hueco es el que
+      // tarda en acabar el anterior, para que dos toques no se fundan en un zumbido.
+      if(day!==h.day){ h.day=day; const now=performance.now(), v=mcHapticTune(); if(day&&now-h.at>=v.tickMs+10){ h.at=now; mcHaptic("edge",{amplitude:v.tickAmp,durationMs:v.tickMs}); } }
       setTouch(index);
     });
   };

@@ -11,7 +11,7 @@ function setup(){
   const context={document,window,Promise,WeakSet,Number,getComputedStyle:()=>({}),console};
   vm.createContext(context);vm.runInContext(block,context);
   const animation={animationName:'v42-cycle-draw',playState:'running',effect:{getComputedTiming:()=>({duration:1100})}};
-  const el={matches:s=>s==='.v42-cycle-draw',closest:()=>({classList:{contains:()=>true}}),getAnimations:()=>[animation]};
+  const el={style:{getPropertyValue:k=>k==='--cycle-pct'?'62':''},matches:s=>s==='.v42-cycle-draw',closest:()=>({classList:{contains:()=>true}}),getAnimations:()=>[animation]};
   const event={target:el,animationName:'v42-cycle-draw',elapsedTime:0};
   return {context,calls,classes,document,window,animation,event};
 }

@@ -977,7 +977,8 @@
   .v42-cycle-of{font-size:13px;color:var(--muted);white-space:nowrap;}
   .v42-cycle-pace{font-size:12.5px;color:var(--muted);margin-top:4px;}
   .v42-cycle-pace b{font-weight:700;color:var(--cycle-color);}
-  .v42-cycle-draw{animation:v42-cycle-draw 1.1s .15s cubic-bezier(.65,0,.35,1) both;animation-play-state:var(--v42-play,running);}
+  /* La duración la fija el ajustador de vibración (mcHapticApplyCss): anillo y onda, a la par. */
+  .v42-cycle-draw{animation:v42-cycle-draw var(--v42-cycle-ms,1.1s) .15s cubic-bezier(.65,0,.35,1) both;animation-play-state:var(--v42-play,running);}
   @keyframes v42-cycle-draw{from{stroke-dasharray:0 100;}to{stroke-dasharray:var(--cycle-pct) 100;}}
   @media(prefers-reduced-motion:reduce){
     .v42-net-reveal,.v42-net-fill,.v42-net-dot,.v42-cycle-draw{animation:none;}
@@ -6463,6 +6464,7 @@ const LANG = {
     v4_set_appear:"Apariencia", v4_set_easy:"Para empezar fácil", v4_set_conn:"Conexiones",
     v4_set_money:"Dinero", v4_set_app:"App",
     v4_set_tour:"Ver el tutorial", v4_set_adv:"Avanzado",
+   hv_title:"Vibración", hv_intro:"Busca la vibración que te guste. Se guarda solo en este móvil.", hv_cycle:"Mi ciclo (el anillo de Inicio)", hv_cycle_hint:"Vibra mientras se rellena el anillo, más cuanto más lleno esté.", hv_edge:"Al llegar arriba o abajo", hv_tick:"Cursor de la gráfica de Inicio", hv_strength:"Fuerza", hv_length:"Duración", hv_every:"Repite cada (si sigues tirando)", hv_try:"Probar", hv_copy:"Copiar valores", hv_copied:"Valores copiados", hv_copy_fail:"No se pudieron copiar", hv_reset:"Volver a los de serie", hv_need_apk:"Para notar estos valores hay que instalar la última versión de la app.", hv_no_native:"La vibración solo funciona en la app de Android.",
     v4_moved_cat:"Movido a {cat}", 
     v4_exp_del:"Borrar", v4_exp_del_q:"¿Borrar «{name}»?", v4_exp_del_sub:"Podrás recuperarlo durante 5 segundos.",
     f_amount_aria:"Importe", f_concept_ph:"Toca para escribir el concepto", f_cat:"Categoría",
@@ -9004,17 +9006,93 @@ function mcReduced(){
   try{ return document.documentElement.classList.contains("reduce-motion")||(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches); }catch(e){ return false; }
 }
 
+/* UX16 ronda 4: cuatro rondas adivinando fuerzas y él las rechazó todas («no vibra apenas nada»,
+   «dura un montón»). Ahora las elige él con el ajustador de Ajustes (solo en beta) y se quedan
+   en ESTE móvil: es una preferencia del motor de su teléfono, no un dato que viaje a la nube.
+   Por defecto, los de la ronda 3 salvo borde y gráfica, que pedían «un pelín más». */
+const MC_HAPTIC_KEY="_mcHapticTune";
+const MC_HAPTIC_DEF={fillAmp:30,fillMs:1100,edgeAmp:70,edgeMs:12,edgeEvery:150,tickAmp:70,tickMs:10};
+const MC_HAPTIC_RANGE={fillAmp:[1,255],fillMs:[300,2500],edgeAmp:[1,255],edgeMs:[4,60],edgeEvery:[60,400],tickAmp:[1,255],tickMs:[4,40]};
+function mcHapticClamp(raw){
+  const out={};
+  Object.keys(MC_HAPTIC_DEF).forEach(function(k){
+    const v=raw&&typeof raw[k]==="number"&&Number.isFinite(raw[k])?Math.round(raw[k]):MC_HAPTIC_DEF[k];
+    out[k]=Math.max(MC_HAPTIC_RANGE[k][0],Math.min(MC_HAPTIC_RANGE[k][1],v));
+  });
+  return out;
+}
+function mcHapticTune(){
+  try{ return mcHapticClamp(JSON.parse(localStorage.getItem(MC_HAPTIC_KEY)||"null")); }catch(e){ return mcHapticClamp(null); }
+}
+// La duración del relleno manda también sobre la animación del anillo: así la vibración dura
+// exactamente lo que se ve rellenarse, la mueva él a donde la mueva.
+function mcHapticApplyCss(tune){
+  try{ document.documentElement.style.setProperty("--v42-cycle-ms",(tune||mcHapticTune()).fillMs+"ms"); }catch(e){}
+}
+function mcHapticTuneSave(patch){
+  const next=mcHapticClamp(Object.assign({},mcHapticTune(),patch||{}));
+  try{ localStorage.setItem(MC_HAPTIC_KEY,JSON.stringify(next)); }catch(e){}
+  mcHapticApplyCss(next);
+  return next;
+}
+function mcHapticTuneReset(){
+  try{ localStorage.removeItem(MC_HAPTIC_KEY); }catch(e){}
+  mcHapticApplyCss(MC_HAPTIC_DEF);
+  return mcHapticClamp(null);
+}
+mcHapticApplyCss();
+// El texto que él copia y nos manda: corto y sin nada personal, solo los siete números.
+function mcHapticTuneText(tune){
+  const v=tune||mcHapticTune();
+  return "Vibración · ciclo "+v.fillAmp+"/"+v.fillMs+"ms · borde "+v.edgeAmp+"/"+v.edgeMs+"ms cada "+v.edgeEvery+"ms · gráfica "+v.tickAmp+"/"+v.tickMs+"ms";
+}
+// Misma curva que `.v42-cycle-draw` en shell.html: si cambia allí, cambia aquí.
+const MC_CYCLE_EASE=[.65,0,.35,1];
+function mcBezierY(x,p){
+  // Bisección sobre la x de la cúbica: 24 vueltas sobran para 60 tramos de onda.
+  let lo=0,hi=1,tt=x;
+  const bx=function(s){ return 3*(1-s)*(1-s)*s*p[0]+3*(1-s)*s*s*p[2]+s*s*s; };
+  for(let i=0;i<24;i++){ tt=(lo+hi)/2; if(bx(tt)<x) lo=tt; else hi=tt; }
+  return 3*(1-tt)*(1-tt)*tt*p[1]+3*(1-tt)*tt*tt*p[3]+tt*tt*tt;
+}
+/* La onda del anillo sigue al TRAZO: cada tramo vibra en proporción a cuánto arco se pinta en
+   él (la velocidad de la curva), escalado por el porcentaje del ciclo. Así un 20 % apenas roza y
+   un 90 % se nota entero, arranca y acaba suave como el dibujo, y no queda zumbando con el
+   anillo ya quieto — «vibra un montón desde el principio y dura un montón» (ronda 3). */
+function mcCycleWave(durationMs,fraction,amp){
+  const frac=Math.max(0,Math.min(1,fraction)), dur=Math.round(durationMs);
+  if(!(dur>0)||!(frac>0)) return null;
+  const n=Math.max(1,Math.min(60,Math.round(dur/20))), timings=[], speeds=[];
+  let prev=0, top=0;
+  for(let i=0;i<n;i++){
+    const y=mcBezierY((i+1)/n,MC_CYCLE_EASE), s=Math.max(0,y-prev);
+    prev=y; speeds.push(s); if(s>top) top=s;
+    timings.push(Math.floor(dur/n)+(i<dur%n?1:0));
+  }
+  const amplitudes=speeds.map(function(s){ return top>0?Math.round(amp*frac*s/top):0; });
+  return amplitudes.some(function(a){ return a>0; })?{timings:timings,amplitudes:amplitudes}:null;
+}
+
 // UX16: la web observa el dedo; solo Android decide si el ajuste táctil permite el toque.
 function mcHaptic(method, args){
   if(mcReduced()||document.hidden) return;
   try{
     const cap=window.Capacitor, plugin=cap&&cap.Plugins&&cap.Plugins.AelyHaptics;
     if(!plugin||typeof plugin[method]!=="function") return;
-    Promise.resolve(plugin[method](args||{})).catch(function(){});
+    // Devuelve lo que contesta Android (null si falla): el ajustador lo usa para saber si la APK
+    // instalada ya entiende fuerza y duración.
+    return Promise.resolve(plugin[method](args||{})).catch(function(){ return null; });
   }catch(e){}
 }
+// Un toque del borde con los valores que haya elegido él. La APK 58 ignora fuerza y duración y
+// sigue dando su toque fijo; desde la 59 manda lo del ajustador.
+function mcEdgeHaptic(){
+  const v=mcHapticTune();
+  mcHaptic("edge",{amplitude:v.edgeAmp,durationMs:v.edgeMs});
+}
 function mcBindEdgeHaptics(root, blocked){
-  let g=null, states=new WeakMap(), pullTimer=0;
+  let g=null, states=new WeakMap(), pullTimer=0, lastAt=-Infinity;
+  const buzz=function(){ lastAt=performance.now(); mcEdgeHaptic(); };
   const stopPull=function(){ clearTimeout(pullTimer); pullTimer=0; if(g) g.pulling=false; };
   const end=function(){ stopPull(); g=null; };
   const boundary=function(el){
@@ -9042,7 +9120,7 @@ function mcBindEdgeHaptics(root, blocked){
     const s=stateOf(el);
     if(s.latched===edge||quiet()) return;
     s.latched=edge; s.armed=false;
-    mcHaptic("edge");
+    buzz();
   };
   const repeatPull=function(){
     const own=g;
@@ -9051,8 +9129,8 @@ function mcBindEdgeHaptics(root, blocked){
       pullTimer=0;
       if(g!==own||!own.pulling) return;
       if(quiet()||!own.el.isConnected||scroller(own.el)!==own.el||boundary(own.el)!==own.edge){ stopPull(); return; }
-      mcHaptic("edge"); repeatPull();
-    },150);
+      buzz(); repeatPull();
+    },mcHapticTune().edgeEvery);
   };
   const scroll=function(e){
     const el=scroller(e.target);
@@ -9076,7 +9154,10 @@ function mcBindEdgeHaptics(root, blocked){
   };
   const move=function(e){
     if(!g) return;
-    if(!e.touches||e.touches.length!==1||e.touches[0].identifier!==g.id||blocked()||e.defaultPrevented){ end(); return; }
+    if(!e.touches||e.touches.length!==1||e.touches[0].identifier!==g.id||blocked()){ end(); return; }
+    // Inicio corta el rebote de arriba con preventDefault antes de fijar eje: ese movimiento se
+    // salta, pero el gesto sigue siendo nuestro (antes lo soltábamos y arriba no vibraba nunca).
+    if(e.defaultPrevented) return;
     const t=e.touches[0], dx=t.clientX-g.x, dy=t.clientY-g.y, step=t.clientY-g.lastY;
     g.lastY=t.clientY;
     if(Math.abs(dx)>8&&Math.abs(dx)>Math.abs(dy)){ end(); return; }
@@ -9087,7 +9168,12 @@ function mcBindEdgeHaptics(root, blocked){
     if(Math.abs(dy)<=Math.abs(dx)*1.2) return;
     const outward=edge==="top"?t.clientY-g.anchor:g.anchor-t.clientY;
     if(outward<10){ stopPull(); return; }
+    const resumed=!g.pulling;
     pulse(g.el,edge);
+    // Seguir tirando con el borde ya alcanzado —también tras llegar por inercia— avisa YA, no
+    // tras el intervalo: «no vibra cuando sigues bajando estando abajo» (ronda 3). El intervalo
+    // sí se respeta para no encadenar dos toques pegados.
+    if(resumed&&!quiet()&&performance.now()-lastAt>=mcHapticTune().edgeEvery) buzz();
     g.pulling=true; repeatPull();
   };
   const listeners={touchstart:start,touchmove:move,touchend:end,touchcancel:end,visibilitychange:end};
@@ -9112,7 +9198,12 @@ function mcInicioFillHaptic(e){
     if(seen.has(animation)||!Number.isFinite(duration)||duration<=0) return;
     seen.add(animation);
     // animationstart sucede DESPUÉS del delay CSS y de la pausa del splash: sin segundo reloj.
-    mcHaptic("fill",{durationMs:duration});
+    // Anillo vacío = nada que rellenar = silencio.
+    const fraction=parseFloat(el.style&&el.style.getPropertyValue("--cycle-pct"))/100;
+    const v=mcHapticTune(), wave=mcCycleWave(duration,fraction,v.fillAmp);
+    if(!wave) return;
+    // La APK 58 solo entiende durationMs (su rampa fija); desde la 59 toca la onda de aquí.
+    mcHaptic("fill",{durationMs:duration,amplitude:v.fillAmp,fraction:fraction,timings:wave.timings,amplitudes:wave.amplitudes});
   }catch(err){}
 }
 
@@ -10552,7 +10643,9 @@ function NetWorthNow({tt, simple, series, splashGone}){
       frameRef.current=0;
       const index=fingerRef.current, day=points[index]&&points[index].day, h=hapticRef.current;
       // Solo el punto que realmente se pinta: sin búsquedas, layouts ni ticks por cada touchmove.
-      if(day!==h.day){ h.day=day; const now=performance.now(); if(day&&now-h.at>=35){ h.at=now; mcHaptic("edge"); } }
+      // Un tick por CADA punto nuevo («no se nota apenas NADA», ronda 3): el único hueco es el que
+      // tarda en acabar el anterior, para que dos toques no se fundan en un zumbido.
+      if(day!==h.day){ h.day=day; const now=performance.now(), v=mcHapticTune(); if(day&&now-h.at>=v.tickMs+10){ h.at=now; mcHaptic("edge",{amplitude:v.tickAmp,durationMs:v.tickMs}); } }
       setTouch(index);
     });
   };
@@ -23240,7 +23333,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="fd24ddf411399589341bf11363cfd456f3ed81496a537c8a5b936cbec7de213e";
+var _rnSha="28f95773075f878b45bdf98baf268c074ba4e916da3f29fa632c612559ae8c0d";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -23432,6 +23525,76 @@ function CurConverterPanel({state, onClose, refreshFx}){
             rateTxt+(state.fxDate?(" · "+state.fxDate):""))
         )
   ));
+}
+
+/* AJUSTADOR DE VIBRACIÓN (UX16 ronda 4, solo canal beta). Tras cuatro rondas rechazadas
+   adivinando fuerzas, él mueve los deslizadores en SU móvil, prueba cada grupo y nos copia los
+   números. Cada cambio se guarda al momento (mcHapticTuneSave) y la app entera lo usa ya. */
+function HapticTuner({showToast}){
+  const [v,setV]=useState(function(){ return mcHapticTune(); });
+  const timers=useRef([]);
+  useEffect(function(){ return function(){ timers.current.forEach(clearTimeout); }; },[]);
+  // Los deslizadores viven dentro del cajón de Ajustes: sin esto arrastrar uno lo cerraba.
+  const stop=function(e){ e.stopPropagation(); };
+  const put=function(k,val){ const p={}; p[k]=val; setV(mcHapticTuneSave(p)); };
+  // La APK 58 no entiende fuerza ni duración: mejor decirlo que dejarle probando a ciegas.
+  const said=function(p){
+    if(!p){ if(!mcReduced()) showToast(t(typeof _mcNative!=="undefined"&&_mcNative?"hv_need_apk":"hv_no_native")); return; }
+    p.then(function(r){ if(!r||!r.tunable) showToast(t("hv_need_apk")); });
+  };
+  const later=function(ms,fn){ timers.current.push(setTimeout(fn,ms)); };
+  const tryFill=function(){
+    const w=mcCycleWave(v.fillMs,1,v.fillAmp);
+    if(w) said(mcHaptic("fill",{durationMs:v.fillMs,amplitude:v.fillAmp,fraction:1,timings:w.timings,amplitudes:w.amplitudes}));
+  };
+  // Borde: llegada y dos repeticiones, como seguir tirando estando abajo.
+  const tryEdge=function(){
+    said(mcHaptic("edge",{amplitude:v.edgeAmp,durationMs:v.edgeMs}));
+    later(v.edgeEvery,function(){ mcHaptic("edge",{amplitude:v.edgeAmp,durationMs:v.edgeMs}); });
+    later(v.edgeEvery*2,function(){ mcHaptic("edge",{amplitude:v.edgeAmp,durationMs:v.edgeMs}); });
+  };
+  // Gráfica: seis puntos seguidos, como pasar el dedo despacio por la línea.
+  const tryTick=function(){
+    said(mcHaptic("edge",{amplitude:v.tickAmp,durationMs:v.tickMs}));
+    for(let i=1;i<6;i++) later(i*70,function(){ mcHaptic("edge",{amplitude:v.tickAmp,durationMs:v.tickMs}); });
+  };
+  const copy=function(){
+    const txt=mcHapticTuneText(v);
+    const viejo=function(){
+      try{
+        const ta=document.createElement("textarea"); ta.value=txt; ta.setAttribute("readonly",""); ta.style.position="fixed"; ta.style.opacity="0";
+        document.body.appendChild(ta); ta.select(); const ok=document.execCommand("copy"); ta.remove();
+        showToast(ok?t("hv_copied"):t("hv_copy_fail"));
+      }catch(e){ showToast(t("hv_copy_fail")); }
+    };
+    if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function(){ showToast(t("hv_copied")); },viejo);
+    else viejo();
+  };
+  const slider=function(k,label,unit){
+    const r=MC_HAPTIC_RANGE[k];
+    return React.createElement("label",{key:k,style:{display:"block",margin:"8px 0 2px"}},
+      React.createElement("div",{style:{display:"flex",justifyContent:"space-between",fontSize:12.5,color:"var(--muted)"}},
+        React.createElement("span",null,label),
+        React.createElement("span",{className:"num",style:{color:"var(--text)",fontWeight:700}},v[k]+(unit||""))),
+      React.createElement("input",{type:"range",min:r[0],max:r[1],step:1,value:v[k],"data-haptic":k,"data-noswipe":"1","aria-label":label,
+        onChange:function(e){ put(k,parseInt(e.target.value,10)); },onTouchStart:stop,onTouchMove:stop,
+        style:{width:"100%",accentColor:"var(--mint)"}}));
+  };
+  const group=function(id,title,hint,kids,onTry){
+    return React.createElement("div",{key:id,className:"hv-group","data-group":id,style:{padding:"10px 14px",borderTop:"1px solid var(--line)"}},
+      React.createElement("div",{style:{fontWeight:800,fontSize:14}},title),
+      hint && React.createElement("div",{className:"hint",style:{marginTop:2}},hint),
+      kids,
+      React.createElement("button",{type:"button",className:"chip",style:{marginTop:8},onClick:onTry},"📳 "+t("hv_try")));
+  };
+  return React.createElement("div",{className:"hv-tuner"},
+    React.createElement("div",{className:"hint",style:{padding:"0 14px 8px"}},t("hv_intro")),
+    group("fill",t("hv_cycle"),t("hv_cycle_hint"),[slider("fillAmp",t("hv_strength")),slider("fillMs",t("hv_length")," ms")],tryFill),
+    group("edge",t("hv_edge"),null,[slider("edgeAmp",t("hv_strength")),slider("edgeMs",t("hv_length")," ms"),slider("edgeEvery",t("hv_every")," ms")],tryEdge),
+    group("tick",t("hv_tick"),null,[slider("tickAmp",t("hv_strength")),slider("tickMs",t("hv_length")," ms")],tryTick),
+    React.createElement("div",{className:"row",style:{padding:"10px 14px 12px",gap:8}},
+      React.createElement("button",{type:"button",className:"btn btn-primary",onClick:copy},t("hv_copy")),
+      React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){ setV(mcHapticTuneReset()); }},t("hv_reset"))));
 }
 
 /* Contenido del cajón de Ajustes (el cajón deslizante lo gestiona App). */
@@ -23983,6 +24146,9 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
       // («Personalizar widgets del Resumen» se retiró el 2026-07-18: era del Dashboard v3.)
       totals && row("report","📸",t("rp_btn").replace(/^[^ ]+ /,""),null,function(){ shareMonthReport(state, totals, showToast); })
     ),
+    // Solo en beta: es el banco donde él busca su vibración; en estable no hay nada que ajustar.
+    (typeof mcChannel==="function") && mcChannel()==="beta" &&
+      grp("vibra","📳",t("hv_title"),"vibracion vibration vibracio haptic",null,React.createElement(HapticTuner,{showToast:showToast})),
 
     // Admin al FINAL (fuera del flujo diario). Sentry de prueba quitado: no aporta en móvil.
     // Sin traducir a propósito: es la consola privada del dueño, como «Actividad».

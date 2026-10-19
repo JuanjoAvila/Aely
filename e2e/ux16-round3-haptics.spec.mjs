@@ -46,7 +46,7 @@ export async function ux16Round3BrowserCases(){
   for(let i=0;i<18;i++){touch(chart,'touchmove',rect.left+rect.width*(i%2?.25:.75),y);await new Promise(r=>requestAnimationFrame(r));}
   await frame();const fast=calls.slice(fastStart);
   check('barrido rapido tiene ticks',fast.length>=2,true);
-  check('barrido respeta minimo30ms',fast.slice(1).every((p,i)=>p.at-fast[i].at>=30),true);
+  check('barrido deja acabar cada tick',fast.slice(1).every((p,i)=>p.at-fast[i].at>=(fast[i].durationMs||8)+10),true);
   touch(chart,'touchend',x1,y);before=calls.length;await sleep(80);
   check('soltar grafica no pulsa tarde',calls.length,before);check('cursor desaparece al soltar',!!chart.querySelector('[data-testid="inicio-net-guide"]'),false);
   check('grafica conserva stopSwipe',chart.dataset.noswipe,'1');check('grafica no cambia pestaña',document.querySelector('.botnav-tab.active')?.dataset.tour,tab);
@@ -61,6 +61,6 @@ test('UX16 ronda3: tiron limitado y tick por punto real de Inicio',async({page})
   const state=estadoHeredado('2026-10-18');state.obAccounts=state.obAccounts.map(a=>({...a,key:a.id}));
   await seedLoggedInDashboard(page,{...state,__seenVersion:fs.readFileSync(new URL('../VERSION',import.meta.url),'utf8').trim()});
   await page.route('https://**/*',route=>route.abort());
-  await page.addInitScript(()=>{window.__ux16={edge:[],fill:[]};window.Capacitor={Plugins:{AelyHaptics:{edge(){window.__ux16.edge.push({at:performance.now()});return Promise.resolve();},fill(p){window.__ux16.fill.push(p);return Promise.resolve();}}}};});
+  await page.addInitScript(()=>{window.__ux16={edge:[],fill:[]};window.Capacitor={Plugins:{AelyHaptics:{edge(p){window.__ux16.edge.push({...p,at:performance.now()});return Promise.resolve();},fill(p){window.__ux16.fill.push(p);return Promise.resolve();}}}};});
   await page.goto('/');const r=await page.evaluate(ux16Round3BrowserCases);expect(r.filter(x=>!x.pass),JSON.stringify(r)).toEqual([]);
 });

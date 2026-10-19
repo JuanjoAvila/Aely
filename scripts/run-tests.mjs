@@ -37,6 +37,7 @@ const steps = [
   ["fin17-confirmed-absorptions", ["node", "--test", "--test-concurrency=1", "tests/fin17-confirmed-absorptions.test.mjs"]],
   ["fin11-absorption-pending", ["node", "--test", "--test-concurrency=1", "tests/fin11-absorption-pending.test.mjs"]],
   ["ux16-haptics", ["node", "--test", "tests/ux16-haptics.test.mjs"]],
+  ["ux16-ajustador", ["node", "--test", "tests/ux16-ajustador.test.mjs"]],
   ["inicio-deuda-futura", ["node", "--test", "tests/inicio-deuda-futura.test.mjs"]],
   ["run-deno-tests", ["node", "tests/run-deno-tests.test.mjs"]],
   ["inicio-grafica-reservas", ["node", "tests/inicio-grafica-reservas.test.mjs"]],
