@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "id": "fin04-pr286-r3-merge-perf-queue-codex-20261019",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261019-r74-36ea75cf98e01bbf",
+  "createdAt": "2026-10-19T16:43:40.352Z",
+  "to": "codex",
+  "kind": "worker",
+  "priority": 4,
+  "model": "gpt-6-astra",
+  "baseSHA": "628d62925f9214db08a798cce86086997fa3b077",
+  "assignedPublicSessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "claudeGrant": "cc0afc8a012f0f16f7ac07108fb7ad82c7adadc4",
+  "dependsOnReleasedResult": "3958ac35a7161d1f2d51300e764f5f7fa1104b5e",
+  "previousRunnerReturn": "720b0c9d36e8fb8636aa8138a51e29fcb6adb09b",
+  "pullRequest": 286,
+  "objective": "Small PR286 R3: restore20k merge performance with CPU6 ABAB <=100ms and bound/quarantine persistently failing rename without blocking queue or repeating notices.",
+  "scope": [
+    "Replace per-row JSON.stringify comparison with field comparison or cheap signature preserving no-change shortcut",
+    "Real browser CPU6 ABAB20k merge benchmark exact sources target<=100ms",
+    "Bound repeated rename failures after N attempts, quarantine failed intent, unique notice and unblock later edits; tests and killed mutants"
+  ],
+  "requirements": [
+    "Read FULL Claudecc0afc8a and task; ASTRA required. R2 GO with reservations, R3 priority over SES01 supersedes earlier25927362 startSES now. Start exact628d62925f9214db08a798cce86086997fa3b077 in NEW isolated checkout. SAME PR286 normal append only, no force rewriting R1/R2. Preserve all prior sources research tests rawruns ZIPs manifests checkpoints byte-for-byte.",
+    "NEW own claim/readback/ACK before code, same own session/helper/filter. Verify current own budget; R2 closureOWN20b2 actual18/20 historical, only remaining actual fetches usable, nextOWN20 only after true exhaustion and normal notice/readback underb0390. Count first/internal/readbacks >=30s preserve prefixes, no reset/inheritance/general permission questions. Read AGENTS EMPIEZA protocol and Supabase skill.",
+    "Performance causal baseline on exactR2: identify per-row JSON.stringify in merge. Replace with comparison of relevant fields or cheap signature, preserve same-object/no-change fast path and every money/identity/note/category/debtId/noCard/tombstone/conflicting-amount/reference invariant from R2. No dropping fields to appear faster. Do not alter size caps VERSION/catalogue or general UI.",
+    "CPU6 is EXPLICITLY newly authorized for this focused20k merge ABAB only bycc0afc8a, not general suite or inherited runner. Obtain fresh own census and specific admission/lock under current protocol before timing; do not infer lease from elapsed time PID absence or empty lock. If competing work prevents admission consult Claude, never touch foreign processes/resources. Own1worker0retry browser/server/port, CDP CPU throttling6 actually applied with exact readback, labels and restored CPU1 before RETURN.",
+    "A exactR2 source628d6292 vs B candidate, same deterministic realistic20k rows and actual production merge in real browser. Alternating ABAB, retain every raw sample warmup policy fixture/source/browser/version and actual wall timing; demonstrate requested <=100ms at CPU6 with unchanged-path shortcut intact. Do not silently substitute Node timer or normal CPU, relax threshold, select only good runs or claim93ms baseline from fresh measurement unless measured. If machine variance/target fails retain and report/consult, no invented performance success. No unrelated CPU6 workloads.",
+    "Persistent rename failure must not starve remaining queued edits or repeatedly toast. Choose/document finite N, after N consecutive failures quarantine the failed intent with ONE notice and allow independent queued edits forward. Preserve durable pending intent and explicit user retry/recovery semantics; no success ACK on failure, no data loss, no infinite automatic remount/online/reload loop. New user intent or explicit retry must not be cleared by older response.",
+    "Causal RED before fixes for permanent rename failure head-of-line blockage/repeated notices and performance source issue as applicable; GREEN directed tests with synthetic permanent errors, finite N, unique notice, later independent edits, explicit retry/new intent/late ACK and reload. Add meaningful executable killed mutants as R2 in relevant merge-expenses-cloud and expense-note coverage. Keep actual initial failures and mutation survivors, no mirrors or oracle weakening.",
+    "Verify exact cents category sign identity and source/payment relations, duplicate legacy/tombstone/conflicting-amount guards and sandbox zero production writes appropriate to changed paths; reuse immutable R2 evidence for unaffected checks instead of repeating completed unrelated suites. Two browser contexts synthetic guarded transport where needed, no real cloud/auth/broker/SQL/schema/migration/backfill/Edge/native/APK/deploy/merge. CPU6 grant does not authorize profiling/tracing or full general suite.",
+    "Claude owns size/docs/catalogue reconciliation; report exact current gates/unrun checks without relaxing caps or repeating R1 catalogue timeout as if passed. No ProductREADY/general CI/served/mobile claim. SES01 remains queued until R3 completion and Claude priority; receipt/debt LWW phase2 remains deferred.",
+    "Deliver SAMEPR286 append-only head and source/evidence manifests ZIP checkpoint closure, raw ABABCPU6 and queue/mutant commands EXITs, protected prior hashes and limitations. Own RETURN CPU1 contexts/server/port, then released result exactreadback and private ROOT74 handoff thenSTOP; no native reply. Attach existing PR when continuing. No deployment."
+  ],
+  "deliverable": "PR286 small R3 with20k CPU6ABAB <=100ms evidence and finite failure quarantine/one notice/unblocked queue tests plus mutants; own released result/RETURN private handoff thenSTOP."
+}
