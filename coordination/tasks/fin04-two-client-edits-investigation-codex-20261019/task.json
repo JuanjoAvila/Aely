@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "id": "fin04-two-client-edits-investigation-codex-20261019",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261019-r74-36ea75cf98e01bbf",
+  "createdAt": "2026-10-19T14:13:01.922Z",
+  "to": "codex",
+  "kind": "worker",
+  "priority": 4,
+  "model": "gpt-6-astra",
+  "baseSHA": "408d8d3484568e1c02fa25dcd2df30ad71477bf1",
+  "assignedPublicSessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "claudeGrant": "1cd1e277baff4be5c020703c5f5ca798acf02604",
+  "dependsOnReleasedResult": "fe3d5dd8e950c58e3bc32b009e7bd7e1e63ef3a3",
+  "previousRunnerReturn": "e590b502f05a7889bb99926db7d8771a352ed339",
+  "objective": "FIN-04 research and phased plan only: demonstrate current two-client concurrent edits for expenses receipts debts in Hogar and same-account two-device usage; assess legacy draftPR43.",
+  "scope": [
+    "Read-only current beta408d8d348 analysis and old draftPR43 relevance",
+    "Two real browser contexts with shared deterministic mocks, no real cloud",
+    "Demonstrated red scenarios winning/losing fields ACK affected rows and phased plan without product code or schema changes"
+  ],
+  "requirements": [
+    "Read complete Claude1cd1e277 FIN04 and this task. Use ASTRA as explicitly required. PR285 delivered fe3d5dd8 and RETURN e590b502 verified; Claude owns review/integration. NEW research task exactbeta408d8d3484568e1c02fa25dcd2df30ad71477bf1, no inferred substitution from old147/148 or current branch names.",
+    "Same own identity/session/runtime/cwd/helper/filter original holder. NEW ownclaim push/readback and ACK before substance. Verify live OWN budget, lastwaveclosure18/20 is historical only; continue own actual counter preserve all frozen blocks/ledgers/NFF, no reset/inheritance. Every first/internal/readback>=30s; nextOWN20 after actual exhaustion plus normalnotice/readback underb0390. No general permission questions.",
+    "Create NEW isolated READ-ONLY source checkout at exact408. Read AGENTS EMPIEZA protocol and relevant Supabase SKILL. Preserve PR270/284R1/R2/285 sources allcheckouts WIP manifests ZIPs rawresults byte-for-byte. Private research harness/reports outside product only; NO production edits commits PR creation or updates to oldPR43.",
+    "Inspect current save/push/pull/conflict/ACK paths and historical draftPR43 actual diff/base/head without modifying or reactivating it. Map which old proposals remain valid, already implemented, obsolete or incompatible with beta408 and cite exact source locations/SHAs. If PR43 unavailable say precisely what remains unverified, do not reconstruct from memory.",
+    "Reproduce current CLIENTS in two real isolated browser contexts with deterministic shared mock backend and synthetic same-account or owner/partner Hogar identities. Exercise nearly simultaneous edits to SAME expense receipt debt; capture schedule stale local snapshots writes response/ACK and affectedrows, subsequent pulls/reloads and both visible/persisted states. Mock actual API compare-and-set/version/filter/zero-row response semantics, not a replacement algorithm. No real Supabase cloud/auth sessions/data, banks, network mutations or connector SQL calls; guard/abort all external writes.",
+    "Show concrete winning fields lost fields/rows and false/absent ACK or correct rejection for demonstrated schedules, with exact rowidentity/version and cent-oracles; distinguish expectedLWW from silent loss of independent edits. Explicitly compare concurrent same-field and independent-field edits and applicable Hogar-vs-sameuser paths. Use delayed/reordered deterministic mock responses only where current code permits. A productRED must be an assertion on actual client behavior with meaningful expected contract; harness/setup failures stay separate and preserved. Do not invent a bug if the case correctly rejects or merges.",
+    "Own harness fixtures ports1worker0retry, no fullsuite CPU6 profiling/nativeAPK or inherited runner lease. Harness correctionsbc1c5e1 allowed with earlier failures retained and no relaxed financial or privacy oracle. Read current Supabase official docs/changelog if making SDK/API guarantees; localmock evidence is not liveRLS/cloud validation. Follow applicable skill, but authorized scope forbids migrations schema/livequeries and product implementation.",
+    "Deliver research report with scenario table: actors entity rowID initialrevisions editfields interleaving accepted/affectedrows ACKs winning/losing fields finalclient/cloudmock/reload state and causal evidence. Include exact betaSHA/sourcehash, oldPR43 relevance and phased proposal with priorities invariants compatibility rollout/validation and unresolvedquestions. No product fix code, migration/schema changes or backend operations in this task.",
+    "Seal own immutable released result and private source/evidence manifest checkpoint closure actualcommands/EXITs and all limits. Exact own canonical resultreadback, RETURN own contexts/server/ports and private ROOT74 handoff then STOP. Do not promote a mock investigation into ProductREADY/livecloud/mobile acceptance; no native reply to ROOT74."
+  ],
+  "deliverable": "FIN04 investigation only report with demonstrated current red scenarios and ACK/affectedrows details, draftPR43 relevance and phased plan; no product/schema change, own released result then STOP."
+}
