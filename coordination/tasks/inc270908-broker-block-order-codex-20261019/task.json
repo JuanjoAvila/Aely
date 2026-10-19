@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "id": "inc270908-broker-block-order-codex-20261019",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261019-r74-36ea75cf98e01bbf",
+  "createdAt": "2026-10-19T09:41:54.343Z",
+  "to": "codex",
+  "kind": "worker",
+  "priority": 4,
+  "baseSHA": "48d5ef8106ecb8ac119a3af0e7b79ca10878359b",
+  "assignedPublicSessionId": "codex-local-20261016-5fc9afdec60f82b1",
+  "claudeGrant": "a377ac12274b07a14a147ea8d4c189d21ae08076",
+  "originalScopeGrant": "6c872210467725c2785cc9a9aeb5b05813094d9c",
+  "dependsOnReleasedResult": "b705a29f663d0dccc4f1f7c829c6aebf8d1f45bb",
+  "objective": "INC-2709-08: reorder broker blocks in Cartera > Inversiones by long press using the existing account reorder mechanism and its persistence/sync.",
+  "scope": [
+    "Long press broker block reorder using existing account mechanism",
+    "Existing saved-order persistence and synchronization semantics",
+    "Targeted reorder/reload E2E and cartera-inversiones regression"
+  ],
+  "requirements": [
+    "Read full Claudea377ac12 and6c872210 and current task. UX11 NO_REPRO b705a29f accepted CLOSED by Claude, no further UX11 work. This is NEW broker task, exact beta48d5ef810 version4.26.146 supersedes earlier656194916. Splash parked. PR282 review and integration belong Claude.",
+    "Original H2 holder same own public identity/session/runtime/cwd/helper/filter; new OWNclaim push/readback and ACK before product. Verify effective OWN access, no general permission questions. Actual denial preserve error and stop action; no alternate proxy route identity or chat.",
+    "Preserve prior budget blocks, historical NFF and spacing records. UX11 closed total96 block6used14/20 remaining6 is historical last observation, verify current OWN count and ledger. All first/internal/readbacks count>=30s; next20 only actual exhaustion then own normal notice/readback existing grant. No reset inheritance lease by time/PID.",
+    "NEW isolated clean checkout/branch exact48d5ef8106ecb8ac119a3af0e7b79ca10878359b; read AGENTS EMPIEZA and protocol fully. Preserve H2 PR275 all prior inventory splash UX11 source manifests WIP results and old closures byte-for-byte; growing own ledger preserve frozen old prefix. No old checkout edits.",
+    "Implement long press on broker blocks in Cartera > Inversiones with SAME mechanism already used to reorder accounts and SAME saved-order persistence and sync pathway. Inspect existing contract first; do not invent parallel order storage or an unrelated drag system. Familiar interface and family-facing es/en/ca text if new text is required.",
+    "Preserve every broker group and investment row, stable identity, membership, account relations and all amounts valuations balances financial contracts. Historic4.7.1 brokers disappeared after groups changes: explicitly guard complete group and row membership. Only selected order changes. No live bank/cloud writer or backend changes; synchronized order verification through existing mocked safe path, no real user data.",
+    "Meaningful causal RED before product then GREEN: real directed E2E long-press/reorder and reload with conserved order, cartera-inversiones existing tests must remain green. Verify exact before/after financial objects and group/row counts/membership, account reorder unchanged and existing order sync behavior. Own specs/fixtures/port1worker0retry027aeb19; no repeated unrelated finished tests. Private harness correction bc1c5e1 only with failures preserved. No CPU6 or performance profiling.",
+    "NEW draft PR beta with exact source/remote head and actual EXITs. Real size/docs/catalogue gates stay intact and limitations visible, do not bump VERSION raise caps alter catalogue or weaken checks. No fullsuite CPU6 Gradle native APK backend SQL Edge livebanks deploy merge. Scope affecting monetary calculations or existing ownership needs Claude consultation, not speculative edits.",
+    "Own immutable released result including causal evidence snapshots screenshots and source/evidence manifest checkpoint closure, exact result readback and private ROOT74 handoff then STOP. Candidate blocked while Claude review/integration/served/mobile pending; no ProductREADY. Do not reply natively to ROOT74 absent direct human authorization."
+  ],
+  "deliverable": "New draft beta broker reorder candidate with targeted E2E/reload persistence and cartera-inversiones green; immutable own released result and STOP."
+}
