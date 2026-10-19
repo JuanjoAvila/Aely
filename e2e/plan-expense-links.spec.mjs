@@ -36,9 +36,19 @@ for(const kind of ['debt','receipt'])for(const missing of [false,true])test('R1 
 const round2Text={
   es:{due:'Por pagar',inside:'Se suma a lo que queda por pagar.',outside:'No se suma a lo que queda por pagar.',pending:'Por confirmar · 1',one:'Todo pagado, salvo 1 cargo por confirmar.',many:'Todo pagado, salvo 2 cargos por confirmar.'},
   en:{due:'Still to pay',inside:'Included in the amount left to pay.',outside:'Not included in the amount left to pay.',pending:'To confirm · 1',one:'Everything paid, except 1 charge awaiting confirmation.',many:'Everything paid, except 2 charges awaiting confirmation.'},
-  ca:{due:'Per pagar',inside:'Se suma al que queda per pagar.',outside:'No se suma al que queda per pagar.',pending:'Per confirmar · 1',one:'Tot pagat, excepte 1 càrrec per confirmar.',many:'Tot pagat, excepte 2 càrrecs per confirmar.'}
+  ca:{due:'Per pagar',inside:'Es suma al que queda per pagar.',outside:'No es suma al que queda per pagar.',pending:'Per confirmar · 1',one:'Tot pagat, excepte 1 càrrec per confirmar.',many:'Tot pagat, excepte 2 càrrecs per confirmar.'}
 };
 for(const lang of ['es','en','ca']){
+  test('A3 simple title and grouped transfers '+lang,async({page})=>{
+    const s=paymentFixture('debt');s.flows=[{id:'transfer',kind:'transfer',name:'Movimiento previsto',from:'sabadell',to:'trade_republic',amount:100,day:25}];
+    await openRound2(page,s,{lang,simpleMode:true});await page.locator('.botnav-tab[data-tour="plan"]').click();
+    const due=page.getByTestId('plan-due');
+    await expect(due.locator('.v4-section-h')).toHaveText(await page.evaluate(()=>t('v4_aun_saldra')));
+    await expect(due).toContainText('Movimiento previsto');await expect(page.getByTestId('plan-transfers')).toHaveCount(0);
+    await expect(due).toContainText(await page.evaluate(()=>t('v4_payment_mixed_hint')));
+    if(lang==='ca')await expect(page.getByTestId('plan-unconfirmed')).toContainText('No es suma');
+    await unchangedRound2(page);
+  });
   test('R2 separate remaining and confirmation '+lang,async({page},info)=>{
     const s=paymentFixture('debt'),txt=round2Text[lang];await openRound2(page,s,{lang});
     await page.locator('.botnav-tab[data-tour="plan"]').click();

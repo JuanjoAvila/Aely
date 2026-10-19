@@ -77,7 +77,9 @@ test("banco y tipo explican sus campos; Efectivo explica no operación y Traspas
     await expect(page.getByText(aviso,{exact:true})).toBeVisible();
   }
   await sheet.getByTestId("exp-efectivo").click();
-  await expect(sheet.getByTestId("exp-withdrawal-info")).toContainText("no suma dinero a Efectivo");
+  await expect(sheet.getByTestId("exp-withdrawal-info")).toContainText("La categoría se puede corregir sin cambiar el importe ni la cuenta del banco.");
+  await expect(sheet.getByTestId("exp-withdrawal")).toHaveText("Es una retirada de efectivo");
+  await expect(sheet.getByTestId("exp-withdrawal-info")).not.toContainText("no suma dinero a Efectivo");
   await sheet.locator('.v4-ficha-cat-title button').click();
   await page.getByTestId("expense-all-cat-traspaso").click();
   await page.locator('.askback .btn-primary').click();

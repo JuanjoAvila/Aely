@@ -37,7 +37,7 @@ si su destino falta o es ambiguo, muestra «—». Una marca inexistente sigue m
 
 Plan distingue «Por pagar», que contribuye al restante, de «Por confirmar», que no
 se añade a ese importe y conserva su propio contador. Las filas mantienen el banco
-sin repetir el estado. Los traspasos previstos aparecen aparte de los pagos pendientes.
+sin repetir el estado. En modo normal, los traspasos previstos aparecen aparte de los pagos pendientes.
 La portada sencilla dice «Todo pagado, salvo N cargo(s) por confirmar», con singular
 y plural en español, inglés y catalán; conserva las frases de pago completo y de
 pagos realmente pendientes.
@@ -51,3 +51,27 @@ de esta ronda conservan además el estado y los resultados financieros de ambas 
 
 La revisión de integración de documentación y tamaño sigue pendiente: no se modifica
 VERSION, catálogo ni presupuestos para franquear esos controles.
+
+## Regresiones de portada y recibos vencidos
+
+Ronda 3 sobre `564efba46b31464a3a0f2dbf1b13c83878f8266e`, en la misma PR281.
+Un recibo vencido sin pago observado conserva «Sin pago acreditado» junto al banco.
+Una cuota descontada por calendario sigue en el grupo separado «Por confirmar».
+La portada sencilla prioriza el saldo conocido negativo: con −80 € y un cargo por
+confirmar muestra el saldo y evita afirmar «Todo pagado».
+
+El modo sencillo conserva «Lo que aún saldrá» y agrupa recibos y movimientos entre
+cuentas como antes. Si hay movimientos entre cuentas, la explicación precisa que
+solo los recibos y las cuotas contribuyen al restante. El catalán usa «Es suma» y
+«No es suma». No cambia ningún total financiero ni se guarda ninguna marca nueva.
+
+Cinco expectativas antiguas de `plan-cover` que confundían `paidYm` con prueba de
+pago se ajustan al diseño aprobado; el caso de saldo negativo mantiene y amplía su
+comprobación de −80 €. La validación enumera todos los ficheros del mapa de Gastos y
+Plan, con resultado individual y límites explícitos para las pruebas que requieren
+CPU6. `inicio-cargos` contiene actualmente 78 casos, no solo los 21 citados en la
+solicitud de revisión; se valida el fichero completo.
+
+La expectativa previa de `retirada-bancaria` se alinea con el aviso aprobado: antes
+de confirmar exige la explicación neutra y la acción, sin afirmar que ya sea una
+retirada confirmada. El recorrido posterior de Traspaso y banco se conserva.

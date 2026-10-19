@@ -17,6 +17,7 @@ c.React.createElement=(type,props,...children)=>({type,props:props||{},children:
 const text=n=>n==null||typeof n==='boolean'?'':typeof n==='object'?(n.children||[]).map(text).join(' '):String(n);
 const nodes=n=>n&&typeof n==='object'?[n,...(n.children||[]).flatMap(nodes)]:[];
 const find=(n,id)=>nodes(n).find(x=>x.props['data-testid']===id);
+const translate=key=>vm.runInNewContext('t('+JSON.stringify(key)+')',c);
 const totals={curMonth:10,curYear:2026,today:18,mainBank:'sabadell',bankBal:{sabadell:800},minByBank:{sabadell:758},minDayByBank:{sabadell:25}};
 let checks=0;function check(name,fn){fn();checks++;console.log('PASS '+name);}
 for(const kind of ['debt','receipt'])check('R1 explicit '+kind+' mismatched, missing, absent and validated',()=>{
@@ -31,7 +32,24 @@ for(const kind of ['debt','receipt'])check('R1 explicit '+kind+' mismatched, mis
 });
 for(const lang of ['es','en','ca']){
   vm.runInNewContext('CURLANG='+JSON.stringify(lang),c);
-  const txt={es:['Se suma a lo que queda por pagar.','No se suma a lo que queda por pagar.','Por confirmar · 1','Todo pagado, salvo 1 cargo por confirmar.','Todo pagado, salvo 2 cargos por confirmar.'],en:['Included in the amount left to pay.','Not included in the amount left to pay.','To confirm · 1','Everything paid, except 1 charge awaiting confirmation.','Everything paid, except 2 charges awaiting confirmation.'],ca:['Se suma al que queda per pagar.','No se suma al que queda per pagar.','Per confirmar · 1','Tot pagat, excepte 1 càrrec per confirmar.','Tot pagat, excepte 2 càrrecs per confirmar.']}[lang];
+  const txt={es:['Se suma a lo que queda por pagar.','No se suma a lo que queda por pagar.','Por confirmar · 1','Todo pagado, salvo 1 cargo por confirmar.','Todo pagado, salvo 2 cargos por confirmar.'],en:['Included in the amount left to pay.','Not included in the amount left to pay.','To confirm · 1','Everything paid, except 1 charge awaiting confirmation.','Everything paid, except 2 charges awaiting confirmation.'],ca:['Es suma al que queda per pagar.','No es suma al que queda per pagar.','Per confirmar · 1','Tot pagat, excepte 1 càrrec per confirmar.','Tot pagat, excepte 2 càrrecs per confirmar.']}[lang];
+  check('A1 overdue receipt retains unconfirmed status '+lang,()=>{
+    const s=paymentFixture('debt'),tree=c.PlanBills({state:s,totals,simple:false});
+    const row=nodes(find(tree,'plan-due')).find(n=>n.props.className==='v4-charge');
+    assert(text(row).includes(translate('v4_charge_unconfirmed')));assert(text(row).includes('Sabadell'));
+  });
+  check('A2 known negative balance precedes all-paid phrase '+lang,()=>{
+    const s=paymentFixture('debt');s.fixed=[];s.accounts[0].value=-80;
+    const before=JSON.stringify(s),tree=c.PlanTab({state:s,totals:{...totals,bankBal:{sabadell:-80},minByBank:{sabadell:-80}},simple:true});
+    assert(text(tree).includes('-80'));assert(!text(tree).includes(txt[3]));assert.equal(JSON.stringify(s),before);
+  });
+  check('A3 simple departures remain grouped with accurate hint '+lang,()=>{
+    const s=paymentFixture('debt');s.flows=[{id:'transfer',kind:'transfer',name:'Movimiento previsto',from:'sabadell',to:'trade_republic',amount:100,day:25}];
+    const before=JSON.stringify(s),tree=c.PlanBills({state:s,totals,simple:true}),due=find(tree,'plan-due');
+    assert(text(due).includes(translate('v4_aun_saldra')));assert(text(due).includes('Movimiento previsto'));
+    assert(text(due).includes(translate('v4_payment_mixed_hint')));assert(!find(tree,'plan-transfers'));
+    assert.equal(JSON.stringify(s),before);
+  });
   check('R2 distinct scopes, bank and separate count '+lang,()=>{
     const s=paymentFixture('debt');s.flows=[{id:'transfer',kind:'transfer',name:'Transferencia prevista',from:'sabadell',to:'revolut',amount:100,day:25}];
     const before=JSON.stringify(s),pack=JSON.stringify(c.planChargesMonth(s,10,2026,18));

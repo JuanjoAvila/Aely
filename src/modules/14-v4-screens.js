@@ -42,7 +42,9 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
   // Frases propias: todo pagado / sin día (minDay 0) — NUNCA «el día ya» (review Claude 1845Z).
   const coverPhrase=(!billsEuroTotal)
     ? t("v4_plan_state_none")
-    : (allBillsPaid&&unconfirmed?tf(unconfirmed===1?"v4_payment_all_except_one":"v4_payment_all_except",{n:unconfirmed}):(allBillsPaid
+    : (allBillsPaid&&unconfirmed?(balKnown&&balNow<0
+      ? tf("help_cue_balance",{x:eur0(balNow),bank:bankLab})
+      : tf(unconfirmed===1?"v4_payment_all_except_one":"v4_payment_all_except",{n:unconfirmed})):(allBillsPaid
       ? (coverBank&&balKnown
         ? tf("v4_plan_state_all_paid",{x:eur0(balNow),bank:bankLab})
         : t("v4_plan_state_all_paid_nobank"))
@@ -307,9 +309,8 @@ function PlanBills({state, set, totals, charges, evidence, manageOpen, setManage
   const paidPanelId="v4-paid-panel";
   const month=totals.curMonth;
   const pack=charges||planChargesMonth(state, totals.curMonth, totals.curYear, totals.today);
-  // Solo recibos/cuotas suman en el restante. Los traspasos conservan su lista aparte
-  // para que la explicación de esta sección no los presente como otro pago pendiente.
-  const pending=pack.pendingBills;
+  // Sencillo conserva las salidas juntas; el matiz aclara que mover dinero no suma recibos.
+  const pending=simple?pack.pendingBills.concat(pack.transfersPending):pack.pendingBills;
   const proof=evidence||paymentEvidenceUI(state,totals.curYear,totals.curMonth,totals.today);
   const unconfirmed=pack.paidBills.filter(function(x){return proof.confirmed[x.id]===false;}).map(function(x){return Object.assign({},x,{paid:false,unconfirmed:true});});
   const paid=pack.paidBills.filter(function(x){return proof.confirmed[x.id]!==false;});
@@ -330,7 +331,7 @@ function PlanBills({state, set, totals, charges, evidence, manageOpen, setManage
     if(x.unconfirmed) return entOf(x.bank).label;
     // El recibo conserva el banco previsto; el cargo confirmado puede haber salido de otro.
     var bank=x.paid&&x.paidBank?x.paidBank:x.bank;
-    if(x.overdue) return entOf(x.bank).label;
+    if(x.overdue) return entOf(x.bank).label+" · "+t("v4_charge_unconfirmed");
     if(simple){
       if(x.kind==="income") return tf("v4s_row_income",{bank:entOf(x.bank).label});
       if(x.kind==="transfer"){
@@ -396,11 +397,11 @@ function PlanBills({state, set, totals, charges, evidence, manageOpen, setManage
     ),
     React.createElement("div",{className:"v4-section","data-testid":"plan-due"},
       React.createElement("div",{className:"v4-section-h"},
-        React.createElement("span",null,t("v4_payment_due")),
+        React.createElement("span",null,simple?t("v4_aun_saldra"):t("v4_payment_due")),
         // Sencillo: sin «Gestionar» aquí — solo Ajustes → Cambiar mis recibos (NO-GO §5bis.2).
         !simple && React.createElement("button",{type:"button",className:"link",onClick:openManage}, t("v4_gestionar"))
       ),
-      pending.length>0&&React.createElement("div",{className:"ph"},t("v4_payment_due_hint")),
+      pending.length>0&&React.createElement("div",{className:"ph"},t(simple&&pack.transfersPending.length?"v4_payment_mixed_hint":"v4_payment_due_hint")),
       pending.length===0
         ? React.createElement("div",{className:"ph",style:{padding:"8px 4px 4px"}}, t("v4_aun_saldra_empty"))
         : (pendExpanded?pending:pending.slice(0,3)).map(row),
@@ -410,7 +411,7 @@ function PlanBills({state, set, totals, charges, evidence, manageOpen, setManage
     unconfirmed.length>0 && React.createElement("div",{className:"v4-section","data-testid":"plan-unconfirmed"},
       React.createElement("div",{className:"v4-section-h"},t("v4_payment_pending")+" · "+unconfirmed.length),
       React.createElement("div",{className:"ph"},t("v4_payment_pending_hint")),unconfirmed.map(row)),
-    pack.transfersPending.length>0&&React.createElement("div",{className:"v4-section","data-testid":"plan-transfers"},
+    !simple&&pack.transfersPending.length>0&&React.createElement("div",{className:"v4-section","data-testid":"plan-transfers"},
       React.createElement("div",{className:"v4-section-h"},t("v4_plan_transfers")),pack.transfersPending.map(row)),
     incomePend.length>0 && React.createElement("div",{className:"v4-section"},
       React.createElement("div",{className:"v4-section-h"},
