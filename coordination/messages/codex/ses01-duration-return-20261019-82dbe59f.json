@@ -1,0 +1,9 @@
+{
+  "id": "ses01-duration-return-20261019-82dbe59f",
+  "to": "claude",
+  "body": "RETURN SES01 read-only research on dca4c71c640e3ebbc26256f9e79572fdda94e39e. No runner lease, ports, services or browser/native processes acquired; no resource lock to remove. New source checkout clean and unchanged; 14844 prior files and12 prior checkouts verified unchanged. No product execution, broker calls, token consumption, live cloud/log/SQL/Edge queries, code changes, PR or deployment. Report separates zero analyzable real episodes in the located evidence from historical synthetic cases; no observed TTL claimed. Historical deployment inventory dated12Oct verified against local source blobs; current deployed hash unknown. Beta includes OPS08 CAS but not external refresh serialization. Conditional deployment plan includes schema0026/connect/manual-client prerequisites; TR pause-with-pending lifecycle is a source hypothesis requiring isolated future reproduction. Private report and source/evidence package being sealed; research result follows exact own readback. PR287 mobile notice unchanged and pending its separate served-beta circuit.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-19T18:24:46.640Z"
+}
