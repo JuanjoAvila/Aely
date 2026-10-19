@@ -1,3 +1,5 @@
+Candidata UX08 sobre beta 4.26.150 (19/10/2026, sin integrar): las fichas de Gestionar dejan el gesto vertical del contenido al navegador y no retroceden si un toque se cancela durante su salida. El asa y Atrás conservan el cierre. [Reproducción y aceptación pendiente](docs/briefs/ux08-native-wave-close-jump.md); la ola visual Android requiere prueba física.
+
 Candidata web de Plan (19/10/2026, sin integrar): las categorías de Gestionar se abren con la cabecera completa y su pantalla queda anclada al viewport después de desplazar el hub o cancelar. [Causa, capturas y límites](docs/briefs/inc270903-ux08-ola-web.md); la ola visual de Android sigue pendiente de aceptación móvil.
 
 Candidata de Deudas (19/10/2026, sin integrar): Plan → Deudas → Editar ofrece alargar el plazo cuando una cuota menor no encaja. Solo cambia el borrador al elegirlo; el guardado mantiene FIN16. [Contrato y límites](docs/briefs/deudas-alargar-plazo-20261019.md).

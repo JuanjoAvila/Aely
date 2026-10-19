@@ -1,3 +1,5 @@
+Candidata UX08 sin versión nueva (19/10/2026): el contenido de ficha/alta de recibos conserva el scroll vertical nativo y el asa mantiene el cierre. `useSheetSwipe.onTouchCancel` ya no borra una salida activa, que hacía retroceder la hoja antes de desmontarse. Limpieza lateral y capa de reposo acotadas a estas fichas. [Causas reproducidas y límites](docs/briefs/ux08-native-wave-close-jump.md); aceptación Android e integración pendientes.
+
 ## [4.26.150] — 2026-10-19 · Candidata de beta: Gestionar plan sin ola al tocar una categoría (PR 285, INC-2709-03 y UX-08), solo web y sin APK nueva (sigue la 4.26.148 / code 59)
 
 - **Qué lleva.** La beta 4.26.149 (`408d8d348`) más la PR 285 (`4f79352a`): Gestionar y la pantalla de categoría conservan el scroller sin promoción de capa en reposo (`useEdgePageClose` con `plainScroll`), la cascada no repone `will-change:transform` y cancelar limpia la identidad inline tras su retorno sin borrar un gesto posterior; la hija `fixed` ya no se desplaza con el padre.

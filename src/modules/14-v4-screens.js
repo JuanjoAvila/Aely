@@ -763,8 +763,8 @@ function BillsItemSheet({row, set, banks, simple, onClose, onRemove}){
   const hasSched=hasSchedule(item);
   const titleRef=React.useRef(null);
   const sideRef=React.useRef(null);
-  const swipe=useSheetSwipe(true,onClose);
-  const side=useEdgePageClose(true,onClose,true,sideRef);
+  const swipe=useSheetSwipe(true,onClose,{nativeScroll:true});
+  const side=useEdgePageClose(true,onClose,true,sideRef,{plainScroll:true});
   const sheetRef=swipe.sheetRef;
   const titleId="bills-item-title";
   React.useEffect(function(){ setAmount(""); },[row.id]);
@@ -896,7 +896,7 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, onSa
   const sideRef=React.useRef(null);
   const onCloseRef=React.useRef(onClose);
   onCloseRef.current=onClose;
-  const swipe=useSheetSwipe(true,function(){ onCloseRef.current&&onCloseRef.current(); });
+  const swipe=useSheetSwipe(true,function(){ onCloseRef.current&&onCloseRef.current(); },{nativeScroll:true});
   const sheetRef=swipe.sheetRef;
   const titleId="bills-add-title";
   stepRef.current=step; formRef.current=form;
@@ -914,7 +914,7 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, onSa
   stepBackRef.current=stepBack;
   useBackClose(true,function(){ stepBackRef.current(); },step);
   // El primer paso ya sale con la ola: el callback de Atrás desmonta sin otra salida vertical.
-  const side=useEdgePageClose(true,stepBack,step,sideRef);
+  const side=useEdgePageClose(true,stepBack,step,sideRef,{plainScroll:true});
   React.useLayoutEffect(function(){
     // El fondo persiste entre pasos; cada Atrás debe dejar el anterior centrado y listo para otro.
     const el=sideRef.current; if(!el) return;
