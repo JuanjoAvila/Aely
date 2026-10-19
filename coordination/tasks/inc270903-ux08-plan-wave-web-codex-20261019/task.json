@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "id": "inc270903-ux08-plan-wave-web-codex-20261019",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261019-r74-36ea75cf98e01bbf",
+  "createdAt": "2026-10-19T13:27:15.478Z",
+  "to": "codex",
+  "kind": "worker",
+  "priority": 4,
+  "baseSHA": "78b54d61d690ff25965a4bffafc13c92287157cc",
+  "assignedPublicSessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "claudeGrant": "f63fb0c3d80dc3762b282fb61df32a10c1868f1b",
+  "originalScopeGrant": "522babf7c9cfdabc90f3a348c8c5adbd75b459f6",
+  "dependsOnReleasedResult": "3b10783973937d49d871226cee13d950ccf81c77",
+  "previousRunnerReturn": "25c2926b51acbe7df1998693456c80f08b807611",
+  "objective": "INC-2709-03/UX-08: reproduce wave in Plan > Gestionar plan and category screens, distinguishing web effect from native WebView overscroll.",
+  "scope": [
+    "Web Plan Gestionar/category open scroll close reproduction",
+    "DOM state and frame capture evidence",
+    "NO_REPRO evidence, or native-only remediation plan APK cost, or causal web correction draft beta"
+  ],
+  "requirements": [
+    "Read complete Claudef63fb0c3 and522babf7. PR284R2 source708b98a6 accepted/received, integration is Claude. Latest base78b54d61d version4.26.148 supersedes earlierccb798376. Wave starts only now after ROOT verifies R2result3b107839 and RETURN25c2926b. Do not resume PR284 work or amend its own sealed results.",
+    "Same original holder session82dbe59f nativeed0b, own runtime/cwd/helper/filter. NEW task ownclaim push/readback and ACK before substance. Fresh exactbase isolated checkout/branch; preserve ALL R1/R2 source checkouts, ZIPs manifests reports checkpoints raw evidence and priorPR270/UX11 artifacts byte-for-byte. New private wave evidence only; no WIP carried over.",
+    "Verify latest OWN ledger count and frozen blocks first. Last R2closure own20b1used11/20 remaining9 historical only; use live own counter, sameholder no reset/inheritance. Preserve frozen originalR1 ledger and its byte-prefix copies. All first/internal/readbacks>=30s; next20 only actual exhaustion then normalnotice/readback underb0390. No general permission questions; actual runtime denial preserve and stop action without proxy.",
+    "First reproduce in real web app exactbeta148: open Plan > Gestionar plan and category route, scroll real content/containers and close. Record actual DOM classes styles transforms overflow and visible geometry with screenshots frame by frame around opening, top/bottom overscroll or reversal and closing. Use deterministic synthetic fixtures and identify correct sheet/route/scrollhost. Document gesture path and actual landing; never replace UI with a fake surface.",
+    "Classification needs evidence: compare web DOM/style/frame behavior against the reported wave symptom. NO_REPRO on desktop web does not prove native cause. If no web reproduction, provide NO_REPRO with captures limits and missing device evidence, no speculative fix. If native WebView overscroll is independently established, deliver ONLY a proposed plan explaining APK implementation/release cost and tests required, no native edits/build/device action. Do not infer native cause solely by elimination.",
+    "If causal WEB effect reproduces: retain RED first then minimal scoped web correction and meaningful targeted E2E, screenshots before/after and existing relevant sheet/navigation guardians. NEW draft PR beta with exact source/remote head and real EXITs; no editing PR284. Avoid blanket CSS or global touch/overscroll suppressions without showing cause and preserving vertical/horizontal navigation and closing behavior.",
+    "Own fixtures/port1worker0retry under027aeb19, no live cloud/banks, financial objects/raw persistence exact before/after. Harness correctionsbc1c5e1 preserve earlier failures. Frame captures are visual evidence, no CPU6 or profiling/performance measurements granted for THIS task; do not inherit previous UX14CPU6 lease/grant or run fullsuite. No repeated finished UX14/PR282/283 tests.",
+    "No money/valuation paid-state writers/backend SQL Edge realbanks native Gradle APK VERSION catalogue caps deploymerge. Native work plan only if established, never source/asset changes. Real size/docs/catalogue gates for a webcandidate remain intact and reported; Claude handles integration reconciliation, no gate weakening.",
+    "Deliver own immutable released result NO_REPRO/plan or blocked webcandidate with source/evidence manifests checkpoint closure actual EXITs and explicit limitations; exact resultreadback and private ROOT74 handoff then STOP. Return own browsers/server/port without touching foreign resources. Focal evidence is separate from integration served artifact physicalmobile acceptance and ProductREADY."
+  ],
+  "deliverable": "Wave web reproduction/classification with frame evidence; NO_REPRO or native-only plan without code, or causal web draftPR; own released result and STOP."
+}
