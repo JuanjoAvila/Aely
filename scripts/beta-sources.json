@@ -1425,6 +1425,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_mcSandboxTransition"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboDiagText"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "paymentEvidenceRowIssue"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "expensePaymentRelationUI"
       }
     ],
     "unidades": true
@@ -14861,6 +14873,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "reciboPagadoCon"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "paymentEvidenceRowIssue"
       }
     ]
   },
@@ -19625,6 +19641,14 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_mcSandboxTransition"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboDiagText"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "paymentEvidenceRowIssue"
       }
     ],
     "edge": [
@@ -31102,6 +31126,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_mcSandboxTransition"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboDiagText"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "paymentEvidenceRowIssue"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "expensePaymentRelationUI"
       }
     ],
     "unidades": true
@@ -36738,6 +36774,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedMonthlyOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboDiagText"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "paymentEvidenceRowIssue"
       }
     ],
     "edge": [
@@ -40807,6 +40851,14 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_mcSandboxTransition"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboDiagText"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "paymentEvidenceRowIssue"
       }
     ],
     "unidades": true
@@ -51050,6 +51102,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentBind"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "paymentEvidenceRowIssue"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboDiagText"
       }
     ],
     "unidades": true
@@ -54526,6 +54586,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "autoCategoryKw"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "paymentEvidenceRowIssue"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboDiagText"
       }
     ],
     "unidades": true
@@ -57545,6 +57613,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "resolveCategory"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboDiagText"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "paymentEvidenceRowIssue"
       }
     ],
     "unidades": true
