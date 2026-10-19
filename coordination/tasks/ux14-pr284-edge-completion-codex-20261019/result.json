@@ -1,0 +1,137 @@
+{
+  "status": "blocked",
+  "summary": "PR284 R2 edge completion. Source708b98a6a88ee547257c9cd2414b9073e2720f87 appended to SAME draftPR. CPU6 ABAB first/last borders: R1 discontinuity28to69px, candidate below0.001px;alllandings valid,correctedge destination,financialsnapshots exact. Four causalRED preserved. Required performance8 and swipe/botnav40 PASS EXIT0 one worker0retry. Initial required performance3PASS1false classifierFAIL4notrun preserved; arrival window repaired without delay or product threshold changes. No general lag improvement claimed;docs-frescura EXIT1 version-history gate blocked for Claude integration;ProductREADYfalse.",
+  "baseSHA": "e2a00f24f6b0e18b3020efab456b28eec0766d94",
+  "productSHA": "708b98a6a88ee547257c9cd2414b9073e2720f87",
+  "pullRequestNumber": 284,
+  "branch": "codex/ux14-fast-tabs-fix-20261019",
+  "productReady": false,
+  "manifestSHA256": "4fa71bafe290c293fa9d5fd8671203cf44aca2768870cf18d5f222d549c22d5c",
+  "tests": [
+    {
+      "run": "A1-first",
+      "exitCode": 1,
+      "passed": 0,
+      "failed": 1,
+      "didNotRun": 0,
+      "flaky": 0
+    },
+    {
+      "run": "A1-last",
+      "exitCode": 1,
+      "passed": 0,
+      "failed": 1,
+      "didNotRun": 0,
+      "flaky": 0
+    },
+    {
+      "run": "A2-first",
+      "exitCode": 1,
+      "passed": 0,
+      "failed": 1,
+      "didNotRun": 0,
+      "flaky": 0
+    },
+    {
+      "run": "A2-last",
+      "exitCode": 1,
+      "passed": 0,
+      "failed": 1,
+      "didNotRun": 0,
+      "flaky": 0
+    },
+    {
+      "run": "B1",
+      "exitCode": 0,
+      "passed": 2,
+      "failed": 0,
+      "didNotRun": 0,
+      "flaky": 0
+    },
+    {
+      "run": "B2",
+      "exitCode": 0,
+      "passed": 2,
+      "failed": 0,
+      "didNotRun": 0,
+      "flaky": 0
+    },
+    {
+      "run": "required-performance",
+      "exitCode": 1,
+      "passed": 3,
+      "failed": 1,
+      "didNotRun": 4,
+      "flaky": 0
+    },
+    {
+      "run": "required-performance-harness-fixed",
+      "exitCode": 0,
+      "passed": 8,
+      "failed": 0,
+      "didNotRun": 0,
+      "flaky": 0
+    },
+    {
+      "run": "required-swipe-botnav",
+      "exitCode": 0,
+      "passed": 40,
+      "failed": 0,
+      "didNotRun": 0,
+      "flaky": 0
+    }
+  ],
+  "checks": [
+    {
+      "command": "scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "tests/docs-frescura.test.mjs",
+      "exitCode": 1
+    },
+    {
+      "command": "tests/docs-frescura.test.mjs on exacthead708b98a6a88ee547257c9cd2414b9073e2720f87",
+      "exitCode": 1
+    }
+  ],
+  "runnerReturn": {
+    "cpuRateRestored": 1,
+    "ownContextsClosed": true,
+    "ownBrowserClosed": true,
+    "ownServerClosed": true,
+    "port48515Free": true,
+    "foreignProcessesModified": false
+  },
+  "R1Unchanged": true,
+  "fetchBudget": {
+    "idbudget": "ux14-own20-b1-82dbe59f",
+    "usedBeforeResult": 10,
+    "allowance": 20,
+    "sameOwnerContinuation": true,
+    "noResetOrInheritance": true
+  },
+  "artifacts": [
+    "outputs/ux14-edge-r2-manifest.json",
+    "outputs/ux14-edge-r2-informe.md",
+    "outputs/ux14-edge-r2-evidencia.json"
+  ],
+  "limitations": [
+    "docs-frescura EXIT1: committed product since version anchor e67fed9; VERSION changes out of scope",
+    "Review and integration into current beta",
+    "Catalogue reconciliation and general CI",
+    "Current served artifact",
+    "Physical Android/WebView/120Hz/native overscroll/mobile acceptance",
+    "Wave task queued; not started"
+  ],
+  "schema": 1,
+  "taskId": "ux14-pr284-edge-completion-codex-20261019",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-19T13:18:36.899Z",
+  "released": true
+}
