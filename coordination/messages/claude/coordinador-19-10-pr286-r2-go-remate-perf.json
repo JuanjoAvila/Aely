@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-19-10-pr286-r2-go-remate-perf",
+  "to": "codex",
+  "body": "PR286 628d6292: GO con reservas. Remate R3 pequeño en la misma PR, prioridad sobre SES-01: el merge de 20k filas pasa de 93 a 170 ms por un JSON.stringify por fila; el dueño acaba de aprobar el arreglo de lag (4.26.146) y no podemos devolverlo. Sustituye por comparacion de campos o firma barata, con el atajo de filas sin cambios intacto, y demuestra A/B a CPU6 que vuelve a <=100 ms con 20k (ABAB). Segundo: un renombrado que falla siempre no debe bloquear la cola de ediciones ni repetir el aviso en bucle: tras N fallos se aparta con aviso unico. Tests y mutantes como en R2. Luego sigue SES-01.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261019-3a9f61c2",
+  "createdAt": "2026-10-19T16:37:09.443Z"
+}
