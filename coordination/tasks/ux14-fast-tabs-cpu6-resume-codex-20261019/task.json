@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "id": "ux14-fast-tabs-cpu6-resume-codex-20261019",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261019-r74-36ea75cf98e01bbf",
+  "createdAt": "2026-10-19T10:42:24.888Z",
+  "to": "codex",
+  "kind": "worker",
+  "priority": 4,
+  "baseSHA": "48d5ef8106ecb8ac119a3af0e7b79ca10878359b",
+  "assignedPublicSessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "claudeGrant": "ad20a243364d1e1f2b06650d85f21d8cb276c171",
+  "previousTaskId": "ux14-fast-tabs-cpu6-codex-20261017",
+  "dependsOnReleasedResult": "edb85894ffd0632b03294380c73bce6671a21f3e",
+  "objective": "UX-14: reproduce rapid consecutive tab swipes forward and back at CPU6 using rAF frame deltas; NO_REPRO table or causal A/B fix and draft beta PR.",
+  "scope": [
+    "Directed exclusive CPU6 rapid-tab swipes on exact beta48d5ef810",
+    "AGENTS7bis splash-free landed gestures with rAF deltas and frames over32ms",
+    "NO_REPRO table and STOP or demonstrated causal A/B plus targeted performance E2E draft beta"
+  ],
+  "requirements": [
+    "Read complete Claudead20a243, this task, current policy, applicable AGENTS and EMPIEZA and channel protocol. Claude explicitly grants CPU6 NOW, reports no concurrent measurements, requests consultation if other suites appear. This NEW base48d5ef810 version4.26.146 and grant supersede obsolete baselinea9916c3 and prior runner WAIT; do not reopen obsolete task or replay its rejected claims.",
+    "Use ORIGINAL UX14 holder only: native01a14629-ed0b-7610-bf39-d7f29a5f550e publicsession82dbe59f3ee831da. Same own helper/filter/runtime/cwd/ledger. Preserve prior UX11 preparation and failures and later documentation PR270 released87a80265 source7a2d50dc unchanged. New exact OWNclaim push/readback and ACK for NEW task before product or measurements. No inherited claim lease or budget.",
+    "Verify latest OWN real budget before fetch. Old worker12 used10 and later J6/10 are historical snapshots, not reset authority. Preserve all frozen blocks and NFF errors; count every first/internal/readback>=30s. Next OWN20 only after actual exhaustion and normal own notice/readback under b0390ba0 where applicable. No third retry of obsolete claim; new authority is for NEW task.",
+    "NEW isolated clean checkout/branch exact48d5ef810; preserve old PR270 documentation checkout and all prior source evidence WIP manifests/closures byte-for-byte. Read old preparation selectively only; any reuse must be valid for exact current source. Record own source VERSION bundlehash actual served local identity.",
+    "Before CPU6 do fresh OWN machine runner/process/port/measurement census and record this task-specific admission from Claudead20a243 plus own state. If other suites or performance work are present consult Claude and WAIT; do not kill foreign process or modify foreign locks. No lease via clock PID or absent lock. No fullsuite or unrelated performance. ROOT does not run measurement in parallel.",
+    "Measure several consecutive rapid tab swipes forward and back at CPUthrottle6. Follow AGENTS7bis: splash physically absent; actual gesture landing verified by active tab identity and intended track movement; avoid consumed gesture regions and back-edge52px. Discard unlanded samples as invalid with evidence, never label them performance success. Measure rAF deltas and count frames>32ms; keep raw samples and scenario/order table. No CPU Profiler during timed measurements, no tracing overhead in timing pass.",
+    "Use realistic deterministic synthetic data, own fixtures/specs/port1worker0retry, preserve financial objects and raw persistence exactly. Prove harness distinguishes the actual scenario. Attribution may use a separate trace with timestamp boundaries after measurement, never claim profiled timing. No live cloud banks backend writes. Private harness fixes underbc1c5e1 preserve all initial failures and never alter product oracle.",
+    "If no causal reproduction: NO_REPRO with table, raw evidence, limits and STOP, no speculative fix or PR. If reproduced: establish cause, compare baseline and candidate with same script/conditions isolated A/B on granted beta48d5ef810 and applicable main reference perAGENTS7bis; record reference SHAs. Minimal scoped swipe/render correction, meaningful performance E2E and causal before/after; NEW draft beta. No money/valuation paid contracts data writers native or APK. Consult Claude if scope extends beyond web tab swipe performance.",
+    "No fullsuite Gradle native APK backend SQL Edge realbank VERSION catalogue caps deploy merge. Keep size docs catalogue gates real; Claude owns PR283 integration reconciliation. Do not rerun PR283 or old finished tests, weaken tests or loosen caps. CPU6 exception is THIS task only, not general permission for other lanes.",
+    "Own immutable released result exact real commands EXITs source/evidence manifest checkpoint closure and canonical result readback, private file handoff ROOT74 then STOP. Distinguish focal performance evidence from integration served artifact and physical mobile acceptance; ProductREADY false. No native response to ROOT74 unless direct human authorization."
+  ],
+  "deliverable": "UX14 CPU6 NO_REPRO table and STOP, or causal A/B candidate new draft beta with performance E2E; immutable own released result."
+}
