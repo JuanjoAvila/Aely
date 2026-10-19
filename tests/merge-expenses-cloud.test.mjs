@@ -1,6 +1,40 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
+import { loadPureLogicFromFile,loadPureLogic } from "../scripts/load-pure-logic.mjs";
+import fs from 'node:fs';
+import {legacyWitness} from './fin04-legacy-witnesses.mjs';
+import {identityWitness,emptyTombstoneWitness,identityIndexWitness} from './fin04-identity-witnesses.mjs';
+
+test('FIN04 R3 identidad sin serialización y atajo intacto',()=>identityWitness(loadPureLogicFromFile()));
+test('FIN04 R3 índice de UUID reutilizado dentro de la fusión',()=>identityIndexWitness(loadPureLogicFromFile()));
+test('FIN04 R3 mutante cazado: reconstruir índice de UUID',()=>{
+  const html=fs.readFileSync(new URL('../public/index.html',import.meta.url),'utf8'),from='uniqueExpenseUuids(prevList,delSet,ids)';assert.ok(html.includes(from));
+  assert.throws(()=>identityIndexWitness(loadPureLogic(html.replace(from,'uniqueExpenseUuids(prevList,delSet)'))),{name:'AssertionError'});
+});
+test('FIN04 R3 mapa vacío evita claves sin omitir confirmados',()=>emptyTombstoneWitness(loadPureLogicFromFile()));
+test('FIN04 R3 mutante cazado: claves de borrado sin hechos',()=>{
+  const html=fs.readFileSync(new URL('../public/index.html',import.meta.url),'utf8');assert.ok(html.includes('if(checkDeleted&&expenseIsTombstoned'));
+  assert.throws(()=>emptyTombstoneWitness(loadPureLogic(html.replace('if(checkDeleted&&expenseIsTombstoned','if(expenseIsTombstoned'))),{name:'AssertionError'});
+});
+test('FIN04 R3 mutante cazado: serialización por fila',()=>{
+  const html=fs.readFileSync(new URL('../public/index.html',import.meta.url),'utf8'),from='const first=index.get(e.id);';assert.ok(html.includes(from));const mutated=loadPureLogic(html.replace(from,from+'JSON.stringify(e);'));assert.throws(()=>identityWitness(mutated),{name:'AssertionError'});
+});
+
+for(const kind of ['tombstone','metadata','amounts','references'])test('FIN04 R2 legacy '+kind,()=>legacyWitness(loadPureLogicFromFile(),kind));
+
+for(const [name,from,to,kind] of [
+  ['ignorar lápidas','const ad=expenseIsTombstoned(a,delSet),ed=expenseIsTombstoned(e,delSet);','const ad=false,ed=false;','tombstone'],
+  ['cargar sin borrados','uniqueExpenseUuids(saved.expenses,expenseDeletedSet(saved))','uniqueExpenseUuids(saved.expenses)','tombstone'],
+  ['pull revive nombre borrado','if(checkDeleted&&expenseIsTombstoned(inc,delSet)&&!expenseIsTombstoned(byKey[k],delSet))return;','','tombstone'],
+  ['colapsar importes','a.amount===e.amount&&','true&&','amounts'],
+  ['perder metadatos','if(selected)merged[k]=selected[k];','if(false)merged[k]=selected[k];','metadata'],
+  ['perder categoría editada','const cat=edited(e)?e:edited(a)?a:winner;','const cat=winner;','metadata'],
+  ['perder nota humana','{note:note.note,noteEdited:note.noteEdited','{note:winner.note,noteEdited:note.noteEdited','metadata'],
+  ['pull borra noCard','!protects("noCard")&&Object.prototype.hasOwnProperty','Object.prototype.hasOwnProperty','metadata']
+])test('FIN04 R2 mutante cazado: '+name,()=>{
+  const html=fs.readFileSync(new URL('../public/index.html',import.meta.url),'utf8');assert.ok(html.includes(from),'mutante aplica al código real');
+  const mutated=loadPureLogic(html.replace(from,to));assert.throws(()=>legacyWitness(mutated,kind),{name:'AssertionError'},'el oráculo debe matar el mutante');
+});
 
 test("refreshExpenseFromCloud NO borra possibleDupOf ni cambia el id", () => {
   const cli = loadPureLogicFromFile();

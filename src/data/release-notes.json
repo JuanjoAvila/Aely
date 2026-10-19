@@ -1,5 +1,61 @@
 [
   {
+    "v": "4.26.151",
+    "d": "2026-10-19",
+    "t": {
+      "es": "Renombrar gastos y notas, más seguros",
+      "en": "Renaming expenses and notes, made safer",
+      "ca": "Reanomenar despeses i notes, més segur"
+    },
+    "items": {
+      "es": [
+        "Al renombrar un gasto ya no vuelve una nota antigua ni aparece duplicado.",
+        "Si una nota o un nombre no se ha podido guardar en la nube, la ficha lo dice y deja reintentar.",
+        "Renombrar funciona también sin conexión."
+      ],
+      "en": [
+        "When you rename an expense, an old note no longer comes back and it no longer shows up twice.",
+        "If a note or a name could not be saved to the cloud, the sheet says so and lets you retry.",
+        "Renaming also works offline."
+      ],
+      "ca": [
+        "En reanomenar una despesa ja no torna una nota antiga ni apareix duplicada.",
+        "Si una nota o un nom no s'ha pogut desar al núvol, la fitxa ho diu i deixa tornar-ho a provar.",
+        "Reanomenar funciona també sense connexió."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "renombrar-y-notas-seguras",
+        "t": {
+          "es": "Gastos: renombrar y notas seguras",
+          "en": "Spending: safe renaming and notes",
+          "ca": "Despeses: reanomenar i notes segures"
+        },
+        "items": {
+          "es": [
+            "1. Abre Gastos, entra en un gasto, cámbiale el nombre y escribe una nota. Guarda.",
+            "2. Cierra la app del todo y vuelve a abrirla: el nombre y la nota siguen. MAL: vuelve el nombre o la nota anterior, o sale el gasto dos veces.",
+            "3. Activa el modo avión, renombra otro gasto y vuelve a quitarlo: el nombre se guarda solo al volver la red. MAL: se pierde.",
+            "4. El total de gastos y el dinero disponible no cambian. MAL: cualquier diferencia."
+          ],
+          "en": [
+            "1. Open Spending, open an expense, change its name and write a note. Save.",
+            "2. Close the app completely and open it again: the name and the note are still there. WRONG: the previous name or note comes back, or the expense shows up twice.",
+            "3. Turn on airplane mode, rename another expense and turn it off again: the name is saved by itself when the network returns. WRONG: it is lost.",
+            "4. The spending total and the available money do not change. WRONG: any difference."
+          ],
+          "ca": [
+            "1. Obre Despeses, entra en una despesa, canvia-li el nom i escriu una nota. Desa.",
+            "2. Tanca l'app del tot i torna-la a obrir: el nom i la nota continuen. MALAMENT: torna el nom o la nota anterior, o surt la despesa dues vegades.",
+            "3. Activa el mode avió, reanomena una altra despesa i torna'l a treure: el nom es desa sol quan torna la xarxa. MALAMENT: es perd.",
+            "4. El total de despeses i els diners disponibles no canvien. MALAMENT: qualsevol diferència."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.150",
     "d": "2026-10-19",
     "t": {

@@ -1,3 +1,11 @@
+## [4.26.151] — 2026-10-19 · Candidata de beta: renombrar gastos y notas seguros con dos móviles (PR 286, FIN-04 fase 1), solo web y sin APK nueva (sigue la 4.26.148 / code 59)
+
+- **Qué lleva.** La beta 4.26.150 (`dca4c71c6`) más la PR 286 (`12263116`), con GO de dinero en tres rondas: renombrar actualiza solo el comercio con ACK, sin restaurar la nota de otra copia; la fusión conserva la copia viva y los metadatos legacy sin colapsar importes o referencias conflictivos; nota y nombre sin confirmar quedan pendientes con aviso y reintento durable (tres fallos apartan el renombrado con un aviso).
+- **Fase 2 pendiente.** Recibos y deudas: gana la última edición del objeto entero.
+- **FIN-19 (nuevo, sin asignar).** Dos movimientos de bancos distintos con el mismo día, importe y comercio se funden en uno; detectado en la revisión de la PR 286, es anterior a ella.
+- **Panel.** Una tanda nueva, `renombrar-y-notas-seguras` (pasos 1-4). Las de la 150, 149, 148, 147, 146 y 144 se quedan.
+- **Acta de la PR.** FIN04 fase 1, candidata sin publicar: renombrar un gasto actualiza solo su comercio con ACK, sin restaurar la nota de otra copia. R2 conserva la copia viva y metadatos legacy, sin colapsar importes o referencias conflictivos. Nota y nombre sin confirmación quedan pendientes con aviso y reintento durable. [Contrato y límites](docs/briefs/fin04-fase1-renombrar-nota.md). No cambia VERSION ni catálogo: las notas de versión quedan para la integración de Claude. R3 reduce el coste de identidad en la fusión y aparta el renombrado tras tres fallos, con contador durable, un aviso y reintento explícito; las demás ediciones pueden continuar.
+
 ## [4.26.150] — 2026-10-19 · Candidata de beta: Gestionar plan sin ola al tocar una categoría (PR 285, INC-2709-03 y UX-08), solo web y sin APK nueva (sigue la 4.26.148 / code 59)
 
 - **Qué lleva.** La beta 4.26.149 (`408d8d348`) más la PR 285 (`4f79352a`): Gestionar y la pantalla de categoría conservan el scroller sin promoción de capa en reposo (`useEdgePageClose` con `plainScroll`), la cascada no repone `will-change:transform` y cancelar limpia la identidad inline tras su retorno sin borrar un gesto posterior; la hija `fixed` ya no se desplaza con el padre.

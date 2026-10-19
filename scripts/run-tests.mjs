@@ -237,6 +237,7 @@ const steps = [
   ["ob-iguales-ordinal", ["node", "tests/ob-iguales-ordinal.test.mjs"]],
   ["huella-bundle", ["node", "tests/huella-bundle.test.mjs"]],
   ["expense-note", ["node", "tests/expense-note.test.mjs"]],
+  ["fin04-rename-note-ack", ["node", "--test", "tests/fin04-rename-note-ack.test.mjs"]],
   ["expense-id-cloud", ["node", "tests/expense-id-cloud.test.mjs"]],
   ["pull-historico-entero", ["node", "tests/pull-historico-entero.test.mjs"]],
   ["pull-sin-cambios", ["node", "tests/pull-sin-cambios.test.mjs"]],

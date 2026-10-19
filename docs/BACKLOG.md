@@ -75,6 +75,7 @@ Fuente: veredictos del panel (`scripts/errores.mjs --kind=beta`), CHANGELOG, not
 **Abiertos destacados y candidatas pendientes**
 
 - FIN-17 · PR267 (`5fb63762`) en borrador y **NO-GO** de revisión independiente: remates F1–F5 en curso. El resultado anterior `blocked/released` libera aquel encargo, no valida sus cifras ni cierra estos remates; no está listo para integrar.
+- FIN-19 · dos movimientos de bancos distintos con el mismo día, importe y comercio se funden en uno. Lo detectó la revisión de la PR 286; es anterior a ella y está sin asignar.
 - FIN-18 · esquema/registro separado y cerco atómico de servidor: backlog reservado, requiere decisión del dueño; sin implementación admitida.
 - FIN-03 · identidad de gastos de extremo a extremo, incluidos dos bancos el mismo día: **aparcado**. La preferencia BOOK frente a PDNG no autoriza resolver el defecto de otro banco con el mismo contenido.
 - PRO-09 · round-up de TR desde «Round up Invertido»: **diseño** pendiente de emparejamiento con Open Banking; sin implementación ni aceptación por asociación con UX-15.
@@ -86,7 +87,7 @@ Fuente: veredictos del panel (`scripts/errores.mjs --kind=beta`), CHANGELOG, not
 - INC-1810-02 · Recibos: cambiar el nombre de un recibo (p. ej. «Ibi» → «IBI») rompe el vínculo con el cargo ya cobrado y el recibo vuelve a salir pendiente. Pedido del dueño 18/10, sin reproducir; sospecha: el cargo se casa por nombre/texto y no por la identidad del recibo. Al arreglar, no reescribir sus vínculos viejos sin su OK. Estado 18/10: arreglo sin reproducción real del móvil en la beta 4.26.144 (PR 278, pruebas de recibo v2 solo hacia delante); un vínculo ya roto se rehace a mano (Gastos → cargo → Paga un recibo → Deshacer vínculo), pendiente de su OK.
 - INC-1810-03 · Deudas: una cuota de deuda de 197 € pagada por transferencia aparece en Plan como pagada, pero la ficha del cargo dice que no es una cuota, su categoría queda en Recibos y se muestra el aviso de retirada de efectivo. Pedido del dueño 18/10. Estado 19/10: en beta 4.26.145 (PR 281): Plan solo marca ✓ con un cargo real (si no, «Por confirmar»), la ficha lee las mismas pruebas y el aviso de retirada exige traspaso confirmado. Tanda `plan-por-confirmar-prestamo-youtube`, pendiente de su veredicto.
 - INC-1810-04 · Recibos: YouTube Premium aparece pagado en Plan pero su cargo no figura enlazado en la ficha. Pedido del dueño 18/10. Estado 19/10: la tanda de la 145 se rechazó («Sigue sin estar enlazado con YouTube premium y no deja enlazarlo»); en beta 4.26.148, tanda `youtube-enlazar-recibo`, pendiente de su veredicto. Antes, en la 145 (PR 281), junto a INC-1810-03 (mismo criterio: ✓ solo con cargo real enlazado; la ficha y Plan no pueden contradecirse).
-- FIN-04 · decisiones y ediciones confirmadas
+- FIN-04 · decisiones y ediciones confirmadas — fase 1 (renombrar y notas con dos móviles) en beta 4.26.151 (PR 286, tanda `renombrar-y-notas-seguras`); fase 2 pendiente: recibos y deudas, gana la última edición del objeto entero
 - FIN-05 / INC-2909-01 · widget con app cerrada y periodo/modo (PR 212 y PR 225, widget día 45: una sola tarea)
 - FIN-08 · daños históricos previos
 - FIN-12 · financiaciones cuentan como deuda antes de existir en la gráfica de Inicio

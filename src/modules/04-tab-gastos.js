@@ -487,13 +487,21 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // Guarda el CONCEPTO escrito a mano (2026-07-24). `noteEdited` blinda el texto: el siguiente
   // sync del banco rellena conceptos vacíos, pero nunca pisa lo que ha escrito el usuario.
   // Vacío = se borra la nota, y también queda marcado (si no, el banco la volvería a poner).
+  const noteSequence=useRef(0);
   const saveNote=function(ex, note){
     const raw=String(note||"").trim().slice(0,160);
-    if(raw===String(ex.note||"").trim()) return;   // sin cambios: ni set ni viaje a la nube
+    if(raw===String(ex.note||"").trim()&&!ex.notePending) return;
+    const pending=cloud.enabled()&&!mcSandbox()&&!mcSandboxTransition();
+    const at=noteSequence.current=Math.max(Date.now(),noteSequence.current+1,(ex.noteEditAt||0)+1);
     set(function(s){ return Object.assign({},s,{expenses:s.expenses.map(function(e){
-      return e.id===ex.id ? Object.assign({},e,{note:raw||undefined, noteEdited:true}) : e;
+      return e.id===ex.id ? Object.assign({},e,{note:raw||undefined, noteEdited:true,noteEditAt:at,notePending:pending}) : e;
     })}); });
-    if(cloud.enabled()) cloud.setExpenseNote(ex,raw).catch(function(){});
+    if(pending) cloud.setExpenseNote(ex,raw).then(function(ack){
+      if(!ack)throw new Error("note unconfirmed");
+      set(function(s){return Object.assign({},s,{expenses:s.expenses.map(function(e){
+        return e.id===ex.id&&e.noteEditAt===at?Object.assign({},e,{notePending:false}):e;
+      })});});
+    }).catch(function(){showToast(t("g_note_unconfirmed"));});
   };
   // EDITAR un gasto (comercio / importe / gasto↔ingreso): para corregir lo que la ingesta parsea
   // mal (financiación Cofidis que notifica el TOTAL pero TR solo cobra la cuota, bizums antiguos
@@ -501,12 +509,33 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // de la fila vieja (deleted + deleteExpense) y se inserta la corregida, o el pull la resucitaría.
   const [editExp,setEditExp]=useState(null);   // {id, merchant, amount, income} — usado por el sheet de detalle
   const editCola=useRef({pend:[], fin:Promise.resolve()});   // escrituras de `saveEdit` en la nube
+  const renameState=useRef(state);renameState.current=state;
+  const renameSequence=useRef(0);
+  const retryRenames=function(){
+    if(!cloud.enabled()||mcSandbox()||mcSandboxTransition())return;
+    const s=renameState.current, owner=s._historyOwner,deleted=expenseDeletedSet(s);
+    (s.expenses||[]).forEach(function(e){
+      const pending=e.renamePending;
+      if(!pending||pending.quarantined||expenseIsTombstoned(e,deleted)||editCola.current.pend.some(function(p){return p.rename&&p.id===e.id&&p.rename.at===pending.at;}))return;
+      editCola.current.pend.push({id:e.id,rename:pending,current:function(){
+        const fresh=renameState.current;if(fresh._historyOwner!==owner)return null;
+        return (fresh.expenses||[]).find(function(x){return x.id===e.id&&x.date===e.date&&x.amount===e.amount&&x.renamePending&&!x.renamePending.quarantined&&x.renamePending.at===pending.at&&!expenseIsTombstoned(x,expenseDeletedSet(fresh));});
+      },ack:function(orig,ack){set(function(fresh){return fresh._historyOwner===owner?expenseRenameAck(fresh,orig,pending,ack):fresh;});},fail:function(orig,failures,quarantined){
+        const fresh=renameState.current,active=fresh._historyOwner===owner&&(fresh.expenses||[]).some(function(x){return x.id===orig.id&&x.date===orig.date&&x.amount===orig.amount&&x.renamePending&&x.renamePending.at===pending.at&&!x.renamePending.quarantined;});
+        if(!active)return;
+        set(function(s){return s._historyOwner===owner?expenseRenameFailure(s,orig,pending,failures):s;});
+        if(quarantined)showToast(t("g_rename_paused"));
+      }});
+    });
+    if(editCola.current.pend.length)subeEdicionesDeGasto(editCola.current);
+  };
   // Lo que se editó sin conexión se sube al volver: ver `subeEdicionesDeGasto`.
   useEffect(function(){
-    const alVolver=function(){ if(editCola.current.pend.length) subeEdicionesDeGasto(editCola.current); };
+    const alVolver=function(){retryRenames();};
+    retryRenames();
     window.addEventListener("online",alVolver);
     return function(){ window.removeEventListener("online",alVolver); };
-  },[]);
+  },[state.expenses]);
   const [detailId,setDetailId]=useState(null);     // id del gasto abierto en sheet (SPEC §14)
   // PUNTO 5: al tocar la noti de un gasto, App pasa focusExp ({amount,merchant}) → abrimos la ficha
   // del gasto que casa (mismo importe y comercio parecido, el más reciente; si no, el último gasto).
@@ -557,7 +586,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     };
     const origDay=String(orig.date||"").slice(0,10);
     const newDay=String(ed.date||origDay).slice(0,10);
-    if(signed===orig.amount && merch===(orig.merchant||"") && newDay===origDay){ sincroniza(orig); return; }   // sin cambios
+    if(signed===orig.amount && merch===(orig.merchant||"") && newDay===origDay&&!orig.renamePending){ sincroniza(orig); return; }   // sin cambios
     const cat = ed.income ? "ingreso" : (orig.category==="ingreso" ? autoCategory(merch) : orig.category);
     const splitByEdit=(signed!==orig.amount||newDay!==origDay)&&!!gemeloAutomaticoDe(state,orig);
     if(splitByEdit) separarGemelo(orig);
@@ -575,6 +604,15 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
        borra en vez de arrastrarlo. Un dato viejo al lado de uno nuevo no es media verdad, es una
        mentira — y en el detalle se leerían juntos como si fueran el mismo pago. */
     if(signed!==orig.amount){ delete upd.origAmount; delete upd.origCur; }
+    if(signed===orig.amount&&newDay===origDay&&cloud.enabled()&&!mcSandbox()&&!mcSandboxTransition()){
+      if(orig.renamePending&&orig.renamePending.merchant===merch){
+        if(!orig.renamePending.quarantined){retryRenames();return;}
+        if(!ed.retryRename)return; // cerrar la ficha no equivale a pedir otro envío
+      }
+      const at=renameSequence.current=Math.max(Date.now(),renameSequence.current+1,(orig.renamePending&&orig.renamePending.at||0)+1);
+      set(function(s){return expenseRenameDraft(s,orig,merch,at);});
+      return;
+    }
     set(function(s){ return rekeyFixedPaymentExpense(Object.assign({},s,{
       expenses:s.expenses.map(function(x){ return x.id===orig.id?upd:x; })
     },lapidasAlEditar(s, keyOfE(orig), keyOfE(upd))),orig,upd); });
@@ -825,7 +863,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const openDetail=useCallback(function(e){
     if(Date.now()<suppressOpenRef.current) return;
     setDetailId(e.id);
-    setEditExp({id:e.id, merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',','), income:e.amount<0, note:e.note||"", date:String(e.date||"").slice(0,10)});
+    setEditExp({id:e.id, merchant:e.renamePending?e.renamePending.merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',','), income:e.amount<0, note:e.note||"", date:String(e.date||"").slice(0,10)});
   },[]);
   // Invalida las filas memoizadas cuando cambia el idioma o la moneda de visualización (las leen
   // de globales que React.memo no ve).
@@ -1429,6 +1467,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
       React.createElement("button",{type:"button",className:"v4-chip"+(!bk?" on":""),onClick:function(){ setBank(exp,null); setBankOpen(false); }},t("ap_bank_none")),
       bankOpts.map(function(b){ return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bk===b?" on":""),
         onClick:function(){ setBank(exp,b); setBankOpen(false); }},"🏦 "+entOf(b).label); })),
+    exp.renamePending&&React.createElement("div",{className:"hint",role:"status","data-testid":"expense-rename-pending"},t(exp.renamePending.quarantined?"g_rename_paused":"g_rename_pending")," ",React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){saveEdit(exp,{merchant:exp.renamePending.merchant,retryRename:true});}},t("g_note_retry"))),
     trace,duplicate,paired,reciboAviso,
     canRecognizeWithdrawal(exp) && React.createElement("div",{className:"hint","data-testid":"exp-withdrawal-info"},
       React.createElement("div",null,t("f_withdraw_fields")),
@@ -1483,6 +1522,8 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
       React.createElement("input",{className:"v4-exp-note-in",value:editExp.note||"",maxLength:160,placeholder:t("v4_exp_note_ph"),
         onChange:function(e){ const v=e.target.value; setEditExp(function(p){ return Object.assign({},p,{note:v}); }); },
         onBlur:function(){ saveNote(exp,editExp.note); },"aria-label":t("v4_exp_note")})),
+    exp.notePending&&React.createElement("div",{className:"hint",role:"status","data-testid":"expense-note-pending"},
+      t("g_note_unconfirmed")," ",React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){saveNote(exp,exp.note);}},t("g_note_retry"))),
     !isIncome && (exp.debtId||debtOptions.length>0) && React.createElement(React.Fragment,null,
       React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",onClick:function(){ setAdjustOpen(adjustOpen==="debt"?null:"debt"); }},
         React.createElement("span",null,t("f_debt_row")),React.createElement("span",{className:"value"},expensePaymentLabelUI(state,exp,"debt",paymentRelation)),React.createElement("span",{className:"chev"},"›")),

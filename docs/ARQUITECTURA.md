@@ -2,6 +2,14 @@ H2 candidata, ronda 2: saldo y movimientos independientes por cuenta, valor/fech
 
 # Arquitectura — Aely
 
+FIN04 fase 1 candidata R2: renombrado parcial con ACK y cola durable; nota local pendiente
+hasta confirmación exacta. Carga/mezcla de UUID prefiere la copia viva, conserva metadatos
+editados y mantiene separados importes o referencias conflictivos.
+R3 evita serializar la identidad en cada fila y aparta un renombrado tras tres fallos con
+contador durable y aviso único; libera la cola y exige reintento explícito o una intención nueva.
+Sin cambios de esquema, servidor ni LWW de recibos/deudas.
+[Contrato y límites](briefs/fin04-fase1-renombrar-nota.md).
+
 FIN-11 candidata privada desde FIN-10/FIN-15 coexistentes: `obAbsorbedPending`
 protege por titular fuera de la poda de lápidas. Una partición local con readback
 precede a la retirada; refresco cloud/online reintenta hasta cuatro objetivos y

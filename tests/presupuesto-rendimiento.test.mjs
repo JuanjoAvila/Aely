@@ -325,7 +325,8 @@ const PRESUPUESTO = {
   // Integración 4.26.148 (19/10): la 147 más el enlace a mano de recibos (INC-1810-04), el ajustador de vibración (UX-16, ~170 unidades de lógica y textos en tres idiomas) y la nota con dos tandas. SUBE por lógica de producto, no se recorta (mandato 11/10).
   // Mínimos medidos: 1392 KiB minificado y 387 KiB gzip (medían ~1391 / ~386 KiB).
   // Integración 4.26.150 (19/10): la 149 más Gestionar plan sin ola (PR 285, ~1,4 KB de lógica de reposo y CSS) y la nota con una tanda. SUBE por lógica de producto: 1393 KiB minificado; el gzip se queda en 387 KiB.
-  minificado: 1393 * 1024,
+  // Integración 4.26.151 (19/10): la 150 más FIN-04 fase 1 (PR 286: renombrar y notas con ACK, cola durable y fusión por uuid; Codex midió 1403/389 KiB) y la nota con una tanda: 1404/390 KiB medidos. SUBE por lógica de dinero: 1405 KiB minificado y 391 KiB gzip.
+  minificado: 1405 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -355,7 +356,7 @@ const PRESUPUESTO = {
   // Integración 4.26.130: 363.055 B gzip, 6.465 B más que la 129. Mínimo medido: 355 KiB (quedan 465 B).
   // Integración 4.26.131: 365.878 B gzip, 2.823 B más que la 130. Mínimo medido: 358 KiB (quedan 714 B).
   // Integración 4.26.135: 368.967 B gzip, 2.375 B sobre 358 KiB. Mínimo medido: 361 KiB (quedan 697 B).
-  gzip: 387 * 1024,
+  gzip: 391 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 
