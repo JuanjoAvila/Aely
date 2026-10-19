@@ -55043,5 +55043,25 @@
       "android/app/src/main/AndroidManifest.xml"
     ],
     "unidades": true
+  },
+  "pestanas-swipe-rapido": {
+    "web": [
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const ancla=useRef(0);",
+        "to": "  const arrastreDesde=useRef(0);"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "          gestureMode.current=\"tab\";",
+        "to": "          arrastreDesde.current=desde;"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "    const dxVis=dx.current-ancla.current;",
+        "to": "    pedirPintado(off*w/100);"
+      }
+    ],
+    "unidades": true
   }
 }

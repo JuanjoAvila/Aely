@@ -1,3 +1,9 @@
+## [4.26.149] — 2026-10-19 · Candidata de beta: swipes encadenados entre pestañas (PR 284, UX-14), solo web y sin APK nueva (sigue la 4.26.148 / code 59)
+
+- **Qué lleva.** La beta 4.26.148 (`78b54d61d`) más la PR 284 (`708b98a6`): al encadenar otro swipe antes de que acabe el asiento anterior, el carrusel cancela ese asiento y arranca desde la posición visible, también en los bordes (primera y última pestaña). Antes el arrastre partía de la pestaña ya terminada y, al invertir el dedo, el track retrocedía hacia el destino viejo.
+- **Panel.** Una tanda nueva, `pestanas-swipe-rapido` (pasos 1-4). Las de la 148, la 147, la 146 y la 144 se quedan.
+- **Acta de la PR.** UX14 pendiente de integración (19/10/2026): al encadenar swipes, cancelar el asiento anterior al reclamar el eje horizontal y arrancar desde la posición visible evita el retroceso contra el dedo. A/B CPU6 sobre48d5ef810: tres retrocesos por cadena en base, cero en candidata, con 90/2.000 gastos; sin mejora general de frames >32 ms acreditada. Dos RED causales, tres GREEN focales y ocho controles de swipe. [Acta y límites](docs/briefs/ux14-swipes-encadenados.md). Sin nueva versión, catálogo ni APK; notas de versión pendientes de integración.  Remate UX14 de la misma PR284 sobre e2a00f24: las ramas de la banda en primera y última pestaña usan también el origen visible. Cuatro RED causales sobre R1 y cuatro GREEN ABAB con el tope y el factor de goma conservados. La sonda de llegada distingue el commit de React previo al siguiente eje horizontal y conserva su falso negativo inicial. Regresiones dirigidas y límites en [el acta R2](docs/briefs/ux14-swipes-bordes-r2.md).
+
 ## [4.26.148] — 2026-10-19 · Candidata de beta: enlazar recibos a mano (INC-1810-04) y vibración con ajustador (UX-16), con APK nueva (4.26.148 / code 59)
 
 - **Qué lleva.** La beta 4.26.147 (`ccb798376`) más `3bc25a8dc` (`claude/youtube-enlace`) y `352cf25f9` (`claude/vibra-ajustador`).
@@ -13,7 +19,6 @@
 - **Reordenar brókers (PR 283, `10677f7d`, INC-2709-08).** Cuentas y brókers comparten `useListLongPress`: HOLD de 380 ms, cancelación del HOLD al desplazarse, indicador de destino y supresión del toque al soltar. Cuentas conserva `moveAccountInList`; brókers reutiliza `settings.secOrder.inv` y el guardado/push/pull del estado. No cambia cálculos ni escritores cloud.
   El render conserva las ternas originales y completa órdenes antiguos sin duplicados ni grupos huérfanos, para evitar la regresión de 4.7.1. Se conserva la clase del desplegable y la reducción de movimiento.
   E2E dirigido de gesto, recarga y sincronización simulada en las dos vistas; comparación íntegra de inversiones, relaciones de cuenta y demás objetos financieros. Candidata sin publicación ni aceptación móvil.
-
 
 ## [4.26.146] — 2026-10-19 · Candidata de beta: vuelta a primer plano sin tirón (`claude/perf-vuelta`, `fff05adca`), solo web y sin APK nueva (sigue la 4.26.145 / code 58)
 

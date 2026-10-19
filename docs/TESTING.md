@@ -3,6 +3,23 @@ Deudas: `deudas-alargar-plazo.test.mjs` está en el runner Node; `deudas-alargar
 ## INC-2709-08 · orden de brókers
 
 `tests/broker-order.test.mjs` protege ternas, referencias financieras, orden antiguo y payload de sincronización. `e2e/cartera-orden-brokers.spec.mjs` arrastra por CDP en portada y pantalla hija, recarga y carga el estado en otro contexto mediante un cliente simulado con CAS. Compara grupos, filas y objetos financieros completos; incluye bróker importado y posición sin precio. Registrado en el runner y mapa de Inversiones.
+## UX14 · swipes encadenados, candidata local 19/10/2026
+
+R2 añade dos casos `UX14 bordes` en el mismo spec: encadenar durante un asiento hacia la
+primera/última pestaña conserva el origen visible de la banda; se registran checkpoints,
+toques nativos, rAF/>32 ms, hash servido y snapshots financieros. Cuatro RED causales R1
+y cuatro GREEN ABAB; fallo inicial del clasificador de llegada conservado y corregido sin
+alargar pausas. [Acta de R2](briefs/ux14-swipes-bordes-r2.md). El cierre privado separa ese
+fallo de las regresiones dirigidas completas pedidas (`rendimiento-tabs`, `swipe-pestanas`,
+`botnav-*`, un worker y cero retry).
+
+Tres casos `UX14` en `e2e/rendimiento-tabs.spec.mjs` (ya registrado en CROSSCUTTING y en
+la fase de rendimiento): cadenas rápidas de 90/2.000 gastos y control pausado. CPU6,
+splash fuera, aterrizaje comprobado, sin trazas ni polling de locators en la ventana;
+rAF inline y retrocesos del track contra el dedo. Dos RED causales en la base48d5ef810,
+tres GREEN de candidata y ocho controles de `swipe-pestanas`, sin retry. Tabla ABAB,
+concurrencia autorizada, duración CDP real y límites en [el acta](briefs/ux14-swipes-encadenados.md).
+No declara resuelto el lag general ni validado el móvil.
 
 ## INC-290902 · porcentaje positivo inferior al redondeo
 

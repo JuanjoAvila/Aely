@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.26.149",
+    "d": "2026-10-19",
+    "t": {
+      "es": "Deslizar rápido entre pestañas ya no da saltos hacia atrás",
+      "en": "Swiping quickly between tabs no longer jumps backwards",
+      "ca": "Lliscar ràpid entre pestanyes ja no fa salts enrere"
+    },
+    "items": {
+      "es": [
+        "Deslizar rápido varias veces entre pestañas ya no da saltos hacia atrás: la pantalla sigue al dedo."
+      ],
+      "en": [
+        "Swiping quickly several times between tabs no longer jumps backwards: the screen follows your finger."
+      ],
+      "ca": [
+        "Lliscar ràpid diverses vegades entre pestanyes ja no fa salts enrere: la pantalla segueix el dit."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "pestanas-swipe-rapido",
+        "t": {
+          "es": "Pestañas: deslizar rápido varias veces seguidas",
+          "en": "Tabs: swiping quickly several times in a row",
+          "ca": "Pestanyes: lliscar ràpid diverses vegades seguides"
+        },
+        "items": {
+          "es": [
+            "1. Desliza rápido varias veces seguidas entre Inicio, Gastos, Plan y Cartera, ida y vuelta.",
+            "2. La pantalla sigue el dedo sin saltar hacia atrás. MAL: da un tirón o un salto atrás.",
+            "3. Llega a Cartera y sigue deslizando hacia la izquierda; luego ve a Inicio y desliza a la derecha. MAL: un salto raro. En Inicio, deslizar desde el borde izquierdo sigue abriendo Ajustes.",
+            "4. Siempre acabas en la pestaña que marca la barra de abajo. MAL: no coincide."
+          ],
+          "en": [
+            "1. Swipe quickly several times in a row between Home, Spending, Plan and Portfolio, back and forth.",
+            "2. The screen follows your finger without jumping backwards. WRONG: a jerk or a jump back.",
+            "3. Reach Portfolio and keep swiping left; then go to Home and swipe right. WRONG: an odd jump. On Home, swiping from the left edge still opens Settings.",
+            "4. You always end up on the tab the bottom bar shows. WRONG: they do not match."
+          ],
+          "ca": [
+            "1. Llisca ràpid diverses vegades seguides entre Inici, Despeses, Pla i Cartera, anada i tornada.",
+            "2. La pantalla segueix el dit sense saltar enrere. MALAMENT: dóna un estirament o un salt enrere.",
+            "3. Arriba a Cartera i continua lliscant cap a l'esquerra; després ves a Inici i llisca cap a la dreta. MALAMENT: un salt estrany. A Inici, lliscar des de la vora esquerra continua obrint Ajustos.",
+            "4. Sempre acabes a la pestanya que marca la barra de baix. MALAMENT: no coincideix."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.148",
     "d": "2026-10-19",
     "t": {

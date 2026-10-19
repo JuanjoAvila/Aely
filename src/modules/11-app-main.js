@@ -2785,6 +2785,7 @@ function App(){
      él dependen el umbral de cambio de pestaña, el flick y el premontado de la vecina; restarle 36
      también a eso pediría 108 px para cambiar de pestaña y el gesto se volvería pesado. */
   const ancla=useRef(0);
+  const arrastreDesde=useRef(0);
   const trackW=useRef(0);   // ancho del carrusel, medido al empezar el gesto (ver onMove)
   const prepped=useRef(0);    // qué vecina se ha premontado ya EN ESTE gesto (ver onMove)
   /* EL CARRUSEL SE MUEVE EN PÍXELES, NO EN PORCENTAJES — y esto valía la mitad del lag.
@@ -3127,6 +3128,17 @@ function App(){
           freezeShell(true,"drawer");
         } else {
           gestureMode.current="tab";
+          /* Al encadenar otro swipe antes de los 420 ms, el asiento anterior aún escribía
+             transform y el arrastre arrancaba desde la pestaña ya terminada: al invertir el
+             dedo, el track retrocedía hacia el destino viejo (19/10). Se entrega el movimiento
+             en la posición visible, solo cuando el eje horizontal ya es nuestro. */
+          const enAsiento=!!settleRaf.current;
+          const desde=enAsiento?trackPxAhora():-(tab*(trackW.current||360));
+          if(enAsiento){
+            cancelAnimationFrame(settleRaf.current); settleRaf.current=0;
+            settleGen.current++; settleTo.current=-1;
+          }
+          arrastreDesde.current=desde;
           pinNavVisible(1400);   // barra fija durante el swipe y el asiento
           leaveScrollHost();   // salir del fixed: el carrusel vuelve a translate3d
           if(trackRef.current) trackRef.current.classList.add("dragging");
@@ -3209,10 +3221,11 @@ function App(){
     // Lo que se PINTA arranca en 0 desde que el gesto es nuestro (ver `ancla`); lo que se DECIDE
     // sigue usando el recorrido crudo.
     const dxVis=dx.current-ancla.current;
-    let off=-tab*100+(dxVis/w)*100;
+    let off=(arrastreDesde.current+dxVis)/w*100;
     // Sin rubber-band a la derecha en Inicio (ese gesto es Ajustes) — evitaba el rebote raro.
-    if(tab===tabIds.length-1&&dxVis<0) off=-tab*100+(dxVis/w)*100*0.28;
-    else if(tab===0&&dxVis>0) off=-tab*100;
+    // Los bordes conservan también el origen visible si se interrumpió un asiento (19/10).
+    if(tab===tabIds.length-1&&dxVis<0) off=(arrastreDesde.current+dxVis*0.28)/w*100;
+    else if(tab===0&&dxVis>0) off=arrastreDesde.current/w*100;
     else if(tab===0&&dx.current>0) off=-tab*100;
     // Solo se APUNTA a dónde va; lo escribe el rAF, una vez por frame pintado (ver `pedirPintado`).
     pedirPintado(off*w/100);

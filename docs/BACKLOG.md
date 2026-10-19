@@ -108,7 +108,7 @@ Fuente: veredictos del panel (`scripts/errores.mjs --kind=beta`), CHANGELOG, not
 - UX-03 (con INC-2709-01) · splash y arranque; UX-09 · splash con el verde por defecto
 - UX-11 · salto vertical tras cerrar una hoja: informe sin parche aceptado; no reproducido en 48 casos sintéticos, sigue abierto para evidencia del dispositivo.
 - UX-12 · Deudas y Metas al estilo v4 (en curso, Codex)
-- UX-14 · deslizar entre pestañas a velocidad muy alta deja de ir fluido y hace un efecto raro: preparación estática; CPU6 pendiente de runner-libre expreso, sin medición ejecutada.
+- UX-14 · deslizar entre pestañas a velocidad muy alta deja de ir fluido y hace un efecto raro: preparación estática; CPU6 pendiente de runner-libre expreso, sin medición ejecutada. Estado 19/10: en beta 4.26.149 (PR 284), tanda `pestanas-swipe-rapido`, pendiente de su veredicto.
 - INC-2709-15 · botones de suscripciones recortados: comprobar en móvil
 - INC-2709-06 · cargos CaixaBank ausentes: revisión con fixtures sintéticas asignada, sin cierre acreditado.
 - UX-15 · «Sincronizar» de Gastos no lee los bancos (solo baja lo de las notificaciones): renombrado/explicación con entrega técnica separada; no confundir con la lectura bancaria ni cerrar PRO-09 por asociación.
