@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "id": "deudas-bajar-cuota-alargar-plazo-codex-20261019",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261019-r74-36ea75cf98e01bbf",
+  "createdAt": "2026-10-19T08:47:48.977Z",
+  "to": "codex",
+  "kind": "worker",
+  "priority": 1,
+  "model": "gpt-6-astra",
+  "baseSHA": "7090802099ac0c7956c0d3597a9936a82c52a95f",
+  "assignedPublicSessionId": "codex-local-20261014-43c0a0c94700",
+  "claudeGrant": "371d91499b45d2a40f2675dfde48310aa530179b",
+  "objective": "When lowering a debt payment with fixed term violates FIN16, offer an explicit action to extend term to N months computed by the existing FIN16 formula; preserve the financial validator and all unrelated amounts and links.",
+  "scope": [
+    "Debt edit sheet targeted action after invalid lower payment",
+    "Existing FIN16 formula reuse and exact-cent/month-count oracles",
+    "es/en/ca family-facing copy and targeted real screen E2E"
+  ],
+  "requirements": [
+    "Read full Claude371d9149 and this task. This debt feature has PRIORITY over UX11 and brokers because UX11 was not started. Splash is parked by e622327e, Cyberpunk and emptyboxes withdrawn by70228df7 and2bffe34b; do not work on them. No extra task selection or parallel unrelated work.",
+    "Original Deudas holder only, same public identity/session/runtime/helper/filter/ledger; use Astra for money as expressly required by Claude. New exact own claim push/readback and ACK before code. Original deudas-estilo-v4 claim remains reserved and unchanged; do not close or transfer it. Preserve PR239/240/269/277/278 sources, results, WIP, leases and prior financial evidence. This is a new successor feature, not permission to revive their old tests or mutate their checkouts.",
+    "Verify OWN effective runtime/access and live budget; parent fullaccess is not proof for worker. Human authorization already exists, no general permission requests. Preserve all exhausted prior blocks and failed attempts; every first/internal/readback counts at least30s. Additional blocks only under actual exhaustion and applicable normal notice/readback grants; no reset, inheritance or execution lease by time/PID.",
+    "Use an OWN isolated new checkout and branch at exact7090802099ac0c7956c0d3597a9936a82c52a95f, draft NEW PR against beta; do not edit root checkout, rebase old PRs or carry old WIP. Read applicable AGENTS EMPIEZA and channel protocol fully. Prior released receipt PR278 and debt/FIN16 knowledge may be read selectively without mutating old artifacts. Record base/source/version provenance; no silent source substitution.",
+    "ROJO first: open Deudas, edit an existing synthetic debt, lower its monthly payment while keeping term fixed so current FIN16 rejects it. Preserve that validation. Show clear action Alargar el plazo a N meses rather than only the error. Compute N with exactly the same already-existing FIN16 calculation/validator, no independent replacement formula or altered validation rule.",
+    "Only the user clicking that action updates the draft term and enables normal saving. Do not silently change term, pending balance, already-paid installments, paidYm, debtId/receipt links, proofs or other stored records. Raising payment retains current behavior. Plan projections may change only as the direct consequence of the chosen term. Preserve legacy/null/zero APR semantics; consult Claude if the existing formula cannot determine a valid N without changing the financial contract.",
+    "Exact oracle for payment and month count, including a payment that does not cover interest: no extension button and a clear message; final partial installment must remain correct. Include zero-interest and APR-boundary cases where supported by current FIN16, lower-versus-raise behavior and meaningful before/after persisted snapshots. No numerical tolerance to hide cent or off-by-one-month errors; kill mutants of the changed contract.",
+    "Real targeted E2E must open Deudas, lower payment, click extension action and save, then verify persisted term and unchanged balance/paid counts/paidYm/links plus Plan consequences. Capture synthetic before/after screen states. Use own fixtures/port1worker0retry under applicable directed027aeb19 rules; only relevant mapped specs and no repeated unrelated finished tests. No local fullsuite, CPU6 or performance admission carried over.",
+    "Family-facing es/en/ca text; existing UI patterns, obvious action and existing save feedback. Small scoped UI/helper changes only. No new money formula, paid contract, matching/backfill/migration/cloud writer, backend SQL/livebanks/Edge, VERSION/catalogue/caps, Gradle/native/APK, deployment or merge. Keep real size/docs/registration gates and report all actual EXITs and unexecuted gates without weakening them.",
+    "Deliver new draft beta PR and exact source/head readback, causal RED/GREEN, cent/month oracles and mutants, screenshots, source/evidence manifest/checkpoint/closure and own immutable released result. ProductREADY remains false while Claude review/integration/served/mobile pending. Exact own result readback, private ROOT74 handoff and STOP. If blocked by actual denial preserve error and stop that action; no proxy/alternate route/identity or permission requests."
+  ],
+  "deliverable": "Draft beta PR for explicit FIN16 term-extension action when lowering payment, or a concrete blocked result, with exact financial invariants and targeted screen evidence."
+}
