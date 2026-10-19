@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "id": "ux08-native-wave-plan-close-jump-codex-20261019",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261019-r74-36ea75cf98e01bbf",
+  "createdAt": "2026-10-19T17:42:38.311Z",
+  "to": "codex",
+  "kind": "worker",
+  "priority": 4,
+  "model": "gpt-6-astra",
+  "baseSHA": "dca4c71c640e3ebbc26256f9e79572fdda94e39e",
+  "assignedPublicSessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "claudeGrant": "9d49ae020b64dbc43db51f127a642ba6bae11c3e",
+  "priorityConfirmation": "b4d4d1102c528aee3a959a7366fa6dafc22a9181",
+  "humanConfirmation": "8386eb46aa43f93edae9adcc7789fdec68a05604",
+  "dependsOnReleasedResult": "4714ce6d1d4c7254f32fd33a1c66b428a5e141b9",
+  "previousRunnerReturn": "6835ff45640ad6622b2507ce39367c63c43b1a60",
+  "objective": "Restore native Android overscroll wave matching rest of app in Plan Receipts Manage and descendants, and eliminate jump when closing after scrolling; NEW draft PR beta.",
+  "scope": [
+    "Plan Recibos Gestionar plan, categories/subcategories and dependent sheets native overscroll eligibility and gesture propagation",
+    "Undo PR285 motion suppression only where it obstructs intended native wave",
+    "No close jump after scrolling, web effective CSS/scroll geometry/e2e with actual wave reserved for physical mobile acceptance"
+  ],
+  "requirements": [
+    "Read FULL Claude9d49ae020 and laterb4d4d110 priority plus human8386eb46. Earlier PR285 task had reversed intent: OWNER WANTS native Android overscroll stretch/glow as elsewhere, not suppressed movement. Next priority after R3, ahead of SES01. Exact beta base dca4c71c640e3ebbc26256f9e79572fdda94e39e resolved by ROOT. NEW draftPR against beta, do not rewrite PR285 or PR286.",
+    "Same original own session/helper/filter. NEW ownclaim exact readback and ACK before edits; verify OWN20b3 actual closure19/20 historical, only remaining actual reading usable before exhaustion and nextOWN20 normal notice/readback b0390. Every first/internal/readback>=30s, no reset/inheritance/general permission questions. NEW isolated checkout exactdca4, all PR286R1/R2/R3/research PR285/284/270 sources artifacts ZIPs manifests/rawsamples immutable. Read AGENTS EMPIEZA protocol and current relevant task/backlog entries completely.",
+    "Inspect UX08/INC270903 current backlog, approved native wave behavior since4.26.133 and reference200e9a6e scroll-borde-barra with app overflow:clip. Compare actual current rest-of-Plan containers as behavior reference. Inventory Manageplan receipt categories/subcategories and every dependent sheet scroll chain, effective overscroll-behavior overflow touch-action and gesture prevention/propagation. Verify base/head and source locations, not assumptions from prior report.",
+    "Reproduce causal RED in web for missing native-wave eligibility: relevant scroll reaches proper native scroll container at top/bottom and propagates like working restPlan; no overscroll suppression by unintended contain/none or blanket preventDefault. Actual native stretch/glow is OS rendering and cannot be established by headless/emulated screenshots. Do not simulate a decorative fake wave or claim native acceptance from CSS alone.",
+    "Undo PR285 movement-suppression portions only if they obstruct desired native wave; preserve valid geometry/lifecycle cleanup where compatible and unrelated approved motion/UX14 performance. Implement scoped Plan receipt Manage and descendant changes to let native overscroll happen equally at upper/lower edges with the correct sheet-owned scroll and gesture chain. Keep app overflow:clip reference and other app screens intact unless an exact dependency is demonstrated and covered within this scope.",
+    "Independent causal RED for jump on closing after scrolling: capture background Plan scrollTop, stable anchor rects, sheet viewport geometry before open, after nonzero scroll and after close. Cover mainManage, subcategory and dependent sheet return/close paths and gesture end/cancel/back where applicable. Correct scroll/transform/style/lock lifecycle so closing preserves expected background position; no arbitrary delay/wait that merely hides the jump.",
+    "Use actual browser UI scroll gestures and computed effective CSS, real scroll events/top/bottom transitions/scroll ownership and propagation, plus e2e no-close-jump oracles. Nonempty realistically scrollable synthetic fixtures and narrow/mobile viewport. Compare working restPlan behavior and ensure body/background scrolling does not escape sheet unexpectedly, native intended edge response remains eligible. Record native physical acceptance UNVERIFIED and provide URL/steps after Claude integration, not before served artifact exists.",
+    "Financial amounts category sign paid/debt receipt links exact and unchanged; no business state mutation to make gestures pass, no money math changes. Protect source identity, unrelated layout, scroll-borde-barra approved behavior and prior close/swipe regressions. No global overscroll disabling, fake animations, cap relaxation VERSION/catalogue edits or broad redesign.",
+    "Own fresh light directed runner census/admission/port1worker0retry stopfirstfailure per run, retain all earlier failures and exact EXITs. R3 CPU6/performance leases do NOT transfer: NO CPU6/profile/tracing/fullsuite by inference for this task. No native/Gradle/APK/backend/banks/livecloud/SQL/schema/Edge/deploy/merge. Synthetic guarded transport and actual source/browser only; no personal data in channel.",
+    "Deliver NEW draftPR beta exactbase/head and causal RED/GREEN targeted e2e plus actual syntax/size/docs relevant checks, unrun gates and limits. Preserve immutable source/evidence manifest ZIP checkpoint/closure, own RETURN contexts/server/port and released result exactreadback, private ROOT74 handoff thenSTOP. Attach everycreatedPR. Pending human notice: only after Claude review/integration plus NEW beta SERVED exactversion/source/manifest/hash and working URL/mobile steps. Owner tests real native wave and close afterwards; no duplicate ready notice or ProductREADY claim. SES01 and receipt/debt LWW phase2 stay queued."
+  ],
+  "deliverable": "NEW draftPR restoring native-wave eligibility in Manageplan receipt descendants and no-close-jump with causal web CSS/gesture/geometry e2e, immutable released result/RETURN private handoff; actual wave acceptance remains owner mobile after served beta."
+}
