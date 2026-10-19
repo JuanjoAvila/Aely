@@ -1,3 +1,5 @@
+Deudas: `deudas-alargar-plazo.test.mjs` está en el runner Node; `deudas-alargar-plazo.spec.mjs` está en el mapa de `09-tab-debts-goals.js`. Cubre elección explícita, guardado, datos conservados y tres idiomas. [Casos y límites](briefs/deudas-alargar-plazo-20261019.md).
+
 ## INC-290902 · porcentaje positivo inferior al redondeo
 
 `e2e/inicio-ciclo-porcentaje.spec.mjs` cubre el cambio Mi ciclo → Mes, importes de 1/49/50/51 céntimos, agotado y exceso, navegación, recarga y cierre civil de mes en Madrid. El margen positivo pequeño muestra `<1 %` en es/ca y `<1%` en en; las cifras mantienen los céntimos. Diez casos dirigidos con estado sintético, un worker y cero reintentos. El spec está registrado para Inicio en `relevant-tests`. [Contrato y límites](briefs/night-g-cycle-percent-20261018.md).

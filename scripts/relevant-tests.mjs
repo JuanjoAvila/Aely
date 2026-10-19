@@ -140,6 +140,7 @@ export const E2E_MAP = [
     "e2e/cartera-parte-mia.spec.mjs",
   ] },
   { file: "src/modules/09-tab-debts-goals.js", specs: [
+    "e2e/deudas-alargar-plazo.spec.mjs",
     "e2e/deudas-plazo-aviso.spec.mjs",
     "e2e/deudas-metas-edicion-v4.spec.mjs",
     "e2e/deudas-guardar-feedback.spec.mjs",

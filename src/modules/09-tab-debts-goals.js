@@ -16,6 +16,12 @@ function debtEditDraft(d){
 }
 // Un plazo agotado puede dejar céntimos de redondeo o saldo legado: aún debe poder corregirse.
 function debtEditFinished(d){ return d.months!=null&&debtPaidCount(d)>=d.months&&debtBalance(d)<=0.005; }
+// La sugerencia y el recálculo existente comparten céntimos y última cuota parcial.
+function debtEditMonths(d,balance,am,paid){
+  const viaM=Math.max(0,Math.round(balance*100)-Math.round((d.balloon||0)*100)),perMonth=Math.round(am*100);
+  if(viaM>0&&perMonth<=0) return null;
+  return paid+(viaM>0?Math.ceil(viaM/perMonth):(d.balloon>0&&balance>0.005?1:0));
+}
 function debtEditResult(d,form){
   const balance=planEditNumber(form.balance),monthly=planEditNumber(form.monthly),day=planEditNumber(form.day),
     months=planEditNumber(form.months,true),apr=planEditNumber(form.apr,true);
@@ -70,15 +76,26 @@ function debtEditResult(d,form){
       // nadie miraba el plazo y quedaba principal sin cuotas o cuotas fantasma (revisión d139).
       // Cuenta en céntimos para no añadir una cuota por el error binario de una división exacta.
       if((amountChanged||dayChanged)&&!(quotaChanged&&quotaIsAmort)&&!termChanged&&next.months!=null&&am>0){
-        const viaM=Math.max(0,Math.round(balance*100)-Math.round((next.balloon||0)*100)),perMonth=Math.round(am*100);
-        if(viaM>0&&perMonth<=0) return {error:"plan_edit_invalid"};
-        next.months=paid+(viaM>0?Math.ceil(viaM/perMonth):(next.balloon>0&&balance>0.005?1:0));
+        const calculated=debtEditMonths(next,balance,am,paid);
+        if(calculated==null) return {error:"plan_edit_invalid"};
+        next.months=calculated;
       }
       next.value=+(balance+am*paid+(next.balloon>0&&next.months!=null&&paid>=next.months?next.balloon:0)).toFixed(2);
     }
     if(balance>0.005){ next.settledAt=null; next.archivedAt=null; }
   }
   return {item:JSON.stringify(next)===JSON.stringify(d)?d:next};
+}
+function debtEditExtension(d,form){
+  const monthly=planEditNumber(form.monthly),months=planEditNumber(form.months,true);
+  if(d.months==null||months!==d.months||!(monthly>0&&monthly<(d.monthly||0))||debtEditResult(d,form).error!=="db_err_term_quota") return null;
+  // La TAE sin amortización conocida no permite prometer un plazo con el modelo lineal.
+  if(d.amort==null&&(d.apr>0||planEditNumber(form.apr,true)>0)) return {error:"db_extend_unknown"};
+  const next=Object.assign({},d,{monthly:+monthly.toFixed(2),day:planEditNumber(form.day)});
+  if(d.amort!=null&&Math.abs(d.amort-(d.monthly||0))<=0.005) next.amort=next.monthly;
+  const n=debtEditMonths(next,planEditNumber(form.balance),debtAmort(next),debtPaidCount(next));
+  if(!Number.isSafeInteger(n)||n<=months||debtEditResult(d,Object.assign({},form,{months:String(n)})).error) return null;
+  return {months:n};
 }
 function goalEditDraft(g){ return {name:g.name||"",emoji:g.emoji||"🎯",target:String(g.target||0),saved:String(g.saved||0),deadline:g.deadline||"",monthly:g.monthly==null?"":String(g.monthly)}; }
 function goalEditResult(g,form){
@@ -138,7 +155,7 @@ function usePlanEditSave({state,set,field,item,onClose,showToast}){
       return changed;
     }); });
   };
-  return {save:save,error:error,range:range,pending:!!pending};
+  return {save:save,error:error,range:range,pending:!!pending,clearError:function(){setError("");setRange(null);}};
 }
 function PlanEditSheet({title,onClose,closer,children}){
   const swipe=useSheetSwipe(true,onClose); useBackClose(true,swipe.close);
@@ -162,6 +179,7 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,showToast}){
   const finished=debtEditFinished(debt);
   const closer=useRef(null);
   const save=usePlanEditSave({state:state,set:set,field:"debts",item:debt,onClose:function(){ closer.current?closer.current():onClose(); },showToast:showToast});
+  const extension=save.error?debtEditExtension(debt,form):null;
   // El rechazo puede quedar bajo el borde de la hoja. Cada Guardar vuelve a mostrarlo, incluso
   // si se repite el mismo error: el borrador y las guardas financieras no cambian (18/10).
   useLayoutEffect(function(){
@@ -198,6 +216,11 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,showToast}){
       // En euros como el campo, no con eur(): esa pasa a la moneda de visualización (revisión d139d).
       save.range&&" "+(save.range.max==null?tf("db_err_quota_min",{n:save.range.n,min:NF.format(save.range.min)+" €"}):
         tf("db_err_quota_range",{n:save.range.n,min:NF.format(save.range.min)+" €",max:NF.format(save.range.max)+" €"}))),
+    extension&&extension.error&&React.createElement("div",{className:"hint",role:"status"},t(extension.error)),
+    extension&&extension.months&&React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",disabled:save.pending||confirmPending,onClick:function(){
+      const current=debtEditExtension(debt,form);
+      if(current&&current.months){setForm(Object.assign({},form,{months:String(current.months)}));save.clearError();}
+    }},tf("db_extend_term",{n:extension.months})),
     React.createElement("button",{type:"button",className:"btn btn-primary btn-block",disabled:save.pending||confirmPending,onClick:submit},t("db_savechanges")),
     React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",onClick:function(){onDelete(debt);}},t("db_delete"))));
 }

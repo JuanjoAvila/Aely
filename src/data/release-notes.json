@@ -1,5 +1,58 @@
 [
   {
+    "v": "4.26.147",
+    "d": "2026-10-19",
+    "t": {
+      "es": "Bajar la cuota de una deuda: la app te ofrece alargar el plazo",
+      "en": "Lowering a debt payment: the app offers to extend the term",
+      "ca": "Baixar la quota d'un deute: l'app t'ofereix allargar el termini"
+    },
+    "items": {
+      "es": [
+        "Si bajas la cuota de una deuda y no cuadra con el plazo, en vez de solo un error la app te ofrece alargar el plazo con un toque."
+      ],
+      "en": [
+        "If you lower the payment of a debt and it does not fit the term, instead of just an error the app offers to extend the term with one tap."
+      ],
+      "ca": [
+        "Si baixes la quota d'un deute i no quadra amb el termini, en lloc de només un error l'app t'ofereix allargar el termini amb un toc."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "deuda-bajar-cuota-alarga-plazo",
+        "t": {
+          "es": "Deudas: bajar la cuota y alargar el plazo",
+          "en": "Debts: lower the payment and extend the term",
+          "ca": "Deutes: baixar la quota i allargar el termini"
+        },
+        "items": {
+          "es": [
+            "1. Abre Plan, pestaña Deudas, toca una deuda con plazo y baja la cuota (tu frase: «si la bajo me dice error de que no encaja»).",
+            "2. En vez de solo el error, debe salir «Alargar el plazo a N meses». MAL: sale solo el error.",
+            "3. Púlsalo y toca «Guardar cambios»: se guarda con el plazo nuevo y la hoja se cierra. MAL: no guarda.",
+            "4. El saldo pendiente de la deuda y el dinero disponible de Inicio y de Plan no cambian. MAL: cualquier cambio.",
+            "5. Sube la cuota de otra deuda: funciona igual que antes. MAL: algo distinto a lo de siempre."
+          ],
+          "en": [
+            "1. Open Plan, Debts tab, tap a debt with a term and lower the payment (your words: «if I lower it, it gives me an error that it does not fit»).",
+            "2. Instead of just the error, «Extend the term to N months» must show. WRONG: only the error shows.",
+            "3. Tap it and then «Save changes»: it saves with the new term and the sheet closes. WRONG: it does not save.",
+            "4. The pending balance of the debt and the available money in Home and in Plan do not change. WRONG: any change.",
+            "5. Raise the payment of another debt: it works as before. WRONG: anything different from usual."
+          ],
+          "ca": [
+            "1. Obre Pla, pestanya Deutes, toca un deute amb termini i baixa la quota (la teva frase: «si la baixo em diu error de que no encaixa»).",
+            "2. En lloc de només l'error, ha de sortir «Allarga el termini a N mesos». MALAMENT: surt només l'error.",
+            "3. Prem-lo i toca «Desa els canvis»: es desa amb el termini nou i la fitxa es tanca. MALAMENT: no es desa.",
+            "4. El saldo pendent del deute i els diners disponibles d'Inici i de Pla no canvien. MALAMENT: qualsevol canvi.",
+            "5. Puja la quota d'un altre deute: funciona igual que abans. MALAMENT: res diferent de sempre."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.146",
     "d": "2026-10-19",
     "t": {

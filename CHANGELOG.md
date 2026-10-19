@@ -1,3 +1,9 @@
+## [4.26.147] — 2026-10-19 · Candidata de beta: alargar el plazo al bajar la cuota de una deuda (PR 282, INC-1910-01), solo web y sin APK nueva
+
+- **Qué lleva.** La beta 4.26.146 (`48d5ef810`) más la PR 282 (`9f7daa51`): la edición de deuda propone un plazo explícito cuando FIN16 rechaza bajar la cuota. Se comparte el cálculo lineal existente; el botón modifica solo el borrador. Legado con TAE positiva y sin amortización conocida muestra un límite claro. [Contrato, consulta y pruebas](docs/briefs/deudas-alargar-plazo-20261019.md).
+- **Dinero.** Con GO de la revisión de dinero. No cambia el saldo pendiente ni ninguna guarda financiera: el botón solo rellena el borrador y Guardar sigue pasando por FIN-16.
+- **Panel.** Una tanda nueva, `deuda-bajar-cuota-alarga-plazo` (pasos 1-5, cita «si la bajo me dice error de que no encaja»). Las de la 145 y la 146 se quedan como están.
+
 ## [4.26.146] — 2026-10-19 · Candidata de beta: vuelta a primer plano sin tirón (`claude/perf-vuelta`, `fff05adca`), solo web y sin APK nueva (sigue la 4.26.145 / code 58)
 
 - **Por qué.** Diagnóstico de lag del 19/10 (`E:/wt-perf-lag/INFORME-LAG.md`): cada vuelta a primer plano (y el arranque) llama a `syncCloudExpenses`, que baja el histórico ENTERO y lo convertía todo de forma síncrona. `rows.map(expenseFromRow)` volvía a adivinar la categoría de cada fila sin categoría propia (`autoCategory`: NFD + barrido de `KW`, ~0,3 ms por fila a CPU×6), cada fila salía como objeto nuevo, y aunque la nube trajera lo mismo el estado se rehacía entero por `lastSync: Date.now()`: repintado de las cuatro pestañas y 18 KB de `micartera_v3` reescritos en cada vuelta. Crece lineal con el histórico, que encaja con «cada vez peor».

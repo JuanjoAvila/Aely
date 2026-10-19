@@ -49,7 +49,7 @@ Fuente: veredictos del panel (`scripts/errores.mjs --kind=beta`), CHANGELOG, not
 
 **Nuevas**
 
-- INC-1910-01 · Deudas: al bajar la cuota de una deuda, ofrecer alargar el plazo en vez de solo rechazar con «no encaja». Encargado a Codex (19/10).
+- INC-1910-01 · Deudas: al bajar la cuota de una deuda, ofrecer alargar el plazo en vez de solo rechazar con «no encaja». En beta 4.26.147 (PR 282); tanda `deuda-bajar-cuota-alarga-plazo`, pendiente de su veredicto.
 - INC-2709-08 · Cartera: reordenar los bloques de brókers con pulsación mantenida, como las cuentas. Lo quiere el dueño; encargado a Codex (19/10), tras UX-11.
 
 
