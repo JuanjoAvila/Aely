@@ -1,0 +1,107 @@
+{
+  "status": "blocked",
+  "summary": "New draft PR287 at36b01eafaa5c8474fd668783d72405f93be4bd4d, basedca4c71c640e3ebbc26256f9e79572fdda94e39e. Native content scroll in receipt sheet/add, handle and lateral Back retained; touchcancel no longer reverses an active exit. Main Manage/category web preconditions already passed base; native Android visual acceptance remains UNVERIFIED. Two causal RED/GREEN, final11browser+17regressions PASS,4mutants killed, financial state exact. Size/syntax/security/privacy/map/payments PASS; docs exact-head EXIT1 version anchor. Catalogue/CI/integration/served/mobile pending. Prior13470files11repos intact; ownport48532 returned, no globallease/CPU6. ProductREADY=false.",
+  "baseSHA": "dca4c71c640e3ebbc26256f9e79572fdda94e39e",
+  "productSHA": "36b01eafaa5c8474fd668783d72405f93be4bd4d",
+  "pullRequest": 287,
+  "productReady": false,
+  "manifestSHA256": "e6861e1d7cfda87ee8e5a0c20e5a041f65b9972dd5baa17363527960d38ce907",
+  "archiveSHA256": "a590388a54f71543dfd0e678037ab2645a4b1dc9333007093a506ab3c717cbe9",
+  "returnCommit": "e0ccffe595b09bb5de5cab33f7025a638e85e628",
+  "tests": [
+    {
+      "run": "final11browser",
+      "exitCode": 0,
+      "passed": 11
+    },
+    {
+      "run": "directed regressions",
+      "exitCode": 0,
+      "passed": 17
+    },
+    {
+      "run": "mutants",
+      "killed": 4
+    },
+    {
+      "run": "baseline-build",
+      "exitCode": 0
+    },
+    {
+      "run": "build-final",
+      "exitCode": 0
+    },
+    {
+      "run": "candidate-build-01",
+      "exitCode": 0
+    },
+    {
+      "run": "candidate-build-02",
+      "exitCode": 0
+    },
+    {
+      "run": "debt-payment",
+      "exitCode": 0
+    },
+    {
+      "run": "docs-exact-head",
+      "exitCode": 1
+    },
+    {
+      "run": "docs-precommit",
+      "exitCode": 0
+    },
+    {
+      "run": "financial-payment",
+      "exitCode": 0
+    },
+    {
+      "run": "privacy",
+      "exitCode": 0
+    },
+    {
+      "run": "relevant-map",
+      "exitCode": 0
+    },
+    {
+      "run": "security",
+      "exitCode": 0
+    },
+    {
+      "run": "size-final",
+      "exitCode": 0
+    },
+    {
+      "run": "size",
+      "exitCode": 0
+    },
+    {
+      "run": "syntax-final",
+      "exitCode": 0
+    },
+    {
+      "run": "syntax",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "Native Android stretch/glow remains UNVERIFIED; all-screen mobile resolution is not claimed. Hub/category web preconditions already passed on base; PR285 geometry and app overflow:clip preserved.",
+    "Native-scroll content now reserves vertical sheet dismissal to the handle; lateral Back remains. Physical acceptance must confirm both native edge response and this interaction.",
+    "Reproduced close regression is touchcancel during an active exit after scrolling; ordinary tested closes already preserved background scroll/anchors. No generic UX11 or every close-jump claim.",
+    "Docs exact-head EXIT1:3 product files after version anchor. VERSION/release integration/catalogue owned by Claude; catalogue unrun. General CI, integration, served beta and physical acceptance remain pending.",
+    "No CPU6/profiling/tracing/full suite/native/APK/backend/bank/cloud/SQL/Edge/deploy/merge. Synthetic data; external network aborted in new tests.",
+    "Failed intermediate observations, touch-action expectation correction, CRLF mutation-driver failure and commit-driver stat/line-ending correction retained; no passed test rerun to erase a failure."
+  ],
+  "priorArtifactsUnchanged": true,
+  "fetchBudget": {
+    "idbudget": "ux08-wave-own20-b4-82dbe59f",
+    "allowance": 20,
+    "usedBeforeResult": 5
+  },
+  "schema": 1,
+  "taskId": "ux08-native-wave-plan-close-jump-codex-20261019",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-19T18:08:52.820Z",
+  "released": true
+}
