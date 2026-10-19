@@ -1354,6 +1354,18 @@ function PeriodMoreSheet({open, onClose, preset, setPreset}){
     ), document.body);
 }
 
+// Copia para pegar en el chat; el textarea es la salida de las WebView sin `navigator.clipboard`.
+function copiarTexto(txt,showToast){
+  const viejo=function(){
+    try{
+      const ta=document.createElement("textarea"); ta.value=txt; ta.setAttribute("readonly",""); ta.style.position="fixed"; ta.style.opacity="0";
+      document.body.appendChild(ta); ta.select(); const ok=document.execCommand("copy"); ta.remove();
+      if(showToast) showToast(ok?t("hv_copied"):t("hv_copy_fail"));
+    }catch(e){ if(showToast) showToast(t("hv_copy_fail")); }
+  };
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function(){ if(showToast) showToast(t("hv_copied")); },viejo);
+  else viejo();
+}
 /* Sheet detalle/edición de un movimiento. Layout alineado con Apuntar/Cartera (feedback 2026-07-17). */
 // La marca explícita puede seguir puesta aunque el cargo no acredite el pago. Nombrarla
 // con un matiz evita contradecir el chip seleccionado, sin convertirla en prueba financiera.
@@ -1376,6 +1388,16 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     [abierto,exp,paymentDay,state.fixed,state.debts,state.oneoffs,state.expenses,state.bankTx,state.accounts,state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
   const swipe=useSheetSwipe(abierto, onClose);
   useBackClose(abierto, swipe.close);
+  // Diagnóstico de «Paga un recibo»: canal beta o la APK .debug de pruebas, nunca en la estable.
+  const [diagDebug,setDiagDebug]=useState(false);
+  useEffect(function(){
+    let vivo=true;
+    try{
+      const plugin=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.AelyHaptics;
+      if(plugin&&typeof plugin.info==="function") Promise.resolve(plugin.info()).then(function(r){ if(vivo&&r&&r.debug) setDiagDebug(true); },function(){});
+    }catch(e){}
+    return function(){ vivo=false; };
+  },[]);
   const [calOpen,setCalOpen]=useState(false);
   const [bankOpen,setBankOpen]=useState(false);
   const [allCatsOpen,setAllCatsOpen]=useState(false);
@@ -1515,7 +1537,9 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
             onClick:function(){ setReceipt(exp,f.id); }},f.name+" · "+eur(occAmountIn(f,receiptMonth))); }),
           !receiptLinked&&!reciboDe&&receiptPuntuales.map(function(o){ return React.createElement("button",{key:o.id,type:"button",className:"v4-chip","data-testid":"exp-receipt-"+o.id,
             onClick:function(){ setReceipt(exp,o.id); }},o.name+" · "+eur(o.amount)); })),
-        !paymentRelation&&!receiptLinked&&!reciboDe&&!receiptOptions.length&&!receiptPuntuales.length&&React.createElement("div",{className:"hint"},t("f_receipt_none")))),
+        !paymentRelation&&!receiptLinked&&!reciboDe&&!receiptOptions.length&&!receiptPuntuales.length&&React.createElement("div",{className:"hint"},t("f_receipt_none")),
+        (mcChannel()==="beta"||diagDebug)&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-receipt-diag",style:{fontSize:12,padding:"4px 10px",marginTop:8},
+          onClick:function(){ copiarTexto(reciboDiagText(state,exp),showToast); }},t("f_receipt_diag")))),
     React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",onClick:function(){ setAdjustOpen(adjustOpen==="note"?null:"note"); }},
       React.createElement("span",null,t("f_note_row")),React.createElement("span",{className:"value"},editExp.note||t("f_note_none")),React.createElement("span",{className:"chev"},"›")),
     adjustOpen==="note" && React.createElement("div",{className:"v4-ficha-adjust-open"},

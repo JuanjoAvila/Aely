@@ -174,3 +174,31 @@ for(const kind of ['marked','calendar','overdue'])test('INC-1810-04 '+kind+' cha
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:'YouTube Premium'})).toHaveCount(1);
 });
+
+// Diagnóstico de «Paga un recibo» (INC-1810-04): su APK release no deja leer el estado local.
+// Solo en beta; el texto lleva la cola de las cuentas, nunca la cuenta entera ni otros gastos.
+for(const channel of ['beta','stable'])test('receipt diagnostics only on beta · '+channel,async({page})=>{
+  const iban='ES7600810000000000001234';
+  const s=paymentFixture();delete s.fixed[0].paymentProofs;
+  Object.assign(s.expenses[0],{obAcc:iban});s.bankTx[0]={...s.bankTx[0],id:'OTHER-REF',acc:iban};
+  s.expenses.push({id:'other-expense',date:'2026-10-05',merchant:'OTRO COMERCIO',amount:123.45,ent:'sabadell',category:'otros',source:'manual'});
+  await page.addInitScript(ch=>{
+    if(ch==='beta')localStorage.setItem('_mcChannel','beta');else localStorage.removeItem('_mcChannel');
+    window.__copied=[];Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText(t){window.__copied.push(t);return Promise.resolve();}}});
+  },channel);
+  await openRound2(page,s);
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:'YOUTUBE PREMIUM'}).click();
+  await page.getByTestId('exp-receipt').click();
+  await expect(page.getByTestId('exp-receipt-options')).toBeVisible();
+  const btn=page.getByTestId('exp-receipt-diag');
+  if(channel!=='beta'){await expect(btn).toHaveCount(0);await unchangedRound2(page);return;}
+  await expect(btn).toHaveText('Copiar diagnóstico');
+  await btn.click();
+  await expect.poll(()=>page.evaluate(()=>window.__copied.length)).toBe(1);
+  const text=await page.evaluate(()=>window.__copied[0]);
+  expect(text).toContain('RECIBO receipt-synthetic');expect(text).toContain('current:ref distinta en el extracto');
+  expect(text).toContain('obAcc:…1234');expect(text).not.toContain(iban);expect(text).not.toMatch(/\d{12}/);
+  expect(text).not.toContain('123.45');expect(text).not.toContain('OTRO COMERCIO');
+  await unchangedRound2(page);
+});
