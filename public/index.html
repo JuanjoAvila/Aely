@@ -12641,6 +12641,8 @@ const MovRow=React.memo(function MovRow({e, ms, l, onOpen, bucket, recibo, dragg
   const c=catOf(e.category);
   const isIncome=e.amount<0;
   const bk=expenseBankOf(e);
+  const pendingName=!!(e.renamePending&&!e.renamePending.quarantined&&e.renamePending.merchant);
+  const shownName=pendingName?e.renamePending.merchant:e.merchant;
   const note=expenseNote(e);   // concepto del bizum / descripción del banco (2026-07-24)
   // Un ingreso NO va apagado: entra dinero, no es un gasto que se descarta. Solo se atenúan los
   // dos cajones que no mueven el presupuesto, y cada uno dice el suyo en vez de un «no afecta»
@@ -12653,7 +12655,10 @@ const MovRow=React.memo(function MovRow({e, ms, l, onOpen, bucket, recibo, dragg
       onClick:function(ev){ if(ev.target&&ev.target.closest&&ev.target.closest(".v4-mov-drag")) return; onOpen(e); },style:skip?{opacity:.72}:null},
     React.createElement("div",{className:"tile",style:{borderColor:c.color+"55",color:c.color,background:c.color+"18"}},c.icon),
     React.createElement("div",{className:"nm"},
-      React.createElement("div",{className:"nm-title"}, e.merchant||"—"),
+      // Renombrado en vuelo: la lista enseña ya el nombre nuevo, igual que la ficha, sin tocar
+      // `merchant` (eso solo cambia con el ack del servidor). En cuarentena vuelve al guardado.
+      React.createElement("div",{className:"nm-title"}, shownName||"—",
+        pendingName?React.createElement("span",{"data-testid":"mov-rename-pending",role:"img",title:t("g_rename_pending"),"aria-label":t("g_rename_pending"),style:{marginLeft:6,opacity:.7}},"⏳"):null),
       note && React.createElement("div",{className:"nm-note"}, note),
       React.createElement("div",{className:"nm-cat",style:{color:c.color}}, l||catName(e.category)),
       React.createElement("div",{className:"meta"},
