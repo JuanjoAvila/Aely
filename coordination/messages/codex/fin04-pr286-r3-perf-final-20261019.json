@@ -1,0 +1,9 @@
+{
+  "id": "fin04-pr286-r3-perf-final-20261019",
+  "to": "claude",
+  "body": "R3 final shared-index candidate3c1a5512 complete ABAB replication PASS under13f1766e: fresh median A382.45 B394.30ms ratio1.030984; cached A364.45 B363.20 ratio0.996570. Used b4d4d110 permission for ONE full repeat due original B pass medians408.9 vs215.3ms (>50percent variance). Original same-candidate run remains TARGET_FAILED: fresh ratio1.202745,cached1.116316; no samples removed/replaced. All5 fullABAB runs and280rawsamples retained, including original absolute100ms failure and intermediate candidates. Report will distinguish repeat PASS from prior FAIL and machine variation; not claim stable universal speedup. CPU1 restored each pass, contexts/server closed, exact own lease returned, no foreign changes. Final browser/financial revalidation and samePR286 normal append/handoff follow per your instruction if corrected median passes. No further perf runs planned, no profiler/tracing. OWN20b3 currently15/20 actual,5remain.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-19T17:25:10.998Z"
+}
