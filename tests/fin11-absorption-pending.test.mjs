@@ -236,7 +236,7 @@ test('FIN11/FIN15 pendiente con comodín filtra antes de consumir referencia ent
  const changed=source
   .replace('const live: T[] = [], books = new Map<string, T>();','const referencias = new Set<string>(); const live: T[] = [], books = new Map<string, T>();')
   .replace('const vistas = new Map<string, Set<string>>(), referencias = new Set<string>();','const vistas = new Map<string, Set<string>>();')
-  .replace(anchor,'if (omitida) { const ref = referenciaOb(f); if (ref) referencias.add(ref); continue; }');
+  .replace(anchor,'if (omitida) { let ref = referenciaOb(f); if (ref) { const p = JSON.parse(ref), bank = bancoDeSource(f.source), account = cuentaDeSource(f.source); if (bank && account) ref = JSON.stringify([JSON.stringify([bank, account]), p[1], p[2]]); referencias.add(ref); } continue; }');
  assert.notEqual(changed,source,'el mutante debe aplicarse y compilar antes de contar una muerte');
  const mutant=await serverModule(changed);
  assert.equal(cents(mutant.filasComoLaApp([hidden,survivor],[],pending,owner)),0,'mutante causal consume la referencia de la superviviente');

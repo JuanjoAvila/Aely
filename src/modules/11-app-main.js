@@ -583,15 +583,15 @@ function App(){
          Para hacerlo bien hace falta decisión persistida con identidad fiable y un ACK — es el
          bloqueo de identidad de gastos, no un parche de esta ronda. */
       // "nuevo" = no lo teníamos en NINGÚN origen local (así, ya sincronizado → 0 → "Ya estás al día")
-      const identityScope=expenseIdentityScopes((stateRef.current.expenses||[]).concat(incoming));
+      const identityScope=expenseIdentityScopes(stateRef.current.expenses||[],incoming);
       const prevKeys={}; (stateRef.current.expenses||[]).forEach(function(e){ prevKeys[expenseMergeKey(e,identityScope)]=1; });
       let count=0; const seenC={};
       incoming.forEach(function(e){ const k=expenseMergeKey(e,identityScope); if(!seenC[k]){ seenC[k]=1; if(!prevKeys[k]) count++; } });
       set(function(prev){
         // Refrescar una sola vez conserva el guardado partido: no reescribir el histórico
         // por página ni cuando las filas recibidas son iguales a las que ya había.
-        const kept=keepCategoryChoices(prev.expenses, incoming, readStartedAt);
-        const merged=mergeExpensesFromCloud(kept.prev, kept.incoming, readStartedAt, expenseDeletedSet(prev));
+        const kept=keepCategoryChoices(prev.expenses, incoming, readStartedAt,identityScope);
+        const merged=mergeExpensesFromCloud(kept.prev, kept.incoming, readStartedAt, expenseDeletedSet(prev),identityScope);
         const next=merged.list;
         // El aviso ganó a un cargo de recibo: su fila del banco deja de llevar la marca en la nube,
         // o el servidor contaría una u otra según el orden en que las lea.

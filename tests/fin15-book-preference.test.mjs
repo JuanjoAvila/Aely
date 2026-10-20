@@ -46,10 +46,10 @@ export function boundaries(api){
   ['previous ref',{source:'ob:caixabank#refsame#prevrefold#accA'}],
  ];
  for(const [name,extra] of variants)for(const rows of orders([p,{...b,...extra}]))for(const kind of ['mergeExpenses','mergeExpensesFromCloud','server']){
-  // FIN19 resuelve los dos límites cliente antes aparcados: dos operaciones, 640 céntimos.
-  // El lector servidor conserva su contrato hasta una tanda propia; las demás fronteras no cambian.
-  if(kind!=='server'&&(name==='FIN03 parked other bank'||name==='account')){
-   const out=outcome(api,kind,[],rows);assert.equal(cent(out),640);assert.deepEqual(plain(out),plain(rows.map(api.client.expenseFromRow)),kind+' FIN19 '+name);
+  // FIN19 R3 extiende al lector del widget las dos identidades completas: también al deshacer.
+  // Las demás fronteras de preferencia BOOK conservan sus oráculos anteriores.
+  if(name==='FIN03 parked other bank'||name==='account'){
+   const out=outcome(api,kind,[],rows);assert.equal(cent(out),640);assert.deepEqual(plain(out),plain(kind==='server'?rows:rows.map(api.client.expenseFromRow)),kind+' FIN19 '+name);
   }else assert.deepEqual(plain(outcome(api,kind,[],rows)),plain(outcome(prior,kind,[],rows)),kind+' unchanged '+name);
  }
  for(const source of ['ob:caixabank','ob:caixabank#ref','ob:#refsame','manual:caixabank#refsame','ob:caixabank#ref%bad']){

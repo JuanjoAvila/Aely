@@ -1,24 +1,36 @@
-# FIN19 R2 · identidad local y borrado de gastos
+# FIN19 R3 · importación, presupuesto por banco y widget
 
-Candidata de PR288 sobre beta 4.26.158, `a5bbecf6793931f4cfc8a3087951ad1ef66580f8`, 20/10/2026. Conserva R1 `8f87eadc4e6f018a2d50a33808ee0945f171876c` mediante merge normal. No acredita integración, entrega servida ni aceptación móvil. La revisión R1 fue NO-GO por duplicar identidades desconocidas y mantener lápidas demasiado amplias.
+Candidata para la misma PR288, descendiente normal de R2 `5b0cf1eb83c5ce3c79a776223b0b11bd2ab68151`, 20/10/2026. Comparación con beta158 `a5bbecf6793931f4cfc8a3087951ad1ef66580f8`. La revisión independiente rechazó R2 por resurrección al importar sin referencia, asignación incorrecta del banco de avisos incompletos, lápidas ignoradas por el widget y coste del índice. No acredita integración, despliegue ni aceptación móvil.
 
-Solo se separan dos identidades con banco y cuenta conocidos y distintos. Sin uno de esos datos se conserva la agrupación por contenido de base. Un aviso N sin cuenta ocupa una sola ranura: N junto a dos cuentas conocidas A/B suma 640 céntimos, conserva el UUID local y las decisiones manuales de N, y deja otro cargo separado. El índice usa una elección estable entre candidatas; no escribe un banco ni una cuenta supuestos. El refresco conserva únicamente el enriquecido que ya hacía la base. Referencias inequívocas del mismo banco conservan su identidad entre lecturas; el fallback por contenido no cambia el banco de una referencia ni le crea otro ordinal.
+El importador reconoce `expenseDeletionKey`, incluido el ordinal, en `cubierta`, `lapidaVieja` y los vínculos. Las ranuras de cuentas conocidas distintas se mantienen separadas; sin cuenta se conserva el contrato previo. Borrar un movimiento TR de 12 EUR con cuenta y sin `ext_id` deja cero después de ejecutar el callback real de sincronización, aplanado, importación y subida simulada. Se cubren repetición, persistencia partida, pull, deshacer, otra cuenta, lápida antigua y vínculo sin lápida.
 
-La corrección se aplica a ambas mezclas, ordinales/referencias, preparación y ACK de categorías y contador del pull. Se conserva el índice UUID de PR286, sus guardas de campos y lápidas; un UUID compartido no permite colapsar cuentas conocidas distintas. No se cambia el backfill.
+Un aviso con banco y sin cuenta elige primero una candidata de su banco. TR + Sabadell A + TR T y Wallet Sabadell + Sabadell A + Caixa C conservan 320 céntimos por banco mediante el cálculo real de `expenseBanks`; el total global de 640 no bastaba para detectar el error. Se mantienen UUID y decisiones manuales, sin persistir cuentas inventadas. Sin banco se mantiene el fallback anterior.
 
-Las lápidas nuevas de una identidad completa usan `expense-account|identidad-codificada|clave-anterior`. Borrar, deshacer, editar y resolver duplicados emplean la misma clave. El lector reconoce el ámbito y el vínculo de referencia conserva signo y cuenta en diario e histórico. Una fila antigua sin cuenta puede seguir reconociendo el borrado por contenido compatible, sin ocultar otra cuenta conocida. El índice comparte la única pasada existente por las lápidas. Las lápidas antiguas ambiguas conservan su alcance anterior; no es posible reconstruir la cuenta que les faltaba. No hay conversión masiva ni reparación histórica. Se admite un vínculo nuevo junto a una lápida antigua. Las filas que siguen sin identidad completa mantienen el contrato anterior de borrado.
+El lector puro compartido `filasComoLaApp` reconoce las lápidas nuevas de cuenta, sin ocultar otra cuenta conocida. Cuando falla el DELETE simulado, la tabla conserva ambas filas pero el widget solo cuenta la superviviente: 320 céntimos. Deshacer expuso además una deduplicación servidor que perdía la segunda cuenta sin referencia; el lector ahora conserva identidades conocidas distintas y resuelve las incompletas con prioridad de banco, como el cliente. Se preservan las reglas de lápidas antiguas, filas manuales, cero, signo, referencias, PDNG/BOOK y absorciones. Solo cambia código compartido; no hay esquema, backfill, consultas ni despliegue.
 
-| Caso, céntimos | Base original | R1 rechazada | R2 |
+| Caso, céntimos | Base158 | R2 | R3 |
 |---|---:|---:|---:|
-| Wallet sin banco + extracto | 320 | 640 | 320 |
-| Aviso + dos cuentas | 640 | 960 | 640 |
-| Legacy sin cuenta + nube con cuenta | 320 | 640 | 320 |
-| Borrar uno de dos conocidos: restante visible | 0 | 0 | 320 |
+| TR borrado sin referencia, widget tras sync | 0 | 1200 | 0 |
+| TR / Sabadell con aviso TR incompleto | 320 / 0 | 640 / 0 | 320 / 320 |
+| DELETE fallido de A con C: widget | 0 | 640 | 320 |
 
-Cuatro RED originales preservados; la ejecución que empezó antes de terminar el build se excluye de la evidencia causal. También se conserva una ejecución contra beta158 compilada. Las matrices contienen filas completas, ambos merges, órdenes, particiones y repeticiones. El borrado ejecuta callback real, filtro, `mcSaveRaw`/`mcLoadRaw`, pull y undo, con cuentas del mismo banco y de bancos distintos.
+La base también tiene un fallo previo al mezclar ranuras iguales de dos cuentas del mismo banco. Se conservan sus filas completas y el fallo causal; no se atribuye a R2. Los cuatro controles de R1 siguen protegidos: Wallet sin banco 320, aviso con dos cuentas 640, legacy 320 y borrar uno deja 320.
 
-409 pruebas dirigidas pasan en un lote final y una prueba adicional de referencias de lápidas pasa por separado: 410 reportadas, concurrencia 1, datos sintéticos. Incluyen PR286, FIN10/11/15, pendientes/BOOK, absorciones, referencias/ordinales, devoluciones, categorías, emparejado y pulls. Mutantes nuevos restauran los tres sobreconteos, omiten banco/cuenta, amplían el borrado o permiten resurrección; todos son detectados. Fallos intermedios y EXIT conservados.
+El ámbito se calcula de forma perezosa, memoriza banco/cuenta y claves dentro de una sola foto y se comparte entre contador, categorías y merge del pull. Los cambios de arrays, UUID o preferencia BOOK invalidan el contexto. No hay caché global entre estados. La salida temprana de categorías no crea índice. Se conservan las guardas UUID de PR286 y un oráculo de 3.000 filas, 4.501.500 céntimos y filas completas.
 
-Sintaxis, privacidad, seguridad y mapa de tests: EXIT 0. Tamaño: EXIT 1 en minificado y gzip; no se suben topes. Docs y catálogo se registran con su resultado efectivo en la entrega. VERSION, notas y catálogo quedan a cargo de integración, conforme al encargo.
+Medición CPU1 secuencial, 3.500 filas sin cambios, cuatro calentamientos y 21 muestras por caso, variantes intercaladas:
 
-El lector servidor y la unicidad de la tabla conservan sus reglas: esta corrección local no acredita convergencia completa entre superficies ni recupera filas ya perdidas. Sin nube/banco reales, SQL, Edge, APK, navegador, CPU6, suite completa, despliegue, merge de PR ni aceptación móvil. No ProductREADY.
+| Mediana ms | Base158 | R2 | R3 | R3/base |
+|---|---:|---:|---:|---:|
+| Merge, entradas nuevas | 31,50 | 86,78 | 41,25 | 1,31 |
+| Categorías, entradas nuevas | 0,0623 | 19,39 | 0,0584 | 0,94 |
+| Contador + categorías + merge, entradas nuevas | 33,47 | 137,49 | 44,81 | 1,34 |
+| Merge, mismas entradas | 30,89 | 86,42 | 37,53 | 1,21 |
+| Categorías, mismas entradas | 0,0235 | 18,53 | 0,0243 | 1,03 |
+| Contador + categorías + merge, mismas entradas | 35,02 | 124,13 | 40,73 | 1,16 |
+
+Persisten 16–34 % de coste adicional frente a base en merge/pull. Son medidas de Node en el host, sin aislar actividad externa, no una aceptación móvil ni un umbral universal. Se conservan muestras, hashes de fuentes/artefactos y oráculos fuera del tramo medido.
+
+Los mutantes reintroducen resurrección por lápida o vínculo, emparejado del ordinal equivocado, presupuesto del banco incorrecto, widget que cuenta el borrado, pérdida de otra cuenta al deshacer e índice prematuro. Los dos mutantes históricos FIN11/15 se adaptan a la referencia con ámbito actual; mantienen el oráculo de 0 frente a 320 céntimos. No se cuentan errores de arnés como muertes financieras.
+
+La entrega privada registra comandos y EXIT efectivos, incluidos fallos intermedios. Tamaño y catálogo quedan a cargo de integración y no se repiten aquí. Sin cambios en VERSION, notas, catálogo ni topes. Sin suite completa, CI general verificada, navegador/CPU6, banco/nube reales, SQL/Edge, APK, merge o aceptación móvil. No ProductREADY.

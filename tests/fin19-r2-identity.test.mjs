@@ -93,7 +93,7 @@ test('FIN19 R2 new known tombstone differs by account, old ambiguous tombstone r
 });
 
 test('FIN19 R2 mutation: unknown bucket restores all three overcounts in both real merges',()=>{
- const before='||contents.get(keyOfExpense(e))||"";',after='||JSON.stringify([expenseBankOf(e)||"",String(e.obAcc||"")]);';
+ const before='||bankContents.get(bank+"|"+key)||contents.get(key)||"";',after='||JSON.stringify([expenseBankOf(e)||"",String(e.obAcc||"")]);';
  assert.ok(html.includes(before),'mutation applies');const mutant=loadPureLogic(html.replace(before,after));
  const bad=matrix(mutant,html);
  for(const [name,expected] of [['wallet',320],['noticeTwoAccounts',640],['legacy',320]])for(const kind of ['mergeExpenses','mergeExpensesFromCloud']){
