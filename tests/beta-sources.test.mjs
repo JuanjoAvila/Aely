@@ -3902,7 +3902,8 @@ test("Catálogo154 añade las tandas de Cartera sin lagazo y de renombrar sin co
   const congelados=new Set(["inc-0810-inicio-grafica-significado"]),unidad=u=>JSON.stringify(u);
   for(const [id,scope] of Object.entries(integrated)){
     if(congelados.has(id)){assert.deepEqual(rest[id],scope,"descriptor congelado: "+id);continue;}
-    const web=closure(scope.web||[]);
+    // perf-cuentas (0a3ea09b) declara a mano en Inicio las cuatro funciones de claves y dependencias de la serie de patrimonio.
+    const web=closure(scope.web||[]).concat(id==="inicio-patrimonio-flujos"?["netWorthHistoryKey","settingsDeps","netWorthPointOk","stateDeps"].map(function_=>({file:"src/modules/02-ui-shared.js",function:function_})):[]);
     assert.deepEqual({...rest[id],web:rest[id].web.map(unidad).sort()},{...scope,web:web.map(unidad).sort()},"cierre de lectores recalculado, ni se recorta ni crece sin declararlo: "+id);
     assert.equal(rest[id].web.length,web.length,"sin unidades repetidas: "+id);
   }
