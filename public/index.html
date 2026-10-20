@@ -6976,7 +6976,8 @@ Object.assign(LANG.es,{
   gb_freq_m:"Cada mes", gb_freq_2m:"Cada dos meses", 
   gb_freq_3m:"Cada tres meses", gb_freq_6m:"Cada seis meses", 
   gb_freq_y:"Una vez al año", 
-  gb_preview:"Serán {x} al mes repartidos ({total} al año, en {months}).",
+  gb_preview_each:"Se cobrarán {each} en {months} ({total} al año): {x} al mes repartidos.",
+  gb_preview_nomonth:"Serán {x} al mes repartidos ({total} al año). Falta elegir en qué mes se cobra.",
   gb_preview_m:"Serán {x} cada mes.", gb_empty:"Aún no hay recibos", gb_empty_sub:"Conecta tu banco y los detecto solos.",
   gb_afford:"¿Me lo puedo permitir?",
   gb_afford_sub:"Dime un importe y un día y te digo si te cabe este mes.", gb_del:"Quitar este recibo", gb_removed:"Recibo quitado",
@@ -19940,7 +19941,29 @@ function Reconcile({state, set}){
 function fixedMonthlyOf(e){
   if(!e) return 0;
   if(hasSchedule(e)) return e.schedule.reduce(function(a,x){ return a+(Number(x.amt)||0); },0)/12;
-  return (Number(e.amount)||0)*(FREQ_M[e.freq]||1);
+  const base=(Number(e.amount)||0)*(FREQ_M[e.freq]||1);
+  // Meses marcados a mano: cuenta los cobros que hace el calendario, no los de la frecuencia. Un
+  // trimestral con 3 meses se cobra 3 veces y salía como 4 (30 € al mes en vez de 22,50 — FIN-20).
+  // El anual ya reparte su importe entre sus meses y la semana no va por meses: esos, como antes.
+  // Con tantos cobros como los de por defecto se deja `base` para no mover ni un bit.
+  if(!(e.months&&e.months.length)||e.freq==="año"||e.freq==="anual"||e.freq==="semana") return base;
+  const n=fixedChargeMonths(e).length;
+  return n===fixedChargeMonths({freq:e.freq}).length?base:(Number(e.amount)||0)*n/12;
+}
+// Meses (1-12) en que el calendario cobra de verdad: sin repetidos ni meses imposibles.
+function fixedChargeMonths(e){
+  const out=[]; for(let m=1;m<=12;m++) if(occursIn(e,m)) out.push(m); return out;
+}
+/* La vista previa del alta cuenta lo mismo que cobrará el calendario con el recibo tal y como se
+   va a guardar: cuánto cada vez, en qué meses y el total del año. Antes multiplicaba el importe por
+   los meses también en un anual, que lo reparte, y prometía el doble de lo que se cobra (FIN-21). */
+function fixedAddPreview(it){
+  const x=eur(fixedMonthlyOf(it));
+  if(it.freq==="mes"&&!(it.months&&it.months.length)) return tf("gb_preview_m",{x:x});
+  const ms=fixedChargeMonths(it);
+  if(!ms.length) return tf("gb_preview_nomonth",{x:x,total:eur(Number(it.amount)||0)});
+  const total=ms.reduce(function(a,m){ return a+occAmountIn(it,m); },0);
+  return tf("gb_preview_each",{each:eur(occAmountIn(it,ms[0])),months:ms.map(function(m){ return monthShort(m-1); }).join(", "),total:eur(total),x:x});
 }
 function billsHeroTotal(state, totals){
   /* Misma cifra que Plan › Recibos / totals.fijosMensual (los dos suman `fixedMonthlyOf`). */
@@ -24018,7 +24041,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="ae6a1cc2ccac190678097d9074f94f7c9508a4b4fd058b3859c2937486f54bd2";
+var _rnSha="323cf9e6b449a83c64c7e462ab3e4cdcee7310bebb3d9d3c46e169021140b59e";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -26492,6 +26515,11 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, onSa
     document.addEventListener("keydown", onKey, true);
     return function(){ document.removeEventListener("keydown", onKey, true); };
   },[]);
+  const fixedDraft=function(amt){
+    const it={name:form.name||"Recibo",amount:amt,freq:form.freq||"mes",account:form.account};
+    if(form.freq!=="mes"&&form.months&&form.months.length) it.months=form.months.slice().sort(function(a,b){ return a-b; });
+    return it;
+  };
   const commit=function(){
     if(savedRef.current) return;
     const amt=parseFloat(String(form.amount).replace(",","."))||0;
@@ -26509,21 +26537,18 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, onSa
       const d=cleanDay(form.day); if(d) it.day=d;
       addOneoffItem(set,it);
     } else {
-      const it={id:uid(),name:form.name||"Recibo",amount:amt,freq:form.freq||"mes",account:form.account};
+      const it=Object.assign({id:uid()},fixedDraft(amt));
       const d=cleanDay(form.day); if(d) it.day=d;
-      if(form.freq!=="mes"&&form.months&&form.months.length) it.months=form.months.slice().sort(function(a,b){ return a-b; });
       addFixedItem(set,it);
     }
     onSaved(form.kind==="flow"?(form.flowKind||"income"):form.kind,String(form.name||"").trim());
     swipe.close();
   };
+  // La vista previa lee el MISMO recibo que se guardará: si no, vuelve a contar otra cosa (FIN-21).
   const preview=function(){
     const amt=parseFloat(String(form.amount).replace(",","."))||0;
     if(!(amt>0)||form.kind!=="fixed") return null;
-    const mEq=amt*(FREQ_M[form.freq]||1);
-    if(form.freq==="mes") return gbTxt("gb_preview_m",{x:eur(mEq)});
-    const ms=(form.months&&form.months.length)?form.months:chargeMonths({freq:form.freq,months:form.months});
-    return gbTxt("gb_preview",{x:eur(mEq),total:eur(amt*(ms.length||1)),months:ms.map(function(m){ return monthShort(m-1); }).join(", ")});
+    return fixedAddPreview(fixedDraft(amt));
   };
   const title=step==="what"?gbTxt("gb_step_what"):step==="amount"?gbTxt("gb_step_how_much"):
     step==="freq"?gbTxt("gb_step_how_often"):step==="months"?gbTxt("gb_months_q"):

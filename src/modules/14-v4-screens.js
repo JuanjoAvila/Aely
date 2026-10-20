@@ -963,6 +963,11 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, onSa
     document.addEventListener("keydown", onKey, true);
     return function(){ document.removeEventListener("keydown", onKey, true); };
   },[]);
+  const fixedDraft=function(amt){
+    const it={name:form.name||"Recibo",amount:amt,freq:form.freq||"mes",account:form.account};
+    if(form.freq!=="mes"&&form.months&&form.months.length) it.months=form.months.slice().sort(function(a,b){ return a-b; });
+    return it;
+  };
   const commit=function(){
     if(savedRef.current) return;
     const amt=parseFloat(String(form.amount).replace(",","."))||0;
@@ -980,21 +985,18 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, onSa
       const d=cleanDay(form.day); if(d) it.day=d;
       addOneoffItem(set,it);
     } else {
-      const it={id:uid(),name:form.name||"Recibo",amount:amt,freq:form.freq||"mes",account:form.account};
+      const it=Object.assign({id:uid()},fixedDraft(amt));
       const d=cleanDay(form.day); if(d) it.day=d;
-      if(form.freq!=="mes"&&form.months&&form.months.length) it.months=form.months.slice().sort(function(a,b){ return a-b; });
       addFixedItem(set,it);
     }
     onSaved(form.kind==="flow"?(form.flowKind||"income"):form.kind,String(form.name||"").trim());
     swipe.close();
   };
+  // La vista previa lee el MISMO recibo que se guardará: si no, vuelve a contar otra cosa (FIN-21).
   const preview=function(){
     const amt=parseFloat(String(form.amount).replace(",","."))||0;
     if(!(amt>0)||form.kind!=="fixed") return null;
-    const mEq=amt*(FREQ_M[form.freq]||1);
-    if(form.freq==="mes") return gbTxt("gb_preview_m",{x:eur(mEq)});
-    const ms=(form.months&&form.months.length)?form.months:chargeMonths({freq:form.freq,months:form.months});
-    return gbTxt("gb_preview",{x:eur(mEq),total:eur(amt*(ms.length||1)),months:ms.map(function(m){ return monthShort(m-1); }).join(", ")});
+    return fixedAddPreview(fixedDraft(amt));
   };
   const title=step==="what"?gbTxt("gb_step_what"):step==="amount"?gbTxt("gb_step_how_much"):
     step==="freq"?gbTxt("gb_step_how_often"):step==="months"?gbTxt("gb_months_q"):
