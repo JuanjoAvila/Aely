@@ -1,0 +1,110 @@
+{
+  "status": "blocked",
+  "summary": "FIN19 R8 8a76b213ed9ca9a71fbbb73b6f90f2d6962f8616, normal exactR7 child, same draftPR288 exact branch/PR/pullref. Only two authorized cat/noCard guard removals. Actual negative salary/transfer incomeTRUE, noCardabsent: all6 RED0 onR7 now stored/visible -150000/-20000 through actual save/reload/fullpull second-name/back; fullrows and real split/net totals, existing transfer neutral-to-ingreso classification explicit. FinalMadrid91/91 UTC91/91 EXIT0 cleanbuild. Positive/manual/date/blockedamount, seven account remotes320/manual640 perbank/undo/ordinals. Legacy640 and collision320vs640 accepted knownlimits preserved. Syntax/privacy/diff EXIT0 docs EXIT1. No otherproductchange or AB/FIN22 repeat. Preserved27990files22repos plus frozenOWN8, FIN22parkedWIP7. Ownresourcesreturned immutableZIP166entries verified. Integration gates reserved; releasedBLOCKED notProductREADY. Handoff thenSTOP no native reply.",
+  "tests": [
+    {
+      "command": "node delivery.mjs commit",
+      "exitCode": 1,
+      "phase": "admin-commit-guard-failure"
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "phase": "diff-final",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1,
+      "phase": "docs-final-exact",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "final-clean-build",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0,
+      "phase": "privacy-final",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r8-ficha-income.test.mjs",
+      "exitCode": 1,
+      "phase": "red-r7-negative-v2",
+      "timezone": {
+        "TZ": "Europe/Madrid",
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r8-ficha-income.test.mjs",
+      "exitCode": 1,
+      "phase": "red-r7-negative",
+      "timezone": {
+        "TZ": "Europe/Madrid",
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "phase": "syntax-final",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r8-ficha-income.test.mjs tests/fin19-r7-ficha-rename.test.mjs tests/fin19-r5-counter.test.mjs tests/fin19-r5-remote-rename.test.mjs tests/fin19-r4-pull-counter.test.mjs tests/fin19-r4-renamed-widget.test.mjs tests/fin19-r3-chain.test.mjs tests/fin19-r3-scope-cost.test.mjs tests/fin19-cross-bank-identity.test.mjs tests/ob-iguales-ordinal.test.mjs tests/security.test.mjs tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "phase": "verified-madrid",
+      "timezone": {
+        "TZ": "Europe/Madrid",
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r8-ficha-income.test.mjs tests/fin19-r7-ficha-rename.test.mjs tests/fin19-r5-counter.test.mjs tests/fin19-r5-remote-rename.test.mjs tests/fin19-r4-pull-counter.test.mjs tests/fin19-r4-renamed-widget.test.mjs tests/fin19-r3-chain.test.mjs tests/fin19-r3-scope-cost.test.mjs tests/fin19-cross-bank-identity.test.mjs tests/ob-iguales-ordinal.test.mjs tests/security.test.mjs tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "phase": "verified-utc",
+      "timezone": {
+        "TZ": "UTC",
+        "zone": "UTC"
+      }
+    }
+  ],
+  "productSHA": "8a76b213ed9ca9a71fbbb73b6f90f2d6962f8616",
+  "limitations": [
+    "Local synthetic full actual saveEdit and syncCloudExpenses callbacks, actual persistence, tombstone visibility and monthBudgetStats split/net. Transport/native mocked. No DOM/browser/mobile claim. Tests CPU1 sequential one worker; overlapping timezone runs are not distinct cases.",
+    "Existing ficha income:true sets category ingreso and noCard true. Salary -1500 remains income150000 cents. Incoming transfer -200 is neutral before save (income/net0), becomes ingreso after save (income/net20000); signed stored/visible cents remain -20000. No change to classification assignments or monetary semantics is claimed.",
+    "Known base collision accepted by Claude68bd61de451be6a356de3f678b4029f98da4341b: different accounts with same day/content/ordinal retain320 visible instead of correct640. Separate known-base test and original640 RED evidence preserved. No claim of general cross-account rename correctness.",
+    "Legacy no-account old-client deletion retains640 per Clauded7d6c1e4192dbe402649814935864c721b172779. Seven account-scoped remote chains retain client/widget320, manual640, complete rows, per-bank and undo. Reader/shared server/rename ACK/counter/merge unchanged.",
+    "R6 accepted performance evidence remains immutable, not rerun. No new performance acceptance. No fullsuite, CPU6, browser, live cloud/bank, SQL/Edge/API/auth/schema, APK/deploy/merge, general CI verification or served/mobile acceptance.",
+    "Docs-frescura remains a real integration gate. VERSION, release notes, size, catalogue and caps reserved; not changed or weakened. Not ProductREADY.",
+    "FIN22 stays parked under its retained claim with seven WIP files, three unique browser PASS, two capture repetitions and five old EXIT1 preserved; no FIN22 work, new task or native reply.",
+    "Initial R8 RED harness produced negative zero for expected net against on a neutral transfer; corrected to 0-income without changing financial oracles. First receipt and matrices preserved; corrected RED on exact R7 fails all six actual visibility cases. R7 positive3.20 category/noCard test is transparently updated as a positive control, not used as negative-income proof.",
+    "Manifest SHA256 e35f3c6360edc4d0d2237eb36633732ea934637f19e6c00bb9f6f2fa2ef669a3; ZIP SHA256 68f08bb990bb5b5ef7ae9a0f52ba7539a8458d3a1eb116fda38dc2771b43ecd3; RETURN d533177033abf413352103725037abeccc8873fc"
+  ],
+  "schema": 1,
+  "taskId": "fin19-pr288-r8-ficha-negative-bank-income-codex-20261020",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-20T18:58:47.521Z",
+  "released": true
+}
