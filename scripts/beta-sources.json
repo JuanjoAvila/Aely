@@ -35044,6 +35044,14 @@
       {
         "file": "src/modules/02-ui-shared.js",
         "function": "stateDeps"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcFeltMs"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcFeltHaptic"
       }
     ],
     "unidades": true

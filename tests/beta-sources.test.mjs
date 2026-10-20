@@ -4227,9 +4227,11 @@ test("Catálogo157 añade la tanda de la vibración ronda 6 (solo web, sin APK n
     return web;
   };
   const congelados=new Set(["inc-0810-inicio-grafica-significado"]),unidad=u=>JSON.stringify(u);
+  const crecen={"inicio-patrimonio-flujos":[{file:U,function:"mcFeltMs"},{file:U,function:"mcFeltHaptic"}]};
   for(const [id,scope] of Object.entries(integrated)){
     if(congelados.has(id)){assert.deepEqual(rest[id],scope,"descriptor congelado: "+id);continue;}
-    const web=closure(scope.web||[]);
+    // NetWorthNow (cursor de la gráfica) llama ahora a mcFeltHaptic y mcFeltMs: el descriptor de Inicio v4.2 los declara, y es lo único que crece.
+    const web=closure(scope.web||[]).concat(crecen[id]||[]);
     assert.deepEqual({...rest[id],web:rest[id].web.map(unidad).sort()},{...scope,web:web.map(unidad).sort()},"cierre de lectores recalculado, ni se recorta ni crece sin declararlo: "+id);
     assert.equal(rest[id].web.length,web.length,"sin unidades repetidas: "+id);
   }
