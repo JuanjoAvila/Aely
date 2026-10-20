@@ -182,6 +182,9 @@ for(const channel of ['beta','stable'])test('receipt diagnostics only on beta ·
   const s=paymentFixture();delete s.fixed[0].paymentProofs;
   Object.assign(s.expenses[0],{obAcc:iban});s.bankTx[0]={...s.bankTx[0],id:'OTHER-REF',acc:iban};
   s.expenses.push({id:'other-expense',date:'2026-10-05',merchant:'OTRO COMERCIO',amount:123.45,ent:'sabadell',category:'otros',source:'manual'});
+  // Otro recibo con su prueba BOOK: su referencia y su comercio no son de este cargo y no salen.
+  const n={id:'netflix',name:'Netflix',amount:12.99,account:'sabadell',freq:'mes',day:5};s.fixed.push(n);
+  n.paymentProofs={24322:{kind:'book',key:'sabadell|99887766554433221100X',identity:JSON.stringify(['sabadell','2026-10-05',12.99,'OTRO COMERCIO NETFLIX.COM']),date:'2026-10-05',bank:'sabadell',merchant:'OTRO COMERCIO NETFLIX.COM',amount:12.99,modelVersion:2,receiptId:n.id,receiptName:n.name,model:JSON.stringify([n.id,'sabadell',12.99,null])}};
   await page.addInitScript(ch=>{
     if(ch==='beta')localStorage.setItem('_mcChannel','beta');else localStorage.removeItem('_mcChannel');
     window.__copied=[];Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText(t){window.__copied.push(t);return Promise.resolve();}}});
@@ -199,6 +202,9 @@ for(const channel of ['beta','stable'])test('receipt diagnostics only on beta ·
   const text=await page.evaluate(()=>window.__copied[0]);
   expect(text).toContain('RECIBO receipt-synthetic');expect(text).toContain('current:ref distinta en el extracto');
   expect(text).toContain('obAcc:…1234');expect(text).not.toContain(iban);expect(text).not.toMatch(/\d{12}/);
+  expect(await page.evaluate(()=>{const s=mcLoadRaw(mcStateKey());return !!fixedPaymentProof(s,s.fixed.find(f=>f.id==='netflix'),2026,10,18);})).toBe(true);
+  expect(text).toContain('RECIBO netflix');expect(text).toContain('(otro cargo)');
+  expect(text).not.toContain('99887766554433221100X');expect(text).not.toContain('NETFLIX.COM');
   expect(text).not.toContain('123.45');expect(text).not.toContain('OTRO COMERCIO');
   await unchangedRound2(page);
 });

@@ -593,7 +593,10 @@ function reciboDiagText(s,x){
   (s.fixed||[]).forEach(function(f){
     if(!occursIn(f,m)) return;
     var st=fixedPaymentState(s,f,y,m,today),target=f.bankAmount>0?f.bankAmount:occAmountIn(f,m);
-    var ev=st.proof?"prueba:"+st.proof.kind+(st.proof.identity===identity?"(este)":x.extId&&st.proof.key===st.proof.bank+"|"+x.extId?"(esta ref)":"")+" key:"+(st.proof.key||"-")+" id:"+(st.proof.identity||"-"):st.bankTx?"extracto:"+(fixedPaymentIdentity(st.bankTx.ent,st.bankTx)===identity?"este":"otro"):st.expense?"fila:"+(st.expense.id===x.id?"este":"otra"):"";
+    // La key y la identidad de la prueba solo si es de ESTE cargo o de su ref: de otros recibos
+    // saldrían referencias y comercios de otros gastos, y para el chat basta con el motivo.
+    var suya=!!st.proof&&(st.proof.identity===identity||!!x.extId&&st.proof.key===st.proof.bank+"|"+x.extId);
+    var ev=st.proof?"prueba:"+st.proof.kind+(st.proof.identity===identity?"(este)":suya?"(esta ref)":"(otro cargo)")+(suya?" key:"+(st.proof.key||"-")+" id:"+(st.proof.identity||"-"):""):st.bankTx?"extracto:"+(fixedPaymentIdentity(st.bankTx.ent,st.bankTx)===identity?"este":"otro"):st.expense?"fila:"+(st.expense.id===x.id?"este":"otra"):"";
     var motivo=reciboVetado(s,f.id,reciboNoIdentidad(x),x.id)?"vetado para este cargo":
       !fixedPaymentUnique(s,f)?"id de recibo repetido":x.possibleDup?"cargo posible repetido":x.debtId?"cargo es cuota":
       x.status&&String(x.status).toUpperCase()!=="BOOK"?"cargo no BOOK":!bank?"cargo sin banco":CAT_NEUTRAS[x.category]?"categoría neutra":x.category==="ingreso"?"es ingreso":
