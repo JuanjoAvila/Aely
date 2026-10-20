@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import crypto from 'node:crypto';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
@@ -27,12 +28,13 @@ async function scenario({sameBank=false,ordinal=1,manual=false,legacy=false,coll
  const b={...a,id:uuid(2),comercio:collision?'BAR SL':'Otra compra',ob_name:collision?'BAR SL':'Otra compra',source:'ob:'+(sameBank?'sabadell':'caixabank')+'#refref-c#accaccount-c'+(ordinal>1?'#n'+ordinal:'')};
  const rows=[a,b];if(manual)rows.push({...a,id:uuid(3),source:'manual:sabadell'});
  const env=environment(html,rows,{deleteFails:true}),other=environment(html,[a]);
+ const expectedRows=plain(env.stateRef.current.expenses.filter(e=>e.id!==uuid(1)));
  await other.rename(uuid(1),'Mi bar');env.remote[0]=plain(other.remote[0]);
  const old=plain(env.stateRef.current.expenses[0]);assert.equal(old.merchant,'BAR SL');assert.equal(env.remote[0].comercio,'Mi bar');assert.equal(env.remote[0].ob_name,'BAR SL');
  const controls=env.controls();controls.del(env.stateRef.current.expenses[0]);await env.flush();env.persist();
  const widget=()=>{const s=env.stateRef.current,live=reader.filasComoLaApp(env.remote,s.deleted,s.obAbsorbedPending,owner,s.obAbsorbedConfirmed);return {rows:plain(live),cents:Math.round(reader.statsDelMes(live,s,Date.parse('2026-10-01')).spent*100)};};
  const first=widget();await importDeleted(env,legacy);env.persist();await env.pull();env.persist();await env.pull();
- const after=plain(env.stateRef.current.expenses),result={sameBank,ordinal,manual,legacy,collision,old,remote:plain(env.remote),after,first,widget:widget(),deleted:plain(env.stateRef.current.deleted),uploads:plain(env.uploads),deleteCalls:env.deletes};
+ const after=plain(env.stateRef.current.expenses),result={sameBank,ordinal,manual,legacy,collision,old,expectedRows,remote:plain(env.remote),after,first,widget:widget(),deleted:plain(env.stateRef.current.deleted),uploads:plain(env.uploads),deleteCalls:env.deletes};
  result.perBank=Object.fromEntries(['sabadell','caixabank'].map(bank=>[bank,Math.round(env.c.monthBudgetStats({...env.stateRef.current,settings:{expenseBanks:[bank]}},now).spent*100)]));
  controls.undo();await env.flush();env.persist();await env.pull();result.undo={rows:plain(env.stateRef.current.expenses),widget:widget()};
  return result;
@@ -40,7 +42,7 @@ async function scenario({sameBank=false,ordinal=1,manual=false,legacy=false,coll
 const cases=[];
 for(const sameBank of [false,true])for(const ordinal of [1,2])cases.push(await scenario({sameBank,ordinal}));
 for(const opts of [{manual:true},{legacy:true},{collision:true},{collision:true,sameBank:true}])cases.push(await scenario(opts));
-if(process.env.FIN19_R5_EVIDENCE)fs.writeFileSync(process.env.FIN19_R5_EVIDENCE,JSON.stringify({cases},null,2)+'\n',{flag:'wx'});
+if(process.env.FIN19_R5_EVIDENCE)fs.writeFileSync(process.env.FIN19_R5_EVIDENCE,JSON.stringify({zone:Intl.DateTimeFormat().resolvedOptions().timeZone,TZ:process.env.TZ??null,htmlSHA256:crypto.createHash('sha256').update(html).digest('hex'),serverSHA256:crypto.createHash('sha256').update(source).digest('hex'),cases},null,2)+'\n',{flag:'wx'});
 test('FIN19 R5 lector widget con lápida de cuenta conserva la superviviente completa tras renombrado remoto',()=>{
  for(const r of cases.filter(r=>!r.legacy)){
   const expected=r.manual?640:320;
@@ -57,14 +59,38 @@ test('FIN19 R5 mutante sin clave original devuelve 640 al widget',async()=>{
  assert.equal(result.first.cents,640);
  assert.equal(result.widget.cents,640);
 });
-test('FIN19 R5 otro móvil renombra, cliente antiguo borra, DELETE falla, persistir/pull/repetir/deshacer',()=>{
- for(const r of cases){
+for(const r of cases.filter(r=>!r.legacy))test('FIN19 R6 cadena remota completa '+JSON.stringify({sameBank:r.sameBank,ordinal:r.ordinal,manual:r.manual,collision:r.collision}),()=>{
   const expected=r.manual?640:320;
   assert.equal(r.deleteCalls,1);assert.equal(cents(r.after),expected);
   assert.equal(r.first.cents,expected,JSON.stringify({sameBank:r.sameBank,ordinal:r.ordinal,legacy:r.legacy}));
   assert.equal(r.widget.cents,expected);assert.deepEqual(r.widget.rows,r.remote.filter(e=>e.id!==uuid(1)));
+  assert.deepEqual(r.after,r.expectedRows,'complete survivor fields, including manual and original names');
   assert.deepEqual(r.after.map(e=>e.id).sort(),r.remote.filter(e=>e.id!==uuid(1)).map(e=>e.id).sort());
   assert.deepEqual(r.perBank,{sabadell:(r.sameBank?320:0)+(r.manual?320:0),caixabank:r.sameBank?0:320});
   assert.equal(r.uploads.length,0);assert.equal(cents(r.undo.rows),expected+320);assert.equal(r.undo.widget.cents,expected+320);
- }
+});
+test('FIN19 R6 limitación legacy sin cuenta: base640, no confundir borrado antiguo con renombrado',()=>{
+ // Decisión Claude d7d6c1e (20/10): un cliente antiguo deja la misma lápida sin
+ // ámbito que deja el renombrado al editar. Base ya da640; leerla por obName
+ // rompe renombrar/borrar/deshacer (oculta320). Requiere distinguir su origen,
+ // no ampliar ese borrado. Los siete casos de cuenta mantienen sus oráculos.
+ const r=cases.find(r=>r.legacy);
+ assert.equal(r.deleteCalls,1);assert.equal(cents(r.after),640);
+ assert.equal(r.first.cents,640);assert.equal(r.widget.cents,640);
+ assert.deepEqual(r.widget.rows,r.remote);
+ assert.deepEqual(r.after.map(e=>e.id).sort(),[uuid(1),uuid(2)]);
+ assert.deepEqual(r.after.filter(e=>e.id===uuid(2)),r.expectedRows);
+ const renamed=r.after.find(e=>e.id===uuid(1));
+ assert.equal(renamed.merchant,'Mi bar');assert.equal(renamed.obName,'BAR SL');
+ assert.deepEqual(r.perBank,{sabadell:320,caixabank:320});
+ assert.equal(r.uploads.length,0);assert.equal(cents(r.undo.rows),640);assert.equal(r.undo.widget.cents,640);
+});
+test('FIN19 R6 nombre original conserva banco y cuenta sin alcanzar manuales',()=>{
+ const env=environment(html,[]),c=env.c,row={id:uuid(90),date:'2026-10-19T10:00:00.000Z',amount:3.2,merchant:'Mi bar',obName:'BAR SL',source:'ob',ent:'sabadell',obAcc:'account-a'};
+ const deleted={[c.expenseDeletionKey({...row,merchant:'BAR SL'})]:1};
+ assert.equal(c.expenseIsTombstoned(row,deleted),true);
+ assert.equal(c.expenseIsTombstoned({...row,obAcc:'account-b'},deleted),false);
+ assert.equal(c.expenseIsTombstoned({...row,ent:'caixabank'},deleted),false);
+ assert.equal(c.expenseIsTombstoned({...row,source:'manual'},deleted),false);
+ assert.equal(c.expenseIsTombstoned({...row,obAcc:undefined},deleted),true);
 });

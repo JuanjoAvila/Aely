@@ -1,3 +1,48 @@
+# FIN19 R6 · lápidas por nombre original y UUID absorbidos
+
+Candidata **bloqueada**, sobre R5 `953889feef125dee665a5ddcb3af1d72dc3569f9`, misma PR288, 20/10/2026. El lector cliente prueba también obName dentro del mismo ámbito banco/cuenta. Siete cadenas remotas conservan cliente/widget320 céntimos y la superviviente completa; manual640. El caso legacy sin cuenta conserva640, limitación conocida de base aceptada expresamente por Claude d7d6c1e4192dbe402649814935864c721b172779; su prueba separada reproduce640 sobre HTML y lector servidor exactos de base158. Consultar su lápida antigua indiscriminadamente se ensayó y rompe Deshacer del renombrado local: esa misma lápida la deja el escritor al editar. Los rojos anteriores se conservan como historial. El contrato final separa esa limitación sin debilitar los siete casos de cuenta; no se rediseña el escritor ni se cambia el lector servidor.
+
+El contador valida cada campo de identidad antes de reutilizar claves de una fila con el mismo UUID. Para UUID ausentes, incluidos los absorbidos que siguen en nube, solo calcula claves compuestas para contenido que puede coincidir. El contexto de este pull comparte claves e identidades, no sobrevive al estado ni omite el merge/refresco de notas y categorías. La guardia de avisos absorbidos baja de7100 a un máximo3600 claves; 300 altas reales conservan el contador300 y7221900 céntimos. Cuentas, bancos, manuales, ordinales y referencias distintas mantienen sus controles.
+
+Build final desde fuente exacta; Madrid 57/57, EXIT0; UTC 57/57, EXIT0. El contrato final autorizado queda verde; la limitación legacy640 está separada y documentada. R4 Deshacer, R3 por banco, PR2863000/4501500, ordinales, mutantes y controles de refresco incluidos; lotes solapados no sumables.
+
+A/B CPU1: base158/R5/R6,3500 filas,4 calentamientos y31 muestras intercaladas, fresco/caché, contador real y callback completo esperado hasta finalizar. Cuatro familias, separando avisos absorbidos y sin fundir en cinco escenarios. Oráculos independientes fuera del tiempo. Los20 cocientes locales cumplen1,15.
+
+| Escenario | Modo | Operación | Base ms | R5 ms | R6 ms | R6/base |
+|---|---|---|---:|---:|---:|---:|
+| aligned | fresh | counter | 4.4629 | 0.5381 | 0.7289 | 0.1633 |
+| aligned | fresh | completePull | 67.9738 | 72.6600 | 71.2684 | 1.0485 |
+| aligned | cached | counter | 4.2365 | 0.3534 | 0.5115 | 0.1207 |
+| aligned | cached | completePull | 64.3606 | 68.8266 | 66.5066 | 1.0333 |
+| id-desc | fresh | counter | 4.4656 | 0.5435 | 0.7309 | 0.1637 |
+| id-desc | fresh | completePull | 66.0699 | 69.0936 | 67.5127 | 1.0218 |
+| id-desc | cached | counter | 4.3467 | 0.3673 | 0.5285 | 0.1216 |
+| id-desc | cached | completePull | 65.3009 | 67.3305 | 65.6377 | 1.0052 |
+| absorbed-notices | fresh | counter | 4.5073 | 11.0976 | 3.9525 | 0.8769 |
+| absorbed-notices | fresh | completePull | 68.6267 | 77.6212 | 72.4444 | 1.0556 |
+| absorbed-notices | cached | counter | 4.4110 | 10.3705 | 3.6215 | 0.8210 |
+| absorbed-notices | cached | completePull | 65.4158 | 73.3760 | 66.7878 | 1.0210 |
+| unmerged-notices | fresh | counter | 4.5724 | 0.5813 | 0.8033 | 0.1757 |
+| unmerged-notices | fresh | completePull | 69.0207 | 76.0474 | 73.2965 | 1.0619 |
+| unmerged-notices | cached | counter | 4.2677 | 0.3399 | 0.5076 | 0.1189 |
+| unmerged-notices | cached | completePull | 64.5107 | 70.3528 | 66.4723 | 1.0304 |
+| plus300 | fresh | counter | 4.6068 | 10.0391 | 3.4958 | 0.7588 |
+| plus300 | fresh | completePull | 73.1783 | 80.1284 | 74.2980 | 1.0153 |
+| plus300 | cached | counter | 4.4812 | 9.2195 | 3.1796 | 0.7095 |
+| plus300 | cached | completePull | 69.4541 | 75.4837 | 70.0583 | 1.0087 |
+
+- Final contract authorized by Claude d7d6c1e4192dbe402649814935864c721b172779: seven scoped remote chains preserve client/widget320 (manual640), complete rows and undo. The eighth legacy case is a documented known base640 limitation, expressly NOT an R6 blocker. Exact base158 HTML and server source reproduce640 in the separate legacy test. Earlier expected320 RED Madrid/UTC remain intact. No ProductREADY.
+- Unscoped original-name lookup was tried and rejected: the real R4 rename writer leaves that same old-name tombstone; extending the reader hides the restored row after undo (widget320 instead of640). Diagnostic matrices and source versions retained. Final source only extends scoped lookup; rename writer and shared server reader remain unchanged. Claude accepts this as a known legacy limitation under d7d6c1e4192dbe402649814935864c721b172779 and tracks backlog.
+- All20 local final median comparisons satisfy <=1.15. This is CPU1 on a host with uncontrolled concurrent activity, not CPU6/mobile acceptance.
+- Docs freshness is a separate gate; VERSION/notes/caps/catalogue reserved. No size/catalogue run, fullsuite or verified general CI, served artifact, browser/CPU6, real bank/cloud/SQL/Edge/API, schema/auth/migrations/backfill, Android/APK, deployment, merge or mobile acceptance.
+- All fixtures synthetic. Actual local callbacks with mocked transport/native persistence; async callback awaited, deferred mocked writes flushed and asserted zero outside timer. Full-row/cents/per-bank/new-count oracles outside timer.
+- Existing counter semantics remain content-based after the shortcut: a new bank reference with the same day/amount/merchant can report0 new before the real merge assigns a separate ordinal and preserves both rows. The added control records this explicitly; it does not establish a universally exact new-row counter for reference-only changes. The300 genuinely new fixture counts300 correctly.
+- Earlier v1/v3 performance misses, inherited R5 RED Madrid/UTC, legacy-alias regression, malformed ordinal fixture failure, and RED absorbed7100 versus limit3600 retained. The initial RED benchmark completed1240 samples but its receipt wrapper failed EEXIST; missing child EXIT is not invented. Later receipt/report names are distinct. Repeats followed source changes or required final timezone validation.
+- Generated tested artifacts are preserved privately and restored to exact R5 before source commit. Final rebuild ran on the preserved pre-decision commit; its HTML is byte-identical to the final A/B artifact, and pure logic/callback hashes also match. Source hashes bind the final commit. No served claim.
+- FIN22 remains PARKED under claim28ac75d7 with7 WIP files,3 unique browser passes plus2 focused captures, all5 original EXIT1, source/status and prior packages preserved. No FIN22 delivery or resumed tests; no native reply or next task.
+
+## Historial R5
+
 # FIN19 R5 · orden remoto y renombrado desde otro móvil
 
 Candidata **bloqueada**, sobre R4 `afc13b622bdb900d0aa89c30b5d3c4d5e11b7ed0`, misma PR288, 20/10/2026. FIN22 está aparcado con su claim retenido, todo su WIP y sus fallos conservados, y recursos propios devueltos antes de la nueva reserva de R5.

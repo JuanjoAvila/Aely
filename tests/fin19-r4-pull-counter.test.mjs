@@ -40,7 +40,7 @@ test('FIN19 R4 counter permutations and partitions match scoped financial groupi
  }
 });
 test('FIN19 R4 unconditional-zero mutant loses new known account in actual counter',()=>{
- const needle='if(!mismasIdentidades){';assert.ok(html.includes(needle));
+ const needle='if(missing.length){';assert.ok(html.includes(needle));
  const env=environment(html.replace(needle,'if(false){'),wireRows(1)),incoming=plain(env.stateRef.current.expenses);incoming[0].obAcc='other-account';
  assert.equal(reference(env.c,env.stateRef.current.expenses,incoming),1);assert.equal(env.count(env.stateRef,incoming),0);
 });

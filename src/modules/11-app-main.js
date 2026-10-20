@@ -589,16 +589,20 @@ function App(){
       // vuelven al cálculo con ámbito. El mapa pertenece a esta foto, nunca al siguiente pull.
       const prevIds=new Map();
       previousExpenses.forEach(function(e){ if(e&&e.id)prevIds.set(e.id,prevIds.has(e.id)?null:e); });
-      const mismasIdentidades=incoming.every(function(e){
+      const missing=[];let count=0;
+      incoming.forEach(function(e){
         const p=e&&prevIds.get(e.id);
-        return p&&p.id===e.id&&p.date===e.date&&p.amount===e.amount&&p.merchant===e.merchant
-          &&p.source===e.source&&p.ent===e.ent&&p.obAcc===e.obAcc&&p.obOrd===e.obOrd&&p.extId===e.extId;
+        if(p&&p.id===e.id&&p.date===e.date&&p.amount===e.amount&&p.merchant===e.merchant
+          &&p.source===e.source&&p.ent===e.ent&&p.obAcc===e.obAcc&&p.obOrd===e.obOrd&&p.extId===e.extId){identityScope.alias(e,p);return;}
+        missing.push(e);
       });
-      let count=0;
-      if(!mismasIdentidades){
-        const prevKeys={}; previousExpenses.forEach(function(e){ prevKeys[expenseMergeKey(e,identityScope)]=1; });
-        const seenC={};
-        incoming.forEach(function(e){ const k=expenseMergeKey(e,identityScope); if(!seenC[k]){ seenC[k]=1; if(!prevKeys[k]) count++; } });
+      identityScope.unmatched=missing;
+      if(missing.length){
+        // Un UUID absorbido puede seguir en la nube. Solo su clave con ámbito
+        // acredita presencia; el resto del histórico no necesita esa clave compuesta.
+        const wanted=new Set(missing.map(identityScope.key)),prevKeys={},seenC={};
+        previousExpenses.forEach(function(e){if(wanted.has(identityScope.key(e)))prevKeys[expenseMergeKey(e,identityScope)]=1;});
+        missing.forEach(function(e){const k=expenseMergeKey(e,identityScope);if(!seenC[k]){seenC[k]=1;if(!prevKeys[k])count++;}});
       }
       set(function(prev){
         // Refrescar una sola vez conserva el guardado partido: no reescribir el histórico

@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {environment,wireRows,plain,cents} from './helpers/fin19-r4-fixture.mjs';
+import {environment,wireRows,plain,cents,uuid,owner} from './helpers/fin19-r4-fixture.mjs';
 const html=fs.readFileSync(process.env.FIN19_R5_HTML||new URL('../public/index.html',import.meta.url),'utf8');
 function reference(c,previous,incoming){const scope=c.expenseIdentityScopes(previous,incoming),old=new Set(previous.map(e=>c.expenseMergeKey(e,scope))),seen=new Set();for(const e of incoming){const k=c.expenseMergeKey(e,scope);if(!old.has(k))seen.add(k);}return seen.size;}
 test('FIN19 R5 orden real ID DESC y avisos sin fundir no construyen claves de identidad',()=>{
@@ -33,4 +33,48 @@ test('FIN19 R5 índice incompleto solo calcula referencias consultadas y admite 
  assert.equal(scope(byRef),scope(rows[1]));assert.ok(references<=2,'only requested bank reference is indexed and queried');
  const byId={...rows[2],merchant:'Otro nombre',extId:undefined,obAcc:undefined};
  assert.equal(scope(byId),scope(rows[2]));assert.equal(scope(notice),scope(rows[0]));
+});
+test('FIN19 R6 nube conserva UUID de aviso absorbido y 300 altas reales; no pierde refrescos ni dinero',async()=>{
+ const remote=wireRows(3800),env=environment(html,remote),initial=plain(env.stateRef.current.expenses.slice(0,3500));
+ env.stateRef.current.expenses=initial;
+ for(let i=0;i<100;i++)env.remote.push({...remote[i*2],id:uuid(9000+i),source:'macrodroid'});
+ env.remote.reverse();
+ const incoming=plain(env.c.expensesFromRows(env.remote,owner));
+ assert.equal(env.count(env.stateRef,incoming),300);
+ const result=await env.pull();await env.flush();
+ assert.equal(result.nuevos,300);assert.equal(env.stateRef.current.expenses.length,3800);assert.equal(cents(env.stateRef.current.expenses),7221900);
+ assert.equal((await env.pull()).nuevos,0);
+ env.remote.find(e=>e.id===uuid(1)).nota='Nota remota';env.remote.find(e=>e.id===uuid(1)).nota_edit=true;
+ await env.pull();assert.equal(env.stateRef.current.expenses.find(e=>e.id===uuid(1)).note,'Nota remota');
+});
+test('FIN19 R6 UUID ausente no acredita absorción de otra cuenta, ordinal, referencia o manual',async()=>{
+ const env=environment(html,wireRows(4)),old=plain(env.stateRef.current.expenses);
+ const changes=[{id:uuid(90),obAcc:'other'},{id:uuid(90),ent:'caixabank'},{id:uuid(90),obOrd:2,extId:'ordinal-ref'},{id:uuid(90),source:'manual'},{id:uuid(90),extId:'new-ref'}];
+ for(const change of changes){
+  const added={...old[0],...change},incoming=[added,...old];
+  const count=env.count(env.stateRef,incoming);
+  assert.equal(count,change.extId==='new-ref'?0:1,'counter retains content contract; reference is separated by real merge');
+  const merged=env.c.mergeExpensesFromCloud(old,incoming,0,{});
+  assert.equal(merged.list.length,5);assert.equal(cents(merged.list),11);
+ }
+});
+test('FIN19 R6 el UUID absorbido no obliga a indexar dos veces los 3500 cargos conocidos',()=>{
+ const remote=wireRows(),env=environment(html,remote);
+ for(let i=0;i<100;i++)remote.push({...remote[i*2],id:uuid(9000+i),source:'macrodroid'});
+ const incoming=plain(env.c.expensesFromRows(remote,owner)).reverse();
+ let calls=0;const original=env.c.keyOfExpense;env.c.keyOfExpense=e=>{calls++;return original(e);};
+ assert.equal(env.count(env.stateRef,incoming),0);
+ assert.ok(calls<=3600,'one key per local row or missing notice, no second index of identical bank rows: '+calls);
+});
+test('FIN19 R6 aviso superviviente local y ambos UUID remotos conservan dinero y refresco',async()=>{
+ const wire=wireRows(8),notices=wire.filter((_,i)=>i%2===0).map((r,i)=>({...r,id:uuid(9000+i),source:'macrodroid'}));
+ const env=environment(html,[...wire,...notices]);
+ const local=plain(env.c.expensesFromRows(wire,owner));
+ for(let i=0;i<notices.length;i++)local[i*2]=plain(env.c.expenseFromRow(notices[i]));
+ env.stateRef.current.expenses=local;
+ assert.equal((await env.pull()).nuevos,0);assert.equal(cents(env.stateRef.current.expenses),36);assert.equal(env.stateRef.current.expenses.length,8);
+ assert.deepEqual(plain(env.stateRef.current.expenses),local);
+ env.remote.find(e=>e.id===uuid(9000)).nota='Nota del aviso';env.remote.find(e=>e.id===uuid(9000)).nota_edit=true;
+ assert.equal((await env.pull()).nuevos,0);assert.equal(env.stateRef.current.expenses.find(e=>e.id===uuid(9000)).note,'Nota del aviso');
+ assert.equal(cents(env.stateRef.current.expenses),36);
 });

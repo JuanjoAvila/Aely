@@ -2010,13 +2010,14 @@ function expenseKnownIdentity(e){
 function expenseIdentityScopes(rows,other){
   // Solo una fila incompleta necesita buscar candidata. El histórico conocido no paga
   // ese índice y el pull comparte las claves dentro de su foto, nunca entre estados.
-  const known=new WeakMap(),keys=new WeakMap(),assigned=new WeakMap(),pairs=new Map();
+  const known=new WeakMap(),keys=new WeakMap(),assigned=new WeakMap(),pairs=new Map(),referenceKeys=new WeakMap(),mergeKeys=new WeakMap(),aliases=new WeakMap();
   let contents,bankContents,ids,refs,indexed;
   const extra=[];
-  const keyOf=function(e){let key=keys.get(e);if(key===undefined){key=keyOfExpense(e);keys.set(e,key);}return key;};
+  const keyOf=function(e){let key=keys.get(e);if(key===undefined){const same=aliases.get(e);key=same?keyOf(same):keyOfExpense(e);keys.set(e,key);}return key;};
   const knownOf=function(e){
     if(!e)return "";
     let id=known.get(e);if(id!==undefined)return id;
+    const same=aliases.get(e);if(same){id=knownOf(same);known.set(e,id);return id;}
     const bank=expenseBankOf(e),acc=e.obAcc;
     id="";
     if(bank&&acc&&!isManualExpenseSource(e.source)){
@@ -2033,18 +2034,21 @@ function expenseIdentityScopes(rows,other){
     // Los avisos incompletos suelen ser pocos. Indexar referencias e ids de todo el
     // histórico para ellos duplica el coste del pull aunque no puedan coincidir.
     const want=function(e){
-      if(!e||knownOf(e)||isManualExpenseSource(e.source))return;
+      if(!e||(e.obAcc&&expenseBankOf(e))||isManualExpenseSource(e.source))return;
       indexed.add(e);wantedKeys.add(keyOf(e));
       if(e.id)wantedIds.add(e.id);
       if(esFilaDeBanco(e)&&e.extId)wantedRefs.add(e.extId);
     };
     extra.push(request);
-    (rows||[]).forEach(want);(other||[]).forEach(want);extra.forEach(want);
+    // Las copias con identidad validada por el contador ya están representadas en rows.
+    const candidates=scope.unmatched||other||[];
+    (rows||[]).forEach(want);candidates.forEach(want);extra.forEach(want);
     const unique=function(map,key,id){if(!map.has(key))map.set(key,id);else if(map.get(key)!==id)map.set(key,"");};
     const add=function(e){
-      const id=knownOf(e);if(!id)return;
+      if(!e)return;
       const key=keyOf(e),content=wantedKeys.has(key),uuid=wantedIds.has(e.id),ref=wantedRefs.has(e.extId)&&esFilaDeBanco(e);
       if(!content&&!uuid&&!ref)return;
+      const id=knownOf(e);if(!id)return;
       const bank=expenseBankOf(e);
       if(content){
         const old=contents.get(key),bankKey=bank+"|"+key,bankOld=bankContents.get(bankKey);
@@ -2054,10 +2058,11 @@ function expenseIdentityScopes(rows,other){
       if(uuid)unique(ids,bank+"|"+e.id,id);
       if(ref)unique(refs,obReferenceKey(bank,e.extId,e.amount),id);
     };
-    (rows||[]).forEach(add);(other||[]).forEach(add);
+    (rows||[]).forEach(add);candidates.forEach(function(e){if(!aliases.has(e))add(e);});
   };
   const scope=function(e){
     const complete=knownOf(e);if(complete||isManualExpenseSource(e&&e.source))return complete;
+    const same=aliases.get(e);if(same)return scope(same);
     let id=assigned.get(e);if(id!==undefined)return id;
     if(!contents||!indexed.has(e))build(e);
     const bank=expenseBankOf(e),key=keyOf(e);
@@ -2066,13 +2071,30 @@ function expenseIdentityScopes(rows,other){
     assigned.set(e,id);return id;
   };
   scope.key=keyOf;scope.known=knownOf;scope.rows=rows;scope.other=other;
+  scope.referenceKeys=referenceKeys;scope.mergeKeys=mergeKeys;
+  // Solo el contador valida todos los campos de identidad antes de prestar una clave.
+  // Esto no omite la fila: la mezcla aún refresca categoría, nota y demás decisiones.
+  scope.alias=function(e,p){if(e!==p)aliases.set(e,p);};
   return scope;
 }
-function expenseMergeKey(e,scope){const key=scope&&scope.key?scope.key(e):keyOfExpense(e);return isManualExpenseSource(e&&e.source)?key:(scope?scope(e):expenseKnownIdentity(e))+"|"+key;}
+function expenseMergeKey(e,scope){
+  let key=scope&&scope.mergeKeys?scope.mergeKeys.get(e):undefined;if(key!==undefined)return key;
+  const base=scope&&scope.key?scope.key(e):keyOfExpense(e);
+  key=isManualExpenseSource(e&&e.source)?base:(scope?scope(e):expenseKnownIdentity(e))+"|"+base;
+  if(scope&&scope.mergeKeys)scope.mergeKeys.set(e,key);
+  return key;
+}
 function expenseReferenceScope(e,scope){
-  const id=scope(e),bank=expenseBankOf(e)||"";
-  // El fallback por contenido no convierte una referencia de otro banco en la misma.
-  return ((scope.known?scope.known(e):expenseKnownIdentity(e))||id.indexOf("["+JSON.stringify(bank)+",")===0)?id:bank;
+  let result=scope.referenceKeys&&scope.referenceKeys.get(e);if(result!==undefined)return result;
+  const known=scope.known?scope.known(e):expenseKnownIdentity(e);
+  if(known)result=known;
+  else{
+    const id=scope(e),bank=expenseBankOf(e)||"";
+    // El fallback por contenido no convierte una referencia de otro banco en la misma.
+    result=id.indexOf("["+JSON.stringify(bank)+",")===0?id:bank;
+  }
+  if(scope.referenceKeys)scope.referenceKeys.set(e,result);
+  return result;
 }
 /* Las lápidas antiguas no traían identidad: siguen leyéndose sin reinterpretarlas.
    Las nuevas de una cuenta conocida solo retiran esa cuenta, también tras persistir. */
@@ -2147,6 +2169,12 @@ function expenseIsTombstoned(e, delSet){
   if(obAbsorptionMatches(e,delSet))return true;
   const k=keyOfExpense(e);
   if(delSet[expenseDeletionKey(e)]||delSet[k]||expenseUnknownDeletionMatches(e,delSet)) return true;
+  // Otro móvil pudo borrar antes del renombrado. Solo la lápida de cuenta distingue
+  // ese borrado de la clave antigua que el propio renombrado deja al editar.
+  if(e&&e.obName!=null&&e.obName!==e.merchant&&!isManualExpenseSource(e.source)){
+    const original=Object.assign({},e,{merchant:e.obName});
+    if((expenseKnownIdentity(original)&&delSet[expenseDeletionKey(original)])||expenseUnknownDeletionMatches(original,delSet))return true;
+  }
   if(isManualExpenseSource(e&&e.source) && delSet[keyOfExpenseLegacy(e)]) return true;
   return false;
 }
