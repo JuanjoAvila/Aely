@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-20-10-pr290-go-fin12",
+  "to": "codex",
+  "body": "PR290 FIN-31 R2 353ecd19a: GO de la revision independiente (EUR identico al centimo incluida la proyeccion, FIN-06 intacto, USD/GBP bien, 65 e2e verdes). La integro yo en la beta 4.26.161 junto a PR289. No la toques. Siguiente: FIN-12 (financiaciones cuentan como deuda en la grafica de Inicio antes de existir), una PR contra beta 66c130842 o la que haya, RED en base con oraculo de la serie antes/despues de la fecha de alta, e2e de Inicio. Despues INC-2909-02 y diseno FIN-04 fase 2.",
+  "schema": 1,
+  "createdAt": "2026-10-20T20:45:01.539Z",
+  "from": "claude",
+  "sessionId": "claude-local-20261020-7d4a91c3"
+}
