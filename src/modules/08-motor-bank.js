@@ -299,7 +299,55 @@ function fixedExpenseEligible(s,x,e,y,m,today){
   return !!x&&fixedPaymentUnique(s,e)&&!x.possibleDup&&!x.debtId&&(!x.status||String(x.status).toUpperCase()==="BOOK")&&!!expenseBankOf(x)&&!CAT_NEUTRAS[x.category]&&x.category!=="ingreso"&&
     Number.isFinite(Number(x.amount))&&Number.isFinite(Number(target))&&Number(x.amount)>0&&target>0&&occursIn(e,m)&&
     fixedPaymentDate(x.date,y,m,today)&&!expenseIsTombstoned(x,expenseDeletedSet(s))&&fixedPaymentFeedClear(s,fixedPaymentIdentity(expenseBankOf(x),x))&&
-    (fixedPaymentExpenses(s,String(x.date||"").slice(0,7)).identity.get(fixedPaymentIdentity(expenseBankOf(x),x))||[]).length===1;
+    (fixedPaymentExpenses(s,String(x.date||"").slice(0,7)).identity.get(fixedPaymentIdentity(expenseBankOf(x),x))||[]).length===1&&
+    !fixedPaymentChargeOwner(s,x,e,y,m,today);
+}
+/* El BOOK de ESTE cargo aunque su identidad no case: misma ref, banco y céntimos, contabilizado de
+   0 a 7 días DESPUÉS (la tarjeta lleva la fecha de la operación y el BOOK la de contabilización:
+   2/10 → 5/10, INC-1810-04 r4). Solo hacia delante, en días UTC para no depender de la zona; y si
+   el extracto trae la cuenta de esa ref, tiene que ser la del cargo. */
+function fixedPaymentBookSameRef(s,p,x){
+  var dia=function(v){ return Date.parse(String(v||"").slice(0,10)+"T00:00:00Z")/864e5; },lag=dia(p.date)-dia(x.date);
+  return !!x.extId&&p.key===p.bank+"|"+x.extId&&expenseBankOf(x)===p.bank&&lag>=0&&lag<=7&&
+    Math.round(Number(x.amount)*100)===Math.round(Number(p.amount)*100)&&
+    !(s.bankTx||[]).some(function(t){ return t.ent===p.bank&&String(t.id)===String(x.extId)&&x.obAcc&&t.acc&&String(t.acc)!==String(x.obAcc); });
+}
+/* UN CARGO PAGA UN RECIBO (FIN-23, revisión de youtube-r4, 19/10/2026). Con el BOOK de YouTube
+   contabilizado días después del cargo, la identidad de su prueba lleva la fecha y el texto del
+   BOOK y no casaba con el cargo: la ficha ofrecía Spotify (mismo banco y céntimos), el enlace se
+   escribía y Plan daba los dos por pagados con un solo cargo. Devuelve el OTRO recibo cuyo BOOK
+   (prueba guardada o extracto) es este cargo; mira también el mes siguiente, porque el BOOK del 30
+   puede caer el 2, y ahí cuenta incluso el mismo recibo (un cargo, un mes). Gana el BOOK: así un
+   enlace a mano que ya se guardó deja de contar sin borrarlo, y la ficha lo enseña para deshacerlo.
+   Dentro de la comprobación se lee el recibo del BOOK con la regla de antes: sin el contador, su
+   estado volvería a preguntar por el enlace de Spotify y no acabaría nunca. */
+var fixedPaymentOwnerDepth=0;
+function fixedPaymentChargeOwner(s,x,e,y,m,today){
+  if(fixedPaymentOwnerDepth||!x.extId) return null;
+  var bank=expenseBankOf(x),ref=bank+"|"+x.extId,now=new Date(),cur=now.getFullYear()*12+now.getMonth()+1,owner=null;
+  var txs=(s.bankTx||[]).filter(function(tx){
+    return tx&&tx.ent===bank&&String(tx.id)===String(x.extId)&&String(tx.status||"").toUpperCase()==="BOOK"&&!tx.possibleDup&&
+      fixedPaymentBookSameRef(s,{bank:tx.ent,key:tx.ent+"|"+tx.id,date:tx.date,amount:tx.amount},x);
+  });
+  fixedPaymentOwnerDepth++;
+  try{
+    for(var ym=y*12+m;ym<=y*12+m+1&&ym<=cur&&!owner;ym++){
+      var Y=Math.floor((ym-1)/12),M=ym-Y*12,T=ym===y*12+m?today:ym===cur?now.getDate():new Date(Y,M,0).getDate();
+      owner=(s.fixed||[]).find(function(f){
+        // El mes siguiente vale también para el MISMO recibo: si su BOOK ya paga octubre, ese cargo
+        // del 30 no le paga además septiembre.
+        if(f.id===e.id&&ym===y*12+m||!occursIn(f,M)) return false;
+        var q=f.paymentProofs&&f.paymentProofs[ym];
+        if(q&&q.kind==="book"&&q.key===ref&&fixedPaymentBookSameRef(s,q,x)&&fixedPaymentProof(s,f,Y,M,T)===q) return true;
+        // El extracto solo cuenta si es lo que acredita ese recibo: con su propia prueba, el BOOK
+        // que además casa por nombre no le suma otro pago.
+        if(accOf(f)!==bank||!txs.some(function(tx){ return String(tx.date||"").slice(0,7)===Y+"-"+String(M).padStart(2,"0")&&recNameMatch(f.name,tx.merchant); })) return false;
+        var st=fixedPaymentState(s,f,Y,M,T);
+        return !st.proof&&txs.indexOf(st.bankTx)>=0;
+      })||null;
+    }
+  } finally { fixedPaymentOwnerDepth--; }
+  return owner;
 }
 /* Lo que de verdad acredita un recibo: una prueba guardada, el BOOK del extracto o la fila de
    Gastos que el motor adopta. `paidYm` a secas es calendario y Plan ya lo enseña «Por confirmar»:
@@ -518,18 +566,18 @@ function paymentEvidenceUI(s,y,m,today){
        texto del banco (`obName`): con la MISMA referencia, banco y céntimos es el mismo cargo y Plan
        ya lo da por pagado; la ficha decía «No» (INC-1810-04, diagnóstico real de beta 4.26.154.1).
        Otra referencia sigue sin valer.
-       El día puede ir por delante: el cargo de tarjeta lleva la fecha de la operación y el BOOK la
-       de contabilización, días después y con la misma ref (2/10 → 5/10, diagnóstico real de beta
-       4.26.157.1). Solo hacia delante y como mucho 7 días, lo que tarda una tarjeta con puente o
-       fin de semana; y si el extracto trae la cuenta de esa ref, tiene que ser la del cargo. */
+       El BOOK puede ir hasta 7 días por delante del cargo de tarjeta (diagnóstico real de beta
+       4.26.157.1); el margen y la cuenta viven en `fixedPaymentBookSameRef`, que usa también el
+       bloqueo de FIN-23 para que la ficha y el enlace digan lo mismo. Con puente o fin de semana
+       el banco tarda eso en contabilizar una tarjeta. */
     if(!rows.length&&p&&p.kind==="book"&&p.key){
-      var dia=function(v){ return Date.parse(String(v||"").slice(0,10)+"T00:00:00Z")/864e5; };
-      rows=[];index.identity.forEach(function(list){ list.forEach(function(x){
-        var lag=dia(p.date)-dia(x.date);
-        if(x.extId&&p.key===p.bank+"|"+x.extId&&expenseBankOf(x)===p.bank&&lag>=0&&lag<=7&&
-          Math.round(Number(x.amount)*100)===Math.round(Number(p.amount)*100)&&
-          !(s.bankTx||[]).some(function(t){ return t.ent===p.bank&&String(t.id)===String(x.extId)&&x.obAcc&&t.acc&&String(t.acc)!==String(x.obAcc); })) rows.push(x);
+      // La fila es la ÚNICA con esa ref en el mes, dentro o fuera del margen (FIN-24): contar
+      // solo las de dentro dejaba nombrar una de dos filas con la misma ref. Una devolución
+      // puede reutilizar la ref de su compra y no es otro cargo.
+      var mismaRef=[];index.identity.forEach(function(list){ list.forEach(function(x){
+        if(x.extId&&p.key===p.bank+"|"+x.extId&&expenseBankOf(x)===p.bank&&Number(x.amount)>0) mismaRef.push(x);
       }); });
+      rows=mismaRef.length===1&&fixedPaymentBookSameRef(s,p,mismaRef[0])?mismaRef:[];
     }
     if(rows.length!==1) return;
     var x=rows[0];

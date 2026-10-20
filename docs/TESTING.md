@@ -15,6 +15,10 @@ INC-2709-03/UX-08: `plan-ola-web.spec.mjs` está en el mapa de `14-v4-screens`; 
 
 Deudas: `deudas-alargar-plazo.test.mjs` está en el runner Node; `deudas-alargar-plazo.spec.mjs` está en el mapa de `09-tab-debts-goals.js`. Cubre elección explícita, guardado, datos conservados y tres idiomas. [Casos y límites](briefs/deudas-alargar-plazo-20261019.md).
 
+## FIN-23/24 · un cargo paga un recibo, candidata local 20/10/2026
+
+`tests/recibo-un-cargo-un-recibo.test.mjs` (en `steps`) reproduce el doble cómputo de la revisión de youtube-r4: YouTube acreditado por su BOOK del 5/10 (cargo del 2/10, misma ref) y Spotify del mismo banco y céntimos; la base ofrece Spotify y, enlazado, Plan da los dos por pagados. Cubre prueba guardada, solo extracto y sin extracto; el enlace doble ya guardado (no cuenta dos veces, no se borra, viaja igual a la nube y se deshace); el enlace hecho antes de que llegue el BOOK; el BOOK que cae en el mes siguiente (también para el mismo recibo); los controles que tienen que seguir enlazando (otra ref, sin ref, 8 días, BOOK anterior, otros céntimos, otra cuenta, otro banco, veto) y FIN-24 (dos filas con la misma ref en el mes, dentro o fuera del margen; la devolución no cuenta). `e2e/plan-expense-links.spec.mjs` suma dos pruebas «FIN-23…»: Plan con un solo pagado, la ficha con «YouTube Premium», sin la opción Spotify y, si había enlace guardado, con «Deshacer vínculo». No se ha probado en el móvil.
+
 ## INC-2709-08 · orden de brókers
 
 `tests/broker-order.test.mjs` protege ternas, referencias financieras, orden antiguo y payload de sincronización. `e2e/cartera-orden-brokers.spec.mjs` arrastra por CDP en portada y pantalla hija, recarga y carga el estado en otro contexto mediante un cliente simulado con CAS. Compara grupos, filas y objetos financieros completos; incluye bróker importado y posición sin precio. Registrado en el runner y mapa de Inversiones.

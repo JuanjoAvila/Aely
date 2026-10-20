@@ -246,3 +246,29 @@ test('INC-1810-04 r4 BOOK booked days after the card charge shows in the detail'
   await expect(page.getByTestId('exp-receipt-value')).toHaveText('YouTube Premium');
   await unchangedRound2(page);
 });
+
+// FIN-23: ese mismo cargo no paga un segundo recibo del mismo banco y céntimos. La ficha ofrecía
+// Spotify y, enlazado, Plan daba los dos por pagados con un solo cargo. Un enlace doble que ya
+// estuviera guardado no cuenta dos veces y se ve para deshacerlo.
+for(const stored of [false,true]) test('FIN-23 the BOOK of a charge keeps a second receipt from using it'+(stored?' (stored link)':''),async({page})=>{
+  const s=paymentFixture(),x=s.expenses[0],ref='20261002213646522190S1',iban='ES0000000000000000008405',name='COMPRA TARJ. 5402XXXXXXXX6013 GOOGLE*YOUTUBE-DUBLIN';
+  const f={id:'hs0ymqd4',name:'YouTube Premium ',amount:29.99,day:2,freq:'mes'},sp={id:'spotify',name:'Spotify',amount:29.99,day:3,freq:'mes'};
+  Object.assign(x,{date:'2026-10-02',amount:29.99,extId:ref,obAcc:iban,merchant:'YouTube Premium',obName:name,category:'recibos'});
+  s.bankTx=[{id:ref,ent:'sabadell',date:'2026-10-05',amount:29.99,merchant:name,status:'BOOK',acc:iban}];s.accounts[0].bankIban=iban;s.fixed=[f,sp];
+  f.paymentProofs={24322:{kind:'book',key:'sabadell|'+ref,identity:JSON.stringify(['sabadell','2026-10-05',29.99,name]),date:'2026-10-05',bank:'sabadell',merchant:name,amount:29.99,modelVersion:2,receiptId:f.id,receiptName:f.name,model:JSON.stringify(['hs0ymqd4','sabadell',29.99,null])}};
+  if(stored) sp.paymentProofs={24322:{kind:'expense',key:'sabadell|2026-10-02|29.99|YouTube Premium',identity:JSON.stringify(['sabadell','2026-10-02',29.99,name]),expenseId:x.id,expenseKey:'2026-10-02|29.99|YouTube Premium',expenseLegacyKey:'2026-10-02|29.99|YouTube Premium',date:'2026-10-02',bank:'sabadell',amount:29.99,modelVersion:2,receiptId:sp.id,receiptName:sp.name,model:JSON.stringify(['spotify','sabadell',29.99,null])}};
+  await openRound2(page,s);
+  await page.locator('.botnav-tab[data-tour="plan"]').click();
+  const recibos=page.locator('div[data-seg="recibos"]');
+  await expect(recibos.locator('.v4-paid').filter({hasText:'YouTube Premium'})).toHaveCount(1);
+  await expect(recibos.locator('.v4-paid').filter({hasText:'Spotify'})).toHaveCount(0);
+  await expect(recibos.locator('.v4-mov:not(.v4-paid), .v4-charge:not(.v4-paid)').filter({hasText:'Spotify'})).toHaveCount(1);
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:'YouTube Premium'}).click();
+  await expect(page.getByTestId('exp-receipt-value')).toHaveText('YouTube Premium');
+  await page.getByTestId('exp-receipt').click();
+  await expect(page.getByTestId('exp-receipt-options')).toBeVisible();
+  await expect(page.getByTestId('exp-receipt-spotify')).toHaveCount(0);
+  await expect(page.getByTestId('exp-receipt-unlink')).toHaveCount(stored?1:0);
+  await unchangedRound2(page);
+});
