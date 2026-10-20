@@ -330,7 +330,8 @@ const PRESUPUESTO = {
   // Integración 4.26.153 (19/10): la 152 más vibración ronda 3, ola con raíz única, diagnóstico de recibo, MovRow con renombrado pendiente y la nota con cuatro tandas: 1412 KiB minificado y 392 KiB gzip medidos. SUBE por producto: 1413 / 392 KiB.
   // Integración 4.26.154 (20/10): la 153 más perf-cuentas y el reintento de renombrar sin cobertura: 1414 KiB minificado medidos. SUBE por producto: 1415 KiB; el gzip a 394.
   // Integración 4.26.156 (20/10): la 155 más vibración ronda 5 (toque propio de segmento ajustable y fuerza que alarga el toque): 1416 KiB minificado y 393 KiB gzip medidos en la CI de beta. SUBE por producto: 1417 KiB; el gzip se queda en 394.
-  minificado: 1417 * 1024,
+  // Integración 4.26.157 (20/10): la 156 más vibración ronda 6 (rampa del anillo, captura del tirón en Plan y gráfica con fuerza que alarga el toque): 1416 KiB minificado y 393 KiB gzip medidos en local, sin margen. SUBE por producto: 1419 KiB; el gzip se queda en 394.
+  minificado: 1419 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
