@@ -276,13 +276,13 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
   const bud=dashboardBudgetStats(state);
     return bud;
   },
-    [state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.accounts,state.flows,state.budget,state.reservaLog,seriesToday].concat(settingsDeps(state.settings,BUDGET_SETTINGS)));
+    [seriesToday].concat(stateDeps(state,BUDGET_STATE),settingsDeps(state.settings,BUDGET_SETTINGS)));
   const budAmt=bud.budget!=null?bud.budget:(state.budget||0);
   const spentAgainst=Math.max(0,bud.against), rem=bud.remaining!=null?bud.remaining:budAmt-spentAgainst;
   const timing=cycleTiming(bud), paceState=cyclePaceState(spentAgainst,budAmt,timing.elapsed,timing.days);
   const dailyMoney=budAmt>0?cycleDailyMoney(rem,timing.left):null;
   const series=useMemo(function(){ return netWorthSeries(state,{today:seriesToday,liquid:tt.liquid,invested:tt.invested,debtTotal:tt.debtTotal,balanceInputs:tt}); },
-    [state.accounts,state.obAccounts,netWorthHistoryKey(state.accountBalanceHistory,seriesToday),state.invHistory,state.investments,state.assets,state.assetValueHistory,state.debts,state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.flows,state.fixed,state.oneoffs,state.bankTx,state.aportaciones,state.fx,state.fxRates,tt,seriesToday].concat(settingsDeps(state.settings,NET_WORTH_SETTINGS)));
+    [netWorthHistoryKey(state.accountBalanceHistory,seriesToday),tt,seriesToday].concat(stateDeps(state,NET_WORTH_STATE),settingsDeps(state.settings,NET_WORTH_SETTINGS)));
 
   const overdue=[];
   // La fecha prevista no es un pago: la misma lectura de evidencia que Plan conserva los

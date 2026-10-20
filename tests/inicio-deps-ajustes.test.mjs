@@ -18,12 +18,15 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
 import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
-import { logicFunctions, logicCalls } from "../scripts/beta-source-code.mjs";
+import { logicFunctions, logicCalls, codeMask } from "../scripts/beta-source-code.mjs";
 
 const read = (f) => fs.readFileSync(new URL("../" + f, import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const modules = JSON.parse(read("src/build-order.json")).map((f) => "src/modules/" + f);
 const c = loadPureLogicFromFile();
 const NET = [...vm.runInContext("NET_WORTH_SETTINGS", c)], BUD = [...vm.runInContext("BUDGET_SETTINGS", c)];
+const NET_ST = [...vm.runInContext("NET_WORTH_STATE", c)], BUD_ST = [...vm.runInContext("BUDGET_STATE", c)];
+// Van aparte, con su propia clave: `settingsDeps` y `netWorthHistoryKey`.
+const APARTE = ["settings", "accountBalanceHistory"];
 const plain = (x) => JSON.stringify(x, (k, v) => v, 0) + "|" + JSON.stringify({ coverage: x && x.coverage, fresh: x && x.fresh });
 
 const today = "2026-09-04";
@@ -161,6 +164,99 @@ test("P2 · barrido: misma clave ⇒ misma serie, byte a byte", () => {
     }
     assert.ok(iguales > 10, "el barrido tiene que probar claves repetidas de verdad (" + iguales + ")");
   }
+});
+
+/* ── Campos del ESTADO (reserva de la revisión, 20/10/2026) ────────────────────────────────────
+   Con las dependencias estrechas ya no hay un toque en Ajustes que lo repinte todo de rebote: un
+   campo del estado que la serie o el presupuesto lean y no esté en `NET_WORTH_STATE` /
+   `BUDGET_STATE` sería una cifra vieja. Igual que con `settings`: por el código y ejecutando. */
+// El cierre sigue llamadas Y referencias (una función pasada a `.filter`, por ejemplo), sin
+// contar lo que solo aparece en comentarios o textos.
+function cierreConRefs(raiz) {
+  const fns = logicFunctions(read, modules), seen = new Set(), q = [raiz];
+  while (q.length) {
+    const n = q.shift(); if (seen.has(n) || !fns.has(n)) continue; seen.add(n);
+    const t = fns.get(n).text;
+    for (const x of logicCalls(t, fns)) q.push(x);
+    for (const m of codeMask(t).matchAll(/[\w$]+/g)) if (fns.has(m[0])) q.push(m[0]);
+  }
+  return [...seen].map((n) => fns.get(n));
+}
+// Qué nombres son campos del estado: los que se leen como `state.x` en algún módulo y las claves
+// que se escriben con `Object.assign({}, s, { x:… })`.
+function camposDelEstado() {
+  const todo = modules.map(read).join("\n"), masked = codeMask(todo), keys = new Set();
+  for (const m of todo.matchAll(/\b(?:state|stateRef\.current|cloudState|baseObj)\.([A-Za-z_$][\w$]*)/g)) keys.add(m[1]);
+  for (const m of masked.matchAll(/Object\.assign\(\{\},\s*(?:s|state|prev|st|ns)\s*,\s*\{/g)) {
+    let i = m.index + m[0].length, depth = 0, tok = "";
+    for (; i < masked.length; i++) {
+      const ch = masked[i];
+      if ("({[".includes(ch)) depth++;
+      else if (")}]".includes(ch)) { if (depth === 0) break; depth--; }
+      else if (depth === 0 && ch === ":") { const k = /([A-Za-z_$][\w$]*)\s*$/.exec(tok); if (k) keys.add(k[1]); tok = ""; }
+      else if (depth === 0 && ch === ",") tok = ""; else tok += ch;
+    }
+  }
+  return keys;
+}
+/* Nombres que el lector anterior confunde con campos del estado: métodos, o claves de objetos que
+   no son el estado (`Object.assign({}, s, {amount})` con `s` un gasto). Ninguno es un campo
+   de primer nivel que la serie o el presupuesto lean del estado: lo confirma la prueba ejecutando. */
+const NO_ESTADO = new Set(["amount", "concat", "filter", "get", "history", "indexOf", "key", "length", "_used2", "profile"]);
+test("estado · por el código: todo campo del estado que lee el cierre está declarado", () => {
+  const universo = camposDelEstado();
+  for (const [raiz, declarados] of [["netWorthSeries", NET_ST], ["dashboardBudgetStats", BUD_ST]]) {
+    const leidos = new Set();
+    for (const fn of cierreConRefs(raiz)) for (const m of fn.text.matchAll(/\.\s*([A-Za-z_$][\w$]*)/g)) if (universo.has(m[1])) leidos.add(m[1]);
+    assert.ok(leidos.has("expenses") && leidos.has("accounts"), raiz + ": el lector no ve ni los gastos (¿cambió la forma del código?)");
+    const faltan = [...leidos].filter((k) => !declarados.includes(k) && !APARTE.includes(k) && !NO_ESTADO.has(k));
+    assert.deepEqual(faltan, [], raiz + " lee del estado campos sin declarar");
+  }
+});
+test("estado · ejecutando: los campos que leen de verdad están declarados", () => {
+  const variantes = [
+    {},
+    { reciboNo: ["x"], reciboBorrado: { r1: { at: 1, name: "Luz" } }, bankDismissed: ["k"], shared: [{ id: "h" }],
+      fixed: [{ id: "r1", name: "Luz", amount: 40, freq: "mes", account: "sabadell", day: 2 }], oneoffs: [{ id: "o", amount: 10, month: 9, year: 2026 }],
+      debts: [{ id: "d", name: "Coche", value: 900, monthly: 100, day: 5, account: "sabadell" }], assets: [{ id: "x", name: "Piso", value: 100 }],
+      assetValueHistory: { x: [{ day: "2026-09-01", value: 90 }] }, obAccounts: [{ key: "ob1", ent: "n26", value: 20, cur: "EUR" }], bankTx: [] },
+  ];
+  for (const v of variantes) {
+    for (const opts of [OPTS, { today }]) {
+      const leidos = new Set(), s = estado(v);
+      const espiado = new Proxy(s, { get(t, k) { if (typeof k === "string") leidos.add(k); return t[k]; } });
+      fresca(espiado, opts);
+      for (const k of leidos) assert.ok(NET_ST.includes(k) || APARTE.includes(k), "netWorthSeries leyó state." + k);
+    }
+    const leidos = new Set(), s = estado(v);
+    c.dashboardBudgetStats(new Proxy(s, { get(t, k) { if (typeof k === "string") leidos.add(k); return t[k]; } }));
+    for (const k of leidos) assert.ok(BUD_ST.includes(k) || APARTE.includes(k), "dashboardBudgetStats leyó state." + k);
+  }
+});
+test("estado · cada campo declarado, mutado, obliga a recalcular; uno que no leen, no", () => {
+  const s0 = estado(), s1 = fresca(s0);
+  for (const k of ["goals", "tourSeen", "verNotes", "widgetPeriod", "_savedAt", "_goalSync", "lastSync"]) {
+    assert.equal(serie(Object.assign({}, s0, { [k]: "otro" })), s1, "state." + k + " no debe recalcular la serie");
+  }
+  for (const k of NET_ST) {
+    const v = s0[k], nuevo = Array.isArray(v) ? v.slice() : v && typeof v === "object" ? { ...v } : k === "_historyOwner" ? "otro-titular" : v === undefined ? [] : "otro";
+    assert.notEqual(serie(Object.assign({}, s0, { [k]: nuevo })), s1, "state." + k + " mutado tiene que recalcular la serie");
+    fresca(s0);
+  }
+  const deps = (s) => vm.runInContext("stateDeps", c)(s, BUD_ST);
+  for (const k of BUD_ST) assert.notDeepEqual(deps(Object.assign({}, s0, { [k]: {} })), deps(s0), "state." + k);
+  assert.deepEqual(deps(Object.assign({}, s0, { goals: [] })), deps(s0));
+});
+test("estado · Inicio usa `stateDeps` y no lista campos sueltos a mano", () => {
+  const dash = read("src/modules/03-tab-dash.js");
+  const bud = /const bud=useMemo\([\s\S]*?\n\s*\[([^\n]*)\);/.exec(dash), ser = /const series=useMemo\([\s\S]*?\n\s*\[([^\n]*)\);/.exec(dash);
+  assert.match(bud[1], /stateDeps\(state,BUDGET_STATE\)/);
+  assert.match(ser[1], /stateDeps\(state,NET_WORTH_STATE\)/);
+  // Un `state.x` suelto en la lista es una dependencia a mano que el guardián no vigila.
+  for (const d of [bud[1], ser[1]]) assert.doesNotMatch(d.replace(/(?:settingsDeps|netWorthHistoryKey|stateDeps)\([^)]*\)/g, ""), /\bstate\./);
+  const ui = read("src/modules/02-ui-shared.js"), a = ui.indexOf("function netWorthSeries("), z = ui.indexOf("const cache=", a);
+  assert.match(ui.slice(a, z), /stateDeps\(state,NET_WORTH_STATE\)/);
+  assert.doesNotMatch(ui.slice(a, z).replace(/(?:settingsDeps|netWorthHistoryKey|stateDeps)\([^)]*\)/g, ""), /\bstate\./, "la caché de la serie no lista campos sueltos");
 });
 
 /* ── P3 y P4 ──────────────────────────────────────────────────────────────────────────────────── */

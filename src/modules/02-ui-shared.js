@@ -935,6 +935,18 @@ function settingsDeps(settings, keys){
   const s=settings||{};
   return keys.map(function(k){ return s[k]; });
 }
+/* Y LOS CAMPOS DEL ESTADO QUE LEEN (revisión independiente, 20/10/2026). Antes cualquier toque en
+   Ajustes lo repintaba todo y tapaba los que faltaban en la lista a mano (recibos borrados,
+   «no es este recibo», bancos descartados, Hogar…); con las dependencias estrechas un hueco así
+   sería una cifra vieja. Se declaran todos los que leen ellas y su cierre de llamadas, y el
+   guardián (`tests/inicio-deps-ajustes.test.mjs`) muta cada uno y busca los que falten.
+   `accountBalanceHistory` y `settings` van aparte (`netWorthHistoryKey`, `settingsDeps`). */
+const NET_WORTH_STATE=["_historyOwner","accounts","aportaciones","assetValueHistory","assets","bankDismissed","bankTx","debts","deleted","expenses","fixed","flows","fx","fxRates","invHistory","investments","obAbsorbedConfirmed","obAbsorbedPending","obAccounts","oneoffs","reciboBorrado","reciboNo","shared"];
+const BUDGET_STATE=["_historyOwner","accounts","budget","deleted","expenses","fixed","flows","obAbsorbedConfirmed","obAbsorbedPending","oneoffs","reciboBorrado","reciboNo","reservaLog"];
+function stateDeps(state, keys){
+  const s=state||{};
+  return keys.map(function(k){ return s[k]; });
+}
 // Un punto de histórico vale para la serie solo si `clean` (dentro de `netWorthSeries`) lo acepta.
 function netWorthPointOk(d, v, today){
   if(!/^\d{4}-\d{2}-\d{2}$/.test(d||"")||typeof v!=="number"||!Number.isFinite(v)||d>today) return false;
@@ -968,10 +980,9 @@ function netWorthHistoryKey(hist, today){
 function netWorthSeries(state, options){
   options=options||{};
   const today=options.today||netWorthDay();
-  const deps=[today,options.liquid,options.invested,options.debtTotal,state.accounts,state.obAccounts,state.expenses,
-    state.deleted,netWorthHistoryKey(state.accountBalanceHistory,today),state.invHistory,state.investments,state.assets,state.assetValueHistory,state.debts,state.flows,
-    state.fixed,state.oneoffs,state.bankTx,state.fxRates,state.fx,state.aportaciones,
-    options.balanceInputs&&options.balanceInputs.paidNetByBank,options.balanceInputs&&options.balanceInputs.spentByBank].concat(settingsDeps(state.settings,NET_WORTH_SETTINGS));
+  const deps=[today,options.liquid,options.invested,options.debtTotal,netWorthHistoryKey(state.accountBalanceHistory,today),
+    options.balanceInputs&&options.balanceInputs.paidNetByBank,options.balanceInputs&&options.balanceInputs.spentByBank]
+    .concat(stateDeps(state,NET_WORTH_STATE),settingsDeps(state.settings,NET_WORTH_SETTINGS));
   const cache=netWorthSeries.cache||(netWorthSeries.cache=[]);
   const hit=cache.find(function(c){ return c.deps.every(function(v,i){ return v===deps[i]; }); });
   if(hit) return hit.series;

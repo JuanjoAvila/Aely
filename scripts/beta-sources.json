@@ -35000,6 +35000,10 @@
       {
         "file": "src/modules/02-ui-shared.js",
         "function": "netWorthPointOk"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "stateDeps"
       }
     ],
     "unidades": true

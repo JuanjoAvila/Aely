@@ -46,7 +46,19 @@
   - vigila `drawerOpen` y `CarteraHeroAmt`.
 
   Mutantes muertos: sin `profile`, quitar el primer cierre de hoy, olvidar `fresh`.
-- **`beta-sources`.** El descriptor `inicio-patrimonio-flujos` declara las tres funciones nuevas que alcanza (`netWorthHistoryKey`, `settingsDeps`, `netWorthPointOk`), como exige «Inicio v4.2 cubre…». `Catálogo153` queda en rojo: su cierre de lectores, calculado sobre tres ficheros, y su lista cerrada de huellas se miden sobre la fuente viva. Lo resuelve la integración al pasar la 153 a histórico.
+- **Remate de la revisión independiente (campos del estado).** Las listas a mano de `bud`, de `series` y de la caché de `netWorthSeries` no tenían todo lo que leen. A `bud` le faltaban `fixed`, `oneoffs`, `reciboBorrado` y `reciboNo`; a la serie, `reciboNo`, `reciboBorrado`, `bankDismissed` y `shared`; a la caché, además, `obAbsorbed*` y `_historyOwner`. Antes cualquier toque en Ajustes lo repintaba todo de rebote; con P1 y P3, ese hueco sería una cifra vieja.
+  - Ahora se declaran en `NET_WORTH_STATE` / `BUDGET_STATE` (con `stateDeps`), sacados del cierre de llamadas y referencias.
+  - `inicio-deps-ajustes` hace con el estado lo mismo que con los ajustes: lee el código, ejecuta con el estado espiado, muta cada campo declarado (tiene que recalcular) y otros que no leen (no tiene que recalcular), y no deja campos sueltos a mano en las listas. Mutantes muertos: sin `reciboBorrado`, sin `shared`, sin `bankDismissed` y `bud` sin `budget`.
+  - Base frente a candidata con estos pasos añadidos (recibo, «no es este recibo», recibo borrado, bancos descartados, Hogar, otro titular, pago puntual): 2.520 comparaciones con 0 diferencias.
+  - A/B corto ABAB, 8.000 gastos:
+
+    | escenario | base | candidata |
+    |---|---|---|
+    | Ajustes → Cartera desde la barra | 700–800 / 1.833–2.050 | 517–567 / 950–1.033 |
+    | vuelta con gasto nuevo | 400–450 / 833–1.017 | 483–500 / 767–817 |
+
+    La suma de tirones baja en los dos escenarios. El frame máximo de la vuelta sale peor en esta pasada, con la máquina cargada; queda dentro del ruido de la tanda anterior (500–567).
+- **`beta-sources`.** El descriptor `inicio-patrimonio-flujos` declara las cuatro funciones nuevas que alcanza (`netWorthHistoryKey`, `settingsDeps`, `netWorthPointOk`, `stateDeps`), como exige «Inicio v4.2 cubre…». `Catálogo153` queda en rojo: su cierre de lectores, calculado sobre tres ficheros, y su lista cerrada de huellas se miden sobre la fuente viva. Lo resuelve la integración al pasar la 153 a histórico.
 - **Tope de tamaño.** +1.270 B minificados / +447 B gzip; detalle en `tests/presupuesto-rendimiento.test.mjs`. Sin `VERSION` ni `RELEASE_NOTES`: van con la integración.
 
 ## [4.26.152] — 2026-10-19 · Candidata de beta: ola nativa en Gestionar plan (PR 287) y vibración del ajustador ronda 2 (UX-16), con APK nueva (4.26.152 / code 60)
