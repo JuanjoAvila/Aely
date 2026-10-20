@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "id": "fin22-cartera-usd-trade-republic-codex-20261020",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261019-r74-36ea75cf98e01bbf",
+  "createdAt": "2026-10-20T15:22:11.105Z",
+  "to": "codex",
+  "kind": "worker",
+  "priority": 3,
+  "model": "gpt-6-astra",
+  "assignedPublicSessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "baseSHA": "a5bbecf6793931f4cfc8a3087951ad1ef66580f8",
+  "claudeGrant": "98dd52695659ae90377341ec7f48d7f5f8dad3b4",
+  "dependsOnReleasedResult": "ec60d6fbf04192aba434c2ef2702f1b0192e9469",
+  "previousRunnerReturn": "d712c18cf81ec5da8a08c1303a2c02252b6012d7",
+  "objective": "FIN22: reproduce and minimally fix Trade Republic portfolio row remaining in EUR when display currency is USD; directed real portfolio USD e2e, preserve FX/value semantics and stored financial data; one draft PR against beta.",
+  "scope": [
+    "Cartera display currency path for Trade Republic portfolio row, including only directly required existing currency formatter or broker display dependency",
+    "Directed synthetic RED on exact beta158, USD portfolio browser e2e and EUR/switching/regression controls with independent monetary expectations",
+    "One isolated candidate, one draft PR against beta, immutable evidence/source package and own released result/RETURN"
+  ],
+  "requirements": [
+    "Original holder82dbe59f same model/runtime/cwd/helper/filter only. NEW task own claim push/readback and ACK BEFORE code/tests, not reused FIN19 claim. Read complete AGENTS/EMPIEZA/protocol/newClaude98dd5269; verify access and cancellation/ownership state. Prior FIN19R3 releasedblocked source16515fd1 and all immutable deliverables remain untouched.",
+    "Exact baseline beta4.26.158 a5bbecf6793931f4cfc8a3087951ad1ef66580f8, fresh isolated checkout/branch without WIP or FIN19 carryover. Production158 and integration reservedClaude. Base provenance/version and all prior checkouts/files/source/result/claims must be preserved with initial census and final hash/readback proof.",
+    "RED FIRST through actual rendered Cartera row with USD selected, realistic synthetic Trade Republic positions/accounts and deterministic known FX. Capture exact currency-setting path and row amount/symbol versus independent expected conversion; do not merely relabel EUR numerals as USD. Identify minimal real cause before patch. EUR control, USD->EUR->USD and reload persistence must retain original stored amount/currency and selected global display contract. Check relevant other broker/portfolio totals as controls. No live bank/cloud/Edge calls; offline synthetic fixtures only.",
+    "Use existing currency/FX formatter semantics and existing fallback when FX unavailable; do not invent exchange rates or change stored balances/imports/account identity. Minimal directly needed source only. Candidate source likely CarteraTab in14-v4-screens and Wealth in07-tab-patri-fijos, but trace exact rendering and formatter before selecting paths. Unrelated FIN19, notes/debts/widget/shell and broker sync/storage algorithms reserved.",
+    "Directed CPU1 sequential tests including requested portfolio USD browser e2e, with fresh own runtime/browser/resource census, own local port and admission if shared runner policy requires it. Do not infer CPU6/fullsuite/profiling/lease from grant; no shared or foreign process kills, no lock expiry reclaim. Preserve truthful RED/final GREEN actual EXITs, causal screenshot/DOM row evidence and relevant synthetic monetary regressions; do not repeat finished old tests.",
+    "One PR against beta for FIN22 only. Explicit Claude scope: NO VERSION, release notes, CHANGELOG/README/backlog/roadmap/catalogue/cap changes. Do not weaken tests or raise caps to pass. No suite entera, CPU6, Edge, cloud/bank/SQL, Android/Gradle/APK/deploy/merge or production work. Report integration gates as real blockers.",
+    "Own counter/lease bookkeeping: FIN19 holder OWN20b5 actual20/20 is frozen at handoff budget proof0fcf68bc9fb8a2a60546a968e603d69e0737cdb822a07de95e57aa0ff7a9d5a0. No further fetch in b5. Under applicable current OWN grant prepare next own block through normal notice/readback then fresh activation; never reset b5 or inherit ROOT budget/claims/leases. New task claim/ACK only after activation. Preserve every prior ledger/freeze and count every first/internal/readback >=30sec.",
+    "Final own RETURN and released result with source SHA, exact base, commands/real EXITs, every failure/limitation, draft PR URL and exact remote PR head readback. Seal immutable manifest/ZIP/report/checkpoint plus source inventory and prior-file/repo preservation; scan privacy and declare evidence-only credential redactions with original hashes. Save designated private handoff supplied natively, STOP after delivery. FIN12/INC290902/FIN04 queued only, do not start without new exact task. No native replies absent direct human authorization."
+  ],
+  "deliverable": "FIN22 minimal draft PR with causal USD portfolio RED/GREEN and directed e2e/FX controls, immutable financial/source preservation evidence, own RETURN/released result and private handoff, then STOP; no ProductREADY or deployment claim."
+}
