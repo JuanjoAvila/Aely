@@ -187,6 +187,9 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       sx=tt.clientX; sy=tt.clientY; t0=Date.now();
       axis=null; mode=null; dir=0; dyRaw=0;
       startAtTop=atTopOf(pageEl);
+      // Arriba del todo, tirar hacia abajo es cambiar de segmento: el vigía de bordes no debe
+      // sonar además del toque de segmento (ronda 9 de la vibración).
+      if(startAtTop) e.mcSegPull=true;
     };
     const onMove=function(e){
       if(axis==="x"||mode==="x") return;

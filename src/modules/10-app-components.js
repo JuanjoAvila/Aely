@@ -2366,6 +2366,8 @@ function HapticTuner({showToast}){
   const tryFill=function(){ said(mcPlayCycle(v.fillMs,1)); };
   // Borde: un choque, igual que en la app (una vez por arrastre) y por la misma función.
   const tryEdge=function(){ said(mcEdgeHaptic()); };
+  // Segmento: un toque, el mismo que al pasar de Recibos a Deudas (y por la misma función).
+  const trySeg=function(){ mcTickHaptic.at=-Infinity; said(mcTickHaptic()); };
   // Gráfica: seis puntos seguidos, como pasar el dedo despacio por la línea.
   const tryTick=function(){
     said(mcHaptic("edge",{amplitude:v.tickAmp,durationMs:v.tickMs}));
@@ -2404,6 +2406,7 @@ function HapticTuner({showToast}){
     React.createElement("div",{className:"hint",style:{padding:"0 14px 8px"}},t("hv_intro")),
     group("fill",t("hv_cycle"),t("hv_cycle_hint"),[slider("fillAmp",t("hv_strength")),slider("fillMs",t("hv_length")," ms")],tryFill),
     group("edge",t("hv_edge"),null,[slider("edgeAmp",t("hv_strength")),slider("edgeMs",t("hv_length")," ms"),slider("edgeEvery",t("hv_every")," ms")],tryEdge),
+    group("seg",t("hv_seg"),null,[slider("segAmp",t("hv_strength")),slider("segMs",t("hv_length")," ms")],trySeg),
     group("tick",t("hv_tick"),null,[slider("tickAmp",t("hv_strength")),slider("tickMs",t("hv_length")," ms")],tryTick),
     React.createElement("div",{className:"hv-usage",style:{padding:"10px 14px",borderTop:"1px solid var(--line)"}},
       React.createElement("div",{style:{fontWeight:800,fontSize:14}},t("hv_usage")),
