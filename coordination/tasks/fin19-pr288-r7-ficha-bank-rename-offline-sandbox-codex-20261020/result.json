@@ -1,0 +1,212 @@
+{
+  "status": "blocked",
+  "summary": "FIN19 R7 823f72c82c63ddbe19aea67f6892b3151397fd30, normal exactR6 child, same draftPR288 exact branch/PR/pullref. Only real ficha merchant-only bank key pair per c00533dd2ac713bf09de150ef5da3efa0fb83c0f, amount/date/category/noCard guards; full actual offline/sandbox/transition rename reload pull second-name and return-original320. FinalMadrid85/85 EXIT0 UTC85/85 EXIT0 cleanbuild. Seven account remotes320 manual640 fullrows perbank undo, legacy640 retained. Crossaccount collision320vs640 samebase accepted68bd61de separateknownlimitation, all RED and full matrices retained. No shared reader/ACK/counter/perf changes. Syntax privacy diff EXIT0 docs EXIT1; reservedmetadata/caps/integration/served unverified. Preserved27444files21repos FIN22parkedWIP andpriorR1-R6. Ownresourcesreturned immutableZIP269entries verified. Handoff STOP, noProductREADY.",
+  "tests": [
+    {
+      "command": "node --test --test-concurrency=1 --test-name-pattern=segunda edición tests/fin19-r7-ficha-rename.test.mjs",
+      "exitCode": 0,
+      "phase": "base158-back",
+      "timezone": {
+        "TZ": "Europe/Madrid",
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node --test --test-concurrency=1 --test-name-pattern=no oculta otra cuenta tests/fin19-r7-ficha-rename.test.mjs",
+      "exitCode": 1,
+      "phase": "base158-collision",
+      "timezone": {
+        "TZ": "Europe/Madrid",
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node --test --test-concurrency=1 --test-name-pattern=ficha real tests/fin19-r7-ficha-rename.test.mjs",
+      "exitCode": 0,
+      "phase": "base158-complete-witness",
+      "timezone": {
+        "TZ": "Europe/Madrid",
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node --test --test-concurrency=1 --test-name-pattern=ficha real tests/fin19-r7-ficha-rename.test.mjs",
+      "exitCode": 1,
+      "phase": "base158-witness",
+      "timezone": {
+        "TZ": "Europe/Madrid",
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "candidate-clean-build",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r7-ficha-rename.test.mjs",
+      "exitCode": 1,
+      "phase": "candidate-directed",
+      "timezone": {
+        "TZ": "Europe/Madrid",
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "phase": "diff-final",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r7-ficha-rename.test.mjs tests/fin19-r5-counter.test.mjs tests/fin19-r5-remote-rename.test.mjs tests/fin19-r4-pull-counter.test.mjs tests/fin19-r4-renamed-widget.test.mjs tests/fin19-r3-chain.test.mjs tests/fin19-r3-scope-cost.test.mjs tests/fin19-cross-bank-identity.test.mjs tests/ob-iguales-ordinal.test.mjs tests/security.test.mjs tests/relevant-tests.test.mjs",
+      "exitCode": 1,
+      "phase": "directed-madrid",
+      "timezone": {
+        "TZ": "Europe/Madrid",
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r7-ficha-rename.test.mjs tests/fin19-r5-counter.test.mjs tests/fin19-r5-remote-rename.test.mjs tests/fin19-r4-pull-counter.test.mjs tests/fin19-r4-renamed-widget.test.mjs tests/fin19-r3-chain.test.mjs tests/fin19-r3-scope-cost.test.mjs tests/fin19-cross-bank-identity.test.mjs tests/ob-iguales-ordinal.test.mjs tests/security.test.mjs tests/relevant-tests.test.mjs",
+      "exitCode": 1,
+      "phase": "directed-utc",
+      "timezone": {
+        "TZ": "UTC",
+        "zone": "UTC"
+      }
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1,
+      "phase": "docs-final-exact",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "final-clean-build",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r7-ficha-rename.test.mjs tests/fin19-r5-counter.test.mjs tests/fin19-r5-remote-rename.test.mjs tests/fin19-r4-pull-counter.test.mjs tests/fin19-r4-renamed-widget.test.mjs tests/fin19-r3-chain.test.mjs tests/fin19-r3-scope-cost.test.mjs tests/fin19-cross-bank-identity.test.mjs tests/ob-iguales-ordinal.test.mjs tests/security.test.mjs tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "phase": "final-madrid",
+      "timezone": {
+        "TZ": "Europe/Madrid",
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r7-ficha-rename.test.mjs tests/fin19-r5-counter.test.mjs tests/fin19-r5-remote-rename.test.mjs tests/fin19-r4-pull-counter.test.mjs tests/fin19-r4-renamed-widget.test.mjs tests/fin19-r3-chain.test.mjs tests/fin19-r3-scope-cost.test.mjs tests/fin19-cross-bank-identity.test.mjs tests/ob-iguales-ordinal.test.mjs tests/security.test.mjs tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "phase": "final-utc",
+      "timezone": {
+        "TZ": "UTC",
+        "zone": "UTC"
+      }
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0,
+      "phase": "privacy-final",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node --test --test-concurrency=1 --test-name-pattern=no oculta otra cuenta tests/fin19-r7-ficha-rename.test.mjs",
+      "exitCode": 1,
+      "phase": "r6-collision",
+      "timezone": {
+        "TZ": "Europe/Madrid",
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "red-clean-build",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r7-ficha-rename.test.mjs",
+      "exitCode": 1,
+      "phase": "red-r6",
+      "timezone": {
+        "TZ": "Europe/Madrid",
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node --test --test-concurrency=1 --test-name-pattern=segunda edición tests/fin19-r7-ficha-rename.test.mjs",
+      "exitCode": 1,
+      "phase": "rename-back",
+      "timezone": {
+        "TZ": "Europe/Madrid",
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "phase": "syntax-final",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r7-ficha-rename.test.mjs tests/fin19-r5-counter.test.mjs tests/fin19-r5-remote-rename.test.mjs tests/fin19-r4-pull-counter.test.mjs tests/fin19-r4-renamed-widget.test.mjs tests/fin19-r3-chain.test.mjs tests/fin19-r3-scope-cost.test.mjs tests/fin19-cross-bank-identity.test.mjs tests/ob-iguales-ordinal.test.mjs tests/security.test.mjs tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "phase": "verified-madrid",
+      "timezone": {
+        "TZ": "Europe/Madrid",
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r7-ficha-rename.test.mjs tests/fin19-r5-counter.test.mjs tests/fin19-r5-remote-rename.test.mjs tests/fin19-r4-pull-counter.test.mjs tests/fin19-r4-renamed-widget.test.mjs tests/fin19-r3-chain.test.mjs tests/fin19-r3-scope-cost.test.mjs tests/fin19-cross-bank-identity.test.mjs tests/ob-iguales-ordinal.test.mjs tests/security.test.mjs tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "phase": "verified-utc",
+      "timezone": {
+        "TZ": "UTC",
+        "zone": "UTC"
+      }
+    }
+  ],
+  "productSHA": "823f72c82c63ddbe19aea67f6892b3151397fd30",
+  "limitations": [
+    "Local synthetic actual saveEdit callback, full syncCloudExpenses callback, split persistence and tombstone filter. Mocked transport/native boundaries; no DOM/browser/mobile claim. CPU1 sequential one worker, no retries.",
+    "Claude68bd61de451be6a356de3f678b4029f98da4341b explicitly accepts the preexisting cross-account same-content/ordinal rename collision as outside R7: base158 and R7 retain only320 visible instead of correct640. Full stored rows remain intact. Original640 assertions and all RED matrices remain private; separate known-base test documents320 and exact survivor. No claim of general cross-account rename correctness.",
+    "Inherited R6 legacy old-client deletion without account returns640; accepted by Clauded7d6c1e4192dbe402649814935864c721b172779, retained separately. Seven account-scoped remote chains keep client/widget320, manual640, complete rows/per-bank and undo.",
+    "Inherited counter content-based semantics, reference-only counter limitation and R6 CPU1 performance evidence are unchanged; no repeated A/B and no new performance claim.",
+    "Docs-frescura remains a real gate. VERSION, release notes, size, catalogue and caps reserved to Claude. No fullsuite, general CI verification, served artifact, CPU6, live bank/cloud/SQL/Edge/API/auth/schema/migrations, Android/APK, deployment, merge or ProductREADY.",
+    "FIN22 remains PARKED under retained own claim28ac75d7; original seven WIP, three unique browser PASS, two captures, five original EXIT1 and all R1-R6 files/repos preserved. No FIN22 resumption, new task or native reply.",
+    "Administrative failures retained: two spacing guards exited before ledger/network; admission expected a nonexistent repo/node_modules though ancestor resolution was already available; initial base158 harness omitted its local keyOfE alias. No actual fetch reset, dependency install or discarded failed product evidence.",
+    "Manifest SHA256 3c8c6181dcfee9e3adc329dd9d15165788d0793b279d2c3689e33b7f1395d392; ZIP SHA256 bae2d7f035d5ac03dd0a9c35fc9f1f4eff891ea075f27c6e9e182cd778c807bf; RETURN 73273e5907066e1ac1416c76deb22e927a87d8d3"
+  ],
+  "schema": 1,
+  "taskId": "fin19-pr288-r7-ficha-bank-rename-offline-sandbox-codex-20261020",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-20T18:21:32.319Z",
+  "released": true
+}
