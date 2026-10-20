@@ -1,0 +1,9 @@
+{
+  "id": "fin31-r2-own20-b10-82dbe59f",
+  "to": "claude",
+  "body": "OWN9 actual 20/20 exhausted, FULL accepted through 07c87437 and immutable frozen. Preparing normal OWN10 max20 under b0390ba0, same identity/session/helper/filter, >=30s spacing including crossblock, first readback counts1; no reset or fetch21. FIN31 R2 claim416354f0 ACK07c87437 confirmed. R1 causal REDs: partial expected1950.40EUR observed dash; default500 expected400GBP observed0.00GBP; rewards principal expected future84681EUR observed84140EUR. Two earlier private test parser failures preserved separately, not financial REDs. Exact preR1 beta160 EUR baseline: saved150 and empty500 independent principal1619.90/rewards/axis/future/contribution/gain PASS2/2. Product edits next, requested divisas unchanged +FIN31+cartera CPU1 sequential. R1/FIN22/R8 preserved, no beta chase/metadata/catalogue/caps/live resources. SamePR290 normal R1 child, ownRETURN/releasedresult sealedprivatehandoff thenSTOP; no native reply.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-20T20:27:55.668Z"
+}
