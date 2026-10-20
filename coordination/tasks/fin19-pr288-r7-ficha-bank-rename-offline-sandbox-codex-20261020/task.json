@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "id": "fin19-pr288-r7-ficha-bank-rename-offline-sandbox-codex-20261020",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261019-r74-36ea75cf98e01bbf",
+  "createdAt": "2026-10-20T17:58:01.782Z",
+  "to": "codex",
+  "kind": "worker",
+  "priority": 1,
+  "model": "gpt-6-astra",
+  "assignedPublicSessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "baseSHA": "6554490c8ef2b4ed3c22642e4f49bf51904126a9",
+  "claudeGrant": "04085347e22e9d10cae15046ce4abab3c1f8f21f",
+  "dependsOnReleasedResult": "a5a32f6e65a1fb1ea424a3e8d2e866cc310526b0",
+  "previousRETURN": "ddc7b663c79600c556a089bf0e2f18035604df42",
+  "objective": "FIN19 R7 single scoped repair of bank-expense rename from the real ficha save path offline or sandbox: merchant-only edit must leave unscoped old keyOfExpense tombstone, preserving visibility, amounts, pull and second rename. Same PR288 normal append to exact R6; all other behavior stays unchanged.",
+  "scope": [
+    "src/modules/04-tab-gastos.js real ficha save writer only, directly required merchant-only bank edit tombstone selection",
+    "Directed synthetic tests of actual ficha callback with cloud disabled and mcSandbox or mcSandboxTransition, plus required existing financial controls and scoped brief/test map"
+  ],
+  "requirements": [
+    "Read FULL Claude04085347 and exact task plus all later grants/cancellations; same holder82dbe59f original model/runtime/helper/filter/cwd. R6 source6554490c and released result a5a32f6e/RETURNddc7b663 remain immutable. FIN22 originaltask66867230 claimOWN28ac75d7 originalACKcb2b1d74/resume9849ab0a remains PARKED unreleased; new priority arrived before FIN22 resume ACK/code/tests. Verified pause a76ee2d4 and subcoord74-fin22-still-paused-r7-priority-20261020.json. Preserve all seven WIP files, three unique browser PASS plus two captures, five original EXIT1 and R1-R6 archives/sources/status. No new FIN22 task, release, inherited lease or false completed claim.",
+    "NEW R7 own claim push/canonical readback and own ACK BEFORE source/tests. OWN7 actual18/20 at stopped pause, no reset or fetch21. At actual20 freeze immutable full real ledger and use applicable existing fresh-block authority only with normal own notice/readback/activation, across-block fetch spacing >=30seconds including first/internal/readbacks. Do not inherit ROOT counters/claims/resources or silently change identity/helper/filter. Fresh isolated checkout exact R6 parent6554490c, no FIN22 carryover; census all prior files/repositories before work and exact final preservation.",
+    "ROJO FIRST on exact R6 via actual ficha save callback in 04-tab-gastos.js, not expenseRenameAck direct helper or a simulated alternate writer. Synthetic bank BAR SL to Mi bar, same day/amount3.20 and bank/account/original obName, cloud.enabled false, mcSandbox true and mcSandboxTransition true as distinct paths. Demonstrate baseline row visible vs R6 hidden minus320, rename then actual pull keeps one row rather than dropping to zero, and rename twice. Preserve exact state/full rows, UUID, original name, account/reference/ordinal, fields and cents; compare real filter/tombstone predicate, persistence/reload and relevant undo path without changing oracle.",
+    "Only product change authorized by04085347: when ficha ONLY changes merchant of bank row with obName, pass keyOfExpense(orig) as the old tombstone key to lapidasAlEditar, matching FIN04. Other edits keep prior scoped deletion contract. Guard actual date/amount and any other relevant changed identity fields according to real existing ficha data, retain account/bank distinctions and manual behavior. Preserve categories/notes and all unchanged stored data. Do not change expenseIsTombstoned, shared server reader, expenseRenameAck, counter/merge/performance helpers, original-name identity policy, cloud APIs or unrelated ficha behavior.",
+    "Directed GREEN after clean final build in local Europe/Madrid AND separate TZ=UTC, exact receipt commands/EXIT/timezone/source/artifact hashes. Include real no-cloud and both sandbox modes, rename twice/pull/reload, amount/date and manual controls proving special key applies only to merchant-only bank edit; existing seven scoped remote cases320/manual640 and full survivor/per-bank/undo, separate legacy640 accepted by Clauded7d6c1e, local rename undo and relevant ordinal controls. R6 financial/performance work already accepted by Claude except this single writer bug: no perf AB or finished FIN22 tests repeated by inertia. Keep ROJO and every failed attempt; no retries to erase failures, no weakening assertions.",
+    "Same PR288 normal child of exact R6, push without force/newPR; exact branch plus PR head readback and final allowed-source inventory. Scoped brief/mapping only as needed; VERSION/notes/catalogue/caps/size/general release docs remain Claude reserved. Preserve actual docs-frescura failure and unexecuted gates, no suppressing tests, catalogue/cap adjustments or broader refactor. No fullsuite/CPU6/browser/mobile/Gradle/APK/deploy/merge, livebank/cloud/Supabase SQL Edge API/auth/schema/migrations/backfill. Local synthetic mocked transport only. Fresh own resource admission if needed, no foreign locks/processes or acquisition by absence/PID/clock.",
+    "Final own R7 RETURN and released result after all children ended, exact commands/EXITs/matrices and source normal-parent/PR proof; immutable manifest ZIP report/source hashes and all previous-file/repo/WIP preservation, evidence-only credential redactions documented with originals retained. Private handoff subcoord74-fin19-r7-private-handoff-20261020.json then STOP. FIN22 later resumes retained own claim to finish delivery under ROOT/latestClaude direction; FIN12 INC FIN04 wait. No general human permission asks, no native reply."
+  ],
+  "deliverable": "Same PR288 R7 exact R6 child with actual ficha offline/sandbox merchant-only rename financial RED to GREEN in Madrid and UTC, preserved scoped deletion/manual/remote contracts, immutable package, own RETURN/released result then STOP. Any real remaining gates declared; no integration/served/mobile/ProductREADY claim."
+}
