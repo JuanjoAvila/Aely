@@ -14669,7 +14669,7 @@ function InvRows({items, st, fmt, editing, showCost, draft, setF, onSell, onDele
 }
 
 /* Calculadora de proyección estilo TR/Revolut: slider de aporte + banda de rango. */
-function Projection({invested, defMonthly}){
+function Projection({invested, defMonthly, state, currency, fmt, fmt0}){
   const [monthly,setMonthly]=useState(Math.max(0,Math.min(3000,Math.round((defMonthly||500)/50)*50)));
   const [rate,setRate]=useState("7");
   const [years,setYears]=useState("20");
@@ -14693,21 +14693,24 @@ function Projection({invested, defMonthly}){
   let bandBot=[]; for(let i=N-1;i>=0;i--) bandBot.push(X(i)+","+Yc(calc.pes[i]));
   const band="M "+bandTop+" L "+bandBot.join(" L ")+" Z";
   const startYear=new Date().getFullYear();
-  const kfmt=function(v){ return v>=1000?(Math.round(v/1000)+"K €"):(Math.round(v)+" €"); };
+  // La serie y el deslizador conservan EUR; solo la presentación cambia de moneda.
+  const kfmt=function(v){ const n=fromEurAmt(v,currency,state), sym=CUR_SYM[currency]||currency; return n==null?"—":n>=1000?(Math.round(n/1000)+"K "+sym):(Math.round(n)+" "+sym); };
   const ticks=[]; for(let i=1;i<=5;i++) ticks.push(max*i/5);
   const xl=[]; const st=4; for(let i=0;i<=st;i++){ const yi=Math.round(calc.Y/st*i); xl.push({i:yi,t:String(startYear+yi)}); }
   const inp={width:"100%",padding:"9px 8px",borderRadius:"10px",border:"1px solid var(--line-soft)",background:"var(--bg)",color:"var(--text)",fontSize:"15px",boxSizing:"border-box",textAlign:"center"};
   const lbl={fontSize:11,color:"var(--muted-2)",fontWeight:700,marginBottom:3,textAlign:"center"};
   const dot=function(c){ return React.createElement("span",{style:{width:9,height:9,borderRadius:2,background:c,display:"inline-block",marginRight:5}}); };
 
+  // El principal conserva totals.invested; sin cambio de destino no se relabelan euros.
+  if(invested==null||fxRateOf(currency,state)==null) return React.createElement("div",{className:"hint",role:"status"},"— · "+t("fx_no_rate"));
   return React.createElement("div",null,
     React.createElement("div",{style:{display:"flex",gap:20,marginBottom:10}},
       React.createElement("div",null,
         React.createElement("div",{style:{fontSize:12,color:"var(--muted)"}}, dot("var(--mint)"),t("pj_projvalue")),
-        React.createElement("div",{className:"serif num",style:{fontSize:22}}, eur0(calc.fv))),
+        React.createElement("div",{className:"serif num",style:{fontSize:22}}, fmt0(calc.fv))),
       React.createElement("div",null,
         React.createElement("div",{style:{fontSize:12,color:"var(--muted)"}}, dot("#2f6b4a"),t("pj_contrib")),
-        React.createElement("div",{className:"serif num",style:{fontSize:22,color:"var(--muted)"}}, eur0(calc.aportado)))
+        React.createElement("div",{className:"serif num",style:{fontSize:22,color:"var(--muted)"}}, fmt0(calc.aportado)))
     ),
     React.createElement("svg",{viewBox:"0 0 "+W+" "+H,style:{width:"100%",height:"auto",display:"block"}},
       ticks.map(function(t,i){ return React.createElement("g",{key:i},
@@ -14723,7 +14726,7 @@ function Projection({invested, defMonthly}){
     React.createElement("div",{style:{marginTop:14}},
       React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:5}},
         React.createElement("span",{style:{fontSize:13,color:"var(--muted)",fontWeight:600}},t("pj_monthly")),
-        React.createElement("span",{className:"num",style:{fontWeight:700,fontSize:17}}, monthly+" €")),
+        React.createElement("span",{className:"num",style:{fontWeight:700,fontSize:17}}, fmt0(monthly))),
       React.createElement("input",{type:"range",min:"0",max:"3000",step:"50",value:monthly,onChange:function(e){ setMonthly(parseInt(e.target.value)); },onTouchStart:function(e){e.stopPropagation();},onTouchMove:function(e){e.stopPropagation();},style:{width:"100%",accentColor:"#5FD08A"}})
     ),
     React.createElement("div",{style:{display:"flex",gap:8,marginTop:12}},
@@ -14732,8 +14735,8 @@ function Projection({invested, defMonthly}){
     ),
     React.createElement("div",{style:{display:"flex",justifyContent:"space-between",marginTop:12}},
       React.createElement("span",{style:{fontSize:12,color:"var(--muted)"}},tf("pj_gain",{y:calc.Y})),
-      React.createElement("span",{style:{fontSize:14,color:"var(--mint)",fontWeight:700}},"+"+eur0(calc.fv-calc.aportado))),
-    React.createElement("div",{className:"hint",style:{marginTop:8}},tf("pj_hint",{x:eur0(invested||0)}))
+      React.createElement("span",{style:{fontSize:14,color:"var(--mint)",fontWeight:700}},"+"+fmt0(calc.fv-calc.aportado))),
+    React.createElement("div",{className:"hint",style:{marginTop:8}},tf("pj_hint",{x:fmt0(invested)}))
   );
 }
 
@@ -14892,19 +14895,21 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
       || (typeof i.cost==="number"&&isFinite(i.cost)&&i.cost>0);
   };
   const missingFx=state.investments.filter(function(i){ return invValueEur(i,state)==null||invCostEur(i,state)==null; }).length;
+
   const completeCost=state.investments.length>0&&!missingFx&&state.investments.every(costKnown);
   const missingCost=state.investments.find(function(i){ return !costKnown(i); });
   const plTotal=costTotal>0?(total-costTotal)/costTotal*100:0;
   // Moneda LOCAL de la pestaña Inversiones (no toca el resto de la app). Todo se calcula en €
-  // internamente y se convierte a la moneda elegida para mostrar (€ ↔ $ con el cambio del BCE).
+  // internamente y se convierte con el cambio guardado de la moneda elegida.
   const [invCur,setInvCur]=useState(function(){ return (state.settings&&state.settings.currency)||"EUR"; });
-  const dk = invCur==="USD"&&fx>0 ? 1/fx : 1;
-  const dsym = invCur==="USD"&&fx>0 ? "$" : "€";
-  const f2  = (eurVal)=> (eurVal==null?"—":NF.format(eurVal*dk)+" "+dsym);
-  const f0  = (eurVal)=> (eurVal==null?"—":NF0.format(Math.round(eurVal*dk))+" "+dsym);
+  const displayMissing=fxRateOf(invCur,state)==null;
+  const dsym=CUR_SYM[invCur]||invCur;
+  // Cartera sigue la moneda global; la pantalla hija conserva su elección independiente.
+  const f2=(value)=>value==null?"—":!fullMode?eur(value):displayMissing?"—":NF.format(fromEurAmt(value,invCur,state))+" "+dsym;
+  const f0=(value)=>value==null?"—":!fullMode?eur0(value):displayMissing?"—":NF0.format(Math.round(fromEurAmt(value,invCur,state)))+" "+dsym;
   // valor y coste por bróker (en €) para el desglose de contribuciones
   const byBroker={};
-  state.investments.forEach(function(i){ const v=invValueEur(i, state); const c=invCostEur(i, state); const o=byBroker[i.ent]||(byBroker[i.ent]={c:0,v:0}); o.c+=c||0; o.v+=v||0; });
+  state.investments.forEach(function(i){ const v=invValueEur(i, state); const c=invCostEur(i, state); const o=byBroker[i.ent]||(byBroker[i.ent]={c:0,v:0}); o.c=c==null||o.c==null?null:o.c+c; o.v=v==null||o.v==null?null:o.v+v; });
   // rendimiento por posición (en €), ordenado de mejor a peor
   // Desglose por tipo de activo (clasificación por id conocido, con respaldo por nombre)
   const TYPE_BY_ID={ "0mrszi5":"materias", "7zjaw0y":"etf", "0itlr5k":"fondo" };
@@ -15048,9 +15053,9 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
             React.createElement("div",{className:"v4-micro"},t("iv_now")),
             React.createElement("div",{className:"serif num",style:{fontSize:40,fontWeight:550,letterSpacing:"-1px",lineHeight:1.05,marginTop:6}},f2(shownTotal))),
           React.createElement("div",{className:"curtoggle","aria-label":t("iv_currency")},
-            React.createElement("button",{type:"button",className:"curbtn"+(invCur==="EUR"?" on":""),"aria-pressed":invCur==="EUR",onClick:function(){ setInvCur("EUR"); }},"€"),
-            React.createElement("button",{type:"button",className:"curbtn"+(invCur==="USD"?" on":""),"aria-pressed":invCur==="USD",onClick:function(){ setInvCur("USD"); }},"$"))),
-        React.createElement(FxNotice,{missing:missingFx}),
+            ["EUR","USD","GBP"].concat(["EUR","USD","GBP"].includes(invCur)?[]:[invCur]).map(function(c){
+              return React.createElement("button",{key:c,type:"button",className:"curbtn"+(invCur===c?" on":""),"aria-label":CUR_SYM[c]||c,"aria-pressed":invCur===c,onClick:function(){ setInvCur(c); }},CUR_SYM[c]||c); }))),
+        React.createElement(FxNotice,{missing:missingFx+(displayMissing?1:0)}),
         stale && React.createElement("div",{className:"chip",style:{display:"inline-flex",marginTop:12}},tf("st_stale",{day:staleDay})),
         React.createElement("div",{className:"v4-stackbar","aria-hidden":"true",style:{marginTop:16}},
           React.createElement("i",{style:{flex:Math.max(.02,heroBase/heroSum*100),background:completeCost?"var(--cream)":"var(--mint)"}}),
@@ -15165,7 +15170,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
           React.createElement(I.chev,{className:"chev"+(projOpen?" open":"")})),
         projOpen && React.createElement("div",{id:"iv_projection","data-inv-projection":"1",className:"v4-inv-drop",style:{padding:"0 14px 14px"}},
           React.createElement(Projection,{
-            invested:(totals&&totals.invested)||0,
+            invested:(totals&&totals.invested)||0, state:state, currency:invCur, fmt:f2, fmt0:f0,
             defMonthly:(state.aportaciones||[]).reduce(function(a,x){ return a+(x.amount||0); },0)
           })))
     );
@@ -15185,7 +15190,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
         groups.map(function(g){
         const items=state.investments.filter(function(i){ return i.ent===g[0]; });
         if(items.length===0) return null;
-        const sub=items.reduce(function(a,i){ return a+(invValueEur(i,state)||0); },0);
+        const sub=byBroker[g[0]].v;
         // Editando: todos los brókers desplegados con sus inputs (si no, había que ir uno a uno).
         const open=editing||!!brokerOpen[g[0]];
         return React.createElement(React.Fragment,{key:g[0]},
@@ -15194,7 +15199,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
             React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:g[0],size:44})),
             React.createElement("div",{className:"nm"},
               React.createElement("div",null,g[1]),
-              React.createElement("div",{className:"meta"}, tf("v4_inv_positions",{n:items.length}))
+              React.createElement("div",{className:"meta"}, tf("v4_inv_positions",{n:items.length}),sub==null&&React.createElement("div",{className:"hint"},t("fx_unconverted")))
             ),
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:6}},
               React.createElement("div",{className:"am num"}, f0(sub)),
@@ -24237,7 +24242,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="a55dd4039360f0f93ba263dac19e43523f943124e41702e2a115675fcf986eed";
+var _rnSha="46e82bf21b1f6c6ec438318c8a56d4cb5d848b1aaaf6d09922383a4dbcc9ada0";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

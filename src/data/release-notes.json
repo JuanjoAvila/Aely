@@ -1,5 +1,64 @@
 [
   {
+    "v": "4.26.161",
+    "d": "2026-10-20",
+    "t": {
+      "es": "La moneda que eliges también llega a los brókers de Cartera",
+      "en": "The currency you choose now reaches the brokers in Wallet too",
+      "ca": "La moneda que tries també arriba als bròquers de Cartera"
+    },
+    "items": {
+      "es": [
+        "Al cambiar la moneda, las filas de los brókers en Cartera también se ven en esa moneda.",
+        "La suma de los brókers cuadra con el total de Cartera.",
+        "Al volver a euros, todo queda como antes.",
+        "Una cuenta sin tipo de cambio ya no aparece como 0 €."
+      ],
+      "en": [
+        "When you change the currency, the broker rows in Wallet are also shown in that currency.",
+        "The sum of the brokers matches the Wallet total.",
+        "When you go back to euros, everything is as before.",
+        "An account without an exchange rate no longer shows as 0 €."
+      ],
+      "ca": [
+        "En canviar la moneda, les files dels bròquers a Cartera també es veuen en aquesta moneda.",
+        "La suma dels bròquers quadra amb el total de Cartera.",
+        "En tornar a euros, tot queda com abans.",
+        "Un compte sense tipus de canvi ja no apareix com a 0 €."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "cartera-moneda",
+        "t": {
+          "es": "Cartera: los brókers también cambian de moneda",
+          "en": "Wallet: the brokers change currency too",
+          "ca": "Cartera: els bròquers també canvien de moneda"
+        },
+        "items": {
+          "es": [
+            "1. Ajustes → Moneda de visualización → USD.",
+            "2. Cartera: las filas de los brókers (Trade Republic y los demás) salen en $ y su suma cuadra con el total. MAL: alguna sigue en €.",
+            "3. Vuelve a EUR: todo como antes. MAL: cambia alguna cifra.",
+            "4. Ajustes → Moneda de visualización → EUR, y en Cartera, si alguna cuenta no tiene tipo de cambio (p. ej. Revolut en otra moneda), su fila dice «—» y por qué, no 0 €. MAL: pone 0 €."
+          ],
+          "en": [
+            "1. Settings → Display currency → USD.",
+            "2. Wallet: the broker rows (Trade Republic and the others) show in $ and their sum matches the total. WRONG: one is still in €.",
+            "3. Go back to EUR: everything as before. WRONG: any figure changes.",
+            "4. Settings → Display currency → EUR, and in Wallet, if an account has no exchange rate (e.g. Revolut in another currency), its row shows «—» and why, not 0 €. WRONG: it shows 0 €."
+          ],
+          "ca": [
+            "1. Ajustos → Moneda de visualització → USD.",
+            "2. Cartera: les files dels bròquers (Trade Republic i els altres) surten en $ i la seva suma quadra amb el total. MALAMENT: alguna continua en €.",
+            "3. Torna a EUR: tot com abans. MALAMENT: canvia alguna xifra.",
+            "4. Ajustos → Moneda de visualització → EUR, i a Cartera, si algun compte no té tipus de canvi (p. ex. Revolut en una altra moneda), la seva fila diu «—» i per què, no 0 €. MALAMENT: posa 0 €."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.160",
     "d": "2026-10-20",
     "t": {
