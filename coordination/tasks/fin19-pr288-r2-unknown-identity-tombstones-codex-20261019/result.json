@@ -1,0 +1,135 @@
+{
+  "status": "blocked",
+  "summary": "FIN19 R2 PR288 source5b0cf1eb83c5ce3c79a776223b0b11bd2ab68151 on exact beta158. Four RED corrected:320/640/320 and deletion survivor320 cents;410 tests in409+1 CPU1 batches. PR286 preserved. Normal branch push exact, PR title/body exact but GitHub code-head still R1; not verified delivered by PR. Size gate RED and catalogue incomplete. Immutable private package verified; OWN RETURN exact. No ProductREADY.",
+  "tests": [
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "base158-build"
+    },
+    {
+      "command": "node tests/fin19-r2-identity.test.mjs --evidence ../base158-matrix.json",
+      "exitCode": 1,
+      "phase": "base158-four-red"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "build-candidate-1"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r2-identity.test.mjs tests/fin19-cross-bank-identity.test.mjs",
+      "exitCode": 1,
+      "phase": "focal-1"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "build-candidate-2"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r2-identity.test.mjs tests/fin19-cross-bank-identity.test.mjs",
+      "exitCode": 0,
+      "phase": "focal-2"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/merge-expenses-cloud.test.mjs tests/fin04-rename-note-ack.test.mjs tests/compras-identicas-ids.test.mjs tests/hist-book-reference.test.mjs tests/refund-polarity.test.mjs tests/fin15-pendiente-contabilizada.test.mjs tests/fin15-book-preference.test.mjs tests/tr-emparejado-nogo2.test.mjs tests/ob-iguales-ordinal.test.mjs tests/categoria-manual-persistente.test.mjs",
+      "exitCode": 1,
+      "phase": "regressions-1"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "build-candidate-3"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/merge-expenses-cloud.test.mjs tests/fin04-rename-note-ack.test.mjs tests/compras-identicas-ids.test.mjs tests/hist-book-reference.test.mjs tests/refund-polarity.test.mjs tests/fin15-pendiente-contabilizada.test.mjs tests/fin15-book-preference.test.mjs tests/tr-emparejado-nogo2.test.mjs tests/ob-iguales-ordinal.test.mjs tests/categoria-manual-persistente.test.mjs",
+      "exitCode": 0,
+      "phase": "regressions-2"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "build-final"
+    },
+    {
+      "command": "node tests/fin19-r2-identity.test.mjs --evidence ../r2-matrix.json",
+      "exitCode": 0,
+      "phase": "focal-final"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r2-identity.test.mjs tests/fin19-cross-bank-identity.test.mjs tests/merge-expenses-cloud.test.mjs tests/fin04-rename-note-ack.test.mjs tests/compras-identicas-ids.test.mjs tests/hist-book-reference.test.mjs tests/refund-polarity.test.mjs tests/fin15-pendiente-contabilizada.test.mjs tests/fin15-book-preference.test.mjs tests/tr-emparejado-nogo2.test.mjs tests/ob-iguales-ordinal.test.mjs tests/categoria-manual-persistente.test.mjs tests/fin10-absorption-scope.test.mjs tests/fin11-absorption-pending.test.mjs tests/pull-historico-entero.test.mjs tests/pull-sin-cambios.test.mjs",
+      "exitCode": 1,
+      "phase": "directed-final"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "build-final-index"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r2-identity.test.mjs tests/fin19-cross-bank-identity.test.mjs tests/merge-expenses-cloud.test.mjs tests/fin04-rename-note-ack.test.mjs tests/compras-identicas-ids.test.mjs tests/hist-book-reference.test.mjs tests/refund-polarity.test.mjs tests/fin15-pendiente-contabilizada.test.mjs tests/fin15-book-preference.test.mjs tests/tr-emparejado-nogo2.test.mjs tests/ob-iguales-ordinal.test.mjs tests/categoria-manual-persistente.test.mjs tests/fin10-absorption-scope.test.mjs tests/fin11-absorption-pending.test.mjs tests/pull-historico-entero.test.mjs tests/pull-sin-cambios.test.mjs",
+      "exitCode": 0,
+      "phase": "directed-final-index"
+    },
+    {
+      "command": "node --test --test-name-pattern=scoped tombstone references tests/fin19-r2-identity.test.mjs",
+      "exitCode": 0,
+      "phase": "scoped-reference-check"
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "phase": "syntax"
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0,
+      "phase": "privacy"
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "exitCode": 0,
+      "phase": "security"
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "phase": "relevant-map"
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 1,
+      "phase": "size"
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 0,
+      "phase": "docs-exact-head"
+    },
+    {
+      "command": "git diff --check a5bbecf6793931f4cfc8a3087951ad1ef66580f8 HEAD",
+      "exitCode": 0,
+      "phase": "diff-check"
+    }
+  ],
+  "productSHA": "5b0cf1eb83c5ce3c79a776223b0b11bd2ab68151",
+  "limitations": [
+    "Remote source branch exactly matches the final SHA, but GitHub PR288 head still reports R1 after REST/GraphQL and refs/pull readback. PR title/body updated exactly; PR code-head propagation is NOT confirmed.",
+    "Size gate EXIT1: minified 1420/1419 KB and gzip 394/394 KB exceed unchanged caps.",
+    "Catalogue incomplete: observed monitored dependency expenseDeletionKey failure, then own 120000 ms timeout; exit null, SIGTERM. Wrapper EXIT1 is not the catalogue exit.",
+    "Only local identity and tombstone correctness demonstrated; server reader, database uniqueness and backfill unchanged. No recovery of rows already lost.",
+    "Legacy ambiguous tombstones and new deletions without complete identity retain their old scope; no mass conversion or invented persisted bank/account.",
+    "No fullsuite, verified general CI, browser or CPU6, real cloud or bank, SQL, Edge, native build/APK, deployment, PR merge or mobile acceptance.",
+    "Built test artifact used R1 HEAD stamp while the local merge was open and VERSION158 sources; final product source bytes verified unchanged after tests. Generated files in Git remain exact base158; artifact is not served evidence.",
+    "No ProductREADY. Production and integration remain reserved to Claude.",
+    "Final package manifest SHA256 4147549217f4e4de5d89bb501b80a7d337d1d6d20961a9b23567eac091d7c265; ZIP SHA256 ebc2fb712dd2f1cadbf6600f5880c943d3691e91910c0ac7262cd80420c86460. Every archive entry verified.",
+    "Canonical RETURN e6ccf27b9904c1a832316cfe4d20909f20a41daa. Same claim and public session; private handoff next then STOP without native reply."
+  ],
+  "schema": 1,
+  "taskId": "fin19-pr288-r2-unknown-identity-tombstones-codex-20261019",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-20T14:21:23.407Z",
+  "released": true
+}
