@@ -1,3 +1,17 @@
+# FIN19 R8 · renombrar ingresos bancarios negativos desde la ficha
+
+Sobre R7 `823f72c82c63ddbe19aea67f6892b3151397fd30`, misma PR288. El saveEdit real ocultaba una nómina de −1500 y un traspaso entrante de −200 al cambiar su nombre sin nube o en cualquiera de los dos estados del modo pruebas. Aunque el importe y el día no cambian, income:true añade noCard y puede cambiar la categoría; las dos comparaciones adicionales impedían usar las claves de renombrado de FIN04. El ROJO corregido sobre el artefacto exacto R7 falla los seis casos: 0 céntimos visibles frente a −150000/−20000.
+
+R8 elimina únicamente `cat===orig.category` y `upd.noCard===orig.noCard` del predicado soloNombreBanco. Conserva banco, obName, cambio de comercio, importe firmado, día y ambas elecciones keyOfExpense. No modifica las asignaciones de categoría/noCard, signos, importes, lectores, servidor, ACK, contador, merge ni rendimiento.
+
+Seis pruebas nuevas (dos fixtures negativos × offline/sandbox/transición), inicialmente sin noCard, ejecutan income:true como la ficha real. En cada caso se comprueban las filas almacenadas y visibles completas, céntimos firmados, guardar, persistir/recargar y pull completo tras el primer nombre, un segundo nombre y la vuelta al original. Los totales se obtienen de monthBudgetStats real en split y net: gasto, ingreso, balance, presupuesto, reservado, restante, against y shown. La nómina cuenta 150000 céntimos de ingreso desde el inicio. El traspaso es neutro antes; la ficha existente lo convierte en ingreso al guardar, y después suma20000. Esa clasificación se mantiene expresamente; el importe firmado no cambia. El presupuesto split sigue100000 y el margen neto es250000 para nómina y120000 para traspaso tras guardar.
+
+Build limpio final; Madrid 91/91 EXIT0 y UTC 91/91 EXIT0. Los lotes se solapan, no son182 casos únicos. Controles positivos, manuales, fecha, importe bancario bloqueado, siete cadenas remotas320/manual640, presupuesto por banco, deshacer y ordinales incluidos. El antiguo control positivo3,20 de categoría/noCard se adapta de forma explícita a la nueva selección de clave; no sustituye las pruebas negativas. El primer arnés R8 esperaba −0 en un total neutro; se corrige a0 y se conservan ese EXIT1 y el ROJO financiero posterior.
+
+Persisten por decisiones anteriores las limitaciones legacy sin cuenta640 (`d7d6c1e`) y colisión entre cuentas con mismo contenido/ordinal320 frente a640 (`68bd61de`); no se presentan como corregidas. R6 A/B y FIN22 se preservan sin repetir. Integración y gates VERSION/notas/tamaño/catálogo/caps, CI general, servido y móvil pendientes. Sin fullsuite, CPU6, navegador, banco/nube reales, SQL/Edge/API, APK, deploy o merge. No ProductREADY.
+
+## Historial R7 · sustituido para ingresos negativos por R8
+
 # FIN19 R7 · renombrar desde la ficha sin ocultar el movimiento
 
 Candidata sobre R6 `6554490c8ef2b4ed3c22642e4f49bf51904126a9`, misma PR288. La ficha offline y en ambos estados del modo pruebas dejaba una lápida con ámbito para el nombre anterior. El lector R6 la interpreta como borrado real por obName: al renombrar BAR SL a Mi bar,320 céntimos pasan a0. El ROJO ejecuta el saveEdit completo de la ficha; no sustituye el escritor por expenseRenameAck.
