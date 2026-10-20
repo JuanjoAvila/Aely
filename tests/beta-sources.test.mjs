@@ -3782,7 +3782,8 @@ test("Catálogo153 añade las tandas de la ola con raíz única, la vibración r
   const congelados=new Set(["inc-0810-inicio-grafica-significado"]),unidad=u=>JSON.stringify(u);
   for(const [id,scope] of Object.entries(integrated)){
     if(congelados.has(id)){assert.deepEqual(rest[id],scope,"descriptor congelado: "+id);continue;}
-    const web=closure(scope.web||[]);
+    // La 153 añade cloud.renameExpense (diagnóstico de recibo) a los lectores que ya lo alcanzaban por cierre: el miembro se declara en su unidad `cloud`.
+    const web=closure(scope.web||[]).map(u=>["inc-3009-01-cargos","inc-0210-03-gastos-periodo","feature-0310-01-movilidad","inc-0310-gastos-sin-limite","inc-0710-gastos-mes-madrid","recibos-cargo-unico"].includes(id)&&u.data==="cloud"&&u.members?{...u,members:u.members.concat("renameExpense")}:u);
     assert.deepEqual({...rest[id],web:rest[id].web.map(unidad).sort()},{...scope,web:web.map(unidad).sort()},"cierre de lectores recalculado, ni se recorta ni crece sin declararlo: "+id);
     assert.equal(rest[id].web.length,web.length,"sin unidades repetidas: "+id);
   }
