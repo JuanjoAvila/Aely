@@ -281,7 +281,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     return function(){ clearTimeout(to); };
   },[seg]);
 
-  return React.createElement("div",{className:"v4-screen",ref:planScreenRef},
+  return React.createElement("div",{className:"v4-screen",ref:planScreenRef,"data-edge-capture":simple?null:"1"},
     React.createElement("h1",{className:"v4-title serif"}, simple?t("v4s_plan_left_title"):t("v4_plan_title")),
     simple && React.createElement("div",{className:"v4-card v4-card-hero rise v4-plan-cover v4-plan-cover-simple","data-plan-state":coverTone,role:"group","aria-label":coverAria},
       React.createElement("div",{className:"v4-plan-simple-hero"},

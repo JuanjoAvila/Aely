@@ -68,6 +68,23 @@ test('fuerza perceptible (ronda 9): entre 1 y 255 el toque dura al menos el dobl
   }
   assert.ok(one('fill',140).durationMs>=15,'el anillo de serie no son toques de 10 ms que el motor no arranca');
 });
+test('Mi ciclo (ronda 10): con el anillo casi vacio sigue habiendo rampa que crece',()=>{
+  const x=setup(JSON.stringify({v:2,fillAmp:140}));x.context.mcInicioFillHaptic(ringEvent(12,1100));x.flush();
+  assert.ok(x.calls.length>=5,'un 12 % no puede ser UN toque: '+x.calls.length);
+  const a=x.calls.map(c=>c.amplitude),d=x.calls.map(c=>c.durationMs);
+  assert.ok(a.every((v,i)=>i===0||v>a[i-1]),'cada toque mas fuerte que el anterior: '+a);
+  assert.ok(d.at(-1)>d[0],'y mas largo: '+d);
+  assert.equal(a.at(-1),140,'acaba en la fuerza del deslizador');
+  assert.ok(x.calls.every(c=>c.usage==='hardware'));
+});
+test('grafica (ronda 10): la fuerza del deslizador se nota, uso hardware',()=>{
+  const dash=fs.readFileSync(new URL('../src/modules/03-tab-dash.js',import.meta.url),'utf8');
+  assert.doesNotMatch(dash,/mcHaptic\("edge",\{amplitude:v\.tickAmp/,'la grafica ya no va con el uso por defecto');
+  const lo=setup(JSON.stringify({v:2,tickAmp:1,tickMs:10})),hi=setup(JSON.stringify({v:2,tickAmp:255,tickMs:10}));
+  const tick=x=>{const v=x.context.mcHapticTune();x.context.mcFeltHaptic(v.tickAmp,v.tickMs);return x.calls.at(-1);};
+  const a=tick(lo),b=tick(hi);
+  assert.equal(b.usage,'hardware');assert.ok(b.durationMs>=2*a.durationMs,a.durationMs+' frente a '+b.durationMs);
+});
 test('guardado de antes de la ronda 9: fuerzas de ciclo y borde a los de serie; grafica y tipo se conservan',()=>{
   const v=setup('{"fillAmp":40,"edgeAmp":70,"edgeMs":12,"tickAmp":90,"tickMs":8,"fillMs":1500,"usage":"media"}').context.mcHapticTune();
   assert.equal(v.fillAmp,140);assert.equal(v.edgeAmp,120);assert.equal(v.edgeMs,20);
@@ -76,11 +93,11 @@ test('guardado de antes de la ronda 9: fuerzas de ciclo y borde a los de serie; 
 test('Mi ciclo (ronda 8): toques sueltos, proporcionales al ciclo, con fuerza y duracion del ajustador',()=>{
   const run=(tune,pct,dur)=>{const x=setup(JSON.stringify({v:2,...tune}));x.context.mcInicioFillHaptic(ringEvent(pct,dur));x.flush();return x;};
   const full=run({fillAmp:200,fillMs:1500},100,1500), quarter=run({fillAmp:200,fillMs:1500},25,1500);
-  assert.equal(full.calls.length,8,'anillo lleno: ocho toques, cada uno su llamada');
-  assert.equal(quarter.calls.length,2,'un cuarto del ciclo: dos');
+  assert.equal(full.calls.length,13,'anillo lleno: trece toques (5 + 8), cada uno su llamada');
+  assert.equal(quarter.calls.length,7,'un cuarto del ciclo: siete');
   assert.ok(full.calls.every(c=>c.method==='edge'&&c.usage==='hardware'&&c.durationMs<=30),'toques cortos con uso hardware');
   const amps=full.calls.map(c=>c.amplitude);
-  assert.ok(amps.every((a,i)=>i===0||a>=amps[i-1])&&amps.at(-1)===200&&amps[0]<=135,'de mas suave a la fuerza del deslizador');
+  assert.ok(amps.every((a,i)=>i===0||a>=amps[i-1])&&amps.at(-1)===200&&amps[0]<=110,'de mas suave a la fuerza del deslizador');
   const soft=run({fillAmp:40,fillMs:1500},100,1500);
   assert.equal(soft.calls.at(-1).amplitude,40,'el deslizador de fuerza se nota');
   const at=x=>x.timers.map(t=>t.ms);
@@ -98,7 +115,7 @@ test('texto para copiar: corto y con los nueve numeros',()=>{
 });
 test('grafica de Inicio: el tick usa los valores del ajustador',()=>{
   const dash=fs.readFileSync(new URL('../src/modules/03-tab-dash.js',import.meta.url),'utf8');
-  assert.match(dash,/mcHaptic\("edge",\{amplitude:v\.tickAmp,durationMs:v\.tickMs\}\)/);
+  assert.match(dash,/mcFeltHaptic\(v\.tickAmp,v\.tickMs\)/);
 });
 test('borde (ronda 7): una vibracion por arrastre; volver atras y empujar otra vez si',()=>{
   const x=setup(JSON.stringify({v:2,edgeEvery:100}));const clock={t:1000};x.context.performance.now=()=>clock.t;
