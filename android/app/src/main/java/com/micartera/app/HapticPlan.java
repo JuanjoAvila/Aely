@@ -95,7 +95,12 @@ final class HapticPlan {
             int strength = raw.amplitudes[i];
             long left = raw.timings[i];
             if (strength <= 0) { n = push(t, a, n, left, 0); continue; }
-            int amp = amplitudeControl ? felt(strength) : ON_AMPLITUDE;
+            /* Ronda 8: con control de amplitud, un tramo continuo a su amplitud sentida. Trocearlo
+               en ranuras salía como «muchísimas veces seguidas con cada cambio» de segmento: lo
+               que aplanaba la fuerza en su OnePlus era el efecto de serie del uso TOUCH, no la
+               amplitud. Las ranuras quedan solo para motores de encendido/apagado. */
+            if (amplitudeControl) { n = push(t, a, n, left, felt(strength)); continue; }
+            int amp = ON_AMPLITUDE;
             float d = duty(strength);
             while (left > 0) {
                 long slot = Math.min(SLOT_MS, left);

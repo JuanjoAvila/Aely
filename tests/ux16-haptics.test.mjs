@@ -7,8 +7,9 @@ const block=source.slice(source.indexOf('function mcReduced(){'),source.indexOf(
 function setup(){
   const calls=[],classes=new Set();
   const document={hidden:false,documentElement:{classList:{contains:k=>classes.has(k)}},getElementById:()=>null};
-  const window={__mcSplashGone:true,matchMedia:()=>({matches:false}),Capacitor:{Plugins:{AelyHaptics:{fill:p=>calls.push(p),edge:()=>calls.push('edge')}}}};
-  const context={document,window,Promise,WeakSet,Number,getComputedStyle:()=>({}),console};
+  const window={__mcSplashGone:true,matchMedia:()=>({matches:false}),Capacitor:{Plugins:{AelyHaptics:{fill:p=>calls.push(p),edge:p=>calls.push(p)}}}};
+  // La ristra del anillo va por temporizadores: aquí se disparan en el acto, en orden.
+  const context={document,window,Promise,WeakSet,Number,getComputedStyle:()=>({}),console,setTimeout:fn=>{fn();return 0;},clearTimeout:()=>{}};
   vm.createContext(context);vm.runInContext(block,context);
   const animation={animationName:'v42-cycle-draw',playState:'running',effect:{getComputedTiming:()=>({duration:1100})}};
   const el={style:{getPropertyValue:k=>k==='--cycle-pct'?'62':''},matches:s=>s==='.v42-cycle-draw',closest:()=>({classList:{contains:()=>true}}),getAnimations:()=>[animation]};
@@ -17,9 +18,10 @@ function setup(){
 }
 test('fill: solo una instancia real, duracion efectiva y nuevo montaje animado',()=>{
   const x=setup();x.context.mcInicioFillHaptic(x.event);x.context.mcInicioFillHaptic(x.event);
-  assert.equal(x.calls.length,1);assert.equal(x.calls[0].durationMs,1100);
+  // 62 % del ciclo = 5 de 8 toques; un segundo evento de la misma animación no añade nada.
+  assert.equal(x.calls.length,5);assert.deepEqual(x.calls.map(c=>c.cycle),[1,2,3,4,5]);
   x.event.target.getAnimations=()=>[{...x.animation}];x.context.mcInicioFillHaptic(x.event);
-  assert.equal(x.calls.length,2,'otra animacion real puede producir una nueva apertura');
+  assert.equal(x.calls.length,10,'otra animacion real puede producir una nueva apertura');
 });
 test('fill: movimiento reducido del SO y de la app anula incluso una animacion aun activa',()=>{
   for(const mode of ['system','app']){
@@ -38,7 +40,7 @@ test('fill: pausa, splash, pestaña oculta, otra animacion y documento oculto so
 });
 test('transporte ausente o rechazado no rompe la web ni deja promesa rechazada',async()=>{
   const x=setup();delete x.window.Capacitor;x.context.mcHaptic('edge');
-  x.window.Capacitor={Plugins:{AelyHaptics:{fill:()=>Promise.reject(Error('synthetic'))}}};
+  x.window.Capacitor={Plugins:{AelyHaptics:{edge:()=>Promise.reject(Error('synthetic'))}}};
   x.context.mcInicioFillHaptic(x.event);await new Promise(r=>setImmediate(r));assert.equal(x.calls.length,0);
 });
 test('App: guardas reales de navegación, Perfil y Ajustes no pertenecen al observador',()=>{

@@ -54732,7 +54732,7 @@
       },
       {
         "file": "src/modules/02-ui-shared.js",
-        "function": "mcCycleWave"
+        "function": "mcCycleTicks"
       },
       {
         "file": "src/modules/02-ui-shared.js",
@@ -58722,7 +58722,7 @@
       },
       {
         "file": "src/modules/02-ui-shared.js",
-        "function": "mcCycleWave"
+        "function": "mcCycleTicks"
       },
       {
         "file": "src/modules/02-ui-shared.js",
@@ -60339,7 +60339,7 @@
       },
       {
         "file": "src/modules/02-ui-shared.js",
-        "function": "mcCycleWave"
+        "function": "mcCycleTicks"
       },
       {
         "file": "src/modules/02-ui-shared.js",

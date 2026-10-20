@@ -86,4 +86,14 @@ public class HapticPlanTest {
         assertEquals(HapticPlan.Usage.TOUCH, HapticPlan.usage("touch"));
         assertEquals("basura = el de siempre", HapticPlan.Usage.TOUCH, HapticPlan.usage("HARDWARE; drop"));
     }
+    @Test public void round8ContinuousWithAmplitudeControl() {
+        for (int strength : new int[]{1, 42, 128, 203, 255}) {
+            HapticPlan.Wave w = HapticPlan.shape(HapticPlan.single(33, strength), true);
+            assertEquals("un solo pulso continuo, sin ristra", 1, w.timings.length);
+            assertEquals(33, w.timings[0]);
+            assertEquals(HapticPlan.felt(strength), w.amplitudes[0]);
+        }
+        HapticPlan.Wave off = HapticPlan.shape(HapticPlan.single(33, 128), false);
+        assertTrue("sin control de amplitud sigue troceando", off.timings.length > 1);
+    }
 }
