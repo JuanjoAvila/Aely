@@ -187,35 +187,18 @@ test("★ P14: con yenes y patrimonio negativo, el importe cabe entero y en una 
   expect(recortado).toBe(false);
 });
 
-/* B2 — Count-up en Cartera al ACTIVAR la pestaña (bus mcOnCarteraActive), no al montar.
+/* B2 — La cifra del hero de Cartera es SIEMPRE una cifra real (contrato desde la 4.26.153).
  *
- * Claude midió bien que premontaje e IntersectionObserver gastan la cuenta a puerta cerrada.
- * La vía que faltaba es la misma que ya usa Gastos: aviso de «activa» por bus, sin prop `active`
- * (esa prop reconstruía el árbol encima del gesto). No toca `.track` ni gestos.
+ * Antes contaba desde 0 al activar la pestaña. Desde fijos-schedule (beta 4.26.153) `useCountUp`
+ * pinta la cifra real desde el primer frame: mientras la pestaña entraba deslizándose se veía
+ * «0,00 €», y en «Tus recibos» quien tocaba antes de los 950 ms se quedaba con una cifra a medias
+ * (vídeo de la beta 4.26.150). Lo que sí se anima es el paso de un valor real a otro con la cifra
+ * a la vista, y ahí solo pueden salir valores ENTRE el viejo y el nuevo.
  *
  * Se muestrean valores DENTRO de la página con rAF (innerText desde fuera cuesta ~50 ms y se
- * comen los intermedios). Al tocar Cartera debe verse al menos un valor ESTRICTAMENTE menor
- * que el total antes de llegar a él.
+ * comen los intermedios).
  */
-test("B2: al entrar en Cartera el hero cuenta, no aparece ya puesto", async ({ page }) => {
-  await seedLoggedInDashboard(page, {
-    accounts: [{ id: "e2e", ent: "sabadell", name: "Cuenta", value: 4321 }],
-    debts: [],
-    investments: [],
-    assets: [],
-  });
-  await page.goto("/");
-  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
-  await dismissNews(page);
-  await page.waitForFunction(() => !document.getElementById("mc-load"), null, { timeout: 10_000 }).catch(() => {});
-
-  // Premontar Cartera (vecina de Plan).
-  await page.locator('.botnav-tab[data-tour="plan"]').click();
-  await expect(page.locator('.botnav-tab[data-tour="plan"].active')).toBeVisible({ timeout: 5_000 });
-  await page.waitForTimeout(300);
-
-  // Sembrar el muestreador ANTES del toque: el click de Playwright puede tardar un frame
-  // y nos comeríamos el arranque de la cuenta.
+async function muestreaHero(page) {
   await page.evaluate(() => {
     window.__mcB2 = [];
     window.__mcB2Stop = false;
@@ -235,19 +218,53 @@ test("B2: al entrar en Cartera el hero cuenta, no aparece ya puesto", async ({ p
     };
     requestAnimationFrame(tick);
   });
+}
+const paraMuestreo = (page) => page.evaluate(() => {
+  window.__mcB2Stop = true;
+  return (window.__mcB2 || []).slice();
+});
 
+test("B2: al entrar en Cartera el hero enseña la cifra real, nunca 0 ni una a medias", async ({ page }) => {
+  await seedLoggedInDashboard(page, {
+    accounts: [{ id: "e2e", ent: "sabadell", name: "Cuenta", value: 4321 }],
+    debts: [],
+    investments: [],
+    assets: [],
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await dismissNews(page);
+  await page.waitForFunction(() => !document.getElementById("mc-load"), null, { timeout: 10_000 }).catch(() => {});
+
+  // Premontar Cartera (vecina de Plan).
+  await page.locator('.botnav-tab[data-tour="plan"]').click();
+  await expect(page.locator('.botnav-tab[data-tour="plan"].active')).toBeVisible({ timeout: 5_000 });
+  await page.waitForTimeout(300);
+
+  // Sembrar el muestreador ANTES del toque: el click de Playwright puede tardar un frame
+  // y nos comeríamos un posible 0 del arranque.
+  await muestreaHero(page);
   await page.locator('.botnav-tab[data-tour="cartera"]').click();
   await expect(page.locator(".page-scroll-host .cartera-hero-amt")).toBeVisible({ timeout: 5_000 });
   await page.waitForTimeout(1000);
-  const muestras = await page.evaluate(() => {
-    window.__mcB2Stop = true;
-    return (window.__mcB2 || []).slice();
-  });
+  const entrada = await paraMuestreo(page);
+  expect(entrada.length).toBeGreaterThan(5);
+  expect(entrada.filter((v) => v !== 4321)).toEqual([]);
 
-  expect(muestras.length).toBeGreaterThan(5);
-  const ultimo = muestras[muestras.length - 1];
-  expect(ultimo).toBe(4321);
-  const huboIntermedio = muestras.some((v) => v > 0 && v < 4321);
-  expect(huboIntermedio).toBe(true);
+  // Con Cartera a la vista, un saldo nuevo llega por el `set` REAL de la app (como lo haría un
+  // sync), sin tocar fórmulas ni el hook: la cifra recorre el camino y acaba en la nueva.
+  await muestreaHero(page);
+  await page.evaluate(() => {
+    const el = document.querySelector(".page-scroll-host .cartera-hero-amt");
+    let f = el[Object.keys(el).find((k) => k.startsWith("__reactFiber$"))];
+    while (f && !(f.memoizedProps && typeof f.memoizedProps.set === "function" && f.memoizedProps.state)) f = f.return;
+    if (!f) throw new Error("No se encontró el set de la app");
+    f.memoizedProps.set((s) => Object.assign({}, s, { accounts: s.accounts.map((a) => (a.id === "e2e" ? Object.assign({}, a, { value: 5000 }) : a)) }));
+  });
+  await page.waitForTimeout(1300);
+  const cambio = await paraMuestreo(page);
+  expect(cambio[cambio.length - 1]).toBe(5000);
+  expect(cambio.filter((v) => v < 4321 || v > 5000)).toEqual([]);
+  expect(cambio.some((v) => v > 4321 && v < 5000)).toBe(true);
 });
 

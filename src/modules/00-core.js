@@ -2650,18 +2650,33 @@ function lapidasAlEditar(s, keyOrig, keyUpd, ahora){
    o al volver la conexión. Límite: la cola vive en memoria; si la app se cierra antes, la fila
    vieja sigue en la nube y el repaso tras el pull dará `23505` con origen `backfill`.
    `cola` = {pend:[{orig,upd}], fin:Promise}. */
+// Fallo de transporte (sin conexión, fetch caído, sesión que no se pudo leer), no respuesta
+// del servidor. El cliente de Supabase devuelve el fetch caído como `{message:"TypeError: …"}`.
+const RENAME_BACKOFF_MS=[2000,8000,30000];
+function renameFalloDeRed(err){
+  if(typeof navigator!=="undefined"&&navigator.onLine===false)return true;
+  if(!err)return false;
+  if(err instanceof TypeError)return true;
+  return /failed to fetch|networkerror|network request failed|load failed|internet ?disconnected|err_internet|session unavailable|cloud unavailable/i.test(String(err.message||err));
+}
 function subeEdicionesDeGasto(cola){
   const paso=function(){
     const p=cola.pend[0];
     if(!p) return;
     if(p.rename){
       if(!cloud.enabled()||mcSandbox()||mcSandboxTransition())return;
+      // En espera de su reintento (lo marca Gastos): una llamada encadenada no lo adelanta.
+      if(p.waitUntil>Date.now())return;
       const orig=p.current();
       if(!orig){cola.pend.shift();return paso();} // intención sustituida o fila retirada
       return cloud.renameExpense(orig,p.rename.merchant,true).then(function(ack){
         if(!ack)throw new Error("rename unconfirmed");
         cola.pend.shift();p.ack(orig,ack);
-      }).catch(function(){
+      }).catch(function(err){
+        /* Sin red no es un rechazo: no cuenta para apartarlo y se queda pendiente con su ⏳.
+           Antes los tres intentos se gastaban en ~9 ms sin cobertura y el nombre volvía al
+           viejo, sin subirse solo al volver la red (rojo de la beta 4.26.153, 20/10/2026). */
+        if(renameFalloDeRed(err)){ if(p.fail)p.fail(orig,null,false,true); return; }
         const failures=Math.max(p.failures||0,orig.renamePending&&orig.renamePending.failures||0)+1;
         p.failures=failures;const quarantined=failures>=3;
         if(quarantined)cola.pend.shift();
