@@ -81,6 +81,7 @@ Fuente: veredictos del panel (`scripts/errores.mjs --kind=beta`), CHANGELOG, not
 - PRO-09 · round-up de TR desde «Round up Invertido»: **diseño** pendiente de emparejamiento con Open Banking; sin implementación ni aceptación por asociación con UX-15.
 - Saldo de cuenta · PR268 (`7fbcb9e0` sobre la 141), borrador en revisión independiente; resultado `blocked/released`, sin GO ni entrega acreditados en este corte.
 - PRO-20 · Colchón / fondo de emergencia (evolutivo pedido por el dueño 18/10; decisiones suyas del 18/10, falta solo el diseño visual con su OK): sección de ahorro TOTAL a la que el usuario elige qué cuentas, metas e inversiones suman (opt-in por elemento: hay inversiones que no quiere contar). Gasto para sobrevivir = los recibos obligatorios (Plan → Recibos). Muestra cuántos meses aguanta el colchón con esos recibos más un presupuesto de vida que el usuario elige (con más presupuesto salen menos meses), y una recomendación del tipo «con X € al mes aguantas N meses». Vive en Plan, como sección propia junto a Deudas, Metas y Recibos; en Inicio, como mucho, una línea con los meses que aguanta. Si falta dato, «—» y por qué; nunca inventar cifras.
+- PRO-21 · categorías y subcategorías (pedido del dueño 20/10, para PLANIFICAR después de Gastos v5): p. ej. Coche → taller, ITV, lavado; Comida → súper, bares. Afecta a Gastos v5 (Categorías y filtro), límites por categoría, palabras clave/IA y a lo ya categorizado; necesita diseño con su OK antes de código.
 
 **1 · Dinero · otros pendientes conservados**
 
@@ -133,9 +134,9 @@ Fuente: veredictos del panel (`scripts/errores.mjs --kind=beta`), CHANGELOG, not
 - UX-17 · Gastos v5: rediseño de la pestaña (diseño cerrado 20/10, docs/design/gastos-v5/SPEC.md). Tandas en el orden del §12, cada una por beta con su guion:
   - Tanda 1 · Estructura + Movimientos: cabecera, cifra viva, meses fijos al bajar, tarjetas con 6 px, filas grises desplegables; fuera la tarjeta resumen y los botones de periodo.
   - Tanda 2 · Secciones + gesto: iconos de sección, tirón de Plan, vibración de un solo toque.
-  - Tanda 3 · Categorías → filtro (pendiente de su decisión: dónde se pone el límite a una categoría, §5).
+  - Tanda 3 · Categorías → filtro. Decidido el 20/10: el límite de categoría tiene dos entradas (chip junto a la píldora del filtro y pulsación larga en Categorías) que abren la misma hoja; tocar una categoría filtra Movimientos.
   - Tanda 4 · Suscripciones como bandeja + fichas.
-  - Tanda 5 · Hoja de filtros y destino de «Actualizar gastos» (pendiente de su decisión, §8; enlaza con UX-15).
+  - Tanda 5 · Hoja de filtros y destino de «Actualizar gastos». Decidido el 20/10: «Actualizar gastos» se QUITA en esta tanda (la app sincroniza sola al abrir y al volver), con auditoría de puertas de entrada antes; con eso se cierra UX-15.
 
 **4 · Limpieza, servidor y seguridad**
 
