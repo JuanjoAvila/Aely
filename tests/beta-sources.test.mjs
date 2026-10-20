@@ -4011,7 +4011,8 @@ test("Catálogo155 añade las tandas de la vibración ronda 4 (APK 61) y de la f
   const congelados=new Set(["inc-0810-inicio-grafica-significado"]),unidad=u=>JSON.stringify(u);
   for(const [id,scope] of Object.entries(integrated)){
     if(congelados.has(id)){assert.deepEqual(rest[id],scope,"descriptor congelado: "+id);continue;}
-    const web=closure(scope.web||[]);
+    // vibra-defaults renombró mcCycleWave a mcCycleTicks: el descriptor de la 154 se lee con el nombre nuevo.
+    const web=closure((scope.web||[]).map(u=>u.function==="mcCycleWave"?{...u,function:"mcCycleTicks"}:u));
     assert.deepEqual({...rest[id],web:rest[id].web.map(unidad).sort()},{...scope,web:web.map(unidad).sort()},"cierre de lectores recalculado, ni se recorta ni crece sin declararlo: "+id);
     assert.equal(rest[id].web.length,web.length,"sin unidades repetidas: "+id);
   }
