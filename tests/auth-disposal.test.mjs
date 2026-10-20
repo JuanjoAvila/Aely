@@ -83,7 +83,10 @@ const auth106=authFragments(history106('src/modules/00-core.js'),history106('src
 assert.equal(auth106.effect.split(viejoSalida).length,2,'la salida de sesión de la 106 está una sola vez');
 const cacheSalida='if(ev==="SIGNED_OUT")statePushCache.clear();';
 assert.equal(parts.method.split(cacheSalida).length,2,"FIN17 invalida exactamente una vez su cache al salir");
-assert.deepEqual(parts,{method:auth106.method.replace(" cb(s,ev);", " "+cacheSalida+"cb(s,ev);"),effect:auth106.effect.replace(viejoSalida,nuevoSalida)});
+const firstPullReset="      if(!s){cloudReadRef.current=null;cloudUpdatedAtRef.current=null;}\n",ownerReset="      if(!s||login){cloudReadRef.current=null;cloudUpdatedAtRef.current=null;}\n";
+const expectedEffect=auth106.effect.replace(viejoSalida,nuevoSalida).replace('      if(s) mcScheduleIdle',firstPullReset+'      if(s) mcScheduleIdle').replace('      const login=s&&(!prev||prev.user.id!==s.user.id);\n','      const login=s&&(!prev||prev.user.id!==s.user.id);\n'+ownerReset);
+assert.deepEqual(parts,{method:auth106.method.replace(" cb(s,ev);", " "+cacheSalida+"cb(s,ev);"),effect:expectedEffect});
+for(const event of ["SIGNED_OUT","SIGNED_IN"]){const w=authWorld(parts);w.mount();w.env.cloudReadRef.current={owner:"old",ready:true};w.env.cloudUpdatedAtRef.current="old-revision";w.event(event,event==="SIGNED_OUT"?null:s("new"));assert.equal(w.env.cloudReadRef.current,null);assert.equal(w.env.cloudUpdatedAtRef.current,null);}
 const storage=['mcLoadRaw','mcSaveRaw','mcResetSandbox'],file='src/modules/00-core.js';
 assert.equal(core.split('  const statePushCache=new Map();\n').length,2,'cache FIN17 declarada una sola vez en cloud');
 let previousStorage=core.replace(parts.method,auth106.method).replace('  const statePushCache=new Map();\n','');
@@ -91,7 +94,7 @@ for(const name of storage)previousStorage=previousStorage.replace(scopeText({fil
 const guardado106=historicalReg[id].web.find(u=>u.from&&u.from.includes('INC-0410 guardado')),appFile='src/modules/11-app-main.js';
 // El `set` de App (dentro del bloque del guardado) gana en la 130 el emparejado automático: también es persistencia, no auth.
 // Se normalizan únicamente las ampliaciones explícitas de Metas/FIN17; el contrato de cancelación y callbacks permanece íntegro.
-const previousApp=read(appFile).replace(scopeText(guardado106,read),scopeText(guardado106,history106)).replace(nuevoSalida,viejoSalida);
+const previousApp=read(appFile).replace(scopeText(guardado106,read),scopeText(guardado106,history106)).replace(nuevoSalida,viejoSalida).replace(firstPullReset,"").replace(ownerReset,"");
 assert.deepEqual(betaRevision(id,f=>f===file?previousStorage:f===appFile?previousApp:read(f),undefined,historicalReg[id]),betaRevision(id,history106,undefined,historicalReg[id]),'sólo la persistencia (y el emparejado del set) cambia la identidad auth; resto del contrato106 intacto');
 assert.notEqual(betaRevision(id,read).codigo,betaRevision(id,history106,undefined,historicalReg[id]).codigo,'persistencia y su unión nueva exigen revisión, nunca aprobación106');
 console.log('✓ auth disposal: remount, callbacks/promesas/timer/idle tardíos, controles activos, rojo anterior; '+Object.keys(oldReg).length+' revisiones anteriores intactas');

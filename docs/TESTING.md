@@ -1,3 +1,7 @@
+FIN04 primera lectura: `fin04-first-pull.test.mjs` en el runner y
+`fin04-first-pull.spec.mjs` en el mapa de `11-app-main.js`. GET retenido, SDK real,
+dos contextos sintéticos, INSERT/CAS/ACK y sesión. [Alcance A](briefs/fin04-primera-lectura.md).
+
 FIN04 fase 1: `fin04-rename-note-ack.test.mjs` en el runner Node y `fin04-rename-note-ack.spec.mjs`
 en el mapa de Gastos. Dos contextos y SDK real con transporte simulado; ACK exacto, identidad
 local, nota concurrente, reintento y cero escrituras en modo pruebas (33 escritores). R2 añade

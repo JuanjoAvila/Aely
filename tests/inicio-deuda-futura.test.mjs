@@ -110,7 +110,7 @@ test("revision1: nube real proyecta, push/pull y merge conservan startMonth",asy
     const write=value=>{row=plain(value);writes.push(row);return {select:async()=>({data:[{updated_at:row.updated_at}],error:null})};};
     return {
       select(columns){assert.equal(columns,"data,updated_at");return {maybeSingle:async()=>({data:plain(row),error:null})};},
-      upsert(value,options){assert.equal(options.onConflict,"user_id");return write(value);},
+      insert(value){assert.equal(row,null,"INSERT no sustituye una fila existente");return write(value);},
       update(value){const eq=[];return {eq(key,v){eq.push([key,v]);return this;},select:async()=>{
         assert.deepEqual(eq,[["user_id","synthetic"],["updated_at",row.updated_at]]);
         row=plain(value);writes.push(row);return {data:[{updated_at:row.updated_at}],error:null};
@@ -130,7 +130,7 @@ test("revision1: nube real proyecta, push/pull y merge conservan startMonth",asy
   assert.deepEqual(pack.data.debts,plain(remote.debts),"el transporte JSON conserva todos los campos de la deuda");
   const app=fs.readFileSync(new URL("../src/modules/11-app-main.js",import.meta.url),"utf8");
   const body=callbackBody(app.slice(app.indexOf("const syncFromCloud=function(")),"function(prev){");
-  const factory=vm.runInContext("(function(sessionRef,cloudState,cloudPack,u,opts,freshLogin,mergeExpenses,fixMovInvasion,fixRevoDupes,fixInvAuto,fixInvSold,reconcileTR,seedFlows,reconcileEarlyIncomeAnchors){const obAbsorbedWriteBlocked={current:false};return function(prev){"+body+"};})",c);
+  const factory=vm.runInContext("(function(sessionRef,cloudState,cloudPack,u,opts,freshLogin,mergeExpenses,fixMovInvasion,fixRevoDupes,fixInvAuto,fixInvSold,reconcileTR,seedFlows,reconcileEarlyIncomeAnchors){const obAbsorbedWriteBlocked={current:false},read={owner:u,ready:false},cloudReadRef={current:read};return function(prev){"+body+"};})",c);
   const identity=x=>x;
   const merge=(local,freshLogin=false)=>factory({current:{user:{id:"synthetic"}}},pack.data,pack,"synthetic",{},freshLogin,(a,b)=>({list:a}),identity,identity,identity,identity,identity,c.seedFlows,identity)(local);
   for(const local of [{...fixture([]),_savedAt:10},{...fixture([{...d,name:"Cambio local"}]),_savedAt:30}]){

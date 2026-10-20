@@ -1218,16 +1218,20 @@ const cloud = (function(){
           .eq('user_id', uid).eq('updated_at', lastKnownUpdatedAt)
           .select('updated_at');
         if(error) throw error;
-        if(!rows || !rows.length) return { conflict:true };
+        const ownerAfter=await this.session();if(!ownerAfter||ownerAfter.user.id!==uid)throw new Error("ob_confirmed_owner");
+        if(!rows || rows.length!==1 || !rows[0].updated_at) return { conflict:true };
         statePushCache.set(uid,{body:body,revision:rows[0].updated_at});
         return { updated_at:rows[0].updated_at };
       }
       const {data:rows,error}=await sb.from('app_state')
-        .upsert({ user_id:uid, data:data, updated_at:now }, { onConflict:'user_id' })
+        // Sin revisión solo se puede crear: otro móvil pudo dar de alta la fila tras el pull.
+        .insert({ user_id:uid, data:data, updated_at:now })
         .select('updated_at');
       if(error) throw error;
-      if(rows&&rows[0]&&rows[0].updated_at)statePushCache.set(uid,{body:body,revision:rows[0].updated_at});
-      return { updated_at: rows && rows[0] && rows[0].updated_at };
+      const ownerAfter=await this.session();if(!ownerAfter||ownerAfter.user.id!==uid)throw new Error("ob_confirmed_owner");
+      if(!rows || rows.length!==1 || !rows[0].updated_at) return { conflict:true };
+      statePushCache.set(uid,{body:body,revision:rows[0].updated_at});
+      return { updated_at: rows[0].updated_at };
     },
     async pullExpenses(readProof){
       if(readProof){ readProof.valid=false; readProof.userId=null; }

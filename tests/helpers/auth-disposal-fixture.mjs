@@ -12,7 +12,7 @@ export function authWorld(parts,{enabled=true,offline=false}={}){
   const cloud=new Function('sb','const statePushCache=new Map();return {'+parts.method+'};')(sb);
   cloud.enabled=()=>enabled;
   cloud.session=()=>new Promise((resolve,reject)=>sessions.push({resolve,reject}));
-  const env={cloud,navigator:{onLine:!offline},sessionRef:{current:null},
+  const env={cloud,cloudReadRef:{current:null},cloudUpdatedAtRef:{current:null},navigator:{onLine:!offline},sessionRef:{current:null},
     setTimeout(fn){const n=++seq;timers.set(n,fn);return n;},clearTimeout(n){timers.delete(n);},
     mcBootReady(){trace.push({type:'boot'});},setSession(s){trace.push({type:'session',uid:s?.user?.id??null});},
     mcScheduleIdle(fn){idles.push(fn);},syncFromCloud(s,opts){trace.push({type:'sync',uid:s.user.id,opts:opts||null});},

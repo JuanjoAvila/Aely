@@ -2,6 +2,11 @@ H2 candidata, ronda 2: saldo y movimientos independientes por cuenta, valor/fech
 
 # Arquitectura — Aely
 
+FIN04 fase 2, candidata A: `pushAppState` exige un pull válido del mismo titular;
+sin revisión solo se crea con INSERT. Error o datos inválidos no acreditan ausencia.
+ACK exacto y sesión se comprueban antes de avanzar la base. La fusión por grupos de
+recibos/deudas queda pendiente. [Contrato y límites](briefs/fin04-primera-lectura.md).
+
 FIN04 fase 1 candidata R2: renombrado parcial con ACK y cola durable; nota local pendiente
 hasta confirmación exacta. Carga/mezcla de UUID prefiere la copia viva, conserva metadatos
 editados y mantiene separados importes o referencias conflictivos.
