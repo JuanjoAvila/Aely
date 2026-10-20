@@ -33,6 +33,7 @@ public class MainActivity extends BridgeActivity {
         SplashScreen.installSplashScreen(this);
         registerPlugin(MiCarteraPlugin.class);       // antes de super.onCreate (así lo pide Capacitor)
         registerPlugin(TradeRepublicPlugin.class);   // puente TR (beta)
+        registerPlugin(AelyHapticsPlugin.class);     // UX16: ajuste táctil del sistema
         super.onCreate(savedInstanceState);
         /* La barra fina que Android dibuja en el borde pertenece a la WebView, no a los scrollers
            CSS: `scrollbar-width:none` y `::-webkit-scrollbar` ya estaban aplicados a toda la app

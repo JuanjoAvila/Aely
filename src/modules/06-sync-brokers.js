@@ -379,6 +379,16 @@ function trSignalStatus(connected, opts){
   try{ window.dispatchEvent(new CustomEvent("mc-tr-status",{detail:{connected:!!connected, ack:!!opts.ack, authExpired:!!opts.authExpired}})); }catch(e){}
 }
 function markTrConnected(opts){ try{ localStorage.removeItem("_trAuthExpired"); }catch(e){} trSignalStatus(true, opts||{}); }
+// La APK actual no entrega edad/causa nativa estructurada: unknown es deliberado. Nunca
+// deducirlas del error libre ni de lastTrSync, que fecha la cartera y no las cookies.
+function trLogFailure(origin, code){
+  try{ const sent=cloud.logEvent("error","tr_sync",JSON.stringify({schema:1,code:code,origin:origin,snapshotAge:"unknown"})); if(sent&&typeof sent.catch==="function") sent.catch(function(){}); }catch(e){}
+}
+// Ambos consumidores de status comparten etiqueta: logEvent deduplica el mismo aviso en
+// esta sesión aunque se remonte la tarjeta o cambie el motivo. No se toca la conexión.
+function trLogStartupStatus(r){
+  if(r&&(r.authExpired===true||(r.connected===false&&!!trPhoneSaved()))) trLogFailure("status_check","status_inactive");
+}
 function TRSync({state, set, totals, open, onToggle}){
   const bridge=trBridge();
   const [step,setStep]=useState("idle");      // idle | code | preview | done
@@ -386,7 +396,7 @@ function TRSync({state, set, totals, open, onToggle}){
   const [pin,setPin]=useState("");
   const [code,setCode]=useState("");
   const [busy,setBusy]=useState(false);
-  const [expired,setExpired]=useState(false);   // 401 REAL: enseña el formulario con aviso propio
+  const [expired,setExpired]=useState(false);   // authExpired explícito del puente: formulario con aviso propio
   const [err,setErr]=useState(false);
   const [errMsg,setErrMsg]=useState("");   // mensaje REAL que devuelve TR (para no depurar a ciegas)
   const [processId,setProcessId]=useState(null);
@@ -397,12 +407,11 @@ function TRSync({state, set, totals, open, onToggle}){
   const [doneN,setDoneN]=useState(null);
   useEffect(function(){
     if(!bridge||!bridge.status) return;
-    Promise.resolve(bridge.status()).then(function(r){ if(r&&r.connected) setConnected(true); }).catch(function(){});
+    Promise.resolve(bridge.status()).then(function(r){ trLogStartupStatus(r); if(r&&r.connected) setConnected(true); }).catch(function(){});
   },[]);
-  // fail(e): muestra el error REAL de TR si lo hay (r.error), o el genérico. También viaja a
-  // app_events: la saga del TR-en-frío se depuraba a ciegas sin ver el error del móvil del otro.
-  const fail=function(e){ setBusy(false); setErr(true); const m=(e&&(e.error||e.message))||(typeof e==="string"?e:""); setErrMsg(m);
-    try{ cloud.logEvent('error','TR sync: '+(m||'error desconocido')); }catch(x){} };
+  // El texto sigue en la UI local; soporte recibe solo la operación y su resultado cerrado.
+  const fail=function(e,origin,code){ setBusy(false); setErr(true); const m=(e&&(e.error||e.message))||(typeof e==="string"?e:""); setErrMsg(m);
+    trLogFailure(origin,code); };
   // Normaliza el teléfono a formato internacional (TR exige +CC…). Sin prefijo → asume España (+34).
   const normPhone=function(p){
     let s=(p||"").replace(/[\s().-]/g,"");
@@ -414,17 +423,17 @@ function TRSync({state, set, totals, open, onToggle}){
   const doSync=function(opts){
     opts=opts||{};
     setBusy(true); setErr(false); setErrMsg(""); setStep("idle"); setDoneN(null);
-    return Promise.resolve(bridge.sync()).then(function(r){
+    return Promise.resolve().then(function(){ return bridge.sync(); }).then(function(r){
       setBusy(false);
       if(r&&r.authExpired && !r.softFail && !r.wafBlocked){
-        // 401 REAL (no anti-bot): al formulario directamente, con el teléfono ya puesto. Antes se
+        // Caducidad explícita (sin fallo temporal): al formulario con el teléfono ya puesto. Antes se
         // pedía pulsar «Desconectar» — que además borra el snapshot bueno (feedback 2026-07-17).
         setConnected(false); markTrAuthExpired(); setExpired(true); setStep("idle");
-        try{ cloud.logEvent('error','TR sync: sesión caducada de verdad (401 real)'); }catch(x){}
+        trLogFailure("tr_card_sync","auth_expired");
         return;
       }
-      if(r&&(r.softFail||r.wafBlocked)){ fail(r); return; }   // anti-bot: sesión sigue, no pedir 2FA
-      if(!r||!r.ok||!Array.isArray(r.positions)){ fail(r); return; }
+      if(r&&(r.softFail||r.wafBlocked)){ fail(r,"tr_card_sync","soft_fail"); return; }   // anti-bot: sesión sigue, no pedir 2FA
+      if(!r||!r.ok||!Array.isArray(r.positions)){ fail(r,"tr_card_sync","sync_invalid"); return; }
       // Tras verify el acuse ya salió; el botón Sync pide ack propio. Fallo → fail(), sin ack.
       markTrConnected(opts.ack?{ack:true}:undefined);
       const m={};
@@ -436,26 +445,26 @@ function TRSync({state, set, totals, open, onToggle}){
         else if(state.investments.length===0) m[po.isin]="__new";
       });
       setMap(m); setPositions(r.positions); setCash(r.cash!=null?r.cash:null); setStep("preview");
-    }).catch(fail);
+    },function(e){ fail(e,"tr_card_sync","sync_rejected"); }).catch(function(e){ fail(e,"tr_card_sync","client_error"); });
   };
   const doLogin=function(){
     if(!phone.trim()||!pin.trim()) return;
     setBusy(true); setErr(false); setErrMsg("");
-    Promise.resolve(bridge.login({phone:normPhone(phone),pin:pin.trim()})).then(function(r){
+    Promise.resolve().then(function(){ return bridge.login({phone:normPhone(phone),pin:pin.trim()}); }).then(function(r){
       setBusy(false);
-      if(!r||!r.ok){ fail(r); return; }
+      if(!r||!r.ok){ fail(r,"tr_card_login","login_failed"); return; }
       try{ localStorage.setItem("mc_tr_phone", normPhone(phone)); }catch(e){}
       setProcessId(r.processId||null); setStep("code");
-    }).catch(fail);
+    }).catch(function(e){ fail(e,"tr_card_login","login_failed"); });
   };
   const doVerify=function(){
     if(code.trim().length<4) return;
     setBusy(true); setErr(false); setErrMsg("");
-    Promise.resolve(bridge.verify({processId:processId,code:code.trim()})).then(function(r){
-      if(!r||!r.ok){ fail(r); return; }
+    Promise.resolve().then(function(){ return bridge.verify({processId:processId,code:code.trim()}); }).then(function(r){
+      if(!r||!r.ok){ fail(r,"tr_card_verify","verify_failed"); return; }
       // Acuse visible al completar el 2FA (rechazo 4.19.0/tr-reactivo). doSync sin ack otra vez.
       setConnected(true); markTrConnected({ack:true}); setExpired(false); setCode(""); doSync();
-    }).catch(fail);
+    }).catch(function(e){ fail(e,"tr_card_verify","verify_failed"); });
   };
   const mappedN=positions?positions.filter(function(p){ return map[p.isin]; }).length:0;
   const apply=function(){
@@ -753,10 +762,14 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
   // Solo los brókers donde el usuario TIENE posiciones se pintan como tarjetas (antes salían
   // tres bloques vacíos y parecían conexiones activas — feedback pareja 2026-07-10).
   const groupsBase=brokerOptions.filter(function(g){ return state.investments.some(function(i){ return i.ent===g[0]; }); });
-  // Orden fijo de los brókers (2026-07-23: se borró la UI de ordenación en Herramientas;
-  // mantengo el orden por defecto de groupsBase). OJO: `groups` son las TERNAS
-  // [id, nombre, subtítulo] — abajo se leen g[0]/g[1]/g[2]. No mapear a solo el id.
-  const groups=groupsBase;
+  const groups=brokerGroupsInOrder(state,groupsBase);
+  const brokerDrag=useListLongPress("button.v4-mov[data-broker-key]","data-broker-key",!editing,function(from,to){
+    set(function(s){ return moveSectionInList(s,"inv",groupsBase.map(function(g){ return g[0]; }),from,to); });
+  });
+  const brokerRowClass=function(id){
+    const d=brokerDrag.drag;
+    return "v4-mov"+(d&&d.from===id?" dragging":"")+(d&&d.to===id&&d.from!==id?" drag-over":"");
+  };
   const start=()=>{ const d={}; state.investments.forEach(i=>d[i.id]={value:i.value,cost:i.cost}); setDraft(d); setEditing(true); };
   const cancel=()=>{ setEditing(false); setShowCost(false); };
   const save=()=>{
@@ -970,7 +983,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
     const heroBase=completeCost?Math.max(0,Math.min(costTotal,total)):Math.max(total,1);
     const heroGain=completeCost?Math.max(0,gainTotal):0;
     const heroSum=Math.max(1,heroBase+heroGain);
-    return React.createElement("div",{className:"v4-investments-full"},
+    return React.createElement("div",{className:"v4-investments-full",ref:brokerDrag.bind},
       React.createElement("section",{className:"v4-card v4-card-hero rise","data-inv-hero":"1",style:{padding:20}},
         React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}},
           React.createElement("div",null,
@@ -1042,8 +1055,8 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
         const isEditing=editing&&editBroker===gid;
         const panelId="iv_broker_"+gid;
         return React.createElement("div",{key:gid,className:"v4-card","data-inv-broker":gid,style:{padding:0,overflow:"hidden",borderColor:open?"var(--mint-deep)":"var(--line-soft)"}},
-          React.createElement("button",{type:"button",className:"v4-mov",style:{margin:0,border:0,background:"transparent"},"aria-expanded":open,"aria-controls":panelId,
-            onClick:function(){ setBrokerOpen(function(v){ return Object.assign({},v,{[gid]:!v[gid]}); }); }},
+          React.createElement("button",{type:"button",className:brokerRowClass(gid),"data-broker-key":gid,style:{margin:0,border:0,background:"transparent"},"aria-expanded":open,"aria-controls":panelId,
+            onClick:function(){ if(Date.now()<brokerDrag.suppressClickRef.current) return; setBrokerOpen(function(v){ return Object.assign({},v,{[gid]:!v[gid]}); }); }},
             React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:gid,size:44})),
             React.createElement("div",{className:"nm"},
               React.createElement("div",null,g[1]),
@@ -1110,7 +1123,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
     // En Cartera: mismas fichas que «Tus cuentas» (v4-mov). El resumen completo
     // vive en su pantalla hija para no montar dos veces toda la herramienta antigua.
     React.createElement(React.Fragment,null,
-      React.createElement("div",{className:"v4-card-list"},
+      React.createElement("div",{className:"v4-card-list",ref:brokerDrag.bind},
         groups.map(function(g){
         const items=state.investments.filter(function(i){ return i.ent===g[0]; });
         if(items.length===0) return null;
@@ -1118,8 +1131,8 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
         // Editando: todos los brókers desplegados con sus inputs (si no, había que ir uno a uno).
         const open=editing||!!brokerOpen[g[0]];
         return React.createElement(React.Fragment,{key:g[0]},
-          React.createElement("button",{type:"button",className:"v4-mov",
-            onClick:function(){ if(!editing) setBrokerOpen(function(o){ return Object.assign({},o,{[g[0]]:!o[g[0]]}); }); }},
+          React.createElement("button",{type:"button",className:brokerRowClass(g[0]),"data-broker-key":g[0],
+            onClick:function(){ if(Date.now()<brokerDrag.suppressClickRef.current) return; if(!editing) setBrokerOpen(function(o){ return Object.assign({},o,{[g[0]]:!o[g[0]]}); }); }},
             React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:g[0],size:44})),
             React.createElement("div",{className:"nm"},
               React.createElement("div",null,g[1]),

@@ -106,7 +106,7 @@ function NetWorthNow({tt, simple, series, splashGone}){
   const today=netWorthDay();
   const ranges=useMemo(function(){ return netWorthRanges(series,today); },[series,today]);
   const [picked,setPicked]=useState("1m"), [touch,setTouch]=useState(null), [info,setInfo]=useState(false);
-  const svgRef=useRef(null), frameRef=useRef(0), fingerRef=useRef(null);
+  const svgRef=useRef(null), frameRef=useRef(0), fingerRef=useRef(null), hapticRef=useRef({day:null,at:-Infinity});
   const range=ranges.find(function(r){ return r.id===picked; })||ranges[0];
   const points=range?range.points:[], active=touch!=null?points[touch]:null;
   // El veredicto compara los dos extremos de la gráfica elegida (hoy y el mismo día de hace N
@@ -132,13 +132,24 @@ function NetWorthNow({tt, simple, series, splashGone}){
   const pointAt=function(x,rect){
     const local=(x-rect.left)/rect.width*320;
     fingerRef.current=Math.max(0,Math.min(points.length-1,Math.round((local-4)/312*(points.length-1))));
-    if(!frameRef.current) frameRef.current=requestAnimationFrame(function(){frameRef.current=0;setTouch(fingerRef.current);});
+    if(!frameRef.current) frameRef.current=requestAnimationFrame(function(){
+      frameRef.current=0;
+      const index=fingerRef.current, day=points[index]&&points[index].day, h=hapticRef.current;
+      // Solo el punto que realmente se pinta: sin búsquedas, layouts ni ticks por cada touchmove.
+      // Un tick por CADA punto nuevo («no se nota apenas NADA», ronda 3): el único hueco es el que
+      // tarda en acabar el anterior, para que dos toques no se fundan en un zumbido.
+      // Ronda 10: «no puedo regular la intensidad». Con uso «toque» OxygenOS lo cambiaba por su
+      // efecto de serie; como el borde y el segmento, uso hardware y fuerza que alarga el toque.
+      if(day!==h.day){ h.day=day; const now=performance.now(), v=mcHapticTune(); if(day&&now-h.at>=mcFeltMs(v.tickMs,v.tickAmp)+10){ h.at=now; mcFeltHaptic(v.tickAmp,v.tickMs); } }
+      setTouch(index);
+    });
   };
   const begin=function(e){
     e.stopPropagation();
     if(!chart||!svgRef.current||!e.touches.length) return;
     const g={x:e.touches[0].clientX,y:e.touches[0].clientY,rect:svgRef.current.getBoundingClientRect(),active:false};
     gestureRef.current=g;clearTimeout(holdRef.current);
+    hapticRef.current.day=null;
     holdRef.current=setTimeout(function(){if(gestureRef.current===g){g.active=true;pointAt(g.x,g.rect);}},250);
   };
   const move=function(e){
@@ -261,18 +272,19 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
 
   const seriesToday=netWorthDay();
   // Sólo un cambio financiero o de día justifica volver a recorrer el histórico
-  // para el presupuesto y su nómina, también al abrir una hoja de Inicio.
+  // para el presupuesto y su nómina, también al abrir una hoja de Inicio. De los ajustes, solo los
+  // que se leen (`BUDGET_SETTINGS`, `NET_WORTH_SETTINGS`): tocar Ajustes no es un cambio de dinero.
   const bud=useMemo(function(){
   const bud=dashboardBudgetStats(state);
     return bud;
   },
-    [state.expenses,state.deleted,state.accounts,state.settings,state.flows,state.budget,state.reservaLog,seriesToday]);
+    [seriesToday].concat(stateDeps(state,BUDGET_STATE),settingsDeps(state.settings,BUDGET_SETTINGS)));
   const budAmt=bud.budget!=null?bud.budget:(state.budget||0);
   const spentAgainst=Math.max(0,bud.against), rem=bud.remaining!=null?bud.remaining:budAmt-spentAgainst;
   const timing=cycleTiming(bud), paceState=cyclePaceState(spentAgainst,budAmt,timing.elapsed,timing.days);
   const dailyMoney=budAmt>0?cycleDailyMoney(rem,timing.left):null;
   const series=useMemo(function(){ return netWorthSeries(state,{today:seriesToday,liquid:tt.liquid,invested:tt.invested,debtTotal:tt.debtTotal,balanceInputs:tt}); },
-    [state.accounts,state.obAccounts,state.accountBalanceHistory,state.invHistory,state.investments,state.assets,state.assetValueHistory,state.debts,state.expenses,state.deleted,state.flows,state.fixed,state.oneoffs,state.bankTx,state.aportaciones,state.settings,state.fx,state.fxRates,tt,seriesToday]);
+    [netWorthHistoryKey(state.accountBalanceHistory,seriesToday),tt,seriesToday].concat(stateDeps(state,NET_WORTH_STATE),settingsDeps(state.settings,NET_WORTH_SETTINGS)));
 
   const overdue=[];
   // La fecha prevista no es un pago: la misma lectura de evidencia que Plan conserva los
@@ -330,14 +342,16 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
   // La fila del banco de una pareja automática (`autoGemelo`) queda oculta: la compra con comercio
   // ya está en la lista y repetirla enseñaba «Movimiento · Otros» con el mismo importe. Misma regla
   // que Gastos (visto por el dueño en la beta 4.26.131, 14/10/2026).
-  const recent=useMemo((s=state)=>(s.expenses||[]).filter(e=>!e.autoGemelo&&!expenseIsTombstoned(e,expenseDeletedSet(s))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted]);
+  const recent=useMemo((s=state)=>(s.expenses||[]).filter(e=>!e.autoGemelo&&!expenseIsTombstoned(e,expenseDeletedSet(s))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
   const ringPct=budAmt>0?Math.max(0,Math.min(1,rem/budAmt)):0;
+  // Un céntimo disponible no debe confundirse con un presupuesto agotado por el redondeo visual.
+  const ringLabel=Math.round(rem*100)>0&&Math.round(ringPct*100)===0?t("v42_cycle_under_one"):Math.round(ringPct*100)+"%";
   /* P6 — el anillo usa una animación de montaje, con estado final directo si se reduce
      el movimiento. Pausarla hasta que salga el splash evita gastarla detrás de la cortina. */
   const monthName=monthLong(new Date().getMonth());
   const closedCard=closedMonthCardOf(state);
 
-  return React.createElement("div",{className:"v4-screen"},
+  return React.createElement("div",{className:"v4-screen",onAnimationStart:mcInicioFillHaptic},
     React.createElement("div",{className:"v4-inicio-head rise"},
       React.createElement("div",null,
         React.createElement("div",{className:"v4-inicio-date"}, new Date().toLocaleDateString(loc(),{weekday:"long",day:"numeric",month:"long"})),
@@ -416,7 +430,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
             React.createElement("circle",{className:"v42-cycle-draw",cx:38,cy:38,r:32,fill:"none",stroke:"currentColor",strokeWidth:6,
               strokeLinecap:"round",pathLength:100,strokeDasharray:(ringPct*100)+" 100",transform:"rotate(-90 38 38)",
               style:{"--cycle-pct":ringPct*100}})),
-          React.createElement("div",{className:"v42-cycle-percent num"},Math.round(ringPct*100),React.createElement("span",null,"%"))),
+          React.createElement("div",{className:"v42-cycle-percent num"},ringLabel.slice(0,-1),React.createElement("span",null,"%"))),
         React.createElement("div",{className:"v4-budget-txt"},
           React.createElement("div",{className:"ph v42-cycle-amount"},
             React.createElement("span",{className:"serif num",style:{color:paceState.id==="over"?"var(--coral)":"var(--text)"}},cycleMoney(rem)),

@@ -7,6 +7,7 @@ let CURLANG = "es";
 const LANGS = [["es","Español"],["en","English"],["ca","Català"]];
 const LANG = {
   es:{
+    mode_change_reopen:"Cierra y vuelve a abrir la app para terminar el cambio de modo.",
     beta_review_intro:"Revisa lo nuevo. Aprobar una tanda no la publica; su entrega se comprueba aparte.",
     notes_unavailable:"No se han podido comprobar las novedades. Conecta y vuelve a intentarlo.",
     beta_notes_unavailable:"Comprobaciones sin confirmar. Conecta y vuelve a abrir para cargar las de esta versión.", beta_android_app:"app Android", beta_approved_pending:"Aprobada. No necesitas aprobarla otra vez; falta confirmar su entrega.", beta_delivery_pending:"Pendiente de publicar: {x}.", beta_delivery_unknown:"Entrega sin confirmar: {x}.",
@@ -96,7 +97,7 @@ const LANG = {
     v4_hist_empty:"Tu histórico empieza hoy", v4_net_unknown:"El total actual no está disponible.",
     v42_net_info_title:"Cómo se calcula", v42_net_chart:"Evolución del patrimonio",
     v42_net_i_flows:"Un traspaso resta sin entrada igual a otra cuenta propia en 3 días, enlace a bróker o aporte periódico coincidente. El cajero resta sin cuenta o bolsillo de efectivo.",
-    v42_this_month:"Este mes", v42_remaining:"Te quedan",
+    v42_this_month:"Este mes", v42_remaining:"Te quedan", v42_cycle_under_one:"<1\u00a0%",
     v42_net_missing:"Todavía no hay gráfica: los datos empiezan hoy. Mañana ya aparecerá.",
     v42_net_i_accounts:"Cuentas", v42_net_i_accounts_v:"movimientos reales desde {day}", v42_net_i_accounts_later:" (alguna desde más tarde)",
     v42_net_i_kept_inv:"Inversiones", v42_net_i_kept_assets:"Bienes", v42_net_i_kept_manual:"Cuentas manuales", v42_net_i_and:" y ", v42_net_i_kept_v:"valor conocido mantenido",
@@ -108,7 +109,11 @@ const LANG = {
     // INC-0810 es: fin del patrimonio de ahora.
     v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Es la mitad de la app: sin un tope al mes no se puede saber cuánto te queda. Puedes cambiarlo cuando quieras.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Un viaje, un colchón, lo que sea: la app te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
     v4_upcoming:"Próximos cargos", 
-    v4_charges_overdue:"Cargos vencidos", v4_charge_unconfirmed:"Sin pago acreditado",
+    v4_charges_overdue:"Cargos vencidos", v4_charge_unconfirmed:"Sin pago acreditado", v4_payment_pending:"Por confirmar",
+    v4_payment_due:"Por pagar", v4_payment_due_hint:"Se suma a lo que queda por pagar.", v4_payment_pending_hint:"No se suma a lo que queda por pagar.",
+    v4_payment_mixed_hint:"Solo los recibos y las cuotas se suman a lo que queda por pagar.",
+    v4_payment_all_except_one:"Todo pagado, salvo {n} cargo por confirmar.", v4_payment_all_except:"Todo pagado, salvo {n} cargos por confirmar.",
+    v4_plan_transfers:"Traspasos previstos", f_link_unconfirmed:"{name} · sin confirmar",
     v4_charge_actual:"Cargo {x}", v4_charge_expected:"Previsto {x}",
     v4_your_goals:"Tus metas", v4_recent:"Últimos movimientos", v4_recent_empty:"Aún no hay movimientos. Apunta el primero con +.",
     v4_all:"Todos ›", v4_plan_title:"Tu plan del mes", v4_plan_recibos:"Recibos", v4_plan_deudas:"Deudas", v4_plan_metas:"Metas",
@@ -186,6 +191,7 @@ const LANG = {
     v4_set_appear:"Apariencia", v4_set_easy:"Para empezar fácil", v4_set_conn:"Conexiones",
     v4_set_money:"Dinero", v4_set_app:"App",
     v4_set_tour:"Ver el tutorial", v4_set_adv:"Avanzado",
+   hv_title:"Vibración", hv_usage:"Tipo de vibración", hv_usage_hint:"Si al probar todas las fuerzas se notan igual, prueba otro tipo.", hv_u_touch:"Toque", hv_u_hardware:"Botones", hv_u_media:"Multimedia", hv_u_unknown:"Genérica", hv_motor_amp:"Tu móvil ajusta la fuerza y el ritmo de la vibración.", hv_motor_onoff:"Tu móvil no ajusta la fuerza: se nota como toques más largos o más cortos.", hv_intro:"Busca la vibración que te guste. Se guarda solo en este móvil.", hv_cycle:"Mi ciclo (el anillo de Inicio)", hv_cycle_hint:"Unos toques suaves mientras se rellena el anillo: más toques cuanto más lleno esté.", hv_edge:"Al llegar arriba o abajo", hv_seg:"Al cambiar entre Recibos, Deudas y Metas", hv_tick:"Cursor de la gráfica de Inicio", hv_strength:"Fuerza", hv_length:"Duración", hv_every:"Repite cada (si sigues tirando)", hv_try:"Probar", hv_copy:"Copiar valores", hv_copied:"Valores copiados", hv_copy_fail:"No se pudieron copiar", hv_reset:"Volver a los de serie", hv_need_apk:"Para notar estos valores hay que instalar la última versión de la app.", hv_no_native:"La vibración solo funciona en la app de Android.",
     v4_moved_cat:"Movido a {cat}", 
     v4_exp_del:"Borrar", v4_exp_del_q:"¿Borrar «{name}»?", v4_exp_del_sub:"Podrás recuperarlo durante 5 segundos.",
     f_amount_aria:"Importe", f_concept_ph:"Toca para escribir el concepto", f_cat:"Categoría",
@@ -193,10 +199,10 @@ const LANG = {
     f_cta_add:"Apuntar {x}", f_cta_add_in:"Apuntar ingreso de {x}", f_autosaved:"Se guarda al momento ✓", f_del:"Borrar gasto",
     f_note_row:"Nota", f_note_none:"Sin nota", f_debt_row:"Es la cuota de una deuda", f_income_row:"Es un ingreso, no un gasto", f_no:"No",
     f_receipt_row:"Paga un recibo", f_receipt_hint:"Elige el recibo que paga este cargo. Se confirma para el mes del movimiento y puedes deshacerlo. El cargo conserva su importe, banco y clasificación.",
-    f_receipt_none:"No hay recibos pendientes de ese mes que puedan vincularse a este cargo.",
+    f_receipt_none:"No hay recibos pendientes de ese mes que puedan vincularse a este cargo.", f_receipt_diag:"Copiar diagnóstico",
     f_receipt_confirm:"Confirmar pago de {name}", f_receipt_confirm_sub:"Cargo: {merchant} · {amount} · {bank} · {date}. Previsto: {expected} · {planned}. Confirma solo si este cargo paga el recibo completo, aunque el importe haya variado. Si es parcial, cancela. El importe previsto, el saldo y el presupuesto se conservan.",
     f_receipt_yes:"Confirmar pago completo", f_receipt_unlink:"Deshacer vínculo",
-    f_recibo_marca:"Es el cargo de tu recibo «{name}»: ya está contado en tu Plan y aquí no suma otra vez.", f_recibo_quiza:"Parece el cargo de tu recibo «{name}»: por eso aquí no suma otra vez. Si no lo es, dilo y contará como un gasto más.", f_recibo_no:"No es este recibo",
+    f_recibo_marca:"Es el cargo de tu recibo «{name}»: ya está contado en tu Plan y aquí no suma otra vez.", f_recibo_quiza:"Parece el cargo de tu recibo «{name}»: por eso aquí no suma otra vez. Si no lo es, dilo y contará como un gasto más.", f_recibo_no:"No es este recibo", f_recibo_si:"Sí, es este recibo",
     f_from_bank:"Lo trajo una notificación de {bank}", f_from_bank_sub:"{date} · «{raw}» · el banco fija el importe y la cuenta",
     f_trace_missing:"— texto original no disponible",
     f_locked_toast:"El banco fija el importe, la cuenta y si entra o sale dinero. La categoría sí se puede corregir aquí.",
@@ -296,6 +302,7 @@ const LANG = {
     cur_jpy:"¥ Yen", cur_cad:"C$ Dólar canadiense", cur_aud:"A$ Dólar australiano", cur_cny:"¥ Yuan", cur_mxn:"$ Peso mexicano", cur_sek:"kr Corona sueca", cur_nok:"kr Corona noruega", cur_dkk:"kr Corona danesa", cur_pln:"zł Złoty", cur_brl:"R$ Real", cur_inr:"₹ Rupia", cur_try:"₺ Lira turca",
   },
   en:{
+    mode_change_reopen:"Close and reopen the app to finish changing mode.",
     beta_review_intro:"Review new changes. Approving a batch does not publish it; delivery is checked separately.",
     notes_unavailable:"The updates could not be verified. Connect and try again.",
     beta_notes_unavailable:"Checks are unconfirmed. Connect and reopen to load the checks for this version.", beta_android_app:"Android app", beta_approved_pending:"Approved. You do not need to approve it again; delivery still needs confirmation.", beta_delivery_pending:"Awaiting publication: {x}.", beta_delivery_unknown:"Delivery unconfirmed: {x}.",
@@ -386,7 +393,7 @@ const LANG = {
     v4_hist_empty:"Your history starts today", v4_net_unknown:"The current total is unavailable.",
     v42_net_info_title:"How it's worked out", v42_net_chart:"Net worth history",
     v42_net_i_flows:"A transfer is an outflow without an equal inflow in another own account within three days, a broker link or a matching regular contribution. ATM withdrawals reduce net worth without a cash account or pocket.",
-    v42_this_month:"This month", v42_remaining:"Left to spend",
+    v42_this_month:"This month", v42_remaining:"Left to spend", v42_cycle_under_one:"<1%",
     v42_net_missing:"No chart yet: your data starts today. It will appear tomorrow.",
     v42_net_i_accounts:"Accounts", v42_net_i_accounts_v:"real transactions from {day}", v42_net_i_accounts_later:" (some from later)",
     v42_net_i_kept_inv:"Investments", v42_net_i_kept_assets:"Property", v42_net_i_kept_manual:"Manual accounts", v42_net_i_and:" and ", v42_net_i_kept_v:"known value kept",
@@ -398,7 +405,11 @@ const LANG = {
     // INC-0810 en: fin del patrimonio de ahora.
     v4_nobud_t:"Set a monthly budget", v4_nobud_p:"It is half the app: without a monthly cap there is no way to know what you have left. You can change it whenever you want.", v4_nobud_cta:"Set a budget", v4_noup_t:"No bills yet", v4_noup_p:"Connect your bank and this month's bills show up on their own, with day and amount.", v4_noup_cta:"Connect your bank", v4_nogoal_t:"Set your first goal", v4_nogoal_p:"A trip, a safety net, anything: the app tells you how much is missing and when you get there.", v4_nogoal_cta:"Create a goal", v4_see_gastos:"See spending ›", v4_see_plan:"See plan ›",
     v4_upcoming:"Upcoming", 
-    v4_charges_overdue:"Overdue charges", v4_charge_unconfirmed:"Payment unconfirmed",
+    v4_charges_overdue:"Overdue charges", v4_charge_unconfirmed:"Payment unconfirmed", v4_payment_pending:"To confirm",
+    v4_payment_due:"Still to pay", v4_payment_due_hint:"Included in the amount left to pay.", v4_payment_pending_hint:"Not included in the amount left to pay.",
+    v4_payment_mixed_hint:"Only bills and installments are included in the amount left to pay.",
+    v4_payment_all_except_one:"Everything paid, except {n} charge awaiting confirmation.", v4_payment_all_except:"Everything paid, except {n} charges awaiting confirmation.",
+    v4_plan_transfers:"Planned transfers", f_link_unconfirmed:"{name} · unconfirmed",
     v4_charge_actual:"Charge {x}", v4_charge_expected:"Expected {x}",
     v4_your_goals:"Your goals", v4_recent:"Latest activity", v4_recent_empty:"No activity yet. Add the first one with +.",
     v4_all:"All ›", v4_plan_title:"Your month plan", v4_plan_recibos:"Bills", v4_plan_deudas:"Debts", v4_plan_metas:"Goals",
@@ -474,6 +485,7 @@ const LANG = {
     v4_set_appear:"Look & feel", v4_set_easy:"Easy start", v4_set_conn:"Connections",
     v4_set_money:"Money", v4_set_app:"App",
     v4_set_tour:"See the tour", v4_set_adv:"Advanced",
+   hv_title:"Vibration", hv_usage:"Vibration type", hv_usage_hint:"If every strength feels the same when you try them, pick another type.", hv_u_touch:"Touch", hv_u_hardware:"Buttons", hv_u_media:"Media", hv_u_unknown:"Generic", hv_motor_amp:"Your phone adjusts both the strength and the rhythm of the vibration.", hv_motor_onoff:"Your phone cannot adjust strength: you will feel it as longer or shorter taps.", hv_intro:"Find the vibration you like. It is saved only on this phone.", hv_cycle:"My cycle (the ring on Home)", hv_cycle_hint:"A few soft taps while the ring fills: more taps the fuller it is.", hv_edge:"Reaching the top or bottom", hv_seg:"Switching between Bills, Debts and Goals", hv_tick:"Home chart cursor", hv_strength:"Strength", hv_length:"Length", hv_every:"Repeats every (if you keep pulling)", hv_try:"Try", hv_copy:"Copy values", hv_copied:"Values copied", hv_copy_fail:"Could not copy", hv_reset:"Back to defaults", hv_need_apk:"To feel these values, install the latest version of the app.", hv_no_native:"Vibration only works in the Android app.",
     v4_moved_cat:"Moved to {cat}", 
     v4_exp_del:"Delete", v4_exp_del_q:"Delete “{name}”?", v4_exp_del_sub:"You can recover it for 5 seconds.",
     f_amount_aria:"Amount", f_concept_ph:"Tap to add what it was", f_cat:"Category",
@@ -481,10 +493,10 @@ const LANG = {
     f_cta_add:"Add {x}", f_cta_add_in:"Add income of {x}", f_autosaved:"Saved as you go ✓", f_del:"Delete expense",
     f_note_row:"Note", f_note_none:"No note", f_debt_row:"It's a debt instalment", f_income_row:"It's income, not an expense", f_no:"No",
     f_receipt_row:"Pays a bill", f_receipt_hint:"Choose the bill paid by this charge. Confirmation applies to the transaction month and can be undone. The charge keeps its amount, bank and category.",
-    f_receipt_none:"No unpaid bills for that month can be linked to this charge.",
+    f_receipt_none:"No unpaid bills for that month can be linked to this charge.", f_receipt_diag:"Copy diagnostics",
     f_receipt_confirm:"Confirm payment of {name}", f_receipt_confirm_sub:"Charge: {merchant} · {amount} · {bank} · {date}. Expected: {expected} · {planned}. Confirm only if this charge pays the full bill, even if the amount has changed. Cancel for a partial payment. The expected amount, balance and budget stay unchanged.",
     f_receipt_yes:"Confirm full payment", f_receipt_unlink:"Undo link",
-    f_recibo_marca:"This is the charge for your bill “{name}”: it’s already counted in your Plan and isn’t added again here.", f_recibo_quiza:"This looks like the charge for your bill “{name}”, so it isn’t added again here. If it isn’t, say so and it will count as regular spending.", f_recibo_no:"Not this bill",
+    f_recibo_marca:"This is the charge for your bill “{name}”: it’s already counted in your Plan and isn’t added again here.", f_recibo_quiza:"This looks like the charge for your bill “{name}”, so it isn’t added again here. If it isn’t, say so and it will count as regular spending.", f_recibo_no:"Not this bill", f_recibo_si:"Yes, it’s this bill",
     f_from_bank:"This came from a {bank} notification", f_from_bank_sub:"{date} · “{raw}” · the bank sets the amount and account",
     f_trace_missing:"— original text unavailable",
     f_locked_toast:"The bank sets the amount, account and money direction. You can correct the category here.",
@@ -573,6 +585,7 @@ const LANG = {
     cur_jpy:"¥ Yen", cur_cad:"C$ Canadian dollar", cur_aud:"A$ Australian dollar", cur_cny:"¥ Yuan", cur_mxn:"$ Mexican peso", cur_sek:"kr Swedish krona", cur_nok:"kr Norwegian krone", cur_dkk:"kr Danish krone", cur_pln:"zł Złoty", cur_brl:"R$ Real", cur_inr:"₹ Rupee", cur_try:"₺ Turkish lira",
   },
   ca:{
+    mode_change_reopen:"Tanca i torna a obrir l’app per acabar el canvi de mode.",
     beta_review_intro:"Revisa els canvis nous. Aprovar una tanda no la publica; l’entrega es comprova a part.",
     notes_unavailable:"No s’han pogut comprovar les novetats. Connecta i torna-ho a provar.",
     beta_notes_unavailable:"Comprovacions sense confirmar. Connecta i torna a obrir per carregar les d’aquesta versió.", beta_android_app:"app Android", beta_approved_pending:"Aprovada. No cal que l’aprovis de nou; falta confirmar-ne l’entrega.", beta_delivery_pending:"Pendent de publicar: {x}.", beta_delivery_unknown:"Entrega sense confirmar: {x}.",
@@ -663,7 +676,7 @@ const LANG = {
     v4_hist_empty:"El teu històric comença avui", v4_net_unknown:"El total actual no està disponible.",
     v42_net_info_title:"Com es calcula", v42_net_chart:"Evolució del patrimoni",
     v42_net_i_flows:"Un traspàs resta sense entrada igual en un altre compte propi en tres dies, enllaç a bróker o aportació periòdica coincident. El caixer resta patrimoni sense compte o butxaca d'efectiu.",
-    v42_this_month:"Aquest mes", v42_remaining:"Et queden",
+    v42_this_month:"Aquest mes", v42_remaining:"Et queden", v42_cycle_under_one:"<1\u00a0%",
     v42_net_missing:"Encara no hi ha gràfica: les dades comencen avui. Demà ja apareixerà.",
     v42_net_i_accounts:"Comptes", v42_net_i_accounts_v:"moviments reals des de {day}", v42_net_i_accounts_later:" (algun des de més tard)",
     v42_net_i_kept_inv:"Inversions", v42_net_i_kept_assets:"Béns", v42_net_i_kept_manual:"Comptes manuals", v42_net_i_and:" i ", v42_net_i_kept_v:"valor conegut mantingut",
@@ -675,7 +688,11 @@ const LANG = {
     // INC-0810 ca: fin del patrimonio de ahora.
     v4_nobud_t:"Posa-li un pressupost", v4_nobud_p:"És la meitat de l'app: sense un límit al mes no es pot saber quant et queda. El pots canviar quan vulguis.", v4_nobud_cta:"Posa-li un pressupost", v4_noup_t:"Encara no hi ha rebuts", v4_noup_p:"Connecta el teu banc i els rebuts del mes apareixen sols, amb el seu dia i el seu import.", v4_noup_cta:"Connecta el teu banc", v4_nogoal_t:"Posa't el teu primer objectiu", v4_nogoal_p:"Un viatge, un coixí, el que sigui: l'app et diu quant falta i quan hi arribes.", v4_nogoal_cta:"Crear un objectiu", v4_see_gastos:"Veure despeses ›", v4_see_plan:"Veure pla ›",
     v4_upcoming:"Pròxims càrrecs", 
-    v4_charges_overdue:"Càrrecs vençuts", v4_charge_unconfirmed:"Sense pagament acreditat",
+    v4_charges_overdue:"Càrrecs vençuts", v4_charge_unconfirmed:"Sense pagament acreditat", v4_payment_pending:"Per confirmar",
+    v4_payment_due:"Per pagar", v4_payment_due_hint:"Es suma al que queda per pagar.", v4_payment_pending_hint:"No es suma al que queda per pagar.",
+    v4_payment_mixed_hint:"Només els rebuts i les quotes se sumen al que queda per pagar.",
+    v4_payment_all_except_one:"Tot pagat, excepte {n} càrrec per confirmar.", v4_payment_all_except:"Tot pagat, excepte {n} càrrecs per confirmar.",
+    v4_plan_transfers:"Traspassos previstos", f_link_unconfirmed:"{name} · sense confirmar",
     v4_charge_actual:"Càrrec {x}", v4_charge_expected:"Previst {x}",
     v4_your_goals:"Les teves metes", v4_recent:"Últims moviments", v4_recent_empty:"Encara no hi ha moviments. Apunta el primer amb +.",
     v4_all:"Tots ›", v4_plan_title:"El teu pla del mes", v4_plan_recibos:"Rebuts", v4_plan_deudas:"Deutes", v4_plan_metas:"Metes",
@@ -751,6 +768,7 @@ const LANG = {
     v4_set_appear:"Aparença", v4_set_easy:"Per començar fàcil", v4_set_conn:"Connexions",
     v4_set_money:"Diners", v4_set_app:"App",
     v4_set_tour:"Veure el tutorial", v4_set_adv:"Avançat",
+   hv_title:"Vibració", hv_usage:"Tipus de vibració", hv_usage_hint:"Si en provar totes les forces es noten igual, prova un altre tipus.", hv_u_touch:"Toc", hv_u_hardware:"Botons", hv_u_media:"Multimèdia", hv_u_unknown:"Genèrica", hv_motor_amp:"El teu mòbil ajusta la força i el ritme de la vibració.", hv_motor_onoff:"El teu mòbil no ajusta la força: es nota com tocs més llargs o més curts.", hv_intro:"Busca la vibració que t’agradi. Només es desa en aquest mòbil.", hv_cycle:"El meu cicle (l’anell d’Inici)", hv_cycle_hint:"Uns tocs suaus mentre s’omple l’anell: més tocs com més ple estigui.", hv_edge:"En arribar a dalt o a baix", hv_seg:"En canviar entre Rebuts, Deutes i Metes", hv_tick:"Cursor del gràfic d’Inici", hv_strength:"Força", hv_length:"Durada", hv_every:"Es repeteix cada (si continues estirant)", hv_try:"Provar", hv_copy:"Copiar valors", hv_copied:"Valors copiats", hv_copy_fail:"No s’han pogut copiar", hv_reset:"Tornar als de sèrie", hv_need_apk:"Per notar aquests valors cal instal·lar l’última versió de l’app.", hv_no_native:"La vibració només funciona a l’app d’Android.",
     v4_moved_cat:"Mogut a {cat}", 
     v4_exp_del:"Esborra", v4_exp_del_q:"Vols esborrar «{name}»?", v4_exp_del_sub:"El podràs recuperar durant 5 segons.",
     f_amount_aria:"Import", f_concept_ph:"Toca per escriure el concepte", f_cat:"Categoria",
@@ -758,10 +776,10 @@ const LANG = {
     f_cta_add:"Apuntar {x}", f_cta_add_in:"Apuntar ingrés de {x}", f_autosaved:"Es guarda al moment ✓", f_del:"Esborrar despesa",
     f_note_row:"Nota", f_note_none:"Sense nota", f_debt_row:"És la quota d'un deute", f_income_row:"És un ingrés, no una despesa", f_no:"No",
     f_receipt_row:"Paga un rebut", f_receipt_hint:"Tria el rebut que paga aquest càrrec. Es confirma per al mes del moviment i pots desfer-ho. El càrrec conserva l'import, el banc i la classificació.",
-    f_receipt_none:"No hi ha rebuts pendents d'aquell mes que es puguin vincular a aquest càrrec.",
+    f_receipt_none:"No hi ha rebuts pendents d'aquell mes que es puguin vincular a aquest càrrec.", f_receipt_diag:"Copiar diagnòstic",
     f_receipt_confirm:"Confirmar pagament de {name}", f_receipt_confirm_sub:"Càrrec: {merchant} · {amount} · {bank} · {date}. Previst: {expected} · {planned}. Confirma només si aquest càrrec paga el rebut complet, encara que l'import hagi variat. Si és parcial, cancel·la. Es conserven l'import previst, el saldo i el pressupost.",
     f_receipt_yes:"Confirmar pagament complet", f_receipt_unlink:"Desfer vincle",
-    f_recibo_marca:"És el càrrec del teu rebut «{name}»: ja està comptat al teu Pla i aquí no torna a sumar.", f_recibo_quiza:"Sembla el càrrec del teu rebut «{name}»: per això aquí no torna a sumar. Si no ho és, digues-ho i comptarà com una despesa més.", f_recibo_no:"No és aquest rebut",
+    f_recibo_marca:"És el càrrec del teu rebut «{name}»: ja està comptat al teu Pla i aquí no torna a sumar.", f_recibo_quiza:"Sembla el càrrec del teu rebut «{name}»: per això aquí no torna a sumar. Si no ho és, digues-ho i comptarà com una despesa més.", f_recibo_no:"No és aquest rebut", f_recibo_si:"Sí, és aquest rebut",
     f_from_bank:"Ho va portar una notificació de {bank}", f_from_bank_sub:"{date} · «{raw}» · el banc fixa l'import i el compte",
     f_trace_missing:"— text original no disponible",
     f_locked_toast:"El banc fixa l'import, el compte i si entren o surten diners. La categoria sí que es pot corregir aquí.",
@@ -1104,7 +1122,8 @@ Object.assign(LANG.es,{
   gb_freq_m:"Cada mes", gb_freq_2m:"Cada dos meses", 
   gb_freq_3m:"Cada tres meses", gb_freq_6m:"Cada seis meses", 
   gb_freq_y:"Una vez al año", 
-  gb_preview:"Serán {x} al mes repartidos ({total} al año, en {months}).",
+  gb_preview_each:"Se cobrarán {each} en {months} ({total} al año): {x} al mes repartidos.",
+  gb_preview_nomonth:"Serán {x} al mes repartidos ({total} al año). Falta elegir en qué mes se cobra.",
   gb_preview_m:"Serán {x} cada mes.", gb_empty:"Aún no hay recibos", gb_empty_sub:"Conecta tu banco y los detecto solos.",
   gb_afford:"¿Me lo puedo permitir?",
   gb_afford_sub:"Dime un importe y un día y te digo si te cabe este mes.", gb_del:"Quitar este recibo", gb_removed:"Recibo quitado",
@@ -1126,7 +1145,8 @@ Object.assign(LANG.en,{
   gb_when_last:"Last working day", gb_freq_m:"Every month", gb_freq_2m:"Every two months",
   gb_freq_3m:"Every three months", 
   gb_freq_6m:"Every six months", gb_freq_y:"Once a year",
-  gb_preview:"That's {x} a month spread out ({total} a year, in {months}).", gb_preview_m:"That's {x} every month.", gb_empty:"No bills yet",
+  gb_preview_each:"{each} will be charged in {months} ({total} a year): {x} a month spread out.",
+  gb_preview_nomonth:"That's {x} a month spread out ({total} a year). Pick the month it's charged in.", gb_preview_m:"That's {x} every month.", gb_empty:"No bills yet",
   gb_empty_sub:"Connect your bank and I'll spot them for you.", 
   gb_afford:"Can I afford it?", gb_afford_sub:"Give me an amount and a day and I'll tell you if it fits this month.",
   gb_del:"Remove this bill", gb_removed:"Bill removed",
@@ -1148,7 +1168,8 @@ Object.assign(LANG.ca,{
   gb_when_last:"Últim dia feiner", gb_freq_m:"Cada mes", gb_freq_2m:"Cada dos mesos",
   gb_freq_3m:"Cada tres mesos", 
   gb_freq_6m:"Cada sis mesos", gb_freq_y:"Un cop l'any",
-  gb_preview:"Seran {x} al mes repartits ({total} l'any, a {months}).", gb_preview_m:"Seran {x} cada mes.", gb_empty:"Encara no hi ha rebuts",
+  gb_preview_each:"Es cobraran {each} a {months} ({total} l'any): {x} al mes repartits.",
+  gb_preview_nomonth:"Seran {x} al mes repartits ({total} l'any). Falta triar en quin mes es cobra.", gb_preview_m:"Seran {x} cada mes.", gb_empty:"Encara no hi ha rebuts",
   gb_empty_sub:"Connecta el teu banc i els detecto sols.", 
   gb_afford:"M'ho puc permetre?", gb_afford_sub:"Digue'm un import i un dia i et dic si t'hi cap aquest mes.", gb_del:"Treu aquest rebut",
   gb_removed:"Rebut tret", gb_bill_locked_amt:"L'import d'aquest rebut canvia segons el mes: canvia'l a cada mes.",
@@ -1582,6 +1603,8 @@ Object.assign(LANG.es,{
   sv_title:"Ahorro mensual", sv_note:"Planifica lo que apartas cada mes para calcular cuándo llegas a tus metas. No mueve dinero real ni crea movimientos.", sv_saved:"Ahorro mensual guardado", sv_name_aria:"Concepto de la aportación", sv_amount_aria:"Importe al mes", sv_bank_aria:"Banco o bróker", sv_del_aria:"Quitar esta aportación", sv_add:"Añadir aportación", sv_name_ph:"Concepto (ej. MSCI World)", sv_empty:"Aún no has apuntado aportaciones. Toca «Editar» para añadir lo que apartas cada mes.",
   sec_order:"⇅ Ordenar secciones", 
   g_sync:"Sincronizar", g_syncing:"Sincronizando…", g_add:"Apuntar",
+  g_refresh_expenses:"Actualizar gastos", g_refreshing_expenses:"Actualizando gastos…",
+  g_refresh_expenses_hint:"Trae los gastos guardados en la nube, incluidas las notificaciones. No consulta tus bancos.",
   g_lastsync:"Última sincronización: {d}", g_nosync:"Sin sincronizar todavía",
   g_gasto:"💸 Gasto", g_ingreso:"💰 Ingreso", g_concept_g:"Concepto (ej. Cena)", g_concept_i:"Concepto (ej. me devolvió Ana)",
   g_addgasto:"Añadir gasto", g_addingreso:"Añadir ingreso", g_date:"Fecha (vacía = hoy)",
@@ -1650,6 +1673,8 @@ Object.assign(LANG.en,{
   sv_title:"Monthly saving", sv_note:"Plan what you set aside each month to estimate when you reach your goals. It does not move real money or create transactions.", sv_saved:"Monthly saving saved", sv_name_aria:"Contribution name", sv_amount_aria:"Amount per month", sv_bank_aria:"Bank or broker", sv_del_aria:"Remove this contribution", sv_add:"Add contribution", sv_name_ph:"Name (e.g. MSCI World)", sv_empty:"No contributions yet. Tap «Edit» to add what you set aside each month.",
   sec_order:"⇅ Reorder sections", 
   g_sync:"Sync", g_syncing:"Syncing…", g_add:"Add",
+  g_refresh_expenses:"Refresh expenses", g_refreshing_expenses:"Refreshing expenses…",
+  g_refresh_expenses_hint:"Fetches expenses saved in the cloud, including notifications. It does not contact your banks.",
   g_lastsync:"Last sync: {d}", g_nosync:"Not synced yet",
   g_gasto:"💸 Expense", g_ingreso:"💰 Income", g_concept_g:"What (e.g. Dinner)", g_concept_i:"What (e.g. Ana paid me back)",
   g_addgasto:"Add expense", g_addingreso:"Add income", g_date:"Date (empty = today)",
@@ -1717,6 +1742,8 @@ Object.assign(LANG.ca,{
   sv_title:"Estalvi mensual", sv_note:"Planifica el que apartes cada mes per calcular quan arribes a les teves metes. No mou diners reals ni crea moviments.", sv_saved:"Estalvi mensual desat", sv_name_aria:"Concepte de l’aportació", sv_amount_aria:"Import al mes", sv_bank_aria:"Banc o bròker", sv_del_aria:"Treu aquesta aportació", sv_add:"Afegeix aportació", sv_name_ph:"Concepte (p. ex. MSCI World)", sv_empty:"Encara no has apuntat aportacions. Toca «Edita» per afegir el que apartes cada mes.",
   sec_order:"⇅ Ordena les seccions", 
   g_sync:"Sincronitza", g_syncing:"Sincronitzant…", g_add:"Apunta",
+  g_refresh_expenses:"Actualitza les despeses", g_refreshing_expenses:"Actualitzant les despeses…",
+  g_refresh_expenses_hint:"Recupera les despeses desades al núvol, incloses les notificacions. No consulta els teus bancs.",
   g_lastsync:"Última sincronització: {d}", g_nosync:"Encara sense sincronitzar",
   g_gasto:"💸 Despesa", g_ingreso:"💰 Ingrés", g_concept_g:"Concepte (ex. Sopar)", g_concept_i:"Concepte (ex. l'Ana m'ho ha tornat)",
   g_addgasto:"Afegeix despesa", g_addingreso:"Afegeix ingrés", g_date:"Data (buida = avui)",
@@ -2120,6 +2147,7 @@ Object.assign(LANG.es,{
   bank_connected:"Banco conectado ✓", bank_error:"No se pudo conectar el banco",
   bank_error_invalid:"Ese permiso ya se usó o caducó · vuelve a pulsar Reconectar y termina solo esa autorización",
   bank_error_busy:"Ya hay una autorización en marcha · termínala antes de abrir otra",
+  bank_rate_limit:"Demasiados intentos. Prueba en un rato.",
   // SEC-01 (4.23.0): códigos cortos del bank-callback. El detalle crudo se queda en el servidor.
   bank_err_eb:"El banco rechazó la autorización · vuelve a intentarlo",
   bank_err_sin_code:"Faltó el código del banco · vuelve a pulsar Conectar y termina solo esa autorización",
@@ -2150,6 +2178,7 @@ Object.assign(LANG.en,{
   bank_connected:"Bank connected ✓", bank_error:"Couldn't connect the bank",
   bank_error_invalid:"That permission was already used or expired · tap Reconnect again and finish only that one authorization",
   bank_error_busy:"An authorization is already in progress · finish it before opening another",
+  bank_rate_limit:"Too many attempts. Try again in a little while.",
   bank_err_eb:"The bank rejected the authorization · try again",
   bank_err_sin_code:"The bank code was missing · tap Connect again and finish only that authorization",
   bank_err_state:"That authorization doesn't match · tap Connect again from the app",
@@ -2173,6 +2202,7 @@ Object.assign(LANG.ca,{
   bank_connected:"Banc connectat ✓", bank_error:"No s'ha pogut connectar el banc",
   bank_error_invalid:"Aquest permís ja s'ha usat o ha caducat · torna a prémer Reconnecta i acaba només aquesta autorització",
   bank_error_busy:"Ja hi ha una autorització en marxa · acaba-la abans d'obrir-ne una altra",
+  bank_rate_limit:"Massa intents. Torna-ho a provar d'aquí a una estona.",
   bank_err_eb:"El banc ha rebutjat l'autorització · torna-ho a provar",
   bank_err_sin_code:"Ha faltat el codi del banc · torna a prémer Connecta i acaba només aquesta autorització",
   bank_err_state:"L'autorització no encaixa · torna a prémer Connecta des de l'app",
@@ -2258,6 +2288,7 @@ Object.assign(LANG.es,{
   bank_read_reconnect:"{bank}: falta completar la conexión. Abre Ajustes → Mis bancos para revisarla.",
   bank_read_rate:"{bank}: se alcanzó el límite temporal de lectura. No reconectes; vuelve a buscar dentro de unas 6 horas.",
   bank_read_timeout:"{bank}: el banco ha tardado demasiado en entregar los movimientos. Lo recibido y lo guardado se conservan. Vuelve a sincronizar para reintentarlo.",
+  bank_read_balance:"{bank}: no se ha podido actualizar algún saldo. Se conserva el anterior.",
   bank_read_partial:"{bank}: la descarga está incompleta. Lo recibido se conserva, pero pueden faltar movimientos.",
   bank_read_interrupted:"{bank}: el banco o la conexión no han dejado terminar la lectura. Tus movimientos guardados siguen disponibles. Vuelve a sincronizar para reintentarlo.",
   bank_read_limited:"{bank}: faltan movimientos del periodo pedido porque la descarga alcanzó el tope. Lo recibido y lo guardado se conservan. Usa Importar histórico para buscar los que faltan.",
@@ -2324,6 +2355,7 @@ Object.assign(LANG.en,{
   bank_read_reconnect:"{bank}: the connection needs to be completed. Open Settings → My banks to review it.",
   bank_read_rate:"{bank}: the temporary read limit was reached. Do not reconnect; search again in about 6 hours.",
   bank_read_timeout:"{bank}: the bank took too long to return transactions. Received and saved transactions are kept. Sync again to retry.",
+  bank_read_balance:"{bank}: some balances could not be updated. Previous balances are kept.",
   bank_read_partial:"{bank}: the download is incomplete. Received transactions are kept, but some may be missing.",
   bank_read_interrupted:"{bank}: the bank or connection stopped the download before it finished. Your saved transactions are still available. Sync again to retry.",
   bank_read_limited:"{bank}: transactions from the requested period are missing because the download reached its limit. Received and saved transactions are kept. Use Import history to look for the missing ones.",
@@ -2390,6 +2422,7 @@ Object.assign(LANG.ca,{
   bank_read_reconnect:"{bank}: falta completar la connexió. Obre Configuració → Els meus bancs per revisar-la.",
   bank_read_rate:"{bank}: s'ha assolit el límit temporal de lectura. No reconnectis; torna a cercar d'aquí a unes 6 hores.",
   bank_read_timeout:"{bank}: el banc ha trigat massa a lliurar els moviments. Es conserva el que s’ha rebut i el que estava desat. Torna a sincronitzar per reintentar-ho.",
+  bank_read_balance:"{bank}: no s’ha pogut actualitzar algun saldo. Es conserva l’anterior.",
   bank_read_partial:"{bank}: la descàrrega és incompleta. Es conserva el que s'ha rebut, però poden faltar moviments.",
   bank_read_interrupted:"{bank}: el banc o la connexió no han deixat acabar la lectura. Els moviments desats continuen disponibles. Torna a sincronitzar per reintentar-ho.",
   bank_read_limited:"{bank}: falten moviments del període demanat perquè la descàrrega ha arribat al límit. Es conserva el que s’ha rebut i el que estava desat. Fes servir Importar històric per cercar els que falten.",
@@ -2685,15 +2718,19 @@ function sameEntList(a,b){
    «Todos los bancos» enseña el extracto entero. Contabilidad: solo los marcados. A mano (sin
    ent) sí cuenta. Pedido 2026-08-17: Revolut+TR marcados → los dos se ven y cuentan. */
 const expenseDeletedSets=new WeakMap();
+Object.assign(LANG.es,{ob_absorbed_review:"Hay movimientos pendientes de revisar"});
+Object.assign(LANG.en,{ob_absorbed_review:"Some transactions need review"});
+Object.assign(LANG.ca,{ob_absorbed_review:"Hi ha moviments pendents de revisar"});
 function expenseDeletedSet(s){
-  const deleted=s&&s.deleted;
-  if(!Array.isArray(deleted)||!deleted.length) return null;
-  let delSet=expenseDeletedSets.get(deleted);
-  if(!delSet){
-    delSet=Object.create(null);
-    deleted.forEach(function(k){ delSet[k]=1; });
-    expenseDeletedSets.set(deleted,delSet);
-  }
+  const deleted=s&&s.deleted,pending=s&&s.obAbsorbedPending,confirmed=s&&s.obAbsorbedConfirmed,owner=s&&s._historyOwner;
+  if((!Array.isArray(deleted)||!deleted.length)&&(!Array.isArray(pending)||!pending.length)&&(!Array.isArray(confirmed)||!confirmed.length))return null;
+  const ref=Array.isArray(deleted)?deleted:Array.isArray(pending)?pending:confirmed,cached=expenseDeletedSets.get(ref);
+  if(cached&&cached.pending===pending&&cached.confirmed===confirmed&&cached.owner===owner)return cached.map;
+  const delSet=Object.create(null);
+  (Array.isArray(deleted)?deleted:[]).forEach(function(k){delSet[k]=1;});
+  (Array.isArray(pending)?pending:[]).forEach(function(p){if(obAbsorbedValid(p,owner))delSet[p.key]=1;});
+  expenseConfirmedSets.set(delSet,{list:confirmed,owner:owner});
+  expenseDeletedSets.set(ref,{pending:pending,confirmed:confirmed,owner:owner,map:delSet});
   return delSet;
 }
 function expenseCountsCash(e, s){
@@ -3607,12 +3644,24 @@ const THEMES=[["green","Verde","#5FD08A"],["dark","Oscuro","#3A3A40"],["light","
     otono:["🍂","🍁","🍄","🌰","🍁"],
     primavera:["🌸","🌿","🦋","🌼","🌸"]
   };
+Object.assign(LANG.es,{g_note_unconfirmed:"Nota sin confirmar en la nube. Se conserva en este dispositivo.",g_note_retry:"Reintentar",g_edit_unconfirmed:"No se pudo guardar el cambio. Vuelve a intentarlo."});
+Object.assign(LANG.en,{g_note_unconfirmed:"Note not confirmed in the cloud. Kept on this device.",g_note_retry:"Retry",g_edit_unconfirmed:"Could not save the change. Please try again."});
+Object.assign(LANG.ca,{g_note_unconfirmed:"Nota sense confirmar al núvol. Es conserva en aquest dispositiu.",g_note_retry:"Torna-ho a provar",g_edit_unconfirmed:"No s'ha pogut desar el canvi. Torna-ho a provar."});
+Object.assign(LANG.es,{g_rename_pending:"Nombre pendiente de confirmar. Se conserva en este dispositivo y se reintentará al volver la conexión."});
+Object.assign(LANG.en,{g_rename_pending:"Name awaiting confirmation. Kept on this device and retried when the connection returns."});
+Object.assign(LANG.ca,{g_rename_pending:"Nom pendent de confirmar. Es conserva en aquest dispositiu i es tornarà a intentar quan torni la connexió."});
+Object.assign(LANG.es,{g_rename_paused:"No se ha podido confirmar el nombre. Sigue guardado en este dispositivo. Pulsa Reintentar cuando quieras volver a enviarlo."});
+Object.assign(LANG.en,{g_rename_paused:"The name could not be confirmed. It is still saved on this device. Tap Retry when you want to send it again."});
+Object.assign(LANG.ca,{g_rename_paused:"No s'ha pogut confirmar el nom. Continua desat en aquest dispositiu. Prem Torna-ho a provar quan el vulguis tornar a enviar."});
 function loadState(){
   const saved = mcLoadRaw(mcStateKey());
   if(saved && saved.accounts){
+    const unique=uniqueExpenseUuids(saved.expenses,expenseDeletedSet(saved));
+    const uuidChanged=unique!==saved.expenses;
+    if(uuidChanged)saved.expenses=unique;
     // Capturar ANTES de seedFlows (muta in-place): evita stringify de toda la cartera en cada
     // apertura fría — feedback 2026-07-16.
-    var writeBack=!(saved._dataVer>=6) || !saved._dynBalAnchored;
+    var writeBack=uuidChanged || !(saved._dataVer>=6) || !saved._dynBalAnchored;
     // Call site 1/3 de fixMovInvasion (loadState / arranque). Contención dentro de la fn, no aquí.
     const seeded = seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR((saved._dataVer>=6) ? saved : migrate(saved)))))));
     const now=new Date(), s=liberarReservasHuerfanas(perfilSinDatosBanco(reconcileGemelosAutomaticos(reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate()))));
@@ -3826,3 +3875,92 @@ Object.assign(LANG.ca,{g_auto_paired:"Avís i apunt del banc units",g_auto_separ
 Object.assign(LANG.es,{g_auto_rejoin:"Volver a unir",g_auto_deleted:"Aviso y apunte del banco borrados",g_auto_edit_separated:"Cambio guardado. El aviso y el apunte del banco se han separado"});
 Object.assign(LANG.en,{g_auto_rejoin:"Match again",g_auto_deleted:"Notification and bank entry deleted",g_auto_edit_separated:"Change saved. The notification and bank entry have been separated"});
 Object.assign(LANG.ca,{g_auto_rejoin:"Tornar a unir",g_auto_deleted:"Avís i apunt del banc esborrats",g_auto_edit_separated:"Canvi desat. L’avís i l’apunt del banc s’han separat"});
+
+// Edición individual de Deudas y Metas (14/10): el guardado conserva el formato del estado.
+Object.assign(LANG.es, {
+  plan_edit_name:"Nombre",
+  plan_edit_quota:"Cuota al mes (€)",
+  plan_edit_invalid:"Revisa los importes y el día. Usa números positivos, con coma o punto para los decimales.",
+  db_err_term_quota:"El plazo y la cuota no encajan con el saldo pendiente. Revisa el plazo o la cuota.",
+  db_extend_term:"Alargar el plazo a {n} meses",
+  db_extend_unknown:"No se puede calcular un plazo con esta TAE sin conocer cuánto amortiza cada cuota. Revisa el plazo con tu banco.",
+  db_err_quota_range:"Con {n} cuotas por pagar, la cuota tiene que estar entre {min} y {max}.",
+  db_err_quota_min:"Con {n} cuota por pagar, la cuota tiene que ser de al menos {min}.",
+  db_edit_quota_zero:"Queda saldo pendiente: la cuota no puede ser 0.",
+  db_finished_edit_hint:"Deuda terminada: solo se pueden cambiar datos no financieros.",
+  plan_edit_changed:"Este dato cambió o se borró. Cierra y vuelve a abrir la edición para ver la versión actual.",
+  plan_edit_saved:"Cambios guardados",
+  db_edit_title:"Editar deuda",
+  db_edit_named:"Editar {name}",
+  db_left_count:"Quedan {n}/{tot} cuotas",
+  db_term_hint:"Plazo total, incluidas las cuotas ya pagadas. Déjalo vacío si no lo conoces.",
+  db_edit_term_confirm:"¿Guardar con el nuevo plazo?",
+  db_edit_term_summary:"Plazo total: {before} → {after} meses. Cuotas pendientes: {leftBefore} → {leftAfter}.",
+  db_edit_term_summary_one:"Plazo total: {before} → {after} mes. Cuotas pendientes: {leftBefore} → {leftAfter}.",
+  db_edit_term_cancel:"Seguir editando",
+  db_edit_projection_changed:"La previsión ha cambiado. Revisa los datos y vuelve a guardar para confirmarla.",
+  db_rate_edit_hint:"Vacío = interés desconocido. 0 = sin intereses. Se guarda al tocar Guardar cambios.",
+  db_set_rate:"Añadir interés",
+  gl_edit_title:"Editar meta",
+  gl_edit_named:"Editar {name}",
+  gl_delete_q:"¿Eliminar «{name}»?",
+  gl_delete_sub:"La meta desaparecerá de la lista. Las reglas y las aportaciones anteriores se conservan."
+});
+Object.assign(LANG.en, {
+  plan_edit_name:"Name",
+  plan_edit_quota:"Monthly payment (€)",
+  plan_edit_invalid:"Check the amounts and day. Use positive numbers, with a comma or dot for decimals.",
+  db_err_term_quota:"The term and payment do not match the remaining balance. Check the term or payment.",
+  db_extend_term:"Extend the term to {n} months",
+  db_extend_unknown:"A term cannot be calculated with this APR without knowing how much principal each payment repays. Check the term with your bank.",
+  db_err_quota_range:"With {n} payments left, the payment must be between {min} and {max}.",
+  db_err_quota_min:"With {n} payment left, the payment must be at least {min}.",
+  db_edit_quota_zero:"There is still a balance left: the payment cannot be 0.",
+  db_finished_edit_hint:"Completed debt: only non-financial details can be changed.",
+  plan_edit_changed:"This item changed or was deleted. Close and reopen the editor to see the current version.",
+  plan_edit_saved:"Changes saved",
+  db_edit_title:"Edit debt",
+  db_edit_named:"Edit {name}",
+  db_left_count:"{n}/{tot} payments left",
+  db_term_hint:"Total term, including payments already made. Leave blank if unknown.",
+  db_edit_term_confirm:"Save with the new term?",
+  db_edit_term_summary:"Total term: {before} → {after} months. Remaining payments: {leftBefore} → {leftAfter}.",
+  db_edit_term_summary_one:"Total term: {before} → {after} month. Remaining payments: {leftBefore} → {leftAfter}.",
+  db_edit_term_cancel:"Keep editing",
+  db_edit_projection_changed:"The projection has changed. Review the details and save again to confirm it.",
+  db_rate_edit_hint:"Blank = unknown interest. 0 = no interest. Saved when you tap Save changes.",
+  db_set_rate:"Add interest",
+  gl_edit_title:"Edit goal",
+  gl_edit_named:"Edit {name}",
+  gl_delete_q:"Delete “{name}”?",
+  gl_delete_sub:"The goal will disappear from the list. Rules and past contributions are kept."
+});
+Object.assign(LANG.ca, {
+  plan_edit_name:"Nom",
+  plan_edit_quota:"Quota al mes (€)",
+  plan_edit_invalid:"Revisa els imports i el dia. Fes servir nombres positius, amb coma o punt per als decimals.",
+  db_err_term_quota:"El termini i la quota no encaixen amb el saldo pendent. Revisa el termini o la quota.",
+  db_extend_term:"Allarga el termini a {n} mesos",
+  db_extend_unknown:"No es pot calcular un termini amb aquesta TAE sense saber quant amortitza cada quota. Revisa el termini amb el teu banc.",
+  db_err_quota_range:"Amb {n} quotes per pagar, la quota ha d'estar entre {min} i {max}.",
+  db_err_quota_min:"Amb {n} quota per pagar, la quota ha de ser d'almenys {min}.",
+  db_edit_quota_zero:"Queda saldo pendent: la quota no pot ser 0.",
+  db_finished_edit_hint:"Deute acabat: només es poden canviar dades no financeres.",
+  plan_edit_changed:"Aquesta dada ha canviat o s’ha esborrat. Tanca i torna a obrir l’edició per veure la versió actual.",
+  plan_edit_saved:"Canvis desats",
+  db_edit_title:"Edita el deute",
+  db_edit_named:"Edita {name}",
+  db_left_count:"Queden {n}/{tot} quotes",
+  db_term_hint:"Termini total, incloses les quotes ja pagades. Deixa’l buit si no el coneixes.",
+  db_edit_term_confirm:"Vols desar amb el nou termini?",
+  db_edit_term_summary:"Termini total: {before} → {after} mesos. Quotes pendents: {leftBefore} → {leftAfter}.",
+  db_edit_term_summary_one:"Termini total: {before} → {after} mes. Quotes pendents: {leftBefore} → {leftAfter}.",
+  db_edit_term_cancel:"Continua editant",
+  db_edit_projection_changed:"La previsió ha canviat. Revisa les dades i torna a desar per confirmar-la.",
+  db_rate_edit_hint:"Buit = interès desconegut. 0 = sense interessos. Es desa en tocar Desa els canvis.",
+  db_set_rate:"Afegeix interès",
+  gl_edit_title:"Edita l’objectiu",
+  gl_edit_named:"Edita {name}",
+  gl_delete_q:"Vols eliminar «{name}»?",
+  gl_delete_sub:"L’objectiu desapareixerà de la llista. Les regles i les aportacions anteriors es conserven."
+});

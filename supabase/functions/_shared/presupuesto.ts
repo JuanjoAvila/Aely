@@ -126,37 +126,145 @@ function claveLegacySinId(f: { fecha?: string | null; importe?: number | string;
   return String(f.fecha || "").slice(0, 10) + "|" + (Number(f.importe) || 0) + "|" + (f.comercio || "");
 }
 
+// Espejo de obBookedPreferenceKey: decidir BOOK no amplía la identidad ni los borrados.
+function clavePreferenciaBook(f: FilaGasto): string {
+  const ref = referenciaOb(f), day = String(f.fecha || "").slice(0, 10), cents = Math.round(Number(f.importe) * 100);
+  if (!ref || !JSON.parse(ref)[1].trim() || !/^\d{4}-\d{2}-\d{2}$/.test(day) || !Number.isSafeInteger(cents) || !f.comercio) return "";
+  const marks = String(f.source || "").split("#").filter(t => !/^(?:pdng|n\d{1,6})$/.test(t) && !/^ref|^acc/.test(t)).join("#");
+  return JSON.stringify([...JSON.parse(ref), day, ordinalDeSource(f.source), cuentaDeSource(f.source), cents, f.comercio, f.cat || "", marks]);
+}
+
 /**
- * Lo que la app ve de la tabla: sin las lápidas de `state.deleted` y una sola fila por clave.
+ * Lo que la app ve de la tabla: sin lápidas y una fila por identidad bancaria o clave legacy.
  * `ingest` tiene que pasar ESTO a `statsDelMes`, no el volcado crudo: si no, el widget suma
  * gastos que él ya borró y notis gemelas que la lista ya fusionó.
  * Lápidas viejas (sin id) siguen ocultando manuales borrados antes del Paso 0.
  */
-export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefined, deleted: string[] | null | undefined): T[] {
+type ConfirmacionOb = { owner?: string; id?: string; key?: string; keepKey?: string; keepId?: string; ackAt?: unknown };
+/** El hash agrupa colisiones; solo el testigo completo puede excluir un movimiento. */
+export function confirmadasOb(value: unknown, owner?: string | null): ConfirmacionOb[] {
+  if (Array.isArray(value)) return value;
+  if (!value || typeof value !== "object") return [];
+  const p = value as { v?: number; o?: string; d?: unknown[]; r?: Record<string, unknown> };
+  if (p.v !== 1 || p.o !== owner || !Array.isArray(p.d) || !p.d.every(s => typeof s === "string") || !p.r || typeof p.r !== "object" || Array.isArray(p.r)) return [];
+  const out: ConfirmacionOb[] = [], d = p.d as string[];
+  for (const bucket of Object.values(p.r)) {
+    if (!Array.isArray(bucket)) return [];
+    for (const row of bucket) {
+      if (!Array.isArray(row) || row.length !== 5 || !row.slice(0,4).every(n => Number.isInteger(n) && n >= 0 && n < d.length)) return [];
+      out.push({owner:owner!,id:d[row[0]],key:d[row[1]],keepId:d[row[2]],keepKey:d[row[3]],ackAt:row[4]});
+    }
+  }
+  return out;
+}
+export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefined, deleted: string[] | null | undefined,
+  pending?: { owner?: string; key?: string }[] | null, owner?: string | null,
+  confirmed?: unknown): T[] {
   const lap = new Set(deleted || []);
-  const vistas = new Set<string>();
-  const out: T[] = [];
+  // v2 (sin signo) sigue valiendo para las colas que guardó una versión anterior; v3 lleva el signo.
+  const validKey = (k?: string) => /^ob-absorbed(?:2\|[^|]+\|[^|]+\|[1-9]\d{0,5}\|[^|]*\|\d{4}-\d{2}-\d{2}|3\|[^|]+\|[^|]+\|[1-9]\d{0,5}\|[^|]*\|\d{4}-\d{2}-\d{2}\|(?:-1|0|1))$/.test(k || "");
+  const uuid = (id?: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id || "");
+  const own = confirmadasOb(confirmed,owner).filter(p => owner && p?.owner === owner && uuid(p.id) && uuid(p.keepId) && p.id !== p.keepId && validKey(p.key) && validKey(p.keepKey) && Object.prototype.hasOwnProperty.call(p,"ackAt"));
+  const gone = new Set(own.map(p => p.key!)), kept = new Set(own.map(p => p.keepKey!)), keepIds = new Set(own.map(p => p.keepId));
+  const index = (keys: Set<string>) => {
+    const any = new Set<string>(), missing = new Set<string>();
+    for (const key of keys) { const p = key.split("|"), base = p.slice(0,4).join("|") + "|" + p[5] + (p.length === 7 ? "|" + p[6] : ""); any.add(base); if (!p[4]) missing.add(base); }
+    return { any, missing };
+  };
+  const goneIndex = index(gone), keptIndex = index(kept);
+  const matches = (f: T, keys: Set<string>, ix: ReturnType<typeof index>) => {
+    const key = claveAbsorcionOb(f); if (!key) return false;
+    if (keys.has(key)) return true;
+    // La fila siempre trae clave v3; una confirmada v2 lleva otro prefijo y sin esto no ocultaba
+    // nada en el servidor (el widget contaba doble; integración 143, revisión independiente).
+    const p = key.split("|"), base = p.slice(1,4).join("|");
+    if (keys.has("ob-absorbed2|" + base + "|" + p[4] + "|" + p[5])) return true;
+    const set = cuentaDeSource(f.source) ? ix.missing : ix.any;
+    return set.has("ob-absorbed3|" + base + "|" + p[5] + "|" + p[6]) || set.has("ob-absorbed2|" + base + "|" + p[5]);
+  };
+  // Las no confirmadas tienen su propio tope y no caducan con las 500 lápidas normales.
+  for (const p of Array.isArray(pending) ? pending : []) {
+    if (owner && p?.owner === owner && validKey(p.key)) lap.add(p.key!);
+  }
+  // La ausencia de cuenta en cualquiera de los lados es el mismo comodín que usa
+  // el escritor para proteger a la superviviente; ambos índices se calculan una vez.
+  const sinCuenta = new Set<string>();
+  const cuentaAusente = new Set<string>();
+  for (const k of lap) {
+    const p = k.split("|");
+    if ((p.length === 6 && p[0] === "ob-absorbed2") || (p.length === 7 && p[0] === "ob-absorbed3")) {
+      const base = p.slice(0, 4).join("|") + "||" + p[5] + (p.length === 7 ? "|" + p[6] : "");
+      sinCuenta.add(base); if (!p[4]) cuentaAusente.add(base);
+    }
+  }
+  const live: T[] = [], books = new Map<string, T>();
   for (const f of filas || []) {
+    if (Number(f.importe) === 0) continue; // Preautorización sin importe: no reserva identidad.
+    // Igual que FIN10 cliente: primero superviviente, cuenta/día/ordinal completos;
+    // una fila confirmada no puede consumir la referencia antes de quedar oculta.
+    if (!keepIds.has(String(f.id)) && !matches(f,kept,keptIndex) && matches(f,gone,goneIndex)) continue;
     const k = claveComoLaApp(f);
     if (lap.has(k)) continue;
     const absorbed = claveAbsorcionOb(f);
     if (absorbed && lap.has(absorbed)) continue;
+    // Reutilizar la base evita decodificar y codificar la referencia tres veces por fila.
+    const p = absorbed ? absorbed.split("|") : null, base = p ? p.slice(1, 4).join("|") : "";
+    const legacy = p ? "ob-absorbed|" + base : null;
+    if (legacy && lap.has(legacy)) continue;
+    const old = p ? "ob-absorbed2|" + base + "|" + p[4] + "|" + p[5] : null;
+    if (old && lap.has(old)) continue;
+    const lookup = p && p[4] ? cuentaAusente : sinCuenta;
+    const omitida = p && (lookup.has("ob-absorbed3|" + base + "||" + p[5] + "|" + p[6]) || lookup.has("ob-absorbed2|" + base + "||" + p[5]));
+    if (omitida) continue;
     if (esSourceManual(f.source) && lap.has(claveLegacySinId(f))) continue;
-    if (vistas.has(k)) continue;
-    vistas.add(k);
+    live.push(f);
+    const bookKey = clavePreferenciaBook(f);
+    if (bookKey && !books.has(bookKey) && !/#pdng(?:#|$)/.test(String(f.source))) books.set(bookKey, f);
+  }
+  const vistas = new Map<string, Set<string>>(), referencias = new Set<string>();
+  const out: T[] = [];
+  for (const original of live) {
+    const book = /#pdng(?:#|$)/.test(String(original.source)) && books.get(clavePreferenciaBook(original));
+    const f = book || original, k = claveComoLaApp(f);
+    // La fecha contable puede cambiar al pasar de PDNG a BOOK. El cliente identifica
+    // banco+referencia antes de mirar el día; sin este espejo el widget suma ambos.
+    // Las lápidas se aplican antes: una fila retirada no puede consumir la identidad.
+    const ref = referenciaOb(f), anteriores = vistas.get(k);
+    if (ref && referencias.has(ref)) continue;
+    if (ref) referencias.add(ref);
+    // Dos referencias conocidas distintas son compras distintas, incluso si todavía
+    // no tienen ordinal. Las filas antiguas sin referencia conservan su dedup por clave.
+    if (anteriores && (!ref || anteriores.has(""))) continue;
+    if (!anteriores) vistas.set(k, new Set([ref]));
+    else anteriores.add(ref);
     out.push(f);
   }
   return out;
 }
 
-// Espejo de obAbsorptionKey: el UUID puede diferir entre móviles; banco, referencia y
-// ranura distinguen la fila absorbida sin ocultar otra compra que reutilice su ordinal.
-function claveAbsorcionOb(f: FilaGasto): string | null {
+function referenciaOb(f: FilaGasto): string {
+  const source = String(f.source || ""), bank = bancoDeSource(source);
+  if (!bank || (!source.startsWith("ob:") && !source.startsWith("ob-hist:"))) return "";
+  const ref = /#ref([^#]+)/.exec(source);
+  if (!ref) return "";
+  try { return JSON.stringify([bank, decodeURIComponent(ref[1]), Number(f.importe)>0?1:Number(f.importe)<0?-1:0]); }
+  catch (_) { return ""; }
+}
+
+function cuentaDeSource(source?: string | null): string {
+  const m = /#acc([^#]*)/.exec(String(source || ""));
+  try { return m ? decodeURIComponent(m[1]) : ""; } catch (_) { return ""; }
+}
+// El día es el de la fila almacenada, igual que en el escritor: sin convertir zonas.
+function claveAbsorcionOb(f: FilaGasto, legacy: boolean | 2 = false): string | null {
   const source = String(f.source || "");
   if (!source.startsWith("ob:") && !source.startsWith("ob-hist:")) return null;
   const ref = /#ref([^#]*)/.exec(source), bank = bancoDeSource(source);
   if (!ref || !bank) return null;
-  try { return "ob-absorbed|" + encodeURIComponent(bank) + "|" + encodeURIComponent(decodeURIComponent(ref[1])) + "|" + ordinalDeSource(source); }
+  try {
+    const base = encodeURIComponent(bank) + "|" + encodeURIComponent(decodeURIComponent(ref[1])) + "|" + ordinalDeSource(source);
+    return legacy === true ? "ob-absorbed|" + base : (legacy === 2 ? "ob-absorbed2|" : "ob-absorbed3|") + base + "|" + encodeURIComponent(cuentaDeSource(source)) + "|" + String(f.fecha || "").slice(0, 10) + (legacy === 2 ? "" : "|" + (Number(f.importe)>0?1:Number(f.importe)<0?-1:0));
+  }
   catch (_) { return null; }
 }
 

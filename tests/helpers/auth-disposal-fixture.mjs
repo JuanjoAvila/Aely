@@ -9,7 +9,7 @@ export function authWorld(parts,{enabled=true,offline=false}={}){
   const live=new Set(),retained=[],sessions=[],idles=[],timers=new Map(),trace=[];
   let seq=0,removed=0;
   const sb=enabled?{auth:{onAuthStateChange(cb){live.add(cb);retained.push(cb);return {data:{subscription:{unsubscribe(){removed++;live.delete(cb);}}}};}}}:null;
-  const cloud=new Function('sb','return {'+parts.method+'};')(sb);
+  const cloud=new Function('sb','const statePushCache=new Map();return {'+parts.method+'};')(sb);
   cloud.enabled=()=>enabled;
   cloud.session=()=>new Promise((resolve,reject)=>sessions.push({resolve,reject}));
   const env={cloud,navigator:{onLine:!offline},sessionRef:{current:null},
@@ -17,6 +17,9 @@ export function authWorld(parts,{enabled=true,offline=false}={}){
     mcBootReady(){trace.push({type:'boot'});},setSession(s){trace.push({type:'session',uid:s?.user?.id??null});},
     mcScheduleIdle(fn){idles.push(fn);},syncFromCloud(s,opts){trace.push({type:'sync',uid:s.user.id,opts:opts||null});},
     set(fn){const result=fn({bankTx:['synthetic']});trace.push({type:'state',bankTx:result.bankTx});},
+    mcStateKey(){return 'synthetic';},goalSyncClear(){},expenseRowMemoReset(){},obAbsorbedSignOut(){},
+    obConfirmedStorageKey:owner=>'synthetic_oback_'+owner,obAbsorbedStorageKey:owner=>'synthetic_obabs_'+owner,
+    obConfirmedStorage:()=>({removeItem(){}}),obConfirmedReadCache:new Map(),obConfirmedBlocked:new Set(),obAbsorbedClearNotice(){},
     setRecovery(v){trace.push({type:'recovery',v});},setShowAuth(v){trace.push({type:'showAuth',v});}};
   return {env,live,retained,sessions,idles,timers,trace,get removed(){return removed;},
     mount(){env.sessionRef={current:null};let cleanup;new Function(...Object.keys(env),'useEffect',parts.effect)(...Object.values(env),fn=>{cleanup=fn();});return ()=>{if(cleanup)cleanup();};},

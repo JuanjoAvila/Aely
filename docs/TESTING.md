@@ -1,3 +1,135 @@
+FIN04 fase 1: `fin04-rename-note-ack.test.mjs` en el runner Node y `fin04-rename-note-ack.spec.mjs`
+en el mapa de Gastos. Dos contextos y SDK real con transporte simulado; ACK exacto, identidad
+local, nota concurrente, reintento y cero escrituras en modo pruebas (33 escritores). R2 añade
+legacy sin timestamps, lápidas, metadatos en ambos órdenes, importes conflictivos, red caída,
+fila aún no subida y ACK de renombrado tardío. Mutantes ejecutables en merge-expenses-cloud
+y expense-note. [Contrato y límites](briefs/fin04-fase1-renombrar-nota.md).
+R3 añade fallo permanente, contador durable, cola posterior, aviso único y fallo tardío;
+mutantes de esos contratos, serialización por fila, índices reconstruidos y cálculos de lápidas
+sin hechos de borrado; el registro oculto de confirmados conserva la guarda. `pull-sin-cambios` conserva su oráculo
+de cero filas convertidas, misma referencia y resultado equivalente sin atajos.
+
+UX08: `plan-native-wave.spec.mjs` protege scroll nativo del contenido, geometría de los grupos y simulador, retorno del alta y cancelación durante la salida después de desplazar la ficha. Oráculos de frames y persistencia cruda; tacto real CDP, un worker, cero retry y red externa abortada. Dos RED independientes. [Contrato y límites](briefs/ux08-native-wave-close-jump.md).
+
+INC-2709-03/UX-08: `plan-ola-web.spec.mjs` está en el mapa de `14-v4-screens`; CORE de shell/02 se mantiene. Cuatro RED causales y cuatro GREEN web, más nueve guardianes de Gestionar (un worker, cero retry). Compara capas de reposo, geometría fixed, tacto real, normal/reducido y cancelación/reanudación, con persistencia cruda exacta. DOM y PNG por frame son observaciones visuales, sin CPU6 ni perfilado; no acreditan ola nativa Android. [Acta y fallos conservados](briefs/inc270903-ux08-ola-web.md).
+
+Deudas: `deudas-alargar-plazo.test.mjs` está en el runner Node; `deudas-alargar-plazo.spec.mjs` está en el mapa de `09-tab-debts-goals.js`. Cubre elección explícita, guardado, datos conservados y tres idiomas. [Casos y límites](briefs/deudas-alargar-plazo-20261019.md).
+
+## FIN-23/24 · un cargo paga un recibo, candidata local 20/10/2026
+
+`tests/recibo-un-cargo-un-recibo.test.mjs` (en `steps`) reproduce el doble cómputo de la revisión de youtube-r4: YouTube acreditado por su BOOK del 5/10 (cargo del 2/10, misma ref) y Spotify del mismo banco y céntimos; la base ofrece Spotify y, enlazado, Plan da los dos por pagados. Cubre prueba guardada, solo extracto y sin extracto; el enlace doble ya guardado (no cuenta dos veces, no se borra, viaja igual a la nube y se deshace); el enlace hecho antes de que llegue el BOOK; el BOOK que cae en el mes siguiente (también para el mismo recibo); los controles que tienen que seguir enlazando (otra ref, sin ref, 8 días, BOOK anterior, otros céntimos, otra cuenta, otro banco, veto) y FIN-24 (dos filas con la misma ref en el mes, dentro o fuera del margen; la devolución no cuenta). `e2e/plan-expense-links.spec.mjs` suma dos pruebas «FIN-23…»: Plan con un solo pagado, la ficha con «YouTube Premium», sin la opción Spotify y, si había enlace guardado, con «Deshacer vínculo». No se ha probado en el móvil.
+
+## INC-2709-08 · orden de brókers
+
+`tests/broker-order.test.mjs` protege ternas, referencias financieras, orden antiguo y payload de sincronización. `e2e/cartera-orden-brokers.spec.mjs` arrastra por CDP en portada y pantalla hija, recarga y carga el estado en otro contexto mediante un cliente simulado con CAS. Compara grupos, filas y objetos financieros completos; incluye bróker importado y posición sin precio. Registrado en el runner y mapa de Inversiones.
+## UX14 · swipes encadenados, candidata local 19/10/2026
+
+R2 añade dos casos `UX14 bordes` en el mismo spec: encadenar durante un asiento hacia la
+primera/última pestaña conserva el origen visible de la banda; se registran checkpoints,
+toques nativos, rAF/>32 ms, hash servido y snapshots financieros. Cuatro RED causales R1
+y cuatro GREEN ABAB; fallo inicial del clasificador de llegada conservado y corregido sin
+alargar pausas. [Acta de R2](briefs/ux14-swipes-bordes-r2.md). El cierre privado separa ese
+fallo de las regresiones dirigidas completas pedidas (`rendimiento-tabs`, `swipe-pestanas`,
+`botnav-*`, un worker y cero retry).
+
+Tres casos `UX14` en `e2e/rendimiento-tabs.spec.mjs` (ya registrado en CROSSCUTTING y en
+la fase de rendimiento): cadenas rápidas de 90/2.000 gastos y control pausado. CPU6,
+splash fuera, aterrizaje comprobado, sin trazas ni polling de locators en la ventana;
+rAF inline y retrocesos del track contra el dedo. Dos RED causales en la base48d5ef810,
+tres GREEN de candidata y ocho controles de `swipe-pestanas`, sin retry. Tabla ABAB,
+concurrencia autorizada, duración CDP real y límites en [el acta](briefs/ux14-swipes-encadenados.md).
+No declara resuelto el lag general ni validado el móvil.
+
+## INC-290902 · porcentaje positivo inferior al redondeo
+
+`e2e/inicio-ciclo-porcentaje.spec.mjs` cubre el cambio Mi ciclo → Mes, importes de 1/49/50/51 céntimos, agotado y exceso, navegación, recarga y cierre civil de mes en Madrid. El margen positivo pequeño muestra `<1 %` en es/ca y `<1%` en en; las cifras mantienen los céntimos. Diez casos dirigidos con estado sintético, un worker y cero reintentos. El spec está registrado para Inicio en `relevant-tests`. [Contrato y límites](briefs/night-g-cycle-percent-20261018.md).
+
+FIN-11: Node `fin11-absorption-pending` y Deno `_shared/ob-absorbed-pending.test.ts`
+registrados en el runner; DOM `e2e/fin11-absorption-pending.spec.mjs` en Gastos.
+Cubren persistencia/reapertura, confirmación, saturación, aliases inciertos y la
+protección pendiente antes de consumir la referencia FIN-15 en otro día, con
+mutante causal de cero céntimos. El port af387 añade control200/guardia201 con alias
+único y mutación exclusiva de la guardia; barrera real `nubeLista` con limpieza
+pendiente/fallida y pull fallido, más mutación que restaura la espera del DELETE.
+[Evidencia y límites](briefs/fin11-absorciones-pendientes-20261017.md).
+
+H2 candidata, ronda 2: Node `h2-account-phases`/`h2-account-identity` y DOM `h2-account-phases.spec.mjs` registrados; handler/cliente/persistencia reales con banco sintético y bundle base real por Git. Compatibilidad bidireccional, 22500 céntimos, conexión nueva/reconexión/retirada de cuentas, diagnósticos y UID válido. Fixtures financieras originales restauradas; descarga incompleta 51/51 sin cambiar oráculos. DOM dirigido con un worker y cero reintentos; mutantes privados y límites en el handoff. [Contrato y límites](briefs/h2-saldos-movimientos-20261018.md).
+
+## INC-0410 · verificación del port a beta 141
+
+Los cuatro tests goals-three-way, goals-review-remates, goals-review2-remates y goals-review3-reserve-conflict están registrados en run-tests y se ejecutan sobre el HTML/fuentes de este checkout, junto a metas-pull-transport y reserva-dinero. Cubren tres vías, partición privada, ACK/M9/M12, reservas unilaterales/iguales y replay mensual17000c con un asiento; la subida inversa requiere replay manual20. E2E dirigidos de Metas y persistencia con datos sintéticos, puerto propio, un worker y cero reintentos; sin suite general ni CPU6. Resultados reales y gates pendientes en el [brief](briefs/inc-0410-lww-rechazo-20261017.md). Las evidencias de la fuente original permanecen separadas.
+
+UX16 (candidata sin APK): `tests/ux16-haptics.test.mjs` está registrado en `run-tests`;
+`e2e/ux16-haptics.spec.mjs`, en el mapa de UI compartida, Inicio y navegación.
+Comprueban guardas y animaciones con transporte nativo sintético; `HapticPlanTest`
+prueba en JVM el reparto acotado, contando la duración de cada primitiva.
+La fuente del plugin completo, el APK y el motor físico requieren revisión aparte.
+Ronda 4: `tests/ux16-ajustador.test.mjs` (lee/guarda el ajustador y `mcHaptic` lo usa) y `e2e/ux16-ajustador.spec.mjs` (Ajustes en beta, mover un deslizador, guardar, probar, borde que repite).
+[Contrato y límites](briefs/ux16-haptics.md).
+
+FIN-15 (beta 4.26.138): `tests/fin15-pendiente-contabilizada.test.mjs` registrado en `run-tests` ejecuta
+cliente, month legacy y widget v2 con PDNG/BOOK en días distintos, en ambos órdenes.
+Incluye 676 comparaciones exactas sin `#ref` contra `9370565` y diez mutaciones semánticas.
+La revisión1 distingue fallos de preparación del mutante de fallos del oráculo y fija
+PDNG30/BOOK33: primera fila en el lector, month sin orden explícito y widget por UUID ascendente.
+`e2e/fin15-pendiente-contabilizada.spec.mjs` está registrado en Gastos; comprueba una fila
+visible tras pull/reinicio y verifica el hash del HTML servido. Datos exclusivamente sintéticos.
+La suite completa y la aceptación móvil conservan sus gates independientes.
+UX15 (beta 4.26.138): `e2e/gastos-sincronizar-alcance.spec.mjs` registrado en el mapa de Gastos;
+DOM real es/en/ca, texto/ocupado/descripción accesible, una lectura en nube y ninguna
+invocación bancaria por pulsación. ROJO previo y mutaciones focales con 1 worker/0 reintentos.
+[Contrato, evidencia y límites](briefs/ux15-sincronizar-gastos-20261016.md).
+FIN12 revisión1: `tests/inicio-deuda-futura.test.mjs` registra 25 casos con 13 mutantes;
+altas reales 08/09, migración, reancla y transporte/merge de nube simulado.
+`e2e/inicio-deuda-futura.spec.mjs` comprueba seis puntos de la gráfica real al dedo,
+el regreso al presente y dos regresiones de legado. Sólo `startMonth` entero acredita
+inicio; `asOf` no. [Acta y límites](briefs/fin12-deuda-futura-inicio-20261016.md).
+## Runner Deno focal · PR255, remates privados, 17/10/2026
+
+`scripts/run-deno-tests.mjs` descubre recursivamente `*.test.ts` y `*_test.ts` en
+`supabase/`. `--list` imprime inventario con `executed:0`; para ejecutar se eligen
+archivos explícitos o `--all` para todos los Deno. No ejecuta build, Node ni E2E.
+Busca primero `deno` por PATH. Solo ante `ENOENT` prueba `AELY_DENO` (ruta
+absoluta literal) o, si no está configurada, `USERPROFILE` y `HOME` más
+`.deno/bin/deno[.exe]`. Un runtime roto o una configuración inválida fallan sin
+cambiar silenciosamente de ejecutable. No usa shell ni descarga Deno.
+
+```sh
+node scripts/run-deno-tests.mjs --list
+node scripts/run-deno-tests.mjs supabase/functions/_shared/crypto.test.ts
+```
+
+Sin Deno devuelve `EXIT 2`, `runtime-unavailable` y todos los seleccionados en
+`notRun`. Un fallo de test, incluso «Module not found», devuelve `EXIT 1` y frena
+sin reintentar. Mantiene `--allow-env` solo para crypto y lectura limitada a
+`supabase/functions` solo para myinvestor-counter; no concede permisos generales.
+Ejecuta con `--cached-only --no-lock --no-prompt`: sin descargas de dependencias,
+sin lockfile nuevo y sin peticiones interactivas de permisos. Solo lifecycle añade
+`--node-modules-dir=none` para resolver tipos npm desde la caché global existente.
+`tests/run-deno-tests.test.mjs` comprueba el proceso y el filesystem con fixtures
+sintéticas, está registrado en `steps` y no ejecuta los tests financieros Deno.
+
+En la base `a9916c3c`, los diez Deno están en `denoEnLista`. Main/PR y deploy
+preparan Deno; beta lo prepara según el plan, que puede omitirlos expresamente.
+Promote llama al runner sin instalar Deno explícitamente. Eso no prueba qué
+ejecutó una CI concreta: [inventario y propuesta](briefs/ops-deno-omitted-tests-20261017.md).
+El bloque Deno del runner general sigue intacto: todavía puede omitir runtime
+ausente o un error «not found». Esta preparación no acredita haber cerrado ese
+agujero en la suite general. La revisión privada verificó Deno2.9 instalado fuera
+del PATH y los diez Deno de main `a9916c3c`: 131 casos pasan, 15,31 s sumando
+ejecuciones válidas, con un fallo inicial de resolución npm conservado y 15,65 s
+incluyéndolo. Los nueve archivos verdes iniciales no se repitieron; lifecycle se
+volvió a ejecutar solo tras cambiar su resolución a caché global. No es CI ni
+una pasada única de la suite general. Fuente y resultados: [acta de remates](briefs/deno-pr255-runtime-real-tests-20261017.md).
+
+SEC03 callback: `tests/bank-callback-state.test.mjs` ejecuta el handler y helpers reales con
+BD stateful, barrera de dos snapshots y OAuth sintético. Registrado en steps y recorte servidor.
+37 casos cubren ganador único, replay, cero filas, error/throw/respuesta perdida/cardinalidad,
+emisión legacy, guardado final fallido, cuotas/orden, caducidad, cursor y302 web/APK.
+`SEC03_MUTANT=sin-state|acepta-cero|acepta-error|exito-sin-guardar` selecciona cuatro mutaciones
+textuales del handler con los mismos oráculos; cada proceso debe terminar EXIT1 por aserción.
+No acredita Postgres, gateway ni banco real. [Acta y límites](briefs/sec03-callback-atomic-state.md).
+
 Compras con referencias distintas: `tests/compras-identicas-ids.test.mjs` registrado en Node y
 `e2e/compras-identicas-ids.spec.mjs` en Gastos. Handlers reales con fixtures sintéticas,
 rojo causal, tres estados al céntimo y siete mutaciones. El oráculo antiguo de Recibos sigue
@@ -35,6 +167,12 @@ La rama `claude/cuenta-parte-mia` (`450d544e`) se integra sobre la 4.26.130. Lo 
 ## Inicio: dinero en tránsito a un bróker e intereses de la deuda
 
 Dos inflados de la gráfica medidos con la cartera real (revisión 14/10). `tests/inicio-transito-intereses` (en `run-tests`), con datos sintéticos: (a) una salida a un bróker enlazada cuenta como inversión desde que sale del banco hasta la primera foto que la recoge en diez días. Con la pista de siempre (`investmentId`, destino o nombre del bróker) la foto tiene que subir la mitad de lo aportado; con la aportación periódica (`state.aportaciones`: mismo bróker e importe, concepto de transferencia a nombre del titular —«yo mismo» o dos palabras de `settings.profile.fullName`— y bróker SIN cuenta propia en la app) basta una cuarta parte, para que llegue aunque la bolsa caiga ese día. Mientras viaja (menos de diez días) cuenta hasta ayer y hoy manda Cartera; pasados diez días sin foto vuelve a ser salida. Plano con foto diaria, semanal y del mismo día, «traspaso» y «otros»; con caída de bolsa el mes dice −300; el alquiler al casero del mismo importe es gasto; un bróker con cuenta manual cuyo histórico empieza después de la salida no se cuenta dos veces; sin enlace sigue neutro (el vaivén de la bolsa «recogía» un seguro de 247 € o un cambio de divisa). (b) `netWorthDebtPolicy` deshace cada mes «saldo × (1 + tipo/12) − cuota» en hipotecas y préstamos sin plazo con `apr` (también escrito con coma); sin tipo, la cuota entera es capital; un tipo cuyos intereses de un mes igualan o superan la cuota (un 105 por 1,05) se ignora; la fila «Deudas» de la «i» dice las dos cosas; tipo 0 y `amort` propio no cambian. Trece mutantes. La tarjeta del mes, Gastos, categorías y saldos de deuda se compararon antes/después con la cartera real: idénticos. Los e2e de Inicio esperan la fila de deudas nueva (la cartera heredada tiene hipoteca y préstamo sin tipo).
+
+## Deudas y Metas: edición individual · PR 239/240, en la beta 4.26.138
+
+`tests/deudas-metas-edicion.test.mjs` ejecuta los handlers del componente real con hooks en memoria: teclear `1,05`/`1.05` conserva cada texto intermedio y sólo Guarda escribe `d.apr`; vacío y cero se mantienen distintos. Comprueba tres estados financieros, guardado sin cambios, identidad y campos desconocidos, y rechazo de una edición sobre un estado más nuevo. `--baseline --decimal-only` conserva la reproducción histórica del fallo de 33d39 en `1,`. Tras el rebase autorizado, `--compare-base` compara las cifras y la serie con beta133 `52e1957d` (se puede indicar `--compare-ref SHA`); los tres estados incluyen sin parte, cuenta manual al 50 % y cuenta OB al 50 % con `obAcc`/`bankUid`, sin cambiar sus reglas de reparto. Los resultados y baselines anteriores de 33d, 967, 131 y 132 se conservan como evidencia histórica. Estos resultados Node no acreditan DOM ni rendimiento.
+
+`e2e/deudas-metas-edicion-v4.spec.mjs`, registrado para el módulo09, abre las hojas en es/en/ca y verifica escritura carácter a carácter, confirmación, persistencia, cancelación, eliminación y escritura concurrente. `listas-render` exige la puerta visible de editar en cada lista. Los guardianes de archivo de Deudas y alta/edición de reglas se adaptan a las hojas, conservando sus cifras e historial esperados; las escrituras concurrentes usan el `set` real de Goals, sin mutar localStorage por detrás. No se ejecutan hasta tener turno de navegador: runner único, censo fresco, adquisición atómica propia, un worker, cero retries y devolución expresa por fase. La suite completa corresponde a `test.yml` por workflow_dispatch sobre el SHA final de la rama propia.
 
 ## Inicio: la tarjeta del mes, más limpia · candidata4.26.126
 
@@ -83,6 +221,8 @@ Lo que sigue es la descripción del autor de la rama, antes de integrarse (sus t
 ## Inicio v4.2: patrimonio por flujos · candidata4.26.121
 
 `tests/inicio-v42` (en `run-tests`) cubre el modelo con datos sintéticos, en UTC y en Madrid: bancos por flujo, cuenta manual y bienes por escalones, deuda por cuadro de amortización, inversiones entre fotos más aportaciones, traspaso neutro solo con dos patas propias, bien heredado constante hacia atrás y marca `legacy` al revalorarlo, unión del historial local con la ventana de la nube y pull tardío sin sesión; ejecuta los callbacks reales de Guardar de Bienes y del pull, y sus mutantes monetarios tienen que morir. `e2e/inicio-v42.spec.mjs` (mapeado a 03-tab-dash) abre la pantalla: cifra, gráfica, consulta con el dedo, desplazamiento vertical que no toca la cifra, cobertura por cuenta y por bien, periodos y tarjeta del mes. `e2e/inicio-v42-rendimiento.spec.mjs` mide entrada y arrastre con CPU frenada, 20.000 movimientos y 400 cierres; `run-tests` lo lleva al grupo de rendimiento, en serie y después de los funcionales. `beta-sources` añade `Catálogo121`: la nota 121 como oráculo literal (cuatro puntos y una tanda `inicio-patrimonio-flujos` de cinco pasos numerados, solo web y sin APK) delante del catálogo de la 120 intacto, de modo que el panel enseña tres tandas; lista cerrada frente a la 120 (`4e927e33`) de los descriptores que crecen (veintisiete con `mergeAccountBalanceHistory`, `bienes-completo` además con `recordAssetValues`, `netWorthDay`, `madridYmdParts` y `_mcMadridYmdFmt`, y `inicio-grafica-vuelve` con el renderer nuevo) y de las treinta huellas que se mueven, todas por la web y cada una con sus unidades; el splash no se mueve. Tres mutantes negativos (splash sin declarar, declaración vacía, escritor revertido) y dos sobre la fuente real reabren la tanda. `Catálogo120` se lee ahora de su commit `4e927e33`. `--inicio-v42-only` ejecuta las pruebas de Inicio, `Catálogo121` y los contratos históricos 114, 117, 118, 119 y 120. `PERSIST91` cuenta 29 tandas que escriben estado. `presupuesto-rendimiento` queda en los mínimos medidos, 1336/367 KiB (1.367.867 / 375.111 B). No se ha probado en el móvil.
+
+`tests/inicio-deps-ajustes` (en `run-tests`) vigila de qué depende el recálculo de Inicio (tirones de «Tus cuentas», 20/10/2026). Comprueba que los ajustes que leen `netWorthSeries` y `dashboardBudgetStats`, más todo lo que llaman, son los declarados en `NET_WORTH_SETTINGS` / `BUDGET_SETTINGS`. Lo hace de dos formas: leyendo el código del cierre de llamadas de todos los módulos (cualquier lectura de `settings` entero falla) y ejecutándolas con los ajustes espiados. Cada campo declarado, mutado, obliga a recalcular la serie; el contraste, el idioma o el tamaño de letra, no. También comprueba que `netWorthHistoryKey` es exacta: en un barrido de 160 históricos alrededor de hoy, sobre dos carteras, la misma clave da la misma serie byte a byte, con `coverage` y `fresh`. Y que las pestañas no dependen de `drawerOpen` y que la cifra animada de Cartera vive en `CarteraHeroAmt`. Mutantes muertos: quitar `profile` de los declarados, quitar el punto de hoy también cuando es el primer cierre y olvidar `fresh` en la clave.
 
 ## Trade Republic: apuntes iguales con ordinal · candidata4.26.120
 
@@ -1000,6 +1140,8 @@ FIN-06: `tests/fx-multi.test.mjs` cruza cliente/Wallet, catálogo y desconocidos
 
 `pull-historico-entero` (runner unitario) ejecuta el paginador y `cloud.pullExpenses` reales con tabla sintética: 4501/50001 filas, respuesta corta, empates, ediciones de fecha, altas concurrentes, errores, reintentos, progreso y campos. Ejecuta también el sync de App para comprobar ausencia de mezcla/backfill/ACK tras error y descarte de lectura vieja. `cloud-historico-completo.spec.mjs` (CROSSCUTTING) abre Gastos y busca la fila antigua entre 2501; comprueba guardado partido, vuelta a primer plano sin reescritura y recuperación de fallo. No usa cartera real ni acredita un snapshot servidor o la latencia de RLS real.
 
+`pull-sin-cambios` (runner unitario) ejecuta el `syncCloudExpenses` real de App con la nube doblada: un segundo pull idéntico no barre palabras clave (`autoCategoryKw`), no pasa ninguna fila por `expenseFromRow`, no hace `set()` y conserva la referencia de `expenses`; una fila cambiada (importe, categoría, lápida) entra y las demás siguen siendo los mismos objetos; lo aprendido a mano (`USER_OVERRIDES`) cambia la categoría sin que cambie la fila, y un gasto tocado en sitio no se reutiliza. Compara byte a byte (JSON, reloj fijo; solo fuera `lastSync`/`_savedAt`) contra la versión sin atajos sacada del mismo texto, y `EXPENSE_ROW_COLS` contra las columnas que lee `expenseFromRow`. En `rendimiento.spec.mjs`, «volver a primer plano con la nube igual» cuenta en el navegador las filas reconvertidas, los barridos y las escrituras de `micartera_v3*` en una vuelta sin cambios (todo 0) y que una fila cambiada sí llega al histórico guardado. No cronometra: el A/B de frames está en el `CHANGELOG`.
+
 ## Guardián SEC-03
 
 node tests/logs-privacidad.test.mjs ejecuta productores cliente, callback/loggers Edge y ambos SDK Sentry con marcadores sintéticos y transportes en memoria. Está registrado en steps del runner. --source-ref SHA repite los mismos contratos contra una fuente Git previa sin mutar el checkout. Incluye inventario de destinos explícitos; no certifica gateway, RLS ni servidor activo. Matriz y límites en [SEC-03](briefs/sec03-privacidad-logs.md).
@@ -1167,3 +1309,35 @@ Su pase no convierte un rojo de la suite completa en verde ni acredita móvil/de
 Integración 4.26.127 (14/10): `tests/beta-sources.test.mjs` gana `Catálogo127`, que lee el catálogo de la producción 4.26.126 (`33d39cb8`) como base inmutable y fija en lista cerrada el descriptor nuevo `bancos-reconexion-revoca` (web y seis superficies Edge), las seis huellas que se mueven y por qué, y nueve mutantes (tres de cliente y seis de servidor) que reabren la tanda. `Promoción126` pasa a leer `33d39cb8` en vez del árbol vivo. Los hashes del registro de `auth-disposal` y `auth-disposal-fit` se renuevan. Las pruebas de las tres ramas (`myinvestor-sync-outcomes`, `myinvestor-keepalive`, `bank-revoke-callback-race`, `bank-download-incomplete` y los Deno de `enablebanking`, `myinvestor` y `bank-disconnect/lifecycle`) ya estaban registradas por sus ramas.
 
 Integración 4.26.128 (14/10): `tests/beta-sources.test.mjs` gana `Catálogo128`, que lee el catálogo de la beta 127 publicada (`b3edefb4`) como base y fija el descriptor nuevo `inicio-mes-pasado-mismo-dia` (el mismo alcance web que `inicio-patrimonio-flujos`, que gana `netWorthMonthsBack` y `NW_MONTHS`), las dos huellas que se mueven (`inicio-patrimonio-flujos` e `inicio-grafica-vuelve`, y por qué unidades), que el servidor y la tanda de bancos de la 127 no cambian, que el panel enseña dos tandas y diez mutantes que reabren la nueva. `Catálogo127` pasa a leer `b3edefb4` en vez del árbol vivo, `PERSIST91` cuenta 31 tandas con el bloque del guardado y los hashes del registro de `auth-disposal` y `auth-disposal-fit` se renuevan.
+
+
+OPS-07 reservas de PR241 (17/10): el handler real en `tests/myinvestor-keepalive.test.mjs`
+fija el límite de éxitos por usuario/hora sin frenar renovaciones ni ocultar otros errores,
+los once códigos cerrados y el booleano de refresco en respuesta, un único reintento de
+guardado con la guarda original y un timeout de 10 segundos que cubre cabeceras y cuerpo.
+El reloj del timeout se acelera en el doble; el aborto usa AbortController real y un
+watchdog independiente evita que una regresión cuelgue la prueba. Cubre limpieza de relojes,
+excepciones, dos fallos sin tercer intento, cero filas y reconexión entre intentos.
+Se conservan los 39 casos anteriores y se añaden 16: 55 verdes; cinco fallos causales
+previos sobre c8774a29 y un sexto al detectar que el límite403 ocultaba un fallo de lectura
+del cuerpo. Nueve mutaciones detectadas en la revisión anterior. El test ya está registrado en el runner.
+La segunda revisión añade cinco casos (60 en total): recuperación `ok → 500 → ok`
+en la misma hora, cambios de presencia de cada campo del refresco y de ambos, repetición
+estable y recuperación de campos. El historial sintético ordena y limita realmente,
+incluido el desempate por `id`. Sobre5c670ecc esas cuatro secuencias fallan; el quinto
+caso caracteriza el UPDATE aplicado con respuesta perdida que termina en `raced`.
+Este último es una ambigüedad documentada, no un fallo corregido ni prueba de otro escritor.
+Tres mutaciones nuevas detectadas: volver al límite anterior, comparar solo el código
+y eliminar el desempate por identificador. Las nueve anteriores conservan su evidencia
+sobre5c670ecc y no se suman como nuevas ni se declaran repetidas en esta revisión.
+Son dobles locales, sin bancos ni SQL vivos; no acreditan CI general, integración ni despliegue.
+
+
+## OPS-08 — guardas de rotación MyInvestor
+
+`myinvestor-token-race.test.ts` está registrado en el runner junto a `myinvestor-counter.test.ts`. Ambos leen únicamente fuentes bajo `supabase/functions`, sin permisos de red ni entorno: `deno test --node-modules-dir=none --allow-read=supabase/functions supabase/functions/_shared/myinvestor-token-race.test.ts supabase/functions/_shared/myinvestor-counter.test.ts`. El primero ejecuta handlers/helper reales, simulando Supabase, cifrado y proveedor; cubre ambos intercalados, reconexión, rechazo, refresh ausente en respuesta, acuse perdido, error de lectura, cero filas y recifrado legacy. Los Node de keepalive/sync cargan el helper real, sin sustituir su decisión. Mutaciones focales y límites en el [brief](briefs/ops08-refresh-cas.md).
+
+
+## FIN17: revisión F1–F5
+
+`fin17-confirmed-absorptions.test.mjs` cubre unión sobre1000, expulsión estricta>90d, aviso local, pack y colisiones forzadas, CAS, SIGNED_OUT con guardado posterior y conflicto de Metas beta141. M9/M11/M12 reconstruidos tienen ejecuciones causales independientes. El spec homónimo abre Gastos, reabre la aplicación, verifica avisos es/en/ca, consumo por incidencia y limpieza tras SIGNED_OUT. Datos/SDK sintéticos, sin aceptación móvil ni despliegue. [Mediciones y alcance](briefs/fin17-confirmed-absorptions-20261018.md).

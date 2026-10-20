@@ -296,9 +296,43 @@ const PRESUPUESTO = {
   // Integración 4.26.135 (15/10), compras idénticas (ordinal por banco y referencia, lápida `ob-absorbed` y borrado en la nube de la fila
   // absorbida) sobre la producción 134: 1.328.724 B crudo / 368.967 B gzip con sello .99999 y reserva de 95 B. El job `beta` lo tumbó
   // el tope: SUBE por lógica de dinero, no se recorta (mandato 11/10). 1298 KiB es el mínimo (quedan 428 B).
-  // Hotfix 4.26.142 (18/10), lo reservado por una regla borrada vuelve al presupuesto, sobre la producción 137: ~1.329.6 KB crudo
-  // con sello y reserva, unos 500 B por encima. SUBE 1 KiB por lógica de dinero (mandato 11/10).
-  minificado: 1299 * 1024,
+  // Integración 4.26.138 (16/10): Deudas y Metas con hoja de edición por tarjeta (plazo y cuota validados, deuda terminada protegida), «Actualizar gastos» y suscripciones
+  // en cuadrícula, sobre la producción 137: el job `beta` quedó en 1307/363 KB frente a 1298/361. El tope SUBE por lógica de producto en tres idiomas, no se recorta
+  // (mandato 11/10). Mínimos medidos con sello .99999 y reserva de 95 B: 1308 KiB minificado y 363 KiB gzip.
+  // Integración 4.26.139 (17/10): cuota que encaja con el plazo (aviso con el rango en tres idiomas), hoja de editar con el velo de Apuntar, FIN-12 y SES-01 sobre la beta 138:
+  // 1310/364 KB frente a 1308/363. SUBE por lógica de producto en tres idiomas, no se recorta (mandato 11/10). Mínimos medidos: 1311 KiB minificado y 365 KiB gzip.
+  // Integración 4.26.140 (17/10): cierre suave de la hoja de Deudas y Metas (velo que se apaga con ella), atrás que esconde el teclado antes de cerrar, nómina manual frente a la del banco
+  // y el aviso de cuota de frecuencia de los bancos en tres idiomas, sobre la beta 139: 1.344.813 B / 373.561 B gzip con sello .99999 y reserva de 95 B (1313,3 / 364,8 KiB). SUBE por lógica
+  // de producto, no se recorta (mandato 11/10). Mínimos: 1314 KiB minificado (quedan 0,7 KiB) y gzip a 366 KiB porque en 365 quedaban solo 195 B, menos que el sello real de Actions.
+  // Integración 4.26.141 (17/10): cierre suave de las fichas con atrás (runClose), plugin de vibración del lado web (borde e Inicio), Metas a tres vías entre móviles (INC-0410),
+  // FIN-10 y SEC-03, sobre la beta 140: 1.359.117 B / 377.930 B gzip con sello .99999 y reserva de 95 B (1327,2 / 369,1 KiB). SUBE por lógica de producto, no se recorta
+  // (mandato 11/10). Mínimos: 1328 KiB minificado (quedan 755 B) y gzip a 370 KiB (quedan 950 B; en 369 faltaban 74 B).
+  // Integración 4.26.143 (18/10): ocho PR sobre la 141 (FIN-17 con colas de absorción v2/v3 y FIN-11, devoluciones con signo, BOOK sobre PDNG, banco de pruebas, aviso de plazo en Deudas,
+  // saldo de cuenta con atrás, Mi ciclo «<1 %») y la nota con tres tandas: 1.393.484 B / 386.591 B gzip con sello .99999 y reserva de 95 B (1360,8 / 377,5 KiB). SUBE por lógica de producto,
+  // no se recorta (mandato 11/10). Mínimos: 1362 KiB minificado (quedan 1,2 KiB) y gzip a 379 KiB (quedan 1,5 KiB).
+  // Integración 4.26.144 (18/10): cuatro PR sobre la 143 (vibración nativa y borde por inercia, aviso de Guardar en Deudas, pruebas de recibo v2 que sobreviven a renombrar, identidad histórica de CaixaBank)
+  // y la nota con tres tandas: 1.400.558 B / 388.709 B gzip con sello .99999 y reserva de 95 B (1367,7 / 379,6 KiB). SUBE por lógica de producto, no se recorta (mandato 11/10).
+  // Mínimos: 1368 KiB minificado (quedan 274 B) y gzip a 380 KiB (quedan 411 B).
+  // Integración 4.26.145 (19/10): PR 279 (saldo por fases en el cliente), PR 280 (rampa continua, tirón repetido y tick en la gráfica de Inicio), el hotfix 4.26.142 de producción (liberación de
+  // reservas huérfanas), PR 281 (Plan «Por confirmar», pruebas de pago en la ficha del gasto y aviso de retirada estricto) y la nota con dos tandas: 1.410.340 B / 391.165 B gzip con sello .99999
+  // y reserva de 95 B (1377,3 / 382,0 KiB). SUBE por lógica de producto, no se recorta (mandato 11/10). Mínimos: 1378 KiB minificado (quedan 732 B) y gzip a 383 KiB (quedan 1.027 B; en 382 quedaban 3 B).
+  // Integración 4.26.146 (19/10): la 145 más `claude/perf-vuelta` (memoria de la categoría por palabra clave, filas reutilizadas, pull sin cambios y hora de lectura aparte) y la nota con una tanda:
+  // 1.412.935 B / 391.940 B gzip con sello .99999 y reserva de 95 B (1379,8 / 382,8 KiB). Es código, sin textos nuevos de peso. SUBE por lógica de producto, no se recorta (mandato 11/10).
+  // Mínimos: 1381 KiB minificado (quedan 1.209 B) y gzip a 384 KiB (quedan 1.276 B; en 383 quedaban 252 B).
+  // Integración 4.26.147 (19/10): la 146 más la PR 282 (alargar el plazo al bajar la cuota de una deuda, con su cálculo compartido y textos en tres idiomas) y la nota con una tanda:
+  // 1.414.560 B / 392.315 B gzip con sello .99999 y reserva de 95 B (1381,4 / 383,1 KiB). SUBE por lógica de producto, no se recorta (mandato 11/10).
+  // Con la PR 283 (reordenar brókers con el gesto de las cuentas): 1.415.954 B / 392.712 B gzip (1382,8 / 383,5 KiB). Mínimos: 1384 KiB minificado (quedan 1.262 B); el gzip se queda en 384 KiB (quedan 504 B).
+  // Integración 4.26.148 (19/10): la 147 más el enlace a mano de recibos (INC-1810-04), el ajustador de vibración (UX-16, ~170 unidades de lógica y textos en tres idiomas) y la nota con dos tandas. SUBE por lógica de producto, no se recorta (mandato 11/10).
+  // Mínimos medidos: 1392 KiB minificado y 387 KiB gzip (medían ~1391 / ~386 KiB).
+  // Integración 4.26.150 (19/10): la 149 más Gestionar plan sin ola (PR 285, ~1,4 KB de lógica de reposo y CSS) y la nota con una tanda. SUBE por lógica de producto: 1393 KiB minificado; el gzip se queda en 387 KiB.
+  // Integración 4.26.151 (19/10): la 150 más FIN-04 fase 1 (PR 286: renombrar y notas con ACK, cola durable y fusión por uuid; Codex midió 1403/389 KiB) y la nota con una tanda: 1404/390 KiB medidos. SUBE por lógica de dinero: 1405 KiB minificado y 391 KiB gzip.
+  // Integración 4.26.152 (19/10): la 151 más la ola nativa de Gestionar plan (PR 287), el ajustador de vibración ronda 2 con selector de tipo y la nota con dos tandas: 1406 KiB minificado medidos. SUBE por producto: 1407 KiB minificado; el gzip se queda en 391 KiB.
+  // Integración 4.26.153 (19/10): la 152 más vibración ronda 3, ola con raíz única, diagnóstico de recibo, MovRow con renombrado pendiente y la nota con cuatro tandas: 1412 KiB minificado y 392 KiB gzip medidos. SUBE por producto: 1413 / 392 KiB.
+  // Integración 4.26.154 (20/10): la 153 más perf-cuentas y el reintento de renombrar sin cobertura: 1414 KiB minificado medidos. SUBE por producto: 1415 KiB; el gzip a 394.
+  // Integración 4.26.156 (20/10): la 155 más vibración ronda 5 (toque propio de segmento ajustable y fuerza que alarga el toque): 1416 KiB minificado y 393 KiB gzip medidos en la CI de beta. SUBE por producto: 1417 KiB; el gzip se queda en 394.
+  // Integración 4.26.157 (20/10): la 156 más vibración ronda 6 (rampa del anillo, captura del tirón en Plan y gráfica con fuerza que alarga el toque): 1416 KiB minificado y 393 KiB gzip medidos en local, sin margen. SUBE por producto: 1419 KiB; el gzip se queda en 394.
+  // Integración 4.26.159 (20/10): la 158 más meses a mano en recibos (fixedChargeMonths, fixedAddPreview y la vista previa del alta): 1417 KiB minificado y 394 KiB gzip medidos en local, sin margen. SUBE por producto: 1421 KiB minificado y 395 de gzip.
+  minificado: 1421 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -328,7 +362,13 @@ const PRESUPUESTO = {
   // Integración 4.26.130: 363.055 B gzip, 6.465 B más que la 129. Mínimo medido: 355 KiB (quedan 465 B).
   // Integración 4.26.131: 365.878 B gzip, 2.823 B más que la 130. Mínimo medido: 358 KiB (quedan 714 B).
   // Integración 4.26.135: 368.967 B gzip, 2.375 B sobre 358 KiB. Mínimo medido: 361 KiB (quedan 697 B).
-  gzip: 361 * 1024,
+  // «Tus cuentas» sin tirones (20/10, `claude/perf-cuentas`, sobre 80752dff0): Inicio depende solo de
+  // los ajustes que lee, el cierre de hoy no recalcula la serie, las pestañas no dependen del cajón y
+  // la cifra de Cartera se anima sola. Mismo host y minificador, sello .99999 y reserva de 95 B:
+  // 1.445.348/401.213 → 1.446.618/401.660 B (+1.270/+447). Es código, sin textos. 392 KiB se queda
+  // corto por 252 B: 393 KiB (quedan 772 B); el crudo cabe en 1413 KiB con 294 B.
+  // Integración 4.26.159 (con fin23-24): 1418 KiB minificado y 394 KiB gzip medidos en local; el gzip queda a 1 KiB. SUBE por producto: gzip 396 KiB (el minificado conserva 3 KiB de margen).
+  gzip: 396 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

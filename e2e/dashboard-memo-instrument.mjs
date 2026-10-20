@@ -6,7 +6,7 @@ export const RECENT = 'const recent=(state.expenses||[]).filter(function(e){ ret
 export const DASH = 'function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){';
 export const SYNC = 'const syncCloudExpenses=function(){';
 
-export const MEMO = 'const recent=useMemo((s=state)=>(s.expenses||[]).filter(e=>!e.autoGemelo&&!expenseIsTombstoned(e,expenseDeletedSet(s))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted]);';
+export const MEMO = 'const recent=useMemo((s=state)=>(s.expenses||[]).filter(e=>!e.autoGemelo&&!expenseIsTombstoned(e,expenseDeletedSet(s))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);';
 export function instrumentDashboard(html, variant){
   if(html.split(MEMO).length!==2)throw new Error("Memo recent ausente/duplicado");
   const source=variant==="baseline"?html.replace(MEMO,RECENT):html;
@@ -14,7 +14,7 @@ export function instrumentDashboard(html, variant){
     if(source.split(anchor).length!==2)throw new Error("Ancla ausente/duplicada");
   }
   const compute='window.__dashProfile.derive(state,function(e){ return !expenseIsTombstoned(e,expenseDeletedSet(state)); },function(a,b){ return String(b.date).localeCompare(String(a.date)); })';
-  const replacement=variant==="baseline"?'const recent='+compute+';':'const recent=useMemo((s=state)=>'+compute.replace('derive(state,','derive(s,').replace('expenseDeletedSet(state)','expenseDeletedSet(s)')+',[state.expenses,state.deleted]);';
+  const replacement=variant==="baseline"?'const recent='+compute+';':'const recent=useMemo((s=state)=>'+compute.replace('derive(state,','derive(s,').replace('expenseDeletedSet(state)','expenseDeletedSet(s)')+',[state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);';
   const transformed=source
     .replace(DASH,DASH+'\nwindow.__dashProfile.guardBanks();window.__dashProfile.metrics.renders++;window.__dashProfile.state=state;window.__dashProfile.set=set;window.__dashProfile.totals=totals;')
     .replace(variant==="baseline"?RECENT:MEMO,replacement)

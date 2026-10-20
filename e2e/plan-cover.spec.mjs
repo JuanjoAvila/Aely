@@ -141,7 +141,7 @@ test("cambio de usuario descarta el extracto antes de adoptar su cartera", async
   })).toEqual([777,0,null]);
 });
 
-test("pagado y pendiente se separan sin anillo ni mensaje diagnóstico", async ({ page }) => {
+test("marca sin prueba y pendiente se separan sin anillo ni mensaje diagnóstico", async ({ page }) => {
   await openPlan(page, {
     fixed: [
       { id: "a", name: "Mini", amount: 1, freq: "mes", day: 2, paidYm: 2026*12+9, paidDay: 2, account: "sabadell" },
@@ -150,7 +150,9 @@ test("pagado y pendiente se separan sin anillo ni mensaje diagnóstico", async (
   });
   const recibos = page.locator(".v4-screen > [data-seg='recibos']");
   await expect(recibos.locator(".v4-card-hero")).toContainText(/999/);
-  await expect(recibos).toContainText(/Ya pagado.*1,00|Ya pagado.*1 €/i);
+  await expect(recibos.getByTestId('plan-unconfirmed')).toContainText(/Por confirmar · 1.*Mini.*1,00/s);
+  await expect(recibos).toContainText(/Ya pagado.*0,00/i);
+  await expect(recibos.locator('.v4-paid')).toHaveCount(0);
   await expect(recibos).not.toContainText(/%|sin contar compras del día a día/i);
 });
 
@@ -223,7 +225,7 @@ for (const caso of [
   }
 }
 
-test("todo pagado → 0 pendiente y lista pagada, sin NaN ni diagnóstico", async ({ page }) => {
+test("marca sin prueba → 0 previsto y confirmación separada, sin NaN ni diagnóstico", async ({ page }) => {
   await page.clock.install({ time: new Date("2026-09-30T12:00:00Z") });
   await seedLoggedInDashboard(page, {
     accounts: accountsFijos,
@@ -237,7 +239,9 @@ test("todo pagado → 0 pendiente y lista pagada, sin NaN ni diagnóstico", asyn
   const recibos = page.locator(".v4-screen > [data-seg='recibos']");
   await expect(recibos.locator(".v4-card-hero")).toContainText(/0/);
   await expect(recibos).toContainText(/Nada pendiente|ya no sale/i);
-  await expect(recibos).toContainText(/Ya pagado.*40/i);
+  await expect(recibos.getByTestId('plan-unconfirmed')).toContainText(/Por confirmar · 1.*Luz.*40,00/s);
+  await expect(recibos).toContainText(/Ya pagado.*0,00/i);
+  await expect(recibos.locator('.v4-paid')).toHaveCount(0);
   await expect(recibos).not.toContainText(/NaN|día ya|day already|dia ja/i);
 });
 
@@ -256,7 +260,7 @@ test("modo sencillo §5bis.2: título, sin anillo/%, sin Gestionar, sin jerga", 
   await expect(plan.locator(".v4-mov").first()).toBeVisible();
 });
 
-test("modo sencillo: todo pagado conserva una frase honesta y el saldo conocido", async ({ page }) => {
+test("modo sencillo: marca sin prueba conserva la confirmación pendiente", async ({ page }) => {
   await page.clock.install({ time: new Date("2026-09-30T12:00:00Z") });
   await seedLoggedInDashboard(page, {
     accounts: accountsFijos,
@@ -266,10 +270,13 @@ test("modo sencillo: todo pagado conserva una frase honesta y el saldo conocido"
   });
   await page.goto("/");
   await dismissNews(page);
+  await expect.poll(() => page.evaluate(() => !!mcLoadRaw(mcStateKey())._dynBalAnchored)).toBe(true);
+  const accountsBefore=await page.evaluate(()=>JSON.stringify(mcLoadRaw(mcStateKey()).accounts));
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   const cover = page.locator(".page-live .v4-plan-cover-simple");
-  await expect(cover).toContainText(/Ya has pagado todos los recibos/i);
-  await expect(cover).toContainText(/800/);
+  await expect(cover).toContainText('Todo pagado, salvo 1 cargo por confirmar.');
+  await expect(cover).not.toContainText(/Ya has pagado todos los recibos/i);
+  expect(await page.evaluate(()=>JSON.stringify(mcLoadRaw(mcStateKey()).accounts))).toBe(accountsBefore);
   await expect(cover).not.toContainText(/día ya|day already|dia ja/i);
 });
 
@@ -285,11 +292,12 @@ test("modo sencillo: cuenta borrada no inventa un saldo de 0 €", async ({ page
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   const cover = page.locator(".page-live .v4-plan-cover-simple");
-  await expect(cover).toContainText(/Ya has pagado todos los recibos/i);
+  await expect(cover).toContainText('Todo pagado, salvo 1 cargo por confirmar.');
+  await expect(cover).not.toContainText(/Ya has pagado todos los recibos/i);
   await expect(cover).not.toContainText(/tienes 0\s*€|0,00\s*€ en/i);
 });
 
-test("modo sencillo: saldo negativo conocido nunca recibe el titular verde", async ({ page }) => {
+test("modo sencillo: saldo negativo conocido nunca recibe el titular verde", async ({ page },info) => {
   await page.clock.install({ time: new Date("2026-09-30T12:00:00Z") });
   await seedLoggedInDashboard(page, {
     accounts: [{ id: "sb", ent: "sabadell", name: "Sabadell", value: -80, role: "fijos" }],
@@ -299,11 +307,16 @@ test("modo sencillo: saldo negativo conocido nunca recibe el titular verde", asy
   });
   await page.goto("/");
   await dismissNews(page);
+  await expect.poll(() => page.evaluate(() => !!mcLoadRaw(mcStateKey())._dynBalAnchored)).toBe(true);
+  const accountsBefore=await page.evaluate(()=>JSON.stringify(mcLoadRaw(mcStateKey()).accounts));
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   const cover = page.locator(".page-live .v4-plan-cover-simple");
   await expect(cover).toHaveAttribute("data-plan-state", "bad");
   await expect(cover).not.toContainText(/Vas bien este mes/i);
   await expect(cover).toContainText(/-80/);
+  await expect(cover).not.toContainText(/Todo pagado/i);
+  expect(await page.evaluate(()=>JSON.stringify(mcLoadRaw(mcStateKey()).accounts))).toBe(accountsBefore);
+  await cover.screenshot({path:info.outputPath('negative-balance.png')});
 });
 
 test("modo sencillo: una cuota sin día sigue pendiente sin inventar fecha", async ({ page }) => {
@@ -318,7 +331,7 @@ test("modo sencillo: una cuota sin día sigue pendiente sin inventar fecha", asy
   await expect(cover).not.toContainText(/día ya|day already|dia ja/i);
 });
 
-test("Ya pagado es compacto y Ver más enseña solo recibos", async ({ page }) => {
+test("marca sin prueba sigue visible para confirmar y no añade nómina a los recibos", async ({ page }) => {
   await page.clock.install({ time: new Date("2026-09-20T12:00:00Z") });
   await seedLoggedInDashboard(page, {
     accounts: accountsFijos,
@@ -334,7 +347,9 @@ test("Ya pagado es compacto y Ver más enseña solo recibos", async ({ page }) =
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   const recibos = page.locator(".v4-screen > [data-seg='recibos']");
-  await expect(recibos).toContainText(/Ya pagado.*40/i);
+  await expect(recibos.getByTestId('plan-unconfirmed')).toContainText(/Por confirmar · 1.*Luz.*40,00/s);
+  await expect(recibos).toContainText(/Ya pagado.*0,00/i);
+  await expect(recibos.locator('.v4-paid')).toHaveCount(0);
   await expect(recibos).toContainText("Luz");
   await expect(recibos).not.toContainText("Nómina");
 });

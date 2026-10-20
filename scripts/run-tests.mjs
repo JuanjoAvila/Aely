@@ -34,8 +34,24 @@ if (plan.build !== false) {
 }
 
 const steps = [
+  ["fin17-confirmed-absorptions", ["node", "--test", "--test-concurrency=1", "tests/fin17-confirmed-absorptions.test.mjs"]],
+  ["fin11-absorption-pending", ["node", "--test", "--test-concurrency=1", "tests/fin11-absorption-pending.test.mjs"]],
+  ["ux16-haptics", ["node", "--test", "tests/ux16-haptics.test.mjs"]],
+  ["ux16-ajustador", ["node", "--test", "tests/ux16-ajustador.test.mjs"]],
+  ["inicio-deuda-futura", ["node", "--test", "tests/inicio-deuda-futura.test.mjs"]],
+  ["run-deno-tests", ["node", "tests/run-deno-tests.test.mjs"]],
   ["inicio-grafica-reservas", ["node", "tests/inicio-grafica-reservas.test.mjs"]],
   ["compras-identicas-ids", ["node", "--test", "tests/compras-identicas-ids.test.mjs"]],
+  ["deudas-metas-edicion", ["node", "tests/deudas-metas-edicion.test.mjs"]],
+  ["deudas-metas-revision", ["node", "tests/deudas-metas-revision.test.mjs", "--mutations"]],
+  ["deudas-plazo-cuota", ["node", "tests/deudas-plazo-cuota.test.mjs"]],
+  ["deudas-alargar-plazo", ["node", "tests/deudas-alargar-plazo.test.mjs"]],
+  ["refund-polarity", ["node", "--test", "tests/refund-polarity.test.mjs"]],
+  ["fin10-absorption-scope", ["node", "--test", "tests/fin10-absorption-scope.test.mjs"]],
+  ["deudas-plazo-aviso", ["node", "tests/deudas-plazo-aviso.test.mjs"]],
+  ["deudas-plazo-submit", ["node", "tests/deudas-plazo-submit.test.mjs"]],
+  ["fin15-pendiente-contabilizada", ["node", "--test", "--test-concurrency=1", "tests/fin15-pendiente-contabilizada.test.mjs"]],
+  ["fin15-book-preference", ["node", "--test", "--test-concurrency=1", "tests/fin15-book-preference.test.mjs"]],
   ["prod117-edge-compat", ["node", "tests/prod117-edge-compat.test.mjs"]],
   ["backclose-history", ["node", "tests/backclose-history.test.mjs"]],
   ["gastos-mes-madrid", ["node", "tests/gastos-mes-madrid.test.mjs"]],
@@ -46,6 +62,8 @@ const steps = [
   ["dashboard-memo-instrument", ["node", "tests/dashboard-memo-instrument.test.mjs"]],
   ["supabase-workflow", ["node", "tests/supabase-workflow.test.mjs"]],
   ["debt-payment-state", ["node", "tests/debt-payment-state.test.mjs"]],
+  ["payment-evidence-ui", ["node", "tests/payment-evidence-ui.test.mjs"]],
+  ["payment-presentation", ["node", "tests/payment-presentation.test.mjs"]],
 
   ["gastos-periodo", ["node", "tests/gastos-periodo.test.mjs"]],
   ["retirada-bancaria", ["node", "tests/retirada-bancaria.test.mjs"]],
@@ -95,6 +113,7 @@ const steps = [
   // Se relanza solo con TZ=Europe/Madrid — en una máquina en UTC el fallo es invisible.
   ["dia-local-no-utc", ["node", "tests/dia-local-no-utc.test.mjs"]],
   ["move-account", ["node", "tests/move-account.test.mjs"]],
+  ["broker-order", ["node", "tests/broker-order.test.mjs"]],
   ["merge-expenses-cloud", ["node", "tests/merge-expenses-cloud.test.mjs"]],
   // La categoría que él elige no la deshace un pull ni la palabra clave del servidor (INC-0210-02).
   ["categoria-manual-persistente", ["node", "tests/categoria-manual-persistente.test.mjs"]],
@@ -109,7 +128,13 @@ const steps = [
   ["presupuesto-rendimiento", ["node", "tests/presupuesto-rendimiento.test.mjs"]],
   ["finance-core", ["node", "tests/finance-core.test.mjs"]],
   ["ob-ingresos", ["node", "tests/ob-ingresos.test.mjs"]],
+  ["manual-income-review", ["node", "tests/manual-income-review.test.mjs"]],
+  ["h2-account-phases", ["node", "tests/h2-account-phases.test.mjs"]],
+  ["h2-account-identity", ["node", "tests/h2-account-identity.test.mjs"]],
   ["bank-sync-paging", ["node", "tests/bank-sync-paging.test.mjs"]],
+  ["bank-rate-contracts", ["node", "tests/bank-rate-contracts.test.mjs"]],
+  ["bank-callback-state", ["node", "tests/bank-callback-state.test.mjs"]],
+  ["bank-rate-client", ["node", "tests/bank-rate-client.test.mjs"]],
   ["bank-download-incomplete", ["node", "tests/bank-download-incomplete.test.mjs"]],
   ["bank-sync-progreso", ["node", "tests/bank-sync-progreso.test.mjs"]],
   ["bank-sync-acuse", ["node", "tests/bank-sync-acuse.test.mjs"]],
@@ -119,10 +144,15 @@ const steps = [
   ["ob-hueco-recuperado", ["node", "tests/ob-hueco-recuperado.test.mjs"]],
   ["reserva-dinero", ["node", "tests/reserva-dinero.test.mjs"]],
   ["metas-pull-transport", ["node", "tests/metas-pull-transport.test.mjs"]],
+  ["goals-three-way", ["node", "--test", "tests/goals-three-way.test.mjs"]],
+  ["goals-review-remates", ["node", "--test", "tests/goals-review-remates.test.mjs"]],
+  ["goals-review2-remates", ["node", "--test", "tests/goals-review2-remates.test.mjs"]],
+  ["goals-review3-reserve-conflict", ["node", "--test", "tests/goals-review3-reserve-conflict.test.mjs"]],
   ["persist-commit", ["node", "tests/persist-commit.test.mjs"]],
   ["month-budget-stats", ["node", "tests/month-budget-stats.test.mjs"]],
   ["dash-metricas", ["node", "tests/dash-metricas.test.mjs"]],
   ["inicio-v42", ["node", "tests/inicio-v42.test.mjs"]],
+  ["inicio-deps-ajustes", ["node", "tests/inicio-deps-ajustes.test.mjs"]],
   ["inicio-mismo-dia", ["node", "tests/inicio-mismo-dia.test.mjs"]],
   ["inicio-transito-intereses", ["node", "tests/inicio-transito-intereses.test.mjs"]],
   ["cuenta-parte-mia", ["node", "tests/cuenta-parte-mia.test.mjs"]],
@@ -160,9 +190,13 @@ const steps = [
   ["plan-charges", ["node", "tests/plan-charges.test.mjs"]],
   ["fixed-day-reconcile", ["node", "tests/fixed-day-reconcile.test.mjs"]],
   ["fixed-payment-state", ["node", "tests/fixed-payment-state.test.mjs"]],
+  ["recibos-renombrar", ["node", "tests/recibos-renombrar.test.mjs"]],
+  ["recibos-book-rival", ["node", "tests/recibos-book-rival.test.mjs"]],
   ["recibo-domiciliado-sin-acreditar", ["node", "tests/recibo-domiciliado-sin-acreditar.test.mjs"]],
   ["recibo-invariante", ["node", "tests/recibo-invariante.test.mjs"]],
+  ["recibo-un-cargo-un-recibo", ["node", "tests/recibo-un-cargo-un-recibo.test.mjs"]],
   ["recibos-bajas-y-union", ["node", "tests/recibos-bajas-y-union.test.mjs"]],
+  ["recibos-meses-a-mano", ["node", "tests/recibos-meses-a-mano.test.mjs"]],
   ["hist-pagos-mensuales", ["node", "tests/hist-pagos-mensuales.test.mjs"]],
   ["revo-metales-coste", ["node", "tests/revo-metales-coste.test.mjs"]],
   ["parsers-revolut", ["node", "tests/parsers/revolut.test.mjs"]],
@@ -177,6 +211,7 @@ const steps = [
   ["hist-fecha-que-baila", ["node", "tests/hist-fecha-que-baila.test.mjs"]],
   ["fechas-cache", ["node", "tests/fechas-cache.test.mjs"]],
   ["hist-uniq-por-banco", ["node", "tests/hist-uniq-por-banco.test.mjs"]],
+  ["hist-book-reference", ["node", "tests/hist-book-reference.test.mjs"]],
   ["sync-manual-un-aviso", ["node", "tests/sync-manual-un-aviso.test.mjs"]],
   ["broker-sync-outcomes", ["node", "tests/broker-sync-outcomes.test.mjs"]],
   ["myinvestor-sync-outcomes", ["node", "tests/myinvestor-sync-outcomes.test.mjs"]],
@@ -205,8 +240,10 @@ const steps = [
   ["ob-iguales-ordinal", ["node", "tests/ob-iguales-ordinal.test.mjs"]],
   ["huella-bundle", ["node", "tests/huella-bundle.test.mjs"]],
   ["expense-note", ["node", "tests/expense-note.test.mjs"]],
+  ["fin04-rename-note-ack", ["node", "--test", "tests/fin04-rename-note-ack.test.mjs"]],
   ["expense-id-cloud", ["node", "tests/expense-id-cloud.test.mjs"]],
   ["pull-historico-entero", ["node", "tests/pull-historico-entero.test.mjs"]],
+  ["pull-sin-cambios", ["node", "tests/pull-sin-cambios.test.mjs"]],
   ["bank-connect-once", ["node", "tests/bank-connect-once.test.mjs"]],
   ["inv-dashboard", ["node", "tests/inv-dashboard.test.mjs"]],
   ["financing", ["node", "tests/financing.test.mjs"]],
@@ -237,12 +274,18 @@ if (huerfanos.length) {
 }
 
 const denoEnLista = [
+  "supabase/functions/_shared/ob-absorbed-pending.test.ts",
+  "supabase/functions/_shared/ob-absorbed-confirmed.test.ts",
+  "supabase/functions/_shared/input_handlers.test.ts",
+  "supabase/functions/_shared/request_body.test.ts",
+  "supabase/functions/_shared/myinvestor_inputs.test.ts",
   "supabase/functions/ingest/ingest.test.ts",
   "supabase/functions/ingest/widget.test.ts",
   "supabase/functions/_shared/crypto.test.ts",
   "supabase/functions/_shared/enablebanking.test.ts",
   "supabase/functions/_shared/myinvestor.test.ts",
   "supabase/functions/_shared/myinvestor-counter.test.ts",
+  "supabase/functions/_shared/myinvestor-token-race.test.ts",
   "supabase/functions/delete-account/delete-account.test.ts",
   "supabase/functions/prices/prices.test.ts",
   "supabase/functions/bank-sync/demand-window.test.ts",
@@ -279,8 +322,12 @@ if (plan.deno !== false) {
   const denoTests = denoEnLista;
   for (const testFile of denoTests) {
     const started = performance.now();
-    const denoArgs = testFile.includes("myinvestor-counter.test")
-      ? ["test", "--allow-read=supabase/functions", testFile]
+    const denoArgs = testFile.includes("myinvestor_inputs.test")
+      ? ["test", "--allow-read=supabase/functions,src/modules/00-core.js", testFile]
+      : testFile.includes("input_handlers.test")
+      ? ["test", "--allow-read=supabase/functions,supabase/config.toml", testFile]
+      : /myinvestor-(counter|token-race)\.test/.test(testFile)
+      ? ["test", "--node-modules-dir=none", "--allow-read=supabase/functions", testFile]
       : testFile.includes("crypto.test")
       ? ["test", "--allow-env", testFile]
       : ["test", testFile];

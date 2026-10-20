@@ -81,12 +81,27 @@ const disco=(page)=>page.evaluate(()=>{
     exp:JSON.parse(localStorage.getItem("micartera_v3_exp")||"[]").map(e=>[e.id,e.amount])};
 });
 const fila=(page,name)=>page.locator("[data-reserva-rule]").filter({hasText:name});
-// En «Editar metas» el nombre de la meta es un campo, no texto: la tarjeta se ancla a su valor.
-const tarjetaEditable=(page,nombre)=>page.locator(".v4-goal-card").filter({has:page.locator('input[value="'+nombre+'"]')});
+const tarjetaEditable=(page,nombre)=>page.locator(".v4-goal-card").filter({hasText:nombre});
+// Con la regla en una hoja modal, la otra escritura llega por el set real de Goals (como la
+// nube), sin cambiar localStorage por detrás ni debilitar los oráculos de carreras anteriores.
+async function cambiarMeta(page,nombre,saved){
+  await page.evaluate(({nombre,saved})=>{
+    const card=[...document.querySelectorAll('.v4-goal-card')].find(c=>c.textContent.includes(nombre));
+    let fiber=card[Object.keys(card).find(k=>k.startsWith('__reactFiber$'))];
+    while(fiber&&!(fiber.memoizedProps&&fiber.memoizedProps.state&&fiber.memoizedProps.set))fiber=fiber.return;
+    if(!fiber)throw Error('No se encontró el set real de Goals');
+    fiber.memoizedProps.set(s=>({...s,goals:s.goals.flatMap(g=>g.name!==nombre?[g]:saved==null?[]:[{...g,saved,done:saved>=g.target,doneAt:saved>=g.target?new Date().toISOString():null}])}));
+  },{nombre,saved});
+}
 async function eliminarMeta(page,t,nombre){
   const card=tarjetaEditable(page,nombre);
-  await expect(card.locator("input").first()).toHaveValue(nombre);
-  await card.getByRole("button",{name:t.eliminar,exact:true}).click();
+  await expect(card).toContainText(nombre);
+  if(await page.locator('.add-form').count()) await cambiarMeta(page,nombre);
+  else{
+    await card.locator('.plan-item-open').click();
+    await page.locator('.plan-edit-sheet').getByRole('button',{name:t.eliminar,exact:true}).click();
+    await page.locator('.askback').getByRole('button',{name:t.eliminar,exact:true}).click();
+  }
   await expect(tarjetaEditable(page,nombre)).toHaveCount(0);
 }
 
@@ -202,8 +217,7 @@ for(const lang of Object.keys(textos)){
     await form.locator("input").first().fill("Obsoleta");
     await form.locator("input").last().fill("100");
     await form.locator("select").last().selectOption("g2");
-    // Con el formulario abierto, la meta elegida se elimina desde la propia pantalla.
-    await page.getByRole("button",{name:t.editar,exact:true}).click();
+    // Con el formulario abierto, otra escritura elimina la meta elegida.
     await eliminarMeta(page,t,"Reserva B");
     await form.getByRole("button",{name:t.save,exact:true}).click();
     await expect(form.getByRole("alert")).toHaveText(t.errMeta);
@@ -234,18 +248,17 @@ for(const lang of Object.keys(textos)){
     await form.locator("input").first().fill("Carrera");
     await form.locator("input").last().fill("100");
     await form.locator("select").last().selectOption("g2");
-    await page.getByRole("button",{name:t.editar,exact:true}).click();
     /* La eliminación de la meta se encola FUERA de un evento (así React no la pinta todavía) y,
        en la misma tarea, se pulsa Guardar: el toque valida contra la pantalla que aún enseña la
        meta, y la escritura llega cuando ya no existe. Es el hueco entre leer y escribir. */
     const orden=await page.evaluate(([eliminar,guardar])=>{
       window.__volcados.length=0;
       const boton=(txt)=>[...document.querySelectorAll("button")].find(b=>b.textContent.trim()===txt);
-      const tarjeta=[...document.querySelectorAll(".v4-goal-card")].find(c=>[...c.querySelectorAll("input")].some(i=>i.value==="Reserva B"));
-      const del=[...tarjeta.querySelectorAll("button")].find(b=>b.textContent.trim()===eliminar);
-      const props=Object.keys(del).find(k=>k.startsWith("__reactProps$"));
-      del[props].onClick();
-      const sigueEnPantalla=[...document.querySelectorAll(".v4-goal-card input")].some(i=>i.value==="Reserva B");
+      const tarjeta=[...document.querySelectorAll(".v4-goal-card")].find(c=>c.textContent.includes("Reserva B"));
+      let fiber=tarjeta[Object.keys(tarjeta).find(k=>k.startsWith("__reactFiber$"))];
+      while(fiber&&!(fiber.memoizedProps&&fiber.memoizedProps.state&&fiber.memoizedProps.set))fiber=fiber.return;
+      fiber.memoizedProps.set(s=>({...s,goals:s.goals.filter(g=>g.name!=="Reserva B")}));
+      const sigueEnPantalla=[...document.querySelectorAll(".v4-goal-card")].some(c=>c.textContent.includes("Reserva B"));
       boton(guardar).click();
       return {sigueEnPantalla};
     },[t.eliminar,t.save]);
@@ -303,12 +316,12 @@ for(const lang of Object.keys(textos)){
     await form.locator("input").first().fill("Transitoria");
     await form.locator("input").last().fill("100");
     await form.locator("select").last().selectOption("g2");
-    await page.getByRole("button",{name:t.editar,exact:true}).click();
     await page.evaluate(([eliminar,guardar])=>{
-      const tarjeta=[...document.querySelectorAll(".v4-goal-card")].find(c=>[...c.querySelectorAll("input")].some(i=>i.value==="Reserva B"));
-      const del=[...tarjeta.querySelectorAll("button")].find(b=>b.textContent.trim()===eliminar);
+      const tarjeta=[...document.querySelectorAll(".v4-goal-card")].find(c=>c.textContent.includes("Reserva B"));
+      let fiber=tarjeta[Object.keys(tarjeta).find(k=>k.startsWith("__reactFiber$"))];
+      while(fiber&&!(fiber.memoizedProps&&fiber.memoizedProps.state&&fiber.memoizedProps.set))fiber=fiber.return;
       window.__hold=true;
-      del[Object.keys(del).find(k=>k.startsWith("__reactProps$"))].onClick();
+      fiber.memoizedProps.set(s=>({...s,goals:s.goals.filter(g=>g.name!=="Reserva B")}));
       [...document.querySelectorAll("button")].find(b=>b.textContent.trim()===guardar).click();
     },[t.eliminar,t.save]);
     await page.waitForTimeout(300);
@@ -353,7 +366,6 @@ for(const lang of Object.keys(textos)){
     await fila(page,"Borrada").getByRole("button",{name:t.borrar,exact:true}).click();
     await page.getByRole("dialog").getByRole("button",{name:t.borrar,exact:true}).click();
     await expect(page.locator("[data-reserva-rule]")).toHaveCount(3);
-    await page.getByRole("button",{name:t.editar,exact:true}).click();
     await eliminarMeta(page,t,"Reserva B");
     await page.waitForTimeout(600);
     await expect(page.locator(".add-form")).toHaveCount(0);
@@ -383,12 +395,9 @@ for(const lang of Object.keys(textos)){
       await form.locator("input").first().fill("Ultima");
       await form.locator("input").last().fill("100");
       await form.locator("select").last().selectOption("g2");
-      await page.getByRole("button",{name:t.editar,exact:true}).click();
       if(modo==="eliminada") await eliminarMeta(page,t,"Reserva B");
       else{
-        const card=tarjetaEditable(page,"Reserva B");
-        await card.locator("input.num").first().fill("9000");   // lo ahorrado alcanza el objetivo
-        await page.getByRole("button",{name:t.guardarMetas,exact:true}).click();
+        await cambiarMeta(page,"Reserva B",9000);   // otra escritura cumple el objetivo
         await expect.poll(async()=> (await disco(page)).goals).toEqual([["g2",9000]]);
       }
       // El formulario sigue ahí con lo escrito, aunque ya no haya ninguna meta activa.

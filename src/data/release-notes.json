@@ -1,5 +1,50 @@
 [
   {
+    "v": "4.26.159",
+    "d": "2026-10-20",
+    "t": {
+      "es": "Deudas y Metas más fáciles de corregir, recibos que cuadran, vibración suave y una app más fluida",
+      "en": "Debts and Goals easier to fix, bills that add up, gentle vibration and a smoother app",
+      "ca": "Deutes i Metes més fàcils de corregir, rebuts que quadren, vibració suau i una app més fluida"
+    },
+    "items": {
+      "es": [
+        "En Plan, cada deuda y cada meta se abre en su propia hoja para corregirla. Si la cuota y el plazo no cuadran con lo que queda por pagar, la app te avisa, y si bajas la cuota te ofrece alargar el plazo con un toque. Una financiación que empieza más adelante ya no cuenta como deuda antes de su fecha.",
+        "Las hojas y las fichas se abren y se cierran suaves, también con el gesto de atrás. Con el teclado abierto, el primer «atrás» solo lo esconde y no pierdes lo que habías escrito.",
+        "Vibración suave al llegar al final de una lista, mientras se rellena el anillo de Mi ciclo, al cambiar entre Recibos, Deudas y Metas y al recorrer la gráfica de Inicio. Respeta la vibración táctil del móvil, y para notarla hay que instalar la actualización de la app que se ofrece.",
+        "Recibos: en Plan, un recibo o una cuota solo salen como pagados cuando se ve el cargo; si solo ha pasado la fecha, salen «Por confirmar». La ficha de un gasto dice qué recibo o qué deuda paga, reconoce su recibo aunque el banco lo apunte unos días después, y un recibo se puede enlazar a mano. Un mismo cargo ya no puede dar por pagados dos recibos.",
+        "Los recibos que se cobran solo en algunos meses, o que no son mensuales como los seguros semestrales, cuentan lo justo cada mes, y «Se te van cada mes» cuadra con la suma de sus grupos. Al dar de alta un recibo se ve bien cuánto se cobra cada vez y en qué meses.",
+        "Renombrar gastos y notas es más seguro: el nombre nuevo sale al momento en la lista, no vuelve una nota antigua ni aparece repetido, y sin conexión se guarda solo al volver la red.",
+        "Menos cosas contadas dos veces: una compra que el banco manda como pendiente y reaparece otro día, una nómina apuntada a mano que también llega del banco y los movimientos de dos cuentas del mismo banco. Una devolución ya no se confunde con su compra.",
+        "La app va más fluida al abrirla, al volver a ella, al ir a Cartera y al deslizar rápido entre pestañas. En Gestionar plan vuelve la ola al llegar al final y la lista ya no se mueve al tocar una categoría.",
+        "Y además: puedes ordenar tus brókers manteniéndolos pulsados y arrastrándolos, en Gastos el botón «Actualizar gastos» explica lo que hace, Mi ciclo dice «<1 %» cuando queda muy poco margen y Metas no pierde lo que se guarda desde dos móviles a la vez."
+      ],
+      "en": [
+        "In Plan, each debt and each goal opens in its own sheet so you can fix it. If the instalment and the term do not match what is left to pay, the app warns you, and if you lower the instalment it offers to extend the term with one tap. A loan that starts later no longer counts as debt before its start date.",
+        "Sheets and cards open and close smoothly, also with the back gesture. With the keyboard open, the first «back» only hides it and you do not lose what you typed.",
+        "Gentle vibration when you reach the end of a list, while the My cycle ring fills up, when you switch between Bills, Debts and Goals and when you move along the Home chart. It respects your phone's touch vibration setting, and to feel it you need to install the app update it offers.",
+        "Bills: in Plan, a bill or an instalment only shows as paid once its charge is seen; if only the date has passed, it shows as «To confirm». A transaction's card says which bill or debt it pays, recognises its bill even if the bank records it a few days later, and a bill can be linked by hand. A single charge can no longer mark two bills as paid.",
+        "Bills charged only in some months, or that are not monthly such as half-yearly insurance, count just what they should each month, and «Goes out every month» (monthly total) matches the sum of its groups. When you add a bill you can see how much is charged each time and in which months.",
+        "Renaming transactions and notes is safer: the new name shows right away in the list, an old note does not come back and nothing appears twice, and without a connection it is saved on its own when the network returns.",
+        "Fewer things counted twice: a purchase the bank sends as pending and that shows up again another day, a salary entered by hand that also arrives from the bank, and the transactions of two accounts at the same bank. A refund is no longer mixed up with its purchase.",
+        "The app is smoother when you open it, when you come back to it, when you go to Portfolio and when you swipe quickly between tabs. In Manage plan the ripple is back when you reach the end, and the list no longer moves when you tap a category.",
+        "Also: you can reorder your brokers by holding and dragging them, the «Refresh expenses» button in Spending explains what it does, My cycle says «<1 %» when there is very little margin left, and Goals no longer loses what is saved from two phones at once."
+      ],
+      "ca": [
+        "A Pla, cada deute i cada meta s'obre en el seu propi full per corregir-lo. Si la quota i el termini no quadren amb el que queda per pagar, l'app t'avisa, i si baixes la quota t'ofereix allargar el termini amb un toc. Un finançament que comença més endavant ja no compta com a deute abans de la seva data.",
+        "Els fulls i les fitxes s'obren i es tanquen suaus, també amb el gest d'enrere. Amb el teclat obert, el primer «enrere» només l'amaga i no perds el que havies escrit.",
+        "Vibració suau en arribar al final d'una llista, mentre s'omple l'anell de El meu cicle, en canviar entre Rebuts, Deutes i Metes i en recórrer la gràfica d'Inici. Respecta la vibració tàctil del mòbil, i per notar-la cal instal·lar l'actualització de l'app que s'ofereix.",
+        "Rebuts: a Pla, un rebut o una quota només surten com a pagats quan es veu el càrrec; si només ha passat la data, surten «Per confirmar». La fitxa d'una despesa diu quin rebut o quin deute paga, reconeix el seu rebut encara que el banc l'apunti uns dies després, i un rebut es pot enllaçar a mà. Un mateix càrrec ja no pot donar per pagats dos rebuts.",
+        "Els rebuts que es cobren només en alguns mesos, o que no són mensuals com les assegurances semestrals, compten el just cada mes, i «Se't van cada mes» quadra amb la suma dels seus grups. En donar d'alta un rebut es veu bé quant es cobra cada vegada i en quins mesos.",
+        "Canviar el nom de despeses i notes és més segur: el nom nou surt al moment a la llista, no torna una nota antiga ni apareix repetit, i sense connexió es desa sol en tornar la xarxa.",
+        "Menys coses comptades dues vegades: una compra que el banc envia com a pendent i reapareix un altre dia, una nòmina apuntada a mà que també arriba del banc i els moviments de dos comptes del mateix banc. Una devolució ja no es confon amb la seva compra.",
+        "L'app va més fluida en obrir-la, en tornar-hi, en anar a Cartera i en lliscar ràpid entre pestanyes. A Gestionar pla torna l'ona en arribar al final i la llista ja no es mou en tocar una categoria.",
+        "I a més: pots ordenar els teus bròkers mantenint-los premuts i arrossegant-los, a Despeses el botó «Actualitza les despeses» explica què fa, El meu cicle diu «<1 %» quan queda molt poc marge i Metes no perd el que es desa des de dos mòbils alhora."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.142",
     "d": "2026-10-18",
     "t": {

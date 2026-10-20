@@ -538,23 +538,25 @@ t("vínculo sin lápida (A contestó, B pisó el estado, A baja la unión): el b
 // que ejecuta el móvil: una mutación sobre `public/index.html` también los alcanza.
 const mainSrc = H.read("public/index.html");
 t("backfill: una fila local con lápida no se resube en cada pull", () => {
-  const m = mainSrc.match(/const delSet=\{\}; \(stateRef\.current\.deleted\|\|\[\]\)[\s\S]*?subirGasto\(e, "backfill"\); \}\);/);
+  const m = mainSrc.match(/const delSet=expenseDeletedSet\(stateRef\.current\);[\s\S]*?subirGasto\(e, "backfill"\); \}\);/);
   assert.ok(m, "no se encuentra el bloque del backfill en syncCloudExpenses");
-  const pull = new Function("stateRef", "rows", "expenseFromRow", "expenseIsTombstoned", "keyOfExpense", "subirGasto", m[0]);
+  const pull = new Function("stateRef", "rows", "expenseFromRow", "expenseIsTombstoned", "keyOfExpense", "subirGasto", "expenseDeletedSet", "expensesFromRows", m[0]);
   const s = estado();
   const viva = { id: c.mcExpenseId(), date: ymd(-2) + "T10:00:00.000Z", merchant: "Movimiento", amount: 12, category: "otros", source: "ob", ent: "trade_republic" };
   const muerta = Object.assign({}, viva, { id: c.mcExpenseId(), amount: 29.9 });
   s.expenses = [viva, muerta]; s.deleted = [c.keyOfExpense(muerta)];
   const subidas = [];
-  pull({ current: s }, [], c.expenseFromRow, c.expenseIsTombstoned, c.keyOfExpense, (e, why) => subidas.push(why + ":" + e.amount));
+  pull({ current: s }, [], c.expenseFromRow, c.expenseIsTombstoned, c.keyOfExpense, (e, why) => subidas.push(why + ":" + e.amount), c.expenseDeletedSet, c.expensesFromRows);
   same(subidas, ["backfill:12"], "solo la viva");
 });
 
 /* ── 14. `gemelos` entre dos móviles: unión, gane quien gane el estado ──────────────────── */
 t("dos móviles: el vínculo de A sobrevive al estado de B (y al revés) con el bloque REAL de syncFromCloud", () => {
-  const m = mainSrc.match(/const merged=mergeExpenses\(prev\.expenses[\s\S]*?if\(gem!==baseObj\.gemelos\) baseObj\.gemelos=gem;/);
+  const m = mainSrc.match(/const sameOwner=![^\n]*\n\s*const preferenceDeleted=[\s\S]*?if\(gem!==baseObj\.gemelos\) baseObj\.gemelos=gem;/);
   assert.ok(m, "no se encuentra el bloque de último-que-escribe en syncFromCloud");
-  const adopta = new Function("prev", "cloudState", "freshLogin", "mergeExpenses", "fusionarGemelos", "opts", "u", m[0] + "\nreturn baseObj;");
+  // La 141 (Metas a tres vías) hace que el bloque lea `cloudPack.updated_at` y llame a `goalSyncPull`/`goalSyncCopy`: se le dan los reales del bundle.
+  const bloque = new Function("prev", "cloudState", "freshLogin", "mergeExpenses", "fusionarGemelos", "opts", "u", "cloudPack", "goalSyncPull", "goalSyncCopy", "expenseDeletedSet", m[0] + "\nreturn baseObj;");
+  const adopta = (p, cs, fl, me, fg) => bloque(p, cs, fl, me, fg, {}, "synthetic", { updated_at: "synthetic" }, c.goalSyncPull, c.goalSyncCopy, c.expenseDeletedSet);
   const mezcla = (p) => ({ list: p });
   const A = estado(), B = estado();
   const av = aviso(-3, 10, 29.9, "Decathlon"); A.expenses.unshift(av); B.expenses.unshift(Object.assign({}, av));

@@ -123,8 +123,10 @@ test("el alta conserva su cero sin convertirlo en un saldo acreditado", async ({
   await inicio(page, { onboarded: false, history: [], budget: 0, accounts: [{ ...CUENTA, value: 1500 }] });
   await page.getByRole("button", { name: "Saltar" }).click();
   await actual(page, 1500);
+  // El histórico se guarda con su retardo de escritura. Antes llegaba a tiempo solo porque la cifra
+  // tardaba 950 ms en contar hasta 1500; ahora la cifra sale ya puesta y hay que esperar al guardado.
+  await expect.poll(async () => JSON.parse(await carteraGuardada(page))[4]).toEqual([0]);
   const guardado = JSON.parse(await carteraGuardada(page));
-  expect(guardado[4]).toEqual([0]);
   expect(guardado[0][0].value).toBe(1500);
 });
 

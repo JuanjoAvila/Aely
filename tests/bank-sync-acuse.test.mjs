@@ -121,7 +121,8 @@ await t("N1 el punto de partida no pisa el cursor que otro móvil escribió entr
   assert.equal(link.last_sync, haceDias(2));
   const caido = enlace(null);
   const r = await llama(NUEVA, caido, bank, { recoverGaps: true, acks: {} }, () => true);
-  assert.equal(r.data.links[0].ok, false, "el extracto no respondió en ninguna cuenta");
+  assert.equal(r.data.links[0].ok, true, "el saldo válido sigue disponible aunque no responda el extracto");
+  assert.ok(r.data.links[0].accounts.every(a => a.transactionError));
   assert.equal(r.data.links[0].ack, undefined);
   assert.equal(caido.last_sync, null);
 });
@@ -452,7 +453,7 @@ await t("el acuse no se guarda si el estado con sus filas no llegó a disco", as
   assert.ok(r.data.links[0].ack);
   assert.equal(recibe(state, r.data.links, "nuevo", { volcado: false }), false);
   assert.equal(acuseDe(state), null, "sin filas en disco no hay acuse");
-  assert.deepEqual(CLIENTES.nuevo(state), { recoverGaps: true, acks: {} });
+  assert.deepEqual(CLIENTES.nuevo(state), { recoverGaps: true, acks: {}, accountPhases: 1 });
   // Un volcado ANTERIOR (otra marca) tampoco acredita esta respuesta.
   recibe(state, r.data.links, "nuevo");
   const previo = acuseDe(state);
@@ -578,7 +579,7 @@ await t("H2 en modo pruebas ni se envía ni se guarda acuse, y el cursor real no
   const state = movil();
   for (let press = 1; press <= 4; press++) {
     const body = cuerpoNuevo(pruebas.ctx.obAckLoad);
-    assert.deepEqual(body, { recoverGaps: true, acks: {} }, "en pruebas `acks` va vacío: el servidor espera y no avanza");
+    assert.deepEqual(body, { recoverGaps: true, acks: {}, accountPhases: 1 }, "en pruebas `acks` va vacío: el servidor espera y no avanza");
     const r = await llama(NUEVA, link, bank, body);
     assert.ok(r.data.links[0].ack, "el servidor ofrece acuse");
     // Las filas entran SOLO en la cartera de pruebas, y se guardan en su clave.
@@ -670,7 +671,7 @@ await t("H3 el acuse de un móvil no llega a otro por la nube: el segundo empiez
   B = adopta(B, JSON.parse(JSON.stringify(ctx.slimForCloud(A))), { list: B.expenses });
   discos.set(B, disco);
   assert.equal(B.lastBankSync, A.lastBankSync, "el estado sí viaja, marca incluida");
-  assert.deepEqual(CLIENTES.nuevo(B), { recoverGaps: true, acks: {} });
+  assert.deepEqual(CLIENTES.nuevo(B), { recoverGaps: true, acks: {}, accountPhases: 1 });
   const inicio = link.last_sync;
   const rb = await llama(NUEVA, link, bank, CLIENTES.nuevo(B));
   assert.equal(link.last_sync, inicio, "el cursor no se mueve por un móvil que no tiene las filas");
@@ -807,10 +808,10 @@ await t("compat: el acuse guardado no cruza a otro enlace ni a un banco sin acus
   recibe(state, links, "nuevo");
   assert.deepEqual(acuseDe(state), { CaixaBank: NOW + "|" + K1, Revolut: "previo|R1" });
   const vacio = movil();
-  assert.deepEqual(CLIENTES.nuevo(vacio), { recoverGaps: true, acks: {} }, "sin acuse guardado manda `acks` vacío: es lo que avisa al servidor");
+  assert.deepEqual(CLIENTES.nuevo(vacio), { recoverGaps: true, acks: {}, accountPhases: 1 }, "sin acuse guardado manda `acks` vacío: es lo que avisa al servidor");
   // Lo guardado con otra forma no se envía tal cual.
   ponAcuse(vacio, ["no", "es", "un", "mapa"]);
-  assert.deepEqual(CLIENTES.nuevo(vacio), { recoverGaps: true, acks: {} });
+  assert.deepEqual(CLIENTES.nuevo(vacio), { recoverGaps: true, acks: {}, accountPhases: 1 });
 });
 
 if (failures) process.exitCode = 1;

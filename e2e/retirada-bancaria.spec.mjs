@@ -60,7 +60,8 @@ async function open(page,lang="es",mode="ok",remoteCat="otros",overrides={}){
   await page.waitForFunction(()=>!document.getElementById("mc-load"));
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   if(remoteCat==="traspaso"){
-    const syncLabel=await page.evaluate(()=>t("g_sync"));
+    // El botón de Gastos se llama «Actualizar gastos» desde la 4.26.138 (mismo onSync, otro texto).
+    const syncLabel=await page.evaluate(()=>t("g_refresh_expenses"));
     await page.locator('.v4-screen:has(.v4-gastos-summary)').getByRole("button",{name:syncLabel,exact:true}).click();
     await expect(page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:expense.merchant})).toHaveClass(/v4-mov-skip/);
   }
@@ -76,7 +77,9 @@ test("banco y tipo explican sus campos; Efectivo explica no operación y Traspas
     await expect(page.getByText(aviso,{exact:true})).toBeVisible();
   }
   await sheet.getByTestId("exp-efectivo").click();
-  await expect(sheet.getByTestId("exp-withdrawal-info")).toContainText("no suma dinero a Efectivo");
+  await expect(sheet.getByTestId("exp-withdrawal-info")).toContainText("La categoría se puede corregir sin cambiar el importe ni la cuenta del banco.");
+  await expect(sheet.getByTestId("exp-withdrawal")).toHaveText("Es una retirada de efectivo");
+  await expect(sheet.getByTestId("exp-withdrawal-info")).not.toContainText("no suma dinero a Efectivo");
   await sheet.locator('.v4-ficha-cat-title button').click();
   await page.getByTestId("expense-all-cat-traspaso").click();
   await page.locator('.askback .btn-primary').click();
@@ -192,7 +195,7 @@ for(const lang of ["es","en","ca"])test(`vínculo bajado tras enviar UPDATE se c
   await expect.poll(async()=>!!((await stored(page)).state.fixed[0].paymentProofs||{})[2026*12+9]).toBe(true);
   await page.evaluate(()=>{window.__withdrawalFixture.releaseAck=true;});
   await expect(sheet.getByTestId("exp-withdrawal-neutral")).toHaveText(texts[lang].neutral);
-  const message=await page.evaluate(()=>t("f_withdraw_receipt_undone"));await expect(sheet.getByRole("status")).toHaveText(message);
+  const message=await page.evaluate(()=>t("f_withdraw_receipt_undone"));await expect(sheet.getByTestId("exp-withdrawal-info").getByRole("status")).toHaveText(message);
   await expect.poll(async()=>{const saved=await stored(page);return saved.expenses[0]?.category==="traspaso"&&!saved.state.fixed[0].paymentProofs?.[2026*12+9];}).toBe(true);
   const after=await stored(page);expect(after.writes).toBe(1);expect(after.expenses).toHaveLength(1);
   expect(after.expenses[0]).toMatchObject({...expense,category:"traspaso"});expect(after.state.accounts).toEqual(before.state.accounts);
@@ -200,7 +203,7 @@ for(const lang of ["es","en","ca"])test(`vínculo bajado tras enviar UPDATE se c
   expect(after.state.fixed[0].paymentProofs[2026*12+9]).toBeUndefined();
   // El pull real posterior conserva la única retirada y no recrea la prueba invalidada.
   await page.locator('.v4-exp-sheet .v4-ficha-done').click();
-  const sync=await page.evaluate(()=>t("g_sync"));await page.locator('.v4-screen:has(.v4-gastos-summary)').getByRole("button",{name:sync,exact:true}).click();
+  const sync=await page.evaluate(()=>t("g_refresh_expenses"));await page.locator('.v4-screen:has(.v4-gastos-summary)').getByRole("button",{name:sync,exact:true}).click();
   await expect.poll(async()=>(await stored(page)).expenses[0]?.category).toBe("traspaso");
   await receiptOnB(browser,lang,await page.evaluate(()=>slimForCloud(mcLoadRaw(mcStateKey()))),false,bill);
 });

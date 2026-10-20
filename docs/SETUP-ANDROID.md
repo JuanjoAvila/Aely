@@ -314,3 +314,21 @@ El cálculo opcional del widget está aislado de los avisos de presupuesto: su f
 ### Widget80 / APK52: preasset real, entrega final pendiente
 
 Runtime821 sobre79, gradle52/versionName4.26.80; widgetContract2, cifra/periodo de Inicio en es/en/ca, scope exacto y unknownJournal hasta ACK/lápida. Prebuild26a verificado y asset beta602841368 descargado/cotejado; public/apk.json52 local apunta a URL real. Exige CI/build final del SHA con52 y reemplazo/cotejo binario antes de entregar. APK78 histórica no acredita80. No editar ingest ni instalar. [Plan](briefs/inc-2909-01-apk-beta-plan.md).
+
+## Hápticos UX16 (APK 56 de beta, 4.26.141)
+
+`AelyHapticsPlugin` se registra antes de `super.onCreate` y expone `edge()` y
+`fill({durationMs})`. Usa el WebView existente, sin subclases ni cambios de layout.
+`edge` y el fallback llaman a `performHapticFeedback` sin ignorar ajustes del sistema.
+La composición LOW_TICK requiere API 33+, soporte de primitivas, permiso normal
+VIBRATE y atributos USAGE_TOUCH; no se cambia min/compile/target SDK. La web sin
+plugin o con movimiento reducido es silenciosa. [Contrato y límites](briefs/ux16-haptics.md).
+Integrado en la beta 4.26.141 con `versionCode` 56 / `versionName` 4.26.141 (la tanda `vibracion-borde-y-mi-ciclo` exige esa APK). La APK de beta se compila con la receta de siempre y su asset aún no está publicado: `public/apk.json` sigue en la 55 hasta que exista. Aceptación física en el móvil pendiente.
+
+**Ronda 4 (ajustador, rama `claude/vibra-ajustador`, necesita APK 59):** `edge({amplitude 1–255, durationMs 1–100})` y `fill({timings[], amplitudes[]})` con la onda calculada en la web (`mcCycleWave`, ≤120 tramos de ≤200 ms, ≤3 s; si no cuadra, la rampa de siempre). Sin parámetros se comporta como la APK 58; la respuesta lleva `tunable:true` para que el ajustador de Ajustes (solo beta) avise si la APK instalada es anterior. Los valores viven en `localStorage._mcHapticTune` del móvil.
+
+**Ronda 5 (rama `claude/vibra-aj-r2`, necesita APK 60):** en el OnePlus 13 la fuerza no se notaba («en 1 no vibra nada, o en cualquier potencia vibra igual»). `HapticPlan.shape` traduce la fuerza (1–255) también en tiempo encendido: cada tramo se trocea en ranuras de 6 ms con un ciclo útil del 30 al 100 %, y la amplitud va de 60 a 255 si `hasAmplitudeControl()`; sin control, Android toca cualquier valor distinto de 0 como encendido y solo el troceo hace de fuerza. Se retiró la ruta de primitivas LOW_TICK. La respuesta añade `shaped`, `amplitudeControl` y `onMs`, y el ajustador dice qué motor tiene el móvil. El borde repite solo con recorrido nuevo del dedo (≥ 8 px), nunca con el dedo quieto.
+
+**Ronda 6 (misma rama):** el `dumpsys vibrator_manager` de su OnePlus 13 enseña que con `usage: TOUCH` OxygenOS sustituye la onda por `OplusPrebakedSegment` (45 ms, fuerza 800/2400), y que `HARDWARE_FEEDBACK` sí la respeta. El plugin acepta `usage` (`touch` por defecto, `hardware`, `media`, `unknown`) con `VibrationAttributes` en API 33+ y `vibrate(effect)` sin atributos en API 26–32. El ajustador lo deja elegir con chips y también aparece en la APK `.debug` (`AelyHaptics.info().debug`) sin pasar al canal beta.
+
+**Ronda 7 (rama `claude/vibra-r3`, solo web, sirve la APK 60):** el borde da UNA vibración por arrastre (otra solo tras soltar o volver atrás ≥ 12 px y empujar); el anillo de Mi ciclo son hasta cinco toques de 8 ms con la fuerza del ajustador (40 por defecto), repartidos por el trazo y con el uso elegido; cambiar de segmento (Plan y gasto/ingreso) da el tick de la gráfica (`mcTickHaptic`).

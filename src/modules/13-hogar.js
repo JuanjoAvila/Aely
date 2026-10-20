@@ -41,7 +41,8 @@ function buildHouseholdSnapshot(state, totals, email){
   }).sort(function(a,b){ return b.spent-a.spent; }).slice(0,8);
   // Fijos: total mensual + top 5 (nombre + importe, sin cuentas bancarias)
   const fixedTop=(state.fixed||[]).map(function(f){
-    return { name:f.name||"?", amount:+Number((f.amount||0)*(FREQ_M[f.freq]||1)).toFixed(2) };
+    // Misma mensualidad que el total de arriba (`fixedMonthlyOf`): respeta los importes por cobro.
+    return { name:f.name||"?", amount:+Number(fixedMonthlyOf(f)).toFixed(2) };
   }).filter(function(f){ return f.amount>0; })
     .sort(function(a,b){ return b.amount-a.amount; }).slice(0,5);
   return {
