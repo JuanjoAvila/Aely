@@ -67570,5 +67570,119 @@
       }
     ],
     "unidades": true
+  },
+  "vibracion-r5": {
+    "web": [
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcHaptic"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcBindEdgeHaptics"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcEdgeHaptic"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcTickHaptic"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcFeltMs"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcFeltHaptic"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcHapticClamp"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcHapticTuneText"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcCycleTicks"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcPlayCycle"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcHapticTune"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcBezierXAt"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcBezierY"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "HapticTuner"
+      },
+      {
+        "file": "src/modules/14-v4-screens.js",
+        "from": "      startAtTop=atTopOf(pageEl);",
+        "to": "      if(startAtTop) e.mcSegPull=true;"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "MC_HAPTIC_DEF"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "MC_HAPTIC_RANGE"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "MC_HAPTIC_VER"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "MC_HAPTIC_STALE"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "MC_SEG_HUSH_MS"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "MC_HAPTIC_KEY"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "MC_HAPTIC_USAGES"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "MC_FELT_USAGE"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "MC_CYCLE_TICKS"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "MC_CYCLE_TICK_MS"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "MC_CYCLE_GAP_MS"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "MC_CYCLE_EASE"
+      }
+    ],
+    "unidades": true
   }
 }

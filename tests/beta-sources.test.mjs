@@ -119,6 +119,8 @@ const sourceBeta152=sourceAt("31907016f9fdd5b584cff9323bf56a614bfb97c1");
 // Catálogo153 pasa a histórico con la 154: se lee de la 4.26.153 servida en beta (80752dff0), sobre la que la 154 añade sus dos tandas.
 // Catálogo154 pasa a histórico con la 155: se lee de la 4.26.154 servida en beta (99fe04289).
 const sourceBeta154=sourceAt("99fe04289db95870ae9ad6aef736fbc3675c1f48");
+// Catálogo155 pasa a histórico con la 156: se lee de la 4.26.155 servida en beta (d2dfccb8d), sobre la que la 156 añade su tanda de vibración.
+const sourceBeta155=sourceAt("d2dfccb8d8a4008a23fd5db39f6a038f253176f5");
 const sourceBeta153=sourceAt("80752dff055dc391c52c3067ce238f49e0a14598");
 // Catálogo137 pasa a histórico en la promoción 137: se lee de la beta 4.26.137.1 aprobada (6f18228c), lo último que probó el móvil y lo que sube entero.
 const sourceBeta137=sourceAt("6f18228cbd81c1cc9abfa7fabce0a878819234f4");
@@ -3962,10 +3964,10 @@ test("Catálogo154 histórico añade las tandas de Cartera sin lagazo y de renom
 const expected155={"v":"4.26.155","d":"2026-10-20","t":{"es":"Vibración más clara y la ficha de YouTube reconoce su recibo","en":"Clearer vibration, and the YouTube charge recognises its bill","ca":"Vibració més clara i la fitxa de YouTube reconeix el seu rebut"},"items":{"es":["La vibración al cambiar de pestaña en Plan es un solo toque.","La fuerza del borde y del anillo de Mi ciclo vuelve a notarse.","La ficha del cargo de YouTube reconoce su recibo."],"en":["The vibration when switching tabs in Plan is a single tap.","The strength of the border and of the My cycle ring can be felt again.","The YouTube charge sheet recognises its bill."],"ca":["La vibració en canviar de pestanya a Pla és un sol toc.","La força de la vora i de l'anell de El meu cicle torna a notar-se.","La fitxa del càrrec de YouTube reconeix el seu rebut."]},"tandas":[{"id":"vibracion-r4","t":{"es":"Vibración: un toque por cambio y fuerza que se nota","en":"Vibration: one tap per change and strength you can feel","ca":"Vibració: un toc per canvi i força que se nota"},"items":{"es":["0. Instala la app nueva de Aely que te llega (APK 61, versión 4.26.155). Tus frases: «vibra muchísimas veces seguidas con cada cambio», «solo vibra un toque aún cambiando las settings» y «da igual la fuerza que pongas en los bordes».","1. Cambia entre Recibos, Deudas y Metas: un toque por cambio. MAL: varios toques.","2. Abre la app y mira el anillo de Mi ciclo: varios toques suaves a lo largo del trazo, que cambian con los deslizadores de Ajustes → Vibración. MAL: un solo toque o no cambia.","3. Tira contra el borde al final de una lista: la fuerza del deslizador se nota. MAL: igual con 1 que con 255."],"en":["0. Install the new Aely app you receive (APK 61, version 4.26.155). Your words: «vibra muchísimas veces seguidas con cada cambio» (it vibrates many times in a row on each change), «solo vibra un toque aún cambiando las settings» (it only gives one tap even when changing the settings) and «da igual la fuerza que pongas en los bordes» (it makes no difference what strength you set for the edges).","1. Switch between Bills, Debts and Goals: one tap per change. WRONG: several taps.","2. Open the app and watch the My cycle ring: several soft taps along the stroke, which change with the sliders in Settings → Vibration. WRONG: one single tap or no change.","3. Pull against the edge at the end of a list: the slider strength can be felt. WRONG: the same at 1 and at 255."],"ca":["0. Instal·la l'app nova d'Aely que et arriba (APK 61, versió 4.26.155). Les teves frases: «vibra muchísimas veces seguidas con cada cambio» (vibra moltíssimes vegades seguides a cada canvi), «solo vibra un toque aún cambiando las settings» (només vibra un toc encara que canviï els ajustos) i «da igual la fuerza que pongas en los bordes» (és igual la força que posis a les vores).","1. Canvia entre Rebuts, Deutes i Metes: un toc per canvi. MALAMENT: diversos tocs.","2. Obre l'app i mira l'anell de El meu cicle: diversos tocs suaus al llarg del traç, que canvien amb els lliscadors d'Ajustos → Vibració. MALAMENT: un sol toc o no canvia.","3. Estira contra la vora al final d'una llista: la força del lliscador se nota. MALAMENT: igual amb 1 que amb 255."]},"apk":61},{"id":"youtube-ficha-reconoce","t":{"es":"YouTube Premium: la ficha reconoce su recibo","en":"YouTube Premium: the charge sheet recognises its bill","ca":"YouTube Premium: la fitxa reconeix el seu rebut"},"items":{"es":["1. Abre Gastos → el cargo de YouTube Premium del 2/10: «Paga un recibo» dice YouTube Premium. MAL: dice «No».","2. Abre Plan → Recibos: YouTube sale ✓ pagado. MAL: otra cosa.","3. El dinero disponible de Inicio y de Plan no cambia. MAL: cualquier diferencia."],"en":["1. Open Expenses → the YouTube Premium charge of 2 Oct: «Pays a bill» says YouTube Premium. WRONG: it says «No».","2. Open Plan → Bills: YouTube shows ✓ paid. WRONG: anything else.","3. The available money in Home and Plan does not change. WRONG: any difference."],"ca":["1. Obre Despeses → el càrrec de YouTube Premium del 2/10: «Paga un rebut» diu YouTube Premium. MALAMENT: diu «No».","2. Obre Pla → Rebuts: YouTube surt ✓ pagat. MALAMENT: una altra cosa.","3. Els diners disponibles d'Inici i de Pla no canvien. MALAMENT: qualsevol diferència."]}}]};
 // 4.26.155 (20/10/2026): integración con APK nueva (61) sobre la beta 4.26.154 servida (99fe04289): claude/vibra-defaults (0482327a) y claude/youtube-r3 (050a7d0b).
 // Dos tandas NUEVAS; vibracion-r3 (153) pasa a tandas:[]; las demás se quedan.
-test("Catálogo155 añade las tandas de la vibración ronda 4 (APK 61) y de la ficha de YouTube sobre la 154, con alcance propio, y declara cada huella que mueve",()=>{
+test("Catálogo155 histórico añade las tandas de la vibración ronda 4 (APK 61) y de la ficha de YouTube sobre la 154, con alcance propio, y declara cada huella que mueve",()=>{
   const tandas=["vibracion-r4","youtube-ficha-reconoce"],pasos=[4,3];
   const integrated=JSON.parse(sourceBeta154("scripts/beta-sources.json")),before=JSON.parse(sourceBeta154("src/data/release-notes.json"));
-  const source=f=>nl(read(f)),old=f=>nl(sourceBeta154(f));
+  const source=f=>nl(sourceBeta155(f)),old=f=>nl(sourceBeta154(f));
   assert.equal(before[0].v,"4.26.154");
   const e153=before.find(n=>n.v==="4.26.153");
   assert.ok(e153.tandas.some(g=>g.id==="vibracion-r3"),"la 153 llevaba vibracion-r3");
@@ -4034,10 +4036,11 @@ test("Catálogo155 añade las tandas de la vibración ronda 4 (APK 61) y de la f
   assert.equal(apk.versionCode,61);assert.equal(apk.versionName,"4.26.155");
   assert.ok(apk.url.endsWith("/releases/download/beta/Aely-4.26.155-beta-61.apk"),"apunta al asset de beta");
   for(const [id,h] of Object.entries(apkOld.revisiones||{}))assert.equal(apk.revisiones[id],h,"conserva la revisión nativa "+id);
-  assert.equal(apk.sha256,apkOld.sha256,"sha256 sin tocar hasta compilar");assert.equal(apk.sourceSha,apkOld.sourceSha,"sourceSha sin tocar hasta compilar");
+  // d2dfccb8d publicó el sha real de la APK 61 compilada; la 155 intermedia (b2e5e0522) aún lo llevaba por rellenar.
+  assert.equal(apk.sha256,"50214363a0e9a95f51f65952669f142e24bc52d2bd50a6145880742e636638b4","sha256 real de la APK 61");assert.equal(apk.sourceSha,"b2e5e052255fedf73356cba1666ea7f920bbfa1f","sourceSha de la compilación de la APK 61");
   assert.ok(apk.revisiones[tandas[0]],"acredita la tanda nativa nueva");
   assert.match(source("android/app/build.gradle"),/versionCode 61\s+versionName "4\.26\.155"/,"build.gradle anuncia la APK 61");
-  assert.equal(execFileSync("git",["diff","--name-only","99fe04289db95870ae9ad6aef736fbc3675c1f48","HEAD","--","supabase/migrations"],{encoding:"utf8"}).trim(),"","sin SQL ni migraciones");
+  assert.equal(execFileSync("git",["diff","--name-only","99fe04289db95870ae9ad6aef736fbc3675c1f48","d2dfccb8d8a4008a23fd5db39f6a038f253176f5","--","supabase/migrations"],{encoding:"utf8"}).trim(),"","sin SQL ni migraciones");
   const expectedMoves={"inc-3009-01-cargos":["web"],"inc-0210-01-plan-cuota":["web"],"feature-0310-01-movilidad":["web"],"recibos-cargo-unico":["web"],"recibo-cargo-en-gastos":["web"],"tr-empareja-sin-preguntar":["web"],"vibracion-borde-y-mi-ciclo":["web","native"],"vibracion-suave-ronda-2":["web","native"],"vibracion-suave-ronda-3":["web","native"],"plan-por-confirmar-prestamo-youtube":["web"],"youtube-enlazar-recibo":["web"],"vibracion-ajustador":["web","native"],"renombrar-y-notas-seguras":["web"],"vibracion-ajustador-r2":["web","native"],"vibracion-r3":["web"],"youtube-diagnostico":["web"]};
   const previous=new Map();
   const measure=reader=>{
@@ -4075,6 +4078,108 @@ test("Catálogo155 añade las tandas de la vibración ronda 4 (APK 61) y de la f
   });
   assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
 });
+
+const expected156={"v":"4.26.156","d":"2026-10-20","t":{"es":"Una sola vibración al cambiar de segmento y más fuerza en el anillo y los bordes","en":"A single vibration when switching section, and a stronger ring and list ends","ca":"Una sola vibració en canviar de segment i més força a l'anell i a les vores"},"items":{"es":["La vibración al cambiar entre Recibos, Deudas y Metas da un solo toque y se puede ajustar.","El anillo de Inicio y los bordes de las listas se notan más.","La fuerza que eliges en Ajustes → Vibración cambia de verdad lo que se siente."],"en":["The vibration when switching between Bills, Debts and Goals is a single tap and can be adjusted.","The Home ring and the ends of lists are easier to feel.","The strength you pick in Settings → Vibration really changes what you feel."],"ca":["La vibració en canviar entre Rebuts, Deutes i Metes és un sol toc i es pot ajustar.","L'anell d'Inici i les vores de les llistes se senten més.","La força que tries a Ajustos → Vibració canvia de veritat el que se sent."]},"tandas":[{"id":"vibracion-r5","t":{"es":"Vibración: un solo toque por segmento y fuerza que se nota","en":"Vibration: a single tap per section and strength you can feel","ca":"Vibració: un sol toc per segment i força que se nota"},"items":{"es":["0. Abre la app con la versión 4.26.156 (llega sola, no hace falta instalar nada). Tus frases: «son 2 vibraciones una fuerte… y otra hyper suave», «No vibra inicio» y «no cambia nada» con la fuerza del borde.","1. En Plan, con la lista arriba del todo, desliza hacia abajo para pasar de Recibos a Deudas y luego a Metas. Repítelo tocando los botones de arriba, también con la lista bajada a medias. Tiene que dar un solo toque por cambio. MAL: notas dos vibraciones (una fuerte y otra suave).","2. Ajustes → Vibración → «Al cambiar entre Recibos, Deudas y Metas»: baja la fuerza y pulsa Probar, luego súbela y vuelve a probar. Después cambia de segmento en Plan. MAL: suena igual con la fuerza baja que con la alta, o en Plan no cambia.","3. Cierra la app del todo y ábrela. En Inicio, mientras se rellena el anillo de Mi ciclo, tienen que notarse unos toques suaves. MAL: no notas nada.","4. Ajustes → Vibración → «Al llegar arriba o abajo»: pon la fuerza al mínimo y prueba, luego al máximo y prueba. Después tira contra el final de una lista. MAL: con la fuerza al mínimo y al máximo se nota igual."],"en":["0. Open the app on version 4.26.156 (it arrives by itself, nothing to install). Your words: «son 2 vibraciones una fuerte… y otra hyper suave» (it is 2 vibrations, a strong one… and an ultra-soft one), «No vibra inicio» (Home does not vibrate) and «no cambia nada» (nothing changes) with the edge strength.","1. In Plan, with the list at the very top, swipe down to go from Bills to Debts and then to Goals. Repeat it by tapping the buttons at the top, also with the list scrolled halfway down. It must give a single tap per change. WRONG: you feel two vibrations (a strong one and a soft one).","2. Settings → Vibration → «Switching between Bills, Debts and Goals»: lower the strength and tap Try, then raise it and try again. Then switch section in Plan. WRONG: it feels the same at low and at high strength, or nothing changes in Plan.","3. Close the app completely and open it. In Home, while the My cycle ring fills up, you must feel some soft taps. WRONG: you feel nothing.","4. Settings → Vibration → «Reaching the top or bottom»: set the strength to the minimum and try, then to the maximum and try. Then pull against the end of a list. WRONG: it feels the same at the minimum and at the maximum strength."],"ca":["0. Obre l'app amb la versió 4.26.156 (arriba sola, no cal instal·lar res). Les teves frases: «son 2 vibraciones una fuerte… y otra hyper suave» (són 2 vibracions, una de forta… i una altra d'híper suau), «No vibra inicio» (Inici no vibra) i «no cambia nada» (no canvia res) amb la força de la vora.","1. A Pla, amb la llista a dalt de tot, llisca cap avall per passar de Rebuts a Deutes i després a Metes. Repeteix-ho tocant els botons de dalt, també amb la llista baixada a mitges. Ha de donar un sol toc per canvi. MALAMENT: notes dues vibracions (una de forta i una altra de suau).","2. Ajustos → Vibració → «En canviar entre Rebuts, Deutes i Metes»: baixa la força i prem Provar, després puja-la i torna a provar. Després canvia de segment a Pla. MALAMENT: sona igual amb la força baixa que amb l'alta, o a Pla no canvia.","3. Tanca l'app del tot i obre-la. A Inici, mentre s'omple l'anell de El meu cicle, s'han de notar uns tocs suaus. MALAMENT: no notes res.","4. Ajustos → Vibració → «En arribar a dalt o a baix»: posa la força al mínim i prova, després al màxim i prova. Després estira contra el final d'una llista. MALAMENT: amb la força al mínim i al màxim se sent igual."]}}]};
+// 4.26.156 (20/10/2026): integración solo web (sigue la APK 61) sobre la beta 4.26.155 servida (d2dfccb8d): claude/vibra-r5 (e1e91bed7).
+// Una tanda NUEVA; las dos de la 155 (vibracion-r4, youtube-ficha-reconoce) pasan a tandas:[] porque se rechazaron; las demás se quedan.
+test("Catálogo156 añade la tanda de la vibración ronda 5 (solo web, sin APK nueva) sobre la 155, con alcance propio, y declara cada huella que mueve",()=>{
+  const tandas=["vibracion-r5"],pasos=[5];
+  const integrated=JSON.parse(sourceBeta155("scripts/beta-sources.json")),before=JSON.parse(sourceBeta155("src/data/release-notes.json"));
+  const source=f=>nl(read(f)),old=f=>nl(sourceBeta155(f));
+  assert.equal(before[0].v,"4.26.155");
+  assert.deepEqual(before[0].tandas.map(g=>g.id),["vibracion-r4","youtube-ficha-reconoce"],"la 155 llevaba sus dos tandas");
+  const expectedNotes=[expected156,{...before[0],tandas:[]},...before.slice(1)];
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.deepEqual(notes,expectedNotes,"la nota 156 literal delante, la 155 sin sus dos tandas y todo lo demás intacto");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.156",tandas[0],0],...before.slice(1).flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0]))],"el panel enseña la nueva (sin APK) y conserva las de antes de la 155");
+  assert.equal(notes.length,253);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
+  notes[0].tandas.forEach(g=>assert.deepEqual(Object.keys(g),["id","t","items"],"identidad nueva, sin apk: "+g.id));
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,3,lang+": tres puntos familiares");
+    const steps=notes[0].tandas[0].items[lang];assert.equal(steps.length,pasos[0],lang+": pasos de "+tandas[0]);
+    steps.forEach((step,j)=>assert.ok(step.startsWith(j+". "),lang+": paso numerado "+j));
+    for(const text of steps.slice(1))assert.ok(/MAL|WRONG|MALAMENT/.test(text),lang+": cada paso dice qué es MAL: "+text);
+    assert.ok(/son 2 vibraciones una fuerte… y otra hyper suave/.test(steps[0])&&/No vibra inicio/.test(steps[0])&&/no cambia nada/.test(steps[0]),lang+": cita sus tres frases");
+    assert.ok(/4\.26\.156/.test(steps[0])&&!/APK/.test(steps[0]),lang+": el paso 0 abre la versión 4.26.156 y no pide APK");
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|FIN-|SES-|\d+\.\d+\.\d+/i.test(text),false,lang+": sin jerga: "+text);
+  }
+  const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
+  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verifyNotes(twice),assert.AssertionError,"no duplicar una tanda");
+  const conApk=structuredClone(notes);conApk[0].tandas[0].apk=61;assert.throws(()=>verifyNotes(conApk),assert.AssertionError,"la tanda no exige APK: es solo web");
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),rest={...scopes};for(const id of tandas)delete rest[id];
+  for(const id of tandas)assert.equal(integrated[id],undefined,"identidad que no existía: "+id);
+  assert.deepEqual(Object.keys(scopes).slice(-tandas.length),tandas);
+  const U="src/modules/02-ui-shared.js";
+  const propias={"vibracion-r5":[{"file":"src/modules/02-ui-shared.js","function":"mcHaptic"},{"file":"src/modules/02-ui-shared.js","function":"mcBindEdgeHaptics"},{"file":"src/modules/02-ui-shared.js","function":"mcEdgeHaptic"},{"file":"src/modules/02-ui-shared.js","function":"mcTickHaptic"},{"file":"src/modules/02-ui-shared.js","function":"mcFeltMs"},{"file":"src/modules/02-ui-shared.js","function":"mcFeltHaptic"},{"file":"src/modules/02-ui-shared.js","function":"mcHapticClamp"},{"file":"src/modules/02-ui-shared.js","function":"mcHapticTuneText"},{"file":"src/modules/02-ui-shared.js","function":"mcCycleTicks"},{"file":"src/modules/02-ui-shared.js","function":"mcPlayCycle"},{"file":"src/modules/02-ui-shared.js","function":"mcHapticTune"},{"file":"src/modules/02-ui-shared.js","function":"mcBezierXAt"},{"file":"src/modules/02-ui-shared.js","function":"mcBezierY"},{"file":"src/modules/10-app-components.js","function":"HapticTuner"},{"file":"src/modules/14-v4-screens.js","from":"      startAtTop=atTopOf(pageEl);","to":"      if(startAtTop) e.mcSegPull=true;"},{"file":"src/modules/02-ui-shared.js","data":"MC_HAPTIC_DEF"},{"file":"src/modules/02-ui-shared.js","data":"MC_HAPTIC_RANGE"},{"file":"src/modules/02-ui-shared.js","data":"MC_HAPTIC_VER"},{"file":"src/modules/02-ui-shared.js","data":"MC_HAPTIC_STALE"},{"file":"src/modules/02-ui-shared.js","data":"MC_SEG_HUSH_MS"},{"file":"src/modules/02-ui-shared.js","data":"MC_HAPTIC_KEY"},{"file":"src/modules/02-ui-shared.js","data":"MC_HAPTIC_USAGES"},{"file":"src/modules/02-ui-shared.js","data":"MC_FELT_USAGE"},{"file":"src/modules/02-ui-shared.js","data":"MC_CYCLE_TICKS"},{"file":"src/modules/02-ui-shared.js","data":"MC_CYCLE_TICK_MS"},{"file":"src/modules/02-ui-shared.js","data":"MC_CYCLE_GAP_MS"},{"file":"src/modules/02-ui-shared.js","data":"MC_CYCLE_EASE"}]};
+  const fns=logicFunctions(source),dat=logicData(source);
+  const closure=start=>{
+    let web=start.slice();
+    for(let ronda=0;ronda<40;ronda++){
+      const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];
+      for(const f of scopeDependencies({web},source,fns))if(!tiene(f.file,f.name,"function"))extra.push({file:f.file,function:f.name});
+      for(const d of scopeDataDependencies({web},source,fns,dat))if(!tiene(d.file,d.name,"data"))extra.push({file:d.file,data:d.name});
+      if(!extra.length)break;web=web.concat(extra);
+    }
+    return web;
+  };
+  const congelados=new Set(["inc-0810-inicio-grafica-significado"]),unidad=u=>JSON.stringify(u);
+  for(const [id,scope] of Object.entries(integrated)){
+    if(congelados.has(id)){assert.deepEqual(rest[id],scope,"descriptor congelado: "+id);continue;}
+    const web=closure(scope.web||[]);
+    assert.deepEqual({...rest[id],web:rest[id].web.map(unidad).sort()},{...scope,web:web.map(unidad).sort()},"cierre de lectores recalculado, ni se recorta ni crece sin declararlo: "+id);
+    assert.equal(rest[id].web.length,web.length,"sin unidades repetidas: "+id);
+  }
+  assert.deepEqual(Object.keys(rest),Object.keys(integrated),"ningún descriptor ajeno nuevo ni retirado");
+  for(const id of tandas){
+    const added=scopes[id],own=propias[id];
+    assert.deepEqual(added.web.slice(0,own.length),own,id+": las unidades propias de la tanda, en este orden");
+    assert.equal(added.unidades,true);
+    assert.equal(added.native,undefined,id+": sin ficheros nativos, no hay APK nueva");
+    assert.deepEqual(Object.keys(added),["web","unidades"],id+": solo web");
+    const web=closure(own),clave=u=>JSON.stringify(u);
+    assert.equal(added.web.length,web.length,id+": el cierre de lectores del descriptor es exactamente el calculado");
+    assert.deepEqual(new Set(added.web.map(clave)),new Set(web.map(clave)),id+": el cierre de lectores del descriptor es exactamente el calculado");
+    for(const u of added.web)assert.ok(scopeText(u,source).length>0,"la unidad existe en la fuente: "+JSON.stringify(u));
+  }
+  // Sin APK nueva: apk.json, build.gradle, el nativo y el SQL quedan exactamente como en la 155.
+  assert.equal(source("public/apk.json"),old("public/apk.json"),"apk.json intacto: sigue la APK 61");
+  assert.equal(source("android/app/build.gradle"),old("android/app/build.gradle"),"build.gradle intacto");
+  assert.equal(execFileSync("git",["diff","--name-only","d2dfccb8d8a4008a23fd5db39f6a038f253176f5","HEAD","--","supabase/migrations","android"],{encoding:"utf8"}).trim(),"","sin SQL ni nativo");
+  const expectedMoves={"inicio-patrimonio-flujos":["web"],"plan-por-confirmar-prestamo-youtube":["web"],"plan-scroll-lento":["web"],"vibracion-ajustador":["web"],"vibracion-ajustador-r2":["web"],"vibracion-borde-y-mi-ciclo":["web"],"vibracion-r3":["web"],"vibracion-r4":["web"],"vibracion-suave-ronda-2":["web"],"vibracion-suave-ronda-3":["web"],"youtube-enlazar-recibo":["web"]};
+  const previous=new Map();
+  const measure=reader=>{
+    const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};
+    for(const [key,scope] of Object.entries(integrated)){
+      if(key===archiveId||congelados.has(key))continue;
+      if(!previous.has(key))previous.set(key,betaRevision(key,sourceBeta155,undefined,scope));
+      const a=previous.get(key),b=betaRevision(key,reader,undefined,now[key]);
+      const surfaces=["web","native","edge"].filter(x=>a[x]!==b[x]);
+      if(surfaces.length)moved[key]=surfaces;
+    }
+    return moved;
+  };
+  const verify=(reader,expected=expectedMoves)=>assert.deepEqual(measure(reader),expected,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  verify(source);
+  const currents=Object.fromEntries(tandas.map(id=>[id,betaRevision(id,source,undefined,scopes[id])]));
+  for(const id of tandas){assert.ok(currents[id].web);assert.equal(currents[id].edge,undefined);assert.equal(currents[id].native,undefined);}
+  for(const [id,file,a,b] of [
+    [tandas[0],U,"function mcEdgeHaptic(","function mcEdgeHaptic(/*x*/"],
+    [tandas[0],U,"function mcTickHaptic(","function mcTickHaptic(/*x*/"],
+    [tandas[0],"src/modules/14-v4-screens.js","// Arriba del todo, tirar hacia abajo es cambiar de segmento","// Arriba del todo, tirar hacia abajo es cambiar de segmento!"]
+  ]){
+    assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
+    const mutated=betaRevision(id,f=>f===file?source(f).replace(a,()=>b):source(f),undefined,scopes[id]);
+    assert.notEqual(mutated.web,currents[id].web,id+" reabre la tanda: "+a);
+  }
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes);
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),notes.flatMap(n=>(n.tandas||[]).map(g=>g.id)),"lo que el build entrega al panel");
+  built[0].tandas.forEach((g0,i)=>{
+    assert.equal(g0.web,currents[tandas[i]].web);assert.equal(g0.edge,undefined);assert.equal(g0.native,undefined);assert.equal(g0.apk,undefined);assert.equal(receipt.web[tandas[i]],currents[tandas[i]].web);
+    for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g0[key],undefined,"identidad nueva sin "+key);
+  });
+  assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
+});
+
 
 // Catálogo cerrado: desde la promoción126 se lee de su commit inmutable (la promoción deja una sola nota y ninguna tanda).
 test("Catálogo126 histórico añade la tanda de la tarjeta del mes sobre la125, solo web, y declara cada huella que mueve",()=>{

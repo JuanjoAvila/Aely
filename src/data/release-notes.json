@@ -1,5 +1,64 @@
 [
   {
+    "v": "4.26.156",
+    "d": "2026-10-20",
+    "t": {
+      "es": "Una sola vibración al cambiar de segmento y más fuerza en el anillo y los bordes",
+      "en": "A single vibration when switching section, and a stronger ring and list ends",
+      "ca": "Una sola vibració en canviar de segment i més força a l'anell i a les vores"
+    },
+    "items": {
+      "es": [
+        "La vibración al cambiar entre Recibos, Deudas y Metas da un solo toque y se puede ajustar.",
+        "El anillo de Inicio y los bordes de las listas se notan más.",
+        "La fuerza que eliges en Ajustes → Vibración cambia de verdad lo que se siente."
+      ],
+      "en": [
+        "The vibration when switching between Bills, Debts and Goals is a single tap and can be adjusted.",
+        "The Home ring and the ends of lists are easier to feel.",
+        "The strength you pick in Settings → Vibration really changes what you feel."
+      ],
+      "ca": [
+        "La vibració en canviar entre Rebuts, Deutes i Metes és un sol toc i es pot ajustar.",
+        "L'anell d'Inici i les vores de les llistes se senten més.",
+        "La força que tries a Ajustos → Vibració canvia de veritat el que se sent."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "vibracion-r5",
+        "t": {
+          "es": "Vibración: un solo toque por segmento y fuerza que se nota",
+          "en": "Vibration: a single tap per section and strength you can feel",
+          "ca": "Vibració: un sol toc per segment i força que se nota"
+        },
+        "items": {
+          "es": [
+            "0. Abre la app con la versión 4.26.156 (llega sola, no hace falta instalar nada). Tus frases: «son 2 vibraciones una fuerte… y otra hyper suave», «No vibra inicio» y «no cambia nada» con la fuerza del borde.",
+            "1. En Plan, con la lista arriba del todo, desliza hacia abajo para pasar de Recibos a Deudas y luego a Metas. Repítelo tocando los botones de arriba, también con la lista bajada a medias. Tiene que dar un solo toque por cambio. MAL: notas dos vibraciones (una fuerte y otra suave).",
+            "2. Ajustes → Vibración → «Al cambiar entre Recibos, Deudas y Metas»: baja la fuerza y pulsa Probar, luego súbela y vuelve a probar. Después cambia de segmento en Plan. MAL: suena igual con la fuerza baja que con la alta, o en Plan no cambia.",
+            "3. Cierra la app del todo y ábrela. En Inicio, mientras se rellena el anillo de Mi ciclo, tienen que notarse unos toques suaves. MAL: no notas nada.",
+            "4. Ajustes → Vibración → «Al llegar arriba o abajo»: pon la fuerza al mínimo y prueba, luego al máximo y prueba. Después tira contra el final de una lista. MAL: con la fuerza al mínimo y al máximo se nota igual."
+          ],
+          "en": [
+            "0. Open the app on version 4.26.156 (it arrives by itself, nothing to install). Your words: «son 2 vibraciones una fuerte… y otra hyper suave» (it is 2 vibrations, a strong one… and an ultra-soft one), «No vibra inicio» (Home does not vibrate) and «no cambia nada» (nothing changes) with the edge strength.",
+            "1. In Plan, with the list at the very top, swipe down to go from Bills to Debts and then to Goals. Repeat it by tapping the buttons at the top, also with the list scrolled halfway down. It must give a single tap per change. WRONG: you feel two vibrations (a strong one and a soft one).",
+            "2. Settings → Vibration → «Switching between Bills, Debts and Goals»: lower the strength and tap Try, then raise it and try again. Then switch section in Plan. WRONG: it feels the same at low and at high strength, or nothing changes in Plan.",
+            "3. Close the app completely and open it. In Home, while the My cycle ring fills up, you must feel some soft taps. WRONG: you feel nothing.",
+            "4. Settings → Vibration → «Reaching the top or bottom»: set the strength to the minimum and try, then to the maximum and try. Then pull against the end of a list. WRONG: it feels the same at the minimum and at the maximum strength."
+          ],
+          "ca": [
+            "0. Obre l'app amb la versió 4.26.156 (arriba sola, no cal instal·lar res). Les teves frases: «son 2 vibraciones una fuerte… y otra hyper suave» (són 2 vibracions, una de forta… i una altra d'híper suau), «No vibra inicio» (Inici no vibra) i «no cambia nada» (no canvia res) amb la força de la vora.",
+            "1. A Pla, amb la llista a dalt de tot, llisca cap avall per passar de Rebuts a Deutes i després a Metes. Repeteix-ho tocant els botons de dalt, també amb la llista baixada a mitges. Ha de donar un sol toc per canvi. MALAMENT: notes dues vibracions (una de forta i una altra de suau).",
+            "2. Ajustos → Vibració → «En canviar entre Rebuts, Deutes i Metes»: baixa la força i prem Provar, després puja-la i torna a provar. Després canvia de segment a Pla. MALAMENT: sona igual amb la força baixa que amb l'alta, o a Pla no canvia.",
+            "3. Tanca l'app del tot i obre-la. A Inici, mentre s'omple l'anell de El meu cicle, s'han de notar uns tocs suaus. MALAMENT: no notes res.",
+            "4. Ajustos → Vibració → «En arribar a dalt o a baix»: posa la força al mínim i prova, després al màxim i prova. Després estira contra el final d'una llista. MALAMENT: amb la força al mínim i al màxim se sent igual."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.155",
     "d": "2026-10-20",
     "t": {
@@ -24,62 +83,7 @@
         "La fitxa del càrrec de YouTube reconeix el seu rebut."
       ]
     },
-    "tandas": [
-      {
-        "id": "vibracion-r4",
-        "t": {
-          "es": "Vibración: un toque por cambio y fuerza que se nota",
-          "en": "Vibration: one tap per change and strength you can feel",
-          "ca": "Vibració: un toc per canvi i força que se nota"
-        },
-        "items": {
-          "es": [
-            "0. Instala la app nueva de Aely que te llega (APK 61, versión 4.26.155). Tus frases: «vibra muchísimas veces seguidas con cada cambio», «solo vibra un toque aún cambiando las settings» y «da igual la fuerza que pongas en los bordes».",
-            "1. Cambia entre Recibos, Deudas y Metas: un toque por cambio. MAL: varios toques.",
-            "2. Abre la app y mira el anillo de Mi ciclo: varios toques suaves a lo largo del trazo, que cambian con los deslizadores de Ajustes → Vibración. MAL: un solo toque o no cambia.",
-            "3. Tira contra el borde al final de una lista: la fuerza del deslizador se nota. MAL: igual con 1 que con 255."
-          ],
-          "en": [
-            "0. Install the new Aely app you receive (APK 61, version 4.26.155). Your words: «vibra muchísimas veces seguidas con cada cambio» (it vibrates many times in a row on each change), «solo vibra un toque aún cambiando las settings» (it only gives one tap even when changing the settings) and «da igual la fuerza que pongas en los bordes» (it makes no difference what strength you set for the edges).",
-            "1. Switch between Bills, Debts and Goals: one tap per change. WRONG: several taps.",
-            "2. Open the app and watch the My cycle ring: several soft taps along the stroke, which change with the sliders in Settings → Vibration. WRONG: one single tap or no change.",
-            "3. Pull against the edge at the end of a list: the slider strength can be felt. WRONG: the same at 1 and at 255."
-          ],
-          "ca": [
-            "0. Instal·la l'app nova d'Aely que et arriba (APK 61, versió 4.26.155). Les teves frases: «vibra muchísimas veces seguidas con cada cambio» (vibra moltíssimes vegades seguides a cada canvi), «solo vibra un toque aún cambiando las settings» (només vibra un toc encara que canviï els ajustos) i «da igual la fuerza que pongas en los bordes» (és igual la força que posis a les vores).",
-            "1. Canvia entre Rebuts, Deutes i Metes: un toc per canvi. MALAMENT: diversos tocs.",
-            "2. Obre l'app i mira l'anell de El meu cicle: diversos tocs suaus al llarg del traç, que canvien amb els lliscadors d'Ajustos → Vibració. MALAMENT: un sol toc o no canvia.",
-            "3. Estira contra la vora al final d'una llista: la força del lliscador se nota. MALAMENT: igual amb 1 que amb 255."
-          ]
-        },
-        "apk": 61
-      },
-      {
-        "id": "youtube-ficha-reconoce",
-        "t": {
-          "es": "YouTube Premium: la ficha reconoce su recibo",
-          "en": "YouTube Premium: the charge sheet recognises its bill",
-          "ca": "YouTube Premium: la fitxa reconeix el seu rebut"
-        },
-        "items": {
-          "es": [
-            "1. Abre Gastos → el cargo de YouTube Premium del 2/10: «Paga un recibo» dice YouTube Premium. MAL: dice «No».",
-            "2. Abre Plan → Recibos: YouTube sale ✓ pagado. MAL: otra cosa.",
-            "3. El dinero disponible de Inicio y de Plan no cambia. MAL: cualquier diferencia."
-          ],
-          "en": [
-            "1. Open Expenses → the YouTube Premium charge of 2 Oct: «Pays a bill» says YouTube Premium. WRONG: it says «No».",
-            "2. Open Plan → Bills: YouTube shows ✓ paid. WRONG: anything else.",
-            "3. The available money in Home and Plan does not change. WRONG: any difference."
-          ],
-          "ca": [
-            "1. Obre Despeses → el càrrec de YouTube Premium del 2/10: «Paga un rebut» diu YouTube Premium. MALAMENT: diu «No».",
-            "2. Obre Pla → Rebuts: YouTube surt ✓ pagat. MALAMENT: una altra cosa.",
-            "3. Els diners disponibles d'Inici i de Pla no canvien. MALAMENT: qualsevol diferència."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.154",
