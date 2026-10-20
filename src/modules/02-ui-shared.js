@@ -958,9 +958,13 @@ function netWorthDebtPolicy(state, today, current){
     // Antes de la fecha se mantiene el saldo (o su cuadro, como las demás).
     const p=day.split("-").map(Number), charge=debtChargeDay(d);
     const anchor=typeof d.asOf==="number"?d.asOf:month;
-    // Sólo el alta con plazo acredita startMonth; asOf también se migra y se reancla.
-    // Sin inicio explícito se conserva el saldo/cuadro legado (FIN12).
-    if(d.months!=null&&Number.isInteger(d.startMonth)&&p[0]*12+p[1]-1<d.startMonth) return 0;
+    // Las altas nuevas acreditan el día real, distinto de la primera cuota. Las anteriores
+    // sólo conocen el mes; asOf también se migra/reancla y nunca acredita el nacimiento.
+    if(d.months!=null&&netWorthPointOk(d.startDay,0,"9999-12-31")){
+      if(day<d.startDay) return 0;
+    }else{
+      if(d.months!=null&&Number.isInteger(d.startMonth)&&p[0]*12+p[1]-1<d.startMonth) return 0;
+    }
     const paidToday=(month-anchor)+(d.months!=null&&charge<=parts[2]?1:0);
     const between=(month+(charge<=parts[2]?1:0))-((p[0]*12+p[1]-1)+(charge<=p[2]?1:0));
     let n=paidToday-between;
