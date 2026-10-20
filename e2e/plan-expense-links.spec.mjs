@@ -182,6 +182,9 @@ for(const channel of ['beta','stable'])test('receipt diagnostics only on beta ·
   const s=paymentFixture();delete s.fixed[0].paymentProofs;
   Object.assign(s.expenses[0],{obAcc:iban});s.bankTx[0]={...s.bankTx[0],id:'OTHER-REF',acc:iban};
   s.expenses.push({id:'other-expense',date:'2026-10-05',merchant:'OTRO COMERCIO',amount:123.45,ent:'sabadell',category:'otros',source:'manual'});
+  // Otro recibo con su prueba BOOK: su referencia y su comercio no son de este cargo y no salen.
+  const n={id:'netflix',name:'Netflix',amount:12.99,account:'sabadell',freq:'mes',day:5};s.fixed.push(n);
+  n.paymentProofs={24322:{kind:'book',key:'sabadell|99887766554433221100X',identity:JSON.stringify(['sabadell','2026-10-05',12.99,'OTRO COMERCIO NETFLIX.COM']),date:'2026-10-05',bank:'sabadell',merchant:'OTRO COMERCIO NETFLIX.COM',amount:12.99,modelVersion:2,receiptId:n.id,receiptName:n.name,model:JSON.stringify([n.id,'sabadell',12.99,null])}};
   await page.addInitScript(ch=>{
     if(ch==='beta')localStorage.setItem('_mcChannel','beta');else localStorage.removeItem('_mcChannel');
     window.__copied=[];Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText(t){window.__copied.push(t);return Promise.resolve();}}});
@@ -199,6 +202,28 @@ for(const channel of ['beta','stable'])test('receipt diagnostics only on beta ·
   const text=await page.evaluate(()=>window.__copied[0]);
   expect(text).toContain('RECIBO receipt-synthetic');expect(text).toContain('current:ref distinta en el extracto');
   expect(text).toContain('obAcc:…1234');expect(text).not.toContain(iban);expect(text).not.toMatch(/\d{12}/);
+  expect(await page.evaluate(()=>{const s=mcLoadRaw(mcStateKey());return !!fixedPaymentProof(s,s.fixed.find(f=>f.id==='netflix'),2026,10,18);})).toBe(true);
+  expect(text).toContain('RECIBO netflix');expect(text).toContain('(otro cargo)');
+  expect(text).not.toContain('99887766554433221100X');expect(text).not.toContain('NETFLIX.COM');
   expect(text).not.toContain('123.45');expect(text).not.toContain('OTRO COMERCIO');
+  await unchangedRound2(page);
+});
+
+// INC-1810-04 r3: la prueba BOOK guardada es de este cargo (misma referencia), pero el cargo
+// renombrado se identifica por el texto del banco. Plan ✓ y la ficha tiene que decir lo mismo.
+test('INC-1810-04 r3 BOOK proof of the renamed charge shows in the detail',async({page})=>{
+  const s=paymentFixture(),x=s.expenses[0],ref='20261002213646522190S1',iban='ES0000000000000000008405';
+  const f={id:'hs0ymqd4',name:'YouTube Premium ',amount:29.99,day:2,freq:'mes'};
+  Object.assign(x,{date:'2026-10-02',amount:29.99,extId:ref,obAcc:iban,merchant:'YouTube Premium',obName:'COMPRA TARJ. 5402XXXXXXXX6013 GOOGLE*YOUTUBE-DUBLIN',category:'recibos'});
+  s.bankTx=[];s.accounts[0].bankIban=iban;s.fixed=[f];
+  const model=JSON.stringify(['hs0ymqd4','sabadell',29.99,null]);
+  f.paymentProofs={24322:{kind:'book',key:'sabadell|'+ref,identity:JSON.stringify(['sabadell','2026-10-02',29.99,'YouTube Premium']),date:'2026-10-02',bank:'sabadell',merchant:'YouTube Premium',amount:29.99,modelVersion:2,receiptId:f.id,receiptName:f.name,model}};
+  await openRound2(page,s);
+  expect(await page.evaluate(()=>{const s=mcLoadRaw(mcStateKey());return !!fixedPaymentProof(s,s.fixed[0],2026,10,18);})).toBe(true);
+  await page.locator('.botnav-tab[data-tour="plan"]').click();
+  await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:'YouTube Premium'})).toHaveCount(1);
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:'YouTube Premium'}).click();
+  await expect(page.getByTestId('exp-receipt-value')).toHaveText('YouTube Premium');
   await unchangedRound2(page);
 });
