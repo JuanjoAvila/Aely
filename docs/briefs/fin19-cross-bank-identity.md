@@ -1,3 +1,17 @@
+# FIN19 R7 · renombrar desde la ficha sin ocultar el movimiento
+
+Candidata sobre R6 `6554490c8ef2b4ed3c22642e4f49bf51904126a9`, misma PR288. La ficha offline y en ambos estados del modo pruebas dejaba una lápida con ámbito para el nombre anterior. El lector R6 la interpreta como borrado real por obName: al renombrar BAR SL a Mi bar,320 céntimos pasan a0. El ROJO ejecuta el saveEdit completo de la ficha; no sustituye el escritor por expenseRenameAck.
+
+Solo al cambiar el comercio de una fila bancaria con obName, manteniendo importe real, día, categoría y noCard, la ficha usa las claves sin ámbito de FIN04. Las otras ediciones conservan las claves de borrado con ámbito. La clave nueva también debe levantarse al volver al nombre original: modificar solo la antigua dejó otro ROJO0 frente a320 en los tres modos. La decisión canónica `c00533dd2ac713bf09de150ef5da3efa0fb83c0f` autoriza ese ajuste en la misma llamada. Lectores, escritor de acuse, contador, merge y servidor no cambian.
+
+Pruebas sintéticas: seis caminos originales fallan sobre R6 (320→0); base158 conserva320 en los seis. Se comprueban guardar, persistir/recargar, pull completo, segundo nombre, vuelta al original, campos completos (UUID, obName, cuenta, referencia, ordinal, nota, divisa, noCard y deuda), importe bancario bloqueado, manuales, cambio de fecha y categoría/noCard. Build limpio final; Madrid 85/85 EXIT0; UTC 85/85 EXIT0. Incluye siete cadenas remotas de cuenta a320 (manual640), supervivientes completas, presupuesto por banco, deshacer, legacy640 separado, R3 y ordinales. Lotes solapados no se suman como casos únicos.
+
+**Limitación conocida de base, fuera de R7:** dos cuentas conocidas distintas con el mismo día,3,20 BAR SL y ordinal2: la lápida sin ámbito del renombrado oculta la segunda fila; quedan320 visibles en vez de640. Base158 reproduce lo mismo para cuentas del mismo banco y de bancos distintos. Claude `68bd61de451be6a356de3f678b4029f98da4341b` lo acepta y separa para backlog. El test de limitación comprueba320 y la fila exacta; se retienen los rojos originales con oráculo640. No es una afirmación de corrección de todas las colisiones.
+
+El contrato local final está verificado; integración, gates de versión/tamaño/catálogo, CI general, servido y aceptación móvil siguen pendientes. VERSION/notas/caps intactos. Sin navegador, CPU6, fullsuite, nube o bancos reales, SQL/Edge/API, APK, deploy ni merge. No ProductREADY. FIN22 continúa aparcado. R6 y su A/B se preservan sin repetirlos.
+
+## Historial R6
+
 # FIN19 R6 · lápidas por nombre original y UUID absorbidos
 
 Candidata **bloqueada**, sobre R5 `953889feef125dee665a5ddcb3af1d72dc3569f9`, misma PR288, 20/10/2026. El lector cliente prueba también obName dentro del mismo ámbito banco/cuenta. Siete cadenas remotas conservan cliente/widget320 céntimos y la superviviente completa; manual640. El caso legacy sin cuenta conserva640, limitación conocida de base aceptada expresamente por Claude d7d6c1e4192dbe402649814935864c721b172779; su prueba separada reproduce640 sobre HTML y lector servidor exactos de base158. Consultar su lápida antigua indiscriminadamente se ensayó y rompe Deshacer del renombrado local: esa misma lápida la deja el escritor al editar. Los rojos anteriores se conservan como historial. El contrato final separa esa limitación sin debilitar los siete casos de cuenta; no se rediseña el escritor ni se cambia el lector servidor.

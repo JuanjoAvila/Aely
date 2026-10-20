@@ -632,9 +632,13 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       set(function(s){return expenseRenameDraft(s,orig,merch,at);});
       return;
     }
+    // La lápida de cuenta significa borrado: al cambiar solo el nombre ocultaría
+    // también la fila renombrada por su obName. Como FIN04, usar ambas claves sin ámbito
+    // permite además levantar la vieja al volver al nombre original.
+    const soloNombreBanco=esDeBanco&&upd.obName!=null&&merch!==(orig.merchant||"")&&signed===orig.amount&&newDay===origDay&&cat===orig.category&&upd.noCard===orig.noCard;
     set(function(s){ return rekeyFixedPaymentExpense(Object.assign({},s,{
       expenses:s.expenses.map(function(x){ return x.id===orig.id?upd:x; })
-    },lapidasAlEditar(s, expenseDeletionKey(orig), expenseDeletionKey(upd))),orig,upd); });
+    },lapidasAlEditar(s, soloNombreBanco?keyOfExpense(orig):expenseDeletionKey(orig), soloNombreBanco?keyOfExpense(upd):expenseDeletionKey(upd))),orig,upd); });
     // Borrado y alta en la nube, en orden y detrás de la edición anterior (`subeEdicionesDeGasto`).
     if(cloud.enabled()){ editCola.current.pend.push({orig:orig, upd:upd}); subeEdicionesDeGasto(editCola.current); }
     sincroniza(upd); showToast(t(splitByEdit?"g_auto_edit_separated":"g_edited"));
