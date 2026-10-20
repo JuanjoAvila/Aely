@@ -1,5 +1,61 @@
 [
   {
+    "v": "4.26.160",
+    "d": "2026-10-20",
+    "t": {
+      "es": "Dos compras iguales el mismo día en bancos distintos ya cuentan las dos",
+      "en": "Two identical purchases on the same day at different banks now both count",
+      "ca": "Dues compres iguals el mateix dia en bancs diferents ja compten les dues"
+    },
+    "items": {
+      "es": [
+        "Dos compras iguales el mismo día en bancos distintos ya cuentan las dos.",
+        "Renombrar un movimiento del banco no lo hace desaparecer ni cambia el total.",
+        "El total de Gastos coincide con la tarjeta del mes de Inicio."
+      ],
+      "en": [
+        "Two identical purchases on the same day at different banks now both count.",
+        "Renaming a bank transaction does not make it disappear or change the total.",
+        "The Expenses total matches the month card in Home."
+      ],
+      "ca": [
+        "Dues compres iguals el mateix dia en bancs diferents ja compten les dues.",
+        "Reanomenar un moviment del banc no el fa desaparèixer ni canvia el total.",
+        "El total de Despeses coincideix amb la targeta del mes d'Inici."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "gastos-dos-bancos",
+        "t": {
+          "es": "Gastos: dos compras iguales en bancos distintos y renombrar sin perderlas",
+          "en": "Expenses: two identical purchases at different banks, and renaming without losing them",
+          "ca": "Despeses: dues compres iguals en bancs diferents i reanomenar sense perdre-les"
+        },
+        "items": {
+          "es": [
+            "1. Abre Gastos: el total del mes coincide con la tarjeta del mes de Inicio. MAL: no coinciden.",
+            "2. Entra en un movimiento del banco (no uno apuntado a mano), cámbiale el nombre y guarda: sigue en la lista con el nombre nuevo y el total no cambia. MAL: desaparece o cambia el total.",
+            "3. Vuelve a ponerle su nombre de antes: sigue ahí. MAL: desaparece.",
+            "4. Cierra la app del todo y ábrela: todo igual. MAL: algo ha cambiado (un movimiento falta, sobra o el total es otro)."
+          ],
+          "en": [
+            "1. Open Expenses: the month total matches the month card in Home. WRONG: they do not match.",
+            "2. Open a bank transaction (not one you added by hand), rename it and save: it stays in the list with the new name and the total does not change. WRONG: it disappears or the total changes.",
+            "3. Put its previous name back: it is still there. WRONG: it disappears.",
+            "4. Close the app completely and open it: everything is the same. WRONG: something changed (a transaction is missing, extra, or the total is different)."
+          ],
+          "ca": [
+            "1. Obre Despeses: el total del mes coincideix amb la targeta del mes d'Inici. MALAMENT: no coincideixen.",
+            "2. Entra en un moviment del banc (no un apuntat a mà), canvia-li el nom i desa: continua a la llista amb el nom nou i el total no canvia. MALAMENT: desapareix o canvia el total.",
+            "3. Torna a posar-li el seu nom d'abans: continua allà. MALAMENT: desapareix.",
+            "4. Tanca l'app del tot i obre-la: tot igual. MALAMENT: alguna cosa ha canviat (falta un moviment, en sobra un o el total és un altre)."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.159",
     "d": "2026-10-20",
     "t": {
@@ -27,36 +83,7 @@
         "Un mateix càrrec ja no pot marcar com a pagats dos rebuts del mateix import."
       ]
     },
-    "tandas": [
-      {
-        "id": "recibos-meses-a-mano",
-        "t": {
-          "es": "Recibos de algunos meses: la mensualidad y el alta cuadran",
-          "en": "Bills of some months: the monthly figure and the sign-up add up",
-          "ca": "Rebuts d'alguns mesos: la mensualitat i l'alta quadren"
-        },
-        "items": {
-          "es": [
-            "1. Plan → Recibos → Gestionar → «+ Añadir un recibo» → nombre «Prueba», 600 → «Una vez al año» → marca marzo y septiembre. Debajo debe poner «Se cobrarán 300,00 € en Mar, Sep (600,00 € al año): 50,00 € al mes repartidos.» MAL: si dice 1200,00 € al año.",
-            "2. En ese mismo alta, vuelve atrás, elige «Cada tres meses» y deja marcados solo 3 meses. Debe decir 600,00 € en esos 3 meses, 1800,00 € al año y 150,00 € al mes. MAL: si dice 200,00 € al mes o 2400,00 € al año. Sal sin guardar.",
-            "3. Guarda un recibo trimestral de 90 € con 3 meses marcados (por ejemplo febrero, mayo y agosto). «SE TE VAN CADA MES» debe subir exactamente 22,50 €. MAL: si sube 30,00 €. Bórralo después.",
-            "4. Tus recibos de siempre (los que no tienen meses tocados a mano): «SE TE VAN CADA MES» da la misma cifra que antes de actualizar. MAL: si cambia aunque sea un céntimo."
-          ],
-          "en": [
-            "1. Plan → Bills → Manage → «+ Add a bill» → name «Prueba», 600 → «Once a year» → tick March and September. Below it must say «300,00 € will be charged in Mar, Sep (600,00 € a year): 50,00 € a month spread out.» WRONG: if it says 1200,00 € a year.",
-            "2. In that same sign-up, go back, pick «Every three months» and leave only 3 months ticked. It must say 600,00 € in those 3 months, 1800,00 € a year and 150,00 € a month. WRONG: if it says 200,00 € a month or 2400,00 € a year. Leave without saving.",
-            "3. Save a quarterly bill of 90 € with 3 months ticked (for example February, May and August). «GOES OUT EVERY MONTH» must go up by exactly 22,50 €. WRONG: if it goes up by 30,00 €. Delete it afterwards.",
-            "4. Your usual bills (the ones with no months set by hand): «GOES OUT EVERY MONTH» shows the same figure as before updating. WRONG: if it changes by even one cent."
-          ],
-          "ca": [
-            "1. Pla → Rebuts → Gestionar → «+ Afegir un rebut» → nom «Prueba», 600 → «Un cop l'any» → marca març i setembre. A sota ha de dir «Es cobraran 300,00 € a Mar, Set (600,00 € l'any): 50,00 € al mes repartits.» MALAMENT: si diu 1200,00 € l'any.",
-            "2. En aquesta mateixa alta, torna enrere, tria «Cada tres mesos» i deixa marcats només 3 mesos. Ha de dir 600,00 € en aquests 3 mesos, 1800,00 € l'any i 150,00 € al mes. MALAMENT: si diu 200,00 € al mes o 2400,00 € l'any. Surt sense desar.",
-            "3. Desa un rebut trimestral de 90 € amb 3 mesos marcats (per exemple febrer, maig i agost). «SE'T VAN CADA MES» ha de pujar exactament 22,50 €. MALAMENT: si puja 30,00 €. Esborra'l després.",
-            "4. Els teus rebuts de sempre (els que no tenen mesos tocats a mà): «SE'T VAN CADA MES» dona la mateixa xifra que abans d'actualitzar. MALAMENT: si canvia encara que sigui un cèntim."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.158",

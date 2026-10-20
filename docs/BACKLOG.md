@@ -75,7 +75,7 @@ Fuente: veredictos del panel (`scripts/errores.mjs --kind=beta`), CHANGELOG, not
 **Abiertos destacados y candidatas pendientes**
 
 - FIN-17 · PR267 (`5fb63762`) en borrador y **NO-GO** de revisión independiente: remates F1–F5 en curso. El resultado anterior `blocked/released` libera aquel encargo, no valida sus cifras ni cierra estos remates; no está listo para integrar.
-- FIN-19 · dos movimientos de bancos distintos con el mismo día, importe y comercio se funden en uno. Lo detectó la revisión de la PR 286; es anterior a ella y está sin asignar.
+- FIN-19 · dos movimientos de bancos distintos con el mismo día, importe y comercio se funden en uno. Lo detectó la revisión de la PR 286; es anterior a ella y está sin asignar. En beta 4.26.160, tanda `gastos-dos-bancos` (PR 288, FIN-19 R8): la identidad lleva el banco y la cuenta cuando se conocen; limitaciones conocidas en FIN-29 y FIN-30.
 - FIN-18 · esquema/registro separado y cerco atómico de servidor: backlog reservado, requiere decisión del dueño; sin implementación admitida.
 - FIN-03 · identidad de gastos de extremo a extremo, incluidos dos bancos el mismo día: **aparcado**. La preferencia BOOK frente a PDNG no autoriza resolver el defecto de otro banco con el mismo contenido.
 - PRO-09 · round-up de TR desde «Round up Invertido»: **diseño** pendiente de emparejamiento con Open Banking; sin implementación ni aceptación por asociación con UX-15.
@@ -97,6 +97,8 @@ Fuente: veredictos del panel (`scripts/errores.mjs --kind=beta`), CHANGELOG, not
 - FIN-26 · menor: `semana` no entra en el calendario mensual pero `fixedMonthlyOf` la cuenta ×4,345 (anterior a 4.26.159; hallado en la revisión de fin20-21; hoy la UI no ofrece `semana`).
 - FIN-27 · media: el BOOK de tarjeta paga el mes de su fecha y no el del cargo con su misma ref: cargo 30/9 y BOOK 2/10 paga octubre con el dinero de septiembre; desde 4.26.159 el primer mes de esa cadena sale pendiente en vez de doble (una vez por recibo, solo tarjeta de fin de mes). Arreglo de fondo: que el BOOK pague el mes del cargo con la misma ref; también explica Netflix del 28 con dos BOOK en septiembre pendiente (hallado en la revisión de fin23-24).
 - FIN-28 · baja: un cargo sin `extId` (wallet/macrodroid) aún puede enlazarse a mano a otro recibo del mismo importe mientras el BOOK paga el suyo (hallado en la revisión de fin23-24; sin `extId` no hay ref que comparar).
+- FIN-29 · media: la lápida de un renombrado es la misma que la de un borrado (`día|importe|nombre` sin ámbito): con Sabadell A y CaixaBank C iguales el mismo día, renombrar A oculta C (640 → 320, igual que antes de FIN-19); pasa en la ficha y en FIN04 con nube. Hay que distinguir la lápida de renombrado de la de borrado (hallado en la revisión de la PR 288 R8).
+- FIN-30 · menor: un cliente viejo, sin 4.26.160, que borra con el nombre viejo una fila renombrada en otro móvil, con un DELETE fallido, deja 640 (igual que antes de FIN-19).
 - UX-18 · el orden de «Tus cuentas» y el idioma no se refrescan sin recargar la app (anterior a la 154). NO_REPRO en PC (e2e guardián en 4.26.159); hipótesis: fallo al descargar el paquete de idioma deja textos en español, o un pull viejo pisa `accountListOrder`/`lang`; pendiente de que el dueño diga cuándo le pasa.
 - FIN-05 / INC-2909-01 · widget con app cerrada y periodo/modo (PR 212 y PR 225, widget día 45: una sola tarea)
 - FIN-08 · daños históricos previos
