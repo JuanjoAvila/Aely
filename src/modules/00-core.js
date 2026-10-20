@@ -316,6 +316,8 @@ const CATEGORIES = [
   { id:"multas",     name:"Multas",              color:"#C97D5F", icon:"🚨" },
   { id:"zona_azul",  name:"Zona azul",           color:"#8AA0B8", icon:"🅿️" },
   { id:"peajes",     name:"Peajes",              color:"#7FB5E8", icon:"🛣️" },
+  // Mantenimiento del vehículo (taller, ITV, ruedas…); gasolina, parking y peajes ya tienen la suya.
+  { id:"coche",      name:"Coche",               color:"#E07A7A", icon:"🚗" },
   /* AGUA, LUZ Y GAS POR SEPARADO (2026-09-12). Antes era una sola, «Luz, gas y agua», con un ⚡
      de icono. Suyo: *«sale un símbolo de rayito en Aigües de Barcelona que no encaja para nada…
      Agua por un lado con su símbolo, luz por otro y gas por otro»*. Tenía razón: el recibo del
@@ -414,6 +416,8 @@ const KW = {
   viajes:["booking","airbnb","hotel","hostal","hostel","apartament turistic","apartamento turistico","vueling","iberia","ryanair","easyjet","vuelos","vuelo ","aeropuerto","airport","expedia","trivago","kayak","edreams","rumbo","logitravel","civitatis","getyourguide","amadeus","renfe ave","hotelbeds","marriott","hilton","ibis ","nh hotel","melia","meliá","barcelo","barceló","ac hotel","travelodge","pension ","pensión ","camping","ferry","balearia","grimaldi","cruise","crucero","tourist","turismo"],
   transporte:["transport","renfe","fgc","tmb","metro","autobus","bus ","taxi","cabify","uber","gasolina","repsol","cepsa","shell","bp ","galp","autopista","peaje","tram","bicing","blablacar","flixbus","moove","bolt","ouigo","iryo","avlo","rodalies","emt ","alsa","avanza","ok mobility","sixt","hertz","europcar","petrocat","ballenoil","plenergy","carrefour gas","gasoleo","gasóleo","diesel","diésel","carburante","recarga electr","electrolinera","tesla supercharger","free now","freenow","taxi barcelona","ambitus"],
   parking:["parking","parquimetro","parkimetro","parquímetro","aparcament","aparcamiento","saba","b:sm","bsm","empark","interparking","apk2","apk80","onepark","elparking","easypark","telpark","zona azul","zona verde","area verde","àrea verda","grua municipal","indigo parking","secure parking"],
+  // Coche tras parking. Sin «aire» suelto (choca con aire acondicionado y gasolineras); solo afecta a altas nuevas.
+  coche:["taller","itv","lavado de coche","lavado coche","lavadero","autolavado","car wash","neumatico","neumatic","norauto","midas","feu vert","cambio de aceite","recambio","carglass"],
   // Energía ANTES que hogar (luz/gas no es «muebles»).
   /* AGUA / LUZ / GAS: tres listas donde antes había una (2026-09-12).
      ⚠ EL ORDEN IMPORTA, y aquí más que en ningún sitio: `agua` va PRIMERA a propósito. Las
@@ -507,6 +511,7 @@ const KW_PALABRA={
   "saba":1,       // SABA aparcamientos ⊂ SABADELL
   "zara":1,       // Zara ⊂ ZARAGOZA
   "hospital":1,   // hospital ⊂ HOSPITALET
+  "midas":1,      // Midas (talleres) como palabra entera
   "mango":1,      // la tienda Mango ⊂ MANGOpay, la pasarela de pago de Vinted (2026-09-12)
 };
 /* PALABRAS QUE TIENEN QUE EMPEZAR PALABRA (2026-09-12). Hermana de `KW_PALABRA`, pero NO la misma,
