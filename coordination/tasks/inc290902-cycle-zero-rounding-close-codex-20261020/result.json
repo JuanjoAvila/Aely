@@ -1,0 +1,54 @@
+{
+  "status": "done",
+  "productSHA": "a5bbecf6793931f4cfc8a3087951ad1ef66580f8",
+  "summary": "INC290902 NO_REPRO exact158 a5bbecf6793931f4cfc8a3087951ad1ef66580f8. Zero productchanges/commit/PR; existing source correct on18distinct new actualDOMcases 78 exact samples. Positivecent/halfpercentthreshold, legitimatezero/overspend, no denominator/reservations, grossmonth/netcycle modes, es/en/ca, leave-return/reload/Gastospreset, summer/winter/month/yearMadrid andrealpayrollreset. Complete storedfinancialrows/settings preserved exceptintentionaltoggle in final fixtures; closure fixtures use manual nonsimulated accounts. Five harnessfails plus one legitimate monthly-account-rollover fixture mismatch disclosed separately, no inventedcausalRED, completedcasesnotrepeated. Build0; no unrelated gates/fullsuite/CPU6/CI/served/mobile claim. Prior30255files/27repos exact; allownport48534returned. RETURN4fda9273b7259c6f782f014b99f584bc1b661439; ZIP37b9abe7c76d9024c819b497d31fd2a0c86b4230fc2e27cc870c88476e59a6ed manifestce8315fd3b96ddb5003fd8fdfa2e60b78c0f69618321f9e03c9f5b628f565dbd entries285 verified. NO_REPRO investigationdone/released notProductREADY; privatehandoffthenSTOP FIN04designqueued.",
+  "tests": [
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "INC290902 actual renderer base-cases",
+      "exitCode": 1
+    },
+    {
+      "command": "INC290902 actual renderer base-cases-clock-corrected",
+      "exitCode": 1
+    },
+    {
+      "command": "INC290902 actual renderer base-cases-storage-corrected",
+      "exitCode": 1
+    },
+    {
+      "command": "INC290902 actual renderer base-cases-persist-corrected",
+      "exitCode": 1
+    },
+    {
+      "command": "INC290902 actual renderer remaining-eleven",
+      "exitCode": 1
+    },
+    {
+      "command": "INC290902 actual renderer remaining-seven",
+      "exitCode": 1
+    },
+    {
+      "command": "INC290902 actual renderer remaining-five",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "NO_REPRO is limited to exact authorized beta158 a5bbecf6793931f4cfc8a3087951ad1ef66580f8 and new synthetic EUR cases in Madrid. No claim about latest served beta, real user incident, physical mobile, live bank/cloud, or native widget.",
+    "Existing source already separates gross natural-month spending from net pay-cycle consumption and uses less-than-one-percent for positive cent remainder rounding to zero. Ring represents remaining budget, clamped0..100; exhausted/over-budget0 is legitimate; no configured budget hides ring. No financial logic or semantics changed.",
+    "Directed actual DOM cases include settings toggle, navigation leave/return, reload, independent integer-cent denominators/numerators, language variants, Gastos preset independence, reservations/no denominator, summer/winter/month/year midnight and real payroll civil reset. New cases only; completed cases never rerun merely for a wholly green run.",
+    "Five earlier harness failures retained separately: fixed Date.now blocked minimum splash time; lightweight storage omitted expense partition; stored preference read before400ms debounce; existing dismissNews missed Catalan Entesos!; Object.is distinguished expected-0 from actual0. These are not causal monetary REDs. A sixth fixture-invariant failure observed legitimate daily-account month rollover250007+250000-19999=480008c; all percentage checkpoints passed. Closure fixtures then use manual non-simulated accounts with the same expense-bank selection, dates, amounts and budget. No claim that simulated daily accounts retain raw opening value across rollover.",
+    "Clock ticks during normal boot/reload, then freezes exact observation instant. Monthly news/report overlays handled by existing fixture conventions plus actual Catalan close button. No independent wall-clock performance claim. CPU1 sequential worker1 retry0 maxFailures1, durable logs from launch, own port48534/census each attempt; CPU6/profiling/fullsuite excluded.",
+    "Stored financial rows, budget snapshots, accounts, reservations and complete settings compared through existing split-storage decoder; only intentional budgetCycle toggles differ. Unrelated ephemeral app state not claimed invariant. Initial synthetic fixture full expenses match persisted rows.",
+    "No product edits, commit, new PR or updates to PR288/289/290/291. VERSION/notes/catalogue/caps and prior FIN12/R2/R1/FIN22/R8 evidence untouched. No unrelated historical unit batteries, general CI or integration gates rerun: unchanged source NO_REPRO delivery. Build and actual case EXITs recorded; other gates unexecuted, not assumed green. No SQL/API/Edge/APK/Gradle/deploy/merge. FIN04 phase2 remains queued; private handoff then STOP."
+  ],
+  "schema": 1,
+  "taskId": "inc290902-cycle-zero-rounding-close-codex-20261020",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-20T21:36:38.280Z",
+  "released": true
+}
