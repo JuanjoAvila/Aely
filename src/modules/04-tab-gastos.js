@@ -219,7 +219,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const keyOfE=keyOfExpense;
   const delExpense=function(e){
     if(undoTimerRef.current) clearTimeout(undoTimerRef.current);
-    const key=keyOfE(e), list=state.expenses||[], index=list.findIndex(function(x){ return x.id===e.id; });
+    const key=expenseDeletionKey(e), list=state.expenses||[], index=list.findIndex(function(x){ return x.id===e.id; });
     const wasCloud=cloud.enabled();
     const pair=gemeloAutomaticoDe(state,e);
     const paired=pair&&list.find(function(x){ return x.autoGemelo===e.id&&keyOfE(x)===pair.banco; });
@@ -233,7 +233,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       },lapidaPon(s,key));
       // Borrar el movimiento visible también retira su apunte oculto; Deshacer devuelve ambos.
       if(paired){
-        Object.assign(next,lapidaPon(next,keyOfE(paired)));
+        Object.assign(next,lapidaPon(next,expenseDeletionKey(paired)));
         // También es un borrado a mano: sin este rastro su lápida parecería una respuesta
         // antigua «es el mismo» y reservaría el aviso del siguiente pago igual.
         next.gemelos=pushGemelos(next.gemelos,[bankDeletionLink(paired)]);
@@ -266,7 +266,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         expenses.splice(Math.min(pending.pairedIndex,expenses.length),0,pending.paired);
       }
       const next=Object.assign({},s,{expenses:expenses},lapidaLevanta(s,pending.key));
-      if(pending.paired) Object.assign(next,lapidaLevanta(next,keyOfE(pending.paired)));
+      if(pending.paired) Object.assign(next,lapidaLevanta(next,expenseDeletionKey(pending.paired)));
       return next;
     });
     if(pending.wasCloud){
@@ -280,7 +280,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     set(function(s){
       let next=resolvePossibleDup(s, e.id, same);
       if(same){
-        next=Object.assign({},next,lapidaPon(next, keyOfE(e)));
+        next=Object.assign({},next,lapidaPon(next, expenseDeletionKey(e)));
         if(cloud.enabled()) borrarGastoNube(e, "gastos-dup");
       }
       // «Son distintos»: hay que QUITAR la marca también en la nube (B09-D). Si no, la fila sigue
@@ -632,9 +632,13 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       set(function(s){return expenseRenameDraft(s,orig,merch,at);});
       return;
     }
+    // La lápida de cuenta significa borrado: al cambiar solo el nombre ocultaría
+    // también la fila renombrada por su obName. Como FIN04, usar ambas claves sin ámbito
+    // permite además levantar la vieja al volver al nombre original.
+    const soloNombreBanco=esDeBanco&&upd.obName!=null&&merch!==(orig.merchant||"")&&signed===orig.amount&&newDay===origDay;
     set(function(s){ return rekeyFixedPaymentExpense(Object.assign({},s,{
       expenses:s.expenses.map(function(x){ return x.id===orig.id?upd:x; })
-    },lapidasAlEditar(s, keyOfE(orig), keyOfE(upd))),orig,upd); });
+    },lapidasAlEditar(s, soloNombreBanco?keyOfExpense(orig):expenseDeletionKey(orig), soloNombreBanco?keyOfExpense(upd):expenseDeletionKey(upd))),orig,upd); });
     // Borrado y alta en la nube, en orden y detrás de la edición anterior (`subeEdicionesDeGasto`).
     if(cloud.enabled()){ editCola.current.pend.push({orig:orig, upd:upd}); subeEdicionesDeGasto(editCola.current); }
     sincroniza(upd); showToast(t(splitByEdit?"g_auto_edit_separated":"g_edited"));

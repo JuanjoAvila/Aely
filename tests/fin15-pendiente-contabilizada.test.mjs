@@ -150,7 +150,7 @@ test("FIN15 comodin sin cuenta: fila oculta no consume referencia superviviente"
  .replace('const vistas = new Map<string, Set<string>>(), referencias = new Set<string>();','const vistas = new Map<string, Set<string>>();')
  .replace(
   'if (omitida) continue;',
-  'if (omitida) { const hiddenRef = referenciaOb(f); if (hiddenRef) referencias.add(hiddenRef); continue; }'
+  'if (omitida) { let hiddenRef = referenciaOb(f); if (hiddenRef) { const p = JSON.parse(hiddenRef), bank = bancoDeSource(f.source), account = cuentaDeSource(f.source); if (bank && account) hiddenRef = JSON.stringify([JSON.stringify([bank, account]), p[1], p[2]]); referencias.add(hiddenRef); } continue; }'
  ),accountlessWildcardSurvivor);
  assert.equal(result.status,"killed");
 });

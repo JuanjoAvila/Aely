@@ -1709,14 +1709,19 @@ function importObExpenses(s, txs, links){
      guardadas por versiones anteriores siguen casando tal cual. */
   const baseKOf=function(e){ return String(e.date).slice(0,10)+"|"+e.amount+"|"+nameForKey(e); };
   const kOf=function(e){ return baseKOf(e)+obOrdinalSufijo(e); };
-  const scopedKOf=function(e){ return (expenseBankOf(e)||e.ent||"")+"|"+kOf(e); };
-  const keys={}; (s.expenses||[]).forEach(function(e){ keys[scopedKOf(e)]=1; });
+  const bankKOf=function(e){ return (expenseBankOf(e)||e.ent||"")+"|"+kOf(e); };
+  const scopedKOf=function(e){ return (expenseKnownIdentity(e)||expenseBankOf(e)||e.ent||"")+"|"+kOf(e); };
+  const keys={},unknownKeys={},anyKeys={};
+  const remember=function(e){const bankKey=bankKOf(e);keys[scopedKOf(e)]=1;anyKeys[bankKey]=1;if(!expenseKnownIdentity(e))unknownKeys[bankKey]=1;};
+  (s.expenses||[]).forEach(remember);
+  // Una cuenta conocida no ocupa la ranura de otra. Sin cuenta se conserva el dedup previo.
+  const hasKey=function(e){return expenseKnownIdentity(e)?keys[scopedKOf(e)]||unknownKeys[bankKOf(e)]:anyKeys[bankKOf(e)];};
   /* Lápidas: «es el mismo» borra la fila OB y deja clave en `deleted`. Sin esto el siguiente
      sync de TR volvería a meter el Movimiento y a marcarlo otra vez contra la noti. */
   const delSet=expenseDeletedSet(s)||{};
   const deletedRefs={}, deletedSignedRefs={}, deletedSlots={};
   (s.gemelos||[]).forEach(function(g){
-    if(g&&g.aviso===""&&g.bankRef&&delSet[g.banco]){if(g.bankRefV===2&&[-1,0,1].includes(g.bankRefSign))deletedSignedRefs[obReferenceKey(g.ent,g.bankRef,g.bankRefSign)]=1;else deletedRefs[(g.ent||"")+"|"+g.bankRef]=1;deletedSlots[g.banco]=1;}
+    if(g&&g.aviso===""&&g.bankRef&&(delSet[g.banco]||delSet[bankDeletionLegacyKey(g)])){const scoped=!delSet[bankDeletionLegacyKey(g)];if(g.bankRefV===2&&[-1,0,1].includes(g.bankRefSign))deletedSignedRefs[obReferenceKey(bankDeletionScope(g,scoped),g.bankRef,g.bankRefSign)]=1;else deletedRefs[(g.ent||"")+"|"+g.bankRef]=1;deletedSlots[scoped?g.banco:bankDeletionLegacyKey(g)]=1;}
   });
   /* POSIBLE REPETIDO, NO DESCARTE (2026-09-07). TR por OB no manda id/comercio/hora: un
      «Movimiento» sin nombre puede ser el mismo cargo que ya entró por la noti del móvil, o una
@@ -1783,7 +1788,7 @@ function importObExpenses(s, txs, links){
   const prepara=function(tx){
     // Descartar antes del alta evita reimportar y avisar de la misma preautorización en cada pull.
     if(tx.amount===0)return null;
-    if(tx.id&&(deletedRefs[(tx.ent||"")+"|"+tx.id]||deletedSignedRefs[obReferenceKey(tx.ent,tx.id,tx.amount)]))return null;
+    if(tx.id&&(deletedRefs[(tx.ent||"")+"|"+tx.id]||deletedSignedRefs[obReferenceKey(tx.ent,tx.id,tx.amount)]||deletedSignedRefs[obReferenceKey(expenseKnownIdentity({source:"ob",ent:tx.ent,obAcc:tx.acc}),tx.id,tx.amount)]))return null;
     if(tx.id&&(settled.coveredBooks.has(obReferenceKey(tx.ent,tx.id,tx.amount))||(obIsPending(tx)&&coveredPending.has(obPendingGroup(tx)+"|"+tx.id))))return null;
     const esIngreso = tx.amount<0;
     if(esIngreso){
@@ -1845,8 +1850,8 @@ function importObExpenses(s, txs, links){
     const c={tx:tx, e:e, ord:null, saltar:0};
     cands.push(c);
     if(tx.id) return;
-    const g=(expenseBankOf(e)||e.ent||"")+"|"+baseKOf(e);
-    if(!grupos[g]){ grupos[g]={scoped:g, base:baseKOf(e), miembros:[]}; ordenGrupos.push(g); }
+    const g=(expenseKnownIdentity(e)||expenseBankOf(e)||e.ent||"")+"|"+baseKOf(e);
+    if(!grupos[g]){ grupos[g]={scoped:(expenseBankOf(e)||e.ent||"")+"|"+baseKOf(e), base:baseKOf(e), expense:e, miembros:[]}; ordenGrupos.push(g); }
     grupos[g].miembros.push(c);
   });
   const huella=function(tx){ return [tx.note||"", tx.concept||"", tx.mcc||"", tx.card?1:0, tx.status||""].join("\u0001"); };
@@ -1857,15 +1862,16 @@ function importObExpenses(s, txs, links){
      y sin la lápida; sin esto el cargo contestado «es el mismo» volvía y CONTABA sin preguntar
      (29,90 → 59,80). Mismo criterio que `histCandLapidas`. */
   const cubierta=function(g, n){
-    const suf=n>1 ? "|#"+n : "";
-    return !!(keys[g.scoped+suf] || delSet[g.scoped+suf] || delSet[g.base+suf] || vinculado[g.scoped+suf] || vinculado[g.base+suf]);
+    const suf=n>1 ? "|#"+n : "",row=Object.assign({},g.expense,{obOrd:n}),key=expenseDeletionKey(row);
+    return !!(hasKey(row) || delSet[key] || delSet[g.scoped+suf] || delSet[g.base+suf] || vinculado[key] || vinculado[g.scoped+suf] || vinculado[g.base+suf]);
   };
   /* Lápida de «es el mismo» dejada por una versión SIN `gemelos`: su aviso sigue sin marcar. Solo
      puede ser la ranura 1 (aquella versión no conocía ordinales) y solo si ningún vínculo la
      explica — desde esta versión, borrar a mano o resolver sin gemelo también deja rastro
      (`aviso:""`), así que lo que queda sin vínculo es, de verdad, lo de antes. */
   const lapidaVieja=function(g, n){
-    return n===1 && !!((delSet[g.scoped] || delSet[g.base]) && !keys[g.scoped] && !vinculado[g.base]);
+    const key=expenseDeletionKey(g.expense);
+    return n===1 && !!((delSet[key] || delSet[g.scoped] || delSet[g.base]) && !hasKey(g.expense) && !vinculado[key] && !vinculado[g.scoped] && !vinculado[g.base]);
   };
   /* PENDIENTE + CONTABILIZADO EN LA MISMA RESPUESTA SON UN SOLO CARGO (12/10/2026, revisión de
      la entrega 1). Un banco puede entregar el mismo cargo dos veces mientras se asienta: una
@@ -1883,11 +1889,11 @@ function importObExpenses(s, txs, links){
   // Las referencias distintas ocupan ranuras distintas también al llegar por tandas.
   const conIds=cands.filter(function(c){return !!c.tx.id;}).sort(function(a,b){return String(a.tx.id)<String(b.tx.id)?-1:String(a.tx.id)>String(b.tx.id)?1:0;});
   const ordenadas=expenseBankIdOrdinals((s.expenses||[]).concat(conIds.map(function(c){return c.e;})),function(e,n){
-    return !!deletedSlots[keyOfExpenseLegacy(e)+(n>1?"|#"+n:"")];
+    return !!(deletedSlots[keyOfExpenseLegacy(e)+(n>1?"|#"+n:"")]||deletedSlots[expenseDeletionKey(Object.assign({},e,{obOrd:n}))]);
   });
   conIds.forEach(function(c,i){c.e=ordenadas[(s.expenses||[]).length+i];});
   if(ordenGrupos.length) cands.forEach(function(c){
-    const g=c.tx.id && grupos[(expenseBankOf(c.e)||c.e.ent||"")+"|"+baseKOf(c.e)];
+    const g=c.tx.id && grupos[(expenseKnownIdentity(c.e)||expenseBankOf(c.e)||c.e.ent||"")+"|"+baseKOf(c.e)];
     if(g) g.conId=Math.max(g.conId||0,obOrdinalOf(c.e));
   });
   ordenGrupos.forEach(function(k){
@@ -1919,7 +1925,7 @@ function importObExpenses(s, txs, links){
     if(!(e.amount<0)||e.category!=="ingreso")return;
     const booked=String(tx.status||"").trim().toUpperCase()==="BOOK";
     if(!booked&&!sinComercioReal(tx.merchant))return;
-    if(tx.id?(seen[obReferenceKey(tx.ent,tx.id,tx.amount)]||seenLegacy[obReferenceKey("",tx.id,tx.amount)]||keys[scopedKOf(e)]||delSet[scopedKOf(e)]||delSet[kOf(e)]):c.ord==null)return;
+    if(tx.id?(seen[obReferenceKey(tx.ent,tx.id,tx.amount)]||seenLegacy[obReferenceKey("",tx.id,tx.amount)]||hasKey(e)||delSet[expenseDeletionKey(e)]||delSet[bankKOf(e)]||delSet[kOf(e)]):c.ord==null)return;
     const id=tx.id?(obReferenceKey(tx.ent,tx.id,tx.amount)):c;
     if(seenInc.has(id))return;seenInc.add(id);
     const matches=matchInc(e);if(!matches.length)return;
@@ -1933,7 +1939,7 @@ function importObExpenses(s, txs, links){
     const tx=c.tx, e=c.e, review=reviews.get(c);
     if(tx.id){
       if(seen[obReferenceKey(tx.ent,tx.id,tx.amount)]||seenLegacy[obReferenceKey("",tx.id,tx.amount)])return;
-      if(keys[scopedKOf(e)] || delSet[scopedKOf(e)] || delSet[kOf(e)]) return;
+      if(hasKey(e) || delSet[expenseDeletionKey(e)] || delSet[bankKOf(e)] || delSet[kOf(e)]) return;
     }else{
       if(c.ord==null) return;   // sin ranura libre: ese apunte ya está guardado o resuelto
       if(c.ord>1){ e.obOrd=c.ord; e.date=fechaConOrdinal(e.date, c.ord); }
@@ -1944,7 +1950,7 @@ function importObExpenses(s, txs, links){
     if(review) e.possibleDup=true;
     if(!review&&gemeloBancoAutomatico(e)) e.gemeloNuevo=true;
     if(gem && gem.id){ e.possibleDup=true; e.possibleDupOf=gem.id; }
-    keys[scopedKOf(e)]=1;
+    remember(e);
     if(tx.id) seen[obReferenceKey(tx.ent,tx.id,tx.amount)]=1;
     add.push(e);
   });
@@ -3057,11 +3063,12 @@ function histDistinctBookRef(x,e){
 function histDeletedBookRefs(state){
   const deleted=new Set((state&&state.deleted)||[]), refs=new Set(), slots=new Set();
   ((state&&state.gemelos)||[]).forEach(function(g){
-    if(g && g.aviso==="" && g.bankRef && deleted.has(g.banco)){
+    if(g && g.aviso==="" && g.bankRef && (deleted.has(g.banco)||deleted.has(bankDeletionLegacyKey(g)))){
       // Igual que el diario (PR 272): una lápida v2 lleva el signo de la referencia, así que borrar la compra R1
       // no esconde la devolución R1; la antigua (sin v2) sigue valiendo para cualquier signo.
-      refs.add(g.bankRefV===2&&[-1,0,1].includes(g.bankRefSign)?obReferenceKey(g.ent||"",g.bankRef,g.bankRefSign):(g.ent||"")+"|"+g.bankRef);
-      slots.add((g.ent||"")+"|"+g.banco);
+      const scoped=!deleted.has(bankDeletionLegacyKey(g));
+      refs.add(g.bankRefV===2&&[-1,0,1].includes(g.bankRefSign)?obReferenceKey(bankDeletionScope(g,scoped),g.bankRef,g.bankRefSign):(g.ent||"")+"|"+g.bankRef);
+      slots.add((g.ent||"")+"|"+(scoped?g.banco:bankDeletionLegacyKey(g)));
     }
   });
   return {refs:refs,slots:slots};
@@ -3070,16 +3077,16 @@ function histDeletedBookRefs(state){
 // ordinales conocidos y reserva los borrados con referencia, igual que el importador diario.
 function histDeletedRefHit(deleted, x){
   if(!deleted||!x||x.id==null) return false;
-  return deleted.refs.has(x.ent+"|"+x.id) || deleted.refs.has(obReferenceKey(x.ent,x.id,x.kind==="in"?-Math.abs(x.amount||0):Math.abs(x.amount||0)));
+  return deleted.refs.has(x.ent+"|"+x.id) || deleted.refs.has(obReferenceKey(x.ent,x.id,x.kind==="in"?-Math.abs(x.amount||0):Math.abs(x.amount||0))) || deleted.refs.has(obReferenceKey(expenseKnownIdentity({source:"ob-hist",ent:x.ent,obAcc:x.obAcc}),x.id,x.kind==="in"?-Math.abs(x.amount||0):Math.abs(x.amount||0)));
 }
 function histNumberBookRefs(cands, expenses, deleted){
   const booked=(cands||[]).filter(function(x){ return x.bookRef && !histDeletedRefHit(deleted,x); });
   if(!booked.length) return;
   const seed=expenses||[];
   const numbered=expenseBankIdOrdinals(seed.concat(booked.map(function(x){
-    return {date:x.stamp,amount:x.kind==="in"?-x.amount:x.amount,merchant:x.merchant,source:"ob-hist",ent:x.ent,extId:x.id,obOrd:x.obOrd};
+    return {date:x.stamp,amount:x.kind==="in"?-x.amount:x.amount,merchant:x.merchant,source:"ob-hist",ent:x.ent,extId:x.id,obOrd:x.obOrd,obAcc:x.obAcc};
   })),deleted ? function(e,n){
-    return deleted.slots.has((expenseBankOf(e)||"")+"|"+keyOfExpense(Object.assign({},e,{obOrd:n})));
+    return deleted.slots.has((expenseBankOf(e)||"")+"|"+keyOfExpense(Object.assign({},e,{obOrd:n})))||deleted.slots.has((expenseBankOf(e)||"")+"|"+expenseDeletionKey(Object.assign({},e,{obOrd:n})));
   } : null);
   booked.forEach(function(x,i){const e=numbered[seed.length+i];x.stamp=e.date;x.obOrd=obOrdinalOf(e);});
 }
