@@ -9336,28 +9336,45 @@ function mcBezierXAt(y,p){
   for(let i=0;i<24;i++){ x=(lo+hi)/2; if(mcBezierY(x,p)<y) lo=x; else hi=x; }
   return x;
 }
-const MC_CYCLE_TICKS=5, MC_CYCLE_TICK_MS=8, MC_WAVE_STEP_MAX=200;
-/* El anillo ya no es una onda continua: son unos pocos toques como el punto de la gráfica (el
-   que le gusta), repartidos donde el trazo va llegando, uno por cada quinto del ciclo lleno.
-   Un 20 % es un toque y un 100 % son cinco; con silencio entre medias. La onda continua de la
-   ronda 4, troceada por la APK en ranuras, salía como una ristra de 1,1 s a fuerza mínima 60
-   aunque el deslizador estuviera en 1 — «al entrar vibra una locura» (ronda 7). */
-function mcCycleWave(durationMs,fraction,amp){
+// Uso con el que su OnePlus 13 respeta fuerza y duración (dumpsys 19/10): borde y anillo.
+const MC_FELT_USAGE="hardware";
+const MC_CYCLE_TICKS=8, MC_CYCLE_TICK_MS=10, MC_CYCLE_GAP_MS=50;
+/* El anillo es una RISTRA DE TOQUES SUELTOS, cada uno su propia llamada, repartidos donde el
+   trazo va llegando: uno por cada octavo del ciclo lleno (un 25 % son dos, un 100 % ocho) y de
+   más suave a más fuerte. La ronda 7 mandaba los toques dentro de UNA onda y en su OnePlus 13
+   OxygenOS sustituye la onda entera por su efecto de serie de 45 ms: «ahora solo vibra un toque,
+   aún cambiando las settings». Llamadas sueltas no se pueden fundir en una. */
+function mcCycleTicks(durationMs,fraction,amp){
   const frac=Math.max(0,Math.min(1,fraction)), dur=Math.round(durationMs);
-  if(!(dur>0)||!(frac>0)||!(amp>0)) return null;
-  const n=Math.max(1,Math.round(frac*MC_CYCLE_TICKS)), timings=[], amplitudes=[];
-  let at=0;
-  // La APK rechaza tramos de más de 200 ms: el silencio largo va en trozos.
-  const gap=function(ms){ while(ms>0){ const d=Math.min(MC_WAVE_STEP_MAX,ms); timings.push(d); amplitudes.push(0); ms-=d; } };
+  if(!(dur>0)||!(frac>0)||!(amp>0)) return [];
+  const n=Math.max(1,Math.round(frac*MC_CYCLE_TICKS)), out=[];
+  let last=-Infinity;
   for(let i=1;i<=n;i++){
-    const end=Math.round(mcBezierXAt(i/n,MC_CYCLE_EASE)*dur), startAt=Math.max(at,end-MC_CYCLE_TICK_MS);
-    if(startAt>=dur) break;
-    gap(startAt-at);
-    const len=Math.min(MC_CYCLE_TICK_MS,dur-startAt);
-    timings.push(len); amplitudes.push(Math.round(amp));
-    at=startAt+len;
+    // En mitad del trazo la curva va deprisa: sin hueco mínimo, dos toques se oirían como uno.
+    const at=Math.max(Math.round(mcBezierXAt(i/n,MC_CYCLE_EASE)*dur)-MC_CYCLE_TICK_MS,last+MC_CYCLE_GAP_MS,0);
+    out.push({at:at,amp:Math.max(1,Math.round(amp*(0.5+0.5*i/n)))});
+    last=at;
   }
-  return amplitudes.some(function(a){ return a>0; })?{timings:timings,amplitudes:amplitudes}:null;
+  return out;
+}
+/* Lanza la ristra. Va con uso «hardware» a propósito: con «toque» OxygenOS cambia cada toque
+   por el suyo de serie y la fuerza del deslizador no se nota (dumpsys del 19/10). Solo el
+   anillo: el borde y la gráfica le gustan como están. Devuelve la promesa del primer toque. */
+function mcPlayCycle(durationMs,fraction){
+  const v=mcHapticTune(), ticks=mcCycleTicks(durationMs,fraction,v.fillAmp);
+  (mcPlayCycle.timers||[]).forEach(clearTimeout);
+  mcPlayCycle.timers=[];
+  const cap=window.Capacitor, plugin=cap&&cap.Plugins&&cap.Plugins.AelyHaptics;
+  if(!ticks.length||!plugin||mcReduced()) return null;
+  let answer=null;
+  const first=new Promise(function(r){ answer=r; });
+  ticks.forEach(function(tk,i){
+    mcPlayCycle.timers.push(setTimeout(function(){
+      const p=mcHaptic("edge",{amplitude:tk.amp,durationMs:MC_CYCLE_TICK_MS,usage:MC_FELT_USAGE,cycle:i+1});
+      if(i===0) Promise.resolve(p).then(answer);
+    },tk.at));
+  });
+  return first;
 }
 
 // UX16: la web observa el dedo; solo Android decide si el ajuste táctil permite el toque.
@@ -9375,12 +9392,20 @@ function mcHaptic(method, args){
 // sigue dando su toque fijo; desde la 59 manda lo del ajustador.
 function mcEdgeHaptic(){
   const v=mcHapticTune();
-  mcHaptic("edge",{amplitude:v.edgeAmp,durationMs:v.edgeMs});
+  /* Ronda 8: «da igual la fuerza que pongas, solo vibra suave». La fuerza sí llegaba, pero con
+     uso «toque» OxygenOS cambia el toque por su efecto de serie y en un choque suelto (una vez
+     por arrastre desde la ronda 7) eso se nota igual a cualquier fuerza; en la 152 se repetía y
+     la ristra lo disimulaba. Con uso «hardware» el motor toca nuestra fuerza y duración. */
+  return mcHaptic("edge",{amplitude:v.edgeAmp,durationMs:v.edgeMs,usage:MC_FELT_USAGE});
 }
 // Píxeles de vuelta atrás que convierten el siguiente empuje en otro gesto: menos es temblor.
 const MC_EDGE_REARM=12;
 // Cambiar de segmento suena como un punto de la gráfica: el tick que le gusta (ronda 7).
 function mcTickHaptic(){
+  // Un cambio de segmento = UN toque, aunque el mismo gesto lo pida dos veces (botón y tirón).
+  const now=performance.now();
+  if(now-(mcTickHaptic.at||-Infinity)<150) return;
+  mcTickHaptic.at=now;
   const v=mcHapticTune();
   return mcHaptic("edge",{amplitude:v.tickAmp,durationMs:v.tickMs});
 }
@@ -9493,10 +9518,8 @@ function mcInicioFillHaptic(e){
     // animationstart sucede DESPUÉS del delay CSS y de la pausa del splash: sin segundo reloj.
     // Anillo vacío = nada que rellenar = silencio.
     const fraction=parseFloat(el.style&&el.style.getPropertyValue("--cycle-pct"))/100;
-    const v=mcHapticTune(), wave=mcCycleWave(duration,fraction,v.fillAmp);
-    if(!wave) return;
-    // La APK 58 solo entiende durationMs (su rampa fija); desde la 59 toca la onda de aquí.
-    mcHaptic("fill",{durationMs:duration,amplitude:v.fillAmp,fraction:fraction,timings:wave.timings,amplitudes:wave.amplitudes});
+    if(!(fraction>0)) return;
+    mcPlayCycle(duration,fraction);
   }catch(err){}
 }
 
@@ -23922,7 +23945,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="afaf741c00016423379234f161f3614af4c7f350dca6dff96186429868236b16";
+var _rnSha="b175a6dbfc3f51cdadabb1412ade918da96bd0deaae98f96061c63e9428cfc10";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -24137,16 +24160,10 @@ function HapticTuner({showToast}){
     });
   };
   const later=function(ms,fn){ timers.current.push(setTimeout(fn,ms)); };
-  const tryFill=function(){
-    const w=mcCycleWave(v.fillMs,1,v.fillAmp);
-    if(w) said(mcHaptic("fill",{durationMs:v.fillMs,amplitude:v.fillAmp,fraction:1,timings:w.timings,amplitudes:w.amplitudes}));
-  };
-  // Borde: llegada y dos repeticiones, como seguir tirando estando abajo.
-  const tryEdge=function(){
-    said(mcHaptic("edge",{amplitude:v.edgeAmp,durationMs:v.edgeMs}));
-    later(v.edgeEvery,function(){ mcHaptic("edge",{amplitude:v.edgeAmp,durationMs:v.edgeMs}); });
-    later(v.edgeEvery*2,function(){ mcHaptic("edge",{amplitude:v.edgeAmp,durationMs:v.edgeMs}); });
-  };
+  // Mi ciclo: la misma ristra que al entrar en Inicio, con el anillo lleno.
+  const tryFill=function(){ said(mcPlayCycle(v.fillMs,1)); };
+  // Borde: un choque, igual que en la app (una vez por arrastre) y por la misma función.
+  const tryEdge=function(){ said(mcEdgeHaptic()); };
   // Gráfica: seis puntos seguidos, como pasar el dedo despacio por la línea.
   const tryTick=function(){
     said(mcHaptic("edge",{amplitude:v.tickAmp,durationMs:v.tickMs}));

@@ -65,6 +65,6 @@ test('UX16 ronda3: tiron limitado y tick por punto real de Inicio',async({page})
   const state=estadoHeredado('2026-10-18');state.obAccounts=state.obAccounts.map(a=>({...a,key:a.id}));
   await seedLoggedInDashboard(page,{...state,__seenVersion:fs.readFileSync(new URL('../VERSION',import.meta.url),'utf8').trim()});
   await page.route('https://**/*',route=>route.abort());
-  await page.addInitScript(()=>{window.__ux16={edge:[],fill:[]};window.Capacitor={Plugins:{AelyHaptics:{edge(p){window.__ux16.edge.push({...p,at:performance.now()});return Promise.resolve();},fill(p){window.__ux16.fill.push(p);return Promise.resolve();}}}};});
+  await page.addInitScript(()=>{window.__ux16={edge:[],fill:[]};window.Capacitor={Plugins:{AelyHaptics:{edge(p){if(p&&p.cycle){window.__ux16.fill.push(p);return Promise.resolve();}window.__ux16.edge.push({...p,at:performance.now()});return Promise.resolve();},fill(p){window.__ux16.fill.push(p);return Promise.resolve();}}}};});
   await page.goto('/');const r=await page.evaluate(ux16Round3BrowserCases);expect(r.filter(x=>!x.pass),JSON.stringify(r)).toEqual([]);
 });

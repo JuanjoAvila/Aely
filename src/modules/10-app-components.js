@@ -2362,16 +2362,10 @@ function HapticTuner({showToast}){
     });
   };
   const later=function(ms,fn){ timers.current.push(setTimeout(fn,ms)); };
-  const tryFill=function(){
-    const w=mcCycleWave(v.fillMs,1,v.fillAmp);
-    if(w) said(mcHaptic("fill",{durationMs:v.fillMs,amplitude:v.fillAmp,fraction:1,timings:w.timings,amplitudes:w.amplitudes}));
-  };
-  // Borde: llegada y dos repeticiones, como seguir tirando estando abajo.
-  const tryEdge=function(){
-    said(mcHaptic("edge",{amplitude:v.edgeAmp,durationMs:v.edgeMs}));
-    later(v.edgeEvery,function(){ mcHaptic("edge",{amplitude:v.edgeAmp,durationMs:v.edgeMs}); });
-    later(v.edgeEvery*2,function(){ mcHaptic("edge",{amplitude:v.edgeAmp,durationMs:v.edgeMs}); });
-  };
+  // Mi ciclo: la misma ristra que al entrar en Inicio, con el anillo lleno.
+  const tryFill=function(){ said(mcPlayCycle(v.fillMs,1)); };
+  // Borde: un choque, igual que en la app (una vez por arrastre) y por la misma función.
+  const tryEdge=function(){ said(mcEdgeHaptic()); };
   // Gráfica: seis puntos seguidos, como pasar el dedo despacio por la línea.
   const tryTick=function(){
     said(mcHaptic("edge",{amplitude:v.tickAmp,durationMs:v.tickMs}));

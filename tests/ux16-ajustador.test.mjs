@@ -12,9 +12,13 @@ function setup(stored){
   const document={hidden:false,documentElement:{classList:{contains:()=>false},style:{setProperty:(k,v)=>{css[k]=v;}}},getElementById:()=>null};
   const record=method=>p=>{calls.push({method,...p});return Promise.resolve({tunable:true});};
   const window={__mcSplashGone:true,matchMedia:()=>({matches:false}),Capacitor:{Plugins:{AelyHaptics:{fill:record('fill'),edge:record('edge')}}}};
-  const context={document,window,localStorage,performance:{now:()=>0},Promise,WeakSet,WeakMap,Number,Math,JSON,Object,getComputedStyle:()=>({}),console};
+    const timers=[];
+  const context={document,window,localStorage,performance:{now:()=>0},Promise,WeakSet,WeakMap,Number,Math,JSON,Object,getComputedStyle:()=>({}),console,
+    setTimeout:(fn,ms)=>{timers.push({fn,ms});return timers.length;},clearTimeout:()=>{}};
   vm.createContext(context);vm.runInContext(block,context);
-  return {context,calls,store,css};
+  // Dispara los temporizadores pendientes en orden de reloj (la ristra del anillo).
+  const flush=()=>{timers.sort((a,b)=>a.ms-b.ms).splice(0).forEach(t=>t.fn());};
+  return {context,calls,store,css,timers,flush};
 }
 function ringEvent(pct,duration=1100){
   const animation={animationName:'v42-cycle-draw',playState:'running',effect:{getComputedTiming:()=>({duration})}};
@@ -24,7 +28,7 @@ function ringEvent(pct,duration=1100){
 }
 test('valores por defecto: los de la ronda 3 y algo mas de fuerza en borde y grafica',()=>{
   const x=setup();const v=x.context.mcHapticTune();
-  assert.equal(v.fillAmp,40,"ronda 7: el anillo, suave por defecto");assert.equal(v.fillMs,1100);assert.equal(v.edgeEvery,150);
+  assert.equal(v.fillAmp,40);assert.equal(v.fillMs,1100);assert.equal(v.edgeEvery,150);
   assert.ok(v.edgeAmp>30&&v.tickAmp>30,'borde y grafica por encima del 30 de la ronda 3');
   assert.equal(x.css['--v42-cycle-ms'],'1100ms','el anillo arranca con la duracion de siempre');
 });
@@ -43,26 +47,30 @@ test('almacen roto o con basura vuelve a los de serie sin romper',()=>{
   const x=setup('{no es json');assert.equal(x.context.mcHapticTune().fillAmp,40);
   const y=setup(JSON.stringify({fillAmp:'fuerte',edgeMs:null}));assert.equal(y.context.mcHapticTune().fillAmp,40);
 });
-test('borde: mcHaptic lleva la fuerza y duracion guardadas',()=>{
-  const x=setup(JSON.stringify({edgeAmp:140,edgeMs:20}));
-  x.context.mcEdgeHaptic();
-  assert.deepEqual(x.calls.map(c=>[c.method,c.amplitude,c.durationMs]),[['edge',140,20]]);
+test('borde (ronda 8): el choque obedece fuerza y duracion del ajustador, con uso hardware',()=>{
+  for(const [amp,ms] of [[1,4],[140,20],[255,60]]){
+    const x=setup(JSON.stringify({edgeAmp:amp,edgeMs:ms,usage:'touch'}));
+    x.context.mcEdgeHaptic();
+    assert.deepEqual(x.calls.map(c=>[c.method,c.amplitude,c.durationMs,c.usage]),[['edge',amp,ms,'hardware']],
+      'con «toque» OxygenOS lo cambia por su efecto de serie y la fuerza no se nota');
+  }
 });
-test('Mi ciclo (ronda 7): unos toques cortos con la fuerza, la duracion y el uso del ajustador',()=>{
-  const tune=JSON.stringify({fillAmp:120,fillMs:1500,usage:'hardware'});
-  const full=setup(tune);full.context.mcInicioFillHaptic(ringEvent(100,1500));
-  const fifth=setup(tune);fifth.context.mcInicioFillHaptic(ringEvent(20,1500));
-  const [b]=full.calls,[s]=fifth.calls;
-  assert.equal(b.method,'fill');assert.equal(b.usage,'hardware','el relleno lleva el uso elegido');
-  const on=w=>[...w.amplitudes].filter(a=>a>0);
-  assert.deepEqual(on(b),[120,120,120,120,120],'anillo lleno: cinco toques a la fuerza del deslizador');
-  assert.deepEqual(on(s),[120],'un quinto del ciclo: un solo toque');
-  b.timings.forEach((t,i)=>{ if(b.amplitudes[i]>0) assert.ok(t<=8,'cada toque es corto'); assert.ok(t>0&&t<=200,'tramos que la APK acepta'); });
-  const total=b.timings.reduce((a,t)=>a+t,0);assert.ok(total<=1500&&total>1400,'repartidos a lo largo de la duracion elegida');
-  const onMs=b.timings.reduce((a,t,i)=>a+(b.amplitudes[i]>0?t:0),0);assert.ok(onMs<=40,'en total, menos de 40 ms de vibracion');
-  const def=setup();def.context.mcInicioFillHaptic(ringEvent(100));
-  assert.ok(Math.max(...def.calls[0].amplitudes)<=40,'por defecto, suave');
-  const empty=setup();empty.context.mcInicioFillHaptic(ringEvent(0));assert.equal(empty.calls.length,0,'anillo vacio no vibra');
+test('Mi ciclo (ronda 8): toques sueltos, proporcionales al ciclo, con fuerza y duracion del ajustador',()=>{
+  const run=(tune,pct,dur)=>{const x=setup(JSON.stringify(tune));x.context.mcInicioFillHaptic(ringEvent(pct,dur));x.flush();return x;};
+  const full=run({fillAmp:200,fillMs:1500},100,1500), quarter=run({fillAmp:200,fillMs:1500},25,1500);
+  assert.equal(full.calls.length,8,'anillo lleno: ocho toques, cada uno su llamada');
+  assert.equal(quarter.calls.length,2,'un cuarto del ciclo: dos');
+  assert.ok(full.calls.every(c=>c.method==='edge'&&c.usage==='hardware'&&c.durationMs<=12),'toques cortos con uso hardware');
+  const amps=full.calls.map(c=>c.amplitude);
+  assert.ok(amps.every((a,i)=>i===0||a>=amps[i-1])&&amps.at(-1)===200&&amps[0]<=125,'de mas suave a la fuerza del deslizador');
+  const soft=run({fillAmp:40,fillMs:1500},100,1500);
+  assert.equal(soft.calls.at(-1).amplitude,40,'el deslizador de fuerza se nota');
+  const at=x=>x.timers.map(t=>t.ms);
+  const slow=setup(JSON.stringify({fillAmp:200}));slow.context.mcInicioFillHaptic(ringEvent(100,2000));
+  const fast=setup(JSON.stringify({fillAmp:200}));fast.context.mcInicioFillHaptic(ringEvent(100,600));
+  assert.ok(Math.max(...at(slow))>1800&&Math.max(...at(fast))<700,'la duracion reparte los toques por el trazo');
+  const t=at(slow).sort((a,b)=>a-b);assert.ok(t.every((v,i)=>i===0||v-t[i-1]>=50),'nunca dos toques pegados');
+  const empty=setup();empty.context.mcInicioFillHaptic(ringEvent(0));empty.flush();assert.equal(empty.calls.length,0,'anillo vacio no vibra');
 });
 test('texto para copiar: corto y con los siete numeros',()=>{
   const x=setup(JSON.stringify({fillAmp:40,fillMs:900,edgeAmp:90,edgeMs:15,edgeEvery:120,tickAmp:80,tickMs:9}));
@@ -97,10 +105,12 @@ test('borde (ronda 7): una vibracion por arrastre; volver atras y empujar otra v
   assert.equal(edges(),3,'soltar y volver a tirar, otro');
   touch('touchend');
 });
-test('segmentos (ronda 7): el tick de la grafica',()=>{
-  const x=setup(JSON.stringify({tickAmp:55,tickMs:9}));x.context.mcTickHaptic();
+test('segmentos (ronda 8): UN tick de la grafica por cambio',()=>{
+  const x=setup(JSON.stringify({tickAmp:55,tickMs:9}));const clock={t:1000};x.context.performance.now=()=>clock.t;
+  x.context.mcTickHaptic();x.context.mcTickHaptic();clock.t+=40;x.context.mcTickHaptic();
   assert.deepEqual(x.calls.map(c=>[c.method,c.amplitude,c.durationMs]),[["edge",55,9]]);
   const plan=fs.readFileSync(new URL('../src/modules/14-v4-screens.js',import.meta.url),'utf8');
+  clock.t+=300;x.context.mcTickHaptic();assert.equal(x.calls.length,2,'el siguiente cambio, otro');
   assert.match(plan,/if\(seg!==s\.id\) mcTickHaptic\(\); setSeg\(s\.id\)/,'Plan: tick al cambiar de segmento');
 });
 test('uso de la vibracion (ronda 6): se guarda, viaja en cada llamada y la basura vuelve a toque',()=>{

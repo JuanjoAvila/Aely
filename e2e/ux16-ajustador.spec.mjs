@@ -16,7 +16,7 @@ async function boot(page,channel){
     if(ch==='beta') localStorage.setItem('_mcChannel','beta'); else localStorage.removeItem('_mcChannel');
     window.__ux16={edge:[],fill:[]};
     window.Capacitor={Plugins:{AelyHaptics:{
-      edge(p){window.__ux16.edge.push({...p,at:performance.now()});return Promise.resolve({tunable:true,shaped:true,amplitudeControl:true});},
+      edge(p){if(p&&p.cycle){window.__ux16.fill.push({...p,at:performance.now()});return Promise.resolve({tunable:true,shaped:true,amplitudeControl:true});}window.__ux16.edge.push({...p,at:performance.now()});return Promise.resolve({tunable:true,shaped:true,amplitudeControl:true});},
       fill(p){window.__ux16.fill.push(p);return Promise.resolve({tunable:true,shaped:true,amplitudeControl:true});}}}};
   },channel);
   await page.goto('/');
@@ -52,11 +52,14 @@ test('UX16 ajustador: en beta se mueve, se guarda, se prueba y lo obedecen borde
   const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('_mcHapticTune')||'null'));
   expect(saved).toMatchObject({edgeAmp:180,edgeEvery:90});
 
+  // Ronda 8: probar el borde = un choque, el mismo que en la app, con su fuerza y duración.
+  await slide(page,'edgeMs',30);
+  const before=await page.evaluate(()=>window.__ux16.edge.length);
   await tuner.locator('[data-group="edge"] .chip').click();
-  await expect.poll(()=>page.evaluate(()=>window.__ux16.edge.length)).toBeGreaterThanOrEqual(3);
-  const probe=await page.evaluate(()=>window.__ux16.edge.slice(0,3));
-  expect(probe.every(p=>p.amplitude===180)).toBe(true);
-  expect(probe[1].at-probe[0].at).toBeGreaterThanOrEqual(80);
+  await expect.poll(()=>page.evaluate(()=>window.__ux16.edge.length)).toBe(before+1);
+  await page.waitForTimeout(400);
+  expect(await page.evaluate(()=>window.__ux16.edge.length)).toBe(before+1);
+  expect(await page.evaluate(()=>window.__ux16.edge.at(-1))).toMatchObject({amplitude:180,durationMs:30,usage:'hardware'});
 
   // Ronda 6: el tipo de vibración se elige con chips y viaja en cada llamada al motor.
   await tuner.locator('[data-usage="hardware"]').click();
@@ -67,11 +70,14 @@ test('UX16 ajustador: en beta se mueve, se guarda, se prueba y lo obedecen borde
 
   await slide(page,'fillMs',1500);
   expect(await page.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--v42-cycle-ms').trim())).toBe('1500ms');
+  // Probar el anillo = la ristra entera con el anillo lleno: ocho toques hasta la fuerza elegida.
+  await page.evaluate(()=>{window.__ux16.fill=[];});
   await tuner.locator('[data-group="fill"] .chip').click();
-  const fill=await page.evaluate(()=>window.__ux16.fill.at(-1));
-  expect(fill.timings.reduce((a,t)=>a+t,0)).toBe(1500);
-  expect(fill.amplitude).toBe(40);
-  expect(fill.amplitudes.filter(a=>a>0)).toEqual([40,40,40,40,40]);
+  await expect.poll(()=>page.evaluate(()=>window.__ux16.fill.length),{timeout:4_000}).toBe(8);
+  const ring=await page.evaluate(()=>window.__ux16.fill);
+  expect(ring.at(-1).amplitude).toBe(40);
+  expect(ring.every(c=>c.usage==='hardware')).toBe(true);
+  expect(ring.at(-1).at-ring[0].at).toBeGreaterThan(500);
 
   // Copiar deja en el portapapeles el texto corto que él nos manda.
   await page.evaluate(()=>{window.__copied=null;navigator.clipboard.writeText=t=>{window.__copied=t;return Promise.resolve();};});
@@ -99,7 +105,7 @@ test('UX16 ajustador: en beta se mueve, se guarda, se prueba y lo obedecen borde
     touch('touchmove',215);const repeated=calls.length-before;touch('touchend',215);box.remove();
     return {arrival,immediate,held,repeated};
   });
-  expect(r.arrival).toMatchObject({amplitude:180});
+  expect(r.arrival,'el choque real obedece al ajustador').toMatchObject({amplitude:180,durationMs:30,usage:'hardware'});
   expect(r.immediate,'seguir tirando estando abajo vibra al momento').toBe(1);
   expect(r.held,'con el dedo quieto no repite').toBe(1);
   expect(r.repeated,'ni al seguir arrastrando: uno por arrastre').toBe(1);

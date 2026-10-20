@@ -11,15 +11,17 @@ export async function ux16BrowserCases(){
   const ring=document.querySelector('.page-scroll-host .v42-cycle-draw');
   if(!ring)throw Error('Fixture: Inicio sin anillo');
   const host=ring.closest('.page');
-  await sleep(250);
+  await sleep(1400);
   const calls=window.__ux16;
-  check('anillo: un disparo tras splash y delay',calls.fill.length,1);
-  check('anillo: duracion CSS real',calls.fill[0]?.durationMs??0,1100);
+  // Ronda 8: el anillo es una ristra de toques sueltos (cycle 1..n) repartida por la animación.
+  check('anillo: una ristra tras splash y delay',calls.fill.length>=1&&calls.fill.every((c,i)=>c.cycle===i+1),true);
+  check('anillo: toques dentro de la animacion CSS real',!!calls.fill.length&&calls.fill.at(-1).at-calls.fill[0].at<=1100,true);
   check('anillo: no pulsa detras del splash',calls.fillBeforeSplash,0);
   check('anillo: respeta 150ms de delay CSS',!!calls.fill[0]&&calls.fill[0].at-calls.splashAt>=120,true);
   ring.dispatchEvent(new AnimationEvent('animationstart',{animationName:'v42-cycle-draw',bubbles:true}));
-  check('anillo: evento duplicado no duplica RPC',calls.fill.length,1);
   const first=calls.fill.length;
+  await sleep(1300);
+  check('anillo: evento duplicado no repite la ristra',calls.fill.length,first);
   document.querySelector('.v42-cycle').click(); // rerender real de Dashboard al abrir su hoja.
   await sleep(30);
   check('anillo: rerender no dispara',calls.fill.length,first);
@@ -92,7 +94,7 @@ test('UX16: borde y anillo reales con transporte nativo sintetico',async({page})
   await page.addInitScript(()=>{
     window.__ux16={edge:[],fill:[],fillBeforeSplash:0,splashAt:0};
     window.addEventListener('mc-splash-gone',()=>{window.__ux16.fillBeforeSplash=window.__ux16.fill.length;window.__ux16.splashAt=performance.now();});
-    window.Capacitor={Plugins:{AelyHaptics:{edge(){window.__ux16.edge.push({});return Promise.resolve();},fill(p){window.__ux16.fill.push({...p,at:performance.now()});return Promise.resolve();}}}};
+    window.Capacitor={Plugins:{AelyHaptics:{edge(p){if(p&&p.cycle){window.__ux16.fill.push({...p,at:performance.now()});return Promise.resolve();}window.__ux16.edge.push({});return Promise.resolve();},fill(p){window.__ux16.fill.push({...p,at:performance.now()});return Promise.resolve();}}}};
   });
   await page.goto('/');
   const results=await page.evaluate(ux16BrowserCases);
