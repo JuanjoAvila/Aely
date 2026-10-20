@@ -1,5 +1,64 @@
 [
   {
+    "v": "4.26.159",
+    "d": "2026-10-20",
+    "t": {
+      "es": "Recibos de solo algunos meses: la cuenta del mes y el alta, bien",
+      "en": "Bills charged only some months: the monthly figure and the sign-up preview, right",
+      "ca": "Rebuts de només alguns mesos: el compte del mes i l'alta, bé"
+    },
+    "items": {
+      "es": [
+        "Los recibos que se cobran solo en algunos meses cuentan lo justo cada mes.",
+        "Al dar de alta un recibo anual en varios meses se ve bien cuánto se cobra.",
+        "Los recibos de siempre no cambian ni un céntimo.",
+        "Un mismo cargo ya no puede marcar como pagados dos recibos del mismo importe."
+      ],
+      "en": [
+        "Bills charged only in some months count exactly their share each month.",
+        "When adding a yearly bill charged in several months, you can see correctly how much is charged.",
+        "Your usual bills do not change by a single cent.",
+        "A single charge can no longer mark two bills of the same amount as paid."
+      ],
+      "ca": [
+        "Els rebuts que es cobren només alguns mesos compten el just cada mes.",
+        "En donar d'alta un rebut anual en diversos mesos es veu bé quant es cobra.",
+        "Els rebuts de sempre no canvien ni un cèntim.",
+        "Un mateix càrrec ja no pot marcar com a pagats dos rebuts del mateix import."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "recibos-meses-a-mano",
+        "t": {
+          "es": "Recibos de algunos meses: la mensualidad y el alta cuadran",
+          "en": "Bills of some months: the monthly figure and the sign-up add up",
+          "ca": "Rebuts d'alguns mesos: la mensualitat i l'alta quadren"
+        },
+        "items": {
+          "es": [
+            "1. Plan → Recibos → Gestionar → «+ Añadir un recibo» → nombre «Prueba», 600 → «Una vez al año» → marca marzo y septiembre. Debajo debe poner «Se cobrarán 300,00 € en Mar, Sep (600,00 € al año): 50,00 € al mes repartidos.» MAL: si dice 1200,00 € al año.",
+            "2. En ese mismo alta, vuelve atrás, elige «Cada tres meses» y deja marcados solo 3 meses. Debe decir 600,00 € en esos 3 meses, 1800,00 € al año y 150,00 € al mes. MAL: si dice 200,00 € al mes o 2400,00 € al año. Sal sin guardar.",
+            "3. Guarda un recibo trimestral de 90 € con 3 meses marcados (por ejemplo febrero, mayo y agosto). «SE TE VAN CADA MES» debe subir exactamente 22,50 €. MAL: si sube 30,00 €. Bórralo después.",
+            "4. Tus recibos de siempre (los que no tienen meses tocados a mano): «SE TE VAN CADA MES» da la misma cifra que antes de actualizar. MAL: si cambia aunque sea un céntimo."
+          ],
+          "en": [
+            "1. Plan → Bills → Manage → «+ Add a bill» → name «Prueba», 600 → «Once a year» → tick March and September. Below it must say «300,00 € will be charged in Mar, Sep (600,00 € a year): 50,00 € a month spread out.» WRONG: if it says 1200,00 € a year.",
+            "2. In that same sign-up, go back, pick «Every three months» and leave only 3 months ticked. It must say 600,00 € in those 3 months, 1800,00 € a year and 150,00 € a month. WRONG: if it says 200,00 € a month or 2400,00 € a year. Leave without saving.",
+            "3. Save a quarterly bill of 90 € with 3 months ticked (for example February, May and August). «GOES OUT EVERY MONTH» must go up by exactly 22,50 €. WRONG: if it goes up by 30,00 €. Delete it afterwards.",
+            "4. Your usual bills (the ones with no months set by hand): «GOES OUT EVERY MONTH» shows the same figure as before updating. WRONG: if it changes by even one cent."
+          ],
+          "ca": [
+            "1. Pla → Rebuts → Gestionar → «+ Afegir un rebut» → nom «Prueba», 600 → «Un cop l'any» → marca març i setembre. A sota ha de dir «Es cobraran 300,00 € a Mar, Set (600,00 € l'any): 50,00 € al mes repartits.» MALAMENT: si diu 1200,00 € l'any.",
+            "2. En aquesta mateixa alta, torna enrere, tria «Cada tres mesos» i deixa marcats només 3 mesos. Ha de dir 600,00 € en aquests 3 mesos, 1800,00 € l'any i 150,00 € al mes. MALAMENT: si diu 200,00 € al mes o 2400,00 € l'any. Surt sense desar.",
+            "3. Desa un rebut trimestral de 90 € amb 3 mesos marcats (per exemple febrer, maig i agost). «SE'T VAN CADA MES» ha de pujar exactament 22,50 €. MALAMENT: si puja 30,00 €. Esborra'l després.",
+            "4. Els teus rebuts de sempre (els que no tenen mesos tocats a mà): «SE'T VAN CADA MES» dona la mateixa xifra que abans d'actualitzar. MALAMENT: si canvia encara que sigui un cèntim."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.158",
     "d": "2026-10-20",
     "t": {
@@ -24,36 +83,7 @@
         "Pla i els diners disponibles no canvien."
       ]
     },
-    "tandas": [
-      {
-        "id": "youtube-r4",
-        "t": {
-          "es": "YouTube Premium: la ficha reconoce su recibo aunque el banco lo apunte días después",
-          "en": "YouTube Premium: the charge sheet recognises its bill even if the bank records it days later",
-          "ca": "YouTube Premium: la fitxa reconeix el seu rebut encara que el banc l'apunti dies després"
-        },
-        "items": {
-          "es": [
-            "0. Abre la app con la versión 4.26.158 (llega sola). Tu frase: «sigue igual no funciona no se enlaza».",
-            "1. Abre Gastos y toca el cargo de YouTube Premium del 2 de octubre. MAL: «Paga un recibo» dice «No», o sea, «sigue igual no funciona no se enlaza».",
-            "2. En la misma ficha, «Paga un recibo» tiene que decir «YouTube Premium». MAL: sale otro recibo, o sale vacío.",
-            "3. Ve a Plan → Recibos: YouTube Premium sigue como pagado una sola vez y el dinero disponible no ha cambiado respecto a antes de actualizar. MAL: aparece dos veces, deja de estar pagado o cambia el disponible."
-          ],
-          "en": [
-            "0. Open the app on version 4.26.158 (it arrives by itself). Your words: «sigue igual no funciona no se enlaza» (it is still the same, it does not work, it does not link).",
-            "1. Open Expenses and tap the YouTube Premium charge of 2 October. WRONG: «Pays a bill» says «No», that is, «sigue igual no funciona no se enlaza» (it is still the same, it does not link).",
-            "2. In the same sheet, «Pays a bill» must say «YouTube Premium». WRONG: another bill shows up, or it is empty.",
-            "3. Go to Plan → Bills: YouTube Premium is still paid only once and the available money has not changed compared with before updating. WRONG: it appears twice, it stops being paid or the available money changes."
-          ],
-          "ca": [
-            "0. Obre l'app amb la versió 4.26.158 (arriba sola). La teva frase: «sigue igual no funciona no se enlaza» (continua igual, no funciona, no s'enllaça).",
-            "1. Obre Despeses i toca el càrrec de YouTube Premium del 2 d'octubre. MALAMENT: «Paga un rebut» diu «No», és a dir, «sigue igual no funciona no se enlaza» (continua igual, no s'enllaça).",
-            "2. A la mateixa fitxa, «Paga un rebut» ha de dir «YouTube Premium». MALAMENT: surt un altre rebut, o surt buit.",
-            "3. Ves a Pla → Rebuts: YouTube Premium continua com a pagat una sola vegada i els diners disponibles no han canviat respecte a abans d'actualitzar. MALAMENT: apareix dues vegades, deixa d'estar pagat o canvia el disponible."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.157",

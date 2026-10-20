@@ -331,7 +331,8 @@ const PRESUPUESTO = {
   // Integración 4.26.154 (20/10): la 153 más perf-cuentas y el reintento de renombrar sin cobertura: 1414 KiB minificado medidos. SUBE por producto: 1415 KiB; el gzip a 394.
   // Integración 4.26.156 (20/10): la 155 más vibración ronda 5 (toque propio de segmento ajustable y fuerza que alarga el toque): 1416 KiB minificado y 393 KiB gzip medidos en la CI de beta. SUBE por producto: 1417 KiB; el gzip se queda en 394.
   // Integración 4.26.157 (20/10): la 156 más vibración ronda 6 (rampa del anillo, captura del tirón en Plan y gráfica con fuerza que alarga el toque): 1416 KiB minificado y 393 KiB gzip medidos en local, sin margen. SUBE por producto: 1419 KiB; el gzip se queda en 394.
-  minificado: 1419 * 1024,
+  // Integración 4.26.159 (20/10): la 158 más meses a mano en recibos (fixedChargeMonths, fixedAddPreview y la vista previa del alta): 1417 KiB minificado y 394 KiB gzip medidos en local, sin margen. SUBE por producto: 1421 KiB minificado y 395 de gzip.
+  minificado: 1421 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -366,7 +367,8 @@ const PRESUPUESTO = {
   // la cifra de Cartera se anima sola. Mismo host y minificador, sello .99999 y reserva de 95 B:
   // 1.445.348/401.213 → 1.446.618/401.660 B (+1.270/+447). Es código, sin textos. 392 KiB se queda
   // corto por 252 B: 393 KiB (quedan 772 B); el crudo cabe en 1413 KiB con 294 B.
-  gzip: 394 * 1024,
+  // Integración 4.26.159 (con fin23-24): 1418 KiB minificado y 394 KiB gzip medidos en local; el gzip queda a 1 KiB. SUBE por producto: gzip 396 KiB (el minificado conserva 3 KiB de margen).
+  gzip: 396 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

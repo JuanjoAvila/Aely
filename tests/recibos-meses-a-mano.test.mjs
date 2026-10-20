@@ -36,7 +36,7 @@ for(const k of aMano) test(`FIN-20 ${k.name}: mensualidad = lo cobrado en 12 mes
 const sinTocar=[
   {amount:49.99,freq:"mes"},{amount:61.7,freq:"bimestral"},{amount:93.33,freq:"trimestral"},
   {amount:172.05,freq:"semestral"},{amount:666.36,freq:"año"},{amount:666.36,freq:"año",months:[10]},
-  {amount:600,freq:"anual",months:[3,9]},{amount:120,freq:"año",months:[1,4,7]},{amount:12.5,freq:"semana"},
+  {amount:600,freq:"anual",months:[3,9]},{amount:120,freq:"año",months:[1,4,7]},{amount:12.5,freq:"semana"},{amount:12.5,freq:"semana",months:[1,2]},
   // meses a mano, pero tantos como los de por defecto: mismo número de cobros, misma cifra
   {amount:93.33,freq:"trimestral",months:[2,5,8,11]},{amount:61.7,freq:"bimestral",months:[2,4,6,8,10,12]},
   {amount:172.05,freq:"semestral",months:[3,9]},{amount:30,freq:"mes",months:[1,2,3,4,5,6,7,8,9,10,11,12]},
