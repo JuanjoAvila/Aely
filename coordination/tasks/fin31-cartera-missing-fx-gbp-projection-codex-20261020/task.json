@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "id": "fin31-cartera-missing-fx-gbp-projection-codex-20261020",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261019-r74-36ea75cf98e01bbf",
+  "createdAt": "2026-10-20T19:46:42.037Z",
+  "to": "codex",
+  "kind": "worker",
+  "priority": 2,
+  "model": "gpt-6-astra",
+  "assignedPublicSessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "baseSHA": "66c13084257fd576444a01cb529c5e6e815c6ec6",
+  "claudeGrant": "55981078a4bb060aa074aee932c8190f0eaa86b3",
+  "dependsOnReleasedResult": "eebc728f903ea1510246b764828048ea99c34363",
+  "previousRunnerReturn": "1ee290ec1585a99eb01ebd20738b66e24de74604",
+  "objective": "FIN31 currency in Cartera: missing FX must render unknown with explanation and consistent Inicio/Cartera totals; Tus inversiones supports global GBP and selected option; Proyeccion axis and monthly contribution use selected currency. One draft PR against beta, causal RED in actual base and directed e2e.",
+  "scope": [
+    "Missing-FX unknown financial values in Cartera broker rows, Tus inversiones and Cartera total, consistent with Inicio existing AGENTS1 rule",
+    "Tus inversiones GBP rendering and selected currency control with existing global/local currency semantics",
+    "Web Proyeccion currency axis near06-sync-brokers638 and monthly contribution near668",
+    "Only directly causal source/helpers, independent directed financial/date/currency tests and rendered e2e, one isolated draft PR/source package"
+  ],
+  "requirements": [
+    "Original holder82dbe59f same actual thread/model/runtime no override. NEWtask OWN claim normalpush/readback + ACK BEFORE code/tests. Whole AGENTS/EMPIEZA/protocol/current/policy/newClaudeFULL and cancellation checks. FIN22 released; priorFIN19R8/FIN22 original158WIP7/new159source/packages immutable. Never reuse released claim.",
+    "Claude55981078 allows beta66c13084257fd576444a01cb529c5e6e815c6ec6 or beta at actual start. Read current remote beta once for product provenance, FULLread any new channel grants/cancels with ownbudget, ACK exact chosen fullsource/version and basedelta; fresh isolated checkout/branch, no previousFIN19/FIN22carryover. Do not chase later beta after start or silently rebase WIP. Initial prior-files/repos census and final exact preservation.",
+    "ROJO FIRST (a) synthetic missing FX with non-EUR Revolut investment: Cartera and Tus inversiones must show unknown em dash with meaningful existing why, never zeroEUR or invented contribution. Cartera aggregate matches Inicio unknown semantics (AGENTS1), neither manufactured2751.32 nor partial misleading total. Independent expected money/null oracles and actual rendered row/totals, preserve all original fullstoredrows (amount/value/cost/currency/rates/identity) across switch/reload. KnownFX controls exact conversion, truezero separate from unknown, EUR controls and otherbrokers/account/portfolio totals.",
+    "ROJO FIRST (b) globalGBP then Tus inversiones must useGBP and have meaningful selectedoption; trace existing supportedcurrency and local/globalselectorcontract. Retain EUR/USD and localselector independence where intentional, reload and toggles consistent. Do not hardcode rate or relabel numbers. Use known deterministic synthetic GBP/USD rates and independent numeric/unit expectations; noFX GBP correctly unknown.",
+    "ROJO FIRST (c) Proyeccion axis unit and monthly contribution currently fixedEUR near06syncbrokers638/668. Fix labels AND amount conversion consistently with selecteddisplaycurrency, EUR/USD/GBP and missingFX as existing semantics require. Trace existingformatterconversion path, independent expectations, no storedprincipal/contribution mutation. Native widget path11-app-main near2352 EXCLUDED; no widget/native/shell/card edits by scope carryover.",
+    "Directed CPU1 sequential tests plus real browser e2e requested with fresh OWN census/admission/localport and worker1retry0maxFailures1, synthetic offline fixtures/network restriction only. Actual causal baseline REDs preserved; candidate GREEN real EXITs. No fullsuite CPU6/profiling or oldFIN22test reruns by inertia. Newbase/newscopevalidation justified, old3PASS/5EXIT1 immutable. No foreign process/lock touches or leases by absence/PID/clock.",
+    "One draft PR against beta FIN31only. NO VERSION/release-notes/CHANGELOG/README/ROADMAP/BACKLOG/catalogue/caps edits, integration reservedClaude. PR288/289FROZEN nochanges. Report new formatter/helper dependencies for Claude catalogue integration; size/docs/catalogue truegateEXITs accuratelyrecorded, no weakening caps/oracles or broad catalogue mutation retries by inertia. No SQL/Edge/livecloud/bank/API, APK/Gradle/deploy/merge or production.",
+    "Same OWN9 actual9/20remaining11 atFIN22close, sameidentity/helper/filter/ledger; count every first/internal/readback fetch >=30s. No counter reset/inheritance. Only after actual20freeze plus normalnotice/readback newblock under validgrant. OwnresourcesRETURN identityproof only, preserveothers. ROOTledgerseparate.",
+    "Final ownRETURN and releasedresult with exactsource/baseversion/normalparent/PRHEADbranchpullref, every actualcommandEXIT/failure/skippedgate/limitation. ImmutablemanifestZIP/report/sourceinventory/privacydeclaredredactions/originalhashes + allpriorfiles/repos/WIP integrity and resourcesreturned. Private handoff providednatively, STOP no other queue task/native reply absent directhumanpermission. FIN12 thenINC290902 thenFIN04phase2DESIGN need next exacttask. No ProductREADY/served/mobileclaim."
+  ],
+  "deliverable": "FIN31 minimal draft PR with causal actual-base RED and directed monetary/unit/browser GREEN for all three web currency faults, own RETURN/released result, immutable source/evidence and prior-work preservation, then STOP."
+}
