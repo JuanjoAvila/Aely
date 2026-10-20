@@ -61,6 +61,9 @@ export const E2E_MAP = [
   { file: "src/modules/11-app-main.js", specs: ["e2e/recibos-cifra-estable.spec.mjs"] },
   { file: "src/modules/13-hogar.js", specs: ["e2e/recibos-cifra-estable.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/cifra-sin-cero.spec.mjs", "e2e/recibos-cifra-estable.spec.mjs"] },
+  // Meses marcados a mano: la mensualidad de `fixedMonthlyOf` y la vista previa del alta (FIN-20/21).
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-meses-a-mano.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-meses-a-mano.spec.mjs"] },
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/ux16-round9-haptics.spec.mjs", "e2e/ux16-haptics.spec.mjs", "e2e/ux16-round2-haptics.spec.mjs", "e2e/ux16-round3-haptics.spec.mjs", "e2e/ux16-ajustador.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/ux16-round9-haptics.spec.mjs", "e2e/ux16-haptics.spec.mjs", "e2e/ux16-round3-haptics.spec.mjs", "e2e/ux16-ajustador.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-ciclo-porcentaje.spec.mjs"] },

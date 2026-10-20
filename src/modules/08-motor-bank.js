@@ -4035,7 +4035,29 @@ function Reconcile({state, set}){
 function fixedMonthlyOf(e){
   if(!e) return 0;
   if(hasSchedule(e)) return e.schedule.reduce(function(a,x){ return a+(Number(x.amt)||0); },0)/12;
-  return (Number(e.amount)||0)*(FREQ_M[e.freq]||1);
+  const base=(Number(e.amount)||0)*(FREQ_M[e.freq]||1);
+  // Meses marcados a mano: cuenta los cobros que hace el calendario, no los de la frecuencia. Un
+  // trimestral con 3 meses se cobra 3 veces y salía como 4 (30 € al mes en vez de 22,50 — FIN-20).
+  // El anual ya reparte su importe entre sus meses y la semana no va por meses: esos, como antes.
+  // Con tantos cobros como los de por defecto se deja `base` para no mover ni un bit.
+  if(!(e.months&&e.months.length)||e.freq==="año"||e.freq==="anual"||e.freq==="semana") return base;
+  const n=fixedChargeMonths(e).length;
+  return n===fixedChargeMonths({freq:e.freq}).length?base:(Number(e.amount)||0)*n/12;
+}
+// Meses (1-12) en que el calendario cobra de verdad: sin repetidos ni meses imposibles.
+function fixedChargeMonths(e){
+  const out=[]; for(let m=1;m<=12;m++) if(occursIn(e,m)) out.push(m); return out;
+}
+/* La vista previa del alta cuenta lo mismo que cobrará el calendario con el recibo tal y como se
+   va a guardar: cuánto cada vez, en qué meses y el total del año. Antes multiplicaba el importe por
+   los meses también en un anual, que lo reparte, y prometía el doble de lo que se cobra (FIN-21). */
+function fixedAddPreview(it){
+  const x=eur(fixedMonthlyOf(it));
+  if(it.freq==="mes"&&!(it.months&&it.months.length)) return tf("gb_preview_m",{x:x});
+  const ms=fixedChargeMonths(it);
+  if(!ms.length) return tf("gb_preview_nomonth",{x:x,total:eur(Number(it.amount)||0)});
+  const total=ms.reduce(function(a,m){ return a+occAmountIn(it,m); },0);
+  return tf("gb_preview_each",{each:eur(occAmountIn(it,ms[0])),months:ms.map(function(m){ return monthShort(m-1); }).join(", "),total:eur(total),x:x});
 }
 function billsHeroTotal(state, totals){
   /* Misma cifra que Plan › Recibos / totals.fijosMensual (los dos suman `fixedMonthlyOf`). */
