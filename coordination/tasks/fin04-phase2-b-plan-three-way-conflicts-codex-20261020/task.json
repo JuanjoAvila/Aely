@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "id": "fin04-phase2-b-plan-three-way-conflicts-codex-20261020",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261019-r74-36ea75cf98e01bbf",
+  "createdAt": "2026-10-20T23:18:26.746Z",
+  "to": "codex",
+  "kind": "worker",
+  "priority": 2,
+  "model": "gpt-6-astra",
+  "assignedPublicSessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "baseSHA": "e42650596e361bf5cc61bac8d3ed4c7f0ca9f13d",
+  "baseVersion": "4.26.161 plus PR293 A",
+  "baseDependencyPR": 293,
+  "baseDependencyReason": "B planSyncPull/Ack must compose with validated first-pull/owner/ACK gate; stack on A expressly permitted by4cb21b75",
+  "betaObservedAtClaudeGrant": "b4f148adaab75675682ee7cdf33f6b126f1529cf",
+  "betaObservedVersion": "4.26.162",
+  "claudeGrant": "4cb21b75f32910ca872304d1bf35c35e79063421",
+  "originalScopeGrant": "93e65f5c039a635f8837c0f2ed61367eafa6f23a",
+  "dependsOnReleasedResult": "1a0c24b7c4f32167329cf4d76dc7f63fb89b1afe",
+  "previousRunnerReturn": "abc692330f29900fabbf318b97afee2aadf44e4e",
+  "objective": "FIN04 fase2 B en PR draft PROPIA contra beta, apilada sobre A e426 como dependencia explicita autorizada. Generalizar tresvias porgrupos deMetas a fixed/debts conconflictos privados porid yUIminima validada. PR 293 A enrevisionClaude: NO tocarla.",
+  "scope": [
+    "mergePlanThreeWay y planSyncPull/Ack por grupos exactos de93e65f5c, preservando puerta A/CAS/ACKMetas yreferencias prev.fixed/debts",
+    "Recibos tombstoneunion; deuda ausente enunmovil editada enotro conservada; grupos financieros atomicos sinreaplicar dinero",
+    "Conflictos privados mcStateKey()+_plan_conflicts uno porid sintruncar fuera slimForCloud/backup/Hogar; UI puntofila Valoractual/Tucambio Revisarmicambio coneditor/validador yDescartar es/en/ca",
+    "Unitmerge money-mutants yactualdoscontextose2e siguiendo fin04-rename-note-ack, registrosrunner/E2E_MAP, draftPR propia condependenciaA explicita"
+  ],
+  "requirements": [
+    "NEW ownclaim/readback yACK antescodigo/pruebas. Misma identidad original holder82dbe59f/Astra/runtime/helper/filtro sinoverride. FULL todosnuevosintermedios/cancelaciones grant4cb21b75 yscope93e65f5c completos; current/politica/protocolo AGENTS/EMPIEZA completos. A result1a0c24b7 RETURNabc69233 releasedBLOCKED ysealedhandoff; no reabrirclaim o modificar result/PR 293. ROOTsolo reporteintregridad noMONEYGO/servido.",
+    "Base EXPLICITA stackA e42650596e361bf5cc61bac8d3ed4c7f0ca9f13d directparent16113e814d22. Necesaria para probar nuevos planSyncPull/Ack junto puerta/Ack/owner validada. Nueva checkout/rama PROPIA desdeA, normalparent e426; NO commits/push a ramaPR 293 ni rebase/cherrypick silencioso. TargetPR beta, declarar apilada ydependeA, beta observada162b4f148adaab75675682ee7cdf33f6b126f1529cf distinta fuente; 163FIN12integrationreservadaClaude. No afirmar162/163integradas enB; estadofresco puedeampliarse SOLOgrantaplicable explicitACKdelta.",
+    "Preservar31237files29repos previos masA/DOCpackages/source/WIP/PRs, censofrescoinicialfinalconhashes yfullreadback, activeledgerexcluidodeclarado. ROOTverifico A 290manifest291ZIP21sources3redacciones41OWN11snapshots; sourcee426remoto draftPR293exact attached,14nuevosunit26conMetas,2mutantes,8browserfinalgreen ycausalRED4237a777 app_state. Regresiones115/124 luego58subsetreparado otros66ya pass NOunico124green. Review subcoord74-PR293-fin04-A-private-integrity-review-20261020.json SHAcd69ef6f0b3a693458f40495503a586776985b23c74925315d00aec419528df5. SeconservaLWWnormalizacionarranque pendiente, fixturesfinalesaislaronAcarrera, B debeejercitarconvergenciareal no escondertrasSavedAt.",
+    "Reutilizar estructuraMetas mergeGoalsThreeWay/goalSyncPull/goalSyncAck. Grupos recibo name | category | financiero {amount,bankAmount,account,freq,months,schedule,day,paymentProofs} | derivado {paidYm,paidDay,wait} RECALCULADO NUNCA conflicto visible. Deuda name | note | financiero resto de negocio manteniendo identidad owner/id/tipo. No normalizar originales ni mezclar partescuota/plazo/saldo decontratos incompatibles; mismoimporte noimplicamismaoperacion ni pagoproyectado.",
+    "Recibos borrados conrecibosBorradosUnion existente, sin resurreccion silenciosa. Deuda ausente en unmovil yeditada enotro CONSERVAR. Filas desconocidas/lecturaparcial noacreditanborrado. Preservar signos/tiposFIN19, unknown/null/ausente, bank/account/references ypaymentProofs. Nombre/categorypuedenafectarpruebas: componer validadores existentes ycalcular derivadotrasmerge, sin venderelconflictoderivadocomo eleccion.",
+    "Conflictos en mcStateKey()+_plan_conflicts particionprivada deltitular/modopruebas, uno poridentidad entidad/id, sin truncar/slice ni perderconflictos distintos. Fuera slimForCloud backup yHogar; no avisosHogar nuevos. Base/ACK porpatronMetas composicionA ysnapshotconfirmado; conservaractualizacionesdurantevuelo yrespuestasviejas seguncontratoexistente sinarquitecturanueva deintenciones/generaciones. AGENTS7bis: prev.fixed/prev.debts referencias si no cambio, ninguna clonacion masiva/efecto persistencia por UI.",
+    "UI minima puntofila, Valoractual/Tucambio, Revisarmicambio abreeditorprecargado queusa validadorexistente yDescartar; es/en/ca. Noaccionfinancieraautomatica, pagoamortizacion no se reaplica alrevisar. Conservar componentes/navigation/teclado/cierre/look propio. Losdatosvalidosquedan visibles enamboscontextos traspull/reload; borradorprivado independiente visiblecontrolado.",
+    "ROJO primero sobreA paraB: dos contextos reales conSDK/React fuenteexacta ybackendmockcompartido determinista reproduzcan recibo/deuda camposindependientesperdidos, mismocampoconflicto, financierosatomicos ymissingdebtedit/tombstone. Oraculosindependientes enteroscentimos, fullrows/IDs/metadata yrenderDOM real para nuevaUI, no soloevaluatehelper. Pruebas nombre/dia/impor4237 principal120023 cuota10011 controlcallback/save/reload/pulls, derivadosnopanelconflicto, aislamientoHogar/user, 20conflictos sintruncar, referenciasunchanged. Mutantesdinero detectanSUMprincipal, fieldwisefinance o duplicaroperacion segunriesgo concreto. No heredarevidenciadocumental31escenarios comotests ejecutados.",
+    "Registrar nuevos unitsteps run-tests yE2E_MAP biencolgado; afectadosA/Metas/financieros debenvalidarse conB final porquecompartencore, no repetirtodosloshistoricos porinercia. SDK/Supabase skill docs/changelog primariosread-only si cambiaAPI, no querieslive niSQLAPI/Edge/server/DDL. CPU1secuencial nuevoOWNcenso/admission localports worker1retry0maxFailure1 durablelogs reportdesdeinicio, stopfirstfailure; leerconfig/spec/excluirCPUx6. Sinleaseheredado ni matarprocesosajenos ni sharedlockporrelojPID. No fullsuite/CPU6/profiling.",
+    "Exclusiones93e65f5c vigentes: intentId/generaciones/reintentos/planApplied/revisionmonotonicaservidor/gatingversion/avisoHogar/servidorDDL. NoVERSION/catalogue/notas/caps/APK/Gradle/deploy/merge; integraClaude. Catalogue161AknownBETA_SCOPE_ABSENT inc-0310-01-meta-regla inc-0810-metas-editar-regla porancla pullOkRef removida, no parchearreservas ni debilitargates. Reportdependencias/footprintrealparaClaude, docsfinaltrueEXIT ybriefB acotados permitidos.",
+    "OWN11actual15/20alAclose remaining5, lateractualverificar preservarledgerprefix/frozen10. Cadafirst/internal/readback>=30s; real20freeze entonces normal OWN12 aviso/readback bajo b0390ba0. NoROOTbudgetinherit/reset/21. Una nueva draftPR B contra beta normalparentA remotehead ypullref exactos attachartifact obligatorio, describirdependenciaA yBsolo. Final fuente/manifZIP/privacidadcopiasredactadas originales/hash/casos/realEXIT/mutantes/gates/limites/preservacion OWNRETURN releasedresult privatehandoff ySTOP. Sin native reply alROOT, no nueva tarea sinoencargo, no READY/servido/movil."
+  ],
+  "deliverable": "DraftPR B PROPIA apiladaA declarada, mergeporgrupos/particionconflictos/UI minima yvalidacioncausalexacta. Paquete/preservacion/gates/sourcePR/ownRETURN releasedresult ySTOP; integracionClaude."
+}
