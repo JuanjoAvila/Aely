@@ -1,5 +1,87 @@
 [
   {
+    "v": "4.26.155",
+    "d": "2026-10-20",
+    "t": {
+      "es": "Vibración más clara y la ficha de YouTube reconoce su recibo",
+      "en": "Clearer vibration, and the YouTube charge recognises its bill",
+      "ca": "Vibració més clara i la fitxa de YouTube reconeix el seu rebut"
+    },
+    "items": {
+      "es": [
+        "La vibración al cambiar de pestaña en Plan es un solo toque.",
+        "La fuerza del borde y del anillo de Mi ciclo vuelve a notarse.",
+        "La ficha del cargo de YouTube reconoce su recibo."
+      ],
+      "en": [
+        "The vibration when switching tabs in Plan is a single tap.",
+        "The strength of the border and of the My cycle ring can be felt again.",
+        "The YouTube charge sheet recognises its bill."
+      ],
+      "ca": [
+        "La vibració en canviar de pestanya a Pla és un sol toc.",
+        "La força de la vora i de l'anell de El meu cicle torna a notar-se.",
+        "La fitxa del càrrec de YouTube reconeix el seu rebut."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "vibracion-r4",
+        "t": {
+          "es": "Vibración: un toque por cambio y fuerza que se nota",
+          "en": "Vibration: one tap per change and strength you can feel",
+          "ca": "Vibració: un toc per canvi i força que se nota"
+        },
+        "items": {
+          "es": [
+            "0. Instala la app nueva de Aely que te llega (APK 61, versión 4.26.155). Tus frases: «vibra muchísimas veces seguidas con cada cambio», «solo vibra un toque aún cambiando las settings» y «da igual la fuerza que pongas en los bordes».",
+            "1. Cambia entre Recibos, Deudas y Metas: un toque por cambio. MAL: varios toques.",
+            "2. Abre la app y mira el anillo de Mi ciclo: varios toques suaves a lo largo del trazo, que cambian con los deslizadores de Ajustes → Vibración. MAL: un solo toque o no cambia.",
+            "3. Tira contra el borde al final de una lista: la fuerza del deslizador se nota. MAL: igual con 1 que con 255."
+          ],
+          "en": [
+            "0. Install the new Aely app you receive (APK 61, version 4.26.155). Your words: «vibra muchísimas veces seguidas con cada cambio» (it vibrates many times in a row on each change), «solo vibra un toque aún cambiando las settings» (it only gives one tap even when changing the settings) and «da igual la fuerza que pongas en los bordes» (it makes no difference what strength you set for the edges).",
+            "1. Switch between Bills, Debts and Goals: one tap per change. WRONG: several taps.",
+            "2. Open the app and watch the My cycle ring: several soft taps along the stroke, which change with the sliders in Settings → Vibration. WRONG: one single tap or no change.",
+            "3. Pull against the edge at the end of a list: the slider strength can be felt. WRONG: the same at 1 and at 255."
+          ],
+          "ca": [
+            "0. Instal·la l'app nova d'Aely que et arriba (APK 61, versió 4.26.155). Les teves frases: «vibra muchísimas veces seguidas con cada cambio» (vibra moltíssimes vegades seguides a cada canvi), «solo vibra un toque aún cambiando las settings» (només vibra un toc encara que canviï els ajustos) i «da igual la fuerza que pongas en los bordes» (és igual la força que posis a les vores).",
+            "1. Canvia entre Rebuts, Deutes i Metes: un toc per canvi. MALAMENT: diversos tocs.",
+            "2. Obre l'app i mira l'anell de El meu cicle: diversos tocs suaus al llarg del traç, que canvien amb els lliscadors d'Ajustos → Vibració. MALAMENT: un sol toc o no canvia.",
+            "3. Estira contra la vora al final d'una llista: la força del lliscador se nota. MALAMENT: igual amb 1 que amb 255."
+          ]
+        },
+        "apk": 61
+      },
+      {
+        "id": "youtube-ficha-reconoce",
+        "t": {
+          "es": "YouTube Premium: la ficha reconoce su recibo",
+          "en": "YouTube Premium: the charge sheet recognises its bill",
+          "ca": "YouTube Premium: la fitxa reconeix el seu rebut"
+        },
+        "items": {
+          "es": [
+            "1. Abre Gastos → el cargo de YouTube Premium del 2/10: «Paga un recibo» dice YouTube Premium. MAL: dice «No».",
+            "2. Abre Plan → Recibos: YouTube sale ✓ pagado. MAL: otra cosa.",
+            "3. El dinero disponible de Inicio y de Plan no cambia. MAL: cualquier diferencia."
+          ],
+          "en": [
+            "1. Open Expenses → the YouTube Premium charge of 2 Oct: «Pays a bill» says YouTube Premium. WRONG: it says «No».",
+            "2. Open Plan → Bills: YouTube shows ✓ paid. WRONG: anything else.",
+            "3. The available money in Home and Plan does not change. WRONG: any difference."
+          ],
+          "ca": [
+            "1. Obre Despeses → el càrrec de YouTube Premium del 2/10: «Paga un rebut» diu YouTube Premium. MALAMENT: diu «No».",
+            "2. Obre Pla → Rebuts: YouTube surt ✓ pagat. MALAMENT: una altra cosa.",
+            "3. Els diners disponibles d'Inici i de Pla no canvien. MALAMENT: qualsevol diferència."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.154",
     "d": "2026-10-20",
     "t": {
@@ -131,34 +213,6 @@
             "1. Obre Pla → Rebuts → Gestionar pla, desplaça fins al final i estira (la teva frase: «no hay manera, ola no funciona en recibos», no hi ha manera, l'ona no funciona als rebuts). Surt l'ona. MALAMENT: no surt.",
             "2. Entra en una categoria i fes el mateix. MALAMENT: no surt l'ona.",
             "3. Tanca Gestionar pla: Pla continua on era. MALAMENT: Pla apareix en un altre punt."
-          ]
-        }
-      },
-      {
-        "id": "vibracion-r3",
-        "t": {
-          "es": "Vibración: una vez por gesto y más tranquila al entrar",
-          "en": "Vibration: once per gesture and calmer on opening",
-          "ca": "Vibració: un cop per gest i més tranquil·la en entrar"
-        },
-        "items": {
-          "es": [
-            "1. Al final de una lista, mantén y mueve el dedo (tu frase: «vibra una locura… debería ser 1 vez cada vez que muevo el dedo»). Una sola vibración por gesto. MAL: vibra varias veces seguidas.",
-            "2. Cambia entre Recibos, Deudas y Metas, y entre gasto e ingreso al apuntar: un toque suave en cada cambio. MAL: no se nota nada o es fuerte.",
-            "3. Abre la app (tu frase: «al entrar en la app… vibra una locura»): el anillo de Mi ciclo vibra poco. En Ajustes → Vibración se regula. MAL: vibra mucho o el ajuste no hace nada.",
-            "4. Pulsa «Copiar valores» y pégalos en el chat a Claude."
-          ],
-          "en": [
-            "1. At the end of a list, hold and move your finger (your words: «vibra una locura… debería ser 1 vez cada vez que muevo el dedo», it vibrates like crazy, it should be once each time I move my finger). One single vibration per gesture. WRONG: it vibrates several times in a row.",
-            "2. Switch between Bills, Debts and Goals, and between expense and income when adding: a soft tap on each change. WRONG: you feel nothing or it is strong.",
-            "3. Open the app (your words: «al entrar en la app… vibra una locura», when opening the app it vibrates like crazy): the My cycle ring vibrates only a little. In Settings → Vibration you can tune it. WRONG: it vibrates a lot or the setting does nothing.",
-            "4. Tap «Copy values» and paste them into the chat to Claude."
-          ],
-          "ca": [
-            "1. Al final d'una llista, mantén i mou el dit (la teva frase: «vibra una locura… debería ser 1 vez cada vez que muevo el dedo», vibra com un boig, hauria de ser un cop cada vegada que moc el dit). Una sola vibració per gest. MALAMENT: vibra diverses vegades seguides.",
-            "2. Canvia entre Rebuts, Deutes i Metes, i entre despesa i ingrés en apuntar: un toc suau a cada canvi. MALAMENT: no se sent res o és fort.",
-            "3. Obre l'app (la teva frase: «al entrar en la app… vibra una locura», en entrar a l'app vibra com un boig): l'anell de El meu cicle vibra poc. A Ajustos → Vibració es regula. MALAMENT: vibra molt o l'ajust no fa res.",
-            "4. Prem «Copiar valors» i enganxa'ls al xat a Claude."
           ]
         }
       },

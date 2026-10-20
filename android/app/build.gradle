@@ -37,8 +37,8 @@ android {
            56 añade el plugin de vibración (AelyHaptics: toque al llegar al borde y relleno del anillo de
            Mi ciclo); es Java y la OTA no lo trae, hace falta la APK nueva.
            58 afina la ronda 3: el relleno sube de 3 a 30/255 como una rampa continua, el borde da 30/255 y repite mientras se tira. */
-        versionCode 60
-        versionName "4.26.152"
+        versionCode 61
+        versionName "4.26.155"
         /* ⚠ INGEST_URL VACÍA POR DEFECTO — solo la APK `.debug` la lleva (14/9/2026, OPS-06).
            Estaba aquí, en defaultConfig, así que valía TAMBIÉN para release: la APK que publica
            `release:apk` en un repo PÚBLICO llevaba dentro la URL de ingest con el token del dueño.

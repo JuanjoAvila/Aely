@@ -1,3 +1,10 @@
+## [4.26.155] — 2026-10-20 · Candidata de beta: vibración ronda 4 (APK 61) y ficha de YouTube que reconoce su recibo
+
+- **Qué lleva.** Dos ramas locales sobre la beta 4.26.154 (`99fe04289`), con `--no-ff`: `0482327ab` (`claude/vibra-defaults`) y `050a7d0b5` (`claude/youtube-r3`). `mcCycleWave` pasa a `mcCycleTicks` (descriptores al día). Los generados de `public/` en conflicto se regeneraron con `build`.
+- **Vibración (UX-16 R4).** Un solo toque al cambiar de segmento; el anillo y el borde usan el tipo «hardware» y respetan la fuerza. Cambio nativo (`HapticPlan`): hace falta la APK 61. `sha256` y `sourceSha` de `public/apk.json` quedan por rellenar tras compilar.
+- **Ficha de YouTube (INC-1810-04).** La ficha reconoce la prueba BOOK del mismo cargo por referencia, banco, día y céntimos; `reciboDiagText` no filtra datos de otros cargos.
+- **Panel.** Dos tandas nuevas: `vibracion-r4` (APK 61) y `youtube-ficha-reconoce`. `vibracion-r3` pasa a `tandas: []`; las aprobadas pendientes de entrega se quedan.
+
 ## [4.26.154] — 2026-10-20 · Candidata de beta: menos lag al ir a Cartera, renombrar sin cobertura y tooling, solo web
 
 - **Qué lleva.** Tres ramas locales sobre la beta 4.26.153 (`80752dff0`), con `--no-ff`: `cb0b105cc` (`claude/beta-sources-rapido`), `0a3ea09bc` (`claude/perf-cuentas`, con GO de la revisión) y `2900cfd3a` (`claude/rojos-153`). Sin APK, SQL ni Edge. Los generados de `public/` en conflicto se regeneraron con `build`.

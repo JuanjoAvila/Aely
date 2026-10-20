@@ -117,6 +117,8 @@ const sourceBeta151=sourceAt("fa138e12cc898fc1a1190b44fb0f91cd3d09cbc9");
 // Catálogo152 pasa a histórico con la 153: se lee de la 4.26.152 servida en beta (31907016f), sobre la que la 153 añade sus cuatro tandas.
 const sourceBeta152=sourceAt("31907016f9fdd5b584cff9323bf56a614bfb97c1");
 // Catálogo153 pasa a histórico con la 154: se lee de la 4.26.153 servida en beta (80752dff0), sobre la que la 154 añade sus dos tandas.
+// Catálogo154 pasa a histórico con la 155: se lee de la 4.26.154 servida en beta (99fe04289).
+const sourceBeta154=sourceAt("99fe04289db95870ae9ad6aef736fbc3675c1f48");
 const sourceBeta153=sourceAt("80752dff055dc391c52c3067ce238f49e0a14598");
 // Catálogo137 pasa a histórico en la promoción 137: se lee de la beta 4.26.137.1 aprobada (6f18228c), lo último que probó el móvil y lo que sube entero.
 const sourceBeta137=sourceAt("6f18228cbd81c1cc9abfa7fabce0a878819234f4");
@@ -257,7 +259,7 @@ test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CS
   // La base es la integración120 (apuntes iguales de Trade Republic): Inicio no puede retirar su alcance ni heredar su revisión.
   const integrated=JSON.parse(source120("scripts/beta-sources.json"));
   // Detrás de Inicio sólo ha entrado el alcance de la122 (el cargo de recibo en Gastos).
-  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","limpieza-ajustes-perfil","tr-empareja-sin-preguntar","cuenta-parte-mia","inicio-recientes-sin-repetidos","scroll-borde-barra","inicio-grafica-reservas","compras-identicas-ids","myinvestor-contador-a-cero","deudas-metas-hoja-edicion","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","gastos-suscripciones-botones","compras-pendientes-otro-dia","deudas-plazo-cuota-encaja","deudas-metas-hoja-sin-parpadeo","deudas-metas-hoja-cierre-suave","teclado-atras-conserva","fichas-cierre-suave-atras","vibracion-borde-y-mi-ciclo","deudas-aviso-plazo","cuenta-saldo-cierre-atras","banco-pruebas-sin-aviso","vibracion-suave-ronda-2","deudas-guardar-motivo","recibo-renombrado-sigue-pagado","vibracion-suave-ronda-3","plan-por-confirmar-prestamo-youtube","vuelta-sin-tiron","deuda-bajar-cuota-alarga-plazo","cartera-ordenar-brokers","youtube-enlazar-recibo","vibracion-ajustador","pestanas-swipe-rapido","gestionar-plan-sin-ola","renombrar-y-notas-seguras","gestionar-plan-ola","vibracion-ajustador-r2","gestionar-plan-ola-r2","vibracion-r3","youtube-diagnostico","renombrar-lista-al-momento","recibos-cifra-cuadra","cartera-sin-lagazo","renombrar-sin-cobertura"),"Inicio y las altas de la122, la124, la126, la127, la128, la129, la130, la131, la132, la133, la134, la135, la137, la138, la139, la140, la141, la143, la144, la145, la146, la147, la148, la149, la150, la151, la152 y la153, sin retirar historia120");
+  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","limpieza-ajustes-perfil","tr-empareja-sin-preguntar","cuenta-parte-mia","inicio-recientes-sin-repetidos","scroll-borde-barra","inicio-grafica-reservas","compras-identicas-ids","myinvestor-contador-a-cero","deudas-metas-hoja-edicion","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","gastos-suscripciones-botones","compras-pendientes-otro-dia","deudas-plazo-cuota-encaja","deudas-metas-hoja-sin-parpadeo","deudas-metas-hoja-cierre-suave","teclado-atras-conserva","fichas-cierre-suave-atras","vibracion-borde-y-mi-ciclo","deudas-aviso-plazo","cuenta-saldo-cierre-atras","banco-pruebas-sin-aviso","vibracion-suave-ronda-2","deudas-guardar-motivo","recibo-renombrado-sigue-pagado","vibracion-suave-ronda-3","plan-por-confirmar-prestamo-youtube","vuelta-sin-tiron","deuda-bajar-cuota-alarga-plazo","cartera-ordenar-brokers","youtube-enlazar-recibo","vibracion-ajustador","pestanas-swipe-rapido","gestionar-plan-sin-ola","renombrar-y-notas-seguras","gestionar-plan-ola","vibracion-ajustador-r2","gestionar-plan-ola-r2","vibracion-r3","youtube-diagnostico","renombrar-lista-al-momento","recibos-cifra-cuadra","cartera-sin-lagazo","renombrar-sin-cobertura","vibracion-r4","youtube-ficha-reconoce"),"Inicio y las altas de la122, la124, la126, la127, la128, la129, la130, la131, la132, la133, la134, la135, la137, la138, la139, la140, la141, la143, la144, la145, la146, la147, la148, la149, la150, la151, la152 y la153, sin retirar historia120");
   for(const [key,value] of Object.entries(integrated))if(key!=="inicio-grafica-vuelve"){assert.deepEqual(scopes[key].native,value.native);assert.deepEqual(scopes[key].edge,value.edge);for(const part of (value.web||[]).map(limpieza129).filter(Boolean))assert.ok(scopes[key].web.some(s=>JSON.stringify(sinMetodo122(s))===JSON.stringify(part)||JSON.stringify(sinPull130(sinMetodo122(s)))===JSON.stringify(sinPull130(sinMetodo122(part)))||JSON.stringify(sinAbsorcion143(sinCompras135(sinPull130(sinMetodo122(s)))))===JSON.stringify(sinCompras135(sinPull130(sinMetodo122(part))))),key+": no recortar descriptor ajeno120");}
   assert.equal(scope.unidades,true);
   for(const key of ["historial","auditoria","codigosCompatibles","compatibilidadGit","compatibilidadSha"])
@@ -3859,10 +3861,10 @@ test("Catálogo153 histórico añade las tandas de la ola con raíz única, la v
 const expected154={"v":"4.26.154","d":"2026-10-20","t":{"es":"Más fluidez al ir a Cartera y renombrar sin cobertura","en":"Smoother when going to Wallet, and renaming without signal","ca":"Més fluïdesa en anar a Cartera i reanomenar sense cobertura"},"items":{"es":["La app va más fluida al ir a Cartera desde Ajustes y al volver a ella.","Si renombras un gasto sin cobertura, el nombre nuevo se guarda solo al volver la red."],"en":["The app is smoother when going to Wallet from Settings and when coming back to it.","If you rename an expense without signal, the new name is saved by itself once the network is back."],"ca":["L'app va més fluida en anar a Cartera des d'Ajustos i en tornar-hi.","Si reanomenes una despesa sense cobertura, el nom nou es desa sol quan torna la xarxa."]},"tandas":[{"id":"cartera-sin-lagazo","t":{"es":"Cartera: sin tirones desde Ajustes y al volver","en":"Wallet: no jerks from Settings or when coming back","ca":"Cartera: sense estirades des d'Ajustos i en tornar"},"items":{"es":["1. Abre Ajustes, cambia algo y ve rápido a Cartera → Tus cuentas. No debe pegar un tirón grande. MAL: se queda parada.","2. Sal de la app, haz otras cosas, vuelve y entra en Cartera. MAL: da un tirón.","3. Las cifras de Inicio y de Cartera son las mismas que antes. MAL: cualquier diferencia."],"en":["1. Open Settings, change something and go quickly to Wallet → Your accounts. It must not jerk. WRONG: it freezes.","2. Leave the app, do other things, come back and go into Wallet. WRONG: it jerks.","3. The figures in Home and Wallet are the same as before. WRONG: any difference."],"ca":["1. Obre Ajustos, canvia alguna cosa i ves ràpid a Cartera → Els teus comptes. No ha de fer una estirada gran. MALAMENT: es queda parada.","2. Surt de l'app, fes altres coses, torna i entra a Cartera. MALAMENT: fa una estirada.","3. Les xifres d'Inici i de Cartera són les mateixes que abans. MALAMENT: qualsevol diferència."]}},{"id":"renombrar-sin-cobertura","t":{"es":"Gastos: renombrar sin cobertura","en":"Expenses: renaming without signal","ca":"Despeses: reanomenar sense cobertura"},"items":{"es":["1. Pon el modo avión y renombra un gasto: la lista lo enseña con ⏳. MAL: vuelve el nombre viejo.","2. Quita el modo avión: en unos segundos el ⏳ desaparece solo. MAL: sigue el ⏳ o hay que pulsar Reintentar."],"en":["1. Turn airplane mode on and rename an expense: the list shows it with ⏳. WRONG: the old name comes back.","2. Turn airplane mode off: in a few seconds the ⏳ goes away by itself. WRONG: the ⏳ stays or you have to tap Retry."],"ca":["1. Posa el mode avió i reanomena una despesa: la llista la mostra amb ⏳. MALAMENT: torna el nom vell.","2. Treu el mode avió: en uns segons el ⏳ desapareix sol. MALAMENT: continua el ⏳ o has de prémer Reintentar."]}}]};
 // 4.26.154 (20/10/2026): integración rápida, solo web (sigue la APK 60), sobre la beta 4.26.153 servida (80752dff0): claude/beta-sources-rapido (cb0b105c), claude/perf-cuentas (0a3ea09b) y claude/rojos-153 (2900cfd3).
 // Dos tandas NUEVAS; las de la 153 y las demás se quedan.
-test("Catálogo154 añade las tandas de Cartera sin lagazo y de renombrar sin cobertura sobre la 153, solo web, con alcance propio, y declara cada huella que mueve",()=>{
+test("Catálogo154 histórico añade las tandas de Cartera sin lagazo y de renombrar sin cobertura sobre la 153, solo web, con alcance propio, y declara cada huella que mueve",()=>{
   const tandas=["cartera-sin-lagazo","renombrar-sin-cobertura"],pasos=[3,2];
   const integrated=JSON.parse(sourceBeta153("scripts/beta-sources.json")),before=JSON.parse(sourceBeta153("src/data/release-notes.json"));
-  const source=f=>nl(read(f)),old=f=>nl(sourceBeta153(f));
+  const source=f=>nl(sourceBeta154(f)),old=f=>nl(sourceBeta153(f));
   assert.equal(before[0].v,"4.26.153");
   const expectedNotes=[expected154,...before];
   const notes=JSON.parse(source("src/data/release-notes.json"));
@@ -3921,7 +3923,7 @@ test("Catálogo154 añade las tandas de Cartera sin lagazo y de renombrar sin co
   // Solo web: la APK 60 sigue tal cual.
   assert.deepEqual(JSON.parse(source("public/apk.json")),JSON.parse(old("public/apk.json")),"apk.json sin tocar: sigue la APK 60");
   assert.equal(source("android/app/build.gradle"),old("android/app/build.gradle"),"build.gradle sin tocar");
-  assert.equal(execFileSync("git",["diff","--name-only","80752dff055dc391c52c3067ce238f49e0a14598","HEAD","--","supabase/migrations","android"],{encoding:"utf8"}).trim(),"","sin SQL ni nativo");
+  assert.equal(execFileSync("git",["diff","--name-only","80752dff055dc391c52c3067ce238f49e0a14598","99fe04289db95870ae9ad6aef736fbc3675c1f48","--","supabase/migrations","android"],{encoding:"utf8"}).trim(),"","sin SQL ni nativo");
   const expectedMoves={"inc-3009-01-cargos":["web"],"inc-2909-02-inicio-natural":["web"],"inc-3009-nomina-anticipada":["web"],"inc-0210-03-gastos-periodo":["web"],"feature-0310-01-movilidad":["web"],"inc-0310-gastos-sin-limite":["web"],"inc-0710-gastos-mes-madrid":["web"],"inicio-grafica-vuelve":["web"],"recibos-cargo-unico":["web"],"inicio-patrimonio-flujos":["web"],"recibo-cargo-en-gastos":["web"],"inicio-mes-pasado-mismo-dia":["web"],"limpieza-ajustes-perfil":["web"],"tr-empareja-sin-preguntar":["web"],"cuenta-parte-mia":["web"],"inicio-grafica-reservas":["web"],"vuelta-sin-tiron":["web"],"renombrar-y-notas-seguras":["web"],"recibos-cifra-cuadra":["web"]};
   const previous=new Map();
   const measure=reader=>{
@@ -3951,6 +3953,123 @@ test("Catálogo154 añade las tandas de Cartera sin lagazo y de renombrar sin co
   assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),notes.flatMap(n=>(n.tandas||[]).map(g=>g.id)),"lo que el build entrega al panel");
   built[0].tandas.forEach((g0,i)=>{
     assert.equal(g0.web,currents[tandas[i]].web);assert.equal(g0.edge,undefined);assert.equal(g0.native,undefined);assert.equal(g0.apk,undefined);assert.equal(receipt.web[tandas[i]],currents[tandas[i]].web);
+    for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g0[key],undefined,"identidad nueva sin "+key);
+  });
+  assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
+});
+
+
+const expected155={"v":"4.26.155","d":"2026-10-20","t":{"es":"Vibración más clara y la ficha de YouTube reconoce su recibo","en":"Clearer vibration, and the YouTube charge recognises its bill","ca":"Vibració més clara i la fitxa de YouTube reconeix el seu rebut"},"items":{"es":["La vibración al cambiar de pestaña en Plan es un solo toque.","La fuerza del borde y del anillo de Mi ciclo vuelve a notarse.","La ficha del cargo de YouTube reconoce su recibo."],"en":["The vibration when switching tabs in Plan is a single tap.","The strength of the border and of the My cycle ring can be felt again.","The YouTube charge sheet recognises its bill."],"ca":["La vibració en canviar de pestanya a Pla és un sol toc.","La força de la vora i de l'anell de El meu cicle torna a notar-se.","La fitxa del càrrec de YouTube reconeix el seu rebut."]},"tandas":[{"id":"vibracion-r4","t":{"es":"Vibración: un toque por cambio y fuerza que se nota","en":"Vibration: one tap per change and strength you can feel","ca":"Vibració: un toc per canvi i força que se nota"},"items":{"es":["0. Instala la app nueva de Aely que te llega (APK 61, versión 4.26.155). Tus frases: «vibra muchísimas veces seguidas con cada cambio», «solo vibra un toque aún cambiando las settings» y «da igual la fuerza que pongas en los bordes».","1. Cambia entre Recibos, Deudas y Metas: un toque por cambio. MAL: varios toques.","2. Abre la app y mira el anillo de Mi ciclo: varios toques suaves a lo largo del trazo, que cambian con los deslizadores de Ajustes → Vibración. MAL: un solo toque o no cambia.","3. Tira contra el borde al final de una lista: la fuerza del deslizador se nota. MAL: igual con 1 que con 255."],"en":["0. Install the new Aely app you receive (APK 61, version 4.26.155). Your words: «vibra muchísimas veces seguidas con cada cambio» (it vibrates many times in a row on each change), «solo vibra un toque aún cambiando las settings» (it only gives one tap even when changing the settings) and «da igual la fuerza que pongas en los bordes» (it makes no difference what strength you set for the edges).","1. Switch between Bills, Debts and Goals: one tap per change. WRONG: several taps.","2. Open the app and watch the My cycle ring: several soft taps along the stroke, which change with the sliders in Settings → Vibration. WRONG: one single tap or no change.","3. Pull against the edge at the end of a list: the slider strength can be felt. WRONG: the same at 1 and at 255."],"ca":["0. Instal·la l'app nova d'Aely que et arriba (APK 61, versió 4.26.155). Les teves frases: «vibra muchísimas veces seguidas con cada cambio» (vibra moltíssimes vegades seguides a cada canvi), «solo vibra un toque aún cambiando las settings» (només vibra un toc encara que canviï els ajustos) i «da igual la fuerza que pongas en los bordes» (és igual la força que posis a les vores).","1. Canvia entre Rebuts, Deutes i Metes: un toc per canvi. MALAMENT: diversos tocs.","2. Obre l'app i mira l'anell de El meu cicle: diversos tocs suaus al llarg del traç, que canvien amb els lliscadors d'Ajustos → Vibració. MALAMENT: un sol toc o no canvia.","3. Estira contra la vora al final d'una llista: la força del lliscador se nota. MALAMENT: igual amb 1 que amb 255."]},"apk":61},{"id":"youtube-ficha-reconoce","t":{"es":"YouTube Premium: la ficha reconoce su recibo","en":"YouTube Premium: the charge sheet recognises its bill","ca":"YouTube Premium: la fitxa reconeix el seu rebut"},"items":{"es":["1. Abre Gastos → el cargo de YouTube Premium del 2/10: «Paga un recibo» dice YouTube Premium. MAL: dice «No».","2. Abre Plan → Recibos: YouTube sale ✓ pagado. MAL: otra cosa.","3. El dinero disponible de Inicio y de Plan no cambia. MAL: cualquier diferencia."],"en":["1. Open Expenses → the YouTube Premium charge of 2 Oct: «Pays a bill» says YouTube Premium. WRONG: it says «No».","2. Open Plan → Bills: YouTube shows ✓ paid. WRONG: anything else.","3. The available money in Home and Plan does not change. WRONG: any difference."],"ca":["1. Obre Despeses → el càrrec de YouTube Premium del 2/10: «Paga un rebut» diu YouTube Premium. MALAMENT: diu «No».","2. Obre Pla → Rebuts: YouTube surt ✓ pagat. MALAMENT: una altra cosa.","3. Els diners disponibles d'Inici i de Pla no canvien. MALAMENT: qualsevol diferència."]}}]};
+// 4.26.155 (20/10/2026): integración con APK nueva (61) sobre la beta 4.26.154 servida (99fe04289): claude/vibra-defaults (0482327a) y claude/youtube-r3 (050a7d0b).
+// Dos tandas NUEVAS; vibracion-r3 (153) pasa a tandas:[]; las demás se quedan.
+test("Catálogo155 añade las tandas de la vibración ronda 4 (APK 61) y de la ficha de YouTube sobre la 154, con alcance propio, y declara cada huella que mueve",()=>{
+  const tandas=["vibracion-r4","youtube-ficha-reconoce"],pasos=[4,3];
+  const integrated=JSON.parse(sourceBeta154("scripts/beta-sources.json")),before=JSON.parse(sourceBeta154("src/data/release-notes.json"));
+  const source=f=>nl(read(f)),old=f=>nl(sourceBeta154(f));
+  assert.equal(before[0].v,"4.26.154");
+  const e153=before.find(n=>n.v==="4.26.153");
+  assert.ok(e153.tandas.some(g=>g.id==="vibracion-r3"),"la 153 llevaba vibracion-r3");
+  const expectedNotes=[expected155,...before.map(n=>n.v==="4.26.153"?{...n,tandas:n.tandas.filter(g=>g.id!=="vibracion-r3")}:n)];
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.deepEqual(notes,expectedNotes,"la nota 155 literal delante, vibracion-r3 fuera y todo lo demás intacto");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.155",tandas[0],61],["4.26.155",tandas[1],0],...before.flatMap(n=>(n.tandas||[]).filter(g=>g.id!=="vibracion-r3").map(g=>[n.v,g.id,g.apk||0]))],"el panel enseña las dos nuevas y conserva las demás");
+  assert.equal(notes.length,252);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
+  notes[0].tandas.forEach((g,i)=>assert.deepEqual(Object.keys(g),i?["id","t","items"]:["id","t","items","apk"],"identidad nueva: "+g.id));
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,3,lang+": tres puntos familiares");
+    notes[0].tandas.forEach((g,i)=>{
+      const steps=g.items[lang];assert.equal(steps.length,pasos[i],lang+": pasos de "+g.id);
+      steps.forEach((step,j)=>assert.ok(step.startsWith((j+(i?1:0))+". "),lang+": paso numerado de "+g.id+" "+j));
+      for(const text of steps.filter((x,j)=>i||j>=1))assert.ok(/MAL|WRONG|MALAMENT/.test(text),lang+": cada paso dice qué es MAL: "+text);
+    });
+    assert.ok(/vibra muchísimas veces seguidas con cada cambio/.test(notes[0].tandas[0].items[lang][0])&&/solo vibra un toque aún cambiando las settings/.test(notes[0].tandas[0].items[lang][0])&&/da igual la fuerza que pongas en los bordes/.test(notes[0].tandas[0].items[lang][0]),lang+": cita sus tres frases");
+    assert.ok(/APK 61/.test(notes[0].tandas[0].items[lang][0]),lang+": el paso 0 pide la APK 61");
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|FIN-|SES-|\d+\.\d+\.\d+/i.test(text),false,lang+": sin jerga: "+text);
+  }
+  const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
+  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verifyNotes(twice),assert.AssertionError,"no duplicar una tanda");
+  const sinApk=structuredClone(notes);delete sinApk[0].tandas[0].apk;assert.throws(()=>verifyNotes(sinApk),assert.AssertionError,"la tanda de vibración no puede perder su exigencia de APK");
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),rest={...scopes};for(const id of tandas)delete rest[id];
+  for(const id of tandas)assert.equal(integrated[id],undefined,"identidad que no existía: "+id);
+  assert.deepEqual(Object.keys(scopes).slice(-tandas.length),tandas);
+  const U="src/modules/02-ui-shared.js",M="src/modules/08-motor-bank.js";
+  const java="android/app/src/main/java/com/micartera/app/";
+  const propias={"vibracion-r4":[{"file":"src/modules/02-ui-shared.js","function":"mcHaptic"},{"file":"src/modules/02-ui-shared.js","function":"mcBindEdgeHaptics"},{"file":"src/modules/02-ui-shared.js","function":"mcInicioFillHaptic"},{"file":"src/modules/02-ui-shared.js","function":"mcEdgeHaptic"},{"file":"src/modules/02-ui-shared.js","function":"mcHapticClamp"},{"file":"src/modules/02-ui-shared.js","function":"mcHapticTune"},{"file":"src/modules/02-ui-shared.js","function":"mcHapticApplyCss"},{"file":"src/modules/02-ui-shared.js","function":"mcHapticTuneSave"},{"file":"src/modules/02-ui-shared.js","function":"mcHapticTuneReset"},{"file":"src/modules/02-ui-shared.js","function":"mcHapticTuneText"},{"file":"src/modules/02-ui-shared.js","function":"mcBezierY"},{"file":"src/modules/02-ui-shared.js","function":"mcCycleTicks"},{"file":"src/modules/02-ui-shared.js","data":"MC_HAPTIC_KEY"},{"file":"src/modules/02-ui-shared.js","data":"MC_HAPTIC_DEF"},{"file":"src/modules/02-ui-shared.js","data":"MC_HAPTIC_RANGE"},{"file":"src/modules/02-ui-shared.js","data":"MC_CYCLE_EASE"},{"file":"src/modules/02-ui-shared.js","data":"MC_HAPTIC_USAGES"},{"file":"src/modules/10-app-components.js","function":"HapticTuner"},{"file":"src/modules/10-app-components.js","function":"SettingsPanel"},{"file":"src/modules/03-tab-dash.js","from":"  return React.createElement(\"div\",{className:\"v4-screen\",onAnimationStart:mcInicioFillHaptic},","to":"    React.createElement(\"div\",{className:\"v4-inicio-head rise\"},"},{"file":"src/modules/11-app-main.js","from":"  const hapticBlockRef=useRef(null);","to":"    const el=viewportRef.current; if(!el) return undefined;"},{"file":"src/modules/03-tab-dash.js","function":"NetWorthNow"},{"file":"src/modules/11-app-main.js","from":"  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.","to":"  // INC-0410 guardado: límite."},{"file":"src/modules/02-ui-shared.js","function":"mcBezierXAt"},{"file":"src/modules/02-ui-shared.js","function":"mcTickHaptic"}],
+    "youtube-ficha-reconoce":[{"file":"src/modules/08-motor-bank.js","function":"paymentEvidenceUI"},{"file":"src/modules/08-motor-bank.js","function":"reciboDiagText"},{"file":"src/modules/04-tab-gastos.js","function":"ExpenseDetailSheet"}]};
+  const nativas={"vibracion-r4":[java+"AelyHapticsPlugin.java",java+"HapticPlan.java",java+"MainActivity.java","android/app/src/main/AndroidManifest.xml"]};
+  const fns=logicFunctions(source),dat=logicData(source);
+  const closure=start=>{
+    let web=start.slice();
+    for(let ronda=0;ronda<40;ronda++){
+      const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];
+      for(const f of scopeDependencies({web},source,fns))if(!tiene(f.file,f.name,"function"))extra.push({file:f.file,function:f.name});
+      for(const d of scopeDataDependencies({web},source,fns,dat))if(!tiene(d.file,d.name,"data"))extra.push({file:d.file,data:d.name});
+      if(!extra.length)break;web=web.concat(extra);
+    }
+    return web;
+  };
+  const congelados=new Set(["inc-0810-inicio-grafica-significado"]),unidad=u=>JSON.stringify(u);
+  for(const [id,scope] of Object.entries(integrated)){
+    if(congelados.has(id)){assert.deepEqual(rest[id],scope,"descriptor congelado: "+id);continue;}
+    const web=closure(scope.web||[]);
+    assert.deepEqual({...rest[id],web:rest[id].web.map(unidad).sort()},{...scope,web:web.map(unidad).sort()},"cierre de lectores recalculado, ni se recorta ni crece sin declararlo: "+id);
+    assert.equal(rest[id].web.length,web.length,"sin unidades repetidas: "+id);
+  }
+  assert.deepEqual(Object.keys(rest),Object.keys(integrated),"ningún descriptor ajeno nuevo ni retirado");
+  for(const id of tandas){
+    const added=scopes[id],own=propias[id];
+    assert.deepEqual(added.web.slice(0,own.length),own,id+": las unidades propias de la tanda, en este orden");
+    assert.equal(added.unidades,true);
+    assert.deepEqual(added.native,nativas[id],id+": ficheros nativos (solo la vibración)");
+    assert.deepEqual(Object.keys(added),nativas[id]?["web","native","unidades"]:["web","unidades"],id+": web, y nativo solo donde hay APK");
+    const web=closure(own),clave=u=>JSON.stringify(u);
+    assert.equal(added.web.length,web.length,id+": el cierre de lectores del descriptor es exactamente el calculado");
+    assert.deepEqual(new Set(added.web.map(clave)),new Set(web.map(clave)),id+": el cierre de lectores del descriptor es exactamente el calculado");
+    for(const u of added.web)assert.ok(scopeText(u,source).length>0,"la unidad existe en la fuente: "+JSON.stringify(u));
+    for(const file of added.native||[])assert.ok(source(file).length>0,"el fichero nativo existe: "+file);
+  }
+  // La APK 61 anuncia la tanda nativa nueva sin perder las revisiones que ya acreditaba la 60; sha256 y sourceSha los rellena quien compila.
+  const apk=JSON.parse(source("public/apk.json")),apkOld=JSON.parse(old("public/apk.json"));
+  assert.equal(apk.versionCode,61);assert.equal(apk.versionName,"4.26.155");
+  assert.ok(apk.url.endsWith("/releases/download/beta/Aely-4.26.155-beta-61.apk"),"apunta al asset de beta");
+  for(const [id,h] of Object.entries(apkOld.revisiones||{}))assert.equal(apk.revisiones[id],h,"conserva la revisión nativa "+id);
+  assert.equal(apk.sha256,apkOld.sha256,"sha256 sin tocar hasta compilar");assert.equal(apk.sourceSha,apkOld.sourceSha,"sourceSha sin tocar hasta compilar");
+  assert.ok(apk.revisiones[tandas[0]],"acredita la tanda nativa nueva");
+  assert.match(source("android/app/build.gradle"),/versionCode 61\s+versionName "4\.26\.155"/,"build.gradle anuncia la APK 61");
+  assert.equal(execFileSync("git",["diff","--name-only","99fe04289db95870ae9ad6aef736fbc3675c1f48","HEAD","--","supabase/migrations"],{encoding:"utf8"}).trim(),"","sin SQL ni migraciones");
+  const expectedMoves={"inc-3009-01-cargos":["web"],"inc-0210-01-plan-cuota":["web"],"feature-0310-01-movilidad":["web"],"recibos-cargo-unico":["web"],"recibo-cargo-en-gastos":["web"],"tr-empareja-sin-preguntar":["web"],"vibracion-borde-y-mi-ciclo":["web","native"],"vibracion-suave-ronda-2":["web","native"],"vibracion-suave-ronda-3":["web","native"],"plan-por-confirmar-prestamo-youtube":["web"],"youtube-enlazar-recibo":["web"],"vibracion-ajustador":["web","native"],"renombrar-y-notas-seguras":["web"],"vibracion-ajustador-r2":["web","native"],"vibracion-r3":["web"],"youtube-diagnostico":["web"]};
+  const previous=new Map();
+  const measure=reader=>{
+    const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};
+    for(const [key,scope] of Object.entries(integrated)){
+      if(key===archiveId||congelados.has(key))continue;
+      if(!previous.has(key))previous.set(key,betaRevision(key,sourceBeta154,undefined,scope));
+      const a=previous.get(key),b=betaRevision(key,reader,undefined,now[key]);
+      const surfaces=["web","native","edge"].filter(x=>a[x]!==b[x]);
+      if(surfaces.length)moved[key]=surfaces;
+    }
+    return moved;
+  };
+  const verify=(reader,expected=expectedMoves)=>assert.deepEqual(measure(reader),expected,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  verify(source);
+  const currents=Object.fromEntries(tandas.map(id=>[id,betaRevision(id,source,undefined,scopes[id])]));
+  for(const id of tandas){assert.ok(currents[id].web);assert.equal(currents[id].edge,undefined);assert.equal(currents[id].native,undefined);}
+  assert.ok(currents[tandas[0]].native,"la tanda de vibración lleva huella nativa");
+  assert.equal(apk.revisiones[tandas[0]],currents[tandas[0]].native,"apk.json acredita la huella nativa de la tanda de vibración");
+  for(const [id,file,a,b] of [
+    [tandas[0],U,"function mcEdgeHaptic(","function mcEdgeHaptic(/*x*/"],
+    [tandas[1],M,"function reciboDiagText(","function reciboDiagText(/*x*/"]
+  ]){
+    assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
+    const mutated=betaRevision(id,f=>f===file?source(f).replace(a,()=>b):source(f),undefined,scopes[id]);
+    assert.notEqual(mutated.web,currents[id].web,id+" reabre la tanda: "+a);
+  }
+  const javaFile=java+"HapticPlan.java",mutadoNativo=betaRevision(tandas[0],f=>f===javaFile?source(f)+"\n// x\n":source(f),undefined,scopes[tandas[0]]);
+  assert.notEqual(mutadoNativo.native,currents[tandas[0]].native,"un cambio en el Java reabre la huella nativa");
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes);
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),notes.flatMap(n=>(n.tandas||[]).map(g=>g.id)),"lo que el build entrega al panel");
+  built[0].tandas.forEach((g0,i)=>{
+    assert.equal(g0.web,currents[tandas[i]].web);assert.equal(g0.edge,undefined);assert.equal(g0.native,i?undefined:currents[tandas[i]].native);assert.equal(g0.apk,i?undefined:61);assert.equal(receipt.web[tandas[i]],currents[tandas[i]].web);
     for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g0[key],undefined,"identidad nueva sin "+key);
   });
   assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
@@ -5853,7 +5972,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   const marca="INC-0410 guardado: de aquí al límite";
   const dependientes=Object.keys(registro).filter(id=>registro[id].web.some(x=>x.from&&x.from.includes(marca)));
   const ajenas=Object.keys(registro).filter(id=>!dependientes.includes(id));
-  assert.equal(dependientes.length,55);
+  assert.equal(dependientes.length,56);
   for(const id of ["deudas-metas-hoja-edicion","deudas-plazo-cuota-encaja","deudas-metas-hoja-cierre-suave","fichas-cierre-suave-atras","gastos-suscripciones-botones"])assert.ok(dependientes.includes(id),id+": las hojas de Deudas y Metas y SubRow escriben estado con el set real y llevan el bloque del guardado");
   assert.ok(dependientes.includes("myinvestor-contador-a-cero"),"la sincronización de brókers de App escribe posiciones con el set real y lleva el bloque del guardado");
   assert.ok(dependientes.includes("compras-identicas-ids"),"las compras idénticas fusionan filas y guardan lápidas con el set real y llevan el bloque del guardado");
@@ -5878,7 +5997,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   assert.ok(dependientes.includes("widget-pago-app-cerrada"),"la lectura que acredita el widget mezcla gastos con el set real");
   assert.ok(dependientes.includes("inc-0810-metas-editar-regla"),"editar una regla escribe con el set real y conserva el cierre de persistencia");
   assert.ok(dependientes.includes("inc-0710-gastos-mes-madrid"),"Gastos99 conserva la dependencia real de guardado de Expenses");
-  assert.deepEqual(ajenas.slice().sort(),["banco-pruebas-sin-aviso","bancos-reconexion-revoca","beta-panel-veredictos","compras-pendientes-otro-dia","deudas-aviso-plazo","deudas-guardar-motivo","deudas-metas-hoja-sin-parpadeo","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-backclose-handover","inc-0810-dashboard-recents-memo","inc-0810-inicio-grafica-significado","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","inicio-grafica-reservas","inicio-grafica-vuelve","inicio-recientes-sin-repetidos","inicio-solape-gastos","inicio-tarjeta-ciclo-limpia","ops-0410-panel-cola","pestanas-swipe-rapido","plan-por-confirmar-prestamo-youtube","plan-scroll-lento","renombrar-lista-al-momento","scroll-borde-barra","splash-animado","teclado-atras-conserva","tr-descripcion-clasificacion","vibracion-borde-y-mi-ciclo","vibracion-r3","vibracion-suave-ronda-2","vibracion-suave-ronda-3","youtube-diagnostico","youtube-enlazar-recibo"]);
+  assert.deepEqual(ajenas.slice().sort(),["banco-pruebas-sin-aviso","bancos-reconexion-revoca","beta-panel-veredictos","compras-pendientes-otro-dia","deudas-aviso-plazo","deudas-guardar-motivo","deudas-metas-hoja-sin-parpadeo","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-backclose-handover","inc-0810-dashboard-recents-memo","inc-0810-inicio-grafica-significado","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","inicio-grafica-reservas","inicio-grafica-vuelve","inicio-recientes-sin-repetidos","inicio-solape-gastos","inicio-tarjeta-ciclo-limpia","ops-0410-panel-cola","pestanas-swipe-rapido","plan-por-confirmar-prestamo-youtube","plan-scroll-lento","renombrar-lista-al-momento","scroll-borde-barra","splash-animado","teclado-atras-conserva","tr-descripcion-clasificacion","vibracion-borde-y-mi-ciclo","vibracion-r3","vibracion-suave-ronda-2","vibracion-suave-ronda-3","youtube-diagnostico","youtube-enlazar-recibo","youtube-ficha-reconoce"]);
   /* Quién depende del guardado lo decide el CÓDIGO, no la marca del registro (auditoría del
      coordinador, 4/10): se quita de cada alcance el bloque del guardado y se mira si lo que queda
      llama a `set` de App —las dependencias transitivas ya son unidades del alcance—. Tiene que
