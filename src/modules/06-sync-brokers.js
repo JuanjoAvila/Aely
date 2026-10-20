@@ -837,13 +837,13 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
   const completeCost=state.investments.length>0&&!missingFx&&state.investments.every(costKnown);
   const missingCost=state.investments.find(function(i){ return !costKnown(i); });
   const plTotal=costTotal>0?(total-costTotal)/costTotal*100:0;
-  // Moneda LOCAL de la pestaña Inversiones (no toca el resto de la app). Todo se calcula en €
-  // internamente y se convierte a la moneda elegida para mostrar (€ ↔ $ con el cambio del BCE).
+  // La moneda local solo manda en la pantalla hija. Cartera sigue Ajustes: guardar la moneda
+  // del montaje dejaba sus brókers en euros después de elegir dólares (FIN22, 20/10/2026).
   const [invCur,setInvCur]=useState(function(){ return (state.settings&&state.settings.currency)||"EUR"; });
   const dk = invCur==="USD"&&fx>0 ? 1/fx : 1;
   const dsym = invCur==="USD"&&fx>0 ? "$" : "€";
-  const f2  = (eurVal)=> (eurVal==null?"—":NF.format(eurVal*dk)+" "+dsym);
-  const f0  = (eurVal)=> (eurVal==null?"—":NF0.format(Math.round(eurVal*dk))+" "+dsym);
+  const f2  = (eurVal)=> (eurVal==null?"—":fullMode?NF.format(eurVal*dk)+" "+dsym:eur(eurVal));
+  const f0  = (eurVal)=> (eurVal==null?"—":fullMode?NF0.format(Math.round(eurVal*dk))+" "+dsym:eur0(eurVal));
   // valor y coste por bróker (en €) para el desglose de contribuciones
   const byBroker={};
   state.investments.forEach(function(i){ const v=invValueEur(i, state); const c=invCostEur(i, state); const o=byBroker[i.ent]||(byBroker[i.ent]={c:0,v:0}); o.c+=c||0; o.v+=v||0; });
