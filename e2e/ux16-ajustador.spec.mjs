@@ -77,10 +77,10 @@ test('UX16 ajustador: en beta se mueve, se guarda, se prueba y lo obedecen borde
 
   await slide(page,'fillMs',1500);
   expect(await page.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--v42-cycle-ms').trim())).toBe('1500ms');
-  // Probar el anillo = la ristra entera con el anillo lleno: ocho toques hasta la fuerza elegida.
+  // Probar el anillo = la ristra entera con el anillo lleno: trece toques hasta la fuerza elegida.
   await page.evaluate(()=>{window.__ux16.fill=[];});
   await tuner.locator('[data-group="fill"] .chip').click();
-  await expect.poll(()=>page.evaluate(()=>window.__ux16.fill.length),{timeout:4_000}).toBe(8);
+  await expect.poll(()=>page.evaluate(()=>window.__ux16.fill.length),{timeout:4_000}).toBe(13);
   const ring=await page.evaluate(()=>window.__ux16.fill);
   expect(ring.at(-1).amplitude).toBe(140);
   expect(ring.every(c=>c.usage==='hardware')).toBe(true);

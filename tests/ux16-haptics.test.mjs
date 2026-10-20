@@ -18,10 +18,10 @@ function setup(){
 }
 test('fill: solo una instancia real, duracion efectiva y nuevo montaje animado',()=>{
   const x=setup();x.context.mcInicioFillHaptic(x.event);x.context.mcInicioFillHaptic(x.event);
-  // 62 % del ciclo = 5 de 8 toques; un segundo evento de la misma animación no añade nada.
-  assert.equal(x.calls.length,5);assert.deepEqual(x.calls.map(c=>c.cycle),[1,2,3,4,5]);
+  // 62 % del ciclo = 5 + 5 toques; un segundo evento de la misma animación no añade nada.
+  assert.equal(x.calls.length,10);assert.deepEqual(x.calls.map(c=>c.cycle),[1,2,3,4,5,6,7,8,9,10]);
   x.event.target.getAnimations=()=>[{...x.animation}];x.context.mcInicioFillHaptic(x.event);
-  assert.equal(x.calls.length,10,'otra animacion real puede producir una nueva apertura');
+  assert.equal(x.calls.length,20,'otra animacion real puede producir una nueva apertura');
 });
 test('fill: movimiento reducido del SO y de la app anula incluso una animacion aun activa',()=>{
   for(const mode of ['system','app']){

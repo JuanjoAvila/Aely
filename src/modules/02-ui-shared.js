@@ -639,21 +639,26 @@ function mcFeltMs(ms,amp){
 function mcFeltHaptic(amp,ms,extra){
   return mcHaptic("edge",Object.assign({amplitude:amp,durationMs:mcFeltMs(ms,amp),usage:MC_FELT_USAGE},extra||{}));
 }
-const MC_CYCLE_TICKS=8, MC_CYCLE_TICK_MS=18, MC_CYCLE_GAP_MS=50;
+const MC_CYCLE_TICKS=8, MC_CYCLE_MIN_TICKS=5, MC_CYCLE_TICK_MS=20, MC_CYCLE_GAP_MS=50;
 /* El anillo es una RISTRA DE TOQUES SUELTOS, cada uno su propia llamada, repartidos donde el
    trazo va llegando: uno por cada octavo del ciclo lleno (un 25 % son dos, un 100 % ocho) y de
    más suave a más fuerte. La ronda 7 mandaba los toques dentro de UNA onda y en su OnePlus 13
    OxygenOS sustituye la onda entera por su efecto de serie de 45 ms: «ahora solo vibra un toque,
-   aún cambiando las settings». Llamadas sueltas no se pueden fundir en una. */
+   aún cambiando las settings». Llamadas sueltas no se pueden fundir en una.
+   Ronda 10 (beta 4.26.156): «solo es un toque, no es suave de cómo va creciendo». A mitad de
+   ciclo su anillo está casi vacío y un 12 % daba UN toque. El trazo tarda lo mismo esté como
+   esté, así que siempre hay rampa: cinco toques como poco, más cuanto más lleno, y una subida
+   de fuerza (y de duración, por mcFeltMs) que se nota de uno a otro. */
 function mcCycleTicks(durationMs,fraction,amp){
   const frac=Math.max(0,Math.min(1,fraction)), dur=Math.round(durationMs);
   if(!(dur>0)||!(frac>0)||!(amp>0)) return [];
-  const n=Math.max(1,Math.round(frac*MC_CYCLE_TICKS)), out=[];
+  // Y que quepan en el trazo con su hueco: si no, los últimos sonarían con el anillo ya quieto.
+  const n=Math.max(1,Math.min(MC_CYCLE_MIN_TICKS+Math.round(frac*MC_CYCLE_TICKS),Math.floor(dur/MC_CYCLE_GAP_MS)-1)), out=[];
   let last=-Infinity;
   for(let i=1;i<=n;i++){
     // En mitad del trazo la curva va deprisa: sin hueco mínimo, dos toques se oirían como uno.
     const at=Math.max(Math.round(mcBezierXAt(i/n,MC_CYCLE_EASE)*dur)-MC_CYCLE_TICK_MS,last+MC_CYCLE_GAP_MS,0);
-    out.push({at:at,amp:Math.max(1,Math.round(amp*(0.6+0.4*i/n)))});
+    out.push({at:at,amp:Math.max(1,Math.round(amp*(0.45+0.55*i/n)))});
     last=at;
   }
   return out;
@@ -808,11 +813,21 @@ function mcBindEdgeHaptics(root, blocked){
        (ronda 3); otra solo tras soltar o tras volver atrás y empujar de nuevo. */
     if(!g.done&&!quiet()&&performance.now()-lastAt>=mcHapticTune().edgeEvery) buzz();
   };
-  const listeners={touchstart:start,touchmove:move,touchend:end,touchcancel:end,visibilitychange:end};
+  /* Ronda 10: «en Recibos, Deudas y Metas vibra al llegar al final, pero si sigues tirando no».
+     Plan corta la propagación de su touchmove (para que el swipe de pestañas no se lo quede) y
+     el tirón contra el borde nunca llegaba aquí; la llegada sí, porque esa va por `scroll`. Lo
+     que vive bajo [data-edge-capture] se mira en la fase de captura, antes de que Plan lo corte. */
+  const moveCapture=function(e){
+    if(!e.target||!e.target.closest||!e.target.closest("[data-edge-capture]")) return;
+    e.mcEdgeSeen=true; move(e);
+  };
+  const moveBubble=function(e){ if(!e.mcEdgeSeen) move(e); };
+  root.addEventListener("touchmove",moveCapture,{passive:true,capture:true});
+  const listeners={touchstart:start,touchmove:moveBubble,touchend:end,touchcancel:end,visibilitychange:end};
   Object.keys(listeners).forEach(function(type){ root.addEventListener(type,listeners[type],{passive:true}); });
   // scroll no burbujea: captura también las llegadas de inercia después del touchend.
   root.addEventListener("scroll",scroll,{passive:true,capture:true});
-  return function(){ end(); states=new WeakMap(); root.removeEventListener("scroll",scroll,true); Object.keys(listeners).forEach(function(type){ root.removeEventListener(type,listeners[type]); }); };
+  return function(){ end(); states=new WeakMap(); root.removeEventListener("scroll",scroll,true); root.removeEventListener("touchmove",moveCapture,true); Object.keys(listeners).forEach(function(type){ root.removeEventListener(type,listeners[type]); }); };
 }
 // Un solo objetivo: cambiar esta línea selecciona otra animación sin multiplicar disparos.
 const MC_INICIO_HAPTIC={selector:".v42-cycle-draw",animation:"v42-cycle-draw"};

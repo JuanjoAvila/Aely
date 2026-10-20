@@ -2370,8 +2370,8 @@ function HapticTuner({showToast}){
   const trySeg=function(){ mcTickHaptic.at=-Infinity; said(mcTickHaptic()); };
   // Gráfica: seis puntos seguidos, como pasar el dedo despacio por la línea.
   const tryTick=function(){
-    said(mcHaptic("edge",{amplitude:v.tickAmp,durationMs:v.tickMs}));
-    for(let i=1;i<6;i++) later(i*70,function(){ mcHaptic("edge",{amplitude:v.tickAmp,durationMs:v.tickMs}); });
+    said(mcFeltHaptic(v.tickAmp,v.tickMs));
+    for(let i=1;i<6;i++) later(i*70,function(){ mcFeltHaptic(v.tickAmp,v.tickMs); });
   };
   const copy=function(){
     const txt=mcHapticTuneText(v);
