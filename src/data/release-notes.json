@@ -1,5 +1,61 @@
 [
   {
+    "v": "4.26.158",
+    "d": "2026-10-20",
+    "t": {
+      "es": "La ficha de un cargo reconoce su recibo aunque el banco lo apunte días después",
+      "en": "A charge's sheet recognises its bill even if the bank records it days later",
+      "ca": "La fitxa d'un càrrec reconeix el seu rebut encara que el banc l'apunti dies després"
+    },
+    "items": {
+      "es": [
+        "La ficha de un cargo de tarjeta reconoce su recibo aunque el banco lo apunte unos días después.",
+        "El recibo de YouTube Premium figura enlazado a su cargo.",
+        "Plan y el dinero disponible no cambian."
+      ],
+      "en": [
+        "The sheet of a card charge recognises its bill even if the bank records it a few days later.",
+        "The YouTube Premium bill shows as linked to its charge.",
+        "Plan and the available money do not change."
+      ],
+      "ca": [
+        "La fitxa d'un càrrec de targeta reconeix el seu rebut encara que el banc l'apunti uns dies després.",
+        "El rebut de YouTube Premium figura enllaçat al seu càrrec.",
+        "Pla i els diners disponibles no canvien."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "youtube-r4",
+        "t": {
+          "es": "YouTube Premium: la ficha reconoce su recibo aunque el banco lo apunte días después",
+          "en": "YouTube Premium: the charge sheet recognises its bill even if the bank records it days later",
+          "ca": "YouTube Premium: la fitxa reconeix el seu rebut encara que el banc l'apunti dies després"
+        },
+        "items": {
+          "es": [
+            "0. Abre la app con la versión 4.26.158 (llega sola). Tu frase: «sigue igual no funciona no se enlaza».",
+            "1. Abre Gastos y toca el cargo de YouTube Premium del 2 de octubre. MAL: «Paga un recibo» dice «No», o sea, «sigue igual no funciona no se enlaza».",
+            "2. En la misma ficha, «Paga un recibo» tiene que decir «YouTube Premium». MAL: sale otro recibo, o sale vacío.",
+            "3. Ve a Plan → Recibos: YouTube Premium sigue como pagado una sola vez y el dinero disponible no ha cambiado respecto a antes de actualizar. MAL: aparece dos veces, deja de estar pagado o cambia el disponible."
+          ],
+          "en": [
+            "0. Open the app on version 4.26.158 (it arrives by itself). Your words: «sigue igual no funciona no se enlaza» (it is still the same, it does not work, it does not link).",
+            "1. Open Expenses and tap the YouTube Premium charge of 2 October. WRONG: «Pays a bill» says «No», that is, «sigue igual no funciona no se enlaza» (it is still the same, it does not link).",
+            "2. In the same sheet, «Pays a bill» must say «YouTube Premium». WRONG: another bill shows up, or it is empty.",
+            "3. Go to Plan → Bills: YouTube Premium is still paid only once and the available money has not changed compared with before updating. WRONG: it appears twice, it stops being paid or the available money changes."
+          ],
+          "ca": [
+            "0. Obre l'app amb la versió 4.26.158 (arriba sola). La teva frase: «sigue igual no funciona no se enlaza» (continua igual, no funciona, no s'enllaça).",
+            "1. Obre Despeses i toca el càrrec de YouTube Premium del 2 d'octubre. MALAMENT: «Paga un rebut» diu «No», és a dir, «sigue igual no funciona no se enlaza» (continua igual, no s'enllaça).",
+            "2. A la mateixa fitxa, «Paga un rebut» ha de dir «YouTube Premium». MALAMENT: surt un altre rebut, o surt buit.",
+            "3. Ves a Pla → Rebuts: YouTube Premium continua com a pagat una sola vegada i els diners disponibles no han canviat respecte a abans d'actualitzar. MALAMENT: apareix dues vegades, deixa d'estar pagat o canvia el disponible."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.157",
     "d": "2026-10-20",
     "t": {
@@ -24,36 +80,7 @@
         "La vibració del gràfic d'Inici es pot regular de debò."
       ]
     },
-    "tandas": [
-      {
-        "id": "vibracion-r6",
-        "t": {
-          "es": "Vibración: anillo que crece, tirón en Plan y gráfica regulable",
-          "en": "Vibration: ring that builds up, pull in Plan and adjustable chart",
-          "ca": "Vibració: anell que creix, estirada a Pla i gràfic regulable"
-        },
-        "items": {
-          "es": [
-            "0. Abre la app con la versión 4.26.157 (llega sola). Tus frases: «solo es un toque… no es suave de cómo va creciendo», «si sigues tirando no vibra» y «no puedo regular la intensidad» de la gráfica.",
-            "1. Cierra la app del todo y ábrela. En Inicio, mientras se dibuja el anillo de Mi ciclo, tiene que notarse una vibración suave que va creciendo. MAL: «solo es un toque».",
-            "2. En Recibos, Deudas o Metas, baja hasta el final y sigue tirando hacia arriba con el dedo: tiene que volver a vibrar, como en las demás pestañas. Después, arriba del todo, desliza para cambiar de segmento: tiene que seguir igual que antes. MAL: «si sigues tirando no vibra», o el cambio de segmento ya no va como antes.",
-            "3. Ajustes → Vibración → «Cursor de la gráfica de Inicio»: pon la fuerza al mínimo y pasa el dedo por la gráfica, luego al máximo y repite. MAL: «no puedo regular la intensidad», se nota igual."
-          ],
-          "en": [
-            "0. Open the app on version 4.26.157 (it arrives by itself). Your words: «solo es un toque… no es suave de cómo va creciendo» (it is just one tap… it is not smooth in how it builds up), «si sigues tirando no vibra» (if you keep pulling it does not vibrate) and «no puedo regular la intensidad» (I cannot adjust the intensity) of the chart.",
-            "1. Close the app completely and open it. In Home, while the My cycle ring is drawn, you must feel a soft vibration that builds up. WRONG: «solo es un toque» (it is just one tap).",
-            "2. In Bills, Debts or Goals, scroll down to the end and keep pulling upwards with your finger: it must vibrate again, as in the other tabs. Then, at the very top, swipe to switch section: it must work as before. WRONG: «si sigues tirando no vibra» (if you keep pulling it does not vibrate), or switching section no longer works as before.",
-            "3. Settings → Vibration → «Home chart cursor»: set the strength to the minimum and run your finger over the chart, then to the maximum and repeat. WRONG: «no puedo regular la intensidad» (I cannot adjust the intensity), it feels the same."
-          ],
-          "ca": [
-            "0. Obre l'app amb la versió 4.26.157 (arriba sola). Les teves frases: «solo es un toque… no es suave de cómo va creciendo» (és només un toc… no és suau com va creixent), «si sigues tirando no vibra» (si segueixes estirant no vibra) i «no puedo regular la intensidad» (no puc regular la intensitat) del gràfic.",
-            "1. Tanca l'app del tot i obre-la. A Inici, mentre es dibuixa l'anell de El meu cicle, s'ha de notar una vibració suau que va creixent. MALAMENT: «solo es un toque» (és només un toc).",
-            "2. A Rebuts, Deutes o Metes, baixa fins al final i segueix estirant cap amunt amb el dit: ha de tornar a vibrar, com a les altres pestanyes. Després, a dalt de tot, llisca per canviar de segment: ha de continuar igual que abans. MALAMENT: «si sigues tirando no vibra» (si segueixes estirant no vibra), o el canvi de segment ja no va com abans.",
-            "3. Ajustos → Vibració → «Cursor del gràfic d'Inici»: posa la força al mínim i passa el dit pel gràfic, després al màxim i repeteix. MALAMENT: «no puedo regular la intensidad» (no puc regular la intensitat), se sent igual."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.156",

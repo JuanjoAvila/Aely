@@ -1,3 +1,13 @@
+## [4.26.158] — 2026-10-20 · Candidata de beta: la ficha de un cargo reconoce su recibo con BOOK días después, solo web (sigue la APK 61)
+
+- **Qué lleva.** Una rama local sobre la beta 4.26.157 (`73a3f6d1b`), con `--no-ff`: `6d4c5c08c` (`claude/youtube-r4`, con GO de la revisión independiente de dinero). Sin APK, SQL ni Edge.
+- **Por qué decía «No» (INC-1810-04, veredicto de la 157: «sigue igual no funciona no se enlaza»).** En el diagnóstico real el cargo de tarjeta lleva la fecha de la operación (2/10) y la fila BOOK del extracto con la MISMA referencia, banco y céntimos lleva la de contabilización (5/10). La prueba guardada lleva el 5/10 y es válida, así que Plan sale ✓, pero el camino de r3 de `paymentEvidenceUI` exigía el mismo día, no encontraba la fila y la ficha decía «No».
+- **Arreglo.** Se acepta una fecha distinta si `fecha BOOK − fecha cargo` está entre 0 y 7 días, contada en días UTC (no depende de la zona horaria): solo hacia delante, porque un banco nunca contabiliza antes de la operación, y 7 días cubren fin de semana o puente. Sigue exigiéndose misma ref, banco, céntimos y fila única; nuevo: si el extracto trae la cuenta de esa ref, tiene que ser la `obAcc` del cargo.
+- **Dinero intacto.** Solo cambia `byExpense`, que lo leen la etiqueta «Paga un recibo», el aviso, `reciboConfirmableUI` y el diagnóstico; `confirmed`, `planChargesMonth`, Inicio, widget, saldo y `slimForCloud` no cambian (la revisión comparó 3 × 3000 estados al azar: 0 diferencias de dinero, y toda diferencia de relación era base=null a el dueño real).
+- **Límite conocido.** Entre meses (cargo el 30/9 y BOOK el 2/10) la ficha sigue diciendo «No».
+- **Pendientes que salen de la revisión.** FIN-23 (`linkFixedPayment` no bloquea enlazar el mismo cargo a un segundo recibo cuando la prueba BOOK es de otra fecha; ya existía) y FIN-24 (la fila única de r4 solo se cuenta dentro de la ventana), en `docs/BACKLOG.md`.
+- **Panel.** Una tanda nueva, `youtube-r4`, sin `apk`. La 157 queda con `tandas: []` (`vibracion-r6` aprobada). Descriptor nuevo en `scripts/beta-sources.json`; Catálogo157 pasa a histórico y Catálogo158 vigila la nueva.
+
 ## [4.26.157] — 2026-10-20 · Candidata de beta: vibración ronda 6, solo web (sigue la APK 61)
 
 - **Qué lleva.** Una rama local sobre la beta 4.26.156 (`caa7453ed`), con `--no-ff`: `334747cee` (`claude/vibra-r6`). Sin APK nueva, SQL ni Edge. Veredicto de la 156 por chat: todo bien salvo tres cosas.
