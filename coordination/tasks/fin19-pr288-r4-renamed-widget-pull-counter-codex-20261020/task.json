@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "id": "fin19-pr288-r4-renamed-widget-pull-counter-codex-20261020",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261019-r74-36ea75cf98e01bbf",
+  "createdAt": "2026-10-20T15:29:26.548Z",
+  "to": "codex",
+  "kind": "worker",
+  "priority": 1,
+  "model": "gpt-6-astra",
+  "assignedPublicSessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "baseSHA": "16515fd171e5121424722a69ee60bd959f8f4d59",
+  "claudeGrant": "1670a75f05edc2bb310978de4cc61345da3b5cc1",
+  "dependsOnReleasedResult": "ec60d6fbf04192aba434c2ef2702f1b0192e9469",
+  "previousRunnerReturn": "d712c18cf81ec5da8a08c1303a2c02252b6012d7",
+  "objective": "FIN19 PR288 R4: honor renamed-merchant scoped tombstones in shared widget reader after failed remote delete, and remove pull-counter performance regression to meet Claude <=+10percent versus exact base158. Same PR288 normal append to exact R3; FIN22 deferred.",
+  "scope": [
+    "Shared pure filasComoLaApp scoped tombstone lookup using the same merchant/comercio key as client writer, with actual renamed-delete/import/pull/widget chain and failed DELETE stub",
+    "Actual pull expense counter in11-app-main and only directly necessary identity/key helper reuse or collision-lazy lookup, preserving PR286 and financial identity semantics",
+    "Directed synthetic RED/GREEN, affected regressions, actual counter and complete-pull CPU1 A/B base158/R3/R4, exact source/artifact immutable evidence, same PR288"
+  ],
+  "requirements": [
+    "NEW exact task own claim push/readback and ACK BEFORE code/tests; prior FIN19R3 claim released byec60d6fb and RETURNd712c18c, never reuse. Same original holder82dbe59f model/runtime/cwd/helper/filter. Read FULL Claude7c273341 NO_GO plus task/AGENTS/EMPIEZA/protocol and cancellation/grant state. FIN22task66867230 is published but UNCLAIMED and no code/tests; keep deferred, no FIN22 work until R4 delivery and next exact dispatch. Explicit ROOT successor authorization1670a75f confirms same exact scope; FIN22 is already authorized after R4 delivery without new consultation, with own exact task/claim/ACK bookkeeping.",
+    "Fresh isolated checkout/branch from exact R3 source16515fd171e5121424722a69ee60bd959f8f4d59; preserve every R1/R2/R3 checkout, immutable package, receipts, all RED/failures, own claims/results and b5frozen20. New initial census and final exact hash/source/repo proof. Normal descendant, normal push to SAME PR288 branch, no force and no new PR. Comparison beta158a5bbecf6793931f4cfc8a3087951ad1ef66580f8; no production changes.",
+    "A MEDIA monetary regression: synthetic Sabadell accountA transaction renamed BAR SL -> Mi bar, other row Caixa accountC, deleteA with actual client keyOfExpense/expenseDeletionKey writer and simulated failed remote DELETE. Actual widget chain gives base320, R3640, required320 cents. Reader must consult actual comercio/merchant key, or carefully both canonical keys if justified; ob_name-only lookup mismatches writer. RED through real rename/delete/persistence/pull/widget path, not manually manufactured tombstone only. Preserve original bank name and chosen merchant, no widening into another known bank/account, test ordinal and other-account/same-bank account controls, retry/undo, legacy and manual-row protections. Full row and selected-bank oracles, not just total.",
+    "B MEDIA performance: Claude measured actual pull count3500 rows3.9->31.6ms and complete pull33-41->76-78ms, while keepCategoryChoices early exit is already fixed. Diagnose actual11-app-main counter, count with keyOfExpense and request identity scope only on collisions or cache per-row key, preserving grouping semantics and original R1 controls/UUIDmanual choices. Do not present a simplified merge proxy as complete pull timing.",
+    "Explicit acceptance objective from7c273341: <=+10percent versus base on directed CPU1 A/B for actual counter and complete pull at3500 unchanged rows. Use matched independent fixtures, known financial/full-row oracle outside timed section, base158/R3/R4 exact source/artifact provenance, interleaved variants, warmups and raw samples/medians/ratios, same process/concurrency1. Include fresh/cached scenarios where applicable, invalidate contexts after row changes. Report noise/external host activity and any residual regression honestly; if objective not achieved report blocked, never relabel as perfPASS or change threshold. No CPU6/fullsuite/profiling/foreign runner grant inferred.",
+    "Only code and pure local synthetic shared-server logic; apply existing Supabase skill, official docs for any runtime API feature if actually needed. NO live Supabase query, SQL/Edge/API/bank/cloud, schema/auth/migration/backfill/deployment. Every network persistence/delete/upload path in tests is mocked. No user data.",
+    "Causal RED first against exact R3 for A and measured real B; base158 control must work with appropriate historical harness, no missing-helper TypeError counted as financial failure. Final GREEN on final changed source for new chain and relevant affected import/widget/undo/rename/identity tests; preserve R3 per-bank320/320 controls and PR286, 3000 rows, 4501500 cents full-row oracle. Directed cost/financial mutants only where meaningful. Do not rerun completed unrelated suites for refresh; no suite entera.",
+    "OWN20b5 exhausted actual20 frozen. Own b6 noticef3bfaac5 has been observed; before claim/code verify its exact readback and own activation under applicable grants, preserve initial NFF and retry1 record under5997e0b4. Count all first/internal/readback fetches >=30s including block boundary, no reset or ROOT-budget/lease inheritance. Fresh resource census/own admission if runner requires, no foreign processes/locks, lease not inferred from clock/PID/absence.",
+    "Same restrictions: size/catalogue and global release metadata reservedClaude; no VERSION/notes/CHANGELOG/README/backlog/roadmap/catalogue/cap edits, no weakening tests or raising caps. No repeated size/catalogue by inertia. Record docs and every actual EXIT/failure/unexecuted gate. No APK/Gradle/Android/deploy/merge or general-permission requests.",
+    "Final own RETURN and released result, sourceSHA exactR3base, SAMEPR288 branch AND PR head readbacks, all actual commands/EXITs/limits. Immutable report/manifest/ZIP/source inventory and all prior file/repo preservation. Declared evidence-only credential redactions with original/copy hashes, originals untouched. Private handoff supplied natively. STOP after delivery; FIN22/FIN12/INC/FIN04 need next exact dispatch; no native replies absent human authorization."
+  ],
+  "deliverable": "FIN19 R4 normal append same PR288 with renamed-delete widget320c chain, actual counter and complete pull <=+10percent CPU1 A/B objective or explicit remaining blocked result, immutable exact-source/preservation evidence, own RETURN/released result/private handoff then STOP; no ProductREADY/integration/served/mobile claim.",
+  "claudeNoGo": "7c273341036126e67645cf077908a66e02757c9f"
+}
