@@ -1,0 +1,96 @@
+{
+  "status": "blocked",
+  "productSHA": "353ecd19a9fd8207ba4b06bfe36afdcfcfc0e56f",
+  "summary": "FIN31 R2 353ecd19a9fd8207ba4b06bfe36afdcfcfc0e56f normal direct R1 child84617cc289e40bd5760794c5b0c3d43d68696024, same draft PR290 exact branch/PR/pullref. FIN06 partial totals+notice, EUR default500/totals.invested rewards/monthlyinvest/monthlynodecimals restored; GBP/USD conversions retained. 3R1causalRED, baseline160EUR2/2, candidate39CPU1pass with unchanged divisas/cartera specs. Two parser failures and interrupted combined attempt excluded; unknown CPU6 execution in interrupted attempt disclosed. Corrected run excludesCPUx6. FX/security/map/syntax/privacy/size0 docs1 catalogue1601; both catalogue entries dependencies reservedClaude. Prior29239files25repos exact R1/FIN22/R8. RETURN19314cf0dad6217fe423233eabacd97806a72603; ZIP51ae20b50b570fdbe7b1c7fa1030e4594cafb8a9cb65ebc02b1aa75a2ac50ded manifestc4956ea62dd52f73179e62709ca1f69328c632d7e3e2e8c1680d1d73c98e67d1 entries302 verified. releasedBLOCKED notProductREADY, privatehandoff thenSTOP.",
+  "tests": [
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "candidate-build.json"
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs",
+      "exitCode": 1,
+      "phase": "catalogue160-directed.json",
+      "environment": {
+        "BETA_SOURCES_ONLY": "Catálogo160"
+      }
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "corrected-build.json"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fx-multi.test.mjs tests/security.test.mjs tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "phase": "directed-node.json"
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1,
+      "phase": "docs-final.json"
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0,
+      "phase": "privacy.json"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "r1-build.json"
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 0,
+      "phase": "size.json"
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "phase": "syntax.json"
+    },
+    {
+      "command": "FIN31 R2 browser red-r1-partial",
+      "exitCode": 1
+    },
+    {
+      "command": "FIN31 R2 browser red-r1-partial-corrected",
+      "exitCode": 1
+    },
+    {
+      "command": "FIN31 R2 browser red-r1-partial-valid",
+      "exitCode": 1
+    },
+    {
+      "command": "FIN31 R2 browser red-r1-default",
+      "exitCode": 1
+    },
+    {
+      "command": "FIN31 R2 browser red-r1-principal",
+      "exitCode": 1
+    },
+    {
+      "command": "FIN31 R2 browser baseline160-eur",
+      "exitCode": 0
+    },
+    {
+      "command": "FIN31 R2 browser green-requested-cpu1",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "FIN06 partial totals with warning restored; only unconvertible broker rows remain unknown, including mixed known/unknown broker. divisas-sin-cambio and cartera-inversiones specs byte-identical. EUR default500, totals.invested including rewards/monthly investment, monthly no decimals restored. GBP/USD conversions and local/global independence retained.",
+    "Three R1 causal REDs, two EUR baseline160 comparison passes, and requested CPU1 candidate browser evidence are recorded separately. Two earlier parser failures are harness failures and count as no financial RED. A CRLF edit-script failure wrote no product source; its following candidate-build assembled unchanged R1, corrected-build is the actual candidate.",
+    "First combined requested-suite attempt was interrupted when an embedded CPU x6 test was discovered. No complete report or buffered output survived; which tests executed and whether CPU6 executed cannot be certified. This incomplete attempt counts as no acceptance evidence. Corrected private config explicitly excludes CPU x6 and writes durable logs; no spec was weakened.",
+    "Catalogue dependencies CUR_SYM, eur and fromEurAmt affect BOTH limpieza-ajustes-perfil and cartera-ordenar-brokers. Catalogue/VERSION/notes/CHANGELOG/README/ROADMAP/BACKLOG/caps are untouched and reserved Claude. docs-frescura and directed catalogue160 failures remain integration gates; no broad catalogue mutations.",
+    "Normal single-parent R1 child on existing draft PR290; no force push or beta chase. Prior R1, FIN22, R8 files and repos preserved. Integration with PR289 is Claude owned. No general CI/fullsuite, live bank/cloud, SQL/Edge/API, native widget, APK/Gradle/deploy/merge, served or mobile acceptance. Not ProductREADY. FIN12/INC290902/FIN04 not started. Private handoff then STOP; no native reply."
+  ],
+  "schema": 1,
+  "taskId": "fin31-pr290-r2-partial-totals-projection-baseline-codex-20261020",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-20T20:37:02.626Z",
+  "released": true
+}
