@@ -4780,7 +4780,7 @@ test("Catálogo162 añade la tanda de la categoría Coche (con Edge y sin APK nu
   const rotulo={es:"Coche",en:"Car",ca:"Cotxe"},textos=source("src/modules/01-i18n.js");
   for(const lang of ["es","en","ca"]){
     assert.ok(textos.includes('cat_coche:"'+rotulo[lang]+'"'),lang+": "+rotulo[lang]+" es el texto de la app");
-    assert.ok(notes[0].tandas[0].items[lang].join(" ").includes(rotulo[lang]+" (🚗)"),lang+": el guion cita "+rotulo[lang]+" (🚗)");
+    const guion=notes[0].tandas[0].items[lang].join(" ");assert.ok(guion.includes(rotulo[lang])&&guion.includes("(🚗)"),lang+": el guion cita "+rotulo[lang]+" y su icono");
   }
   assert.ok(/\{ id:"coche",\s+name:"Coche",\s+color:"#E07A7A", icon:"🚗" \}/.test(source("src/modules/00-core.js")),"la categoría existe en CATEGORIES con ese icono");
   const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
@@ -4791,7 +4791,7 @@ test("Catálogo162 añade la tanda de la categoría Coche (con Edge y sin APK nu
   for(const id of tandas)assert.equal(integrated[id],undefined,"identidad que no existía: "+id);
   assert.deepEqual(Object.keys(scopes).slice(-tandas.length),tandas);
   const C="src/modules/00-core.js";
-  const propias={"categoria-coche":[{"file":"src/modules/00-core.js","data":"CATEGORIES"},{"file":"src/modules/00-core.js","data":"KW"},{"file":"src/modules/00-core.js","data":"KW_PALABRA"},{"file":"src/modules/00-core.js","function":"autoCategory"},{"file":"src/modules/00-core.js","function":"categoryOfNewMerchant"},{"file":"src/modules/02-ui-shared.js","function":"ExpenseCategoryGrid"},{"file":"src/modules/02-ui-shared.js","function":"ExpenseCategorySheet"},{"file":"src/modules/14-v4-screens.js","function":"ApuntarSheet"}]};
+  const propias={"categoria-coche":[{"file":"src/modules/00-core.js","data":"CATEGORIES"},{"file":"src/modules/00-core.js","data":"KW"},{"file":"src/modules/00-core.js","data":"KW_PALABRA"},{"file":"src/modules/00-core.js","function":"autoCategory"},{"file":"src/modules/00-core.js","function":"categoryOfNewMerchant"},{"file":"src/modules/02-ui-shared.js","function":"ExpenseCategoryGrid"},{"file":"src/modules/02-ui-shared.js","function":"ExpenseCategorySheet"},{"file":"src/modules/14-v4-screens.js","function":"ApuntarSheet"},{"file":"src/modules/11-app-main.js","from":"  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.","to":"  // INC-0410 guardado: límite."}]};
   const fns=logicFunctions(source),dat=logicData(source);
   const closure=start=>{
     let web=start.slice();
@@ -4805,6 +4805,7 @@ test("Catálogo162 añade la tanda de la categoría Coche (con Edge y sin APK nu
   };
   const congelados=new Set(["inc-0810-inicio-grafica-significado"]),unidad=u=>JSON.stringify(u);
   // Coche no añade funciones ni datos nuevos (entra en CATEGORIES, KW y KW_PALABRA, que ya existían): ningún descriptor anterior crece.
+  // ApuntarSheet guarda el gasto con set(): el descriptor lleva el bloque del guardado (PERSIST91), como cartera-moneda.
   const crecen={};
   for(const [id,scope] of Object.entries(integrated)){
     if(congelados.has(id)){assert.deepEqual(rest[id],scope,"descriptor congelado: "+id);continue;}
@@ -6774,7 +6775,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   const marca="INC-0410 guardado: de aquí al límite";
   const dependientes=Object.keys(registro).filter(id=>registro[id].web.some(x=>x.from&&x.from.includes(marca)));
   const ajenas=Object.keys(registro).filter(id=>!dependientes.includes(id));
-  assert.equal(dependientes.length,59);
+  assert.equal(dependientes.length,60);
   for(const id of ["deudas-metas-hoja-edicion","deudas-plazo-cuota-encaja","deudas-metas-hoja-cierre-suave","fichas-cierre-suave-atras","gastos-suscripciones-botones"])assert.ok(dependientes.includes(id),id+": las hojas de Deudas y Metas y SubRow escriben estado con el set real y llevan el bloque del guardado");
   assert.ok(dependientes.includes("myinvestor-contador-a-cero"),"la sincronización de brókers de App escribe posiciones con el set real y lleva el bloque del guardado");
   assert.ok(dependientes.includes("compras-identicas-ids"),"las compras idénticas fusionan filas y guardan lápidas con el set real y llevan el bloque del guardado");
@@ -6786,6 +6787,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   assert.ok(dependientes.includes("vibracion-ajustador"),"el ajustador de Ajustes guarda con el set real y lleva el bloque del guardado");
   assert.ok(dependientes.includes("cuenta-parte-mia"),"la parte mía de una cuenta guarda con el set real (ficha de cuenta, sincronización) y lleva el bloque del guardado");
   assert.ok(dependientes.includes("tr-empareja-sin-preguntar"),"el emparejado borra, edita y deshace con el set real y lleva el bloque del guardado");
+  assert.ok(dependientes.includes("categoria-coche"),"Apuntar guarda el gasto nuevo con el set real (ApuntarSheet) y lleva el bloque del guardado");
   assert.ok(dependientes.includes("limpieza-ajustes-perfil"),"la limpieza de Ajustes y perfil escribe estado con set() (Ajustes, Cartera) y lleva el bloque del guardado");
   assert.ok(dependientes.includes("inicio-mes-pasado-mismo-dia"),"la tanda de la comparación lleva el mismo alcance de Inicio que inicio-patrimonio-flujos, con su bloque del guardado");
   assert.ok(dependientes.includes("recibo-renombrado-sigue-pagado"),"renombrar un recibo reescribe sus pruebas de pago con el set real (patchFixedById) y lleva el bloque del guardado");
