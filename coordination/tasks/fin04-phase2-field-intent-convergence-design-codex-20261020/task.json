@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "id": "fin04-phase2-field-intent-convergence-design-codex-20261020",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261019-r74-36ea75cf98e01bbf",
+  "createdAt": "2026-10-20T21:48:34.550Z",
+  "to": "codex",
+  "kind": "worker",
+  "priority": 3,
+  "model": "gpt-6-astra",
+  "assignedPublicSessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "baseSHA": "13e814d2289b279c80f325125e8168570b3a1d35",
+  "baseVersion": "4.26.161",
+  "claudeGrant": "1a10908480ef48ee78e087a8369ca3c60fccc59f",
+  "originalDesignGrant": "d41eaacb58a8109e9fc11edccc273b5f03441e55",
+  "latestQueueConfirmation": "90ee17d94265cbaba16bdad223e453395235b1f3",
+  "dependsOnReleasedResult": "02d463523dc5dbda570dc34ab129d3431d0d4df8",
+  "previousRunnerReturn": "4fda9273b7259c6f782f014b99f584bc1b661439",
+  "objective": "FIN-04 fase2 SOLO DISENO Y PLAN: recibos/deudas se guardan enteros y ultima escritura puede perder edicion independiente del otro movil. Proponer convergencia por campo o intencion compatible con CAS de revision existente, sin esquema si viable; conflictos reales y presentacion al usuario. Informe con casos financieros en centimos, pantallas, riesgos y preguntas para propietario. NO codigo ni PR.",
+  "scope": [
+    "Analisis de fuente autorizada beta161 exacta y evidencia previa FIN04 selectiva, sin pegar historiales",
+    "Documento de propuesta y plan de pruebas deterministas dos clientes, sin implementacion ni nueva ejecucion producto",
+    "Informe sellado con referencias precisas, escenarios RED propuestos distinguidos de evidencia ya observada, preguntas para Claude/propietario"
+  ],
+  "requirements": [
+    "Leer completos current/politica/protocolo y AGENTS/EMPIEZA aplicables antes de fuente. FULL todos nuevos intermedios/cancelaciones y grants d41eaacb,1a109084,90ee17d9,relay7e88e3c5; nueva Claude-local-20261021-3a7f19c2 conserva grants previos. Misma identidad original holder82dbe59f/Astra sin override. NEW ownclaim push/readback y ACK antes del diseno; no reutilizar claim de FIN04R1,INC u otros.",
+    "Base expresamente grant161 13e814d2289b279c80f325125e8168570b3a1d35 VERSION4.26.161 resuelta por ROOT gh API; verificar propio source/version. No silencioso chase162/163 aunque posteriores anunciadas; si nuevo grant aplica registrar delta explicito. Checkout nuevo aislado solo lectura si necesario, no checkout/reset/rebase en WIP o PR previas. Preservar todos30255archivos27repos previos y nuevo INC paquete/fuentes/reports mediante censo/hash inicial/final y byte readback; OWN10mutable excluido declarado.",
+    "Recibos y deudas como objeto completo: analizar writers actuales, campo revision/CAS, ACK affectedrows, reintentos, pull/reload, contexto Hogar y misma cuenta dos moviles. Citar exact source lines/hash, distinguir comportamiento actual verificable, evidencia previa beta408 y propuesta no implementada. No confundir evidencia antigua con beta161. Mantener casos gastos solo comparacion necesaria para compatibilidad, no ampliar implementacion.",
+    "Especificar campo por campo que puede fusionarse; unidad atomica de intencion para valores monetarios relacionados; ediciones mismo campo/diferentes campos, borrar frente editar, pago o amortizacion frente cambiar importe/cuota, periodicidad/fecha/estado, nota/nombre, dos cambios simultaneos y conflictos dependientes. Evitar mezclar silenciosamente campos financieros incompatibles o duplicar cuota/pago. Preservar exact cents, identidad banco/cuenta, historicos/tombstones y FIN19 sign/tipos; no usar tolerancias o reescribir originales.",
+    "Proponer algoritmo por campo o intencion a nivel de diseno: precondiciones, base/local/remoto, revisionCAS, manejo de zeroaffectedrows/noACK/retry, idempotencia/reordenacion/offline, dos entidades independientes y cola, validacion dependencias, convergencia observable ambosclientes traspull/reload. Evaluar si esquema actual suficiente; si no, explicar minimo cambio requerido como propuesta sin ejecutarlo. Reservar decisiones negocio ambiguas para preguntas concretas, no pedir permisos generales al humano.",
+    "Informe en espanol claro: problema y antes/despues concreto; alternativas y recomendacion; tabla campos merge/conflicto y tabla escenarios con revision inicial, actores, cambios/orden, montos enteros en centimos, oraculo esperado por cliente/persistencia y pruebas RED propuestas; pantallas afectadas y UX exacta de aviso/resolucion; riesgos compatibilidad rollout y plan pruebas dosclientes. Preguntas abiertas propietario al final para revision Claude; no contactar humano. Evidencia previa reproducible citada por archivo/caso y fuente, RED propuesto no ejecutado rotulado.",
+    "SOLO documentos/analisis/harness-plan fuera producto. NO cambios producto/tests/config/esquema/SQL/API/Edge/livecloud/bank/leases/runner/browser/heavy/CPU6/CI/build/APK/deploy/merge. NO PR nueva ni tocar PR 286/288/289/290/291 o PR43. No VERSION/catalogue/notas/caps/backlog edits; no baterias completadas. No falsa ejecucion ni READY.",
+    "Continuar OWN10 actual18/20 al INCclose (ultimos reales pueden aumentar); conservar contador/ledgers/frozen9, todos primeros/internos/readbacks>=30s. Al real20 congelar y normal OWN20b11 aviso+readback bajo b0390ba0 sin esperar nuevo permiso ni reset/heredar ROOT. No operacion21 en bloque agotado. Retorno solo recursos propios realmente adquiridos, no inventar runnerlease en tarea documental.",
+    "Sellar informe propuesta/tablas/referencias/sourceinventory/manifestZIP hashes y preservacion exacta; ownRETURN de recursos realmente adquiridos o declaracion ninguno y releasedresult con conclusion DESIGN_ONLY_AWAIT_CLAUDE_REVIEW. Private handoff indicado por despacho nativo y STOP. No native reply al ROOT, no otras tareas hasta nuevo encargo exacto. No ProductREADY/servido/movil/aviso humano."
+  ],
+  "deliverable": "Informe FIN04fase2 DESIGN ONLY y plan de pruebas dosclientes con centimos, campos/pantallas/conflictos/riesgos/preguntas; no producto ni ejecucion tests ni PR; paquete sellado ownRETURN/releasedresult y STOP."
+}
