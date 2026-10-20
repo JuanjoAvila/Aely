@@ -1,0 +1,156 @@
+{
+  "status": "blocked",
+  "productSHA": "e42650596e361bf5cc61bac8d3ed4c7f0ca9f13d",
+  "summary": "FIN04 phase2 PR1 A separate draft PR293, e42650596e361bf5cc61bac8d3ed4c7f0ca9f13d direct beta161 13e814d2289b279c80f325125e8168570b3a1d35. A initial-read gate and safe INSERT with CAS/ACK preserved; B three-way Plan pending per GO. CausalRED debounce/online4237c to777c; final8browsergreen,14newunitgreen,two mutants killed. Regressions66green plus repaired58green. Existing startup normalization LWW limitation explicit, no general convergence. Gates syntax/privacy/map/i18n0 docs1 size0 catalogue1611; reserved VERSION/catalogue/notes/caps untouched. RETURNabc692330f29900fabbf318b97afee2aadf44e4e; ownport48536 returned, prior31237files29repos exact. ZIP13067c9e35c3c7c1d994006fb67e7a64b2bb317a9fc01131bebd6a3a26d9f847 manifest9255506390568dca258da3b2a3c02ab911f9bd45f8ce9aeb5a410e2532d01103 entries291 verified. ReleasedBLOCKED, noProductREADY/fullsuite/CPU6/livecloud/CIacceptance/deploy/mobile. Privatehandoff thenSTOP, no native reply.",
+  "tests": [
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "base-build.json"
+    },
+    {
+      "command": "node ../build-baseline.mjs",
+      "exitCode": 0,
+      "phase": "baseline-artifact.json"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "build-final.json"
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs",
+      "exitCode": 1,
+      "phase": "gate-catalogue161.json",
+      "environment": {
+        "BETA_SOURCES_ONLY": "Catálogo161"
+      }
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1,
+      "phase": "gate-docs-final.json"
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 0,
+      "phase": "gate-docs.json"
+    },
+    {
+      "command": "node tests/i18n-keys.test.mjs",
+      "exitCode": 0,
+      "phase": "gate-i18n.json"
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0,
+      "phase": "gate-privacy.json"
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "phase": "gate-registration.json"
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 0,
+      "phase": "gate-size.json"
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "phase": "gate-syntax.json"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "green-build-1.json"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "green-build-2.json"
+    },
+    {
+      "command": "node --test --test-name-pattern=alta ausente tests/fin04-first-pull.test.mjs",
+      "exitCode": 1,
+      "phase": "mutant-money.json",
+      "environment": {
+        "FIN04_FIRST_PULL_MUTANT": "money"
+      }
+    },
+    {
+      "command": "node --test --test-name-pattern=alta sin revisión tests/fin04-first-pull.test.mjs",
+      "exitCode": 1,
+      "phase": "mutant-upsert.json",
+      "environment": {
+        "FIN04_FIRST_PULL_MUTANT": "upsert"
+      }
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin04-first-pull.test.mjs tests/goals-three-way.test.mjs tests/goals-review-remates.test.mjs tests/goals-review2-remates.test.mjs tests/goals-review3-reserve-conflict.test.mjs tests/metas-pull-transport.test.mjs tests/security.test.mjs tests/inicio-v42.test.mjs tests/inicio-deuda-futura.test.mjs tests/fin17-confirmed-absorptions.test.mjs tests/auth-disposal.test.mjs tests/auth-disposal-fit.test.mjs",
+      "exitCode": 1,
+      "phase": "regressions-1.json"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/metas-pull-transport.test.mjs tests/fin17-confirmed-absorptions.test.mjs tests/goals-review-remates.test.mjs tests/auth-disposal.test.mjs",
+      "exitCode": 0,
+      "phase": "regressions-fixes.json"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin04-first-pull.test.mjs tests/goals-three-way.test.mjs",
+      "exitCode": 0,
+      "phase": "unit-a.json"
+    },
+    {
+      "command": "FIN04 A browser red-debounce",
+      "exitCode": 1
+    },
+    {
+      "command": "FIN04 A browser red-online",
+      "exitCode": 1
+    },
+    {
+      "command": "FIN04 A browser green-initial",
+      "exitCode": 1
+    },
+    {
+      "command": "FIN04 A browser green-isolated-clock",
+      "exitCode": 1
+    },
+    {
+      "command": "FIN04 A browser green-normalized-client",
+      "exitCode": 0
+    },
+    {
+      "command": "FIN04 A browser red-final-debounce",
+      "exitCode": 1
+    },
+    {
+      "command": "FIN04 A browser red-final-online",
+      "exitCode": 1
+    },
+    {
+      "command": "FIN04 A browser green-final",
+      "exitCode": 0
+    },
+    {
+      "command": "FIN04 A browser green-release",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "A delivered separately as expressly allowed by GO WITH CHANGES; B three-way receipt/debt groups and conflict UI PENDING. No intent architecture, generations, planApplied, new server revisions/retries, DDL, Hogar notices or version gate. STOP after handoff; no native reply.",
+    "Exact beta161 base. Causal browser RED on debounce and online before initial GET, repeated with final spec against frozen base artifact. Existing receipt4237c was replaced by777c via initial UPSERT. Candidate uses valid owner read gate and INSERT; normal CAS and Metas sent-payload ACK retained. Invalid/failed/missing-revision reads do not mean absence. Exactly one revision-bearing ACK and postresponse owner check required.",
+    "Final browser8/8 CPU1, one worker, zero retries, own port48536, blocked external network and real bundled React/SupabaseJS2.110.0 with synthetic auth/REST. Two isolated clients for valid paths. No live cloud/RLS/bank acceptance. All runs retain real EXIT/logs/resources proof. No shared runner lease acquired or foreign processes killed.",
+    "Initial candidate E2E failures exposed existing startup normalizations advancing _savedAt under receipt/debt LWW. A does not fix this. Final race isolation uses future remote timestamp and normalized stale second client; green is NOT general receipt/debt convergence. Original failing fixtures/logs retained. B remains pending.",
+    "Directed regression first124 tests had115 pass9 fail: missing new-ref fixtures, explicit auth historical-block expectation and monthly fixture lacking working storage. Updated harness plumbing and explicit reset checks preserve existing money oracles. New read proof keeps an already applied valid pull eligible for its monthly contribution if a subsequent pull fails, while write gate remains closed. Repaired subset58/58; other66 passed in first run. No aggregate claim of a single124/124 run. New14 first-pull unit cases pass; upsert and independent monetary mutant killed with EXIT1.",
+    "VERSION/catalogue/release notes/caps unchanged; generated public artifacts preserved privately then restored from base. Documentation freshness, catalogue and size gates reported with actual exits and reserved integration work. No full suite/general CI, CPU6, deploy/merge, served production, APK/Gradle/widget/mobile acceptance. Not ProductREADY."
+  ],
+  "schema": 1,
+  "taskId": "fin04-phase2-pr1-first-pull-plan-three-way-codex-20261020",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-20T23:12:05.804Z",
+  "released": true
+}
