@@ -10,6 +10,7 @@
 // Y los de la revisión de aquel arreglo: «Deshacer» el borrado de un recibo, versiones mezcladas,
 // editar 10 → 12 → 10 (el gasto desaparecía) y editar sin conexión.
 // Los bloques de pantalla se ejecutan sacados del bundle servido (`public/index.html`).
+import {withOwnerStorage} from "./helpers/owner-storage-fixture.mjs";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
@@ -20,7 +21,7 @@ import { loadPureLogic, extractPureLogicSource, createLogicSandbox } from "../sc
 const source=file=>fs.readFileSync(new URL("../"+file,import.meta.url),"utf8");
 const order=JSON.parse(source("src/build-order.json"));
 const js=order.map(file=>source("src/modules/"+file)).join("\n");
-const c=loadPureLogic(source("src/shell.html").replace("<!--MC_APP_SCRIPT-->",()=>js));
+const c=withOwnerStorage(loadPureLogic(source("src/shell.html").replace("<!--MC_APP_SCRIPT-->",()=>js)));
 vm.runInNewContext(source("src/modules/14-v4-screens.js"),c);
 const bundle=source("public/index.html");
 const { statsDelMes }=await import("data:text/javascript;base64,"+Buffer.from(transformSync(source("supabase/functions/_shared/presupuesto.ts"),{loader:"ts",format:"esm"}).code).toString("base64"));
@@ -54,10 +55,10 @@ const fila=e=>({id:e.id,user_id:"u1",fecha:e.date,importe:e.amount,comercio:e.me
 const sube=(s,savedAt)=>{ const x=clon(c.slimForCloud(s)); if(savedAt!=null) x._savedAt=savedAt; return x; };
 
 // El bloque REAL con el que App aplica el estado que baja de la nube (`syncFromCloud`).
-const mBaja=/const merged=mergeExpenses\(prev\.expenses,\s*cloudState\.expenses\|\|\[\]\);[\s\S]*?if\(freshLogin\s*&&\s*\(cloudState\.accounts/.exec(bundle);
+const mBaja=/const sameOwner=![^\n]*\n\s*const preferenceDeleted=[\s\S]*?if\(freshLogin\s*&&\s*\(cloudState\.accounts/.exec(bundle);
 assert.ok(mBaja,"no se encuentra el bloque de último-que-escribe en syncFromCloud");
-const bloqueBaja=vm.runInContext("(function(prev,cloudState,freshLogin,opts,sessionRef,u){"+mBaja[0].replace(/if\(freshLogin\s*&&\s*\(cloudState\.accounts$/,"")+"\nreturn baseObj;})",c);
-const baja=(prev,nube,freshLogin)=>bloqueBaja(prev,nube,!!freshLogin,null,{current:{user:{id:"u1"}}},"u1");
+const bloqueBaja=vm.runInContext("(function(prev,cloudState,freshLogin,opts,sessionRef,u,cloudPack){const obAbsorbedWriteBlocked={current:false};"+mBaja[0].replace(/if\(freshLogin\s*&&\s*\(cloudState\.accounts$/,"")+"\nreturn baseObj;})",c);
+const baja=(prev,nube,freshLogin)=>bloqueBaja(prev,nube,!!freshLogin,null,{current:{user:{id:"u1"}}},"u1",{updated_at:"synthetic"});
 
 const viejo=(ym,imp,rec)=>({id:"v-"+ym+"-"+imp,date:ym+"-05T10:00:00.000Z",merchant:rec?"ENDESA ENERGIA XXI":"CARREFOUR",obName:rec?"ENDESA ENERGIA XXI":"CARREFOUR",amount:imp,category:rec?"recibos":"super",source:"ob",ent:"bbva",extId:"x-"+ym+"-"+imp,reciboId:rec?"luz":undefined});
 const TXS_LUZ=[T("o1","bbva","2026-10-05",62.4,"ENDESA ENERGIA XXI"),T("o2","bbva","2026-10-07",40,"CARREFOUR",{card:true})];
@@ -128,7 +129,7 @@ for(const rol of ["ambos","diario"]) test("1 · «Deshacer» el borrado de un re
   // Y volver a borrarlo, también: si no, perdería contra aquel «Deshacer» en el otro móvil.
   assert.equal(c.sinCargoDelPlan(tarde.state,"fixed","luz",OCT12-86400000).state.reciboBorradoAt.luz,borrado.reciboBorradoAt.luz+2);
   // Lo que sube a la nube al deshacer: la fila de octubre, otra vez con su marca.
-  assert.equal(j(tarde.subir.map(e=>[String(e.date).slice(0,7),c.expenseSourceForCloud(e)])),j([["2026-10","ob:bbva~recibo.luz#refo1"]]));
+  assert.equal(j(tarde.subir.map(e=>[String(e.date).slice(0,7),c.expenseSourceForCloud(e)])),j([["2026-10","ob:bbva~recibo.luz#refo1#accbbva"]]));
   // Un alta cualquiera (id nuevo) es solo añadir: ni marcas ni horas.
   const alta=c.conReciboEnPlan(borrado,"fixed",F("nuevo","Luz Endesa",62.4,5,"bbva"));
   assert.equal(j([alta.subir.length,alta.state.fixed.map(f=>f.id),alta.state.reciboBorradoAt===borrado.reciboBorradoAt,alta.state.expenses===borrado.expenses]),j([0,["gim","nuevo"],true,true]));
@@ -225,7 +226,7 @@ test("3 · un apunte con id del banco y otro idéntico sin él son EL MISMO carg
   const rec={fixed:[F("spo","Spotify",10.99,5,"sabadell")]};
   const rid=T("x1","sabadell","2026-10-05",10.99,"Spotify"), rsin=T(null,"sabadell","2026-10-05",10.99,"Spotify");
   const r=sincroniza(s0(rec),[rid,rsin],{sabadell:480}).state;
-  assert.equal(j(r.expenses.map(e=>[e.extId,e.reciboId,c.expenseSourceForCloud(e)])),j([["x1","spo","ob:sabadell~recibo.spo#refx1"]]));
+  assert.equal(j(r.expenses.map(e=>[e.extId,e.reciboId,c.expenseSourceForCloud(e)])),j([["x1","spo","ob:sabadell~recibo.spo#refx1#accsabadell"]]));
   assert.equal(gastado(c.quitarCargoDeRecibo(r,r.expenses[0].id,OCT12).state),10.99);
   // Una nómina con id y su abono idéntico sin id: 1.800, no 3.600.
   const nid=T("n1","sabadell","2026-10-01",-1800,"NOMINA ACME"), nsin=T(null,"sabadell","2026-10-01",-1800,"NOMINA ACME");

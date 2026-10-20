@@ -53,7 +53,25 @@ export const CORE = [
  * (mejor un minuto de más que un verde ciego).
  */
 export const E2E_MAP = [
-  { file: "src/modules/11-app-main.js", specs: ["e2e/widget-banco.spec.mjs"] },
+  // La cifra grande (`useCountUp`) en Inicio, Cartera y «Tus recibos», y la mensualidad de los
+  // recibos con importe por cobro (`fixedMonthlyOf`) que leen los totales y Hogar (4.26.150).
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/cifra-sin-cero.spec.mjs", "e2e/recibos-cifra-estable.spec.mjs"] },
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/cifra-sin-cero.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-cifra-estable.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/recibos-cifra-estable.spec.mjs"] },
+  { file: "src/modules/13-hogar.js", specs: ["e2e/recibos-cifra-estable.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/cifra-sin-cero.spec.mjs", "e2e/recibos-cifra-estable.spec.mjs"] },
+  // Meses marcados a mano: la mensualidad de `fixedMonthlyOf` y la vista previa del alta (FIN-20/21).
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-meses-a-mano.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-meses-a-mano.spec.mjs"] },
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/ux16-round9-haptics.spec.mjs", "e2e/ux16-haptics.spec.mjs", "e2e/ux16-round2-haptics.spec.mjs", "e2e/ux16-round3-haptics.spec.mjs", "e2e/ux16-ajustador.spec.mjs"] },
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/ux16-round9-haptics.spec.mjs", "e2e/ux16-haptics.spec.mjs", "e2e/ux16-round3-haptics.spec.mjs", "e2e/ux16-ajustador.spec.mjs"] },
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-ciclo-porcentaje.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/ux16-haptics.spec.mjs"] },
+  { file: "src/modules/10-app-components.js", specs: ["e2e/ux16-ajustador.spec.mjs", "e2e/ux18-orden-idioma-al-momento.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/ux18-orden-idioma-al-momento.spec.mjs"] },
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-deuda-futura.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/widget-banco.spec.mjs", "e2e/inc1710-reload-fallback-delay.spec.mjs"] },
   {file:"src/modules/16-help-assistant.js",specs:["e2e/help-assistant.spec.mjs","e2e/help-preguntar-borde.spec.mjs"]},
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-grafica-reservas.spec.mjs", "e2e/inicio-v42.spec.mjs", "e2e/inicio-v42-rendimiento.spec.mjs", "e2e/inicio-grafica-feedback.spec.mjs", "e2e/dashboard-memo-profile.spec.mjs", "e2e/help-assistant.spec.mjs",
     "e2e/listas-render.spec.mjs",
@@ -67,7 +85,17 @@ export const E2E_MAP = [
     "e2e/pulido-vacios.spec.mjs","e2e/inicio-grafica-significado.spec.mjs","e2e/indicador-arco.spec.mjs", "e2e/smoke.spec.mjs", "e2e/informe-mes.spec.mjs",
     "e2e/ultima-cuota-descartar.spec.mjs", "e2e/inicio-offline.spec.mjs", "e2e/presupuesto-fluido.spec.mjs", "e2e/inicio-mes-natural.spec.mjs", "e2e/cartera-parte-mia.spec.mjs"] },
   { file: "src/modules/04-tab-gastos.js", specs: [
+    "e2e/fin04-rename-note-ack.spec.mjs",
+    "e2e/plan-expense-links.spec.mjs",
+    "e2e/fin17-confirmed-absorptions.spec.mjs",
+    "e2e/fin11-absorption-pending.spec.mjs",
+    "e2e/recibos-renombrar.spec.mjs",
+    "e2e/gastos-sincronizar-alcance.spec.mjs",
+    "e2e/gastos-suscripciones-movil.spec.mjs",
     "e2e/compras-identicas-ids.spec.mjs",
+    "e2e/fin15-pendiente-contabilizada.spec.mjs",
+    "e2e/fin15-book-preference.spec.mjs",
+    "e2e/refund-polarity.spec.mjs",
     "e2e/metas-borrar-regla.spec.mjs",
     "e2e/metas-alta-regla.spec.mjs",
     "e2e/metas-mensual.spec.mjs",
@@ -86,14 +114,19 @@ export const E2E_MAP = [
     "e2e/tr-emparejado-rendimiento.spec.mjs",
   ] },
   { file: "src/modules/05-dialogs-inv.js", specs: [
+    "e2e/modo-pruebas.spec.mjs",
     "e2e/help-assistant.spec.mjs",
     "e2e/cartera-inversiones.spec.mjs", "e2e/brokers-selector.spec.mjs",
   ] },
   { file: "src/modules/06-sync-brokers.js", specs: [
+    "e2e/cartera-orden-brokers.spec.mjs",
     "e2e/cartera-inversiones.spec.mjs", "e2e/brokers-selector.spec.mjs", "e2e/revolut-csv-import.spec.mjs",
     "e2e/tr-aviso.spec.mjs",
   ] },
   { file: "src/modules/08-motor-bank.js", specs: [
+    "e2e/h2-account-phases.spec.mjs",
+    "e2e/plan-expense-links.spec.mjs",
+    "e2e/inicio-deuda-futura.spec.mjs",
     "e2e/metas-editar-regla.spec.mjs",
     "e2e/metas-borrar-regla.spec.mjs",
     "e2e/metas-alta-regla.spec.mjs",
@@ -108,18 +141,25 @@ export const E2E_MAP = [
     "e2e/plan-cover.spec.mjs",
   ] },
   { file: "src/modules/07-tab-patri-fijos.js", specs: [
+    "e2e/cartera-saldo-atras.spec.mjs",
+    "e2e/h2-account-phases.spec.mjs",
     "e2e/cartera-bienes-completo.spec.mjs",
     "e2e/cartera-bienes-toque.spec.mjs",
     "e2e/plan-cuota-contabilizada.spec.mjs",
     "e2e/listas-render.spec.mjs", "e2e/bancos-acordeon.spec.mjs", "e2e/bancos-reconnect.spec.mjs",
     "e2e/bancos-historico-filtro.spec.mjs", "e2e/cartera-ficha-cuenta.spec.mjs",
     "e2e/bancos-lista-fresca.spec.mjs",
-    "e2e/cartera-orden-cuentas.spec.mjs",
+    "e2e/cartera-orden-cuentas.spec.mjs", "e2e/ux18-orden-idioma-al-momento.spec.mjs",
     "e2e/efectivo-apuntar.spec.mjs",
     // Parte mía de una cuenta: la ficha, Liquidez y el patrimonio de Inicio (14/10).
     "e2e/cartera-parte-mia.spec.mjs",
   ] },
   { file: "src/modules/09-tab-debts-goals.js", specs: [
+    "e2e/deudas-alargar-plazo.spec.mjs",
+    "e2e/deudas-plazo-aviso.spec.mjs",
+    "e2e/deudas-metas-edicion-v4.spec.mjs",
+    "e2e/deudas-guardar-feedback.spec.mjs",
+    "e2e/inicio-deuda-futura.spec.mjs",
     "e2e/metas-editar-regla.spec.mjs",
     "e2e/metas-borrar-regla.spec.mjs",
     "e2e/metas-alta-regla.spec.mjs",
@@ -128,6 +168,7 @@ export const E2E_MAP = [
     "e2e/plan-ahorro.spec.mjs", "e2e/deudas-archivo.spec.mjs",
   ] },
   { file: "src/modules/10-app-components.js", specs: [
+    "e2e/inc1710-reload-fallback-delay.spec.mjs",
     "e2e/backup-restauracion.spec.mjs",
     "e2e/logs-privacidad.spec.mjs",
     "e2e/help-assistant.spec.mjs",
@@ -148,7 +189,13 @@ export const E2E_MAP = [
   ] },
   { file: "src/modules/12-boot.js", specs: ["e2e/splash.spec.mjs", "e2e/smoke.spec.mjs", "e2e/csp.spec.mjs"] },
   { file: "src/modules/13-hogar.js", specs: ["e2e/cartera-orden-hogar.spec.mjs"] },
-  { file: "src/modules/14-v4-screens.js", specs: [
+  { file: "src/modules/14-v4-screens.js", specs: [ "e2e/ux16-ajustador.spec.mjs", "e2e/ux16-round9-haptics.spec.mjs",
+    "e2e/plan-ola-web.spec.mjs",
+    "e2e/plan-native-wave.spec.mjs",
+    // Un solo candidato a scroller raíz con Gestionar abierto: sin eso no hay ola nativa.
+    "e2e/ola-root.spec.mjs",
+    "e2e/plan-expense-links.spec.mjs",
+    "e2e/recibos-renombrar.spec.mjs",
     "e2e/cartera-bienes-completo.spec.mjs",
     "e2e/cartera-bienes-toque.spec.mjs",
     "e2e/inicio-cargos.spec.mjs",
@@ -224,7 +271,7 @@ const STEPS_SUPABASE = [
   "prod117-edge-compat",
   "help-assistant", "guard-privacy", "edge-sintaxis", "presupuesto-servidor", "cuotas-deudas", "widget-coherente", "widget-arbitraje", "widget-offline", "widget-unknown-loss", "widget-unknown-journal", "widget-notificacion-render", "widget-inicio-paridad", "widget-puente-ciclo",
   "month-window", "wallet-notis", "ingest-classify", "ingest-identity", "ingest-handler", "divisa-original", "presupuesto-rendimiento",
-  "grants-migraciones", "entrada-edge", "bank-sync-paging", "bank-download-incomplete", "bank-sync-progreso", "bank-sync-acuse", "bank-reconnect", "bank-revoke-callback-race", "tr-open-banking", "myinvestor-sync-outcomes", "myinvestor-keepalive",
+  "grants-migraciones", "entrada-edge", "h2-account-phases", "h2-account-identity", "bank-sync-paging", "bank-rate-contracts", "bank-callback-state", "bank-rate-client", "bank-download-incomplete", "bank-sync-progreso", "bank-sync-acuse", "bank-reconnect", "bank-revoke-callback-race", "tr-open-banking", "myinvestor-sync-outcomes", "myinvestor-keepalive",
   "categorize-limitador", "categorize-handler",
 ];
 

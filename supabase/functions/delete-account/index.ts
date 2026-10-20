@@ -7,9 +7,12 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsonResp } from "../_shared/myinvestor.ts";
 import { withCors } from "../_shared/cors.ts";
+import { readInput } from "../_shared/request_body.ts";
 
 Deno.serve(withCors(async (req: Request) => {
   try {
+    const input = await readInput(req, "delete-account");
+    if (!input.ok) return jsonResp({ ok: false, error: input.error }, input.status);
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const authHeader = req.headers.get("Authorization") || "";
     const supa = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY")!, {
@@ -18,7 +21,7 @@ Deno.serve(withCors(async (req: Request) => {
     const { data: { user } } = await supa.auth.getUser();
     if (!user || !user.email) return jsonResp({ ok: false, error: "sin sesión" }, 401);
 
-    const body = await req.json().catch(() => ({}));
+    const body = input.body;
     const password = String(body?.password || "").trim();
     if (!password) return jsonResp({ ok: false, error: "confirma con tu contraseña" }, 400);
 

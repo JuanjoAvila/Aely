@@ -206,25 +206,23 @@ test("cada recibo lleva un icono de lo que es, no el logo del banco", async ({ p
   await expect(hub(page).locator(".v4-bills-row .mono-logo img")).toHaveCount(0);
 });
 
-test("la cifra y la ola vuelven a empezar cada vez que se abre Gestionar", async ({ page }) => {
+test("la ola vuelve a empezar cada vez que se abre Gestionar y la cifra sale ya en su valor", async ({ page }) => {
   await appLista(page);
   await abreTusRecibos(page);
   const amount=hub(page).locator(".v4-bills-hero-amt");
   const wave=hub(page).locator(".v4-bills-hero-bar i").first();
   await expect(wave).toHaveCSS("animation-name","v4bar");
   await wave.evaluate((el) => { window.__billsWaveNode=el; });
-  await expect.poll(async()=>Number((await amount.innerText()).replace(/[^0-9]/g,""))).toBeGreaterThan(0);
-  await page.waitForTimeout(1100);
   const finalText=await amount.innerText();
+  expect(Number(finalText.replace(/[^0-9]/g,""))).toBeGreaterThan(0);
   await hub(page).locator(".settings-push-h .back").click();
   await expect(hub(page)).toHaveCount(0);
 
   await abreTusRecibos(page);
-  const first=Number((await hub(page).locator(".v4-bills-hero-amt").innerText()).replace(/[^0-9]/g,""));
-  const target=Number(finalText.replace(/[^0-9]/g,""));
-  expect(first).toBeLessThan(target);
+  // Ya no cuenta desde 0: quien toca un grupo enseguida se quedaba con una cifra a medias
+  // (1518,65 por 1526,87, beta 4.26.150). La ola sí se repite.
+  await expect(hub(page).locator(".v4-bills-hero-amt")).toHaveText(finalText);
   expect(await hub(page).locator(".v4-bills-hero-bar i").first().evaluate((el) => el!==window.__billsWaveNode)).toBe(true);
-  await expect.poll(async()=>await hub(page).locator(".v4-bills-hero-amt").innerText(),{timeout:2500}).toBe(finalText);
 });
 
 test("los importes mensuales largos caben y siguen sin subrayado", async ({ page }) => {

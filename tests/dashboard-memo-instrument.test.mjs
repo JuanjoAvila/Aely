@@ -19,8 +19,12 @@ for(const variant of ["baseline","memo"]){
   assert.ok(p.html.includes("window.__dashProfile.metrics.renders++"));
   const callback="const recent=useMemo((s=state)=>window.__dashProfile.derive";
   assert.equal(p.html.includes(callback),variant==="memo");
+  if(variant==="memo"){
+    const instrumented=p.html.slice(p.html.indexOf(callback)).split('\n')[0].trim();
+    assert.ok(instrumented.endsWith('[state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);'),"El callback instrumentado conserva todas las dependencias reales");
+  }
 }
-assert.ok(MEMO.endsWith("[state.expenses,state.deleted]);"),"Invalidación exacta de ambas referencias");
+assert.ok(MEMO.endsWith("[state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);"),"Invalidación exacta de gastos, borrados, absorciones y titular");
 console.log("Dashboard memo instrumento: anclas failclosed/parser/callback real y baseline distintos; 0 DOM local");
 
 // El alias por defecto conserva la captura real: create() se invoca sin argumentos.
@@ -30,10 +34,10 @@ assert.match(shell,/useMemo:function\(a,b\)\{var c=Fa\(\);b=void 0===b\?null:b;a
 assert.match(shell,/function Yh\(a,b\)\{var c=sa\(\);[\s\S]*?a=a\(\);c\.memoizedState=\[a,b\];return a\}/);
 assert.ok(instrumentDashboard(html,"memo").html.includes('derive(s,function(e){ return !expenseIsTombstoned(e,expenseDeletedSet(s)); }'),"instrumento conserva el alias dentro del callback");
 for(const expenses of [undefined,null,[],[{date:"2026-09-28"},{date:"2026-09-27"}], [{date:Symbol("synthetic")},{date:null},{date:0}]]){
- const state={expenses,deleted:[]};let args=null;
+ const state={expenses,deleted:[],obAbsorbedPending:[],obAbsorbedConfirmed:[],_historyOwner:'synthetic-owner'};let args=null;
  const ctx={state,expenseDeletedSet:s=>{assert.equal(s,state);return null;},expenseIsTombstoned:()=>false,useMemo:(create,deps)=>{args=deps;return create();}};
  const aliased=vm.runInNewContext(MEMO+'recent',{...ctx});
  const original=vm.runInNewContext(MEMO.replace('(s=state)=>(s.expenses','()=>(state.expenses').replace('expenseDeletedSet(s)','expenseDeletedSet(state)')+'recent',{...ctx});
- assert.deepEqual([...aliased],[...original]);assert.deepEqual([...args],[state.expenses,state.deleted]);
+ assert.deepEqual([...aliased],[...original]);assert.deepEqual([...args],[state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
 }
 console.log("Dashboard memo alias: React fijado mount/update create() sinargs; captura/deps/fallback/String/Symbol equivalentes");

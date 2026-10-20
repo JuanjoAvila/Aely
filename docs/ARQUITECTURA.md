@@ -1,4 +1,38 @@
+H2 candidata, ronda 2: saldo y movimientos independientes por cuenta, valor/fecha de identidades devueltas fallidas retenidos por UID/IBAN; cuentas extra omitidas retiradas y asignación única libre tras reservar vínculos exactos. Capacidad explícita y fallback conservador para móviles antiguos. Cursor y ACK siguen movimientos y persistencia local, con la excepción de desbordamiento existente. [Contrato y límites](briefs/h2-saldos-movimientos-20261018.md).
+
 # Arquitectura — Aely
+
+FIN04 fase 1 candidata R2: renombrado parcial con ACK y cola durable; nota local pendiente
+hasta confirmación exacta. Carga/mezcla de UUID prefiere la copia viva, conserva metadatos
+editados y mantiene separados importes o referencias conflictivos.
+R3 evita serializar la identidad en cada fila y aparta un renombrado tras tres fallos con
+contador durable y aviso único; libera la cola y exige reintento explícito o una intención nueva.
+Sin cambios de esquema, servidor ni LWW de recibos/deudas.
+[Contrato y límites](briefs/fin04-fase1-renombrar-nota.md).
+
+FIN-11 candidata privada desde FIN-10/FIN-15 coexistentes: `obAbsorbedPending`
+protege por titular fuera de la poda de lápidas. Una partición local con readback
+precede a la retirada; refresco cloud/online reintenta hasta cuatro objetivos y
+solo retira la intención tras confirmación remota y ACK durable. BankSync no borra.
+La limpieza corre en segundo plano después del pull completo: su espera o fallo no
+retiene `nubeLista`; un pull fallido sigue impidiendo consultar el banco.
+Los lectores filtran pendientes antes de consumir la referencia FIN-15 entre días;
+comodín de cuenta simétrico FIN-10 intacto. Un alias sin cuenta no autoriza DELETE.
+[Contrato, evidencia y límites](briefs/fin11-absorciones-pendientes-20261017.md).
+## INC-0410 · port privado para beta 141
+
+La sincronización de Metas conserva por titular una base de metas/reglas/asientos. Fusiona metas a tres vías por campos, con saved/target/done/doneAt indivisibles y nube más registro local ante conflicto, sin sumar saldos absolutos. Las reservas locales se conservan si sus metas afectadas no tienen conflicto de campo; la divergencia distinta de ambos lados o ese acople rechaza la foto financiera completa y guarda el local saneado. Conflictos cap3 en clave privada por modo/titular, fuera de pushes/backups; ACK sin re-sello/bucle y notificación durable única. El caso A120/Z50 llega a17000c tras replay mensual; en el inverso de subida se mantiene15000c y los17000c requieren reaplicación manual20. Port de lógica revisada, preservando beta v4. [Contrato y límites](briefs/inc-0410-lww-rechazo-20261017.md).
+
+FIN-15 (beta 4.26.138): el lector servidor `filasComoLaApp` usa banco + referencia `#ref`
+para reconocer el mismo apunte en días distintos, como las mezclas del cliente. Aplica
+primero las lápidas y conserva el dedup por contenido para filas antiguas sin referencia.
+No modifica el importador ni deduce equivalencias entre referencias distintas por importe/comercio.
+Month y widget v2 usan el mismo lector; Claude despliega `ingest` antes del cliente.
+UX15 (beta 4.26.138): Gastos → «Actualizar gastos» conserva `onSync` →
+`syncCloudExpenses` → `cloud.pullExpenses`, con lectura opcional de parejas
+y reconciliación/backfill existentes. Recupera gastos de todos los orígenes
+ya guardados en nube, incluidas notificaciones; no solicita `bank-sync`.
+El alcance se explica junto al botón en es/en/ca. [Contrato y límites](briefs/ux15-sincronizar-gastos-20261016.md).
 
 ## Candidata: compras iguales con referencias distintas
 
@@ -132,6 +166,8 @@ Contratos oficiales: [Enable Banking Transaction](https://enablebanking.com/docs
 ## Descarga de gastos cloud (FIN-07, 4.26.52)
 
 `pullExpenses` recorre la tabla accesible por RLS con `id DESC` y `id < cursor`, en páginas de hasta 1000. Una página corta puede reflejar un límite de PostgREST; solo una página vacía termina. UUID es clave primaria estable; `fecha` puede editarse y no sirve de cursor. Se valida progreso estricto y se acumula en memoria, sin mezclar ni guardar por página. El resultado vuelve en fecha DESC/id DESC para conservar la prioridad previa de la mezcla y los ACK de FIN-05. Un error/payload inválido rechaza todo; `syncCloudExpenses` no actualiza estado ni coveredEvents con páginas parciales.
+
+La lectura entera se repite en cada vuelta a primer plano, así que lo que no cambia no se rehace (19/10/2026). `expensesFromRows` reutiliza el gasto de la lectura anterior cuando las 13 columnas que lee `expenseFromRow` (`EXPENSE_ROW_COLS`) son idénticas, la categoría resuelta en vivo coincide (lo aprendido a mano puede cambiarla sin tocar la fila) y nadie ha tocado el objeto desde entonces; si no, reconstruye. `autoCategory` recuerda el barrido de palabras clave por texto normalizado (`_AC_KW`, tope 5.000), pero `USER_OVERRIDES` se consulta antes, en vivo. Si la mezcla deja todo igual salvo `lastSync`, el updater devuelve el estado anterior: no hay render ni escritura. La hora de la lectura viaja aparte por `mcSetLecturaNube`: la escuchan el efecto del widget (un contador en App, para que reciba igual la prueba de lectura de FIN-05) y la línea «Última sincronización» de Gastos (`SyncHora`, que muestra la más reciente de `lastSync` y la lectura).
 
 No hay snapshot común entre peticiones: filas existentes que conservan UUID y visibilidad se recorren una vez; altas en un tramo ya recorrido y ediciones posteriores a la lectura se recuperan en otro pull. Una ausencia nunca se convierte en borrado, lápida ni decisión de duplicado. `mergeExpensesFromCloud` mantiene su identidad FIN-03 y reglas de notas; una sola mezcla final conserva referencias cuando no cambia nada y el guardado partido. Con backend actual no se promete detectar filas que pierden visibilidad mientras se descarga.
 
@@ -761,6 +797,11 @@ escribir `Access-Control-Allow-Origin: "*"`.
   saldo histórico a partir de gastos ni se atribuye la previsión agregada si hay dos cuentas del
   mismo banco. El primer cierre espera `mc-boot-ready`, que ya representa dato local definitivo sin
   red o el final del primer pull con red; así un snapshot viejo no se convierte en base mensual.
+  Inicio no vuelve a calcular la serie por ese cierre de HOY (20/10/2026): `netWorthHistoryKey`
+  deja fuera el punto de hoy de una cuenta que ya tiene cierres anteriores (la serie lo saca de los
+  saldos vivos) y solo lo cuenta si es el primero. De los ajustes, la serie y el presupuesto de Inicio
+  dependen solo de los campos que leen (`NET_WORTH_SETTINGS`, `BUDGET_SETTINGS`), así que tocar
+  Ajustes ya no recorre el histórico. Lo vigila `tests/inicio-deps-ajustes`.
 - El rol (recibos/diario/todo) vive AQUÍ; en v4.0.x quedó inaccesible (solo existía en el
   Wealth v3 no montado) — no volver a dejar el rol sin puerta.
 - Inversiones abre como pantalla hija propia desde Cartera y solo actualiza precios cuando se pulsa
@@ -835,6 +876,48 @@ FIN-06: FX puro devuelve null sin tipo (nunca 1:1). Las sumas vivas omiten conve
 ## SEC-03: frontera de diagnósticos
 
 Cliente probado y aprobado en beta 4.26.57.1; entrega exclusiva cliente 4.26.57 mediante PR49, Edge sin despliegue: los errores automáticos se reducen antes del transporte a operación y clase cerrada; app_events ya no añade el correo de sesión. El sobre Sentry se reconstruye por lista permitida (tipo/código/posición/versión/plataforma), sin contextos, breadcrumbs, tracing ni URL de petición. Feedback y notas de beta explícitos redactan patrones sensibles y filtran campos, con límites semánticos. user_id sigue siendo necesario para RLS: no es telemetría anónima. Matriz, pruebas y límites Edge/gateway en [SEC-03](briefs/sec03-privacidad-logs.md).
+
+SES-01, primera entrega web: los fallos finales de la tarjeta TR (login, verificación y sync) y
+del sync manual general pasan por `trLogFailure` y el `cloud.logEvent` existente. Se conserva
+`kind:error`, `message:tr_sync`; `detail` se reconstruye con `schema:1` y tres enums cerrados:
+
+| Campo | Valores admitidos |
+|---|---|
+| `code` | `auth_expired`, `soft_fail`, `sync_invalid`, `sync_rejected`, `status_rejected`, `status_inactive`, `client_error`, `login_failed`, `verify_failed`, `unknown` |
+| `origin` | `tr_card_sync`, `broker_manual_sync`, `tr_card_login`, `tr_card_verify`, `status_check`, `unknown` |
+| `snapshotAge` | `unknown`, `no_snapshot`, `invalid_clock`, `lt_5m`, `m5_lt_60m`, `h1_lt_24h`, `ge_24h` |
+
+Todos los productores de esta entrega emiten `snapshotAge:unknown`: la APK existente no entrega
+edad estructurada. Los tramos reservan menos de5min, de5min a menos de1h, de1h a menos de24h y
+24h o más; no se calcula edad desde `lastTrSync`, el texto del error ni timestamps del cliente.
+JSON inválido, campos extra y valores fuera de lista no pasan al registro. El prefijo antiguo
+`TR sync:` conserva la ruta sin analizar su texto para inferir una causa.
+
+`auth_expired` solo describe el flag del puente sin `softFail`/`wafBlocked`; no prueba HTTP401,
+ni distingue refresh de WebSocket. `soft_fail` describe esos flags temporales; los rechazos de
+promesa o excepciones síncronas del puente sync se registran como `sync_rejected`, sin texto crudo.
+Las excepciones del procesamiento local (`brokerSuggest` o `applyBrokerPositions`) son
+`client_error`: el segundo argumento de `.then` recoge solo el rechazo del puente, y el catch
+posterior separa nuestro procesamiento. Un fallo de TR conserva el resultado parcial de
+MyInvestor y el orden previo de los avisos.
+
+Revisión1: al arrancar, `trLogStartupStatus` observa `authExpired:true` o `connected:false` con
+teléfono guardado. Emite `status_inactive` con `origin:status_check` y edad `unknown`, sin enviar
+el teléfono ni cambiar la conexión. La tarjeta y el sync automático general usan la misma
+etiqueta: el dedupe existente de `logEvent` permite un solo INSERT por sesión aunque se remonte
+la tarjeta o cambie el motivo. Un status ausente/inválido, conectado o desconectado sin teléfono
+no emite este evento salvo `authExpired:true` explícito. No se deduce HTTP401 ni caducidad remota
+del flag local; no se añade sync bancario, notificación ni reintento. TR sigue solo a demanda.
+El bundle se genera con `npm run build`; el guardián de privacidad coteja sus helpers y
+sanitizador con la fuente para detectar un `public/index.html` atrasado.
+
+No hay escritor remoto nuevo, SQL ni Edge: se conservan el dedupe y tope20 por sesión, el bloqueo
+de `logEvent` en modo pruebas y la entrega best-effort. No se envían cookies, edad exacta,
+URL, error libre, teléfono, PIN/OTP, posiciones ni importes. El detalle no añade PII; la fila
+sigue incluyendo `user_id` por RLS. Las pruebas Node ejercitan los handlers de la tarjeta y el
+transporte `cloud.logEvent` con un INSERT sintético capturado, además del flujo general. No
+sustituyen DOM, móvil ni validación de cookies. La instrumentación nativa y su APK quedan para
+otra tanda; esta entrega no mide la vigencia remota del snapshot ni cambia sesión o reintentos.
 
 ## Evidencia de pago de recibos · INC-3009-01
 
@@ -960,3 +1043,13 @@ reciente, incluso si su escritura de marca sigue pendiente. La lápida de un apu
 oculto borrado a mano conserva el rastro «sin aviso» para no reclamar el aviso del
 siguiente cargo igual. Editar la fecha dentro de la ventana de un día mantiene el par.
 Contrato, pruebas y límites de entrega: [TR NO-GO 2](briefs/tr-emparejado-nogo2-20261014.md).
+
+
+## Candidata OPS-08: escritura de tokens MyInvestor
+
+Keepalive y sync usan `_shared/myinvestor-refresh-save.ts`: CAS por usuario/conexión/refresh almacenado, más acceso cuando no rota el refresh. Hasta dos intentos del mismo patch cifrado, con readback propio/competidor/indeterminado; ningún reintento del banco. Sync recifra legacy bajo esa guarda antes de releer el snapshot. Cero filas no es éxito. La serialización del consumo externo queda fuera (propuesta OPS-09). Sin despliegue acreditado por esta candidata. [Contrato](briefs/ops08-refresh-cas.md).
+
+
+## FIN17: confirmadas tras ACK, candidata F1–F5
+
+El registro confirmado se une fuera de LWW; el umbral1000 nunca bloquea sincronización por capacidad. El pack v1 conserva testigos completos tras hashes con colisión, se persiste por propietario solo si cambia y no se duplica en el estado ligero. Push completo omitido solo con payload semántico y CAS iguales; los lectores servidor deben admitir el pack antes de publicar el cliente. Aviso local consumible y limpieza de particiones en SIGNED_OUT. [Contrato y límites](briefs/fin17-confirmed-absorptions-20261018.md).

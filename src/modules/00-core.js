@@ -48,6 +48,29 @@ function mcOnGastosActive(cb){
   };
 }
 
+/* CUÁNDO TERMINÓ LA ÚLTIMA LECTURA DE GASTOS DE LA NUBE (19/10/2026). Antes lo decía solo
+   `state.lastSync`, y por eso cada vuelta a primer plano rehacía el estado entero aunque la nube no
+   trajera nada nuevo: un frame de 150-300 ms con un histórico grande. Ahora una lectura sin
+   cambios deja el estado como estaba y avisa por aquí, que es lo que necesitan el widget (tiene
+   que recibir la prueba de lectura, FIN-05) y la línea «Última sincronización» de Gastos. */
+var _mcLecturaNube=0;
+var _mcLecturaNubeCbs=[];
+function mcSetLecturaNube(ms){
+  _mcLecturaNube=ms;
+  for(var i=0;i<_mcLecturaNubeCbs.length;i++){
+    try{ _mcLecturaNubeCbs[i](ms); }catch(e){}
+  }
+}
+function mcOnLecturaNube(cb){
+  if(typeof cb!=="function") return function(){};
+  _mcLecturaNubeCbs.push(cb);
+  try{ cb(_mcLecturaNube); }catch(e){}
+  return function(){
+    var i=_mcLecturaNubeCbs.indexOf(cb);
+    if(i>=0) _mcLecturaNubeCbs.splice(i,1);
+  };
+}
+
 /* B2 — Cartera necesita el mismo aviso «eres la activa» que Gastos, y por el MISMO motivo: si
    viaja como prop, entrar en Cartera reconstruye el árbol encima del gesto. El count-up no puede
    engancharse al montaje (las pestañas vecinas se premontan) ni a IntersectionObserver (los
@@ -139,6 +162,11 @@ function mcLogText(raw){
 const GASTO_ORIGENES=["v4-apuntar","gastos-apuntar","gastos-editar","gastos-borrar","gastos-deshacer","gastos-dup","ob-import","ob-absorbed","backfill"];
 function mcLogEvent(kind,message,detail){
   const m=String(message||"");
+  if(kind==="error"&&m==="ob_absorbed"){
+    let p;try{p=JSON.parse(detail);}catch(e){return null;}
+    return p&&["full","persist","merge","retry","owner","confirmed_full","confirmed_persist","confirmed_merge"].includes(p.code)?{message:m,detail:JSON.stringify({code:p.code})}:null;
+  }
+  if(kind==="error" && m==="GOALS_SYNC_CONFLICT") return {message:"goals_sync_conflict",detail:'{"code":"goals_sync_conflict"}'};
   if(kind==="use") return USO_OK.indexOf(m)>=0?{message:m,detail:null}:null;
   if(kind==="perf"){
     const match=m.match(/^([a-z_]+) (\d+(?:\.\d)?)s$/);
@@ -154,7 +182,17 @@ function mcLogEvent(kind,message,detail){
     return {message:"hist_read",detail:JSON.stringify(out)};
   }
   if(kind!=="error") return null;
-  const routes=[[/^addExpense\b/,"addExpense"],[/^deleteExpense\b/,"deleteExpense"],[/^setExpenseDup\b/,"setExpenseDup"],[/^setExpenseDeuda\b/,"setExpenseDeuda"],[/^MI:/,"myinvestor"],[/^TR sync:/,"tr_sync"],[/^bankConnect\b/,"bank_connect"],[/^OB /,"ob_balance"],[/^bankSync sin pull/,"bank_sync_pull"],[/^CRASH:/,"render_crash"],[/^TOAST:/,"toast"],[/^Promise:/,"unhandled_promise"],[/^canal /,"channel_update"],[/^OTA /,"ota_update"],[/^APK /,"apk_update"],[/^import hoja:/,"import_sheet"]];
+  // SES-01: el error nativo puede traer cookies/URL/credenciales. Solo reconstruimos enums;
+  // ni el texto antiguo ni un HTTP401 suelto demuestran dónde murió la sesión de TR.
+  if(m==="tr_sync" || /^TR sync:/.test(m)){
+    let p=null; try{ if(typeof detail==="string") p=JSON.parse(detail); }catch(e){}
+    const field=function(k,allowed){ return p&&p.schema===1&&!Array.isArray(p)&&Object.prototype.hasOwnProperty.call(p,k)&&typeof p[k]==="string"&&allowed.indexOf(p[k])>=0?p[k]:"unknown"; };
+    return {message:"tr_sync",detail:JSON.stringify({schema:1,
+      code:field("code",["auth_expired","soft_fail","sync_invalid","sync_rejected","status_rejected","status_inactive","client_error","login_failed","verify_failed","unknown"]),
+      origin:field("origin",["tr_card_sync","broker_manual_sync","tr_card_login","tr_card_verify","status_check","unknown"]),
+      snapshotAge:field("snapshotAge",["unknown","no_snapshot","invalid_clock","lt_5m","m5_lt_60m","h1_lt_24h","ge_24h"])})};
+  }
+  const routes=[[/^addExpense\b/,"addExpense"],[/^deleteExpense\b/,"deleteExpense"],[/^setExpenseDup\b/,"setExpenseDup"],[/^setExpenseDeuda\b/,"setExpenseDeuda"],[/^MI:/,"myinvestor"],[/^bankConnect\b/,"bank_connect"],[/^OB /,"ob_balance"],[/^bankSync sin pull/,"bank_sync_pull"],[/^CRASH:/,"render_crash"],[/^TOAST:/,"toast"],[/^Promise:/,"unhandled_promise"],[/^canal /,"channel_update"],[/^OTA /,"ota_update"],[/^APK /,"apk_update"],[/^import hoja:/,"import_sheet"]];
   let route="unhandled_error";
   routes.some(function(r){ if(r[0].test(m)){ route=r[1]; return true; } return false; });
   /* DESDE DÓNDE se escribía el gasto (13/10/2026): un `23505` de `addExpense` no decía si venía
@@ -566,16 +604,32 @@ function isAtmWithdrawal(merchant){
   if(/\batm\b/.test(c)) return true;
   return false;
 }
+/* Cada vuelta a primer plano rebaja el histórico entero y `expenseFromRow` vuelve a adivinar la
+   categoría de TODAS las filas sin categoría propia: ~0,3 ms por fila a CPU×6, un frame congelado
+   de 300-480 ms con 3.500 gastos justo al volver (diagnóstico de lag, 19/10/2026). Las palabras
+   clave son constantes, así que el barrido se recuerda por texto normalizado; los overrides del
+   usuario se siguen leyendo en vivo porque cambian al recategorizar. Con tope para no crecer.
+   ⚠ Si `KW`, `KW_PALABRA`, `KW_INICIO` o `MERCHANT_OVERRIDES` llegan a cambiar en ejecución
+   (palabras aprendidas…), ese punto tiene que vaciar `_AC_KW` o devolvería categorías viejas. */
+const _AC_KW=new Map();
 function autoCategory(merchant){
   const c=(merchant||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
   const key=c.trim();
+  if(USER_OVERRIDES[key] && !CAT_NEUTRAS[USER_OVERRIDES[key]]) return USER_OVERRIDES[key];
+  let cat=_AC_KW.get(c);
+  if(cat===undefined){
+    if(_AC_KW.size>=5000) _AC_KW.clear();
+    cat=autoCategoryKw(c); _AC_KW.set(c,cat);
+  }
+  return cat;
+}
+function autoCategoryKw(c){
   // "Inversi\u00f3n" NUNCA se adivina por comercio (2026-08-04). Es una categor\u00eda de DESTINO del dinero,
   // no un tipo de tienda: solo la pone el aporte autom\u00e1tico reconocido por importe exacto
   // (`importObExpenses`) o el usuario a mano. Sin este blindaje, un override envenenado \u2014el que
   // dej\u00f3 el bug de "Movimiento", ver `fixMovInvasion`\u2014 convierte en Inversi\u00f3n CUALQUIER gasto que
   // pase por aqu\u00ed: fue lo que volvi\u00f3 a marcar solo un parking de zona azul de 9,50 \u20ac cada vez que
   // abr\u00eda la app, porque `migrate` re-categoriza todo lo que est\u00e9 en "otros" y no sea manual.
-  if(USER_OVERRIDES[key] && !CAT_NEUTRAS[USER_OVERRIDES[key]]) return USER_OVERRIDES[key];   // lo que T\u00da has aprendido a mano
   for(const k in MERCHANT_OVERRIDES){ if(c.indexOf(k)!==-1) return MERCHANT_OVERRIDES[k]; }  // overrides de ejemplo
   // Keywords cortas (bar, bus…) con límite de palabra: si no, "Barcelona" caía en bares
   // por el substring «bar» (bug Kinepolis 2026-07-17).
@@ -721,6 +775,7 @@ function mergeAccountBalanceHistory(local, incoming){
   return out;
 }
 function mcLoadRaw(key){
+  if(key.endsWith("_goal_conflicts")) return store.get(key);
   const base=store.get(key);
   if(!base) return null;
   const exp=store.get(key+EXP_SUFFIX);
@@ -747,7 +802,13 @@ function mcLoadRaw(key){
   const saved=mcSaveRaw.balanceHistory||(mcSaveRaw.balanceHistory={});
   saved[key]={ref:history,history:history,body:body,revision:revision,owner:base._historyOwner,partition:JSON.stringify(partition),durable:durable&&hist&&hist.schema===1&&(!hist.owner||hist.owner===base._historyOwner)&&JSON.stringify(hist.history)===body};
   delete base._balHistoryRevision;
-  return base;
+  if(base._goalSync){
+    const meta=base._goalSync,legacy=Object.prototype.hasOwnProperty.call(meta,"conflicts");
+    const disk=legacy?{records:goalSyncStore(key,meta)}:mcLoadRaw(key+"_goal_conflicts");
+    base._goalSync=Object.assign({},meta,{conflicts:disk && (!disk.owner || disk.owner===meta.owner)?goalSyncRecords(disk.records):[]});
+    if(legacy) mcSaveRaw(key,base,{expenses:false});
+  }
+  return obConfirmedRestore(obAbsorbedRestore(base,key),key);
 }
 /* SE GUARDA LO QUE SE HA PINTADO, NO LO QUE SE CALCULÓ (INC-0410, 4/10/2026).
    Antes `set()` apuntaba el volcado pendiente DENTRO del updater. React puede ejecutar un updater
@@ -775,8 +836,15 @@ function mcPersistCommit(p, prev, state, schedule){
    exista la clave partida, los gastos se escriben SIEMPRE. */
 function mcSaveRaw(key, s, opts){
   if(!s) return;
+  if(key.endsWith("_goal_conflicts")){ store.set(key,{owner:s.owner,records:goalSyncRecords(s.records)}); return; }
   const rest=Object.assign({},s);
   delete rest.expenses;
+  if(s._historyOwner&&Array.isArray(s.obAbsorbedConfirmed)&&(!s.obAbsorbedConfirmed.length||obConfirmedPersist(s._historyOwner,s.obAbsorbedConfirmed,key)))delete rest.obAbsorbedConfirmed;
+  delete rest.obAbsorbedIssue;
+  if(s._goalSync){
+    goalSyncStore(key,s._goalSync);
+    rest._goalSync=Object.assign({},s._goalSync); delete rest._goalSync.conflicts;
+  }
   // La caché pertenece a este escritor; su inicialización queda dentro de la función
   // que vigilan las revisiones, sin otro dato global compartido fuera de su alcance.
   const saved=mcSaveRaw.balanceHistory||(mcSaveRaw.balanceHistory={});
@@ -841,6 +909,21 @@ function mcSandboxFlag(){ try{ return localStorage.getItem("_mcSandbox")==="1"; 
    se cierra, pase lo que pase con la bandera. Entrar y salir siempre recargan, así que la sesión
    siguiente ya arranca con el modo nuevo. */
 var _mcSandboxPinned=null;
+// La ventana termina con el documento: el siguiente arranque vuelve a evaluar su modo.
+var _mcSandboxTransition=false;
+function mcSandboxTransition(on){
+  if(arguments.length&&_mcSandboxTransition!==(on===true)){
+    _mcSandboxTransition=on===true;
+    window.dispatchEvent(new CustomEvent("mc-sandbox-transition"));
+  }
+  return _mcSandboxTransition;
+}
+// El aviso de recuperación se arma DESPUÉS de pedir la recarga. Si el documento
+// se descarga normalmente, nunca llega al plazo del fallback de App.
+function mcSandboxReload(){
+  location.reload();
+  window.dispatchEvent(new CustomEvent("mc-sandbox-reload-requested"));
+}
 function mcSandbox(){
   if(_mcSandboxPinned===null) _mcSandboxPinned=mcSandboxFlag();
   return _mcSandboxPinned;
@@ -874,6 +957,7 @@ function mcSandboxVacio(){
    `store.get(STATE_KEY_REAL)` devuelve la mitad LIGERA, así que entrar al banco de pruebas te
    copiaba la cartera sin un solo gasto. */
 function mcEnterSandbox(seedFrom){
+  mcSandboxTransition(true);
   try{
     if(!store.get(STATE_KEY_TEST)) mcSaveRaw(STATE_KEY_TEST, seedFrom||mcLoadRaw(STATE_KEY_REAL)||{});
     localStorage.setItem("_mcSandbox","1");
@@ -882,7 +966,7 @@ function mcEnterSandbox(seedFrom){
 /* Entrar y salir NO cambian el modo de la sesión en curso a propósito (ver mcSandbox): quien las
    llama recarga inmediatamente después, y así lo que quede por volcar se guarda en la clave
    correcta, la de la sesión que se está cerrando. */
-function mcExitSandbox(){ try{ localStorage.removeItem("_mcSandbox"); localStorage.removeItem("_mcSandboxVacio"); }catch(e){} }
+function mcExitSandbox(){ mcSandboxTransition(true); try{ localStorage.removeItem("_mcSandbox"); localStorage.removeItem("_mcSandboxVacio"); }catch(e){} }
 /* MODO INICIAL (peticion suya, 9/9/2026): el banco de pruebas COPIA la cartera real, asi que no
    habia forma de ver la app como la ve alguien que acaba de instalarla — y justo eso es lo que hay
    que probar del pulido v4 (hero sin grafico, tarjetas vacias, racha a cero). Sus palabras: «si no,
@@ -907,6 +991,7 @@ function mcExitSandbox(){ try{ localStorage.removeItem("_mcSandbox"); localStora
    por donde lo lee la app. Es el mismo patrón de siempre: la regla escrita en dos sitios y un
    test que solo mira uno. */
 function mcSeedSandboxVacio(){
+  mcSandboxTransition(true);
   try{ localStorage.setItem("_mcSandboxVacio","1"); }catch(e){}
   mcSaveRaw(STATE_KEY_TEST, {
     _dataVer:6, onboarded:false, tourSeen:false, setupHint:false,
@@ -930,14 +1015,16 @@ function mcSkipPersist(){ return _mcSkipPersist; }
    lo que llama la UI. No es un atajo para las pruebas: son dos cosas distintas de verdad. */
 function mcMarcarNoVolcar(){ _mcSkipPersist=true; }
 function mcRecargarSinVolcar(){
-  mcMarcarNoVolcar();
-  location.reload();
+  // Solo el estado de PRUEBAS viejo puede pisar su semilla. Si salimos de REAL,
+  // pagehide debe conservar las ediciones reales pendientes en su clave fijada.
+  if(mcSandbox()) mcMarcarNoVolcar();
+  mcSandboxReload();
 }
 /* Tira la cartera de pruebas y empieza otra desde cero copiando la real otra vez.
    Las DOS mitades: borrar solo la ligera dejaba `micartera_sandbox_exp` huérfana, y la siguiente
    entrada al banco de pruebas se encontraba los gastos de la sesión anterior mezclados con la
    copia nueva de la cartera real. */
-function mcResetSandbox(){ store.del(STATE_KEY_TEST); store.del(STATE_KEY_TEST+EXP_SUFFIX); store.del(STATE_KEY_TEST+"_balhist"); if(mcSaveRaw.balanceHistory) delete mcSaveRaw.balanceHistory[STATE_KEY_TEST]; try{ localStorage.removeItem("_mcSandboxVacio"); }catch(e){} }
+function mcResetSandbox(){ store.del(STATE_KEY_TEST); store.del(STATE_KEY_TEST+EXP_SUFFIX); store.del(STATE_KEY_TEST+"_balhist"); store.del(STATE_KEY_TEST+"_goal_conflicts"); delete _mem[STATE_KEY_TEST+"_goal_conflicts"]; if(goalSyncStore.cache)delete goalSyncStore.cache[STATE_KEY_TEST]; if(mcSaveRaw.balanceHistory) delete mcSaveRaw.balanceHistory[STATE_KEY_TEST]; try{ localStorage.removeItem("_mcSandboxVacio"); }catch(e){} }
 
 /* ---------- ACUSE del cursor de bancos: LOCAL a este dispositivo (12/10/2026) ----------
    `bank-sync` no mueve su cursor al leer del banco: entrega en cada respuesta el que le tocaría
@@ -1088,6 +1175,7 @@ async function mcPullExpensesPaged(fetchPage){
 
 const cloud = (function(){
   let sb = null;
+  const statePushCache=new Map();
   try {
     if (window.supabase && CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY) {
       sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
@@ -1096,7 +1184,7 @@ const cloud = (function(){
   return {
     enabled(){ return !!sb; },
     async session(){ if(!sb) return null; const {data}=await sb.auth.getSession(); return data.session; },
-    onAuth(cb){ const sub=sb&&sb.auth.onAuthStateChange((ev,s)=>{ cb(s,ev); }); return ()=>{ if(sub) sub.data.subscription.unsubscribe(); }; },
+    onAuth(cb){ const sub=sb&&sb.auth.onAuthStateChange((ev,s)=>{ if(ev==="SIGNED_OUT")statePushCache.clear();cb(s,ev); }); return ()=>{ if(sub) sub.data.subscription.unsubscribe(); }; },
     async signIn(email){
       if(!sb) throw new Error("nube no disponible");
       const {error}=await sb.auth.signInWithOtp({ email:email, options:{ emailRedirectTo: location.href.split('#')[0] } });
@@ -1115,6 +1203,14 @@ const cloud = (function(){
     },
     async pushState(uid, data, lastKnownUpdatedAt){
       if(!sb || !uid) return null;
+      const current=await this.session();if(!current||current.user.id!==uid)throw new Error("ob_confirmed_owner");
+      const confirmed=obConfirmedMerge(data,null,uid);if(!confirmed)throw new Error("ob_confirmed_merge");
+      data=Object.assign({},data,{obAbsorbedConfirmed:obConfirmedPack(confirmed,uid)});delete data.obAbsorbedIssue;
+      if((data.obAbsorbedPending||[]).some(function(p){return !obAbsorbedValid(p,uid);})||(data.obAbsorbedPending||[]).length>OB_ABSORBED_MAX)throw new Error("ob_absorbed_owner");
+      const semantic=Object.assign({},data);delete semantic._savedAt;
+      const body=obStateCanonical(semantic),cached=statePushCache.get(uid);
+      if(lastKnownUpdatedAt&&cached&&cached.revision===lastKnownUpdatedAt&&cached.body===body)return {updated_at:lastKnownUpdatedAt,unchanged:true};
+      statePushCache.delete(uid);
       const now=new Date().toISOString();
       if(lastKnownUpdatedAt){
         const {data:rows,error}=await sb.from('app_state')
@@ -1123,12 +1219,14 @@ const cloud = (function(){
           .select('updated_at');
         if(error) throw error;
         if(!rows || !rows.length) return { conflict:true };
+        statePushCache.set(uid,{body:body,revision:rows[0].updated_at});
         return { updated_at:rows[0].updated_at };
       }
       const {data:rows,error}=await sb.from('app_state')
         .upsert({ user_id:uid, data:data, updated_at:now }, { onConflict:'user_id' })
         .select('updated_at');
       if(error) throw error;
+      if(rows&&rows[0]&&rows[0].updated_at)statePushCache.set(uid,{body:body,revision:rows[0].updated_at});
       return { updated_at: rows && rows[0] && rows[0].updated_at };
     },
     async pullExpenses(readProof){
@@ -1166,6 +1264,7 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))return null;
       // source lleva el banco embebido (ob:caixa…) para filtrar en Gastos tras reinstalación
       // sin columna nueva en Supabase (feedback 2026-07-16).
       const base={ user_id:session.user.id, fecha:e.date, importe:e.amount, comercio:e.merchant, cat:e.category, source:expenseSourceForCloud(e), no_card:!!e.noCard };
@@ -1180,8 +1279,10 @@ const cloud = (function(){
       // Cómo lo llamaba el banco (migración 0021). Sin esto, renombrar el «Movimiento» de Trade
       // Republic hacía que el siguiente sync no reconociera la fila y metiera el gasto otra vez.
       const obn={ ob_name:(e.obName!=null?String(e.obName).slice(0,160):null) };
+      let denied=false;
       const r=await withNotaFallback(
-        function(conNota, conDivisa, conObName){
+        async function(conNota, conDivisa, conObName){
+          if(!await obConfirmedCanUpload(e,session.user.id,sb)){denied=true;return {data:null,error:null};}
           let fila=base;
           if(conNota) fila=Object.assign({},fila,nota);
           if(conDivisa) fila=Object.assign({},fila,divisa);
@@ -1198,6 +1299,7 @@ const cloud = (function(){
           return e.reciboId ? q.select('id') : q;
         }
       );
+      if(denied)return null;
       return !!(r && r.data && r.data.length);
     },
     /* LA MARCA DE RECIBO DE UNA FILA QUE YA ESTÁ EN LA NUBE: la pone si `e` la lleva y la quita
@@ -1211,7 +1313,8 @@ const cloud = (function(){
       if(!sb || !e.ent) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
-      const {data,error}=await sb.from('expenses').select('id,source')
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))return;
+      const {data,error}=await sb.from('expenses').select('id,source,fecha,importe,comercio')
         .eq('user_id',session.user.id).eq('fecha',e.date).eq('importe',e.amount).eq('comercio',e.merchant);
       if(error) throw error;
       for(const r of data||[]){
@@ -1219,6 +1322,7 @@ const cloud = (function(){
         if(!m || m[2]!==e.ent || (e.reciboId && m[4].indexOf("#dup")>=0)) continue;
         const src=m[1]+":"+m[2]+reciboSufijo(e.reciboId)+m[4];
         if(src===r.source) continue;
+        if(!await obConfirmedCanUpload(expenseFromRow(r),session.user.id,sb))continue;
         const w=await sb.from('expenses').update({ source:src }).eq('user_id',session.user.id).eq('id',r.id);
         if(w.error) throw w.error;
       }
@@ -1230,11 +1334,19 @@ const cloud = (function(){
       if(!sb) return { cloudIds:[], offline:true };
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return { cloudIds:[], offline:true };
-      const list=(expenses||[]).filter(Boolean);
+      const candidates=(expenses||[]).filter(Boolean),list=[];
+      for(const e of candidates)if(await obConfirmedCanUpload(e,session.user.id,sb))list.push(e);
       if(!list.length) return { cloudIds:[], offline:false };
       const uid=session.user.id;
-      const r=await withNotaFallback(function(conNota, conDivisa, conObName){
-        const filas=list.map(function(e){
+      const r=await withNotaFallback(async function(conNota, conDivisa, conObName){
+        const checked=[];for(const e of list)if(await obConfirmedCanUpload(e,uid,sb))checked.push(e);
+        // Una fila posterior puede haber cambiado de sesión después de aprobar la anterior.
+        // Desde esta barrera hasta construir el envío no hay más awaits; el registro se relee después.
+        const current=await sb.auth.getSession(),activeSession=!current.error&&current.data&&current.data.session;
+        if(!activeSession||!activeSession.user||activeSession.user.id!==uid||(activeSession.expires_at!=null&&(!Number.isFinite(Number(activeSession.expires_at))||Number(activeSession.expires_at)*1000<=Date.now())))return {data:[],error:null};
+        const records=obConfirmedRead(uid);
+        const active=records&&!obConfirmedBlocked.has(uid)?checked.filter(function(e){return !obConfirmedMatches(e,records,uid);}):[];
+        const filas=active.map(function(e){
           const base={ user_id:uid, fecha:e.date, importe:e.amount, comercio:e.merchant, cat:e.category, source:expenseSourceForCloud(e), no_card:!!e.noCard };
           if(isExpenseUuid(e&&e.id)) base.id=e.id;
           let fila=base;
@@ -1243,6 +1355,7 @@ const cloud = (function(){
           if(conObName) fila=Object.assign({},fila,{ ob_name:(e.obName!=null?String(e.obName).slice(0,160):null) });
           return fila;
         });
+        if(!filas.length)return {data:[],error:null};
         return sb.from('expenses').upsert(
           filas,
           { onConflict:'user_id,fecha,importe,comercio', ignoreDuplicates:true }
@@ -1268,6 +1381,7 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
+      if(!await obConfirmedCanUpload(e,session.user.id,sb)||!await obConfirmedCanUpload(Object.assign({},e,{ent:ent||undefined}),session.user.id,sb))return;
       const src=expenseSourceForCloud(Object.assign({},e,{ent:ent||undefined}));
       const {error}=await expenseCloudEq(sb.from('expenses').update({ source:src }), session.user.id, e);
       if(error) throw error;
@@ -1280,6 +1394,7 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))return;
       const src=expenseSourceForCloud(Object.assign({},e,{possibleDup:!!isDup}));
       const {error}=await expenseCloudEq(sb.from('expenses').update({ source:src }), session.user.id, e);
       if(error) throw error;
@@ -1289,19 +1404,65 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))return;
       const {error}=await expenseCloudEq(sb.from('expenses').update({ no_card:!!noCard }), session.user.id, e);
       if(error) throw error;
     },
     // Concepto escrito a mano (o corregido) por el usuario. `nota_edit` lo blinda: el siguiente
     // sync del banco no lo pisa con la descripción cruda del extracto (2026-07-24).
     async setExpenseNote(e, note){
-      if(!sb) return;
-      const {data:{session}}=await sb.auth.getSession();
-      if(!session) return;
+      if(!sb) throw new Error("cloud unavailable");
+      const auth=await sb.auth.getSession(), session=!auth.error&&auth.data&&auth.data.session;
+      if(!session) throw new Error("session unavailable");
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))throw new Error("expense unavailable");
       // Si la migración 0017 aún no está aplicada, esto no puede hacer nada útil: se avisa al
       // llamante en vez de fallar mudo (aquí el concepto ES el dato que el usuario quiere guardar).
-      const {error}=await expenseCloudEq(sb.from('expenses').update({ nota:String(note||"").slice(0,160)||null, nota_edit:true }), session.user.id, e);
+      const raw=String(note||"").slice(0,160)||null;
+      const q=expenseCloudEq(sb.from('expenses').update({ nota:raw, nota_edit:true }), session.user.id, e);
+      if(typeof q.select!=="function")throw new Error("note identity unavailable");
+      const {data,error}=await q.select("id,user_id,fecha,importe,comercio,nota,nota_edit");
       if(error){ if(_isMissingNotaCol(error)) _mcNotaCols=false; throw error; }
+      const current=await sb.auth.getSession(), active=!current.error&&current.data&&current.data.session;
+      const row=Array.isArray(data)&&data.length===1&&data[0], k=expenseCloudKeys(e);
+      // Éxito HTTP con cero filas no confirma nada. Tampoco una respuesta de otra identidad
+      // o una sesión que cambió mientras se guardaba (FIN04, 19/10/2026).
+      if(!active||active.user.id!==session.user.id||!row||!isExpenseUuid(row.id)||row.user_id!==session.user.id||row.nota!==raw||row.nota_edit!==true||
+        (k.by==="id"?row.id!==k.id:k.by!=="attrs"||Date.parse(row.fecha)!==Date.parse(k.fecha)||Number(row.importe)!==Number(k.importe)||row.comercio!==k.comercio))throw new Error("note unconfirmed");
+      return row;
+    },
+    // Renombrar solo cambia el comercio: DELETE+alta restauraba la nota antigua que llevaba
+    // el otro móvil. La fila y sus importes, categoría, source y vínculos permanecen intactos.
+    async renameExpense(e, merchant, allowCreate){
+      if(!sb)throw new Error("cloud unavailable");
+      const auth=await sb.auth.getSession(), session=!auth.error&&auth.data&&auth.data.session;
+      if(!session)throw new Error("session unavailable");
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))throw new Error("expense unavailable");
+      const lookup=function(){return expenseCloudEq(sb.from('expenses').select('*'),session.user.id,e);};
+      let read=await lookup();
+      if(!read.error&&Array.isArray(read.data)&&read.data.length===0&&allowCreate){
+        const now=await sb.auth.getSession();
+        if(now.error||!now.data.session||now.data.session.user.id!==session.user.id)throw new Error("session unavailable");
+        // El alta existente ignora duplicados: nunca sustituye una nota de otro móvil.
+        // Después se exige la MISMA identidad; una colisión de terna no confirma nada.
+        await cloud.addExpense(e);read=await lookup();
+      }
+      const rows=read.data;
+      if(read.error)throw read.error;
+      const row=Array.isArray(rows)&&rows.length===1&&rows[0], name=String(merchant||"").trim();
+      if(!row||!name||!isExpenseUuid(row.id)||row.user_id!==session.user.id||Date.parse(row.fecha)!==Date.parse(e.date)||Number(row.importe)!==Number(e.amount)||(row.comercio!==(e.merchant||"")&&row.comercio!==name))throw new Error("rename identity changed");
+      if(!await obConfirmedCanUpload(e,session.user.id,sb)||!await obConfirmedCanUpload(expenseFromRow(row),session.user.id,sb))throw new Error("expense unavailable");
+      const current=await sb.auth.getSession(), active=!current.error&&current.data&&current.data.session;
+      if(!active||active.user.id!==session.user.id)throw new Error("session unavailable");
+      if(row.comercio===name)return row; // ACK perdido tras commit: reintento idempotente.
+      const patch={comercio:name};
+      if(/^(ob|ob-hist):/.test(row.source||"")&&row.ob_name==null)patch.ob_name=row.comercio;
+      const result=await sb.from('expenses').update(patch).eq('user_id',session.user.id).eq('id',row.id)
+        .eq('fecha',row.fecha).eq('importe',row.importe).eq('comercio',row.comercio).eq('source',row.source).select('*');
+      if(result.error)throw result.error;
+      const ack=Array.isArray(result.data)&&result.data.length===1&&result.data[0];
+      const after=await sb.auth.getSession(), still=!after.error&&after.data&&after.data.session;
+      if(!still||still.user.id!==session.user.id||!ack||ack.id!==row.id||ack.user_id!==session.user.id||ack.comercio!==name||Number(ack.importe)!==Number(row.importe)||Date.parse(ack.fecha)!==Date.parse(row.fecha)||ack.source!==row.source)throw new Error("rename unconfirmed");
+      return ack;
     },
     // CATEGORÍA en la tabla. Sin esto, `syncCloudExpenses` —que reemplaza los gastos de origen
     // "supabase" con lo que hay en la tabla— pisaba en el siguiente pull cualquier recategorización
@@ -1310,6 +1471,7 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))return 0;
       const upd={ cat:String(cat||"otros") };
       // Sacar una cuota de «Deudas» a mano le quita también la marca en la nube; si no, el
       // siguiente pull le devolvería el `debtId` (4.21.0).
@@ -1333,6 +1495,7 @@ const cloud = (function(){
       if(read.error) throw read.error;
       const row=read.data;
       if(!withdrawalRowMatches(e,row)) throw new Error("withdrawal identity changed");
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))throw new Error("withdrawal unavailable");
       // El vínculo puede llegar mientras se consulta la fila: no neutralizar un pago compartido.
       if(!ready()) throw new Error("withdrawal unavailable");
       if(row.cat==="traspaso") return row;
@@ -1355,6 +1518,7 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))return;
       const {error}=await expenseCloudEq(sb.from('expenses').update({ cat:"deudas", source:expenseSourceForCloud(e) }), session.user.id, e);
       if(error) throw error;
     },
@@ -1364,6 +1528,50 @@ const cloud = (function(){
       if(!session) return;
       const {error}=await expenseCloudEq(sb.from('expenses').delete(), session.user.id, e);
       if(error) throw error;
+    },
+    // El acuse pertenece al objetivo leído, nunca a una referencia compartida con la superviviente.
+    async settleObAbsorbed(p, currentOwner){
+      if(!sb||mcSandbox()||!obAbsorbedValid(p,p&&p.owner)) return false;
+      const owner=p.owner, controller=new AbortController(), timer=setTimeout(function(){controller.abort();},8000);
+      const active=async function(){
+        if(currentOwner()!==owner)return false;
+        const r=await sb.auth.getSession(),s=r.data&&r.data.session;
+        return !r.error&&s&&s.user.id===owner&&(s.expires_at==null||Number.isFinite(Number(s.expires_at))&&Number(s.expires_at)*1000>Date.now())&&currentOwner()===owner;
+      };
+      const query=async function(q){const r=await q.abortSignal(controller.signal);if(r.error||!Array.isArray(r.data))throw new Error("ob_absorbed_read");return r.data;};
+      const columns="id,fecha,importe,comercio,source,ob_name";
+      const find=async function(){
+        if(!await active())throw new Error("ob_absorbed_owner");
+        const exact=await query(sb.from('expenses').select(columns).eq('user_id',owner).eq('id',p.id).limit(2));
+        if(exact.length>1)throw new Error("ob_absorbed_cardinality");
+        if(exact.length){if(!obAbsorbedCandidate(p,exact[0],false))throw new Error("ob_absorbed_changed");return exact[0];}
+        const day=p.key.split("|")[5],end=new Date(Date.parse(day+"T00:00:00Z")+86400000).toISOString();
+        const rows=await query(sb.from('expenses').select(columns).eq('user_id',owner).gte('fecha',day+"T00:00:00Z").lt('fecha',end).limit(201));
+        if(rows.length>=201)throw new Error("ob_absorbed_incomplete");
+        const possible=rows.filter(function(r){return obAbsorbedPossible(p,r);});
+        if(possible.length>1||possible.length===1&&!obAbsorbedCandidate(p,possible[0],true))throw new Error("ob_absorbed_ambiguous");
+        return possible[0]||null;
+      };
+      try{
+        if(p.idsOnly){
+          if(!await active())return false;
+          const keep=await query(sb.from('expenses').select(columns).eq('user_id',owner).eq('id',p.keepId).limit(2));
+          if(keep.length!==1)return false;
+          const witness=expenseFromRow(keep[0]),key=obAbsorptionKey(witness);
+          if(!key||(key!==p.keepKey&&key!==p.keepRefKey)||!Number.isFinite(witness.amount)||witness.amount<=0)return false;
+          // El importe y comercio se acreditan de nuevo con la superviviente, nunca con el objetivo.
+          p=Object.assign({},p,{amount:witness.amount,merchant:witness.merchant||""});delete p.idsOnly;
+        }
+        const target=await find();
+        if(!target)return !!await active();
+        if(!await active())return false;
+        const rows=await query(sb.from('expenses').delete().eq('user_id',owner).eq('id',target.id)
+          .eq('source',target.source).eq('fecha',target.fecha).eq('importe',target.importe).eq('comercio',target.comercio).select('id'));
+        if(rows.length===1&&rows[0].id===target.id)return !!await active();
+        // Cero filas puede ser una carrera o una respuesta perdida: volver a leer, no inventar éxito.
+        return rows.length===0&&!await find()&&!!await active();
+      }catch(e){obAbsorbedWarn("retry",p.owner);return false;}
+      finally{clearTimeout(timer);}
     },
     async prices(symbols){
       if(!sb) throw new Error("nube no disponible");
@@ -1394,11 +1602,12 @@ const cloud = (function(){
     // Copia de seguridad diaria del estado COMPLETO (idempotente por día) + poda a 30 días.
     // Best-effort: si la tabla aún no existe (migración 0002 sin aplicar), simplemente falla y se ignora.
     async backupState(uid, data){
+      const snapshot=Object.assign({},data); delete snapshot._goalSync;
       if(!sb || !uid) return;
       const today=new Date().toISOString().slice(0,10);
       const {error}=await sb.from('state_backups').upsert(
         // Sin los datos tipo banco del perfil (decisión del dueño, 14/10/2026): la copia también sale de aquí.
-        { user_id:uid, day:today, data:perfilSinDatosBanco(data) },
+        { user_id:uid, day:today, data:perfilSinDatosBanco(snapshot) },
         { onConflict:'user_id,day' }
       );
       if(error) throw error;
@@ -1766,10 +1975,10 @@ function expenseBankIdOrdinals(list,reserved){
   // Un pull anterior al asiento puede traer el mismo UUID aún pendiente: no puede restaurar
   // su referencia vieja ni reservar otra ranura para una fila que ya se contabilizó.
   const versions=new Map(),previousRefs=new Map();
-  (list||[]).forEach(function(e){if(!e||!esFilaDeBanco(e)||!e.id||!e.extId)return;const k=expenseBankOf(e)+"|"+e.id,old=versions.get(k);if(!old||(old.obPending&&!e.obPending))versions.set(k,e);if(e.obPendingRef&&!e.obPending)previousRefs.set(expenseBankOf(e)+"|"+e.obPendingRef,e);});
+  (list||[]).forEach(function(e){if(!e||!esFilaDeBanco(e)||!e.id||!e.extId)return;const k=expenseBankOf(e)+"|"+e.id,old=versions.get(k);if(!old||(old.obPending&&!e.obPending))versions.set(k,e);if(e.obPendingRef&&!e.obPending)previousRefs.set(obReferenceKey(expenseBankOf(e),e.obPendingRef,e.amount),e);});
   (list||[]).forEach(function(e,i){
     if(!e||!e.obPending||!esFilaDeBanco(e))return;
-    const alias=previousRefs.get(expenseBankOf(e)+"|"+e.extId),v=alias&&keyOfExpenseLegacy(alias)===keyOfExpenseLegacy(e)?alias:versions.get(expenseBankOf(e)+"|"+e.id);
+    const alias=previousRefs.get(obReferenceKey(expenseBankOf(e),e.extId,e.amount)),v=alias&&keyOfExpenseLegacy(alias)===keyOfExpenseLegacy(e)?alias:versions.get(expenseBankOf(e)+"|"+e.id);
     if(v&&!v.obPending){if(out===list)out=list.slice();out[i]=Object.assign({},e,{extId:v.extId,date:v.date,obOrd:v.obOrd,obPendingRef:v.obPendingRef,obPending:undefined});}
   });
   (out||[]).forEach(function(e,i){
@@ -1792,25 +2001,341 @@ function keyOfExpense(e){
 }
 /* El vínculo «sin aviso» ya acompaña al borrado; conserva también su referencia, sin gastar
    otra lápida ni reducir las 500 existentes. Deshacer desactiva el vínculo al levantarla. */
+// Una devolución puede reutilizar la referencia de su compra: el signo separa ambas,
+// sin partir el mismo cargo cuando cambia de importe o fecha al contabilizarse.
+function obPolarity(amount){ return Number(amount)>0?1:Number(amount)<0?-1:0; }
+function obReferenceKey(bank,ref,amount){ return amount===0 ? "" : (bank||"")+"|"+ref+"|"+obPolarity(amount); }
 function bankDeletionLink(e){
   const g={aviso:"",banco:keyOfExpense(e)};
-  if(e.extId){g.bankRef=String(e.extId);g.ent=expenseBankOf(e)||"";}
+  if(e.extId){g.bankRef=String(e.extId);g.ent=expenseBankOf(e)||"";g.bankRefV=2;g.bankRefSign=obPolarity(e.amount);}
   return g;
+}
+// El mapa de lápidas se cachea por la referencia de deleted. Su índice también: recorrer
+// 500 claves por cada fila convertía un render de 20000 movimientos en diez millones.
+const obAbsorptionIndexes=new WeakMap(),expenseConfirmedSets=new WeakMap();
+function obAbsorptionIndex(delSet){
+  let index=obAbsorptionIndexes.get(delSet);if(index)return index;
+  index={any:Object.create(null),missing:Object.create(null)};
+  Object.keys(delSet).forEach(function(k){
+    if(!delSet[k])return;
+    const p=k.split("|");if(!(p.length===6&&p[0]==="ob-absorbed2")&&!(p.length===7&&p[0]==="ob-absorbed3"))return;
+    const base=p.slice(0,4).join("|")+"|"+p[5]+(p.length===7?"|"+p[6]:"");
+    index.any[base]=1;if(!p[4])index.missing[base]=1;
+  });
+  obAbsorptionIndexes.set(delSet,index);return index;
+}
+/* El escritor usa ESTE MISMO predicado antes de proteger la fila retirada. Si falta la
+   cuenta en cualquiera de los dos lados, nunca puede alcanzar a la superviviente. */
+function obAbsorptionMatches(e,delSet){
+  const absorbed=obAbsorptionKey(e);if(absorbed&&delSet[absorbed])return true;
+  if(!absorbed)return false;
+  // Las tres versiones comparten base: codificarla tres veces penalizaba cada render.
+  const p=absorbed.split("|"),base=p.slice(1,4).join("|");
+  const legacy="ob-absorbed|"+base;if(delSet[legacy])return true;
+  const old="ob-absorbed2|"+base+"|"+p[4]+"|"+p[5];if(delSet[old])return true;
+  const index=obAbsorptionIndex(delSet),lookup=e.obAcc?index.missing:index.any;
+  return !!(lookup["ob-absorbed3|"+base+"|"+p[5]+"|"+p[6]]||lookup["ob-absorbed2|"+base+"|"+p[5]]);
 }
 /* Lápidas anteriores al Paso 0 guardaban la clave sin id: siguen ocultando ese manual. */
 function expenseIsTombstoned(e, delSet){
+  if(e&&esFilaDeBanco(e)&&e.amount===0)return true; // Una preautorización a cero no es un movimiento.
   if(!delSet) return false;
-  const absorbed=obAbsorptionKey(e);if(absorbed&&delSet[absorbed])return true;
+  const confirmed=expenseConfirmedSets.get(delSet);
+  if(confirmed&&obConfirmedMatches(e,confirmed.list,confirmed.owner))return true;
+  if(obAbsorptionMatches(e,delSet))return true;
   const k=keyOfExpense(e);
   if(delSet[k]) return true;
   if(isManualExpenseSource(e&&e.source) && delSet[keyOfExpenseLegacy(e)]) return true;
   return false;
 }
-/* Una absorción retira una ranura de UNA referencia y banco, no cualquier compra futura
-   que reutilice el día/importe/nombre/ordinal. La identidad no depende del UUID local. */
-function obAbsorptionKey(e){
+/* Signo, cuenta y día acotan las absorciones nuevas. Las claves antiguas se conservan solo
+   para leer lo ya borrado: sus datos perdidos no permiten reparar colisiones históricas. */
+function obAbsorptionKey(e,legacy){
+  if(e&&esFilaDeBanco(e)&&e.amount===0)return null;
   const bank=e&&expenseBankOf(e);
-  return e&&esFilaDeBanco(e)&&bank&&e.extId ? "ob-absorbed|"+encodeURIComponent(bank)+"|"+encodeURIComponent(String(e.extId))+"|"+obOrdinalOf(e) : null;
+  const base=e&&esFilaDeBanco(e)&&bank&&e.extId ? encodeURIComponent(bank)+"|"+encodeURIComponent(String(e.extId))+"|"+obOrdinalOf(e) : null;
+  return base ? (legacy===true?"ob-absorbed|"+base:(legacy===2?"ob-absorbed2|":"ob-absorbed3|")+base+"|"+encodeURIComponent(String(e.obAcc||""))+"|"+String(e.date||"").slice(0,10)+(legacy===2?"":"|"+obPolarity(e.amount))) : null;
+}
+/* FIN-11: la intención sobrevive al cierre y a la poda de las 500 lápidas. Guardar primero
+   en una partición pequeña con readback: el fallback en memoria no acredita persistencia. */
+const OB_ABSORBED_MAX=200,obAbsorbedWarnings=new Set(),obAbsorbedRuns=new Map(),obAbsorbedNotices=new Map();
+function obAbsorbedNoticeKey(owner){return mcStateKey()+"_obissue_"+encodeURIComponent(owner||"");}
+function obAbsorbedTakeNotice(owner){
+  const key=obAbsorbedNoticeKey(owner),notice=obAbsorbedNotices.get(key)||store.get(key);
+  if(!notice||notice.shown)return false;
+  const shown=Object.assign({},notice,{shown:true});obAbsorbedNotices.set(key,shown);store.set(key,shown);return true;
+}
+function obAbsorbedClearNotice(owner){
+  const key=obAbsorbedNoticeKey(owner);obAbsorbedNotices.delete(key);store.del(key);
+}
+function obAbsorbedWarn(code,owner){
+  if(!["full","persist","merge","retry","owner","confirmed_full","confirmed_persist","confirmed_merge"].includes(code))return;
+  const key=obAbsorbedNoticeKey(owner);
+  if(!obAbsorbedNotices.has(key)&&!store.get(key)){const notice={code:code,shown:false};obAbsorbedNotices.set(key,notice);store.set(key,notice);}
+  if(!obAbsorbedWarnings.has(code)){
+    obAbsorbedWarnings.add(code);
+    try{Promise.resolve(cloud.logEvent("error","ob_absorbed",JSON.stringify({code:code}))).catch(function(){});}catch(e){}
+  }
+  // El aviso se pinta fuera del updater financiero; tampoco transporta datos del movimiento.
+  Promise.resolve().then(function(){try{window.dispatchEvent(new CustomEvent("mc-ob-absorbed-warning",{detail:owner||""}));}catch(e){}});
+}
+/* FIN17: un ACK no es una intención pendiente. Esta memoria tiene su propio límite y
+   nunca desaparece al podar las lápidas normales. No es un cerco atómico del servidor. */
+const OB_CONFIRMED_MAX=1000,OB_CONFIRMED_AGE=90*86400000,obConfirmedBlocked=new Set(),obConfirmedIndexes=new WeakMap(),obConfirmedReadCache=new Map();
+function obStateCanonical(value){
+  return JSON.stringify(value,function(k,v){if(v&&typeof v==="object"&&!Array.isArray(v)){const sorted={};Object.keys(v).sort().forEach(function(key){sorted[key]=v[key];});return sorted;}return v;});
+}
+function obConfirmedHash(text){
+  let h=2166136261;for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(36);
+}
+function obConfirmedPack(list,owner){
+  const d=[],seen=new Map(),r=Object.create(null),put=function(s){if(!seen.has(s)){seen.set(s,d.length);d.push(s);}return seen.get(s);};
+  // El hash solo agrupa: cada colisión conserva TODOS los testigos exactos, nunca decide un match.
+  const rows=list.map(function(p){return [p.id,p.key,p.keepId,p.keepKey,typeof p.ackAt==="number"&&Number.isFinite(p.ackAt)&&p.ackAt>0?p.ackAt:null];});
+  rows.sort(function(a,b){const x=JSON.stringify(a),y=JSON.stringify(b);return x<y?-1:x>y?1:0;});
+  rows.forEach(function(row){const hash=obConfirmedHash(JSON.stringify(row.slice(0,4))),bucket=r[hash]||(r[hash]=[]);bucket.push(row.slice(0,4).map(put).concat([row[4]]));});
+  return {v:1,o:owner,d:d,r:r};
+}
+function obConfirmedUnpack(value,owner){
+  if(value==null||Array.isArray(value))return value;
+  if(value.v!==1||value.o!==owner||!Array.isArray(value.d)||!value.d.every(function(s){return typeof s==="string";})||!value.r||typeof value.r!=="object"||Array.isArray(value.r))return null;
+  const list=[];
+  for(const bucket of Object.values(value.r)){
+    if(!Array.isArray(bucket))return null;
+    for(const row of bucket){
+      if(!Array.isArray(row)||row.length!==5||!row.slice(0,4).every(function(n){return Number.isInteger(n)&&n>=0&&n<value.d.length;}))return null;
+      list.push({owner:owner,id:value.d[row[0]],key:value.d[row[1]],keepId:value.d[row[2]],keepKey:value.d[row[3]],ackAt:row[4]});
+    }
+  }
+  return list;
+}
+// Desde que la clave de absorción lleva el signo (v3) una devolución no oculta su compra, pero
+// las colas guardadas por versiones anteriores (v2) siguen siendo válidas: se aceptan las dos.
+function obAbsorbedKeyOk(k){
+  const a=String(k||"").split("|");
+  return (a.length===6&&a[0]==="ob-absorbed2"||a.length===7&&a[0]==="ob-absorbed3"&&/^(?:-1|0|1)$/.test(a[6]))&&!!a[1]&&!!a[2]&&/^[1-9]\d{0,5}$/.test(a[3])&&/^\d{4}-\d{2}-\d{2}$/.test(a[5]);
+}
+function obConfirmedValid(p,owner){
+  const key=obAbsorbedKeyOk;
+  return !!p&&!!owner&&p.owner===owner&&isExpenseUuid(p.id)&&isExpenseUuid(p.keepId)&&p.id!==p.keepId&&key(p.key)&&key(p.keepKey)&&Object.prototype.hasOwnProperty.call(p,"ackAt");
+}
+function obConfirmedJoin(a,b,owner,evict,now){
+  const left=a,right=b;a=obConfirmedUnpack(a,owner);b=obConfirmedUnpack(b,owner);
+  if(left!=null&&a==null||right!=null&&b==null)return null;
+  if(a!=null&&!Array.isArray(a)||b!=null&&!Array.isArray(b))return null;
+  const out=[],seen=new Map();
+  for(const p of (Array.isArray(a)?a:[]).concat(Array.isArray(b)?b:[])){
+    if(p&&p.owner!==owner)continue;
+    if(!obConfirmedValid(p,owner))return null;
+    const k=JSON.stringify([p.key,p.keepKey,p.keepId]),i=seen.get(k);
+    if(i==null){seen.set(k,out.length);out.push(p);}
+    else{
+      const q=out[i],valid=function(n){return typeof n==="number"&&Number.isFinite(n)&&n>0;};
+      const at=valid(q.ackAt)&&valid(p.ackAt)?Math.max(q.ackAt,p.ackAt):null;
+      if(q.ackAt!==at)out[i]=Object.assign({},q,{ackAt:at});
+    }
+  }
+  if(out.length>OB_CONFIRMED_MAX){
+    if(!evict)return out;
+    const cut=(now==null?Date.now():now)-OB_CONFIRMED_AGE;
+    const eligible=out.filter(function(p){return typeof p.ackAt==="number"&&Number.isFinite(p.ackAt)&&p.ackAt>0&&p.ackAt<cut;}).sort(function(x,y){return x.ackAt-y.ackAt;});
+    const n=Math.min(out.length-OB_CONFIRMED_MAX,eligible.length);
+    const drop=new Set(eligible.slice(0,n)),kept=out.filter(function(p){return !drop.has(p);});
+    // El tope no autoriza perder ACK recientes ni parar toda la cartera (revisión FIN17).
+    if(kept.length>OB_CONFIRMED_MAX&&!obAbsorbedWarnings.has("confirmed_full")){
+      obAbsorbedWarnings.add("confirmed_full");
+      try{Promise.resolve(cloud.logEvent("error","ob_absorbed",JSON.stringify({code:"confirmed_full"}))).catch(function(){});}catch(e){}
+    }
+    return kept;
+  }
+  return Array.isArray(a)&&out.length===a.length&&out.every(function(p,i){return p===a[i];})?a:out;
+}
+function obConfirmedMatches(e,list,owner){
+  if(!Array.isArray(list)||!list.length)return false;
+  let index=obConfirmedIndexes.get(list);
+  if(!index||index.owner!==owner){
+    index={owner:owner,keep:Object.create(null),gone:Object.create(null),ids:new Set()};
+    list.forEach(function(p){if(obConfirmedValid(p,owner)){index.keep[p.keepKey]=1;index.gone[p.key]=1;index.ids.add(p.keepId);}});
+    obConfirmedIndexes.set(list,index);
+  }
+  // El veto de TODAS las supervivientes precede al match: jamás se oculta una por referencia.
+  if(e&&index.ids.has(e.id)||obAbsorptionMatches(e,index.keep))return false;
+  return obAbsorptionMatches(e,index.gone);
+}
+function obConfirmedStorageKey(owner,key){return (key||mcStateKey())+"_oback_"+encodeURIComponent(owner);}
+function obConfirmedStorage(){return typeof localStorage!=="undefined"?localStorage:window.localStorage;}
+function obConfirmedRead(owner,key){
+  if(!owner)return null;
+  try{const storageKey=obConfirmedStorageKey(owner,key),raw=obConfirmedStorage().getItem(storageKey),cached=obConfirmedReadCache.get(storageKey);
+    if(cached&&cached.raw===raw)return cached.list;
+    if(raw==null){const empty=[];obConfirmedReadCache.set(storageKey,{raw:raw,list:empty});return empty;}
+    const p=JSON.parse(raw);if(p.v!==1&&(p.owner!==owner||!Array.isArray(p.confirmed)))return null;
+    const list=obConfirmedJoin(p.v===1?p:p.confirmed,[],owner);if(list)obConfirmedReadCache.set(storageKey,{raw:raw,list:list});return list;
+  }catch(e){return null;}
+}
+function obConfirmedPersist(owner,list,key){
+  if(!owner||!Array.isArray(list)||list.some(function(p){return !obConfirmedValid(p,owner);}))return false;
+  // JSON omite undefined: una edad ilegible se conserva como null, nunca como pérdida del ACK.
+  const durable=list.map(function(p){return typeof p.ackAt==="number"&&Number.isFinite(p.ackAt)&&p.ackAt>0?p:Object.assign({},p,{ackAt:null});});
+  try{const body=JSON.stringify(obConfirmedPack(durable,owner)),k=obConfirmedStorageKey(owner,key);
+    const storage=obConfirmedStorage();if(storage.getItem(k)!==body)storage.setItem(k,body);return storage.getItem(k)===body;
+  }catch(e){return false;}
+}
+function obConfirmedMerge(local,remote,owner,key){
+  const disk=obConfirmedRead(owner,key),own=local&&local._historyOwner===owner?local.obAbsorbedConfirmed:[];
+  const joined=disk&&obConfirmedJoin(disk,own,owner),list=joined&&obConfirmedJoin(joined,remote&&remote.obAbsorbedConfirmed,owner,true);
+  // Una unión vacía no incorpora ningún ACK: no necesita inventar una escritura durable vacía.
+  if(!list||list.length&&!obConfirmedPersist(owner,list,key)){obConfirmedBlocked.add(owner);obAbsorbedWarn("confirmed_merge",owner);return null;}
+  obConfirmedBlocked.delete(owner);return list;
+}
+function obConfirmedRestore(s,key){
+  const owner=s&&s._historyOwner;if(!owner)return s;
+  const list=obConfirmedMerge(s,null,owner,key);
+  const next=Object.assign({},s);delete next.obAbsorbedIssue;
+  if(list)next.obAbsorbedConfirmed=list;return next;
+}
+function obConfirmedAck(s,p,owner){
+  const disk=obConfirmedRead(owner),own=disk&&obConfirmedJoin(disk,s.obAbsorbedConfirmed,owner);
+  const record={owner:owner,id:p.id,key:p.key,keepId:p.keepId,keepKey:p.keepKey,ackAt:Date.now()};
+  const list=own&&obConfirmedJoin(own,[record],owner,true);
+  if(!list){obAbsorbedWarn("confirmed_full",owner);return null;}
+  if(!obConfirmedPersist(owner,list)){obAbsorbedWarn("confirmed_persist",owner);return null;}
+  return list;
+}
+async function obConfirmedCanUpload(e,owner,sdk){
+  // Revalidar el MISMO SDK que enviará la escritura, incluso en métodos ligados a otra instancia.
+  if(!sdk||!sdk.auth||typeof sdk.auth.getSession!=="function")return false;
+  const response=await sdk.auth.getSession(),session=!response.error&&response.data&&response.data.session;
+  if(!session||!session.user||session.user.id!==owner||(session.expires_at!=null&&(!Number.isFinite(Number(session.expires_at))||Number(session.expires_at)*1000<=Date.now())))return false;
+  const list=obConfirmedRead(owner);
+  if(!list||obConfirmedBlocked.has(owner)){obAbsorbedWarn("confirmed_merge",owner);return false;}
+  return !obConfirmedMatches(e,list,owner);
+}
+function obAbsorbedValid(p,owner){
+  if(!p||!owner||p.owner!==owner||!isExpenseUuid(p.id)||!isExpenseUuid(p.keepId)||p.id===p.keepId)return false;
+  return obAbsorbedKeyOk(p.key)&&obAbsorbedKeyOk(p.keepKey)&&(p.idsOnly===true
+      ?Object.keys(p).every(function(k){return ["owner","id","key","keepId","keepKey","keepRefKey","idsOnly"].includes(k);})
+        &&(p.keepRefKey==null||typeof p.keepRefKey==="string"&&obAbsorbedKeyOk(p.keepRefKey))
+      :typeof p.merchant==="string"&&typeof p.amount==="number"&&Number.isFinite(p.amount)&&p.amount>0);
+}
+function obAbsorbedJoin(a,b,owner){
+  const out=[],seen=new Set();
+  (Array.isArray(a)?a:[]).concat(Array.isArray(b)?b:[]).forEach(function(p){
+    if(!obAbsorbedValid(p,owner))return;
+    const key=p.id+"|"+p.key;if(!seen.has(key)){seen.add(key);out.push(p);}
+  });
+  if(out.length>OB_ABSORBED_MAX){obAbsorbedWarn("merge",owner);return null;}
+  return Array.isArray(a)&&out.length===a.length&&out.every(function(p,i){return p===a[i];})?a:out;
+}
+function obAbsorbedStorageKey(owner,key){return (key||mcStateKey())+"_obabs_"+encodeURIComponent(owner);}
+function obAbsorbedIdsKey(owner,key){return (key||mcStateKey())+"_obabs_ids_"+encodeURIComponent(owner);}
+function obAbsorbedDisk(owner,key,ids){
+  try{
+    const raw=localStorage.getItem(ids?obAbsorbedIdsKey(owner,key):obAbsorbedStorageKey(owner,key));if(raw==null)return [];
+    const pack=JSON.parse(raw),list=obAbsorbedJoin(pack.pending,[],owner);
+    if(pack.owner===owner&&list&&Array.isArray(pack.pending)&&list.length===pack.pending.length)return list;
+  }catch(e){}
+  obAbsorbedWarn("persist",owner);return null;
+}
+function obAbsorbedMerge(a,b,owner,key){
+  const disk=obAbsorbedDisk(owner,key,false),ids=obAbsorbedDisk(owner,key,true),list=obAbsorbedJoin(a,b,owner);
+  if(!disk||!ids||!list)return null;
+  const durable=obAbsorbedJoin(ids,disk,owner),merged=durable&&obAbsorbedJoin(durable,list,owner);
+  // El disco conserva prioridad; releer el mismo contenido no debe invalidar los memos.
+  return merged&&Array.isArray(a)&&merged.length===a.length&&merged.every(function(p,i){
+    const q=a[i];return p===q||q&&Object.keys(p).length===Object.keys(q).length&&Object.keys(p).every(function(k){return Object.prototype.hasOwnProperty.call(q,k)&&p[k]===q[k];});
+  })?a:merged;
+}
+function obAbsorbedSignOut(owner,s){
+  if(!owner)return;
+  const list=obAbsorbedMerge(s&&s._historyOwner===owner?s.obAbsorbedPending:[],[],owner);if(!list)return;
+  try{
+    if(list.length){
+      const pending=list.map(function(p){
+        const keep=s&&s._historyOwner===owner&&(s.expenses||[]).find(function(e){return e.id===p.keepId&&obAbsorptionKey(e)===p.keepKey;});
+        const ref=keep&&keep.obPendingRef?obAbsorptionKey(Object.assign({},keep,{extId:keep.obPendingRef})):p.keepRefKey;
+        const id={owner:owner,id:p.id,key:p.key,keepId:p.keepId,keepKey:p.keepKey,idsOnly:true};if(ref)id.keepRefKey=ref;return id;
+      });
+      const key=obAbsorbedIdsKey(owner),body=JSON.stringify({owner:owner,pending:pending});
+      localStorage.setItem(key,body);if(localStorage.getItem(key)!==body)throw new Error("ob_absorbed_readback");
+    }
+    localStorage.removeItem(obAbsorbedStorageKey(owner));
+  }catch(e){obAbsorbedWarn("persist",owner);}
+}
+function obAbsorbedIdsAck(owner,p){
+  const list=obAbsorbedDisk(owner,undefined,true);if(!list)return false;
+  const next=list.filter(function(q){return q.id!==p.id||q.key!==p.key;});if(next.length===list.length)return true;
+  try{
+    const key=obAbsorbedIdsKey(owner),body=JSON.stringify({owner:owner,pending:next});
+    if(next.length)localStorage.setItem(key,body);else localStorage.removeItem(key);
+    if(localStorage.getItem(key)===(next.length?body:null))return true;
+  }catch(e){}
+  obAbsorbedWarn("persist",owner);return false;
+}
+function obAbsorbedPersist(owner,list){
+  if(!owner||!Array.isArray(list)||list.length>OB_ABSORBED_MAX||list.some(function(p){return !obAbsorbedValid(p,owner);}))return false;
+  try{
+    const key=obAbsorbedStorageKey(owner),body=JSON.stringify({owner:owner,pending:list});
+    localStorage.setItem(key,body);if(localStorage.getItem(key)===body)return true;
+  }catch(e){}
+  obAbsorbedWarn("persist",owner);return false;
+}
+function obAbsorbedRestore(s,key){
+  const owner=s&&s._historyOwner;if(!owner)return s;
+  const list=obAbsorbedMerge(s.obAbsorbedPending,[],owner,key);
+  return list?Object.assign({},s,{obAbsorbedPending:list}):s;
+}
+function obAbsorbedEnqueue(s,e,keep){
+  const owner=s&&s._historyOwner;
+  const p={owner:owner,id:e.id,key:obAbsorptionKey(e),keepId:keep.id,keepKey:obAbsorptionKey(keep),amount:e.amount,merchant:e.merchant||""};
+  if(!obAbsorbedValid(p,owner)){obAbsorbedWarn("owner",owner);return null;}
+  const list=obAbsorbedJoin(s.obAbsorbedPending,[p],owner);
+  if(!list){obAbsorbedWarn("full",owner);return null;}
+  return obAbsorbedPersist(owner,list)?list:null;
+}
+function obAbsorbedCandidate(p,row,alias){
+  if(!row||!isExpenseUuid(row.id)||row.id===p.keepId||typeof row.source!=="string"||typeof row.fecha!=="string"||typeof row.comercio!=="string")return false;
+  const e=expenseFromRow(row),key=obAbsorptionKey(e);
+  if(e.obPending||e.amount!==p.amount||e.merchant!==p.merchant||!key||!obAbsorptionMatches(e,{[p.key]:1})||obAbsorptionMatches(e,{[p.keepKey]:1}))return false;
+  // Sin UUID compartido, una cuenta ausente ya no acredita una coincidencia destructiva.
+  return !alias||!!p.key.split("|")[4]&&!!e.obAcc&&key===p.key;
+}
+// No encontrar un candidato borrable no prueba ausencia: un alias editado/legacy es incertidumbre.
+function obAbsorbedPossible(p,row){
+  if(!row||!row.id||typeof row.source!=="string")return true;
+  const e=expenseFromRow(row),key=obAbsorptionKey(e);
+  if(key)return obAbsorptionMatches(e,{[p.key]:1});
+  return esFilaDeBanco(e)&&encodeURIComponent(expenseBankOf(e)||"")===p.key.split("|")[1]
+    &&String(e.date||"").slice(0,10)===p.key.split("|")[5]&&e.amount===p.amount&&e.merchant===p.merchant;
+}
+async function obAbsorbedRetry(getState,getOwner,apply,offset){
+  const owner=getOwner(),s=getState();
+  if(!owner||!s||s._historyOwner!==owner||mcSandbox()||!cloud.enabled())return offset||0;
+  if(obAbsorbedRuns.has(owner))return obAbsorbedRuns.get(owner);
+  const list=obAbsorbedMerge(s.obAbsorbedPending,[],owner);if(!list)return offset||0;
+  apply(function(prev){return getOwner()===owner&&prev._historyOwner===owner?Object.assign({},prev,{obAbsorbedPending:list}):prev;});
+  const start=(offset||0)%Math.max(1,list.length);
+  const batch=list.slice(start).concat(list.slice(0,start)).slice(0,4);
+  const run=(async function(){
+    for(const p of batch){
+      if(getOwner()!==owner)break;
+      if(!await cloud.settleObAbsorbed(p,getOwner)||getOwner()!==owner)continue;
+      apply(function(prev){
+        if(getOwner()!==owner||prev._historyOwner!==owner)return prev;
+        const before=prev.obAbsorbedPending||[],next=before.filter(function(q){return q.id!==p.id||q.key!==p.key;});
+        if(next.length===before.length)return prev;
+        const confirmed=obConfirmedAck(prev,p,owner);if(!confirmed)return prev;
+        if(!obAbsorbedPersist(owner,next))return Object.assign({},prev,{obAbsorbedConfirmed:confirmed});
+        if(!obAbsorbedIdsAck(owner,p))return Object.assign({},prev,{obAbsorbedConfirmed:confirmed});
+        const state=Object.assign({},prev,{obAbsorbedPending:next,obAbsorbedConfirmed:confirmed});
+        if(!next.length){obAbsorbedClearNotice(owner);delete state.obAbsorbedIssue;}
+        return state;
+      });
+    }
+    return (start+batch.length)%Math.max(1,list.length);
+  })();
+  obAbsorbedRuns.set(owner,run);
+  try{return await run;}finally{obAbsorbedRuns.delete(owner);}
 }
 function _errCloudMsg(err){
   return mcLogCode(err);
@@ -1818,6 +2343,7 @@ function _errCloudMsg(err){
 function subirGasto(e, donde){
   if(!cloud.enabled()) return Promise.resolve();
   return cloud.addExpense(e).then(function(nueva){
+    if(nueva===null)return; // denegado por confirmación: no es un duplicado que haya que retocar
     /* El alta ignora duplicados: si la fila ya estaba en la nube sin la marca de recibo (otro
        móvil la importó antes), allí seguiría como una compra y el widget contaría lo que la app
        no cuenta. Solo entonces se le pone; la que acaba de entrar ya la lleva (la primera
@@ -1848,7 +2374,7 @@ function borrarGastoNube(e, donde){
 
    Si añades un método a `cloud` que ESCRIBA algo, añádelo a esta lista. */
 const CLOUD_WRITES=[
-  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","setExpenseRecibo","deleteExpense","deleteExpensesByIds",
+  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","renameExpense","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","setExpenseRecibo","deleteExpense","deleteExpensesByIds","settleObAbsorbed",
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
   "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",
@@ -1867,7 +2393,7 @@ const CLOUD_READS_QUE_LLENAN=[
     const real=cloud[name];
     if(typeof real!=="function") return;   // método renombrado: mejor enterarse en los tests que fallar mudo
     cloud[name]=function(){
-      if(mcSandbox()) return Promise.resolve(null);   // modo pruebas: no sale nada de este móvil
+      if(mcSandbox()||mcSandboxTransition()) return Promise.resolve(null);   // también entre confirmar y el arranque destino
       return real.apply(cloud, arguments);
     };
   });
@@ -1933,7 +2459,7 @@ function ordinalDeTramos(tramos){
    cargo nuevo de una ranura ya ocupada. Los lectores anteriores ignoran este tramo. */
 function bankRefSufijoCloud(e){ return e&&e.extId ? "#ref"+encodeURIComponent(String(e.extId))+(e.obPendingRef?"#prevref"+encodeURIComponent(String(e.obPendingRef)):"")+(e.obPending?"#pdng":"") : ""; }
 function bankRefDeSource(raw,tag){
-  const m=(tag==="prevref"?/#prevref([^#]*)/:/#ref([^#]*)/).exec(raw); if(!m)return undefined;
+  const m=(tag==="acc"?/#acc([^#]*)/:tag==="prevref"?/#prevref([^#]*)/:/#ref([^#]*)/).exec(raw); if(!m)return undefined;
   try{return decodeURIComponent(m[1])||undefined;}catch(_){return undefined;}
 }
 /* Codifica el banco en `source` de la tabla (sin migración SQL): ob:caixa, ob-hist:sabadell,
@@ -1962,9 +2488,11 @@ function expenseSourceForCloud(e){
   // final no le cambia nada: ve el banco limpio y la marca de repetido donde siempre. Con `~`
   // dentro del banco (como la cuota) ese móvil leería un banco raro y sacaría la fila del
   // presupuesto; con `#` detrás la lee como hoy. Ver `obOrdinalOf`.
-  // Orden: ob:<ent>[~deuda.<id> | ~recibo.<id>][#dup][#ref<id>][#prevref<id>][#pdng][#n<k>].
-  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+(deudaSufijo(e&&e.debtId)||reciboSufijo(e&&e.reciboId))+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+ordinalSufijoCloud(e);
-  if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent+reciboSufijo(e&&e.reciboId)+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+ordinalSufijoCloud(e);
+  // Orden: ob:<ent>[~deuda.<id> | ~recibo.<id>][#dup][#ref<id>][#prevref<id>][#pdng][#acc<cuenta>][#n<k>].
+  // La cuenta debe sobrevivir al pull para no ensanchar la lápida al reinstalar u otro móvil.
+  const acc=e&&e.obAcc?"#acc"+encodeURIComponent(String(e.obAcc)):"";
+  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+(deudaSufijo(e&&e.debtId)||reciboSufijo(e&&e.reciboId))+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+acc+ordinalSufijoCloud(e);
+  if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent+reciboSufijo(e&&e.reciboId)+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+acc+ordinalSufijoCloud(e);
   // Un alias TR/Wallet pendiente usa temporalmente el encoding OB que entienden también las OTA
   // anteriores; al resolver «son distintos» vuelve a su origen real `macrodroid`.
   if(s==="macrodroid"||s==="tr") return (e&&e.possibleDup)?"ob:trade_republic#dup":"macrodroid";
@@ -2122,10 +2650,40 @@ function lapidasAlEditar(s, keyOrig, keyUpd, ahora){
    o al volver la conexión. Límite: la cola vive en memoria; si la app se cierra antes, la fila
    vieja sigue en la nube y el repaso tras el pull dará `23505` con origen `backfill`.
    `cola` = {pend:[{orig,upd}], fin:Promise}. */
+// Fallo de transporte (sin conexión, fetch caído, sesión que no se pudo leer), no respuesta
+// del servidor. El cliente de Supabase devuelve el fetch caído como `{message:"TypeError: …"}`.
+const RENAME_BACKOFF_MS=[2000,8000,30000];
+function renameFalloDeRed(err){
+  if(typeof navigator!=="undefined"&&navigator.onLine===false)return true;
+  if(!err)return false;
+  if(err instanceof TypeError)return true;
+  return /failed to fetch|networkerror|network request failed|load failed|internet ?disconnected|err_internet|session unavailable|cloud unavailable/i.test(String(err.message||err));
+}
 function subeEdicionesDeGasto(cola){
   const paso=function(){
     const p=cola.pend[0];
     if(!p) return;
+    if(p.rename){
+      if(!cloud.enabled()||mcSandbox()||mcSandboxTransition())return;
+      // En espera de su reintento (lo marca Gastos): una llamada encadenada no lo adelanta.
+      if(p.waitUntil>Date.now())return;
+      const orig=p.current();
+      if(!orig){cola.pend.shift();return paso();} // intención sustituida o fila retirada
+      return cloud.renameExpense(orig,p.rename.merchant,true).then(function(ack){
+        if(!ack)throw new Error("rename unconfirmed");
+        cola.pend.shift();p.ack(orig,ack);
+      }).catch(function(err){
+        /* Sin red no es un rechazo: no cuenta para apartarlo y se queda pendiente con su ⏳.
+           Antes los tres intentos se gastaban en ~9 ms sin cobertura y el nombre volvía al
+           viejo, sin subirse solo al volver la red (rojo de la beta 4.26.153, 20/10/2026). */
+        if(renameFalloDeRed(err)){ if(p.fail)p.fail(orig,null,false,true); return; }
+        const failures=Math.max(p.failures||0,orig.renamePending&&orig.renamePending.failures||0)+1;
+        p.failures=failures;const quarantined=failures>=3;
+        if(quarantined)cola.pend.shift();
+        if(p.fail)p.fail(orig,failures,quarantined);
+        if(quarantined)return paso(); // un rechazo persistente no retiene otras ediciones
+      });
+    }
     return borrarGastoNube(p.orig, "gastos-editar").then(function(ok){
       if(!ok) return;
       cola.pend.shift();
@@ -2134,6 +2692,33 @@ function subeEdicionesDeGasto(cola){
   };
   cola.fin=cola.fin.then(paso);
   return cola.fin;
+}
+/* El nombre confirmado sigue en merchant; el borrador vive con el gasto, en la partición
+   durable ya existente. Un ACK de otra intención no borra lo escrito después. */
+function expenseRenameDraft(s,orig,merchant,at){
+  const rows=(s.expenses||[]).map(function(e){return e.id===orig.id&&e.date===orig.date&&e.amount===orig.amount?Object.assign({},e,{renamePending:{merchant:merchant,at:at}}):e;});
+  return Object.assign({},s,{expenses:rows});
+}
+function expenseRenameFailure(s,orig,intent,failures){
+  let changed=false;
+  const rows=(s.expenses||[]).map(function(e){
+    if(e.id!==orig.id||e.date!==orig.date||e.amount!==orig.amount||!e.renamePending||e.renamePending.at!==intent.at)return e;
+    changed=true;return Object.assign({},e,{renamePending:Object.assign({},e.renamePending,{failures:failures,quarantined:failures>=3})});
+  });
+  return changed?Object.assign({},s,{expenses:rows}):s;
+}
+function expenseRenameAck(s,orig,intent,ack){
+  if(!ack||ack.comercio!==intent.merchant||Number(ack.importe)!==orig.amount||Date.parse(ack.fecha)!==Date.parse(orig.date)||(isExpenseUuid(orig.id)&&ack.id!==orig.id))return s;
+  let before,after;const deleted=expenseDeletedSet(s);
+  const rows=(s.expenses||[]).map(function(e){
+    if(e.id!==orig.id||e.date!==orig.date||e.amount!==orig.amount||e.merchant!==orig.merchant||expenseIsTombstoned(e,deleted))return e;
+    before=e;after=Object.assign({},e,{merchant:ack.comercio,expenseEditAt:intent.at});
+    if(after.renamePending&&after.renamePending.at===intent.at)delete after.renamePending;
+    if(ack.ob_name!=null)after.obName=ack.ob_name;
+    if(!e.notePending&&(e.noteEditAt||0)===(orig.noteEditAt||0)&&e.note===orig.note&&ack.nota_edit){after.note=ack.nota||undefined;after.noteEdited=true;}
+    return after;
+  });
+  return before?rekeyFixedPaymentExpense(Object.assign({},s,{expenses:rows},lapidasAlEditar(s,keyOfExpense(before),keyOfExpense(after))),before,after):s;
 }
 // → {deleted[, deletedAt]}. La lista local, tal cual, si la nube no aporta nada: la leen los `useMemo`.
 function lapidasUnion(local, nube){
@@ -2173,7 +2758,7 @@ function pushGemelos(list, nuevos){
     const at=Number(g.at)||0;
     if(ya[k]){
       const i=out.findIndex(function(x){ return firma(x)===k; }), old=out[i];
-      if(g.bankRef&&!old.bankRef){if(out===base)out=base.slice();out[i]=Object.assign({},old,{bankRef:String(g.bankRef),ent:g.ent||old.ent});}
+      if(g.bankRef&&!old.bankRef){if(out===base)out=base.slice();out[i]=Object.assign({},old,{bankRef:String(g.bankRef),ent:g.ent||old.ent,...(g.bankRefV===2&&[-1,0,1].includes(g.bankRefSign)?{bankRefV:2,bankRefSign:g.bankRefSign}:{})});}
       if(!g.auto||at<(old.at||0)||(at===(old.at||0)&&(!g.separado||old.separado))) return;
       if(out===base) out=base.slice();
       out[i]=Object.assign({},old,{auto:true,at:at,separado:!!g.separado,ent:g.ent||old.ent});
@@ -2182,7 +2767,7 @@ function pushGemelos(list, nuevos){
     ya[k]=1;
     if(out===base) out=base.slice();
     const it={aviso:g.aviso, banco:g.banco};
-    if(g.bankRef){it.bankRef=String(g.bankRef);it.ent=g.ent||"";}
+    if(g.bankRef){it.bankRef=String(g.bankRef);it.ent=g.ent||"";if(g.bankRefV===2&&[-1,0,1].includes(g.bankRefSign)){it.bankRefV=2;it.bankRefSign=g.bankRefSign;}}
     if(g.avisoId) it.avisoId=String(g.avisoId);
     if(g.auto){ it.auto=true; it.at=at; if(g.ent) it.ent=g.ent; if(g.separado) it.separado=true; }
     out.push(it);
@@ -2516,6 +3101,11 @@ function withdrawalRowMatches(e, row){
   if(/^ob(?:-hist)?:/.test(source)&&/^ob(?:-hist)?:/.test(remote)){
     if((/#ref/.test(source)&&!localRef)||(/#ref/.test(remote)&&!remoteRef))return false;
     source=source.replace(/#ref[^#]*/,"");remote=remote.replace(/#ref[^#]*/,"");
+    // Añadir #acc no invalida el mismo UUID legacy; dos cuentas conocidas sí se distinguen.
+    const localAcc=bankRefDeSource(source,"acc"),remoteAcc=bankRefDeSource(remote,"acc");
+    if(localAcc&&remoteAcc&&localAcc!==remoteAcc)return false;
+    if((/#acc/.test(source)&&!localAcc)||(/#acc/.test(remote)&&!remoteAcc))return false;
+    source=source.replace(/#acc[^#]*/,"");remote=remote.replace(/#acc[^#]*/,"");
   }
   return !!(row.id===e.id && remote===source
     && Number(row.importe)===e.amount && Date.parse(row.fecha)===Date.parse(e.date)
@@ -2828,20 +3418,88 @@ function expenseFromRow(r){
     extId: source==="ob"||source==="ob-hist" ? bankRefDeSource(raw) : undefined,
     obPending: (source==="ob"||source==="ob-hist")&&/#pdng(?:#|$)/.test(raw) ? true : undefined,
     obPendingRef: source==="ob"||source==="ob-hist" ? bankRefDeSource(raw,"prevref") : undefined,
+    obAcc: source==="ob"||source==="ob-hist" ? bankRefDeSource(raw,"acc") : undefined,
   };
 }
+/* LA FILA QUE NO HA CAMBIADO NO SE VUELVE A CONVERTIR (diagnóstico de lag, 19/10/2026).
+   `syncCloudExpenses` baja el histórico ENTERO en cada vuelta a primer plano y lo pasaba todo por
+   `expenseFromRow`: con 3.500 gastos, un frame congelado justo al volver, y además cada gasto
+   salía como objeto NUEVO, así que la mezcla nunca podía devolver el mismo array y el estado se
+   rehacía entero aunque la nube dijera exactamente lo mismo que antes.
+   Se reutiliza el gasto de la lectura anterior SOLO si es indistinguible del que saldría ahora:
+     · las 13 columnas que lee `expenseFromRow` son idénticas (`Object.is`: null ≠ ausente, "5" ≠ 5);
+     · la categoría se vuelve a resolver en vivo —depende de lo que él aprendió a mano, que cambia
+       sin que cambie la fila— y tiene que dar lo mismo;
+     · el objeto no lo ha tocado nadie desde entonces (se compara con su copia campo a campo).
+   Ante cualquier diferencia se reconstruye: un gasto con un dato viejo es peor que un frame lento.
+   ⚠ Si `expenseFromRow` empieza a leer otra columna, va en `EXPENSE_ROW_COLS` (lo vigila
+   `tests/pull-sin-cambios.test.mjs`) o esa columna dejaría de refrescarse. */
+const EXPENSE_ROW_COLS=["id","fecha","comercio","importe","cat","source","ingest_event_id","no_card","nota","nota_edit","importe_orig","divisa","ob_name"];
+let _expRowMemo=new Map();
+// De quién es la memoria (dueño del histórico | modo pruebas). Al cambiar se olvida entera, y
+// también la hora de la última lectura: nunca se reutiliza un gasto de otra cuenta ni del banco
+// de pruebas, aunque hoy saliera igual (revisión independiente, 19/10/2026).
+let _expRowCtx=null;
+function expenseRowMemoReset(){ _expRowMemo=new Map(); _expRowCtx=null; mcSetLecturaNube(0); }
+function expenseRowMemoOk(h, r){
+  for(let i=0;i<EXPENSE_ROW_COLS.length;i++){ if(!Object.is(h.r[i], r[EXPENSE_ROW_COLS[i]])) return false; }
+  let n=0;
+  for(const k in h.snap){ if(!Object.prototype.hasOwnProperty.call(h.e,k) || !Object.is(h.e[k], h.snap[k])) return false; n++; }
+  for(const k in h.e) n--;
+  return n===0 && h.e.category===resolveCategory(r.cat, r.comercio || "");
+}
+function expensesFromRows(rows, owner){
+  const ctx=String(owner||"")+"|"+(mcSandbox()?1:0);
+  if(ctx!==_expRowCtx){ if(_expRowCtx!==null) expenseRowMemoReset(); _expRowCtx=ctx; }
+  const prev=_expRowMemo, next=new Map(), out=new Array(rows.length);
+  for(let i=0;i<rows.length;i++){
+    const r=rows[i];
+    const h=r && r.id!=null ? prev.get(r.id) : null;
+    if(h && expenseRowMemoOk(h, r)){ out[i]=h.e; next.set(r.id, h); continue; }
+    const e=expenseFromRow(r);
+    out[i]=e;
+    if(r && r.id!=null) next.set(r.id, { r:EXPENSE_ROW_COLS.map(function(c){ return r[c]; }), e:e, snap:Object.assign({}, e) });
+  }
+  // Solo lo de esta lectura: lo que ya no baja se olvida y la memoria no crece con el tiempo.
+  _expRowMemo=next;
+  return out;
+}
 
+/* La preferencia de estado no acredita una compra: exige la misma identidad y dinero.
+   Cuenta ausente solo casa con ausente; nunca presta identidad a otra cuenta conocida. */
+function obBookedPreferenceKey(e){
+  const bank=e&&expenseBankOf(e), day=String(e&&e.date||"").slice(0,10), cents=Math.round(Number(e&&e.amount)*100);
+  if(!e||!esFilaDeBanco(e)||!bank||!e.extId||!String(e.extId).trim()||!/^\d{4}-\d{2}-\d{2}$/.test(day)||!Number.isSafeInteger(cents)||!e.merchant)return "";
+  const marks=expenseSourceForCloud(e).split("#").filter(function(t){return !/^(?:pdng|n\d{1,6})$/.test(t)&&!/^ref|^acc/.test(t);}).join("#");
+  return JSON.stringify([bank,String(e.extId),day,obOrdinalOf(e),String(e.obAcc||""),cents,e.merchant,e.category||"",marks]);
+}
+function preferBookedExpenses(rows,delSet){
+  // Sin pendientes no hay estado que promover. La referencia barata solo recorta
+  // candidatas; la clave completa sigue exigiendo cuenta, día, dinero y marcas.
+  const candidates=new Set();
+  rows.forEach(function(e){if(e&&e.obPending&&esFilaDeBanco(e)&&e.extId)candidates.add(expenseBankOf(e)+"|"+e.extId);});
+  if(!candidates.size)return rows;
+  const books=new Set(); let out=rows;
+  rows.forEach(function(e){if(e&&!e.obPending&&e.extId&&candidates.has(expenseBankOf(e)+"|"+e.extId)&&!expenseIsTombstoned(e,delSet)){const k=obBookedPreferenceKey(e);if(k)books.add(k);}});
+  rows.forEach(function(e,i){
+    if(!e||!e.obPending||expenseIsTombstoned(e,delSet))return;
+    const k=obBookedPreferenceKey(e);if(!k||!books.has(k))return;
+    // Solo el estado del BOOK: conserva UUID, orden y decisiones del superviviente local.
+    if(out===rows)out=rows.slice();out[i]=Object.assign({},e);delete out[i].obPending;
+  });
+  return out;
+}
 /* Une gastos en la lista local con dedup. ADITIVO: nunca borra los que ya tenías.
    Manuales: clave con id (Paso 0, 2026-09-11) — no se comen entre sí ni con el banco. */
-function mergeExpenses(prevList, incoming){
-  const rows=expenseBankIdOrdinals((prevList||[]).concat(incoming||[]));
+function mergeExpenses(prevList, incoming, delSet){
+  const rows=expenseBankIdOrdinals(preferBookedExpenses((prevList||[]).concat(incoming||[]),delSet));
   const previousLength=(prevList||[]).length;
   prevList=rows.slice(0,previousLength); incoming=rows.slice(previousLength);
   const seen={}; const list=[]; const refs=new Map();
-  const mergeKey=function(e){const ref=esFilaDeBanco(e)&&e.extId&&(expenseBankOf(e)||"")+"|"+e.extId;let k=ref&&refs.get(ref);if(!k){k=keyOfExpense(e);if(ref)refs.set(ref,k);}return k;};
-  (prevList||[]).forEach(function(e){ const k=mergeKey(e); if(!seen[k]){ seen[k]=1; list.push(e); } });
+  const mergeKey=function(e){const ref=esFilaDeBanco(e)&&e.extId&&obReferenceKey(expenseBankOf(e),e.extId,e.amount);let k=ref&&refs.get(ref);if(!k){k=keyOfExpense(e);if(ref)refs.set(ref,k);}return k;};
+  (prevList||[]).forEach(function(e){ if(esFilaDeBanco(e)&&e.amount===0)return; const k=mergeKey(e); if(!seen[k]){ seen[k]=1; list.push(e); } });
   let nuevos=0;
-  (incoming||[]).forEach(function(e){ const k=mergeKey(e); if(!seen[k]){ seen[k]=1; list.push(e); nuevos++; } });
+  (incoming||[]).forEach(function(e){ if(esFilaDeBanco(e)&&e.amount===0)return; const k=mergeKey(e); if(!seen[k]){ seen[k]=1; list.push(e); nuevos++; } });
   return { list:list, nuevos:nuevos };
 }
 /* Refresca una fila LOCAL con lo que manda la nube SIN sustituir el array entero (12/9).
@@ -2851,9 +3509,12 @@ function mergeExpenses(prevList, incoming){
    Caso medido: Aigües en nube=`energia` y el móvil seguía en `viajes` tras «Ya estás al día».
    Reglas: no pisar `cat` de un apunte manual; no pisar `note` si él la editó; nunca borrar. */
 function refreshExpenseFromCloud(local, incoming, readStartedAt){
+  if(local===incoming)return local;
   if(!local||!incoming) return local||incoming;
   const manual=isManualExpenseSource(local.source);
   let out=local;
+  const preserved=local.uuidPreserved||{};
+  const protects=function(k){return Object.prototype.hasOwnProperty.call(preserved,k)&&preserved[k]===local[k]&&incoming[k]!==local[k];};
   const put=function(k,v){
     const a=local[k], b=v;
     if(a===b) return;
@@ -2866,12 +3527,14 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
   // subida puede ir por detrás del pull, y la fila de la noti ni siquiera lleva la marca en `source`.
   const cuotaLocal=local.debtId && local.category==="deudas";
   const withdrawalRecent=readStartedAt!=null && local.withdrawalConfirmedAt>=readStartedAt;
-  if(!manual && !cuotaLocal && !withdrawalRecent && incoming.category!=null && incoming.category!=="") put("category", incoming.category);
+  if(!manual && !cuotaLocal && !withdrawalRecent && !protects("category") && incoming.category!=null && incoming.category!=="") put("category", incoming.category);
   if(incoming.amount!=null && isFinite(incoming.amount)) put("amount", incoming.amount);
   if(incoming.merchant!=null && incoming.merchant!=="") put("merchant", incoming.merchant);
-  if(Object.prototype.hasOwnProperty.call(incoming,"noCard")) put("noCard", incoming.noCard||undefined);
+  if(!protects("noCard")&&Object.prototype.hasOwnProperty.call(incoming,"noCard")) put("noCard", incoming.noCard||undefined);
   if(Object.prototype.hasOwnProperty.call(incoming,"obName")) put("obName", incoming.obName);
   if(incoming.extId) put("extId",incoming.extId);
+  // Un pull legacy sin cuenta no prueba que haya desaparecido la que ya sabemos.
+  if(incoming.obAcc) put("obAcc",incoming.obAcc);
   if(Object.prototype.hasOwnProperty.call(incoming,"obPending")) put("obPending",incoming.obPending);
   if(incoming.obPendingRef) put("obPendingRef",incoming.obPendingRef);
   if(Object.prototype.hasOwnProperty.call(incoming,"origAmount")) put("origAmount", incoming.origAmount);
@@ -2898,12 +3561,18 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
   if(incoming.possibleDupOf!=null) put("possibleDupOf", incoming.possibleDupOf);
   /* Cuota de deuda (4.21.0): la marca que baja se adopta; una fila de la nube SIN marca no borra
      la local — el upsert con ignoreDuplicates puede dejar la fila vieja de la nube sin el sufijo. */
-  if(incoming.debtId) put("debtId", incoming.debtId);
+  if(incoming.debtId&&!protects("debtId")) put("debtId", incoming.debtId);
   /* Cargo de recibo (12/10/2026): la marca que baja se adopta, como la de la cuota. Una fila de
      la nube sin marca tampoco borra la local; la RETIRADA viaja por `reciboNo` en el estado, y
      `cargoDeRecibo` la respeta aunque esta fila siga marcada aquí. */
   if(incoming.reciboId && !incoming.debtId && !local.debtId && esFilaDeBanco(local)) put("reciboId", incoming.reciboId);
   if(!local.noteEdited && Object.prototype.hasOwnProperty.call(incoming,"note")) put("note", incoming.note);
+  const confirmed=Object.keys(preserved).filter(function(k){return incoming[k]===preserved[k]||((k==="debtId"||k==="noCard")&&!incoming[k]&&!preserved[k]);});
+  if(confirmed.length){
+    if(out===local)out=Object.assign({},local);
+    const rest=Object.assign({},preserved);confirmed.forEach(function(k){delete rest[k];});
+    if(Object.keys(rest).length)out.uuidPreserved=rest;else delete out.uuidPreserved;
+  }
   /* NO realinear `id` aquí: settings.expenseOrder indexa por id local, y en OB el uuid de la
      nube suele diferir (ignoreDuplicates). Cambiarlo huérfana el orden a mano (4.19.74). Tanda
      propia con remap de expenseOrder + possibleDupOf si hace falta para los PATCH. */
@@ -2912,18 +3581,65 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
 /* Mezcla el pull con lo local: refresca campos de claves ya vistas y solo AÑADE las nuevas.
    Nunca elimina una clave que solo exista en local (contención 4.18.6 / FIN-07). */
 function esFilaDeBanco(e){ return e.source==="ob" || e.source==="ob-hist"; }
-function mergeExpensesFromCloud(prevList, incoming, readStartedAt){
-  const rows=expenseBankIdOrdinals((prevList||[]).concat(incoming||[]));
+/* El nombre forma parte de la clave histórica, pero no crea otra fila con el MISMO UUID.
+   En copias locales antiguas conserva por separado la última edición y la última nota humana;
+   sin reloj, prefiere la copia viva y, a igualdad, la última. Un importe o referencia
+   conflictivos se conservan por separado: la unicidad no puede borrar dinero. */
+function expenseUuidIdentity(e,index){
+  // Un UUID legacy conflictivo no autoriza a borrar dinero ni otra referencia bancaria.
+  if(!e)return null;
+  const first=index.get(e.id);
+  if(!first&&!isExpenseUuid(e.id))return null;
+  for(let p=first;p;p=p.next){
+    const a=p.row;
+    if(a===e||(a.amount===e.amount&&(expenseBankOf(a)||"")===(expenseBankOf(e)||"")&&(a.extId||"")===(e.extId||"")))return p;
+  }
+  // Casi todos los UUID son únicos: solo se comparan campos al volver a ver uno.
+  const entry={row:e,next:first};index.set(e.id,entry);return entry;
+}
+function uniqueExpenseUuids(rows,delSet,index){
+  const at=index||new Map(), out=[]; let changed=false;
+  (rows||[]).forEach(function(e){
+    const id=expenseUuidIdentity(e,at);
+    if(!id||id.at===undefined){if(id)id.at=out.length;out.push(e);return;}
+    changed=true;const i=id.at, a=out[i];
+    const ad=expenseIsTombstoned(a,delSet),ed=expenseIsTombstoned(e,delSet);
+    const winner=ad!==ed?(ad?e:a):((e.expenseEditAt||0)>=(a.expenseEditAt||0)?e:a);
+    const note=(e.noteEditAt||0)!==(a.noteEditAt||0)?((e.noteEditAt||0)>(a.noteEditAt||0)?e:a):(e.noteEdited?e:a.noteEdited?a:winner);
+    const merged=Object.assign({},winner,{note:note.note,noteEdited:note.noteEdited,noteEditAt:note.noteEditAt,notePending:note.notePending});
+    const guarded=Object.assign({},a.uuidPreserved,e.uuidPreserved);
+    const edited=function(x){return !!(x.catStale&&x.catStale.length)||x.catAckAt!=null;};
+    const cat=edited(e)?e:edited(a)?a:winner;
+    if(cat.category!=null){merged.category=cat.category;if(cat.catStale)merged.catStale=cat.catStale;if(cat.catAckAt!=null)merged.catAckAt=cat.catAckAt;}
+    ['debtId','reciboId','noCard'].forEach(function(k){
+      const has=function(x){return Object.prototype.hasOwnProperty.call(x,k)&&x[k]!==undefined;};
+      const selected=has(e)?e:has(a)?a:null;
+      if(selected)merged[k]=selected[k];
+    });
+    if(merged.debtId)delete merged.reciboId;
+    // Lo recuperado de otra copia no se pierde otra vez en un pull viejo.
+    ['category','debtId','noCard'].forEach(function(k){if(merged[k]!==undefined&&a[k]!==e[k])guarded[k]=merged[k];});
+    if(Object.keys(guarded).length)merged.uuidPreserved=guarded;
+    const ap=a.renamePending,ep=e.renamePending;if(ap||ep)merged.renamePending=!ap?ep:!ep?ap:ep.at>=ap.at?ep:ap;
+    out[i]=merged;
+  });
+  return changed?out:rows;
+}
+function mergeExpensesFromCloud(prevList, incoming, readStartedAt, delSet){
+  const ids=new Map(),unique=uniqueExpenseUuids(prevList,delSet,ids), deduped=unique!==prevList;
+  prevList=unique;
+  const rows=expenseBankIdOrdinals(preferBookedExpenses((prevList||[]).concat(incoming||[]),delSet));
   const previousLength=(prevList||[]).length;
   const identitiesChanged=rows.some(function(e,i){return i<previousLength&&e!==prevList[i];});
   prevList=rows.slice(0,previousLength); incoming=rows.slice(previousLength);
-  const byKey={}; const order=[]; const refs=new Map();
-  const mergeKey=function(e){const ref=esFilaDeBanco(e)&&e.extId&&(expenseBankOf(e)||"")+"|"+e.extId;let k=ref&&refs.get(ref);if(!k){k=keyOfExpense(e);if(ref)refs.set(ref,k);}return k;};
+  const byKey={}; const order=[]; const refs=new Map(); let zeroRemoved=false;
+  const mergeKey=function(e){const id=expenseUuidIdentity(e,ids);if(id&&id.key!==undefined)return id.key;const ref=esFilaDeBanco(e)&&e.extId&&obReferenceKey(expenseBankOf(e),e.extId,e.amount);let k=ref&&refs.get(ref);if(!k){k=keyOfExpense(e);if(ref)refs.set(ref,k);}if(id)id.key=k;return k;};
   (prevList||[]).forEach(function(e){
+    if(esFilaDeBanco(e)&&e.amount===0){zeroRemoved=true;return;}
     const k=mergeKey(e);
     if(!byKey[k]){ byKey[k]=e; order.push(k); }
   });
-  let changed=identitiesChanged; let nuevos=0; const seen={};
+  let changed=deduped||identitiesChanged||zeroRemoved; let nuevos=0; const seen={};
   /* EL AVISO DEL MÓVIL GANA AL CARGO DE RECIBO DE SU MISMO DÍA, IMPORTE Y COMERCIO, llegue cuando
      llegue (cuarta revisión, 13/10/2026). Con el aviso ya en la lista el banco no añade su fila y
      el aviso cuenta, como siempre; si el aviso bajaba después, se fundía con la fila marcada y
@@ -2951,11 +3667,16 @@ function mergeExpensesFromCloud(prevList, incoming, readStartedAt){
      aviso. Sin ninguna con su id (lo subió otro móvil), la primera, como siempre: esa espera
      en `espera` hasta ver si detrás viene la suya, sin otra pasada por la tabla. */
   const espera={}, hecha={}; let hayEspera=false;
+  // Un mapa vacío sin confirmados no contiene nada que pueda ocultar la fila.
+  // Los confirmados viven en WeakMap: su presencia mantiene la comprobación completa.
+  const checkDeleted=delSet&&(Object.keys(delSet).length>0||expenseConfirmedSets.has(delSet));
   const refresca=function(k,inc){
+    if(checkDeleted&&expenseIsTombstoned(inc,delSet)&&!expenseIsTombstoned(byKey[k],delSet))return;
     const loc=byKey[k], merged=refreshExpenseFromCloud(loc, inc, readStartedAt);
     if(merged!==loc){ byKey[k]=merged; changed=true; }
   };
   (incoming||[]).forEach(function(inc){
+    if(esFilaDeBanco(inc)&&inc.amount===0)return;
     const k=mergeKey(inc);
     if(seen[k]){
       if(!ganaAviso(k,inc) && !hecha[k] && inc.id===byKey[k].id){ hecha[k]=1; delete espera[k]; refresca(k,inc); }
@@ -3200,8 +3921,142 @@ function perfilSinDatosBanco(s){
 /* Para el push FRECUENTE a la nube (cada ~1,2s): los gastos viven en su tabla `expenses`
    (fuente de verdad), así que NO los duplicamos en el JSONB de app_state → se mantiene ligero
    aunque haya miles de gastos. El backup diario sí guarda el estado completo. */
+// INC-0410: la base y los borradores en conflicto son privados de ESTE dispositivo.
+// Comparar por campo permite conservar dos ediciones disjuntas sin sumar saldos absolutos.
+function goalSyncEqual(a,b){
+  if(a===b) return true;
+  if(!a || !b || typeof a!=="object" || typeof b!=="object" || Array.isArray(a)!==Array.isArray(b)) return false;
+  const ak=Object.keys(a),bk=Object.keys(b);
+  return ak.length===bk.length && ak.every(function(k){ return Object.prototype.hasOwnProperty.call(b,k) && goalSyncEqual(a[k],b[k]); });
+}
+function goalSyncCopy(v){ return v===undefined?undefined:JSON.parse(JSON.stringify(v)); }
+function goalSyncReserves(s){ return {rules:(s.settings||{}).reservaRules||[],log:s.reservaLog||[]}; }
+function goalSyncSnapshot(s){
+  // La copia recuperable conserva también cuentas/deudas y campos desconocidos, sin duplicar históricos.
+  const prune=function(v){
+    if(v==null || typeof v!=="object")return v;
+    if(Array.isArray(v))return v.map(prune);
+    const out={};Object.keys(v).forEach(function(k){
+      if(["expenses","bankTx","profile","_goalSync","_balHistoryRevision"].indexOf(k)>=0 || /(?:history|histories|historico|historicos)$/i.test(k))return;
+      Object.defineProperty(out,k,{value:prune(v[k]),enumerable:true,writable:true,configurable:true});
+    });return out;
+  };
+  return prune(s);
+}
+function goalSyncRecords(list){
+  const out=[];
+  (Array.isArray(list)?list:[]).forEach(function(r){
+    if(!r || !r.local) return;
+    const v={code:r.code,local:goalSyncSnapshot(r.local)};
+    if(r.goalId) v.goalId=r.goalId; if(r.fields) v.fields=goalSyncCopy(r.fields); if(r.notified) v.notified=true;
+    const same=function(x){const a=Object.assign({},x),b=Object.assign({},v);delete a.notified;delete b.notified;return goalSyncEqual(a,b);};
+    const i=out.findIndex(same);if(i<0) out.push(v);else if(v.notified) out[i].notified=true;
+  });
+  return out.slice(-3);
+}
+function goalSyncStore(key,meta){
+  const blocked=goalSyncStore.blocked||(goalSyncStore.blocked={});
+  if(blocked[key]===meta.owner) return [];
+  const cache=goalSyncStore.cache||(goalSyncStore.cache={}),cached=cache[key];
+  if(cached && cached.owner===meta.owner && cached.input===meta.conflicts)return cached.records;
+  const part=key+"_goal_conflicts",disk=mcLoadRaw(part),records=goalSyncRecords(meta.conflicts);
+  records.forEach(function(r){
+    if(disk && disk.owner===meta.owner && (disk.records||[]).some(function(old){const a=Object.assign({},old),b=Object.assign({},r);delete a.notified;delete b.notified;return old.notified && goalSyncEqual(a,b);})) r.notified=true;
+  });
+  const next={owner:meta.owner,records:records};
+  if(!goalSyncEqual(disk,next)) mcSaveRaw(part,next);
+  cache[key]={owner:meta.owner,input:meta.conflicts,records:records};
+  return records;
+}
+function goalSyncNotify(key,meta,emit){
+  const records=goalSyncStore(key,meta),pending=records.filter(function(r){return !r.notified;});
+  if(!pending.length) return;
+  pending.forEach(function(r){r.notified=true;});
+  const next={owner:meta.owner,records:records},part=key+"_goal_conflicts";mcSaveRaw(part,next);
+  // Sin confirmación durable no se emite: el fallback en memoria no prueba un próximo arranque.
+  try{if(!goalSyncEqual(JSON.parse(localStorage.getItem(part)),next)){delete goalSyncStore.cache[key];return;}}catch(e){delete goalSyncStore.cache[key];return;}
+  pending.forEach(function(){emit();});
+}
+function goalSyncClear(key,owner){
+  const disk=mcLoadRaw(key+"_goal_conflicts");
+  if(disk && disk.owner===owner){store.del(key+"_goal_conflicts");delete _mem[key+"_goal_conflicts"];}
+  const blocked=goalSyncStore.blocked||(goalSyncStore.blocked={});blocked[key]=owner;
+  if(goalSyncStore.cache)delete goalSyncStore.cache[key];
+}
+function goalSyncActivate(key,owner){
+  const blocked=goalSyncStore.blocked;if(blocked && blocked[key]===owner)delete blocked[key];
+}
+function mergeGoalsThreeWay(base,local,remote){
+  local=Array.isArray(local)?local:[]; remote=Array.isArray(remote)?remote:[];
+  const index=function(rows){ const m=new Map(); for(const g of rows){ if(!g || typeof g.id!=="string" || !g.id || m.has(g.id)) return null; m.set(g.id,g); } return m; };
+  const l=index(local),r=index(remote),b=Array.isArray(base)?index(base):null;
+  if(!l || !r || !b){
+    return {goals:goalSyncCopy(remote),conflicts:goalSyncEqual(local,remote)?[]:[{code:"goals_base_missing",local:goalSyncCopy(local)}]};
+  }
+  const goals=[],conflicts=[],ids=new Set([...r.keys(),...l.keys(),...b.keys()]);
+  ids.forEach(function(id){
+    const old=b.get(id),left=l.get(id),right=r.get(id);
+    if(!left && !right) return;
+    // Una ausencia respecto a la base borra, salvo una edición concurrente de esa misma meta.
+    if(!left){ if(!old || !goalSyncEqual(right,old)) goals.push(goalSyncCopy(right)); return; }
+    if(!right){ if(!old || !goalSyncEqual(left,old)) goals.push(goalSyncCopy(left)); return; }
+    const merged={},fields=[],keys=new Set([...Object.keys(right),...Object.keys(left),...Object.keys(old||{})]);
+    const financial=["saved","target","done","doneAt"],groups=[financial];
+    keys.forEach(function(k){if(financial.indexOf(k)<0)groups.push([k]);});
+    groups.forEach(function(group){
+      const has=function(o,k){ return !!o && Object.prototype.hasOwnProperty.call(o,k); };
+      const same=function(a,c){ return group.every(function(k){return has(a,k)===has(c,k) && (!has(a,k) || goalSyncEqual(a[k],c[k]));}); };
+      let source=right;
+      if(same(left,old)) source=right;
+      else if(same(right,old)) source=left;
+      else if(!same(left,right)) fields.push.apply(fields,group);
+      group.forEach(function(k){if(has(source,k))Object.defineProperty(merged,k,{value:goalSyncCopy(source[k]),enumerable:true,writable:true,configurable:true});});
+    });
+    goals.push(merged);
+    if(fields.length) conflicts.push({code:"goals_field_conflict",goalId:id,fields:fields,local:goalSyncCopy(left)});
+  });
+  return {goals:goals,conflicts:conflicts};
+}
+function goalSyncReserveGoalConflict(base,local,conflicts){
+  const touched=new Set();
+  ["rules","log"].forEach(function(k){
+    const old=new Map((base[k]||[]).filter(Boolean).map(function(r){return [r.id,r];}));
+    (local[k]||[]).forEach(function(r){if(r && r.goalId && !goalSyncEqual(r,old.get(r.id)))touched.add(r.goalId);});
+  });
+  return conflicts.some(function(c){return c.code==="goals_field_conflict" && touched.has(c.goalId);});
+}
+function goalSyncPull(prev,remote,owner,revision,dropLocal,localNewer){
+  const kept=!dropLocal && prev._goalSync && prev._goalSync.owner===owner?prev._goalSync:null;
+  const reserves=goalSyncReserves(remote),baseReserves=kept&&kept.reserves||reserves;
+  const newer=localNewer===undefined?(prev._savedAt||0)>(remote._savedAt||0):localNewer;
+  const localReserves=goalSyncReserves(prev),localChanged=!goalSyncEqual(localReserves,baseReserves),remoteChanged=!goalSyncEqual(reserves,baseReserves);
+  // Una reserva local no puede quedar aplicada si el conflicto de su meta descarta el dinero.
+  const keepLocalReserves=!dropLocal && (kept?localChanged&&!remoteChanged:newer);
+  const goalMerge=kept?mergeGoalsThreeWay(kept?kept.base:null,prev.goals,remote.goals):null;
+  const reserveGoalConflict=!!kept && keepLocalReserves && goalSyncReserveGoalConflict(baseReserves,localReserves,goalMerge.conflicts);
+  const reject=!!kept && !dropLocal && localChanged && remoteChanged && !goalSyncEqual(localReserves,reserves) || reserveGoalConflict;
+  let merged;
+  if(!kept){
+    merged={goals:goalSyncCopy(!dropLocal && newer?prev.goals||[]:remote.goals||[]),conflicts:[]};
+  } else if(reject){
+    merged={goals:goalSyncCopy(remote.goals||[]),conflicts:[{code:"goals_reserve_conflict",local:goalSyncSnapshot(prev)}]};
+  } else merged=goalMerge;
+  const conflicts=kept?goalSyncRecords(kept.conflicts):[];
+  merged.conflicts.forEach(function(c){ if(!conflicts.some(function(v){ return goalSyncEqual(v,c); })) conflicts.push(c); });
+  return {goals:merged.goals,_goalSync:{owner:owner,revision:revision||null,base:goalSyncCopy(remote.goals||[]),reserves:goalSyncCopy(reserves),keepLocalReserves:keepLocalReserves && !reject,cloudOnly:reject,conflicts:goalSyncRecords(conflicts)}};
+}
+function goalSyncAck(prev,owner,sent,expected,revision){
+  const meta=prev._goalSync;
+  if(meta && (meta.owner!==owner || meta.revision!==expected)) return prev;
+  return Object.assign({},prev,{_goalSync:{owner:owner,revision:revision,base:goalSyncCopy(sent.goals||[]),reserves:goalSyncCopy(goalSyncReserves(sent)),conflicts:meta?(meta.conflicts||[]):[]}});
+}
+function goalSyncMetadataOnly(prev,next){
+  if(!prev || prev._goalSync===next._goalSync) return false;
+  return [...new Set([...Object.keys(prev),...Object.keys(next)])].every(function(k){ return k==="_goalSync" || k==="_savedAt" || prev[k]===next[k]; });
+}
 function slimForCloud(s){
-  const c=perfilSinDatosBanco(Object.assign({},s));delete c.expenses;delete c.bankTx;
+  const c=perfilSinDatosBanco(Object.assign({},s));delete c.expenses;delete c.bankTx;delete c.obAbsorbedIssue;
+  delete c._goalSync;
   if(s.accountBalanceHistory){
     const hist={};Object.keys(s.accountBalanceHistory).forEach(function(key){hist[key]=s.accountBalanceHistory[key].slice(-14);});
     c.accountBalanceHistory=hist;
@@ -3272,6 +4127,8 @@ const bio = {
    banner, o dos bancos a la vez) lanzan bankConnect, la segunda vuelve con error=invalid_request
    aunque el banco diga «Operación realizada correctamente». Un candado compartido por Cartera y
    Mis bancos evita gastar el permiso dos veces. */
+// El SDK conserva el Response en context; no se deduce la cuota del texto libre del banco.
+function bankRateLimited(e){ return !!(e&&((e.context&&e.context.status===429)||e.message==="rate_limit")); }
 var _bankConnectBusy=null;
 /* TRADE REPUBLIC POR OPEN BANKING: CONVIVE, NO SE BLOQUEA (2026-08-01).
    El 31/7 esto se cerró a cal y canto —`bankConnectBlocked`— tras el susto de «todos los gastos

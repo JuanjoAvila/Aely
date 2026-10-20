@@ -6,9 +6,12 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsonResp } from "../_shared/myinvestor.ts";
 import { withCors } from "../_shared/cors.ts";
+import { readInput } from "../_shared/request_body.ts";
 
 Deno.serve(withCors(async (req: Request) => {
   try {
+    const input = await readInput(req, "myinvestor-disconnect");
+    if (!input.ok) return jsonResp({ ok: false, error: input.error }, input.status);
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const supa = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: req.headers.get("Authorization") || "" } },

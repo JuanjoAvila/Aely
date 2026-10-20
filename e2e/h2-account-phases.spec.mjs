@@ -1,0 +1,104 @@
+import {test,expect} from '@playwright/test';
+import {seedLoggedInDashboard,dismissNews,installFixtureClock} from './fixtures.mjs';
+const previous='2026-09-20T01:00:00.000Z',fresh='2026-09-26T11:59:00.000Z';
+for(const reconnect of [false,true])test('round2 '+(reconnect?'UID reconnect':'new connection')+' binds principal and removes absent extra',async({page})=>{
+ await page.route('**/*',r=>new URL(r.request().url()).hostname==='127.0.0.1'?r.continue():r.abort());
+ await installFixtureClock(page);
+ await seedLoggedInDashboard(page,{hasBankLink:true,accounts:[{id:'main',name:'Principal sintética',ent:'caixabank',role:'fijos',value:50,...(reconnect?{bankUid:'old'}:{})}],
+  obAccounts:[{key:'gone',ent:'caixabank',aspsp:'CaixaBank',name:'Cuenta retirada',value:30,cur:'EUR'}],
+  expenses:[],fixed:[],debts:[],oneoffs:[],flows:[],investments:[],bankTx:[],settings:{autoPrices:false,lang:'es',theme:'green'},
+  __cloudRows:{bank_links:[{aspsp_name:'CaixaBank',status:'active'}]},
+  __cloudFns:{'bank-sync':{error:null,data:{ok:true,links:[{aspsp:'CaixaBank',ok:true,accountPhases:1,accounts:[{uid:'new',ok:true,balanceOk:true,balanceAt:fresh,balances:[{type:'ITAV',amount:70,currency:'EUR'}],transactions:[]}]}]}}}});
+ await page.goto('/');await expect(page.locator('.botnav')).toBeVisible();await page.waitForFunction(()=>!document.getElementById('mc-load'));await dismissNews(page);
+ await page.locator('.botnav-tab[data-tour="cartera"]').click();
+ await page.getByRole('button',{name:await page.evaluate(()=>t('v4_sync_banks')),exact:true}).click();
+ await expect.poll(()=>page.evaluate(()=>{const s=JSON.parse(localStorage.getItem('micartera_v3')||'{}');return Math.round([...(s.accounts||[]),...(s.obAccounts||[])].reduce((n,a)=>n+a.value,0)*100);})).toBe(7000);
+ const principal=page.locator('.v4-card-list button.v4-mov').filter({hasText:'Principal sintética'}).first();
+ await expect(principal).toContainText('70');await expect(page.locator('[data-ob-key="gone"]')).toHaveCount(0);await expect(page.locator('[data-ob-key="new"]')).toHaveCount(0);
+ const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('micartera_v3')));
+ expect(saved.accounts[0].bankUid).toBe('new');expect(Object.hasOwn(saved.accounts[0],'balanceAt')).toBe(false);expect(Object.hasOwn(saved.accounts[0],'balanceStale')).toBe(false);expect(saved.obAccounts).toHaveLength(0);
+});
+for(const [lang,warning,stale] of [['es','no se ha podido actualizar algún saldo','sin actualizar'],['en','some balances could not be updated','not updated'],['ca','no s’ha pogut actualitzar algun saldo','sense actualitzar']]){
+ test(lang+' H2 retains failed-account amount and shows partial balance warning',async({page})=>{
+  await page.route('**/*',r=>new URL(r.request().url()).hostname==='127.0.0.1'?r.continue():r.abort());
+  await installFixtureClock(page);
+  await seedLoggedInDashboard(page,{lang,hasBankLink:true,accounts:[],expenses:[],fixed:[],debts:[],oneoffs:[],flows:[],investments:[],bankTx:[],
+   settings:{autoPrices:false,lang,theme:'green',expenseBanks:['caixabank']},
+   obAccounts:[{key:'a',ent:'caixabank',aspsp:'CaixaBank',name:'Cuenta A',value:125,cur:'EUR',balanceAt:previous},{key:'b',ent:'caixabank',aspsp:'CaixaBank',name:'Cuenta B',value:80,cur:'EUR',balanceAt:previous}],
+   __cloudRows:{bank_links:[{aspsp_name:'CaixaBank',status:'active'}]},
+   __cloudFns:{'bank-sync':{error:null,data:{ok:true,links:[{aspsp:'CaixaBank',ok:true,accountPhases:1,accounts:[{uid:'a',ok:true,balanceOk:false,balanceError:'eb_503',balances:[],transactions:[]},{uid:'b',ok:true,balanceOk:true,balanceAt:fresh,balances:[{type:'ITAV',amount:100,currency:'EUR'}],transactions:[]}]}]}}}
+  });
+  await page.goto('/');await expect(page.locator('.botnav')).toBeVisible();await page.waitForFunction(()=>!document.getElementById('mc-load'));await dismissNews(page);
+  await page.evaluate(async lang=>{await ensureLangPack(lang);},lang);
+  await page.locator('.botnav-tab[data-tour="cartera"]').click();
+  const syncName=await page.evaluate(()=>t('v4_sync_banks'));
+  await page.getByRole('button',{name:syncName,exact:true}).click();
+  await expect(page.locator('.sync-report')).toContainText(warning);
+  await expect.poll(()=>page.evaluate(()=>{const s=JSON.parse(localStorage.getItem('micartera_v3')||'{}');return (s.obAccounts||[]).reduce((n,a)=>n+Math.round(a.value*100),0);})).toBe(22500);
+  await expect(page.locator('[data-ob-key="a"]')).toContainText(stale);
+  await expect(page.locator('[data-ob-key="a"]')).toContainText('125');
+  await expect(page.locator('[data-ob-key="b"]')).toContainText('100');
+  const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('micartera_v3')).obAccounts);
+  expect(saved.find(a=>a.key==='a').balanceAt).toBe(previous);expect(saved.find(a=>a.key==='a').stale).toBe(true);expect(Object.hasOwn(saved.find(a=>a.key==='b'),'balanceAt')).toBe(false);
+  expect(await page.evaluate(()=>(window.__e2eInvokes||[]).find(x=>x.name==='bank-sync').body.accountPhases)).toBe(1);
+ });
+}
+test('UID promoted account sheet uses its own balance date and stale flag',async({page})=>{
+ await page.route('**/*',r=>new URL(r.request().url()).hostname==='127.0.0.1'?r.continue():r.abort());
+ await installFixtureClock(page);
+ await seedLoggedInDashboard(page,{hasBankLink:true,accounts:[
+  {id:'a',ent:'caixabank',name:'Principal A',bankUid:'a',role:'fijos',value:125,balanceAt:previous,balanceStale:true,lastSync:fresh},
+  {id:'b',ent:'caixabank',name:'Principal B',bankUid:'b',role:'fijos',value:100,balanceAt:fresh,balanceStale:false,lastSync:previous}],
+  obAccounts:[],expenses:[],fixed:[],debts:[],oneoffs:[],flows:[],investments:[],settings:{autoPrices:false,lang:'es',theme:'green'}});
+ await page.goto('/');await expect(page.locator('.botnav')).toBeVisible();await page.waitForFunction(()=>!document.getElementById('mc-load'));await dismissNews(page);
+ await page.locator('.botnav-tab[data-tour="cartera"]').click();
+ await page.locator('.v4-card-list button.v4-mov').filter({hasText:'Principal A'}).first().click();
+ await expect(page.locator('.v4-account-stale')).toBeVisible();
+ const expected=await page.evaluate(d=>new Date(d).toLocaleString(),previous);
+ await expect(page.locator('.v4-account-lock')).toContainText(expected);
+ await page.locator('.v4-sheet-back').click({position:{x:2,y:2}});
+ await page.locator('.v4-card-list button.v4-mov').filter({hasText:'Principal B'}).first().click();
+ await expect(page.locator('.v4-account-stale')).toHaveCount(0);
+ const freshExpected=await page.evaluate(d=>new Date(d).toLocaleString(),fresh);
+ await expect(page.locator('.v4-account-lock')).toContainText(freshExpected);
+});
+
+for(const promoted of [false,true])test('R6 '+(promoted?'promoted stale extra':'failed principal')+' recovers twice through bank sync',async({page})=>{
+ // A recent prior date isolates the failure flag from the separate 48-hour age warning.
+ const recent='2026-09-25T12:00:00.000Z';
+ const links=amount=>[{aspsp:'CaixaBank',ok:true,accountPhases:1,accounts:[{uid:'a',ok:true,balanceOk:amount!==null,balanceAt:fresh,balances:amount===null?[]:[{type:'ITAV',amount,currency:'EUR'}],transactions:[]}]}];
+ await page.route('**/*',r=>new URL(r.request().url()).hostname==='127.0.0.1'?r.continue():r.abort());
+ await installFixtureClock(page);
+ await seedLoggedInDashboard(page,{hasBankLink:true,
+  accounts:promoted?[]:[{id:'main',name:'Principal sintética',ent:'caixabank',role:'fijos',bankUid:'a',value:125,balanceAt:recent}],
+  obAccounts:promoted?[{key:'a',ent:'caixabank',aspsp:'CaixaBank',name:'Extra sintética',value:125,cur:'EUR',balanceAt:recent}]:[],
+  expenses:[],fixed:[],debts:[],oneoffs:[],flows:[],investments:[],bankTx:[],settings:{autoPrices:false,lang:'es',theme:'green'},
+  __cloudRows:{bank_links:[{aspsp_name:'CaixaBank',status:'active'}]},__cloudFns:{'bank-sync':{error:null,data:{ok:true,links:links(null)}}}});
+ await page.goto('/');await expect(page.locator('.botnav')).toBeVisible();await page.waitForFunction(()=>!document.getElementById('mc-load'));await dismissNews(page);
+ await page.locator('.botnav-tab[data-tour="cartera"]').click();
+ const syncButton=page.getByRole('button',{name:await page.evaluate(()=>t('v4_sync_banks')),exact:true});
+ const saved=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('micartera_v3')));
+ await syncButton.click();
+ await expect.poll(async()=>{const s=await saved();return promoted?s.obAccounts[0]?.stale:s.accounts[0]?.balanceStale;}).toBe(true);
+ await expect(page.locator('.sync-report')).toBeVisible();await page.locator('.sync-report-back').click({position:{x:2,y:2}});
+ if(promoted){
+  expect((await saved()).obAccounts[0].balanceAt).toBe(recent);
+  await page.locator('[data-ob-key="a"]').click();
+  await page.locator('.v4-sheet .v4-ficha-op').filter({hasText:await page.evaluate(()=>t('ac_role_fijos'))}).click();
+  await expect.poll(async()=>(await saved()).accounts[0]?.balanceStale).toBe(true);
+  if(await page.locator('.v4-sheet-back').count())await page.locator('.v4-sheet-back').click({position:{x:2,y:2}});
+ }
+ const openPrincipal=async()=>{const s=await saved();await page.locator('.v4-card-list button.v4-mov').filter({hasText:s.accounts[0].name}).first().click();};
+ await openPrincipal();await expect(page.locator('.v4-account-stale')).toBeVisible();
+ expect((await saved()).accounts[0].value*100).toBe(12500);expect((await saved()).accounts[0].balanceAt).toBe(recent);
+ await page.locator('.v4-sheet-back').click({position:{x:2,y:2}});
+ for(const amount of [100,110]){
+  // Change the existing synthetic backend response; the UI and real cloud.bankSync still run.
+  await page.evaluate(async next=>{const reply=await window.supabase.createClient().functions.invoke('bank-sync',{body:{fixtureControl:true}});reply.data.links=next;},links(amount));
+  await syncButton.click();await expect.poll(async()=>(await saved()).accounts[0].value*100).toBe(amount*100);
+  await expect(page.locator('.sync-report')).toBeVisible();await page.locator('.sync-report-back').click({position:{x:2,y:2}});
+  const s=await saved();expect(Object.hasOwn(s.accounts[0],'balanceStale')).toBe(false);expect(s.accounts[0].balanceAt).toBe(recent);expect(s.obAccounts).toHaveLength(0);
+  await openPrincipal();await expect(page.locator('.v4-account-stale')).toHaveCount(0);
+  await page.locator('.v4-sheet-back').click({position:{x:2,y:2}});
+ }
+});

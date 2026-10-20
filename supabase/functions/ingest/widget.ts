@@ -49,12 +49,12 @@ export function widgetStart(data: any, now: number): number | null {
 // deno-lint-ignore no-explicit-any
 export function widgetSnapshot(data: any, rows: FilaGasto[], now: number, payment: {
   id: string; event: string; key: string;
-}): Record<string, number | string> | null {
+}, owner?: string): Record<string, number | string> | null {
   const candidateStart = widgetStart(data, now);
   if (candidateStart == null) return null;
   const start: number = candidateStart;
   const w = data.widgetPeriod, cycle = w.kind === "ciclo", end = cycle ? tomorrow(now) : Infinity;
-  const visible = filasComoLaApp(rows, data.deleted).filter(f => {
+  const visible = filasComoLaApp(rows, data.deleted, data.obAbsorbedPending, owner, data.obAbsorbedConfirmed).filter(f => {
     const ms = Date.parse(String(f.fecha)); return ms >= start && ms < end;
   });
   // Una lectura vacía/parcial o una fila retirada no prueba el delta de este pago.

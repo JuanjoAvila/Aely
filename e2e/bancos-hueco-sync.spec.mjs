@@ -79,7 +79,7 @@ test("el sync a demanda recupera el hueco, no duplica y dice sin diálogo lo que
   const calls = await syncCalls(page);
   expect(calls).toHaveLength(1);
   // Primera pulsación: todavía no hay nada que acusar, pero `acks` viaja para que el servidor espere.
-  expect(calls[0].body).toEqual({ recoverGaps: true, acks: {} });
+  expect(calls[0].body).toEqual({ recoverGaps: true, acks: {}, accountPhases: 1 });
 
   await expect.poll(() => page.evaluate(() => {
     const rows = JSON.parse(localStorage.getItem("micartera_v3_exp") || "[]");
@@ -116,7 +116,7 @@ test("el aviso no deja la sincronización atascada: se puede volver a pulsar", a
   await pulsa();
   await expect.poll(async () => (await syncCalls(page)).length).toBe(2);
   // La segunda devuelve el acuse de la primera, tal cual lo entregó el servidor y por banco.
-  expect((await syncCalls(page))[1].body).toEqual({ recoverGaps: true, acks: { CaixaBank: ack } });
+  expect((await syncCalls(page))[1].body).toEqual({ recoverGaps: true, acks: { CaixaBank: ack }, accountPhases: 1 });
 });
 
 test("un sync que no has pedido tú no enseña avisos del tramo", async ({ page }) => {

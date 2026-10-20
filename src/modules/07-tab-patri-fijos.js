@@ -15,10 +15,8 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
   const [saldo,setSaldo]=React.useState("");
   const [corrigiendo,setCorrigiendo]=React.useState(false);
   const [renombrando,setRenombrando]=React.useState(false);
-  /* Ref del importe tecleado: al cerrar por atrás/swipe, `useBackClose`/`useSheetSwipe` se
-     quedan con el `onClose` del primer render (deps solo `[open]`). Sin ref, volcaban el saldo
-     vacío de la apertura. Rechazo 4.19.67 paso 5, 2026-09-12: *«si solo pones un número… y lo
-     quitas… no se guarda»* — el blur no llega al cerrar con el foco dentro. */
+  /* El borrador debe sobrevivir al cierre por atrás/swipe sin depender del blur: al cerrar
+     con el foco dentro no siempre llega (rechazo 4.19.67 paso 5, 2026-09-12). */
   const saldoRef=React.useRef("");
   const cuentaRef=React.useRef(cuenta);
   const conectadaRef=React.useRef(false);
@@ -43,8 +41,13 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
   /* Cerrar = volcar el saldo PRIMERO. El blur sigue por si salta al nombre con el teclado
      («flechita»), que era el único camino que le funcionaba. */
   const cerrar=function(){ guardaSaldo(); onClose(); };
-  useBackClose(!!open, cerrar);
-  const swipe=useSheetSwipe(!!open, cerrar);
+  /* Atrás conserva su callback de apertura, pero onSaldo usa los totales del padre. Un gasto
+     recibido con la ficha abierta —también durante la salida— cambia la base necesaria para
+     guardar el saldo tecleado. Resolver el cierre vigente AL TERMINAR evita usar esos totales
+     viejos y deja que atrás salga con la misma animación que el arrastre (18/10/2026). */
+  const cerrarRef=React.useRef(cerrar); cerrarRef.current=cerrar;
+  const swipe=useSheetSwipe(!!open, function(){ cerrarRef.current(); });
+  useBackClose(!!open, swipe.close);
   if(!open||!cuenta) return null;
   const a=cuenta;
   cuentaRef.current=a;
@@ -157,9 +160,10 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
   };
   const title=a.name||banco;
   const sub=conectada?tf("ac_synced_sub",{bank:banco}):tf("ac_manual_sub",{bank:banco});
-  const staleAge=conectada&&a.lastSync?Date.now()-dateMs(a.lastSync):0;
-  const stale=staleAge>48*60*60*1000;
-  const staleDay=stale?new Date(a.lastSync).toLocaleDateString(loc(),staleAge>6*24*60*60*1000?{day:"numeric",month:"short"}:{weekday:"long"}):"";
+  const balanceDate=a.balanceAt||a.lastSync;
+  const staleAge=conectada&&balanceDate?Date.now()-dateMs(balanceDate):0;
+  const stale=!!a.balanceStale||staleAge>48*60*60*1000;
+  const staleDay=stale&&balanceDate?new Date(balanceDate).toLocaleDateString(loc(),staleAge>6*24*60*60*1000?{day:"numeric",month:"short"}:{weekday:"long"}):"";
   return ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:cerrar},
       React.createElement("div",Object.assign({className:"v4-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); },style:{maxHeight:"88dvh"}}, swipe.sheetTouch),
@@ -180,7 +184,7 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
             deltaMes!=null&&Math.abs(deltaMes)>=.005 && React.createElement("span",{className:"v4-account-delta"+(deltaMes<0?" down":"")},
               tf(deltaMes<0?"ac_delta_month_down":"ac_delta_month",{x:eur(Math.abs(deltaMes))})),
             projected!=null && React.createElement("span",null,tf("ac_eom",{x:eur(projected)})),
-            stale && React.createElement("span",{className:"v4-account-stale"},tf("st_stale",{day:staleDay}))),
+            stale && React.createElement("span",{className:"v4-account-stale"},staleDay?tf("st_stale",{day:staleDay}):t("pt_ob_stale"))),
           !missingFx&&history.length>=2
             ? React.createElement(React.Fragment,null,
                 React.createElement("div",{className:"v4-account-spark","aria-label":t("ac_spark_from")+" · "+t("ac_spark_to")},
@@ -191,7 +195,7 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
                 React.createElement("div",{className:"v4-account-spark-foot"},
                   React.createElement("span",null,new Date(history[0].day+"T12:00:00").toLocaleDateString(loc(),{day:"numeric",month:"short"})),React.createElement("span",null,t("ac_spark_to"))))
             : React.createElement("div",{className:"v4-account-spark-new"},t("ac_spark_new")),
-          conectada && React.createElement("div",{className:"v4-account-lock"},t("pt_ficha_banco")+(a.lastSync?" · "+tf("pt_ficha_sync",{x:new Date(a.lastSync).toLocaleString()}):""))
+          conectada && React.createElement("div",{className:"v4-account-lock"},t("pt_ficha_banco")+(balanceDate?" · "+tf("pt_ficha_sync",{x:new Date(balanceDate).toLocaleString()}):""))
         ),
         React.createElement("div",{className:"v4-account-share",style:{padding:"14px 0 2px"}},
           React.createElement("div",{className:"v4-ficha-k"}, t("ac_share_q")),
@@ -279,8 +283,8 @@ function AssetSheet({asset,set,onClose}){
   const [name,setName]=useState(asset.name||"");
   const [raw,setRaw]=useState(asset.value==null?"":String(asset.value));
   const [kind,setKind]=useState(asset.kind||"piso");
-  useBackClose(true,onClose);
   const swipe=useSheetSwipe(true,onClose);
+  useBackClose(true,swipe.close);
   const amount=Number(raw.replace(",","."));
   const valid=name.trim()&&/^\d+(?:[.,]\d{1,2})?$/.test(raw)&&Number.isSafeInteger(Math.round(amount*100));
   const save=function(){
@@ -331,79 +335,10 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
     if(window.__mcBootReady) ready();
     return function(){ window.removeEventListener("mc-boot-ready",ready); };
   },[balanceReady]);
-  /* Long-press ordenar cuentas (refs SIEMPRE arriba: no pueden vivir dentro de `if(v4Embed)`).
-     Callback ref (no solo useEffect): `OrderableSections` puede remontar el bloque y el efecto
-     se quedaba con listeners en un nodo muerto → el HOLD nunca encendía. */
-  const listRef=React.useRef(null);
-  const listCleanRef=React.useRef(null);
-  const dragAccRef=React.useRef(null);
-  const suppressSheetRef=React.useRef(0);
-  const [dragAcc,setDragAcc]=React.useState(null);
-  const bindListDrag=React.useCallback(function(node){
-    if(listCleanRef.current){ listCleanRef.current(); listCleanRef.current=null; }
-    listRef.current=node;
-    if(!node || parte==="bienes") return;
-    const HOLD=380;
-    const onTS=function(e){
-      const btn=e.target.closest&&e.target.closest("button.v4-mov[data-account-key]");
-      if(!btn||!node.contains(btn)) return;
-      if(e.target.closest&&e.target.closest(".edit-link,.v4-link-mini,a,input")) return;
-      const tch=e.touches&&e.touches[0]; if(!tch) return;
-      const id=btn.getAttribute("data-account-key");
-      const d={from:id,to:id,startX:tch.clientX,startY:tch.clientY,active:false,timer:null};
-      d.timer=setTimeout(function(){
-        d.active=true;
-        node.classList.add("reordering");
-        dragAccRef.current=d;
-        setDragAcc({from:d.from,to:d.to});
-        try{ navigator.vibrate&&navigator.vibrate(15); }catch(_){}
-      },HOLD);
-      dragAccRef.current=d;
-    };
-    const onTM=function(e){
-      const d=dragAccRef.current; if(!d) return;
-      const tch=e.touches&&e.touches[0]; if(!tch) return;
-      if(!d.active){
-        if(Math.abs(tch.clientX-d.startX)>10||Math.abs(tch.clientY-d.startY)>10){
-          clearTimeout(d.timer); dragAccRef.current=null;
-        }
-        return;
-      }
-      e.preventDefault();
-      e.stopPropagation();
-      const hit=document.elementFromPoint(tch.clientX,tch.clientY);
-      const row=hit&&hit.closest&&hit.closest("button.v4-mov[data-account-key]");
-      if(!row||!node.contains(row)) return;
-      const to=row.getAttribute("data-account-key");
-      if(!to||to===d.to) return;
-      d.to=to; setDragAcc({from:d.from,to:d.to});
-    };
-    const onTE=function(){
-      const d=dragAccRef.current; if(!d) return;
-      clearTimeout(d.timer);
-      if(d.active){
-        node.classList.remove("reordering");
-        suppressSheetRef.current=Date.now()+450;
-        if(d.from!==d.to) set(function(s){ return moveAccountInList(s,d.from,d.to); });
-        setDragAcc(null);
-      }
-      dragAccRef.current=null;
-    };
-    node.addEventListener("touchstart",onTS,{passive:true});
-    node.addEventListener("touchmove",onTM,{passive:false});
-    node.addEventListener("touchend",onTE);
-    node.addEventListener("touchcancel",onTE);
-    listCleanRef.current=function(){
-      node.removeEventListener("touchstart",onTS);
-      node.removeEventListener("touchmove",onTM);
-      node.removeEventListener("touchend",onTE);
-      node.removeEventListener("touchcancel",onTE);
-      clearTimeout((dragAccRef.current&&dragAccRef.current.timer)||0);
-    };
-  },[parte,set]);
-  React.useEffect(function(){
-    return function(){ if(listCleanRef.current){ listCleanRef.current(); listCleanRef.current=null; } };
-  },[]);
+  const accountDrag=useListLongPress("button.v4-mov[data-account-key]","data-account-key",parte!=="bienes",function(from,to){
+    set(function(s){ return moveAccountInList(s,from,to); });
+  });
+  const bindListDrag=accountDrag.bind, dragAcc=accountDrag.drag, suppressSheetRef=accountDrag.suppressClickRef;
   // Quitar a mano una cuenta manual del patrimonio (la del onboarding no se va sola al desloguear el banco:
   // las manuales viven en state.accounts, no en obAccounts, y bankDisconnect solo purga obAccounts).
   const removeAccount=(id)=>{
@@ -488,7 +423,7 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
       return a.name||"";
     };
     // Cuenta re-anclada por Open Banking: su saldo lo trae el banco (no se edita a mano).
-    const isSynced=function(a){ return !!a.bankIban; };
+    const isSynced=function(a){ return !!(a.bankIban||a.bankUid); };
     const badge=function(txt, color){
       return React.createElement("span",{className:"v4-ob-badge",style:{background:color+"22",color:color}}, txt);
     };

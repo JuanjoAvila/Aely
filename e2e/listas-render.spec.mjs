@@ -46,6 +46,7 @@ test("Plan › Deudas: se pinta una tarjeta por deuda, con su nombre", async ({ 
   await expect(cards).toHaveCount(2);
   await expect(cards.nth(0)).toContainText("Coche");
   await expect(cards.nth(1)).toContainText("Préstamo estudios");
+  await expect(cards.nth(0).getByRole("button",{name:"Editar Coche",exact:true})).toBeVisible();
 });
 
 test("Plan › Deudas: sin deudas no quedan tarjetas fantasma", async ({ page }) => {
@@ -70,6 +71,7 @@ test("Metas: una tarjeta por meta, con lo ahorrado y el objetivo", async ({ page
   await expect(cards.nth(0)).toContainText("4000 €");
   await expect(cards.nth(0)).toContainText("38%");
   await expect(cards.nth(1)).toContainText("Colchón");
+  await expect(cards.nth(0).getByRole("button",{name:"Editar Viaje a Japón",exact:true})).toBeVisible();
 });
 
 // El resumen no debe recortar el estado ni ocupar el hueco de una meta activa con una terminada.

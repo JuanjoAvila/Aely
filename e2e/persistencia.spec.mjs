@@ -15,6 +15,31 @@ test.beforeEach(async ({ page }, testInfo) => {
 const KEY = "micartera_v3";
 const KEY_EXP = "micartera_v3_exp";
 
+for(const empty of [false,true])test(`INC1710R REAL dirty pending survives ${empty?'empty':'normal'} activation pagehide`,{annotation:{type:'own-clock',description:'Controlled persistence scheduler; actual pagehide performs the pending write'}},async({page})=>{
+  await seedLoggedInDashboard(page,{__seedOnce:true,__cloudRows:{profiles:[{is_admin:true}]},budget:500,settings:{autoPrices:false,theme:'green'}});
+  await page.addInitScript(()=>{
+    if(!sessionStorage.getItem('_incDirtyPrepared')){
+      sessionStorage.setItem('_incDirtyPrepared','1');
+      localStorage.setItem('_mcAdminProfile',JSON.stringify({uid:'e2e-user',isAdmin:true}));
+    }else sessionStorage.setItem('_incDirtyBootReal',localStorage.getItem('micartera_v3'));
+  });
+  await page.goto('/');await expect(page.locator('.botnav')).toBeVisible();await page.locator('#mc-load').waitFor({state:'detached'});await dismissNews(page);
+  await page.locator('.v4-avatar').click();await page.getByRole('button',{name:'Ir a Ajustes',exact:true}).click();
+  await page.getByRole('button',{name:/Accesibilidad/}).first().click();
+  // Hold ONLY newly scheduled persistence callbacks. No sleep or retry can make the
+  // edit durable: this test requires App's actual pagehide flush before the new boot.
+  await page.evaluate(()=>{const schedule=window.setTimeout;window._incHeldPersist=0;window.setTimeout=function(fn,ms,...args){if(ms===400){window._incHeldPersist++;return schedule(fn,60000,...args);}return schedule(fn,ms,...args);};});
+  await page.getByRole('button',{name:/Reducir animaciones/}).click();
+  const pending=await page.evaluate(()=>({held:window._incHeldPersist,saved:JSON.parse(localStorage.getItem('micartera_v3')).settings.reduceMotion}));
+  expect(pending.held).toBeGreaterThan(0);expect(pending.saved).not.toBe(true);
+  await page.getByRole('button',{name:empty?/Probar con la app vacía/:/Banco de pruebas/}).click();
+  await Promise.all([page.waitForEvent('load'),page.getByRole('dialog').getByRole('button',{name:empty?'Entrar vacío':'Entrar a probar',exact:true}).click()]);
+  await page.waitForFunction(()=>document.readyState==='complete'&&typeof mcSandbox==='function');await page.locator('#mc-load').waitFor({state:'detached'});
+  const result=await page.evaluate(()=>({bootReal:JSON.parse(sessionStorage.getItem('_incDirtyBootReal')),real:mcLoadRaw('micartera_v3'),sandbox:mcSandbox(),empty:mcSandboxVacio(),budget:mcLoadRaw('micartera_sandbox').budget}));
+  expect(result.bootReal.settings.reduceMotion).toBe(true);expect(result.real.settings.reduceMotion).toBe(true);expect(result.real.budget).toBe(500);
+  expect(result.sandbox).toBe(true);expect(result.empty).toBe(empty);expect(result.budget).toBe(empty?0:500);
+});
+
 test("widget se refresca al volver por el evento nativo sin visibilitychange", async ({ page }) => {
   await seedLoggedInDashboard(page, {
     budget: 100,

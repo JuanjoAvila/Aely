@@ -1793,21 +1793,21 @@ for(const lang of ["es","en","ca"])test(`promoción117: entrega por superficies,
 
 });
 
-/* Promoción137 (16/10/2026): la beta 137 (MyInvestor conserva las posiciones) sube entera sobre la producción 136 (4941a061). Aquí no se inyecta
- * nada: se mira el catálogo que lleva el bundle. La familia ve la nota de MyInvestor más las 233 que ya tenía producción, y el panel de revisión
- * queda sin nada que pedir. Las versiones se leen fila a fila (ver la nota del 12/10 sobre «v4.26.11» + «22 sep»).
- * Hotfix 4.26.142 (18/10): una nota más arriba (reserva de una regla borrada), sin tandas. */
-for(const lang of ["es","en","ca"])test(`promoción137 + hotfix142: dos notas, el historial de producción y el panel vacío (${lang})`,async({page})=>{
+/* Promoción159 (20/10/2026): la ronda de beta 138 a 159 sube entera sobre la producción 4.26.142 (abd76706, hotfix encima de la 137). Aquí no se inyecta
+ * nada: se mira el catálogo que lleva el bundle. La familia ve UNA nota más las 235 que ya tenía producción (el hotfix 142 incluido); las notas 138 a 141
+ * y 143 a 158 de beta no salen ni desplegando todo el historial, y el panel de revisión queda sin nada que pedir. Las versiones se leen fila a fila (ver la
+ * nota del 12/10 sobre «v4.26.11» + «22 sep»). Antes, este caso era beta159 (meses a mano en recibos, única tanda del panel). */
+for(const lang of ["es","en","ca"])test(`promoción159: una nota, el historial de producción y el panel vacío (${lang})`,async({page})=>{
   await abrirRevisionBeta(page,lang);
-  const production=JSON.parse(execFileSync("git",["show","4941a0619bc6befa04d75334409cc288dc827a11:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:8e6}));
-  expect(production.length).toBe(233);
+  const production=JSON.parse(execFileSync("git",["show","abd767060ebc6d631a01f6aa00a1064021560185:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:8e6}));
+  expect(production.length).toBe(235);
   const catalog=await page.evaluate(()=>RELEASE_NOTES.map(n=>[n.v,Array.isArray(n.tandas)?n.tandas.length:-1]));
-  expect(catalog).toEqual([["4.26.142",0],["4.26.137",0],...production.map(n=>[n.v,0])]);
-  const pack=await page.evaluate(()=>{CONFIG.APP_VERSION="4.26.142.1";const p=betaChecklist(CONFIG.APP_VERSION,"4.26.117",55);return {tandas:p.tandas.length,items:p.items.length};});
+  expect(catalog).toEqual([["4.26.159",0],...production.map(n=>[n.v,0])]);
+  const pack=await page.evaluate(()=>{CONFIG.APP_VERSION="4.26.159.1";const p=betaChecklist(CONFIG.APP_VERSION,"4.26.155",61);return {tandas:p.tandas.length,items:p.items.length};});
   expect(pack).toEqual({tandas:0,items:0});
   const title=await page.evaluate(lang=>rnT(RELEASE_NOTES[0].t,lang),lang);
   const items=await page.evaluate(lang=>rnItems(RELEASE_NOTES[0],lang),lang);
-  expect(items.length).toBe(1);
+  expect(items.length).toBe(9);
   await page.evaluate(()=>{
     const host=document.createElement("div");document.body.appendChild(host);
     ReactDOM.createRoot(host).render(React.createElement(WhatsNew,{onClose:()=>{}}));
@@ -1819,8 +1819,8 @@ for(const lang of ["es","en","ca"])test(`promoción137 + hotfix142: dos notas, e
   const versions=news.locator('button').filter({hasText:/^v\d+\./});
   await expect(versions).toHaveCount(20);
   await news.locator('.btn-ghost.btn-block').click();
-  await expect(versions).toHaveCount(235);
+  await expect(versions).toHaveCount(236);
   const shown=(await versions.locator("span:first-child").allTextContents()).map(x=>x.match(/^v(\d+\.\d+\.\d+)/)[1]);
-  expect(shown).toEqual(["4.26.142","4.26.137",...production.map(n=>n.v)]);
-  for(const v of ["4.26.131","4.26.130","4.26.129","4.26.127"])expect(shown).not.toContain(v);
+  expect(shown).toEqual(["4.26.159",...production.map(n=>n.v)]);
+  for(const v of ["4.26.158","4.26.157","4.26.153","4.26.143","4.26.141","4.26.138"])expect(shown).not.toContain(v);
 });

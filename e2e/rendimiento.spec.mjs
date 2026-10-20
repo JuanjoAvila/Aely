@@ -153,3 +153,59 @@ test("parseDate cachea: repetir el trabajo del histórico no cuesta lo mismo la 
   // deja sitio de sobra para una máquina cargada sin dejarle pasar una caché desaparecida.
   expect(caliente, `la 2ª pasada no sale más barata que la 1ª (${detalle})`).toBeLessThan(fria / 3);
 });
+
+/* VOLVER A PRIMER PLANO CON LA NUBE IGUAL NO REHACE NADA (diagnóstico de lag, 19/10/2026).
+   Cada vuelta baja el histórico entero; con 3.500 gastos congelaba la pantalla 400 ms a CPU×6
+   porque se reconvertía cada fila, se adivinaba otra vez cada categoría y el estado se rehacía
+   entero solo por cambiar `lastSync`. Aquí no se cronometra nada: se cuenta el trabajo, que es lo
+   que no depende de la máquina. Con la nube trayendo lo mismo, la vuelta tiene que leerla (la
+   prueba de lectura del widget y «Última sincronización» la necesitan) y no hacer nada más. */
+test("volver a primer plano con la nube igual: ni filas reconvertidas, ni categorías, ni escrituras", async ({ page }) => {
+  const exp = historico(3000).map((e, i) => (i % 4 === 0 ? { ...e, category: "otros" } : e));
+  const rows = exp.map((e) => ({ id: e.id, fecha: e.date, importe: e.amount, comercio: e.merchant, cat: e.category, source: "manual", nota: e.note || null, nota_edit: false, no_card: false }));
+  await seedLoggedInDashboard(page, { expenses: exp, __cloudRows: { expenses: rows } });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 20_000 });
+  await dismissNews(page);
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await expect(page.locator(".sync-note")).toContainText(/\d/, { timeout: 15_000 });
+
+  // Funciones globales del bundle: envolverlas cuenta las llamadas que hace la propia app.
+  await page.evaluate(() => {
+    const n = (window.__vuelta = { lecturas: 0, filas: 0, kw: 0, escrituras: [] });
+    const envuelve = (name, k) => { const f = window[name]; window[name] = function () { n[k]++; return f.apply(this, arguments); }; };
+    envuelve("expensesFromRows", "lecturas");
+    envuelve("expenseFromRow", "filas");
+    envuelve("autoCategoryKw", "kw");
+    const put = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (k, v) { if (/^micartera_v3/.test(k)) n.escrituras.push(k); return put.apply(this, arguments); };
+    let vis = "visible";
+    Object.defineProperty(document, "visibilityState", { configurable: true, get: () => vis });
+    window.__vuelve = () => { vis = "hidden"; document.dispatchEvent(new Event("visibilitychange")); vis = "visible"; document.dispatchEvent(new Event("visibilitychange")); };
+  });
+  const vuelta = async () => {
+    const antes = await page.evaluate(() => window.__vuelta.lecturas);
+    await page.evaluate(() => window.__vuelve());
+    await page.waitForFunction((a) => window.__vuelta.lecturas > a, antes, { timeout: 15_000 });
+    await page.waitForTimeout(1000);   // el set(), el debounce de 400 ms del guardado y los efectos
+  };
+  // La primera vuelta puede coincidir con la lectura del arranque; la segunda ya es pura repetición.
+  await vuelta();
+  const sync0 = await page.locator(".sync-note").textContent();
+  await page.evaluate(() => { const n = window.__vuelta; n.filas = 0; n.kw = 0; n.escrituras = []; });
+  await vuelta();
+  const n = await page.evaluate(() => window.__vuelta);
+  expect(n.filas, "filas reconvertidas en una vuelta sin cambios").toBe(0);
+  expect(n.kw, "barridos de palabras clave en una vuelta sin cambios").toBe(0);
+  expect(n.escrituras, "la cartera no se reescribe si la nube trae lo mismo").toEqual([]);
+  // «Última sincronización» sigue con hora aunque el estado no haya cambiado (la da la lectura).
+  expect(sync0).toMatch(/\d/);
+  await expect(page.locator(".sync-note")).toContainText(/\d/);
+
+  // Y si cambia UNA fila, esa sí entra (y solo esa se reconvierte).
+  await page.evaluate(() => { const r = window.__e2eCloudRows.expenses; r[1] = { ...r[1], importe: 777.77 }; window.__vuelta.filas = 0; });
+  await vuelta();
+  expect(await page.evaluate(() => window.__vuelta.filas)).toBe(1);
+  const guardado = await page.evaluate(() => JSON.parse(localStorage.getItem("micartera_v3_exp") || "[]").filter((e) => e.amount === 777.77).length);
+  expect(guardado, "el importe nuevo llega al histórico guardado").toBe(1);
+});

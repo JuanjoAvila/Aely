@@ -4,6 +4,7 @@
  * es uuid; fallback eterno por fecha|importe|comercio si el id es corto (legado del móvil).
  * Sin ese fallback el borrado queda mudo — peor que impreciso.
  */
+import {codeMask} from "../scripts/beta-source-code.mjs";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -13,6 +14,8 @@ import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const core = readFileSync(join(root, "src/modules/00-core.js"), "utf8");
 const ctx = loadPureLogicFromFile();
+
+function method(name){const mask=codeMask(core),start=mask.indexOf("async "+name+"(");assert.ok(start>=0,name);let end=mask.indexOf("{",start)+1,depth=1;for(;depth&&end<mask.length;end++){if(mask[end]==="{")depth++;if(mask[end]==="}")depth--;}assert.equal(depth,0);return core.slice(start,end);}
 
 function t(name, fn) {
   try { fn(); console.log(`  ✓ ${name}`); }
@@ -86,7 +89,7 @@ t("fuente: las cinco escrituras van por expenseCloudEq (rama id/attrs)", () => {
   for (const n of names) {
     const i = core.indexOf("async " + n + "(");
     assert.ok(i >= 0, "falta " + n);
-    const chunk = core.slice(i, i + 700);
+    const chunk = method(n);
     assert.match(chunk, /expenseCloudEq\(/, n + " debe filtrar con expenseCloudEq");
     assert.doesNotMatch(
       chunk,
@@ -99,7 +102,7 @@ t("fuente: las cinco escrituras van por expenseCloudEq (rama id/attrs)", () => {
 t("fuente: addExpense manda id cuando es uuid", () => {
   const i = core.indexOf("async addExpense(");
   assert.ok(i >= 0);
-  const chunk = core.slice(i, i + 1200);
+  const chunk = method("addExpense");
   assert.match(chunk, /isExpenseUuid\(e&&e\.id\)/);
   assert.match(chunk, /base\.id\s*=\s*e\.id/);
 });

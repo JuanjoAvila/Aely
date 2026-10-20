@@ -1,13 +1,251 @@
 /* ============================================================
    TAB: DEUDAS
    ============================================================ */
+// El borrador conserva «1,»/«1.» hasta Guardar: convertirlo en cada pulsación impedía escribir
+// decimales (feedback 14/10). Vacío y cero siguen siendo desconocido y sin intereses, respectivamente.
+function planEditNumber(raw,optional){
+  const text=String(raw==null?"":raw).trim();
+  if(text==="") return optional?null:NaN;
+  if(!/^(?:\d+(?:[.,]\d*)?|[.,]\d+)$/.test(text)) return NaN;
+  const n=Number(text.replace(",","."));
+  return Number.isFinite(n)&&n>=0?n:NaN;
+}
+function debtEditDraft(d){
+  return {name:d.name||"",balance:String(+debtBalance(d).toFixed(2)),monthly:String(d.monthly||0),
+    day:String(debtChargeDay(d)),months:d.months==null?"":String(d.months),apr:d.apr==null?"":String(d.apr)};
+}
+// Un plazo agotado puede dejar céntimos de redondeo o saldo legado: aún debe poder corregirse.
+function debtEditFinished(d){ return d.months!=null&&debtPaidCount(d)>=d.months&&debtBalance(d)<=0.005; }
+// La sugerencia y el recálculo existente comparten céntimos y última cuota parcial.
+function debtEditMonths(d,balance,am,paid){
+  const viaM=Math.max(0,Math.round(balance*100)-Math.round((d.balloon||0)*100)),perMonth=Math.round(am*100);
+  if(viaM>0&&perMonth<=0) return null;
+  return paid+(viaM>0?Math.ceil(viaM/perMonth):(d.balloon>0&&balance>0.005?1:0));
+}
+function debtEditResult(d,form){
+  const balance=planEditNumber(form.balance),monthly=planEditNumber(form.monthly),day=planEditNumber(form.day),
+    months=planEditNumber(form.months,true),apr=planEditNumber(form.apr,true);
+  if(!form.name.trim() || [balance,monthly,day,months,apr].some(function(n){ return Number.isNaN(n); }) ||
+    !Number.isInteger(day)||day<1||day>31 || months!=null&&!Number.isInteger(months)) return {error:"plan_edit_invalid"};
+  const next=Object.assign({},d),oldBalance=+debtBalance(d).toFixed(2);
+  const amountChanged=balance!==oldBalance,quotaChanged=monthly!==(d.monthly||0),dayChanged=day!==debtChargeDay(d),
+    termChanged=months!==(d.months==null?null:d.months),aprChanged=apr!==(d.apr==null?null:d.apr);
+  // Cambiar el calendario de una deuda terminada puede reabrirla o reescribir su historia.
+  // La guardia también protege llamadas que no pasan por los campos bloqueados de la ficha.
+  if(debtEditFinished(d)&&(amountChanged||quotaChanged||dayChanged||termChanged||aprChanged)) return {error:"db_finished_edit_hint"};
+  if(form.name.trim()!==(d.name||"")) next.name=form.name.trim();
+  // El alta con plazo pone `amort` lineal (saldo/plazo), no la cuota tecleada: si coinciden (o no hay
+  // `amort`), la cuota ES lo que amortiza y se mueven juntas; si difieren (intereses, préstamo familiar
+  // que paga 197 y amortiza 250), cambiar la cuota solo cambia lo que se paga, no el calendario (revisión d139).
+  const quotaIsAmort=d.amort==null||Math.abs(d.amort-(d.monthly||0))<=0.005;
+  if(quotaChanged){ next.monthly=+monthly.toFixed(2); if(quotaIsAmort&&d.amort!=null) next.amort=next.monthly; }
+  if(dayChanged) next.day=day;
+  if(termChanged){ if(months==null) delete next.months; else next.months=months; }
+  if(aprChanged) next.apr=apr;
+  // Cambiar nombre/TAE o guardar lo mismo nunca re-ancla ni redondea una deuda heredada.
+  // Si cambia el saldo, se conserva el contrato anterior: ancla nueva sin plazo, cuotas pagadas
+  // intactas con plazo. Mover día/cuota conserva el pendiente real antes de proyectarlo de nuevo.
+  if(amountChanged||quotaChanged||dayChanged||termChanged){
+    const am=debtAmort(next),paid=debtPaidCount(next);
+    // Plazo y cuota deben cancelar el pendiente: ni cuotas a cero ni principal sin pagar.
+    // La última fracción es válida; amort y pago final mantienen su contrato original.
+    // También al tocar SOLO la cuota que amortiza: antes se alargaba el plazo en silencio y una cuota
+    // que no cubría lo pendiente en el plazo de la hoja se guardaba igual (rechazo de beta 4.26.138.1).
+    if((termChanged||quotaChanged&&quotaIsAmort)&&next.months!=null){
+      const remaining=next.months-paid,perMonth=Math.round(am*100),principal=Math.round(balance*100)-Math.round((next.balloon||0)*100);
+      if(remaining<=0||principal<=(remaining-1)*perMonth||principal>remaining*perMonth){
+        // Con solo la cuota tocada se dice qué cuota encaja: «no encajan» a secas dejaba a la
+        // hipoteca heredada sin forma de saber qué valor aceptaba (revisión d139c).
+        const lo=remaining>0?Math.ceil(principal/remaining):0,hi=remaining>1?Math.ceil(principal/(remaining-1))-1:null;
+        // Sin `amort` y con TAE, la cuota real lleva intereses que este cálculo no ve: el rango saldría
+        // muy por debajo de lo que paga (481 frente a 700 en la revisión d139d) y engañaría.
+        if(quotaChanged&&!termChanged&&principal>0&&lo>0&&(hi==null||hi>=lo)&&!(d.amort==null&&d.apr>0))
+          return {error:"db_err_term_quota",range:{n:remaining,min:lo/100,max:hi==null?null:hi/100}};
+        return {error:"db_err_term_quota"};
+      }
+    }
+    // Una cuota a 0 con saldo pendiente deja la deuda parada para siempre. La que no amortiza no pasa
+    // por la cuenta de arriba, así que se guardaba sin aviso (revisión d139c: 1.000 € y cuota 0).
+    if(quotaChanged&&!(next.monthly>0)&&balance>0.005) return {error:"db_edit_quota_zero"};
+    if(termChanged&&months!=null&&balance>0.005&&months<=paid) return {error:"db_err_paid"};
+    if(amountChanged&&next.months==null){ next.asOf=ymNow(); next.value=+balance.toFixed(2); }
+    else{
+      // Saldo/día también cambian la proyección: mantener el plazo dejaba principal huérfano.
+      // Con la cuota que amortiza no se recalcula: ya se validó contra el plazo que el usuario ve.
+      // Si la cuota no amortiza (amort distinta), saldo+cuota a la vez sigue recalculando: si no,
+      // nadie miraba el plazo y quedaba principal sin cuotas o cuotas fantasma (revisión d139).
+      // Cuenta en céntimos para no añadir una cuota por el error binario de una división exacta.
+      if((amountChanged||dayChanged)&&!(quotaChanged&&quotaIsAmort)&&!termChanged&&next.months!=null&&am>0){
+        const calculated=debtEditMonths(next,balance,am,paid);
+        if(calculated==null) return {error:"plan_edit_invalid"};
+        next.months=calculated;
+      }
+      next.value=+(balance+am*paid+(next.balloon>0&&next.months!=null&&paid>=next.months?next.balloon:0)).toFixed(2);
+    }
+    if(balance>0.005){ next.settledAt=null; next.archivedAt=null; }
+  }
+  return {item:JSON.stringify(next)===JSON.stringify(d)?d:next};
+}
+function debtEditExtension(d,form){
+  const monthly=planEditNumber(form.monthly),months=planEditNumber(form.months,true);
+  if(d.months==null||months!==d.months||!(monthly>0&&monthly<(d.monthly||0))||debtEditResult(d,form).error!=="db_err_term_quota") return null;
+  // La TAE sin amortización conocida no permite prometer un plazo con el modelo lineal.
+  if(d.amort==null&&(d.apr>0||planEditNumber(form.apr,true)>0)) return {error:"db_extend_unknown"};
+  const next=Object.assign({},d,{monthly:+monthly.toFixed(2),day:planEditNumber(form.day)});
+  if(d.amort!=null&&Math.abs(d.amort-(d.monthly||0))<=0.005) next.amort=next.monthly;
+  const n=debtEditMonths(next,planEditNumber(form.balance),debtAmort(next),debtPaidCount(next));
+  if(!Number.isSafeInteger(n)||n<=months||debtEditResult(d,Object.assign({},form,{months:String(n)})).error) return null;
+  return {months:n};
+}
+function goalEditDraft(g){ return {name:g.name||"",emoji:g.emoji||"🎯",target:String(g.target||0),saved:String(g.saved||0),deadline:g.deadline||"",monthly:g.monthly==null?"":String(g.monthly)}; }
+function goalEditResult(g,form){
+  const target=planEditNumber(form.target),saved=planEditNumber(form.saved),monthly=planEditNumber(form.monthly,true);
+  if(!form.name.trim()||!(target>0)||Number.isNaN(saved)||Number.isNaN(monthly)) return {error:"plan_edit_invalid"};
+  const next=Object.assign({},g);
+  if(form.name.trim()!==(g.name||"")) next.name=form.name.trim();
+  if(form.emoji!==(g.emoji||"🎯")) next.emoji=form.emoji;
+  if(target!==g.target) next.target=+target.toFixed(2);
+  if(saved!==(g.saved||0)) next.saved=+saved.toFixed(2);
+  if((monthly||null)!==(g.monthly||null)) next.monthly=monthly>0?+monthly.toFixed(2):null;
+  if(form.deadline!==(g.deadline||"")) next.deadline=form.deadline||null;
+  if(next.target!==g.target||next.saved!==g.saved){ next.done=(next.saved||0)>=next.target; next.doneAt=next.done?(g.doneAt||new Date().toISOString()):null; }
+  return {item:JSON.stringify(next)===JSON.stringify(g)?g:next};
+}
+function planEditSame(a,b){ return JSON.stringify(a)===JSON.stringify(b); }
+function debtEditTermChange(d,form,result){
+  if(!result.item||d.months==null||planEditNumber(form.months,true)!==d.months||result.item.months===d.months) return null;
+  return {before:d.months,after:result.item.months,leftBefore:debtLeft(d),leftAfter:debtLeft(result.item)};
+}
+function debtEditConfirmResult(state,debt,form,confirmed){
+  const rows=(state.debts||[]).filter(function(d){return d.id===debt.id;});
+  if(rows.length!==1||!planEditSame(rows[0],debt)) return {error:"plan_edit_changed"};
+  const result=debtEditResult(rows[0],form);
+  if(result.error) return result;
+  // La confirmación no autoriza otra proyección si cambió el borrador o pasó el día de cobro.
+  if(!planEditSame(result.item,confirmed.item)||!planEditSame(debtEditTermChange(rows[0],form,result),confirmed.change)) return {error:"db_edit_projection_changed"};
+  return result;
+}
+function planEditCommit(s,field,before,next){
+  const matches=(s[field]||[]).filter(function(x){ return x.id===before.id; });
+  if(matches.length!==1||planEditSame(matches[0],next)||!planEditSame(matches[0],before)) return s;
+  return Object.assign({},s,{[field]:s[field].map(function(x){ return x.id===before.id?next:x; })});
+}
+function usePlanEditSave({state,set,field,item,onClose,showToast}){
+  const [pending,setPending]=useState(null),[error,setError]=useState(""),[range,setRange]=useState(null);
+  const sending=useRef(false),outcome=useRef(null);
+  useLayoutEffect(function(){
+    if(!pending||!outcome.current) return;
+    if(outcome.current.error){ sending.current=false; setPending(null); setError("plan_edit_changed"); return; }
+    const rows=(state[field]||[]).filter(function(x){ return x.id===item.id; });
+    // La hoja ya no se desmonta aquí sino tras bajar: durante esa salida otra escritura (la nube,
+    // un sync) volvía a pasar por este efecto y repetía el cierre y el «Cambios guardados».
+    if(rows.length===1&&planEditSame(rows[0],pending)){ outcome.current=null; onClose(); if(showToast) showToast(t("plan_edit_saved")); }
+  },[pending,state[field]]);
+  const save=function(result){
+    if(sending.current) return;
+    if(result.error){ setError(result.error); setRange(result.range||null); return; }
+    const next=result.item;
+    sending.current=true; const response={error:false}; outcome.current=response; setError(""); setRange(null);
+    // Pendiente y escritura comparten prioridad: un Guardar urgente se confirmaba antes de
+    // rebasarse sobre una corrección ya en cola y desmontaba la hoja antes de poder avisar.
+    React.startTransition(function(){ setPending(next); set(function(s){
+      const changed=planEditCommit(s,field,item,next);
+      const rows=(changed[field]||[]).filter(function(x){ return x.id===item.id; });
+      response.error=rows.length!==1||!planEditSame(rows[0],next);
+      return changed;
+    }); });
+  };
+  return {save:save,error:error,range:range,pending:!!pending,clearError:function(){setError("");setRange(null);}};
+}
+function PlanEditSheet({title,onClose,closer,children}){
+  const swipe=useSheetSwipe(true,onClose); useBackClose(true,swipe.close);
+  // Guardar también cierra bajando la hoja. Con el `onClose` pelado desaparecía de un fotograma
+  // al siguiente, hoja y velo a la vez: el «suave parpadeo cuando se cierra solo» de beta
+  // 4.26.139.1 (2026-10-17). Apuntar ya guardaba así.
+  if(closer) closer.current=swipe.close;
+  // Misma hoja que Apuntar/Modificar: con `.tabsheet` el fondo se iba de golpe a negro al 55 % y
+  // la hoja subía en 280 ms, justo lo que ya se había rechazado allí (velo 2026-07-17, ritmo
+  // 2026-09-23). En beta 4.26.138.1 se leyó como «parpadea o salta» al abrir Deudas y Metas.
+  return ReactDOM.createPortal(React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
+    React.createElement("div",Object.assign({className:"v4-sheet plan-edit-sheet",role:"dialog","aria-modal":true,"aria-label":title,
+      ref:swipe.sheetRef,onClick:function(e){e.stopPropagation();}},swipe.sheetTouch),
+      React.createElement("div",{className:"v4-sheet-handle"}),
+      React.createElement("div",{className:"plan-edit-head"},React.createElement("h2",{className:"serif"},title),
+        React.createElement("button",{type:"button",className:"btn btn-ghost","aria-label":t("gl_cancel"),onClick:swipe.close},"✕")),children)),document.body);
+}
+function DebtEditSheet({debt,state,set,onClose,onDelete,showToast}){
+  const [form,setForm]=useState(function(){ return debtEditDraft(debt); });
+  const [attempt,setAttempt]=useState(0),errorRef=useRef(null);
+  const finished=debtEditFinished(debt);
+  const closer=useRef(null);
+  const save=usePlanEditSave({state:state,set:set,field:"debts",item:debt,onClose:function(){ closer.current?closer.current():onClose(); },showToast:showToast});
+  const extension=save.error?debtEditExtension(debt,form):null;
+  // El rechazo puede quedar bajo el borde de la hoja. Cada Guardar vuelve a mostrarlo, incluso
+  // si se repite el mismo error: el borrador y las guardas financieras no cambian (18/10).
+  useLayoutEffect(function(){
+    if(save.error&&errorRef.current){ errorRef.current.focus({preventScroll:true}); errorRef.current.scrollIntoView({block:"center"}); }
+  },[save.error,save.range,attempt]);
+  const [confirmPending,setConfirmPending]=useState(false),confirming=useRef(false),latest=useRef(null);
+  useLayoutEffect(function(){ latest.current={state:state,form:form,save:save}; });
+  useEffect(function(){ return function(){latest.current=null;}; },[]);
+  const submit=function(){
+    if(confirming.current||save.pending) return;
+    setAttempt(function(n){return n+1;});
+    const result=debtEditResult(debt,form),change=debtEditTermChange(debt,form,result);
+    if(!change){ save.save(result); return; }
+    confirming.current=true; setConfirmPending(true);
+    askConfirm({title:t("db_edit_term_confirm"),sub:tf(change.after===1?"db_edit_term_summary_one":"db_edit_term_summary",change),ok:t("db_savechanges"),cancel:t("db_edit_term_cancel")}).then(function(yes){
+      confirming.current=false; const current=latest.current;
+      if(!current) return;
+      setConfirmPending(false);
+      if(!yes) return;
+      current.save.save(debtEditConfirmResult(current.state,debt,current.form,{item:result.item,change:change}));
+    });
+  };
+  const input=function(key,label,mode){ return React.createElement("label",{key:key},t(label),
+    React.createElement("input",{className:"af-in"+(mode?" num":""),inputMode:mode||"text",value:form[key],"data-debt-field":key,
+      disabled:finished&&key!=="name",
+      onChange:function(e){ setForm(Object.assign({},form,{[key]:e.target.value})); }})); };
+  return React.createElement(PlanEditSheet,{title:t("db_edit_title"),onClose:onClose,closer:closer},React.createElement("div",{className:"add-form"},
+    input("name","plan_edit_name"),input("balance","db_pending","decimal"),
+    React.createElement("div",{className:"af-row"},input("monthly","plan_edit_quota","decimal"),input("day","db_day_ph","numeric")),
+    input("months","db_months_ph","numeric"),React.createElement("div",{className:"hint"},t("db_term_hint")),
+    finished&&React.createElement("div",{className:"hint"},t("db_finished_edit_hint")),
+    input("apr","da_rate","decimal"),React.createElement("div",{className:"hint"},t("db_rate_edit_hint")),
+    save.error&&React.createElement("div",{className:"hint",role:"alert",tabIndex:-1,ref:errorRef},t(save.error),
+      // En euros como el campo, no con eur(): esa pasa a la moneda de visualización (revisión d139d).
+      save.range&&" "+(save.range.max==null?tf("db_err_quota_min",{n:save.range.n,min:NF.format(save.range.min)+" €"}):
+        tf("db_err_quota_range",{n:save.range.n,min:NF.format(save.range.min)+" €",max:NF.format(save.range.max)+" €"}))),
+    extension&&extension.error&&React.createElement("div",{className:"hint",role:"status"},t(extension.error)),
+    extension&&extension.months&&React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",disabled:save.pending||confirmPending,onClick:function(){
+      const current=debtEditExtension(debt,form);
+      if(current&&current.months){setForm(Object.assign({},form,{months:String(current.months)}));save.clearError();}
+    }},tf("db_extend_term",{n:extension.months})),
+    React.createElement("button",{type:"button",className:"btn btn-primary btn-block",disabled:save.pending||confirmPending,onClick:submit},t("db_savechanges")),
+    React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",onClick:function(){onDelete(debt);}},t("db_delete"))));
+}
+function GoalEditSheet({goal,state,set,onClose,onDelete,showToast}){
+  const [form,setForm]=useState(function(){return goalEditDraft(goal);});
+  const closer=useRef(null);
+  const save=usePlanEditSave({state:state,set:set,field:"goals",item:goal,onClose:function(){ closer.current?closer.current():onClose(); },showToast:showToast});
+  const input=function(key,label,type){ return React.createElement("label",{key:key},t(label),React.createElement("input",{
+    className:"af-in",type:type||"text",inputMode:key==="target"||key==="saved"||key==="monthly"?"decimal":undefined,value:form[key],"data-goal-field":key,
+    onChange:function(e){setForm(Object.assign({},form,{[key]:e.target.value}));}})); };
+  return React.createElement(PlanEditSheet,{title:t("gl_edit_title"),onClose:onClose,closer:closer},React.createElement("div",{className:"add-form"},
+    input("name","plan_edit_name"),React.createElement("div",{className:"af-row"},input("saved","gl_saved_ph"),input("target","gl_target_ph")),
+    input("deadline","gl_deadline","month"),input("monthly","gl_monthly_ph"),
+    React.createElement("div",{className:"emoji-pick"},GOAL_EMOJIS.map(function(e){return React.createElement("button",{key:e,type:"button",className:form.emoji===e?"on":"","aria-pressed":form.emoji===e,onClick:function(){setForm(Object.assign({},form,{emoji:e}));}},e);})),
+    save.error&&React.createElement("div",{className:"hint",role:"alert"},t(save.error)),
+    React.createElement("button",{type:"button",className:"btn btn-primary btn-block",disabled:save.pending,onClick:function(){save.save(goalEditResult(goal,form));}},t("gl_save")),
+    React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",onClick:function(){onDelete(goal);}},t("gl_delete"))));
+}
 /* ASESOR DE AMORTIZACIÓN (#11) — «¿cuándo amortizar?»
-   El interés (TAE) es opcional por deuda (d.apr, se edita aquí mismo): con él la tarjeta
+   El interés (TAE) es opcional por deuda (d.apr, se edita en su hoja): con él la tarjeta
    estima intereses ahorrados, el coste de esperar y compara contra el efectivo remunerado
    (interestApr de las cuentas, p.ej. TR). Sin él, al menos simula cuántas cuotas te quitas.
    Los números usan el modelo lineal de la app (ver debtBalance): son una estimación honesta,
    no la liquidación exacta del banco. */
-function AmortAdvisor({state, set, onAmort}){
+function AmortAdvisor({state, onEdit, onAmort}){
   const debts=(state.debts||[]).filter(function(d){ return debtBalance(d)>0.005; });
   const [selId,setSelId]=useState(null);
   const [amtStr,setAmtStr]=useState("500");
@@ -15,7 +253,6 @@ function AmortAdvisor({state, set, onAmort}){
   const d=debts.find(function(x){ return x.id===selId; })||debts[0];
   const bal=debtBalance(d);
   const apr=d.apr!=null?d.apr:null;
-  const setApr=function(v){ set(function(s){ return Object.assign({},s,{debts:s.debts.map(function(x){ return x.id===d.id?Object.assign({},x,{apr:v}):x; })}); }); };
   const amt=Math.min(Math.max(0,parseFloat(String(amtStr).replace(',','.'))||0), bal);
   const am=debtAmort(d), leftNow=debtLeft(d);
   const nb=+(bal-amt).toFixed(2);
@@ -34,12 +271,12 @@ function AmortAdvisor({state, set, onAmort}){
   const cashApr=(state.accounts||[]).reduce(function(mx,a){ return Math.max(mx,a.interestApr||0); },0);
   const ranked=debts.filter(function(x){ return x.apr>0; }).sort(function(a,b){ return b.apr-a.apr; });
   const res=function(txt,color){ return React.createElement("div",{className:"hint",style:{marginTop:6,color:color||"var(--text)",lineHeight:1.5}}, txt); };
-  return React.createElement(CollapsibleCard,{title:"💡 "+t("da_title"),sub:t("da_sub"),dot:"#E2C05F",defaultOpen:false,storageKey:"debt_advisor"},
+  return React.createElement(CollapsibleCard,{title:t("da_title"),sub:t("da_sub"),dot:"var(--tan)",defaultOpen:false,storageKey:"debt_advisor"},
     debts.length>1 && React.createElement("select",{className:"af-in",style:{marginBottom:8},value:d.id,onChange:function(e){ setSelId(e.target.value); }},
       debts.map(function(x){ return React.createElement("option",{key:x.id,value:x.id}, x.name+" · "+eur0(debtBalance(x))); })),
     React.createElement("div",{className:"row",style:{marginTop:0}},
       React.createElement("span",{className:"muted"},t("da_rate")),
-      React.createElement("input",{className:"af-in num",style:{width:96,textAlign:"right",padding:"7px 9px"},inputMode:"decimal",placeholder:"—",value:apr!=null?apr:"",onChange:function(e){ const v=String(e.target.value).trim(); setApr(v===""?null:(parseFloat(v.replace(',','.'))||0)); }})),
+      React.createElement("button",{type:"button",className:"chip",onClick:function(){onEdit(d);}},apr!=null?apr+" % · "+t("fj_edit"):t("db_set_rate"))),
     apr==null && React.createElement("div",{className:"hint",style:{marginTop:4}}, t("da_rate_hint")),
     React.createElement("div",{className:"row",style:{marginTop:6}},
       React.createElement("span",{className:"muted"},t("da_amount")),
@@ -66,26 +303,11 @@ function AmortAdvisor({state, set, onAmort}){
   );
 }
 function Debts({state, set, showToast}){
-  // editar el saldo re-ancla la proyección para que siga desde ahí. Sin plazo: se re-ancla asOf.
-  // Con plazo: asOf NO se toca (re-anclarlo resetearía debtPaidCount y el «Quedan n/tot» volvería
-  // al plazo completo); en su lugar se ajusta value para que el pendiente sea lo tecleado y se
-  // recalculan las cuotas que quedan con la misma amortización (como amortize()).
   // Una corrección de saldo desde otro dispositivo nunca debe dejar una obligación activa oculta.
   const visibleDebts=state.debts.filter(function(d){ return !d.archivedAt || debtBalance(d)>0.005; });
   const archivedDebts=state.debts.filter(function(d){ return !!d.archivedAt && debtBalance(d)<=0.005; });
   const [showArchive,setShowArchive]=useState(false);
-  const ed=useEditable(visibleDebts,it=>set(function(s){
-    const byId=new Map(it.map(function(d){ return [d.id,d]; }));
-    return Object.assign({},s,{debts:s.debts.map(function(d){ return byId.get(d.id)||d; })});
-  }), { display:d=>Math.round(debtBalance(d)*100)/100, extra:(d,typed)=>{
-    const am=debtAmort(d);
-    const opened=typed>0.005?{settledAt:null,archivedAt:null}:{};
-    if(d.months==null || !(am>0)) return Object.assign({asOf:ymNow()},opened);
-    const paid=debtPaidCount(d);
-    const viaM=Math.max(0,typed-(d.balloon||0));
-    const left=viaM>0?Math.ceil(viaM/am):((d.balloon>0&&typed>0.005)?1:0);
-    return Object.assign({ value:+(typed+am*paid).toFixed(2), months:paid+left },opened);
-  } });
+  const [editingDebt,setEditingDebt]=useState(null);
   const [adding,setAdding]=useState(false);
   const [form,setForm]=useState({name:"",value:"",monthly:"",months:"",day:"",account:"sabadell",down:"",balloon:"",paid:""});
   const banks=(function(){ const b=[]; (state.accounts||[]).forEach(a=>{ if(b.indexOf(a.ent)<0) b.push(a.ent); }); ["sabadell","trade_republic","familia"].forEach(x=>{ if(b.indexOf(x)<0) b.push(x); }); return b; })();
@@ -111,6 +333,7 @@ function Debts({state, set, showToast}){
     // deuda ya empezada: retrasa el ancla tantos meses como cuotas pagadas para que
     // debtPaidCount()===paid hoy (compensa el +1 que suma si la cuota de este mes ya pasó)
     if(paid>0){ let anchor=ymNow()-paid; if(months>0 && it.day!=null && it.day<=new Date().getDate()) anchor+=1; it.asOf=anchor; }
+    if(months>0) it.startMonth=it.asOf;
     set(s=>Object.assign({},s,{debts:s.debts.concat([it])}));
     setForm({name:"",value:"",monthly:"",months:"",day:"",account:"sabadell",down:"",balloon:"",paid:""}); setAdding(false);
     showToast(t("db_added"));
@@ -122,7 +345,7 @@ function Debts({state, set, showToast}){
       .then(function(yes){ if(!yes) return; set(function(s){
         if((s.expenses||[]).some(function(e){ return e.debtId===d.id; })) return s;
         return Object.assign({},s,{debts:s.debts.filter(function(x){ return x.id!==d.id; })});
-      }); });
+      }); setEditingDebt(null); });
   };
   const confirmSettled=(d)=>{
     askConfirm({title:tf("db_settle_q",{name:d.name}),sub:t("db_settle_sub"),ok:t("db_settle_ok")})
@@ -222,9 +445,9 @@ function Debts({state, set, showToast}){
     return tf("v4_debts_ends",{d:monthLong(dt.getMonth())+" "+dt.getFullYear()});
   };
   return React.createElement("div",null,
-    React.createElement("div",{className:"v4-card v4-card-hero rise"},
+    React.createElement("div",{className:"v4-card v4-card-hero rise plan-summary"},
       React.createElement("div",{className:"v4-micro"},t("v4_debts_hero")),
-      React.createElement("div",{className:"serif num",style:{fontSize:40,fontWeight:550,letterSpacing:"-1px",lineHeight:1.05,marginTop:6,color:"var(--coral)"}},eur(total)),
+      React.createElement("div",{className:"serif num plan-summary-amount",style:{color:"var(--coral)"}},eur(total)),
       React.createElement("div",{style:{marginTop:12,fontSize:13.5,color:"var(--muted)",lineHeight:1.45}},tf("v4_debts_sub",{x:eur0(monthly)}))
     ),
     visibleDebts.map(function(d){
@@ -234,19 +457,15 @@ function Debts({state, set, showToast}){
       // «Quedan n/tot cuotas» en TODAS las deudas (feedback 2026-07-21): sin plazo va estimado.
       const li=leftInfo(d);
       const day=debtChargeDay(d);
-      return React.createElement("div",{className:"v4-debt-card rise",key:d.id},
-        React.createElement("div",{className:"v4-debt-top"},
+      return React.createElement("div",{className:"v4-debt-card rise plan-item",key:d.id,"data-debt-id":d.id,onClick:function(e){if(!e.target.closest("button"))setEditingDebt(d);}},
+        React.createElement("button",{type:"button",className:"v4-debt-top plan-item-open",onClick:function(){setEditingDebt(d);},"aria-label":tf("db_edit_named",{name:d.name})},
           React.createElement("span",{className:"v4-debt-emoji"},debtEmoji(d)),
           React.createElement("div",{style:{flex:1,minWidth:0}},
-            React.createElement("div",{className:"v4-debt-name"},d.name),
-            React.createElement("div",{className:"v4-debt-sub"},
-              [d.monthly?tf("db_quota",{x:eur0(d.monthly)}):null, day?tf("fj_day_n",{d:day}):null, li?tf("db_left",{n:li.n,tot:li.tot,x:eur0(d.monthly||0)}):null].filter(Boolean).join(" · ")
-            )
+            React.createElement("div",{className:"v4-debt-name"},d.name)
           ),
-          ed.editing
-            ? React.createElement("input",{className:"editv num",value:ed.draft[d.id],inputMode:"decimal",onChange:function(e){const v=e.target.value;ed.setDraft(function(dr){return Object.assign({},dr,{[d.id]:v});});}})
-            : React.createElement("div",{className:"v4-debt-bal serif num"},eur(bal))
+          React.createElement("div",{className:"plan-item-value"},React.createElement("div",{className:"v4-debt-bal serif num"},eur(bal)),React.createElement("span",{className:"plan-item-edit"},t("fj_edit")))
         ),
+        React.createElement("div",{className:"v4-debt-sub plan-debt-details"},[d.monthly?tf("db_quota",{x:eur0(d.monthly)}):null,day?tf("fj_day_n",{d:day}):null,li?tf("db_left_count",{n:li.n,tot:li.tot}):null].filter(Boolean).join(" · ")),
         React.createElement("div",{className:"v4-debt-bar"},React.createElement("i",{style:{width:pct+"%"}})),
         React.createElement("div",{className:"v4-debt-foot"},
           React.createElement("span",null,tf("db_paidoff",{x:eur0(paid),p:Math.round(pct)})),
@@ -255,10 +474,9 @@ function Debts({state, set, showToast}){
         (d.balloon>0||d.downPayment>0) && React.createElement("div",{className:"v4-debt-sub",style:{marginTop:6,color:"var(--tan)"}},
           d.balloon>0?tf("db_balloon_line",{x:eur0(d.balloon)}):"",
           d.downPayment>0?(d.balloon>0?" · ":"")+tf("db_down_line",{x:eur0(d.downPayment)}):""),
-        !ed.editing && bal>0.005 && React.createElement("button",{className:"v4-debt-amort",onClick:function(){ amortize(d); }},t("v4_amort_now")),
-        !ed.editing && bal<=0.005 && React.createElement("div",{className:"hint",style:{marginTop:10}},t(d.settledAt?"db_settled":"db_est_zero")),
-        !ed.editing && bal<=0.005 && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:8},onClick:function(){ d.settledAt?archiveDebt(d):confirmSettled(d); }},t(d.settledAt?"db_archive":"db_settle_ok")),
-        ed.editing && React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:10,color:"var(--coral)"},onClick:function(){ delDebt(d); }},t("db_delete"))
+        bal>0.005 && React.createElement("button",{className:"v4-debt-amort",onClick:function(){ amortize(d); }},t("v4_amort_now")),
+        bal<=0.005 && React.createElement("div",{className:"hint",style:{marginTop:10}},t(d.settledAt?"db_settled":"db_est_zero")),
+        bal<=0.005 && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:8},onClick:function(){ d.settledAt?archiveDebt(d):confirmSettled(d); }},t(d.settledAt?"db_archive":"db_settle_ok"))
       );
     }),
     archivedDebts.length>0 && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:10},"aria-expanded":showArchive,onClick:function(){ setShowArchive(!showArchive); }},tf("db_archive_title",{n:archivedDebts.length})),
@@ -269,9 +487,8 @@ function Debts({state, set, showToast}){
         React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){ unarchiveDebt(d); }},t("db_unarchive"))
       ); })
     ),
-    React.createElement("button",{className:"btn btn-block "+(ed.editing?"btn-primary":"btn-ghost"),style:{marginTop:8},onClick:function(){ ed.editing?ed.save():ed.start(); }}, ed.editing?t("db_savechanges"):t("db_editbalances")),
     React.createElement("div",{className:"v4-tip"},
-      React.createElement(AmortAdvisor,{state:state,set:set,onAmort:doAmort})
+      React.createElement(AmortAdvisor,{state:state,onEdit:setEditingDebt,onAmort:doAmort})
     ),
     adding
       ? React.createElement("div",{className:"add-form",style:{marginTop:12}},
@@ -296,7 +513,8 @@ function Debts({state, set, showToast}){
           React.createElement("button",{className:"btn btn-primary btn-block",onClick:addDebt},t("db_add"))
         )
       : React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:10},onClick:function(){ setAdding(true); }},React.createElement(I.plus,{width:16,height:16}),t("db_add")),
-    React.createElement("div",{className:"hint",style:{padding:"10px 4px 0"}},t("db_hint"))
+    React.createElement("div",{className:"hint",style:{padding:"10px 4px 0"}},t("db_hint")),
+    editingDebt&&React.createElement(DebtEditSheet,{key:editingDebt.id,debt:editingDebt,state:state,set:set,onClose:function(){setEditingDebt(null);},onDelete:delDebt,showToast:showToast})
   );
 }
 
@@ -330,7 +548,7 @@ function ReservaRules({state, set}){
   const blank={name:"",kind:"fixed",value:"",goalId:goals[0]&&goals[0].id||""};
   const [form,setForm]=useState(blank);
   const [err,setErr]=useState("");
-  const cycle=useMemo(function(){ return lastPaydayOf(state.expenses,null,expenseDeletedSet(state)); },[state.expenses,state.deleted]);
+  const cycle=useMemo(function(){ return lastPaydayOf(state.expenses,null,expenseDeletedSet(state)); },[state.expenses,state.deleted,state.obAbsorbedConfirmed,state._historyOwner]);
   const st=reservaEstadoDe(state,cycle);
   // La línea de cada regla mensual dice lo que ESTE mes tiene asentado, no lo que «debería».
   const clave=reservaMensualClave();
@@ -406,15 +624,16 @@ function ReservaRules({state, set}){
      vez la regla que no se guarda y nadie lo dice. El formulario y su aviso se quedan hasta que se
      cancela; no se elige ni se crea otra meta por él. */
   if(!goals.length && !rules.length && !adding) return null;
-  return React.createElement(CollapsibleCard,{title:t("rr_title"),sub:rules.length?tf("rr_sub",{n:rules.length}):t("rr_sub_empty"),dot:"#5FD08A",storageKey:"g_reserva_rules",help:t("h_reserva")},
+  const closeForm=function(){ saving.current=false; setSent(null); setEditing(null); setAdding(false); setErr(""); setForm(blank); };
+  return React.createElement(CollapsibleCard,{title:t("rr_title"),sub:rules.length?tf("rr_sub",{n:rules.length}):t("rr_sub_empty"),dot:"var(--mint)",storageKey:"g_reserva_rules",help:t("h_reserva")},
     rules.length===0 && React.createElement("div",{className:"hint"}, t("rr_none")),
     rules.map(function(r){
-      return React.createElement("div",{key:r.id,className:"sub-row","data-reserva-rule":r.id},
+      return React.createElement("div",{key:r.id,className:"sub-row plan-rule-row","data-reserva-rule":r.id},
         React.createElement("div",{className:"sub-mid"},
           React.createElement("div",{className:"sub-name"}, r.name||goalName(r.goalId)),
           React.createElement("div",{className:"sub-meta"}, (r.mensual===true
             ?(r.kind==="pct"?tf("rr_row_pct_m",{v:r.value}):tf("rr_row_fixed_m",{v:reservaEur(r.value)}))
-            :(r.kind==="pct"?tf("rr_row_pct",{v:r.value}):tf("rr_row_fixed",{v:reservaEur(r.value)})))+" → "+goalName(r.goalId)),
+            :(r.kind==="pct"?tf("rr_row_pct",{v:r.value}):tf("rr_row_fixed",{v:reservaEur(r.value)})))+(r.name?" → "+goalName(r.goalId):"")),
           r.mensual===true && React.createElement("div",{className:"sub-meta","data-reserva-mensual":r.id}, mensualTexto(r))
         ),
         React.createElement("button",{className:"chip",onClick:function(){ saving.current=false; setSent(null); setEditing(JSON.parse(JSON.stringify(r))); setForm({name:r.name||"",kind:r.kind,value:String(r.value).replace(".",numPadDecSep()),goalId:r.goalId}); setErr(""); setAdding(true); }},t("rr_edit")),
@@ -423,7 +642,7 @@ function ReservaRules({state, set}){
     }),
     st.estado!=="sinReglas" && React.createElement("div",{className:"hint","data-reserva-estado":st.estado,style:{marginTop:8}}, reservaEstadoTexto(st)),
     (goals.length>0 || adding) && (adding
-      ? React.createElement("div",{className:"add-form",style:{marginTop:10}},
+      ? React.createElement(PlanEditSheet,{title:t(editing?"rr_edit":"rr_add"),onClose:closeForm},React.createElement("div",{className:"add-form",style:{marginTop:10}},
           React.createElement("input",{className:"af-in",placeholder:t("rr_name_ph"),value:form.name,onChange:function(e){ setForm(Object.assign({},form,{name:e.target.value})); }}),
           React.createElement("div",{className:"af-row"},
             React.createElement("select",{className:"af-in",value:form.kind,onChange:function(e){ setErr(""); setForm(Object.assign({},form,{kind:e.target.value})); }},
@@ -436,8 +655,8 @@ function ReservaRules({state, set}){
           err && React.createElement("div",{className:"hint",role:"alert",style:{color:"var(--coral)",marginTop:6}}, err==="changed"?t("rr_err_changed"):(err==="pct"?t("rr_err_pct"):(err==="goal"?t("rr_err_goal"):t("rr_err_amount")))),
           React.createElement("div",{className:"hint",style:{marginTop:6}}, t(editing?(editing.mensual===true?"rr_edit_monthly_hint":"rr_edit_income_hint"):"rr_m_hint")),
           React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:8},onClick:addRule}, t("rr_save")),
-          React.createElement("button",{className:"btn btn-ghost btn-block",onClick:function(){ saving.current=false; setSent(null); setEditing(null); setAdding(false); setErr(""); setForm(blank); }}, t("gl_cancel"))
-        )
+          React.createElement("button",{className:"btn btn-ghost btn-block",onClick:closeForm}, t("gl_cancel"))
+        ))
       : React.createElement("button",{className:"v4-ghost-add",style:{marginTop:8},onClick:function(){ saving.current=false; setSent(null); setEditing(null); setForm(blank); setErr(""); setAdding(true); }}, t("rr_add"))
     )
   );
@@ -446,7 +665,7 @@ function ReservaRules({state, set}){
 // no se ha repartido ni descartado. Nunca aplica en silencio — siempre pide confirmación, porque
 // aunque solo mueva cifras dentro de la app, es DINERO DE VERDAD para quien lo mira.
 function ReservaDetect({state, set, showToast}){
-  const cycle=useMemo(function(){ return lastPaydayOf(state.expenses,null,expenseDeletedSet(state)); },[state.expenses,state.deleted]);
+  const cycle=useMemo(function(){ return lastPaydayOf(state.expenses,null,expenseDeletedSet(state)); },[state.expenses,state.deleted,state.obAbsorbedConfirmed,state._historyOwner]);
   const st=reservaEstadoDe(state,cycle);
   if(st.estado!=="pendiente") return null;
   const income=st.income;
@@ -555,8 +774,7 @@ function Goals({state, set, totals, showToast}){
   const tt=totals||{};
   const goals=state.goals||[];
   const [adding,setAdding]=useState(false);
-  const [editing,setEditing]=useState(false);
-  const [drafts,setDrafts]=useState({});
+  const [editingGoal,setEditingGoal]=useState(null);
   const [contribGoal,setContribGoal]=useState(null);   // meta abierta en la hoja de aportar
   const blank={name:"",emoji:"🎯",target:"",saved:"",deadline:"",monthly:""};
   const [form,setForm]=useState(blank);
@@ -584,21 +802,11 @@ function Goals({state, set, totals, showToast}){
       return Object.assign({},x,{saved:ns,fromBank:bank||x.fromBank,done:ns>=x.target,doneAt:(ns>=x.target&&!x.doneAt)?new Date().toISOString():x.doneAt});
     })}); });
   };
-  const delGoal=function(id){ set(function(s){ return Object.assign({},s,{goals:(s.goals||[]).filter(function(g){return g.id!==id;})}); }); if(goals.length<=1) setEditing(false); };
-  const startEdit=function(){ const d={}; goals.forEach(function(g){ d[g.id]={name:g.name,emoji:g.emoji||"🎯",target:String(g.target),saved:String(g.saved),deadline:g.deadline||"",monthly:g.monthly!=null?String(g.monthly):""}; }); setDrafts(d); setEditing(true); };
-  const setD=function(id,k,v){ setDrafts(function(dr){ const n=Object.assign({},dr); n[id]=Object.assign({},n[id],{[k]:v}); return n; }); };
-  const saveEdit=function(){
-    set(function(s){ return Object.assign({},s,{goals:(s.goals||[]).map(function(g){
-      const d=drafts[g.id]; if(!d) return g;
-      const tg=parseFloat(String(d.target).replace(',','.'))||g.target;
-      const svN=parseFloat(String(d.saved).replace(',','.'));
-      const sv=isNaN(svN)?g.saved:Math.max(0,svN);
-      const moN=parseFloat(String(d.monthly).replace(',','.'));
-      const mo=(isNaN(moN)||moN<=0)?null:moN;
-      const done=sv>=tg;
-      return Object.assign({},g,{name:d.name||g.name,emoji:d.emoji||g.emoji,target:tg,saved:sv,deadline:d.deadline||null,monthly:mo,done:done,doneAt:done?(g.doneAt||new Date().toISOString()):null});
-    })}); });
-    setEditing(false);
+  const delGoal=function(g){
+    askConfirm({title:tf("gl_delete_q",{name:g.name}),sub:t("gl_delete_sub"),ok:t("gl_delete"),danger:true}).then(function(yes){
+      if(!yes) return;
+      set(function(s){return Object.assign({},s,{goals:(s.goals||[]).filter(function(x){return x.id!==g.id;})});}); setEditingGoal(null);
+    });
   };
 
   const totalSaved=goals.reduce(function(a,g){return a+(g.saved||0);},0);
@@ -611,9 +819,9 @@ function Goals({state, set, totals, showToast}){
   };
 
   return React.createElement("div",null,
-    React.createElement("div",{className:"v4-card v4-card-hero rise"},
+    React.createElement("div",{className:"v4-card v4-card-hero rise plan-summary"},
       React.createElement("div",{className:"v4-micro"},t("v4_goals_hero")),
-      React.createElement("div",{className:"serif num",style:{fontSize:40,fontWeight:550,letterSpacing:"-1px",lineHeight:1.05,marginTop:6,color:"var(--mint)"}},eur(totalSaved)),
+      React.createElement("div",{className:"serif num plan-summary-amount",style:{color:"var(--mint)"}},eur(totalSaved)),
       totalTarget>0 && React.createElement("div",{style:{marginTop:10,fontSize:13.5,color:"var(--muted)"}},tf("gl_total_sub",{x:eur0(totalTarget)}))
     ),
     React.createElement(SavingsPlanCard,{state:state,set:set,totals:totals,showToast:showToast}),
@@ -622,38 +830,22 @@ function Goals({state, set, totals, showToast}){
       React.createElement("div",{className:"ttl"},t("gl_empty_t")), t("gl_empty_d")),
 
     goals.map(function(g){
-      const pct=goalPct(g); const eta=goalEta(g, tt.ahorroMensual||0); const ed=editing&&drafts[g.id];
-      return React.createElement("div",{className:"v4-goal-card rise",key:g.id},
-        React.createElement("div",{className:"v4-debt-top"},
-          React.createElement("span",{className:"v4-debt-emoji"}, ed?ed.emoji:(g.emoji||"🎯")),
+      const pct=goalPct(g); const eta=goalEta(g, tt.ahorroMensual||0);
+      return React.createElement("div",{className:"v4-goal-card rise plan-item",key:g.id,"data-goal-id":g.id,onClick:function(e){if(!e.target.closest("button"))setEditingGoal(g);}},
+        React.createElement("button",{type:"button",className:"v4-debt-top plan-item-open",onClick:function(){setEditingGoal(g);},"aria-label":tf("gl_edit_named",{name:g.name})},
+          React.createElement("span",{className:"v4-debt-emoji"},g.emoji||"🎯"),
           React.createElement("div",{style:{flex:1,minWidth:0}},
-            ed
-              ? React.createElement("input",{className:"af-in",value:ed.name,onChange:function(e){ setD(g.id,"name",e.target.value); }})
-              : React.createElement("div",{className:"v4-debt-name"}, g.name, g.done && React.createElement("span",{className:"goal-medal"}," "+t("gl_done_badge"))),
-            !ed && React.createElement("div",{className:"v4-debt-sub"}, eur0(g.saved||0)+" "+t("gl_of")+" "+eur0(g.target||0))
+            React.createElement("div",{className:"v4-debt-name"},g.name,g.done&&React.createElement("span",{className:"goal-medal"}," "+t("gl_done_badge"))),
+            React.createElement("div",{className:"v4-debt-sub"}, eur0(g.saved||0)+" "+t("gl_of")+" "+eur0(g.target||0))
           ),
-          !ed && React.createElement("div",{className:"serif num",style:{fontSize:22,fontWeight:550,color:"var(--mint)"}}, Math.round(pct)+"%")
+          React.createElement("div",{className:"plan-item-value"},React.createElement("div",{className:"serif num",style:{fontSize:22,fontWeight:550,color:"var(--mint)"}},Math.round(pct)+"%"),React.createElement("span",{className:"plan-item-edit"},t("fj_edit")))
         ),
-        React.createElement("div",{className:"v4-goal-bar"},React.createElement("i",{style:{width:pct+"%",background:g.done?"linear-gradient(90deg,#F2C14E,#F2C14E)":"linear-gradient(90deg,var(--mint),var(--mint-hi))"}})),
-        ed
-          ? React.createElement(React.Fragment,null,
-              React.createElement("div",{className:"af-row",style:{marginTop:10}},
-                React.createElement("input",{className:"af-in num",placeholder:t("gl_saved_ph"),inputMode:"decimal",value:ed.saved,onChange:function(e){ setD(g.id,"saved",e.target.value); }}),
-                React.createElement("input",{className:"af-in num",placeholder:t("gl_target_ph"),inputMode:"decimal",value:ed.target,onChange:function(e){ setD(g.id,"target",e.target.value); }})
-              ),
-              React.createElement("input",{className:"af-in",type:"month",style:{marginTop:8},value:ed.deadline,onChange:function(e){ setD(g.id,"deadline",e.target.value); }}),
-              React.createElement("input",{className:"af-in num",style:{marginTop:8},placeholder:t("gl_monthly_ph"),inputMode:"decimal",value:ed.monthly,onChange:function(e){ setD(g.id,"monthly",e.target.value); }}),
-              React.createElement("div",{style:{marginTop:8}}, emojiPicker(ed.emoji,function(e){ setD(g.id,"emoji",e); })),
-              React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:10,color:"var(--coral)"},onClick:function(){ delGoal(g.id); }},t("gl_delete"))
-            )
-          : React.createElement(React.Fragment,null,
-              React.createElement("div",{className:"goal-eta "+eta.cls,style:{marginTop:8}}, eta.text),
-              !g.done && React.createElement("button",{className:"v4-goal-cta",onClick:function(){ contribute(g); }}, t("gl_contribute"))
-            )
+        React.createElement("div",{className:"v4-goal-bar"},React.createElement("i",{style:{width:pct+"%",background:g.done?"var(--tan)":"var(--mint)"}})),
+        React.createElement("div",{className:"goal-eta "+eta.cls,style:{marginTop:8}},eta.text),
+        !g.done&&React.createElement("button",{className:"v4-goal-cta",onClick:function(){contribute(g);}},t("gl_contribute"))
       );
     }),
 
-    goals.length>0 && React.createElement("button",{className:"btn btn-block "+(editing?"btn-primary":"btn-ghost"),style:{marginTop:4},onClick:function(){ editing?saveEdit():startEdit(); }}, editing?t("gl_save"):t("gl_edit")),
 
     React.createElement("div",{style:{marginTop:14}}, React.createElement(ReservaRules,{state:state,set:set})),
 
@@ -671,10 +863,11 @@ function Goals({state, set, totals, showToast}){
           React.createElement("button",{className:"btn btn-primary btn-block",onClick:addGoal},t("gl_create")),
           React.createElement("button",{className:"btn btn-ghost btn-block",onClick:function(){ setAdding(false); setForm(blank); }},t("gl_cancel"))
         )
-      : (!editing || goals.length===0) && React.createElement("button",{className:"v4-ghost-add",onClick:function(){ setAdding(true); }},t("v4_goal_new")),
+      : React.createElement("button",{className:"v4-ghost-add",onClick:function(){ setAdding(true); }},t("v4_goal_new")),
 
     React.createElement(ContributeGoalSheet,{goal:contribGoal,state:state,onClose:function(){ setContribGoal(null); },
-      onContribute:function(amt,bank){ addToGoal(contribGoal,amt,bank); setContribGoal(null); }})
+      onContribute:function(amt,bank){ addToGoal(contribGoal,amt,bank); setContribGoal(null); }}),
+    editingGoal&&React.createElement(GoalEditSheet,{key:editingGoal.id,goal:editingGoal,state:state,set:set,onClose:function(){setEditingGoal(null);},onDelete:delGoal,showToast:showToast})
   );
 }
 
@@ -698,8 +891,8 @@ function ContributeGoalSheet({goal, state, onClose, onContribute}){
       setBank(goal.fromBank || (daily&&daily.ent) || (bankOpts[0]||null));
     }
   },[goal]);
-  useBackClose(!!goal, onClose);
   const swipe=useSheetSwipe(!!goal, onClose);
+  useBackClose(!!goal, swipe.close);
   if(!goal) return null;
   const amt=parseNumPadRaw(raw);
   const save=function(){

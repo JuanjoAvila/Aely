@@ -203,6 +203,53 @@ check("un pop ajeno mientras hay consumo pendiente no cierra otro overlay ni pis
   assert.equal(p.ctx._mcIgnorePop,false);
 });
 
+function keyboard(p,props={},viewport={}){
+  let blurs=0;
+  const vv=Object.assign({height:544,offsetTop:0,scale:1},viewport);
+  const el=Object.assign({tagName:"INPUT",type:"text",blur(){blurs++;vv.height=844;}},props);
+  p.ctx.document={activeElement:el};p.ctx.window.innerHeight=844;p.ctx.window.visualViewport=vv;
+  return {el,vv,blurs:()=>blurs};
+}
+
+check("UX13 distingue editor con teclado de foco físico, zoom y controles no editables",()=>{
+  for(const [name,props,viewport,visible] of [
+    ["texto",{},{},true],["decimal",{type:"number"},{},true],
+    ["textarea",{tagName:"TEXTAREA"},{},true],["editable",{tagName:"DIV",isContentEditable:true},{},true],
+    ["físico",{},{height:844},false],["barra",{},{height:790},false],
+    ["zoom",{},{scale:2},false],["desplazado",{},{offsetTop:300},false],
+    ["readonly",{readOnly:true},{},false],["desactivado",{disabled:true},{},false],
+    ["sin teclado",{inputMode:"none"},{},false],["checkbox",{type:"checkbox"},{},false],
+  ]){
+    const p=platform(),k=keyboard(p,props,viewport);
+    assert.equal(p.ctx._mcBackCloseNative("peek")===k.el,visible,name+": señal");
+    assert.equal(k.blurs(),0,name+": consultar no oculta");
+    assert.equal(p.ctx._mcBackCloseNative(),visible,name+": antes de salir sin capas");
+    assert.equal(k.blurs(),visible?1:0,name+": cierre teclado");
+    assert.equal(p.ctx._mcBackStack.length,0,name+": sin capa ficticia");
+  }
+});
+
+check("UX13 browser back oculta teclado, rearma hijo y conserva padres e historial real",()=>{
+  const p=platform();let parent=0,child=0;
+  p.ctx._mcBackAdd(()=>parent++);p.drain();p.ctx._mcBackAdd(()=>child++);p.drain();
+  const k=keyboard(p);p.history.back();p.drain();
+  assert.equal(k.blurs(),1);assert.equal(parent,0);assert.equal(child,0);
+  assert.equal(p.ctx._mcBackStack.length,2);assert.equal(p.location.href,p.app);
+  p.history.back();p.drain();assert.equal(child,1);assert.equal(parent,0);
+  p.history.back();p.drain();assert.equal(parent,1);assert.deepEqual(p.history.state,p.base);
+  p.history.back();p.drain();assert.equal(p.location.href,p.route);
+});
+
+check("UX13 go(-2) con teclado recupera las dos capas y no absorbe otro atrás",()=>{
+  const p=platform();let parent=0,child=0;
+  p.ctx._mcBackAdd(()=>parent++);p.drain();p.ctx._mcBackAdd(()=>child++);p.drain();
+  keyboard(p);p.history.go(-2);p.drain();
+  assert.equal(parent+child,0);assert.equal(p.ctx._mcBackStack.length,2);
+  p.history.back();p.drain();assert.equal(child,1);assert.equal(parent,0);
+  p.history.back();p.drain();assert.equal(parent,1);assert.deepEqual(p.history.state,p.base);
+  p.history.back();p.drain();assert.equal(p.location.href,p.route);
+});
+
 check("todos los helpers/datos del controlador alcanzables por Brókers invalidan su revisión",()=>{
   const read=f=>fs.readFileSync(new URL("../"+f,import.meta.url),"utf8"),file="src/modules/02-ui-shared.js";
   const scope=JSON.parse(read("scripts/beta-sources.json"))["inc-0310-broker-resultados"];
@@ -256,6 +303,64 @@ check("unidad110 vigila controlador completo y sus entradas reales de App, Ask y
     assert.notEqual(changed,before,from);mutants++;
   }
   console.log("  "+mutants+" mutantes110 de UI/entradas; guardianes financieros actuales independientes");
+});
+
+const askSource=fs.readFileSync(new URL('../src/modules/05-dialogs-inv.js',import.meta.url),'utf8');
+function askDone(p,entry,terminal=true){
+  const body=askSource.match(/const done=(function\(r\)\{[\s\S]*?\n  \});/);
+  assert.ok(body,'se ejecuta done real de AskHost');
+  const results=[],cur={terminal,resolve:r=>results.push(r)};
+  const transitions=[];
+  const ctx=vm.createContext({cur,back:{current:entry},setCur:()=>{},setVal:()=>{},_mcBackDrop:p.ctx._mcBackDrop,mcSandboxTransition:v=>transitions.push(v)});
+  return {done:vm.runInContext('('+body[1]+')',ctx),results,transitions};
+}
+
+check('INC171001 aceptar terminal espera el pop exacto del Ask y conserva padre vivo',()=>{
+  const p=platform(),parent=p.ctx._mcBackAdd(()=>assert.fail('no cierra padre'));p.drain();
+  const child=p.ctx._mcBackAdd(()=>{});p.drain();const a=askDone(p,child);
+  a.done(true);p.micros();assert.deepEqual(a.results,[],'solicitar back no es acuse');
+  assert.deepEqual(a.transitions,[true],'bloquea nube antes de esperar historial');
+  assert.equal(p.count('back'),1);p.task();assert.deepEqual(a.results,[true]);
+  assert.equal(p.history.state.mcBack.id,parent.slot.id);assert.equal(p.ctx._mcBackStack.length,1);
+  p.ctx._mcBackDrop(child);p.drain();assert.deepEqual(a.results,[true],'cleanup repetido no repite transición');
+});
+
+check('INC171001 cancelar terminal y Ask normal conservan resolución inmediata',()=>{
+  for(const [terminal,result] of [[true,false],[false,true],[false,'texto']]){
+    const p=platform(),e=p.ctx._mcBackAdd(()=>{});p.drain();const a=askDone(p,e,terminal);
+    a.done(result);assert.deepEqual(a.results,[result]);assert.equal(p.count('back'),0);
+    assert.deepEqual(a.transitions,[],'cancelar y Ask normal no abren transición');
+    p.ctx._mcBackDrop(e);p.drain();assert.deepEqual(p.history.state,p.base);
+  }
+});
+
+check('INC171001 entrada ajena no autoriza transición ni consumo de su historial',()=>{
+  for(const method of ['pushState','replaceState']){
+    const p=platform(),e=p.ctx._mcBackAdd(()=>{});p.drain();p.history[method]({foreign:true},'','/foreign');
+    const a=askDone(p,e);a.done(true);p.ctx._mcBackDrop(e);p.drain();
+    assert.deepEqual(a.results,[false]);assert.equal(p.count('back'),0);assert.deepEqual(p.history.state,{foreign:true});
+    assert.deepEqual(a.transitions,[true,false],'un acuse inválido libera el bloqueo');
+  }
+});
+
+check('INC171001 pop ajeno durante consumo no da acuse ni lo rescata el pop posterior',()=>{
+  const p=platform();p.ctx._mcBackAdd(()=>{});p.drain();const e=p.ctx._mcBackAdd(()=>{});p.drain();
+  p.history.go(-3);const a=askDone(p,e);a.done(true);p.micros();p.task();
+  assert.deepEqual(a.results,[false]);p.task();assert.deepEqual(a.results,[false]);
+});
+
+check('INC171001 fallos de push/back no confirman una transición terminal',()=>{
+  for(const fail of ['failPush','failBack']){
+    const p=platform();if(fail==='failPush')p.failPush();const e=p.ctx._mcBackAdd(()=>{});p.drain();
+    if(fail==='failBack')p.failBack();const a=askDone(p,e);a.done(true);p.drain();
+    assert.deepEqual(a.results,[false]);assert.equal(p.ctx._mcBackPending,null);assert.equal(p.ctx._mcIgnorePop,false);
+  }
+});
+
+check('INC171001 otra alta no sustituye una entrada terminal pendiente de acuse',()=>{
+  const p=platform(),e=p.ctx._mcBackAdd(()=>{});p.drain();const a=askDone(p,e);a.done(true);
+  const next=p.ctx._mcBackAdd(()=>{});p.micros();assert.equal(p.count('replace'),0);assert.deepEqual(a.results,[]);
+  p.task();assert.deepEqual(a.results,[true]);assert.equal(p.history.state.mcBack.id,next.slot.id);
 });
 
 console.log(`${cases} contratos del controlador/hook reales preparados y verificados`);

@@ -435,7 +435,7 @@ test("dos cargos iguales del mismo día que casan con un recibo: entran los dos 
       d1:12,d2:12,dn:2,saldos:[{bbva:2968.02},{bbva:2968.02},{bbva:2968.02}]};
     const r=compara(ex,"iguales "+rol);
     const filas=r.b.octubre.expenses.map(e=>[e.merchant,e.reciboId||null,e.obOrd||1,cand.c.expenseSourceForCloud(e)]).sort();
-    assert.deepEqual(filas,[["BIZUM A PEPE",null,1,"ob:bbva"],["BIZUM A PEPE",null,2,"ob:bbva#n2"],["SPOTIFY AB","spo",1,"ob:bbva~recibo.spo"],["SPOTIFY AB","spo",2,"ob:bbva~recibo.spo#n2"]]);
+    assert.deepEqual(filas,[["BIZUM A PEPE",null,1,"ob:bbva#accbbva"],["BIZUM A PEPE",null,2,"ob:bbva#accbbva#n2"],["SPOTIFY AB","spo",1,"ob:bbva~recibo.spo#accbbva"],["SPOTIFY AB","spo",2,"ob:bbva~recibo.spo#accbbva#n2"]]);
     assert.equal(r.b.pasos.sync.presupuesto.spent,10,"cuentan los dos bizums; los dos cargos del recibo, ninguno");
     assert.equal(r.a.octubre.expenses.length,2,"antes de esta entrega solo entraban los bizums");
     // La fila con `~recibo.<id>#n2` da la vuelta por la nube sin perder nada y no se vuelve a importar.

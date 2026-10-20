@@ -541,11 +541,12 @@ const paymentGuards=[
     const paid=ctx.fixedPaymentState(Object.assign({},recordedState,{fixed:[bill],expenses:[row]}),bill,2026,9,30);
     assert.equal(paid.paidBank,"sabadell","no sustituye banco confirmado por una inferencia");assert.equal(paid.paidAmount,null,"no inventa importe para el pago persistido");
   }},
-  {id:"identidad-pruebas-duplicada",from:'return f.id!==e.id&&q&&q.identity===p.identity&&q.model===fixedPaymentModel(f,m);',to:'return false;',check(ctx){
+  {id:"identidad-pruebas-duplicada",from:'return f.id!==e.id&&q&&q.identity===p.identity&&fixedPaymentModelMatches(q,f,m);',to:'return false;',check(ctx){
     const row=Object.assign({},recorded,{merchant:"Pago explícito",obName:"Pago explícito",source:"manual:sabadell"}),other=Object.assign({},fixed,{id:"otro",name:"Otro recibo"});
     const state=Object.assign({},recordedState,{fixed:[fixed,other],expenses:[row]});
     const linked=ctx.linkFixedPayment(state,row.id,fixed.id,2026,9,30),p=linked.fixed[0].paymentProofs[2026*12+9];
-    linked.fixed[1]=Object.assign({},other,{paymentProofs:{[2026*12+9]:Object.assign({},p,{model:ctx.fixedPaymentModel(other,9)})}});
+    // Dos pruebas válidas con sus respectivos ids deben seguir disputando el mismo cargo.
+    linked.fixed[1]=Object.assign({},other,{paymentProofs:{[2026*12+9]:ctx.fixedPaymentBind(p,other,9)}});
     assert.equal(linked.fixed.some(f=>ctx.fixedPaymentState(linked,f,2026,9,30).paid),false,"una identidad duplicada invalida ambas pruebas");
   }},
   // La regla vive en `recFrase` desde el 12/10/2026: la comparte la etiqueta del cargo de recibo.

@@ -37,7 +37,8 @@ function fakeDb(opts = {}) {
   function table(name) {
     const q = { name, op: "select", cols: "*", filters: [], row: null, returning: false };
     const api = {
-      select(cols = "*", options) { q.cols = cols; q.count = options?.count; if (q.op === "upsert") q.returning = true; else q.op = "select"; return api; },
+      select(cols = "*", options) { q.cols = cols; q.count = options?.count; if (["upsert","update","delete"].includes(q.op)) q.returning = true; else q.op = "select"; return api; },
+      abortSignal() { return api; },
       eq(k, v) { q.filters.push(["eq", k, v]); return api; },
       in(k, values) { q.filters.push(["in", k, values]); return api; },
       gte(k, v) { q.filters.push(["gte", k, v]); return api; },
@@ -119,7 +120,7 @@ function fakeDb(opts = {}) {
         if (opts.deleteError) return { data: null, error: { message: "delete failed" } };
         const borrar = new Set(filtered());
         for (let i = rows.length - 1; i >= 0; i--) if (borrar.has(rows[i])) rows.splice(i, 1);
-        return { data: null, error: null };
+        return { data: q.returning ? Array.from(borrar).map(row=>({id:row.id})) : null, error: null };
       }
       return { data: null, error: null };
     }
@@ -128,7 +129,7 @@ function fakeDb(opts = {}) {
   return { db: { from: table }, rows, events };
 }
 
-function makeHandler(db, classifier=logic) {
+function makeHandler(db, classifier=logic, code=handlerJs) {
   let handler;
   const Deno = { serve: (f) => { handler = f; }, env: { get: (k) => ({
     SUPABASE_URL: "https://db.invalid", SUPABASE_SERVICE_ROLE_KEY: "role",
@@ -142,7 +143,7 @@ function makeHandler(db, classifier=logic) {
     "widgetSnapshot", "widgetStart", "readWidgetRows",
     "INGEST_MAX_BODY", "INGEST_MAX_COMERCIO", "INGEST_MAX_NOTA", "INGEST_MAX_TEXTO", "recortar", "timingSafeEqual",
   ];
-  new Function(...names, handlerJs)(
+  new Function(...names, code)(
     Deno, () => db, classifier.categorizar, classifier.clasificarConMotivo, logic.extraerComercio,
     logic.extraerConcepto, logic.extraerImporte, logic.extraerPersona, logic.limpiarTexto,
     wallet.aEuros, wallet.parseWallet, identity.claveEvento, identity.esGemeloIngest,
@@ -157,8 +158,8 @@ function makeHandler(db, classifier=logic) {
   return handler;
 }
 
-async function post(env, body, classifier=logic) {
-  const res = await makeHandler(env.db, classifier)(new Request("https://app.invalid/ingest", {
+async function post(env, body, classifier=logic, code=handlerJs) {
+  const res = await makeHandler(env.db, classifier, code)(new Request("https://app.invalid/ingest", {
     method: "POST", headers: { "x-ingest-token": "token", "content-type": "application/json" },
     body: JSON.stringify(body),
   }));

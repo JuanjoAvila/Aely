@@ -1,4 +1,5 @@
 import { test } from "node:test";
+import {withOwnerStorage} from "./helpers/owner-storage-fixture.mjs";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
@@ -121,12 +122,13 @@ test("FIN07: mezcla conserva adicionales, lápidas, notas editadas y possibleDup
 function syncHarness(pull,native=null,options={}){
   const main=fs.readFileSync(new URL("../src/modules/11-app-main.js",import.meta.url),"utf8");
   const ini=main.indexOf("const syncCloudExpenses=function(){"),end=main.indexOf("\n  };",ini)+5;
-  const cli=loadPureLogicFromFile(),local={id:uuid(9999),date:"2019-01-01T12:00:00.000Z",amount:5,merchant:"Solo local",source:"manual"};
+  const cli=withOwnerStorage(loadPureLogicFromFile()),local={id:uuid(9999),date:"2019-01-01T12:00:00.000Z",amount:5,merchant:"Solo local",source:"manual"};
   const h={wS:{current:0},wR:{current:true},wP:{current:null},wC:{current:"|anterior|"},wRead:{current:null},sessionRef:{current:{user:{id:"synthetic-user"}}},stateRef:{current:{expenses:[local],deleted:["lapida"]}},sets:0,uploads:0};
   const env={...cli,...h,cloud:{pullExpenses:async proof=>{const r=await pull(proof);if(options.prove!==false){proof.valid=true;proof.userId="synthetic-user";}return r;},setExpenseCat:()=>Promise.resolve()},inicioDeMesMs:()=>0,
+    retryObAbsorbedCloud:()=>cli.obAbsorbedRetry(()=>h.stateRef.current,()=>h.sessionRef.current&&h.sessionRef.current.user.id,fn=>env.set(fn)),
     mcSandbox:()=>!!options.sandbox,setTimeout:options.setTimeout||setTimeout,clearTimeout:options.clearTimeout||clearTimeout,
     natPlugin:()=>native,subirGasto:()=>h.uploads++,fixMovInvasion:s=>s,reconcileObDupes:s=>({state:s,recat:[]}),
-    set:fn=>{h.sets++;h.stateRef.current=fn(h.stateRef.current);}};
+    set:fn=>{const next=fn(h.stateRef.current);if(next!==h.stateRef.current){h.sets++;h.stateRef.current=next;}}};
   const sync=new Function(...Object.keys(env),main.slice(ini,end)+";return syncCloudExpenses;")(...Object.values(env));
   return Object.assign(h,{sync});
 }

@@ -29,6 +29,10 @@ async function ticks(){ for(let i=0;i<20;i++) await Promise.resolve(); }
 function banco(){
   const ctx=loadPureLogicFromFile(),monthly=ctx.applyReservaMensual;
   vm.createContext(ctx);
+  const core=fs.readFileSync(path.join(root,"src/modules/00-core.js"),"utf8");
+  for(const name of [...core.matchAll(/^function (goalSync\w+|mergeGoalsThreeWay)\(/gm)].map(m=>m[1])){
+    vm.runInContext(bloque(core,"function "+name+"("),ctx);
+  }
   // Se cargan de la fuente vigente: el guardián también funciona contra el transporte anterior,
   // que no tenía puerta y acreditaba una copia local tras rescatar una nube inválida.
   for(const name of ["reservaMensualNubeLeida","reservaMensualPuerta"]){
@@ -40,9 +44,10 @@ function banco(){
     settings:{reservaRules:[{id:"r",goalId:"g",kind:"fixed",value:100,mensual:true}]},
     reservaLog:[{id:"mensual|r|2026-10",incomeKey:"mensual|r|2026-10",ruleId:"r",goalId:"g",amount:100,mensual:"2026-10",date:"2026-10-31T12:00:00Z"}]};
   const pulls=[],expenses=[],identity=x=>x;
-  const deps={
+  const deps={obAbsorbedWriteBlocked:{current:false},
     cloud:{pullState:function(){ const d=diferida(); pulls.push(d); return d.promise; },pushState:()=>Promise.resolve({updated_at:"2026-11-02"})},
     set:function(updater){ state=updater(state); },stateRef:{current:state},cloudUpdatedAtRef:{current:null},pullOkRef:{current:null},
+    setStateRaw:function(updater){ state=updater(state); },
     // El transporte real consulta la sesión antes de unir el historial de Inicio;
     // omitirla en el banco cortaba el pull antes de pedir gastos y ocultaba el motivo.
     sessionRef:{current:{user:{id:"synthetic"}}},mergeAccountBalanceHistory:ctx.mergeAccountBalanceHistory,
@@ -58,7 +63,7 @@ function banco(){
   };
   const names=Object.keys(deps);
   const factory=vm.runInContext("(function("+names.join(",")+"){"+
-    bloque(app,"const reservaMensualAlDia=function(")+bloque(app,"const syncFromCloud=function(")+"return syncFromCloud;})",ctx);
+    bloque(app,"const reservaMensualAlDia=function(")+bloque(app,"const pushAppState=function(")+bloque(app,"const syncFromCloud=function(")+"return syncFromCloud;})",ctx);
   const sync=factory(...names.map(k=>deps[k]));
   return {pulls,expenses,state:()=>state,valid:()=>({data:JSON.parse(JSON.stringify(state))}),
     start:function(){ sync({user:{id:"synthetic"}}); return deps.pullOkRef.current; }};

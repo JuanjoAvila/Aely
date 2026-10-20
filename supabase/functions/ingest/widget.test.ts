@@ -1,8 +1,34 @@
 import { assertEquals } from "jsr:@std/assert";
 import { readWidgetRows, widgetSnapshot, widgetStart } from "./widget.ts";
-import { bancoDeSource, claveComoLaApp, cuentaParaPresupuesto, esCargoDeRecibo, filasComoLaApp, inicioDeMesMs, ordinalDeSource } from "../_shared/presupuesto.ts";
+import { bancoDeSource, claveComoLaApp, cuentaParaPresupuesto, esCargoDeRecibo, filasComoLaApp, inicioDeMesMs, ordinalDeSource, statsDelMes } from "../_shared/presupuesto.ts";
 
 const now = Date.parse("2026-10-10T12:00:00Z"), start = inicioDeMesMs(now);
+Deno.test("FIN15 revision1: referencia vacia o ajena a OB no fusiona dias", () => {
+  for (const source of ["ob:caixabank#ref","ob:#refstable","manual:caixabank#refstable","wallet#refstable"]) {
+    const a = {id:"a",fecha:"2026-10-08T21:59:00Z",importe:3.2,comercio:"Compra sintetica",source};
+    const b = {...a,id:"b",fecha:"2026-10-09T10:00:00Z"};
+    for (const rows of [[a,b],[b,a]]) assertEquals(filasComoLaApp(rows,[]),rows);
+  }
+});
+Deno.test("FIN15 revision1: PDNG30 BOOK33 month y widget conservan primera fila", () => {
+  const p = {id:"pending",fecha:"2026-10-08T21:59:00Z",importe:30,comercio:"Compra sintetica",cat:"otros",source:"ob:caixabank#refstable#pdng"};
+  const b = {...p,id:"booked",fecha:"2026-10-09T10:00:00Z",importe:33,source:"ob:caixabank#refstable"};
+  const trigger = {...b,id:"trigger",importe:0.01,source:"ob:trade_republic#refother"};
+  const data = {budget:1000,accounts:[{ent:"caixabank",role:"diario",spendFrom:true}],settings:{expenseBanks:["caixabank"]},widgetPeriod:{v:2,kind:"mes",start,anchor:"",scope:JSON.stringify([2,start,"mes","gasto","",1000,["caixabank"],"caixabank"])}};
+  for (const rows of [[p,b],[b,p]]) {
+    assertEquals(statsDelMes(filasComoLaApp(rows,[]),data,start).spent,rows[0].importe);
+    assertEquals(widgetSnapshot(data,[...rows,trigger],now,{id:"trigger",event:"revision1",key:"synthetic"})?.spent,rows[0].importe);
+  }
+});
+Deno.test("FIN15: referencia estable entre dias cuenta una; distintas y lapidas conservan identidad", () => {
+  const pending = {id:"pending",fecha:"2026-10-08T21:59:00Z",importe:3.2,comercio:"Compra sintetica",source:"ob:caixabank#refstable#pdng"};
+  const booked = {...pending,id:"booked",fecha:"2026-10-09T10:00:00Z",source:"ob:caixabank#refstable"};
+  for (const rows of [[pending,booked],[booked,pending]]) assertEquals(filasComoLaApp(rows,[]).length,1);
+  const other = {...booked,source:"ob:caixabank#refother"};
+  for (const rows of [[pending,other],[other,pending]]) assertEquals(filasComoLaApp(rows,[]).length,2);
+  const slot = {...pending,source:pending.source+"#n2"};
+  for (const rows of [[slot,booked],[booked,slot]]) assertEquals(filasComoLaApp(rows,["ob-absorbed|caixabank|stable|2"]),[booked]);
+});
 Deno.test("BOOK absorbido: lápida específica conserva superviviente, otras referencias y UUID remoto", () => {
   const kept = {id:"pending-uuid",fecha:"2026-10-10T12:00:00Z",importe:3.2,comercio:"Cafe sintetico",source:"ob:caixabank#refb1#prevrefp1"};
   const gone = {...kept,id:"cloud-book-uuid",fecha:"2026-10-10T12:00:00.001Z",source:"ob:caixabank#refb1#n2"};
