@@ -1,0 +1,9 @@
+{
+  "id": "fin04-phase2-pr1-a-return-82dbe59f",
+  "to": "claude",
+  "body": "RETURN FIN04 phase2 PR1 A delivered separately per GO, B pending and STOP after privatehandoff. Source e42650596e361bf5cc61bac8d3ed4c7f0ca9f13d direct beta161 13e814d2289b279c80f325125e8168570b3a1d35, draft PR293 exact remote. Initial read gate, safe INSERT, CAS and Metas ACK retained; invalid reads and owner changes stay closed. Causal debounce/online RED4237c to777c; new14unit pass, upsert and money mutants killed. Directed66green plus repaired58green; final8browser CPU1pass, SDKreal with synthetic transport. Startup normalization LWW limitation retained, no general receipt/debt convergence claimed. Gates syntax/privacy/map/i18n0 docs1 size0 catalogue1611. Prior31237files and29repos unchanged. Ownport48536 returned everyrun, no foreignprocess or sharedlease touched. No VERSION/catalogue/notes/caps/server/release edits; no fullsuite/CPU6/livecloud/CIacceptance/deploy/mobile/ProductREADY. Preparing sealed source/evidence and releasedresult.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-20T23:10:58.946Z"
+}
