@@ -16,8 +16,8 @@ async function boot(page,channel){
     if(ch==='beta') localStorage.setItem('_mcChannel','beta'); else localStorage.removeItem('_mcChannel');
     window.__ux16={edge:[],fill:[]};
     window.Capacitor={Plugins:{AelyHaptics:{
-      edge(p){window.__ux16.edge.push({...p,at:performance.now()});return Promise.resolve({tunable:true});},
-      fill(p){window.__ux16.fill.push(p);return Promise.resolve({tunable:true});}}}};
+      edge(p){if(p&&p.cycle){window.__ux16.fill.push({...p,at:performance.now()});return Promise.resolve({tunable:true,shaped:true,amplitudeControl:true});}window.__ux16.edge.push({...p,at:performance.now()});return Promise.resolve({tunable:true,shaped:true,amplitudeControl:true});},
+      fill(p){window.__ux16.fill.push(p);return Promise.resolve({tunable:true,shaped:true,amplitudeControl:true});}}}};
   },channel);
   await page.goto('/');
   await expect(page.locator('.botnav')).toBeVisible({timeout:15_000});
@@ -31,7 +31,7 @@ async function openTuner(page){
   await expect(head).toHaveCount(1);
   await head.click();
   const tuner=page.locator('.hv-tuner');
-  await expect(tuner.locator('input[type=range]')).toHaveCount(7);
+  await expect(tuner.locator('input[type=range]')).toHaveCount(9);
   return tuner;
 }
 
@@ -52,18 +52,39 @@ test('UX16 ajustador: en beta se mueve, se guarda, se prueba y lo obedecen borde
   const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('_mcHapticTune')||'null'));
   expect(saved).toMatchObject({edgeAmp:180,edgeEvery:90});
 
+  // Ronda 8: probar el borde = un choque, el mismo que en la app, con su fuerza y duración.
+  await slide(page,'edgeMs',30);
+  const before=await page.evaluate(()=>window.__ux16.edge.length);
   await tuner.locator('[data-group="edge"] .chip').click();
-  await expect.poll(()=>page.evaluate(()=>window.__ux16.edge.length)).toBeGreaterThanOrEqual(3);
-  const probe=await page.evaluate(()=>window.__ux16.edge.slice(0,3));
-  expect(probe.every(p=>p.amplitude===180)).toBe(true);
-  expect(probe[1].at-probe[0].at).toBeGreaterThanOrEqual(80);
+  await expect.poll(()=>page.evaluate(()=>window.__ux16.edge.length)).toBe(before+1);
+  await page.waitForTimeout(400);
+  expect(await page.evaluate(()=>window.__ux16.edge.length)).toBe(before+1);
+  // La fuerza alarga también el toque (ronda 9): 30 ms a fuerza 180 salen 36 ms.
+  expect(await page.evaluate(()=>window.__ux16.edge.at(-1))).toMatchObject({amplitude:180,durationMs:36,usage:'hardware'});
+
+  // Ronda 9: el cambio de segmento tiene su propio par; «Probar» da ese toque, con uso hardware.
+  await slide(page,'segAmp',90);await slide(page,'segMs',16);
+  await tuner.locator('[data-group="seg"] .chip').click();
+  await expect.poll(()=>page.evaluate(()=>window.__ux16.edge.at(-1).amplitude)).toBe(90);
+  expect(await page.evaluate(()=>window.__ux16.edge.at(-1))).toMatchObject({durationMs:14,usage:'hardware'});
+
+  // Ronda 6: el tipo de vibración se elige con chips y viaja en cada llamada al motor.
+  await tuner.locator('[data-usage="hardware"]').click();
+  await expect(tuner.locator('[data-usage="hardware"]')).toHaveAttribute('aria-pressed','true');
+  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('_mcHapticTune')).usage)).toBe('hardware');
+  await tuner.locator('[data-group="tick"] .chip').click();
+  await expect.poll(()=>page.evaluate(()=>window.__ux16.edge.at(-1).usage)).toBe('hardware');
 
   await slide(page,'fillMs',1500);
   expect(await page.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--v42-cycle-ms').trim())).toBe('1500ms');
+  // Probar el anillo = la ristra entera con el anillo lleno: trece toques hasta la fuerza elegida.
+  await page.evaluate(()=>{window.__ux16.fill=[];});
   await tuner.locator('[data-group="fill"] .chip').click();
-  const fill=await page.evaluate(()=>window.__ux16.fill.at(-1));
-  expect(fill.timings.reduce((a,t)=>a+t,0)).toBe(1500);
-  expect(fill.amplitude).toBe(30);
+  await expect.poll(()=>page.evaluate(()=>window.__ux16.fill.length),{timeout:4_000}).toBe(13);
+  const ring=await page.evaluate(()=>window.__ux16.fill);
+  expect(ring.at(-1).amplitude).toBe(140);
+  expect(ring.every(c=>c.usage==='hardware')).toBe(true);
+  expect(ring.at(-1).at-ring[0].at).toBeGreaterThan(500);
 
   // Copiar deja en el portapapeles el texto corto que él nos manda.
   await page.evaluate(()=>{window.__copied=null;navigator.clipboard.writeText=t=>{window.__copied=t;return Promise.resolve();};});
@@ -87,12 +108,14 @@ test('UX16 ajustador: en beta se mueve, se guarda, se prueba y lo obedecen borde
     box.scrollTop=200;box.dispatchEvent(new Event('scroll'));box.scrollTop=500;box.dispatchEvent(new Event('scroll'));
     const arrival=calls.at(-1);await sleep(200);
     const before=calls.length;touch('touchstart',250);touch('touchmove',230);const immediate=calls.length-before;
-    await sleep(140);const repeated=calls.length-before;touch('touchend',230);box.remove();
-    return {arrival,immediate,repeated};
+    await sleep(140);const held=calls.length-before;
+    touch('touchmove',215);const repeated=calls.length-before;touch('touchend',215);box.remove();
+    return {arrival,immediate,held,repeated};
   });
-  expect(r.arrival).toMatchObject({amplitude:180});
+  expect(r.arrival,'el choque real obedece al ajustador').toMatchObject({amplitude:180,durationMs:36,usage:'hardware'});
   expect(r.immediate,'seguir tirando estando abajo vibra al momento').toBe(1);
-  expect(r.repeated,'y repite con el intervalo elegido').toBeGreaterThanOrEqual(2);
+  expect(r.held,'con el dedo quieto no repite').toBe(1);
+  expect(r.repeated,'ni al seguir arrastrando: uno por arrastre').toBe(1);
 });
 
 test('UX16 ajustador: en el canal estable no aparece',async({page})=>{
@@ -101,4 +124,19 @@ test('UX16 ajustador: en el canal estable no aparece',async({page})=>{
   await expect(page.getByRole('heading',{name:/Ajustes|Settings|Ajustos/i})).toBeVisible({timeout:8_000});
   await expect(page.locator('.set-row',{hasText:'Vibración'})).toHaveCount(0);
   await expect(page.locator('.hv-tuner')).toHaveCount(0);
+});
+
+test('UX16 ronda 9: cambiar de segmento en Plan da su propio toque del ajustador',async({page})=>{
+  await boot(page,'beta');
+  await page.evaluate(()=>localStorage.setItem('_mcHapticTune',JSON.stringify({v:2,tickAmp:66,tickMs:9,segAmp:102,segMs:20})));
+  await page.locator('.botnav-tab[data-tour="plan"]').click();
+  const deudas=page.locator('.v4-seg-btn[data-seg="deudas"]').last();
+  await expect(deudas).toBeVisible({timeout:8_000});
+  const before=await page.evaluate(()=>window.__ux16.edge.length);
+  await deudas.click();
+  await expect.poll(()=>page.evaluate(()=>window.__ux16.edge.length)).toBe(before+1);
+  expect(await page.evaluate(()=>window.__ux16.edge.at(-1))).toMatchObject({amplitude:102,durationMs:18,usage:'hardware'});
+  await deudas.click();
+  await page.waitForTimeout(150);
+  expect(await page.evaluate(()=>window.__ux16.edge.length),'pulsar el segmento ya activo no vibra').toBe(before+1);
 });

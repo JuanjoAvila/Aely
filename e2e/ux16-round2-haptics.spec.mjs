@@ -52,6 +52,6 @@ export async function ux16Round2BrowserCases(){
 test('UX16 ronda2: llegada por inercia y rearme por separacion',async({page})=>{
   await seedLoggedInDashboard(page,{budget:1000,accounts:[],expenses:[],__seenVersion:fs.readFileSync(new URL('../VERSION',import.meta.url),'utf8').trim()});
   await page.route('https://**/*',route=>route.abort());
-  await page.addInitScript(()=>{window.__ux16={edge:[],fill:[]};window.Capacitor={Plugins:{AelyHaptics:{edge(){window.__ux16.edge.push({});return Promise.resolve();},fill(p){window.__ux16.fill.push(p);return Promise.resolve();}}}};});
+  await page.addInitScript(()=>{window.__ux16={edge:[],fill:[]};window.Capacitor={Plugins:{AelyHaptics:{edge(p){if(p&&p.cycle){window.__ux16.fill.push(p);return Promise.resolve();}window.__ux16.edge.push({});return Promise.resolve();},fill(p){window.__ux16.fill.push(p);return Promise.resolve();}}}};});
   await page.goto('/');const r=await page.evaluate(ux16Round2BrowserCases);expect(r.filter(x=>!x.pass),JSON.stringify(r)).toEqual([]);
 });

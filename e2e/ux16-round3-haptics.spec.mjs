@@ -16,15 +16,19 @@ export async function ux16Round3BrowserCases(){
   }
   const box=document.createElement('div');box.style.cssText='height:100px;overflow-y:auto;overscroll-behavior:auto';box.innerHTML='<div style="height:600px">Sintetico</div>';document.body.append(box);
   let before=calls.length;
+  // Ronda 7: una vibración por arrastre contra el borde; ni quieto ni arrastrando se repite.
   touch(box,'touchstart',200,250);const prevented=touch(box,'touchmove',200,275);await sleep(365);
-  check('tiron mantenido produce ticks adicionales',calls.length-before>=3,true);
-  const pull=calls.slice(before);check('tiron limitado al menos120ms',pull.slice(1).every((p,i)=>p.at-pull[i].at>=120),true);
-  touch(box,'touchend',200,275);before=calls.length;await sleep(210);check('soltar detiene inmediatamente',calls.length,before);
+  check('dedo quieto en el borde no repite',calls.length-before,1);
+  for(let y=290;y<=350;y+=15){await sleep(170);touch(box,'touchmove',200,y);}
+  check('seguir arrastrando contra el borde no repite',calls.length-before,1);
+  before=calls.length;touch(box,'touchmove',200,353);await sleep(170);touch(box,'touchmove',200,356);
+  check('temblor de unos pixeles no repite',calls.length,before);
+  touch(box,'touchend',200,356);before=calls.length;await sleep(210);check('soltar detiene inmediatamente',calls.length,before);
   touch(box,'touchstart',200,250);touch(box,'touchmove',200,275);await sleep(180);touch(box,'touchcancel',200,275);
   before=calls.length;await sleep(180);check('cancelar detiene ticks',calls.length,before);
   touch(box,'touchstart',200,250);touch(box,'touchmove',200,275);touch(box,'touchmove',200,260);
-  before=calls.length;await sleep(180);check('dejar de tirar detiene ticks',calls.length,before);
-  touch(box,'touchend',200,260);
+  before=calls.length;await sleep(180);touch(box,'touchmove',200,262);check('dar marcha atras no repite',calls.length,before);
+  touch(box,'touchend',200,262);
   box.scrollTop=200;box.dispatchEvent(new Event('scroll'));box.scrollTop=500;box.dispatchEvent(new Event('scroll'));
   before=calls.length;await sleep(330);check('inercia no inicia repeticion sin dedo',calls.length,before);
   touch(box,'touchstart',200,250);touch(box,'touchmove',200,225);await sleep(180);
@@ -61,6 +65,6 @@ test('UX16 ronda3: tiron limitado y tick por punto real de Inicio',async({page})
   const state=estadoHeredado('2026-10-18');state.obAccounts=state.obAccounts.map(a=>({...a,key:a.id}));
   await seedLoggedInDashboard(page,{...state,__seenVersion:fs.readFileSync(new URL('../VERSION',import.meta.url),'utf8').trim()});
   await page.route('https://**/*',route=>route.abort());
-  await page.addInitScript(()=>{window.__ux16={edge:[],fill:[]};window.Capacitor={Plugins:{AelyHaptics:{edge(p){window.__ux16.edge.push({...p,at:performance.now()});return Promise.resolve();},fill(p){window.__ux16.fill.push(p);return Promise.resolve();}}}};});
+  await page.addInitScript(()=>{window.__ux16={edge:[],fill:[]};window.Capacitor={Plugins:{AelyHaptics:{edge(p){if(p&&p.cycle){window.__ux16.fill.push(p);return Promise.resolve();}window.__ux16.edge.push({...p,at:performance.now()});return Promise.resolve();},fill(p){window.__ux16.fill.push(p);return Promise.resolve();}}}};});
   await page.goto('/');const r=await page.evaluate(ux16Round3BrowserCases);expect(r.filter(x=>!x.pass),JSON.stringify(r)).toEqual([]);
 });

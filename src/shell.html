@@ -1255,6 +1255,17 @@
      anclaba la hija fixed al scroll del padre (19/10). El cierre/retorno ponen su transición
      inline; al limpiarla, no volver a animar la matriz identidad hacia none. */
   .settings-push.v4-bills-push{will-change:auto;transition:none;}
+  /* Un único candidato a scroller raíz (INC-2709-03, 19/10). Chromium solo convierte en raíz
+     implícita —la única que recibe la ola nativa de Android— un `fixed` a pantalla completa que
+     desplace, y SOLO si no hay otro igual: con dos, ninguno. Plan y Ajustes quedaban debajo
+     desplazables y la hija dejaba al hub igual. Lo tapado no desplaza; `hidden` (no `clip`)
+     conserva el scrollTop para volver donde estaba. Guardián: e2e `ola-root`. */
+  html.bills-open .page.page-scroll-host,
+  html.bills-open .settings-push:not(.v4-bills-push),
+  .v4-bills-push[data-covered]{overflow-y:hidden;}
+  /* El contenido de estas hijas también entrega sus bordes al navegador. La promoción de
+     capa solo hace falta durante el arrastre/salida; no mantener una textura en reposo. */
+  .v4-sheet[data-sheet="bill"],.v4-sheet[data-sheet="bill-add"]{will-change:auto;}
   /* La subpantalla queda por encima del hub para que Atrás enseñe su destino mientras acompaña
      al dedo, igual que Inversiones. Ella es su propio scroller y no dibuja barra lateral. */
   /* Un píxel de recorrido conserva la ola también con una cartera vacía, sin alterar el aspecto. */

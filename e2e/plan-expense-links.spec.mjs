@@ -147,11 +147,12 @@ for(const lang of ['es','en','ca'])test('simple Plan calendar label '+lang,async
   await pending.screenshot({path:info.outputPath('pending.png')});
 });
 
-// INC-1810-04 (YouTube Premium, rechazo de beta 4.26.145): «no deja enlazarlo». Abrir no escribe;
+// INC-1810-04 (YouTube Premium, rechazos de beta 4.26.145 y 4.26.148): «no deja enlazarlo». Abrir no escribe;
 // el enlace solo existe tras pulsar y confirmar, y entonces Plan y la ficha lo cuentan igual.
-for(const kind of ['marked','calendar'])test('INC-1810-04 '+kind+' charge can be linked by the user',async({page})=>{
+// `overdue`: vencido por calendario, sin paidYm ni prueba, con un cargo del mismo comercio (4.26.148).
+for(const kind of ['marked','calendar','overdue'])test('INC-1810-04 '+kind+' charge can be linked by the user',async({page})=>{
   const s=paymentFixture();s.bankTx=[];delete s.fixed[0].paymentProofs;s.expenses[0].amount=30.49;
-  if(kind==='marked')s.expenses[0].reciboId=s.fixed[0].id;else Object.assign(s.fixed[0],{paidYm:24322,paidDay:10});
+  if(kind==='marked')s.expenses[0].reciboId=s.fixed[0].id;else if(kind==='calendar')Object.assign(s.fixed[0],{paidYm:24322,paidDay:10});
   await openRound2(page,s);
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   await expect(page.locator('div[data-seg="recibos"] .v4-charge').filter({hasText:'YouTube Premium'})).not.toHaveClass(/v4-paid/);
@@ -172,4 +173,76 @@ for(const kind of ['marked','calendar'])test('INC-1810-04 '+kind+' charge can be
   await expect.poll(()=>page.evaluate(()=>{const f=mcLoadRaw(mcStateKey()).fixed[0],p=f.paymentProofs&&f.paymentProofs[24322];return [p?p.kind:null,f.paidYm||null];})).toEqual(['expense',kind==='calendar'?24322:null]);
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:'YouTube Premium'})).toHaveCount(1);
+});
+
+// Diagnóstico de «Paga un recibo» (INC-1810-04): su APK release no deja leer el estado local.
+// Solo en beta; el texto lleva la cola de las cuentas, nunca la cuenta entera ni otros gastos.
+for(const channel of ['beta','stable'])test('receipt diagnostics only on beta · '+channel,async({page})=>{
+  const iban='ES7600810000000000001234';
+  const s=paymentFixture();delete s.fixed[0].paymentProofs;
+  Object.assign(s.expenses[0],{obAcc:iban});s.bankTx[0]={...s.bankTx[0],id:'OTHER-REF',acc:iban};
+  s.expenses.push({id:'other-expense',date:'2026-10-05',merchant:'OTRO COMERCIO',amount:123.45,ent:'sabadell',category:'otros',source:'manual'});
+  // Otro recibo con su prueba BOOK: su referencia y su comercio no son de este cargo y no salen.
+  const n={id:'netflix',name:'Netflix',amount:12.99,account:'sabadell',freq:'mes',day:5};s.fixed.push(n);
+  n.paymentProofs={24322:{kind:'book',key:'sabadell|99887766554433221100X',identity:JSON.stringify(['sabadell','2026-10-05',12.99,'OTRO COMERCIO NETFLIX.COM']),date:'2026-10-05',bank:'sabadell',merchant:'OTRO COMERCIO NETFLIX.COM',amount:12.99,modelVersion:2,receiptId:n.id,receiptName:n.name,model:JSON.stringify([n.id,'sabadell',12.99,null])}};
+  await page.addInitScript(ch=>{
+    if(ch==='beta')localStorage.setItem('_mcChannel','beta');else localStorage.removeItem('_mcChannel');
+    window.__copied=[];Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText(t){window.__copied.push(t);return Promise.resolve();}}});
+  },channel);
+  await openRound2(page,s);
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:'YOUTUBE PREMIUM'}).click();
+  await page.getByTestId('exp-receipt').click();
+  await expect(page.getByTestId('exp-receipt-options')).toBeVisible();
+  const btn=page.getByTestId('exp-receipt-diag');
+  if(channel!=='beta'){await expect(btn).toHaveCount(0);await unchangedRound2(page);return;}
+  await expect(btn).toHaveText('Copiar diagnóstico');
+  await btn.click();
+  await expect.poll(()=>page.evaluate(()=>window.__copied.length)).toBe(1);
+  const text=await page.evaluate(()=>window.__copied[0]);
+  expect(text).toContain('RECIBO receipt-synthetic');expect(text).toContain('current:ref distinta en el extracto');
+  expect(text).toContain('obAcc:…1234');expect(text).not.toContain(iban);expect(text).not.toMatch(/\d{12}/);
+  expect(await page.evaluate(()=>{const s=mcLoadRaw(mcStateKey());return !!fixedPaymentProof(s,s.fixed.find(f=>f.id==='netflix'),2026,10,18);})).toBe(true);
+  expect(text).toContain('RECIBO netflix');expect(text).toContain('(otro cargo)');
+  expect(text).not.toContain('99887766554433221100X');expect(text).not.toContain('NETFLIX.COM');
+  expect(text).not.toContain('123.45');expect(text).not.toContain('OTRO COMERCIO');
+  await unchangedRound2(page);
+});
+
+// INC-1810-04 r3: la prueba BOOK guardada es de este cargo (misma referencia), pero el cargo
+// renombrado se identifica por el texto del banco. Plan ✓ y la ficha tiene que decir lo mismo.
+test('INC-1810-04 r3 BOOK proof of the renamed charge shows in the detail',async({page})=>{
+  const s=paymentFixture(),x=s.expenses[0],ref='20261002213646522190S1',iban='ES0000000000000000008405';
+  const f={id:'hs0ymqd4',name:'YouTube Premium ',amount:29.99,day:2,freq:'mes'};
+  Object.assign(x,{date:'2026-10-02',amount:29.99,extId:ref,obAcc:iban,merchant:'YouTube Premium',obName:'COMPRA TARJ. 5402XXXXXXXX6013 GOOGLE*YOUTUBE-DUBLIN',category:'recibos'});
+  s.bankTx=[];s.accounts[0].bankIban=iban;s.fixed=[f];
+  const model=JSON.stringify(['hs0ymqd4','sabadell',29.99,null]);
+  f.paymentProofs={24322:{kind:'book',key:'sabadell|'+ref,identity:JSON.stringify(['sabadell','2026-10-02',29.99,'YouTube Premium']),date:'2026-10-02',bank:'sabadell',merchant:'YouTube Premium',amount:29.99,modelVersion:2,receiptId:f.id,receiptName:f.name,model}};
+  await openRound2(page,s);
+  expect(await page.evaluate(()=>{const s=mcLoadRaw(mcStateKey());return !!fixedPaymentProof(s,s.fixed[0],2026,10,18);})).toBe(true);
+  await page.locator('.botnav-tab[data-tour="plan"]').click();
+  await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:'YouTube Premium'})).toHaveCount(1);
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:'YouTube Premium'}).click();
+  await expect(page.getByTestId('exp-receipt-value')).toHaveText('YouTube Premium');
+  await unchangedRound2(page);
+});
+
+// INC-1810-04 r4: el cargo de tarjeta va fechado el día de la operación (2/10) y el BOOK de su
+// misma referencia el de contabilización (5/10). Plan ✓; la ficha seguía en «No».
+test('INC-1810-04 r4 BOOK booked days after the card charge shows in the detail',async({page})=>{
+  const s=paymentFixture(),x=s.expenses[0],ref='20261002213646522190S1',iban='ES0000000000000000008405',name='COMPRA TARJ. 5402XXXXXXXX6013 GOOGLE*YOUTUBE-DUBLIN';
+  const f={id:'hs0ymqd4',name:'YouTube Premium ',amount:29.99,day:2,freq:'mes'};
+  Object.assign(x,{date:'2026-10-02',amount:29.99,extId:ref,obAcc:iban,merchant:'YouTube Premium',obName:name,category:'recibos'});
+  s.bankTx=[{id:ref,ent:'sabadell',date:'2026-10-05',amount:29.99,merchant:name,status:'BOOK',acc:iban}];s.accounts[0].bankIban=iban;s.fixed=[f];
+  const model=JSON.stringify(['hs0ymqd4','sabadell',29.99,null]);
+  f.paymentProofs={24322:{kind:'book',key:'sabadell|'+ref,identity:JSON.stringify(['sabadell','2026-10-05',29.99,name]),date:'2026-10-05',bank:'sabadell',merchant:name,amount:29.99,modelVersion:2,receiptId:f.id,receiptName:f.name,model}};
+  await openRound2(page,s);
+  expect(await page.evaluate(()=>{const s=mcLoadRaw(mcStateKey());return !!fixedPaymentProof(s,s.fixed[0],2026,10,18);})).toBe(true);
+  await page.locator('.botnav-tab[data-tour="plan"]').click();
+  await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:'YouTube Premium'})).toHaveCount(1);
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:'YouTube Premium'}).click();
+  await expect(page.getByTestId('exp-receipt-value')).toHaveText('YouTube Premium');
+  await unchangedRound2(page);
 });

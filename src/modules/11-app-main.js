@@ -2134,7 +2134,10 @@ function App(){
     const debtTotal=state.debts.reduce((a,d)=>a+debtBalance(d),0);   // saldo proyectado (baja solo cada mes)
     const activos=liquid+invested+assetsTotal;
     const netWorth=activos-debtTotal;
-    const fijosVar=state.fixed.reduce((a,e)=>a+e.amount*(FREQ_M[e.freq]||1),0);
+    // La mensualidad de cada recibo sale de `fixedMonthlyOf`, la misma que los grupos de «Tus
+    // recibos»: con `amount×FREQ_M` un recibo de importe distinto por cobro (seguro 172,05 + 166,94)
+    // ignoraba su `schedule` y la cabecera no cuadraba con la suma de sus grupos (beta 4.26.150).
+    const fijosVar=state.fixed.reduce((a,e)=>a+fixedMonthlyOf(e),0);
     const cuotas=state.debts.reduce((a,d)=>a+(debtActive(d)?(d.monthly||0):0),0);
     const fijosMensual=fijosVar+cuotas;
     const ahorroMensual=state.aportaciones.reduce((a,x)=>a+x.amount,0);
@@ -3653,13 +3656,18 @@ function App(){
      referencia y se salta el subárbol entero. De ahí que el mapa de abajo ya no vaya memoizado:
      cuatro `createElement` de un `div` no cuestan nada, y lo caro es lo que cuelga de ellos.
      El precio de sacar `tab` son los cierres que lo leían (`goTab`, `cancelSwipe`): ahora leen
-     `tabRef`, con el porqué escrito en cada uno. */
+     `tabRef`, con el porqué escrito en cada uno.
+
+     Y `drawerOpen` TAMPOCO (20/10/2026). Estaba en la lista aunque ninguna página lo lee: abrir o
+     cerrar Ajustes reconstruía las cuatro, y al tocar Cartera desde el cajón ese trabajo caía
+     encima del cambio de pestaña («voy de Ajustes a Tus cuentas y pega un tirón»). El cajón es una
+     capa de encima, como el perfil. Lo vigila `tests/inicio-deps-ajustes.test.mjs`. */
   const contenidos=useMemo(function(){
     var out={};
     tabIds.forEach(function(id){ if(id!=="gastos") out[id]=pageFor(id); });
     return out;
     // eslint-disable-next-line
-  },[state, totals, budgetStreak, tabIds.join("|"), syncing, syncStatus, gotoExp, planGoto, pricing, uid, drawerOpen, locked]);
+  },[state, totals, budgetStreak, tabIds.join("|"), syncing, syncStatus, gotoExp, planGoto, pricing, uid, locked]);
   /* Gastos iba en memo aparte POR la prop `active` — y esa prop era el lag. Ahora se entera
      por bus (`mcSetGastosActive` abajo) y comparte deps con las otras: entrar/salir de Gastos
      ya NO reconstruye Expenses. Se deja el memo propio por si mañana vuelve a necesitar algo
@@ -3667,7 +3675,7 @@ function App(){
   const contenidoGastos=useMemo(function(){
     return tabIds.indexOf("gastos")>=0 ? pageFor("gastos") : null;
     // eslint-disable-next-line
-  },[state, totals, tabIds.join("|"), syncing, syncStatus, gotoExp, planGoto, pricing, uid, drawerOpen, locked, gastosForceAll]);
+  },[state, totals, tabIds.join("|"), syncing, syncStatus, gotoExp, planGoto, pricing, uid, locked, gastosForceAll]);
   // Aviso barato a Expenses: sin setState en App que no haga falta, y sin re-render de Gastos.
   useEffect(function(){ mcSetGastosActive(tabIds[tab]==="gastos"); },[tab, tabIds]);
   useEffect(function(){ mcSetCarteraActive(tabIds[tab]==="cartera"); },[tab, tabIds]);

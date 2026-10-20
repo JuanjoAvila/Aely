@@ -1255,6 +1255,17 @@
      anclaba la hija fixed al scroll del padre (19/10). El cierre/retorno ponen su transición
      inline; al limpiarla, no volver a animar la matriz identidad hacia none. */
   .settings-push.v4-bills-push{will-change:auto;transition:none;}
+  /* Un único candidato a scroller raíz (INC-2709-03, 19/10). Chromium solo convierte en raíz
+     implícita —la única que recibe la ola nativa de Android— un `fixed` a pantalla completa que
+     desplace, y SOLO si no hay otro igual: con dos, ninguno. Plan y Ajustes quedaban debajo
+     desplazables y la hija dejaba al hub igual. Lo tapado no desplaza; `hidden` (no `clip`)
+     conserva el scrollTop para volver donde estaba. Guardián: e2e `ola-root`. */
+  html.bills-open .page.page-scroll-host,
+  html.bills-open .settings-push:not(.v4-bills-push),
+  .v4-bills-push[data-covered]{overflow-y:hidden;}
+  /* El contenido de estas hijas también entrega sus bordes al navegador. La promoción de
+     capa solo hace falta durante el arrastre/salida; no mantener una textura en reposo. */
+  .v4-sheet[data-sheet="bill"],.v4-sheet[data-sheet="bill-add"]{will-change:auto;}
   /* La subpantalla queda por encima del hub para que Atrás enseñe su destino mientras acompaña
      al dedo, igual que Inversiones. Ella es su propio scroller y no dibuja barra lateral. */
   /* Un píxel de recorrido conserva la ola también con una cartera vacía, sin alterar el aspecto. */
@@ -3755,14 +3766,58 @@ const cloud = (function(){
     // Concepto escrito a mano (o corregido) por el usuario. `nota_edit` lo blinda: el siguiente
     // sync del banco no lo pisa con la descripción cruda del extracto (2026-07-24).
     async setExpenseNote(e, note){
-      if(!sb) return;
-      const {data:{session}}=await sb.auth.getSession();
-      if(!session) return;
-      if(!await obConfirmedCanUpload(e,session.user.id,sb))return;
+      if(!sb) throw new Error("cloud unavailable");
+      const auth=await sb.auth.getSession(), session=!auth.error&&auth.data&&auth.data.session;
+      if(!session) throw new Error("session unavailable");
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))throw new Error("expense unavailable");
       // Si la migración 0017 aún no está aplicada, esto no puede hacer nada útil: se avisa al
       // llamante en vez de fallar mudo (aquí el concepto ES el dato que el usuario quiere guardar).
-      const {error}=await expenseCloudEq(sb.from('expenses').update({ nota:String(note||"").slice(0,160)||null, nota_edit:true }), session.user.id, e);
+      const raw=String(note||"").slice(0,160)||null;
+      const q=expenseCloudEq(sb.from('expenses').update({ nota:raw, nota_edit:true }), session.user.id, e);
+      if(typeof q.select!=="function")throw new Error("note identity unavailable");
+      const {data,error}=await q.select("id,user_id,fecha,importe,comercio,nota,nota_edit");
       if(error){ if(_isMissingNotaCol(error)) _mcNotaCols=false; throw error; }
+      const current=await sb.auth.getSession(), active=!current.error&&current.data&&current.data.session;
+      const row=Array.isArray(data)&&data.length===1&&data[0], k=expenseCloudKeys(e);
+      // Éxito HTTP con cero filas no confirma nada. Tampoco una respuesta de otra identidad
+      // o una sesión que cambió mientras se guardaba (FIN04, 19/10/2026).
+      if(!active||active.user.id!==session.user.id||!row||!isExpenseUuid(row.id)||row.user_id!==session.user.id||row.nota!==raw||row.nota_edit!==true||
+        (k.by==="id"?row.id!==k.id:k.by!=="attrs"||Date.parse(row.fecha)!==Date.parse(k.fecha)||Number(row.importe)!==Number(k.importe)||row.comercio!==k.comercio))throw new Error("note unconfirmed");
+      return row;
+    },
+    // Renombrar solo cambia el comercio: DELETE+alta restauraba la nota antigua que llevaba
+    // el otro móvil. La fila y sus importes, categoría, source y vínculos permanecen intactos.
+    async renameExpense(e, merchant, allowCreate){
+      if(!sb)throw new Error("cloud unavailable");
+      const auth=await sb.auth.getSession(), session=!auth.error&&auth.data&&auth.data.session;
+      if(!session)throw new Error("session unavailable");
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))throw new Error("expense unavailable");
+      const lookup=function(){return expenseCloudEq(sb.from('expenses').select('*'),session.user.id,e);};
+      let read=await lookup();
+      if(!read.error&&Array.isArray(read.data)&&read.data.length===0&&allowCreate){
+        const now=await sb.auth.getSession();
+        if(now.error||!now.data.session||now.data.session.user.id!==session.user.id)throw new Error("session unavailable");
+        // El alta existente ignora duplicados: nunca sustituye una nota de otro móvil.
+        // Después se exige la MISMA identidad; una colisión de terna no confirma nada.
+        await cloud.addExpense(e);read=await lookup();
+      }
+      const rows=read.data;
+      if(read.error)throw read.error;
+      const row=Array.isArray(rows)&&rows.length===1&&rows[0], name=String(merchant||"").trim();
+      if(!row||!name||!isExpenseUuid(row.id)||row.user_id!==session.user.id||Date.parse(row.fecha)!==Date.parse(e.date)||Number(row.importe)!==Number(e.amount)||(row.comercio!==(e.merchant||"")&&row.comercio!==name))throw new Error("rename identity changed");
+      if(!await obConfirmedCanUpload(e,session.user.id,sb)||!await obConfirmedCanUpload(expenseFromRow(row),session.user.id,sb))throw new Error("expense unavailable");
+      const current=await sb.auth.getSession(), active=!current.error&&current.data&&current.data.session;
+      if(!active||active.user.id!==session.user.id)throw new Error("session unavailable");
+      if(row.comercio===name)return row; // ACK perdido tras commit: reintento idempotente.
+      const patch={comercio:name};
+      if(/^(ob|ob-hist):/.test(row.source||"")&&row.ob_name==null)patch.ob_name=row.comercio;
+      const result=await sb.from('expenses').update(patch).eq('user_id',session.user.id).eq('id',row.id)
+        .eq('fecha',row.fecha).eq('importe',row.importe).eq('comercio',row.comercio).eq('source',row.source).select('*');
+      if(result.error)throw result.error;
+      const ack=Array.isArray(result.data)&&result.data.length===1&&result.data[0];
+      const after=await sb.auth.getSession(), still=!after.error&&after.data&&after.data.session;
+      if(!still||still.user.id!==session.user.id||!ack||ack.id!==row.id||ack.user_id!==session.user.id||ack.comercio!==name||Number(ack.importe)!==Number(row.importe)||Date.parse(ack.fecha)!==Date.parse(row.fecha)||ack.source!==row.source)throw new Error("rename unconfirmed");
+      return ack;
     },
     // CATEGORÍA en la tabla. Sin esto, `syncCloudExpenses` —que reemplaza los gastos de origen
     // "supabase" con lo que hay en la tabla— pisaba en el siguiente pull cualquier recategorización
@@ -4674,7 +4729,7 @@ function borrarGastoNube(e, donde){
 
    Si añades un método a `cloud` que ESCRIBA algo, añádelo a esta lista. */
 const CLOUD_WRITES=[
-  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","setExpenseRecibo","deleteExpense","deleteExpensesByIds","settleObAbsorbed",
+  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","renameExpense","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","setExpenseRecibo","deleteExpense","deleteExpensesByIds","settleObAbsorbed",
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
   "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",
@@ -4950,10 +5005,40 @@ function lapidasAlEditar(s, keyOrig, keyUpd, ahora){
    o al volver la conexión. Límite: la cola vive en memoria; si la app se cierra antes, la fila
    vieja sigue en la nube y el repaso tras el pull dará `23505` con origen `backfill`.
    `cola` = {pend:[{orig,upd}], fin:Promise}. */
+// Fallo de transporte (sin conexión, fetch caído, sesión que no se pudo leer), no respuesta
+// del servidor. El cliente de Supabase devuelve el fetch caído como `{message:"TypeError: …"}`.
+const RENAME_BACKOFF_MS=[2000,8000,30000];
+function renameFalloDeRed(err){
+  if(typeof navigator!=="undefined"&&navigator.onLine===false)return true;
+  if(!err)return false;
+  if(err instanceof TypeError)return true;
+  return /failed to fetch|networkerror|network request failed|load failed|internet ?disconnected|err_internet|session unavailable|cloud unavailable/i.test(String(err.message||err));
+}
 function subeEdicionesDeGasto(cola){
   const paso=function(){
     const p=cola.pend[0];
     if(!p) return;
+    if(p.rename){
+      if(!cloud.enabled()||mcSandbox()||mcSandboxTransition())return;
+      // En espera de su reintento (lo marca Gastos): una llamada encadenada no lo adelanta.
+      if(p.waitUntil>Date.now())return;
+      const orig=p.current();
+      if(!orig){cola.pend.shift();return paso();} // intención sustituida o fila retirada
+      return cloud.renameExpense(orig,p.rename.merchant,true).then(function(ack){
+        if(!ack)throw new Error("rename unconfirmed");
+        cola.pend.shift();p.ack(orig,ack);
+      }).catch(function(err){
+        /* Sin red no es un rechazo: no cuenta para apartarlo y se queda pendiente con su ⏳.
+           Antes los tres intentos se gastaban en ~9 ms sin cobertura y el nombre volvía al
+           viejo, sin subirse solo al volver la red (rojo de la beta 4.26.153, 20/10/2026). */
+        if(renameFalloDeRed(err)){ if(p.fail)p.fail(orig,null,false,true); return; }
+        const failures=Math.max(p.failures||0,orig.renamePending&&orig.renamePending.failures||0)+1;
+        p.failures=failures;const quarantined=failures>=3;
+        if(quarantined)cola.pend.shift();
+        if(p.fail)p.fail(orig,failures,quarantined);
+        if(quarantined)return paso(); // un rechazo persistente no retiene otras ediciones
+      });
+    }
     return borrarGastoNube(p.orig, "gastos-editar").then(function(ok){
       if(!ok) return;
       cola.pend.shift();
@@ -4962,6 +5047,33 @@ function subeEdicionesDeGasto(cola){
   };
   cola.fin=cola.fin.then(paso);
   return cola.fin;
+}
+/* El nombre confirmado sigue en merchant; el borrador vive con el gasto, en la partición
+   durable ya existente. Un ACK de otra intención no borra lo escrito después. */
+function expenseRenameDraft(s,orig,merchant,at){
+  const rows=(s.expenses||[]).map(function(e){return e.id===orig.id&&e.date===orig.date&&e.amount===orig.amount?Object.assign({},e,{renamePending:{merchant:merchant,at:at}}):e;});
+  return Object.assign({},s,{expenses:rows});
+}
+function expenseRenameFailure(s,orig,intent,failures){
+  let changed=false;
+  const rows=(s.expenses||[]).map(function(e){
+    if(e.id!==orig.id||e.date!==orig.date||e.amount!==orig.amount||!e.renamePending||e.renamePending.at!==intent.at)return e;
+    changed=true;return Object.assign({},e,{renamePending:Object.assign({},e.renamePending,{failures:failures,quarantined:failures>=3})});
+  });
+  return changed?Object.assign({},s,{expenses:rows}):s;
+}
+function expenseRenameAck(s,orig,intent,ack){
+  if(!ack||ack.comercio!==intent.merchant||Number(ack.importe)!==orig.amount||Date.parse(ack.fecha)!==Date.parse(orig.date)||(isExpenseUuid(orig.id)&&ack.id!==orig.id))return s;
+  let before,after;const deleted=expenseDeletedSet(s);
+  const rows=(s.expenses||[]).map(function(e){
+    if(e.id!==orig.id||e.date!==orig.date||e.amount!==orig.amount||e.merchant!==orig.merchant||expenseIsTombstoned(e,deleted))return e;
+    before=e;after=Object.assign({},e,{merchant:ack.comercio,expenseEditAt:intent.at});
+    if(after.renamePending&&after.renamePending.at===intent.at)delete after.renamePending;
+    if(ack.ob_name!=null)after.obName=ack.ob_name;
+    if(!e.notePending&&(e.noteEditAt||0)===(orig.noteEditAt||0)&&e.note===orig.note&&ack.nota_edit){after.note=ack.nota||undefined;after.noteEdited=true;}
+    return after;
+  });
+  return before?rekeyFixedPaymentExpense(Object.assign({},s,{expenses:rows},lapidasAlEditar(s,keyOfExpense(before),keyOfExpense(after))),before,after):s;
 }
 // → {deleted[, deletedAt]}. La lista local, tal cual, si la nube no aporta nada: la leen los `useMemo`.
 function lapidasUnion(local, nube){
@@ -5752,9 +5864,12 @@ function mergeExpenses(prevList, incoming, delSet){
    Caso medido: Aigües en nube=`energia` y el móvil seguía en `viajes` tras «Ya estás al día».
    Reglas: no pisar `cat` de un apunte manual; no pisar `note` si él la editó; nunca borrar. */
 function refreshExpenseFromCloud(local, incoming, readStartedAt){
+  if(local===incoming)return local;
   if(!local||!incoming) return local||incoming;
   const manual=isManualExpenseSource(local.source);
   let out=local;
+  const preserved=local.uuidPreserved||{};
+  const protects=function(k){return Object.prototype.hasOwnProperty.call(preserved,k)&&preserved[k]===local[k]&&incoming[k]!==local[k];};
   const put=function(k,v){
     const a=local[k], b=v;
     if(a===b) return;
@@ -5767,10 +5882,10 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
   // subida puede ir por detrás del pull, y la fila de la noti ni siquiera lleva la marca en `source`.
   const cuotaLocal=local.debtId && local.category==="deudas";
   const withdrawalRecent=readStartedAt!=null && local.withdrawalConfirmedAt>=readStartedAt;
-  if(!manual && !cuotaLocal && !withdrawalRecent && incoming.category!=null && incoming.category!=="") put("category", incoming.category);
+  if(!manual && !cuotaLocal && !withdrawalRecent && !protects("category") && incoming.category!=null && incoming.category!=="") put("category", incoming.category);
   if(incoming.amount!=null && isFinite(incoming.amount)) put("amount", incoming.amount);
   if(incoming.merchant!=null && incoming.merchant!=="") put("merchant", incoming.merchant);
-  if(Object.prototype.hasOwnProperty.call(incoming,"noCard")) put("noCard", incoming.noCard||undefined);
+  if(!protects("noCard")&&Object.prototype.hasOwnProperty.call(incoming,"noCard")) put("noCard", incoming.noCard||undefined);
   if(Object.prototype.hasOwnProperty.call(incoming,"obName")) put("obName", incoming.obName);
   if(incoming.extId) put("extId",incoming.extId);
   // Un pull legacy sin cuenta no prueba que haya desaparecido la que ya sabemos.
@@ -5801,12 +5916,18 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
   if(incoming.possibleDupOf!=null) put("possibleDupOf", incoming.possibleDupOf);
   /* Cuota de deuda (4.21.0): la marca que baja se adopta; una fila de la nube SIN marca no borra
      la local — el upsert con ignoreDuplicates puede dejar la fila vieja de la nube sin el sufijo. */
-  if(incoming.debtId) put("debtId", incoming.debtId);
+  if(incoming.debtId&&!protects("debtId")) put("debtId", incoming.debtId);
   /* Cargo de recibo (12/10/2026): la marca que baja se adopta, como la de la cuota. Una fila de
      la nube sin marca tampoco borra la local; la RETIRADA viaja por `reciboNo` en el estado, y
      `cargoDeRecibo` la respeta aunque esta fila siga marcada aquí. */
   if(incoming.reciboId && !incoming.debtId && !local.debtId && esFilaDeBanco(local)) put("reciboId", incoming.reciboId);
   if(!local.noteEdited && Object.prototype.hasOwnProperty.call(incoming,"note")) put("note", incoming.note);
+  const confirmed=Object.keys(preserved).filter(function(k){return incoming[k]===preserved[k]||((k==="debtId"||k==="noCard")&&!incoming[k]&&!preserved[k]);});
+  if(confirmed.length){
+    if(out===local)out=Object.assign({},local);
+    const rest=Object.assign({},preserved);confirmed.forEach(function(k){delete rest[k];});
+    if(Object.keys(rest).length)out.uuidPreserved=rest;else delete out.uuidPreserved;
+  }
   /* NO realinear `id` aquí: settings.expenseOrder indexa por id local, y en OB el uuid de la
      nube suele diferir (ignoreDuplicates). Cambiarlo huérfana el orden a mano (4.19.74). Tanda
      propia con remap de expenseOrder + possibleDupOf si hace falta para los PATCH. */
@@ -5815,19 +5936,65 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
 /* Mezcla el pull con lo local: refresca campos de claves ya vistas y solo AÑADE las nuevas.
    Nunca elimina una clave que solo exista en local (contención 4.18.6 / FIN-07). */
 function esFilaDeBanco(e){ return e.source==="ob" || e.source==="ob-hist"; }
+/* El nombre forma parte de la clave histórica, pero no crea otra fila con el MISMO UUID.
+   En copias locales antiguas conserva por separado la última edición y la última nota humana;
+   sin reloj, prefiere la copia viva y, a igualdad, la última. Un importe o referencia
+   conflictivos se conservan por separado: la unicidad no puede borrar dinero. */
+function expenseUuidIdentity(e,index){
+  // Un UUID legacy conflictivo no autoriza a borrar dinero ni otra referencia bancaria.
+  if(!e)return null;
+  const first=index.get(e.id);
+  if(!first&&!isExpenseUuid(e.id))return null;
+  for(let p=first;p;p=p.next){
+    const a=p.row;
+    if(a===e||(a.amount===e.amount&&(expenseBankOf(a)||"")===(expenseBankOf(e)||"")&&(a.extId||"")===(e.extId||"")))return p;
+  }
+  // Casi todos los UUID son únicos: solo se comparan campos al volver a ver uno.
+  const entry={row:e,next:first};index.set(e.id,entry);return entry;
+}
+function uniqueExpenseUuids(rows,delSet,index){
+  const at=index||new Map(), out=[]; let changed=false;
+  (rows||[]).forEach(function(e){
+    const id=expenseUuidIdentity(e,at);
+    if(!id||id.at===undefined){if(id)id.at=out.length;out.push(e);return;}
+    changed=true;const i=id.at, a=out[i];
+    const ad=expenseIsTombstoned(a,delSet),ed=expenseIsTombstoned(e,delSet);
+    const winner=ad!==ed?(ad?e:a):((e.expenseEditAt||0)>=(a.expenseEditAt||0)?e:a);
+    const note=(e.noteEditAt||0)!==(a.noteEditAt||0)?((e.noteEditAt||0)>(a.noteEditAt||0)?e:a):(e.noteEdited?e:a.noteEdited?a:winner);
+    const merged=Object.assign({},winner,{note:note.note,noteEdited:note.noteEdited,noteEditAt:note.noteEditAt,notePending:note.notePending});
+    const guarded=Object.assign({},a.uuidPreserved,e.uuidPreserved);
+    const edited=function(x){return !!(x.catStale&&x.catStale.length)||x.catAckAt!=null;};
+    const cat=edited(e)?e:edited(a)?a:winner;
+    if(cat.category!=null){merged.category=cat.category;if(cat.catStale)merged.catStale=cat.catStale;if(cat.catAckAt!=null)merged.catAckAt=cat.catAckAt;}
+    ['debtId','reciboId','noCard'].forEach(function(k){
+      const has=function(x){return Object.prototype.hasOwnProperty.call(x,k)&&x[k]!==undefined;};
+      const selected=has(e)?e:has(a)?a:null;
+      if(selected)merged[k]=selected[k];
+    });
+    if(merged.debtId)delete merged.reciboId;
+    // Lo recuperado de otra copia no se pierde otra vez en un pull viejo.
+    ['category','debtId','noCard'].forEach(function(k){if(merged[k]!==undefined&&a[k]!==e[k])guarded[k]=merged[k];});
+    if(Object.keys(guarded).length)merged.uuidPreserved=guarded;
+    const ap=a.renamePending,ep=e.renamePending;if(ap||ep)merged.renamePending=!ap?ep:!ep?ap:ep.at>=ap.at?ep:ap;
+    out[i]=merged;
+  });
+  return changed?out:rows;
+}
 function mergeExpensesFromCloud(prevList, incoming, readStartedAt, delSet){
+  const ids=new Map(),unique=uniqueExpenseUuids(prevList,delSet,ids), deduped=unique!==prevList;
+  prevList=unique;
   const rows=expenseBankIdOrdinals(preferBookedExpenses((prevList||[]).concat(incoming||[]),delSet));
   const previousLength=(prevList||[]).length;
   const identitiesChanged=rows.some(function(e,i){return i<previousLength&&e!==prevList[i];});
   prevList=rows.slice(0,previousLength); incoming=rows.slice(previousLength);
   const byKey={}; const order=[]; const refs=new Map(); let zeroRemoved=false;
-  const mergeKey=function(e){const ref=esFilaDeBanco(e)&&e.extId&&obReferenceKey(expenseBankOf(e),e.extId,e.amount);let k=ref&&refs.get(ref);if(!k){k=keyOfExpense(e);if(ref)refs.set(ref,k);}return k;};
+  const mergeKey=function(e){const id=expenseUuidIdentity(e,ids);if(id&&id.key!==undefined)return id.key;const ref=esFilaDeBanco(e)&&e.extId&&obReferenceKey(expenseBankOf(e),e.extId,e.amount);let k=ref&&refs.get(ref);if(!k){k=keyOfExpense(e);if(ref)refs.set(ref,k);}if(id)id.key=k;return k;};
   (prevList||[]).forEach(function(e){
     if(esFilaDeBanco(e)&&e.amount===0){zeroRemoved=true;return;}
     const k=mergeKey(e);
     if(!byKey[k]){ byKey[k]=e; order.push(k); }
   });
-  let changed=identitiesChanged||zeroRemoved; let nuevos=0; const seen={};
+  let changed=deduped||identitiesChanged||zeroRemoved; let nuevos=0; const seen={};
   /* EL AVISO DEL MÓVIL GANA AL CARGO DE RECIBO DE SU MISMO DÍA, IMPORTE Y COMERCIO, llegue cuando
      llegue (cuarta revisión, 13/10/2026). Con el aviso ya en la lista el banco no añade su fila y
      el aviso cuenta, como siempre; si el aviso bajaba después, se fundía con la fila marcada y
@@ -5855,7 +6022,11 @@ function mergeExpensesFromCloud(prevList, incoming, readStartedAt, delSet){
      aviso. Sin ninguna con su id (lo subió otro móvil), la primera, como siempre: esa espera
      en `espera` hasta ver si detrás viene la suya, sin otra pasada por la tabla. */
   const espera={}, hecha={}; let hayEspera=false;
+  // Un mapa vacío sin confirmados no contiene nada que pueda ocultar la fila.
+  // Los confirmados viven en WeakMap: su presencia mantiene la comprobación completa.
+  const checkDeleted=delSet&&(Object.keys(delSet).length>0||expenseConfirmedSets.has(delSet));
   const refresca=function(k,inc){
+    if(checkDeleted&&expenseIsTombstoned(inc,delSet)&&!expenseIsTombstoned(byKey[k],delSet))return;
     const loc=byKey[k], merged=refreshExpenseFromCloud(loc, inc, readStartedAt);
     if(merged!==loc){ byKey[k]=merged; changed=true; }
   };
@@ -6550,7 +6721,7 @@ const LANG = {
     v4_set_appear:"Apariencia", v4_set_easy:"Para empezar fácil", v4_set_conn:"Conexiones",
     v4_set_money:"Dinero", v4_set_app:"App",
     v4_set_tour:"Ver el tutorial", v4_set_adv:"Avanzado",
-   hv_title:"Vibración", hv_intro:"Busca la vibración que te guste. Se guarda solo en este móvil.", hv_cycle:"Mi ciclo (el anillo de Inicio)", hv_cycle_hint:"Vibra mientras se rellena el anillo, más cuanto más lleno esté.", hv_edge:"Al llegar arriba o abajo", hv_tick:"Cursor de la gráfica de Inicio", hv_strength:"Fuerza", hv_length:"Duración", hv_every:"Repite cada (si sigues tirando)", hv_try:"Probar", hv_copy:"Copiar valores", hv_copied:"Valores copiados", hv_copy_fail:"No se pudieron copiar", hv_reset:"Volver a los de serie", hv_need_apk:"Para notar estos valores hay que instalar la última versión de la app.", hv_no_native:"La vibración solo funciona en la app de Android.",
+   hv_title:"Vibración", hv_usage:"Tipo de vibración", hv_usage_hint:"Si al probar todas las fuerzas se notan igual, prueba otro tipo.", hv_u_touch:"Toque", hv_u_hardware:"Botones", hv_u_media:"Multimedia", hv_u_unknown:"Genérica", hv_motor_amp:"Tu móvil ajusta la fuerza y el ritmo de la vibración.", hv_motor_onoff:"Tu móvil no ajusta la fuerza: se nota como toques más largos o más cortos.", hv_intro:"Busca la vibración que te guste. Se guarda solo en este móvil.", hv_cycle:"Mi ciclo (el anillo de Inicio)", hv_cycle_hint:"Unos toques suaves mientras se rellena el anillo: más toques cuanto más lleno esté.", hv_edge:"Al llegar arriba o abajo", hv_seg:"Al cambiar entre Recibos, Deudas y Metas", hv_tick:"Cursor de la gráfica de Inicio", hv_strength:"Fuerza", hv_length:"Duración", hv_every:"Repite cada (si sigues tirando)", hv_try:"Probar", hv_copy:"Copiar valores", hv_copied:"Valores copiados", hv_copy_fail:"No se pudieron copiar", hv_reset:"Volver a los de serie", hv_need_apk:"Para notar estos valores hay que instalar la última versión de la app.", hv_no_native:"La vibración solo funciona en la app de Android.",
     v4_moved_cat:"Movido a {cat}", 
     v4_exp_del:"Borrar", v4_exp_del_q:"¿Borrar «{name}»?", v4_exp_del_sub:"Podrás recuperarlo durante 5 segundos.",
     f_amount_aria:"Importe", f_concept_ph:"Toca para escribir el concepto", f_cat:"Categoría",
@@ -6558,7 +6729,7 @@ const LANG = {
     f_cta_add:"Apuntar {x}", f_cta_add_in:"Apuntar ingreso de {x}", f_autosaved:"Se guarda al momento ✓", f_del:"Borrar gasto",
     f_note_row:"Nota", f_note_none:"Sin nota", f_debt_row:"Es la cuota de una deuda", f_income_row:"Es un ingreso, no un gasto", f_no:"No",
     f_receipt_row:"Paga un recibo", f_receipt_hint:"Elige el recibo que paga este cargo. Se confirma para el mes del movimiento y puedes deshacerlo. El cargo conserva su importe, banco y clasificación.",
-    f_receipt_none:"No hay recibos pendientes de ese mes que puedan vincularse a este cargo.",
+    f_receipt_none:"No hay recibos pendientes de ese mes que puedan vincularse a este cargo.", f_receipt_diag:"Copiar diagnóstico",
     f_receipt_confirm:"Confirmar pago de {name}", f_receipt_confirm_sub:"Cargo: {merchant} · {amount} · {bank} · {date}. Previsto: {expected} · {planned}. Confirma solo si este cargo paga el recibo completo, aunque el importe haya variado. Si es parcial, cancela. El importe previsto, el saldo y el presupuesto se conservan.",
     f_receipt_yes:"Confirmar pago completo", f_receipt_unlink:"Deshacer vínculo",
     f_recibo_marca:"Es el cargo de tu recibo «{name}»: ya está contado en tu Plan y aquí no suma otra vez.", f_recibo_quiza:"Parece el cargo de tu recibo «{name}»: por eso aquí no suma otra vez. Si no lo es, dilo y contará como un gasto más.", f_recibo_no:"No es este recibo", f_recibo_si:"Sí, es este recibo",
@@ -8405,12 +8576,24 @@ const THEMES=[["green","Verde","#5FD08A"],["dark","Oscuro","#3A3A40"],["light","
     otono:["🍂","🍁","🍄","🌰","🍁"],
     primavera:["🌸","🌿","🦋","🌼","🌸"]
   };
+Object.assign(LANG.es,{g_note_unconfirmed:"Nota sin confirmar en la nube. Se conserva en este dispositivo.",g_note_retry:"Reintentar",g_edit_unconfirmed:"No se pudo guardar el cambio. Vuelve a intentarlo."});
+
+
+Object.assign(LANG.es,{g_rename_pending:"Nombre pendiente de confirmar. Se conserva en este dispositivo y se reintentará al volver la conexión."});
+
+
+Object.assign(LANG.es,{g_rename_paused:"No se ha podido confirmar el nombre. Sigue guardado en este dispositivo. Pulsa Reintentar cuando quieras volver a enviarlo."});
+
+
 function loadState(){
   const saved = mcLoadRaw(mcStateKey());
   if(saved && saved.accounts){
+    const unique=uniqueExpenseUuids(saved.expenses,expenseDeletedSet(saved));
+    const uuidChanged=unique!==saved.expenses;
+    if(uuidChanged)saved.expenses=unique;
     // Capturar ANTES de seedFlows (muta in-place): evita stringify de toda la cartera en cada
     // apertura fría — feedback 2026-07-16.
-    var writeBack=!(saved._dataVer>=6) || !saved._dynBalAnchored;
+    var writeBack=uuidChanged || !(saved._dataVer>=6) || !saved._dynBalAnchored;
     // Call site 1/3 de fixMovInvasion (loadState / arranque). Contención dentro de la fn, no aquí.
     const seeded = seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR((saved._dataVer>=6) ? saved : migrate(saved)))))));
     const now=new Date(), s=liberarReservasHuerfanas(perfilSinDatosBanco(reconcileGemelosAutomaticos(reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate()))));
@@ -9099,14 +9282,29 @@ function mcReduced(){
    en ESTE móvil: es una preferencia del motor de su teléfono, no un dato que viaje a la nube.
    Por defecto, los de la ronda 3 salvo borde y gráfica, que pedían «un pelín más». */
 const MC_HAPTIC_KEY="_mcHapticTune";
-const MC_HAPTIC_DEF={fillAmp:30,fillMs:1100,edgeAmp:70,edgeMs:12,edgeEvery:150,tickAmp:70,tickMs:10};
-const MC_HAPTIC_RANGE={fillAmp:[1,255],fillMs:[300,2500],edgeAmp:[1,255],edgeMs:[4,60],edgeEvery:[60,400],tickAmp:[1,255],tickMs:[4,40]};
+/* Ronda 9 (beta 4.26.155): «el anillo no vibra» y «la fuerza del borde no cambia nada». Sí se
+   llamaba al motor, pero con toques de 10–12 ms a un tercio de fuerza: en el motor de su
+   OnePlus 13 eso no llega a arrancar, y entre fuerza 1 y 255 en 12 ms no hay diferencia que se
+   note. Por eso suben ciclo y borde, y el cambio de segmento tiene su propio par (seg*), un
+   poco más suave que el efecto de serie que le gustaba. La gráfica (tick*) se queda como está. */
+const MC_HAPTIC_DEF={fillAmp:140,fillMs:1100,edgeAmp:120,edgeMs:20,edgeEvery:150,tickAmp:70,tickMs:10,segAmp:150,segMs:24};
+const MC_HAPTIC_RANGE={fillAmp:[1,255],fillMs:[300,2500],edgeAmp:[1,255],edgeMs:[4,60],edgeEvery:[60,400],tickAmp:[1,255],tickMs:[4,40],segAmp:[1,255],segMs:[4,60]};
+/* Lo guardado antes de la ronda 9 se eligió con toques que no se notaban: sus fuerzas y
+   duraciones de ciclo y borde no valen para la escala nueva y se vuelven a los de serie. La
+   gráfica, el intervalo, la duración del anillo y el tipo se conservan: esos sí se sentían. */
+const MC_HAPTIC_VER=2, MC_HAPTIC_STALE=["fillAmp","edgeAmp","edgeMs"];
+/* Ronda 6: con uso «toque» su OnePlus 13 tira nuestra onda y toca su efecto de serie (dumpsys,
+   OplusPrebakedSegment de 45 ms). El ajustador deja elegir el uso hasta ver cuál la respeta. */
+const MC_HAPTIC_USAGES=["touch","hardware","media","unknown"];
 function mcHapticClamp(raw){
   const out={};
+  if(raw&&raw.v!==MC_HAPTIC_VER){ raw=Object.assign({},raw); MC_HAPTIC_STALE.forEach(function(k){ delete raw[k]; }); }
   Object.keys(MC_HAPTIC_DEF).forEach(function(k){
     const v=raw&&typeof raw[k]==="number"&&Number.isFinite(raw[k])?Math.round(raw[k]):MC_HAPTIC_DEF[k];
     out[k]=Math.max(MC_HAPTIC_RANGE[k][0],Math.min(MC_HAPTIC_RANGE[k][1],v));
   });
+  out.usage=raw&&MC_HAPTIC_USAGES.indexOf(raw.usage)>=0?raw.usage:MC_HAPTIC_USAGES[0];
+  out.v=MC_HAPTIC_VER;
   return out;
 }
 function mcHapticTune(){
@@ -9132,7 +9330,7 @@ mcHapticApplyCss();
 // El texto que él copia y nos manda: corto y sin nada personal, solo los siete números.
 function mcHapticTuneText(tune){
   const v=tune||mcHapticTune();
-  return "Vibración · ciclo "+v.fillAmp+"/"+v.fillMs+"ms · borde "+v.edgeAmp+"/"+v.edgeMs+"ms cada "+v.edgeEvery+"ms · gráfica "+v.tickAmp+"/"+v.tickMs+"ms";
+  return "Vibración ("+v.usage+") · ciclo "+v.fillAmp+"/"+v.fillMs+"ms · borde "+v.edgeAmp+"/"+v.edgeMs+"ms cada "+v.edgeEvery+"ms · segmento "+v.segAmp+"/"+v.segMs+"ms · gráfica "+v.tickAmp+"/"+v.tickMs+"ms";
 }
 // Misma curva que `.v42-cycle-draw` en shell.html: si cambia allí, cambia aquí.
 const MC_CYCLE_EASE=[.65,0,.35,1];
@@ -9143,22 +9341,66 @@ function mcBezierY(x,p){
   for(let i=0;i<24;i++){ tt=(lo+hi)/2; if(bx(tt)<x) lo=tt; else hi=tt; }
   return 3*(1-tt)*(1-tt)*tt*p[1]+3*(1-tt)*tt*tt*p[3]+tt*tt*tt;
 }
-/* La onda del anillo sigue al TRAZO: cada tramo vibra en proporción a cuánto arco se pinta en
-   él (la velocidad de la curva), escalado por el porcentaje del ciclo. Así un 20 % apenas roza y
-   un 90 % se nota entero, arranca y acaba suave como el dibujo, y no queda zumbando con el
-   anillo ya quieto — «vibra un montón desde el principio y dura un montón» (ronda 3). */
-function mcCycleWave(durationMs,fraction,amp){
+// Momento (0–1 de la animación) en que el trazo llega a la fracción `y` de su recorrido.
+function mcBezierXAt(y,p){
+  let lo=0,hi=1,x=y;
+  for(let i=0;i<24;i++){ x=(lo+hi)/2; if(mcBezierY(x,p)<y) lo=x; else hi=x; }
+  return x;
+}
+// Uso con el que su OnePlus 13 respeta fuerza y duración (dumpsys 19/10): borde y anillo.
+const MC_FELT_USAGE="hardware";
+/* La fuerza también alarga el toque: de la mitad (fuerza 1) a vez y media (255) de la duración
+   elegida. En pulsos de 10–20 ms el motor no alcanza la amplitud pedida y 1 y 255 se sentían
+   igual (ronda 9); con el tiempo encendido de por medio la diferencia no tiene pérdida. */
+function mcFeltMs(ms,amp){
+  return Math.max(4,Math.min(100,Math.round(ms*(0.5+Math.max(1,Math.min(255,amp))/255))));
+}
+// Un toque con uso «hardware», el que su OnePlus 13 toca tal cual (dumpsys del 19/10).
+function mcFeltHaptic(amp,ms,extra){
+  return mcHaptic("edge",Object.assign({amplitude:amp,durationMs:mcFeltMs(ms,amp),usage:MC_FELT_USAGE},extra||{}));
+}
+const MC_CYCLE_TICKS=8, MC_CYCLE_MIN_TICKS=5, MC_CYCLE_TICK_MS=20, MC_CYCLE_GAP_MS=50;
+/* El anillo es una RISTRA DE TOQUES SUELTOS, cada uno su propia llamada, repartidos donde el
+   trazo va llegando: uno por cada octavo del ciclo lleno (un 25 % son dos, un 100 % ocho) y de
+   más suave a más fuerte. La ronda 7 mandaba los toques dentro de UNA onda y en su OnePlus 13
+   OxygenOS sustituye la onda entera por su efecto de serie de 45 ms: «ahora solo vibra un toque,
+   aún cambiando las settings». Llamadas sueltas no se pueden fundir en una.
+   Ronda 10 (beta 4.26.156): «solo es un toque, no es suave de cómo va creciendo». A mitad de
+   ciclo su anillo está casi vacío y un 12 % daba UN toque. El trazo tarda lo mismo esté como
+   esté, así que siempre hay rampa: cinco toques como poco, más cuanto más lleno, y una subida
+   de fuerza (y de duración, por mcFeltMs) que se nota de uno a otro. */
+function mcCycleTicks(durationMs,fraction,amp){
   const frac=Math.max(0,Math.min(1,fraction)), dur=Math.round(durationMs);
-  if(!(dur>0)||!(frac>0)) return null;
-  const n=Math.max(1,Math.min(60,Math.round(dur/20))), timings=[], speeds=[];
-  let prev=0, top=0;
-  for(let i=0;i<n;i++){
-    const y=mcBezierY((i+1)/n,MC_CYCLE_EASE), s=Math.max(0,y-prev);
-    prev=y; speeds.push(s); if(s>top) top=s;
-    timings.push(Math.floor(dur/n)+(i<dur%n?1:0));
+  if(!(dur>0)||!(frac>0)||!(amp>0)) return [];
+  // Y que quepan en el trazo con su hueco: si no, los últimos sonarían con el anillo ya quieto.
+  const n=Math.max(1,Math.min(MC_CYCLE_MIN_TICKS+Math.round(frac*MC_CYCLE_TICKS),Math.floor(dur/MC_CYCLE_GAP_MS)-1)), out=[];
+  let last=-Infinity;
+  for(let i=1;i<=n;i++){
+    // En mitad del trazo la curva va deprisa: sin hueco mínimo, dos toques se oirían como uno.
+    const at=Math.max(Math.round(mcBezierXAt(i/n,MC_CYCLE_EASE)*dur)-MC_CYCLE_TICK_MS,last+MC_CYCLE_GAP_MS,0);
+    out.push({at:at,amp:Math.max(1,Math.round(amp*(0.45+0.55*i/n)))});
+    last=at;
   }
-  const amplitudes=speeds.map(function(s){ return top>0?Math.round(amp*frac*s/top):0; });
-  return amplitudes.some(function(a){ return a>0; })?{timings:timings,amplitudes:amplitudes}:null;
+  return out;
+}
+/* Lanza la ristra. Va con uso «hardware» a propósito: con «toque» OxygenOS cambia cada toque
+   por el suyo de serie y la fuerza del deslizador no se nota (dumpsys del 19/10). Solo el
+   anillo: el borde y la gráfica le gustan como están. Devuelve la promesa del primer toque. */
+function mcPlayCycle(durationMs,fraction){
+  const v=mcHapticTune(), ticks=mcCycleTicks(durationMs,fraction,v.fillAmp);
+  (mcPlayCycle.timers||[]).forEach(clearTimeout);
+  mcPlayCycle.timers=[];
+  const cap=window.Capacitor, plugin=cap&&cap.Plugins&&cap.Plugins.AelyHaptics;
+  if(!ticks.length||!plugin||mcReduced()) return null;
+  let answer=null;
+  const first=new Promise(function(r){ answer=r; });
+  ticks.forEach(function(tk,i){
+    mcPlayCycle.timers.push(setTimeout(function(){
+      const p=mcFeltHaptic(tk.amp,MC_CYCLE_TICK_MS,{cycle:i+1});
+      if(i===0) Promise.resolve(p).then(answer);
+    },tk.at));
+  });
+  return first;
 }
 
 // UX16: la web observa el dedo; solo Android decide si el ajuste táctil permite el toque.
@@ -9169,19 +9411,42 @@ function mcHaptic(method, args){
     if(!plugin||typeof plugin[method]!=="function") return;
     // Devuelve lo que contesta Android (null si falla): el ajustador lo usa para saber si la APK
     // instalada ya entiende fuerza y duración.
-    return Promise.resolve(plugin[method](args||{})).catch(function(){ return null; });
+    return Promise.resolve(plugin[method](Object.assign({usage:mcHapticTune().usage},args||{}))).catch(function(){ return null; });
   }catch(e){}
 }
 // Un toque del borde con los valores que haya elegido él. La APK 58 ignora fuerza y duración y
 // sigue dando su toque fijo; desde la 59 manda lo del ajustador.
 function mcEdgeHaptic(){
   const v=mcHapticTune();
-  mcHaptic("edge",{amplitude:v.edgeAmp,durationMs:v.edgeMs});
+  /* Ronda 8: «da igual la fuerza que pongas, solo vibra suave». La fuerza sí llegaba, pero con
+     uso «toque» OxygenOS cambia el toque por su efecto de serie y en un choque suelto (una vez
+     por arrastre desde la ronda 7) eso se nota igual a cualquier fuerza; en la 152 se repetía y
+     la ristra lo disimulaba. Con uso «hardware» el motor toca nuestra fuerza y duración. */
+  // Ronda 9: el cambio de segmento acaba de sonar; un borde ahora es el reflejo del mismo gesto
+  // (el contenido nuevo es más corto y el scroll se recoloca solo), no una llegada de verdad.
+  if(performance.now()-(mcTickHaptic.at||-Infinity)<MC_SEG_HUSH_MS) return;
+  return mcFeltHaptic(v.edgeAmp,v.edgeMs);
+}
+const MC_SEG_HUSH_MS=450;
+// Píxeles de vuelta atrás que convierten el siguiente empuje en otro gesto: menos es temblor.
+const MC_EDGE_REARM=12;
+/* Cambiar de segmento (Recibos/Deudas/Metas y gasto/ingreso): UN toque con su propio par del
+   ajustador. Hasta la ronda 8 usaba el de la gráfica con uso «toque», que OxygenOS cambia por su
+   efecto de serie: le gustaba, pero ningún deslizador lo movía («me gustaría un poquito más
+   suave»). Con uso hardware la fuerza y la duración son suyas. */
+function mcTickHaptic(){
+  // Un cambio de segmento = UN toque, aunque el mismo gesto lo pida dos veces (botón y tirón).
+  const now=performance.now();
+  if(now-(mcTickHaptic.at||-Infinity)<150) return;
+  mcTickHaptic.at=now;
+  const v=mcHapticTune();
+  return mcFeltHaptic(v.segAmp,v.segMs);
 }
 function mcBindEdgeHaptics(root, blocked){
-  let g=null, states=new WeakMap(), pullTimer=0, lastAt=-Infinity;
-  const buzz=function(){ lastAt=performance.now(); mcEdgeHaptic(); };
-  const stopPull=function(){ clearTimeout(pullTimer); pullTimer=0; if(g) g.pulling=false; };
+  let g=null, states=new WeakMap(), lastAt=-Infinity;
+  // Un toque por arrastre: también la llegada al borde con el dedo puesto cuenta como el de ese gesto.
+  const buzz=function(){ lastAt=performance.now(); if(g) g.done=true; mcEdgeHaptic(); };
+  const stopPull=function(){ if(g) g.pulling=false; };
   const end=function(){ stopPull(); g=null; };
   const boundary=function(el){
     const max=el.scrollHeight-el.clientHeight, y=el.scrollTop;
@@ -9210,16 +9475,6 @@ function mcBindEdgeHaptics(root, blocked){
     s.latched=edge; s.armed=false;
     buzz();
   };
-  const repeatPull=function(){
-    const own=g;
-    if(pullTimer||!own||!own.pulling) return;
-    pullTimer=setTimeout(function(){
-      pullTimer=0;
-      if(g!==own||!own.pulling) return;
-      if(quiet()||!own.el.isConnected||scroller(own.el)!==own.el||boundary(own.el)!==own.edge){ stopPull(); return; }
-      buzz(); repeatPull();
-    },mcHapticTune().edgeEvery);
-  };
   const scroll=function(e){
     const el=scroller(e.target);
     if(!el||el!==e.target) return;
@@ -9238,7 +9493,8 @@ function mcBindEdgeHaptics(root, blocked){
     const el=scroller(e.target);
     if(!el) return;
     const t=e.touches[0]; stateOf(el);
-    g={el:el,id:t.identifier,x:t.clientX,y:t.clientY,lastY:t.clientY,anchor:t.clientY,edge:boundary(el),pulling:false};
+    // segPull: Plan reclama este tirón desde arriba para cambiar de segmento (marca el evento).
+    g={el:el,id:t.identifier,x:t.clientX,y:t.clientY,lastY:t.clientY,anchor:t.clientY,edge:boundary(el),pulling:false,segPull:!!e.mcSegPull};
   };
   const move=function(e){
     if(!g) return;
@@ -9251,24 +9507,47 @@ function mcBindEdgeHaptics(root, blocked){
     if(Math.abs(dx)>8&&Math.abs(dx)>Math.abs(dy)){ end(); return; }
     const edge=boundary(g.el);
     // Al aterrizar en el borde se empieza a contar desde allí: el recorrido de scroll no vale.
-    if(!edge||edge!==g.edge){ stopPull(); g.edge=edge; g.anchor=t.clientY; return; }
-    if((edge==="top"&&step<0)||(edge==="bottom"&&step>0)){ stopPull(); g.anchor=t.clientY; return; }
+    if(!edge||edge!==g.edge){ stopPull(); g.edge=edge; g.anchor=t.clientY; g.peak=t.clientY; return; }
+    /* Ronda 9: «son 2 vibraciones», la del segmento y otra hipersuave de llegar arriba. En el
+       móvil el primer touchmove llega a unos 8 px; entre los 10 px de este empuje y los 12 en que
+       Plan fija el eje (GEST_LEAD) había un hueco por el que el borde de arriba sonaba antes que
+       el toque de segmento. Ese tirón no es un choque: es el gesto de Plan. */
+    if(g.segPull&&edge==="top") return;
+    const out=edge==="top"?1:-1;   // signo del empuje contra el borde
+    if(step*out<0){
+      stopPull(); g.anchor=t.clientY;
+      // Volver atrás de verdad rearma: el siguiente empuje ya es otro gesto contra el borde.
+      if(g.peak!=null&&(g.peak-t.clientY)*out>=MC_EDGE_REARM) g.done=false;
+      return;
+    }
+    if(step*out>0) g.peak=t.clientY;
     if(Math.abs(dy)<=Math.abs(dx)*1.2) return;
-    const outward=edge==="top"?t.clientY-g.anchor:g.anchor-t.clientY;
+    const outward=(t.clientY-g.anchor)*out;
     if(outward<10){ stopPull(); return; }
-    const resumed=!g.pulling;
+    if(g.pulling) return;
+    g.pulling=true;
     pulse(g.el,edge);
-    // Seguir tirando con el borde ya alcanzado —también tras llegar por inercia— avisa YA, no
-    // tras el intervalo: «no vibra cuando sigues bajando estando abajo» (ronda 3). El intervalo
-    // sí se respeta para no encadenar dos toques pegados.
-    if(resumed&&!quiet()&&performance.now()-lastAt>=mcHapticTune().edgeEvery) buzz();
-    g.pulling=true; repeatPull();
+    /* UNA vibración por arrastre contra el borde, nunca una ristra: «si mantengo el dedo y lo
+       muevo vibra una locura, no de fuerza sino muchas veces» (ronda 7; la 5 repetía cada 8 px).
+       Seguir tirando estando ya en el borde —también tras llegar por inercia— avisa al momento
+       (ronda 3); otra solo tras soltar o tras volver atrás y empujar de nuevo. */
+    if(!g.done&&!quiet()&&performance.now()-lastAt>=mcHapticTune().edgeEvery) buzz();
   };
-  const listeners={touchstart:start,touchmove:move,touchend:end,touchcancel:end,visibilitychange:end};
+  /* Ronda 10: «en Recibos, Deudas y Metas vibra al llegar al final, pero si sigues tirando no».
+     Plan corta la propagación de su touchmove (para que el swipe de pestañas no se lo quede) y
+     el tirón contra el borde nunca llegaba aquí; la llegada sí, porque esa va por `scroll`. Lo
+     que vive bajo [data-edge-capture] se mira en la fase de captura, antes de que Plan lo corte. */
+  const moveCapture=function(e){
+    if(!e.target||!e.target.closest||!e.target.closest("[data-edge-capture]")) return;
+    e.mcEdgeSeen=true; move(e);
+  };
+  const moveBubble=function(e){ if(!e.mcEdgeSeen) move(e); };
+  root.addEventListener("touchmove",moveCapture,{passive:true,capture:true});
+  const listeners={touchstart:start,touchmove:moveBubble,touchend:end,touchcancel:end,visibilitychange:end};
   Object.keys(listeners).forEach(function(type){ root.addEventListener(type,listeners[type],{passive:true}); });
   // scroll no burbujea: captura también las llegadas de inercia después del touchend.
   root.addEventListener("scroll",scroll,{passive:true,capture:true});
-  return function(){ end(); states=new WeakMap(); root.removeEventListener("scroll",scroll,true); Object.keys(listeners).forEach(function(type){ root.removeEventListener(type,listeners[type]); }); };
+  return function(){ end(); states=new WeakMap(); root.removeEventListener("scroll",scroll,true); root.removeEventListener("touchmove",moveCapture,true); Object.keys(listeners).forEach(function(type){ root.removeEventListener(type,listeners[type]); }); };
 }
 // Un solo objetivo: cambiar esta línea selecciona otra animación sin multiplicar disparos.
 const MC_INICIO_HAPTIC={selector:".v42-cycle-draw",animation:"v42-cycle-draw"};
@@ -9288,38 +9567,31 @@ function mcInicioFillHaptic(e){
     // animationstart sucede DESPUÉS del delay CSS y de la pausa del splash: sin segundo reloj.
     // Anillo vacío = nada que rellenar = silencio.
     const fraction=parseFloat(el.style&&el.style.getPropertyValue("--cycle-pct"))/100;
-    const v=mcHapticTune(), wave=mcCycleWave(duration,fraction,v.fillAmp);
-    if(!wave) return;
-    // La APK 58 solo entiende durationMs (su rampa fija); desde la 59 toca la onda de aquí.
-    mcHaptic("fill",{durationMs:duration,amplitude:v.fillAmp,fraction:fraction,timings:wave.timings,amplitudes:wave.amplitudes});
+    if(!(fraction>0)) return;
+    mcPlayCycle(duration,fraction);
   }catch(err){}
 }
 
-/* Count-up compartido (B2). `ready` es la puerta: Inicio espera `mc-splash-gone`; Cartera espera
-   el bus `mcOnCarteraActive`. Sin puerta, la animación se gasta con la pestaña premontada (o
-   detrás del splash) y al llegar el número ya está puesto — peor que no animar. */
-function useCountUp(target, ready, replay){
-  const [shown,setShown]=useState(0);
+/* Cifra con transición compartida (B2). Ya NO cuenta desde 0: mientras la pestaña entraba
+   deslizándose (`ready` aún en false) Cartera pintaba «0,00 €», y en «Tus recibos» quien tocaba un
+   grupo antes de los 950 ms se quedaba viendo una cifra a medias (1518,65 por 1526,87, vídeo de la
+   beta 4.26.150). Un número que no es el real es peor que no animar (AGENTS §1): se pinta la cifra
+   real desde el primer frame y solo se anima el paso de un valor real a otro mientras se mira. */
+function useCountUp(target, ready){
+  const tgt0=+(target||0);
+  const [shown,setShown]=useState(tgt0);
   const rafRef=useRef(0);
-  const shownRef=useRef(0);
-  const primeraRef=useRef(true);
+  const shownRef=useRef(tgt0);
   useEffect(function(){
-    /* Gestionar queda montado detrás de Plan. Si solo paramos el RAF al cerrarlo, conserva el
-       total final y la siguiente entrada ya no tiene animación; `replay` devuelve el contador a
-       cero mientras está oculto sin cambiar Inicio ni Cartera (feedback 2026-09-18). */
-    if(!ready){
-      if(replay){ shownRef.current=0; primeraRef.current=true; setShown(0); }
-      return undefined;
-    }
     const tgt=+(target||0);
     cancelAnimationFrame(rafRef.current);
-    if(mcReduced()){
-      shownRef.current=tgt; setShown(tgt); primeraRef.current=false;
+    // Oculta, sin movimiento o ya en su sitio: la cifra salta a su valor real.
+    if(!ready||mcReduced()||shownRef.current===tgt){
+      shownRef.current=tgt; setShown(tgt);
       return undefined;
     }
     let cancelado=false;
-    const start=primeraRef.current?0:shownRef.current;
-    primeraRef.current=false;
+    const start=shownRef.current;
     const t0=performance.now(), dur=950;
     const ease=function(x){ return 1-Math.pow(1-x,3); };
     const step=function(now){
@@ -9332,8 +9604,9 @@ function useCountUp(target, ready, replay){
     };
     rafRef.current=requestAnimationFrame(step);
     return function(){ cancelado=true; cancelAnimationFrame(rafRef.current); };
-  },[target, ready, replay]);
-  return shown;
+  },[target, ready]);
+  // Oculta, el render ya lleva el valor real aunque el efecto aún no haya corrido.
+  return ready?shown:+(target||0);
 }
 
 function recordAccountBalances(hist, day, rows){
@@ -9440,13 +9713,68 @@ function netWorthDebtPolicy(state, today, current){
   const value=current!=null?current:sum(today);
   return {current:value,notes:notes,timingUnknown:debts.some(function(d){return d.months==null&&!(dayOf(d)>0);}),at:function(day){ return day===today?value:sum(day); }};
 }
+/* LOS AJUSTES QUE DE VERDAD LEEN LA SERIE DE PATRIMONIO Y EL PRESUPUESTO DE INICIO (20/10/2026).
+   Dependían de `state.settings` entero, así que cualquier toque en Ajustes (contraste, idioma,
+   tamaño de letra…) hacía que Inicio, montado detrás, recorriera otra vez todo el histórico:
+   ~240 ms por cambio con 8.000 gastos a CPU×6, y el último caía justo al llegar a Cartera
+   («hago cosas en Ajustes, voy a Tus cuentas y pega un tirón»). Ahora dependen solo de los campos
+   que leen ellas y sus auxiliares. ⚠ Si una de ellas (o algo a lo que llamen) empieza a leer otro
+   ajuste, va aquí o la cifra se quedará vieja: lo vigila `tests/inicio-deps-ajustes.test.mjs`,
+   que recorre el código y además ejecuta las dos con los ajustes espiados. */
+const NET_WORTH_SETTINGS=["accountListOrder","accountShare","accountShareLegacy","expenseBanks","profile"];
+const BUDGET_SETTINGS=["budgetCycle","expenseBanks","gTotalMode"];
+function settingsDeps(settings, keys){
+  const s=settings||{};
+  return keys.map(function(k){ return s[k]; });
+}
+/* Y LOS CAMPOS DEL ESTADO QUE LEEN (revisión independiente, 20/10/2026). Antes cualquier toque en
+   Ajustes lo repintaba todo y tapaba los que faltaban en la lista a mano (recibos borrados,
+   «no es este recibo», bancos descartados, Hogar…); con las dependencias estrechas un hueco así
+   sería una cifra vieja. Se declaran todos los que leen ellas y su cierre de llamadas, y el
+   guardián (`tests/inicio-deps-ajustes.test.mjs`) muta cada uno y busca los que falten.
+   `accountBalanceHistory` y `settings` van aparte (`netWorthHistoryKey`, `settingsDeps`). */
+const NET_WORTH_STATE=["_historyOwner","accounts","aportaciones","assetValueHistory","assets","bankDismissed","bankTx","debts","deleted","expenses","fixed","flows","fx","fxRates","invHistory","investments","obAbsorbedConfirmed","obAbsorbedPending","obAccounts","oneoffs","reciboBorrado","reciboNo","shared"];
+const BUDGET_STATE=["_historyOwner","accounts","budget","deleted","expenses","fixed","flows","obAbsorbedConfirmed","obAbsorbedPending","oneoffs","reciboBorrado","reciboNo","reservaLog"];
+function stateDeps(state, keys){
+  const s=state||{};
+  return keys.map(function(k){ return s[k]; });
+}
+// Un punto de histórico vale para la serie solo si `clean` (dentro de `netWorthSeries`) lo acepta.
+function netWorthPointOk(d, v, today){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(d||"")||typeof v!=="number"||!Number.isFinite(v)||d>today) return false;
+  const ms=Date.parse(d+"T12:00:00Z");
+  const utc=netWorthPointOk.utc||(netWorthPointOk.utc=new Intl.DateTimeFormat("en-CA",{timeZone:"UTC",year:"numeric",month:"2-digit",day:"2-digit"}));
+  return Number.isFinite(ms)&&utc.format(ms)===d;
+}
+/* EL CIERRE DE HOY NO MUEVE LA SERIE (20/10/2026). «Tus cuentas» guarda el saldo de hoy cada vez
+   que cambia (`recordAccountBalances`); con un gasto nuevo eso reescribía `accountBalanceHistory`
+   y la serie entera se recalculaba por segunda vez seguida (~245 ms con 8.000 gastos), encima
+   del recálculo por el propio gasto. En la serie, el punto de HOY de una cuenta que ya tiene
+   cierres anteriores no se usa: hoy sale de los saldos vivos y los días pasados no lo ven. Solo
+   cuenta cuando es el PRIMER cierre de esa cuenta (marca dónde empieza y su valor de antes).
+   Esta clave recoge exactamente eso, más si alguna lista tiene más de un punto (`fresh`). */
+const _nwHistKeys=new WeakMap();
+function netWorthHistoryKey(hist, today){
+  if(!hist) return "";
+  const hit=_nwHistKeys.get(hist);
+  if(hit&&hit.today===today) return hit.key;
+  const out={}; let varios=false;
+  Object.keys(hist).forEach(function(k){
+    const list=Array.isArray(hist[k])?hist[k]:[];
+    if(list.length>1) varios=true;
+    const antes=list.some(function(p){ return p&&p.day<today&&netWorthPointOk(p.day,p.value,today); });
+    out[k]=antes?list.filter(function(p){ return !(p&&p.day===today); }):list;
+  });
+  const key=(varios?"1":"0")+JSON.stringify(out);
+  _nwHistKeys.set(hist,{today:today,key:key});
+  return key;
+}
 function netWorthSeries(state, options){
   options=options||{};
   const today=options.today||netWorthDay();
-  const deps=[today,options.liquid,options.invested,options.debtTotal,state.accounts,state.obAccounts,state.expenses,
-    state.deleted,state.accountBalanceHistory,state.invHistory,state.investments,state.assets,state.assetValueHistory,state.debts,state.flows,
-    state.fixed,state.oneoffs,state.bankTx,state.settings,state.fxRates,state.fx,state.aportaciones,
-    options.balanceInputs&&options.balanceInputs.paidNetByBank,options.balanceInputs&&options.balanceInputs.spentByBank];
+  const deps=[today,options.liquid,options.invested,options.debtTotal,netWorthHistoryKey(state.accountBalanceHistory,today),
+    options.balanceInputs&&options.balanceInputs.paidNetByBank,options.balanceInputs&&options.balanceInputs.spentByBank]
+    .concat(stateDeps(state,NET_WORTH_STATE),settingsDeps(state.settings,NET_WORTH_SETTINGS));
   const cache=netWorthSeries.cache||(netWorthSeries.cache=[]);
   const hit=cache.find(function(c){ return c.deps.every(function(v,i){ return v===deps[i]; }); });
   if(hit) return hit.series;
@@ -9458,9 +9786,7 @@ function netWorthSeries(state, options){
     const by={};
     (list||[]).forEach(function(p){
       const d=p&&p[day],v=p&&p[value];
-      if(!/^\d{4}-\d{2}-\d{2}$/.test(d||"")||typeof v!=="number"||!Number.isFinite(v)||d>today) return;
-      const ms=Date.parse(d+"T12:00:00Z");
-      if(Number.isFinite(ms)&&utcFmt.format(ms)===d) by[d]=Object.assign({},p,{day:d,value:v});
+      if(netWorthPointOk(d,v,today)) by[d]=Object.assign({},p,{day:d,value:v});
     });
     return Object.keys(by).sort().map(function(d){ return by[d]; });
   };
@@ -10190,6 +10516,9 @@ function useSheetSwipe(open, onClose, opts){
     if(e&&e.stopPropagation) e.stopPropagation();
     if(closing.current) return;
     if(!(e.touches&&e.touches[0])) return;
+    // En las fichas de Gestionar, el contenido conserva el overscroll del navegador.
+    // El asa sigue permitiendo bajar la hoja; el gesto lateral de Atrás es independiente.
+    if(opts.nativeScroll&&!(e.target&&e.target.closest&&e.target.closest(".v4-sheet-handle"))) return;
     armed.current=true;
     dragging.current=true; dy.current=0; axis.current=null;
     startY.current=e.touches[0].clientY; startX.current=e.touches[0].clientX;
@@ -10295,6 +10624,9 @@ function useSheetSwipe(open, onClose, opts){
   };
   const onTouchCancel=function(e){
     if(e&&e.stopPropagation) e.stopPropagation();
+    // Un segundo toque cancelado durante la salida no puede borrar su transform:
+    // devolvía la ficha a su sitio antes de que el temporizador la desmontase.
+    if(closing.current) return;
     // Android puede cancelar un toque al entregar el scroll al WebView. No es un `touchend`:
     // confirmar aquí el cierre hacía que una ficha desapareciera o rebotara sin que él la soltara.
     dragging.current=false; armed.current=false; axis.current=null; dy.current=0; scrollHost.current=null;
@@ -10675,8 +11007,8 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
     React.createElement("div",{className:"v4-sheet-body v4-ficha-body","data-testid":testPrefix||"expense-ficha"},
       React.createElement("div",{className:"v4-ficha-head"},
         React.createElement("div",{className:"v4-seg v4-ficha-seg"},
-          React.createElement("button",{type:"button",className:"v4-seg-btn"+(!isIn?" on":""),onClick:function(){ onKind("gasto"); }},t("v4_gasto")),
-          React.createElement("button",{type:"button",className:"v4-seg-btn"+(isIn?" on":""),onClick:function(){ onKind("ingreso"); }},t("v4_ingreso"))),
+          React.createElement("button",{type:"button",className:"v4-seg-btn"+(!isIn?" on":""),onClick:function(){ if(isIn) mcTickHaptic(); onKind("gasto"); }},t("v4_gasto")),
+          React.createElement("button",{type:"button",className:"v4-seg-btn"+(isIn?" on":""),onClick:function(){ if(!isIn) mcTickHaptic(); onKind("ingreso"); }},t("v4_ingreso"))),
         React.createElement("button",{type:"button",className:"v4-ficha-date",onClick:onDate},dateLabel)),
       React.createElement("div",{className:"v4-ficha-amount-row"},
         React.createElement("button",{type:"button",className:"v4-ficha-amount v4-apuntar-amt serif num"+(amountEmpty?" empty":""),
@@ -10846,7 +11178,9 @@ function NetWorthNow({tt, simple, series, splashGone}){
       // Solo el punto que realmente se pinta: sin búsquedas, layouts ni ticks por cada touchmove.
       // Un tick por CADA punto nuevo («no se nota apenas NADA», ronda 3): el único hueco es el que
       // tarda en acabar el anterior, para que dos toques no se fundan en un zumbido.
-      if(day!==h.day){ h.day=day; const now=performance.now(), v=mcHapticTune(); if(day&&now-h.at>=v.tickMs+10){ h.at=now; mcHaptic("edge",{amplitude:v.tickAmp,durationMs:v.tickMs}); } }
+      // Ronda 10: «no puedo regular la intensidad». Con uso «toque» OxygenOS lo cambiaba por su
+      // efecto de serie; como el borde y el segmento, uso hardware y fuerza que alarga el toque.
+      if(day!==h.day){ h.day=day; const now=performance.now(), v=mcHapticTune(); if(day&&now-h.at>=mcFeltMs(v.tickMs,v.tickAmp)+10){ h.at=now; mcFeltHaptic(v.tickAmp,v.tickMs); } }
       setTouch(index);
     });
   };
@@ -10978,18 +11312,19 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
 
   const seriesToday=netWorthDay();
   // Sólo un cambio financiero o de día justifica volver a recorrer el histórico
-  // para el presupuesto y su nómina, también al abrir una hoja de Inicio.
+  // para el presupuesto y su nómina, también al abrir una hoja de Inicio. De los ajustes, solo los
+  // que se leen (`BUDGET_SETTINGS`, `NET_WORTH_SETTINGS`): tocar Ajustes no es un cambio de dinero.
   const bud=useMemo(function(){
   const bud=dashboardBudgetStats(state);
     return bud;
   },
-    [state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.accounts,state.settings,state.flows,state.budget,state.reservaLog,seriesToday]);
+    [seriesToday].concat(stateDeps(state,BUDGET_STATE),settingsDeps(state.settings,BUDGET_SETTINGS)));
   const budAmt=bud.budget!=null?bud.budget:(state.budget||0);
   const spentAgainst=Math.max(0,bud.against), rem=bud.remaining!=null?bud.remaining:budAmt-spentAgainst;
   const timing=cycleTiming(bud), paceState=cyclePaceState(spentAgainst,budAmt,timing.elapsed,timing.days);
   const dailyMoney=budAmt>0?cycleDailyMoney(rem,timing.left):null;
   const series=useMemo(function(){ return netWorthSeries(state,{today:seriesToday,liquid:tt.liquid,invested:tt.invested,debtTotal:tt.debtTotal,balanceInputs:tt}); },
-    [state.accounts,state.obAccounts,state.accountBalanceHistory,state.invHistory,state.investments,state.assets,state.assetValueHistory,state.debts,state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.flows,state.fixed,state.oneoffs,state.bankTx,state.aportaciones,state.settings,state.fx,state.fxRates,tt,seriesToday]);
+    [netWorthHistoryKey(state.accountBalanceHistory,seriesToday),tt,seriesToday].concat(stateDeps(state,NET_WORTH_STATE),settingsDeps(state.settings,NET_WORTH_SETTINGS)));
 
   const overdue=[];
   // La fecha prevista no es un pago: la misma lectura de evidencia que Plan conserva los
@@ -11769,13 +12104,21 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // Guarda el CONCEPTO escrito a mano (2026-07-24). `noteEdited` blinda el texto: el siguiente
   // sync del banco rellena conceptos vacíos, pero nunca pisa lo que ha escrito el usuario.
   // Vacío = se borra la nota, y también queda marcado (si no, el banco la volvería a poner).
+  const noteSequence=useRef(0);
   const saveNote=function(ex, note){
     const raw=String(note||"").trim().slice(0,160);
-    if(raw===String(ex.note||"").trim()) return;   // sin cambios: ni set ni viaje a la nube
+    if(raw===String(ex.note||"").trim()&&!ex.notePending) return;
+    const pending=cloud.enabled()&&!mcSandbox()&&!mcSandboxTransition();
+    const at=noteSequence.current=Math.max(Date.now(),noteSequence.current+1,(ex.noteEditAt||0)+1);
     set(function(s){ return Object.assign({},s,{expenses:s.expenses.map(function(e){
-      return e.id===ex.id ? Object.assign({},e,{note:raw||undefined, noteEdited:true}) : e;
+      return e.id===ex.id ? Object.assign({},e,{note:raw||undefined, noteEdited:true,noteEditAt:at,notePending:pending}) : e;
     })}); });
-    if(cloud.enabled()) cloud.setExpenseNote(ex,raw).catch(function(){});
+    if(pending) cloud.setExpenseNote(ex,raw).then(function(ack){
+      if(!ack)throw new Error("note unconfirmed");
+      set(function(s){return Object.assign({},s,{expenses:s.expenses.map(function(e){
+        return e.id===ex.id&&e.noteEditAt===at?Object.assign({},e,{notePending:false}):e;
+      })});});
+    }).catch(function(){showToast(t("g_note_unconfirmed"));});
   };
   // EDITAR un gasto (comercio / importe / gasto↔ingreso): para corregir lo que la ingesta parsea
   // mal (financiación Cofidis que notifica el TOTAL pero TR solo cobra la cuota, bizums antiguos
@@ -11783,12 +12126,52 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // de la fila vieja (deleted + deleteExpense) y se inserta la corregida, o el pull la resucitaría.
   const [editExp,setEditExp]=useState(null);   // {id, merchant, amount, income} — usado por el sheet de detalle
   const editCola=useRef({pend:[], fin:Promise.resolve()});   // escrituras de `saveEdit` en la nube
+  const renameState=useRef(state);renameState.current=state;
+  const renameSequence=useRef(0);
+  const renameTimer=useRef(0), retryRef=useRef(null);
+  /* Cada fallo espera antes del siguiente intento (2 s, 8 s y luego cada 30 s). Sin espera, el
+     cambio de estado de un fallo relanzaba el envío en el acto y los tres intentos se gastaban
+     en ~9 ms (beta 4.26.153). Lo que falló por red se adelanta al volver la conexión o la app. */
+  const renameEspera=function(job,red){
+    job.tries=(job.tries||0)+1;job.red=!!red;
+    const ms=RENAME_BACKOFF_MS[Math.min(job.tries,RENAME_BACKOFF_MS.length)-1];
+    job.waitUntil=Date.now()+ms;
+    clearTimeout(renameTimer.current);
+    renameTimer.current=setTimeout(function(){ if(retryRef.current) retryRef.current(); },ms+20);
+  };
+  const retryRenames=function(volvioRed){
+    if(!cloud.enabled()||mcSandbox()||mcSandboxTransition())return;
+    const s=renameState.current, owner=s._historyOwner,deleted=expenseDeletedSet(s);
+    (s.expenses||[]).forEach(function(e){
+      const pending=e.renamePending;
+      if(!pending||pending.quarantined||expenseIsTombstoned(e,deleted)||editCola.current.pend.some(function(p){return p.rename&&p.id===e.id&&p.rename.at===pending.at;}))return;
+      const job={id:e.id,rename:pending,current:function(){
+        const fresh=renameState.current;if(fresh._historyOwner!==owner)return null;
+        return (fresh.expenses||[]).find(function(x){return x.id===e.id&&x.date===e.date&&x.amount===e.amount&&x.renamePending&&!x.renamePending.quarantined&&x.renamePending.at===pending.at&&!expenseIsTombstoned(x,expenseDeletedSet(fresh));});
+      },ack:function(orig,ack){set(function(fresh){return fresh._historyOwner===owner?expenseRenameAck(fresh,orig,pending,ack):fresh;});},fail:function(orig,failures,quarantined,red){
+        const fresh=renameState.current,active=fresh._historyOwner===owner&&(fresh.expenses||[]).some(function(x){return x.id===orig.id&&x.date===orig.date&&x.amount===orig.amount&&x.renamePending&&x.renamePending.at===pending.at&&!x.renamePending.quarantined;});
+        if(!active)return;
+        if(!quarantined)renameEspera(job,red);
+        if(red)return; // sin red: ni cuenta ni toca el estado
+        set(function(s){return s._historyOwner===owner?expenseRenameFailure(s,orig,pending,failures):s;});
+        if(quarantined)showToast(t("g_rename_paused"));
+      }};
+      editCola.current.pend.push(job);
+    });
+    if(volvioRed)editCola.current.pend.forEach(function(p){ if(p.rename&&p.red)p.waitUntil=0; });
+    if(editCola.current.pend.length)subeEdicionesDeGasto(editCola.current);
+  };
+  retryRef.current=retryRenames;
   // Lo que se editó sin conexión se sube al volver: ver `subeEdicionesDeGasto`.
   useEffect(function(){
-    const alVolver=function(){ if(editCola.current.pend.length) subeEdicionesDeGasto(editCola.current); };
+    const alVolver=function(){retryRenames(true);};
+    const alVerse=function(){ if(document.visibilityState==="visible")retryRenames(true); };
+    retryRenames();
     window.addEventListener("online",alVolver);
-    return function(){ window.removeEventListener("online",alVolver); };
-  },[]);
+    document.addEventListener("visibilitychange",alVerse);
+    return function(){ window.removeEventListener("online",alVolver); document.removeEventListener("visibilitychange",alVerse); };
+  },[state.expenses]);
+  useEffect(function(){ return function(){ clearTimeout(renameTimer.current); }; },[]);
   const [detailId,setDetailId]=useState(null);     // id del gasto abierto en sheet (SPEC §14)
   // PUNTO 5: al tocar la noti de un gasto, App pasa focusExp ({amount,merchant}) → abrimos la ficha
   // del gasto que casa (mismo importe y comercio parecido, el más reciente; si no, el último gasto).
@@ -11839,7 +12222,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     };
     const origDay=String(orig.date||"").slice(0,10);
     const newDay=String(ed.date||origDay).slice(0,10);
-    if(signed===orig.amount && merch===(orig.merchant||"") && newDay===origDay){ sincroniza(orig); return; }   // sin cambios
+    if(signed===orig.amount && merch===(orig.merchant||"") && newDay===origDay&&!orig.renamePending){ sincroniza(orig); return; }   // sin cambios
     const cat = ed.income ? "ingreso" : (orig.category==="ingreso" ? autoCategory(merch) : orig.category);
     const splitByEdit=(signed!==orig.amount||newDay!==origDay)&&!!gemeloAutomaticoDe(state,orig);
     if(splitByEdit) separarGemelo(orig);
@@ -11857,6 +12240,15 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
        borra en vez de arrastrarlo. Un dato viejo al lado de uno nuevo no es media verdad, es una
        mentira — y en el detalle se leerían juntos como si fueran el mismo pago. */
     if(signed!==orig.amount){ delete upd.origAmount; delete upd.origCur; }
+    if(signed===orig.amount&&newDay===origDay&&cloud.enabled()&&!mcSandbox()&&!mcSandboxTransition()){
+      if(orig.renamePending&&orig.renamePending.merchant===merch){
+        if(!orig.renamePending.quarantined){retryRenames();return;}
+        if(!ed.retryRename)return; // cerrar la ficha no equivale a pedir otro envío
+      }
+      const at=renameSequence.current=Math.max(Date.now(),renameSequence.current+1,(orig.renamePending&&orig.renamePending.at||0)+1);
+      set(function(s){return expenseRenameDraft(s,orig,merch,at);});
+      return;
+    }
     set(function(s){ return rekeyFixedPaymentExpense(Object.assign({},s,{
       expenses:s.expenses.map(function(x){ return x.id===orig.id?upd:x; })
     },lapidasAlEditar(s, keyOfE(orig), keyOfE(upd))),orig,upd); });
@@ -12107,7 +12499,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const openDetail=useCallback(function(e){
     if(Date.now()<suppressOpenRef.current) return;
     setDetailId(e.id);
-    setEditExp({id:e.id, merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',','), income:e.amount<0, note:e.note||"", date:String(e.date||"").slice(0,10)});
+    setEditExp({id:e.id, merchant:e.renamePending?e.renamePending.merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',','), income:e.amount<0, note:e.note||"", date:String(e.date||"").slice(0,10)});
   },[]);
   // Invalida las filas memoizadas cuando cambia el idioma o la moneda de visualización (las leen
   // de globales que React.memo no ve).
@@ -12415,6 +12807,8 @@ const MovRow=React.memo(function MovRow({e, ms, l, onOpen, bucket, recibo, dragg
   const c=catOf(e.category);
   const isIncome=e.amount<0;
   const bk=expenseBankOf(e);
+  const pendingName=!!(e.renamePending&&!e.renamePending.quarantined&&e.renamePending.merchant);
+  const shownName=pendingName?e.renamePending.merchant:e.merchant;
   const note=expenseNote(e);   // concepto del bizum / descripción del banco (2026-07-24)
   // Un ingreso NO va apagado: entra dinero, no es un gasto que se descarta. Solo se atenúan los
   // dos cajones que no mueven el presupuesto, y cada uno dice el suyo en vez de un «no afecta»
@@ -12427,7 +12821,10 @@ const MovRow=React.memo(function MovRow({e, ms, l, onOpen, bucket, recibo, dragg
       onClick:function(ev){ if(ev.target&&ev.target.closest&&ev.target.closest(".v4-mov-drag")) return; onOpen(e); },style:skip?{opacity:.72}:null},
     React.createElement("div",{className:"tile",style:{borderColor:c.color+"55",color:c.color,background:c.color+"18"}},c.icon),
     React.createElement("div",{className:"nm"},
-      React.createElement("div",{className:"nm-title"}, e.merchant||"—"),
+      // Renombrado en vuelo: la lista enseña ya el nombre nuevo, igual que la ficha, sin tocar
+      // `merchant` (eso solo cambia con el ack del servidor). En cuarentena vuelve al guardado.
+      React.createElement("div",{className:"nm-title"}, shownName||"—",
+        pendingName?React.createElement("span",{"data-testid":"mov-rename-pending",role:"img",title:t("g_rename_pending"),"aria-label":t("g_rename_pending"),style:{marginLeft:6,opacity:.7}},"⏳"):null),
       note && React.createElement("div",{className:"nm-note"}, note),
       React.createElement("div",{className:"nm-cat",style:{color:c.color}}, l||catName(e.category)),
       React.createElement("div",{className:"meta"},
@@ -12598,6 +12995,18 @@ function PeriodMoreSheet({open, onClose, preset, setPreset}){
     ), document.body);
 }
 
+// Copia para pegar en el chat; el textarea es la salida de las WebView sin `navigator.clipboard`.
+function copiarTexto(txt,showToast){
+  const viejo=function(){
+    try{
+      const ta=document.createElement("textarea"); ta.value=txt; ta.setAttribute("readonly",""); ta.style.position="fixed"; ta.style.opacity="0";
+      document.body.appendChild(ta); ta.select(); const ok=document.execCommand("copy"); ta.remove();
+      if(showToast) showToast(ok?t("hv_copied"):t("hv_copy_fail"));
+    }catch(e){ if(showToast) showToast(t("hv_copy_fail")); }
+  };
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function(){ if(showToast) showToast(t("hv_copied")); },viejo);
+  else viejo();
+}
 /* Sheet detalle/edición de un movimiento. Layout alineado con Apuntar/Cartera (feedback 2026-07-17). */
 // La marca explícita puede seguir puesta aunque el cargo no acredite el pago. Nombrarla
 // con un matiz evita contradecir el chip seleccionado, sin convertirla en prueba financiera.
@@ -12620,6 +13029,16 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     [abierto,exp,paymentDay,state.fixed,state.debts,state.oneoffs,state.expenses,state.bankTx,state.accounts,state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
   const swipe=useSheetSwipe(abierto, onClose);
   useBackClose(abierto, swipe.close);
+  // Diagnóstico de «Paga un recibo»: canal beta o la APK .debug de pruebas, nunca en la estable.
+  const [diagDebug,setDiagDebug]=useState(false);
+  useEffect(function(){
+    let vivo=true;
+    try{
+      const plugin=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.AelyHaptics;
+      if(plugin&&typeof plugin.info==="function") Promise.resolve(plugin.info()).then(function(r){ if(vivo&&r&&r.debug) setDiagDebug(true); },function(){});
+    }catch(e){}
+    return function(){ vivo=false; };
+  },[]);
   const [calOpen,setCalOpen]=useState(false);
   const [bankOpen,setBankOpen]=useState(false);
   const [allCatsOpen,setAllCatsOpen]=useState(false);
@@ -12711,6 +13130,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
       React.createElement("button",{type:"button",className:"v4-chip"+(!bk?" on":""),onClick:function(){ setBank(exp,null); setBankOpen(false); }},t("ap_bank_none")),
       bankOpts.map(function(b){ return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bk===b?" on":""),
         onClick:function(){ setBank(exp,b); setBankOpen(false); }},"🏦 "+entOf(b).label); })),
+    exp.renamePending&&React.createElement("div",{className:"hint",role:"status","data-testid":"expense-rename-pending"},t(exp.renamePending.quarantined?"g_rename_paused":"g_rename_pending")," ",React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){saveEdit(exp,{merchant:exp.renamePending.merchant,retryRename:true});}},t("g_note_retry"))),
     trace,duplicate,paired,reciboAviso,
     canRecognizeWithdrawal(exp) && React.createElement("div",{className:"hint","data-testid":"exp-withdrawal-info"},
       React.createElement("div",null,t("f_withdraw_fields")),
@@ -12758,13 +13178,17 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
             onClick:function(){ setReceipt(exp,f.id); }},f.name+" · "+eur(occAmountIn(f,receiptMonth))); }),
           !receiptLinked&&!reciboDe&&receiptPuntuales.map(function(o){ return React.createElement("button",{key:o.id,type:"button",className:"v4-chip","data-testid":"exp-receipt-"+o.id,
             onClick:function(){ setReceipt(exp,o.id); }},o.name+" · "+eur(o.amount)); })),
-        !paymentRelation&&!receiptLinked&&!reciboDe&&!receiptOptions.length&&!receiptPuntuales.length&&React.createElement("div",{className:"hint"},t("f_receipt_none")))),
+        !paymentRelation&&!receiptLinked&&!reciboDe&&!receiptOptions.length&&!receiptPuntuales.length&&React.createElement("div",{className:"hint"},t("f_receipt_none")),
+        (mcChannel()==="beta"||diagDebug)&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-receipt-diag",style:{fontSize:12,padding:"4px 10px",marginTop:8},
+          onClick:function(){ copiarTexto(reciboDiagText(state,exp),showToast); }},t("f_receipt_diag")))),
     React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",onClick:function(){ setAdjustOpen(adjustOpen==="note"?null:"note"); }},
       React.createElement("span",null,t("f_note_row")),React.createElement("span",{className:"value"},editExp.note||t("f_note_none")),React.createElement("span",{className:"chev"},"›")),
     adjustOpen==="note" && React.createElement("div",{className:"v4-ficha-adjust-open"},
       React.createElement("input",{className:"v4-exp-note-in",value:editExp.note||"",maxLength:160,placeholder:t("v4_exp_note_ph"),
         onChange:function(e){ const v=e.target.value; setEditExp(function(p){ return Object.assign({},p,{note:v}); }); },
         onBlur:function(){ saveNote(exp,editExp.note); },"aria-label":t("v4_exp_note")})),
+    exp.notePending&&React.createElement("div",{className:"hint",role:"status","data-testid":"expense-note-pending"},
+      t("g_note_unconfirmed")," ",React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){saveNote(exp,exp.note);}},t("g_note_retry"))),
     !isIncome && (exp.debtId||debtOptions.length>0) && React.createElement(React.Fragment,null,
       React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",onClick:function(){ setAdjustOpen(adjustOpen==="debt"?null:"debt"); }},
         React.createElement("span",null,t("f_debt_row")),React.createElement("span",{className:"value"},expensePaymentLabelUI(state,exp,"debt",paymentRelation)),React.createElement("span",{className:"chev"},"›")),
@@ -15960,17 +16384,28 @@ function debtPaymentState(s,d,y,m,today){
    pero una fecha pasada no demuestra un pago (INC-1810-03/04). Nunca escribe vínculos.
    Plan puede acreditar un BOOK sin histórico local; la ficha necesita además UNA fila
    inequívoca. Las referencias y cuentas conocidas no se sustituyen por igual contenido. */
+/* Por qué una fila NO puede ser la prueba visible de un pago (null = puede). Es la misma
+   condición que usaba `paymentEvidenceUI`; sale fuera para que el diagnóstico de beta diga el
+   motivo exacto en vez de un sí o un no. */
+function paymentEvidenceRowIssue(s,x,index,deleted){
+  if(!x||!x.id) return "sin id";
+  if((index.id.get(x.id)||[]).length!==1) return "id repetido en Gastos";
+  if(x.possibleDup) return "posible repetido";
+  if(x.obPending) return "pendiente en el banco";
+  if(x.status&&String(x.status).toUpperCase()!=="BOOK") return "status "+x.status;
+  if(expenseIsTombstoned(x,deleted)) return "borrado";
+  var identity=fixedPaymentIdentity(expenseBankOf(x),x),rows=fixedPaymentExpenses(s,String(x.date).slice(0,7)).identity.get(identity)||[];
+  if(rows.length!==1) return rows.length+" filas con la misma identidad";
+  if(!fixedPaymentFeedClear(s,identity)) return "extracto no limpio";
+  var bad=(s.bankTx||[]).filter(function(tx){return fixedPaymentIdentity(tx.ent,tx)===identity;}).map(function(tx){
+    return x.extId&&tx.id&&String(x.extId)!==String(tx.id)?"ref distinta en el extracto":x.obAcc&&tx.acc&&String(x.obAcc)!==String(tx.acc)?"cuenta distinta en el extracto":null;
+  }).filter(Boolean);
+  return bad.length?bad[0]:null;
+}
 function paymentEvidenceUI(s,y,m,today){
   var confirmed=Object.create(null),byExpense=new Map(),index=fixedPaymentExpenses(s,y+"-"+String(m).padStart(2,"0"));
   var deleted=expenseDeletedSet(s);
-  var current=function(x){
-    if(!x||!x.id||(index.id.get(x.id)||[]).length!==1||x.possibleDup||x.obPending||
-      x.status&&String(x.status).toUpperCase()!=="BOOK"||expenseIsTombstoned(x,deleted)) return false;
-    var identity=fixedPaymentIdentity(expenseBankOf(x),x),rows=fixedPaymentExpenses(s,String(x.date).slice(0,7)).identity.get(identity)||[];
-    return rows.length===1&&fixedPaymentFeedClear(s,identity)&&(s.bankTx||[]).filter(function(tx){return fixedPaymentIdentity(tx.ent,tx)===identity;}).every(function(tx){
-      return !(x.extId&&tx.id&&String(x.extId)!==String(tx.id))&&!(x.obAcc&&tx.acc&&String(x.obAcc)!==String(tx.acc));
-    });
-  };
+  var current=function(x){ return !paymentEvidenceRowIssue(s,x,index,deleted); };
   var add=function(x,kind,f){
     if(!current(x)) return;
     if(kind==="fixed"&&(x.debtId||x.reciboId&&x.reciboId!==f.id||reciboVetado(s,f.id,reciboNoIdentidad(x),x.id))) return;
@@ -15984,6 +16419,23 @@ function paymentEvidenceUI(s,y,m,today){
     var identity=p?p.identity:tx?fixedPaymentIdentity(tx.ent,tx):null;
     if(!identity) return;
     var rows=index.identity.get(identity)||[];
+    /* La prueba BOOK guarda el nombre del extracto y el cargo renombrado se identifica por el
+       texto del banco (`obName`): con la MISMA referencia, banco y céntimos es el mismo cargo y Plan
+       ya lo da por pagado; la ficha decía «No» (INC-1810-04, diagnóstico real de beta 4.26.154.1).
+       Otra referencia sigue sin valer.
+       El día puede ir por delante: el cargo de tarjeta lleva la fecha de la operación y el BOOK la
+       de contabilización, días después y con la misma ref (2/10 → 5/10, diagnóstico real de beta
+       4.26.157.1). Solo hacia delante y como mucho 7 días, lo que tarda una tarjeta con puente o
+       fin de semana; y si el extracto trae la cuenta de esa ref, tiene que ser la del cargo. */
+    if(!rows.length&&p&&p.kind==="book"&&p.key){
+      var dia=function(v){ return Date.parse(String(v||"").slice(0,10)+"T00:00:00Z")/864e5; };
+      rows=[];index.identity.forEach(function(list){ list.forEach(function(x){
+        var lag=dia(p.date)-dia(x.date);
+        if(x.extId&&p.key===p.bank+"|"+x.extId&&expenseBankOf(x)===p.bank&&lag>=0&&lag<=7&&
+          Math.round(Number(x.amount)*100)===Math.round(Number(p.amount)*100)&&
+          !(s.bankTx||[]).some(function(t){ return t.ent===p.bank&&String(t.id)===String(x.extId)&&x.obAcc&&t.acc&&String(t.acc)!==String(x.obAcc); })) rows.push(x);
+      }); });
+    }
     if(rows.length!==1) return;
     var x=rows[0];
     if(!fixedExpenseEligible(s,x,f,y,m,today)) return;
@@ -16031,6 +16483,42 @@ function reciboConfirmableUI(s,x,relation){
   if(!(y>0&&m>=1&&m<=12)||y*12+m>now.getFullYear()*12+now.getMonth()+1) return null;
   var today=y===now.getFullYear()&&m===now.getMonth()+1?now.getDate():new Date(y,m,0).getDate();
   return linkFixedPayment(s,x.id,f.id,y,m,today)!==s?f:null;
+}
+/* Diagnóstico de «Paga un recibo» SOLO para beta y la APK de pruebas (INC-1810-04): su móvil
+   es una APK release sin depuración y su estado local (el extracto no sube a la nube) no se puede
+   leer de otra forma. Texto para pegar en el chat: sin importes de otros gastos y sin cuentas
+   enteras. Solo lectura. */
+function reciboDiagText(s,x){
+  var cola=function(v){ return v==null||v===""?"-":"…"+String(v).slice(-4); };
+  var ds=String(x.date||"").slice(0,10),y=Number(ds.slice(0,4)),m=Number(ds.slice(5,7)),now=new Date();
+  var today=y===now.getFullYear()&&m===now.getMonth()+1?now.getDate():new Date(y,m,0).getDate();
+  var ym=y+"-"+String(m).padStart(2,"0"),bank=expenseBankOf(x),identity=fixedPaymentIdentity(bank,x);
+  var index=fixedPaymentExpenses(s,ym),deleted=expenseDeletedSet(s),rel=expensePaymentRelationUI(s,x);
+  var out=["Aely "+CONFIG.APP_VERSION+" · diag recibo · hoy "+now.toISOString().slice(0,10),
+    "CARGO "+ds+" "+bank+" "+Number(x.amount).toFixed(2)+" cat:"+(x.category||"-")+" source:"+(x.source||"-")+" cloud:"+String(expenseSourceForCloud(x)).replace(/#acc[^#~]*/g,function(a){ return "#acc"+cola(a.slice(4)); }),
+    " extId:"+(x.extId||"-")+" obAcc:"+cola(x.obAcc)+" obPending:"+!!x.obPending+" status:"+(x.status||"-")+" obName:"+(x.obName!=null?JSON.stringify(x.obName):"-")+" merchant:"+JSON.stringify(x.merchant||"")+" reciboId:"+(x.reciboId||"-")+" debtId:"+(x.debtId?"sí":"-")+" possibleDup:"+!!x.possibleDup,
+    " relación:"+(rel?rel.kind+":"+rel.id:"null")+" current:"+(paymentEvidenceRowIssue(s,x,index,deleted)||"ok")+" filasIdentidad:"+(index.identity.get(identity)||[]).length];
+  var txs=(s.bankTx||[]).filter(function(tx){ return fixedPaymentIdentity(tx.ent,tx)===identity; });
+  var mismaRef=x.extId?(s.bankTx||[]).filter(function(tx){ return String(tx.id)===String(x.extId); }):[];
+  out.push(" identidad:"+identity+" · EXTRACTO misma ref: "+(mismaRef.length?mismaRef.map(function(tx){ return (tx.ent||"-")+" "+String(tx.date||"").slice(0,10)+" "+JSON.stringify(tx.merchant||"")+" acc:"+cola(tx.acc)+" status:"+(tx.status||"-"); }).join(" | "):"ninguno"));
+  out.push("EXTRACTO misma identidad: "+(txs.length?txs.map(function(tx){ return "id:"+(tx.id||"-")+" acc:"+cola(tx.acc)+" status:"+(tx.status||"-")+(tx.possibleDup?" dup":""); }).join(" | "):"ninguno")+" · extracto total "+(s.bankTx||[]).length);
+  (s.fixed||[]).forEach(function(f){
+    if(!occursIn(f,m)) return;
+    var st=fixedPaymentState(s,f,y,m,today),target=f.bankAmount>0?f.bankAmount:occAmountIn(f,m);
+    // La key y la identidad de la prueba solo si es de ESTE cargo o de su ref: de otros recibos
+    // saldrían referencias y comercios de otros gastos, y para el chat basta con el motivo.
+    var suya=!!st.proof&&(st.proof.identity===identity||!!x.extId&&st.proof.key===st.proof.bank+"|"+x.extId);
+    var ev=st.proof?"prueba:"+st.proof.kind+(st.proof.identity===identity?"(este)":suya?"(esta ref)":"(otro cargo)")+(suya?" key:"+(st.proof.key||"-")+" id:"+(st.proof.identity||"-"):""):st.bankTx?"extracto:"+(fixedPaymentIdentity(st.bankTx.ent,st.bankTx)===identity?"este":"otro"):st.expense?"fila:"+(st.expense.id===x.id?"este":"otra"):"";
+    var motivo=reciboVetado(s,f.id,reciboNoIdentidad(x),x.id)?"vetado para este cargo":
+      !fixedPaymentUnique(s,f)?"id de recibo repetido":x.possibleDup?"cargo posible repetido":x.debtId?"cargo es cuota":
+      x.status&&String(x.status).toUpperCase()!=="BOOK"?"cargo no BOOK":!bank?"cargo sin banco":CAT_NEUTRAS[x.category]?"categoría neutra":x.category==="ingreso"?"es ingreso":
+      !(Number(x.amount)>0)||!(target>0)?"importe":!fixedPaymentDate(x.date,y,m,today)?"fecha fuera del mes":expenseIsTombstoned(x,deleted)?"cargo borrado":
+      !fixedPaymentFeedClear(s,identity)?"extracto no limpio":(index.identity.get(identity)||[]).length!==1?"filas repetidas":ev?"ya acreditado ("+ev+")":"entra";
+    out.push("RECIBO "+f.id+" "+JSON.stringify(f.name||"")+" "+Number(target).toFixed(2)+" "+accOf(f)+" día:"+(dayIn(f,m)==null?"-":dayIn(f,m))+" paidYm:"+(f.paidYm==null?"-":f.paidYm===y*12+m?"este mes":f.paidYm)+" paidDay:"+(f.paidDay==null?"-":f.paidDay)+
+      " pagado:"+st.paid+(ev?" "+ev:st.paid?" solo calendario":"")+(st.overdue?" vencido":"")+" pruebaGuardada:"+!!(f.paymentProofs&&f.paymentProofs[y*12+m])+" → "+motivo);
+  });
+  // Por si algún campo trajera una cuenta entera: nunca sale más que su cola.
+  return out.join("\n").replace(/\b[A-Z]{2}\d{2}[A-Z0-9]{10,30}\b/g,function(a){ return "…"+a.slice(-4); });
 }
 function expensePaymentRelationUI(s,e){
   if(!e) return null;
@@ -19455,7 +19943,7 @@ function fixedMonthlyOf(e){
   return (Number(e.amount)||0)*(FREQ_M[e.freq]||1);
 }
 function billsHeroTotal(state, totals){
-  /* Misma cifra que Plan › Recibos / totals.fijosMensual: servicios + cuotas activas. */
+  /* Misma cifra que Plan › Recibos / totals.fijosMensual (los dos suman `fixedMonthlyOf`). */
   if(totals&&Number.isFinite(totals.fijosMensual)) return totals.fijosMensual;
   const serv=(state.fixed||[]).reduce(function(a,e){ return a+fixedMonthlyOf(e); },0);
   const cuotas=(state.debts||[]).reduce(function(a,d){ return a+(debtActive(d)?(d.monthly||0):0); },0);
@@ -23530,7 +24018,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="7af40528df2ec86c7eb43d4ebfc7cdcd37bdd1a292684e8c8e7fe5b71dd66996";
+var _rnSha="ae6a1cc2ccac190678097d9074f94f7c9508a4b4fd058b3859c2937486f54bd2";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -23737,23 +24225,24 @@ function HapticTuner({showToast}){
   // La APK 58 no entiende fuerza ni duración: mejor decirlo que dejarle probando a ciegas.
   const said=function(p){
     if(!p){ if(!mcReduced()) showToast(t(typeof _mcNative!=="undefined"&&_mcNative?"hv_need_apk":"hv_no_native")); return; }
-    p.then(function(r){ if(!r||!r.tunable) showToast(t("hv_need_apk")); });
+    // Ronda 5: además se dice qué motor tiene su móvil, para no volver a adivinar si la fuerza
+    // llega como amplitud o solo como tiempo encendido.
+    p.then(function(r){
+      if(!r||!r.shaped){ showToast(t("hv_need_apk")); return; }
+      showToast(t(r.amplitudeControl?"hv_motor_amp":"hv_motor_onoff"));
+    });
   };
   const later=function(ms,fn){ timers.current.push(setTimeout(fn,ms)); };
-  const tryFill=function(){
-    const w=mcCycleWave(v.fillMs,1,v.fillAmp);
-    if(w) said(mcHaptic("fill",{durationMs:v.fillMs,amplitude:v.fillAmp,fraction:1,timings:w.timings,amplitudes:w.amplitudes}));
-  };
-  // Borde: llegada y dos repeticiones, como seguir tirando estando abajo.
-  const tryEdge=function(){
-    said(mcHaptic("edge",{amplitude:v.edgeAmp,durationMs:v.edgeMs}));
-    later(v.edgeEvery,function(){ mcHaptic("edge",{amplitude:v.edgeAmp,durationMs:v.edgeMs}); });
-    later(v.edgeEvery*2,function(){ mcHaptic("edge",{amplitude:v.edgeAmp,durationMs:v.edgeMs}); });
-  };
+  // Mi ciclo: la misma ristra que al entrar en Inicio, con el anillo lleno.
+  const tryFill=function(){ said(mcPlayCycle(v.fillMs,1)); };
+  // Borde: un choque, igual que en la app (una vez por arrastre) y por la misma función.
+  const tryEdge=function(){ said(mcEdgeHaptic()); };
+  // Segmento: un toque, el mismo que al pasar de Recibos a Deudas (y por la misma función).
+  const trySeg=function(){ mcTickHaptic.at=-Infinity; said(mcTickHaptic()); };
   // Gráfica: seis puntos seguidos, como pasar el dedo despacio por la línea.
   const tryTick=function(){
-    said(mcHaptic("edge",{amplitude:v.tickAmp,durationMs:v.tickMs}));
-    for(let i=1;i<6;i++) later(i*70,function(){ mcHaptic("edge",{amplitude:v.tickAmp,durationMs:v.tickMs}); });
+    said(mcFeltHaptic(v.tickAmp,v.tickMs));
+    for(let i=1;i<6;i++) later(i*70,function(){ mcFeltHaptic(v.tickAmp,v.tickMs); });
   };
   const copy=function(){
     const txt=mcHapticTuneText(v);
@@ -23788,7 +24277,16 @@ function HapticTuner({showToast}){
     React.createElement("div",{className:"hint",style:{padding:"0 14px 8px"}},t("hv_intro")),
     group("fill",t("hv_cycle"),t("hv_cycle_hint"),[slider("fillAmp",t("hv_strength")),slider("fillMs",t("hv_length")," ms")],tryFill),
     group("edge",t("hv_edge"),null,[slider("edgeAmp",t("hv_strength")),slider("edgeMs",t("hv_length")," ms"),slider("edgeEvery",t("hv_every")," ms")],tryEdge),
+    group("seg",t("hv_seg"),null,[slider("segAmp",t("hv_strength")),slider("segMs",t("hv_length")," ms")],trySeg),
     group("tick",t("hv_tick"),null,[slider("tickAmp",t("hv_strength")),slider("tickMs",t("hv_length")," ms")],tryTick),
+    React.createElement("div",{className:"hv-usage",style:{padding:"10px 14px",borderTop:"1px solid var(--line)"}},
+      React.createElement("div",{style:{fontWeight:800,fontSize:14}},t("hv_usage")),
+      React.createElement("div",{className:"hint",style:{marginTop:2}},t("hv_usage_hint")),
+      React.createElement("div",{className:"row",style:{flexWrap:"wrap",gap:6,marginTop:8}},
+        MC_HAPTIC_USAGES.map(function(u){
+          return React.createElement("button",{type:"button",key:u,className:"chip"+(v.usage===u?" active":""),"aria-pressed":v.usage===u,"data-usage":u,
+            onClick:function(){ put("usage",u); }},t("hv_u_"+u));
+        }))),
     React.createElement("div",{className:"row",style:{padding:"10px 14px 12px",gap:8}},
       React.createElement("button",{type:"button",className:"btn btn-primary",onClick:copy},t("hv_copy")),
       React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){ setV(mcHapticTuneReset()); }},t("hv_reset"))));
@@ -23871,6 +24369,16 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   const [events,setEvents]=useState(null);
   const [actOpen,setActOpen]=useState(false);   // pantalla «Actividad» (antes acordeón: crecía sin fin)
   const [betaOpen,setBetaOpen]=useState(false);  // pantalla «Revisar la beta» (solo en canal beta)
+  // La APK .debug de pruebas nativas enseña el ajustador sin pasar al canal beta (que bajaría otra web).
+  const [hapticDebug,setHapticDebug]=useState(false);
+  useEffect(function(){
+    let vivo=true;
+    try{
+      const plugin=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.AelyHaptics;
+      if(plugin&&typeof plugin.info==="function") Promise.resolve(plugin.info()).then(function(r){ if(vivo&&r&&r.debug) setHapticDebug(true); },function(){});
+    }catch(e){}
+    return function(){ vivo=false; };
+  },[]);
   /* El arranque pide reabrir el panel cuando salió de la app para probar un punto y Android le
      mató la WebView (ver BETA_ABIERTO_KEY). Se hace por evento y no por prop porque Ajustes se
      monta al abrir el cajón, así que quien arranca no puede pasarle nada todavía. */
@@ -24343,8 +24851,8 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
       // («Personalizar widgets del Resumen» se retiró el 2026-07-18: era del Dashboard v3.)
       totals && row("report","📸",t("rp_btn").replace(/^[^ ]+ /,""),null,function(){ shareMonthReport(state, totals, showToast); })
     ),
-    // Solo en beta: es el banco donde él busca su vibración; en estable no hay nada que ajustar.
-    (typeof mcChannel==="function") && mcChannel()==="beta" &&
+    // Solo en beta (o en la APK .debug de pruebas): es el banco donde él busca su vibración.
+    ((typeof mcChannel==="function" && mcChannel()==="beta")||hapticDebug) &&
       grp("vibra","📳",t("hv_title"),"vibracion vibration vibracio haptic",null,React.createElement(HapticTuner,{showToast:showToast})),
 
     // Admin al FINAL (fuera del flujo diario). Sentry de prueba quitado: no aporta en móvil.
@@ -24778,7 +25286,8 @@ function buildHouseholdSnapshot(state, totals, email){
   }).sort(function(a,b){ return b.spent-a.spent; }).slice(0,8);
   // Fijos: total mensual + top 5 (nombre + importe, sin cuentas bancarias)
   const fixedTop=(state.fixed||[]).map(function(f){
-    return { name:f.name||"?", amount:+Number((f.amount||0)*(FREQ_M[f.freq]||1)).toFixed(2) };
+    // Misma mensualidad que el total de arriba (`fixedMonthlyOf`): respeta los importes por cobro.
+    return { name:f.name||"?", amount:+Number(fixedMonthlyOf(f)).toFixed(2) };
   }).filter(function(f){ return f.amount>0; })
     .sort(function(a,b){ return b.amount-a.amount; }).slice(0,5);
   return {
@@ -25207,6 +25716,9 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       sx=tt.clientX; sy=tt.clientY; t0=Date.now();
       axis=null; mode=null; dir=0; dyRaw=0;
       startAtTop=atTopOf(pageEl);
+      // Arriba del todo, tirar hacia abajo es cambiar de segmento: el vigía de bordes no debe
+      // sonar además del toque de segmento (ronda 9 de la vibración).
+      if(startAtTop) e.mcSegPull=true;
     };
     const onMove=function(e){
       if(axis==="x"||mode==="x") return;
@@ -25253,7 +25765,8 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       const vel=dyRaw/dt;
       const pasa=allowCommit && (dyRaw>(window.innerHeight||700)*TH || (vel>FLICK_V && dyRaw>FLICK_MIN));
       if(pasa){
-        try{ if(navigator.vibrate) navigator.vibrate(8); }catch(err){}
+        // El mismo tick que los botones de segmento y la gráfica; sin la APK, el de siempre.
+        if(!mcTickHaptic()){ try{ if(navigator.vibrate) navigator.vibrate(8); }catch(err){} }
         const i=order.indexOf(seg);
         const nextId=order[(i+(dir>0?1:-1)+order.length)%order.length];
         cleanup(el);
@@ -25297,7 +25810,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     return function(){ clearTimeout(to); };
   },[seg]);
 
-  return React.createElement("div",{className:"v4-screen",ref:planScreenRef},
+  return React.createElement("div",{className:"v4-screen",ref:planScreenRef,"data-edge-capture":simple?null:"1"},
     React.createElement("h1",{className:"v4-title serif"}, simple?t("v4s_plan_left_title"):t("v4_plan_title")),
     simple && React.createElement("div",{className:"v4-card v4-card-hero rise v4-plan-cover v4-plan-cover-simple","data-plan-state":coverTone,role:"group","aria-label":coverAria},
       React.createElement("div",{className:"v4-plan-simple-hero"},
@@ -25311,7 +25824,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     !simple && React.createElement("div",{className:"v4-seg",role:"tablist"},
       segs.map(function(s){
         return React.createElement("button",{key:s.id,type:"button",role:"tab","aria-selected":seg===s.id,"data-seg":s.id,
-          className:"v4-seg-btn"+(seg===s.id?" on":""),onClick:function(){ setSeg(s.id); }}, s.lab);
+          className:"v4-seg-btn"+(seg===s.id?" on":""),onClick:function(){ if(seg!==s.id) mcTickHaptic(); setSeg(s.id); }}, s.lab);
       })
     ),
     capa("recibos", React.createElement(PlanBills,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen,simple:simple})),
@@ -25510,6 +26023,18 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
   const pageSwipe=useEdgePageClose(!!open,onClose,view==="hub"&&!detail&&!addStep,rootRef,{plainScroll:true});
   const sub=useEdgePageClose(!!open,function(){ setStack(["hub"]); setGroup(null); },view!=="hub"&&!detail&&!addStep,subRef,{plainScroll:true});
   const cm=totals.curMonth, cy=totals.curYear;
+  // Ola nativa (INC-2709-03, 19/10): Android solo la pinta en el scroller RAÍZ, y Chromium
+  // promociona un `fixed` a pantalla completa como raíz implícita SOLO si es el único candidato
+  // (RootScrollerController: «only promote if we have a unique match»). Con Gestionar abierto
+  // seguían desplazables debajo el host de Plan (y Ajustes si se entró desde ahí): dos o tres
+  // candidatos → ninguno raíz → sin ola. Lo de debajo deja de desplazar mientras esto está
+  // abierto; `overflow:hidden` conserva su scrollTop para la vuelta.
+  React.useEffect(function(){
+    if(!open) return undefined;
+    var h=document.documentElement;
+    h.classList.add("bills-open");
+    return function(){ h.classList.remove("bills-open"); };
+  },[open]);
   React.useEffect(function(){
     if(!open){
       setStack(["hub"]); setGroup(null); setQ(""); setDetail(null); setAddStep(null);
@@ -25591,7 +26116,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
     return undefined;
   },[detail, addStep, open]);
   const hero=billsHeroTotal(state,totals);
-  const shownHero=useCountUp(hero,!!open,true);
+  const shownHero=useCountUp(hero,!!open);
   if(!open) return null;
   const banks=Array.from(new Set((state.accounts||[]).map(function(a){ return a.ent; }).filter(Boolean)));
   if(!banks.length) banks.push("sabadell");
@@ -25744,7 +26269,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
   const screenAttr=view==="list"?"bills-group":(view==="afford"?"bills-afford":"bills-home");
   return ReactDOM.createPortal(
     React.createElement(React.Fragment,null,
-      React.createElement("div",{ref:rootRef,className:"settings-push open v4-bills-push mc-page-enter","data-bills-manage":"1","data-screen":screenAttr,
+      React.createElement("div",{ref:rootRef,className:"settings-push open v4-bills-push mc-page-enter","data-bills-manage":"1","data-screen":screenAttr,"data-covered":view!=="hub"?"1":null,
         role:"dialog","aria-modal":"true","aria-labelledby":"bills-manage-title"},
         hub,
         view!=="hub" && React.createElement("div",{ref:subRef,className:"settings-push open v4-bills-push mc-page-enter"}, view==="list"?listView:affordView)),
@@ -25783,8 +26308,8 @@ function BillsItemSheet({row, set, banks, simple, onClose, onRemove}){
   const hasSched=hasSchedule(item);
   const titleRef=React.useRef(null);
   const sideRef=React.useRef(null);
-  const swipe=useSheetSwipe(true,onClose);
-  const side=useEdgePageClose(true,onClose,true,sideRef);
+  const swipe=useSheetSwipe(true,onClose,{nativeScroll:true});
+  const side=useEdgePageClose(true,onClose,true,sideRef,{plainScroll:true});
   const sheetRef=swipe.sheetRef;
   const titleId="bills-item-title";
   React.useEffect(function(){ setAmount(""); },[row.id]);
@@ -25916,7 +26441,7 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, onSa
   const sideRef=React.useRef(null);
   const onCloseRef=React.useRef(onClose);
   onCloseRef.current=onClose;
-  const swipe=useSheetSwipe(true,function(){ onCloseRef.current&&onCloseRef.current(); });
+  const swipe=useSheetSwipe(true,function(){ onCloseRef.current&&onCloseRef.current(); },{nativeScroll:true});
   const sheetRef=swipe.sheetRef;
   const titleId="bills-add-title";
   stepRef.current=step; formRef.current=form;
@@ -25934,7 +26459,7 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, onSa
   stepBackRef.current=stepBack;
   useBackClose(true,function(){ stepBackRef.current(); },step);
   // El primer paso ya sale con la ola: el callback de Atrás desmonta sin otra salida vertical.
-  const side=useEdgePageClose(true,stepBack,step,sideRef);
+  const side=useEdgePageClose(true,stepBack,step,sideRef,{plainScroll:true});
   React.useLayoutEffect(function(){
     // El fondo persiste entre pasos; cada Atrás debe dejar el anterior centrado y listo para otro.
     const el=sideRef.current; if(!el) return;
@@ -26066,6 +26591,18 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, onSa
     ));
 }
 
+/* La cifra grande de Cartera, en su propio componente (20/10/2026). La transición (B2, al
+   ACTIVAR Cartera por el bus: premontaje e IntersectionObserver se probaron y fallan) repinta en
+   cada frame mientras dura; dentro de CarteraTab eso era repintar también las dos listas de
+   cuentas, los bienes y las inversiones ~57 veces en 950 ms. Aquí solo se repinta el número. */
+function CarteraHeroAmt({target}){
+  const [carteraOn,setCarteraOn]=useState(false);
+  useEffect(function(){ return mcOnCarteraActive(setCarteraOn); },[]);
+  const ph=eurParts(useCountUp(target, carteraOn));
+  return React.createElement("div",{className:"serif num cartera-hero-amt",style:{fontSize:40,fontWeight:550,letterSpacing:"-1px",lineHeight:1.05,marginTop:6}},
+    ph.ent, React.createElement("span",{style:{fontSize:22,color:"var(--muted)"}},","+ph.dec+" "+ph.sym));
+}
+
 function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSync, syncInv, onReconnectBank, showToast}){
   const [invTools,setInvTools]=useState(false);
   const invLinkRef=useRef(null);
@@ -26140,20 +26677,13 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
     setBankBusy(true);
     Promise.resolve(onBankSync()).finally(function(){ setBankBusy(false); });
   };
-  /* B2 — count-up al ACTIVAR Cartera (bus), no al montar ni al «verse» por geometría.
-     Premontaje e IntersectionObserver se probaron y fallan; el bus es el de Gastos. */
-  const [carteraOn,setCarteraOn]=useState(false);
-  useEffect(function(){ return mcOnCarteraActive(setCarteraOn); },[]);
   const heroTarget=allOn ? (totals.netWorth||0) : active.reduce(function(a,x){ return a+x.v; },0);
-  const shownHero=useCountUp(heroTarget, carteraOn);
-  const ph=eurParts(shownHero);
   return React.createElement("div",{className:"v4-screen"},
     React.createElement("h1",{className:"v4-title serif"}, t("v4_cartera_title")),
     React.createElement("div",{className:"v4-card v4-card-hero rise",style:{animationDelay:".05s"}},
       React.createElement("div",{className:"v4-micro"}, heroLab),
       React.createElement(FxNotice,{missing:totals.fxMissing}),
-      React.createElement("div",{className:"serif num cartera-hero-amt",style:{fontSize:40,fontWeight:550,letterSpacing:"-1px",lineHeight:1.05,marginTop:6}},
-        ph.ent, React.createElement("span",{style:{fontSize:22,color:"var(--muted)"}},","+ph.dec+" "+ph.sym)),
+      React.createElement(CarteraHeroAmt,{target:heroTarget}),
       React.createElement("div",{className:"v4-stackbar",style:{marginTop:16}},
         active.map(function(x){
           return React.createElement("i",{key:x.k,style:{flex:Math.max(0.02,(x.v/sum)*100),background:x.color}});
@@ -29305,7 +29835,10 @@ function App(){
     const debtTotal=state.debts.reduce((a,d)=>a+debtBalance(d),0);   // saldo proyectado (baja solo cada mes)
     const activos=liquid+invested+assetsTotal;
     const netWorth=activos-debtTotal;
-    const fijosVar=state.fixed.reduce((a,e)=>a+e.amount*(FREQ_M[e.freq]||1),0);
+    // La mensualidad de cada recibo sale de `fixedMonthlyOf`, la misma que los grupos de «Tus
+    // recibos»: con `amount×FREQ_M` un recibo de importe distinto por cobro (seguro 172,05 + 166,94)
+    // ignoraba su `schedule` y la cabecera no cuadraba con la suma de sus grupos (beta 4.26.150).
+    const fijosVar=state.fixed.reduce((a,e)=>a+fixedMonthlyOf(e),0);
     const cuotas=state.debts.reduce((a,d)=>a+(debtActive(d)?(d.monthly||0):0),0);
     const fijosMensual=fijosVar+cuotas;
     const ahorroMensual=state.aportaciones.reduce((a,x)=>a+x.amount,0);
@@ -30824,13 +31357,18 @@ function App(){
      referencia y se salta el subárbol entero. De ahí que el mapa de abajo ya no vaya memoizado:
      cuatro `createElement` de un `div` no cuestan nada, y lo caro es lo que cuelga de ellos.
      El precio de sacar `tab` son los cierres que lo leían (`goTab`, `cancelSwipe`): ahora leen
-     `tabRef`, con el porqué escrito en cada uno. */
+     `tabRef`, con el porqué escrito en cada uno.
+
+     Y `drawerOpen` TAMPOCO (20/10/2026). Estaba en la lista aunque ninguna página lo lee: abrir o
+     cerrar Ajustes reconstruía las cuatro, y al tocar Cartera desde el cajón ese trabajo caía
+     encima del cambio de pestaña («voy de Ajustes a Tus cuentas y pega un tirón»). El cajón es una
+     capa de encima, como el perfil. Lo vigila `tests/inicio-deps-ajustes.test.mjs`. */
   const contenidos=useMemo(function(){
     var out={};
     tabIds.forEach(function(id){ if(id!=="gastos") out[id]=pageFor(id); });
     return out;
     // eslint-disable-next-line
-  },[state, totals, budgetStreak, tabIds.join("|"), syncing, syncStatus, gotoExp, planGoto, pricing, uid, drawerOpen, locked]);
+  },[state, totals, budgetStreak, tabIds.join("|"), syncing, syncStatus, gotoExp, planGoto, pricing, uid, locked]);
   /* Gastos iba en memo aparte POR la prop `active` — y esa prop era el lag. Ahora se entera
      por bus (`mcSetGastosActive` abajo) y comparte deps con las otras: entrar/salir de Gastos
      ya NO reconstruye Expenses. Se deja el memo propio por si mañana vuelve a necesitar algo
@@ -30838,7 +31376,7 @@ function App(){
   const contenidoGastos=useMemo(function(){
     return tabIds.indexOf("gastos")>=0 ? pageFor("gastos") : null;
     // eslint-disable-next-line
-  },[state, totals, tabIds.join("|"), syncing, syncStatus, gotoExp, planGoto, pricing, uid, drawerOpen, locked, gastosForceAll]);
+  },[state, totals, tabIds.join("|"), syncing, syncStatus, gotoExp, planGoto, pricing, uid, locked, gastosForceAll]);
   // Aviso barato a Expenses: sin setState en App que no haga falta, y sin re-render de Gastos.
   useEffect(function(){ mcSetGastosActive(tabIds[tab]==="gastos"); },[tab, tabIds]);
   useEffect(function(){ mcSetCarteraActive(tabIds[tab]==="cartera"); },[tab, tabIds]);

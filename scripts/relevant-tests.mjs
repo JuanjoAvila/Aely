@@ -53,8 +53,16 @@ export const CORE = [
  * (mejor un minuto de más que un verde ciego).
  */
 export const E2E_MAP = [
-  { file: "src/modules/02-ui-shared.js", specs: ["e2e/ux16-haptics.spec.mjs", "e2e/ux16-round2-haptics.spec.mjs", "e2e/ux16-round3-haptics.spec.mjs", "e2e/ux16-ajustador.spec.mjs"] },
-  { file: "src/modules/03-tab-dash.js", specs: ["e2e/ux16-haptics.spec.mjs", "e2e/ux16-round3-haptics.spec.mjs", "e2e/ux16-ajustador.spec.mjs"] },
+  // La cifra grande (`useCountUp`) en Inicio, Cartera y «Tus recibos», y la mensualidad de los
+  // recibos con importe por cobro (`fixedMonthlyOf`) que leen los totales y Hogar (4.26.150).
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/cifra-sin-cero.spec.mjs", "e2e/recibos-cifra-estable.spec.mjs"] },
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/cifra-sin-cero.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-cifra-estable.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/recibos-cifra-estable.spec.mjs"] },
+  { file: "src/modules/13-hogar.js", specs: ["e2e/recibos-cifra-estable.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/cifra-sin-cero.spec.mjs", "e2e/recibos-cifra-estable.spec.mjs"] },
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/ux16-round9-haptics.spec.mjs", "e2e/ux16-haptics.spec.mjs", "e2e/ux16-round2-haptics.spec.mjs", "e2e/ux16-round3-haptics.spec.mjs", "e2e/ux16-ajustador.spec.mjs"] },
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/ux16-round9-haptics.spec.mjs", "e2e/ux16-haptics.spec.mjs", "e2e/ux16-round3-haptics.spec.mjs", "e2e/ux16-ajustador.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-ciclo-porcentaje.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/ux16-haptics.spec.mjs"] },
   { file: "src/modules/10-app-components.js", specs: ["e2e/ux16-ajustador.spec.mjs"] },
@@ -73,6 +81,7 @@ export const E2E_MAP = [
     "e2e/pulido-vacios.spec.mjs","e2e/inicio-grafica-significado.spec.mjs","e2e/indicador-arco.spec.mjs", "e2e/smoke.spec.mjs", "e2e/informe-mes.spec.mjs",
     "e2e/ultima-cuota-descartar.spec.mjs", "e2e/inicio-offline.spec.mjs", "e2e/presupuesto-fluido.spec.mjs", "e2e/inicio-mes-natural.spec.mjs", "e2e/cartera-parte-mia.spec.mjs"] },
   { file: "src/modules/04-tab-gastos.js", specs: [
+    "e2e/fin04-rename-note-ack.spec.mjs",
     "e2e/plan-expense-links.spec.mjs",
     "e2e/fin17-confirmed-absorptions.spec.mjs",
     "e2e/fin11-absorption-pending.spec.mjs",
@@ -176,8 +185,11 @@ export const E2E_MAP = [
   ] },
   { file: "src/modules/12-boot.js", specs: ["e2e/splash.spec.mjs", "e2e/smoke.spec.mjs", "e2e/csp.spec.mjs"] },
   { file: "src/modules/13-hogar.js", specs: ["e2e/cartera-orden-hogar.spec.mjs"] },
-  { file: "src/modules/14-v4-screens.js", specs: [
+  { file: "src/modules/14-v4-screens.js", specs: [ "e2e/ux16-ajustador.spec.mjs", "e2e/ux16-round9-haptics.spec.mjs",
     "e2e/plan-ola-web.spec.mjs",
+    "e2e/plan-native-wave.spec.mjs",
+    // Un solo candidato a scroller raíz con Gestionar abierto: sin eso no hay ola nativa.
+    "e2e/ola-root.spec.mjs",
     "e2e/plan-expense-links.spec.mjs",
     "e2e/recibos-renombrar.spec.mjs",
     "e2e/cartera-bienes-completo.spec.mjs",

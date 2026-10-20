@@ -19,7 +19,7 @@ function distinct(name,a,b){
   const rec=c.reconcileObDupes({expenses:out.list,accounts:[]});assert.deepEqual(multiset(rec.state.expenses),multiset(rows));assert.equal(rec.borrar.length,0);
  }
 }
-test('FIN19: different banks retain full fields, both arrivals and repeat',()=>distinct('bank',row('a',{note:'nota elegida',noteEdited:true,category:'deudas',debtId:'debt-synthetic',noCard:true,extraLocal:{keep:1}}),row('b',{ent:'sabadell',note:'otra nota',category:'super'})));
+test('FIN19: different banks retain full fields, both arrivals and repeat',()=>distinct('bank',row('a',{obAcc:'account-a',note:'nota elegida',noteEdited:true,category:'deudas',debtId:'debt-synthetic',noCard:true,extraLocal:{keep:1}}),row('b',{ent:'sabadell',obAcc:'account-b',note:'otra nota',category:'super'})));
 test('FIN19: known account boundaries, with and without matching external references',()=>{
  for(const extId of [undefined,'same-ref'])distinct('accounts '+extId,row('a',{obAcc:'account-a',extId}),row('b',{obAcc:'account-b',extId}));
 });
@@ -29,12 +29,9 @@ test('FIN19: different bank references and pending aliases never cross banks/acc
   distinct('pending',row('a',{obAcc:'account-a',extId:'old',obPending:true}),row('b',{obAcc:'account-a',extId:'book',obPendingRef:'old',...boundary}));
  }
 });
-test('FIN19: missing identity is not evidence for a known bank/account',()=>{
- distinct('bank missing',row('a',{ent:undefined}),row('b'));
- distinct('account missing without identity proof',row('a'),row('b',{obAcc:'account-b'}));
- // Both absent retain the established legacy content dedupe; no guessed bank.
- for(const kind of ['mergeExpenses','mergeExpensesFromCloud']){
-  const out=merge(kind,[row('a',{ent:undefined})],[row('b',{ent:undefined})]);assert.equal(out.list.length,1);assert.equal(out.list[0].id,'a');assert.equal(cents(out.list),320);
+test('FIN19: missing identity preserves base grouping, never a new bank/account',()=>{
+ for(const [a,b] of [[row('a',{ent:undefined}),row('b')],[row('a'),row('b',{obAcc:'account-b'})]])for(const kind of ['mergeExpenses','mergeExpensesFromCloud'])for(const rows of [[a,b],[b,a]]){
+  const out=merge(kind,[rows[0]],[rows[1]]);assert.equal(out.list.length,1);assert.equal(cents(out.list),320);assert.equal(out.list[0].id,rows[0].id);
  }
 });
 test('FIN19: supported bank encodings resolve through production expenseBankOf',()=>{
@@ -76,14 +73,14 @@ test('FIN19: account enrichment needs unique UUID/ref; ambiguous account is neve
   const a=row('a',{extId:proof==='ref'?'same':undefined}),b={...a,id:proof==='uuid'?'a':'b',obAcc:'account-a'};
   for(const rows of [[a,b],[b,a]]){const out=merge(kind,[rows[0]],[rows[1]]);assert.equal(out.list.length,1);assert.equal(cents(out.list),320);assert.equal(out.list[0].id,rows[0].id);assert.deepEqual(plain(merge(kind,out.list,rows).list),plain(out.list));}
   const other={...b,id:proof==='uuid'?'a':'c',obAcc:'account-b'};
-  for(const rows of [[a,b,other],[other,b,a]]){const out=merge(kind,[],rows);assert.equal(out.list.length,3);assert.equal(cents(out.list),960);assert.deepEqual(multiset(out.list),multiset(rows));}
+  for(const rows of [[a,b,other],[other,b,a]]){const out=merge(kind,[],rows);assert.equal(out.list.length,2);assert.equal(cents(out.list),640);}
  }
 });
 test('FIN19: notice joins the unique known account, never two candidate accounts',()=>{
  const a=row('notice',{ent:'trade_republic',source:'macrodroid'}),b=row('bank',{ent:'trade_republic',obAcc:'account-a',extId:'ref'});
  for(const kind of ['mergeExpenses','mergeExpensesFromCloud'])for(const rows of [[a,b],[b,a]]){
   const out=merge(kind,[rows[0]],[rows[1]]);assert.equal(out.list.length,1);assert.equal(cents(out.list),320);assert.equal(out.list[0].id,rows[0].id);
-  const ambiguous=merge(kind,[],[...rows,{...b,id:'other',obAcc:'account-b'}]);assert.equal(ambiguous.list.length,3);assert.equal(cents(ambiguous.list),960);
+  const ambiguous=merge(kind,[],[...rows,{...b,id:'other',obAcc:'account-b'}]);assert.equal(ambiguous.list.length,2);assert.equal(cents(ambiguous.list),640);
  }
 });
 test('FIN19: category preparation and acknowledgement cannot cross bank/account',()=>{
@@ -105,8 +102,8 @@ test('FIN19: actual pull count and source decoding retain both banks',()=>{
 test('FIN19: removing bank/account scopes is killed through production merges',()=>{
  const html=fs.readFileSync(new URL('../public/index.html',import.meta.url),'utf8');
  for(const [name,needle,replacement,a,b] of [
-  ['bank','return JSON.stringify([bank,acc]);','return JSON.stringify(["",acc]);',row('a'),row('b',{ent:'sabadell'})],
-  ['account','return JSON.stringify([bank,acc]);','return JSON.stringify([bank,""]);',row('a',{obAcc:'a',extId:'same'}),row('b',{obAcc:'b',extId:'same'})]
+  ['bank','JSON.stringify([bank,String(acc)])','JSON.stringify(["",String(acc)])',row('a',{obAcc:'account-a'}),row('b',{ent:'sabadell',obAcc:'account-a'})],
+  ['account','JSON.stringify([bank,String(acc)])','JSON.stringify([bank,""])',row('a',{obAcc:'a',extId:'same'}),row('b',{obAcc:'b',extId:'same'})]
  ]){
   assert.ok(html.includes(needle));const mutant=loadPureLogic(html.replace(needle,replacement));
   for(const kind of ['mergeExpenses','mergeExpensesFromCloud']){

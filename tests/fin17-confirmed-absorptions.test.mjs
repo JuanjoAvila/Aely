@@ -258,7 +258,11 @@ test('FIN17 H1 conserva320c tras ACK,poda500 y backfill de otro cliente que cono
 test('FIN17 upserts simple/batch y metadatos no resuben el confirmado; DELETE sigue útil',async()=>{
  const {a,db}=make(),r=record(a);assert.equal(a.c.obConfirmedPersist(uid,[r]),true);
  assert.equal(await a.cloud.addExpense(booked),null);await a.c.subirGasto({...booked,reciboId:'synthetic-recibo'},'backfill');
- for(const [method,arg] of [['setExpenseDup',false],['setExpenseBank','caixabank'],['setExpenseNoCard',true],['setExpenseNote','synthetic'],['setExpenseCat','otros'],['setExpenseDeuda'],['setExpenseRecibo']])await a.cloud[method](booked,arg);
+ for(const [method,arg] of [['setExpenseDup',false],['setExpenseBank','caixabank'],['setExpenseNoCard',true],['setExpenseCat','otros'],['setExpenseDeuda'],['setExpenseRecibo']])await a.cloud[method](booked,arg);
+ // FIN04: bloquear una nota/renombrado no puede aparentar un ACK. La guarda sigue
+ // exigiendo cero consultas, además de rechazar explícitamente la confirmación.
+ await assert.rejects(a.cloud.setExpenseNote(booked,'synthetic'),/expense unavailable/);
+ await assert.rejects(a.cloud.renameExpense(booked,'synthetic'),/expense unavailable/);
  assert.equal(db.queries.length,0,'ningún UPDATE ni falsa reparación de recibo');
  const other={...booked,id:uuid(9),extId:'distinct-ref',date:'2026-10-16T12:00:01Z'};
  const batch=await a.cloud.addExpensesBatch([booked,other]);assert.deepEqual(Array.from(batch.cloudIds),[other.id]);assert.equal(batch.offline,false);

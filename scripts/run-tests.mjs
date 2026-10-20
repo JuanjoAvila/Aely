@@ -115,6 +115,7 @@ const steps = [
   ["move-account", ["node", "tests/move-account.test.mjs"]],
   ["broker-order", ["node", "tests/broker-order.test.mjs"]],
   ["merge-expenses-cloud", ["node", "tests/merge-expenses-cloud.test.mjs"]],
+  ["fin19-r2-identity", ["node", "--test", "--test-concurrency=1", "tests/fin19-r2-identity.test.mjs"]],
   ["fin19-cross-bank-identity", ["node", "--test", "--test-concurrency=1", "tests/fin19-cross-bank-identity.test.mjs"]],
   // La categoría que él elige no la deshace un pull ni la palabra clave del servidor (INC-0210-02).
   ["categoria-manual-persistente", ["node", "tests/categoria-manual-persistente.test.mjs"]],
@@ -153,6 +154,7 @@ const steps = [
   ["month-budget-stats", ["node", "tests/month-budget-stats.test.mjs"]],
   ["dash-metricas", ["node", "tests/dash-metricas.test.mjs"]],
   ["inicio-v42", ["node", "tests/inicio-v42.test.mjs"]],
+  ["inicio-deps-ajustes", ["node", "tests/inicio-deps-ajustes.test.mjs"]],
   ["inicio-mismo-dia", ["node", "tests/inicio-mismo-dia.test.mjs"]],
   ["inicio-transito-intereses", ["node", "tests/inicio-transito-intereses.test.mjs"]],
   ["cuenta-parte-mia", ["node", "tests/cuenta-parte-mia.test.mjs"]],
@@ -238,6 +240,7 @@ const steps = [
   ["ob-iguales-ordinal", ["node", "tests/ob-iguales-ordinal.test.mjs"]],
   ["huella-bundle", ["node", "tests/huella-bundle.test.mjs"]],
   ["expense-note", ["node", "tests/expense-note.test.mjs"]],
+  ["fin04-rename-note-ack", ["node", "--test", "tests/fin04-rename-note-ack.test.mjs"]],
   ["expense-id-cloud", ["node", "tests/expense-id-cloud.test.mjs"]],
   ["pull-historico-entero", ["node", "tests/pull-historico-entero.test.mjs"]],
   ["pull-sin-cambios", ["node", "tests/pull-sin-cambios.test.mjs"]],

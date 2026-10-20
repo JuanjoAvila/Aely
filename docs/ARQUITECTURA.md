@@ -2,6 +2,14 @@ H2 candidata, ronda 2: saldo y movimientos independientes por cuenta, valor/fech
 
 # Arquitectura — Aely
 
+FIN04 fase 1 candidata R2: renombrado parcial con ACK y cola durable; nota local pendiente
+hasta confirmación exacta. Carga/mezcla de UUID prefiere la copia viva, conserva metadatos
+editados y mantiene separados importes o referencias conflictivos.
+R3 evita serializar la identidad en cada fila y aparta un renombrado tras tres fallos con
+contador durable y aviso único; libera la cola y exige reintento explícito o una intención nueva.
+Sin cambios de esquema, servidor ni LWW de recibos/deudas.
+[Contrato y límites](briefs/fin04-fase1-renombrar-nota.md).
+
 FIN-11 candidata privada desde FIN-10/FIN-15 coexistentes: `obAbsorbedPending`
 protege por titular fuera de la poda de lápidas. Una partición local con readback
 precede a la retirada; refresco cloud/online reintenta hasta cuatro objetivos y
@@ -789,6 +797,11 @@ escribir `Access-Control-Allow-Origin: "*"`.
   saldo histórico a partir de gastos ni se atribuye la previsión agregada si hay dos cuentas del
   mismo banco. El primer cierre espera `mc-boot-ready`, que ya representa dato local definitivo sin
   red o el final del primer pull con red; así un snapshot viejo no se convierte en base mensual.
+  Inicio no vuelve a calcular la serie por ese cierre de HOY (20/10/2026): `netWorthHistoryKey`
+  deja fuera el punto de hoy de una cuenta que ya tiene cierres anteriores (la serie lo saca de los
+  saldos vivos) y solo lo cuenta si es el primero. De los ajustes, la serie y el presupuesto de Inicio
+  dependen solo de los campos que leen (`NET_WORTH_SETTINGS`, `BUDGET_SETTINGS`), así que tocar
+  Ajustes ya no recorre el histórico. Lo vigila `tests/inicio-deps-ajustes`.
 - El rol (recibos/diario/todo) vive AQUÍ; en v4.0.x quedó inaccesible (solo existía en el
   Wealth v3 no montado) — no volver a dejar el rol sin puerta.
 - Inversiones abre como pantalla hija propia desde Cartera y solo actualiza precios cuando se pulsa

@@ -191,7 +191,7 @@ const LANG = {
     v4_set_appear:"Apariencia", v4_set_easy:"Para empezar fácil", v4_set_conn:"Conexiones",
     v4_set_money:"Dinero", v4_set_app:"App",
     v4_set_tour:"Ver el tutorial", v4_set_adv:"Avanzado",
-   hv_title:"Vibración", hv_intro:"Busca la vibración que te guste. Se guarda solo en este móvil.", hv_cycle:"Mi ciclo (el anillo de Inicio)", hv_cycle_hint:"Vibra mientras se rellena el anillo, más cuanto más lleno esté.", hv_edge:"Al llegar arriba o abajo", hv_tick:"Cursor de la gráfica de Inicio", hv_strength:"Fuerza", hv_length:"Duración", hv_every:"Repite cada (si sigues tirando)", hv_try:"Probar", hv_copy:"Copiar valores", hv_copied:"Valores copiados", hv_copy_fail:"No se pudieron copiar", hv_reset:"Volver a los de serie", hv_need_apk:"Para notar estos valores hay que instalar la última versión de la app.", hv_no_native:"La vibración solo funciona en la app de Android.",
+   hv_title:"Vibración", hv_usage:"Tipo de vibración", hv_usage_hint:"Si al probar todas las fuerzas se notan igual, prueba otro tipo.", hv_u_touch:"Toque", hv_u_hardware:"Botones", hv_u_media:"Multimedia", hv_u_unknown:"Genérica", hv_motor_amp:"Tu móvil ajusta la fuerza y el ritmo de la vibración.", hv_motor_onoff:"Tu móvil no ajusta la fuerza: se nota como toques más largos o más cortos.", hv_intro:"Busca la vibración que te guste. Se guarda solo en este móvil.", hv_cycle:"Mi ciclo (el anillo de Inicio)", hv_cycle_hint:"Unos toques suaves mientras se rellena el anillo: más toques cuanto más lleno esté.", hv_edge:"Al llegar arriba o abajo", hv_seg:"Al cambiar entre Recibos, Deudas y Metas", hv_tick:"Cursor de la gráfica de Inicio", hv_strength:"Fuerza", hv_length:"Duración", hv_every:"Repite cada (si sigues tirando)", hv_try:"Probar", hv_copy:"Copiar valores", hv_copied:"Valores copiados", hv_copy_fail:"No se pudieron copiar", hv_reset:"Volver a los de serie", hv_need_apk:"Para notar estos valores hay que instalar la última versión de la app.", hv_no_native:"La vibración solo funciona en la app de Android.",
     v4_moved_cat:"Movido a {cat}", 
     v4_exp_del:"Borrar", v4_exp_del_q:"¿Borrar «{name}»?", v4_exp_del_sub:"Podrás recuperarlo durante 5 segundos.",
     f_amount_aria:"Importe", f_concept_ph:"Toca para escribir el concepto", f_cat:"Categoría",
@@ -199,7 +199,7 @@ const LANG = {
     f_cta_add:"Apuntar {x}", f_cta_add_in:"Apuntar ingreso de {x}", f_autosaved:"Se guarda al momento ✓", f_del:"Borrar gasto",
     f_note_row:"Nota", f_note_none:"Sin nota", f_debt_row:"Es la cuota de una deuda", f_income_row:"Es un ingreso, no un gasto", f_no:"No",
     f_receipt_row:"Paga un recibo", f_receipt_hint:"Elige el recibo que paga este cargo. Se confirma para el mes del movimiento y puedes deshacerlo. El cargo conserva su importe, banco y clasificación.",
-    f_receipt_none:"No hay recibos pendientes de ese mes que puedan vincularse a este cargo.",
+    f_receipt_none:"No hay recibos pendientes de ese mes que puedan vincularse a este cargo.", f_receipt_diag:"Copiar diagnóstico",
     f_receipt_confirm:"Confirmar pago de {name}", f_receipt_confirm_sub:"Cargo: {merchant} · {amount} · {bank} · {date}. Previsto: {expected} · {planned}. Confirma solo si este cargo paga el recibo completo, aunque el importe haya variado. Si es parcial, cancela. El importe previsto, el saldo y el presupuesto se conservan.",
     f_receipt_yes:"Confirmar pago completo", f_receipt_unlink:"Deshacer vínculo",
     f_recibo_marca:"Es el cargo de tu recibo «{name}»: ya está contado en tu Plan y aquí no suma otra vez.", f_recibo_quiza:"Parece el cargo de tu recibo «{name}»: por eso aquí no suma otra vez. Si no lo es, dilo y contará como un gasto más.", f_recibo_no:"No es este recibo", f_recibo_si:"Sí, es este recibo",
@@ -485,7 +485,7 @@ const LANG = {
     v4_set_appear:"Look & feel", v4_set_easy:"Easy start", v4_set_conn:"Connections",
     v4_set_money:"Money", v4_set_app:"App",
     v4_set_tour:"See the tour", v4_set_adv:"Advanced",
-   hv_title:"Vibration", hv_intro:"Find the vibration you like. It is saved only on this phone.", hv_cycle:"My cycle (the ring on Home)", hv_cycle_hint:"Vibrates while the ring fills, more the fuller it is.", hv_edge:"Reaching the top or bottom", hv_tick:"Home chart cursor", hv_strength:"Strength", hv_length:"Length", hv_every:"Repeats every (if you keep pulling)", hv_try:"Try", hv_copy:"Copy values", hv_copied:"Values copied", hv_copy_fail:"Could not copy", hv_reset:"Back to defaults", hv_need_apk:"To feel these values, install the latest version of the app.", hv_no_native:"Vibration only works in the Android app.",
+   hv_title:"Vibration", hv_usage:"Vibration type", hv_usage_hint:"If every strength feels the same when you try them, pick another type.", hv_u_touch:"Touch", hv_u_hardware:"Buttons", hv_u_media:"Media", hv_u_unknown:"Generic", hv_motor_amp:"Your phone adjusts both the strength and the rhythm of the vibration.", hv_motor_onoff:"Your phone cannot adjust strength: you will feel it as longer or shorter taps.", hv_intro:"Find the vibration you like. It is saved only on this phone.", hv_cycle:"My cycle (the ring on Home)", hv_cycle_hint:"A few soft taps while the ring fills: more taps the fuller it is.", hv_edge:"Reaching the top or bottom", hv_seg:"Switching between Bills, Debts and Goals", hv_tick:"Home chart cursor", hv_strength:"Strength", hv_length:"Length", hv_every:"Repeats every (if you keep pulling)", hv_try:"Try", hv_copy:"Copy values", hv_copied:"Values copied", hv_copy_fail:"Could not copy", hv_reset:"Back to defaults", hv_need_apk:"To feel these values, install the latest version of the app.", hv_no_native:"Vibration only works in the Android app.",
     v4_moved_cat:"Moved to {cat}", 
     v4_exp_del:"Delete", v4_exp_del_q:"Delete “{name}”?", v4_exp_del_sub:"You can recover it for 5 seconds.",
     f_amount_aria:"Amount", f_concept_ph:"Tap to add what it was", f_cat:"Category",
@@ -493,7 +493,7 @@ const LANG = {
     f_cta_add:"Add {x}", f_cta_add_in:"Add income of {x}", f_autosaved:"Saved as you go ✓", f_del:"Delete expense",
     f_note_row:"Note", f_note_none:"No note", f_debt_row:"It's a debt instalment", f_income_row:"It's income, not an expense", f_no:"No",
     f_receipt_row:"Pays a bill", f_receipt_hint:"Choose the bill paid by this charge. Confirmation applies to the transaction month and can be undone. The charge keeps its amount, bank and category.",
-    f_receipt_none:"No unpaid bills for that month can be linked to this charge.",
+    f_receipt_none:"No unpaid bills for that month can be linked to this charge.", f_receipt_diag:"Copy diagnostics",
     f_receipt_confirm:"Confirm payment of {name}", f_receipt_confirm_sub:"Charge: {merchant} · {amount} · {bank} · {date}. Expected: {expected} · {planned}. Confirm only if this charge pays the full bill, even if the amount has changed. Cancel for a partial payment. The expected amount, balance and budget stay unchanged.",
     f_receipt_yes:"Confirm full payment", f_receipt_unlink:"Undo link",
     f_recibo_marca:"This is the charge for your bill “{name}”: it’s already counted in your Plan and isn’t added again here.", f_recibo_quiza:"This looks like the charge for your bill “{name}”, so it isn’t added again here. If it isn’t, say so and it will count as regular spending.", f_recibo_no:"Not this bill", f_recibo_si:"Yes, it’s this bill",
@@ -768,7 +768,7 @@ const LANG = {
     v4_set_appear:"Aparença", v4_set_easy:"Per començar fàcil", v4_set_conn:"Connexions",
     v4_set_money:"Diners", v4_set_app:"App",
     v4_set_tour:"Veure el tutorial", v4_set_adv:"Avançat",
-   hv_title:"Vibració", hv_intro:"Busca la vibració que t’agradi. Només es desa en aquest mòbil.", hv_cycle:"El meu cicle (l’anell d’Inici)", hv_cycle_hint:"Vibra mentre s’omple l’anell, més com més ple estigui.", hv_edge:"En arribar a dalt o a baix", hv_tick:"Cursor del gràfic d’Inici", hv_strength:"Força", hv_length:"Durada", hv_every:"Es repeteix cada (si continues estirant)", hv_try:"Provar", hv_copy:"Copiar valors", hv_copied:"Valors copiats", hv_copy_fail:"No s’han pogut copiar", hv_reset:"Tornar als de sèrie", hv_need_apk:"Per notar aquests valors cal instal·lar l’última versió de l’app.", hv_no_native:"La vibració només funciona a l’app d’Android.",
+   hv_title:"Vibració", hv_usage:"Tipus de vibració", hv_usage_hint:"Si en provar totes les forces es noten igual, prova un altre tipus.", hv_u_touch:"Toc", hv_u_hardware:"Botons", hv_u_media:"Multimèdia", hv_u_unknown:"Genèrica", hv_motor_amp:"El teu mòbil ajusta la força i el ritme de la vibració.", hv_motor_onoff:"El teu mòbil no ajusta la força: es nota com tocs més llargs o més curts.", hv_intro:"Busca la vibració que t’agradi. Només es desa en aquest mòbil.", hv_cycle:"El meu cicle (l’anell d’Inici)", hv_cycle_hint:"Uns tocs suaus mentre s’omple l’anell: més tocs com més ple estigui.", hv_edge:"En arribar a dalt o a baix", hv_seg:"En canviar entre Rebuts, Deutes i Metes", hv_tick:"Cursor del gràfic d’Inici", hv_strength:"Força", hv_length:"Durada", hv_every:"Es repeteix cada (si continues estirant)", hv_try:"Provar", hv_copy:"Copiar valors", hv_copied:"Valors copiats", hv_copy_fail:"No s’han pogut copiar", hv_reset:"Tornar als de sèrie", hv_need_apk:"Per notar aquests valors cal instal·lar l’última versió de l’app.", hv_no_native:"La vibració només funciona a l’app d’Android.",
     v4_moved_cat:"Mogut a {cat}", 
     v4_exp_del:"Esborra", v4_exp_del_q:"Vols esborrar «{name}»?", v4_exp_del_sub:"El podràs recuperar durant 5 segons.",
     f_amount_aria:"Import", f_concept_ph:"Toca per escriure el concepte", f_cat:"Categoria",
@@ -776,7 +776,7 @@ const LANG = {
     f_cta_add:"Apuntar {x}", f_cta_add_in:"Apuntar ingrés de {x}", f_autosaved:"Es guarda al moment ✓", f_del:"Esborrar despesa",
     f_note_row:"Nota", f_note_none:"Sense nota", f_debt_row:"És la quota d'un deute", f_income_row:"És un ingrés, no una despesa", f_no:"No",
     f_receipt_row:"Paga un rebut", f_receipt_hint:"Tria el rebut que paga aquest càrrec. Es confirma per al mes del moviment i pots desfer-ho. El càrrec conserva l'import, el banc i la classificació.",
-    f_receipt_none:"No hi ha rebuts pendents d'aquell mes que es puguin vincular a aquest càrrec.",
+    f_receipt_none:"No hi ha rebuts pendents d'aquell mes que es puguin vincular a aquest càrrec.", f_receipt_diag:"Copiar diagnòstic",
     f_receipt_confirm:"Confirmar pagament de {name}", f_receipt_confirm_sub:"Càrrec: {merchant} · {amount} · {bank} · {date}. Previst: {expected} · {planned}. Confirma només si aquest càrrec paga el rebut complet, encara que l'import hagi variat. Si és parcial, cancel·la. Es conserven l'import previst, el saldo i el pressupost.",
     f_receipt_yes:"Confirmar pagament complet", f_receipt_unlink:"Desfer vincle",
     f_recibo_marca:"És el càrrec del teu rebut «{name}»: ja està comptat al teu Pla i aquí no torna a sumar.", f_recibo_quiza:"Sembla el càrrec del teu rebut «{name}»: per això aquí no torna a sumar. Si no ho és, digues-ho i comptarà com una despesa més.", f_recibo_no:"No és aquest rebut", f_recibo_si:"Sí, és aquest rebut",
@@ -3641,12 +3641,24 @@ const THEMES=[["green","Verde","#5FD08A"],["dark","Oscuro","#3A3A40"],["light","
     otono:["🍂","🍁","🍄","🌰","🍁"],
     primavera:["🌸","🌿","🦋","🌼","🌸"]
   };
+Object.assign(LANG.es,{g_note_unconfirmed:"Nota sin confirmar en la nube. Se conserva en este dispositivo.",g_note_retry:"Reintentar",g_edit_unconfirmed:"No se pudo guardar el cambio. Vuelve a intentarlo."});
+Object.assign(LANG.en,{g_note_unconfirmed:"Note not confirmed in the cloud. Kept on this device.",g_note_retry:"Retry",g_edit_unconfirmed:"Could not save the change. Please try again."});
+Object.assign(LANG.ca,{g_note_unconfirmed:"Nota sense confirmar al núvol. Es conserva en aquest dispositiu.",g_note_retry:"Torna-ho a provar",g_edit_unconfirmed:"No s'ha pogut desar el canvi. Torna-ho a provar."});
+Object.assign(LANG.es,{g_rename_pending:"Nombre pendiente de confirmar. Se conserva en este dispositivo y se reintentará al volver la conexión."});
+Object.assign(LANG.en,{g_rename_pending:"Name awaiting confirmation. Kept on this device and retried when the connection returns."});
+Object.assign(LANG.ca,{g_rename_pending:"Nom pendent de confirmar. Es conserva en aquest dispositiu i es tornarà a intentar quan torni la connexió."});
+Object.assign(LANG.es,{g_rename_paused:"No se ha podido confirmar el nombre. Sigue guardado en este dispositivo. Pulsa Reintentar cuando quieras volver a enviarlo."});
+Object.assign(LANG.en,{g_rename_paused:"The name could not be confirmed. It is still saved on this device. Tap Retry when you want to send it again."});
+Object.assign(LANG.ca,{g_rename_paused:"No s'ha pogut confirmar el nom. Continua desat en aquest dispositiu. Prem Torna-ho a provar quan el vulguis tornar a enviar."});
 function loadState(){
   const saved = mcLoadRaw(mcStateKey());
   if(saved && saved.accounts){
+    const unique=uniqueExpenseUuids(saved.expenses,expenseDeletedSet(saved));
+    const uuidChanged=unique!==saved.expenses;
+    if(uuidChanged)saved.expenses=unique;
     // Capturar ANTES de seedFlows (muta in-place): evita stringify de toda la cartera en cada
     // apertura fría — feedback 2026-07-16.
-    var writeBack=!(saved._dataVer>=6) || !saved._dynBalAnchored;
+    var writeBack=uuidChanged || !(saved._dataVer>=6) || !saved._dynBalAnchored;
     // Call site 1/3 de fixMovInvasion (loadState / arranque). Contención dentro de la fn, no aquí.
     const seeded = seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR((saved._dataVer>=6) ? saved : migrate(saved)))))));
     const now=new Date(), s=liberarReservasHuerfanas(perfilSinDatosBanco(reconcileGemelosAutomaticos(reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate()))));

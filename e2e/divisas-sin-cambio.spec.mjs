@@ -27,8 +27,13 @@ for(const [lang,notice,unconverted] of [["es","Total incompleto","Sin conversió
     await expect(page.locator('[data-fx-incomplete]').first()).toContainText(notice);
     const account=page.locator('[data-ob-key="unknown"]');
     await expect(account).toContainText(`700,00 XYZ · ${unconverted}`);
-    const nameBox=await account.locator(".nm").boundingBox(),amountBox=await account.locator(".am").boundingBox();
-    expect(nameBox.x+nameBox.width).toBeLessThanOrEqual(amountBox.x+1);
+    // La pestaña entra deslizando: medir con la fila quieta y las dos cajas en el MISMO frame.
+    // Antes la cuenta del hero desde 0 hacía de espera sin querer; sin ella se medía a mitad de
+    // camino y cada caja salía de un frame distinto (rojo de la beta 4.26.153).
+    let lastX=null;
+    await expect.poll(async()=>{const x=await account.evaluate(el=>Math.round(el.getBoundingClientRect().x*10)/10);const quieta=x===lastX;lastX=x;return quieta;},{intervals:[100]}).toBe(true);
+    const boxes=await account.evaluate(el=>{const n=el.querySelector(".nm").getBoundingClientRect(),a=el.querySelector(".am").getBoundingClientRect();return {nameRight:n.right,amountLeft:a.left};});
+    expect(boxes.nameRight).toBeLessThanOrEqual(boxes.amountLeft+1);
     await account.click();
     await expect(page.locator(".v4-account-amount")).toContainText(`700,00 XYZ · ${unconverted}`);
     expect(await page.locator(".v4-account-amount").evaluate(el=>el.scrollWidth<=el.clientWidth)).toBe(true);

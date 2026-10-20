@@ -187,6 +187,9 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       sx=tt.clientX; sy=tt.clientY; t0=Date.now();
       axis=null; mode=null; dir=0; dyRaw=0;
       startAtTop=atTopOf(pageEl);
+      // Arriba del todo, tirar hacia abajo es cambiar de segmento: el vigía de bordes no debe
+      // sonar además del toque de segmento (ronda 9 de la vibración).
+      if(startAtTop) e.mcSegPull=true;
     };
     const onMove=function(e){
       if(axis==="x"||mode==="x") return;
@@ -233,7 +236,8 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       const vel=dyRaw/dt;
       const pasa=allowCommit && (dyRaw>(window.innerHeight||700)*TH || (vel>FLICK_V && dyRaw>FLICK_MIN));
       if(pasa){
-        try{ if(navigator.vibrate) navigator.vibrate(8); }catch(err){}
+        // El mismo tick que los botones de segmento y la gráfica; sin la APK, el de siempre.
+        if(!mcTickHaptic()){ try{ if(navigator.vibrate) navigator.vibrate(8); }catch(err){} }
         const i=order.indexOf(seg);
         const nextId=order[(i+(dir>0?1:-1)+order.length)%order.length];
         cleanup(el);
@@ -277,7 +281,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     return function(){ clearTimeout(to); };
   },[seg]);
 
-  return React.createElement("div",{className:"v4-screen",ref:planScreenRef},
+  return React.createElement("div",{className:"v4-screen",ref:planScreenRef,"data-edge-capture":simple?null:"1"},
     React.createElement("h1",{className:"v4-title serif"}, simple?t("v4s_plan_left_title"):t("v4_plan_title")),
     simple && React.createElement("div",{className:"v4-card v4-card-hero rise v4-plan-cover v4-plan-cover-simple","data-plan-state":coverTone,role:"group","aria-label":coverAria},
       React.createElement("div",{className:"v4-plan-simple-hero"},
@@ -291,7 +295,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     !simple && React.createElement("div",{className:"v4-seg",role:"tablist"},
       segs.map(function(s){
         return React.createElement("button",{key:s.id,type:"button",role:"tab","aria-selected":seg===s.id,"data-seg":s.id,
-          className:"v4-seg-btn"+(seg===s.id?" on":""),onClick:function(){ setSeg(s.id); }}, s.lab);
+          className:"v4-seg-btn"+(seg===s.id?" on":""),onClick:function(){ if(seg!==s.id) mcTickHaptic(); setSeg(s.id); }}, s.lab);
       })
     ),
     capa("recibos", React.createElement(PlanBills,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen,simple:simple})),
@@ -490,6 +494,18 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
   const pageSwipe=useEdgePageClose(!!open,onClose,view==="hub"&&!detail&&!addStep,rootRef,{plainScroll:true});
   const sub=useEdgePageClose(!!open,function(){ setStack(["hub"]); setGroup(null); },view!=="hub"&&!detail&&!addStep,subRef,{plainScroll:true});
   const cm=totals.curMonth, cy=totals.curYear;
+  // Ola nativa (INC-2709-03, 19/10): Android solo la pinta en el scroller RAÍZ, y Chromium
+  // promociona un `fixed` a pantalla completa como raíz implícita SOLO si es el único candidato
+  // (RootScrollerController: «only promote if we have a unique match»). Con Gestionar abierto
+  // seguían desplazables debajo el host de Plan (y Ajustes si se entró desde ahí): dos o tres
+  // candidatos → ninguno raíz → sin ola. Lo de debajo deja de desplazar mientras esto está
+  // abierto; `overflow:hidden` conserva su scrollTop para la vuelta.
+  React.useEffect(function(){
+    if(!open) return undefined;
+    var h=document.documentElement;
+    h.classList.add("bills-open");
+    return function(){ h.classList.remove("bills-open"); };
+  },[open]);
   React.useEffect(function(){
     if(!open){
       setStack(["hub"]); setGroup(null); setQ(""); setDetail(null); setAddStep(null);
@@ -571,7 +587,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
     return undefined;
   },[detail, addStep, open]);
   const hero=billsHeroTotal(state,totals);
-  const shownHero=useCountUp(hero,!!open,true);
+  const shownHero=useCountUp(hero,!!open);
   if(!open) return null;
   const banks=Array.from(new Set((state.accounts||[]).map(function(a){ return a.ent; }).filter(Boolean)));
   if(!banks.length) banks.push("sabadell");
@@ -724,7 +740,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
   const screenAttr=view==="list"?"bills-group":(view==="afford"?"bills-afford":"bills-home");
   return ReactDOM.createPortal(
     React.createElement(React.Fragment,null,
-      React.createElement("div",{ref:rootRef,className:"settings-push open v4-bills-push mc-page-enter","data-bills-manage":"1","data-screen":screenAttr,
+      React.createElement("div",{ref:rootRef,className:"settings-push open v4-bills-push mc-page-enter","data-bills-manage":"1","data-screen":screenAttr,"data-covered":view!=="hub"?"1":null,
         role:"dialog","aria-modal":"true","aria-labelledby":"bills-manage-title"},
         hub,
         view!=="hub" && React.createElement("div",{ref:subRef,className:"settings-push open v4-bills-push mc-page-enter"}, view==="list"?listView:affordView)),
@@ -763,8 +779,8 @@ function BillsItemSheet({row, set, banks, simple, onClose, onRemove}){
   const hasSched=hasSchedule(item);
   const titleRef=React.useRef(null);
   const sideRef=React.useRef(null);
-  const swipe=useSheetSwipe(true,onClose);
-  const side=useEdgePageClose(true,onClose,true,sideRef);
+  const swipe=useSheetSwipe(true,onClose,{nativeScroll:true});
+  const side=useEdgePageClose(true,onClose,true,sideRef,{plainScroll:true});
   const sheetRef=swipe.sheetRef;
   const titleId="bills-item-title";
   React.useEffect(function(){ setAmount(""); },[row.id]);
@@ -896,7 +912,7 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, onSa
   const sideRef=React.useRef(null);
   const onCloseRef=React.useRef(onClose);
   onCloseRef.current=onClose;
-  const swipe=useSheetSwipe(true,function(){ onCloseRef.current&&onCloseRef.current(); });
+  const swipe=useSheetSwipe(true,function(){ onCloseRef.current&&onCloseRef.current(); },{nativeScroll:true});
   const sheetRef=swipe.sheetRef;
   const titleId="bills-add-title";
   stepRef.current=step; formRef.current=form;
@@ -914,7 +930,7 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, onSa
   stepBackRef.current=stepBack;
   useBackClose(true,function(){ stepBackRef.current(); },step);
   // El primer paso ya sale con la ola: el callback de Atrás desmonta sin otra salida vertical.
-  const side=useEdgePageClose(true,stepBack,step,sideRef);
+  const side=useEdgePageClose(true,stepBack,step,sideRef,{plainScroll:true});
   React.useLayoutEffect(function(){
     // El fondo persiste entre pasos; cada Atrás debe dejar el anterior centrado y listo para otro.
     const el=sideRef.current; if(!el) return;
@@ -1046,6 +1062,18 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, onSa
     ));
 }
 
+/* La cifra grande de Cartera, en su propio componente (20/10/2026). La transición (B2, al
+   ACTIVAR Cartera por el bus: premontaje e IntersectionObserver se probaron y fallan) repinta en
+   cada frame mientras dura; dentro de CarteraTab eso era repintar también las dos listas de
+   cuentas, los bienes y las inversiones ~57 veces en 950 ms. Aquí solo se repinta el número. */
+function CarteraHeroAmt({target}){
+  const [carteraOn,setCarteraOn]=useState(false);
+  useEffect(function(){ return mcOnCarteraActive(setCarteraOn); },[]);
+  const ph=eurParts(useCountUp(target, carteraOn));
+  return React.createElement("div",{className:"serif num cartera-hero-amt",style:{fontSize:40,fontWeight:550,letterSpacing:"-1px",lineHeight:1.05,marginTop:6}},
+    ph.ent, React.createElement("span",{style:{fontSize:22,color:"var(--muted)"}},","+ph.dec+" "+ph.sym));
+}
+
 function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSync, syncInv, onReconnectBank, showToast}){
   const [invTools,setInvTools]=useState(false);
   const invLinkRef=useRef(null);
@@ -1120,20 +1148,13 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
     setBankBusy(true);
     Promise.resolve(onBankSync()).finally(function(){ setBankBusy(false); });
   };
-  /* B2 — count-up al ACTIVAR Cartera (bus), no al montar ni al «verse» por geometría.
-     Premontaje e IntersectionObserver se probaron y fallan; el bus es el de Gastos. */
-  const [carteraOn,setCarteraOn]=useState(false);
-  useEffect(function(){ return mcOnCarteraActive(setCarteraOn); },[]);
   const heroTarget=allOn ? (totals.netWorth||0) : active.reduce(function(a,x){ return a+x.v; },0);
-  const shownHero=useCountUp(heroTarget, carteraOn);
-  const ph=eurParts(shownHero);
   return React.createElement("div",{className:"v4-screen"},
     React.createElement("h1",{className:"v4-title serif"}, t("v4_cartera_title")),
     React.createElement("div",{className:"v4-card v4-card-hero rise",style:{animationDelay:".05s"}},
       React.createElement("div",{className:"v4-micro"}, heroLab),
       React.createElement(FxNotice,{missing:totals.fxMissing}),
-      React.createElement("div",{className:"serif num cartera-hero-amt",style:{fontSize:40,fontWeight:550,letterSpacing:"-1px",lineHeight:1.05,marginTop:6}},
-        ph.ent, React.createElement("span",{style:{fontSize:22,color:"var(--muted)"}},","+ph.dec+" "+ph.sym)),
+      React.createElement(CarteraHeroAmt,{target:heroTarget}),
       React.createElement("div",{className:"v4-stackbar",style:{marginTop:16}},
         active.map(function(x){
           return React.createElement("i",{key:x.k,style:{flex:Math.max(0.02,(x.v/sum)*100),background:x.color}});

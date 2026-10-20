@@ -25,7 +25,15 @@ public class AelyHapticsPlugin extends Plugin {
     public void edge(PluginCall call) {
         int amplitude = HapticPlan.clamp(intArg(call, "amplitude", HapticPlan.EDGE_AMPLITUDE), 1, 255);
         int duration = HapticPlan.clamp(intArg(call, "durationMs", HapticPlan.EDGE_MS), 1, HapticPlan.MAX_EDGE_MS);
-        play(call, true, duration, amplitude, null);
+        play(call, true, HapticPlan.single(duration, amplitude));
+    }
+
+    // El ajustador pregunta si es la APK .debug: ahí se enseña aunque el canal no sea beta.
+    @PluginMethod
+    public void info(PluginCall call) {
+        JSObject result = new JSObject();
+        result.put("debug", BuildConfig.DEBUG);result.put("api", Build.VERSION.SDK_INT);
+        call.resolve(result);
     }
 
     @PluginMethod
@@ -34,7 +42,7 @@ public class AelyHapticsPlugin extends Plugin {
         HapticPlan.Wave custom = customWave(call);
         Double requested = call.getDouble("durationMs", 0.0);
         int duration = requested == null || Double.isNaN(requested) || Double.isInfinite(requested) || requested <= 0 ? 0 : (int) Math.min(1200, requested);
-        play(call, false, custom != null ? (int) HapticPlan.total(custom) : duration, HapticPlan.EDGE_AMPLITUDE, custom);
+        play(call, false, custom != null ? custom : HapticPlan.waveform(duration));
     }
 
     private static int intArg(PluginCall call, String key, int fallback) {
@@ -65,61 +73,61 @@ public class AelyHapticsPlugin extends Plugin {
             && view.performHapticFeedback(HapticFeedbackConstants.SEGMENT_FREQUENT_TICK) ? "SOFT_TICK" : "NONE";
     }
 
-    private void play(PluginCall call, boolean edge, int duration, int edgeAmplitude, HapticPlan.Wave custom) {
+    /* UX16 ronda 6: el dumpsys de su OnePlus 13 enseña que con usage TOUCH el sistema tira
+       nuestra onda y toca su efecto de serie de 45 ms (OplusPrebakedSegment, dos fuerzas), y que
+       las de HARDWARE_FEEDBACK sí suenan con su forma. El usage lo elige el ajustador de beta
+       mientras se comprueba cuál respeta la onda; sin él, TOUCH como hasta ahora. */
+    private static int usageConstant(HapticPlan.Usage usage) {
+        switch (usage) {
+            case HARDWARE: return VibrationAttributes.USAGE_HARDWARE_FEEDBACK;
+            case MEDIA: return VibrationAttributes.USAGE_MEDIA;
+            case UNKNOWN: return VibrationAttributes.USAGE_UNKNOWN;
+            default: return VibrationAttributes.USAGE_TOUCH;
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    private static void vibrate(Vibrator vibrator, VibrationEffect effect, HapticPlan.Usage usage) {
+        // VibrationAttributes existe desde API 33; antes, la onda va sin atributos.
+        if (Build.VERSION.SDK_INT >= 33) vibrator.vibrate(effect, new VibrationAttributes.Builder().setUsage(usageConstant(usage)).build());
+        else vibrator.vibrate(effect);
+    }
+
+    private void play(PluginCall call, boolean edge, HapticPlan.Wave raw) {
+        HapticPlan.Usage usage = HapticPlan.usage(call.getString("usage", null));
         getActivity().runOnUiThread(() -> {
             JSObject result = new JSObject();
             String path = "NONE";
             View view = null;
-            boolean amplitude = false, lowTick = false;
-            int primitiveMs = 0;
+            boolean amplitude = false;
+            long onMs = 0;
             try {
                 view = getBridge().getWebView();
-                if (duration > 0 && allowed(view)) {
+                if (raw != null && allowed(view)) {
                     Vibrator vibrator = (Vibrator) getContext().getSystemService(Context.VIBRATOR_SERVICE);
-                    if (Build.VERSION.SDK_INT >= 33 && vibrator != null && vibrator.hasVibrator()) {
-                        amplitude = vibrator.hasAmplitudeControl();
-                        // Un fallo al consultar primitivas no debe descartar una onda ya soportada.
-                        if (!amplitude) {
-                            lowTick = vibrator.areAllPrimitivesSupported(VibrationEffect.Composition.PRIMITIVE_LOW_TICK);
-                            if (lowTick) {
-                                int[] durations = vibrator.getPrimitiveDurations(VibrationEffect.Composition.PRIMITIVE_LOW_TICK);
-                                primitiveMs = durations.length == 0 ? 0 : durations[0];
-                            }
-                        }
-                    }
-                    HapticPlan.Path selected = edge ? HapticPlan.select(Build.VERSION.SDK_INT, true, amplitude, lowTick, primitiveMs)
-                        : HapticPlan.selectFill(Build.VERSION.SDK_INT, true, amplitude);
-                    VibrationEffect effect = null;
-                    if (selected == HapticPlan.Path.WAVEFORM) {
-                        if (edge) effect = VibrationEffect.createOneShot(duration, edgeAmplitude);
-                        else {
-                            HapticPlan.Wave wave = custom != null ? custom : HapticPlan.waveform(duration);
-                            effect = VibrationEffect.createWaveform(wave.timings, wave.amplitudes, -1);
-                        }
-                    } else if (selected == HapticPlan.Path.LOW_TICK) {
-                        HapticPlan plan = HapticPlan.create(edge ? primitiveMs : duration, primitiveMs);
-                        if (plan != null) {
-                            if (edge) plan.scales[0] = HapticPlan.scaleFor(edgeAmplitude);
-                            VibrationEffect.Composition composition = VibrationEffect.startComposition();
-                            for (int i = 0; i < plan.delays.length; i++)
-                                composition.addPrimitive(VibrationEffect.Composition.PRIMITIVE_LOW_TICK, plan.scales[i], plan.delays[i]);
-                            effect = composition.compose();
-                        }
-                    }
-                    if (effect != null && Build.VERSION.SDK_INT >= 33) {
-                        vibrator.vibrate(effect, new VibrationAttributes.Builder().setUsage(VibrationAttributes.USAGE_TOUCH).build());
+                    boolean present = vibrator != null && vibrator.hasVibrator();
+                    if (present) amplitude = vibrator.hasAmplitudeControl();
+                    HapticPlan.Path selected = HapticPlan.select(Build.VERSION.SDK_INT, true, present);
+                    HapticPlan.Wave wave = selected == HapticPlan.Path.WAVEFORM ? HapticPlan.shape(raw, amplitude) : null;
+                    if (wave != null) {
+                        // Sin control de amplitud Android trata cualquier valor distinto de 0 como «encendido»:
+                        // el troceo en ranuras es entonces lo único que hace de fuerza, y basta.
+                        VibrationEffect effect = VibrationEffect.createWaveform(wave.timings, wave.amplitudes, -1);
+                        vibrate(vibrator, effect, usage);
                         path = selected.name();
+                        onMs = HapticPlan.onTime(wave);
                     } else if (edge) path = softFallback(view);
                 }
             } catch (RuntimeException ignored) {
                 try { path = edge ? softFallback(view) : "NONE"; } catch (RuntimeException unavailable) { path = "NONE"; }
             }
-            // Respuesta por llamada sin logs ni identificadores: la APK permite leer la ruta real.
+            // Respuesta por llamada sin logs ni identificadores: el ajustador la enseña para saber
+            // qué hizo el motor de verdad (ruta, si acepta amplitud y cuánto rato estuvo encendido).
             result.put("path", path);result.put("api", Build.VERSION.SDK_INT);
-            result.put("amplitudeControl", amplitude);result.put("lowTick", lowTick);result.put("primitiveMs", primitiveMs);
+            result.put("amplitudeControl", amplitude);result.put("onMs", onMs);
             result.put("continuous", !edge && path.equals("WAVEFORM"));
             // La web pregunta esto para avisar de que la APK instalada aún no entiende el ajustador.
-            result.put("tunable", true);
+            result.put("tunable", true);result.put("shaped", true);result.put("usage", usage.name());
             call.resolve(result);
         });
     }

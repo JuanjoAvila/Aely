@@ -1,6 +1,128 @@
-## FIN19 · candidata local, sin integrar · 19/10/2026
+## [4.26.158] — 2026-10-20 · Candidata de beta: la ficha de un cargo reconoce su recibo con BOOK días después, solo web (sigue la APK 61)
 
-La mezcla de gastos distingue banco y cuenta: dos cargos de 3,20 EUR conservan 640 céntimos y sus filas. Mantiene aviso/extracto, PDNG/BOOK, datos manuales y claves persistidas. [Acta y límites](docs/briefs/fin19-cross-bank-identity.md). Sin cambio de VERSION ni backend; integración y aceptación pendientes.
+- **Qué lleva.** Una rama local sobre la beta 4.26.157 (`73a3f6d1b`), con `--no-ff`: `6d4c5c08c` (`claude/youtube-r4`, con GO de la revisión independiente de dinero). Sin APK, SQL ni Edge.
+- **Por qué decía «No» (INC-1810-04, veredicto de la 157: «sigue igual no funciona no se enlaza»).** En el diagnóstico real el cargo de tarjeta lleva la fecha de la operación (2/10) y la fila BOOK del extracto con la MISMA referencia, banco y céntimos lleva la de contabilización (5/10). La prueba guardada lleva el 5/10 y es válida, así que Plan sale ✓, pero el camino de r3 de `paymentEvidenceUI` exigía el mismo día, no encontraba la fila y la ficha decía «No».
+- **Arreglo.** Se acepta una fecha distinta si `fecha BOOK − fecha cargo` está entre 0 y 7 días, contada en días UTC (no depende de la zona horaria): solo hacia delante, porque un banco nunca contabiliza antes de la operación, y 7 días cubren fin de semana o puente. Sigue exigiéndose misma ref, banco, céntimos y fila única; nuevo: si el extracto trae la cuenta de esa ref, tiene que ser la `obAcc` del cargo.
+- **Dinero intacto.** Solo cambia `byExpense`, que lo leen la etiqueta «Paga un recibo», el aviso, `reciboConfirmableUI` y el diagnóstico; `confirmed`, `planChargesMonth`, Inicio, widget, saldo y `slimForCloud` no cambian (la revisión comparó 3 × 3000 estados al azar: 0 diferencias de dinero, y toda diferencia de relación era base=null a el dueño real).
+- **Límite conocido.** Entre meses (cargo el 30/9 y BOOK el 2/10) la ficha sigue diciendo «No».
+- **Pendientes que salen de la revisión.** FIN-23 (`linkFixedPayment` no bloquea enlazar el mismo cargo a un segundo recibo cuando la prueba BOOK es de otra fecha; ya existía) y FIN-24 (la fila única de r4 solo se cuenta dentro de la ventana), en `docs/BACKLOG.md`.
+- **Panel.** Una tanda nueva, `youtube-r4`, sin `apk`. La 157 queda con `tandas: []` (`vibracion-r6` aprobada). Descriptor nuevo en `scripts/beta-sources.json`; Catálogo157 pasa a histórico y Catálogo158 vigila la nueva.
+
+## [4.26.157] — 2026-10-20 · Candidata de beta: vibración ronda 6, solo web (sigue la APK 61)
+
+- **Qué lleva.** Una rama local sobre la beta 4.26.156 (`caa7453ed`), con `--no-ff`: `334747cee` (`claude/vibra-r6`). Sin APK nueva, SQL ni Edge. Veredicto de la 156 por chat: todo bien salvo tres cosas.
+- **«Solo es un toque, no es suave de cómo va creciendo».** `mcCycleTicks` mandaba un toque por octavo de anillo lleno; a mitad de ciclo el anillo está casi vacío y un 12 % daba UN toque (no es que se fundieran: solo había uno). Ahora siempre hay rampa: `MC_CYCLE_MIN_TICKS` (5) + 8 × fracción, sin pasarse de lo que cabe en el trazo con 50 ms de hueco; cada toque más fuerte (0,45× a 1× la fuerza) y, por `mcFeltMs`, más largo (base de 20 ms).
+- **«Abajo vibra al llegar, pero si sigues tirando no» (solo en Plan).** La llegada va por `scroll` y funciona; el tirón no, porque Plan corta la propagación de su `touchmove` para que el swipe entre pestañas no se lo quede y el vigía de `mcBindEdgeHaptics` escucha en `document`. La pantalla de Plan lleva `data-edge-capture` y, bajo esa marca, el vigía mira el `touchmove` en fase de captura (`e.mcEdgeSeen` evita contarlo dos veces). El tirón de arriba que cambia de segmento sigue callado por `mcSegPull`.
+- **«No puedo regular la intensidad» de la gráfica.** El cursor de la gráfica de Inicio (y su «Probar») usaba el uso «toque», que OxygenOS cambia por su efecto de serie. Ahora `mcFeltHaptic` (uso hardware, la fuerza alarga el toque); el hueco entre puntos se mide sobre la duración real. El selector «Tipo de vibración» de Ajustes queda sin efecto práctico; no se quita (no se pidió).
+- **Descriptor de Inicio v4.2.** `NetWorthNow` (cursor de la gráfica) llama ahora a `mcFeltHaptic`/`mcFeltMs`; el descriptor `inicio-patrimonio-flujos` los declara (la lista de dependencias vigiladas del test de Inicio lo exige) y es el único descriptor existente que crece.
+- **Panel.** Una tanda nueva, `vibracion-r6`, sin `apk`. La 156 queda con `tandas: []`. Descriptor nuevo en `scripts/beta-sources.json`; Catálogo156 pasa a histórico y Catálogo157 vigila la nueva.
+- **Verificación.** `ux16-round9` falla 3/3 y 5 unitarios fallan contra la base; con la rama pasan.
+
+## [4.26.156] — 2026-10-20 · Candidata de beta: vibración ronda 5, solo web (sigue la APK 61)
+
+- **Qué lleva.** Una rama local sobre la beta 4.26.155 (`d2dfccb8d`), con `--no-ff`: `e1e91bed7` (`claude/vibra-r5`). Sin APK nueva (la APK 61 ya acepta fuerza 1–255, duración 1–100 ms y uso, y con control de amplitud da un pulso continuo), sin SQL ni Edge. Los descriptores de `scripts/beta-sources.json` que leen las funciones de vibración se rehicieron.
+- **Dos vibraciones al cambiar de segmento (veredicto de la 155: «son 2 vibraciones una fuerte… y otra hyper suave»).** Salían por dos caminos, medidos con un espía sobre `Capacitor.Plugins.AelyHaptics`. (1) Tirón desde arriba: el primer `touchmove` llega a unos 8–11 px; `mcBindEdgeHaptics` vibra ya a los 10 px de empuje y Plan no fija el eje hasta los 12 px (`GEST_LEAD`), así que en ese hueco sonaba el borde de arriba (uso hardware) y luego el toque de segmento. (2) Tocar otro segmento con la lista a medias: el contenido nuevo es más corto, el navegador recoloca el scroll en el borde de abajo y el vigía lo toma por una llegada. Arreglo: Plan marca su tirón desde arriba (`e.mcSegPull` en el `touchstart`) y el vigía ignora el borde de arriba en ese gesto; el borde se calla `MC_SEG_HUSH_MS` (450 ms) tras un toque de segmento.
+- **Segmento con su propio par.** Antes usaba el de la gráfica con uso «toque», que OxygenOS cambia por su efecto de serie de 45 ms: le gustaba, pero ningún deslizador lo movía. Ahora `segAmp`/`segMs` (150/24 ms, uso hardware) con su grupo y su «Probar» en Ajustes → Vibración; vale también para el selector gasto/ingreso de Apuntar. La gráfica no cambia.
+- **«No vibra inicio» y «no cambia nada» con la fuerza del borde.** Sí se llamaba al motor, pero con toques de 10–12 ms a una amplitud real de ~77–90/255, que el motor no llega a arrancar; y entre fuerza 1 y 255 en 12 ms no hay diferencia que se note. `mcFeltMs` alarga el toque con la fuerza (duración × 0,5 a 1,5) y `mcFeltHaptic` lo emite con uso hardware. Defaults nuevos: anillo con fuerza 140 y toques de 18 ms, borde 120/20 ms. La rampa del anillo pasa de 0,5–1 a 0,6–1.
+- **Ajustes guardados.** `MC_HAPTIC_VER=2`: lo guardado sin `v:2` pierde `fillAmp`, `edgeAmp` y `edgeMs`, que se eligieron con toques que no se notaban; se conservan la gráfica, el tipo, el intervalo y la duración del anillo. `mcHapticTuneText` incluye el segmento.
+- **Panel.** Una tanda nueva, `vibracion-r5`, sin `apk`. La 155 queda con `tandas: []`: `vibracion-r4` y `youtube-ficha-reconoce` se rechazaron; la de YouTube sale hasta tener arreglo. Los descriptores se quedan.
+- **Verificación.** Espía de e2e contra la base: `ux16-round9-haptics` falla 3/3 como se espera y pasa con la rama; `ux16-ajustador` y `ux16-haptics` al día.
+
+## [4.26.155] — 2026-10-20 · Candidata de beta: vibración ronda 4 (APK 61) y ficha de YouTube que reconoce su recibo
+
+- **Qué lleva.** Dos ramas locales sobre la beta 4.26.154 (`99fe04289`), con `--no-ff`: `0482327ab` (`claude/vibra-defaults`) y `050a7d0b5` (`claude/youtube-r3`). `mcCycleWave` pasa a `mcCycleTicks` (descriptores al día). Los generados de `public/` en conflicto se regeneraron con `build`.
+- **Vibración (UX-16 R4).** Un solo toque al cambiar de segmento; el anillo y el borde usan el tipo «hardware» y respetan la fuerza. Cambio nativo (`HapticPlan`): hace falta la APK 61. `sha256` y `sourceSha` de `public/apk.json` quedan por rellenar tras compilar.
+- **Ficha de YouTube (INC-1810-04).** La ficha reconoce la prueba BOOK del mismo cargo por referencia, banco, día y céntimos; `reciboDiagText` no filtra datos de otros cargos.
+- **Panel.** Dos tandas nuevas: `vibracion-r4` (APK 61) y `youtube-ficha-reconoce`. `vibracion-r3` pasa a `tandas: []`; las aprobadas pendientes de entrega se quedan.
+
+## [4.26.154] — 2026-10-20 · Candidata de beta: menos lag al ir a Cartera, renombrar sin cobertura y tooling, solo web
+
+- **Qué lleva.** Tres ramas locales sobre la beta 4.26.153 (`80752dff0`), con `--no-ff`: `cb0b105cc` (`claude/beta-sources-rapido`), `0a3ea09bc` (`claude/perf-cuentas`, con GO de la revisión) y `2900cfd3a` (`claude/rojos-153`). Sin APK, SQL ni Edge. Los generados de `public/` en conflicto se regeneraron con `build`.
+- **Cartera sin lagazo.** `netWorthSeries`, `CarteraTab`, `Dashboard` y `App` dejan de recalcular al ir desde Ajustes y al volver a primer plano (deps de Ajustes en `stateDeps`/`settingsDeps`). Cifras idénticas.
+- **Renombrar sin cobertura.** `renameFalloDeRed` y `RENAME_BACKOFF_MS` (2/8/30 s): un fallo de red no marca el renombrado como fallido; se reintenta solo al volver la red.
+- **Panel.** Dos tandas nuevas: `cartera-sin-lagazo` y `renombrar-sin-cobertura`; las de la 153 siguen. Descriptores con `renameFalloDeRed` y `RENAME_BACKOFF_MS` en el cierre de `inc-3009-01-cargos`, `inc-0210-03-gastos-periodo` y los demás lectores.
+
+## [4.26.153] — 2026-10-19 · Candidata de beta: vibración ronda 3, ola en Gestionar plan (raíz única), diagnóstico de recibo y lista de Gastos con el renombrado pendiente, solo web
+
+- **Qué lleva.** Cinco ramas locales ya revisadas sobre la beta 4.26.152 servida (`31907016f`), con `--no-ff`: `0572ca55` (`claude/vibra-r3`), `e6553e07` (`claude/diag-recibo`), `2e11b279` (`claude/ola-root`) `93289498` (`claude/rename-lista`) y `140f62ce` (`claude/fijos-schedule`). Sin APK nueva (sigue la 4.26.152/code60), sin SQL ni Edge.
+- **Vibración (UX-16 R3).** El borde vibra una vez por arrastre en lugar de repetir mientras el dedo se mueve; hay un tick al cambiar de Recibos a Deudas o Metas y de gasto a ingreso; el anillo de Mi ciclo respeta el ajustador. Tras su rechazo de la 152 («vibra una locura… debería ser 1 vez cada vez que muevo el dedo»).
+- **Ola en Gestionar plan (UX-08).** `Gestionar plan` queda como único candidato a scroller raíz, que es lo que necesita la ola nativa. Tras su «no hay manera, ola no funciona en recibos».
+- **Diagnóstico de recibo (FIN-04).** «Paga un recibo» gana «Copiar diagnóstico», solo en beta: sin los datos reales del cargo de YouTube Premium no se sabe por qué no se enlaza.
+- **Renombrado pendiente (FIN-04 fase 1).** `MovRow` pinta el nombre nuevo con ⏳ mientras el renombrado no está confirmado, igual que la ficha.
+- **Mensualidad de recibos (`140f62ce`, `claude/fijos-schedule`, con GO de la revisión de dinero).** `billsHeroTotal` usa `fixedMonthlyOf` para respetar el calendario propio de cada recibo (seguros semestrales), así «Se te van cada mes» cuadra con la suma de los grupos; `useCountUp` y los consumidores de la cifra grande dejan de pintar 0 al montar. Tanda nueva `recibos-cifra-cuadra`. Abiertos por la revisión y anteriores: FIN-20 y FIN-21 (BACKLOG).
+- **Conflictos de integración.** Los generados de `public/` (`index.html`, `i18n`, `release-notes.json`, `beta-delivery.json`) se resolvieron con `build` tras los merges, no a mano.
+- **Panel.** Cinco tandas nuevas: `gestionar-plan-ola-r2`, `vibracion-r3`, `youtube-diagnostico`, `renombrar-lista-al-momento`, `recibos-cifra-cuadra`. `gestionar-plan-ola` y `vibracion-ajustador-r2` (152) y `youtube-enlazar-recibo` (148) pasan a `tandas: []`: rechazadas, y su arreglo viaja en tandas nuevas. Las aprobadas sin entregar a producción (`pestanas-swipe-rapido`) y las aún sin veredicto se quedan visibles.
+- **Tooling, sin cambio de versión: `tests/beta-sources` de 4484 s a 604 s.** Cada catálogo recalculaba el cierre de lectores de ~95 descriptores y «cada dato leído» muta 3.414 datos; cada llamada a `beta-source-code.mjs` normalizaba CRLF del monolito, componía la clave «fichero+texto» y recompilaba con `vm.Script` trozos idénticos a los del texto sin mutar (V8 hashea las cadenas de más de 16.383 caracteres solo por su longitud, así que los mutantes de un fichero colisionaban todos en el `Map`). `tests/helpers/beta-memo-hook.mjs` inyecta en memoria cachés por contenido (más un `vm.Script` memoizado por digest del trozo) sin tocar el módulo, que dos descriptores vigilan y cuyo cambio movería sus huellas; aborta si el módulo deja de encajar. El test memoiza además la lectura viva y la normalización. Los 117 tests salen igual (✓) antes y después, y tres mutaciones del registro (quitar `isEfectivoEnt` del alcance de nómina, comentario dentro de `pickBankBalanceInfo` sin declarar la huella, borrar el descriptor `widget-banco`) fallan exactamente en los mismos tests con y sin el hook. `BETA_SOURCES_TIMING=1` imprime lo que tarda cada test, `BETA_SOURCES_ONLY=texto` corre solo los que lo contienen y `BETA_SOURCES_NO_MEMO=1` apaga el hook. Tiempos (8 hilos, medidos aparte): `cada llamada de lógica` 2267 s a 351 s, `cada dato leído` 766 s a 43 s, `PERSIST91` 107 s a 14 s, `Catálogo153` 107 s a 5 s.
+
+## Pendiente de integración · «Tus cuentas» sin tirones (`claude/perf-cuentas`) · 2026-10-20
+
+- **Por qué.** Él lo encontró en la beta 4.26.150: «estando en Ajustes hago cosas y enseguida voy a Cartera → Tus cuentas: tirón grande», y lo mismo al volver a la app tras usar otras. La pantalla en sí es barata. El trabajo que congela es el de las otras pestañas, que siguen montadas detrás:
+  - **(1)** la serie de patrimonio y el presupuesto de Inicio dependían de `state.settings` entero, así que cualquier ajuste (contraste, idioma, tamaño de letra…) recorría todo el histórico (~240 ms por cambio con 8.000 gastos a CPU×6);
+  - **(2)** al volver con un gasto nuevo, el cierre de hoy que guarda «Tus cuentas» (`recordAccountBalances`) reescribía `accountBalanceHistory` y la serie se recalculaba por segunda vez seguida;
+  - **(3)** abrir o cerrar Ajustes reconstruía las cuatro pestañas por `drawerOpen` en `contenidos`, aunque ninguna lo lee;
+  - **(4)** la transición de la cifra de Cartera repintaba la pantalla entera ~57 veces.
+- **Qué cambia (P1–P4), sin tocar ningún dato.**
+  - **P1:** `NET_WORTH_SETTINGS` / `BUDGET_SETTINGS` y `settingsDeps`. La caché de `netWorthSeries` y los memos `series` y `bud` de Inicio dependen solo de los campos que leen ellas y todo lo que llaman: `accountListOrder`, `accountShare`, `accountShareLegacy`, `expenseBanks`, `profile` / `budgetCycle`, `expenseBanks`, `gTotalMode`.
+  - **P2:** `netWorthHistoryKey`. El punto de HOY de una cuenta que ya tiene cierres anteriores no cuenta (la serie saca hoy de los saldos vivos y los días pasados no lo ven). Sí cuenta cuando es el primer cierre, y también si alguna lista tiene más de un punto (`fresh`). `clean` y la clave comparten `netWorthPointOk`.
+  - **P3:** fuera `drawerOpen` de `contenidos` y `contenidoGastos`.
+  - **P4:** `CarteraHeroAmt`, la cifra con su `useCountUp` y su bus en su propio componente. Va sobre el `useCountUp` de la 4.26.153, que ya pinta la cifra real desde el primer frame.
+- **Ningún dato cambia.**
+  - Base `80752dff0` frente a candidata, con la serie y el presupuesto: 540 pasos de uso sobre 60 carteras sintéticas (cambios en Ajustes, cierre de hoy, gasto nuevo, partes de cuenta, titular, ciclo, orden) dan 1.620 comparaciones JSON con 0 diferencias. La candidata va con su caché, la base siempre recalculada, y las 1.080 series tienen más de 5 días.
+  - En el navegador, Inicio, la cifra de Cartera y las filas de «Tus cuentas» salen con el mismo texto en las 12 cargas A/B.
+- **A/B ABAB contra `80752dff0`.** Pixel 5, CPU×6, SW bloqueado, nube que acusa la subida (`ACK=1`). La máquina NO estaba libre: el vigilante vio una suite ajena en las 65 muestras. Por eso cada pasada alterna base y candidata. Frame máximo (ms) / suma de frames >32 ms, tres pasadas:
+
+  | escenario | base | candidata |
+  |---|---|---|
+  | Ajustes (4 cambios) → atrás → Cartera, 3.500 | 783–800 / 1.683–1.800 | 433–633 / 1.033–1.300 |
+  | Ajustes → Cartera desde la barra, 3.500 | 383–467 / 1.117–1.450 | 250–333 / 717–800 |
+  | vuelta con gasto nuevo, Cartera a 300 ms, 3.500 | 200–250 / 650–783 | 150–233 / 483–550 |
+  | Ajustes (4 cambios) → atrás → Cartera, 8.000 | 867–967 / 2.316–2.483 | 667–683 / 1.267–1.383 |
+  | Ajustes → Cartera desde la barra, 8.000 | 583–633 / 1.933–2.034 | 300–367 / 917–1.117 |
+  | vuelta con gasto nuevo, Cartera a 300 ms, 8.000 | 567–733 / 1.267–1.667 | 500–567 / 967–1.083 |
+  | vuelta con gasto nuevo, Cartera a 1,5 s, 8.000 | 333–417 / 1.167–1.366 | 333–400 / 800–1.100 |
+
+  Inicio → Cartera sin nada antes: 33–67 ms en las dos.
+- **Lo que queda (no tocado).** Cada cambio de estado sigue repintando las cuatro pestañas (`contenidos` depende de `state`). En la secuencia de Ajustes, `Expenses` son ~300 ms con 8.000 gastos y el resto de `Dashboard` ~60 ms. Un gasto nuevo recalcula la serie una vez, que es legítimo. La mezcla del pull se queda como en perf-vuelta.
+- **Guardianes.** `tests/inicio-deps-ajustes` (en `run-tests`):
+  - lee el cierre de llamadas de todos los módulos y falla con cualquier lectura de `settings` entero o con un campo sin declarar;
+  - ejecuta la serie y el presupuesto con los ajustes espiados;
+  - muta cada campo declarado (tiene que recalcular) y el contraste, el idioma o el tamaño de letra (no);
+  - barre 160 históricos sobre dos carteras: misma clave ⇒ misma serie byte a byte;
+  - vigila `drawerOpen` y `CarteraHeroAmt`.
+
+  Mutantes muertos: sin `profile`, quitar el primer cierre de hoy, olvidar `fresh`.
+- **Remate de la revisión independiente (campos del estado).** Las listas a mano de `bud`, de `series` y de la caché de `netWorthSeries` no tenían todo lo que leen. A `bud` le faltaban `fixed`, `oneoffs`, `reciboBorrado` y `reciboNo`; a la serie, `reciboNo`, `reciboBorrado`, `bankDismissed` y `shared`; a la caché, además, `obAbsorbed*` y `_historyOwner`. Antes cualquier toque en Ajustes lo repintaba todo de rebote; con P1 y P3, ese hueco sería una cifra vieja.
+  - Ahora se declaran en `NET_WORTH_STATE` / `BUDGET_STATE` (con `stateDeps`), sacados del cierre de llamadas y referencias.
+  - `inicio-deps-ajustes` hace con el estado lo mismo que con los ajustes: lee el código, ejecuta con el estado espiado, muta cada campo declarado (tiene que recalcular) y otros que no leen (no tiene que recalcular), y no deja campos sueltos a mano en las listas. Mutantes muertos: sin `reciboBorrado`, sin `shared`, sin `bankDismissed` y `bud` sin `budget`.
+  - Base frente a candidata con estos pasos añadidos (recibo, «no es este recibo», recibo borrado, bancos descartados, Hogar, otro titular, pago puntual): 2.520 comparaciones con 0 diferencias.
+  - A/B corto ABAB, 8.000 gastos:
+
+    | escenario | base | candidata |
+    |---|---|---|
+    | Ajustes → Cartera desde la barra | 700–800 / 1.833–2.050 | 517–567 / 950–1.033 |
+    | vuelta con gasto nuevo | 400–450 / 833–1.017 | 483–500 / 767–817 |
+
+    La suma de tirones baja en los dos escenarios. El frame máximo de la vuelta sale peor en esta pasada, con la máquina cargada; queda dentro del ruido de la tanda anterior (500–567).
+- **`beta-sources`.** El descriptor `inicio-patrimonio-flujos` declara las cuatro funciones nuevas que alcanza (`netWorthHistoryKey`, `settingsDeps`, `netWorthPointOk`, `stateDeps`), como exige «Inicio v4.2 cubre…». `Catálogo153` queda en rojo: su cierre de lectores, calculado sobre tres ficheros, y su lista cerrada de huellas se miden sobre la fuente viva. Lo resuelve la integración al pasar la 153 a histórico.
+- **Tope de tamaño.** +1.270 B minificados / +447 B gzip; detalle en `tests/presupuesto-rendimiento.test.mjs`. Sin `VERSION` ni `RELEASE_NOTES`: van con la integración.
+
+## [4.26.152] — 2026-10-19 · Candidata de beta: ola nativa en Gestionar plan (PR 287) y vibración del ajustador ronda 2 (UX-16), con APK nueva (4.26.152 / code 60)
+
+- **Qué lleva.** La 4.26.151 local (`fa138e12c`, aún sin empujar) más la PR 287 (`36b01eaf`), `c84de633` (`claude/vibra-aj-r2`) y `c4ce8075` (`claude/youtube-enlace-r2`, solo un test guardián) y `8aae4cef` (test lifecycle-inflight).
+- **Gestionar plan (INC-2709-03 y UX-08).** Vuelve la ola nativa al llegar al final y la hoja de recibo ya no salta al cerrar; la ficha deja de cerrarse arrastrando desde el contenido y se cierra solo desde la barrita, con Atrás o tocando fuera.
+- **Tipo de vibración (`92dff0ea`).** En el OnePlus 13 / OxygenOS el sistema sustituye las vibraciones de uso TOUCH por un efecto de serie de 45 ms (`dumpsys vibrator_manager`); el ajustador deja elegir el uso (Toque, Botones, Multimedia, Genérica) y «Copiar valores» lo incluye.
+- **Vibración (UX-16 R2).** La fuerza del ajustador se siente en el motor (troceo en ranuras) y el borde solo vibra mientras el dedo se mueve. Cambio nativo: hace falta la APK 60. `sha256` y `sourceSha` de `public/apk.json` quedan por rellenar tras compilar.
+- **Panel.** Dos tandas nuevas, `gestionar-plan-ola` y `vibracion-ajustador-r2`. La `gestionar-plan-sin-ola` de la 150 y la `vibracion-ajustador` de la 148 pasan a vacías; la de YouTube de la 148 se queda.
+- **Test.** `8aae4cef` (`claude/fix-lifecycle-test`): `lifecycle-inflight` ya no espera que `lastSync` avance en una lectura idéntica (desde perf-vuelta no avanza a propósito); arregla el rojo del job tests de la 150.
+- **Acta de la PR 287.** Candidata UX08 sin versión nueva (19/10/2026): el contenido de ficha/alta de recibos conserva el scroll vertical nativo y el asa mantiene el cierre. `useSheetSwipe.onTouchCancel` ya no borra una salida activa, que hacía retroceder la hoja antes de desmontarse. Limpieza lateral y capa de reposo acotadas a estas fichas. [Causas reproducidas y límites](docs/briefs/ux08-native-wave-close-jump.md); aceptación Android e integración pendientes.
+
+## [4.26.151] — 2026-10-19 · Candidata de beta: renombrar gastos y notas seguros con dos móviles (PR 286, FIN-04 fase 1), solo web y sin APK nueva (sigue la 4.26.148 / code 59)
+
+- **Qué lleva.** La beta 4.26.150 (`dca4c71c6`) más la PR 286 (`12263116`), con GO de dinero en tres rondas: renombrar actualiza solo el comercio con ACK, sin restaurar la nota de otra copia; la fusión conserva la copia viva y los metadatos legacy sin colapsar importes o referencias conflictivos; nota y nombre sin confirmar quedan pendientes con aviso y reintento durable (tres fallos apartan el renombrado con un aviso).
+- **Fase 2 pendiente.** Recibos y deudas: gana la última edición del objeto entero.
+- **FIN-19 (nuevo, sin asignar).** Dos movimientos de bancos distintos con el mismo día, importe y comercio se funden en uno; detectado en la revisión de la PR 286, es anterior a ella.
+- **Panel.** Una tanda nueva, `renombrar-y-notas-seguras` (pasos 1-4). Las de la 150, 149, 148, 147, 146 y 144 se quedan.
+- **Acta de la PR.** FIN04 fase 1, candidata sin publicar: renombrar un gasto actualiza solo su comercio con ACK, sin restaurar la nota de otra copia. R2 conserva la copia viva y metadatos legacy, sin colapsar importes o referencias conflictivos. Nota y nombre sin confirmación quedan pendientes con aviso y reintento durable. [Contrato y límites](docs/briefs/fin04-fase1-renombrar-nota.md). No cambia VERSION ni catálogo: las notas de versión quedan para la integración de Claude. R3 reduce el coste de identidad en la fusión y aparta el renombrado tras tres fallos, con contador durable, un aviso y reintento explícito; las demás ediciones pueden continuar.
 
 ## [4.26.150] — 2026-10-19 · Candidata de beta: Gestionar plan sin ola al tocar una categoría (PR 285, INC-2709-03 y UX-08), solo web y sin APK nueva (sigue la 4.26.148 / code 59)
 

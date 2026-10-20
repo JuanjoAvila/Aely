@@ -2354,23 +2354,24 @@ function HapticTuner({showToast}){
   // La APK 58 no entiende fuerza ni duración: mejor decirlo que dejarle probando a ciegas.
   const said=function(p){
     if(!p){ if(!mcReduced()) showToast(t(typeof _mcNative!=="undefined"&&_mcNative?"hv_need_apk":"hv_no_native")); return; }
-    p.then(function(r){ if(!r||!r.tunable) showToast(t("hv_need_apk")); });
+    // Ronda 5: además se dice qué motor tiene su móvil, para no volver a adivinar si la fuerza
+    // llega como amplitud o solo como tiempo encendido.
+    p.then(function(r){
+      if(!r||!r.shaped){ showToast(t("hv_need_apk")); return; }
+      showToast(t(r.amplitudeControl?"hv_motor_amp":"hv_motor_onoff"));
+    });
   };
   const later=function(ms,fn){ timers.current.push(setTimeout(fn,ms)); };
-  const tryFill=function(){
-    const w=mcCycleWave(v.fillMs,1,v.fillAmp);
-    if(w) said(mcHaptic("fill",{durationMs:v.fillMs,amplitude:v.fillAmp,fraction:1,timings:w.timings,amplitudes:w.amplitudes}));
-  };
-  // Borde: llegada y dos repeticiones, como seguir tirando estando abajo.
-  const tryEdge=function(){
-    said(mcHaptic("edge",{amplitude:v.edgeAmp,durationMs:v.edgeMs}));
-    later(v.edgeEvery,function(){ mcHaptic("edge",{amplitude:v.edgeAmp,durationMs:v.edgeMs}); });
-    later(v.edgeEvery*2,function(){ mcHaptic("edge",{amplitude:v.edgeAmp,durationMs:v.edgeMs}); });
-  };
+  // Mi ciclo: la misma ristra que al entrar en Inicio, con el anillo lleno.
+  const tryFill=function(){ said(mcPlayCycle(v.fillMs,1)); };
+  // Borde: un choque, igual que en la app (una vez por arrastre) y por la misma función.
+  const tryEdge=function(){ said(mcEdgeHaptic()); };
+  // Segmento: un toque, el mismo que al pasar de Recibos a Deudas (y por la misma función).
+  const trySeg=function(){ mcTickHaptic.at=-Infinity; said(mcTickHaptic()); };
   // Gráfica: seis puntos seguidos, como pasar el dedo despacio por la línea.
   const tryTick=function(){
-    said(mcHaptic("edge",{amplitude:v.tickAmp,durationMs:v.tickMs}));
-    for(let i=1;i<6;i++) later(i*70,function(){ mcHaptic("edge",{amplitude:v.tickAmp,durationMs:v.tickMs}); });
+    said(mcFeltHaptic(v.tickAmp,v.tickMs));
+    for(let i=1;i<6;i++) later(i*70,function(){ mcFeltHaptic(v.tickAmp,v.tickMs); });
   };
   const copy=function(){
     const txt=mcHapticTuneText(v);
@@ -2405,7 +2406,16 @@ function HapticTuner({showToast}){
     React.createElement("div",{className:"hint",style:{padding:"0 14px 8px"}},t("hv_intro")),
     group("fill",t("hv_cycle"),t("hv_cycle_hint"),[slider("fillAmp",t("hv_strength")),slider("fillMs",t("hv_length")," ms")],tryFill),
     group("edge",t("hv_edge"),null,[slider("edgeAmp",t("hv_strength")),slider("edgeMs",t("hv_length")," ms"),slider("edgeEvery",t("hv_every")," ms")],tryEdge),
+    group("seg",t("hv_seg"),null,[slider("segAmp",t("hv_strength")),slider("segMs",t("hv_length")," ms")],trySeg),
     group("tick",t("hv_tick"),null,[slider("tickAmp",t("hv_strength")),slider("tickMs",t("hv_length")," ms")],tryTick),
+    React.createElement("div",{className:"hv-usage",style:{padding:"10px 14px",borderTop:"1px solid var(--line)"}},
+      React.createElement("div",{style:{fontWeight:800,fontSize:14}},t("hv_usage")),
+      React.createElement("div",{className:"hint",style:{marginTop:2}},t("hv_usage_hint")),
+      React.createElement("div",{className:"row",style:{flexWrap:"wrap",gap:6,marginTop:8}},
+        MC_HAPTIC_USAGES.map(function(u){
+          return React.createElement("button",{type:"button",key:u,className:"chip"+(v.usage===u?" active":""),"aria-pressed":v.usage===u,"data-usage":u,
+            onClick:function(){ put("usage",u); }},t("hv_u_"+u));
+        }))),
     React.createElement("div",{className:"row",style:{padding:"10px 14px 12px",gap:8}},
       React.createElement("button",{type:"button",className:"btn btn-primary",onClick:copy},t("hv_copy")),
       React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){ setV(mcHapticTuneReset()); }},t("hv_reset"))));
@@ -2488,6 +2498,16 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   const [events,setEvents]=useState(null);
   const [actOpen,setActOpen]=useState(false);   // pantalla «Actividad» (antes acordeón: crecía sin fin)
   const [betaOpen,setBetaOpen]=useState(false);  // pantalla «Revisar la beta» (solo en canal beta)
+  // La APK .debug de pruebas nativas enseña el ajustador sin pasar al canal beta (que bajaría otra web).
+  const [hapticDebug,setHapticDebug]=useState(false);
+  useEffect(function(){
+    let vivo=true;
+    try{
+      const plugin=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.AelyHaptics;
+      if(plugin&&typeof plugin.info==="function") Promise.resolve(plugin.info()).then(function(r){ if(vivo&&r&&r.debug) setHapticDebug(true); },function(){});
+    }catch(e){}
+    return function(){ vivo=false; };
+  },[]);
   /* El arranque pide reabrir el panel cuando salió de la app para probar un punto y Android le
      mató la WebView (ver BETA_ABIERTO_KEY). Se hace por evento y no por prop porque Ajustes se
      monta al abrir el cajón, así que quien arranca no puede pasarle nada todavía. */
@@ -2960,8 +2980,8 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
       // («Personalizar widgets del Resumen» se retiró el 2026-07-18: era del Dashboard v3.)
       totals && row("report","📸",t("rp_btn").replace(/^[^ ]+ /,""),null,function(){ shareMonthReport(state, totals, showToast); })
     ),
-    // Solo en beta: es el banco donde él busca su vibración; en estable no hay nada que ajustar.
-    (typeof mcChannel==="function") && mcChannel()==="beta" &&
+    // Solo en beta (o en la APK .debug de pruebas): es el banco donde él busca su vibración.
+    ((typeof mcChannel==="function" && mcChannel()==="beta")||hapticDebug) &&
       grp("vibra","📳",t("hv_title"),"vibracion vibration vibracio haptic",null,React.createElement(HapticTuner,{showToast:showToast})),
 
     // Admin al FINAL (fuera del flujo diario). Sentry de prueba quitado: no aporta en móvil.

@@ -562,14 +562,29 @@ function mcReduced(){
    en ESTE móvil: es una preferencia del motor de su teléfono, no un dato que viaje a la nube.
    Por defecto, los de la ronda 3 salvo borde y gráfica, que pedían «un pelín más». */
 const MC_HAPTIC_KEY="_mcHapticTune";
-const MC_HAPTIC_DEF={fillAmp:30,fillMs:1100,edgeAmp:70,edgeMs:12,edgeEvery:150,tickAmp:70,tickMs:10};
-const MC_HAPTIC_RANGE={fillAmp:[1,255],fillMs:[300,2500],edgeAmp:[1,255],edgeMs:[4,60],edgeEvery:[60,400],tickAmp:[1,255],tickMs:[4,40]};
+/* Ronda 9 (beta 4.26.155): «el anillo no vibra» y «la fuerza del borde no cambia nada». Sí se
+   llamaba al motor, pero con toques de 10–12 ms a un tercio de fuerza: en el motor de su
+   OnePlus 13 eso no llega a arrancar, y entre fuerza 1 y 255 en 12 ms no hay diferencia que se
+   note. Por eso suben ciclo y borde, y el cambio de segmento tiene su propio par (seg*), un
+   poco más suave que el efecto de serie que le gustaba. La gráfica (tick*) se queda como está. */
+const MC_HAPTIC_DEF={fillAmp:140,fillMs:1100,edgeAmp:120,edgeMs:20,edgeEvery:150,tickAmp:70,tickMs:10,segAmp:150,segMs:24};
+const MC_HAPTIC_RANGE={fillAmp:[1,255],fillMs:[300,2500],edgeAmp:[1,255],edgeMs:[4,60],edgeEvery:[60,400],tickAmp:[1,255],tickMs:[4,40],segAmp:[1,255],segMs:[4,60]};
+/* Lo guardado antes de la ronda 9 se eligió con toques que no se notaban: sus fuerzas y
+   duraciones de ciclo y borde no valen para la escala nueva y se vuelven a los de serie. La
+   gráfica, el intervalo, la duración del anillo y el tipo se conservan: esos sí se sentían. */
+const MC_HAPTIC_VER=2, MC_HAPTIC_STALE=["fillAmp","edgeAmp","edgeMs"];
+/* Ronda 6: con uso «toque» su OnePlus 13 tira nuestra onda y toca su efecto de serie (dumpsys,
+   OplusPrebakedSegment de 45 ms). El ajustador deja elegir el uso hasta ver cuál la respeta. */
+const MC_HAPTIC_USAGES=["touch","hardware","media","unknown"];
 function mcHapticClamp(raw){
   const out={};
+  if(raw&&raw.v!==MC_HAPTIC_VER){ raw=Object.assign({},raw); MC_HAPTIC_STALE.forEach(function(k){ delete raw[k]; }); }
   Object.keys(MC_HAPTIC_DEF).forEach(function(k){
     const v=raw&&typeof raw[k]==="number"&&Number.isFinite(raw[k])?Math.round(raw[k]):MC_HAPTIC_DEF[k];
     out[k]=Math.max(MC_HAPTIC_RANGE[k][0],Math.min(MC_HAPTIC_RANGE[k][1],v));
   });
+  out.usage=raw&&MC_HAPTIC_USAGES.indexOf(raw.usage)>=0?raw.usage:MC_HAPTIC_USAGES[0];
+  out.v=MC_HAPTIC_VER;
   return out;
 }
 function mcHapticTune(){
@@ -595,7 +610,7 @@ mcHapticApplyCss();
 // El texto que él copia y nos manda: corto y sin nada personal, solo los siete números.
 function mcHapticTuneText(tune){
   const v=tune||mcHapticTune();
-  return "Vibración · ciclo "+v.fillAmp+"/"+v.fillMs+"ms · borde "+v.edgeAmp+"/"+v.edgeMs+"ms cada "+v.edgeEvery+"ms · gráfica "+v.tickAmp+"/"+v.tickMs+"ms";
+  return "Vibración ("+v.usage+") · ciclo "+v.fillAmp+"/"+v.fillMs+"ms · borde "+v.edgeAmp+"/"+v.edgeMs+"ms cada "+v.edgeEvery+"ms · segmento "+v.segAmp+"/"+v.segMs+"ms · gráfica "+v.tickAmp+"/"+v.tickMs+"ms";
 }
 // Misma curva que `.v42-cycle-draw` en shell.html: si cambia allí, cambia aquí.
 const MC_CYCLE_EASE=[.65,0,.35,1];
@@ -606,22 +621,66 @@ function mcBezierY(x,p){
   for(let i=0;i<24;i++){ tt=(lo+hi)/2; if(bx(tt)<x) lo=tt; else hi=tt; }
   return 3*(1-tt)*(1-tt)*tt*p[1]+3*(1-tt)*tt*tt*p[3]+tt*tt*tt;
 }
-/* La onda del anillo sigue al TRAZO: cada tramo vibra en proporción a cuánto arco se pinta en
-   él (la velocidad de la curva), escalado por el porcentaje del ciclo. Así un 20 % apenas roza y
-   un 90 % se nota entero, arranca y acaba suave como el dibujo, y no queda zumbando con el
-   anillo ya quieto — «vibra un montón desde el principio y dura un montón» (ronda 3). */
-function mcCycleWave(durationMs,fraction,amp){
+// Momento (0–1 de la animación) en que el trazo llega a la fracción `y` de su recorrido.
+function mcBezierXAt(y,p){
+  let lo=0,hi=1,x=y;
+  for(let i=0;i<24;i++){ x=(lo+hi)/2; if(mcBezierY(x,p)<y) lo=x; else hi=x; }
+  return x;
+}
+// Uso con el que su OnePlus 13 respeta fuerza y duración (dumpsys 19/10): borde y anillo.
+const MC_FELT_USAGE="hardware";
+/* La fuerza también alarga el toque: de la mitad (fuerza 1) a vez y media (255) de la duración
+   elegida. En pulsos de 10–20 ms el motor no alcanza la amplitud pedida y 1 y 255 se sentían
+   igual (ronda 9); con el tiempo encendido de por medio la diferencia no tiene pérdida. */
+function mcFeltMs(ms,amp){
+  return Math.max(4,Math.min(100,Math.round(ms*(0.5+Math.max(1,Math.min(255,amp))/255))));
+}
+// Un toque con uso «hardware», el que su OnePlus 13 toca tal cual (dumpsys del 19/10).
+function mcFeltHaptic(amp,ms,extra){
+  return mcHaptic("edge",Object.assign({amplitude:amp,durationMs:mcFeltMs(ms,amp),usage:MC_FELT_USAGE},extra||{}));
+}
+const MC_CYCLE_TICKS=8, MC_CYCLE_MIN_TICKS=5, MC_CYCLE_TICK_MS=20, MC_CYCLE_GAP_MS=50;
+/* El anillo es una RISTRA DE TOQUES SUELTOS, cada uno su propia llamada, repartidos donde el
+   trazo va llegando: uno por cada octavo del ciclo lleno (un 25 % son dos, un 100 % ocho) y de
+   más suave a más fuerte. La ronda 7 mandaba los toques dentro de UNA onda y en su OnePlus 13
+   OxygenOS sustituye la onda entera por su efecto de serie de 45 ms: «ahora solo vibra un toque,
+   aún cambiando las settings». Llamadas sueltas no se pueden fundir en una.
+   Ronda 10 (beta 4.26.156): «solo es un toque, no es suave de cómo va creciendo». A mitad de
+   ciclo su anillo está casi vacío y un 12 % daba UN toque. El trazo tarda lo mismo esté como
+   esté, así que siempre hay rampa: cinco toques como poco, más cuanto más lleno, y una subida
+   de fuerza (y de duración, por mcFeltMs) que se nota de uno a otro. */
+function mcCycleTicks(durationMs,fraction,amp){
   const frac=Math.max(0,Math.min(1,fraction)), dur=Math.round(durationMs);
-  if(!(dur>0)||!(frac>0)) return null;
-  const n=Math.max(1,Math.min(60,Math.round(dur/20))), timings=[], speeds=[];
-  let prev=0, top=0;
-  for(let i=0;i<n;i++){
-    const y=mcBezierY((i+1)/n,MC_CYCLE_EASE), s=Math.max(0,y-prev);
-    prev=y; speeds.push(s); if(s>top) top=s;
-    timings.push(Math.floor(dur/n)+(i<dur%n?1:0));
+  if(!(dur>0)||!(frac>0)||!(amp>0)) return [];
+  // Y que quepan en el trazo con su hueco: si no, los últimos sonarían con el anillo ya quieto.
+  const n=Math.max(1,Math.min(MC_CYCLE_MIN_TICKS+Math.round(frac*MC_CYCLE_TICKS),Math.floor(dur/MC_CYCLE_GAP_MS)-1)), out=[];
+  let last=-Infinity;
+  for(let i=1;i<=n;i++){
+    // En mitad del trazo la curva va deprisa: sin hueco mínimo, dos toques se oirían como uno.
+    const at=Math.max(Math.round(mcBezierXAt(i/n,MC_CYCLE_EASE)*dur)-MC_CYCLE_TICK_MS,last+MC_CYCLE_GAP_MS,0);
+    out.push({at:at,amp:Math.max(1,Math.round(amp*(0.45+0.55*i/n)))});
+    last=at;
   }
-  const amplitudes=speeds.map(function(s){ return top>0?Math.round(amp*frac*s/top):0; });
-  return amplitudes.some(function(a){ return a>0; })?{timings:timings,amplitudes:amplitudes}:null;
+  return out;
+}
+/* Lanza la ristra. Va con uso «hardware» a propósito: con «toque» OxygenOS cambia cada toque
+   por el suyo de serie y la fuerza del deslizador no se nota (dumpsys del 19/10). Solo el
+   anillo: el borde y la gráfica le gustan como están. Devuelve la promesa del primer toque. */
+function mcPlayCycle(durationMs,fraction){
+  const v=mcHapticTune(), ticks=mcCycleTicks(durationMs,fraction,v.fillAmp);
+  (mcPlayCycle.timers||[]).forEach(clearTimeout);
+  mcPlayCycle.timers=[];
+  const cap=window.Capacitor, plugin=cap&&cap.Plugins&&cap.Plugins.AelyHaptics;
+  if(!ticks.length||!plugin||mcReduced()) return null;
+  let answer=null;
+  const first=new Promise(function(r){ answer=r; });
+  ticks.forEach(function(tk,i){
+    mcPlayCycle.timers.push(setTimeout(function(){
+      const p=mcFeltHaptic(tk.amp,MC_CYCLE_TICK_MS,{cycle:i+1});
+      if(i===0) Promise.resolve(p).then(answer);
+    },tk.at));
+  });
+  return first;
 }
 
 // UX16: la web observa el dedo; solo Android decide si el ajuste táctil permite el toque.
@@ -632,19 +691,42 @@ function mcHaptic(method, args){
     if(!plugin||typeof plugin[method]!=="function") return;
     // Devuelve lo que contesta Android (null si falla): el ajustador lo usa para saber si la APK
     // instalada ya entiende fuerza y duración.
-    return Promise.resolve(plugin[method](args||{})).catch(function(){ return null; });
+    return Promise.resolve(plugin[method](Object.assign({usage:mcHapticTune().usage},args||{}))).catch(function(){ return null; });
   }catch(e){}
 }
 // Un toque del borde con los valores que haya elegido él. La APK 58 ignora fuerza y duración y
 // sigue dando su toque fijo; desde la 59 manda lo del ajustador.
 function mcEdgeHaptic(){
   const v=mcHapticTune();
-  mcHaptic("edge",{amplitude:v.edgeAmp,durationMs:v.edgeMs});
+  /* Ronda 8: «da igual la fuerza que pongas, solo vibra suave». La fuerza sí llegaba, pero con
+     uso «toque» OxygenOS cambia el toque por su efecto de serie y en un choque suelto (una vez
+     por arrastre desde la ronda 7) eso se nota igual a cualquier fuerza; en la 152 se repetía y
+     la ristra lo disimulaba. Con uso «hardware» el motor toca nuestra fuerza y duración. */
+  // Ronda 9: el cambio de segmento acaba de sonar; un borde ahora es el reflejo del mismo gesto
+  // (el contenido nuevo es más corto y el scroll se recoloca solo), no una llegada de verdad.
+  if(performance.now()-(mcTickHaptic.at||-Infinity)<MC_SEG_HUSH_MS) return;
+  return mcFeltHaptic(v.edgeAmp,v.edgeMs);
+}
+const MC_SEG_HUSH_MS=450;
+// Píxeles de vuelta atrás que convierten el siguiente empuje en otro gesto: menos es temblor.
+const MC_EDGE_REARM=12;
+/* Cambiar de segmento (Recibos/Deudas/Metas y gasto/ingreso): UN toque con su propio par del
+   ajustador. Hasta la ronda 8 usaba el de la gráfica con uso «toque», que OxygenOS cambia por su
+   efecto de serie: le gustaba, pero ningún deslizador lo movía («me gustaría un poquito más
+   suave»). Con uso hardware la fuerza y la duración son suyas. */
+function mcTickHaptic(){
+  // Un cambio de segmento = UN toque, aunque el mismo gesto lo pida dos veces (botón y tirón).
+  const now=performance.now();
+  if(now-(mcTickHaptic.at||-Infinity)<150) return;
+  mcTickHaptic.at=now;
+  const v=mcHapticTune();
+  return mcFeltHaptic(v.segAmp,v.segMs);
 }
 function mcBindEdgeHaptics(root, blocked){
-  let g=null, states=new WeakMap(), pullTimer=0, lastAt=-Infinity;
-  const buzz=function(){ lastAt=performance.now(); mcEdgeHaptic(); };
-  const stopPull=function(){ clearTimeout(pullTimer); pullTimer=0; if(g) g.pulling=false; };
+  let g=null, states=new WeakMap(), lastAt=-Infinity;
+  // Un toque por arrastre: también la llegada al borde con el dedo puesto cuenta como el de ese gesto.
+  const buzz=function(){ lastAt=performance.now(); if(g) g.done=true; mcEdgeHaptic(); };
+  const stopPull=function(){ if(g) g.pulling=false; };
   const end=function(){ stopPull(); g=null; };
   const boundary=function(el){
     const max=el.scrollHeight-el.clientHeight, y=el.scrollTop;
@@ -673,16 +755,6 @@ function mcBindEdgeHaptics(root, blocked){
     s.latched=edge; s.armed=false;
     buzz();
   };
-  const repeatPull=function(){
-    const own=g;
-    if(pullTimer||!own||!own.pulling) return;
-    pullTimer=setTimeout(function(){
-      pullTimer=0;
-      if(g!==own||!own.pulling) return;
-      if(quiet()||!own.el.isConnected||scroller(own.el)!==own.el||boundary(own.el)!==own.edge){ stopPull(); return; }
-      buzz(); repeatPull();
-    },mcHapticTune().edgeEvery);
-  };
   const scroll=function(e){
     const el=scroller(e.target);
     if(!el||el!==e.target) return;
@@ -701,7 +773,8 @@ function mcBindEdgeHaptics(root, blocked){
     const el=scroller(e.target);
     if(!el) return;
     const t=e.touches[0]; stateOf(el);
-    g={el:el,id:t.identifier,x:t.clientX,y:t.clientY,lastY:t.clientY,anchor:t.clientY,edge:boundary(el),pulling:false};
+    // segPull: Plan reclama este tirón desde arriba para cambiar de segmento (marca el evento).
+    g={el:el,id:t.identifier,x:t.clientX,y:t.clientY,lastY:t.clientY,anchor:t.clientY,edge:boundary(el),pulling:false,segPull:!!e.mcSegPull};
   };
   const move=function(e){
     if(!g) return;
@@ -714,24 +787,47 @@ function mcBindEdgeHaptics(root, blocked){
     if(Math.abs(dx)>8&&Math.abs(dx)>Math.abs(dy)){ end(); return; }
     const edge=boundary(g.el);
     // Al aterrizar en el borde se empieza a contar desde allí: el recorrido de scroll no vale.
-    if(!edge||edge!==g.edge){ stopPull(); g.edge=edge; g.anchor=t.clientY; return; }
-    if((edge==="top"&&step<0)||(edge==="bottom"&&step>0)){ stopPull(); g.anchor=t.clientY; return; }
+    if(!edge||edge!==g.edge){ stopPull(); g.edge=edge; g.anchor=t.clientY; g.peak=t.clientY; return; }
+    /* Ronda 9: «son 2 vibraciones», la del segmento y otra hipersuave de llegar arriba. En el
+       móvil el primer touchmove llega a unos 8 px; entre los 10 px de este empuje y los 12 en que
+       Plan fija el eje (GEST_LEAD) había un hueco por el que el borde de arriba sonaba antes que
+       el toque de segmento. Ese tirón no es un choque: es el gesto de Plan. */
+    if(g.segPull&&edge==="top") return;
+    const out=edge==="top"?1:-1;   // signo del empuje contra el borde
+    if(step*out<0){
+      stopPull(); g.anchor=t.clientY;
+      // Volver atrás de verdad rearma: el siguiente empuje ya es otro gesto contra el borde.
+      if(g.peak!=null&&(g.peak-t.clientY)*out>=MC_EDGE_REARM) g.done=false;
+      return;
+    }
+    if(step*out>0) g.peak=t.clientY;
     if(Math.abs(dy)<=Math.abs(dx)*1.2) return;
-    const outward=edge==="top"?t.clientY-g.anchor:g.anchor-t.clientY;
+    const outward=(t.clientY-g.anchor)*out;
     if(outward<10){ stopPull(); return; }
-    const resumed=!g.pulling;
+    if(g.pulling) return;
+    g.pulling=true;
     pulse(g.el,edge);
-    // Seguir tirando con el borde ya alcanzado —también tras llegar por inercia— avisa YA, no
-    // tras el intervalo: «no vibra cuando sigues bajando estando abajo» (ronda 3). El intervalo
-    // sí se respeta para no encadenar dos toques pegados.
-    if(resumed&&!quiet()&&performance.now()-lastAt>=mcHapticTune().edgeEvery) buzz();
-    g.pulling=true; repeatPull();
+    /* UNA vibración por arrastre contra el borde, nunca una ristra: «si mantengo el dedo y lo
+       muevo vibra una locura, no de fuerza sino muchas veces» (ronda 7; la 5 repetía cada 8 px).
+       Seguir tirando estando ya en el borde —también tras llegar por inercia— avisa al momento
+       (ronda 3); otra solo tras soltar o tras volver atrás y empujar de nuevo. */
+    if(!g.done&&!quiet()&&performance.now()-lastAt>=mcHapticTune().edgeEvery) buzz();
   };
-  const listeners={touchstart:start,touchmove:move,touchend:end,touchcancel:end,visibilitychange:end};
+  /* Ronda 10: «en Recibos, Deudas y Metas vibra al llegar al final, pero si sigues tirando no».
+     Plan corta la propagación de su touchmove (para que el swipe de pestañas no se lo quede) y
+     el tirón contra el borde nunca llegaba aquí; la llegada sí, porque esa va por `scroll`. Lo
+     que vive bajo [data-edge-capture] se mira en la fase de captura, antes de que Plan lo corte. */
+  const moveCapture=function(e){
+    if(!e.target||!e.target.closest||!e.target.closest("[data-edge-capture]")) return;
+    e.mcEdgeSeen=true; move(e);
+  };
+  const moveBubble=function(e){ if(!e.mcEdgeSeen) move(e); };
+  root.addEventListener("touchmove",moveCapture,{passive:true,capture:true});
+  const listeners={touchstart:start,touchmove:moveBubble,touchend:end,touchcancel:end,visibilitychange:end};
   Object.keys(listeners).forEach(function(type){ root.addEventListener(type,listeners[type],{passive:true}); });
   // scroll no burbujea: captura también las llegadas de inercia después del touchend.
   root.addEventListener("scroll",scroll,{passive:true,capture:true});
-  return function(){ end(); states=new WeakMap(); root.removeEventListener("scroll",scroll,true); Object.keys(listeners).forEach(function(type){ root.removeEventListener(type,listeners[type]); }); };
+  return function(){ end(); states=new WeakMap(); root.removeEventListener("scroll",scroll,true); root.removeEventListener("touchmove",moveCapture,true); Object.keys(listeners).forEach(function(type){ root.removeEventListener(type,listeners[type]); }); };
 }
 // Un solo objetivo: cambiar esta línea selecciona otra animación sin multiplicar disparos.
 const MC_INICIO_HAPTIC={selector:".v42-cycle-draw",animation:"v42-cycle-draw"};
@@ -751,38 +847,31 @@ function mcInicioFillHaptic(e){
     // animationstart sucede DESPUÉS del delay CSS y de la pausa del splash: sin segundo reloj.
     // Anillo vacío = nada que rellenar = silencio.
     const fraction=parseFloat(el.style&&el.style.getPropertyValue("--cycle-pct"))/100;
-    const v=mcHapticTune(), wave=mcCycleWave(duration,fraction,v.fillAmp);
-    if(!wave) return;
-    // La APK 58 solo entiende durationMs (su rampa fija); desde la 59 toca la onda de aquí.
-    mcHaptic("fill",{durationMs:duration,amplitude:v.fillAmp,fraction:fraction,timings:wave.timings,amplitudes:wave.amplitudes});
+    if(!(fraction>0)) return;
+    mcPlayCycle(duration,fraction);
   }catch(err){}
 }
 
-/* Count-up compartido (B2). `ready` es la puerta: Inicio espera `mc-splash-gone`; Cartera espera
-   el bus `mcOnCarteraActive`. Sin puerta, la animación se gasta con la pestaña premontada (o
-   detrás del splash) y al llegar el número ya está puesto — peor que no animar. */
-function useCountUp(target, ready, replay){
-  const [shown,setShown]=useState(0);
+/* Cifra con transición compartida (B2). Ya NO cuenta desde 0: mientras la pestaña entraba
+   deslizándose (`ready` aún en false) Cartera pintaba «0,00 €», y en «Tus recibos» quien tocaba un
+   grupo antes de los 950 ms se quedaba viendo una cifra a medias (1518,65 por 1526,87, vídeo de la
+   beta 4.26.150). Un número que no es el real es peor que no animar (AGENTS §1): se pinta la cifra
+   real desde el primer frame y solo se anima el paso de un valor real a otro mientras se mira. */
+function useCountUp(target, ready){
+  const tgt0=+(target||0);
+  const [shown,setShown]=useState(tgt0);
   const rafRef=useRef(0);
-  const shownRef=useRef(0);
-  const primeraRef=useRef(true);
+  const shownRef=useRef(tgt0);
   useEffect(function(){
-    /* Gestionar queda montado detrás de Plan. Si solo paramos el RAF al cerrarlo, conserva el
-       total final y la siguiente entrada ya no tiene animación; `replay` devuelve el contador a
-       cero mientras está oculto sin cambiar Inicio ni Cartera (feedback 2026-09-18). */
-    if(!ready){
-      if(replay){ shownRef.current=0; primeraRef.current=true; setShown(0); }
-      return undefined;
-    }
     const tgt=+(target||0);
     cancelAnimationFrame(rafRef.current);
-    if(mcReduced()){
-      shownRef.current=tgt; setShown(tgt); primeraRef.current=false;
+    // Oculta, sin movimiento o ya en su sitio: la cifra salta a su valor real.
+    if(!ready||mcReduced()||shownRef.current===tgt){
+      shownRef.current=tgt; setShown(tgt);
       return undefined;
     }
     let cancelado=false;
-    const start=primeraRef.current?0:shownRef.current;
-    primeraRef.current=false;
+    const start=shownRef.current;
     const t0=performance.now(), dur=950;
     const ease=function(x){ return 1-Math.pow(1-x,3); };
     const step=function(now){
@@ -795,8 +884,9 @@ function useCountUp(target, ready, replay){
     };
     rafRef.current=requestAnimationFrame(step);
     return function(){ cancelado=true; cancelAnimationFrame(rafRef.current); };
-  },[target, ready, replay]);
-  return shown;
+  },[target, ready]);
+  // Oculta, el render ya lleva el valor real aunque el efecto aún no haya corrido.
+  return ready?shown:+(target||0);
 }
 
 function recordAccountBalances(hist, day, rows){
@@ -903,13 +993,68 @@ function netWorthDebtPolicy(state, today, current){
   const value=current!=null?current:sum(today);
   return {current:value,notes:notes,timingUnknown:debts.some(function(d){return d.months==null&&!(dayOf(d)>0);}),at:function(day){ return day===today?value:sum(day); }};
 }
+/* LOS AJUSTES QUE DE VERDAD LEEN LA SERIE DE PATRIMONIO Y EL PRESUPUESTO DE INICIO (20/10/2026).
+   Dependían de `state.settings` entero, así que cualquier toque en Ajustes (contraste, idioma,
+   tamaño de letra…) hacía que Inicio, montado detrás, recorriera otra vez todo el histórico:
+   ~240 ms por cambio con 8.000 gastos a CPU×6, y el último caía justo al llegar a Cartera
+   («hago cosas en Ajustes, voy a Tus cuentas y pega un tirón»). Ahora dependen solo de los campos
+   que leen ellas y sus auxiliares. ⚠ Si una de ellas (o algo a lo que llamen) empieza a leer otro
+   ajuste, va aquí o la cifra se quedará vieja: lo vigila `tests/inicio-deps-ajustes.test.mjs`,
+   que recorre el código y además ejecuta las dos con los ajustes espiados. */
+const NET_WORTH_SETTINGS=["accountListOrder","accountShare","accountShareLegacy","expenseBanks","profile"];
+const BUDGET_SETTINGS=["budgetCycle","expenseBanks","gTotalMode"];
+function settingsDeps(settings, keys){
+  const s=settings||{};
+  return keys.map(function(k){ return s[k]; });
+}
+/* Y LOS CAMPOS DEL ESTADO QUE LEEN (revisión independiente, 20/10/2026). Antes cualquier toque en
+   Ajustes lo repintaba todo y tapaba los que faltaban en la lista a mano (recibos borrados,
+   «no es este recibo», bancos descartados, Hogar…); con las dependencias estrechas un hueco así
+   sería una cifra vieja. Se declaran todos los que leen ellas y su cierre de llamadas, y el
+   guardián (`tests/inicio-deps-ajustes.test.mjs`) muta cada uno y busca los que falten.
+   `accountBalanceHistory` y `settings` van aparte (`netWorthHistoryKey`, `settingsDeps`). */
+const NET_WORTH_STATE=["_historyOwner","accounts","aportaciones","assetValueHistory","assets","bankDismissed","bankTx","debts","deleted","expenses","fixed","flows","fx","fxRates","invHistory","investments","obAbsorbedConfirmed","obAbsorbedPending","obAccounts","oneoffs","reciboBorrado","reciboNo","shared"];
+const BUDGET_STATE=["_historyOwner","accounts","budget","deleted","expenses","fixed","flows","obAbsorbedConfirmed","obAbsorbedPending","oneoffs","reciboBorrado","reciboNo","reservaLog"];
+function stateDeps(state, keys){
+  const s=state||{};
+  return keys.map(function(k){ return s[k]; });
+}
+// Un punto de histórico vale para la serie solo si `clean` (dentro de `netWorthSeries`) lo acepta.
+function netWorthPointOk(d, v, today){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(d||"")||typeof v!=="number"||!Number.isFinite(v)||d>today) return false;
+  const ms=Date.parse(d+"T12:00:00Z");
+  const utc=netWorthPointOk.utc||(netWorthPointOk.utc=new Intl.DateTimeFormat("en-CA",{timeZone:"UTC",year:"numeric",month:"2-digit",day:"2-digit"}));
+  return Number.isFinite(ms)&&utc.format(ms)===d;
+}
+/* EL CIERRE DE HOY NO MUEVE LA SERIE (20/10/2026). «Tus cuentas» guarda el saldo de hoy cada vez
+   que cambia (`recordAccountBalances`); con un gasto nuevo eso reescribía `accountBalanceHistory`
+   y la serie entera se recalculaba por segunda vez seguida (~245 ms con 8.000 gastos), encima
+   del recálculo por el propio gasto. En la serie, el punto de HOY de una cuenta que ya tiene
+   cierres anteriores no se usa: hoy sale de los saldos vivos y los días pasados no lo ven. Solo
+   cuenta cuando es el PRIMER cierre de esa cuenta (marca dónde empieza y su valor de antes).
+   Esta clave recoge exactamente eso, más si alguna lista tiene más de un punto (`fresh`). */
+const _nwHistKeys=new WeakMap();
+function netWorthHistoryKey(hist, today){
+  if(!hist) return "";
+  const hit=_nwHistKeys.get(hist);
+  if(hit&&hit.today===today) return hit.key;
+  const out={}; let varios=false;
+  Object.keys(hist).forEach(function(k){
+    const list=Array.isArray(hist[k])?hist[k]:[];
+    if(list.length>1) varios=true;
+    const antes=list.some(function(p){ return p&&p.day<today&&netWorthPointOk(p.day,p.value,today); });
+    out[k]=antes?list.filter(function(p){ return !(p&&p.day===today); }):list;
+  });
+  const key=(varios?"1":"0")+JSON.stringify(out);
+  _nwHistKeys.set(hist,{today:today,key:key});
+  return key;
+}
 function netWorthSeries(state, options){
   options=options||{};
   const today=options.today||netWorthDay();
-  const deps=[today,options.liquid,options.invested,options.debtTotal,state.accounts,state.obAccounts,state.expenses,
-    state.deleted,state.accountBalanceHistory,state.invHistory,state.investments,state.assets,state.assetValueHistory,state.debts,state.flows,
-    state.fixed,state.oneoffs,state.bankTx,state.settings,state.fxRates,state.fx,state.aportaciones,
-    options.balanceInputs&&options.balanceInputs.paidNetByBank,options.balanceInputs&&options.balanceInputs.spentByBank];
+  const deps=[today,options.liquid,options.invested,options.debtTotal,netWorthHistoryKey(state.accountBalanceHistory,today),
+    options.balanceInputs&&options.balanceInputs.paidNetByBank,options.balanceInputs&&options.balanceInputs.spentByBank]
+    .concat(stateDeps(state,NET_WORTH_STATE),settingsDeps(state.settings,NET_WORTH_SETTINGS));
   const cache=netWorthSeries.cache||(netWorthSeries.cache=[]);
   const hit=cache.find(function(c){ return c.deps.every(function(v,i){ return v===deps[i]; }); });
   if(hit) return hit.series;
@@ -921,9 +1066,7 @@ function netWorthSeries(state, options){
     const by={};
     (list||[]).forEach(function(p){
       const d=p&&p[day],v=p&&p[value];
-      if(!/^\d{4}-\d{2}-\d{2}$/.test(d||"")||typeof v!=="number"||!Number.isFinite(v)||d>today) return;
-      const ms=Date.parse(d+"T12:00:00Z");
-      if(Number.isFinite(ms)&&utcFmt.format(ms)===d) by[d]=Object.assign({},p,{day:d,value:v});
+      if(netWorthPointOk(d,v,today)) by[d]=Object.assign({},p,{day:d,value:v});
     });
     return Object.keys(by).sort().map(function(d){ return by[d]; });
   };
@@ -1653,6 +1796,9 @@ function useSheetSwipe(open, onClose, opts){
     if(e&&e.stopPropagation) e.stopPropagation();
     if(closing.current) return;
     if(!(e.touches&&e.touches[0])) return;
+    // En las fichas de Gestionar, el contenido conserva el overscroll del navegador.
+    // El asa sigue permitiendo bajar la hoja; el gesto lateral de Atrás es independiente.
+    if(opts.nativeScroll&&!(e.target&&e.target.closest&&e.target.closest(".v4-sheet-handle"))) return;
     armed.current=true;
     dragging.current=true; dy.current=0; axis.current=null;
     startY.current=e.touches[0].clientY; startX.current=e.touches[0].clientX;
@@ -1758,6 +1904,9 @@ function useSheetSwipe(open, onClose, opts){
   };
   const onTouchCancel=function(e){
     if(e&&e.stopPropagation) e.stopPropagation();
+    // Un segundo toque cancelado durante la salida no puede borrar su transform:
+    // devolvía la ficha a su sitio antes de que el temporizador la desmontase.
+    if(closing.current) return;
     // Android puede cancelar un toque al entregar el scroll al WebView. No es un `touchend`:
     // confirmar aquí el cierre hacía que una ficha desapareciera o rebotara sin que él la soltara.
     dragging.current=false; armed.current=false; axis.current=null; dy.current=0; scrollHost.current=null;
@@ -2138,8 +2287,8 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
     React.createElement("div",{className:"v4-sheet-body v4-ficha-body","data-testid":testPrefix||"expense-ficha"},
       React.createElement("div",{className:"v4-ficha-head"},
         React.createElement("div",{className:"v4-seg v4-ficha-seg"},
-          React.createElement("button",{type:"button",className:"v4-seg-btn"+(!isIn?" on":""),onClick:function(){ onKind("gasto"); }},t("v4_gasto")),
-          React.createElement("button",{type:"button",className:"v4-seg-btn"+(isIn?" on":""),onClick:function(){ onKind("ingreso"); }},t("v4_ingreso"))),
+          React.createElement("button",{type:"button",className:"v4-seg-btn"+(!isIn?" on":""),onClick:function(){ if(isIn) mcTickHaptic(); onKind("gasto"); }},t("v4_gasto")),
+          React.createElement("button",{type:"button",className:"v4-seg-btn"+(isIn?" on":""),onClick:function(){ if(!isIn) mcTickHaptic(); onKind("ingreso"); }},t("v4_ingreso"))),
         React.createElement("button",{type:"button",className:"v4-ficha-date",onClick:onDate},dateLabel)),
       React.createElement("div",{className:"v4-ficha-amount-row"},
         React.createElement("button",{type:"button",className:"v4-ficha-amount v4-apuntar-amt serif num"+(amountEmpty?" empty":""),

@@ -1,5 +1,431 @@
 [
   {
+    "v": "4.26.158",
+    "d": "2026-10-20",
+    "t": {
+      "es": "La ficha de un cargo reconoce su recibo aunque el banco lo apunte días después",
+      "en": "A charge's sheet recognises its bill even if the bank records it days later",
+      "ca": "La fitxa d'un càrrec reconeix el seu rebut encara que el banc l'apunti dies després"
+    },
+    "items": {
+      "es": [
+        "La ficha de un cargo de tarjeta reconoce su recibo aunque el banco lo apunte unos días después.",
+        "El recibo de YouTube Premium figura enlazado a su cargo.",
+        "Plan y el dinero disponible no cambian."
+      ],
+      "en": [
+        "The sheet of a card charge recognises its bill even if the bank records it a few days later.",
+        "The YouTube Premium bill shows as linked to its charge.",
+        "Plan and the available money do not change."
+      ],
+      "ca": [
+        "La fitxa d'un càrrec de targeta reconeix el seu rebut encara que el banc l'apunti uns dies després.",
+        "El rebut de YouTube Premium figura enllaçat al seu càrrec.",
+        "Pla i els diners disponibles no canvien."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "youtube-r4",
+        "t": {
+          "es": "YouTube Premium: la ficha reconoce su recibo aunque el banco lo apunte días después",
+          "en": "YouTube Premium: the charge sheet recognises its bill even if the bank records it days later",
+          "ca": "YouTube Premium: la fitxa reconeix el seu rebut encara que el banc l'apunti dies després"
+        },
+        "items": {
+          "es": [
+            "0. Abre la app con la versión 4.26.158 (llega sola). Tu frase: «sigue igual no funciona no se enlaza».",
+            "1. Abre Gastos y toca el cargo de YouTube Premium del 2 de octubre. MAL: «Paga un recibo» dice «No», o sea, «sigue igual no funciona no se enlaza».",
+            "2. En la misma ficha, «Paga un recibo» tiene que decir «YouTube Premium». MAL: sale otro recibo, o sale vacío.",
+            "3. Ve a Plan → Recibos: YouTube Premium sigue como pagado una sola vez y el dinero disponible no ha cambiado respecto a antes de actualizar. MAL: aparece dos veces, deja de estar pagado o cambia el disponible."
+          ],
+          "en": [
+            "0. Open the app on version 4.26.158 (it arrives by itself). Your words: «sigue igual no funciona no se enlaza» (it is still the same, it does not work, it does not link).",
+            "1. Open Expenses and tap the YouTube Premium charge of 2 October. WRONG: «Pays a bill» says «No», that is, «sigue igual no funciona no se enlaza» (it is still the same, it does not link).",
+            "2. In the same sheet, «Pays a bill» must say «YouTube Premium». WRONG: another bill shows up, or it is empty.",
+            "3. Go to Plan → Bills: YouTube Premium is still paid only once and the available money has not changed compared with before updating. WRONG: it appears twice, it stops being paid or the available money changes."
+          ],
+          "ca": [
+            "0. Obre l'app amb la versió 4.26.158 (arriba sola). La teva frase: «sigue igual no funciona no se enlaza» (continua igual, no funciona, no s'enllaça).",
+            "1. Obre Despeses i toca el càrrec de YouTube Premium del 2 d'octubre. MALAMENT: «Paga un rebut» diu «No», és a dir, «sigue igual no funciona no se enlaza» (continua igual, no s'enllaça).",
+            "2. A la mateixa fitxa, «Paga un rebut» ha de dir «YouTube Premium». MALAMENT: surt un altre rebut, o surt buit.",
+            "3. Ves a Pla → Rebuts: YouTube Premium continua com a pagat una sola vegada i els diners disponibles no han canviat respecte a abans d'actualitzar. MALAMENT: apareix dues vegades, deixa d'estar pagat o canvia el disponible."
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "v": "4.26.157",
+    "d": "2026-10-20",
+    "t": {
+      "es": "Vibración del anillo que va creciendo, tirón también en Plan y gráfica regulable",
+      "en": "Ring vibration that builds up, pull feedback in Plan too, and an adjustable chart",
+      "ca": "Vibració de l'anell que va creixent, estirada també a Pla i gràfic regulable"
+    },
+    "items": {
+      "es": [
+        "El anillo de Inicio vibra con una subida suave, también cuando está casi vacío.",
+        "En Recibos, Deudas y Metas, seguir tirando contra el final vuelve a vibrar.",
+        "La vibración de la gráfica de Inicio se puede regular de verdad."
+      ],
+      "en": [
+        "The Home ring vibrates with a smooth build-up, even when it is almost empty.",
+        "In Bills, Debts and Goals, keeping on pulling against the end vibrates again.",
+        "The vibration of the Home chart can really be adjusted."
+      ],
+      "ca": [
+        "L'anell d'Inici vibra amb una pujada suau, també quan és gairebé buit.",
+        "A Rebuts, Deutes i Metes, seguir estirant contra el final torna a vibrar.",
+        "La vibració del gràfic d'Inici es pot regular de debò."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.156",
+    "d": "2026-10-20",
+    "t": {
+      "es": "Una sola vibración al cambiar de segmento y más fuerza en el anillo y los bordes",
+      "en": "A single vibration when switching section, and a stronger ring and list ends",
+      "ca": "Una sola vibració en canviar de segment i més força a l'anell i a les vores"
+    },
+    "items": {
+      "es": [
+        "La vibración al cambiar entre Recibos, Deudas y Metas da un solo toque y se puede ajustar.",
+        "El anillo de Inicio y los bordes de las listas se notan más.",
+        "La fuerza que eliges en Ajustes → Vibración cambia de verdad lo que se siente."
+      ],
+      "en": [
+        "The vibration when switching between Bills, Debts and Goals is a single tap and can be adjusted.",
+        "The Home ring and the ends of lists are easier to feel.",
+        "The strength you pick in Settings → Vibration really changes what you feel."
+      ],
+      "ca": [
+        "La vibració en canviar entre Rebuts, Deutes i Metes és un sol toc i es pot ajustar.",
+        "L'anell d'Inici i les vores de les llistes se senten més.",
+        "La força que tries a Ajustos → Vibració canvia de veritat el que se sent."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.155",
+    "d": "2026-10-20",
+    "t": {
+      "es": "Vibración más clara y la ficha de YouTube reconoce su recibo",
+      "en": "Clearer vibration, and the YouTube charge recognises its bill",
+      "ca": "Vibració més clara i la fitxa de YouTube reconeix el seu rebut"
+    },
+    "items": {
+      "es": [
+        "La vibración al cambiar de pestaña en Plan es un solo toque.",
+        "La fuerza del borde y del anillo de Mi ciclo vuelve a notarse.",
+        "La ficha del cargo de YouTube reconoce su recibo."
+      ],
+      "en": [
+        "The vibration when switching tabs in Plan is a single tap.",
+        "The strength of the border and of the My cycle ring can be felt again.",
+        "The YouTube charge sheet recognises its bill."
+      ],
+      "ca": [
+        "La vibració en canviar de pestanya a Pla és un sol toc.",
+        "La força de la vora i de l'anell de El meu cicle torna a notar-se.",
+        "La fitxa del càrrec de YouTube reconeix el seu rebut."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.154",
+    "d": "2026-10-20",
+    "t": {
+      "es": "Más fluidez al ir a Cartera y renombrar sin cobertura",
+      "en": "Smoother when going to Wallet, and renaming without signal",
+      "ca": "Més fluïdesa en anar a Cartera i reanomenar sense cobertura"
+    },
+    "items": {
+      "es": [
+        "La app va más fluida al ir a Cartera desde Ajustes y al volver a ella.",
+        "Si renombras un gasto sin cobertura, el nombre nuevo se guarda solo al volver la red."
+      ],
+      "en": [
+        "The app is smoother when going to Wallet from Settings and when coming back to it.",
+        "If you rename an expense without signal, the new name is saved by itself once the network is back."
+      ],
+      "ca": [
+        "L'app va més fluida en anar a Cartera des d'Ajustos i en tornar-hi.",
+        "Si reanomenes una despesa sense cobertura, el nom nou es desa sol quan torna la xarxa."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "cartera-sin-lagazo",
+        "t": {
+          "es": "Cartera: sin tirones desde Ajustes y al volver",
+          "en": "Wallet: no jerks from Settings or when coming back",
+          "ca": "Cartera: sense estirades des d'Ajustos i en tornar"
+        },
+        "items": {
+          "es": [
+            "1. Abre Ajustes, cambia algo y ve rápido a Cartera → Tus cuentas. No debe pegar un tirón grande. MAL: se queda parada.",
+            "2. Sal de la app, haz otras cosas, vuelve y entra en Cartera. MAL: da un tirón.",
+            "3. Las cifras de Inicio y de Cartera son las mismas que antes. MAL: cualquier diferencia."
+          ],
+          "en": [
+            "1. Open Settings, change something and go quickly to Wallet → Your accounts. It must not jerk. WRONG: it freezes.",
+            "2. Leave the app, do other things, come back and go into Wallet. WRONG: it jerks.",
+            "3. The figures in Home and Wallet are the same as before. WRONG: any difference."
+          ],
+          "ca": [
+            "1. Obre Ajustos, canvia alguna cosa i ves ràpid a Cartera → Els teus comptes. No ha de fer una estirada gran. MALAMENT: es queda parada.",
+            "2. Surt de l'app, fes altres coses, torna i entra a Cartera. MALAMENT: fa una estirada.",
+            "3. Les xifres d'Inici i de Cartera són les mateixes que abans. MALAMENT: qualsevol diferència."
+          ]
+        }
+      },
+      {
+        "id": "renombrar-sin-cobertura",
+        "t": {
+          "es": "Gastos: renombrar sin cobertura",
+          "en": "Expenses: renaming without signal",
+          "ca": "Despeses: reanomenar sense cobertura"
+        },
+        "items": {
+          "es": [
+            "1. Pon el modo avión y renombra un gasto: la lista lo enseña con ⏳. MAL: vuelve el nombre viejo.",
+            "2. Quita el modo avión: en unos segundos el ⏳ desaparece solo. MAL: sigue el ⏳ o hay que pulsar Reintentar."
+          ],
+          "en": [
+            "1. Turn airplane mode on and rename an expense: the list shows it with ⏳. WRONG: the old name comes back.",
+            "2. Turn airplane mode off: in a few seconds the ⏳ goes away by itself. WRONG: the ⏳ stays or you have to tap Retry."
+          ],
+          "ca": [
+            "1. Posa el mode avió i reanomena una despesa: la llista la mostra amb ⏳. MALAMENT: torna el nom vell.",
+            "2. Treu el mode avió: en uns segons el ⏳ desapareix sol. MALAMENT: continua el ⏳ o has de prémer Reintentar."
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "v": "4.26.153",
+    "d": "2026-10-19",
+    "t": {
+      "es": "Vibración más tranquila, ola en Gestionar plan y nombres al momento",
+      "en": "Calmer vibration, ripple in Manage plan and names at once",
+      "ca": "Vibració més tranquil·la, ona a Gestionar pla i noms a l'instant"
+    },
+    "items": {
+      "es": [
+        "El borde de las listas vibra una sola vez por gesto.",
+        "Toque suave al cambiar entre Recibos, Deudas y Metas.",
+        "El anillo de Mi ciclo vibra poco y se regula en Ajustes.",
+        "En Gestionar plan aparece la ola al llegar al final.",
+        "Al renombrar un gasto, la lista enseña el nombre nuevo al momento.",
+        "«Se te van cada mes» cuadra con la suma de sus grupos cuando hay recibos con calendario propio, como los seguros semestrales.",
+        "Las cifras ya no cuentan desde 0 al entrar en una pantalla."
+      ],
+      "en": [
+        "The border of lists vibrates only once per gesture.",
+        "A soft tap when switching between Bills, Debts and Goals.",
+        "The My cycle ring vibrates only a little and can be tuned in Settings.",
+        "In Manage plan the ripple shows when you reach the end.",
+        "When you rename an expense, the list shows the new name at once.",
+        "«Se te van cada mes» (monthly total) now matches the sum of its groups when bills have their own calendar, such as half-yearly insurance.",
+        "Figures no longer count up from 0 when you open a screen."
+      ],
+      "ca": [
+        "La vora de les llistes vibra un sol cop per gest.",
+        "Toc suau en canviar entre Rebuts, Deutes i Metes.",
+        "L'anell de El meu cicle vibra poc i es regula a Ajustos.",
+        "A Gestionar pla apareix l'ona en arribar al final.",
+        "En reanomenar una despesa, la llista mostra el nom nou a l'instant.",
+        "«Se te van cada mes» (total mensual) quadra amb la suma dels seus grups quan hi ha rebuts amb calendari propi, com les assegurances semestrals.",
+        "Les xifres ja no compten des de 0 en entrar a una pantalla."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "gestionar-plan-ola-r2",
+        "t": {
+          "es": "Plan: la ola en Gestionar plan, otra vez",
+          "en": "Plan: the ripple in Manage plan, once more",
+          "ca": "Pla: l'ona a Gestionar pla, un cop més"
+        },
+        "items": {
+          "es": [
+            "1. Abre Plan → Recibos → Gestionar plan, desplázate hasta el final y tira (tu frase: «no hay manera, ola no funciona en recibos»). Sale la ola. MAL: no sale.",
+            "2. Entra en una categoría y haz lo mismo. MAL: no sale la ola.",
+            "3. Cierra Gestionar plan: Plan sigue donde estaba. MAL: Plan aparece en otro punto."
+          ],
+          "en": [
+            "1. Open Plan → Bills → Manage plan, scroll to the end and pull (your words: «no hay manera, ola no funciona en recibos», there is no way, the ripple does not work in bills). The ripple shows. WRONG: it does not.",
+            "2. Go into a category and do the same. WRONG: no ripple.",
+            "3. Close Manage plan: Plan stays where it was. WRONG: Plan shows at another spot."
+          ],
+          "ca": [
+            "1. Obre Pla → Rebuts → Gestionar pla, desplaça fins al final i estira (la teva frase: «no hay manera, ola no funciona en recibos», no hi ha manera, l'ona no funciona als rebuts). Surt l'ona. MALAMENT: no surt.",
+            "2. Entra en una categoria i fes el mateix. MALAMENT: no surt l'ona.",
+            "3. Tanca Gestionar pla: Pla continua on era. MALAMENT: Pla apareix en un altre punt."
+          ]
+        }
+      },
+      {
+        "id": "youtube-diagnostico",
+        "t": {
+          "es": "YouTube Premium: copiar el diagnóstico del recibo",
+          "en": "YouTube Premium: copy the bill diagnosis",
+          "ca": "YouTube Premium: copiar el diagnòstic del rebut"
+        },
+        "items": {
+          "es": [
+            "1. Abre Gastos, entra en el cargo de YouTube Premium, toca «Paga un recibo» y luego «Copiar diagnóstico». MAL: no aparece el botón.",
+            "2. Pégalo en el chat a Claude. Es la única forma de saber por qué no se enlaza."
+          ],
+          "en": [
+            "1. Open Expenses, go into the YouTube Premium charge, tap «Pays a bill» and then «Copy diagnosis». WRONG: the button does not show.",
+            "2. Paste it into the chat to Claude. It is the only way to know why it does not link."
+          ],
+          "ca": [
+            "1. Obre Despeses, entra al càrrec de YouTube Premium, toca «Paga un rebut» i després «Copiar diagnòstic». MALAMENT: no apareix el botó.",
+            "2. Enganxa'l al xat a Claude. És l'única manera de saber per què no s'enllaça."
+          ]
+        }
+      },
+      {
+        "id": "renombrar-lista-al-momento",
+        "t": {
+          "es": "Gastos: el nombre nuevo se ve al momento",
+          "en": "Expenses: the new name shows at once",
+          "ca": "Despeses: el nom nou es veu a l'instant"
+        },
+        "items": {
+          "es": [
+            "1. Abre un gasto en Gastos, cámbiale el nombre y guarda. La lista enseña el nombre nuevo al instante, con ⏳ hasta que se guarde. MAL: la lista sigue con el nombre viejo.",
+            "2. Espera unos segundos: la lista conserva el nombre nuevo y desaparece el ⏳. MAL: vuelve el nombre viejo."
+          ],
+          "en": [
+            "1. Open an expense in Expenses, rename it and save. The list shows the new name at once, with ⏳ until it is saved. WRONG: the list keeps the old name.",
+            "2. Wait a few seconds: the list keeps the new name and the ⏳ goes away. WRONG: the old name comes back."
+          ],
+          "ca": [
+            "1. Obre una despesa a Despeses, canvia-li el nom i desa. La llista mostra el nom nou a l'instant, amb ⏳ fins que es desi. MALAMENT: la llista continua amb el nom vell.",
+            "2. Espera uns segons: la llista conserva el nom nou i desapareix el ⏳. MALAMENT: torna el nom vell."
+          ]
+        }
+      },
+      {
+        "id": "recibos-cifra-cuadra",
+        "t": {
+          "es": "Recibos: la cifra mensual cuadra y no cuenta desde 0",
+          "en": "Bills: the monthly figure adds up and does not count from 0",
+          "ca": "Rebuts: la xifra mensual quadra i no compta des de 0"
+        },
+        "items": {
+          "es": [
+            "1. Abre Plan → Recibos: «Se te van cada mes» es igual a la suma de los grupos de debajo. MAL: no cuadra.",
+            "2. Entra en Cartera y en Inicio: la cifra grande sale directamente, sin pasar por 0,00 €. MAL: se ve 0."
+          ],
+          "en": [
+            "1. Open Plan → Bills: «Se te van cada mes» equals the sum of the groups below. WRONG: it does not add up.",
+            "2. Go into Wallet and Home: the big figure shows straight away, without passing through 0,00 €. WRONG: you see 0."
+          ],
+          "ca": [
+            "1. Obre Pla → Rebuts: «Se te van cada mes» és igual a la suma dels grups de sota. MALAMENT: no quadra.",
+            "2. Entra a Cartera i a Inici: la xifra gran surt directament, sense passar per 0,00 €. MALAMENT: es veu 0."
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "v": "4.26.152",
+    "d": "2026-10-19",
+    "t": {
+      "es": "Gestionar plan con ola, y vibración más ajustable",
+      "en": "Manage plan with the ripple, and more tunable vibration",
+      "ca": "Gestionar pla amb ona, i vibració més ajustable"
+    },
+    "items": {
+      "es": [
+        "En Gestionar plan vuelve la ola al llegar al final y la hoja ya no salta al cerrar.",
+        "El ajuste de fuerza de la vibración se nota.",
+        "El borde solo vibra si sigues moviendo el dedo.",
+        "Puedes elegir el tipo de vibración que mejor se note en tu móvil."
+      ],
+      "en": [
+        "In Manage plan the ripple is back when you reach the end, and the sheet no longer jumps when it closes.",
+        "The vibration strength setting can be felt.",
+        "Reaching the end of a list only vibrates while you keep moving your finger.",
+        "You can choose the type of vibration that is best felt on your phone."
+      ],
+      "ca": [
+        "A Gestionar pla torna l'ona en arribar al final i la fitxa ja no salta en tancar.",
+        "L'ajust de força de la vibració se nota.",
+        "La vora només vibra si continues movent el dit.",
+        "Pots triar el tipus de vibració que millor es noti al teu mòbil."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.151",
+    "d": "2026-10-19",
+    "t": {
+      "es": "Renombrar gastos y notas, más seguros",
+      "en": "Renaming expenses and notes, made safer",
+      "ca": "Reanomenar despeses i notes, més segur"
+    },
+    "items": {
+      "es": [
+        "Al renombrar un gasto ya no vuelve una nota antigua ni aparece duplicado.",
+        "Si una nota o un nombre no se ha podido guardar en la nube, la ficha lo dice y deja reintentar.",
+        "Renombrar funciona también sin conexión."
+      ],
+      "en": [
+        "When you rename an expense, an old note no longer comes back and it no longer shows up twice.",
+        "If a note or a name could not be saved to the cloud, the sheet says so and lets you retry.",
+        "Renaming also works offline."
+      ],
+      "ca": [
+        "En reanomenar una despesa ja no torna una nota antiga ni apareix duplicada.",
+        "Si una nota o un nom no s'ha pogut desar al núvol, la fitxa ho diu i deixa tornar-ho a provar.",
+        "Reanomenar funciona també sense connexió."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "renombrar-y-notas-seguras",
+        "t": {
+          "es": "Gastos: renombrar y notas seguras",
+          "en": "Spending: safe renaming and notes",
+          "ca": "Despeses: reanomenar i notes segures"
+        },
+        "items": {
+          "es": [
+            "1. Abre Gastos, entra en un gasto, cámbiale el nombre y escribe una nota. Guarda.",
+            "2. Cierra la app del todo y vuelve a abrirla: el nombre y la nota siguen. MAL: vuelve el nombre o la nota anterior, o sale el gasto dos veces.",
+            "3. Activa el modo avión, renombra otro gasto y vuelve a quitarlo: el nombre se guarda solo al volver la red. MAL: se pierde.",
+            "4. El total de gastos y el dinero disponible no cambian. MAL: cualquier diferencia."
+          ],
+          "en": [
+            "1. Open Spending, open an expense, change its name and write a note. Save.",
+            "2. Close the app completely and open it again: the name and the note are still there. WRONG: the previous name or note comes back, or the expense shows up twice.",
+            "3. Turn on airplane mode, rename another expense and turn it off again: the name is saved by itself when the network returns. WRONG: it is lost.",
+            "4. The spending total and the available money do not change. WRONG: any difference."
+          ],
+          "ca": [
+            "1. Obre Despeses, entra en una despesa, canvia-li el nom i escriu una nota. Desa.",
+            "2. Tanca l'app del tot i torna-la a obrir: el nom i la nota continuen. MALAMENT: torna el nom o la nota anterior, o surt la despesa dues vegades.",
+            "3. Activa el mode avió, reanomena una altra despesa i torna'l a treure: el nom es desa sol quan torna la xarxa. MALAMENT: es perd.",
+            "4. El total de despeses i els diners disponibles no canvien. MALAMENT: qualsevol diferència."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.150",
     "d": "2026-10-19",
     "t": {
@@ -18,33 +444,7 @@
         "En tocar una categoria a Gestionar pla, la llista ja no es mou ni fa una «ona»."
       ]
     },
-    "tandas": [
-      {
-        "id": "gestionar-plan-sin-ola",
-        "t": {
-          "es": "Plan: Gestionar plan sin ola",
-          "en": "Plan: Manage plan without the ripple",
-          "ca": "Pla: Gestionar pla sense ona"
-        },
-        "items": {
-          "es": [
-            "1. Abre Plan → Gestionar plan.",
-            "2. Toca una categoría y suelta, o empieza a arrastrar y cancela. La lista no se mueve ni ondula. MAL: se desplaza o hace una ola.",
-            "3. Desplaza la lista y cierra la hoja: se cierra suave. MAL: da un salto."
-          ],
-          "en": [
-            "1. Open Plan → Manage plan.",
-            "2. Tap a category and let go, or start dragging and cancel. The list does not move or ripple. WRONG: it shifts or ripples.",
-            "3. Scroll the list and close the sheet: it closes smoothly. WRONG: it jumps."
-          ],
-          "ca": [
-            "1. Obre Pla → Gestionar pla.",
-            "2. Toca una categoria i deixa-la anar, o comença a arrossegar i cancel·la. La llista no es mou ni ondula. MALAMENT: es desplaça o fa una ona.",
-            "3. Desplaça la llista i tanca la fitxa: es tanca suau. MALAMENT: fa un salt."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.149",
@@ -121,74 +521,7 @@
         "Vibració nova: l'anell de El meu cicle vibra només mentre s'omple; la vora vibra i es repeteix en continuar estirant; el gràfic fa un toc a cada punt."
       ]
     },
-    "tandas": [
-      {
-        "id": "youtube-enlazar-recibo",
-        "t": {
-          "es": "Recibos: enlazar el cargo de YouTube Premium",
-          "en": "Bills: link the YouTube Premium charge",
-          "ca": "Rebuts: enllaçar el càrrec de YouTube Premium"
-        },
-        "items": {
-          "es": [
-            "1. Abre Gastos y toca el cargo de YouTube Premium (tu frase: «Sigue sin estar enlazado con YouTube premium y no deja enlazarlo»).",
-            "2. Si sale «Sí, es este recibo», púlsalo y confirma. MAL: no sale ni eso ni la lista de recibos.",
-            "3. Si no sale, en «Paga un recibo» elige YouTube Premium y confirma. MAL: no te deja.",
-            "4. Abre Plan → Recibos: YouTube sale ✓ pagado. MAL: sigue «Por confirmar».",
-            "5. El dinero disponible de Inicio y de Plan no cambia, salvo por el propio recibo. MAL: cualquier otra diferencia."
-          ],
-          "en": [
-            "1. Open Spending and tap the YouTube Premium charge (your words: «Sigue sin estar enlazado con YouTube premium y no deja enlazarlo», it is still not linked to YouTube Premium and will not let you link it).",
-            "2. If «Yes, this is the bill» shows, tap it and confirm. WRONG: neither that nor the list of bills shows.",
-            "3. If it does not show, under «Pays a bill» choose YouTube Premium and confirm. WRONG: it will not let you.",
-            "4. Open Plan → Bills: YouTube shows ✓ paid. WRONG: it is still «To confirm».",
-            "5. The available money in Home and in Plan does not change, apart from the bill itself. WRONG: any other difference."
-          ],
-          "ca": [
-            "1. Obre Despeses i toca el càrrec de YouTube Premium (la teva frase: «Sigue sin estar enlazado con YouTube premium y no deja enlazarlo», encara no està enllaçat amb YouTube Premium i no deixa enllaçar-lo).",
-            "2. Si surt «Sí, és aquest rebut», prem-lo i confirma. MALAMENT: no surt ni això ni la llista de rebuts.",
-            "3. Si no surt, a «Paga un rebut» tria YouTube Premium i confirma. MALAMENT: no et deixa.",
-            "4. Obre Pla → Rebuts: YouTube surt ✓ pagat. MALAMENT: continua «Per confirmar».",
-            "5. Els diners disponibles d'Inici i de Pla no canvien, tret del propi rebut. MALAMENT: qualsevol altra diferència."
-          ]
-        }
-      },
-      {
-        "id": "vibracion-ajustador",
-        "t": {
-          "es": "Vibración: ajústala a tu gusto y pruébala",
-          "en": "Vibration: tune it to your liking and try it",
-          "ca": "Vibració: ajusta-la al teu gust i prova-la"
-        },
-        "items": {
-          "es": [
-            "0. Instala la app nueva de Aely que te llega (APK 59, versión 4.26.148). Tu frase: «vibra un montón desde el principio y dura un montón… No vibra apenas nada».",
-            "1. Abre Ajustes → Vibración: mueve los deslizadores y pulsa «Probar» hasta que te guste cada una. MAL: «Probar» no vibra.",
-            "2. Mira el anillo de Mi ciclo: vibra solo mientras se rellena. MAL: sigue vibrando después o empieza fuerte.",
-            "3. Llega al final de una lista y sigue tirando: vibra y repite. MAL: no repite.",
-            "4. Mueve el dedo por la gráfica de Inicio: un toque por punto. MAL: no se nota.",
-            "5. Pulsa «Copiar valores» y pégalos en el chat a Claude."
-          ],
-          "en": [
-            "0. Install the new Aely app you receive (APK 59, version 4.26.148). Your words: «vibra un montón desde el principio y dura un montón… No vibra apenas nada» (it vibrates a lot from the start and lasts a lot… it barely vibrates at all).",
-            "1. Open Settings → Vibration: move the sliders and tap «Try» until you like each one. WRONG: «Try» does not vibrate.",
-            "2. Watch the My cycle ring: it vibrates only while it fills. WRONG: it keeps vibrating afterwards or starts strong.",
-            "3. Reach the end of a list and keep pulling: it vibrates and repeats. WRONG: it does not repeat.",
-            "4. Move your finger along the Home chart: one tap per point. WRONG: you cannot feel it.",
-            "5. Tap «Copy values» and paste them into the chat to Claude."
-          ],
-          "ca": [
-            "0. Instal·la l'app nova d'Aely que et arriba (APK 59, versió 4.26.148). La teva frase: «vibra un montón desde el principio y dura un montón… No vibra apenas nada» (vibra molt des del principi i dura molt… gairebé no vibra).",
-            "1. Obre Ajustos → Vibració: mou els lliscadors i prem «Provar» fins que t'agradi cadascuna. MALAMENT: «Provar» no vibra.",
-            "2. Mira l'anell de El meu cicle: vibra només mentre s'omple. MALAMENT: continua vibrant després o comença fort.",
-            "3. Arriba al final d'una llista i continua estirant: vibra i es repeteix. MALAMENT: no es repeteix.",
-            "4. Mou el dit pel gràfic d'Inici: un toc per punt. MALAMENT: no se nota.",
-            "5. Prem «Copiar valors» i enganxa'ls al xat a Claude."
-          ]
-        },
-        "apk": 59
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.147",
