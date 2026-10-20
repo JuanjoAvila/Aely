@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "id": "fin31-pr290-r2-partial-totals-projection-baseline-codex-20261020",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261019-r74-36ea75cf98e01bbf",
+  "createdAt": "2026-10-20T20:17:51.449Z",
+  "to": "codex",
+  "kind": "worker",
+  "priority": 1,
+  "model": "gpt-6-astra",
+  "assignedPublicSessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "baseSHA": "84617cc289e40bd5760794c5b0c3d43d68696024",
+  "claudeGrant": "260c16c58e7767bf8c16f5d8d883babe61e11657",
+  "dependsOnReleasedResult": "a3c178edef42e6dd2b323c91a1d8fba8ba634896",
+  "previousRunnerReturn": "383c2733216993cb5d8b64e9da468469556dcbaf",
+  "objective": "FIN31 R2 Claude NO-GO: retain FIN06 partial totals and warnings while only unconvertible broker rows show unknown; restore exact EUR baseline Projection default500, totals.invested principal and no-decimal monthly display, retaining correct GBP/USD conversions. Append same PR290 normal push.",
+  "scope": [
+    "Revert R1 changes to total/legend unknown contracts in Cartera and Tus inversiones, FIN06 partial totals with notice authoritative",
+    "Restore Projection baseline principal/default500/no-decimal display semantics, preserve FX/currency/row fixes",
+    "Directed divisas-sin-cambio unchanged + fin31 + cartera-inversiones with one worker; same PR290 normal child and immutable package"
+  ],
+  "requirements": [
+    "Same originalholder82dbe59f/model/runtime/helper/filter; NEWOWNclaimnormalpush/readback and ACK before code/tests, oldFIN31 released immutable. FULLread260c16c5 and newintermediates/cancels, whole AGENTS/EMPIEZA/protocol/current/policy. Isolated newcheckout exactR1base84617cc289e40bd5760794c5b0c3d43d68696024, normal single parent R1, no beta chase/rebase or forcepush. Preserve all oldcheckouts/claims/results/WIP/evidence incl R1 FIN22 R8 with initial+final byte/hash/repo census.",
+    "Explicit authoritative decision supersedes55981078 totals: FIN06 partial totals with missing-FX notice must remain as existing contract in Cartera and Tus inversiones. Do NOT change totals/legend to emdash. Only unconvertible row, including mixed-currency samebroker, displays emdash with why. Existing e2e/divisas-sin-cambio.spec.mjs MUST pass UNCHANGED; inspect actual matching filename first. Preserve actual knownsubtotal, unknownnotfalsezero row, truezero, storedfullrows/rates/identity. No genericmoneyGO fromR1 tests whose requested totals contract changed.",
+    "Projection must match actual preR1 beta16066c13084257fd576444a01cb529c5e6e815c6ec6 in EUR: no savedcontributions => default500, display contribution without decimals, principal MUST totals.invested (includes rounding/saveback/monthlyinvestment), not localinvestment total. Independent principal/default monetary oracles with nonzero rounding/saveback/monthly investment controls, compare all relevant EUR projectedvalue/contributions/axis/default against baseline, demonstrate R1 RED. Restore baseline behavior without relabellingEURnumbers; preserve converted USDGBP axis and allamounts and originalstoredrows. Do not infer null from reduce(...,0). Existing no-FX display selection fallback retained unless direct cause.",
+    "Directed realbrowser: e2e divisas-sin-cambio unchanged + fin31 + cartera-inversiones, CPU1 sequential worker1retry0maxFailures1/fresh OWNcensusadmissionport. Identify exactactual testfilenames before running. Update fin31 independent expectedoracles ONLY to newly authorizedFIN06/default500/principalbaseline contract, retain previous R1 tests/runs immutable for truthful RED/evidence. No weakening divisas-sin-cambio/or unrelatedtests. If testfailure stopatfirst preserve actualreason before any justifiednextpass; no fullsuite/CPU6/perf/repeatedoldtestsbyinertia.",
+    "Retain R1 accepted rows emdash/why, GBP selected and currency conversion; currencyfixes must not alterfinancial originals or baselineEURprojection. Native widget excluded. Claude accepts catalogue integration himself: leave reservedcatalogue unchanged, report explicit dependency footprints CUR_SYM eur fromEurAmt in both limpieza-ajustes-perfil and cartera-ordenar-brokers. No VERSION/notes/CHANGELOG/README/ROADMAP/BACKLOG/caps edits, no SQL/Edge/API/livebank/cloud/APK/Gradle/deploy/merge. PR288/289 untouched.",
+    "Same OWN9 holderactual16/20remaining4 atR1close noreset/inheritance; count first/internal/readback >=30s. Only actual20 frozen then normal nextblocknotice/readback undervalidgrant, neverzero existing budget. ROOTledger separate. OwnresourcesRETURN identityreadback no foreign/sharedlock/PIDclockreclaim.",
+    "Same PR290 append normalpush, exactremotePRhead/branch/pullref. Actual directed GREEN/RED and integrationgate EXITs, skippedgates/failures/limits preserved. ImmutablemanifestZIP/report/sourceinventory/privacycopyredactions originalhashes/priorfilesrepos/WIP/ownRETURN/releasedresult. Privatehandoffnativelyspecified thenSTOP no native reply. FIN12/INC290902/FIN04 queued only. R1originaltests green doNOTestablish this correctedcontract; no ProductREADY/served/mobileclaim."
+  ],
+  "deliverable": "PR290 R2 normal child correcting FIN06 totals and EUR baseline Projection semantics, requested directed e2es and independent monetary RED/GREEN, immutable package/source/prior integrity, ownRETURN/releasedresult thenSTOP."
+}
