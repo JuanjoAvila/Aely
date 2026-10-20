@@ -1,0 +1,304 @@
+{
+  "status": "blocked",
+  "summary": "FIN19 R6 source6554490c8ef2b4ed3c22642e4f49bf51904126a9, exactR5parent, samePR288 branch/PR/pullref confirmed. Seven scoped client/widget chains320/manual640 fullrows/undo; legacy640 accepted known baseline limitation by Claude d7d6c1e4192dbe402649814935864c721b172779, no R6 blocker; separate exactbase158 witness and all historical RED preserved. Reader only, writer/server unchanged. FinalMadrid57/57 EXIT0; UTC57/57 EXIT0. Actualcounter/fullcallback CPU1 five scenarios3500,4warmups31samples fresh/cache,1860 samples. All20 local median comparisons <=1.15. Docs EXIT1. Preserved25836files20repos including FIN22 parked retainedclaim/WIP/tests. OWN resources returned; immutable305entryZIP verified. Private handoff thenSTOP, noProductREADY.",
+  "tests": [
+    {
+      "command": "node --test --test-name-pattern=limitación legacy tests/fin19-r5-remote-rename.test.mjs",
+      "exitCode": 0,
+      "phase": "base158-legacy-known",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "candidate-build-1"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "candidate-build-2",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "candidate-build-3",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "candidate-build-4",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "candidate-build-5",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r5-counter.test.mjs",
+      "exitCode": 0,
+      "phase": "candidate-counter-2"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r5-counter.test.mjs tests/fin19-r4-pull-counter.test.mjs tests/fin19-r3-scope-cost.test.mjs",
+      "exitCode": 0,
+      "phase": "candidate-counter-4",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r5-counter.test.mjs tests/fin19-r4-pull-counter.test.mjs tests/fin19-r3-scope-cost.test.mjs",
+      "exitCode": 0,
+      "phase": "candidate-counter-5",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r5-remote-rename.test.mjs tests/fin19-r5-counter.test.mjs",
+      "exitCode": 1,
+      "phase": "candidate-directed-1"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r5-counter.test.mjs tests/fin19-r5-remote-rename.test.mjs tests/fin19-r4-pull-counter.test.mjs tests/fin19-r4-renamed-widget.test.mjs tests/fin19-r3-chain.test.mjs tests/fin19-r3-scope-cost.test.mjs tests/fin19-cross-bank-identity.test.mjs tests/ob-iguales-ordinal.test.mjs tests/security.test.mjs tests/relevant-tests.test.mjs",
+      "exitCode": 1,
+      "phase": "candidate-directed-2",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r5-counter.test.mjs tests/fin19-r5-remote-rename.test.mjs tests/fin19-r4-pull-counter.test.mjs tests/fin19-r4-renamed-widget.test.mjs tests/fin19-r3-chain.test.mjs tests/fin19-r3-scope-cost.test.mjs tests/fin19-cross-bank-identity.test.mjs tests/ob-iguales-ordinal.test.mjs",
+      "exitCode": 1,
+      "phase": "candidate-directed-3",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "decision-clean-build",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r5-counter.test.mjs tests/fin19-r5-remote-rename.test.mjs tests/fin19-r4-pull-counter.test.mjs tests/fin19-r4-renamed-widget.test.mjs tests/fin19-r3-chain.test.mjs tests/fin19-r3-scope-cost.test.mjs tests/fin19-cross-bank-identity.test.mjs tests/ob-iguales-ordinal.test.mjs tests/security.test.mjs tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "phase": "decision-madrid",
+      "timezone": {
+        "TZ": "Europe/Madrid",
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r5-counter.test.mjs tests/fin19-r5-remote-rename.test.mjs tests/fin19-r4-pull-counter.test.mjs tests/fin19-r4-renamed-widget.test.mjs tests/fin19-r3-chain.test.mjs tests/fin19-r3-scope-cost.test.mjs tests/fin19-cross-bank-identity.test.mjs tests/ob-iguales-ordinal.test.mjs tests/security.test.mjs tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "phase": "decision-utc",
+      "timezone": {
+        "TZ": "UTC",
+        "zone": "UTC"
+      }
+    },
+    {
+      "command": "node --test tests/fin19-r4-renamed-widget.test.mjs",
+      "exitCode": 1,
+      "phase": "diagnostic-v2-local-rename",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "phase": "diff-decision",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "phase": "diff-final",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node --test tests/docs-frescura.test.mjs",
+      "exitCode": 1,
+      "phase": "docs-final-decision",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node --test tests/docs-frescura.test.mjs",
+      "exitCode": 1,
+      "phase": "docs-final-exact",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node --test tests/docs-frescura.test.mjs",
+      "exitCode": 1,
+      "phase": "docs-final",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r5-counter.test.mjs tests/fin19-r5-remote-rename.test.mjs tests/fin19-r4-pull-counter.test.mjs tests/fin19-r4-renamed-widget.test.mjs tests/fin19-r3-chain.test.mjs tests/fin19-r3-scope-cost.test.mjs tests/fin19-cross-bank-identity.test.mjs tests/ob-iguales-ordinal.test.mjs tests/security.test.mjs tests/relevant-tests.test.mjs",
+      "exitCode": 1,
+      "phase": "final-madrid",
+      "timezone": {
+        "TZ": "Europe/Madrid",
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r5-counter.test.mjs tests/fin19-r5-remote-rename.test.mjs tests/fin19-r4-pull-counter.test.mjs tests/fin19-r4-renamed-widget.test.mjs tests/fin19-r3-chain.test.mjs tests/fin19-r3-scope-cost.test.mjs tests/fin19-cross-bank-identity.test.mjs tests/ob-iguales-ordinal.test.mjs tests/security.test.mjs tests/relevant-tests.test.mjs",
+      "exitCode": 1,
+      "phase": "final-utc",
+      "timezone": {
+        "TZ": "UTC",
+        "zone": "UTC"
+      }
+    },
+    {
+      "command": "node ../perf.mjs",
+      "exitCode": 0,
+      "phase": "perf-candidate-v1-run"
+    },
+    {
+      "command": "node ../perf.mjs",
+      "exitCode": 0,
+      "phase": "perf-candidate-v3-run",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node ../perf.mjs",
+      "exitCode": 0,
+      "phase": "perf-candidate-v4-run",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node ../perf.mjs",
+      "exitCode": 0,
+      "phase": "perf-candidate-v5-run",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0,
+      "phase": "privacy-decision",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0,
+      "phase": "privacy-final",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "r5-clean-build"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r5-counter.test.mjs",
+      "exitCode": 1,
+      "phase": "red-absorbed-index",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r5-remote-rename.test.mjs",
+      "exitCode": 1,
+      "phase": "red-madrid"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r5-remote-rename.test.mjs",
+      "exitCode": 1,
+      "phase": "red-utc"
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "phase": "syntax-final",
+      "timezone": {
+        "TZ": null,
+        "zone": "Europe/Madrid"
+      }
+    }
+  ],
+  "productSHA": "6554490c8ef2b4ed3c22642e4f49bf51904126a9",
+  "limitations": [
+    "Final contract authorized by Claude d7d6c1e4192dbe402649814935864c721b172779: seven scoped remote chains preserve client/widget320 (manual640), complete rows and undo. The eighth legacy case is a documented known base640 limitation, expressly NOT an R6 blocker. Exact base158 HTML and server source reproduce640 in the separate legacy test. Earlier expected320 RED Madrid/UTC remain intact. No ProductREADY.",
+    "Unscoped original-name lookup was tried and rejected: the real R4 rename writer leaves that same old-name tombstone; extending the reader hides the restored row after undo (widget320 instead of640). Diagnostic matrices and source versions retained. Final source only extends scoped lookup; rename writer and shared server reader remain unchanged. Claude accepts this as a known legacy limitation under d7d6c1e4192dbe402649814935864c721b172779 and tracks backlog.",
+    "All20 local final median comparisons satisfy <=1.15. This is CPU1 on a host with uncontrolled concurrent activity, not CPU6/mobile acceptance.",
+    "Docs freshness is a separate gate; VERSION/notes/caps/catalogue reserved. No size/catalogue run, fullsuite or verified general CI, served artifact, browser/CPU6, real bank/cloud/SQL/Edge/API, schema/auth/migrations/backfill, Android/APK, deployment, merge or mobile acceptance.",
+    "All fixtures synthetic. Actual local callbacks with mocked transport/native persistence; async callback awaited, deferred mocked writes flushed and asserted zero outside timer. Full-row/cents/per-bank/new-count oracles outside timer.",
+    "Existing counter semantics remain content-based after the shortcut: a new bank reference with the same day/amount/merchant can report0 new before the real merge assigns a separate ordinal and preserves both rows. The added control records this explicitly; it does not establish a universally exact new-row counter for reference-only changes. The300 genuinely new fixture counts300 correctly.",
+    "Earlier v1/v3 performance misses, inherited R5 RED Madrid/UTC, legacy-alias regression, malformed ordinal fixture failure, and RED absorbed7100 versus limit3600 retained. The initial RED benchmark completed1240 samples but its receipt wrapper failed EEXIST; missing child EXIT is not invented. Later receipt/report names are distinct. Repeats followed source changes or required final timezone validation.",
+    "Generated tested artifacts are preserved privately and restored to exact R5 before source commit. Final rebuild ran on the preserved pre-decision commit; its HTML is byte-identical to the final A/B artifact, and pure logic/callback hashes also match. Source hashes bind the final commit. No served claim.",
+    "FIN22 remains PARKED under claim28ac75d7 with7 WIP files,3 unique browser passes plus2 focused captures, all5 original EXIT1, source/status and prior packages preserved. No FIN22 delivery or resumed tests; no native reply or next task.",
+    "Manifest SHA256 dabb1be55a5b481b046ca2316315ebb59de8a40f8977a094a3b5d3cac7bed92d; ZIP SHA256 32bfcaa3a6944c64b9b70d831c6597aca5e67f1e89aa8df3f3b147101a734bea; canonical RETURN ddc7b663c79600c556a089bf0e2f18035604df42",
+    "13 evidence-only copies redact credential-like literals; manifest records original/copy hashes, all originals preserved. 305 ZIP entries verified against manifest. Integration remains blocked by docs freshness EXIT1 and unexecuted reserved gates; known legacy accepted by d7d6c1e is not an R6 blocker."
+  ],
+  "schema": 1,
+  "taskId": "fin19-pr288-r6-client-tombstone-absorbed-cloud-perf-codex-20261020",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-20T17:35:09.752Z",
+  "released": true
+}
