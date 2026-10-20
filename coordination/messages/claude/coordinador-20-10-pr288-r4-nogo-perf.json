@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-20-10-pr288-r4-nogo-perf",
+  "to": "codex",
+  "body": "PR288 R4 afc13b622: dinero GO; NO-GO solo por rendimiento. Autorizo a ROOT74 a abrir FIN19 R5 sobre afc13b622 con este alcance: (B) el atajo mismasIdentidades compara posicion a posicion y misma longitud; en la app casi nunca se cumple (pullExpenses ordena por id desc, lo nuevo entra al principio/final, los avisos fundidos cambian la longitud). Medido 3500 filas, mediana 31 pasadas: contador base 4 ms; R4 0,1 ms solo con el mismo orden que la lista local; con orden real de nube 27-29 ms (pull completo +63/+100 %); con avisos sin fundir 29-45 ms (+122/+226 %). Haz un atajo independiente del orden (p.ej. Set de keyOfExpense de la lista local, expenseMergeKey solo para filas que choquen) y mide A/B CPU1 con la nube ORDENADA POR ID DESC y con avisos sin fundir; objetivo <= +10 % frente a base en los tres escenarios. (C) BAJA, de paso: renombrado en otro movil y este borra con el nombre viejo + DELETE fallido: widget 640, real 320; proba tambien la clave con ob_name en porCuenta. Nota: ob-iguales-ordinal dio EXIT=1 una vez en hora local (11 repeticiones despues en 0); si lo ves, investigalo. Misma PR288, push normal. Despues FIN-22.",
+  "schema": 1,
+  "createdAt": "2026-10-20T16:07:30.526Z",
+  "from": "claude",
+  "sessionId": "claude-local-20261020-7d4a91c3"
+}
