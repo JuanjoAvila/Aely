@@ -62,6 +62,21 @@ check('paidYm without proof does not block the manual link',()=>{const s=calenda
   assert.equal(linked.fixed[0].paymentProofs[24322].kind,'expense');assert.equal(linked.fixed[0].paidYm,24322);assert.equal(relation(linked).id,s.fixed[0].id);});
 check('real proof still blocks a second manual link',()=>{const s=paymentFixture();s.expenses.push({...s.expenses[0],id:'other-synthetic',extId:'other-ref',date:'2026-10-12',amount:30.49,merchant:'YOUTUBE OTRO',obName:'YOUTUBE OTRO'});
   assert(c.fixedPaymentEvidence(c.fixedPaymentState(s,s.fixed[0],2026,10,18)));assert.equal(c.linkFixedPayment(s,'other-synthetic',s.fixed[0].id,2026,10,18),s);});
+// INC-1810-04 r3 (diagnóstico real, beta 4.26.154.1): la prueba BOOK guardada es de ESTE cargo
+// (misma referencia del banco), pero el cargo renombrado se identifica por el texto del banco
+// (`obName`) y la prueba por el nombre ya limpio: Plan lo daba por pagado y la ficha decía «No».
+const youtubeR3=()=>{const s=paymentFixture(),x=s.expenses[0],ref='20261002213646522190S1',iban='ES0000000000000000008405';
+  s.fixed[0]={id:'hs0ymqd4',name:'YouTube Premium ',amount:29.99,day:2,freq:'mes'};
+  Object.assign(x,{date:'2026-10-02',amount:29.99,extId:ref,obAcc:iban,merchant:'YouTube Premium',obName:'COMPRA TARJ. 5402XXXXXXXX6013 GOOGLE*YOUTUBE-DUBLIN',category:'recibos'});
+  s.bankTx=[];s.accounts[0].bankIban=iban;
+  const identity=JSON.stringify(['sabadell','2026-10-02',29.99,'YouTube Premium']);
+  s.fixed[0].paymentProofs={24322:c.fixedPaymentBind({kind:'book',key:'sabadell|'+ref,identity,date:'2026-10-02',bank:'sabadell',merchant:'YouTube Premium',amount:29.99,model:c.fixedPaymentModel(s.fixed[0],10)},s.fixed[0],10)};
+  return s;};
+check('BOOK proof of this same charge names the receipt even when its identity text differs',()=>{const s=youtubeR3(),before=JSON.stringify(s),money=moneyOf(s);
+  assert(c.fixedPaymentState(s,s.fixed[0],2026,10,18).proof,'la prueba guardada es válida');assert(read(s).confirmed['fixed_hs0ymqd4']);
+  assert.equal(relation(s)&&relation(s).id,'hs0ymqd4');assert.equal(moneyOf(s),money);assert.equal(JSON.stringify(s),before);});
+check('BOOK proof of ANOTHER reference still never names this charge',()=>{for(const mutate of [s=>s.expenses[0].extId='20261002213646522190S2',s=>delete s.expenses[0].extId,s=>s.expenses[0].ent='caixabank',s=>s.expenses[0].date='2026-10-03',s=>s.expenses[0].obAcc='ES0000000000000000009999',s=>s.expenses.push({...s.expenses[0],id:'twin'})]){
+  const s=youtubeR3();mutate(s);assert.equal(relation(s),null);}});
 check('withdrawal needs the existing confirmation timestamp',()=>{const e=paymentFixture('debt').expenses[0];assert.equal(c.withdrawalConfirmedUI(e),false);assert.equal(c.withdrawalConfirmedUI({...e,category:'traspaso'}),false);assert(c.withdrawalConfirmedUI({...e,category:'traspaso',withdrawalConfirmedAt:1}));assert.equal(c.withdrawalConfirmedUI({...e,withdrawalConfirmedAt:1}),false);});
 check('reads preserve all persisted bytes and exact cent oracles',()=>{for(const kind of ['debt','receipt','linked-debt']){const s=paymentFixture(kind),before=JSON.stringify(s);const money=()=>JSON.stringify({plan:c.planChargesMonth(s,10,2026,18),inicio:c.dashboardBudgetStats(s),widget:c.monthBudgetStats(s,c.Date.now()),balance:c.monthNetForAccount(s,'sabadell',2026,10,18),cloud:c.slimForCloud(s)});const expected=money();for(let i=0;i<3;i++){read(s);relation(s);}assert.equal(money(),expected);assert.equal(JSON.stringify(s),before);assert.equal(Math.round(s.expenses[0].amount*100),kind==='receipt'?2999:19700);assert.equal(Math.round(s.accounts[0].value*100),80000);}});
 console.log(checks+' payment UI checks passed');

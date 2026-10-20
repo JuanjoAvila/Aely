@@ -514,6 +514,16 @@ function paymentEvidenceUI(s,y,m,today){
     var identity=p?p.identity:tx?fixedPaymentIdentity(tx.ent,tx):null;
     if(!identity) return;
     var rows=index.identity.get(identity)||[];
+    /* La prueba BOOK guarda el nombre del extracto y el cargo renombrado se identifica por el
+       texto del banco (`obName`): con la MISMA referencia, día y céntimos es el mismo cargo y Plan
+       ya lo da por pagado; la ficha decía «No» (INC-1810-04, diagnóstico real de beta 4.26.154.1).
+       Otra referencia sigue sin valer. */
+    if(!rows.length&&p&&p.kind==="book"&&p.key){
+      rows=[];index.identity.forEach(function(list){ list.forEach(function(x){
+        if(x.extId&&p.key===p.bank+"|"+x.extId&&expenseBankOf(x)===p.bank&&String(x.date||"").slice(0,10)===String(p.date||"").slice(0,10)&&
+          Math.round(Number(x.amount)*100)===Math.round(Number(p.amount)*100)) rows.push(x);
+      }); });
+    }
     if(rows.length!==1) return;
     var x=rows[0];
     if(!fixedExpenseEligible(s,x,f,y,m,today)) return;
@@ -577,11 +587,13 @@ function reciboDiagText(s,x){
     " extId:"+(x.extId||"-")+" obAcc:"+cola(x.obAcc)+" obPending:"+!!x.obPending+" status:"+(x.status||"-")+" obName:"+(x.obName!=null?JSON.stringify(x.obName):"-")+" merchant:"+JSON.stringify(x.merchant||"")+" reciboId:"+(x.reciboId||"-")+" debtId:"+(x.debtId?"sí":"-")+" possibleDup:"+!!x.possibleDup,
     " relación:"+(rel?rel.kind+":"+rel.id:"null")+" current:"+(paymentEvidenceRowIssue(s,x,index,deleted)||"ok")+" filasIdentidad:"+(index.identity.get(identity)||[]).length];
   var txs=(s.bankTx||[]).filter(function(tx){ return fixedPaymentIdentity(tx.ent,tx)===identity; });
+  var mismaRef=x.extId?(s.bankTx||[]).filter(function(tx){ return String(tx.id)===String(x.extId); }):[];
+  out.push(" identidad:"+identity+" · EXTRACTO misma ref: "+(mismaRef.length?mismaRef.map(function(tx){ return (tx.ent||"-")+" "+String(tx.date||"").slice(0,10)+" "+JSON.stringify(tx.merchant||"")+" acc:"+cola(tx.acc)+" status:"+(tx.status||"-"); }).join(" | "):"ninguno"));
   out.push("EXTRACTO misma identidad: "+(txs.length?txs.map(function(tx){ return "id:"+(tx.id||"-")+" acc:"+cola(tx.acc)+" status:"+(tx.status||"-")+(tx.possibleDup?" dup":""); }).join(" | "):"ninguno")+" · extracto total "+(s.bankTx||[]).length);
   (s.fixed||[]).forEach(function(f){
     if(!occursIn(f,m)) return;
     var st=fixedPaymentState(s,f,y,m,today),target=f.bankAmount>0?f.bankAmount:occAmountIn(f,m);
-    var ev=st.proof?"prueba:"+st.proof.kind+(st.proof.identity===identity?"(este)":""):st.bankTx?"extracto:"+(fixedPaymentIdentity(st.bankTx.ent,st.bankTx)===identity?"este":"otro"):st.expense?"fila:"+(st.expense.id===x.id?"este":"otra"):"";
+    var ev=st.proof?"prueba:"+st.proof.kind+(st.proof.identity===identity?"(este)":x.extId&&st.proof.key===st.proof.bank+"|"+x.extId?"(esta ref)":"")+" key:"+(st.proof.key||"-")+" id:"+(st.proof.identity||"-"):st.bankTx?"extracto:"+(fixedPaymentIdentity(st.bankTx.ent,st.bankTx)===identity?"este":"otro"):st.expense?"fila:"+(st.expense.id===x.id?"este":"otra"):"";
     var motivo=reciboVetado(s,f.id,reciboNoIdentidad(x),x.id)?"vetado para este cargo":
       !fixedPaymentUnique(s,f)?"id de recibo repetido":x.possibleDup?"cargo posible repetido":x.debtId?"cargo es cuota":
       x.status&&String(x.status).toUpperCase()!=="BOOK"?"cargo no BOOK":!bank?"cargo sin banco":CAT_NEUTRAS[x.category]?"categoría neutra":x.category==="ingreso"?"es ingreso":
