@@ -1,4 +1,27 @@
-# FIN19 R3 · importación, presupuesto por banco y widget
+# FIN19 R4 · borrado renombrado y contador del pull
+
+Candidata sobre R3 `16515fd171e5121424722a69ee60bd959f8f4d59`, misma PR288, 20/10/2026. El lector compartido usa `comercio`, igual que el escritor de la lápida de cuenta. Después de renombrar BAR SL a Mi bar, borrar A y fallar el DELETE simulado, la cadena real de renombrado, borrado, persistencia, importación, pull completo y widget conserva la otra compra: base158 320, R3 640, R4 320 céntimos. `ob_name` conserva BAR SL para el importador. Hay controles de ordinal, otra cuenta del mismo banco, otro banco, coincidencia del nombre final, fila manual, lápida legacy producida por el escritor, reintento y deshacer, con filas completas y presupuesto por banco.
+
+El contador compara los campos de identidad de las dos listas. Si coinciden punto por punto, no hay entradas nuevas y evita construir las claves. Un cambio de UUID, fecha, importe, comercio, origen, banco, cuenta, ordinal o referencia obliga al cálculo normal. El merge sigue ejecutándose y refresca categoría y nota. No se conserva una caché entre estados. Los controles de R3 por banco (320/320), PR286 y las 3.000 filas/4.501.500 céntimos siguen pasando.
+
+A/B CPU1, mismo proceso, 3.500 filas, cuatro calentamientos y 21 muestras intercaladas. Se mide el contador real y el callback completo `syncCloudExpenses`, con transporte simulado y oráculos independientes de dinero y filas fuera del tramo medido:
+
+| Mediana ms | Base158 | R3 | R4 | R4/base |
+|---|---:|---:|---:|---:|
+| Contador, entradas nuevas | 6,6731 | 17,3363 | 0,5115 | 0,0767 |
+| Pull completo, entradas nuevas | 135,2711 | 146,7100 | 132,8644 | 0,9822 |
+| Contador, caché caliente | 5,0849 | 10,3967 | 0,1772 | 0,0348 |
+| Pull completo, caché caliente | 88,8298 | 100,8892 | 88,3719 | 0,9948 |
+
+Las cuatro comparaciones cumplen el objetivo local de no superar base158 en más del 10 %. La actividad externa del host no está controlada; los tiempos absolutos varían entre lotes. No es aceptación móvil/CPU6. La medición histórica de R3 abajo era un compuesto de contador/categorías/merge, no el callback completo; no se usa como prueba de este objetivo.
+
+Se preservan los fallos intermedios del arnés: expectativa no contractual de `noteEdited`, undo de una lápida legacy fabricada, extracción antigua del contador y representación del retorno `null` del importador (significa sin cambios). Corregidos los fixtures y puntos de extracción, se mantienen los oráculos monetarios. El lote dirigido adicional inicial pasó 45/46; su único fallo fue la extracción, y el lote afectado pasa 16/16. Ese primer lote adicional omitió `--test-concurrency=1` y usó el valor predeterminado de Node; se declara la desviación y no se utiliza como evidencia de rendimiento. Las ejecuciones siguientes y todo el A/B usan concurrencia 1.
+
+Límite financiero distinto conservado: si otra fila comparte también el nombre original BAR SL, el ACK de renombrado anterior a R4 crea una lápida legacy amplia. En la primera reproducción sobre R3, el total era 320 pero sobrevivía la fila equivocada. Ese caso se conserva como fallo conocido; R4 no modifica el escritor de renombrado ni acredita resolverlo. El caso causal 640→320 usa otra compra distinta; los controles de colisión cubren el nombre final Mi bar.
+
+La entrega privada contiene todos los comandos/EXIT, matrices, muestras y hashes. Solo dos ficheros de producto cambian en R4. VERSION, notas, catálogo y topes siguen reservados a integración; tamaño y catálogo no se repiten. Sin nube/banco reales, SQL/Edge, suite completa, CI general verificada, navegador/CPU6, APK, despliegue, merge ni aceptación móvil. No ProductREADY.
+
+## Historial R3 · importación, presupuesto por banco y widget
 
 Candidata para la misma PR288, descendiente normal de R2 `5b0cf1eb83c5ce3c79a776223b0b11bd2ab68151`, 20/10/2026. Comparación con beta158 `a5bbecf6793931f4cfc8a3087951ad1ef66580f8`. La revisión independiente rechazó R2 por resurrección al importar sin referencia, asignación incorrecta del banco de avisos incompletos, lápidas ignoradas por el widget y coste del índice. No acredita integración, despliegue ni aceptación móvil.
 

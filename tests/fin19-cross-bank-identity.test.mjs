@@ -92,7 +92,7 @@ test('FIN19: category preparation and acknowledgement cannot cross bank/account'
 });
 test('FIN19: actual pull count and source decoding retain both banks',()=>{
  const main=fs.readFileSync(new URL('../src/modules/11-app-main.js',import.meta.url),'utf8');
- const start=main.indexOf('const identityScope=expenseIdentityScopes('),end=main.indexOf('\n      set(function(prev)',start);assert.ok(start>=0&&end>start);
+ const start=main.indexOf('      // "nuevo" ='),end=main.indexOf('\n      set(function(prev)',start);assert.ok(start>=0&&end>start);
  const count=new Function('stateRef','incoming','expenseIdentityScopes','expenseMergeKey',main.slice(start,end)+';return count;');
  const rows=['caixabank','sabadell'].map((bank,i)=>c.expenseFromRow({id:'wire-'+i,fecha:'2026-10-19T12:00:00Z',importe:3.20,comercio:'Compra sintetica FIN19',cat:'otros',source:'ob:'+bank+'#refsame#accaccount-a'}));
  assert.equal(count({current:{expenses:[]}},rows,c.expenseIdentityScopes,c.expenseMergeKey),2);

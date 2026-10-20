@@ -220,8 +220,9 @@ export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefine
     const k = claveComoLaApp(f);
     if (lap.has(k)) continue;
     if (porCuenta.size && !esSourceManual(f.source)) {
-      // ob_name conserva el nombre bancario cuando él renombra el comercio.
-      const key = f.ob_name == null ? k : claveComoLaApp({ ...f, comercio: f.ob_name });
+      // El escritor usa el comercio elegido, también después de renombrar. El nombre
+      // original del banco sirve al importador, pero no identifica esta lápida.
+      const key = k;
       const bank = bancoDeSource(f.source), account = cuentaDeSource(f.source);
       if ((porCuenta.get(key) || []).some(([b, a]) => (!bank || bank === b) && (!account || account === a))) continue;
     }

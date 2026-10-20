@@ -583,10 +583,20 @@ function App(){
          Para hacerlo bien hace falta decisión persistida con identidad fiable y un ACK — es el
          bloqueo de identidad de gastos, no un parche de esta ronda. */
       // "nuevo" = no lo teníamos en NINGÚN origen local (así, ya sincronizado → 0 → "Ya estás al día")
-      const identityScope=expenseIdentityScopes(stateRef.current.expenses||[],incoming);
-      const prevKeys={}; (stateRef.current.expenses||[]).forEach(function(e){ prevKeys[expenseMergeKey(e,identityScope)]=1; });
-      let count=0; const seenC={};
-      incoming.forEach(function(e){ const k=expenseMergeKey(e,identityScope); if(!seenC[k]){ seenC[k]=1; if(!prevKeys[k]) count++; } });
+      const previousExpenses=stateRef.current.expenses||[],identityScope=expenseIdentityScopes(previousExpenses,incoming);
+      // Una lectura con las mismas identidades no añade nada aunque cambie una nota o categoría.
+      // Comparar los campos de clave evita rehacer 7.000 claves; el merge sigue refrescando datos.
+      const mismasIdentidades=previousExpenses.length===incoming.length&&incoming.every(function(e,i){
+        const p=previousExpenses[i];
+        return p===e||p&&e&&p.id===e.id&&p.date===e.date&&p.amount===e.amount&&p.merchant===e.merchant
+          &&p.source===e.source&&p.ent===e.ent&&p.obAcc===e.obAcc&&p.obOrd===e.obOrd&&p.extId===e.extId;
+      });
+      let count=0;
+      if(!mismasIdentidades){
+        const prevKeys={}; previousExpenses.forEach(function(e){ prevKeys[expenseMergeKey(e,identityScope)]=1; });
+        const seenC={};
+        incoming.forEach(function(e){ const k=expenseMergeKey(e,identityScope); if(!seenC[k]){ seenC[k]=1; if(!prevKeys[k]) count++; } });
+      }
       set(function(prev){
         // Refrescar una sola vez conserva el guardado partido: no reescribir el histórico
         // por página ni cuando las filas recibidas son iguales a las que ya había.
