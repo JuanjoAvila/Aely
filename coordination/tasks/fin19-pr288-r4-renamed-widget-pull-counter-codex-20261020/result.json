@@ -1,0 +1,131 @@
+{
+  "status": "blocked",
+  "summary": "FIN19 R4 source afc13b622bdb900d0aa89c30b5d3c4d5e11b7ed0, normal child of exact R3. Same draft PR288 branch, PR head and pull ref all exactly confirmed. Actual renamed-delete/import/complete-pull/widget with failed DELETE gives base158 320, R3 640, R4 320 cents. Full rows, selected bank budgets, ordinal, same/different bank accounts, final merchant collisions, manual/legacy, retry/undo covered. Identity-equal counter guard preserves refresh and invalidates on identity changes. R3 bank controls and PR286 oracle retained. Corrected new tests 8/8, affected anchor 16/16, final complete chain 2/2 pass; overlapping batches and all intermediate errors preserved. Actual counter and complete callback CPU1 A/B 3500 rows, fresh/cached, all four R4/base ratios <=1.10: 0.0767, 0.9822, 0.0348, 0.9948. Docs EXIT1 and reserved integration gates remain; separate original-merchant rename-ACK legacy collision remains outside patch. Immutable package, exact OWN RETURN and preservation complete. No ProductREADY.",
+  "tests": [
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r4-renamed-widget.test.mjs",
+      "exitCode": 0,
+      "phase": "base158-complete-chain-control"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r4-renamed-widget.test.mjs",
+      "exitCode": 0,
+      "phase": "base158-renamed-control"
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "phase": "diff-check"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/docs-frescura.test.mjs",
+      "exitCode": 1,
+      "phase": "docs-exact-head"
+    },
+    {
+      "command": "node ../perf.mjs",
+      "exitCode": 0,
+      "phase": "perf-r3-red"
+    },
+    {
+      "command": "node ../perf.mjs",
+      "exitCode": 0,
+      "phase": "perf-r4-candidate"
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0,
+      "phase": "privacy"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "r3-build"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r4-renamed-widget.test.mjs",
+      "exitCode": 1,
+      "phase": "r3-complete-chain-red"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r4-renamed-widget.test.mjs",
+      "exitCode": 1,
+      "phase": "r3-final-harness-red"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r4-renamed-widget.test.mjs",
+      "exitCode": 1,
+      "phase": "r3-renamed-causal-red"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r4-renamed-widget.test.mjs",
+      "exitCode": 1,
+      "phase": "r3-renamed-red"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-cross-bank-identity.test.mjs tests/fin19-r4-renamed-widget.test.mjs",
+      "exitCode": 0,
+      "phase": "r4-anchors-final"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "r4-build-1"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r4-renamed-widget.test.mjs",
+      "exitCode": 0,
+      "phase": "r4-complete-chain-final"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r4-renamed-widget.test.mjs",
+      "exitCode": 1,
+      "phase": "r4-complete-chain"
+    },
+    {
+      "command": "node --test tests/pull-sin-cambios.test.mjs tests/pull-historico-entero.test.mjs tests/fin04-rename-note-ack.test.mjs tests/presupuesto-servidor.test.mjs tests/fin19-cross-bank-identity.test.mjs",
+      "exitCode": 1,
+      "phase": "r4-directed"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r4-renamed-widget.test.mjs tests/fin19-r4-pull-counter.test.mjs",
+      "exitCode": 0,
+      "phase": "r4-focal-corrected"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r4-renamed-widget.test.mjs tests/fin19-r4-pull-counter.test.mjs tests/fin19-r3-scope-cost.test.mjs tests/fin19-r3-chain.test.mjs tests/fin19-r2-identity.test.mjs",
+      "exitCode": 1,
+      "phase": "r4-focal"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/security.test.mjs tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "phase": "security-map"
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "phase": "syntax"
+    }
+  ],
+  "productSHA": "afc13b622bdb900d0aa89c30b5d3c4d5e11b7ed0",
+  "limitations": [
+    "Docs freshness EXIT1 on exact final source: four cumulative product files changed after versioned R2 anchor 5b0cf1e without VERSION bump. R4 changes only two product files. VERSION and release notes are reserved to integration.",
+    "Size and catalogue deliberately not run in R4; Claude owns these integration gates. No caps changed.",
+    "CPU1 local objective <=+10 percent versus base158 met for all four actual-counter/complete-callback fresh/cached cases. External host activity uncontrolled; absolute timings differ between batches. No CPU6/mobile acceptance.",
+    "Separate preexisting rename-ACK bug: when another row shares original merchant BAR SL, broad legacy rename tombstone can hide that other row. Initial R3 reproduction totals320 but keeps the wrong row; evidence retained in r3-renamed-red-matrix.json. R4 does not modify rename writer or claim this fixed. Final-merchant collision Mi bar is covered.",
+    "Initial additional directed batch r4-directed omitted --test-concurrency=1 and used Node default file concurrency. Disclosed deviation; not used as performance evidence. Subsequent checks and all A/B run sequentially with concurrency1.",
+    "Pure local client/server logic with mocked persistence/delete/upload/network. No database uniqueness/schema/backfill changes or recovery of previously lost rows.",
+    "Tested HTML carries R3 HEAD stamp. Product source hashes match final R4 source byte-for-byte and measured HTML. Generated tracked files restored to R3; neither is served/deployment evidence.",
+    "No fullsuite, verified general CI, browser, CPU6, real bank/cloud, SQL, Edge/API invocation, Android/APK, deployment, PR merge or mobile acceptance.",
+    "No ProductREADY; review, integration and production remain reserved to Claude.",
+    "Manifest SHA256 cfde9505539ffec9b2044d2d931394ac7009c7866e66416e56792c531e5c87cb; ZIP SHA256 79e96013a707b65924343b91c5eb3775fcfd61078f5269e09a72358bd1dbe426. All 155 archive entries verified. 3 credential-like copies redacted with original/copy hashes; originals intact.",
+    "Canonical RETURN 0b2324a6d6666763d711fa816eaaaa599f3cc6c1. Same claim/session. Private handoff then STOP, no native reply and no next task."
+  ],
+  "schema": 1,
+  "taskId": "fin19-pr288-r4-renamed-widget-pull-counter-codex-20261020",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-20T15:53:22.001Z",
+  "released": true
+}
