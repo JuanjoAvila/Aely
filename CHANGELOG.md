@@ -1,3 +1,12 @@
+## [4.26.157] — 2026-10-20 · Candidata de beta: vibración ronda 6, solo web (sigue la APK 61)
+
+- **Qué lleva.** Una rama local sobre la beta 4.26.156 (`caa7453ed`), con `--no-ff`: `334747cee` (`claude/vibra-r6`). Sin APK nueva, SQL ni Edge. Veredicto de la 156 por chat: todo bien salvo tres cosas.
+- **«Solo es un toque, no es suave de cómo va creciendo».** `mcCycleTicks` mandaba un toque por octavo de anillo lleno; a mitad de ciclo el anillo está casi vacío y un 12 % daba UN toque (no es que se fundieran: solo había uno). Ahora siempre hay rampa: `MC_CYCLE_MIN_TICKS` (5) + 8 × fracción, sin pasarse de lo que cabe en el trazo con 50 ms de hueco; cada toque más fuerte (0,45× a 1× la fuerza) y, por `mcFeltMs`, más largo (base de 20 ms).
+- **«Abajo vibra al llegar, pero si sigues tirando no» (solo en Plan).** La llegada va por `scroll` y funciona; el tirón no, porque Plan corta la propagación de su `touchmove` para que el swipe entre pestañas no se lo quede y el vigía de `mcBindEdgeHaptics` escucha en `document`. La pantalla de Plan lleva `data-edge-capture` y, bajo esa marca, el vigía mira el `touchmove` en fase de captura (`e.mcEdgeSeen` evita contarlo dos veces). El tirón de arriba que cambia de segmento sigue callado por `mcSegPull`.
+- **«No puedo regular la intensidad» de la gráfica.** El cursor de la gráfica de Inicio (y su «Probar») usaba el uso «toque», que OxygenOS cambia por su efecto de serie. Ahora `mcFeltHaptic` (uso hardware, la fuerza alarga el toque); el hueco entre puntos se mide sobre la duración real. El selector «Tipo de vibración» de Ajustes queda sin efecto práctico; no se quita (no se pidió).
+- **Panel.** Una tanda nueva, `vibracion-r6`, sin `apk`. La 156 queda con `tandas: []`. Descriptor nuevo en `scripts/beta-sources.json`; Catálogo156 pasa a histórico y Catálogo157 vigila la nueva.
+- **Verificación.** `ux16-round9` falla 3/3 y 5 unitarios fallan contra la base; con la rama pasan.
+
 ## [4.26.156] — 2026-10-20 · Candidata de beta: vibración ronda 5, solo web (sigue la APK 61)
 
 - **Qué lleva.** Una rama local sobre la beta 4.26.155 (`d2dfccb8d`), con `--no-ff`: `e1e91bed7` (`claude/vibra-r5`). Sin APK nueva (la APK 61 ya acepta fuerza 1–255, duración 1–100 ms y uso, y con control de amplitud da un pulso continuo), sin SQL ni Edge. Los descriptores de `scripts/beta-sources.json` que leen las funciones de vibración se rehicieron.

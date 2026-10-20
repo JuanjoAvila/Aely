@@ -1,5 +1,61 @@
 [
   {
+    "v": "4.26.157",
+    "d": "2026-10-20",
+    "t": {
+      "es": "Vibración del anillo que va creciendo, tirón también en Plan y gráfica regulable",
+      "en": "Ring vibration that builds up, pull feedback in Plan too, and an adjustable chart",
+      "ca": "Vibració de l'anell que va creixent, estirada també a Pla i gràfic regulable"
+    },
+    "items": {
+      "es": [
+        "El anillo de Inicio vibra con una subida suave, también cuando está casi vacío.",
+        "En Recibos, Deudas y Metas, seguir tirando contra el final vuelve a vibrar.",
+        "La vibración de la gráfica de Inicio se puede regular de verdad."
+      ],
+      "en": [
+        "The Home ring vibrates with a smooth build-up, even when it is almost empty.",
+        "In Bills, Debts and Goals, keeping on pulling against the end vibrates again.",
+        "The vibration of the Home chart can really be adjusted."
+      ],
+      "ca": [
+        "L'anell d'Inici vibra amb una pujada suau, també quan és gairebé buit.",
+        "A Rebuts, Deutes i Metes, seguir estirant contra el final torna a vibrar.",
+        "La vibració del gràfic d'Inici es pot regular de debò."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "vibracion-r6",
+        "t": {
+          "es": "Vibración: anillo que crece, tirón en Plan y gráfica regulable",
+          "en": "Vibration: ring that builds up, pull in Plan and adjustable chart",
+          "ca": "Vibració: anell que creix, estirada a Pla i gràfic regulable"
+        },
+        "items": {
+          "es": [
+            "0. Abre la app con la versión 4.26.157 (llega sola). Tus frases: «solo es un toque… no es suave de cómo va creciendo», «si sigues tirando no vibra» y «no puedo regular la intensidad» de la gráfica.",
+            "1. Cierra la app del todo y ábrela. En Inicio, mientras se dibuja el anillo de Mi ciclo, tiene que notarse una vibración suave que va creciendo. MAL: «solo es un toque».",
+            "2. En Recibos, Deudas o Metas, baja hasta el final y sigue tirando hacia arriba con el dedo: tiene que volver a vibrar, como en las demás pestañas. Después, arriba del todo, desliza para cambiar de segmento: tiene que seguir igual que antes. MAL: «si sigues tirando no vibra», o el cambio de segmento ya no va como antes.",
+            "3. Ajustes → Vibración → «Cursor de la gráfica de Inicio»: pon la fuerza al mínimo y pasa el dedo por la gráfica, luego al máximo y repite. MAL: «no puedo regular la intensidad», se nota igual."
+          ],
+          "en": [
+            "0. Open the app on version 4.26.157 (it arrives by itself). Your words: «solo es un toque… no es suave de cómo va creciendo» (it is just one tap… it is not smooth in how it builds up), «si sigues tirando no vibra» (if you keep pulling it does not vibrate) and «no puedo regular la intensidad» (I cannot adjust the intensity) of the chart.",
+            "1. Close the app completely and open it. In Home, while the My cycle ring is drawn, you must feel a soft vibration that builds up. WRONG: «solo es un toque» (it is just one tap).",
+            "2. In Bills, Debts or Goals, scroll down to the end and keep pulling upwards with your finger: it must vibrate again, as in the other tabs. Then, at the very top, swipe to switch section: it must work as before. WRONG: «si sigues tirando no vibra» (if you keep pulling it does not vibrate), or switching section no longer works as before.",
+            "3. Settings → Vibration → «Home chart cursor»: set the strength to the minimum and run your finger over the chart, then to the maximum and repeat. WRONG: «no puedo regular la intensidad» (I cannot adjust the intensity), it feels the same."
+          ],
+          "ca": [
+            "0. Obre l'app amb la versió 4.26.157 (arriba sola). Les teves frases: «solo es un toque… no es suave de cómo va creciendo» (és només un toc… no és suau com va creixent), «si sigues tirando no vibra» (si segueixes estirant no vibra) i «no puedo regular la intensidad» (no puc regular la intensitat) del gràfic.",
+            "1. Tanca l'app del tot i obre-la. A Inici, mentre es dibuixa l'anell de El meu cicle, s'ha de notar una vibració suau que va creixent. MALAMENT: «solo es un toque» (és només un toc).",
+            "2. A Rebuts, Deutes o Metes, baixa fins al final i segueix estirant cap amunt amb el dit: ha de tornar a vibrar, com a les altres pestanyes. Després, a dalt de tot, llisca per canviar de segment: ha de continuar igual que abans. MALAMENT: «si sigues tirando no vibra» (si segueixes estirant no vibra), o el canvi de segment ja no va com abans.",
+            "3. Ajustos → Vibració → «Cursor del gràfic d'Inici»: posa la força al mínim i passa el dit pel gràfic, després al màxim i repeteix. MALAMENT: «no puedo regular la intensidad» (no puc regular la intensitat), se sent igual."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.156",
     "d": "2026-10-20",
     "t": {
@@ -24,39 +80,7 @@
         "La força que tries a Ajustos → Vibració canvia de veritat el que se sent."
       ]
     },
-    "tandas": [
-      {
-        "id": "vibracion-r5",
-        "t": {
-          "es": "Vibración: un solo toque por segmento y fuerza que se nota",
-          "en": "Vibration: a single tap per section and strength you can feel",
-          "ca": "Vibració: un sol toc per segment i força que se nota"
-        },
-        "items": {
-          "es": [
-            "0. Abre la app con la versión 4.26.156 (llega sola, no hace falta instalar nada). Tus frases: «son 2 vibraciones una fuerte… y otra hyper suave», «No vibra inicio» y «no cambia nada» con la fuerza del borde.",
-            "1. En Plan, con la lista arriba del todo, desliza hacia abajo para pasar de Recibos a Deudas y luego a Metas. Repítelo tocando los botones de arriba, también con la lista bajada a medias. Tiene que dar un solo toque por cambio. MAL: notas dos vibraciones (una fuerte y otra suave).",
-            "2. Ajustes → Vibración → «Al cambiar entre Recibos, Deudas y Metas»: baja la fuerza y pulsa Probar, luego súbela y vuelve a probar. Después cambia de segmento en Plan. MAL: suena igual con la fuerza baja que con la alta, o en Plan no cambia.",
-            "3. Cierra la app del todo y ábrela. En Inicio, mientras se rellena el anillo de Mi ciclo, tienen que notarse unos toques suaves. MAL: no notas nada.",
-            "4. Ajustes → Vibración → «Al llegar arriba o abajo»: pon la fuerza al mínimo y prueba, luego al máximo y prueba. Después tira contra el final de una lista. MAL: con la fuerza al mínimo y al máximo se nota igual."
-          ],
-          "en": [
-            "0. Open the app on version 4.26.156 (it arrives by itself, nothing to install). Your words: «son 2 vibraciones una fuerte… y otra hyper suave» (it is 2 vibrations, a strong one… and an ultra-soft one), «No vibra inicio» (Home does not vibrate) and «no cambia nada» (nothing changes) with the edge strength.",
-            "1. In Plan, with the list at the very top, swipe down to go from Bills to Debts and then to Goals. Repeat it by tapping the buttons at the top, also with the list scrolled halfway down. It must give a single tap per change. WRONG: you feel two vibrations (a strong one and a soft one).",
-            "2. Settings → Vibration → «Switching between Bills, Debts and Goals»: lower the strength and tap Try, then raise it and try again. Then switch section in Plan. WRONG: it feels the same at low and at high strength, or nothing changes in Plan.",
-            "3. Close the app completely and open it. In Home, while the My cycle ring fills up, you must feel some soft taps. WRONG: you feel nothing.",
-            "4. Settings → Vibration → «Reaching the top or bottom»: set the strength to the minimum and try, then to the maximum and try. Then pull against the end of a list. WRONG: it feels the same at the minimum and at the maximum strength."
-          ],
-          "ca": [
-            "0. Obre l'app amb la versió 4.26.156 (arriba sola, no cal instal·lar res). Les teves frases: «son 2 vibraciones una fuerte… y otra hyper suave» (són 2 vibracions, una de forta… i una altra d'híper suau), «No vibra inicio» (Inici no vibra) i «no cambia nada» (no canvia res) amb la força de la vora.",
-            "1. A Pla, amb la llista a dalt de tot, llisca cap avall per passar de Rebuts a Deutes i després a Metes. Repeteix-ho tocant els botons de dalt, també amb la llista baixada a mitges. Ha de donar un sol toc per canvi. MALAMENT: notes dues vibracions (una de forta i una altra de suau).",
-            "2. Ajustos → Vibració → «En canviar entre Rebuts, Deutes i Metes»: baixa la força i prem Provar, després puja-la i torna a provar. Després canvia de segment a Pla. MALAMENT: sona igual amb la força baixa que amb l'alta, o a Pla no canvia.",
-            "3. Tanca l'app del tot i obre-la. A Inici, mentre s'omple l'anell de El meu cicle, s'han de notar uns tocs suaus. MALAMENT: no notes res.",
-            "4. Ajustos → Vibració → «En arribar a dalt o a baix»: posa la força al mínim i prova, després al màxim i prova. Després estira contra el final d'una llista. MALAMENT: amb la força al mínim i al màxim se sent igual."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.155",

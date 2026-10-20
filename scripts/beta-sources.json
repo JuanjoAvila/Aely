@@ -67684,5 +67684,107 @@
       }
     ],
     "unidades": true
+  },
+  "vibracion-r6": {
+    "web": [
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcCycleTicks"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcBindEdgeHaptics"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcFeltMs"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcFeltHaptic"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcHaptic"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcHapticTune"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcBezierXAt"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcBezierY"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "function": "NetWorthNow"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "HapticTuner"
+      },
+      {
+        "file": "src/modules/14-v4-screens.js",
+        "from": "  return React.createElement(\"div\",{className:\"v4-screen\",ref:planScreenRef,\"data-edge-capture\"",
+        "to": "    React.createElement(\"h1\",{className:\"v4-title serif\"}, simple?t(\"v4s_plan_left_title\")"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "MC_CYCLE_TICKS"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "MC_CYCLE_MIN_TICKS"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "MC_CYCLE_TICK_MS"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "MC_CYCLE_GAP_MS"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "MC_CYCLE_EASE"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "MC_FELT_USAGE"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "MC_HAPTIC_KEY"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "MC_HAPTIC_DEF"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "MC_HAPTIC_RANGE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "loc"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "eurParts"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DISP"
+      }
+    ],
+    "unidades": true
   }
 }
