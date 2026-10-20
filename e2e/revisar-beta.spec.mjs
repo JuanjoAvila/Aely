@@ -1806,7 +1806,7 @@ for(const lang of ["es","en","ca"])test(`beta159: la nota nueva con los meses a 
   expect(pack).toEqual({tandas:13,items:44});
   const title=await page.evaluate(lang=>rnT(RELEASE_NOTES[0].t,lang),lang);
   const items=await page.evaluate(lang=>rnItems(RELEASE_NOTES[0],lang),lang);
-  expect(items.length).toBe(3);
+  expect(items.length).toBe(4);
   await page.evaluate(()=>{
     const host=document.createElement("div");document.body.appendChild(host);
     ReactDOM.createRoot(host).render(React.createElement(WhatsNew,{onClose:()=>{}}));
