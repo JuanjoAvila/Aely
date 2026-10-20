@@ -2011,7 +2011,8 @@ function expenseIdentityScopes(rows,other){
   // Solo una fila incompleta necesita buscar candidata. El histórico conocido no paga
   // ese índice y el pull comparte las claves dentro de su foto, nunca entre estados.
   const known=new WeakMap(),keys=new WeakMap(),assigned=new WeakMap(),pairs=new Map();
-  let contents,bankContents,ids,refs;
+  let contents,bankContents,ids,refs,indexed;
+  const extra=[];
   const keyOf=function(e){let key=keys.get(e);if(key===undefined){key=keyOfExpense(e);keys.set(e,key);}return key;};
   const knownOf=function(e){
     if(!e)return "";
@@ -2025,23 +2026,40 @@ function expenseIdentityScopes(rows,other){
     }
     known.set(e,id);return id;
   };
-  const build=function(){
+  const build=function(request){
     contents=new Map();bankContents=new Map();ids=new Map();refs=new Map();
+    indexed=new WeakSet();
+    const wantedKeys=new Set(),wantedIds=new Set(),wantedRefs=new Set();
+    // Los avisos incompletos suelen ser pocos. Indexar referencias e ids de todo el
+    // histórico para ellos duplica el coste del pull aunque no puedan coincidir.
+    const want=function(e){
+      if(!e||knownOf(e)||isManualExpenseSource(e.source))return;
+      indexed.add(e);wantedKeys.add(keyOf(e));
+      if(e.id)wantedIds.add(e.id);
+      if(esFilaDeBanco(e)&&e.extId)wantedRefs.add(e.extId);
+    };
+    extra.push(request);
+    (rows||[]).forEach(want);(other||[]).forEach(want);extra.forEach(want);
     const unique=function(map,key,id){if(!map.has(key))map.set(key,id);else if(map.get(key)!==id)map.set(key,"");};
     const add=function(e){
       const id=knownOf(e);if(!id)return;
-      const key=keyOf(e),bank=expenseBankOf(e),old=contents.get(key),bankKey=bank+"|"+key,bankOld=bankContents.get(bankKey);
-      if(!old||id<old)contents.set(key,id);
-      if(!bankOld||id<bankOld)bankContents.set(bankKey,id);
-      if(e.id)unique(ids,bank+"|"+e.id,id);
-      if(esFilaDeBanco(e)&&e.extId)unique(refs,obReferenceKey(bank,e.extId,e.amount),id);
+      const key=keyOf(e),content=wantedKeys.has(key),uuid=wantedIds.has(e.id),ref=wantedRefs.has(e.extId)&&esFilaDeBanco(e);
+      if(!content&&!uuid&&!ref)return;
+      const bank=expenseBankOf(e);
+      if(content){
+        const old=contents.get(key),bankKey=bank+"|"+key,bankOld=bankContents.get(bankKey);
+        if(!old||id<old)contents.set(key,id);
+        if(!bankOld||id<bankOld)bankContents.set(bankKey,id);
+      }
+      if(uuid)unique(ids,bank+"|"+e.id,id);
+      if(ref)unique(refs,obReferenceKey(bank,e.extId,e.amount),id);
     };
     (rows||[]).forEach(add);(other||[]).forEach(add);
   };
   const scope=function(e){
     const complete=knownOf(e);if(complete||isManualExpenseSource(e&&e.source))return complete;
     let id=assigned.get(e);if(id!==undefined)return id;
-    if(!contents)build();
+    if(!contents||!indexed.has(e))build(e);
     const bank=expenseBankOf(e),key=keyOf(e);
     // Un aviso con banco no puede cambiar qué presupuesto paga la compra.
     id=ids.get(bank+"|"+e.id)||(esFilaDeBanco(e)&&e.extId&&refs.get(obReferenceKey(bank,e.extId,e.amount)))||bankContents.get(bank+"|"+key)||contents.get(key)||"";

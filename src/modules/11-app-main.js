@@ -584,11 +584,14 @@ function App(){
          bloqueo de identidad de gastos, no un parche de esta ronda. */
       // "nuevo" = no lo teníamos en NINGÚN origen local (así, ya sincronizado → 0 → "Ya estás al día")
       const previousExpenses=stateRef.current.expenses||[],identityScope=expenseIdentityScopes(previousExpenses,incoming);
-      // Una lectura con las mismas identidades no añade nada aunque cambie una nota o categoría.
-      // Comparar los campos de clave evita rehacer 7.000 claves; el merge sigue refrescando datos.
-      const mismasIdentidades=previousExpenses.length===incoming.length&&incoming.every(function(e,i){
-        const p=previousExpenses[i];
-        return p===e||p&&e&&p.id===e.id&&p.date===e.date&&p.amount===e.amount&&p.merchant===e.merchant
+      // La nube ordena por id, no como la lista local, y esta puede conservar avisos.
+      // Solo una identidad completa idéntica acredita presencia; colisiones o cambios
+      // vuelven al cálculo con ámbito. El mapa pertenece a esta foto, nunca al siguiente pull.
+      const prevIds=new Map();
+      previousExpenses.forEach(function(e){ if(e&&e.id)prevIds.set(e.id,prevIds.has(e.id)?null:e); });
+      const mismasIdentidades=incoming.every(function(e){
+        const p=e&&prevIds.get(e.id);
+        return p&&p.id===e.id&&p.date===e.date&&p.amount===e.amount&&p.merchant===e.merchant
           &&p.source===e.source&&p.ent===e.ent&&p.obAcc===e.obAcc&&p.obOrd===e.obOrd&&p.extId===e.extId;
       });
       let count=0;

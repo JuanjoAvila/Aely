@@ -220,11 +220,13 @@ export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefine
     const k = claveComoLaApp(f);
     if (lap.has(k)) continue;
     if (porCuenta.size && !esSourceManual(f.source)) {
-      // El escritor usa el comercio elegido, también después de renombrar. El nombre
-      // original del banco sirve al importador, pero no identifica esta lápida.
+      // El otro móvil puede borrar antes de recibir el renombrado. Ambas claves
+      // conservan el mismo ámbito; el nombre original no puede borrar otra cuenta.
       const key = k;
+      const original = f.ob_name == null ? key : claveComoLaApp({ ...f, comercio: f.ob_name });
       const bank = bancoDeSource(f.source), account = cuentaDeSource(f.source);
-      if ((porCuenta.get(key) || []).some(([b, a]) => (!bank || bank === b) && (!account || account === a))) continue;
+      const matchesAccount = ([b, a]: [string, string]) => (!bank || bank === b) && (!account || account === a);
+      if ((porCuenta.get(key) || []).some(matchesAccount) || (original !== key && (porCuenta.get(original) || []).some(matchesAccount))) continue;
     }
     const absorbed = claveAbsorcionOb(f);
     if (absorbed && lap.has(absorbed)) continue;

@@ -1,4 +1,38 @@
-# FIN19 R4 · borrado renombrado y contador del pull
+# FIN19 R5 · orden remoto y renombrado desde otro móvil
+
+Candidata **bloqueada**, sobre R4 `afc13b622bdb900d0aa89c30b5d3c4d5e11b7ed0`, misma PR288, 20/10/2026. FIN22 está aparcado con su claim retenido, todo su WIP y sus fallos conservados, y recursos propios devueltos antes de la nueva reserva de R5.
+
+El contador reconoce por UUID las filas cuyos campos de identidad coinciden, cualquiera que sea su posición y aunque sobren avisos locales. UUID duplicado, identidad cambiada o alta nueva vuelven al cálculo completo con ámbito. Categoría y nota siguen refrescándose. El mapa solo vive en este pull. El índice de identidades incompletas conserva las reglas de banco, cuenta, referencia y contenido, pero solo indexa los contenidos, UUID y referencias consultables por esas filas; las consultas posteriores fuera de la lista reconstruyen el índice sin reutilizar una asignación de otra foto.
+
+El lector compartido del widget prueba las claves de `comercio` y `ob_name` dentro de la misma lápida de cuenta. En los siete casos con cuenta (ordinal, banco distinto, otra cuenta del mismo banco, manual y colisión de nombre), conserva la fila completa correcta y 320 céntimos, o 640 cuando también existe una fila manual. Repetir y deshacer están cubiertos. La mutación que elimina la clave original devuelve 640. El caso local de renombrar/borrar de R4 sigue pasando.
+
+**Bloqueo financiero reproducido, sin ocultarlo:** al renombrar desde otro móvil y borrar desde el cliente aún antiguo, falla el DELETE simulado; el cliente queda en 320 inmediatamente, pero el callback completo de pull vuelve a incorporar la fila renombrada y termina en 640. Su `expenseIsTombstoned` compara la lápida con el comercio nuevo. El lector del widget ya conserva 320 en el caso con cuenta, pero eso no acredita paridad de la cadena. La variante legacy sin cuenta también queda en 640 en el lector. R5 mantiene el test financiero con el oráculo 320 y EXIT1; no cambia el lector de lápidas del cliente ni amplía el escritor de renombrado. Es distinto del fallo antiguo del ACK de rename con otra fila que comparte BAR SL, que también sigue abierto. Requiere alcance sucesor antes de integrar.
+
+RED sobre R4: contador 7000 claves en orden ID DESC y cadena remota 640/320. El primer arnés de rendimiento comparó objetos serializados con campos undefined en el esperado; se normalizó la representación sin cambiar filas ni céntimos. El segundo completó las muestras, pero el wrapper chocó con el nombre del informe y salió con EEXIST: no se inventa su EXIT. Se conservan ambos. La primera candidata medía +22–23 % con avisos; la segunda aún +10,88 % en caché. La tercera reduce el trabajo de las filas que no pueden coincidir; cada A/B posterior corresponde a un cambio real de producto, sin repetir para buscar verde.
+
+A/B final CPU1: 3500 filas, 100 avisos extra en el tercer escenario, cuatro calentamientos y **31 repeticiones intercaladas** por variante y caso. Contador real y **callback completo sin modificar**, transporte/nativo simulados, oráculos independientes de filas completas, céntimos, presupuesto por banco y contador fuera del intervalo. Se restaura la entrada local antes de cada muestra; los avisos no desaparecen tras la primera. Fresco reinicia memo y clona entradas; caché conserva referencias. Total base sin avisos: 6126750 céntimos.
+
+| Escenario | Modo | Operación | Base158 ms | R4 ms | R5 ms | R5/base |
+|---|---|---|---:|---:|---:|---:|
+| aligned | fresh | counter | 4.7494 | 0.3104 | 0.6939 | 0.1461 |
+| aligned | fresh | completePull | 71.0215 | 74.0644 | 74.6797 | 1.0515 |
+| aligned | cached | counter | 4.6402 | 0.2109 | 0.4557 | 0.0982 |
+| aligned | cached | completePull | 66.9084 | 69.0732 | 69.0183 | 1.0315 |
+| id-desc | fresh | counter | 4.7475 | 9.9769 | 0.7274 | 0.1532 |
+| id-desc | fresh | completePull | 69.8501 | 80.2268 | 74.2246 | 1.0626 |
+| id-desc | cached | counter | 4.4864 | 9.0606 | 0.3470 | 0.0773 |
+| id-desc | cached | completePull | 65.7896 | 72.5429 | 68.2457 | 1.0373 |
+| notices | fresh | counter | 4.7364 | 19.8975 | 0.7667 | 0.1619 |
+| notices | fresh | completePull | 68.9994 | 87.8422 | 76.1763 | 1.1040 |
+| notices | cached | counter | 4.5279 | 18.2470 | 0.3679 | 0.0813 |
+| notices | cached | completePull | 66.8107 | 81.9275 | 71.3519 | 1.0680 |
+
+Objetivo <=1,10: NO cumplido en notices/fresh/completePull. La actividad externa del host no está aislada; un margen cercano al umbral no prueba estabilidad en otro host o móvil. No CPU6 ni aceptación móvil.
+
+Último lote dirigido: 44/45, único fallo la cadena financiera descrita; seguridad, mapa, ordinales, R3 320/320 por banco y PR286 con 3000 filas/4501500 céntimos pasan. Los lotes se solapan y no se suman. Ordinales no dio el fallo temporal avisado por Claude; se conserva zona Europe/Madrid y fecha del entorno. No se ejecutan suite completa, tamaño ni catálogo. VERSION, notas, topes y publicación quedan fuera de alcance. Sin nube/banco reales, SQL/Edge/API, navegador, APK, despliegue, merge o ProductREADY.
+
+## Historial R4 · borrado renombrado y contador del pull
+
 
 Candidata sobre R3 `16515fd171e5121424722a69ee60bd959f8f4d59`, misma PR288, 20/10/2026. El lector compartido usa `comercio`, igual que el escritor de la lápida de cuenta. Después de renombrar BAR SL a Mi bar, borrar A y fallar el DELETE simulado, la cadena real de renombrado, borrado, persistencia, importación, pull completo y widget conserva la otra compra: base158 320, R3 640, R4 320 céntimos. `ob_name` conserva BAR SL para el importador. Hay controles de ordinal, otra cuenta del mismo banco, otro banco, coincidencia del nombre final, fila manual, lápida legacy producida por el escritor, reintento y deshacer, con filas completas y presupuesto por banco.
 

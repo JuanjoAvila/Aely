@@ -119,6 +119,8 @@ const steps = [
   ["fin19-r3-chain", ["node", "--test", "--test-concurrency=1", "tests/fin19-r3-chain.test.mjs"]],
   ["fin19-r4-renamed-widget", ["node", "--test", "--test-concurrency=1", "tests/fin19-r4-renamed-widget.test.mjs"]],
   ["fin19-r4-pull-counter", ["node", "--test", "--test-concurrency=1", "tests/fin19-r4-pull-counter.test.mjs"]],
+  ["fin19-r5-counter", ["node", "--test", "--test-concurrency=1", "tests/fin19-r5-counter.test.mjs"]],
+  ["fin19-r5-remote-rename", ["node", "--test", "--test-concurrency=1", "tests/fin19-r5-remote-rename.test.mjs"]],
   ["fin19-r3-scope-cost", ["node", "--test", "--test-concurrency=1", "tests/fin19-r3-scope-cost.test.mjs"]],
   ["fin19-cross-bank-identity", ["node", "--test", "--test-concurrency=1", "tests/fin19-cross-bank-identity.test.mjs"]],
   // La categoría que él elige no la deshace un pull ni la palabra clave del servidor (INC-0210-02).
