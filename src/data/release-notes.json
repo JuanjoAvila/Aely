@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.26.162",
+    "d": "2026-10-20",
+    "t": {
+      "es": "Nueva categoría Coche: taller, ITV, ruedas y lavado",
+      "en": "New Car category: garage, MOT, tyres and car wash",
+      "ca": "Nova categoria Cotxe: taller, ITV, rodes i rentat"
+    },
+    "items": {
+      "es": [
+        "Hay una categoría nueva, Coche 🚗, para el mantenimiento del vehículo: taller, ITV, ruedas, lavado y recambios.",
+        "Al apuntar un gasto de taller o de ITV, la categoría Coche se sugiere sola.",
+        "Gasolina, parking y peajes siguen en sus categorías de siempre, y lo ya guardado no cambia."
+      ],
+      "en": [
+        "There is a new category, Car 🚗, for vehicle upkeep: garage, MOT, tyres, car wash and spare parts.",
+        "When you add a garage or MOT expense, the Car category is suggested on its own.",
+        "Fuel, parking and tolls stay in their usual categories, and nothing already saved changes."
+      ],
+      "ca": [
+        "Hi ha una categoria nova, Cotxe 🚗, per al manteniment del vehicle: taller, ITV, rodes, rentat i recanvis.",
+        "En apuntar una despesa de taller o d'ITV, la categoria Cotxe se suggereix sola.",
+        "Benzina, pàrquing i peatges continuen a les seves categories de sempre, i el que ja tenies desat no canvia."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "categoria-coche",
+        "t": {
+          "es": "Gastos: la categoría Coche",
+          "en": "Expenses: the Car category",
+          "ca": "Despeses: la categoria Cotxe"
+        },
+        "items": {
+          "es": [
+            "1. Apunta un gasto «Taller Pepe»: sale la categoría Coche (🚗). MAL: sale Otros u otra categoría.",
+            "2. Apunta «Repsol» y «Parking Saba»: siguen en Transporte/Gasolina y Parking; y en la lista completa de categorías aparece Coche. MAL: alguno cae en Coche o Coche no aparece."
+          ],
+          "en": [
+            "1. Add an expense “Taller Pepe”: the Car category (🚗) comes up. WRONG: it comes up as Other or another category.",
+            "2. Add “Repsol” and “Parking Saba”: they stay in Transport/Fuel and Parking; and Car appears in the full list of categories. WRONG: one of them falls into Car or Car is missing."
+          ],
+          "ca": [
+            "1. Apunta una despesa «Taller Pepe»: surt la categoria Cotxe (🚗). MALAMENT: surt Altres o una altra categoria.",
+            "2. Apunta «Repsol» i «Parking Saba»: continuen a Transport/Benzina i Pàrquing; i a la llista completa de categories apareix Cotxe. MALAMENT: algun cau a Cotxe o Cotxe no apareix."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.161",
     "d": "2026-10-20",
     "t": {
@@ -83,36 +133,7 @@
         "El total de Despeses coincideix amb la targeta del mes d'Inici."
       ]
     },
-    "tandas": [
-      {
-        "id": "gastos-dos-bancos",
-        "t": {
-          "es": "Gastos: dos compras iguales en bancos distintos y renombrar sin perderlas",
-          "en": "Expenses: two identical purchases at different banks, and renaming without losing them",
-          "ca": "Despeses: dues compres iguals en bancs diferents i reanomenar sense perdre-les"
-        },
-        "items": {
-          "es": [
-            "1. Abre Gastos: el total del mes coincide con la tarjeta del mes de Inicio. MAL: no coinciden.",
-            "2. Entra en un movimiento del banco (no uno apuntado a mano), cámbiale el nombre y guarda: sigue en la lista con el nombre nuevo y el total no cambia. MAL: desaparece o cambia el total.",
-            "3. Vuelve a ponerle su nombre de antes: sigue ahí. MAL: desaparece.",
-            "4. Cierra la app del todo y ábrela: todo igual. MAL: algo ha cambiado (un movimiento falta, sobra o el total es otro)."
-          ],
-          "en": [
-            "1. Open Expenses: the month total matches the month card in Home. WRONG: they do not match.",
-            "2. Open a bank transaction (not one you added by hand), rename it and save: it stays in the list with the new name and the total does not change. WRONG: it disappears or the total changes.",
-            "3. Put its previous name back: it is still there. WRONG: it disappears.",
-            "4. Close the app completely and open it: everything is the same. WRONG: something changed (a transaction is missing, extra, or the total is different)."
-          ],
-          "ca": [
-            "1. Obre Despeses: el total del mes coincideix amb la targeta del mes d'Inici. MALAMENT: no coincideixen.",
-            "2. Entra en un moviment del banc (no un apuntat a mà), canvia-li el nom i desa: continua a la llista amb el nom nou i el total no canvia. MALAMENT: desapareix o canvia el total.",
-            "3. Torna a posar-li el seu nom d'abans: continua allà. MALAMENT: desapareix.",
-            "4. Tanca l'app del tot i obre-la: tot igual. MALAMENT: alguna cosa ha canviat (falta un moviment, en sobra un o el total és un altre)."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.159",
