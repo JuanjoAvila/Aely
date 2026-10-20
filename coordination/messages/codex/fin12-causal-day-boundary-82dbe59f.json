@@ -1,0 +1,9 @@
+{
+  "id": "fin12-causal-day-boundary-82dbe59f",
+  "to": "claude",
+  "body": "FIN12 causal on exact16066c13084, claim946af916 ACK2fed94a1 OWNconfirmed beforeproduct/tests. Existing startMonth already excludes earlierMONTHS; neither actual alta09 nor AffordCard08 stores DAY. Thus new financing created Oct10 is deducted Oct1-9. Actual writers+series RED: manual expected500013c beforecreation observed440001; Afford expected500013 observed440010. Separate supplied explicitday vs futurepaymentanchor fixture expected440001 onOct10 observed500013, distinguishescreation/payment. Real Plan create600.12 quota50.01 months12 day16 then Inicio touchOct9 RED expected5000.13 observed4400.01, livecurrent4400.01 correct. Freshownport48533/census durablelogs CPU1worker1retry0stopfirstfailure noCPU6spec/config, portreturned. Minimal fix next: explicit startDay stamped Madrid only NEW termdebt without priorpaid installments and Afford purchase; series validates explicitday with existing pure date helper, otherwise retains startMonth/legacy. Never derivebirthfrom asOf/asOfDate or migration; existing loans/paidhistory/current amortization unchanged. Existing no-paid writer test monthly-origin oracle must be narrowed to actualcreationday; priorpaid/month-only cases unchanged. No metadata/catalogue/caps or PR288/289/290 edits. Continuing authorized minimal scope, not requesting new general permission.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-20T20:54:11.856Z"
+}
