@@ -4550,9 +4550,16 @@ test("Promoción159 muestra una nota y el historial de producción, retira todas
   const scopes=JSON.parse(source("scripts/beta-sources.json")),old=JSON.parse(beta("scripts/beta-sources.json"));
   assert.deepEqual(scopes,old,"ningún descriptor se recorta ni se repina");
   assert.deepEqual(JSON.parse(source("scripts/beta-archives.json")),JSON.parse(beta("scripts/beta-archives.json")),"archivo y rechazo109 no se repinan");
-  const tracked=execFileSync("git",["ls-tree","-r","--name-only","f1c44e250737d49879d30a15aa21de1d6226c6cf","--","src/modules","src/shell.html","src/build-order.json","android","supabase","public/apk.json"],{encoding:"utf8"}).trim().split("\n");
+  const tracked=execFileSync("git",["ls-tree","-r","--name-only","f1c44e250737d49879d30a15aa21de1d6226c6cf","--","src/modules","src/shell.html","src/build-order.json","android","supabase"],{encoding:"utf8"}).trim().split("\n");
   assert.ok(tracked.length>50);
   for(const file of tracked)assert.equal(source(file),beta(file),file+": idéntico a la beta159");
+  // La APK 61 es el MISMO binario que probó el móvil, pero la release `beta` se reescribe en cada ronda: producción lo
+  // anuncia desde su release estable. Solo cambia la URL; huella, versión, origen y revisiones nativas, iguales.
+  const apk=JSON.parse(source("public/apk.json")),apkBeta=JSON.parse(beta("public/apk.json"));
+  assert.equal(apkBeta.url,"https://github.com/JuanjoAvila/Aely/releases/download/beta/Aely-4.26.155-beta-61.apk");
+  assert.equal(apk.url,"https://github.com/JuanjoAvila/Aely/releases/download/v"+apk.versionName+"/Aely-"+apk.versionName+".apk","apunta a la release estable de su versión");
+  assert.deepEqual({...apk,url:apkBeta.url},apkBeta,"apk.json idéntico al de la beta159 salvo la URL");
+  assert.equal(apk.sha256,"50214363a0e9a95f51f65952669f142e24bc52d2bd50a6145880742e636638b4","la huella del binario aprobado");
   // El panel queda vacío y el recibo web sigue entregando cada unidad con su huella de la beta159.
   const receipt=betaDelivery(betaNotes(notes,source,scopes),source,scopes);
   assert.deepEqual(receipt.pruebas,{},"ningún guion por probar");
