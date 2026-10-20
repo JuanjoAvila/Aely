@@ -68,7 +68,8 @@ export const E2E_MAP = [
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/ux16-round9-haptics.spec.mjs", "e2e/ux16-haptics.spec.mjs", "e2e/ux16-round3-haptics.spec.mjs", "e2e/ux16-ajustador.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-ciclo-porcentaje.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/ux16-haptics.spec.mjs"] },
-  { file: "src/modules/10-app-components.js", specs: ["e2e/ux16-ajustador.spec.mjs"] },
+  { file: "src/modules/10-app-components.js", specs: ["e2e/ux16-ajustador.spec.mjs", "e2e/ux18-orden-idioma-al-momento.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/ux18-orden-idioma-al-momento.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-deuda-futura.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/widget-banco.spec.mjs", "e2e/inc1710-reload-fallback-delay.spec.mjs"] },
   {file:"src/modules/16-help-assistant.js",specs:["e2e/help-assistant.spec.mjs","e2e/help-preguntar-borde.spec.mjs"]},
@@ -148,7 +149,7 @@ export const E2E_MAP = [
     "e2e/listas-render.spec.mjs", "e2e/bancos-acordeon.spec.mjs", "e2e/bancos-reconnect.spec.mjs",
     "e2e/bancos-historico-filtro.spec.mjs", "e2e/cartera-ficha-cuenta.spec.mjs",
     "e2e/bancos-lista-fresca.spec.mjs",
-    "e2e/cartera-orden-cuentas.spec.mjs",
+    "e2e/cartera-orden-cuentas.spec.mjs", "e2e/ux18-orden-idioma-al-momento.spec.mjs",
     "e2e/efectivo-apuntar.spec.mjs",
     // Parte mía de una cuenta: la ficha, Liquidez y el patrimonio de Inicio (14/10).
     "e2e/cartera-parte-mia.spec.mjs",
