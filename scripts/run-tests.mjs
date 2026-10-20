@@ -194,6 +194,7 @@ const steps = [
   ["recibos-book-rival", ["node", "tests/recibos-book-rival.test.mjs"]],
   ["recibo-domiciliado-sin-acreditar", ["node", "tests/recibo-domiciliado-sin-acreditar.test.mjs"]],
   ["recibo-invariante", ["node", "tests/recibo-invariante.test.mjs"]],
+  ["recibo-un-cargo-un-recibo", ["node", "tests/recibo-un-cargo-un-recibo.test.mjs"]],
   ["recibos-bajas-y-union", ["node", "tests/recibos-bajas-y-union.test.mjs"]],
   ["recibos-meses-a-mano", ["node", "tests/recibos-meses-a-mano.test.mjs"]],
   ["hist-pagos-mensuales", ["node", "tests/hist-pagos-mensuales.test.mjs"]],
