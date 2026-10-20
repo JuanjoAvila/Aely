@@ -562,18 +562,29 @@ function mcReduced(){
    en ESTE móvil: es una preferencia del motor de su teléfono, no un dato que viaje a la nube.
    Por defecto, los de la ronda 3 salvo borde y gráfica, que pedían «un pelín más». */
 const MC_HAPTIC_KEY="_mcHapticTune";
-const MC_HAPTIC_DEF={fillAmp:40,fillMs:1100,edgeAmp:70,edgeMs:12,edgeEvery:150,tickAmp:70,tickMs:10};
-const MC_HAPTIC_RANGE={fillAmp:[1,255],fillMs:[300,2500],edgeAmp:[1,255],edgeMs:[4,60],edgeEvery:[60,400],tickAmp:[1,255],tickMs:[4,40]};
+/* Ronda 9 (beta 4.26.155): «el anillo no vibra» y «la fuerza del borde no cambia nada». Sí se
+   llamaba al motor, pero con toques de 10–12 ms a un tercio de fuerza: en el motor de su
+   OnePlus 13 eso no llega a arrancar, y entre fuerza 1 y 255 en 12 ms no hay diferencia que se
+   note. Por eso suben ciclo y borde, y el cambio de segmento tiene su propio par (seg*), un
+   poco más suave que el efecto de serie que le gustaba. La gráfica (tick*) se queda como está. */
+const MC_HAPTIC_DEF={fillAmp:140,fillMs:1100,edgeAmp:120,edgeMs:20,edgeEvery:150,tickAmp:70,tickMs:10,segAmp:150,segMs:24};
+const MC_HAPTIC_RANGE={fillAmp:[1,255],fillMs:[300,2500],edgeAmp:[1,255],edgeMs:[4,60],edgeEvery:[60,400],tickAmp:[1,255],tickMs:[4,40],segAmp:[1,255],segMs:[4,60]};
+/* Lo guardado antes de la ronda 9 se eligió con toques que no se notaban: sus fuerzas y
+   duraciones de ciclo y borde no valen para la escala nueva y se vuelven a los de serie. La
+   gráfica, el intervalo, la duración del anillo y el tipo se conservan: esos sí se sentían. */
+const MC_HAPTIC_VER=2, MC_HAPTIC_STALE=["fillAmp","edgeAmp","edgeMs"];
 /* Ronda 6: con uso «toque» su OnePlus 13 tira nuestra onda y toca su efecto de serie (dumpsys,
    OplusPrebakedSegment de 45 ms). El ajustador deja elegir el uso hasta ver cuál la respeta. */
 const MC_HAPTIC_USAGES=["touch","hardware","media","unknown"];
 function mcHapticClamp(raw){
   const out={};
+  if(raw&&raw.v!==MC_HAPTIC_VER){ raw=Object.assign({},raw); MC_HAPTIC_STALE.forEach(function(k){ delete raw[k]; }); }
   Object.keys(MC_HAPTIC_DEF).forEach(function(k){
     const v=raw&&typeof raw[k]==="number"&&Number.isFinite(raw[k])?Math.round(raw[k]):MC_HAPTIC_DEF[k];
     out[k]=Math.max(MC_HAPTIC_RANGE[k][0],Math.min(MC_HAPTIC_RANGE[k][1],v));
   });
   out.usage=raw&&MC_HAPTIC_USAGES.indexOf(raw.usage)>=0?raw.usage:MC_HAPTIC_USAGES[0];
+  out.v=MC_HAPTIC_VER;
   return out;
 }
 function mcHapticTune(){
@@ -599,7 +610,7 @@ mcHapticApplyCss();
 // El texto que él copia y nos manda: corto y sin nada personal, solo los siete números.
 function mcHapticTuneText(tune){
   const v=tune||mcHapticTune();
-  return "Vibración ("+v.usage+") · ciclo "+v.fillAmp+"/"+v.fillMs+"ms · borde "+v.edgeAmp+"/"+v.edgeMs+"ms cada "+v.edgeEvery+"ms · gráfica "+v.tickAmp+"/"+v.tickMs+"ms";
+  return "Vibración ("+v.usage+") · ciclo "+v.fillAmp+"/"+v.fillMs+"ms · borde "+v.edgeAmp+"/"+v.edgeMs+"ms cada "+v.edgeEvery+"ms · segmento "+v.segAmp+"/"+v.segMs+"ms · gráfica "+v.tickAmp+"/"+v.tickMs+"ms";
 }
 // Misma curva que `.v42-cycle-draw` en shell.html: si cambia allí, cambia aquí.
 const MC_CYCLE_EASE=[.65,0,.35,1];
@@ -618,7 +629,17 @@ function mcBezierXAt(y,p){
 }
 // Uso con el que su OnePlus 13 respeta fuerza y duración (dumpsys 19/10): borde y anillo.
 const MC_FELT_USAGE="hardware";
-const MC_CYCLE_TICKS=8, MC_CYCLE_TICK_MS=10, MC_CYCLE_GAP_MS=50;
+/* La fuerza también alarga el toque: de la mitad (fuerza 1) a vez y media (255) de la duración
+   elegida. En pulsos de 10–20 ms el motor no alcanza la amplitud pedida y 1 y 255 se sentían
+   igual (ronda 9); con el tiempo encendido de por medio la diferencia no tiene pérdida. */
+function mcFeltMs(ms,amp){
+  return Math.max(4,Math.min(100,Math.round(ms*(0.5+Math.max(1,Math.min(255,amp))/255))));
+}
+// Un toque con uso «hardware», el que su OnePlus 13 toca tal cual (dumpsys del 19/10).
+function mcFeltHaptic(amp,ms,extra){
+  return mcHaptic("edge",Object.assign({amplitude:amp,durationMs:mcFeltMs(ms,amp),usage:MC_FELT_USAGE},extra||{}));
+}
+const MC_CYCLE_TICKS=8, MC_CYCLE_TICK_MS=18, MC_CYCLE_GAP_MS=50;
 /* El anillo es una RISTRA DE TOQUES SUELTOS, cada uno su propia llamada, repartidos donde el
    trazo va llegando: uno por cada octavo del ciclo lleno (un 25 % son dos, un 100 % ocho) y de
    más suave a más fuerte. La ronda 7 mandaba los toques dentro de UNA onda y en su OnePlus 13
@@ -632,7 +653,7 @@ function mcCycleTicks(durationMs,fraction,amp){
   for(let i=1;i<=n;i++){
     // En mitad del trazo la curva va deprisa: sin hueco mínimo, dos toques se oirían como uno.
     const at=Math.max(Math.round(mcBezierXAt(i/n,MC_CYCLE_EASE)*dur)-MC_CYCLE_TICK_MS,last+MC_CYCLE_GAP_MS,0);
-    out.push({at:at,amp:Math.max(1,Math.round(amp*(0.5+0.5*i/n)))});
+    out.push({at:at,amp:Math.max(1,Math.round(amp*(0.6+0.4*i/n)))});
     last=at;
   }
   return out;
@@ -650,7 +671,7 @@ function mcPlayCycle(durationMs,fraction){
   const first=new Promise(function(r){ answer=r; });
   ticks.forEach(function(tk,i){
     mcPlayCycle.timers.push(setTimeout(function(){
-      const p=mcHaptic("edge",{amplitude:tk.amp,durationMs:MC_CYCLE_TICK_MS,usage:MC_FELT_USAGE,cycle:i+1});
+      const p=mcFeltHaptic(tk.amp,MC_CYCLE_TICK_MS,{cycle:i+1});
       if(i===0) Promise.resolve(p).then(answer);
     },tk.at));
   });
@@ -676,18 +697,25 @@ function mcEdgeHaptic(){
      uso «toque» OxygenOS cambia el toque por su efecto de serie y en un choque suelto (una vez
      por arrastre desde la ronda 7) eso se nota igual a cualquier fuerza; en la 152 se repetía y
      la ristra lo disimulaba. Con uso «hardware» el motor toca nuestra fuerza y duración. */
-  return mcHaptic("edge",{amplitude:v.edgeAmp,durationMs:v.edgeMs,usage:MC_FELT_USAGE});
+  // Ronda 9: el cambio de segmento acaba de sonar; un borde ahora es el reflejo del mismo gesto
+  // (el contenido nuevo es más corto y el scroll se recoloca solo), no una llegada de verdad.
+  if(performance.now()-(mcTickHaptic.at||-Infinity)<MC_SEG_HUSH_MS) return;
+  return mcFeltHaptic(v.edgeAmp,v.edgeMs);
 }
+const MC_SEG_HUSH_MS=450;
 // Píxeles de vuelta atrás que convierten el siguiente empuje en otro gesto: menos es temblor.
 const MC_EDGE_REARM=12;
-// Cambiar de segmento suena como un punto de la gráfica: el tick que le gusta (ronda 7).
+/* Cambiar de segmento (Recibos/Deudas/Metas y gasto/ingreso): UN toque con su propio par del
+   ajustador. Hasta la ronda 8 usaba el de la gráfica con uso «toque», que OxygenOS cambia por su
+   efecto de serie: le gustaba, pero ningún deslizador lo movía («me gustaría un poquito más
+   suave»). Con uso hardware la fuerza y la duración son suyas. */
 function mcTickHaptic(){
   // Un cambio de segmento = UN toque, aunque el mismo gesto lo pida dos veces (botón y tirón).
   const now=performance.now();
   if(now-(mcTickHaptic.at||-Infinity)<150) return;
   mcTickHaptic.at=now;
   const v=mcHapticTune();
-  return mcHaptic("edge",{amplitude:v.tickAmp,durationMs:v.tickMs});
+  return mcFeltHaptic(v.segAmp,v.segMs);
 }
 function mcBindEdgeHaptics(root, blocked){
   let g=null, states=new WeakMap(), lastAt=-Infinity;
@@ -740,7 +768,8 @@ function mcBindEdgeHaptics(root, blocked){
     const el=scroller(e.target);
     if(!el) return;
     const t=e.touches[0]; stateOf(el);
-    g={el:el,id:t.identifier,x:t.clientX,y:t.clientY,lastY:t.clientY,anchor:t.clientY,edge:boundary(el),pulling:false};
+    // segPull: Plan reclama este tirón desde arriba para cambiar de segmento (marca el evento).
+    g={el:el,id:t.identifier,x:t.clientX,y:t.clientY,lastY:t.clientY,anchor:t.clientY,edge:boundary(el),pulling:false,segPull:!!e.mcSegPull};
   };
   const move=function(e){
     if(!g) return;
@@ -754,6 +783,11 @@ function mcBindEdgeHaptics(root, blocked){
     const edge=boundary(g.el);
     // Al aterrizar en el borde se empieza a contar desde allí: el recorrido de scroll no vale.
     if(!edge||edge!==g.edge){ stopPull(); g.edge=edge; g.anchor=t.clientY; g.peak=t.clientY; return; }
+    /* Ronda 9: «son 2 vibraciones», la del segmento y otra hipersuave de llegar arriba. En el
+       móvil el primer touchmove llega a unos 8 px; entre los 10 px de este empuje y los 12 en que
+       Plan fija el eje (GEST_LEAD) había un hueco por el que el borde de arriba sonaba antes que
+       el toque de segmento. Ese tirón no es un choque: es el gesto de Plan. */
+    if(g.segPull&&edge==="top") return;
     const out=edge==="top"?1:-1;   // signo del empuje contra el borde
     if(step*out<0){
       stopPull(); g.anchor=t.clientY;
