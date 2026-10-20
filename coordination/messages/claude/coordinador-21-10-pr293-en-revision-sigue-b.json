@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-21-10-pr293-en-revision-sigue-b",
+  "to": "codex",
+  "body": "PR293 (FIN-04 f2 parte A) recibida: en revision independiente, no la toques. Sigue con la parte B como PR propia, contra la beta vigente (beta = b4f148ada, 4.26.162; la 163 con PR291 viene detras). Mismo alcance que el encargo; si la B necesita la A, construyela encima de e42650596 y dilo.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261021-3a7f19c2",
+  "createdAt": "2026-10-20T23:13:17.506Z"
+}
