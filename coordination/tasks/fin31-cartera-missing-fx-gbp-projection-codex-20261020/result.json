@@ -1,0 +1,88 @@
+{
+  "status": "blocked",
+  "productSHA": "84617cc289e40bd5760794c5b0c3d43d68696024",
+  "summary": "FIN31 source84617cc289e40bd5760794c5b0c3d43d68696024 oneparent beta16066c13084257fd576444a01cb529c5e6e815c6ec6 draftPR290 exactbranchPRpullref. MissingFX unknown rows and totals, GBPselected/localglobal, projectioncurrency and values fixed; originalrows/FX preserved. 3causalRED 7uniqueGREEN plus1capture repetition CPU1worker1retry0. FX/security/map syntax privacy size EXIT0 docs EXIT1 catalogue160directed EXIT1 CUR_SYM eur fromEurAmt integrationClaude. FIN22PR289/R8 unchanged preserved28748files24repos. RETURN383c2733216993cb5d8b64e9da468469556dcbaf; ZIPaa52b1b4313e281a59b006a627991e531a5c0807ebfccbfd1e44bf94f2becfbd manifest1148239dcdcc5210b77d8f47e1886db8928f84774e1629b81acb9a21a17fb49e, 217entries verified. releasedBLOCKED notProductREADY, privatehandoff thenSTOP.",
+  "tests": [
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "base-build.json"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "candidate-build.json"
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs",
+      "exitCode": 1,
+      "phase": "catalogue160-directed.json",
+      "environment": {
+        "BETA_SOURCES_ONLY": "Catálogo160"
+      }
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fx-multi.test.mjs tests/security.test.mjs tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "phase": "directed-node.json"
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1,
+      "phase": "docs-final.json"
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0,
+      "phase": "privacy.json"
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 0,
+      "phase": "size.json"
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "phase": "syntax.json"
+    },
+    {
+      "command": "FIN31 directed browser capture-missing-stable",
+      "exitCode": 0
+    },
+    {
+      "command": "FIN31 directed browser green-boundaries",
+      "exitCode": 0
+    },
+    {
+      "command": "FIN31 directed browser green-candidate",
+      "exitCode": 0
+    },
+    {
+      "command": "FIN31 directed browser red-gbp",
+      "exitCode": 1
+    },
+    {
+      "command": "FIN31 directed browser red-missing-fx",
+      "exitCode": 1
+    },
+    {
+      "command": "FIN31 directed browser red-projection",
+      "exitCode": 1
+    }
+  ],
+  "limitations": [
+    "Seven unique directed browser tests pass on beta160 assembled artifact, plus one capture repetition. Three real causal baseline REDs retained. Synthetic offline fixtures, independent USD0.8 and GBP1.25 money oracles, full stored rows unchanged. Worker1 retry0 stopfirstfailure ownport CPU1 sequential. No old FIN22 test reruns.",
+    "Earlier missing-FX and GBP capture frames were taken during navigation, and one hero crop is blank; preserved and explicitly superseded by stable Cartera capture, selectedGBP hero and converted projection crop. Capture-only repetition is not extra unique coverage.",
+    "Base160 was current at start and does not include FIN22 PR289. Summary formatter area overlaps its independently reviewed fix; Claude owns integration, no PR288/289 edits or source copied. No later base chase.",
+    "No VERSION notes CHANGELOG README ROADMAP BACKLOG catalogue caps modifications. Catalogue160 directed EXIT1 new dependencies CUR_SYM eur fromEurAmt in limpieza-ajustes-perfil; integration reserved Claude. No broad catalogue mutation suite.",
+    "Projection stores neither converted principal nor simulated contribution. Zero stored monthly contribution now remains zero. Unknown investment totals or local display FX suppress the projection. Existing global Settings missing-rate selection restriction and fallback remain unchanged.",
+    "No fullsuite, CPU6/performance profiling, general CI verification, real bank/cloud, SQL/Edge/API, native widget, APK/Gradle/deploy/merge, served or mobile acceptance. Not ProductREADY. FIN12 INC290902 FIN04 await another exact task. STOP after private handoff, no native reply."
+  ],
+  "schema": 1,
+  "taskId": "fin31-cartera-missing-fx-gbp-projection-codex-20261020",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-20T20:03:43.843Z",
+  "released": true
+}
