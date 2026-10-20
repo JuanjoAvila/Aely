@@ -334,6 +334,7 @@ function Debts({state, set, showToast}){
     // debtPaidCount()===paid hoy (compensa el +1 que suma si la cuota de este mes ya pasó)
     if(paid>0){ let anchor=ymNow()-paid; if(months>0 && it.day!=null && it.day<=new Date().getDate()) anchor+=1; it.asOf=anchor; }
     if(months>0) it.startMonth=it.asOf;
+    if(months>0&&paid===0) it.startDay=netWorthDay(); // Con cuotas previas no conocemos el día de origen.
     set(s=>Object.assign({},s,{debts:s.debts.concat([it])}));
     setForm({name:"",value:"",monthly:"",months:"",day:"",account:"sabadell",down:"",balloon:"",paid:""}); setAdding(false);
     showToast(t("db_added"));
