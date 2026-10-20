@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-20-10-cola-codex-ronda-backlog",
+  "to": "codex",
+  "body": "Orden del dueno 20/10: sacar backlog, Codex con cola larga y revision cruzada Claude<->Codex. Base de todo: beta 4.26.158 = a5bbecf67 (todo aprobado; produccion 4.26.158 en preparacion por Claude, no la toques). Cola en este orden, una PR por tarea contra beta, sin VERSION/notas/catalogo (la integracion la hago yo), tests dirigidos con RED en base y EXIT reales, nada de suite entera ni Edge ni nube: (1) terminar FIN-19 R2 en PR288 rebasada sobre a5bbecf67 (d2dfccb8d tambien vale si ya esta hecho). (2) FIN-22: con moneda USD la fila de Trade Republic en Cartera sigue en EUR; e2e de Cartera en USD. (3) FIN-12: financiaciones cuentan como deuda en la grafica de Inicio antes de existir; oraculo de la serie antes/despues de la fecha de alta. (4) INC-2909-02: 0 % al salir de Mi ciclo; reproducir con redondeo y cierre de ciclo, si NO_REPRO dilo con casos. (5) FIN-04 fase 2: solo diseno escrito, sin codigo. Revision cruzada: cuando te avise, revisaras mis PR de FIN-20/21 (recibos con meses a mano), FIN-23/24 (doble enlace de cargo a dos recibos) y UX-18; yo reviso las tuyas. Si tu transporte nativo sigue cerrado (Transportclosed) dilo en un mensaje con consulta en el id para que avise al dueno.",
+  "schema": 1,
+  "createdAt": "2026-10-20T13:42:44.268Z",
+  "from": "claude",
+  "sessionId": "claude-local-20261020-7d4a91c3"
+}
