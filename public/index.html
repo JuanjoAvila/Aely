@@ -9626,13 +9626,57 @@ function netWorthDebtPolicy(state, today, current){
   const value=current!=null?current:sum(today);
   return {current:value,notes:notes,timingUnknown:debts.some(function(d){return d.months==null&&!(dayOf(d)>0);}),at:function(day){ return day===today?value:sum(day); }};
 }
+/* LOS AJUSTES QUE DE VERDAD LEEN LA SERIE DE PATRIMONIO Y EL PRESUPUESTO DE INICIO (20/10/2026).
+   Dependían de `state.settings` entero, así que cualquier toque en Ajustes (contraste, idioma,
+   tamaño de letra…) hacía que Inicio, montado detrás, recorriera otra vez todo el histórico:
+   ~240 ms por cambio con 8.000 gastos a CPU×6, y el último caía justo al llegar a Cartera
+   («hago cosas en Ajustes, voy a Tus cuentas y pega un tirón»). Ahora dependen solo de los campos
+   que leen ellas y sus auxiliares. ⚠ Si una de ellas (o algo a lo que llamen) empieza a leer otro
+   ajuste, va aquí o la cifra se quedará vieja: lo vigila `tests/inicio-deps-ajustes.test.mjs`,
+   que recorre el código y además ejecuta las dos con los ajustes espiados. */
+const NET_WORTH_SETTINGS=["accountListOrder","accountShare","accountShareLegacy","expenseBanks","profile"];
+const BUDGET_SETTINGS=["budgetCycle","expenseBanks","gTotalMode"];
+function settingsDeps(settings, keys){
+  const s=settings||{};
+  return keys.map(function(k){ return s[k]; });
+}
+// Un punto de histórico vale para la serie solo si `clean` (dentro de `netWorthSeries`) lo acepta.
+function netWorthPointOk(d, v, today){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(d||"")||typeof v!=="number"||!Number.isFinite(v)||d>today) return false;
+  const ms=Date.parse(d+"T12:00:00Z");
+  const utc=netWorthPointOk.utc||(netWorthPointOk.utc=new Intl.DateTimeFormat("en-CA",{timeZone:"UTC",year:"numeric",month:"2-digit",day:"2-digit"}));
+  return Number.isFinite(ms)&&utc.format(ms)===d;
+}
+/* EL CIERRE DE HOY NO MUEVE LA SERIE (20/10/2026). «Tus cuentas» guarda el saldo de hoy cada vez
+   que cambia (`recordAccountBalances`); con un gasto nuevo eso reescribía `accountBalanceHistory`
+   y la serie entera se recalculaba por segunda vez seguida (~245 ms con 8.000 gastos), encima
+   del recálculo por el propio gasto. En la serie, el punto de HOY de una cuenta que ya tiene
+   cierres anteriores no se usa: hoy sale de los saldos vivos y los días pasados no lo ven. Solo
+   cuenta cuando es el PRIMER cierre de esa cuenta (marca dónde empieza y su valor de antes).
+   Esta clave recoge exactamente eso, más si alguna lista tiene más de un punto (`fresh`). */
+const _nwHistKeys=new WeakMap();
+function netWorthHistoryKey(hist, today){
+  if(!hist) return "";
+  const hit=_nwHistKeys.get(hist);
+  if(hit&&hit.today===today) return hit.key;
+  const out={}; let varios=false;
+  Object.keys(hist).forEach(function(k){
+    const list=Array.isArray(hist[k])?hist[k]:[];
+    if(list.length>1) varios=true;
+    const antes=list.some(function(p){ return p&&p.day<today&&netWorthPointOk(p.day,p.value,today); });
+    out[k]=antes?list.filter(function(p){ return !(p&&p.day===today); }):list;
+  });
+  const key=(varios?"1":"0")+JSON.stringify(out);
+  _nwHistKeys.set(hist,{today:today,key:key});
+  return key;
+}
 function netWorthSeries(state, options){
   options=options||{};
   const today=options.today||netWorthDay();
   const deps=[today,options.liquid,options.invested,options.debtTotal,state.accounts,state.obAccounts,state.expenses,
-    state.deleted,state.accountBalanceHistory,state.invHistory,state.investments,state.assets,state.assetValueHistory,state.debts,state.flows,
-    state.fixed,state.oneoffs,state.bankTx,state.settings,state.fxRates,state.fx,state.aportaciones,
-    options.balanceInputs&&options.balanceInputs.paidNetByBank,options.balanceInputs&&options.balanceInputs.spentByBank];
+    state.deleted,netWorthHistoryKey(state.accountBalanceHistory,today),state.invHistory,state.investments,state.assets,state.assetValueHistory,state.debts,state.flows,
+    state.fixed,state.oneoffs,state.bankTx,state.fxRates,state.fx,state.aportaciones,
+    options.balanceInputs&&options.balanceInputs.paidNetByBank,options.balanceInputs&&options.balanceInputs.spentByBank].concat(settingsDeps(state.settings,NET_WORTH_SETTINGS));
   const cache=netWorthSeries.cache||(netWorthSeries.cache=[]);
   const hit=cache.find(function(c){ return c.deps.every(function(v,i){ return v===deps[i]; }); });
   if(hit) return hit.series;
@@ -9644,9 +9688,7 @@ function netWorthSeries(state, options){
     const by={};
     (list||[]).forEach(function(p){
       const d=p&&p[day],v=p&&p[value];
-      if(!/^\d{4}-\d{2}-\d{2}$/.test(d||"")||typeof v!=="number"||!Number.isFinite(v)||d>today) return;
-      const ms=Date.parse(d+"T12:00:00Z");
-      if(Number.isFinite(ms)&&utcFmt.format(ms)===d) by[d]=Object.assign({},p,{day:d,value:v});
+      if(netWorthPointOk(d,v,today)) by[d]=Object.assign({},p,{day:d,value:v});
     });
     return Object.keys(by).sort().map(function(d){ return by[d]; });
   };
@@ -11170,18 +11212,19 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
 
   const seriesToday=netWorthDay();
   // Sólo un cambio financiero o de día justifica volver a recorrer el histórico
-  // para el presupuesto y su nómina, también al abrir una hoja de Inicio.
+  // para el presupuesto y su nómina, también al abrir una hoja de Inicio. De los ajustes, solo los
+  // que se leen (`BUDGET_SETTINGS`, `NET_WORTH_SETTINGS`): tocar Ajustes no es un cambio de dinero.
   const bud=useMemo(function(){
   const bud=dashboardBudgetStats(state);
     return bud;
   },
-    [state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.accounts,state.settings,state.flows,state.budget,state.reservaLog,seriesToday]);
+    [state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.accounts,state.flows,state.budget,state.reservaLog,seriesToday].concat(settingsDeps(state.settings,BUDGET_SETTINGS)));
   const budAmt=bud.budget!=null?bud.budget:(state.budget||0);
   const spentAgainst=Math.max(0,bud.against), rem=bud.remaining!=null?bud.remaining:budAmt-spentAgainst;
   const timing=cycleTiming(bud), paceState=cyclePaceState(spentAgainst,budAmt,timing.elapsed,timing.days);
   const dailyMoney=budAmt>0?cycleDailyMoney(rem,timing.left):null;
   const series=useMemo(function(){ return netWorthSeries(state,{today:seriesToday,liquid:tt.liquid,invested:tt.invested,debtTotal:tt.debtTotal,balanceInputs:tt}); },
-    [state.accounts,state.obAccounts,state.accountBalanceHistory,state.invHistory,state.investments,state.assets,state.assetValueHistory,state.debts,state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.flows,state.fixed,state.oneoffs,state.bankTx,state.aportaciones,state.settings,state.fx,state.fxRates,tt,seriesToday]);
+    [state.accounts,state.obAccounts,netWorthHistoryKey(state.accountBalanceHistory,seriesToday),state.invHistory,state.investments,state.assets,state.assetValueHistory,state.debts,state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.flows,state.fixed,state.oneoffs,state.bankTx,state.aportaciones,state.fx,state.fxRates,tt,seriesToday].concat(settingsDeps(state.settings,NET_WORTH_SETTINGS)));
 
   const overdue=[];
   // La fecha prevista no es un pago: la misma lectura de evidencia que Plan conserva los
@@ -23834,7 +23877,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="6822a3bf65b06ce764fc6338b2285be77c7f944ae831944cdc0be3ede1587ed4";
+var _rnSha="cc1fd09379e5464f42c06c6820d370159d3a9a833857154c92619c2f61e49fa1";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -26407,6 +26450,18 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, onSa
     ));
 }
 
+/* La cifra grande de Cartera, en su propio componente (20/10/2026). La transición (B2, al
+   ACTIVAR Cartera por el bus: premontaje e IntersectionObserver se probaron y fallan) repinta en
+   cada frame mientras dura; dentro de CarteraTab eso era repintar también las dos listas de
+   cuentas, los bienes y las inversiones ~57 veces en 950 ms. Aquí solo se repinta el número. */
+function CarteraHeroAmt({target}){
+  const [carteraOn,setCarteraOn]=useState(false);
+  useEffect(function(){ return mcOnCarteraActive(setCarteraOn); },[]);
+  const ph=eurParts(useCountUp(target, carteraOn));
+  return React.createElement("div",{className:"serif num cartera-hero-amt",style:{fontSize:40,fontWeight:550,letterSpacing:"-1px",lineHeight:1.05,marginTop:6}},
+    ph.ent, React.createElement("span",{style:{fontSize:22,color:"var(--muted)"}},","+ph.dec+" "+ph.sym));
+}
+
 function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSync, syncInv, onReconnectBank, showToast}){
   const [invTools,setInvTools]=useState(false);
   const invLinkRef=useRef(null);
@@ -26481,20 +26536,13 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
     setBankBusy(true);
     Promise.resolve(onBankSync()).finally(function(){ setBankBusy(false); });
   };
-  /* B2 — count-up al ACTIVAR Cartera (bus), no al montar ni al «verse» por geometría.
-     Premontaje e IntersectionObserver se probaron y fallan; el bus es el de Gastos. */
-  const [carteraOn,setCarteraOn]=useState(false);
-  useEffect(function(){ return mcOnCarteraActive(setCarteraOn); },[]);
   const heroTarget=allOn ? (totals.netWorth||0) : active.reduce(function(a,x){ return a+x.v; },0);
-  const shownHero=useCountUp(heroTarget, carteraOn);
-  const ph=eurParts(shownHero);
   return React.createElement("div",{className:"v4-screen"},
     React.createElement("h1",{className:"v4-title serif"}, t("v4_cartera_title")),
     React.createElement("div",{className:"v4-card v4-card-hero rise",style:{animationDelay:".05s"}},
       React.createElement("div",{className:"v4-micro"}, heroLab),
       React.createElement(FxNotice,{missing:totals.fxMissing}),
-      React.createElement("div",{className:"serif num cartera-hero-amt",style:{fontSize:40,fontWeight:550,letterSpacing:"-1px",lineHeight:1.05,marginTop:6}},
-        ph.ent, React.createElement("span",{style:{fontSize:22,color:"var(--muted)"}},","+ph.dec+" "+ph.sym)),
+      React.createElement(CarteraHeroAmt,{target:heroTarget}),
       React.createElement("div",{className:"v4-stackbar",style:{marginTop:16}},
         active.map(function(x){
           return React.createElement("i",{key:x.k,style:{flex:Math.max(0.02,(x.v/sum)*100),background:x.color}});
@@ -31168,13 +31216,18 @@ function App(){
      referencia y se salta el subárbol entero. De ahí que el mapa de abajo ya no vaya memoizado:
      cuatro `createElement` de un `div` no cuestan nada, y lo caro es lo que cuelga de ellos.
      El precio de sacar `tab` son los cierres que lo leían (`goTab`, `cancelSwipe`): ahora leen
-     `tabRef`, con el porqué escrito en cada uno. */
+     `tabRef`, con el porqué escrito en cada uno.
+
+     Y `drawerOpen` TAMPOCO (20/10/2026). Estaba en la lista aunque ninguna página lo lee: abrir o
+     cerrar Ajustes reconstruía las cuatro, y al tocar Cartera desde el cajón ese trabajo caía
+     encima del cambio de pestaña («voy de Ajustes a Tus cuentas y pega un tirón»). El cajón es una
+     capa de encima, como el perfil. Lo vigila `tests/inicio-deps-ajustes.test.mjs`. */
   const contenidos=useMemo(function(){
     var out={};
     tabIds.forEach(function(id){ if(id!=="gastos") out[id]=pageFor(id); });
     return out;
     // eslint-disable-next-line
-  },[state, totals, budgetStreak, tabIds.join("|"), syncing, syncStatus, gotoExp, planGoto, pricing, uid, drawerOpen, locked]);
+  },[state, totals, budgetStreak, tabIds.join("|"), syncing, syncStatus, gotoExp, planGoto, pricing, uid, locked]);
   /* Gastos iba en memo aparte POR la prop `active` — y esa prop era el lag. Ahora se entera
      por bus (`mcSetGastosActive` abajo) y comparte deps con las otras: entrar/salir de Gastos
      ya NO reconstruye Expenses. Se deja el memo propio por si mañana vuelve a necesitar algo
@@ -31182,7 +31235,7 @@ function App(){
   const contenidoGastos=useMemo(function(){
     return tabIds.indexOf("gastos")>=0 ? pageFor("gastos") : null;
     // eslint-disable-next-line
-  },[state, totals, tabIds.join("|"), syncing, syncStatus, gotoExp, planGoto, pricing, uid, drawerOpen, locked, gastosForceAll]);
+  },[state, totals, tabIds.join("|"), syncing, syncStatus, gotoExp, planGoto, pricing, uid, locked, gastosForceAll]);
   // Aviso barato a Expenses: sin setState en App que no haga falta, y sin re-render de Gastos.
   useEffect(function(){ mcSetGastosActive(tabIds[tab]==="gastos"); },[tab, tabIds]);
   useEffect(function(){ mcSetCarteraActive(tabIds[tab]==="cartera"); },[tab, tabIds]);

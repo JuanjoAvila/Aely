@@ -152,6 +152,7 @@ const steps = [
   ["month-budget-stats", ["node", "tests/month-budget-stats.test.mjs"]],
   ["dash-metricas", ["node", "tests/dash-metricas.test.mjs"]],
   ["inicio-v42", ["node", "tests/inicio-v42.test.mjs"]],
+  ["inicio-deps-ajustes", ["node", "tests/inicio-deps-ajustes.test.mjs"]],
   ["inicio-mismo-dia", ["node", "tests/inicio-mismo-dia.test.mjs"]],
   ["inicio-transito-intereses", ["node", "tests/inicio-transito-intereses.test.mjs"]],
   ["cuenta-parte-mia", ["node", "tests/cuenta-parte-mia.test.mjs"]],

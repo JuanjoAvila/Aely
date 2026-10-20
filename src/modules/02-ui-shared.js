@@ -921,13 +921,57 @@ function netWorthDebtPolicy(state, today, current){
   const value=current!=null?current:sum(today);
   return {current:value,notes:notes,timingUnknown:debts.some(function(d){return d.months==null&&!(dayOf(d)>0);}),at:function(day){ return day===today?value:sum(day); }};
 }
+/* LOS AJUSTES QUE DE VERDAD LEEN LA SERIE DE PATRIMONIO Y EL PRESUPUESTO DE INICIO (20/10/2026).
+   Dependían de `state.settings` entero, así que cualquier toque en Ajustes (contraste, idioma,
+   tamaño de letra…) hacía que Inicio, montado detrás, recorriera otra vez todo el histórico:
+   ~240 ms por cambio con 8.000 gastos a CPU×6, y el último caía justo al llegar a Cartera
+   («hago cosas en Ajustes, voy a Tus cuentas y pega un tirón»). Ahora dependen solo de los campos
+   que leen ellas y sus auxiliares. ⚠ Si una de ellas (o algo a lo que llamen) empieza a leer otro
+   ajuste, va aquí o la cifra se quedará vieja: lo vigila `tests/inicio-deps-ajustes.test.mjs`,
+   que recorre el código y además ejecuta las dos con los ajustes espiados. */
+const NET_WORTH_SETTINGS=["accountListOrder","accountShare","accountShareLegacy","expenseBanks","profile"];
+const BUDGET_SETTINGS=["budgetCycle","expenseBanks","gTotalMode"];
+function settingsDeps(settings, keys){
+  const s=settings||{};
+  return keys.map(function(k){ return s[k]; });
+}
+// Un punto de histórico vale para la serie solo si `clean` (dentro de `netWorthSeries`) lo acepta.
+function netWorthPointOk(d, v, today){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(d||"")||typeof v!=="number"||!Number.isFinite(v)||d>today) return false;
+  const ms=Date.parse(d+"T12:00:00Z");
+  const utc=netWorthPointOk.utc||(netWorthPointOk.utc=new Intl.DateTimeFormat("en-CA",{timeZone:"UTC",year:"numeric",month:"2-digit",day:"2-digit"}));
+  return Number.isFinite(ms)&&utc.format(ms)===d;
+}
+/* EL CIERRE DE HOY NO MUEVE LA SERIE (20/10/2026). «Tus cuentas» guarda el saldo de hoy cada vez
+   que cambia (`recordAccountBalances`); con un gasto nuevo eso reescribía `accountBalanceHistory`
+   y la serie entera se recalculaba por segunda vez seguida (~245 ms con 8.000 gastos), encima
+   del recálculo por el propio gasto. En la serie, el punto de HOY de una cuenta que ya tiene
+   cierres anteriores no se usa: hoy sale de los saldos vivos y los días pasados no lo ven. Solo
+   cuenta cuando es el PRIMER cierre de esa cuenta (marca dónde empieza y su valor de antes).
+   Esta clave recoge exactamente eso, más si alguna lista tiene más de un punto (`fresh`). */
+const _nwHistKeys=new WeakMap();
+function netWorthHistoryKey(hist, today){
+  if(!hist) return "";
+  const hit=_nwHistKeys.get(hist);
+  if(hit&&hit.today===today) return hit.key;
+  const out={}; let varios=false;
+  Object.keys(hist).forEach(function(k){
+    const list=Array.isArray(hist[k])?hist[k]:[];
+    if(list.length>1) varios=true;
+    const antes=list.some(function(p){ return p&&p.day<today&&netWorthPointOk(p.day,p.value,today); });
+    out[k]=antes?list.filter(function(p){ return !(p&&p.day===today); }):list;
+  });
+  const key=(varios?"1":"0")+JSON.stringify(out);
+  _nwHistKeys.set(hist,{today:today,key:key});
+  return key;
+}
 function netWorthSeries(state, options){
   options=options||{};
   const today=options.today||netWorthDay();
   const deps=[today,options.liquid,options.invested,options.debtTotal,state.accounts,state.obAccounts,state.expenses,
-    state.deleted,state.accountBalanceHistory,state.invHistory,state.investments,state.assets,state.assetValueHistory,state.debts,state.flows,
-    state.fixed,state.oneoffs,state.bankTx,state.settings,state.fxRates,state.fx,state.aportaciones,
-    options.balanceInputs&&options.balanceInputs.paidNetByBank,options.balanceInputs&&options.balanceInputs.spentByBank];
+    state.deleted,netWorthHistoryKey(state.accountBalanceHistory,today),state.invHistory,state.investments,state.assets,state.assetValueHistory,state.debts,state.flows,
+    state.fixed,state.oneoffs,state.bankTx,state.fxRates,state.fx,state.aportaciones,
+    options.balanceInputs&&options.balanceInputs.paidNetByBank,options.balanceInputs&&options.balanceInputs.spentByBank].concat(settingsDeps(state.settings,NET_WORTH_SETTINGS));
   const cache=netWorthSeries.cache||(netWorthSeries.cache=[]);
   const hit=cache.find(function(c){ return c.deps.every(function(v,i){ return v===deps[i]; }); });
   if(hit) return hit.series;
@@ -939,9 +983,7 @@ function netWorthSeries(state, options){
     const by={};
     (list||[]).forEach(function(p){
       const d=p&&p[day],v=p&&p[value];
-      if(!/^\d{4}-\d{2}-\d{2}$/.test(d||"")||typeof v!=="number"||!Number.isFinite(v)||d>today) return;
-      const ms=Date.parse(d+"T12:00:00Z");
-      if(Number.isFinite(ms)&&utcFmt.format(ms)===d) by[d]=Object.assign({},p,{day:d,value:v});
+      if(netWorthPointOk(d,v,today)) by[d]=Object.assign({},p,{day:d,value:v});
     });
     return Object.keys(by).sort().map(function(d){ return by[d]; });
   };

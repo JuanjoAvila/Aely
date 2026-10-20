@@ -358,7 +358,12 @@ const PRESUPUESTO = {
   // Integración 4.26.130: 363.055 B gzip, 6.465 B más que la 129. Mínimo medido: 355 KiB (quedan 465 B).
   // Integración 4.26.131: 365.878 B gzip, 2.823 B más que la 130. Mínimo medido: 358 KiB (quedan 714 B).
   // Integración 4.26.135: 368.967 B gzip, 2.375 B sobre 358 KiB. Mínimo medido: 361 KiB (quedan 697 B).
-  gzip: 392 * 1024,
+  // «Tus cuentas» sin tirones (20/10, `claude/perf-cuentas`, sobre 80752dff0): Inicio depende solo de
+  // los ajustes que lee, el cierre de hoy no recalcula la serie, las pestañas no dependen del cajón y
+  // la cifra de Cartera se anima sola. Mismo host y minificador, sello .99999 y reserva de 95 B:
+  // 1.445.348/401.213 → 1.446.618/401.660 B (+1.270/+447). Es código, sin textos. 392 KiB se queda
+  // corto por 252 B: 393 KiB (quedan 772 B); el crudo cabe en 1413 KiB con 294 B.
+  gzip: 393 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

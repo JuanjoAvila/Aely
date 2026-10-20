@@ -9,6 +9,46 @@
 - **Conflictos de integración.** Los generados de `public/` (`index.html`, `i18n`, `release-notes.json`, `beta-delivery.json`) se resolvieron con `build` tras los merges, no a mano.
 - **Panel.** Cinco tandas nuevas: `gestionar-plan-ola-r2`, `vibracion-r3`, `youtube-diagnostico`, `renombrar-lista-al-momento`, `recibos-cifra-cuadra`. `gestionar-plan-ola` y `vibracion-ajustador-r2` (152) y `youtube-enlazar-recibo` (148) pasan a `tandas: []`: rechazadas, y su arreglo viaja en tandas nuevas. Las aprobadas sin entregar a producción (`pestanas-swipe-rapido`) y las aún sin veredicto se quedan visibles.
 
+## Pendiente de integración · «Tus cuentas» sin tirones (`claude/perf-cuentas`) · 2026-10-20
+
+- **Por qué.** Él lo encontró en la beta 4.26.150: «estando en Ajustes hago cosas y enseguida voy a Cartera → Tus cuentas: tirón grande», y lo mismo al volver a la app tras usar otras. La pantalla en sí es barata. El trabajo que congela es el de las otras pestañas, que siguen montadas detrás:
+  - **(1)** la serie de patrimonio y el presupuesto de Inicio dependían de `state.settings` entero, así que cualquier ajuste (contraste, idioma, tamaño de letra…) recorría todo el histórico (~240 ms por cambio con 8.000 gastos a CPU×6);
+  - **(2)** al volver con un gasto nuevo, el cierre de hoy que guarda «Tus cuentas» (`recordAccountBalances`) reescribía `accountBalanceHistory` y la serie se recalculaba por segunda vez seguida;
+  - **(3)** abrir o cerrar Ajustes reconstruía las cuatro pestañas por `drawerOpen` en `contenidos`, aunque ninguna lo lee;
+  - **(4)** la transición de la cifra de Cartera repintaba la pantalla entera ~57 veces.
+- **Qué cambia (P1–P4), sin tocar ningún dato.**
+  - **P1:** `NET_WORTH_SETTINGS` / `BUDGET_SETTINGS` y `settingsDeps`. La caché de `netWorthSeries` y los memos `series` y `bud` de Inicio dependen solo de los campos que leen ellas y todo lo que llaman: `accountListOrder`, `accountShare`, `accountShareLegacy`, `expenseBanks`, `profile` / `budgetCycle`, `expenseBanks`, `gTotalMode`.
+  - **P2:** `netWorthHistoryKey`. El punto de HOY de una cuenta que ya tiene cierres anteriores no cuenta (la serie saca hoy de los saldos vivos y los días pasados no lo ven). Sí cuenta cuando es el primer cierre, y también si alguna lista tiene más de un punto (`fresh`). `clean` y la clave comparten `netWorthPointOk`.
+  - **P3:** fuera `drawerOpen` de `contenidos` y `contenidoGastos`.
+  - **P4:** `CarteraHeroAmt`, la cifra con su `useCountUp` y su bus en su propio componente. Va sobre el `useCountUp` de la 4.26.153, que ya pinta la cifra real desde el primer frame.
+- **Ningún dato cambia.**
+  - Base `80752dff0` frente a candidata, con la serie y el presupuesto: 540 pasos de uso sobre 60 carteras sintéticas (cambios en Ajustes, cierre de hoy, gasto nuevo, partes de cuenta, titular, ciclo, orden) dan 1.620 comparaciones JSON con 0 diferencias. La candidata va con su caché, la base siempre recalculada, y las 1.080 series tienen más de 5 días.
+  - En el navegador, Inicio, la cifra de Cartera y las filas de «Tus cuentas» salen con el mismo texto en las 12 cargas A/B.
+- **A/B ABAB contra `80752dff0`.** Pixel 5, CPU×6, SW bloqueado, nube que acusa la subida (`ACK=1`). La máquina NO estaba libre: el vigilante vio una suite ajena en las 65 muestras. Por eso cada pasada alterna base y candidata. Frame máximo (ms) / suma de frames >32 ms, tres pasadas:
+
+  | escenario | base | candidata |
+  |---|---|---|
+  | Ajustes (4 cambios) → atrás → Cartera, 3.500 | 783–800 / 1.683–1.800 | 433–633 / 1.033–1.300 |
+  | Ajustes → Cartera desde la barra, 3.500 | 383–467 / 1.117–1.450 | 250–333 / 717–800 |
+  | vuelta con gasto nuevo, Cartera a 300 ms, 3.500 | 200–250 / 650–783 | 150–233 / 483–550 |
+  | Ajustes (4 cambios) → atrás → Cartera, 8.000 | 867–967 / 2.316–2.483 | 667–683 / 1.267–1.383 |
+  | Ajustes → Cartera desde la barra, 8.000 | 583–633 / 1.933–2.034 | 300–367 / 917–1.117 |
+  | vuelta con gasto nuevo, Cartera a 300 ms, 8.000 | 567–733 / 1.267–1.667 | 500–567 / 967–1.083 |
+  | vuelta con gasto nuevo, Cartera a 1,5 s, 8.000 | 333–417 / 1.167–1.366 | 333–400 / 800–1.100 |
+
+  Inicio → Cartera sin nada antes: 33–67 ms en las dos.
+- **Lo que queda (no tocado).** Cada cambio de estado sigue repintando las cuatro pestañas (`contenidos` depende de `state`). En la secuencia de Ajustes, `Expenses` son ~300 ms con 8.000 gastos y el resto de `Dashboard` ~60 ms. Un gasto nuevo recalcula la serie una vez, que es legítimo. La mezcla del pull se queda como en perf-vuelta.
+- **Guardianes.** `tests/inicio-deps-ajustes` (en `run-tests`):
+  - lee el cierre de llamadas de todos los módulos y falla con cualquier lectura de `settings` entero o con un campo sin declarar;
+  - ejecuta la serie y el presupuesto con los ajustes espiados;
+  - muta cada campo declarado (tiene que recalcular) y el contraste, el idioma o el tamaño de letra (no);
+  - barre 160 históricos sobre dos carteras: misma clave ⇒ misma serie byte a byte;
+  - vigila `drawerOpen` y `CarteraHeroAmt`.
+
+  Mutantes muertos: sin `profile`, quitar el primer cierre de hoy, olvidar `fresh`.
+- **`beta-sources`.** El descriptor `inicio-patrimonio-flujos` declara las tres funciones nuevas que alcanza (`netWorthHistoryKey`, `settingsDeps`, `netWorthPointOk`), como exige «Inicio v4.2 cubre…». `Catálogo153` queda en rojo: su cierre de lectores, calculado sobre tres ficheros, y su lista cerrada de huellas se miden sobre la fuente viva. Lo resuelve la integración al pasar la 153 a histórico.
+- **Tope de tamaño.** +1.270 B minificados / +447 B gzip; detalle en `tests/presupuesto-rendimiento.test.mjs`. Sin `VERSION` ni `RELEASE_NOTES`: van con la integración.
+
 ## [4.26.152] — 2026-10-19 · Candidata de beta: ola nativa en Gestionar plan (PR 287) y vibración del ajustador ronda 2 (UX-16), con APK nueva (4.26.152 / code 60)
 
 - **Qué lleva.** La 4.26.151 local (`fa138e12c`, aún sin empujar) más la PR 287 (`36b01eaf`), `c84de633` (`claude/vibra-aj-r2`) y `c4ce8075` (`claude/youtube-enlace-r2`, solo un test guardián) y `8aae4cef` (test lifecycle-inflight).
