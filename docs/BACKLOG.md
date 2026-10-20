@@ -122,7 +122,13 @@ Fuente: veredictos del panel (`scripts/errores.mjs --kind=beta`), CHANGELOG, not
 - UX-14 · deslizar entre pestañas a velocidad muy alta deja de ir fluido y hace un efecto raro: preparación estática; CPU6 pendiente de runner-libre expreso, sin medición ejecutada. Estado 19/10: en beta 4.26.149 (PR 284), tanda `pestanas-swipe-rapido`, pendiente de su veredicto.
 - INC-2709-15 · botones de suscripciones recortados: comprobar en móvil
 - INC-2709-06 · cargos CaixaBank ausentes: revisión con fixtures sintéticas asignada, sin cierre acreditado.
-- UX-15 · «Sincronizar» de Gastos no lee los bancos (solo baja lo de las notificaciones): renombrado/explicación con entrega técnica separada; no confundir con la lectura bancaria ni cerrar PRO-09 por asociación.
+- UX-15 · «Sincronizar» de Gastos no lee los bancos (solo baja lo de las notificaciones): renombrado/explicación con entrega técnica separada; no confundir con la lectura bancaria ni cerrar PRO-09 por asociación. Desde el 20/10 queda ligada a la tanda 5 de UX-17 (dónde vive «Actualizar gastos» en Gastos v5).
+- UX-17 · Gastos v5: rediseño de la pestaña (diseño cerrado 20/10, docs/design/gastos-v5/SPEC.md). Tandas en el orden del §12, cada una por beta con su guion:
+  - Tanda 1 · Estructura + Movimientos: cabecera, cifra viva, meses fijos al bajar, tarjetas con 6 px, filas grises desplegables; fuera la tarjeta resumen y los botones de periodo.
+  - Tanda 2 · Secciones + gesto: iconos de sección, tirón de Plan, vibración de un solo toque.
+  - Tanda 3 · Categorías → filtro (pendiente de su decisión: dónde se pone el límite a una categoría, §5).
+  - Tanda 4 · Suscripciones como bandeja + fichas.
+  - Tanda 5 · Hoja de filtros y destino de «Actualizar gastos» (pendiente de su decisión, §8; enlaza con UX-15).
 
 **4 · Limpieza, servidor y seguridad**
 
