@@ -18,7 +18,7 @@ import { readInput } from "../_shared/request_body.ts";
 // `categories` aborta si falta alguna.
 const ALLOWED = [
   "super", "pan", "bares", "cine", "padel", "heladeria", "ia", "ocio", "gaming", "viajes",
-  "transporte", "gasolina", "taxi", "parking", "multas", "zona_azul", "peajes", "agua", "luz", "gas", "tasas", "recibos", "compras", "educacion",
+  "transporte", "gasolina", "taxi", "parking", "multas", "zona_azul", "peajes", "coche", "agua", "luz", "gas", "tasas", "recibos", "compras", "educacion",
   "salud", "pelu", "mascotas", "hogar", "regalos", "joyeria", "otros",
 ] as const;
 
@@ -27,7 +27,7 @@ const HINTS =
   "cine=cines y entradas; padel=pádel; heladeria=helados; " +
   "ia=herramientas de inteligencia artificial (ChatGPT, Claude, Cursor); ocio=streaming, gym, ocio (Netflix, Movistar Plus, Spotify); gaming=videojuegos (Steam); " +
   "viajes=hoteles, vuelos, cruceros; transporte=metro, tren, bus y recarga eléctrica; " +
-  "gasolina=carburante y gasolineras; taxi=taxi y viajes con conductor, no comida a domicilio; parking=aparcamiento; " +
+  "gasolina=carburante y gasolineras; taxi=taxi y viajes con conductor, no comida a domicilio; parking=aparcamiento; coche=mantenimiento del vehículo (taller, ITV, lavado, neumáticos, recambios); " +
   "multas=multas explícitas o sanciones de tráfico; zona_azul=zona azul o estacionamiento regulado explícitos; peajes=cobro explícito de peaje; " +
   "Una administración sola no prueba multa; una app de parking sola no prueba zona azul; una autopista sola no prueba peaje. Sin ese detalle conserva la categoría general; " +
   "Una marca como Repsol sola no prueba carburante: conserva transporte si no hay indicio de gasolina, luz o gas; " +
