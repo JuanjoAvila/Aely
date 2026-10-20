@@ -1,0 +1,111 @@
+{
+  "status": "blocked",
+  "summary": "FIN19 R5 953889feef125dee665a5ddcb3af1d72dc3569f9 normal child of exact R4; same draft PR288 branch/PR head/pull ref confirmed. Order-independent actual counter and selective incomplete-row identity index; widget scoped dual commerce/original-name lookup preserves complete survivor rows and320 cents. Final directed44/45, sole RED remote rename/old-client-delete/failed DELETE/persist/full-pull: CLIENT resurrects row640 vs320; scoped widget320, legacy reader640. Client tombstone reader and rename writer unmodified, no financial PASS. Actual counter plus ENTIRE callback A/B CPU1 base158/R4/R5,3500 rows,3 scenarios,fresh/cache,4warmups31 interleaved repetitions: final notices fresh full ratio1.10401395 misses1.10; other11 meet target, no global perfPASS. All failures and samples retained; R3 banks320/320, PR286 3000 rows 4501500 cents, R4 local rename and ordinal controls pass. Docs EXIT1; no reserved metadata/caps/catalogue changes. Preserved24263 files19repos including parked FIN22 retained claim and exact dirty WIP. Own resources returned, immutable package verified. Blocked handoff then STOP; no ProductREADY.",
+  "tests": [
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r5-counter.test.mjs tests/fin19-r5-remote-rename.test.mjs tests/fin19-r4-pull-counter.test.mjs tests/fin19-r4-renamed-widget.test.mjs tests/fin19-r3-chain.test.mjs tests/fin19-r3-scope-cost.test.mjs tests/fin19-cross-bank-identity.test.mjs tests/ob-iguales-ordinal.test.mjs",
+      "exitCode": 1,
+      "phase": "candidate-directed"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r5-counter.test.mjs tests/fin19-r4-pull-counter.test.mjs tests/fin19-r3-scope-cost.test.mjs tests/fin19-r3-chain.test.mjs tests/fin19-cross-bank-identity.test.mjs",
+      "exitCode": 0,
+      "phase": "candidate-index-controls"
+    },
+    {
+      "command": "git diff --check afc13b622bdb900d0aa89c30b5d3c4d5e11b7ed0 HEAD",
+      "exitCode": 0,
+      "phase": "diff-final"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/docs-frescura.test.mjs",
+      "exitCode": 1,
+      "phase": "docs-final"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r5-counter.test.mjs tests/fin19-r5-remote-rename.test.mjs tests/fin19-r4-pull-counter.test.mjs tests/fin19-r4-renamed-widget.test.mjs tests/fin19-r3-chain.test.mjs tests/fin19-r3-scope-cost.test.mjs tests/fin19-cross-bank-identity.test.mjs tests/ob-iguales-ordinal.test.mjs tests/security.test.mjs tests/relevant-tests.test.mjs",
+      "exitCode": 1,
+      "phase": "final-directed"
+    },
+    {
+      "command": "node ../perf.mjs",
+      "exitCode": 0,
+      "phase": "perf-candidate-run"
+    },
+    {
+      "command": "node ../perf.mjs",
+      "exitCode": 0,
+      "phase": "perf-final-run"
+    },
+    {
+      "command": "node ../perf.mjs",
+      "exitCode": 1,
+      "phase": "perf-red"
+    },
+    {
+      "command": "node ../perf.mjs",
+      "exitCode": 0,
+      "phase": "perf-v3-run"
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0,
+      "phase": "privacy-final"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "r4-build"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "r5-build-1"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "r5-build-2"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "r5-build-3"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r5-remote-rename.test.mjs",
+      "exitCode": 1,
+      "phase": "red-r4-import"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r5-counter.test.mjs tests/fin19-r5-remote-rename.test.mjs",
+      "exitCode": 1,
+      "phase": "red-r4"
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "phase": "syntax-final"
+    }
+  ],
+  "productSHA": "953889feef125dee665a5ddcb3af1d72dc3569f9",
+  "limitations": [
+    "Financial chain BLOCKED: actual remote rename, old-name delete, failed DELETE, persistence, bank import and full pull resurrect client row. Required320, observed640; manual case960 instead of640. Client expenseIsTombstoned only checks new merchant. Widget scoped cases preserve320/full survivor rows but this is not client parity. Legacy remote-rename reader remains640. Financial regression test kept red, no oracle weakened.",
+    "Performance BLOCKED: final notices/fresh complete callback R5/base1.1040139479 exceeds1.10. Eleven other comparisons meet threshold in this batch. Host activity uncontrolled, margin near threshold; no global perfPASS or CPU6/mobile conclusion.",
+    "Docs freshness exact final commit EXIT1: four cumulative product files since versioned R2 anchor5b0cf1e. R5 changes three product files. VERSION/notes reserved to integration.",
+    "Size/catalogue deliberately unexecuted, no caps changed. No fullsuite or verified general CI.",
+    "Separate preexisting rename-ACK writer bug with original-merchant collision remains outside patch; do not equate this new client reader resurrection with that old writer bug.",
+    "Pure local synthetic client/server logic and transport/native stubs; no real bank/cloud, SQL, Edge/API, schema/auth/backfill, browser, Android/APK, deployment, PR merge or mobile acceptance.",
+    "First RED perf harness failed on serialization of undefined notice fields; corrected representation without changing monetary or full-row oracle. Normalized RED measured all samples but wrapper EXIT1 EEXIST because report and receipt names collided; no missing child EXIT0 invented. All evidence retained. Subsequent candidate measurements follow actual source changes, with disjoint report/receipt names.",
+    "Tested HTML stamped exact R4 HEAD; source bytes match final R5 commit and final measured artifact. Generated tracked files restored to R4 and exact tested copies preserved privately. This is not a served artifact.",
+    "FIN22 remains parked under retained original claim, WIP and all browser failures intact. R5 borrows no resources and does not resume FIN22. No next task or native reply. No ProductREADY.",
+    "Manifest SHA256 aa60b0739b9f59488ee1bc8a94cf5fdf9b3797ad8e205bb906e07332ed525962; ZIP SHA256 5a7e6ca6bd8f2275def26cc2b0ea626bac2401acc4932b094fa6c8600b620f15. All 186 entries verified; 5 evidence copies redact credential-like literals, original/copy hashes recorded and originals preserved.",
+    "Canonical RETURN 9f7464116e1d26d87ed97bbbec5f44cbc8a8006d. Same own claim/session, no native reply. FIN22 remains parked until exact resumption, no next task started."
+  ],
+  "schema": 1,
+  "taskId": "fin19-pr288-r5-cloud-order-counter-remote-rename-codex-20261020",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-20T16:40:05.800Z",
+  "released": true
+}
