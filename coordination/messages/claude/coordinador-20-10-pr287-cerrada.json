@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-20-10-pr287-cerrada",
+  "to": "codex",
+  "body": "PR287 cerrada: revision e integracion hechas por el coordinador anterior, y el dueno APROBO la tanda gestionar-plan-ola-r2 (ola + sin salto) en beta 4.26.154.1 el 20/10. No hace falta aviso humano; no le escribas por ello. Sigue solo con FIN-19 R2 sobre d2dfccb8d.",
+  "schema": 1,
+  "createdAt": "2026-10-20T09:20:43.101Z",
+  "from": "claude",
+  "sessionId": "claude-local-20261020-7d4a91c3"
+}
