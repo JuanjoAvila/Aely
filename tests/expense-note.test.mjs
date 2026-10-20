@@ -11,7 +11,7 @@ import assert from "node:assert/strict";
 import { loadPureLogicFromFile,loadPureLogic } from "../scripts/load-pure-logic.mjs";
 import fs from 'node:fs';
 import {renameWitness} from './fin04-rename-witnesses.mjs';
-import {queueWitness,durableQueueWitness} from './fin04-queue-witnesses.mjs';
+import {queueWitness,durableQueueWitness,networkQueueWitness} from './fin04-queue-witnesses.mjs';
 
 const ctx = loadPureLogicFromFile();
 
@@ -170,7 +170,10 @@ t("withNotaFallback: un error que NO es de la columna se propaga (no se traga)",
 t('FIN04 R2 renombrado pendiente, ACK exacto, tardío y reintento',()=>renameWitness(loadPureLogicFromFile()));
 t('FIN04 R3 fallo permanente libera cola con aviso único',()=>queueWitness(loadPureLogicFromFile()));
 t('FIN04 R3 contador durable e intención más reciente',()=>durableQueueWitness(loadPureLogicFromFile()));
+t('FIN04 R3 sin red queda pendiente, no apartado, y espera su turno',()=>networkQueueWitness(loadPureLogicFromFile()));
 for(const [name,from,to,witness] of [
+  ['red cuenta como rechazo','if(renameFalloDeRed(err)){','if(false){',networkQueueWitness],
+  ['espera ignorada','if(p.waitUntil>Date.now())return;','',networkQueueWitness],
   ['nunca apartar','const quarantined=failures>=3;','const quarantined=false;',queueWitness],
   ['avisar cada fallo','p.fail(orig,failures,quarantined)','p.fail(orig,failures,true)',queueWitness],
   ['no avanzar cola','if(quarantined)return paso();','if(quarantined)return;',queueWitness],

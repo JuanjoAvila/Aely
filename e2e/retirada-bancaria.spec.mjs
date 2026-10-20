@@ -195,7 +195,7 @@ for(const lang of ["es","en","ca"])test(`vínculo bajado tras enviar UPDATE se c
   await expect.poll(async()=>!!((await stored(page)).state.fixed[0].paymentProofs||{})[2026*12+9]).toBe(true);
   await page.evaluate(()=>{window.__withdrawalFixture.releaseAck=true;});
   await expect(sheet.getByTestId("exp-withdrawal-neutral")).toHaveText(texts[lang].neutral);
-  const message=await page.evaluate(()=>t("f_withdraw_receipt_undone"));await expect(sheet.getByRole("status")).toHaveText(message);
+  const message=await page.evaluate(()=>t("f_withdraw_receipt_undone"));await expect(sheet.getByTestId("exp-withdrawal-info").getByRole("status")).toHaveText(message);
   await expect.poll(async()=>{const saved=await stored(page);return saved.expenses[0]?.category==="traspaso"&&!saved.state.fixed[0].paymentProofs?.[2026*12+9];}).toBe(true);
   const after=await stored(page);expect(after.writes).toBe(1);expect(after.expenses).toHaveLength(1);
   expect(after.expenses[0]).toMatchObject({...expense,category:"traspaso"});expect(after.state.accounts).toEqual(before.state.accounts);

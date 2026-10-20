@@ -183,8 +183,10 @@ try{
  }else if(scenario==='permanent-rename'){
   await expOpen(pages[0]);const noticeStart=await pages[0].evaluate(()=>window.__finToastCalls.length);await pages[0].locator('input.v4-ficha-concept').fill('Nombre bloqueado');await pages[0].locator('input.v4-ficha-concept').press('Tab');
   await sleep(800);for(let i=0;i<3;i++){await pages[0].evaluate(()=>window.dispatchEvent(new Event('online')));await sleep(120);}
+  // Un rechazo del servidor no es falta de red: `online` no lo adelanta y los intentos esperan 2 s y 8 s.
+  check('online does not hurry a server refusal',evidence.requests.filter(x=>x.syntheticPermanentError).length,1);
+  await pages[0].waitForFunction(()=>loadState().expenses.find(e=>e.id==='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa').renamePending?.quarantined,null,{timeout:20000});
   check('one actual showToast call despite repeated online events',await pages[0].evaluate(()=>window.__finToastCalls.length)-noticeStart,1);
-  await pages[0].waitForFunction(()=>loadState().expenses.find(e=>e.id==='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa').renamePending?.quarantined);
   let s=await snap('three-failures-quarantined',pages);const rejected=()=>evidence.requests.filter(x=>x.syntheticPermanentError).length;
   check('exactly three permanent failures',rejected(),3);check('single paused notice',s.clients[0].toasts.filter(x=>x.text.startsWith('No se ha podido confirmar el nombre.')).length,1);
   check('failed merchant remains unconfirmed',s.clients[0].state.expenses.find(e=>e.id===expenseId).merchant,'Compra sintética');
@@ -215,8 +217,13 @@ try{
   await pages[0].reload();await ready(pages[0]);await expOpen(pages[0]);
   check('offline rename draft survives reload',await pages[0].locator('input.v4-ficha-concept').inputValue(),'Nombre pendiente');
   check('pending survives reload',await pages[0].getByTestId('expense-rename-pending').count(),1);
+  // Cinco caídas de red seguidas (cada `online` adelanta el reintento) no lo apartan ni lo cuentan.
+  await pages[0].evaluate(()=>{window.__rnNetFails=0;const o=cloud.renameExpense;cloud.renameExpense=function(){return o.apply(this,arguments).catch(e=>{window.__rnNetFails++;throw e;});};});
+  for(let i=1;i<=5;i++){await pages[0].evaluate(()=>window.dispatchEvent(new Event('online')));await pages[0].waitForFunction(n=>window.__rnNetFails>=n,i);}
+  s=await snap('offline-rename-five-network-failures',pages);
+  check('network failures never quarantine nor count',s.clients[0].state.expenses[0].renamePending,{merchant:'Nombre pendiente',at:s.clients[0].state.expenses[0].renamePending.at});
+  check('still visibly pending after network failures',await pages[0].getByTestId('expense-rename-pending').count(),1);
   offline.delete('A');await pages[0].evaluate(()=>window.dispatchEvent(new Event('online')));
-  if(await pages[0].evaluate(()=>loadState().expenses[0].renamePending?.quarantined))await pages[0].getByTestId('expense-rename-pending').getByRole('button',{name:'Reintentar',exact:true}).click();
   await pages[0].waitForFunction(()=>loadState().expenses[0].merchant==='Nombre pendiente'&&!loadState().expenses[0].renamePending);
   for(const p of pages){await p.reload();await ready(p);}s=await snap('rename-reconnected-reloaded',pages);
   check('one remote row exact money source and note',db.expenses.map(e=>[e.id,e.comercio,Math.round(e.importe*100),e.cat,e.source,e.nota]),[[expenseId,'Nombre pendiente',1234,'super','manual:sabadell','Nota inicial']]);
