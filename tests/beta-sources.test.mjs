@@ -4054,7 +4054,7 @@ test("Catálogo155 añade las tandas de la vibración ronda 4 (APK 61) y de la f
   const verify=(reader,expected=expectedMoves)=>assert.deepEqual(measure(reader),expected,"lista cerrada: ni una huella extra ni una declarada que no cambie");
   verify(source);
   const currents=Object.fromEntries(tandas.map(id=>[id,betaRevision(id,source,undefined,scopes[id])]));
-  for(const id of tandas){assert.ok(currents[id].web);assert.equal(currents[id].edge,undefined);assert.equal(currents[id].native,undefined);}
+  for(const id of tandas){assert.ok(currents[id].web);assert.equal(currents[id].edge,undefined);if(id!==tandas[0])assert.equal(currents[id].native,undefined);}
   assert.ok(currents[tandas[0]].native,"la tanda de vibración lleva huella nativa");
   assert.equal(apk.revisiones[tandas[0]],currents[tandas[0]].native,"apk.json acredita la huella nativa de la tanda de vibración");
   for(const [id,file,a,b] of [
