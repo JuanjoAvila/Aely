@@ -31,6 +31,16 @@ async function abrirCartera(page) {
 }
 
 async function arrastrar(page, rows, de, a) {
+  /* Tras volver de otra pestaña las filas aún entran de lado con el track: medir a medio camino
+     deja el dedo fuera de la fila y la pulsación no prende (rojo dos veces en la CI de la beta 161,
+     reproducido con CPU a 6×, 2026-10-21). Se mide con la fila ya quieta, como la ve la persona. */
+  let antes = null;
+  await expect.poll(async () => {
+    const box = await rows.nth(de).boundingBox();
+    const quieta = !!box && box.x < 40 && antes !== null && Math.abs(box.x - antes) < 0.5;
+    antes = box ? box.x : null;
+    return quieta;
+  }, { intervals: [100] }).toBe(true);
   const from = await rows.nth(de).boundingBox();
   const to = await rows.nth(a).boundingBox();
   const x0 = Math.round(from.x + from.width / 2);
@@ -39,6 +49,10 @@ async function arrastrar(page, rows, de, a) {
   const cdp = await page.context().newCDPSession(page);
   await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: x0, y: y0 }] });
   await page.waitForTimeout(480);
+  /* El HOLD de la app es un setTimeout de 380 ms: con el hilo ocupado tras volver de otra pestaña
+     salta tarde, y mover antes cancela la pulsación. La persona espera a la vibración; el test,
+     a que la fila entre en ordenación (rojo dos veces en la CI de la beta 161, 2026-10-21). */
+  await expect(rows.nth(de)).toHaveClass(/dragging/);
   for (let i = 1; i <= 6; i++) {
     await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: x0, y: Math.round(y0 + (y1 - y0) * i / 6) }] });
   }
