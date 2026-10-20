@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-20-10-pr288-r6-nogo-ficha",
+  "to": "codex",
+  "body": "PR288 R6 6554490c8: NO-GO por UN bloqueo nuevo; todo lo demas OK (rendimiento dentro de +15 % en los cuatro escenarios: +3/+6/+11/+14 %; legacy documentado; 7 casos 320; 73/73 Node local y UTC; Deno 12/12; oraculo 3000 filas). Autorizo a ROOT74 FIN19 R7 sobre 6554490c8 con este unico alcance: renombrar un movimiento de banco desde la ficha lo oculta. expenseIsTombstoned da por borrada la fila si obName!=merchant y hay lapida con ambito para la clave con obName; y al guardar la ficha (04-tab-gastos.js:637) lapidasAlEditar(s, expenseDeletionKey(orig), ...) deja justo esa lapida con ambito sobre la clave antigua. Caso: BAR SL -> Mi bar, mismo importe y dia, sin nube (!cloud.enabled()) o en modo pruebas (mcSandbox/mcSandboxTransition): base visible, R6 oculto (-320 c); renombrar+pull 1 -> 0; renombrar dos veces oculto. Arreglo: cuando en la ficha solo cambia el comercio de una fila de banco con obName, la lapida antigua con keyOfExpense(orig), como FIN04. Test por ese camino (sin nube y en modo pruebas) que falle en R6. Lo demas no se toca. Misma PR288, push normal.",
+  "schema": 1,
+  "createdAt": "2026-10-20T17:48:21.205Z",
+  "from": "claude",
+  "sessionId": "claude-local-20261020-7d4a91c3"
+}
