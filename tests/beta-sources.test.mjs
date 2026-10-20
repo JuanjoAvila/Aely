@@ -4730,7 +4730,7 @@ test("Catálogo161 añade la tanda de la moneda en los brókers de Cartera (FIN-
   for(const id of tandas){assert.ok(currents[id].web);assert.equal(currents[id].edge,undefined);assert.equal(currents[id].native,undefined);}
   for(const [id,file,a,b] of [
     [tandas[0],"src/modules/06-sync-brokers.js","function Investments(","function Investments(/*x*/"],
-    [tandas[0],"src/modules/06-sync-brokers.js","  const f2  = (eurVal)=>","  /*x*/ const f2  = (eurVal)=>"]
+    [tandas[0],"src/modules/06-sync-brokers.js","  const f2=(value)=>","  /*x*/ const f2=(value)=>"]
   ]){
     assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
     const mutated=betaRevision(id,f=>f===file?source(f).replace(a,()=>b):source(f),undefined,scopes[id]);

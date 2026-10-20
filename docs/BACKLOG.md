@@ -137,6 +137,7 @@ Fuente: veredictos del panel (`scripts/errores.mjs --kind=beta`), CHANGELOG, not
   - Tanda 3 · Categorías → filtro. Decidido el 20/10: el límite de categoría tiene dos entradas (chip junto a la píldora del filtro y pulsación larga en Categorías) que abren la misma hoja; tocar una categoría filtra Movimientos.
   - Tanda 4 · Suscripciones como bandeja + fichas.
   - Tanda 5 · Hoja de filtros y destino de «Actualizar gastos». Decidido el 20/10: «Actualizar gastos» se QUITA en esta tanda (la app sincroniza sola al abrir y al volver), con auditoría de puertas de entrada antes; con eso se cierra UX-15.
+- UX-19 · Cartera v5 (pedido del dueño 20/10, para PLANIFICAR después de Gastos v5): mismo patrón que Gastos v5 — tres secciones Cuentas · Inversiones · Bienes con iconos en la cabecera, cifra viva por sección y el tirón de Plan para cambiar entre ellas; diseño con su OK (bocetos/Claude Design) antes de código, reutilizando los componentes que salgan de UX-17.
 
 **4 · Limpieza, servidor y seguridad**
 
