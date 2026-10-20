@@ -1,3 +1,10 @@
+## [4.26.154] — 2026-10-20 · Candidata de beta: menos lag al ir a Cartera, renombrar sin cobertura y tooling, solo web
+
+- **Qué lleva.** Tres ramas locales sobre la beta 4.26.153 (`80752dff0`), con `--no-ff`: `cb0b105cc` (`claude/beta-sources-rapido`), `0a3ea09bc` (`claude/perf-cuentas`, con GO de la revisión) y `2900cfd3a` (`claude/rojos-153`). Sin APK, SQL ni Edge. Los generados de `public/` en conflicto se regeneraron con `build`.
+- **Cartera sin lagazo.** `netWorthSeries`, `CarteraTab`, `Dashboard` y `App` dejan de recalcular al ir desde Ajustes y al volver a primer plano (deps de Ajustes en `stateDeps`/`settingsDeps`). Cifras idénticas.
+- **Renombrar sin cobertura.** `renameFalloDeRed` y `RENAME_BACKOFF_MS` (2/8/30 s): un fallo de red no marca el renombrado como fallido; se reintenta solo al volver la red.
+- **Panel.** Dos tandas nuevas: `cartera-sin-lagazo` y `renombrar-sin-cobertura`; las de la 153 siguen. Descriptores con `renameFalloDeRed` y `RENAME_BACKOFF_MS` en el cierre de `inc-3009-01-cargos`, `inc-0210-03-gastos-periodo` y los demás lectores.
+
 ## [4.26.153] — 2026-10-19 · Candidata de beta: vibración ronda 3, ola en Gestionar plan (raíz única), diagnóstico de recibo y lista de Gastos con el renombrado pendiente, solo web
 
 - **Qué lleva.** Cinco ramas locales ya revisadas sobre la beta 4.26.152 servida (`31907016f`), con `--no-ff`: `0572ca55` (`claude/vibra-r3`), `e6553e07` (`claude/diag-recibo`), `2e11b279` (`claude/ola-root`) `93289498` (`claude/rename-lista`) y `140f62ce` (`claude/fijos-schedule`). Sin APK nueva (sigue la 4.26.152/code60), sin SQL ni Edge.

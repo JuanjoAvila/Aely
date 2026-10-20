@@ -5005,18 +5005,33 @@ function lapidasAlEditar(s, keyOrig, keyUpd, ahora){
    o al volver la conexión. Límite: la cola vive en memoria; si la app se cierra antes, la fila
    vieja sigue en la nube y el repaso tras el pull dará `23505` con origen `backfill`.
    `cola` = {pend:[{orig,upd}], fin:Promise}. */
+// Fallo de transporte (sin conexión, fetch caído, sesión que no se pudo leer), no respuesta
+// del servidor. El cliente de Supabase devuelve el fetch caído como `{message:"TypeError: …"}`.
+const RENAME_BACKOFF_MS=[2000,8000,30000];
+function renameFalloDeRed(err){
+  if(typeof navigator!=="undefined"&&navigator.onLine===false)return true;
+  if(!err)return false;
+  if(err instanceof TypeError)return true;
+  return /failed to fetch|networkerror|network request failed|load failed|internet ?disconnected|err_internet|session unavailable|cloud unavailable/i.test(String(err.message||err));
+}
 function subeEdicionesDeGasto(cola){
   const paso=function(){
     const p=cola.pend[0];
     if(!p) return;
     if(p.rename){
       if(!cloud.enabled()||mcSandbox()||mcSandboxTransition())return;
+      // En espera de su reintento (lo marca Gastos): una llamada encadenada no lo adelanta.
+      if(p.waitUntil>Date.now())return;
       const orig=p.current();
       if(!orig){cola.pend.shift();return paso();} // intención sustituida o fila retirada
       return cloud.renameExpense(orig,p.rename.merchant,true).then(function(ack){
         if(!ack)throw new Error("rename unconfirmed");
         cola.pend.shift();p.ack(orig,ack);
-      }).catch(function(){
+      }).catch(function(err){
+        /* Sin red no es un rechazo: no cuenta para apartarlo y se queda pendiente con su ⏳.
+           Antes los tres intentos se gastaban en ~9 ms sin cobertura y el nombre volvía al
+           viejo, sin subirse solo al volver la red (rojo de la beta 4.26.153, 20/10/2026). */
+        if(renameFalloDeRed(err)){ if(p.fail)p.fail(orig,null,false,true); return; }
         const failures=Math.max(p.failures||0,orig.renamePending&&orig.renamePending.failures||0)+1;
         p.failures=failures;const quarantined=failures>=3;
         if(quarantined)cola.pend.shift();
@@ -12039,31 +12054,50 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const editCola=useRef({pend:[], fin:Promise.resolve()});   // escrituras de `saveEdit` en la nube
   const renameState=useRef(state);renameState.current=state;
   const renameSequence=useRef(0);
-  const retryRenames=function(){
+  const renameTimer=useRef(0), retryRef=useRef(null);
+  /* Cada fallo espera antes del siguiente intento (2 s, 8 s y luego cada 30 s). Sin espera, el
+     cambio de estado de un fallo relanzaba el envío en el acto y los tres intentos se gastaban
+     en ~9 ms (beta 4.26.153). Lo que falló por red se adelanta al volver la conexión o la app. */
+  const renameEspera=function(job,red){
+    job.tries=(job.tries||0)+1;job.red=!!red;
+    const ms=RENAME_BACKOFF_MS[Math.min(job.tries,RENAME_BACKOFF_MS.length)-1];
+    job.waitUntil=Date.now()+ms;
+    clearTimeout(renameTimer.current);
+    renameTimer.current=setTimeout(function(){ if(retryRef.current) retryRef.current(); },ms+20);
+  };
+  const retryRenames=function(volvioRed){
     if(!cloud.enabled()||mcSandbox()||mcSandboxTransition())return;
     const s=renameState.current, owner=s._historyOwner,deleted=expenseDeletedSet(s);
     (s.expenses||[]).forEach(function(e){
       const pending=e.renamePending;
       if(!pending||pending.quarantined||expenseIsTombstoned(e,deleted)||editCola.current.pend.some(function(p){return p.rename&&p.id===e.id&&p.rename.at===pending.at;}))return;
-      editCola.current.pend.push({id:e.id,rename:pending,current:function(){
+      const job={id:e.id,rename:pending,current:function(){
         const fresh=renameState.current;if(fresh._historyOwner!==owner)return null;
         return (fresh.expenses||[]).find(function(x){return x.id===e.id&&x.date===e.date&&x.amount===e.amount&&x.renamePending&&!x.renamePending.quarantined&&x.renamePending.at===pending.at&&!expenseIsTombstoned(x,expenseDeletedSet(fresh));});
-      },ack:function(orig,ack){set(function(fresh){return fresh._historyOwner===owner?expenseRenameAck(fresh,orig,pending,ack):fresh;});},fail:function(orig,failures,quarantined){
+      },ack:function(orig,ack){set(function(fresh){return fresh._historyOwner===owner?expenseRenameAck(fresh,orig,pending,ack):fresh;});},fail:function(orig,failures,quarantined,red){
         const fresh=renameState.current,active=fresh._historyOwner===owner&&(fresh.expenses||[]).some(function(x){return x.id===orig.id&&x.date===orig.date&&x.amount===orig.amount&&x.renamePending&&x.renamePending.at===pending.at&&!x.renamePending.quarantined;});
         if(!active)return;
+        if(!quarantined)renameEspera(job,red);
+        if(red)return; // sin red: ni cuenta ni toca el estado
         set(function(s){return s._historyOwner===owner?expenseRenameFailure(s,orig,pending,failures):s;});
         if(quarantined)showToast(t("g_rename_paused"));
-      }});
+      }};
+      editCola.current.pend.push(job);
     });
+    if(volvioRed)editCola.current.pend.forEach(function(p){ if(p.rename&&p.red)p.waitUntil=0; });
     if(editCola.current.pend.length)subeEdicionesDeGasto(editCola.current);
   };
+  retryRef.current=retryRenames;
   // Lo que se editó sin conexión se sube al volver: ver `subeEdicionesDeGasto`.
   useEffect(function(){
-    const alVolver=function(){retryRenames();};
+    const alVolver=function(){retryRenames(true);};
+    const alVerse=function(){ if(document.visibilityState==="visible")retryRenames(true); };
     retryRenames();
     window.addEventListener("online",alVolver);
-    return function(){ window.removeEventListener("online",alVolver); };
+    document.addEventListener("visibilitychange",alVerse);
+    return function(){ window.removeEventListener("online",alVolver); document.removeEventListener("visibilitychange",alVerse); };
   },[state.expenses]);
+  useEffect(function(){ return function(){ clearTimeout(renameTimer.current); }; },[]);
   const [detailId,setDetailId]=useState(null);     // id del gasto abierto en sheet (SPEC §14)
   // PUNTO 5: al tocar la noti de un gasto, App pasa focusExp ({amount,merchant}) → abrimos la ficha
   // del gasto que casa (mismo importe y comercio parecido, el más reciente; si no, el último gasto).
@@ -23888,7 +23922,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="cc1fd09379e5464f42c06c6820d370159d3a9a833857154c92619c2f61e49fa1";
+var _rnSha="afaf741c00016423379234f161f3614af4c7f350dca6dff96186429868236b16";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

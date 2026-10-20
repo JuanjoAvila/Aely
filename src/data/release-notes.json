@@ -1,5 +1,77 @@
 [
   {
+    "v": "4.26.154",
+    "d": "2026-10-20",
+    "t": {
+      "es": "Más fluidez al ir a Cartera y renombrar sin cobertura",
+      "en": "Smoother when going to Wallet, and renaming without signal",
+      "ca": "Més fluïdesa en anar a Cartera i reanomenar sense cobertura"
+    },
+    "items": {
+      "es": [
+        "La app va más fluida al ir a Cartera desde Ajustes y al volver a ella.",
+        "Si renombras un gasto sin cobertura, el nombre nuevo se guarda solo al volver la red."
+      ],
+      "en": [
+        "The app is smoother when going to Wallet from Settings and when coming back to it.",
+        "If you rename an expense without signal, the new name is saved by itself once the network is back."
+      ],
+      "ca": [
+        "L'app va més fluida en anar a Cartera des d'Ajustos i en tornar-hi.",
+        "Si reanomenes una despesa sense cobertura, el nom nou es desa sol quan torna la xarxa."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "cartera-sin-lagazo",
+        "t": {
+          "es": "Cartera: sin tirones desde Ajustes y al volver",
+          "en": "Wallet: no jerks from Settings or when coming back",
+          "ca": "Cartera: sense estirades des d'Ajustos i en tornar"
+        },
+        "items": {
+          "es": [
+            "1. Abre Ajustes, cambia algo y ve rápido a Cartera → Tus cuentas. No debe pegar un tirón grande. MAL: se queda parada.",
+            "2. Sal de la app, haz otras cosas, vuelve y entra en Cartera. MAL: da un tirón.",
+            "3. Las cifras de Inicio y de Cartera son las mismas que antes. MAL: cualquier diferencia."
+          ],
+          "en": [
+            "1. Open Settings, change something and go quickly to Wallet → Your accounts. It must not jerk. WRONG: it freezes.",
+            "2. Leave the app, do other things, come back and go into Wallet. WRONG: it jerks.",
+            "3. The figures in Home and Wallet are the same as before. WRONG: any difference."
+          ],
+          "ca": [
+            "1. Obre Ajustos, canvia alguna cosa i ves ràpid a Cartera → Els teus comptes. No ha de fer una estirada gran. MALAMENT: es queda parada.",
+            "2. Surt de l'app, fes altres coses, torna i entra a Cartera. MALAMENT: fa una estirada.",
+            "3. Les xifres d'Inici i de Cartera són les mateixes que abans. MALAMENT: qualsevol diferència."
+          ]
+        }
+      },
+      {
+        "id": "renombrar-sin-cobertura",
+        "t": {
+          "es": "Gastos: renombrar sin cobertura",
+          "en": "Expenses: renaming without signal",
+          "ca": "Despeses: reanomenar sense cobertura"
+        },
+        "items": {
+          "es": [
+            "1. Pon el modo avión y renombra un gasto: la lista lo enseña con ⏳. MAL: vuelve el nombre viejo.",
+            "2. Quita el modo avión: en unos segundos el ⏳ desaparece solo. MAL: sigue el ⏳ o hay que pulsar Reintentar."
+          ],
+          "en": [
+            "1. Turn airplane mode on and rename an expense: the list shows it with ⏳. WRONG: the old name comes back.",
+            "2. Turn airplane mode off: in a few seconds the ⏳ goes away by itself. WRONG: the ⏳ stays or you have to tap Retry."
+          ],
+          "ca": [
+            "1. Posa el mode avió i reanomena una despesa: la llista la mostra amb ⏳. MALAMENT: torna el nom vell.",
+            "2. Treu el mode avió: en uns segons el ⏳ desapareix sol. MALAMENT: continua el ⏳ o has de prémer Reintentar."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.153",
     "d": "2026-10-19",
     "t": {

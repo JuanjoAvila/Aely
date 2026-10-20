@@ -90,6 +90,8 @@ Fuente: veredictos del panel (`scripts/errores.mjs --kind=beta`), CHANGELOG, not
 - FIN-04 · decisiones y ediciones confirmadas — fase 1 (renombrar y notas con dos móviles) en beta 4.26.151 (PR 286, tanda `renombrar-y-notas-seguras`; lista con el renombrado pendiente en 4.26.153, tanda `renombrar-lista-al-momento`; diagnóstico de recibo YouTube en 4.26.153, tanda `youtube-diagnostico`); fase 2 pendiente: recibos y deudas, gana la última edición del objeto entero
 - FIN-20 · los meses marcados a mano en recibos trimestrales, bimestrales o semestrales dan una mensualidad que no cuadra con lo que se cobra (detectado en la revisión de 4.26.153; la mensualidad con calendario propio ya cuadra en 4.26.153, tanda `recibos-cifra-cuadra`).
 - FIN-21 · la vista previa del alta de un recibo anual con varios meses contradice lo que se cobra (detectado en la revisión de 4.26.153).
+- FIN-22 · con la moneda en USD, la fila de Trade Republic en Cartera sigue mostrándose en «€» (anterior a la 154).
+- UX-18 · el orden de «Tus cuentas» y el idioma no se refrescan sin recargar la app (anterior a la 154).
 - FIN-05 / INC-2909-01 · widget con app cerrada y periodo/modo (PR 212 y PR 225, widget día 45: una sola tarea)
 - FIN-08 · daños históricos previos
 - FIN-12 · financiaciones cuentan como deuda antes de existir en la gráfica de Inicio
