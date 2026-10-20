@@ -797,6 +797,11 @@ escribir `Access-Control-Allow-Origin: "*"`.
   saldo histórico a partir de gastos ni se atribuye la previsión agregada si hay dos cuentas del
   mismo banco. El primer cierre espera `mc-boot-ready`, que ya representa dato local definitivo sin
   red o el final del primer pull con red; así un snapshot viejo no se convierte en base mensual.
+  Inicio no vuelve a calcular la serie por ese cierre de HOY (20/10/2026): `netWorthHistoryKey`
+  deja fuera el punto de hoy de una cuenta que ya tiene cierres anteriores (la serie lo saca de los
+  saldos vivos) y solo lo cuenta si es el primero. De los ajustes, la serie y el presupuesto de Inicio
+  dependen solo de los campos que leen (`NET_WORTH_SETTINGS`, `BUDGET_SETTINGS`), así que tocar
+  Ajustes ya no recorre el histórico. Lo vigila `tests/inicio-deps-ajustes`.
 - El rol (recibos/diario/todo) vive AQUÍ; en v4.0.x quedó inaccesible (solo existía en el
   Wealth v3 no montado) — no volver a dejar el rol sin puerta.
 - Inversiones abre como pantalla hija propia desde Cartera y solo actualiza precios cuando se pulsa

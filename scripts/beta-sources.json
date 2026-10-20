@@ -34988,6 +34988,22 @@
       {
         "file": "src/modules/02-ui-shared.js",
         "function": "mcHapticClamp"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "netWorthHistoryKey"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "settingsDeps"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "netWorthPointOk"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "stateDeps"
       }
     ],
     "unidades": true
