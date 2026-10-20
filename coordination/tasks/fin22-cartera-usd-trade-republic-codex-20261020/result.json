@@ -1,0 +1,124 @@
+{
+  "status": "blocked",
+  "summary": "FIN22 193b2852a534edcc9d12659f14993866500b1680 child beta15985b0a560ea1e44217f6a081634424c6a7dcc3a49 under latestClaudef65d25ac5cf523cc0cda540d0913351192dc7795, draftPR289 exactbranch/PR/pullref. Global display currency fixes only summary Investments f2/f0; childlocalcurrency and originalstoredvalue/cost/currency/FX unchanged. Causal beta158 monetaryRED and4oldharnessfailures preserved, prior3PASS2captures immutable. Newbase artifact3/3 browserPASS worker1retry0 noflake/skip, USDswitch/reload otherbrokers totals missingFX fullstoredrows, inspectedUSDscreenshots; ownportreturned. FX/security/map syntax privacy diff EXIT0, size EXIT0 catalogue EXIT1 docs EXIT1; reservedVERSION notes caps catalogue unchanged. Preserved28327files23repos including R8 andoriginalFIN22WIP7. ImmutableZIP251entries checked. releasedBLOCKED integration notProductREADY; privatehandoff thenSTOP no nexttasks/native reply.",
+  "productSHA": "193b2852a534edcc9d12659f14993866500b1680",
+  "tests": [
+    {
+      "command": "Administrative run.mjs catalogue-current wrapper, child interrupted at180000ms",
+      "exitCode": 1,
+      "childExitCode": null,
+      "signal": "SIGTERM",
+      "phase": "catalogue-initial-timeout"
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs",
+      "exitCode": 1,
+      "phase": "catalogue-directed",
+      "interrupted": false,
+      "environment": {
+        "BETA_SOURCES_ONLY": "Catálogo159"
+      }
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs",
+      "exitCode": 1,
+      "phase": "catalogue-final",
+      "interrupted": true
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "phase": "diff-final",
+      "interrupted": false
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fx-multi.test.mjs tests/security.test.mjs tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "phase": "directed-current-node",
+      "interrupted": false
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1,
+      "phase": "docs-final-exact",
+      "interrupted": false
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "final-build",
+      "interrupted": false
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0,
+      "phase": "privacy-current",
+      "interrupted": false
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 0,
+      "phase": "size-current",
+      "interrupted": false
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "phase": "syntax-current",
+      "interrupted": false
+    },
+    {
+      "command": "Directed FIN22 current-beta159 Chromium, worker1 retry0 maxFailures1",
+      "exitCode": 0,
+      "passed": 3
+    },
+    {
+      "command": "Historical FIN22 fin22-execution-20261020 green-accordion-contract",
+      "exitCode": 1
+    },
+    {
+      "command": "Historical FIN22 fin22-execution-20261020 green-candidate",
+      "exitCode": 1
+    },
+    {
+      "command": "Historical FIN22 fin22-execution-20261020 green-final",
+      "exitCode": 1
+    },
+    {
+      "command": "Historical FIN22 fin22-execution-20261020 green-settings-state",
+      "exitCode": 1
+    },
+    {
+      "command": "Historical FIN22 fin22-execution-20261020 red-base",
+      "exitCode": 1
+    },
+    {
+      "command": "Historical FIN22 fin22-resume-r5-20261020 capture-centered",
+      "exitCode": 0
+    },
+    {
+      "command": "Historical FIN22 fin22-resume-r5-20261020 capture-stable",
+      "exitCode": 0
+    },
+    {
+      "command": "Historical FIN22 fin22-resume-r5-20261020 resumed-reload",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "Three browser cases on current beta159 assembled artifact, synthetic stored rows, deterministic FX0.8, network restricted to own127.0.0.1 server, worker1/retry0/CPU1. No real bank/cloud or mobile acceptance. Old beta158 browser results remain historical; new-base validation is not extra unique coverage.",
+    "Original beta158 WIP7 and all prior evidence remain immutable. Five historical browser EXIT1 include one causal monetary RED and four harness/navigation/reload failures; three unique old PASS plus two capture repetitions retained. The older capture with lower navigation obscuring content is superseded by centered captures, not deleted.",
+    "Only two Investments display formatters and their explanatory comment change product. Summary uses global eur/eur0; full Investments retains local selector. Original stored amount/currency/value/cost, FX rates, rounding semantics, bank sync/import/storage and identity unchanged.",
+    "Execution deviation: lightweight syntax and privacy checks were launched concurrently, both EXIT0; browser and FX/security/map test runs were sequential. No resource/performance measurement or claim is inferred from these checks.",
+    "Initial source/base158 work is superseded for delivery base only by latest Claude f65d25ac: current beta15985b0a560 at start. Original checkout was not rebased or discarded. No FIN19 changes copied; later beta integration remains Claude responsibility.",
+    "VERSION, notes, CHANGELOG, README, ROADMAP, BACKLOG, catalogue and caps are reserved and untouched. Actual docs/catalogue/size gate EXITs reported independently; no weakening or threshold increase. First catalogue attempt was interrupted by the administrative 180000ms timeout (child exit null, SIGTERM, wrapper1); second broad attempt reached unrelated all-scope mutations and was interrupted after verified own PID/creation readback (Windows child EXIT1, not natural test completion). It had observed two real assertions: Catálogo159 undeclared eur dependency and limpieza-ajustes-perfil dependency eur not watched. Final directed gate uses official BETA_SOURCES_ONLY=Catálogo159; complete catalogue mutation coverage remains unverified. All attempts preserved.",
+    "No fullsuite, CPU6/performance profiling, general CI verification, served release, SQL/Edge/API, APK/Gradle/deploy/merge. No ProductREADY. FIN12/INC290902/FIN04 await their own exact dispatch; STOP after handoff, no native reply.",
+    "Manifest SHA256 6e10a56413fd60b31b05a4f36ef463fa23193e190c0185b98fdf422ebd6c0edd; ZIP SHA256 89c53fe6edc656bab2b9839b003ee871ff86187a9d540233cbefa72045bc4098; RETURN 1ee290ec1585a99eb01ebd20738b66e24de74604"
+  ],
+  "schema": 1,
+  "taskId": "fin22-cartera-usd-trade-republic-codex-20261020",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-20T19:38:43.548Z",
+  "released": true
+}
