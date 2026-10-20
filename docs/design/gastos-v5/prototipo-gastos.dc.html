@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Gastos · prototipo</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B140F}
+a{color:#8CEFB0}a:hover{color:#6CC688}
+.num{font-variant-numeric:tabular-nums}
+.gx-root,.gx-root *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+.gx-root input{-webkit-user-select:text;user-select:text}
+.gx-scroll{scrollbar-width:none}
+.gx-scroll::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div class="gx-root" style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #0B140F; color: #FFFFFF; font-family: 'Manrope', system-ui, sans-serif; display: flex; flex-direction: column; box-sizing: border-box">
+
+  <div style="padding: 50px 20px 12px; display: flex; flex-direction: column; gap: 14px; background: #0B140F; box-shadow: {{headShadow}}; position: relative; z-index: 2">
+    <div style="display: flex; align-items: center; justify-content: space-between">
+      <h1 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 32px; letter-spacing: -0.5px">Tus gastos</h1>
+      <div role="tablist" aria-label="Secciones de Gastos" style="display: flex; gap: 8px">
+        <button role="tab" aria-label="Movimientos" aria-selected="{{seg0.sel}}" onClick="{{seg0.go}}" style="{{seg0.style}}"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h12M4 17h8"></path></svg></button>
+        <button role="tab" aria-label="Categorías" aria-selected="{{seg1.sel}}" onClick="{{seg1.go}}" style="{{seg1.style}}"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 20v-6M12 20V4M18 20v-10"></path></svg></button>
+        <button role="tab" aria-label="Suscripciones" aria-selected="{{seg2.sel}}" onClick="{{seg2.go}}" style="{{seg2.style}}"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12a8.5 8.5 0 1 0 2.5-6"></path><path d="M3 3v4h4"></path><path d="M12 8v4l3 2"></path></svg><sc-if value="{{subsAny}}" hint-placeholder-val="{{ true }}"><span aria-hidden="true" style="position: absolute; top: -3px; right: -3px; min-width: 18px; height: 18px; padding: 0 4px; box-sizing: border-box; border-radius: 9px; background: #E6C36A; color: #0B140F; font: 800 11px 'Manrope', sans-serif; display: flex; align-items: center; justify-content: center">{{subsCount}}</span></sc-if></button>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <div class="num" style="font-family: 'Fraunces', Georgia, serif; font-weight: 600; line-height: 1; letter-spacing: -1px; font-size: {{numSize}}px">{{numInt}}<span style="font-size: {{decSize}}px">{{numDec}}</span></div>
+      <div style="font-size: 14px; color: #A7B3AD; min-height: 19px; display: flex; align-items: center; gap: 6px"><span>{{subPre}}<span style="font-weight: 600; color: {{subColor}}">{{subTail}}</span></span><sc-if value="{{isSub}}" hint-placeholder-val="{{ false }}"><button onClick="{{openInfo}}" aria-label="Qué son las suscripciones detectadas" style="width: 32px; height: 32px; margin: -7px 0; border: 0; padding: 0; background: transparent; color: #A7B3AD; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5"></path><circle cx="12" cy="7.6" r="0.6" fill="currentColor"></circle></svg></button></sc-if></div>
+    </div>
+    <sc-if value="{{showMonths}}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; gap: 4px">
+        <sc-for list="{{months}}" as="m" hint-placeholder-count="3">
+          <button aria-pressed="{{m.sel}}" onClick="{{m.go}}" style="{{m.style}}">{{m.label}}</button>
+        </sc-for>
+      </div>
+    </sc-if>
+  </div>
+
+  <div class="gx-scroll" ref="{{scRef}}" onScroll="{{onScroll}}" onPointerDown="{{onDown}}" onPointerMove="{{onMove}}" onPointerUp="{{onUp}}" onPointerLeave="{{onUp}}" style="flex: 1; overflow-y: auto; position: relative; padding: 0 20px 120px; touch-action: pan-y">
+    <div style="transform: translateY({{pull}}px); transition: {{pullTrans}}">
+      <sc-if value="{{pullHint}}" hint-placeholder-val="{{ false }}">
+        <div style="position: absolute; left: 0; right: 0; top: -34px; text-align: center; font-size: 13px; font-weight: 600; color: #8CEFB0">{{pullText}}</div>
+      </sc-if>
+
+      <sc-if value="{{isMov}}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; gap: 8px; align-items: center; padding: 6px 0 4px">
+          <div style="flex: 1; height: 46px; border-radius: 23px; background: #132119; border: 1px solid #1C2A22; display: flex; align-items: center; gap: 10px; padding: 0 16px; box-sizing: border-box">
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A7B3AD" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+            <input aria-label="Buscar movimientos" placeholder="Buscar" style="flex: 1; min-width: 0; background: transparent; border: 0; color: #FFFFFF; font: 500 15px 'Manrope', sans-serif; outline: none">
+          </div>
+          <button aria-label="Filtros" style="width: 46px; height: 46px; border-radius: 23px; background: #132119; border: 1px solid #1C2A22; color: #E8EEEC; display: flex; align-items: center; justify-content: center; padding: 0">
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M7 12h10M10 17h4"></path></svg>
+          </button>
+        </div>
+        <sc-if value="{{hasFilt}}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; padding-top: 12px">
+            <button onClick="{{clearFilt}}" aria-label="Quitar filtro" style="display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border-radius: 19px; border: 1px solid {{filtColor}}; background: transparent; color: {{filtColor}}; font: 700 14px 'Manrope', sans-serif; cursor: pointer">{{filtLabel}}<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+          </div>
+        </sc-if>
+        <sc-for list="{{days}}" as="d" hint-placeholder-count="4">
+          <div data-day="{{d.idx}}" style="display: flex; flex-direction: column; gap: 10px; padding-top: 18px">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 0 4px">
+              <span style="font-size: 17px; font-weight: 700">{{d.label}}</span>
+              <span class="num" style="font-size: 15px; color: #A7B3AD">{{d.total}}</span>
+            </div>
+            <sc-if value="{{d.hasMov}}" hint-placeholder-val="{{ true }}">
+              <div style="display: flex; flex-direction: column; gap: 6px">
+                <sc-for list="{{d.movs}}" as="mv" hint-placeholder-count="2">
+                  <div style="display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: #132119; border: 1px solid #1C2A22; border-radius: 20px">
+                    <div aria-hidden="true" style="width: 44px; height: 44px; border-radius: 22px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 17px; background: {{mv.bg}}; color: {{mv.fg}}">{{mv.ini}}</div>
+                    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 16px; font-weight: 600">{{mv.name}}</span><span style="font-size: 14px; font-weight: 500; color: {{mv.fg}}">{{mv.cat}}</span><span class="num" style="font-size: 13px; color: #A7B3AD">{{mv.meta}}</span></div>
+                    <span class="num" style="font-family: 'Fraunces', Georgia, serif; font-size: 19px; font-weight: 600; color: {{mv.amtColor}}">{{mv.amt}}</span>
+                    <svg aria-hidden="true" width="10" height="16" viewBox="0 0 10 16" fill="#5E7468"><circle cx="2" cy="2" r="1.6"></circle><circle cx="8" cy="2" r="1.6"></circle><circle cx="2" cy="8" r="1.6"></circle><circle cx="8" cy="8" r="1.6"></circle><circle cx="2" cy="14" r="1.6"></circle><circle cx="8" cy="14" r="1.6"></circle></svg>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-for list="{{d.groups}}" as="g" hint-placeholder-count="1">
+              <div style="border: 1px dashed #24392E; border-radius: 18px; overflow: hidden">
+                <button aria-expanded="{{g.openStr}}" onClick="{{g.toggle}}" style="width: 100%; display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 18px; border: 0; background: transparent; color: #A7B3AD; font: 600 15px 'Manrope', sans-serif; text-align: left; cursor: pointer">
+                  <span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 4px; background: {{g.dot}}"></span>
+                  <span style="flex: 1">{{g.label}} · no cuentan</span>
+                  <span class="num">{{g.amt}}</span>
+                  <span class="num" style="min-width: 20px; height: 20px; border-radius: 10px; background: #1A2F25; font-size: 12px; display: flex; align-items: center; justify-content: center">{{g.count}}</span>
+                </button>
+                <div style="display: grid; grid-template-rows: {{g.rows}}; transition: grid-template-rows .28s cubic-bezier(.22,.61,.36,1)">
+                 <div style="overflow: hidden; min-height: 0">
+                  <div style="border-top: 1px dashed #24392E; padding: 4px 0; opacity: {{g.op}}; transition: opacity .22s ease">
+                    <sc-for list="{{g.items}}" as="it" hint-placeholder-count="1">
+                      <div style="display: flex; align-items: center; gap: 14px; padding: 10px 18px">
+                        <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 600; color: #C9D2CD">{{it.name}}</span><span style="font-size: 13px; color: #A7B3AD">{{it.sub}}</span></div>
+                        <span class="num" style="font-family: 'Fraunces', Georgia, serif; font-size: 17px; font-weight: 600; color: #A7B3AD">{{it.amt}}</span>
+                      </div>
+                    </sc-for>
+                    <a href="#" style="display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 18px; color: #8CEFB0; text-decoration: none; font-size: 14px; font-weight: 600">{{g.plan}}<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 6l6 6-6 6"></path></svg></a>
+                  </div>
+                 </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+        <div style="text-align: center; padding: 28px 0 0; font-size: 13px; color: #A7B3AD">Hasta aquí: 1 de agosto</div>
+      </sc-if>
+
+      <sc-if value="{{isCat}}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 16px; padding-top: 8px">
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <div style="height: 8px; border-radius: 4px; background: #1A2F25; overflow: hidden; display: flex">
+              <div style="background: #6CC688; width: {{barIn}}%"></div>
+              <div style="background: #E85D4C; width: {{barOver}}%"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 13px; color: #A7B3AD"><span>de 1.100 €</span><span>{{catMonthLabel}}</span></div>
+          </div>
+          <div style="background: #132119; border-radius: 22px; padding: 6px 0">
+            <sc-for list="{{cats}}" as="c" hint-placeholder-count="5">
+              <button onClick="{{c.go}}" aria-label="Ver movimientos de {{c.name}}" style="width: 100%; display: flex; align-items: center; gap: 14px; padding: 10px 16px; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer">
+                <div aria-hidden="true" style="width: 40px; height: 40px; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-weight: 700; background: {{c.bg}}; color: {{c.fg}}">{{c.ini}}</div>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 6px">
+                  <div style="display: flex; justify-content: space-between"><span style="font-size: 15px; font-weight: 600">{{c.name}}</span><span class="num" style="font-size: 15px; font-weight: 600">{{c.amt}}</span></div>
+                  <div style="height: 4px; border-radius: 2px; background: #0B140F"><div style="height: 100%; border-radius: 2px; width: {{c.w}}%; background: {{c.fg}}"></div></div>
+                </div>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{isSub}}" hint-placeholder-val="{{ false }}">
+        <sc-if value="{{subsAny}}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; flex-direction: column; gap: 12px; padding-top: 8px">
+            <div style="display: flex; flex-direction: column; gap: 6px">
+              <sc-for list="{{subs}}" as="s" hint-placeholder-count="4">
+                <button onClick="{{s.open}}" style="width: 100%; display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: #132119; border: 1px solid #1C2A22; border-radius: 20px; color: inherit; font: inherit; text-align: left; cursor: pointer">
+                  <div aria-hidden="true" style="width: 44px; height: 44px; border-radius: 22px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 17px; background: {{s.bg}}; color: {{s.fg}}">{{s.ini}}</div>
+                  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 16px; font-weight: 600">{{s.name}}</span><span style="font-size: 13px; color: #A7B3AD">{{s.meta}}</span></div>
+                  <div style="display: flex; flex-direction: column; align-items: flex-end"><span class="num" style="font-family: 'Fraunces', Georgia, serif; font-size: 19px; font-weight: 600">{{s.amt}}</span><span style="font-size: 12px; color: #A7B3AD">al mes</span></div>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{subsEmpty}}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; padding: 56px 20px 0">
+            <div aria-hidden="true" style="width: 76px; height: 76px; border-radius: 38px; background: rgba(108,198,136,.14); display: flex; align-items: center; justify-content: center"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#8CEFB0" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></div>
+            <div style="font-family: 'Fraunces', Georgia, serif; font-size: 26px; font-weight: 600">Todo en orden</div>
+            <div style="font-size: 14px; color: #A7B3AD; line-height: 1.5; max-width: 290px">Si un comercio te cobra algo parecido tres meses seguidos y no está en Recibos, aparecerá aquí para que decidas qué hacer.</div>
+            <button onClick="{{resetSubs}}" style="margin-top: 18px; min-height: 44px; padding: 0 16px; border: 1px dashed #2E4A3C; border-radius: 22px; background: transparent; color: #A7B3AD; font: 600 13px 'Manrope', sans-serif; cursor: pointer">Prototipo: volver a ver el ejemplo</button>
+          </div>
+        </sc-if>
+      </sc-if>
+    </div>
+  </div>
+
+  <nav aria-label="Navegación principal" style="position: absolute; left: 0; right: 0; bottom: 0; height: 84px; background: #0F1C15; border-top: 1px solid #1C2A22; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: start; padding-top: 10px; box-sizing: border-box; z-index: 3">
+    <a href="#" style="display: flex; flex-direction: column; align-items: center; gap: 4px; color: #A7B3AD; text-decoration: none; font-size: 12px; font-weight: 600"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"></path></svg>Inicio</a>
+    <a href="#" aria-current="page" style="display: flex; flex-direction: column; align-items: center; gap: 4px; color: #8CEFB0; text-decoration: none; font-size: 12px; font-weight: 700"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h12M4 17h8"></path></svg>Gastos</a>
+    <div style="display: flex; justify-content: center"><button aria-label="Apuntar gasto" style="margin-top: -30px; width: 62px; height: 62px; border-radius: 31px; border: 0; background: #6CC688; color: #0B140F; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 24px -10px rgba(108,198,136,.6)"><svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button></div>
+    <a href="#" style="display: flex; flex-direction: column; align-items: center; gap: 4px; color: #A7B3AD; text-decoration: none; font-size: 12px; font-weight: 600"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>Plan</a>
+    <a href="#" style="display: flex; flex-direction: column; align-items: center; gap: 4px; color: #A7B3AD; text-decoration: none; font-size: 12px; font-weight: 600"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"></path></svg>Cartera</a>
+  </nav>
+
+  <sc-if value="{{hasToast}}" hint-placeholder-val="{{ false }}">
+    <div role="status" style="position: absolute; left: 20px; right: 20px; bottom: 100px; z-index: 4; display: flex; align-items: center; gap: 10px; background: #1A2F25; border: 1px solid #2E4A3C; border-radius: 16px; padding: 14px 16px; font-size: 14px; font-weight: 600; box-shadow: 0 16px 30px -16px rgba(0,0,0,.8)"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8CEFB0" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>{{toast}}</div>
+  </sc-if>
+
+  <sc-if value="{{infoOpen}}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; justify-content: flex-end">
+      <button aria-label="Cerrar" onClick="{{closeInfo}}" style="position: absolute; inset: 0; border: 0; padding: 0; background: rgba(0,0,0,.6); cursor: pointer"></button>
+      <section aria-labelledby="info-t" style="position: relative; background: #132119; border-top: 1px solid #1C2A22; border-radius: 28px 28px 0 0; padding: 10px 20px 28px; display: flex; flex-direction: column; gap: 18px">
+        <div aria-hidden="true" style="align-self: center; width: 40px; height: 4px; border-radius: 2px; background: #2E4A3C"></div>
+        <h2 id="info-t" style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-size: 24px; font-weight: 600">Suscripciones detectadas</h2>
+        <div style="display: flex; flex-direction: column; gap: 14px">
+          <div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 15px; font-weight: 700">Qué aparece aquí</span><span style="font-size: 14px; color: #A7B3AD; line-height: 1.5">Cobros que se repiten cada mes y que todavía no están en Recibos.</span></div>
+          <div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 15px; font-weight: 700">Cómo se detectan</span><span style="font-size: 14px; color: #A7B3AD; line-height: 1.5">El mismo comercio te ha cobrado un importe parecido tres meses seguidos o más.</span></div>
+          <div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 15px; font-weight: 700">Qué puedes hacer</span><span style="font-size: 14px; color: #A7B3AD; line-height: 1.5">Toca uno y pásalo a Recibos, márcalo como dado de baja o déjalo como gasto normal. Lo ideal es que esta lista esté vacía.</span></div>
+        </div>
+        <button onClick="{{closeInfo}}" style="height: 54px; border-radius: 18px; border: 0; background: #6CC688; color: #0B140F; font: 700 16px 'Manrope', sans-serif; cursor: pointer">Entendido</button>
+      </section>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{sheetOpen}}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; justify-content: flex-end">
+      <button aria-label="Cerrar" onClick="{{closeSheet}}" style="position: absolute; inset: 0; border: 0; padding: 0; background: rgba(0,0,0,.6); cursor: pointer"></button>
+      <section aria-label="{{sh.name}}" style="position: relative; background: #132119; border-top: 1px solid #1C2A22; border-radius: 28px 28px 0 0; padding: 10px 20px 28px; display: flex; flex-direction: column; gap: 18px">
+        <div aria-hidden="true" style="align-self: center; width: 40px; height: 4px; border-radius: 2px; background: #2E4A3C"></div>
+        <div style="display: flex; align-items: center; gap: 14px">
+          <div aria-hidden="true" style="width: 52px; height: 52px; border-radius: 26px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 20px; background: {{sh.bg}}; color: {{sh.fg}}">{{sh.ini}}</div>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 20px; font-weight: 700">{{sh.name}}</span><span style="font-size: 14px; color: #A7B3AD">{{sh.meta}}</span></div>
+          <div style="display: flex; flex-direction: column; align-items: flex-end"><span class="num" style="font-family: 'Fraunces', Georgia, serif; font-size: 24px; font-weight: 600">{{sh.amt}}</span><span style="font-size: 12px; color: #A7B3AD">al mes</span></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <span style="font-size: 12px; font-weight: 700; letter-spacing: 2px; color: #A7B3AD">ÚLTIMOS COBROS</span>
+          <div style="background: #0F1C15; border-radius: 16px; padding: 4px 0">
+            <sc-for list="{{sh.hist}}" as="h" hint-placeholder-count="3">
+              <div style="display: flex; justify-content: space-between; padding: 10px 14px; font-size: 15px"><span class="num" style="color: #C9D2CD">{{h.d}}</span><span class="num" style="font-weight: 600">{{h.amt}}</span></div>
+            </sc-for>
+          </div>
+          <span style="font-size: 13px; color: #A7B3AD; line-height: 1.45">{{sh.year}} Si es un gasto fijo, pásalo a Recibos: dejará de contar en tu presupuesto del día a día y lo verás en Plan.</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <button onClick="{{actRecibo}}" style="height: 54px; border-radius: 18px; border: 0; background: #6CC688; color: #0B140F; font: 700 16px 'Manrope', sans-serif; cursor: pointer">Pasar a Recibos</button>
+          <button onClick="{{actBaja}}" style="height: 50px; border-radius: 18px; border: 1px solid #2E4A3C; background: transparent; color: #E8EEEC; font: 600 15px 'Manrope', sans-serif; cursor: pointer">Ya la he dado de baja</button>
+          <button onClick="{{actNo}}" style="height: 44px; border: 0; background: transparent; color: #A7B3AD; font: 600 14px 'Manrope', sans-serif; cursor: pointer">No es una suscripción</button>
+        </div>
+      </section>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+var BUDGET = 1100;
+var MES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+var MES_C = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+var DIA = ["dom","lun","mar","mié","jue","vie","sáb"];
+var CATS = {
+  "Súper": ["#6CC688", "rgba(108,198,136,.16)"], "Panadería": ["#E6C36A", "rgba(230,195,106,.16)"],
+  "Gasolina": ["#FF7A6A", "rgba(255,122,106,.16)"], "Bares": ["#F0A65A", "rgba(240,166,90,.16)"],
+  "Cine": ["#7FB5E8", "rgba(127,181,232,.16)"], "Compras": ["#C9A7F0", "rgba(201,167,240,.16)"],
+  "Hogar": ["#7FD6C9", "rgba(127,214,201,.16)"], "Ingreso": ["#8CEFB0", "rgba(140,239,176,.16)"]
+};
+var SUBS = [
+  ["Gimnasio Fit", "Compras", 39.9, 3, "día 2", "Sabadell", ["2 oct", "2 sep", "2 ago"]],
+  ["Netflix", "Cine", 12.99, 6, "día 14", "Revolut", ["14 oct", "14 sep", "14 ago"]],
+  ["Spotify", "Compras", 10.99, 8, "día 21", "Trade Republic", ["21 sep", "21 ago", "21 jul"]],
+  ["iCloud", "Compras", 2.99, 12, "día 9", "Revolut", ["9 oct", "9 sep", "9 ago"]]
+];
+var BANKS = ["Trade Republic", "Sabadell", "Revolut"];
+var MERCH = [["Mercadona","Súper"],["Forn Sant Jordi","Panadería"],["Repsol","Gasolina"],["Bar Manolo","Bares"],["Cinesa","Cine"],["Amazon","Compras"],["IKEA","Hogar"],["Lidl","Súper"],["Zara","Compras"],["La Tagliatella","Bares"]];
+
+function eurParts(n) {
+  var s = Math.abs(n).toFixed(2).split(".");
+  var i = s[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return [i, "," + s[1] + " €"];
+}
+function eur(n) { var p = eurParts(n); return p[0] + p[1]; }
+function eur0(n) { return Math.round(Math.abs(n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " €"; }
+
+function buildData() {
+  var seed = 11;
+  var r = function () { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+  var days = [];
+  var today = new Date(2026, 9, 20);
+  for (var i = 0; ; i++) {
+    var dt = new Date(2026, 9, 20 - i);
+    if (dt < new Date(2026, 7, 1)) break;
+    var d = dt.getDate(), m = dt.getMonth();
+    var movs = [], groups = [];
+    var add = function (name, cat, amt) { movs.push({ name: name, cat: cat, amt: amt }); };
+    if (i === 0) add("Forn Sant Jordi", "Panadería", 24.38);
+    else if (i === 1) { add("Repsol", "Gasolina", 36.76); add("Forn Sant Jordi", "Panadería", 47.75); }
+    else {
+      var n = Math.floor(r() * 3.2);
+      for (var k = 0; k < n; k++) { var mm = MERCH[Math.floor(r() * MERCH.length)]; add(mm[0], mm[1], Math.round((6 + r() * 58) * 100) / 100); }
+    }
+    if (d === 15) movs.push({ name: "Bizum recibido", cat: "Ingreso", amt: -25, income: true });
+    if (d === 1) groups.push({ kind: "Recibos", n: 1, amt: 850, items: [["Alquiler", "Recibo mensual · Sabadell", 850]] });
+    if (d === 5 || (m === 9 && d === 19)) groups.push({ kind: "Recibos", n: 2, amt: 97, items: [["Endesa", "Luz · Sabadell", 62], ["Movistar", "Internet · Sabadell", 35]] });
+    if (d === 3) groups.push({ kind: "Deudas", n: 1, amt: 197, items: [["Préstamo coche", "Cuota 7 de 48 · Sabadell", 197]] });
+    if (d === 25) groups.push({ kind: "Metas", n: 1, amt: 150, items: [["Viaje a Japón", "Aportación · Revolut", 150]] });
+    if (!movs.length && !groups.length) continue;
+    var dd = (d < 10 ? "0" : "") + d + "/" + (m < 9 ? "0" : "") + (m + 1);
+    movs.forEach(function (x) { x.bank = x.income ? "Trade Republic" : BANKS[Math.floor(r() * BANKS.length)]; x.date = dd; });
+    var spend = 0; movs.forEach(function (x) { spend += x.amt; });
+    var label = i === 0 ? "Hoy" : i === 1 ? "Ayer" : DIA[dt.getDay()] + " " + d + " " + MES_C[m];
+    days.push({ d: d, m: m, label: label, movs: movs, groups: groups, spend: spend });
+  }
+  return days;
+}
+
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    this.data = buildData();
+    this.state = { seg: 0, vis: 0, compact: false, pull: 0, dragging: false };
+    this.sc = null; this.y0 = null;
+  }
+  monthSpend(m, uptoDay) {
+    var t = 0;
+    this.data.forEach(function (x) { if (x.m === m && (uptoDay == null || x.d <= uptoDay)) t += x.spend; });
+    return t;
+  }
+  status(m, total) {
+    var diff = total - BUDGET;
+    return diff > 0 ? { t: eur0(diff) + " por encima", c: "#FF7A6A", over: diff } : { t: eur0(-diff) + " por debajo", c: "#8CEFB0", over: 0 };
+  }
+  setSeg(i) {
+    if (this.sc) this.sc.scrollTop = 0;
+    this.setState({ seg: i, vis: 0, compact: false, pull: 0, dragging: false, filt: null, info: false });
+  }
+  goMonth(m) {
+    if (this.state.filt && this.state.seg === 0) { if (this.sc) this.sc.scrollTop = 0; this.setState({ filt: { cat: this.state.filt.cat, m: m }, vis: 0 }); return; }
+    if (this.state.seg !== 0) { this.setState({ catMonth: m }); return; }
+    var idx = -1;
+    this.data.some(function (x, i) { if (x.m === m) { idx = i; return true; } return false; });
+    if (!this.sc || idx < 0) return;
+    var el = this.sc.querySelector('[data-day="' + idx + '"]');
+    if (el) this.sc.scrollTo({ top: Math.max(0, el.offsetTop - 2), behavior: "smooth" });
+  }
+  renderVals() {
+    var self = this, st = this.state, data = this.data;
+    var seg = st.seg;
+    var visDay = data[st.vis] || data[0];
+    var vm = seg === 0 ? (st.filt ? st.filt.m : visDay.m) : (st.catMonth != null ? st.catMonth : 9);
+    var monthTotal = this.monthSpend(vm);
+    var firstOfMonth = 0; data.some(function (x, i) { if (x.m === vm) { firstOfMonth = i; return true; } return false; });
+
+    var num, subPre, subTail = "", subColor = "#A7B3AD";
+    if (seg === 0 && st.filt) {
+      var fs = 0, fn = 0, upto = 0, firstIdx = -1;
+      var deep = st.vis > 0 && data[st.vis] && data[st.vis].m === st.filt.m;
+      data.forEach(function (x, i) {
+        if (x.m !== st.filt.m) return;
+        x.movs.forEach(function (mv) {
+          if (mv.cat !== st.filt.cat) return;
+          if (firstIdx < 0) firstIdx = i;
+          fs += mv.amt; fn++;
+          if (deep && i >= st.vis) upto += mv.amt;
+        });
+      });
+      if (deep && st.vis > firstIdx) {
+        num = upto; subPre = "hasta el " + data[st.vis].d;
+      } else {
+        num = fs; subPre = fn + (fn === 1 ? " movimiento" : " movimientos");
+        var pm = st.filt.m - 1, prev = 0, hasPrev = false;
+        data.forEach(function (x) { if (x.m === pm) { hasPrev = true; x.movs.forEach(function (mv) { if (mv.cat === st.filt.cat) prev += mv.amt; }); } });
+        if (hasPrev) {
+          var dif = fs - prev;
+          subPre += " · ";
+          subTail = Math.abs(dif) < 1 ? "igual que en " + MES[pm] : eur0(dif) + (dif > 0 ? " más" : " menos") + " que en " + MES[pm];
+          subColor = Math.abs(dif) < 1 ? "#A7B3AD" : dif > 0 ? "#FF7A6A" : "#8CEFB0";
+        }
+      }
+    } else if (seg === 2) {
+      var pendSum = 0, pendN = 0, dn = st.subsDone || {};
+      SUBS.forEach(function (s) { if (!dn[s[0]]) { pendSum += s[2]; pendN++; } });
+      num = pendSum;
+      subPre = pendN ? "al mes · " + pendN + " por revisar" : "nada por revisar";
+    } else if (seg === 1) {
+      num = monthTotal; var s1 = this.status(vm, monthTotal);
+      subPre = MES[vm] + " por categoría · "; subTail = s1.t; subColor = s1.c;
+    } else if (st.vis === firstOfMonth) {
+      num = monthTotal; var s0 = this.status(vm, monthTotal);
+      subPre = vm === 9 ? "gastado en octubre · " : MES[vm] + " · cerrado · "; subTail = s0.t; subColor = s0.c;
+    } else {
+      num = this.monthSpend(vm, visDay.d);
+      subPre = "gastado en " + MES[vm] + " hasta el " + visDay.d;
+    }
+    var parts = eurParts(num);
+
+    var segNames = ["Movimientos", "Categorías", "Suscripciones"];
+    var segs = segNames.map(function (lab, i) {
+      var on = i === seg;
+      return { label: lab, sel: on ? "true" : "false", go: function () { self.setSeg(i); },
+        dot: "height: 4px; border-radius: 2px; transition: width .2s ease; width: " + (on ? "16px" : "4px") + "; background: " + (on ? "#8CEFB0" : "#2E4A3C"),
+        style: "position: relative; width: 44px; height: 44px; border-radius: 22px; padding: 0; display: flex; align-items: center; justify-content: center; border: 1px solid " + (on ? "#6CC688" : "#1C2A22") + "; background: " + (on ? "#6CC688" : "#132119") + "; color: " + (on ? "#0B140F" : "#E8EEEC") };
+    });
+    var months = [7, 8, 9].map(function (m) {
+      var on = m === vm;
+      return { label: MES[m], sel: on ? "true" : "false", go: function () { self.goMonth(m); },
+        style: "height: 36px; padding: 0 14px; border-radius: 18px; border: 0; font: " + (on ? "700" : "600") + " 15px 'Manrope', sans-serif; background: " + (on ? "#1A2F25" : "transparent") + "; color: " + (on ? "#FFFFFF" : "#A7B3AD") };
+    });
+
+    var GDOT = { Recibos: "#A7B3AD", Deudas: "#FF7A6A", Metas: "#7FB5E8" };
+    var F = seg === 0 ? st.filt : null;
+    var days = data.map(function (x, i) {
+      if (F && x.m !== F.m) return null;
+      var srcMovs = F ? x.movs.filter(function (mv) { return mv.cat === F.cat; }) : x.movs;
+      if (F && !srcMovs.length) return null;
+      var tot = F ? srcMovs.reduce(function (a, mv) { return a + mv.amt; }, 0) : x.spend;
+      return { idx: i, label: x.label, total: (tot < 0 ? "+" : "") + eur(tot), hasMov: srcMovs.length > 0,
+        movs: srcMovs.map(function (mv) { var c = CATS[mv.cat]; return { name: mv.name, cat: mv.cat, meta: mv.date + " · " + mv.bank, ini: mv.name.charAt(0), fg: c[0], bg: c[1], amt: (mv.income ? "+" : "") + eur(mv.amt), amtColor: mv.income ? "#8CEFB0" : "#FFFFFF" }; }),
+        groups: (F ? [] : x.groups).map(function (g, k) {
+          var key = i + "-" + k, open = !!(st.open && st.open[key]);
+          return { label: g.kind, count: g.n, amt: eur(g.amt), dot: GDOT[g.kind], open: open, openStr: open ? "true" : "false",
+            rows: open ? "1fr" : "0fr", op: open ? "1" : "0", plan: "Abrir en Plan · " + g.kind,
+            items: g.items.map(function (it) { return { name: it[0], sub: it[1], amt: eur(it[2]) }; }),
+            toggle: function () { var o = Object.assign({}, self.state.open || {}); o[key] = !open; self.setState({ open: o }); } };
+        }) };
+    }).filter(Boolean);
+
+    var agg = {};
+    data.forEach(function (x) { if (x.m === vm) x.movs.forEach(function (mv) { if (!mv.income) agg[mv.cat] = (agg[mv.cat] || 0) + mv.amt; }); });
+    var keys = Object.keys(agg).sort(function (a, b) { return agg[b] - agg[a]; });
+    var max = keys.length ? agg[keys[0]] : 1;
+    var cats = keys.map(function (k) { var c = CATS[k]; return { go: function () { if (self.sc) self.sc.scrollTop = 0; self.setState({ seg: 0, filt: { cat: k, m: vm }, vis: 0, compact: false }); }, name: k, ini: k.charAt(0), fg: c[0], bg: c[1], amt: eur(agg[k]), w: Math.round(agg[k] / max * 100) }; });
+    var scale = Math.max(monthTotal, BUDGET);
+    var inPart = Math.min(monthTotal, BUDGET) / scale * 100;
+    var overPart = Math.max(0, monthTotal - BUDGET) / scale * 100;
+
+    var done = st.subsDone || {};
+    var pend = SUBS.filter(function (s) { return !done[s[0]]; });
+    var subs = pend.map(function (s) {
+      var c = CATS[s[1]];
+      return { name: s[0], meta: s[3] + " meses seguidos · " + s[5], amt: eur(s[2]), ini: s[0].charAt(0), fg: c[0], bg: c[1],
+        open: function () { self.setState({ sheet: s[0] }); } };
+    });
+    var shRaw = st.sheet ? SUBS.filter(function (s) { return s[0] === st.sheet; })[0] : null;
+    var sh = shRaw ? { name: shRaw[0], ini: shRaw[0].charAt(0), fg: CATS[shRaw[1]][0], bg: CATS[shRaw[1]][1], amt: eur(shRaw[2]),
+      meta: "Se cobra el " + shRaw[4] + " · " + shRaw[5], year: "Unos " + eur0(shRaw[2] * 12) + " al año.",
+      hist: shRaw[6].map(function (d) { return { d: d, amt: eur(shRaw[2]) }; }) } : { name: "", hist: [] };
+    var act = function (kind) {
+      return function () {
+        var nm = self.state.sheet; if (!nm) return;
+        var o = Object.assign({}, self.state.subsDone || {}); o[nm] = kind;
+        var msg = kind === "recibo" ? nm + " pasa a Recibos" : kind === "baja" ? "Te avisaremos si " + nm + " vuelve a cobrar" : nm + " se queda como gasto normal";
+        self.setState({ subsDone: o, sheet: null, toast: msg });
+        clearTimeout(self._toastT); self._toastT = setTimeout(function () { self.setState({ toast: null }); }, 2600);
+      };
+    };
+
+    var nextSeg = segNames[(seg + 1) % 3];
+    return {
+      segs: segs, seg0: segs[0], seg1: segs[1], seg2: segs[2], segName: segNames[seg], months: months, days: days, cats: cats, subs: subs,
+      isMov: seg === 0, isCat: seg === 1, isSub: seg === 2,
+      subsAny: pend.length > 0, subsEmpty: pend.length === 0, subsCount: pend.length,
+      sheetOpen: !!shRaw, sh: sh, closeSheet: function () { self.setState({ sheet: null }); },
+      actRecibo: act("recibo"), actBaja: act("baja"), actNo: act("no"),
+      hasToast: !!st.toast, toast: st.toast || "",
+      resetSubs: function () { self.setState({ subsDone: {} }); },
+      infoOpen: !!st.info, openInfo: function () { self.setState({ info: true }); }, closeInfo: function () { self.setState({ info: false }); },
+      numInt: parts[0], numDec: parts[1],
+      numSize: st.compact ? 34 : 46, decSize: st.compact ? 22 : 28,
+      subPre: subPre, subTail: subTail, subColor: subColor,
+      showMonths: seg === 1 || st.compact || !!F,
+      hasFilt: !!F, filtLabel: F ? F.cat + " · " + MES[F.m] : "", filtColor: F ? CATS[F.cat][0] : "#8CEFB0",
+      clearFilt: function () { if (self.sc) self.sc.scrollTop = 0; self.setState({ filt: null, vis: 0 }); },
+      headShadow: st.compact ? "0 12px 20px -14px rgba(0,0,0,.8)" : "none",
+      barIn: inPart.toFixed(1), barOver: overPart.toFixed(1),
+      catMonthLabel: MES[vm],
+      pull: st.pull, pullTrans: st.dragging ? "none" : "transform .25s ease",
+      pullHint: false, pullText: st.pull >= 40 ? "Suelta para ir a " + nextSeg : "Tira para ir a " + nextSeg,
+      scRef: function (el) { self.sc = el; },
+      onScroll: function (e) {
+        var el = e.currentTarget, top = el.scrollTop;
+        var nodes = el.querySelectorAll("[data-day]"), vis = 0;
+        for (var i = 0; i < nodes.length; i++) { if (nodes[i].offsetTop - 6 <= top) vis = +nodes[i].getAttribute("data-day"); else break; }
+        var compact = top > 40;
+        if (vis !== self.state.vis || compact !== self.state.compact) self.setState({ vis: vis, compact: compact });
+      },
+      onDown: function (e) { if (self.sc && self.sc.scrollTop <= 0) { self.y0 = e.clientY; } else self.y0 = null; },
+      onMove: function (e) {
+        if (self.y0 == null) return;
+        var dy = e.clientY - self.y0;
+        if (dy <= 0) { if (self.state.pull) self.setState({ pull: 0 }); return; }
+        var p = Math.round(Math.pow(Math.min(1, dy / 160), 0.72) * 46);
+        self.setState({ pull: p, dragging: true });
+      },
+      onUp: function () {
+        if (self.y0 == null) return;
+        self.y0 = null;
+        if (self.state.pull >= 40) self.setSeg((self.state.seg + 1) % 3);
+        else self.setState({ pull: 0, dragging: false });
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>
