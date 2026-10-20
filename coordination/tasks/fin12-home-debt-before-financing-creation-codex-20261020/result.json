@@ -1,0 +1,91 @@
+{
+  "status": "blocked",
+  "productSHA": "da16546b92771101301faba6eac5bbdc5b0ea46d",
+  "summary": "FIN12 da16546b92771101301faba6eac5bbdc5b0ea46d direct beta16066c13084257fd576444a01cb529c5e6e815c6ec6, NEW draft PR291 exact branch/PR/pullref. Actual creation day Madrid excludes earlier days; payment anchors/current amortization and legacy/paid loans retained. No backfill of unknown old creation dates. Base causalRED realwriters and InicioPlancreate;48Madrid plus33UTC repeated,4InicioCPU1pass,4new money mutants. Earlier46/48 test-contract/prototype errors and frozen-descriptor read-only inspector error retained. Security/map/syntax/privacy/size/catalogue160 EXIT0; docs EXIT1 reservedClaude, no undeclareddeps. Prior29858files/26repos exact including FIN31R2/R1/FIN22/R8. RETURN681b4e2e8ab2734181bffe8d67b11f83ecfef83c; ZIPffae40d6d4da582485276be7cc1568bc4799686bf6a96d9feee1e8436cf47097 manifest929d0c441231ff4d473e0fed52d44adf22d8538c2e613bae14834ccd2736b771 entries177 verified. releasedBLOCKED notProductREADY; privatehandoff thenSTOP, no native reply.",
+  "tests": [
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "base-build.json"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "candidate-build.json"
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs",
+      "exitCode": 0,
+      "phase": "catalogue160-directed.json",
+      "environment": {
+        "BETA_SOURCES_ONLY": "Catálogo160"
+      }
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1,
+      "phase": "docs-final.json"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/inicio-deuda-futura.test.mjs tests/inicio-transito-intereses.test.mjs tests/inicio-deps-ajustes.test.mjs tests/motor-debt.test.mjs tests/deudas-metas-edicion.test.mjs",
+      "exitCode": 0,
+      "phase": "green-node-madrid-final.json"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/inicio-deuda-futura.test.mjs tests/inicio-transito-intereses.test.mjs tests/inicio-deps-ajustes.test.mjs tests/motor-debt.test.mjs tests/deudas-metas-edicion.test.mjs",
+      "exitCode": 1,
+      "phase": "green-node-madrid.json"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/inicio-deuda-futura.test.mjs",
+      "exitCode": 0,
+      "phase": "green-node-utc.json"
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0,
+      "phase": "privacy.json"
+    },
+    {
+      "command": "node --test --test-concurrency=1 --test-name-pattern=FIN12 día tests/inicio-deuda-futura.test.mjs",
+      "exitCode": 1,
+      "phase": "red-unit-base.json"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/security.test.mjs tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "phase": "security-map.json"
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 0,
+      "phase": "size.json"
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "phase": "syntax.json"
+    },
+    {
+      "command": "FIN12 browser red-browser-base",
+      "exitCode": 1
+    },
+    {
+      "command": "FIN12 browser green-browser",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "New term financing without prior paid installments and Afford purchase stamp explicit startDay in Madrid. Historical debt is zero before the valid creation day. Payment schedule and current amortization remain unchanged. Existing rows without a valid exact day retain monthly/legacy behavior; no date inferred from asOf/asOfDate and no retroactive repair of unknown creation days.",
+    "Base RED unit has three monetary failures and two metadata failures; real Inicio RED after Plan creation expected500013c on Oct9, observed440001c. Final48 directed logic pass in Madrid;33 future-debt tests repeated in UTC (not81 unique). Four Inicio CPU1 tests pass, including real creation/reload/chart before/on/after creation and installment plus legacy controls. Four new monetary mutants detected.",
+    "First candidate unit run46/48 failed on an old monthly-origin expectation and cross-VM prototype comparison; both test corrections preserve independent amounts and no product edit followed. Initial read-only catalogue inspector failed because it omitted the official frozen descriptor exclusion; corrected inventory finds zero added undeclared dependencies. These administrative/test failures are retained and are not causal financial REDs.",
+    "Browser specs/config inspected before first launch, CPU1 sequential one worker zero retries maxFailures1, own port48533/census and durable logs from launch. CPU6/performance excluded. Screenshot visually inspected. All browser resources returned; no shared lease or foreign processes touched. Cloud projection tested locally only; no live cloud acceptance.",
+    "Single-parent candidate on exact beta160; no later beta chase. PR288/289/290 untouched. VERSION/notes/CHANGELOG/README/ROADMAP/BACKLOG/catalogue/caps unchanged and reserved for integration. Directed catalogue160 passes. docs-frescura gate recorded separately. No fullsuite/general CI, SQL/Edge/API, live bank/cloud, native widget, APK/Gradle, deploy/merge, served or mobile acceptance. Not ProductREADY. INC290902/FIN04 not started; private handoff then STOP, no native reply."
+  ],
+  "schema": 1,
+  "taskId": "fin12-home-debt-before-financing-creation-codex-20261020",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-20T21:06:04.786Z",
+  "released": true
+}
