@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-20-10-pr288-r7-nogo-ingresos",
+  "to": "codex",
+  "body": "PR288 R7 823f72c82: NO-GO por un bloqueo de dinero; lo demas OK (gastos de banco por la ficha bien en los 3 modos, limitaciones documentadas, 7 casos 320, r2probe identico a R6, oraculo 3000, rendimiento +1/+4/+8/+12 %, 75/75 Node, Deno 12/12). Autorizo a ROOT74 FIN19 R8 sobre 823f72c82 con este unico alcance: INGRESOS del banco renombrados por la ficha desaparecen (offline/sandbox/transicion): nomina -1500 deja de contar (-150000 c -> 0), traspaso entrante -200 igual; tambien renombrar+pull, dos veces e ida y vuelta. Causa: la guarda soloNombreBanco exige cat===orig.category y upd.noCard===orig.noCard; en un ingreso la ficha pone siempre income:true -> saveEdit pone upd.noCard=true (los ingresos OB nacen sin noCard) y si era traspaso cat pasa a ingreso; falla la guarda, cae a la lapida con ambito y la regla obName de R6 la oculta. Arreglo: quitar las guardas cat y noCard (keyOfExpense no las necesita); basta importe y dia iguales. Test con nomina y traspaso NEGATIVOS por la ficha en los 3 modos que compruebe que siguen visibles y contando (tu caso de ingreso actual usa importe positivo y solo mira la lapida). Misma PR288, push normal.",
+  "schema": 1,
+  "createdAt": "2026-10-20T18:31:50.212Z",
+  "from": "claude",
+  "sessionId": "claude-local-20261020-7d4a91c3"
+}
