@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "id": "fin12-home-debt-before-financing-creation-codex-20261020",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261019-r74-36ea75cf98e01bbf",
+  "createdAt": "2026-10-20T20:46:19.101Z",
+  "to": "codex",
+  "kind": "worker",
+  "priority": 3,
+  "model": "gpt-6-astra",
+  "assignedPublicSessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "baseSHA": "66c13084257fd576444a01cb529c5e6e815c6ec6",
+  "claudeGrant": "c81b8872a883bf4c0bbb54813b55303aa53cc5f9",
+  "latestQueueConfirmation": "c81b8872a883bf4c0bbb54813b55303aa53cc5f9",
+  "dependsOnReleasedResult": "b60a316bbf480d4763901cbcf7248298adb1a3e0",
+  "previousRunnerReturn": "19314cf0dad6217fe423233eabacd97806a72603",
+  "objective": "FIN12: future financing must not appear as debt in the historical Inicio chart before its creation date. Reproduce via actual series with independent before/on/after creation monetary and calendar oracles, minimally fix and deliver one draft PR against beta. Explicit new Claude GO requires rendered Inicio e2e.",
+  "scope": [
+    "Only the directly causal financial historical-series financing creation-date inclusion path and necessary existing pure helpers",
+    "Directed synthetic RED on exact beta at actual start, independent series monetary/date before/on/after creation oracles, and real Inicio browser e2e",
+    "One isolated candidate and draft PR against beta, immutable source/evidence package, own RETURN and released result"
+  ],
+  "requirements": [
+    "Original holder82dbe59f same actual thread/runtime/model no override. NEW task own claim normal push and canonical readback, then own ACK BEFORE code/tests. Read whole AGENTS/EMPIEZA/protocol/current/policy/newintermediates and cancellation checks. FIN31R2 claim released: never reuse. FIN31R2/R1/FIN19R8/FIN22source and all packages/WIP immutable.",
+    "Latest explicit Claude c81b8872 supersedes original158 queuebase for FIN12: beta66c13084257fd576444a01cb529c5e6e815c6ec6 or current beta at actual start allowed. Prepared exact current SHA 66c13084257fd576444a01cb529c5e6e815c6ec6. Read once actualstart beta provenance/version and ACK chosen fullsource/basedelta beforeproduct; fresh isolated newcheckout/branch no FIN19/FIN22/FIN31carryover. Do not chase later beta/rebase WIP. Initial priorfiles/repos census and final hashes/readback. PR288/289/290 now reserved Claude integration161 and MUST NOT be edited.",
+    "ROJO first: trace actual Inicio debt-series producer and how financing records carry creation/start/payment dates. Independent historical expected series: zero financing contribution before creation, correct outstanding balance from the actual creation boundary and afterwards, no phantom past debt. Synthetic cent-exact principal/payment data, no expectation derived from product output. Before/on/after boundary, monthly/year transitions and Europe/Madrid/UTC if calendar-dependent, stored financial rows unchanged. Distinguish actual record creation from future payment dates; preserve legitimate existing loans, recurring debts and amortization semantics. Do not repair unrelated totals or change field meanings without causal evidence.",
+    "Minimal causal path only; inspect actual code before choosing files. Directed CPU1 sequential tests, actual failing baseline and candidate EXITs preserved, no weakening independent oracles. Use real chart-series function; if rendered label/series integration requires browser, fresh own admission/census/localport worker1retry0 stopfirstfailure per applicable policy, no foreign/shared lease acquired by absence. No whole suite CPU6 or performance profiling. Latest grant REQUIRES real Inicio e2e, not only pure series tests. Inspect requested specs/config before run and explicitly exclude any embedded CPU x6 from the first run; CPU1 worker1retry0maxFailures1, durable stdout/stderr/report from launch. No repeated interrupted scope-discovery run.",
+    "One draft PR against beta pertask. NO VERSION/notes/CHANGELOG/README/ROADMAP/BACKLOG/catalogue/caps changes; integration reserved Claude. No SQL/Edge/livecloud/bank/API, Android/Gradle/APK/deploy/merge or production. Actual size/docs/catalogue gates as scope supports, preserve errors/timeouts accurately; do not repeat broad catalogue mutations already completed or turn them into fullsuite. Review exact changed-helper dependencies for integration catalogue disclosure without editing reserved catalogue.",
+    "Same holder actual OWN9 frozen20; normal OWN10notice641c77014dd803d5ab4618a73d405079074f151d canonical block10actual4/20remaining16 atR2close. SAME ownidentity/helper/filter/ledger noreset/inheritance. Count every actualfirst/internal/readback >=30s; next budget onlyafteractual20freeze normalnotice/readback under b0390ba0. ROOTledgerseparate, no claims/resources transferred. Return only ownresources with identity evidence, no foreign/sharedlock/PIDclockreclaim.",
+    "Own final RETURN + released result: exact source/base/PRhead/rama/pullref, real commands/EXITs and every skippedgate/failure/limitation. ManifestZIP/report/sourceinventory/privacy and full priorfiles/repos/WIP preservation verified. Save private handoff supplied natively and STOP. No native reply without direct human authority. INC290902 and FIN04phase2design stay queued until next exacttask. No ProductREADY/served/mobile claim."
+  ],
+  "deliverable": "FIN12 minimal draft PR, causal historical-series RED and candidate directed monetary/date GREEN, immutable source/evidence and prior-work integrity, own RETURN/released result, private handoff then STOP."
+}
