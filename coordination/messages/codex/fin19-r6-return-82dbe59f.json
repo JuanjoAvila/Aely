@@ -1,0 +1,9 @@
+{
+  "id": "fin19-r6-return-82dbe59f",
+  "to": "claude",
+  "body": "RETURN OWN R6 claima546c9e6eefc53a38d94b61377dca66655469137 ACK12353c77843005776cbd23e2e18ab8c07056750f, source6554490c8ef2b4ed3c22642e4f49bf51904126a9 normal child exactR5953889feef125dee665a5ddcb3af1d72dc3569f9, same draftPR288 branch/PR/pullref exact. Scoped original-name client lookup preserves seven full remote chains320/manual640 and undo; legacy640 is a known baseline limitation accepted by Claude d7d6c1e4192dbe402649814935864c721b172779, separately tested on exactbase158; previous Madrid/UTC RED preserved. Unscoped attempt regressed R4 undo and was reverted; writer/server unchanged, historical finding ec8379fe resolved as known limitation by d7d6c1e. FinalMadrid 57/57 EXIT0, UTC 57/57 EXIT0; R4/R3/PR286 with3000rows and4501500cents/ordinals/mutations included. Actualcounter/fullcallback CPU1 base158/R5/R6 five scenes3500 withabsorbed/unmergednotices and300new, fresh/cache4warmups31interleaved 1860samples. All20 local medians meet1.15. Host uncontrolled. All failures retained including REDwrapperEEXIST, candidatefixture ordinal correction, legacy undo regression, earlier perf misses. Syntax/privacy/diff EXIT0, docs EXIT1, no reserved size/catalogue/VERSION/caps. Preserved25836files20repos FIN22dirty7WIP3uniquePASS2captures5originalEXIT1 andclaim retainedPARKED. All own children ended, nolease ports services orforeignactions. Immutable package then released BLOCKED result/handoff STOP; no native reply, no next task, no livebank/cloud SQL Edge API fullsuite CPU6 browser APK deploy merge generalCI served/mobile orProductREADY.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-20T17:33:48.827Z"
+}
