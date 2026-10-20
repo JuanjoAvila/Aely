@@ -4403,10 +4403,12 @@ test("Catálogo159 añade la tanda de los meses marcados a mano en recibos (solo
   const source=f=>nl(read(f)),old=f=>nl(sourceBeta158(f));
   assert.equal(before[0].v,"4.26.158");
   assert.deepEqual(before[0].tandas.map(g=>g.id),["youtube-r4"],"la 158 llevaba su tanda");
-  const expectedNotes=[expected159,{...before[0],tandas:[]},...before.slice(1)];
+  // El panel solo enseña lo que está por probar: lo ya aprobado de las notas anteriores va con tandas:[] (la propiedad se queda). Se vigila la forma, no una lista de ids.
+  const expectedNotes=[expected159,...before.map(n=>({...n,tandas:[]}))];
   const notes=JSON.parse(source("src/data/release-notes.json"));
   assert.deepEqual(notes,expectedNotes,"la nota 159 literal delante, la 158 sin su tanda y todo lo demás intacto");
-  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.159",tandas[0],0],...before.slice(1).flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0]))],"el panel enseña la nueva (sin APK) y conserva las de antes de la 158");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.159",tandas[0],0]],"el panel enseña solo la nueva (sin APK)");
+  for(const n of notes.slice(1))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] (la propiedad se conserva, vacía)");
   assert.equal(notes.length,256);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
   notes[0].tandas.forEach(g=>assert.deepEqual(Object.keys(g),["id","t","items"],"identidad nueva, sin apk: "+g.id));
   for(const lang of ["es","en","ca"]){

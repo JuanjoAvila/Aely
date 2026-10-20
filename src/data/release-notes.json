@@ -188,55 +188,7 @@
         "Si reanomenes una despesa sense cobertura, el nom nou es desa sol quan torna la xarxa."
       ]
     },
-    "tandas": [
-      {
-        "id": "cartera-sin-lagazo",
-        "t": {
-          "es": "Cartera: sin tirones desde Ajustes y al volver",
-          "en": "Wallet: no jerks from Settings or when coming back",
-          "ca": "Cartera: sense estirades des d'Ajustos i en tornar"
-        },
-        "items": {
-          "es": [
-            "1. Abre Ajustes, cambia algo y ve rápido a Cartera → Tus cuentas. No debe pegar un tirón grande. MAL: se queda parada.",
-            "2. Sal de la app, haz otras cosas, vuelve y entra en Cartera. MAL: da un tirón.",
-            "3. Las cifras de Inicio y de Cartera son las mismas que antes. MAL: cualquier diferencia."
-          ],
-          "en": [
-            "1. Open Settings, change something and go quickly to Wallet → Your accounts. It must not jerk. WRONG: it freezes.",
-            "2. Leave the app, do other things, come back and go into Wallet. WRONG: it jerks.",
-            "3. The figures in Home and Wallet are the same as before. WRONG: any difference."
-          ],
-          "ca": [
-            "1. Obre Ajustos, canvia alguna cosa i ves ràpid a Cartera → Els teus comptes. No ha de fer una estirada gran. MALAMENT: es queda parada.",
-            "2. Surt de l'app, fes altres coses, torna i entra a Cartera. MALAMENT: fa una estirada.",
-            "3. Les xifres d'Inici i de Cartera són les mateixes que abans. MALAMENT: qualsevol diferència."
-          ]
-        }
-      },
-      {
-        "id": "renombrar-sin-cobertura",
-        "t": {
-          "es": "Gastos: renombrar sin cobertura",
-          "en": "Expenses: renaming without signal",
-          "ca": "Despeses: reanomenar sense cobertura"
-        },
-        "items": {
-          "es": [
-            "1. Pon el modo avión y renombra un gasto: la lista lo enseña con ⏳. MAL: vuelve el nombre viejo.",
-            "2. Quita el modo avión: en unos segundos el ⏳ desaparece solo. MAL: sigue el ⏳ o hay que pulsar Reintentar."
-          ],
-          "en": [
-            "1. Turn airplane mode on and rename an expense: the list shows it with ⏳. WRONG: the old name comes back.",
-            "2. Turn airplane mode off: in a few seconds the ⏳ goes away by itself. WRONG: the ⏳ stays or you have to tap Retry."
-          ],
-          "ca": [
-            "1. Posa el mode avió i reanomena una despesa: la llista la mostra amb ⏳. MALAMENT: torna el nom vell.",
-            "2. Treu el mode avió: en uns segons el ⏳ desapareix sol. MALAMENT: continua el ⏳ o has de prémer Reintentar."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.153",
@@ -275,99 +227,7 @@
         "Les xifres ja no compten des de 0 en entrar a una pantalla."
       ]
     },
-    "tandas": [
-      {
-        "id": "gestionar-plan-ola-r2",
-        "t": {
-          "es": "Plan: la ola en Gestionar plan, otra vez",
-          "en": "Plan: the ripple in Manage plan, once more",
-          "ca": "Pla: l'ona a Gestionar pla, un cop més"
-        },
-        "items": {
-          "es": [
-            "1. Abre Plan → Recibos → Gestionar plan, desplázate hasta el final y tira (tu frase: «no hay manera, ola no funciona en recibos»). Sale la ola. MAL: no sale.",
-            "2. Entra en una categoría y haz lo mismo. MAL: no sale la ola.",
-            "3. Cierra Gestionar plan: Plan sigue donde estaba. MAL: Plan aparece en otro punto."
-          ],
-          "en": [
-            "1. Open Plan → Bills → Manage plan, scroll to the end and pull (your words: «no hay manera, ola no funciona en recibos», there is no way, the ripple does not work in bills). The ripple shows. WRONG: it does not.",
-            "2. Go into a category and do the same. WRONG: no ripple.",
-            "3. Close Manage plan: Plan stays where it was. WRONG: Plan shows at another spot."
-          ],
-          "ca": [
-            "1. Obre Pla → Rebuts → Gestionar pla, desplaça fins al final i estira (la teva frase: «no hay manera, ola no funciona en recibos», no hi ha manera, l'ona no funciona als rebuts). Surt l'ona. MALAMENT: no surt.",
-            "2. Entra en una categoria i fes el mateix. MALAMENT: no surt l'ona.",
-            "3. Tanca Gestionar pla: Pla continua on era. MALAMENT: Pla apareix en un altre punt."
-          ]
-        }
-      },
-      {
-        "id": "youtube-diagnostico",
-        "t": {
-          "es": "YouTube Premium: copiar el diagnóstico del recibo",
-          "en": "YouTube Premium: copy the bill diagnosis",
-          "ca": "YouTube Premium: copiar el diagnòstic del rebut"
-        },
-        "items": {
-          "es": [
-            "1. Abre Gastos, entra en el cargo de YouTube Premium, toca «Paga un recibo» y luego «Copiar diagnóstico». MAL: no aparece el botón.",
-            "2. Pégalo en el chat a Claude. Es la única forma de saber por qué no se enlaza."
-          ],
-          "en": [
-            "1. Open Expenses, go into the YouTube Premium charge, tap «Pays a bill» and then «Copy diagnosis». WRONG: the button does not show.",
-            "2. Paste it into the chat to Claude. It is the only way to know why it does not link."
-          ],
-          "ca": [
-            "1. Obre Despeses, entra al càrrec de YouTube Premium, toca «Paga un rebut» i després «Copiar diagnòstic». MALAMENT: no apareix el botó.",
-            "2. Enganxa'l al xat a Claude. És l'única manera de saber per què no s'enllaça."
-          ]
-        }
-      },
-      {
-        "id": "renombrar-lista-al-momento",
-        "t": {
-          "es": "Gastos: el nombre nuevo se ve al momento",
-          "en": "Expenses: the new name shows at once",
-          "ca": "Despeses: el nom nou es veu a l'instant"
-        },
-        "items": {
-          "es": [
-            "1. Abre un gasto en Gastos, cámbiale el nombre y guarda. La lista enseña el nombre nuevo al instante, con ⏳ hasta que se guarde. MAL: la lista sigue con el nombre viejo.",
-            "2. Espera unos segundos: la lista conserva el nombre nuevo y desaparece el ⏳. MAL: vuelve el nombre viejo."
-          ],
-          "en": [
-            "1. Open an expense in Expenses, rename it and save. The list shows the new name at once, with ⏳ until it is saved. WRONG: the list keeps the old name.",
-            "2. Wait a few seconds: the list keeps the new name and the ⏳ goes away. WRONG: the old name comes back."
-          ],
-          "ca": [
-            "1. Obre una despesa a Despeses, canvia-li el nom i desa. La llista mostra el nom nou a l'instant, amb ⏳ fins que es desi. MALAMENT: la llista continua amb el nom vell.",
-            "2. Espera uns segons: la llista conserva el nom nou i desapareix el ⏳. MALAMENT: torna el nom vell."
-          ]
-        }
-      },
-      {
-        "id": "recibos-cifra-cuadra",
-        "t": {
-          "es": "Recibos: la cifra mensual cuadra y no cuenta desde 0",
-          "en": "Bills: the monthly figure adds up and does not count from 0",
-          "ca": "Rebuts: la xifra mensual quadra i no compta des de 0"
-        },
-        "items": {
-          "es": [
-            "1. Abre Plan → Recibos: «Se te van cada mes» es igual a la suma de los grupos de debajo. MAL: no cuadra.",
-            "2. Entra en Cartera y en Inicio: la cifra grande sale directamente, sin pasar por 0,00 €. MAL: se ve 0."
-          ],
-          "en": [
-            "1. Open Plan → Bills: «Se te van cada mes» equals the sum of the groups below. WRONG: it does not add up.",
-            "2. Go into Wallet and Home: the big figure shows straight away, without passing through 0,00 €. WRONG: you see 0."
-          ],
-          "ca": [
-            "1. Obre Pla → Rebuts: «Se te van cada mes» és igual a la suma dels grups de sota. MALAMENT: no quadra.",
-            "2. Entra a Cartera i a Inici: la xifra gran surt directament, sense passar per 0,00 €. MALAMENT: es veu 0."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.152",
@@ -424,36 +284,7 @@
         "Reanomenar funciona també sense connexió."
       ]
     },
-    "tandas": [
-      {
-        "id": "renombrar-y-notas-seguras",
-        "t": {
-          "es": "Gastos: renombrar y notas seguras",
-          "en": "Spending: safe renaming and notes",
-          "ca": "Despeses: reanomenar i notes segures"
-        },
-        "items": {
-          "es": [
-            "1. Abre Gastos, entra en un gasto, cámbiale el nombre y escribe una nota. Guarda.",
-            "2. Cierra la app del todo y vuelve a abrirla: el nombre y la nota siguen. MAL: vuelve el nombre o la nota anterior, o sale el gasto dos veces.",
-            "3. Activa el modo avión, renombra otro gasto y vuelve a quitarlo: el nombre se guarda solo al volver la red. MAL: se pierde.",
-            "4. El total de gastos y el dinero disponible no cambian. MAL: cualquier diferencia."
-          ],
-          "en": [
-            "1. Open Spending, open an expense, change its name and write a note. Save.",
-            "2. Close the app completely and open it again: the name and the note are still there. WRONG: the previous name or note comes back, or the expense shows up twice.",
-            "3. Turn on airplane mode, rename another expense and turn it off again: the name is saved by itself when the network returns. WRONG: it is lost.",
-            "4. The spending total and the available money do not change. WRONG: any difference."
-          ],
-          "ca": [
-            "1. Obre Despeses, entra en una despesa, canvia-li el nom i escriu una nota. Desa.",
-            "2. Tanca l'app del tot i torna-la a obrir: el nom i la nota continuen. MALAMENT: torna el nom o la nota anterior, o surt la despesa dues vegades.",
-            "3. Activa el mode avió, reanomena una altra despesa i torna'l a treure: el nom es desa sol quan torna la xarxa. MALAMENT: es perd.",
-            "4. El total de despeses i els diners disponibles no canvien. MALAMENT: qualsevol diferència."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.150",
@@ -495,36 +326,7 @@
         "Lliscar ràpid diverses vegades entre pestanyes ja no fa salts enrere: la pantalla segueix el dit."
       ]
     },
-    "tandas": [
-      {
-        "id": "pestanas-swipe-rapido",
-        "t": {
-          "es": "Pestañas: deslizar rápido varias veces seguidas",
-          "en": "Tabs: swiping quickly several times in a row",
-          "ca": "Pestanyes: lliscar ràpid diverses vegades seguides"
-        },
-        "items": {
-          "es": [
-            "1. Desliza rápido varias veces seguidas entre Inicio, Gastos, Plan y Cartera, ida y vuelta.",
-            "2. La pantalla sigue el dedo sin saltar hacia atrás. MAL: da un tirón o un salto atrás.",
-            "3. Llega a Cartera y sigue deslizando hacia la izquierda; luego ve a Inicio y desliza a la derecha. MAL: un salto raro. En Inicio, deslizar desde el borde izquierdo sigue abriendo Ajustes.",
-            "4. Siempre acabas en la pestaña que marca la barra de abajo. MAL: no coincide."
-          ],
-          "en": [
-            "1. Swipe quickly several times in a row between Home, Spending, Plan and Portfolio, back and forth.",
-            "2. The screen follows your finger without jumping backwards. WRONG: a jerk or a jump back.",
-            "3. Reach Portfolio and keep swiping left; then go to Home and swipe right. WRONG: an odd jump. On Home, swiping from the left edge still opens Settings.",
-            "4. You always end up on the tab the bottom bar shows. WRONG: they do not match."
-          ],
-          "ca": [
-            "1. Llisca ràpid diverses vegades seguides entre Inici, Despeses, Pla i Cartera, anada i tornada.",
-            "2. La pantalla segueix el dit sense saltar enrere. MALAMENT: dóna un estirament o un salt enrere.",
-            "3. Arriba a Cartera i continua lliscant cap a l'esquerra; després ves a Inici i llisca cap a la dreta. MALAMENT: un salt estrany. A Inici, lliscar des de la vora esquerra continua obrint Ajustos.",
-            "4. Sempre acabes a la pestanya que marca la barra de baix. MALAMENT: no coincideix."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.148",
@@ -575,70 +377,7 @@
         "Mantén premut un bróker i arrossega'l sobre un altre per canviar-ne l'ordre. Es conserva en tornar a obrir l'app."
       ]
     },
-    "tandas": [
-      {
-        "id": "deuda-bajar-cuota-alarga-plazo",
-        "t": {
-          "es": "Deudas: bajar la cuota y alargar el plazo",
-          "en": "Debts: lower the payment and extend the term",
-          "ca": "Deutes: baixar la quota i allargar el termini"
-        },
-        "items": {
-          "es": [
-            "1. Abre Plan, pestaña Deudas, toca una deuda con plazo y baja la cuota (tu frase: «si la bajo me dice error de que no encaja»).",
-            "2. En vez de solo el error, debe salir «Alargar el plazo a N meses». MAL: sale solo el error.",
-            "3. Púlsalo y toca «Guardar cambios»: se guarda con el plazo nuevo y la hoja se cierra. MAL: no guarda.",
-            "4. El saldo pendiente de la deuda y el dinero disponible de Inicio y de Plan no cambian. MAL: cualquier cambio.",
-            "5. Sube la cuota de otra deuda: funciona igual que antes. MAL: algo distinto a lo de siempre."
-          ],
-          "en": [
-            "1. Open Plan, Debts tab, tap a debt with a term and lower the payment (your words: «if I lower it, it gives me an error that it does not fit»).",
-            "2. Instead of just the error, «Extend the term to N months» must show. WRONG: only the error shows.",
-            "3. Tap it and then «Save changes»: it saves with the new term and the sheet closes. WRONG: it does not save.",
-            "4. The pending balance of the debt and the available money in Home and in Plan do not change. WRONG: any change.",
-            "5. Raise the payment of another debt: it works as before. WRONG: anything different from usual."
-          ],
-          "ca": [
-            "1. Obre Pla, pestanya Deutes, toca un deute amb termini i baixa la quota (la teva frase: «si la baixo em diu error de que no encaixa»).",
-            "2. En lloc de només l'error, ha de sortir «Allarga el termini a N mesos». MALAMENT: surt només l'error.",
-            "3. Prem-lo i toca «Desa els canvis»: es desa amb el termini nou i la fitxa es tanca. MALAMENT: no es desa.",
-            "4. El saldo pendent del deute i els diners disponibles d'Inici i de Pla no canvien. MALAMENT: qualsevol canvi.",
-            "5. Puja la quota d'un altre deute: funciona igual que abans. MALAMENT: res diferent de sempre."
-          ]
-        }
-      },
-      {
-        "id": "cartera-ordenar-brokers",
-        "t": {
-          "es": "Cartera: ordenar los bloques de brókers",
-          "en": "Portfolio: sort the broker blocks",
-          "ca": "Cartera: ordenar els blocs de bròquers"
-        },
-        "items": {
-          "es": [
-            "1. Abre Cartera → Inversiones, mantén pulsado un bloque de bróker y arrástralo a otra posición.",
-            "2. Suéltalo: el orden se queda. MAL: vuelve a su sitio o desaparece algún bloque.",
-            "3. Cierra la app del todo y ábrela: el orden se mantiene. MAL: se pierde.",
-            "4. Los importes de cada bróker son los mismos que antes. MAL: cualquier cambio.",
-            "5. Reordena también tus cuentas como siempre: sigue funcionando igual. MAL: algo distinto a lo de siempre."
-          ],
-          "en": [
-            "1. Open Portfolio → Investments, press and hold a broker block and drag it to another position.",
-            "2. Let go: the order stays. WRONG: it goes back to its place or a block disappears.",
-            "3. Close the app completely and open it: the order is kept. WRONG: it is lost.",
-            "4. The amounts of each broker are the same as before. WRONG: any change.",
-            "5. Also reorder your accounts as usual: it works as before. WRONG: anything different from usual."
-          ],
-          "ca": [
-            "1. Obre Cartera → Inversions, mantén premut un bloc de bròquer i arrossega'l a una altra posició.",
-            "2. Deixa'l anar: l'ordre es queda. MALAMENT: torna al seu lloc o desapareix algun bloc.",
-            "3. Tanca l'app del tot i obre-la: l'ordre es manté. MALAMENT: es perd.",
-            "4. Els imports de cada bròquer són els mateixos que abans. MALAMENT: qualsevol canvi.",
-            "5. Reordena també els teus comptes com sempre: continua funcionant igual. MALAMENT: res diferent del de sempre."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.146",
@@ -662,39 +401,7 @@
         "Les teves despeses i els teus diners disponibles continuen sent exactament els mateixos."
       ]
     },
-    "tandas": [
-      {
-        "id": "vuelta-sin-tiron",
-        "t": {
-          "es": "Volver a la app sin tirones",
-          "en": "Coming back to the app without stutter",
-          "ca": "Tornar a l'app sense estrebades"
-        },
-        "items": {
-          "es": [
-            "1. Abre la app y ve a Gastos.",
-            "2. Sal a otra app durante 1 minuto y vuelve a Aely.",
-            "3. Desliza la lista nada más volver: no se queda congelada ni da un tirón. MAL: se para medio segundo o más.",
-            "4. Cierra la app del todo, ábrela y desliza en cuanto salga Inicio. MAL: tirón al primer deslizamiento.",
-            "5. Comprueba que los gastos y el dinero disponible son los mismos que antes. MAL: cualquier diferencia."
-          ],
-          "en": [
-            "1. Open the app and go to Spending.",
-            "2. Switch to another app for 1 minute and come back to Aely.",
-            "3. Scroll the list right after coming back: it does not freeze or stutter. WRONG: it stops for half a second or more.",
-            "4. Close the app completely, open it and scroll as soon as Home shows. WRONG: a stutter on the first scroll.",
-            "5. Check that the expenses and the available money are the same as before. WRONG: any difference."
-          ],
-          "ca": [
-            "1. Obre l'app i ves a Despeses.",
-            "2. Surt a una altra app durant 1 minut i torna a Aely.",
-            "3. Llisca la llista just en tornar: no es queda congelada ni dona una estrebada. MALAMENT: s'atura mig segon o més.",
-            "4. Tanca l'app del tot, obre-la i llisca tan bon punt surti Inici. MALAMENT: estrebada al primer lliscament.",
-            "5. Comprova que les despeses i els diners disponibles són els mateixos que abans. MALAMENT: qualsevol diferència."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.145",
@@ -760,33 +467,7 @@
         "En importar l'historial de CaixaBank, una lectura dubtosa ja no es dona per nova: surt sense marcar perquè la confirmis."
       ]
     },
-    "tandas": [
-      {
-        "id": "deudas-guardar-motivo",
-        "t": {
-          "es": "Deudas: el motivo del rechazo se ve entero al guardar",
-          "en": "Debts: the reason for a rejection shows in full when saving",
-          "ca": "Deutes: el motiu del rebuig es veu sencer en desar"
-        },
-        "items": {
-          "es": [
-            "1. Abre Plan, pestaña Deudas, toca una deuda con cuotas y escribe en la cuota mensual un importe mucho más bajo (por ejemplo, la mitad). Toca «Guardar cambios».",
-            "2. No se guarda nada y se ve entero el aviso que explica por qué no encaja, con el rango de cuota posible. Vuelve a tocar «Guardar cambios» sin cambiar nada: el aviso se vuelve a mostrar.",
-            "3. Escribe una cuota dentro del rango que indica y toca «Guardar cambios»: se guarda y la ficha se cierra."
-          ],
-          "en": [
-            "1. Open Plan, Debts tab, tap a debt with instalments and type a much lower amount in the monthly payment (for example, half). Tap «Save changes».",
-            "2. Nothing is saved and the notice explaining why it does not fit shows in full, with the possible payment range. Tap «Save changes» again without changing anything: the notice shows again.",
-            "3. Type a payment inside the range it gives and tap «Save changes»: it is saved and the sheet closes."
-          ],
-          "ca": [
-            "1. Obre Pla, pestanya Deutes, toca un deute amb quotes i escriu a la quota mensual un import molt més baix (per exemple, la meitat). Toca «Desa els canvis».",
-            "2. No es desa res i es veu sencer l'avís que explica per què no encaixa, amb el rang de quota possible. Torna a tocar «Desa els canvis» sense canviar res: l'avís es torna a mostrar.",
-            "3. Escriu una quota dins del rang que indica i toca «Desa els canvis»: es desa i la fitxa es tanca."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.143",

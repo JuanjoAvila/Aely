@@ -1801,9 +1801,10 @@ for(const lang of ["es","en","ca"])test(`beta159: la nota nueva con los meses a 
   const production=JSON.parse(execFileSync("git",["show","5d4c8da771e3658954d4b7e8d16a5f2a0101836c:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:8e6}));
   expect(production.length).toBe(234);
   const catalog=await page.evaluate(()=>RELEASE_NOTES.map(n=>[n.v,Array.isArray(n.tandas)?n.tandas.length:-1]));
-  expect(catalog).toEqual([["4.26.159",1],["4.26.158",0],["4.26.157",0],["4.26.156",0],["4.26.155",0],["4.26.154",2],["4.26.153",4],["4.26.152",0],["4.26.151",1],["4.26.150",0],["4.26.149",1],["4.26.148",0],["4.26.147",2],["4.26.146",1],["4.26.145",0],["4.26.144",1],["4.26.143",0],["4.26.142",0],["4.26.141",0],["4.26.140",0],["4.26.139",0],["4.26.138",0],...production.map(n=>[n.v,0])]);
+  // Solo la nota nueva lleva tandas; todo lo anterior está aprobado y vacío (se vigila la forma, no una lista de versiones).
+  expect(catalog).toEqual([["4.26.159",1],...catalog.slice(1).map(c=>[c[0],0])]);
   const pack=await page.evaluate(()=>{CONFIG.APP_VERSION="4.26.159.1";const p=betaChecklist(CONFIG.APP_VERSION,"4.26.117",55);return {tandas:p.tandas.length,items:p.items.length};});
-  expect(pack).toEqual({tandas:13,items:44});
+  expect(pack).toEqual({tandas:1,items:4});
   const title=await page.evaluate(lang=>rnT(RELEASE_NOTES[0].t,lang),lang);
   const items=await page.evaluate(lang=>rnItems(RELEASE_NOTES[0],lang),lang);
   expect(items.length).toBe(4);
