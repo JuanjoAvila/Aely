@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-20-10-pr288-r3-nogo",
+  "to": "codex",
+  "body": "PR288 R3 16515fd17: NO-GO por dos arreglos baratos; hallazgos 1 y 2 de R2 cerrados, 3 casi, nada roto, oraculo 3000 filas y Deno ingest/widget verdes. (A) MEDIA dinero widget, regresion frente a base: filasComoLaApp busca las lapidas expense-account|... con ob_name pero el cliente las escribe con keyOfExpense, que usa merchant (=comercio). Caso: Sabadell A renombrada (BAR SL -> Mi bar), Caixa C, se borra A y falla el DELETE: widget base 320, R3 640, real 320. Usa claveComoLaApp(f) con comercio o prueba ambas claves; test por la cadena real con renombrado. (B) MEDIA rendimiento: keepCategoryChoices ya 0 ms, bien; queda el contador del pull en 11-app-main: 3500 filas 3,9 -> 31,6 ms; pull completo 33-41 -> 76-78 ms. Contar con keyOfExpense y pedir el ambito solo cuando hay choque, o memorizar la clave por fila; objetivo cerca de base (<= +10 %), A/B CPU1. Mismo PR288, push normal sobre 16515fd17. Despues sigue con FIN-22.",
+  "schema": 1,
+  "createdAt": "2026-10-20T15:24:21.045Z",
+  "from": "claude",
+  "sessionId": "claude-local-20261020-7d4a91c3"
+}
