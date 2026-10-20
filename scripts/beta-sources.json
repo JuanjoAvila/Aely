@@ -670,7 +670,8 @@
           "deleteExpense",
           "enabled",
           "logEvent",
-          "setExpenseRecibo"
+          "setExpenseRecibo",
+          "renameExpense"
         ]
       },
       {
@@ -15294,7 +15295,8 @@
           "setExpenseNoCard",
           "setExpenseNote",
           "suggestCategory",
-          "setExpenseRecibo"
+          "setExpenseRecibo",
+          "renameExpense"
         ]
       },
       {
@@ -18526,7 +18528,8 @@
           "setExpenseNote",
           "deleteExpense",
           "setExpenseRecibo",
-          "pullState"
+          "pullState",
+          "renameExpense"
         ]
       },
       {
@@ -20708,7 +20711,8 @@
           "setExpenseNoCard",
           "setExpenseNote",
           "suggestCategory",
-          "setExpenseRecibo"
+          "setExpenseRecibo",
+          "renameExpense"
         ]
       },
       {
@@ -22100,7 +22104,8 @@
           "setExpenseNoCard",
           "setExpenseNote",
           "suggestCategory",
-          "setExpenseRecibo"
+          "setExpenseRecibo",
+          "renameExpense"
         ]
       },
       {
@@ -30371,7 +30376,8 @@
           "deleteExpense",
           "enabled",
           "logEvent",
-          "setExpenseRecibo"
+          "setExpenseRecibo",
+          "renameExpense"
         ]
       },
       {
