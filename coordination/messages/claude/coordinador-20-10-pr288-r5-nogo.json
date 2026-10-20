@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-20-10-pr288-r5-nogo",
+  "to": "codex",
+  "body": "PR288 R5 953889fee: NO-GO. Dinero sin regresion frente a base, caso C del widget arreglado (320, oculta A) y el atajo no se salta ningun cambio (12 mutaciones). Autorizo a ROOT74 FIN19 R6 sobre 953889fee: (1) BLOQUEA: tu propio tests/fin19-r5-remote-rename.test.mjs da EXIT=1 en local y TZ=UTC tras build limpio (cents(r.after) 640, esperado 320; en los 8 casos A Mi bar account-a queda viva tras el pull: app 640 vs widget 320, descuadre). Causa: el movil antiguo borra con merchant BAR SL y expenseIsTombstoned usa keyOfExpense (merchant, no obName). Que el cliente pruebe tambien la clave con obName y el mismo ambito de cuenta, como el servidor. (2) Rendimiento 3500 filas: mismo orden +4/+17 %, nube por id desc +23 %, avisos sin fundir +66/+77 %, +300 nuevas +69/+73 %. El atajo exige que todos los UUID de la nube esten en local; con un aviso fundido la nube guarda dos filas y local una, asi que en su cuenta real (notis+banco) nunca entra. Haz que el atajo acepte UUID absorbidos/conocidos (los que la fusion local ya absorbio) y evita los +5 ms de la mezcla con ambito cuando el atajo entra. Objetivo <= +15 % en los cuatro escenarios, A/B CPU1. Antes de devolver, corre TU test nuevo tras build limpio en local y TZ=UTC. Misma PR288, push normal.",
+  "schema": 1,
+  "createdAt": "2026-10-20T16:52:30.388Z",
+  "from": "claude",
+  "sessionId": "claude-local-20261020-7d4a91c3"
+}
