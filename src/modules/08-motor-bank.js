@@ -515,13 +515,20 @@ function paymentEvidenceUI(s,y,m,today){
     if(!identity) return;
     var rows=index.identity.get(identity)||[];
     /* La prueba BOOK guarda el nombre del extracto y el cargo renombrado se identifica por el
-       texto del banco (`obName`): con la MISMA referencia, día y céntimos es el mismo cargo y Plan
+       texto del banco (`obName`): con la MISMA referencia, banco y céntimos es el mismo cargo y Plan
        ya lo da por pagado; la ficha decía «No» (INC-1810-04, diagnóstico real de beta 4.26.154.1).
-       Otra referencia sigue sin valer. */
+       Otra referencia sigue sin valer.
+       El día puede ir por delante: el cargo de tarjeta lleva la fecha de la operación y el BOOK la
+       de contabilización, días después y con la misma ref (2/10 → 5/10, diagnóstico real de beta
+       4.26.157.1). Solo hacia delante y como mucho 7 días, lo que tarda una tarjeta con puente o
+       fin de semana; y si el extracto trae la cuenta de esa ref, tiene que ser la del cargo. */
     if(!rows.length&&p&&p.kind==="book"&&p.key){
+      var dia=function(v){ return Date.parse(String(v||"").slice(0,10)+"T00:00:00Z")/864e5; };
       rows=[];index.identity.forEach(function(list){ list.forEach(function(x){
-        if(x.extId&&p.key===p.bank+"|"+x.extId&&expenseBankOf(x)===p.bank&&String(x.date||"").slice(0,10)===String(p.date||"").slice(0,10)&&
-          Math.round(Number(x.amount)*100)===Math.round(Number(p.amount)*100)) rows.push(x);
+        var lag=dia(p.date)-dia(x.date);
+        if(x.extId&&p.key===p.bank+"|"+x.extId&&expenseBankOf(x)===p.bank&&lag>=0&&lag<=7&&
+          Math.round(Number(x.amount)*100)===Math.round(Number(p.amount)*100)&&
+          !(s.bankTx||[]).some(function(t){ return t.ent===p.bank&&String(t.id)===String(x.extId)&&x.obAcc&&t.acc&&String(t.acc)!==String(x.obAcc); })) rows.push(x);
       }); });
     }
     if(rows.length!==1) return;

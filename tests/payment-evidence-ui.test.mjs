@@ -77,6 +77,32 @@ check('BOOK proof of this same charge names the receipt even when its identity t
   assert.equal(relation(s)&&relation(s).id,'hs0ymqd4');assert.equal(moneyOf(s),money);assert.equal(JSON.stringify(s),before);});
 check('BOOK proof of ANOTHER reference still never names this charge',()=>{for(const mutate of [s=>s.expenses[0].extId='20261002213646522190S2',s=>delete s.expenses[0].extId,s=>s.expenses[0].ent='caixabank',s=>s.expenses[0].date='2026-10-03',s=>s.expenses[0].obAcc='ES0000000000000000009999',s=>s.expenses.push({...s.expenses[0],id:'twin'}),s=>s.expenses[0].amount=29.98]){
   const s=youtubeR3();mutate(s);assert.equal(relation(s),null);}});
+// INC-1810-04 r4 (diagnóstico real, beta 4.26.157.1): el cargo de tarjeta lleva la fecha de la
+// operación (2/10) y la fila BOOK del extracto con su MISMA referencia, la de contabilización
+// (5/10). r3 exigía el mismo día y la ficha seguía diciendo «No» con Plan ✓.
+const youtubeR4=(bookDate='2026-10-05')=>{const s=youtubeR3(),ref='20261002213646522190S1',iban='ES0000000000000000008405',name='COMPRA TARJ. 5402XXXXXXXX6013 GOOGLE*YOUTUBE-DUBLIN';
+  s.bankTx=[{id:ref,ent:'sabadell',date:bookDate,amount:29.99,merchant:name,status:'BOOK',acc:iban}];
+  s.fixed[0].paymentProofs={24322:c.fixedPaymentBind({kind:'book',key:'sabadell|'+ref,identity:JSON.stringify(['sabadell',bookDate,29.99,name]),date:bookDate,bank:'sabadell',merchant:name,amount:29.99,model:c.fixedPaymentModel(s.fixed[0],10)},s.fixed[0],10)};
+  return s;};
+check('BOOK booked days after the card charge with the same reference names the receipt',()=>{for(const mode of ['feed','missing']){const s=youtubeR4();if(mode==='missing')s.bankTx=[];
+  const before=JSON.stringify(s),money=moneyOf(s),conf=JSON.stringify(read(s).confirmed);
+  assert(c.fixedPaymentState(s,s.fixed[0],2026,10,18).proof,'la prueba guardada es válida');assert(read(s).confirmed['fixed_hs0ymqd4']);
+  assert.equal(relation(s)&&relation(s).id,'hs0ymqd4',mode);assert.equal(moneyOf(s),money);assert.equal(JSON.stringify(read(s).confirmed),conf);assert.equal(JSON.stringify(s),before);}});
+check('BOOK with a different date only inside the short forward booking window',()=>{for(const [label,mutate,bookDate] of [
+  ['other reference',s=>s.expenses[0].extId='20261002213646522190S2'],
+  ['no reference',s=>delete s.expenses[0].extId],
+  ['other bank',s=>s.expenses[0].ent='caixabank'],
+  ['other account',s=>s.expenses[0].obAcc='ES0000000000000000009999'],
+  ['other account in the feed row',s=>s.bankTx[0].acc='ES0000000000000000009999'],
+  ['other cents',s=>s.expenses[0].amount=29.98],
+  ['two candidate rows',s=>s.expenses.push({...s.expenses[0],id:'twin'})],
+  ['BOOK 8 days later',()=>{},'2026-10-10'],
+  ['BOOK before the charge',s=>s.expenses[0].date='2026-10-06'],
+]){const s=youtubeR4(bookDate);mutate(s);
+  if(bookDate)assert(c.fixedPaymentState(s,s.fixed[0],2026,10,18).proof,'la prueba sigue siendo válida: lo que falla es el margen');
+  assert.equal(relation(s),null,label);}
+  // Frontera exacta del margen: 7 días sí.
+  const s=youtubeR4('2026-10-09');assert(c.fixedPaymentState(s,s.fixed[0],2026,10,18).proof);assert.equal(relation(s)&&relation(s).id,'hs0ymqd4','7 días');});
 check('diagnostics hide reference and text of proofs from other charges',()=>{const s=youtubeR3(),other='99887766554433221100X';
   const n={id:'netflix',name:'Netflix',amount:12.99,day:5,freq:'mes'};s.fixed.push(n);
   n.paymentProofs={24322:c.fixedPaymentBind({kind:'book',key:'sabadell|'+other,identity:JSON.stringify(['sabadell','2026-10-05',12.99,'OTRO COMERCIO NETFLIX.COM']),date:'2026-10-05',bank:'sabadell',merchant:'OTRO COMERCIO NETFLIX.COM',amount:12.99},n,10)};

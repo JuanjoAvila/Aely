@@ -227,3 +227,22 @@ test('INC-1810-04 r3 BOOK proof of the renamed charge shows in the detail',async
   await expect(page.getByTestId('exp-receipt-value')).toHaveText('YouTube Premium');
   await unchangedRound2(page);
 });
+
+// INC-1810-04 r4: el cargo de tarjeta va fechado el día de la operación (2/10) y el BOOK de su
+// misma referencia el de contabilización (5/10). Plan ✓; la ficha seguía en «No».
+test('INC-1810-04 r4 BOOK booked days after the card charge shows in the detail',async({page})=>{
+  const s=paymentFixture(),x=s.expenses[0],ref='20261002213646522190S1',iban='ES0000000000000000008405',name='COMPRA TARJ. 5402XXXXXXXX6013 GOOGLE*YOUTUBE-DUBLIN';
+  const f={id:'hs0ymqd4',name:'YouTube Premium ',amount:29.99,day:2,freq:'mes'};
+  Object.assign(x,{date:'2026-10-02',amount:29.99,extId:ref,obAcc:iban,merchant:'YouTube Premium',obName:name,category:'recibos'});
+  s.bankTx=[{id:ref,ent:'sabadell',date:'2026-10-05',amount:29.99,merchant:name,status:'BOOK',acc:iban}];s.accounts[0].bankIban=iban;s.fixed=[f];
+  const model=JSON.stringify(['hs0ymqd4','sabadell',29.99,null]);
+  f.paymentProofs={24322:{kind:'book',key:'sabadell|'+ref,identity:JSON.stringify(['sabadell','2026-10-05',29.99,name]),date:'2026-10-05',bank:'sabadell',merchant:name,amount:29.99,modelVersion:2,receiptId:f.id,receiptName:f.name,model}};
+  await openRound2(page,s);
+  expect(await page.evaluate(()=>{const s=mcLoadRaw(mcStateKey());return !!fixedPaymentProof(s,s.fixed[0],2026,10,18);})).toBe(true);
+  await page.locator('.botnav-tab[data-tour="plan"]').click();
+  await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:'YouTube Premium'})).toHaveCount(1);
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:'YouTube Premium'}).click();
+  await expect(page.getByTestId('exp-receipt-value')).toHaveText('YouTube Premium');
+  await unchangedRound2(page);
+});
