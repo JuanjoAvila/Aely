@@ -1073,7 +1073,7 @@ function CarteraHeroAmt({target}){
   useEffect(function(){ return mcOnCarteraActive(setCarteraOn); },[]);
   const ph=eurParts(useCountUp(target, carteraOn));
   return React.createElement("div",{className:"serif num cartera-hero-amt",style:{fontSize:40,fontWeight:550,letterSpacing:"-1px",lineHeight:1.05,marginTop:6}},
-    target==null?"—":ph.ent, target!=null&&React.createElement("span",{style:{fontSize:22,color:"var(--muted)"}},","+ph.dec+" "+ph.sym));
+    ph.ent, React.createElement("span",{style:{fontSize:22,color:"var(--muted)"}},","+ph.dec+" "+ph.sym));
 }
 
 function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSync, syncInv, onReconnectBank, showToast}){
@@ -1133,11 +1133,9 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
     });
   };
   const liq=totals.liquid||0, inv=totals.invested||0, goods=totals.assetsTotal||0;
-  const unknownInv=state.investments.some(function(i){ return invValueEur(i,state)==null; });
-  const unknownLiq=(state.obAccounts||[]).some(function(a){ return toEurAmt(a.value,a.cur,state)==null; });
   const parts=[
-    {k:"liq",  v:liq, unknown:unknownLiq, color:"var(--mint)",  lab:t("d_liquid")},
-    {k:"inv",  v:inv, unknown:unknownInv, color:"var(--blue)",  lab:t("d_invest")},
+    {k:"liq",  v:liq,   color:"var(--mint)",  lab:t("d_liquid")},
+    {k:"inv",  v:inv,   color:"var(--blue)",  lab:t("d_invest")},
     {k:"goods",v:goods, color:"var(--cream)", lab:t("d_goods")},
   ];
   const active=parts.filter(function(x){ return selParts[x.k]; });
@@ -1152,16 +1150,14 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
     setBankBusy(true);
     Promise.resolve(onBankSync()).finally(function(){ setBankBusy(false); });
   };
-  // Una parte sin cambio no vale cero. La cifra completa queda desconocida, como en Inicio.
-  const heroUnknown=active.some(function(x){ return x.unknown; });
-  const heroTarget=heroUnknown?null:allOn ? (totals.netWorth||0) : active.reduce(function(a,x){ return a+x.v; },0);
+  const heroTarget=allOn ? (totals.netWorth||0) : active.reduce(function(a,x){ return a+x.v; },0);
   return React.createElement("div",{className:"v4-screen"},
     React.createElement("h1",{className:"v4-title serif"}, t("v4_cartera_title")),
     React.createElement("div",{className:"v4-card v4-card-hero rise",style:{animationDelay:".05s"}},
       React.createElement("div",{className:"v4-micro"}, heroLab),
       React.createElement(FxNotice,{missing:totals.fxMissing}),
       React.createElement(CarteraHeroAmt,{target:heroTarget}),
-      !heroUnknown && React.createElement("div",{className:"v4-stackbar",style:{marginTop:16}},
+      React.createElement("div",{className:"v4-stackbar",style:{marginTop:16}},
         active.map(function(x){
           return React.createElement("i",{key:x.k,style:{flex:Math.max(0.02,(x.v/sum)*100),background:x.color}});
         })
@@ -1171,7 +1167,7 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
           const on=!!selParts[x.k];
           return React.createElement("button",{key:x.k,type:"button",className:"v4-legend-btn"+(on?"":" off"),
             "aria-pressed":on,onClick:function(){ togglePart(x.k); }},
-            React.createElement("b",{style:{background:x.color}}), x.lab+" "+(x.unknown?"—":eur0(x.v)));
+            React.createElement("b",{style:{background:x.color}}), x.lab+" "+eur0(x.v));
         })
       ),
       allOn && React.createElement("div",{style:{marginTop:12,fontSize:13,color:"var(--muted)"}},
