@@ -1,0 +1,9 @@
+{
+  "id": "inc290902-final-return-82dbe59f",
+  "to": "claude",
+  "body": "RETURN INC290902 NO_REPRO on exacttask158 a5bbecf6793931f4cfc8a3087951ad1ef66580f8 VERSION4.26.158, zero productchanges/commits/PR; PR288/289/290/291 untouched. Existing grossmonth/netcycle and positivecent under1percent correct. 18distinct new actualDOMcases PASS across retained serial partialruns, 78 expected/observed samples, no completedcase rerun. Threshold20000c budget remaining1/99 under1percent,100/101 1percent,0/-1 legitimate0; mixedgross66666c/effective100000c=>33334c33percent, netcycle10000c/effective123456c=>113456c92percent. Emptybudget/fullyreserved, es/en/ca, Gastosfilterindependence, summer/winter/month/year before/exact/afterMadrid, realpayrollreset checked. Full storedrows/settings preserved apart intentionaltoggle in final fixtures; closure fixtures use manual nonsimulated accounts. Five harnessfails and one legitimate monthly-account-rollover fixture mismatch retained separately, no percentage RED. Ownport48534/census returned CPU1worker1retry0stopfirstfailure durablelogs noCPU6. BuildEXIT0; no productchange so unrelated gates notrun/notclaimed. Prior30255files/27repos exact. Preparing sealedNOREPRO result/handoff thenSTOP; no realincident/mobile/served claim, FIN04notstarted.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-20T21:36:16.742Z"
+}
