@@ -23,7 +23,8 @@ for(const partial of [false,true])for(const reverse of [false,true])test("C comp
   await expect(rows).toHaveCount(2);
   await expect(rows.filter({hasText:"Compra sintetica C"})).toContainText("12,34");
   await expect(rows.filter({hasText:"Devolucion sintetica C"})).toContainText(partial?"2,34":"12,34");
-  await expect(page.locator(".v4-gastos-progress")).toHaveAttribute("aria-valuenow",partial?"10":"0");
+  // Gastos v5: la cifra de la cabecera es lo que cuenta contra el límite (antes, la barra).
+  await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toHaveText(partial?"10,00 €":"0,00 €");
  };
  await check();await page.reload();await dismissNews(page);await page.waitForFunction(()=>!document.getElementById("mc-load"));await check();
 });

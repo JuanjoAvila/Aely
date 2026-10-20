@@ -26,7 +26,7 @@ test.use({ viewport: { width: 360, height: 780 }, hasTouch: true, isMobile: true
 async function cajasVisiblesDeGastos(page) {
   return page.evaluate(() => {
     const vw = window.innerWidth, vh = window.innerHeight;
-    const gastos = [...document.querySelectorAll(".track > .page")].find((p) => p.querySelector(".v4-periods"));
+    const gastos = [...document.querySelectorAll(".track > .page")].find((p) => p.querySelector(".gx-root"));   // Gastos v5: sin botones de periodo
     if (!gastos) return ["sin-pagina-gastos"];
     const mal = [];
     const nodes = [gastos, ...gastos.querySelectorAll("*")];

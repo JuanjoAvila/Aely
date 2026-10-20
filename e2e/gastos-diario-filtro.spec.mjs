@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews, FIXTURE_NOW, installFixtureClock } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, FIXTURE_NOW, installFixtureClock, gastosCifra } from "./fixtures.mjs";
 
 test.beforeEach(async ({ page }) => { await installFixtureClock(page); });
 
@@ -51,10 +51,9 @@ test("por defecto salen todos los bancos de gasto diario, no el resto", async ({
   await expect(fila(page, "Cafe Revolut")).not.toHaveClass(/v4-mov-skip/);
   await expect(fila(page, "Aporte TR")).toHaveClass(/v4-mov-skip/);
   await expect(fila(page, "Aporte TR")).toContainText("no es un gasto");
-  // El total del mes: 12 + 8. La inversión no puede colarse.
-  const resumen = page.locator(".v4-gastos-summary");
-  await expect(resumen, "enseñar un movimiento no es contarlo").toContainText("20,00");
-  await expect(resumen).not.toContainText("100,00");
+  // El total del mes: 12 + 8. La inversión no puede colarse. (Gastos v5: la cifra de la cabecera
+  // sustituye a la tarjeta resumen; el contrato es el mismo.)
+  await expect(gastosCifra(page), "enseñar un movimiento no es contarlo").toHaveText("20,00 €");
 });
 
 test("★ un ingreso de un banco que no es de gasto diario dice que no cuenta, como un gasto (14/9)", async ({ page }) => {
@@ -89,7 +88,7 @@ test("al entrar, Gastos NO cree que ya tiene un filtro puesto", async ({ page })
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await expect(page.locator(".v4-gastos-summary")).toBeVisible();
+  await expect(gastosCifra(page)).toBeVisible();
 
   /* El síntoma exacto: el botón de Filtros (🎛️) se encendía con la clase `on` y un contador al
      lado. Se mide ESO y no la existencia del chip de limpiar, que es lo que se me ocurrió primero
@@ -106,7 +105,7 @@ test("«Todos los bancos» amplía el histórico y «Limpiar» vuelve a gasto di
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await expect(page.locator(".v4-gastos-summary")).toBeVisible();
+  await expect(gastosCifra(page)).toBeVisible();
 
   await expect(fila(page, "RECIBO LUZ")).toHaveCount(0);
   await mostrarTodosLosBancos(page);

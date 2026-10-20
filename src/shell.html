@@ -830,31 +830,6 @@
   .v4-title{font-size:26px;font-weight:560;font-variation-settings:"opsz" 24;letter-spacing:-.3px;margin:8px 0 14px;line-height:1.15;}
   .v4-micro{font-size:12.5px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:700;}
   .v4-card{background:linear-gradient(180deg,var(--sur),var(--bg-2));border:1px solid var(--line-soft);border-radius:24px;padding:20px;box-shadow:var(--shadow);}
-  .v4-gastos-summary{background:linear-gradient(180deg,var(--sur),var(--bg-2));border:1px solid var(--line-soft);border-radius:22px;padding:18px;margin-bottom:16px;box-shadow:var(--shadow);}
-  .v4-gastos-summary-top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;}
-  /* Columna izq crece y puede encoger (min-width:0): sin esto, importes largos en ¥/₺
-     con letra pequeña empujan el «de / quedan» y parten la línea de gastos·ingresos
-     a mitad de frase (rechazo visual post-multidivisa 2026-08-05). */
-  .v4-gastos-summary-main{flex:1 1 auto;min-width:0;}
-  .v4-gastos-summary-label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1.1px;color:var(--muted-2);}
-  .v4-gastos-summary-amount{font-family:'Fraunces',Georgia,serif;font-size:clamp(22px,8.2vw,40px);font-variation-settings:"opsz" 40;font-weight:550;letter-spacing:-1px;line-height:1.08;margin-top:4px;font-variant-numeric:tabular-nums;color:var(--text);white-space:nowrap;overflow:hidden;max-width:100%;}
-  /* Mismo blanco y peso que el entero (feedback 2026-07-17: céntimos/€ en gris desentonaban).
-     1em → sigue el clamp del padre (antes 40px fijo descuadraba al encoger). */
-  .v4-gastos-summary-amount .cents{font-size:1em;color:inherit;font-weight:550;}
-  .v4-gastos-summary-budget{flex:0 1 42%;max-width:42%;min-width:0;text-align:right;color:var(--muted);font-size:12.5px;font-weight:650;line-height:1.4;padding-bottom:3px;}
-  .v4-gastos-summary-budget > div{overflow-wrap:anywhere;word-break:break-word;}
-  .v4-gastos-summary-left{color:var(--mint);font-weight:800;}
-  .v4-gastos-summary-sub{margin-top:4px;display:flex;flex-direction:column;gap:2px;min-width:0;width:fit-content;max-width:100%;}
-  /* flex-start + gap: con space-between la columna flex:1 separaba «Gastos» del importe
-     con un hueco enorme (feedback 2026-08-05: «te pasaste con el margen»). */
-  .v4-gastos-summary-pair{display:flex;justify-content:flex-start;align-items:baseline;gap:6px;font-size:12.5px;font-weight:600;color:var(--muted);min-width:0;}
-  .v4-gastos-summary-pair .lbl{flex:0 0 auto;}
-  .v4-gastos-summary-pair .amt{flex:0 1 auto;min-width:0;text-align:left;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}
-  .v4-gastos-progress{height:10px;border-radius:6px;background:var(--sur2);overflow:hidden;margin-top:12px;}
-  .v4-gastos-progress i{display:block;height:100%;border-radius:6px;background:var(--mint);transform-origin:left;animation:v4bar .8s var(--ease) both;}
-  .v4-gastos-progress-marks{display:flex;justify-content:space-between;gap:8px;margin-top:7px;color:var(--muted-2);font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.25px;}
-  .v4-gastos-progress-marks span:nth-child(2){text-align:center;color:var(--muted);}
-  .v4-gastos-progress-marks span:last-child{text-align:right;}
   .v4-gastos-cats{margin-top:14px;transition:margin-top .34s var(--ease);}
   /* La cabecera es el interruptor (petición de su pareja, 10/9: «es too much, que se pudiera
      ocultar y habilitarlo si tú quieres»). Ocupa toda la fila para que sea fácil de acertar con
@@ -891,9 +866,6 @@
   .v4-gastos-cat-amt{font-weight:700;flex:0 0 auto;}
   .v4-gastos-cat-hint{display:block;margin-top:2px;font-size:11px;color:var(--muted-2);}
   .v4-gastos-cat .bar{height:7px;margin-top:4px;}
-  .v4-periods{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;}
-  .v4-period-btn{min-height:48px;border-radius:15px;border:1px solid var(--line-soft);background:var(--sur);color:var(--muted);font-size:13.5px;font-weight:800;}
-  .v4-period-btn.on{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
   .v4-filter-cats{margin:0 0 16px;border:1px solid var(--line-soft);border-radius:16px;background:var(--sur2);overflow:hidden;}
   .v4-filter-cats-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:48px;
     padding:11px 13px;border:0;background:transparent;color:var(--text);font:800 12px/1.2 inherit;letter-spacing:.04em;
@@ -1064,7 +1036,6 @@
   html[data-theme="light"] .af-safe,
   html[data-theme="light"] .row .rval .rvsub,
   html[data-theme="light"] .botnav-tab.active,
-  html[data-theme="light"] .v4-gastos-summary-left,
   html[data-theme="light"] .v4-pill,
   html[data-theme="light"] .hoja-marc-ok b,
   html[data-theme="light"] .chip.active,
@@ -1115,6 +1086,98 @@
     transform:none;box-shadow:0 0 0 1.5px var(--mint);
   }
   .v4-gastos-list{background:transparent;}
+  /* ===== GASTOS v5 (20/10/2026, docs/design/gastos-v5/SPEC.md) =====
+     Nada seleccionable salvo el buscador (y los importes editables): sin menú de copiar al
+     mantener pulsado ni destello azul al tocar (SPEC §9). */
+  .gx-root,.gx-root *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;}
+  .gx-root input,.gx-root textarea{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default;}
+  /* CABECERA FIJA. La caja NUNCA cambia de alto: encogerse es `transform` de la cifra y de la
+     línea, y la fila de meses sale por debajo (posición absoluta) sobre la lista que ya ha
+     pasado. Así bajar no recoloca ni una fila: es lo que medían los tirones del 27/7.
+     El fondo es un `::before` que sube hasta el borde de la pantalla (el host pone el safe-top
+     en su padding y `sticky` lo respeta) y lleva el mismo lavado de temporada que `.season-glow`,
+     medido a pantalla completa: parado no se distingue del fondo, y al bajar tapa la lista. */
+  .gx-head{position:sticky;top:0;z-index:6;isolation:isolate;margin:0 -18px;padding:0 18px 12px;}
+  .gx-head::before{content:"";position:absolute;left:0;right:0;top:calc(-1 * (var(--safe-top) + 18px));bottom:0;z-index:-1;
+    background-color:var(--bg);background-image:var(--season-glow-top,none);background-repeat:no-repeat;background-size:100% 100vh;
+    transition:bottom .2s var(--ease),box-shadow .2s var(--ease);}
+  .gx-head.compact::before{bottom:-36px;box-shadow:0 12px 20px -14px rgba(0,0,0,.8);}
+  .gx-head .v4-title{margin-bottom:10px;}
+  .gx-num{position:relative;font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:46px;line-height:1;letter-spacing:-1px;
+    white-space:nowrap;font-variant-numeric:tabular-nums;transform-origin:left top;transition:transform .22s var(--ease);}
+  .gx-head.compact .gx-num{transform:scale(.739);}
+  /* Los céntimos van a 28 px con la MISMA línea base que el entero, como en el diseño. Las celdas
+     se alinean arriba (cada una es una ventana de 1em), así que se bajan lo que separa las dos
+     líneas base: 0,86 × (46 − 28), medido en Fraunces con line-height 1. */
+  .gx-num-dec{display:inline-block;vertical-align:top;font-size:28px;margin-top:calc(.86 * 18px);}
+  /* El texto entero, oculto a la vista: lo leen el lector de pantalla y los tests. */
+  .gx-num-txt{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;}
+  /* El rodillo: cada dígito es una ventana de 1em con la tira 0–9 dentro. Solo se mueve la tira. */
+  .gx-dig{display:inline-block;height:1em;overflow:hidden;vertical-align:top;}
+  .gx-dig-tira{display:flex;flex-direction:column;transition:transform .2s var(--ease);will-change:transform;}
+  .gx-dig-tira > span{height:1em;line-height:1;text-align:center;}
+  .gx-sep{display:inline-block;vertical-align:top;}
+  .gx-status{margin-top:6px;min-height:19px;font-size:14px;line-height:19px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    transition:transform .22s var(--ease);}
+  .gx-head.compact .gx-status{transform:translateY(-12px);}
+  .gx-status-sub{margin-top:0;font-size:13px;color:var(--muted-2);}
+  .gx-tail{font-weight:600;}
+  .gx-tone-coral{color:var(--coral);}
+  .gx-tone-mint{color:var(--mint);}
+  /* Meses: aparecen al bajar y quedan fijos (SPEC §2.1). La pastilla del mes activo es UNA capa
+     que se desliza con `transform` (referencia del dueño, 20/10). */
+  .gx-meses{position:absolute;left:0;right:0;top:calc(100% - 12px);height:48px;padding:4px 18px 8px;box-sizing:border-box;
+    display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;opacity:0;visibility:hidden;pointer-events:none;
+    transform:translateY(-6px);transition:opacity .2s var(--ease),transform .2s var(--ease),visibility 0s linear .2s;}
+  .gx-head.compact .gx-meses{opacity:1;visibility:inherit;pointer-events:auto;transform:none;transition-delay:0s;}
+  .gx-mes-pasti{position:absolute;left:0;top:4px;height:36px;border-radius:18px;background:var(--sur2);transition:transform .24s var(--ease);}
+  .gx-mes{position:relative;flex:0 0 auto;height:36px;padding:0 14px;border:0;border-radius:18px;background:transparent;color:var(--muted);
+    font:600 15px 'Manrope',sans-serif;white-space:nowrap;cursor:pointer;}
+  .gx-mes.on{color:var(--text);font-weight:700;}
+  /* Días: encabezado con el total que cuenta, y cada gasto en su propia tarjeta a 6 px. */
+  .gx-dia{display:flex;flex-direction:column;gap:6px;padding-top:18px;}
+  .gx-dia-h{display:flex;justify-content:space-between;align-items:baseline;padding:0 4px 4px;}
+  .gx-dia-t{font-size:17px;font-weight:700;color:var(--text);}
+  .gx-dia-tot{font-size:15px;color:var(--muted);}
+  .gx-list .v4-mov{margin-top:0;gap:14px;padding:14px 16px;border-radius:20px;}
+  .gx-list .v4-mov .tile{width:44px;height:44px;border-radius:22px;font-size:20px;}
+  .gx-list .v4-mov .nm-title{font-size:16px;font-weight:600;}
+  .gx-list .v4-mov .nm-cat{font-size:14px;font-weight:500;}
+  .gx-list .v4-mov .meta{font-size:13px;}
+  .gx-list .v4-mov .am{font-size:19px;font-weight:600;}
+  /* Fila gris: recibos y cuotas del día, que no cuentan (SPEC §4.4). Sin flecha, a petición. */
+  .gx-gris{border:1px dashed var(--sur2);border-radius:18px;overflow:hidden;}
+  .gx-gris-h{width:100%;display:flex;align-items:center;gap:10px;min-height:48px;padding:0 18px;border:0;background:transparent;
+    color:var(--muted);font:600 15px 'Manrope',sans-serif;text-align:left;cursor:pointer;}
+  .gx-gris-dot{width:8px;height:8px;border-radius:4px;flex:0 0 auto;background:var(--muted);}
+  .gx-gris-dot-deuda{background:var(--coral);}
+  .gx-gris-t{flex:1;min-width:0;}
+  .gx-gris-n{min-width:20px;height:20px;padding:0 6px;box-sizing:border-box;border-radius:10px;background:var(--sur2);font-size:12px;
+    display:flex;align-items:center;justify-content:center;}
+  /* Despliegue fluido sin medir alturas: rejilla 0fr→1fr y opacidad (~280 ms). Cerrada, nada
+     dentro se puede tocar ni enfocar. */
+  .gx-gris-body{display:grid;grid-template-rows:0fr;opacity:0;visibility:hidden;
+    transition:grid-template-rows .28s var(--ease),opacity .22s ease,visibility 0s linear .28s;}
+  .gx-gris.abierto .gx-gris-body{grid-template-rows:1fr;opacity:1;visibility:inherit;transition-delay:0s;}
+  .gx-gris-inner{min-height:0;overflow:hidden;}
+  .gx-gris.abierto .gx-gris-inner{border-top:1px dashed var(--sur2);}
+  .gx-gris-it{width:100%;display:flex;align-items:center;gap:14px;padding:10px 18px;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer;font:inherit;}
+  .gx-gris-it-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
+  .gx-gris-it-nm{font-size:15px;font-weight:600;color:var(--muted);}
+  .gx-gris-it-sub{font-size:13px;color:var(--muted-2);}
+  .gx-gris-it-amt{font-family:'Fraunces',Georgia,serif;font-size:17px;font-weight:600;color:var(--muted);}
+  .gx-gris-plan{display:flex;align-items:center;min-height:44px;width:100%;padding:0 18px;border:0;background:transparent;color:var(--mint);
+    font:600 14px 'Manrope',sans-serif;text-align:left;cursor:pointer;}
+  /* El final deja sitio para que el último día pueda subir hasta la cabecera: sin él, la cifra del
+     mes más antiguo (y el salto a su pastilla) no llegaba nunca a verse. */
+  .gx-fin{text-align:center;padding:28px 0 0;font-size:13px;color:var(--muted);min-height:calc(100dvh - 300px);box-sizing:border-box;}
+  /* Periodo en Filtros: selector de una sola opción. */
+  .gx-periodo{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:4px;margin-bottom:16px;background:var(--bg);border-radius:16px;}
+  .gx-periodo-op{height:40px;border:0;border-radius:12px;background:transparent;color:var(--text);font:600 14px 'Manrope',sans-serif;cursor:pointer;}
+  .gx-periodo-op.on{background:var(--mint);color:var(--on-mint);font-weight:700;}
+  @media (prefers-reduced-motion:reduce){
+    .gx-head::before,.gx-num,.gx-status,.gx-meses,.gx-mes-pasti,.gx-dig-tira,.gx-gris-body{transition:none;}
+  }
   .v4-gastos-list-body{padding:0;}
 
   .v4-sheet-back{position:fixed;inset:0;z-index:80;display:flex;align-items:flex-end;justify-content:center;
@@ -1574,7 +1637,6 @@
   .liqrow.strong{font-weight:800;font-size:15px;border-top:1px solid var(--line-soft);margin-top:5px;padding-top:7px;}
   .alarmbox{background:rgba(226,112,95,.12);border:1px solid rgba(226,112,95,.45);color:var(--coral);border-radius:12px;padding:11px 13px;font-size:13px;font-weight:600;margin-bottom:8px;line-height:1.45;}
 
-  .day-sep{font-size:11px;color:var(--muted-2);font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:14px 4px 4px;}
   .sentinel{height:30px;display:grid;place-items:center;color:var(--muted-2);font-size:12px;}
   .empty{text-align:center;padding:34px 20px;color:var(--muted);}
   .empty .ttl{font-weight:700;color:var(--text);margin-bottom:6px;}
@@ -1616,9 +1678,7 @@
   .set-exp{animation:rise .26s var(--ease) both;}
   /* Posiciones al desplegar un bróker en Cartera: mismo rise suave (feedback 2026-07-21). */
   .v4-inv-drop{animation:rise .26s var(--ease) both;}
-  .chip.active,.v4-period-btn.on{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
-  .v4-period{display:flex;gap:8px;margin:12px 0 10px;}
-  .v4-period-btn{flex:1;min-height:48px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);font-weight:700;font-size:14px;color:var(--text);}
+  .chip.active{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
   .v4-paid{opacity:.55;}
   /* Ahorro mensual en Metas (punto 6, 18/9). Importes largos: la cifra nunca se parte ni se
      corta — el nombre cede (ellipsis) y la cifra baja de línea si no cabe. */
@@ -1720,7 +1780,7 @@
   /* El editor mensual conserva su cifra compacta; el ritmo que estrenó aquí ya es el común. */
   .v4-budget-sheet .v4-ob-stepper .serif{font-size:clamp(36px,11vw,42px);letter-spacing:-1px;min-width:4.1ch;}
   .v4-card-list{display:flex;flex-direction:column;gap:0;}
-  html[data-theme="light"] .chip.active,html[data-theme="light"] .v4-period-btn.on{color:#fff;}
+  html[data-theme="light"] .chip.active{color:#fff;}
   .v4-set-profile{display:flex;align-items:center;gap:14px;background:linear-gradient(180deg,var(--sur),var(--bg-2));border:1px solid var(--line-soft);border-radius:20px;padding:16px;margin-top:4px;box-shadow:var(--shadow);}
   .v4-set-av{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:14px;background:linear-gradient(160deg,var(--mint-hi),var(--mint));color:var(--on-mint);flex:0 0 auto;}
   .v4-set-sec{font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted-2);margin:18px 4px 6px;}
@@ -1766,8 +1826,6 @@
   .v4-cycle-box strong{display:block;color:var(--text);font-weight:800;font-size:14px;margin-bottom:4px;}
   .v4-cycle-head .v4-chip{flex:0 0 auto;min-height:30px;padding:4px 10px;font-size:12px;}
   .v4-cycle-explanation{margin-top:6px;}
-  .v4-gastos-summary-amount.pos{color:var(--mint);}
-  .v4-gastos-summary-amount.neg{color:var(--coral);}
   .v4-chips.meta-chips{flex-wrap:wrap;gap:8px;margin-bottom:12px;}
   .v4-chips.meta-chips .v4-chip{min-height:36px;font-size:12.5px;font-weight:650;padding:0 12px;}
   .v4-mov .meta{display:flex;flex-wrap:wrap;gap:2px 8px;align-items:baseline;}

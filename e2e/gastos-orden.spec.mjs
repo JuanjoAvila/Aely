@@ -21,17 +21,18 @@ test("Gastos: se arrastran dentro del mismo día y el orden persiste", async ({ 
   // Con cabecera más alta el track a veces se queda a medias: la lista queda en left≈379
   // (casi fuera) y elementFromPoint no la ve. Esperar a que la página de Gastos entre de verdad.
   await expect.poll(async () => page.evaluate(() => {
-    const s=document.querySelector(".v4-gastos-summary");
+    const s=document.querySelector(".gx-head");   // Gastos v5: la cabecera fija sustituye a la tarjeta resumen
     return s?s.getBoundingClientRect().left:999;
   })).toBeLessThan(40);
 
   const rows=page.locator(".v4-gastos-list button.v4-mov");
   await expect(rows).toHaveCount(2);
   await expect(rows.nth(0)).toContainText("Segundo");
+  /* Las filas a media pantalla: ni bajo la barra de abajo ni bajo la cabecera fija de Gastos v5
+     (al fondo del todo, con el hueco final de la lista, quedaban tapadas por la cabecera). */
   await page.evaluate(function(){
-    const list=document.querySelector(".v4-gastos-list");
-    const pageEl=list&&list.closest(".page");
-    if(pageEl) pageEl.scrollTop=pageEl.scrollHeight;
+    const row=document.querySelector(".page-scroll-host .v4-gastos-list button.v4-mov");
+    if(row) row.scrollIntoView({block:"center"});
   });
   const cdp=await page.context().newCDPSession(page);
   const from=await rows.nth(1).locator(".v4-mov-drag").boundingBox();
@@ -64,7 +65,7 @@ test("Gastos: se arrastran dentro del mismo día y el orden persiste", async ({ 
   await expect(page.locator(".botnav")).toBeVisible({timeout:15_000});
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await expect.poll(async () => page.evaluate(() => {
-    const s=document.querySelector(".v4-gastos-summary");
+    const s=document.querySelector(".gx-head");   // Gastos v5: la cabecera fija sustituye a la tarjeta resumen
     return s?s.getBoundingClientRect().left:999;
   })).toBeLessThan(40);
   await expect(page.locator(".v4-gastos-list button.v4-mov").nth(0)).toContainText("Primero");

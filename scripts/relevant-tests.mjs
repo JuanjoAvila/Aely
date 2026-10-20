@@ -111,6 +111,8 @@ export const E2E_MAP = [
     "e2e/gastos-categorias-presupuesto.spec.mjs", "e2e/gastos-periodo-categorias.spec.mjs", "e2e/gastos-suelta-filas.spec.mjs",
     "e2e/gastos-deudas.spec.mjs", "e2e/cartera-ficha-cuenta.spec.mjs", "e2e/presupuesto-fluido.spec.mjs",
     "e2e/gastos-ayuda-ciclo.spec.mjs", "e2e/gastos-mes-madrid.spec.mjs",
+    // Gastos v5: cifra viva = Inicio, mes cerrado sin límite, filas grises, sin perder filas, Mi ciclo.
+    "e2e/gastos-v5.spec.mjs",
     // Apuntes iguales de TR por el cableado real: filas en Gastos, «Es el mismo» desde la ficha.
     "e2e/tr-iguales-ordinal.spec.mjs",
     "e2e/tr-emparejado-automatico.spec.mjs",

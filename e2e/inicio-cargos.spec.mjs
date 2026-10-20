@@ -210,8 +210,9 @@ for(const lang of ["es","en","ca"]){
       await open(page,lang,{fixed:[bill],expenses:[charge]});
       await expect(page.locator('.page-scroll-host .v4-charge').filter({hasText:name})).toHaveCount(1);
       await page.locator('.botnav-tab[data-tour="gastos"]').click();
-      const header=page.locator('.v4-gastos-summary-top');
-      await expect(page.locator('.v4-gastos-summary-amount')).toBeVisible();
+      // Gastos v5: la cabecera fija (cifra + línea) sustituye a la tarjeta resumen.
+      const header=page.locator('.page-scroll-host .gx-head');
+      await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toBeVisible();
       const before=await header.textContent();
       await page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:charge.merchant}).click();
       await page.getByTestId("exp-receipt").click();
@@ -244,9 +245,10 @@ for(const lang of ["es","en","ca"]){
       accounts:[{id:"sb",ent:"sabadell",name:"Cuenta ficticia",value:800,role:"fijos"},{id:"tr",ent:"trade_republic",name:"Diaria ficticia",value:300,role:"diario",spendFrom:true}],expenses:[cargo]});
     await expect(page.locator('.page-scroll-host .v4-charge').filter({hasText:"Gas ficticio"})).toHaveCount(1);
     await page.locator('.botnav-tab[data-tour="gastos"]').click();
-    const header=page.locator('.v4-gastos-summary-top');
+    // Gastos v5: la cabecera fija (cifra + línea) sustituye a la tarjeta resumen.
+    const header=page.locator('.page-scroll-host .gx-head');
     await expect(header).toContainText("42");
-    await expect(page.locator('.v4-gastos-summary-amount')).toBeVisible();
+    await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toBeVisible();
     const budgetBefore=await header.textContent();
     await page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:cargo.merchant}).click();
     await page.getByTestId("exp-receipt").click();

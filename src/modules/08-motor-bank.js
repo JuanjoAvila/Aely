@@ -2685,6 +2685,23 @@ function budgetPeriodOf(state, nowMs){
   return {startMs:payday?payday.start.getTime():inicioDeMesMs(now), cycle:payday,
     todayEndMs:payday?tomorrow.getTime():Infinity};
 }
+/* Lo que UNA fila aporta al presupuesto del periodo: >0 gasto, <0 ingreso, 0 nada. La ventana
+   de fechas la pone quien llama. Sale de `monthBudgetStats` para que Gastos v5 acumule la cifra
+   POR DÍA con la misma regla (20/10/2026): una copia de estas condiciones en la pantalla acabaría
+   separándose de Inicio, como ya pasó con las copias del gastado del mes en `totals`. */
+function budgetRowSigned(e, state, period, delSet){
+  // La nómina abre el ciclo; en modo balance no añade otro presupuesto encima del elegido.
+  if(period.cycle && e===period.cycle.inc) return 0;
+  // Los ingresos reales del ciclo pueden llegar a otro banco: cuentan para el
+  // balance elegido por el dueño, incluso si superan las compras del período.
+  if(period.cycle && e.amount<0){
+    if(CAT_NEUTRAS[e.category] || e.possibleDup || expenseIsTombstoned(e,delSet)) return 0;
+    return e.amount;
+  }
+  // El gasto conserva la selección de bancos diarios; el mes natural y el widget no cambian.
+  if(!expenseCountsBudget(e, state)) return 0;
+  return e.amount>0||e.amount<0 ? e.amount : 0;
+}
 /* Misma cifra en Gastos e Inicio; el widget pide mes explícito (2026-09-28).
    `totals.thisMonthSpent` suma TODO
    (ingresos en negativo + inversión/traspaso): sirve para el efectivo de TR, NO para «has gastado
@@ -2700,22 +2717,12 @@ function monthBudgetStats(state, nowMs, hastaMs, budgetMode, selectedPeriod){
   let spent=0, income=0;
   const delSet=period.cycle?expenseDeletedSet(state):null;
   (state.expenses||[]).forEach(function(e){
-    // La nómina abre el ciclo; en modo balance no añade otro presupuesto encima del elegido.
-    if(period.cycle && e===period.cycle.inc) return;
     const ms=dateMs(e.date);
     if(ms<startMs) return;
     if(ms>=endMs) return;
-    // Los ingresos reales del ciclo pueden llegar a otro banco: cuentan para el
-    // balance elegido por el dueño, incluso si superan las compras del período.
-    if(period.cycle && e.amount<0){
-      if(CAT_NEUTRAS[e.category] || e.possibleDup || expenseIsTombstoned(e,delSet)) return;
-      income+=Math.abs(e.amount);
-      return;
-    }
-    // El gasto conserva la selección de bancos diarios; el mes natural y el widget no cambian.
-    if(!expenseCountsBudget(e, state)) return;
-    if(e.amount>0) spent+=e.amount;
-    else if(e.amount<0) income+=Math.abs(e.amount);
+    const v=budgetRowSigned(e, state, period, delSet);
+    if(v>0) spent+=v;
+    else if(v<0) income-=v;
   });
   const reserved=reservedSince(state, startMs, endMs===Infinity?undefined:endMs);
   const budgetRaw=typeof state.budget==="number" ? state.budget : 0;

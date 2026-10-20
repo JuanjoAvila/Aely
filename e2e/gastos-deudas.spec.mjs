@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews, FIXTURE_NOW, installFixtureClock } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, FIXTURE_NOW, installFixtureClock, gastosRoot, gastosGrisFila } from "./fixtures.mjs";
 
 test.beforeEach(async ({ page }) => { await installFixtureClock(page); });
 
@@ -49,16 +49,19 @@ test("★ la cuota que llega con otro nombre enseña su deuda y dice por qué no
   await seedLoggedInDashboard(page, { accounts, settings, expenses, debts, budget: 1000 });
   await abreGastos(page);
 
-  await expect(fila(page, "Amazon")).toContainText("Financiación robot");
-  await expect(fila(page, "Amazon")).toContainText("ya cuenta en el Plan");
-  await expect(fila(page, "Amazon")).toHaveClass(/v4-mov-skip/);
+  /* Gastos v5 (20/10/2026): la cuota ya no es una tarjeta apagada suelta; va con las del día en la
+     fila gris «Deudas · no cuentan», y dentro cada cargo sigue nombrando SU deuda. */
+  const cuota = await gastosGrisFila(page, "Amazon");
+  await expect(cuota).toContainText("Financiación robot");
+  await expect(gastosRoot(page).locator('.gx-gris[data-gris="deuda"] .gx-gris-h')).toContainText("Deudas · no cuentan");
+  await expect(fila(page, "Amazon"), "ya no es una tarjeta suelta").toHaveCount(0);
   await expect(fila(page, "Mercadona")).not.toHaveClass(/v4-mov-skip/);
 });
 
 test("★ el filtro tiene una ficha por deuda y cada una enseña solo su cuota", async ({ page }) => {
   await seedLoggedInDashboard(page, { accounts, settings, expenses, debts, budget: 1000 });
   await abreGastos(page);
-  await expect(fila(page, "Amazon")).toContainText("Financiación robot");
+  await expect(await gastosGrisFila(page, "Amazon")).toContainText("Financiación robot");
 
   await abreFiltros(page);
   const categoriesToggle = page.locator('.v4-sheet .v4-filter-cats-toggle');
@@ -98,8 +101,9 @@ test("★ su rechazo: desde la ficha se marca a mano «Es la cuota de…», tamb
   await expect(chips.filter({ hasText: "Financiación suelo" })).toHaveClass(/on/);
   await cierraSheet(page);
 
-  await expect(fila(page, "Cofidis")).toContainText("Financiación suelo");
-  await expect(fila(page, "Cofidis")).toContainText("ya cuenta en el Plan");
+  // Marcada como cuota pasa a la fila gris de Deudas del día, con el nombre de su deuda.
+  await expect(fila(page, "Cofidis")).toHaveCount(0);
+  await expect(await gastosGrisFila(page, "Cofidis")).toContainText("Financiación suelo");
 });
 
 test("sin deudas no sale la sección de cuotas ni una categoría duplicada", async ({ page }) => {
