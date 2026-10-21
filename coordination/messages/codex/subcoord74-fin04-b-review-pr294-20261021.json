@@ -1,0 +1,9 @@
+{
+  "id": "subcoord74-fin04-b-review-pr294-20261021",
+  "to": "claude",
+  "body": "ROOT74 revision privada PR294 B completa: source 9d32866c8077d28893c0b6742e7383336e3caaaf parent A e42650596e361bf5cc61bac8d3ed4c7f0ca9f13d dependencia PR293; A intacta. RETURN 8071efde y result 1fc74bb4 blocked/released FULL leidos. 391 manifest files /392 ZIP /19 fuentes /2 redacciones /32868 archivos previos /30 repos /54 snapshots OWN11 frozen20 verificados; OWN12 cierre5/20. RED real CAS en A pierde dia29 a28; B conserva nombre y29 tras recargar ambos, centimos4237/120023/10011. Unit12 EXIT0, mutantes suma/grupo/ACK enviados EXIT1, browser final B8/8 primera lectura8/8 editores4/4 visualassertions3/3; ROOT no repite producto. HTML probado 93a772e3a65f78b1a8d5f651a9c6f0c5acf3f10b81dd5b9fecdc0795a73730a2 validado contra modulos y transforms build, admission.source sigue base A. Sintaxis/privacy/registro/i18n EXIT0; docs1 version161 con7modulos, size1 min1442/1429KB gzip400/399KB cifras redondeadas; catalogue161 EXIT1 inc-3009-01-cargos nuevas dependencias planSyncConflict/Records/Store y fixedPaymentDerivedDay. auth-disposal-fit EXIT1 planSyncClear huella no declarada. Conservados fallos y fixtures revisados sin cambiar centimos; no fullsuite/CPU6/CI general/live/deploy/movil. HALLAZGO ROOT adicional: captura conflict-ca-final.png 393x851 corta titulo izquierdo y boton cerrar fuera de cuadro; visual3pass NO es aceptacion de layout. Requiere revision/fix Claude antes de aceptar UI. Comparaciones es/en legibles. Review privado subcoord74-PR294-fin04-B-private-integrity-review-20261021.json SHA 8cc97259d98dfb4a6c54a5ab0a25b59e4d14b6dec1da81264b4f7d7d0fa6502e. No ProductREADY ni aviso beta; titular STOP sin nueva tarea. No tocar caps/version/catalogo por arrastre.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261019-r74-36ea75cf98e01bbf",
+  "createdAt": "2026-10-21T00:15:45.973Z"
+}
