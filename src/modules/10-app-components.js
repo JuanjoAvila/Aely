@@ -2056,7 +2056,7 @@ function BackupRecoveryPreview({snapshot,current,day,onClose}){
   const compared=useMemo(function(){ return compareBackupExpenses(snapshot.expenses,current.expenses); },[snapshot.expenses,current.expenses]);
   const stateFields=useMemo(function(){
     // Los sellos de transporte no son una diferencia financiera de la copia.
-    return backupChangedFields(snapshot,current,["expenses","_savedAt","lastSync","lastPriceSync","lastBackup"]);
+    return backupChangedFields(snapshot,current,["_planSync","expenses","_savedAt","lastSync","lastPriceSync","lastBackup"]);
   },[snapshot,current]);
   const rows=compared.list.filter(function(r){ return filter==="all" || r.status===filter; });
   const label=function(k){ return LANG.es["bk_field_"+k] ? t("bk_field_"+k) : k; };
@@ -3360,7 +3360,7 @@ class ErrorBoundary extends React.Component{
     const wrap={position:"fixed",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:13,padding:24,textAlign:"center",background:"#0B1410",color:"#E8F0EB",fontFamily:"Manrope,sans-serif",zIndex:9999};
     const btn={padding:"13px 22px",borderRadius:14,border:"none",background:"#5FD08A",color:"#06120C",fontWeight:800,fontSize:15,cursor:"pointer"};
     const btn2=Object.assign({},btn,{background:"transparent",border:"1px solid #2a3a31",color:"#E8F0EB"});
-    const dl=function(){ try{ const data=JSON.stringify(mcLoadRaw(mcStateKey())||{},null,2); const url=URL.createObjectURL(new Blob([data],{type:"application/json"})); const a=document.createElement("a"); a.href=url; a.download="mi-cartera-backup-"+new Date().toISOString().slice(0,10)+".json"; a.click(); setTimeout(function(){URL.revokeObjectURL(url);},1000); }catch(e){ alert("Export error: "+e); } };
+    const dl=function(){ try{ const snapshot=Object.assign({},mcLoadRaw(mcStateKey())||{});delete snapshot._planSync;const data=JSON.stringify(snapshot,null,2); const url=URL.createObjectURL(new Blob([data],{type:"application/json"})); const a=document.createElement("a"); a.href=url; a.download="mi-cartera-backup-"+new Date().toISOString().slice(0,10)+".json"; a.click(); setTimeout(function(){URL.revokeObjectURL(url);},1000); }catch(e){ alert("Export error: "+e); } };
     return React.createElement("div",{style:wrap},
       React.createElement("div",{style:{fontSize:46}},"🛟"),
       React.createElement("div",{style:{fontWeight:800,fontSize:21,fontFamily:"Fraunces,serif"}}, t("eb_title")),

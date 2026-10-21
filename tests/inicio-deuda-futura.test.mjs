@@ -133,10 +133,12 @@ test("revision1: nube real proyecta, push/pull y merge conservan startMonth",asy
   const factory=vm.runInContext("(function(sessionRef,cloudState,cloudPack,u,opts,freshLogin,mergeExpenses,fixMovInvasion,fixRevoDupes,fixInvAuto,fixInvSold,reconcileTR,seedFlows,reconcileEarlyIncomeAnchors){const obAbsorbedWriteBlocked={current:false},read={owner:u,ready:false},cloudReadRef={current:read};return function(prev){"+body+"};})",c);
   const identity=x=>x;
   const merge=(local,freshLogin=false)=>factory({current:{user:{id:"synthetic"}}},pack.data,pack,"synthetic",{},freshLogin,(a,b)=>({list:a}),identity,identity,identity,identity,identity,c.seedFlows,identity)(local);
-  for(const local of [{...fixture([]),_savedAt:10},{...fixture([{...d,name:"Cambio local"}]),_savedAt:30}]){
+  const withBase={...fixture([d]),_savedAt:30};Object.assign(withBase,c.planSyncPull(withBase,pack.data,"synthetic",pack.updated_at,false));withBase.debts=[{...d,name:"Cambio local"}];
+  for(const local of [{...fixture([]),_savedAt:10},{...fixture([{...d,name:"Cambio local"}]),_savedAt:30},withBase]){
     const merged=merge(local);
     assert.equal(merged.debts[0].startMonth,2026*12+7);
-    assert.equal(merged.debts[0].name,local._savedAt>20?"Cambio local":d.name);
+    assert.equal(merged.debts[0].name,local._planSync?"Cambio local":d.name);
+    if(!local._planSync&&local.debts.length)assert.equal(merged._planSync.conflicts[0].local.name,"Cambio local","sin base el cambio queda recuperable, sin LWW por reloj");
     assert.equal(cents(c.netWorthDebtPolicy(merged,"2026-10-28").at("2026-07-31")),0);
     assert.equal(cents(c.netWorthDebtPolicy(merged,"2026-10-28").at("2026-08-01")),60003);
   }

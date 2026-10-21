@@ -3878,6 +3878,15 @@ Object.assign(LANG.ca,{g_auto_rejoin:"Tornar a unir",g_auto_deleted:"Avís i apu
 
 // Edición individual de Deudas y Metas (14/10): el guardado conserva el formato del estado.
 Object.assign(LANG.es, {
+  plan_conflict_title:"Cambio pendiente de revisar",
+  plan_conflict_current:"Valor actual",
+  plan_conflict_local:"Tu cambio",
+  plan_conflict_review:"Revisar mi cambio",
+  plan_conflict_discard:"Descartar",
+  plan_conflict_amount:"Importe",
+  plan_conflict_category:"Categoría",
+  plan_conflict_note:"Nota",
+  plan_conflict_account:"Cuenta",
   plan_edit_name:"Nombre",
   plan_edit_quota:"Cuota al mes (€)",
   plan_edit_invalid:"Revisa los importes y el día. Usa números positivos, con coma o punto para los decimales.",
@@ -3907,6 +3916,15 @@ Object.assign(LANG.es, {
   gl_delete_sub:"La meta desaparecerá de la lista. Las reglas y las aportaciones anteriores se conservan."
 });
 Object.assign(LANG.en, {
+  plan_conflict_title:"Change to review",
+  plan_conflict_current:"Current value",
+  plan_conflict_local:"Your change",
+  plan_conflict_review:"Review my change",
+  plan_conflict_discard:"Discard",
+  plan_conflict_amount:"Amount",
+  plan_conflict_category:"Category",
+  plan_conflict_note:"Note",
+  plan_conflict_account:"Account",
   plan_edit_name:"Name",
   plan_edit_quota:"Monthly payment (€)",
   plan_edit_invalid:"Check the amounts and day. Use positive numbers, with a comma or dot for decimals.",
@@ -3936,6 +3954,15 @@ Object.assign(LANG.en, {
   gl_delete_sub:"The goal will disappear from the list. Rules and past contributions are kept."
 });
 Object.assign(LANG.ca, {
+  plan_conflict_title:"Canvi pendent de revisar",
+  plan_conflict_current:"Valor actual",
+  plan_conflict_local:"El teu canvi",
+  plan_conflict_review:"Revisa el meu canvi",
+  plan_conflict_discard:"Descarta",
+  plan_conflict_amount:"Import",
+  plan_conflict_category:"Categoria",
+  plan_conflict_note:"Nota",
+  plan_conflict_account:"Compte",
   plan_edit_name:"Nom",
   plan_edit_quota:"Quota al mes (€)",
   plan_edit_invalid:"Revisa els imports i el dia. Fes servir nombres positius, amb coma o punt per als decimals.",

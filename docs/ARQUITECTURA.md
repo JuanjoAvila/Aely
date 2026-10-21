@@ -1062,3 +1062,8 @@ El registro confirmado se une fuera de LWW; el umbral1000 nunca bloquea sincroni
 ## FIN-19: gastos iguales de bancos distintos (4.26.160)
 
 La identidad de un gasto bancario lleva banco y cuenta cuando se conocen, de modo que dos compras iguales (día, importe y comercio) en Sabadell y CaixaBank cuentan las dos en el cliente (`00-core.js`), el widget y el servidor (`_shared/presupuesto.ts`). Las lápidas de borrado llevan ámbito (banco/cuenta y `obName`); el renombrado desde la ficha usa las claves sin ámbito de FIN04 y las levanta al volver al nombre original. El contador del pull valida cada campo de identidad antes de reutilizar claves y no depende del orden de las filas. Las filas antiguas sin cuenta conservan el comportamiento anterior. Límite conocido (FIN-29): la lápida de un renombrado es la misma que la de un borrado sin ámbito, así que renombrar una de dos filas iguales de cuentas distintas oculta la otra (vuelve al total de antes de FIN-19). Detalle de rondas en `docs/briefs/fin19-cross-bank-identity.md`.
+
+
+## FIN04 B: conflictos de recibos y deudas
+
+FIN04 B incorpora `mergePlanThreeWay` y `planSyncPull/Ack` para recibos/deudas sobre la puerta inicial de PR293. Grupos financieros indivisibles, lápidas existentes, base del payload enviado y conflictos privados sin truncar. La revisión reutiliza los editores y no reproduce pagos. [Contrato y límites](briefs/fin04-plan-three-way.md).

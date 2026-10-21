@@ -775,7 +775,7 @@ function mergeAccountBalanceHistory(local, incoming){
   return out;
 }
 function mcLoadRaw(key){
-  if(key.endsWith("_goal_conflicts")) return store.get(key);
+  if(key.endsWith("_goal_conflicts")||key.endsWith("_plan_conflicts")) return store.get(key);
   const base=store.get(key);
   if(!base) return null;
   const exp=store.get(key+EXP_SUFFIX);
@@ -808,6 +808,10 @@ function mcLoadRaw(key){
     base._goalSync=Object.assign({},meta,{conflicts:disk && (!disk.owner || disk.owner===meta.owner)?goalSyncRecords(disk.records):[]});
     if(legacy) mcSaveRaw(key,base,{expenses:false});
   }
+  if(base._planSync){
+    const meta=base._planSync,disk=store.get(key+"_plan_conflicts");
+    base._planSync=Object.assign({},meta,{conflicts:disk&&disk.owner===meta.owner?planSyncRecords(disk.records):[]});
+  }
   return obConfirmedRestore(obAbsorbedRestore(base,key),key);
 }
 /* SE GUARDA LO QUE SE HA PINTADO, NO LO QUE SE CALCULÓ (INC-0410, 4/10/2026).
@@ -838,6 +842,7 @@ function mcSaveRaw(key, s, opts){
   if(!s) return;
   if(key.endsWith("_goal_conflicts")){ store.set(key,{owner:s.owner,records:goalSyncRecords(s.records)}); return; }
   const rest=Object.assign({},s);
+  if(s._planSync){planSyncStore(key,s._planSync);rest._planSync=Object.assign({},s._planSync);delete rest._planSync.conflicts;}
   delete rest.expenses;
   if(s._historyOwner&&Array.isArray(s.obAbsorbedConfirmed)&&(!s.obAbsorbedConfirmed.length||obConfirmedPersist(s._historyOwner,s.obAbsorbedConfirmed,key)))delete rest.obAbsorbedConfirmed;
   delete rest.obAbsorbedIssue;
@@ -1024,7 +1029,7 @@ function mcRecargarSinVolcar(){
    Las DOS mitades: borrar solo la ligera dejaba `micartera_sandbox_exp` huérfana, y la siguiente
    entrada al banco de pruebas se encontraba los gastos de la sesión anterior mezclados con la
    copia nueva de la cartera real. */
-function mcResetSandbox(){ store.del(STATE_KEY_TEST); store.del(STATE_KEY_TEST+EXP_SUFFIX); store.del(STATE_KEY_TEST+"_balhist"); store.del(STATE_KEY_TEST+"_goal_conflicts"); delete _mem[STATE_KEY_TEST+"_goal_conflicts"]; if(goalSyncStore.cache)delete goalSyncStore.cache[STATE_KEY_TEST]; if(mcSaveRaw.balanceHistory) delete mcSaveRaw.balanceHistory[STATE_KEY_TEST]; try{ localStorage.removeItem("_mcSandboxVacio"); }catch(e){} }
+function mcResetSandbox(){ store.del(STATE_KEY_TEST+"_plan_conflicts");delete _mem[STATE_KEY_TEST+"_plan_conflicts"];if(planSyncStore.cache)delete planSyncStore.cache[STATE_KEY_TEST]; store.del(STATE_KEY_TEST); store.del(STATE_KEY_TEST+EXP_SUFFIX); store.del(STATE_KEY_TEST+"_balhist"); store.del(STATE_KEY_TEST+"_goal_conflicts"); delete _mem[STATE_KEY_TEST+"_goal_conflicts"]; if(goalSyncStore.cache)delete goalSyncStore.cache[STATE_KEY_TEST]; if(mcSaveRaw.balanceHistory) delete mcSaveRaw.balanceHistory[STATE_KEY_TEST]; try{ localStorage.removeItem("_mcSandboxVacio"); }catch(e){} }
 
 /* ---------- ACUSE del cursor de bancos: LOCAL a este dispositivo (12/10/2026) ----------
    `bank-sync` no mueve su cursor al leer del banco: entrega en cada respuesta el que le tocaría
@@ -1606,7 +1611,7 @@ const cloud = (function(){
     // Copia de seguridad diaria del estado COMPLETO (idempotente por día) + poda a 30 días.
     // Best-effort: si la tabla aún no existe (migración 0002 sin aplicar), simplemente falla y se ignora.
     async backupState(uid, data){
-      const snapshot=Object.assign({},data); delete snapshot._goalSync;
+      const snapshot=Object.assign({},data); delete snapshot._goalSync; delete snapshot._planSync;
       if(!sb || !uid) return;
       const today=new Date().toISOString().slice(0,10);
       const {error}=await sb.from('state_backups').upsert(
@@ -4078,7 +4083,7 @@ function goalSyncSnapshot(s){
     if(v==null || typeof v!=="object")return v;
     if(Array.isArray(v))return v.map(prune);
     const out={};Object.keys(v).forEach(function(k){
-      if(["expenses","bankTx","profile","_goalSync","_balHistoryRevision"].indexOf(k)>=0 || /(?:history|histories|historico|historicos)$/i.test(k))return;
+      if(["expenses","bankTx","profile","_goalSync","_planSync","_balHistoryRevision"].indexOf(k)>=0 || /(?:history|histories|historico|historicos)$/i.test(k))return;
       Object.defineProperty(out,k,{value:prune(v[k]),enumerable:true,writable:true,configurable:true});
     });return out;
   };
@@ -4192,12 +4197,109 @@ function goalSyncAck(prev,owner,sent,expected,revision){
   return Object.assign({},prev,{_goalSync:{owner:owner,revision:revision,base:goalSyncCopy(sent.goals||[]),reserves:goalSyncCopy(goalSyncReserves(sent)),conflicts:meta?(meta.conflicts||[]):[]}});
 }
 function goalSyncMetadataOnly(prev,next){
-  if(!prev || prev._goalSync===next._goalSync) return false;
-  return [...new Set([...Object.keys(prev),...Object.keys(next)])].every(function(k){ return k==="_goalSync" || k==="_savedAt" || prev[k]===next[k]; });
+  if(!prev || prev._goalSync===next._goalSync && prev._planSync===next._planSync) return false;
+  return [...new Set([...Object.keys(prev),...Object.keys(next)])].every(function(k){ return k==="_goalSync" || k==="_planSync" || k==="_savedAt" || prev[k]===next[k]; });
+}
+// Plan comparte la base confirmada de Metas; cada grupo financiero se elige entero.
+// La ausencia de una fila no acredita un borrado: Recibos tiene sus propias lápidas.
+function mergePlanThreeWay(base,local,remote,kind){
+  local=Array.isArray(local)?local:[];remote=Array.isArray(remote)?remote:[];
+  const index=function(rows){const m=new Map();for(const r of rows||[]){if(!r || !(typeof r.id==="string"&&r.id || typeof r.id==="number"&&Number.isFinite(r.id)) || m.has(r.id))return null;m.set(r.id,r);}return m;};
+  const b=index(base),l=index(local),r=index(remote),rows=[],conflicts=[];
+  if(!l||!r)return {rows:local,conflicts:[],invalid:true};
+  const derived=kind==="fixed"?["paidYm","paidDay","wait"]:[];
+  new Set([...r.keys(),...l.keys()]).forEach(function(id){
+    const old=b&&b.get(id),left=l.get(id),right=r.get(id);
+    if(!left || !right){rows.push(left||right);return;}
+    const keys=[...new Set([...Object.keys(old||{}),...Object.keys(left),...Object.keys(right)])];
+    if(["owner","user_id","type"].some(function(k){return Object.prototype.hasOwnProperty.call(left,k)!==Object.prototype.hasOwnProperty.call(right,k)||!goalSyncEqual(left[k],right[k]);})){
+      rows.push(right);conflicts.push({kind:kind,id:id,fields:keys.filter(function(k){return derived.indexOf(k)<0;}),local:goalSyncCopy(left)});return;
+    }
+    const independent=kind==="fixed"?["name","cat","category"]:["name","note"];
+    const financial=kind==="fixed"?["amount","bankAmount","account","freq","months","schedule","day","paymentProofs"]:
+      keys.filter(function(k){return independent.indexOf(k)<0 && ["id","owner","user_id","type"].indexOf(k)<0;});
+    const groups=[financial];
+    keys.forEach(function(k){if(financial.indexOf(k)<0 && derived.indexOf(k)<0)groups.push([k]);});
+    const merged={},fields=[];
+    groups.forEach(function(group){
+      const has=function(o,k){return !!o && Object.prototype.hasOwnProperty.call(o,k);};
+      const same=function(a,c){return group.every(function(k){return has(a,k)===has(c,k)&&(!has(a,k)||goalSyncEqual(a[k],c[k]));});};
+      let source=right;
+      if(old && same(right,old))source=left;
+      else if((!old || !same(left,old)) && !same(left,right))fields.push.apply(fields,group);
+      group.forEach(function(k){if(has(source,k))Object.defineProperty(merged,k,{value:source[k],enumerable:true,writable:true,configurable:true});});
+    });
+    // Se recalculan después con el estado combinado; no son decisiones del usuario.
+    derived.forEach(function(k){if(Object.prototype.hasOwnProperty.call(right,k))merged[k]=right[k];});
+    rows.push(goalSyncEqual(merged,left)?left:goalSyncEqual(merged,right)?right:merged);
+    if(fields.length)conflicts.push({kind:kind,id:id,fields:fields,local:goalSyncCopy(left)});
+  });
+  return {rows:goalSyncEqual(rows,local)?local:rows,conflicts:conflicts};
+}
+function planSyncRecords(list){
+  const out=[];
+  (Array.isArray(list)?list:[]).forEach(function(r){
+    if(!r || ["fixed","debts"].indexOf(r.kind)<0 || r.id==null || !r.local)return;
+    const v={kind:r.kind,id:r.id,fields:Array.isArray(r.fields)?r.fields.slice():[],local:goalSyncCopy(r.local)};
+    const i=out.findIndex(function(x){return x.kind===v.kind&&x.id===v.id;});
+    if(i<0){out.push(v);return;}
+    const old=out[i];old.fields.forEach(function(k){
+      if(v.fields.indexOf(k)>=0)return;
+      if(Object.prototype.hasOwnProperty.call(old.local,k))Object.defineProperty(v.local,k,{value:old.local[k],enumerable:true,writable:true,configurable:true});else delete v.local[k];
+    });
+    v.fields=[...new Set(old.fields.concat(v.fields))];out[i]=v;
+  });
+  return out;
+}
+function planSyncPull(prev,remote,owner,revision,dropLocal){
+  const meta=!dropLocal&&prev._planSync&&prev._planSync.owner===owner?prev._planSync:null;
+  const result={},conflicts=meta?planSyncRecords(meta.conflicts):[];let invalid=false;
+  ["fixed","debts"].forEach(function(kind){
+    const merged=dropLocal?mergePlanThreeWay(remote[kind],remote[kind],remote[kind],kind):mergePlanThreeWay(meta&&meta.base&&meta.base[kind],prev[kind],remote[kind],kind);
+    if(merged.invalid)invalid=true;
+    result[kind]=goalSyncEqual(merged.rows,prev[kind])?prev[kind]:merged.rows;
+    conflicts.push.apply(conflicts,merged.conflicts);
+  });
+  const alive=function(c){return c.kind!=="fixed" || !((prev.reciboBorrado||{})[c.id] || (remote.reciboBorrado||{})[c.id]);};
+  result._planSync={owner:owner,revision:revision,base:{fixed:goalSyncCopy(remote.fixed||[]),debts:goalSyncCopy(remote.debts||[])},conflicts:planSyncRecords(conflicts.filter(alive))};
+  return invalid?null:result;
+}
+function planSyncAck(prev,owner,sent,expected,revision){
+  const meta=prev._planSync;
+  if(meta && (meta.owner!==owner || meta.revision!==expected))return prev;
+  return Object.assign({},prev,{_planSync:{owner:owner,revision:revision,base:{fixed:goalSyncCopy(sent.fixed||[]),debts:goalSyncCopy(sent.debts||[])},conflicts:meta?meta.conflicts||[]:[]}});
+}
+function planSyncStore(key,meta){
+  if((planSyncStore.blocked||{})[key]===meta.owner)return [];
+  const cache=planSyncStore.cache||(planSyncStore.cache={}),cached=cache[key];
+  if(cached&&cached.owner===meta.owner&&cached.input===meta.conflicts)return cached.records;
+  const records=planSyncRecords(meta.conflicts),next={owner:meta.owner,records:records},part=key+"_plan_conflicts";
+  if(!goalSyncEqual(store.get(part),next))store.set(part,next);
+  cache[key]={owner:meta.owner,input:meta.conflicts,records:records};return records;
+}
+function planSyncClear(key,owner){
+  const part=key+"_plan_conflicts",disk=store.get(part);
+  if(disk&&disk.owner===owner){store.del(part);delete _mem[part];}
+  const blocked=planSyncStore.blocked||(planSyncStore.blocked={});blocked[key]=owner;
+  if(planSyncStore.cache)delete planSyncStore.cache[key];
+}
+function planSyncActivate(key,owner){
+  const blocked=planSyncStore.blocked;if(blocked&&blocked[key]===owner)delete blocked[key];
+}
+function planSyncConflict(s,kind,id){
+  const meta=s._planSync;
+  if(!meta || meta.owner!==s._historyOwner)return null;
+  return (meta.conflicts||[]).find(function(c){return c.kind===kind&&c.id===id;})||null;
+}
+function planSyncDiscard(s,record){
+  const meta=s._planSync;
+  if(!meta || !record || !goalSyncEqual(planSyncConflict(s,record.kind,record.id),record))return s;
+  return Object.assign({},s,{_planSync:Object.assign({},meta,{conflicts:meta.conflicts.filter(function(c){return c.kind!==record.kind||c.id!==record.id;})})});
 }
 function slimForCloud(s){
   const c=perfilSinDatosBanco(Object.assign({},s));delete c.expenses;delete c.bankTx;delete c.obAbsorbedIssue;
   delete c._goalSync;
+  delete c._planSync;
   if(s.accountBalanceHistory){
     const hist={};Object.keys(s.accountBalanceHistory).forEach(function(key){hist[key]=s.accountBalanceHistory[key].slice(-14);});
     c.accountBalanceHistory=hist;

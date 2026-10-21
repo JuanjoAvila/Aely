@@ -350,6 +350,9 @@ function PlanBills({state, set, totals, charges, evidence, manageOpen, setManage
     return tag+(bank?" · "+entOf(bank).label:"")+(changedPaid(x)?" · "+tf("v4_charge_actual",{x:eur(x.paidAmount)}):"");
   };
   const row=function(x){
+    const match=String(x.id).match(/^(fixed|debt|balloon)_(.*)$/),kind=match&&match[1]!=="fixed"?"debts":"fixed";
+    const item=match&&(state[kind]||[]).find(function(e){return String(e.id)===match[2];});
+    const conflict=item&&planSyncConflict(state,kind,item.id);
     const income=!!x.income || (x.amount<0);
     const amt=Math.abs(x.amount),amountLabel=changedPaid(x)?React.createElement(React.Fragment,null,
       React.createElement("small",{style:{display:"block",fontSize:10,color:"var(--muted)",fontWeight:400}},tf("v4_charge_expected",{x:""}).trim()),eur(amt)):eur(amt);
@@ -358,7 +361,7 @@ function PlanBills({state, set, totals, charges, evidence, manageOpen, setManage
       return React.createElement("div",{className:cls,key:x.id},
         React.createElement("div",{className:"tile","aria-hidden":true}, x.day||"—"),
         React.createElement("div",{className:"nm"},
-          React.createElement("div",{className:"nm-title"}, x.paid?"✓ "+x.name:x.name),
+          React.createElement("div",{className:"nm-title"}, x.paid?"✓ "+x.name:x.name,React.createElement(PlanConflictDot,{record:conflict})),
           React.createElement("div",{className:"meta"}, rowSub(x))
         ),
         React.createElement("div",{className:"am"+(income?" pos":"")}, income?"+":"",amountLabel)
@@ -370,7 +373,7 @@ function PlanBills({state, set, totals, charges, evidence, manageOpen, setManage
         React.createElement("div",{className:"m"}, monthShort(month-1))
       ),
       React.createElement("div",{className:"nm"},
-        React.createElement("div",null, x.paid?"✓ "+x.name:x.name),
+        React.createElement("div",null, x.paid?"✓ "+x.name:x.name,React.createElement(PlanConflictDot,{record:conflict})),
         React.createElement("div",{className:"sub"}, rowSub(x))
       ),
       React.createElement("div",{className:"am"+(income?" pos":"")}, income?"+":"",amountLabel)
@@ -476,6 +479,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
   const [group,setGroup]=React.useState(null);
   const [q,setQ]=React.useState("");
   const [detail,setDetail]=React.useState(null);
+  const [reviewBill,setReviewBill]=React.useState(null);
   const [addStep,setAddStep]=React.useState(null);
   const [addForm,setAddForm]=React.useState({name:"",amount:"",freq:"mes",months:[],day:"",when:"",account:"sabadell",kind:"fixed"});
   const [undoBill,setUndoBill]=React.useState(null);
@@ -529,7 +533,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
     sub.close();
   },[view, detail, addStep]);
   popRef.current=pop; detailRef.current=detail; addStepRef.current=addStep;
-  const closeDetail=React.useCallback(function(){ setDetail(null); },[]);
+  const closeDetail=React.useCallback(function(){ setDetail(null);setReviewBill(null); },[]);
   const closeAdd=React.useCallback(function(){ setAddStep(null); },[]);
   useBackClose(!!open, pop);
   // El hub conserva su entrada y cada pantalla hija añade otra. Antes toda la pila compartía
@@ -670,7 +674,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
     return React.createElement("button",Object.assign({type:"button",className:"v4-mov v4-bills-row",key:r.kind+"_"+r.id,onClick:function(){ openDetail(r); }},attrs),
       React.createElement("div",{className:"tile v4-bill-kind-icon","data-bill-icon":billGlyph(r),"aria-hidden":"true"}, billGlyph(r)),
       React.createElement("div",{className:"nm"},
-        React.createElement("div",{className:"nm-title"}, r.name||"—"),
+        React.createElement("div",{className:"nm-title"}, r.name||"—",React.createElement(PlanConflictDot,{record:planSyncConflict(state,r.kind==="debt"?"debts":r.kind,r.id)})),
         React.createElement("div",{className:"meta"}, r.locked?gbTxt("gb_locked"):entOf(r.bank).label)),
       React.createElement("div",{className:"am num"+(r.income?" pos":"")}, (r.income?"+":"")+eur(Math.abs(r.monthly||0))));
   };
@@ -744,10 +748,14 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
         role:"dialog","aria-modal":"true","aria-labelledby":"bills-manage-title"},
         hub,
         view!=="hub" && React.createElement("div",{ref:subRef,className:"settings-push open v4-bills-push mc-page-enter"}, view==="list"?listView:affordView)),
-      detail && React.createElement(BillsItemSheet,{
-        row:detail, set:set, banks:bankList, simple:simple,
-        onClose:closeDetail, onRemove:removeWithUndo
-      }),
+      detail && (detail.kind==="fixed"&&planSyncConflict(state,"fixed",detail.id)&&!reviewBill?React.createElement(PlanConflictSheet,{
+        record:planSyncConflict(state,"fixed",detail.id),current:(state.fixed||[]).find(function(f){return f.id===detail.id;})||detail.item,onClose:closeDetail,
+        onDiscard:function(){const c=planSyncConflict(state,"fixed",detail.id);set(function(s){return planSyncDiscard(s,c);});closeDetail();},
+        onReview:function(){setReviewBill(planSyncConflict(state,"fixed",detail.id));setDetail(Object.assign({},detail,{item:(state.fixed||[]).find(function(f){return f.id===detail.id;})||detail.item}));}
+      }):React.createElement(BillsItemSheet,{
+        row:detail, state:state, set:set, banks:bankList, simple:simple,review:reviewBill,
+        onClose:function(){setReviewBill(null);closeDetail();}, onRemove:removeWithUndo
+      })),
       addStep && React.createElement(BillsAddWizard,{
         step:addStep, setStep:setAddStep, form:addForm, setForm:setAddForm, banks:bankList,
         onClose:closeAdd, set:set, onSaved:confirmSaved
@@ -763,18 +771,25 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
     document.body);
 }
 
-function BillsItemSheet({row, set, banks, simple, onClose, onRemove}){
-  const item=row.item;
+function BillsItemSheet({row, state, set, banks, simple, onClose, onRemove,review}){
+  const item=planReviewDraft(row.item,review);
+  const [reviewPatch,setReviewPatch]=React.useState(function(){
+    const p={};(review&&review.fields||[]).forEach(function(k){
+      if(["name","cat","category","amount","account","freq","months","day"].indexOf(k)>=0&&Object.prototype.hasOwnProperty.call(item,k))p[k]=item[k];
+    });return p;
+  });
+  const [reviewError,setReviewError]=React.useState("");
+  const reviewCommit=usePlanEditSave({state:state,set:set,field:"fixed",item:row.item,review:review,onClose:onClose});
   const locked=row.kind==="debt"&&!simple;
   const [name,setName]=React.useState(item.name||"");
-  const [amount,setAmount]=React.useState("");
+  const [amount,setAmount]=React.useState(review&&review.fields.indexOf("amount")>=0&&item.amount!=null?String(item.amount):"");
   const [freq,setFreq]=React.useState(item.freq||"mes");
   // En deudas, months es el plazo NUMÉRICO; solo los recibos guardan meses como lista
   // (crash real al abrir una cuota, 2026-09-27).
   const [months,setMonths]=React.useState(row.kind==="fixed"&&Array.isArray(item.months)?item.months.slice():[]);
   const [day,setDay]=React.useState(item.day?String(item.day):"");
   const [when,setWhen]=React.useState(item.when||"");
-  const [account,setAccount]=React.useState(row.bank||banks[0]||"sabadell");
+  const [account,setAccount]=React.useState(review?item.account||row.bank||banks[0]||"sabadell":row.bank||banks[0]||"sabadell");
   const [amort,setAmort]=React.useState(item.amort!=null?String(item.amort):"");
   const hasSched=hasSchedule(item);
   const titleRef=React.useRef(null);
@@ -783,7 +798,7 @@ function BillsItemSheet({row, set, banks, simple, onClose, onRemove}){
   const side=useEdgePageClose(true,onClose,true,sideRef,{plainScroll:true});
   const sheetRef=swipe.sheetRef;
   const titleId="bills-item-title";
-  React.useEffect(function(){ setAmount(""); },[row.id]);
+  React.useEffect(function(){ if(!review)setAmount(""); },[row.id]);
   useBackClose(true, side.close);
   // Portal hermano del hub: dialog propio con trap/Escape; restore lo hace el hub (Codex 2050/2100Z).
   // deps=[]: si [onClose] remonta, cada tecla (saveMeta→set) reenfoca el h1 (Claude NO-GO / Codex 2120Z).
@@ -830,10 +845,20 @@ function BillsItemSheet({row, set, banks, simple, onClose, onRemove}){
   };
   const saveMeta=function(patch){
     if(locked) return;
+    if(review){setReviewPatch(function(p){return Object.assign({},p,patch);});return;}
     if(row.kind==="fixed") patchFixedById(set,item.id,patch);
     else if(row.kind==="flow") patchFlowById(set,item.id,patch);
     else if(row.kind==="oneoff") patchOneoffById(set,item.id,patch);
     else if(row.kind==="debt"&&simple) patchDebtFields(set,item.id,patch);
+  };
+  const saveReview=function(){
+    const patch=Object.assign({},reviewPatch);
+    if(!name.trim()||day!==""&&cleanDay(day)==null){setReviewError("plan_edit_invalid");return;}
+    if(amount.trim()&&!hasSched){const n=parseNumPadRaw(amount);if(!Number.isFinite(n)){setReviewError("plan_edit_invalid");return;}patch.amount=n;}
+    // La revisión pasa por la misma puerta del recibo; nunca copia pruebas ni reejecuta pagos.
+    const base=Object.assign({},state,{fixed:(state.fixed||[]).map(function(f){return f.id===row.id?row.item:f;})});
+    let next=base;patchFixedById(function(fn){next=fn(base);},row.id,patch);
+    reviewCommit.save({item:next.fixed.find(function(f){return f.id===row.id;})});
   };
   const freqs=[["mes","gb_freq_m"],["bimestral","gb_freq_2m"],["trimestral","gb_freq_3m"],["semestral","gb_freq_6m"],["año","gb_freq_y"]];
   return React.createElement("div",{ref:sideRef,className:"v4-sheet-back",onClick:swipe.close},
@@ -854,7 +879,7 @@ function BillsItemSheet({row, set, banks, simple, onClose, onRemove}){
           React.createElement(NumPad,{value:amount,onChange:function(next){
             setAmount(function(prev){ return typeof next==="function"?next(prev):next; });
           }}),
-          React.createElement("button",{type:"button",className:"v4-bills-add",style:{width:"100%",marginTop:8},onClick:saveAmt,"aria-live":"polite"}, t("done")))),
+          !review&&React.createElement("button",{type:"button",className:"v4-bills-add",style:{width:"100%",marginTop:8},onClick:saveAmt,"aria-live":"polite"}, t("done")))),
       row.kind==="fixed" && !locked && React.createElement("div",{style:{marginTop:14}},
         React.createElement("div",{className:"v4-ficha-k"}, gbTxt("gb_step_how_often")),
         freqs.map(function(f){
@@ -889,7 +914,10 @@ function BillsItemSheet({row, set, banks, simple, onClose, onRemove}){
         bankListButtons(banks, account, function(b){ setAccount(b); const p=row.kind==="flow"?(item.kind==="income"?{to:b}:{from:b}):{account:b}; saveMeta(p); })),
       row.kind==="debt"&&simple && React.createElement("input",{className:"v4-bills-search",style:{marginTop:8},value:amort,placeholder:t("fj_amort"),
         onChange:function(e){ setAmort(e.target.value); }, onBlur:function(){ const n=parseFloat(String(amort).replace(",",".")); if(isFinite(n)) saveMeta({amort:n}); }}),
-      !locked && row.kind!=="debt" && React.createElement("button",{type:"button",className:"v4-ficha-quitar","data-act":"bill-remove",style:{width:"100%",marginTop:16},
+      review&&["cat","category"].filter(function(k){return review.fields.indexOf(k)>=0;}).map(function(k){return React.createElement("label",{key:k},t("plan_conflict_category"),React.createElement("input",{className:"v4-bills-search",value:reviewPatch[k]==null?"":String(reviewPatch[k]),onChange:function(e){saveMeta({[k]:e.target.value});}}));}),
+      (reviewError||reviewCommit.error)&&React.createElement("div",{role:"alert",className:"hint"},t(reviewError||reviewCommit.error)),
+      review&&React.createElement("button",{type:"button",className:"btn btn-primary btn-block",disabled:reviewCommit.pending,onClick:saveReview},t("db_savechanges")),
+      !review&&!locked && row.kind!=="debt" && React.createElement("button",{type:"button",className:"v4-ficha-quitar","data-act":"bill-remove",style:{width:"100%",marginTop:16},
         onClick:function(){ onRemove(row); }}, gbTxt("gb_del")),
       locked && React.createElement("div",{className:"hint",style:{marginTop:16}}, gbTxt("gb_locked"))
     ));

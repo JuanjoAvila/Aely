@@ -1345,3 +1345,8 @@ Son dobles locales, sin bancos ni SQL vivos; no acreditan CI general, integraci�
 ## FIN17: revisión F1–F5
 
 `fin17-confirmed-absorptions.test.mjs` cubre unión sobre1000, expulsión estricta>90d, aviso local, pack y colisiones forzadas, CAS, SIGNED_OUT con guardado posterior y conflicto de Metas beta141. M9/M11/M12 reconstruidos tienen ejecuciones causales independientes. El spec homónimo abre Gastos, reabre la aplicación, verifica avisos es/en/ca, consumo por incidencia y limpieza tras SIGNED_OUT. Datos/SDK sintéticos, sin aceptación móvil ni despliegue. [Mediciones y alcance](briefs/fin17-confirmed-absorptions-20261018.md).
+
+
+## FIN04 B: conflictos de recibos y deudas
+
+`fin04-plan-three-way` cubre la unión por grupos, céntimos, ausencias, lápidas, identidad, veinte conflictos, particiones, ACK y exclusión de copias/Hogar. El spec homónimo usa dos navegadores con SDK/React reales y REST sintético; reproduce primero la pérdida del día29 sobre A y valida revisión DOM es/en/ca. Mutantes de suma, separación financiera y base del ACK. Registrados en runner/mapa; resultados y límites en el [brief](briefs/fin04-plan-three-way.md).

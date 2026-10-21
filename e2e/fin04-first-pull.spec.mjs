@@ -60,7 +60,8 @@ for(const scenario of ['debounce','online','read-error','invalid','missing-revis
    expect(requests.filter(r=>r.table==='app_state'&&r.prefer.includes('resolution='))).toHaveLength(0);
    expect(Math.round(row.data.fixed[0].amount*100)).toBe(scenario==='empty'?777:4237);expect(Math.round(row.data.debts[0].value*100)).toBe(120023);expect(Math.round(row.data.debts[0].monthly*100)).toBe(10011);
    // Otro contexto lee la misma nube; no se confunde el estado de A con la persistencia remota.
-   const stored=await page.evaluate(()=>loadState());stored._savedAt=0;stored.fixed[0].name='Segundo móvil atrasado';
+   // Copia antigua sin base confirmada: conservar la base de A simularía una edición local válida en B.
+   const stored=await page.evaluate(()=>loadState());delete stored._planSync;stored._savedAt=0;stored.fixed[0].name='Segundo móvil atrasado';
    const b=await browser.newContext({serviceWorkers:'block',timezoneId:'Europe/Madrid'});contexts.push(b);await install(b,'B',stored);const pb=await b.newPage();await pb.goto(baseURL+'/');await expect.poll(()=>pb.evaluate(()=>typeof loadState==='function'?loadState().fixed[0]?.name:null)).toBe(row.data.fixed[0].name);
   }
   expect(errors).toEqual([]);

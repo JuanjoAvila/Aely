@@ -444,7 +444,7 @@ function App(){
       if(cloudReadRef.current!==read || !sessionRef.current || !sessionRef.current.user || sessionRef.current.user.id!==u) return null;
       if(r && r.updated_at && cloudUpdatedAtRef.current===expected){
         cloudUpdatedAtRef.current=r.updated_at;
-        setStateRaw(function(prev){ return goalSyncAck(prev,u,sent,expected,r.updated_at); });
+        setStateRaw(function(prev){ return planSyncAck(goalSyncAck(prev,u,sent,expected,r.updated_at),u,sent,expected,r.updated_at); });
       }
       return r;
     });
@@ -680,7 +680,7 @@ function App(){
     if(!sessionRef.current || sessionRef.current.user.id!==u)return;
     const read={owner:u,ready:false};cloudReadRef.current=read;
     cloudUpdatedAtRef.current=null;
-    goalSyncActivate(mcStateKey(),u);
+    goalSyncActivate(mcStateKey(),u);planSyncActivate(mcStateKey(),u);
     const freshLogin=!!(opts&&opts.freshLogin);   // acaba de INICIAR SESIÓN (no un reconecta del mismo user)
     // INC-0410 mensual: el asiento solo vale si ESTE pull leyó un estado válido (o aún no hay ninguno).
     const mensualPuerta=reservaMensualPuerta();
@@ -724,8 +724,10 @@ function App(){
           // Solo con lo local del MISMO titular: la lápida de otra cuenta que hubo en este móvil
           // escondería un gasto de esta que coincidiera en día, importe y comercio.
           const goalState=goalSyncPull(prev,cloudState,u,cloudPack.updated_at,!sameOwner,localNewer);
+          const planState=planSyncPull(prev,cloudState,u,cloudPack.updated_at,!sameOwner);
+          if(!planState)return prev;
           if(goalState._goalSync.cloudOnly) baseObj=Object.assign({},prev,cloudState,{expenses:merged.list,bankTx:prev.bankTx});
-          Object.assign(baseObj,goalState);
+          Object.assign(baseObj,goalState,planState);
           delete baseObj.obAbsorbedIssue;
           const reserveSource=goalState._goalSync.keepLocalReserves?prev:cloudState;
           baseObj.settings=Object.assign({},baseObj.settings,{reservaRules:goalSyncCopy((reserveSource.settings||{}).reservaRules||[])});
@@ -766,7 +768,7 @@ function App(){
           // Lo de la nube también: el otro móvil puede traer una regla borrada que aún resta.
           const next=liberarReservasHuerfanas(reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate()));
           read.ready=true;
-          return next;
+          return planSyncDerived(next,prev);
         });
       } else { read.ready=true;return pushAppState(u,stateRef.current); }   // ausencia acreditada: INSERT, nunca upsert
     }).then(function(){ return syncCloudExpenses(); });
@@ -1215,8 +1217,8 @@ function App(){
           obConfirmedReadCache.delete(key);obConfirmedBlocked.delete(owner);
           obAbsorbedClearNotice(owner);
         }
-        if(prev&&prev.user)goalSyncClear(mcStateKey(),prev.user.id);
-        set(p=>{obAbsorbedSignOut(owner,p);return Object.assign({},p,{bankTx:[],_goalSync:null,obAbsorbedPending:[],obAbsorbedConfirmed:[]});});
+        if(prev&&prev.user){goalSyncClear(mcStateKey(),prev.user.id);planSyncClear(mcStateKey(),prev.user.id);}
+        set(p=>{obAbsorbedSignOut(owner,p);return Object.assign({},p,{bankTx:[],_goalSync:null,_planSync:null,obAbsorbedPending:[],obAbsorbedConfirmed:[]});});
       }
       // Vuelta del email de recuperación: abre el panel para poner contraseña nueva.
       if(ev==="PASSWORD_RECOVERY"){ setRecovery(true); setShowAuth(true); }

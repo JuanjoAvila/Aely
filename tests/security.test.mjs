@@ -101,12 +101,12 @@ console.log("security");
 // el búfer existente se conserva hasta el pagehide o su temporizador normal.
 {
   const app=read('src/modules/11-app-main.js').replace(/\r\n/g,'\n'),begin=app.indexOf('// Empuja el estado a la nube (debounced)'),end=app.indexOf('// Al volver, los gastos',begin);
-  const timers=new Map(),listeners=new Map(),uploads=[],durable=[],acks=[];let next=0,blocked=false;
+  const timers=new Map(),listeners=new Map(),uploads=[],durable=[],acks=[],planAcks=[];let next=0,blocked=false;
   const state={budget:501.23,settings:{pending:'real-edit'},_savedAt:12345};
   const cloudUpdatedAtRef={current:'base-stamp'};
   const ctx=vm.createContext({state,uid:'synthetic-user',cloudReadRef:{current:{owner:'synthetic-user',ready:true}},cloudUpdatedAtRef,sessionRef:{current:{user:{id:'synthetic-user'}}},obAbsorbedWriteBlocked:{current:false},
     useRef:value=>({current:value}),goalSyncMetadataOnly:()=>false,
-    setStateRaw:fn=>fn(state),goalSyncAck:(prev,uid,sent,expected,updated)=>{acks.push({prev,uid,sent,expected,updated});return prev;},
+    setStateRaw:fn=>fn(state),planSyncAck:(prev,uid,sent,expected,updated)=>{planAcks.push({prev,uid,sent,expected,updated});return prev;},goalSyncAck:(prev,uid,sent,expected,updated)=>{acks.push({prev,uid,sent,expected,updated});return prev;},
     useEffect:fn=>fn(),setTimeout:fn=>{const id=++next;timers.set(id,fn);return id;},clearTimeout:id=>timers.delete(id),
     mcSandboxTransition:()=>blocked,flushPersist:()=>durable.push(structuredClone(state)),slimForCloud:x=>x,
     cloud:{pushState:(uid,data,expected)=>{uploads.push({uid,data,expected});return Promise.resolve({updated_at:'next-stamp'});}},
@@ -121,7 +121,7 @@ console.log("security");
   if(timers.size!==1)bad('acuse fallido rearma el push normal','sin timer de recuperación');
   else{const callback=[...timers.values()][0];callback();if(uploads.length!==1||uploads[0].data.settings.pending!=='real-edit')bad('acuse fallido rearma el push normal','payload incorrecto');else ok('acuse fallido rearma el push normal con la edición real');}
   await Promise.resolve();await Promise.resolve();
-  if(uploads[0]?.expected!=='base-stamp'||cloudUpdatedAtRef.current!=='next-stamp'||acks.length!==1||acks[0].sent!==state||acks[0].expected!=='base-stamp')bad('rearmado conserva uploader y ACK de beta141','se perdió el contrato del envío confirmado');
+  if(uploads[0]?.expected!=='base-stamp'||cloudUpdatedAtRef.current!=='next-stamp'||acks.length!==1||acks[0].sent!==state||acks[0].expected!=='base-stamp'||planAcks.length!==1||planAcks[0].sent!==state||planAcks[0].expected!=='base-stamp')bad('rearmado conserva uploader y ACK de beta141','se perdió el contrato del envío confirmado');
   else ok('rearmado conserva uploader y ACK de beta141');
 }
 
