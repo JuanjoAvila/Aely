@@ -1,0 +1,275 @@
+{
+  "status": "blocked",
+  "productSHA": "9d32866c8077d28893c0b6742e7383336e3caaaf",
+  "summary": "B draftPR294 source9d32866c8077d28893c0b6742e7383336e3caaaf direct parentA e42650596e361bf5cc61bac8d3ed4c7f0ca9f13d, dependencyPR293, no A changes. B threeway fixed/debt groups and private perid conflicts, existing validated review UI es/en/ca. Causal RED on A loses day29 to28 after CAS; final money oracles4237/120023/10011. Unit12 pass, sum/split/sentACK mutants killed. Final browser green-final:8pass/0fail, reg-A-first-pull-final:8pass/0fail, reg-Metas-editors:4pass/0fail, visual-final:3pass/0fail. Gates syntax=0, privacy=0, registration=0, i18n=0, docs-final=1, size=1, catalogue161=1; auth-disposal-fit catalogue dependency EXIT1. No ProductREADY. RETURN8071efde7471c883435084d5259efcf9be5f84b0; prior32868files/30repos exact and OWN11frozen20 intact. ZIP75a3ecc64b5e2d854d1c045efd2eec1550d1e35704bc6431bd81dd19668323bc manifestb6f321746fc44ae806219f6326b2b50a670ba86bd980704be7040a9bfd72eefe entries392 verified. Ownport returned; releasedBLOCKED noProductREADY. Exact privatehandoff thenSTOP, no native reply.",
+  "tests": [
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "build-base-a.json"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "build-core-b.json"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "build-final.json"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "build-payment-final.json"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "build-review-hardening.json"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "build-ui-b.json"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "build-ui-guard.json"
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs",
+      "exitCode": 1,
+      "phase": "gate-catalogue161.json",
+      "environment": {
+        "BETA_SOURCES_ONLY": "Catálogo161"
+      }
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1,
+      "phase": "gate-docs-final.json"
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1,
+      "phase": "gate-docs.json"
+    },
+    {
+      "command": "node tests/i18n-keys.test.mjs",
+      "exitCode": 0,
+      "phase": "gate-i18n.json"
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0,
+      "phase": "gate-privacy.json"
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "phase": "gate-registration.json"
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 1,
+      "phase": "gate-size.json"
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "phase": "gate-syntax.json"
+    },
+    {
+      "command": "node --test tests/fin04-plan-three-way.test.mjs",
+      "exitCode": 1,
+      "phase": "mutant-ack.json",
+      "environment": {
+        "FIN04B_MUTANT": "ack"
+      }
+    },
+    {
+      "command": "node --test tests/fin04-plan-three-way.test.mjs",
+      "exitCode": 1,
+      "phase": "mutant-split.json",
+      "environment": {
+        "FIN04B_MUTANT": "split"
+      }
+    },
+    {
+      "command": "node --test tests/fin04-plan-three-way.test.mjs",
+      "exitCode": 1,
+      "phase": "mutant-sum.json",
+      "environment": {
+        "FIN04B_MUTANT": "sum"
+      }
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/auth-disposal-fit.test.mjs",
+      "exitCode": 1,
+      "phase": "reg-auth-disposal-fit-repair-base.json"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/auth-disposal.test.mjs",
+      "exitCode": 0,
+      "phase": "reg-auth-disposal-repair-base.json"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/deudas-metas-edicion.test.mjs",
+      "exitCode": 1,
+      "phase": "reg-deudas-metas-edicion-payment-day-shared.json"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/deudas-metas-edicion.test.mjs",
+      "exitCode": 0,
+      "phase": "reg-deudas-metas-edicion-queue-anchor-preserved.json"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin04-first-pull.test.mjs",
+      "exitCode": 0,
+      "phase": "reg-fin04-first-pull-first.json"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin17-confirmed-absorptions.test.mjs",
+      "exitCode": 0,
+      "phase": "reg-fin17-confirmed-absorptions-repair-base.json"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fixed-payment-state.test.mjs",
+      "exitCode": 1,
+      "phase": "reg-fixed-payment-state-after-catalogue-block.json"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fixed-payment-state.test.mjs",
+      "exitCode": 0,
+      "phase": "reg-fixed-payment-state-payment-day-shared.json"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/goals-review-remates.test.mjs",
+      "exitCode": 0,
+      "phase": "reg-goals-review-remates-first.json"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/goals-review2-remates.test.mjs",
+      "exitCode": 0,
+      "phase": "reg-goals-review2-remates-first.json"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/goals-review3-reserve-conflict.test.mjs",
+      "exitCode": 0,
+      "phase": "reg-goals-review3-reserve-conflict-first.json"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/goals-three-way.test.mjs",
+      "exitCode": 0,
+      "phase": "reg-goals-three-way-first.json"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/inicio-deuda-futura.test.mjs",
+      "exitCode": 1,
+      "phase": "reg-inicio-deuda-futura-repair-ack.json"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/inicio-deuda-futura.test.mjs",
+      "exitCode": 0,
+      "phase": "reg-inicio-deuda-futura-repair-base.json"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/inicio-v42.test.mjs",
+      "exitCode": 0,
+      "phase": "reg-inicio-v42-repair-ack.json"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/metas-pull-transport.test.mjs",
+      "exitCode": 0,
+      "phase": "reg-metas-pull-transport-first.json"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/recibos-renombrar.test.mjs",
+      "exitCode": 0,
+      "phase": "reg-recibos-renombrar-payment-day-shared.json"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/security.test.mjs",
+      "exitCode": 1,
+      "phase": "reg-security-first.json"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/security.test.mjs",
+      "exitCode": 0,
+      "phase": "reg-security-repair-ack.json"
+    },
+    {
+      "command": "node --test tests/fin04-plan-three-way.test.mjs",
+      "exitCode": 0,
+      "phase": "unit-b-final.json"
+    },
+    {
+      "command": "node --test tests/fin04-plan-three-way.test.mjs",
+      "exitCode": 1,
+      "phase": "unit-b-first.json"
+    },
+    {
+      "command": "node --test tests/fin04-plan-three-way.test.mjs",
+      "exitCode": 0,
+      "phase": "unit-b-hardening.json"
+    },
+    {
+      "command": "node --test tests/fin04-plan-three-way.test.mjs",
+      "exitCode": 0,
+      "phase": "unit-b-harness-repair.json"
+    },
+    {
+      "command": "FIN04 B browser red-a-independent",
+      "exitCode": 1
+    },
+    {
+      "command": "FIN04 B browser green-core-independent",
+      "exitCode": 0
+    },
+    {
+      "command": "FIN04 B browser green-ui-first",
+      "exitCode": 0
+    },
+    {
+      "command": "FIN04 B browser green-release",
+      "exitCode": 0
+    },
+    {
+      "command": "FIN04 B browser green-final",
+      "exitCode": 0
+    },
+    {
+      "command": "FIN04 B browser reg-A-first-pull",
+      "exitCode": 1
+    },
+    {
+      "command": "FIN04 B browser reg-A-first-pull-final",
+      "exitCode": 0
+    },
+    {
+      "command": "FIN04 B browser reg-Metas-editors",
+      "exitCode": 0
+    },
+    {
+      "command": "FIN04 B browser visual-final",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "B is explicitly stacked on A e42650596e361bf5cc61bac8d3ed4c7f0ca9f13d and depends on PR293. Own draft against beta, no rebase/chase of beta162/163. A source/branch/result/package untouched. Not integrated or ProductREADY.",
+    "No intentId/generation/retry architecture, planApplied, server monotonic revision, version gate, Hogar notice, DDL, SQL/API/Edge, live cloud, full suite, CPU6/profiling, APK/Gradle, deploy/merge or real mobile acceptance. No general CI acceptance claimed.",
+    "VERSION/catalogue/release notes/caps are reserved to Claude integration. Actual docs, size and directed catalogue failures remain blockers. auth-disposal-fit fails because new planSyncClear is not included in the old fingerprint; that guard and catalogue are not weakened.",
+    "Review opens the existing editor and validates its editable fields. Stored payment proofs, settlement/archive actions and amortization are not replayed. Existing schedule amount locks and uneditable fields remain; explicit discard only removes the private draft.",
+    "Private tests use bundled React/Supabase SDK and synthetic auth/REST, two isolated contexts, actual DOM edits, CAS, reload and 20 conflicts. Network outside the local server is intercepted or blocked. CPU1, one worker, zero retries, maxFailures1 and own port48537; no shared lease or foreign process cleanup.",
+    "Historical failures and repairs are retained: one missing Hogar fixture extractor; security double initially lacked Plan ACK; debt-history fixture assumed timestamp LWW without a base; the first-pull stale-client fixture inherited a confirmed Plan base and now explicitly removes it; two mutation anchors encountered new shared/return code. Money assertions remain unchanged. Regressions are multiple directed runs, not a full-suite green.",
+    "Sealed evidence may redact shipped public anonymous JWT literals; redaction inventory distinguishes original hashes from sealed-copy hashes. Source commit and original tested artifact remain the canonical byte evidence."
+  ],
+  "schema": 1,
+  "taskId": "fin04-phase2-b-plan-three-way-conflicts-codex-20261020",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-21T00:02:23.103Z",
+  "released": true
+}
