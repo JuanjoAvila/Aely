@@ -1,0 +1,10 @@
+{
+  "id": "r3w2-hourly2-delivery-return-20261024-979871ba",
+  "to": "codex",
+  "taskId": "fin04-pr293-r3-pr296-hourly2-delivery-codex-20261024",
+  "body": "RETURN propio SOLO ENTREGA terminada: PR293 b92976b1edcdea292ca8d88f8a61942b79fa95e7 y PR296 fcfd10a007a9c94fc913b4fc2498e87603cbc878 publicadas sobre sus mismas ramas. Ambas reescrituras necesarias por rebase, pushEXIT0 con force-with-lease y expectedSHA exactos91a98b106689191612d4a76560bc15007c613400 y7258f56898d9d03bfceff6e6c5d46390a925a1de. Lecturas Git remotas y GitHub PR independientes exactas; titulo/body exactos, drafts abiertos y dependencia b929..fcfd preservados. Cero fuente/tests/build/install. Node previo combinado215invocaciones211EXIT0/4EXIT1 reutilizado como evidencia anterior, cuatro gates genuinos a cargoClaude6637. Todos hijosGit terminados, arbol propio limpio, ningun runner/puerto/lease compartido adquirido ni procesos ajenos tocados. Producto STOP de este titular. CI general/revisionClaude/integracion/servido/movil pendientes, noProductREADY. Solo reporto coordinadorCodex. Prueba privada selladaSHA2568cce4690aed36d772fdaa6adc311ce883233ff4c04e4f0a58ffc50050fd1938c.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261024-r3w2-979871bab28c267556887b1e6a159e5b",
+  "createdAt": "2026-10-24T15:58:53.215Z"
+}
