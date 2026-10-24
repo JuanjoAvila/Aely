@@ -304,6 +304,15 @@ export async function gastosGrisFila(page, nombre) {
   await expect(item).toBeVisible();
   return item;
 }
+/** Abre la ficha de un gasto de la lista esté donde esté: tarjeta suelta o cargo de una fila gris.
+ *  Los cargos vinculados a un recibo o a una deuda viven en su fila gris desde Gastos v5; un spec que
+ *  no trata de la agrupación solo quiere la ficha, y así no depende de en qué cajón cae el cargo. */
+export async function gastosAbreGasto(page, nombre) {
+  const sitio = gastosRoot(page).locator(".v4-gastos-list-body button.v4-mov, .gx-gris-it").filter({ hasText: nombre }).first();
+  await expect(sitio).toBeAttached();
+  if (await sitio.evaluate((el) => el.classList.contains("gx-gris-it"))) await (await gastosGrisFila(page, nombre)).click();
+  else await sitio.click();
+}
 /** Baja hasta el primer día pintado del mes `ym` (aaaa-mm, mes de Madrid) en la lista. */
 export async function gastosBajaAlMes(page, ym) {
   const k = await gastosRoot(page).locator(`.gx-dia[data-gx-ym="${ym}"]`).first().getAttribute("data-gx-day");
