@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews, installFixtureClock, gastosSeccion } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, installFixtureClock, gastosSeccion, gastosPulsaLarga } from "./fixtures.mjs";
 
 const labels={es:{gasolina:"Gasolina",taxi:"Taxi",transporte:"Transporte"},en:{gasolina:"Fuel",taxi:"Taxi",transporte:"Transport"},ca:{gasolina:"Benzina",taxi:"Taxi",transporte:"Transport"}};
 const accounts=[{id:"mobility",ent:"trade_republic",name:"Diario",value:2000,role:"diario",spendFrom:true}];
@@ -73,7 +73,8 @@ for(const lang of ["es","en","ca"]){
       await expect(row.locator('[role="progressbar"]')).toHaveAttribute("aria-valuenow",String(spent));
       await expect(row.locator('[role="progressbar"]')).toHaveAttribute("aria-valuemax",String(limit));
     }
-    await page.locator('.v4-gastos-cat[data-cat="gasolina"]').click();
+    // Tanda 3 de Gastos v5: el límite se abre manteniendo pulsada la categoría (tocar filtra).
+    await gastosPulsaLarga(page,page.locator('.v4-gastos-cat[data-cat="gasolina"]'));
     await page.locator(".chip",{hasText:"200 €"}).click();
     await page.locator(".btn-primary",{hasText:/Guardar|Save|Desa/}).click();
     await expect(page.locator('.v4-gastos-cat[data-cat="gasolina"] [role="progressbar"]')).toHaveAttribute("aria-valuemax","200");

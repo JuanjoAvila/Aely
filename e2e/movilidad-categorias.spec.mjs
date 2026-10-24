@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews, installFixtureClock, gastosSeccion } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, installFixtureClock, gastosSeccion, gastosPulsaLarga } from "./fixtures.mjs";
 
 const labels={es:{multas:"Multas",zona_azul:"Zona azul",peajes:"Peajes"},en:{multas:"Fines",zona_azul:"Blue zone",peajes:"Tolls"},ca:{multas:"Multes",zona_azul:"Zona blava",peajes:"Peatges"}};
 const entries=[["multas","Multa DGT",40,"🚨"],["zona_azul","Zona azul",6,"🅿️"],["peajes","Peaje AP7",8,"🛣️"]];
@@ -64,7 +64,8 @@ for(const lang of ["es","en","ca"]){
       const row=page.locator('.v4-gastos-cat[data-cat="'+cat+'"]');await expect(row).toContainText(labels[lang][cat]);
       await expect(row.locator('[role="progressbar"]')).toHaveAttribute("aria-valuenow",String(spent));
       await expect(row.locator('[role="progressbar"]')).toHaveAttribute("aria-valuemax",String(budgets[cat]));
-      await row.click();await page.locator(".chip",{hasText:"200 €"}).click();
+      // Tanda 3 de Gastos v5: tocar filtra; el límite se abre manteniendo pulsada la categoría.
+      await gastosPulsaLarga(page,row);await page.locator(".chip",{hasText:"200 €"}).click();
       await page.locator(".btn-primary",{hasText:/Guardar|Save|Desa/}).click();
       await expect(row.locator('[role="progressbar"]')).toHaveAttribute("aria-valuemax","200");
     }

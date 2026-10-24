@@ -1076,6 +1076,11 @@
      encogerse. Sin esto quedaba una franja vacía sobre la lista (rechazo 4.26.164, 24/10). */
   .gx-head.compact::before{bottom:16px;box-shadow:0 12px 20px -14px rgba(0,0,0,.8);}
   .gx-head.compact.con-meses::before{bottom:-36px;}
+  /* En Categorías y con filtro de categoría la fila de meses está SIEMPRE (SPEC §2.1): va dentro de
+     la caja, que crece lo que mide, para no tapar la primera fila; encogida ya no sobresale. */
+  .gx-head.meses-fijos{padding-bottom:48px;}
+  .gx-head.meses-fijos .gx-meses{top:calc(100% - 48px);opacity:1;visibility:inherit;pointer-events:auto;transform:none;transition-delay:0s;}
+  .gx-head.compact.meses-fijos::before{bottom:0;}
   .gx-num{position:relative;font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:46px;line-height:1;letter-spacing:-1px;
     white-space:nowrap;font-variant-numeric:tabular-nums;transform-origin:left top;transition:transform .22s var(--ease);}
   .gx-head.compact .gx-num{transform:scale(.739);}
@@ -1139,6 +1144,16 @@
   .gx-cat .bar{display:block;height:4px;margin-top:0;border:0;border-radius:2px;background:var(--bg);}
   .gx-cat-rel{display:block;height:4px;border-radius:2px;background:var(--bg);overflow:hidden;}
   .gx-cat-rel i{display:block;height:100%;border-radius:2px;}
+  /* Mientras se mantiene pulsada (límite), la fila se marca: sin eso no se sabe si «ha cogido». */
+  .gx-cat:active{background:var(--sur2);}
+  /* Píldora del filtro de categoría (SPEC §4.1), de su color, y el chip de su límite al lado. */
+  .gx-fil{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:2px 0 4px;}
+  .gx-fil-pil{display:inline-flex;align-items:center;gap:8px;max-width:100%;min-height:36px;padding:0 12px 0 14px;box-sizing:border-box;
+    border:1px solid;border-radius:18px;font:700 14px 'Manrope',sans-serif;cursor:pointer;}
+  .gx-fil-pil-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .gx-fil-x{font-size:12px;opacity:.85;}
+  .gx-fil-lim{min-height:36px;padding:0 14px;font-weight:600;}
+  .gx-fil-lim.sobre{color:var(--coral);}
   /* Suscripciones vacía (SPEC §6.2): lo normal es no tener ninguna, y se dice. */
   .gx-vacio{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:48px 20px 24px;}
   .gx-vacio-ic{width:76px;height:76px;border-radius:38px;background:color-mix(in srgb,var(--mint) 14%,transparent);color:var(--mint-hi);

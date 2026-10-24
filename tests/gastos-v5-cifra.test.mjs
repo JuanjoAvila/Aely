@@ -70,3 +70,24 @@ assert.equal(+last.sp.toFixed(2), +bs.spent.toFixed(2), "ciclo: gastado igual");
 assert.equal(+last.inc.toFixed(2), +bs.income.toFixed(2), "ciclo: la nómina que lo abre no suma");
 assert.equal(ctx.gastosValor(last,"net"), bs.against, "ciclo: neto igual que la cifra de Inicio");
 console.log("✓ en Mi ciclo la cifra viva acumula el mismo neto");
+
+// Tanda 3, filtro de categoría: la suma por días con `gastosFilaCat` es la fila de esa categoría
+// en Categorías (`categorySpentByMonth`) mes a mes, por dos vías; y un id retirado suma en «Otros».
+const st3={...state,expenses:state.expenses.concat([e("viejo","2026-10-09",7,"restaurantes_retirada"),e("otros","2026-10-10",3,"otros")])};
+for(const cat of ["super","bares","otros"]){
+  const fc=ctx.gastosCifraDias(st3,st3.expenses,{cycle:null},-Infinity,Infinity,true,ctx.gastosFilaCat(cat));
+  for(const ym of ["2026-08","2026-09","2026-10"]){
+    const start=ctx.gastosYmInicioMs(ym), next=ctx.gastosYmInicioMs(ym.slice(0,5)+String(+ym.slice(5)+1).padStart(2,"0"));
+    const filas=ctx.categorySpentByMonth(st3,null,null,{startMs:start,todayEndMs:next,cycle:null});
+    // Cómo se PINTA cada fila (`catOf`, que el sandbox no expone): un id que no existe es «Otros».
+    const deCat=filas.filter((r)=>(r.id==="restaurantes_retirada"?"otros":r.id)===cat).reduce((a,r)=>a+r.spent,0);
+    const m=fc.months[ym]||{sp:0,n:0};
+    assert.equal(+m.sp.toFixed(2), +deCat.toFixed(2), cat+" "+ym+": filtro = su fila en Categorías");
+    assert.equal(m.inc||0, 0, cat+" "+ym+": una categoría no suma ingresos");
+  }
+}
+const fsuper=ctx.gastosCifraDias(st3,st3.expenses,{cycle:null},-Infinity,Infinity,true,ctx.gastosFilaCat("super"));
+assert.equal(fsuper.months["2026-10"].n, 3, "octubre super: 10 + 5 + 24,38 (ni otro banco ni repetido)");
+assert.equal(ctx.gastosCumDia(fsuper,20261012,"2026-10").sp, 15, "super hasta el 12");
+assert.equal(ctx.gastosCifraDias(st3,st3.expenses,{cycle:null},-Infinity,Infinity,true,ctx.gastosFilaCat("otros")).months["2026-10"].sp, 10, "el id retirado (7) suma en Otros con el 3");
+console.log("✓ el filtro de categoría suma lo mismo que su fila en Categorías");
