@@ -1,0 +1,423 @@
+{
+  "status": "done",
+  "summary": "PR293 R5 y PR296 R3 terminadas y publicadas, rebasadas sobre beta166 exacta. Relectura pendiente ligada a titular/sesion y promesa publica que espera drenarla, incluidos error y cambio de sesion; arneses ps fieles sin bajar aserciones. ROJOS causales y fallos de harness conservados; dirigidos y siete mutantes cerrados. Ambas PR OPEN/DRAFT con heads y metadata nativa exactos. Recursos OWN devueltos y producto detenido; no ProductREADY.",
+  "productSHA": "ed1be46db093227311c817da808868923942d440",
+  "baseSHA": "aaf077b36ce5e36ee40b31f3d7d8e979f2cf3df0",
+  "productHeads": {
+    "PR293": "b512deb69c6c579c0e665f6b2ab1ef21f36f6b51",
+    "PR296": "ed1be46db093227311c817da808868923942d440"
+  },
+  "dependencies": [
+    {
+      "pr": 293,
+      "source": "b512deb69c6c579c0e665f6b2ab1ef21f36f6b51"
+    },
+    {
+      "pr": 296,
+      "source": "ed1be46db093227311c817da808868923942d440",
+      "dependsOnPR": 293
+    }
+  ],
+  "tests": [
+    {
+      "command": "node",
+      "args": [
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        "../e2e.config.mjs",
+        "--grep",
+        "expense-reread|reentrada espera el gasto nuevo"
+      ],
+      "exitCode": 0,
+      "label": "combined-reread-integration",
+      "source": "b512deb69c6c579c0e665f6b2ab1ef21f36f6b51"
+    },
+    {
+      "command": "node",
+      "args": [
+        "scripts/check-syntax.mjs"
+      ],
+      "exitCode": 0,
+      "label": "combined-syntax",
+      "source": "b512deb69c6c579c0e665f6b2ab1ef21f36f6b51"
+    },
+    {
+      "command": "node",
+      "args": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-name-pattern=^R5: un error sin pendiente",
+        "tests/fin04-commit.test.mjs"
+      ],
+      "exitCode": 0,
+      "label": "final-final-error",
+      "source": "b512deb69c6c579c0e665f6b2ab1ef21f36f6b51"
+    },
+    {
+      "command": "node",
+      "args": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-name-pattern=^R5: el error inicial",
+        "tests/fin04-commit.test.mjs"
+      ],
+      "exitCode": 0,
+      "label": "final-initial-error",
+      "source": "b512deb69c6c579c0e665f6b2ab1ef21f36f6b51"
+    },
+    {
+      "command": "node",
+      "args": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-name-pattern=^R5: una ráfaga",
+        "tests/fin04-commit.test.mjs"
+      ],
+      "exitCode": 0,
+      "label": "final-promise",
+      "source": "b512deb69c6c579c0e665f6b2ab1ef21f36f6b51"
+    },
+    {
+      "command": "node",
+      "args": [
+        "tests/relevant-tests.test.mjs"
+      ],
+      "exitCode": 0,
+      "label": "final-relevant-map",
+      "source": "b512deb69c6c579c0e665f6b2ab1ef21f36f6b51"
+    },
+    {
+      "command": "node",
+      "args": [
+        "tests/security.test.mjs"
+      ],
+      "exitCode": 0,
+      "label": "final-security",
+      "source": "b512deb69c6c579c0e665f6b2ab1ef21f36f6b51"
+    },
+    {
+      "command": "node",
+      "args": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-name-pattern=^R5: cambiar sesión a another-synthetic ",
+        "tests/fin04-commit.test.mjs"
+      ],
+      "exitCode": 0,
+      "label": "final-session-other",
+      "source": "b512deb69c6c579c0e665f6b2ab1ef21f36f6b51"
+    },
+    {
+      "command": "node",
+      "args": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-name-pattern=^R5: cambiar sesión a synthetic ",
+        "tests/fin04-commit.test.mjs"
+      ],
+      "exitCode": 0,
+      "label": "final-session-same",
+      "source": "b512deb69c6c579c0e665f6b2ab1ef21f36f6b51"
+    },
+    {
+      "command": "node",
+      "args": [
+        "scripts/check-syntax.mjs"
+      ],
+      "exitCode": 0,
+      "label": "final-syntax",
+      "source": "b512deb69c6c579c0e665f6b2ab1ef21f36f6b51"
+    },
+    {
+      "command": "node",
+      "args": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-name-pattern=actual pull count",
+        "tests/fin19-r3-scope-cost.test.mjs"
+      ],
+      "exitCode": 0,
+      "label": "green-fin19-scope",
+      "source": "b512deb69c6c579c0e665f6b2ab1ef21f36f6b51"
+    },
+    {
+      "command": "node",
+      "args": [
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        "../e2e.config.mjs",
+        "--grep",
+        "reentrada espera el gasto nuevo|refresh-single-flight|permanent-rename"
+      ],
+      "exitCode": 0,
+      "label": "green-persistence-and-toast-regressions",
+      "source": "b512deb69c6c579c0e665f6b2ab1ef21f36f6b51"
+    },
+    {
+      "command": "node",
+      "args": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-name-pattern=zero-cycle-r2/local-other-sources-survive-real-pull",
+        "tests/refund-polarity.test.mjs"
+      ],
+      "exitCode": 0,
+      "label": "green-refund-local",
+      "source": "b512deb69c6c579c0e665f6b2ab1ef21f36f6b51"
+    },
+    {
+      "command": "node",
+      "args": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-name-pattern=zero-cycle-r2/mutant/import-guard",
+        "tests/refund-polarity.test.mjs"
+      ],
+      "exitCode": 0,
+      "label": "green-refund-mutant",
+      "source": "b512deb69c6c579c0e665f6b2ab1ef21f36f6b51"
+    },
+    {
+      "command": "node",
+      "args": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-name-pattern=zero-cycle-r2/three-real-sync-pull-rounds",
+        "tests/refund-polarity.test.mjs"
+      ],
+      "exitCode": 0,
+      "label": "green-refund-rounds",
+      "source": "b512deb69c6c579c0e665f6b2ab1ef21f36f6b51"
+    },
+    {
+      "command": "node",
+      "args": [
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        "../e2e.config.mjs",
+        "--grep",
+        "expense-reread"
+      ],
+      "exitCode": 0,
+      "label": "green-two-client-reread",
+      "source": "b512deb69c6c579c0e665f6b2ab1ef21f36f6b51"
+    },
+    {
+      "command": "node",
+      "args": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-name-pattern=^R5: el error inicial",
+        "tests/fin04-commit.test.mjs"
+      ],
+      "exitCode": 1,
+      "label": "mutant-error-does-not-drain",
+      "source": "b512deb69c6c579c0e665f6b2ab1ef21f36f6b51",
+      "expectedExitCode": 1,
+      "sourceMutation": "error-does-not-drain",
+      "assertionFailureVerified": true
+    },
+    {
+      "command": "node",
+      "args": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-name-pattern=^R5: un error sin pendiente",
+        "tests/fin04-commit.test.mjs"
+      ],
+      "exitCode": 1,
+      "label": "mutant-error-swallowed",
+      "source": "b512deb69c6c579c0e665f6b2ab1ef21f36f6b51",
+      "expectedExitCode": 1,
+      "sourceMutation": "error-swallowed",
+      "assertionFailureVerified": true
+    },
+    {
+      "command": "node",
+      "args": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-name-pattern=^R5: cambiar sesión a another-synthetic ",
+        "tests/fin04-commit.test.mjs"
+      ],
+      "exitCode": 1,
+      "label": "mutant-old-cleanup-other-owner",
+      "source": "b512deb69c6c579c0e665f6b2ab1ef21f36f6b51",
+      "expectedExitCode": 1,
+      "sourceMutation": "old-cleanup-other-owner",
+      "assertionFailureVerified": true
+    },
+    {
+      "command": "node",
+      "args": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-name-pattern=^R5: cambiar sesión a synthetic ",
+        "tests/fin04-commit.test.mjs"
+      ],
+      "exitCode": 1,
+      "label": "mutant-old-cleanup-same-owner",
+      "source": "b512deb69c6c579c0e665f6b2ab1ef21f36f6b51",
+      "expectedExitCode": 1,
+      "sourceMutation": "old-cleanup-same-owner",
+      "assertionFailureVerified": true
+    },
+    {
+      "command": "node",
+      "args": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-name-pattern=^R5: una ráfaga",
+        "tests/fin04-commit.test.mjs"
+      ],
+      "exitCode": 1,
+      "label": "mutant-pending-not-marked",
+      "source": "b512deb69c6c579c0e665f6b2ab1ef21f36f6b51",
+      "expectedExitCode": 1,
+      "sourceMutation": "pending-not-marked",
+      "assertionFailureVerified": true
+    },
+    {
+      "command": "node",
+      "args": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-name-pattern=^R5: una ráfaga",
+        "tests/fin04-commit.test.mjs"
+      ],
+      "exitCode": 1,
+      "label": "mutant-reread-not-awaited",
+      "source": "b512deb69c6c579c0e665f6b2ab1ef21f36f6b51",
+      "expectedExitCode": 1,
+      "sourceMutation": "reread-not-awaited",
+      "assertionFailureVerified": true
+    },
+    {
+      "command": "node",
+      "args": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-name-pattern=^R5: cambiar sesión a synthetic ",
+        "tests/fin04-commit.test.mjs"
+      ],
+      "exitCode": 1,
+      "label": "mutant-same-uid-coalesced",
+      "source": "b512deb69c6c579c0e665f6b2ab1ef21f36f6b51",
+      "expectedExitCode": 1,
+      "sourceMutation": "same-uid-coalesced",
+      "assertionFailureVerified": true
+    },
+    {
+      "command": "node",
+      "args": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-name-pattern=actual pull count",
+        "tests/fin19-r3-scope-cost.test.mjs"
+      ],
+      "exitCode": 1,
+      "label": "red-fin19-ps",
+      "source": "b512deb69c6c579c0e665f6b2ab1ef21f36f6b51"
+    },
+    {
+      "command": "node",
+      "args": [
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        "../e2e.config.mjs",
+        "--grep",
+        "reentrada espera el gasto nuevo"
+      ],
+      "exitCode": 1,
+      "label": "red-pr293-persistence",
+      "source": "b512deb69c6c579c0e665f6b2ab1ef21f36f6b51"
+    },
+    {
+      "command": "node",
+      "args": [
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        "../e2e.config.mjs",
+        "--grep",
+        "expense-reread"
+      ],
+      "exitCode": 1,
+      "label": "red-two-client-bounded-oracle",
+      "source": "a8b58894fe545a8591ea1bf91dcd833401eb72be"
+    }
+  ],
+  "manifestSHA256": "a0dbe046f4a30ae60871e88c376fc10e3caf03d0c39869067e170cf3ec5858cc",
+  "actualInvocationsRecorded": 39,
+  "validation": {
+    "pr293": {
+      "newNodeGuards": 5,
+      "affectedHarnessCases": 4,
+      "browserCases": 4,
+      "causalMutants": 7,
+      "syntax": true,
+      "relevantMap": true,
+      "security": true
+    },
+    "pr296": {
+      "combinedBrowserCases": 2,
+      "syntax": true,
+      "acceptedSavedatR2Preserved": true
+    }
+  },
+  "priorWholeNode": {
+    "source": "fcfd10a007a9c94fc913b4fc2498e87603cbc878",
+    "invocations": 215,
+    "exit0": 211,
+    "exit1": 4,
+    "repeated": false
+  },
+  "resourcesReturned": true,
+  "noSharedLeaseAcquired": true,
+  "noForeignProcessKilled": true,
+  "noFurtherProductWork": true,
+  "productReady": false,
+  "limitations": [
+    "No general current-source CI, Claude integration, served artifact, physical mobile acceptance or ProductREADY",
+    "G5/G6 and six SAVEDAT cases are prior accepted evidence, not repeated here",
+    "Initial refund RED ran all190 subtests and continued after first failure; no within-file bail claim",
+    "First new Node harness attempts lacked storage/bindings; preserved as harness failures, causal RED follows faithful bindings",
+    "First new two-client run timed out globally; causal result unknown until bounded-oracle run",
+    "Initial admissions contain all tracked input hashes; explicit byte snapshots begin with final runs, no retrospective snapshot claim",
+    "Windows tracked working bytes and Git LF normalized bytes are distinct representations; per-run actual working hashes preserved",
+    "One documentation conflict when stacking PR296 kept both paragraphs; no code conflict"
+  ],
+  "unexecuted": [
+    "whole Node",
+    "G7 full review suites",
+    "CPU6",
+    "full browser suite",
+    "Gradle",
+    "backend",
+    "SQL",
+    "Edge",
+    "deployment",
+    "physical mobile"
+  ],
+  "integrationGates": [
+    "beta-sources/PERSIST91",
+    "docs-frescura",
+    "memory mirror",
+    "size"
+  ],
+  "scopeGrants": [
+    "2ad5f89ebd184a115c1a740a8fdbff1dc4a6068e",
+    "1a5383330c95c1736f66a71d1ba90b6259e6e381"
+  ],
+  "reportRecipient": "codex",
+  "schema": 1,
+  "taskId": "fin04-pr293-r5-pr296-r3-codex-20261024",
+  "actor": "codex",
+  "sessionId": "codex-local-20261024-fin04-r5r3-670c0290-999193ec-f1921060-01a478cc",
+  "createdAt": "2026-10-24T19:26:55.061Z",
+  "released": true
+}
