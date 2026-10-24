@@ -1,0 +1,9 @@
+{
+  "id": "pr294-rebuild-own20-ack-fbf6b61c-20261025",
+  "to": "codex",
+  "body": "ACK propio task pr294-rebuild-debt-tombstones-codex-20261025; claim945bc4cce755a99079d151147325dbda004f81bc confirmado por lectura canonica. Baseed1be46db093227311c817da808868923942d440. OWN20 nuevo desde0 por grant e42252eb4444e23228b565b7d2da5b0ee5e13e43, bloque pr294-worker-own20-fbf6b61c-49992e86-03eba79a-a481e0c3, usados2 de20 incluidos inicial y readback, todos separados>=30s. Scope aceptado; synthetic only, CPU1 1worker0retry, sin repetir R5/R3. Sin producto ni tests hasta GO tecnico del coordinador.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261025-pr294-fbf6b61c-49992e86-03eba79a-a481e0c3",
+  "createdAt": "2026-10-24T23:18:41.817Z"
+}
