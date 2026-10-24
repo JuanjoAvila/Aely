@@ -28,6 +28,7 @@ function diferida(){
 async function ticks(){ for(let i=0;i<20;i++) await Promise.resolve(); }
 function banco(){
   const ctx=loadPureLogicFromFile(),monthly=ctx.applyReservaMensual;
+  const storage=new Map();ctx.localStorage={getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)};ctx.window.localStorage=ctx.localStorage;
   vm.createContext(ctx);
   const core=fs.readFileSync(path.join(root,"src/modules/00-core.js"),"utf8");
   for(const name of [...core.matchAll(/^function (goalSync\w+|mergeGoalsThreeWay)\(/gm)].map(m=>m[1])){
@@ -44,7 +45,7 @@ function banco(){
     settings:{reservaRules:[{id:"r",goalId:"g",kind:"fixed",value:100,mensual:true}]},
     reservaLog:[{id:"mensual|r|2026-10",incomeKey:"mensual|r|2026-10",ruleId:"r",goalId:"g",amount:100,mensual:"2026-10",date:"2026-10-31T12:00:00Z"}]};
   const pulls=[],expenses=[],identity=x=>x;
-  const deps={obAbsorbedWriteBlocked:{current:false},
+  const deps={cloudReadRef:{current:null},obAbsorbedWriteBlocked:{current:false},
     cloud:{pullState:function(){ const d=diferida(); pulls.push(d); return d.promise; },pushState:()=>Promise.resolve({updated_at:"2026-11-02"})},
     set:function(updater){ state=updater(state); },stateRef:{current:state},cloudUpdatedAtRef:{current:null},pullOkRef:{current:null},
     setStateRaw:function(updater){ state=updater(state); },
@@ -65,7 +66,7 @@ function banco(){
   const factory=vm.runInContext("(function("+names.join(",")+"){"+
     bloque(app,"const reservaMensualAlDia=function(")+bloque(app,"const pushAppState=function(")+bloque(app,"const syncFromCloud=function(")+"return syncFromCloud;})",ctx);
   const sync=factory(...names.map(k=>deps[k]));
-  return {pulls,expenses,state:()=>state,valid:()=>({data:JSON.parse(JSON.stringify(state))}),
+  return {pulls,expenses,state:()=>state,valid:()=>({data:JSON.parse(JSON.stringify(state)),updated_at:"synthetic-revision"}),
     start:function(){ sync({user:{id:"synthetic"}}); return deps.pullOkRef.current; }};
 }
 function resultado(b,saved,months){

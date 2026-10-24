@@ -162,7 +162,7 @@ test('FIN17R F3 registro compacto reduce bytes conservando identidad',()=>{
 function signOut(e){
  let fire;e.sdk.auth.onAuthStateChange=fn=>{fire=fn;return{data:{subscription:{unsubscribe(){}}}};};
  const source=read('src/modules/11-app-main.js'),start=source.indexOf('    const off=cloud.onAuth((s,ev)=>{'),end=source.indexOf('\n    return ()=>{ alive=false;',start);assert.ok(start>=0&&end>start);
- const factory=vm.runInContext('(function(state,session){let alive=true;const stateRef={current:state},sessionRef={current:session};const set=fn=>stateRef.current=fn(stateRef.current);const setSession=()=>{},setRecovery=()=>{},setShowAuth=()=>{},syncFromCloud=()=>{};'+source.slice(start,end)+'return ()=>stateRef.current;})',e.c);
+ const factory=vm.runInContext('(function(state,session){let alive=true;const stateRef={current:state},sessionRef={current:session},cloudReadRef={current:null},cloudUpdatedAtRef={current:null};const set=fn=>stateRef.current=fn(stateRef.current);const setSession=()=>{},setRecovery=()=>{},setShowAuth=()=>{},syncFromCloud=()=>{};'+source.slice(start,end)+'return ()=>stateRef.current;})',e.c);
  const state=factory(e.state,{user:{id:e.owner}});fire('SIGNED_OUT',null);e.state=state();
 }
 const idsKey=e=>'micartera_v3_obabs_ids_'+encodeURIComponent(e.owner);
@@ -212,7 +212,7 @@ test('FIN17R F5 SIGNED_OUT elimina solo particiones salientes',()=>{
  const ownKeys=[a.c.obConfirmedStorageKey(uid),a.c.obAbsorbedStorageKey(uid)],otherKeys=[a.c.obConfirmedStorageKey(other),a.c.obAbsorbedStorageKey(other)];otherKeys.forEach(k=>a.storage.setItem(k,'synthetic-other-unchanged'));
  let fire;a.sdk.auth.onAuthStateChange=fn=>{fire=fn;return{data:{subscription:{unsubscribe(){}}}};};
  const source=read('src/modules/11-app-main.js'),start=source.indexOf('    const off=cloud.onAuth((s,ev)=>{'),end=source.indexOf('\n    return ()=>{ alive=false;',start);assert.ok(start>=0&&end>start);
- const factory=vm.runInContext('(function(state,session){let alive=true;const stateRef={current:state},sessionRef={current:session};const set=fn=>stateRef.current=fn(stateRef.current);const setSession=()=>{},setRecovery=()=>{},setShowAuth=()=>{},syncFromCloud=()=>{};'+source.slice(start,end)+'return ()=>stateRef.current;})',a.c);
+ const factory=vm.runInContext('(function(state,session){let alive=true;const stateRef={current:state},sessionRef={current:session},cloudReadRef={current:null},cloudUpdatedAtRef={current:null};const set=fn=>stateRef.current=fn(stateRef.current);const setSession=()=>{},setRecovery=()=>{},setShowAuth=()=>{},syncFromCloud=()=>{};'+source.slice(start,end)+'return ()=>stateRef.current;})',a.c);
  const state=factory(a.state,{user:{id:uid}});fire('TOKEN_REFRESHED',{user:{id:uid}});ownKeys.forEach(k=>assert.notEqual(a.storage.getItem(k),null));fire('SIGNED_OUT',null);
  ownKeys.forEach(k=>assert.equal(a.storage.getItem(k),null,'particion saliente eliminada'));otherKeys.forEach(k=>assert.equal(a.storage.getItem(k),'synthetic-other-unchanged'));assert.equal(state().obAbsorbedConfirmed.length,0);
  a.c.mcSaveRaw('micartera_v3',state());ownKeys.forEach(k=>assert.equal(a.storage.getItem(k),null,'guardado posterior no recrea particion saliente'));

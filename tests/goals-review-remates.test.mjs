@@ -21,7 +21,7 @@ function based(s){return {...copy(s),_goalSync:{owner,base:copy(s.goals),reserve
 function machine(initial,pack){
  const x=logic(),c=x.c;let state=copy(initial),clock=100,resolvePush;const calls=[];
  class Clock extends Date{constructor(...a){super(...(a.length?a:[clock]));}static now(){return clock;}}c.Date=Clock;
- const deps={obAbsorbedWriteBlocked:{current:false},stateRef:{current:state},sessionRef:{current:{user:{id:owner}}},cloudUpdatedAtRef:{current:"r0"},pullOkRef:{current:null},uid:owner,useCallback:f=>f,
+ const deps={cloudReadRef:{current:{owner,ready:true}},obAbsorbedWriteBlocked:{current:false},stateRef:{current:state},sessionRef:{current:{user:{id:owner}}},cloudUpdatedAtRef:{current:"r0"},pullOkRef:{current:null},uid:owner,useCallback:f=>f,
  setStateRaw:f=>{state=typeof f==="function"?f(state):f;deps.stateRef.current=state;},setSession:()=>{},
  cloud:{pullState:async()=>copy(pack),pushState:(u,s,r)=>{calls.push({u,s:copy(s),r});return new Promise(resolve=>{resolvePush=resolve;});}},
  syncCloudExpenses:async()=>{},reservaMensualAlDia:()=>{},showToast:()=>{},mcBootReady:()=>{},reconcileGemelosAutomaticos:x=>x,
@@ -85,7 +85,7 @@ test("bajos: telemetría una vez por registro tras dos arranques",()=>{
 test("bajos: SIGNED_OUT borra registros del titular y no los recupera el siguiente guardado",()=>{
  const x=logic(),c=x.c;let current=based(seed());current._goalSync.conflicts=[{code:"goals_reserve_conflict",local:{goals:current.goals}}];c.mcSaveRaw("micartera_v3",current);
  const a=app.indexOf("const prev=sessionRef.current;",app.indexOf("const off=cloud.onAuth")),z=app.indexOf("// Vuelta del email",a);
- const auth=vm.runInContext("(function(s,ev,sessionRef,setSession,set){"+app.slice(a,z)+"})",c);
+ const auth=vm.runInContext("(function(s,ev,sessionRef,setSession,set){const cloudReadRef={current:null},cloudUpdatedAtRef={current:null};"+app.slice(a,z)+"})",c);
  auth(null,"SIGNED_OUT",{current:{user:{id:owner}}},()=>{},f=>{current=f(current);});c.mcSaveRaw("micartera_v3",current,{expenses:false});
  assert.ok(!current._goalSync || !(current._goalSync.conflicts||[]).length);const restored=c.mcLoadRaw("micartera_v3");assert.ok(!restored._goalSync || !(restored._goalSync.conflicts||[]).length);
  c.mcSaveRaw("micartera_v3",{...current,_goalSync:{owner,conflicts:[{code:"goals_reserve_conflict",local:{goals:current.goals}}]}},{expenses:false});

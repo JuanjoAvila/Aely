@@ -434,14 +434,17 @@ function App(){
   };
   const sessionRef=useRef(null);
   const cloudUpdatedAtRef=useRef(null);   // sello del servidor para sync sin pisar otro dispositivo
+  const cloudReadRef=useRef(null);   // una lectura fallida o de otro titular nunca habilita escrituras
   // La base corresponde al payload confirmado, no al estado que pudo editarse durante el envío.
   const pushAppState=function(u,snapshot){
+    const read=cloudReadRef.current;
+    if(!read || read.owner!==u || !read.ready || !sessionRef.current || sessionRef.current.user.id!==u) return Promise.resolve(null);
     const sent=slimForCloud(snapshot),expected=cloudUpdatedAtRef.current;
     return cloud.pushState(u,sent,expected).then(function(r){
-      if(!sessionRef.current || !sessionRef.current.user || sessionRef.current.user.id!==u) return null;
+      if(cloudReadRef.current!==read || !sessionRef.current || !sessionRef.current.user || sessionRef.current.user.id!==u) return null;
       if(r && r.updated_at && cloudUpdatedAtRef.current===expected){
         cloudUpdatedAtRef.current=r.updated_at;
-        setStateRaw(function(prev){ return goalSyncAck(prev,u,sent,expected,r.updated_at); });
+        setStateRaw(function(prev){ return planSyncAck(goalSyncAck(prev,u,sent,expected,r.updated_at),u,sent,expected,r.updated_at); });
       }
       return r;
     });
@@ -674,7 +677,10 @@ function App(){
   const syncFromCloud=function(s, opts){
     if(!s || !s.user) return;
     const u=s.user.id;
-    goalSyncActivate(mcStateKey(),u);
+    if(!sessionRef.current || sessionRef.current.user.id!==u)return;
+    const read={owner:u,ready:false};cloudReadRef.current=read;
+    cloudUpdatedAtRef.current=null;
+    goalSyncActivate(mcStateKey(),u);planSyncActivate(mcStateKey(),u);
     const freshLogin=!!(opts&&opts.freshLogin);   // acaba de INICIAR SESIÓN (no un reconecta del mismo user)
     // INC-0410 mensual: el asiento solo vale si ESTE pull leyó un estado válido (o aún no hay ninguno).
     const mensualPuerta=reservaMensualPuerta();
@@ -682,7 +688,11 @@ function App(){
       mensualPuerta.lee(cloudPack);
       // INC-0410 mensual: límite de la lectura válida.
       const cloudState=cloudPack ? cloudPack.data : null;
-      if(!sessionRef.current||sessionRef.current.user.id!==u)return;
+      if(cloudReadRef.current!==read||!sessionRef.current||sessionRef.current.user.id!==u)return;
+      // No confundir datos corruptos, una revisión ausente o un error con una cuenta nueva.
+      if(cloudPack && (!validCloudState(cloudState)||!cloudPack.updated_at)){
+        showToast("⚠ Nube con formato inesperado: se conservan tus datos locales");return;
+      }
       // Si dos colas llenas no caben juntas, no se pierde ninguna ni se sobrescribe la remota.
       // El CAS se conserva sin avanzar hasta poder unirlas; el refresco siguiente puede reintentarlo.
       if(cloudState){
@@ -702,7 +712,7 @@ function App(){
         set(function(prev){
           // Cerrar sesión mientras llega el pull no autoriza aplicar una cartera vieja
           // ni sustituir los 400 cierres locales por la ventana corta de nube.
-          if(!sessionRef.current||!sessionRef.current.user||sessionRef.current.user.id!==u)return prev;
+          if(cloudReadRef.current!==read||!sessionRef.current||!sessionRef.current.user||sessionRef.current.user.id!==u)return prev;
           const sameOwner=!(opts&&opts.dropTx)&&(!freshLogin||prev._historyOwner===u)&&(!prev._historyOwner||prev._historyOwner===u);
           const preferenceDeleted=expenseDeletedSet({deleted:(cloudState.deleted||[]).concat(sameOwner?prev.deleted||[]:[])});
           const merged=mergeExpenses(prev.expenses, cloudState.expenses||[], preferenceDeleted);
@@ -714,8 +724,10 @@ function App(){
           // Solo con lo local del MISMO titular: la lápida de otra cuenta que hubo en este móvil
           // escondería un gasto de esta que coincidiera en día, importe y comercio.
           const goalState=goalSyncPull(prev,cloudState,u,cloudPack.updated_at,!sameOwner,localNewer);
+          const planState=planSyncPull(prev,cloudState,u,cloudPack.updated_at,!sameOwner);
+          if(!planState)return prev;
           if(goalState._goalSync.cloudOnly) baseObj=Object.assign({},prev,cloudState,{expenses:merged.list,bankTx:prev.bankTx});
-          Object.assign(baseObj,goalState);
+          Object.assign(baseObj,goalState,planState);
           delete baseObj.obAbsorbedIssue;
           const reserveSource=goalState._goalSync.keepLocalReserves?prev:cloudState;
           baseObj.settings=Object.assign({},baseObj.settings,{reservaRules:goalSyncCopy((reserveSource.settings||{}).reservaRules||[])});
@@ -754,15 +766,13 @@ function App(){
           const seeded=seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR(baseObj))))));
           const now=new Date();
           // Lo de la nube también: el otro móvil puede traer una regla borrada que aún resta.
-          return liberarReservasHuerfanas(reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate()));
+          const next=liberarReservasHuerfanas(reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate()));
+          read.ready=true;
+          return planSyncDerived(next,prev);
         });
-      } else if(cloudState){
-        // llegó algo pero con forma inválida (corrupto/parcial) → NO machacar lo local; resube lo bueno
-        showToast("⚠ Nube con formato inesperado: se conservan tus datos locales");
-        return pushAppState(u,stateRef.current);
-      } else { return pushAppState(u,stateRef.current); }   // primera vez: sube lo que ya tienes
+      } else { read.ready=true;return pushAppState(u,stateRef.current); }   // ausencia acreditada: INSERT, nunca upsert
     }).then(function(){ return syncCloudExpenses(); });
-    pullOkRef.current=pull.then(function(){ return true; }, function(){ return false; });
+    pullOkRef.current=pull.then(function(){ return read.ready && !!sessionRef.current && sessionRef.current.user.id===u; }, function(){ return false; });
     reservaMensualAlDia(pullOkRef.current.then(mensualPuerta.vale));
     // INC-0410 mensual: límite del pull de estado del que depende el asiento.
     pull.catch(function(e){ if(navigator.onLine!==false) showToast("✕ Nube: "+((e&&e.message)||e)); })   // si estás sin conexión, ni avisamos (es normal)
@@ -1185,12 +1195,14 @@ function App(){
       clearTimeout(tmr);
       if(!alive) return;
       setSession(sessionRef.current=s);
+      if(!s){cloudReadRef.current=null;cloudUpdatedAtRef.current=null;}
       if(s) mcScheduleIdle(()=>{ if(alive) syncFromCloud(s); }); else boot();
     }, ()=>{ clearTimeout(tmr); boot(); });
     const off=cloud.onAuth((s,ev)=>{
       if(!alive) return;
       const prev=sessionRef.current;
       const login=s&&(!prev||prev.user.id!==s.user.id);
+      if(!s||login){cloudReadRef.current=null;cloudUpdatedAtRef.current=null;}
       setSession(sessionRef.current=s);
       // Cerrar sesión rompe la asociación implícita del extracto local con el titular. El
       // próximo login no debe heredar sus apuntes, aunque no exista cartera en la nube.
@@ -1205,8 +1217,8 @@ function App(){
           obConfirmedReadCache.delete(key);obConfirmedBlocked.delete(owner);
           obAbsorbedClearNotice(owner);
         }
-        if(prev&&prev.user)goalSyncClear(mcStateKey(),prev.user.id);
-        set(p=>{obAbsorbedSignOut(owner,p);return Object.assign({},p,{bankTx:[],_goalSync:null,obAbsorbedPending:[],obAbsorbedConfirmed:[]});});
+        if(prev&&prev.user){goalSyncClear(mcStateKey(),prev.user.id);planSyncClear(mcStateKey(),prev.user.id);}
+        set(p=>{obAbsorbedSignOut(owner,p);return Object.assign({},p,{bankTx:[],_goalSync:null,_planSync:null,obAbsorbedPending:[],obAbsorbedConfirmed:[]});});
       }
       // Vuelta del email de recuperación: abre el panel para poner contraseña nueva.
       if(ev==="PASSWORD_RECOVERY"){ setRecovery(true); setShowAuth(true); }

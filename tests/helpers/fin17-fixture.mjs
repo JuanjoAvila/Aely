@@ -65,7 +65,7 @@ function client(db,label,state=seed(),source=original){
  };
  e.pull=async(mainSource=main)=>{
   const a=mainSource.indexOf('  const syncFromCloud=function(s, opts){'),z=mainSource.indexOf('\n  // CAPA 2',a);assert.ok(a>=0&&z>a);
-  const factory=vm.runInContext('(function(state,session){const stateRef={current:state},sessionRef={current:session},cloudUpdatedAtRef={current:null},obAbsorbedWriteBlocked={current:false},pullOkRef={current:null};const set=fn=>stateRef.current=fn(stateRef.current),syncCloudExpenses=()=>Promise.resolve(),reservaMensualAlDia=()=>{},showToast=()=>{},pushAppState=()=>{throw Error("unexpected push in pull fixture")};'+mainSource.slice(a,z)+'return {run:()=>{syncFromCloud(session);return pullOkRef.current;},state:()=>stateRef.current};})',c);
+  const factory=vm.runInContext('(function(state,session){const stateRef={current:state},sessionRef={current:session},cloudReadRef={current:null},cloudUpdatedAtRef={current:null},obAbsorbedWriteBlocked={current:false},pullOkRef={current:null};const set=fn=>stateRef.current=fn(stateRef.current),syncCloudExpenses=()=>Promise.resolve(),reservaMensualAlDia=()=>{},showToast=()=>{},pushAppState=()=>{throw Error("unexpected push in pull fixture")};'+mainSource.slice(a,z)+'return {run:()=>{syncFromCloud(session);return pullOkRef.current;},state:()=>stateRef.current};})',c);
   const api=factory(e.state,{user:{id:e.owner}});assert.equal(await api.run(),true,'real pull completes');e.state=api.state();
  };
  return e;

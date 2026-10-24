@@ -78,7 +78,7 @@ function transport(){
   const c=logic();c.Date=Clock;let state=clone(seed);Object.assign(state,c.goalSyncPull(state,seed,owner,"r0",false));
   const stateRef={current:state},cloudUpdatedAtRef={current:"r0"},pullOkRef={current:null},sessionRef={current:{user:{id:owner}}};
   const cloud=vm.runInContext("(function(sb){const statePushCache=new Map();return {"+["async session(","async pullState(","async pushState("].map(t=>block(core,t)).join(",")+"};})",c)(sb);
-  const deps={obAbsorbedWriteBlocked:{current:false},cloud,stateRef,cloudUpdatedAtRef,pullOkRef,sessionRef,uid:owner,useCallback:f=>f,setStateRaw:f=>{state=f(state);stateRef.current=state;},
+  const deps={obAbsorbedWriteBlocked:{current:false},cloudReadRef:{current:{owner,ready:true}},cloud,stateRef,cloudUpdatedAtRef,pullOkRef,sessionRef,uid:owner,useCallback:f=>f,setStateRaw:f=>{state=f(state);stateRef.current=state;},
    reconcileGemelosAutomaticos:x=>x,syncCloudExpenses:()=>Promise.resolve(),showToast:()=>{},mcBootReady:()=>{},t:x=>x,navigator:{onLine:true},
    seedFlows:x=>x,fixMovInvasion:x=>x,fixRevoDupes:x=>x,fixInvAuto:x=>x,fixInvSold:x=>x,reconcileTR:x=>x,reconcileEarlyIncomeAnchors:x=>x,reservaMensualAlDia:()=>Promise.resolve()};
   const start=app.indexOf("const set=useCallback((updater)=>"),end=app.indexOf("},[]);",start)+"},[]);".length;
