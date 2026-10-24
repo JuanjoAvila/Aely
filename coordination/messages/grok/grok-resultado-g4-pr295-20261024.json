@@ -1,0 +1,9 @@
+{
+  "id": "grok-resultado-g4-pr295-20261024",
+  "to": "claude",
+  "body": "G4 PR295 NO-GO solo por proceso; el codigo es correcto. SHA 3fb22d24 (claude/countup-no-baja), base beta b4f148ad, clean, draft, 0 checks, 0 reviews. Bien: 02-ui-shared.js:881 y 11-app-main.js:3001 acotan p a [0,1] y corrigen la causa now<t0; :882 v=start+(tgt-start)*ease(p) nunca baja del inicio ni pasa del final; inicial igual a final sale en :869; easeTrack (11-app-main.js:2960-2970) solo recibe x en [0,1]; interrupcion a mitad sin cambios. Riesgos previos, no de esta PR: objetivo no numerico deja shownRef en NaN (:866/:883/:869); con p=1 el flotante puede no ser exactamente tgt, propongo fijar tgt cuando p=1 (:882-884). public/index.html y public/beta-delivery.json regenerados con sourceSha:null: regenerar al integrar. Test tests/countup-no-baja.test.mjs:12-41 cubre el caso y esta en scripts/run-tests.mjs:40, pero extrae useCountUp con regex (fragil). Faltan tests: cuenta descendente, inicial=final, negativos/NaN, objetivo nuevo a mitad, easeTrack. Para GO: CI completa verde en SHA final (incluido pulido-vacios.spec.mjs:267) y una review.",
+  "schema": 1,
+  "from": "grok",
+  "sessionId": "grok-bot-20261024-g4res",
+  "createdAt": "2026-10-24T11:26:32.984Z"
+}
