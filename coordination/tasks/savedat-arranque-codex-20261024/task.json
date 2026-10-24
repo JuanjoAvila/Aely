@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "id": "savedat-arranque-codex-20261024",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261019-r74-36ea75cf98e01bbf",
+  "createdAt": "2026-10-24T11:59:16.200Z",
+  "to": "codex",
+  "kind": "worker",
+  "assignedPublicSessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "baseSHA": "91a98b106689191612d4a76560bc15007c613400",
+  "baseVersion": "4.26.161",
+  "priority": 2,
+  "claudeGrant": "3a3b2caa7b2d04b0ace9530df974859744f561cf",
+  "scopeGrant": "bf7bd9543cfc19b8bbd66801858e72db85c8a256",
+  "latestPriorityGrant": "858de1d7829944045d792e6efbe1d14e5ce519f3",
+  "dependsOnReleasedTask": "fin04-pr293-r2-review-corrections-codex-20261024",
+  "dependsOnReleasedResult": "48b35f81ccd23a4a6cfaafc2926318ba7f7131f2",
+  "previousRunnerReturn": "caddd64ca21b6771eeaadf179286817efe75e991",
+  "objective": "SAVEDAT-ARRANQUE: primero RED causal de dos moviles sobre PR293 R2 exacta91a98b106 y despues impedir que los set() de arranque renueven _savedAt y hagan localNewer elegir entera una copia vieja pisando datos del otro movil. Nueva draftPR propia encima de91a98b106. PR293 esta en revision independiente, su cabeza permanece CONGELADA.",
+  "scope": [
+    "Guardado set() / _savedAt y llamadas de arranque ensureBudgetMonthSnap, widgetPeriod, badges, FX en lo minimo causalmente demostrado",
+    "Separar actualizacion de arranque de cambios persistentes reales de usuario sin falsear revision/ACK/CAS ni descartar campos",
+    "RED/GREEN dos contextos reales React/SDK con transporte sintetico fiel y oraculos centimos independientes; test de edicion real y primerpull/cola afectados",
+    "Documentacion tecnica y registro de pruebas dirigidas; branch/draftPR nueva sin tocar PR293 ni PR294"
+  ],
+  "requirements": [
+    "Lee TODOS nuevos intermedios/cancelaciones y mensajes Grok solo como analisis sujeto a Claude; Claude3a3b2caa dice Sigue ya con savedat-arranque construido encima de91a98b106; no cambies cabezaPR293. Orden858de1d7: PR293, savedat, PR294rehecha, Inicio. Solo esta nueva tarea admitida; no editarPR294 ni Inicio ni PR291/295 ni Gastosv5.",
+    "Claim nuevo propio de savedat-arranque-codex-20261024 push/readback y ACK antescodigo, misma identidad holder82dbe59f runtime/helper/filtro. OWN12 previo16/20 alcloseR2 conservar contadorreal y prefix/frozenOWN11; primer/interno/readbacks>=30s. Antes publicar requiere margen>=2 lecturas; si soloqueda1 hacer ultima lectura/freeze20 y renovar OWN13 normal bajo b0390ba0 aviso/readback antespublicar. No reset ni herenciaROOT ni fetch21. Si estadoactual ha avanzado, usaractual no snapshot. Cada nuevo run adquiere recursosOWN mediante censo/admission/RETURN nuevos; antiguos RETURN no son lease.",
+    "BASE exacta91a98b106689191612d4a76560bc15007c613400 parentA e4265059 version4.26.161 (aunque beta vigente162/163, instruccionexpresa trabajar ENCIMAdePR293R2). Nuevo checkout/rama propios, PRdraft nueva contra beta declarando dependenciaPR293 ydiffheredadoA si aunnointegrada. No rebase, cherry-pick ni updatePR293branch; source91 yoriginalA/B/paquetes/resultados inmutables. Censo de todos archivos/repos previos y preservacion inicial/final, incluido nuevoR2 ZIP379 y manifest6532414d2aec749d3b75a846482deaf02eed9db6042a21189190227a5a8d4cf7.",
+    "RED causal ANTES producto: dos moviles/contextos React/SDK reales, copia local antigua y nube sinteticadiferente con otro usuario aislado. Disparar set reales de arranque (ensureBudgetMonthSnap, widgetPeriod, badges, FX segun la causa) sin acto usuario; no deben contar como mas nuevos ni pisar otro dispositivo. Probar fila completa, ids y camposdesconocidos, centimos4237/120023/10011 o nuevos oraculosindependientes documentados. No adelantar _savedAt artificialmente para fabricar verde, ni trasladar el future timestamp del test PR293 para ocultar este fallo; no doble que simule elalgoritmocorregido.",
+    "Confirmar al GREEN que escritura real delusuario sigue contando como cambio, persistencia/offline/reload y CAS/ACK/primerpull no se rompen. Mantener referencias unchanged donde corresponda AGENTS7bis. No resolver eliminando timestamps o sustituyendo estados enteros; no broadrefactor ni nueva arquitectura. Toda ampliacion monetaria/merge distinta se comunica antes, sin sumar ni clonar registros financieros.",
+    "RunnerCPU1 serial1worker0retry maxFailure1 stopfirstfailure, censo y admisionOWN/puerto beforeeachnewrun logs/stdout/stderr/report desdeinicio y RETURN propio. Solo tests dirigidos a nueva causa/regresiones justificadas por cambio; no repetir50E2Ecerrados por rutina, ni suitecompleta/CPU6/profiling sin concesionexacta. Revisar configuracion anteslaunch.",
+    "Pruebas sinteticas exclusivas; no consultas cloud/auth/bankreal, SQL/Edge/DDL/backend/server/APK/Gradle/deploy/merge. SkillSupabase/docprimaria aplicables si tocaSDKfirmas. Movil BLOQUEADO: eb65ce385f8ab2867c416d5f4d16894292afc286 sustituye desbloqueo9745e438; Juanjo esta copiando carpetas. Nadie lo usa ni desconecta hasta aviso posterior; no mover/borrar fotos/archivos. SinAndroid/browserreal deldueno.",
+    "Sin VERSION/catalogo/notas/caps; gatesdocs/size/catalogue los resuelve integradorClaude segun7e15fa805, no maquillarfail. Registrotests run-tests/E2E_MAP y doc tecnica pertinente minima. No tocar G4/PR295 ni cobertura ajena.",
+    "Nueva draft PR fuenteexacta conpushnormal yreadback parent/head, attachartifact. Manifest/ZIP ycopiasredactadasconoriginalhash declarados, everycommandEXIT, RED/GREEN/mutantes significativos yfallos realesincluidos, limitaciones ypreservacioncompleta. OwnRETURN+releasedresult luego privatehandoff ySTOP. No native reply alROOT sinordenhumana, no nueva tarea porarrastre. FuentePR293 queda congelada mientrasG5revisa; no ProductREADY/servido/movil."
+  ],
+  "deliverable": "Draft PR SAVEDAT propia dependiente de PR293R2 congelada, RED/GREEN causal dosmoviles sin timestamp artificial ysin perdida de dato, evidencia exacta yrecursoOWN devuelto, result/handoff privados ySTOP.",
+  "predecessorROOTIntegrityReview": {
+    "file": "subcoord74-pr293-r2-private-integrity-review-20261024.json",
+    "sha256": "dc4babf1f3d7e8efd6ed16216b57163786f9b65de233b9c42228365053112238",
+    "manifestFiles": 378,
+    "zipEntries": 379,
+    "sourceFiles": 21,
+    "preservedFiles": 34665,
+    "preservedRepos": 31,
+    "unitAggregateExit": 1,
+    "authSeparateExit": 0,
+    "browserFinalPassed": 35,
+    "metasFinalPassed": 15,
+    "resourcesReturned": true,
+    "sourceFrozenForIndependentReview": true
+  }
+}
