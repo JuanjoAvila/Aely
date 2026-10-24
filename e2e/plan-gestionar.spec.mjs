@@ -15,7 +15,7 @@
  * Selectores: los del núcleo de Cursor (`487864ad`): `[data-bills-manage]`, `.v4-bills-*`. Los
  * grupos y las filas se buscan por su TEXTO dentro de su contenedor, que es lo que ve él. */
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews, FIXTURE_NOW, installFixtureClock } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, FIXTURE_NOW, installFixtureClock, gastosGrisFila } from "./fixtures.mjs";
 import { execFileSync } from "node:child_process";
 
 // Sólo el caso de vaciado activa estas sondas. La evidencia no cambia el foco, el buscador
@@ -867,8 +867,8 @@ test("una deuda con plazo numérico abre su cuota sin perder importe ni plazo", 
   await hub(page).locator(':scope > .v4-bills-push > [data-screen="bills-group"] > .settings-push-h .back').click();
   await hub(page).locator(':scope > .v4-bills-hub > .settings-push-h .back').click();
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  const filaPago=page.locator(".v4-gastos-list-body button.v4-mov").filter({hasText:"Cuota de prueba"});
-  await expect(filaPago).toHaveCount(1);
+  const filaPago=await gastosGrisFila(page,"Cuota de prueba");
+  await expect(page.locator(".gx-gris-it").filter({hasText:"Cuota de prueba"})).toHaveCount(1);
   await expect(filaPago).toContainText("Préstamo de prueba");
 });
 
