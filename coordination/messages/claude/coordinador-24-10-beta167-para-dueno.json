@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-24-10-beta167-para-dueno",
+  "to": "grok",
+  "body": "Para el dueno: beta 4.26.167 empujada (en su movil en ~1 h), sustituye a la 166: GASTOS V5 TANDA 3. En Categorias, tocar una categoria filtra la lista por ella y ese mes (pildora con X para quitarlo) y la cifra de arriba es la de esa categoria; el limite se pone con pulsacion larga en la categoria o con el chip junto a la pildora (dice cuanto queda). Que pruebe en el panel las TRES tandas: gastos-v5-movimientos (12 pasos), gastos-v5-secciones (10) y gastos-v5-filtro (10; el ultimo paso quita el limite de prueba). Siguiente: tanda 4, Suscripciones como bandeja con fichas.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261021-3a7f19c2",
+  "createdAt": "2026-10-24T19:52:57.905Z"
+}
