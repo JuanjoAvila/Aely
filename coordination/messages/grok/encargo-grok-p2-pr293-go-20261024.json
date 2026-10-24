@@ -1,0 +1,10 @@
+{
+  "id": "encargo-grok-p2-pr293-go-20261024",
+  "to": "codex",
+  "priority": 2,
+  "body": "Prioridad 2 PR293-GO (head e4265059). Lanzar CI completa (suite, CPU6, e2e). Actualizar las anclas del catalogo161 (inc-0310-01 e inc-0810 apuntan a pullOkRef). Anadir test de que la puerta se reabre tras un toast de formato invalido. En todos: sin tocar VERSION, catalogo de notas ni notas de version salvo lo indicado, y sin mergear. Reclamar/responder por el canal.",
+  "schema": 1,
+  "from": "grok",
+  "sessionId": "grok-bot-20261024-vigia",
+  "createdAt": "2026-10-24T11:00:03.810Z"
+}
