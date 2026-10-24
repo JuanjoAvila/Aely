@@ -1,5 +1,61 @@
 [
   {
+    "v": "4.26.163",
+    "d": "2026-10-21",
+    "t": {
+      "es": "La gráfica de Inicio no resta una financiación antes de que exista",
+      "en": "The Home chart no longer subtracts a new loan before it exists",
+      "ca": "La gràfica d'Inici no resta un finançament abans que existeixi"
+    },
+    "items": {
+      "es": [
+        "Una financiación nueva ya no baja el patrimonio de la gráfica de Inicio en los días anteriores a darla de alta.",
+        "Desde el día en que la añades, la gráfica y el total la descuentan como siempre.",
+        "Las deudas que ya tenías no cambian."
+      ],
+      "en": [
+        "A new loan no longer lowers the net worth in the Home chart on the days before you added it.",
+        "From the day you add it, the chart and the total subtract it as always.",
+        "The debts you already had do not change."
+      ],
+      "ca": [
+        "Un finançament nou ja no abaixa el patrimoni de la gràfica d'Inici els dies anteriors a donar-lo d'alta.",
+        "Des del dia que l'afegeixes, la gràfica i el total el descompten com sempre.",
+        "Els deutes que ja tenies no canvien."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "deuda-nueva-desde-su-dia",
+        "t": {
+          "es": "Inicio: una financiación nueva cuenta desde su día de alta",
+          "en": "Home: a new loan counts from the day you add it",
+          "ca": "Inici: un finançament nou compta des del dia d'alta"
+        },
+        "items": {
+          "es": [
+            "1. Plan → Deudas → Añadir deuda: una financiación de prueba con fecha de hoy (p. ej. 600 € a 12 meses, cuota 50 €, día de cobro el 16) y guarda. MAL: no se guarda o no aparece en Deudas.",
+            "2. Inicio → gráfica del patrimonio: mantén el dedo en un día anterior a hoy (p. ej. ayer). La cifra de ese día es la misma que antes de crearla, no baja por la deuda nueva. MAL: baja los 600 €.",
+            "3. Mantén el dedo en el día de hoy: la cifra sí descuenta los 600 €, y el total de arriba también. MAL: hoy no la descuenta.",
+            "4. Plan → Deudas → entra en la financiación de prueba → Eliminar esta deuda: la gráfica y el total vuelven a como estaban. MAL: queda algo cambiado."
+          ],
+          "en": [
+            "1. Plan → Debts → Add debt: a test loan dated today (e.g. €600 over 12 months, €50 per month, charged on the 16th) and save. WRONG: it is not saved or does not show in Debts.",
+            "2. Home → net worth chart: hold your finger on a day before today (e.g. yesterday). That day's figure is the same as before you created it, it does not drop because of the new debt. WRONG: it drops by the €600.",
+            "3. Hold your finger on today: the figure does subtract the €600, and so does the total at the top. WRONG: today does not subtract it.",
+            "4. Plan → Debts → open the test loan → Delete this debt: the chart and the total go back to how they were. WRONG: something stays changed."
+          ],
+          "ca": [
+            "1. Pla → Deutes → Afegeix deute: un finançament de prova amb data d'avui (p. ex. 600 € a 12 mesos, quota 50 €, dia de cobrament el 16) i desa. MALAMENT: no es desa o no apareix a Deutes.",
+            "2. Inici → gràfica del patrimoni: mantén el dit en un dia anterior a avui (p. ex. ahir). La xifra d'aquell dia és la mateixa que abans de crear-lo, no baixa pel deute nou. MALAMENT: baixa els 600 €.",
+            "3. Mantén el dit en el dia d'avui: la xifra sí que descompta els 600 €, i el total de dalt també. MALAMENT: avui no el descompta.",
+            "4. Pla → Deutes → entra al finançament de prova → Elimina aquest deute: la gràfica i el total tornen a com estaven. MALAMENT: queda alguna cosa canviada."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.162",
     "d": "2026-10-20",
     "t": {
@@ -24,30 +80,7 @@
         "Benzina, pàrquing i peatges continuen a les seves categories de sempre, i el que ja tenies desat no canvia."
       ]
     },
-    "tandas": [
-      {
-        "id": "categoria-coche",
-        "t": {
-          "es": "Gastos: la categoría Coche",
-          "en": "Expenses: the Car category",
-          "ca": "Despeses: la categoria Cotxe"
-        },
-        "items": {
-          "es": [
-            "1. Apunta un gasto «Taller Pepe»: sale la categoría Coche (🚗). MAL: sale Otros u otra categoría.",
-            "2. Apunta «Repsol» y «Parking Saba»: siguen en Transporte/Gasolina y Parking; y en la lista completa de categorías aparece Coche. MAL: alguno cae en Coche o Coche no aparece."
-          ],
-          "en": [
-            "1. Add an expense “Taller Pepe”: the Car category (🚗) comes up. WRONG: it comes up as Other or another category.",
-            "2. Add “Repsol” and “Parking Saba”: they stay in Transport/Fuel and Parking; and Car appears in the full list of categories. WRONG: one of them falls into Car or Car is missing."
-          ],
-          "ca": [
-            "1. Apunta una despesa «Taller Pepe»: surt la categoria Cotxe (🚗). MALAMENT: surt Altres o una altra categoria.",
-            "2. Apunta «Repsol» i «Parking Saba»: continuen a Transport/Benzina i Pàrquing; i a la llista completa de categories apareix Cotxe. MALAMENT: algun cau a Cotxe o Cotxe no apareix."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.161",
@@ -77,36 +110,7 @@
         "Un compte sense tipus de canvi ja no apareix com a 0 €."
       ]
     },
-    "tandas": [
-      {
-        "id": "cartera-moneda",
-        "t": {
-          "es": "Cartera: los brókers también cambian de moneda",
-          "en": "Wallet: the brokers change currency too",
-          "ca": "Cartera: els bròquers també canvien de moneda"
-        },
-        "items": {
-          "es": [
-            "1. Ajustes → Moneda de visualización → USD.",
-            "2. Cartera: las filas de los brókers (Trade Republic y los demás) salen en $ y su suma cuadra con el total. MAL: alguna sigue en €.",
-            "3. Vuelve a EUR: todo como antes. MAL: cambia alguna cifra.",
-            "4. Ajustes → Moneda de visualización → EUR, y en Cartera, si alguna cuenta no tiene tipo de cambio (p. ej. Revolut en otra moneda), su fila dice «—» y por qué, no 0 €. MAL: pone 0 €."
-          ],
-          "en": [
-            "1. Settings → Display currency → USD.",
-            "2. Wallet: the broker rows (Trade Republic and the others) show in $ and their sum matches the total. WRONG: one is still in €.",
-            "3. Go back to EUR: everything as before. WRONG: any figure changes.",
-            "4. Settings → Display currency → EUR, and in Wallet, if an account has no exchange rate (e.g. Revolut in another currency), its row shows «—» and why, not 0 €. WRONG: it shows 0 €."
-          ],
-          "ca": [
-            "1. Ajustos → Moneda de visualització → USD.",
-            "2. Cartera: les files dels bròquers (Trade Republic i els altres) surten en $ i la seva suma quadra amb el total. MALAMENT: alguna continua en €.",
-            "3. Torna a EUR: tot com abans. MALAMENT: canvia alguna xifra.",
-            "4. Ajustos → Moneda de visualització → EUR, i a Cartera, si algun compte no té tipus de canvi (p. ex. Revolut en una altra moneda), la seva fila diu «—» i per què, no 0 €. MALAMENT: posa 0 €."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.160",

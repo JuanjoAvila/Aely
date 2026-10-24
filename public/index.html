@@ -9821,9 +9821,13 @@ function netWorthDebtPolicy(state, today, current){
     // Antes de la fecha se mantiene el saldo (o su cuadro, como las demás).
     const p=day.split("-").map(Number), charge=debtChargeDay(d);
     const anchor=typeof d.asOf==="number"?d.asOf:month;
-    // Sólo el alta con plazo acredita startMonth; asOf también se migra y se reancla.
-    // Sin inicio explícito se conserva el saldo/cuadro legado (FIN12).
-    if(d.months!=null&&Number.isInteger(d.startMonth)&&p[0]*12+p[1]-1<d.startMonth) return 0;
+    // Las altas nuevas acreditan el día real, distinto de la primera cuota. Las anteriores
+    // sólo conocen el mes; asOf también se migra/reancla y nunca acredita el nacimiento.
+    if(d.months!=null&&netWorthPointOk(d.startDay,0,"9999-12-31")){
+      if(day<d.startDay) return 0;
+    }else{
+      if(d.months!=null&&Number.isInteger(d.startMonth)&&p[0]*12+p[1]-1<d.startMonth) return 0;
+    }
     const paidToday=(month-anchor)+(d.months!=null&&charge<=parts[2]?1:0);
     const between=(month+(charge<=parts[2]?1:0))-((p[0]*12+p[1]-1)+(charge<=p[2]?1:0));
     let n=paidToday-between;
@@ -19996,6 +20000,7 @@ function AffordSim({state, totals, set}){
     const it={ id:uid(), ent:"familia", name:finName.trim()||t("db_newdebt"), value:financed, original:financed,
       monthly:quota, amort:quota, months:nM, asOf:ymNow(), account:bank, day:dd, note:t("db_addedmanual") };
     it.startMonth=it.asOf;
+    it.startDay=netWorthDay(); // La compra nace hoy; el día de cargo no es su fecha de alta.
     if(dw>0) it.downPayment=dw;
     set(function(s){ return Object.assign({},s,{debts:(s.debts||[]).concat([it])}); });
     setFinDone(true);
@@ -20647,6 +20652,7 @@ function Debts({state, set, showToast}){
     // debtPaidCount()===paid hoy (compensa el +1 que suma si la cuota de este mes ya pasó)
     if(paid>0){ let anchor=ymNow()-paid; if(months>0 && it.day!=null && it.day<=new Date().getDate()) anchor+=1; it.asOf=anchor; }
     if(months>0) it.startMonth=it.asOf;
+    if(months>0&&paid===0) it.startDay=netWorthDay(); // Con cuotas previas no conocemos el día de origen.
     set(s=>Object.assign({},s,{debts:s.debts.concat([it])}));
     setForm({name:"",value:"",monthly:"",months:"",day:"",account:"sabadell",down:"",balloon:"",paid:""}); setAdding(false);
     showToast(t("db_added"));
@@ -24247,7 +24253,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="be491811a4caffb72ef9b53f0d904c22d4d91b2e5ce7dbb1508f407deba7d23c";
+var _rnSha="f0e2aa87bbdd25a8142e4760d1a590d28f91230e37892cd66529600a82d07dee";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

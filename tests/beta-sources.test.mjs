@@ -133,6 +133,8 @@ const sourceBeta159=sourceAt("85b0a560ea1e44217f6a081634424c6a7dcc3a49");
 const sourceBeta160=sourceAt("66c13084257fd576444a01cb529c5e6e815c6ec6");
 // Catálogo161 pasa a histórico con la 162: se lee de la 4.26.161 servida en beta (13e814d22); su tanda cartera-moneda sigue pendiente de su veredicto y la 162 no la toca.
 const sourceBeta161=sourceAt("13e814d2289b279c80f325125e8168570b3a1d35");
+// Catálogo162 pasa a histórico con la 163: se lee de la 4.26.162 servida en beta (b4f148ada); sus tandas categoria-coche y cartera-moneda quedaron aprobadas el 21/10 y la 163 las vacía.
+const sourceBeta162=sourceAt("b4f148adaab75675682ee7cdf33f6b126f1529cf");
 const sourceBeta153=sourceAt("80752dff055dc391c52c3067ce238f49e0a14598");
 // Catálogo137 pasa a histórico en la promoción 137: se lee de la beta 4.26.137.1 aprobada (6f18228c), lo último que probó el móvil y lo que sube entero.
 const sourceBeta137=sourceAt("6f18228cbd81c1cc9abfa7fabce0a878819234f4");
@@ -275,7 +277,7 @@ test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CS
   // La base es la integración120 (apuntes iguales de Trade Republic): Inicio no puede retirar su alcance ni heredar su revisión.
   const integrated=JSON.parse(source120("scripts/beta-sources.json"));
   // Detrás de Inicio sólo ha entrado el alcance de la122 (el cargo de recibo en Gastos).
-  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","limpieza-ajustes-perfil","tr-empareja-sin-preguntar","cuenta-parte-mia","inicio-recientes-sin-repetidos","scroll-borde-barra","inicio-grafica-reservas","compras-identicas-ids","myinvestor-contador-a-cero","deudas-metas-hoja-edicion","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","gastos-suscripciones-botones","compras-pendientes-otro-dia","deudas-plazo-cuota-encaja","deudas-metas-hoja-sin-parpadeo","deudas-metas-hoja-cierre-suave","teclado-atras-conserva","fichas-cierre-suave-atras","vibracion-borde-y-mi-ciclo","deudas-aviso-plazo","cuenta-saldo-cierre-atras","banco-pruebas-sin-aviso","vibracion-suave-ronda-2","deudas-guardar-motivo","recibo-renombrado-sigue-pagado","vibracion-suave-ronda-3","plan-por-confirmar-prestamo-youtube","vuelta-sin-tiron","deuda-bajar-cuota-alarga-plazo","cartera-ordenar-brokers","youtube-enlazar-recibo","vibracion-ajustador","pestanas-swipe-rapido","gestionar-plan-sin-ola","renombrar-y-notas-seguras","gestionar-plan-ola","vibracion-ajustador-r2","gestionar-plan-ola-r2","vibracion-r3","youtube-diagnostico","renombrar-lista-al-momento","recibos-cifra-cuadra","cartera-sin-lagazo","renombrar-sin-cobertura","vibracion-r4","youtube-ficha-reconoce","vibracion-r5","vibracion-r6","youtube-r4","recibos-meses-a-mano","gastos-dos-bancos","cartera-moneda","categoria-coche"),"Inicio y las altas de la122, la124, la126, la127, la128, la129, la130, la131, la132, la133, la134, la135, la137, la138, la139, la140, la141, la143, la144, la145, la146, la147, la148, la149, la150, la151, la152 y la153, sin retirar historia120");
+  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","limpieza-ajustes-perfil","tr-empareja-sin-preguntar","cuenta-parte-mia","inicio-recientes-sin-repetidos","scroll-borde-barra","inicio-grafica-reservas","compras-identicas-ids","myinvestor-contador-a-cero","deudas-metas-hoja-edicion","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","gastos-suscripciones-botones","compras-pendientes-otro-dia","deudas-plazo-cuota-encaja","deudas-metas-hoja-sin-parpadeo","deudas-metas-hoja-cierre-suave","teclado-atras-conserva","fichas-cierre-suave-atras","vibracion-borde-y-mi-ciclo","deudas-aviso-plazo","cuenta-saldo-cierre-atras","banco-pruebas-sin-aviso","vibracion-suave-ronda-2","deudas-guardar-motivo","recibo-renombrado-sigue-pagado","vibracion-suave-ronda-3","plan-por-confirmar-prestamo-youtube","vuelta-sin-tiron","deuda-bajar-cuota-alarga-plazo","cartera-ordenar-brokers","youtube-enlazar-recibo","vibracion-ajustador","pestanas-swipe-rapido","gestionar-plan-sin-ola","renombrar-y-notas-seguras","gestionar-plan-ola","vibracion-ajustador-r2","gestionar-plan-ola-r2","vibracion-r3","youtube-diagnostico","renombrar-lista-al-momento","recibos-cifra-cuadra","cartera-sin-lagazo","renombrar-sin-cobertura","vibracion-r4","youtube-ficha-reconoce","vibracion-r5","vibracion-r6","youtube-r4","recibos-meses-a-mano","gastos-dos-bancos","cartera-moneda","categoria-coche","deuda-nueva-desde-su-dia"),"Inicio y las altas de la122, la124, la126, la127, la128, la129, la130, la131, la132, la133, la134, la135, la137, la138, la139, la140, la141, la143, la144, la145, la146, la147, la148, la149, la150, la151, la152 y la153, sin retirar historia120");
   for(const [key,value] of Object.entries(integrated))if(key!=="inicio-grafica-vuelve"){assert.deepEqual(scopes[key].native,value.native);assert.deepEqual(scopes[key].edge,value.edge);for(const part of (value.web||[]).map(limpieza129).filter(Boolean))assert.ok(scopes[key].web.some(s=>JSON.stringify(sinMetodo122(s))===JSON.stringify(part)||JSON.stringify(sinPull130(sinMetodo122(s)))===JSON.stringify(sinPull130(sinMetodo122(part)))||JSON.stringify(sinAbsorcion143(sinCompras135(sinPull130(sinMetodo122(s)))))===JSON.stringify(sinCompras135(sinPull130(sinMetodo122(part))))||JSON.stringify(sinFin19(sinMetodo122(s)))===JSON.stringify(sinMetodo122(part))),key+": no recortar descriptor ajeno120");}
   assert.equal(scope.unidades,true);
   for(const key of ["historial","auditoria","codigosCompatibles","compatibilidadGit","compatibilidadSha"])
@@ -4753,10 +4755,10 @@ const expected162={"v":"4.26.162","d":"2026-10-20","t":{"es":"Nueva categoría C
 // 4.26.162 (20/10/2026): la categoría Coche (c3f53f56c, rama claude/cat-coche) sobre la beta 4.26.161 servida (13e814d22), solo web y sin APK nueva (sigue la 61).
 // Una tanda NUEVA (categoria-coche); la tanda cartera-moneda de la 161 sigue PENDIENTE de su veredicto y se conserva tal cual; gastos-dos-bancos (160) queda aprobada y sale del panel.
 // Lleva Edge (ingest_logic.ts y categorize/index.ts): sin desplegar, el servidor no autocategoriza por taller/ITV ni la IA puede devolver «coche»; el móvil sí, por sus palabras clave.
-test("Catálogo162 añade la tanda de la categoría Coche (con Edge y sin APK nueva) sobre la 161, con alcance propio, y declara cada huella que mueve",()=>{
+test("Catálogo162 histórico añade la tanda de la categoría Coche (con Edge y sin APK nueva) sobre la 161, con alcance propio, y declara cada huella que mueve",()=>{
   const tandas=["categoria-coche"],pasos=[2];
   const integrated=JSON.parse(sourceBeta161("scripts/beta-sources.json")),before=JSON.parse(sourceBeta161("src/data/release-notes.json"));
-  const source=f=>nl(read(f)),old=f=>nl(sourceBeta161(f));
+  const source=f=>nl(sourceBeta162(f)),old=f=>nl(sourceBeta161(f));
   assert.equal(before[0].v,"4.26.161");
   assert.deepEqual(before[0].tandas.map(g=>g.id),["cartera-moneda"],"la 161 llevaba su tanda pendiente");
   assert.deepEqual([before[1].v,before[1].tandas.map(g=>g.id)],["4.26.160",["gastos-dos-bancos"]],"la 160 llevaba la tanda que ya está aprobada");
@@ -4831,7 +4833,7 @@ test("Catálogo162 añade la tanda de la categoría Coche (con Edge y sin APK nu
   // Sin APK nueva: apk.json, build.gradle, el nativo y el SQL quedan exactamente como en la 161 (Edge sí cambia).
   assert.equal(source("public/apk.json"),old("public/apk.json"),"apk.json intacto: sigue la APK 61");
   assert.equal(source("android/app/build.gradle"),old("android/app/build.gradle"),"build.gradle intacto");
-  assert.equal(execFileSync("git",["diff","--name-only","13e814d2289b279c80f325125e8168570b3a1d35","HEAD","--","supabase/migrations","android"],{encoding:"utf8"}).trim(),"","sin SQL ni nativo");
+  assert.equal(execFileSync("git",["diff","--name-only","13e814d2289b279c80f325125e8168570b3a1d35","b4f148adaab75675682ee7cdf33f6b126f1529cf","--","supabase/migrations","android"],{encoding:"utf8"}).trim(),"","sin SQL ni nativo");
   // CATEGORIES, KW y KW_PALABRA los lee todo descriptor que toca categorías, así que su huella web se mueve; los tres que vigilan ingest_logic.ts también por Edge.
   // La pendiente cartera-moneda (161) se mueve por la web por la misma razón: no tiene veredicto todavía, así que no reabre ninguna aprobación.
   const expectedMoves={"banco-pruebas-sin-aviso":["web"],"bancos-acuse-reconexion":["web"],"bancos-sin-hueco":["web"],"cartera-moneda":["web"],"cartera-ordenar-brokers":["web"],"cartera-sin-lagazo":["web"],"compras-identicas-ids":["web"],"cuenta-parte-mia":["web"],"cuenta-saldo-cierre-atras":["web"],"deuda-bajar-cuota-alarga-plazo":["web"],"deudas-metas-hoja-cierre-suave":["web"],"deudas-metas-hoja-edicion":["web"],"deudas-plazo-cuota-encaja":["web"],"feature-0210-01-gasolina-taxi":["web"],"feature-0310-01-movilidad":["web","edge"],"fichas-cierre-suave-atras":["web"],"fin05-pago-cerrada":["web","edge"],"fin05-widget-reentrada":["web"],"gastos-dos-bancos":["web"],"gastos-suscripciones-botones":["web"],"gestionar-plan-ola":["web"],"gestionar-plan-ola-r2":["web"],"gestionar-plan-sin-ola":["web"],"inc-0210-02-categoria-elegida":["web"],"inc-0210-03-gastos-periodo":["web"],"inc-0310-gastos-sin-limite":["web"],"inc-0710-gastos-mes-madrid":["web"],"inc-0810-dashboard-recents-memo":["web"],"inc-0810-metas-editar-regla":["web"],"inc-2909-01-widget-periodo":["web"],"inc-2909-02-inicio-natural":["web"],"inc-2909-03-retirada":["web"],"inc-3009-01-cargos":["web"],"inc-3009-nomina-anticipada":["web"],"inicio-grafica-vuelve":["web"],"limpieza-ajustes-perfil":["web"],"plan-por-confirmar-prestamo-youtube":["web"],"recibo-cargo-en-gastos":["web"],"recibo-renombrado-sigue-pagado":["web"],"recibos-cargo-unico":["web"],"recibos-cifra-cuadra":["web"],"recibos-meses-a-mano":["web"],"renombrar-lista-al-momento":["web"],"renombrar-sin-cobertura":["web"],"renombrar-y-notas-seguras":["web"],"tr-descripcion-clasificacion":["web"],"tr-empareja-sin-preguntar":["web"],"tr-iguales-ordinal":["web"],"vibracion-ajustador":["web"],"vibracion-ajustador-r2":["web"],"vibracion-r4":["web"],"vuelta-sin-tiron":["web"],"widget-app-cerrada":["web","edge"],"widget-banco":["web"],"widget-ciclo-puente":["web"],"widget-pago-app-cerrada":["web"],"youtube-diagnostico":["web"],"youtube-enlazar-recibo":["web"],"youtube-ficha-reconoce":["web"],"youtube-r4":["web"]};
@@ -4875,6 +4877,126 @@ test("Catálogo162 añade la tanda de la categoría Coche (con Edge y sin APK nu
   assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
 });
 
+
+const expected163={"v":"4.26.163","d":"2026-10-21","t":{"es":"La gráfica de Inicio no resta una financiación antes de que exista","en":"The Home chart no longer subtracts a new loan before it exists","ca":"La gràfica d'Inici no resta un finançament abans que existeixi"},"items":{"es":["Una financiación nueva ya no baja el patrimonio de la gráfica de Inicio en los días anteriores a darla de alta.","Desde el día en que la añades, la gráfica y el total la descuentan como siempre.","Las deudas que ya tenías no cambian."],"en":["A new loan no longer lowers the net worth in the Home chart on the days before you added it.","From the day you add it, the chart and the total subtract it as always.","The debts you already had do not change."],"ca":["Un finançament nou ja no abaixa el patrimoni de la gràfica d'Inici els dies anteriors a donar-lo d'alta.","Des del dia que l'afegeixes, la gràfica i el total el descompten com sempre.","Els deutes que ja tenies no canvien."]},"tandas":[{"id":"deuda-nueva-desde-su-dia","t":{"es":"Inicio: una financiación nueva cuenta desde su día de alta","en":"Home: a new loan counts from the day you add it","ca":"Inici: un finançament nou compta des del dia d'alta"},"items":{"es":["1. Plan → Deudas → Añadir deuda: una financiación de prueba con fecha de hoy (p. ej. 600 € a 12 meses, cuota 50 €, día de cobro el 16) y guarda. MAL: no se guarda o no aparece en Deudas.","2. Inicio → gráfica del patrimonio: mantén el dedo en un día anterior a hoy (p. ej. ayer). La cifra de ese día es la misma que antes de crearla, no baja por la deuda nueva. MAL: baja los 600 €.","3. Mantén el dedo en el día de hoy: la cifra sí descuenta los 600 €, y el total de arriba también. MAL: hoy no la descuenta.","4. Plan → Deudas → entra en la financiación de prueba → Eliminar esta deuda: la gráfica y el total vuelven a como estaban. MAL: queda algo cambiado."],"en":["1. Plan → Debts → Add debt: a test loan dated today (e.g. €600 over 12 months, €50 per month, charged on the 16th) and save. WRONG: it is not saved or does not show in Debts.","2. Home → net worth chart: hold your finger on a day before today (e.g. yesterday). That day's figure is the same as before you created it, it does not drop because of the new debt. WRONG: it drops by the €600.","3. Hold your finger on today: the figure does subtract the €600, and so does the total at the top. WRONG: today does not subtract it.","4. Plan → Debts → open the test loan → Delete this debt: the chart and the total go back to how they were. WRONG: something stays changed."],"ca":["1. Pla → Deutes → Afegeix deute: un finançament de prova amb data d'avui (p. ex. 600 € a 12 mesos, quota 50 €, dia de cobrament el 16) i desa. MALAMENT: no es desa o no apareix a Deutes.","2. Inici → gràfica del patrimoni: mantén el dit en un dia anterior a avui (p. ex. ahir). La xifra d'aquell dia és la mateixa que abans de crear-lo, no baixa pel deute nou. MALAMENT: baixa els 600 €.","3. Mantén el dit en el dia d'avui: la xifra sí que descompta els 600 €, i el total de dalt també. MALAMENT: avui no el descompta.","4. Pla → Deutes → entra al finançament de prova → Elimina aquest deute: la gràfica i el total tornen a com estaven. MALAMENT: queda alguna cosa canviada."]}}]};
+// 4.26.163 (21/10/2026): FIN-12 día de alta (PR 291, da16546b9, nace de la 160) sobre la beta 4.26.162 servida (b4f148ada), solo web y sin APK nueva (sigue la 61).
+// Una tanda NUEVA (deuda-nueva-desde-su-dia); las tandas categoria-coche (162) y cartera-moneda (161) quedaron APROBADAS el 21/10 y salen del panel (tandas:[], la propiedad se queda).
+// Sin Edge: startDay solo lo lee netWorthDebtPolicy (la gráfica de Inicio); Plan, el saldo de hoy, Metas y el widget no lo leen.
+test("Catálogo163 añade la tanda de la financiación desde su día de alta (FIN-12, solo web) sobre la 162, con alcance propio, y declara cada huella que mueve",()=>{
+  const tandas=["deuda-nueva-desde-su-dia"],pasos=[4];
+  const integrated=JSON.parse(sourceBeta162("scripts/beta-sources.json")),before=JSON.parse(sourceBeta162("src/data/release-notes.json"));
+  const source=f=>nl(read(f)),old=f=>nl(sourceBeta162(f));
+  assert.equal(before[0].v,"4.26.162");
+  assert.deepEqual(before[0].tandas.map(g=>g.id),["categoria-coche"],"la 162 llevaba su tanda pendiente");
+  assert.deepEqual([before[1].v,before[1].tandas.map(g=>g.id)],["4.26.161",["cartera-moneda"]],"la 161 llevaba su tanda pendiente");
+  // El panel solo enseña lo que está por probar: las dos aprobadas el 21/10 (162 y 161) salen (tandas:[], la propiedad se queda). Se vigila la forma, no una lista de ids.
+  const expectedNotes=[expected163,{...before[0],tandas:[]},{...before[1],tandas:[]},...before.slice(2)];
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.deepEqual(notes,expectedNotes,"la nota 163 literal delante, la 162 y la 161 sin sus tandas aprobadas y todo lo demás intacto");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.163",tandas[0],0]],"el panel enseña solo la nueva");
+  for(const n of notes.slice(1))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] (la propiedad se conserva, vacía)");
+  assert.equal(notes.length,260);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
+  notes[0].tandas.forEach(g=>assert.deepEqual(Object.keys(g),["id","t","items"],"identidad nueva, sin apk: "+g.id));
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,3,lang+": tres puntos familiares");
+    const steps=notes[0].tandas[0].items[lang];assert.equal(steps.length,pasos[0],lang+": pasos de "+tandas[0]);
+    steps.forEach((step,j)=>assert.ok(step.startsWith((j+1)+". "),lang+": paso numerado "+(j+1)));
+    for(const text of steps)assert.ok(/MAL|WRONG|MALAMENT/.test(text),lang+": cada paso dice qué es MAL: "+text);
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|FIN-|SES-|\d+\.\d+\.\d+/i.test(text),false,lang+": sin jerga: "+text);
+  }
+  // El guion cita los botones reales de la app en cada idioma: la pestaña, el segmento, el alta y el borrado de la deuda.
+  const textos=source("src/modules/01-i18n.js"),rotulo=key=>{const m={};for(const lang of ["es","en","ca"]){const all=[...textos.matchAll(new RegExp(key+':"([^"]*)"',"g"))].map(x=>x[1]);m[lang]=all[["es","en","ca"].indexOf(lang)];}return m;};
+  for(const [key,n] of [["tab_plan",1],["v4_plan_deudas",1],["db_add",1],["db_delete",4],["tab_dash",2]]){
+    const r=rotulo(key);for(const lang of ["es","en","ca"]){assert.ok(r[lang],lang+": "+key+" existe");assert.ok(notes[0].tandas[0].items[lang][n-1].includes(r[lang]),lang+": el paso "+n+" cita «"+r[lang]+"» ("+key+")");}
+  }
+  const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
+  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verifyNotes(twice),assert.AssertionError,"no duplicar una tanda");
+  const conApk=structuredClone(notes);conApk[0].tandas[0].apk=61;assert.throws(()=>verifyNotes(conApk),assert.AssertionError,"la tanda no exige APK: es solo web");
+  for(const i of [1,2]){const vuelve=structuredClone(notes);vuelve[i].tandas=structuredClone(before[i-1].tandas);assert.throws(()=>verifyNotes(vuelve),assert.AssertionError,"la tanda aprobada de la "+before[i-1].v+" no vuelve al panel");}
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),rest={...scopes};for(const id of tandas)delete rest[id];
+  for(const id of tandas)assert.equal(integrated[id],undefined,"identidad que no existía: "+id);
+  assert.deepEqual(Object.keys(scopes).slice(-tandas.length),tandas);
+  const U="src/modules/02-ui-shared.js",D="src/modules/09-tab-debts-goals.js",M="src/modules/08-motor-bank.js";
+  // startDay lo escriben el alta de Deudas (addDebt) y la compra de AffordSim (createDebt) —AffordSim no lo declaraba ningún descriptor— y lo lee netWorthDebtPolicy vía netWorthPointOk; netWorthDay sella el día civil de Madrid.
+  // Los dos escritores guardan con set(): el descriptor lleva el bloque del guardado (PERSIST91), como deudas-metas-hoja-edicion.
+  const propias={"deuda-nueva-desde-su-dia":[{"file":U,"function":"netWorthDebtPolicy"},{"file":U,"function":"netWorthPointOk"},{"file":U,"function":"netWorthDay"},{"file":D,"function":"Debts"},{"file":M,"function":"AffordSim"},{"file":"src/modules/11-app-main.js","from":"  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.","to":"  // INC-0410 guardado: límite."}]};
+  const fns=logicFunctions(source),dat=logicData(source);
+  const closure=start=>{
+    let web=start.slice();
+    for(let ronda=0;ronda<40;ronda++){
+      const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];
+      for(const f of scopeDependencies({web},source,fns))if(!tiene(f.file,f.name,"function"))extra.push({file:f.file,function:f.name});
+      for(const d of scopeDataDependencies({web},source,fns,dat))if(!tiene(d.file,d.name,"data"))extra.push({file:d.file,data:d.name});
+      if(!extra.length)break;web=web.concat(extra);
+    }
+    return web;
+  };
+  const congelados=new Set(["inc-0810-inicio-grafica-significado"]),unidad=u=>JSON.stringify(u);
+  // FIN-12 no añade funciones ni datos nuevos (netWorthDay y netWorthPointOk ya existían y viven en 02, fuera del cierre de 00/01/08): ningún descriptor anterior crece.
+  const crecen={};
+  for(const [id,scope] of Object.entries(integrated)){
+    if(congelados.has(id)){assert.deepEqual(rest[id],scope,"descriptor congelado: "+id);continue;}
+    const web=closure(scope.web||[]);
+    const antes=new Set((scope.web||[]).map(unidad));
+    assert.deepEqual(web.filter(u=>!antes.has(unidad(u))).map(unidad).sort(),(crecen[id]||[]).map(unidad).sort(),"lo que crece el descriptor es exactamente lo declarado: "+id);
+    assert.deepEqual({...rest[id],web:rest[id].web.map(unidad).sort()},{...scope,web:web.map(unidad).sort()},"cierre de lectores recalculado, ni se recorta ni crece sin declararlo: "+id);
+    assert.equal(rest[id].web.length,web.length,"sin unidades repetidas: "+id);
+  }
+  assert.deepEqual(Object.keys(rest),Object.keys(integrated),"ningún descriptor ajeno nuevo ni retirado");
+  for(const id of tandas){
+    const added=scopes[id],own=propias[id];
+    assert.deepEqual(added.web.slice(0,own.length),own,id+": las unidades propias de la tanda, en este orden");
+    assert.equal(added.unidades,true);
+    assert.equal(added.native,undefined,id+": sin ficheros nativos, no hay APK nueva");
+    assert.equal(added.edge,undefined,id+": sin Edge, solo web");
+    assert.deepEqual(Object.keys(added),["web","unidades"],id+": solo web");
+    const web=closure(own),clave=u=>JSON.stringify(u);
+    assert.equal(added.web.length,web.length,id+": el cierre de lectores del descriptor es exactamente el calculado");
+    assert.deepEqual(new Set(added.web.map(clave)),new Set(web.map(clave)),id+": el cierre de lectores del descriptor es exactamente el calculado");
+    for(const u of added.web)assert.ok(scopeText(u,source).length>0,"la unidad existe en la fuente: "+JSON.stringify(u));
+  }
+  // Solo web: apk.json, build.gradle, el nativo, el SQL y las Edge quedan exactamente como en la 162.
+  assert.equal(source("public/apk.json"),old("public/apk.json"),"apk.json intacto: sigue la APK 61");
+  assert.equal(source("android/app/build.gradle"),old("android/app/build.gradle"),"build.gradle intacto");
+  assert.equal(execFileSync("git",["diff","--name-only","b4f148adaab75675682ee7cdf33f6b126f1529cf","HEAD","--","supabase","android"],{encoding:"utf8"}).trim(),"","sin SQL, Edge ni nativo");
+  // netWorthDebtPolicy cambia y lo leen los cuatro descriptores de la gráfica de Inicio; Debts cambia (sella startDay) y lo declara la hoja de edición de Deudas. Ninguno tiene tanda en el panel.
+  const expectedMoves={"cartera-sin-lagazo":["web"],"deudas-metas-hoja-edicion":["web"],"inicio-grafica-vuelve":["web"],"inicio-mes-pasado-mismo-dia":["web"],"inicio-patrimonio-flujos":["web"]};
+  const previous=new Map();
+  const measure=reader=>{
+    const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};
+    for(const [key,scope] of Object.entries(integrated)){
+      if(key===archiveId||congelados.has(key))continue;
+      if(!previous.has(key))previous.set(key,betaRevision(key,sourceBeta162,undefined,scope));
+      const a=previous.get(key),b=betaRevision(key,reader,undefined,now[key]);
+      const surfaces=["web","native","edge"].filter(x=>a[x]!==b[x]);
+      if(surfaces.length)moved[key]=surfaces;
+    }
+    return moved;
+  };
+  const verify=(reader,expected=expectedMoves)=>assert.deepEqual(measure(reader),expected,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  verify(source);
+  const currents=Object.fromEntries(tandas.map(id=>[id,betaRevision(id,source,undefined,scopes[id])]));
+  for(const id of tandas){assert.ok(currents[id].web);assert.equal(currents[id].edge,undefined,"sin huella de Edge");assert.equal(currents[id].native,undefined);}
+  // Mutantes de dinero sobre la fuente real: quitar la frontera diaria, correrla un día, no sellar el día en cada escritor o tocar la validación reabre la tanda.
+  for(const [id,file,a,b] of [
+    [tandas[0],U,"if(day<d.startDay) return 0;","if(day<=d.startDay) return 0;"],
+    [tandas[0],U,"if(day<d.startDay) return 0;",""],
+    [tandas[0],U,"function netWorthPointOk(","function netWorthPointOk(/*x*/"],
+    [tandas[0],D,"if(months>0&&paid===0) it.startDay=netWorthDay();",""],
+    [tandas[0],M,"    it.startDay=netWorthDay();",""]
+  ]){
+    assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
+    const mutated=betaRevision(id,f=>f===file?source(f).replace(a,()=>b):source(f),undefined,scopes[id]);
+    assert.notEqual(mutated.web,currents[id].web,id+" reabre la tanda: "+a);
+  }
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes);
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),notes.flatMap(n=>(n.tandas||[]).map(g=>g.id)),"lo que el build entrega al panel");
+  built[0].tandas.forEach((g0,i)=>{
+    assert.equal(g0.web,currents[tandas[i]].web);assert.equal(g0.edge,undefined);assert.equal(g0.native,undefined);assert.equal(g0.apk,undefined);assert.equal(receipt.web[tandas[i]],currents[tandas[i]].web);
+    for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g0[key],undefined,"identidad nueva sin "+key);
+  });
+  assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
+});
 
 
 
@@ -6775,7 +6897,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   const marca="INC-0410 guardado: de aquí al límite";
   const dependientes=Object.keys(registro).filter(id=>registro[id].web.some(x=>x.from&&x.from.includes(marca)));
   const ajenas=Object.keys(registro).filter(id=>!dependientes.includes(id));
-  assert.equal(dependientes.length,60);
+  assert.equal(dependientes.length,61);
   for(const id of ["deudas-metas-hoja-edicion","deudas-plazo-cuota-encaja","deudas-metas-hoja-cierre-suave","fichas-cierre-suave-atras","gastos-suscripciones-botones"])assert.ok(dependientes.includes(id),id+": las hojas de Deudas y Metas y SubRow escriben estado con el set real y llevan el bloque del guardado");
   assert.ok(dependientes.includes("myinvestor-contador-a-cero"),"la sincronización de brókers de App escribe posiciones con el set real y lleva el bloque del guardado");
   assert.ok(dependientes.includes("compras-identicas-ids"),"las compras idénticas fusionan filas y guardan lápidas con el set real y llevan el bloque del guardado");
@@ -6788,6 +6910,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   assert.ok(dependientes.includes("cuenta-parte-mia"),"la parte mía de una cuenta guarda con el set real (ficha de cuenta, sincronización) y lleva el bloque del guardado");
   assert.ok(dependientes.includes("tr-empareja-sin-preguntar"),"el emparejado borra, edita y deshace con el set real y lleva el bloque del guardado");
   assert.ok(dependientes.includes("categoria-coche"),"Apuntar guarda el gasto nuevo con el set real (ApuntarSheet) y lleva el bloque del guardado");
+  assert.ok(dependientes.includes("deuda-nueva-desde-su-dia"),"el alta de Deudas (addDebt) y la compra de AffordSim (createDebt) sellan startDay y guardan con el set real: llevan el bloque del guardado");
   assert.ok(dependientes.includes("limpieza-ajustes-perfil"),"la limpieza de Ajustes y perfil escribe estado con set() (Ajustes, Cartera) y lleva el bloque del guardado");
   assert.ok(dependientes.includes("inicio-mes-pasado-mismo-dia"),"la tanda de la comparación lleva el mismo alcance de Inicio que inicio-patrimonio-flujos, con su bloque del guardado");
   assert.ok(dependientes.includes("recibo-renombrado-sigue-pagado"),"renombrar un recibo reescribe sus pruebas de pago con el set real (patchFixedById) y lleva el bloque del guardado");
