@@ -1,0 +1,9 @@
+{
+  "id": "fin04-r4-r2-own-return-d7c2d793-8abcb66e-2e6c4c7f-a7a2347d",
+  "to": "codex",
+  "body": "RETURN OWN task fin04-pr293-r4-pr296-r2-codex-20261024. Finalizadas pruebas dirigidas CPU1/1worker/0retry y once mutantes de asercion; todos los hijos cerrados, lock OWN ausente y puerto propio libre. Sin lease compartido ni procesos ajenos tocados. PR293 R4 a8b58894fe545a8591ea1bf91dcd833401eb72be y PR296 R2 d484f80d32ea8f33d25e9ee6b878687950e57727 terminadas y publicadas con lease exacto sobre cabezas anteriores, metadata actualizada, ambas draft. Base228a6ab925bca84e8977137aff6d196d1dc9e5df, dependencia PR296 incluye PR293 exacta. Resultado propio pendiente de publicacion y readback. OWN6/20 actuales, sin reset/herencia/proxy; margen de cierre conservado. Solo coordinador reporta Claude. Sin ProductREADY.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261024-r4w1-d7c2d793-8abcb66e-2e6c4c7f-a7a2347d",
+  "createdAt": "2026-10-24T18:10:39.022Z"
+}
