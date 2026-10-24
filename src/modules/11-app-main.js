@@ -3640,7 +3640,9 @@ function App(){
       onGoPlan:function(seg){ if(seg) setPlanGoto({id:seg,ts:Date.now()}); const i=tabIds.indexOf("plan"); if(i>=0) goTabTop(i); }});
     // Sin prop `active`: ver `mcOnGastosActive` — si viaja por props, entrar en Gastos
     // reconstruye el árbol entero encima del gesto (asimetría Deudas→Gastos vs →Cartera).
-    if(id==="gastos") return React.createElement(Expenses,{state:state,set:set,onSync:onSync,syncing:syncing,syncStatus:syncStatus,showToast:showToast,stopSwipe:stopSwipe,cancelSwipe:cancelSwipe,focusExp:gotoExp,clearFocus:function(){ setGotoExp(null); },forceAllTs:gastosForceAll});
+    if(id==="gastos") return React.createElement(Expenses,{state:state,set:set,onSync:onSync,syncing:syncing,syncStatus:syncStatus,showToast:showToast,stopSwipe:stopSwipe,cancelSwipe:cancelSwipe,focusExp:gotoExp,clearFocus:function(){ setGotoExp(null); },forceAllTs:gastosForceAll,
+      // «Abrir en Plan · Recibos/Deudas» de las filas grises (Gastos v5): mismo camino que Inicio.
+      onGoPlan:function(seg){ if(seg) setPlanGoto({id:seg,ts:Date.now()}); const i=tabIds.indexOf("plan"); if(i>=0) goTabTop(i); }});
     if(id==="plan") return React.createElement(PlanTab,{state:state,set:set,totals:totals,showToast:showToast,simple:simple,gotoSeg:planGoto,clearGoto:function(){ setPlanGoto(null); }});
     // El «Sincronizar» de Cartera actualiza TODO lo conectado: Open Banking + TR + MyInvestor
     // (petición 2026-07-18: «que también sincronice Trade Republic y MyInvestor»).

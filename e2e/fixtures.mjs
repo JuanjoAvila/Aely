@@ -1,3 +1,4 @@
+import { expect } from "@playwright/test";
 // Las suites de listas relativas necesitan el mismo mes en Node y en la página.
 // Las pruebas con reloj explícito omiten este helper mediante la anotación own-clock.
 export const FIXTURE_NOW = Date.parse("2026-09-26T12:00:00Z");
@@ -263,4 +264,49 @@ export async function dismissNews(page) {
   }
   await btn.first().click();
   await page.locator(".wn-panel").waitFor({ state: "detached", timeout: 5_000 }).catch(() => {});
+}
+
+/* ===== Gastos v5 (20/10/2026) =====
+   La tarjeta resumen y los botones de periodo se fueron: la cifra viva vive en la cabecera fija
+   (`gastos-cifra`, texto entero en un nodo oculto a la vista) con su línea (`gastos-estado`), y el
+   periodo (Meses · Mi ciclo · Rango · Todo) se elige en Filtros. Estas ayudas existen para que
+   cada spec no reinvente el camino. */
+/** La pantalla de Gastos ACTIVA (Gastos se premonta escondida; acotar evita leer la copia). */
+export const gastosRoot = (page) => page.locator(".page-scroll-host .gx-root");
+export const gastosCifra = (page) => gastosRoot(page).getByTestId("gastos-cifra");
+export const gastosEstado = (page) => gastosRoot(page).getByTestId("gastos-estado");
+/** Elige periodo en la hoja de Filtros: "months" | "cycle" | "custom" | "all". */
+export async function gastosPeriodo(page, id) {
+  await gastosRoot(page).locator("button.v4-chip").filter({ hasText: "🎛️" }).first().click();
+  await page.locator(`.v4-gastos-filter-sheet [data-periodo="${id}"]`).click();
+  await page.locator(".v4-sheet-back").click({ position: { x: 5, y: 5 } });
+  await page.locator(".v4-sheet-back").waitFor({ state: "detached" });
+  await expect(gastosRoot(page)).toHaveAttribute("data-periodo", id);
+}
+/** Baja la lista hasta dejar el día `ymd` (aaaa-mm-dd) justo bajo la cabecera ya encogida.
+ *  `ym` (mes de Madrid) distingue las dos mitades de un día local que cae en dos meses (fuera de España). */
+export async function gastosBajaAlDia(page, ymd, ym) {
+  const k = ymd.replaceAll("-", "");
+  await page.evaluate(([k, ym]) => {
+    const host = document.querySelector(".page-scroll-host"), el = host.querySelector(`[data-gx-day="${k}"]` + (ym ? `[data-gx-ym="${ym}"]` : ""));
+    const head = host.querySelector(".gx-head"), pad = parseFloat(getComputedStyle(host).paddingTop) || 0;
+    host.scrollTo(0, host.scrollTop + el.getBoundingClientRect().top - host.getBoundingClientRect().top - (pad + head.offsetHeight + 36) + 2);
+  }, [k, ym]);
+}
+/** Un cargo de una fila gris (recibos/cuotas agrupados por día, SPEC §4.4): abre su fila si está
+ *  plegada y devuelve el cargo. Antes eran tarjetas sueltas (`button.v4-mov`). */
+export async function gastosGrisFila(page, nombre) {
+  // `has` va relativo a la fila gris: un localizador que empieza en la raíz no casaría nunca.
+  const grupo = gastosRoot(page).locator(".gx-gris").filter({ has: page.locator(".gx-gris-it", { hasText: nombre }) }).first();
+  const item = grupo.locator(".gx-gris-it").filter({ hasText: nombre }).first();
+  const cab = grupo.locator(".gx-gris-h");
+  if ((await cab.getAttribute("aria-expanded")) !== "true") await cab.click();
+  await expect(item).toBeVisible();
+  return item;
+}
+/** Baja hasta el primer día pintado del mes `ym` (aaaa-mm, mes de Madrid) en la lista. */
+export async function gastosBajaAlMes(page, ym) {
+  const k = await gastosRoot(page).locator(`.gx-dia[data-gx-ym="${ym}"]`).first().getAttribute("data-gx-day");
+  const ymd = k.slice(0, 4) + "-" + k.slice(4, 6) + "-" + k.slice(6, 8);
+  await gastosBajaAlDia(page, ymd, ym);
 }

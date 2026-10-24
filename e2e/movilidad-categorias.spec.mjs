@@ -56,7 +56,8 @@ for(const lang of ["es","en","ca"]){
     const budgets={multas:100,zona_azul:20,peajes:50,tasas:60,parking:30,transporte:90};
     await seedLoggedInDashboard(page,{accounts,settings:settings(lang),expenses,budget:500,categoryBudgets:budgets,__seedOnce:true});
     await open(page);await page.locator('.botnav-tab[data-tour="gastos"]').click();
-    await expect(page.locator('.v4-gastos-progress[role="progressbar"]')).toHaveAttribute("aria-valuenow","75");
+    // Gastos v5: la cifra de la cabecera es lo que cuenta contra el límite (antes, la barra).
+    await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toHaveText("75,00 €");
     for(const [cat,,spent] of entries){
       const row=page.locator('.v4-gastos-cat[data-cat="'+cat+'"]');await expect(row).toContainText(labels[lang][cat]);
       await expect(row.locator('[role="progressbar"]')).toHaveAttribute("aria-valuenow",String(spent));
@@ -80,7 +81,7 @@ for(const lang of ["es","en","ca"]){
     // El SW sirve el mismo artefacto offline; esperar control impide confundir una caída de red con la app.
     await page.evaluate(()=>navigator.serviceWorker.ready);await page.waitForFunction(()=>!!navigator.serviceWorker.controller);
     await context.setOffline(true);await page.reload();await dismissNews(page);await page.locator('.botnav-tab[data-tour="gastos"]').click();
-    await expect(page.locator('.v4-gastos-progress[role="progressbar"]')).toHaveAttribute("aria-valuenow","75");
+    await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toHaveText("75,00 €");
     for(const cat of ["multas","zona_azul"])await expect(page.locator('.v4-gastos-cat[data-cat="'+cat+'"]')).toContainText(labels[lang][cat]);
     expect(await page.evaluate(()=>mcLoadRaw("micartera_v3").categoryBudgets)).toEqual({...budgets,multas:200,zona_azul:200,peajes:200});
     const saved=await page.evaluate(()=>mcLoadRaw("micartera_v3").expenses.map(e=>[e.id,e.category]));
@@ -96,9 +97,9 @@ for(const lang of ["es","en","ca"]){
     });
     const rows=page.locator(".v4-gastos-list-body button.v4-mov");await expect(rows).toHaveCount(3);
     for(const [i,cat] of ["multas","zona_azul","peajes"].entries())await expect(rows.filter({hasText:"Comercio ambiguo "+i}).locator(".nm-cat")).toContainText(labels[lang][cat]);
-    await expect(page.locator('.v4-gastos-progress[role="progressbar"]')).toHaveAttribute("aria-valuenow","54");
+    await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toHaveText("54,00 €");
     await page.evaluate(()=>document.dispatchEvent(new Event("visibilitychange")));await expect(rows).toHaveCount(3);
     await page.reload();await dismissNews(page);await page.locator('.botnav-tab[data-tour="gastos"]').click();
-    await expect(rows).toHaveCount(3);await expect(page.locator('.v4-gastos-progress[role="progressbar"]')).toHaveAttribute("aria-valuenow","54");
+    await expect(rows).toHaveCount(3);await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toHaveText("54,00 €");
   });
 }

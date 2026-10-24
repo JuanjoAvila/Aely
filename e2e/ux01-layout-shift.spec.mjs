@@ -46,7 +46,7 @@ test("page-scroll-host: caja a pantalla; padding = safe-top+10 (= .app+.page)", 
     const hs = getComputedStyle(host);
     const as = getComputedStyle(app);
     const probe =
-      host.querySelector(".v4-screen, .v4-gastos-summary, .serif, h1") || host.firstElementChild;
+      host.querySelector(".v4-screen, .serif, h1") || host.firstElementChild;
     const contentTop = probe
       ? probe.getBoundingClientRect().top
       : host.getBoundingClientRect().top + parseFloat(hs.paddingTop);
@@ -97,7 +97,7 @@ test("entrar/salir de page-scroll-host: sin salto vertical del contenido", async
     const host = document.querySelector(".page.page-scroll-host");
     if (!track || !host) return { error: "sin host" };
     const probe =
-      host.querySelector(".v4-screen, .v4-gastos-summary, .serif, h1") || host.firstElementChild;
+      host.querySelector(".v4-screen, .serif, h1") || host.firstElementChild;
     if (!probe) return { error: "sin probe" };
 
     const y = () => probe.getBoundingClientRect().top;

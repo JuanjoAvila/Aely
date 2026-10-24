@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, gastosCifra, gastosEstado } from "./fixtures.mjs";
 
 /* Presupuesto por categoría: desglose bajo la cabecera, límite informativo, misma regla
    que expenseCountsBudget (banco fuera de gasto diario no llena la barra). */
@@ -31,7 +31,7 @@ async function abreGastos(page) {
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await expect(page.locator(".v4-gastos-summary")).toBeVisible();
+  await expect(gastosCifra(page)).toBeVisible();
 }
 
 test("Gastos: desglose por categoría cuadra con la cabecera y excluye neutras/otrobanco", async ({ page }) => {
@@ -42,8 +42,8 @@ test("Gastos: desglose por categoría cuadra con la cabecera y excluye neutras/o
   });
   await abreGastos(page);
 
-  const bar = page.locator('.v4-gastos-progress[role="progressbar"]');
-  await expect(bar).toHaveAttribute("aria-valuenow", "60");
+  // Gastos v5: la cifra de la cabecera es lo que cuenta contra el límite.
+  await expect(gastosCifra(page)).toHaveText("60,00 €");
 
   const cats = page.locator('[data-testid="gastos-cats"] .v4-gastos-cat');
   await expect(cats).toHaveCount(2);
@@ -69,9 +69,9 @@ test("Gastos: poner y quitar límite de categoría no mueve el presupuesto gener
   });
   await abreGastos(page);
 
-  const head = page.locator('.v4-gastos-progress[role="progressbar"]');
-  await expect(head).toHaveAttribute("aria-valuenow", "40");
-  await expect(head).toHaveAttribute("aria-valuemax", "1000");
+  // Gastos v5: cifra y margen contra el presupuesto general en la cabecera (1000 − 40).
+  await expect(gastosCifra(page)).toHaveText("40,00 €");
+  await expect(gastosEstado(page)).toContainText("960 € por debajo");
 
   await page.locator('.v4-gastos-cat[data-cat="super"]').click();
   await expect(page.locator(".ask-sheet, .tabsheet").first()).toBeVisible();
@@ -79,8 +79,8 @@ test("Gastos: poner y quitar límite de categoría no mueve el presupuesto gener
   await page.locator(".btn-primary", { hasText: /Guardar|Save|Desa/ }).click();
 
   await expect(page.locator('.v4-gastos-cat[data-cat="super"] [role="progressbar"]')).toHaveAttribute("aria-valuemax", "200");
-  await expect(head).toHaveAttribute("aria-valuemax", "1000");
-  await expect(head).toHaveAttribute("aria-valuenow", "40");
+  await expect(gastosCifra(page)).toHaveText("40,00 €");
+  await expect(gastosEstado(page)).toContainText("960 € por debajo");
 
   // set() vuelca a localStorage con debounce 400 ms — esperar a que quede escrito.
   await expect.poll(async () => {
@@ -151,7 +151,7 @@ test("★ y se queda plegado al volver: es una preferencia, no un gesto que haya
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await expect(page.locator(".v4-gastos-summary")).toBeVisible();
+  await expect(gastosCifra(page)).toBeVisible();
   await expect(page.locator('[data-testid="gastos-cats"] .v4-gastos-cats-h')).toHaveAttribute("aria-expanded", "false");
 });
 
@@ -173,18 +173,14 @@ test("volver a abrirlo lo deja como estaba, con sus límites y sus barras", asyn
 test("plegar el desglose NO toca ni un límite ni una cifra", async ({ page }) => {
   await gastosSembrado(page);
   const antes = await page.evaluate(() => JSON.stringify(mcLoadRaw("micartera_v3").categoryBudgets || {}));
-  /* La cifra grande del mes, NO el texto entero de la cabecera. Y con la clase que EXISTE de
-     verdad (`.v4-gastos-summary-amount`): antes iba un selector doble con `.v4-gastos-progress-lbl`
-     delante, que no existe en el DOM — funcionaba de rebote por el segundo. Lo cazó Cursor
-     revisando. Un selector muerto en un test es una mentira esperando su turno: el día que
-     alguien cambie el segundo, este test pasa a mirar la nada y sigue verde.
-     Motivo del test: el desglose vive DENTRO de
-     `.v4-gastos-summary`, así que plegarlo cambia ese texto por definición. Lo que no puede
-     cambiar es el dinero. */
-  const cifra = await page.locator(".v4-gastos-summary-amount").first().innerText();
+  /* La cifra grande del mes (Gastos v5: `gastos-cifra` de la cabecera). Un selector muerto en un
+     test es una mentira esperando su turno (lo cazó Cursor con la clase vieja): se lee el nodo
+     que existe de verdad. Plegar el desglose no puede cambiar el dinero. */
+  const cifra = await gastosCifra(page).textContent();
+  expect(cifra).toMatch(/\d/);
   await page.locator('[data-testid="gastos-cats"] .v4-gastos-cats-h').click();
   expect(await page.evaluate(() => JSON.stringify(mcLoadRaw("micartera_v3").categoryBudgets || {}))).toBe(antes);
-  expect(await page.locator(".v4-gastos-summary-amount").first().innerText()).toBe(cifra);
+  expect(await gastosCifra(page).textContent()).toBe(cifra);
 });
 
 test("tiros: cómo se ve abierto y plegado", async ({ page }) => {

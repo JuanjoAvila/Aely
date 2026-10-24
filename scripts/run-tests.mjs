@@ -66,6 +66,7 @@ const steps = [
   ["payment-presentation", ["node", "tests/payment-presentation.test.mjs"]],
 
   ["gastos-periodo", ["node", "tests/gastos-periodo.test.mjs"]],
+  ["gastos-v5-cifra", ["node", "tests/gastos-v5-cifra.test.mjs"]],
   ["retirada-bancaria", ["node", "tests/retirada-bancaria.test.mjs"]],
   ["backup-snapshot", ["node", "tests/backup-snapshot.test.mjs"]],
   ["backup-sin-datos-banco", ["node", "tests/backup-sin-datos-banco.test.mjs"]],

@@ -4,7 +4,12 @@
  * conservarse montado mientras sale. Guardar sigue cambiando solo `budget`; movimiento reducido
  * no obliga a esperar una animación que el usuario ha pedido quitar. */
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, gastosRoot, gastosCifra, gastosEstado } from "./fixtures.mjs";
+
+/* Gastos v5 (20/10/2026): la tarjeta resumen se fue. Su cifra es `gastos-cifra`, el «quedan X» es
+   el margen de la línea (`gastos-estado`: «X € por debajo/encima»), el desglose gastos/ingresos del
+   balance es `gastos-desglose` y el periodo se lee en `data-periodo` (se elige en Filtros). */
+const desglose=(page)=>gastosRoot(page).getByTestId("gastos-desglose");
 
 test.use({ viewport:{width:375,height:812}, hasTouch:true });
 
@@ -36,9 +41,8 @@ for(const caso of [
   await expect(dash).not.toContainText(caso.start);
   await expect(page.locator("[data-testid='dash-budget-streak']")).toHaveCount(0);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  const gastos=page.locator(".v4-gastos-summary");
-  await expect(gastos).toContainText(/700/);
-  await expect(gastos).toContainText(/300/);
+  await expect(gastosCifra(page)).toContainText(/700/);
+  await expect(desglose(page)).toContainText(/300/);
 });
 
 for(const caso of [
@@ -71,13 +75,11 @@ for(const caso of [
   await expect(page.locator(".v4-budget-foot")).toHaveCount(0);
   await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText("1450");
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await expect(page.locator(".v4-period-btn.on")).toHaveText(caso.period);
-  const gastos=page.locator(".v4-gastos-summary");
-  await expect(gastos.locator(".v4-gastos-summary-amount")).toContainText("980,00");
-  await expect(gastos.locator(".v4-gastos-summary-sub")).toContainText("1450,00");
-  await expect(gastos.locator(".v4-gastos-summary-sub")).toContainText("470,00");
-  await expect(gastos.locator(".v4-gastos-summary-left")).toContainText("20,00");
-  await expect(gastos.locator(".v4-gastos-progress")).toHaveAttribute("aria-valuenow","980");
+  await expect(gastosRoot(page)).toHaveAttribute("data-periodo","cycle");
+  await expect(gastosCifra(page)).toHaveText("980,00 €");
+  await expect(desglose(page)).toContainText("1450,00");
+  await expect(desglose(page)).toContainText("470,00");
+  await expect(gastosEstado(page)).toContainText({es:"20 € por debajo",en:"20 € under",ca:"20 € per sota"}[caso.lang]);
 });
 
 for(const caso of [
@@ -106,9 +108,10 @@ for(const caso of [
   if(caso.income===780) await expect(dash.getByTestId("inicio-cycle-pace")).toHaveText("60 € al día durante 28 días");
   else await expect(dash.getByTestId("inicio-cycle-pace")).toHaveCount(0);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  const gastos=page.locator(".v4-gastos-summary");
-  await expect(gastos.locator(".v4-gastos-summary-left")).toContainText(caso.remaining);
-  await expect(gastos.locator(".v4-gastos-progress")).toHaveAttribute("aria-valuenow",caso.progress);
+  await expect(gastosEstado(page)).toContainText(caso.income===780?"1680 € por debajo":"150 € por encima");
+  // Con más ingresos que gasto el balance es a favor: la cifra es su valor, sin signo.
+  await expect(gastosCifra(page)).toHaveText(caso.income===780?"680,00 €":"1150,00 €");
+  await expect(gastosEstado(page).locator(caso.income===780?".gx-tone-mint":".gx-tone-coral")).toHaveCount(1);
 });
 
 test("Inicio conserva la frase de gasto también con balance desfavorable",async({page})=>{
@@ -155,9 +158,9 @@ test("el cobro del 26 reinicia el presupuesto opcional y Mi ciclo abre por defec
   if(await ajustesIniciales.count()) await ajustesIniciales.locator(".settings-push-h .back").click();
   await expect(page.locator(".v42-cycle-amount>.serif")).toHaveText("400 €");
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await expect(page.locator(".v4-period-btn.on")).toHaveText("Mi ciclo");
+  await expect(gastosRoot(page)).toHaveAttribute("data-periodo","cycle");
   await expect(page.locator(".v4-cycle-box")).toContainText(/26\/0?8/);
-  await expect(page.locator(".v4-gastos-summary")).toContainText(/600/);
+  await expect(gastosCifra(page)).toContainText(/600/);
   await page.clock.pauseAt(new Date("2026-09-26T08:00:00Z"));
   await page.clock.resume();
   await page.reload();
@@ -165,10 +168,12 @@ test("el cobro del 26 reinicia el presupuesto opcional y Mi ciclo abre por defec
   await page.waitForFunction(()=>!document.getElementById("mc-load"));
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await expect(page.locator(".v4-period-btn.on")).toHaveText("Mi ciclo");
+  await expect(gastosRoot(page)).toHaveAttribute("data-periodo","cycle");
   await expect(page.locator(".v4-cycle-box")).toContainText(/26\/0?9/);
-  await expect(page.locator(".v4-gastos-summary")).toContainText(/1\.?000/);
-  await expect(page.locator(".v4-gastos-summary")).not.toContainText(/600/);
+  // El ciclo nuevo ya no arrastra los 600 del anterior: el margen vuelve a ser el límite entero
+  // (el Bizum del 27 aún no ha llegado a esta hora).
+  await expect(gastosCifra(page)).not.toContainText(/600/);
+  await expect(gastosEstado(page)).toContainText("1000 € por debajo");
   await page.locator('.botnav-tab[data-tour="inicio"]').click();
   await expect(page.locator(".v4-budget")).toHaveAttribute("aria-label",/^Ciclo recién empezado\. /);
   await page.clock.pauseAt(new Date("2026-09-28T10:00:00Z"));
@@ -206,16 +211,10 @@ test("Mi ciclo muestra la cena neta de los Bizums recibidos aunque el modo mensu
   const ajustes=page.locator(".settings-push.open").filter({has:page.getByRole("heading",{name:/Ajustes/i})});
   if(await ajustes.count()) await ajustes.locator(".settings-push-h .back").click();
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await expect(page.locator(".v4-period-btn.on")).toHaveText("Mi ciclo");
-  const summary=page.locator(".v4-gastos-summary");
-  await expect(summary.locator(".v4-gastos-summary-label")).toHaveText("Balance desde el cobro");
-  await expect(summary.locator(".v4-gastos-summary-amount")).toContainText("20");
-  await expect(summary.locator(".v4-gastos-summary-sub")).toContainText("Gastos");
-  await expect(summary.locator(".v4-gastos-summary-sub")).toContainText("100");
-  await expect(summary.locator(".v4-gastos-summary-sub")).toContainText("Ingresos");
-  await expect(summary.locator(".v4-gastos-summary-sub")).toContainText("80");
-  await expect(summary.locator(".v4-gastos-summary-left")).toContainText("980");
-  await expect(summary.locator(".v4-gastos-progress")).toHaveAttribute("aria-valuenow","20");
+  await expect(gastosRoot(page)).toHaveAttribute("data-periodo","cycle");
+  await expect(gastosEstado(page)).toHaveText("en tu ciclo · 980 € por debajo");
+  await expect(gastosCifra(page)).toHaveText("20,00 €");
+  await expect(desglose(page)).toHaveText("gastos 100,00 € · ingresos 80,00 €");
 });
 
 test("Mi ciclo incluye el alquiler recibido y puede dejar más margen que el límite inicial",async({page})=>{
@@ -237,12 +236,10 @@ test("Mi ciclo incluye el alquiler recibido y puede dejar más margen que el lí
   const ajustes=page.locator(".settings-push.open").filter({has:page.getByRole("heading",{name:/Ajustes/i})});
   if(await ajustes.count()) await ajustes.locator(".settings-push-h .back").click();
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  const summary=page.locator(".v4-gastos-summary");
-  await expect(page.locator(".v4-period-btn.on")).toHaveText("Mi ciclo");
-  await expect(summary.locator(".v4-gastos-summary-amount")).toContainText("680");
-  await expect(summary.locator(".v4-gastos-summary-sub")).toContainText("780");
-  await expect(summary.locator(".v4-gastos-summary-left")).toContainText("1680");
-  await expect(summary.locator(".v4-gastos-progress")).toHaveAttribute("aria-valuenow","0");
+  await expect(gastosRoot(page)).toHaveAttribute("data-periodo","cycle");
+  await expect(gastosCifra(page)).toHaveText("680,00 €");
+  await expect(desglose(page)).toContainText("780");
+  await expect(gastosEstado(page)).toContainText("1680 € por debajo");
 });
 
 test("sin activar el ciclo Gastos abre en Este mes",async({page})=>{
@@ -253,7 +250,7 @@ test("sin activar el ciclo Gastos abre en Este mes",async({page})=>{
   await page.waitForFunction(()=>!document.getElementById("mc-load"));
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await expect(page.locator(".v4-period-btn.on")).toHaveText("Este mes");
+  await expect(gastosRoot(page)).toHaveAttribute("data-periodo","months");
 });
 
 async function abrir(page, reduced){

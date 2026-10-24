@@ -32,7 +32,7 @@ async function enGastos(page) {
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await expect(page.locator('.botnav-tab.active[data-tour="gastos"]')).toBeVisible();
   await expect.poll(async () => page.evaluate(() => {
-    const s = document.querySelector(".v4-gastos-summary");
+    const s = document.querySelector(".page-scroll-host .gx-head");   // Gastos v5: cabecera fija
     return s ? s.getBoundingClientRect().left : 999;
   })).toBeLessThan(40);
 }

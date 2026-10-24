@@ -281,8 +281,9 @@ test("Apuntar en ₺ con la app en €: convierte y guarda en euros", async ({ p
 });
 
 // El sheet «Más…» de períodos en Gastos era el ÚNICO sin swipe-para-cerrar (feedback 2026-07-18,
-// «el más de la foto»): ahora usa el mismo patrón que el resto.
-test("Gastos › Más… (períodos): cierra tirando hacia abajo", async ({ page }) => {
+// «el más de la foto»). Gastos v5 (20/10/2026): los periodos viven en la hoja de Filtros, y es ella
+// la que tiene que cerrarse igual que el resto.
+test("Gastos › Filtros (con los periodos): cierra tirando hacia abajo", async ({ page }) => {
   await seedLoggedInDashboard(page);
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
@@ -290,8 +291,9 @@ test("Gastos › Más… (períodos): cierra tirando hacia abajo", async ({ page
   if (await dismissNews.count()) await dismissNews.first().click();
 
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await page.getByRole("button", { name: /Más…|More…|Més…/ }).first().click();
+  await page.locator('.page-scroll-host .gx-root button.v4-chip').filter({ hasText: "🎛️" }).first().click();
   const sheet = page.locator(".v4-sheet");
+  await expect(sheet.locator('[data-periodo="cycle"]')).toBeVisible();
   await expect(sheet).toBeVisible();
   await page.waitForTimeout(450); // fin de la animación de entrada antes de medir
 

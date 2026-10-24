@@ -39,7 +39,8 @@ async function check(page,count,balance,cycle,remaining=500){
   await expect(page.locator('.v4-budget-txt .ph')).toContainText(cycle?String(remaining):"500");
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await expect(page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:"NOMINA EMPRESA SL"})).toHaveCount(count);
-  await expect(page.locator('.v4-gastos-summary-left')).toContainText(String(remaining));
+  // Gastos v5: lo que queda es el margen de la línea de la cabecera («… por debajo»).
+  await expect(page.locator('.page-scroll-host [data-testid="gastos-estado"]')).toContainText(new RegExp(remaining+" € (por debajo|under|per sota)"));
   await page.locator('.botnav-tab[data-tour="cartera"]').click();
   const account=page.locator('.v4-card-list button.v4-mov').filter({hasText:"Cuenta ficticia"});
   await expect(account).toHaveCount(1);

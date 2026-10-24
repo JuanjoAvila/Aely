@@ -62,8 +62,8 @@ for(const lang of ["es","en","ca"]){
       {id:"unknown",merchant:"Gasolinera Norte anterior",category:"otros",amount:13,date:"2026-09-20T12:00:00Z",source:"bank",ent:"trade_republic"}];
     await seedLoggedInDashboard(page,{accounts,settings:settings(lang),expenses,budget:500,categoryBudgets:{gasolina:100,taxi:50,transporte:90},__seedOnce:true});
     await open(page); await page.locator('.botnav-tab[data-tour="gastos"]').click();
-    const head=page.locator('.v4-gastos-progress[role="progressbar"]');
-    await expect(head).toHaveAttribute("aria-valuenow","60");
+    // Gastos v5: la cifra de la cabecera es lo que cuenta contra el límite (antes, la barra).
+    await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toHaveText("60,00 €");
     for(const [cat,spent,limit] of [["gasolina",30,100],["taxi",10,50],["transporte",7,90]]){
       const row=page.locator('.v4-gastos-cat[data-cat="'+cat+'"]');
       await expect(row).toContainText(labels[lang][cat]);

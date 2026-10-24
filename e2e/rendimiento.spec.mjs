@@ -40,15 +40,9 @@ test("Gastos aguanta 3.000 movimientos y sigue respondiendo al escribir", async 
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await expect(page.locator("button.v4-mov").first()).toBeVisible({ timeout: 15_000 });
 
-  // El filtro por defecto es "Este mes": el histórico sintético reparte sus 3.000 movimientos
-  // cada ~5h HACIA ATRÁS desde el instante real de la ejecución, así que el día 1 (o las
-  // primeras horas de cualquier mes) casi todo el histórico cae en el mes ANTERIOR y "Repsol"
-  // puede quedar fuera de "Este mes" — no es que falte el dato, es que el test busca en la
-  // ventana equivocada. Se cambia a "Todo" (sin límite de fecha) para probar de verdad lo que
-  // el test dice probar: filtrar sobre el histórico COMPLETO, no sobre un mes que puede tener
-  // uno o dos movimientos si acaba de empezar (2026-08-01: así se cazó).
-  await page.getByRole("button", { name: "Más…" }).click();
-  await page.getByRole("button", { name: "Todo", exact: true }).click();
+  // Se filtra sobre el histórico COMPLETO, no sobre un mes que puede tener uno o dos movimientos
+  // si acaba de empezar (2026-08-01: así se cazó con el «Este mes» de entonces). Desde Gastos v5
+  // (20/10/2026) la vista de entrada ya es el histórico entero, mes a mes: no hace falta pedir «Todo».
 
   // Escribir en el buscador es el peor caso: refiltra y reordena el histórico en cada tecla.
   const t0 = Date.now();

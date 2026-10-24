@@ -13,7 +13,7 @@ for(const caso of [
   await expect(page.locator(".botnav")).toBeVisible();
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  const screen=page.locator('.v4-screen').filter({has:page.locator('.v4-gastos-summary')});
+  const screen=page.locator('.v4-screen').filter({has:page.locator('.gx-head')});   // Gastos v5: cabecera fija
   const action=screen.locator('.action-row');
   await expect(action).toBeVisible();
   // Una sola explicación visible debe contener origen y límite de la acción.

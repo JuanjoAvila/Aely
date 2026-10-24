@@ -44,7 +44,8 @@ test("dentro del modo pruebas se ven los datos de PRUEBA, no los reales", async 
   await expect(page.locator(".sandbox-bar")).toBeVisible();
 
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await expect(page.locator(".v4-gastos-summary")).toContainText("9999");
+  // Gastos v5: el presupuesto de PRUEBA se ve en el margen de la cabecera (sin gastos, todo).
+  await expect(page.locator('.page-scroll-host [data-testid="gastos-estado"]')).toContainText(/9[.,]?999 €/);
 });
 
 test("lo que haces en pruebas NO toca la cartera real", async ({ page }) => {

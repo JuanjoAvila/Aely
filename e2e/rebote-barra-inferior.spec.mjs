@@ -64,14 +64,7 @@ async function estado(page) {
 async function irAGastosConTodo(page) {
   await page.evaluate(() => document.querySelector('.botnav-tab[data-tour="gastos"]').click());
   await expect.poll(() => page.evaluate(() => document.querySelector(".botnav-tab.active")?.getAttribute("data-tour"))).toBe("gastos");
-  await page.evaluate(() => {
-    const mas = Array.from(document.querySelectorAll(".v4-period-btn")).find((b) => /más|more|més/i.test(b.textContent || ""));
-    if (mas) mas.click();
-  });
-  await page.evaluate(() => {
-    const todo = Array.from(document.querySelectorAll(".v4-sheet-row")).find((b) => /^todo$|^all$|^tot$/i.test((b.textContent || "").trim()));
-    if (todo) todo.click();
-  });
+  // Gastos v5: la vista de entrada ya es el histórico entero, mes a mes (antes había que pedir «Todo»).
   await expect(page.locator("button.v4-mov").first()).toBeVisible({ timeout: 15_000 });
   await expect.poll(() => alturaMax(page), { timeout: 15_000 }).toBeGreaterThan(300);
 }

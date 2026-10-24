@@ -1,10 +1,6 @@
 /* ============================================================
    TAB: GASTOS
    ============================================================ */
-const DATE_PRESETS=[
-  {id:"month",label:"Este mes"},{id:"cycle",label:"Mi ciclo"},{id:"last",label:"Mes pasado"},
-  {id:"3m",label:"Últimos 3 meses"},{id:"all",label:"Todo"},{id:"custom",label:"Rango…"},
-];
 // «Mi ciclo» (petición pareja 2026-07-11): su nómina no cae en día fijo (23, 24…), así que el mes
 // natural le descuadra el ahorro. El ciclo se ancla al ÚLTIMO COBRO REAL apuntado: el ingreso
 // más reciente ≥200 € de los últimos 45 días (los bizums pequeños no cuentan). Sin cobro → mes.
@@ -81,6 +77,83 @@ function gastosPeriodOf(preset,bounds,cycle){
   return {startMs:bounds.from,todayEndMs:bounds.to===Infinity?Infinity:bounds.to+1,
     cycle:preset==="cycle"?cycle:null};
 }
+/* GASTOS v5 · LA CIFRA VIVA (20/10/2026, docs/design/gastos-v5/SPEC.md §3).
+   Arriba se ve lo gastado del mes y, al bajar, lo gastado HASTA el día que queda bajo la
+   cabecera. Eso no se puede calcular en cada evento de scroll recorriendo el histórico (AGENTS
+   §7 bis): se recorre UNA vez por cambio de datos y se guarda la suma por día; el scroll solo
+   consulta tablas.
+   Día = día del DISPOSITIVO, el mismo con el que la lista agrupa sus encabezados; mes = mes de
+   MADRID, el de las ventanas del presupuesto (`inicioDeMesMs`). En España coinciden siempre.
+   La caché va por HORA porque los cambios de hora de Madrid caen en hora en punto: todas las
+   filas de la misma hora son del mismo día, y así no se construye un `Date` por fila. */
+const _gastosDiaCache=new Map();
+function gastosDia(ms){
+  const hk=Math.floor(ms/36e5);
+  let v=_gastosDiaCache.get(hk);
+  if(v) return v;
+  if(_gastosDiaCache.size>60000) _gastosDiaCache.clear();
+  const d=new Date(hk*36e5);
+  v={k:d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate(), ym:madridYmdParts(hk*36e5).ym};
+  _gastosDiaCache.set(hk,v);
+  return v;
+}
+/* Suma por día de lo que cuenta en el presupuesto, con la MISMA regla fila a fila que
+   `monthBudgetStats` (`budgetRowSigned`). `sp` = gastado, `inc` = ingresos que cuentan.
+   `cum` acumula desde el principio del mes de Madrid (`porMes`) o desde el principio de la
+   ventana (ciclo, rango, todo), en orden de fecha. `earliest` = la fila más antigua del
+   histórico: sirve para no comparar con un mes que el histórico no cubre entero. */
+function gastosCifraDias(state, expenses, period, fromMs, toMs, porMes){
+  const delSet=period.cycle?expenseDeletedSet(state):null;
+  const st=Object.assign({},state,{expenses:expenses});
+  const days=Object.create(null), months=Object.create(null);
+  let earliest=Infinity;
+  (expenses||[]).forEach(function(e){
+    if(!e) return;
+    const ms=dateMs(e.date);
+    if(ms<earliest) earliest=ms;
+    if(ms<fromMs || ms>=toMs) return;
+    const v=budgetRowSigned(e, st, period, delSet);
+    if(!v) return;
+    // Día del dispositivo Y mes de Madrid: fuera de España un mismo día local puede caer en dos
+    // meses de Madrid, y cada parte suma en el suyo (como en la lista).
+    const info=gastosDia(ms), key=info.k+"|"+info.ym;
+    let day=days[key];
+    if(!day) day=days[key]={k:info.k, ym:info.ym, sp:0, inc:0};
+    if(v>0) day.sp+=v; else day.inc-=v;
+  });
+  const keys=Object.keys(days).map(function(x){ return days[x]; }).sort(function(a,b){ return a.k-b.k || (a.ym<b.ym?-1:a.ym>b.ym?1:0); });
+  let run={sp:0,inc:0}, lastYm=null;
+  keys.forEach(function(day){
+    if(porMes && day.ym!==lastYm){ run={sp:0,inc:0}; lastYm=day.ym; }
+    run={sp:run.sp+day.sp, inc:run.inc+day.inc};
+    day.cum=run;
+    const m=months[day.ym]||(months[day.ym]={sp:0,inc:0});
+    m.sp+=day.sp; m.inc+=day.inc;
+  });
+  return {days:days, keys:keys, months:months, earliest:earliest, porMes:!!porMes};
+}
+/* Lo acumulado hasta el día `k` (aaaammdd) del mes `ym` incluido. Un día sin nada que cuente
+   hereda lo del último día que sí; antes del primero (o del primero de SU mes, si se acumula por
+   mes), cero. Búsqueda binaria: se llama en cada cambio de día visible, no puede recorrer nada. */
+function gastosCumDia(cifra, k, ym){
+  const keys=cifra.keys;
+  const antes=function(d){ return d.k<k || d.k===k && (!ym || d.ym<=ym); };
+  let lo=0, hi=keys.length-1, at=-1;
+  while(lo<=hi){ const mid=(lo+hi)>>1; if(antes(keys[mid])){ at=mid; lo=mid+1; } else hi=mid-1; }
+  if(at<0) return {sp:0,inc:0};
+  const day=keys[at];
+  if(cifra.porMes && ym && day.ym!==ym) return {sp:0,inc:0};
+  return day.cum;
+}
+function gastosDiaDe(cifra, k, ym){ return cifra.days[k+"|"+ym]||null; }
+function gastosValor(x, mode){ return mode==="net" ? x.sp-x.inc : x.sp; }
+// «2026-09» ↔ índice de mes: con aritmética de enteros, sin `Date`.
+function gastosYmPrev(ym){
+  const y=+ym.slice(0,4), m=+ym.slice(5,7);
+  return m===1 ? (y-1)+"-12" : y+"-"+String(m-1).padStart(2,"0");
+}
+function gastosYmInicioMs(ym){ return inicioDeMesMs(Date.UTC(+ym.slice(0,4),+ym.slice(5,7)-1,15)); }
+
 // Fila de una suscripción detectada. Importe EDITABLE antes de «pasar a Fijos» (petición
 // 2026-08-03: recibos que se repiten cada mes pero varían de importe —luz, gas— para no dejarlos
 // con el de este mes y tener que corregirlo a mano el que viene) + botón para descartarla del
@@ -121,18 +194,23 @@ function SubRow({sp, state, set, showToast}){
     )
   );
 }
-function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe, cancelSwipe, focusExp, clearFocus, forceAllTs}){
+function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe, cancelSwipe, focusExp, clearFocus, forceAllTs, onGoPlan}){
   /* «Ver todo» desde una ficha puede llegar antes de que Gastos termine de montar. Conservamos
      ese destino solo durante la navegación: el estado inicial lo consume y el evento cubre el
      caso en que la pestaña ya estaba viva. No se guarda en preferencias. */
   const bankPending=typeof window!=="undefined"&&window.__mcExpBank||"";
   const cycleEnabled=!!(state.settings&&state.settings.budgetCycle);
-  const [preset,setPreset]=useState(bankPending?"all":(cycleEnabled?"cycle":"month"));
+  /* Gastos v5 (20/10/2026): «months» es la lista entera mes a mes con la cifra viva; sustituye a
+     Este mes / Mes pasado / 3 meses, que ahora son la fila de meses. Mi ciclo, Rango y Todo siguen
+     y se eligen en Filtros (su sitio definitivo, SPEC §7). Con el presupuesto por ciclo, se
+     arranca en el ciclo: es lo que dice Inicio y la cifra de arriba tiene que coincidir. */
+  const presetDef=cycleEnabled?"cycle":"months";
+  const [preset,setPreset]=useState(bankPending?"all":presetDef);
   const cycleEnabledPrev=useRef(cycleEnabled);
   useEffect(function(){
     if(cycleEnabledPrev.current===cycleEnabled) return;
     cycleEnabledPrev.current=cycleEnabled;
-    setPreset(cycleEnabled?"cycle":"month");
+    setPreset(cycleEnabled?"cycle":"months");
   },[cycleEnabled]);
   // Tras importar una hoja: salta a "Todo" — lo importado suele traer fechas fuera del mes en
   // curso, y "Este mes" las tapaba en silencio (feedback 2026-08-01).
@@ -164,7 +242,6 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
      sigue siendo el histórico completo por defecto, esto es para explorar, no un modo nuevo. */
   const [bucketSel,setBucketSel]=useState([]);
   const [q,setQ]=useState("");        // búsqueda por texto (comercio/categoría)
-  const [morePeriods,setMorePeriods]=useState(false);
   const [filterOpen,setFilterOpen]=useState(false);
   const [visible,setVisible]=useState(CONFIG.PAGE_SIZE);
   const [dragExpense,setDragExpense]=useState(null);
@@ -645,7 +722,6 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   };
 
   const todayKey=new Date().toDateString();
-  const monthly=preset==="month"||preset==="last"||preset==="3m", dateOpts={day:"2-digit",month:"short",timeZone:monthly?"Europe/Madrid":undefined};
   // Las ventanas de mes son de Madrid: el memo también debe caducar al cambiar el día ALLÍ, que
   // en un dispositivo de otra zona no coincide con `todayKey`.
   const mad=madridYmdParts(Date.now()), madridDay=mad.ym+"-"+mad.d;
@@ -658,7 +734,18 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // `todayKey` invalida ciclo, filtros y cabecera cuando la app queda abierta al cruzar el día;
   // así el 26 o el día 1 no conserva cifras del período anterior en un memo.
   const bounds=useMemo(function(){ return presetBoundsMs(preset,range,cycle&&cycle.start); },[preset,range,cycle,todayKey,madridDay]);
-  const selectedPeriod=useMemo(function(){ return gastosPeriodOf(preset,bounds,cycle); },[preset,bounds,cycle]);
+  /* En «months» la lista no tiene ventana (es el histórico entero, mes a mes), pero la cifra de
+     arriba y el desglose son los del MES EN CURSO: desde el día 1 de Madrid hasta el día 1 del mes
+     siguiente, como la tarjeta de antes. Inicio (`budgetPeriodOf`) no pone tope: un apunte fechado
+     el mes que viene suma allí al mes en curso. Aquí sale en SU mes de la lista y no puede sumar
+     también arriba (e2e gastos-mes-madrid); con apuntes normales las dos cifras son la misma. */
+  const selectedPeriod=useMemo(function(){
+    if(preset==="months"){
+      const ini=inicioDeMesMs(Date.now());
+      return {startMs:ini, todayEndMs:inicioDeMesMs(ini+35*864e5), cycle:null};
+    }
+    return gastosPeriodOf(preset,bounds,cycle);
+  },[preset,bounds,cycle,todayKey,madridDay]);
   const diarioEnts=useMemo(function(){ return expenseBankEnts(state); },[state.accounts, state.settings]);
   const diarioPrev=useRef(diarioEnts.slice());
   const diarioKey=diarioEnts.slice().sort().join("|");
@@ -742,24 +829,30 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // `accounts` + `settings` van en deps: monthBudgetStats → expenseCountsBudget → expenseBankEnts
   // lee rol diario y expenseBanks. Sin ellos, quitar un banco de gasto diario dejaba la cabecera
   // alta hasta que un sync cambiaba `expenses` (B09-A / feedback familia 2026-09-06).
-  const budgetApplies=preset==="month"||preset==="cycle";
+  const budgetApplies=preset==="months"||preset==="cycle";
   const monthSummary=useMemo(function(){
-    const now=new Date(), day=monthly?madridYmdParts(Date.now()):{d:now.getDate(),m:now.getMonth()+1};
     const bs=monthBudgetStats(Object.assign({},state,{expenses:expensesDef}),null,null,null,selectedPeriod);
     // No existe una foto histórica del límite ni un presupuesto acumulado para varios meses.
     // Enseñar el límite actual como margen del pasado inventaría dinero disponible.
     if(!budgetApplies){ bs.budget=null; bs.remaining=null; }
     const periodLabel=preset==="custom"
       ? (range.from?fmtIsoCorto(range.from):t("g_all"))+" → "+(range.to?fmtIsoCorto(range.to):t("g_all"))
-      : t("g_"+preset);
+      : preset==="months" ? monthLong(mad.m-1) : preset==="all" ? t("gv5_all") : t("g_"+preset);
     return {
-      spent:bs.spent, income:bs.income, balance:bs.balance, mode:bs.mode, against:bs.against,
+      spent:bs.spent, income:bs.income, balance:bs.balance, mode:bs.mode, against:bs.against, shown:bs.shown,
       budget:bs.budget, reserved:bs.reserved, remaining:bs.remaining,
-      day:day.d,
-      month:monthLong(day.m-1), cycle:!!selectedPeriod.cycle,
+      cycle:!!selectedPeriod.cycle,
       periodLabel:periodLabel, budgetApplies:budgetApplies
     };
   },[expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.budget,state.reservaLog,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,preset,range,budgetApplies,todayKey,madridDay]);
+  /* Sumas por día para la cifra viva. Mismas porciones del estado que la cabecera (las lee
+     `expenseCountsBudget`); NO depende de la búsqueda ni de los filtros: la cifra es la del
+     presupuesto, igual que antes la tarjeta («buscar no redefine el límite»). */
+  const cifra=useMemo(function(){
+    const months=preset==="months";
+    const to=months||bounds.to===Infinity?Infinity:bounds.to+1;
+    return gastosCifraDias(state, expensesDef, months?{cycle:null}:selectedPeriod, months?-Infinity:bounds.from, to, months);
+  },[expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,preset,bounds,todayKey,madridDay]);
   // Desglose por categoría: misma regla/ventana que la cabecera. categoryBudgets en deps
   // porque una fila a 0 con límite tiene que aparecer aunque no haya gastos nuevos.
   const catBreakdown=useMemo(function(){
@@ -892,6 +985,130 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // de globales que React.memo no ve).
   const l10nKey=CURLANG+"|"+DISP.sym;
 
+  /* Meses de la lista (para la fila de meses) y dónde empieza cada uno. Una pasada por cambio de
+     lista; `gastosDia` va por caché de hora, sin un `Date` por fila. */
+  const mesesLista=useMemo(function(){
+    const first=Object.create(null), orden=[];
+    for(let i=0;i<filtered.length;i++){
+      const info=gastosDia(dateMs(filtered[i].date));
+      if(!first[info.ym]){ first[info.ym]={i:i,k:info.k,ym:info.ym}; orden.push(info.ym); }
+    }
+    if(!first[mad.ym]) orden.push(mad.ym);
+    orden.sort();
+    const nuevo=filtered.length?gastosDia(dateMs(filtered[0].date)):null;
+    return {orden:orden, first:first, newestK:nuevo&&nuevo.k, newestYm:nuevo&&nuevo.ym};
+  },[filtered,madridDay]);
+  /* LA CABECERA, COMO DATOS (SPEC §3). `top` es lo que se ve arriba del todo; `line(k)` lo que se
+     ve cuando el día k queda bajo la cabecera. Todo sale de tablas ya calculadas: la cabecera lo
+     consulta en cada cambio de día visible sin recorrer nada.
+     · Mes en curso: la cifra de Inicio y su margen contra el presupuesto. Sin presupuesto, contra
+       el mes anterior HASTA EL MISMO DÍA (a día 20, contra septiembre entero siempre sería «menos»).
+     · Mes cerrado: su total y «cerrado». NUNCA contra el límite: no hay foto histórica del límite
+       y el de hoy aplicado al pasado inventaría margen (regla de la tarjeta de antes, que se
+       conserva). Contra el mes anterior solo si el histórico lo cubre ENTERO: con medio mes
+       cargado, «menos que agosto» sería falso.
+     · Bajando dentro de un mes: lo acumulado hasta ese día. */
+  const cab=useMemo(function(){
+    const mode=monthSummary.mode;
+    const fmt=function(x){ x=Math.abs(x); return x<1?eur(x):eur0(x); };
+    const mesDe=function(ym){ return monthLong(+ym.slice(5,7)-1); };
+    // En modo balance la cifra se enseña sin signo, como `shown` de `monthBudgetStats`.
+    const shownOf=function(v){ return mode==="net"?Math.abs(v):v; };
+    // En balance la cifra es un neto: debajo se dice de qué sale, como hacía la tarjeta de antes
+    // («Mi ciclo explica el margen», 28/9). Con gasto bruto no hace falta: la cifra ES el gasto.
+    const subDe=function(x){ return mode==="net"?tf("gv5_net_sub",{g:eur(x.sp),i:eur(x.inc)}):null; };
+    const cubre=function(ym){ return cifra.earliest<gastosYmInicioMs(ym); };
+    const vsBudget=function(){
+      const r=monthSummary.remaining;
+      if(r==null) return null;
+      return r<0?{tail:tf("gv5_over",{x:fmt(r)}),tone:"coral"}:{tail:tf("gv5_under",{x:fmt(r)}),tone:"mint"};
+    };
+    const vsPrev=function(cur,prev,ym,mismoDia){
+      const diff=cur-prev, mes=mesDe(ym), sd=mismoDia?"_sd":"";
+      if(Math.abs(diff)<1) return {tail:tf("gv5_same"+sd,{mes:mes}),tone:"muted"};
+      return {tail:tf((diff>0?"gv5_more":"gv5_less")+sd,{x:fmt(diff),mes:mes}),tone:diff>0?"coral":"mint"};
+    };
+    let top;
+    if(preset==="months"){
+      let st=vsBudget();
+      const pym=gastosYmPrev(mad.ym);
+      if(!st && cubre(pym)){
+        const prevK=+pym.slice(0,4)*10000+(+pym.slice(5,7))*100+mad.d;
+        st=vsPrev(monthSummary.against, gastosValor(gastosCumDia(cifra,prevK,pym),mode), pym, true);
+      }
+      top={n:monthSummary.shown, pre:tf(mode==="net"?"gv5_net_in":"gv5_spent_in",{mes:mesDe(mad.ym)}), tail:st&&st.tail, tone:st&&st.tone, ym:mad.ym};
+    } else if(preset==="cycle"){
+      const st=vsBudget();
+      top={n:monthSummary.shown, pre:t("gv5_cycle"), tail:st&&st.tail, tone:st&&st.tone, ym:null};
+    } else top={n:monthSummary.shown, pre:monthSummary.periodLabel, ym:null};
+    top.sub=subDe({sp:monthSummary.spent, inc:monthSummary.income});
+    const line=function(k, ym){
+      if(preset==="months"){
+        const first=mesesLista.first[ym], esPrimero=!!first&&first.k===k;
+        if(esPrimero && ym===mad.ym) return top;
+        if(esPrimero && ym<mad.ym){
+          const m=cifra.months[ym]||{sp:0,inc:0}, v=gastosValor(m,mode), pym=gastosYmPrev(ym);
+          const st=cubre(pym)?vsPrev(v,gastosValor(cifra.months[pym]||{sp:0,inc:0},mode),pym,false):null;
+          return {n:shownOf(v), pre:tf("gv5_closed",{mes:mesDe(ym)}), tail:st&&st.tail, tone:st&&st.tone, ym:ym, sub:subDe(m)};
+        }
+        const c=gastosCumDia(cifra,k,ym);
+        return {n:shownOf(gastosValor(c,mode)), pre:tf(mode==="net"?"gv5_upto_net":"gv5_upto",{mes:mesDe(ym),d:k%100}), ym:ym, sub:subDe(c)};
+      }
+      if(k===mesesLista.newestK && ym===mesesLista.newestYm) return top;
+      const d=(k%100)+" "+monthShort(Math.floor(k/100)%100-1).toLowerCase(), c=gastosCumDia(cifra,k);
+      return {n:shownOf(gastosValor(c,mode)), sub:subDe(c),
+        pre:preset==="cycle"?tf("gv5_cycle_upto",{d:d}):tf("gv5_period_upto",{period:monthSummary.periodLabel,d:d}), ym:null};
+    };
+    const meses=mesesLista.orden.map(function(ym){
+      const y=+ym.slice(0,4);
+      return {ym:ym, label:mesDe(ym)+(y!==mad.y?" "+y:"")};
+    });
+    return {top:top, line:line, meses:meses};
+  },[monthSummary,cifra,mesesLista,preset,madridDay,l10nKey]);
+  /* Tocar un mes salta a su primer día. Si aún no está pintado (la lista va por tandas), se
+     amplía la tanda y el salto se hace al montarse el día. El mes en curso es volver arriba. */
+  const diasRef=useRef(null);
+  const saltoRef=useRef(null);
+  const mesesListaRef=useRef(mesesLista); mesesListaRef.current=mesesLista;
+  const hostDe=function(){ const r=rootRef.current; return r&&r.closest?r.closest(".page"):null; };
+  const scrollHost=function(top){
+    const h=hostDe(); if(!h) return;
+    // Suave solo en saltos cortos: cruzar tres meses deslizando hace rodar la cifra por todos los
+    // días de por medio y tarda; lejos, se aparece directamente en el mes elegido.
+    const lejos=Math.abs(h.scrollTop-top)>h.clientHeight*2.5;
+    h.scrollTo({top:Math.max(0,top), behavior:mcReduced()||lejos?"auto":"smooth"});
+  };
+  const saltaADia=function(k){
+    const h=hostDe(), root=rootRef.current; if(!h||!root) return false;
+    const el=root.querySelector('[data-gx-day="'+k.k+'"][data-gx-ym="'+k.ym+'"]'), head=root.querySelector(".gx-head");
+    if(!el||!head) return false;
+    // La raya de lectura es el borde de la cabecera YA ENCOGIDA (con la fila de meses debajo):
+    // su caja no cambia de alto al encogerse, solo se suma lo que sobresale la fila de meses.
+    const pad=parseFloat(getComputedStyle(h).paddingTop)||0;
+    const raya=pad+head.offsetHeight+GX_MESES_SOBRE;
+    scrollHost(h.scrollTop+el.getBoundingClientRect().top-h.getBoundingClientRect().top-raya+2);
+    return true;
+  };
+  const irAMes=useCallback(function(ym){
+    const L=mesesListaRef.current, first=L.first[ym];
+    if(!first || first.i===0){ scrollHost(0); return; }
+    if(saltaADia(first)) return;
+    saltoRef.current=first;
+    setVisible(function(v){ return Math.max(v, first.i+CONFIG.PAGE_SIZE); });
+  },[]);
+  useLayoutEffect(function(){
+    // La lista acaba de cambiar: la cabecera vuelve a buscar los días la próxima vez que mire.
+    diasRef.current=null;
+    if(saltoRef.current!=null && saltaADia(saltoRef.current)) saltoRef.current=null;
+  });
+  const clearFilters=function(){
+    setSel([]);
+    setBucketSel([]);
+    // Borrar filtros = volver a la preselección automática de gasto diario y al periodo de entrada.
+    setBankSel(diarioEnts.slice());
+    setPreset(presetDef);
+  };
+
   // Resumen de filtros activos, para el botón "Filtros" (badge) y la línea de chips debajo.
   // Se calcula aquí (no memoizado: sel/bankSel son arrays cortos) porque lo usan dos sitios:
   // el botón junto al buscador y la línea de resumen + "Borrar filtros".
@@ -899,8 +1116,11 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const bankSelIsDefault=sameEntList(bankSel, diarioEnts);
   const nCatSel=sel.length;
   const nBankSel=bankSelIsDefault?0:Math.max(1,bankSel.length);
-  const nFilters=nCatSel+nBankSel+bucketSel.length;
+  // El periodo vive en Filtros desde la v5: cuenta como filtro solo si no es el de entrada.
+  const nPeriod=preset!==presetDef?1:0;
+  const nFilters=nCatSel+nBankSel+bucketSel.length+nPeriod;
   const filterParts=[];
+  if(nPeriod) filterParts.push(monthSummary.periodLabel);
   if(bucketSel.length===1) filterParts.push(t("g_bk_"+bucketSel[0]));
   else if(bucketSel.length>1) filterParts.push(bucketSel.length+" "+t("g_bk_title").toLowerCase());
   if(nCatSel===1) filterParts.push(filterSelLabel(sel[0], state.debts));
@@ -923,114 +1143,49 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
      Se vio saliendo de Deudas hacia Gastos: el perfilador ponía `MovRow` como la función más cara
      de la app en ese gesto. Con un número, la comparación acierta y la fila solo se rehace cuando
      cambia de verdad; el `Date` se construye DENTRO, que es donde se usa para formatear. */
-  const groups=[]; let last=null;
+  /* GASTOS v5 · LOS DÍAS (SPEC §4.2 y §4.4). Cada gasto en su tarjeta y, por día, los cargos del
+     banco que pagan un recibo o una cuota en UNA fila gris desplegable: se siguen viendo (4.26.122:
+     todo cargo del banco aparece) sin ocupar la lista. Buscando o filtrando por categoría no se
+     agrupa: lo que has pedido ver no puede quedar plegado. Ninguna regla de qué cuenta cambia: el
+     cajón es el mismo `expenseBucket` que pintaba «Recibo: X» y «ya cuenta en el Plan». */
+  const agrupa=!q.trim() && !sel.length;
+  const hoy=new Date();
+  const hoyK=hoy.getFullYear()*10000+(hoy.getMonth()+1)*100+hoy.getDate();
+  const ayer=new Date(hoy.getFullYear(),hoy.getMonth(),hoy.getDate()-1);
+  const ayerK=ayer.getFullYear()*10000+(ayer.getMonth()+1)*100+ayer.getDate();
+  const dias=[]; let dia=null;
   shown.forEach(function(e){
-    const ms=dateMs(e.date), d=new Date(ms), k=dayKey(d);
-    if(k!==last){
-      const today=dayKey(new Date()), yesterday=new Date(); yesterday.setDate(yesterday.getDate()-1);
-      const label=k===today?t("g_today"):k===dayKey(yesterday)?t("g_yesterday"):d.toLocaleDateString(loc(),{weekday:"long",day:"numeric",month:"short"});
-      groups.push({sep:label}); last=k;
-    }
-    groups.push({e:e,ms:ms,l:e.debtId&&filterSelLabel("debt:"+e.debtId,state.debts)});
+    const ms=dateMs(e.date), info=gastosDia(ms);
+    if(!dia||dia.k!==info.k||dia.ym!==info.ym){ dia={k:info.k, ym:info.ym, ms:ms, rows:[], gris:[]}; dias.push(dia); }
+    const bucket=expenseBucket(e, state);
+    const l=e.debtId&&filterSelLabel("debt:"+e.debtId,state.debts);
+    const recibo=reciboEtiqueta(state,e);
+    if(agrupa && (bucket==="recibo"||bucket==="deuda")){
+      let g=dia.gris.find(function(x){ return x.kind===bucket; });
+      if(!g){ g={kind:bucket, items:[], total:0}; dia.gris.push(g); }
+      g.items.push({e:e, ms:ms, sub:bucket==="recibo"?recibo:(l||catName("deudas"))});
+      g.total+=Math.abs(e.amount||0);
+    } else dia.rows.push({e:e, ms:ms, l:l, bucket:bucket, recibo:recibo});
   });
+  const etiquetaDia=function(d){
+    if(d.k===hoyK) return t("g_today");
+    if(d.k===ayerK) return t("g_yesterday");
+    const f=new Date(d.ms), o={weekday:"short",day:"numeric",month:"short"};
+    if(f.getFullYear()!==hoy.getFullYear()) o.year="numeric";
+    return f.toLocaleDateString(loc(),o).replace(/,/g,"");
+  };
+  // Lo que cuenta ese día, con la misma regla que la cifra de arriba: sumados, dan la cifra.
+  const totalDia=function(k,ym){
+    const d=gastosDiaDe(cifra,k,ym);
+    if(!d || !(d.sp>0) && !(monthSummary.mode==="net"&&d.inc>0)) return null;
+    const v=gastosValor(d,monthSummary.mode);
+    return (v<0?"+":"")+eur(Math.abs(v));
+  };
+  const simple=!!(state.settings&&state.settings.simpleMode);
 
-  return React.createElement("div",{className:"v4-screen",ref:rootRef},
-    React.createElement("h1",{className:"v4-title serif"}, t("v4_gastos_title")),
-    React.createElement("section",{className:"v4-gastos-summary"},
-      React.createElement("div",{className:"v4-gastos-summary-top"},
-        React.createElement("div",{className:"v4-gastos-summary-main"},
-          React.createElement("div",{className:"v4-gastos-summary-label"},
-            monthSummary.cycle
-              ? t(monthSummary.mode==="net"?"v4_gastos_net_cycle":"v4_gastos_spent_cycle")
-              : preset==="month"
-                ? tf(monthSummary.mode==="net"?"v4_gastos_net_in":"v4_gastos_spent_in",{month:monthSummary.month})
-                : tf(monthSummary.mode==="net"?"v4_gastos_net_period":"v4_gastos_spent_period",{period:monthSummary.periodLabel})),
-          // Importe en blanco, sin signo, € al lado (como el patrimonio). El rojo/menos
-          // confundía el «balance» con una alarma (feedback 2026-07-17).
-          (function(){
-            const amt=monthSummary.mode==="net"?Math.abs(monthSummary.balance):monthSummary.spent;
-            const p=eurParts(amt);
-            return React.createElement("div",{className:"v4-gastos-summary-amount num"},
-              p.ent, React.createElement("span",{className:"cents"},","+p.dec+" "+p.sym));
-          })(),
-          // Dos filas (etiqueta | importe) en vez de una sola frase «Gastos X · ingresos Y»:
-          // con ¥/₺ y letra pequeña la frase se partía a mitad y solapaba el presupuesto
-          // (feedback 2026-08-05 tras multidivisa).
-          (function(){
-            const pair=function(lbl, amt){
-              return React.createElement("div",{className:"v4-gastos-summary-pair"},
-                React.createElement("span",{className:"lbl"}, lbl),
-                React.createElement("span",{className:"amt num"}, amt));
-            };
-            if(monthSummary.mode==="net"){
-              return React.createElement("div",{className:"v4-gastos-summary-sub"},
-                pair(t("v4_gastos_lbl_spent"), eur(monthSummary.spent)),
-                pair(t("v4_gastos_lbl_income"), eur(monthSummary.income)));
-            }
-            if(!(monthSummary.income>0)) return null;
-            return React.createElement("div",{className:"v4-gastos-summary-sub"},
-              pair(t("v4_gastos_lbl_income"), eur(monthSummary.income)),
-              pair(t("v4_gastos_lbl_balance"),
-                (monthSummary.balance>=0?"+":"−")+eur(Math.abs(monthSummary.balance))));
-          })()
-        ),
-        // Fuera de mes/ciclo el límite no corresponde al periodo; el resumen aprovecha todo el ancho.
-        monthSummary.budgetApplies && React.createElement("div",{className:"v4-gastos-summary-budget"},
-          React.createElement("div",null,tf("v4_gastos_of",{x:monthSummary.budget==null?"—":eur(monthSummary.budget)})),
-          React.createElement("div",{className:"v4-gastos-summary-left"},tf("v4_gastos_left",{x:monthSummary.remaining==null?"—":eur(monthSummary.remaining)}))
-        )
-      ),
-      monthSummary.budgetApplies && React.createElement("div",{className:"v4-gastos-progress",role:"progressbar","aria-valuemin":0,"aria-valuemax":monthSummary.budget||0,"aria-valuenow":Math.max(0,monthSummary.against)},
-        React.createElement("i",{style:{width:monthSummary.budget==null?"0%":Math.min(100,Math.max(0,monthSummary.against)/monthSummary.budget*100)+"%"}})
-      ),
-      React.createElement("div",{className:"v4-gastos-progress-marks"},
-        React.createElement("span",null,isFinite(bounds.from)
-          ? new Date(bounds.from).toLocaleDateString(loc(),dateOpts) : t("g_all")),
-        monthSummary.budgetApplies && React.createElement("span",null,tf("v4_gastos_today_mark",{d:monthSummary.day})),
-        !monthSummary.cycle && isFinite(bounds.to) && React.createElement("span",null,new Date(bounds.to).toLocaleDateString(loc(),dateOpts))
-      ),
-      /* SE PUEDE OCULTAR (petición de su pareja, 10/9, y con razón).
-         Sus palabras: «esta chulo pero mi pareja lo vio y me dijo que es too much, que le gustaria
-         que se pudiera ocultar y habilitarlo si tu quieres».
-         El desglose lista TODAS las categorías con gasto del mes, así que en cuanto tienes vida
-         normal son ocho o diez filas fijas encima de la lista de gastos. A él le sirve —fue idea
-         suya ponerles límite— y a ella le tapa lo que viene a mirar. No es un fallo de la función:
-         es que no todo el mundo quiere lo mismo abierto siempre.
-         Plegado, deja UNA línea: sigue estando y no molesta. El estado va en `settings` (por
-         cuenta, que cada uno tiene la suya), y por defecto ABIERTO: quien ya lo tiene no se
-         encuentra con que le han escondido algo sin avisar. Se pliega quien quiera plegarlo. */
-      catBreakdown.length>0 && React.createElement("div",{className:"v4-gastos-cats"+(catsOpen?"":" cerrado"),"data-testid":"gastos-cats"},
-        React.createElement("button",{type:"button",className:"v4-gastos-cats-h",
-          "aria-expanded":catsOpen,"aria-controls":"gastos-cats-body",onClick:toggleCats},
-          React.createElement("span",{className:"v4-gastos-cats-t"},
-            catsOpen ? t("v4_gastos_cats")
-                     : tf(catBreakdown.length===1?"v4_gastos_cats_period_n1":"v4_gastos_cats_period_n",{n:catBreakdown.length,period:monthSummary.periodLabel})),
-          React.createElement("span",{className:"v4-gastos-cats-fold"},
-            (catsOpen?"▾ ":"▸ ")+t(catsOpen?"v4_gastos_cats_hide":"v4_gastos_cats_show"))),
-        React.createElement("div",{id:"gastos-cats-body",className:"v4-gastos-cats-body"+(catsOpen?" abierto":""),"aria-hidden":!catsOpen},
-        React.createElement("div",{className:"v4-gastos-cats-inner"},catBreakdown.map(function(row){
-          const cat=catOf(row.id);
-          const lim=row.limit;
-          const pct=lim>0?Math.min(100, row.spent/lim*100):0;
-          return React.createElement("button",{key:row.id,type:"button",className:"v4-gastos-cat",
-              "data-cat":row.id,onClick:function(){ editCatBudget(row.id); }},
-            React.createElement("div",{className:"v4-gastos-cat-row"},
-              React.createElement("span",{className:"v4-gastos-cat-name"}, (cat.icon||"")+" "+catName(row.id)),
-              React.createElement("span",{className:"v4-gastos-cat-amt num"}, eur0(row.spent))),
-            lim>0
-              ? React.createElement(React.Fragment,null,
-                  React.createElement("span",{className:"v4-gastos-cat-hint"}, tf("v4_gastos_cat_limit",{x:eur0(lim)})),
-                  React.createElement("div",{className:"bar",role:"progressbar","aria-valuemin":0,"aria-valuemax":lim,"aria-valuenow":row.spent},
-                    React.createElement("i",{style:{width:pct+"%",background:cat.color||"var(--mint)"}})))
-              : null);
-        })))
-      )
-    ),
+  return React.createElement("div",{className:"v4-screen gx-root",ref:rootRef,"data-periodo":preset},
+    React.createElement(GastosCabecera,{rootRef:rootRef, cab:cab, meses:preset==="months"?cab.meses:null, onMes:irAMes, stopSwipe:stopSwipe, diasRef:diasRef}),
     React.createElement("div",{className:"filters"},
-      React.createElement("div",{className:"v4-periods"},
-        DATE_PRESETS.slice(0,2).map(function(p){ return React.createElement("button",{key:p.id,className:"v4-period-btn"+(preset===p.id?" on":""),onClick:function(){ setPreset(p.id); setMorePeriods(false); }},t("g_"+p.id)); }),
-        React.createElement("button",{className:"v4-period-btn"+(morePeriods||DATE_PRESETS.slice(2).some(function(p){ return p.id===preset; })?" on":""),onClick:function(){ setMorePeriods(!morePeriods); }},t("v4_period_more"))
-      ),
       // Filtros vive PEGADO al buscador (2026-08-05): los dos acotan la misma lista de abajo,
       // así que van en la misma fila — antes el botón quedaba solo, en su propia línea entre el
       // buscador y "Sincronizar", sin pertenecer claramente a ninguno de los dos (feedback: «se
@@ -1078,13 +1233,47 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       // ABRE el sheet ya no vive aquí: se movió junto al buscador (ver arriba).
       nFilters>0 && React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:8,alignItems:"center",marginTop:2}},
         React.createElement("span",{style:{fontSize:12.5,color:"var(--muted)",lineHeight:1.35,flex:"1 1 120px"}}, filterParts.join(" · ")),
-        React.createElement("button",{type:"button",className:"v4-chip",onClick:function(){
-          setSel([]);
-          setBucketSel([]);
-          // Borrar filtros = volver a la preselección automática de gasto diario.
-          setBankSel(diarioEnts.slice());
-        },style:{padding:"8px 12px"}}, t("g_filters_clear"))
+        React.createElement("button",{type:"button",className:"v4-chip",onClick:clearFilters,style:{padding:"8px 12px"}}, t("g_filters_clear"))
       )
+    ),
+    /* SE PUEDE OCULTAR (petición de su pareja, 10/9, y con razón).
+       Sus palabras: «esta chulo pero mi pareja lo vio y me dijo que es too much, que le gustaria
+       que se pudiera ocultar y habilitarlo si tu quieres».
+       El desglose lista TODAS las categorías con gasto del mes, así que en cuanto tienes vida
+       normal son ocho o diez filas fijas encima de la lista de gastos. A él le sirve —fue idea
+       suya ponerles límite— y a ella le tapa lo que viene a mirar. No es un fallo de la función:
+       es que no todo el mundo quiere lo mismo abierto siempre.
+       Plegado, deja UNA línea: sigue estando y no molesta. El estado va en `settings` (por
+       cuenta, que cada uno tiene la suya), y por defecto ABIERTO: quien ya lo tiene no se
+       encuentra con que le han escondido algo sin avisar. Se pliega quien quiera plegarlo.
+       v5 (20/10/2026): sale de la tarjeta resumen, que ya no existe, y se queda aquí hasta que
+       la sección Categorías (tandas 2 y 3) lo sustituya: es la única puerta para poner un
+       límite a una categoría y no se puede perder antes de que exista la nueva. */
+    catBreakdown.length>0 && React.createElement("div",{className:"v4-gastos-cats"+(catsOpen?"":" cerrado"),"data-testid":"gastos-cats"},
+      React.createElement("button",{type:"button",className:"v4-gastos-cats-h",
+        "aria-expanded":catsOpen,"aria-controls":"gastos-cats-body",onClick:toggleCats},
+        React.createElement("span",{className:"v4-gastos-cats-t"},
+          catsOpen ? t("v4_gastos_cats")
+                   : tf(catBreakdown.length===1?"v4_gastos_cats_period_n1":"v4_gastos_cats_period_n",{n:catBreakdown.length,period:monthSummary.periodLabel})),
+        React.createElement("span",{className:"v4-gastos-cats-fold"},
+          (catsOpen?"▾ ":"▸ ")+t(catsOpen?"v4_gastos_cats_hide":"v4_gastos_cats_show"))),
+      React.createElement("div",{id:"gastos-cats-body",className:"v4-gastos-cats-body"+(catsOpen?" abierto":""),"aria-hidden":!catsOpen},
+      React.createElement("div",{className:"v4-gastos-cats-inner"},catBreakdown.map(function(row){
+        const cat=catOf(row.id);
+        const lim=row.limit;
+        const pct=lim>0?Math.min(100, row.spent/lim*100):0;
+        return React.createElement("button",{key:row.id,type:"button",className:"v4-gastos-cat",
+            "data-cat":row.id,onClick:function(){ editCatBudget(row.id); }},
+          React.createElement("div",{className:"v4-gastos-cat-row"},
+            React.createElement("span",{className:"v4-gastos-cat-name"}, (cat.icon||"")+" "+catName(row.id)),
+            React.createElement("span",{className:"v4-gastos-cat-amt num"}, eur0(row.spent))),
+          lim>0
+            ? React.createElement(React.Fragment,null,
+                React.createElement("span",{className:"v4-gastos-cat-hint"}, tf("v4_gastos_cat_limit",{x:eur0(lim)})),
+                React.createElement("div",{className:"bar",role:"progressbar","aria-valuemin":0,"aria-valuemax":lim,"aria-valuenow":row.spent},
+                  React.createElement("i",{style:{width:pct+"%",background:cat.color||"var(--mint)"}})))
+            : null);
+      })))
     ),
     React.createElement("div",{className:"action-row"},
       React.createElement("button",{className:"btn btn-ghost",onClick:onSync,disabled:syncing,"aria-describedby":"gastos-refresh-scope"}, syncing?React.createElement(React.Fragment,null,React.createElement("span",{className:"spin"}),t("g_refreshing_expenses")):React.createElement(React.Fragment,null,React.createElement(I.sync,{width:16,height:16}),t("g_refresh_expenses")))
@@ -1111,7 +1300,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         React.createElement("div",{className:"hint",style:{marginTop:8}}, t("sub_hint"))
       ));
     })(),
-    React.createElement("div",{className:"v4-gastos-list",style:{marginTop:14}},
+    React.createElement("div",{className:"v4-gastos-list gx-list",style:{marginTop:6}},
       React.createElement("div",{className:"v4-gastos-list-body"},
         shown.length===0
           ? (function(){
@@ -1124,26 +1313,40 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
               // preselección automática (2026-08-17: todos los marcados, no solo el principal).
               const sinFiltros=!q.trim() && !sel.length && !bucketSel.length && bankSelIsDefault;
               const hayHistorico=(expensesDef||[]).length>0;
-              const esVacioNormal=sinFiltros && hayHistorico && (preset==="month"||preset==="cycle");
+              const esVacioNormal=sinFiltros && hayHistorico && preset==="cycle";
               return React.createElement("div",{className:"empty"},
                 React.createElement("div",{className:"ttl"}, esVacioNormal?t("g_empty_period_t"):t("g_empty_t")),
                 esVacioNormal?t("g_empty_period_d"):t("g_empty_d"));
             })()
-          : groups.map(function(g,i){ return g.sep
-              ? React.createElement("div",{className:"day-sep",key:"s"+i},g.sep)
-              : React.createElement(MovRow,{key:g.e.id||i, e:g.e, ms:g.ms, l:g.l, onOpen:openDetail, l10n:l10nKey,
-                  bucket:expenseBucket(g.e, state),recibo:reciboEtiqueta(state,g.e),dragging:!!(dragExpense&&dragExpense.from===g.e.id),
-                  dragOver:!!(dragExpense&&dragExpense.to===g.e.id&&dragExpense.from!==g.e.id),
-                  onDragStart:startExpenseDrag,onDragMove:moveExpenseDrag,onDragEnd:endExpenseDrag}); }),
-        visible<filtered.length && React.createElement("div",{className:"sentinel",ref:sentinelRefCb},t("g_loadmore"))
+          : dias.map(function(d){
+              const tot=totalDia(d.k,d.ym);
+              return React.createElement("section",{key:d.k+"|"+d.ym,className:"gx-dia","data-gx-day":d.k,"data-gx-ym":d.ym},
+                React.createElement("div",{className:"gx-dia-h"},
+                  React.createElement("span",{className:"gx-dia-t"},etiquetaDia(d)),
+                  tot && React.createElement("span",{className:"gx-dia-tot num","data-testid":"gastos-dia-total"},tot)),
+                d.rows.map(function(g){
+                  return React.createElement(MovRow,{key:g.e.id||g.ms, e:g.e, ms:g.ms, l:g.l, onOpen:openDetail, l10n:l10nKey,
+                    bucket:g.bucket,recibo:g.recibo,dragging:!!(dragExpense&&dragExpense.from===g.e.id),
+                    dragOver:!!(dragExpense&&dragExpense.to===g.e.id&&dragExpense.from!==g.e.id),
+                    onDragStart:startExpenseDrag,onDragMove:moveExpenseDrag,onDragEnd:endExpenseDrag});
+                }),
+                d.gris.slice().sort(function(a,b){ return a.kind==="recibo"?-1:b.kind==="recibo"?1:0; }).map(function(g){
+                  return React.createElement(GastosGris,{key:d.k+"|"+g.kind, g:g, onOpen:openDetail, onGoPlan:onGoPlan, simple:simple});
+                }));
+            }),
+        visible<filtered.length && React.createElement("div",{className:"sentinel",ref:sentinelRefCb},t("g_loadmore")),
+        // El final de la lista dice hasta dónde llega el histórico: sin esto no se sabe si no hay
+        // más o si falta por cargar (SPEC §4, «Hasta aquí: 1 de agosto»).
+        shown.length>0 && visible>=filtered.length && React.createElement("div",{className:"gx-fin"},
+          tf("gv5_end",{d:new Date(dateMs(filtered[filtered.length-1].date)).toLocaleDateString(loc(),{day:"numeric",month:"long",year:"numeric"})}))
       )
     ),
-    React.createElement(PeriodMoreSheet,{open:morePeriods,onClose:function(){ setMorePeriods(false); },preset:preset,setPreset:setPreset}),
     React.createElement(GastosFilterSheet,{
       open:filterOpen, onClose:function(){ setFilterOpen(false); },
       sel:sel, setSel:setSel, bankSel:bankSel, setBankSel:setBankSel,
       bucketSel:bucketSel, setBucketSel:setBucketSel,
-      bankOpts:bankOpts, diarioEnts:diarioEnts, debts:state.debts
+      bankOpts:bankOpts, diarioEnts:diarioEnts, debts:state.debts,
+      preset:preset, setPreset:setPreset, presetDef:presetDef
     }),
     React.createElement(ExpenseDetailSheet,{
       exp:detailId?(state.expenses||[]).find(function(e){ return e.id===detailId; }):null,
@@ -1163,6 +1366,142 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       React.createElement("div",{className:"v4-undo-toast",role:"status","data-testid":"expense-undo"},
         React.createElement("span",null,t(undoDelete.paired?"g_auto_deleted":"f_undo_deleted")),
         React.createElement("button",{type:"button",onClick:undoLastDelete},t("f_undo"))),document.body)
+  );
+}
+
+/* Lo que la fila de meses sobresale por debajo de la caja de la cabecera cuando se encoge (px).
+   Tiene que cuadrar con `.gx-head.compact::before` y `.gx-meses` en shell.html. */
+const GX_MESES_SOBRE=36;
+/* CABECERA DE GASTOS v5 (SPEC §2.1 y §3). Componente propio a propósito: la cifra cambia con el
+   día que queda debajo al bajar, y ese cambio NO puede re-renderizar Expenses ni la lista
+   (cientos de filas): el día visible es estado SOLO de esta cabecera. Encogerse es `transform` y
+   `opacity` sobre una caja de alto fijo: bajar no recoloca nada de la lista. El scroll se lee en
+   un `requestAnimationFrame` y el día se busca por bisección entre los encabezados ya pintados,
+   así cada frame cuesta unas pocas lecturas aunque haya meses enteros cargados. */
+function GastosCabecera({rootRef, cab, meses, onMes, stopSwipe, diasRef}){
+  const [vista,setVista]=useState({k:null, ym:null, compact:false});
+  const headRef=useRef(null), mesesRef=useRef(null), calcRef=useRef(null);
+  useEffect(function(){
+    const root=rootRef.current, host=root&&root.closest?root.closest(".page"):null;
+    if(!host) return undefined;
+    let raf=0;
+    const calc=function(){
+      raf=0;
+      const head=headRef.current; if(!head) return;
+      const compact=host.scrollTop>40;
+      let els=diasRef.current;
+      if(!els) els=diasRef.current=Array.prototype.slice.call(root.querySelectorAll("[data-gx-day]"));
+      const raya=head.getBoundingClientRect().bottom+(compact?GX_MESES_SOBRE:0)+1;
+      let lo=0, hi=els.length-1, at=-1;
+      while(lo<=hi){ const mid=(lo+hi)>>1; if(els[mid].getBoundingClientRect().top<=raya){ at=mid; lo=mid+1; } else hi=mid-1; }
+      const k=at>=0?+els[at].getAttribute("data-gx-day"):null, ym=at>=0?els[at].getAttribute("data-gx-ym"):null;
+      setVista(function(v){ return v.k===k&&v.ym===ym&&v.compact===compact?v:{k:k, ym:ym, compact:compact}; });
+    };
+    calcRef.current=function(){ if(!raf) raf=requestAnimationFrame(calc); };
+    host.addEventListener("scroll",calcRef.current,{passive:true});
+    calc();
+    return function(){ host.removeEventListener("scroll",calcRef.current); if(raf) cancelAnimationFrame(raf); };
+  },[]);
+  // Datos nuevos (un filtro, un gasto que entra): el día de debajo puede ser otro.
+  useEffect(function(){ if(calcRef.current) calcRef.current(); },[cab]);
+  const line=vista.k==null?cab.top:cab.line(vista.k, vista.ym);
+  const ymSel=line.ym||(cab.top&&cab.top.ym);
+  /* La pastilla del mes activo se DESLIZA (referencia del dueño, 20/10): una sola capa que se
+     mueve con `transform` hasta el mes nuevo; su ancho se fija sin animar. Y la fila se desplaza
+     sola para que el mes activo quede a la vista. */
+  const [pasti,setPasti]=useState(null);
+  useLayoutEffect(function(){
+    const box=mesesRef.current; if(!box) return;
+    const el=box.querySelector('[data-ym="'+ymSel+'"]'); if(!el) return;
+    const x=el.offsetLeft, w=el.offsetWidth;
+    setPasti(function(p){ return p&&p.x===x&&p.w===w?p:{x:x,w:w}; });
+    if(vista.compact){
+      const want=x-(box.clientWidth-w)/2;
+      if(Math.abs(box.scrollLeft-want)>2) box.scrollTo({left:Math.max(0,want),behavior:mcReduced()?"auto":"smooth"});
+    }
+  },[ymSel, vista.compact, meses&&meses.length, l10nKeyOf()]);
+  const tone=line.tone?" gx-tone-"+line.tone:"";
+  return React.createElement("div",{className:"gx-head"+(vista.compact?" compact":""),ref:headRef},
+    React.createElement("h1",{className:"v4-title serif"}, t("v4_gastos_title")),
+    React.createElement(GxCifra,{n:line.n}),
+    React.createElement("div",{className:"gx-status","data-testid":"gastos-estado"},
+      React.createElement("span",null,line.pre),
+      line.tail ? React.createElement(React.Fragment,null," · ",React.createElement("span",{className:"gx-tail"+tone},line.tail)) : null),
+    // En balance la línea existe siempre (aunque vacía): la caja no cambia de alto al bajar.
+    cab.top.sub!=null && React.createElement("div",{className:"gx-status gx-status-sub","data-testid":"gastos-desglose"},line.sub||""),
+    meses && React.createElement("div",Object.assign({className:"gx-meses",ref:mesesRef,role:"group","aria-label":t("gv5_meses"),"aria-hidden":!vista.compact,"data-testid":"gastos-meses"},stopSwipe),
+      pasti && React.createElement("span",{className:"gx-mes-pasti","aria-hidden":true,style:{width:pasti.w,transform:"translateX("+pasti.x+"px)"}}),
+      meses.map(function(m){
+        const on=m.ym===ymSel;
+        return React.createElement("button",{key:m.ym,type:"button",className:"gx-mes"+(on?" on":""),"data-ym":m.ym,"aria-pressed":on,
+          tabIndex:vista.compact?0:-1,onClick:function(){ onMes(m.ym); }}, m.label);
+      }))
+  );
+}
+function l10nKeyOf(){ return CURLANG+"|"+DISP.sym; }
+/* LA CIFRA RUEDA POR DÍGITO (referencia del dueño, 20/10: «este es el nivel que aspiro de
+   fluidez»). Cada dígito es una tira 0–9 que sube o baja con `translateY`: sin layout ni anchos
+   que cambien (cifras tabulares, celda de ancho fijo), y si llega otro cambio a mitad, la
+   transición sale desde donde está. Se alinea por la DERECHA para que las unidades no salten
+   de casilla cuando el número gana una cifra. Con «reducir movimiento» cambia sin rodar. */
+const GX_DIGITOS=["0","1","2","3","4","5","6","7","8","9"];
+function GxCifra({n}){
+  const ok=typeof n==="number"&&isFinite(n);
+  if(!ok) return React.createElement("div",{className:"gx-num num"},React.createElement("span",{"data-testid":"gastos-cifra"},"—"));
+  const p=eurParts(n), ent=p.ent, dec=","+p.dec;
+  const celdas=function(txt, base){
+    const out=[];
+    for(let i=0;i<txt.length;i++){
+      const ch=txt[i], pos=txt.length-i;   // posición desde la derecha: estable al crecer
+      const dg=GX_DIGITOS.indexOf(ch);
+      out.push(dg<0
+        ? React.createElement("span",{key:base+"s"+pos+ch,className:"gx-sep"},ch)
+        : React.createElement("span",{key:base+pos,className:"gx-dig"},
+            React.createElement("span",{className:"gx-dig-tira",style:{transform:"translateY("+(-dg*10)+"%)"}},
+              GX_DIGITOS.map(function(d){ return React.createElement("span",{key:d},d); }))));
+    }
+    return out;
+  };
+  // El texto entero va en un nodo oculto a la vista: es el que leen los lectores de pantalla (las
+  // tiras de dígitos son `aria-hidden`) y el que comprueban los e2e.
+  const txt=ent+dec+" "+p.sym;
+  return React.createElement("div",{className:"gx-num num"},
+    React.createElement("span",{className:"gx-num-txt","data-testid":"gastos-cifra"},txt),
+    React.createElement("span",{className:"gx-num-ent","aria-hidden":true},celdas(ent,"e")),
+    React.createElement("span",{className:"gx-num-dec","aria-hidden":true},celdas(dec,"d")," "+p.sym));
+}
+/* FILA GRIS: los cargos de un día que pagan recibos o cuotas (SPEC §4.4). Se ven, no suman al
+   día ni a la cifra (ya cuentan en el Plan, regla de siempre), y se despliegan con un solo toque
+   de vibración. Cada cargo sigue abriendo su ficha: ahí viven «No es este recibo» y «no es la
+   cuota», que no se pueden quedar sin camino por plegarlos. El estado de abierto es de la fila:
+   abrir una no repinta la lista. */
+const GX_GRIS={recibo:{lab:"v4_plan_recibos",seg:"recibos"}, deuda:{lab:"v4_plan_deudas",seg:"deudas"}};
+function GastosGris({g, onOpen, onGoPlan, simple}){
+  const [open,setOpen]=useState(false);
+  const def=GX_GRIS[g.kind];
+  const toggle=function(){ setOpen(function(o){ return !o; }); mcTickHaptic(); };
+  // En modo sencillo Plan solo tiene Recibos: «Abrir en Plan · Deudas» llevaría a otro sitio.
+  const conPlan=!!onGoPlan && (!simple || g.kind==="recibo");
+  return React.createElement("div",{className:"gx-gris"+(open?" abierto":""),"data-gris":g.kind},
+    React.createElement("button",{type:"button",className:"gx-gris-h","aria-expanded":open,onClick:toggle},
+      React.createElement("span",{className:"gx-gris-dot gx-gris-dot-"+g.kind,"aria-hidden":true}),
+      React.createElement("span",{className:"gx-gris-t"},tf("gv5_no_cuentan",{x:t(def.lab)})),
+      React.createElement("span",{className:"gx-gris-amt num"},eur(g.total)),
+      React.createElement("span",{className:"gx-gris-n num"},g.items.length)),
+    React.createElement("div",{className:"gx-gris-body","aria-hidden":!open},
+      React.createElement("div",{className:"gx-gris-inner"},
+        g.items.map(function(it){
+          const e=it.e, bk=expenseBankOf(e);
+          const nombre=e.renamePending&&!e.renamePending.quarantined&&e.renamePending.merchant?e.renamePending.merchant:e.merchant;
+          const fecha=new Date(it.ms).toLocaleDateString(loc(),{day:"2-digit",month:"2-digit"});
+          return React.createElement("button",{key:e.id,type:"button",className:"gx-gris-it","data-gris-id":e.id,tabIndex:open?0:-1,onClick:function(){ onOpen(e); }},
+            React.createElement("span",{className:"gx-gris-it-txt"},
+              React.createElement("span",{className:"gx-gris-it-nm"},nombre||"—"),
+              React.createElement("span",{className:"gx-gris-it-sub"},[it.sub,fecha,bk?(entOf(bk).label||entOf(bk).mono):null].filter(Boolean).join(" · "))),
+            React.createElement("span",{className:"gx-gris-it-amt num"},eur(Math.abs(e.amount||0))));
+        }),
+        conPlan && React.createElement("button",{type:"button",className:"gx-gris-plan",tabIndex:open?0:-1,onClick:function(){ onGoPlan(def.seg); }},
+          tf("gv5_plan_open",{x:t(def.lab)})+" ›")))
   );
 }
 
@@ -1233,7 +1572,7 @@ const MovRow=React.memo(function MovRow({e, ms, l, onOpen, bucket, recibo, dragg
 });
 
 /* Sheet de filtros (2026-08-05): categorías + bancos con buscador, sin la fila infinita de chips.
-   Misma mecánica que PeriodMoreSheet (swipe abajo + atrás). */
+   Misma mecánica que el resto de hojas (`useSheetSwipe` + atrás). */
 /* Nombre de lo que hay en `sel`: una categoría, o `debt:<id>` = el chip de una deuda (4.21.0).
    Una deuda borrada ya no tiene chip; si seguía marcada, se lee como «Cuota de deuda». */
 function filterSelLabel(id, debts){
@@ -1241,7 +1580,7 @@ function filterSelLabel(id, debts){
   const d=(debts||[]).find(function(x){ return x && ("debt:"+x.id)===id; });
   return d&&d.name||catName("deudas");
 }
-function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, bucketSel, setBucketSel, bankOpts, diarioEnts, debts}){
+function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, bucketSel, setBucketSel, bankOpts, diarioEnts, debts, preset, setPreset, presetDef}){
   const swipe=useSheetSwipe(!!open, onClose);
   useBackClose(!!open, swipe.close);
   const [qCat,setQCat]=useState("");
@@ -1273,8 +1612,9 @@ function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, buc
   const clearAll=function(){
     setSel([]);
     setBucketSel([]);
-    // Igual que el chip de «Borrar filtros»: volver a los bancos de gasto diario.
+    // Igual que el chip de «Borrar filtros»: volver a los bancos de gasto diario y al periodo de entrada.
     setBankSel(diarioEnts.slice());
+    setPreset(presetDef);
   };
   const toggleBucket=function(b){
     setBucketSel(function(prev){
@@ -1291,6 +1631,17 @@ function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, buc
         /* «Qué contar» va PRIMERO y sin buscador: son cuatro y es lo que él vino a separar
            («hay bastante caos entre gastos que cuentan, ingresos y movimientos que no cuentan»).
            Las categorías y los bancos siguen debajo, igual que siempre. */
+        /* PERIODO (Gastos v5, 20/10/2026). Los botones Este mes / Mi ciclo / Más… salieron de la
+           pantalla: los meses son ahora la fila que aparece al bajar, y Mi ciclo, Rango y Todo
+           viven aquí, que es su sitio en el diseño (SPEC §7). Mi ciclo no se puede perder: es la
+           forma de mirar el gasto de quien no cobra el día 1 (petición de su pareja, 11/7). */
+        React.createElement("div",{style:{fontSize:12,fontWeight:800,color:"var(--muted-2)",letterSpacing:".04em",textTransform:"uppercase",marginBottom:8}}, t("gv5_periodo")),
+        React.createElement("div",{className:"gx-periodo",role:"radiogroup","aria-label":t("gv5_periodo")},
+          [["months","gv5_p_months"],["cycle","g_cycle"],["custom","gv5_p_range"],["all","g_all"]].map(function(p){
+            const on=preset===p[0];
+            return React.createElement("button",{key:p[0],type:"button",role:"radio","aria-checked":on,className:"gx-periodo-op"+(on?" on":""),
+              "data-periodo":p[0],onClick:function(){ setPreset(p[0]); }}, t(p[1]));
+          })),
         React.createElement("div",{style:{fontSize:12,fontWeight:800,color:"var(--muted-2)",letterSpacing:".04em",textTransform:"uppercase",marginBottom:8}}, t("g_bk_title")),
         React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:8,marginBottom:16}},
           React.createElement("button",{type:"button",className:"v4-chip"+(bucketSel.length===0?" on":""),onClick:function(){ setBucketSel([]); }}, t("g_bk_all")),
@@ -1359,25 +1710,6 @@ function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, buc
           React.createElement("button",{type:"button",className:"btn btn-ghost",style:{flex:1},onClick:clearAll}, t("g_filters_clear")),
           React.createElement("button",{type:"button",className:"btn btn-primary",style:{flex:1.4},onClick:onClose}, t("g_filters_done"))
         )
-      )
-    ), document.body);
-}
-
-/* Sheet «Más…» de períodos. Antes era un portal pelado SIN useSheetSwipe/useBackClose: era el
-   único sheet que no se podía cerrar tirando hacia abajo («el más de la foto» — feedback
-   2026-07-18) ni con el gesto atrás. Mismo patrón que BudgetSheet. */
-function PeriodMoreSheet({open, onClose, preset, setPreset}){
-  const swipe=useSheetSwipe(!!open, onClose);
-  useBackClose(!!open, swipe.close);
-  if(!open) return null;
-  return ReactDOM.createPortal(
-    React.createElement("div",{className:"v4-sheet-back",onClick:onClose},
-      React.createElement("div",Object.assign({className:"v4-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
-        React.createElement("div",{className:"v4-sheet-handle"}),
-        React.createElement("div",{className:"serif",style:{fontSize:22,fontWeight:550,marginBottom:14}}, t("v4_period_more")),
-        DATE_PRESETS.slice(2).map(function(p){
-          return React.createElement("button",{key:p.id,type:"button",className:"v4-sheet-row"+(preset===p.id?" on":""),onClick:function(){ setPreset(p.id); onClose(); }}, t("g_"+p.id));
-        })
       )
     ), document.body);
 }
