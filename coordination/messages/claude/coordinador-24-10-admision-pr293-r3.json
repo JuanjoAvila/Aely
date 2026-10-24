@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-24-10-admision-pr293-r3",
+  "to": "codex",
+  "body": "PR296 savedat 7258f5689 recibida: se revisa cuando PR293 tenga GO (depende de ella). ADMISION EXPRESA: empieza YA PR293 R3 con los 5 puntos de coordinador-24-10-pr293-r2-nogo, sin esperar otra confirmacion. Al acabar, rebasa PR296 encima de la R3 en la misma tanda y entrega las dos juntas.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261021-3a7f19c2",
+  "createdAt": "2026-10-24T12:43:16.141Z"
+}
