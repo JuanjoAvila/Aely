@@ -20,6 +20,23 @@ como en updater diferido. El doble común respeta INSERT único, filtros CAS y f
 devueltas. Persistencia/refresco se ejecutan por sus nombres reales de spec.
 [Alcance A](briefs/fin04-primera-lectura.md).
 
+Plan reconstruido: `tests/fin04-plan-three-way.test.mjs` está registrado en el runner;
+`e2e/fin04-plan-three-way.spec.mjs`, en el mapa de sus siete módulos. Protegen grupos
+atómicos, céntimos, referencias y campos desconocidos, ACK durante edición, conflictos
+privados sin truncado, lápidas de deuda frente a copia intacta o editada en ambos
+sentidos, y marcas offline con y sin base privada anterior. El pull real extraído
+distingue render descartado y commit: Plan inválido avisa, termina su vuelo y permite
+un segundo GET válido y su CAS. Los E2E usan dos SDK/React reales con transporte
+sintético, borrado/edición DOM, recarga de ambos clientes, recuperación explícita y
+descarte confirmado en es/en/ca. Un mutante dirigido vigila cada contrato causal.
+No se ejecutan operaciones bancarias ni se acredita aceptación móvil real con estos
+clientes. Logs, fuentes previas y recursos propios de cada corrida se conservan por
+separado; una corrección del arnés no cuenta como ROJO del producto.
+Los arneses extraídos de seguridad/auth suministran el ACK real y la limpieza de
+Plan. El caso de deuda futura parte de una lectura confirmada antes de editar;
+conserva sus aserciones monetarias. El cierre de dependencias del catálogo sigue
+siendo un gate de integración independiente de estos ajustes de contexto.
+
 R4 añade `refresh-single-flight` en el spec FIN04 de renombrado: retiene gastos y
 repite eventos de primer plano/conexión, exigiendo una sola lectura simultánea.
 `permanent-rename` conserva la aserción de una llamada real a `showToast`, los tres

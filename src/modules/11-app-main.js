@@ -441,6 +441,13 @@ function App(){
   const commitCloudRead=function(){
     const marker=state[cloudMergeKey.current],read=marker&&marker.read;
     if(!read||!read.merging||cloudPullRef.current!==read||!sessionRef.current||sessionRef.current.user.id!==read.owner)return;
+    if(marker.planInvalid){
+      // Abortar también termina el vuelo: el siguiente evento debe poder hacer otro GET.
+      // El aviso espera al commit; React puede evaluar y descartar el updater varias veces.
+      cloudReadRef.current=read;cloudUpdatedAtRef.current=null;
+      read.valid=false;read.ready=false;read.merging=false;read.commit(false);
+      showToast(t("plan_sync_invalid"));return;
+    }
     // La persistencia y los avisos también esperan al commit; un render descartado no escribe.
     const pending=state.obAbsorbedPending||[],confirmed=state.obAbsorbedConfirmed||[];
     if(marker.blocked||pending.length&&!obAbsorbedPersist(read.owner,pending)||confirmed.length&&!obConfirmedPersist(read.owner,confirmed)){
@@ -487,7 +494,7 @@ function App(){
         setStateRaw(function(prev){
           if(cloudReadRef.current!==read||!sessionRef.current||sessionRef.current.user.id!==u)return prev;
           if(cloudPullRef.current&&cloudPullRef.current.merging)return prev;
-          return goalSyncAck(prev,u,sent,expected,r.updated_at);
+          return planSyncAck(goalSyncAck(prev,u,sent,expected,r.updated_at),u,sent,expected,r.updated_at);
         });
       }
       return r;
@@ -744,7 +751,7 @@ function App(){
     if(!sessionRef.current || sessionRef.current.user.id!==u)return;
     if(cloudPullRef.current&&cloudPullRef.current.owner===u)return cloudPullRef.current.promise;
     const read={owner:u,ready:false};cloudPullRef.current=read;
-    goalSyncActivate(mcStateKey(),u);
+    goalSyncActivate(mcStateKey(),u);planSyncActivate(mcStateKey(),u);
     const freshLogin=!!(opts&&opts.freshLogin);   // acaba de INICIAR SESIÓN (no un reconecta del mismo user)
     // INC-0410 mensual: el asiento solo vale si ESTE pull leyó un estado válido (o aún no hay ninguno).
     const mensualPuerta=reservaMensualPuerta();
@@ -800,8 +807,10 @@ function App(){
           // Solo con lo local del MISMO titular: la lápida de otra cuenta que hubo en este móvil
           // escondería un gasto de esta que coincidiera en día, importe y comercio.
           const goalState=goalSyncPull(prev,cloudState,u,cloudPack.updated_at,!sameOwner,localNewer);
+          const planState=planSyncPull(prev,cloudState,u,cloudPack.updated_at,!sameOwner);
+          if(!planState)return Object.assign({},prev,{[cloudMergeKey.current]:{read:read,planInvalid:true}});
           if(goalState._goalSync.cloudOnly) baseObj=Object.assign({},prev,cloudState,{expenses:merged.list,bankTx:prev.bankTx});
-          Object.assign(baseObj,goalState);
+          Object.assign(baseObj,goalState,planState);
           delete baseObj.obAbsorbedIssue;
           const reserveSource=goalState._goalSync.keepLocalReserves?prev:cloudState;
           baseObj.settings=Object.assign({},baseObj.settings,{reservaRules:goalSyncCopy((reserveSource.settings||{}).reservaRules||[])});
@@ -842,7 +851,7 @@ function App(){
           const next=liberarReservasHuerfanas(reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate()));
           // Una lectura vieja no deshace el backup que este mismo titular ya terminó hoy.
           const backup=prev._historyOwner===u&&prev.lastBackup===new Date().toISOString().slice(0,10)?{lastBackup:prev.lastBackup}:null;
-          return Object.assign({},next,backup,{[cloudMergeKey.current]:{read:read}});
+          return Object.assign({},planSyncDerived(next,prev),backup,{[cloudMergeKey.current]:{read:read}});
         },false);
         // Evaluar (incluso repetir) el updater no acredita nada: esperamos el commit de React.
         return committed;
@@ -1311,8 +1320,8 @@ function App(){
           obConfirmedReadCache.delete(key);obConfirmedBlocked.delete(owner);
           obAbsorbedClearNotice(owner);
         }
-        if(prev&&prev.user)goalSyncClear(mcStateKey(),prev.user.id);
-        set(p=>{obAbsorbedSignOut(owner,p);return Object.assign({},p,{bankTx:[],_goalSync:null,obAbsorbedPending:[],obAbsorbedConfirmed:[]});});
+        if(prev&&prev.user){goalSyncClear(mcStateKey(),prev.user.id);planSyncClear(mcStateKey(),prev.user.id);}
+        set(p=>{obAbsorbedSignOut(owner,p);return Object.assign({},p,{bankTx:[],_goalSync:null,_planSync:null,obAbsorbedPending:[],obAbsorbedConfirmed:[]});});
       }
       // Vuelta del email de recuperación: abre el panel para poner contraseña nueva.
       if(ev==="PASSWORD_RECOVERY"){ setRecovery(true); setShowAuth(true); }

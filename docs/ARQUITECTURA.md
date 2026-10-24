@@ -11,8 +11,29 @@ Lectura y revisión se acreditan en el commit de React; evaluar el updater
 no habilita escrituras ni persiste colas. Un merge pendiente bloquea también el ACK
 de un envío anterior y su updater diferido. El backup espera lectura válida
 comprometida y actualiza `lastBackup` sin renovar `_savedAt`.
-ACK exacto y sesión se comprueban también dentro del updater. La fusión por grupos de
-recibos/deudas queda pendiente. [Contrato y límites](briefs/fin04-primera-lectura.md).
+ACK exacto y sesión se comprueban también dentro del updater.
+[Contrato y límites](briefs/fin04-primera-lectura.md).
+
+FIN04 Plan reconstruido: recibos y deudas se mezclan contra la última base confirmada,
+por campos independientes y grupos financieros atómicos; nunca se suman dos saldos.
+El ACK ancla el payload enviado, conservando las ediciones posteriores. `_planSync`
+y los borradores por identidad son privados del dispositivo, particionados fuera
+del estado principal y excluidos de nube, Hogar y exportaciones.
+`debtDeleted` viaja con el estado y conserva la copia exacta que se borró: una copia
+intacta desaparece, una edición distinta permanece. El borrado sigue protegido si
+hay cuotas vinculadas. Las marcas offline `paidYm`/`paidDay` y `wait` sobreviven
+al pull y la recarga, también al actualizar un cliente sin base privada anterior,
+si conservan importe y cuenta; no se inventan pruebas bancarias.
+
+Si la lápida alcanza una fila con un borrador privado pendiente, la fila sigue
+borrada y el borrador se ofrece en Plan → Deudas. Recuperar solo precarga el editor,
+con importes de solo lectura; Guardar valida y recupera el mismo ID mediante un
+acto humano marcado con `restoredAt`. La lápida antigua no borra ese acto nuevo;
+un borrado posterior captura su nueva copia. Descartar requiere confirmación.
+Nada del borrador entra en los importes ni en la nube antes de Guardar.
+Un Plan inválido conserva el estado local, emite el aviso tras el commit de React
+y termina el vuelo fallido: el siguiente evento puede leer y guardar una respuesta
+válida, sin habilitar el backup ni la aportación mensual con la lectura abortada.
 
 R4 comparte el vuelo completo de estado y gastos entre reentradas de la misma sesión.
 Una respuesta de otra sesión no acredita ese vuelo. Tras un GET confirmado, el envío
