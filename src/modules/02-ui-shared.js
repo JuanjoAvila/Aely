@@ -876,7 +876,9 @@ function useCountUp(target, ready){
     const ease=function(x){ return 1-Math.pow(1-x,3); };
     const step=function(now){
       if(cancelado) return;
-      const p=Math.min(1,(now-t0)/dur);
+      // El `now` del primer frame puede ser anterior al performance.now() de arriba: sin el suelo en 0,
+      // p sale negativo y la cifra arranca POR DEBAJO de donde estaba (e2e B2: 4315 en vez de ≥4321).
+      const p=Math.min(1,Math.max(0,(now-t0)/dur));
       const v=start+(tgt-start)*ease(p);
       shownRef.current=v;
       setShown(v);

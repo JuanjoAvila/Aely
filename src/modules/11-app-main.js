@@ -2996,7 +2996,9 @@ function App(){
     const dur=420;
     const step=function(now){
       if(gen!==settleGen.current) return;
-      const p=Math.min(1,(now-t0)/dur);
+      // Mismo motivo que useCountUp: un primer frame con `now` anterior a t0 daría p<0 y el track
+      // retrocedería un instante antes de avanzar.
+      const p=Math.min(1,Math.max(0,(now-t0)/dur));
       const x=fromX+(toX-fromX)*easeTrack(p);
       el.style.transform="translate3d("+x+"px,0,0)";
       if(p<1){ settleRaf.current=requestAnimationFrame(step); }
