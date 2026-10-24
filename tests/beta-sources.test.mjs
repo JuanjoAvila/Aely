@@ -138,6 +138,8 @@ const sourceBeta162=sourceAt("b4f148adaab75675682ee7cdf33f6b126f1529cf");
 // Catálogo163 pasa a histórico con la 164: se lee de la 4.26.163 servida en beta (e5ff9eef1); su tanda deuda-nueva-desde-su-dia quedó aprobada el 24/10 y la 164 la vacía.
 // Es también la última fuente con la tarjeta resumen de Gastos (Gastos90 se prueba contra ella).
 const sourceBeta163=sourceAt("e5ff9eef17d9e6626205539ca0f459db5a52171e");
+// Catálogo164 pasa a histórico con la 165: se lee de la 4.26.164 servida en beta (ce5969d3b); su tanda gastos-v5-movimientos sigue SIN veredicto y la 165 la hereda con un paso más.
+const sourceBeta164=sourceAt("ce5969d3b787ab2a98e736d2036b2c7626ff1d4f");
 const sourceBeta153=sourceAt("80752dff055dc391c52c3067ce238f49e0a14598");
 // Catálogo137 pasa a histórico en la promoción 137: se lee de la beta 4.26.137.1 aprobada (6f18228c), lo último que probó el móvil y lo que sube entero.
 const sourceBeta137=sourceAt("6f18228cbd81c1cc9abfa7fabce0a878819234f4");
@@ -5021,7 +5023,7 @@ const expected164={"v":"4.26.164","d":"2026-10-24","t":{"es":"Gastos, más clara
 test("Catálogo164 añade la tanda de Gastos v5 (solo web) sobre la 163, reancla lo retirado de la tarjeta resumen y declara cada huella que mueve",()=>{
   const tandas=["gastos-v5-movimientos"],pasos=[10];
   const integrated=JSON.parse(sourceBeta163("scripts/beta-sources.json")),before=JSON.parse(sourceBeta163("src/data/release-notes.json"));
-  const source=f=>nl(read(f)),old=f=>nl(sourceBeta163(f));
+  const source=f=>nl(sourceBeta164(f)),old=f=>nl(sourceBeta163(f));
   assert.equal(before[0].v,"4.26.163");
   assert.deepEqual(before[0].tandas.map(g=>g.id),["deuda-nueva-desde-su-dia"],"la 163 llevaba su tanda pendiente");
   assert.deepEqual([before[1].v,before[1].tandas],["4.26.162",[]],"la 162 ya estaba vacía");
@@ -5110,7 +5112,7 @@ test("Catálogo164 añade la tanda de Gastos v5 (solo web) sobre la 163, reancla
   // Solo web: apk.json, build.gradle, el nativo, el SQL y las Edge quedan exactamente como en la 163.
   assert.equal(source("public/apk.json"),old("public/apk.json"),"apk.json intacto: sigue la APK 61");
   assert.equal(source("android/app/build.gradle"),old("android/app/build.gradle"),"build.gradle intacto");
-  assert.equal(execFileSync("git",["diff","--name-only","e5ff9eef17d9e6626205539ca0f459db5a52171e","HEAD","--","supabase","android"],{encoding:"utf8"}).trim(),"","sin SQL, Edge ni nativo");
+  assert.equal(execFileSync("git",["diff","--name-only","e5ff9eef17d9e6626205539ca0f459db5a52171e","ce5969d3b787ab2a98e736d2036b2c7626ff1d4f","--","supabase","android"],{encoding:"utf8"}).trim(),"","sin SQL, Edge ni nativo");
   // Se mueven: los lectores de monthBudgetStats (budgetRowSigned), los de Expenses (la v5 entera), los que leen useCountUp o el track de pestañas (PR 295, 02 y 11) y los tres reanclados.
   // Ninguno tiene tanda en el panel: no se reabre ninguna aprobación.
   const expectedMoves=Object.fromEntries(["inc-0810-nav-indicator","fin05-widget-reentrada","fin05-pago-cerrada","widget-banco","widget-app-cerrada","inc-2909-02-inicio-natural","inc-3009-nomina-anticipada","inc-2909-03-retirada","inc-2909-01-widget-periodo","inc-0210-03-gastos-periodo","feature-0210-01-gasolina-taxi","inc-0310-01-meta-regla","feature-0310-01-movilidad","inc-0310-gastos-sin-limite","inc-0710-gastos-mes-madrid","inicio-grafica-vuelve","widget-pago-app-cerrada","widget-ciclo-puente","inicio-patrimonio-flujos","recibo-cargo-en-gastos","inicio-mes-pasado-mismo-dia","fichas-cierre-suave-atras","vuelta-sin-tiron","renombrar-y-notas-seguras","recibos-cifra-cuadra","cartera-sin-lagazo","renombrar-sin-cobertura","gastos-dos-bancos"].map(id=>[id,["web"]]));
@@ -5151,6 +5153,97 @@ test("Catálogo164 añade la tanda de Gastos v5 (solo web) sobre la 163, reancla
   built[0].tandas.forEach((g0,i)=>{
     assert.equal(g0.web,currents[tandas[i]].web);assert.equal(g0.edge,undefined);assert.equal(g0.native,undefined);assert.equal(g0.apk,undefined);assert.equal(receipt.web[tandas[i]],currents[tandas[i]].web);
     for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g0[key],undefined,"identidad nueva sin "+key);
+  });
+  assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
+});
+
+const expected165={"v":"4.26.165","d":"2026-10-24","t":{"es":"Gastos: sin hueco en Mi ciclo y con letra grande","en":"Spending: no gap in My cycle and with large text","ca":"Despeses: sense buit a El meu cicle i amb lletra gran"},"items":{"es":["Gastos: al bajar en Mi ciclo ya no queda un hueco vacío bajo la cifra.","Con la letra grande del móvil, la fecha y el banco de cada gasto vuelven a caber en una línea."],"en":["Spending: when you scroll down in My cycle there is no longer an empty gap under the figure.","With the phone's large text size, the date and bank of each expense fit on one line again."],"ca":["Despeses: en baixar a El meu cicle ja no queda un buit sota la xifra.","Amb la lletra gran del mòbil, la data i el banc de cada despesa tornen a cabre en una línia."]},"tandas":[{"id":"gastos-v5-movimientos","t":{"es":"Gastos: cabecera con la cifra viva, meses al bajar, tarjetas por día y líneas grises","en":"Spending: header with the live figure, months as you scroll, cards by day and grey lines","ca":"Despeses: capçalera amb la xifra viva, mesos en baixar, targetes per dia i línies grises"},"items":{"es":["1. Abre Gastos. Arriba pone «Tus gastos», la cifra del mes y «gastado en octubre · X € por debajo» (o «por encima» en coral). Compárala con la tarjeta del mes de Inicio: lo gastado tiene que ser lo mismo y lo que queda, igual. MAL: no coinciden.","2. Baja despacio por la lista. La cifra se encoge, aparecen los meses fijos arriba con octubre marcado, y la línea cambia a «gastado en octubre hasta el 15» según el día que queda debajo, rodando los números sin parpadear. MAL: la lista da un salto al encogerse, la cifra parpadea o se queda quieta.","3. Sigue bajando hasta septiembre. En el primer día de septiembre pone el total del mes y «septiembre · cerrado» (y, si tienes agosto entero, «X € más/menos que en agosto»), y la pastilla se desliza a septiembre. MAL: dice «por debajo» o «por encima» en un mes cerrado.","4. Toca la pastilla de agosto: la lista salta a su primer día y arriba sale el total de agosto. Toca la del mes en curso: vuelve arriba. MAL: salta a otro sitio.","5. Mira los gastos: cada uno en su tarjeta (icono, nombre, categoría de color, «fecha · banco», importe y el asa ⋮⋮). Arrastra uno por el asa dentro del día y toca otro para abrir su ficha. MAL: falta algo de la tarjeta o el asa no ordena.","6. Busca un día con un recibo o una cuota del banco: sale una línea gris «Recibos · no cuentan» (o «Deudas · no cuentan») con importe y número, y el total del día no la suma. Tócala: se abre suave y vibra una vez; dentro cada cargo dice de qué recibo o deuda es y abre su ficha. Toca «Abrir en Plan · Recibos ›». MAL: el total del día la suma, no se abre, vibra dos veces o Plan abre otro apartado.","7. Abre Filtros (🎛️): arriba está «Periodo» con Meses · Mi ciclo · Rango · Todo. Elige Mi ciclo: sale la ayuda con tu cobro y la cifra del ciclo; si tienes el presupuesto por ciclo, es la misma que la de Inicio. Para volver, toca Meses. MAL: falta Mi ciclo o la cifra no cuadra con Inicio.","8. En Filtros comprueba que, sin tocar nada, los bancos marcados son los de gasto diario y que «Qué contar» sigue separando lo que cuenta, ingresos e inversión. MAL: arranca con otros bancos o falta un cajón.","9. Mantén pulsado un nombre o un importe: no se selecciona ni sale el menú de copiar (en el buscador sí puedes escribir). MAL: se selecciona texto.","10. Baja hasta el final: pone «Hasta aquí: …» con la fecha del movimiento más antiguo. MAL: no sale o la lista se corta antes.","11. Elige Mi ciclo (Filtros → Periodo) y baja hasta el final de Gastos: la cifra se encoge y debajo no queda ninguna franja vacía (antes: «al bajar abajo del todo en gastos… no salen los meses ni nada»). Haz lo mismo con Rango y con Todo. MAL: queda un hueco o asoma cortada una tarjeta.","12. Con la letra del móvil en tamaño grande (Ajustes del móvil → Pantalla → Tamaño de letra), abre Gastos: cada gasto enseña «fecha · banco» en una sola línea y, si el banco no cabe, se recorta con «…». MAL: se parte en dos líneas o queda un punto suelto."],"en":["1. Open Spending. At the top it says \"Your spending\", the month's figure and \"spent in October · €X under\" (or \"over\" in coral). Compare it with the month card on Home: the amount spent must be the same, and so must what's left. WRONG: they don't match.","2. Scroll slowly down the list. The figure shrinks, the months appear fixed at the top with October marked, and the line changes to \"spent in October through day 15\" for the day underneath, the digits rolling without flicker. WRONG: the list jumps when it shrinks, the figure flickers or stays still.","3. Keep scrolling to September. On the first day of September it shows the month's total and \"September · closed\" (and, if you have all of August, \"€X more/less than in August\"), and the pill slides to September. WRONG: it says \"under\" or \"over\" for a closed month.","4. Tap the August pill: the list jumps to its first day and the top shows August's total. Tap the current month's pill: it goes back to the top. WRONG: it jumps somewhere else.","5. Look at the expenses: each one on its own card (icon, name, coloured category, \"date · bank\", amount and the ⋮⋮ handle). Drag one by the handle within its day and tap another to open its details. WRONG: something is missing from the card or the handle doesn't reorder.","6. Find a day with a bill or a loan payment taken by the bank: there is a grey line \"Bills · don't count\" (or \"Debts · don't count\") with an amount and a count, and the day's total doesn't add it. Tap it: it opens smoothly and vibrates once; inside, each charge says which bill or debt it is and opens its details. Tap \"Open in Plan · Bills ›\". WRONG: the day's total adds it, it doesn't open, it vibrates twice or Plan opens another section.","7. Open Filters (🎛️): at the top there is \"Period\" with Months · My cycle · Range · All. Pick My cycle: the help with your payday and the cycle figure appear; if your budget runs by cycle, it's the same as on Home. To go back, tap Months. WRONG: My cycle is missing or the figure doesn't match Home.","8. In Filters check that, without touching anything, the banks ticked are your everyday spending ones and that \"What to count\" still separates what counts, income and investment. WRONG: it starts with other banks or a group is missing.","9. Press and hold a name or an amount: nothing gets selected and no copy menu appears (you can still type in the search box). WRONG: text gets selected.","10. Scroll to the very end: it says \"That's everything: …\" with the date of the oldest transaction. WRONG: it doesn't appear or the list stops earlier.","11. Pick My cycle (Filters → Period) and scroll to the very end of Spending: the figure shrinks and no empty strip is left underneath (before: \"scrolling all the way down in spending… the months and everything are gone\"). Do the same with Range and with All. WRONG: a gap is left or a card shows up cut off.","12. With the phone's text size set to large (phone Settings → Display → Font size), open Spending: each expense shows \"date · bank\" on a single line and, if the bank doesn't fit, it is cut with \"…\". WRONG: it splits into two lines or a dot is left alone."],"ca":["1. Obre Despeses. A dalt diu «Les teves despeses», la xifra del mes i «gastat al octubre · X € per sota» (o «per sobre» en coral). Compara-la amb la targeta del mes d'Inici: el que has gastat ha de ser el mateix i el que queda, igual. MALAMENT: no coincideixen.","2. Baixa a poc a poc per la llista. La xifra s'encongeix, apareixen els mesos fixos a dalt amb octubre marcat, i la línia canvia a «gastat al octubre fins al dia 15» segons el dia que queda a sota, rodant els números sense parpellejar. MALAMENT: la llista fa un salt en encongir-se, la xifra parpelleja o es queda quieta.","3. Continua baixant fins a setembre. Al primer dia de setembre surt el total del mes i «setembre · tancat» (i, si tens l'agost sencer, «X € més/menys que al agost»), i la pastilla llisca a setembre. MALAMENT: diu «per sota» o «per sobre» en un mes tancat.","4. Toca la pastilla d'agost: la llista salta al seu primer dia i a dalt surt el total d'agost. Toca la del mes en curs: torna a dalt. MALAMENT: salta a un altre lloc.","5. Mira les despeses: cadascuna a la seva targeta (icona, nom, categoria de color, «data · banc», import i l'ansa ⋮⋮). Arrossega'n una per l'ansa dins del dia i toca'n una altra per obrir-ne la fitxa. MALAMENT: falta alguna cosa a la targeta o l'ansa no ordena.","6. Busca un dia amb un rebut o una quota del banc: surt una línia grisa «Rebuts · no compten» (o «Deutes · no compten») amb import i nombre, i el total del dia no la suma. Toca-la: s'obre suau i vibra un cop; a dins cada càrrec diu de quin rebut o deute és i n'obre la fitxa. Toca «Obre al Pla · Rebuts ›». MALAMENT: el total del dia la suma, no s'obre, vibra dos cops o el Pla obre un altre apartat.","7. Obre Filtres (🎛️): a dalt hi ha «Període» amb Mesos · El meu cicle · Rang · Tot. Tria El meu cicle: surt l'ajuda amb el teu cobrament i la xifra del cicle; si tens el pressupost per cicle, és la mateixa que la d'Inici. Per tornar, toca Mesos. MALAMENT: falta El meu cicle o la xifra no quadra amb Inici.","8. A Filtres comprova que, sense tocar res, els bancs marcats són els de despesa diària i que «Què comptar» continua separant el que compta, ingressos i inversió. MALAMENT: comença amb altres bancs o falta un calaix.","9. Mantén premut un nom o un import: no se selecciona ni surt el menú de copiar (al cercador sí que pots escriure). MALAMENT: se selecciona text.","10. Baixa fins al final: diu «Fins aquí: …» amb la data del moviment més antic. MALAMENT: no surt o la llista es talla abans.","11. Tria El meu cicle (Filtres → Període) i baixa fins al final de Despeses: la xifra s'encongeix i a sota no queda cap franja buida (abans: «en baixar a baix de tot a despeses… no surten els mesos ni res»). Fes el mateix amb Rang i amb Tot. MALAMENT: queda un buit o apareix tallada una targeta.","12. Amb la lletra del mòbil en mida gran (Ajustos del mòbil → Pantalla → Mida de la lletra), obre Despeses: cada despesa mostra «data · banc» en una sola línia i, si el banc no hi cap, es retalla amb «…». MALAMENT: es parteix en dues línies o queda un punt solt."]}}]};
+// 4.26.165 (24/10/2026): el arreglo feb9fdde5 (claude/gastos-v5-fix-ciclo: sin fila de meses la cabecera encogida no deja franja vacía) sobre la beta 4.26.164 servida (ce5969d3b), solo web y sin APK nueva (sigue la 61).
+// La tanda gastos-v5-movimientos NO tiene veredicto: se mueve de la 164 a la 165 (la 164 queda con tandas:[], la propiedad se queda) con los pasos 11 y 12 nuevos; su huella web se mueve porque cambian GastosCabecera y el CSS de la cabecera.
+// El registro solo crece en la propia tanda: gxRayaExtra, GX_SIN_MESES_RECORTE y GX_MESES_SOBRE son el arreglo y no entran en ningún cierre de lectores (no leen importes), así que se declaran como unidades propias; sin ellas un cambio ahí no reabriría la tanda.
+test("Catálogo165 mueve la tanda de Gastos v5 de la 164 a la 165 con un paso más (solo web), amplía su alcance con las tres unidades del arreglo y declara cada huella que mueve",()=>{
+  const tandas=["gastos-v5-movimientos"],pasos=[12],G0="src/modules/04-tab-gastos.js";
+  const integrated=JSON.parse(sourceBeta164("scripts/beta-sources.json")),before=JSON.parse(sourceBeta164("src/data/release-notes.json"));
+  const source=f=>nl(read(f)),old=f=>nl(sourceBeta164(f));
+  assert.equal(before[0].v,"4.26.164");
+  assert.deepEqual(before[0].tandas.map(g=>g.id),tandas,"la 164 llevaba la tanda pendiente");
+  assert.deepEqual([before[1].v,before[1].tandas],["4.26.163",[]],"la 163 ya estaba vacía");
+  // Sin veredicto, la tanda se mueve entera (mismos 10 pasos) y gana el 11: no se duplica y la 164 queda vacía (la propiedad se queda).
+  const prev=before[0].tandas[0];
+  const expectedNotes=[expected165,{...before[0],tandas:[]},...before.slice(1)];
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.deepEqual(notes,expectedNotes,"la nota 165 literal delante, la 164 sin la tanda que se mueve y todo lo demás intacto");
+  for(const lang of ["es","en","ca"])assert.deepEqual(notes[0].tandas[0].items[lang].slice(0,10),prev.items[lang],lang+": los diez pasos de la 164 intactos y el 11 y el 12 detrás");
+  assert.deepEqual(notes[0].tandas[0].t,prev.t,"mismo título de tanda");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.165",tandas[0],0]],"el panel enseña solo la tanda, una vez y en la 165");
+  for(const n of notes.slice(1))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] (la propiedad se conserva, vacía)");
+  assert.equal(notes.length,262);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
+  notes[0].tandas.forEach(g=>assert.deepEqual(Object.keys(g),["id","t","items"],"sin apk: "+g.id));
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,2,lang+": dos puntos familiares");
+    const steps=notes[0].tandas[0].items[lang];assert.equal(steps.length,pasos[0],lang+": pasos de "+tandas[0]);
+    steps.forEach((step,j)=>assert.ok(step.startsWith((j+1)+". "),lang+": paso numerado "+(j+1)));
+    for(const text of steps)assert.ok(/MAL|WRONG|MALAMENT/.test(text),lang+": cada paso dice qué es MAL: "+text);
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|FIN-|SES-|UX-|\d+\.\d+\.\d+/i.test(text),false,lang+": sin jerga: "+text);
+  }
+  // El paso nuevo cita los rótulos reales de la app en cada idioma: Filtros, Periodo, Mi ciclo, Rango y Todo.
+  const textos=source("src/modules/01-i18n.js"),rotulo=key=>{const m={};for(const lang of ["es","en","ca"]){const all=[...textos.matchAll(new RegExp(key+':"([^"]*)"',"g"))].map(x=>x[1]);assert.equal(all.length,3,key+": un texto por idioma");m[lang]=all[["es","en","ca"].indexOf(lang)];}return m;};
+  for(const key of ["g_filters","gv5_periodo","g_cycle","gv5_p_range","g_all"]){
+    const r=rotulo(key);for(const lang of ["es","en","ca"]){assert.ok(r[lang],lang+": "+key+" existe");assert.ok(notes[0].tandas[0].items[lang][10].includes(r[lang]),lang+": el paso 11 cita «"+r[lang]+"» ("+key+")");}
+  }
+  const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
+  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verifyNotes(twice),assert.AssertionError,"no duplicar una tanda");
+  const sigue=structuredClone(notes);sigue[1].tandas=structuredClone(before[0].tandas);assert.throws(()=>verifyNotes(sigue),assert.AssertionError,"la tanda no se queda además en la 164");
+  const conApk=structuredClone(notes);conApk[0].tandas[0].apk=61;assert.throws(()=>verifyNotes(conApk),assert.AssertionError,"la tanda no exige APK: es solo web");
+  // Registro: ningún descriptor ajeno cambia ni se añade (el arreglo no toca ninguna regla de dinero ni lector de importes); la tanda gana, justo detrás de GX_GRIS, las unidades del arreglo.
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),{[tandas[0]]:ahora,...resto}=scopes,{[tandas[0]]:antes,...restoAntes}=integrated;
+  assert.deepEqual(resto,restoAntes,"el registro de la 164, intacto salvo la tanda");
+  assert.deepEqual(Object.keys(scopes),Object.keys(integrated));
+  const arreglo=[{file:G0,function:"gxRayaExtra"},{file:G0,data:"GX_SIN_MESES_RECORTE"},{file:G0,data:"GX_MESES_SOBRE"}],tras=antes.web.findIndex(u=>u.data==="GX_GRIS")+1;
+  assert.ok(tras>0);
+  assert.deepEqual(ahora.web,[...antes.web.slice(0,tras),...arreglo,...antes.web.slice(tras)],"las tres unidades del arreglo, justo detrás de GX_GRIS");
+  assert.deepEqual({...ahora,web:0},{...antes,web:0},"el resto del descriptor, igual");
+  assert.deepEqual(Object.keys(scopes).slice(-1),tandas);
+  // Solo web: apk.json, build.gradle, el nativo, el SQL y las Edge quedan exactamente como en la 164.
+  assert.equal(source("public/apk.json"),old("public/apk.json"),"apk.json intacto: sigue la APK 61");
+  assert.equal(source("android/app/build.gradle"),old("android/app/build.gradle"),"build.gradle intacto");
+  assert.equal(execFileSync("git",["diff","--name-only","ce5969d3b787ab2a98e736d2036b2c7626ff1d4f","HEAD","--","supabase","android"],{encoding:"utf8"}).trim(),"","sin SQL, Edge ni nativo");
+  // Se mueven: la propia tanda (GastosCabecera y el bloque CSS de Gastos v5) y los dos descriptores reanclados (inc-0310-gastos-sin-limite e inc-0710-gastos-mes-madrid) que vigilan ese mismo bloque CSS.
+  const expectedMoves={"gastos-v5-movimientos":["web"],"inc-0310-gastos-sin-limite":["web"],"inc-0710-gastos-mes-madrid":["web"]};
+  const previous=new Map();
+  const measure=reader=>{
+    const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};
+    for(const [key,scope] of Object.entries(integrated)){
+      if(key===archiveId)continue;
+      if(!previous.has(key))previous.set(key,betaRevision(key,sourceBeta164,undefined,scope));
+      const a=previous.get(key),b=betaRevision(key,reader,undefined,now[key]);
+      const surfaces=["web","native","edge"].filter(x=>a[x]!==b[x]);
+      if(surfaces.length)moved[key]=surfaces;
+    }
+    return moved;
+  };
+  assert.deepEqual(measure(source),expectedMoves,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  for(const id of Object.keys(expectedMoves).filter(id=>!tandas.includes(id)))assert.equal(notes.some(n=>(n.tandas||[]).some(g=>g.id===id)),false,"huella que se mueve sin tanda viva: "+id);
+  const G="src/modules/04-tab-gastos.js",H="src/shell.html";
+  const currents=Object.fromEntries(tandas.map(id=>[id,betaRevision(id,source,undefined,scopes[id])]));
+  for(const id of tandas){assert.ok(currents[id].web);assert.equal(currents[id].edge,undefined,"sin huella de Edge");assert.equal(currents[id].native,undefined);}
+  // Mutantes sobre la fuente real: el arreglo reabre la tanda si se deshace la clase con-meses, el borde de la raya, el recorte del fondo o el nowrap de «fecha · banco».
+  for(const [id,file,a,b] of [
+    [tandas[0],G,'(meses?" con-meses":"")','""'],
+    [tandas[0],G,"return !compact?0:conMeses?GX_MESES_SOBRE:-GX_SIN_MESES_RECORTE;","return !compact?0:GX_MESES_SOBRE;"],
+    [tandas[0],H,".gx-head.compact::before{bottom:16px;",".gx-head.compact::before{bottom:-36px;"],
+    [tandas[0],H,".gx-head.compact.con-meses::before{bottom:-36px;}",".gx-head.compact.con-meses::before{bottom:0;}"],
+    [tandas[0],H,".gx-list .v4-mov .meta{flex-wrap:nowrap;",".gx-list .v4-mov .meta{flex-wrap:wrap;"],
+  ]){
+    assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
+    const mutated=betaRevision(id,f=>f===file?source(f).replace(a,()=>b):source(f),undefined,scopes[id]);
+    assert.notEqual(mutated.web,currents[id].web,id+" reabre la tanda: "+a);
+  }
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes);
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),notes.flatMap(n=>(n.tandas||[]).map(g=>g.id)),"lo que el build entrega al panel");
+  built[0].tandas.forEach((g0,i)=>{
+    assert.equal(g0.web,currents[tandas[i]].web);assert.equal(g0.edge,undefined);assert.equal(g0.native,undefined);assert.equal(g0.apk,undefined);assert.equal(receipt.web[tandas[i]],currents[tandas[i]].web);
+    for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g0[key],undefined,"guion nuevo sin "+key);
   });
   assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
 });

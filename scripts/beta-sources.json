@@ -74761,6 +74761,18 @@
         "data": "GX_GRIS"
       },
       {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "gxRayaExtra"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "data": "GX_SIN_MESES_RECORTE"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "data": "GX_MESES_SOBRE"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "budgetRowSigned"
       },
