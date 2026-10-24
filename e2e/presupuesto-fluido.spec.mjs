@@ -4,7 +4,7 @@
  * conservarse montado mientras sale. Guardar sigue cambiando solo `budget`; movimiento reducido
  * no obliga a esperar una animación que el usuario ha pedido quitar. */
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews, gastosRoot, gastosCifra, gastosEstado } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, gastosRoot, gastosCifra, gastosEstado, gastosAbreFiltros, gastosCierraFiltros } from "./fixtures.mjs";
 
 /* Gastos v5 (20/10/2026): la tarjeta resumen se fue. Su cifra es `gastos-cifra`, el «quedan X» es
    el margen de la línea (`gastos-estado`: «X € por debajo/encima»), el desglose gastos/ingresos del
@@ -159,7 +159,10 @@ test("el cobro del 26 reinicia el presupuesto opcional y Mi ciclo abre por defec
   await expect(page.locator(".v42-cycle-amount>.serif")).toHaveText("400 €");
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await expect(gastosRoot(page)).toHaveAttribute("data-periodo","cycle");
+  // La ayuda de Mi ciclo (qué cobro lo ancla) vive en Filtros → Periodo desde la tanda 2.
+  await gastosAbreFiltros(page);
   await expect(page.locator(".v4-cycle-box")).toContainText(/26\/0?8/);
+  await gastosCierraFiltros(page);
   await expect(gastosCifra(page)).toContainText(/600/);
   await page.clock.pauseAt(new Date("2026-09-26T08:00:00Z"));
   await page.clock.resume();
@@ -169,7 +172,9 @@ test("el cobro del 26 reinicia el presupuesto opcional y Mi ciclo abre por defec
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await expect(gastosRoot(page)).toHaveAttribute("data-periodo","cycle");
+  await gastosAbreFiltros(page);
   await expect(page.locator(".v4-cycle-box")).toContainText(/26\/0?9/);
+  await gastosCierraFiltros(page);
   // El ciclo nuevo ya no arrastra los 600 del anterior: el margen vuelve a ser el límite entero
   // (el Bizum del 27 aún no ha llegado a esta hora).
   await expect(gastosCifra(page)).not.toContainText(/600/);
@@ -183,7 +188,9 @@ test("el cobro del 26 reinicia el presupuesto opcional y Mi ciclo abre por defec
   await page.waitForFunction(()=>!document.getElementById("mc-load"));
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await gastosAbreFiltros(page);
   await expect(page.locator(".v4-cycle-box")).toContainText(/26\/0?9/);
+  await gastosCierraFiltros(page);
   await page.locator('.botnav-tab[data-tour="inicio"]').click();
   await page.locator(".v4-avatar").click();
   await page.getByRole("button",{name:/Ir a Ajustes/i}).click();

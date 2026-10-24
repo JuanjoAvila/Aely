@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews, gastosRoot, gastosCifra, gastosEstado, gastosBajaAlMes } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, gastosRoot, gastosCifra, gastosEstado, gastosBajaAlMes, gastosSeccion } from "./fixtures.mjs";
 
 /* Gastos v5 (20/10/2026): ya no hay botones «Este mes / Mes pasado / Últimos 3 meses». La lista es
    el histórico entero, mes a mes, y cada día lleva el mes de MADRID en `data-gx-ym`: lo que antes
@@ -26,8 +26,23 @@ async function check(page,ym,total,names,amounts){
   await expect(rows(page,ym).filter({hasText:"Siguiente mes"})).toHaveCount(0);
   await expect(rows(page,ym).filter({hasText:"Fuera tres meses"})).toHaveCount(0);
   if(!amounts) return;
+  // Gastos v5 (tanda 2): el desglose vive en la sección Categorías.
+  await gastosSeccion(page,"cats");
   await expect(gastosRoot(page).locator('.v4-gastos-cat')).toHaveCount(Object.keys(amounts).length);
   for(const [cat,n]of Object.entries(amounts))await expect.poll(async()=> (await gastosRoot(page).locator('.v4-gastos-cat[data-cat="'+cat+'"] .v4-gastos-cat-amt').innerText()).replace(/\D/g,'')).toBe(String(n));
+  await gastosSeccion(page,"movs");
+}
+/* Una preferencia real, de ida y vuelta: poner un límite a una categoría y quitarlo. Antes era
+   plegar y desplegar el desglose, que ya no se pliega (tanda 2: vive en su sección). */
+async function limiteIdaVuelta(page){
+  await gastosSeccion(page,"cats");
+  for(const chip of [/^100 €$/,/Quitar límite|Remove limit|Treure límit/]){
+    await gastosRoot(page).locator('.v4-gastos-cat').first().click();
+    await page.locator(".chip",{hasText:chip}).click();
+    await page.locator(".btn-primary",{hasText:/Guardar|Save|Desa/}).click();
+    await expect(page.locator(".btn-primary",{hasText:/Guardar|Save|Desa/})).toHaveCount(0);
+  }
+  await gastosSeccion(page,"movs");
 }
 for(const tz of ["UTC","Europe/Madrid"])test.describe(tz,()=>{
   test.use({timezoneId:tz});
@@ -58,7 +73,7 @@ for(const tz of ["UTC","Europe/Madrid"])test.describe(tz,()=>{
 });
 
 // La app queda abierta cuando Madrid ya está en el nuevo mes pero UTC aún no ha cambiado de día.
-// Plegar/desplegar categorías sólo cambia una preferencia: no reemplaza los movimientos. El memo
+// Poner y quitar un límite sólo cambia una preferencia: no reemplaza los movimientos. El memo
 // de límites debe avanzar por el día de Madrid para que no conserve el mes anterior.
 for(const tz of ["UTC","Europe/Madrid"])test.describe("memo "+tz,()=>{
   test.use({timezoneId:tz});
@@ -74,11 +89,11 @@ for(const tz of ["UTC","Europe/Madrid"])test.describe("memo "+tz,()=>{
     await expect(rows(page,ymMadrid(from-1))).toHaveCount(1);
     // Materializar la partición mediante una preferencia real antes de tomar la foto: el fixture
     // arranca con el formato antiguo y montar por sí solo no debe escribirlo.
-    await gastosRoot(page).locator('.v4-gastos-cats-h').click();await gastosRoot(page).locator('.v4-gastos-cats-h').click();
+    await limiteIdaVuelta(page);
     await expect.poll(()=>page.evaluate(()=>localStorage.getItem('micartera_v3_exp'))).not.toBeNull();
     const saved=await page.evaluate(()=>localStorage.getItem('micartera_v3_exp'));
     await page.clock.setFixedTime(new Date(from+60000));
-    await gastosRoot(page).locator('.v4-gastos-cats-h').click();await gastosRoot(page).locator('.v4-gastos-cats-h').click();
+    await limiteIdaVuelta(page);
     await check(page,ymMadrid(from),2300,["Inicio mensual","Final mensual"],{super:2300});
     await expect(rows(page,ymMadrid(from)).filter({hasText:"Mes anterior"})).toHaveCount(0);
     await expect(gastosEstado(page)).toContainText(new Date(from).toLocaleDateString({es:'es-ES',en:'en-GB',ca:'ca-ES'}[lang],{month:'long',timeZone:'Europe/Madrid'}));

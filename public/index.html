@@ -830,36 +830,6 @@
   .v4-title{font-size:26px;font-weight:560;font-variation-settings:"opsz" 24;letter-spacing:-.3px;margin:8px 0 14px;line-height:1.15;}
   .v4-micro{font-size:12.5px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:700;}
   .v4-card{background:linear-gradient(180deg,var(--sur),var(--bg-2));border:1px solid var(--line-soft);border-radius:24px;padding:20px;box-shadow:var(--shadow);}
-  .v4-gastos-cats{margin-top:14px;transition:margin-top .34s var(--ease);}
-  /* La cabecera es el interruptor (petición de su pareja, 10/9: «es too much, que se pudiera
-     ocultar y habilitarlo si tú quieres»). Ocupa toda la fila para que sea fácil de acertar con
-     el dedo, y dice en palabras lo que hace en vez de esconderlo en un icono: plegada, esta línea
-     es TODO lo que queda del desglose. Mismo idioma que las tandas del panel de beta (▾/▸ + verbo),
-     que es un patrón que ya conoce. */
-  .v4-gastos-cats-h{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;
-    font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--muted-2);
-    margin-bottom:4px;padding:6px 0;background:none;border:none;text-align:left;cursor:pointer;font-family:inherit;
-    transition:margin-bottom .34s var(--ease);}
-  .v4-gastos-cats-t{min-width:0;overflow:hidden;text-overflow:ellipsis;}
-  .v4-gastos-cats-fold{flex:0 0 auto;color:var(--muted);text-transform:none;letter-spacing:0;font-size:11.5px;}
-  /* Plegado no deja hueco: si dejara el margen, «ocultar» seguiría notándose como un vacío raro. */
-  .v4-gastos-cats.cerrado{margin-top:10px;}
-  .v4-gastos-cats.cerrado .v4-gastos-cats-h{margin-bottom:0;}
-  /* El cuerpo permanece montado durante el cierre: `hidden` cortaba la altura de golpe antes
-     de que el navegador pudiera interpolarla (feedback 18/9). La rejilla anima altura real sin
-     adivinar un max-height y la opacidad evita que la última fila parpadee. */
-  .v4-gastos-cats-body{display:grid;grid-template-rows:0fr;opacity:0;visibility:hidden;pointer-events:none;
-    transition:grid-template-rows .34s var(--ease),opacity .24s ease,visibility 0s linear .34s;}
-  /* `inherit` y no `visible` (2026-10-10): un hijo con `visibility:visible` se pinta aunque
-     la página lleve `hidden`. Gastos premontada ocupa el mismo recto que Inicio (el host es
-     `position:fixed` y sale del flujo). Con temática el host es transparente y la tarjeta
-     vacía de recibos no tiene fondo, así que el desglose se leía encima de Inicio con la
-     pestaña activa todavía ahí. Sin temática el fondo opaco lo tapa: por eso no salía en
-     todos los móviles. Heredar sigue el `hidden` de la página inactiva y, en la activa,
-     sigue siendo visible. Un `*` con !important sobre toda la página también lo cerraba,
-     pero a CPU x6 la primera vuelta a Inicio pagaba ~65 ms de estilo; esto no añade regla. */
-  .v4-gastos-cats-body.abierto{grid-template-rows:1fr;opacity:1;visibility:inherit;pointer-events:inherit;transition-delay:0s;}
-  .v4-gastos-cats-inner{min-height:0;overflow:hidden;}
   .v4-gastos-cat{display:block;width:100%;text-align:left;background:transparent;border:0;padding:6px 0 2px;cursor:pointer;color:inherit;font:inherit;}
   .v4-gastos-cat-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13px;}
   .v4-gastos-cat-name{font-weight:600;min-width:0;}
@@ -1106,7 +1076,6 @@
      encogerse. Sin esto quedaba una franja vacía sobre la lista (rechazo 4.26.164, 24/10). */
   .gx-head.compact::before{bottom:16px;box-shadow:0 12px 20px -14px rgba(0,0,0,.8);}
   .gx-head.compact.con-meses::before{bottom:-36px;}
-  .gx-head .v4-title{margin-bottom:10px;}
   .gx-num{position:relative;font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:46px;line-height:1;letter-spacing:-1px;
     white-space:nowrap;font-variant-numeric:tabular-nums;transform-origin:left top;transition:transform .22s var(--ease);}
   .gx-head.compact .gx-num{transform:scale(.739);}
@@ -1138,6 +1107,44 @@
   .gx-mes{position:relative;flex:0 0 auto;height:36px;padding:0 14px;border:0;border-radius:18px;background:transparent;color:var(--muted);
     font:600 15px 'Manrope',sans-serif;white-space:nowrap;cursor:pointer;}
   .gx-mes.on{color:var(--text);font-weight:700;}
+  /* Título con los tres iconos de sección a la derecha (SPEC §2.1): el activo relleno en menta.
+     La fila mide lo mismo que el título de antes (8 + 30 + 10 px): los iconos de 44 px se comen
+     los márgenes. Si la cabecera creciera, el buscador (que se queda el dedo, `stopSwipe`) bajaría
+     a la franja por la que se desliza entre pestañas y los e2e de gestos perderían su sitio. */
+  .gx-titulo{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:2px 0;min-height:44px;}
+  .gx-titulo .v4-title{margin:0;min-width:0;}
+  .gx-secciones{display:flex;gap:8px;flex:0 0 auto;}
+  .gx-sec{position:relative;width:44px;height:44px;border-radius:22px;padding:0;display:flex;align-items:center;justify-content:center;
+    border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer;
+    transition:background-color .2s var(--ease),border-color .2s var(--ease),color .2s var(--ease);}
+  .gx-sec.on{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
+  .gx-sec-globo{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;padding:0 4px;box-sizing:border-box;border-radius:9px;
+    background:var(--tan);color:var(--on-mint);font:800 11px 'Manrope',sans-serif;display:flex;align-items:center;justify-content:center;}
+  /* Categorías (SPEC §5): barra del presupuesto y la lista en una tarjeta, cada fila con su barra. */
+  .gx-cats{display:flex;flex-direction:column;gap:14px;padding-top:8px;}
+  .gx-cats-pres{display:flex;flex-direction:column;gap:8px;}
+  .gx-cats-barra{height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden;display:flex;}
+  .gx-cats-in{display:block;background:var(--mint);}
+  .gx-cats-over{display:block;background:var(--coral);}
+  .gx-cats-pie{display:flex;justify-content:space-between;gap:10px;font-size:13px;color:var(--muted);}
+  .gx-cats-lista{background:var(--surface);border-radius:22px;padding:6px 0;}
+  .gx-cats .hint{margin:0;}
+  .v4-gastos-cat.gx-cat{display:flex;align-items:center;gap:14px;padding:10px 16px;}
+  .gx-cat-ic{width:40px;height:40px;border-radius:20px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:18px;}
+  .gx-cat-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;}
+  .gx-cat .v4-gastos-cat-row{font-size:15px;}
+  .gx-cat .v4-gastos-cat-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .gx-cat .v4-gastos-cat-amt{font-weight:600;}
+  .gx-cat .v4-gastos-cat-hint{margin-top:-4px;}
+  .gx-cat .bar{display:block;height:4px;margin-top:0;border:0;border-radius:2px;background:var(--bg);}
+  .gx-cat-rel{display:block;height:4px;border-radius:2px;background:var(--bg);overflow:hidden;}
+  .gx-cat-rel i{display:block;height:100%;border-radius:2px;}
+  /* Suscripciones vacía (SPEC §6.2): lo normal es no tener ninguna, y se dice. */
+  .gx-vacio{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:48px 20px 24px;}
+  .gx-vacio-ic{width:76px;height:76px;border-radius:38px;background:color-mix(in srgb,var(--mint) 14%,transparent);color:var(--mint-hi);
+    display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:700;margin-bottom:6px;}
+  .gx-vacio-t{font-size:26px;font-weight:500;}
+  .gx-vacio-d{font-size:14px;line-height:1.45;color:var(--muted);max-width:300px;}
   /* Días: encabezado con el total que cuenta, y cada gasto en su propia tarjeta a 6 px. */
   .gx-dia{display:flex;flex-direction:column;gap:6px;padding-top:18px;}
   .gx-dia-h{display:flex;justify-content:space-between;align-items:baseline;padding:0 4px 4px;}
@@ -1182,9 +1189,12 @@
   .gx-gris-it-amt{font-family:'Fraunces',Georgia,serif;font-size:17px;font-weight:600;color:var(--muted);}
   .gx-gris-plan{display:flex;align-items:center;min-height:44px;width:100%;padding:0 18px;border:0;background:transparent;color:var(--mint);
     font:600 14px 'Manrope',sans-serif;text-align:left;cursor:pointer;}
-  /* El final deja sitio para que el último día pueda subir hasta la cabecera: sin él, la cifra del
-     mes más antiguo (y el salto a su pastilla) no llegaba nunca a verse. */
-  .gx-fin{text-align:center;padding:28px 0 0;font-size:13px;color:var(--muted);min-height:calc(100dvh - 300px);box-sizing:border-box;}
+  .gx-fin{text-align:center;padding:28px 0 0;font-size:13px;color:var(--muted);}
+  /* Pie de Movimientos («Actualizar gastos» hasta la tanda 5). Deja sitio para que el último día
+     pueda subir hasta la cabecera: sin él, la cifra del mes más antiguo (y el salto a su pastilla)
+     no llegaba nunca a verse. */
+  .gx-pie{padding-top:28px;min-height:calc(100dvh - 300px);box-sizing:border-box;}
+  .gx-periodo-extra{margin:-4px 0 16px;}
   /* Periodo en Filtros: selector de una sola opción. */
   .gx-periodo{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:4px;margin-bottom:16px;background:var(--bg);border-radius:16px;}
   .gx-periodo-op{height:40px;border:0;border-radius:12px;background:transparent;color:var(--text);font:600 14px 'Manrope',sans-serif;cursor:pointer;}
@@ -6879,8 +6889,6 @@ const LANG = {
     v4_ver_mas:"Ver más · {n}", v4_ver_menos:"Ver menos",
     v4_gastos_title:"Tus gastos",
     v4_gastos_cats:"Por categoría · toca una para ponerle un límite", v4_gastos_cat_limit:"límite {x}",
-    v4_gastos_cats_period_n:"{n} categorías · {period}", v4_gastos_cats_period_n1:"{n} categoría · {period}",
-    v4_gastos_cats_hide:"Ocultar", v4_gastos_cats_show:"Ver",
     g_cat_budget_title:"Límite en {cat}", g_cat_budget_sub:"Solo para verlo: no cambia tu presupuesto ni te bloquea. Vacío o 0 = quitar el límite.",
     g_cat_budget_clear:"Quitar límite",
     v4_cartera_title:"Tu cartera", v4_cuentas:"Tus cuentas", v4_connect_accounts:"Conectar cuentas", v4_inversiones:"Tus inversiones", v4_inv_positions:"{n} posiciones",
@@ -7341,6 +7349,13 @@ Object.assign(LANG.es,{gv5_spent_in:"gastado en {mes}", gv5_net_in:"balance de {
   gv5_cycle:"en tu ciclo", gv5_cycle_upto:"en tu ciclo hasta el {d}", gv5_period_upto:"{period} · hasta el {d}", gv5_all:"todo el histórico",
   gv5_no_cuentan:"{x} · no cuentan", gv5_plan_open:"Abrir en Plan · {x}", gv5_end:"Hasta aquí: {d}",
   gv5_net_sub:"gastos {g} · ingresos {i}", gv5_meses:"Meses", gv5_periodo:"Periodo", gv5_p_months:"Meses", gv5_p_range:"Rango"});
+
+
+// Gastos v5, tanda 2: secciones (Movimientos / Categorías / Suscripciones) y sus cabeceras.
+Object.assign(LANG.es,{gv5_secciones:"Secciones de Gastos", gv5_sec_movs:"Movimientos", gv5_sec_cats:"Categorías", gv5_sec_subs:"Suscripciones",
+  gv5_subs_globo:"{n} por revisar", gv5_cats_pre:"{period} por categoría", gv5_cats_pres:"Presupuesto gastado", gv5_cats_of:"de {x}",
+  gv5_cats_vacio:"Aún no hay gastos que cuenten en este periodo.", gv5_subs_n:"al mes · {n} por revisar", gv5_subs_none:"nada por revisar",
+  gv5_subs_ok_t:"Todo en orden", gv5_subs_ok_d:"Si un comercio te cobra algo parecido tres meses seguidos y no está en Recibos, aparecerá aquí para que decidas qué hacer."});
 
 
 const MON_I18N = {
@@ -9667,6 +9682,155 @@ function mcTickHaptic(){
   mcTickHaptic.at=now;
   const v=mcHapticTune();
   return mcFeltHaptic(v.segAmp,v.segMs);
+}
+/* EL TIRÓN DE SECCIÓN: arriba del todo, arrastrar hacia abajo pasa a la siguiente sección.
+   Nació en Plan (petición 2026-08-03: «no depender de la otra mano para tocar arriba») y Gastos v5
+   lo pide IGUAL (SPEC §2.2, 20/10/2026): mismo gesto, mismas curvas, misma vibración. Por eso vive
+   aquí y lo usan los dos: dos copias acabarían separándose, y él nota la diferencia con el dedo.
+   SOLO arriba del todo tirando hacia abajo. Abajo del todo es la OLA nativa (feedback 4/8 noche),
+   no el sentido inverso — si reclamábamos ese borde con `touch-action:none` + preventDefault,
+   matábamos la ola. A mitad de lista = scroll normal. Eje x/y con `gestureAxis` (mismo que el
+   swipe de pestañas); si sale horizontal, este gesto se aparta y deja pasar el de `.viewport`.
+   `o`: {activo, seg, orden, capa(id)→nodo que se mueve, alPasar(id), respaldo (vibrar con
+   `navigator.vibrate` si no hay APK, lo de siempre en Plan), ignora (selector de zonas que se
+   quedan el dedo), cortaScroll (que el scroll normal no llegue al `.viewport`, como en Plan)}. */
+function useTironSeccion(rootRef, o){
+  const opts=useRef(o); opts.current=o;
+  const enterDirRef=useRef(null);
+  const seg=o.seg, activo=!!o.activo;
+  useEffect(function(){
+    if(!activo) return undefined;   // un único segmento (modo sencillo): no hay a dónde ir
+    const root=rootRef.current; if(!root) return undefined;
+    // Orden fijo, leído UNA vez por montaje y NO de un array literal del render: si el efecto
+    // dependiera de él, se desmontaría y remontaría en CUALQUIER re-render, y si eso pasa a mitad
+    // de un gesto (entre un touchmove y el siguiente) los listeners viejos se sueltan y los nuevos
+    // arrancan con sx/sy/axis en blanco: el primer arrastre después de aterrizar se perdía así
+    // (visto en el e2e de Plan: el primero no cambiaba de segmento y el segundo sí).
+    const order=opts.current.orden;
+    const TH=0.07, FLICK_V=0.4, FLICK_MIN=26, MAX_PULL=46;
+    // El contenedor va SIEMPRE en pan-y: si se pone `touch-action:none` estando arriba, bloquea
+    // también BAJAR a ver el contenido (feedback 5/8). Y ponerlo DENTRO del touchstart no sirve de
+    // nada: el navegador decide el touch-action de un gesto antes de ejecutar ese handler (medido
+    // 2026-10-13, ver `onMove`). Así que el tirón se reclama solo con preventDefault, y el scroll
+    // es del navegador.
+    let sx=0, sy=0, t0=0, axis=null, mode=null, dir=0, dyRaw=0, raf=0, pend=null;
+    let startAtTop=false, pageEl=null;
+    const capaDe=function(){ return opts.current.capa(seg); };
+    const paint=function(){
+      raf=0;
+      const el=capaDe();
+      if(el) el.style.transform=pend?("translate3d(0,"+pend+"px,0)"):"";
+    };
+    const queue=function(v){ pend=v; if(!raf) raf=requestAnimationFrame(paint); };
+    const resist=function(px){ return Math.pow(Math.min(1,px/160),0.72)*MAX_PULL; };
+    const cleanup=function(el){ if(el){ el.style.transition=""; el.style.transform=""; } };
+    const atTopOf=function(pg){ return !pg || (pg.scrollTop||0)<=2; };
+    const onStart=function(e){
+      mode=null; axis=null;
+      if(document.documentElement.classList.contains("sheet-open")) return;
+      if(!(e.touches&&e.touches[0])) return;
+      // Zonas que se quedan el dedo a propósito (el asa de ordenar, los meses que se deslizan):
+      // ahí el gesto no es nuestro, ni siquiera arriba del todo.
+      const ign=opts.current.ignora;
+      if(ign && e.target && e.target.closest && e.target.closest(ign)){ mode="x"; return; }
+      const tt=e.touches[0];
+      pageEl=root.closest(".page");
+      sx=tt.clientX; sy=tt.clientY; t0=Date.now();
+      dir=0; dyRaw=0;
+      startAtTop=atTopOf(pageEl);
+      // Arriba del todo, tirar hacia abajo es cambiar de segmento: el vigía de bordes no debe
+      // sonar además del toque de segmento (ronda 9 de la vibración).
+      if(startAtTop) e.mcSegPull=true;
+    };
+    const onMove=function(e){
+      if(axis==="x"||mode==="x") return;
+      if(!(e.touches&&e.touches[0])) return;
+      const tt=e.touches[0], ddx=tt.clientX-sx, ddy=tt.clientY-sy;
+      if(axis===null){
+        const eje=gestureAxis(ddx,ddy);
+        if(!eje) return;
+        axis=eje;
+        if(axis==="x"){ mode="x"; return; }
+        if(ddy>0 && startAtTop && atTopOf(pageEl)){ dir=1; mode="seg"; }
+        else { mode="scroll"; }
+      }
+      if(mode==="scroll"){
+        /* Scroll normal: lo lleva el navegador y aquí NO se toca `scrollTop` (2026-10-13).
+           Antes, si el gesto nacía arriba del todo, el touchstart ponía `mc-touch-own`
+           (touch-action:none) y aquí se empujaba `scrollTop` a mano con TODO lo recorrido desde
+           el touchstart, «porque con none el navegador no scrollea». Medido en Chromium: el
+           touch-action de un gesto se decide ANTES de ejecutar el touchstart, así que esa clase
+           nunca gobernaba el gesto en curso y el navegador YA estaba scrolleando en nativo. El
+           empujón se sumaba encima: al bajar despacio desde el tope de Plan el contenido saltaba
+           12-16 px de golpe en un frame y se quedaba por delante del dedo — la queja del dueño,
+           «la pantalla se mueve sola» (INC-0710-01). En Plan solo se corta la propagación para
+           que el swipe de pestañas del `.viewport` no se quede este touchmove. */
+        if(opts.current.cortaScroll) e.stopPropagation();
+        return;
+      }
+      if(mode!=="seg") return;
+      e.stopPropagation();
+      if((dir>0&&ddy<0)||(dir<0&&ddy>0)){ dyRaw=0; queue(0); return; }
+      dyRaw=Math.abs(ddy);
+      if(e.cancelable) e.preventDefault();
+      queue(mcReduced()?0:dir*resist(dyRaw));
+    };
+    const finish=function(allowCommit){
+      if(raf){ cancelAnimationFrame(raf); raf=0; }
+      pend=null;
+      if(mode!=="seg"){
+        axis=null; mode=null;
+        return;
+      }
+      const el=capaDe();
+      const dt=Math.max(1,Date.now()-t0);
+      const vel=dyRaw/dt;
+      const pasa=allowCommit && (dyRaw>(window.innerHeight||700)*TH || (vel>FLICK_V && dyRaw>FLICK_MIN));
+      if(pasa){
+        // El mismo tick que los botones de segmento y la gráfica. El respaldo sin APK es el de
+        // siempre de Plan; Gastos nace sin él: un solo toque y el «sin vibración» de mcTickHaptic.
+        if(!mcTickHaptic() && opts.current.respaldo){ try{ if(navigator.vibrate) navigator.vibrate(8); }catch(err){} }
+        const i=order.indexOf(seg);
+        const nextId=order[(i+(dir>0?1:-1)+order.length)%order.length];
+        cleanup(el);
+        enterDirRef.current=dir>0?"down":"up";
+        opts.current.alPasar(nextId);
+      } else if(el && !mcReduced()){
+        el.style.transition="transform .22s cubic-bezier(.32,.72,0,1)";
+        el.style.transform="";
+        setTimeout(function(){ cleanup(el); }, 230);
+      } else cleanup(el);
+      axis=null; mode=null; dir=0; dyRaw=0;
+    };
+    const onTouchEnd=function(){ finish(true); };
+    // `touchcancel` (el sistema se lleva el dedo): el gesto NO cuenta, se queda como estaba —
+    // mismo criterio que el cierre del perfil en `onCancel` de 11-app-main.js.
+    const onTouchCancel=function(){ finish(false); };
+    root.addEventListener("touchstart", onStart, {passive:true});
+    root.addEventListener("touchmove", onMove, {passive:false});
+    root.addEventListener("touchend", onTouchEnd, {passive:true});
+    root.addEventListener("touchcancel", onTouchCancel, {passive:true});
+    return function(){
+      if(raf) cancelAnimationFrame(raf);
+      root.removeEventListener("touchstart", onStart);
+      root.removeEventListener("touchmove", onMove);
+      root.removeEventListener("touchend", onTouchEnd);
+      root.removeEventListener("touchcancel", onTouchCancel);
+    };
+  },[activo, seg]);
+  // Entrada sutil SOLO cuando la sección cambia por este gesto (tocar la pestaña o el icono sigue
+  // siendo instantáneo, a propósito: ese toque ya es una decisión explícita del usuario).
+  useEffect(function(){
+    const dir=enterDirRef.current; if(!dir) return;
+    enterDirRef.current=null;
+    const el=opts.current.capa(seg); if(!el) return;
+    const cls=dir==="down"?"v4-seg-enter-down":"v4-seg-enter-up";
+    el.classList.add(cls);
+    const clear=function(){ el.classList.remove(cls); el.removeEventListener("animationend",clear); };
+    el.addEventListener("animationend", clear);
+    const to=setTimeout(clear, 500);   // red de seguridad si el evento no llega
+    return function(){ clearTimeout(to); };
+  },[seg]);
 }
 function mcBindEdgeHaptics(root, blocked){
   let g=null, states=new WeakMap(), lastAt=-Infinity;
@@ -12061,9 +12225,27 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     cycleEnabledPrev.current=cycleEnabled;
     setPreset(cycleEnabled?"cycle":"months");
   },[cycleEnabled]);
+  /* Sección de Gastos v5 (SPEC §2.2): movs | cats | subs. No se guarda: entrar en Gastos es
+     siempre venir a ver movimientos. El ref es para quien vive fuera del render (el observador
+     de la paginación, el tirón). */
+  const [secc,setSecc]=useState("movs");
+  const seccRef=useRef(secc); seccRef.current=secc;
+  const seccElRef=useRef({});
+  /* Al salir de Gastos vuelve a Movimientos: todas las puertas de entrada (Inicio «Ver gastos»,
+     «Ver todo» de una cuenta, la notificación, importar) vienen a ver movimientos, y quedarse en
+     Categorías haría que aterrizaran en otra cosa. Se hace en un hueco libre y solo si sigue fuera:
+     no puede costar un render en mitad del gesto de cambiar de pestaña. */
+  useEffect(function(){
+    let fuera=false;
+    return mcOnGastosActive(function(active){
+      fuera=!active;
+      if(active || seccRef.current==="movs") return;
+      mcScheduleIdle(function(){ if(fuera && seccRef.current!=="movs") setSecc("movs"); }, 1500);
+    });
+  },[]);
   // Tras importar una hoja: salta a "Todo" — lo importado suele traer fechas fuera del mes en
   // curso, y "Este mes" las tapaba en silencio (feedback 2026-08-01).
-  useEffect(function(){ if(forceAllTs) setPreset("all"); },[forceAllTs]);
+  useEffect(function(){ if(forceAllTs){ setPreset("all"); setSecc("movs"); } },[forceAllTs]);
   const [range,setRange]=useState({from:"",to:""});
   const [calPick,setCalPick]=useState(null);   // "from" | "to" | null — rango a medida, calendario de la casa
   const [sel,setSel]=useState([]);   // categorías seleccionadas; [] = todas
@@ -12081,7 +12263,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     const h=function(e){
       const ent=e&&e.detail&&e.detail.ent||window.__mcExpBank; if(!ent) return;
       try{ window.__mcExpBank=""; }catch(err){}
-      setPreset("all"); setBankSel([ent]); setBucketSel([]); setSel([]); setQ(""); setFilterOpen(false);
+      setPreset("all"); setBankSel([ent]); setBucketSel([]); setSel([]); setQ(""); setFilterOpen(false); setSecc("movs");
     };
     window.addEventListener("mc-open-expenses-bank",h);
     return function(){ window.removeEventListener("mc-open-expenses-bank",h); };
@@ -12708,9 +12890,6 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     const rows=categorySpentByMonth(Object.assign({},state,{expenses:expensesDef}),null,null,selectedPeriod);
     return budgetApplies?rows:rows.filter(function(row){ return row.spent>0; }).map(function(row){ return {id:row.id,spent:row.spent,limit:null}; });
   },[expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.categoryBudgets,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,budgetApplies,todayKey,madridDay]);
-  /* Abierto o plegado, por cuenta. `!==false` y no `!!`: quien nunca lo ha tocado lo ve ABIERTO
-     —es como está hoy y como él lo aprobó—, y solo se pliega quien lo pliegue a mano. */
-  const catsOpen=!(state.settings && state.settings.gastosCatsOff);
   // La fecha del cobro sigue a la vista al plegar la explicación; ocultarla dejaba «Mi ciclo»
   // sin una referencia comprobable y la tarjeta larga volvía a ocupar la pantalla (28/9).
   const cycleHelpOpen=!(state.settings && state.settings.gastosCycleHelpOff);
@@ -12718,13 +12897,6 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     set(function(s){
       const st=Object.assign({}, s.settings||{});
       if(st.gastosCycleHelpOff) delete st.gastosCycleHelpOff; else st.gastosCycleHelpOff=true;
-      return Object.assign({}, s, { settings:st });
-    });
-  },[set]);
-  const toggleCats=useCallback(function(){
-    set(function(s){
-      const st=Object.assign({}, s.settings||{});
-      if(st.gastosCatsOff) delete st.gastosCatsOff; else st.gastosCatsOff=true;
       return Object.assign({}, s, { settings:st });
     });
   },[set]);
@@ -12747,6 +12919,16 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       });
   },[set, state.categoryBudgets]);
   const subs=useMemo(function(){ return heavyOk?detectSubscriptions(expensesDef):[]; },[heavyOk,expensesDef]);
+  // Las que aún piden una decisión: activas, sin pasar a Fijos y sin descartar a mano. Las
+  // cuenta el globito del icono y las enseña su sección (antes se filtraban al pintar).
+  const novelSubs=useMemo(function(){
+    const dismissed=state.subsDismissed||[];
+    return (subs||[]).filter(function(sp){
+      if(!sp.active) return false;
+      if(dismissed.indexOf(sp.key)!==-1) return false;
+      return !(state.fixed||[]).some(function(f){ return catKey(f.name)===sp.key; });
+    });
+  },[subs,state.subsDismissed,state.fixed]);
   const suggestAi=function(ex){
     if(!(state.settings&&state.settings.aiCat)){ showToast(t("ai_cat_off")); return; }
     if(!ex||aiBusy) return;
@@ -12789,11 +12971,21 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const sentinelRefCb=useCallback(function(el){
     if(ioRef.current){ ioRef.current.disconnect(); ioRef.current=null; }
     if(!el) return;
+    // Con Movimientos escondido (otra sección) el centinela no puede pedir tandas: cargaría la
+    // lista entera por detrás sin que nadie la mire.
     const io=new IntersectionObserver(function(es){
-      if(es[0].isIntersecting) setVisible(function(v){ return v<filtLen.current ? v+CONFIG.PAGE_SIZE*5 : v; });
+      if(es[0].isIntersecting && seccRef.current==="movs") setVisible(function(v){ return v<filtLen.current ? v+CONFIG.PAGE_SIZE*5 : v; });
     },{rootMargin:"2000px"});
-    io.observe(el); ioRef.current=io;
+    io.observe(el); ioRef.current=io; sentinelElRef.current=el;
   },[]);
+  // Y al volver a Movimientos se le vuelve a preguntar: si ya estaba a la vista mientras se
+  // ignoraba, el observador no avisa otra vez por sí solo y «Cargando más…» se quedaría clavado.
+  const sentinelElRef=useRef(null);
+  useEffect(function(){
+    const io=ioRef.current, el=sentinelElRef.current;
+    if(secc!=="movs" || !io || !el || !el.isConnected) return;
+    io.unobserve(el); io.observe(el);
+  },[secc]);
   useEffect(function(){ return function(){ if(ioRef.current) ioRef.current.disconnect(); }; },[]);
   /* LA LISTA SE SUELTA AL VOLVER ARRIBA (13/9, medido en su OnePlus 13 con 2.500 gastos).
      Su queja: «he bajado y subido varias veces… y de repente se ha comenzado a ralentizar».
@@ -12914,6 +13106,23 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     });
     return {top:top, line:line, meses:meses};
   },[monthSummary,cifra,mesesLista,preset,madridDay,l10nKey]);
+  /* La cabecera de las otras secciones (SPEC §3): Categorías enseña el gasto del periodo y su
+     margen (el mismo que arriba en Movimientos); Suscripciones, lo que suman al mes las que
+     esperan decisión. No dependen del día visible: su `line` es siempre la misma. */
+  const subsMes=novelSubs.reduce(function(a,sp){ return a+(Number(sp.amount)||0); },0);
+  const cabSecc=useMemo(function(){
+    let top;
+    if(secc==="cats"){
+      const per=preset==="months"?monthLong(mad.m-1):preset==="cycle"?t("g_cycle"):monthSummary.periodLabel;
+      const r=monthSummary.remaining, x=r==null?null:Math.abs(r)<1?eur(Math.abs(r)):eur0(Math.abs(r));
+      top={n:cab.top.n, sub:cab.top.sub, ym:null, pre:tf("gv5_cats_pre",{period:per}),
+        tail:r==null?null:tf(r<0?"gv5_over":"gv5_under",{x:x}), tone:r==null?null:r<0?"coral":"mint"};
+    } else {
+      const n=novelSubs.length;
+      top={n:heavyOk?subsMes:null, ym:null, pre:!heavyOk?"":n?tf("gv5_subs_n",{n:n}):t("gv5_subs_none")};
+    }
+    return {top:top, line:function(){ return top; }, meses:null};
+  },[secc,cab,preset,monthSummary,novelSubs,subsMes,heavyOk,madridDay,l10nKey]);
   /* Tocar un mes salta a su primer día. Si aún no está pintado (la lista va por tandas), se
      amplía la tanda y el salto se hace al montarse el día. El mes en curso es volver arriba. */
   const diasRef=useRef(null);
@@ -12945,6 +13154,20 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     saltoRef.current=first;
     setVisible(function(v){ return Math.max(v, first.i+CONFIG.PAGE_SIZE); });
   },[]);
+  /* Cambiar de sección vuelve arriba del todo (SPEC §2.2) y vibra UN toque, el mismo del cambio
+     de segmento de Plan (mcTickHaptic: respeta el «sin vibración» y no repite si el tirón ya ha
+     sonado). Con el tirón ya se está arriba: no hay nada que mover. */
+  const irASecc=useCallback(function(id){
+    if(id===seccRef.current) return;
+    mcTickHaptic();
+    const h=hostDe(); if(h && h.scrollTop>0) h.scrollTo({top:0, behavior:"auto"});
+    setSecc(id);
+  },[]);
+  useTironSeccion(rootRef,{activo:true, seg:secc, orden:GX_SECC,
+    // El asa de ordenar, el buscador, los meses y el rango se quedan el dedo (`stopSwipe`).
+    ignora:"[data-noswipe]",
+    capa:function(id){ return seccElRef.current[id]; },
+    alPasar:function(id){ setSecc(id); }});
   useLayoutEffect(function(){
     // La lista acaba de cambiar: la cabecera vuelve a buscar los días la próxima vez que mire.
     diasRef.current=null;
@@ -12982,6 +13205,186 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     } else filterParts.push(bankSel.length+" "+t("g_filters_banks"));
   }
 
+  const simple=!!(state.settings&&state.settings.simpleMode);
+
+  /* Lo que acompaña al periodo vive con él, en Filtros → Periodo (su sitio en el SPEC §7): la
+     ayuda de Mi ciclo (QUÉ cobro ancla el ciclo; si el detectado no es el bueno, se corrige
+     apuntando la nómina real como ingreso, o usando Rango…) y las fechas del Rango. Encima de la
+     lista se apilaban con el desglose y «Actualizar gastos», y la lista dejaba de mandar
+     (captura suya de la beta 4.26.164, 24/10). */
+  const periodoExtra=preset==="cycle" ? (
+    React.createElement("div",{className:"v4-cycle-box"+(cycleHelpOpen?"":" compacto"),"data-testid":"gastos-cycle-help"},
+      React.createElement("div",{className:"v4-cycle-head"},
+        React.createElement("div",{className:"v4-cycle-main"},
+          React.createElement("strong",null,cycle?"📅 "+t("g_cycle"):t("g_cycle_none_t")),
+          React.createElement("div",null,cycle
+            ? tf("g_cycle_from",{d:cycle.start.toLocaleDateString(loc(),{day:'2-digit',month:'2-digit'}), x:"+"+eur0(Math.abs(cycle.inc.amount))+((cycle.inc.merchant&&cycle.inc.merchant!=="Ingreso")?" · "+cycle.inc.merchant:"")})
+            : t("g_cycle_fallback"))),
+        React.createElement("button",{type:"button",className:"v4-chip",onClick:toggleCycleHelp,
+          "aria-expanded":cycleHelpOpen,"aria-controls":cycleHelpOpen?"gastos-cycle-explanation":undefined},
+          t(cycleHelpOpen?"g_cycle_help_hide":"g_cycle_help_show"))),
+      cycleHelpOpen && React.createElement("div",{id:"gastos-cycle-explanation",className:"v4-cycle-explanation"},
+        cycle ? t(cycleEnabled?"g_cycle_budget_hint":"g_cycle_filter_hint") : t("g_cycle_none")))
+  ) : preset==="custom" ? (
+    React.createElement("div",null,
+      React.createElement("div",Object.assign({className:"range"},stopSwipe),
+        React.createElement("button",{type:"button",className:"v4-chip"+(calPick==="from"?" on":""),onClick:function(){ setCalPick(calPick==="from"?null:"from"); }},
+          range.from?fmtIsoCorto(range.from):t("g_custom")),
+        React.createElement("span",null,"→"),
+        React.createElement("button",{type:"button",className:"v4-chip"+(calPick==="to"?" on":""),onClick:function(){ setCalPick(calPick==="to"?null:"to"); }},
+          range.to?fmtIsoCorto(range.to):t("g_custom"))
+      ),
+      calPick && React.createElement(McCal,{value:calPick==="from"?range.from:range.to, onPick:function(iso){
+        setRange(function(r){ const n=Object.assign({},r); n[calPick]=iso; return n; });
+        setCalPick(null);
+      }}))
+  ) : null;
+  /* Las tres secciones viven montadas y solo se enseña una, escondidas como los segmentos de Plan
+     (`content-visibility:hidden`, ver el porqué largo en PlanTab): volver a Movimientos no vuelve a
+     montar cientos de filas, y el tirón mueve la capa activa como allí. */
+  const capa=function(id,hijo){
+    return React.createElement("div",{key:id,className:"gx-secc","data-gx-secc":id,ref:function(el){ seccElRef.current[id]=el; },
+      role:"tabpanel","aria-label":t(GX_SECC_TXT[id]),style:secc===id?null:GX_OCULTO,"aria-hidden":secc!==id}, hijo);
+  };
+  const catsMax=catBreakdown.reduce(function(m,r){ return Math.max(m,r.spent); },0);
+  const presu=budgetApplies&&monthSummary.budget>0?monthSummary.budget:null;
+  const usado=Math.max(0,monthSummary.against||0);
+
+  return React.createElement("div",{className:"v4-screen gx-root",ref:rootRef,"data-periodo":preset,"data-secc":secc,"data-edge-capture":"1"},
+    React.createElement(GastosCabecera,{rootRef:rootRef, cab:secc==="movs"?cab:cabSecc, meses:preset==="months"&&secc==="movs"?cab.meses:null,
+      onMes:irAMes, stopSwipe:stopSwipe, diasRef:diasRef, secc:secc, onSecc:irASecc, nSubs:novelSubs.length}),
+    capa("movs", React.createElement(React.Fragment,null,
+      React.createElement("div",{className:"filters"},
+        // Filtros vive PEGADO al buscador (2026-08-05): los dos acotan la misma lista de abajo,
+        // así que van en la misma fila — antes el botón quedaba solo, en su propia línea entre el
+        // buscador y "Sincronizar", sin pertenecer claramente a ninguno de los dos (feedback: «se
+        // queda raro en medio»). Sincronizar es una acción de red (trae datos nuevos), no de
+        // filtrado: va aparte, al pie de la lista (tanda 2).
+        React.createElement("div",{style:{display:"flex",gap:8,marginBottom:9}},
+          React.createElement("div",Object.assign({className:"searchbar",style:{flex:1,minWidth:0,marginBottom:0}},stopSwipe),
+            React.createElement("span",{className:"searchbar-ic"},"🔍"),
+            React.createElement("input",{className:"searchbar-in",type:"search",placeholder:t("g_search"),value:q,onChange:e=>setQ(e.target.value)}),
+            q && React.createElement("button",{className:"searchbar-x",onClick:()=>setQ(""),title:"×"},"✕")
+          ),
+          React.createElement("button",{type:"button",className:"v4-chip"+(nFilters?" on":""),onClick:function(){ setFilterOpen(true); },title:t("g_filters"),
+            style:{minHeight:0,padding:"0 14px",fontWeight:700,flex:"0 0 auto"}},
+            "🎛️"+(nFilters?" "+nFilters:""))
+        ),
+        // Resumen de los filtros activos (categorías/bancos) + botón para quitarlos. El botón que
+        // ABRE el sheet ya no vive aquí: se movió junto al buscador (ver arriba).
+        nFilters>0 && React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:8,alignItems:"center",marginTop:2}},
+          React.createElement("span",{style:{fontSize:12.5,color:"var(--muted)",lineHeight:1.35,flex:"1 1 120px"}}, filterParts.join(" · ")),
+          React.createElement("button",{type:"button",className:"v4-chip",onClick:clearFilters,style:{padding:"8px 12px"}}, t("g_filters_clear"))
+        )
+      ),
+      React.createElement(GastosLista,{filtered:filtered, visible:visible, state:state, cifra:cifra, mode:monthSummary.mode,
+        q:q, sel:sel, bucketSel:bucketSel, bankSelIsDefault:bankSelIsDefault, preset:preset, hayHistorico:(expensesDef||[]).length>0,
+        dragExpense:dragExpense, openDetail:openDetail, startExpenseDrag:startExpenseDrag, moveExpenseDrag:moveExpenseDrag, endExpenseDrag:endExpenseDrag,
+        onGoPlan:onGoPlan, simple:simple, l10nKey:l10nKey, sentinelRefCb:sentinelRefCb}),
+      /* «Actualizar gastos», su explicación y la última lectura, AL FINAL de la lista mientras no
+         llegue la tanda 5 (que lo quita): no se pierde la vía y deja de tapar los movimientos. Este
+         pie lleva el hueco que deja subir el último día hasta la cabecera (antes en `.gx-fin`). */
+      React.createElement("div",{className:"gx-pie"},
+        React.createElement("div",{className:"action-row"},
+          React.createElement("button",{className:"btn btn-ghost",onClick:onSync,disabled:syncing,"aria-describedby":"gastos-refresh-scope"}, syncing?React.createElement(React.Fragment,null,React.createElement("span",{className:"spin"}),t("g_refreshing_expenses")):React.createElement(React.Fragment,null,React.createElement(I.sync,{width:16,height:16}),t("g_refresh_expenses")))
+        ),
+        React.createElement("p",{className:"hint",id:"gastos-refresh-scope"},t("g_refresh_expenses_hint")),
+        React.createElement("div",{className:"sync-note"},
+          React.createElement("span",{className:"sync-dot "+(syncStatus.type||"idle")}),
+          React.createElement(SyncHora,{msg:syncStatus.msg,lastSync:state.lastSync}))))),
+    /* CATEGORÍAS (SPEC §5): el desglose que antes iba encima de la lista, con la barra del
+       presupuesto arriba (solo mes en curso / Mi ciclo: sin límite en el pasado, regla de §3).
+       Tocar una categoría sigue siendo ponerle límite: es la única puerta para eso hasta la
+       tanda 3, que la pasa a la pulsación larga y al chip del filtro. Ya no se pliega: el
+       «es too much» de su pareja (10/9) era porque tapaba la lista, y aquí ya no tapa nada. */
+    capa("cats", React.createElement("div",{className:"gx-cats","data-testid":"gastos-cats"},
+      presu!=null && React.createElement("div",{className:"gx-cats-pres"},
+        React.createElement("div",{className:"gx-cats-barra",role:"progressbar","aria-label":t("gv5_cats_pres"),"aria-valuemin":0,"aria-valuemax":presu,"aria-valuenow":+usado.toFixed(2)},
+          React.createElement("i",{className:"gx-cats-in",style:{width:(Math.min(usado,presu)/Math.max(usado,presu)*100)+"%"}}),
+          usado>presu && React.createElement("i",{className:"gx-cats-over",style:{width:((usado-presu)/usado*100)+"%"}})),
+        React.createElement("div",{className:"gx-cats-pie"},
+          React.createElement("span",null,tf("gv5_cats_of",{x:eur0(presu)})),
+          React.createElement("span",null,monthSummary.periodLabel))),
+      // La pista de siempre: sin ella, que tocar pone un límite no se adivina (hasta la tanda 3).
+      catBreakdown.length>0 && React.createElement("p",{className:"hint"},t("v4_gastos_cats")),
+      catBreakdown.length===0
+        ? React.createElement("div",{className:"empty"},t("gv5_cats_vacio"))
+        : React.createElement("div",{className:"gx-cats-lista"},catBreakdown.map(function(row){
+            const cat=catOf(row.id);
+            const lim=row.limit;
+            const pct=lim>0?Math.min(100, row.spent/lim*100):0;
+            return React.createElement("button",{key:row.id,type:"button",className:"v4-gastos-cat gx-cat",
+                "data-cat":row.id,onClick:function(){ editCatBudget(row.id); }},
+              React.createElement("span",{className:"gx-cat-ic","aria-hidden":true,style:{background:(cat.color||"#6CC688")+"22",color:cat.color}},cat.icon||""),
+              React.createElement("span",{className:"gx-cat-txt"},
+                React.createElement("span",{className:"v4-gastos-cat-row"},
+                  React.createElement("span",{className:"v4-gastos-cat-name"}, catName(row.id)),
+                  React.createElement("span",{className:"v4-gastos-cat-amt num"}, eur0(row.spent))),
+                lim>0
+                  ? React.createElement(React.Fragment,null,
+                      React.createElement("span",{className:"v4-gastos-cat-hint"}, tf("v4_gastos_cat_limit",{x:eur0(lim)})),
+                      React.createElement("span",{className:"bar",role:"progressbar","aria-valuemin":0,"aria-valuemax":lim,"aria-valuenow":row.spent},
+                        React.createElement("i",{style:{width:pct+"%",background:cat.color||"var(--mint)"}})))
+                  // Sin límite, la barra es relativa a la categoría que más lleva: solo compara.
+                  : React.createElement("span",{className:"gx-cat-rel","aria-hidden":true},
+                      React.createElement("i",{style:{width:(catsMax>0?row.spent/catsMax*100:0)+"%",background:cat.color||"var(--mint)"}}))));
+          })))),
+    /* SUSCRIPCIONES (SPEC §6): las detectadas pasan aquí TAL CUAL estaban (importe editable, pasar
+       a Recibos, descartar); su bandeja con fichas es la tanda 4. Solo si hay novedad: activas, aún
+       no pasadas a Fijos ni descartadas a mano (petición 2026-08-03: la gasolina se repite pero
+       nunca tendrá importe fijo). Vacía, lo dice en vez de dejar la sección en blanco. Mientras la
+       detección no ha corrido (`heavyOk`, se difiere a propósito) no se afirma nada. */
+    capa("subs", React.createElement("div",{className:"gx-subs","data-testid":"gastos-subs"},
+      !heavyOk ? null
+      : novelSubs.length
+        ? React.createElement(CollapsibleCard,{title:t("sub_title")+" · "+novelSubs.length,sub:tf("sub_sub",{n:novelSubs.length,y:eur0(novelSubs.reduce(function(a,s){return a+(s.active?s.yearly:0);},0))}),dot:"#C9A6F0",defaultOpen:true,storageKey:"g_subs_novel",help:t("h_subs")},
+            novelSubs.map(function(sp){ return React.createElement(SubRow,{key:sp.key,sp:sp,state:state,set:set,showToast:showToast}); }),
+            React.createElement("div",{className:"hint",style:{marginTop:8}}, t("sub_hint")))
+        : React.createElement("div",{className:"gx-vacio"},
+            React.createElement("div",{className:"gx-vacio-ic","aria-hidden":true},"✓"),
+            React.createElement("div",{className:"gx-vacio-t serif"},t("gv5_subs_ok_t")),
+            React.createElement("div",{className:"gx-vacio-d"},t("gv5_subs_ok_d"))))),
+    React.createElement(GastosFilterSheet,{
+      open:filterOpen, onClose:function(){ setFilterOpen(false); },
+      sel:sel, setSel:setSel, bankSel:bankSel, setBankSel:setBankSel,
+      bucketSel:bucketSel, setBucketSel:setBucketSel,
+      bankOpts:bankOpts, diarioEnts:diarioEnts, debts:state.debts,
+      preset:preset, setPreset:setPreset, presetDef:presetDef, periodoExtra:periodoExtra
+    }),
+    React.createElement(ExpenseDetailSheet,{
+      exp:detailId?(state.expenses||[]).find(function(e){ return e.id===detailId; }):null,
+      editExp:editExp, setEditExp:setEditExp,
+      // Cerrar también guarda el último dígito del teclado. Borrar pasa `true` para no resucitar
+      // el gasto con un guardado tardío en el mismo lote de React.
+      onClose:function(skipSave){
+        const ex=(state.expenses||[]).find(function(e){ return e.id===detailId; });
+        if(!skipSave && ex && editExp) saveEdit(ex);
+        setDetailId(null); setEditExp(null);
+      },
+      setCat:setCat, setCuota:setCuota, setReceipt:setReceipt, quitarRecibo:quitarRecibo, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
+      resolveDup:resolveDup, separarGemelo:separarGemelo, recognizeWithdrawal:recognizeWithdrawal, withdrawalStatus:withdrawalStatus,
+      showToast:showToast, aiBusy:aiBusy, suggestAi:suggestAi, state:state
+    }),
+    undoDelete && ReactDOM.createPortal(
+      React.createElement("div",{className:"v4-undo-toast",role:"status","data-testid":"expense-undo"},
+        React.createElement("span",null,t(undoDelete.paired?"g_auto_deleted":"f_undo_deleted")),
+        React.createElement("button",{type:"button",onClick:undoLastDelete},t("f_undo"))),document.body)
+  );
+}
+
+/* Secciones de Gastos v5 en el orden del tirón (fijo: ver `useTironSeccion`) y su nombre. */
+const GX_SECC=["movs","cats","subs"];
+const GX_SECC_TXT={movs:"gv5_sec_movs", cats:"gv5_sec_cats", subs:"gv5_sec_subs"};
+// Mismo escondite que los segmentos de Plan (ver el porqué medido en PlanTab).
+const GX_OCULTO={height:0,overflow:"hidden",contentVisibility:"hidden",pointerEvents:"none"};
+/* LA LISTA DE MOVIMIENTOS, EN SU PROPIO MEMO (Gastos v5, tanda 2, 24/10/2026). Cambiar de sección
+   (Movimientos / Categorías / Suscripciones) es estado de Expenses, y sin esto cada cambio volvía a
+   recorrer los días pintados (cajón, recibo y deuda de cada fila) y a construir la lista entera
+   aunque no cambiara nada (AGENTS §7 bis). Todo lo que recibe es estable mientras no cambien los
+   datos, los filtros o la tanda pintada: las callbacks van en `useCallback` y nada viaja como
+   `Date`. Si añades una prop, que sea estable, o el memo queda de adorno. */
+const GastosLista=React.memo(function GastosLista({filtered, visible, state, cifra, mode, q, sel, bucketSel, bankSelIsDefault, preset, hayHistorico,
+    dragExpense, openDetail, startExpenseDrag, moveExpenseDrag, endExpenseDrag, onGoPlan, simple, l10nKey, sentinelRefCb}){
   const shown=filtered.slice(0,visible);
   /* A LA FILA SE LE PASA EL NÚMERO, NO EL `Date` (2026-07-27, y esto llevaba roto desde siempre).
      `parseDate` cachea los MILISEGUNDOS pero devuelve `new Date(ms)`: un objeto NUEVO en cada
@@ -13026,129 +13429,11 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // Lo que cuenta ese día, con la misma regla que la cifra de arriba: sumados, dan la cifra.
   const totalDia=function(k,ym){
     const d=gastosDiaDe(cifra,k,ym);
-    if(!d || !(d.sp>0) && !(monthSummary.mode==="net"&&d.inc>0)) return null;
-    const v=gastosValor(d,monthSummary.mode);
+    if(!d || !(d.sp>0) && !(mode==="net"&&d.inc>0)) return null;
+    const v=gastosValor(d,mode);
     return (v<0?"+":"")+eur(Math.abs(v));
   };
-  const simple=!!(state.settings&&state.settings.simpleMode);
-
-  return React.createElement("div",{className:"v4-screen gx-root",ref:rootRef,"data-periodo":preset},
-    React.createElement(GastosCabecera,{rootRef:rootRef, cab:cab, meses:preset==="months"?cab.meses:null, onMes:irAMes, stopSwipe:stopSwipe, diasRef:diasRef}),
-    React.createElement("div",{className:"filters"},
-      // Filtros vive PEGADO al buscador (2026-08-05): los dos acotan la misma lista de abajo,
-      // así que van en la misma fila — antes el botón quedaba solo, en su propia línea entre el
-      // buscador y "Sincronizar", sin pertenecer claramente a ninguno de los dos (feedback: «se
-      // queda raro en medio»). Sincronizar es una acción de red (trae datos nuevos), no de
-      // filtrado, así que se queda donde estaba, lejos de este grupo.
-      React.createElement("div",{style:{display:"flex",gap:8,marginBottom:9}},
-        React.createElement("div",Object.assign({className:"searchbar",style:{flex:1,minWidth:0,marginBottom:0}},stopSwipe),
-          React.createElement("span",{className:"searchbar-ic"},"🔍"),
-          React.createElement("input",{className:"searchbar-in",type:"search",placeholder:t("g_search"),value:q,onChange:e=>setQ(e.target.value)}),
-          q && React.createElement("button",{className:"searchbar-x",onClick:()=>setQ(""),title:"×"},"✕")
-        ),
-        React.createElement("button",{type:"button",className:"v4-chip"+(nFilters?" on":""),onClick:function(){ setFilterOpen(true); },title:t("g_filters"),
-          style:{minHeight:0,padding:"0 14px",fontWeight:700,flex:"0 0 auto"}},
-          "🎛️"+(nFilters?" "+nFilters:""))
-      ),
-      // «Mi ciclo»: enseña QUÉ cobro ancla el ciclo (si el detectado no es el bueno, se corrige
-      // apuntando la nómina real como ingreso, o usando Rango…).
-      preset==="cycle" && React.createElement("div",{className:"v4-cycle-box"+(cycleHelpOpen?"":" compacto"),"data-testid":"gastos-cycle-help"},
-        React.createElement("div",{className:"v4-cycle-head"},
-          React.createElement("div",{className:"v4-cycle-main"},
-            React.createElement("strong",null,cycle?"📅 "+t("g_cycle"):t("g_cycle_none_t")),
-            React.createElement("div",null,cycle
-              ? tf("g_cycle_from",{d:cycle.start.toLocaleDateString(loc(),{day:'2-digit',month:'2-digit'}), x:"+"+eur0(Math.abs(cycle.inc.amount))+((cycle.inc.merchant&&cycle.inc.merchant!=="Ingreso")?" · "+cycle.inc.merchant:"")})
-              : t("g_cycle_fallback"))),
-          React.createElement("button",{type:"button",className:"v4-chip",onClick:toggleCycleHelp,
-            "aria-expanded":cycleHelpOpen,"aria-controls":cycleHelpOpen?"gastos-cycle-explanation":undefined},
-            t(cycleHelpOpen?"g_cycle_help_hide":"g_cycle_help_show"))),
-        cycleHelpOpen && React.createElement("div",{id:"gastos-cycle-explanation",className:"v4-cycle-explanation"},
-          cycle ? t(cycleEnabled?"g_cycle_budget_hint":"g_cycle_filter_hint") : t("g_cycle_none"))
-      ),
-      preset==="custom" && React.createElement("div",null,
-        React.createElement("div",Object.assign({className:"range"},stopSwipe),
-          React.createElement("button",{type:"button",className:"v4-chip"+(calPick==="from"?" on":""),onClick:function(){ setCalPick(calPick==="from"?null:"from"); }},
-            range.from?fmtIsoCorto(range.from):t("g_custom")),
-          React.createElement("span",null,"→"),
-          React.createElement("button",{type:"button",className:"v4-chip"+(calPick==="to"?" on":""),onClick:function(){ setCalPick(calPick==="to"?null:"to"); }},
-            range.to?fmtIsoCorto(range.to):t("g_custom"))
-        ),
-        calPick && React.createElement(McCal,{value:calPick==="from"?range.from:range.to, onPick:function(iso){
-          setRange(function(r){ const n=Object.assign({},r); n[calPick]=iso; return n; });
-          setCalPick(null);
-        }})
-      ),
-      // Resumen de los filtros activos (categorías/bancos) + botón para quitarlos. El botón que
-      // ABRE el sheet ya no vive aquí: se movió junto al buscador (ver arriba).
-      nFilters>0 && React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:8,alignItems:"center",marginTop:2}},
-        React.createElement("span",{style:{fontSize:12.5,color:"var(--muted)",lineHeight:1.35,flex:"1 1 120px"}}, filterParts.join(" · ")),
-        React.createElement("button",{type:"button",className:"v4-chip",onClick:clearFilters,style:{padding:"8px 12px"}}, t("g_filters_clear"))
-      )
-    ),
-    /* SE PUEDE OCULTAR (petición de su pareja, 10/9, y con razón).
-       Sus palabras: «esta chulo pero mi pareja lo vio y me dijo que es too much, que le gustaria
-       que se pudiera ocultar y habilitarlo si tu quieres».
-       El desglose lista TODAS las categorías con gasto del mes, así que en cuanto tienes vida
-       normal son ocho o diez filas fijas encima de la lista de gastos. A él le sirve —fue idea
-       suya ponerles límite— y a ella le tapa lo que viene a mirar. No es un fallo de la función:
-       es que no todo el mundo quiere lo mismo abierto siempre.
-       Plegado, deja UNA línea: sigue estando y no molesta. El estado va en `settings` (por
-       cuenta, que cada uno tiene la suya), y por defecto ABIERTO: quien ya lo tiene no se
-       encuentra con que le han escondido algo sin avisar. Se pliega quien quiera plegarlo.
-       v5 (20/10/2026): sale de la tarjeta resumen, que ya no existe, y se queda aquí hasta que
-       la sección Categorías (tandas 2 y 3) lo sustituya: es la única puerta para poner un
-       límite a una categoría y no se puede perder antes de que exista la nueva. */
-    catBreakdown.length>0 && React.createElement("div",{className:"v4-gastos-cats"+(catsOpen?"":" cerrado"),"data-testid":"gastos-cats"},
-      React.createElement("button",{type:"button",className:"v4-gastos-cats-h",
-        "aria-expanded":catsOpen,"aria-controls":"gastos-cats-body",onClick:toggleCats},
-        React.createElement("span",{className:"v4-gastos-cats-t"},
-          catsOpen ? t("v4_gastos_cats")
-                   : tf(catBreakdown.length===1?"v4_gastos_cats_period_n1":"v4_gastos_cats_period_n",{n:catBreakdown.length,period:monthSummary.periodLabel})),
-        React.createElement("span",{className:"v4-gastos-cats-fold"},
-          (catsOpen?"▾ ":"▸ ")+t(catsOpen?"v4_gastos_cats_hide":"v4_gastos_cats_show"))),
-      React.createElement("div",{id:"gastos-cats-body",className:"v4-gastos-cats-body"+(catsOpen?" abierto":""),"aria-hidden":!catsOpen},
-      React.createElement("div",{className:"v4-gastos-cats-inner"},catBreakdown.map(function(row){
-        const cat=catOf(row.id);
-        const lim=row.limit;
-        const pct=lim>0?Math.min(100, row.spent/lim*100):0;
-        return React.createElement("button",{key:row.id,type:"button",className:"v4-gastos-cat",
-            "data-cat":row.id,onClick:function(){ editCatBudget(row.id); }},
-          React.createElement("div",{className:"v4-gastos-cat-row"},
-            React.createElement("span",{className:"v4-gastos-cat-name"}, (cat.icon||"")+" "+catName(row.id)),
-            React.createElement("span",{className:"v4-gastos-cat-amt num"}, eur0(row.spent))),
-          lim>0
-            ? React.createElement(React.Fragment,null,
-                React.createElement("span",{className:"v4-gastos-cat-hint"}, tf("v4_gastos_cat_limit",{x:eur0(lim)})),
-                React.createElement("div",{className:"bar",role:"progressbar","aria-valuemin":0,"aria-valuemax":lim,"aria-valuenow":row.spent},
-                  React.createElement("i",{style:{width:pct+"%",background:cat.color||"var(--mint)"}})))
-            : null);
-      })))
-    ),
-    React.createElement("div",{className:"action-row"},
-      React.createElement("button",{className:"btn btn-ghost",onClick:onSync,disabled:syncing,"aria-describedby":"gastos-refresh-scope"}, syncing?React.createElement(React.Fragment,null,React.createElement("span",{className:"spin"}),t("g_refreshing_expenses")):React.createElement(React.Fragment,null,React.createElement(I.sync,{width:16,height:16}),t("g_refresh_expenses")))
-    ),
-    React.createElement("p",{className:"hint",id:"gastos-refresh-scope"},t("g_refresh_expenses_hint")),
-    React.createElement("div",{className:"sync-note"},
-      React.createElement("span",{className:"sync-dot "+(syncStatus.type||"idle")}),
-      React.createElement(SyncHora,{msg:syncStatus.msg,lastSync:state.lastSync})
-    ),
-/* Alta de gasto/ingreso: FAB Apuntar (SPEC §7). */
-    (function(){
-      // SPEC §4: suscripciones solo si hay novedad (activas, aún no pasadas a Fijos, ni descartadas
-      // a mano — petición 2026-08-03: poder quitar una detección que no es una suscripción de
-      // verdad, ej. la gasolina, que se repite pero nunca va a tener un importe fijo).
-      const dismissed=state.subsDismissed||[];
-      const novel=(subs||[]).filter(function(sp){
-        if(!sp.active) return false;
-        if(dismissed.indexOf(sp.key)!==-1) return false;
-        return !(state.fixed||[]).some(function(f){ return catKey(f.name)===sp.key; });
-      });
-      if(!novel.length) return null;
-      return React.createElement("div",{style:{marginTop:14}}, React.createElement(CollapsibleCard,{title:t("sub_title")+" · "+novel.length,sub:tf("sub_sub",{n:novel.length,y:eur0(novel.reduce(function(a,s){return a+(s.active?s.yearly:0);},0))}),dot:"#C9A6F0",defaultOpen:true,storageKey:"g_subs_novel",help:t("h_subs")},
-        novel.map(function(sp){ return React.createElement(SubRow,{key:sp.key,sp:sp,state:state,set:set,showToast:showToast}); }),
-        React.createElement("div",{className:"hint",style:{marginTop:8}}, t("sub_hint"))
-      ));
-    })(),
+  return (
     React.createElement("div",{className:"v4-gastos-list gx-list",style:{marginTop:6}},
       React.createElement("div",{className:"v4-gastos-list-body"},
         shown.length===0
@@ -13161,8 +13446,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
               // bankSel igual a los de gasto diario cuenta como "sin filtro": es la
               // preselección automática (2026-08-17: todos los marcados, no solo el principal).
               const sinFiltros=!q.trim() && !sel.length && !bucketSel.length && bankSelIsDefault;
-              const hayHistorico=(expensesDef||[]).length>0;
-              const esVacioNormal=sinFiltros && hayHistorico && preset==="cycle";
+                            const esVacioNormal=sinFiltros && hayHistorico && preset==="cycle";
               return React.createElement("div",{className:"empty"},
                 React.createElement("div",{className:"ttl"}, esVacioNormal?t("g_empty_period_t"):t("g_empty_t")),
                 esVacioNormal?t("g_empty_period_d"):t("g_empty_d"));
@@ -13189,34 +13473,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         shown.length>0 && visible>=filtered.length && React.createElement("div",{className:"gx-fin"},
           tf("gv5_end",{d:new Date(dateMs(filtered[filtered.length-1].date)).toLocaleDateString(loc(),{day:"numeric",month:"long",year:"numeric"})}))
       )
-    ),
-    React.createElement(GastosFilterSheet,{
-      open:filterOpen, onClose:function(){ setFilterOpen(false); },
-      sel:sel, setSel:setSel, bankSel:bankSel, setBankSel:setBankSel,
-      bucketSel:bucketSel, setBucketSel:setBucketSel,
-      bankOpts:bankOpts, diarioEnts:diarioEnts, debts:state.debts,
-      preset:preset, setPreset:setPreset, presetDef:presetDef
-    }),
-    React.createElement(ExpenseDetailSheet,{
-      exp:detailId?(state.expenses||[]).find(function(e){ return e.id===detailId; }):null,
-      editExp:editExp, setEditExp:setEditExp,
-      // Cerrar también guarda el último dígito del teclado. Borrar pasa `true` para no resucitar
-      // el gasto con un guardado tardío en el mismo lote de React.
-      onClose:function(skipSave){
-        const ex=(state.expenses||[]).find(function(e){ return e.id===detailId; });
-        if(!skipSave && ex && editExp) saveEdit(ex);
-        setDetailId(null); setEditExp(null);
-      },
-      setCat:setCat, setCuota:setCuota, setReceipt:setReceipt, quitarRecibo:quitarRecibo, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
-      resolveDup:resolveDup, separarGemelo:separarGemelo, recognizeWithdrawal:recognizeWithdrawal, withdrawalStatus:withdrawalStatus,
-      showToast:showToast, aiBusy:aiBusy, suggestAi:suggestAi, state:state
-    }),
-    undoDelete && ReactDOM.createPortal(
-      React.createElement("div",{className:"v4-undo-toast",role:"status","data-testid":"expense-undo"},
-        React.createElement("span",null,t(undoDelete.paired?"g_auto_deleted":"f_undo_deleted")),
-        React.createElement("button",{type:"button",onClick:undoLastDelete},t("f_undo"))),document.body)
+    )
   );
-}
+});
 
 /* Lo que la fila de meses sobresale por debajo de la caja de la cabecera cuando se encoge (px).
    Tiene que cuadrar con `.gx-head.compact.con-meses::before` y `.gx-meses` en shell.html. */
@@ -13233,7 +13492,7 @@ function gxRayaExtra(compact, conMeses){ return !compact?0:conMeses?GX_MESES_SOB
    `opacity` sobre una caja de alto fijo: bajar no recoloca nada de la lista. El scroll se lee en
    un `requestAnimationFrame` y el día se busca por bisección entre los encabezados ya pintados,
    así cada frame cuesta unas pocas lecturas aunque haya meses enteros cargados. */
-function GastosCabecera({rootRef, cab, meses, onMes, stopSwipe, diasRef}){
+function GastosCabecera({rootRef, cab, meses, onMes, stopSwipe, diasRef, secc, onSecc, nSubs}){
   const [vista,setVista]=useState({k:null, ym:null, compact:false});
   const headRef=useRef(null), mesesRef=useRef(null), calcRef=useRef(null);
   // El cálculo vive en un efecto montado una vez: lee si hay meses por ref, no por cierre viejo.
@@ -13279,7 +13538,9 @@ function GastosCabecera({rootRef, cab, meses, onMes, stopSwipe, diasRef}){
   },[ymSel, vista.compact, meses&&meses.length, l10nKeyOf()]);
   const tone=line.tone?" gx-tone-"+line.tone:"";
   return React.createElement("div",{className:"gx-head"+(vista.compact?" compact":"")+(meses?" con-meses":""),ref:headRef},
-    React.createElement("h1",{className:"v4-title serif"}, t("v4_gastos_title")),
+    React.createElement("div",{className:"gx-titulo"},
+      React.createElement("h1",{className:"v4-title serif"}, t("v4_gastos_title")),
+      React.createElement(GxSecciones,{secc:secc, onSecc:onSecc, nSubs:nSubs})),
     React.createElement(GxCifra,{n:line.n}),
     React.createElement("div",{className:"gx-status","data-testid":"gastos-estado"},
       React.createElement("span",null,line.pre),
@@ -13296,6 +13557,27 @@ function GastosCabecera({rootRef, cab, meses, onMes, stopSwipe, diasRef}){
   );
 }
 function l10nKeyOf(){ return CURLANG+"|"+DISP.sym; }
+/* LOS TRES ICONOS DE SECCIÓN (SPEC §2.1): Movimientos (líneas), Categorías (barras) y
+   Suscripciones (reloj con flecha = «se repite»), con el globito de las que esperan decisión.
+   Son pestañas de verdad (`role="tab"`, `aria-selected`) y cada una dice su nombre: el icono solo
+   no se entiende con un lector de pantalla. */
+const GX_SECC_ICO={
+  movs:["M4 7h16M4 12h12M4 17h8"],
+  cats:["M6 20v-6M12 20V4M18 20v-10"],
+  subs:["M3.5 12a8.5 8.5 0 1 0 2.5-6","M3 3v4h4","M12 8v4l3 2"]
+};
+function GxSecciones({secc, onSecc, nSubs}){
+  return React.createElement("div",{className:"gx-secciones",role:"tablist","aria-label":t("gv5_secciones")},
+    GX_SECC.map(function(id){
+      const on=secc===id, globo=id==="subs"&&nSubs>0;
+      return React.createElement("button",{key:id,type:"button",role:"tab","aria-selected":on,"data-gx-tab":id,
+          className:"gx-sec"+(on?" on":""),"aria-label":t(GX_SECC_TXT[id])+(globo?" · "+tf("gv5_subs_globo",{n:nSubs}):""),
+          onClick:function(){ onSecc(id); }},
+        React.createElement("svg",{"aria-hidden":true,width:20,height:20,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.2,strokeLinecap:"round",strokeLinejoin:"round"},
+          GX_SECC_ICO[id].map(function(d){ return React.createElement("path",{key:d,d:d}); })),
+        globo && React.createElement("span",{className:"gx-sec-globo num","aria-hidden":true,"data-testid":"gastos-subs-globo"},nSubs>99?"99+":nSubs));
+    }));
+}
 /* LA CIFRA RUEDA POR DÍGITO (referencia del dueño, 20/10: «este es el nivel que aspiro de
    fluidez»). Cada dígito es una tira 0–9 que sube o baja con `translateY`: sin layout ni anchos
    que cambien (cifras tabulares, celda de ancho fijo), y si llega otro cambio a mitad, la
@@ -13437,7 +13719,7 @@ function filterSelLabel(id, debts){
   const d=(debts||[]).find(function(x){ return x && ("debt:"+x.id)===id; });
   return d&&d.name||catName("deudas");
 }
-function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, bucketSel, setBucketSel, bankOpts, diarioEnts, debts, preset, setPreset, presetDef}){
+function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, bucketSel, setBucketSel, bankOpts, diarioEnts, debts, preset, setPreset, presetDef, periodoExtra}){
   const swipe=useSheetSwipe(!!open, onClose);
   useBackClose(!!open, swipe.close);
   const [qCat,setQCat]=useState("");
@@ -13499,6 +13781,7 @@ function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, buc
             return React.createElement("button",{key:p[0],type:"button",role:"radio","aria-checked":on,className:"gx-periodo-op"+(on?" on":""),
               "data-periodo":p[0],onClick:function(){ setPreset(p[0]); }}, t(p[1]));
           })),
+        periodoExtra && React.createElement("div",{className:"gx-periodo-extra"},periodoExtra),
         React.createElement("div",{style:{fontSize:12,fontWeight:800,color:"var(--muted-2)",letterSpacing:".04em",textTransform:"uppercase",marginBottom:8}}, t("g_bk_title")),
         React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:8,marginBottom:16}},
           React.createElement("button",{type:"button",className:"v4-chip"+(bucketSel.length===0?" on":""),onClick:function(){ setBucketSel([]); }}, t("g_bk_all")),
@@ -24685,7 +24968,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="82141eef416bc4acc1e09ce2bf4188652b4b7e999268f64e25508ee3e709bd25";
+var _rnSha="3d07b79c397b89d8c7485724a5811da7dfdafb8ef970f0f093e176ab67f49e5b";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -26199,6 +26482,8 @@ function HogarSection({state, totals, uid, showToast, meEmail}){
    Spec: docs/design/handoff/SPEC-v4.md §5–7
    ============================================================ */
 
+// Orden fijo del tirón de Plan (ver `useTironSeccion`: no puede ser un literal del render).
+const PLAN_SEG_ORDEN=["recibos","deudas","metas"];
 function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
   const [seg,setSeg]=useState("recibos");
   const [manageOpen,setManageOpen]=useState(false);
@@ -26341,141 +26626,15 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
   };
 
   /* DESLIZAR VERTICAL PARA CAMBIAR DE SEGMENTO (petición 2026-08-03: «no depender de la otra
-     mano para tocar arriba»). SOLO arriba del todo tirando hacia abajo: Recibos → Deudas → Metas
-     → Recibos. Abajo del todo es la OLA nativa (feedback 4/8 noche), no el sentido inverso — si
-     reclamábamos ese borde con `touch-action:none` + preventDefault, matábamos la ola. A mitad
-     de lista = scroll normal. Eje x/y con `gestureAxis` (mismo que el swipe de pestañas); si sale
-     horizontal, este gesto se aparta y deja pasar el de `.viewport`. */
+     mano para tocar arriba»). Recibos → Deudas → Metas → Recibos. La mecánica vive en
+     `useTironSeccion` (02-ui-shared.js) desde Gastos v5, que la usa igual: un solo sitio. */
   const planScreenRef=useRef(null);
-  const enterDirRef=useRef(null);
-  useEffect(function(){
-    if(simple) return undefined;   // modo sencillo: un único segmento, no hay a dónde ir
-    const root=planScreenRef.current; if(!root) return undefined;
-    // Orden fijo, NO derivado de `segs` (ese array es literal nuevo en cada render de PlanTab):
-    // si esta lista dependiera de `segs`, el efecto se desmontaría y remontaría en CUALQUIER
-    // re-render del componente —cambie o no `simple`/`seg`—, y si eso pasa a mitad de un gesto
-    // (entre un touchmove y el siguiente) los listeners viejos se sueltan y los nuevos arrancan
-    // con sx/sy/axis en blanco: el primer arrastre después de aterrizar en Plan se perdía así
-    // (visto en el e2e: el primer deslizamiento no cambiaba de segmento y el segundo sí).
-    const order=["recibos","deudas","metas"];
-    const TH=0.07, FLICK_V=0.4, FLICK_MIN=26, MAX_PULL=46;
-    // Solo ARRIBA → abajo cambia de segmento. Abajo = ola. Plan va SIEMPRE en pan-y: si se
-    // pone `touch-action:none` estando arriba, bloquea también BAJAR a ver el contenido
-    // (feedback 5/8). Y ponerlo DENTRO del touchstart no sirve de nada: el navegador decide el
-    // touch-action de un gesto antes de ejecutar ese handler (medido 2026-10-13, ver `onMove`).
-    // Así que el tirón de segmento se reclama solo con preventDefault, y el scroll es del navegador.
-    let sx=0, sy=0, t0=0, axis=null, mode=null, dir=0, dyRaw=0, raf=0, pend=null;
-    let startAtTop=false, pageEl=null;
-    const paint=function(){
-      raf=0;
-      const el=segElRef.current[seg];
-      if(el) el.style.transform=pend?("translate3d(0,"+pend+"px,0)"):"";
-    };
-    const queue=function(v){ pend=v; if(!raf) raf=requestAnimationFrame(paint); };
-    const resist=function(px){ return Math.pow(Math.min(1,px/160),0.72)*MAX_PULL; };
-    const cleanup=function(el){ if(el){ el.style.transition=""; el.style.transform=""; } };
-    const atTopOf=function(pg){ return !pg || (pg.scrollTop||0)<=2; };
-    const onStart=function(e){
-      if(document.documentElement.classList.contains("sheet-open")) return;
-      if(!(e.touches&&e.touches[0])) return;
-      const tt=e.touches[0];
-      pageEl=root.closest(".page");
-      sx=tt.clientX; sy=tt.clientY; t0=Date.now();
-      axis=null; mode=null; dir=0; dyRaw=0;
-      startAtTop=atTopOf(pageEl);
-      // Arriba del todo, tirar hacia abajo es cambiar de segmento: el vigía de bordes no debe
-      // sonar además del toque de segmento (ronda 9 de la vibración).
-      if(startAtTop) e.mcSegPull=true;
-    };
-    const onMove=function(e){
-      if(axis==="x"||mode==="x") return;
-      if(!(e.touches&&e.touches[0])) return;
-      const tt=e.touches[0], ddx=tt.clientX-sx, ddy=tt.clientY-sy;
-      if(axis===null){
-        const eje=gestureAxis(ddx,ddy);
-        if(!eje) return;
-        axis=eje;
-        if(axis==="x"){ mode="x"; return; }
-        if(ddy>0 && startAtTop && atTopOf(pageEl)){ dir=1; mode="seg"; }
-        else { mode="scroll"; }
-      }
-      if(mode==="scroll"){
-        /* Scroll normal: lo lleva el navegador y aquí NO se toca `scrollTop` (2026-10-13).
-           Antes, si el gesto nacía arriba del todo, el touchstart ponía `mc-touch-own`
-           (touch-action:none) y aquí se empujaba `scrollTop` a mano con TODO lo recorrido desde
-           el touchstart, «porque con none el navegador no scrollea». Medido en Chromium: el
-           touch-action de un gesto se decide ANTES de ejecutar el touchstart, así que esa clase
-           nunca gobernaba el gesto en curso y el navegador YA estaba scrolleando en nativo. El
-           empujón se sumaba encima: al bajar despacio desde el tope de Plan el contenido saltaba
-           12-16 px de golpe en un frame y se quedaba por delante del dedo — la queja del dueño,
-           «la pantalla se mueve sola» (INC-0710-01). Solo se corta la propagación para que el
-           swipe de pestañas del `.viewport` no se quede este touchmove. */
-        e.stopPropagation();
-        return;
-      }
-      if(mode!=="seg") return;
-      e.stopPropagation();
-      if((dir>0&&ddy<0)||(dir<0&&ddy>0)){ dyRaw=0; queue(0); return; }
-      dyRaw=Math.abs(ddy);
-      if(e.cancelable) e.preventDefault();
-      queue(mcReduced()?0:dir*resist(dyRaw));
-    };
-    const finish=function(allowCommit){
-      if(raf){ cancelAnimationFrame(raf); raf=0; }
-      pend=null;
-      if(mode!=="seg"){
-        axis=null; mode=null;
-        return;
-      }
-      const el=segElRef.current[seg];
-      const dt=Math.max(1,Date.now()-t0);
-      const vel=dyRaw/dt;
-      const pasa=allowCommit && (dyRaw>(window.innerHeight||700)*TH || (vel>FLICK_V && dyRaw>FLICK_MIN));
-      if(pasa){
-        // El mismo tick que los botones de segmento y la gráfica; sin la APK, el de siempre.
-        if(!mcTickHaptic()){ try{ if(navigator.vibrate) navigator.vibrate(8); }catch(err){} }
-        const i=order.indexOf(seg);
-        const nextId=order[(i+(dir>0?1:-1)+order.length)%order.length];
-        cleanup(el);
-        enterDirRef.current=dir>0?"down":"up";
-        setSegMounted(function(m){ return m[nextId]?m:Object.assign({},m,{[nextId]:true}); });
-        setSeg(nextId);
-      } else if(el && !mcReduced()){
-        el.style.transition="transform .22s cubic-bezier(.32,.72,0,1)";
-        el.style.transform="";
-        setTimeout(function(){ cleanup(el); }, 230);
-      } else cleanup(el);
-      axis=null; mode=null; dir=0; dyRaw=0;
-    };
-    const onTouchEnd=function(){ finish(true); };
-    // `touchcancel` (el sistema se lleva el dedo): el gesto NO cuenta, se queda como estaba —
-    // mismo criterio que el cierre del perfil en `onCancel` de 11-app-main.js.
-    const onTouchCancel=function(){ finish(false); };
-    root.addEventListener("touchstart", onStart, {passive:true});
-    root.addEventListener("touchmove", onMove, {passive:false});
-    root.addEventListener("touchend", onTouchEnd, {passive:true});
-    root.addEventListener("touchcancel", onTouchCancel, {passive:true});
-    return function(){
-      if(raf) cancelAnimationFrame(raf);
-      root.removeEventListener("touchstart", onStart);
-      root.removeEventListener("touchmove", onMove);
-      root.removeEventListener("touchend", onTouchEnd);
-      root.removeEventListener("touchcancel", onTouchCancel);
-    };
-  },[simple, seg]);
-  // Entrada sutil SOLO cuando el segmento cambia por este gesto (tocar la pestaña de arriba
-  // sigue siendo instantáneo, a propósito: ese toque ya es una decisión explícita del usuario).
-  useEffect(function(){
-    const dir=enterDirRef.current; if(!dir) return;
-    enterDirRef.current=null;
-    const el=segElRef.current[seg]; if(!el) return;
-    const cls=dir==="down"?"v4-seg-enter-down":"v4-seg-enter-up";
-    el.classList.add(cls);
-    const clear=function(){ el.classList.remove(cls); el.removeEventListener("animationend",clear); };
-    el.addEventListener("animationend", clear);
-    const to=setTimeout(clear, 500);   // red de seguridad si el evento no llega
-    return function(){ clearTimeout(to); };
-  },[seg]);
+  useTironSeccion(planScreenRef,{activo:!simple, seg:seg, orden:PLAN_SEG_ORDEN, respaldo:true, cortaScroll:true,
+    capa:function(id){ return segElRef.current[id]; },
+    alPasar:function(nextId){
+      setSegMounted(function(m){ return m[nextId]?m:Object.assign({},m,{[nextId]:true}); });
+      setSeg(nextId);
+    }});
 
   return React.createElement("div",{className:"v4-screen",ref:planScreenRef,"data-edge-capture":simple?null:"1"},
     React.createElement("h1",{className:"v4-title serif"}, simple?t("v4s_plan_left_title"):t("v4_plan_title")),

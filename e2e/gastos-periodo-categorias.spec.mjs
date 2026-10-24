@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews, gastosRoot, gastosCifra, gastosEstado, gastosPeriodo, gastosBajaAlMes } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, gastosRoot, gastosCifra, gastosEstado, gastosPeriodo, gastosBajaAlMes, gastosSeccion } from "./fixtures.mjs";
 
 /* Gastos v5 (20/10/2026): el periodo se elige en Filtros (Meses · Mi ciclo · Rango · Todo) y el
    desglose sigue al periodo elegido, igual que antes. «Mes pasado» ya no es un periodo: es bajar al
@@ -22,17 +22,33 @@ const expenses = [
   expense("Octubre devolución", "2026-10-01", -5, "ingreso"),
 ];
 const words = {
-  es:{cycle:"Mi ciclo",cats1:"1 categoría · octubre",cerrado:"septiembre · cerrado"},
-  en:{cycle:"My cycle",cats1:"1 category · October",cerrado:"September · closed"},
-  ca:{cycle:"El meu cicle",cats1:"1 categoria · octubre",cerrado:"setembre · tancat"},
+  es:{cycle:"Mi ciclo por categoría",cats1:"octubre por categoría",cerrado:"septiembre · cerrado"},
+  en:{cycle:"My cycle by category",cats1:"October by category",cerrado:"September · closed"},
+  ca:{cycle:"El meu cicle per categoria",cats1:"octubre per categoria",cerrado:"setembre · tancat"},
 };
 const SIN_MARGEN=/por debajo|por encima|under|over|per sota|per sobre/;
 const rows = page => gastosRoot(page).locator(".v4-gastos-list-body button.v4-mov");
 const cats = page => gastosRoot(page).locator(".v4-gastos-cat");
+// Gastos v5 (tanda 2): el desglose se mira en su sección y se vuelve a Movimientos.
 async function check(page, expected, spent){
+  await gastosSeccion(page,"cats");
   await expect(cats(page)).toHaveCount(Object.keys(expected).length);
   for(const [id,amount] of Object.entries(expected)) await expect(gastosRoot(page).locator('.v4-gastos-cat[data-cat="'+id+'"] .v4-gastos-cat-amt')).toHaveText(amount+" €");
   await expect(gastosCifra(page)).toHaveText(spent+",00 €");
+  await gastosSeccion(page,"movs");
+  await expect(gastosCifra(page)).toHaveText(spent+",00 €");
+}
+// El Rango se elige en Filtros → Periodo (tanda 2: las fechas viven con el periodo).
+async function rangoEnFiltros(page, desde, hasta){
+  await gastosRoot(page).locator("button.v4-chip").filter({ hasText: "🎛️" }).first().click();
+  const hoja=page.locator(".v4-gastos-filter-sheet");
+  for(const [i,dia] of [[0,desde],[1,hasta]]){
+    await hoja.locator(".range button").nth(i).click();
+    await page.locator(".mc-cal-nav button").first().click(); await page.locator(".mc-cal-nav button").first().click();
+    await page.locator(".mc-cal-day").getByText(dia,{exact:true}).click();
+  }
+  await page.locator(".v4-sheet-back").click({ position: { x: 5, y: 5 } });
+  await page.locator(".v4-sheet-back").waitFor({ state: "detached" });
 }
 async function checkBudgetAbsent(page){
   await expect(gastosEstado(page)).not.toContainText(SIN_MARGEN);
@@ -51,11 +67,11 @@ for(const lang of ["es","en","ca"]){
 
     await gastosPeriodo(page,"months");
     await check(page,{super:25},25);
-    await gastosRoot(page).locator('.v4-gastos-cats-h').click();
-    await expect(gastosRoot(page).locator('.v4-gastos-cats-t')).toHaveText(w.cats1);
-    await gastosRoot(page).locator('.v4-gastos-cats-h').click();
-    await expect(gastosEstado(page)).toContainText(/975 €/);
+    await gastosSeccion(page,"cats");
+    await expect(gastosEstado(page)).toContainText(w.cats1);
     await expect(gastosRoot(page).locator('.v4-gastos-cat[data-cat="super"] [role="progressbar"]')).toHaveAttribute("aria-valuenow","25");
+    await gastosSeccion(page,"movs");
+    await expect(gastosEstado(page)).toContainText(/975 €/);
     // El mes anterior, bajando: su total (compras 70 + café 40) y «cerrado», sin margen.
     await expect(gastosRoot(page).locator('.gx-dia[data-gx-ym="2026-09"] button.v4-mov')).toHaveCount(3);
     await gastosBajaAlMes(page,"2026-09");
@@ -64,16 +80,12 @@ for(const lang of ["es","en","ca"]){
     await page.evaluate(()=>document.querySelector(".page-scroll-host").scrollTo(0,0));
 
     await gastosPeriodo(page,"custom");
-    await gastosRoot(page).locator(".range button").first().click();
-    await page.locator(".mc-cal-nav button").first().click(); await page.locator(".mc-cal-nav button").first().click();
-    await page.locator(".mc-cal-day").getByText("10",{exact:true}).click();
-    await gastosRoot(page).locator(".range button").last().click();
-    await page.locator(".mc-cal-nav button").first().click(); await page.locator(".mc-cal-nav button").first().click();
-    await page.locator(".mc-cal-day").getByText("20",{exact:true}).click();
+    await rangoEnFiltros(page,"10","20");
     await check(page,{salud:23,transporte:11},34);
     await expect(rows(page)).toHaveCount(2);
     await checkBudgetAbsent(page);
     await expect(cats(page).locator('[role="progressbar"]')).toHaveCount(0);
+    await expect(gastosRoot(page).locator(".gx-cats-barra")).toHaveCount(0);
 
     await gastosPeriodo(page,"all");
     await check(page,{compras:70,bares:40,super:25,salud:23,transporte:11,ocio:9},178);
@@ -82,8 +94,9 @@ for(const lang of ["es","en","ca"]){
     await check(page,{bares:40,super:25},60);
     // Tras explorar todo el histórico, el ciclo debe recuperar su margen contra el límite.
     await expect(gastosEstado(page)).toContainText(/940 €/);
-    await gastosRoot(page).locator('.v4-gastos-cats-h').click();
-    await expect(gastosRoot(page).locator('.v4-gastos-cats-t')).toContainText(w.cycle);
+    await gastosSeccion(page,"cats");
+    await expect(gastosEstado(page)).toContainText(w.cycle);
+    await gastosSeccion(page,"movs");
     await gastosRoot(page).locator('input.searchbar-in[type="search"]').first().fill("Octubre compra");
     await expect(rows(page)).toHaveCount(1);
     await expect(gastosCifra(page)).toHaveText("60,00 €");

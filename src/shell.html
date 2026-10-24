@@ -830,36 +830,6 @@
   .v4-title{font-size:26px;font-weight:560;font-variation-settings:"opsz" 24;letter-spacing:-.3px;margin:8px 0 14px;line-height:1.15;}
   .v4-micro{font-size:12.5px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:700;}
   .v4-card{background:linear-gradient(180deg,var(--sur),var(--bg-2));border:1px solid var(--line-soft);border-radius:24px;padding:20px;box-shadow:var(--shadow);}
-  .v4-gastos-cats{margin-top:14px;transition:margin-top .34s var(--ease);}
-  /* La cabecera es el interruptor (petición de su pareja, 10/9: «es too much, que se pudiera
-     ocultar y habilitarlo si tú quieres»). Ocupa toda la fila para que sea fácil de acertar con
-     el dedo, y dice en palabras lo que hace en vez de esconderlo en un icono: plegada, esta línea
-     es TODO lo que queda del desglose. Mismo idioma que las tandas del panel de beta (▾/▸ + verbo),
-     que es un patrón que ya conoce. */
-  .v4-gastos-cats-h{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;
-    font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--muted-2);
-    margin-bottom:4px;padding:6px 0;background:none;border:none;text-align:left;cursor:pointer;font-family:inherit;
-    transition:margin-bottom .34s var(--ease);}
-  .v4-gastos-cats-t{min-width:0;overflow:hidden;text-overflow:ellipsis;}
-  .v4-gastos-cats-fold{flex:0 0 auto;color:var(--muted);text-transform:none;letter-spacing:0;font-size:11.5px;}
-  /* Plegado no deja hueco: si dejara el margen, «ocultar» seguiría notándose como un vacío raro. */
-  .v4-gastos-cats.cerrado{margin-top:10px;}
-  .v4-gastos-cats.cerrado .v4-gastos-cats-h{margin-bottom:0;}
-  /* El cuerpo permanece montado durante el cierre: `hidden` cortaba la altura de golpe antes
-     de que el navegador pudiera interpolarla (feedback 18/9). La rejilla anima altura real sin
-     adivinar un max-height y la opacidad evita que la última fila parpadee. */
-  .v4-gastos-cats-body{display:grid;grid-template-rows:0fr;opacity:0;visibility:hidden;pointer-events:none;
-    transition:grid-template-rows .34s var(--ease),opacity .24s ease,visibility 0s linear .34s;}
-  /* `inherit` y no `visible` (2026-10-10): un hijo con `visibility:visible` se pinta aunque
-     la página lleve `hidden`. Gastos premontada ocupa el mismo recto que Inicio (el host es
-     `position:fixed` y sale del flujo). Con temática el host es transparente y la tarjeta
-     vacía de recibos no tiene fondo, así que el desglose se leía encima de Inicio con la
-     pestaña activa todavía ahí. Sin temática el fondo opaco lo tapa: por eso no salía en
-     todos los móviles. Heredar sigue el `hidden` de la página inactiva y, en la activa,
-     sigue siendo visible. Un `*` con !important sobre toda la página también lo cerraba,
-     pero a CPU x6 la primera vuelta a Inicio pagaba ~65 ms de estilo; esto no añade regla. */
-  .v4-gastos-cats-body.abierto{grid-template-rows:1fr;opacity:1;visibility:inherit;pointer-events:inherit;transition-delay:0s;}
-  .v4-gastos-cats-inner{min-height:0;overflow:hidden;}
   .v4-gastos-cat{display:block;width:100%;text-align:left;background:transparent;border:0;padding:6px 0 2px;cursor:pointer;color:inherit;font:inherit;}
   .v4-gastos-cat-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13px;}
   .v4-gastos-cat-name{font-weight:600;min-width:0;}
@@ -1106,7 +1076,6 @@
      encogerse. Sin esto quedaba una franja vacía sobre la lista (rechazo 4.26.164, 24/10). */
   .gx-head.compact::before{bottom:16px;box-shadow:0 12px 20px -14px rgba(0,0,0,.8);}
   .gx-head.compact.con-meses::before{bottom:-36px;}
-  .gx-head .v4-title{margin-bottom:10px;}
   .gx-num{position:relative;font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:46px;line-height:1;letter-spacing:-1px;
     white-space:nowrap;font-variant-numeric:tabular-nums;transform-origin:left top;transition:transform .22s var(--ease);}
   .gx-head.compact .gx-num{transform:scale(.739);}
@@ -1138,6 +1107,44 @@
   .gx-mes{position:relative;flex:0 0 auto;height:36px;padding:0 14px;border:0;border-radius:18px;background:transparent;color:var(--muted);
     font:600 15px 'Manrope',sans-serif;white-space:nowrap;cursor:pointer;}
   .gx-mes.on{color:var(--text);font-weight:700;}
+  /* Título con los tres iconos de sección a la derecha (SPEC §2.1): el activo relleno en menta.
+     La fila mide lo mismo que el título de antes (8 + 30 + 10 px): los iconos de 44 px se comen
+     los márgenes. Si la cabecera creciera, el buscador (que se queda el dedo, `stopSwipe`) bajaría
+     a la franja por la que se desliza entre pestañas y los e2e de gestos perderían su sitio. */
+  .gx-titulo{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:2px 0;min-height:44px;}
+  .gx-titulo .v4-title{margin:0;min-width:0;}
+  .gx-secciones{display:flex;gap:8px;flex:0 0 auto;}
+  .gx-sec{position:relative;width:44px;height:44px;border-radius:22px;padding:0;display:flex;align-items:center;justify-content:center;
+    border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer;
+    transition:background-color .2s var(--ease),border-color .2s var(--ease),color .2s var(--ease);}
+  .gx-sec.on{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
+  .gx-sec-globo{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;padding:0 4px;box-sizing:border-box;border-radius:9px;
+    background:var(--tan);color:var(--on-mint);font:800 11px 'Manrope',sans-serif;display:flex;align-items:center;justify-content:center;}
+  /* Categorías (SPEC §5): barra del presupuesto y la lista en una tarjeta, cada fila con su barra. */
+  .gx-cats{display:flex;flex-direction:column;gap:14px;padding-top:8px;}
+  .gx-cats-pres{display:flex;flex-direction:column;gap:8px;}
+  .gx-cats-barra{height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden;display:flex;}
+  .gx-cats-in{display:block;background:var(--mint);}
+  .gx-cats-over{display:block;background:var(--coral);}
+  .gx-cats-pie{display:flex;justify-content:space-between;gap:10px;font-size:13px;color:var(--muted);}
+  .gx-cats-lista{background:var(--surface);border-radius:22px;padding:6px 0;}
+  .gx-cats .hint{margin:0;}
+  .v4-gastos-cat.gx-cat{display:flex;align-items:center;gap:14px;padding:10px 16px;}
+  .gx-cat-ic{width:40px;height:40px;border-radius:20px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:18px;}
+  .gx-cat-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;}
+  .gx-cat .v4-gastos-cat-row{font-size:15px;}
+  .gx-cat .v4-gastos-cat-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .gx-cat .v4-gastos-cat-amt{font-weight:600;}
+  .gx-cat .v4-gastos-cat-hint{margin-top:-4px;}
+  .gx-cat .bar{display:block;height:4px;margin-top:0;border:0;border-radius:2px;background:var(--bg);}
+  .gx-cat-rel{display:block;height:4px;border-radius:2px;background:var(--bg);overflow:hidden;}
+  .gx-cat-rel i{display:block;height:100%;border-radius:2px;}
+  /* Suscripciones vacía (SPEC §6.2): lo normal es no tener ninguna, y se dice. */
+  .gx-vacio{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:48px 20px 24px;}
+  .gx-vacio-ic{width:76px;height:76px;border-radius:38px;background:color-mix(in srgb,var(--mint) 14%,transparent);color:var(--mint-hi);
+    display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:700;margin-bottom:6px;}
+  .gx-vacio-t{font-size:26px;font-weight:500;}
+  .gx-vacio-d{font-size:14px;line-height:1.45;color:var(--muted);max-width:300px;}
   /* Días: encabezado con el total que cuenta, y cada gasto en su propia tarjeta a 6 px. */
   .gx-dia{display:flex;flex-direction:column;gap:6px;padding-top:18px;}
   .gx-dia-h{display:flex;justify-content:space-between;align-items:baseline;padding:0 4px 4px;}
@@ -1182,9 +1189,12 @@
   .gx-gris-it-amt{font-family:'Fraunces',Georgia,serif;font-size:17px;font-weight:600;color:var(--muted);}
   .gx-gris-plan{display:flex;align-items:center;min-height:44px;width:100%;padding:0 18px;border:0;background:transparent;color:var(--mint);
     font:600 14px 'Manrope',sans-serif;text-align:left;cursor:pointer;}
-  /* El final deja sitio para que el último día pueda subir hasta la cabecera: sin él, la cifra del
-     mes más antiguo (y el salto a su pastilla) no llegaba nunca a verse. */
-  .gx-fin{text-align:center;padding:28px 0 0;font-size:13px;color:var(--muted);min-height:calc(100dvh - 300px);box-sizing:border-box;}
+  .gx-fin{text-align:center;padding:28px 0 0;font-size:13px;color:var(--muted);}
+  /* Pie de Movimientos («Actualizar gastos» hasta la tanda 5). Deja sitio para que el último día
+     pueda subir hasta la cabecera: sin él, la cifra del mes más antiguo (y el salto a su pastilla)
+     no llegaba nunca a verse. */
+  .gx-pie{padding-top:28px;min-height:calc(100dvh - 300px);box-sizing:border-box;}
+  .gx-periodo-extra{margin:-4px 0 16px;}
   /* Periodo en Filtros: selector de una sola opción. */
   .gx-periodo{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:4px;margin-bottom:16px;background:var(--bg);border-radius:16px;}
   .gx-periodo-op{height:40px;border:0;border-radius:12px;background:transparent;color:var(--text);font:600 14px 'Manrope',sans-serif;cursor:pointer;}

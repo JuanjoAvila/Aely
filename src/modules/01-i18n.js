@@ -135,8 +135,6 @@ const LANG = {
     v4_ver_mas:"Ver más · {n}", v4_ver_menos:"Ver menos",
     v4_gastos_title:"Tus gastos",
     v4_gastos_cats:"Por categoría · toca una para ponerle un límite", v4_gastos_cat_limit:"límite {x}",
-    v4_gastos_cats_period_n:"{n} categorías · {period}", v4_gastos_cats_period_n1:"{n} categoría · {period}",
-    v4_gastos_cats_hide:"Ocultar", v4_gastos_cats_show:"Ver",
     g_cat_budget_title:"Límite en {cat}", g_cat_budget_sub:"Solo para verlo: no cambia tu presupuesto ni te bloquea. Vacío o 0 = quitar el límite.",
     g_cat_budget_clear:"Quitar límite",
     v4_cartera_title:"Tu cartera", v4_cuentas:"Tus cuentas", v4_connect_accounts:"Conectar cuentas", v4_inversiones:"Tus inversiones", v4_inv_positions:"{n} posiciones",
@@ -429,8 +427,6 @@ const LANG = {
     v4_ver_mas:"See more · {n}", v4_ver_menos:"See less",
     v4_gastos_title:"Your spending",
     v4_gastos_cats:"By category · tap one to set a cap", v4_gastos_cat_limit:"limit {x}",
-    v4_gastos_cats_period_n:"{n} categories · {period}", v4_gastos_cats_period_n1:"{n} category · {period}",
-    v4_gastos_cats_hide:"Hide", v4_gastos_cats_show:"Show",
     g_cat_budget_title:"Limit for {cat}", g_cat_budget_sub:"Just to see it: it does not change your budget or block you. Empty or 0 removes the limit.",
     g_cat_budget_clear:"Remove limit",
     v4_cartera_title:"Your portfolio", v4_cuentas:"Your accounts", v4_connect_accounts:"Connect accounts", v4_inversiones:"Your investments", v4_inv_positions:"{n} positions",
@@ -710,8 +706,6 @@ const LANG = {
     v4_ver_mas:"Veure més · {n}", v4_ver_menos:"Veure menys",
     v4_gastos_title:"Les teves despeses",
     v4_gastos_cats:"Per categoria · toca'n una per posar-li un límit", v4_gastos_cat_limit:"límit {x}",
-    v4_gastos_cats_period_n:"{n} categories · {period}", v4_gastos_cats_period_n1:"{n} categoria · {period}",
-    v4_gastos_cats_hide:"Amagar", v4_gastos_cats_show:"Veure",
     g_cat_budget_title:"Límit a {cat}", g_cat_budget_sub:"Només per veure’l: no canvia el pressupost ni et bloqueja. Buit o 0 = treure el límit.",
     g_cat_budget_clear:"Treure límit",
     v4_cartera_title:"La teva cartera", v4_cuentas:"Els teus comptes", v4_connect_accounts:"Connectar comptes", v4_inversiones:"Les teves inversions", v4_inv_positions:"{n} posicions",
@@ -1572,6 +1566,19 @@ Object.assign(LANG.ca,{gv5_spent_in:"gastat al {mes}", gv5_net_in:"balanç al {m
   gv5_cycle:"al teu cicle", gv5_cycle_upto:"al teu cicle fins al {d}", gv5_period_upto:"{period} · fins al {d}", gv5_all:"tot l'historial",
   gv5_no_cuentan:"{x} · no compten", gv5_plan_open:"Obre al Pla · {x}", gv5_end:"Fins aquí: {d}",
   gv5_net_sub:"despeses {g} · ingressos {i}", gv5_meses:"Mesos", gv5_periodo:"Període", gv5_p_months:"Mesos", gv5_p_range:"Rang"});
+// Gastos v5, tanda 2: secciones (Movimientos / Categorías / Suscripciones) y sus cabeceras.
+Object.assign(LANG.es,{gv5_secciones:"Secciones de Gastos", gv5_sec_movs:"Movimientos", gv5_sec_cats:"Categorías", gv5_sec_subs:"Suscripciones",
+  gv5_subs_globo:"{n} por revisar", gv5_cats_pre:"{period} por categoría", gv5_cats_pres:"Presupuesto gastado", gv5_cats_of:"de {x}",
+  gv5_cats_vacio:"Aún no hay gastos que cuenten en este periodo.", gv5_subs_n:"al mes · {n} por revisar", gv5_subs_none:"nada por revisar",
+  gv5_subs_ok_t:"Todo en orden", gv5_subs_ok_d:"Si un comercio te cobra algo parecido tres meses seguidos y no está en Recibos, aparecerá aquí para que decidas qué hacer."});
+Object.assign(LANG.en,{gv5_secciones:"Spending sections", gv5_sec_movs:"Transactions", gv5_sec_cats:"Categories", gv5_sec_subs:"Subscriptions",
+  gv5_subs_globo:"{n} to review", gv5_cats_pre:"{period} by category", gv5_cats_pres:"Budget spent", gv5_cats_of:"of {x}",
+  gv5_cats_vacio:"No spending that counts in this period yet.", gv5_subs_n:"a month · {n} to review", gv5_subs_none:"nothing to review",
+  gv5_subs_ok_t:"All clear", gv5_subs_ok_d:"If a shop charges you something similar three months in a row and it isn't in Bills, it'll show up here so you can decide what to do."});
+Object.assign(LANG.ca,{gv5_secciones:"Seccions de Despeses", gv5_sec_movs:"Moviments", gv5_sec_cats:"Categories", gv5_sec_subs:"Subscripcions",
+  gv5_subs_globo:"{n} per revisar", gv5_cats_pre:"{period} per categoria", gv5_cats_pres:"Pressupost gastat", gv5_cats_of:"de {x}",
+  gv5_cats_vacio:"Encara no hi ha despeses que comptin en aquest període.", gv5_subs_n:"al mes · {n} per revisar", gv5_subs_none:"res per revisar",
+  gv5_subs_ok_t:"Tot en ordre", gv5_subs_ok_d:"Si un comerç et cobra una cosa semblant tres mesos seguits i no és a Rebuts, apareixerà aquí perquè decideixis què fer."});
 const MON_I18N = {
   es:{ long:["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"], short:["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"] },
   en:{ long:["January","February","March","April","May","June","July","August","September","October","November","December"], short:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"] },

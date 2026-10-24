@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, gastosSeccion } from "./fixtures.mjs";
 
 /* 2026-10-10. Un familiar, en producción, veía la lista de categorías de Gastos pintada
    encima de Inicio (la tarjeta vacía «Aún no hay recibos» y «Tus metas») con la pestaña
@@ -104,6 +104,8 @@ test("Inicio activa: Gastos premontada no tiene cajas visibles, ni antes ni desp
   // La guarda no puede esconder el desglose cuando Gastos SÍ es la pestaña activa.
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await expect(page.locator(".botnav-tab.active")).toHaveAttribute("data-tour", "gastos");
+  // Gastos v5 (tanda 2): el desglose vive en la sección Categorías.
+  await gastosSeccion(page, "cats");
   await expect(page.locator(".page-scroll-host .v4-gastos-cat").first()).toBeVisible();
 
   await volverAInicio(page);

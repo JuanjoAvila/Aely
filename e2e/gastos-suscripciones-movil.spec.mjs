@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews, installFixtureClock } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, installFixtureClock, gastosSeccion } from "./fixtures.mjs";
 
 const names = ["Servicio sintético de contenidos familiares con nombre muy largo", "SuscripcionSinteticaSinEspaciosConNombreExtraordinariamenteLargo"];
 const expenses = names.flatMap((merchant, i) => [7, 8, 9].map(month => ({
@@ -43,6 +43,8 @@ for (const [width, lang] of [[320,"es"],[360,"en"],[390,"ca"],[414,"es"]]) {
     await dismissNews(page);
     await page.locator('.botnav-tab[data-tour="gastos"]').click();
     await page.waitForFunction(() => !document.getElementById("mc-load"));
+    // Gastos v5 (tanda 2): las suscripciones detectadas viven en su sección, tal cual estaban.
+    await gastosSeccion(page, "subs");
     const rows = page.locator(".sub-row").filter({has:page.locator(".sub-name")});
     await expect(rows).toHaveCount(2);
     await rows.first().scrollIntoViewIfNeeded();
