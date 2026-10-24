@@ -1,0 +1,116 @@
+{
+  "status": "done",
+  "summary": "PR293 R4 y PR296 R2 terminadas, rebasadas sobre228a6ab, publicadas y verificadas por cabezas exactas. Singleflight completo por sesion y no-op de reflejos CAS sin silenciar conflictos humanos; bienes y cuotas sin sello automatico, broker de arranque tras primer pull valido. ROJOS causales y fallos de harness conservados; guardianes y once mutantes dirigidos cerrados.",
+  "productSHA": "d484f80d32ea8f33d25e9ee6b878687950e57727",
+  "productHeads": {
+    "PR293": "a8b58894fe545a8591ea1bf91dcd833401eb72be",
+    "PR296": "d484f80d32ea8f33d25e9ee6b878687950e57727"
+  },
+  "baseSHA": "228a6ab925bca84e8977137aff6d196d1dc9e5df",
+  "pullRequests": [
+    293,
+    296
+  ],
+  "scopeGrants": [
+    "1257bfd6ab52774f6e58801f0f68ea927cde40c7",
+    "1a5383330c95c1736f66a71d1ba90b6259e6e381"
+  ],
+  "tests": [
+    {
+      "command": "Playwright seleccion dirigida fin04-rename-note-ack: refresh-single-flight, permanent-rename, late-rename-failure; CPU1/worker1/retry0",
+      "exitCode": 0,
+      "passed": 3
+    },
+    {
+      "command": "Playwright savedat-arranque.spec.mjs; CPU1/worker1/retry0",
+      "exitCode": 0,
+      "passed": 6
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin04-commit.test.mjs (nueve originales antes del append, sin cambios)",
+      "exitCode": 0,
+      "passed": 9
+    },
+    {
+      "command": "node --test --test-concurrency=1 --test-name-pattern=^R4: tests/fin04-commit.test.mjs",
+      "exitCode": 0,
+      "passed": 5
+    },
+    {
+      "command": "Once selecciones de guardianes contra mutantes propios, cada una falla por asercion prevista",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "killed": 11
+    },
+    {
+      "command": "node tests/pull-sin-cambios.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/pull-historico-entero.test.mjs y seleccion dirigida posterior de sesion/widget (fallos de harness intermedios preservados)",
+      "exitCode": 0,
+      "uniqueCasesVerified": 18
+    },
+    {
+      "command": "node tests/fin11-absorption-pending.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/fin17-confirmed-absorptions.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/fin19-r4-pull-counter.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/tr-emparejado-nogo2.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/fin04-first-pull.test.mjs y tres controles de bindings posteriores (fallos intermedios preservados)",
+      "exitCode": 0,
+      "uniqueCasesVerified": 16
+    },
+    {
+      "command": "node tests/metas-pull-transport.test.mjs",
+      "exitCode": 0,
+      "passed": 14
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/security.test.mjs (bindings de payload reales, CLOUD_WRITES y aserciones intactos)",
+      "exitCode": 0
+    }
+  ],
+  "priorWholeNode": {
+    "source": "fcfd10a007a9c94fc913b4fc2498e87603cbc878",
+    "invocations": 215,
+    "exit0": 211,
+    "exit1": 4,
+    "repeated": false,
+    "currentGeneralCIEvidence": false
+  },
+  "resourcesReturned": true,
+  "productReady": false,
+  "limitations": [
+    "CI general de las nuevas cabezas no verificada",
+    "Revision e integracion Claude pendientes",
+    "Gates de beta-sources/PERSIST91, frescura, memoria y tamaño conservados para integracion, sin rebajar caps",
+    "Artefacto servido y aceptacion fisica movil pendientes"
+  ],
+  "noFurtherProductWork": true,
+  "schema": 1,
+  "taskId": "fin04-pr293-r4-pr296-r2-codex-20261024",
+  "actor": "codex",
+  "sessionId": "codex-local-20261024-r4w1-d7c2d793-8abcb66e-2e6c4c7f-a7a2347d",
+  "createdAt": "2026-10-24T18:11:21.452Z",
+  "released": true
+}
