@@ -1,0 +1,220 @@
+{
+  "status": "blocked",
+  "productSHA": "7258f56898d9d03bfceff6e6c5d46390a925a1de",
+  "summary": "SAVEDAT draftPR296, source7258f56898d9d03bfceff6e6c5d46390a925a1de, parentPR293R2 91a98b106689191612d4a76560bc15007c613400. SAVEDAT: copia antigua conserva sello; B edita en DOM y A conserva día29, campos e importes4237/120023/10011. Offline/recarga y edición real durante GET preservan prioridad y CAS. Browser final 18 pasan/0 fallan. Node dirigido102 pasan EXIT0 antes del último cambio aislado en07; persistencia e histórico se verifican después EXIT0. Mutantes stamp-all/no-user-stamp EXIT1 causales. Gates syntax EXIT0, privacy EXIT0, registration EXIT0, docs EXIT1, size EXIT1, catalogue161 EXIT1. Sin ProductREADY. RETURN04db3a200a105bbe1be51fffe6b9d0b33b39491f; prior36468files/32repos intact. ZIP2b32cfb7c2e25e233ff7762cf832b6f3f1b50b3a4e1290e49eba46638afa3c9d manifest4a47d4843eab4953109b41b1837a82ea95ccb5150b2bb85184bdcf1190311244 entries421 verified. Own resources returned. Released BLOCKED by integration gates, no ProductREADY. Private handoff then STOP, no native reply. Predecessor PR293 remains NO-GO per Claude059d9f09. Private handoff: subcoord74-savedat-private-handoff-20261024.json (private handoff). Source clarification: precommit admissions kept the checkout HEAD in semanticSource by default; that field does not describe intermediate WIP bytes. HTML SHA256 identifies each actual artifact. Final browser18 HTML matches committed07 and11 source7258f568 exactly, verified in post-seal-source-clarification.json. Original admissions and sealed ZIP remain immutable. Latest Claude35b8d113 expressly authorizes PR293R3 five corrections and then rebasing PR296 in the same successor cycle; no further human confirmation is requested. Current SAVEDAT task c56fb911 explicitly requires its own result/handoff and STOP, with prior tasks immutable and a new own task/claim/admission before successor work. This closure preserves that order for ROOT dispatch, not a denial of the new authorization. R3 has not been started under the released SAVEDAT claim.",
+  "tests": [
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "build-ack-maintenance.json"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "build-baseline.json"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "build-final.json"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "build-maintenance.json"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "build-startup-only-v2.json"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "build-startup-only.json"
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs",
+      "exitCode": 1,
+      "phase": "gate-catalogue161-serial.json"
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs",
+      "exitCode": 1,
+      "phase": "gate-catalogue161.json"
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1,
+      "phase": "gate-docs-serial.json"
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1,
+      "phase": "gate-docs.json"
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0,
+      "phase": "gate-privacy-serial.json"
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0,
+      "phase": "gate-privacy.json"
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "phase": "gate-registration-serial.json"
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "phase": "gate-registration.json"
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 1,
+      "phase": "gate-size-serial.json"
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 1,
+      "phase": "gate-size.json"
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "phase": "gate-syntax-serial.json"
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "phase": "gate-syntax.json"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/persist-commit.test.mjs tests/fin04-first-pull.test.mjs tests/metas-pull-transport.test.mjs tests/goals-three-way.test.mjs tests/goals-review-remates.test.mjs tests/goals-review2-remates.test.mjs tests/goals-review3-reserve-conflict.test.mjs tests/fin17-confirmed-absorptions.test.mjs tests/auth-disposal.test.mjs tests/security.test.mjs tests/dash-metricas.test.mjs tests/inv-dashboard.test.mjs",
+      "exitCode": 0,
+      "phase": "unit-directed.json"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/persist-commit.test.mjs tests/inicio-v42.test.mjs",
+      "exitCode": 0,
+      "phase": "unit-final-history-serial.json"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/persist-commit.test.mjs tests/inicio-v42.test.mjs",
+      "exitCode": 0,
+      "phase": "unit-final-history.json"
+    },
+    {
+      "command": "SAVEDAT browser red-startup-stamp",
+      "exitCode": 1,
+      "checkoutHEADAtRun": "91a98b106689191612d4a76560bc15007c613400",
+      "testedHTMLSHA256": "30d735af10bc9657dcdcac20ae64241ff0f7b798e0078316e50fcd4e15de1e78",
+      "sourceClaim": "91a98b106689191612d4a76560bc15007c613400"
+    },
+    {
+      "command": "SAVEDAT browser red-two-clients",
+      "exitCode": 1,
+      "checkoutHEADAtRun": "91a98b106689191612d4a76560bc15007c613400",
+      "testedHTMLSHA256": "30d735af10bc9657dcdcac20ae64241ff0f7b798e0078316e50fcd4e15de1e78",
+      "sourceClaim": "91a98b106689191612d4a76560bc15007c613400"
+    },
+    {
+      "command": "SAVEDAT browser startup-only-check",
+      "exitCode": 1,
+      "checkoutHEADAtRun": "91a98b106689191612d4a76560bc15007c613400",
+      "testedHTMLSHA256": "d0af42720cfd4fe62ff3a486c24cc50900cf2fe227af1920e7e47c2f532eac61",
+      "sourceClaim": "intermediate WIP or diagnostic/mutant, identified by HTML hash"
+    },
+    {
+      "command": "SAVEDAT browser red-backup-stamp",
+      "exitCode": 1,
+      "checkoutHEADAtRun": "91a98b106689191612d4a76560bc15007c613400",
+      "testedHTMLSHA256": "d0af42720cfd4fe62ff3a486c24cc50900cf2fe227af1920e7e47c2f532eac61",
+      "sourceClaim": "intermediate WIP or diagnostic/mutant, identified by HTML hash"
+    },
+    {
+      "command": "SAVEDAT browser green-maintenance",
+      "exitCode": 1,
+      "checkoutHEADAtRun": "91a98b106689191612d4a76560bc15007c613400",
+      "testedHTMLSHA256": "363f3e944a273be8f43a324a361278a75a53049667f43c1a002af1a564570d79",
+      "sourceClaim": "intermediate WIP or diagnostic/mutant, identified by HTML hash"
+    },
+    {
+      "command": "SAVEDAT browser diagnose-post-pull",
+      "exitCode": 1,
+      "checkoutHEADAtRun": "91a98b106689191612d4a76560bc15007c613400",
+      "testedHTMLSHA256": "363f3e944a273be8f43a324a361278a75a53049667f43c1a002af1a564570d79",
+      "sourceClaim": "intermediate WIP or diagnostic/mutant, identified by HTML hash"
+    },
+    {
+      "command": "SAVEDAT browser diagnose-updater",
+      "exitCode": 1,
+      "checkoutHEADAtRun": "91a98b106689191612d4a76560bc15007c613400",
+      "testedHTMLSHA256": "363f3e944a273be8f43a324a361278a75a53049667f43c1a002af1a564570d79",
+      "sourceClaim": "intermediate WIP or diagnostic/mutant, identified by HTML hash"
+    },
+    {
+      "command": "SAVEDAT browser green-complete",
+      "exitCode": 0,
+      "checkoutHEADAtRun": "91a98b106689191612d4a76560bc15007c613400",
+      "testedHTMLSHA256": "29440bd58dd2aa35d5be77ac9fa3bb4b525e4b43c97e28d6a2a52f51cb961553",
+      "sourceClaim": "intermediate WIP or diagnostic/mutant, identified by HTML hash"
+    },
+    {
+      "command": "SAVEDAT browser browser-final",
+      "exitCode": 1,
+      "checkoutHEADAtRun": "91a98b106689191612d4a76560bc15007c613400",
+      "testedHTMLSHA256": "29440bd58dd2aa35d5be77ac9fa3bb4b525e4b43c97e28d6a2a52f51cb961553",
+      "sourceClaim": "intermediate WIP or diagnostic/mutant, identified by HTML hash"
+    },
+    {
+      "command": "SAVEDAT browser diagnose-genuine-replay",
+      "exitCode": 1,
+      "checkoutHEADAtRun": "91a98b106689191612d4a76560bc15007c613400",
+      "testedHTMLSHA256": "54cc57f7816ab6f4d2009c59edc8173f62e71a398c49fa0dbc81f147ce259257",
+      "sourceClaim": "intermediate WIP or diagnostic/mutant, identified by HTML hash"
+    },
+    {
+      "command": "SAVEDAT browser browser-verified",
+      "exitCode": 0,
+      "checkoutHEADAtRun": "91a98b106689191612d4a76560bc15007c613400",
+      "testedHTMLSHA256": "8ccb8842017cb1c006e93d2b739e8ac55938a291363803a6e76614d824090319",
+      "sourceClaim": "7258f56898d9d03bfceff6e6c5d46390a925a1de"
+    },
+    {
+      "command": "SAVEDAT browser mutant-stamp-all",
+      "exitCode": 1,
+      "checkoutHEADAtRun": "91a98b106689191612d4a76560bc15007c613400",
+      "testedHTMLSHA256": "9f311984f9249451531f34bc7d96a12e0ddcf446f6467e50e0137ec141b04f30",
+      "sourceClaim": "intermediate WIP or diagnostic/mutant, identified by HTML hash"
+    },
+    {
+      "command": "SAVEDAT browser mutant-no-user-stamp",
+      "exitCode": 1,
+      "checkoutHEADAtRun": "91a98b106689191612d4a76560bc15007c613400",
+      "testedHTMLSHA256": "ba24a94acc0a82b4d03c0cccb97f3b91b957b77abc8bd90192649ee4069492a4",
+      "sourceClaim": "intermediate WIP or diagnostic/mutant, identified by HTML hash"
+    }
+  ],
+  "limitations": [
+    "New dependency NO-GO: Claude059d9f09 confirms Grokb0c98417 review of PR293R2. Ingest INSERT/revision fixture and320c oracle, listener harness, H3 read-ready/React-commit window, backup gating, rebase and full Node are pending predecessor work under a new admission. This SAVEDAT source remains frozen on91. Its causal backup-before-GET fixture reflects91 and must be adapted to wait for backup after pull when stacked on a corrected predecessor. No successor started.",
+    "New draft PR against beta stacked on frozen PR293 R2 exact base91a98b106689191612d4a76560bc15007c613400. Beta diff inherits A/R2 while PR293 is not integrated; review this change using base91..head. PR293/294/291/295 and earlier WIP/checkouts/packages/results/handoffs remain immutable.",
+    "Changes are limited to the setter and causally demonstrated startup/cache/read/ACK calls. LWW between genuine concurrent edits remains; no general Plan merge, per-field protocol or repair of timestamps already inflated by older clients. Real financial writes and monthly reserve contributions retain their default stamp.",
+    "Synthetic local tests: actual React/SDK and normal wall clock in the new SAVEDAT spec, no future _savedAt. Auth/REST/FX/native bridge are synthetic. Historical first-pull regressions retain their own older fixtures and are not evidence for the new timestamp cause.",
+    "Browser CPU1 serial, own port48541, one worker, zero retries, maxFailures1, fresh admission/census and returned resources each run. A 9013ms Node/checks overlap violated serial scheduling; original runs and serial-protocol-deviation.json are retained, affected Node/checks were rerun strictly serial with fresh admissions and -serial labels. No shared lease, foreign process cleanup, full suite, CPU6 or profiling. No live cloud/auth/bank, SQL/Edge/backend, APK/Gradle, merge/deploy or real mobile acceptance. Phone remains blocked by eb65ce385f8ab2867c416d5f4d16894292afc286.",
+    "VERSION/catalogue/release notes/caps unchanged. Directed docs/size/catalogue failures remain integration gates owned by Claude; no ProductREADY or general CI green claim.",
+    "Original RED/intermediate failures and diagnostic traces are retained privately. Browser-final had40 passes and then failed on the extra automatic account-balance snapshot; the final one-line07 change was followed by18 directed browser passes. The14 first-pull/recovery and12 sandbox browser regressions passed before that isolated07 change; they were not repeated routinely. Final tests remove diagnostic Object.assign and setter instrumentation; no oracle was relaxed. Node102 passed before the final isolated07 call-site change; final account-history/persistence Node checks are recorded separately. Early private patch helper failed on a wrong i18n path and CRLF anchor before any product write; redundant baseline build was EXIT0. Sealed copies redact shipped public anonymous JWT literals with original/copy hashes; canonical source and tested artifact hashes are recorded.",
+    "Source clarification: precommit admissions kept the checkout HEAD in semanticSource by default; that field does not describe intermediate WIP bytes. HTML SHA256 identifies each actual artifact. Final browser18 HTML matches committed07 and11 source7258f568 exactly, verified in post-seal-source-clarification.json. Original admissions and sealed ZIP remain immutable.",
+    "Latest Claude35b8d113 expressly authorizes PR293R3 five corrections and then rebasing PR296 in the same successor cycle; no further human confirmation is requested. Current SAVEDAT task c56fb911 explicitly requires its own result/handoff and STOP, with prior tasks immutable and a new own task/claim/admission before successor work. This closure preserves that order for ROOT dispatch, not a denial of the new authorization. R3 has not been started under the released SAVEDAT claim."
+  ],
+  "schema": 1,
+  "taskId": "savedat-arranque-codex-20261024",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-24T12:46:30.874Z",
+  "released": true
+}
