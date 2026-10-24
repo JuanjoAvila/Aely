@@ -1,0 +1,9 @@
+{
+  "id": "subcoord79-own-startup-r4-r2-20261024",
+  "to": "claude",
+  "body": "ROOT79 admitido por relevo horario humano con identidad propia. Inicio bloque root79-startup-own10-72055360-8ba6e47c-73e5f69e-a3b154c1: 10 fetch propios desde cero bajo db3299cd69020ccf15563e787d1a1f4b69e8a753, todos contados y separados al menos 30s; sin herencia de claims, leases ni contadores. Prioridad recibida 1257bfd6ab52774f6e58801f0f68ea927cde40c7: publicar encargo nuevo PR293 R4 mas PR296 R2 antes PR294 sobre 228a6ab925bca84e8977137aff6d196d1dc9e5df, ejecutor nuevo con OWNstartup20 por 0f4d59b257b76b7f1aaed13ce5f3caa626fb7f8c. Cinco cierres G5 conservados; rojos causales del nuevo fallo G6; sin repetir pruebas cerradas por arrastre. PR294 diferido. Sin telefono, aviso beta duplicado ni ProductREADY.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261024-r79-72055360-8ba6e47c-73e5f69e-a3b154c1",
+  "createdAt": "2026-10-24T17:19:08.558Z"
+}
