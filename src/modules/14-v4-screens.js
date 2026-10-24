@@ -3,6 +3,8 @@
    Spec: docs/design/handoff/SPEC-v4.md §5–7
    ============================================================ */
 
+// Orden fijo del tirón de Plan (ver `useTironSeccion`: no puede ser un literal del render).
+const PLAN_SEG_ORDEN=["recibos","deudas","metas"];
 function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
   const [seg,setSeg]=useState("recibos");
   const [manageOpen,setManageOpen]=useState(false);
@@ -145,141 +147,15 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
   };
 
   /* DESLIZAR VERTICAL PARA CAMBIAR DE SEGMENTO (petición 2026-08-03: «no depender de la otra
-     mano para tocar arriba»). SOLO arriba del todo tirando hacia abajo: Recibos → Deudas → Metas
-     → Recibos. Abajo del todo es la OLA nativa (feedback 4/8 noche), no el sentido inverso — si
-     reclamábamos ese borde con `touch-action:none` + preventDefault, matábamos la ola. A mitad
-     de lista = scroll normal. Eje x/y con `gestureAxis` (mismo que el swipe de pestañas); si sale
-     horizontal, este gesto se aparta y deja pasar el de `.viewport`. */
+     mano para tocar arriba»). Recibos → Deudas → Metas → Recibos. La mecánica vive en
+     `useTironSeccion` (02-ui-shared.js) desde Gastos v5, que la usa igual: un solo sitio. */
   const planScreenRef=useRef(null);
-  const enterDirRef=useRef(null);
-  useEffect(function(){
-    if(simple) return undefined;   // modo sencillo: un único segmento, no hay a dónde ir
-    const root=planScreenRef.current; if(!root) return undefined;
-    // Orden fijo, NO derivado de `segs` (ese array es literal nuevo en cada render de PlanTab):
-    // si esta lista dependiera de `segs`, el efecto se desmontaría y remontaría en CUALQUIER
-    // re-render del componente —cambie o no `simple`/`seg`—, y si eso pasa a mitad de un gesto
-    // (entre un touchmove y el siguiente) los listeners viejos se sueltan y los nuevos arrancan
-    // con sx/sy/axis en blanco: el primer arrastre después de aterrizar en Plan se perdía así
-    // (visto en el e2e: el primer deslizamiento no cambiaba de segmento y el segundo sí).
-    const order=["recibos","deudas","metas"];
-    const TH=0.07, FLICK_V=0.4, FLICK_MIN=26, MAX_PULL=46;
-    // Solo ARRIBA → abajo cambia de segmento. Abajo = ola. Plan va SIEMPRE en pan-y: si se
-    // pone `touch-action:none` estando arriba, bloquea también BAJAR a ver el contenido
-    // (feedback 5/8). Y ponerlo DENTRO del touchstart no sirve de nada: el navegador decide el
-    // touch-action de un gesto antes de ejecutar ese handler (medido 2026-10-13, ver `onMove`).
-    // Así que el tirón de segmento se reclama solo con preventDefault, y el scroll es del navegador.
-    let sx=0, sy=0, t0=0, axis=null, mode=null, dir=0, dyRaw=0, raf=0, pend=null;
-    let startAtTop=false, pageEl=null;
-    const paint=function(){
-      raf=0;
-      const el=segElRef.current[seg];
-      if(el) el.style.transform=pend?("translate3d(0,"+pend+"px,0)"):"";
-    };
-    const queue=function(v){ pend=v; if(!raf) raf=requestAnimationFrame(paint); };
-    const resist=function(px){ return Math.pow(Math.min(1,px/160),0.72)*MAX_PULL; };
-    const cleanup=function(el){ if(el){ el.style.transition=""; el.style.transform=""; } };
-    const atTopOf=function(pg){ return !pg || (pg.scrollTop||0)<=2; };
-    const onStart=function(e){
-      if(document.documentElement.classList.contains("sheet-open")) return;
-      if(!(e.touches&&e.touches[0])) return;
-      const tt=e.touches[0];
-      pageEl=root.closest(".page");
-      sx=tt.clientX; sy=tt.clientY; t0=Date.now();
-      axis=null; mode=null; dir=0; dyRaw=0;
-      startAtTop=atTopOf(pageEl);
-      // Arriba del todo, tirar hacia abajo es cambiar de segmento: el vigía de bordes no debe
-      // sonar además del toque de segmento (ronda 9 de la vibración).
-      if(startAtTop) e.mcSegPull=true;
-    };
-    const onMove=function(e){
-      if(axis==="x"||mode==="x") return;
-      if(!(e.touches&&e.touches[0])) return;
-      const tt=e.touches[0], ddx=tt.clientX-sx, ddy=tt.clientY-sy;
-      if(axis===null){
-        const eje=gestureAxis(ddx,ddy);
-        if(!eje) return;
-        axis=eje;
-        if(axis==="x"){ mode="x"; return; }
-        if(ddy>0 && startAtTop && atTopOf(pageEl)){ dir=1; mode="seg"; }
-        else { mode="scroll"; }
-      }
-      if(mode==="scroll"){
-        /* Scroll normal: lo lleva el navegador y aquí NO se toca `scrollTop` (2026-10-13).
-           Antes, si el gesto nacía arriba del todo, el touchstart ponía `mc-touch-own`
-           (touch-action:none) y aquí se empujaba `scrollTop` a mano con TODO lo recorrido desde
-           el touchstart, «porque con none el navegador no scrollea». Medido en Chromium: el
-           touch-action de un gesto se decide ANTES de ejecutar el touchstart, así que esa clase
-           nunca gobernaba el gesto en curso y el navegador YA estaba scrolleando en nativo. El
-           empujón se sumaba encima: al bajar despacio desde el tope de Plan el contenido saltaba
-           12-16 px de golpe en un frame y se quedaba por delante del dedo — la queja del dueño,
-           «la pantalla se mueve sola» (INC-0710-01). Solo se corta la propagación para que el
-           swipe de pestañas del `.viewport` no se quede este touchmove. */
-        e.stopPropagation();
-        return;
-      }
-      if(mode!=="seg") return;
-      e.stopPropagation();
-      if((dir>0&&ddy<0)||(dir<0&&ddy>0)){ dyRaw=0; queue(0); return; }
-      dyRaw=Math.abs(ddy);
-      if(e.cancelable) e.preventDefault();
-      queue(mcReduced()?0:dir*resist(dyRaw));
-    };
-    const finish=function(allowCommit){
-      if(raf){ cancelAnimationFrame(raf); raf=0; }
-      pend=null;
-      if(mode!=="seg"){
-        axis=null; mode=null;
-        return;
-      }
-      const el=segElRef.current[seg];
-      const dt=Math.max(1,Date.now()-t0);
-      const vel=dyRaw/dt;
-      const pasa=allowCommit && (dyRaw>(window.innerHeight||700)*TH || (vel>FLICK_V && dyRaw>FLICK_MIN));
-      if(pasa){
-        // El mismo tick que los botones de segmento y la gráfica; sin la APK, el de siempre.
-        if(!mcTickHaptic()){ try{ if(navigator.vibrate) navigator.vibrate(8); }catch(err){} }
-        const i=order.indexOf(seg);
-        const nextId=order[(i+(dir>0?1:-1)+order.length)%order.length];
-        cleanup(el);
-        enterDirRef.current=dir>0?"down":"up";
-        setSegMounted(function(m){ return m[nextId]?m:Object.assign({},m,{[nextId]:true}); });
-        setSeg(nextId);
-      } else if(el && !mcReduced()){
-        el.style.transition="transform .22s cubic-bezier(.32,.72,0,1)";
-        el.style.transform="";
-        setTimeout(function(){ cleanup(el); }, 230);
-      } else cleanup(el);
-      axis=null; mode=null; dir=0; dyRaw=0;
-    };
-    const onTouchEnd=function(){ finish(true); };
-    // `touchcancel` (el sistema se lleva el dedo): el gesto NO cuenta, se queda como estaba —
-    // mismo criterio que el cierre del perfil en `onCancel` de 11-app-main.js.
-    const onTouchCancel=function(){ finish(false); };
-    root.addEventListener("touchstart", onStart, {passive:true});
-    root.addEventListener("touchmove", onMove, {passive:false});
-    root.addEventListener("touchend", onTouchEnd, {passive:true});
-    root.addEventListener("touchcancel", onTouchCancel, {passive:true});
-    return function(){
-      if(raf) cancelAnimationFrame(raf);
-      root.removeEventListener("touchstart", onStart);
-      root.removeEventListener("touchmove", onMove);
-      root.removeEventListener("touchend", onTouchEnd);
-      root.removeEventListener("touchcancel", onTouchCancel);
-    };
-  },[simple, seg]);
-  // Entrada sutil SOLO cuando el segmento cambia por este gesto (tocar la pestaña de arriba
-  // sigue siendo instantáneo, a propósito: ese toque ya es una decisión explícita del usuario).
-  useEffect(function(){
-    const dir=enterDirRef.current; if(!dir) return;
-    enterDirRef.current=null;
-    const el=segElRef.current[seg]; if(!el) return;
-    const cls=dir==="down"?"v4-seg-enter-down":"v4-seg-enter-up";
-    el.classList.add(cls);
-    const clear=function(){ el.classList.remove(cls); el.removeEventListener("animationend",clear); };
-    el.addEventListener("animationend", clear);
-    const to=setTimeout(clear, 500);   // red de seguridad si el evento no llega
-    return function(){ clearTimeout(to); };
-  },[seg]);
+  useTironSeccion(planScreenRef,{activo:!simple, seg:seg, orden:PLAN_SEG_ORDEN, respaldo:true, cortaScroll:true,
+    capa:function(id){ return segElRef.current[id]; },
+    alPasar:function(nextId){
+      setSegMounted(function(m){ return m[nextId]?m:Object.assign({},m,{[nextId]:true}); });
+      setSeg(nextId);
+    }});
 
   return React.createElement("div",{className:"v4-screen",ref:planScreenRef,"data-edge-capture":simple?null:"1"},
     React.createElement("h1",{className:"v4-title serif"}, simple?t("v4s_plan_left_title"):t("v4_plan_title")),

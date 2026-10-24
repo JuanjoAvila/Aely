@@ -212,9 +212,27 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     cycleEnabledPrev.current=cycleEnabled;
     setPreset(cycleEnabled?"cycle":"months");
   },[cycleEnabled]);
+  /* Sección de Gastos v5 (SPEC §2.2): movs | cats | subs. No se guarda: entrar en Gastos es
+     siempre venir a ver movimientos. El ref es para quien vive fuera del render (el observador
+     de la paginación, el tirón). */
+  const [secc,setSecc]=useState("movs");
+  const seccRef=useRef(secc); seccRef.current=secc;
+  const seccElRef=useRef({});
+  /* Al salir de Gastos vuelve a Movimientos: todas las puertas de entrada (Inicio «Ver gastos»,
+     «Ver todo» de una cuenta, la notificación, importar) vienen a ver movimientos, y quedarse en
+     Categorías haría que aterrizaran en otra cosa. Se hace en un hueco libre y solo si sigue fuera:
+     no puede costar un render en mitad del gesto de cambiar de pestaña. */
+  useEffect(function(){
+    let fuera=false;
+    return mcOnGastosActive(function(active){
+      fuera=!active;
+      if(active || seccRef.current==="movs") return;
+      mcScheduleIdle(function(){ if(fuera && seccRef.current!=="movs") setSecc("movs"); }, 1500);
+    });
+  },[]);
   // Tras importar una hoja: salta a "Todo" — lo importado suele traer fechas fuera del mes en
   // curso, y "Este mes" las tapaba en silencio (feedback 2026-08-01).
-  useEffect(function(){ if(forceAllTs) setPreset("all"); },[forceAllTs]);
+  useEffect(function(){ if(forceAllTs){ setPreset("all"); setSecc("movs"); } },[forceAllTs]);
   const [range,setRange]=useState({from:"",to:""});
   const [calPick,setCalPick]=useState(null);   // "from" | "to" | null — rango a medida, calendario de la casa
   const [sel,setSel]=useState([]);   // categorías seleccionadas; [] = todas
@@ -232,7 +250,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     const h=function(e){
       const ent=e&&e.detail&&e.detail.ent||window.__mcExpBank; if(!ent) return;
       try{ window.__mcExpBank=""; }catch(err){}
-      setPreset("all"); setBankSel([ent]); setBucketSel([]); setSel([]); setQ(""); setFilterOpen(false);
+      setPreset("all"); setBankSel([ent]); setBucketSel([]); setSel([]); setQ(""); setFilterOpen(false); setSecc("movs");
     };
     window.addEventListener("mc-open-expenses-bank",h);
     return function(){ window.removeEventListener("mc-open-expenses-bank",h); };
@@ -859,9 +877,6 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     const rows=categorySpentByMonth(Object.assign({},state,{expenses:expensesDef}),null,null,selectedPeriod);
     return budgetApplies?rows:rows.filter(function(row){ return row.spent>0; }).map(function(row){ return {id:row.id,spent:row.spent,limit:null}; });
   },[expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.categoryBudgets,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,budgetApplies,todayKey,madridDay]);
-  /* Abierto o plegado, por cuenta. `!==false` y no `!!`: quien nunca lo ha tocado lo ve ABIERTO
-     —es como está hoy y como él lo aprobó—, y solo se pliega quien lo pliegue a mano. */
-  const catsOpen=!(state.settings && state.settings.gastosCatsOff);
   // La fecha del cobro sigue a la vista al plegar la explicación; ocultarla dejaba «Mi ciclo»
   // sin una referencia comprobable y la tarjeta larga volvía a ocupar la pantalla (28/9).
   const cycleHelpOpen=!(state.settings && state.settings.gastosCycleHelpOff);
@@ -869,13 +884,6 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     set(function(s){
       const st=Object.assign({}, s.settings||{});
       if(st.gastosCycleHelpOff) delete st.gastosCycleHelpOff; else st.gastosCycleHelpOff=true;
-      return Object.assign({}, s, { settings:st });
-    });
-  },[set]);
-  const toggleCats=useCallback(function(){
-    set(function(s){
-      const st=Object.assign({}, s.settings||{});
-      if(st.gastosCatsOff) delete st.gastosCatsOff; else st.gastosCatsOff=true;
       return Object.assign({}, s, { settings:st });
     });
   },[set]);
@@ -898,6 +906,16 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       });
   },[set, state.categoryBudgets]);
   const subs=useMemo(function(){ return heavyOk?detectSubscriptions(expensesDef):[]; },[heavyOk,expensesDef]);
+  // Las que aún piden una decisión: activas, sin pasar a Fijos y sin descartar a mano. Las
+  // cuenta el globito del icono y las enseña su sección (antes se filtraban al pintar).
+  const novelSubs=useMemo(function(){
+    const dismissed=state.subsDismissed||[];
+    return (subs||[]).filter(function(sp){
+      if(!sp.active) return false;
+      if(dismissed.indexOf(sp.key)!==-1) return false;
+      return !(state.fixed||[]).some(function(f){ return catKey(f.name)===sp.key; });
+    });
+  },[subs,state.subsDismissed,state.fixed]);
   const suggestAi=function(ex){
     if(!(state.settings&&state.settings.aiCat)){ showToast(t("ai_cat_off")); return; }
     if(!ex||aiBusy) return;
@@ -940,11 +958,21 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const sentinelRefCb=useCallback(function(el){
     if(ioRef.current){ ioRef.current.disconnect(); ioRef.current=null; }
     if(!el) return;
+    // Con Movimientos escondido (otra sección) el centinela no puede pedir tandas: cargaría la
+    // lista entera por detrás sin que nadie la mire.
     const io=new IntersectionObserver(function(es){
-      if(es[0].isIntersecting) setVisible(function(v){ return v<filtLen.current ? v+CONFIG.PAGE_SIZE*5 : v; });
+      if(es[0].isIntersecting && seccRef.current==="movs") setVisible(function(v){ return v<filtLen.current ? v+CONFIG.PAGE_SIZE*5 : v; });
     },{rootMargin:"2000px"});
-    io.observe(el); ioRef.current=io;
+    io.observe(el); ioRef.current=io; sentinelElRef.current=el;
   },[]);
+  // Y al volver a Movimientos se le vuelve a preguntar: si ya estaba a la vista mientras se
+  // ignoraba, el observador no avisa otra vez por sí solo y «Cargando más…» se quedaría clavado.
+  const sentinelElRef=useRef(null);
+  useEffect(function(){
+    const io=ioRef.current, el=sentinelElRef.current;
+    if(secc!=="movs" || !io || !el || !el.isConnected) return;
+    io.unobserve(el); io.observe(el);
+  },[secc]);
   useEffect(function(){ return function(){ if(ioRef.current) ioRef.current.disconnect(); }; },[]);
   /* LA LISTA SE SUELTA AL VOLVER ARRIBA (13/9, medido en su OnePlus 13 con 2.500 gastos).
      Su queja: «he bajado y subido varias veces… y de repente se ha comenzado a ralentizar».
@@ -1065,6 +1093,23 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     });
     return {top:top, line:line, meses:meses};
   },[monthSummary,cifra,mesesLista,preset,madridDay,l10nKey]);
+  /* La cabecera de las otras secciones (SPEC §3): Categorías enseña el gasto del periodo y su
+     margen (el mismo que arriba en Movimientos); Suscripciones, lo que suman al mes las que
+     esperan decisión. No dependen del día visible: su `line` es siempre la misma. */
+  const subsMes=novelSubs.reduce(function(a,sp){ return a+(Number(sp.amount)||0); },0);
+  const cabSecc=useMemo(function(){
+    let top;
+    if(secc==="cats"){
+      const per=preset==="months"?monthLong(mad.m-1):preset==="cycle"?t("g_cycle"):monthSummary.periodLabel;
+      const r=monthSummary.remaining, x=r==null?null:Math.abs(r)<1?eur(Math.abs(r)):eur0(Math.abs(r));
+      top={n:cab.top.n, sub:cab.top.sub, ym:null, pre:tf("gv5_cats_pre",{period:per}),
+        tail:r==null?null:tf(r<0?"gv5_over":"gv5_under",{x:x}), tone:r==null?null:r<0?"coral":"mint"};
+    } else {
+      const n=novelSubs.length;
+      top={n:heavyOk?subsMes:null, ym:null, pre:!heavyOk?"":n?tf("gv5_subs_n",{n:n}):t("gv5_subs_none")};
+    }
+    return {top:top, line:function(){ return top; }, meses:null};
+  },[secc,cab,preset,monthSummary,novelSubs,subsMes,heavyOk,madridDay,l10nKey]);
   /* Tocar un mes salta a su primer día. Si aún no está pintado (la lista va por tandas), se
      amplía la tanda y el salto se hace al montarse el día. El mes en curso es volver arriba. */
   const diasRef=useRef(null);
@@ -1096,6 +1141,20 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     saltoRef.current=first;
     setVisible(function(v){ return Math.max(v, first.i+CONFIG.PAGE_SIZE); });
   },[]);
+  /* Cambiar de sección vuelve arriba del todo (SPEC §2.2) y vibra UN toque, el mismo del cambio
+     de segmento de Plan (mcTickHaptic: respeta el «sin vibración» y no repite si el tirón ya ha
+     sonado). Con el tirón ya se está arriba: no hay nada que mover. */
+  const irASecc=useCallback(function(id){
+    if(id===seccRef.current) return;
+    mcTickHaptic();
+    const h=hostDe(); if(h && h.scrollTop>0) h.scrollTo({top:0, behavior:"auto"});
+    setSecc(id);
+  },[]);
+  useTironSeccion(rootRef,{activo:true, seg:secc, orden:GX_SECC,
+    // El asa de ordenar, el buscador, los meses y el rango se quedan el dedo (`stopSwipe`).
+    ignora:"[data-noswipe]",
+    capa:function(id){ return seccElRef.current[id]; },
+    alPasar:function(id){ setSecc(id); }});
   useLayoutEffect(function(){
     // La lista acaba de cambiar: la cabecera vuelve a buscar los días la próxima vez que mire.
     diasRef.current=null;
@@ -1133,6 +1192,186 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     } else filterParts.push(bankSel.length+" "+t("g_filters_banks"));
   }
 
+  const simple=!!(state.settings&&state.settings.simpleMode);
+
+  /* Lo que acompaña al periodo vive con él, en Filtros → Periodo (su sitio en el SPEC §7): la
+     ayuda de Mi ciclo (QUÉ cobro ancla el ciclo; si el detectado no es el bueno, se corrige
+     apuntando la nómina real como ingreso, o usando Rango…) y las fechas del Rango. Encima de la
+     lista se apilaban con el desglose y «Actualizar gastos», y la lista dejaba de mandar
+     (captura suya de la beta 4.26.164, 24/10). */
+  const periodoExtra=preset==="cycle" ? (
+    React.createElement("div",{className:"v4-cycle-box"+(cycleHelpOpen?"":" compacto"),"data-testid":"gastos-cycle-help"},
+      React.createElement("div",{className:"v4-cycle-head"},
+        React.createElement("div",{className:"v4-cycle-main"},
+          React.createElement("strong",null,cycle?"📅 "+t("g_cycle"):t("g_cycle_none_t")),
+          React.createElement("div",null,cycle
+            ? tf("g_cycle_from",{d:cycle.start.toLocaleDateString(loc(),{day:'2-digit',month:'2-digit'}), x:"+"+eur0(Math.abs(cycle.inc.amount))+((cycle.inc.merchant&&cycle.inc.merchant!=="Ingreso")?" · "+cycle.inc.merchant:"")})
+            : t("g_cycle_fallback"))),
+        React.createElement("button",{type:"button",className:"v4-chip",onClick:toggleCycleHelp,
+          "aria-expanded":cycleHelpOpen,"aria-controls":cycleHelpOpen?"gastos-cycle-explanation":undefined},
+          t(cycleHelpOpen?"g_cycle_help_hide":"g_cycle_help_show"))),
+      cycleHelpOpen && React.createElement("div",{id:"gastos-cycle-explanation",className:"v4-cycle-explanation"},
+        cycle ? t(cycleEnabled?"g_cycle_budget_hint":"g_cycle_filter_hint") : t("g_cycle_none")))
+  ) : preset==="custom" ? (
+    React.createElement("div",null,
+      React.createElement("div",Object.assign({className:"range"},stopSwipe),
+        React.createElement("button",{type:"button",className:"v4-chip"+(calPick==="from"?" on":""),onClick:function(){ setCalPick(calPick==="from"?null:"from"); }},
+          range.from?fmtIsoCorto(range.from):t("g_custom")),
+        React.createElement("span",null,"→"),
+        React.createElement("button",{type:"button",className:"v4-chip"+(calPick==="to"?" on":""),onClick:function(){ setCalPick(calPick==="to"?null:"to"); }},
+          range.to?fmtIsoCorto(range.to):t("g_custom"))
+      ),
+      calPick && React.createElement(McCal,{value:calPick==="from"?range.from:range.to, onPick:function(iso){
+        setRange(function(r){ const n=Object.assign({},r); n[calPick]=iso; return n; });
+        setCalPick(null);
+      }}))
+  ) : null;
+  /* Las tres secciones viven montadas y solo se enseña una, escondidas como los segmentos de Plan
+     (`content-visibility:hidden`, ver el porqué largo en PlanTab): volver a Movimientos no vuelve a
+     montar cientos de filas, y el tirón mueve la capa activa como allí. */
+  const capa=function(id,hijo){
+    return React.createElement("div",{key:id,className:"gx-secc","data-gx-secc":id,ref:function(el){ seccElRef.current[id]=el; },
+      role:"tabpanel","aria-label":t(GX_SECC_TXT[id]),style:secc===id?null:GX_OCULTO,"aria-hidden":secc!==id}, hijo);
+  };
+  const catsMax=catBreakdown.reduce(function(m,r){ return Math.max(m,r.spent); },0);
+  const presu=budgetApplies&&monthSummary.budget>0?monthSummary.budget:null;
+  const usado=Math.max(0,monthSummary.against||0);
+
+  return React.createElement("div",{className:"v4-screen gx-root",ref:rootRef,"data-periodo":preset,"data-secc":secc,"data-edge-capture":"1"},
+    React.createElement(GastosCabecera,{rootRef:rootRef, cab:secc==="movs"?cab:cabSecc, meses:preset==="months"&&secc==="movs"?cab.meses:null,
+      onMes:irAMes, stopSwipe:stopSwipe, diasRef:diasRef, secc:secc, onSecc:irASecc, nSubs:novelSubs.length}),
+    capa("movs", React.createElement(React.Fragment,null,
+      React.createElement("div",{className:"filters"},
+        // Filtros vive PEGADO al buscador (2026-08-05): los dos acotan la misma lista de abajo,
+        // así que van en la misma fila — antes el botón quedaba solo, en su propia línea entre el
+        // buscador y "Sincronizar", sin pertenecer claramente a ninguno de los dos (feedback: «se
+        // queda raro en medio»). Sincronizar es una acción de red (trae datos nuevos), no de
+        // filtrado: va aparte, al pie de la lista (tanda 2).
+        React.createElement("div",{style:{display:"flex",gap:8,marginBottom:9}},
+          React.createElement("div",Object.assign({className:"searchbar",style:{flex:1,minWidth:0,marginBottom:0}},stopSwipe),
+            React.createElement("span",{className:"searchbar-ic"},"🔍"),
+            React.createElement("input",{className:"searchbar-in",type:"search",placeholder:t("g_search"),value:q,onChange:e=>setQ(e.target.value)}),
+            q && React.createElement("button",{className:"searchbar-x",onClick:()=>setQ(""),title:"×"},"✕")
+          ),
+          React.createElement("button",{type:"button",className:"v4-chip"+(nFilters?" on":""),onClick:function(){ setFilterOpen(true); },title:t("g_filters"),
+            style:{minHeight:0,padding:"0 14px",fontWeight:700,flex:"0 0 auto"}},
+            "🎛️"+(nFilters?" "+nFilters:""))
+        ),
+        // Resumen de los filtros activos (categorías/bancos) + botón para quitarlos. El botón que
+        // ABRE el sheet ya no vive aquí: se movió junto al buscador (ver arriba).
+        nFilters>0 && React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:8,alignItems:"center",marginTop:2}},
+          React.createElement("span",{style:{fontSize:12.5,color:"var(--muted)",lineHeight:1.35,flex:"1 1 120px"}}, filterParts.join(" · ")),
+          React.createElement("button",{type:"button",className:"v4-chip",onClick:clearFilters,style:{padding:"8px 12px"}}, t("g_filters_clear"))
+        )
+      ),
+      React.createElement(GastosLista,{filtered:filtered, visible:visible, state:state, cifra:cifra, mode:monthSummary.mode,
+        q:q, sel:sel, bucketSel:bucketSel, bankSelIsDefault:bankSelIsDefault, preset:preset, hayHistorico:(expensesDef||[]).length>0,
+        dragExpense:dragExpense, openDetail:openDetail, startExpenseDrag:startExpenseDrag, moveExpenseDrag:moveExpenseDrag, endExpenseDrag:endExpenseDrag,
+        onGoPlan:onGoPlan, simple:simple, l10nKey:l10nKey, sentinelRefCb:sentinelRefCb}),
+      /* «Actualizar gastos», su explicación y la última lectura, AL FINAL de la lista mientras no
+         llegue la tanda 5 (que lo quita): no se pierde la vía y deja de tapar los movimientos. Este
+         pie lleva el hueco que deja subir el último día hasta la cabecera (antes en `.gx-fin`). */
+      React.createElement("div",{className:"gx-pie"},
+        React.createElement("div",{className:"action-row"},
+          React.createElement("button",{className:"btn btn-ghost",onClick:onSync,disabled:syncing,"aria-describedby":"gastos-refresh-scope"}, syncing?React.createElement(React.Fragment,null,React.createElement("span",{className:"spin"}),t("g_refreshing_expenses")):React.createElement(React.Fragment,null,React.createElement(I.sync,{width:16,height:16}),t("g_refresh_expenses")))
+        ),
+        React.createElement("p",{className:"hint",id:"gastos-refresh-scope"},t("g_refresh_expenses_hint")),
+        React.createElement("div",{className:"sync-note"},
+          React.createElement("span",{className:"sync-dot "+(syncStatus.type||"idle")}),
+          React.createElement(SyncHora,{msg:syncStatus.msg,lastSync:state.lastSync}))))),
+    /* CATEGORÍAS (SPEC §5): el desglose que antes iba encima de la lista, con la barra del
+       presupuesto arriba (solo mes en curso / Mi ciclo: sin límite en el pasado, regla de §3).
+       Tocar una categoría sigue siendo ponerle límite: es la única puerta para eso hasta la
+       tanda 3, que la pasa a la pulsación larga y al chip del filtro. Ya no se pliega: el
+       «es too much» de su pareja (10/9) era porque tapaba la lista, y aquí ya no tapa nada. */
+    capa("cats", React.createElement("div",{className:"gx-cats","data-testid":"gastos-cats"},
+      presu!=null && React.createElement("div",{className:"gx-cats-pres"},
+        React.createElement("div",{className:"gx-cats-barra",role:"progressbar","aria-label":t("gv5_cats_pres"),"aria-valuemin":0,"aria-valuemax":presu,"aria-valuenow":+usado.toFixed(2)},
+          React.createElement("i",{className:"gx-cats-in",style:{width:(Math.min(usado,presu)/Math.max(usado,presu)*100)+"%"}}),
+          usado>presu && React.createElement("i",{className:"gx-cats-over",style:{width:((usado-presu)/usado*100)+"%"}})),
+        React.createElement("div",{className:"gx-cats-pie"},
+          React.createElement("span",null,tf("gv5_cats_of",{x:eur0(presu)})),
+          React.createElement("span",null,monthSummary.periodLabel))),
+      // La pista de siempre: sin ella, que tocar pone un límite no se adivina (hasta la tanda 3).
+      catBreakdown.length>0 && React.createElement("p",{className:"hint"},t("v4_gastos_cats")),
+      catBreakdown.length===0
+        ? React.createElement("div",{className:"empty"},t("gv5_cats_vacio"))
+        : React.createElement("div",{className:"gx-cats-lista"},catBreakdown.map(function(row){
+            const cat=catOf(row.id);
+            const lim=row.limit;
+            const pct=lim>0?Math.min(100, row.spent/lim*100):0;
+            return React.createElement("button",{key:row.id,type:"button",className:"v4-gastos-cat gx-cat",
+                "data-cat":row.id,onClick:function(){ editCatBudget(row.id); }},
+              React.createElement("span",{className:"gx-cat-ic","aria-hidden":true,style:{background:(cat.color||"#6CC688")+"22",color:cat.color}},cat.icon||""),
+              React.createElement("span",{className:"gx-cat-txt"},
+                React.createElement("span",{className:"v4-gastos-cat-row"},
+                  React.createElement("span",{className:"v4-gastos-cat-name"}, catName(row.id)),
+                  React.createElement("span",{className:"v4-gastos-cat-amt num"}, eur0(row.spent))),
+                lim>0
+                  ? React.createElement(React.Fragment,null,
+                      React.createElement("span",{className:"v4-gastos-cat-hint"}, tf("v4_gastos_cat_limit",{x:eur0(lim)})),
+                      React.createElement("span",{className:"bar",role:"progressbar","aria-valuemin":0,"aria-valuemax":lim,"aria-valuenow":row.spent},
+                        React.createElement("i",{style:{width:pct+"%",background:cat.color||"var(--mint)"}})))
+                  // Sin límite, la barra es relativa a la categoría que más lleva: solo compara.
+                  : React.createElement("span",{className:"gx-cat-rel","aria-hidden":true},
+                      React.createElement("i",{style:{width:(catsMax>0?row.spent/catsMax*100:0)+"%",background:cat.color||"var(--mint)"}}))));
+          })))),
+    /* SUSCRIPCIONES (SPEC §6): las detectadas pasan aquí TAL CUAL estaban (importe editable, pasar
+       a Recibos, descartar); su bandeja con fichas es la tanda 4. Solo si hay novedad: activas, aún
+       no pasadas a Fijos ni descartadas a mano (petición 2026-08-03: la gasolina se repite pero
+       nunca tendrá importe fijo). Vacía, lo dice en vez de dejar la sección en blanco. Mientras la
+       detección no ha corrido (`heavyOk`, se difiere a propósito) no se afirma nada. */
+    capa("subs", React.createElement("div",{className:"gx-subs","data-testid":"gastos-subs"},
+      !heavyOk ? null
+      : novelSubs.length
+        ? React.createElement(CollapsibleCard,{title:t("sub_title")+" · "+novelSubs.length,sub:tf("sub_sub",{n:novelSubs.length,y:eur0(novelSubs.reduce(function(a,s){return a+(s.active?s.yearly:0);},0))}),dot:"#C9A6F0",defaultOpen:true,storageKey:"g_subs_novel",help:t("h_subs")},
+            novelSubs.map(function(sp){ return React.createElement(SubRow,{key:sp.key,sp:sp,state:state,set:set,showToast:showToast}); }),
+            React.createElement("div",{className:"hint",style:{marginTop:8}}, t("sub_hint")))
+        : React.createElement("div",{className:"gx-vacio"},
+            React.createElement("div",{className:"gx-vacio-ic","aria-hidden":true},"✓"),
+            React.createElement("div",{className:"gx-vacio-t serif"},t("gv5_subs_ok_t")),
+            React.createElement("div",{className:"gx-vacio-d"},t("gv5_subs_ok_d"))))),
+    React.createElement(GastosFilterSheet,{
+      open:filterOpen, onClose:function(){ setFilterOpen(false); },
+      sel:sel, setSel:setSel, bankSel:bankSel, setBankSel:setBankSel,
+      bucketSel:bucketSel, setBucketSel:setBucketSel,
+      bankOpts:bankOpts, diarioEnts:diarioEnts, debts:state.debts,
+      preset:preset, setPreset:setPreset, presetDef:presetDef, periodoExtra:periodoExtra
+    }),
+    React.createElement(ExpenseDetailSheet,{
+      exp:detailId?(state.expenses||[]).find(function(e){ return e.id===detailId; }):null,
+      editExp:editExp, setEditExp:setEditExp,
+      // Cerrar también guarda el último dígito del teclado. Borrar pasa `true` para no resucitar
+      // el gasto con un guardado tardío en el mismo lote de React.
+      onClose:function(skipSave){
+        const ex=(state.expenses||[]).find(function(e){ return e.id===detailId; });
+        if(!skipSave && ex && editExp) saveEdit(ex);
+        setDetailId(null); setEditExp(null);
+      },
+      setCat:setCat, setCuota:setCuota, setReceipt:setReceipt, quitarRecibo:quitarRecibo, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
+      resolveDup:resolveDup, separarGemelo:separarGemelo, recognizeWithdrawal:recognizeWithdrawal, withdrawalStatus:withdrawalStatus,
+      showToast:showToast, aiBusy:aiBusy, suggestAi:suggestAi, state:state
+    }),
+    undoDelete && ReactDOM.createPortal(
+      React.createElement("div",{className:"v4-undo-toast",role:"status","data-testid":"expense-undo"},
+        React.createElement("span",null,t(undoDelete.paired?"g_auto_deleted":"f_undo_deleted")),
+        React.createElement("button",{type:"button",onClick:undoLastDelete},t("f_undo"))),document.body)
+  );
+}
+
+/* Secciones de Gastos v5 en el orden del tirón (fijo: ver `useTironSeccion`) y su nombre. */
+const GX_SECC=["movs","cats","subs"];
+const GX_SECC_TXT={movs:"gv5_sec_movs", cats:"gv5_sec_cats", subs:"gv5_sec_subs"};
+// Mismo escondite que los segmentos de Plan (ver el porqué medido en PlanTab).
+const GX_OCULTO={height:0,overflow:"hidden",contentVisibility:"hidden",pointerEvents:"none"};
+/* LA LISTA DE MOVIMIENTOS, EN SU PROPIO MEMO (Gastos v5, tanda 2, 24/10/2026). Cambiar de sección
+   (Movimientos / Categorías / Suscripciones) es estado de Expenses, y sin esto cada cambio volvía a
+   recorrer los días pintados (cajón, recibo y deuda de cada fila) y a construir la lista entera
+   aunque no cambiara nada (AGENTS §7 bis). Todo lo que recibe es estable mientras no cambien los
+   datos, los filtros o la tanda pintada: las callbacks van en `useCallback` y nada viaja como
+   `Date`. Si añades una prop, que sea estable, o el memo queda de adorno. */
+const GastosLista=React.memo(function GastosLista({filtered, visible, state, cifra, mode, q, sel, bucketSel, bankSelIsDefault, preset, hayHistorico,
+    dragExpense, openDetail, startExpenseDrag, moveExpenseDrag, endExpenseDrag, onGoPlan, simple, l10nKey, sentinelRefCb}){
   const shown=filtered.slice(0,visible);
   /* A LA FILA SE LE PASA EL NÚMERO, NO EL `Date` (2026-07-27, y esto llevaba roto desde siempre).
      `parseDate` cachea los MILISEGUNDOS pero devuelve `new Date(ms)`: un objeto NUEVO en cada
@@ -1177,129 +1416,11 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // Lo que cuenta ese día, con la misma regla que la cifra de arriba: sumados, dan la cifra.
   const totalDia=function(k,ym){
     const d=gastosDiaDe(cifra,k,ym);
-    if(!d || !(d.sp>0) && !(monthSummary.mode==="net"&&d.inc>0)) return null;
-    const v=gastosValor(d,monthSummary.mode);
+    if(!d || !(d.sp>0) && !(mode==="net"&&d.inc>0)) return null;
+    const v=gastosValor(d,mode);
     return (v<0?"+":"")+eur(Math.abs(v));
   };
-  const simple=!!(state.settings&&state.settings.simpleMode);
-
-  return React.createElement("div",{className:"v4-screen gx-root",ref:rootRef,"data-periodo":preset},
-    React.createElement(GastosCabecera,{rootRef:rootRef, cab:cab, meses:preset==="months"?cab.meses:null, onMes:irAMes, stopSwipe:stopSwipe, diasRef:diasRef}),
-    React.createElement("div",{className:"filters"},
-      // Filtros vive PEGADO al buscador (2026-08-05): los dos acotan la misma lista de abajo,
-      // así que van en la misma fila — antes el botón quedaba solo, en su propia línea entre el
-      // buscador y "Sincronizar", sin pertenecer claramente a ninguno de los dos (feedback: «se
-      // queda raro en medio»). Sincronizar es una acción de red (trae datos nuevos), no de
-      // filtrado, así que se queda donde estaba, lejos de este grupo.
-      React.createElement("div",{style:{display:"flex",gap:8,marginBottom:9}},
-        React.createElement("div",Object.assign({className:"searchbar",style:{flex:1,minWidth:0,marginBottom:0}},stopSwipe),
-          React.createElement("span",{className:"searchbar-ic"},"🔍"),
-          React.createElement("input",{className:"searchbar-in",type:"search",placeholder:t("g_search"),value:q,onChange:e=>setQ(e.target.value)}),
-          q && React.createElement("button",{className:"searchbar-x",onClick:()=>setQ(""),title:"×"},"✕")
-        ),
-        React.createElement("button",{type:"button",className:"v4-chip"+(nFilters?" on":""),onClick:function(){ setFilterOpen(true); },title:t("g_filters"),
-          style:{minHeight:0,padding:"0 14px",fontWeight:700,flex:"0 0 auto"}},
-          "🎛️"+(nFilters?" "+nFilters:""))
-      ),
-      // «Mi ciclo»: enseña QUÉ cobro ancla el ciclo (si el detectado no es el bueno, se corrige
-      // apuntando la nómina real como ingreso, o usando Rango…).
-      preset==="cycle" && React.createElement("div",{className:"v4-cycle-box"+(cycleHelpOpen?"":" compacto"),"data-testid":"gastos-cycle-help"},
-        React.createElement("div",{className:"v4-cycle-head"},
-          React.createElement("div",{className:"v4-cycle-main"},
-            React.createElement("strong",null,cycle?"📅 "+t("g_cycle"):t("g_cycle_none_t")),
-            React.createElement("div",null,cycle
-              ? tf("g_cycle_from",{d:cycle.start.toLocaleDateString(loc(),{day:'2-digit',month:'2-digit'}), x:"+"+eur0(Math.abs(cycle.inc.amount))+((cycle.inc.merchant&&cycle.inc.merchant!=="Ingreso")?" · "+cycle.inc.merchant:"")})
-              : t("g_cycle_fallback"))),
-          React.createElement("button",{type:"button",className:"v4-chip",onClick:toggleCycleHelp,
-            "aria-expanded":cycleHelpOpen,"aria-controls":cycleHelpOpen?"gastos-cycle-explanation":undefined},
-            t(cycleHelpOpen?"g_cycle_help_hide":"g_cycle_help_show"))),
-        cycleHelpOpen && React.createElement("div",{id:"gastos-cycle-explanation",className:"v4-cycle-explanation"},
-          cycle ? t(cycleEnabled?"g_cycle_budget_hint":"g_cycle_filter_hint") : t("g_cycle_none"))
-      ),
-      preset==="custom" && React.createElement("div",null,
-        React.createElement("div",Object.assign({className:"range"},stopSwipe),
-          React.createElement("button",{type:"button",className:"v4-chip"+(calPick==="from"?" on":""),onClick:function(){ setCalPick(calPick==="from"?null:"from"); }},
-            range.from?fmtIsoCorto(range.from):t("g_custom")),
-          React.createElement("span",null,"→"),
-          React.createElement("button",{type:"button",className:"v4-chip"+(calPick==="to"?" on":""),onClick:function(){ setCalPick(calPick==="to"?null:"to"); }},
-            range.to?fmtIsoCorto(range.to):t("g_custom"))
-        ),
-        calPick && React.createElement(McCal,{value:calPick==="from"?range.from:range.to, onPick:function(iso){
-          setRange(function(r){ const n=Object.assign({},r); n[calPick]=iso; return n; });
-          setCalPick(null);
-        }})
-      ),
-      // Resumen de los filtros activos (categorías/bancos) + botón para quitarlos. El botón que
-      // ABRE el sheet ya no vive aquí: se movió junto al buscador (ver arriba).
-      nFilters>0 && React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:8,alignItems:"center",marginTop:2}},
-        React.createElement("span",{style:{fontSize:12.5,color:"var(--muted)",lineHeight:1.35,flex:"1 1 120px"}}, filterParts.join(" · ")),
-        React.createElement("button",{type:"button",className:"v4-chip",onClick:clearFilters,style:{padding:"8px 12px"}}, t("g_filters_clear"))
-      )
-    ),
-    /* SE PUEDE OCULTAR (petición de su pareja, 10/9, y con razón).
-       Sus palabras: «esta chulo pero mi pareja lo vio y me dijo que es too much, que le gustaria
-       que se pudiera ocultar y habilitarlo si tu quieres».
-       El desglose lista TODAS las categorías con gasto del mes, así que en cuanto tienes vida
-       normal son ocho o diez filas fijas encima de la lista de gastos. A él le sirve —fue idea
-       suya ponerles límite— y a ella le tapa lo que viene a mirar. No es un fallo de la función:
-       es que no todo el mundo quiere lo mismo abierto siempre.
-       Plegado, deja UNA línea: sigue estando y no molesta. El estado va en `settings` (por
-       cuenta, que cada uno tiene la suya), y por defecto ABIERTO: quien ya lo tiene no se
-       encuentra con que le han escondido algo sin avisar. Se pliega quien quiera plegarlo.
-       v5 (20/10/2026): sale de la tarjeta resumen, que ya no existe, y se queda aquí hasta que
-       la sección Categorías (tandas 2 y 3) lo sustituya: es la única puerta para poner un
-       límite a una categoría y no se puede perder antes de que exista la nueva. */
-    catBreakdown.length>0 && React.createElement("div",{className:"v4-gastos-cats"+(catsOpen?"":" cerrado"),"data-testid":"gastos-cats"},
-      React.createElement("button",{type:"button",className:"v4-gastos-cats-h",
-        "aria-expanded":catsOpen,"aria-controls":"gastos-cats-body",onClick:toggleCats},
-        React.createElement("span",{className:"v4-gastos-cats-t"},
-          catsOpen ? t("v4_gastos_cats")
-                   : tf(catBreakdown.length===1?"v4_gastos_cats_period_n1":"v4_gastos_cats_period_n",{n:catBreakdown.length,period:monthSummary.periodLabel})),
-        React.createElement("span",{className:"v4-gastos-cats-fold"},
-          (catsOpen?"▾ ":"▸ ")+t(catsOpen?"v4_gastos_cats_hide":"v4_gastos_cats_show"))),
-      React.createElement("div",{id:"gastos-cats-body",className:"v4-gastos-cats-body"+(catsOpen?" abierto":""),"aria-hidden":!catsOpen},
-      React.createElement("div",{className:"v4-gastos-cats-inner"},catBreakdown.map(function(row){
-        const cat=catOf(row.id);
-        const lim=row.limit;
-        const pct=lim>0?Math.min(100, row.spent/lim*100):0;
-        return React.createElement("button",{key:row.id,type:"button",className:"v4-gastos-cat",
-            "data-cat":row.id,onClick:function(){ editCatBudget(row.id); }},
-          React.createElement("div",{className:"v4-gastos-cat-row"},
-            React.createElement("span",{className:"v4-gastos-cat-name"}, (cat.icon||"")+" "+catName(row.id)),
-            React.createElement("span",{className:"v4-gastos-cat-amt num"}, eur0(row.spent))),
-          lim>0
-            ? React.createElement(React.Fragment,null,
-                React.createElement("span",{className:"v4-gastos-cat-hint"}, tf("v4_gastos_cat_limit",{x:eur0(lim)})),
-                React.createElement("div",{className:"bar",role:"progressbar","aria-valuemin":0,"aria-valuemax":lim,"aria-valuenow":row.spent},
-                  React.createElement("i",{style:{width:pct+"%",background:cat.color||"var(--mint)"}})))
-            : null);
-      })))
-    ),
-    React.createElement("div",{className:"action-row"},
-      React.createElement("button",{className:"btn btn-ghost",onClick:onSync,disabled:syncing,"aria-describedby":"gastos-refresh-scope"}, syncing?React.createElement(React.Fragment,null,React.createElement("span",{className:"spin"}),t("g_refreshing_expenses")):React.createElement(React.Fragment,null,React.createElement(I.sync,{width:16,height:16}),t("g_refresh_expenses")))
-    ),
-    React.createElement("p",{className:"hint",id:"gastos-refresh-scope"},t("g_refresh_expenses_hint")),
-    React.createElement("div",{className:"sync-note"},
-      React.createElement("span",{className:"sync-dot "+(syncStatus.type||"idle")}),
-      React.createElement(SyncHora,{msg:syncStatus.msg,lastSync:state.lastSync})
-    ),
-/* Alta de gasto/ingreso: FAB Apuntar (SPEC §7). */
-    (function(){
-      // SPEC §4: suscripciones solo si hay novedad (activas, aún no pasadas a Fijos, ni descartadas
-      // a mano — petición 2026-08-03: poder quitar una detección que no es una suscripción de
-      // verdad, ej. la gasolina, que se repite pero nunca va a tener un importe fijo).
-      const dismissed=state.subsDismissed||[];
-      const novel=(subs||[]).filter(function(sp){
-        if(!sp.active) return false;
-        if(dismissed.indexOf(sp.key)!==-1) return false;
-        return !(state.fixed||[]).some(function(f){ return catKey(f.name)===sp.key; });
-      });
-      if(!novel.length) return null;
-      return React.createElement("div",{style:{marginTop:14}}, React.createElement(CollapsibleCard,{title:t("sub_title")+" · "+novel.length,sub:tf("sub_sub",{n:novel.length,y:eur0(novel.reduce(function(a,s){return a+(s.active?s.yearly:0);},0))}),dot:"#C9A6F0",defaultOpen:true,storageKey:"g_subs_novel",help:t("h_subs")},
-        novel.map(function(sp){ return React.createElement(SubRow,{key:sp.key,sp:sp,state:state,set:set,showToast:showToast}); }),
-        React.createElement("div",{className:"hint",style:{marginTop:8}}, t("sub_hint"))
-      ));
-    })(),
+  return (
     React.createElement("div",{className:"v4-gastos-list gx-list",style:{marginTop:6}},
       React.createElement("div",{className:"v4-gastos-list-body"},
         shown.length===0
@@ -1312,8 +1433,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
               // bankSel igual a los de gasto diario cuenta como "sin filtro": es la
               // preselección automática (2026-08-17: todos los marcados, no solo el principal).
               const sinFiltros=!q.trim() && !sel.length && !bucketSel.length && bankSelIsDefault;
-              const hayHistorico=(expensesDef||[]).length>0;
-              const esVacioNormal=sinFiltros && hayHistorico && preset==="cycle";
+                            const esVacioNormal=sinFiltros && hayHistorico && preset==="cycle";
               return React.createElement("div",{className:"empty"},
                 React.createElement("div",{className:"ttl"}, esVacioNormal?t("g_empty_period_t"):t("g_empty_t")),
                 esVacioNormal?t("g_empty_period_d"):t("g_empty_d"));
@@ -1340,34 +1460,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         shown.length>0 && visible>=filtered.length && React.createElement("div",{className:"gx-fin"},
           tf("gv5_end",{d:new Date(dateMs(filtered[filtered.length-1].date)).toLocaleDateString(loc(),{day:"numeric",month:"long",year:"numeric"})}))
       )
-    ),
-    React.createElement(GastosFilterSheet,{
-      open:filterOpen, onClose:function(){ setFilterOpen(false); },
-      sel:sel, setSel:setSel, bankSel:bankSel, setBankSel:setBankSel,
-      bucketSel:bucketSel, setBucketSel:setBucketSel,
-      bankOpts:bankOpts, diarioEnts:diarioEnts, debts:state.debts,
-      preset:preset, setPreset:setPreset, presetDef:presetDef
-    }),
-    React.createElement(ExpenseDetailSheet,{
-      exp:detailId?(state.expenses||[]).find(function(e){ return e.id===detailId; }):null,
-      editExp:editExp, setEditExp:setEditExp,
-      // Cerrar también guarda el último dígito del teclado. Borrar pasa `true` para no resucitar
-      // el gasto con un guardado tardío en el mismo lote de React.
-      onClose:function(skipSave){
-        const ex=(state.expenses||[]).find(function(e){ return e.id===detailId; });
-        if(!skipSave && ex && editExp) saveEdit(ex);
-        setDetailId(null); setEditExp(null);
-      },
-      setCat:setCat, setCuota:setCuota, setReceipt:setReceipt, quitarRecibo:quitarRecibo, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
-      resolveDup:resolveDup, separarGemelo:separarGemelo, recognizeWithdrawal:recognizeWithdrawal, withdrawalStatus:withdrawalStatus,
-      showToast:showToast, aiBusy:aiBusy, suggestAi:suggestAi, state:state
-    }),
-    undoDelete && ReactDOM.createPortal(
-      React.createElement("div",{className:"v4-undo-toast",role:"status","data-testid":"expense-undo"},
-        React.createElement("span",null,t(undoDelete.paired?"g_auto_deleted":"f_undo_deleted")),
-        React.createElement("button",{type:"button",onClick:undoLastDelete},t("f_undo"))),document.body)
+    )
   );
-}
+});
 
 /* Lo que la fila de meses sobresale por debajo de la caja de la cabecera cuando se encoge (px).
    Tiene que cuadrar con `.gx-head.compact.con-meses::before` y `.gx-meses` en shell.html. */
@@ -1384,7 +1479,7 @@ function gxRayaExtra(compact, conMeses){ return !compact?0:conMeses?GX_MESES_SOB
    `opacity` sobre una caja de alto fijo: bajar no recoloca nada de la lista. El scroll se lee en
    un `requestAnimationFrame` y el día se busca por bisección entre los encabezados ya pintados,
    así cada frame cuesta unas pocas lecturas aunque haya meses enteros cargados. */
-function GastosCabecera({rootRef, cab, meses, onMes, stopSwipe, diasRef}){
+function GastosCabecera({rootRef, cab, meses, onMes, stopSwipe, diasRef, secc, onSecc, nSubs}){
   const [vista,setVista]=useState({k:null, ym:null, compact:false});
   const headRef=useRef(null), mesesRef=useRef(null), calcRef=useRef(null);
   // El cálculo vive en un efecto montado una vez: lee si hay meses por ref, no por cierre viejo.
@@ -1430,7 +1525,9 @@ function GastosCabecera({rootRef, cab, meses, onMes, stopSwipe, diasRef}){
   },[ymSel, vista.compact, meses&&meses.length, l10nKeyOf()]);
   const tone=line.tone?" gx-tone-"+line.tone:"";
   return React.createElement("div",{className:"gx-head"+(vista.compact?" compact":"")+(meses?" con-meses":""),ref:headRef},
-    React.createElement("h1",{className:"v4-title serif"}, t("v4_gastos_title")),
+    React.createElement("div",{className:"gx-titulo"},
+      React.createElement("h1",{className:"v4-title serif"}, t("v4_gastos_title")),
+      React.createElement(GxSecciones,{secc:secc, onSecc:onSecc, nSubs:nSubs})),
     React.createElement(GxCifra,{n:line.n}),
     React.createElement("div",{className:"gx-status","data-testid":"gastos-estado"},
       React.createElement("span",null,line.pre),
@@ -1447,6 +1544,27 @@ function GastosCabecera({rootRef, cab, meses, onMes, stopSwipe, diasRef}){
   );
 }
 function l10nKeyOf(){ return CURLANG+"|"+DISP.sym; }
+/* LOS TRES ICONOS DE SECCIÓN (SPEC §2.1): Movimientos (líneas), Categorías (barras) y
+   Suscripciones (reloj con flecha = «se repite»), con el globito de las que esperan decisión.
+   Son pestañas de verdad (`role="tab"`, `aria-selected`) y cada una dice su nombre: el icono solo
+   no se entiende con un lector de pantalla. */
+const GX_SECC_ICO={
+  movs:["M4 7h16M4 12h12M4 17h8"],
+  cats:["M6 20v-6M12 20V4M18 20v-10"],
+  subs:["M3.5 12a8.5 8.5 0 1 0 2.5-6","M3 3v4h4","M12 8v4l3 2"]
+};
+function GxSecciones({secc, onSecc, nSubs}){
+  return React.createElement("div",{className:"gx-secciones",role:"tablist","aria-label":t("gv5_secciones")},
+    GX_SECC.map(function(id){
+      const on=secc===id, globo=id==="subs"&&nSubs>0;
+      return React.createElement("button",{key:id,type:"button",role:"tab","aria-selected":on,"data-gx-tab":id,
+          className:"gx-sec"+(on?" on":""),"aria-label":t(GX_SECC_TXT[id])+(globo?" · "+tf("gv5_subs_globo",{n:nSubs}):""),
+          onClick:function(){ onSecc(id); }},
+        React.createElement("svg",{"aria-hidden":true,width:20,height:20,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.2,strokeLinecap:"round",strokeLinejoin:"round"},
+          GX_SECC_ICO[id].map(function(d){ return React.createElement("path",{key:d,d:d}); })),
+        globo && React.createElement("span",{className:"gx-sec-globo num","aria-hidden":true,"data-testid":"gastos-subs-globo"},nSubs>99?"99+":nSubs));
+    }));
+}
 /* LA CIFRA RUEDA POR DÍGITO (referencia del dueño, 20/10: «este es el nivel que aspiro de
    fluidez»). Cada dígito es una tira 0–9 que sube o baja con `translateY`: sin layout ni anchos
    que cambien (cifras tabulares, celda de ancho fijo), y si llega otro cambio a mitad, la
@@ -1588,7 +1706,7 @@ function filterSelLabel(id, debts){
   const d=(debts||[]).find(function(x){ return x && ("debt:"+x.id)===id; });
   return d&&d.name||catName("deudas");
 }
-function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, bucketSel, setBucketSel, bankOpts, diarioEnts, debts, preset, setPreset, presetDef}){
+function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, bucketSel, setBucketSel, bankOpts, diarioEnts, debts, preset, setPreset, presetDef, periodoExtra}){
   const swipe=useSheetSwipe(!!open, onClose);
   useBackClose(!!open, swipe.close);
   const [qCat,setQCat]=useState("");
@@ -1650,6 +1768,7 @@ function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, buc
             return React.createElement("button",{key:p[0],type:"button",role:"radio","aria-checked":on,className:"gx-periodo-op"+(on?" on":""),
               "data-periodo":p[0],onClick:function(){ setPreset(p[0]); }}, t(p[1]));
           })),
+        periodoExtra && React.createElement("div",{className:"gx-periodo-extra"},periodoExtra),
         React.createElement("div",{style:{fontSize:12,fontWeight:800,color:"var(--muted-2)",letterSpacing:".04em",textTransform:"uppercase",marginBottom:8}}, t("g_bk_title")),
         React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:8,marginBottom:16}},
           React.createElement("button",{type:"button",className:"v4-chip"+(bucketSel.length===0?" on":""),onClick:function(){ setBucketSel([]); }}, t("g_bk_all")),

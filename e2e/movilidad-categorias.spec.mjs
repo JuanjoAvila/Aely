@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews, installFixtureClock } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, installFixtureClock, gastosSeccion } from "./fixtures.mjs";
 
 const labels={es:{multas:"Multas",zona_azul:"Zona azul",peajes:"Peajes"},en:{multas:"Fines",zona_azul:"Blue zone",peajes:"Tolls"},ca:{multas:"Multes",zona_azul:"Zona blava",peajes:"Peatges"}};
 const entries=[["multas","Multa DGT",40,"🚨"],["zona_azul","Zona azul",6,"🅿️"],["peajes","Peaje AP7",8,"🛣️"]];
@@ -58,6 +58,8 @@ for(const lang of ["es","en","ca"]){
     await open(page);await page.locator('.botnav-tab[data-tour="gastos"]').click();
     // Gastos v5: la cifra de la cabecera es lo que cuenta contra el límite (antes, la barra).
     await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toHaveText("75,00 €");
+    // Gastos v5 (tanda 2): el desglose vive en la sección Categorías; filtros y lista en Movimientos.
+    await gastosSeccion(page,"cats");
     for(const [cat,,spent] of entries){
       const row=page.locator('.v4-gastos-cat[data-cat="'+cat+'"]');await expect(row).toContainText(labels[lang][cat]);
       await expect(row.locator('[role="progressbar"]')).toHaveAttribute("aria-valuenow",String(spent));
@@ -66,6 +68,7 @@ for(const lang of ["es","en","ca"]){
       await page.locator(".btn-primary",{hasText:/Guardar|Save|Desa/}).click();
       await expect(row.locator('[role="progressbar"]')).toHaveAttribute("aria-valuemax","200");
     }
+    await gastosSeccion(page,"movs");
     for(const [cat,merchant] of entries){
       await page.locator('.filters button[title]').click();await page.locator(".v4-filter-cats-toggle").click();
       await page.locator('.v4-ficha-cat-title button').filter({hasText:/Todas|All|Totes/}).click();
@@ -82,6 +85,7 @@ for(const lang of ["es","en","ca"]){
     await page.evaluate(()=>navigator.serviceWorker.ready);await page.waitForFunction(()=>!!navigator.serviceWorker.controller);
     await context.setOffline(true);await page.reload();await dismissNews(page);await page.locator('.botnav-tab[data-tour="gastos"]').click();
     await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toHaveText("75,00 €");
+    await gastosSeccion(page,"cats");
     for(const cat of ["multas","zona_azul"])await expect(page.locator('.v4-gastos-cat[data-cat="'+cat+'"]')).toContainText(labels[lang][cat]);
     expect(await page.evaluate(()=>mcLoadRaw("micartera_v3").categoryBudgets)).toEqual({...budgets,multas:200,zona_azul:200,peajes:200});
     const saved=await page.evaluate(()=>mcLoadRaw("micartera_v3").expenses.map(e=>[e.id,e.category]));

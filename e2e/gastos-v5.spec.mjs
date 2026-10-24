@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews, installFixtureClock, gastosRoot, gastosCifra, gastosEstado, gastosPeriodo, gastosBajaAlDia } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, installFixtureClock, gastosRoot, gastosCifra, gastosEstado, gastosPeriodo, gastosBajaAlDia, gastosAbreFiltros, gastosCierraFiltros } from "./fixtures.mjs";
 
 /* GASTOS v5 · TANDA 1 (20/10/2026, docs/design/gastos-v5/SPEC.md §3, §4 y §11).
    Render puro derivado del estado: lo que `npm test` no ve (AGENTS §7). Cada prueba abre la
@@ -222,10 +222,16 @@ test("Mi ciclo sigue elegible y su cifra es la de Inicio en modo ciclo", async (
   await expect(gastosCifra(page)).toHaveText("60,00 €");
   await expect(gastosEstado(page)).toHaveText("en tu ciclo · 940 € por debajo");
   await expect(gastosRoot(page).getByTestId("gastos-desglose")).toHaveText("gastos 100,00 € · ingresos 40,00 €");
-  await expect(gastosRoot(page).getByTestId("gastos-cycle-help")).toBeVisible();
+  // Su ayuda vive con el periodo, en Filtros (tanda 2): encima de la lista tapaba los movimientos.
+  await expect(page.getByTestId("gastos-cycle-help")).toHaveCount(0);
+  await gastosAbreFiltros(page);
+  await expect(page.getByTestId("gastos-cycle-help")).toBeVisible();
+  await gastosCierraFiltros(page);
   // Se puede salir a meses y volver a elegirlo desde Filtros.
   await gastosPeriodo(page, "months");
-  await expect(gastosRoot(page).getByTestId("gastos-cycle-help")).toHaveCount(0);
+  await gastosAbreFiltros(page);
+  await expect(page.getByTestId("gastos-cycle-help")).toHaveCount(0);
+  await gastosCierraFiltros(page);
   await gastosPeriodo(page, "cycle");
   await expect(gastosCifra(page)).toHaveText("60,00 €");
   await expect(gastosEstado(page)).toHaveText("en tu ciclo · 940 € por debajo");

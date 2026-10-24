@@ -59,6 +59,8 @@ export const E2E_MAP = [
   // La cifra grande (`useCountUp`) en Inicio, Cartera y «Tus recibos», y la mensualidad de los
   // recibos con importe por cobro (`fixedMonthlyOf`) que leen los totales y Hogar (4.26.150).
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/cifra-sin-cero.spec.mjs", "e2e/recibos-cifra-estable.spec.mjs"] },
+  // `useTironSeccion`: el tirón de sección que comparten Plan y Gastos.
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/plan-swipe-segmento.spec.mjs", "e2e/gastos-v5-secciones.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/cifra-sin-cero.spec.mjs"] },
   { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-cifra-estable.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/recibos-cifra-estable.spec.mjs"] },
@@ -113,6 +115,8 @@ export const E2E_MAP = [
     "e2e/gastos-ayuda-ciclo.spec.mjs", "e2e/gastos-mes-madrid.spec.mjs",
     // Gastos v5: cifra viva = Inicio, mes cerrado sin límite, filas grises, sin perder filas, Mi ciclo.
     "e2e/gastos-v5.spec.mjs",
+    // Gastos v5 tanda 2: secciones, tirón con un solo toque, Categorías y Suscripciones como antes.
+    "e2e/gastos-v5-secciones.spec.mjs",
     // Apuntes iguales de TR por el cableado real: filas en Gastos, «Es el mismo» desde la ficha.
     "e2e/tr-iguales-ordinal.spec.mjs",
     "e2e/tr-emparejado-automatico.spec.mjs",

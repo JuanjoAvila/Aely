@@ -275,12 +275,25 @@ export async function dismissNews(page) {
 export const gastosRoot = (page) => page.locator(".page-scroll-host .gx-root");
 export const gastosCifra = (page) => gastosRoot(page).getByTestId("gastos-cifra");
 export const gastosEstado = (page) => gastosRoot(page).getByTestId("gastos-estado");
-/** Elige periodo en la hoja de Filtros: "months" | "cycle" | "custom" | "all". */
-export async function gastosPeriodo(page, id) {
+/** Cambia de sección de Gastos v5 tocando su icono: "movs" | "cats" | "subs". */
+export async function gastosSeccion(page, id) {
+  await gastosRoot(page).locator(`[role="tab"][data-gx-tab="${id}"]`).click();
+  await expect(gastosRoot(page)).toHaveAttribute("data-secc", id);
+}
+/** Abre y cierra la hoja de Filtros de Gastos (ahí viven el periodo, la ayuda de Mi ciclo y el Rango). */
+export async function gastosAbreFiltros(page) {
   await gastosRoot(page).locator("button.v4-chip").filter({ hasText: "🎛️" }).first().click();
-  await page.locator(`.v4-gastos-filter-sheet [data-periodo="${id}"]`).click();
+  await expect(page.locator(".v4-gastos-filter-sheet")).toBeVisible();
+}
+export async function gastosCierraFiltros(page) {
   await page.locator(".v4-sheet-back").click({ position: { x: 5, y: 5 } });
   await page.locator(".v4-sheet-back").waitFor({ state: "detached" });
+}
+/** Elige periodo en la hoja de Filtros: "months" | "cycle" | "custom" | "all". */
+export async function gastosPeriodo(page, id) {
+  await gastosAbreFiltros(page);
+  await page.locator(`.v4-gastos-filter-sheet [data-periodo="${id}"]`).click();
+  await gastosCierraFiltros(page);
   await expect(gastosRoot(page)).toHaveAttribute("data-periodo", id);
 }
 /** Baja la lista hasta dejar el día `ymd` (aaaa-mm-dd) justo bajo la cabecera ya encogida.
