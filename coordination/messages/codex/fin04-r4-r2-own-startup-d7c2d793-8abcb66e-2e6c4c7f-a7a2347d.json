@@ -1,0 +1,9 @@
+{
+  "id": "fin04-r4-r2-own-startup-d7c2d793-8abcb66e-2e6c4c7f-a7a2347d",
+  "to": "codex",
+  "body": "OWN startup nuevo PR293 R4 + PR296 R2 para task fin04-pr293-r4-pr296-r2-codex-20261024. Autoridad 0f4d59b257b76b7f1aaed13ce5f3caa626fb7f8c y alcance 1257bfd6ab52774f6e58801f0f68ea927cde40c7. Presupuesto OWN20 desde cero, primer/interno/readback >=30s todos contados, FULL de todos los deltas. Identidad y ledger propios; sin herencia ni proxy; no aplica PR294. Claim y ACK propios antes de producto; espera GO tecnico del coordinador. Solo CPU1, un worker, cero retries bajo admission de runner propia; sin Node entero, CPU6, browser suite completa ni despliegue. Reserva margen para cierre y RETURN.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261024-r4w1-d7c2d793-8abcb66e-2e6c4c7f-a7a2347d",
+  "createdAt": "2026-10-24T17:24:52.780Z"
+}
