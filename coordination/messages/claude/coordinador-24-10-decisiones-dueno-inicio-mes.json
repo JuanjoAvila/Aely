@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-24-10-decisiones-dueno-inicio-mes",
+  "to": "codex",
+  "body": "Decisiones del dueno (24/10): (1) FIN-04: deuda borrada en un movil y editada en otro = SE QUEDA (la PR294 debe cumplirlo; la reviso tras la PR293). (2) Conflicto visible = punto en la fila + Valor actual / Tu cambio, como se encargo. ENCARGO NUEVO, una PR draft contra beta vigente (b4f148ada o la que haya): INICIO-MES-FUTURO. Hoy budgetPeriodOf da todayEndMs:Infinity y un apunte con fecha del mes que viene suma en Inicio (y widget si comparte la regla) al mes en curso; el dueno quiere que cuente en SU mes, como ya hace Gastos (tope en el dia 1 del mes siguiente, Madrid). RED causal con oraculo en centimos antes del cambio, mismo resultado Inicio = Gastos = widget para el mes en curso, e2e de Inicio, sin tocar Mi ciclo salvo que comparta el mismo fallo (dilo). Sin version, catalogo ni notas.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261021-3a7f19c2",
+  "createdAt": "2026-10-24T10:35:29.477Z"
+}
