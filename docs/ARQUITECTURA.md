@@ -2,6 +2,43 @@ H2 candidata, ronda 2: saldo y movimientos independientes por cuenta, valor/fech
 
 # Arquitectura — Aely
 
+FIN04 fase 2, candidata A R3: el envío exige una lectura del mismo titular y solo
+crea con INSERT tras acreditar ausencia. Tras un fallo inicial, conexión, regreso
+o edición reabren GET. Un formato inválido avisa y permite rescate local con CAS
+si conserva revisión y titular, sin acreditar aportación mensual. El refresco
+pendiente conserva la última lectura buena; una colisión 23505 provoca relectura.
+Lectura y revisión se acreditan en el commit de React; evaluar el updater
+no habilita escrituras ni persiste colas. Un merge pendiente bloquea también el ACK
+de un envío anterior y su updater diferido. El backup espera lectura válida
+comprometida y actualiza `lastBackup` sin renovar `_savedAt`.
+ACK exacto y sesión se comprueban también dentro del updater. La fusión por grupos de
+recibos/deudas queda pendiente. [Contrato y límites](briefs/fin04-primera-lectura.md).
+
+R4 comparte el vuelo completo de estado y gastos entre reentradas de la misma sesión.
+Una respuesta de otra sesión no acredita ese vuelo. Tras un GET confirmado, el envío
+omite el reflejo idéntico salvo `_savedAt`/`lastSync`, normalizando las confirmaciones
+remotas sin incorporar las del disco local. Cualquier escritura pendiente del titular
+impide ese atajo, incluso si procede de una lectura reemplazada: una reversión humana
+no puede desaparecer detrás de un ACK antiguo. Los cambios reales mantienen CAS y su
+aviso de conflicto. Una lectura antigua tampoco deshace el backup local terminado hoy
+por el mismo titular; el reintento de absorciones no fabrica una edición.
+
+R5 conserva una sola lectura de gastos simultánea y marca una relectura pendiente
+si llega otra solicitud durante el GET. El token pertenece al titular y al objeto
+de sesión; al terminar, incluso con error, solo ese vuelo puede drenarlo. La promesa
+compartida espera la relectura, para que el widget no dé por actualizada una foto
+anterior a un gasto remoto nuevo. Sin solicitud pendiente, el error se propaga;
+una sesión nueva cancela la pendiente antigua sin perder su propio vuelo ni las
+ediciones locales que se mezclan con el estado vigente.
+
+SAVEDAT R2 aplica ese criterio al histórico derivado de bienes y a la clasificación
+automática de cuotas: persisten sin renovar `_savedAt`. El bootstrap del bróker
+espera el primer pull completo y válido del titular; comprueba de nuevo la sesión
+y la lectura al ejecutar la tarea diferida. Su respuesta válida posterior puede
+sellar posiciones reales sin dar prioridad a la cartera anterior al GET. La
+actualización de precios solicitada desde la interfaz conserva su sello: `silent`
+controla los avisos, no convierte una acción humana en mantenimiento automático.
+
 FIN04 fase 1 candidata R2: renombrado parcial con ACK y cola durable; nota local pendiente
 hasta confirmación exacta. Carga/mezcla de UUID prefiere la copia viva, conserva metadatos
 editados y mantiene separados importes o referencias conflictivos.
@@ -433,9 +470,11 @@ cargo único en su mes) y `reponerCargoDeRecibo` levanta el veto y devuelve la m
 la admite; el recibo sigue pendiente, como antes del veto, porque el motor no elige entre dos
 iguales.
 
-**Entre móviles (13/10/2026).** El estado viaja entero por «último que escribe» (`_savedAt`), y
-un móvil con días sin abrirse queda sellado como «más nuevo» por su primer guardado al
-arrancar. Lo que no puede perderse así se une en `syncFromCloud`, gane el estado que gane:
+**Entre móviles.** El estado viaja entero por «último que escribe» (`_savedAt`).
+SAVEDAT distingue mantenimiento/lectura/acuse de edición: se persisten sin renovar
+el sello, conservando el de la edición real. El conflicto entre ediciones concurrentes
+conserva sus límites LWW. [Contrato](briefs/savedat-arranque.md).
+Lo que no puede perderse se une en `syncFromCloud`, gane el estado que gane:
 los vínculos aviso↔apunte (`fusionarGemelos`), los vetos (`reciboNoUnion`), las lápidas
 (`lapidasUnion`) y los recibos borrados (`recibosBorradosUnion`); las dos últimas solo con lo
 local del mismo titular. Vetos, lápidas y recibos borrados comparten regla (`unionPorHora`):

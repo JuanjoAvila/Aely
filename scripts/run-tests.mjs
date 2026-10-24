@@ -34,6 +34,7 @@ if (plan.build !== false) {
 }
 
 const steps = [
+  ["fin04-commit", ["node", "--test", "--test-concurrency=1", "tests/fin04-commit.test.mjs"]],
   ["fin17-confirmed-absorptions", ["node", "--test", "--test-concurrency=1", "tests/fin17-confirmed-absorptions.test.mjs"]],
   ["fin11-absorption-pending", ["node", "--test", "--test-concurrency=1", "tests/fin11-absorption-pending.test.mjs"]],
   ["ux16-haptics", ["node", "--test", "tests/ux16-haptics.test.mjs"]],
@@ -253,6 +254,7 @@ const steps = [
   ["huella-bundle", ["node", "tests/huella-bundle.test.mjs"]],
   ["expense-note", ["node", "tests/expense-note.test.mjs"]],
   ["fin04-rename-note-ack", ["node", "--test", "tests/fin04-rename-note-ack.test.mjs"]],
+  ["fin04-first-pull", ["node", "--test", "tests/fin04-first-pull.test.mjs"]],
   ["expense-id-cloud", ["node", "tests/expense-id-cloud.test.mjs"]],
   ["pull-historico-entero", ["node", "tests/pull-historico-entero.test.mjs"]],
   ["pull-sin-cambios", ["node", "tests/pull-sin-cambios.test.mjs"]],

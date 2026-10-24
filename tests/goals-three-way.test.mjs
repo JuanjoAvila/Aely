@@ -1,3 +1,4 @@
+import {commitCloudFixture} from './helpers/cloud-commit-fixture.mjs';
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -78,10 +79,11 @@ function transport(){
   const c=logic();c.Date=Clock;let state=clone(seed);Object.assign(state,c.goalSyncPull(state,seed,owner,"r0",false));
   const stateRef={current:state},cloudUpdatedAtRef={current:"r0"},pullOkRef={current:null},sessionRef={current:{user:{id:owner}}};
   const cloud=vm.runInContext("(function(sb){const statePushCache=new Map();return {"+["async session(","async pullState(","async pushState("].map(t=>block(core,t)).join(",")+"};})",c)(sb);
-  const deps={obAbsorbedWriteBlocked:{current:false},cloud,stateRef,cloudUpdatedAtRef,pullOkRef,sessionRef,uid:owner,useCallback:f=>f,setStateRaw:f=>{state=f(state);stateRef.current=state;},
+  const deps={cloudMergeKey:{current:Symbol("merge")},obAbsorbedWriteBlocked:{current:false},cloudPullRef:{current:null},cloudReadRef:{current:{owner,ready:true}},cloud,stateRef,cloudUpdatedAtRef,pullOkRef,sessionRef,uid:owner,useCallback:f=>f,setStateRaw:f=>{state=f(state);stateRef.current=state;},
    reconcileGemelosAutomaticos:x=>x,syncCloudExpenses:()=>Promise.resolve(),showToast:()=>{},mcBootReady:()=>{},t:x=>x,navigator:{onLine:true},
    seedFlows:x=>x,fixMovInvasion:x=>x,fixRevoDupes:x=>x,fixInvAuto:x=>x,fixInvSold:x=>x,reconcileTR:x=>x,reconcileEarlyIncomeAnchors:x=>x,reservaMensualAlDia:()=>Promise.resolve()};
-  const start=app.indexOf("const set=useCallback((updater)=>"),end=app.indexOf("},[]);",start)+"},[]);".length;
+  const applyState=deps.setStateRaw;deps.setStateRaw=f=>{applyState(f);commitCloudFixture(app,c,deps,state);};
+  const start=app.indexOf("const set=useCallback((updater,edited=true)=>"),end=app.indexOf("},[]);",start)+"},[]);".length;
   const ef=app.indexOf("// Empuja el estado a la nube (debounced)"),a=app.indexOf("tmr=setTimeout(function(){",ef)+"tmr=setTimeout(function(){".length,b=app.indexOf("}, 1200);",a);
   const send=app.slice(a,b).replace("pushAppState(uid,","return pushAppState(uid,");
   const names=Object.keys(deps),factory=vm.runInContext("(function("+names.join(",")+"){"+app.slice(start,end)+block(app,"const pushAppState=function(")+";"+block(app,"const syncFromCloud=function(")+";return {set,send:function(state){const uploadState=state;"+send+"}};})",c);
@@ -139,13 +141,13 @@ test("registro privado: backupState real tampoco sube base ni estado local en co
  assert.deepEqual(clean(sent[0].data.goals),state.goals);assert.equal(state._goalSync.conflicts[0].local.unknown,"solo-local");
 });
 test("ACK de metadata conserva el timer de una edición posterior al envío",()=>{
- const c=logic(),refs=[],timers=new Map();let hook=0,effect=null,next=0,sent=null;
+ const c=logic(),refs=[],timers=new Map(),stateRef={current:null};let hook=0,effect=null,next=0,sent=null;
  const start=app.indexOf("const cloudEffectState=useRef("),end=app.indexOf("// Al volver, los gastos",start);
  assert.ok(start>=0&&end>start);const source=app.slice(start,end);
- const run=vm.runInContext("(function(state,uid,useRef,useEffect,setTimeout,clearTimeout,pushAppState,t,showToast,syncFromCloud,sessionRef){const obAbsorbedWriteBlocked={current:false};"+source+"})",c);
- const render=state=>{hook=0;run(state,owner,v=>refs[hook++]||(refs[hook-1]={current:v}),(fn,deps)=>{
+ const run=vm.runInContext("(function(state,uid,useRef,useEffect,setTimeout,clearTimeout,pushAppState,t,showToast,syncFromCloud,sessionRef,stateRef){const obAbsorbedWriteBlocked={current:false};"+source+"})",c);
+ const render=state=>{hook=0;stateRef.current=state;run(state,owner,v=>refs[hook++]||(refs[hook-1]={current:v}),(fn,deps)=>{
   if(!effect||deps.some((v,i)=>v!==effect.deps[i])){if(effect&&effect.cleanup)effect.cleanup();effect={deps,cleanup:fn()};}
- },fn=>{timers.set(++next,fn);return next;},id=>timers.delete(id),(u,s)=>{sent=s;return Promise.resolve(null);},x=>x,()=>{},()=>{},{current:{user:{id:owner}}});};
+ },fn=>{timers.set(++next,fn);return next;},id=>timers.delete(id),(u,s)=>{sent=s;return Promise.resolve(null);},x=>x,()=>{},()=>{},{current:{user:{id:owner}}},stateRef);};
  const base={goals:goals(),_goalSync:{owner,base:goals(),revision:"r0",conflicts:[]}};
  render(base);const later={...base,goals:clone(base.goals)};later.goals[0].saved=101;render(later);
  const ack=c.goalSyncAck(later,owner,base,"r0","r1");render(ack);

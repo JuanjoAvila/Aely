@@ -788,7 +788,9 @@ t("la cura corre al cargar y al adoptar la nube", () => {
   assert.ok(ini > 0 && carga.slice(ini, carga.indexOf("\n}", ini)).includes("liberarReservasHuerfanas("), "loadState");
   const app = fs.readFileSync("src/modules/11-app-main.js", "utf8");
   const sync = app.indexOf("Call site 2/3 de fixMovInvasion");
-  assert.ok(sync > 0 && app.slice(sync, sync + 600).includes("return liberarReservasHuerfanas("), "syncFromCloud");
+  const adopta=app.slice(sync,sync+800);
+  assert.ok(sync>0&&adopta.includes("const next=liberarReservasHuerfanas("),"syncFromCloud aplica la cura");
+  assert.ok(adopta.includes("return Object.assign({},next,"),"el estado curado viaja con el marcador de commit");
 });
 
 console.log("\nreserva-dinero: OK");

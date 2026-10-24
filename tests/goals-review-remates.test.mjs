@@ -1,3 +1,4 @@
+import {commitCloudFixture} from './helpers/cloud-commit-fixture.mjs';
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -21,12 +22,13 @@ function based(s){return {...copy(s),_goalSync:{owner,base:copy(s.goals),reserve
 function machine(initial,pack){
  const x=logic(),c=x.c;let state=copy(initial),clock=100,resolvePush;const calls=[];
  class Clock extends Date{constructor(...a){super(...(a.length?a:[clock]));}static now(){return clock;}}c.Date=Clock;
- const deps={obAbsorbedWriteBlocked:{current:false},stateRef:{current:state},sessionRef:{current:{user:{id:owner}}},cloudUpdatedAtRef:{current:"r0"},pullOkRef:{current:null},uid:owner,useCallback:f=>f,
+ const deps={cloudMergeKey:{current:Symbol("merge")},cloudPullRef:{current:null},cloudReadRef:{current:{owner,ready:true}},obAbsorbedWriteBlocked:{current:false},stateRef:{current:state},sessionRef:{current:{user:{id:owner}}},cloudUpdatedAtRef:{current:"r0"},pullOkRef:{current:null},uid:owner,useCallback:f=>f,
  setStateRaw:f=>{state=typeof f==="function"?f(state):f;deps.stateRef.current=state;},setSession:()=>{},
  cloud:{pullState:async()=>copy(pack),pushState:(u,s,r)=>{calls.push({u,s:copy(s),r});return new Promise(resolve=>{resolvePush=resolve;});}},
  syncCloudExpenses:async()=>{},reservaMensualAlDia:()=>{},showToast:()=>{},mcBootReady:()=>{},reconcileGemelosAutomaticos:x=>x,
  seedFlows:x=>x,fixMovInvasion:x=>x,fixRevoDupes:x=>x,fixInvAuto:x=>x,fixInvSold:x=>x,reconcileTR:x=>x,reconcileEarlyIncomeAnchors:x=>x,t:x=>x,navigator:{onLine:true}};
- const a=app.indexOf("const set=useCallback((updater)=>"),b=app.indexOf("},[]);",a)+"},[]);".length;
+  const applyState=deps.setStateRaw;deps.setStateRaw=f=>{applyState(f);commitCloudFixture(app,c,deps,state);};
+ const a=app.indexOf("const set=useCallback((updater,edited=true)=>"),b=app.indexOf("},[]);",a)+"},[]);".length;
  const names=Object.keys(deps),f=vm.runInContext("(function("+names.join(",")+"){"+app.slice(a,b)+block(app,"const pushAppState=function(")+";"+block(app,"const syncFromCloud=function(")+";return {set,push:pushAppState,sync:syncFromCloud};})",c)(...names.map(k=>deps[k]));
  return {...x,deps,calls,state:()=>state,edit:fn=>{clock++;f.set(fn);},push:()=>f.push(owner,state),ack:()=>resolvePush({updated_at:"r1"}),sync:async()=>{f.sync(deps.sessionRef.current);await deps.pullOkRef.current;},effectSource:app.slice(app.indexOf("const cloudEffectState=useRef("),app.indexOf("// Al volver, los gastos",app.indexOf("const cloudEffectState=useRef("))),pushFunction:f.push};
 }
@@ -67,8 +69,8 @@ test("g-M12: ACK real conserva foto enviada mientras se edita durante la peticiÃ
 });
 test("g-M9: contar pushes del efecto real mata el bucle de ACK",async()=>{
  const b=machine(based(seed()),null),c=b.c,refs=[],timers=new Map();let hook=0,effect,next=0;
- const render=vm.runInContext("(function(state,uid,useRef,useEffect,setTimeout,clearTimeout,pushAppState,t,showToast,syncFromCloud,sessionRef,obAbsorbedWriteBlocked){"+b.effectSource+"})",c);
- function frame(){hook=0;render(b.state(),owner,v=>refs[hook++]||(refs[hook-1]={current:v}),(fn,deps)=>{if(!effect||deps.some((v,i)=>v!==effect.deps[i])){if(effect?.clean)effect.clean();effect={deps,clean:fn()};}},fn=>{timers.set(++next,fn);return next;},id=>timers.delete(id),b.pushFunction,x=>x,()=>{},()=>{},b.deps.sessionRef,b.deps.obAbsorbedWriteBlocked);}
+ const render=vm.runInContext("(function(state,uid,useRef,useEffect,setTimeout,clearTimeout,pushAppState,t,showToast,syncFromCloud,sessionRef,obAbsorbedWriteBlocked,stateRef){"+b.effectSource+"})",c);
+ function frame(){hook=0;render(b.state(),owner,v=>refs[hook++]||(refs[hook-1]={current:v}),(fn,deps)=>{if(!effect||deps.some((v,i)=>v!==effect.deps[i])){if(effect?.clean)effect.clean();effect={deps,clean:fn()};}},fn=>{timers.set(++next,fn);return next;},id=>timers.delete(id),b.pushFunction,x=>x,()=>{},()=>{},b.deps.sessionRef,b.deps.obAbsorbedWriteBlocked,b.deps.stateRef);}
  frame();for(let i=0;i<4;i++){if(!timers.size)break;const [id,fn]=timers.entries().next().value;timers.delete(id);fn();b.ack();for(let j=0;j<12;j++)await Promise.resolve();frame();}
  assert.equal(b.calls.length,1);assert.equal(timers.size,0);
 });
@@ -85,7 +87,7 @@ test("bajos: telemetrÃ­a una vez por registro tras dos arranques",()=>{
 test("bajos: SIGNED_OUT borra registros del titular y no los recupera el siguiente guardado",()=>{
  const x=logic(),c=x.c;let current=based(seed());current._goalSync.conflicts=[{code:"goals_reserve_conflict",local:{goals:current.goals}}];c.mcSaveRaw("micartera_v3",current);
  const a=app.indexOf("const prev=sessionRef.current;",app.indexOf("const off=cloud.onAuth")),z=app.indexOf("// Vuelta del email",a);
- const auth=vm.runInContext("(function(s,ev,sessionRef,setSession,set){"+app.slice(a,z)+"})",c);
+ const auth=vm.runInContext("(function(s,ev,sessionRef,setSession,set){const cloudPullRef={current:null},cloudReadRef={current:null},cloudUpdatedAtRef={current:null};"+app.slice(a,z)+"})",c);
  auth(null,"SIGNED_OUT",{current:{user:{id:owner}}},()=>{},f=>{current=f(current);});c.mcSaveRaw("micartera_v3",current,{expenses:false});
  assert.ok(!current._goalSync || !(current._goalSync.conflicts||[]).length);const restored=c.mcLoadRaw("micartera_v3");assert.ok(!restored._goalSync || !(restored._goalSync.conflicts||[]).length);
  c.mcSaveRaw("micartera_v3",{...current,_goalSync:{owner,conflicts:[{code:"goals_reserve_conflict",local:{goals:current.goals}}]}},{expenses:false});

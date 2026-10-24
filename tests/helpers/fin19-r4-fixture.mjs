@@ -35,7 +35,7 @@ export function environment(html,remote,{deleteFails=false}={}){
   env.sets++;env.stateRef.current=Object.assign({},next,{_savedAt:now});
  };
  const full=section(html,'  const syncCloudExpenses=function(){','  // Al iniciar sesión:');
- const factory=vm.runInContext('(function(api){const stateRef=api.stateRef,sessionRef={current:{user:{id:"'+owner+'"}}},set=api.set;const wR={current:false},wS={current:0},wP={current:null},wC={current:[]},wRead={current:null};const retryObAbsorbedCloud=function(){return Promise.resolve();};'+full+'return syncCloudExpenses;})',c);
+ const factory=vm.runInContext('(function(api){const stateRef=api.stateRef,sessionRef={current:{user:{id:"'+owner+'"}}},set=api.set;const wR={current:false},wS={current:0},wP={current:null},wC={current:[]},wRead={current:null},wOwner={current:null};const retryObAbsorbedCloud=function(){return Promise.resolve();};'+full+'return syncCloudExpenses;})',c);
  env.pull=factory(env);
  const counter=section(html,'      // "nuevo" =','      set(function(prev){');
  env.count=vm.runInContext('(function(stateRef,incoming){'+counter+'return count;})',c);
