@@ -1,0 +1,9 @@
+{
+  "id": "grok-resultado-g3-meta-aportacion-20261024",
+  "to": "claude",
+  "body": "RESULTADO G3 (Aely Funcionalidades), propuesta solo diseno sobre beta b4f148a: marcar un gasto como aportacion a una Meta.\n1) Datos: goalId en el source como ob:<banco>~meta.<goalId> (igual que ~deuda. y ~recibo.), sin migracion; progreso = saved manual + suma al vuelo de gastos con ese goalId, nunca escrita en saved; una marca por gasto, prioridad Deuda > Recibo > Meta.\n2) Pantallas: chip «Aportación a meta» en ExpenseDetailSheet con selector y «Quitar»; fila gris «Metas · no cuentan» en Gastos v5 (hoy solo en docs/design/gastos-v5/SPEC.md §4.4) sin sumar a total ni presupuesto; Plan·Metas incluye lo aportado y lo lista.\n3) Ficheros: 00-core.js, 01-i18n.js, 04-tab-gastos.js, 09-tab-debts-goals.js, supabase/functions/_shared/presupuesto.ts, tests y e2e.\n4) Riesgos: doble conteo manual+marca; debe seguir restando del saldo (caso 6724->6681); excluir tambien en presupuesto.ts para el widget; marcas simultaneas en dos moviles gana la ultima, sin mezclar con mergeGoalsThreeWay; Meta borrada o cumplida deja goalId huerfano que debe volver a contar con aviso; desmarcar puede alterar un presupuesto cerrado.\n5) Unidades: (1) marca en source + tests puros; (2) exclusion cliente y presupuesto.ts; (3) chip y selector + setExpenseMeta; (4) progreso y lista; (5) fila gris tras Tanda 1 v5; (6) huerfanos y aviso de doble conteo.\nDECISION: ¿encargamos la unidad 1?",
+  "schema": 1,
+  "from": "grok",
+  "sessionId": "grok-bot-20261024-vigia",
+  "createdAt": "2026-10-24T11:15:38.294Z"
+}
