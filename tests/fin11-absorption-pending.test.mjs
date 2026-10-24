@@ -179,7 +179,7 @@ test('FIN11 cada refresco acota a cuatro objetivos y serializa dos llamadas simu
 test('FIN11 prueba el hook real de pull: protección y reintento solo al refrescar nube',async()=>{
  const e=environment();e.stage();e.prune();e.deleteErrors=1;
  const a=main.indexOf('  const syncCloudExpenses=function(){'),z=main.indexOf('\n  // Al iniciar sesión:',a);assert.ok(a>=0&&z>a);
- const factory=vm.runInContext('(function(state,session,drain){const stateRef={current:state},sessionRef={current:session};const wR={current:false},wS={current:0},wP={current:null},wC={current:[]},wRead={current:null};const set=fn=>stateRef.current=fn(stateRef.current);const retryObAbsorbedCloud=()=>drain(stateRef,set);'+main.slice(a,z)+'return {run:syncCloudExpenses,state:()=>stateRef.current};})',e.c);
+ const factory=vm.runInContext('(function(state,session,drain){const stateRef={current:state},sessionRef={current:session};const wR={current:false},wS={current:0},wP={current:null},wC={current:[]},wRead={current:null},wOwner={current:null};const set=fn=>stateRef.current=fn(stateRef.current);const retryObAbsorbedCloud=()=>drain(stateRef,set);'+main.slice(a,z)+'return {run:syncCloudExpenses,state:()=>stateRef.current};})',e.c);
  const drains=[];
  const api=factory(e.state,{user:{id:owner}},(ref,set)=>{const pending=e.c.obAbsorbedRetry(()=>ref.current,()=>e.owner,set);drains.push(pending);return pending;});
  const result=await api.run();await drains.at(-1);assert.equal(result.total,1);assert.equal(api.state().obAbsorbedPending.length,1);assert.equal(e.rows.length,2);
@@ -191,7 +191,7 @@ async function bankPullBarrier({source=main,pullFails=false,deleteFails=false}={
  const a=source.indexOf('  const syncCloudExpenses=function(){'),z=source.indexOf('\n  // Al iniciar sesión:',a);
  const n=source.indexOf('    const nubeLista='),end=source.indexOf('    }).then(function(par){',n);
  assert.ok(a>=0&&z>a&&n>z&&end>n);
- const factory=vm.runInContext('(function(state,session,drain){const stateRef={current:state},sessionRef={current:session};const wR={current:false},wS={current:0},wP={current:null},wC={current:[]},wRead={current:null},pullOkRef={current:Promise.resolve(false)};const set=fn=>stateRef.current=fn(stateRef.current);const retryObAbsorbedCloud=drain;const SYNC_SIN_NUBE=new Error("synthetic-no-cloud");'+source.slice(a,z)+'return {run:function(){const pDb=Promise.resolve([]);'+source.slice(n,end)+'});},state:()=>stateRef.current};})',e.c);
+ const factory=vm.runInContext('(function(state,session,drain){const stateRef={current:state},sessionRef={current:session};const wR={current:false},wS={current:0},wP={current:null},wC={current:[]},wRead={current:null},wOwner={current:null},pullOkRef={current:Promise.resolve(false)};const set=fn=>stateRef.current=fn(stateRef.current);const retryObAbsorbedCloud=drain;const SYNC_SIN_NUBE=new Error("synthetic-no-cloud");'+source.slice(a,z)+'return {run:function(){const pDb=Promise.resolve([]);'+source.slice(n,end)+'});},state:()=>stateRef.current};})',e.c);
  let release,cleanupStarted=false,cleanupDone=false,bankCalls=0;
  const pending=new Promise((resolve,reject)=>{release=()=>deleteFails?reject(Error('synthetic-delete')):resolve();});
  const api=factory(e.state,{user:{id:owner}},()=>{cleanupStarted=true;return pending.then(()=>{cleanupDone=true;});});
@@ -263,7 +263,7 @@ test('FIN11 mutantes de persistencia, recuperación, protección, acuse, dueño 
   ['protect',s=>s.replace('if(obAbsorbedValid(p,owner))delSet[p.key]=1;','')],
   ['ack',s=>s.replace('rows.length===0&&!await find()&&!!await active()','rows.length===0')],
   ['owner',s=>s.replaceAll('currentOwner()!==owner','false').replaceAll('currentOwner()===owner','true')],
-  ['cap',s=>s.replace('if(out.length>OB_ABSORBED_MAX){obAbsorbedWarn("merge",owner);return null;}','if(out.length>OB_ABSORBED_MAX)return out.slice(-OB_ABSORBED_MAX);')],
+  ['cap',s=>s.replace('if(out.length>OB_ABSORBED_MAX){if(!quiet)obAbsorbedWarn("merge",owner);return null;}','if(out.length>OB_ABSORBED_MAX)return out.slice(-OB_ABSORBED_MAX);')],
   ['uuid',s=>s.replace(".eq('id',target.id)","")],
   ['alias',s=>s.replace('return !alias||!!p.key.split("|")[4]&&!!e.obAcc&&key===p.key;','return true;')],
   ['ambiguous',s=>s.replace('if(possible.length>1||possible.length===1&&!obAbsorbedCandidate(p,possible[0],true))','if(false)')],

@@ -206,7 +206,7 @@ for(const action of ['activate','empty','deactivate']) test(`INC171001 window fe
   try{
     await page.goto('/');await expect(page.locator('.botnav')).toBeVisible();await ready(1);await dismissNews(page);
     // No startup-settling sleep and no write counters reset. Prove writers remain usable.
-    if(action==='activate')await page.evaluate(()=>cloud.pushState('e2e-user',slimForCloud(mcLoadRaw(mcStateKey())),null));
+    if(action==='activate')await page.evaluate(async()=>{const row=await cloud.pullState();return cloud.pushState('e2e-user',slimForCloud(mcLoadRaw(mcStateKey())),row?.updated_at||null);});
     const open=async()=>{await page.locator('.v4-avatar').click();await page.getByRole('button',{name:'Ir a Ajustes',exact:true}).click();await expect(page.locator('.settings-push.open')).toBeVisible();};
     await open();
     if(action==='activate'){

@@ -99,14 +99,30 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
       /* Una cadena POR consulta (15/9): con una sola compartida, un `from("bank_links")` que
          arrancaba entre el `from("expenses")` y su `await` le cambiaba la tabla a la otra. */
       const makeChain = (tabla) => {
-      let rowLimit=Infinity, beforeId=null, rowOrders=[], read=true;
+      let rowLimit=Infinity, beforeId=null, rowOrders=[], read=true, operation=null, payload=null, filters=[], columns=null;
+      const matches = row => filters.every(([key,value]) => (key==='user_id' ? row[key]??session.user.id : row[key])===value);
+      // app_state necesita INSERT único y UPDATE con CAS: un doble que los omite oculta
+      // fallos de la primera lectura o inventa conflictos que el servidor no devolvería.
+      const stateResult = () => {
+        const rows=cloudRows.app_state||(cloudRows.app_state=[]);let result=rows.filter(matches);
+        if(operation==='insert'){
+          const values=Array.isArray(payload)?payload:[payload];
+          if(values.some((v,i)=>rows.some(r=>(r.user_id??session.user.id)===v.user_id)||values.slice(0,i).some(r=>r.user_id===v.user_id)))return {data:null,error:{code:'23505',message:'Synthetic unique app_state user_id'}};
+          result=values.map(v=>JSON.parse(JSON.stringify(v)));rows.push(...result);
+        }else if(operation==='update'){
+          result=result.map(row=>{Object.assign(row,JSON.parse(JSON.stringify(payload)));return row;});
+        }
+        const selected=columns?result.map(row=>columns==='*'?row:Object.fromEntries(columns.split(',').map(k=>[k,row[k]]))):null;
+        return {data:selected,error:null};
+      };
       const chain = {
-        select: () => chain,
+        select: (value='*') => { columns=value; return chain; },
         order: (key,opts) => { rowOrders.push([key,opts]); return chain; },
         limit: (n) => { rowLimit=n; return chain; },
-        eq: () => chain,
+        eq: (key,value) => { filters.push([key,value]); return chain; },
         lt: (key,value) => { if(key==="id") beforeId=value; return chain; },
-        update: () => { read=false; return chain; },
+        insert: (value) => { read=false; operation='insert'; payload=value; return chain; },
+        update: (value) => { read=false; operation='update'; payload=value; return chain; },
         upsert: () => { read=false; return chain; },
         delete: () => { read=false; return chain; },
         /* Antes devolvía SIEMPRE null, así que `cloud.pullState()` nunca traía nada y NINGÚN test
@@ -117,6 +133,7 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
         maybeSingle: async () => {
           if (cloudDelays[tabla]) await new Promise((r) => setTimeout(r, cloudDelays[tabla]));
           if (cloudErrors[tabla]) return { data: null, error: { message: cloudErrors[tabla] } };
+          if(tabla==='app_state'){const result=stateResult();return {...result,data:result.data?.[0]||null};}
           return { data: (cloudRows[tabla] || [])[0] || null, error: null };
         },
         single: async () => ({ data: null, error: null }),
@@ -134,7 +151,7 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
         }
         const out = cloudErrors[t]
           ? { data: null, error: { message: cloudErrors[t] } }
-          : { data, error: null };
+          : t==='app_state'?stateResult():{ data, error: null };
         if (delay) setTimeout(() => resolve(out), delay);
         else resolve(out);
       };

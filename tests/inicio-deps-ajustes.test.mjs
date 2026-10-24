@@ -184,21 +184,29 @@ function cierreConRefs(raiz) {
 }
 // Qué nombres son campos del estado: los que se leen como `state.x` en algún módulo y las claves
 // que se escriben con `Object.assign({}, s, { x:… })`.
-function camposDelEstado() {
-  const todo = modules.map(read).join("\n"), masked = codeMask(todo), keys = new Set();
+function camposDelEstado(todo = modules.map(read).join("\n")) {
+  const masked = codeMask(todo), keys = new Set();
   for (const m of todo.matchAll(/\b(?:state|stateRef\.current|cloudState|baseObj)\.([A-Za-z_$][\w$]*)/g)) keys.add(m[1]);
   for (const m of masked.matchAll(/Object\.assign\(\{\},\s*(?:s|state|prev|st|ns)\s*,\s*\{/g)) {
     let i = m.index + m[0].length, depth = 0, tok = "";
     for (; i < masked.length; i++) {
       const ch = masked[i];
-      if ("({[".includes(ch)) depth++;
-      else if (")}]".includes(ch)) { if (depth === 0) break; depth--; }
-      else if (depth === 0 && ch === ":") { const k = /([A-Za-z_$][\w$]*)\s*$/.exec(tok); if (k) keys.add(k[1]); tok = ""; }
+      if ("({[".includes(ch)) { if (depth === 0) tok += ch; depth++; }
+      else if (")}]".includes(ch)) { if (depth === 0) break; depth--; if (depth === 0) tok += ch; }
+      else if (depth === 0 && ch === ":") { const k = /^\s*([A-Za-z_$][\w$]*)\s*$/.exec(tok); if (k) keys.add(k[1]); tok = ""; }
       else if (depth === 0 && ch === ",") tok = ""; else tok += ch;
     }
   }
   return keys;
 }
+test("lector de estado: una clave computada no inventa campos con los nombres de sus refs", () => {
+  const keys = camposDelEstado("Object.assign({},s,{[cloudMergeKey.current]:{read:read},[settings]:true,budget:1,expenses:[]})");
+  assert.ok(keys.has("budget") && keys.has("expenses"));
+  assert.ok(!keys.has("current") && !keys.has("settings") && !keys.has("read"));
+  assert.deepEqual([...camposDelEstado("Object.assign({},s,{current:1})")], ["current"]);
+  assert.ok(camposDelEstado("state.current").has("current"));
+  assert.deepEqual([...camposDelEstado("Object.assign({},s,{budget:{current:1}})")], ["budget"]);
+});
 /* Nombres que el lector anterior confunde con campos del estado: métodos, o claves de objetos que
    no son el estado (`Object.assign({}, s, {amount})` con `s` un gasto). Ninguno es un campo
    de primer nivel que la serie o el presupuesto lean del estado: lo confirma la prueba ejecutando. */

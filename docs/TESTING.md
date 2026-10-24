@@ -1,3 +1,37 @@
+FIN04 primera lectura: `fin04-first-pull.test.mjs` en el runner y
+`fin04-first-pull.spec.mjs` en el mapa de `11-app-main.js`. GET retenido, SDK real,
+dos contextos sintéticos, INSERT/CAS/ACK y sesión. R2 añade `fin04-recovery.spec.mjs`
+para recuperación por eventos, rescate inválido, colisión y refresco fallido;
+`metas-pull-transport.test.mjs` comprueba React diferido, lecturas intercaladas y cambio
+de sesión. R3 añade `fin04-commit.test.mjs`: commit frente a render descartado,
+debounce, backup sin re-sello y ACK antiguo durante otro merge, tanto en respuesta
+como en updater diferido. El doble común respeta INSERT único, filtros CAS y filas
+devueltas. Persistencia/refresco se ejecutan por sus nombres reales de spec.
+[Alcance A](briefs/fin04-primera-lectura.md).
+
+R4 añade `refresh-single-flight` en el spec FIN04 de renombrado: retiene gastos y
+repite eventos de primer plano/conexión, exigiendo una sola lectura simultánea.
+`permanent-rename` conserva la aserción de una llamada real a `showToast`, los tres
+rechazos, la cuarentena durable y el reintento explícito. La evidencia de fallo
+incluye los avisos y sus llamadas para distinguir el rechazo del renombrado de un
+conflicto CAS incidental; ningún aviso de conflicto humano se filtra por sesión.
+Cinco guardianes nuevos en `fin04-commit.test.mjs` cubren el no-op remoto, la
+confirmación durable que falta en nube, las reversiones con envíos pendientes y
+conflictos visibles de dinero/campos desconocidos. Los nueve casos anteriores
+conservan sus aserciones. Los harnesses del pull extraído reciben la referencia de
+sesión nueva; la reentrada normal comparte vuelo y la sustitución adversarial de
+transporte se inyecta expresamente, conservando los oráculos de Metas y del widget.
+
+R5 añade cinco casos focales al mismo `fin04-commit.test.mjs`: ráfaga y promesa
+retenida hasta la nueva foto, recuperación de error con solicitud pendiente,
+rechazo final y cambio de sesión del mismo o de otro titular. Conservan una edición
+local y los 80 remotos frente a la foto anterior de 70. `expense-reread` usa dos
+contextos con SDK real: B inserta el gasto después de capturar el GET retenido de A,
+y A debe releer sin otro evento humano. La regresión del widget vive además en
+`persistencia`, con su aserción original de 80. Los dobles de `refund-polarity` y
+`fin19-r3-scope-cost` suministran generación y sesión coherentes al updater real,
+sin retirar su guarda ni cambiar las aserciones financieras.
+
 FIN04 fase 1: `fin04-rename-note-ack.test.mjs` en el runner Node y `fin04-rename-note-ack.spec.mjs`
 en el mapa de Gastos. Dos contextos y SDK real con transporte simulado; ACK exacto, identidad
 local, nota concurrente, reintento y cero escrituras en modo pruebas (33 escritores). R2 añade

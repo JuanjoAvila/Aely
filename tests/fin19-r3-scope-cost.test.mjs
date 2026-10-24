@@ -9,7 +9,7 @@ const rows=()=>Array.from({length:3500},(_,i)=>({id:'00000000-0000-4000-8000-'+S
 function pull(c,prev,incoming){
  const begin=html.indexOf('      // "nuevo" ='),end=html.indexOf('        const next=merged.list;',begin);
  assert.ok(begin>0&&end>begin);
- const run=vm.runInContext('(function(stateRef,incoming,readStartedAt){let result;const set=function(fn){result=fn(stateRef.current);};'+html.slice(begin,end)+'return merged;});return {count,result};})',c);
+ const run=vm.runInContext('(function(stateRef,incoming,readStartedAt){let result;const ps=1,wS={current:ps},readSession={user:{id:"synthetic"}},sessionRef={current:readSession};const set=function(fn){result=fn(stateRef.current);};'+html.slice(begin,end)+'return merged;});return {count,result};})',c);
  return run({current:{expenses:prev,deleted:[]}},incoming,Date.now());
 }
 test('FIN19 R3 category early exit builds no scope or content index for3500',()=>{

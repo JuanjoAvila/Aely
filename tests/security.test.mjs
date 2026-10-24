@@ -14,6 +14,7 @@ import fs from "node:fs";
 import vm from "node:vm";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const read = (p) => fs.readFileSync(path.join(root, p), "utf8");
@@ -104,7 +105,8 @@ console.log("security");
   const timers=new Map(),listeners=new Map(),uploads=[],durable=[],acks=[];let next=0,blocked=false;
   const state={budget:501.23,settings:{pending:'real-edit'},_savedAt:12345};
   const cloudUpdatedAtRef={current:'base-stamp'};
-  const ctx=vm.createContext({state,uid:'synthetic-user',cloudUpdatedAtRef,sessionRef:{current:{user:{id:'synthetic-user'}}},obAbsorbedWriteBlocked:{current:false},
+  const {obConfirmedMerge,obConfirmedJoin,obConfirmedPack,obStateCanonical}=loadPureLogicFromFile();
+  const ctx=vm.createContext({obConfirmedMerge,obConfirmedJoin,obConfirmedPack,obStateCanonical,state,stateRef:{current:state},uid:'synthetic-user',cloudPullRef:{current:null},cloudReadRef:{current:{owner:'synthetic-user',ready:true}},cloudUpdatedAtRef,sessionRef:{current:{user:{id:'synthetic-user'}}},obAbsorbedWriteBlocked:{current:false},
     useRef:value=>({current:value}),goalSyncMetadataOnly:()=>false,
     setStateRaw:fn=>fn(state),goalSyncAck:(prev,uid,sent,expected,updated)=>{acks.push({prev,uid,sent,expected,updated});return prev;},
     useEffect:fn=>fn(),setTimeout:fn=>{const id=++next;timers.set(id,fn);return id;},clearTimeout:id=>timers.delete(id),
