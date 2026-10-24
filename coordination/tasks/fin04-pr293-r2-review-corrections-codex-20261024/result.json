@@ -1,0 +1,171 @@
+{
+  "status": "blocked",
+  "productSHA": "91a98b106689191612d4a76560bc15007c613400",
+  "summary": "PR293 R2 source 91a98b106689191612d4a76560bc15007c613400 parent A e42650596e361bf5cc61bac8d3ed4c7f0ca9f13d. PR293 R2 corrige H1-H6: doble INSERT/CAS fiel, recuperación por eventos, validez mensual con React diferido, aviso y rescate CAS, relectura tras 23505, última lectura buena y aislamiento del ACK diferido. Oráculos de 4237, 120023 y 10011 céntimos intactos. Navegador: browser-final 35 pasan/0 fallan; metas-final 15 pasan/0 fallan. Node: 98 pasan; auth separado EXIT 0. Mutantes upsert/money: EXIT 1/1. Gates: syntax EXIT 0, privacy EXIT 0, registration EXIT 0, i18n EXIT 0, docs EXIT 1, size EXIT 1, catalogue161 EXIT 1, auth EXIT 0. Sin ProductREADY. RETURN caddd64ca21b6771eeaadf179286817efe75e991; prior 34665 files/31 repos exact. ZIP 4d81dc001d1ebe92bff2f454e4a6d48492c72544bdebb8fd528543f5073b4b7e manifest 6532414d2aec749d3b75a846482deaf02eed9db6042a21189190227a5a8d4cf7 entries 379 verified. Own resources returned. Released BLOCKED by remaining gates, no ProductREADY. Private handoff then STOP; no native reply.",
+  "tests": [
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "build-a.json"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "build-final.json"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "build-r2-first.json"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "build-r2-second.json"
+    },
+    {
+      "command": "node tests/auth-disposal.test.mjs",
+      "exitCode": 0,
+      "phase": "gate-auth.json"
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs",
+      "exitCode": 1,
+      "phase": "gate-catalogue161-final.json",
+      "environment": {
+        "BETA_SOURCES_ONLY": "Catálogo161"
+      }
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs",
+      "exitCode": 1,
+      "phase": "gate-catalogue161.json",
+      "environment": {
+        "BETA_SOURCES_ONLY": "Catálogo161"
+      }
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1,
+      "phase": "gate-docs.json"
+    },
+    {
+      "command": "node tests/i18n-keys.test.mjs",
+      "exitCode": 0,
+      "phase": "gate-i18n.json"
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0,
+      "phase": "gate-privacy.json"
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "phase": "gate-registration.json"
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 1,
+      "phase": "gate-size.json"
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "phase": "gate-syntax.json"
+    },
+    {
+      "command": "node --test tests/fin04-first-pull.test.mjs",
+      "exitCode": 1,
+      "phase": "mutant-money.json",
+      "environment": {
+        "FIN04_FIRST_PULL_MUTANT": "money"
+      }
+    },
+    {
+      "command": "node --test tests/fin04-first-pull.test.mjs",
+      "exitCode": 1,
+      "phase": "mutant-upsert.json",
+      "environment": {
+        "FIN04_FIRST_PULL_MUTANT": "upsert"
+      }
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin04-first-pull.test.mjs tests/metas-pull-transport.test.mjs",
+      "exitCode": 1,
+      "phase": "red-deferred-ack.json"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin04-first-pull.test.mjs tests/metas-pull-transport.test.mjs tests/goals-three-way.test.mjs tests/goals-review-remates.test.mjs tests/goals-review2-remates.test.mjs tests/goals-review3-reserve-conflict.test.mjs tests/fin17-confirmed-absorptions.test.mjs tests/auth-disposal.test.mjs tests/security.test.mjs",
+      "exitCode": 1,
+      "phase": "unit-final.json"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin04-first-pull.test.mjs tests/metas-pull-transport.test.mjs",
+      "exitCode": 0,
+      "phase": "unit-first.json"
+    },
+    {
+      "command": "FIN04 R2 browser red-h1-fixtures",
+      "exitCode": 1
+    },
+    {
+      "command": "FIN04 R2 browser red-online",
+      "exitCode": 1
+    },
+    {
+      "command": "FIN04 R2 browser red-visibility",
+      "exitCode": 1
+    },
+    {
+      "command": "FIN04 R2 browser red-edit",
+      "exitCode": 1
+    },
+    {
+      "command": "FIN04 R2 browser red-invalid",
+      "exitCode": 1
+    },
+    {
+      "command": "FIN04 R2 browser red-collision",
+      "exitCode": 1
+    },
+    {
+      "command": "FIN04 R2 browser red-refresh",
+      "exitCode": 1
+    },
+    {
+      "command": "FIN04 R2 browser red-h3-after-fixture",
+      "exitCode": 1
+    },
+    {
+      "command": "FIN04 R2 browser green-recovery-first",
+      "exitCode": 1
+    },
+    {
+      "command": "FIN04 R2 browser regressions-r2",
+      "exitCode": 1
+    },
+    {
+      "command": "FIN04 R2 browser browser-final",
+      "exitCode": 0
+    },
+    {
+      "command": "FIN04 R2 browser metas-final",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "R2 updates the existing draft PR293 by normal fast-forward push from A e42650596e361bf5cc61bac8d3ed4c7f0ca9f13d. Prior A/B checkouts, PR294, PR291, packages, results and handoffs remain immutable. No ProductREADY.",
+    "Integration blockers measured: docs VERSION gate, minified size cap, catalogue161 additional moved fingerprints. Authorized anchors and exact scope closure now pass; expectedMoves remains unchanged. No full suite, CPU6/profiling, live cloud/auth/bank/SQL/Edge, server schema, merge, deploy, APK/Gradle or real mobile acceptance. No general CI green claimed. VERSION/release notes/caps unchanged; only two authorized catalogue anchors updated.",
+    "SAVEDAT timestamp LWW remains a separate task. SDK browser fixtures retain the previously documented future timestamp to isolate the initial-read race; these results do not prove general Plan convergence.",
+    "Original RED and intermediate failures remain preserved. The window-isolation fixture now reads the existing row revision before its deliberate push; its write/isolation assertions and money expectations remain intact. Extracted-function test harnesses provide the new pending-read ref. Auth checks preserve the historical registry hash after reversing exactly the two explicitly asserted anchor changes.",
+    "Synthetic tests only. Port48539, CPU1 serial, one worker, zero retries, maxFailures1; all own resources returned, no shared lease or foreign process cleanup. Any directed catalogue/docs/size failure remains a real integration blocker.",
+    "Sealed copies redact shipped public anonymous JWT literals with original/copy hashes. Private metadata remains private. Source commit and original tested artifact are canonical."
+  ],
+  "schema": 1,
+  "taskId": "fin04-pr293-r2-review-corrections-codex-20261024",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-24T11:50:38.434Z",
+  "released": true
+}
