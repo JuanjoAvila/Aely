@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "id": "inicio-mes-futuro-codex-20261024",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261019-r74-36ea75cf98e01bbf",
+  "createdAt": "2026-10-24T11:11:22.582Z",
+  "to": "codex",
+  "kind": "worker",
+  "assignedPublicSessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "baseSHA": "b4f148adaab75675682ee7cdf33f6b126f1529cf",
+  "baseVersion": "4.26.162",
+  "priority": 3,
+  "claudeGrant": "1d805690de4fa3c6c9aaa0d4193ef9a33462ec2d",
+  "latestPriorityGrant": "cc4ffc62b7e57c3d79d641f36673c0bc302a67a6",
+  "dispatchState": "QUEUED_NOT_ADMITTED_PENDING_PR293_CORRECTIONS_THEN_SAVEDAT",
+  "objective": "INICIO-MES-FUTURO: que apuntes del mes siguiente cuenten en SU mes Madrid y no sumen en Inicio/widget del mes actual; una PR draft contra beta162 exacta, primero RED causal centimos independiente. Formalizada por despacho expreso Claude; NO iniciar antes PR293 corregida y SAVEDAT-ARRANQUE.",
+  "scope": [
+    "budgetPeriodOf en Inicio08 y consumidores widget04 solo la frontera mensual que comparte el fallo autorizado",
+    "Equivalencia Inicio=Gastos=widget para mes actual con limite dia1 siguiente mes Europe/Madrid",
+    "RED causal oraculo centimos antes fix y e2e real Inicio, unitarios registrados y evidencia exacta",
+    "Mi ciclo solo si comparte el mismo fallo con comunicacion explicita previa; no cambiar reglas de ciclo independientes"
+  ],
+  "requirements": [
+    "CLAUDE manda nuevoorden cc4ffc62: 1 PR293 H1-H6, 2 SAVEDAT sobre A corregida, 3 esta tarea. QUEUED: no claim/pruebas/codigo ahora, esperar despacho nativo propio/admission de ROOT tras dependencia. Sin permisos generales ni heredar leases. PR294 sigue en espera; PR291 congelada la integra Claude.",
+    "Al admision: task/claim propios push/readback y ACK, misma identidad holder82dbe59f runtime/helper/filtro, cuentaOWN real con cap20 y separacion>=30s incluso first/internal/readbacks. Leer ALL nuevos intermedios/cancels antesactuar y current/politica/protocolo/AGENTS/EMPIEZA de base completa. Checkout nuevo aislado y censo inicial/final de fuentespaquetes/WIP. No tocar leases/ramas/resultados ajenos.",
+    "Base exacta Claude b4f148adaab75675682ee7cdf33f6b126f1529cf beta4.26.162; no inventar base ni perseguir ultima beta sin despacho. Si PR293/SAVEDAT alteran source relevante comunicar delta y pedir despacho exacto nuevo, no transferir cambios por arrastre.",
+    "Repro RED antes cambiar logica: hoy todayEndMs Infinity permite fecha proximo mes en mes actual. Datos sinteticos exactos centimos y oraculo independiente para ingreso/gasto/fecha limites Madrid; mismo resultado Inicio y Gastos y widget. No acomodar esperado al motor. e2e abrir Inicio DOM real con fixtures fieles, registrar run-tests/E2E_MAP. Mantener Mi ciclo salvo fallo identico y comunicar su alcance.",
+    "Runner OWN nuevo censo/admission serial y puerto, CPU1 1worker0retry maxFailure1 stopfirstfailure y logs/report durables. Solo pruebas dirigidas nuevas de esta frontera y regresiones justificadas; no repetir tests cerrados ni suitecompleta/CPU6 sin nueva concesion expresa. Sin live cloud/auth/bank/Edge/SQL/backend/Gradle/APK/deploy/merge.",
+    "Sin VERSION, catalogo, notas de version ni caps; documentacion tecnica minima que aplique, preservar referencias centimos y reglas financieras ajenas. No modificar calculos amorticacion/recibos/deudas/Hogar ni broadrefactor.",
+    "Entrega draftPR contra beta exacta, push normal y head readback, attachartifact, evidencia RED/GREEN/EXIT reales con hashes/source/manifest y preservacion, ownRETURN/result released y STOP. Revision/integracion y beta servida Claude; no ProductREADY por ACK/Node/CI."
+  ],
+  "deliverable": "Draft PR mes futuro con RED causal centimos previo, Inicio/Gastos/widget coherentes por mes Madrid y e2eInicio, paquete durable y limitaciones exactas. QUEUED sin ejecucion hasta despacho de ROOT despues de las dos prioridades."
+}
