@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "id": "fin04-pr293-r5-pr296-r3-codex-20261024",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261024-r80-d9668d50-541f8036-33316133-c0c6fb30",
+  "createdAt": "2026-10-24T18:57:57.160Z",
+  "to": "codex",
+  "baseSHA": "aaf077b36ce5e36ee40b31f3d7d8e979f2cf3df0",
+  "objective": "PR293 R5 y PR296 R3: corregir perdida de gasto remoto por singleflight de pull en vuelo, completar arneses ps y rebasar sobre beta vigente; PR296 conserva sus cambios correctos e incorpora PR293 corregida.",
+  "scope": [
+    "src/modules/11-app-main.js",
+    "tests/refund-polarity.test.mjs",
+    "tests/fin19-r3-scope-cost.test.mjs",
+    "tests/fin04-commit.test.mjs",
+    "e2e/persistencia.spec.mjs",
+    "e2e/fin04-fixture.mjs",
+    "e2e/fin04-rename-note-ack.spec.mjs",
+    "e2e/savedat-arranque.spec.mjs",
+    "scripts/run-tests.mjs",
+    "scripts/relevant-tests.mjs",
+    "docs/ARQUITECTURA.md",
+    "docs/TESTING.md"
+  ],
+  "scopeGrant": "2ad5f89ebd184a115c1a740a8fdbff1dc4a6068e",
+  "reviewGrant": "6acb5a6bdcfb1b25fbcd119300e0065049a0ae49",
+  "testGuardStandingGrant": "1a5383330c95c1736f66a71d1ba90b6259e6e381",
+  "priorProductSHAs": [
+    "a8b58894fe545a8591ea1bf91dcd833401eb72be",
+    "d484f80d32ea8f33d25e9ee6b878687950e57727"
+  ],
+  "workerStartup": {
+    "allowance": 20,
+    "grant": "0f4d59b257b76b7f1aaed13ce5f3caa626fb7f8c",
+    "samePR293PR296Family": true,
+    "newIdentityClaimACKLedgerFromZeroRequired": true,
+    "noInheritance": true,
+    "notApplicableToPR294": true
+  },
+  "acceptance": [
+    "ROJO causal primero en cabezas previas: persistencia de dos clientes sinteticos, una fila remota que llega despues de comenzar un pull en vuelo debe verse tras relectura pendiente sin esperar otro evento humano. Mantener dinero exacto80 frente70.",
+    "En syncCloudExpenses no basta devolver wP.current: registrar relectura pendiente del mismo titular/sesion y ejecutarla al terminar el pull. Preservar cancelacion por cambio de sesion, singleflight de escritura, toast unico y ediciones locales humanas.",
+    "Los arneses refund-polarity y fin19-r3-scope-cost deben proporcionar ps de forma fiel, conservando todas sus aserciones y original fallo. No debilitar la guarda de producto para que el arnes pase.",
+    "PR293 R5 rebasada sobre beta exacta; PR296 R3 incorpora esa cabeza y conserva SAVEDAT, broker/bienes/cuotas ya aceptados. Publicar ambas cabezas exactas y drafts solo cuando termine el alcance verificado.",
+    "Tests FIN04 necesarios admitidos sin rebajar aserciones, mutante causal por caso; comprobar caso focal nuevo y regresiones dirigidas justificadas por cambio.",
+    "G5 y G6 cerrados se conservan, no repetir suites ya finalizadas ni reproducir G7 entero. Tamaño/docs/catalogo son gates reales de integracion, no elevar caps ni proclamar CI general o ProductREADY."
+  ],
+  "constraints": [
+    "Nuevo task, identidad, OWNstartup desde0, claim/readback/ACK y admision nativa antes de editar o ejecutar tests. Nunca reabrir la tarea R4/R2 cerrada.",
+    "Un escritor y checkout aislado propios; no editar producto o evidencia de otros. Las ramas candidatas previas son fuentes inmutables hasta nueva entrega autorizada con expected old head exacta.",
+    "CPU1,unworker,cero reintentos, stopfirstfailure; admision serial/censo/puerto/runner OWN antes de cada run, logs y EXIT reales. No suite Node completa por arrastre ni CPU6/browserfullsuite.",
+    "Sin VERSION/catalogo/notas/caps/backend/SQL/Edge/Gradle/APK/main/beta/deploy/movil real. No paquetes nuevos ni npmci con node_modules enlazado.",
+    "Trabajador reporta solo a coordinador Codex; solo coordinador reporta Claude. Al60min siguiente punto seguro, checkpoint/RETURN propio y relevo horario en Aely.",
+    "PR294 despues de R5/R3; no iniciar PR294 ni inicio-mes en este encargo."
+  ]
+}
