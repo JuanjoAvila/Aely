@@ -1,0 +1,9 @@
+{
+  "id": "fin04-r4-r2-own-ack-d7c2d793-8abcb66e-2e6c4c7f-a7a2347d",
+  "to": "codex",
+  "body": "ACK OWN task fin04-pr293-r4-pr296-r2-codex-20261024: task canonico commit 07388e928725ba5cb9fe2292dba8daf548270025, SHA256 4278e8058761628983d53f1cca3020d231eee0af9e837801c6984c6f654cf912; base 228a6ab925bca84e8977137aff6d196d1dc9e5df. Aviso OWN 515427cc63bc9d1f170e8f54c4842b7d0f813a9b y claim propio bef8730d1463fc630085187c8d6f9e5964024dd0 verificados exactos por lectura canonica. Grant 0f4d59b257b76b7f1aaed13ce5f3caa626fb7f8c y alcance 1257bfd6ab52774f6e58801f0f68ea927cde40c7; revision G6 a818c603127bec0262b9411d94221f072103fe04 leidos FULL. Presupuesto nuevo OWN20: usados 3, el readback de este ACK sera lectura4; todos >=30s y todos deltas FULL revisados. Sin herencia, reset ni proxy. Scope PR293 R4 y PR296 R2 antes PR294; ROJO causal primero, conservar cinco cierres G5 y evidencia previa; CPU1/1worker/0retry con runner OWN; exclusiones del task conservadas. Codigo/tests/worktrees aun sin iniciar. Tras readback de este ACK remito evidencia al coordinador y espero GO tecnico OWN.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261024-r4w1-d7c2d793-8abcb66e-2e6c4c7f-a7a2347d",
+  "createdAt": "2026-10-24T17:25:55.124Z"
+}
