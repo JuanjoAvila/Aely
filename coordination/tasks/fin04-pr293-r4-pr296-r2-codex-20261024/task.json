@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "id": "fin04-pr293-r4-pr296-r2-codex-20261024",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261024-r79-72055360-8ba6e47c-73e5f69e-a3b154c1",
+  "createdAt": "2026-10-24T17:19:32.208Z",
+  "baseSHA": "228a6ab925bca84e8977137aff6d196d1dc9e5df",
+  "to": "codex",
+  "objective": "PR293 R4 corrige una relectura en vuelo y un aviso con online repetidos. PR296 R2 incorpora R4, historial de bienes sin sellar en cambio de dia y brokerSync de arranque tras primer pull valido. Rebasar ambas sobre beta indicada y publicar cabezas exactas.",
+  "scope": [
+    "src/modules/11-app-main.js",
+    "e2e/fin04-rename-note-ack.spec.mjs",
+    "e2e/fin04-fixture.mjs",
+    "e2e/savedat-arranque.spec.mjs",
+    "scripts/run-tests.mjs",
+    "scripts/relevant-tests.mjs",
+    "docs/ARQUITECTURA.md",
+    "docs/TESTING.md"
+  ],
+  "scopeGrant": "1257bfd6ab52774f6e58801f0f68ea927cde40c7",
+  "review": "a818c603127bec0262b9411d94221f072103fe04",
+  "priorProductSHAs": [
+    "b92976b1edcdea292ca8d88f8a61942b79fa95e7",
+    "fcfd10a007a9c94fc913b4fc2498e87603cbc878"
+  ],
+  "workerStartup": {
+    "allowance": 20,
+    "grant": "0f4d59b257b76b7f1aaed13ce5f3caa626fb7f8c",
+    "samePR293PR296Family": true,
+    "newIdentityClaimACKLedgerFromZeroRequired": true,
+    "noInheritance": true,
+    "notApplicableToPR294": true
+  },
+  "rojoFirst": [
+    "permanent-rename con online repetidos: un showToast real y una relectura simultanea; no debilitar asercion existente.",
+    "Dos clientes: copia antigua cruza de dia durante GET; assetValueHistory no debe alterar savedAt ni ganar cartera remota.",
+    "Dos clientes: broker responde con primer pull pendiente; no aplicar posiciones ni dar prioridad a copia antigua.",
+    "Control positivo: edicion humana real durante GET mantiene prioridad."
+  ],
+  "constraints": [
+    "Preservar cinco puntos G5 ya cerrados, CAS/ACK/dinero exacto; no falsosverdes.",
+    "Revisar cuotas de deuda y precios solo para mismo defecto causal autorizado.",
+    "Nuevo task/OWNstartup/claim/ACK/admission antescodigo; un escritor y checkout aislado; conservar fuentes/evidencias previas.",
+    "Pruebas dirigidas CPU1,1worker,0retry y censo/puerto/runner propios; no CPU6/Gradle/browserfullsuite ni Nodeentero por arrastre de viejoR3.",
+    "Sin VERSION/catalogo/notas/caps/backend/SQL/Edge/main/beta/deploy/movilreal.",
+    "Solo coordinador reportaClaude; gatesintegracionClaude no bloquean entrega; no ProductREADY."
+  ]
+}
