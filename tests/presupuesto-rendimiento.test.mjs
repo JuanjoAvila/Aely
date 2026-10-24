@@ -335,7 +335,8 @@ const PRESUPUESTO = {
   // Integración 4.26.160 (20/10): la 159 más FIN-19 (identidad de gastos con banco y cuenta, lápidas con ámbito y contador del pull): 1426 KiB minificado y 396 KiB gzip medidos en local (Codex vio 1420 antes de integrar). SUBE por producto: 1429 KiB minificado y 399 de gzip.
   // Integración 4.26.164 (24/10): la 163 más Gastos v5 tanda 1 (cabecera fija con cifra viva, meses al bajar, tarjetas por día y filas grises; 04-tab-gastos +11 KB, CSS +2,7 KB, textos en tres idiomas +0,7 KB) y la PR 295 (dos acotados): 1.475.709 B minificado y 410.568 B gzip medidos en local con el sello .99999. SUBE por lógica de producto (mandato 11/10): 1442 KiB minificado (quedan 899 B) y 402 KiB de gzip (con 401 quedarían 56 B, menos que lo que mueve una nota).
   // Integración 4.26.166 (24/10): la 165 más Gastos v5 tanda 2 (secciones Movimientos / Categorías / Suscripciones con sus iconos y el globito, el tirón de Plan sacado a useTironSeccion y compartido, la sección Categorías con barra de presupuesto y filas, la vacía de Suscripciones, GastosLista en memo y textos en tres idiomas) y el agrupado del desglose por la categoría que se pinta: 1.484.018 B minificado y 412.983 B gzip (1449,24 y 403,30 KiB) medidos en local con el sello .99999, frente a 1.476.204 / 410.653 en la 165 (+7,8 KB / +2,3 KB). SUBE por lógica de producto (mandato 11/10): 1450 KiB minificado (quedan 776 B) y 404 KiB de gzip (quedan 700 B).
-  minificado: 1450 * 1024,
+  // Integración 4.26.167 (24/10): la 166 más Gastos v5 tanda 3 (filtro por categoría con su píldora, cifra y comparación, fila de meses fija, límite por pulsación larga o chip, textos en tres idiomas y CSS): 1.491.689 B minificado y 414.917 B gzip (1456,7 y 405,2 KiB) medidos en local con el sello .99999, frente a 1.484.018 / 412.983 en la 166 (+7,7 KB / +1,9 KB). SUBE por lógica de producto (mandato 11/10): 1458 KiB minificado (quedan ~1,3 KB) y 406 KiB de gzip (quedan ~0,8 KB).
+  minificado: 1458 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -371,7 +372,7 @@ const PRESUPUESTO = {
   // 1.445.348/401.213 → 1.446.618/401.660 B (+1.270/+447). Es código, sin textos. 392 KiB se queda
   // corto por 252 B: 393 KiB (quedan 772 B); el crudo cabe en 1413 KiB con 294 B.
   // Integración 4.26.159 (con fin23-24): 1418 KiB minificado y 394 KiB gzip medidos en local; el gzip queda a 1 KiB. SUBE por producto: gzip 396 KiB (el minificado conserva 3 KiB de margen).
-  gzip: 404 * 1024,
+  gzip: 406 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 
