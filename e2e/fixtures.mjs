@@ -290,7 +290,7 @@ export async function gastosBajaAlDia(page, ymd, ym) {
   await page.evaluate(([k, ym]) => {
     const host = document.querySelector(".page-scroll-host"), el = host.querySelector(`[data-gx-day="${k}"]` + (ym ? `[data-gx-ym="${ym}"]` : ""));
     const head = host.querySelector(".gx-head"), pad = parseFloat(getComputedStyle(host).paddingTop) || 0;
-    host.scrollTo(0, host.scrollTop + el.getBoundingClientRect().top - host.getBoundingClientRect().top - (pad + head.offsetHeight + 36) + 2);
+    host.scrollTo(0, host.scrollTop + el.getBoundingClientRect().top - host.getBoundingClientRect().top - (pad + head.offsetHeight + (head.querySelector(".gx-meses") ? 36 : -16)) + 2);
   }, [k, ym]);
 }
 /** Un cargo de una fila gris (recibos/cuotas agrupados por día, SPEC §4.4): abre su fila si está

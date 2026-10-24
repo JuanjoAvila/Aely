@@ -1101,7 +1101,11 @@
   .gx-head::before{content:"";position:absolute;left:0;right:0;top:calc(-1 * (var(--safe-top) + 18px));bottom:0;z-index:-1;
     background-color:var(--bg);background-image:var(--season-glow-top,none);background-repeat:no-repeat;background-size:100% 100vh;
     transition:bottom .2s var(--ease),box-shadow .2s var(--ease);}
-  .gx-head.compact::before{bottom:-36px;box-shadow:0 12px 20px -14px rgba(0,0,0,.8);}
+  /* Encogida, el fondo llega hasta debajo de la fila de meses (36 px fuera de la caja). Sin fila de
+     meses (Mi ciclo, Rango, Todo) se queda 16 px DENTRO: 8 px bajo la línea, que sube 12 al
+     encogerse. Sin esto quedaba una franja vacía sobre la lista (rechazo 4.26.164, 24/10). */
+  .gx-head.compact::before{bottom:16px;box-shadow:0 12px 20px -14px rgba(0,0,0,.8);}
+  .gx-head.compact.con-meses::before{bottom:-36px;}
   .gx-head .v4-title{margin-bottom:10px;}
   .gx-num{position:relative;font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:46px;line-height:1;letter-spacing:-1px;
     white-space:nowrap;font-variant-numeric:tabular-nums;transform-origin:left top;transition:transform .22s var(--ease);}

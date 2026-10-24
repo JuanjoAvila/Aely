@@ -1101,7 +1101,11 @@
   .gx-head::before{content:"";position:absolute;left:0;right:0;top:calc(-1 * (var(--safe-top) + 18px));bottom:0;z-index:-1;
     background-color:var(--bg);background-image:var(--season-glow-top,none);background-repeat:no-repeat;background-size:100% 100vh;
     transition:bottom .2s var(--ease),box-shadow .2s var(--ease);}
-  .gx-head.compact::before{bottom:-36px;box-shadow:0 12px 20px -14px rgba(0,0,0,.8);}
+  /* Encogida, el fondo llega hasta debajo de la fila de meses (36 px fuera de la caja). Sin fila de
+     meses (Mi ciclo, Rango, Todo) se queda 16 px DENTRO: 8 px bajo la línea, que sube 12 al
+     encogerse. Sin esto quedaba una franja vacía sobre la lista (rechazo 4.26.164, 24/10). */
+  .gx-head.compact::before{bottom:16px;box-shadow:0 12px 20px -14px rgba(0,0,0,.8);}
+  .gx-head.compact.con-meses::before{bottom:-36px;}
   .gx-head .v4-title{margin-bottom:10px;}
   .gx-num{position:relative;font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:46px;line-height:1;letter-spacing:-1px;
     white-space:nowrap;font-variant-numeric:tabular-nums;transform-origin:left top;transition:transform .22s var(--ease);}
@@ -13205,8 +13209,14 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
 }
 
 /* Lo que la fila de meses sobresale por debajo de la caja de la cabecera cuando se encoge (px).
-   Tiene que cuadrar con `.gx-head.compact::before` y `.gx-meses` en shell.html. */
+   Tiene que cuadrar con `.gx-head.compact.con-meses::before` y `.gx-meses` en shell.html. */
 const GX_MESES_SOBRE=36;
+/* Sin fila de meses (Mi ciclo, Rango, Todo) el fondo encogido se QUEDA DENTRO de la caja: la cifra
+   y la línea suben al encogerse y lo que quedaba debajo era hueco. Rechazo suyo de la beta
+   4.26.164 (24/10, Mi ciclo + balance): el fondo seguía bajando 36 px para unos meses que no
+   existen y tapaba la lista con una franja vacía. Cuadra con `.gx-head.compact::before`. */
+const GX_SIN_MESES_RECORTE=16;
+function gxRayaExtra(compact, conMeses){ return !compact?0:conMeses?GX_MESES_SOBRE:-GX_SIN_MESES_RECORTE; }
 /* CABECERA DE GASTOS v5 (SPEC §2.1 y §3). Componente propio a propósito: la cifra cambia con el
    día que queda debajo al bajar, y ese cambio NO puede re-renderizar Expenses ni la lista
    (cientos de filas): el día visible es estado SOLO de esta cabecera. Encogerse es `transform` y
@@ -13216,6 +13226,8 @@ const GX_MESES_SOBRE=36;
 function GastosCabecera({rootRef, cab, meses, onMes, stopSwipe, diasRef}){
   const [vista,setVista]=useState({k:null, ym:null, compact:false});
   const headRef=useRef(null), mesesRef=useRef(null), calcRef=useRef(null);
+  // El cálculo vive en un efecto montado una vez: lee si hay meses por ref, no por cierre viejo.
+  const conMesesRef=useRef(!!meses); conMesesRef.current=!!meses;
   useEffect(function(){
     const root=rootRef.current, host=root&&root.closest?root.closest(".page"):null;
     if(!host) return undefined;
@@ -13226,7 +13238,7 @@ function GastosCabecera({rootRef, cab, meses, onMes, stopSwipe, diasRef}){
       const compact=host.scrollTop>40;
       let els=diasRef.current;
       if(!els) els=diasRef.current=Array.prototype.slice.call(root.querySelectorAll("[data-gx-day]"));
-      const raya=head.getBoundingClientRect().bottom+(compact?GX_MESES_SOBRE:0)+1;
+      const raya=head.getBoundingClientRect().bottom+gxRayaExtra(compact,conMesesRef.current)+1;
       let lo=0, hi=els.length-1, at=-1;
       while(lo<=hi){ const mid=(lo+hi)>>1; if(els[mid].getBoundingClientRect().top<=raya){ at=mid; lo=mid+1; } else hi=mid-1; }
       const k=at>=0?+els[at].getAttribute("data-gx-day"):null, ym=at>=0?els[at].getAttribute("data-gx-ym"):null;
@@ -13256,7 +13268,7 @@ function GastosCabecera({rootRef, cab, meses, onMes, stopSwipe, diasRef}){
     }
   },[ymSel, vista.compact, meses&&meses.length, l10nKeyOf()]);
   const tone=line.tone?" gx-tone-"+line.tone:"";
-  return React.createElement("div",{className:"gx-head"+(vista.compact?" compact":""),ref:headRef},
+  return React.createElement("div",{className:"gx-head"+(vista.compact?" compact":"")+(meses?" con-meses":""),ref:headRef},
     React.createElement("h1",{className:"v4-title serif"}, t("v4_gastos_title")),
     React.createElement(GxCifra,{n:line.n}),
     React.createElement("div",{className:"gx-status","data-testid":"gastos-estado"},
@@ -24663,7 +24675,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="83eb9e00e18f53519e8580e6ff3eb0f827735016b615237779818a4640cb3907";
+var _rnSha="d460ad373fdb5a6887a80693003e5c63f7963d793abe5caa23b70fe090bc56f5";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
