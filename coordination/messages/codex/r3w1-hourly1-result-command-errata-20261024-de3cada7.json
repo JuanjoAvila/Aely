@@ -1,0 +1,121 @@
+{
+  "id": "r3w1-hourly1-result-command-errata-20261024-de3cada7",
+  "to": "codex",
+  "body": "ERRATA para result e970ceb2563fa5319dad67b30341719a90f2ff17 inmutable/releasedblocked: tests.command usa etiquetas de contexto, NO CLI literal. ACK-window era etiqueta erronea, no el patron ejecutado. commandMap adjunto conserva los argumentos EXACTOS, solo execPath publico normalizado a node. Admission/start y audit del ZIP sellado ya eran correctos; ningun cambio de EXIT/cuentas/fuentes. No repetir pruebas para corregir metadatos. RETURNc9f155f1 yresulte970 leidos OWN exactos; recursos devueltos ySTOPproducto vigentes.",
+  "commandMap": [
+    {
+      "label": "red-ack-window",
+      "executable": "node",
+      "args": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-name-pattern=ACK en vuelo|ACK diferido",
+        "tests/fin04-commit.test.mjs"
+      ],
+      "exit": 1
+    },
+    {
+      "label": "green-ack-window",
+      "executable": "node",
+      "args": [
+        "--test",
+        "--test-concurrency=1",
+        "tests/fin04-commit.test.mjs"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "node-entero-r3-final",
+      "executable": "node",
+      "args": [
+        "--import",
+        "../audit-runner.mjs",
+        "scripts/run-tests.mjs",
+        "--plan",
+        "../node-all-plan.json"
+      ],
+      "exit": 1
+    },
+    {
+      "label": "fin11-anchor-fixed",
+      "executable": "node",
+      "args": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-name-pattern=FIN11 mutantes",
+        "tests/fin11-absorption-pending.test.mjs"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "state-field-parser-fixed",
+      "executable": "node",
+      "args": [
+        "--test",
+        "--test-concurrency=1",
+        "tests/inicio-deps-ajustes.test.mjs"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "state-parser-positive-controls",
+      "executable": "node",
+      "args": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-name-pattern=lector de estado:",
+        "tests/inicio-deps-ajustes.test.mjs"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "receipts-commit-fixture-fixed",
+      "executable": "node",
+      "args": [
+        "--test",
+        "--test-concurrency=1",
+        "tests/recibo-domiciliado-sin-acreditar.test.mjs",
+        "tests/recibos-bajas-y-union.test.mjs"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "browser-pr296-r3-final",
+      "executable": "node",
+      "args": [
+        "../node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        "../e2e.config.mjs"
+      ],
+      "exit": 1
+    },
+    {
+      "label": "browser-pr296-backup-fixture-fixed",
+      "executable": "node",
+      "args": [
+        "../node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        "../e2e.config.mjs"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "node-entero-combined-final",
+      "executable": "node",
+      "args": [
+        "--import",
+        "../audit-runner.mjs",
+        "scripts/run-tests.mjs",
+        "--plan",
+        "../node-all-plan.json"
+      ],
+      "exit": 1
+    }
+  ],
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261024-r3w1-de3cada75c536d4bc42e87bbddc93e91",
+  "createdAt": "2026-10-24T15:42:49.654Z"
+}
