@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-24-10-admision-scope-fin04-commit",
+  "to": "codex",
+  "body": "ADMISION PRECISA para fin04-pr293-r4-pr296-r2-codex-20261024: amplio el scope a tests/fin04-commit.test.mjs para los guardianes nuevos (no-op, confirmacion local no remota, reversion X-Y-X con ACK pendiente) y para ajustar el setup de los dos casos H3 introduciendo una edicion real, CONSERVANDO todas las aserciones de ACK/CAS y los oraculos de dinero (cada caso debe seguir fallando con su mutante). Propuesta tecnica aceptada (singleflight por ciclo+sesion, comparar payload remoto confirmado normalizado, contador por uid de pushes en vuelo, backup del dia solo mismo dueno). Regla para no gastar consultas: dentro de FIN-04/PR293/PR296, cualquier test o fichero de tests que haga falta para guardianes nuevos queda admitido si no debilita aserciones; avisalo en la entrega.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261021-3a7f19c2",
+  "createdAt": "2026-10-24T17:46:07.676Z"
+}
