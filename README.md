@@ -117,6 +117,7 @@ mi-cartera/
 ├── tests/goals-*.test.mjs # Metas: tres vías, ACK, reservas acopladas y conflictos privados (cuatro ficheros)
 ├── tests/pure-logic-notes.test.mjs · beta-source-parse.test.mjs # Carga diferida y cortes exactos sin debilitar auditorías
 ├── tests/beta-veredictos.test.mjs # Contrato compartido del panel y listo; beta-sources protege el ensamblado
+├── tests/beta-prod-refresh.test.mjs # Transporte real: vuelo compartido, vuelta offline terminada y recibo sin reescritura
 ├── tests/listo-actor.test.mjs # CLI real sin red: actor Dev autorizado y fallo cerrado si no se acredita
 ├── tests/backclose-history.test.mjs # Propiedad del historial y transferencias de overlays (selección110)
 ├── tests/bank-callback-state.test.mjs # Consumo único de state y fallos de guardado; handler real con BD/OAuth sintéticos

@@ -53,6 +53,7 @@ const steps = [
   ["fin15-pendiente-contabilizada", ["node", "--test", "--test-concurrency=1", "tests/fin15-pendiente-contabilizada.test.mjs"]],
   ["fin15-book-preference", ["node", "--test", "--test-concurrency=1", "tests/fin15-book-preference.test.mjs"]],
   ["prod117-edge-compat", ["node", "tests/prod117-edge-compat.test.mjs"]],
+  ["beta-prod-refresh", ["node", "tests/beta-prod-refresh.test.mjs"]],
   ["backclose-history", ["node", "tests/backclose-history.test.mjs"]],
   ["gastos-mes-madrid", ["node", "tests/gastos-mes-madrid.test.mjs"]],
   ["appstate-listener-cleanup", ["node", "tests/appstate-listener-cleanup.test.mjs"]],
