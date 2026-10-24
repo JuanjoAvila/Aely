@@ -122,6 +122,8 @@ export const E2E_MAP = [
     "e2e/gastos-v5-filtro.spec.mjs",
     // Gastos v5 tanda 4: Suscripciones como bandeja, su ficha, la «i» y las tres acciones.
     "e2e/gastos-v5-subs.spec.mjs",
+    // Gastos v5 tanda 5: la hoja de Filtros definitiva (cuatro apartados, «Ver N», Restablecer, «Las N»).
+    "e2e/gastos-v5-filtros.spec.mjs",
     // Apuntes iguales de TR por el cableado real: filas en Gastos, «Es el mismo» desde la ficha.
     "e2e/tr-iguales-ordinal.spec.mjs",
     "e2e/tr-emparejado-automatico.spec.mjs",

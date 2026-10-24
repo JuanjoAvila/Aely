@@ -32,6 +32,11 @@ UX15 (beta 4.26.138): Gastos → «Actualizar gastos» conserva `onSync` →
 `syncCloudExpenses` → `cloud.pullExpenses`, con lectura opcional de parejas
 y reconciliación/backfill existentes. Recupera gastos de todos los orígenes
 ya guardados en nube, incluidas notificaciones; no solicita `bank-sync`.
+Gastos v5, tanda 5 (decisión del dueño, 20/10): el botón se retiró y `onSync`/`syncing`/`syncStatus`
+salieron de App. La relectura sigue en `syncCloudExpenses`, que ya corría sola al arrancar (tras el
+pull), en cada vuelta a primer plano (`onVis`) y al tocar la noti de un gasto; no se añadió ningún
+sync bancario. La hora de la última lectura (`mcOnLecturaNube`, `SyncHora`) y la explicación de su
+alcance viven al pie de Gastos → Filtros.
 El alcance se explica junto al botón en es/en/ca. [Contrato y límites](briefs/ux15-sincronizar-gastos-20261016.md).
 
 ## Candidata: compras iguales con referencias distintas

@@ -95,7 +95,8 @@ test("tres iconos de sección: Movimientos activo al entrar, cada uno con su nom
 /* Captura suya de la beta 4.26.164 (24/10, Mi ciclo + balance): encima de la lista se apilaban la
    ayuda de Mi ciclo, «12 categorías · Mi ciclo ▸ Ver» y «Actualizar gastos» con su texto y su hora,
    y la lista no mandaba. Ahora arriba solo hay cabecera, buscador con Filtros y lista; la ayuda
-   vive en Filtros → Periodo, el desglose en Categorías y «Actualizar gastos» al final. */
+   vive en Filtros → Periodo y el desglose en Categorías. «Actualizar gastos» estuvo al final hasta
+   la tanda 5, que lo quitó (la nube se lee sola); su hora y su explicación siguen al pie de Filtros. */
 test("en Mi ciclo, entre la cabecera y la lista solo está el buscador; nada se pierde", async ({ page }) => {
   await abre(page, { settings: { ...base.settings, budgetCycle: true, gTotalMode: "net" },
     expenses: expenses.concat([e("Nómina", "2026-09-24", -2000, "ingreso", { merchant: "Nómina" })]) });
@@ -103,21 +104,20 @@ test("en Mi ciclo, entre la cabecera y la lista solo está el buscador; nada se 
   const movs = panel(page, "movs");
   const orden = await movs.evaluate((p) => {
     const lista = p.querySelector(".gx-list"), pie = p.querySelector(".gx-pie");
-    const antes = [...p.querySelectorAll(".v4-cycle-box, .v4-gastos-cat, .action-row, .sync-note")]
+    const antes = [...p.querySelectorAll(".v4-cycle-box, .v4-gastos-cat, .sync-note")]
       .filter((el) => lista.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_PRECEDING).length;
-    return { antes, pieTrasLista: !!(lista.compareDocumentPosition(pie) & Node.DOCUMENT_POSITION_FOLLOWING), syncEnPie: !!pie.querySelector(".action-row .btn") };
+    return { antes, pieTrasLista: !!(lista.compareDocumentPosition(pie) & Node.DOCUMENT_POSITION_FOLLOWING), botonesEnPie: pie.querySelectorAll("button").length, lecturaEnLista: !!p.querySelector(".sync-note") };
   });
-  expect(orden).toEqual({ antes: 0, pieTrasLista: true, syncEnPie: true });
+  expect(orden).toEqual({ antes: 0, pieTrasLista: true, botonesEnPie: 0, lecturaEnLista: false });
   // La primera tarjeta queda justo bajo el buscador (el día de hoy y su gasto, sin nada en medio).
   const buscador = await movs.locator(".searchbar").boundingBox(), dia = await movs.locator(".gx-dia").first().boundingBox();
   expect(dia.y - (buscador.y + buscador.height)).toBeLessThan(40);
-  // Las puertas siguen: la ayuda de Mi ciclo en Filtros, «Actualizar gastos» al final, el desglose en Categorías.
+  // Las puertas siguen: la ayuda de Mi ciclo y la hora de la última lectura en Filtros, el desglose en Categorías.
   await gastosRoot(page).locator("button.v4-chip").filter({ hasText: "🎛️" }).first().click();
   await expect(page.locator(".v4-gastos-filter-sheet").getByTestId("gastos-cycle-help")).toContainText("Del 24/9");
+  await expect(page.locator(".v4-gastos-filter-sheet").getByTestId("gastos-lectura")).toBeAttached();
   await page.locator(".v4-sheet-back").click({ position: { x: 5, y: 5 } });
   await page.locator(".v4-sheet-back").waitFor({ state: "detached" });
-  await movs.locator(".gx-pie .action-row .btn").scrollIntoViewIfNeeded();
-  await expect(movs.locator(".gx-pie .action-row .btn")).toBeVisible();
   await gastosSeccion(page, "cats");
   await expect(panel(page, "cats").locator(".v4-gastos-cat").first()).toBeVisible();
 });

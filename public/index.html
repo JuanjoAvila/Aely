@@ -837,10 +837,6 @@
   .v4-gastos-cat-hint{display:block;margin-top:2px;font-size:11px;color:var(--muted-2);}
   .v4-gastos-cat .bar{height:7px;margin-top:4px;}
   .v4-filter-cats{margin:0 0 16px;border:1px solid var(--line-soft);border-radius:16px;background:var(--sur2);overflow:hidden;}
-  .v4-filter-cats-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:48px;
-    padding:11px 13px;border:0;background:transparent;color:var(--text);font:800 12px/1.2 inherit;letter-spacing:.04em;
-    text-transform:uppercase;text-align:left;cursor:pointer;}
-  .v4-filter-cats-state{color:var(--muted);font-size:11.5px;font-weight:700;letter-spacing:0;text-transform:none;white-space:nowrap;}
   .v4-filter-cats-body{display:grid;grid-template-rows:0fr;opacity:0;visibility:hidden;pointer-events:none;
     transition:grid-template-rows .34s var(--ease),opacity .24s ease,visibility 0s linear .34s;}
   /* Mismo agujero que el desglose de categorías: `visible` atravesaba la página hidden. */
@@ -1237,15 +1233,27 @@
   .gx-gris-plan{display:flex;align-items:center;min-height:44px;width:100%;padding:0 18px;border:0;background:transparent;color:var(--mint);
     font:600 14px 'Manrope',sans-serif;text-align:left;cursor:pointer;}
   .gx-fin{text-align:center;padding:28px 0 0;font-size:13px;color:var(--muted);}
-  /* Pie de Movimientos («Actualizar gastos» hasta la tanda 5). Deja sitio para que el último día
-     pueda subir hasta la cabecera: sin él, la cifra del mes más antiguo (y el salto a su pastilla)
-     no llegaba nunca a verse. */
+  /* Pie de Movimientos («Actualizar gastos» hasta la tanda 5). Vacío desde entonces: deja sitio
+     para que el último día pueda subir hasta la cabecera; sin él, la cifra del mes más antiguo (y
+     el salto a su pastilla) no llegaba nunca a verse. */
   .gx-pie{padding-top:28px;min-height:calc(100dvh - 300px);box-sizing:border-box;}
   .gx-periodo-extra{margin:-4px 0 16px;}
   /* Periodo en Filtros: selector de una sola opción. */
   .gx-periodo{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:4px;margin-bottom:16px;background:var(--bg);border-radius:16px;}
   .gx-periodo-op{height:40px;border:0;border-radius:12px;background:transparent;color:var(--text);font:600 14px 'Manrope',sans-serif;cursor:pointer;}
   .gx-periodo-op.on{background:var(--mint);color:var(--on-mint);font-weight:700;}
+  /* Hoja de Filtros (tanda 5): rótulos en mayúsculas, chips con ✓ y «Las N» discontinuo. El
+     desplegable de categorías no ocupa nada cerrado: su caja solo se dibuja abierta. */
+  .gx-fil-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+  .gx-fil-reset{min-height:44px;padding:0 4px;border:0;background:transparent;color:var(--mint);font:600 15px 'Manrope',sans-serif;cursor:pointer;}
+  .gx-fil-lab{font-size:12px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:10px;}
+  .gx-fil-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;}
+  .gx-fchip{gap:6px;}
+  .gx-fchip-mas{border-style:dashed;color:var(--mint);}
+  .gx-fcats{margin:-18px 0 18px;border-color:transparent;background:transparent;}
+  .gx-fcats.abierto{margin-top:-8px;border-color:var(--line-soft);background:var(--sur2);}
+  .gx-fil-ver{height:56px;border-radius:18px;font-size:17px;margin-top:4px;}
+  .gx-fil-nube{margin:6px 0 0;}
   @media (prefers-reduced-motion:reduce){
     .gx-head::before,.gx-num,.gx-status,.gx-meses,.gx-mes-pasti,.gx-dig-tira,.gx-gris-body{transition:none;}
   }
@@ -1675,7 +1683,6 @@
   .total-bar .tn{font-size:26px;font-weight:700;font-family:'Fraunces',serif;}
   .total-bar .cnt{font-size:12px;color:var(--muted-2);text-align:right;}
 
-  .action-row{display:flex;gap:10px;}
   .add-form{background:var(--surface);border:1px solid var(--line-soft);border-radius:16px;padding:14px;margin-top:12px;display:flex;flex-direction:column;gap:10px;}
   .af-in{background:var(--bg-2);border:1px solid var(--line-soft);color:var(--text);border-radius:11px;padding:11px 13px;font-size:14px;width:100%;}
   .af-row{display:flex;gap:10px;}
@@ -2013,7 +2020,6 @@
   .hint{font-size:12px;color:var(--muted-2);margin-top:10px;line-height:1.5;}
   .sync-note{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--muted-2);margin-top:10px;}
   .sync-dot{width:7px;height:7px;border-radius:50%;background:var(--mint);flex:0 0 auto;}
-  .sync-dot.err{background:var(--coral);}
   .sync-dot.idle{background:var(--muted-2);}
 
 
@@ -7421,6 +7427,11 @@ Object.assign(LANG.es,{gv5_sub_info:"Suscripciones detectadas", gv5_sub_i_que_t:
 
 
 
+// Gastos v5, tanda 5: hoja de Filtros definitiva (SPEC §7) y adiós a «Actualizar gastos».
+Object.assign(LANG.es,{gv5_fil_reset:"Restablecer", gv5_fil_todas:"Las {n}", gv5_fil_ver:"Ver {x}",
+  gv5_fil_nube:"Los gastos guardados en la nube, también los de las notificaciones, se traen solos al abrir la app y al volver a ella. No consulta tus bancos."});
+
+
 const MON_I18N = {
   es:{ long:["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"], short:["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"] },
   en:{ long:["January","February","March","April","May","June","July","August","September","October","November","December"], short:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"] },
@@ -7449,13 +7460,12 @@ Object.assign(LANG.es,{
   g_dup_sub:"El banco lo trajo otra vez sin nombre. Si es el mismo que ya tenías, se queda el que tiene el comercio bien puesto. Si son dos cargos distintos, los dos cuentan.",
   g_dup_same:"Es el mismo",
   g_dup_diff:"Son distintos",
-  g_bk_cuenta:"Gastos que cuentan", g_bk_ingreso:"Ingresos",
+  g_bk_cuenta:"Día a día", g_bk_ingreso:"Ingresos",
   g_bk_neutra:"Inversión y traspasos", g_bk_otrobanco:"De otros bancos",
-  g_bk_title:"Qué contar", g_bk_all:"Todo",
+  g_bk_title:"Qué contar",
   g_allbanks:"Todos los bancos", g_bank_manual:"A mano", g_bank_ob:"del banco",
-  g_filters:"Filtros", g_filters_hint:"Elige categorías y bancos. Vacío = ver todo. Por defecto salen todos los que tienes marcados como gasto diario.",
+  g_filters:"Filtros",
   g_filters_search:"Buscar categoría…", g_filters_cats:"Categorías", g_filters_banks:"bancos",
-  g_filters_cat_none:"Ninguna activa", g_filters_cat_active_one:"{n} seleccionada", g_filters_cat_active:"{n} seleccionadas",
   g_filters_clear:"Limpiar", g_filters_done:"Listo",
   ai_cat_btn:"✨ Sugerir categoría", ai_cat_busy:"Pensando…", ai_cat_ok:"✓ Categoría: {c}", ai_cat_none:"No hay sugerencia clara — elige a mano", ai_cat_off:"Activa «Sugerir categoría (IA)» en Ajustes → Notificaciones",
   g_cycle_from:"Del {d} (cobro de {x}) a hoy",
@@ -7472,8 +7482,6 @@ Object.assign(LANG.es,{
   sv_title:"Ahorro mensual", sv_note:"Planifica lo que apartas cada mes para calcular cuándo llegas a tus metas. No mueve dinero real ni crea movimientos.", sv_saved:"Ahorro mensual guardado", sv_name_aria:"Concepto de la aportación", sv_amount_aria:"Importe al mes", sv_bank_aria:"Banco o bróker", sv_del_aria:"Quitar esta aportación", sv_add:"Añadir aportación", sv_name_ph:"Concepto (ej. MSCI World)", sv_empty:"Aún no has apuntado aportaciones. Toca «Editar» para añadir lo que apartas cada mes.",
   sec_order:"⇅ Ordenar secciones", 
   g_sync:"Sincronizar", g_syncing:"Sincronizando…", g_add:"Apuntar",
-  g_refresh_expenses:"Actualizar gastos", g_refreshing_expenses:"Actualizando gastos…",
-  g_refresh_expenses_hint:"Trae los gastos guardados en la nube, incluidas las notificaciones. No consulta tus bancos.",
   g_lastsync:"Última sincronización: {d}", g_nosync:"Sin sincronizar todavía",
   g_gasto:"💸 Gasto", g_ingreso:"💰 Ingreso", g_concept_g:"Concepto (ej. Cena)", g_concept_i:"Concepto (ej. me devolvió Ana)",
   g_addgasto:"Añadir gasto", g_addingreso:"Añadir ingreso", g_date:"Fecha (vacía = hoy)",
@@ -12349,7 +12357,7 @@ function GxSubInfo({open, onClose}){
         React.createElement("button",{type:"button",className:"btn btn-primary btn-block",onClick:swipe.close},t("gv5_sub_i_ok"))
       )), document.body);
 }
-function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe, cancelSwipe, focusExp, clearFocus, forceAllTs, onGoPlan}){
+function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clearFocus, forceAllTs, onGoPlan}){
   /* «Ver todo» desde una ficha puede llegar antes de que Gastos termine de montar. Conservamos
      ese destino solo durante la navegación: el estado inicial lo consume y el evento cubre el
      caso en que la pestaña ya estaba viva. No se guarda en preferencias. */
@@ -13635,17 +13643,10 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         q:q, sel:sel, bucketSel:bucketSel, bankSelIsDefault:bankSelIsDefault, preset:preset, hayHistorico:(expensesDef||[]).length>0,
         dragExpense:dragExpense, openDetail:openDetail, startExpenseDrag:startExpenseDrag, moveExpenseDrag:moveExpenseDrag, endExpenseDrag:endExpenseDrag,
         onGoPlan:onGoPlan, simple:simple, l10nKey:l10nKey, sentinelRefCb:sentinelRefCb}),
-      /* «Actualizar gastos», su explicación y la última lectura, AL FINAL de la lista mientras no
-         llegue la tanda 5 (que lo quita): no se pierde la vía y deja de tapar los movimientos. Este
-         pie lleva el hueco que deja subir el último día hasta la cabecera (antes en `.gx-fin`). */
-      React.createElement("div",{className:"gx-pie"},
-        React.createElement("div",{className:"action-row"},
-          React.createElement("button",{className:"btn btn-ghost",onClick:onSync,disabled:syncing,"aria-describedby":"gastos-refresh-scope"}, syncing?React.createElement(React.Fragment,null,React.createElement("span",{className:"spin"}),t("g_refreshing_expenses")):React.createElement(React.Fragment,null,React.createElement(I.sync,{width:16,height:16}),t("g_refresh_expenses")))
-        ),
-        React.createElement("p",{className:"hint",id:"gastos-refresh-scope"},t("g_refresh_expenses_hint")),
-        React.createElement("div",{className:"sync-note"},
-          React.createElement("span",{className:"sync-dot "+(syncStatus.type||"idle")}),
-          React.createElement(SyncHora,{msg:syncStatus.msg,lastSync:state.lastSync}))))),
+      /* Sin «Actualizar gastos» (decisión del dueño, 20/10/2026): la nube ya se lee sola al abrir y
+         al volver a la app, y la hora de la última lectura vive al pie de Filtros. El pie se queda
+         vacío porque es el hueco que deja subir el último día hasta la cabecera. */
+      React.createElement("div",{className:"gx-pie"}))),
     /* CATEGORÍAS (SPEC §5): el desglose que antes iba encima de la lista, con la barra del
        presupuesto arriba (solo mes en curso / Mi ciclo: sin límite en el pasado, regla de §3).
        Tocar una categoría filtra Movimientos por ella; mantenerla pulsada abre su límite (la otra
@@ -13703,7 +13704,8 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       sel:sel, setSel:setSelHoja, bankSel:bankSel, setBankSel:setBankSel,
       bucketSel:bucketSel, setBucketSel:setBucketSel,
       bankOpts:bankOpts, diarioEnts:diarioEnts, debts:state.debts,
-      preset:preset, setPreset:setPreset, presetDef:presetDef, periodoExtra:periodoExtra
+      preset:preset, setPreset:setPreset, presetDef:presetDef, periodoExtra:periodoExtra,
+      expenses:expensesDef, nVer:filtered.length, lastSync:state.lastSync
     }),
     React.createElement(ExpenseDetailSheet,{
       exp:detailId?(state.expenses||[]).find(function(e){ return e.id===detailId; }):null,
@@ -14010,12 +14012,15 @@ function GastosGris({g, onOpen, onGoPlan, simple}){
 
 /* La hora de «Última sincronización» escucha la lectura de la nube por su cuenta (19/10/2026): una lectura sin
    cambios ya no reescribe `state.lastSync` (ver `mcSetLecturaNube`), y pasarla como prop de
-   Expenses la reconstruiría entera en cada vuelta a primer plano, que es lo que se quitó. */
-function SyncHora({msg, lastSync}){
+   Expenses la reconstruiría entera en cada vuelta a primer plano, que es lo que se quitó.
+   Desde que no hay botón (Gastos v5) es lo único que dice lo frescos que están los gastos. */
+function SyncHora({lastSync}){
   const [leida,setLeida]=useState(0);
   useEffect(function(){ return mcOnLecturaNube(setLeida); },[]);
   const at=Math.max(lastSync||0, leida||0);
-  return msg || (at?tf("g_lastsync",{d:new Date(at).toLocaleString(loc(),{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}):t("g_nosync"));
+  return React.createElement("div",{className:"sync-note","data-testid":"gastos-lectura"},
+    React.createElement("span",{className:"sync-dot"+(at?"":" idle")}),
+    at?tf("g_lastsync",{d:new Date(at).toLocaleString(loc(),{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}):t("g_nosync"));
 }
 
 /* ---------- Fila del histórico ----------
@@ -14083,7 +14088,11 @@ function filterSelLabel(id, debts){
   const d=(debts||[]).find(function(x){ return x && ("debt:"+x.id)===id; });
   return d&&d.name||catName("deudas");
 }
-function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, bucketSel, setBucketSel, bankOpts, diarioEnts, debts, preset, setPreset, presetDef, periodoExtra}){
+/* Hoja de Filtros definitiva (Gastos v5, SPEC §7): Periodo, Qué contar, Bancos y Categorías, con
+   «Restablecer» arriba y un solo botón abajo que dice cuántos movimientos va a enseñar. Los
+   filtros se aplican al tocarlos, como siempre: el botón solo cierra, y su número es el de la
+   lista que queda debajo (`nVer`), no una cuenta aparte que pudiera no cuadrar con ella. */
+function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, bucketSel, setBucketSel, bankOpts, diarioEnts, debts, preset, setPreset, presetDef, periodoExtra, expenses, nVer, lastSync}){
   const swipe=useSheetSwipe(!!open, onClose);
   useBackClose(!!open, swipe.close);
   const [qCat,setQCat]=useState("");
@@ -14091,6 +14100,14 @@ function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, buc
   useEffect(function(){
     if(open){ setQCat(""); setFilterCatsOpen(false); }
   },[open]);
+  // Las más usadas se cuentan al ABRIR, no en cada render de Gastos: con la hoja cerrada no se
+  // recorre el histórico (AGENTS §7 bis).
+  const usadas=useMemo(function(){
+    if(!open) return [];
+    const n={};
+    (expenses||[]).forEach(function(e){ const c=e.category; if(c) n[c]=(n[c]||0)+1; });
+    return Object.keys(n).sort(function(a,b){ return n[b]-n[a]; });
+  },[open, expenses]);
   if(!open) return null;
   /* `deudas` sigue siendo la marca interna que evita contar dos veces la cuota, pero no se pinta
      como categoría normal: cada deuda del Plan tiene su filtro propio (feedback 24/9). */
@@ -14100,45 +14117,44 @@ function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, buc
   const cats=needle
     ? allCats.filter(function(c){ return catName(c.id).toLowerCase().indexOf(needle)!==-1 || c.id.indexOf(needle)!==-1; })
     : allCats;
-  const toggleCat=function(id){
-    setSel(function(prev){
-      const has=prev.indexOf(id)!==-1;
-      return has?prev.filter(function(x){ return x!==id; }):prev.concat([id]);
+  const toggle=function(setter,id){
+    setter(function(prev){
+      return prev.indexOf(id)!==-1?prev.filter(function(x){ return x!==id; }):prev.concat([id]);
     });
   };
-  const toggleBank=function(b){
-    setBankSel(function(prev){
-      const has=prev.indexOf(b)!==-1;
-      return has?prev.filter(function(x){ return x!==b; }):prev.concat([b]);
-    });
-  };
+  const toggleCat=function(id){ toggle(setSel,id); };
   const clearAll=function(){
     setSel([]);
     setBucketSel([]);
-    // Igual que el chip de «Borrar filtros»: volver a los bancos de gasto diario y al periodo de entrada.
+    // Igual que el chip de «Limpiar»: volver a los bancos de gasto diario y al periodo de entrada.
     setBankSel(diarioEnts.slice());
     setPreset(presetDef);
   };
-  const toggleBucket=function(b){
-    setBucketSel(function(prev){
-      const has=prev.indexOf(b)!==-1;
-      return has?prev.filter(function(x){ return x!==b; }):prev.concat([b]);
-    });
+  /* Las cinco más usadas, en orden fijo mientras la hoja está abierta (si saltaran al marcarlas, el
+     dedo acabaría en otra). Una marcada desde «Las N» que no sea de ellas se añade al final: si
+     no, al plegar la lista no se vería qué categoría está filtrando. */
+  const top=[];
+  usadas.forEach(function(id){ const c=top.length<5&&allCats.find(function(x){ return x.id===id; }); if(c) top.push(c); });
+  sel.forEach(function(id){ const c=allCats.find(function(x){ return x.id===id; }); if(c&&top.indexOf(c)===-1) top.push(c); });
+  // El ✓ va escondido al lector: el nombre del botón es el del banco o la categoría, y su estado el `aria-pressed`.
+  const chip=function(key,on,onClick,label,ic){
+    return React.createElement("button",{key:key,type:"button",className:"v4-chip gx-fchip"+(on?" on":""),"aria-pressed":on,onClick:onClick,"data-fil":key},
+      on && React.createElement("span",{"aria-hidden":true},"✓"),
+      ic && React.createElement("span",{"aria-hidden":true,className:"gx-fchip-ic"},ic), label);
   };
+  const lab=function(k){ return React.createElement("div",{className:"gx-fil-lab"},t(k)); };
   return ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:onClose},
       React.createElement("div",Object.assign({className:"v4-sheet v4-gastos-filter-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); },style:{maxHeight:"88vh"}}, swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
-        React.createElement("div",{className:"serif",style:{fontSize:22,fontWeight:550,marginBottom:6}}, t("g_filters")),
-        React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",lineHeight:1.45,marginBottom:12}}, t("g_filters_hint")),
-        /* «Qué contar» va PRIMERO y sin buscador: son cuatro y es lo que él vino a separar
-           («hay bastante caos entre gastos que cuentan, ingresos y movimientos que no cuentan»).
-           Las categorías y los bancos siguen debajo, igual que siempre. */
+        React.createElement("div",{className:"gx-fil-top"},
+          React.createElement("div",{className:"serif",style:{fontSize:22,fontWeight:550}}, t("g_filters")),
+          React.createElement("button",{type:"button",className:"gx-fil-reset",onClick:clearAll}, t("gv5_fil_reset"))),
         /* PERIODO (Gastos v5, 20/10/2026). Los botones Este mes / Mi ciclo / Más… salieron de la
            pantalla: los meses son ahora la fila que aparece al bajar, y Mi ciclo, Rango y Todo
-           viven aquí, que es su sitio en el diseño (SPEC §7). Mi ciclo no se puede perder: es la
-           forma de mirar el gasto de quien no cobra el día 1 (petición de su pareja, 11/7). */
-        React.createElement("div",{style:{fontSize:12,fontWeight:800,color:"var(--muted-2)",letterSpacing:".04em",textTransform:"uppercase",marginBottom:8}}, t("gv5_periodo")),
+           viven aquí. Mi ciclo no se puede perder: es la forma de mirar el gasto de quien no
+           cobra el día 1 (petición de su pareja, 11/7). */
+        lab("gv5_periodo"),
         React.createElement("div",{className:"gx-periodo",role:"radiogroup","aria-label":t("gv5_periodo")},
           [["months","gv5_p_months"],["cycle","g_cycle"],["custom","gv5_p_range"],["all","g_all"]].map(function(p){
             const on=preset===p[0];
@@ -14146,41 +14162,41 @@ function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, buc
               "data-periodo":p[0],onClick:function(){ setPreset(p[0]); }}, t(p[1]));
           })),
         periodoExtra && React.createElement("div",{className:"gx-periodo-extra"},periodoExtra),
-        React.createElement("div",{style:{fontSize:12,fontWeight:800,color:"var(--muted-2)",letterSpacing:".04em",textTransform:"uppercase",marginBottom:8}}, t("g_bk_title")),
-        React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:8,marginBottom:16}},
-          React.createElement("button",{type:"button",className:"v4-chip"+(bucketSel.length===0?" on":""),onClick:function(){ setBucketSel([]); }}, t("g_bk_all")),
-          /* SIN chip «De otros bancos» (rechazo suyo, 2026-08-17): «no hace nada y tampoco se ve
-             para qué está dado que ya puedes elegir los bancos abajo». Las dos cosas ciertas.
-             Antes no hacía nada porque el filtro arrancaba en UN solo banco diario y «de otros
-             bancos» era exactamente lo contrario → cruce vacío. Ahora arranca en TODOS los de
-             gasto diario, y aun así el chip sobra: los chips de banco de abajo ya hacen eso.
-             El cajón `otrobanco` sigue existiendo: es el que hace que la fila diga «no es del
-             día a día». */
-          [["cuenta","💸"],["ingreso","💰"],["neutra","📈"]].map(function(p){
-            const on=bucketSel.indexOf(p[0])!==-1;
-            return React.createElement("button",{key:p[0],type:"button",className:"v4-chip"+(on?" on":""),onClick:function(){ toggleBucket(p[0]); }},
-              p[1]+" "+t("g_bk_"+p[0]));
-          })
-        ),
-        /* Las categorías son la lista larga del filtro. Cerradas dejan una sola fila y el número
-           activo; así bancos y «Qué contar» siguen a mano sin obligar a atravesar veinte chips. */
-        React.createElement("div",{className:"v4-filter-cats"+(filterCatsOpen?" abierto":"")},
-          React.createElement("button",{type:"button",className:"v4-filter-cats-toggle","aria-expanded":filterCatsOpen,
+        /* QUÉ CONTAR: los tres cajones que separan lo que cuenta de lo que no («hay bastante caos
+           entre gastos que cuentan, ingresos y movimientos que no cuentan»). Ninguno marcado = todo,
+           como antes con el chip «Todo», que el diseño quita porque decía lo mismo que no marcar.
+           SIN chip «De otros bancos» (rechazo suyo, 2026-08-17): los bancos de abajo ya hacen eso;
+           el cajón `otrobanco` sigue siendo el que hace que la fila diga «no es del día a día». */
+        lab("g_bk_title"),
+        React.createElement("div",{className:"gx-fil-chips"},
+          ["cuenta","ingreso","neutra"].map(function(b){
+            return chip(b, bucketSel.indexOf(b)!==-1, function(){ toggle(setBucketSel,b); }, t("g_bk_"+b));
+          })),
+        /* BANCOS: arranca en TODOS los de gasto diario (contrato suyo del 16/9). «Todos los bancos»
+           se queda aunque el diseño no lo pinte: es la ampliación explícita al histórico entero. */
+        bankOpts.length>0 && React.createElement(React.Fragment,null,
+          lab("g_filters_banks"),
+          React.createElement("div",{className:"gx-fil-chips"},
+            chip("_todos", bankSel.length===0, function(){ setBankSel([]); }, t("g_allbanks")),
+            bankOpts.map(function(b){
+              return chip(b, bankSel.indexOf(b)!==-1, function(){ toggle(setBankSel,b); }, b==="_manual"?t("g_bank_manual"):entOf(b).label);
+            }))),
+        /* CATEGORÍAS: las más usadas a mano y el resto detrás de «Las N», con su buscador y las
+           mismas fichas que Apuntar (rechazo 23/9: los chips sueltos parecían otro sistema). */
+        lab("g_filters_cats"),
+        React.createElement("div",{className:"gx-fil-chips"},
+          top.map(function(c){ return chip("c:"+c.id, sel.indexOf(c.id)!==-1, function(){ toggleCat(c.id); }, catName(c.id), c.icon); }),
+          React.createElement("button",{type:"button",className:"v4-chip gx-fchip gx-fchip-mas v4-filter-cats-toggle","aria-expanded":filterCatsOpen,
               "aria-controls":"gastos-filter-cats-body",onClick:function(){ setFilterCatsOpen(function(v){ return !v; }); }},
-            React.createElement("span",null,t("g_filters_cats")),
-            React.createElement("span",{className:"v4-filter-cats-state"},
-              (sel.length ? tf(sel.length===1?"g_filters_cat_active_one":"g_filters_cat_active",{n:sel.length}) : t("g_filters_cat_none"))+" "+(filterCatsOpen?"▾":"▸"))
-          ),
+            tf("gv5_fil_todas",{n:allCats.length})+(filterCatsOpen?" ▾":" ›"))),
+        React.createElement("div",{className:"v4-filter-cats gx-fcats"+(filterCatsOpen?" abierto":"")},
           React.createElement("div",{id:"gastos-filter-cats-body",className:"v4-filter-cats-body","aria-hidden":!filterCatsOpen},
             React.createElement("div",{className:"v4-filter-cats-inner"},
-              React.createElement("div",{className:"searchbar",style:{marginBottom:12}},
+              React.createElement("div",{className:"searchbar",style:{margin:"12px 0"}},
                 React.createElement("span",{className:"searchbar-ic"},"🔍"),
                 React.createElement("input",{className:"searchbar-in",type:"search",placeholder:t("g_filters_search"),value:qCat,onChange:function(e){ setQCat(e.target.value); }}),
                 qCat && React.createElement("button",{className:"searchbar-x",type:"button",onClick:function(){ setQCat(""); }},"✕")
               ),
-              /* El filtro conserva la multiselección, pero comparte la anatomía de Apuntar y
-                 Modificar: icono arriba, nombre debajo y selección visible. Los chips antiguos
-                 daban la impresión de ser otro sistema de categorías (rechazo 23/9). */
               React.createElement("div",{className:"v4-ficha-cat-title"},
                 React.createElement("span",null,t("g_filters_cats")),
                 React.createElement("button",{type:"button","aria-pressed":sel.length===0,onClick:function(){ setSel([]); }},
@@ -14191,7 +14207,7 @@ function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, buc
                 const ds=needle ? debtList.filter(function(d){ return String(d.name||"").toLowerCase().indexOf(needle)!==-1; }) : debtList;
                 if(!ds.length) return null;
                 return React.createElement(React.Fragment,null,
-                  React.createElement("div",{style:{fontSize:12,fontWeight:800,color:"var(--muted-2)",letterSpacing:".04em",textTransform:"uppercase",marginBottom:8}}, t("g_filters_debts")),
+                  lab("g_filters_debts"),
                   React.createElement(ExpenseCategoryGrid,{items:ds.map(function(d){ return {id:"debt:"+d.id,icon:DEUDA_CAT.icon,label:d.name||catName("deudas")}; }),
                     selectedMany:sel,onPick:toggleCat,testPrefix:"filtro-deudas"})
                 );
@@ -14199,21 +14215,13 @@ function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, buc
             )
           )
         ),
-        bankOpts.length>0 && React.createElement(React.Fragment,null,
-          React.createElement("div",{style:{fontSize:12,fontWeight:800,color:"var(--muted-2)",letterSpacing:".04em",textTransform:"uppercase",marginBottom:8}}, t("g_filters_banks")),
-          React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:8,marginBottom:16}},
-            React.createElement("button",{type:"button",className:"v4-chip"+(bankSel.length===0?" on":""),onClick:function(){ setBankSel([]); }}, t("g_allbanks")),
-            bankOpts.map(function(b){
-              const on=bankSel.indexOf(b)!==-1;
-              const lbl=b==="_manual"?t("g_bank_manual"):entOf(b).label;
-              return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(on?" on":""),onClick:function(){ toggleBank(b); }}, lbl);
-            })
-          )
-        ),
-        React.createElement("div",{style:{display:"flex",gap:10,marginTop:8}},
-          React.createElement("button",{type:"button",className:"btn btn-ghost",style:{flex:1},onClick:clearAll}, t("g_filters_clear")),
-          React.createElement("button",{type:"button",className:"btn btn-primary",style:{flex:1.4},onClick:onClose}, t("g_filters_done"))
-        )
+        React.createElement("button",{type:"button",className:"btn btn-primary btn-block gx-fil-ver",onClick:onClose},
+          tf("gv5_fil_ver",{x:tf(nVer===1?"gv5_fil_n1":"gv5_fil_n",{n:nVer.toLocaleString(loc())})})),
+        /* Aquí acaba «Actualizar gastos» (decisión del dueño, 20/10/2026): la nube se lee sola al
+           abrir y al volver a la app, así que el botón ya no hacía nada que no pasara solo. Lo que
+           sí se conserva es saber de cuándo son los gastos y que eso no pregunta al banco (UX-15). */
+        React.createElement(SyncHora,{lastSync:lastSync}),
+        React.createElement("p",{className:"hint gx-fil-nube"},t("gv5_fil_nube"))
       )
     ), document.body);
 }
@@ -25332,7 +25340,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="e0af75abc030788a2ae758af596b0b8fcd871a5d1ddbce2c60ca0447010cf37d";
+var _rnSha="45a516ceafd8426294e7debd53f49ea30d841eef3d52476c1c8a848c860fabb3";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -29222,8 +29230,6 @@ function App(){
   const [tourOpen,setTourOpen]=useState(false);            // tour guiado (coach-marks)
   const [toast,setToast]=useState(null);
   const [syncReport,setSyncReport]=useState(null);
-  const [syncing,setSyncing]=useState(false);
-  const [syncStatus,setSyncStatus]=useState({type:"idle",msg:""});
 
   // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.
   // Persistencia DEBOUNCED (2026-07-18): antes cada set() serializaba TODO el estado a
@@ -31586,15 +31592,6 @@ function App(){
     }).then(function(){ if(!silent) setPricing(false); });
   };
 
-  const onSync=function(){
-    if(!(cloud.enabled() && uid)){ setSyncStatus({type:"err",msg:"Inicia sesión para sincronizar"}); showToast("Inicia sesión para sincronizar"); return; }
-    setSyncing(true); setSyncStatus({type:"idle",msg:"Conectando con Supabase…"});
-    syncCloudExpenses().then(function(r){
-      if(r.nuevos>0){ const m="✓ "+r.nuevos+(r.nuevos===1?" gasto nuevo":" gastos nuevos"); setSyncStatus({type:"",msg:m}); showToast(m); }
-      else { setSyncStatus({type:"",msg:"Ya estás al día · "+r.total+" gastos en la nube"}); showToast("✓ Ya estás al día"); }
-    }).catch(function(e){ setSyncStatus({type:"err",msg:"No se pudo conectar con Supabase: "+((e&&e.message)||e)}); showToast("✕ Error al sincronizar"); }).then(function(){ setSyncing(false); });
-  };
-
   const tabIds = tabOrderOf(state);
   const prepMountTab=function(i){
     var id=tabIds[i]; if(!id) return;
@@ -32536,7 +32533,7 @@ function App(){
       onGoPlan:function(seg){ if(seg) setPlanGoto({id:seg,ts:Date.now()}); const i=tabIds.indexOf("plan"); if(i>=0) goTabTop(i); }});
     // Sin prop `active`: ver `mcOnGastosActive` — si viaja por props, entrar en Gastos
     // reconstruye el árbol entero encima del gesto (asimetría Deudas→Gastos vs →Cartera).
-    if(id==="gastos") return React.createElement(Expenses,{state:state,set:set,onSync:onSync,syncing:syncing,syncStatus:syncStatus,showToast:showToast,stopSwipe:stopSwipe,cancelSwipe:cancelSwipe,focusExp:gotoExp,clearFocus:function(){ setGotoExp(null); },forceAllTs:gastosForceAll,
+    if(id==="gastos") return React.createElement(Expenses,{state:state,set:set,showToast:showToast,stopSwipe:stopSwipe,cancelSwipe:cancelSwipe,focusExp:gotoExp,clearFocus:function(){ setGotoExp(null); },forceAllTs:gastosForceAll,
       // «Abrir en Plan · Recibos/Deudas» de las filas grises (Gastos v5): mismo camino que Inicio.
       onGoPlan:function(seg){ if(seg) setPlanGoto({id:seg,ts:Date.now()}); const i=tabIds.indexOf("plan"); if(i>=0) goTabTop(i); }});
     if(id==="plan") return React.createElement(PlanTab,{state:state,set:set,totals:totals,showToast:showToast,simple:simple,gotoSeg:planGoto,clearGoto:function(){ setPlanGoto(null); }});
@@ -32582,7 +32579,7 @@ function App(){
     tabIds.forEach(function(id){ if(id!=="gastos") out[id]=pageFor(id); });
     return out;
     // eslint-disable-next-line
-  },[state, totals, budgetStreak, tabIds.join("|"), syncing, syncStatus, gotoExp, planGoto, pricing, uid, locked]);
+  },[state, totals, budgetStreak, tabIds.join("|"), gotoExp, planGoto, pricing, uid, locked]);
   /* Gastos iba en memo aparte POR la prop `active` — y esa prop era el lag. Ahora se entera
      por bus (`mcSetGastosActive` abajo) y comparte deps con las otras: entrar/salir de Gastos
      ya NO reconstruye Expenses. Se deja el memo propio por si mañana vuelve a necesitar algo
@@ -32590,7 +32587,7 @@ function App(){
   const contenidoGastos=useMemo(function(){
     return tabIds.indexOf("gastos")>=0 ? pageFor("gastos") : null;
     // eslint-disable-next-line
-  },[state, totals, tabIds.join("|"), syncing, syncStatus, gotoExp, planGoto, pricing, uid, locked, gastosForceAll]);
+  },[state, totals, tabIds.join("|"), gotoExp, planGoto, pricing, uid, locked, gastosForceAll]);
   // Aviso barato a Expenses: sin setState en App que no haga falta, y sin re-render de Gastos.
   useEffect(function(){ mcSetGastosActive(tabIds[tab]==="gastos"); },[tab, tabIds]);
   useEffect(function(){ mcSetCarteraActive(tabIds[tab]==="cartera"); },[tab, tabIds]);
