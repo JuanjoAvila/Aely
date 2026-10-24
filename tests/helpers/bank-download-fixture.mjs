@@ -37,7 +37,7 @@ export function updater(source,links,overrides={},logic=ctx,commit=false){
   if(commit){
     // El commit real vuelve a reconciliar con prev: omitirlo escondía cambios de estado
     // que la app sí persiste, aunque el updater del banco ya hubiera terminado.
-    const a=source.indexOf('  const set=useCallback((updater)=>'),b=source.indexOf('  // En el propio commit',a);
+    const a=source.indexOf('  const set=useCallback((updater,edited=true)=>'),b=source.indexOf('  // En el propio commit',a);
     assert.ok(a>=0&&b>a);
     set=new Function('useCallback','setStateRaw','reconcileGemelosAutomaticos','Date',source.slice(a,b)+'return set;')(
       fn=>fn,fn=>state=fn(state),logic.reconcileGemelosAutomaticos,FakeDate);

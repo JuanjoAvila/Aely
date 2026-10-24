@@ -160,7 +160,7 @@ test("la separación con hora sobrevive a 500 vínculos sin decisión",()=>{
 test("el updater REAL de App migra antes de pintar y conserva arrays en cambios ajenos",()=>{
   const match=/setStateRaw\(prev=>\{([\s\S]*?)\}\); \},\[\]\);/.exec(html);
   assert.ok(match);
-  const update=vm.runInContext("(function(prev,updater){"+match[1]+"})",c);
+  const update=vm.runInContext("(function(prev,updater,edited=true){"+match[1]+"})",c);
   const a=state([aviso()]),b=sync(c,a,[tx()],false),next=update(a,b);
   assert.equal(visible(next).length,1);
   const onlyTheme=update(next,s=>({...s,settings:{...s.settings,theme:"blue"}}));
@@ -170,7 +170,7 @@ test("el pull REAL no trae decisiones de la cuenta anterior",()=>{
   const block=/const sameOwner=![^\n]*\n\s*const preferenceDeleted=[\s\S]*?if\(freshLogin && \(cloudState\.accounts/.exec(html);
   assert.ok(block);
   const source=block[0].slice(0,block[0].lastIndexOf("if(freshLogin"));
-  const pull=vm.runInContext("(function(prev,cloudState,freshLogin,opts,sessionRef,u,cloudPack){const obAbsorbedWriteBlocked={current:false};"+source+"return baseObj;})",c);
+  const pull=vm.runInContext("(function(prev,cloudState,freshLogin,opts,sessionRef,u,cloudPack){const obAbsorbedWriteBlocked={current:false},read={pending:[],confirmed:[],at:Date.now()},cloudMergeKey={current:Symbol('merge')};"+source+"return baseObj;})",c);
   const s=c.separarGemeloAutomatico(sync(c,state([aviso()]),[tx()]),"a",1234);
   const next=pull({...s,_historyOwner:"before"},state(),true,{dropTx:true},{current:{user:{id:"after"}}},"after",{updated_at:"synthetic"});
   assert.equal(next.gemelos.length,0);

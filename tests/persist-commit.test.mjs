@@ -72,7 +72,7 @@ t("un estado calculado y abandonado nunca llega al volcado", () => {
 
 t("set() ya no apunta ni arma nada: solo calcula", () => {
   const src = fs.readFileSync(new URL("../src/modules/11-app-main.js", import.meta.url), "utf8").replace(/\r\n/g, "\n");
-  const ini = src.indexOf("const set=useCallback((updater)=>{ setStateRaw(prev=>{"), fin = src.indexOf("}); },[]);", ini);
+  const ini = src.indexOf("const set=useCallback((updater,edited=true)=>{ setStateRaw(prev=>{"), fin = src.indexOf("}); },[]);", ini);
   assert.ok(ini > 0 && fin > ini, "no se encontró set() en 11-app-main.js");
   const cuerpo = src.slice(ini, fin);
   for (const prohibido of ["persistRef", "setTimeout", "writeNow", "mcSaveRaw", "localStorage"]) {

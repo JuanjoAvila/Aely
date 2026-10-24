@@ -1223,16 +1223,20 @@ const cloud = (function(){
           .eq('user_id', uid).eq('updated_at', lastKnownUpdatedAt)
           .select('updated_at');
         if(error) throw error;
-        if(!rows || !rows.length) return { conflict:true };
+        const ownerAfter=await this.session();if(!ownerAfter||ownerAfter.user.id!==uid)throw new Error("ob_confirmed_owner");
+        if(!rows || rows.length!==1 || !rows[0].updated_at) return { conflict:true };
         statePushCache.set(uid,{body:body,revision:rows[0].updated_at});
         return { updated_at:rows[0].updated_at };
       }
       const {data:rows,error}=await sb.from('app_state')
-        .upsert({ user_id:uid, data:data, updated_at:now }, { onConflict:'user_id' })
+        // Sin revisión solo se puede crear: otro móvil pudo dar de alta la fila tras el pull.
+        .insert({ user_id:uid, data:data, updated_at:now })
         .select('updated_at');
       if(error) throw error;
-      if(rows&&rows[0]&&rows[0].updated_at)statePushCache.set(uid,{body:body,revision:rows[0].updated_at});
-      return { updated_at: rows && rows[0] && rows[0].updated_at };
+      const ownerAfter=await this.session();if(!ownerAfter||ownerAfter.user.id!==uid)throw new Error("ob_confirmed_owner");
+      if(!rows || rows.length!==1 || !rows[0].updated_at) return { conflict:true };
+      statePushCache.set(uid,{body:body,revision:rows[0].updated_at});
+      return { updated_at: rows[0].updated_at };
     },
     async pullExpenses(readProof){
       if(readProof){ readProof.valid=false; readProof.userId=null; }
@@ -2254,7 +2258,7 @@ function obConfirmedValid(p,owner){
   const key=obAbsorbedKeyOk;
   return !!p&&!!owner&&p.owner===owner&&isExpenseUuid(p.id)&&isExpenseUuid(p.keepId)&&p.id!==p.keepId&&key(p.key)&&key(p.keepKey)&&Object.prototype.hasOwnProperty.call(p,"ackAt");
 }
-function obConfirmedJoin(a,b,owner,evict,now){
+function obConfirmedJoin(a,b,owner,evict,now,quiet){
   const left=a,right=b;a=obConfirmedUnpack(a,owner);b=obConfirmedUnpack(b,owner);
   if(left!=null&&a==null||right!=null&&b==null)return null;
   if(a!=null&&!Array.isArray(a)||b!=null&&!Array.isArray(b))return null;
@@ -2277,7 +2281,7 @@ function obConfirmedJoin(a,b,owner,evict,now){
     const n=Math.min(out.length-OB_CONFIRMED_MAX,eligible.length);
     const drop=new Set(eligible.slice(0,n)),kept=out.filter(function(p){return !drop.has(p);});
     // El tope no autoriza perder ACK recientes ni parar toda la cartera (revisión FIN17).
-    if(kept.length>OB_CONFIRMED_MAX&&!obAbsorbedWarnings.has("confirmed_full")){
+    if(!quiet&&kept.length>OB_CONFIRMED_MAX&&!obAbsorbedWarnings.has("confirmed_full")){
       obAbsorbedWarnings.add("confirmed_full");
       try{Promise.resolve(cloud.logEvent("error","ob_absorbed",JSON.stringify({code:"confirmed_full"}))).catch(function(){});}catch(e){}
     }
@@ -2353,13 +2357,13 @@ function obAbsorbedValid(p,owner){
         &&(p.keepRefKey==null||typeof p.keepRefKey==="string"&&obAbsorbedKeyOk(p.keepRefKey))
       :typeof p.merchant==="string"&&typeof p.amount==="number"&&Number.isFinite(p.amount)&&p.amount>0);
 }
-function obAbsorbedJoin(a,b,owner){
+function obAbsorbedJoin(a,b,owner,quiet){
   const out=[],seen=new Set();
   (Array.isArray(a)?a:[]).concat(Array.isArray(b)?b:[]).forEach(function(p){
     if(!obAbsorbedValid(p,owner))return;
     const key=p.id+"|"+p.key;if(!seen.has(key)){seen.add(key);out.push(p);}
   });
-  if(out.length>OB_ABSORBED_MAX){obAbsorbedWarn("merge",owner);return null;}
+  if(out.length>OB_ABSORBED_MAX){if(!quiet)obAbsorbedWarn("merge",owner);return null;}
   return Array.isArray(a)&&out.length===a.length&&out.every(function(p,i){return p===a[i];})?a:out;
 }
 function obAbsorbedStorageKey(owner,key){return (key||mcStateKey())+"_obabs_"+encodeURIComponent(owner);}

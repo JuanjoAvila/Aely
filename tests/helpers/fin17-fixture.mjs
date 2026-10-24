@@ -1,3 +1,4 @@
+import {commitCloudFixture} from './cloud-commit-fixture.mjs';
 // SDK y dos clientes aislados: ejecuta las fuentes reales, sin red ni escrituras ajenas.
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -60,13 +61,13 @@ function client(db,label,state=seed(),source=original){
  e.prune=()=>{const key=c.obAbsorptionKey(booked),at=e.state.deletedAt[key];for(let i=0;i<500;i++){const delta=c.lapidaPon(e.state,'synthetic-newer-'+i,at+i+1);e.state={...e.state,...delta};}assert.ok(!e.state.deleted.includes(key));return key;};
  e.sync=async(mainSource=main)=>{
   const a=mainSource.indexOf('  const syncCloudExpenses=function(){'),z=mainSource.indexOf('\n  // Al iniciar sesión:',a);assert.ok(a>=0&&z>a);
-  const factory=vm.runInContext('(function(state,session){const stateRef={current:state},sessionRef={current:session};const wR={current:false},wS={current:0},wP={current:null},wC={current:[]},wRead={current:null};const set=fn=>stateRef.current=fn(stateRef.current);const drains=[];const retryObAbsorbedCloud=()=>{const p=obAbsorbedRetry(()=>stateRef.current,()=>sessionRef.current.user.id,set);drains.push(p);return p;};'+mainSource.slice(a,z)+'return {run:syncCloudExpenses,state:()=>stateRef.current,drains};})',c);
+  const factory=vm.runInContext('(function(state,session){const stateRef={current:state},sessionRef={current:session};const wR={current:false},wS={current:0},wP={current:null},wC={current:[]},wRead={current:null},wOwner={current:null};const set=fn=>stateRef.current=fn(stateRef.current);const drains=[];const retryObAbsorbedCloud=()=>{const p=obAbsorbedRetry(()=>stateRef.current,()=>sessionRef.current.user.id,set);drains.push(p);return p;};'+mainSource.slice(a,z)+'return {run:syncCloudExpenses,state:()=>stateRef.current,drains};})',c);
   const api=factory(e.state,{user:{id:e.owner}});await api.run();await Promise.all(db.pendingWrites);await Promise.all(api.drains);e.state=api.state();
  };
  e.pull=async(mainSource=main)=>{
   const a=mainSource.indexOf('  const syncFromCloud=function(s, opts){'),z=mainSource.indexOf('\n  // CAPA 2',a);assert.ok(a>=0&&z>a);
-  const factory=vm.runInContext('(function(state,session){const stateRef={current:state},sessionRef={current:session},cloudUpdatedAtRef={current:null},obAbsorbedWriteBlocked={current:false},pullOkRef={current:null};const set=fn=>stateRef.current=fn(stateRef.current),syncCloudExpenses=()=>Promise.resolve(),reservaMensualAlDia=()=>{},showToast=()=>{},pushAppState=()=>{throw Error("unexpected push in pull fixture")};'+mainSource.slice(a,z)+'return {run:()=>{syncFromCloud(session);return pullOkRef.current;},state:()=>stateRef.current};})',c);
-  const api=factory(e.state,{user:{id:e.owner}});assert.equal(await api.run(),true,'real pull completes');e.state=api.state();
+  const factory=vm.runInContext('(function(state,session,commitFixture){const cloudMergeKey={current:Symbol("merge")};const stateRef={current:state},sessionRef={current:session},cloudPullRef={current:null},cloudReadRef={current:null},cloudUpdatedAtRef={current:null},obAbsorbedWriteBlocked={current:false},pullOkRef={current:null};const set=fn=>{stateRef.current=fn(stateRef.current);commitFixture({cloudMergeKey,cloudPullRef,cloudReadRef,cloudUpdatedAtRef,sessionRef,stateRef,obAbsorbedWriteBlocked},stateRef.current);},syncCloudExpenses=()=>Promise.resolve(),reservaMensualAlDia=()=>{},showToast=()=>{},pushAppState=()=>{throw Error("unexpected push in pull fixture")};'+mainSource.slice(a,z)+'return {run:()=>{syncFromCloud(session);return pullOkRef.current;},state:()=>stateRef.current};})',c);
+  const api=factory(e.state,{user:{id:e.owner}},(refs,state)=>commitCloudFixture(mainSource,c,refs,state));assert.equal(await api.run(),true,'real pull completes');e.state=api.state();
  };
  return e;
 }

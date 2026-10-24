@@ -11,6 +11,7 @@
 // editar 10 → 12 → 10 (el gasto desaparecía) y editar sin conexión.
 // Los bloques de pantalla se ejecutan sacados del bundle servido (`public/index.html`).
 import {withOwnerStorage} from "./helpers/owner-storage-fixture.mjs";
+import {receiptCloudCommitFixture} from "./helpers/receipt-cloud-commit-fixture.mjs";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
@@ -54,11 +55,8 @@ const mostrado=s=>{ const i=c.insumosSaldoGasto(s);
 const fila=e=>({id:e.id,user_id:"u1",fecha:e.date,importe:e.amount,comercio:e.merchant,cat:e.category,source:c.expenseSourceForCloud(e),ob_name:e.obName,no_card:!!e.noCard,nota:e.note||null,nota_edit:!!e.noteEdited});
 const sube=(s,savedAt)=>{ const x=clon(c.slimForCloud(s)); if(savedAt!=null) x._savedAt=savedAt; return x; };
 
-// El bloque REAL con el que App aplica el estado que baja de la nube (`syncFromCloud`).
-const mBaja=/const sameOwner=![^\n]*\n\s*const preferenceDeleted=[\s\S]*?if\(freshLogin\s*&&\s*\(cloudState\.accounts/.exec(bundle);
-assert.ok(mBaja,"no se encuentra el bloque de último-que-escribe en syncFromCloud");
-const bloqueBaja=vm.runInContext("(function(prev,cloudState,freshLogin,opts,sessionRef,u,cloudPack){const obAbsorbedWriteBlocked={current:false};"+mBaja[0].replace(/if\(freshLogin\s*&&\s*\(cloudState\.accounts$/,"")+"\nreturn baseObj;})",c);
-const baja=(prev,nube,freshLogin)=>bloqueBaja(prev,nube,!!freshLogin,null,{current:{user:{id:"u1"}}},"u1",{updated_at:"synthetic"});
+// El updater REAL completo y su commit de layout usan el titular de estos casos.
+const baja=receiptCloudCommitFixture(bundle,c,"u1");
 
 const viejo=(ym,imp,rec)=>({id:"v-"+ym+"-"+imp,date:ym+"-05T10:00:00.000Z",merchant:rec?"ENDESA ENERGIA XXI":"CARREFOUR",obName:rec?"ENDESA ENERGIA XXI":"CARREFOUR",amount:imp,category:rec?"recibos":"super",source:"ob",ent:"bbva",extId:"x-"+ym+"-"+imp,reciboId:rec?"luz":undefined});
 const TXS_LUZ=[T("o1","bbva","2026-10-05",62.4,"ENDESA ENERGIA XXI"),T("o2","bbva","2026-10-07",40,"CARREFOUR",{card:true})];

@@ -15,7 +15,7 @@ function run(s,mode="immediate",removeMode="ok",uid="test"){
   const handle={remove(){removed++;live.delete(callback);if(removeMode==="throw")throw Error("remove");if(removeMode==="reject")return Promise.reject(Error("remove"));}};
   const App={addListener(ev,fn){callback=fn;if(mode==="throw")throw Error("add");if(mode==="reject")return Promise.reject(Error("add"));live.add(fn);return mode==="sync"?handle:mode==="late"?new Promise(r=>{resolveHandle=r;}):Promise.resolve(handle);}};
   const document={visibilityState:"visible",addEventListener(ev,fn){dom.add(fn);},removeEventListener(ev,fn){dom.delete(fn);}};
-  const cleanup=new Function("uid","document","window","setCalendarDay","madridDay","syncCloudExpenses","natPlugin",effect(s))(uid,document,{Capacitor:{Plugins:{App}}},()=>{},()=>"2026-10-07",()=>{sync++;return Promise.resolve();},()=>null);
+  const cleanup=new Function("uid","document","window","setCalendarDay","madridDay","syncCloudExpenses","natPlugin","cloudReadRef","sessionRef","syncFromCloud",effect(s))(uid,document,{Capacitor:{Plugins:{App}}},()=>{},()=>"2026-10-07",()=>{sync++;return Promise.resolve();},()=>null,{current:{owner:uid,ready:true}},{current:{user:{id:uid}}},()=>{sync++;return Promise.resolve();});
   return {cleanup,live,dom,handle,get removed(){return removed;},get sync(){return sync;},call(){callback({isActive:true});},resolve(){resolveHandle(handle);}};
 }
 const unhandled=[];const report=e=>unhandled.push(e);process.on("unhandledRejection",report);
