@@ -1149,6 +1149,16 @@
   .gx-list .v4-mov .nm-cat{font-size:14px;font-weight:500;}
   .gx-list .v4-mov .meta{font-size:13px;}
   .gx-list .v4-mov .am{font-size:19px;font-weight:600;}
+  /* «fecha · banco» en UNA línea aunque el móvil lleve la letra grande (captura suya de la beta
+     4.26.164, 24/10: el WebView escala el texto y no las cajas, y «24/10 ·» y «Trade Republic» se
+     partían en dos líneas con el punto huérfano: la regla general `.v4-mov .meta` deja que la fila
+     se parta). La fecha y los puntos no ceden; el banco y la
+     marca de recibo se recortan con puntos suspensivos. El importe tampoco cede ni se parte: es
+     lo que se viene a leer. */
+  .gx-list .v4-mov .meta{flex-wrap:nowrap;align-items:center;min-width:0;white-space:nowrap;overflow:hidden;}
+  .gx-list .v4-mov .meta > span{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;}
+  .gx-list .v4-mov .meta > span:first-child,.gx-list .v4-mov .meta > .sep{flex:0 0 auto;}
+  .gx-list .v4-mov .am{flex:0 0 auto;white-space:nowrap;}
   /* Fila gris: recibos y cuotas del día, que no cuentan (SPEC §4.4). Sin flecha, a petición. */
   .gx-gris{border:1px dashed var(--sur2);border-radius:18px;overflow:hidden;}
   .gx-gris-h{width:100%;display:flex;align-items:center;gap:10px;min-height:48px;padding:0 18px;border:0;background:transparent;

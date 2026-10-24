@@ -93,6 +93,32 @@ test("tocar un mes salta a su primer día", async ({ page }) => {
   await expect(gastosEstado(page)).toHaveText("gastado en septiembre · 900 € por debajo");
 });
 
+/* Su captura de la beta 4.26.164 (24/10), con la letra grande del sistema: «24/10 ·» y «Trade
+   Republic» en dos líneas, un punto huérfano y la tarjeta el doble de alta. El WebView escala el
+   TEXTO (textZoom) pero no las cajas: se imita multiplicando el tamaño de letra de cada nodo de la
+   tarjeta, que es lo que hace Android. «fecha · banco» tiene que quedar en UNA línea (con puntos
+   suspensivos si no cabe) y el importe entero, sin partirse. */
+for (const zoom of [1.3, 1.6]) {
+  test(`con la letra del sistema al ${Math.round(zoom * 100)} %, «fecha · banco» va en una línea y el importe no se parte`, async ({ page }) => {
+    await abre(page, { expenses: [e("Amazon", "2026-09-26", 1239.59, "compras"), e("Barcelona Cooking Experience Sociedad Limitada", "2026-09-25", 44.22, "restaurantes")] });
+    await aGastos(page);
+    const tarjetas = gastosRoot(page).locator("button.v4-mov");
+    await expect(tarjetas).toHaveCount(2);
+    const medida = await tarjetas.evaluateAll((els, z) => els.map((card) => {
+      // Primero se leen todos y luego se escriben: escribir sobre la marcha escalaría dos veces
+      // a los hijos, que heredan el tamaño ya escalado del padre.
+      const nodos = [...card.querySelectorAll("*")], tam = nodos.map((n) => parseFloat(getComputedStyle(n).fontSize));
+      nodos.forEach((n, i) => { n.style.fontSize = tam[i] * z + "px"; });
+      const meta = card.querySelector(".meta"), am = card.querySelector(".am");
+      const lineas = (el) => Math.round(el.getBoundingClientRect().height / parseFloat(getComputedStyle(el).lineHeight === "normal" ? parseFloat(getComputedStyle(el).fontSize) * 1.25 : getComputedStyle(el).lineHeight));
+      const tops = [...meta.children].map((c) => Math.round(c.getBoundingClientRect().top));
+      const r = card.getBoundingClientRect(), ra = am.getBoundingClientRect();
+      return { metaUnaLinea: Math.max(...tops) - Math.min(...tops) <= 2, amUnaLinea: lineas(am) <= 1, amDentro: ra.right <= r.right && ra.left >= r.left };
+    }), zoom);
+    for (const m of medida) expect(m).toEqual({ metaUnaLinea: true, amUnaLinea: true, amDentro: true });
+  });
+}
+
 test("recibo y cuota del banco salen agrupados en filas grises que no suman y se despliegan", async ({ page }) => {
   await abre(page);
   await aGastos(page);
