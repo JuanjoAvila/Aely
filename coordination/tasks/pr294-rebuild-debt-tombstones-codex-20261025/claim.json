@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "taskId": "pr294-rebuild-debt-tombstones-codex-20261025",
+  "actor": "codex",
+  "sessionId": "codex-local-20261025-pr294-fbf6b61c-49992e86-03eba79a-a481e0c3",
+  "createdAt": "2026-10-24T23:18:09.777Z",
+  "baseSHA": "ed1be46db093227311c817da808868923942d440"
+}
