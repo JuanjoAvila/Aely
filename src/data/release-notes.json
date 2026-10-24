@@ -1,5 +1,82 @@
 [
   {
+    "v": "4.26.166",
+    "d": "2026-10-24",
+    "t": {
+      "es": "Gastos por secciones",
+      "en": "Spending in sections",
+      "ca": "Despeses per seccions"
+    },
+    "items": {
+      "es": [
+        "Gastos tiene tres secciones: arriba a la derecha hay tres botones para tus movimientos, tus categorías y las suscripciones que se repiten (con un número si alguna está por revisar). También puedes pasar de una a otra tirando hacia abajo desde arriba del todo, como en Plan.",
+        "Encima de la lista solo queda el buscador: la explicación de «Mi ciclo» está en Filtros y «Actualizar gastos», al final de la lista.",
+        "En Categorías, lo que no tiene categoría propia sale en una sola fila «Otros» y la suma de las filas cuadra con la cifra de arriba."
+      ],
+      "en": [
+        "Spending now has three sections: three buttons at the top right take you to your transactions, your categories and the subscriptions that repeat (with a number if any need reviewing). You can also switch between them by pulling down from the very top, just like in Plan.",
+        "Only the search bar sits above the list now: the \"My cycle\" explanation is in Filters and \"Refresh expenses\" is at the end of the list.",
+        "In Categories, anything without a category of its own shows in a single \"Other\" row, and the rows add up to the figure at the top."
+      ],
+      "ca": [
+        "Despeses té tres seccions: a dalt a la dreta hi ha tres botons per als teus moviments, les teves categories i les subscripcions que es repeteixen (amb un número si n'hi ha alguna per revisar). També pots canviar d'una a l'altra estirant cap avall des de dalt de tot, com al Pla.",
+        "Damunt de la llista ara només hi ha el cercador: l'explicació de «El meu cicle» és a Filtres i «Actualitza les despeses», al final de la llista.",
+        "A Categories, el que no té categoria pròpia surt en una sola fila «Altres» i la suma de les files quadra amb la xifra de dalt."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "gastos-v5-secciones",
+        "t": {
+          "es": "Gastos: secciones Movimientos, Categorías y Suscripciones con el tirón de Plan",
+          "en": "Spending: Transactions, Categories and Subscriptions sections with the Plan pull",
+          "ca": "Despeses: seccions Moviments, Categories i Subscripcions amb l'estirada del Pla"
+        },
+        "items": {
+          "es": [
+            "1. Abre Gastos. Arriba a la derecha hay tres botones redondos; el primero (líneas) va en verde. MAL: no salen, o el título se ha movido hacia abajo.",
+            "2. Mira entre la cifra y la lista: solo está el buscador con el botón de filtros. MAL: ves la caja «Mi ciclo», las categorías o «Actualizar gastos» encima de los gastos.",
+            "3. Toca el segundo botón (barras). Sale una barra del presupuesto («de X €») y tus categorías de mayor a menor con su importe; arriba pone «… por categoría · X € por debajo», y la cifra es la misma que en Movimientos. «Otros» sale en una sola fila y vibra una sola vez. MAL: las cifras no cuadran con lo de antes, «Otros» sale en dos filas, vibra dos veces o no vibra.",
+            "4. En Categorías toca una categoría: sale la hoja para ponerle un límite. Elige 200 € y pulsa Guardar: su barra pasa a ser contra ese límite. Después vuelve a tocarla y elige «Quitar límite». MAL: no sale la hoja, se pierde el límite al guardar o no se puede quitar.",
+            "5. Toca el tercer botón (reloj). Si tenías suscripciones detectadas, salen en su tarjeta como antes (abre una y verás el importe editable, «pasar a Gastos fijos» y «No es una suscripción»; no los pulses) y el botón lleva un número en un globito; si no, pone «Todo en orden». MAL: faltan las que veías antes, o el número no cuadra.",
+            "6. Vuelve a Movimientos. Arriba del todo, tira hacia abajo con el dedo: la lista baja un poco y al soltar pasa a Categorías con un solo toque de vibración. Repite: Suscripciones; otra vez: Movimientos. MAL: no cambia, cambia a mitad de lista, o vibra dos veces.",
+            "7. Baja un poco por la lista y tira hacia abajo: solo sube la lista, no cambia de sección. MAL: cambia de sección sin estar arriba del todo.",
+            "8. Abre Filtros: en Periodo, con Mi ciclo elegido, debajo está su explicación (desde qué cobro empieza, Ocultar/Ayuda). Elige Rango: salen las dos fechas para elegir. Vuelve a Meses. MAL: no está la explicación de Mi ciclo o no puedes elegir las fechas del rango.",
+            "9. Baja hasta el final de la lista: debajo de «Hasta aquí» está «Actualizar gastos» con su explicación y la hora de la última sincronización. Tócalo. MAL: no está o no actualiza.",
+            "10. Ve a Categorías, cambia a Inicio y toca «Ver gastos ›»: llegas a Movimientos, arriba del todo. MAL: llegas a Categorías.",
+            "11. Desliza de lado entre pestañas empezando a la altura del buscador o justo debajo: cambia de pestaña como siempre. MAL: en Gastos ya no deja deslizar de lado donde antes sí."
+          ],
+          "en": [
+            "1. Open Spending. At the top right there are three round buttons; the first one (lines) is green. WRONG: they are missing, or the title has moved down.",
+            "2. Look between the figure and the list: there is only the search bar with the filters button. WRONG: you see the \"My cycle\" box, the categories or \"Refresh expenses\" above the expenses.",
+            "3. Tap the second button (bars). A budget bar (\"of €X\") and your categories from largest to smallest with their amounts appear; the top says \"… by category · €X under\", and the figure is the same as in Transactions. \"Other\" shows in a single row and it vibrates once. WRONG: the numbers don't match what you had before, \"Other\" shows in two rows, it vibrates twice or doesn't vibrate.",
+            "4. In Categories tap a category: a sheet opens to set a limit. Choose €200 and tap Save: its bar is now measured against that limit. Then tap it again and choose \"Remove limit\". WRONG: the sheet doesn't open, the limit is lost when saving or it can't be removed.",
+            "5. Tap the third button (clock). If you had detected subscriptions, they show in their card as before (open one and you'll see the editable amount, \"move to Fixed expenses\" and \"Not a subscription\"; don't press them) and the button carries a number in a bubble; if not, it says \"All clear\". WRONG: the ones you used to see are missing, or the number doesn't match.",
+            "6. Go back to Transactions. At the very top, pull down with your finger: the list drops a little and on release it moves to Categories with a single vibration tap. Repeat: Subscriptions; once more: Transactions. WRONG: it doesn't change, it changes halfway down the list, or it vibrates twice.",
+            "7. Scroll a little down the list and pull down: only the list moves up, it doesn't change section. WRONG: it changes section without being at the very top.",
+            "8. Open Filters: under Period, with My cycle chosen, its explanation is below (from which paycheck it starts, Hide/Help). Choose Range: the two dates to pick appear. Go back to Months. WRONG: the My cycle explanation isn't there or you can't pick the range dates.",
+            "9. Scroll to the end of the list: below \"That's everything\" there is \"Refresh expenses\" with its explanation and the time of the last sync. Tap it. WRONG: it isn't there or it doesn't refresh.",
+            "10. Go to Categories, switch to Home and tap \"See spending ›\": you land on Transactions, at the very top. WRONG: you land on Categories.",
+            "11. Swipe sideways between tabs starting at the height of the search bar or just below it: the tab changes as usual. WRONG: in Spending it no longer lets you swipe sideways where it did before."
+          ],
+          "ca": [
+            "1. Obre Despeses. A dalt a la dreta hi ha tres botons rodons; el primer (línies) va en verd. MALAMENT: no surten, o el títol s'ha mogut cap avall.",
+            "2. Mira entre la xifra i la llista: només hi ha el cercador amb el botó de filtres. MALAMENT: veus la caixa «El meu cicle», les categories o «Actualitza les despeses» damunt de les despeses.",
+            "3. Toca el segon botó (barres). Surt una barra del pressupost («de X €») i les teves categories de més a menys amb el seu import; a dalt diu «… per categoria · X € per sota», i la xifra és la mateixa que a Moviments. «Altres» surt en una sola fila i vibra una sola vegada. MALAMENT: les xifres no quadren amb les d'abans, «Altres» surt en dues files, vibra dues vegades o no vibra.",
+            "4. A Categories toca una categoria: surt el full per posar-hi un límit. Tria 200 € i prem Desa: la seva barra passa a ser contra aquest límit. Després torna a tocar-la i tria «Treure límit». MALAMENT: no surt el full, es perd el límit en desar o no es pot treure.",
+            "5. Toca el tercer botó (rellotge). Si tenies subscripcions detectades, surten a la seva targeta com abans (n'obres una i veuràs l'import editable, «passar a Despeses fixes» i «No és una subscripció»; no els premis) i el botó porta un número en un globus; si no, diu «Tot en ordre». MALAMENT: falten les que veies abans, o el número no quadra.",
+            "6. Torna a Moviments. A dalt de tot, estira cap avall amb el dit: la llista baixa una mica i en deixar anar passa a Categories amb un sol toc de vibració. Repeteix: Subscripcions; una altra vegada: Moviments. MALAMENT: no canvia, canvia a mig de la llista, o vibra dues vegades.",
+            "7. Baixa una mica per la llista i estira cap avall: només puja la llista, no canvia de secció. MALAMENT: canvia de secció sense ser a dalt de tot.",
+            "8. Obre Filtres: a Període, amb El meu cicle triat, a sota hi ha l'explicació (des de quina nòmina comença, Amaga/Ajuda). Tria Rang: surten les dues dates per triar. Torna a Mesos. MALAMENT: no hi ha l'explicació d'El meu cicle o no pots triar les dates del rang.",
+            "9. Baixa fins al final de la llista: sota «Fins aquí» hi ha «Actualitza les despeses» amb la seva explicació i l'hora de l'última sincronització. Toca-ho. MALAMENT: no hi és o no actualitza.",
+            "10. Ves a Categories, canvia a Inici i toca «Veure despeses ›»: arribes a Moviments, a dalt de tot. MALAMENT: arribes a Categories.",
+            "11. Llisca de costat entre pestanyes començant a l'altura del cercador o just a sota: canvia de pestanya com sempre. MALAMENT: a Despeses ja no deixa lliscar de costat on abans sí."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.165",
     "d": "2026-10-24",
     "t": {

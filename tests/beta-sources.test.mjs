@@ -140,6 +140,8 @@ const sourceBeta162=sourceAt("b4f148adaab75675682ee7cdf33f6b126f1529cf");
 const sourceBeta163=sourceAt("e5ff9eef17d9e6626205539ca0f459db5a52171e");
 // Catálogo164 pasa a histórico con la 165: se lee de la 4.26.164 servida en beta (ce5969d3b); su tanda gastos-v5-movimientos sigue SIN veredicto y la 165 la hereda con un paso más.
 const sourceBeta164=sourceAt("ce5969d3b787ab2a98e736d2036b2c7626ff1d4f");
+// Catálogo165 pasa a histórico con la 166: se lee de la 4.26.165 servida en beta (e9b3d7bf0); su tanda gastos-v5-movimientos sigue SIN veredicto y se queda en la 165.
+const sourceBeta165=sourceAt("e9b3d7bf062352ee3ee079f8d15cdef81bf15fc3");
 const sourceBeta153=sourceAt("80752dff055dc391c52c3067ce238f49e0a14598");
 // Catálogo137 pasa a histórico en la promoción 137: se lee de la beta 4.26.137.1 aprobada (6f18228c), lo último que probó el móvil y lo que sube entero.
 const sourceBeta137=sourceAt("6f18228cbd81c1cc9abfa7fabce0a878819234f4");
@@ -170,6 +172,15 @@ const RETIRADA164=new Map([
   ["  .v4-gastos-summary-top{",{file:"src/shell.html",from:"  /* ===== GASTOS v5 (20/10/2026, docs/design/gastos-v5/SPEC.md) =====",to:"  .v4-gastos-list-body{padding:0;}"}],
 ]);
 const retirada164=u=>u&&typeof u==="object"&&RETIRADA164.has(u.from)?RETIRADA164.get(u.from):u;
+// Integración166 (Gastos v5, tanda 2): el desglose plegable de Gastos se retira (`.v4-gastos-cats-body.abierto`: lo que esconde ahora las capas que no se ven es GX_OCULTO) y la ayuda de Mi ciclo
+// pasa de la lista a la hoja de Filtros (periodoExtra). Los dos descriptores aprobados que los vigilaban se reanclan a lo que hace hoy ese trabajo, entero y sin recortar; esta tabla
+// traduce la ancla vieja a la de hoy, como RETIRADA164.
+const RETIRADA166=new Map([
+  ["  .v4-gastos-cats-body.abierto{",{file:"src/modules/04-tab-gastos.js",data:"GX_OCULTO"}],
+  ["  const cycleHelpOpen=",{file:"src/modules/04-tab-gastos.js",from:"  const cycleHelpOpen=",to:"  const editCatBudget="}],
+  ['      preset==="cycle" && React.createElement("div",{className:"v4-cycle-box"',{file:"src/modules/04-tab-gastos.js",from:"  const periodoExtra=preset===\"cycle\" ? (",to:"  ) : preset===\"custom\" ? ("}],
+]);
+const retirada166=u=>u&&typeof u==="object"&&RETIRADA166.has(u.from)?RETIRADA166.get(u.from):u;
 const limpieza129=u=>{
   if(!u||typeof u==="string")return u;
   if(u.function==="freqLabel"||u.data==="FREQ_LABEL"||u.data==="FREQ_OPTS"||(u.function==="Fijos"&&u.file==="src/modules/08-motor-bank.js"))return null;
@@ -294,8 +305,8 @@ test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CS
   // La base es la integración120 (apuntes iguales de Trade Republic): Inicio no puede retirar su alcance ni heredar su revisión.
   const integrated=JSON.parse(source120("scripts/beta-sources.json"));
   // Detrás de Inicio sólo ha entrado el alcance de la122 (el cargo de recibo en Gastos).
-  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","limpieza-ajustes-perfil","tr-empareja-sin-preguntar","cuenta-parte-mia","inicio-recientes-sin-repetidos","scroll-borde-barra","inicio-grafica-reservas","compras-identicas-ids","myinvestor-contador-a-cero","deudas-metas-hoja-edicion","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","gastos-suscripciones-botones","compras-pendientes-otro-dia","deudas-plazo-cuota-encaja","deudas-metas-hoja-sin-parpadeo","deudas-metas-hoja-cierre-suave","teclado-atras-conserva","fichas-cierre-suave-atras","vibracion-borde-y-mi-ciclo","deudas-aviso-plazo","cuenta-saldo-cierre-atras","banco-pruebas-sin-aviso","vibracion-suave-ronda-2","deudas-guardar-motivo","recibo-renombrado-sigue-pagado","vibracion-suave-ronda-3","plan-por-confirmar-prestamo-youtube","vuelta-sin-tiron","deuda-bajar-cuota-alarga-plazo","cartera-ordenar-brokers","youtube-enlazar-recibo","vibracion-ajustador","pestanas-swipe-rapido","gestionar-plan-sin-ola","renombrar-y-notas-seguras","gestionar-plan-ola","vibracion-ajustador-r2","gestionar-plan-ola-r2","vibracion-r3","youtube-diagnostico","renombrar-lista-al-momento","recibos-cifra-cuadra","cartera-sin-lagazo","renombrar-sin-cobertura","vibracion-r4","youtube-ficha-reconoce","vibracion-r5","vibracion-r6","youtube-r4","recibos-meses-a-mano","gastos-dos-bancos","cartera-moneda","categoria-coche","deuda-nueva-desde-su-dia","gastos-v5-movimientos"),"Inicio y las altas de la122, la124, la126, la127, la128, la129, la130, la131, la132, la133, la134, la135, la137, la138, la139, la140, la141, la143, la144, la145, la146, la147, la148, la149, la150, la151, la152 y la153, sin retirar historia120");
-  for(const [key,value] of Object.entries(integrated))if(key!=="inicio-grafica-vuelve"){assert.deepEqual(scopes[key].native,value.native);assert.deepEqual(scopes[key].edge,value.edge);for(const part of (value.web||[]).map(limpieza129).map(retirada164).filter(Boolean))assert.ok(scopes[key].web.some(s=>JSON.stringify(sinMetodo122(s))===JSON.stringify(part)||JSON.stringify(sinPull130(sinMetodo122(s)))===JSON.stringify(sinPull130(sinMetodo122(part)))||JSON.stringify(sinAbsorcion143(sinCompras135(sinPull130(sinMetodo122(s)))))===JSON.stringify(sinCompras135(sinPull130(sinMetodo122(part))))||JSON.stringify(sinFin19(sinMetodo122(s)))===JSON.stringify(sinMetodo122(part))),key+": no recortar descriptor ajeno120");}
+  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","limpieza-ajustes-perfil","tr-empareja-sin-preguntar","cuenta-parte-mia","inicio-recientes-sin-repetidos","scroll-borde-barra","inicio-grafica-reservas","compras-identicas-ids","myinvestor-contador-a-cero","deudas-metas-hoja-edicion","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","gastos-suscripciones-botones","compras-pendientes-otro-dia","deudas-plazo-cuota-encaja","deudas-metas-hoja-sin-parpadeo","deudas-metas-hoja-cierre-suave","teclado-atras-conserva","fichas-cierre-suave-atras","vibracion-borde-y-mi-ciclo","deudas-aviso-plazo","cuenta-saldo-cierre-atras","banco-pruebas-sin-aviso","vibracion-suave-ronda-2","deudas-guardar-motivo","recibo-renombrado-sigue-pagado","vibracion-suave-ronda-3","plan-por-confirmar-prestamo-youtube","vuelta-sin-tiron","deuda-bajar-cuota-alarga-plazo","cartera-ordenar-brokers","youtube-enlazar-recibo","vibracion-ajustador","pestanas-swipe-rapido","gestionar-plan-sin-ola","renombrar-y-notas-seguras","gestionar-plan-ola","vibracion-ajustador-r2","gestionar-plan-ola-r2","vibracion-r3","youtube-diagnostico","renombrar-lista-al-momento","recibos-cifra-cuadra","cartera-sin-lagazo","renombrar-sin-cobertura","vibracion-r4","youtube-ficha-reconoce","vibracion-r5","vibracion-r6","youtube-r4","recibos-meses-a-mano","gastos-dos-bancos","cartera-moneda","categoria-coche","deuda-nueva-desde-su-dia","gastos-v5-movimientos","gastos-v5-secciones"),"Inicio y las altas de la122, la124, la126, la127, la128, la129, la130, la131, la132, la133, la134, la135, la137, la138, la139, la140, la141, la143, la144, la145, la146, la147, la148, la149, la150, la151, la152 y la153, sin retirar historia120");
+  for(const [key,value] of Object.entries(integrated))if(key!=="inicio-grafica-vuelve"){assert.deepEqual(scopes[key].native,value.native);assert.deepEqual(scopes[key].edge,value.edge);for(const part of (value.web||[]).map(limpieza129).map(retirada164).map(retirada166).filter(Boolean))assert.ok(scopes[key].web.some(s=>JSON.stringify(sinMetodo122(s))===JSON.stringify(part)||JSON.stringify(sinPull130(sinMetodo122(s)))===JSON.stringify(sinPull130(sinMetodo122(part)))||JSON.stringify(sinAbsorcion143(sinCompras135(sinPull130(sinMetodo122(s)))))===JSON.stringify(sinCompras135(sinPull130(sinMetodo122(part))))||JSON.stringify(sinFin19(sinMetodo122(s)))===JSON.stringify(sinMetodo122(part))),key+": no recortar descriptor ajeno120");}
   assert.equal(scope.unidades,true);
   for(const key of ["historial","auditoria","codigosCompatibles","compatibilidadGit","compatibilidadSha"])
     assert.equal(scope[key],undefined,"no hereda identidad anterior: "+key);
@@ -5164,7 +5175,7 @@ const expected165={"v":"4.26.165","d":"2026-10-24","t":{"es":"Gastos: sin hueco 
 test("Catálogo165 mueve la tanda de Gastos v5 de la 164 a la 165 con un paso más (solo web), amplía su alcance con las tres unidades del arreglo y declara cada huella que mueve",()=>{
   const tandas=["gastos-v5-movimientos"],pasos=[12],G0="src/modules/04-tab-gastos.js";
   const integrated=JSON.parse(sourceBeta164("scripts/beta-sources.json")),before=JSON.parse(sourceBeta164("src/data/release-notes.json"));
-  const source=f=>nl(read(f)),old=f=>nl(sourceBeta164(f));
+  const source=f=>nl(sourceBeta165(f)),old=f=>nl(sourceBeta164(f));
   assert.equal(before[0].v,"4.26.164");
   assert.deepEqual(before[0].tandas.map(g=>g.id),tandas,"la 164 llevaba la tanda pendiente");
   assert.deepEqual([before[1].v,before[1].tandas],["4.26.163",[]],"la 163 ya estaba vacía");
@@ -5207,7 +5218,7 @@ test("Catálogo165 mueve la tanda de Gastos v5 de la 164 a la 165 con un paso m�
   // Solo web: apk.json, build.gradle, el nativo, el SQL y las Edge quedan exactamente como en la 164.
   assert.equal(source("public/apk.json"),old("public/apk.json"),"apk.json intacto: sigue la APK 61");
   assert.equal(source("android/app/build.gradle"),old("android/app/build.gradle"),"build.gradle intacto");
-  assert.equal(execFileSync("git",["diff","--name-only","ce5969d3b787ab2a98e736d2036b2c7626ff1d4f","HEAD","--","supabase","android"],{encoding:"utf8"}).trim(),"","sin SQL, Edge ni nativo");
+  assert.equal(execFileSync("git",["diff","--name-only","ce5969d3b787ab2a98e736d2036b2c7626ff1d4f","e9b3d7bf062352ee3ee079f8d15cdef81bf15fc3","--","supabase","android"],{encoding:"utf8"}).trim(),"","sin SQL, Edge ni nativo");
   // Se mueven: la propia tanda (GastosCabecera y el bloque CSS de Gastos v5) y los dos descriptores reanclados (inc-0310-gastos-sin-limite e inc-0710-gastos-mes-madrid) que vigilan ese mismo bloque CSS.
   const expectedMoves={"gastos-v5-movimientos":["web"],"inc-0310-gastos-sin-limite":["web"],"inc-0710-gastos-mes-madrid":["web"]};
   const previous=new Map();
@@ -5249,6 +5260,123 @@ test("Catálogo165 mueve la tanda de Gastos v5 de la 164 a la 165 con un paso m�
 });
 
 
+
+const expected166={"v":"4.26.166","d":"2026-10-24","t":{"es":"Gastos por secciones","en":"Spending in sections","ca":"Despeses per seccions"},"items":{"es":["Gastos tiene tres secciones: arriba a la derecha hay tres botones para tus movimientos, tus categorías y las suscripciones que se repiten (con un número si alguna está por revisar). También puedes pasar de una a otra tirando hacia abajo desde arriba del todo, como en Plan.","Encima de la lista solo queda el buscador: la explicación de «Mi ciclo» está en Filtros y «Actualizar gastos», al final de la lista.","En Categorías, lo que no tiene categoría propia sale en una sola fila «Otros» y la suma de las filas cuadra con la cifra de arriba."],"en":["Spending now has three sections: three buttons at the top right take you to your transactions, your categories and the subscriptions that repeat (with a number if any need reviewing). You can also switch between them by pulling down from the very top, just like in Plan.","Only the search bar sits above the list now: the \"My cycle\" explanation is in Filters and \"Refresh expenses\" is at the end of the list.","In Categories, anything without a category of its own shows in a single \"Other\" row, and the rows add up to the figure at the top."],"ca":["Despeses té tres seccions: a dalt a la dreta hi ha tres botons per als teus moviments, les teves categories i les subscripcions que es repeteixen (amb un número si n'hi ha alguna per revisar). També pots canviar d'una a l'altra estirant cap avall des de dalt de tot, com al Pla.","Damunt de la llista ara només hi ha el cercador: l'explicació de «El meu cicle» és a Filtres i «Actualitza les despeses», al final de la llista.","A Categories, el que no té categoria pròpia surt en una sola fila «Altres» i la suma de les files quadra amb la xifra de dalt."]},"tandas":[{"id":"gastos-v5-secciones","t":{"es":"Gastos: secciones Movimientos, Categorías y Suscripciones con el tirón de Plan","en":"Spending: Transactions, Categories and Subscriptions sections with the Plan pull","ca":"Despeses: seccions Moviments, Categories i Subscripcions amb l'estirada del Pla"},"items":{"es":["1. Abre Gastos. Arriba a la derecha hay tres botones redondos; el primero (líneas) va en verde. MAL: no salen, o el título se ha movido hacia abajo.","2. Mira entre la cifra y la lista: solo está el buscador con el botón de filtros. MAL: ves la caja «Mi ciclo», las categorías o «Actualizar gastos» encima de los gastos.","3. Toca el segundo botón (barras). Sale una barra del presupuesto («de X €») y tus categorías de mayor a menor con su importe; arriba pone «… por categoría · X € por debajo», y la cifra es la misma que en Movimientos. «Otros» sale en una sola fila y vibra una sola vez. MAL: las cifras no cuadran con lo de antes, «Otros» sale en dos filas, vibra dos veces o no vibra.","4. En Categorías toca una categoría: sale la hoja para ponerle un límite. Elige 200 € y pulsa Guardar: su barra pasa a ser contra ese límite. Después vuelve a tocarla y elige «Quitar límite». MAL: no sale la hoja, se pierde el límite al guardar o no se puede quitar.","5. Toca el tercer botón (reloj). Si tenías suscripciones detectadas, salen en su tarjeta como antes (abre una y verás el importe editable, «pasar a Gastos fijos» y «No es una suscripción»; no los pulses) y el botón lleva un número en un globito; si no, pone «Todo en orden». MAL: faltan las que veías antes, o el número no cuadra.","6. Vuelve a Movimientos. Arriba del todo, tira hacia abajo con el dedo: la lista baja un poco y al soltar pasa a Categorías con un solo toque de vibración. Repite: Suscripciones; otra vez: Movimientos. MAL: no cambia, cambia a mitad de lista, o vibra dos veces.","7. Baja un poco por la lista y tira hacia abajo: solo sube la lista, no cambia de sección. MAL: cambia de sección sin estar arriba del todo.","8. Abre Filtros: en Periodo, con Mi ciclo elegido, debajo está su explicación (desde qué cobro empieza, Ocultar/Ayuda). Elige Rango: salen las dos fechas para elegir. Vuelve a Meses. MAL: no está la explicación de Mi ciclo o no puedes elegir las fechas del rango.","9. Baja hasta el final de la lista: debajo de «Hasta aquí» está «Actualizar gastos» con su explicación y la hora de la última sincronización. Tócalo. MAL: no está o no actualiza.","10. Ve a Categorías, cambia a Inicio y toca «Ver gastos ›»: llegas a Movimientos, arriba del todo. MAL: llegas a Categorías.","11. Desliza de lado entre pestañas empezando a la altura del buscador o justo debajo: cambia de pestaña como siempre. MAL: en Gastos ya no deja deslizar de lado donde antes sí."],"en":["1. Open Spending. At the top right there are three round buttons; the first one (lines) is green. WRONG: they are missing, or the title has moved down.","2. Look between the figure and the list: there is only the search bar with the filters button. WRONG: you see the \"My cycle\" box, the categories or \"Refresh expenses\" above the expenses.","3. Tap the second button (bars). A budget bar (\"of €X\") and your categories from largest to smallest with their amounts appear; the top says \"… by category · €X under\", and the figure is the same as in Transactions. \"Other\" shows in a single row and it vibrates once. WRONG: the numbers don't match what you had before, \"Other\" shows in two rows, it vibrates twice or doesn't vibrate.","4. In Categories tap a category: a sheet opens to set a limit. Choose €200 and tap Save: its bar is now measured against that limit. Then tap it again and choose \"Remove limit\". WRONG: the sheet doesn't open, the limit is lost when saving or it can't be removed.","5. Tap the third button (clock). If you had detected subscriptions, they show in their card as before (open one and you'll see the editable amount, \"move to Fixed expenses\" and \"Not a subscription\"; don't press them) and the button carries a number in a bubble; if not, it says \"All clear\". WRONG: the ones you used to see are missing, or the number doesn't match.","6. Go back to Transactions. At the very top, pull down with your finger: the list drops a little and on release it moves to Categories with a single vibration tap. Repeat: Subscriptions; once more: Transactions. WRONG: it doesn't change, it changes halfway down the list, or it vibrates twice.","7. Scroll a little down the list and pull down: only the list moves up, it doesn't change section. WRONG: it changes section without being at the very top.","8. Open Filters: under Period, with My cycle chosen, its explanation is below (from which paycheck it starts, Hide/Help). Choose Range: the two dates to pick appear. Go back to Months. WRONG: the My cycle explanation isn't there or you can't pick the range dates.","9. Scroll to the end of the list: below \"That's everything\" there is \"Refresh expenses\" with its explanation and the time of the last sync. Tap it. WRONG: it isn't there or it doesn't refresh.","10. Go to Categories, switch to Home and tap \"See spending ›\": you land on Transactions, at the very top. WRONG: you land on Categories.","11. Swipe sideways between tabs starting at the height of the search bar or just below it: the tab changes as usual. WRONG: in Spending it no longer lets you swipe sideways where it did before."],"ca":["1. Obre Despeses. A dalt a la dreta hi ha tres botons rodons; el primer (línies) va en verd. MALAMENT: no surten, o el títol s'ha mogut cap avall.","2. Mira entre la xifra i la llista: només hi ha el cercador amb el botó de filtres. MALAMENT: veus la caixa «El meu cicle», les categories o «Actualitza les despeses» damunt de les despeses.","3. Toca el segon botó (barres). Surt una barra del pressupost («de X €») i les teves categories de més a menys amb el seu import; a dalt diu «… per categoria · X € per sota», i la xifra és la mateixa que a Moviments. «Altres» surt en una sola fila i vibra una sola vegada. MALAMENT: les xifres no quadren amb les d'abans, «Altres» surt en dues files, vibra dues vegades o no vibra.","4. A Categories toca una categoria: surt el full per posar-hi un límit. Tria 200 € i prem Desa: la seva barra passa a ser contra aquest límit. Després torna a tocar-la i tria «Treure límit». MALAMENT: no surt el full, es perd el límit en desar o no es pot treure.","5. Toca el tercer botó (rellotge). Si tenies subscripcions detectades, surten a la seva targeta com abans (n'obres una i veuràs l'import editable, «passar a Despeses fixes» i «No és una subscripció»; no els premis) i el botó porta un número en un globus; si no, diu «Tot en ordre». MALAMENT: falten les que veies abans, o el número no quadra.","6. Torna a Moviments. A dalt de tot, estira cap avall amb el dit: la llista baixa una mica i en deixar anar passa a Categories amb un sol toc de vibració. Repeteix: Subscripcions; una altra vegada: Moviments. MALAMENT: no canvia, canvia a mig de la llista, o vibra dues vegades.","7. Baixa una mica per la llista i estira cap avall: només puja la llista, no canvia de secció. MALAMENT: canvia de secció sense ser a dalt de tot.","8. Obre Filtres: a Període, amb El meu cicle triat, a sota hi ha l'explicació (des de quina nòmina comença, Amaga/Ajuda). Tria Rang: surten les dues dates per triar. Torna a Mesos. MALAMENT: no hi ha l'explicació d'El meu cicle o no pots triar les dates del rang.","9. Baixa fins al final de la llista: sota «Fins aquí» hi ha «Actualitza les despeses» amb la seva explicació i l'hora de l'última sincronització. Toca-ho. MALAMENT: no hi és o no actualitza.","10. Ves a Categories, canvia a Inici i toca «Veure despeses ›»: arribes a Moviments, a dalt de tot. MALAMENT: arribes a Categories.","11. Llisca de costat entre pestanyes començant a l'altura del cercador o just a sota: canvia de pestanya com sempre. MALAMENT: a Despeses ja no deixa lliscar de costat on abans sí."]}}]};
+// 4.26.166 (24/10/2026): Gastos v5 tanda 2 (claude/gastos-v5-t2, 67a91b309: secciones Movimientos / Categorías / Suscripciones, el tirón de Plan sacado a useTironSeccion, la ayuda de Mi ciclo a Filtros y «Actualizar gastos» al pie) y el arreglo de e2e 228a6ab92 sobre la beta 4.26.165 servida (e9b3d7bf0), solo web y sin APK nueva (sigue la 61).
+// Una tanda NUEVA (gastos-v5-secciones, once pasos). gastos-v5-movimientos NO tiene veredicto y se queda donde está, en la 165: su huella web se mueve porque cambian Expenses, GastosCabecera y el bloque CSS de Gastos v5.
+// Al agrupar el desglose por la categoría que se PINTA (catOf), un id que ya no existe deja de salir como una segunda fila «Otros»: la suma de las filas sigue siendo la cifra de la cabecera.
+// El registro crece con el descriptor nuevo y se reancla lo que la tanda mueve de sitio sin debilitarlo: el desglose plegable de inicio-solape-gastos (retirado) pasa a GX_OCULTO, la mecánica del tirón de plan-scroll-lento y de vibracion-r5 pasa a useTironSeccion y la ayuda de Mi ciclo de inc-2809-02-ayuda-ciclo a periodoExtra.
+test("Catálogo166 añade la tanda de las secciones de Gastos (solo web) sobre la 165, que conserva la suya, con alcance propio, reancla lo que cambia de sitio y declara cada huella que mueve",()=>{
+  const tandas=["gastos-v5-secciones"],pasos=[11],G0="src/modules/04-tab-gastos.js",V0="src/modules/14-v4-screens.js",U0="src/modules/02-ui-shared.js";
+  const integrated=JSON.parse(sourceBeta165("scripts/beta-sources.json")),before=JSON.parse(sourceBeta165("src/data/release-notes.json"));
+  const source=f=>nl(read(f)),old=f=>nl(sourceBeta165(f));
+  assert.equal(before[0].v,"4.26.165");
+  assert.deepEqual(before[0].tandas.map(g=>g.id),["gastos-v5-movimientos"],"la 165 llevaba su tanda sin veredicto");
+  const expectedNotes=[expected166,...before];
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.deepEqual(notes,expectedNotes,"la nota 166 literal delante y todo lo demás intacto, la tanda de la 165 incluida");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.166",tandas[0],0],["4.26.165","gastos-v5-movimientos",0]],"el panel enseña dos tandas, cada una en su versión y sin APK");
+  for(const n of notes.slice(2))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] (la propiedad se conserva, vacía)");
+  assert.equal(notes.length,263);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
+  notes[0].tandas.forEach(g=>assert.deepEqual(Object.keys(g),["id","t","items"],"sin apk: "+g.id));
+  const jerga=/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|FIN-|SES-|UX-|\d+\.\d+\.\d+/i;
+  const textos=source("src/modules/01-i18n.js");
+  // Cada rótulo que cita un paso es el texto real de la app en su idioma: [clave, paso (índice desde 0)] -> el texto de la clave en es/en/ca.
+  const rotulo=key=>{const m={};for(const lang of ["es","en","ca"]){const all=[...textos.matchAll(new RegExp("(?<![A-Za-z0-9_])"+key+':"([^"]*)"',"g"))].map(x=>x[1]);assert.equal(all.length,3,key+": un texto por idioma");m[lang]=all[["es","en","ca"].indexOf(lang)];}return m;};
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,3,lang+": tres puntos familiares");
+    const steps=notes[0].tandas[0].items[lang];assert.equal(steps.length,pasos[0],lang+": pasos de "+tandas[0]);
+    steps.forEach((step,j)=>assert.ok(step.startsWith((j+1)+". "),lang+": paso numerado "+(j+1)));
+    for(const text of steps)assert.ok(/MAL|WRONG|MALAMENT/.test(text),lang+": cada paso dice qué es MAL: "+text);
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
+  }
+  for(const [key,paso,cortaEn] of [["g_filters",7],["gv5_periodo",7],["g_cycle",7],["gv5_p_range",7],["gv5_p_months",7],["g_cycle_help_hide",7],["g_cycle_help_show",7],["g_cat_budget_clear",3],["save",3],["sub_tofixed",4],["sub_dismiss",4],["gv5_subs_ok_t",4],["g_refresh_expenses",8],["gv5_end",8,":"],["v4_see_gastos",9]]){
+    const r=rotulo(key);for(const lang of ["es","en","ca"]){const txt=cortaEn?r[lang].split(cortaEn)[0]:r[lang];assert.ok(txt,lang+": "+key+" existe");assert.ok(notes[0].tandas[0].items[lang][paso].includes(txt),lang+": el paso "+(paso+1)+" cita «"+txt+"» ("+key+")");}
+  }
+  for(const [key,paso] of [["gv5_sec_movs",5],["gv5_sec_cats",5]]){const r=rotulo(key);for(const lang of ["es","en","ca"])assert.ok(notes[0].tandas[0].items[lang].join(" ").includes(r[lang]),lang+": el guion cita «"+r[lang]+"» ("+key+")");}
+  const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
+  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verifyNotes(twice),assert.AssertionError,"no duplicar una tanda");
+  const movida=structuredClone(notes);movida[0].tandas.push(movida[1].tandas.pop());assert.throws(()=>verifyNotes(movida),assert.AssertionError,"la tanda de la 165 se queda en la 165");
+  const conApk=structuredClone(notes);conApk[0].tandas[0].apk=61;assert.throws(()=>verifyNotes(conApk),assert.AssertionError,"la tanda no exige APK: es solo web");
+  // Registro: solo cambian los cuatro descriptores reanclados y entra el nuevo, el último; todo lo demás, intacto.
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),{[tandas[0]]:ahora,...resto}=scopes;
+  const reancla={
+    "inicio-solape-gastos":w=>w.map(u=>u.from==="  .v4-gastos-cats-body.abierto{"?{file:G0,data:"GX_OCULTO"}:u),
+    "plan-scroll-lento":w=>w.flatMap(u=>u.from==="  /* DESLIZAR VERTICAL PARA CAMBIAR DE SEGMENTO"?[{file:V0,from:u.from,to:"  return React.createElement(\"div\",{className:\"v4-screen\",ref:planScreenRef"},{file:U0,function:"useTironSeccion"}]:[u]),
+    "vibracion-r5":w=>w.map(u=>u.from==="      startAtTop=atTopOf(pageEl);"?{...u,file:U0}:u),
+    "inc-2809-02-ayuda-ciclo":w=>w.map(u=>u.from==="  const cycleHelpOpen="?{...u,to:"  const editCatBudget="}:(u.from||"").startsWith("      preset===\"cycle\" && React.createElement(\"div\",{className:\"v4-cycle-box\"")?{file:G0,from:"  const periodoExtra=preset===\"cycle\" ? (",to:"  ) : preset===\"custom\" ? ("}:u)
+  };
+  const esperado={};for(const [k,v] of Object.entries(integrated))esperado[k]=reancla[k]?{...v,web:reancla[k](v.web)}:v;
+  for(const k of Object.keys(reancla))assert.notDeepEqual(esperado[k],integrated[k],k+": el reanclado cambia algo");
+  assert.deepEqual(resto,esperado,"el registro de la 165, intacto salvo los cuatro reanclados");
+  assert.equal(integrated[tandas[0]],undefined,"identidad que no existía");
+  assert.deepEqual(Object.keys(scopes),[...Object.keys(integrated),tandas[0]],"el descriptor nuevo, al final");
+  assert.deepEqual(Object.keys(ahora),["web","unidades"],"solo web");assert.equal(ahora.unidades,true);
+  const propias=[{file:G0,function:"Expenses"},{file:G0,data:"GastosLista"},{file:G0,function:"GastosCabecera"},{file:G0,function:"GxSecciones"},{file:G0,data:"GX_SECC"},{file:G0,data:"GX_SECC_TXT"},{file:G0,data:"GX_SECC_ICO"},{file:G0,data:"GX_OCULTO"},{file:U0,function:"useTironSeccion"},{file:V0,function:"PlanTab"},{file:V0,data:"PLAN_SEG_ORDEN"},
+    {file:"src/modules/01-i18n.js",from:"Object.assign(LANG.es,{gv5_secciones:",to:"Object.assign(LANG.en,{gv5_secciones:"},{file:"src/modules/01-i18n.js",from:"Object.assign(LANG.en,{gv5_secciones:",to:"Object.assign(LANG.ca,{gv5_secciones:"},{file:"src/modules/01-i18n.js",from:"Object.assign(LANG.ca,{gv5_secciones:",to:"const MON_I18N = {"},
+    {file:"src/shell.html",from:"  /* Título con los tres iconos de sección a la derecha (SPEC §2.1)",to:"  /* Días: encabezado con el total que cuenta"},{file:"src/shell.html",from:"  /* Pie de Movimientos («Actualizar gastos» hasta la tanda 5).",to:"  /* Periodo en Filtros: selector de una sola opción. */"},
+    {file:"src/modules/11-app-main.js",from:"  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",to:"  // INC-0410 guardado: límite."}];
+  assert.deepEqual(ahora.web.slice(0,propias.length),propias,"las unidades propias de la tanda (con el bloque del guardado de App, porque Expenses escribe estado con el set real), en este orden, y el cierre de lectores detrás");
+  // El resto es el cierre de lectores (funciones y datos que leen las unidades propias, transitivamente), recalculado con el mismo lector hasta que no crece.
+  {const fns=logicFunctions(source),dat=logicData(source);let web=propias.slice();
+    for(let ronda=0;ronda<10;ronda++){
+      const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];
+      for(const fn of scopeDependencies({web},source,fns))if(!tiene(fn.file,fn.name,"function"))extra.push({file:fn.file,function:fn.name});
+      for(const d of scopeDataDependencies({web},source,fns,dat))if(!tiene(d.file,d.name,"data"))extra.push({file:d.file,data:d.name});
+      if(!extra.length)break;web=web.concat(extra);
+    }
+    const clave=u=>JSON.stringify(u);
+    assert.equal(ahora.web.length,web.length,"el cierre de lectores del descriptor es exactamente el calculado");
+    assert.deepEqual(new Set(ahora.web.map(clave)),new Set(web.map(clave)),"el cierre de lectores del descriptor es exactamente el calculado");
+    assert.ok(ahora.web.length>=150,"el cierre no se recorta");}
+  for(const u of ahora.web)assert.ok(scopeText(u,source).length>0,"la unidad existe en la fuente: "+JSON.stringify(u));
+  // Solo web: apk.json, build.gradle, el nativo, el SQL y las Edge quedan exactamente como en la 165.
+  assert.equal(source("public/apk.json"),old("public/apk.json"),"apk.json intacto: sigue la APK 61");
+  assert.equal(source("android/app/build.gradle"),old("android/app/build.gradle"),"build.gradle intacto");
+  assert.equal(execFileSync("git",["diff","--name-only","e9b3d7bf062352ee3ee079f8d15cdef81bf15fc3","HEAD","--","supabase","android"],{encoding:"utf8"}).trim(),"","sin SQL, Edge ni nativo");
+  // Huellas que se mueven (lista cerrada, todas solo web): la propia tanda es nueva y no cuenta. La de movimientos (viva en la 165) se reabre;
+  // el resto son descriptores aprobados que leen Expenses, el CSS de Gastos, el tirón de Plan o la ayuda de Mi ciclo, y no vuelven al panel.
+  const expectedMoves={"inc-2809-02-ayuda-ciclo":["web"],"inc-0210-03-gastos-periodo":["web"],"feature-0210-01-gasolina-taxi":["web"],"feature-0310-01-movilidad":["web"],"inc-0310-gastos-sin-limite":["web"],"inc-0710-gastos-mes-madrid":["web"],"inicio-solape-gastos":["web"],"recibo-cargo-en-gastos":["web"],"plan-scroll-lento":["web"],"gastos-actualizar-gastos":["web"],"fichas-cierre-suave-atras":["web"],"plan-por-confirmar-prestamo-youtube":["web"],"vuelta-sin-tiron":["web"],"youtube-enlazar-recibo":["web"],"renombrar-y-notas-seguras":["web"],"vibracion-r3":["web"],"renombrar-sin-cobertura":["web"],"vibracion-r5":["web"],"gastos-dos-bancos":["web"],"gastos-v5-movimientos":["web"]};
+  const previous=new Map();
+  const measure=reader=>{
+    const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};
+    for(const [key,scope] of Object.entries(integrated)){
+      if(key===archiveId)continue;
+      if(!previous.has(key))previous.set(key,betaRevision(key,sourceBeta165,undefined,scope));
+      const a=previous.get(key),b=betaRevision(key,reader,undefined,now[key]);
+      const surfaces=["web","native","edge"].filter(x=>a[x]!==b[x]);
+      if(surfaces.length)moved[key]=surfaces;
+    }
+    return moved;
+  };
+  assert.deepEqual(measure(source),expectedMoves,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  const vivas=notes.flatMap(n=>(n.tandas||[]).map(g=>g.id));
+  for(const id of Object.keys(expectedMoves).filter(id=>id!=="gastos-v5-movimientos"))assert.equal(vivas.includes(id),false,"huella que se mueve sin tanda viva: "+id);
+  assert.deepEqual(vivas,[tandas[0],"gastos-v5-movimientos"]);
+  const H="src/shell.html";
+  const currents=Object.fromEntries(tandas.map(id=>[id,betaRevision(id,source,undefined,scopes[id])]));
+  for(const id of tandas){assert.ok(currents[id].web);assert.equal(currents[id].edge,undefined,"sin huella de Edge");assert.equal(currents[id].native,undefined);}
+  // Mutantes sobre la fuente real: deshacer el agrupado por la categoría que se pinta, el ocultar sin alto de las capas, el umbral del tirón o el pie reabre la tanda.
+  for(const [id,file,a,b] of [
+    [tandas[0],G0,"const k=catOf(r.id).id;","const k=r.id;"],
+    [tandas[0],G0,'contentVisibility:"hidden"','contentVisibility:"visible"'],
+    [tandas[0],U0,"const TH=0.07,","const TH=0.09,"],
+    [tandas[0],U0,"if(startAtTop) e.mcSegPull=true;","if(startAtTop) e.mcSegPull=false;"],
+    [tandas[0],H,".gx-pie{padding-top:28px;",".gx-pie{padding-top:0;"],
+  ]){
+    assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
+    const mutated=betaRevision(id,f=>f===file?source(f).replace(a,()=>b):source(f),undefined,scopes[id]);
+    assert.notEqual(mutated.web,currents[id].web,id+" reabre la tanda: "+a);
+  }
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes);
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),vivas,"lo que el build entrega al panel");
+  built[0].tandas.forEach((g0,i)=>{
+    assert.equal(g0.web,currents[tandas[i]].web);assert.equal(g0.edge,undefined);assert.equal(g0.native,undefined);assert.equal(g0.apk,undefined);assert.equal(receipt.web[tandas[i]],currents[tandas[i]].web);
+    for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g0[key],undefined,"guion nuevo sin "+key);
+  });
+  assert.equal(receipt.web["gastos-v5-movimientos"],betaRevision("gastos-v5-movimientos",source,undefined,scopes["gastos-v5-movimientos"]).web,"la tanda de la 165 se mide contra la fuente nueva");
+  assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
+});
 
 // Catálogo cerrado: desde la promoción126 se lee de su commit inmutable (la promoción deja una sola nota y ninguna tanda).
 test("Catálogo126 histórico añade la tanda de la tarjeta del mes sobre la125, solo web, y declara cada huella que mueve",()=>{
@@ -7159,7 +7287,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   const marca="INC-0410 guardado: de aquí al límite";
   const dependientes=Object.keys(registro).filter(id=>registro[id].web.some(x=>x.from&&x.from.includes(marca)));
   const ajenas=Object.keys(registro).filter(id=>!dependientes.includes(id));
-  assert.equal(dependientes.length,62);
+  assert.equal(dependientes.length,63);
   for(const id of ["deudas-metas-hoja-edicion","deudas-plazo-cuota-encaja","deudas-metas-hoja-cierre-suave","fichas-cierre-suave-atras","gastos-suscripciones-botones"])assert.ok(dependientes.includes(id),id+": las hojas de Deudas y Metas y SubRow escriben estado con el set real y llevan el bloque del guardado");
   assert.ok(dependientes.includes("myinvestor-contador-a-cero"),"la sincronización de brókers de App escribe posiciones con el set real y lleva el bloque del guardado");
   assert.ok(dependientes.includes("compras-identicas-ids"),"las compras idénticas fusionan filas y guardan lápidas con el set real y llevan el bloque del guardado");
@@ -7174,6 +7302,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   assert.ok(dependientes.includes("categoria-coche"),"Apuntar guarda el gasto nuevo con el set real (ApuntarSheet) y lleva el bloque del guardado");
   assert.ok(dependientes.includes("deuda-nueva-desde-su-dia"),"el alta de Deudas (addDebt) y la compra de AffordSim (createDebt) sellan startDay y guardan con el set real: llevan el bloque del guardado");
   assert.ok(dependientes.includes("gastos-v5-movimientos"),"Gastos v5 ordena, borra y marca gastos con el set real de Expenses: lleva el bloque del guardado");
+  assert.ok(dependientes.includes("gastos-v5-secciones"),"las secciones de Gastos viven en Expenses, que ordena, borra y marca gastos con el set real: llevan el bloque del guardado");
   assert.ok(dependientes.includes("limpieza-ajustes-perfil"),"la limpieza de Ajustes y perfil escribe estado con set() (Ajustes, Cartera) y lleva el bloque del guardado");
   assert.ok(dependientes.includes("inicio-mes-pasado-mismo-dia"),"la tanda de la comparación lleva el mismo alcance de Inicio que inicio-patrimonio-flujos, con su bloque del guardado");
   assert.ok(dependientes.includes("recibo-renombrado-sigue-pagado"),"renombrar un recibo reescribe sus pruebas de pago con el set real (patchFixedById) y lleva el bloque del guardado");
