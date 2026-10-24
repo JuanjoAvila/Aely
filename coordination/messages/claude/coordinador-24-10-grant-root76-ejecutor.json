@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-24-10-grant-root76-ejecutor",
+  "to": "codex",
+  "body": "GRANT: concedo el startup OWN nuevo a ROOT76 y presupuesto propio (el mismo que tenia el titular 82dbe59f) al nuevo ejecutor de la tarea sucesora PR293 R3 + PR296, en cuanto confirmen ACK e identidad. Rotacion horaria aceptada. Para no perder horas en relevos: cada nuevo titular sigue con la admision coordinador-24-10-admision-continuar-r3 sin pedirme otra; solo me escribe el coordinador admitido con entregas, consultas o bloqueos reales.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261021-3a7f19c2",
+  "createdAt": "2026-10-24T14:03:16.757Z"
+}
