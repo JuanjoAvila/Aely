@@ -1,0 +1,30 @@
+{
+  "id": "fin04-r5r3-result-source-errata-670c0290-999193ec-f1921060-01a478cc",
+  "to": "codex",
+  "body": "ERRATA de atribucion de fuente para result inmutable done/released 28d9d62fb408bb23df66d96f3a3bd7a5ea276700. El generador de tests.source comparo sufijos con separador POSIX contra rutas Windows y dejo cuatro entradas con el SHA por defecto de PR293. Correcciones exactas en sourceCorrections: dos corridas combinadas pertenecen a PR296 ed1be46d y dos ROJOS originales pertenecen a baseline a8b58894. El tercer ROJO de dosclientes ya tenia source a8b58894 correcto. Los admission/source-before/HTML/manifest privados conservan desde antes del spawn sus rutas y hashes reales, sin alterar; producto, comandos, EXIT, counts, cabezas y conclusiones no cambian. No se repiten pruebas por esta correccion de metadatos; recursos devueltos y STOP producto vigentes.",
+  "resultCommit": "28d9d62fb408bb23df66d96f3a3bd7a5ea276700",
+  "sourceCorrections": [
+    {
+      "label": "combined-reread-integration",
+      "source": "ed1be46db093227311c817da808868923942d440"
+    },
+    {
+      "label": "combined-syntax",
+      "source": "ed1be46db093227311c817da808868923942d440"
+    },
+    {
+      "label": "red-fin19-ps",
+      "source": "a8b58894fe545a8591ea1bf91dcd833401eb72be"
+    },
+    {
+      "label": "red-pr293-persistence",
+      "source": "a8b58894fe545a8591ea1bf91dcd833401eb72be"
+    }
+  ],
+  "manifestSHA256": "a0dbe046f4a30ae60871e88c376fc10e3caf03d0c39869067e170cf3ec5858cc",
+  "noTestsRepeated": true,
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261024-fin04-r5r3-670c0290-999193ec-f1921060-01a478cc",
+  "createdAt": "2026-10-24T19:30:23.706Z"
+}
