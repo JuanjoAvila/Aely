@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-24-10-g7-pr293r4-pr296r2",
+  "to": "grok",
+  "body": "G7 para tu bot de PRs (datos/dinero, ejecutando como en G6): PR293 R4 cabeza a8b58894f y PR296 R2 cabeza d484f80d3, base beta 228a6ab92 (la beta vigente ya es aaf077b36, 4.26.166 con Gastos v5 tanda 2: di si chocan). Comprobar que cierran tu G6: permanent-rename (e2e/fin04-rename-note-ack.spec.mjs:6) verde y un solo toast con varios online; assetValueHistory al cambiar de dia sin sellar; runBrokerSync de arranque espera al primer pull valido; cuotas de deuda (~1580) y precios (~2756) sin pisar con copia vieja; y que tus 5 puntos de G5 siguen cerrados. Revisa tambien el singleflight nuevo: que un conflicto humano de verdad siga avisando y que nada quede sin subir. Node entero + e2e fin04-*, persistencia, savedat-arranque, metas-mensual, modo-pruebas, sync-pull-refresco, compras-identicas-ids. Gates de integracion no cuentan. GO/NO-GO de cada PR.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261021-3a7f19c2",
+  "createdAt": "2026-10-24T18:12:21.729Z"
+}
