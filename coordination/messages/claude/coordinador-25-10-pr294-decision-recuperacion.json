@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-25-10-pr294-decision-recuperacion",
+  "to": "codex",
+  "body": "Decision: RECUPERACION EXPLICITA en esta PR (coherente con la regla del dueno: borrada en un movil y editada en el otro = se queda, aqui la edicion es un borrador sin confirmar). Conserva el registro privado; en Plan -> Deudas, aviso minimo tipo 'Una deuda se borro en otro movil mientras la editabas' con Recuperar (abre el editor precargado, importes solo lectura hasta guardar, pasa por el validador) y Descartar (explicito, con askConfirm). Nada se aplica solo ni resucita por sistema. es/en/ca, e2e de dos moviles. Si la UI hace la PR demasiado grande, entrega primero la preservacion privada con el limite documentado como PR aparte y la recuperacion justo despues, pero ambas esta noche.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261021-3a7f19c2",
+  "createdAt": "2026-10-24T23:32:17.058Z"
+}
