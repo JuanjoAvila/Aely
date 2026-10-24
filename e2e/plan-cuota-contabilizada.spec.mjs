@@ -1,5 +1,5 @@
 import {test,expect} from "@playwright/test";
-import {seedLoggedInDashboard,dismissNews} from "./fixtures.mjs";
+import {seedLoggedInDashboard,dismissNews,gastosGrisFila} from "./fixtures.mjs";
 
 const debt={id:"loan-a",name:"Préstamo sintético A",value:12000,original:12000,monthly:60,account:"sabadell",day:3,asOf:2026*12+9};
 const cargo={id:"charge-a",date:"2026-10-02",amount:60,merchant:"Prestamista sintético",obName:"Prestamista sintético",category:"deudas",source:"ob",ent:"sabadell",debtId:"loan-a"};
@@ -77,9 +77,11 @@ for(const lang of ["es","en","ca"]){
     await open(page,lang);
     await expect(page.locator('.page-scroll-host .v4-charge').filter({hasText:debt.name})).toHaveCount(0);
     await page.locator('.botnav-tab[data-tour="gastos"]').click();
-    const row=page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:cargo.merchant});
-    await expect(row).toHaveCount(1);await expect(row).toContainText(debt.name);
-    await expect(row).toContainText({es:"ya cuenta en el Plan",en:"already in your Plan",ca:"ja compta al Pla"}[lang]);
+    // Gastos v5: el cargo vinculado vive en la fila gris de cuotas («no cuentan»: ya cuenta en el Plan).
+    const row=await gastosGrisFila(page,cargo.merchant);
+    await expect(page.locator('.gx-gris-it').filter({hasText:cargo.merchant})).toHaveCount(1);
+    await expect(page.locator('[data-gris="deuda"] .gx-gris-it').filter({hasText:cargo.merchant})).toHaveCount(1);
+    await expect(row).toContainText(debt.name);await expect(row).toContainText("60");
     await page.locator('.botnav-tab[data-tour="plan"]').click();
     await expect(pending(page).filter({hasText:debt.name})).toHaveCount(0);
     await expect(paid(page).filter({hasText:debt.name})).toHaveCount(1);
