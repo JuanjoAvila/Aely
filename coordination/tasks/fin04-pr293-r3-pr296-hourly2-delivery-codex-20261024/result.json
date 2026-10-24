@@ -1,0 +1,60 @@
+{
+  "status": "done",
+  "summary": "SOLO ENTREGA completada: mismas PR293/296 actualizadas a b92976b1/fcfd10a0 con leases exactos, lecturas remotas y metadata verificadas; drafts y dependencia conservados. Cero fuente/tests/build/install. Cuatro gates de integracion a cargoClaude6637; noProductREADY.",
+  "tests": [],
+  "productSHA": "fcfd10a007a9c94fc913b4fc2498e87603cbc878",
+  "baseSHA": "ce5969d3b787ab2a98e736d2036b2c7626ff1d4f",
+  "pullRequests": [
+    {
+      "number": 293,
+      "head": "b92976b1edcdea292ca8d88f8a61942b79fa95e7",
+      "draft": true,
+      "pushExit": 0,
+      "leaseExpectedSHA": "91a98b106689191612d4a76560bc15007c613400",
+      "gitReadbackExact": true,
+      "apiHeadAndMetadataExact": true
+    },
+    {
+      "number": 296,
+      "head": "fcfd10a007a9c94fc913b4fc2498e87603cbc878",
+      "draft": true,
+      "pushExit": 0,
+      "leaseExpectedSHA": "7258f56898d9d03bfceff6e6c5d46390a925a1de",
+      "gitReadbackExact": true,
+      "apiHeadAndMetadataExact": true
+    }
+  ],
+  "priorEvidence": {
+    "combinedHead": "fcfd10a007a9c94fc913b4fc2498e87603cbc878",
+    "invocations": 215,
+    "exit0": 211,
+    "exit1": 4,
+    "exit": 1,
+    "executedByThisDeliveryHolder": false,
+    "gates": [
+      "beta-sources/PERSIST91",
+      "docs-frescura",
+      "memory mirror aborted without writes",
+      "size"
+    ],
+    "integrationOwner": "Claude under6637e5ef90677cf005c51b17a59ab3784476d80b"
+  },
+  "resourcesReturned": true,
+  "noSharedLeaseAcquired": true,
+  "noTestsRepeated": true,
+  "deliveryProofSHA256": "8cce4690aed36d772fdaa6adc311ce883233ff4c04e4f0a58ffc50050fd1938c",
+  "limitations": [
+    "Exact-source general CI unverified",
+    "Claude review and integration pending",
+    "Served artifact unverified",
+    "Physical mobile acceptance unverified",
+    "Not ProductREADY"
+  ],
+  "reportRecipient": "codex",
+  "schema": 1,
+  "taskId": "fin04-pr293-r3-pr296-hourly2-delivery-codex-20261024",
+  "actor": "codex",
+  "sessionId": "codex-local-20261024-r3w2-979871bab28c267556887b1e6a159e5b",
+  "createdAt": "2026-10-24T15:59:06.224Z",
+  "released": true
+}
