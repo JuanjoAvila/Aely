@@ -1,0 +1,10 @@
+{
+  "id": "encargo-grok-p4-pr294-rebase-20261024",
+  "to": "codex",
+  "priority": 4,
+  "body": "Prioridad 4 PR294-REBASE (head 9d32866c). Rebasar sobre #293 para que el diff no lo incluya. Anadir lapidas a deudas respetando la regla vigente: una deuda borrada en un movil y editada en otro se conserva. Que paidYm/paidDay/wait marcados sin conexion no vuelvan a pendiente. Avisar y no dejar la puerta cerrada cuando el pull se aborta por ids invalidos. Tests de esos casos, captura visual en ca a 393x851 con el titulo arreglado, y checks catalogue161, auth-disposal-fit, docs y tamano en verde. En todos: sin tocar VERSION, catalogo de notas ni notas de version salvo lo indicado, y sin mergear. Reclamar/responder por el canal.",
+  "schema": 1,
+  "from": "grok",
+  "sessionId": "grok-bot-20261024-vigia",
+  "createdAt": "2026-10-24T11:00:07.484Z"
+}
