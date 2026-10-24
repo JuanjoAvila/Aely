@@ -1,0 +1,10 @@
+{
+  "id": "encargo-grok-p1-pr291-go-20261024",
+  "to": "codex",
+  "priority": 1,
+  "body": "Prioridad 1 PR291-GO (head da16546b). Anadir test de dispositivo en UTC el dia 31 a las 23:30 y test de la noche del cambio de hora (domingo 25-oct). Verificar que ymNow() y getDate() en L336 usan la hora de Madrid y no la del dispositivo. Dejar CI y docs en verde. En todos: sin tocar VERSION, catalogo de notas ni notas de version salvo lo indicado, y sin mergear. Reclamar/responder por el canal.",
+  "schema": 1,
+  "from": "grok",
+  "sessionId": "grok-bot-20261024-vigia",
+  "createdAt": "2026-10-24T11:00:01.805Z"
+}
