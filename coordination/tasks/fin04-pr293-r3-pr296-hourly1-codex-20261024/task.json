@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "id": "fin04-pr293-r3-pr296-hourly1-codex-20261024",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261019-r74-36ea75cf98e01bbf",
+  "createdAt": "2026-10-24T14:03:28.668Z",
+  "to": "codex",
+  "kind": "worker",
+  "assignedPublicSessionId": "codex-local-20261024-r3w1-de3cada75c536d4bc42e87bbddc93e91",
+  "baseSHA": "7811d426862d1ddc57be5eb04c0620a9fb7604ab",
+  "baseVersion": "private R3 WIP on4.26.163",
+  "priority": 1,
+  "claudeGrant": "33dd8700212a483ac58a16cc58fa9ff595c48f80",
+  "scopeGrant": "059d9f09c2a2eb579bd2d282970e29e8927f2de1",
+  "previousTaskId": "fin04-pr293-r3-and-pr296-rebase-codex-20261024",
+  "previousResult": "f99ccf83b7d23c9b885929533b439578fa62f905",
+  "previousReturn": "206bca6a1e4cfbde280ce4bc2d5d98968b300317",
+  "predecessorPR293Source": "91a98b106689191612d4a76560bc15007c613400",
+  "PR296Source": "7258f56898d9d03bfceff6e6c5d46390a925a1de",
+  "objective": "Continuar R3 desde checkpoint privado7811, no reiniciar: cerrar pendientes causales y NodeENTEROfinal, luego PR296 encima MISMA tanda. Claude33dd8700 admite beta164ce5969d3b787ab2a98e736d2036b2c7626ff1d4f al final si no choca; informar conflicto. Nueva identidad/claim/ACK/runner OWN; nunca recursos ni counters del titular anterior.",
+  "scope": [
+    "PR293R3: fixture Node ingest INSERT+updated_at y oracle320c32/32; arnes appstate-listener-cleanup cloudReadRef",
+    "PR293R3: cerrar ventana ready/cloudReadRef antescommitReact con RED causal y test pushAppState debounce; no escrituras con snapshot sin mezclar",
+    "PR293R3: backupState tambien espera primerpull exitoso; su lastBackup es mantenimiento y no renueva savedAt",
+    "Actualizar basePR293 a beta163 e5ff9eef17d9e6626205539ca0f459db5a52171e, resolver conflictos scope; suite Node ENTERA real runner y distinguir entornofail",
+    "PR296: rebase/port sobre nueva R3 en misma tanda, adaptar testbackup a despuesdelpull manteniendooracle sello; nueva fuente/verificacion dirigida y preservar dosPRs condependencia clara"
+  ],
+  "requirements": [
+    "ORDEN HUMANA24Oct: trabajadores reportan SOLO coordinador Codex vigente, nunca avances aClaude; mensajes ACK/RETURN a codex. Subagentes permitidos para subtareas útiles con scope/checkout propios y reporte padre. Relevo cada60min desde admisión, punto seguro y WIP privado; no publicar inacabado. Solo un titular por tarea.",
+    "Esta tarea nueva sucede cierreblockedreleasedf99ccf83 yRETURN206bca6a del antiguo; ambosleidosROOT. FuenteWIP7811 parentbeta163e5ff9eef; candidato inicial653b2cae solo evidencia. Nuevo checkout aislado desde fuenteWIP con bundles conservados; nunca reutilizarclaim/lease/session/grant/counterOWN13delantiguo. Claim nuevo push/readback y ACKalcoordinador antescodigo/tests; otorgaráadmisión después. Leer todoslosdeltas/cancelaciones FULL desde grantpropio.",
+    "Pendientes exactos checkpoint privado revisados al admitir: posible ACKanterior durante nuevo merge solo inspección NOreproducida; ROJOcausal antes fixsi procede; drafts add-ack-window-tests/commit-mutants/update-r3-docs NOejecutados noaplicar automáticamente. Persistencia ysync-pull-refresco noejecutados por selecciónincorrecta, requieren dirigidos. DocsR2/base161 obsoletasactualizarverdadR3. Preservar41/41browser y87/87focal y320c32/32, selecciones solapadas no sumables; no repetir terminado sin fuente/fallo nuevo. NodeENTEROfinal explícitamenterequerido porClaude.",
+    "Beta164 alfinal PERMITIDAClaude33dd8700 si nochoca, informarconflicto; prevalece anterioresbase163/no164. No perseguirotrasbasesniGastosv5/PR291/295 porarrastre. VERSION/catalogo/caps/memoria ajena integrador; reportarfallos genuinos sin debilitar. FuenteinicialNode200pass12fail/212EXIT1 noverde niatribuirfallosJava noobservados. Resultado yfuente exactosporrun.",
+    "PR296port7258f56898d9d03bfceff6e6c5d46390a925a1de sobreR3 final enMISMA tanda. Adaptarbackup DESPUESprimerpull conservando_savedAtnatural,4237/120023/10011cents,offline/reload/dosowners. ActualizarmismasPR293/296conhead/readback/leaseexacto solo cuandoterminadasambas. SinpushWIP. Solo bundle/commitprivadorecuperable enrelevo.",
+    "RunnerOWN nuevo serialCPU1/1worker/0retry/stopfirstfailure, censo/admisión/puerto antescadacorrida, logs/reportdurables,RETURNpropio. SinCPU6/suitebrowserentera/livecloud/SQL/Edge/backend/APK/deploy/merge. Movilbloqueadoeb65ce38; nofotos ni repoMi-Carteraborrar. Grantdecanal startupNUEVO pendienteadmisión yvalidaciónnoherencia. Claude0f4d59b2 concede startup OWN nuevo ROOT76 y presupuesto propio nuevo ejecutor, mismo20 que antiguo porbloque pero contador NUEVO0; cada titular horario sigue33dd8700 sin reconfirmar alcance ni heredar counters. Grabs antiguos no son recursos transferidos."
+  ],
+  "deliverable": "PR293R3 y PR296 juntos terminados con fuentes exactas, NodeENTEROfinal honesto y dirigidos pendientes, manifiesto/hashes/EXIT/RETURN/resultreleased. Revision/integracionClaude yservido/movil posteriores.",
+  "fetchGrant": "0f4d59b257b76b7f1aaed13ce5f3caa626fb7f8c"
+}
