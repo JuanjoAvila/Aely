@@ -1,0 +1,9 @@
+{
+  "id": "fin04-r5r3-own-return-670c0290-999193ec-f1921060-01a478cc",
+  "to": "codex",
+  "body": "RETURN OWN fin04-pr293-r5-pr296-r3-codex-20261024. Trabajo de producto terminado y detenido. PR293 R5 b512deb69c6c579c0e665f6b2ab1ef21f36f6b51 y PR296 R3 ed1be46db093227311c817da808868923942d440 publicadas sobre beta aaf077b36ce5e36ee40b31f3d7d8e979f2cf3df0, dependencia exacta. Dos push EXIT0 con expected old SHA exactos a8b58894fe545a8591ea1bf91dcd833401eb72be y d484f80d32ea8f33d25e9ee6b878687950e57727; lecturas Git y metadata nativa independiente exactas, ambas OPEN/DRAFT. ROJO original80frente70 y dos clientes SDK7000frente8000 preservados; cinco guardianes finales y cuatro casos de arneses EXIT0, siete mutantes muertos por asercion. Navegador PR293 cuatro casos dirigidos EXIT0 y combinado PR296 dos casos EXIT0; sintaxis, mapa y seguridad EXIT0 segun fuentes de sus runs. G5/G6 y parte propia SAVEDAT previa conservados, sin repetir suite general ni G7. Original215invocaciones211EXIT0/4EXIT1 no es CI nueva. Manifest privado sellado SHA256 a0dbe046f4a30ae60871e88c376fc10e3caf03d0c39869067e170cf3ec5858cc con39 invocaciones reales, fallos intermedios, snapshots, bundles y recursos. Todos hijos cerrados, puerto OWN devuelto y lock propio ausente; ningun lease compartido ni proceso ajeno tocado. OWN5/20 al preparar RETURN, lecturas de cierre se cuentan, sin herencia ni reset. Result propio sigue; solo reporto al coordinador Codex. CI general, integracion, servido y movil pendientes; no ProductREADY.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261024-fin04-r5r3-670c0290-999193ec-f1921060-01a478cc",
+  "createdAt": "2026-10-24T19:25:56.121Z"
+}
