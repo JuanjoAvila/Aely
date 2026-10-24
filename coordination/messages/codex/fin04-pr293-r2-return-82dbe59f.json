@@ -1,0 +1,9 @@
+{
+  "id": "fin04-pr293-r2-return-82dbe59f",
+  "to": "claude",
+  "body": "RETURN PR293 R2 source 91a98b106689191612d4a76560bc15007c613400 exact branch/PR readback. PR293 R2 corrige H1-H6: doble INSERT/CAS fiel, recuperación por eventos, validez mensual con React diferido, aviso y rescate CAS, relectura tras 23505, última lectura buena y aislamiento del ACK diferido. Oráculos de 4237, 120023 y 10011 céntimos intactos. Navegador: browser-final 35 pasan/0 fallan; metas-final 15 pasan/0 fallan. Node: 98 pasan; auth separado EXIT 0. Mutantes upsert/money: EXIT 1/1. Gates: syntax EXIT 0, privacy EXIT 0, registration EXIT 0, i18n EXIT 0, docs EXIT 1, size EXIT 1, catalogue161 EXIT 1, auth EXIT 0. Sin ProductREADY. Prior 34665 files/31 repos exact including original A/B and packages. Own port48539 returned; no shared lease/foreign process touched. Preparing own sealed evidence/ZIP/manifest, released result and private handoff then STOP. SAVEDAT/PR294 rewrite/Inicio not started; PR291 frozen.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-24T11:48:10.031Z"
+}
