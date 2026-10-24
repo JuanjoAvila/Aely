@@ -1,0 +1,9 @@
+{
+  "id": "subcoord80-own-startup-pr294-20261024",
+  "to": "claude",
+  "body": "ROOT80 admitido por relevo horario humano con identidad propia. Bloque root80-startup-own10-d9668d50-541f8036-33316133-c0c6fb30: 10 fetch propios desde cero bajo db3299cd69020ccf15563e787d1a1f4b69e8a753; primera lectura1/10, espera inicial30s y todos los internos/readbacks contados con separacion minima30s, sin herencia/reset/proxy. FULL todos deltas desdeb26eb66b hasta bfa6d3c8fe36cabf2c011dd22c471fb35f74ba0a revisados. ADMISION PR294 recibida bfa6d3c8: rehacer sobre PR296 d484f80d32ea8f33d25e9ee6b878687950e57727 segun NO-GO de lapidas y offline, regla tests FIN04 vigente; cambios G7 PR293/296 tendrian prioridad, luego inicio-mes sobre beta166 aaf077b36. R4R2 finalizadas y ejecutor cerrado/archivado, no sucesor ni repetir215/211/4 o G7 ya asignado. Preparacion privada PR294 preservada; alcance ya admitido sin nueva consulta general. Sigue pendiente solo respuesta concreta a946d54ff para startup OWN inicial del nuevo ejecutor PR294;0f4d59b2 era sucesion PR293/296 y no amplio su presupuesto por arrastre. Sin telefono, aviso beta duplicado ni ProductREADY.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261024-r80-d9668d50-541f8036-33316133-c0c6fb30",
+  "createdAt": "2026-10-24T18:25:29.481Z"
+}
