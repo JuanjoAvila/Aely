@@ -1,0 +1,68 @@
+{
+  "schema": 1,
+  "id": "pr294-rebuild-debt-tombstones-codex-20261025",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261025-r84-4cfb17a7-49e20614-a5db7a21-371a0440",
+  "createdAt": "2026-10-24T23:14:39.938Z",
+  "to": "codex",
+  "baseSHA": "ed1be46db093227311c817da808868923942d440",
+  "objective": "Rehacer PR294 sobre PR296 preservando R5/R3: lapidas de deuda con borrado-noeditado propagado y borrado-editado conservado; marcas offline de pago/espera preservadas; aviso y reintento tras pull abortado; convergencia entre dos clientes sinteticos.",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/01-i18n.js",
+    "src/modules/08-motor-bank.js",
+    "src/modules/09-tab-debts-goals.js",
+    "src/modules/10-app-components.js",
+    "src/modules/11-app-main.js",
+    "src/modules/14-v4-screens.js",
+    "tests/fin04-plan-three-way.test.mjs",
+    "e2e/fin04-plan-three-way.spec.mjs",
+    "scripts/run-tests.mjs",
+    "scripts/relevant-tests.mjs",
+    "docs/ARQUITECTURA.md",
+    "docs/TESTING.md"
+  ],
+  "scopeGrants": [
+    "a2fe2118d8e65fdf6895ff44336b1c4c732506f2",
+    "858de1d7829944045d792e6efbe1d14e5ce519f3",
+    "bfa6d3c8fe36cabf2c011dd22c471fb35f74ba0a",
+    "1a5383330c95c1736f66a71d1ba90b6259e6e381",
+    "ef83d17b30231c3791fb11f9263cbfade4630d16",
+    "e42252eb4444e23228b565b7d2da5b0ee5e13e43"
+  ],
+  "sourceReference": {
+    "oldRejectedProductSHA": "9d32866c8077d28893c0b6742e7383336e3caaaf",
+    "oldBaseSHA": "e42650596e361bf5cc61bac8d3ed4c7f0ca9f13d",
+    "reuse": "Reference only; old task closed, no claim or budget transfer; no blind cherry-pick of all old files."
+  },
+  "acceptance": [
+    "ROJO causal antes del fix sobre base nueva, con transporte sintetico y dinero exacto al centimo.",
+    "Deuda borrada en un cliente y no editada en el otro desaparece en ambos tras pull/CAS/recarga; probar ambas direcciones.",
+    "Borrada en un cliente y editada en el otro permanece con sus ediciones e importes.",
+    "paidYm/paidDay/wait marcados sin conexion sobreviven merge/ACK/recarga y no vuelven a pendiente; no inventar pruebas bancarias.",
+    "Pull abortado por Plan invalido presenta aviso y permite que la siguiente lectura valida complete.",
+    "Preservar merge por campos independientes/grupos atomicos, identidad privada de conflictos y referencias sin cambios.",
+    "E2E por flujos reales de borrado y edicion entre dos clientes sinteticos, convergencia tras recarga.",
+    "Corregir oraculo que acepta resurreccion y cubrir marcas offline antes de eliminar derivados.",
+    "Entrega exacta de cabezas y evidencia real; gates de integracion los cierra Claude y no bloquean entrega.",
+    "Tests FIN04 necesarios admitidos sin rebajar aserciones, un mutante causal por caso; conservar originales, fallos y evidencia cerrada.",
+    "Conservar R5/R3 y atribuir cada corrida a SHA y hashes reales previos al run, incluyendo tests.source; no usar metadata de trace heredada como fuente."
+  ],
+  "constraints": [
+    "Solo task exacto, propia identidad/claim/ACK/publicacion confirmados y admision OWN antes de editar o probar.",
+    "Checkout y rama propios desde baseSHA; fuentes y evidencias anteriores inmutables.",
+    "Pruebas nuevas dirigidas CPU1, un worker, cero reintentos, censo/puerto/runner OWN antes de ejecutar; no suite Node entera ni CPU6 ni browserfullsuite por arrastre R3.",
+    "No repetir pruebas cerradas sin cambio o fallo nuevo.",
+    "Sin VERSION/catalogo/notas/caps, backend, SQL, Edge, Gradle/APK, merge main/beta, deploy o movil real.",
+    "No nuevos paquetes ni instalar a traves de node_modules enlazado.",
+    "Trabajador reporta solo al coordinador Codex; solo coordinador reporta Claude.",
+    "Al cumplirse60min terminar operacion actual, checkpoint/RETURN propios y relevo seguro; no herencia de recursos.",
+    "Identidad nueva con nonce publico segmentado8hex-8hex-8hex-8hex desde el principio; preflight de todas las claves y valores por fda31257 sin modificar filtro/helper.",
+    "OWN20 desde0; contar primer fetch, internos y readbacks, todos separados>=30s; FULL todos deltas/cancelaciones antes de actuar.",
+    "Una PR draft nueva de tarea contra beta con cabezas exactas y limitaciones; no sobreescribir fuentes anteriores ni cerrar PRs ajenas.",
+    "Sin usar telefono real: dos moviles significa dos clientes sinteticos E2E; aceptacion fisica posterior."
+  ],
+  "workerOwnStartupGrant": "e42252eb4444e23228b565b7d2da5b0ee5e13e43",
+  "workerOwnStartupAllowance": 20,
+  "priorityRule": "Primera tarea de la cola nocturna Claude ef83d17b; PR293 R5 y PR296 R3 cerradas, no tocarlas ni repetir sus pruebas. Claude integra esas cabezas en beta170. Despues de PR294 viene inicio-mes-futuro sobre beta vigente, en tarea distinta."
+}
