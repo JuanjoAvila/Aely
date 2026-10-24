@@ -1370,8 +1370,14 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
 }
 
 /* Lo que la fila de meses sobresale por debajo de la caja de la cabecera cuando se encoge (px).
-   Tiene que cuadrar con `.gx-head.compact::before` y `.gx-meses` en shell.html. */
+   Tiene que cuadrar con `.gx-head.compact.con-meses::before` y `.gx-meses` en shell.html. */
 const GX_MESES_SOBRE=36;
+/* Sin fila de meses (Mi ciclo, Rango, Todo) el fondo encogido se QUEDA DENTRO de la caja: la cifra
+   y la línea suben al encogerse y lo que quedaba debajo era hueco. Rechazo suyo de la beta
+   4.26.164 (24/10, Mi ciclo + balance): el fondo seguía bajando 36 px para unos meses que no
+   existen y tapaba la lista con una franja vacía. Cuadra con `.gx-head.compact::before`. */
+const GX_SIN_MESES_RECORTE=16;
+function gxRayaExtra(compact, conMeses){ return !compact?0:conMeses?GX_MESES_SOBRE:-GX_SIN_MESES_RECORTE; }
 /* CABECERA DE GASTOS v5 (SPEC §2.1 y §3). Componente propio a propósito: la cifra cambia con el
    día que queda debajo al bajar, y ese cambio NO puede re-renderizar Expenses ni la lista
    (cientos de filas): el día visible es estado SOLO de esta cabecera. Encogerse es `transform` y
@@ -1381,6 +1387,8 @@ const GX_MESES_SOBRE=36;
 function GastosCabecera({rootRef, cab, meses, onMes, stopSwipe, diasRef}){
   const [vista,setVista]=useState({k:null, ym:null, compact:false});
   const headRef=useRef(null), mesesRef=useRef(null), calcRef=useRef(null);
+  // El cálculo vive en un efecto montado una vez: lee si hay meses por ref, no por cierre viejo.
+  const conMesesRef=useRef(!!meses); conMesesRef.current=!!meses;
   useEffect(function(){
     const root=rootRef.current, host=root&&root.closest?root.closest(".page"):null;
     if(!host) return undefined;
@@ -1391,7 +1399,7 @@ function GastosCabecera({rootRef, cab, meses, onMes, stopSwipe, diasRef}){
       const compact=host.scrollTop>40;
       let els=diasRef.current;
       if(!els) els=diasRef.current=Array.prototype.slice.call(root.querySelectorAll("[data-gx-day]"));
-      const raya=head.getBoundingClientRect().bottom+(compact?GX_MESES_SOBRE:0)+1;
+      const raya=head.getBoundingClientRect().bottom+gxRayaExtra(compact,conMesesRef.current)+1;
       let lo=0, hi=els.length-1, at=-1;
       while(lo<=hi){ const mid=(lo+hi)>>1; if(els[mid].getBoundingClientRect().top<=raya){ at=mid; lo=mid+1; } else hi=mid-1; }
       const k=at>=0?+els[at].getAttribute("data-gx-day"):null, ym=at>=0?els[at].getAttribute("data-gx-ym"):null;
@@ -1421,7 +1429,7 @@ function GastosCabecera({rootRef, cab, meses, onMes, stopSwipe, diasRef}){
     }
   },[ymSel, vista.compact, meses&&meses.length, l10nKeyOf()]);
   const tone=line.tone?" gx-tone-"+line.tone:"";
-  return React.createElement("div",{className:"gx-head"+(vista.compact?" compact":""),ref:headRef},
+  return React.createElement("div",{className:"gx-head"+(vista.compact?" compact":"")+(meses?" con-meses":""),ref:headRef},
     React.createElement("h1",{className:"v4-title serif"}, t("v4_gastos_title")),
     React.createElement(GxCifra,{n:line.n}),
     React.createElement("div",{className:"gx-status","data-testid":"gastos-estado"},
