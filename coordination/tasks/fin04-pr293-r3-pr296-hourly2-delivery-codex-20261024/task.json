@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "id": "fin04-pr293-r3-pr296-hourly2-delivery-codex-20261024",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261024-r77-80b1b98341aeeadd407f91640efb0664",
+  "createdAt": "2026-10-24T15:48:38.756Z",
+  "to": "codex",
+  "kind": "worker",
+  "assignedPublicSessionId": "codex-local-20261024-r3w2-979871bab28c267556887b1e6a159e5b",
+  "baseSHA": "fcfd10a007a9c94fc913b4fc2498e87603cbc878",
+  "baseVersion": "4.26.164 private final combined candidate",
+  "priority": 1,
+  "claudeGrant": "6637e5ef90677cf005c51b17a59ab3784476d80b",
+  "scopeGrant": "33dd8700212a483ac58a16cc58fa9ff595c48f80",
+  "fetchGrant": "0f4d59b257b76b7f1aaed13ce5f3caa626fb7f8c",
+  "startupOwnAllowance": 20,
+  "previousTaskId": "fin04-pr293-r3-pr296-hourly1-codex-20261024",
+  "previousResult": "e970ceb2563fa5319dad67b30341719a90f2ff17",
+  "previousReturn": "c9f155f1953e7e8c9bf1addd69f7a0b7dba5c46c",
+  "previousCommandErrata": "0ba891dcd1e3c1b03912a3be7d2f3975afb72e60",
+  "objective": "SOLO ENTREGA YA de las dos cabezas candidatas congeladas PR293 R3 y PR296. Claude6637 asume cuatro gates rojos en integracion y autoriza entrega sin repetir tests. Nuevo titular, claim, ACK y admision OWN antes de actualizar ramas.",
+  "scope": [
+    "PR293 head exacto b92976b1edcdea292ca8d88f8a61942b79fa95e7 sobre beta164 ce5969d3b787ab2a98e736d2036b2c7626ff1d4f; actualizar SOLO rama codex/fin04-first-pull-plan-82dbe59f desde head esperado91a98b106689191612d4a76560bc15007c613400.",
+    "PR296 head exacto fcfd10a007a9c94fc913b4fc2498e87603cbc878 apilado sobre R3b929; actualizar SOLO rama codex/savedat-arranque-82dbe59f desde head esperado7258f56898d9d03bfceff6e6c5d46390a925a1de.",
+    "Push normal si posible; force-with-lease con SHA esperado exacto permitido por Claude6637 solo si necesario. Si head remoto distinto al esperado y al candidato: STOP y reportar ROOT, sin reemplazar trabajo nuevo. Verificar ambos heads remotos y PRs por lectura exacta.",
+    "Actualizar texto/titulo de drafts293/296 al comportamiento final y evidencia honesta: R3, dependencia b929..fcfd, Node entero215invocaciones211EXIT0/4EXIT1 y gates de integracion en manosClaude; ninguna afirmacion CI/servido/movil/ProductREADY."
+  ],
+  "requirements": [
+    "ORDEN HUMANA HORARIA: todos los reportes/ACK/RETURN/result del trabajador al coordinador Codex vigente, nunca Claude. ROOT77 enviara el informe final aClaude. No crear otro chat ni automation.",
+    "OWN20 nuevo desde0 solo con identidad/recepcionACK y admision ROOT77. Primer fetch contado y todas lecturas internas/readback>=30s, ledger exclusivo. Leer FULL todos los deltas/cancelaciones; claim nuevo push/readback y ACK to codex, esperar admision expresa ejecucion. No heredar claim/lease/grant/counter ni presupuestos anteriores.",
+    "Titular anterior STOP confirmado, RETURN/result/errata canonicos completos leidosROOT; fuentes,bundles,HTML,ZIP,manifiestos,logs privados inmutables. Checkout de entrega propio aislado; anteriores solo lectura.",
+    "CERO modificaciones de fuente y CERO tests/build/install/reruns por este relevo. Reutilizar Node final EXIT1/215invocaciones211EXIT0/4EXIT1 y evidencias focales/browser con SHAs exactos; no sumar runs solapados. Usar errata0ba891dc para comandos literales.",
+    "Cuatro gates genuinos: beta-sources/PERSIST91,docs-frescura,memoria-espejo abortado sin writes,tamano. No debilitar ninguno: Claude6637 asume cierre integracion y NO bloquean entrega. No VERSION/catalogo/notas/caps/memoria. No CPU6/browser/Deno/backend/SQL/Edge/APK/deploy/merge/livecloud/movil.",
+    "Tras heads exactos publicados, enviar ROOT77 prueba durable con SHA/ref/EXIT/lease/readbacks y cierre propio released done de SOLO entrega. CI exact-source general, revision/integracionClaude,servido,movil siguen posteriores; noProductREADY."
+  ],
+  "deliverable": "Mismas PR293/296 actualizadas a b92976b1/fcfd10a0 con dependencia y metadata final veraz, leases y readbacks exactos; informe al coordinador con Node previo exacto, 4gatesClaude y recursos propios devueltos."
+}
