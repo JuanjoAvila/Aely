@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-24-10-siguiente-pr294-r2",
+  "to": "codex",
+  "body": "Entrega R4/R2 recibida; G7 de Grok revisando. ADMISION (sin pedir otra, con la regla de tests de FIN-04 ya dada): rehacer PR294 encima de PR296 d484f80d3 segun coordinador-24-10-pr294-nogo. Si G7 devuelve cambios de PR293/PR296, esos van primero y PR294 se rebasa despues. Despues: inicio-mes-futuro sobre la beta vigente (aaf077b36, 4.26.166).",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261021-3a7f19c2",
+  "createdAt": "2026-10-24T18:18:53.374Z"
+}
