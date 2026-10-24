@@ -931,7 +931,6 @@ Object.assign(LANG.es,{
   tour_7:"👆 Desliza entre pestañas con el dedo. ¡Ya estás listo!",
   tour_next:"Siguiente", tour_skip:"Saltar", tour_done:"¡Listo!",
   h_ok:"Entendido",
-  h_subs:"Pagos que se repiten cada mes por el mismo importe (Netflix, gym…). La app los detecta sola en tus gastos: revisa si de verdad los usas.",
   // INC-0410 es: la ayuda de la tarjeta promete lo mismo que el reparto.
   h_reserva:"Cada regla aparta su importe al guardarla y, después, cada mes al abrir la app: se descuenta de tu presupuesto mensual y se suma a la meta que elijas, para que lo reservado se note de verdad. Las reglas que ya tenías siguen repartiendo cuando se detecta un ingreso, con tu confirmación.",
   // INC-0410 es: límite de la ayuda del reparto.
@@ -954,7 +953,6 @@ Object.assign(LANG.en,{
   tour_7:"👆 Swipe between tabs with your finger. You're all set!",
   tour_next:"Next", tour_skip:"Skip", tour_done:"Done!",
   h_ok:"Got it",
-  h_subs:"Payments that repeat monthly for the same amount (Netflix, gym…). The app detects them in your spending: check you still use them.",
   // INC-0410 en: la ayuda de la tarjeta promete lo mismo que el reparto.
   h_reserva:"Each rule sets its amount aside when you save it and then each month when you open the app: it's deducted from your monthly budget and added to the goal you pick, so the reserved money actually feels set aside. Rules you already had keep splitting detected income, with your confirmation.",
   // INC-0410 en: límite de la ayuda del reparto.
@@ -977,7 +975,6 @@ Object.assign(LANG.ca,{
   tour_7:"👆 Llisca entre pestanyes amb el dit. Ja estàs a punt!",
   tour_next:"Següent", tour_skip:"Omet", tour_done:"Fet!",
   h_ok:"Entesos",
-  h_subs:"Pagaments que es repeteixen cada mes pel mateix import (Netflix, gym…). L'app els detecta sola a les teves despeses: revisa si de debò els fas servir.",
   // INC-0410 ca: la ayuda de la tarjeta promete lo mismo que el reparto.
   h_reserva:"Cada regla aparta el seu import en desar-la i, després, cada mes en obrir l'app: es descompta del teu pressupost mensual i se suma a l'objectiu que triïs, perquè el que reserves es noti de debò. Les regles que ja tenies continuen repartint quan es detecta un ingrés, amb la teva confirmació.",
   // INC-0410 ca: límite de la ayuda del reparto.
@@ -1570,25 +1567,59 @@ Object.assign(LANG.ca,{gv5_spent_in:"gastat al {mes}", gv5_net_in:"balanç al {m
 Object.assign(LANG.es,{gv5_secciones:"Secciones de Gastos", gv5_sec_movs:"Movimientos", gv5_sec_cats:"Categorías", gv5_sec_subs:"Suscripciones",
   gv5_subs_globo:"{n} por revisar", gv5_cats_pre:"{period} por categoría", gv5_cats_pres:"Presupuesto gastado", gv5_cats_of:"de {x}",
   gv5_cats_vacio:"Aún no hay gastos que cuenten en este periodo.", gv5_subs_n:"al mes · {n} por revisar", gv5_subs_none:"nada por revisar",
-  gv5_subs_ok_t:"Todo en orden", gv5_subs_ok_d:"Si un comercio te cobra algo parecido tres meses seguidos y no está en Recibos, aparecerá aquí para que decidas qué hacer."});
+  gv5_subs_ok_t:"Todo en orden", gv5_subs_ok_d:"Si un comercio te cobra algo parecido en tres meses o más y no está en Recibos, aparecerá aquí para que decidas qué hacer."});
 Object.assign(LANG.en,{gv5_secciones:"Spending sections", gv5_sec_movs:"Transactions", gv5_sec_cats:"Categories", gv5_sec_subs:"Subscriptions",
   gv5_subs_globo:"{n} to review", gv5_cats_pre:"{period} by category", gv5_cats_pres:"Budget spent", gv5_cats_of:"of {x}",
   gv5_cats_vacio:"No spending that counts in this period yet.", gv5_subs_n:"a month · {n} to review", gv5_subs_none:"nothing to review",
-  gv5_subs_ok_t:"All clear", gv5_subs_ok_d:"If a shop charges you something similar three months in a row and it isn't in Bills, it'll show up here so you can decide what to do."});
+  gv5_subs_ok_t:"All clear", gv5_subs_ok_d:"If a shop charges you something similar in three months or more and it isn't in Bills, it'll show up here so you can decide what to do."});
 Object.assign(LANG.ca,{gv5_secciones:"Seccions de Despeses", gv5_sec_movs:"Moviments", gv5_sec_cats:"Categories", gv5_sec_subs:"Subscripcions",
   gv5_subs_globo:"{n} per revisar", gv5_cats_pre:"{period} per categoria", gv5_cats_pres:"Pressupost gastat", gv5_cats_of:"de {x}",
   gv5_cats_vacio:"Encara no hi ha despeses que comptin en aquest període.", gv5_subs_n:"al mes · {n} per revisar", gv5_subs_none:"res per revisar",
-  gv5_subs_ok_t:"Tot en ordre", gv5_subs_ok_d:"Si un comerç et cobra una cosa semblant tres mesos seguits i no és a Rebuts, apareixerà aquí perquè decideixis què fer."});
+  gv5_subs_ok_t:"Tot en ordre", gv5_subs_ok_d:"Si un comerç et cobra una cosa semblant en tres mesos o més i no és a Rebuts, apareixerà aquí perquè decideixis què fer."});
 // Gastos v5, tanda 3: tocar una categoría filtra (píldora) y el límite va por pulsación larga o el chip.
 Object.assign(LANG.es,{gv5_cats_hint:"Toca una para ver sus movimientos · mantenla pulsada para ponerle un límite",
   gv5_fil_n:"{n} movimientos", gv5_fil_n1:"1 movimiento", gv5_fil_quitar:"Quitar el filtro de {x}",
   gv5_fil_lim_poner:"Poner límite", gv5_fil_lim:"Límite {x}", gv5_fil_quedan:"quedan {x}", gv5_fil_pasado:"{x} de más"});
+// Gastos v5, tanda 4: Suscripciones como bandeja con su ficha (SPEC §6.1, §6.3 y §6.4).
+Object.assign(LANG.es,{gv5_sub_info:"Suscripciones detectadas", gv5_sub_i_que_t:"Qué aparece aquí", gv5_sub_i_que:"Cobros que se repiten y que todavía no están en Recibos.",
+  gv5_sub_i_como_t:"Cómo se detectan", gv5_sub_i_como:"El mismo comercio te ha cobrado un importe parecido en tres meses o más, y el último cobro es de este mes o de los dos anteriores. El importe al mes es lo que suele cobrar; el del año, ese importe por doce.",
+  gv5_sub_i_hacer_t:"Qué puedes hacer", gv5_sub_i_hacer:"Toca una para verla y pásala a Recibos, márcala como dada de baja o déjala como gasto normal. Lo ideal es que esta lista esté vacía. Al pasarla a Recibos se apunta en tu cuenta de Recibos: si quieres que el cargo salga de ahí de verdad, cambia la tarjeta en la web de la suscripción.", gv5_sub_i_ok:"Entendido",
+  gv5_sub_seguidos:"{n} meses seguidos", gv5_sub_de:"{n} de {m} meses", gv5_sub_almes:"al mes", gv5_sub_vuelve:"Ha vuelto a cobrar después de darla de baja",
+  gv5_sub_dia:"Se cobra el día {d}", gv5_sub_sinbanco:"banco: — (apuntada a mano)", gv5_sub_ultimos:"Últimos cobros",
+  gv5_sub_anio:"Unos {y} al año.", gv5_sub_anio_si:"Unos {y} al año si se cobra todos los meses.", gv5_sub_fijo:"Si es un gasto fijo, pásalo a Recibos y lo tendrás en Plan con los demás.",
+  gv5_sub_importe:"Importe para Recibos", gv5_sub_recibos:"Pasar a Recibos",
+  gv5_sub_recibos_ok:"✓ «{n}» pasa a Recibos ({b})",
+  gv5_sub_baja:"Ya la he dado de baja", gv5_sub_baja_q:"¿Ya has dado de baja «{n}»?", gv5_sub_baja_sub:"Sale de esta lista. Si vuelve a cobrarte, aparecerá otra vez con un aviso.",
+  gv5_sub_baja_si:"Sí, ya la he dado de baja", gv5_sub_baja_ok:"«{n}» sale de la lista · si vuelve a cobrar, saldrá aquí",
+  gv5_sub_no_q:"¿«{n}» no es una suscripción?", gv5_sub_no_sub:"Se queda como un gasto normal y no volverá a salir aquí. No se puede deshacer."});
 Object.assign(LANG.en,{gv5_cats_hint:"Tap one to see its transactions · press and hold to set a limit",
   gv5_fil_n:"{n} transactions", gv5_fil_n1:"1 transaction", gv5_fil_quitar:"Remove the {x} filter",
   gv5_fil_lim_poner:"Set limit", gv5_fil_lim:"Limit {x}", gv5_fil_quedan:"{x} left", gv5_fil_pasado:"{x} over"});
+Object.assign(LANG.en,{gv5_sub_info:"Detected subscriptions", gv5_sub_i_que_t:"What shows up here", gv5_sub_i_que:"Charges that repeat and aren't in Bills yet.",
+  gv5_sub_i_como_t:"How they're detected", gv5_sub_i_como:"The same shop has charged you a similar amount in three months or more, and the last charge is from this month or the two before. The monthly amount is what it usually charges; the yearly one is that amount times twelve.",
+  gv5_sub_i_hacer_t:"What you can do", gv5_sub_i_hacer:"Tap one to see it and move it to Bills, mark it as cancelled or leave it as a normal expense. Ideally this list stays empty. Moving it to Bills puts it on your Bills account: to have it truly charged there, change the card on the subscription's site.", gv5_sub_i_ok:"Got it",
+  gv5_sub_seguidos:"{n} months in a row", gv5_sub_de:"{n} of {m} months", gv5_sub_almes:"a month", gv5_sub_vuelve:"It charged again after you cancelled it",
+  gv5_sub_dia:"Charged on day {d}", gv5_sub_sinbanco:"bank: — (added by hand)", gv5_sub_ultimos:"Latest charges",
+  gv5_sub_anio:"About {y} a year.", gv5_sub_anio_si:"About {y} a year if it's charged every month.", gv5_sub_fijo:"If it's a fixed expense, move it to Bills and you'll see it in Plan with the rest.",
+  gv5_sub_importe:"Amount for Bills", gv5_sub_recibos:"Move to Bills",
+  gv5_sub_recibos_ok:"✓ \"{n}\" moved to Bills ({b})",
+  gv5_sub_baja:"I've cancelled it", gv5_sub_baja_q:"Have you cancelled \"{n}\"?", gv5_sub_baja_sub:"It leaves this list. If it charges you again, it'll come back with a warning.",
+  gv5_sub_baja_si:"Yes, I've cancelled it", gv5_sub_baja_ok:"\"{n}\" left the list · if it charges again, it'll show up here",
+  gv5_sub_no_q:"\"{n}\" isn't a subscription?", gv5_sub_no_sub:"It stays as a normal expense and won't show up here again. This can't be undone."});
 Object.assign(LANG.ca,{gv5_cats_hint:"Toca'n una per veure'n els moviments · mantén-la premuda per posar-li un límit",
   gv5_fil_n:"{n} moviments", gv5_fil_n1:"1 moviment", gv5_fil_quitar:"Treu el filtre de {x}",
   gv5_fil_lim_poner:"Posa un límit", gv5_fil_lim:"Límit {x}", gv5_fil_quedan:"en queden {x}", gv5_fil_pasado:"{x} de més"});
+Object.assign(LANG.ca,{gv5_sub_info:"Subscripcions detectades", gv5_sub_i_que_t:"Què hi apareix", gv5_sub_i_que:"Càrrecs que es repeteixen i que encara no són a Rebuts.",
+  gv5_sub_i_como_t:"Com es detecten", gv5_sub_i_como:"El mateix comerç t'ha cobrat un import semblant en tres mesos o més, i l'últim càrrec és d'aquest mes o dels dos anteriors. L'import al mes és el que sol cobrar; el de l'any, aquest import per dotze.",
+  gv5_sub_i_hacer_t:"Què hi pots fer", gv5_sub_i_hacer:"Toca'n una per veure-la i passa-la a Rebuts, marca-la com a donada de baixa o deixa-la com a despesa normal. L'ideal és que aquesta llista estigui buida. En passar-la a Rebuts s'apunta al teu compte de Rebuts: perquè el càrrec surti d'allà de debò, canvia la targeta al web de la subscripció.", gv5_sub_i_ok:"Entesos",
+  gv5_sub_seguidos:"{n} mesos seguits", gv5_sub_de:"{n} de {m} mesos", gv5_sub_almes:"al mes", gv5_sub_vuelve:"Ha tornat a cobrar després de donar-la de baixa",
+  gv5_sub_dia:"Es cobra el dia {d}", gv5_sub_sinbanco:"banc: — (apuntada a mà)", gv5_sub_ultimos:"Últims càrrecs",
+  gv5_sub_anio:"Uns {y} l'any.", gv5_sub_anio_si:"Uns {y} l'any si es cobra cada mes.", gv5_sub_fijo:"Si és una despesa fixa, passa-la a Rebuts i la tindràs al Pla amb les altres.",
+  gv5_sub_importe:"Import per a Rebuts", gv5_sub_recibos:"Passa a Rebuts",
+  gv5_sub_recibos_ok:"✓ «{n}» passa a Rebuts ({b})",
+  gv5_sub_baja:"Ja l'he donada de baixa", gv5_sub_baja_q:"Ja has donat de baixa «{n}»?", gv5_sub_baja_sub:"Surt d'aquesta llista. Si et torna a cobrar, tornarà a aparèixer amb un avís.",
+  gv5_sub_baja_si:"Sí, ja l'he donada de baixa", gv5_sub_baja_ok:"«{n}» surt de la llista · si torna a cobrar, sortirà aquí",
+  gv5_sub_no_q:"«{n}» no és una subscripció?", gv5_sub_no_sub:"Es queda com una despesa normal i no tornarà a sortir aquí. No es pot desfer."});
 const MON_I18N = {
   es:{ long:["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"], short:["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"] },
   en:{ long:["January","February","March","April","May","June","July","August","September","October","November","December"], short:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"] },
@@ -1634,8 +1665,7 @@ Object.assign(LANG.es,{
   g_cycle_fallback:"El presupuesto usa el mes natural.",
   g_cycle_none:"Apunta la nómina como 💰 ingreso y escribe «Nómina» en el concepto. Hasta reconocerla, el presupuesto sigue el mes natural.",
   g_search:"Buscar comercio o categoría…",
-  sub_title:"🔁 Suscripciones detectadas", sub_sub:"{n} · ~{y}/año", sub_months:"{n} meses", sub_peryear:"~{y}/año", sub_permonth:"/mes", sub_tofixed:"pasar a Gastos fijos", sub_tofixed_done:"✓ «{n}» añadido a Gastos fijos ({b}). Si quieres que el cargo salga de ahí de verdad, cambia la tarjeta en la web de la suscripción.", sub_dismiss:"No es una suscripción", sub_dismissed_ok:"Descartada · no volverá a salir aquí",
-  sub_hint:"Cargos al mismo comercio en ≥3 meses con importe parecido. Revisa si alguna ya no la usas.",
+  sub_dismiss:"No es una suscripción", sub_dismissed_ok:"Descartada · no volverá a salir aquí",
   g_totalfilt:"Gastos del período", g_n_one:"gasto", g_n_many:"gastos", g_inc_one:"ingreso", g_inc_many:"ingresos", g_balance:"Balance", g_lbl_spent:"Gastos", g_lbl_income:"Ingresos",
   g_totalnet:"Balance del período", st_gview:"Total de Gastos", st_gview_split:"Gastos e ingresos", st_gview_split_d:"El total de gastos arriba; debajo, los ingresos y el balance (ingresos − gastos) en una línea.", st_gview_net:"Balance", st_gview_net_d:"Manda el balance (ingresos − gastos del período); debajo, gastos e ingresos en pequeño. Verde si te queda dinero, rojo si gastaste de más.", st_budget_cycle:"Presupuesto por ciclo de cobro", st_budget_cycle_d:"Con una nómina reconocida, Gastos abre en Mi ciclo y cuenta gastos e ingresos. Sin nómina, mes natural. El widget Android sigue por mes natural.",
   sv_title:"Ahorro mensual", sv_note:"Planifica lo que apartas cada mes para calcular cuándo llegas a tus metas. No mueve dinero real ni crea movimientos.", sv_saved:"Ahorro mensual guardado", sv_name_aria:"Concepto de la aportación", sv_amount_aria:"Importe al mes", sv_bank_aria:"Banco o bróker", sv_del_aria:"Quitar esta aportación", sv_add:"Añadir aportación", sv_name_ph:"Concepto (ej. MSCI World)", sv_empty:"Aún no has apuntado aportaciones. Toca «Editar» para añadir lo que apartas cada mes.",
@@ -1704,8 +1734,7 @@ Object.assign(LANG.en,{
   g_cycle_fallback:"The budget follows the calendar month.",
   g_cycle_none:"Log your pay as a 💰 income and put “Salary” in its description. Until it is recognized, your budget follows calendar months.",
   g_search:"Search merchant or category…",
-  sub_title:"🔁 Detected subscriptions", sub_sub:"{n} · ~{y}/yr", sub_months:"{n} months", sub_peryear:"~{y}/yr", sub_permonth:"/mo", sub_tofixed:"move to Fixed expenses", sub_tofixed_done:"✓ \"{n}\" added to Fixed expenses ({b}). To have it truly charged there, change the card on the subscription's site.", sub_dismiss:"Not a subscription", sub_dismissed_ok:"Dismissed · won't show up here again",
-  sub_hint:"Charges to the same merchant in ≥3 months with similar amounts. Check if you still use them.",
+  sub_dismiss:"Not a subscription", sub_dismissed_ok:"Dismissed · won't show up here again",
   g_totalfilt:"Spending", g_n_one:"expense", g_n_many:"expenses", g_inc_one:"income", g_inc_many:"incomes", g_balance:"Net", g_lbl_spent:"Spent", g_lbl_income:"Income",
   g_totalnet:"Net balance", st_gview:"Expenses total", st_gview_split:"Spending & income", st_gview_split_d:"Total spent on top; income and net balance (income − spending) below, on one line.", st_gview_net:"Balance", st_gview_net_d:"The balance leads (income − spending for the period); spending and income shown small below. Green if money is left, red if you overspent.", st_budget_cycle:"Budget by pay cycle", st_budget_cycle_d:"With recognized pay, Spending opens in My cycle and counts spending and income. Without pay, calendar months apply. The Android widget stays monthly.",
   sv_title:"Monthly saving", sv_note:"Plan what you set aside each month to estimate when you reach your goals. It does not move real money or create transactions.", sv_saved:"Monthly saving saved", sv_name_aria:"Contribution name", sv_amount_aria:"Amount per month", sv_bank_aria:"Bank or broker", sv_del_aria:"Remove this contribution", sv_add:"Add contribution", sv_name_ph:"Name (e.g. MSCI World)", sv_empty:"No contributions yet. Tap «Edit» to add what you set aside each month.",
@@ -1773,8 +1802,7 @@ Object.assign(LANG.ca,{
   g_cycle_fallback:"El pressupost segueix el mes natural.",
   g_cycle_none:"Apunta la nòmina com a 💰 ingrés i escriu «Nòmina» al concepte. Fins que es reconegui, el pressupost segueix el mes natural.",
   g_search:"Cerca comerç o categoria…",
-  sub_title:"🔁 Subscripcions detectades", sub_sub:"{n} · ~{y}/any", sub_months:"{n} mesos", sub_peryear:"~{y}/any", sub_permonth:"/mes", sub_tofixed:"passar a Despeses fixes", sub_tofixed_done:"✓ «{n}» afegit a Despeses fixes ({b}). Perquè el càrrec surti d'allà de debò, canvia la targeta al web de la subscripció.", sub_dismiss:"No és una subscripció", sub_dismissed_ok:"Descartada · no tornarà a sortir aquí",
-  sub_hint:"Càrrecs al mateix comerç en ≥3 mesos amb import semblant. Revisa si ja no n'uses alguna.",
+  sub_dismiss:"No és una subscripció", sub_dismissed_ok:"Descartada · no tornarà a sortir aquí",
   g_totalfilt:"Despeses del període", g_n_one:"despesa", g_n_many:"despeses", g_inc_one:"ingrés", g_inc_many:"ingressos", g_balance:"Balanç", g_lbl_spent:"Despeses", g_lbl_income:"Ingressos",
   g_totalnet:"Balanç del període", st_gview:"Total de Despeses", st_gview_split:"Despeses i ingressos", st_gview_split_d:"El total de despeses a dalt; a sota, els ingressos i el balanç (ingressos − despeses) en una línia.", st_gview_net:"Balanç", st_gview_net_d:"Mana el balanç (ingressos − despeses del període); a sota, despeses i ingressos en petit. Verd si et queden diners, vermell si has gastat de més.", st_budget_cycle:"Pressupost per cicle de cobrament", st_budget_cycle_d:"Amb una nòmina reconeguda, Despeses s'obre a El meu cicle i compta despeses i ingressos. Sense nòmina, mes natural. El giny Android continua mensual.",
   sv_title:"Estalvi mensual", sv_note:"Planifica el que apartes cada mes per calcular quan arribes a les teves metes. No mou diners reals ni crea moviments.", sv_saved:"Estalvi mensual desat", sv_name_aria:"Concepte de l’aportació", sv_amount_aria:"Import al mes", sv_bank_aria:"Banc o bròker", sv_del_aria:"Treu aquesta aportació", sv_add:"Afegeix aportació", sv_name_ph:"Concepte (p. ex. MSCI World)", sv_empty:"Encara no has apuntat aportacions. Toca «Edita» per afegir el que apartes cada mes.",
@@ -3147,7 +3175,7 @@ const SAVE_HITOS=[100,500,1000,5000];   // hitos de ahorro (medallas)
 const GM_LEVELS=[0,250,1000,3000,8000]; // umbrales de savedScore por nivel
 function median(arr){ const a=(arr||[]).slice().sort(function(x,y){return x-y;}); const n=a.length; if(!n) return 0; return n%2?a[(n-1)/2]:(a[n/2-1]+a[n/2])/2; }
 // Detector de SUSCRIPCIONES / cargos recurrentes: mismo comercio en ≥3 meses distintos con importe
-// estable (≥60% dentro de ±25% de la mediana). Devuelve {name,cat,amount,months,last,active,yearly}.
+// estable (≥60% dentro de ±25% de la mediana). Devuelve {key,name,cat,amount,months,last,active,yearly,span,ult,lastMs}.
 function detectSubscriptions(expenses){
   const now=new Date();
   const activeCut=mk(now.getFullYear(), now.getMonth()-2);   // visto en los últimos ~2 meses = sigue activa
@@ -3158,8 +3186,12 @@ function detectSubscriptions(expenses){
     // hay estado a mano: vale la marca a secas, que es solo una sugerencia que deja de salir.
     if(e.reciboId) return;
     const mkey=mkOf(parseDate(e.date));
-    const g=(groups[k]=groups[k]||{name:e.merchant||k,cat:e.category,byMonth:{}});
+    const g=(groups[k]=groups[k]||{name:e.merchant||k,cat:e.category,byMonth:{},ult:[]});
     g.byMonth[mkey]=(g.byMonth[mkey]||0)+e.amount; g.name=e.merchant||g.name; g.cat=e.category;
+    // Los tres cobros más recientes, para su ficha (Gastos v5): fechas, día y banco salen de
+    // cargos reales, no de la mediana. Se guarda la referencia, sin copiar el histórico.
+    const ms=dateMs(e.date), u=g.ult;
+    if(u.length<3 || ms>u[u.length-1].ms){ u.push({ms:ms,amount:e.amount,e:e}); u.sort(function(a,b){ return b.ms-a.ms; }); if(u.length>3) u.pop(); }
   });
   const subs=[];
   Object.keys(groups).forEach(function(k){
@@ -3169,7 +3201,11 @@ function detectSubscriptions(expenses){
     const consistent=amts.filter(function(a){ return Math.abs(a-med)<=Math.max(1,med*0.25); }).length;
     if(consistent < Math.ceil(months.length*0.6)) return;
     const last=months[months.length-1];
-    subs.push({ key:k, name:g.name, cat:g.cat, amount:+med.toFixed(2), months:months.length, last:last, active:last>=activeCut, yearly:Math.round(med*12) });
+    // `span`: meses de calendario del primero al último. Igual a `months` = todos seguidos; si
+    // no, la ficha no puede afirmar «cada mes» (y lo del año es la mediana × 12, como siempre).
+    const ym=function(m){ return +m.slice(0,4)*12 + +m.slice(5); };
+    subs.push({ key:k, name:g.name, cat:g.cat, amount:+med.toFixed(2), months:months.length, last:last, active:last>=activeCut, yearly:Math.round(med*12),
+      span:ym(last)-ym(months[0])+1, ult:g.ult, lastMs:g.ult[0].ms });
   });
   return subs.sort(function(a,b){ return b.amount-a.amount; });
 }
