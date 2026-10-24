@@ -1,0 +1,93 @@
+{
+  "status": "blocked",
+  "summary": "Hourly safe handoff after required final whole Node run. R3 and PR296 candidates preserved privately; no product push. Whole Node EXIT1 with four genuine integration gates. RETURN own c9f155f1 read back exact; resources returned and product work stopped. Successor requires new own task/claim/ACK/admission; do not repeat closed tests without a new source change or failure.",
+  "tests": [
+    {
+      "command": "node --test --test-concurrency=1 --test-name-pattern ACK-window tests/fin04-commit.test.mjs on initial source plus new causal tests",
+      "exitCode": 1,
+      "result": "Two causal RED cases; Node ran both within the file, no within-file bail claim."
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin04-commit.test.mjs after merging guards",
+      "exitCode": 0,
+      "result": "9 pass"
+    },
+    {
+      "command": "initial whole Node on R3 candidate 2995d6dc7fc6b2349385b44d8f506f5706948f62",
+      "exitCode": 1,
+      "result": "215 invocations,207 exit0,8 exit1; preserved before harness corrections."
+    },
+    {
+      "command": "FIN11 corrected-anchor focal",
+      "exitCode": 0,
+      "result": "12 causal mutants killed; cap200/return-null/320-cent oracle preserved."
+    },
+    {
+      "command": "state dependency parser corrected and positive controls",
+      "exitCode": 0,
+      "result": "13 pass plus focused positive controls; no production dependencies changed."
+    },
+    {
+      "command": "receipt cloud commit harness focal two files",
+      "exitCode": 0,
+      "result": "73 pass; complete actual updater and layout commit."
+    },
+    {
+      "command": "directed browser final initial selection",
+      "exitCode": 1,
+      "result": "26 pass,1 fail,5 not run; B had already completed daily backup. Correct product skip, fixture corrected only."
+    },
+    {
+      "command": "directed browser corrected SAVEDAT and pending refresh",
+      "exitCode": 0,
+      "result": "4 SAVEDAT plus3 refresh pass; same runtime HTML. Preserve25 unaffected FIN04/persistence passes; do not sum26+7."
+    },
+    {
+      "command": "node --import ../audit-runner.mjs scripts/run-tests.mjs --plan ../node-all-plan.json on final combined source",
+      "exitCode": 1,
+      "result": "215 invocations (build+214steps),211 exit0,4 exit1; numeric per-step audit sealed."
+    }
+  ],
+  "productSHA": "fcfd10a007a9c94fc913b4fc2498e87603cbc878",
+  "dependencies": [
+    {
+      "pr": 293,
+      "source": "b92976b1edcdea292ca8d88f8a61942b79fa95e7"
+    },
+    {
+      "pr": 296,
+      "source": "fcfd10a007a9c94fc913b4fc2498e87603cbc878",
+      "dependsOnPR": 293
+    }
+  ],
+  "baseSHA": "ce5969d3b787ab2a98e736d2036b2c7626ff1d4f",
+  "baseVersion": "4.26.164",
+  "productPushed": false,
+  "productReady": false,
+  "remoteHeads": {
+    "PR293": "91a98b106689191612d4a76560bc15007c613400",
+    "PR296": "7258f56898d9d03bfceff6e6c5d46390a925a1de"
+  },
+  "artifactSHA256": "aa33b7cb2b2699907635f2c24b4331ea554bd4f58ae47dbdf29a679205eb180c",
+  "manifestSHA256": "fe1254c4589f4d612a133ac7b8356cb86fe90bd8e0cc253d96ec2e98b42c9ee4",
+  "resources": {
+    "ownRunnerChildClosed": true,
+    "ownPort48617Returned": true,
+    "ownLocalLockReturned": true,
+    "sharedLeaseNeverAcquired": true,
+    "noForeignProcessKilled": true
+  },
+  "limitations": [
+    "Four real gates remain: beta-sources fingerprints/PERSIST91,docs-frescura,memoria-espejo aborted without writes,size. No environment cause claimed for these.",
+    "Same PR293 and296 head updates with exact leases/readbacks remain unexecuted after hourly deadline.",
+    "No CI exact-source green,Claude integration,served artifact proof,physical mobile acceptance,CPU6,full browser,Deno,backend,SQL,Edge,APK,deploy or merge.",
+    "All earlier failures and immutable predecessors preserved; no VERSION,catalogue,cap or real-memory changes for green.",
+    "Private ZIP created with Python after PowerShell script policy refusal; refusal preserved, no policy change or bypass."
+  ],
+  "schema": 1,
+  "taskId": "fin04-pr293-r3-pr296-hourly1-codex-20261024",
+  "actor": "codex",
+  "sessionId": "codex-local-20261024-r3w1-de3cada75c536d4bc42e87bbddc93e91",
+  "createdAt": "2026-10-24T15:38:43.778Z",
+  "released": true
+}
