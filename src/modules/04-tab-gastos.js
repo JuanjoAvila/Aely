@@ -874,7 +874,21 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // Desglose por categoría: misma regla/ventana que la cabecera. categoryBudgets en deps
   // porque una fila a 0 con límite tiene que aparecer aunque no haya gastos nuevos.
   const catBreakdown=useMemo(function(){
-    const rows=categorySpentByMonth(Object.assign({},state,{expenses:expensesDef}),null,null,selectedPeriod);
+    const rows0=categorySpentByMonth(Object.assign({},state,{expenses:expensesDef}),null,null,selectedPeriod);
+    // Una categoría que ya no existe (id viejo o raro) se PINTA como «Otros» (catOf); agrupar por
+    // el id crudo enseñaba dos filas «Otros» (90 € y 15 €, captura de la tanda 2, 24/10). Se suma
+    // en la que se ve, así el total sigue cuadrando con la cifra de arriba.
+    const juntas={};
+    rows0.forEach(function(r){
+      const k=catOf(r.id).id;
+      const j=juntas[k]||(juntas[k]={id:k,spent:0,limit:null});
+      j.spent=+(j.spent+r.spent).toFixed(2);
+      if(r.id===k) j.limit=r.limit;
+    });
+    const rows=Object.keys(juntas).map(function(k){ return juntas[k]; }).sort(function(a,b){
+      if(b.spent!==a.spent) return b.spent-a.spent;
+      return String(a.id).localeCompare(String(b.id));
+    });
     return budgetApplies?rows:rows.filter(function(row){ return row.spent>0; }).map(function(row){ return {id:row.id,spent:row.spent,limit:null}; });
   },[expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.categoryBudgets,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,budgetApplies,todayKey,madridDay]);
   // La fecha del cobro sigue a la vista al plegar la explicación; ocultarla dejaba «Mi ciclo»

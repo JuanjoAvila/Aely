@@ -22,10 +22,10 @@ const base = {
   settings: { autoPrices: false, theme: "green", lang: "es", expenseBanks: ["trade_republic"] },
   accounts: [{ id: "tr", ent: "trade_republic", name: "Efectivo", value: 3000, role: "diario", spendFrom: true }],
 };
-// Septiembre: super 20 + 35 = 55 (límite 50), compras 30, restaurantes 15 → 100 que cuentan.
+// Septiembre: super 20 + 35 = 55 (límite 50), compras 30, bares 15 → 100 que cuentan.
 // Muchos días más atrás para que la lista tenga scroll de verdad.
 const expenses = [
-  e("Hoy super", "2026-09-26", 20, "super"), e("Bar ayer", "2026-09-25", 15, "restaurantes"),
+  e("Hoy super", "2026-09-26", 20, "super"), e("Bar ayer", "2026-09-25", 15, "bares"),
   e("Compra del 20", "2026-09-20", 30, "compras"), e("Super del 10", "2026-09-10", 35, "super"),
   ...Array.from({ length: 40 }, (_, i) => e("Agosto " + i, "2026-08-" + String(1 + (i % 28)).padStart(2, "0"), 5 + i, "compras")),
 ];
@@ -139,7 +139,7 @@ test("Categorías enseña el desglose de antes con la barra del presupuesto, y l
   await expect(filas.nth(0)).toHaveAttribute("data-cat", "super");
   await expect(filas.nth(0)).toContainText("55");
   await expect(filas.nth(1)).toHaveAttribute("data-cat", "compras");
-  await expect(filas.nth(2)).toHaveAttribute("data-cat", "restaurantes");
+  await expect(filas.nth(2)).toHaveAttribute("data-cat", "bares");
   const lim = filas.nth(0).locator('[role="progressbar"]');
   await expect(lim).toHaveAttribute("aria-valuemax", "50");
   await expect(lim).toHaveAttribute("aria-valuenow", "55");
@@ -242,4 +242,18 @@ test("Suscripciones vacía dice «Todo en orden»", async ({ page }) => {
   await expect(panel(page, "subs").locator(".gx-vacio-t")).toHaveText("Todo en orden");
   await expect(gastosEstado(page)).toHaveText("nada por revisar");
   await expect(gastosCifra(page)).toHaveText("0,00 €");
+});
+
+/* La captura de la tanda 2 enseñaba DOS filas «Otros» (90 y 15 €): una categoría con un id que ya
+   no existe se pinta como «Otros» pero se agrupaba aparte. Ahora es una sola fila y suma lo mismo. */
+test("Categorías junta en una sola fila «Otros» lo que se pinta como Otros, y el total cuadra", async ({ page }) => {
+  await abre(page, { expenses: expenses.concat([
+    e("Raro", "2026-09-22", 15, "categoria-que-ya-no-existe"), e("Sin cat", "2026-09-21", 90, "otros")]) });
+  await expect(gastosCifra(page)).toHaveText("205,00 €");
+  await gastosSeccion(page, "cats");
+  const filas = panel(page, "cats").locator(".v4-gastos-cat");
+  await expect(filas.filter({ hasText: "Otros" })).toHaveCount(1);
+  await expect(filas.filter({ hasText: "Otros" })).toContainText("105 €");
+  const total = await filas.evaluateAll((els) => els.reduce((s, el) => s + parseFloat(el.querySelector(".v4-gastos-cat-amt").textContent.replace(/[^\d,]/g, "").replace(",", ".")), 0));
+  expect(total).toBe(205);
 });
