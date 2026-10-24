@@ -377,7 +377,7 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
     set(function(s){
       const all=recordAccountBalances(s.accountBalanceHistory,today,rows);
       return all!==s.accountBalanceHistory?Object.assign({},s,{accountBalanceHistory:all}):s;
-    });
+    },false);
   },[parte,balanceReady,state.accounts,state.obAccounts,state.accountBalanceHistory,totals]);
   /* LA FÓRMULA INVERSA DEL SALDO, EN UN SOLO SITIO. Editas el SALDO REAL de hoy y por dentro se
      guarda la base (inicio de mes) correcta; `valueDesdeSaldo` (00-core) es la que despeja.

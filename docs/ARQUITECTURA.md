@@ -31,6 +31,14 @@ anterior a un gasto remoto nuevo. Sin solicitud pendiente, el error se propaga;
 una sesión nueva cancela la pendiente antigua sin perder su propio vuelo ni las
 ediciones locales que se mezclan con el estado vigente.
 
+SAVEDAT R2 aplica ese criterio al histórico derivado de bienes y a la clasificación
+automática de cuotas: persisten sin renovar `_savedAt`. El bootstrap del bróker
+espera el primer pull completo y válido del titular; comprueba de nuevo la sesión
+y la lectura al ejecutar la tarea diferida. Su respuesta válida posterior puede
+sellar posiciones reales sin dar prioridad a la cartera anterior al GET. La
+actualización de precios solicitada desde la interfaz conserva su sello: `silent`
+controla los avisos, no convierte una acción humana en mantenimiento automático.
+
 FIN04 fase 1 candidata R2: renombrado parcial con ACK y cola durable; nota local pendiente
 hasta confirmación exacta. Carga/mezcla de UUID prefiere la copia viva, conserva metadatos
 editados y mantiene separados importes o referencias conflictivos.
@@ -462,9 +470,11 @@ cargo único en su mes) y `reponerCargoDeRecibo` levanta el veto y devuelve la m
 la admite; el recibo sigue pendiente, como antes del veto, porque el motor no elige entre dos
 iguales.
 
-**Entre móviles (13/10/2026).** El estado viaja entero por «último que escribe» (`_savedAt`), y
-un móvil con días sin abrirse queda sellado como «más nuevo» por su primer guardado al
-arrancar. Lo que no puede perderse así se une en `syncFromCloud`, gane el estado que gane:
+**Entre móviles.** El estado viaja entero por «último que escribe» (`_savedAt`).
+SAVEDAT distingue mantenimiento/lectura/acuse de edición: se persisten sin renovar
+el sello, conservando el de la edición real. El conflicto entre ediciones concurrentes
+conserva sus límites LWW. [Contrato](briefs/savedat-arranque.md).
+Lo que no puede perderse se une en `syncFromCloud`, gane el estado que gane:
 los vínculos aviso↔apunte (`fusionarGemelos`), los vetos (`reciboNoUnion`), las lápidas
 (`lapidasUnion`) y los recibos borrados (`recibosBorradosUnion`); las dos últimas solo con lo
 local del mismo titular. Vetos, lápidas y recibos borrados comparten regla (`unionPorHora`):

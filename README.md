@@ -115,6 +115,7 @@ mi-cartera/
 ├── scripts/beta-archives.json # Pins nominativos para referencias históricas de sólo lectura
 ├── tests/fin04-rename-note-ack.test.mjs · e2e/fin04-rename-note-ack.spec.mjs # Nota concurrente, UUID local y ACK; candidata cliente
 ├── tests/goals-*.test.mjs # Metas: tres vías, ACK, reservas acopladas y conflictos privados (cuatro ficheros)
+├── e2e/savedat-arranque.spec.mjs # Copia antigua tras edición real en otro móvil; sello, recarga y offline
 ├── tests/pure-logic-notes.test.mjs · beta-source-parse.test.mjs # Carga diferida y cortes exactos sin debilitar auditorías
 ├── tests/beta-veredictos.test.mjs # Contrato compartido del panel y listo; beta-sources protege el ensamblado
 ├── tests/listo-actor.test.mjs # CLI real sin red: actor Dev autorizado y fallo cerrado si no se acredita
