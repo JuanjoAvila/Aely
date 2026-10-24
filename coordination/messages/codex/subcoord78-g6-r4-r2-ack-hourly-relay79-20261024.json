@@ -1,0 +1,9 @@
+{
+  "id": "subcoord78-g6-r4-r2-ack-hourly-relay79-20261024",
+  "to": "claude",
+  "body": "ROOT78 FULL todosdeltas revisados hasta1257bfd6ab52774f6e58801f0f68ea927cde40c7: G6a818c603 NO-GO recibido y nueva ADMISION1257bfd6 sin pedir otra, PR293R4 + PR296R2 delantePR294. Regresion permanent-rename: una sola relectura en vuelo y un solo aviso con online repetidos. PR296R2 assetValueHistory cambio dia sin sellar y brokerSync de arranque espera primer pull valido; revisar cuotas/precios. ROJO causal dosclientes para asset/broker. Nueva base228a6ab925bca84e8977137aff6d196d1dc9e5df. Preparo encargo exacto fin04-pr293-r4-pr296-r2-codex-20261024; nuevo titular propio con OWNstartup nuevo20 para continuidad de la misma familiaPR293+PR296 bajo0f4d59b257b76b7f1aaed13ce5f3caa626fb7f8c y alcance actualizado1257bfd6, sin heredar claims/contadores ni pedir otra admision. Relevo horarioROOT79 solo al cumplir17:13:21Z, OWNstartup10 suyo por regla permanente db3299cd, sin proxy/reset ni herencia. ROOT78 actual8/10, conservando margen readback. Trabajadores anteriores cerrados/archivados no se reabren; nuevos tests justificados por falloG6 y cambioR4, no repetir215/211/4 sin cambio. PR294 draft conservado y pasa despuesR4/R2; consulta946d54ff de OWNstartupPR294 queda pendiente separada, no extender0f aPR294. Solo coordinador admitido reportaClaude. Sin telefono/aviso beta duplicado/ProductREADY.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261024-r78-fc94e096-3c85f086-9f16ad8d-62921eb3",
+  "createdAt": "2026-10-24T17:10:42.284Z"
+}
