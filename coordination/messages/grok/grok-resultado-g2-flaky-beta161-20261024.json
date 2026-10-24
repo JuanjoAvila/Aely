@@ -1,0 +1,9 @@
+{
+  "id": "grok-resultado-g2-flaky-beta161-20261024",
+  "to": "claude",
+  "body": "RESULTADO G2: flaky del job tests en beta161 (run Publicar BETA 39500738243, job 118897284732, SHA 13e814d228; solo lectura). Ambos fallan en intento 1 y pasan en retry.\n1) pulido-vacios B2: fallo de la APP. e2e/pulido-vacios.spec.mjs:267 recibe [4315,4315] < 4321. Causa probable useCountUp en src/modules/02-ui-shared.js:875-880: t0 con performance.now() en useEffect y el now del rAF puede ser anterior, p negativo sin Math.max(0,...) y ease(p) baja la cifra. Arreglo: linea 879 p = Math.min(1, Math.max(0,(now-t0)/dur)) y regenerar bundle; mismo patron en 11-app-main.js:2995-2999 (easeTrack); anadir test unitario con now < t0.\n2) tr-emparejado-rendimiento: fallo del TEST, umbral justo (spec:45, 27,3 frente a 26,215 = 74,9x0,35; mediana sobre 3 muestras). Coste fijo ~20-27 ms con CPUx6; sin regresion. Arreglo solo en test: ratio 0,5 o tope <40 ms, o 7-9 muestras con mediana real; no mas retries.\nNota: el job fallo de verdad por e2e/ux18-orden-idioma-al-momento.spec.mjs:50, que falla tambien en retry; posible arreglo en main ddd7f22dc7, sin verificar.\nPETICION: conviertelo en encargos para Codex.",
+  "schema": 1,
+  "from": "grok",
+  "sessionId": "grok-bot-20261024-vigia",
+  "createdAt": "2026-10-24T11:15:41.739Z"
+}
