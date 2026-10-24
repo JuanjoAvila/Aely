@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews, gastosRoot, gastosCifra, gastosEstado, gastosBajaAlMes, gastosSeccion } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, gastosRoot, gastosCifra, gastosEstado, gastosBajaAlMes, gastosSeccion, gastosPulsaLarga } from "./fixtures.mjs";
 
 /* Gastos v5 (20/10/2026): ya no hay botones «Este mes / Mes pasado / Últimos 3 meses». La lista es
    el histórico entero, mes a mes, y cada día lleva el mes de MADRID en `data-gx-ym`: lo que antes
@@ -37,7 +37,7 @@ async function check(page,ym,total,names,amounts){
 async function limiteIdaVuelta(page){
   await gastosSeccion(page,"cats");
   for(const chip of [/^100 €$/,/Quitar límite|Remove limit|Treure límit/]){
-    await gastosRoot(page).locator('.v4-gastos-cat').first().click();
+    await gastosPulsaLarga(page,gastosRoot(page).locator('.v4-gastos-cat').first());
     await page.locator(".chip",{hasText:chip}).click();
     await page.locator(".btn-primary",{hasText:/Guardar|Save|Desa/}).click();
     await expect(page.locator(".btn-primary",{hasText:/Guardar|Save|Desa/})).toHaveCount(0);

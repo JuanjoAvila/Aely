@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews, gastosCifra, gastosEstado, gastosSeccion } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, gastosCifra, gastosEstado, gastosSeccion, gastosPulsaLarga } from "./fixtures.mjs";
 
 /* Presupuesto por categoría: desglose en la sección Categorías (Gastos v5, tanda 2), límite
    informativo, misma regla que expenseCountsBudget (banco fuera de gasto diario no llena la barra). */
@@ -75,7 +75,8 @@ test("Gastos: poner y quitar límite de categoría no mueve el presupuesto gener
   await expect(gastosCifra(page)).toHaveText("40,00 €");
   await expect(gastosEstado(page)).toContainText("960 € por debajo");
 
-  await page.locator('.v4-gastos-cat[data-cat="super"]').click();
+  // Gastos v5, tanda 3: tocar filtra; el límite se abre manteniendo pulsada la categoría.
+  await gastosPulsaLarga(page, page.locator('.v4-gastos-cat[data-cat="super"]'));
   await expect(page.locator(".ask-sheet, .tabsheet").first()).toBeVisible();
   await page.locator(".chip", { hasText: "200 €" }).click();
   await page.locator(".btn-primary", { hasText: /Guardar|Save|Desa/ }).click();

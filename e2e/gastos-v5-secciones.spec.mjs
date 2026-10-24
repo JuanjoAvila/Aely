@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews, installFixtureClock, gastosRoot, gastosCifra, gastosEstado, gastosSeccion } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, installFixtureClock, gastosRoot, gastosCifra, gastosEstado, gastosSeccion, gastosPulsaLarga } from "./fixtures.mjs";
 
 /* GASTOS v5 · TANDA 2 (SPEC §2.1, §2.2, §5, §6 y §9). Las tres secciones de Gastos: Movimientos,
    Categorías y Suscripciones. Render puro derivado del estado (AGENTS §7): cada prueba abre la
@@ -143,8 +143,8 @@ test("Categorías enseña el desglose de antes con la barra del presupuesto, y l
   const lim = filas.nth(0).locator('[role="progressbar"]');
   await expect(lim).toHaveAttribute("aria-valuemax", "50");
   await expect(lim).toHaveAttribute("aria-valuenow", "55");
-  // Tocar una categoría sigue poniendo el límite (la puerta no se pierde hasta la tanda 3).
-  await filas.nth(1).click();
+  // Mantenerla pulsada abre su límite (tanda 3: el toque filtra, ver gastos-v5-filtro).
+  await gastosPulsaLarga(page, filas.nth(1));
   await expect(page.locator(".ask-sheet, .tabsheet").first()).toBeVisible();
   // La lista de movimientos no se ve en Categorías.
   await expect(panel(page, "movs")).toHaveAttribute("aria-hidden", "true");
@@ -158,8 +158,9 @@ test("cambiar de sección vuelve arriba del todo", async ({ page }) => {
   await tab(page, "cats").click();
   await expect.poll(() => page.evaluate(() => document.querySelector(".page-scroll-host").scrollTop)).toBe(0);
   await expect(gastosRoot(page).locator(".gx-head")).not.toHaveClass(/compact/);
-  // Y en Categorías no hay fila de meses (llega con la tanda 3).
-  await expect(gastosRoot(page).getByTestId("gastos-meses")).toHaveCount(0);
+  // En Categorías la fila de meses está siempre (tanda 3, SPEC §2.1), con el mes en curso marcado.
+  await expect(gastosRoot(page).getByTestId("gastos-meses")).toHaveAttribute("aria-hidden", "false");
+  await expect(gastosRoot(page).locator(".gx-mes.on")).toHaveText("septiembre");
   await tab(page, "movs").click();
   await expect(gastosEstado(page)).toHaveText("gastado en septiembre · 900 € por debajo");
 });

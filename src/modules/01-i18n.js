@@ -134,7 +134,7 @@ const LANG = {
     v4_pendiente:"Pendiente", v4_ya_pagado:"Ya pagado", v4_gestionar:"Gestionar",
     v4_ver_mas:"Ver más · {n}", v4_ver_menos:"Ver menos",
     v4_gastos_title:"Tus gastos",
-    v4_gastos_cats:"Por categoría · toca una para ponerle un límite", v4_gastos_cat_limit:"límite {x}",
+    v4_gastos_cat_limit:"límite {x}",
     g_cat_budget_title:"Límite en {cat}", g_cat_budget_sub:"Solo para verlo: no cambia tu presupuesto ni te bloquea. Vacío o 0 = quitar el límite.",
     g_cat_budget_clear:"Quitar límite",
     v4_cartera_title:"Tu cartera", v4_cuentas:"Tus cuentas", v4_connect_accounts:"Conectar cuentas", v4_inversiones:"Tus inversiones", v4_inv_positions:"{n} posiciones",
@@ -426,7 +426,7 @@ const LANG = {
     v4_pendiente:"Pending", v4_ya_pagado:"Already paid", v4_gestionar:"Manage",
     v4_ver_mas:"See more · {n}", v4_ver_menos:"See less",
     v4_gastos_title:"Your spending",
-    v4_gastos_cats:"By category · tap one to set a cap", v4_gastos_cat_limit:"limit {x}",
+    v4_gastos_cat_limit:"limit {x}",
     g_cat_budget_title:"Limit for {cat}", g_cat_budget_sub:"Just to see it: it does not change your budget or block you. Empty or 0 removes the limit.",
     g_cat_budget_clear:"Remove limit",
     v4_cartera_title:"Your portfolio", v4_cuentas:"Your accounts", v4_connect_accounts:"Connect accounts", v4_inversiones:"Your investments", v4_inv_positions:"{n} positions",
@@ -705,7 +705,7 @@ const LANG = {
     v4_pendiente:"Pendent", v4_ya_pagado:"Ja pagat", v4_gestionar:"Gestionar",
     v4_ver_mas:"Veure més · {n}", v4_ver_menos:"Veure menys",
     v4_gastos_title:"Les teves despeses",
-    v4_gastos_cats:"Per categoria · toca'n una per posar-li un límit", v4_gastos_cat_limit:"límit {x}",
+    v4_gastos_cat_limit:"límit {x}",
     g_cat_budget_title:"Límit a {cat}", g_cat_budget_sub:"Només per veure’l: no canvia el pressupost ni et bloqueja. Buit o 0 = treure el límit.",
     g_cat_budget_clear:"Treure límit",
     v4_cartera_title:"La teva cartera", v4_cuentas:"Els teus comptes", v4_connect_accounts:"Connectar comptes", v4_inversiones:"Les teves inversions", v4_inv_positions:"{n} posicions",
@@ -1579,6 +1579,16 @@ Object.assign(LANG.ca,{gv5_secciones:"Seccions de Despeses", gv5_sec_movs:"Movim
   gv5_subs_globo:"{n} per revisar", gv5_cats_pre:"{period} per categoria", gv5_cats_pres:"Pressupost gastat", gv5_cats_of:"de {x}",
   gv5_cats_vacio:"Encara no hi ha despeses que comptin en aquest període.", gv5_subs_n:"al mes · {n} per revisar", gv5_subs_none:"res per revisar",
   gv5_subs_ok_t:"Tot en ordre", gv5_subs_ok_d:"Si un comerç et cobra una cosa semblant tres mesos seguits i no és a Rebuts, apareixerà aquí perquè decideixis què fer."});
+// Gastos v5, tanda 3: tocar una categoría filtra (píldora) y el límite va por pulsación larga o el chip.
+Object.assign(LANG.es,{gv5_cats_hint:"Toca una para ver sus movimientos · mantenla pulsada para ponerle un límite",
+  gv5_fil_n:"{n} movimientos", gv5_fil_n1:"1 movimiento", gv5_fil_quitar:"Quitar el filtro de {x}",
+  gv5_fil_lim_poner:"Poner límite", gv5_fil_lim:"Límite {x}", gv5_fil_quedan:"quedan {x}", gv5_fil_pasado:"{x} de más"});
+Object.assign(LANG.en,{gv5_cats_hint:"Tap one to see its transactions · press and hold to set a limit",
+  gv5_fil_n:"{n} transactions", gv5_fil_n1:"1 transaction", gv5_fil_quitar:"Remove the {x} filter",
+  gv5_fil_lim_poner:"Set limit", gv5_fil_lim:"Limit {x}", gv5_fil_quedan:"{x} left", gv5_fil_pasado:"{x} over"});
+Object.assign(LANG.ca,{gv5_cats_hint:"Toca'n una per veure'n els moviments · mantén-la premuda per posar-li un límit",
+  gv5_fil_n:"{n} moviments", gv5_fil_n1:"1 moviment", gv5_fil_quitar:"Treu el filtre de {x}",
+  gv5_fil_lim_poner:"Posa un límit", gv5_fil_lim:"Límit {x}", gv5_fil_quedan:"en queden {x}", gv5_fil_pasado:"{x} de més"});
 const MON_I18N = {
   es:{ long:["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"], short:["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"] },
   en:{ long:["January","February","March","April","May","June","July","August","September","October","November","December"], short:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"] },

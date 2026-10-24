@@ -303,8 +303,17 @@ export async function gastosBajaAlDia(page, ymd, ym) {
   await page.evaluate(([k, ym]) => {
     const host = document.querySelector(".page-scroll-host"), el = host.querySelector(`[data-gx-day="${k}"]` + (ym ? `[data-gx-ym="${ym}"]` : ""));
     const head = host.querySelector(".gx-head"), pad = parseFloat(getComputedStyle(host).paddingTop) || 0;
-    host.scrollTo(0, host.scrollTop + el.getBoundingClientRect().top - host.getBoundingClientRect().top - (pad + head.offsetHeight + (head.querySelector(".gx-meses") ? 36 : -16)) + 2);
+    host.scrollTo(0, host.scrollTop + el.getBoundingClientRect().top - host.getBoundingClientRect().top - (pad + head.offsetHeight + (head.classList.contains("meses-fijos") ? 0 : head.querySelector(".gx-meses") ? 36 : -16)) + 2);
   }, [k, ym]);
+}
+/** Mantiene pulsado un elemento (pulsación larga de Gastos v5: el límite de una categoría). Con
+ *  punteros, como la app: el ratón de Playwright los genera igual que un dedo. */
+export async function gastosPulsaLarga(page, loc, ms = 700) {
+  const box = await loc.boundingBox();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(ms);
+  await page.mouse.up();
 }
 /** Un cargo de una fila gris (recibos/cuotas agrupados por día, SPEC §4.4): abre su fila si está
  *  plegada y devuelve el cargo. Antes eran tarjetas sueltas (`button.v4-mov`). */
