@@ -27,7 +27,8 @@ const fila = (page, nombre) => lista(page).filter({ hasText: nombre });
 async function mostrarTodosLosBancos(page) {
   await page.locator("button.v4-chip").filter({ hasText: "🎛️" }).first().click();
   await page.getByRole("button", { name: /Todos los bancos|All banks|Tots els bancs/i }).click();
-  await page.getByRole("button", { name: /Listo|Done|Fet/i }).click();
+  // El único botón de abajo dice cuántos movimientos va a enseñar y cierra (tanda 5).
+  await page.locator(".v4-gastos-filter-sheet .btn-primary").click();
 }
 
 test.use({ viewport: { width: 375, height: 812 } });

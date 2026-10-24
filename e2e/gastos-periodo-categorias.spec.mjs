@@ -128,8 +128,8 @@ test("búsqueda, categoría y banco exploran sin cambiar las cifras del mes",asy
   await page.locator('.v4-gastos-filter-sheet .btn-primary').click();
   await expect(rows(page)).toHaveCount(1); await check(page,{super:25},25);
   await gastosRoot(page).locator('.filters button[title="Filtros"]').click();
-  await page.locator('.v4-gastos-filter-sheet .btn-ghost').click();
-  // «Limpiar» también vuelve al periodo de entrada (Mi ciclo): se elige otra vez Meses.
+  await page.locator('.v4-gastos-filter-sheet .gx-fil-reset').click();
+  // «Restablecer» también vuelve al periodo de entrada (Mi ciclo): se elige otra vez Meses.
   await page.locator('.v4-gastos-filter-sheet [data-periodo="months"]').click();
   await page.locator('.v4-gastos-filter-sheet').getByRole('button',{name:'Sabadell',exact:true}).click();
   await page.locator('.v4-gastos-filter-sheet').getByRole('button',{name:'Revolut',exact:true}).click();

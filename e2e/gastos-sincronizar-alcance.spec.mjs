@@ -1,42 +1,51 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, gastosRoot, gastosAbreFiltros } from "./fixtures.mjs";
 
-// El alcance debe entenderse ANTES de pulsar: el estado de última lectura no explica
-// si se consultará al banco. Criterio UX15 aprobado el 16/10/2026.
+/* UX-15 + Gastos v5, tanda 5 (decisión del dueño, 20/10/2026): «Actualizar gastos» SE QUITA de
+   Gastos. Lo que hacía (releer de la nube los gastos, también los de las notificaciones, sin
+   preguntar a los bancos) lo hace la app sola al abrirla y al volver a ella. Lo que no se puede
+   perder: saber de cuándo son los gastos y que eso no consulta al banco — ahora al pie de Filtros,
+   en una sola explicación con origen y límite (criterio UX15 del 16/10). */
 for(const caso of [
-  {lang:"es",label:"Actualizar gastos",busy:"Actualizando gastos…",hint:"Trae los gastos guardados en la nube, incluidas las notificaciones. No consulta tus bancos.",cloud:/nube/,notif:/notificaciones/,banks:/no consulta (?:a )?(?:tus |los )?bancos/i},
-  {lang:"en",label:"Refresh expenses",busy:"Refreshing expenses…",hint:"Fetches expenses saved in the cloud, including notifications. It does not contact your banks.",cloud:/cloud/,notif:/notifications/,banks:/does not contact your banks/i},
-  {lang:"ca",label:"Actualitza les despeses",busy:"Actualitzant les despeses…",hint:"Recupera les despeses desades al núvol, incloses les notificacions. No consulta els teus bancs.",cloud:/núvol/,notif:/notificacions/,banks:/no consulta (?:els teus |els )?bancs/i},
-]) test(`Gastos explica el alcance de actualizar sin consultar bancos (${caso.lang})`,async({page})=>{
+  {lang:"es",viejo:"Actualizar gastos",hint:"Los gastos guardados en la nube, también los de las notificaciones, se traen solos al abrir la app y al volver a ella. No consulta tus bancos.",cloud:/nube/,notif:/notificaciones/,banks:/no consulta tus bancos/i},
+  {lang:"en",viejo:"Refresh expenses",hint:"Expenses saved in the cloud, including notifications, come in on their own when you open the app and when you come back to it. It does not contact your banks.",cloud:/cloud/,notif:/notifications/,banks:/does not contact your banks/i},
+  {lang:"ca",viejo:"Actualitza les despeses",hint:"Les despeses desades al núvol, també les de les notificacions, arriben soles en obrir l'app i en tornar-hi. No consulta els teus bancs.",cloud:/núvol/,notif:/notificacions/,banks:/no consulta els teus bancs/i},
+]) test(`sin botón: volver a la app relee la nube sin consultar bancos y Filtros dice de cuándo son (${caso.lang})`,async({page})=>{
   await seedLoggedInDashboard(page,{settings:{lang:caso.lang,autoPrices:false,theme:"green"},expenses:[]});
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible();
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  const screen=page.locator('.v4-screen').filter({has:page.locator('.gx-head')});   // Gastos v5: cabecera fija
-  const action=screen.locator('.action-row');
-  await expect(action).toBeVisible();
-  // Una sola explicación visible debe contener origen y límite de la acción.
-  const explanation=screen.getByText(caso.banks).filter({hasText:caso.cloud}).filter({hasText:caso.notif});
-  await expect(explanation).toBeVisible({timeout:1500});
-  await expect(explanation).toHaveText(caso.hint);
-  const button=action.getByRole("button",{name:caso.label,exact:true});
-  await expect(button).toHaveAccessibleDescription(caso.hint);
+  await expect(gastosRoot(page)).toBeVisible();
+  // El botón ya no está en ninguna parte de Gastos (ni en el pie ni en la cabecera).
+  await expect(gastosRoot(page).getByRole("button",{name:caso.viejo})).toHaveCount(0);
+  await expect(gastosRoot(page).locator(".sync-note")).toHaveCount(0);
+  await page.waitForFunction(()=>_mcLecturaNube>0);
+
+  // Volver a la app es la puerta: UNA lectura de la nube y NINGUNA llamada a los bancos (AGENTS §7).
   await page.evaluate(()=>{
     window.__ux15Pulls=0;
     window.__ux15Invokes=(window.__e2eInvokes||[]).length;
+    window.__ux15Antes=_mcLecturaNube;
     const pull=cloud.pullExpenses;
-    cloud.pullExpenses=function(...args){
-      window.__ux15Pulls++;
-      return new Promise(resolve=>setTimeout(resolve,900)).then(()=>pull.apply(cloud,args));
-    };
+    cloud.pullExpenses=function(...args){ window.__ux15Pulls++; return pull.apply(cloud,args); };
+    let vis="hidden";
+    Object.defineProperty(document,"visibilityState",{configurable:true,get:()=>vis});
+    document.dispatchEvent(new Event("visibilitychange"));
+    vis="visible";
+    document.dispatchEvent(new Event("visibilitychange"));
   });
-  await button.click();
-  const busy=action.getByRole("button",{name:caso.busy,exact:true});
-  await expect(busy).toBeDisabled();
-  await expect(explanation).toBeVisible();
-  await expect(button).toBeEnabled();
-  await expect(explanation).toBeVisible();
+  await page.waitForFunction(()=>_mcLecturaNube>window.__ux15Antes);
   expect(await page.evaluate(()=>window.__ux15Pulls)).toBe(1);
   expect(await page.evaluate(()=>(window.__e2eInvokes||[]).slice(window.__ux15Invokes).filter(x=>x.name==="bank-sync"))).toEqual([]);
+
+  // Al pie de Filtros: la hora de la lectura y una sola explicación con origen y límite.
+  await gastosAbreFiltros(page);
+  const hoja=page.locator(".v4-gastos-filter-sheet");
+  await expect(hoja.getByTestId("gastos-lectura")).toContainText(/\d{2}:\d{2}/);
+  const explicacion=hoja.getByText(caso.banks).filter({hasText:caso.cloud}).filter({hasText:caso.notif});
+  await expect(explicacion).toHaveText(caso.hint);
+  // Va debajo del botón «Ver N»: es información, no una acción más de la hoja.
+  const ver=await hoja.locator(".gx-fil-ver").boundingBox(), lectura=await hoja.getByTestId("gastos-lectura").boundingBox();
+  expect(lectura.y).toBeGreaterThan(ver.y+ver.height-1);
 });

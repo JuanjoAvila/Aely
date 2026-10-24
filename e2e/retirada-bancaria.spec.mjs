@@ -3,6 +3,10 @@ import { seedLoggedInDashboard, dismissNews, FIXTURE_NOW, installFixtureClock } 
 
 const id="550e8400-e29b-41d4-a716-446655440000";
 const expense={id,date:new Date(FIXTURE_NOW).toISOString(),merchant:"Disposición oficina ficticia",amount:80,category:"otros",source:"ob",ent:"caixabank"};
+/* Releer la nube = volver a la app (Gastos v5, tanda 5): «Actualizar gastos» ya no existe y esa
+   es la puerta que queda, la misma que usa la familia. Se simula la vuelta con visibilitychange. */
+const vuelveALaApp=page=>page.evaluate(()=>{let vis="hidden";Object.defineProperty(document,"visibilityState",{configurable:true,get:()=>vis});
+  document.dispatchEvent(new Event("visibilitychange"));vis="visible";document.dispatchEvent(new Event("visibilitychange"));});
 async function open(page,lang="es",mode="ok",remoteCat="otros",overrides={}){
   await installFixtureClock(page);
   const remote={id,fecha:expense.date,comercio:expense.merchant,importe:80,cat:remoteCat,source:"ob:caixabank"};
@@ -60,9 +64,7 @@ async function open(page,lang="es",mode="ok",remoteCat="otros",overrides={}){
   await page.waitForFunction(()=>!document.getElementById("mc-load"));
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   if(remoteCat==="traspaso"){
-    // El botón de Gastos se llama «Actualizar gastos» desde la 4.26.138 (mismo onSync, otro texto).
-    const syncLabel=await page.evaluate(()=>t("g_refresh_expenses"));
-    await page.locator('.v4-screen:has(.gx-head)').getByRole("button",{name:syncLabel,exact:true}).click();
+    await vuelveALaApp(page);
     await expect(page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:expense.merchant})).toHaveClass(/v4-mov-skip/);
   }
   await page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:expense.merchant}).click();
@@ -204,7 +206,7 @@ for(const lang of ["es","en","ca"])test(`vínculo bajado tras enviar UPDATE se c
   expect(after.state.fixed[0].paymentProofs[2026*12+9]).toBeUndefined();
   // El pull real posterior conserva la única retirada y no recrea la prueba invalidada.
   await page.locator('.v4-exp-sheet .v4-ficha-done').click();
-  const sync=await page.evaluate(()=>t("g_refresh_expenses"));await page.locator('.v4-screen:has(.gx-head)').getByRole("button",{name:sync,exact:true}).click();
+  await vuelveALaApp(page);
   await expect.poll(async()=>(await stored(page)).expenses[0]?.category).toBe("traspaso");
   await receiptOnB(browser,lang,await page.evaluate(()=>slimForCloud(mcLoadRaw(mcStateKey()))),false,bill);
 });

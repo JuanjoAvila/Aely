@@ -162,7 +162,8 @@ test("volver a primer plano con la nube igual: ni filas reconvertidas, ni catego
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 20_000 });
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await expect(page.locator(".sync-note")).toContainText(/\d/, { timeout: 15_000 });
+  // La hora de la última lectura vive en Filtros desde la tanda 5: se espera a la lectura misma.
+  await page.waitForFunction(() => _mcLecturaNube > 0, null, { timeout: 15_000 });
 
   // Funciones globales del bundle: envolverlas cuenta las llamadas que hace la propia app.
   await page.evaluate(() => {
@@ -185,7 +186,7 @@ test("volver a primer plano con la nube igual: ni filas reconvertidas, ni catego
   };
   // La primera vuelta puede coincidir con la lectura del arranque; la segunda ya es pura repetición.
   await vuelta();
-  const sync0 = await page.locator(".sync-note").textContent();
+  const sync0 = await page.evaluate(() => _mcLecturaNube);
   await page.evaluate(() => { const n = window.__vuelta; n.filas = 0; n.kw = 0; n.escrituras = []; });
   await vuelta();
   const n = await page.evaluate(() => window.__vuelta);
@@ -193,8 +194,11 @@ test("volver a primer plano con la nube igual: ni filas reconvertidas, ni catego
   expect(n.kw, "barridos de palabras clave en una vuelta sin cambios").toBe(0);
   expect(n.escrituras, "la cartera no se reescribe si la nube trae lo mismo").toEqual([]);
   // «Última sincronización» sigue con hora aunque el estado no haya cambiado (la da la lectura).
-  expect(sync0).toMatch(/\d/);
-  await expect(page.locator(".sync-note")).toContainText(/\d/);
+  expect(await page.evaluate(() => _mcLecturaNube), "la vuelta sin cambios también deja su hora").toBeGreaterThan(sync0);
+  await page.locator(".page-scroll-host .gx-root button.v4-chip").filter({ hasText: "🎛️" }).first().click();
+  await expect(page.locator(".v4-gastos-filter-sheet").getByTestId("gastos-lectura")).toContainText(/\d/);
+  await page.locator(".v4-sheet-back").click({ position: { x: 5, y: 5 } });
+  await page.locator(".v4-sheet-back").waitFor({ state: "detached" });
 
   // Y si cambia UNA fila, esa sí entra (y solo esa se reconvierte).
   await page.evaluate(() => { const r = window.__e2eCloudRows.expenses; r[1] = { ...r[1], importe: 777.77 }; window.__vuelta.filas = 0; });
