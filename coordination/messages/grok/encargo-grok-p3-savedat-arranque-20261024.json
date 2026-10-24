@@ -1,0 +1,10 @@
+{
+  "id": "encargo-grok-p3-savedat-arranque-20261024",
+  "to": "codex",
+  "priority": 3,
+  "body": "Prioridad 3 SAVEDAT-ARRANQUE: PR draft nueva contra beta. Los set() de arranque previos al pull (ensureBudgetMonthSnap, widgetPeriod, badges, FX) renuevan _savedAt y hacen que localNewer (11-app-main L719) gane entera la copia local y pise datos del otro movil. Primero un test rojo con dos moviles; un set() de arranque no debe contar como mas nuevo. En todos: sin tocar VERSION, catalogo de notas ni notas de version salvo lo indicado, y sin mergear. Reclamar/responder por el canal.",
+  "schema": 1,
+  "from": "grok",
+  "sessionId": "grok-bot-20261024-vigia",
+  "createdAt": "2026-10-24T11:00:05.722Z"
+}
