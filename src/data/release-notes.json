@@ -1,5 +1,85 @@
 [
   {
+    "v": "4.26.164",
+    "d": "2026-10-24",
+    "t": {
+      "es": "Gastos, más clara",
+      "en": "A clearer Spending screen",
+      "ca": "Despeses, més clara"
+    },
+    "items": {
+      "es": [
+        "La lista manda: arriba ves cuánto llevas gastado este mes y cuánto te queda, y al bajar la cifra te dice lo gastado hasta el día que estás mirando.",
+        "Los meses aparecen arriba al bajar y puedes saltar a uno tocándolo.",
+        "Cada gasto va en su propia tarjeta y cada día dice cuánto has gastado.",
+        "Los recibos y las cuotas del banco salen juntos en una línea gris que no cuenta y se abre con un toque.",
+        "«Mi ciclo», «Rango» y «Todo» están ahora en Filtros."
+      ],
+      "en": [
+        "The list comes first: at the top you see how much you've spent this month and how much is left, and as you scroll the figure shows what you'd spent up to the day you're looking at.",
+        "Months appear at the top as you scroll, and you can jump to one by tapping it.",
+        "Each expense has its own card and each day shows what you spent.",
+        "Bills and loan payments taken by the bank are grouped in a grey line that doesn't count and opens with a tap.",
+        "\"My cycle\", \"Range\" and \"All\" now live in Filters."
+      ],
+      "ca": [
+        "La llista mana: a dalt veus quant portes gastat aquest mes i quant et queda, i en baixar la xifra et diu el que havies gastat fins al dia que mires.",
+        "Els mesos apareixen a dalt en baixar i pots saltar a un tocant-lo.",
+        "Cada despesa va a la seva targeta i cada dia diu quant has gastat.",
+        "Els rebuts i les quotes del banc surten junts en una línia grisa que no compta i s'obre amb un toc.",
+        "«El meu cicle», «Rang» i «Tot» ara són a Filtres."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "gastos-v5-movimientos",
+        "t": {
+          "es": "Gastos: cabecera con la cifra viva, meses al bajar, tarjetas por día y líneas grises",
+          "en": "Spending: header with the live figure, months as you scroll, cards by day and grey lines",
+          "ca": "Despeses: capçalera amb la xifra viva, mesos en baixar, targetes per dia i línies grises"
+        },
+        "items": {
+          "es": [
+            "1. Abre Gastos. Arriba pone «Tus gastos», la cifra del mes y «gastado en octubre · X € por debajo» (o «por encima» en coral). Compárala con la tarjeta del mes de Inicio: lo gastado tiene que ser lo mismo y lo que queda, igual. MAL: no coinciden.",
+            "2. Baja despacio por la lista. La cifra se encoge, aparecen los meses fijos arriba con octubre marcado, y la línea cambia a «gastado en octubre hasta el 15» según el día que queda debajo, rodando los números sin parpadear. MAL: la lista da un salto al encogerse, la cifra parpadea o se queda quieta.",
+            "3. Sigue bajando hasta septiembre. En el primer día de septiembre pone el total del mes y «septiembre · cerrado» (y, si tienes agosto entero, «X € más/menos que en agosto»), y la pastilla se desliza a septiembre. MAL: dice «por debajo» o «por encima» en un mes cerrado.",
+            "4. Toca la pastilla de agosto: la lista salta a su primer día y arriba sale el total de agosto. Toca la del mes en curso: vuelve arriba. MAL: salta a otro sitio.",
+            "5. Mira los gastos: cada uno en su tarjeta (icono, nombre, categoría de color, «fecha · banco», importe y el asa ⋮⋮). Arrastra uno por el asa dentro del día y toca otro para abrir su ficha. MAL: falta algo de la tarjeta o el asa no ordena.",
+            "6. Busca un día con un recibo o una cuota del banco: sale una línea gris «Recibos · no cuentan» (o «Deudas · no cuentan») con importe y número, y el total del día no la suma. Tócala: se abre suave y vibra una vez; dentro cada cargo dice de qué recibo o deuda es y abre su ficha. Toca «Abrir en Plan · Recibos ›». MAL: el total del día la suma, no se abre, vibra dos veces o Plan abre otro apartado.",
+            "7. Abre Filtros (🎛️): arriba está «Periodo» con Meses · Mi ciclo · Rango · Todo. Elige Mi ciclo: sale la ayuda con tu cobro y la cifra del ciclo; si tienes el presupuesto por ciclo, es la misma que la de Inicio. Para volver, toca Meses. MAL: falta Mi ciclo o la cifra no cuadra con Inicio.",
+            "8. En Filtros comprueba que, sin tocar nada, los bancos marcados son los de gasto diario y que «Qué contar» sigue separando lo que cuenta, ingresos e inversión. MAL: arranca con otros bancos o falta un cajón.",
+            "9. Mantén pulsado un nombre o un importe: no se selecciona ni sale el menú de copiar (en el buscador sí puedes escribir). MAL: se selecciona texto.",
+            "10. Baja hasta el final: pone «Hasta aquí: …» con la fecha del movimiento más antiguo. MAL: no sale o la lista se corta antes."
+          ],
+          "en": [
+            "1. Open Spending. At the top it says \"Your spending\", the month's figure and \"spent in October · €X under\" (or \"over\" in coral). Compare it with the month card on Home: the amount spent must be the same, and so must what's left. WRONG: they don't match.",
+            "2. Scroll slowly down the list. The figure shrinks, the months appear fixed at the top with October marked, and the line changes to \"spent in October through day 15\" for the day underneath, the digits rolling without flicker. WRONG: the list jumps when it shrinks, the figure flickers or stays still.",
+            "3. Keep scrolling to September. On the first day of September it shows the month's total and \"September · closed\" (and, if you have all of August, \"€X more/less than in August\"), and the pill slides to September. WRONG: it says \"under\" or \"over\" for a closed month.",
+            "4. Tap the August pill: the list jumps to its first day and the top shows August's total. Tap the current month's pill: it goes back to the top. WRONG: it jumps somewhere else.",
+            "5. Look at the expenses: each one on its own card (icon, name, coloured category, \"date · bank\", amount and the ⋮⋮ handle). Drag one by the handle within its day and tap another to open its details. WRONG: something is missing from the card or the handle doesn't reorder.",
+            "6. Find a day with a bill or a loan payment taken by the bank: there is a grey line \"Bills · don't count\" (or \"Debts · don't count\") with an amount and a count, and the day's total doesn't add it. Tap it: it opens smoothly and vibrates once; inside, each charge says which bill or debt it is and opens its details. Tap \"Open in Plan · Bills ›\". WRONG: the day's total adds it, it doesn't open, it vibrates twice or Plan opens another section.",
+            "7. Open Filters (🎛️): at the top there is \"Period\" with Months · My cycle · Range · All. Pick My cycle: the help with your payday and the cycle figure appear; if your budget runs by cycle, it's the same as on Home. To go back, tap Months. WRONG: My cycle is missing or the figure doesn't match Home.",
+            "8. In Filters check that, without touching anything, the banks ticked are your everyday spending ones and that \"What to count\" still separates what counts, income and investment. WRONG: it starts with other banks or a group is missing.",
+            "9. Press and hold a name or an amount: nothing gets selected and no copy menu appears (you can still type in the search box). WRONG: text gets selected.",
+            "10. Scroll to the very end: it says \"That's everything: …\" with the date of the oldest transaction. WRONG: it doesn't appear or the list stops earlier."
+          ],
+          "ca": [
+            "1. Obre Despeses. A dalt diu «Les teves despeses», la xifra del mes i «gastat al octubre · X € per sota» (o «per sobre» en coral). Compara-la amb la targeta del mes d'Inici: el que has gastat ha de ser el mateix i el que queda, igual. MALAMENT: no coincideixen.",
+            "2. Baixa a poc a poc per la llista. La xifra s'encongeix, apareixen els mesos fixos a dalt amb octubre marcat, i la línia canvia a «gastat al octubre fins al dia 15» segons el dia que queda a sota, rodant els números sense parpellejar. MALAMENT: la llista fa un salt en encongir-se, la xifra parpelleja o es queda quieta.",
+            "3. Continua baixant fins a setembre. Al primer dia de setembre surt el total del mes i «setembre · tancat» (i, si tens l'agost sencer, «X € més/menys que al agost»), i la pastilla llisca a setembre. MALAMENT: diu «per sota» o «per sobre» en un mes tancat.",
+            "4. Toca la pastilla d'agost: la llista salta al seu primer dia i a dalt surt el total d'agost. Toca la del mes en curs: torna a dalt. MALAMENT: salta a un altre lloc.",
+            "5. Mira les despeses: cadascuna a la seva targeta (icona, nom, categoria de color, «data · banc», import i l'ansa ⋮⋮). Arrossega'n una per l'ansa dins del dia i toca'n una altra per obrir-ne la fitxa. MALAMENT: falta alguna cosa a la targeta o l'ansa no ordena.",
+            "6. Busca un dia amb un rebut o una quota del banc: surt una línia grisa «Rebuts · no compten» (o «Deutes · no compten») amb import i nombre, i el total del dia no la suma. Toca-la: s'obre suau i vibra un cop; a dins cada càrrec diu de quin rebut o deute és i n'obre la fitxa. Toca «Obre al Pla · Rebuts ›». MALAMENT: el total del dia la suma, no s'obre, vibra dos cops o el Pla obre un altre apartat.",
+            "7. Obre Filtres (🎛️): a dalt hi ha «Període» amb Mesos · El meu cicle · Rang · Tot. Tria El meu cicle: surt l'ajuda amb el teu cobrament i la xifra del cicle; si tens el pressupost per cicle, és la mateixa que la d'Inici. Per tornar, toca Mesos. MALAMENT: falta El meu cicle o la xifra no quadra amb Inici.",
+            "8. A Filtres comprova que, sense tocar res, els bancs marcats són els de despesa diària i que «Què comptar» continua separant el que compta, ingressos i inversió. MALAMENT: comença amb altres bancs o falta un calaix.",
+            "9. Mantén premut un nom o un import: no se selecciona ni surt el menú de copiar (al cercador sí que pots escriure). MALAMENT: se selecciona text.",
+            "10. Baixa fins al final: diu «Fins aquí: …» amb la data del moviment més antic. MALAMENT: no surt o la llista es talla abans."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.163",
     "d": "2026-10-21",
     "t": {
@@ -24,36 +104,7 @@
         "Els deutes que ja tenies no canvien."
       ]
     },
-    "tandas": [
-      {
-        "id": "deuda-nueva-desde-su-dia",
-        "t": {
-          "es": "Inicio: una financiación nueva cuenta desde su día de alta",
-          "en": "Home: a new loan counts from the day you add it",
-          "ca": "Inici: un finançament nou compta des del dia d'alta"
-        },
-        "items": {
-          "es": [
-            "1. Plan → Deudas → Añadir deuda: una financiación de prueba con fecha de hoy (p. ej. 600 € a 12 meses, cuota 50 €, día de cobro el 16) y guarda. MAL: no se guarda o no aparece en Deudas.",
-            "2. Inicio → gráfica del patrimonio: mantén el dedo en un día anterior a hoy (p. ej. ayer). La cifra de ese día es la misma que antes de crearla, no baja por la deuda nueva. MAL: baja los 600 €.",
-            "3. Mantén el dedo en el día de hoy: la cifra sí descuenta los 600 €, y el total de arriba también. MAL: hoy no la descuenta.",
-            "4. Plan → Deudas → entra en la financiación de prueba → Eliminar esta deuda: la gráfica y el total vuelven a como estaban. MAL: queda algo cambiado."
-          ],
-          "en": [
-            "1. Plan → Debts → Add debt: a test loan dated today (e.g. €600 over 12 months, €50 per month, charged on the 16th) and save. WRONG: it is not saved or does not show in Debts.",
-            "2. Home → net worth chart: hold your finger on a day before today (e.g. yesterday). That day's figure is the same as before you created it, it does not drop because of the new debt. WRONG: it drops by the €600.",
-            "3. Hold your finger on today: the figure does subtract the €600, and so does the total at the top. WRONG: today does not subtract it.",
-            "4. Plan → Debts → open the test loan → Delete this debt: the chart and the total go back to how they were. WRONG: something stays changed."
-          ],
-          "ca": [
-            "1. Pla → Deutes → Afegeix deute: un finançament de prova amb data d'avui (p. ex. 600 € a 12 mesos, quota 50 €, dia de cobrament el 16) i desa. MALAMENT: no es desa o no apareix a Deutes.",
-            "2. Inici → gràfica del patrimoni: mantén el dit en un dia anterior a avui (p. ex. ahir). La xifra d'aquell dia és la mateixa que abans de crear-lo, no baixa pel deute nou. MALAMENT: baixa els 600 €.",
-            "3. Mantén el dit en el dia d'avui: la xifra sí que descompta els 600 €, i el total de dalt també. MALAMENT: avui no el descompta.",
-            "4. Pla → Deutes → entra al finançament de prova → Elimina aquest deute: la gràfica i el total tornen a com estaven. MALAMENT: queda alguna cosa canviada."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.162",
