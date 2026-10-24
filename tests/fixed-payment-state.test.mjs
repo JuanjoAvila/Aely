@@ -285,14 +285,23 @@ function createdBill(ctx,route,merchant){
   try{
     let tree;
     if(route==="histórico")state.fixed=ctx.histFijosFromSelection([{merchant,amount:42,ent:"sabadell",date:"2026-09-25"}],[0]);
-    if(route==="suscripción")tree=ctx.SubRow({sp:{name:merchant,key:ctx.catKey(merchant),amount:42,cat:ctx.categoryOfNewMerchant(merchant),months:3,yearly:504},state,set,showToast:noop});
+    // «Pasar a Recibos» vive ahora en la ficha de la suscripción (GxSubFicha), cuyo onRecibos es el
+    // subARecibos de Expenses (la tanda 4 borró SubRow): se pinta Expenses de verdad y se llama a lo
+    // que recibe la ficha, con la misma suscripción que antes (4.26.169).
+    if(route==="suscripción"){
+      const sp={name:merchant,key:ctx.catKey(merchant),amount:42,cat:ctx.categoryOfNewMerchant(merchant),months:3,yearly:504,lastMs:Date.parse("2026-09-25T12:00:00Z"),ult:[{e:{date:"2026-09-25"}}]};
+      const page=ctx.Expenses({state,set,showToast:noop,stopSwipe:noop,cancelSwipe:noop,focusExp:null,clearFocus:noop,forceAllTs:0,onGoPlan:noop});
+      const ficha=nodes(page).find(x=>x.type===ctx.GxSubFicha);
+      assert.ok(ficha&&typeof ficha.props.onRecibos==="function","la ficha real recibe el creador de Recibos");
+      ficha.props.onRecibos(sp,"42");
+    }
     if(route==="conciliación"){
       state.bankTx=[{id:"crear",ent:"sabadell",merchant,amount:42,date:"2026-09-25",status:"BOOK"}];
       tree=ctx.Reconcile({state,set});
     }
     if(route==="hoja")tree=ctx.BillsAddWizard({step:"when",setStep:noop,form:{kind:"fixed",name:merchant,amount:"42",freq:"mes",account:"sabadell",day:"25"},setForm:noop,banks:["sabadell"],onClose:noop,set,onSaved:noop});
     if(tree){
-      const handler=route==="suscripción"?"toFixed":route==="conciliación"?"addAsFixed":"commit";
+      const handler=route==="conciliación"?"addAsFixed":"commit";
       const button=nodes(tree).find(x=>x.type==="button"&&typeof x.props.onClick==="function"&&(x.props.onClick.name===handler||x.props.onClick.toString().includes(handler+"(")));
       assert.ok(button,"botón real del creador "+route);button.props.onClick();
     }

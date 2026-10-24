@@ -46,6 +46,7 @@ for(const caso of [
   const explicacion=hoja.getByText(caso.banks).filter({hasText:caso.cloud}).filter({hasText:caso.notif});
   await expect(explicacion).toHaveText(caso.hint);
   // Va debajo del botón «Ver N»: es información, no una acción más de la hoja.
-  const ver=await hoja.locator(".gx-fil-ver").boundingBox(), lectura=await hoja.getByTestId("gastos-lectura").boundingBox();
-  expect(lectura.y).toBeGreaterThan(ver.y+ver.height-1);
+  // Las dos cajas en el mismo instante: por separado, con la hoja aún subiendo, la CI cargada las medía en fotogramas distintos.
+  const cajas=await page.evaluate(()=>{const h=document.querySelector(".v4-gastos-filter-sheet");const v=h.querySelector(".gx-fil-ver").getBoundingClientRect(),l=h.querySelector("[data-testid=gastos-lectura]").getBoundingClientRect();return {verFin:v.y+v.height,lectura:l.y};});
+  expect(cajas.lectura).toBeGreaterThan(cajas.verFin-1);
 });
