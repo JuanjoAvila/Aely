@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "id": "fin04-pr293-r2-review-corrections-codex-20261024",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261019-r74-36ea75cf98e01bbf",
+  "createdAt": "2026-10-24T11:09:22.355Z",
+  "to": "codex",
+  "kind": "worker",
+  "assignedPublicSessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "baseSHA": "e42650596e361bf5cc61bac8d3ed4c7f0ca9f13d",
+  "baseVersion": "4.26.161",
+  "priority": 1,
+  "claudeGrant": "cc4ffc62b7e57c3d79d641f36673c0bc302a67a6",
+  "previousTaskId": "fin04-phase2-pr1-first-pull-plan-three-way-codex-20261020",
+  "previousResult": "1a0c24b7c4f32167329cf4d76dc7f63fb89b1afe",
+  "previousReturn": "abc692330f29900fabbf318b97afee2aadf44e4e",
+  "PR": 293,
+  "objective": "Corregir NO-GO independiente Claude H1-H6 de PR293 en la MISMA PR con cabeza nueva, primero RED causal dirigido, sin modificar PR294. Prioridad absoluta previa a SAVEDAT-ARRANQUE y despues INICIO-MES-FUTURO.",
+  "scope": [
+    "e2e/fixtures.mjs: simular insert con semantica real unique-user/revision, sin falsear CAS ni red",
+    "11-app-main primera lectura, re-pull online/visibility/siguiente intento, puerta y ACK ligada a lectura/sesion",
+    "read.ready updater React y asiento mensual Metas; invalid cloud recovery con aviso seguro; 23505 requiere re-pull; no descartar lectura valida hasta tener reemplazo",
+    "catalogue161 anclas inc-0310-01 e inc-0810 autorizadas por Claude; tests nuevos registrados y documentacion tecnica imprescindible",
+    "Actualizar PR293 conservando historial con push normal; entregar fuente exacta pruebas y gates reales para revision independiente Claude"
+  ],
+  "requirements": [
+    "Lee FULL TODOS nuevos intermedios/cancelaciones y cc4ffc62b7e57c3d79d641f36673c0bc302a67a6 completo, asi como bf7bd954 y 1d805690. Claude manda: PR291 congelada la integra Claude; PR294 en espera, NO tocar B/rebase/lapidas/UI. SAVEDAT-ARRANQUE va despues sobre PR293 reparada; Inicio va tercero. No arrancar esos encargos por arrastre.",
+    "NEW claim propio de ESTE task, push/readback y ACK antes codigo. Mismo holder82dbe59f y runtime/helper/filtro, nada heredado de ROOT. Preservar OWN12 estadoactual real, lease/RETURN anteriores no reutilizables. Primera/interna/readback>=30s, cap20 real; freeze al20 y aviso/readback normal siguiente bajo b0390ba0, sin reset ni operacion21. No permiso general ni reintentar fallo de autoridad.",
+    "Fuente exacta A e42650596e361bf5cc61bac8d3ed4c7f0ca9f13d; nuevo checkout/rama de correccion propio aislado, conservar sources A/B, PR2949d32866 y todos WIP/artefactos/claims/otrosrepos. Censo inicial/final hashes y preservar anteriores paquetes. Sin force/rebase de B ni borradoWT/junctions/npmci por enlaces.",
+    "PR293 e42650596: NO-GO de la revision independiente. Lo pedido esta bien (insert sin revision, puerta en pushAppState, ACK ligado a la lectura, CAS intacto; tus mutantes y 3 nuestros rojos), pero: H1 e2e/fixtures.mjs no simula insert -> 22 e2e rojos que en base pasan (persistencia 4, sync-pull-refresco 2, modo-pruebas 1, metas-mensual 15). H2 11-app-main ~1662-1669: el efecto online solo empuja; tras un primer pull fallido nada vuelve a leer -> 0 GET y 0 escrituras en 12 s tras volver la red: la sincronizacion queda muerta toda la sesion. Debe reintentar el pull (online, visibilidad, siguiente intento) y reabrir la puerta. H3 ~768: read.ready=true dentro del updater de React, pullOkRef se lee false -> el asiento mensual de metas no llega (13 rojos de metas-mensual). H4 ~693-695: nube con formato invalido = bloqueo permanente (antes resubia con CAS); rompe metas-mensual:162; debe avisar y no dejar la puerta cerrada. Medios: H5 colision 23505 en el insert no dispara re-pull (bucle 409; el e2e lo da por bueno: corrigelo); H6 syncFromCloud descarta la lectura buena antes de tener la nueva. Catalogo161: anclas inc-0310-01 e inc-0810 apuntan a pullOkRef -> beta-sources EXIT 1 (en base 0): actualizalas. Tests nuevos: reapertura tras pull fallido y tras nube invalida, online sin pull previo, 23505 -> re-pull. Con esto queda DESCONGELADO encargo-grok-p2 en lo que coincide. ORDEN NUEVO: 1) arreglar PR293 (misma PR, cabeza nueva); 2) savedat-arranque (toca la misma zona: construyelo encima de la PR293 arreglada); 3) inicio-mes-futuro. PR294 sigue en espera.",
+    "H1: reproducir y corregir semantica mock insert primero; comprobar persistencia4 sync-pull-refresco2 modo-pruebas1 metas-mensual15 con fuente exacta. H2: fallo primerpull->online, visibility y siguienteintento deben reintentar GET y reabrir puerta con lectura efectiva. H3: no efectos laterales de ready dentro updater, Metas asiento correcto en centimos. H4: nube malformada aviso y recuperacion segura sin perder datos o omitir CAS. H5: collision23505->re-pull real, NO test que acepte409perpetuo. H6: conservar ultima lectura buena hasta nueva valida y aislar usuario/ACK tardio. Tests nuevos de estos estados y mutantes causales significativos, no rebajar assertions.",
+    "Pruebas solo sinteticas con SDK real/mock API fiel y oraculos de dinero independientes exactcent; no nube/auth/bank real, servidor, SQL/Edge/DDL/backend/APK/Gradle/deploy/merge. Skill Supabase y docs primarias aplicables antes firmas de API; no secretos ni datos familiares en evidencia publica.",
+    "Runner OWN nuevo censo/admission serial antes cada corrida dirigida local/puerto, CPU1 1worker0retry maxFailure1 stopfirstfailure, stdout/stderr/report durables desdeinicio y RETURN propio recursos adquiridos. Esta tarea NO concede CPU6/suitecompleta por arrastre de Grok: dirigir los nuevos repros y regresiones H1-H6/22e2e sobre fuente corregida; si gate exige mas informar Claude. No repetir tests historicos que no cubran cambio/fallo nuevo.",
+    "VERSION, release notes y caps intactos; catalogo SOLO las anclas161 expresamente autorizadas H1-H6. No broadrefactor ni solucion arquitectonica nueva. Registrar tests en run-tests/E2E_MAP cuando proceda y no maquillar docs/size/catalogue gates. Reportar every command EXIT y toda limitacion. No main/beta merge, sin ProductREADY ni servido/movil.",
+    "Publicacion normal a rama y MISMA PR293, comprobar padre/HEAD readback y attach artifact. Fuente sellada y paquete privado manifesto/hash con RED/GREEN mutantes/repros exactos mas preservacion. Publicar ownRETURN y result released con PR/source/testEXIT reales; privatehandoff ySTOP. ROOT dara siguiente despacho para SAVEDAT tras revision; no native reply alROOT sin autorizacion humana."
+  ],
+  "deliverable": "PR293 nueva cabeza revisable con H1-H6 y anclas autorizadas, RED/GREEN y regresiones dirigidas reales, preservacion A/B y paquete durable, RETURN/result propios. Revision e integracion solo Claude."
+}
