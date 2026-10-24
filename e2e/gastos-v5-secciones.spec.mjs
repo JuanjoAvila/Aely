@@ -9,7 +9,7 @@ import { seedLoggedInDashboard, dismissNews, installFixtureClock, gastosRoot, ga
      Movimientos; a mitad de lista es scroll normal;
    · un solo toque de vibración por cambio, sea por icono o por tirón;
    · Categorías enseña el desglose de antes (mismas cifras) con la barra del presupuesto;
-   · Suscripciones enseña las detectadas como estaban, o «Todo en orden».
+   · Suscripciones enseña las detectadas (su bandeja con fichas es `gastos-v5-subs`), o «Todo en orden».
    El reloj es el de las fixtures: 26/9/2026 a mediodía. */
 
 test.beforeEach(async ({ page }) => { await installFixtureClock(page); });
@@ -217,20 +217,23 @@ test("un tirón corto vuelve a su sitio sin cambiar de sección", async ({ page 
   expect(await panel(page, "movs").evaluate((el) => el.style.transform)).toBe("");
 });
 
-test("Suscripciones: las detectadas salen como estaban, con globito y su suma al mes", async ({ page }) => {
+test("Suscripciones: las detectadas salen con globito y su suma al mes", async ({ page }) => {
   await abre(page, { expenses: expenses.concat(subs) });
   await expect(gastosRoot(page).getByTestId("gastos-subs-globo")).toHaveText("1");
   await expect(tab(page, "subs")).toHaveAttribute("aria-label", "Suscripciones · 1 por revisar");
   // Ya no están en Movimientos.
-  await expect(panel(page, "movs").locator(".sub-row")).toHaveCount(0);
+  await expect(panel(page, "movs").locator(".gx-sub")).toHaveCount(0);
   await gastosSeccion(page, "subs");
   await expect(gastosCifra(page)).toHaveText("12,99 €");
   await expect(gastosEstado(page)).toHaveText("al mes · 1 por revisar");
-  const filas = panel(page, "subs").locator(".sub-row").filter({ has: page.locator(".sub-name") });
+  const filas = panel(page, "subs").locator(".gx-sub");
   await expect(filas).toHaveCount(1);
   await expect(filas.first()).toContainText("Netflix");
-  // La acción de siempre: descartarla la quita, el globito se va y la sección dice que todo está bien.
-  await filas.first().locator("button").nth(1).click();
+  // La acción de siempre (tanda 4: desde su ficha y confirmando): descartarla la quita, el globito
+  // se va y la sección dice que todo está bien.
+  await filas.first().click();
+  await page.locator('[data-sheet="sub-ficha"] [data-sub-accion="no"]').click();
+  await page.locator(".askback .btn-primary").click();
   await expect(filas).toHaveCount(0);
   await expect(gastosRoot(page).getByTestId("gastos-subs-globo")).toHaveCount(0);
   await expect(panel(page, "subs")).toContainText("Todo en orden");

@@ -1160,6 +1160,38 @@
     display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:700;margin-bottom:6px;}
   .gx-vacio-t{font-size:26px;font-weight:500;}
   .gx-vacio-d{font-size:14px;line-height:1.45;color:var(--muted);max-width:300px;}
+  /* Suscripciones con pendientes (SPEC §6.1): tarjetas como las de gasto, con su ficha al tocar. */
+  .gx-subs-lista{display:flex;flex-direction:column;gap:6px;padding-top:6px;}
+  .gx-sub{width:100%;display:flex;align-items:center;gap:14px;padding:14px 16px;box-sizing:border-box;background:var(--sur);
+    border:1px solid var(--line-soft);border-radius:20px;color:inherit;font:inherit;text-align:left;cursor:pointer;}
+  .gx-sub-ic{width:44px;height:44px;border-radius:22px;flex:0 0 auto;display:grid;place-items:center;font-size:20px;}
+  .gx-sub-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
+  .gx-sub-nm{font-size:16px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .gx-sub-meta{font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .gx-sub-vuelve{font-size:13px;font-weight:600;color:var(--coral);}
+  .gx-sub-am{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;white-space:nowrap;}
+  .gx-sub-am .num{font-size:19px;font-weight:600;}
+  .gx-sub-mes{font-size:12px;color:var(--muted);}
+  .gx-status.con-info{display:flex;align-items:center;gap:8px;overflow:visible;}
+  .gx-info{flex:0 0 auto;}
+  .gx-info::after{content:"i";}
+  .gx-subf{display:flex;flex-direction:column;gap:14px;}
+  .gx-subf-cab{display:flex;align-items:center;gap:14px;}
+  .gx-subf-ic{width:52px;height:52px;border-radius:26px;font-size:24px;}
+  .gx-subf-nm{margin:0;font-size:20px;font-weight:700;outline:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .gx-sub-am .gx-subf-amt{font-size:24px;}
+  .gx-subf-et{font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:-6px;}
+  .gx-subf-hist{background:var(--bg);border-radius:16px;padding:4px 0;}
+  .gx-subf-fila{display:flex;justify-content:space-between;padding:10px 14px;font-size:15px;}
+  .gx-subf-fila-am{font-weight:600;}
+  .gx-subf-anio{margin:0;font-size:13px;line-height:1.45;color:var(--muted);}
+  .gx-subf-imp{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px;color:var(--muted);}
+  .gx-subf-imp input{width:8ch;text-align:right;background:transparent;border:none;border-bottom:1px dashed var(--line);color:var(--text);
+    font:600 17px 'Manrope',sans-serif;padding:4px 2px;}
+  .gx-subf-no{min-height:44px;border:0;background:transparent;color:var(--muted);font:600 14px 'Manrope',sans-serif;cursor:pointer;}
+  .gx-subi{display:flex;flex-direction:column;gap:4px;}
+  .gx-subi-t{font-size:15px;font-weight:700;}
+  .gx-subi-d{font-size:14px;line-height:1.5;color:var(--muted);}
   /* Días: encabezado con el total que cuenta, y cada gasto en su propia tarjeta a 6 px. */
   .gx-dia{display:flex;flex-direction:column;gap:6px;padding-top:18px;}
   .gx-dia-h{display:flex;justify-content:space-between;align-items:baseline;padding:0 4px 4px;}
@@ -1628,12 +1660,9 @@
   .searchbar-x{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:0 2px;}
   .sub-row{display:flex;align-items:center;gap:11px;padding:8px 0;border-bottom:1px solid var(--line-soft);}
   .sub-row:last-child{border-bottom:none;}
-  .sub-row.off{opacity:.55;}
-  .sub-ic{width:34px;height:34px;flex:0 0 34px;border-radius:10px;border:1px solid;display:flex;align-items:center;justify-content:center;font-size:15px;}
   .sub-mid{flex:1;min-width:0;}
   .sub-name{font-weight:700;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .sub-meta{font-size:11.5px;color:var(--muted);margin-top:1px;}
-  .sub-amt{font-weight:800;font-size:13.5px;}
   .chips{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;}
   .chip{flex:0 0 auto;padding:8px 13px;border-radius:11px;font-size:12.5px;font-weight:600;background:var(--surface);border:1px solid var(--line-soft);color:var(--muted);}
   .chip.active{background:rgba(95,208,138,.14);border-color:var(--mint-dim);color:var(--mint);}

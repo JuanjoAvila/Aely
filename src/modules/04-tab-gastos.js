@@ -172,45 +172,99 @@ function gastosMesVentana(ym){
   return {startMs:ini, todayEndMs:inicioDeMesMs(ini+35*864e5), cycle:null};
 }
 
-// Fila de una suscripción detectada. Importe EDITABLE antes de «pasar a Fijos» (petición
-// 2026-08-03: recibos que se repiten cada mes pero varían de importe —luz, gas— para no dejarlos
-// con el de este mes y tener que corregirlo a mano el que viene) + botón para descartarla del
-// todo cuando no es una suscripción de verdad (ej. gasolina: se repite, pero nunca va a ser un
-// importe fijo). Componente propio porque cada fila necesita su PROPIO estado de edición —dentro
-// de un .map() no se pueden usar hooks por elemento.
-function SubRow({sp, state, set, showToast}){
-  const c=catOf(sp.cat);
-  const [amt,setAmt]=useState(String(sp.amount).replace(".",","));
-  const toFixed=function(){
-    const useAmt=parseFloat(String(amt).replace(",",'.'))||sp.amount;
-    const lastE=(state.expenses||[]).filter(function(e){ return catKey(e.merchant)===sp.key && e.amount>0; }).sort(function(a,b){ return dateMs(b.date)-dateMs(a.date); })[0];
-    const acc=(state.accounts||[]).find(function(a){ return accRole(a)==="fijos"; })||(state.accounts||[]).find(function(a){ return accRole(a)==="ambos"; });
-    const it={ id:uid(), name:sp.name, amount:useAmt, freq:"mes", account:(acc&&acc.ent)||"sabadell" };
-    const dd=lastE? parseDate(lastE.date).getDate() : null; if(dd>=1&&dd<=31) it.day=dd;
-    set(function(s){ return Object.assign({},s,{fixed:(s.fixed||[]).concat([it])}); });
-    showToast(tf("sub_tofixed_done",{n:sp.name,b:entOf((acc&&acc.ent)||"sabadell").label}));
-  };
-  const dismiss=function(){
-    set(function(s){ return Object.assign({},s,{subsDismissed:(s.subsDismissed||[]).concat([sp.key])}); });
-    showToast(t("sub_dismissed_ok"));
-  };
-  // Las acciones necesitan el ancho de la tarjeta: junto al importe quedaban recortadas en móvil.
-  return React.createElement("div",{className:"sub-row",style:{display:"grid",gridTemplateColumns:"34px minmax(0,1fr)",gap:"6px 11px"}},
-    React.createElement("div",{className:"sub-ic",style:{borderColor:c.color+"55",color:c.color}}, c.icon),
-    React.createElement("div",{className:"sub-mid"},
-      React.createElement("div",{className:"sub-name"}, sp.name),
-      React.createElement("div",{className:"sub-meta"}, tf("sub_months",{n:sp.months})+" · "+tf("sub_peryear",{y:eur0(sp.yearly)}))
-    ),
-    React.createElement("div",{className:"sub-amt num",style:{display:"flex",alignItems:"baseline",gap:2,gridColumn:2,minWidth:0}},
-      React.createElement("input",{type:"text",inputMode:"decimal",value:amt,onChange:function(e){ setAmt(e.target.value); },
-        style:{width:"10ch",minWidth:0,textAlign:"right",background:"transparent",border:"none",borderBottom:"1px dashed var(--bd)",color:"inherit",font:"inherit"}}),
-      " €"+t("sub_permonth")
-    ),
-    React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gridColumn:"1 / -1",gap:6,alignItems:"center"}},
-      React.createElement("button",{className:"chip",style:{fontSize:11.5,padding:"3px 10px"},onClick:toFixed}, "→ "+t("sub_tofixed")),
-      React.createElement("button",{className:"chip",style:{fontSize:11.5,padding:"3px 10px"},onClick:dismiss,title:t("sub_dismiss")}, "✕ "+t("sub_dismiss"))
-    )
-  );
+/* SUSCRIPCIONES COMO BANDEJA (Gastos v5, SPEC §6): cada detectada es una tarjeta y al tocarla sale
+   su ficha con los últimos cobros y las tres decisiones. Las cifras son las de la detección de
+   siempre (`detectSubscriptions`: mediana al mes, mediana × 12 al año); fechas, día y banco salen
+   de los cargos reales que guarda (`ult`). «Seguidos» solo si no falta ningún mes entre el primero
+   y el último: un cobro cada dos meses no puede salir como «cada mes». */
+function gxSubFrec(sp){ return sp.span===sp.months?tf("gv5_sub_seguidos",{n:sp.months}):tf("gv5_sub_de",{n:sp.months,m:sp.span}); }
+function gxSubBanco(sp){ const bk=sp.ult&&sp.ult[0]?expenseBankOf(sp.ult[0].e):null; return bk?(entOf(bk).label||entOf(bk).mono):null; }
+const GxSubTarjeta=React.memo(function GxSubTarjeta({sp, vuelve, onOpen}){
+  const c=catOf(sp.cat), bk=gxSubBanco(sp);
+  return React.createElement("button",{type:"button",className:"gx-sub","data-sub":sp.key,onClick:function(){ onOpen(sp.key); }},
+    React.createElement("span",{className:"gx-sub-ic","aria-hidden":true,style:{background:c.color+"22",color:c.color}},c.icon),
+    React.createElement("span",{className:"gx-sub-txt"},
+      React.createElement("span",{className:"gx-sub-nm"},sp.name),
+      React.createElement("span",{className:"gx-sub-meta"},gxSubFrec(sp)+(bk?" · "+bk:"")),
+      vuelve&&React.createElement("span",{className:"gx-sub-vuelve"},t("gv5_sub_vuelve"))),
+    React.createElement("span",{className:"gx-sub-am"},
+      React.createElement("span",{className:"num serif"},eur(sp.amount)),
+      React.createElement("span",{className:"gx-sub-mes"},t("gv5_sub_almes"))));
+});
+/* Ficha de una suscripción (SPEC §6.4). `f` = {sp, vuelve}, una FOTO de la tarjeta tocada: la
+   acción la quita de la bandeja y la hoja tiene que poder cerrarse con su animación enseñando
+   todavía lo que se decidió. El importe se puede corregir antes de pasarla a Recibos (petición
+   2026-08-03: luz y gas varían y no hay que arreglarlo a mano el mes siguiente). Las dos que no
+   tienen vuelta atrás en la app (baja y «no es») preguntan antes; si se cancela, la ficha sigue. */
+function GxSubFicha({f, onClose, onRecibos, onBaja, onNo}){
+  const open=!!f, sp=f&&f.sp;
+  const swipe=useSheetSwipe(open, onClose);
+  useBackClose(open, swipe.close);
+  const titleRef=useRef(null), titleId=React.useId();
+  const [amt,setAmt]=useState({k:null, v:""});
+  if(sp && amt.k!==sp.key) setAmt({k:sp.key, v:String(sp.amount).replace(".",",")});
+  useEffect(function(){ if(open&&titleRef.current) titleRef.current.focus({preventScroll:true}); },[open]);
+  if(!open) return null;
+  const c=catOf(sp.cat), bk=gxSubBanco(sp), u0=sp.ult[0];
+  const tras=function(p){ Promise.resolve(p).then(function(ok){ if(ok!==false) swipe.close(); }); };
+  return ReactDOM.createPortal(
+    React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
+      React.createElement("div",Object.assign({className:"v4-sheet gx-subf","data-sheet":"sub-ficha",role:"dialog","aria-modal":"true","aria-labelledby":titleId,ref:swipe.sheetRef,
+          style:{maxHeight:"90dvh"},onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
+        React.createElement("div",{className:"v4-sheet-handle"}),
+        React.createElement("div",{className:"gx-subf-cab"},
+          React.createElement("span",{className:"gx-sub-ic gx-subf-ic","aria-hidden":true,style:{background:c.color+"22",color:c.color}},c.icon),
+          React.createElement("div",{className:"gx-sub-txt"},
+            React.createElement("h1",{id:titleId,ref:titleRef,tabIndex:-1,className:"gx-subf-nm"},sp.name),
+            React.createElement("span",{className:"gx-sub-meta"},tf("gv5_sub_dia",{d:parseDate(u0.e.date).getDate()})+" · "+(bk||t("gv5_sub_sinbanco"))),
+            React.createElement("span",{className:"gx-sub-meta"},gxSubFrec(sp))),
+          React.createElement("span",{className:"gx-sub-am"},
+            React.createElement("span",{className:"num serif gx-subf-amt"},eur(sp.amount)),
+            React.createElement("span",{className:"gx-sub-mes"},t("gv5_sub_almes")))),
+        f.vuelve&&React.createElement("div",{className:"gx-sub-vuelve gx-subf-vuelve"},t("gv5_sub_vuelve")),
+        React.createElement("div",{className:"gx-subf-et"},t("gv5_sub_ultimos")),
+        React.createElement("div",{className:"gx-subf-hist"},
+          sp.ult.map(function(x,i){
+            return React.createElement("div",{key:i,className:"gx-subf-fila"},
+              React.createElement("span",{className:"num"},new Date(x.ms).toLocaleDateString(loc(),{day:"numeric",month:"short",year:"numeric"})),
+              React.createElement("span",{className:"num gx-subf-fila-am"},eur(x.amount)));
+          })),
+        React.createElement("p",{className:"gx-subf-anio"},
+          tf(sp.span===sp.months?"gv5_sub_anio":"gv5_sub_anio_si",{y:eur0(sp.yearly)})+" "+t("gv5_sub_fijo")),
+        React.createElement("label",{className:"gx-subf-imp"},
+          React.createElement("span",null,t("gv5_sub_importe")),
+          React.createElement("span",{className:"num"},
+            React.createElement("input",{type:"text",inputMode:"decimal",value:amt.v,"data-testid":"sub-importe",
+              onChange:function(e){ setAmt({k:sp.key, v:e.target.value}); }}),
+            " € "+t("gv5_sub_almes"))),
+        React.createElement("button",{type:"button",className:"btn btn-primary btn-block","data-sub-accion":"recibos",
+          onClick:function(){ onRecibos(sp, amt.v); swipe.close(); }}, t("gv5_sub_recibos")),
+        React.createElement("button",{type:"button",className:"btn btn-ghost btn-block","data-sub-accion":"baja",
+          onClick:function(){ tras(onBaja(sp)); }}, t("gv5_sub_baja")),
+        React.createElement("button",{type:"button",className:"gx-subf-no","data-sub-accion":"no",
+          onClick:function(){ tras(onNo(sp)); }}, t("sub_dismiss"))
+      )), document.body);
+}
+// La «i» de Suscripciones (SPEC §6.3): el texto que antes iba encima de la lista, en su hoja.
+function GxSubInfo({open, onClose}){
+  const swipe=useSheetSwipe(!!open, onClose);
+  useBackClose(!!open, swipe.close);
+  const titleRef=useRef(null), titleId=React.useId();
+  useEffect(function(){ if(open&&titleRef.current) titleRef.current.focus({preventScroll:true}); },[open]);
+  if(!open) return null;
+  return ReactDOM.createPortal(
+    React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
+      React.createElement("div",Object.assign({className:"v4-sheet gx-subf","data-sheet":"sub-info",role:"dialog","aria-modal":"true","aria-labelledby":titleId,ref:swipe.sheetRef,
+          onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
+        React.createElement("div",{className:"v4-sheet-handle"}),
+        React.createElement("h1",{id:titleId,ref:titleRef,tabIndex:-1,className:"gx-subf-nm serif"},t("gv5_sub_info")),
+        [[t("gv5_sub_i_que_t"),t("gv5_sub_i_que")],[t("gv5_sub_i_como_t"),t("gv5_sub_i_como")],[t("gv5_sub_i_hacer_t"),t("gv5_sub_i_hacer")]].map(function(x,i){
+          return React.createElement("div",{key:i,className:"gx-subi"},
+            React.createElement("div",{className:"gx-subi-t"},x[0]),
+            React.createElement("div",{className:"gx-subi-d"},x[1]));
+        }),
+        React.createElement("button",{type:"button",className:"btn btn-primary btn-block",onClick:swipe.close},t("gv5_sub_i_ok"))
+      )), document.body);
 }
 function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe, cancelSwipe, focusExp, clearFocus, forceAllTs, onGoPlan}){
   /* «Ver todo» desde una ficha puede llegar antes de que Gastos termine de montar. Conservamos
@@ -983,16 +1037,58 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       });
   },[set, state.categoryBudgets]);
   const subs=useMemo(function(){ return heavyOk?detectSubscriptions(expensesDef):[]; },[heavyOk,expensesDef]);
-  // Las que aún piden una decisión: activas, sin pasar a Fijos y sin descartar a mano. Las
+  // Las que aún piden una decisión: activas, sin pasar a Recibos y sin descartar a mano. Las
   // cuenta el globito del icono y las enseña su sección (antes se filtraban al pintar).
+  // «Ya la he dado de baja» (SPEC §6.4) guarda la fecha de su último cobro: se esconde mientras no
+  // llegue uno posterior, y si llega vuelve con aviso (darla de baja no es descartarla para siempre).
   const novelSubs=useMemo(function(){
-    const dismissed=state.subsDismissed||[];
+    const dismissed=state.subsDismissed||[], baja=state.subsBaja||{};
     return (subs||[]).filter(function(sp){
       if(!sp.active) return false;
       if(dismissed.indexOf(sp.key)!==-1) return false;
+      if(baja[sp.key]!=null && !(sp.lastMs>baja[sp.key])) return false;
       return !(state.fixed||[]).some(function(f){ return catKey(f.name)===sp.key; });
     });
-  },[subs,state.subsDismissed,state.fixed]);
+  },[subs,state.subsDismissed,state.subsBaja,state.fixed]);
+  const [subFicha,setSubFicha]=useState(null);
+  const [subInfo,setSubInfo]=useState(false);
+  // Cambiar de sección cierra las fichas (SPEC §2.2): salir de Gastos también vuelve a Movimientos.
+  useEffect(function(){ if(secc!=="subs"){ setSubFicha(null); setSubInfo(false); } },[secc]);
+  const subsBaja=state.subsBaja;
+  const abreSub=useCallback(function(key){
+    const sp=novelSubs.find(function(x){ return x.key===key; });
+    if(sp) setSubFicha({sp:sp, vuelve:!!subsBaja&&subsBaja[key]!=null});
+  },[novelSubs,subsBaja]);
+  const cierraSub=useCallback(function(){ setSubFicha(null); },[]);
+  const abreSubInfo=useCallback(function(){ setSubInfo(true); },[]);
+  const cierraSubInfo=useCallback(function(){ setSubInfo(false); },[]);
+  /* Las tres decisiones. «Pasar a Recibos» es lo de siempre (crea el recibo mensual en la cuenta
+     de Recibos, o la de «todo», con el día del último cobro) y se deshace borrándolo en Plan; las
+     otras dos no tienen vuelta atrás en la app, así que preguntan (resuelven a false si cancela). */
+  const subARecibos=function(sp, amtTxt){
+    const useAmt=parseFloat(String(amtTxt).replace(",","."))||sp.amount;
+    const acc=(state.accounts||[]).find(function(a){ return accRole(a)==="fijos"; })||(state.accounts||[]).find(function(a){ return accRole(a)==="ambos"; });
+    const it={ id:uid(), name:sp.name, amount:useAmt, freq:"mes", account:(acc&&acc.ent)||"sabadell" };
+    const dd=parseDate(sp.ult[0].e.date).getDate(); if(dd>=1&&dd<=31) it.day=dd;
+    set(function(s){ return Object.assign({},s,{fixed:(s.fixed||[]).concat([it])}); });
+    showToast(tf("gv5_sub_recibos_ok",{n:sp.name,b:entOf((acc&&acc.ent)||"sabadell").label}));
+  };
+  const subBaja=function(sp){
+    return askConfirm({title:tf("gv5_sub_baja_q",{n:sp.name}), sub:t("gv5_sub_baja_sub"), ok:t("gv5_sub_baja_si")}).then(function(ok){
+      if(!ok) return false;
+      set(function(s){ const b=Object.assign({},s.subsBaja); b[sp.key]=sp.lastMs; return Object.assign({},s,{subsBaja:b}); });
+      showToast(tf("gv5_sub_baja_ok",{n:sp.name}));
+      return true;
+    });
+  };
+  const subNo=function(sp){
+    return askConfirm({title:tf("gv5_sub_no_q",{n:sp.name}), sub:t("gv5_sub_no_sub"), ok:t("sub_dismiss"), danger:true}).then(function(ok){
+      if(!ok) return false;
+      set(function(s){ return Object.assign({},s,{subsDismissed:(s.subsDismissed||[]).concat([sp.key])}); });
+      showToast(t("sub_dismissed_ok"));
+      return true;
+    });
+  };
   const suggestAi=function(ex){
     if(!(state.settings&&state.settings.aiCat)){ showToast(t("ai_cat_off")); return; }
     if(!ex||aiBusy) return;
@@ -1418,7 +1514,8 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
 
   return React.createElement("div",{className:"v4-screen gx-root",ref:rootRef,"data-periodo":preset,"data-secc":secc,"data-edge-capture":"1"},
     React.createElement(GastosCabecera,{rootRef:rootRef, cab:cabVista, meses:cabVista.meses, fijos:cabVista.fijos,
-      onMes:cabVista.fijos?eligeMes:irAMes, stopSwipe:stopSwipe, diasRef:diasRef, secc:secc, onSecc:irASecc, nSubs:novelSubs.length}),
+      onMes:cabVista.fijos?eligeMes:irAMes, stopSwipe:stopSwipe, diasRef:diasRef, secc:secc, onSecc:irASecc, nSubs:novelSubs.length,
+      onInfo:secc==="subs"&&heavyOk?abreSubInfo:null}),
     capa("movs", React.createElement(React.Fragment,null,
       React.createElement("div",{className:"filters"},
         // Filtros vive PEGADO al buscador (2026-08-05): los dos acotan la misma lista de abajo,
@@ -1503,21 +1600,21 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
                   : React.createElement("span",{className:"gx-cat-rel","aria-hidden":true},
                       React.createElement("i",{style:{width:(catsMax>0?row.spent/catsMax*100:0)+"%",background:cat.color||"var(--mint)"}}))));
           })))),
-    /* SUSCRIPCIONES (SPEC §6): las detectadas pasan aquí TAL CUAL estaban (importe editable, pasar
-       a Recibos, descartar); su bandeja con fichas es la tanda 4. Solo si hay novedad: activas, aún
-       no pasadas a Fijos ni descartadas a mano (petición 2026-08-03: la gasolina se repite pero
-       nunca tendrá importe fijo). Vacía, lo dice en vez de dejar la sección en blanco. Mientras la
-       detección no ha corrido (`heavyOk`, se difiere a propósito) no se afirma nada. */
+    /* SUSCRIPCIONES (SPEC §6): bandeja de las que piden decisión (activas, sin pasar a Recibos, sin
+       descartar ni dar de baja), una tarjeta por cada una y su ficha al tocarla. Vacía, lo dice en
+       vez de dejar la sección en blanco. Mientras la detección no ha corrido (`heavyOk`, se
+       difiere a propósito) no se afirma nada. */
     capa("subs", React.createElement("div",{className:"gx-subs","data-testid":"gastos-subs"},
       !heavyOk ? null
       : novelSubs.length
-        ? React.createElement(CollapsibleCard,{title:t("sub_title")+" · "+novelSubs.length,sub:tf("sub_sub",{n:novelSubs.length,y:eur0(novelSubs.reduce(function(a,s){return a+(s.active?s.yearly:0);},0))}),dot:"#C9A6F0",defaultOpen:true,storageKey:"g_subs_novel",help:t("h_subs")},
-            novelSubs.map(function(sp){ return React.createElement(SubRow,{key:sp.key,sp:sp,state:state,set:set,showToast:showToast}); }),
-            React.createElement("div",{className:"hint",style:{marginTop:8}}, t("sub_hint")))
+        ? React.createElement("div",{className:"gx-subs-lista"},
+            novelSubs.map(function(sp){ return React.createElement(GxSubTarjeta,{key:sp.key,sp:sp,vuelve:!!subsBaja&&subsBaja[sp.key]!=null,onOpen:abreSub}); }))
         : React.createElement("div",{className:"gx-vacio"},
             React.createElement("div",{className:"gx-vacio-ic","aria-hidden":true},"✓"),
             React.createElement("div",{className:"gx-vacio-t serif"},t("gv5_subs_ok_t")),
             React.createElement("div",{className:"gx-vacio-d"},t("gv5_subs_ok_d"))))),
+    React.createElement(GxSubFicha,{f:subFicha, onClose:cierraSub, onRecibos:subARecibos, onBaja:subBaja, onNo:subNo}),
+    React.createElement(GxSubInfo,{open:subInfo, onClose:cierraSubInfo}),
     React.createElement(GastosFilterSheet,{
       open:filterOpen, onClose:function(){ setFilterOpen(false); },
       sel:sel, setSel:setSelHoja, bankSel:bankSel, setBankSel:setBankSel,
@@ -1671,7 +1768,7 @@ function gxRayaExtra(compact, conMeses, fijos){ return !compact||fijos?0:conMese
    `opacity` sobre una caja de alto fijo: bajar no recoloca nada de la lista. El scroll se lee en
    un `requestAnimationFrame` y el día se busca por bisección entre los encabezados ya pintados,
    así cada frame cuesta unas pocas lecturas aunque haya meses enteros cargados. */
-function GastosCabecera({rootRef, cab, meses, fijos, onMes, stopSwipe, diasRef, secc, onSecc, nSubs}){
+function GastosCabecera({rootRef, cab, meses, fijos, onMes, stopSwipe, diasRef, secc, onSecc, nSubs, onInfo}){
   const [vista,setVista]=useState({k:null, ym:null, compact:false});
   const headRef=useRef(null), mesesRef=useRef(null), calcRef=useRef(null);
   // El cálculo vive en un efecto montado una vez: lee si hay meses por ref, no por cierre viejo.
@@ -1723,9 +1820,12 @@ function GastosCabecera({rootRef, cab, meses, fijos, onMes, stopSwipe, diasRef, 
       React.createElement("h1",{className:"v4-title serif"}, t("v4_gastos_title")),
       React.createElement(GxSecciones,{secc:secc, onSecc:onSecc, nSubs:nSubs})),
     React.createElement(GxCifra,{n:line.n}),
-    React.createElement("div",{className:"gx-status","data-testid":"gastos-estado"},
+    React.createElement("div",{className:"gx-status"+(onInfo?" con-info":""),"data-testid":"gastos-estado"},
       React.createElement("span",null,line.pre),
-      line.tail ? React.createElement(React.Fragment,null," · ",React.createElement("span",{className:"gx-tail"+tone},line.tail)) : null),
+      line.tail ? React.createElement(React.Fragment,null," · ",React.createElement("span",{className:"gx-tail"+tone},line.tail)) : null,
+      // La «i» de Suscripciones (SPEC §6.3), la misma que la de la gráfica de Inicio. La letra la
+      // pone el CSS: así el texto de la línea de estado sigue siendo solo la frase.
+      onInfo ? React.createElement("button",{type:"button",className:"v42-net-info gx-info","aria-label":t("gv5_sub_info"),"aria-haspopup":"dialog","data-testid":"subs-info",onClick:onInfo}) : null),
     // En balance la línea existe siempre (aunque vacía): la caja no cambia de alto al bajar.
     cab.top.sub!=null && React.createElement("div",{className:"gx-status gx-status-sub","data-testid":"gastos-desglose"},line.sub||""),
     meses && React.createElement("div",Object.assign({className:"gx-meses",ref:mesesRef,role:"group","aria-label":t("gv5_meses"),"aria-hidden":!mesesVis,"data-testid":"gastos-meses"},stopSwipe),

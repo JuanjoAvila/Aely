@@ -120,6 +120,8 @@ export const E2E_MAP = [
     // Gastos v5 tanda 3: tocar una categoría filtra (píldora, cifra de la categoría, meses fijos) y
     // el límite por pulsación larga o por el chip del filtro, la misma hoja.
     "e2e/gastos-v5-filtro.spec.mjs",
+    // Gastos v5 tanda 4: Suscripciones como bandeja, su ficha, la «i» y las tres acciones.
+    "e2e/gastos-v5-subs.spec.mjs",
     // Apuntes iguales de TR por el cableado real: filas en Gastos, «Es el mismo» desde la ficha.
     "e2e/tr-iguales-ordinal.spec.mjs",
     "e2e/tr-emparejado-automatico.spec.mjs",
