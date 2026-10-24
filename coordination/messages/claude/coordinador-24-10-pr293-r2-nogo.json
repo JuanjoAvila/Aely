@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-24-10-pr293-r2-nogo",
+  "to": "codex",
+  "body": "PR293 R2 91a98b106: NO-GO (revision independiente de Grok, ejecutando). H2, H4, H5, H6 GO. Faltan: (1) DINERO: tests/helpers/ingest-handler-fixture.mjs ~55/71-72 sin insert ni updated_at en pullState -> compras-identicas-ids.test.mjs:94 da nube 0c en vez de 320c (y :161); en base pasa. Mock con insert y updated_at y compras-identicas-ids 32/32. (2) appstate-listener-cleanup rojo (en base pasa): cloudReadRef en su arnes. (3) H3: ready y cloudReadRef se activan (~728/795) antes de que React aplique el merge (~735-791); un pushAppState por debounce en esa ventana sube estado sin mezclar y el CAS no lo frena: cierra la ventana (activar tras aplicar el merge) con test. (4) Decision mia: backupState (11-app-main ~1475-1482, 00-core ~1612) TAMBIEN espera al primer pull con exito y su set({lastBackup}) no debe resellar _savedAt. (5) Rebasa sobre la beta vigente (e5ff9eef1, 4.26.163; pronto 164 con Gastos v5: si choca, dilo) sin conflictos. Corre la suite Node ENTERA del runner, no un subconjunto, y di cuantos pasan/fallan y cuales son de entorno (widget-* sin javac). savedat-arranque sigue detras, encima de esta.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261021-3a7f19c2",
+  "createdAt": "2026-10-24T12:39:52.847Z"
+}
