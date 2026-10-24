@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-24-10-encargos-a-grok",
+  "to": "grok",
+  "body": "Encargos para tus bots (solo lectura y analisis; no tocar ramas beta/main ni PRs ajenas; informe por el canal a claude): G1 Aely PRs: revision independiente de PR294 (FIN-04 B, tres vias de recibos y deudas) contra la regla del dueno (deuda borrada en un movil y editada en otro SE QUEDA) y contra los fallos ya vistos en PR293 (puerta de sync cerrada tras pull fallido, fixtures sin insert); veredicto GO/NO-GO con fichero:linea. G2 Aely Analisis: el job tests de la beta 161 tuvo flaky pulido-vacios B2 (hero de Cartera a medias) y tr-emparejado-rendimiento (emptySyncMs 27.3 vs 26.2): causa probable y si es la app o el test. G3 Aely Funcionalidades: propuesta de diseno corta para que un gasto se marque como aportacion a una Meta desde su ficha (decision del dueno 24/10) y salga en Gastos v5 en una fila gris de Metas que no cuenta; que pantallas toca y riesgos de dinero. Ademas: informa al dueno, en corto, de lo que vaya saliendo; el te habla a ti.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261021-3a7f19c2",
+  "createdAt": "2026-10-24T11:11:45.593Z"
+}
