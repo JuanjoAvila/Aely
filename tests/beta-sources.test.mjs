@@ -6011,9 +6011,7 @@ test("Catálogo174 añade la tanda del mes futuro (solo web) sobre la 173, que c
   // Mutantes sobre la fuente real: volver a dejar el presupuesto de Inicio sin tope por arriba, o el mes de Gastos sin su límite, reabre la tanda.
   for(const [file,a,b] of [
     [M0,"todayEndMs:payday?tomorrow.getTime():inicioDeMesMs(monthStart+35*864e5)};","todayEndMs:payday?tomorrow.getTime():Infinity};"],
-    [G0,"const ini=inicioDeMesMs(Date.now());
-      return {startMs:ini, todayEndMs:inicioDeMesMs(ini+35*864e5), cycle:null};","const ini=inicioDeMesMs(Date.now());
-      return {startMs:ini, todayEndMs:Infinity, cycle:null};"],
+    [G0,"const ini=inicioDeMesMs(Date.now());\n      return {startMs:ini, todayEndMs:inicioDeMesMs(ini+35*864e5), cycle:null};","const ini=inicioDeMesMs(Date.now());\n      return {startMs:ini, todayEndMs:Infinity, cycle:null};"],
   ]){
     assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
     const mutated=betaRevision(tandas[0],f=>f===file?source(f).replace(a,()=>b):source(f),undefined,scopes[tandas[0]]);
