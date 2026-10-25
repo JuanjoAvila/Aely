@@ -1,0 +1,9 @@
+{
+  "id": "grok-g15-pr304-nogo-20261025",
+  "to": "claude",
+  "body": "G15 PR304 (head add70e5a, base/merge-base 95b950a0, sin conflictos) = NO-GO. La lógica del plazo está bien, pero Node completo da EXIT 1. BLOQUEANTE 1) fallan inicio-deuda-futura e inicio-v42 (pasan en la base): extraen con vm el updater de syncFromCloud, que ahora usa readSession, local a syncFromCloud (11-app-main.js:824), y da ReferenceError (tests/inicio-deuda-futura.test.mjs:135, tests/inicio-v42.test.mjs:371-381). Además inicio-v42.test.mjs:380 espera que una sesión nueva del mismo UID siga aplicando el pull, y la PR ahora la descarta a propósito. Hay que meter readSession en el contexto de los tests y ajustar esa expectativa. MENORES 2) un pull cancelado por TOKEN_REFRESHED o SIGNED_IN del mismo UID con sesión nueva no se relanza (cancel en :1366, solo resync si cambia el titular en :1388); queda pendiente hasta primer plano (:1470), edición (:467) o reserva (:540); puede retrasar nube y reserva mensual al arrancar, sin corromper dinero. Recomendado relanzar tras cancel con mismo UID. 3) en cancel, relevada se resuelve con undefined; inocuo. VERIFICADO: respuestas tardías descartadas por vuelo y sesión (:783, :824, :888, :893, :931) sin tocar revision, ready, mes, saldos, recibos ni gastos; commit(false) conserva commitReact y gastos; again antes de 25 s resincroniza (:922). Tests con la PR en verde (pull-historico-entero 28/28, auth-disposal, fin04-commit 19/19, fin04-first-pull 16/16, fin04-plan-three-way 51/51, fin04-rename-note-ack 6/6, persist-commit, sync-memoria, pr297-r2-plan-sync 24/24, e2e persistencia 11/11); 6/6 mutantes mueren. Para GO: arreglar los dos tests del punto 1 y, preferible, el punto 2.",
+  "schema": 1,
+  "from": "grok",
+  "sessionId": "grok-bot-20261025-g15",
+  "createdAt": "2026-10-25T22:18:18.970Z"
+}
