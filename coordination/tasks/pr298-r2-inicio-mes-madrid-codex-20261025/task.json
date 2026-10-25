@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "id": "pr298-r2-inicio-mes-madrid-codex-20261025",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261025-r96-fda31257-15b49a4f-6ff83c18-79251054",
+  "createdAt": "2026-10-25T17:42:34.485Z",
+  "to": "codex",
+  "baseSHA": "d30dc4016726fa1818449039debf4bd8148e3021",
+  "objective": "PR298 R2 bajo encargo Claude bf96ba4060ef45927ac30c39b03c601d4d2a879e: corregir oraculo recibo-invariante para excluir fechas >=1 noviembre Madrid, importe281,96, y rebasar PR298 conservando cambios beta171/172. Entregar R2 en la misma PR para G13 Grok.",
+  "scope": [
+    "tests/recibo-invariante.test.mjs: excluir filas>=1-nov Madrid en oraculo sin relajar otras aserciones; referencia281,96 frente333,36; fallo456 en cascada",
+    "Rebasar codex/inicio-mes-futuro-25604839 head864d50e51207a36bd436165f2c1466d946445729 sobre beta d30dc4016726fa1818449039debf4bd8148e3021, preservar toda logica beta171/172 y PR298; resolver scripts/run-tests.mjs y conflictos causales",
+    "Conservar alcance PR298 de cliente/widget V2/ingest legacy y pruebas; no VERSION/catalogo/notas/caps ni producto ajeno",
+    "Ejecutar recibo-invariante; inicio-mes-futuro y mutantes; suite Node ENTERA; Deno ingest; e2e inicio-* con datos sinteticos, CPU1/1worker/0retry/stop-first-failure, runner OWN serial local/puerto/censo antes de cada run",
+    "Si Deno falta, comprobar runtime/bundled oficial existente; no confundir esbuild con Deno; documentar bloqueo real, sin instalar dependencias a ciegas",
+    "Misma PR298 draft; revision independiente antes de publicacion final, push sin force destructivo; si rebase requiere force usar solo force-with-lease exacto contra head remoto verificado y documentarlo",
+    "Sin merge/main/beta/deploy/SQL/livebank/APK/backend edits ajenos. No reabrir tareas cerradas. Reportar solo al coordinador; RETURN/result propio released al terminar o bloquearse."
+  ],
+  "claudeAdmissionCommit": "bf96ba4060ef45927ac30c39b03c601d4d2a879e",
+  "workerStartupGrant": "e42252eb4444e23228b565b7d2da5b0ee5e13e43",
+  "workerStartupOwnAllowance": 20,
+  "workerFetchRules": "Initial/internal/readback>=30s y ledger propio exclusivo desde0; tras agotamiento real regla permanente aplicable y aviso/readback; nunca heredar/reset/21",
+  "priorTask": "inicio-mes-futuro-beta169-codex-20261025",
+  "priorReleasedResult": "a7f9194190062d4d7ff066f77c5a701e25040eb9",
+  "productPR": 298,
+  "productHeadSHA": "864d50e51207a36bd436165f2c1466d946445729",
+  "priorSourcePaths": [
+    "docs/ARQUITECTURA.md",
+    "docs/TESTING.md",
+    "e2e/inicio-mes-futuro.spec.mjs",
+    "scripts/relevant-tests.mjs",
+    "scripts/run-tests.mjs",
+    "src/modules/04-tab-gastos.js",
+    "src/modules/08-motor-bank.js",
+    "supabase/functions/ingest/index.ts",
+    "supabase/functions/ingest/widget.ts",
+    "tests/informe-mes.test.mjs",
+    "tests/inicio-mes-futuro.test.mjs"
+  ]
+}
