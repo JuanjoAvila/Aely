@@ -1,0 +1,114 @@
+{
+  "status": "blocked",
+  "summary": "FIN36 focal candidate delivered as PR299 OPEN DRAFT. Madrid debt calendar exact, standalone month/day monetary mutants killed and selected regressions green. Integration blocked: GitHub mergeable false and dirty against current beta; Claude integration and remaining release gates required. Resources released, no ProductREADY.",
+  "tests": [
+    {
+      "command": "node tests/fin36-debt-madrid-month.test.mjs --html (prepared month synthetic bundle, local path omitted)",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "monetaryActualCents": 90000,
+      "monetaryExpectedCents": 100000
+    },
+    {
+      "command": "node tests/fin36-debt-madrid-month.test.mjs --html (prepared day synthetic bundle, local path omitted)",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "monetaryActualCents": 90000,
+      "monetaryExpectedCents": 100000
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/debts.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/financing.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/motor-debt.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/debt-payment-state.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/deudas-metas-edicion.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/deudas-plazo-cuota.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/inicio-deuda-futura.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "4ba74b2ecb4d66b0273e0c53d12c9ecd3a9811ab",
+  "sourceBaseSHA": "72a0f48ccd03e48c1245899cf6eaf3b2e8d18313",
+  "sourceBaseVersion": "4.26.169",
+  "targetBetaSHA": "c670f7ddd5f5fd6351f506741e20f296654659eb",
+  "targetBetaVersion": "4.26.170",
+  "pullRequest": 299,
+  "draft": true,
+  "mergeable": false,
+  "mergeableState": "dirty",
+  "focalCandidateComplete": true,
+  "sourceHashesExact": 10,
+  "preservedEvidence": {
+    "unitChecks": 779,
+    "DOMPassed": 18,
+    "notRerun": true,
+    "originalCausalRedPreserved": true,
+    "independentStaticReviewUnchangedSources": true
+  },
+  "resources": {
+    "serialDirectedRuns": true,
+    "workerCount": 1,
+    "retries": 0,
+    "stopFirstFailure": true,
+    "all13RunsReturned": true,
+    "portFreeAfterAllRuns": true,
+    "noForeignProcessesKilled": true,
+    "oldCheckoutAndEvidenceUnchanged": true
+  },
+  "evidenceDigests": {
+    "finalValidation": "07939e2c627b22806ccda8c39f9148a2fdb361f614fb6fd43bdc3c9bb7162c9c",
+    "independentReview": "acad9086bb355b9562892f6ab78f7e1d8b7453a5be9d8a6bc086c8eebd0cef49",
+    "CPUAndTZAddendum": "f6f551c4eedd67ebaa51d9b1c1091cc1aa598b3168d8e8dbd52a396b0e663570"
+  },
+  "ownUsedAtPublication": 6,
+  "ownAllowance": 20,
+  "limitations": [
+    "General CI, full Node, full browser, CPU6 and physical mobile not executed.",
+    "Catalogue and size integration gates not executed, weakened or raised; VERSION and catalogue unchanged.",
+    "Conflicts against current beta require Claude integration; no rebase or merge performed.",
+    "CPU metadata does not prove OS affinity or measured CPU throttling.",
+    "TZ Europe/Madrid explicitly set by recorded native invocation for seven regressions; effective TZ not independently captured inside child.",
+    "No served-artifact, deployment or ProductREADY evidence."
+  ],
+  "productReady": false,
+  "schema": 1,
+  "taskId": "fin36-debt-madrid-continuation-root88-20261025",
+  "actor": "codex",
+  "sessionId": "codex-local-20261025-fin36c-fda31257-af8a512e-878e6886-2ddaeff2",
+  "createdAt": "2026-10-25T07:55:25.517Z",
+  "released": true
+}
