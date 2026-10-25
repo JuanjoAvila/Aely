@@ -1162,3 +1162,10 @@ El registro confirmado se une fuera de LWW; el umbral1000 nunca bloquea sincroni
 ## FIN-19: gastos iguales de bancos distintos (4.26.160)
 
 La identidad de un gasto bancario lleva banco y cuenta cuando se conocen, de modo que dos compras iguales (día, importe y comercio) en Sabadell y CaixaBank cuentan las dos en el cliente (`00-core.js`), el widget y el servidor (`_shared/presupuesto.ts`). Las lápidas de borrado llevan ámbito (banco/cuenta y `obName`); el renombrado desde la ficha usa las claves sin ámbito de FIN04 y las levanta al volver al nombre original. El contador del pull valida cada campo de identidad antes de reutilizar claves y no depende del orden de las filas. Las filas antiguas sin cuenta conservan el comportamiento anterior. Límite conocido (FIN-29): la lápida de un renombrado es la misma que la de un borrado sin ámbito, así que renombrar una de dos filas iguales de cuentas distintas oculta la otra (vuelve al total de antes de FIN-19). Detalle de rondas en `docs/briefs/fin19-cross-bank-identity.md`.
+
+
+## Inicio: frontera mensual de apuntes futuros
+
+`budgetPeriodOf` delimita el mes natural con [día 1 de Madrid, día 1 del mes siguiente). Los apuntes y reservas futuros del mismo mes cuentan; los del siguiente se cuentan en su mes. Inicio, el resumen mensual de Gastos y el puente del widget usan esa ventana. Sin nómina acreditada, Mi ciclo conserva su fallback mensual; con ancla real conserva su límite de mañana. El modo balance de Gastos y del widget legacy sigue siendo configurable; Inicio mensual y V2 conservan el gasto bruto.
+
+El caller mensual de ingest acota su lectura y una copia de las reservas antes de calcular los absolutos y deltas legacy; no modifica app_state ni el helper compartido de presupuesto. V2 aplica el mismo extremo superior a filas y reservas antes de validar el scope: una reserva del próximo mes no invalida la foto actual. Las pruebas locales de fuentes de servidor no acreditan despliegue, APK instalada ni aceptación física.

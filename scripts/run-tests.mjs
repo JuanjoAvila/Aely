@@ -35,6 +35,7 @@ if (plan.build !== false) {
 
 const steps = [
   ["fin04-commit", ["node", "--test", "--test-concurrency=1", "tests/fin04-commit.test.mjs"]],
+  ["inicio-mes-futuro", ["node", "tests/inicio-mes-futuro.test.mjs"]],
   ["fin17-confirmed-absorptions", ["node", "--test", "--test-concurrency=1", "tests/fin17-confirmed-absorptions.test.mjs"]],
   ["fin11-absorption-pending", ["node", "--test", "--test-concurrency=1", "tests/fin11-absorption-pending.test.mjs"]],
   ["ux16-haptics", ["node", "--test", "tests/ux16-haptics.test.mjs"]],

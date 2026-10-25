@@ -341,6 +341,7 @@ Deno.serve(async (req) => {
     // Misma ventana que la app (Europe/Madrid), no Date.UTC — B09-B 2026-09-07.
     const desdeMs = inicioDeMesMs(now);
     const desde = new Date(desdeMs).toISOString();
+    const hastaMs = inicioDeMesMs(desdeMs + 35 * 864e5);
     // `cat` y `source` hacen falta para contar como cuenta la app: sin ellos esto sumaba TODO
     // —los recibos del banco de fijos y las inversiones— y el aviso salía por las nubes.
     // El orden corresponde al INICIO de la lectura: una consulta lenta puede acabar después
@@ -348,17 +349,20 @@ Deno.serve(async (req) => {
     const readAt = Date.now();
     const { data: rows, error: rowsError } = await supabase
       .from("expenses").select("id,importe,cat,source,fecha,comercio")
-      .eq("user_id", userId).gte("fecha", desde);
+      .eq("user_id", userId).gte("fecha", desde).lt("fecha", new Date(hastaMs).toISOString());
     if (rowsError) throw rowsError;
     // La lectura absoluta puede responder después de otra más nueva. El nativo compara este
     // instante de lectura, no la llegada de la respuesta ni la fecha del movimiento.
     // Igual que la app al pintar Gastos: lápidas + una fila por día|importe|comercio.
     // Sin esto el widget suma gastos que él ya borró y notis gemelas (bug 907 vs 709, 2026-08-17).
     const visibles = filasComoLaApp(rows || [], st?.data?.deleted, st?.data?.obAbsorbedPending, userId, st?.data?.obAbsorbedConfirmed);
-    const stats = statsDelMes(visibles, st?.data, desdeMs);
+    // Las reservas futuras pertenecen a su mes, igual que los movimientos: no reducen éste.
+    const monthData = { ...st?.data, reservaLog: (st?.data?.reservaLog || [])
+      .filter((x: { date?: string | number } | null) => new Date(x?.date ?? NaN).getTime() < hastaMs) };
+    const stats = statsDelMes(visibles, monthData, desdeMs);
     // Si la app envía un snapshot mientras esta respuesta sigue en vuelo, el nativo necesita
     // la contribución de ESTA fila, no un absoluto que quizá preceda a ese snapshot.
-    const sinEsta = statsDelMes(visibles.filter((r) => String(r.id) !== String(ackId)), st?.data, desdeMs);
+    const sinEsta = statsDelMes(visibles.filter((r) => String(r.id) !== String(ackId)), monthData, desdeMs);
     const budget = stats.budget;
     const after = stats.against;
     // Y si el gasto recién apuntado NO cuenta para el presupuesto —banco de recibos, inversión,
