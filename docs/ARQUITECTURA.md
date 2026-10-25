@@ -32,7 +32,14 @@ estado (todo menos los gastos, que viven en su tabla) viaja entero por «último
    Un cambio de objeto de sesión (también `TOKEN_REFRESHED` con la misma UID) o desmontar
    cancela explícitamente la espera local del vuelo y su commit pendiente. La cancelación
    ocurre fuera del updater, no acredita el mes y no deja promesas retenidas si React
-   descarta ese updater; el siguiente solicitante obtiene su lectura propia.
+   descarta ese updater. Si el UID sigue siendo el mismo, el efecto de autenticación
+   programa una lectura de la sesión vigente fuera del callback de Supabase; conserva
+   `freshLogin`/`dropTx`, agrupa renovaciones consecutivas y evita un segundo vuelo si
+   ya empezó otro disparador. La intención privada en `cloudPullRef.resume` permite
+   que ese primer disparador consuma las mismas opciones; el turno diferido comprueba
+   su identidad y queda inerte si ya se consumió, aunque el vuelo nuevo haya terminado. `cloud.session` respeta ese relevo y no encola una lectura
+   del objeto anterior. Salir, cambiar de titular o desmontar descarta el relevo pendiente;
+   un login de otro titular conserva su lectura propia con las opciones de aislamiento.
 2. **Nada sube antes.** `pushAppState` sin lectura confirmada del mismo titular no envía:
    relanza la lectura. El debounce (1,2 s) toma la copia comprometida al dispararse.
 3. **INSERT o CAS.** Sin fila en la nube se crea con `insert` (nunca `upsert`); si el otro

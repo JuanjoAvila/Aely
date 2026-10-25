@@ -1,4 +1,5 @@
 import { test } from "node:test";
+import { authFragments } from "./helpers/auth-disposal-fixture.mjs";
 import {withOwnerStorage} from "./helpers/owner-storage-fixture.mjs";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -256,17 +257,26 @@ function statePullHarness(){
   vm.createContext(c);
   const names=["stateRef","cloudReadRef","cloudPullRef","cloudUpdatedAtRef","cloudMergeKey","pullOkRef","sessionRef","obAbsorbedWriteBlocked","cloud","set","syncCloudExpenses","pushAppState","reservaMensualPuerta","reservaMensualAlDia","showToast","mcBootReady","setTimeout","clearTimeout","navigator"];
   c.sync=vm.runInContext("(function("+names.join(",")+"){"+app.slice(start,end)+";return syncFromCloud;})",c)(...names.map(k=>c[k]));
-  const authStart=app.indexOf("const off=cloud.onAuth((s,ev)=>{")+"const off=cloud.onAuth((s,ev)=>{".length,authEnd=app.indexOf("\n    });",authStart);
-  assert.ok(authStart>0&&authEnd>authStart);
-  const refresh=vm.runInContext("(function(){let alive=true;const setSession=()=>{};return function(s,ev){"+app.slice(authStart,authEnd)+"};})()",c);
-  return {c,pulls,expenses,updates,gates,monthlyResults,notices,writes,timers,
+  const authSessions=[],idles=[];let authEvent,authCleanup;
+  function mountAuth(){
+    const parts=authFragments(core,app);
+    const sb={auth:{onAuthStateChange:cb=>{authEvent=cb;return {data:{subscription:{unsubscribe(){authEvent=null;}}}};}}};
+    c.cloud.onAuth=vm.runInContext("(function(sb){const statePushCache=new Map();return {"+parts.method+"};})",c)(sb).onAuth;
+    Object.assign(c.cloud,{enabled:()=>true,session:()=>{const d=deferred();authSessions.push(d);return d.promise;}});
+    Object.assign(c,{syncFromCloud:c.sync,setSession:()=>{},mcScheduleIdle:fn=>idles.push(fn),
+      setRecovery:()=>{},setShowAuth:()=>{},useEffect:fn=>{authCleanup=fn();}});
+    const env=["cloud","sessionRef","cloudPullRef","cloudReadRef","cloudUpdatedAtRef","setSession","mcScheduleIdle","syncFromCloud","setTimeout","clearTimeout","navigator","mcBootReady","useEffect","set","setRecovery","setShowAuth"];
+    vm.runInContext("(function("+env.join(",")+"){"+parts.effect+"})",c)(...env.map(k=>c[k]));
+  }
+  return {c,pulls,expenses,updates,gates,monthlyResults,notices,writes,timers,authSessions,idles,mountAuth,
+    auth:(event,session)=>authEvent(event,session),idle(){for(const fn of idles.splice(0))fn();},unmountAuth:()=>authCleanup(),
     start:opts=>c.sync(c.sessionRef.current,opts),
     refresh:()=>refresh({user:{id:"synthetic"}},"TOKEN_REFRESHED"),
     pack:(patch={})=>({data:{...JSON.parse(JSON.stringify(initial)),budget:2000,_savedAt:200,...patch},updated_at:"synthetic-revision"}),
     flush(){for(const fn of updates.splice(0)){c.stateRef.current=fn(c.stateRef.current);commitCloudFixture(app,c,c,c.stateRef.current);}},
     elapse(ms){now+=ms;for(const [id,t] of [...timers])if(t.at<=now){timers.delete(id);t.fn();}},
     dispose(){const cleanup=app.match(/return\s*\(\)\s*=>\{\s*alive=false;[\s\S]*?off\(\);\s*\};/);assert.ok(cleanup);
-      new Function("cloudPullRef","cloudReadRef","cloudUpdatedAtRef","sessionRef","let alive=true;const tmr=0,clearTimeout=()=>{},off=()=>{};"+cleanup[0])(c.cloudPullRef,c.cloudReadRef,c.cloudUpdatedAtRef,c.sessionRef)();}
+      new Function("cloudPullRef","cloudReadRef","cloudUpdatedAtRef","sessionRef","let alive=true,resumeTimer=null,resumePull=null;const tmr=0,clearTimeout=()=>{},off=()=>{};"+cleanup[0])(c.cloudPullRef,c.cloudReadRef,c.cloudUpdatedAtRef,c.sessionRef)();}
   };
 }
 const stateTicks=async()=>{for(let i=0;i<40;i++)await Promise.resolve();};
@@ -352,14 +362,83 @@ test("FIN04 plazo: error vigente libera el guardián y permite reintentar sin ac
 });
 
 test("FIN04 plazo: TOKEN_REFRESHED con updater en cola cancela su commit sin retener ni liberar el vuelo nuevo",async()=>{
-  const b=statePullHarness(),old=b.start(),oldOk=b.c.pullOkRef.current,initial=b.c.stateRef.current;
+  const b=statePullHarness();b.mountAuth();const old=b.start(),oldOk=b.c.pullOkRef.current,initial=b.c.stateRef.current;
   b.pulls[0].resolve(b.pack());await stateTicks();assert.equal(b.updates.length,1);assert.equal(b.c.cloudPullRef.current.merging,true);
-  let finished=false;old.then(()=>{finished=true;});b.refresh();await stateTicks();
+  let finished=false;old.then(()=>{finished=true;});b.auth("TOKEN_REFRESHED",{user:{id:"synthetic"}});await stateTicks();b.elapse(0);await stateTicks();
   assert.equal(finished,true,"descartar el updater no puede dejar pendiente el commit antiguo");assert.equal(await oldOk,false);
   assert.equal(b.c.cloudReadRef.current,null);assert.equal(b.c.cloudUpdatedAtRef.current,null);assert.equal(b.c.stateRef.current,initial);
-  const fresh=b.start(),active=b.c.cloudPullRef.current;b.flush();await stateTicks();
+  const active=b.c.cloudPullRef.current,fresh=active.promise;b.flush();await stateTicks();
   assert.equal(b.c.stateRef.current,initial);assert.equal(b.c.cloudPullRef.current,active);assert.equal(b.expenses.length,0);assert.equal(b.monthlyResults.filter(Boolean).length,0);
   await finishStatePull(b,1,b.pack({budget:2300}));await Promise.all([old,fresh]);await stateTicks();b.flush();
   assert.equal(b.c.cloudReadRef.current,active);assert.equal(active.ready,true);assert.equal(b.c.stateRef.current.budget,2300);
   assert.equal(b.c.stateRef.current.goals[0].saved,200);assert.equal(b.monthlyResults.filter(Boolean).length,1);assert.equal(b.expenses.length,1);
+});
+
+// R2: eventos reales de cloud.onAuth y continuación real de cloud.session; sin start tras renovar.
+for(const event of ["TOKEN_REFRESHED","SIGNED_IN","INITIAL_SESSION"])test("FIN04 R2 automático: "+event+" mismo UID recupera el pull sin otra petición",async()=>{
+  const b=statePullHarness();b.mountAuth();const old=b.start({freshLogin:true,dropTx:true}),oldOk=b.c.pullOkRef.current;
+  const next={user:{id:"synthetic"}};b.auth(event,next);await stateTicks();b.elapse(0);await stateTicks();
+  assert.equal(b.pulls.length,2,"el callback debe relanzar automáticamente la lectura cancelada");
+  const active=b.c.cloudPullRef.current,newOk=b.c.pullOkRef.current;
+  b.pulls[0].resolve(b.pack({budget:9999}));await old;await stateTicks();b.flush();
+  assert.equal(await oldOk,false);assert.equal(b.c.cloudPullRef.current,active);assert.equal(b.c.cloudUpdatedAtRef.current,null);
+  await finishStatePull(b,1,b.pack({budget:2300,accounts:[{id:"remote"}]}));await active.promise;await stateTicks();b.flush();
+  assert.equal(await newOk,true);assert.equal(b.c.stateRef.current.budget,2300);assert.equal(b.c.stateRef.current.onboarded,true);
+  assert.deepEqual(Array.from(b.c.stateRef.current.bankTx),[]);assert.equal(b.c.stateRef.current.goals[0].saved,200);
+  assert.equal(b.monthlyResults.filter(Boolean).length,1);assert.equal(b.pulls.length,2);b.unmountAuth();
+});
+
+
+test("FIN04 R2 automático: SIGNED_IN seguido de cloud.session e INITIAL_SESSION conserva login sin duplicar",async()=>{
+  const b=statePullHarness();b.c.sessionRef.current=null;b.c.stateRef.current={...b.c.stateRef.current,_savedAt:9999};b.mountAuth();
+  b.auth("SIGNED_IN",{user:{id:"synthetic"}});const old=b.c.cloudPullRef.current.promise,oldOk=b.c.pullOkRef.current;
+  b.authSessions[0].resolve({user:{id:"synthetic"}});await stateTicks();
+  b.auth("INITIAL_SESSION",{user:{id:"synthetic"}});await stateTicks();assert.equal(b.pulls.length,1,"no se consulta dentro del callback");
+  b.idle();b.elapse(0);await stateTicks();assert.equal(b.pulls.length,2);
+  const active=b.c.cloudPullRef.current,newOk=b.c.pullOkRef.current;
+  b.pulls[0].reject(Error("rechazo viejo"));await old;await stateTicks();assert.equal(await oldOk,false);assert.equal(b.notices.length,0);
+  await finishStatePull(b,1,b.pack({budget:2345,accounts:[{id:"remote"}]}));await active.promise;await stateTicks();b.flush();
+  assert.equal(await newOk,true);assert.equal(b.c.stateRef.current.budget,2345);assert.equal(b.c.stateRef.current.onboarded,true);
+  assert.equal(b.c.stateRef.current.bankTx[0].id,"local-tx","login sin titular previo conserva dropTx=false");
+  assert.equal(b.c.stateRef.current.goals[0].saved,200);assert.equal(b.monthlyResults.filter(Boolean).length,1);
+  b.idle();b.elapse(60000);await stateTicks();assert.equal(b.pulls.length,2);b.unmountAuth();
+});
+
+for(const mode of ["logout","unmount"])test("FIN04 R2 automático: "+mode+" elimina relevo pendiente sin reiniciar",async()=>{
+  const b=statePullHarness();b.mountAuth();const old=b.start(),initial=b.c.stateRef.current;
+  b.auth("TOKEN_REFRESHED",{user:{id:"synthetic"}});
+  if(mode==="logout")b.auth("SIGNED_OUT",null);else b.unmountAuth();
+  b.elapse(60000);b.pulls[0].resolve(b.pack({budget:9999}));await old;await stateTicks();b.flush();
+  assert.equal(b.pulls.length,1);assert.equal(b.c.stateRef.current.budget,initial.budget);assert.equal(b.c.cloudReadRef.current,null);
+  assert.equal(b.c.cloudUpdatedAtRef.current,null);assert.equal(b.expenses.length,0);assert.equal(b.monthlyResults.filter(Boolean).length,0);
+  if(mode==="logout")b.unmountAuth();
+});
+
+test("FIN04 R2 automático: ráfaga usa última sesión, otro UID conserva su login y descarta datos viejos",async()=>{
+  const b=statePullHarness();b.mountAuth();const old=b.start({freshLogin:true,dropTx:false});
+  b.auth("TOKEN_REFRESHED",{user:{id:"synthetic"}});const last={user:{id:"synthetic"}};
+  b.auth("SIGNED_IN",last);b.auth("TOKEN_REFRESHED",last);b.elapse(0);await stateTicks();
+  assert.equal(b.pulls.length,2);assert.equal(b.c.cloudPullRef.current.session,last);
+  b.auth("TOKEN_REFRESHED",last);assert.equal(b.pulls.length,2,"mismo objeto no cancela ni duplica");
+  const cancelled=b.c.cloudPullRef.current.promise;b.auth("SIGNED_IN",{user:{id:"other"}});
+  const active=b.c.cloudPullRef.current;assert.equal(b.pulls.length,3);assert.equal(active.owner,"other");
+  b.elapse(0);b.pulls[0].resolve(b.pack({budget:9999}));b.pulls[1].reject(Error("sesión saliente"));
+  await Promise.all([old,cancelled]);await stateTicks();b.flush();assert.equal(b.c.cloudReadRef.current,null);
+  await finishStatePull(b,2,b.pack({_historyOwner:"other",budget:4567,accounts:[{id:"other-account"}],expenses:[]}));
+  await active.promise;await stateTicks();b.flush();assert.equal(b.c.stateRef.current._historyOwner,"other");
+  assert.equal(b.c.stateRef.current.budget,4567);assert.deepEqual(Array.from(b.c.stateRef.current.bankTx),[]);
+  assert.equal(b.c.stateRef.current.onboarded,true);assert.equal(b.notices.length,0);assert.equal(b.pulls.length,3);b.unmountAuth();
+});
+
+
+test("FIN04 R2 intención: otro disparador entre cancelación y defer conserva freshLogin/dropTx",async()=>{
+  const b=statePullHarness();b.mountAuth();b.c.stateRef.current={...b.c.stateRef.current,_savedAt:9999};
+  const old=b.start({freshLogin:true,dropTx:true});b.auth("TOKEN_REFRESHED",{user:{id:"synthetic"}});
+  // Simula primer plano/edición antes del turno diferido; no es el oráculo del relanzamiento automático.
+  const external=b.start(),active=b.c.cloudPullRef.current;b.elapse(0);await stateTicks();assert.equal(b.pulls.length,2);
+  b.pulls[0].resolve(b.pack({budget:9999}));await old;await finishStatePull(b,1,b.pack({budget:2468,accounts:[{id:"remote"}]}));
+  await external;await stateTicks();b.flush();assert.equal(b.c.cloudReadRef.current,active);assert.equal(await b.c.pullOkRef.current,true);
+  assert.equal(b.c.stateRef.current.budget,2468,"el trigger concurrente conserva freshLogin aunque el reloj local sea mayor");
+  assert.deepEqual(Array.from(b.c.stateRef.current.bankTx),[],"dropTx no se pierde entre cancelación y relevo");
+  assert.equal(b.c.stateRef.current.onboarded,true);assert.equal(b.monthlyResults.filter(Boolean).length,1);assert.equal(b.pulls.length,2);b.unmountAuth();
 });

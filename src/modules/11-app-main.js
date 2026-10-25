@@ -774,7 +774,10 @@ function App(){
       if(current.waiting){current.again=true;if(Date.now()-current.startedAt>=STATE_READ_PLAZO)return current.relevar();}
       return current.promise;
     }
-    const read={owner:u,session:readSession,startedAt:Date.now(),waiting:true,again:false,ready:false,editIntent:planSyncEditToken(stateRef.current)};cloudPullRef.current=read;
+    // El primer disparador tras renovar consume también las opciones del vuelo cancelado.
+    const resume=cloudPullRef.resume;
+    if(resume&&resume.owner===u){opts=resume.opts;cloudPullRef.resume=null;}
+    const read={owner:u,session:readSession,opts:opts,startedAt:Date.now(),waiting:true,again:false,ready:false,editIntent:planSyncEditToken(stateRef.current)};cloudPullRef.current=read;
     goalSyncActivate(mcStateKey(),u);planSyncActivate(mcStateKey(),u);
     const freshLogin=!!(opts&&opts.freshLogin);   // acaba de INICIAR SESIÓN (no un reconecta del mismo user)
     // INC-0410 mensual: el asiento solo vale si ESTE pull leyó un estado válido (o aún no hay ninguno).
@@ -1347,15 +1350,33 @@ function App(){
        instante. Con red se conserva el margen de 2500 ms para no pintar cifras que luego saltan. */
     try{ if(navigator.onLine===false) mcBootReady(); }catch(e){}
     // Al desmontar no deben quedar callbacks que cambien sesión o inicien otra lectura.
-    var alive=true;
+    var alive=true,resumePull=null,resumeTimer=null;
+    // La renovación invalida el objeto viejo, pero conserva la intención y opciones del pull.
+    // Diferir la nueva llamada evita entrar en Supabase dentro de su callback de autenticación.
+    const renewPull=function(s){
+      const read=cloudPullRef.current;
+      if(resumePull&&(!s||resumePull.owner!==s.user.id)){clearTimeout(resumeTimer);resumePull=null;cloudPullRef.resume=null;}
+      if(!read||read.session===s||!read.cancel)return;
+      if(s&&read.owner===s.user.id){
+        resumePull={owner:read.owner,opts:read.opts};cloudPullRef.resume=resumePull;clearTimeout(resumeTimer);
+        resumeTimer=setTimeout(function(){
+          const pending=resumePull;resumePull=null;
+          if(!pending||cloudPullRef.resume!==pending)return;
+          cloudPullRef.resume=null;
+          const current=sessionRef.current;
+          if(alive&&pending&&current&&current.user.id===pending.owner&&!cloudPullRef.current)syncFromCloud(current,pending.opts);
+        },0);
+      }
+      read.cancel();
+    };
     const boot=()=>{ if(alive) mcBootReady(); }, tmr=setTimeout(boot, 2500);
     cloud.session().then(s=>{
       clearTimeout(tmr);
       if(!alive) return;
-      if(sessionRef.current!==s&&cloudPullRef.current&&cloudPullRef.current.cancel)cloudPullRef.current.cancel();
+      if(sessionRef.current!==s)renewPull(s);
       setSession(sessionRef.current=s);
       if(!s){if(cloudPullRef.current&&cloudPullRef.current.commit)cloudPullRef.current.commit(false);cloudReadRef.current=null;cloudUpdatedAtRef.current=null;cloudPullRef.current=null;}
-      if(s) mcScheduleIdle(()=>{ if(alive) syncFromCloud(s); }); else boot();
+      if(s){if(!resumePull&&!cloudPullRef.current)mcScheduleIdle(()=>{ if(sessionRef.current===s&&!cloudPullRef.current){ if(alive) syncFromCloud(s); } });}else boot();
     }, ()=>{ clearTimeout(tmr); boot(); });
     const off=cloud.onAuth((s,ev)=>{
       if(!alive) return;
@@ -1363,7 +1384,7 @@ function App(){
       const login=s&&(!prev||prev.user.id!==s.user.id);
       // También TOKEN_REFRESHED cambia el objeto sin cambiar UID: fuera del updater se
       // cancela su espera de commit, que React puede descartar sin ejecutar sus efectos.
-      if(prev!==s&&cloudPullRef.current&&cloudPullRef.current.cancel)cloudPullRef.current.cancel();
+      if(prev!==s)renewPull(s);
       if(!s||login){if(cloudPullRef.current&&cloudPullRef.current.commit)cloudPullRef.current.commit(false);cloudReadRef.current=null;cloudUpdatedAtRef.current=null;cloudPullRef.current=null;}
       setSession(sessionRef.current=s);
       // Cerrar sesión rompe la asociación implícita del extracto local con el titular. El
@@ -1388,7 +1409,7 @@ function App(){
       if(login) syncFromCloud(s, {freshLogin:true,
         dropTx:!!prev});
     });
-    return ()=>{ alive=false;
+    return ()=>{ alive=false;clearTimeout(resumeTimer);resumePull=null;cloudPullRef.resume=null;
       // Un vuelo que termina tras desmontar no conserva autoridad para releer ni escribir.
       if(cloudPullRef.current&&cloudPullRef.current.cancel)cloudPullRef.current.cancel();
       else if(cloudPullRef.current&&cloudPullRef.current.commit)cloudPullRef.current.commit(false);
