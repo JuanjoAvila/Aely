@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "id": "fin37-debt-startday-once-beta170-codex-20261025",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261025-r88-fda31257-d8e32b75-64ceec3a-27493935",
+  "createdAt": "2026-10-25T08:00:42.772Z",
+  "to": "codex",
+  "kind": "worker",
+  "baseSHA": "c670f7ddd5f5fd6351f506741e20f296654659eb",
+  "baseVersion": "4.26.170",
+  "objective": "FIN-37: validar startDay una sola vez por deuda al crear la politica netWorthDebtPolicy, fuera del evaluador por dia at(), conservando exactamente la serie monetaria y el contrato de fecha de nacimiento. Causa de coste determinista ROJO primero, luego fix acotado y PR draft independiente. No incluir FIN36/PR299 ni cambios de cobro.",
+  "scope": [
+    "src/modules/02-ui-shared.js",
+    "tests/fin37-debt-startday-once.test.mjs",
+    "tests/inicio-deuda-futura.test.mjs",
+    "scripts/run-tests.mjs",
+    "scripts/relevant-tests.mjs",
+    "docs/ARQUITECTURA.md",
+    "docs/TESTING.md"
+  ],
+  "scopeGrants": [
+    "cb8e9ed08289b384a795af95cf78f50bccbf0b33",
+    "e42252eb4444e23228b565b7d2da5b0ee5e13e43",
+    "9b249646373944ae619233048f431d9bd91a1ee2",
+    "a26df510fbe2d8a41d90b20fddaea729c37b33ba",
+    "9f9f204ab9268ab54f167f67dd836902b2b48639"
+  ],
+  "workerOwnStartupGrant": "e42252eb4444e23228b565b7d2da5b0ee5e13e43",
+  "workerOwnStartupAllowance": 20,
+  "priority": 1,
+  "sourceReference": "docs/BACKLOG.md FIN-37 linea113 en base exacta; netWorthDebtPolicy 1088-1149 y netWorthPointOk(d.startDay,0,9999-12-31) en1114",
+  "acceptance": [
+    "Recepcion identidad/cwd/runtime/proyecto Aely LOCAL, sesion/nonce nuevos8hex-8hex-8hex-8hex comenzando fda31257. ACK privado fsync/readback; esperar admision expresa ROOT88. OWN20 nuevo desde0, initial/internos/readback>=30s todos contados ledgerexclusivo y FULLTODOSdeltas/cancelaciones antesacciones. Claim/readback/ACK propio antescodigo/tests.",
+    "Checkout exclusivo nuevo desde base exacta. Primero revisar si sigue causal reproducible y no esta ya corregido; si NO_REPRO demostrar sin fix inventado. ROJO causal de coste real por validacion repetida usando produccion y conteos observables deterministas para muchasdeudas/dias. No gate de tiempo ruidoso que solo refleje hardware. Oraculos monetarios independientes exactos al centimo para el comportamiento que se debe conservar. Antes de producto enviar prueba causal alROOT para GO focal.",
+    "Arreglo solo validacionstartDay una vez por deuda/politica fuera del bucle dia. No mutar state/debts ni cacheglobal/identidades compartidas. Nueva politica con estado distinto debe revalidar sin datos viejos. Mantener identidades duplicadas/ausentes independientes y nacimiento valido, invalido, ausente y fallbackstartMonth; no inferir fecha de asOf.",
+    "Cubrir antes/en/despues startDay, cuotas y anclas conocidas, prestamos sin plazo, balloon y cambios de mes/ano/DSTMadrid. Comparar serie completa e indicadores actuales con oracleindependiente, no solo coste. UTC/Madrid y otraTZ si relevantes. No cambiar aritmetica financiera ni UI/contrato para hacerpasar tests.",
+    "GREEN focal y mutante causal que reincorpora validacion dentroat debe fallar conteo manteniendo oraculo monetario. Regresiones dirigidas justificadas de consumidoresdeudaInicio. Registrar testNode en runner y documentar cache/validez. Revisión independiente de exactasfuentes sin duplicar corridas; no reejecutar pruebas terminadas salvo cambio/fallo nuevo.",
+    "EntregaPRdraft contra beta con base/head verificados y estado real conflictos/integracion. Result/RETURN propios released, pruebasEXIT/SHA exactos y limites deCIgeneral/servido/movil. UnaPR unobjetivo. NoProductoREADY por costeNode ni CIlocal."
+  ],
+  "constraints": [
+    "Subagentes utiles permitidos con lectura/scopes propios; uneditor/checkoutexclusivo y unrunnerporrecurso. Solo nativo alROOT88, soloelcoordinador reportaClaude. No escogerotra tarea ni reabrir cerradas.",
+    "Runner OWN censo/admission porrun con fuenteantes/logs/EXIT/RETURN durables y puerto propio, CPU1worker1retry0stopfirstfailure. Registrar zona efectiva o comando exacto env, y no afirmar afinidadOS/throttle sin medir. No fullNode/fullbrowser/CPU6; mediciones locales no son aceptacionCPU6.",
+    "No tocarPR299/FIN36 salvo nuevoNO-GO explícito: trabajador cerrado OWN8/20 y archivado, G10 reservadoGrok e integracionClaude. No tocarPR297/298 ni duplicar avisos deldueño. No heredar fuentesprobadas para llamarlas verdes deFIN37.",
+    "Sin VERSION/catalogo/notas/caps/backend/Edge/SQL/livecloud/bancos/Gradle/APK/deploy/merge main/beta/movil. No nueva dependencia/npmci/install por enlaces ni borrarWT/junctions/procesosajenos.",
+    "Deadline propio60min desdeadmision. Terminar operacion activa antes checkpoint/RETURN al primerpunto seguro; conservarWIPprivado durable, no publicar inacabado. Relevo nuevoAely si sigueactiva, no herencia/reset/proxy.",
+    "Payload publico completo revisado por fda31257 sin rutas/IDsprivados niURLs. Helper y filtro canónicos intactos, conservarrechazos. Sin generalpermissionasks; dudas financieras o ampliacion alROOT con evidenciaconcreta."
+  ]
+}
