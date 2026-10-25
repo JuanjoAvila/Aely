@@ -182,6 +182,8 @@ No hay snapshot común entre peticiones: filas existentes que conservan UUID y v
 
 `debtBalance` proyecta el saldo con `value`, `asOf` y la amortización mensual; un 0 calculado no prueba el pago bancario. `settledAt` solo se fija tras confirmación explícita en Plan → Deudas o una amortización total introducida por la persona. `archivedAt` se admite únicamente con saldo cero y liquidación confirmada; oculta la tarjeta de la lista activa, pero conserva la deuda y su `id` en `state.debts`. Gastos y sus filtros siguen resolviendo los movimientos con `debtId` contra esa colección completa. Mostrar de nuevo una deuda archivada no la convierte en pendiente: para corregir un saldo real positivo se edita, y esa edición limpia la marca de liquidación. El borrado físico se bloquea si alguna fila de gasto está vinculada. No se crean pagos ni se reescribe el histórico.
 
+El mes `ymNow` y el día de cobro de deuda usan Europe/Madrid, igual que `startDay` y la serie de Inicio. Todos los consumidores de `ymNow` pertenecen a deudas: alta manual, compra financiada, migración sin ancla, edición sin plazo, saldo, actividad y pago final. La migración sólo completa `asOf` ausente; no modifica anclas conocidas ni acredita nacimiento. `startDay` conserva el nacimiento real y no aplaza el cargo del mismo día: una financiación de 1.000 € que amortiza 100 € debe 900 € el día 1 si cobra ese día, y 1.000 € si cobra el día 5. Las cuotas previas compensan el cargo del mes según ese mismo día de Madrid; los préstamos sin plazo conservan su proyección por meses completos.
+
 ## Ahorro mensual en Metas (4.26.25)
 
 `state.aportaciones` es planificación, no un libro de movimientos. Sus importes alimentan

@@ -86,6 +86,8 @@ altas reales 08/09, migración, reancla y transporte/merge de nube simulado.
 `e2e/inicio-deuda-futura.spec.mjs` comprueba seis puntos de la gráfica real al dedo,
 el regreso al presente y dos regresiones de legado. Sólo `startMonth` entero acredita
 inicio; `asOf` no. [Acta y límites](briefs/fin12-deuda-futura-inicio-20261016.md).
+
+FIN36: `tests/fin36-debt-madrid-month.test.mjs`, registrado en el runner, compara las altas reales manual y de compra a las 00:30 de Madrid del día 1 en verano, invierno y cambio de año, con dispositivo Madrid, UTC, Los Ángeles y Tokio. Fija céntimos de saldo y serie sin suministrar el saldo actual al motor de deuda; incluye cargo día 1/5 y antes/en/después, cuotas previas, migración sin nacimiento inventado, edición con y sin plazo y pago final. Dos mutantes obligatorios restauran el mes local o el día local y deben cambiar los importes. `--html ruta` permite comprobar cada bundle mutado de forma dirigida. `e2e/fin36-debt-madrid-month.spec.mjs`, registrado para los módulos 07/08/09, comprueba 18 altas por Plan, saldo visible, resumen de deuda, hero y punto anterior de la gráfica de Inicio, además de recarga, en Madrid/UTC/Los Ángeles. Son datos sintéticos; no acreditan integración, servido ni aceptación móvil.
 ## Runner Deno focal · PR255, remates privados, 17/10/2026
 
 `scripts/run-deno-tests.mjs` descubre recursivamente `*.test.ts` y `*_test.ts` en

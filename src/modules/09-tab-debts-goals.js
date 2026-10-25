@@ -332,7 +332,7 @@ function Debts({state, set, showToast}){
     if(down>0) it.downPayment=down;
     // deuda ya empezada: retrasa el ancla tantos meses como cuotas pagadas para que
     // debtPaidCount()===paid hoy (compensa el +1 que suma si la cuota de este mes ya pasó)
-    if(paid>0){ let anchor=ymNow()-paid; if(months>0 && it.day!=null && it.day<=new Date().getDate()) anchor+=1; it.asOf=anchor; }
+    if(paid>0){ let anchor=ymNow()-paid; if(months>0 && it.day!=null && it.day<=madridYmdParts(Date.now()).d) anchor+=1; it.asOf=anchor; }
     if(months>0) it.startMonth=it.asOf;
     if(months>0&&paid===0) it.startDay=netWorthDay(); // Con cuotas previas no conocemos el día de origen.
     set(s=>Object.assign({},s,{debts:s.debts.concat([it])}));
