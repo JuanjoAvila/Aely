@@ -82,7 +82,7 @@ export const E2E_MAP = [
   { file: "src/modules/11-app-main.js", specs: ["e2e/ux16-haptics.spec.mjs"] },
   { file: "src/modules/10-app-components.js", specs: ["e2e/ux16-ajustador.spec.mjs", "e2e/ux18-orden-idioma-al-momento.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/ux18-orden-idioma-al-momento.spec.mjs"] },
-  { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-deuda-futura.spec.mjs"] },
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-deuda-futura.spec.mjs", "e2e/fin36-debt-madrid-month.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/widget-banco.spec.mjs", "e2e/inc1710-reload-fallback-delay.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/fin04-first-pull.spec.mjs", "e2e/fin04-recovery.spec.mjs", "e2e/savedat-arranque.spec.mjs"] },
   // «Abrir en Cartera ›» de la fila gris de Inversiones: el destino (`goInversiones`) y su marca en Cartera.
@@ -162,6 +162,7 @@ export const E2E_MAP = [
     "e2e/tr-aviso.spec.mjs",
   ] },
   { file: "src/modules/08-motor-bank.js", specs: [
+    "e2e/fin36-debt-madrid-month.spec.mjs",
     "e2e/h2-account-phases.spec.mjs",
     "e2e/plan-expense-links.spec.mjs",
     "e2e/inicio-deuda-futura.spec.mjs",
@@ -180,6 +181,7 @@ export const E2E_MAP = [
   ] },
   { file: "src/modules/07-tab-patri-fijos.js", specs: [
     "e2e/savedat-arranque.spec.mjs",
+    "e2e/fin36-debt-madrid-month.spec.mjs",
     "e2e/cartera-saldo-atras.spec.mjs",
     "e2e/h2-account-phases.spec.mjs",
     "e2e/cartera-bienes-completo.spec.mjs",
@@ -195,6 +197,7 @@ export const E2E_MAP = [
   ] },
   { file: "src/modules/09-tab-debts-goals.js", specs: [
     "e2e/gastos-meta-aportacion.spec.mjs",
+    "e2e/fin36-debt-madrid-month.spec.mjs",
     "e2e/deudas-alargar-plazo.spec.mjs",
     "e2e/deudas-plazo-aviso.spec.mjs",
     "e2e/deudas-metas-edicion-v4.spec.mjs",

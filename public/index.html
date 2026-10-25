@@ -10585,6 +10585,9 @@ function netWorthDay(nowMs){
 function netWorthDebtPolicy(state, today, current){
   const parts=today.split("-").map(Number), month=parts[0]*12+parts[1]-1;
   const debts=state.debts||[], notes=[];
+  // El nacimiento no cambia entre días de la misma política: validarlo dentro de at()
+  // repetía parseo y formato por cada punto. Cada fila conserva su fecha, aunque repita id.
+  const startDays=debts.map(function(d){ return d.months!=null&&netWorthPointOk(d.startDay,0,"9999-12-31")?d.startDay:null; });
   // Hacia atrás se deshace el cuadro de cuotas que debtBalance aplica hacia delante: saldo de
   // entonces = saldo de hoy + la amortización de cada cargo entre esa fecha y hoy, contado por
   // el día de cuota. Así el día de la cuota la gráfica solo baja los intereses y el último punto
@@ -10600,7 +10603,7 @@ function netWorthDebtPolicy(state, today, current){
     const rate=apr/1200,today=Number(d.value)-debtAmort(d)*Math.max(0,month-(typeof d.asOf==="number"?d.asOf:month));
     return today*rate>=Number(d.monthly)?{rate:0,bad:true}:{rate:rate,bad:false};
   };
-  const at=function(d,day){
+  const at=function(d,day,startDay){
     // Una fecha de referencia explícita no pone la deuda a cero antes: con una hipoteca sellada
     // al darla de alta inflaría el patrimonio anterior en todo su principal (revisión 13/10).
     // Antes de la fecha se mantiene el saldo (o su cuadro, como las demás).
@@ -10608,8 +10611,8 @@ function netWorthDebtPolicy(state, today, current){
     const anchor=typeof d.asOf==="number"?d.asOf:month;
     // Las altas nuevas acreditan el día real, distinto de la primera cuota. Las anteriores
     // sólo conocen el mes; asOf también se migra/reancla y nunca acredita el nacimiento.
-    if(d.months!=null&&netWorthPointOk(d.startDay,0,"9999-12-31")){
-      if(day<d.startDay) return 0;
+    if(startDay!=null){
+      if(day<startDay) return 0;
     }else{
       if(d.months!=null&&Number.isInteger(d.startMonth)&&p[0]*12+p[1]-1<d.startMonth) return 0;
     }
@@ -10641,7 +10644,7 @@ function netWorthDebtPolicy(state, today, current){
     const estimated=debtAmort(d)>0&&Number(d.value)>0.005&&!d.settledAt;
     notes.push({kind:"debt",name:d.name,estimated:estimated,constant:!estimated,noRate:estimated&&rebuilt(d)&&d.amort==null&&aprOf(d)==null,badRate:estimated&&rebuilt(d)&&rateOf(d).bad});
   });
-  const sum=function(day){ return debts.reduce(function(n,d){ return n+at(d,day); },0); };
+  const sum=function(day){ return debts.reduce(function(n,d,i){ return n+at(d,day,startDays[i]); },0); };
   const value=current!=null?current:sum(today);
   return {current:value,notes:notes,timingUnknown:debts.some(function(d){return d.months==null&&!(dayOf(d)>0);}),at:function(day){ return day===today?value:sum(day); }};
 }
@@ -17862,11 +17865,12 @@ const oneoffPast=(o,y,m)=> o && (o.year<y || (o.year===y && o.month<m));   // de
    `amort` es lo que reduce el principal (por defecto la cuota); puede diferir de la
    cuota en efectivo (p.ej. préstamo familiar: paga 197 € pero amortiza 250 €/mes). */
 const ymAbs=(y,m0)=> y*12+m0;                         // m0 = mes 0-indexado
-const ymNow=()=>{ const n=new Date(); return ymAbs(n.getFullYear(), n.getMonth()); };
+// Las anclas de deuda comparten el calendario de Inicio: en UTC aún puede ser el mes anterior.
+const ymNow=()=>{ const p=madridYmdParts(Date.now()); return ymAbs(p.y, p.m-1); };
 const debtAmort=(d)=> d && d.amort!=null ? d.amort : ((d&&d.monthly)||0);
 // nº de pagos ya hechos. Una financiación (con `months`) cuenta TAMBIÉN el pago de ESTE mes si ya pasó
 // su día (ej. financias el 599/4 con día 26 y hoy es 28 → el 1er pago del 26 ya cuenta).
-function debtPaidCount(d){ const anchor=(typeof d.asOf==="number")?d.asOf:ymNow(); let n=Math.max(0, ymNow()-anchor); if(d.months!=null){ const dd=debtChargeDay(d); if(dd<=new Date().getDate()) n+=1; } return n; }
+function debtPaidCount(d){ const anchor=(typeof d.asOf==="number")?d.asOf:ymNow(); let n=Math.max(0, ymNow()-anchor); if(d.months!=null){ const dd=debtChargeDay(d); if(dd<=madridYmdParts(Date.now()).d) n+=1; } return n; }
 // Financiación tipo coche: además de entrada (downPayment, ya pagada = informativa) y cuotas,
 // hay un PAGO FINAL (balloon) en el último mes del plazo. debtBalloonIn(d,y,m): balloon si (y,m 1-12)
 // es ese último mes; 0 si no. La amort lineal ya se fija a (value−balloon)/months al crear la deuda,
@@ -22643,7 +22647,7 @@ function Debts({state, set, showToast}){
     if(down>0) it.downPayment=down;
     // deuda ya empezada: retrasa el ancla tantos meses como cuotas pagadas para que
     // debtPaidCount()===paid hoy (compensa el +1 que suma si la cuota de este mes ya pasó)
-    if(paid>0){ let anchor=ymNow()-paid; if(months>0 && it.day!=null && it.day<=new Date().getDate()) anchor+=1; it.asOf=anchor; }
+    if(paid>0){ let anchor=ymNow()-paid; if(months>0 && it.day!=null && it.day<=madridYmdParts(Date.now()).d) anchor+=1; it.asOf=anchor; }
     if(months>0) it.startMonth=it.asOf;
     if(months>0&&paid===0) it.startDay=netWorthDay(); // Con cuotas previas no conocemos el día de origen.
     set(s=>Object.assign({},s,{debts:s.debts.concat([it])}));
@@ -26262,7 +26266,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="38a4860551607acc5b2e593702eb28332bf3dac4b2e39b52965df077e1c10322";
+var _rnSha="17386e88f0b9b55b6758d96157134b0e5405419da5c53189efcbea70149455e5";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
