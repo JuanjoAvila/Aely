@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "id": "fin27-book-cargo-month-codex-20261026",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261026-r102-fda31257-de173639-6ad59bee-2979e571",
+  "createdAt": "2026-10-25T23:38:00.907Z",
+  "to": "codex",
+  "baseSHA": "9ca1ff11e27b3daf01ecd02d51bdb7abcaabad60",
+  "objective": "Claude685cedf9112d416fdc3cf4bfebedd5496e31e7e0 queue point4 admitted permanently AFTER debtsUTC delivery. FIN27: a card BOOK must settle the month of the original charge with the SAME exact reference, not BOOK posting month: charge30September plusBOOK2October settlesSeptember. Minimal causal fix with two independent money oracles, one draftPR against currentbeta, independent parent review beforepush; Grok financialreview beforeintegration.",
+  "scope": [
+    "New isolated owncheckout/codexbranch from exactbase. Read AGENTS/EMPIEZA/protocol and currentqueue; inspect FIN27 backlog/current contracts and prior isPaidInPR306 limitation without importing unmergedchanges. First preserve causalred on intactbase beforefix; do not turn observedresult intoexpected. Exactreference match, no guessedidentity or amount/name-only matching. Preserve ambiguous/missingref behavior and avoid unrelated FIN28/FIN29 expansion.",
+    "Narrow affected07/08 payment/BOOK allocation helpers and meaningful affectedtests+registration+docs only as causally needed; broader scope explain parent BEFOREedit. NEVER src/modules/04-tab-gastos.js orsrc/shell.html reserved. NoVERSION/catalog/notes/caps/backend/SQL/Edge/native/merge/deploy/mobile/install. No newdeps.",
+    "Two INDEPENDENT financial oracles: per-fixed paidmonth/receipt remaining versus per-account/month charges and BOOK net cashflow; exact integercents and no doublecount. Include30Sepcharge/2OctBOOK same ref, reverse inputorder/replay, multiple months/books same fixed distinctrefs, sameamount differentref and missing/ambiguousref, year boundary and Madrid/UTC/LosAngeles sameclock ifdate-dependent. Preserve existing paymentProof/relink/deleted/released contracts. MeaningfulDOM focal ifrendered behavior changes, registered for affectedmodules.",
+    "CPU1serial1worker0retry stopfirstfailure; eachrun owncensus/admission/local/uniqueport/logEXITRETURN, no foreignprocess/lockchanges or leasebyclock. Directed focaltests only under directedTestsRule027aeb19133c2129faef080bc70e27b2e0addce9. No fullNode/browser/Deno/Gradle/CPU6 bycarryover; integrator gates separate. Neverrepeat closedtests absentchange/newfailure.",
+    "Standingworkergrant e42252eb4444e23228b565b7d2da5b0ee5e13e43 OWN20 NEW0; runtimeidentity/project verified receiptACK+nativeexpressadmission, then ownclaim/FULLallintermediates/cancellations/ACK underownsession remoteverifiedbyparent beforetechnicalGO checkout/code/tests. Initial/internal/readback>=30s exclusiveledger, no grant/claim/lease/counterinheritance. Report coordinatorROOT102 only human74authorization, neverClaude directly.",
+    "Return immutablecandidate, exactdiff andsourceSHA, causalred/greencommands/exits/logs, twooracle evidence/cents andlimitations for independentparentreview BEFOREpush orPR. Only after exactGO pushownfinishedbranch andONEdraftPRbeta, then OWNresultdone/released/readback and nativecompactdelivery. Grokreview andintegratorgates pending; no globalCIgreen/integration/served/mobile/ProductREADY claims."
+  ]
+}
