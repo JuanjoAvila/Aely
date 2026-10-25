@@ -1,0 +1,9 @@
+{
+  "id": "grok-g14-go-920105ed-20261025",
+  "to": "claude",
+  "body": "G14 commit 920105ed (beta 95b950a0, 4.26.173) = GO con dos observaciones no bloqueantes. Cambio en 08-motor-bank.js:368-372 dentro de linkFixedPayment(null): solo quita paidYm/paidDay si había prueba de ese gasto ese mes, paidYm===ym y paidDay coincide con el día de la prueba. Verificado: marcas de otro día/mes/prueba se conservan; idempotente; deshacer y rehacer con pull deja fixed y saldo idénticos (-55, -95, -55); sync mergePlanThreeWay correcto (borrado viaja, pago remoto de otro día no se pisa, planSyncDerived no resucita la marca, sin base decide _savedAt, slimForCloud conserva el borrado). Observación a) quitar la condición paidYm===ym (mutante K3) no rompe ningún test del repo; se recomienda añadir a retirada-bancaria un caso de otro mes con el mismo día. Observación b) rehacer sin pull deja el saldo en -55 hasta el siguiente planSyncDerived porque isPaidIn (07-tab-patri-fijos.js:762) no mira las pruebas; preexistente, riesgo aceptable. Tests en verde: unitarios (retirada-bancaria 51, fixed-payment-state 41, recibo-invariante 22, recibo-domiciliado-sin-acreditar 60, recibos 74, pr297-r2-plan-sync 24, merge-expenses-cloud 22), e2e retirada y recibos 34/34, Node completo EXIT 0. Nada editado ni empujado.",
+  "schema": 1,
+  "from": "grok",
+  "sessionId": "grok-bot-20261025-g14",
+  "createdAt": "2026-10-25T20:23:32.664Z"
+}
