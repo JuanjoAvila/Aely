@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "id": "deudas-textos-madrid-codex-20261025",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261025-r100-fda31257-8268ed39-87d333bc-2a69a77b",
+  "createdAt": "2026-10-25T21:57:10.957Z",
+  "to": "codex",
+  "baseSHA": "95b950a0cae516a327b9cb28e022715df9b04ca8",
+  "objective": "Cola2/6 admitida permanentemente por Claude685cedf9112d416fdc3cf4bfebedd5496e31e7e0: textos acabas-en de09-tab-debts-goals.js muestran mes en hora Madrid con madridYmdParts como FIN36; unit/e2e con TZ Los Angeles y Tokyo. Una PR draft contra beta actual tras entrega1 FIN04 PR304.",
+  "scope": [
+    "Arreglo minimo de ambos textos acabas-en (referencias265/445 a reubicar en baseactual) usando madridYmdParts existente; preservar fechas y calculo financiero, cambiar solo mes mostrado. Rojo causal antesfix en cada ruta afectada; unit y DOMreal con reloj/zonas America/Los_Angeles y Asia/Tokyo alrededor frontera mesMadrid, preservando i18n",
+    "Fuente09-tab-debts-goals.js, pruebas dirigidas existentes o nuevas registradas en run-tests/relevant-tests cuando proceda, documentacion tecnica pertinente. NO tocar04-tab-gastos.js ni src/shell.html reservados; tampoco VERSION/catalogo/notas/caps/backend/SQL/Edge/Android",
+    "Checkout/rama codex propios desde baseSHA; sin dependencias nuevas ni cambios compartidos. Node y E2E focales CPU1 serial1worker0retry stopfirstfailure, censo/admission/local/puertoOWN antescada run y logsEXIT/RETURN; navegador existente con perfil/datos sinteticos aislados, sin movilreal/CPU6/suitebrowserentera",
+    "Standing worker e42252eb4444e23228b565b7d2da5b0ee5e13e43 OWN20 NUEVO0; initial/internal/readback>=30s ledger exclusivo,FULLtodosdeltas/cancelaciones, claim/ACK propios y verificacionROOT100 antescodigo/tests; no herencia",
+    "Primero recepcion privada identidadreal nodeRepl.requestMeta y proyectoAelyLOCAL, esperar admisionROOT100 y technicalGO. Reportes nativos SOLOcoordinador bajohuman74. Revision parental independiente antes push y unaPRdraft/beta; no esperarClaude entreentregas",
+    "Sin repetir pruebas cerradas K3/FIN04/G14, no avisosduplicados, sinmerge/deploy/ProductREADY; preserva recursos/fuentes/resultados ajenos"
+  ]
+}
