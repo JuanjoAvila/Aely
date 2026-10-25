@@ -1,5 +1,58 @@
 [
   {
+    "v": "4.26.175",
+    "d": "2026-10-25",
+    "t": {
+      "es": "Gastos: meses y ciclos que te llevan a su sitio",
+      "en": "Spending: months and cycles take you to the right place",
+      "ca": "Despeses: mesos i cicles que et porten al seu lloc"
+    },
+    "items": {
+      "es": [
+        "Tocar un mes o un ciclo en Gastos te lleva a su primer día, sin quedarte a medias ni volver al principio de la lista.",
+        "Deslizar hacia Plan desde Gastos ya no se atasca cuando el dedo empieza sobre una fila.",
+        "El mes en que acaban las deudas sale bien a cualquier hora del día."
+      ],
+      "en": [
+        "Tapping a month or a cycle in Spending takes you to its first day, without stopping halfway or jumping back to the top of the list.",
+        "Swiping to Plan from Spending no longer gets stuck when your finger starts on a row.",
+        "The month your debts end in shows correctly at any time of day."
+      ],
+      "ca": [
+        "Tocar un mes o un cicle a Despeses et porta al seu primer dia, sense quedar-te a mitges ni tornar al principi de la llista.",
+        "Lliscar cap a Pla des de Despeses ja no s'encalla quan el dit comença sobre una fila.",
+        "El mes en què acaben els deutes surt bé a qualsevol hora del dia."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "gastos-lag-ciclos-r3",
+        "t": {
+          "es": "Gastos: deslizar a Plan desde una fila y tocar un mes o un ciclo",
+          "en": "Spending: swipe to Plan from a row and tap a month or a cycle",
+          "ca": "Despeses: lliscar a Pla des d'una fila i tocar un mes o un cicle"
+        },
+        "items": {
+          "es": [
+            "1. Gastos → Movimientos con Periodo → Todo: baja con fuerza muchas veces y sube otras tantas. Luego desliza hacia Plan con el pulgar empezando en el borde derecho de la pantalla, encima del ⠿ de una fila. MAL: se queda en Gastos, va a tirones o no cambia a la primera. BIEN: pasa a Plan a la primera y sin tirón (arrastrar el ⠿ hacia arriba o abajo sigue ordenando los gastos del día).",
+            "2. Gastos → Movimientos con Periodo → Meses: baja un poco y toca el mes anterior en la fila de meses. MAL: la lista te lleva al día 1 de otro mes, al principio del todo o se queda con otro mes marcado. BIEN: debajo de la cabecera queda el último día de ese mes (30 o 31), con ese mes marcado y su cifra.",
+            "3. Gastos → Movimientos con Periodo → Mi ciclo: baja un poco y toca un ciclo anterior en la fila de ciclos. MAL: te lleva arriba del todo y la fila se esconde, o el ciclo no queda marcado. BIEN: la lista se queda en el primer día de ese ciclo, con la fila de ciclos a la vista y el ciclo marcado con su rango de fechas."
+          ],
+          "en": [
+            "1. Spending → Transactions with Period → All: scroll down hard many times and back up as many. Then swipe towards Plan with your thumb starting at the right edge of the screen, on top of a row's ⠿. WRONG: it stays in Spending, feels jerky or doesn't switch the first time. RIGHT: it switches to Plan the first time, smoothly (dragging the ⠿ up or down still reorders the day's expenses).",
+            "2. Spending → Transactions with Period → Months: scroll down a little and tap the previous month in the months row. WRONG: the list takes you to day 1 of another month, to the very top, or leaves another month highlighted. RIGHT: under the header you see the last day of that month (30th or 31st), with that month highlighted and its figure.",
+            "3. Spending → Transactions with Period → My cycle: scroll down a little and tap an earlier cycle in the cycles row. WRONG: it takes you to the very top and the row hides, or the cycle isn't highlighted. RIGHT: the list stays on the first day of that cycle, with the cycles row in view and the cycle highlighted with its date range."
+          ],
+          "ca": [
+            "1. Despeses → Moviments amb Període → Tot: baixa amb força moltes vegades i puja'n altres tantes. Després llisca cap a Pla amb el polze començant a la vora dreta de la pantalla, damunt del ⠿ d'una fila. MALAMENT: es queda a Despeses, va a batzegades o no canvia a la primera. BÉ: passa a Pla a la primera i sense batzegada (arrossegar el ⠿ amunt o avall continua ordenant les despeses del dia).",
+            "2. Despeses → Moviments amb Període → Mesos: baixa una mica i toca el mes anterior a la fila de mesos. MALAMENT: la llista et porta al dia 1 d'un altre mes, al principi de tot o es queda amb un altre mes marcat. BÉ: sota la capçalera queda l'últim dia d'aquell mes (30 o 31), amb aquell mes marcat i la seva xifra.",
+            "3. Despeses → Moviments amb Període → El meu cicle: baixa una mica i toca un cicle anterior a la fila de cicles. MALAMENT: et porta dalt de tot i la fila s'amaga, o el cicle no queda marcat. BÉ: la llista es queda al primer dia d'aquell cicle, amb la fila de cicles a la vista i el cicle marcat amb el seu rang de dates."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.174",
     "d": "2026-10-25",
     "t": {

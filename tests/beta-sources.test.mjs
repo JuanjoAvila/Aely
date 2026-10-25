@@ -158,6 +158,8 @@ const sourceBeta171=sourceAt("ede7c3c4e879c3e712d0dece53099422331b4155");
 const sourceBeta172=sourceAt("d30dc4016726fa1818449039debf4bd8148e3021");
 // Catálogo173 pasa a histórico con la 174: se lee de la 4.26.173 servida en beta (95b950a0c); sus tandas ya tienen veredicto del dueño (25/10): plan-dos-moviles y la de ciclos, metas e inversiones aprobadas, gastos-lag-ciclos rechazada; la 174 las saca del panel.
 const sourceBeta173=sourceAt("95b950a0cae516a327b9cb28e022715df9b04ca8");
+// Catálogo174 pasa a histórico con la 175: se lee de la 4.26.174 servida en beta (9ca1ff11e); su tanda inicio-mes-futuro no tiene veredicto y la 175 la deja donde está; la 175 suma la tanda del lag de Gastos (tercera ronda).
+const sourceBeta174=sourceAt("9ca1ff11e27b3daf01ecd02d51bdb7abcaabad60");
 const sourceBeta153=sourceAt("80752dff055dc391c52c3067ce238f49e0a14598");
 // Catálogo137 pasa a histórico en la promoción 137: se lee de la beta 4.26.137.1 aprobada (6f18228c), lo último que probó el móvil y lo que sube entero.
 const sourceBeta137=sourceAt("6f18228cbd81c1cc9abfa7fabce0a878819234f4");
@@ -334,7 +336,7 @@ test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CS
   // La base es la integración120 (apuntes iguales de Trade Republic): Inicio no puede retirar su alcance ni heredar su revisión.
   const integrated=JSON.parse(source120("scripts/beta-sources.json"));
   // Detrás de Inicio sólo ha entrado el alcance de la122 (el cargo de recibo en Gastos).
-  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","limpieza-ajustes-perfil","tr-empareja-sin-preguntar","cuenta-parte-mia","inicio-recientes-sin-repetidos","scroll-borde-barra","inicio-grafica-reservas","compras-identicas-ids","myinvestor-contador-a-cero","deudas-metas-hoja-edicion","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","gastos-suscripciones-botones","compras-pendientes-otro-dia","deudas-plazo-cuota-encaja","deudas-metas-hoja-sin-parpadeo","deudas-metas-hoja-cierre-suave","teclado-atras-conserva","fichas-cierre-suave-atras","vibracion-borde-y-mi-ciclo","deudas-aviso-plazo","cuenta-saldo-cierre-atras","banco-pruebas-sin-aviso","vibracion-suave-ronda-2","deudas-guardar-motivo","recibo-renombrado-sigue-pagado","vibracion-suave-ronda-3","plan-por-confirmar-prestamo-youtube","vuelta-sin-tiron","deuda-bajar-cuota-alarga-plazo","cartera-ordenar-brokers","youtube-enlazar-recibo","vibracion-ajustador","pestanas-swipe-rapido","gestionar-plan-sin-ola","renombrar-y-notas-seguras","gestionar-plan-ola","vibracion-ajustador-r2","gestionar-plan-ola-r2","vibracion-r3","youtube-diagnostico","renombrar-lista-al-momento","recibos-cifra-cuadra","cartera-sin-lagazo","renombrar-sin-cobertura","vibracion-r4","youtube-ficha-reconoce","vibracion-r5","vibracion-r6","youtube-r4","recibos-meses-a-mano","gastos-dos-bancos","cartera-moneda","categoria-coche","deuda-nueva-desde-su-dia","gastos-v5-movimientos","gastos-v5-secciones","gastos-v5-filtro","gastos-v5-subs","gastos-v5-filtros-hoja","sync-dos-moviles","gastos-v5-ciclos-metas-inversiones","plan-dos-moviles","gastos-lag-ciclos","inicio-mes-futuro"),"Inicio y las altas de la122, la124, la126, la127, la128, la129, la130, la131, la132, la133, la134, la135, la137, la138, la139, la140, la141, la143, la144, la145, la146, la147, la148, la149, la150, la151, la152 y la153, sin retirar historia120");
+  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","limpieza-ajustes-perfil","tr-empareja-sin-preguntar","cuenta-parte-mia","inicio-recientes-sin-repetidos","scroll-borde-barra","inicio-grafica-reservas","compras-identicas-ids","myinvestor-contador-a-cero","deudas-metas-hoja-edicion","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","gastos-suscripciones-botones","compras-pendientes-otro-dia","deudas-plazo-cuota-encaja","deudas-metas-hoja-sin-parpadeo","deudas-metas-hoja-cierre-suave","teclado-atras-conserva","fichas-cierre-suave-atras","vibracion-borde-y-mi-ciclo","deudas-aviso-plazo","cuenta-saldo-cierre-atras","banco-pruebas-sin-aviso","vibracion-suave-ronda-2","deudas-guardar-motivo","recibo-renombrado-sigue-pagado","vibracion-suave-ronda-3","plan-por-confirmar-prestamo-youtube","vuelta-sin-tiron","deuda-bajar-cuota-alarga-plazo","cartera-ordenar-brokers","youtube-enlazar-recibo","vibracion-ajustador","pestanas-swipe-rapido","gestionar-plan-sin-ola","renombrar-y-notas-seguras","gestionar-plan-ola","vibracion-ajustador-r2","gestionar-plan-ola-r2","vibracion-r3","youtube-diagnostico","renombrar-lista-al-momento","recibos-cifra-cuadra","cartera-sin-lagazo","renombrar-sin-cobertura","vibracion-r4","youtube-ficha-reconoce","vibracion-r5","vibracion-r6","youtube-r4","recibos-meses-a-mano","gastos-dos-bancos","cartera-moneda","categoria-coche","deuda-nueva-desde-su-dia","gastos-v5-movimientos","gastos-v5-secciones","gastos-v5-filtro","gastos-v5-subs","gastos-v5-filtros-hoja","sync-dos-moviles","gastos-v5-ciclos-metas-inversiones","plan-dos-moviles","gastos-lag-ciclos","inicio-mes-futuro","gastos-lag-ciclos-r3"),"Inicio y las altas de la122, la124, la126, la127, la128, la129, la130, la131, la132, la133, la134, la135, la137, la138, la139, la140, la141, la143, la144, la145, la146, la147, la148, la149, la150, la151, la152 y la153, sin retirar historia120");
   for(const [key,value] of Object.entries(integrated))if(key!=="inicio-grafica-vuelve"){assert.deepEqual(scopes[key].native,value.native);assert.deepEqual(scopes[key].edge,value.edge);for(const part of (value.web||[]).map(limpieza129).map(retirada164).map(retirada166).map(retirada167).map(retirada169).filter(Boolean))assert.ok(scopes[key].web.map(sinMeta172).some(s=>JSON.stringify(sinMetodo122(s))===JSON.stringify(part)||JSON.stringify(sinPull130(sinMetodo122(s)))===JSON.stringify(sinPull130(sinMetodo122(part)))||JSON.stringify(sinAbsorcion143(sinCompras135(sinPull130(sinMetodo122(s)))))===JSON.stringify(sinCompras135(sinPull130(sinMetodo122(part))))||JSON.stringify(sinFin19(sinMetodo122(s)))===JSON.stringify(sinMetodo122(part))),key+": no recortar descriptor ajeno120");}
   assert.equal(scope.unidades,true);
   for(const key of ["historial","auditoria","codigosCompatibles","compatibilidadGit","compatibilidadSha"])
@@ -5914,7 +5916,7 @@ const expected174={"v":"4.26.174","d":"2026-10-25","t":{"es":"Gastos con fecha f
 test("Catálogo174 añade la tanda del mes futuro (solo web) sobre la 173, que conserva las suyas, y declara cada huella que mueve",()=>{
   const tandas=["inicio-mes-futuro"],descs173=["plan-dos-moviles","gastos-lag-ciclos"],desc172="gastos-v5-ciclos-metas-inversiones",pasos=[3],G0="src/modules/04-tab-gastos.js",M0="src/modules/08-motor-bank.js",I0="src/modules/01-i18n.js",V0="src/modules/14-v4-screens.js";
   const integrated=JSON.parse(sourceBeta173("scripts/beta-sources.json")),before=JSON.parse(sourceBeta173("src/data/release-notes.json"));
-  const source=f=>nl(read(f)),old=f=>nl(sourceBeta173(f));
+  const source=f=>nl(sourceBeta174(f)),old=f=>nl(sourceBeta173(f));
   assert.equal(before[0].v,"4.26.173");
   assert.deepEqual(before[0].tandas.map(g=>g.id),descs173,"la 173 servida lleva sus dos tandas, ya votadas");
   assert.deepEqual(before[1].tandas.map(g=>g.id),[desc172],"la 172 servida lleva su tanda de once pasos");
@@ -5987,7 +5989,7 @@ test("Catálogo174 añade la tanda del mes futuro (solo web) sobre la 173, que c
   // Solo web: apk.json, build.gradle y el nativo quedan como en la 173. Del servidor solo cambian los dos ficheros del widget, que NO se despliegan en beta (ingest va con la próxima producción).
   assert.equal(source("public/apk.json"),old("public/apk.json"),"apk.json intacto: sigue la APK 61");
   assert.equal(source("android/app/build.gradle"),old("android/app/build.gradle"),"build.gradle intacto");
-  assert.deepEqual(execFileSync("git",["diff","--name-only","95b950a0cae516a327b9cb28e022715df9b04ca8","HEAD","--","supabase","android"],{encoding:"utf8"}).trim().split("\n"),["supabase/functions/ingest/index.ts","supabase/functions/ingest/widget.ts"],"del servidor, solo el widget de ingest (sin desplegar en beta); sin SQL ni nativo");
+  assert.deepEqual(execFileSync("git",["diff","--name-only","95b950a0cae516a327b9cb28e022715df9b04ca8","9ca1ff11e27b3daf01ecd02d51bdb7abcaabad60","--","supabase","android"],{encoding:"utf8"}).trim().split("\n"),["supabase/functions/ingest/index.ts","supabase/functions/ingest/widget.ts"],"del servidor, solo el widget de ingest (sin desplegar en beta); sin SQL ni nativo");
   // Huellas que se mueven (lista cerrada). Las de la 173 y la 172 que llevan Expenses se mueven (el comentario del mes cambia) pero ya están votadas y no vuelven; el resto son aprobadas que leen el periodo del presupuesto, las deudas por mes o el día de inicio, y no vuelven al panel.
   const expectedMoves={"cartera-sin-lagazo":["web"],"compras-identicas-ids":["edge"],"deuda-nueva-desde-su-dia":["web"],"deudas-metas-hoja-edicion":["web"],"deudas-plazo-cuota-cuadran":["web"],"deudas-plazo-cuota-encaja":["web"],"feature-0210-01-gasolina-taxi":["web"],"feature-0310-01-movilidad":["web"],"fin05-pago-cerrada":["web","edge"],"fin05-widget-reentrada":["web"],"gastos-dos-bancos":["web"],"gastos-lag-ciclos":["web"],"gastos-suscripciones-botones":["web"],"gastos-v5-ciclos-metas-inversiones":["web"],"gastos-v5-filtro":["web"],"gastos-v5-filtros-hoja":["web"],"gastos-v5-movimientos":["web"],"gastos-v5-secciones":["web"],"gastos-v5-subs":["web"],"gestionar-plan-ola":["web"],"gestionar-plan-ola-r2":["web"],"gestionar-plan-sin-ola":["web"],"inc-0210-01-plan-cuota":["web"],"inc-0210-03-gastos-periodo":["web"],"inc-0310-01-meta-regla":["web"],"inc-0310-gastos-sin-limite":["web"],"inc-0710-gastos-mes-madrid":["web"],"inc-2909-01-widget-periodo":["web"],"inc-2909-02-inicio-natural":["web"],"inc-2909-03-retirada":["web"],"inc-3009-01-cargos":["web"],"inc-3009-nomina-anticipada":["web"],"inicio-grafica-vuelve":["web"],"inicio-mes-pasado-mismo-dia":["web"],"inicio-patrimonio-flujos":["web"],"plan-dos-moviles":["web"],"recibo-cargo-en-gastos":["web","edge"],"recibos-cargo-unico":["web"],"recibos-cifra-cuadra":["web"],"renombrar-sin-cobertura":["web"],"renombrar-y-notas-seguras":["web"],"tr-empareja-sin-preguntar":["web"],"tr-iguales-ordinal":["edge"],"vuelta-sin-tiron":["web"],"widget-app-cerrada":["web","edge"],"widget-banco":["web"],"widget-ciclo-puente":["web"],"widget-pago-app-cerrada":["web"]};
   const previous=new Map();
@@ -6021,6 +6023,109 @@ test("Catálogo174 añade la tanda del mes futuro (solo web) sobre la 173, que c
   assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),vivas,"lo que el build entrega al panel");
   const g0=built[0].tandas[0];
   assert.equal(g0.web,current.web);assert.equal(g0.edge,undefined);assert.equal(g0.native,undefined);assert.equal(g0.apk,undefined);assert.equal(receipt.web[tandas[0]],current.web);
+  for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g0[key],undefined,"guion nuevo sin "+key);
+  assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
+});
+
+const expected175={"v":"4.26.175","d":"2026-10-25","t":{"es":"Gastos: meses y ciclos que te llevan a su sitio","en":"Spending: months and cycles take you to the right place","ca":"Despeses: mesos i cicles que et porten al seu lloc"},"items":{"es":["Tocar un mes o un ciclo en Gastos te lleva a su primer día, sin quedarte a medias ni volver al principio de la lista.","Deslizar hacia Plan desde Gastos ya no se atasca cuando el dedo empieza sobre una fila.","El mes en que acaban las deudas sale bien a cualquier hora del día."],"en":["Tapping a month or a cycle in Spending takes you to its first day, without stopping halfway or jumping back to the top of the list.","Swiping to Plan from Spending no longer gets stuck when your finger starts on a row.","The month your debts end in shows correctly at any time of day."],"ca":["Tocar un mes o un cicle a Despeses et porta al seu primer dia, sense quedar-te a mitges ni tornar al principi de la llista.","Lliscar cap a Pla des de Despeses ja no s'encalla quan el dit comença sobre una fila.","El mes en què acaben els deutes surt bé a qualsevol hora del dia."]},"tandas":[{"id":"gastos-lag-ciclos-r3","t":{"es":"Gastos: deslizar a Plan desde una fila y tocar un mes o un ciclo","en":"Spending: swipe to Plan from a row and tap a month or a cycle","ca":"Despeses: lliscar a Pla des d'una fila i tocar un mes o un cicle"},"items":{"es":["1. Gastos → Movimientos con Periodo → Todo: baja con fuerza muchas veces y sube otras tantas. Luego desliza hacia Plan con el pulgar empezando en el borde derecho de la pantalla, encima del ⠿ de una fila. MAL: se queda en Gastos, va a tirones o no cambia a la primera. BIEN: pasa a Plan a la primera y sin tirón (arrastrar el ⠿ hacia arriba o abajo sigue ordenando los gastos del día).","2. Gastos → Movimientos con Periodo → Meses: baja un poco y toca el mes anterior en la fila de meses. MAL: la lista te lleva al día 1 de otro mes, al principio del todo o se queda con otro mes marcado. BIEN: debajo de la cabecera queda el último día de ese mes (30 o 31), con ese mes marcado y su cifra.","3. Gastos → Movimientos con Periodo → Mi ciclo: baja un poco y toca un ciclo anterior en la fila de ciclos. MAL: te lleva arriba del todo y la fila se esconde, o el ciclo no queda marcado. BIEN: la lista se queda en el primer día de ese ciclo, con la fila de ciclos a la vista y el ciclo marcado con su rango de fechas."],"en":["1. Spending → Transactions with Period → All: scroll down hard many times and back up as many. Then swipe towards Plan with your thumb starting at the right edge of the screen, on top of a row's ⠿. WRONG: it stays in Spending, feels jerky or doesn't switch the first time. RIGHT: it switches to Plan the first time, smoothly (dragging the ⠿ up or down still reorders the day's expenses).","2. Spending → Transactions with Period → Months: scroll down a little and tap the previous month in the months row. WRONG: the list takes you to day 1 of another month, to the very top, or leaves another month highlighted. RIGHT: under the header you see the last day of that month (30th or 31st), with that month highlighted and its figure.","3. Spending → Transactions with Period → My cycle: scroll down a little and tap an earlier cycle in the cycles row. WRONG: it takes you to the very top and the row hides, or the cycle isn't highlighted. RIGHT: the list stays on the first day of that cycle, with the cycles row in view and the cycle highlighted with its date range."],"ca":["1. Despeses → Moviments amb Període → Tot: baixa amb força moltes vegades i puja'n altres tantes. Després llisca cap a Pla amb el polze començant a la vora dreta de la pantalla, damunt del ⠿ d'una fila. MALAMENT: es queda a Despeses, va a batzegades o no canvia a la primera. BÉ: passa a Pla a la primera i sense batzegada (arrossegar el ⠿ amunt o avall continua ordenant les despeses del dia).","2. Despeses → Moviments amb Període → Mesos: baixa una mica i toca el mes anterior a la fila de mesos. MALAMENT: la llista et porta al dia 1 d'un altre mes, al principi de tot o es queda amb un altre mes marcat. BÉ: sota la capçalera queda l'últim dia d'aquell mes (30 o 31), amb aquell mes marcat i la seva xifra.","3. Despeses → Moviments amb Període → El meu cicle: baixa una mica i toca un cicle anterior a la fila de cicles. MALAMENT: et porta dalt de tot i la fila s'amaga, o el cicle no queda marcat. BÉ: la llista es queda al primer dia d'aquell cicle, amb la fila de cicles a la vista i el cicle marcat amb el seu rang de dates."]}}]};
+// 4.26.175 (25/10/2026): claude/lag-gastos-r3 (el salto de mes y de ciclo en Gastos, y el asa de ordenar que se tragaba el desliz a Plan) y PR305 (deudas-mes-madrid: los textos «acabas en» de Deudas con el mes de Madrid, solo visual) sobre la beta 4.26.174 servida (9ca1ff11e), solo web y sin APK nueva (sigue la 61).
+// Una tanda NUEVA (gastos-lag-ciclos-r3, tres pasos que citan su rechazo de la 173). La de la 174 (inicio-mes-futuro) no tiene veredicto y se queda donde está. Nada de la tarjeta de Inicio pintada a medias: sigue sin arreglar y ningún paso la promete.
+// Servidor: nada cambia respecto a la 174 (ingest sigue sin desplegarse en beta).
+test("Catálogo175 añade la tanda del lag de Gastos, tercera ronda (solo web) sobre la 174, que conserva la suya, y declara cada huella que mueve",()=>{
+  const tandas=["gastos-lag-ciclos-r3"],pasos=[3],G0="src/modules/04-tab-gastos.js",A0="src/modules/11-app-main.js",I0="src/modules/01-i18n.js";
+  const integrated=JSON.parse(sourceBeta174("scripts/beta-sources.json")),before=JSON.parse(sourceBeta174("src/data/release-notes.json"));
+  const source=f=>nl(read(f)),old=f=>nl(sourceBeta174(f));
+  assert.equal(before[0].v,"4.26.174");
+  assert.deepEqual(before[0].tandas.map(g=>g.id),["inicio-mes-futuro"],"la 174 servida lleva su tanda del mes futuro, sin veredicto");
+  for(const n of before.slice(1))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] en la 174 servida");
+  assert.deepEqual(expected175.tandas.map(g=>g.id),tandas);
+  const expectedNotes=[expected175,before[0],...before.slice(1)];
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.deepEqual(notes,expectedNotes,"la nota 175 literal delante, la 174 con su tanda y todo lo demás intacto");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.175",tandas[0],0],["4.26.174","inicio-mes-futuro",0]],"el panel enseña dos tandas, sin APK");
+  for(const n of notes.slice(2))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] (la propiedad se conserva, vacía)");
+  assert.equal(notes.length,272);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
+  notes[0].tandas.forEach(g=>assert.deepEqual(Object.keys(g),["id","t","items"],"sin apk: "+g.id));
+  const jerga=/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|FIN-|SES-|UX-|\d+\.\d+\.\d+/i;
+  const textos=source(I0);
+  const rotulo=key=>{const m={};for(const lang of ["es","en","ca"]){const all=[...textos.matchAll(new RegExp("(?<![A-Za-z0-9_])"+key+':"([^"]*)"',"g"))].map(x=>x[1]);assert.equal(all.length,3,key+": un texto por idioma");m[lang]=all[["es","en","ca"].indexOf(lang)];}return m;};
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,3,lang+": tres puntos familiares");
+    notes[0].tandas.forEach((g,gi)=>{
+      assert.equal(g.items[lang].length,pasos[gi],lang+": pasos de "+g.id);
+      g.items[lang].forEach((step,j)=>assert.ok(step.startsWith((j+1)+". "),lang+": paso numerado "+(j+1)+" de "+g.id));
+      for(const text of g.items[lang])assert.ok(/MAL|WRONG|MALAMENT/.test(text),lang+": cada paso dice qué es MAL: "+text);
+    });
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
+  }
+  // Los rótulos que los pasos mandan tocar son los textos reales de la app en su idioma: Periodo, Todo / Meses / Mi ciclo.
+  for(const [paso,claves] of [[0,["gv5_periodo","g_all"]],[1,["gv5_periodo","gv5_p_months"]],[2,["gv5_periodo","g_cycle"]]]){
+    for(const clave of claves){const r=rotulo(clave);for(const lang of ["es","en","ca"]){assert.ok(r[lang],lang+": "+clave+" existe");assert.ok(notes[0].tandas[0].items[lang][paso].includes(r[lang]),lang+": el paso "+(paso+1)+" cita «"+r[lang]+"»");}}
+  }
+  // La tarjeta de Inicio pintada a medias NO está arreglada: ningún paso la menciona como resuelta.
+  for(const lang of ["es","en","ca"])for(const text of notes[0].tandas[0].items[lang])assert.equal(/Inicio|Home|Inici/.test(text),false,lang+": ningún paso toca la tarjeta de Inicio: "+text);
+  const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
+  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verifyNotes(twice),assert.AssertionError,"no duplicar una tanda");
+  const pierde=structuredClone(notes);pierde[1].tandas=[];assert.throws(()=>verifyNotes(pierde),assert.AssertionError,"la tanda de la 174, sin veredicto, no desaparece");
+  const sinTanda=structuredClone(notes);sinTanda[0].tandas=[];assert.throws(()=>verifyNotes(sinTanda),assert.AssertionError,"la tanda nueva no desaparece");
+  const conApk=structuredClone(notes);conApk[0].tandas[0].apk=61;assert.throws(()=>verifyNotes(conApk),assert.AssertionError,"la tanda no exige APK: es solo web");
+  // Registro: el de la 174 con, detrás, el descriptor nuevo; ninguno de los anteriores cambia (el código nuevo no toca funciones de lógica, solo Expenses, MovRow, el swipe de App y Deudas).
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),{[tandas[0]]:ahora,...resto}=scopes;
+  assert.deepEqual(Object.keys(scopes),[...Object.keys(integrated),tandas[0]],"el descriptor nuevo, el último");
+  assert.deepEqual(resto,integrated,"los descriptores de la 174, intactos");
+  assert.deepEqual(Object.keys(ahora),["web","unidades"],"solo web");assert.equal(ahora.unidades,true);
+  const propias=[integrated["gastos-lag-ciclos"].web[0],{file:G0,function:"Expenses"},{file:G0,from:"const MovRow=React.memo(function MovRow(",to:"/* Sheet de filtros (2026-08-05):"},{file:A0,from:"  /* swipe — distingue eje vertical/horizontal, menos sensible */",to:"  const onEnd=()=>{"},...integrated["gastos-lag-ciclos"].web.slice(2,10)];
+  assert.deepEqual(ahora.web.slice(0,propias.length),propias,"las unidades propias de la tanda (el bloque del guardado, la lista de Gastos con sus filas, el swipe de App y los estilos de la lista), en este orden, y el cierre de lectores detrás");
+  {const fns=logicFunctions(source),dat=logicData(source);let web=propias.slice();
+    for(let ronda=0;ronda<12;ronda++){
+      const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];
+      for(const fn of scopeDependencies({web},source,fns))if(!tiene(fn.file,fn.name,"function"))extra.push({file:fn.file,function:fn.name});
+      for(const d of scopeDataDependencies({web},source,fns,dat))if(!tiene(d.file,d.name,"data"))extra.push({file:d.file,data:d.name});
+      if(!extra.length)break;web=web.concat(extra);
+    }
+    const clave=u=>JSON.stringify(u);
+    assert.equal(ahora.web.length,web.length,"el cierre de lectores del descriptor es exactamente el calculado");
+    assert.deepEqual(new Set(ahora.web.map(clave)),new Set(web.map(clave)),"el cierre de lectores del descriptor es exactamente el calculado");}
+  for(const u of ahora.web)assert.ok(scopeText(u,source).length>0,"la unidad existe en la fuente: "+JSON.stringify(u));
+  // Solo web: apk.json, build.gradle, el nativo, el SQL y las Edge quedan exactamente como en la 174.
+  assert.equal(source("public/apk.json"),old("public/apk.json"),"apk.json intacto: sigue la APK 61");
+  assert.equal(source("android/app/build.gradle"),old("android/app/build.gradle"),"build.gradle intacto");
+  assert.equal(execFileSync("git",["diff","--name-only","9ca1ff11e27b3daf01ecd02d51bdb7abcaabad60","HEAD","--","supabase","android"],{encoding:"utf8"}).trim(),"","sin SQL, Edge ni nativo");
+  // Huellas que se mueven (lista cerrada, solo web): Expenses, MovRow y el swipe de App los llevan los descriptores de Gastos y los que leen el bloque del guardado; Deudas, los de las deudas. Todos son de tandas ya votadas o del lag rechazado (gastos-lag-ciclos): ninguno vuelve al panel. La de la 174 (inicio-mes-futuro) no se mueve.
+  const expectedMoves={"inc-0810-nav-indicator":["web"],"inc-3009-nomina-anticipada":["web"],"inc-0210-03-gastos-periodo":["web"],"feature-0310-01-movilidad":["web"],"inc-0310-gastos-sin-limite":["web"],"inc-0710-gastos-mes-madrid":["web"],"recibo-cargo-en-gastos":["web"],"deudas-metas-hoja-edicion":["web"],"gastos-suscripciones-botones":["web"],"vuelta-sin-tiron":["web"],"renombrar-y-notas-seguras":["web"],"renombrar-lista-al-momento":["web"],"recibos-cifra-cuadra":["web"],"cartera-sin-lagazo":["web"],"renombrar-sin-cobertura":["web"],"gastos-dos-bancos":["web"],"deuda-nueva-desde-su-dia":["web"],"gastos-v5-movimientos":["web"],"gastos-v5-secciones":["web"],"gastos-v5-filtro":["web"],"gastos-v5-subs":["web"],"gastos-v5-filtros-hoja":["web"],"gastos-v5-ciclos-metas-inversiones":["web"],"plan-dos-moviles":["web"],"gastos-lag-ciclos":["web"]};
+  const previous=new Map();
+  const measure=reader=>{
+    const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};
+    for(const [key,scope] of Object.entries(integrated)){
+      if(key===archiveId)continue;
+      if(!previous.has(key))previous.set(key,betaRevision(key,sourceBeta174,undefined,scope));
+      const a=previous.get(key),b=betaRevision(key,reader,undefined,now[key]);
+      const surfaces=["web","native","edge"].filter(x=>a[x]!==b[x]);
+      if(surfaces.length)moved[key]=surfaces;
+    }
+    return moved;
+  };
+  assert.deepEqual(measure(source),expectedMoves,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  const vivas=notes.flatMap(n=>(n.tandas||[]).map(g=>g.id));
+  for(const id of Object.keys(expectedMoves))assert.equal(vivas.includes(id),false,"huella que se mueve sin tanda viva: "+id);
+  assert.deepEqual(vivas,[tandas[0],"inicio-mes-futuro"]);
+  const current=betaRevision(tandas[0],source,undefined,scopes[tandas[0]]);
+  assert.ok(current.web);assert.equal(current.edge,undefined,"sin huella de Edge");assert.equal(current.native,undefined);
+  // Mutantes sobre la fuente real: volver a dejar el asa con el gesto entero, quitar el afinado del salto o dejar que App ignore el asa en horizontal reabre la tanda.
+  for(const [file,a,b] of [
+    [G0,'role:"img","data-noswipe":"y"','role:"img","data-noswipe":"1"'],
+    [G0,"    afinaSalto(k, min);\n    return true;","    return true;"],
+    [A0,'if(noSwipe && noSwipe.getAttribute("data-noswipe")!=="y") return;','if(noSwipe) return;'],
+  ]){
+    assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
+    const mutated=betaRevision(tandas[0],f=>f===file?source(f).replace(a,()=>b):source(f),undefined,scopes[tandas[0]]);
+    assert.notEqual(mutated.web,current.web,tandas[0]+" reabre la tanda: "+a);
+  }
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes);
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),vivas,"lo que el build entrega al panel");
+  const g0=built[0].tandas[0];
+  assert.equal(g0.web,current.web);assert.equal(g0.edge,undefined);assert.equal(g0.native,undefined);assert.equal(g0.apk,undefined);assert.equal(receipt.web[tandas[0]],current.web);
+  assert.equal(receipt.web["inicio-mes-futuro"],betaRevision("inicio-mes-futuro",old,undefined,integrated["inicio-mes-futuro"]).web,"la huella de la tanda de la 174 es la que ya probó el móvil");
   for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g0[key],undefined,"guion nuevo sin "+key);
   assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
 });
@@ -8405,6 +8510,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   assert.ok(dependientes.includes("sync-dos-moviles"),"la sincronización entre móviles lleva el set de App (que sella solo las ediciones) y el pull que adopta la nube con el set real: lleva el bloque del guardado");
   assert.ok(dependientes.includes("plan-dos-moviles"),"la fusión de Plan entre móviles lleva el set de App (que sella con el token de edición) y el guardado de la partición privada: lleva el bloque del guardado");
   assert.ok(dependientes.includes("gastos-lag-ciclos"),"la lista de Gastos y la fila de ciclos viven en Expenses, que guarda con el set real: lleva el bloque del guardado");
+  assert.ok(dependientes.includes("gastos-lag-ciclos-r3"),"el descriptor del lag de Gastos (tercera ronda) lleva Expenses, que guarda con el set real: lleva el bloque del guardado");
   assert.ok(dependientes.includes("gastos-v5-ciclos-metas-inversiones"),"la tanda 172 vive en Expenses y en la ficha del gasto, que marcan la aportación a meta y ordenan, borran y marcan gastos con el set real: lleva el bloque del guardado");
   assert.ok(dependientes.includes("gastos-v5-subs"),"las suscripciones de Gastos viven en Expenses, que guarda la baja, el descarte y el recibo nuevo con el set real: llevan el bloque del guardado");
   assert.ok(dependientes.includes("limpieza-ajustes-perfil"),"la limpieza de Ajustes y perfil escribe estado con set() (Ajustes, Cartera) y lleva el bloque del guardado");
