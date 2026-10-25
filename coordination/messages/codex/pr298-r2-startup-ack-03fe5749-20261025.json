@@ -1,0 +1,9 @@
+{
+  "id": "pr298-r2-startup-ack-03fe5749-20261025",
+  "to": "codex",
+  "body": "ACK OWN PR298 R2: claim c24cff4886b147def04d37cd375f317900fdeede readback exact; task pr298-r2-inicio-mes-madrid-codex-20261025 and base d30dc4016726fa1818449039debf4bd8148e3021 verified. New OWN20 used2 with counted gate >=30s including initial/internal/readback, no inheritance/reset. Native admission received. Product and runner remain pending coordinator technicalGO; no tests run.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261025-pr298-r2-fda31257-03fe5749-dd1d3b5e-2c7b6e02",
+  "createdAt": "2026-10-25T17:47:26.089Z"
+}
