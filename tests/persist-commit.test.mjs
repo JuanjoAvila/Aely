@@ -81,5 +81,37 @@ t("set() ya no apunta ni arma nada: solo calcula", () => {
   assert.ok(src.includes("useLayoutEffect(function(){\n    const prev=committedRef.current;"), "el volcado ya no cuelga del commit");
 });
 
+t("mantenimiento conserva el sello y las referencias; editar sigue sellando y persistiendo", () => {
+  const src = fs.readFileSync(new URL("../src/modules/11-app-main.js", import.meta.url), "utf8");
+  const a=src.indexOf("const set=useCallback("), b=src.indexOf("// En el propio commit",a);
+  assert.ok(a>=0&&b>a);
+  let state={expenses:gastos,_savedAt:7,unknown:{keep:true},budget:500}, clock=100;
+  const set=new Function("useCallback","setStateRaw","reconcileGemelosAutomaticos","Date",src.slice(a,b)+"return set;")(
+    f=>f,f=>{state=f(state);},x=>x,{now:()=>clock});
+  const first=state, p=nuevo();
+  set(s=>Object.assign({},s,{gmLevel:1}),false);
+  assert.equal(state._savedAt,7);
+  assert.strictEqual(state.expenses,gastos);
+  assert.strictEqual(state.unknown,first.unknown);
+  ctx.mcPersistCommit(p,first,state,()=>1);
+  assert.strictEqual(p.val,state);
+  assert.equal(p.exp,false);
+  const before=state;
+  set(s=>Object.assign({},s,{budget:42.37}));
+  assert.equal(state._savedAt,100);
+  assert.equal(Math.round(state.budget*100),4237);
+  ctx.mcPersistCommit(p,before,state,()=>2);
+  assert.strictEqual(p.val,state);
+  const edit=state;clock=200;
+  set(s=>s);
+  assert.strictEqual(state,edit);
+  set(s=>Object.assign({},s,{lastBackup:"2026-10-24"}),false);
+  assert.equal(state._savedAt,100);
+  // Una lectura adopta el sello remoto elegido por LWW; no lo reemplaza por el reloj local.
+  set(s=>Object.assign({},s,{_savedAt:90,remoteUnknown:{keep:17}}),false);
+  assert.equal(state._savedAt,90);
+  assert.equal(state.remoteUnknown.keep,17);
+});
+
 console.log(failed ? "\npersist-commit: FALLA" : "\npersist-commit: OK");
 process.exit(failed ? 1 : 0);

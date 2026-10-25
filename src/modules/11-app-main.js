@@ -575,7 +575,7 @@ function App(){
         if(prev._historyOwner!==readOwner) return prev;
         if(pending===prev.obAbsorbedPending&&Array.isArray(prev.obAbsorbedConfirmed)&&JSON.stringify(prev.obAbsorbedConfirmed)===JSON.stringify(confirmed)) return prev;
         return Object.assign({},prev,{obAbsorbedConfirmed:confirmed,obAbsorbedPending:pending});
-      });
+      },false);
     }
     const ps=++wS.current;
     wR.current=false;
@@ -682,7 +682,7 @@ function App(){
             rec.recat.forEach(function(r){ cloud.setExpenseCat(r.expense, r.cat).catch(function(){}); });
             kept.recat.forEach(function(r){
               cloud.setExpenseCat(r.expense, r.cat).then(function(n){
-                if(n>0) set(function(p){ const l=ackCategoryWrite(p.expenses, r.expense, r.cat, Date.now()); return l===p.expenses?p:Object.assign({},p,{expenses:l}); });
+                if(n>0) set(function(p){ const l=ackCategoryWrite(p.expenses, r.expense, r.cat, Date.now()); return l===p.expenses?p:Object.assign({},p,{expenses:l}); },false);
               }).catch(function(){});
             });
           },0);
@@ -704,7 +704,7 @@ function App(){
         }
         if(mismo) return prev;
         return rec.state;
-      });
+      },false);
       wR.current=true;
       // Una lista vacía sin sesión o del modo pruebas no acredita el histórico remoto.
       const current=sessionRef.current;
@@ -1600,7 +1600,22 @@ function App(){
   // Y lo mismo para los brókers que SÍ sincronizan solos (TR nativo + MyInvestor): al abrir,
   // Brokers: sync suave al abrir (solo si ya conectados). Nunca crea posiciones nuevas.
   // TR/MI: authExpired/softFail/waf se callan — no piden OTP/captcha (feedback 2026-07-17).
-  useEffect(function(){ if(uid) mcScheduleIdle(function(){ runBrokerSync(); }); },[uid]);
+  const brokerBootOwner=useRef(null);
+  useEffect(function(){
+    if(!uid){brokerBootOwner.current=null;return;}
+    const read=cloudReadRef.current;
+    if(brokerBootOwner.current===uid||!read||read.owner!==uid||!read.ready||!read.valid)return;
+    let off=false;
+    // La respuesta del bróker no puede convertir una copia anterior al GET en la más nueva.
+    (pullOkRef.current||Promise.resolve(false)).then(function(ok){
+      if(!ok||off)return;
+      mcScheduleIdle(function(){
+        if(off||brokerBootOwner.current===uid||!sessionRef.current||sessionRef.current.user.id!==uid||cloudReadRef.current!==read||!read.ready||!read.valid)return;
+        brokerBootOwner.current=uid;runBrokerSync();
+      });
+    });
+    return function(){off=true;};
+  },[uid,state[cloudMergeKey.current]]);
 
   /* Cuotas de deuda a «Deudas» (4.21.0): sea cual sea la vía por la que entró el cargo (sync del
      banco, noti de TR, pull de otro móvil) o si él acaba de crear la deuda. La pasada devuelve
@@ -1608,7 +1623,7 @@ function App(){
   useEffect(function(){
     const r=marcarCuotasDeDeuda(stateRef.current);
     if(!r) return;
-    set(function(prev){ const r2=marcarCuotasDeDeuda(prev); return r2 ? r2.state : prev; });
+    set(function(prev){ const r2=marcarCuotasDeDeuda(prev); return r2 ? r2.state : prev; },false);
     if(cloud.enabled()) r.marcadas.forEach(function(e){
       cloud.setExpenseDeuda(e).catch(function(err){ cloud.logEvent("error","setExpenseDeuda: "+keyOfExpense(e), _errCloudMsg(err)); });
     });
@@ -2327,7 +2342,7 @@ function App(){
        monthNetForAccount → fixed/debts/oneoffs/flows; flowPaidIn → bankTx;
        toEurAmt/invValueEur → fx y fxRates). */
     return {fxMissing:fxMissingOf(state),liquid,invested,investedCost,assetsTotal,debtTotal,activos,netWorth,thisMonthSpent,spentByBank,injTR,fijosMensual,ahorroMensual,cargosMes,fijosEsteMes,liquidTrasFijos,curMonth,curYear,today,sinProgramar,bankBal,chargesByBank,pendingByBank,paidThisMonth,pendingThisMonth,mainBank,mainBal,mainCharges,mainPending,bankAlerts,incomeInByBank,transferOutByBank,pendingIncome,pendingTransferOut,projectedByBank,mainIncome,mainTransferOut,mainProjected,minByBank,minDayByBank,mainMin,mainMinDay,roundupThisMonth,savebackThisMonth,monthlyInvestThisMonth,trRewardsTotal,paidNetByBank};
-  // Antes esto dependía de `[state]` entero. Como `set()` sella `_savedAt` en CADA cambio, el
+  // Antes esto dependía de `[state]` entero. Como `set()` sella `_savedAt` al editar, el
   // objeto de estado es nuevo siempre → el memo NUNCA acertaba y este cálculo (que recorre gastos,
   // fijos, deudas, flujos y simula el mes día a día) se rehacía al abrir una ficha, al escribir en
   // el buscador, al salir un toast… Con las porciones reales solo se recalcula cuando cambia el
@@ -2339,7 +2354,7 @@ function App(){
   const budgetMonth=budgetYmKey();
   useEffect(function(){
     const patch=ensureBudgetMonthSnap(state);
-    if(patch) set(function(s){ return Object.assign({},s,patch); });
+    if(patch) set(function(s){ return Object.assign({},s,patch); },false);
   },[budgetMonth,state.budget,state.budgetByMonth]);
 
   /* Una sola racha compartida por Inicio y el detector de logros. Con históricos grandes,
@@ -2373,7 +2388,7 @@ function App(){
         if(usd>0) patch.fx=+(usd.toFixed(4));
         if(fxDate) patch.fxDate=fxDate;
         return Object.assign({},s,patch);
-      });
+      },false);
       return fxRates;
     }).catch(function(){ return null; });
   };
@@ -2473,7 +2488,7 @@ function App(){
     // La nómina que abre el ciclo no cuenta en su neto; su identidad debe viajar con la ventana.
     const kind=budW.cycle?"ciclo":"mes", start=budW.periodStart, anchor=wAnchor, w=state.widgetPeriod;
     if(w && w.v===2 && w.scope===wScope) return;
-    set(function(s){ return Object.assign({},s,{widgetPeriod:{v:2,kind:kind,start:start,anchor:anchor,scope:wScope}}); });
+    set(function(s){ return Object.assign({},s,{widgetPeriod:{v:2,kind:kind,start:start,anchor:anchor,scope:wScope}}); },false);
   },[wV2,wScope,state.widgetPeriod]);
   const widgetCash=trAccW ? Math.round((totals.bankBal[trAccW.ent]||0)*100)/100 : null;
   // El límite combina presupuesto global y liquidez del banco elegido. Se mandan las piezas
@@ -2733,8 +2748,8 @@ function App(){
     invSnapRef.current=key;
     set(function(s){
       const h=recordInvSnapshot(s.invHistory, today, v, c);
-      return Object.assign({},s,{invHistory:h});
-    });
+      return h===s.invHistory?s:Object.assign({},s,{invHistory:h});
+    },false);
   },[totals.invested, totals.investedCost, totals.fxMissing,calendarDay]);
 
   // Una edición manual sólo acredita su fecha: no se proyecta el precio nuevo hacia atrás.
@@ -2746,7 +2761,7 @@ function App(){
     set(function(s){
       const h=recordAssetValues(s.assetValueHistory,today,s.assets,previous);
       return h!==s.assetValueHistory?Object.assign({},s,{assetValueHistory:h}):s;
-    });
+    },false);
   },[state.assets,calendarDay]);
 
   // GAMIFICACIÓN: detecta logros nuevos y subidas de nivel → toast/confeti (1ª vez siembra sin avisar).
@@ -2758,7 +2773,7 @@ function App(){
     const seeded=state.gmLevel!=null;
     const levelUp=seeded && g.lvl>state.gmLevel;
     if(!fresh.length && !levelUp && seeded) return;
-    set(function(s){ return Object.assign({},s,{badges:Array.from(new Set((s.badges||[]).concat(nowUnlocked))),gmLevel:g.lvl}); });
+    set(function(s){ return Object.assign({},s,{badges:Array.from(new Set((s.badges||[]).concat(nowUnlocked))),gmLevel:g.lvl}); },false);
     if(levelUp){ showToast(tf("gm_levelup",{n:g.lvl+1})); }   // rediseño 1c: subir de nivel = aviso tranquilo, sin confeti (el confeti se reserva a metas)
     else if(fresh.length && seeded){ showToast(tf("gm_badge_new",{x:t("gm_b_"+fresh[0])})); }
   },[state.expenses,state.goals,state.budget,state.budgetByMonth,state.trRewardsTotal,

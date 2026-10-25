@@ -1,3 +1,14 @@
+SAVEDAT: `savedat-arranque.spec.mjs`, registrado para `07-tab-patri-fijos.js` y `11-app-main.js`,
+usa reloj natural, dos titulares, edición DOM, offline/recarga/CAS y campos desconocidos.
+El backup se exige después de la primera lectura/commit exitosos; con GET retenido
+no hay POST ni actualización de lastBackup. `persist-commit.test.mjs` verifica el setter real.
+R2 fuerza un histórico de bienes discordante al cambiar de día y una respuesta de
+bróker disponible mientras A espera su primer GET. Exige el sello antiguo antes
+del pull, ningún sync prematuro y después la edición de B, sus campos desconocidos
+y los importes exactos. Se conservan los cuatro casos anteriores, incluida la
+edición humana durante GET; una respuesta real del bróker posterior sí puede sellar.
+[Contrato](briefs/savedat-arranque.md).
+
 FIN04 primera lectura: `fin04-first-pull.test.mjs` en el runner y
 `fin04-first-pull.spec.mjs` en el mapa de `11-app-main.js`. GET retenido, SDK real,
 dos contextos sintéticos, INSERT/CAS/ACK y sesión. R2 añade `fin04-recovery.spec.mjs`
