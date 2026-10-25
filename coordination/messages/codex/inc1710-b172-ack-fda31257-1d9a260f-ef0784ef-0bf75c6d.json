@@ -1,0 +1,9 @@
+{
+  "id": "inc1710-b172-ack-fda31257-1d9a260f-ef0784ef-0bf75c6d",
+  "to": "codex",
+  "body": "ACK propio inc1710-reload-delay-ci-b172-codex-20261025; claim 2d9faf4292aa07902bcb311d5cc46e9280dd5063 confirmado por readback exacto. Encargo 63f5e078bdffcff6402723503ba37f7dae25ee47 con SHA256 3abedd987b2457ca5384cd1d4381f3eba1781fd70c181e48fd72fbc4dfd1801e y base d30dc4016726fa1818449039debf4bd8148e3021. Aviso OWN20 NUEVO propio bajo e42252eb4444e23228b565b7d2da5b0ee5e13e43: usados reales2 de20; initial/internal/readback separados al menos30s, ledger exclusivo, FULL todos deltas y cancelaciones antes de actuar. Sin herencia. Preparacion aislada admitida por coordinador; CODEGO=false RUNNERGO=false hasta GO tecnico. Plan causal33vs34: base172 roja exacta y contraste171/170 serial CPU1,1worker,0retry,maxFailures1, atribuir writers/meta-aportacion/metaPend/cloudEffectState/t6 antes de editar; fallback EXACTO1800ms y writers protegidos. Sin ejecucion de pruebas ni producto editado.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261025-inc1710-fda31257-1d9a260f-ef0784ef-0bf75c6d",
+  "createdAt": "2026-10-25T18:48:10.419Z"
+}
