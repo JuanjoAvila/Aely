@@ -1,3 +1,7 @@
+PR297 R2: `pr297-r2-plan-sync.test.mjs` está registrado en el runner y `pr297-r2-plan-sync.spec.mjs` en el mapa del núcleo/transporte. Oráculos sintéticos de céntimos, LWW sin base y tres vías con base, confirmaciones compactas por owner, vínculo local sin gastos en app_state, metadata de pago, referencias estables y 1000 lápidas. La versión completa se contrasta con `node:crypto`, incluyendo Unicode, padding SHA-256, claves JSON especiales e id numérico frente a string.
+
+El navegador cuenta lecturas/avisos durante más de doce segundos con Plan inválido y exige un PATCH/CAS no vacío tras una edición real, con propietario, revisión y céntimos. Retiene GET de estado y de gastos para comprobar intenciones que llegan durante el vuelo. El dispositivo B de primera lectura no hereda `_planSync`/`_goalSync` privados de A. La prueba de toque real desplaza el botón a la vista y registra su geometría antes del tap; conserva el oráculo de cierre y movimiento.
+
 SAVEDAT: `savedat-arranque.spec.mjs`, registrado para `07-tab-patri-fijos.js` y `11-app-main.js`,
 usa reloj natural, dos titulares, edición DOM, offline/recarga/CAS y campos desconocidos.
 El backup se exige después de la primera lectura/commit exitosos; con GET retenido

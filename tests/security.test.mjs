@@ -107,7 +107,7 @@ console.log("security");
   const cloudUpdatedAtRef={current:'base-stamp'};
   const {obConfirmedMerge,obConfirmedJoin,obConfirmedPack,obStateCanonical,planSyncAck}=loadPureLogicFromFile();
   const ctx=vm.createContext({obConfirmedMerge,obConfirmedJoin,obConfirmedPack,obStateCanonical,state,stateRef:{current:state},uid:'synthetic-user',cloudPullRef:{current:null},cloudReadRef:{current:{owner:'synthetic-user',ready:true}},cloudUpdatedAtRef,sessionRef:{current:{user:{id:'synthetic-user'}}},obAbsorbedWriteBlocked:{current:false},
-    useRef:value=>({current:value}),goalSyncMetadataOnly:()=>false,planSyncAck,
+    useRef:value=>({current:value}),cloudMergeKey:{current:Symbol('cloud-merge')},goalSyncMetadataOnly:()=>false,planSyncAck,
     setStateRaw:fn=>fn(state),goalSyncAck:(prev,uid,sent,expected,updated)=>{acks.push({prev,uid,sent,expected,updated});return prev;},
     useEffect:fn=>fn(),setTimeout:fn=>{const id=++next;timers.set(id,fn);return id;},clearTimeout:id=>timers.delete(id),
     mcSandboxTransition:()=>blocked,flushPersist:()=>durable.push(structuredClone(state)),slimForCloud:x=>x,

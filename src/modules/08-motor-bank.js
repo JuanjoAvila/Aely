@@ -4169,16 +4169,19 @@ function fixedPaymentDerivedDay(s,status){
   return status.bankTx?recDay(status.bankTx.date):proof&&(proof.kind==="book"||bankExpense)&&recDay(proof.date);
 }
 function planSyncDerived(s,prev){
+  if(s.fixed===prev.fixed)return s;
   const d=new Date(),y=d.getFullYear(),m=d.getMonth()+1,today=d.getDate(),ym=y*12+m;
+  const prior=new Map((prev.fixed||[]).map(function(e){return [e.id,e];}));
   const clean=(s.fixed||[]).map(function(e){
+    if(prior.get(e.id)===e)return e;
     // Sin extracto no sabemos que haya dejado de pagarse: conservar la marca offline.
     // Una prueba ligada a otro importe/cuenta sí invalida su fecha derivada.
     if(!e.paymentProofs||!e.paymentProofs[ym]||fixedPaymentProof(s,e,y,m,today))return e;
     const n=Object.assign({},e);delete n.paidYm;delete n.paidDay;return n;
   });
   const state=Object.assign({},s,{fixed:clean}),rec=reconcileBank(state,y,m,today);
-  const prior=new Map((prev.fixed||[]).map(function(e){return [e.id,e];}));
   const rows=clean.map(function(e){
+    if(prior.get(e.id)===e)return e;
     const pd=fixedPaymentDerivedDay(state,fixedPaymentState(state,e,y,m,today));
     let next=e;
     if(pd)next=Object.assign({},e,{paidYm:ym,paidDay:pd});

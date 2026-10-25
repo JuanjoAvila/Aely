@@ -67,7 +67,7 @@ function banco({deferred=false}={}){
   const factory=vm.runInContext("(function("+names.join(",")+"){"+
     bloque(app,"const reservaMensualAlDia=function(")+bloque(app,"const pushAppState=function(")+bloque(app,"const syncFromCloud=function(")+"return {sync:syncFromCloud,send:pushAppState};})",ctx);
   const {sync,send}=factory(...names.map(k=>deps[k]));
-  return {pulls,expenses,writes,deps,send,flush(){for(const f of updates.splice(0)){state=f(state);commitCloudFixture(app,ctx,deps,state);}},state:()=>state,valid:()=>({data:JSON.parse(JSON.stringify(state)),updated_at:"synthetic-revision"}),
+  return {pulls,expenses,writes,deps,send,edit(){state=ctx.planSyncEditState({...state,budget:state.budget+1},state._savedAt);deps.stateRef.current=state;},flush(){for(const f of updates.splice(0)){state=f(state);commitCloudFixture(app,ctx,deps,state);}},state:()=>state,valid:()=>({data:JSON.parse(JSON.stringify(state)),updated_at:"synthetic-revision"}),
     start:function(){ sync({user:{id:"synthetic"}}); return deps.pullOkRef.current; }};
 }
 function resultado(b,saved,months){
@@ -75,6 +75,7 @@ function resultado(b,saved,months){
   assert.deepEqual(Array.from(b.state().reservaLog,x=>x.mensual),months);
 }
 async function caso(name,fn){
+  if(process.env.PR297_TRANSPORT_CASE&&!name.includes(process.env.PR297_TRANSPORT_CASE))return;
   try{ await fn(); console.log("  ✓ "+name); }
   catch(e){ failures++; console.error("  ✗ "+name+"\n    "+e.message); }
 }
@@ -149,5 +150,10 @@ await caso("respuesta antigua tras cerrar sesión no acredita la sesión nueva d
   b.pulls[0].resolve(b.valid());await ticks();assert.equal(b.deps.cloudReadRef.current,null);
   b.expenses[0].resolve();assert.equal(await old,false);
   b.pulls[1].resolve(b.valid());await ticks();b.expenses[1].resolve();assert.equal(await fresh,true);
+});
+await caso("Plan invalido: edicion comprometida mientras gastos espera no necesita otro render para releer",async()=>{
+ const b=banco(),first=b.start(),remote=b.valid();remote.data.fixed=[{id:'duplicate'},{id:'duplicate'}];b.pulls[0].resolve(remote);await ticks();assert.equal(b.expenses.length,1);assert.equal(b.deps.cloudReadRef.current.planInvalid,true);
+ b.edit();await b.send('synthetic',b.state());assert.equal(b.pulls.length,1);b.expenses[0].resolve();await ticks();assert.equal(b.pulls.length,2,'la intención comprometida debe drenarse al terminar gastos aunque no haya render');
+ b.pulls[1].resolve(b.valid());await ticks();b.expenses[1].resolve();await first;assert.equal(b.deps.cloudReadRef.current.ready,true);
 });
 if(failures) process.exitCode=1;

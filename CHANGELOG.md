@@ -1,3 +1,11 @@
+## PR297 R2 — Plan, pendiente de integración (2026-10-25)
+
+- Primera lectura sin base privada: conserva la edición realmente más reciente sin generar conflictos falsos; con base conocida mantiene la fusión a tres vías y los grupos de dinero indivisibles. Las confirmaciones compactas de absorciones se validan por titular antes de proteger vínculos.
+- Un Plan inválido conserva los datos locales y bloquea su envío sin realimentar el debounce. Cada intención de edición lleva un token privado no serializable, independiente del reloj; una edición durante el vuelo o después del rechazo puede solicitar una lectura nueva. La recuperación requiere una respuesta válida antes de PATCH/CAS.
+- `paymentProofs` se une por mes fuera del contrato financiero; pruebas incompatibles en la misma ranura conservan el conflicto real. `debtLinkRevision` se valida antes de proteger vínculos y se conserva por máximo, sin sumar revisiones ni dinero. Solo se recalculan los recibos que cambiaron.
+- Por decisión de coordinación, `debtDeleted` crece sin tope, caducidad, expulsión ni bloqueo. Cada entrada compacta contiene `id` y la versión SHA-256 del JSON canónico completo de la deuda: también distingue campos desconocidos, titular, restauración y revisión de vínculo. Las claves JSON especiales se conservan. Los snapshots anteriores se normalizan al mismo formato, sin reinterpretar su identidad. Índices por id/versión evitan comparar todos los pares; el test de 1000 entradas comprueba resultado, céntimos, serialización y operaciones, y registra el tiempo sin imponer un umbral dependiente de máquina.
+- Validación sintética y candidato draft; integración, CI general, artefacto servido y aceptación móvil permanecen separados. No cambia VERSION, catálogo, backend ni publicación.
+
 ## [4.26.166] — 2026-10-24 · Candidata de beta: Gastos v5 tanda 2, secciones Movimientos / Categorías / Suscripciones con el tirón de Plan, solo web
 
 - **Qué lleva.** `claude/gastos-v5-t2` (`67a91b309`) y el arreglo de e2e `228a6ab92` (`claude/fix-e2e-164`: los cargos de cuota viven en la fila gris de Gastos v5), sobre la beta 4.26.165 (`e9b3d7bf0`), con `--no-ff`. Solo web: sin APK, SQL ni Edge.

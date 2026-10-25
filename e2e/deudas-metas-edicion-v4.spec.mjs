@@ -354,12 +354,16 @@ for(const scenario of [{kind:"debt",how:"back"},{kind:"debt",how:"x"},{kind:"deb
 // Mismo día, medido en su móvil con toques reales: el touchend del toque en ✕/Guardar armaba la
 // vuelta al sitio de un arrastre corto, y a los 280 ms borraba el transform de una hoja que ya se
 // estaba yendo. La hoja de Deudas volvía a subir dos fotogramas antes de desmontarse.
-for(const [kind,how] of [["debt","x"],["debt","save"],["goal","save"]])test(`toque real en ${how} (${kind}): la hoja nunca vuelve a subir mientras se cierra`,async({page})=>{
+for(const [kind,how] of [["debt","x"],["debt","save"],["goal","save"]])test(`toque real en ${how} (${kind}): la hoja nunca vuelve a subir mientras se cierra`,async({page},info)=>{
  await open(page,"es",reviewRows,true);if(kind==="goal")await page.getByRole("tab",{name:"Metas",exact:true}).click();
  await page.locator(kind==="debt"?'[data-debt-id="debt"] .plan-item-open':'[data-goal-id="goal"] .plan-item-open').evaluate(b=>b.click());
  await page.waitForFunction(()=>{const el=document.querySelector(".v4-sheet");return !!el&&getComputedStyle(el).transform==="none";},null,{timeout:10000});
  await page.waitForTimeout(150);
- const box=await page.locator(how==="x"?".plan-edit-head button":".plan-edit-sheet .btn-primary").boundingBox();
+ const button=page.locator(how==="x"?".plan-edit-head button":".plan-edit-sheet .btn-primary"),before=await button.boundingBox();
+ // Un toque físico necesita que el botón entre en pantalla al crecer el formulario.
+ await button.scrollIntoViewIfNeeded();const box=await button.boundingBox(),viewport=page.viewportSize();
+ await info.attach("tap-geometry",{body:JSON.stringify({before,after:box,viewport}),contentType:"application/json"});
+ expect(box.y+box.height/2).toBeLessThan(viewport.height);expect(box.y+box.height/2).toBeGreaterThan(0);
  await page.evaluate(()=>{const rec=window.__suben=[],t0=performance.now();(function f(){const s=document.querySelector(".v4-sheet");rec.push(s?s.getBoundingClientRect().top:null);if(performance.now()-t0<1200)requestAnimationFrame(f);})();});
  await page.touchscreen.tap(box.x+box.width/2,box.y+box.height/2);
  await expect(page.locator(".v4-sheet")).toHaveCount(0);await page.waitForTimeout(150);

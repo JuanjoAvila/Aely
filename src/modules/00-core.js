@@ -4201,23 +4201,25 @@ function goalSyncAck(prev,owner,sent,expected,revision){
   if(meta && (meta.owner!==owner || meta.revision!==expected)) return prev;
   return Object.assign({},prev,{_goalSync:{owner:owner,revision:revision,base:goalSyncCopy(sent.goals||[]),reserves:goalSyncCopy(goalSyncReserves(sent)),conflicts:meta?(meta.conflicts||[]):[]}});
 }
-function goalSyncMetadataOnly(prev,next){
-  if(!prev || prev._goalSync===next._goalSync && prev._planSync===next._planSync) return false;
+const PLAN_EDIT_INTENT=Symbol("plan-edit-intent");
+function planSyncEditToken(s){return s&&s[PLAN_EDIT_INTENT];}
+function planSyncEditState(s,at){return Object.assign({},s,{_savedAt:at,[PLAN_EDIT_INTENT]:{}});}
+function goalSyncMetadataOnly(prev,next,commitKey){
+  if(!prev || prev._goalSync===next._goalSync && prev._planSync===next._planSync && (!commitKey || prev[commitKey]===next[commitKey])) return false;
   return [...new Set([...Object.keys(prev),...Object.keys(next)])].every(function(k){ return k==="_goalSync" || k==="_planSync" || k==="_savedAt" || prev[k]===next[k]; });
 }
 // Plan comparte la base confirmada de Metas; cada grupo financiero se elige entero.
 // La ausencia sola no borra: la lápida conserva la copia exacta que se eliminó.
 // Una edición concurrente distinta sigue viva aunque el otro móvil ya la haya quitado.
-function mergePlanThreeWay(base,local,remote,kind,deleted){
+function mergePlanThreeWay(base,local,remote,kind,deleted,localNewer){
   local=Array.isArray(local)?local:[];remote=Array.isArray(remote)?remote:[];
-  const index=function(rows){const m=new Map();for(const r of rows||[]){if(!r || !(typeof r.id==="string"&&r.id || typeof r.id==="number"&&Number.isFinite(r.id)) || m.has(r.id))return null;m.set(r.id,r);}return m;};
-  const b=index(base),l=index(local),r=index(remote),rows=[],conflicts=[];
-  if(!l||!r)return {rows:local,conflicts:[],invalid:true};
+  const index=function(rows){const m=new Map();for(const r of rows||[]){if(!r || !(typeof r.id==="string"&&r.id || typeof r.id==="number"&&Number.isFinite(r.id)) || m.has(r.id))return null;if(kind==="debts"&&!planSyncDebtRevisionValid(r))return null;m.set(r.id,r);}return m;};
+  const b=index(base),l=index(local),r=index(remote),rows=[],conflicts=[];let invalid=false;
+  if(!l||!r||Array.isArray(base)&&!b)return {rows:local,conflicts:[],invalid:true};
   if(kind==="debts"){
-    for(const copy of deleted||[]){
-      if(goalSyncEqual(l.get(copy.id),copy))l.delete(copy.id);
-      if(goalSyncEqual(r.get(copy.id),copy))r.delete(copy.id);
-    }
+    const gone=planSyncDebtDeletedIndex(deleted);
+    for(const [id,row] of l)if(planSyncDebtDeletedHas(gone,row))l.delete(id);
+    for(const [id,row] of r)if(planSyncDebtDeletedHas(gone,row))r.delete(id);
   }
   const payment=kind==="fixed"?["paidYm","paidDay"]:[];
   new Set([...r.keys(),...l.keys()]).forEach(function(id){
@@ -4228,8 +4230,8 @@ function mergePlanThreeWay(base,local,remote,kind,deleted){
       rows.push(right);conflicts.push({kind:kind,id:id,fields:keys,local:goalSyncCopy(left)});return;
     }
     const independent=kind==="fixed"?["name","cat","category"]:["name","note"];
-    const financial=kind==="fixed"?["amount","bankAmount","account","freq","months","schedule","day","paymentProofs"]:
-      keys.filter(function(k){return independent.indexOf(k)<0 && ["id","owner","user_id","type"].indexOf(k)<0;});
+    const financial=kind==="fixed"?["amount","bankAmount","account","freq","months","schedule","day"]:
+      keys.filter(function(k){return independent.indexOf(k)<0 && ["id","owner","user_id","type","debtLinkRevision"].indexOf(k)<0;});
     const groups=[financial];
     if(payment.length)groups.push(payment);
     keys.forEach(function(k){if(financial.indexOf(k)<0 && payment.indexOf(k)<0)groups.push([k]);});
@@ -4237,13 +4239,34 @@ function mergePlanThreeWay(base,local,remote,kind,deleted){
     groups.forEach(function(group){
       const has=function(o,k){return !!o && Object.prototype.hasOwnProperty.call(o,k);};
       const same=function(a,c){return group.every(function(k){return has(a,k)===has(c,k)&&(!has(a,k)||goalSyncEqual(a[k],c[k]));});};
+      if(kind==="debts"&&group[0]==="debtLinkRevision"){
+        const values=[old,left,right].filter(function(o){return has(o,"debtLinkRevision");}).map(function(o){return o.debtLinkRevision;});
+        if(values.some(function(v){return !Number.isSafeInteger(v)||v<0;})){invalid=true;return;}
+        if(values.length)merged.debtLinkRevision=Math.max.apply(null,values);
+        return;
+      }
+      if(kind==="fixed"&&group[0]==="paymentProofs"&&[old,left,right].every(function(o){return !has(o,"paymentProofs")||o.paymentProofs&&typeof o.paymentProofs==="object"&&!Array.isArray(o.paymentProofs);})){
+        const before=old&&old.paymentProofs||{},a=left.paymentProofs||{},c=right.paymentProofs||{},proofs={};
+        new Set([...Object.keys(before),...Object.keys(a),...Object.keys(c)]).forEach(function(month){
+          const equal=function(x,y){return has(x,month)===has(y,month)&&(!has(x,month)||goalSyncEqual(x[month],y[month]));};
+          let source=c;
+          if(equal(c,before))source=a;
+          else if(!equal(a,before)&&!equal(a,c)&&fields.indexOf("paymentProofs")<0)fields.push("paymentProofs");
+          if(has(source,month))Object.defineProperty(proofs,month,{value:source[month],enumerable:true,writable:true,configurable:true});
+        });
+        if(has(left,"paymentProofs")||has(right,"paymentProofs"))merged.paymentProofs=has(left,"paymentProofs")&&goalSyncEqual(proofs,a)?left.paymentProofs:has(right,"paymentProofs")&&goalSyncEqual(proofs,c)?right.paymentProofs:proofs;
+        return;
+      }
       let source=right;
       // La primera lectura tras actualizar aún no tiene base privada: una marca offline
       // no desaparece por esa ausencia si la nube conserva exactamente su importe y cuenta.
       const legacyMark=!old&&kind==="fixed"&&["paidYm","wait"].indexOf(group[0])>=0
         &&group.every(function(k){return !has(right,k);})&&group.some(function(k){return has(left,k);})
         &&["amount","bankAmount","account"].every(function(k){return goalSyncEqual(left[k],right[k]);});
-      if(legacyMark||old && same(right,old))source=left;
+      // Sin una base de este dispositivo rige el sello de la edición real, como en Metas.
+      // Una alta concurrente sobre base conocida sigue siendo un conflicto de tres vías.
+      if(!Array.isArray(base)&&typeof localNewer==="boolean")source=localNewer||legacyMark?left:right;
+      else if(legacyMark||old && same(right,old))source=left;
       else if((!old || !same(left,old)) && !same(left,right))fields.push.apply(fields,group);
       if(group[0]==="paidYm")paidSource=source;
       if(group[0]==="wait")waitSource=source;
@@ -4258,16 +4281,47 @@ function mergePlanThreeWay(base,local,remote,kind,deleted){
     rows.push(goalSyncEqual(merged,left)?left:goalSyncEqual(merged,right)?right:merged);
     if(fields.length)conflicts.push({kind:kind,id:id,fields:fields,local:goalSyncCopy(left)});
   });
-  return {rows:goalSyncEqual(rows,local)?local:rows,conflicts:conflicts};
+  return {rows:goalSyncEqual(rows,local)?local:rows,conflicts:conflicts,invalid:invalid};
+}
+function planSyncDebtRevisionValid(row){return !!row&&(!Object.prototype.hasOwnProperty.call(row,"debtLinkRevision")||Number.isSafeInteger(row.debtLinkRevision)&&row.debtLinkRevision>=0);}
+function planSyncDebtCanonical(row){
+  // Las claves JSON propias, incluso __proto__, también forman parte de la versión.
+  return JSON.stringify(row,function(k,v){if(v&&typeof v==="object"&&!Array.isArray(v)){const sorted=Object.create(null);Object.keys(v).sort().forEach(function(key){Object.defineProperty(sorted,key,{value:v[key],enumerable:true});});return sorted;}return v;});
+}
+function planSyncDebtVersion(row){
+  // El contador bancario no describe una edición humana: la versión firma TODO el JSON.
+  // SHA-256 síncrono mantiene puro el updater; los tests contrastan con otra implementación.
+  const bytes=new TextEncoder().encode(planSyncDebtCanonical(row)),size=Math.ceil((bytes.length+9)/64)*64,data=new Uint8Array(size),view=new DataView(data.buffer);
+  data.set(bytes);data[bytes.length]=128;view.setUint32(size-8,Math.floor(bytes.length/536870912));view.setUint32(size-4,(bytes.length*8)>>>0);
+  const k=planSyncDebtVersion.rounds||(planSyncDebtVersion.rounds=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2]);
+  const h=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19],w=new Uint32Array(64),ror=function(x,n){return (x>>>n)|(x<<(32-n));};
+  for(let offset=0;offset<size;offset+=64){
+    for(let i=0;i<16;i++)w[i]=view.getUint32(offset+i*4);
+    for(let i=16;i<64;i++){const x=w[i-15],y=w[i-2];w[i]=(w[i-16]+(ror(x,7)^ror(x,18)^(x>>>3))+w[i-7]+(ror(y,17)^ror(y,19)^(y>>>10)))>>>0;}
+    let a=h[0],b=h[1],c=h[2],d=h[3],e=h[4],f=h[5],g=h[6],z=h[7];
+    for(let i=0;i<64;i++){const t1=(z+(ror(e,6)^ror(e,11)^ror(e,25))+((e&f)^(~e&g))+k[i]+w[i])>>>0,t2=((ror(a,2)^ror(a,13)^ror(a,22))+((a&b)^(a&c)^(b&c)))>>>0;z=g;g=f;f=e;e=(d+t1)>>>0;d=c;c=b;b=a;a=(t1+t2)>>>0;}
+    [a,b,c,d,e,f,g,z].forEach(function(v,i){h[i]=(h[i]+v)>>>0;});
+  }
+  return "sha256:"+h.map(function(v){return v.toString(16).padStart(8,"0");}).join("");
+}
+function planSyncDebtDeletedIndex(rows){
+  const index=new Map();
+  for(const row of rows||[]){const version=Object.keys(row).length===2&&typeof row.version==="string"&&/^sha256:[a-f0-9]{64}$/.test(row.version)?row.version:planSyncDebtVersion(row);let versions=index.get(row.id);if(!versions){versions=new Set();index.set(row.id,versions);}versions.add(version);}
+  return index;
+}
+function planSyncDebtDeletedHas(index,row){
+  const versions=row&&index.get(row.id);return !!versions&&versions.has(planSyncDebtVersion(row));
 }
 function planSyncDebtDeleted(local,remote){
-  const rows=[];
+  const rows=[],seen=new Map();
   for(const list of [local,remote]){
     if(list===undefined)continue;
     if(!Array.isArray(list))return null;
     for(const item of list){
       if(!item||typeof item!=="object"||Array.isArray(item)||!(typeof item.id==="string"&&item.id||typeof item.id==="number"&&Number.isFinite(item.id)))return null;
-      if(!rows.some(function(x){return goalSyncEqual(x,item);}))rows.push(goalSyncCopy(item));
+      const compact=Object.keys(item).length===2&&typeof item.version==="string"&&/^sha256:[a-f0-9]{64}$/.test(item.version),version=compact?item.version:planSyncDebtVersion(item);
+      let versions=seen.get(item.id);if(!versions){versions=new Set();seen.set(item.id,versions);}
+      if(!versions.has(version)){versions.add(version);rows.push(compact?item:{id:item.id,version:version});}
     }
   }
   return goalSyncEqual(rows,local)?local:rows;
@@ -4305,22 +4359,29 @@ function planSyncRecords(list){
   });
   return out;
 }
-function planSyncPull(prev,remote,owner,revision,dropLocal){
+function planSyncPull(prev,remote,owner,revision,dropLocal,localNewer){
   const meta=!dropLocal&&prev._planSync&&prev._planSync.owner===owner?prev._planSync:null;
+  if([dropLocal?[]:prev.debts,remote.debts].some(function(list){return Array.isArray(list)&&list.some(function(row){return !planSyncDebtRevisionValid(row);});}))return null;
   const deleted=planSyncDebtDeleted(dropLocal?undefined:prev.debtDeleted,remote.debtDeleted);
   if(!deleted)return null;
   const result={},conflicts=meta?planSyncRecords(meta.conflicts):[];let invalid=false;
   const local=dropLocal?{}:prev;
-  const deletedExpenses=expenseDeletedSet({_historyOwner:owner,deleted:(local.deleted||[]).concat(remote.deleted||[]),obAbsorbedPending:(local.obAbsorbedPending||[]).concat(remote.obAbsorbedPending||[]),obAbsorbedConfirmed:(local.obAbsorbedConfirmed||[]).concat(remote.obAbsorbedConfirmed||[])});
+  // El transporte compacto también puede ser la copia local de un envío confirmado.
+  // Una metadata ilegible o de otro titular aborta; no equivale a no haber lápidas.
+  const confirmed=obConfirmedJoin(local.obAbsorbedConfirmed,remote.obAbsorbedConfirmed,owner);
+  if(!confirmed)return null;
+  const newer=localNewer===undefined?(prev._savedAt||0)>(remote._savedAt||0):localNewer;
+  const deletedExpenses=expenseDeletedSet({_historyOwner:owner,deleted:(local.deleted||[]).concat(remote.deleted||[]),obAbsorbedPending:(local.obAbsorbedPending||[]).concat(remote.obAbsorbedPending||[]),obAbsorbedConfirmed:confirmed});
   const linked=(local.expenses||[]).concat(remote.expenses||[]).filter(function(e){return e&&!expenseIsTombstoned(e,deletedExpenses);});
+  const gone=planSyncDebtDeletedIndex(deleted),linkedIds=new Set(linked.map(function(e){return e.debtId;}));
   const protect=function(rows){if(!Array.isArray(rows))return rows;return rows.map(function(d){
     if(!d||typeof d!=="object")return d;
-    if(!linked.some(function(e){return e&&e.debtId===d.id;})||!deleted.some(function(x){return goalSyncEqual(x,d);}))return d;
+    if(!linkedIds.has(d.id)||!planSyncDebtDeletedHas(gone,d))return d;
     return Object.assign({},d,{debtLinkRevision:(Number(d.debtLinkRevision)||0)+1});
   });};
   ["fixed","debts"].forEach(function(kind){
     const left=kind==="debts"?protect(dropLocal?remote.debts:prev.debts):dropLocal?remote[kind]:prev[kind],right=kind==="debts"?protect(remote.debts):remote[kind];
-    const merged=dropLocal?mergePlanThreeWay(remote[kind],left,right,kind,deleted):mergePlanThreeWay(meta&&meta.base&&meta.base[kind],left,right,kind,deleted);
+    const merged=dropLocal?mergePlanThreeWay(remote[kind],left,right,kind,deleted):mergePlanThreeWay(meta&&meta.base&&meta.base[kind],left,right,kind,deleted,newer);
     if(merged.invalid)invalid=true;
     result[kind]=goalSyncEqual(merged.rows,prev[kind])?prev[kind]:merged.rows;
     conflicts.push.apply(conflicts,merged.conflicts);

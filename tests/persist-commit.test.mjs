@@ -86,8 +86,8 @@ t("mantenimiento conserva el sello y las referencias; editar sigue sellando y pe
   const a=src.indexOf("const set=useCallback("), b=src.indexOf("// En el propio commit",a);
   assert.ok(a>=0&&b>a);
   let state={expenses:gastos,_savedAt:7,unknown:{keep:true},budget:500}, clock=100;
-  const set=new Function("useCallback","setStateRaw","reconcileGemelosAutomaticos","Date",src.slice(a,b)+"return set;")(
-    f=>f,f=>{state=f(state);},x=>x,{now:()=>clock});
+  const set=new Function("useCallback","setStateRaw","reconcileGemelosAutomaticos","Date","planSyncEditState",src.slice(a,b)+"return set;")(
+    f=>f,f=>{state=f(state);},x=>x,{now:()=>clock},ctx.planSyncEditState);
   const first=state, p=nuevo();
   set(s=>Object.assign({},s,{gmLevel:1}),false);
   assert.equal(state._savedAt,7);

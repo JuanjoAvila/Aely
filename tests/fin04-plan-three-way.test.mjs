@@ -17,7 +17,7 @@ function logic(){
   split:['const groups=[financial];','const groups=financial.map(function(k){return [k];});'],
   ack:['fixed:goalSyncCopy(sent.fixed||[]),debts:goalSyncCopy(sent.debts||[])','fixed:goalSyncCopy(prev.fixed||[]),debts:goalSyncCopy(prev.debts||[])']
  };
- const signature=/function mergePlanThreeWay\(base,\s*local,\s*remote,\s*kind,\s*deleted\)\s*\{/;
+ const signature=/function mergePlanThreeWay\(base,\s*local,\s*remote,\s*kind,\s*deleted(?:,\s*localNewer)?\)\s*\{/;
  const injections={
   'delete-left':'if(kind==="debts"&&(deleted||[]).some(function(d){return !(local||[]).some(function(row){return row.id===d.id;});}))deleted=[];',
   'delete-right':'if(kind==="debts"&&(deleted||[]).some(function(d){return !(remote||[]).some(function(row){return row.id===d.id;});}))deleted=[];',
@@ -60,7 +60,7 @@ test('fixed disjoint fields, exact signs, null/absent/unknown and references',()
 test('fixed finance is atomic, never summed; name/category merge independently',()=>{
  const c=logic(),base=fixed(),l=copy(base),r=copy(base);l[0].amount=45.67;l[0].cat='ocio';r[0].day=29;r[0].name='Remoto';
  const m=c.mergePlanThreeWay(base,l,r,'fixed');assert.equal(Math.round(m.rows[0].amount*100),4237);assert.equal(m.rows[0].day,29);assert.equal(m.rows[0].cat,'ocio');assert.equal(m.rows[0].name,'Remoto');assert.equal(m.conflicts.length,1);assert.equal(Math.round(m.conflicts[0].local.amount*100),4567);
- assert.deepEqual(copy(m.conflicts[0].fields),['amount','bankAmount','account','freq','months','schedule','day','paymentProofs']);
+ assert.deepEqual(copy(m.conflicts[0].fields),['amount','bankAmount','account','freq','months','schedule','day']);
 });
 test('debt financial fields stay together, independent name/note survive',()=>{
  const c=logic(),base=debts(),l=copy(base),r=copy(base);l[0].monthly=101.12;l[0].note='Local';r[0].value=1100.12;r[0].name='Remota';
@@ -113,8 +113,8 @@ test('BOOK proof identity survives rename/merge; derived date is recomputed with
  const s={fixed:[{...fixed()[0],name:'Gas sintético',day:19}],accounts:[{id:'acc',ent:'sabadell',role:'fijos',value:500}],debts:debts(),expenses:[],oneoffs:[],bankTx:[{id:'book-identity',ent:'sabadell',date:'2026-10-20',amount:42.37,merchant:'Gas sintético',status:'BOOK'}]};
  const bound=c.reconcileFixedPaymentProofs(s,2026,10,21),proof=copy(bound.fixed[0].paymentProofs);assert.equal(proof[2026*12+10].kind,'book');
  const left=copy(bound.fixed);left[0].name='Nombre personal';const m=c.mergePlanThreeWay(bound.fixed,left,bound.fixed,'fixed');const combined={...bound,fixed:m.rows,bankTx:[]};
- const n=c.planSyncDerived(combined,combined);assert.equal(n.fixed[0].paidDay,20);assert.equal(n.fixed[0].paidYm,2026*12+10);assert.deepEqual(copy(n.fixed[0].paymentProofs),proof);assert.equal(n.accounts,s.accounts);assert.equal(n.debts,s.debts);assert.equal(n.expenses,s.expenses);assert.equal(Math.round(n.fixed[0].amount*100),4237);assert.equal(c.planSyncDerived(n,n).fixed,n.fixed);
- const invalid={...n,fixed:[{...n.fixed[0],amount:45.67}]},after=c.planSyncDerived(invalid,invalid);assert.ok(!after.fixed[0].paidDay);assert.deepEqual(copy(after.fixed[0].paymentProofs),proof,'invalid proof not silently rebound');
+ const n=c.planSyncDerived(combined,bound);assert.equal(n.fixed[0].paidDay,20);assert.equal(n.fixed[0].paidYm,2026*12+10);assert.deepEqual(copy(n.fixed[0].paymentProofs),proof);assert.equal(n.accounts,s.accounts);assert.equal(n.debts,s.debts);assert.equal(n.expenses,s.expenses);assert.equal(Math.round(n.fixed[0].amount*100),4237);assert.equal(c.planSyncDerived(n,n).fixed,n.fixed);
+ const invalid={...n,fixed:[{...n.fixed[0],amount:45.67}]},after=c.planSyncDerived(invalid,n);assert.ok(!after.fixed[0].paidDay);assert.deepEqual(copy(after.fixed[0].paymentProofs),proof,'invalid proof not silently rebound');
 });
 test('private metadata excluded from cloud and Hogar; review is a draft without payment replay',()=>{
  const c=logic(),s={fixed:fixed(),debts:debts(),accounts:[],expenses:[],_historyOwner:owner,_planSync:{owner,conflicts:[{kind:'fixed',id:'f',fields:['amount','paymentProofs'],local:{...fixed()[0],amount:45.67,paymentProofs:{secret:true}}}]}};
@@ -151,9 +151,9 @@ for(const direction of ['local','remote'])test('debt tombstone preserves a concu
  assert.deepEqual(copy(m.rows),edited);assert.equal(Math.round(m.rows[0].value*100),119922);assert.equal(Math.round(m.rows[0].monthly*100),10112);assert.deepEqual(copy(m.rows[0].unknown),{keep:null});
 });
 
-test('debt deletion records the full snapshot once, preserves unknown/null and never deletes linked expenses',()=>{
+test('debt deletion records the full version once, preserves unknown/null and never deletes linked expenses',()=>{
  const c=logic(),initial={fixed:fixed(),debts:debts(),expenses:[],_historyOwner:owner};const original=copy(initial.debts[0]);
- const next=c.planSyncDeleteDebt(initial,'d');assert.equal(next.debts.length,0);assert.deepEqual(copy(next.debtDeleted),[original]);assert.deepEqual(copy(initial.debts),[original]);assert.ok(!Object.hasOwn(initial,'debtDeleted'));
+ const next=c.planSyncDeleteDebt(initial,'d');assert.equal(next.debts.length,0);assert.deepEqual(copy(next.debtDeleted),copy(c.planSyncDebtDeleted([original],[])));assert.deepEqual(copy(initial.debts),[original]);assert.ok(!Object.hasOwn(initial,'debtDeleted'));
  assert.equal(c.planSyncDeleteDebt(next,'d'),next);assert.equal(next.debtDeleted.length,1);
  const linked={...initial,expenses:[{id:'payment',debtId:'d',amount:100.11}]};assert.equal(c.planSyncDeleteDebt(linked,'d'),linked);assert.equal(linked.debts,initial.debts);assert.ok(!Object.hasOwn(linked,'debtDeleted'));
 });
@@ -170,7 +170,7 @@ for(const edited of [false,true])for(const direction of ['local','remote'])test(
   c.mcSaveRaw('micartera_v3',a);a=c.mcLoadRaw('micartera_v3');
   const reply=c.planSyncPull(b,c.slimForCloud(a),owner,'reply'+turn,false);assert.ok(reply);b={...b,...reply};
   assert.equal(a.debts.length,edited?1:0);assert.equal(b.debts.length,edited?1:0);
-  assert.deepEqual(copy(a.debtDeleted),copy(initial.debts));assert.deepEqual(copy(b.debtDeleted),copy(initial.debts));
+  assert.deepEqual(copy(a.debtDeleted),copy(c.planSyncDebtDeleted(initial.debts,[])));assert.deepEqual(copy(b.debtDeleted),copy(c.planSyncDebtDeleted(initial.debts,[])));
   if(edited){for(const s of [a,b]){assert.equal(Math.round(s.debts[0].value*100),119922);assert.equal(Math.round(s.debts[0].monthly*100),10112);assert.equal(s.debts[0].name,'Edición conservada');assert.deepEqual(copy(s.debts[0].unknown),{keep:null});}}
  }
 });
@@ -218,7 +218,7 @@ test('a remote debt tombstone preserves a distinct private conflict draft withou
  const prev={fixed:fixed(),debts:current,expenses:[],_historyOwner:owner,_planSync:{owner,revision:'r-before-delete',base:{fixed:fixed(),debts:copy(current)},conflicts:[record]}};
  const remote={fixed:fixed(),debts:[],debtDeleted:copy(current)},patch=c.planSyncPull(prev,remote,owner,'r-deleted',false);assert.ok(patch);
  assert.equal(patch.debts.length,0,'keeping a private draft must not restore deleted product data');assert.equal(patch._planSync.conflicts.length,1);assert.deepEqual(copy(patch._planSync.conflicts[0]),record);
- assert.equal(Math.round(patch._planSync.conflicts[0].local.monthly*100),10112);assert.deepEqual(copy(patch.debtDeleted),current);
+ assert.equal(Math.round(patch._planSync.conflicts[0].local.monthly*100),10112);assert.deepEqual(copy(patch.debtDeleted),copy(c.planSyncDebtDeleted(current,[])));
  const state={...prev,...patch},sent=c.slimForCloud(state);assert.ok(!Object.hasOwn(sent,'_planSync'));assert.equal(sent.debts.length,0);
  const acked=c.planSyncAck(state,owner,sent,'r-deleted','r-deleted-ack');c.mcSaveRaw('micartera_v3',acked);const loaded=c.mcLoadRaw('micartera_v3');assert.equal(loaded.debts.length,0);assert.deepEqual(copy(loaded._planSync.conflicts),[record]);
  const repeat=c.planSyncPull(loaded,remote,owner,'r-deleted-repeat',false);assert.equal(repeat.debts.length,0);assert.deepEqual(copy(repeat._planSync.conflicts),[record]);
@@ -252,7 +252,7 @@ test('explicit recovery survives the old tombstone even with identical money, an
  const c=logic(),b=deletedDebtDraft(),next={...copy(b.original),restoredAt:'2026-10-25T00:06:00.000Z'},recovered=c.planSyncRecoverDebt(b.state,b.record,next);
  assert.equal(recovered.debts.length,1);assert.equal(recovered._planSync.conflicts.length,0);const pulled=c.planSyncPull(recovered,{fixed:fixed(),debts:[],debtDeleted:[copy(b.original)]},owner,'r-after-recovery',false);assert.ok(pulled);assert.deepEqual(copy(pulled.debts),[next]);
  const state={...recovered,...pulled},sent=c.slimForCloud(state),acked=c.planSyncAck(state,owner,sent,'r-after-recovery','r-recovery-ack');c.mcSaveRaw('micartera_v3',acked);const loaded=c.mcLoadRaw('micartera_v3');assert.deepEqual(copy(loaded.debts),[next]);
- const removed=c.planSyncDeleteDebt(loaded,b.record.id);assert.equal(removed.debts.length,0);assert.ok(removed.debtDeleted.some(row=>row.restoredAt===next.restoredAt));
+ const removed=c.planSyncDeleteDebt(loaded,b.record.id);assert.equal(removed.debts.length,0);assert.ok(removed.debtDeleted.some(row=>row.id===next.id&&row.version===c.planSyncDebtVersion(next)));
  const stale=c.planSyncPull(loaded,c.slimForCloud(removed),owner,'r-after-second-delete',false);assert.ok(stale);assert.equal(stale.debts.length,0);assert.equal(stale._planSync.conflicts.length,0);
 });
 

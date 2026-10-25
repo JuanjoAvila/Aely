@@ -1,3 +1,11 @@
+## Plan: primera lectura y versiones de borrado
+
+Sin base privada del dispositivo, `planSyncPull` recibe la misma preferencia `localNewer` que Metas. Con base conocida conserva tres vías; una alta concurrente no pasa a LWW por carecer de fila en esa base. Las pruebas de pago viajan por mes sin formar parte del grupo financiero; el contador de vínculo bancario es monotónico y se valida antes de proteger una deuda con gasto local vivo.
+
+Las lápidas de deuda son `{id,version}`, con SHA-256 del JSON canónico completo de la fila (orden de claves estable, tipos, arrays, null, unknown, owner, restoredAt y debtLinkRevision). Se aceptan snapshots legados y se deduplican por id tipado/versión. No hay caducidad, expulsión ni tope que bloquee sincronizar o borrar: el crecimiento es acumulativo. Una edición o recuperación distinta no coincide con la versión borrada; una cuota vinculada viva protege la identidad antes de aplicar lápidas.
+
+Un marcador de commit inválido es metadata privada, no una edición. El token privado de intención distingue incluso dos ediciones en el mismo milisegundo; cada vuelo consume el que capturó al empezar. Ningún Plan inválido se acredita listo ni se sube, y una intención posterior puede pedir una nueva lectura antes del CAS.
+
 H2 candidata, ronda 2: saldo y movimientos independientes por cuenta, valor/fecha de identidades devueltas fallidas retenidos por UID/IBAN; cuentas extra omitidas retiradas y asignación única libre tras reservar vínculos exactos. Capacidad explícita y fallback conservador para móviles antiguos. Cursor y ACK siguen movimientos y persistencia local, con la excepción de desbordamiento existente. [Contrato y límites](briefs/h2-saldos-movimientos-20261018.md).
 
 # Arquitectura — Aely
