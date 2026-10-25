@@ -148,8 +148,8 @@ await caso("respuesta antigua tras cerrar sesión no acredita la sesión nueva d
   b.deps.cloudReadRef.current=null;b.deps.cloudPullRef.current=null;b.deps.cloudUpdatedAtRef.current=null;
   b.deps.sessionRef.current={user:{id:"synthetic"}};const fresh=b.start();
   b.pulls[0].resolve(b.valid());await ticks();assert.equal(b.deps.cloudReadRef.current,null);
-  b.expenses[0].resolve();assert.equal(await old,false);
-  b.pulls[1].resolve(b.valid());await ticks();b.expenses[1].resolve();assert.equal(await fresh,true);
+  assert.equal(b.expenses.length,0,'la lectura antigua no inicia gastos de la sesión nueva');assert.equal(await old,false);
+  b.pulls[1].resolve(b.valid());await ticks();b.expenses[0].resolve();assert.equal(await fresh,true);
 });
 await caso("Plan invalido: edicion comprometida mientras gastos espera no necesita otro render para releer",async()=>{
  const b=banco(),first=b.start(),remote=b.valid();remote.data.fixed=[{id:'duplicate'},{id:'duplicate'}];b.pulls[0].resolve(remote);await ticks();assert.equal(b.expenses.length,1);assert.equal(b.deps.cloudReadRef.current.planInvalid,true);
@@ -158,5 +158,8 @@ await caso("Plan invalido: edicion comprometida mientras gastos espera no necesi
 });
 await caso("Plan invalido: desmontar App mientras gastos espera no inicia otra lectura ni PATCH",async()=>{
  const b=banco(),first=b.start(),remote=b.valid();remote.data.fixed=[{id:'duplicate'},{id:'duplicate'}];b.pulls[0].resolve(remote);await ticks();assert.equal(b.expenses.length,1);b.edit();b.dispose();b.expenses[0].resolve();await ticks();assert.equal(b.pulls.length,1,'unmount no autoriza un GET de estado nuevo');assert.equal(b.writes.length,0);await first;
+});
+await caso("Plan: desmontar antes del commit no inicia gastos tardios",async()=>{
+ const b=banco({deferred:true}),first=b.start();b.pulls[0].resolve(b.valid());await ticks();assert.equal(b.expenses.length,0);b.dispose();await ticks();assert.equal(b.expenses.length,0,'un commit cancelado por unmount no inicia gastos');assert.equal(b.writes.length,0);await first;
 });
 if(failures) process.exitCode=1;

@@ -865,6 +865,7 @@ function App(){
       }   // ausencia acreditada: INSERT, nunca upsert
     }).then(function(){
       // El vuelo incluye gastos: otro refresco no puede sustituir su lectura a mitad del pull.
+      if(cloudPullRef.current!==read||!sessionRef.current||sessionRef.current.user.id!==u)return;
       return syncCloudExpenses();
     });
     const completed=transport.then(function(){
