@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "id": "fin04-pr304-r2-resync-codex-20261025",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261025-r101-fda31257-0f3d1b44-d57ab8b7-569e26e8",
+  "createdAt": "2026-10-25T22:53:44.616Z",
+  "to": "codex",
+  "baseSHA": "add70e5a855f5e3ad5c889f984b00b3e3d070a2f",
+  "objective": "PR304 R2 MISMA PR, admitted625b920651f819a51985fff3204308ffebdc82a3 and blockingf30f3dfc3dd0321f5f581d1f6f5bc942979caa43 afterqueue3: repair readSession extractor consumers and automatic syncFromCloud relaunch when new session object has sameUID. G15NO-GO6671ce994a85106d8598e49b3c0fd8cbb7bbf9fe. NEWtask/worker, oldclaimclosed mustnotreopen.",
+  "scope": [
+    "Work on isolated own codex branch/checkout from exact PR304headadd70e5a855f5e3ad5c889f984b00b3e3d070a2f. Target existing PR304 branch codex/fin04-pullstate-plazo-6573abf9 only after parentfinalreview; no newPR. Currentbeta9ca1ff11e27b3daf01ecd02d51bdb7abcaabad60 advanced beyond priorbase95b950a0: inspect but no rebase/merge or unrelated changes bycarryover. Preserve originalcandidate and evidence.",
+    "Read full G15/ClaudeR2 directives, audit syncFromCloud.cancel/relevar/finish and auth onAuth/cloud.session races. With SAMEUID newobject after cancellation automatically relaunch correct current session syncFromCloud(s,opts), preserving freshLogin/dropTx/commitReact/expenses/monthlygate/late-response guards; no duplicate flight or sessionleak; no restart on logout/unmount, and changedUID must keep original freshlogin/dropTx behavior without applying previousowner data. No authcallback awaited Supabase call/deadlock; data synthetic only.",
+    "Mandatory source-intact causal red againstadd70e5a, greenR2 test drives REAL onAuth/cloud.session path and DOESNOTcall start()/sync manually afterrenewal. Cover TOKEN_REFRESHED and sameUID SIGNED_IN/INITIAL_SESSION race, stale resolve/reject/commit, promise/caller readiness and valid successor state; preserve timeout25s and all historicalfinancial/authority oracles.",
+    "Fix both existing updater extractors tests/inicio-deuda-futura.test.mjs and tests/inicio-v42.test.mjs to inject readSession; adjust sameUIDnewobject expectation only to established cancellationcontract. Audit ALL other extractors/transitiveconsumers, registers/pins docs needed. No hide failures/skips/oracleweakening.",
+    "Node suite WHOLE EXIT0 REQUIRED before delivery, CPU1serial1worker0retry stopfirstfailure logsadmission/census/EXITRETURN. All Node tests without omission, not fullbrowser/Deno/Gradle/performanceCPU6. Focal red+green first; meaningful DOM only if changedrenderneeds. No repeat unrelated closed tasks; new code/failurejustifies affected tests.",
+    "Standing worker grante42252eb4444e23228b565b7d2da5b0ee5e13e43 OWN20 NEW0, initial/internal/readback>=30s exclusiveledger; FULLall deltas/cancellations, ownclaim/ACK remote verified by101 beforecheckout/code/tests, runtime/projAelyLOCAL receipt+expressadmission then technicalGO. No inheritedclaims/leases/grants/counters. Reports onlycoordinator underhuman74.",
+    "Allowed minimal11auth/sync code and focusedtests/helpers/docs; no04-tab-gastos.js orshell.html reserved, noVERSION/catalog/notes/caps/backend/SQL/Edge/Android/newdependencies/merge/deploy/mobile. Any necessarywidening justify toparent first. Immutable finalcandidate+fullNode0 evidence for independentparentreview before push to existingPR304 branch; updatePRdescription tofinalbehavior; ownresultdone/released+readback. NoProductREADY."
+  ]
+}
