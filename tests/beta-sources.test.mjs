@@ -6072,7 +6072,26 @@ test("Catálogo175 añade la tanda del lag de Gastos, tercera ronda (solo web) s
   // Registro: el de la 174 con, detrás, el descriptor nuevo; ninguno de los anteriores cambia (el código nuevo no toca funciones de lógica, solo Expenses, MovRow, el swipe de App y Deudas).
   const scopes=JSON.parse(source("scripts/beta-sources.json")),{[tandas[0]]:ahora,...resto}=scopes;
   assert.deepEqual(Object.keys(scopes),[...Object.keys(integrated),tandas[0]],"el descriptor nuevo, el último");
-  assert.deepEqual(resto,integrated,"los descriptores de la 174, intactos");
+  // Los de la 174 conservan sus unidades, en su orden, y solo crecen por el cierre de lectores: Expenses llama ahora a gestureAxis (con GEST_LEAD y GEST_MAX), y el guardián de dependencias exige que cada descriptor que lleva Expenses la vigile.
+  {const fns=logicFunctions(source),dat=logicData(source);let ampliados=0;
+    for(const [key,antes] of Object.entries(integrated)){
+      const ahoraKey=resto[key];
+      assert.deepEqual({...ahoraKey,web:undefined},{...antes,web:undefined},key+": mismo descriptor salvo las unidades");
+      if(!antes.web||key===archiveId){assert.deepEqual(ahoraKey,antes,key+": intacto");continue;}
+      assert.deepEqual(ahoraKey.web.slice(0,antes.web.length),antes.web,key+": las unidades de la 174, intactas y en su orden");
+      let web=antes.web.slice();
+      for(let ronda=0;ronda<12;ronda++){
+        const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];
+        for(const fn of scopeDependencies({web},source,fns))if(!tiene(fn.file,fn.name,"function"))extra.push({file:fn.file,function:fn.name});
+        for(const d of scopeDataDependencies({web},source,fns,dat))if(!tiene(d.file,d.name,"data"))extra.push({file:d.file,data:d.name});
+        if(!extra.length)break;web=web.concat(extra);
+      }
+      const clave=u=>JSON.stringify(u);
+      assert.equal(ahoraKey.web.length,web.length,key+": el cierre de lectores es exactamente el calculado");
+      assert.deepEqual(new Set(ahoraKey.web.map(clave)),new Set(web.map(clave)),key+": el cierre de lectores es exactamente el calculado");
+      if(web.length>antes.web.length)ampliados++;
+    }
+    assert.equal(ampliados,15,"los descriptores que ganan unidades por el cierre de lectores");}
   assert.deepEqual(Object.keys(ahora),["web","unidades"],"solo web");assert.equal(ahora.unidades,true);
   const propias=[integrated["gastos-lag-ciclos"].web[0],{file:G0,function:"Expenses"},{file:G0,from:"const MovRow=React.memo(function MovRow(",to:"/* Sheet de filtros (2026-08-05):"},{file:A0,from:"  /* swipe — distingue eje vertical/horizontal, menos sensible */",to:"  const onEnd=()=>{"},...integrated["gastos-lag-ciclos"].web.slice(2,10)];
   assert.deepEqual(ahora.web.slice(0,propias.length),propias,"las unidades propias de la tanda (el bloque del guardado, la lista de Gastos con sus filas, el swipe de App y los estilos de la lista), en este orden, y el cierre de lectores detrás");
@@ -8489,7 +8508,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   const marca="INC-0410 guardado: de aquí al límite";
   const dependientes=Object.keys(registro).filter(id=>registro[id].web.some(x=>x.from&&x.from.includes(marca)));
   const ajenas=Object.keys(registro).filter(id=>!dependientes.includes(id));
-  assert.equal(dependientes.length,70);
+  assert.equal(dependientes.length,71);
   for(const id of ["deudas-metas-hoja-edicion","deudas-plazo-cuota-encaja","deudas-metas-hoja-cierre-suave","fichas-cierre-suave-atras","gastos-suscripciones-botones"])assert.ok(dependientes.includes(id),id+": las hojas de Deudas y Metas y SubRow escriben estado con el set real y llevan el bloque del guardado");
   assert.ok(dependientes.includes("myinvestor-contador-a-cero"),"la sincronización de brókers de App escribe posiciones con el set real y lleva el bloque del guardado");
   assert.ok(dependientes.includes("compras-identicas-ids"),"las compras idénticas fusionan filas y guardan lápidas con el set real y llevan el bloque del guardado");

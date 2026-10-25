@@ -6,8 +6,8 @@ for(const row of cases)test.describe(row.zone,()=>{
  test.use({timezoneId:row.zone});
  for(const lang of ['es','en','ca'])for(const route of ['lista','asesor'])test(route+' '+lang,async({page},info)=>{
   await page.clock.install({time:new Date(row.at)});
-  // El ancla sintética conserva 12 cuotas en ambas zonas sin cambiar el calendario financiero local.
-  const debt={id:'madrid',name:'Deuda sintética Madrid',value:1300,original:1300,monthly:100,amort:100,months:13,asOf:2026*12+row.localMonth,day:1,apr:0,account:'sabadell'};
+  // El ancla sintética conserva 12 cuotas en ambas zonas: se ancla al mes de Madrid, que es el calendario de ymNow() (la 4.26.174 ya lo trae; antes era el local y en Los Angeles quedaba 11).
+  const debt={id:'madrid',name:'Deuda sintética Madrid',value:1300,original:1300,monthly:100,amort:100,months:13,asOf:2026*12+row.madridMonth,day:1,apr:0,account:'sabadell'};
   await seedLoggedInDashboard(page,{__seedOnce:true,debts:[debt],expenses:[],fixed:[],flows:[],goals:[],settings:{lang,autoPrices:false,theme:'green',reservaRules:[]}});
   await page.goto('/');await page.waitForFunction(()=>!document.getElementById('mc-load'));await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="plan"]').click();await page.getByRole('tab',{name:copy[lang].tab,exact:true}).click();
