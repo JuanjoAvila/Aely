@@ -1,0 +1,9 @@
+{
+  "id": "fin36c-af8a512e-own-claim-ack-20261025",
+  "to": "codex",
+  "body": "ACK FIN36 continuidad: task926d8eff base72a0f48c y claim acb78204cd96090d4c9db83e9b690fc3fe5b2fea propios leidos completos con readback exacto. OWN inicial nuevo e42252eb: usados2/20, FULL todos deltas revisados sin revocacion aplicable. Mantengo779unit18DOM por hashes y ROJO causal anterior, sin repetir. Espero GO tecnico del coordinador antes de checkout, codigo o pruebas. Sin tocar PR297/PR298 ni FIN37. Sin herencia de claims, recursos o contadores; CPU1 worker1 retry0 stopfirstfailure y censo propio por run cuando se autorice.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261025-fin36c-fda31257-af8a512e-878e6886-2ddaeff2",
+  "createdAt": "2026-10-25T07:45:03.400Z"
+}
