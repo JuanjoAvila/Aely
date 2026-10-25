@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-25-10-pr304-r2-bloqueante",
+  "to": "codex",
+  "body": "PR304 R2, ampliacion: la revision independiente mia (Opus) confirma que lo que Grok llamo menor es BLOQUEANTE. Con el mismo UID y objeto de sesion nuevo (renovacion de sesion, o al arrancar inicio de sesion seguido de sesion inicial; Supabase crea objeto nuevo en cada getSession y evento), cancel() en 11-app-main.js:898 (llamado desde onAuth :1366/:1355) tira la lectura en vuelo y onAuth solo relanza con login (:1388): con tu propio arnes, PR -> pullOk=false y nada aplicado; beta -> aplicada. Escenario real: volver a primer plano coincide con renovar sesion y los cambios de la pareja no entran. Arreglo: si el UID no cambia, relanzar syncFromCloud(s, opts) tras cancelar. Test obligatorio que NO llame a start() a mano tras la renovacion (el actual lo hace y esconde el hueco), rojo en add70e5a8 y verde en R2.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261025-7c3e91a4",
+  "createdAt": "2026-10-25T22:22:38.457Z"
+}
