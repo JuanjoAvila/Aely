@@ -1,0 +1,202 @@
+{
+  "status": "done",
+  "summary": "Candidata PR297 v2 entregada para integracion, no ProductREADY. Revisiones financieras completas, vinculo manual/automatico conserva deuda, guardias de gasto borrado y no-op de frecuencia. 51unit/7DOM dirigidos finales EXIT0;6mutantes incrementales causales. Revision independiente final sin findings segun padre. Gate catalogo auth-disposal-fit previo EXIT1 preservado.",
+  "productSHA": "29bc1b2b0d43b8195c0b5f6d6ef5850c09026c63",
+  "baseSHA": "ed1be46db093227311c817da808868923942d440",
+  "PRNumber": 297,
+  "branch": "codex/pr294-rebuild-fbf6b61c",
+  "tests": [
+    {
+      "command": "../node_modules/@playwright/test/cli.js test --config ../e2e.config.mjs --grep revision financiera DOM|frecuencia ya seleccionada DOM|vinculacion real engine REST CAS --workers=1 --retries=0 --max-failures=1",
+      "exitCode": 0,
+      "phase": "DIRECTED_GREEN",
+      "testsSourceSHA256": "86bd042dcf01567bdc757cddf7f68203894edb5f2ac5ae07f78de70b20aa90c5",
+      "stdoutSHA256": "82cecaf3880f9bde1c623d70d03b69c5a0cce415f367f871f810d048641e26d6"
+    },
+    {
+      "command": "../node_modules/@playwright/test/cli.js test --config ../e2e.config.mjs --grep recibo: borrador visible, precarga sin guardar y confirmación explícita --workers=1 --retries=0 --max-failures=1",
+      "exitCode": 0,
+      "phase": "DIRECTED_GREEN",
+      "testsSourceSHA256": "a1602666b22054244a89eb3d821a08904cd87a09acb14ddab05153975a561d04",
+      "stdoutSHA256": "e21da3a3e5acd4821091c75356abdc85ed9568115b984d9bf8256a7bba3449bc"
+    },
+    {
+      "command": "--test --test-concurrency=1 tests/fin04-plan-three-way.test.mjs",
+      "exitCode": 0,
+      "phase": "DIRECTED_GREEN",
+      "testsSourceSHA256": "2e290962009ffd1c62998e624687b9e88fc9a40d5cf8b1f59c791397d699b9ab",
+      "stdoutSHA256": "b651ac9081ab2a1919e37907f82f3ec8cf2379a1479f31ecbefb2322c85b3339"
+    },
+    {
+      "command": "--test --test-concurrency=1 --test-name-pattern=automatic debt link survives tests/fin04-plan-three-way.test.mjs",
+      "exitCode": 1,
+      "phase": "CAUSAL_MUTANT_KILLED",
+      "testsSourceSHA256": "da86984e656e5072685953f7061f35eb883e8e87b2e0b4a5bdb517c6a58d2762",
+      "stdoutSHA256": "5af169098c53f3b3e98d11e0715b5b931c0f6d912dfb9b476eb3cd874aa2ba03"
+    },
+    {
+      "command": "--test --test-concurrency=1 --test-name-pattern=changed contract invalidates tests/fin04-plan-three-way.test.mjs",
+      "exitCode": 1,
+      "phase": "CAUSAL_MUTANT_KILLED",
+      "testsSourceSHA256": "ab67f1aafdae679208b2c4131bbee46889e0b90bf4734d21965de8f26e0c178b",
+      "stdoutSHA256": "d37b75024438c91b2b8c31f4dc4ee09c64ec2174d0953decb381b8cd2648470b"
+    },
+    {
+      "command": "--test --test-concurrency=1 --test-name-pattern=logically deleted linked tests/fin04-plan-three-way.test.mjs",
+      "exitCode": 1,
+      "phase": "CAUSAL_MUTANT_KILLED",
+      "testsSourceSHA256": "9c170f08680151b9ddb7d42ee8967a30edff53e8c44ce68ed140e880c78079c9",
+      "stdoutSHA256": "3ccb1138a135a9d87c0896f389b958abfea877cc5bc08f58b6672e10cf1a0b3a"
+    },
+    {
+      "command": "--test --test-concurrency=1 --test-name-pattern=fixed review real Save keeps tests/fin04-plan-three-way.test.mjs",
+      "exitCode": 1,
+      "phase": "CAUSAL_MUTANT_KILLED",
+      "testsSourceSHA256": "428c396a93b36d687bc013102f46b46af85c8cee50cd6f7f5bd5dbe8349f6cc3",
+      "stdoutSHA256": "243b6f7feea5a6a636cbe67de68a1101e0320bcd4ad4e1ba3bf9d7617f0bbd51"
+    },
+    {
+      "command": "--test --test-concurrency=1 --test-name-pattern=linked expense is a debt edition tests/fin04-plan-three-way.test.mjs",
+      "exitCode": 1,
+      "phase": "CAUSAL_MUTANT_KILLED",
+      "testsSourceSHA256": "c1fbbc7618474f59f3602608931512936fd023a644e8a2dc13f2383d832f6eb0",
+      "stdoutSHA256": "abb09ac63ac46bb8a0df6a744efc21f0011c0cc89cf4a68669ebefb5b29a4a9c"
+    },
+    {
+      "command": "--test --test-concurrency=1 --test-name-pattern=same monthly frequency no-op tests/fin04-plan-three-way.test.mjs",
+      "exitCode": 1,
+      "phase": "CAUSAL_MUTANT_KILLED",
+      "testsSourceSHA256": "064b906e4d63dcaabf6ae03ff4e1244d2c4de32e0a62a339e815e0582df6bdb1",
+      "stdoutSHA256": "92960fdb932d1747311ee25a610842a65e7610269b8f2bbbbec64df22cb64328"
+    }
+  ],
+  "evidenceSHA256": "c80341e833f426f875e069fea9efbba3439530c137c648a635b58961722adcb1",
+  "runtimeSHA256": "8c1622ac4fcca4bb1104d278ffac0155be9e66b8109848fbc3ff9ca22ab9f335",
+  "sourceCommitBinding": [
+    {
+      "path": "docs/ARQUITECTURA.md",
+      "sha256": "b2ee9f6919a45209be6c94ffb65639c590eea9e7aa45287d9990851058ca780f",
+      "normalizedLFMatch": false,
+      "unchangedFromPriorBoundCommit": true
+    },
+    {
+      "path": "docs/TESTING.md",
+      "sha256": "bd6d496c51eb9d0f159fa9be0d523157e7db498f8f0ba98f347028ebb7f5263e",
+      "normalizedLFMatch": false,
+      "unchangedFromPriorBoundCommit": true
+    },
+    {
+      "path": "e2e/fin04-plan-three-way.spec.mjs",
+      "sha256": "3a7d9140cee83827486eee943a8c97f0412ea1adac77b0c6da4ee856a821fa2d",
+      "normalizedLFMatch": true,
+      "unchangedFromPriorBoundCommit": false
+    },
+    {
+      "path": "scripts/relevant-tests.mjs",
+      "sha256": "5c962d09da134c152dc3e4b0f668f1d83c46d8de11ec8b60db130711ec284009",
+      "normalizedLFMatch": false,
+      "unchangedFromPriorBoundCommit": true
+    },
+    {
+      "path": "scripts/run-tests.mjs",
+      "sha256": "76a35ccbd1e085a02a4ca966ba51b18d624497dee190956bba4e03eaec8be242",
+      "normalizedLFMatch": false,
+      "unchangedFromPriorBoundCommit": true
+    },
+    {
+      "path": "src/modules/00-core.js",
+      "sha256": "bd7afb284a8fa67c72ef3fe1bd301bdbd59ee94ca4732fc8f0f20efb77cc892a",
+      "normalizedLFMatch": true,
+      "unchangedFromPriorBoundCommit": false
+    },
+    {
+      "path": "src/modules/01-i18n.js",
+      "sha256": "7d0ba03b45cc17731a50a48773f8a65efa4689ff6f09efc5a57dbcb7454ed6f9",
+      "normalizedLFMatch": true,
+      "unchangedFromPriorBoundCommit": false
+    },
+    {
+      "path": "src/modules/08-motor-bank.js",
+      "sha256": "42f2eba8fe0e4bac210fb9fc02ed22169be3f508297dcf46cd5cd5c9b9d401a8",
+      "normalizedLFMatch": true,
+      "unchangedFromPriorBoundCommit": false
+    },
+    {
+      "path": "src/modules/09-tab-debts-goals.js",
+      "sha256": "ea877957e7fa7709130bf9e05ecdab91453eefae77181da875e72436e5c1f090",
+      "normalizedLFMatch": true,
+      "unchangedFromPriorBoundCommit": false
+    },
+    {
+      "path": "src/modules/10-app-components.js",
+      "sha256": "e34e1a40e5f342fe03fb5030e67f8521a949b0a7446a9a18fa910e11b1869e3e",
+      "normalizedLFMatch": true,
+      "unchangedFromPriorBoundCommit": false
+    },
+    {
+      "path": "src/modules/11-app-main.js",
+      "sha256": "acb3e6c162d1f85ed084c11cde6d52d42234789ef176d65ec1ea1813c6303bce",
+      "normalizedLFMatch": true,
+      "unchangedFromPriorBoundCommit": false
+    },
+    {
+      "path": "src/modules/14-v4-screens.js",
+      "sha256": "87344e00dce75165636bab9923187e7e7f614995c2d2aff7a993ae572c734143",
+      "normalizedLFMatch": true,
+      "unchangedFromPriorBoundCommit": false
+    },
+    {
+      "path": "tests/auth-disposal.test.mjs",
+      "sha256": "cadde61f49f5809280807a65f1fd759a827e229963f748bcfa4a642ec7bb1d7e",
+      "normalizedLFMatch": false,
+      "unchangedFromPriorBoundCommit": true
+    },
+    {
+      "path": "tests/fin04-plan-three-way.test.mjs",
+      "sha256": "b83ca48b1f31e30584bbdcc488516a5b1a0414c00e4328605b3d50cfd4a35e2c",
+      "normalizedLFMatch": true,
+      "unchangedFromPriorBoundCommit": false
+    },
+    {
+      "path": "tests/helpers/auth-disposal-fixture.mjs",
+      "sha256": "c9922d4145d04f7a47214b41de85d9dcac681dddb17840d84e10a1d674111411",
+      "normalizedLFMatch": false,
+      "unchangedFromPriorBoundCommit": true
+    },
+    {
+      "path": "tests/inicio-deuda-futura.test.mjs",
+      "sha256": "29d3fb645b2d203fc59e785f1799f1a8a26d02f6731128d84ce3f3108ce4e7c5",
+      "normalizedLFMatch": false,
+      "unchangedFromPriorBoundCommit": true
+    },
+    {
+      "path": "tests/security.test.mjs",
+      "sha256": "b56d37dbae51c2b71b6cd6b0d35098ddac951136d91274ef0fe1cafb9de31322",
+      "normalizedLFMatch": false,
+      "unchangedFromPriorBoundCommit": true
+    }
+  ],
+  "originalSnapshot": "ffd2bcb8ea9cd87830240e76d31cb84d01e80822",
+  "originalEvidenceSHA256": "e099436c95360a543c505c3c4f773f841efa87826952d230dc21ca235ffaeaa3",
+  "limitations": [
+    "auth-disposal-fit prior EXIT1 planSyncClear catalogue gate reserved for integration",
+    "Original17 E2E and16mutants belong ffd2bcb8 snapshot; current head uses final51unit and directed7E2E plus6newmutants",
+    "Synthetic transport only; no physical mobile/APK/deploy/merge/general CI/full suites/CPU6/docs-frescura/beta-sources/size gates",
+    "Link actions invoke real engine with offline persistence; delete and review use real UI; SDK REST/CAS is real on closed synthetic backend"
+  ],
+  "productReady": false,
+  "resources": {
+    "returned": true,
+    "portFreeAfterAllRuns": true,
+    "noForeignProcessesKilled": true,
+    "runnerClosed": true
+  },
+  "ownFetchUsedBeforeResult": 8,
+  "ownAllowance": 20,
+  "schema": 1,
+  "taskId": "pr294-rebuild-debt-tombstones-codex-20261025",
+  "actor": "codex",
+  "sessionId": "codex-local-20261025-pr294-fbf6b61c-49992e86-03eba79a-a481e0c3",
+  "createdAt": "2026-10-25T00:16:33.852Z",
+  "released": true
+}
