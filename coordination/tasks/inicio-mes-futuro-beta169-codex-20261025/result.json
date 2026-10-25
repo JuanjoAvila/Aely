@@ -1,0 +1,110 @@
+{
+  "status": "blocked",
+  "summary": "Candidate finished and independently reviewed: monthly Madrid upper bound for Inicio, Gastos parity, app widget bridges, server V2 and legacy month. PR298 draft delivered; integration and external acceptance pending.",
+  "productSHA": "864d50e51207a36bd436165f2c1466d946445729",
+  "baseSHA": "72a0f48ccd03e48c1245899cf6eaf3b2e8d18313",
+  "PR": 298,
+  "draft": true,
+  "tests": [
+    {
+      "command": "node tests/inicio-mes-futuro.test.mjs",
+      "exitCode": 0,
+      "clientMonthTimezoneScenarios": 12,
+      "fallback": 1,
+      "anchoredCycle": 1,
+      "V2Cases": 2,
+      "legacyCases": 12
+    },
+    {
+      "tool": "Playwright",
+      "spec": "e2e/inicio-mes-futuro.spec.mjs",
+      "workers": 1,
+      "retries": 0,
+      "maxFailures": 1,
+      "exitCode": 0,
+      "passed": 12,
+      "environment": "Windows local synthetic; Madrid and Los Angeles"
+    },
+    {
+      "command": "node tests/month-budget-stats.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/widget-inicio-paridad.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/gastos-mes-madrid.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/informe-mes.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/edge-sintaxis.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    }
+  ],
+  "causalRED": {
+    "client": true,
+    "V2Money": true,
+    "V2FutureReserveScope": true,
+    "legacy": true,
+    "noAnchorFallback": true,
+    "realInicioDOM": true
+  },
+  "causalMutantsKilled": [
+    "client-window",
+    "server-window",
+    "legacy-window"
+  ],
+  "regressionsRepaired": [
+    "legacy null reservation parser preserved after independent review",
+    "historical informe-mes default40 with explicit unbounded139 demonstration"
+  ],
+  "acceptedCentsOracle": {
+    "spent": 2554,
+    "income": 535,
+    "budget": 9683,
+    "remainingSplit": 7129
+  },
+  "sourceGrants": [
+    "ef83d17b30231c3791fb11f9263cbfade4630d16",
+    "fbc5e4852c5cf6bd27277331ea97eef86c4f0814",
+    "aa84dcb495c635da0b05290928d35ae42ad9b708"
+  ],
+  "ownReadsAtPublication": 7,
+  "ownAllowance": 20,
+  "resourcesReturned": true,
+  "sharedBudgetSourceUnchanged": true,
+  "releaseMetadataUnchanged": true,
+  "generatedArtifactsCommitted": false,
+  "limitations": [
+    "General CI not verified; only directed local validation",
+    "Deno runtime and type check not available in PATH",
+    "No integration or deployed ingest; deployment owned by Claude under its explicit circuit",
+    "No served artifact verification or physical mobile acceptance",
+    "Legacy net mode remains its existing contract; monthly Inicio and V2 use gross split",
+    "Not ProductREADY"
+  ],
+  "completedWorker": true,
+  "schema": 1,
+  "taskId": "inicio-mes-futuro-beta169-codex-20261025",
+  "actor": "codex",
+  "sessionId": "codex-local-20261025-inicio-25604839-41db00ee-157c892f-39325c65",
+  "createdAt": "2026-10-25T00:47:21.185Z",
+  "released": true
+}
