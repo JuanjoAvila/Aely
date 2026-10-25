@@ -1,0 +1,122 @@
+{
+  "status": "done",
+  "summary": "PR305 draft contra beta: tarjeta y asesor muestran mes de Madrid antes de sumar cuotas; da_cut conserva fecha nueva y anterior, cut y dinero. Revision parental independiente GO al head exacto antes push; head/base/draft/titulo/body remotos verificados. Ocho rojos causales previos y24 casos finales es/en/ca verdes.",
+  "productSHA": "3e9420f06e60cee5f4acb4cac133bfa653322a6b",
+  "baseSHA": "95b950a0cae516a327b9cb28e022715df9b04ca8",
+  "productTree": "6be032acb74795d1d83ae2913fef7dccf7698f80",
+  "pullRequest": 305,
+  "draft": true,
+  "targetBranch": "beta",
+  "branch": "codex/deudas-madrid-fd41f1c1",
+  "PRHeadBodyBaseDraftRemoteReadbackExact": true,
+  "changedFiles": [
+    "README.md",
+    "docs/TESTING.md",
+    "docs/briefs/deudas-mes-madrid.md",
+    "e2e/deudas-mes-madrid.spec.mjs",
+    "scripts/relevant-tests.mjs",
+    "scripts/run-tests.mjs",
+    "src/modules/09-tab-debts-goals.js",
+    "tests/deudas-mes-madrid.test.mjs"
+  ],
+  "tests": [
+    {
+      "command": "node --test --test-name-pattern America/Los_Angeles lista es tests/deudas-mes-madrid.test.mjs",
+      "phase": "causal-red-intact",
+      "exitCode": 1,
+      "expectedFailure": true
+    },
+    {
+      "commandPublicPortion": "node --test --test-reporter=tap --test-concurrency=1 --test-name-pattern [zone route es] tests/deudas-mes-madrid.test.mjs",
+      "phase": "causal-red-intact",
+      "cases": 3,
+      "actualExitCode": null,
+      "signal": "SIGTERM",
+      "stopFirstFailureAfterCapturedAssertion": true,
+      "expectedFailure": true
+    },
+    {
+      "commandPublicPortion": "node node_modules/@playwright/test/cli.js test deudas-mes-madrid.spec.mjs --workers=1 --retries=0 --max-failures=1 --grep [zone route es]",
+      "config": "isolated synthetic configuration; private argument omitted",
+      "phase": "causal-red-intact",
+      "cases": 4,
+      "exitCode": 1,
+      "expectedFailure": true
+    },
+    {
+      "command": "node --test --test-reporter=tap --test-concurrency=1 tests/deudas-mes-madrid.test.mjs",
+      "phase": "final",
+      "exitCode": 0,
+      "passed": 12,
+      "skipped": 0,
+      "retries": 0
+    },
+    {
+      "commandPublicPortion": "node node_modules/@playwright/test/cli.js test deudas-mes-madrid.spec.mjs --workers=1 --retries=0 --max-failures=1",
+      "config": "isolated synthetic configuration; private argument omitted",
+      "phase": "final",
+      "exitCode": 0,
+      "passed": 12,
+      "skipped": 0,
+      "retries": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "scriptBlocks": 7
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0
+    }
+  ],
+  "causalRedSummary": {
+    "intactSourceMatchesBase": true,
+    "Node": 4,
+    "DOM": 4,
+    "exit1": 5,
+    "SIGTERMafterAssertion": 3,
+    "allExpectedFailures": true
+  },
+  "financialBalanceCentsSynthetic": 120000,
+  "remaining12": true,
+  "storedDatesAndPersistenceUnchanged": true,
+  "oppositeTimezoneBoundaries": true,
+  "yearRollover2027": true,
+  "i18n": [
+    "es",
+    "en",
+    "ca"
+  ],
+  "resourcesReturned": {
+    "CPU1": true,
+    "serial": true,
+    "workers": 1,
+    "retries": 0,
+    "activeRuns": 0,
+    "sharedResourcesModified": false
+  },
+  "OWN": {
+    "grant": "e42252eb4444e23228b565b7d2da5b0ee5e13e43",
+    "allowance": 20,
+    "usedActualBeforeResult": 7,
+    "noInheritance": true,
+    "minAllFetchSpacingSeconds": 30
+  },
+  "limitations": [
+    "CI, integration, served beta and mobile acceptance pending; no merge/deploy/ProductREADY",
+    "No VERSION/catalog/notes/caps/backend/SQL/Edge/Android edits; no K3/FIN04/G14 repeated tests",
+    "Generated product artifacts restored; only reviewed8 files in commit",
+    "Rebuilt once for durable private artifact after private packaging parse error; no green tests repeated"
+  ],
+  "schema": 1,
+  "taskId": "deudas-textos-madrid-codex-20261025",
+  "actor": "codex",
+  "sessionId": "codex-local-20261025-deudas-madrid-fda31257-682d1c28-1140dc83-fd41f1c1",
+  "createdAt": "2026-10-25T22:15:52.425Z",
+  "released": true
+}
