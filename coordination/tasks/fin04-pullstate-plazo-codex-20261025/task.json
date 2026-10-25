@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "id": "fin04-pullstate-plazo-codex-20261025",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261025-r100-fda31257-8268ed39-87d333bc-2a69a77b",
+  "createdAt": "2026-10-25T21:27:30.549Z",
+  "to": "codex",
+  "baseSHA": "95b950a0cae516a327b9cb28e022715df9b04ca8",
+  "objective": "Cola1 de6 admitida por Claude685cedf9112d416fdc3cf4bfebedd5496e31e7e0: FIN04 plazo cloud.pullState en syncFromCloud, relevo por nueva lectura y respuesta tardia sin mezclar; guardian pull-historico-entero. Una PR draft contra beta actual.",
+  "scope": [
+    "Arreglo minimo en fuente syncFromCloud siguiendo EXP_READ_PLAZO; test guardian causal rojo antes del fix y verde focal completo. Datos sinteticos; comprobar nueva lectura tras plazo y descartar respuesta tardia sin perder estado ni gastos",
+    "Prohibido tocar src/modules/04-tab-gastos.js y src/shell.html reservados; no VERSION/catalogo/notas/caps/backend/SQL/Edge/Android/merge/deploy. Documentacion tecnica pertinente sin version de integracion",
+    "Checkout y rama codex propios desde baseSHA, sin instalar dependencias ni alterar checkout compartido. CPU1 serial1worker0retry stopfirstfailure, censo/admission/logsEXIT/RETURN exclusivos antes/despues cada run; sin navegador ni CPU6 salvo necesidad concreta admitida",
+    "Worker grant standing e42252eb4444e23228b565b7d2da5b0ee5e13e43 OWN20 NUEVO0, initial/internal/readback>=30s ledger exclusivo; FULL todos deltas/cancelaciones; claim y ACK propios remotos antes codigo/tests. Sin herencia",
+    "Recepcion privada con nodeRepl.requestMeta threadId/sessionId reales y proyecto Aely LOCAL; esperar admision ROOT100; luego claim/ACK; esperar technicalGO antes editar/ejecutar. Reportar SOLO al coordinador por mensaje nativo bajo literal humano74",
+    "Revision independiente parental antes push y PR draft beta; Grok revisara dinero tras entrega corta de ROOT100 a Claude. No repetir K3 ni avisosG14. Sin ProductREADY"
+  ]
+}
