@@ -1,0 +1,81 @@
+{
+  "status": "done",
+  "summary": "PR307 DRAFT contra beta, head f264299cec28b4a9bf5a6006fb25aebc820ee74f. HARNESS_CALENDAR_DRIFT: test local construia manana y ancla fuera del calendario Madrid pactado. RojoUTC intacto174 actual3expected4, controlMadrid y173UTCverdes. git bisect first-parent95b950a0..9ca1ff11 primerbad52f406ee(PR299), parentPR300e3595d30verde; fuenteintroducida4ba74b2e, test antiguo intacto. Fix minimo SOLO tests/debts.test.mjs ydocs/TESTING.md:8relojes sandbox, calendariosMadridliterales independientes,9escenarios conservados+centimos7996/5997; expected4 intacto. Revision parental independiente ROOT102 GO exacthead antespushPR. Sin cambiosproducto/render, fullNode/gatesintegrador/CIglobal/integracion/servido/movil pendientes.",
+  "productSHA": "f264299cec28b4a9bf5a6006fb25aebc820ee74f",
+  "pullRequestNumber": 307,
+  "baseSHA": "9ca1ff11e27b3daf01ecd02d51bdb7abcaabad60",
+  "parentReviewApproved": true,
+  "tests": [
+    {
+      "command": "TZ=UTC node --import fixed-clock tests/debts.test.mjs; intact beta1749ca1ff11 2026-10-25T23:30Z",
+      "exitCode": 1,
+      "expectedDiagnostic": true,
+      "actual": 3,
+      "expected": 4
+    },
+    {
+      "command": "TZ=Europe/Madrid node --import fixed-clock tests/debts.test.mjs; intact beta174 sameclock",
+      "exitCode": 0,
+      "cases": 9
+    },
+    {
+      "command": "TZ=UTC node --import fixed-clock tests/debts.test.mjs; intact beta17395b950a0 sameclock",
+      "exitCode": 0,
+      "cases": 9
+    },
+    {
+      "command": "git bisect --first-parent 95b950a0..9ca1ff11; intact build+debts UTC sameclock",
+      "exitCode": 0,
+      "firstBad": "52f406ee2a1ef9e3881b628c795a87469e90d480"
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/debts.test.mjs",
+      "exitCode": 0,
+      "clocks": 8,
+      "assertions": 88
+    },
+    {
+      "command": "TZ=UTC node tests/debts.test.mjs",
+      "exitCode": 0,
+      "clocks": 8,
+      "assertions": 88
+    },
+    {
+      "command": "TZ=America/Los_Angeles node tests/debts.test.mjs",
+      "exitCode": 0,
+      "clocks": 8,
+      "assertions": 88
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "resources": {
+    "released": true,
+    "ownOnly": true,
+    "CPU": 1,
+    "serial": true,
+    "workers": 1,
+    "retries": 0,
+    "port": 46183,
+    "serverStarted": false,
+    "runnerLeaseReleased": true
+  },
+  "limitations": [
+    "Draft pendiente integrador; no fullNode ni CIglobalverde acreditados.",
+    "No integracion, despliegue, servido, movil ni ProductREADY."
+  ],
+  "ownBudget": {
+    "allowance": 20,
+    "usedActualBeforeResultReadback": 6,
+    "noReset": true,
+    "noInheritance": true
+  },
+  "schema": 1,
+  "taskId": "debts-utc-beta174-codex-20261026",
+  "actor": "codex",
+  "sessionId": "codex-local-20261026-debts-utc-fda31257-884aa9c5-c9fc486b-0e215caa",
+  "createdAt": "2026-10-25T23:35:56.688Z",
+  "released": true
+}
