@@ -15726,6 +15726,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "planSyncConflict"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
       }
     ]
   },
@@ -47926,6 +47934,14 @@
       {
         "file": "src/modules/00-core.js",
         "data": "NF"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
       }
     ],
     "unidades": true
@@ -89650,6 +89666,44 @@
       {
         "file": "src/modules/00-core.js",
         "function": "resolveCategory"
+      }
+    ],
+    "unidades": true
+  },
+  "inicio-mes-futuro": {
+    "web": [
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "budgetPeriodOf"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "from": "  const selectedPeriod=useMemo(function(){",
+        "to": "  const diarioEnts=useMemo("
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "inicioDeMesMs"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "MC_TZ"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesTz"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesYmFmt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesDiaFmt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesByYm"
       }
     ],
     "unidades": true
