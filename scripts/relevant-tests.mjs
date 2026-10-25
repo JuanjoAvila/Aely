@@ -147,6 +147,8 @@ export const E2E_MAP = [
     "e2e/gastos-lista-ligera.spec.mjs",
     // Rechazo de la 173: tocar un mes o un ciclo de la fila deja SU primer día bajo la cabecera.
     "e2e/gastos-fila-salto.spec.mjs",
+    // Y el asa de ordenar ya no se come el desliz hacia Plan (solo se queda el vertical).
+    "e2e/gastos-asa-desliz.spec.mjs",
     // Apuntes iguales de TR por el cableado real: filas en Gastos, «Es el mismo» desde la ficha.
     "e2e/tr-iguales-ordinal.spec.mjs",
     "e2e/tr-emparejado-automatico.spec.mjs",

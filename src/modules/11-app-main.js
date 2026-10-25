@@ -2922,6 +2922,9 @@ function App(){
 
   /* swipe — distingue eje vertical/horizontal, menos sensible */
   const startX=useRef(0), startY=useRef(0), startT=useRef(0), dx=useRef(0), axis=useRef(null), dragging=useRef(false), trackRef=useRef(null);
+  // El dedo empezó en una zona `data-noswipe="y"` (el asa de ordenar de Gastos): suya en vertical,
+  // nuestra en horizontal. Ver `onMove`.
+  const soloX=useRef(false);
   /* PINTAR UNA VEZ POR FRAME, NO UNA POR `touchmove` (2026-09-10, medido en su OnePlus).
      Su queja, con sus palabras: «si desplazas fluido no se nota apenas, es ir LENTO y ahí se nota
      el tirón, no va super smooth». Y tenía razón otra vez: arrastrando despacio, el avance del
@@ -3206,11 +3209,15 @@ function App(){
        listener nativo en `.viewport` se dispara ANTES que los de React, así que el
        `stopPropagation` de `stopSwipe` ya no llegaría a tiempo: hay que mirarlo aquí.
          · `[data-noswipe]`: buscador y rango de fechas de Gastos, que lo piden explícitamente.
+           `data-noswipe="y"` (el asa de ordenar de Gastos) solo pide el vertical: en horizontal
+           sigue siendo cambiar de pestaña (rechazo de la beta 4.26.173, ver `startExpenseDrag`).
          · cualquier cosa con scroll horizontal propio (las filas de chips): el dedo es del
            navegador, no nuestro. Antes esto «funcionaba» de rebote —el navegador se quedaba el
            gesto porque no podíamos impedírselo— y ahora que sí podemos hay que ser explícitos. */
     const t=e.target;
-    if(t&&t.closest&&t.closest("[data-noswipe]")) return;
+    const noSwipe=t&&t.closest?t.closest("[data-noswipe]"):null;
+    if(noSwipe && noSwipe.getAttribute("data-noswipe")!=="y") return;
+    soloX.current=!!noSwipe;
     for(let el=t; el&&el!==document.body; el=el.parentElement){
       if(el.classList&&el.classList.contains("page")) break;
       if(el.scrollWidth>el.clientWidth+4){
@@ -3278,6 +3285,8 @@ function App(){
       // dedo es lo que hacía que una bajada con deriva lateral acabara cambiando de pestaña.
       const eje=gestureAxis(ddx,ddy);
       if(!eje) return;
+      // En el asa, el vertical es ordenar: el gesto no es nuestro. Hasta aquí no se ha tocado nada.
+      if(soloX.current && eje!=="x"){ dragging.current=false; soloX.current=false; return; }
       /* A MITAD, ABAJO o ARRIBA: el arco del pulgar gana `x` pronto → preventDefault +
          leaveScrollHost + freezeShell matan scroll/ola. Una diagonal sigue siendo scroll/ola,
          también en el fondo; pero un horizontal inequívoco tiene que cambiar de pestaña sin

@@ -1023,23 +1023,53 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   /* El asa reclama el dedo desde el principio: dejar que la fila entera fuera arrastrable
      convertiría un scroll normal en cambios de orden accidentales. El destino se resuelve contra
      el DOM porque solo hay unas pocas filas visibles; `moveExpenseWithinDay` vuelve a comprobar
-     la fecha antes de guardar, así un dedo que cruce un separador nunca mezcla días. */
+     la fecha antes de guardar, así un dedo que cruce un separador nunca mezcla días.
+     ⚠ PERO EL ASA SOLO SE QUEDA EL DEDO EN VERTICAL (rechazo de la beta 4.26.173: «ahora ya no es
+     hacia Inicio sino hacia Plan»). El asa vive en el borde derecho de cada fila, justo donde el
+     pulgar empieza a deslizar hacia Plan. Antes reclamaba el toque entero: el carrusel no se movía
+     y el `setDragExpense` del toque y el del final repintaban la lista ENTERA dos veces, más caro
+     cuantas más filas hubiera bajadas (A/B en lag-gastos-r3: 100-150 ms por frame a CPU x6 con 670
+     filas, y sin cambiar de pestaña). Hacia Inicio el dedo empieza a la izquierda y nunca la
+     tocaba: de ahí que solo pasara hacia Plan. Ahora el toque solo marca la fila (por clase, sin
+     render) y el eje decide: en vertical empieza a ordenar; en horizontal se suelta y el carrusel
+     (que ve el asa como `data-noswipe="y"`) cambia de pestaña. */
+  const asaRef=useRef(null);
   const startExpenseDrag=useCallback(function(ev,e){
-    ev.stopPropagation(); cancelSwipe();
-    const d={from:e.id,to:e.id,day:String(e.date||"").slice(0,10)};
-    dragExpenseRef.current=d; setDragExpense(d);
-  },[cancelSwipe]);
+    ev.stopPropagation();
+    const p=ev.touches&&ev.touches[0]; if(!p) return;
+    const row=ev.currentTarget&&ev.currentTarget.closest?ev.currentTarget.closest(".v4-mov"):null;
+    if(row) row.classList.add("dragging");
+    asaRef.current={e:e, x:p.clientX, y:p.clientY, row:row};
+  },[]);
+  const sueltaAsa=function(){
+    const a=asaRef.current; asaRef.current=null;
+    if(a&&a.row&&!dragExpenseRef.current) a.row.classList.remove("dragging");
+  };
   const moveExpenseDrag=useCallback(function(ev){
-    const d=dragExpenseRef.current; if(!d||!ev.touches||!ev.touches[0]) return;
+    if(!ev.touches||!ev.touches[0]) return;
+    const a=asaRef.current;
+    if(a && !dragExpenseRef.current){
+      // Mismo criterio de eje que el carrusel (`gestureAxis`): los dos deciden sobre el mismo dedo.
+      const eje=gestureAxis(ev.touches[0].clientX-a.x, ev.touches[0].clientY-a.y);
+      if(!eje) return;
+      if(eje!=="y"){ sueltaAsa(); return; }
+      cancelSwipe();
+      const nd={from:a.e.id,to:a.e.id,day:String(a.e.date||"").slice(0,10)};
+      dragExpenseRef.current=nd; setDragExpense(nd);
+    }
+    const d=dragExpenseRef.current; if(!d) return;
     ev.stopPropagation();
     const p=ev.touches[0], hit=document.elementFromPoint(p.clientX,p.clientY);
     const row=hit&&hit.closest&&hit.closest("[data-expense-id]");
     if(!row||row.getAttribute("data-expense-day")!==d.day) return;
     const to=row.getAttribute("data-expense-id"); if(!to||to===d.to) return;
     d.to=to; setDragExpense({from:d.from,to:d.to,day:d.day});
-  },[]);
+  },[cancelSwipe]);
   const endExpenseDrag=useCallback(function(){
+    sueltaAsa();
     const d=dragExpenseRef.current;
+    // Un toque o un desliz horizontal no llegaron a ordenar: nada que repintar.
+    if(!d) return;
     if(d&&d.from!==d.to){ suppressOpenRef.current=Date.now()+400; set(function(s){ return moveExpenseWithinDay(s,d.from,d.to); }); }
     dragExpenseRef.current=null; setDragExpense(null);
   },[set]);
@@ -2323,7 +2353,7 @@ const MovRow=React.memo(function MovRow({e, ms, l, onOpen, bucket, recibo, dragg
       )
     ),
     React.createElement("div",{className:"am num"+(isIncome?" pos":"")+(skip?" muted":"")}, (isIncome?"+":"")+eur(Math.abs(e.amount))),
-    React.createElement("span",{className:"v4-mov-drag",role:"img","data-noswipe":"1","aria-label":t("drag_hint"),title:t("drag_hint"),
+    React.createElement("span",{className:"v4-mov-drag",role:"img","data-noswipe":"y","aria-label":t("drag_hint"),title:t("drag_hint"),
       onTouchStart:function(ev){ onDragStart(ev,e); },onTouchMove:onDragMove,onTouchEnd:onDragEnd,onTouchCancel:onDragEnd},"⠿")
   );
 });
