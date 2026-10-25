@@ -8,7 +8,7 @@ import {loadPureLogicFromFile} from "../scripts/load-pure-logic.mjs";
 const root=new URL("../",import.meta.url),core=fs.readFileSync(new URL("src/modules/00-core.js",root),"utf8");
 let app=fs.readFileSync(new URL("src/modules/11-app-main.js",root),"utf8");
 const mutant=process.env.INC0410_REVIEW_MUTANT;
-if(mutant){const [a,b]=mutant==="M9"?["if(!goalSyncMetadataOnly(cloudEffectState.current,state))","if(true)"]:["goalSyncAck(prev,u,sent,expected,r.updated_at)","goalSyncAck(prev,u,stateRef.current,expected,r.updated_at)"];assert.ok(app.includes(a));app=app.replace(a,b);}
+if(mutant){const [a,b]=mutant==="M9"?["if(cloudEffectState.current!==state && !goalSyncMetadataOnly(cloudEffectState.current,state))","if(true)"]:["goalSyncAck(prev,u,sent,expected,r.updated_at)","goalSyncAck(prev,u,stateRef.current,expected,r.updated_at)"];assert.ok(app.includes(a));app=app.replace(a,b);}
 function block(s,t){const mask=codeMask(s),start=mask.indexOf(t);assert.ok(start>=0,t);let i=mask.indexOf("{",start)+1,n=1;for(;n&&i<mask.length;i++){if(mask[i]==="{")n++;if(mask[i]==="}")n--;}assert.equal(n,0);return s.slice(start,i);}
 const copy=v=>v===undefined?undefined:JSON.parse(JSON.stringify(v)),owner="synthetic-owner",key="test-goals";
 function logic(){
@@ -67,11 +67,13 @@ test("g-M12: ACK real conserva foto enviada mientras se edita durante la petici�
  const b=machine(based(seed()),null),sent=copy(b.state()),p=b.push();b.edit(s=>({...s,goals:[{...s.goals[0],saved:25}]}));b.ack();await p;
  assert.equal(b.calls[0].s.goals[0].saved,sent.goals[0].saved);assert.equal(b.state()._goalSync.base[0].saved,sent.goals[0].saved);assert.equal(b.state().goals[0].saved,25);
 });
+/* El segundo `frame()` es un re-render de App SIN cambio de estado (un desliz, la barra al
+   scrollear): tomarlo por edición reenviaba tras cada ACK — lagazo de Gastos del 25/10. */
 test("g-M9: contar pushes del efecto real mata el bucle de ACK",async()=>{
  const b=machine(based(seed()),null),c=b.c,refs=[],timers=new Map();let hook=0,effect,next=0;
  const render=vm.runInContext("(function(state,uid,useRef,useEffect,setTimeout,clearTimeout,pushAppState,t,showToast,syncFromCloud,sessionRef,obAbsorbedWriteBlocked,stateRef){"+b.effectSource+"})",c);
  function frame(){hook=0;render(b.state(),owner,v=>refs[hook++]||(refs[hook-1]={current:v}),(fn,deps)=>{if(!effect||deps.some((v,i)=>v!==effect.deps[i])){if(effect?.clean)effect.clean();effect={deps,clean:fn()};}},fn=>{timers.set(++next,fn);return next;},id=>timers.delete(id),b.pushFunction,x=>x,()=>{},()=>{},b.deps.sessionRef,b.deps.obAbsorbedWriteBlocked,b.deps.stateRef);}
- frame();for(let i=0;i<4;i++){if(!timers.size)break;const [id,fn]=timers.entries().next().value;timers.delete(id);fn();b.ack();for(let j=0;j<12;j++)await Promise.resolve();frame();}
+ frame();for(let i=0;i<4;i++){if(!timers.size)break;const [id,fn]=timers.entries().next().value;timers.delete(id);fn();b.ack();for(let j=0;j<12;j++)await Promise.resolve();frame();frame();}
  assert.equal(b.calls.length,1);assert.equal(timers.size,0);
 });
 test("bajos: telemetría una vez por registro tras dos arranques",()=>{

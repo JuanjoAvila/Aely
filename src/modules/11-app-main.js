@@ -1328,7 +1328,13 @@ function App(){
   const cloudEffectState=useRef(null);
   const cloudUploadState=useRef(state);
   // Un ACK privado no debe limpiar el debounce de una edición posterior que sigue pendiente.
-  if(!goalSyncMetadataOnly(cloudEffectState.current,state)) cloudUploadState.current=state;
+  /* Y un render SIN cambio de estado tampoco es una edición (25/10, «bajas en Gastos, deslizas y
+     el lagazo se queda»). `goalSyncMetadataOnly(Y,Y)` da false —mismo `_goalSync`—, así que el
+     primer re-render de App tras un ACK (el `setHostTab` de cada desliz, la barra al scrollear)
+     tomaba Y como estado nuevo: otro envío 1,2 s después, otro ACK con `_goalSync` nuevo, y las
+     cuatro pestañas repintadas — Gastos con todas las filas que hubieras bajado. Un envío a la
+     nube y un repintado entero por cada gesto, sin fin. */
+  if(cloudEffectState.current!==state && !goalSyncMetadataOnly(cloudEffectState.current,state)) cloudUploadState.current=state;
   cloudEffectState.current=state;
   const uploadState=cloudUploadState.current;
   useEffect(function(){

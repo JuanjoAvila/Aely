@@ -25344,7 +25344,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="7510f9a15434b4bf4d570af4a6809db373b51c0ac08bef087355bc14a3084acf";
+var _rnSha="474f8ac24342f8abe21cfe44a4e58cff2df0750ac90ec77ca30542cc63b2a102";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -30234,7 +30234,13 @@ function App(){
   const cloudEffectState=useRef(null);
   const cloudUploadState=useRef(state);
   // Un ACK privado no debe limpiar el debounce de una edición posterior que sigue pendiente.
-  if(!goalSyncMetadataOnly(cloudEffectState.current,state)) cloudUploadState.current=state;
+  /* Y un render SIN cambio de estado tampoco es una edición (25/10, «bajas en Gastos, deslizas y
+     el lagazo se queda»). `goalSyncMetadataOnly(Y,Y)` da false —mismo `_goalSync`—, así que el
+     primer re-render de App tras un ACK (el `setHostTab` de cada desliz, la barra al scrollear)
+     tomaba Y como estado nuevo: otro envío 1,2 s después, otro ACK con `_goalSync` nuevo, y las
+     cuatro pestañas repintadas — Gastos con todas las filas que hubieras bajado. Un envío a la
+     nube y un repintado entero por cada gesto, sin fin. */
+  if(cloudEffectState.current!==state && !goalSyncMetadataOnly(cloudEffectState.current,state)) cloudUploadState.current=state;
   cloudEffectState.current=state;
   const uploadState=cloudUploadState.current;
   useEffect(function(){

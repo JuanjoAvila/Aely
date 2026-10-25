@@ -268,6 +268,9 @@ export const CROSSCUTTING = [
   "e2e/rendimiento.spec.mjs",
   "e2e/rendimiento-tabs.spec.mjs",
   "e2e/rendimiento-sostenido.spec.mjs",
+  /* 25/10: el ACK de la nube + cualquier re-render de App = envío y repintado de las cuatro
+     pestañas en cada desliz. Lo provoca el sync de estado, no una pantalla. */
+  "e2e/rendimiento-ack-nube.spec.mjs",
   /* Va aquí y no colgando de `04-tab-gastos.js` a propósito: lo que vigila es una regla de CSS
      global (`button{user-select:none}`), y quien la puede romper sin querer es cualquiera que
      toque `src/shell.html` o meta una pantalla nueva, no solo quien toque Gastos. */
