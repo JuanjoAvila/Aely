@@ -7449,7 +7449,7 @@ Object.assign(LANG.es,{gv5_fil_reset:"Restablecer", gv5_fil_todas:"Las {n}", gv5
 
 
 // Gastos v5, tanda 6: fila de ciclos en Mi ciclo.
-Object.assign(LANG.es,{gv5_ciclos:"Ciclos", gv5_ciclo_del:"ciclo del {d1} al {d2}"});
+Object.assign(LANG.es,{gv5_ciclos:"Ciclos", gv5_ciclo_rango:"{d1} – {d2}"});
 
 
 const MON_I18N = {
@@ -12994,6 +12994,18 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   },[preset,cycle,expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.flows,cycleEnabled]);
   // El ciclo pasado elegido (null = el en curso, también si el elegido ya no existe).
   const cicloPas=ciclos&&cicloSel!=null?ciclos.find(function(c){ return c.to!=null&&c.from===cicloSel; })||null:null;
+  /* El RANGO del ciclo que se ve, para la línea bajo la cifra (decisión del dueño, 25/10/2026:
+     «mes + fechas»: la pastilla dice el mes y debajo «24 sep – 23 oct»). Uno pasado acaba el día
+     antes del cobro siguiente; el en curso, el día antes del mismo día del mes que viene (el cobro
+     que lo cierra aún no ha llegado; si ese mes es más corto, su último día). */
+  const cicloRango=useMemo(function(){
+    if(preset!=="cycle" || !cycle) return null;
+    if(cicloPas) return {ini:cicloPas.from, fin:cicloPas.to};
+    const s=cycle.start;
+    const fin=Math.min(new Date(s.getFullYear(),s.getMonth()+1,s.getDate()-1).getTime(), new Date(s.getFullYear(),s.getMonth()+2,0).getTime());
+    return {ini:s.getTime(), fin:fin};
+  },[preset,cycle,cicloPas]);
+  const cicloTxt=function(fin){ return tf("gv5_ciclo_rango",{d1:gxDiaCorto(cicloRango.ini), d2:gxDiaCorto(fin)}); };
   const bounds=useMemo(function(){
     if(cicloPas) return {from:cicloPas.from, to:cicloPas.to};
     return presetBoundsMs(preset,range,cycle&&cycle.start);
@@ -13116,7 +13128,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     const periodLabel=preset==="custom"
       ? (range.from?fmtIsoCorto(range.from):t("g_all"))+" → "+(range.to?fmtIsoCorto(range.to):t("g_all"))
       : preset==="months" ? monthLong(mad.m-1) : preset==="all" ? t("gv5_all")
-      : cicloPas ? tf("gv5_ciclo_del",{d1:gxDiaCorto(cicloPas.from),d2:gxDiaCorto(cicloPas.to)}) : t("g_"+preset);
+      : cicloPas ? cicloTxt(cicloRango.fin) : t("g_"+preset);
     return {
       spent:bs.spent, income:bs.income, balance:bs.balance, mode:bs.mode, against:bs.against, shown:bs.shown,
       budget:bs.budget, reserved:bs.reserved, remaining:bs.remaining,
@@ -13427,6 +13439,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       return {ym:cicloKey(c), label:label};
     });
     const cicloYm=ciclos?cicloKey(cicloPas||ciclos[ciclos.length-1]):null;
+    // Bajando en Mi ciclo, lo sumado va del inicio del ciclo al día de debajo: «24 sep – 2 oct».
+    const cicloHasta=function(k,d){ return cicloRango?cicloTxt(new Date(Math.floor(k/10000),Math.floor(k/100)%100-1,k%100).getTime()):tf("gv5_cycle_upto",{d:d}); };
     /* CON FILTRO DE CATEGORÍA (SPEC §3): la cifra es lo de esa categoría en ese mes, con la regla
        del desglose (la misma cifra que su fila en Categorías), y bajando, hasta el día de arriba.
        La línea cuenta los movimientos que suman y compara con la MISMA categoría el mes anterior:
@@ -13444,7 +13458,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       top={n:monthSummary.shown, pre:tf(mode==="net"?"gv5_net_in":"gv5_spent_in",{mes:mesDe(mad.ym)}), tail:st&&st.tail, tone:st&&st.tone, ym:mad.ym};
     } else if(preset==="cycle"){
       const st=vsBudget();
-      top={n:monthSummary.shown, pre:cicloPas?monthSummary.periodLabel:t("gv5_cycle"), tail:st&&st.tail, tone:st&&st.tone, ym:cicloYm};
+      // Su rango, en curso o pasado; «en tu ciclo» solo si no hay cobro que lo marque.
+      top={n:monthSummary.shown, pre:cicloRango?cicloTxt(cicloRango.fin):t("gv5_cycle"), tail:st&&st.tail, tone:st&&st.tone, ym:cicloYm};
     } else top={n:monthSummary.shown, pre:monthSummary.periodLabel, ym:null};
     top.sub=subDe({sp:monthSummary.spent, inc:monthSummary.income});
     /* CON FILTROS DE LA HOJA (categorías, bancos o qué contar; tanda 6, su «cuando
@@ -13477,7 +13492,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
         if(k===mesesLista.newestK && ym===mesesLista.newestYm) return ftop;
         const c=gastosCumDia(fc,k,months?ym:undefined), d=(k%100)+" "+monthShort(Math.floor(k/100)%100-1).toLowerCase();
         return {n:Math.abs(val(c)), ym:months?ym:null, sub:subF(c),
-          pre:months?tf("gv5_upto",{mes:mesDe(ym),d:k%100}):preset==="cycle"?tf("gv5_cycle_upto",{d:d}):tf("gv5_period_upto",{period:monthSummary.periodLabel,d:d})};
+          pre:months?tf("gv5_upto",{mes:mesDe(ym),d:k%100}):preset==="cycle"?cicloHasta(k,d):tf("gv5_period_upto",{period:monthSummary.periodLabel,d:d})};
       };
       if(catFil){
         const fmeses=ciclosFila||mesesPres;
@@ -13501,11 +13516,11 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       if(k===mesesLista.newestK && ym===mesesLista.newestYm) return top;
       const d=(k%100)+" "+monthShort(Math.floor(k/100)%100-1).toLowerCase(), c=gastosCumDia(cifra,k);
       return {n:shownOf(gastosValor(c,mode)), sub:subDe(c),
-        pre:preset==="cycle"?tf("gv5_cycle_upto",{d:d}):tf("gv5_period_upto",{period:monthSummary.periodLabel,d:d}), ym:null};
+        pre:preset==="cycle"?cicloHasta(k,d):tf("gv5_period_upto",{period:monthSummary.periodLabel,d:d}), ym:null};
     };
     const meses=preset==="months"?mesesLista.orden.map(function(ym){ return {ym:ym, label:etiquetaMes(ym)}; }):ciclosFila;
     return {top:top, line:line, meses:meses, fijos:!!ciclosFila, mesesPres:mesesPres, ciclos:ciclosFila, etiquetaMes:etiquetaMes};
-  },[monthSummary,cifra,cifraCat,cifraFil,catFil,mesesLista,preset,ciclos,cicloPas,madridDay,l10nKey]);
+  },[monthSummary,cifra,cifraCat,cifraFil,catFil,mesesLista,preset,ciclos,cicloPas,cicloRango,madridDay,l10nKey]);
   /* La cabecera de las otras secciones (SPEC §3): Categorías enseña el gasto del periodo y su
      margen (el mismo que arriba en Movimientos); Suscripciones, lo que suman al mes las que
      esperan decisión. No dependen del día visible: su `line` es siempre la misma. */
@@ -14023,7 +14038,7 @@ const GX_SIN_MESES_RECORTE=16;
 /* Ciclos pasados que se buscan hacia atrás en Mi ciclo: un año, de sobra para mirar atrás sin
    recorrer el histórico entero en cada cambio. */
 const GX_CICLOS_MAX=12;
-// «31 ago»: el día corto de las líneas de la cabecera (`gv5_cycle_upto`) y de los ciclos.
+// «31 ago»: el día corto de las líneas de la cabecera y del rango de los ciclos.
 function gxDiaCorto(ms){ const d=new Date(ms); return d.getDate()+" "+monthShort(d.getMonth()).toLowerCase(); }
 function gxRayaExtra(compact, conMeses, fijos){ return !compact||fijos?0:conMeses?GX_MESES_SOBRE:-GX_SIN_MESES_RECORTE; }
 /* CABECERA DE GASTOS v5 (SPEC §2.1 y §3). Componente propio a propósito: la cifra cambia con el
@@ -25539,7 +25554,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="3baa07a5d293f19c188c456b1de3bc362bc7c99d681b684a540b02658ecfa558";
+var _rnSha="e7179f1ab02445d8ffbab6e498d33bb567e9b4bcd8f2285496da8630a5fdbe91";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

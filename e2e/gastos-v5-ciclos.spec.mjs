@@ -77,7 +77,7 @@ test("al final de la lista no queda un hueco vacío y el último día llega a la
   expect(m.hueco, "sin pantalla vacía debajo de «Hasta aquí»").toBeLessThan(40);
   await expect(gastosRoot(page).locator(".gx-fin")).toHaveText("Hasta aquí: 28 de agosto de 2026");
   // Con todo bajado, la cabecera habla del ÚLTIMO día de la lista.
-  await expect(gastosEstado(page)).toHaveText("en tu ciclo hasta el 28 ago");
+  await expect(gastosEstado(page)).toHaveText("28 ago – 28 ago");
 });
 
 test("Mi ciclo tiene su fila de ciclos, marcada; cambiar de ciclo cambia lista, cifra y días, y cuadran", async ({ page }) => {
@@ -90,17 +90,19 @@ test("Mi ciclo tiene su fila de ciclos, marcada; cambiar de ciclo cambia lista, 
   await expect(fila(page).locator('.gx-mes[aria-pressed="true"]')).toHaveText("octubre");
   // El ciclo en curso: lo de siempre, con su margen.
   await expect(gastosCifra(page)).toHaveText("63,00 €");
-  await expect(gastosEstado(page)).toHaveText("en tu ciclo · 937 € por debajo");
+  await expect(gastosEstado(page)).toHaveText("24 sep – 23 oct · 937 € por debajo");
   expect(await sumaDias(page)).toBe(63);
 
   await fila(page).locator(".gx-mes", { hasText: "septiembre" }).click();
   await expect(fila(page).locator('.gx-mes[aria-pressed="true"]')).toHaveText("septiembre");
   // 30 × 10 − 25 de la devolución; la nómina que abre el ciclo no suma. Sin límite: es pasado.
   await expect(gastosCifra(page)).toHaveText("275,00 €");
-  await expect(gastosEstado(page)).toHaveText("ciclo del 24 ago al 23 sep");
+  await expect(gastosEstado(page)).toHaveText("24 ago – 23 sep");
   await expect(gastosRoot(page).getByTestId("gastos-desglose")).toHaveText("gastos 300,00 € · ingresos 25,00 €");
   await alFinal(page);
   expect(await sumaDias(page), "los días suman la cifra de arriba").toBe(275);
+  // Abajo del todo, lo sumado va del inicio del ciclo al último día de la lista.
+  await expect(gastosEstado(page)).toHaveText("24 ago – 24 ago");
   // La lista es la de ese ciclo y nada más.
   const fechas = await gastosRoot(page).locator('[data-gx-secc="movs"] [data-gx-day]').evaluateAll((els) => els.map((x) => +x.getAttribute("data-gx-day")));
   expect(Math.max(...fechas)).toBe(20260922);
@@ -115,10 +117,12 @@ test("Mi ciclo tiene su fila de ciclos, marcada; cambiar de ciclo cambia lista, 
   // Vuelta al ciclo en curso: todo como al entrar.
   await fila(page).locator(".gx-mes", { hasText: "octubre" }).click();
   await expect(gastosCifra(page)).toHaveText("63,00 €");
-  await expect(gastosEstado(page)).toHaveText("en tu ciclo · 937 € por debajo");
+  await expect(gastosEstado(page)).toHaveText("24 sep – 23 oct · 937 € por debajo");
   // Elegir periodo en Filtros (o Restablecer) vuelve al ciclo en curso.
   await fila(page).locator(".gx-mes", { hasText: "agosto" }).click();
   await expect(gastosCifra(page)).toHaveText("70,00 €");
+  // Debajo de la cifra, siempre el rango del ciclo elegido (decisión suya: «mes + fechas»).
+  await expect(gastosEstado(page)).toHaveText("24 jul – 23 ago");
   await gastosAbreFiltros(page);
   await page.locator(".v4-gastos-filter-sheet .gx-fil-reset").click();
   await gastosCierraFiltros(page);

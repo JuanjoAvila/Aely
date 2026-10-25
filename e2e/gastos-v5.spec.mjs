@@ -221,7 +221,7 @@ test("Mi ciclo sigue elegible y su cifra es la de Inicio en modo ciclo", async (
   await aGastos(page);
   await expect(gastosRoot(page)).toHaveAttribute("data-periodo", "cycle");
   await expect(gastosCifra(page)).toHaveText("60,00 €");
-  await expect(gastosEstado(page)).toHaveText("en tu ciclo · 940 € por debajo");
+  await expect(gastosEstado(page)).toHaveText("24 sep – 23 oct · 940 € por debajo");
   await expect(gastosRoot(page).getByTestId("gastos-desglose")).toHaveText("gastos 100,00 € · ingresos 40,00 €");
   // Su ayuda vive con el periodo, en Filtros (tanda 2): encima de la lista tapaba los movimientos.
   await expect(page.getByTestId("gastos-cycle-help")).toHaveCount(0);
@@ -235,5 +235,5 @@ test("Mi ciclo sigue elegible y su cifra es la de Inicio en modo ciclo", async (
   await gastosCierraFiltros(page);
   await gastosPeriodo(page, "cycle");
   await expect(gastosCifra(page)).toHaveText("60,00 €");
-  await expect(gastosEstado(page)).toHaveText("en tu ciclo · 940 € por debajo");
+  await expect(gastosEstado(page)).toHaveText("24 sep – 23 oct · 940 € por debajo");
 });
