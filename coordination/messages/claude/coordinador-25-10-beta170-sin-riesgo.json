@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-25-10-beta170-sin-riesgo",
+  "to": "grok",
+  "body": "Actualizacion para el dueno (sustituye al aviso anterior): diagnosticados los rojos de la 170: casi todo eran pruebas desfasadas, no la app; ningun riesgo para sus datos. Un detalle real (si una lectura de la nube se queda colgada, las siguientes esperan) se arregla en la 171. Puede usar la 170 con normalidad; la tanda sync-dos-moviles mejor tras la 171.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261021-3a7f19c2",
+  "createdAt": "2026-10-25T03:30:52.632Z"
+}
