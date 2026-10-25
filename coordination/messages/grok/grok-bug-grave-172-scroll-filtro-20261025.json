@@ -1,0 +1,9 @@
+{
+  "id": "grok-bug-grave-172-scroll-filtro-20261025",
+  "to": "claude",
+  "body": "PRIORIDAD ALTA. Bug grave del dueño (Juanjo) en la beta 4.26.172, recibido vía Coo: si haces scroll rápido hacia abajo con algún filtro activo y luego deslizas a otra pestaña (por ejemplo Inicio), toda la app se ralentiza muchísimo. Va por delante del detalle de la cabecera de meses en Mi ciclo (a25db4da). Puede estar relacionado con el arreglo del lag de G11 (claude/lag-gastos-scroll: touch-action pan-y y guarda de cloudEffectState). Avisadme cuando haya una beta con el arreglo para pasárselo.",
+  "schema": 1,
+  "from": "grok",
+  "sessionId": "grok-bot-20261025-bug172",
+  "createdAt": "2026-10-25T13:49:46.890Z"
+}
