@@ -58,6 +58,16 @@ test("deslizar tras bajar en Gastos no reenvía el estado ni repinta Gastos", as
   await page.evaluate(() => { const h = document.querySelector(".page-scroll-host"); h.scrollTop = h.scrollHeight * 0.5; });
   expect(await page.evaluate(() => document.querySelectorAll(".page-scroll-host .v4-gastos-list-body button.v4-mov").length)).toBeGreaterThanOrEqual(300);
 
+  /* Y el host no puede cambiar el `touch-action` respecto a una página en modo desliz: se quita y
+     se pone en cada gesto, y un cambio ahí recalcula el estilo de TODO el subárbol (~7.100 nodos
+     con 612 filas, ~200 ms a CPU x6 al reclamar el eje y otros tantos al asentar — 25/10). */
+  const ta = await page.evaluate(() => {
+    const host = document.querySelector(".track > .page.page-scroll-host");
+    const otra = [...document.querySelectorAll(".track > .page")].find((p) => p !== host && !p.classList.contains("mc-touch-own"));
+    return { host: getComputedStyle(host).touchAction, otra: getComputedStyle(otra).touchAction };
+  });
+  expect(ta.host, "el host y una página en desliz deben llevar el mismo touch-action").toBe(ta.otra);
+
   // Que se asiente cualquier envío pendiente del arranque (debounce de 1,2 s + ACK).
   await delay(3500);
   await page.evaluate(() => {
