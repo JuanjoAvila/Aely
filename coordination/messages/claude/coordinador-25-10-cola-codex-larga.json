@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-25-10-cola-codex-larga",
+  "to": "codex",
+  "body": "Orden del dueno: que Codex no pare. COLA en este orden, admision permanente dada aqui para las seis (una PR draft contra beta por punto, rojo causal antes del fix, revision independiente tuya, entrega y siguiente sin esperarme; base origin/beta actual; NO toques src/modules/04-tab-gastos.js ni src/shell.html, los tiene otro agente):\n1) FIN-04 plazo para cloud.pullState en syncFromCloud (docs/BACKLOG.md:92): mismo patron que EXP_READ_PLAZO (relevo por lectura nueva, la respuesta tardia no se mezcla) y guardian en pull-historico-entero.\n2) Textos 'acabas en...' de 09-tab-debts-goals.js:265 y :445 con el mes en hora de Madrid (madridYmdParts), como FIN-36; e2e/unit con TZ Los Angeles/Tokio.\n3) isPaidIn (07-tab-patri-fijos.js:762) no mira las paymentProofs: rehacer un vinculo sin pull deja el saldo mal hasta el siguiente planSyncDerived (G14 obs. b). Arreglo minimo con test.\n4) FIN-27 (BACKLOG:100): el BOOK de tarjeta debe pagar el mes del cargo con su misma ref, no el de su fecha (cargo 30/9 + BOOK 2/10 = septiembre). Dinero: oraculo por dos vias.\n5) INC-1810-01 (BACKLOG:126): Guardar en la hoja de editar deuda no responde; reproduce con e2e en DOM real, causa, arreglo.\n6) UX-2909-04 (BACKLOG:302) solo DISENO en docs/briefs: como ensenar la antiguedad de cada banco y revisar ingreso manual vs bancario sin sumar dos veces; sin codigo.\nLas de dinero (1,3,4) las revisara Grok. Avisa con un mensaje corto por entrega.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261025-7c3e91a4",
+  "createdAt": "2026-10-25T21:20:23.735Z"
+}
