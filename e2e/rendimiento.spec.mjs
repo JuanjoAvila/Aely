@@ -186,6 +186,13 @@ test("volver a primer plano con la nube igual: ni filas reconvertidas, ni catego
   };
   // La primera vuelta puede coincidir con la lectura del arranque; la segunda ya es pura repetición.
   await vuelta();
+  // La copia diaria también es del arranque, no de esta vuelta: desde la 4.26.170 espera a una
+  // lectura válida (su temporizador de 4 s se rearma tras el pull) y caía DESPUÉS de que la nube
+  // pareciera quieta. Su `lastBackup` provoca un envío y el ACK reescribe `_goalSync.revision`:
+  // una escritura al día que la segunda vuelta se apuntaba como suya (rojo 2/2 en la CI de la 171).
+  await page.waitForFunction(() => {
+    try { return JSON.parse(localStorage.getItem(mcStateKey()) || "{}").lastBackup === new Date().toISOString().slice(0, 10); } catch (e) { return false; }
+  }, null, { timeout: 15_000 });
   // El ACK del envío de arranque llega tarde y reescribe la revisión: no es de esta vuelta.
   await esperaNubeQuieta(page);
   const sync0 = await page.evaluate(() => _mcLecturaNube);
