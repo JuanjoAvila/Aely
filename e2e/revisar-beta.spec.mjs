@@ -1793,7 +1793,7 @@ for(const lang of ["es","en","ca"])test(`promoción117: entrega por superficies,
 
 });
 
-/* Beta 4.26.173 (25/10/2026): Plan a tres vías para recibos y deudas con dos móviles (FIN-04 fase 2 parte B, solo web); la tanda nueva plan-dos-moviles va en la 173 y la de la 172 se queda en la 172: el panel enseña dos. */
+/* Beta 4.26.173 (25/10/2026): Plan a tres vías para recibos y deudas con dos móviles (FIN-04 fase 2 parte B, solo web); la tanda nueva plan-dos-moviles va en la 173 junto a la del lag y la fila de ciclos (gastos-lag-ciclos, su rechazo «Lagazo guapo» de la 172) y la de la 172 se queda en la 172 sin sus pasos del lag: el panel enseña tres. */
 /* Beta 4.26.172 (25/10/2026): los reportes del 25/10 en Gastos (aportación a meta, fila gris de Inversiones, tanda 6 de Gastos v5 y el lag al deslizar); las cinco tandas de Gastos v5 de la 167 a la 169 ya las votó el dueño y salen del panel (tandas:[]), y la 172 trae una sola tanda de doce pasos: el panel enseña una. */
 /* Beta 4.26.171 (25/10/2026): una lectura de gastos colgada ya no para las bajadas y reconectar no reescribe el histórico (solo web, sin tanda nueva); la tanda de los dos móviles la aprobó el dueño en la 170 y sale del panel, así que la 170 y la 171 quedan vacías; las cinco de Gastos v5 se quedan donde estaban: el panel enseña cinco. */
 /* Beta 4.26.170 (25/10/2026): dos móviles sin pisarse (FIN-04 parte A y el sello de arranque, solo web); las cinco tandas de Gastos v5 siguen sin veredicto y se quedan donde estaban (tres en la 169, una en la 168 y otra en la 167): el panel enseña seis. */
@@ -1807,12 +1807,12 @@ for(const lang of ["es","en","ca"])test(`beta173: la nota nueva con el Plan entr
   expect(production.length).toBe(234);
   const catalog=await page.evaluate(()=>RELEASE_NOTES.map(n=>[n.v,Array.isArray(n.tandas)?n.tandas.length:-1]));
   // La 173 lleva la de Plan entre dos móviles y la 172 conserva la suya; la 171, la 170 y las cinco de Gastos v5 (169, 168 y 167), ya votadas, quedan vacías; todo lo anterior está aprobado y vacío (se vigila la forma, no una lista de versiones).
-  expect(catalog).toEqual([["4.26.173",1],["4.26.172",1],["4.26.171",0],["4.26.170",0],["4.26.169",0],["4.26.168",0],["4.26.167",0],...catalog.slice(7).map(c=>[c[0],0])]);
+  expect(catalog).toEqual([["4.26.173",2],["4.26.172",1],["4.26.171",0],["4.26.170",0],["4.26.169",0],["4.26.168",0],["4.26.167",0],...catalog.slice(7).map(c=>[c[0],0])]);
   const pack=await page.evaluate(()=>{CONFIG.APP_VERSION="4.26.173.1";const p=betaChecklist(CONFIG.APP_VERSION,"4.26.117",55);return {tandas:p.tandas.length,items:p.items.length};});
-  expect(pack).toEqual({tandas:2,items:17});
+  expect(pack).toEqual({tandas:3,items:18});
   const title=await page.evaluate(lang=>rnT(RELEASE_NOTES[0].t,lang),lang);
   const items=await page.evaluate(lang=>rnItems(RELEASE_NOTES[0],lang),lang);
-  expect(items.length).toBe(2);
+  expect(items.length).toBe(4);
   await page.evaluate(()=>{
     const host=document.createElement("div");document.body.appendChild(host);
     ReactDOM.createRoot(host).render(React.createElement(WhatsNew,{onClose:()=>{}}));
