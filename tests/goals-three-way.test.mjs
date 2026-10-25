@@ -144,7 +144,7 @@ test("ACK de metadata conserva el timer de una edición posterior al envío",()=
  const c=logic(),refs=[],timers=new Map(),stateRef={current:null};let hook=0,effect=null,next=0,sent=null;
  const start=app.indexOf("const cloudEffectState=useRef("),end=app.indexOf("// Al volver, los gastos",start);
  assert.ok(start>=0&&end>start);const source=app.slice(start,end);
- const run=vm.runInContext("(function(state,uid,useRef,useEffect,setTimeout,clearTimeout,pushAppState,t,showToast,syncFromCloud,sessionRef,stateRef){const obAbsorbedWriteBlocked={current:false};"+source+"})",c);
+ const run=vm.runInContext("(function(state,uid,useRef,useEffect,setTimeout,clearTimeout,pushAppState,t,showToast,syncFromCloud,sessionRef,stateRef){const obAbsorbedWriteBlocked={current:false},cloudMergeKey={current:Symbol(\"merge\")};"+source+"})",c);
  const render=state=>{hook=0;stateRef.current=state;run(state,owner,v=>refs[hook++]||(refs[hook-1]={current:v}),(fn,deps)=>{
   if(!effect||deps.some((v,i)=>v!==effect.deps[i])){if(effect&&effect.cleanup)effect.cleanup();effect={deps,cleanup:fn()};}
  },fn=>{timers.set(++next,fn);return next;},id=>timers.delete(id),(u,s)=>{sent=s;return Promise.resolve(null);},x=>x,()=>{},()=>{},{current:{user:{id:owner}}},stateRef);};

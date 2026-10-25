@@ -788,9 +788,11 @@ t("la cura corre al cargar y al adoptar la nube", () => {
   assert.ok(ini > 0 && carga.slice(ini, carga.indexOf("\n}", ini)).includes("liberarReservasHuerfanas("), "loadState");
   const app = fs.readFileSync("src/modules/11-app-main.js", "utf8");
   const sync = app.indexOf("Call site 2/3 de fixMovInvasion");
-  const adopta=app.slice(sync,sync+800);
+  const adopta=app.slice(sync,sync+1600);
   assert.ok(sync>0&&adopta.includes("const next=liberarReservasHuerfanas("),"syncFromCloud aplica la cura");
-  assert.ok(adopta.includes("return Object.assign({},next,"),"el estado curado viaja con el marcador de commit");
+  // Antes el return era `Object.assign({},next,…)`; desde PR297 `next` pasa por planSyncDerived. La intención no cambia:
+  // lo que devuelve el updater parte de la cura (`next`) Y lleva el marcador de commit en el MISMO objeto.
+  assert.ok(/return Object\.assign\(\{\},planSyncDerived\(next,prev\),[^\n]*\{\[cloudMergeKey\.current\]:\{read:read\}\}\)/.test(adopta),"el estado curado viaja con el marcador de commit");
 });
 
 console.log("\nreserva-dinero: OK");
