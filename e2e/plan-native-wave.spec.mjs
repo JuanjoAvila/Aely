@@ -2,7 +2,7 @@
    se acepta en el dispositivo; estos oráculos solo establecen sus condiciones web. */
 import {test,expect} from '@playwright/test';
 import crypto from 'node:crypto';
-import {seedLoggedInDashboard,installFixtureClock,dismissNews} from './fixtures.mjs';
+import {seedLoggedInDashboard,installFixtureClock,dismissNews,esperaNubeQuieta} from './fixtures.mjs';
 const hub='[data-bills-manage]', child=hub+' > .settings-push', plan='.page.page-scroll-host';
 const raw=page=>page.evaluate(()=>({main:localStorage.getItem('micartera_v3'),expenses:localStorage.getItem('micartera_v3_exp')}));
 async function snap(page){return page.evaluate(({hub,child,plan})=>{
@@ -25,7 +25,7 @@ async function begin(page,info,many=false){
   if(process.env.WAVE_EXPECTED_HTML)expect(htmlSHA).toBe(process.env.WAVE_EXPECTED_HTML);
   await info.attach('served.json',{body:JSON.stringify({htmlSHA,CPU6:false,trace:false}),contentType:'application/json'});
   await page.waitForFunction(()=>!document.getElementById('mc-load')&&document.querySelector('.botnav'));
-  await dismissNews(page);await page.waitForFunction(()=>JSON.parse(localStorage.getItem('micartera_v3')||'{}').lastBackup==='2026-09-26',null,{timeout:15000});
+  await dismissNews(page);await page.waitForFunction(()=>JSON.parse(localStorage.getItem('micartera_v3')||'{}').lastBackup==='2026-09-26',null,{timeout:15000});await esperaNubeQuieta(page);
   await page.locator('.botnav-tab[data-tour="plan"]').tap();await expect(page.locator(plan)).toBeVisible();await settle(page);
   await page.evaluate(()=>{window.__waveEvents=[];for(const type of ['scroll','touchstart','touchmove','touchend','touchcancel','focusin'])document.addEventListener(type,e=>{const el=e.target;queueMicrotask(()=>window.__waveEvents.push({type,target:el.className||el.tagName,scroll:el.scrollTop,prevented:e.defaultPrevented,t:performance.now()}));},{capture:true,passive:true});});
 }

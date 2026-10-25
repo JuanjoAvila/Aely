@@ -141,7 +141,7 @@ for(const lang of Object.keys(textos)){
     expect(once.goals.map(g=>g.saved)).toEqual([100,75]);
     // La vuelta real espera pull válido; el mock devuelve el estado recién persistido.
     await page.evaluate(state=>{
-      cloud.pullState=async()=>({data:state});
+      cloud.pullState=async()=>({data:state,updated_at:new Date().toISOString()});
       window.__editOffset+=Date.parse("2026-10-31T23:30:00Z")-Date.now();
       localStorage.setItem("_mr2026-11","1"); document.dispatchEvent(new Event("visibilitychange"));
     },once);

@@ -558,13 +558,17 @@ function App(){
 
   // Trae los gastos de la tabla y los mezcla en el estado (dedup).
   const syncCloudExpenses=function(){
+    const EXP_READ_PLAZO=25000;   // ms que una lectura de gastos puede retener a la siguiente
     const readStartedAt=Date.now();
     const readSession=sessionRef.current;
     const readOwner=sessionRef.current&&sessionRef.current.user&&sessionRef.current.user.id;
     // Una petición nueva puede llegar tras una escritura remota que el GET en vuelo no vio.
     // Compartimos su promesa, pero ésta no termina hasta drenar la relectura pendiente.
-    if(wP.current&&wOwner.current&&wOwner.current.session===readSession&&wOwner.current.owner===readOwner){wOwner.current.again=true;return wP.current;}
-    const flight={session:readSession,owner:readOwner,again:false};
+    if(wP.current&&wOwner.current&&wOwner.current.session===readSession&&wOwner.current.owner===readOwner){
+      const w=wOwner.current;w.again=true;
+      return Date.now()-w.startedAt>=EXP_READ_PLAZO?w.relevar():wP.current;
+    }
+    const flight={session:readSession,owner:readOwner,again:false,startedAt:Date.now(),relevar:null};
     if(readOwner){
       const confirmed=obConfirmedMerge(stateRef.current,null,readOwner);
       if(!confirmed)return Promise.reject(new Error("ob_confirmed_merge"));
@@ -715,7 +719,22 @@ function App(){
       });
       });
     });
+    // Un GET que ni responde ni falla (red móvil muerta) retenía el singleflight y, con él, todas
+    // las bajadas hasta reiniciar la app (diagnóstico de la beta 170). Pasado el plazo, la
+    // relectura pendiente releva al vuelo: su respuesta tardía ya no se mezcla (`ps` deja de ser
+    // el vigente) y quien esperaba a este vuelo recibe el resultado de la lectura nueva.
+    let relevo=null,plazo=null;
+    const relevada=new Promise(function(resolve){relevo=resolve;});
+    flight.relevar=function(){
+      if(wP.current!==completed||wOwner.current!==flight||sessionRef.current!==readSession)return wP.current;
+      clearTimeout(plazo);
+      wS.current++;wP.current=null;wOwner.current=null;
+      const next=syncCloudExpenses();relevo(next);return next;
+    };
+    // Sin nadie esperando relectura no se corta: una red lenta pero viva termina su lectura.
+    plazo=setTimeout(function(){if(flight.again)flight.relevar();},EXP_READ_PLAZO);
     const finish=function(result,failed){
+      clearTimeout(plazo);
       // El cierre viejo no toca el vuelo de una sesión nueva, aunque conserve el mismo UID.
       if(wP.current===completed&&wOwner.current===flight){
         wP.current=null;wOwner.current=null;
@@ -724,7 +743,7 @@ function App(){
       if(failed)throw result;
       return result;
     };
-    const completed=pull.then(function(result){
+    const completed=Promise.race([pull,relevada]).then(function(result){
       if(ps!==wS.current||sessionRef.current!==readSession)return result;
       // La barrera del banco espera el pull completo, pero no los DELETE de la cola (FIN11).
       // Su fallo conserva la intención y no invalida la lectura que ya se mezcló.

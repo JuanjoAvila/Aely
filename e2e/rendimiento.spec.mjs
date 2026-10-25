@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, esperaNubeQuieta } from "./fixtures.mjs";
 
 /* RENDIMIENTO con histórico grande (feedback 2026-07-24: «cuanto más tiempo la uso, más se
    ralentiza, hasta ir lagueadísima»).
@@ -186,6 +186,8 @@ test("volver a primer plano con la nube igual: ni filas reconvertidas, ni catego
   };
   // La primera vuelta puede coincidir con la lectura del arranque; la segunda ya es pura repetición.
   await vuelta();
+  // El ACK del envío de arranque llega tarde y reescribe la revisión: no es de esta vuelta.
+  await esperaNubeQuieta(page);
   const sync0 = await page.evaluate(() => _mcLecturaNube);
   await page.evaluate(() => { const n = window.__vuelta; n.filas = 0; n.kw = 0; n.escrituras = []; });
   await vuelta();

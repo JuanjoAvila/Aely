@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, esperaNubeQuieta } from "./fixtures.mjs";
 
 // La fila inerte era el fallo: abrir el editor no debe escribir ni cambiar cifras.
 // Sólo datos sintéticos; se ejercita la ruta Cartera que usa la familia.
@@ -80,6 +80,7 @@ for(const lang of ["es","en","ca"]) for(const textSize of ["normal","huge"]){
     await dismissNews(page);
     await page.locator('.botnav-tab[data-tour="cartera"]').click();
     await arranqueEscrito(page);
+    await esperaNubeQuieta(page);
     const before=await financialState(page);
     await page.evaluate(()=>{
       window.__goodsStateWrites=[];

@@ -70,7 +70,10 @@ async function lifecycle(page,cdp) {
   await markAction(page,"background-retry");await change("hidden");
   await markAction(page,"foreground-retry");await change("visible");await delay(900);
   const recovered=await snapshot(page,cdp);
-  if(recovered.transport.pullExpenses?.succeeded!==(offline.transport.pullExpenses?.succeeded||0)+1)throw new Error("Pull recuperado doble no terminó");
+  // Desde la 4.26.170 volver a tener red relee antes de subir lo de offline: la vuelta puede
+  // sumar esa lectura y la suya propia, pero nunca dos a la vez (singleflight).
+  const recoveredReads=(recovered.transport.pullExpenses?.succeeded||0)-(offline.transport.pullExpenses?.succeeded||0);
+  if(recoveredReads<1||recoveredReads>2||recovered.transport.pullExpenses?.maxInFlight>1)throw new Error("Pull recuperado doble no terminó "+JSON.stringify(recovered.transport.pullExpenses));
   if(recovered.cloud.bankSync!==before.cloud.bankSync)throw new Error("Lifecycle disparó banco sin demanda");
   if(recovered.expensesWrites!==before.expensesWrites)throw new Error("Lifecycle reescribió histórico idéntico");
   return {transitions,before,offline,recovered};

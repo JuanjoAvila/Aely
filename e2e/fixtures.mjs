@@ -112,6 +112,8 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
         }else if(operation==='update'){
           result=result.map(row=>{Object.assign(row,JSON.parse(JSON.stringify(payload)));return row;});
         }
+        // Cuenta las escrituras aceptadas: `esperaNubeQuieta` sabe así cuándo dejó de subir el arranque.
+        if(operation==='insert'||operation==='update'&&result.length)window.__e2eStateWrites=(window.__e2eStateWrites||0)+1;
         const selected=columns?result.map(row=>columns==='*'?row:Object.fromEntries(columns.split(',').map(k=>[k,row[k]]))):null;
         return {data:selected,error:null};
       };
@@ -254,6 +256,31 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
       );
     } catch (e) {}
   }, overrides);
+}
+
+/** Espera a que el arranque deje de subir `app_state` y su ACK esté guardado en local.
+ *  Desde la 4.26.170 el doble devuelve filas al UPDATE CAS, así que el envío con debounce que
+ *  sigue al primer pull recibe acuse y reescribe `_goalSync.revision` ~1,5 s después. Una foto
+ *  «estable» tomada antes compara contra un estado a medio asentar (beta 170: ~50 e2e en rojo
+ *  sin ningún cambio de datos). Quieto = sin escrituras nuevas durante `quiet` ms reales y con
+ *  la revisión local igual a la de la fila de la nube. */
+export async function esperaNubeQuieta(page, { quiet = 2500, timeout = 20000 } = {}) {
+  const probe = () => page.evaluate(() => {
+    const row = (window.__e2eCloudRows?.app_state || [])[0];
+    let rev = null;
+    try { rev = JSON.parse(localStorage.getItem(mcStateKey()) || "{}")._goalSync?.revision ?? null; } catch (e) {}
+    return { n: window.__e2eStateWrites || 0, ok: !row || rev === row.updated_at };
+  });
+  const end = Date.now() + timeout;
+  let last = null, since = Date.now();
+  for (;;) {
+    const p = await probe();
+    if (!last || last.n !== p.n || !p.ok) since = Date.now();
+    else if (Date.now() - since >= quiet) return;
+    last = p;
+    if (Date.now() > end) throw new Error("la nube del arranque no se asentó: " + JSON.stringify(p));
+    await new Promise((r) => setTimeout(r, 200));
+  }
 }
 
 /** Cierra el popup de Novedades si sale (cambia de versión en cada release). Llamar tras el
