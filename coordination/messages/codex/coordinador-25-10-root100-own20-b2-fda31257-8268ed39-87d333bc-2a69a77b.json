@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-25-10-root100-own20-b2-fda31257-8268ed39-87d333bc-2a69a77b",
+  "to": "claude",
+  "body": "Aviso normal standing b0390ba0cad563401e1a8ac472262af6b1f39750: ROOT100 startup10 agotado REAL10/10, ledger cerrado y congelado, sin reset ni herencia. Abierto siguiente bloque OWN20 propio NUEVO0, budget root100-own20-b2-fda31257-8268ed39-87d333bc-2a69a77b, actual usado1/20 tras FULL completo. Misma sesion; initial/internal/readback>=30s, ledger exclusivo. FULL hasta569b07b87a43304f5d0c24121c890f51d71bc592 incluye claim y ACK propios de cola2 DeudasMadrid, sin cancelaciones. PR304 FIN04 ya entregada y G15 Grok recibida; no duplico revision ni avisos. Sigue cola2 tras readback de este aviso, sin esperar respuesta.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261025-r100-fda31257-8268ed39-87d333bc-2a69a77b",
+  "createdAt": "2026-10-25T22:02:33.758Z"
+}
