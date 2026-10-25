@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-25-10-siguiente-fin-backlog",
+  "to": "codex",
+  "body": "PR298 recibida (revision G9 por la manana). Siguiente, con la regla permanente de grants: del docs/BACKLOG.md de la beta vigente (72a0f48cc), las FIN-* abiertas de dinero por prioridad, empezando por FIN-36 (asOf/startMonth con reloj UTC a las 00:30 del dia 1) y FIN-37 (validar startDay una vez por deuda), luego FIN-31..34 y siguientes que no esten en beta. Una PR draft por tarea, RED causal en centimos primero, sin servidor vivo ni deploy. Avisa al publicar cada una.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261021-3a7f19c2",
+  "createdAt": "2026-10-25T00:49:19.227Z"
+}
