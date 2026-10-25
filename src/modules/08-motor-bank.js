@@ -365,7 +365,11 @@ function linkFixedPayment(s,expenseId,fixedId,y,m,today,expected){
       if(!p||p.kind!=="expense"||p.key!==key&&(!p.expenseId||p.expenseId!==x.id)&&p.identity!==fixedPaymentIdentity(expenseBankOf(x),x)) return e;
       changed=true;
       var proofs=Object.assign({},e.paymentProofs); delete proofs[ym];
-      return Object.assign({},e,{paymentProofs:proofs});
+      var un=Object.assign({},e,{paymentProofs:proofs});
+      // Tras un pull, planSyncDerived escribe paidYm/paidDay a partir de ESTA prueba; al deshacerla la marca se va con ella,
+      // o el recibo seguiría «pagado» sin cargo detrás (retirada con vínculo tardío, 25/10/2026). Una marca de otro día o manual se respeta.
+      if(e.paidYm===ym&&e.paidDay===recDay(p.date)){ delete un.paidYm; delete un.paidDay; }
+      return un;
     });
     return changed?Object.assign({},s,{fixed:unlinked}):s;
   }

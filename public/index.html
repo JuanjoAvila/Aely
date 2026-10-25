@@ -18225,7 +18225,11 @@ function linkFixedPayment(s,expenseId,fixedId,y,m,today,expected){
       if(!p||p.kind!=="expense"||p.key!==key&&(!p.expenseId||p.expenseId!==x.id)&&p.identity!==fixedPaymentIdentity(expenseBankOf(x),x)) return e;
       changed=true;
       var proofs=Object.assign({},e.paymentProofs); delete proofs[ym];
-      return Object.assign({},e,{paymentProofs:proofs});
+      var un=Object.assign({},e,{paymentProofs:proofs});
+      // Tras un pull, planSyncDerived escribe paidYm/paidDay a partir de ESTA prueba; al deshacerla la marca se va con ella,
+      // o el recibo seguiría «pagado» sin cargo detrás (retirada con vínculo tardío, 25/10/2026). Una marca de otro día o manual se respeta.
+      if(e.paidYm===ym&&e.paidDay===recDay(p.date)){ delete un.paidYm; delete un.paidDay; }
+      return un;
     });
     return changed?Object.assign({},s,{fixed:unlinked}):s;
   }
@@ -26224,7 +26228,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="0a3ed4ea1874e3aa9db3cc93aed29bb469d4f445866a8c638443edd2b5077f34";
+var _rnSha="7f3182ff6322038958eed64cec4fa909daee29b210cf818bb3e4bdfaf7979366";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
