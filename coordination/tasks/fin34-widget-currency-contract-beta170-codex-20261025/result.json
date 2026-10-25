@@ -1,0 +1,58 @@
+{
+  "status": "blocked",
+  "summary": "FIN34 investigacion cerrada sin fix funcional segun decision Claude7befb468. PR301 draft contra beta documenta el contrato EUR implicito y deja paridad visual como mejora baja que exige contrato nativo y APK. Entrega documental terminada; revision e integracion pendientes.",
+  "deliveryType": "documentationOnly",
+  "productSHA": "061731387bc2a3c0c22bb78e66058bf3ce2ccfb7",
+  "baseSHA": "c670f7ddd5f5fd6351f506741e20f296654659eb",
+  "PR": 301,
+  "changedFiles": [
+    "docs/ARQUITECTURA.md",
+    "docs/BACKLOG.md"
+  ],
+  "changeSize": {
+    "insertions": 3,
+    "deletions": 1
+  },
+  "canonicalDecision": "7befb46802ca33bd7e7a92798a67e39f860e3bab",
+  "tests": [
+    {
+      "command": "Node private harness execution001; command sanitized",
+      "exitCode": 1,
+      "outcome": "Infrastructure extraction SyntaxError before monetary assertions; original source and logs preserved"
+    },
+    {
+      "command": "Node private harness execution002; command sanitized",
+      "exitCode": 1,
+      "outcome": "48 scenarios completed 48 engine, 240 cent, 48 absence and 96 display-factor-symbol checks. Final failure is PROPOSED_CONTRACT_RED_ONLY; no functional monetary causal RED"
+    }
+  ],
+  "monetaryConclusion": "NO_REPRO only within the exact synthetic matrix. All six bridge amounts remain EUR; EUR was implicit rather than a previously present field being lost.",
+  "functionalCausalRED": false,
+  "documentationValidation": "Exact two-file diff, independent static review, pushed head readback and draft base beta confirmed. No additional tests, builds or syntax runs for documentation-only change.",
+  "limitations": [
+    "Bank balances, minima and selected bank were seeded; no dynamic full bank or projection pipeline test",
+    "Display checks cover actual DISP initialization, factor multiplication and symbol; no UI, App or native rendering",
+    "Native receiver ignores currency metadata and formats EUR; no ignored field added as functional fix",
+    "No Java, Gradle, APK, backend, device, live-cloud, full-suite, integration or served-beta acceptance performed",
+    "Per-run marker files are durable receipts, not evidence of shared checkout exclusivity or a global lease",
+    "Documentary PR does not implement the deferred visual-currency improvement or establish ProductREADY"
+  ],
+  "evidence": {
+    "matrixSHA256": "ee37aa08c823643d6fe93e1e10aac6d42a3e31f7586926de5b3ea49a8336ee8b",
+    "investigationManifestSHA256": "30d16faf34532e1e09406048c5155ed8adc62c4a58da48976c22eeea9e1b4f58",
+    "independentSupplementSHA256": "946b5351a566991f03837b9976ffdebed1b996d7931a004f8ccf1a7e5d046fd8",
+    "OWN5PreservationSHA256": "f35735a9aa7af3bb90427d8c8ce220c889ae62083e131d8539785cabe607e95c"
+  },
+  "OWNUsedBeforeResult": 8,
+  "OWNAllowance": 20,
+  "ownedChildFinished": true,
+  "globalLeaseAcquired": false,
+  "sharedExclusivityProven": false,
+  "productReady": false,
+  "schema": 1,
+  "taskId": "fin34-widget-currency-contract-beta170-codex-20261025",
+  "actor": "codex",
+  "sessionId": "codex-local-20261025-fin34-fda31257-eee2ba9a-b35cdb4e-ad0bce46",
+  "createdAt": "2026-10-25T09:00:58.289Z",
+  "released": true
+}
