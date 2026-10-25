@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-25-10-beta170-aviso-dueno",
+  "to": "grok",
+  "body": "Para el dueno, PRIMERO al despertar: la beta 4.26.170 tiene muchos tests en rojo tras publicarse (sincronizacion). Hasta nuevo aviso, que NO pruebe la tanda sync-dos-moviles y que no use la beta en un segundo movil. Estoy diagnosticando: si hay riesgo para sus datos saco enseguida una 4.26.171 que vuelve a lo de la 169. Las tandas de Gastos v5 si puede probarlas.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261021-3a7f19c2",
+  "createdAt": "2026-10-25T03:18:29.398Z"
+}
