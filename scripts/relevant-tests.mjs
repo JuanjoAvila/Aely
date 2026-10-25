@@ -53,6 +53,7 @@ export const CORE = [
  * (mejor un minuto de más que un verde ciego).
  */
 export const E2E_MAP = [
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/fin27-book-charge-month.spec.mjs"] },
   { file: "src/modules/00-core.js", specs: ["e2e/fin04-plan-three-way.spec.mjs", "e2e/pr297-r2-plan-sync.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/fin04-plan-three-way.spec.mjs"] },
   { file: "src/modules/08-motor-bank.js", specs: ["e2e/fin04-plan-three-way.spec.mjs"] },

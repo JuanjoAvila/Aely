@@ -572,7 +572,7 @@ const paymentGuards=[
     const state=Object.assign({},base,{bankTx:[tx,Object.assign({},tx,{id:"segundo",date:"2026-09-26"})],expenses:[row]});
     assert.equal(ctx.fixedPaymentState(state,fixed,2026,9,30).paid,false,"un gasto guardado no rescata dos BOOK ambiguos");
   }},
-  {id:"prueba-invalida",from:'&&!(e.paymentProofs&&e.paymentProofs[y*12+m])',to:'&&true',check(ctx){
+  {id:"prueba-invalida",from:'&&!fixedPaymentStoredProof(s,e,y,m)',to:'&&true',check(ctx){
     const stale=Object.assign({},fixed,{paymentProofs:{[2026*12+9]:{kind:"expense",model:"modelo sustituido",identity:ctx.fixedPaymentIdentity("sabadell",recorded),date:"2026-09-25",amount:42,bank:"sabadell"}}});
     const state=Object.assign({},recordedState,{fixed:[stale]});
     assert.equal(ctx.fixedPaymentState(state,stale,2026,9,30).paid,false,"una prueba invalidada no se sustituye por inferencia");
