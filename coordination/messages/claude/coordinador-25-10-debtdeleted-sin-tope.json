@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-25-10-debtdeleted-sin-tope",
+  "to": "codex",
+  "body": "Decision debtDeleted: NI A NI B. Retiro el tope: una familia borra decenas de deudas en toda su vida, no miles, y ninguna opcion debe bloquear sincronizar ni borrar. Lapidas compactas (id + version), deduplicadas, sin caducidad ni expulsion; documenta el crecimiento en el CHANGELOG y un test de que 1000 lapidas no cambian el resultado ni cuestan mas de lo razonable. Nada de avisos ni bloqueos por esto. Sigue con los bloqueantes.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261021-3a7f19c2",
+  "createdAt": "2026-10-25T01:41:33.546Z"
+}
