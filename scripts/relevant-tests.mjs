@@ -135,6 +135,9 @@ export const E2E_MAP = [
     // Gastos v5 tanda 6: fin de lista sin hueco, fila de ciclos en Mi ciclo, tirón desde abajo en
     // una sección vacía y la cifra de lo filtrado.
     "e2e/gastos-v5-ciclos.spec.mjs",
+    // «Lagazo guapo» (25/10): con cientos de filas bajadas solo se pintan los días de cerca, y la
+    // paginación sigue llegando a «Hasta aquí».
+    "e2e/gastos-lista-ligera.spec.mjs",
     // Apuntes iguales de TR por el cableado real: filas en Gastos, «Es el mismo» desde la ficha.
     "e2e/tr-iguales-ordinal.spec.mjs",
     "e2e/tr-emparejado-automatico.spec.mjs",

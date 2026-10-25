@@ -1932,7 +1932,16 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
             })()
           : dias.map(function(d){
               const tot=totalDia(d.k,d.ym);
-              return React.createElement("section",{key:d.k+"|"+d.ym,className:"gx-dia","data-gx-day":d.k,"data-gx-ym":d.ym},
+              /* Alto estimado del día para `content-visibility:auto` (ver `.gx-dia` en shell.html).
+                 Los días que aún no se han pintado nunca ocupan esto; si la estimación fuese un
+                 alto fijo y corto, la lista pesaría menos de lo que mide de verdad, el centinela
+                 seguiría dentro de sus 2.000 px tras cada tanda y el observador —que solo avisa
+                 al CAMBIAR— no volvería a pedir más (pasó al probarlo el 25/10: se quedaba en 132
+                 filas). Con filas y grises contadas el error es de unos px por día. `auto` hace
+                 que, una vez pintado, recuerde el alto real. */
+              const altoEst=GX_DIA_CAB+d.rows.length*GX_FILA_ALTO+d.gris.length*GX_GRIS_ALTO;
+              return React.createElement("section",{key:d.k+"|"+d.ym,className:"gx-dia","data-gx-day":d.k,"data-gx-ym":d.ym,
+                  style:{containIntrinsicSize:"auto "+altoEst+"px"}},
                 React.createElement("div",{className:"gx-dia-h"},
                   React.createElement("span",{className:"gx-dia-t"},etiquetaDia(d)),
                   tot && React.createElement("span",{className:"gx-dia-tot num","data-testid":"gastos-dia-total"},tot)),
@@ -1959,6 +1968,10 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
 /* Lo que la fila de meses sobresale por debajo de la caja de la cabecera cuando se encoge (px).
    Tiene que cuadrar con `.gx-head.compact.con-meses::before` y `.gx-meses` en shell.html. */
 const GX_MESES_SOBRE=36;
+/* Altos (px) con los que se estima un día de Movimientos antes de pintarlo: cabecera del día
+   (padding 18 + título), fila normal (~90 con la línea de abajo + hueco de 6; medido con
+   Pixel 5) y franja gris cerrada (48 + 2 de borde + 6). Tienen que seguir a `.gx-dia`, `.gx-list .v4-mov` y `.gx-gris-h` en shell.html. */
+const GX_DIA_CAB=46, GX_FILA_ALTO=96, GX_GRIS_ALTO=56;
 /* Sin fila de meses (Mi ciclo, Rango, Todo) el fondo encogido se QUEDA DENTRO de la caja: la cifra
    y la línea suben al encogerse y lo que quedaba debajo era hueco. Rechazo suyo de la beta
    4.26.164 (24/10, Mi ciclo + balance): el fondo seguía bajando 36 px para unos meses que no

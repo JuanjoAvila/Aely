@@ -1202,7 +1202,14 @@
   .gx-subi-t{font-size:15px;font-weight:700;}
   .gx-subi-d{font-size:14px;line-height:1.5;color:var(--muted);}
   /* Días: encabezado con el total que cuenta, y cada gasto en su propia tarjeta a 6 px. */
-  .gx-dia{display:flex;flex-direction:column;gap:6px;padding-top:18px;}
+  /* `content-visibility:auto` por DÍA (25/10, rechazo de la beta 4.26.172: «Lagazo guapo»).
+     Con 600 filas bajadas, cada desliz entre pestañas saca la página de Gastos del modo fijo y
+     la vuelve a meter: el navegador recorre y repinta TODOS los nodos de la lista (~8.000), unos
+     250 ms por desliz a CPU x6, y en su móvil se notaba en toda la app. Así, los días fuera de
+     pantalla no se recorren ni se pintan: deslizar con 600 filas cuesta lo mismo que con 12.
+     La nota del 13/9 de 04-tab-gastos.js lo descartaba («layouts ×3») con un alto fijo; con el
+     alto estimado por día (`altoEst`) y `auto` la lista mide lo de verdad. */
+  .gx-dia{display:flex;flex-direction:column;gap:6px;padding-top:18px;content-visibility:auto;}
   .gx-dia-h{display:flex;justify-content:space-between;align-items:baseline;padding:0 4px 4px;}
   .gx-dia-t{font-size:17px;font-weight:700;color:var(--text);}
   .gx-dia-tot{font-size:15px;color:var(--muted);}
@@ -1734,7 +1741,11 @@
   .liqrow.strong{font-weight:800;font-size:15px;border-top:1px solid var(--line-soft);margin-top:5px;padding-top:7px;}
   .alarmbox{background:rgba(226,112,95,.12);border:1px solid rgba(226,112,95,.45);color:var(--coral);border-radius:12px;padding:11px 13px;font-size:13px;font-weight:600;margin-bottom:8px;line-height:1.45;}
 
-  .sentinel{height:30px;display:grid;place-items:center;color:var(--muted-2);font-size:12px;}
+  /* `overflow-anchor:none`: el centinela NUNCA debe ser el ancla del scroll. Con los días de
+     Gastos en `content-visibility:auto` (no pueden anclar mientras no se pintan) el navegador lo
+     elegía a él, y al meter la tanda nueva ENCIMA movía el scroll para dejarlo donde estaba: seguía
+     a la vista, el observador no volvía a avisar y la lista se quedaba en 132 filas (25/10). */
+  .sentinel{height:30px;display:grid;place-items:center;color:var(--muted-2);font-size:12px;overflow-anchor:none;}
   .empty{text-align:center;padding:34px 20px;color:var(--muted);}
   .empty .ttl{font-weight:700;color:var(--text);margin-bottom:6px;}
 
