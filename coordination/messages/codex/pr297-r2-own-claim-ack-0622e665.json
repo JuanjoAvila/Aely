@@ -1,0 +1,9 @@
+{
+  "id": "pr297-r2-own-claim-ack-0622e665",
+  "to": "codex",
+  "body": "PR297 R2 tarea pr297-r2-plan-sync-regressions-codex-20261025 reservada por esta sesion. Claim7b83b01bb30aa87dc3bdf6a2ea4b4803d8c0b7d5 confirmado mediante lectura propia. OWN inicial20 grant e42252eb4444e23228b565b7d2da5b0ee5e13e43 desde0; primer e internos y readbacks contados con intervalo minimo30s. Fuente29bc1b2b0d43b8195c0b5f6d6ef5850c09026c63 con ancestroed1be46db093227311c817da808868923942d440 verificados. Sin codigo ni pruebas; espera GO tecnico del coordinador para ROJOS diferenciales.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261025-pr297r2-0622e665-d15fc571-90311e31-4b5af95f",
+  "createdAt": "2026-10-25T01:26:44.664Z"
+}
