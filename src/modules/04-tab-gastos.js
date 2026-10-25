@@ -1356,8 +1356,10 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     // Meses para la fila fija de Categorías y del filtro: los que tienen algo que cuenta, y el en curso.
     const mesesPres=preset!=="months"?null:Object.keys(cifra.months).concat(cifra.months[mad.ym]?[]:[mad.ym]).sort()
       .map(function(ym){ return {ym:ym, label:etiquetaMes(ym)}; });
-    /* La fila de CICLOS de Mi ciclo: fija como la de Categorías (cambia el ciclo enseñado, no salta
-       en la lista). Cada ciclo se llama por el mes en que cae casi entero (su inicio + 15 días: el
+    /* La fila de CICLOS de Mi ciclo: cambia el ciclo enseñado, no salta en la lista. En Movimientos
+       sale al bajar, como la de Meses: fija se veía todo el rato y él la quería solo al hacer scroll
+       (25/10, tras la beta 4.26.172; el rango «24 sep – 23 oct» bajo la cifra ya dice qué ciclo es).
+       Fija sigue en Categorías y con el filtro de categoría (SPEC §2.1). Cada ciclo se llama por el mes en que cae casi entero (su inicio + 15 días: el
        que empieza el 30 de septiembre es el de octubre); si dos caen en el mismo mes (un cobro
        adelantado), el segundo se llama por su día de inicio, para no tener dos pastillas iguales. */
     const cicloKey=function(c){ return "c"+c.from; };
@@ -1429,7 +1431,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
         return {top:ftop, pres:top, line:fline, meses:fmeses, fijos:!!fmeses, mesesPres:mesesPres, ciclos:ciclosFila, etiquetaMes:etiquetaMes};
       }
       const lmeses=months?mesesLista.orden.map(function(ym){ return {ym:ym, label:etiquetaMes(ym)}; }):ciclosFila;
-      return {top:ftop, pres:top, line:fline, meses:lmeses, fijos:!!ciclosFila, mesesPres:mesesPres, ciclos:ciclosFila, etiquetaMes:etiquetaMes};
+      return {top:ftop, pres:top, line:fline, meses:lmeses, fijos:false, mesesPres:mesesPres, ciclos:ciclosFila, etiquetaMes:etiquetaMes};
     }
     const line=function(k, ym){
       if(preset==="months"){
@@ -1449,7 +1451,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
         pre:preset==="cycle"?cicloHasta(k,d):tf("gv5_period_upto",{period:monthSummary.periodLabel,d:d}), ym:null};
     };
     const meses=preset==="months"?mesesLista.orden.map(function(ym){ return {ym:ym, label:etiquetaMes(ym)}; }):ciclosFila;
-    return {top:top, line:line, meses:meses, fijos:!!ciclosFila, mesesPres:mesesPres, ciclos:ciclosFila, etiquetaMes:etiquetaMes};
+    return {top:top, line:line, meses:meses, fijos:false, mesesPres:mesesPres, ciclos:ciclosFila, etiquetaMes:etiquetaMes};
   },[monthSummary,cifra,cifraCat,cifraFil,catFil,mesesLista,preset,ciclos,cicloPas,cicloRango,madridDay,l10nKey]);
   /* La cabecera de las otras secciones (SPEC §3): Categorías enseña el gasto del periodo y su
      margen (el mismo que arriba en Movimientos); Suscripciones, lo que suman al mes las que
@@ -1690,7 +1692,11 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     : tf("gv5_fil_lim",{x:eur0(filLim)})+(filManda?" · "+tf(filQueda<0?"gv5_fil_pasado":"gv5_fil_quedan",{x:filFmt(filQueda)}):"");
   const usado=Math.max(0,monthSummary.against||0);
 
-  return React.createElement("div",{className:"v4-screen gx-root",ref:rootRef,"data-periodo":preset,"data-secc":secc,"data-edge-capture":"1"},
+  /* Con la fila de ciclos al bajar, la página tiene que poder bajar SIEMPRE lo justo para que salga:
+     al empezar un ciclo hay tres gastos, no hay scroll y no habría forma de ir a un ciclo pasado
+     (ver `.gx-root.gx-ciclos-al-bajar` en shell.html). */
+  const ciclosAlBajar=!!(cabVista.ciclos && !cabVista.fijos);
+  return React.createElement("div",{className:"v4-screen gx-root"+(ciclosAlBajar?" gx-ciclos-al-bajar":""),ref:rootRef,"data-periodo":preset,"data-secc":secc,"data-edge-capture":"1"},
     React.createElement(GastosCabecera,{rootRef:rootRef, cab:cabVista, meses:cabVista.meses, fijos:cabVista.fijos,
       onMes:cabVista.ciclos?eligeCiclo:cabVista.fijos?eligeMes:irAMes, mesesAria:cabVista.ciclos?"gv5_ciclos":"gv5_meses", stopSwipe:stopSwipe, diasRef:diasRef, saltoForzadoRef:saltoForzadoRef, secc:secc, onSecc:irASecc, nSubs:novelSubs.length,
       onInfo:secc==="subs"&&heavyOk?abreSubInfo:null}),
@@ -1932,7 +1938,16 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
             })()
           : dias.map(function(d){
               const tot=totalDia(d.k,d.ym);
-              return React.createElement("section",{key:d.k+"|"+d.ym,className:"gx-dia","data-gx-day":d.k,"data-gx-ym":d.ym},
+              /* Alto estimado del día para `content-visibility:auto` (ver `.gx-dia` en shell.html).
+                 Los días que aún no se han pintado nunca ocupan esto; si la estimación fuese un
+                 alto fijo y corto, la lista pesaría menos de lo que mide de verdad, el centinela
+                 seguiría dentro de sus 2.000 px tras cada tanda y el observador —que solo avisa
+                 al CAMBIAR— no volvería a pedir más (pasó al probarlo el 25/10: se quedaba en 132
+                 filas). Con filas y grises contadas el error es de unos px por día. `auto` hace
+                 que, una vez pintado, recuerde el alto real. */
+              const altoEst=GX_DIA_CAB+d.rows.length*GX_FILA_ALTO+d.gris.length*GX_GRIS_ALTO;
+              return React.createElement("section",{key:d.k+"|"+d.ym,className:"gx-dia","data-gx-day":d.k,"data-gx-ym":d.ym,
+                  style:{containIntrinsicSize:"auto "+altoEst+"px"}},
                 React.createElement("div",{className:"gx-dia-h"},
                   React.createElement("span",{className:"gx-dia-t"},etiquetaDia(d)),
                   tot && React.createElement("span",{className:"gx-dia-tot num","data-testid":"gastos-dia-total"},tot)),
@@ -1959,7 +1974,11 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
 /* Lo que la fila de meses sobresale por debajo de la caja de la cabecera cuando se encoge (px).
    Tiene que cuadrar con `.gx-head.compact.con-meses::before` y `.gx-meses` en shell.html. */
 const GX_MESES_SOBRE=36;
-/* Sin fila de meses (Mi ciclo, Rango, Todo) el fondo encogido se QUEDA DENTRO de la caja: la cifra
+/* Altos (px) con los que se estima un día de Movimientos antes de pintarlo: cabecera del día
+   (padding 18 + título), fila normal (~90 con la línea de abajo + hueco de 6; medido con
+   Pixel 5) y franja gris cerrada (48 + 2 de borde + 6). Tienen que seguir a `.gx-dia`, `.gx-list .v4-mov` y `.gx-gris-h` en shell.html. */
+const GX_DIA_CAB=46, GX_FILA_ALTO=96, GX_GRIS_ALTO=56;
+/* Sin fila de meses (Mi ciclo sin ciclos detectados, Rango, Todo) el fondo encogido se QUEDA DENTRO de la caja: la cifra
    y la línea suben al encogerse y lo que quedaba debajo era hueco. Rechazo suyo de la beta
    4.26.164 (24/10, Mi ciclo + balance): el fondo seguía bajando 36 px para unos meses que no
    existen y tapaba la lista con una franja vacía. Cuadra con `.gx-head.compact::before`. */

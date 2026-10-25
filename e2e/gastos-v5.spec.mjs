@@ -176,8 +176,8 @@ test("reagrupar no pierde ninguna fila: tarjetas + cargos de las filas grises = 
 /* Su rechazo de la beta 4.26.164 (24/10): Gastos en Mi ciclo con vista balance, bajando hasta el
    final. La cabecera se encogía pero su fondo seguía bajando 36 px para una fila de meses que en
    Mi ciclo no existía: una franja vacía que tapaba la lista («no salen los meses ni nada»).
-   Desde la tanda 6 Mi ciclo SÍ tiene su fila (la de ciclos, fija dentro de la caja): el fondo
-   acaba justo donde acaba esa fila, ni un píxel de franja por debajo. */
+   Desde la tanda 6 Mi ciclo SÍ tiene su fila (la de ciclos), y desde el 25/10 sale al bajar como
+   la de Meses: el fondo baja con ella y acaba justo donde acaba la fila, ni un píxel de franja. */
 test("Mi ciclo al bajar hasta el final: cabecera encogida sin franja vacía debajo", async ({ page }) => {
   const cycle = [
     e("Antes de cobrar", "2026-09-20", 200, "super"),
@@ -196,14 +196,14 @@ test("Mi ciclo al bajar hasta el final: cabecera encogida sin franja vacía deba
   // Un solo ciclo con su cobro (el del 24): la fila tiene su pastilla, marcada.
   await expect(gastosRoot(page).getByTestId("gastos-meses").locator(".gx-mes")).toHaveCount(1);
   await expect(gastosRoot(page).locator('.gx-mes[aria-pressed="true"]')).toHaveCount(1);
-  /* El fondo (su `::before`) no puede bajar de la caja de la cabecera, y la fila de ciclos acaba
-     justo donde acaba el fondo: cualquier diferencia es una franja vacía encima de la lista. Se
-     espera al final de la transición del fondo (200 ms). */
+  /* La fila de ciclos acaba justo donde acaba el fondo (su `::before`): cualquier diferencia es una
+     franja vacía encima de la lista. Se espera al final de la transición del fondo (200 ms). */
+  await expect(gastosRoot(page).getByTestId("gastos-meses")).toHaveAttribute("aria-hidden", "false");
   await expect.poll(() => head.evaluate((h) => {
     const r = h.getBoundingClientRect(), b = parseFloat(getComputedStyle(h, "::before").bottom);
     const fila = h.querySelector('[data-testid="gastos-meses"]').getBoundingClientRect();
-    return { fondoNoBaja: b >= 0, franja: Math.round(r.bottom - b - fila.bottom) };
-  }), { timeout: 3_000 }).toEqual({ fondoNoBaja: true, franja: 0 });
+    return { franja: Math.round(r.bottom - b - fila.bottom) };
+  }), { timeout: 3_000 }).toEqual({ franja: 0 });
 });
 
 test("Mi ciclo sigue elegible y su cifra es la de Inicio en modo ciclo", async ({ page }) => {
