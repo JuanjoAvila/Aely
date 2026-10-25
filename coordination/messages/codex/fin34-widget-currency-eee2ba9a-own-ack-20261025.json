@@ -1,0 +1,9 @@
+{
+  "id": "fin34-widget-currency-eee2ba9a-own-ack-20261025",
+  "to": "codex",
+  "body": "ACK FIN34 task fin34-widget-currency-contract-beta170-codex-20261025, base c670f7ddd5f5fd6351f506741e20f296654659eb. Sesion propia admitida; claim 7f28d8dc640d7ba688edbf5947e41b915ab04099 confirmado por lectura OWN completa. Presupuesto propio veinte, usados dos antes de publicar este ACK; initial y readback separados al menos treinta segundos. Sin herencia de claims, leases ni contadores. Esperando GO tecnico antes de checkout, investigacion o ROJO. Android solo lectura de contrato; producto requiere evidencia causal y GO focal separado. Sin ejecucion de tests ni cambios de producto.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261025-fin34-fda31257-eee2ba9a-b35cdb4e-ad0bce46",
+  "createdAt": "2026-10-25T08:35:46.895Z"
+}
