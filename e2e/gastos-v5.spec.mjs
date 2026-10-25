@@ -175,8 +175,9 @@ test("reagrupar no pierde ninguna fila: tarjetas + cargos de las filas grises = 
 
 /* Su rechazo de la beta 4.26.164 (24/10): Gastos en Mi ciclo con vista balance, bajando hasta el
    final. La cabecera se encogía pero su fondo seguía bajando 36 px para una fila de meses que en
-   Mi ciclo no existe: una franja vacía que tapaba la lista («no salen los meses ni nada»). Sin
-   fila de meses, lo que hay justo debajo de la cabecera encogida tiene que ser la lista. */
+   Mi ciclo no existía: una franja vacía que tapaba la lista («no salen los meses ni nada»).
+   Desde la tanda 6 Mi ciclo SÍ tiene su fila (la de ciclos, fija dentro de la caja): el fondo
+   acaba justo donde acaba esa fila, ni un píxel de franja por debajo. */
 test("Mi ciclo al bajar hasta el final: cabecera encogida sin franja vacía debajo", async ({ page }) => {
   const cycle = [
     e("Antes de cobrar", "2026-09-20", 200, "super"),
@@ -192,17 +193,17 @@ test("Mi ciclo al bajar hasta el final: cabecera encogida sin franja vacía deba
   await page.evaluate(() => { const h = document.querySelector(".page-scroll-host"); h.scrollTo(0, h.scrollHeight); });
   const head = gastosRoot(page).locator(".gx-head");
   await expect(head).toHaveClass(/compact/);
-  await expect(gastosRoot(page).getByTestId("gastos-meses")).toHaveCount(0);
-  /* El fondo (su `::before`) no puede bajar de la caja de la cabecera: sin fila de meses que
-     tapar, cualquier alargamiento es una franja vacía encima de la lista. Y tampoco puede quedarse
-     hasta el borde de la caja: encogidas la cifra y la línea suben, y lo que quedaba debajo de
-     ellas era la otra mitad del hueco. Se espera al final de la transición del fondo (200 ms). */
+  // Un solo ciclo con su cobro (el del 24): la fila tiene su pastilla, marcada.
+  await expect(gastosRoot(page).getByTestId("gastos-meses").locator(".gx-mes")).toHaveCount(1);
+  await expect(gastosRoot(page).locator('.gx-mes[aria-pressed="true"]')).toHaveCount(1);
+  /* El fondo (su `::before`) no puede bajar de la caja de la cabecera, y la fila de ciclos acaba
+     justo donde acaba el fondo: cualquier diferencia es una franja vacía encima de la lista. Se
+     espera al final de la transición del fondo (200 ms). */
   await expect.poll(() => head.evaluate((h) => {
     const r = h.getBoundingClientRect(), b = parseFloat(getComputedStyle(h, "::before").bottom);
-    const linea = h.querySelector('[data-testid="gastos-desglose"]') || h.querySelector('[data-testid="gastos-estado"]');
-    const finTexto = linea.getBoundingClientRect().bottom, finFondo = r.bottom - b;
-    return { fondoNoBaja: b >= 0, huecoBajoTexto: Math.round(finFondo - finTexto) };
-  }), { timeout: 3_000 }).toEqual({ fondoNoBaja: true, huecoBajoTexto: 8 });
+    const fila = h.querySelector('[data-testid="gastos-meses"]').getBoundingClientRect();
+    return { fondoNoBaja: b >= 0, franja: Math.round(r.bottom - b - fila.bottom) };
+  }), { timeout: 3_000 }).toEqual({ fondoNoBaja: true, franja: 0 });
 });
 
 test("Mi ciclo sigue elegible y su cifra es la de Inicio en modo ciclo", async ({ page }) => {

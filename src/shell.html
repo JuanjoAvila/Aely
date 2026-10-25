@@ -1056,6 +1056,9 @@
      Nada seleccionable salvo el buscador (y los importes editables): sin menú de copiar al
      mantener pulsado ni destello azul al tocar (SPEC §9). */
   .gx-root,.gx-root *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;}
+  /* Mientras sigue puesto el dedo de una pulsación larga que abre una hoja (ver
+     `mcSinSeleccionHastaSoltar`): nada se selecciona, tampoco en la hoja del portal. */
+  html.mc-sin-sel,html.mc-sin-sel *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important;}
   .gx-root input,.gx-root textarea{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default;}
   /* CABECERA FIJA. La caja NUNCA cambia de alto: encogerse es `transform` de la cifra y de la
      línea, y la fila de meses sale por debajo (posición absoluta) sobre la lista que ya ha
@@ -1104,10 +1107,12 @@
     display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;opacity:0;visibility:hidden;pointer-events:none;
     transform:translateY(-6px);transition:opacity .2s var(--ease),transform .2s var(--ease),visibility 0s linear .2s;}
   .gx-head.compact .gx-meses{opacity:1;visibility:inherit;pointer-events:auto;transform:none;transition-delay:0s;}
-  .gx-mes-pasti{position:absolute;left:0;top:4px;height:36px;border-radius:18px;background:var(--sur2);transition:transform .24s var(--ease);}
+  /* La pastilla activa va en MENTA, como el icono de sección activo: en gris oscuro casi no se
+     distinguía en qué mes (o ciclo) estabas («que se note que estás en un mes u otro», 25/10). */
+  .gx-mes-pasti{position:absolute;left:0;top:4px;height:36px;border-radius:18px;background:var(--mint);transition:transform .24s var(--ease);}
   .gx-mes{position:relative;flex:0 0 auto;height:36px;padding:0 14px;border:0;border-radius:18px;background:transparent;color:var(--muted);
     font:600 15px 'Manrope',sans-serif;white-space:nowrap;cursor:pointer;}
-  .gx-mes.on{color:var(--text);font-weight:700;}
+  .gx-mes.on{color:var(--on-mint);font-weight:700;}
   /* Título con los tres iconos de sección a la derecha (SPEC §2.1): el activo relleno en menta.
      La fila mide lo mismo que el título de antes (8 + 30 + 10 px): los iconos de 44 px se comen
      los márgenes. Si la cabecera creciera, el buscador (que se queda el dedo, `stopSwipe`) bajaría
@@ -1193,7 +1198,7 @@
   .gx-dia-h{display:flex;justify-content:space-between;align-items:baseline;padding:0 4px 4px;}
   .gx-dia-t{font-size:17px;font-weight:700;color:var(--text);}
   .gx-dia-tot{font-size:15px;color:var(--muted);}
-  .gx-list .v4-mov{margin-top:0;gap:14px;padding:14px 16px;border-radius:20px;}
+  .gx-list .v4-mov{margin-top:0;gap:10px;padding:14px 12px 14px 14px;border-radius:20px;}
   .gx-list .v4-mov .tile{width:44px;height:44px;border-radius:22px;font-size:20px;}
   .gx-list .v4-mov .nm-title{font-size:16px;font-weight:600;}
   .gx-list .v4-mov .nm-cat{font-size:14px;font-weight:500;}
@@ -1209,6 +1214,14 @@
   .gx-list .v4-mov .meta > span{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;}
   .gx-list .v4-mov .meta > span:first-child,.gx-list .v4-mov .meta > .sep{flex:0 0 auto;}
   .gx-list .v4-mov .am{flex:0 0 auto;white-space:nowrap;}
+  /* Nombre y categoría en UNA línea cada uno (su «modo normal la letra», 25/10/2026): a 393 px la
+     columna del nombre se quedaba en ~130 px entre el icono, los tres huecos de 14, el importe y el
+     asa, y «Barcelona Cooking» o «Bares y restaurantes» se partían en dos; con la letra del sistema
+     más grande (el WebView escala el texto, no las cajas) se partía casi todo. Los huecos bajan a
+     10 y el relleno lateral a 14/12 (arriba, en `.gx-list .v4-mov`; la letra se queda la del
+     diseño) y, si aun así no cabe, se recorta con puntos suspensivos: una fila de dos líneas por
+     gasto duplicaba la lista. */
+  .gx-list .v4-mov .nm-title,.gx-list .v4-mov .nm-cat{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   /* Fila gris: recibos y cuotas del día, que no cuentan (SPEC §4.4). Sin flecha, a petición. */
   .gx-gris{border:1px dashed var(--sur2);border-radius:18px;overflow:hidden;}
   .gx-gris-h{width:100%;display:flex;align-items:center;gap:10px;min-height:48px;padding:0 18px;border:0;background:transparent;
@@ -1233,10 +1246,9 @@
   .gx-gris-plan{display:flex;align-items:center;min-height:44px;width:100%;padding:0 18px;border:0;background:transparent;color:var(--mint);
     font:600 14px 'Manrope',sans-serif;text-align:left;cursor:pointer;}
   .gx-fin{text-align:center;padding:28px 0 0;font-size:13px;color:var(--muted);}
-  /* Pie de Movimientos («Actualizar gastos» hasta la tanda 5). Vacío desde entonces: deja sitio
-     para que el último día pueda subir hasta la cabecera; sin él, la cifra del mes más antiguo (y
-     el salto a su pastilla) no llegaba nunca a verse. */
-  .gx-pie{padding-top:28px;min-height:calc(100dvh - 300px);box-sizing:border-box;}
+  /* Pie de Movimientos («Actualizar gastos» hasta la tanda 5). Desde la tanda 6 ya no existe: su
+     hueco de una pantalla era lo que él veía vacío al final de la lista; el último día llega a la
+     cabecera por la raya de `GastosCabecera`. El comentario se queda como ancla del catálogo. */
   .gx-periodo-extra{margin:-4px 0 16px;}
   /* Periodo en Filtros: selector de una sola opción. */
   .gx-periodo{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:4px;margin-bottom:16px;background:var(--bg);border-radius:16px;}

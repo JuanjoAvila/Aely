@@ -317,10 +317,40 @@ export async function gastosPeriodo(page, id) {
  *  `ym` (mes de Madrid) distingue las dos mitades de un día local que cae en dos meses (fuera de España). */
 export async function gastosBajaAlDia(page, ymd, ym) {
   const k = ymd.replaceAll("-", "");
-  await page.evaluate(([k, ym]) => {
+  await page.evaluate(async ([k, ym]) => {
     const host = document.querySelector(".page-scroll-host"), el = host.querySelector(`[data-gx-day="${k}"]` + (ym ? `[data-gx-ym="${ym}"]` : ""));
     const head = host.querySelector(".gx-head"), pad = parseFloat(getComputedStyle(host).paddingTop) || 0;
-    host.scrollTo(0, host.scrollTop + el.getBoundingClientRect().top - host.getBoundingClientRect().top - (pad + head.offsetHeight + (head.classList.contains("meses-fijos") ? 0 : head.querySelector(".gx-meses") ? 36 : -16)) + 2);
+    const top = host.scrollTop + el.getBoundingClientRect().top - host.getBoundingClientRect().top - (pad + head.offsetHeight + (head.classList.contains("meses-fijos") ? 0 : head.querySelector(".gx-meses") ? 36 : -16)) + 2;
+    const max = host.scrollHeight - host.clientHeight;
+    if (top <= max - host.clientHeight) { host.scrollTo(0, top); return; }
+    /* Cerca del final de la lista (tanda 6, sin pie) la raya de la cabecera BAJA en el último
+       tramo del scroll (lo que mida el final de la lista, como mucho una pantalla), así que poner
+       el día justo bajo la cabecera ya no basta: se busca el scroll por bisección mirando qué día
+       manda (`data-gx-vista`). La lista va de más nuevo a más viejo, así que bajar más solo puede
+       dar días más viejos. */
+    const frame = () => new Promise((r) => requestAnimationFrame(r));
+    // El día que manda se lee cuando el scroll ha llegado y la cabecera lleva dos frames sin cambiar
+    // (la cabecera calcula en un rAF y React pinta después: un solo frame a veces leía el anterior).
+    const lee = async (st) => {
+      let prev = null, quietos = 0;
+      for (let i = 0; i < 30 && quietos < 2; i++) {
+        await frame();
+        const v = head.getAttribute("data-gx-vista");
+        quietos = Math.abs(host.scrollTop - st) <= 1 && v === prev ? quietos + 1 : 0;
+        prev = v;
+      }
+      return prev;
+    };
+    const want = k + "|" + (ym || el.getAttribute("data-gx-ym"));
+    const orden = (v) => { const [dk, dym] = v.split("|"); return +dk * 100 + (+dym.slice(5, 7)); };
+    let lo = 0, hi = max;
+    for (let i = 0; i < 30 && lo <= hi; i++) {
+      const mid = Math.floor((lo + hi) / 2);
+      host.scrollTo(0, mid);
+      const v = await lee(mid);
+      if (v === want) return;
+      if (!v || orden(v) > orden(want)) lo = mid + 1; else hi = mid - 1;
+    }
   }, [k, ym]);
 }
 /** Mantiene pulsado un elemento (pulsación larga de Gastos v5: el límite de una categoría). Con

@@ -6,8 +6,9 @@ import { seedLoggedInDashboard, dismissNews, installFixtureClock, gastosRoot, ga
      arriba y un solo botón abajo, «Ver N movimientos», cuyo N es el de la lista que queda;
    · Bancos arranca en TODOS los de gasto diario (contrato del 16/9) y «Todos los bancos» amplía;
    · Qué contar son los tres cajones, sin chip «Todo» (ninguno marcado = todo);
-   · Categorías: las cinco más usadas a mano y «Las N» con la cuadrícula; una marcada desde la
-     cuadrícula se queda a la vista al plegarla;
+   · Categorías: las cinco de MÁS GASTO del periodo (las cinco primeras de la vista Categorías,
+     tanda 6: antes contaba movimientos y salían Ingreso y Traspaso) y «Las N» con la cuadrícula;
+     una marcada desde la cuadrícula se queda a la vista al plegarla;
    · «Restablecer» vuelve a lo de entrada. El reloj es el de las fixtures: 26/9/2026 a mediodía. */
 
 test.beforeEach(async ({ page }) => { await installFixtureClock(page); });
@@ -24,7 +25,8 @@ const base = {
   ],
 };
 /* 14 de los dos bancos diarios: super ×4, bares ×3 (Revolut), gasolina ×2 y uno de hogar, salud,
-   pelu, un ingreso y una inversión. El del agua es de Sabadell, que no es de gasto diario: no sale
+   pelu, un ingreso y una inversión. Por IMPORTE el orden es otro que por número de movimientos:
+   gasolina 95, super 81, bares 29, hogar 23, pelu 15 (salud 8 se queda fuera). El del agua es de Sabadell, que no es de gasto diario: no sale
    hasta pedir «Todos los bancos». */
 const expenses = [
   e("Super 1", "2026-09-25", 20, "super"), e("Super 2", "2026-09-22", 31, "super"), e("Super 3", "2026-09-15", 12, "super"), e("Super 4", "2026-09-03", 18, "super"),
@@ -83,12 +85,11 @@ test("cuatro apartados en orden, Restablecer arriba, «Ver N» abajo y lo de ent
   await expect(chip(page, "sabadell")).toHaveAttribute("aria-pressed", "false");
   await expect(chip(page, "_todos")).toHaveAttribute("aria-pressed", "false");
   await expect(chip(page, "revolut")).toHaveAccessibleName("Revolut");
-  // Categorías: las más usadas primero, cinco, y luego «Las N ›».
+  // Categorías: las cinco de más gasto, en orden de importe (no de movimientos), y luego «Las N ›».
   const cats = hoja(page).locator('[data-fil^="c:"]');
   await expect(cats).toHaveCount(5);
-  await expect(cats.nth(0)).toHaveAttribute("data-fil", "c:super");
-  await expect(cats.nth(1)).toHaveAttribute("data-fil", "c:bares");
-  await expect(cats.nth(2)).toHaveAttribute("data-fil", "c:gasolina");
+  const cinco = ["c:gasolina", "c:super", "c:bares", "c:hogar", "c:pelu"];
+  for (let i = 0; i < 5; i++) await expect(cats.nth(i)).toHaveAttribute("data-fil", cinco[i]);
   const n = await page.evaluate(() => CATEGORIES.length + 3);
   await expect(hoja(page).locator(".v4-filter-cats-toggle")).toHaveText(`Las ${n} ›`);
   await expect(hoja(page).locator(".v4-filter-cats-toggle")).toHaveAttribute("aria-expanded", "false");
@@ -153,4 +154,20 @@ test("«Las N» abre todas; la marcada desde ahí se queda a la vista; «Todos l
   await expect(ver(page)).toHaveText("Ver 15 movimientos");
   await ver(page).click();
   await expect(tarjetas(page).filter({ hasText: "RECIBO AGUA" })).toHaveCount(1);
+});
+
+/* Tanda 6 (rechazo suyo del 25/10: «¿no deberían salir las que más he gastado?»). Las cinco de la
+   hoja son EXACTAMENTE las cinco primeras de la vista Categorías: salen del mismo desglose. Sin
+   Ingreso ni Inversión aunque tengan movimientos. */
+test("las cinco de la hoja son las cinco primeras de Categorías, por importe", async ({ page }) => {
+  await abre(page);
+  await gastosRoot(page).locator('[role="tab"][data-gx-tab="cats"]').click();
+  const primeras = await gastosRoot(page).locator('[data-gx-secc="cats"] .gx-cat').evaluateAll((els) => els.slice(0, 5).map((b) => "c:" + b.getAttribute("data-cat")));
+  expect(primeras).toEqual(["c:gasolina", "c:super", "c:bares", "c:hogar", "c:pelu"]);
+  await gastosRoot(page).locator('[role="tab"][data-gx-tab="movs"]').click();
+  await gastosAbreFiltros(page);
+  const hojaCinco = await hoja(page).locator('[data-fil^="c:"]').evaluateAll((els) => els.map((b) => b.getAttribute("data-fil")));
+  expect(hojaCinco).toEqual(primeras);
+  expect(hojaCinco).not.toContain("c:ingreso");
+  expect(hojaCinco).not.toContain("c:traspaso");
 });
