@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "id": "k3-retirada-otro-mes-mismo-dia-codex-20261025",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261025-r99-fda31257-4e0bb9fa-743734b7-1b3d9bf0",
+  "createdAt": "2026-10-25T20:26:07.282Z",
+  "to": "codex",
+  "baseSHA": "95b950a0cae516a327b9cb28e022715df9b04ca8",
+  "objective": "PR solo de test contra beta: cubrir linkFixedPayment(null) cuando paidYm pertenece a otro mes pero paidDay coincide con la prueba; matar causalmente el mutante K3 que elimina paidYm===ym. Admision Claude d83dc05e006e88e23ff22bedd52fc8e3f8a3f7c7.",
+  "scope": [
+    "Editar exclusivamente tests/retirada-bancaria.test.mjs; conservar marcas de otro mes con mismo dia y probar estado real; sin cambios finales de producto ni VERSION/catalogo/notas/caps/documentacion publica",
+    "Rojo causal del nuevo caso con mutante K3 que elimina solo la condicion paidYm===ym en linkFixedPayment(null); registrar diff mutante y restaurar fuente exacta; verde del fichero completo sin mutante, datos sinteticos",
+    "Checkout y rama codex propios desde baseSHA; no cambiar checkout compartido ni instalar dependencias. CPU1 serial1worker0retry/stopFirstFailure, censo/admission/logsEXIT/RETURN propios; sin navegador/CPU6/backend/SQL/Edge/Android/merge/deploy",
+    "Worker grant permanente e42252eb4444e23228b565b7d2da5b0ee5e13e43 OWN20 NUEVO,>=30s primer/interno/readback y ledger exclusivo, sin reset/herencia. Leer FULL todos deltas/cancelaciones y claim/ACK propios antes codigo/tests",
+    "Recepcion privada, identidad real nodeRepl.requestMeta y proyecto Aely LOCAL, esperar admision nativa ROOT99. Reportar SOLO coordinador; no mensajes a Claude. Parent review independiente antes push y draft PR contra beta",
+    "No duplicar G14/revision general/publicador/aviso movil. No repetir pruebas cerradas salvo rojo/verde nuevo caso y fichero focal requeridos. Sin ProductREADY"
+  ]
+}
