@@ -1,0 +1,108 @@
+{
+  "status": "done",
+  "summary": "PR298 R2 delivered in the same draft: rebased onto requested beta172, historical receipt monthly oracle corrected without relaxing other invariants; independent parent review passed and exact-lease branch update verified. Integration gates remain reserved to Claude.",
+  "productSHA": "3a764e8ad8b5660e7b5b216fe08f12cc81701fed",
+  "productTree": "8c116a6a65e349c984506c8de937c704e04a7b61",
+  "baseSHA": "d30dc4016726fa1818449039debf4bd8148e3021",
+  "PR": 298,
+  "draft": true,
+  "branch": "codex/inicio-mes-futuro-25604839",
+  "previousProductHead": "864d50e51207a36bd436165f2c1466d946445729",
+  "exactForceWithLease": true,
+  "remoteHeadReadbackExact": true,
+  "PRBodyReadbackExact": true,
+  "independentParentReview": {
+    "reviewer": "ROOT97",
+    "findings": 0,
+    "exactCandidateReviewed": true
+  },
+  "tests": [
+    {
+      "command": "node --test --test-concurrency=1 tests/recibo-invariante.test.mjs",
+      "exitCode": 0,
+      "passed": 22,
+      "causalReferenceREDPreserved": true
+    },
+    {
+      "command": "node tests/inicio-mes-futuro.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "inicio-mes-futuro client/V2/legacy causal mutants",
+      "expectedExitCode": 1,
+      "mutantsKilled": 3
+    },
+    {
+      "command": "Node initial full plan until beta-sources",
+      "exitCode": 1,
+      "expectedIntegrationRED": "Catálogo172 historical server path list",
+      "direction": "10879b40f9935fcfbc3cdc9d05be514f047468d4"
+    },
+    {
+      "command": "Node worker scope aggregate: 54 prior steps +157 continuation +receipt separately",
+      "exitCode": 0,
+      "passedSteps": 212,
+      "totalSteps": 216,
+      "integratorGatesExcluded": 4,
+      "priorGreensNotRepeated": true
+    },
+    {
+      "command": "Deno ingest/ingest.test.ts and ingest/widget.test.ts",
+      "exitCode": 0,
+      "files": 2,
+      "passed": 27,
+      "runtime": "Deno2.9.0",
+      "actualTypeChecking": true,
+      "cachedOnly": true
+    },
+    {
+      "command": "Playwright e2e/inicio-* CPU1 and two CPU6 cases serial",
+      "exitCode": 0,
+      "specs": 12,
+      "passed": 232,
+      "CPU1": 230,
+      "CPU6": 2,
+      "workers": 1,
+      "retries": 0,
+      "skipped": 0,
+      "flaky": 0,
+      "maxFailures": 1
+    }
+  ],
+  "integratorGatesReserved": [
+    "beta-sources",
+    "docs-frescura",
+    "memoria-espejo",
+    "presupuesto-rendimiento"
+  ],
+  "integrationREDPreserved": true,
+  "CPU6Grants": [
+    "10372f9e7587bd1b3e3e09151a82377a30211711",
+    "2ab23751d95c6db807047ea9beba7384709e014a"
+  ],
+  "oracleCandidateHashUnchangedAfterReview": true,
+  "protectedBaseBlobs": 13,
+  "releaseMetadataUnchanged": true,
+  "generatedArtifactsCommitted": false,
+  "generatedArtifactsPreservedSeparately": true,
+  "ownReadsAtPublication": 11,
+  "ownAllowance": 20,
+  "resourcesReturned": true,
+  "ownedRunnerProcessesClosed": true,
+  "portFreeAfterEveryRun": true,
+  "noSharedLeaseAcquired": true,
+  "sourceAndPriorArtifactsPreserved": true,
+  "limitations": [
+    "Four integrator gates excluded by explicit Claude direction; initial Catálogo172 RED remains evidence, not general suite green",
+    "No general CI or integration claimed",
+    "No deploy, Edge delivery, served artifact or physical mobile acceptance",
+    "Not ProductREADY"
+  ],
+  "productReady": false,
+  "schema": 1,
+  "taskId": "pr298-r2-inicio-mes-madrid-codex-20261025",
+  "actor": "codex",
+  "sessionId": "codex-local-20261025-pr298-r2-fda31257-03fe5749-dd1d3b5e-2c7b6e02",
+  "createdAt": "2026-10-25T18:36:13.255Z",
+  "released": true
+}
