@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "id": "fin34-widget-currency-contract-beta170-codex-20261025",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261025-r88-fda31257-d8e32b75-64ceec3a-27493935",
+  "createdAt": "2026-10-25T08:30:01.020Z",
+  "to": "codex",
+  "kind": "worker",
+  "baseSHA": "c670f7ddd5f5fd6351f506741e20f296654659eb",
+  "baseVersion": "4.26.170",
+  "objective": "FIN-34: trazar moneda/unidades del payload que recibe widget Android, demostrar con ROJO sintetico causal si pierde su moneda y proponer cambio minimo que mantenga importes/unidades correctos. Producto solo tras GO focal del coordinador; si requiere contrato o nativo/APK fuera del alcance, evidencia concreta a Claude via ROOT antes de ampliar. No recrear FIN31..33 ya marcados beta161 sin nueva reproduccion.",
+  "scope": [
+    "src/modules/11-app-main.js",
+    "src/modules/02-ui-shared.js",
+    "android/app/src/main",
+    "tests/fin34-widget-currency.test.mjs",
+    "tests/widget-unknown-loss.test.mjs",
+    "scripts/run-tests.mjs",
+    "scripts/relevant-tests.mjs",
+    "docs/ARQUITECTURA.md",
+    "docs/TESTING.md"
+  ],
+  "scopeBoundary": "Inicial SOLO investigacion actual/ROJO propio. Android source READONLY para conocer receptor/unidades; no editar ni construir nativo sin decision focal expresa de alcance. No asumir settings.currency es unidad de importes emitidos, ni etiquetar como USD/GBP numeros EUR. No inventar FX/0 ni tocar budget math/period/widget servidor.",
+  "scopeGrants": [
+    "cb8e9ed08289b384a795af95cf78f50bccbf0b33",
+    "e42252eb4444e23228b565b7d2da5b0ee5e13e43",
+    "a26df510fbe2d8a41d90b20fddaea729c37b33ba",
+    "6312a7946ebe3c73454b69e4aaaf6eb3a94b823e"
+  ],
+  "workerOwnStartupGrant": "e42252eb4444e23228b565b7d2da5b0ee5e13e43",
+  "workerOwnStartupAllowance": 20,
+  "priority": 1,
+  "acceptance": [
+    "Recepcion propia identidad/cwd/runtime/proyectoAelyLOCAL, nonce y sesion NUEVOS8hex-8hex-8hex-8hex comenzando fda31257; ACKprivado fsync/readback. Esperar admisionROOT, OWNclaim/readback/ACK NUEVOS antes checkout/tests, GOtecnico investigacion y GOcausal separado antesproducto.",
+    "Checkout propio base exacta, leer AGENTS/EMPIEZA/protocolo completos. Trazar unidades reales de cada campo JS al receptor nativo sin tocar datos/dispositivo. Documentar que se pierde y si backend nativo admite moneda, sin inferirlo del nombre/globalsetting. Si ya resuelto, NO_REPRO acreditado sin fix inventado.",
+    "Oracle sintetico independiente al centimo/unidad, EUR/USD/GBP con FX conocido/ausente, negativos/cero/desconocidos, modosperiodo ya contratados sin reabrir math. Capturar puente producido por codigo real con native stub, no solo fixture que imita implementacion. ROJO causal antesproducto y mutante que detecte metadata/unidades perdidas cuando se autorice fix.",
+    "Antesproducto enviar mapa fuente:linea, evidenciaROJO hashes/EXIT/recursos y propuesta minima alROOT. Si hace falta editarJava/Kotlin/protocolo nativo o probardispositivo, parar solo esa ampliacion y reportar decision concreta. No aplicar etiqueta global a importesEUR ni convertir doble.",
+    "TrasGOaplicable solo cambios minimos y pruebasdirigidas nuevas/regresionesjustificadas, registrotests/docs y revisionindependiente sin duplicados. DraftPR contra beta, resultRETURN propios con limites nativo/APK/CIservido/movil. No ProductREADY por Node/metadata."
+  ],
+  "constraints": [
+    "OWN20 nuevo0, todos initial/internos/readbacks>=30s contados ledgerexclusivo; FULLTODOSdeltas/revocaciones antesacciones. Sin reset/herencia/proxy ni claimsresult ajenos.",
+    "Solo nativo alROOTpadre admitido; solo coordinador reportaClaude. Subagentes utiles scopes/checkouts propios yno pruebasduplicadas. Un objetivo por tarea.",
+    "Runner propio censo/admission fuenteantes/logsEXITRETURN porrun, worker1retry0stopfirstfailure TZexacta, CPU1metadata no pruebaafinidad/throttle. SinfullNode/fullbrowser/CPU6/Gradle/APK/dispositivo/backend/Edge/SQL/livebank/livecloud/deploy/mergemainbeta.",
+    "Sin VERSION/catalogo/notas/caps/dependenciasnuevas/install por enlaces, borradosWT/junctions/procesosajenos. PR299/PR300/PR297/PR298 reservadas integracionClaude/Grok: no tocar ni repetir sus verdes. Avisosdueno no duplicar.",
+    "Deadlinepropio60min desdeadmision, conservarWIP y devolverrecursos alprimerpunto seguro sin interrumpirrun; relayedadmitido si sigueinacabado, nunca heredarclaim/lease/counter.",
+    "Payloadpublico completo preflightfda31257 sin rutas/IDsprivados niURLs; helper/filtro intactos. Sin pedirpermisosgenerales alhumano; dudascontrato/alcance concretas con evidencia alROOT."
+  ]
+}
