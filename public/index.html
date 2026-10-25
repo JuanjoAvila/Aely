@@ -13497,9 +13497,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   },[preset,range,cycle,cicloPas,todayKey,madridDay]);
   /* En «months» la lista no tiene ventana (es el histórico entero, mes a mes), pero la cifra de
      arriba y el desglose son los del MES EN CURSO: desde el día 1 de Madrid hasta el día 1 del mes
-     siguiente, como la tarjeta de antes. Inicio (`budgetPeriodOf`) no pone tope: un apunte fechado
-     el mes que viene suma allí al mes en curso. Aquí sale en SU mes de la lista y no puede sumar
-     también arriba (e2e gastos-mes-madrid); con apuntes normales las dos cifras son la misma. */
+     siguiente, igual que Inicio y el widget: un apunte fechado el mes que viene sale en SU mes
+     de la lista y no puede sumar también arriba. Los días futuros del mismo mes sí cuentan. */
   const selectedPeriod=useMemo(function(){
     if(preset==="months"){
       const ini=inicioDeMesMs(Date.now());
@@ -20632,9 +20631,11 @@ function budgetPeriodOf(state, nowMs){
   const now=nowMs!=null?nowMs:Date.now();
   const payday=nowMs==null && state.settings&&state.settings.budgetCycle
     ? budgetPaydayOf(state, now) : null;
+  const monthStart=inicioDeMesMs(now);
   const tomorrow=new Date(now); tomorrow.setHours(24,0,0,0);
-  return {startMs:payday?payday.start.getTime():inicioDeMesMs(now), cycle:payday,
-    todayEndMs:payday?tomorrow.getTime():Infinity};
+  // El día futuro del mismo mes cuenta; el del siguiente pertenece a SU mes de Madrid.
+  return {startMs:payday?payday.start.getTime():monthStart, cycle:payday,
+    todayEndMs:payday?tomorrow.getTime():inicioDeMesMs(monthStart+35*864e5)};
 }
 /* Lo que UNA fila aporta al presupuesto del periodo: >0 gasto, <0 ingreso, 0 nada. La ventana
    de fechas la pone quien llama. Sale de `monthBudgetStats` para que Gastos v5 acumule la cifra
@@ -26266,7 +26267,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="17386e88f0b9b55b6758d96157134b0e5405419da5c53189efcbea70149455e5";
+var _rnSha="c2bb5c1cd26b396b7826223d0e16d32826fd17db8eeca7b69ae219e5b7f512a4";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

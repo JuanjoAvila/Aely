@@ -53,7 +53,8 @@ export function widgetSnapshot(data: any, rows: FilaGasto[], now: number, paymen
   const candidateStart = widgetStart(data, now);
   if (candidateStart == null) return null;
   const start: number = candidateStart;
-  const w = data.widgetPeriod, cycle = w.kind === "ciclo", end = cycle ? tomorrow(now) : Infinity;
+  // El mes de Madrid incluye sus días futuros, pero ni movimientos ni reservas del siguiente.
+  const w = data.widgetPeriod, cycle = w.kind === "ciclo", end = cycle ? tomorrow(now) : inicioDeMesMs(start + 35 * 864e5);
   const visible = filasComoLaApp(rows, data.deleted, data.obAbsorbedPending, owner, data.obAbsorbedConfirmed).filter(f => {
     const ms = Date.parse(String(f.fecha)); return ms >= start && ms < end;
   });

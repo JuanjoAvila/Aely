@@ -943,9 +943,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   },[preset,range,cycle,cicloPas,todayKey,madridDay]);
   /* En «months» la lista no tiene ventana (es el histórico entero, mes a mes), pero la cifra de
      arriba y el desglose son los del MES EN CURSO: desde el día 1 de Madrid hasta el día 1 del mes
-     siguiente, como la tarjeta de antes. Inicio (`budgetPeriodOf`) no pone tope: un apunte fechado
-     el mes que viene suma allí al mes en curso. Aquí sale en SU mes de la lista y no puede sumar
-     también arriba (e2e gastos-mes-madrid); con apuntes normales las dos cifras son la misma. */
+     siguiente, igual que Inicio y el widget: un apunte fechado el mes que viene sale en SU mes
+     de la lista y no puede sumar también arriba. Los días futuros del mismo mes sí cuentan. */
   const selectedPeriod=useMemo(function(){
     if(preset==="months"){
       const ini=inicioDeMesMs(Date.now());

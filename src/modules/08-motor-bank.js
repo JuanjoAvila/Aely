@@ -2734,9 +2734,11 @@ function budgetPeriodOf(state, nowMs){
   const now=nowMs!=null?nowMs:Date.now();
   const payday=nowMs==null && state.settings&&state.settings.budgetCycle
     ? budgetPaydayOf(state, now) : null;
+  const monthStart=inicioDeMesMs(now);
   const tomorrow=new Date(now); tomorrow.setHours(24,0,0,0);
-  return {startMs:payday?payday.start.getTime():inicioDeMesMs(now), cycle:payday,
-    todayEndMs:payday?tomorrow.getTime():Infinity};
+  // El día futuro del mismo mes cuenta; el del siguiente pertenece a SU mes de Madrid.
+  return {startMs:payday?payday.start.getTime():monthStart, cycle:payday,
+    todayEndMs:payday?tomorrow.getTime():inicioDeMesMs(monthStart+35*864e5)};
 }
 /* Lo que UNA fila aporta al presupuesto del periodo: >0 gasto, <0 ingreso, 0 nada. La ventana
    de fechas la pone quien llama. Sale de `monthBudgetStats` para que Gastos v5 acumule la cifra
