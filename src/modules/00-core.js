@@ -1350,10 +1350,21 @@ const cloud = (function(){
       const {data,error}=await sb.from('expenses').select('id,source,fecha,importe,comercio')
         .eq('user_id',session.user.id).eq('fecha',e.date).eq('importe',e.amount).eq('comercio',e.merchant);
       if(error) throw error;
+      // La fila tiene que ser ESA y no su gemela: dos bizums iguales del mismo día solo se
+      // distinguen por el ordinal (`#n<k>`) y la referencia del banco (`#ref`). Sin mirarlos, marcar
+      // uno marcaba los dos y tras el pull la meta contaba el doble (revisión del 25/10/2026). Hoy
+      // el índice único ya separa las gemelas por el milisegundo de la fecha, pero esa garantía
+      // vive en otro sitio; la misma comprobación que el pull (`ordinalDeTramos`) y la retirada
+      // (dos referencias conocidas no se sustituyen) no cuesta nada. Y como el recibo, a un
+      // posible repetido no se le pone marca; quitarla sí, por si la tenía de antes.
+      const ord=obOrdinalOf(e), ref=e.extId!=null?String(e.extId):undefined;
       let n=0;
       for(const r of data||[]){
         const m=/^(ob|ob-hist):([^~#]+)(~meta\.[^~#]*)?((?:#.*)?)$/.exec(String(r.source||""));
-        if(!m || m[2]!==e.ent) continue;
+        if(!m || m[2]!==e.ent || (e.goalId && m[4].indexOf("#dup")>=0)) continue;
+        if(ordinalDeTramos(m[4].split("#").slice(1))!==ord) continue;
+        const refNube=bankRefDeSource(m[4]);
+        if(ref && refNube && refNube!==ref) continue;
         const src=m[1]+":"+m[2]+metaSufijo(e.goalId)+m[4];
         if(src===r.source){ n++; continue; }
         if(!await obConfirmedCanUpload(expenseFromRow(r),session.user.id,sb))continue;

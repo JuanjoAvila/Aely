@@ -291,7 +291,10 @@ function appConNube(n) {
 const HUCHA = gasto(marcado, "e-hucha");
 const FILA = { fecha: HUCHA.date, importe: 250, comercio: HUCHA.merchant, cat: "otros" };
 for (const [caso, antes, despues, n, peticiones] of [
-  ["sin marca en la nube: la pone y conserva lo de detrás", "ob:trade_republic#refr2#n2", "ob:trade_republic~meta.viaje#refr2#n2", 1, ["lee 1", "cambia 1"]],
+  ["sin marca en la nube: la pone y conserva lo de detrás", "ob:trade_republic#refr2#acctr", "ob:trade_republic~meta.viaje#refr2#acctr", 1, ["lee 1", "cambia 1"]],
+  ["es la gemela con otro ordinal: no se toca", "ob:trade_republic#refr2#n2", "ob:trade_republic#refr2#n2", 0, ["lee 1"]],
+  ["es otro cargo del banco (otra referencia): no se toca", "ob:trade_republic#refr9", "ob:trade_republic#refr9", 0, ["lee 1"]],
+  ["es un posible repetido: no se le pone marca", "ob:trade_republic#dup#refr2", "ob:trade_republic#dup#refr2", 0, ["lee 1"]],
   ["de Importar histórico: conserva su origen", "ob-hist:trade_republic", "ob-hist:trade_republic~meta.viaje", 1, ["lee 1", "cambia 1"]],
   ["ya la tenía: no escribe y lo da por confirmado", "ob:trade_republic~meta.viaje#refr2", "ob:trade_republic~meta.viaje#refr2", 1, ["lee 1"]],
   ["en la nube es cuota de una deuda: no se toca (una marca por gasto)", "ob:trade_republic~deuda.robot", "ob:trade_republic~deuda.robot", 0, ["lee 1"]],
@@ -314,6 +317,31 @@ await tt("nube · quitar la marca la quita y deja el resto como estaba", async (
   assert.equal(await vm.runInContext("cloud", app).setExpenseMeta(sin), 1);
   assert.equal(nube.tabla[0].source, "ob:trade_republic#refr2#acctr");
 });
+/* DOS BIZUMS GEMELOS (revisión del 25/10/2026): TR, mismo día, mismo importe, mismo comercio; solo
+   los separan el ordinal y la referencia. Se marca UNO. Oráculo a mano: meta 100 + 50 = 150 €; el
+   otro bizum sigue siendo gasto, 50 €. Antes salía 200 € y 0 €. Se prueba dos veces: con las fechas
+   que escribe la app (la gemela va 1 ms detrás, el índice único las separa) y con la misma fecha,
+   que es lo que pasaría si esa garantía se perdiera. Sin referencia (filas viejas), solo las
+   separa el ordinal. */
+for (const [caso, msGemela, refs] of [["fechas de la app (+1 ms)", 1, true], ["misma fecha", 0, true], ["misma fecha y filas sin referencia", 0, false]]) {
+  await tt("nube · dos bizums gemelos, se marca uno: " + caso, async () => {
+    const D = "2026-10-05T10:00:00.000Z", D2 = new Date(Date.parse(D) + msGemela).toISOString();
+    const s0 = Object.assign(estado(), { goals: [{ id: "viaje", name: "Viaje", target: 1000, saved: 100 }], expenses: [
+      { id: "b1", date: D, merchant: "Bizum hucha", amount: 50, category: "otros", source: "ob", ent: "trade_republic", extId: refs ? "A" : undefined },
+      { id: "b2", date: D2, merchant: "Bizum hucha", amount: 50, category: "otros", source: "ob", ent: "trade_republic", extId: refs ? "B" : undefined, obOrd: 2 },
+    ] });
+    const r = cli.marcarAportacionMeta(s0, "b1", "viaje");
+    const nube = nubeFalsa(s0.expenses.map((e) => ({ fecha: e.date, importe: e.amount, comercio: e.merchant, cat: e.category, source: cli.expenseSourceForCloud(e) }))), app = appConNube(nube);
+    assert.equal(await vm.runInContext("cloud", app).setExpenseMeta(r.e), 1);
+    assert.deepEqual(nube.tabla.map((x) => x.source), refs ? ["ob:trade_republic~meta.viaje#refA", "ob:trade_republic#refB#n2"] : ["ob:trade_republic~meta.viaje", "ob:trade_republic#n2"]);
+    // Tras el acuse, el pull: la gemela, sin `metaPend` que la proteja, adopta lo que diga la nube.
+    const tras = cli.mergeExpensesFromCloud(cli.ackMetaWrite(r.state.expenses, r.e, "viaje"), nube.tabla.map((x) => cli.expenseFromRow(x)), Date.now()).list;
+    assert.deepEqual(Array.from(tras.filter((e) => e.merchant === "Bizum hucha"), (e) => [e.id, e.goalId]), [["b1", "viaje"], ["b2", undefined]]);
+    const s2 = Object.assign({}, r.state, { expenses: tras });
+    assert.equal(cents(cli.metaAhorrado(s2.goals[0], s2)), 15000);
+    assert.equal(cents(cli.monthBudgetStats(s2).spent), 5000);
+  });
+}
 await tt("nube · en el modo pruebas no se escribe nada (CLOUD_WRITES) y no hay acuse", async () => {
   const nube = nubeFalsa([Object.assign({}, FILA, { source: "ob:trade_republic" })]), app = appConNube(nube);
   vm.runInContext("mcSandbox=function(){ return true; }", app);
