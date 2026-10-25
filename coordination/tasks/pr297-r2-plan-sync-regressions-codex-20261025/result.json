@@ -1,0 +1,120 @@
+{
+  "status": "blocked",
+  "summary": "PR297 R2 focal corrections finished and published as draft at c9aa91fd278f845043e4b89d710c84556982ca65. Blocked only on general CI, integration and served or physical acceptance; not ProductREADY.",
+  "productSHA": "c9aa91fd278f845043e4b89d710c84556982ca65",
+  "productPR": 297,
+  "released": true,
+  "tests": [
+    {
+      "run": "final-unit-reviewed-scope",
+      "command": "node --test --test-concurrency=1 tests/pr297-r2-plan-sync.test.mjs",
+      "commandRedacted": false,
+      "exitCode": 0,
+      "sourceAdmissionSHA256": "fadb087be6140a128fc86f18bb5a2080319190a895fb16b9104b18dab57ab87d",
+      "exitEvidenceSHA256": "b21a3cd4feacb8a715a77eb1b26a64d6c0d5d82f27da0073a788a8d5f35ef1d9"
+    },
+    {
+      "run": "green-reviewed-plan-regressions",
+      "command": "node --test --test-concurrency=1 tests/fin04-plan-three-way.test.mjs",
+      "commandRedacted": false,
+      "exitCode": 0,
+      "sourceAdmissionSHA256": "a75557f1e5add2fa038ec494597986f903a6c37d9239154c9f234141bb86abdf",
+      "exitEvidenceSHA256": "6fd933654ad57c1ec5562cdc7dab944c0d2235e1d2cf10d5fdda895b3bd7b021"
+    },
+    {
+      "run": "green-lifetime-before-commit-all-transport",
+      "command": "node tests/metas-pull-transport.test.mjs",
+      "commandRedacted": false,
+      "exitCode": 0,
+      "sourceAdmissionSHA256": "6823c558d2dad35738464c46db916a64043dc8fcd8857f7251873e01484bab34",
+      "exitEvidenceSHA256": "59ed6085e80d3e8bb27b32eaf9011879f5ee7268b71f3df089a3dccf4b770e31"
+    },
+    {
+      "run": "green-final-unmount-auth-contract",
+      "command": "node tests/auth-disposal.test.mjs",
+      "commandRedacted": false,
+      "exitCode": 0,
+      "sourceAdmissionSHA256": "242045f21fb304b9e01061206f5342e40dace6f6c298ec72262c9603e715c3af",
+      "exitEvidenceSHA256": "d1278a76ace0aa9ed79f241d936fdb3a17de32ee4b0d209656e7d39fc70f3d0b"
+    },
+    {
+      "run": "final-publication-syntax",
+      "command": "node scripts/check-syntax.mjs",
+      "commandRedacted": false,
+      "exitCode": 0,
+      "sourceAdmissionSHA256": "d84e5ca7e6d77da49ae13cc86c6affd01b2948e1b7d5d1f6cb09d59398debd02",
+      "exitEvidenceSHA256": "054fcf8a9b516bf838ccec5e19d9c72e7fae65a541ada2dfa4e22ebe7c7952f4"
+    },
+    {
+      "run": "final-publication-B3-pending-reads",
+      "command": "node node_modules/playwright/cli.js test -c [private-own-config] pr297-r2-plan-sync.spec.mjs -g retry=pending-edit|retry=expense-edit --workers=1 --retries=0 --max-failures=1",
+      "commandRedacted": true,
+      "exitCode": 0,
+      "sourceAdmissionSHA256": "0dbd53e50519ee7b2ab5ffe00479f9335b02f7e790da7834b6448f03416c2023",
+      "exitEvidenceSHA256": "e7f14b66a1a4f7f6b53dfe7c828866092a5ea12104c7d8125a49b66db7923ad8"
+    },
+    {
+      "run": "final-browser-B3-reviewed",
+      "command": "node node_modules/playwright/cli.js test -c [private-own-config] pr297-r2-plan-sync.spec.mjs --workers=1 --retries=0 --max-failures=1",
+      "commandRedacted": true,
+      "exitCode": 0,
+      "sourceAdmissionSHA256": "ca69226cae6934d84057002c64eb1afbe09bcdb961a688a1f5267514c4723af4",
+      "exitEvidenceSHA256": "9a34d458b704e763596f9ed4a27f7d6085a52058340f427a90a62e839f056a84"
+    },
+    {
+      "run": "final-browser-B1-offline-and-GET",
+      "command": "node node_modules/playwright/cli.js test -c [private-own-config] savedat-arranque.spec.mjs -g edición real sin conexión|editar A mientras espera GET --workers=1 --retries=0 --max-failures=1",
+      "commandRedacted": true,
+      "exitCode": 0,
+      "sourceAdmissionSHA256": "691a6a1485ab5438521adcd540dd4418c6806e74df55400d08cad4164ad5b0cf",
+      "exitEvidenceSHA256": "c4cf76b93ab156f77decf2c42c248b3cb54a39cb396f80c96ba3d3b1af2d6501"
+    },
+    {
+      "run": "final-browser-plan-tombstones-links",
+      "command": "node node_modules/playwright/cli.js test -c [private-own-config] fin04-plan-three-way.spec.mjs -g reconstruida borrado|huérfano: cancelar.*es$|vinculacion real engine|revision financiera DOM --workers=1 --retries=0 --max-failures=1",
+      "commandRedacted": true,
+      "exitCode": 0,
+      "sourceAdmissionSHA256": "74509152ce513ea4ee6eebe6dbe49b06eebd4651816307e6588b6e891d292700",
+      "exitEvidenceSHA256": "5444e151fa2f146f1f846136a2421496d0e2e5a9622b09333abdc2f0048f21d5"
+    },
+    {
+      "run": "green-B1-debounce",
+      "command": "node node_modules/playwright/cli.js test -c [private-own-config] fin04-first-pull.spec.mjs -g debounce --workers=1 --retries=0 --max-failures=1",
+      "commandRedacted": true,
+      "exitCode": 0,
+      "sourceAdmissionSHA256": "c26e2b5977890cddc47835c780d3efa83b56520be53d5c1274b0ddbdf27c7864",
+      "exitEvidenceSHA256": "f88b5dd84e4ae37a3d39a3aa8422ccb8ef72085886b393532f70e02781001fe9"
+    },
+    {
+      "run": "red-head-isolated-debt-save-visible-button",
+      "command": "node node_modules/playwright/cli.js test -c [private-own-config] deudas-metas-edicion-v4.spec.mjs -g toque real en save \\(debt\\) --workers=1 --retries=0 --max-failures=1",
+      "commandRedacted": true,
+      "exitCode": 0,
+      "sourceAdmissionSHA256": "3dd42c40c2f44e247fafb77b7ecb442854ada33615151a2aa1f4f6d1bce6c88d",
+      "exitEvidenceSHA256": "3170fc185ae598fc0b0f62ef8099d0e4287f978cb96f73c7680fecff031d213b"
+    }
+  ],
+  "limitations": [
+    "No fullsuite, CPU6, backend, SQL, Edge, live bank, deploy, APK or mobile acceptance.",
+    "CI readback did not confirm checks; no CI claim.",
+    "Earlier failure and harness evidence preserved. Each run retains its actual source hashes; earlier greens are not relabelled as later sources.",
+    "Native reporting controls could not steer ROOT87; own canonical report and result preserve delivery without a proxy."
+  ],
+  "evidenceIndexSHA256": "cb18c202d0d97d7255db6fc0485e26bfca68d5122f75311ea88c449d4000ca40",
+  "sourceManifestSHA256": "b49dbf73ebc8c42940bedb5723d18f004c9cdd04a4c7bfa360f1783b4e9a75ff",
+  "RETURN_SHA256": "bc4a4b327a90f4795cba0d9657b76459f064b9d9abc31fdea93aff8518b00047",
+  "checkpointSHA256": "52e88ad6ac0c1ef93280c2228b9176fbc1c4a54673afaae41d3aa0ba3e80f5a2",
+  "publicationReadbackSHA256": "f3d0e4c1a12782ac72270c8a47357940ae0ffaf8dbe0b3ac69f27416e23df3a1",
+  "resourcesReturned": true,
+  "sameWorkerContinuationAuthority": "a1b4e74b4642a07c1504aaaa091e19d81983ce6e",
+  "unitFocalPassed": 24,
+  "planRegressionPassed": 51,
+  "transportPassed": 17,
+  "causalMutantsKilled": 8,
+  "productReady": false,
+  "schema": 1,
+  "taskId": "pr297-r2-plan-sync-regressions-codex-20261025",
+  "actor": "codex",
+  "sessionId": "codex-local-20261025-pr297r2-0622e665-d15fc571-90311e31-4b5af95f",
+  "createdAt": "2026-10-25T02:32:34.033Z"
+}
