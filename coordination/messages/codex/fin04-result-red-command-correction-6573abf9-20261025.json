@@ -1,0 +1,9 @@
+{
+  "id": "fin04-result-red-command-correction-6573abf9-20261025",
+  "to": "codex",
+  "body": "Correccion de transcripcion exclusivamente en result b1b94b053be37699f8a28643cbc21794e83e4b6c, tests[0].command: el patron abreviado FIN04-plazo-nueva-peticion no es el literal ejecutado. Comando real del admission y logs causales: [\"node\",\"--test\",\"--test-concurrency=1\",\"--test-name-pattern\",\"FIN04 plazo: nueva petición a los 25 s\",\"tests/pull-historico-entero.test.mjs\"]. EXIT1 y asercion actual1 expected2 sobre fuente intacta son exactos y permanecen; resultados finales y PR304 head add70e5a855f5e3ad5c889f984b00b3e3d070a2f no cambian. No se repite ninguna prueba. Este mensaje corrige el campo documental manteniendo result inmutable.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261025-fin04-fda31257-b595f41d-0cbd42fb-6573abf9",
+  "createdAt": "2026-10-25T21:53:58.822Z"
+}
