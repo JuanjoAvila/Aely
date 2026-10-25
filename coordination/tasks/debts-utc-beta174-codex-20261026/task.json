@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "id": "debts-utc-beta174-codex-20261026",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261025-r101-fda31257-0f3d1b44-d57ab8b7-569e26e8",
+  "createdAt": "2026-10-25T23:19:17.440Z",
+  "to": "codex",
+  "baseSHA": "9ca1ff11e27b3daf01ecd02d51bdb7abcaabad60",
+  "objective": "Claude dcc44cccc8a4074aa9626d24fa14049b9856e55b expressadmits AFTERPR304R2 and BEFOREqueue4/5/6: tests/debts.test.mjs UTC EXIT1 actual3expected4 onbeta174 but localpass. Bisect95b950a0cae516a327b9cb28e022715df9b04ca8..9ca1ff11e27b3daf01ecd02d51bdb7abcaabad60, identify productorharness calendarcause, deliver minimaldraftPR againstcurrentbeta with causalredUTC and greenMadrid/UTC/LosAngeles.",
+  "scope": [
+    "New isolated own checkout/codexbranch frombase9ca1ff11e27b3daf01ecd02d51bdb7abcaabad60. Baseline17395b950a0 and1749ca immutable for bisection; read introducedPR300/299/298R2 and debtcalendarcontract. No reuse oldworkerclaim/counter; no automaticrebase/integrationcarryover.",
+    "Beforefix reproduce tests/debts.test.mjs underTZUTC onintact174, preserve output/EXIT/time/fixture/commands; compare samefailure against173 and bisect relevantcommits inprivateisolated sources toexactfirstbad. Decide from actualMadridcontract whetherproduct or harness iswrong, neverreplaceexpectedwithobservedjustforgreen. Fixed syntheticclock/scenarios and realcalendarhelpers, exactfinancialoracles.",
+    "Minimal correction only in affected debtcalendarlogic/helpers or testharness, justifiedbycause. Use existingmadridYmdParts andhousepatterns; no newdeps. Allowed narrow07/09 ifcausallyneeded, affectedtests/registration/docs; widerproductscope justifyparent beforeediting. No04-tab-gastos.js orshell.html reserved.",
+    "Mandatorygreen focal matrixTZEurope/Madrid,UTC,America/Los_Angeles withsamefixtures andsource, causalred beforefix andfullaffectedtestfile afterfix. Cover month/day boundaries, existing debtmonths/anchors withoutfinancialbehavior drift; meaningfulDOMfocal ifrenderedbehaviorchanges. No unrelatedclosedtestrepeats, no fullNode/browser/Deno/Gradle/CPU6 bycarryover.",
+    "Claude462d6d727830cf09dfc3e1d1225c20bd5d2d0430 permits focal and standalone debtsUTCdiagnostic while fullNode175runneractive. All runsCPU1serial1worker0retry stopfirstfailure, owncensus/admission/local/port/logEXITRETURN, noforeignprocess/locktouch or leaseinference. FullNode remains reservedintegrator.",
+    "Standing worker e42252eb4444e23228b565b7d2da5b0ee5e13e43 OWN20 NEW0, initial/internal/readback>=30s exclusiveledger FULLalldeltas/cancellations; runtimeAelyLOCAL receipt/nativeexpressadmission thenownclaim/ACK remoteverifiedparent beforetechnicalGOcheckout/code/tests. Onlyreportscoordinatorhuman74; no claims/grants/leases/counterinheritance.",
+    "NoVERSION/catalog/notes/caps/backend/SQL/Edge/Android/merge/deploy/mobile/install changes. Preserve sources/failedruns/evidence. Immutablecandidate+TZmatrixlogs for independentparentreview beforepush+oneDRAFTPRbeta, thenownresultdone/released/readback. Docs-frescura/integratorgates notfabricatedgreen. NoProductREADY."
+  ]
+}
