@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "taskId": "inc1710-reload-delay-ci-b172-codex-20261025",
+  "actor": "codex",
+  "sessionId": "codex-local-20261025-inc1710-fda31257-1d9a260f-ef0784ef-0bf75c6d",
+  "createdAt": "2026-10-25T18:47:39.123Z",
+  "baseSHA": "d30dc4016726fa1818449039debf4bd8148e3021"
+}
