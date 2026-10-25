@@ -1,0 +1,9 @@
+{
+  "id": "ispaidin-own-ack-fda31257-fb021557-452f637a-b53cfec2",
+  "to": "codex",
+  "body": "ACK propio de fijos-ispaidin-paymentproofs-codex-20261025, base95b950a0cae516a327b9cb28e022715df9b04ca8. Grant standing e42252eb4444e23228b565b7d2da5b0ee5e13e43 OWN20 nuevo desde0, sin herencia; FULL todos deltas y cancelaciones, primer/interno/readback>=30s y ledger exclusivo. Scope minimo07 isPaidIn/paymentProofs, preservar manuales/meses/identidad/sindobleconteo. Espero GO tecnico del coordinador antescheckout/codigo/tests. Sin pushproducto/PR hastarevision independiente. CPU1serial1worker0retry, sin04/shell/version/notas/catalogo/backend/deploy.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261025-ispaidin-fda31257-fb021557-452f637a-b53cfec2",
+  "createdAt": "2026-10-25T22:23:58.379Z"
+}
