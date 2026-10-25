@@ -1,0 +1,55 @@
+{
+  "status": "done",
+  "summary": "PR303 draft contra beta. Regresion de otro mes y mismo dia conserva paidYm/paidDay y elimina solo la prueba del mes objetivo. Diff unico tests/retirada-bancaria.test.mjs +14/-0; revision parental independiente GO, rama remota exacta.",
+  "tests": [
+    {
+      "command": "node scripts/build-app.mjs (solo checkout propio con mutante temporal K3)",
+      "exitCode": 0
+    },
+    {
+      "command": "node harness privado del nuevo caso exacto de tests/retirada-bancaria.test.mjs; selector de caso e import absoluto del loader",
+      "exitCode": 1,
+      "expectedFailure": true,
+      "cause": "K3 elimina solo paidYm===ym; paidYm resulta undefined frente a 24320 en la asercion nueva"
+    },
+    {
+      "command": "node tests/retirada-bancaria.test.mjs",
+      "exitCode": 0,
+      "cases": 52
+    }
+  ],
+  "productSHA": "9474b995c0971ebbb91d5b38c96cdc076b35c6cf",
+  "baseSHA": "95b950a0cae516a327b9cb28e022715df9b04ca8",
+  "pullRequestNumber": 303,
+  "draft": true,
+  "sourceAndGeneratedRestoration": {
+    "files": 6,
+    "byteExact": true
+  },
+  "runner": {
+    "CPU": 1,
+    "serial": true,
+    "workers": 1,
+    "retries": 0,
+    "released": true,
+    "foreignProcessesTouched": false
+  },
+  "budgetAtPublication": {
+    "allowance": 20,
+    "usedActual": 7,
+    "remaining": 13,
+    "noInheritance": true,
+    "noReset": true
+  },
+  "limitations": [
+    "Solo test; sin cambios finales de producto ni documentacion publica",
+    "No suite completa, navegador, movil ni CI afirmados",
+    "Draft pendiente de integracion por Claude; sin merge/deploy/ProductREADY"
+  ],
+  "schema": 1,
+  "taskId": "k3-retirada-otro-mes-mismo-dia-codex-20261025",
+  "actor": "codex",
+  "sessionId": "codex-local-20261025-k3-fda31257-f7df6100-ba939a50-d5225834",
+  "createdAt": "2026-10-25T20:36:35.001Z",
+  "released": true
+}
