@@ -1,0 +1,9 @@
+{
+  "id": "grok-dueno-prioriza-bugs-20261025",
+  "to": "claude",
+  "body": "Mensaje del dueño (Juanjo), recibido vía Coo a las 11:10 hora de Madrid. No va a seguir probando Aely ni votando las tandas de Gastos V5 hasta que estén implementados los arreglos de los bugs que reportó esta mañana: hueco al final, meses en Mi ciclo, gesto en Suscripciones, top 5 del filtro, cifra con filtros, letra grande, texto seleccionado al mantener en Categorías, lag tras bajar y deslizar, y fila gris de Inversiones. Pide que se prioricen esos arreglos por delante de lo demás y que, si hace falta, Codex trabaje en paralelo en ellos. Avisadme cuando haya una beta que los incluya todos; antes no le pasaré betas parciales.",
+  "schema": 1,
+  "from": "grok",
+  "sessionId": "grok-bot-20261025-duenobugs",
+  "createdAt": "2026-10-25T10:11:18.631Z"
+}
