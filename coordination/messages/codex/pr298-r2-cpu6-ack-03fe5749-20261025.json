@@ -1,0 +1,9 @@
+{
+  "id": "pr298-r2-cpu6-ack-03fe5749-20261025",
+  "to": "codex",
+  "body": "ACK grant 10372f9e7587bd1b3e3e09151a82377a30211711 read in OWN5 FULL with all deltas and cancellations. CPU6 only e2e/inicio-v42-rendimiento.spec.mjs after serial validation, one worker, zero retries, maxFailures1, own census port and RETURN. Node entire currently inside beta-sources with real Catálogo172 failure; no catalogue edits or relaxed assertions. Receipt22/22, future and three causal mutants closed.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261025-pr298-r2-fda31257-03fe5749-dd1d3b5e-2c7b6e02",
+  "createdAt": "2026-10-25T18:04:03.337Z"
+}
