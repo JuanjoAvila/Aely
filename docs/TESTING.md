@@ -150,8 +150,16 @@ relee la nube una vez sin `bank-sync` y que Filtros enseña la hora y la explica
 FIN12 revisión1: `tests/inicio-deuda-futura.test.mjs` registra 25 casos con 13 mutantes;
 altas reales 08/09, migración, reancla y transporte/merge de nube simulado.
 `e2e/inicio-deuda-futura.spec.mjs` comprueba seis puntos de la gráfica real al dedo,
-el regreso al presente y dos regresiones de legado. Sólo `startMonth` entero acredita
-inicio; `asOf` no. [Acta y límites](briefs/fin12-deuda-futura-inicio-20261016.md).
+el regreso al presente y dos regresiones de legado. Un `startDay` válido acredita el día;
+si falta o es inválido se conserva el inicio mensual de `startMonth` entero. `asOf` no
+acredita nacimiento. [Acta y límites](briefs/fin12-deuda-futura-inicio-20261016.md).
+FIN37: `tests/fin37-debt-startday-once.test.mjs` (registrado en `run-tests`) carga las fuentes
+editables y compara política y serie completa con un calendario de cargos y céntimos independiente.
+Observa llamadas reales a `netWorthPointOk`: 300 deudas y 420 días requieren como máximo 300
+validaciones por política; otra política debe revalidar. Incluye fechas inválidas, IDs duplicados
+o ausentes, préstamos, APR racional, balloon, estado congelado y fronteras monetarias de año/DST.
+`--repeat-validation-mutant` restaura en memoria la validación por día: debe conservar las cifras
+y fallar solo por conteo. No usa tiempos de hardware ni acredita CPU6 o aceptación móvil.
 ## Runner Deno focal · PR255, remates privados, 17/10/2026
 
 `scripts/run-deno-tests.mjs` descubre recursivamente `*.test.ts` y `*_test.ts` en

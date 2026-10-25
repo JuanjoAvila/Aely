@@ -1093,6 +1093,9 @@ function netWorthDay(nowMs){
 function netWorthDebtPolicy(state, today, current){
   const parts=today.split("-").map(Number), month=parts[0]*12+parts[1]-1;
   const debts=state.debts||[], notes=[];
+  // El nacimiento no cambia entre días de la misma política: validarlo dentro de at()
+  // repetía parseo y formato por cada punto. Cada fila conserva su fecha, aunque repita id.
+  const startDays=debts.map(function(d){ return d.months!=null&&netWorthPointOk(d.startDay,0,"9999-12-31")?d.startDay:null; });
   // Hacia atrás se deshace el cuadro de cuotas que debtBalance aplica hacia delante: saldo de
   // entonces = saldo de hoy + la amortización de cada cargo entre esa fecha y hoy, contado por
   // el día de cuota. Así el día de la cuota la gráfica solo baja los intereses y el último punto
@@ -1108,7 +1111,7 @@ function netWorthDebtPolicy(state, today, current){
     const rate=apr/1200,today=Number(d.value)-debtAmort(d)*Math.max(0,month-(typeof d.asOf==="number"?d.asOf:month));
     return today*rate>=Number(d.monthly)?{rate:0,bad:true}:{rate:rate,bad:false};
   };
-  const at=function(d,day){
+  const at=function(d,day,startDay){
     // Una fecha de referencia explícita no pone la deuda a cero antes: con una hipoteca sellada
     // al darla de alta inflaría el patrimonio anterior en todo su principal (revisión 13/10).
     // Antes de la fecha se mantiene el saldo (o su cuadro, como las demás).
@@ -1116,8 +1119,8 @@ function netWorthDebtPolicy(state, today, current){
     const anchor=typeof d.asOf==="number"?d.asOf:month;
     // Las altas nuevas acreditan el día real, distinto de la primera cuota. Las anteriores
     // sólo conocen el mes; asOf también se migra/reancla y nunca acredita el nacimiento.
-    if(d.months!=null&&netWorthPointOk(d.startDay,0,"9999-12-31")){
-      if(day<d.startDay) return 0;
+    if(startDay!=null){
+      if(day<startDay) return 0;
     }else{
       if(d.months!=null&&Number.isInteger(d.startMonth)&&p[0]*12+p[1]-1<d.startMonth) return 0;
     }
@@ -1149,7 +1152,7 @@ function netWorthDebtPolicy(state, today, current){
     const estimated=debtAmort(d)>0&&Number(d.value)>0.005&&!d.settledAt;
     notes.push({kind:"debt",name:d.name,estimated:estimated,constant:!estimated,noRate:estimated&&rebuilt(d)&&d.amort==null&&aprOf(d)==null,badRate:estimated&&rebuilt(d)&&rateOf(d).bad});
   });
-  const sum=function(day){ return debts.reduce(function(n,d){ return n+at(d,day); },0); };
+  const sum=function(day){ return debts.reduce(function(n,d,i){ return n+at(d,day,startDays[i]); },0); };
   const value=current!=null?current:sum(today);
   return {current:value,notes:notes,timingUnknown:debts.some(function(d){return d.months==null&&!(dayOf(d)>0);}),at:function(day){ return day===today?value:sum(day); }};
 }
