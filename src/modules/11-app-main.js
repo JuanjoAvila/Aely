@@ -767,13 +767,21 @@ function App(){
     if(!s || !s.user) return;
     const u=s.user.id;
     if(!sessionRef.current || sessionRef.current.user.id!==u)return;
-    if(cloudPullRef.current&&cloudPullRef.current.owner===u)return cloudPullRef.current.promise;
-    const read={owner:u,ready:false,editIntent:planSyncEditToken(stateRef.current)};cloudPullRef.current=read;
+    const STATE_READ_PLAZO=25000,readSession=sessionRef.current;
+    if(cloudPullRef.current&&cloudPullRef.current.owner===u&&cloudPullRef.current.session===readSession){
+      const current=cloudPullRef.current;
+      // Solo el GET puede quedar retenido por la red: la mezcla y sus gastos terminan juntos.
+      if(current.waiting){current.again=true;if(Date.now()-current.startedAt>=STATE_READ_PLAZO)return current.relevar();}
+      return current.promise;
+    }
+    const read={owner:u,session:readSession,startedAt:Date.now(),waiting:true,again:false,ready:false,editIntent:planSyncEditToken(stateRef.current)};cloudPullRef.current=read;
     goalSyncActivate(mcStateKey(),u);planSyncActivate(mcStateKey(),u);
     const freshLogin=!!(opts&&opts.freshLogin);   // acaba de INICIAR SESIÓN (no un reconecta del mismo user)
     // INC-0410 mensual: el asiento solo vale si ESTE pull leyó un estado válido (o aún no hay ninguno).
     const mensualPuerta=reservaMensualPuerta();
     const transport=cloud.pullState().then(function(cloudPack){
+      if(cloudPullRef.current!==read||sessionRef.current!==readSession)return;
+      read.waiting=false;clearTimeout(plazo);
       mensualPuerta.lee(cloudPack);
       // INC-0410 mensual: límite de la lectura válida.
       const cloudState=cloudPack ? cloudPack.data : null;
@@ -813,7 +821,7 @@ function App(){
         set(function(prev){
           // Cerrar sesión mientras llega el pull no autoriza aplicar una cartera vieja
           // ni sustituir los 400 cierres locales por la ventana corta de nube.
-          if(cloudPullRef.current!==read||!sessionRef.current||!sessionRef.current.user||sessionRef.current.user.id!==u)return prev;
+          if(cloudPullRef.current!==read||sessionRef.current!==readSession)return prev;
           const sameOwner=!(opts&&opts.dropTx)&&(!freshLogin||prev._historyOwner===u)&&(!prev._historyOwner||prev._historyOwner===u);
           const preferenceDeleted=expenseDeletedSet({deleted:(cloudState.deleted||[]).concat(sameOwner?prev.deleted||[]:[])});
           const merged=mergeExpenses(prev.expenses, cloudState.expenses||[], preferenceDeleted);
@@ -877,29 +885,54 @@ function App(){
         // También una ausencia tardía despierta backup y debounce después del commit.
         read.revision=null;read.merging=true;
         const committed=new Promise(function(resolve){read.commit=resolve;});
-        set(function(prev){if(cloudPullRef.current!==read||!sessionRef.current||sessionRef.current.user.id!==u)return prev;return Object.assign({},prev,{[cloudMergeKey.current]:{read:read}});},false);
+        set(function(prev){if(cloudPullRef.current!==read||sessionRef.current!==readSession)return prev;return Object.assign({},prev,{[cloudMergeKey.current]:{read:read}});},false);
         return committed.then(function(applied){if(applied)return pushAppState(u,stateRef.current).then(function(r){if(r&&r.conflict)read.collision=true;});});
       }   // ausencia acreditada: INSERT, nunca upsert
     }).then(function(){
       // El vuelo incluye gastos: otro refresco no puede sustituir su lectura a mitad del pull.
-      if(cloudPullRef.current!==read||!sessionRef.current||sessionRef.current.user.id!==u)return;
+      if(cloudPullRef.current!==read||sessionRef.current!==readSession)return;
       return syncCloudExpenses();
     });
-    const completed=transport.then(function(){
+    let relevo=null,plazo=null;
+    const relevada=new Promise(function(resolve){relevo=resolve;});
+    read.cancel=function(){
+      if(cloudPullRef.current!==read)return;
+      clearTimeout(plazo);read.waiting=false;read.merging=false;read.ready=false;
+      if(read.commit)read.commit(false);
+      cloudPullRef.current=null;relevo();
+    };
+    read.relevar=function(){
+      if(cloudPullRef.current!==read||sessionRef.current!==readSession||!read.waiting)return cloudPullRef.current&&cloudPullRef.current.promise;
+      clearTimeout(plazo);read.waiting=false;cloudPullRef.current=null;
+      // Mantener opts del vuelo original: un refresco no pierde freshLogin ni dropTx.
+      const next=syncFromCloud(s,opts);read.replacement=next;relevo(next);return next;
+    };
+    // Como EXP_READ_PLAZO: sin otra petición una red lenta sigue viva, sin abortar el backend.
+    plazo=setTimeout(function(){if(read.again)read.relevar();},STATE_READ_PLAZO);
+    const finish=function(result,failed){
+      clearTimeout(plazo);read.waiting=false;
+      const own=cloudPullRef.current===read&&sessionRef.current===readSession;
       if(cloudPullRef.current===read)cloudPullRef.current=null;
       // Cada vuelo consume la intención con la que empezó. Otra edición puede compartir
       // milisegundo con ella; el token privado también distingue ese caso sin persistirlo.
-      if(read.planInvalid&&planSyncEditToken(stateRef.current)!==read.editIntent&&cloudReadRef.current===read&&sessionRef.current&&sessionRef.current.user.id===u)return syncFromCloud(s,opts);
+      if(own&&!failed&&read.planInvalid&&planSyncEditToken(stateRef.current)!==read.editIntent&&cloudReadRef.current===read)return syncFromCloud(s,opts);
       // INSERT puede competir con otro móvil. Una relectura inmediata resuelve esa carrera;
       // si tampoco sirve, el próximo evento volverá a intentar, sin bucle de 409.
-      if(read.collision&&cloudReadRef.current===read&&!(opts&&opts.afterCollision)&&sessionRef.current&&sessionRef.current.user.id===u)return syncFromCloud(s,Object.assign({},opts,{afterCollision:true}));
-    },function(e){if(cloudPullRef.current===read)cloudPullRef.current=null;throw e;});
+      if(own&&!failed&&read.collision&&cloudReadRef.current===read&&!(opts&&opts.afterCollision))return syncFromCloud(s,Object.assign({},opts,{afterCollision:true}));
+      if(own&&read.again)return syncFromCloud(s,opts);
+      if(failed)throw result;
+      return result;
+    };
+    // Una respuesta o un error viejos pueden ganar la carrera mientras el sucesor espera:
+    // también ese camino debe adoptar su promesa, sin liberar su guardián ni acreditar el mes.
+    const completed=Promise.race([transport.then(function(result){return read.replacement||result;},function(e){if(read.replacement)return read.replacement;throw e;}),relevada])
+      .then(function(result){return finish(result,false);},function(e){return finish(e,true);});
     read.promise=completed;
-    const pull=completed.then(function(){if(!read.ready||cloudReadRef.current!==read||!sessionRef.current||sessionRef.current.user.id!==u)throw new Error("cloud_read_not_applied");});
+    const pull=completed.then(function(){if(!read.ready||cloudReadRef.current!==read||sessionRef.current!==readSession)throw new Error("cloud_read_not_applied");});
     pullOkRef.current=pull.then(function(){ return true; }, function(){ return false; });
     reservaMensualAlDia(pullOkRef.current.then(mensualPuerta.vale));
     // INC-0410 mensual: límite del pull de estado del que depende el asiento.
-    completed.catch(function(e){ if(navigator.onLine!==false&&sessionRef.current&&sessionRef.current.user.id===u) showToast("✕ Nube: "+((e&&e.message)||e)); })   // si estás sin conexión, ni avisamos (es normal)
+    completed.catch(function(e){ if(!read.replacement&&navigator.onLine!==false&&sessionRef.current===readSession) showToast("✕ Nube: "+((e&&e.message)||e)); })   // si estás sin conexión, ni avisamos (es normal)
       // Pase lo que pase, el splash se va: lo que se vea a partir de aquí ya es lo definitivo
       // (o lo mejor que hay). Ver el porqué en el script del final de shell.html.
       .then(mcBootReady, mcBootReady);
@@ -1319,6 +1352,7 @@ function App(){
     cloud.session().then(s=>{
       clearTimeout(tmr);
       if(!alive) return;
+      if(sessionRef.current!==s&&cloudPullRef.current&&cloudPullRef.current.cancel)cloudPullRef.current.cancel();
       setSession(sessionRef.current=s);
       if(!s){if(cloudPullRef.current&&cloudPullRef.current.commit)cloudPullRef.current.commit(false);cloudReadRef.current=null;cloudUpdatedAtRef.current=null;cloudPullRef.current=null;}
       if(s) mcScheduleIdle(()=>{ if(alive) syncFromCloud(s); }); else boot();
@@ -1327,6 +1361,9 @@ function App(){
       if(!alive) return;
       const prev=sessionRef.current;
       const login=s&&(!prev||prev.user.id!==s.user.id);
+      // También TOKEN_REFRESHED cambia el objeto sin cambiar UID: fuera del updater se
+      // cancela su espera de commit, que React puede descartar sin ejecutar sus efectos.
+      if(prev!==s&&cloudPullRef.current&&cloudPullRef.current.cancel)cloudPullRef.current.cancel();
       if(!s||login){if(cloudPullRef.current&&cloudPullRef.current.commit)cloudPullRef.current.commit(false);cloudReadRef.current=null;cloudUpdatedAtRef.current=null;cloudPullRef.current=null;}
       setSession(sessionRef.current=s);
       // Cerrar sesión rompe la asociación implícita del extracto local con el titular. El
@@ -1353,7 +1390,8 @@ function App(){
     });
     return ()=>{ alive=false;
       // Un vuelo que termina tras desmontar no conserva autoridad para releer ni escribir.
-      if(cloudPullRef.current&&cloudPullRef.current.commit)cloudPullRef.current.commit(false);
+      if(cloudPullRef.current&&cloudPullRef.current.cancel)cloudPullRef.current.cancel();
+      else if(cloudPullRef.current&&cloudPullRef.current.commit)cloudPullRef.current.commit(false);
       cloudPullRef.current=null;cloudReadRef.current=null;cloudUpdatedAtRef.current=null;sessionRef.current=null;
       clearTimeout(tmr); off(); };
   },[]);
