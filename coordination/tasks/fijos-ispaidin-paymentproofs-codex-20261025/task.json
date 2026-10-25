@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "id": "fijos-ispaidin-paymentproofs-codex-20261025",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261025-r100-fda31257-8268ed39-87d333bc-2a69a77b",
+  "createdAt": "2026-10-25T22:19:42.781Z",
+  "to": "codex",
+  "baseSHA": "95b950a0cae516a327b9cb28e022715df9b04ca8",
+  "objective": "Cola3/6 permanente Claude685cedf9112d416fdc3cf4bfebedd5496e31e7e0: isPaidIn de07-tab-patri-fijos.js no mira paymentProofs; rehacer vinculo sin pull deja saldo mal hasta planSyncDerived (G14 observacion b). Arreglo minimo con test y PR draft contra beta actual; dinero revisara Grok.",
+  "scope": [
+    "Leer contrato actual de isPaidIn/paymentProofs y helpers financieros existentes; arreglar minimo en07 sin exigir pull/planSyncDerived para ver pago actual. Preservar marcas manuales, meses distintos, identidad del recibo y evitar doble conteo; datos sinteticos/oraculo al centimo",
+    "Rojo causal antesfix con unlink/rehacer vinculo en estado real sin pull y verde focal completo; Node y DOMreal si cambia lista/texto/saldo renderizado, cubrir prueba vigente/retirada y marca manual separada; registrar nuevos tests y documentacion pertinente, sin repetir K3/FIN04/DeudasMadrid/G14 cerrados salvo nuevo cambio/fallo pertinente justificado",
+    "Source07 y helpers ya existentes reutilizados; no tocar04-tab-gastos.js ni src/shell.html reservados. No VERSION/catalogo/notas/caps/backend/SQL/Edge/Android/merge/deploy. Cualquier ampliacion necesaria fuera07 justificar antes al parent, no debilitar oraculos",
+    "Checkout/rama codex propios desdebaseSHA, sin instalar dependencias. CPU1serial1worker0retry stopfirstfailure,censo/admission/local/puertoOWN/leasevalido/logsEXITRETURN antescada run; navegador existente/datos/perfilaislados para DOMfocal, no movil/CPU6/suitebrowsercompleta",
+    "Standing worker e42252eb4444e23228b565b7d2da5b0ee5e13e43 OWN20 NUEVO0, initial/internal/readback>=30s ledgerexclusivo yFULLtodosdeltas/cancelaciones, claimACKpropios verificados porROOT100 antescodigo/tests. Recepcionprivada identidadreal/proyectoAelyLOCAL yadmisionnativa, luego technicalGO. Sin herencia",
+    "Solo reportescoordinador bajo humano74; revision parental independiente antespush+unaPRdraft/beta, entrega financiera aGrok porClaude. Root100deadline22:24:44.647Z requiere relevo coordinador sin cortar tu operacion; tu deadlinepropio+60min comienzaaladmision. Sin ProductREADY ni avisosduplicados"
+  ]
+}
