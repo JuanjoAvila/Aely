@@ -1,0 +1,9 @@
+{
+  "id": "deudas-madrid-command-correction-fda31257-682d1c28-1140dc83-fd41f1c1-20261025",
+  "to": "codex",
+  "body": "Correccion documental inmutable del result b341aae15e8bb14926a464284d159345e32cb18a PR305: el primer comando Node rojo llevaba tambien --test-concurrency=1 y el patron es un unico argumento. Comando exacto del hijo: node --test --test-concurrency=1 --test-name-pattern=\"America/Los_Angeles lista es\" tests/deudas-mes-madrid.test.mjs. EXIT1 y asercion octubre2027 vsnoviembre2027 no cambian. Los otros registros commandPublicPortion omiten expresamente argumentos privados y no pretenden ser comandos completos. Sin reejecucion de pruebas ni cambios de fuente/head/PR; todos resultados y liberacion conservados.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261025-deudas-madrid-fda31257-682d1c28-1140dc83-fd41f1c1",
+  "createdAt": "2026-10-25T22:16:25.500Z"
+}
