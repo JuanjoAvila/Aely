@@ -185,6 +185,26 @@ function planReviewDraft(current,record){
   });
   return draft;
 }
+function planFixedReviewResult(state,current,record,patch){
+  const bad=function(){return {error:"plan_edit_invalid"};},has=function(o,k){return Object.prototype.hasOwnProperty.call(o,k);};
+  if(!current||!record||record.kind!=="fixed"||record.id!==current.id)return bad();
+  if(Object.keys(patch||{}).some(function(k){return ["id","owner","user_id","type","paymentProofs","paidYm","paidDay","wait"].indexOf(k)>=0;}))return bad();
+  const draft=Object.assign({},planReviewDraft(current,record),patch||{});
+  const number=function(n){return typeof n==="number"&&Number.isFinite(n);},month=function(m){return Number.isInteger(m)&&m>=1&&m<=12;},day=function(d){return d==null||Number.isInteger(d)&&d>=1&&d<=31;};
+  if(typeof draft.name!=="string"||!draft.name.trim()||!number(draft.amount)||draft.bankAmount!=null&&!number(draft.bankAmount)||!day(draft.day))return bad();
+  if(draft.freq!=null&&["mes","mensual","bimestral","trimestral","semestral","año","anual"].indexOf(draft.freq)<0)return bad();
+  if(draft.account!=null&&typeof draft.account!=="string")return bad();
+  if(draft.months!=null&&(!Array.isArray(draft.months)||draft.months.some(function(m){return !month(m);})||new Set(draft.months).size!==draft.months.length))return bad();
+  if(draft.schedule!=null&&(!Array.isArray(draft.schedule)||draft.schedule.some(function(x){return !x||!month(x.m)||!day(x.day)||!number(x.amt);})||new Set(draft.schedule.map(function(x){return x.m;})).size!==draft.schedule.length))return bad();
+  // El grupo local se conserva entero, incluidas sus ausencias. La puerta canónica
+  // recibe también los cambios de cuenta/importe para invalidar las marcas como siempre.
+  const delta={};new Set(Object.keys(current).concat(Object.keys(draft))).forEach(function(k){if(has(current,k)!==has(draft,k)||!goalSyncEqual(current[k],draft[k]))delta[k]=draft[k];});
+  const base=Object.assign({},state,{fixed:(state.fixed||[]).map(function(f){return f.id===current.id?current:f;})});
+  let next=base;patchFixedById(function(fn){next=fn(base);},current.id,delta);
+  const item=next.fixed.find(function(f){return f.id===current.id;});if(!item)return bad();
+  Object.keys(delta).forEach(function(k){if(!has(draft,k))delete item[k];});
+  return {item:item};
+}
 function PlanConflictDot({record}){
   return record?React.createElement("span",{"data-plan-conflict-dot":record.kind,"aria-label":t("plan_conflict_title"),style:{color:"var(--tan)",marginLeft:6}},"●"):null;
 }

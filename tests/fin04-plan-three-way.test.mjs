@@ -37,7 +37,14 @@ function logic(){
  else if(mutant&&mutations[mutant]){const [a,b]=mutations[mutant];assert.ok(source.includes(a),'mutant anchor '+mutant);source=source.replace(a,b);}
  else if(mutant&&mutant!=='invalid-plan-abort')throw Error('Unknown FIN04B_MUTANT '+mutant);
  const hogar=fs.readFileSync(new URL('../src/modules/13-hogar.js',import.meta.url),'utf8'),hs=hogar.indexOf('function buildHouseholdSnapshot('),he=hogar.indexOf('\nfunction mergeHouseholdSnapshots',hs);vm.runInContext(hogar.slice(hs,he),c);
- const motor=fs.readFileSync(new URL('../src/modules/08-motor-bank.js',import.meta.url),'utf8');
+ let motor=fs.readFileSync(new URL('../src/modules/08-motor-bank.js',import.meta.url),'utf8');
+ const v2=process.env.FIN04_V2_MUTANT;
+ if(v2==='dead-link')source=source.replace('e&&!expenseIsTombstoned(e,deletedExpenses)','e');
+ if(v2==='manual-link')motor=motor.replace(/out\.debts=\(s\.debts\|\|\[\]\)\.map\([^\n]+;/,'');
+ if(v2==='auto-link')motor=motor.replace('expenses:expenses, debts:debts','expenses:expenses');
+ if(v2==='contract')motor=motor.replace('return previous&&it&&!goalSyncEqual(previous[k],it[k]);','return k==="amount"&&k in p||k==="account"&&k in p;');
+ if(v2==='noop')motor=motor.replace('return previous&&it&&!goalSyncEqual(previous[k],it[k]);','return k in p;');
+ for(const name of ['marcarCuotaAMano','marcarCuotasDeDeuda','patchFixedById'])vm.runInContext(fixedReviewBlock(motor,name),c);
  for(const text of [source,motor]){
   const mask=codeMask(text);
   for(const m of text.matchAll(/^function (planSync\w+|mergePlanThreeWay|fixedPaymentDerivedDay)\(/gm)){const start=m.index,open=mask.indexOf('{',start);let end=open+1,n=1;for(;n;end++){if(mask[end]==='{')n++;else if(mask[end]==='}')n--;}vm.runInContext(text.slice(start,end),c);}
@@ -275,3 +282,67 @@ test('invalid Plan pull settles after commit, warns, and allows the next valid p
  assert.equal(b.c.cloudPullRef.current,null);assert.equal(b.c.cloudReadRef.current.ready,true);assert.equal(b.c.cloudReadRef.current.valid,true);assert.equal(b.c.cloudUpdatedAtRef.current,'r-valid');assert.equal(b.c.state.fixed[0].day,29);
  const edit={...b.c.state,budget:101};await b.c.send(owner,edit);b.flush();assert.equal(b.writes.length,1);assert.equal(b.writes[0].revision,'r-valid');assert.equal(b.writes[0].s.budget,101);assert.equal(Math.round(b.writes[0].s.fixed[0].amount*100),4237);assert.equal(Math.round(b.writes[0].s.debts[0].value*100),120023);
 });
+
+function fixedReviewBlock(source,name){
+ const mask=codeMask(source),start=mask.indexOf('function '+name+'(');assert.ok(start>=0,'source function '+name);
+ let cursor=mask.indexOf('(',start)+1,parens=1;for(;parens;cursor++){if(mask[cursor]==='(')parens++;else if(mask[cursor]===')')parens--;}let end=mask.indexOf('{',cursor)+1,depth=1;for(;depth;end++){if(mask[end]==='{')depth++;else if(mask[end]==='}')depth--;}return source.slice(start,end);
+}
+function fixedReviewLogic(){
+ const c=logic(),source=fs.readFileSync(new URL('../src/modules/09-tab-debts-goals.js',import.meta.url),'utf8');
+ for(const name of new Set(['planReviewDraft',...Array.from(source.matchAll(/^function (planFixed\w+)\(/gm),m=>m[1])])){
+  let text=fixedReviewBlock(source,name);
+  if(name==='planFixedReviewResult'&&process.env.FIN04_FIXED_REVIEW_MUTANT==='current'){
+   const call=/planReviewDraft\(\s*current\s*,\s*record\s*\)/;assert.ok(call.test(text),'full draft mutation anchor');text=text.replace(call,'Object.assign({},current)');
+  }
+  vm.runInContext(text,c);
+ }
+ return c;
+}
+function fixedReviewCase(kind){
+ const base={id:'f',name:'Recibo',amount:42.37,bankAmount:null,account:'sabadell',freq:'año',months:[1],day:25,schedule:[{m:1,day:25,amt:42.37}],unknown:{keep:null}};
+ const local=copy(base),remote=copy(base);remote.account='caixabank';
+ if(kind==='schedule')local.schedule=[{m:1,day:25,amt:45.67}];
+ if(kind==='bankAmount')local.bankAmount=45.67;
+ if(kind==='absence'){local.freq='mes';delete local.months;delete local.bankAmount;delete local.schedule;}
+ return {base,local,remote};
+}
+function renderFixedReviewSave(c,state,current,record){
+ let captured=null;const errors=[];const noop=()=>{},element=(type,props,...children)=>({type,props:props||{},children});
+ Object.assign(c,{
+  React:{createElement:element,Fragment:'fragment',useState:init=>[typeof init==='function'?init():init,value=>{if(typeof value==='string')errors.push(value);}],useRef:()=>({current:null}),useEffect:noop,useLayoutEffect:noop},
+  usePlanEditSave:()=>({save:result=>{captured=result;},pending:false,error:''}),
+  useSheetSwipe:()=>({sheetRef:{current:null},close:noop,sheetTouch:{}}),useEdgePageClose:()=>({close:noop}),useBackClose:noop,
+  bankListButtons:()=>null,gbTxt:key=>key,t:key=>key,eur:value=>String(value),NumPad:noop,MonthPicker:noop
+ });
+ const source=fs.readFileSync(new URL('../src/modules/14-v4-screens.js',import.meta.url),'utf8');vm.runInContext(fixedReviewBlock(source,'BillsItemSheet'),c);
+ const tree=c.BillsItemSheet({row:{id:current.id,kind:'fixed',item:current,bank:current.account,monthly:current.amount,name:current.name},state,set:noop,banks:['sabadell','caixabank'],simple:false,onClose:noop,onRemove:noop,review:record});
+ const buttons=[];function walk(node){if(Array.isArray(node)){node.forEach(walk);return;}if(!node||typeof node!=='object')return;if(node.type==='button'&&node.props.onClick&&node.props.onClick.name==='saveReview')buttons.push(node);node.children.forEach(walk);}walk(tree);
+ assert.equal(buttons.length,1,'real review Save button');buttons[0].props.onClick();return {result:captured,errors};
+}
+for(const kind of ['schedule','bankAmount','absence'])test('fixed review real Save keeps the complete local financial group · '+kind,()=>{
+ const c=fixedReviewLogic(),b=fixedReviewCase(kind),merged=c.mergePlanThreeWay([b.base],[b.local],[b.remote],'fixed');assert.equal(merged.conflicts.length,1);
+ const state={fixed:[b.remote],debts:[],accounts:[],expenses:[],bankTx:[]},before=copy(state),record=merged.conflicts[0],saved=renderFixedReviewSave(c,state,b.remote,record);
+ assert.ok(saved.result&&!saved.result.error,'review Save must reach the validated commit');assert.ok(saved.result.item);const row=saved.result.item;
+ assert.equal(row.id,'f');assert.equal(Math.round(row.amount*100),4237);assert.equal(row.account,'sabadell');assert.equal(row.freq,b.local.freq);assert.deepEqual(copy(row.unknown),{keep:null});
+ for(const key of ['bankAmount','months','schedule']){assert.equal(Object.hasOwn(row,key),Object.hasOwn(b.local,key),key+' intentional absence');if(Object.hasOwn(b.local,key))assert.deepEqual(copy(row[key]),b.local[key],key+' must come from the same local group');}
+ if(kind==='schedule')assert.equal(Math.round(row.schedule[0].amt*100),4567);if(kind==='bankAmount')assert.equal(Math.round(row.bankAmount*100),4567);
+ assert.deepEqual(copy(state),before,'opening/saving a draft must not mutate the current state before commit');assert.equal(state.fixed[0],b.remote);
+});
+test('fixed full review validator rejects malformed schedules and nonfinite or duplicate financial values',()=>{
+ const c=fixedReviewLogic(),b=fixedReviewCase('schedule'),record=c.mergePlanThreeWay([b.base],[b.local],[b.remote],'fixed').conflicts[0],state={fixed:[b.remote],debts:[],accounts:[],expenses:[],bankTx:[]};
+ const invalid=[{amount:NaN},{bankAmount:NaN},{day:32},{months:[1,1]},{months:[0]},{months:[13]},
+  {schedule:[{m:1,day:25,amt:NaN}]},{schedule:[{m:13,day:25,amt:42.37}]},{schedule:[{m:1,day:32,amt:42.37}]},
+  {schedule:[{m:1,day:25,amt:42.37},{m:1,day:25,amt:42.37}]}];
+ for(const patch of invalid){const before=copy(state),result=c.planFixedReviewResult(state,b.remote,record,patch);assert.ok(result&&result.error,'invalid patch must be rejected: '+String(Object.keys(patch)));assert.ok(!result.item);assert.deepEqual(copy(state),before);}
+});
+
+for(const direction of ['local','remote'])test('linked expense is a debt edition across delete pull ACK reload · '+direction,()=>{const c=logic(),initial={fixed:fixed(),debts:debts(),expenses:[{id:'synthetic-payment',date:'2026-10-25',amount:100.11,merchant:'Cuota sintética',source:'manual',ent:'sabadell'}],accounts:[],_historyOwner:owner};Object.assign(initial,c.planSyncPull(initial,copy(initial),owner,'r0',false));const removed=c.planSyncDeleteDebt(copy(initial),'d'),linked=c.marcarCuotaAMano(copy(initial),'synthetic-payment','d');assert.ok(linked);let a=direction==='local'?linked.state:removed,b=direction==='local'?removed:linked.state;for(let turn=0;turn<2;turn++){const patch=c.planSyncPull(a,c.slimForCloud(b),owner,'r'+turn,false);assert.equal(patch.debts.length,1,'debt survives before expense reread');a={...a,...patch,expenses:copy(linked.state.expenses)};assert.equal(a.debts.length,1,'linked expense must not become orphan');assert.equal(a.expenses[0].debtId,a.debts[0].id);assert.equal(Math.round(a.debts[0].value*100),120023);assert.equal(Math.round(a.expenses[0].amount*100),10011);const reply=c.planSyncPull(b,c.slimForCloud(a),owner,'p'+turn,false);b={...b,...reply,expenses:copy(linked.state.expenses)};assert.equal(b.debts.length,1);a=c.planSyncAck(a,owner,c.slimForCloud(a),'r'+turn,'ack'+turn);c.mcSaveRaw('micartera_v3',a);a=c.mcLoadRaw('micartera_v3');assert.equal(a.debts.length,1);assert.equal(c.planSyncDeleteDebt(a,'d'),a,'linked expense still protects explicit delete');}});
+
+for(const direction of ['local','remote'])test('automatic debt link survives concurrent deletion before merge · '+direction,()=>{const c=logic(),expense={id:'synthetic-auto-payment',date:'2026-10-25',amount:100.11,merchant:'Cuota sintética',source:'manual',category:'deudas',ent:'sabadell'},initial={fixed:fixed(),debts:debts(),expenses:[expense],accounts:[],_historyOwner:owner};initial.cuotaAlias={[c.cuotaAliasKey(expense)]:'d'};Object.assign(initial,c.planSyncPull(initial,copy(initial),owner,'r0',false));const removed=c.planSyncDeleteDebt(copy(initial),'d'),linked=c.marcarCuotasDeDeuda(copy(initial));assert.ok(linked);assert.equal(linked.state.expenses[0].debtId,'d');const a=direction==='local'?linked.state:removed,b=direction==='local'?removed:linked.state,remote=c.slimForCloud(b);assert.ok(!remote.expenses);const patch=c.planSyncPull(a,remote,owner,'r1',false);assert.equal(patch.debts.length,1,'automatic binding is a debt edition before expenses are reread');assert.equal(Math.round(patch.debts[0].value*100),120023);});
+
+for(const field of ['bankAmount','schedule'])test('fixed review changed contract invalidates persisted paid marks alone · '+field,()=>{const c=fixedReviewLogic(),now=new Date(),ym=now.getFullYear()*12+now.getMonth()+1,month=now.getMonth()+1,base={...fixed()[0],freq:'año',months:[month],bankAmount:42.37,schedule:[{m:month,day:25,amt:42.37}]},local=copy(base),remote={...copy(base),paidYm:ym,paidDay:12};if(field==='bankAmount'){local.bankAmount=45.67;remote.bankAmount=49.99;}else{local.schedule[0].amt=45.67;remote.schedule[0].amt=49.99;}const record=c.mergePlanThreeWay([base],[local],[remote],'fixed').conflicts[0];assert.ok(record);const state={fixed:[remote],debts:[],accounts:[],expenses:[],bankTx:[]},saved=c.planFixedReviewResult(state,remote,record,{});assert.ok(saved.item);assert.ok(!Object.hasOwn(saved.item,'paidYm'),'paid mark belongs to old contract');assert.ok(!Object.hasOwn(saved.item,'paidDay'));assert.ok(!saved.item.paymentProofs);});
+test('logically deleted linked expense cannot revive unchanged debt',()=>{const c=logic(),row=debts()[0],e={id:'dead-payment',date:'2026-10-25',amount:100.11,merchant:'Sintético',source:'manual',debtId:'d'},prev={fixed:fixed(),debts:[row],expenses:[e],_historyOwner:owner},remote={fixed:fixed(),debts:[],debtDeleted:[copy(row)],deleted:[c.expenseDeletionKey(e)]};Object.assign(prev,c.planSyncPull(prev,copy(prev),owner,'r0',false));const patch=c.planSyncPull(prev,remote,owner,'r-deleted-expense',false);assert.equal(patch.debts.length,0,'a logically deleted expense is not a live link');assert.equal(c.expenseIsTombstoned(e,c.expenseDeletedSet({...prev,...remote,_historyOwner:owner})),true);});
+
+test('malformed debt with live expense returns invalid Plan without throwing',()=>{const c=logic(),s={fixed:fixed(),debts:debts(),expenses:[{id:'live',amount:1,date:'2026-10-25',source:'manual',debtId:'d'}],_historyOwner:owner};assert.equal(c.planSyncPull(s,{fixed:fixed(),debts:[null]},owner,'bad-null',false),null);});
+
+for(const mark of ['paid','wait'])test('same monthly frequency no-op keeps offline '+mark,()=>{const c=logic(),d=new Date(),ym=d.getFullYear()*12+d.getMonth()+1,row={...fixed()[0],...(mark==='paid'?{paidYm:ym,paidDay:12}:{wait:ym})},s={fixed:[row],accounts:[],expenses:[],bankTx:[]};let n;c.patchFixedById(fn=>n=fn(s),'f',{freq:'mes',months:[]});assert.equal(n.fixed[0][mark==='paid'?'paidYm':'wait'],ym);if(mark==='paid')assert.equal(n.fixed[0].paidDay,12);});

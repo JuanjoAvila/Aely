@@ -807,7 +807,7 @@ function App(){
           // Solo con lo local del MISMO titular: la lápida de otra cuenta que hubo en este móvil
           // escondería un gasto de esta que coincidiera en día, importe y comercio.
           const goalState=goalSyncPull(prev,cloudState,u,cloudPack.updated_at,!sameOwner,localNewer);
-          const planState=planSyncPull(prev,cloudState,u,cloudPack.updated_at,!sameOwner);
+          const planState=planSyncPull(Object.assign({},prev,{expenses:sameOwner?merged.list:cloudState.expenses||[]}),cloudState,u,cloudPack.updated_at,!sameOwner);
           if(!planState)return Object.assign({},prev,{[cloudMergeKey.current]:{read:read,planInvalid:true}});
           if(goalState._goalSync.cloudOnly) baseObj=Object.assign({},prev,cloudState,{expenses:merged.list,bankTx:prev.bankTx});
           Object.assign(baseObj,goalState,planState);

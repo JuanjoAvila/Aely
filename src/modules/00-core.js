@@ -4310,8 +4310,17 @@ function planSyncPull(prev,remote,owner,revision,dropLocal){
   const deleted=planSyncDebtDeleted(dropLocal?undefined:prev.debtDeleted,remote.debtDeleted);
   if(!deleted)return null;
   const result={},conflicts=meta?planSyncRecords(meta.conflicts):[];let invalid=false;
+  const local=dropLocal?{}:prev;
+  const deletedExpenses=expenseDeletedSet({_historyOwner:owner,deleted:(local.deleted||[]).concat(remote.deleted||[]),obAbsorbedPending:(local.obAbsorbedPending||[]).concat(remote.obAbsorbedPending||[]),obAbsorbedConfirmed:(local.obAbsorbedConfirmed||[]).concat(remote.obAbsorbedConfirmed||[])});
+  const linked=(local.expenses||[]).concat(remote.expenses||[]).filter(function(e){return e&&!expenseIsTombstoned(e,deletedExpenses);});
+  const protect=function(rows){if(!Array.isArray(rows))return rows;return rows.map(function(d){
+    if(!d||typeof d!=="object")return d;
+    if(!linked.some(function(e){return e&&e.debtId===d.id;})||!deleted.some(function(x){return goalSyncEqual(x,d);}))return d;
+    return Object.assign({},d,{debtLinkRevision:(Number(d.debtLinkRevision)||0)+1});
+  });};
   ["fixed","debts"].forEach(function(kind){
-    const merged=dropLocal?mergePlanThreeWay(remote[kind],remote[kind],remote[kind],kind,deleted):mergePlanThreeWay(meta&&meta.base&&meta.base[kind],prev[kind],remote[kind],kind,deleted);
+    const left=kind==="debts"?protect(dropLocal?remote.debts:prev.debts):dropLocal?remote[kind]:prev[kind],right=kind==="debts"?protect(remote.debts):remote[kind];
+    const merged=dropLocal?mergePlanThreeWay(remote[kind],left,right,kind,deleted):mergePlanThreeWay(meta&&meta.base&&meta.base[kind],left,right,kind,deleted);
     if(merged.invalid)invalid=true;
     result[kind]=goalSyncEqual(merged.rows,prev[kind])?prev[kind]:merged.rows;
     conflicts.push.apply(conflicts,merged.conflicts);

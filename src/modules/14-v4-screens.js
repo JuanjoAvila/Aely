@@ -649,11 +649,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
 
 function BillsItemSheet({row, state, set, banks, simple, onClose, onRemove,review}){
   const item=planReviewDraft(row.item,review);
-  const [reviewPatch,setReviewPatch]=React.useState(function(){
-    const p={};(review&&review.fields||[]).forEach(function(k){
-      if(["name","cat","category","amount","account","freq","months","day"].indexOf(k)>=0&&Object.prototype.hasOwnProperty.call(item,k))p[k]=item[k];
-    });return p;
-  });
+  const [reviewPatch,setReviewPatch]=React.useState({});
   const [reviewError,setReviewError]=React.useState("");
   const reviewCommit=usePlanEditSave({state:state,set:set,field:"fixed",item:row.item,review:review,onClose:onClose});
   const locked=row.kind==="debt"&&!simple;
@@ -731,10 +727,7 @@ function BillsItemSheet({row, state, set, banks, simple, onClose, onRemove,revie
     const patch=Object.assign({},reviewPatch);
     if(!name.trim()||day!==""&&cleanDay(day)==null){setReviewError("plan_edit_invalid");return;}
     if(amount.trim()&&!hasSched){const n=parseNumPadRaw(amount);if(!Number.isFinite(n)){setReviewError("plan_edit_invalid");return;}patch.amount=n;}
-    // La revisión pasa por la misma puerta del recibo; nunca copia pruebas ni reejecuta pagos.
-    const base=Object.assign({},state,{fixed:(state.fixed||[]).map(function(f){return f.id===row.id?row.item:f;})});
-    let next=base;patchFixedById(function(fn){next=fn(base);},row.id,patch);
-    reviewCommit.save({item:next.fixed.find(function(f){return f.id===row.id;})});
+    reviewCommit.save(planFixedReviewResult(state,row.item,review,patch));
   };
   const freqs=[["mes","gb_freq_m"],["bimestral","gb_freq_2m"],["trimestral","gb_freq_3m"],["semestral","gb_freq_6m"],["año","gb_freq_y"]];
   return React.createElement("div",{ref:sideRef,className:"v4-sheet-back",onClick:swipe.close},
