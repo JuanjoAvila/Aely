@@ -22,7 +22,13 @@ estado (todo menos los gastos, que viven en su tabla) viaja entero por «último
 4. **Gastos en un solo vuelo.** `syncCloudExpenses` comparte el vuelo de la misma sesión; una
    petición que llega durante el GET marca una **relectura pendiente** y la promesa común no se
    resuelve hasta drenarla (un gasto escrito por el otro móvil durante el GET se ve sin otro
-   evento).
+   evento). **Plazo de lectura (4.26.171, `EXP_READ_PLAZO`=25 s):** un GET que ni responde ni
+   falla retenía el vuelo y, con él, todas las bajadas hasta reiniciar la app. Si hay una
+   relectura pendiente y el vuelo lleva 25 s, la relectura lo **releva**: sube `wS` (la
+   respuesta tardía ya no se mezcla), libera `wP`/`wOwner`, lanza la lectura nueva y resuelve
+   con ella la promesa del vuelo viejo (`Promise.race`), de modo que `syncFromCloud` tampoco se
+   queda colgado. Sin nadie esperando no se corta nada. Pendiente: el mismo plazo para el
+   `cloud.pullState` de `syncFromCloud` (BACKLOG).
 5. **`_savedAt` de arranque.** `set(updater, edited)` solo sella con `edited=true` (formularios,
    dinero, aportación mensual). Mantenimiento (fotos de presupuesto, inversión, bienes y saldos,
    widget, divisas, logros, cuotas), adopción del remoto, pull de gastos y acuses guardan sin
@@ -1073,7 +1079,7 @@ El resumen manual conserva por separado éxito, caducidad y fallo temporal de Tr
 
 ## Guardado del estado: solo lo comprometido (4.26.94)
 
-El estado se escribe en disco desde un `useLayoutEffect` de `App` que corre tras cada commit y llama a `mcPersistCommit` (00-core): apunta el estado recién pintado como volcado pendiente, marca el histórico de gastos solo si cambió su referencia y arma, si no lo había, el temporizador de 400 ms. `set()` solo calcula el estado siguiente y sella `_savedAt`; no apunta nada ni arma temporizadores.
+El estado se escribe en disco desde un `useLayoutEffect` de `App` que corre tras cada commit y llama a `mcPersistCommit` (00-core): apunta el estado recién pintado como volcado pendiente, marca el histórico de gastos solo si cambió su referencia **y sus filas** (desde la 4.26.171 un array nuevo con las mismas filas en el mismo orden no cuenta: la relectura al reconectar devolvía el mismo histórico y reescribía `_exp` entero en cada reconexión) y arma, si no lo había, el temporizador de 400 ms. `set()` solo calcula el estado siguiente y sella `_savedAt`; no apunta nada ni arma temporizadores.
 
 Antes el volcado se apuntaba dentro del updater de `set()`. React puede ejecutar un updater sobre un estado que luego abandona —dos escrituras encoladas en el mismo instante, una urgente y otra no— y después reutilizar un resultado ya calculado sin volver a llamarlo; el volcado se quedaba entonces con el estado abandonado. Se vio en el alta de reglas de Metas: en pantalla la regla no existía y en disco sí. Un estado que la app nunca llegó a tener no se guarda.
 

@@ -1,24 +1,24 @@
 [
   {
-    "v": "4.26.170",
+    "v": "4.26.171",
     "d": "2026-10-25",
     "t": {
-      "es": "Dos móviles, sin pisarse",
-      "en": "Two phones, no overwriting",
-      "ca": "Dos mòbils, sense trepitjar-se"
+      "es": "Gastos al día con mala cobertura",
+      "en": "Spending up to date on a weak signal",
+      "ca": "Despeses al dia amb mala cobertura"
     },
     "items": {
       "es": [
-        "Si usas la app en dos móviles, lo que cambias en uno ya no se pierde ni lo pisa el otro al abrir la app.",
-        "Lo que cambias sin conexión se queda guardado y se sube en cuanto vuelve la red, sin deshacer lo que hiciste en el otro móvil."
+        "Si la conexión se queda colgada un momento, la app ya no deja de traer los gastos nuevos: se recupera sola.",
+        "Recuperar la conexión ya no reescribe todo el histórico de gastos, así la app va más ligera."
       ],
       "en": [
-        "If you use the app on two phones, what you change on one is no longer lost or overwritten by the other when it opens the app.",
-        "What you change while offline stays saved and goes up as soon as you're back online, without undoing what you did on the other phone."
+        "If the connection hangs for a moment, the app no longer stops bringing in new expenses: it recovers on its own.",
+        "Getting the connection back no longer rewrites the whole expense history, so the app runs lighter."
       ],
       "ca": [
-        "Si fas servir l'app en dos mòbils, el que canvies en un ja no es perd ni el trepitja l'altre en obrir l'app.",
-        "El que canvies sense connexió es queda desat i es puja tan bon punt torna la xarxa, sense desfer el que vas fer a l'altre mòbil."
+        "Si la connexió es queda penjada un moment, l'app ja no deixa de portar les despeses noves: es recupera sola.",
+        "Recuperar la connexió ja no reescriu tot l'historial de despeses, així l'app va més lleugera."
       ]
     },
     "tandas": [
@@ -57,6 +57,30 @@
         }
       }
     ]
+  },
+  {
+    "v": "4.26.170",
+    "d": "2026-10-25",
+    "t": {
+      "es": "Dos móviles, sin pisarse",
+      "en": "Two phones, no overwriting",
+      "ca": "Dos mòbils, sense trepitjar-se"
+    },
+    "items": {
+      "es": [
+        "Si usas la app en dos móviles, lo que cambias en uno ya no se pierde ni lo pisa el otro al abrir la app.",
+        "Lo que cambias sin conexión se queda guardado y se sube en cuanto vuelve la red, sin deshacer lo que hiciste en el otro móvil."
+      ],
+      "en": [
+        "If you use the app on two phones, what you change on one is no longer lost or overwritten by the other when it opens the app.",
+        "What you change while offline stays saved and goes up as soon as you're back online, without undoing what you did on the other phone."
+      ],
+      "ca": [
+        "Si fas servir l'app en dos mòbils, el que canvies en un ja no es perd ni el trepitja l'altre en obrir l'app.",
+        "El que canvies sense connexió es queda desat i es puja tan bon punt torna la xarxa, sense desfer el que vas fer a l'altre mòbil."
+      ]
+    },
+    "tandas": []
   },
   {
     "v": "4.26.169",
