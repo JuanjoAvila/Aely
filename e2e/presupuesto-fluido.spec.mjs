@@ -219,7 +219,7 @@ test("Mi ciclo muestra la cena neta de los Bizums recibidos aunque el modo mensu
   if(await ajustes.count()) await ajustes.locator(".settings-push-h .back").click();
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await expect(gastosRoot(page)).toHaveAttribute("data-periodo","cycle");
-  await expect(gastosEstado(page)).toHaveText("en tu ciclo · 980 € por debajo");
+  await expect(gastosEstado(page)).toHaveText("26 sep – 25 oct · 980 € por debajo");
   await expect(gastosCifra(page)).toHaveText("20,00 €");
   await expect(desglose(page)).toHaveText("gastos 100,00 € · ingresos 80,00 €");
 });

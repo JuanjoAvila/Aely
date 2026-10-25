@@ -740,6 +740,11 @@ function useTironSeccion(rootRef, o){
   useEffect(function(){
     if(!activo) return undefined;   // un único segmento (modo sencillo): no hay a dónde ir
     const root=rootRef.current; if(!root) return undefined;
+    /* El dedo se escucha en la PÁGINA entera, no solo en la pantalla: la pantalla mide lo que su
+       contenido, y con una sección corta o vacía («Todo en orden» de Suscripciones) debajo no
+       había nada que recibiera el toque — el tirón que empezaba en la mitad baja no llegaba
+       nunca (captura suya, 25/10/2026). La página es la de esta pestaña y llega al pie. */
+    const zona=root.closest&&root.closest(".page")||root;
     // Orden fijo, leído UNA vez por montaje y NO de un array literal del render: si el efecto
     // dependiera de él, se desmontaría y remontaría en CUALQUIER re-render, y si eso pasa a mitad
     // de un gesto (entre un touchmove y el siguiente) los listeners viejos se sueltan y los nuevos
@@ -845,16 +850,16 @@ function useTironSeccion(rootRef, o){
     // `touchcancel` (el sistema se lleva el dedo): el gesto NO cuenta, se queda como estaba —
     // mismo criterio que el cierre del perfil en `onCancel` de 11-app-main.js.
     const onTouchCancel=function(){ finish(false); };
-    root.addEventListener("touchstart", onStart, {passive:true});
-    root.addEventListener("touchmove", onMove, {passive:false});
-    root.addEventListener("touchend", onTouchEnd, {passive:true});
-    root.addEventListener("touchcancel", onTouchCancel, {passive:true});
+    zona.addEventListener("touchstart", onStart, {passive:true});
+    zona.addEventListener("touchmove", onMove, {passive:false});
+    zona.addEventListener("touchend", onTouchEnd, {passive:true});
+    zona.addEventListener("touchcancel", onTouchCancel, {passive:true});
     return function(){
       if(raf) cancelAnimationFrame(raf);
-      root.removeEventListener("touchstart", onStart);
-      root.removeEventListener("touchmove", onMove);
-      root.removeEventListener("touchend", onTouchEnd);
-      root.removeEventListener("touchcancel", onTouchCancel);
+      zona.removeEventListener("touchstart", onStart);
+      zona.removeEventListener("touchmove", onMove);
+      zona.removeEventListener("touchend", onTouchEnd);
+      zona.removeEventListener("touchcancel", onTouchCancel);
     };
   },[activo, seg]);
   // Entrada sutil SOLO cuando la sección cambia por este gesto (tocar la pestaña o el icono sigue

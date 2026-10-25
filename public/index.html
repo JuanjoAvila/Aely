@@ -1056,6 +1056,9 @@
      Nada seleccionable salvo el buscador (y los importes editables): sin menú de copiar al
      mantener pulsado ni destello azul al tocar (SPEC §9). */
   .gx-root,.gx-root *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;}
+  /* Mientras sigue puesto el dedo de una pulsación larga que abre una hoja (ver
+     `mcSinSeleccionHastaSoltar`): nada se selecciona, tampoco en la hoja del portal. */
+  html.mc-sin-sel,html.mc-sin-sel *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important;}
   .gx-root input,.gx-root textarea{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default;}
   /* CABECERA FIJA. La caja NUNCA cambia de alto: encogerse es `transform` de la cifra y de la
      línea, y la fila de meses sale por debajo (posición absoluta) sobre la lista que ya ha
@@ -1104,10 +1107,12 @@
     display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;opacity:0;visibility:hidden;pointer-events:none;
     transform:translateY(-6px);transition:opacity .2s var(--ease),transform .2s var(--ease),visibility 0s linear .2s;}
   .gx-head.compact .gx-meses{opacity:1;visibility:inherit;pointer-events:auto;transform:none;transition-delay:0s;}
-  .gx-mes-pasti{position:absolute;left:0;top:4px;height:36px;border-radius:18px;background:var(--sur2);transition:transform .24s var(--ease);}
+  /* La pastilla activa va en MENTA, como el icono de sección activo: en gris oscuro casi no se
+     distinguía en qué mes (o ciclo) estabas («que se note que estás en un mes u otro», 25/10). */
+  .gx-mes-pasti{position:absolute;left:0;top:4px;height:36px;border-radius:18px;background:var(--mint);transition:transform .24s var(--ease);}
   .gx-mes{position:relative;flex:0 0 auto;height:36px;padding:0 14px;border:0;border-radius:18px;background:transparent;color:var(--muted);
     font:600 15px 'Manrope',sans-serif;white-space:nowrap;cursor:pointer;}
-  .gx-mes.on{color:var(--text);font-weight:700;}
+  .gx-mes.on{color:var(--on-mint);font-weight:700;}
   /* Título con los tres iconos de sección a la derecha (SPEC §2.1): el activo relleno en menta.
      La fila mide lo mismo que el título de antes (8 + 30 + 10 px): los iconos de 44 px se comen
      los márgenes. Si la cabecera creciera, el buscador (que se queda el dedo, `stopSwipe`) bajaría
@@ -1193,7 +1198,7 @@
   .gx-dia-h{display:flex;justify-content:space-between;align-items:baseline;padding:0 4px 4px;}
   .gx-dia-t{font-size:17px;font-weight:700;color:var(--text);}
   .gx-dia-tot{font-size:15px;color:var(--muted);}
-  .gx-list .v4-mov{margin-top:0;gap:14px;padding:14px 16px;border-radius:20px;}
+  .gx-list .v4-mov{margin-top:0;gap:10px;padding:14px 12px 14px 14px;border-radius:20px;}
   .gx-list .v4-mov .tile{width:44px;height:44px;border-radius:22px;font-size:20px;}
   .gx-list .v4-mov .nm-title{font-size:16px;font-weight:600;}
   .gx-list .v4-mov .nm-cat{font-size:14px;font-weight:500;}
@@ -1209,6 +1214,14 @@
   .gx-list .v4-mov .meta > span{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;}
   .gx-list .v4-mov .meta > span:first-child,.gx-list .v4-mov .meta > .sep{flex:0 0 auto;}
   .gx-list .v4-mov .am{flex:0 0 auto;white-space:nowrap;}
+  /* Nombre y categoría en UNA línea cada uno (su «modo normal la letra», 25/10/2026): a 393 px la
+     columna del nombre se quedaba en ~130 px entre el icono, los tres huecos de 14, el importe y el
+     asa, y «Barcelona Cooking» o «Bares y restaurantes» se partían en dos; con la letra del sistema
+     más grande (el WebView escala el texto, no las cajas) se partía casi todo. Los huecos bajan a
+     10 y el relleno lateral a 14/12 (arriba, en `.gx-list .v4-mov`; la letra se queda la del
+     diseño) y, si aun así no cabe, se recorta con puntos suspensivos: una fila de dos líneas por
+     gasto duplicaba la lista. */
+  .gx-list .v4-mov .nm-title,.gx-list .v4-mov .nm-cat{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   /* Fila gris: recibos y cuotas del día, que no cuentan (SPEC §4.4). Sin flecha, a petición. */
   .gx-gris{border:1px dashed var(--sur2);border-radius:18px;overflow:hidden;}
   .gx-gris-h{width:100%;display:flex;align-items:center;gap:10px;min-height:48px;padding:0 18px;border:0;background:transparent;
@@ -1235,10 +1248,9 @@
   .gx-gris-plan{display:flex;align-items:center;min-height:44px;width:100%;padding:0 18px;border:0;background:transparent;color:var(--mint);
     font:600 14px 'Manrope',sans-serif;text-align:left;cursor:pointer;}
   .gx-fin{text-align:center;padding:28px 0 0;font-size:13px;color:var(--muted);}
-  /* Pie de Movimientos («Actualizar gastos» hasta la tanda 5). Vacío desde entonces: deja sitio
-     para que el último día pueda subir hasta la cabecera; sin él, la cifra del mes más antiguo (y
-     el salto a su pastilla) no llegaba nunca a verse. */
-  .gx-pie{padding-top:28px;min-height:calc(100dvh - 300px);box-sizing:border-box;}
+  /* Pie de Movimientos («Actualizar gastos» hasta la tanda 5). Desde la tanda 6 ya no existe: su
+     hueco de una pantalla era lo que él veía vacío al final de la lista; el último día llega a la
+     cabecera por la raya de `GastosCabecera`. El comentario se queda como ancla del catálogo. */
   .gx-periodo-extra{margin:-4px 0 16px;}
   /* Periodo en Filtros: selector de una sola opción. */
   .gx-periodo{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:4px;margin-bottom:16px;background:var(--bg);border-radius:16px;}
@@ -7514,6 +7526,10 @@ Object.assign(LANG.es,{gv5_fil_reset:"Restablecer", gv5_fil_todas:"Las {n}", gv5
   gv5_fil_nube:"Los gastos guardados en la nube, también los de las notificaciones, se traen solos al abrir la app y al volver a ella. No consulta tus bancos."});
 
 
+// Gastos v5, tanda 6: fila de ciclos en Mi ciclo.
+Object.assign(LANG.es,{gv5_ciclos:"Ciclos", gv5_ciclo_rango:"{d1} – {d2}"});
+
+
 const MON_I18N = {
   es:{ long:["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"], short:["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"] },
   en:{ long:["January","February","March","April","May","June","July","August","September","October","November","December"], short:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"] },
@@ -9944,6 +9960,11 @@ function useTironSeccion(rootRef, o){
   useEffect(function(){
     if(!activo) return undefined;   // un único segmento (modo sencillo): no hay a dónde ir
     const root=rootRef.current; if(!root) return undefined;
+    /* El dedo se escucha en la PÁGINA entera, no solo en la pantalla: la pantalla mide lo que su
+       contenido, y con una sección corta o vacía («Todo en orden» de Suscripciones) debajo no
+       había nada que recibiera el toque — el tirón que empezaba en la mitad baja no llegaba
+       nunca (captura suya, 25/10/2026). La página es la de esta pestaña y llega al pie. */
+    const zona=root.closest&&root.closest(".page")||root;
     // Orden fijo, leído UNA vez por montaje y NO de un array literal del render: si el efecto
     // dependiera de él, se desmontaría y remontaría en CUALQUIER re-render, y si eso pasa a mitad
     // de un gesto (entre un touchmove y el siguiente) los listeners viejos se sueltan y los nuevos
@@ -10049,16 +10070,16 @@ function useTironSeccion(rootRef, o){
     // `touchcancel` (el sistema se lleva el dedo): el gesto NO cuenta, se queda como estaba —
     // mismo criterio que el cierre del perfil en `onCancel` de 11-app-main.js.
     const onTouchCancel=function(){ finish(false); };
-    root.addEventListener("touchstart", onStart, {passive:true});
-    root.addEventListener("touchmove", onMove, {passive:false});
-    root.addEventListener("touchend", onTouchEnd, {passive:true});
-    root.addEventListener("touchcancel", onTouchCancel, {passive:true});
+    zona.addEventListener("touchstart", onStart, {passive:true});
+    zona.addEventListener("touchmove", onMove, {passive:false});
+    zona.addEventListener("touchend", onTouchEnd, {passive:true});
+    zona.addEventListener("touchcancel", onTouchCancel, {passive:true});
     return function(){
       if(raf) cancelAnimationFrame(raf);
-      root.removeEventListener("touchstart", onStart);
-      root.removeEventListener("touchmove", onMove);
-      root.removeEventListener("touchend", onTouchEnd);
-      root.removeEventListener("touchcancel", onTouchCancel);
+      zona.removeEventListener("touchstart", onStart);
+      zona.removeEventListener("touchmove", onMove);
+      zona.removeEventListener("touchend", onTouchEnd);
+      zona.removeEventListener("touchcancel", onTouchCancel);
     };
   },[activo, seg]);
   // Entrada sutil SOLO cuando la sección cambia por este gesto (tocar la pestaña o el icono sigue
@@ -12403,6 +12424,23 @@ function gastosCifraDias(state, expenses, period, fromMs, toMs, porMes, fila){
 function gastosFilaCat(id){
   return function(e, st){ return e.amount>0 && catOf(e.category||"otros").id===id && expenseCountsBudget(e, st) ? e.amount : 0; };
 }
+/* La regla por fila de los filtros de la hoja: solo lo que está en la lista (`filtrados`), y de
+   ello lo que la tarjeta no pinta como «no cuenta» (recibos y cuotas, inversiones y traspasos, otro
+   banco, posibles repetidos) salvo que ese cajón se haya pedido en «Qué contar». Gasto en positivo,
+   lo que entra en negativo, como `budgetRowSigned`. La aportación a una meta (`meta`) tampoco suma:
+   la tanda 6 nació antes que ese cajón y, con un filtro de la hoja, la cifra y el total del día la
+   contaban aunque su tarjeta dijera que no cuenta (integración de la 4.26.172). No está entre los
+   chips de «Qué contar», así que con filtro nunca suma, igual que en el presupuesto. */
+const GX_NO_SUMA={neutra:1, otrobanco:1, posible:1, deuda:1, recibo:1, meta:1};
+function gastosFilaVista(filtrados, cajones){
+  const en=new Set(filtrados);
+  return function(e, st){
+    if(!en.has(e)) return 0;
+    const bk=expenseBucket(e, st);
+    if(GX_NO_SUMA[bk] && cajones.indexOf(bk)===-1) return 0;
+    return e.amount>0||e.amount<0 ? e.amount : 0;
+  };
+}
 /* Lo acumulado hasta el día `k` (aaaammdd) del mes `ym` incluido. Un día sin nada que cuente
    hereda lo del último día que sí; antes del primero (o del primero de SU mes, si se acumula por
    mes), cero. Búsqueda binaria: se llama en cada cambio de día visible, no puede recorrer nada. */
@@ -12556,6 +12594,11 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
      en ese mes. */
   const [catFil,setCatFil]=useState(null);
   const [mesSel,setMesSel]=useState(null);
+  /* El ciclo que se ve en Mi ciclo (petición del dueño, 25/10/2026: «que el filtro de meses salga
+     también en Mi ciclo y que se note en cuál estás»): el inicio en ms de un ciclo pasado, o null
+     = el en curso. Como `mesSel`, no se guarda: entrar en Gastos es ver el ciclo de hoy. */
+  const [cicloSel,setCicloSel]=useState(null);
+  const cicloSelRef=useRef(cicloSel); cicloSelRef.current=cicloSel;
   const catFilRef=useRef(catFil); catFilRef.current=catFil;
   const mesSelRef=useRef(mesSel); mesSelRef.current=mesSel;
   /* Al salir de Gastos vuelve a Movimientos, sin filtro de categoría y en el mes en curso: todas
@@ -12567,12 +12610,13 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     let fuera=false;
     return mcOnGastosActive(function(active){
       fuera=!active;
-      if(active || seccRef.current==="movs" && !catFilRef.current && !mesSelRef.current) return;
+      if(active || seccRef.current==="movs" && !catFilRef.current && !mesSelRef.current && cicloSelRef.current==null) return;
       mcScheduleIdle(function(){
         if(!fuera) return;
         if(seccRef.current!=="movs") setSecc("movs");
         if(catFilRef.current) setCatFil(null);
         if(mesSelRef.current) setMesSel(null);
+        if(cicloSelRef.current!=null) setCicloSel(null);
       }, 1500);
     });
   },[]);
@@ -13121,7 +13165,41 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   // Chips de banco: baratos y SIEMPRE visibles (no dependen de heavyOk → sin flash).
   // `todayKey` invalida ciclo, filtros y cabecera cuando la app queda abierta al cruzar el día;
   // así el 26 o el día 1 no conserva cifras del período anterior en un memo.
-  const bounds=useMemo(function(){ return presetBoundsMs(preset,range,cycle&&cycle.start); },[preset,range,cycle,todayKey,madridDay]);
+  /* CICLOS PASADOS (25/10/2026). Cada uno se busca con la MISMA regla que el en curso (el cobro
+     que lo abre, `budgetPaydayOf` o `lastPaydayOf`), preguntando por el último cobro antes de que
+     empezara el siguiente; acaba el día antes de que empiece el siguiente. Si no aparece el cobro
+     de antes, la fila se para ahí: un ciclo sin su cobro sería inventado. Solo se calcula en Mi
+     ciclo. Lista de más viejo a más nuevo, como la de meses. */
+  const ciclos=useMemo(function(){
+    if(preset!=="cycle" || !cycle) return null;
+    const delSet=expenseDeletedSet(state);
+    const busca=function(ms){ return cycleEnabled?budgetPaydayOf(state,ms,expensesDef):lastPaydayOf(expensesDef,ms,delSet); };
+    const out=[{start:cycle.start, inc:cycle.inc, from:cycle.start.getTime(), to:null}];
+    for(let i=0;i<GX_CICLOS_MAX;i++){
+      const sig=out[out.length-1], prev=busca(sig.from-1);
+      if(!prev || !(prev.start.getTime()<sig.from)) break;
+      out.push({start:prev.start, inc:prev.inc, from:prev.start.getTime(), to:sig.from-1});
+    }
+    return out.reverse();
+  },[preset,cycle,expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.flows,cycleEnabled]);
+  // El ciclo pasado elegido (null = el en curso, también si el elegido ya no existe).
+  const cicloPas=ciclos&&cicloSel!=null?ciclos.find(function(c){ return c.to!=null&&c.from===cicloSel; })||null:null;
+  /* El RANGO del ciclo que se ve, para la línea bajo la cifra (decisión del dueño, 25/10/2026:
+     «mes + fechas»: la pastilla dice el mes y debajo «24 sep – 23 oct»). Uno pasado acaba el día
+     antes del cobro siguiente; el en curso, el día antes del mismo día del mes que viene (el cobro
+     que lo cierra aún no ha llegado; si ese mes es más corto, su último día). */
+  const cicloRango=useMemo(function(){
+    if(preset!=="cycle" || !cycle) return null;
+    if(cicloPas) return {ini:cicloPas.from, fin:cicloPas.to};
+    const s=cycle.start;
+    const fin=Math.min(new Date(s.getFullYear(),s.getMonth()+1,s.getDate()-1).getTime(), new Date(s.getFullYear(),s.getMonth()+2,0).getTime());
+    return {ini:s.getTime(), fin:fin};
+  },[preset,cycle,cicloPas]);
+  const cicloTxt=function(fin){ return tf("gv5_ciclo_rango",{d1:gxDiaCorto(cicloRango.ini), d2:gxDiaCorto(fin)}); };
+  const bounds=useMemo(function(){
+    if(cicloPas) return {from:cicloPas.from, to:cicloPas.to};
+    return presetBoundsMs(preset,range,cycle&&cycle.start);
+  },[preset,range,cycle,cicloPas,todayKey,madridDay]);
   /* En «months» la lista no tiene ventana (es el histórico entero, mes a mes), pero la cifra de
      arriba y el desglose son los del MES EN CURSO: desde el día 1 de Madrid hasta el día 1 del mes
      siguiente, como la tarjeta de antes. Inicio (`budgetPeriodOf`) no pone tope: un apunte fechado
@@ -13132,8 +13210,9 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       const ini=inicioDeMesMs(Date.now());
       return {startMs:ini, todayEndMs:inicioDeMesMs(ini+35*864e5), cycle:null};
     }
-    return gastosPeriodOf(preset,bounds,cycle);
-  },[preset,bounds,cycle,todayKey,madridDay]);
+    // Un ciclo pasado lleva SU cobro: es el que no suma como ingreso dentro de él (`budgetRowSigned`).
+    return gastosPeriodOf(preset,bounds,cicloPas||cycle);
+  },[preset,bounds,cycle,cicloPas,todayKey,madridDay]);
   const diarioEnts=useMemo(function(){ return expenseBankEnts(state); },[state.accounts, state.settings]);
   const diarioPrev=useRef(diarioEnts.slice());
   const diarioKey=diarioEnts.slice().sort().join("|");
@@ -13228,7 +13307,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   // `accounts` + `settings` van en deps: monthBudgetStats → expenseCountsBudget → expenseBankEnts
   // lee rol diario y expenseBanks. Sin ellos, quitar un banco de gasto diario dejaba la cabecera
   // alta hasta que un sync cambiaba `expenses` (B09-A / feedback familia 2026-09-06).
-  const budgetApplies=preset==="months"||preset==="cycle";
+  // Un ciclo pasado es como un mes cerrado: sin límite (no hay foto del límite de entonces).
+  const budgetApplies=preset==="months"||preset==="cycle"&&!cicloPas;
   const monthSummary=useMemo(function(){
     const bs=monthBudgetStats(Object.assign({},state,{expenses:expensesDef}),null,null,null,selectedPeriod);
     // No existe una foto histórica del límite ni un presupuesto acumulado para varios meses.
@@ -13236,7 +13316,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     if(!budgetApplies){ bs.budget=null; bs.remaining=null; }
     const periodLabel=preset==="custom"
       ? (range.from?fmtIsoCorto(range.from):t("g_all"))+" → "+(range.to?fmtIsoCorto(range.to):t("g_all"))
-      : preset==="months" ? monthLong(mad.m-1) : preset==="all" ? t("gv5_all") : t("g_"+preset);
+      : preset==="months" ? monthLong(mad.m-1) : preset==="all" ? t("gv5_all")
+      : cicloPas ? cicloTxt(cicloRango.fin) : t("g_"+preset);
     return {
       spent:bs.spent, income:bs.income, balance:bs.balance, mode:bs.mode, against:bs.against, shown:bs.shown,
       budget:bs.budget, reserved:bs.reserved, remaining:bs.remaining,
@@ -13262,6 +13343,20 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     const to=months||bounds.to===Infinity?Infinity:bounds.to+1;
     return gastosCifraDias(state, expensesDef, {cycle:null}, months?-Infinity:bounds.from, to, months, gastosFilaCat(catFilId));
   },[catFilId,expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,preset,bounds,todayKey,madridDay]);
+  /* Las sumas de LO QUE SE VE con los filtros de la hoja (tanda 6: categorías, bancos o «Qué
+     contar»): las mismas filas que la lista (`filtered`, misma referencia de cada gasto; si además
+     hay búsqueda, también la cuenta) y, de ellas, las que la tarjeta no marca como «no cuenta» —
+     salvo que ese cajón sea justo el que se ha pedido en «Qué contar». Así la cifra de arriba y el
+     total de cada día cuadran con las tarjetas de debajo. La búsqueda SOLA sigue explorando sin
+     redefinir la cifra (contrato de siempre, `gastos-periodo-categorias`): él pidió los filtros.
+     Sin filtros la cifra es la del presupuesto (`cifra`). */
+  const filtraVista=!catFilId && (sel.length>0 || bucketSel.length>0 || !sameEntList(bankSel,diarioEnts));
+  const cifraFil=useMemo(function(){
+    if(!filtraVista) return null;
+    const months=preset==="months";
+    const to=months||bounds.to===Infinity?Infinity:bounds.to+1;
+    return gastosCifraDias(state, expensesDef, {cycle:null}, months?-Infinity:bounds.from, to, months, gastosFilaVista(filtered, bucketSel));
+  },[filtraVista,filtered,bucketSel,expensesDef,preset,bounds]);
   /* Categorías enseña el mes elegido en su fila de meses (SPEC §5). El límite y la barra del
      presupuesto solo en el mes en curso (o Mi ciclo): no hay foto del límite de un mes pasado, y
      el de hoy aplicado al pasado inventaría margen (la misma regla que la cifra, §3). */
@@ -13289,6 +13384,12 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     });
     return catsBudget?rows:rows.filter(function(row){ return row.spent>0; }).map(function(row){ return {id:row.id,spent:row.spent,limit:null}; });
   },[expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.categoryBudgets,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,catsPeriod,catsBudget,todayKey,madridDay]);
+  /* Las categorías de la hoja de Filtros: las de MÁS GASTO del periodo que se ve, sacadas de este
+     mismo desglose (no de otra cuenta): así las cinco de la hoja son las cinco primeras de
+     Categorías. Sin las que no han gastado nada (las de límite a 0). */
+  const masGastadas=useMemo(function(){
+    return catBreakdown.filter(function(r){ return r.spent>0; }).map(function(r){ return r.id; });
+  },[catBreakdown]);
   // La fecha del cobro sigue a la vista al plegar la explicación; ocultarla dejaba «Mi ciclo»
   // sin una referencia comprobable y la tarjeta larga volvía a ocupar la pantalla (28/9).
   const cycleHelpOpen=!(state.settings && state.settings.gastosCycleHelpOff);
@@ -13514,34 +13615,27 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     // Meses para la fila fija de Categorías y del filtro: los que tienen algo que cuenta, y el en curso.
     const mesesPres=preset!=="months"?null:Object.keys(cifra.months).concat(cifra.months[mad.ym]?[]:[mad.ym]).sort()
       .map(function(ym){ return {ym:ym, label:etiquetaMes(ym)}; });
+    /* La fila de CICLOS de Mi ciclo: fija como la de Categorías (cambia el ciclo enseñado, no salta
+       en la lista). Cada ciclo se llama por el mes en que cae casi entero (su inicio + 15 días: el
+       que empieza el 30 de septiembre es el de octubre); si dos caen en el mismo mes (un cobro
+       adelantado), el segundo se llama por su día de inicio, para no tener dos pastillas iguales. */
+    const cicloKey=function(c){ return "c"+c.from; };
+    const vistos={};
+    const ciclosFila=!ciclos?null:ciclos.map(function(c){
+      let label=etiquetaMes(madridYmdParts(c.from+15*864e5).ym);
+      if(vistos[label]) label=gxDiaCorto(c.from);
+      vistos[label]=1;
+      return {ym:cicloKey(c), label:label};
+    });
+    const cicloYm=ciclos?cicloKey(cicloPas||ciclos[ciclos.length-1]):null;
+    // Bajando en Mi ciclo, lo sumado va del inicio del ciclo al día de debajo: «24 sep – 2 oct».
+    const cicloHasta=function(k,d){ return cicloRango?cicloTxt(new Date(Math.floor(k/10000),Math.floor(k/100)%100-1,k%100).getTime()):tf("gv5_cycle_upto",{d:d}); };
     /* CON FILTRO DE CATEGORÍA (SPEC §3): la cifra es lo de esa categoría en ese mes, con la regla
        del desglose (la misma cifra que su fila en Categorías), y bajando, hasta el día de arriba.
        La línea cuenta los movimientos que suman y compara con la MISMA categoría el mes anterior:
        hasta el mismo día si es el mes en curso, y solo si el histórico cubre ese mes entero. Es
        gasto bruto siempre: una categoría no tiene «balance». */
-    if(catFil && cifraCat){
-      const fc=cifraCat, months=preset==="months", fym=months?(catFil.ym||mad.ym):null;
-      const nTxt=function(n){ return tf(n===1?"gv5_fil_n1":"gv5_fil_n",{n:n}); };
-      let ftop;
-      if(months){
-        const m=fc.months[fym]||{sp:0,inc:0,n:0}, pym=gastosYmPrev(fym);
-        let st=null;
-        if(cubre(pym)){
-          if(fym===mad.ym){
-            const prevK=+pym.slice(0,4)*10000+(+pym.slice(5,7))*100+mad.d;
-            st=vsPrev(m.sp, gastosCumDia(fc,prevK,pym).sp, pym, true);
-          } else st=vsPrev(m.sp, (fc.months[pym]||{sp:0}).sp, pym, false);
-        }
-        ftop={n:m.sp, pre:nTxt(m.n), tail:st&&st.tail, tone:st&&st.tone, ym:fym, sub:null};
-      } else ftop={n:fc.tot.sp, pre:nTxt(fc.tot.n), ym:null, sub:null};
-      const fline=function(k, ym){
-        if(k===mesesLista.newestK && ym===mesesLista.newestYm) return ftop;
-        const c=gastosCumDia(fc,k,months?ym:undefined), d=(k%100)+" "+monthShort(Math.floor(k/100)%100-1).toLowerCase();
-        return {n:c.sp, ym:months?ym:null, sub:null,
-          pre:months?tf("gv5_upto",{mes:mesDe(ym),d:k%100}):preset==="cycle"?tf("gv5_cycle_upto",{d:d}):tf("gv5_period_upto",{period:monthSummary.periodLabel,d:d})};
-      };
-      return {top:ftop, line:fline, meses:mesesPres, fijos:!!mesesPres, mesesPres:mesesPres, etiquetaMes:etiquetaMes};
-    }
+    // La cifra del presupuesto, sin filtros: arriba sin filtros y siempre en Categorías.
     let top;
     if(preset==="months"){
       let st=vsBudget();
@@ -13553,9 +13647,49 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       top={n:monthSummary.shown, pre:tf(mode==="net"?"gv5_net_in":"gv5_spent_in",{mes:mesDe(mad.ym)}), tail:st&&st.tail, tone:st&&st.tone, ym:mad.ym};
     } else if(preset==="cycle"){
       const st=vsBudget();
-      top={n:monthSummary.shown, pre:t("gv5_cycle"), tail:st&&st.tail, tone:st&&st.tone, ym:null};
+      // Su rango, en curso o pasado; «en tu ciclo» solo si no hay cobro que lo marque.
+      top={n:monthSummary.shown, pre:cicloRango?cicloTxt(cicloRango.fin):t("gv5_cycle"), tail:st&&st.tail, tone:st&&st.tone, ym:cicloYm};
     } else top={n:monthSummary.shown, pre:monthSummary.periodLabel, ym:null};
     top.sub=subDe({sp:monthSummary.spent, inc:monthSummary.income});
+    /* CON FILTROS DE LA HOJA (categorías, bancos o qué contar; tanda 6, su «cuando
+       tocas un filtro el número de arriba no cambia»): el MISMO camino que el filtro de categoría,
+       con las sumas de lo que se ve (`cifraFil`). La cifra es lo gastado menos lo que ha entrado
+       entre lo filtrado (con solo gastos, lo gastado: lo mismo que el filtro de Categorías) y debajo
+       se dice de qué sale. La fila de meses sigue siendo la de la lista (o la de ciclos). */
+    const fc=catFil&&cifraCat?cifraCat:cifraFil;
+    if(fc){
+      const months=preset==="months", fym=months?(catFil&&catFil.ym||mad.ym):null;
+      const nTxt=function(n){ return tf(n===1?"gv5_fil_n1":"gv5_fil_n",{n:n}); };
+      // Con el filtro de categoría `inc` es siempre 0 (solo suma gasto): su cifra no cambia.
+      const val=function(x){ return x.sp-x.inc; };
+      const subF=function(x){ return x.inc>0?tf("gv5_net_sub",{g:eur(x.sp),i:eur(x.inc)}):null; };
+      let ftop;
+      if(months){
+        const m=fc.months[fym]||{sp:0,inc:0,n:0}, pym=gastosYmPrev(fym);
+        let st=null;
+        if(cubre(pym)){
+          if(fym===mad.ym){
+            const prevK=+pym.slice(0,4)*10000+(+pym.slice(5,7))*100+mad.d;
+            st=vsPrev(val(m), val(gastosCumDia(fc,prevK,pym)), pym, true);
+          } else st=vsPrev(val(m), val(fc.months[pym]||{sp:0,inc:0}), pym, false);
+        }
+        ftop={n:Math.abs(val(m)), pre:nTxt(m.n), tail:st&&st.tail, tone:st&&st.tone, ym:fym, sub:subF(m)};
+      } else ftop={n:Math.abs(val(fc.tot)), pre:nTxt(fc.tot.n), ym:cicloYm, sub:subF(fc.tot)};
+      // En balance la línea de debajo existe siempre: la caja no cambia de alto al bajar.
+      if(ftop.sub==null && monthSummary.mode==="net") ftop.sub="";
+      const fline=function(k, ym){
+        if(k===mesesLista.newestK && ym===mesesLista.newestYm) return ftop;
+        const c=gastosCumDia(fc,k,months?ym:undefined), d=(k%100)+" "+monthShort(Math.floor(k/100)%100-1).toLowerCase();
+        return {n:Math.abs(val(c)), ym:months?ym:null, sub:subF(c),
+          pre:months?tf("gv5_upto",{mes:mesDe(ym),d:k%100}):preset==="cycle"?cicloHasta(k,d):tf("gv5_period_upto",{period:monthSummary.periodLabel,d:d})};
+      };
+      if(catFil){
+        const fmeses=ciclosFila||mesesPres;
+        return {top:ftop, pres:top, line:fline, meses:fmeses, fijos:!!fmeses, mesesPres:mesesPres, ciclos:ciclosFila, etiquetaMes:etiquetaMes};
+      }
+      const lmeses=months?mesesLista.orden.map(function(ym){ return {ym:ym, label:etiquetaMes(ym)}; }):ciclosFila;
+      return {top:ftop, pres:top, line:fline, meses:lmeses, fijos:!!ciclosFila, mesesPres:mesesPres, ciclos:ciclosFila, etiquetaMes:etiquetaMes};
+    }
     const line=function(k, ym){
       if(preset==="months"){
         const first=mesesLista.first[ym], esPrimero=!!first&&first.k===k;
@@ -13571,11 +13705,11 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       if(k===mesesLista.newestK && ym===mesesLista.newestYm) return top;
       const d=(k%100)+" "+monthShort(Math.floor(k/100)%100-1).toLowerCase(), c=gastosCumDia(cifra,k);
       return {n:shownOf(gastosValor(c,mode)), sub:subDe(c),
-        pre:preset==="cycle"?tf("gv5_cycle_upto",{d:d}):tf("gv5_period_upto",{period:monthSummary.periodLabel,d:d}), ym:null};
+        pre:preset==="cycle"?cicloHasta(k,d):tf("gv5_period_upto",{period:monthSummary.periodLabel,d:d}), ym:null};
     };
-    const meses=preset!=="months"?null:mesesLista.orden.map(function(ym){ return {ym:ym, label:etiquetaMes(ym)}; });
-    return {top:top, line:line, meses:meses, fijos:false, mesesPres:mesesPres, etiquetaMes:etiquetaMes};
-  },[monthSummary,cifra,cifraCat,catFil,mesesLista,preset,madridDay,l10nKey]);
+    const meses=preset==="months"?mesesLista.orden.map(function(ym){ return {ym:ym, label:etiquetaMes(ym)}; }):ciclosFila;
+    return {top:top, line:line, meses:meses, fijos:!!ciclosFila, mesesPres:mesesPres, ciclos:ciclosFila, etiquetaMes:etiquetaMes};
+  },[monthSummary,cifra,cifraCat,cifraFil,catFil,mesesLista,preset,ciclos,cicloPas,cicloRango,madridDay,l10nKey]);
   /* La cabecera de las otras secciones (SPEC §3): Categorías enseña el gasto del periodo y su
      margen (el mismo que arriba en Movimientos); Suscripciones, lo que suman al mes las que
      esperan decisión. No dependen del día visible: su `line` es siempre la misma. */
@@ -13588,21 +13722,24 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       top={n:mode==="net"?Math.abs(v):v, ym:catsYm, pre:tf("gv5_cats_pre",{period:cab.etiquetaMes(catsYm)}),
         sub:mode==="net"?tf("gv5_net_sub",{g:eur(m.sp),i:eur(m.inc)}):null};
     } else if(secc==="cats"){
-      const per=preset==="months"?monthLong(mad.m-1):preset==="cycle"?t("g_cycle"):monthSummary.periodLabel;
+      const per=preset==="months"?monthLong(mad.m-1):preset==="cycle"&&!cicloPas?t("g_cycle"):monthSummary.periodLabel;
       const r=monthSummary.remaining, x=r==null?null:Math.abs(r)<1?eur(Math.abs(r)):eur0(Math.abs(r));
-      top={n:cab.top.n, sub:cab.top.sub, ym:catsYm, pre:tf("gv5_cats_pre",{period:per}),
+      // Categorías enseña siempre la cifra del presupuesto: su desglose no sigue a los filtros.
+      const pres=cab.pres||cab.top;
+      top={n:pres.n, sub:pres.sub, ym:cab.ciclos?cab.top.ym:catsYm, pre:tf("gv5_cats_pre",{period:per}),
         tail:r==null?null:tf(r<0?"gv5_over":"gv5_under",{x:x}), tone:r==null?null:r<0?"coral":"mint"};
     } else {
       const n=novelSubs.length;
       top={n:heavyOk?subsMes:null, ym:null, pre:!heavyOk?"":n?tf("gv5_subs_n",{n:n}):t("gv5_subs_none")};
     }
-    const meses=secc==="cats"?cab.mesesPres:null;
-    return {top:top, line:function(){ return top; }, meses:meses, fijos:!!meses};
-  },[secc,cab,cifra,catsActual,catsYm,preset,monthSummary,novelSubs,subsMes,heavyOk,madridDay,l10nKey]);
+    // En Mi ciclo, Categorías lleva la misma fila de ciclos: enseña el desglose del ciclo elegido.
+    const meses=secc==="cats"?(cab.ciclos||cab.mesesPres):null;
+    return {top:top, line:function(){ return top; }, meses:meses, fijos:!!meses, ciclos:secc==="cats"?cab.ciclos:null};
+  },[secc,cab,cifra,catsActual,catsYm,preset,cicloPas,monthSummary,novelSubs,subsMes,heavyOk,madridDay,l10nKey]);
   /* Tocar un mes salta a su primer día. Si aún no está pintado (la lista va por tandas), se
      amplía la tanda y el salto se hace al montarse el día. El mes en curso es volver arriba. */
   const diasRef=useRef(null);
-  const saltoRef=useRef(null);
+  const saltoRef=useRef(null), saltoForzadoRef=useRef(null);
   const mesesListaRef=useRef(mesesLista); mesesListaRef.current=mesesLista;
   const hostDe=function(){ const r=rootRef.current; return r&&r.closest?r.closest(".page"):null; };
   const scrollHost=function(top){
@@ -13620,7 +13757,14 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     // su caja no cambia de alto al encogerse, solo se suma lo que sobresale la fila de meses.
     const pad=parseFloat(getComputedStyle(h).paddingTop)||0;
     const raya=pad+head.offsetHeight+GX_MESES_SOBRE;
-    scrollHost(h.scrollTop+el.getBoundingClientRect().top-h.getBoundingClientRect().top-raya+2);
+    const top=h.scrollTop+el.getBoundingClientRect().top-h.getBoundingClientRect().top-raya+2, max=h.scrollHeight-h.clientHeight;
+    /* Sin el hueco del pie, un mes del final de la lista no puede subir hasta la raya: el scroll se
+       queda en el tope. La cabecera enseña entonces el día pedido mientras el scroll siga ahí
+       (lo lee `GastosCabecera`); al mover el dedo vuelve a mandar lo que queda debajo. */
+    saltoForzadoRef.current=top>max+1?{k:k.k, ym:k.ym, st:Math.max(0,max), t:Date.now()}:null;
+    scrollHost(top);
+    // Ya en el tope no hay scroll que avise a la cabecera: se le avisa a mano.
+    if(saltoForzadoRef.current && Math.abs(h.scrollTop-saltoForzadoRef.current.st)<=2) h.dispatchEvent(new Event("scroll"));
     return true;
   };
   const irAMes=useCallback(function(ym){
@@ -13662,6 +13806,13 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     setCatFil(function(c){ return c&&c.ym!==v?{id:c.id, ym:v}:c; });
     const h=hostDe(); if(h && h.scrollTop>0) h.scrollTo({top:0, behavior:"auto"});
   },[]);
+  /* La fila de ciclos CAMBIA el ciclo enseñado (lista, cifra y desglose a la vez); con filtro de
+     categoría, se mantiene. El ciclo en curso se guarda como null. */
+  const eligeCiclo=useCallback(function(key){
+    const ms=+String(key).slice(1);
+    setCicloSel(ms);
+    const h=hostDe(); if(h && h.scrollTop>0) h.scrollTo({top:0, behavior:"auto"});
+  },[]);
   /* PULSACIÓN LARGA = LÍMITE (decisión del dueño, tanda 3). Con el toque ya ocupado en filtrar, el
      límite de una categoría tiene dos entradas que abren la MISMA hoja: mantener pulsada su fila
      aquí y el chip junto a la píldora del filtro. Un toque de vibración (`mcTickHaptic`, respeta
@@ -13680,6 +13831,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
         l.timer=setTimeout(function(){
           if(largaRef.current!==l) return;
           largaRef.current=null; largaHechaRef.current=Date.now()+700;
+          mcSinSeleccionHastaSoltar();
           mcTickHaptic(); editCatBudgetRef.current(id);
         },GX_LARGA_MS);
         largaRef.current=l;
@@ -13705,7 +13857,11 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     // Borrar filtros = volver a la preselección automática de gasto diario y al periodo de entrada.
     setBankSel(diarioEnts.slice());
     setPreset(presetDef);
+    setCicloSel(null);
   };
+  // Elegir periodo en Filtros (o «Restablecer») vuelve al ciclo en curso.
+  const ponPreset=useCallback(function(p){ setCicloSel(null); setPreset(p); },[]);
+  useEffect(function(){ if(preset!=="cycle") setCicloSel(null); },[preset]);
 
   // Resumen de filtros activos, para el botón "Filtros" (badge) y la línea de chips debajo.
   // Se calcula aquí (no memoizado: sel/bankSel son arrays cortos) porque lo usan dos sitios:
@@ -13795,7 +13951,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
 
   return React.createElement("div",{className:"v4-screen gx-root",ref:rootRef,"data-periodo":preset,"data-secc":secc,"data-edge-capture":"1"},
     React.createElement(GastosCabecera,{rootRef:rootRef, cab:cabVista, meses:cabVista.meses, fijos:cabVista.fijos,
-      onMes:cabVista.fijos?eligeMes:irAMes, stopSwipe:stopSwipe, diasRef:diasRef, secc:secc, onSecc:irASecc, nSubs:novelSubs.length,
+      onMes:cabVista.ciclos?eligeCiclo:cabVista.fijos?eligeMes:irAMes, mesesAria:cabVista.ciclos?"gv5_ciclos":"gv5_meses", stopSwipe:stopSwipe, diasRef:diasRef, saltoForzadoRef:saltoForzadoRef, secc:secc, onSecc:irASecc, nSubs:novelSubs.length,
       onInfo:secc==="subs"&&heavyOk?abreSubInfo:null}),
     capa("movs", React.createElement(React.Fragment,null,
       React.createElement("div",{className:"filters"},
@@ -13829,14 +13985,14 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
           React.createElement("button",{type:"button",className:"v4-chip gx-fil-lim"+(filManda&&filLim>0&&filQueda<0?" sobre":""),"data-testid":"gastos-filtro-limite",
             onClick:function(){ editCatBudget(catFil.id); }},filLimTxt))
       ),
-      React.createElement(GastosLista,{filtered:filtered, visible:visible, state:state, cifra:cifraCat||cifra, mode:cifraCat?"split":monthSummary.mode,
+      React.createElement(GastosLista,{filtered:filtered, visible:visible, state:state, cifra:cifraCat||cifraFil||cifra, mode:cifraCat?"split":cifraFil?"net":monthSummary.mode,
         q:q, sel:sel, bucketSel:bucketSel, bankSelIsDefault:bankSelIsDefault, preset:preset, hayHistorico:(expensesDef||[]).length>0,
         dragExpense:dragExpense, openDetail:openDetail, startExpenseDrag:startExpenseDrag, moveExpenseDrag:moveExpenseDrag, endExpenseDrag:endExpenseDrag,
-        onGoPlan:onGoPlan, onGoInversiones:onGoInversiones, simple:simple, l10nKey:l10nKey, sentinelRefCb:sentinelRefCb}),
-      /* Sin «Actualizar gastos» (decisión del dueño, 20/10/2026): la nube ya se lee sola al abrir y
-         al volver a la app, y la hora de la última lectura vive al pie de Filtros. El pie se queda
-         vacío porque es el hueco que deja subir el último día hasta la cabecera. */
-      React.createElement("div",{className:"gx-pie"}))),
+        onGoPlan:onGoPlan, onGoInversiones:onGoInversiones, simple:simple, l10nKey:l10nKey, sentinelRefCb:sentinelRefCb}))),
+    /* Movimientos acaba en «Hasta aquí», sin pie: el último día ya no necesita una pantalla vacía
+       debajo para llegar a la cabecera (lo resuelve la raya de `GastosCabecera` al final de la
+       lista). Ese hueco, con el borde de la última tarjeta asomando bajo la cabecera, era el
+       «sigue habiendo esto al final» (25/10/2026). */
     /* CATEGORÍAS (SPEC §5): el desglose que antes iba encima de la lista, con la barra del
        presupuesto arriba (solo mes en curso / Mi ciclo: sin límite en el pasado, regla de §3).
        Tocar una categoría filtra Movimientos por ella; mantenerla pulsada abre su límite (la otra
@@ -13894,8 +14050,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       sel:sel, setSel:setSelHoja, bankSel:bankSel, setBankSel:setBankSel,
       bucketSel:bucketSel, setBucketSel:setBucketSel,
       bankOpts:bankOpts, diarioEnts:diarioEnts, debts:state.debts,
-      preset:preset, setPreset:setPreset, presetDef:presetDef, periodoExtra:periodoExtra,
-      expenses:expensesDef, nVer:filtered.length, lastSync:state.lastSync
+      preset:preset, setPreset:ponPreset, presetDef:presetDef, periodoExtra:periodoExtra,
+      masGastadas:masGastadas, nVer:filtered.length, lastSync:state.lastSync
     }),
     React.createElement(ExpenseDetailSheet,{
       exp:detailId?(state.expenses||[]).find(function(e){ return e.id===detailId; }):null,
@@ -13926,6 +14082,38 @@ const GX_OCULTO={height:0,overflow:"hidden",contentVisibility:"hidden",pointerEv
 // Lo que hay que mantener pulsada una categoría para abrir su límite: más que un toque rápido
 // (~100–200 ms) y antes de que Android ofrezca su menú (~500 ms), que de todas formas se anula.
 const GX_LARGA_MS=450;
+/* La hoja que abre una pulsación larga sale con el dedo AÚN PUESTO, y Android sigue con su gesto
+   de mantener: seleccionaba el texto que quedaba bajo el dedo en la hoja recién abierta (el título
+   «…restaurantes» en azul con sus asas) y sacaba «Copiar · Seleccionar todo» (vídeo suyo, 25/10).
+   La hoja va en un portal, fuera de `.gx-root`, así que su `user-select:none` no la cubre. Hasta
+   que se levanta el dedo (y un momento más, lo que tarda en llegar el menú) nada de la página se
+   puede seleccionar (`html.mc-sin-sel`), ni empezar una selección ni abrir el menú contextual;
+   los campos de texto vuelven a poder seleccionarse en cuanto se suelta. */
+function mcSinSeleccionHastaSoltar(){
+  const html=document.documentElement;
+  const corta=function(ev){ if(ev.cancelable) ev.preventDefault(); };
+  let hecho=false;
+  const fin=function(){
+    if(hecho) return; hecho=true;
+    setTimeout(function(){
+      html.classList.remove("mc-sin-sel");
+      document.removeEventListener("selectstart",corta,true);
+      document.removeEventListener("contextmenu",corta,true);
+      try{ const s=window.getSelection&&window.getSelection(); if(s&&!s.isCollapsed) s.removeAllRanges(); }catch(e){}
+    },400);
+    document.removeEventListener("touchend",fin,true);
+    document.removeEventListener("touchcancel",fin,true);
+    document.removeEventListener("pointerup",fin,true);
+    document.removeEventListener("pointercancel",fin,true);
+  };
+  html.classList.add("mc-sin-sel");
+  document.addEventListener("selectstart",corta,true);
+  document.addEventListener("contextmenu",corta,true);
+  document.addEventListener("touchend",fin,true);
+  document.addEventListener("touchcancel",fin,true);
+  document.addEventListener("pointerup",fin,true);
+  document.addEventListener("pointercancel",fin,true);
+}
 /* LA LISTA DE MOVIMIENTOS, EN SU PROPIO MEMO (Gastos v5, tanda 2, 24/10/2026). Cambiar de sección
    (Movimientos / Categorías / Suscripciones) es estado de Expenses, y sin esto cada cambio volvía a
    recorrer los días pintados (cajón, recibo y deuda de cada fila) y a construir la lista entera
@@ -14037,6 +14225,11 @@ const GX_MESES_SOBRE=36;
 const GX_SIN_MESES_RECORTE=16;
 /* Con la fila de meses FIJA (Categorías y filtro de categoría, SPEC §2.1) la fila va dentro de la
    caja, que crece lo que ella mide: no sobresale y no hay nada que sumar. */
+/* Ciclos pasados que se buscan hacia atrás en Mi ciclo: un año, de sobra para mirar atrás sin
+   recorrer el histórico entero en cada cambio. */
+const GX_CICLOS_MAX=12;
+// «31 ago»: el día corto de las líneas de la cabecera y del rango de los ciclos.
+function gxDiaCorto(ms){ const d=new Date(ms); return d.getDate()+" "+monthShort(d.getMonth()).toLowerCase(); }
 function gxRayaExtra(compact, conMeses, fijos){ return !compact||fijos?0:conMeses?GX_MESES_SOBRE:-GX_SIN_MESES_RECORTE; }
 /* CABECERA DE GASTOS v5 (SPEC §2.1 y §3). Componente propio a propósito: la cifra cambia con el
    día que queda debajo al bajar, y ese cambio NO puede re-renderizar Expenses ni la lista
@@ -14044,7 +14237,7 @@ function gxRayaExtra(compact, conMeses, fijos){ return !compact||fijos?0:conMese
    `opacity` sobre una caja de alto fijo: bajar no recoloca nada de la lista. El scroll se lee en
    un `requestAnimationFrame` y el día se busca por bisección entre los encabezados ya pintados,
    así cada frame cuesta unas pocas lecturas aunque haya meses enteros cargados. */
-function GastosCabecera({rootRef, cab, meses, fijos, onMes, stopSwipe, diasRef, secc, onSecc, nSubs, onInfo}){
+function GastosCabecera({rootRef, cab, meses, fijos, onMes, mesesAria, stopSwipe, diasRef, saltoForzadoRef, secc, onSecc, nSubs, onInfo}){
   const [vista,setVista]=useState({k:null, ym:null, compact:false});
   const headRef=useRef(null), mesesRef=useRef(null), calcRef=useRef(null);
   // El cálculo vive en un efecto montado una vez: lee si hay meses por ref, no por cierre viejo.
@@ -14060,10 +14253,29 @@ function GastosCabecera({rootRef, cab, meses, fijos, onMes, stopSwipe, diasRef, 
       const compact=host.scrollTop>40;
       let els=diasRef.current;
       if(!els) els=diasRef.current=Array.prototype.slice.call(root.querySelectorAll("[data-gx-day]"));
-      const raya=head.getBoundingClientRect().bottom+gxRayaExtra(compact,conMesesRef.current,fijosRef.current)+1;
+      let raya=head.getBoundingClientRect().bottom+gxRayaExtra(compact,conMesesRef.current,fijosRef.current)+1;
+      /* AL FINAL DE LA LISTA los últimos días no pueden subir hasta la raya (debajo no hay nada que
+         scrollear). Antes se les dejaba una pantalla vacía debajo para que subieran, y él lo vio
+         como un fallo: el borde de la última tarjeta asomando bajo la cabecera y un hueco enorme
+         (captura del 25/10/2026). Ahora, en el último tramo del scroll, la raya BAJA a la vez que
+         sube la lista, y con todo bajado llega al último día: cada día sigue pasando por la
+         cabecera una vez y en orden, sin hueco. Con la lista aún por cargar (centinela) no aplica. */
+      if(els.length && !root.querySelector(".gx-list .sentinel")){
+        const max=host.scrollHeight-host.clientHeight, quedan=Math.max(0,max-host.scrollTop);
+        const falta=els[els.length-1].getBoundingClientRect().top-quedan-raya;
+        const tramo=Math.min(falta,max);
+        if(falta>0 && tramo>0 && quedan<tramo) raya+=falta*(1-quedan/tramo);
+      }
       let lo=0, hi=els.length-1, at=-1;
       while(lo<=hi){ const mid=(lo+hi)>>1; if(els[mid].getBoundingClientRect().top<=raya){ at=mid; lo=mid+1; } else hi=mid-1; }
-      const k=at>=0?+els[at].getAttribute("data-gx-day"):null, ym=at>=0?els[at].getAttribute("data-gx-ym"):null;
+      let k=at>=0?+els[at].getAttribute("data-gx-day"):null, ym=at>=0?els[at].getAttribute("data-gx-ym"):null;
+      // El salto a un mes del final (ver `saltaADia`): en el tope manda el día pedido. Se olvida al
+      // salir del tope ya llegado, o si no llega (un dedo cortó el scroll suave).
+      const sf=saltoForzadoRef&&saltoForzadoRef.current;
+      if(sf){
+        if(Math.abs(host.scrollTop-sf.st)<=2){ sf.llego=true; k=sf.k; ym=sf.ym; }
+        else if(sf.llego || Date.now()-sf.t>1500) saltoForzadoRef.current=null;
+      }
       setVista(function(v){ return v.k===k&&v.ym===ym&&v.compact===compact?v:{k:k, ym:ym, compact:compact}; });
     };
     calcRef.current=function(){ if(!raf) raf=requestAnimationFrame(calc); };
@@ -14091,7 +14303,10 @@ function GastosCabecera({rootRef, cab, meses, fijos, onMes, stopSwipe, diasRef, 
   },[ymSel, vista.compact, fijos, meses&&meses.length, l10nKeyOf()]);
   const tone=line.tone?" gx-tone-"+line.tone:"";
   const mesesVis=vista.compact||!!fijos;
-  return React.createElement("div",{className:"gx-head"+(vista.compact?" compact":"")+(meses?" con-meses":"")+(fijos?" meses-fijos":""),ref:headRef},
+  // `data-gx-vista` (el día que manda en la cabecera) es para los e2e: al final de la lista ya no
+  // se puede calcular a mano qué scroll pone un día debajo de la cabecera.
+  return React.createElement("div",{className:"gx-head"+(vista.compact?" compact":"")+(meses?" con-meses":"")+(fijos?" meses-fijos":""),ref:headRef,
+      "data-gx-vista":vista.k==null?"":vista.k+"|"+vista.ym},
     React.createElement("div",{className:"gx-titulo"},
       React.createElement("h1",{className:"v4-title serif"}, t("v4_gastos_title")),
       React.createElement(GxSecciones,{secc:secc, onSecc:onSecc, nSubs:nSubs})),
@@ -14104,7 +14319,7 @@ function GastosCabecera({rootRef, cab, meses, fijos, onMes, stopSwipe, diasRef, 
       onInfo ? React.createElement("button",{type:"button",className:"v42-net-info gx-info","aria-label":t("gv5_sub_info"),"aria-haspopup":"dialog","data-testid":"subs-info",onClick:onInfo}) : null),
     // En balance la línea existe siempre (aunque vacía): la caja no cambia de alto al bajar.
     cab.top.sub!=null && React.createElement("div",{className:"gx-status gx-status-sub","data-testid":"gastos-desglose"},line.sub||""),
-    meses && React.createElement("div",Object.assign({className:"gx-meses",ref:mesesRef,role:"group","aria-label":t("gv5_meses"),"aria-hidden":!mesesVis,"data-testid":"gastos-meses"},stopSwipe),
+    meses && React.createElement("div",Object.assign({className:"gx-meses",ref:mesesRef,role:"group","aria-label":t(mesesAria||"gv5_meses"),"aria-hidden":!mesesVis,"data-testid":"gastos-meses"},stopSwipe),
       pasti && React.createElement("span",{className:"gx-mes-pasti","aria-hidden":true,style:{width:pasti.w,transform:"translateX("+pasti.x+"px)"}}),
       meses.map(function(m){
         const on=m.ym===ymSel;
@@ -14301,7 +14516,7 @@ function filterSelLabel(id, debts){
    «Restablecer» arriba y un solo botón abajo que dice cuántos movimientos va a enseñar. Los
    filtros se aplican al tocarlos, como siempre: el botón solo cierra, y su número es el de la
    lista que queda debajo (`nVer`), no una cuenta aparte que pudiera no cuadrar con ella. */
-function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, bucketSel, setBucketSel, bankOpts, diarioEnts, debts, preset, setPreset, presetDef, periodoExtra, expenses, nVer, lastSync}){
+function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, bucketSel, setBucketSel, bankOpts, diarioEnts, debts, preset, setPreset, presetDef, periodoExtra, masGastadas, nVer, lastSync}){
   const swipe=useSheetSwipe(!!open, onClose);
   useBackClose(!!open, swipe.close);
   const [qCat,setQCat]=useState("");
@@ -14309,14 +14524,12 @@ function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, buc
   useEffect(function(){
     if(open){ setQCat(""); setFilterCatsOpen(false); }
   },[open]);
-  // Las más usadas se cuentan al ABRIR, no en cada render de Gastos: con la hoja cerrada no se
-  // recorre el histórico (AGENTS §7 bis).
-  const usadas=useMemo(function(){
-    if(!open) return [];
-    const n={};
-    (expenses||[]).forEach(function(e){ const c=e.category; if(c) n[c]=(n[c]||0)+1; });
-    return Object.keys(n).sort(function(a,b){ return n[b]-n[a]; });
-  },[open, expenses]);
+  /* Las categorías en las que MÁS SE HA GASTADO en el periodo que se ve, en el orden de la vista
+     Categorías (`masGastadas` sale de su mismo desglose). Hasta la t5 se contaban por número de
+     movimientos y salían Ingreso, Traspaso y Otros delante de Viajes (rechazo suyo, 25/10/2026:
+     «¿no deberían salir las que más he gastado?»). Se fija al ABRIR la hoja (solo depende de
+     `open` a propósito): si el orden cambiara con la hoja abierta, el dedo acabaría en otra. */
+  const usadas=useMemo(function(){ return open?(masGastadas||[]).slice():[]; },[open]);
   if(!open) return null;
   /* `deudas` sigue siendo la marca interna que evita contar dos veces la cuota, pero no se pinta
      como categoría normal: cada deuda del Plan tiene su filtro propio (feedback 24/9). */
@@ -14339,8 +14552,8 @@ function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, buc
     setBankSel(diarioEnts.slice());
     setPreset(presetDef);
   };
-  /* Las cinco más usadas, en orden fijo mientras la hoja está abierta (si saltaran al marcarlas, el
-     dedo acabaría en otra). Una marcada desde «Las N» que no sea de ellas se añade al final: si
+  /* Las cinco de más gasto, en orden fijo mientras la hoja está abierta (si saltaran al marcarlas,
+     el dedo acabaría en otra). Una marcada desde «Las N» que no sea de ellas se añade al final: si
      no, al plegar la lista no se vería qué categoría está filtrando. */
   const top=[];
   usadas.forEach(function(id){ const c=top.length<5&&allCats.find(function(x){ return x.id===id; }); if(c) top.push(c); });
@@ -25621,7 +25834,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="fbdc0638a1ce84579cac036c564246fc0c2ef96bef14f4bef4323031c35b769b";
+var _rnSha="7fae2b914e97a4f5e23564be7a15065412a14ca873d98eb089acc9dbf024f0cb";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

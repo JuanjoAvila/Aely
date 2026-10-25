@@ -103,12 +103,13 @@ test("en Mi ciclo, entre la cabecera y la lista solo está el buscador; nada se 
   await expect(gastosRoot(page)).toHaveAttribute("data-periodo", "cycle");
   const movs = panel(page, "movs");
   const orden = await movs.evaluate((p) => {
-    const lista = p.querySelector(".gx-list"), pie = p.querySelector(".gx-pie");
+    const lista = p.querySelector(".gx-list");
     const antes = [...p.querySelectorAll(".v4-cycle-box, .v4-gastos-cat, .sync-note")]
       .filter((el) => lista.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_PRECEDING).length;
-    return { antes, pieTrasLista: !!(lista.compareDocumentPosition(pie) & Node.DOCUMENT_POSITION_FOLLOWING), botonesEnPie: pie.querySelectorAll("button").length, lecturaEnLista: !!p.querySelector(".sync-note") };
+    // Desde la tanda 6 no hay pie: la lista es lo último de Movimientos.
+    return { antes, nadaTrasLista: !lista.nextElementSibling, lecturaEnLista: !!p.querySelector(".sync-note") };
   });
-  expect(orden).toEqual({ antes: 0, pieTrasLista: true, botonesEnPie: 0, lecturaEnLista: false });
+  expect(orden).toEqual({ antes: 0, nadaTrasLista: true, lecturaEnLista: false });
   // La primera tarjeta queda justo bajo el buscador (el día de hoy y su gasto, sin nada en medio).
   const buscador = await movs.locator(".searchbar").boundingBox(), dia = await movs.locator(".gx-dia").first().boundingBox();
   expect(dia.y - (buscador.y + buscador.height)).toBeLessThan(40);

@@ -1657,6 +1657,10 @@ Object.assign(LANG.en,{gv5_fil_reset:"Reset", gv5_fil_todas:"All {n}", gv5_fil_v
   gv5_fil_nube:"Expenses saved in the cloud, including notifications, come in on their own when you open the app and when you come back to it. It does not contact your banks."});
 Object.assign(LANG.ca,{gv5_fil_reset:"Restableix", gv5_fil_todas:"Les {n}", gv5_fil_ver:"Veure {x}",
   gv5_fil_nube:"Les despeses desades al núvol, també les de les notificacions, arriben soles en obrir l'app i en tornar-hi. No consulta els teus bancs."});
+// Gastos v5, tanda 6: fila de ciclos en Mi ciclo.
+Object.assign(LANG.es,{gv5_ciclos:"Ciclos", gv5_ciclo_rango:"{d1} – {d2}"});
+Object.assign(LANG.en,{gv5_ciclos:"Cycles", gv5_ciclo_rango:"{d1} – {d2}"});
+Object.assign(LANG.ca,{gv5_ciclos:"Cicles", gv5_ciclo_rango:"{d1} – {d2}"});
 const MON_I18N = {
   es:{ long:["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"], short:["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"] },
   en:{ long:["January","February","March","April","May","June","July","August","September","October","November","December"], short:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"] },

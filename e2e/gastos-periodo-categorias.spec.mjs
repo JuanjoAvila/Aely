@@ -115,7 +115,18 @@ test("Mi ciclo: un apunte futuro queda fuera de lista y categorías",async({page
 });
 
 
-test("búsqueda, categoría y banco exploran sin cambiar las cifras del mes",async({page})=>{
+/* Tanda 6 (su «cuando tocas un filtro el número de arriba no cambia», 25/10): con un filtro de
+   categoría o de banco la cifra de MOVIMIENTOS es la de lo filtrado; Categorías y su cifra siguen
+   siendo las del presupuesto, y la búsqueda sola explora sin cambiar nada. */
+async function checkFiltrado(page, expected, spent, movs){
+  await gastosSeccion(page,"cats");
+  await expect(cats(page)).toHaveCount(Object.keys(expected).length);
+  for(const [id,amount] of Object.entries(expected)) await expect(gastosRoot(page).locator('.v4-gastos-cat[data-cat="'+id+'"] .v4-gastos-cat-amt')).toHaveText(amount+" €");
+  await expect(gastosCifra(page)).toHaveText(spent+",00 €");
+  await gastosSeccion(page,"movs");
+  await expect(gastosCifra(page)).toHaveText(movs);
+}
+test("categoría y banco cambian la cifra de Movimientos (no la de Categorías); la búsqueda sola no",async({page})=>{
   await page.clock.install({time:now});
   const other=Object.assign(expense("Septiembre otro banco","2026-09-10",90,"salud"),{ent:"revolut"});
   await seedLoggedInDashboard(page,{accounts:accounts.concat({id:"other",ent:"revolut",name:"Otra",role:"fijos",value:100}),expenses:expenses.concat(other),budget:1000,
@@ -126,7 +137,9 @@ test("búsqueda, categoría y banco exploran sin cambiar las cifras del mes",asy
   await gastosRoot(page).locator('.filters button[title="Filtros"]').click();
   await page.locator('.v4-filter-cats-toggle').click(); await page.getByTestId('gastos-filter-cat-compras').click();
   await page.locator('.v4-gastos-filter-sheet .btn-primary').click();
-  await expect(rows(page)).toHaveCount(1); await check(page,{super:25},25);
+  // Compras en octubre: nada (la única es de septiembre, y sale en su mes de la lista).
+  await expect(rows(page)).toHaveCount(1); await checkFiltrado(page,{super:25},25,"0,00 €");
+  await expect(gastosEstado(page)).toHaveText("0 movimientos · igual que en septiembre a estas alturas");
   await gastosRoot(page).locator('.filters button[title="Filtros"]').click();
   await page.locator('.v4-gastos-filter-sheet .gx-fil-reset').click();
   // «Restablecer» también vuelve al periodo de entrada (Mi ciclo): se elige otra vez Meses.
@@ -134,8 +147,12 @@ test("búsqueda, categoría y banco exploran sin cambiar las cifras del mes",asy
   await page.locator('.v4-gastos-filter-sheet').getByRole('button',{name:'Sabadell',exact:true}).click();
   await page.locator('.v4-gastos-filter-sheet').getByRole('button',{name:'Revolut',exact:true}).click();
   await page.locator('.v4-gastos-filter-sheet .btn-primary').click();
+  // Solo Revolut: su único cargo es de un banco que no es de gasto diario («no cuenta»), así que no suma.
   await expect(rows(page)).toHaveCount(1); await expect(rows(page)).toContainText('Septiembre otro banco');
-  await check(page,{super:25},25);
+  await checkFiltrado(page,{super:25},25,"0,00 €");
   await gastosRoot(page).locator('input.searchbar-in[type="search"]').first().fill('no existe');
-  await expect(rows(page)).toHaveCount(0); await check(page,{super:25},25);
+  await expect(rows(page)).toHaveCount(0); await checkFiltrado(page,{super:25},25,"0,00 €");
+  // Sin filtros (Limpiar vuelve también al periodo de entrada, Mi ciclo), la búsqueda sola no cambia la cifra.
+  await gastosRoot(page).getByRole("button",{name:"Limpiar"}).click();
+  await expect(rows(page)).toHaveCount(0); await check(page,{bares:40,super:25},60);
 });

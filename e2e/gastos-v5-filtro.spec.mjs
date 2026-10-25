@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews, installFixtureClock, gastosRoot, gastosCifra, gastosEstado, gastosSeccion,
-  gastosBajaAlDia, gastosPulsaLarga } from "./fixtures.mjs";
+  gastosPulsaLarga } from "./fixtures.mjs";
 
 /* GASTOS v5 · TANDA 3 (SPEC §2.1, §3, §4.1 y §5). Categorías → filtro, y el límite por sus dos
    puertas. Render puro derivado del estado (AGENTS §7): cada prueba abre Gastos de verdad.
@@ -97,11 +97,10 @@ test("tocar una categoría filtra Movimientos por ella y su mes; la cifra es la 
   await expect(chipLimite(page)).toHaveText("Límite 50 € · 5 € de más");
   await expect(chipLimite(page)).toHaveClass(/sobre/);
 
-  // Bajando: lo de la categoría hasta el día que queda arriba.
-  await gastosBajaAlDia(page, "2026-09-10");
-  await expect(gastosCifra(page)).toHaveText("35,00 €");
-  await expect(gastosEstado(page)).toHaveText("gastado en septiembre hasta el 10");
-  await page.evaluate(() => document.querySelector(".page-scroll-host").scrollTo(0, 0));
+  /* Con dos días la lista cabe entera en la pantalla: no hay nada que bajar (tanda 6: antes el
+     pie dejaba bajar a una pantalla vacía solo para que el día 10 subiera hasta la cabecera) y la
+     cifra se queda en la de la categoría. Lo de bajar hasta un día lo cubre `gastos-v5`. */
+  expect(await page.evaluate(() => { const h = document.querySelector(".page-scroll-host"); return h.scrollHeight - h.clientHeight; })).toBeLessThanOrEqual(1);
   await expect(gastosCifra(page)).toHaveText("55,00 €");
 
   // La píldora quita el filtro: vuelve todo, con la cifra del presupuesto y las filas grises.
@@ -197,19 +196,21 @@ test("al salir de Gastos y volver se aterriza en Movimientos sin filtro", async 
   await expect(pildora(page)).toHaveCount(0);
 });
 
-test("en Mi ciclo el filtro es la categoría en el ciclo, sin fila de meses", async ({ page }) => {
+test("en Mi ciclo el filtro es la categoría en el ciclo, con la fila de ciclos y no la de meses", async ({ page }) => {
   await abre(page, { settings: { ...base.settings, budgetCycle: true },
     expenses: expenses.concat([e("Nómina", "2026-09-24", -2000, "ingreso", { merchant: "Nómina" })]) });
   await expect(gastosRoot(page)).toHaveAttribute("data-periodo", "cycle");
   await gastosSeccion(page, "cats");
-  await expect(meses(page)).toHaveCount(0);
+  // Tanda 6: en Mi ciclo la fila es la de ciclos (aquí uno solo, el del cobro del 24).
+  await expect(meses(page)).toHaveAttribute("aria-label", "Ciclos");
+  await expect(meses(page).locator(".gx-mes")).toHaveCount(1);
   await expect(fila(page, "super")).toContainText("20");
   await fila(page, "super").click();
   await expect(pildora(page).locator(".gx-fil-pil")).toContainText("Supermercado");
   await expect(tarjetas(page)).toHaveCount(1);
   await expect(gastosCifra(page)).toHaveText("20,00 €");
   await expect(gastosEstado(page)).toHaveText("1 movimiento");
-  await expect(meses(page)).toHaveCount(0);
+  await expect(meses(page)).toHaveAttribute("aria-label", "Ciclos");
   // El ciclo es el periodo en que manda el límite: el chip dice lo que queda (50 − 20).
   await expect(chipLimite(page)).toHaveText("Límite 50 € · quedan 30 €");
 });
