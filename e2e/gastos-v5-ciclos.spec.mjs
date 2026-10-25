@@ -55,6 +55,11 @@ async function alFinal(page) {
   }).toBe(1);
   await page.evaluate(() => { const h = document.querySelector(".page-scroll-host"); h.scrollTop = h.scrollHeight; });
 }
+/* Un poco de scroll: lo justo para que la cabecera se encoja y salga la fila de ciclos. */
+async function bajaUnPoco(page) {
+  await page.evaluate(() => { const h = document.querySelector(".page-scroll-host"); h.scrollTop = Math.min(120, h.scrollHeight - h.clientHeight); });
+  await expect(fila(page)).toHaveAttribute("aria-hidden", "false");
+}
 /* Suma con signo de los totales de cada día («+» = entra más de lo que sale). */
 async function sumaDias(page) {
   const t = await gastosRoot(page).locator('[data-gx-secc="movs"] [data-testid="gastos-dia-total"]').allTextContents();
@@ -83,15 +88,19 @@ test("al final de la lista no queda un hueco vacío y el último día llega a la
 test("Mi ciclo tiene su fila de ciclos, marcada; cambiar de ciclo cambia lista, cifra y días, y cuadran", async ({ page }) => {
   await abre(page);
   await expect(gastosRoot(page)).toHaveAttribute("data-periodo", "cycle");
-  // Fija y a la vista sin bajar, con el ciclo en curso marcado (se llama por el mes en que cae casi entero).
-  await expect(fila(page)).toHaveAttribute("aria-hidden", "false");
-  await expect(fila(page)).toHaveAttribute("aria-label", "Ciclos");
-  await expect(fila(page).locator(".gx-mes")).toHaveText(["agosto", "septiembre", "octubre"]);
-  await expect(fila(page).locator('.gx-mes[aria-pressed="true"]')).toHaveText("octubre");
+  /* Arriba del todo la fila NO se ve: sale al bajar, como la de Meses (25/10: fija se veía todo
+     el rato). El rango del ciclo bajo la cifra sí se queda. Con el ciclo en curso marcado (se llama
+     por el mes en que cae casi entero). */
+  await expect(fila(page)).toHaveAttribute("aria-hidden", "true");
+  await expect(gastosRoot(page).locator(".gx-head")).not.toHaveClass(/meses-fijos/);
   // El ciclo en curso: lo de siempre, con su margen.
   await expect(gastosCifra(page)).toHaveText("63,00 €");
   await expect(gastosEstado(page)).toHaveText("24 sep – 23 oct · 937 € por debajo");
   expect(await sumaDias(page)).toBe(63);
+  await bajaUnPoco(page);
+  await expect(fila(page)).toHaveAttribute("aria-label", "Ciclos");
+  await expect(fila(page).locator(".gx-mes")).toHaveText(["agosto", "septiembre", "octubre"]);
+  await expect(fila(page).locator('.gx-mes[aria-pressed="true"]')).toHaveText("octubre");
 
   await fila(page).locator(".gx-mes", { hasText: "septiembre" }).click();
   await expect(fila(page).locator('.gx-mes[aria-pressed="true"]')).toHaveText("septiembre");
@@ -108,17 +117,20 @@ test("Mi ciclo tiene su fila de ciclos, marcada; cambiar de ciclo cambia lista, 
   expect(Math.max(...fechas)).toBe(20260922);
   expect(Math.min(...fechas)).toBe(20260824);
 
-  // Categorías enseña el mismo ciclo, con la misma fila.
+  // Categorías enseña el mismo ciclo, con la misma fila, y ahí sí fija (a la vista sin bajar).
   await gastosSeccion(page, "cats");
+  await expect(fila(page)).toHaveAttribute("aria-hidden", "false");
   await expect(fila(page).locator('.gx-mes[aria-pressed="true"]')).toHaveText("septiembre");
   await expect(gastosCifra(page)).toHaveText("275,00 €");
   await gastosSeccion(page, "movs");
 
   // Vuelta al ciclo en curso: todo como al entrar.
+  await bajaUnPoco(page);
   await fila(page).locator(".gx-mes", { hasText: "octubre" }).click();
   await expect(gastosCifra(page)).toHaveText("63,00 €");
   await expect(gastosEstado(page)).toHaveText("24 sep – 23 oct · 937 € por debajo");
   // Elegir periodo en Filtros (o Restablecer) vuelve al ciclo en curso.
+  await bajaUnPoco(page);
   await fila(page).locator(".gx-mes", { hasText: "agosto" }).click();
   await expect(gastosCifra(page)).toHaveText("70,00 €");
   // Debajo de la cifra, siempre el rango del ciclo elegido (decisión suya: «mes + fechas»).

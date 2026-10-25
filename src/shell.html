@@ -1063,6 +1063,10 @@
   /* ===== GASTOS v5 (20/10/2026, docs/design/gastos-v5/SPEC.md) =====
      Nada seleccionable salvo el buscador (y los importes editables): sin menú de copiar al
      mantener pulsado ni destello azul al tocar (SPEC §9). */
+  /* Mi ciclo: la fila de ciclos sale al bajar (25/10), así que con una lista corta (principio de
+     ciclo) tiene que quedar scroll para encogerse la cabecera (>40 px): 64 px más que la página, no
+     una pantalla vacía (el hueco que él rechazó al final de la lista, 25/10). */
+  .page .gx-root.gx-ciclos-al-bajar{min-height:calc(100% + 64px);}
   .gx-root,.gx-root *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;}
   /* Mientras sigue puesto el dedo de una pulsación larga que abre una hoja (ver
      `mcSinSeleccionHastaSoltar`): nada se selecciona, tampoco en la hoja del portal. */
