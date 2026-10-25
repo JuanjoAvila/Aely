@@ -828,7 +828,11 @@ function mcLoadRaw(key){
 function mcPersistCommit(p, prev, state, schedule){
   if(prev===state) return false;
   p.val=state;
-  if(prev.expenses!==state.expenses) p.exp=true;
+  // Una copia con las mismas filas no es un cambio de gastos. Desde la 4.26.170 la cartera se
+  // relee también al recuperar la red, y esa mezcla devolvía el mismo histórico en otro array:
+  // cada reconexión reescribía `_exp` entero (diagnóstico de la beta 170, ver §7 bis).
+  const a=prev.expenses,b=state.expenses;
+  if(a!==b&&!(Array.isArray(a)&&Array.isArray(b)&&a.length===b.length&&a.every(function(e,i){return e===b[i];}))) p.exp=true;
   if(!p.t) p.t=schedule();
   return true;
 }

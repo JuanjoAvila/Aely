@@ -141,13 +141,15 @@ test("FIN07: fallo intermedio no mezcla, no backfill, no ACK de FIN05 ni lápida
 });
 
 test("widget: corte nativo colgado vence en cuatro segundos y marca tardía no acredita el pull",async()=>{
-  let timeout,late,pulls=0,cleared=0;
+  let timeout,late,pulls=0,cleared=0,plazos=0;
   const h=syncHarness(()=>{pulls++;return Promise.resolve(rows(1));},{beginWidgetRead:()=>new Promise(resolve=>{late=resolve;})},
-    {setTimeout:(fn,ms)=>{assert.equal(ms,4000);timeout=fn;return 7;},clearTimeout:id=>{assert.equal(id,7);cleared++;}});
+    {setTimeout:(fn,ms)=>{if(ms===25000){plazos++;return 8;}assert.equal(ms,4000);timeout=fn;return 7;},clearTimeout:id=>{if(id===8)return;assert.equal(id,7);cleared++;}});
   const p=h.sync();await new Promise(resolve=>setImmediate(resolve));assert.equal(pulls,0);
   timeout();await p;assert.equal(pulls,1);assert.equal(h.wRead.current,null);assert.equal(h.wR.current,true);
   late({readGeneration:"late",nativeCut:"9"});await new Promise(resolve=>setImmediate(resolve));
   assert.equal(h.wRead.current,null);assert.equal(cleared,1);
+  // El plazo del GET colgado (fix-170) es otro temporizador, uno por vuelo.
+  assert.equal(plazos,1);
 });
 
 test("widget: lectura vacía auténtica acredita sesión; sesión ausente, caída o cambiada no acredita",async()=>{

@@ -87,7 +87,8 @@ const firstPullReset="      if(!s){if(cloudPullRef.current&&cloudPullRef.current
 const expectedEffect=auth106.effect.replace(viejoSalida,nuevoSalida).replace('      if(s) mcScheduleIdle',firstPullReset+'      if(s) mcScheduleIdle').replace('      const login=s&&(!prev||prev.user.id!==s.user.id);\n','      const login=s&&(!prev||prev.user.id!==s.user.id);\n'+ownerReset);
 assert.deepEqual(parts,{method:auth106.method.replace(" cb(s,ev);", " "+cacheSalida+"cb(s,ev);"),effect:expectedEffect});
 for(const event of ["SIGNED_OUT","SIGNED_IN"]){const w=authWorld(parts);w.mount();w.env.cloudReadRef.current={owner:"old",ready:true};w.env.cloudUpdatedAtRef.current="old-revision";w.env.cloudPullRef.current={owner:"old",promise:Promise.resolve()};w.event(event,event==="SIGNED_OUT"?null:s("new"));assert.equal(w.env.cloudReadRef.current,null);assert.equal(w.env.cloudUpdatedAtRef.current,null);assert.equal(w.env.cloudPullRef.current,null);}
-const storage=['mcLoadRaw','mcSaveRaw','mcResetSandbox'],file='src/modules/00-core.js';
+// mcPersistCommit (fix-170): mismas filas en otro array no marcan reescritura de gastos; también es persistencia.
+const storage=['mcLoadRaw','mcSaveRaw','mcResetSandbox','mcPersistCommit'],file='src/modules/00-core.js';
 assert.equal(core.split('  const statePushCache=new Map();\n').length,2,'cache FIN17 declarada una sola vez en cloud');
 let previousStorage=core.replace(parts.method,auth106.method).replace('  const statePushCache=new Map();\n','');
 for(const name of storage)previousStorage=previousStorage.replace(scopeText({file,function:name},read),scopeText({file,function:name},history106));

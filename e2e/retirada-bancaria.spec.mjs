@@ -23,7 +23,7 @@ async function open(page,lang="es",mode="ok",remoteCat="otros",overrides={}){
         return {...base,auth:{...base.auth,getSession:async()=>({data:{session:window.__withdrawalFixture.mode==="noSession"?null:{user:{id:"e2e-user"}}}})},
           from(table){
             if(table==="app_state"&&mode.startsWith("lateReceipt")){
-              const fixture=window.__withdrawalFixture,q={select(){return q;},eq(){return q;},update(){return q;},upsert(){return q;},
+              const fixture=window.__withdrawalFixture,q={select(){return q;},eq(){return q;},update(){return q;},upsert(){return q;},insert(){return q;},
                 async maybeSingle(){return {data:fixture.receiptPack||null,error:null};},
                 async then(resolve){
                   // El conflicto CAS hace que la app baje metadatos del otro móvil por su ruta real.

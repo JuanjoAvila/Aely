@@ -5649,7 +5649,9 @@ test("Catálogo170 añade la tanda de dos móviles (solo web) sobre la 169, deja
     [A0,"return edited?Object.assign({},next,{_savedAt:Date.now()}):next;","return Object.assign({},next,{_savedAt:Date.now()});"],
     [C0,"        .insert({ user_id:uid, data:data, updated_at:now })","        .upsert({ user_id:uid, data:data, updated_at:now }, { onConflict:'user_id' })"],
     [A0,"if(!read || read.owner!==u || !read.ready){","if(false){"],
-    [A0,"{wOwner.current.again=true;return wP.current;}","{}"],
+    // Reanclado en fix-170: el vuelo único sigue siendo el mismo, ahora con plazo para el GET colgado.
+    [A0,"      const w=wOwner.current;w.again=true;\n      return Date.now()-w.startedAt>=EXP_READ_PLAZO?w.relevar():wP.current;\n",""],
+    [A0,"plazo=setTimeout(function(){if(flight.again)flight.relevar();},EXP_READ_PLAZO);","plazo=null;"],
     [A0,"      return syncFromCloud(sessionRef.current);","      return pushAppState(uid,stateRef.current);"],
     [A0,"if(brokerBootOwner.current===uid||!read||read.owner!==uid||!read.ready||!read.valid)return;","if(brokerBootOwner.current===uid)return;"],
     [A0,"return h===s.invHistory?s:Object.assign({},s,{invHistory:h});\n    },false);","return h===s.invHistory?s:Object.assign({},s,{invHistory:h});\n    });"],
@@ -7912,7 +7914,8 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
     ["src/modules/11-app-main.js",'if(typeof mcSkipPersist==="function" && mcSkipPersist()) return;',''],
     ["src/modules/11-app-main.js",'if(document.visibilityState==="hidden") flushPersist();',''],
     ["src/modules/00-core.js",'  if(prev===state) return false;\n',''],
-    ["src/modules/00-core.js",'  if(prev.expenses!==state.expenses) p.exp=true;','  p.exp=true;'],
+    // Reanclado en fix-170: mismas filas en otro array no marcan reescritura; el mutante sigue siendo «siempre».
+    ["src/modules/00-core.js",'  if(a!==b&&!(Array.isArray(a)&&Array.isArray(b)&&a.length===b.length&&a.every(function(e,i){return e===b[i];}))) p.exp=true;','  p.exp=true;'],
     ["src/modules/00-core.js",'  if(!p.t) p.t=schedule();','  p.t=schedule();'],
   ]){
     assert.ok(source(file).includes(from),"el mutante debe tocar la fuente real: "+from);

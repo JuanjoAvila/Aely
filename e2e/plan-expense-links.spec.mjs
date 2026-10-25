@@ -1,7 +1,9 @@
 import {test,expect} from '@playwright/test';
-import {seedLoggedInDashboard,dismissNews,gastosAbreGasto} from './fixtures.mjs';
+import {seedLoggedInDashboard,dismissNews,gastosAbreGasto,esperaNubeQuieta} from './fixtures.mjs';
 import {paymentFixture} from '../tests/fixtures/payment-ui.mjs';
 
+// La métrica de uso (`tab_gastos`, una vez por sesión) no es una escritura de pagos: el espía
+// la ignora para no depender de si cae antes o después de la foto (beta 170).
 async function openRound2(page,state,settings={}){
   await page.clock.install({time:new Date('2026-10-18T12:00:00+02:00')});
   await page.route('**/*',route=>new URL(route.request().url()).hostname==='127.0.0.1'?route.continue():route.abort());
@@ -10,9 +12,9 @@ async function openRound2(page,state,settings={}){
     const descriptor=Object.getOwnPropertyDescriptor(window,'supabase');window.__paymentWrites=[];
     Object.defineProperty(window,'supabase',{...descriptor,set(lib){descriptor.set(lib);const mock=descriptor.get();if(!mock)return;
       const create=mock.createClient;mock.createClient=function(...args){const client=create(...args),from=client.from.bind(client);
-        client.from=function(table){const q=from(table);for(const method of ['insert','update','upsert','delete'])if(q[method]){const original=q[method];q[method]=function(...args){window.__paymentWrites.push({table,method});return original.apply(this,args);};}return q;};return client;};}});
+        client.from=function(table){const q=from(table);for(const method of ['insert','update','upsert','delete'])if(q[method]){const original=q[method];q[method]=function(...args){if(table!=='app_events')window.__paymentWrites.push({table,method});return original.apply(this,args);};}return q;};return client;};}});
   });
-  await page.goto('/');await expect(page.locator('.botnav')).toBeVisible();await page.waitForFunction(()=>!document.getElementById('mc-load'));await dismissNews(page);await page.clock.runFor(6000);
+  await page.goto('/');await expect(page.locator('.botnav')).toBeVisible();await page.waitForFunction(()=>!document.getElementById('mc-load'));await dismissNews(page);await page.clock.runFor(6000);await esperaNubeQuieta(page);
   await page.evaluate(()=>{window.__paymentWrites=[];window.__paymentBefore=JSON.stringify(mcLoadRaw(mcStateKey()));});
 }
 async function unchangedRound2(page){
@@ -85,14 +87,14 @@ for(const kind of ['debt','receipt','linked-debt'])test(kind+' payment evidence 
       const create=mock.createClient;mock.createClient=function(...args){
         const client=create(...args),from=client.from.bind(client);
         client.from=function(table){const q=from(table);for(const method of ['insert','update','upsert','delete'])if(q[method]){
-          const original=q[method];q[method]=function(...args){window.__paymentWrites.push({table,method});return original.apply(this,args);};
+          const original=q[method];q[method]=function(...args){if(table!=='app_events')window.__paymentWrites.push({table,method});return original.apply(this,args);};
         }return q;};return client;
       };
     }});
   });
   await page.goto('/');await expect(page.locator('.botnav')).toBeVisible();
   await page.waitForFunction(()=>!document.getElementById('mc-load'));await dismissNews(page);
-  await page.clock.runFor(6000);
+  await page.clock.runFor(6000);await esperaNubeQuieta(page);
   // Capture after startup reconciliation. Opening these views must not persist anything.
   const before=await page.evaluate(()=>JSON.stringify(mcLoadRaw(mcStateKey())));
   await page.evaluate(()=>{window.__paymentWrites=[];});
