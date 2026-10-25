@@ -81,9 +81,24 @@ check("marca manual independiente y calendario sin prueba",()=>{
   const calendar=fixture();delete calendar.fixed[0].wait;calendar.fixed[0].day=10;assert(paid(calendar));
   calendar.fixed[0].wait=ym;assert.equal(paid(calendar),false);
 });
-check("BOOK válido sin feed local",()=>{
+check("BOOK conserva calendario y marca persistida anteriores",()=>{
   const s=fixture(),f=s.fixed[0],p={kind:"book",key:"sabadell|book",identity:c.fixedPaymentIdentity("sabadell",{date:"2026-10-12",amount:42.37,merchant:f.name}),date:"2026-10-12",bank:"sabadell",merchant:f.name,amount:42.37};
-  f.paymentProofs={[ym]:c.fixedPaymentBind(p,f,m)};s.expenses=[];assert(c.fixedPaymentProof(s,f,y,m,today));assert(paid(s));
+  f.paymentProofs={[ym]:c.fixedPaymentBind(p,f,m)};s.expenses=[];assert(c.fixedPaymentProof(s,f,y,m,today));assert.equal(paid(s),false);
+  assert.deepEqual(money(s),{net:0,pending:4237,shown:84260,end:80023});
+  f.paidYm=ym;f.paidDay=12;assert(paid(s));assert.deepEqual(money(s),{net:-4237,pending:0,shown:80023,end:80023});
+});
+check("regresión: alquiler BOOK de750 sin día el2 de noviembre",()=>{
+  const clock=c.Date;c.Date=class extends Date { constructor(...a){super(...(a.length?a:["2026-11-02T12:00:00+01:00"]));} };
+  try{
+    const s=fixture(),f={id:"rent",name:"Alquiler piso",amount:750,freq:"mes",day:null,account:"ing"};
+    const tx={id:"rent-book",ent:"ing",date:"2026-11-02",amount:750,merchant:"TRANSF ALQUILER PISO",status:"BOOK"};
+    s.fixed=[f];s.accounts=[{id:"ing",ent:"ing",role:"fijos",value:2023.63}];s.expenses=[];s.bankTx=[tx];
+    f.paymentProofs={[2026*12+11]:c.fixedPaymentBind({kind:"book",key:"ing|rent-book",identity:c.fixedPaymentIdentity("ing",tx),date:tx.date,bank:"ing",merchant:tx.merchant,amount:750},f,11)};
+    assert(c.fixedPaymentProof(s,f,2026,11,2));assert.equal(vm.runInNewContext("isPaidIn",c)(f,11,2,2026,s),false);
+    assert.equal(c.monthNetForAccount(s,"ing",2026,11,2),0);assert.equal(cents(s.accounts[0].value),202363);
+    const events=c.bankPendingEvents(s,"ing",2026,11,2);assert.equal(events.length,1);assert.equal(cents(events[0].amt),-75000);
+    assert.equal(cents(c.minWalk(s.accounts[0].value,events).end),127363);
+  }finally{c.Date=clock;}
 });
 const main=source("src/modules/11-app-main.js").replaceAll("\r\n","\n"),totalsStart=main.indexOf("const totals=useMemo(()=>{"),totalsEnd=main.indexOf("\n\n  const budgetMonth=",totalsStart);
 assert(totalsStart>=0&&totalsEnd>totalsStart,"callback real de totals");

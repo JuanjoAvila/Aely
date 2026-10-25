@@ -759,9 +759,14 @@ function isDebtPaidThisMonth(d,today,s,y,m){ return s&&debtPaymentState(s,d,y,m,
 // moverlo no convierta el mismo recibo en otro pendiente. Si se corrige a un día que ya ha llegado
 // con feed RECIÉN sincronizado que cubre el día pero sin cargo, `wait` guarda ese año-mes e
 // impide inventar el pago. Un feed viejo no sirve para negar un cobro de hoy (feedback 25/9).
-// Al rehacer un vínculo, su prueba bancaria ya vale antes del siguiente pull. Usamos la misma
-// frontera de planSyncDerived: una notificación o prueba sin origen bancario local no mueve saldo.
-const isPaidIn=(e,m,t,y,s)=>{ const year=y||new Date().getFullYear(),ym=year*12+m,d=dayIn(e,m); return e.paidYm===ym || !!(s&&fixedPaymentDerivedDay(s,{proof:fixedPaymentProof(s,e,year,m,t)})) || e.wait!==ym&&d!=null&&d<=t; };
+// Rehacer un vínculo crea una prueba expense antes del pull. Solo su origen bancario local
+// adelanta el calendario; BOOK conserva su regla anterior y las notificaciones no mueven saldo.
+const isPaidIn=(e,m,t,y,s)=>{
+  const year=y||new Date().getFullYear(),ym=year*12+m,d=dayIn(e,m);
+  if(e.paidYm===ym) return true;
+  const p=s&&fixedPaymentProof(s,e,year,m,t);
+  return !!(p&&p.kind==="expense"&&fixedPaymentDerivedDay(s,{proof:p})) || e.wait!==ym&&d!=null&&d<=t;
+};
 const isPaidThisMonth=(e,today)=>{ const d=dayOf(e); return d!=null && d<=today; };
 // ¿el gasto necesita que el usuario le asigne un mes? (anual sin programar)
 const needsMonth=(e)=> (e.freq==="año"||e.freq==="anual") && !(e.months&&e.months.length) && !(e.schedule&&e.schedule.length);
