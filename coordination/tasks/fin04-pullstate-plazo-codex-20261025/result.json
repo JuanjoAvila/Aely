@@ -1,0 +1,92 @@
+{
+  "status": "done",
+  "summary": "FIN04 completo en PR304 draft contra beta: relevo de pullState tras25s solo ante nueva solicitud; promesas drenan sucesor, respuesta o rechazo tardios sin mezcla ni revision/ready/mes; commitReact y gastos completos conservados; cancelacion explicita de sesion mismaUID con updater retenido cubierta. Revision parental independiente GO al head exacto antes push.",
+  "productSHA": "add70e5a855f5e3ad5c889f984b00b3e3d070a2f",
+  "baseSHA": "95b950a0cae516a327b9cb28e022715df9b04ca8",
+  "productTree": "d78a466a2ac422411fcb104bf1ed24bb9df4c7c4",
+  "pullRequest": 304,
+  "draft": true,
+  "targetBranch": "beta",
+  "branch": "codex/fin04-pullstate-plazo-6573abf9",
+  "PRHeadBodyBaseDraftRemoteReadbackExact": true,
+  "changedFiles": [
+    "src/modules/11-app-main.js",
+    "tests/pull-historico-entero.test.mjs",
+    "tests/helpers/receipt-cloud-commit-fixture.mjs",
+    "tests/auth-disposal.test.mjs",
+    "docs/ARQUITECTURA.md"
+  ],
+  "tests": [
+    {
+      "command": "node --test --test-concurrency=1 --test-name-pattern FIN04-plazo-nueva-peticion tests/pull-historico-entero.test.mjs",
+      "phase": "causal-red-source-intact",
+      "exitCode": 1,
+      "expectedFailure": true,
+      "assertion": "pullState count actual1 expected2"
+    },
+    {
+      "command": "node --test --test-reporter=tap --test-concurrency=1 tests/pull-historico-entero.test.mjs",
+      "phase": "final",
+      "exitCode": 0,
+      "tapPassed": 28,
+      "skipped": 0,
+      "retries": 0
+    },
+    {
+      "command": "node --test --test-reporter=tap --test-concurrency=1 scripts/build-app.mjs",
+      "phase": "final",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-reporter=tap --test-concurrency=1 scripts/check-syntax.mjs tests/recibos-bajas-y-union.test.mjs tests/recibo-domiciliado-sin-acreditar.test.mjs tests/fin17-confirmed-absorptions.test.mjs tests/appstate-listener-cleanup.test.mjs",
+      "phase": "final",
+      "exitCode": 0,
+      "tapPassed": 121,
+      "skipped": 0,
+      "retries": 0
+    },
+    {
+      "command": "node --test --test-reporter=tap --test-concurrency=1 tests/auth-disposal.test.mjs",
+      "phase": "final",
+      "exitCode": 0,
+      "exactHistorical106AssertionsPreserved": true
+    },
+    {
+      "command": "node --test --test-reporter=tap --test-concurrency=1 tests/fin04-commit.test.mjs tests/metas-pull-transport.test.mjs",
+      "phase": "final",
+      "exitCode": 0,
+      "tapPassed": 20,
+      "monthlyInternalCases": 17,
+      "monthlyInternalNotAddedToTAP": true
+    }
+  ],
+  "finalFocal28Green": true,
+  "sourceFilesReservedUnchanged": true,
+  "resourcesReturned": {
+    "CPU1": true,
+    "serial": true,
+    "workers": 1,
+    "retries": 0,
+    "activeRuns": 0,
+    "sharedResourcesModified": false
+  },
+  "OWN": {
+    "grant": "e42252eb4444e23228b565b7d2da5b0ee5e13e43",
+    "allowance": 20,
+    "usedActualBeforeResult": 6,
+    "noInheritance": true,
+    "minAllFetchSpacingSeconds": 30
+  },
+  "limitations": [
+    "Financial Grok/Claude review and integration pending",
+    "No CI/fullsuite/browser/mobile/served acceptance claim; no merge or deployment",
+    "Setup failures, one runtime-reset attempt without EXIT, and one transient implementation failure preserved privately and not counted green",
+    "No VERSION/catalog/notes/caps/backend/SQL/Edge/Android edits; no K3/G14 repetition"
+  ],
+  "schema": 1,
+  "taskId": "fin04-pullstate-plazo-codex-20261025",
+  "actor": "codex",
+  "sessionId": "codex-local-20261025-fin04-fda31257-b595f41d-0cbd42fb-6573abf9",
+  "createdAt": "2026-10-25T21:53:27.092Z",
+  "released": true
+}
