@@ -877,6 +877,11 @@ escribir `Access-Control-Allow-Origin: "*"`.
   saldos vivos) y solo lo cuenta si es el primero. De los ajustes, la serie y el presupuesto de Inicio
   dependen solo de los campos que leen (`NET_WORTH_SETTINGS`, `BUDGET_SETTINGS`), así que tocar
   Ajustes ya no recorre el histórico. Lo vigila `tests/inicio-deps-ajustes`.
+- La política de deuda de Inicio valida `startDay` una vez por fila al construirse y conserva
+  el día válido en un array local, alineado con las deudas. No usa sus IDs como clave ni modifica
+  el estado: otra política revalida sus propias filas. Los días posteriores solo comparan la
+  fecha preparada; una fecha inválida o ausente conserva el fallback mensual de `startMonth`.
+  Los préstamos sin plazo no adquieren nacimiento por `asOf` ni por esta preparación.
 - El rol (recibos/diario/todo) vive AQUÍ; en v4.0.x quedó inaccesible (solo existía en el
   Wealth v3 no montado) — no volver a dejar el rol sin puerta.
 - Inversiones abre como pantalla hija propia desde Cartera y solo actualiza precios cuando se pulsa

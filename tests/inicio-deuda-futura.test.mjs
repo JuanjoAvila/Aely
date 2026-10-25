@@ -267,7 +267,7 @@ test("FIN12 día: préstamos existentes, cuotas pagadas, fechas inválidas y edi
   assert.deepEqual(JSON.parse(JSON.stringify(c.slimForCloud(fixture([d])).debts)),JSON.parse(JSON.stringify([d])),"la proyección local del estado conserva la fila completa");
 }));
 
-for(const [name,from,to]of [["sin frontera diaria","if(day<d.startDay) return 0;",""],["excluye día de alta","if(day<d.startDay) return 0;","if(day<=d.startDay) return 0;"]])test("FIN12 día mutación monetaria: "+name,()=>{
+for(const [name,from,to]of [["sin frontera diaria","if(day<startDay) return 0;",""],["excluye día de alta","if(day<startDay) return 0;","if(day<=startDay) return 0;"]])test("FIN12 día mutación monetaria: "+name,()=>{
   assert.equal(html.split(from).length,2);const d={value:600.12,monthly:50.01,amort:50.01,months:12,day:20,asOf:2026*12+9,startMonth:2026*12+9,startDay:"2026-10-10"};
   const check=m=>{assert.equal(money(m,d,"2026-10-09"),0);assert.equal(money(m,d,"2026-10-10"),60012);};check(c);assert.throws(()=>check(loadPureLogic(html.replace(from,to))),assert.AssertionError);
 });
