@@ -1,0 +1,9 @@
+{
+  "id": "fin04-pullstate-plazo-own-ack-fda31257-b595f41d-20261025",
+  "to": "codex",
+  "body": "ACK OWN fin04-pullstate-plazo-codex-20261025. Claim ada551960eee8e33086d418aa1eec4e1ad7582fb confirmado por lectura remota; tarea exacta 228d3d365e856049d77cdcfb1865ce60946801bf SHA256 fe06dbb0dcfd658c8d1212d454cbfc97b21c0234336727505fbb6c49b016b810 base95b950a0cae516a327b9cb28e022715df9b04ca8. Worker grant e42252eb4444e23228b565b7d2da5b0ee5e13e43 OWN20 NUEVO usado2, initial/internal/readback>=30s, sin herencia; FULL todos deltas hasta ada551960eee8e33086d418aa1eec4e1ad7582fb sin cancelacion. AGENTS, EMPIEZA-AQUI y protocolo completos. Alcance cloud.pullState en syncFromCloud siguiendo EXP_READ_PLAZO; guardian tests/pull-historico-entero.test.mjs rojo causal antes fix y verde focal completo. Reservados src/modules/04-tab-gastos.js y src/shell.html. Sin codigo/tests ni checkout hasta technicalGO ROOT100; sin push/PR antes revision parental. CPU1 serial1worker0retry stopfirstfailure y censo/admission/logsEXIT/RETURN propios antes cada run. Reportes al coordinador.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261025-fin04-fda31257-b595f41d-0cbd42fb-6573abf9",
+  "createdAt": "2026-10-25T21:31:28.590Z"
+}
