@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "id": "fin36-debt-madrid-month-beta169-codex-20261025",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261025-r86-fda31257-b9ea7d17-cde63806-9dbeba28",
+  "createdAt": "2026-10-25T01:00:45.319Z",
+  "to": "codex",
+  "kind": "worker",
+  "baseSHA": "72a0f48ccd03e48c1245899cf6eaf3b2e8d18313",
+  "baseVersion": "4.26.169",
+  "baseFreshReadAtUTC": "2026-10-25T01:00:45.122559+00:00",
+  "objective": "FIN-36: coherencia asOf/startMonth y startDay con reloj del dispositivo UTC a las 00:30 de Madrid del dia1. Evitar descontar una cuota inexistente por mezclar el mes local anterior y la fecha Madrid, en alta de deuda, debtBalance y serie Inicio. Una PR draft independiente sobre beta vigente exacta; ROJO causal en centimos primero.",
+  "scope": [
+    "src/modules/02-ui-shared.js",
+    "src/modules/07-tab-patri-fijos.js",
+    "src/modules/08-motor-bank.js",
+    "src/modules/09-tab-debts-goals.js",
+    "tests/fin36-debt-madrid-month.test.mjs",
+    "tests/inicio-deuda-futura.test.mjs",
+    "e2e/fin36-debt-madrid-month.spec.mjs",
+    "e2e/inicio-deuda-futura.spec.mjs",
+    "scripts/run-tests.mjs",
+    "scripts/relevant-tests.mjs",
+    "docs/ARQUITECTURA.md",
+    "docs/TESTING.md"
+  ],
+  "scopeBoundary": "Solo fronteras calendarias de deudas y consumidores que compartan este fallo. No cambiar ymNow global sin auditar y justificar sus usos ajenos; preferir auxiliar de deuda acotado. FIN37 rendimiento startDay se conserva para tarea posterior. Si aparece cambio de contrato de cobro, migracion o importe independiente, evidencia al coordinador antes de ampliar.",
+  "scopeGrants": [
+    "cb8e9ed08289b384a795af95cf78f50bccbf0b33",
+    "e42252eb4444e23228b565b7d2da5b0ee5e13e43"
+  ],
+  "priority": 1,
+  "workerOwnStartupGrant": "e42252eb4444e23228b565b7d2da5b0ee5e13e43",
+  "workerOwnStartupAllowance": 20,
+  "acceptance": [
+    "Recepcion propia: identidad/cwd/runtime/proyecto y sesion/nonce publicos segmentados8hex-8hex-8hex-8hex nuevos desde inicio; ACK privado fsync/readback. Esperar admision expresa y OWN claim/readback/ACK antes codigo/tests.",
+    "Checkout aislado limpio desde base exacta. ROJO causal antes del fix con reloj fijo UTC equivalente a 00:30 Europe/Madrid dia1. Oraculo independiente al centimo, principal y cuota sinteticos. Probar creacion real, asOf/startMonth/startDay coherentes, saldo y serie historica sin cuota fantasma.",
+    "Cubrir frontera verano/invierno, fin de ano y otra zona horaria del dispositivo, antes/en/despues del dia de cargo. Preservar contrato Madrid conocido y cuotas previas paid>0, prestamos sin plazo, balloon, saldo editado y fecha de nacimiento acreditada; no inventar fechas para heredados.",
+    "E2E abre alta/pantalla y grafica Inicio reales cuando afectadas, aserciones DOM de importes coherentes con motor. Registrar unitario/E2E nuevos en runner/mapa. No sustituir flujo real por probar solo funcion extraida.",
+    "Preservar ROJO original y un mutante causal que vuelva a mezclar calendario local/Madrid. Fuente exacta antes de cada run, comandos/EXIT reales, hashes de codigo/tests/generados, revision independiente sin duplicar corridas. Si ya corregido demostrar NO_REPRO sin cambio inventado.",
+    "Entrega PR draft contra beta con head/base verificados; result y RETURN propios released con limitaciones. No afirmar integracion, CI general, servido o aceptacion fisica."
+  ],
+  "constraints": [
+    "OWN20 nuevo desde0 tras admision bajo e42252eb, primer fetch/internos/readbacks contados todos >=30s; ledger exclusivo; FULL TODOS deltas/cancelaciones antes acciones. No herencia/reset/proxy ni filtro alternativo.",
+    "Runner OWN censo/admission serial/local/puerto antes de cada run, CPU1 unworker cero retries stopfirstfailure; logs/report durables y RETURN propio. Solo dirigidos nuevos/regresiones justificadas; no repetir pruebas cerradas sin causa.",
+    "Sin suite Node entera/fullbrowser/CPU6, VERSION/catalogo/notas/caps, backend/Edge/SQL/livecloud/banco/Gradle/APK/deploy/merge main o beta/movil. Sin dependencias nuevas ni npmci/install por node_modules enlazado.",
+    "PR297/PR298 siguen OPEN DRAFT unmerged para integracion Claude. Sus workers/results cerrados/archivados; no recrear, tocar PRs ni repetir pruebas o entregas. G9 asignado Grok.",
+    "Trabajador reporta nativamente solo a su coordinador, solo coordinador a Claude. Subagentes utiles permitidos con checkout/scopes/recursos propios; no duplicar runners.",
+    "Deadline propio60min desde admision; acabar operacion en curso, checkpoint fuente durable y RETURN propios al primer punto seguro. Relevo solo si sigue activa, nuevo chat Aely con admision y OWN propios.",
+    "Repo publico: preflight payload completo incluyendo claves por fda31257; sin rutas/IDs privados ni URLs. No modificar helper/filtro; conservar errores y ajustes solo semanticos neutros autorizados."
+  ]
+}
