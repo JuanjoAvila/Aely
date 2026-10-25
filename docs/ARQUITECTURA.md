@@ -488,7 +488,7 @@ repetidos ni lápidas), calculado al vuelo y nunca escrito en `saved`; las panta
 `metaConAportes` y las hojas que editan reciben la meta tal cual. Una meta con aportaciones no se
 borra (`metaTieneAportes`). En la nube la escribe `cloud.setExpenseMeta` (misma búsqueda que la del
 recibo; no toca filas con cuota o recibo) y devuelve cuántas filas quedaron como la local: la fila
-queda `metaPend` hasta ese acuse (`ackMetaWrite`), y mientras tanto el pull no la pisa; sin
+queda `metaPend` hasta ese acuse (`ackMetaWrite`), y mientras tanto el pull no la pisa (se reintenta al montar Gastos, al volver la red y a primer plano: `reintentaMetas`). Solo toca la fila exacta: mismo ordinal, misma referencia del banco si se conoce y nunca un `#dup` al ponerla, para no marcar el cargo gemelo; sin
 `metaPend`, el pull adopta lo que diga la nube, también la AUSENCIA de marca, que es como la
 retirada hecha en el otro móvil llega a este. El servidor la excluye con `esAportacionAMeta`
 (`_shared/presupuesto.ts`); hasta que se despliegue, el widget la cuenta como gasto.

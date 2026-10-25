@@ -83974,11 +83974,11 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "marcarAportacionMeta"
+        "function": "ackMetaWrite"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "ackMetaWrite"
+        "function": "marcarAportacionMeta"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -84266,6 +84266,18 @@
       },
       {
         "file": "src/modules/00-core.js",
+        "function": "obOrdinalOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ordinalDeTramos"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRefDeSource"
+      },
+      {
+        "file": "src/modules/00-core.js",
         "function": "metaSufijo"
       },
       {
@@ -84343,10 +84355,6 @@
       {
         "file": "src/modules/00-core.js",
         "function": "mcSandboxFlag"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "bankRefDeSource"
       },
       {
         "file": "src/modules/00-core.js",
@@ -84622,15 +84630,7 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "ordinalDeTramos"
-      },
-      {
-        "file": "src/modules/00-core.js",
         "function": "resolveCategory"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "obOrdinalOf"
       },
       {
         "file": "src/modules/00-core.js",
