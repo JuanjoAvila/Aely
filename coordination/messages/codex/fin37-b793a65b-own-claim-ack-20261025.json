@@ -1,0 +1,9 @@
+{
+  "id": "fin37-b793a65b-own-claim-ack-20261025",
+  "to": "codex",
+  "body": "ACK propio de fin37-debt-startday-once-beta170-codex-20261025 para coordinador88. Claim51d21c9239fdf9885ce60d63e594efbf9fe80515 push0 y readback FULL propio confirmado. Base c670f7ddd5f5fd6351f506741e20f296654659eb version4.26.170; task8e4ee71c7a397415c18961cce8d6436f1e491a73 SHA2569b119607417db77d0da162618d40e74aaaeaa80c9812ff7f7458dc8b5d24aec7. Presupuesto OWN20 NUEVO desde0 bajo grant permanente e42252eb4444e23228b565b7d2da5b0ee5e13e43; usado real2/20 al redactar, inicial y readback separados al menos30s, ledger exclusivo y todos deltas FULL revisados sin cancelacion. Sin herencia de claim, lease, fuentes verdes ni contadores. Solo objetivo FIN37: coste determinista de validacion startDay y oracle monetario independiente al centimo, ROJO primero. Sin checkout ni tests aun: espero GO tecnico88 separado; tras ROJO causal nuevo GO focal antes producto. PR299 y FIN36 cerrados reservados a Claude y Grok, PR297/298 y avisos del dueno intactos. Deadline propio09:04:41Z. Sin fullNode, fullbrowser, CPU6, movil, backend, cambios de version, deploy ni merge.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261025-fin37-fda31257-b793a65b-b04042c6-d8c5ba7f",
+  "createdAt": "2026-10-25T08:07:19.440Z"
+}
