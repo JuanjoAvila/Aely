@@ -23,6 +23,8 @@ const expenses = [
 
 const lista = (page) => page.locator(".v4-gastos-list-body button.v4-mov");
 const fila = (page, nombre) => lista(page).filter({ hasText: nombre });
+// La aportación va a la fila gris de Inversiones desde el 25/10/2026: se ve, agrupada, y no cuenta.
+const aporte = (page) => page.locator('.v4-gastos-list-body .gx-gris[data-gris="inversion"] .gx-gris-it').filter({ hasText: "Aporte TR" });
 
 async function mostrarTodosLosBancos(page) {
   await page.locator("button.v4-chip").filter({ hasText: "🎛️" }).first().click();
@@ -43,15 +45,14 @@ test("por defecto salen todos los bancos de gasto diario, no el resto", async ({
   // SIN tocar ningún filtro: los dos bancos diarios, incluida Revolut (no solo el principal).
   await expect(fila(page, "Mercadona TR")).toHaveCount(1);
   await expect(fila(page, "Cafe Revolut")).toHaveCount(1);
-  await expect(fila(page, "Aporte TR")).toHaveCount(1);
+  await expect(aporte(page)).toHaveCount(1);
   await expect(fila(page, "RECIBO LUZ"), "Sabadell no está marcado como gasto diario").toHaveCount(0);
 
   // Y lo que CUENTA sigue siendo solo lo suyo del día a día: las otras dos salen apagadas,
   // cada una diciendo POR QUÉ, que son motivos distintos.
   await expect(fila(page, "Mercadona TR")).not.toHaveClass(/v4-mov-skip/);
   await expect(fila(page, "Cafe Revolut")).not.toHaveClass(/v4-mov-skip/);
-  await expect(fila(page, "Aporte TR")).toHaveClass(/v4-mov-skip/);
-  await expect(fila(page, "Aporte TR")).toContainText("no es un gasto");
+  await expect(fila(page, "Aporte TR"), "agrupada en su fila gris, no suelta").toHaveCount(0);
   // El total del mes: 12 + 8. La inversión no puede colarse. (Gastos v5: la cifra de la cabecera
   // sustituye a la tarjeta resumen; el contrato es el mismo.)
   await expect(gastosCifra(page), "enseñar un movimiento no es contarlo").toHaveText("20,00 €");

@@ -1340,6 +1340,33 @@ const cloud = (function(){
         if(w.error) throw w.error;
       }
     },
+    /* LA MARCA DE APORTACIÓN A META (24/10/2026), con la misma búsqueda que la del recibo y por lo
+       mismo: el id local puede no ser el de la fila de la nube. Solo toca filas `ob:<ent>` u
+       `ob-hist:<ent>` de ESE banco y SIN cuota ni recibo: si la nube dice que la fila ya es de un
+       recibo o de una deuda, la meta no se escribe (una marca por gasto). Devuelve cuántas filas
+       quedan como `e` dice —escritas ahora o ya iguales—: con 0 no hay acuse y la marca local se
+       sigue protegiendo (`metaPend`), porque un UPDATE que no casa no da error. */
+    async setExpenseMeta(e){
+      if(!sb || !e || !e.ent) return 0;
+      const {data:{session}}=await sb.auth.getSession();
+      if(!session) return 0;
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))return 0;
+      const {data,error}=await sb.from('expenses').select('id,source,fecha,importe,comercio')
+        .eq('user_id',session.user.id).eq('fecha',e.date).eq('importe',e.amount).eq('comercio',e.merchant);
+      if(error) throw error;
+      let n=0;
+      for(const r of data||[]){
+        const m=/^(ob|ob-hist):([^~#]+)(~meta\.[^~#]*)?((?:#.*)?)$/.exec(String(r.source||""));
+        if(!m || m[2]!==e.ent) continue;
+        const src=m[1]+":"+m[2]+metaSufijo(e.goalId)+m[4];
+        if(src===r.source){ n++; continue; }
+        if(!await obConfirmedCanUpload(expenseFromRow(r),session.user.id,sb))continue;
+        const w=await sb.from('expenses').update({ source:src }).eq('user_id',session.user.id).eq('id',r.id).eq('source',r.source).select('id');
+        if(w.error) throw w.error;
+        if(Array.isArray(w.data)&&w.data.length) n++;
+      }
+      return n;
+    },
     /* IMPORT HISTÓRICO — batch con RETURNING id (tanda 3, agujero A).
        ignoreDuplicates + onConflict terna: Postgres NO devuelve las filas que chocaron.
        Solo los ids ACK son borrables después. NO toca addExpense (camino paralelo). */
@@ -2517,7 +2544,7 @@ function borrarGastoNube(e, donde){
 
    Si añades un método a `cloud` que ESCRIBA algo, añádelo a esta lista. */
 const CLOUD_WRITES=[
-  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","renameExpense","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","setExpenseRecibo","deleteExpense","deleteExpensesByIds","settleObAbsorbed",
+  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","renameExpense","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","setExpenseRecibo","setExpenseMeta","deleteExpense","deleteExpensesByIds","settleObAbsorbed",
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
   "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",
@@ -2571,6 +2598,17 @@ function reciboSufijo(reciboId){
   const id=String(reciboId||"").replace(/[^A-Za-z0-9_-]/g,"");
   return id ? "~recibo."+id : "";
 }
+/* LA APORTACIÓN A UNA META VIAJA COMO `ob:<ent>~meta.<goalId>` (decisión suya del 24/10/2026: «es
+   aportación a la meta X»). Es la tercera marca y la más débil: solo se escribe si la fila no es
+   ya cuota ni recibo (una marca por gasto). Con `~` por lo mismo que las otras dos, pero aquí el
+   lado seguro es otro: una app vieja de la familia (`partirEntDeuda` ignora tramos que no conoce)
+   y el servidor sin desplegar (`bancoDeSource` corta en `~`) leen el banco limpio y la cuentan
+   como un gasto normal, los dos igual. Ninguno la saca del saldo, que es lo que importa: el dinero
+   salió de la cuenta. Espejo en `_shared/presupuesto.ts` (`esAportacionAMeta`). */
+function metaSufijo(goalId){
+  const id=String(goalId||"").replace(/[^A-Za-z0-9_-]/g,"");
+  return id ? "~meta."+id : "";
+}
 /* Parte el tramo de banco de un `source` OB: «sabadell~deuda.x» → {ent:"sabadell", debtId:"x"};
    «sabadell~recibo.y» → {ent:"sabadell", reciboId:"y"}. Las marcas se leen en cualquier orden:
    una app anterior que marca como cuota una fila de recibo sube «sabadell~recibo.y~deuda.x» (para
@@ -2578,12 +2616,14 @@ function reciboSufijo(reciboId){
    (`expenseSourceForCloud`) y en local (`marcarCuotaAMano`): es lo que la persona dijo a mano. */
 function partirEntDeuda(tramo){
   const partes=String(tramo||"").split("~");
-  let debtId=null, reciboId=null;
+  let debtId=null, reciboId=null, goalId=null;
   partes.slice(1).forEach(function(p){
     if(p.indexOf("deuda.")===0) debtId=p.slice(6)||null;
     else if(p.indexOf("recibo.")===0) reciboId=p.slice(7)||null;
+    else if(p.indexOf("meta.")===0) goalId=p.slice(5)||null;
   });
-  return { ent:partes[0]||null, debtId:debtId, reciboId:debtId?null:reciboId };
+  // La meta solo vale sola: con cuota o recibo, la fila ya es de ellos (una marca por gasto).
+  return { ent:partes[0]||null, debtId:debtId, reciboId:debtId?null:reciboId, goalId:(debtId||reciboId)?null:goalId };
 }
 /* Tramos de un `source` OB tras el banco: «ob:tr#dup#n3» → ["dup","n3"]. El ordinal es el tramo
    `n<k>`; `dup` sigue siendo la marca de posible repetido. Espejo en `presupuesto.ts`. */
@@ -2631,11 +2671,11 @@ function expenseSourceForCloud(e){
   // final no le cambia nada: ve el banco limpio y la marca de repetido donde siempre. Con `~`
   // dentro del banco (como la cuota) ese móvil leería un banco raro y sacaría la fila del
   // presupuesto; con `#` detrás la lee como hoy. Ver `obOrdinalOf`.
-  // Orden: ob:<ent>[~deuda.<id> | ~recibo.<id>][#dup][#ref<id>][#prevref<id>][#pdng][#acc<cuenta>][#n<k>].
+  // Orden: ob:<ent>[~deuda.<id> | ~recibo.<id> | ~meta.<id>][#dup][#ref<id>][#prevref<id>][#pdng][#acc<cuenta>][#n<k>].
   // La cuenta debe sobrevivir al pull para no ensanchar la lápida al reinstalar u otro móvil.
   const acc=e&&e.obAcc?"#acc"+encodeURIComponent(String(e.obAcc)):"";
-  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+(deudaSufijo(e&&e.debtId)||reciboSufijo(e&&e.reciboId))+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+acc+ordinalSufijoCloud(e);
-  if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent+reciboSufijo(e&&e.reciboId)+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+acc+ordinalSufijoCloud(e);
+  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+(deudaSufijo(e&&e.debtId)||reciboSufijo(e&&e.reciboId)||metaSufijo(e&&e.goalId))+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+acc+ordinalSufijoCloud(e);
+  if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent+(reciboSufijo(e&&e.reciboId)||metaSufijo(e&&e.goalId))+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+acc+ordinalSufijoCloud(e);
   // Un alias TR/Wallet pendiente usa temporalmente el encoding OB que entienden también las OTA
   // anteriores; al resolver «son distintos» vuelve a su origen real `macrodroid`.
   if(s==="macrodroid"||s==="tr") return (e&&e.possibleDup)?"ob:trade_republic#dup":"macrodroid";
@@ -3522,7 +3562,7 @@ function resolvePossibleDup(state, expenseId, same){
 /* Convierte una fila de la tabla `expenses` al formato interno de la app. */
 function expenseFromRow(r){
   const raw=String(r.source||"manual");
-  let ent=null, source=raw, dup=false, debtId=null, reciboId=null, ord=1;
+  let ent=null, source=raw, dup=false, debtId=null, reciboId=null, goalId=null, ord=1;
   if(raw==="macrodroid"||raw==="tr"){ ent="trade_republic"; source="macrodroid"; }
   // «ob:ent#dup» = posible repetido que sigue pendiente de su decisión (B09-D): vuelve marcado,
   // así que la app lo sigue dejando fuera del total tras un pull, un reinicio o un segundo móvil.
@@ -3530,8 +3570,9 @@ function expenseFromRow(r){
   // «…#n2» = segundo apunte igual del mismo día (12/10/2026): vuelve con su `obOrd`, que es lo que
   // hace que la clave de mezcla no lo funda con el primero. Siempre es el último tramo.
   // «ob:ent~recibo.id» = cargo de ese recibo del Plan: vuelve con su `reciboId` y no mueve cifras.
-  else if(raw.indexOf("ob:")===0){ const p=raw.slice(3).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; debtId=pe.debtId; reciboId=pe.reciboId; source=(r.ingest_event_id&&p[1]==="dup")?"macrodroid":"ob"; dup=p[1]==="dup"; ord=ordinalDeTramos(p.slice(1)); }
-  else if(raw.indexOf("ob-hist:")===0){ const p=raw.slice(8).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; reciboId=pe.reciboId; source="ob-hist"; dup=p[1]==="dup"; ord=ordinalDeTramos(p.slice(1)); }
+  // «ob:ent~meta.id» = aportación a esa meta (24/10/2026): vuelve con su `goalId`.
+  else if(raw.indexOf("ob:")===0){ const p=raw.slice(3).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; debtId=pe.debtId; reciboId=pe.reciboId; goalId=pe.goalId; source=(r.ingest_event_id&&p[1]==="dup")?"macrodroid":"ob"; dup=p[1]==="dup"; ord=ordinalDeTramos(p.slice(1)); }
+  else if(raw.indexOf("ob-hist:")===0){ const p=raw.slice(8).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; reciboId=pe.reciboId; goalId=pe.goalId; source="ob-hist"; dup=p[1]==="dup"; ord=ordinalDeTramos(p.slice(1)); }
   else if(raw.indexOf("manual:")===0){ ent=raw.slice(7)||null; source="manual"; }   // manual con banco elegido
   else if(raw==="supabase"){ source="manual"; }   // legado: antes el pull marcaba todo como supabase
   return {
@@ -3557,6 +3598,7 @@ function expenseFromRow(r){
     possibleDup: dup ? true : undefined,
     debtId: debtId || undefined,
     reciboId: reciboId || undefined,
+    goalId: goalId || undefined,
     obOrd: ord>1 ? ord : undefined,
     extId: source==="ob"||source==="ob-hist" ? bankRefDeSource(raw) : undefined,
     obPending: (source==="ob"||source==="ob-hist")&&/#pdng(?:#|$)/.test(raw) ? true : undefined,
@@ -3613,7 +3655,9 @@ function expensesFromRows(rows, owner){
 function obBookedPreferenceKey(e){
   const bank=e&&expenseBankOf(e), day=String(e&&e.date||"").slice(0,10), cents=Math.round(Number(e&&e.amount)*100);
   if(!e||!esFilaDeBanco(e)||!bank||!e.extId||!String(e.extId).trim()||!/^\d{4}-\d{2}-\d{2}$/.test(day)||!Number.isSafeInteger(cents)||!e.merchant)return "";
-  const marks=expenseSourceForCloud(e).split("#").filter(function(t){return !/^(?:pdng|n\d{1,6})$/.test(t)&&!/^ref|^acc/.test(t);}).join("#");
+  // Sin la meta: es una marca suya sobre el gasto, no del banco, y el BOOK que la lleva y su
+  // pendiente sin ella siguen siendo el mismo cargo.
+  const marks=expenseSourceForCloud(e.goalId?Object.assign({},e,{goalId:undefined}):e).split("#").filter(function(t){return !/^(?:pdng|n\d{1,6})$/.test(t)&&!/^ref|^acc/.test(t);}).join("#");
   return JSON.stringify([bank,String(e.extId),day,obOrdinalOf(e),String(e.obAcc||""),cents,e.merchant,e.category||"",marks]);
 }
 function preferBookedExpenses(rows,delSet){
@@ -3710,6 +3754,17 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
      la nube sin marca tampoco borra la local; la RETIRADA viaja por `reciboNo` en el estado, y
      `cargoDeRecibo` la respeta aunque esta fila siga marcada aquí. */
   if(incoming.reciboId && !incoming.debtId && !local.debtId && esFilaDeBanco(local)) put("reciboId", incoming.reciboId);
+  /* Aportación a una meta (24/10/2026): aquí la nube SÍ manda también cuando no trae marca, porque
+     quitarla en el otro móvil tiene que llegar a este y no hay otra vía (la cuota y el recibo
+     tienen su lápida en el estado; esta no la necesita). Lo que la protege de una lectura vieja
+     es `metaPend`: mientras este móvil no tenga el acuse de SU cambio, la fila local manda; en
+     cuanto la nube dice lo mismo, deja de protegerse. Sin `metaPend` en las filas de la noti o a
+     mano no hay nada que adoptar: la marca solo existe en las del banco. */
+  if(esFilaDeBanco(local)){
+    const metaIn=incoming.goalId||undefined;
+    if(local.metaPend){ if((local.goalId||undefined)===metaIn) put("metaPend", undefined); }
+    else put("goalId", metaIn);
+  }
   if(!local.noteEdited && Object.prototype.hasOwnProperty.call(incoming,"note")) put("note", incoming.note);
   const confirmed=Object.keys(preserved).filter(function(k){return incoming[k]===preserved[k]||((k==="debtId"||k==="noCard")&&!incoming[k]&&!preserved[k]);});
   if(confirmed.length){
@@ -3755,12 +3810,13 @@ function uniqueExpenseUuids(rows,delSet,index){
     const edited=function(x){return !!(x.catStale&&x.catStale.length)||x.catAckAt!=null;};
     const cat=edited(e)?e:edited(a)?a:winner;
     if(cat.category!=null){merged.category=cat.category;if(cat.catStale)merged.catStale=cat.catStale;if(cat.catAckAt!=null)merged.catAckAt=cat.catAckAt;}
-    ['debtId','reciboId','noCard'].forEach(function(k){
+    ['debtId','reciboId','noCard','goalId','metaPend'].forEach(function(k){
       const has=function(x){return Object.prototype.hasOwnProperty.call(x,k)&&x[k]!==undefined;};
       const selected=has(e)?e:has(a)?a:null;
       if(selected)merged[k]=selected[k];
     });
     if(merged.debtId)delete merged.reciboId;
+    if(merged.debtId||merged.reciboId){ delete merged.goalId; delete merged.metaPend; }
     // Lo recuperado de otra copia no se pierde otra vez en un pull viejo.
     ['category','debtId','noCard'].forEach(function(k){if(merged[k]!==undefined&&a[k]!==e[k])guarded[k]=merged[k];});
     if(Object.keys(guarded).length)merged.uuidPreserved=guarded;

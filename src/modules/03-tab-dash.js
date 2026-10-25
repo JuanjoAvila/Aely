@@ -532,7 +532,9 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       React.createElement("div",{className:"v4-goals",
         onTouchStart:function(e){ e.stopPropagation(); },
         onTouchMove:function(e){ e.stopPropagation(); }},
-        goals.map(function(g){
+        goals.map(function(g0){
+          // Con lo marcado desde Gastos, como en Plan → Metas: la misma meta no puede decir dos cifras.
+          const g=metaConAportes(g0,state);
           const pct=goalPct(g); const eta=goalEta(g, tt.ahorroMensual);
           return React.createElement("div",{key:g.id,className:"v4-goal"},
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},

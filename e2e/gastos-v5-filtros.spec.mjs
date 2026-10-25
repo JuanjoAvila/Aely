@@ -49,13 +49,15 @@ const chip = (page, k) => hoja(page).locator(`[data-fil="${k}"]`);
 const ver = (page) => hoja(page).locator(".gx-fil-ver");
 const tarjetas = (page) => gastosRoot(page).locator('[data-gx-secc="movs"] .v4-gastos-list-body button.v4-mov');
 /* La lista pinta de 12 en 12 y carga más al acercarse al final: para contar TODAS se baja hasta
-   el «Hasta aquí», que solo sale cuando ya está entera. */
+   el «Hasta aquí», que solo sale cuando ya está entera. Cuenta también los cargos de las filas
+   grises (la aportación va a la de Inversiones desde el 25/10/2026): «Ver N» cuenta movimientos,
+   estén sueltos o agrupados. */
 async function cuentaTodas(page) {
   await expect.poll(async () => {
     await page.evaluate(() => { const h = document.querySelector(".page-scroll-host"); h.scrollTop = h.scrollHeight; });
     return gastosRoot(page).locator(".gx-fin").count();
   }).toBe(1);
-  return tarjetas(page).count();
+  return (await tarjetas(page).count()) + (await gastosRoot(page).locator('[data-gx-secc="movs"] .gx-gris-it').count());
 }
 const botonFiltros = (page) => gastosRoot(page).locator("button.v4-chip").filter({ hasText: "🎛️" }).first();
 

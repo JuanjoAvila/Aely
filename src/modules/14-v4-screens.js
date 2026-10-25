@@ -1132,7 +1132,9 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
         React.createElement("div",{className:"v4-sec-h"}, t("pt_goods")),
         React.createElement(Wealth,{state:state,set:set,totals:totals,parte:"bienes"})
       ) },
-      !simple && { id:"inversiones", label:t("v4_inversiones"), el:React.createElement("div",{className:"rise",style:{animationDelay:".12s"}},
+      // `data-cartera-sec`: aquí aterriza «Abrir en Cartera ›» de la fila gris de Inversiones de
+      // Gastos (`goInversiones`, 11-app-main), aunque el bloque se haya reordenado.
+      !simple && { id:"inversiones", label:t("v4_inversiones"), el:React.createElement("div",{className:"rise","data-cartera-sec":"inversiones",style:{animationDelay:".12s"}},
         React.createElement("div",{className:"v4-sec-h"}, t("v4_inversiones")),
         React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,showToast:showToast}),
         React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:10},ref:invLinkRef,onClick:function(){ setInvTools(true); }}, t("iv_see_all")+" ›")

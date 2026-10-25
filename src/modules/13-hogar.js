@@ -33,6 +33,8 @@ function buildHouseholdSnapshot(state, totals, email){
     if(parseDate(e.date)<monthStart) return;
     // El cargo de un recibo ya sale en los fijos de esta misma foto: aquí lo contaría dos veces.
     if(cargoDeRecibo(e, state)) return;
+    // Lo que va a una meta no es gasto: tampoco lo es en la foto del hogar.
+    if(metaDeGasto(e)) return;
     const k=e.category||"otros";
     byCat[k]=(byCat[k]||0)+e.amount;
   });

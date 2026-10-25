@@ -233,6 +233,8 @@ function GoalEditSheet({goal,state,set,onClose,onDelete,showToast}){
     onChange:function(e){setForm(Object.assign({},form,{[key]:e.target.value}));}})); };
   return React.createElement(PlanEditSheet,{title:t("gl_edit_title"),onClose:onClose,closer:closer},React.createElement("div",{className:"add-form"},
     input("name","plan_edit_name"),React.createElement("div",{className:"af-row"},input("saved","gl_saved_ph"),input("target","gl_target_ph")),
+    // Lo marcado desde Gastos NO está en este campo (se suma al vuelo): se dice para que no lo apunte otra vez.
+    metaConAportes(goal,state).aportado>0&&React.createElement("div",{className:"hint","data-testid":"goal-edit-from-gastos"},tf("gl_from_gastos",{x:eur(metaConAportes(goal,state).aportado)})),
     input("deadline","gl_deadline","month"),input("monthly","gl_monthly_ph"),
     React.createElement("div",{className:"emoji-pick"},GOAL_EMOJIS.map(function(e){return React.createElement("button",{key:e,type:"button",className:form.emoji===e?"on":"","aria-pressed":form.emoji===e,onClick:function(){setForm(Object.assign({},form,{emoji:e}));}},e);})),
     save.error&&React.createElement("div",{className:"hint",role:"alert"},t(save.error)),
@@ -803,14 +805,18 @@ function Goals({state, set, totals, showToast}){
       return Object.assign({},x,{saved:ns,fromBank:bank||x.fromBank,done:ns>=x.target,doneAt:(ns>=x.target&&!x.doneAt)?new Date().toISOString():x.doneAt});
     })}); });
   };
+  // Con gastos marcados como aportación a esta meta no se borra, igual que una deuda con pagos: esos
+  // cargos se quedarían fuera del gasto sin meta a la que sumar. Primero se quita la marca.
   const delGoal=function(g){
+    if(metaTieneAportes(state, g.id)){ if(showToast) showToast(t("gl_delete_linked")); return; }
     askConfirm({title:tf("gl_delete_q",{name:g.name}),sub:t("gl_delete_sub"),ok:t("gl_delete"),danger:true}).then(function(yes){
       if(!yes) return;
-      set(function(s){return Object.assign({},s,{goals:(s.goals||[]).filter(function(x){return x.id!==g.id;})});}); setEditingGoal(null);
+      set(function(s){ if(metaTieneAportes(s, g.id)) return s; return Object.assign({},s,{goals:(s.goals||[]).filter(function(x){return x.id!==g.id;})});}); setEditingGoal(null);
     });
   };
 
-  const totalSaved=goals.reduce(function(a,g){return a+(g.saved||0);},0);
+  // Lo que se PINTA lleva lo marcado desde Gastos (`metaConAportes`); lo que se edita, la meta tal cual.
+  const totalSaved=goals.reduce(function(a,g){return a+metaAhorrado(g,state);},0);
   const totalTarget=goals.reduce(function(a,g){return a+(g.target||0);},0);
 
   const emojiPicker=function(cur,onPick){
@@ -831,13 +837,15 @@ function Goals({state, set, totals, showToast}){
       React.createElement("div",{className:"ttl"},t("gl_empty_t")), t("gl_empty_d")),
 
     goals.map(function(g){
-      const pct=goalPct(g); const eta=goalEta(g, tt.ahorroMensual||0);
+      const gv=metaConAportes(g,state);
+      const pct=goalPct(gv); const eta=goalEta(gv, tt.ahorroMensual||0);
       return React.createElement("div",{className:"v4-goal-card rise plan-item",key:g.id,"data-goal-id":g.id,onClick:function(e){if(!e.target.closest("button"))setEditingGoal(g);}},
         React.createElement("button",{type:"button",className:"v4-debt-top plan-item-open",onClick:function(){setEditingGoal(g);},"aria-label":tf("gl_edit_named",{name:g.name})},
           React.createElement("span",{className:"v4-debt-emoji"},g.emoji||"🎯"),
           React.createElement("div",{style:{flex:1,minWidth:0}},
             React.createElement("div",{className:"v4-debt-name"},g.name,g.done&&React.createElement("span",{className:"goal-medal"}," "+t("gl_done_badge"))),
-            React.createElement("div",{className:"v4-debt-sub"}, eur0(g.saved||0)+" "+t("gl_of")+" "+eur0(g.target||0))
+            React.createElement("div",{className:"v4-debt-sub","data-testid":"goal-saved"}, eur0(gv.saved||0)+" "+t("gl_of")+" "+eur0(g.target||0)),
+            gv.aportado>0 && React.createElement("div",{className:"v4-debt-sub","data-testid":"goal-from-gastos"}, tf("gl_from_gastos",{x:eur(gv.aportado)}))
           ),
           React.createElement("div",{className:"plan-item-value"},React.createElement("div",{className:"serif num",style:{fontSize:22,fontWeight:550,color:"var(--mint)"}},Math.round(pct)+"%"),React.createElement("span",{className:"plan-item-edit"},t("fj_edit")))
         ),

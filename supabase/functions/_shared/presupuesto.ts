@@ -400,10 +400,24 @@ export function esCargoDeRecibo(source?: string | null): boolean {
   return s.slice(s.indexOf(":") + 1).split("#")[0].indexOf("~recibo.") > 0;
 }
 
+/**
+ * ¿Es dinero que va a una meta? (24/10/2026). Viaja como `ob:<ent>~meta.<id>` u
+ * `ob-hist:<ent>~meta.<id>`: él lo marca desde la ficha del gasto y suma a la meta, no al gasto
+ * del mes. Sola, como en el cliente: con cuota o recibo la fila es de ellos. Hasta que se
+ * despliegue esta función, el servidor lee el banco limpio y la CUENTA (igual que una app vieja):
+ * el widget diría más que Inicio solo para quien la use. Espejo de `metaDeGasto()`.
+ */
+export function esAportacionAMeta(source?: string | null): boolean {
+  const s = String(source || "");
+  if (s.indexOf("ob:") !== 0 && s.indexOf("ob-hist:") !== 0) return false;
+  const tramo = s.slice(s.indexOf(":") + 1).split("#")[0];
+  return tramo.indexOf("~meta.") > 0 && tramo.indexOf("~deuda.") < 0 && tramo.indexOf("~recibo.") < 0;
+}
+
 /** ¿Este movimiento mueve la cifra del presupuesto? Espejo de `expenseCountsBudget()`. */
 export function cuentaParaPresupuesto(fila: FilaGasto, ents: string[]): boolean {
   if (!fila) return false;
-  if (esCuotaDeDeuda(fila.source) || esCargoDeRecibo(fila.source)) return false;
+  if (esCuotaDeDeuda(fila.source) || esCargoDeRecibo(fila.source) || esAportacionAMeta(fila.source)) return false;
   // Pendiente de que él diga «es el mismo» o «son distintos»: no mueve saldo ni presupuesto,
   // igual que en `expenseCountsCash()`. Sin esta línea el servidor sumaba lo que la app restaba
   // y el widget decía más que Inicio.
