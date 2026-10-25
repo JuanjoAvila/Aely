@@ -1,0 +1,77 @@
+{
+  "status": "blocked",
+  "summary": "FIN36 continuity checkpoint under PR297 R2 priority. Focal calendar fix remains private WIP; unit779 and directed DOM18 passed. Not a completed delivery.",
+  "tests": [
+    {
+      "run": "red-build",
+      "command": "node scripts/build-app.mjs",
+      "commandRedacted": false,
+      "exitCode": 0,
+      "exitEvidenceSHA256": "b1f595863cc732f99d44c7b812c0cf446d94d26f6fa6f15e61089f3b914ae071"
+    },
+    {
+      "run": "red-unit",
+      "command": "node tests/fin36-debt-madrid-month.test.mjs",
+      "commandRedacted": false,
+      "exitCode": 1,
+      "exitEvidenceSHA256": "7e72e27f7c5c1d8cf4b09cdc65fbac0ce5f3b8df1f138a3d8baa9b8b1e3cdec0"
+    },
+    {
+      "run": "red-e2e",
+      "command": "node node_modules/playwright/cli.js test --config=[private-own-config] --workers=1 --retries=0 --max-failures=1 e2e/fin36-debt-madrid-month.spec.mjs",
+      "commandRedacted": true,
+      "exitCode": 1,
+      "exitEvidenceSHA256": "ff8c84aea8cb1bb9c3afb0f79882835788b438c897e37a86f31ab2d9a0abefb9"
+    },
+    {
+      "run": "green-build",
+      "command": "node scripts/build-app.mjs",
+      "commandRedacted": false,
+      "exitCode": 0,
+      "exitEvidenceSHA256": "de304dce2624b0f69cd994d4fd5fe95202dd9e9b4c3bc900708ea0b840cb42ee"
+    },
+    {
+      "run": "green-unit",
+      "command": "node tests/fin36-debt-madrid-month.test.mjs",
+      "commandRedacted": false,
+      "exitCode": 0,
+      "exitEvidenceSHA256": "80cad81d6334a66d1acc56c2bdc6f3c7c407fe9aaa533b057209597baaf641c0"
+    },
+    {
+      "run": "green-e2e",
+      "command": "node node_modules/playwright/cli.js test --config=[private-own-config] --workers=1 --retries=0 --max-failures=1 e2e/fin36-debt-madrid-month.spec.mjs",
+      "commandRedacted": true,
+      "exitCode": 1,
+      "exitEvidenceSHA256": "b1502e922574f1c2e915c607a8ee9ab5facf9e6306b09f4024d111a229ab7307"
+    },
+    {
+      "run": "green-e2e-selectorfix",
+      "command": "node node_modules/playwright/cli.js test --config=[private-own-config] --workers=1 --retries=0 --max-failures=1 e2e/fin36-debt-madrid-month.spec.mjs",
+      "commandRedacted": true,
+      "exitCode": 0,
+      "exitEvidenceSHA256": "44cad10758ae58f1045b0b4633740c64ed886a0df64b644ecdcb78bf0b303a18"
+    }
+  ],
+  "released": true,
+  "baseSHA": "72a0f48ccd03e48c1245899cf6eaf3b2e8d18313",
+  "limitations": [
+    "No candidate product commit or PR; source remains private WIP.",
+    "Standalone month/day mutants and selected debt regressions remain unexecuted.",
+    "Original local runner labels for first three runs were incorrect; immutable identity addendum retained, binding reviewed.",
+    "First green DOM attempt failed on ambiguous selector; corrected own harness then18 passed.",
+    "No generalCI, integration, deployment, served release, performance CPU6 or physical mobile acceptance.",
+    "E2E command private configuration path is redacted; full exact commands and source hashes retained in private evidence."
+  ],
+  "checkpointSHA256": "86c261ddb7778ccc58779f2db93d4fbaca81322a07a8f13df4511d36726d9882",
+  "unitPassed": 779,
+  "DOMPassed": 18,
+  "sourceHashes": {
+    "src/modules/07-tab-patri-fijos.js": "91d03605267356ad7a930a60d977a517a97be63cfac5595aeb4c52d97c2e67f8",
+    "src/modules/09-tab-debts-goals.js": "45d5632e9ad0c28cb6f7027009b787de03149321536f2ffbebc7f8d615f46411"
+  },
+  "schema": 1,
+  "taskId": "fin36-debt-madrid-month-beta169-codex-20261025",
+  "actor": "codex",
+  "sessionId": "codex-local-20261025-fin36-fda31257-6cb06191-d1ff7cec-455a42a9",
+  "createdAt": "2026-10-25T02:05:27.498Z"
+}
