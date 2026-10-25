@@ -116,6 +116,7 @@ mi-cartera/
 ├── scripts/beta-source-code.mjs # Guardia de funciones/datos transitivos y delimitación por sintaxis, sin dependencias
 ├── scripts/beta-sources.json # Alcances explícitos de revisión; beta-revisions.mjs genera digests/recibo
 ├── scripts/beta-archives.json # Pins nominativos para referencias históricas de sólo lectura
+├── tests/deudas-mes-madrid.test.mjs · e2e/deudas-mes-madrid.spec.mjs # Mes mostrado en Madrid: tarjeta y asesor, LA/Tokio, tres idiomas
 ├── tests/fin04-rename-note-ack.test.mjs · e2e/fin04-rename-note-ack.spec.mjs # Nota concurrente, UUID local y ACK; candidata cliente
 ├── tests/goals-*.test.mjs # Metas: tres vías, ACK, reservas acopladas y conflictos privados (cuatro ficheros)
 ├── e2e/savedat-arranque.spec.mjs # Copia antigua tras edición real en otro móvil; sello, recarga y offline

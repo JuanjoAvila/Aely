@@ -326,7 +326,8 @@ function AmortAdvisor({state, onEdit, onAmort}){
     leftNew=viaM>0?Math.ceil(viaM/am):((d.balloon>0&&nb>0.005)?1:0);
     cut=Math.max(0,(leftNow||0)-leftNew);
   }
-  const inMonths=function(k){ const dt=new Date(); dt.setDate(1); dt.setMonth(dt.getMonth()+k); return monthLong(dt.getMonth())+" "+dt.getFullYear(); };
+  // El mes mostrado parte de Madrid, también cuando el dispositivo aún está en otro mes.
+  const inMonths=function(k){ const p=madridYmdParts(Date.now()), m=p.m-1+k; return monthLong(m%12)+" "+(p.y+Math.floor(m/12)); };
   const r=(apr||0)/1200;
   // ahorro ≈ el importe deja de «deber» durante lo que queda de vida del préstamo + la cola que se corta
   const savedTerm=(apr>0&&leftNew!=null)?(amt*r*leftNew+(amt/2)*r*(cut||0)):null;
@@ -510,8 +511,8 @@ function Debts({state, set, showToast}){
     // plazo sigue siendo una estimación con la amortización actual, igual de honesta.
     const li=leftInfo(d);
     if(!li) return null;
-    const dt=new Date(); dt.setDate(1); dt.setMonth(dt.getMonth()+li.n);
-    return tf("v4_debts_ends",{d:monthLong(dt.getMonth())+" "+dt.getFullYear()});
+    const p=madridYmdParts(Date.now()), m=p.m-1+li.n;
+    return tf("v4_debts_ends",{d:monthLong(m%12)+" "+(p.y+Math.floor(m/12))});
   };
   return React.createElement("div",null,
     React.createElement("div",{className:"v4-card v4-card-hero rise plan-summary"},

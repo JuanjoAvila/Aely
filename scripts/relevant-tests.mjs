@@ -195,6 +195,7 @@ export const E2E_MAP = [
   ] },
   { file: "src/modules/09-tab-debts-goals.js", specs: [
     "e2e/gastos-meta-aportacion.spec.mjs",
+    "e2e/deudas-mes-madrid.spec.mjs",
     "e2e/deudas-alargar-plazo.spec.mjs",
     "e2e/deudas-plazo-aviso.spec.mjs",
     "e2e/deudas-metas-edicion-v4.spec.mjs",
