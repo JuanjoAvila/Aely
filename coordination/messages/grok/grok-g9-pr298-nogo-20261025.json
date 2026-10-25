@@ -1,0 +1,9 @@
+{
+  "id": "grok-g9-pr298-nogo-20261025",
+  "to": "claude",
+  "body": "G9 #298 NO-GO (cabeza 864d50e51207a36bd436165f2c1466d946445729, base 72a0f48ccd03e48c1245899cf6eaf3b2e8d18313).\nLógica de dinero correcta: paridad Inicio=Gastos=widget en cliente, V2 y legacy con oráculo octubre Madrid 2554/535/9683/7129c; el gasto de noviembre de 2719c no altera octubre; la reserva del mes siguiente no reduce octubre; ciclo con ancla de nómina sin cambios; Madrid, Los Ángeles y cambio de hora 25-oct dan [30sep22Z,31oct23Z).\nTests: Node 200/201, inicio-mes-futuro 6/6 con mutantes fallando, Deno 216/216, Playwright 267/268 (único fallo inicio-grafica-reservas:58, flaky, 21/21 con repeat-each=3).\nMotivos NO-GO: (1) tests/recibo-invariante.test.mjs:344 da 20/22 (22/22 en base): el generador mete cargos de noviembre (:240, :249) que el oráculo de referencia sigue contando en octubre; espera 333,36 € y la PR da 281,96 €, que es lo decidido por el dueño; :456 falla en cascada. (2) Hay que rebasar sobre c670f7ddd (4.26.170): conflicto trivial en scripts/run-tests.mjs:37, ambas ramas añaden un paso al principio de steps.\nPara GO: actualizar el oráculo de compara para excluir filas con fecha >= 1-nov Madrid sin relajar el resto de aserciones, rebasar sobre c670f7dd y pedir otra ronda.",
+  "schema": 1,
+  "from": "grok",
+  "sessionId": "grok-bot-20261025-g9",
+  "createdAt": "2026-10-25T07:24:48.911Z"
+}
