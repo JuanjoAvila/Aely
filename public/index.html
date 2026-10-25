@@ -13479,6 +13479,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   },[preset,cycle,expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.flows,cycleEnabled]);
   // El ciclo pasado elegido (null = el en curso, también si el elegido ya no existe).
   const cicloPas=ciclos&&cicloSel!=null?ciclos.find(function(c){ return c.to!=null&&c.from===cicloSel; })||null:null;
+  const cicloPasRef=useRef(cicloPas); cicloPasRef.current=cicloPas;
   /* El RANGO del ciclo que se ve, para la línea bajo la cifra (decisión del dueño, 25/10/2026:
      «mes + fechas»: la pastilla dice el mes y debajo «24 sep – 23 oct»). Uno pasado acaba el día
      antes del cobro siguiente; el en curso, el día antes del mismo día del mes que viene (el cobro
@@ -13575,23 +13576,53 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   /* El asa reclama el dedo desde el principio: dejar que la fila entera fuera arrastrable
      convertiría un scroll normal en cambios de orden accidentales. El destino se resuelve contra
      el DOM porque solo hay unas pocas filas visibles; `moveExpenseWithinDay` vuelve a comprobar
-     la fecha antes de guardar, así un dedo que cruce un separador nunca mezcla días. */
+     la fecha antes de guardar, así un dedo que cruce un separador nunca mezcla días.
+     ⚠ PERO EL ASA SOLO SE QUEDA EL DEDO EN VERTICAL (rechazo de la beta 4.26.173: «ahora ya no es
+     hacia Inicio sino hacia Plan»). El asa vive en el borde derecho de cada fila, justo donde el
+     pulgar empieza a deslizar hacia Plan. Antes reclamaba el toque entero: el carrusel no se movía
+     y el `setDragExpense` del toque y el del final repintaban la lista ENTERA dos veces, más caro
+     cuantas más filas hubiera bajadas (A/B en lag-gastos-r3: 100-150 ms por frame a CPU x6 con 670
+     filas, y sin cambiar de pestaña). Hacia Inicio el dedo empieza a la izquierda y nunca la
+     tocaba: de ahí que solo pasara hacia Plan. Ahora el toque solo marca la fila (por clase, sin
+     render) y el eje decide: en vertical empieza a ordenar; en horizontal se suelta y el carrusel
+     (que ve el asa como `data-noswipe="y"`) cambia de pestaña. */
+  const asaRef=useRef(null);
   const startExpenseDrag=useCallback(function(ev,e){
-    ev.stopPropagation(); cancelSwipe();
-    const d={from:e.id,to:e.id,day:String(e.date||"").slice(0,10)};
-    dragExpenseRef.current=d; setDragExpense(d);
-  },[cancelSwipe]);
+    ev.stopPropagation();
+    const p=ev.touches&&ev.touches[0]; if(!p) return;
+    const row=ev.currentTarget&&ev.currentTarget.closest?ev.currentTarget.closest(".v4-mov"):null;
+    if(row) row.classList.add("dragging");
+    asaRef.current={e:e, x:p.clientX, y:p.clientY, row:row};
+  },[]);
+  const sueltaAsa=function(){
+    const a=asaRef.current; asaRef.current=null;
+    if(a&&a.row&&!dragExpenseRef.current) a.row.classList.remove("dragging");
+  };
   const moveExpenseDrag=useCallback(function(ev){
-    const d=dragExpenseRef.current; if(!d||!ev.touches||!ev.touches[0]) return;
+    if(!ev.touches||!ev.touches[0]) return;
+    const a=asaRef.current;
+    if(a && !dragExpenseRef.current){
+      // Mismo criterio de eje que el carrusel (`gestureAxis`): los dos deciden sobre el mismo dedo.
+      const eje=gestureAxis(ev.touches[0].clientX-a.x, ev.touches[0].clientY-a.y);
+      if(!eje) return;
+      if(eje!=="y"){ sueltaAsa(); return; }
+      cancelSwipe();
+      const nd={from:a.e.id,to:a.e.id,day:String(a.e.date||"").slice(0,10)};
+      dragExpenseRef.current=nd; setDragExpense(nd);
+    }
+    const d=dragExpenseRef.current; if(!d) return;
     ev.stopPropagation();
     const p=ev.touches[0], hit=document.elementFromPoint(p.clientX,p.clientY);
     const row=hit&&hit.closest&&hit.closest("[data-expense-id]");
     if(!row||row.getAttribute("data-expense-day")!==d.day) return;
     const to=row.getAttribute("data-expense-id"); if(!to||to===d.to) return;
     d.to=to; setDragExpense({from:d.from,to:d.to,day:d.day});
-  },[]);
+  },[cancelSwipe]);
   const endExpenseDrag=useCallback(function(){
+    sueltaAsa();
     const d=dragExpenseRef.current;
+    // Un toque o un desliz horizontal no llegaron a ordenar: nada que repintar.
+    if(!d) return;
     if(d&&d.from!==d.to){ suppressOpenRef.current=Date.now()+400; set(function(s){ return moveExpenseWithinDay(s,d.from,d.to); }); }
     dragExpenseRef.current=null; setDragExpense(null);
   },[set]);
@@ -14045,15 +14076,56 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     const lejos=Math.abs(h.scrollTop-top)>h.clientHeight*2.5;
     h.scrollTo({top:Math.max(0,top), behavior:mcReduced()||lejos?"auto":"smooth"});
   };
-  const saltaADia=function(k){
-    const h=hostDe(), root=rootRef.current; if(!h||!root) return false;
+  // El scroll que deja el día `k` justo bajo la cabecera ya encogida (null si aún no está montado).
+  const destinoDe=function(k){
+    const h=hostDe(), root=rootRef.current; if(!h||!root) return null;
     const el=root.querySelector('[data-gx-day="'+k.k+'"][data-gx-ym="'+k.ym+'"]'), head=root.querySelector(".gx-head");
-    if(!el||!head) return false;
+    if(!el||!head) return null;
     // La raya de lectura es el borde de la cabecera YA ENCOGIDA (con la fila de meses debajo):
     // su caja no cambia de alto al encogerse, solo se suma lo que sobresale la fila de meses.
     const pad=parseFloat(getComputedStyle(h).paddingTop)||0;
     const raya=pad+head.offsetHeight+GX_MESES_SOBRE;
-    const top=h.scrollTop+el.getBoundingClientRect().top-h.getBoundingClientRect().top-raya+2, max=h.scrollHeight-h.clientHeight;
+    return h.scrollTop+el.getBoundingClientRect().top-h.getBoundingClientRect().top-raya+2;
+  };
+  /* AFINAR EL SALTO cuando el scroll ha parado (rechazo de la beta 4.26.173, en Meses: «si estás
+     en octubre y tocas el anterior, te lleva al día 1 y sigue sin cambiarte de mes»). Los días aún
+     sin pintar (`content-visibility:auto` en `.gx-dia`) miden lo ESTIMADO (`altoEst`) y el destino
+     se calcula con eso; al llegar se pintan los de alrededor con su alto real y el día pedido se
+     mueve. En su móvil las filas no miden lo del Pixel 5 (letra del sistema), y el error acumulado
+     de un mes de días bastaba para dejar bajo la cabecera el 1 del mes de después, con su pastilla.
+     Ya pintado alrededor, la segunda medida es la buena; se repite hasta que cuadra, porque el
+     ajuste puede pintar algún día más. Un dedo en la pantalla lo corta: manda él. */
+  const afinaRef=useRef(0);
+  const afinaSalto=function(k, min){
+    const h=hostDe(); if(!h) return;
+    if(afinaRef.current) cancelAnimationFrame(afinaRef.current);
+    let frames=0, ajustes=0, quietos=0, st=-1;
+    const corta=function(){ if(afinaRef.current) cancelAnimationFrame(afinaRef.current); afinaRef.current=0; };
+    const fin=function(){ afinaRef.current=0; h.removeEventListener("touchstart",corta); };
+    h.addEventListener("touchstart",corta,{passive:true, once:true});
+    const paso=function(){
+      if(++frames>120 || ajustes>6) return fin();
+      // El salto suave sigue moviéndose: se espera a que pare (dos frames quieto).
+      if(Math.abs(h.scrollTop-st)>0.5){ st=h.scrollTop; quietos=0; afinaRef.current=requestAnimationFrame(paso); return; }
+      if(++quietos<2){ afinaRef.current=requestAnimationFrame(paso); return; }
+      const d=destinoDe(k); if(d==null) return fin();
+      const top=Math.max(d, min||0);
+      const max=h.scrollHeight-h.clientHeight, want=Math.max(0,Math.min(top,max));
+      if(Math.abs(h.scrollTop-want)<=1) return fin();
+      ajustes++;
+      // Si el ajuste deja de caber, el día pedido manda en el tope (ver abajo `saltoForzadoRef`).
+      saltoForzadoRef.current=top>max+1?{k:k.k, ym:k.ym, st:Math.max(0,max), t:Date.now()}:null;
+      h.scrollTo({top:want, behavior:"auto"});
+      st=h.scrollTop; quietos=0;
+      afinaRef.current=requestAnimationFrame(paso);
+    };
+    afinaRef.current=requestAnimationFrame(paso);
+  };
+  const saltaADia=function(k, min){
+    const h=hostDe(); if(!h) return false;
+    let top=destinoDe(k); if(top==null) return false;
+    top=Math.max(top, min||0);
+    const max=h.scrollHeight-h.clientHeight;
     /* Sin el hueco del pie, un mes del final de la lista no puede subir hasta la raya: el scroll se
        queda en el tope. La cabecera enseña entonces el día pedido mientras el scroll siga ahí
        (lo lee `GastosCabecera`); al mover el dedo vuelve a mandar lo que queda debajo. */
@@ -14061,7 +14133,18 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     scrollHost(top);
     // Ya en el tope no hay scroll que avise a la cabecera: se le avisa a mano.
     if(saltoForzadoRef.current && Math.abs(h.scrollTop-saltoForzadoRef.current.st)<=2) h.dispatchEvent(new Event("scroll"));
+    afinaSalto(k, min);
     return true;
+  };
+  // El salto pendiente de `eligeCiclo`, ya con la lista del ciclo elegido.
+  const resuelveSaltoCiclo=function(){
+    if(!cicloPasRef.current){ saltoRef.current=null; scrollHost(0); return; }
+    const L=mesesListaRef.current;
+    if(L.newestK==null){ saltoRef.current=null; return; }
+    /* El primer día de la lista está casi arriba: dejarlo justo bajo la cabecera encogida pediría
+       menos scroll del que la encoge (`compact`, más de 40 px) y la fila se escondería. Con 41 px
+       el día queda igual a la vista: lo que pasa bajo la cabecera es su margen de arriba. */
+    if(saltaADia({k:L.newestK, ym:L.newestYm}, 41)) saltoRef.current=null;
   };
   const irAMes=useCallback(function(ym){
     const L=mesesListaRef.current, first=L.first[ym];
@@ -14106,6 +14189,17 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
      categoría, se mantiene. El ciclo en curso se guarda como null. */
   const eligeCiclo=useCallback(function(key){
     const ms=+String(key).slice(1);
+    /* En Movimientos, como la fila de Meses: la lista queda en el PRIMER día del ciclo tocado, bajo
+       la cabecera encogida y con la fila a la vista (rechazo de la beta 4.26.173: «cuando le das un
+       mes te lleva al principio del todo y se quita»). Arriba del todo la cabecera se despliega y
+       la fila se esconde. El ciclo en curso sí vuelve arriba, como el mes en curso en Meses. La
+       lista del ciclo nuevo aún no está pintada: el salto lo hace el efecto de abajo al montarse. */
+    if(seccRef.current==="movs" && !catFilRef.current){
+      saltoRef.current={ciclo:ms};
+      if(ms===cicloSelRef.current) resuelveSaltoCiclo();
+      setCicloSel(ms);
+      return;
+    }
     setCicloSel(ms);
     const h=hostDe(); if(h && h.scrollTop>0) h.scrollTo({top:0, behavior:"auto"});
   },[]);
@@ -14144,7 +14238,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   useLayoutEffect(function(){
     // La lista acaba de cambiar: la cabecera vuelve a buscar los días la próxima vez que mire.
     diasRef.current=null;
-    if(saltoRef.current!=null && saltaADia(saltoRef.current)) saltoRef.current=null;
+    if(saltoRef.current!=null && saltoRef.current.ciclo!=null) resuelveSaltoCiclo();
+    else if(saltoRef.current!=null && saltaADia(saltoRef.current)) saltoRef.current=null;
   });
   const clearFilters=function(){
     setSel([]);
@@ -14811,7 +14906,7 @@ const MovRow=React.memo(function MovRow({e, ms, l, onOpen, bucket, recibo, dragg
       )
     ),
     React.createElement("div",{className:"am num"+(isIncome?" pos":"")+(skip?" muted":"")}, (isIncome?"+":"")+eur(Math.abs(e.amount))),
-    React.createElement("span",{className:"v4-mov-drag",role:"img","data-noswipe":"1","aria-label":t("drag_hint"),title:t("drag_hint"),
+    React.createElement("span",{className:"v4-mov-drag",role:"img","data-noswipe":"y","aria-label":t("drag_hint"),title:t("drag_hint"),
       onTouchStart:function(ev){ onDragStart(ev,e); },onTouchMove:onDragMove,onTouchEnd:onDragEnd,onTouchCancel:onDragEnd},"⠿")
   );
 });
@@ -32776,6 +32871,9 @@ function App(){
 
   /* swipe — distingue eje vertical/horizontal, menos sensible */
   const startX=useRef(0), startY=useRef(0), startT=useRef(0), dx=useRef(0), axis=useRef(null), dragging=useRef(false), trackRef=useRef(null);
+  // El dedo empezó en una zona `data-noswipe="y"` (el asa de ordenar de Gastos): suya en vertical,
+  // nuestra en horizontal. Ver `onMove`.
+  const soloX=useRef(false);
   /* PINTAR UNA VEZ POR FRAME, NO UNA POR `touchmove` (2026-09-10, medido en su OnePlus).
      Su queja, con sus palabras: «si desplazas fluido no se nota apenas, es ir LENTO y ahí se nota
      el tirón, no va super smooth». Y tenía razón otra vez: arrastrando despacio, el avance del
@@ -33060,11 +33158,15 @@ function App(){
        listener nativo en `.viewport` se dispara ANTES que los de React, así que el
        `stopPropagation` de `stopSwipe` ya no llegaría a tiempo: hay que mirarlo aquí.
          · `[data-noswipe]`: buscador y rango de fechas de Gastos, que lo piden explícitamente.
+           `data-noswipe="y"` (el asa de ordenar de Gastos) solo pide el vertical: en horizontal
+           sigue siendo cambiar de pestaña (rechazo de la beta 4.26.173, ver `startExpenseDrag`).
          · cualquier cosa con scroll horizontal propio (las filas de chips): el dedo es del
            navegador, no nuestro. Antes esto «funcionaba» de rebote —el navegador se quedaba el
            gesto porque no podíamos impedírselo— y ahora que sí podemos hay que ser explícitos. */
     const t=e.target;
-    if(t&&t.closest&&t.closest("[data-noswipe]")) return;
+    const noSwipe=t&&t.closest?t.closest("[data-noswipe]"):null;
+    if(noSwipe && noSwipe.getAttribute("data-noswipe")!=="y") return;
+    soloX.current=!!noSwipe;
     for(let el=t; el&&el!==document.body; el=el.parentElement){
       if(el.classList&&el.classList.contains("page")) break;
       if(el.scrollWidth>el.clientWidth+4){
@@ -33132,6 +33234,8 @@ function App(){
       // dedo es lo que hacía que una bajada con deriva lateral acabara cambiando de pestaña.
       const eje=gestureAxis(ddx,ddy);
       if(!eje) return;
+      // En el asa, el vertical es ordenar: el gesto no es nuestro. Hasta aquí no se ha tocado nada.
+      if(soloX.current && eje!=="x"){ dragging.current=false; soloX.current=false; return; }
       /* A MITAD, ABAJO o ARRIBA: el arco del pulgar gana `x` pronto → preventDefault +
          leaveScrollHost + freezeShell matan scroll/ola. Una diagonal sigue siendo scroll/ola,
          también en el fondo; pero un horizontal inequívoco tiene que cambiar de pestaña sin
