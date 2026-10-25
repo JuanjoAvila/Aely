@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "id": "fin36-debt-madrid-continuation-root88-20261025",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261025-r88-fda31257-d8e32b75-64ceec3a-27493935",
+  "createdAt": "2026-10-25T07:39:38.591Z",
+  "to": "codex",
+  "kind": "worker",
+  "baseSHA": "72a0f48ccd03e48c1245899cf6eaf3b2e8d18313",
+  "baseVersion": "4.26.169",
+  "scope": [
+    "src/modules/02-ui-shared.js",
+    "src/modules/07-tab-patri-fijos.js",
+    "src/modules/08-motor-bank.js",
+    "src/modules/09-tab-debts-goals.js",
+    "tests/fin36-debt-madrid-month.test.mjs",
+    "tests/inicio-deuda-futura.test.mjs",
+    "e2e/fin36-debt-madrid-month.spec.mjs",
+    "e2e/inicio-deuda-futura.spec.mjs",
+    "scripts/run-tests.mjs",
+    "scripts/relevant-tests.mjs",
+    "docs/ARQUITECTURA.md",
+    "docs/TESTING.md"
+  ],
+  "scopeBoundary": "Solo fronteras calendarias de deudas y consumidores que compartan este fallo. No cambiar ymNow global sin auditar y justificar sus usos ajenos; preferir auxiliar de deuda acotado. FIN37 rendimiento startDay se conserva para tarea posterior. Si aparece cambio de contrato de cobro, migracion o importe independiente, evidencia al coordinador antes de ampliar.",
+  "workerOwnStartupGrant": "e42252eb4444e23228b565b7d2da5b0ee5e13e43",
+  "workerOwnStartupAllowance": 20,
+  "constraints": [
+    "OWN20 nuevo desde0 tras admision bajo e42252eb, primer fetch/internos/readbacks contados todos >=30s; ledger exclusivo; FULL TODOS deltas/cancelaciones antes acciones. No herencia/reset/proxy ni filtro alternativo.",
+    "Runner OWN censo/admission serial/local/puerto antes de cada run, CPU1 unworker cero retries stopfirstfailure; logs/report durables y RETURN propio. Solo dirigidos nuevos/regresiones justificadas; no repetir pruebas cerradas sin causa.",
+    "Sin suite Node entera/fullbrowser/CPU6, VERSION/catalogo/notas/caps, backend/Edge/SQL/livecloud/banco/Gradle/APK/deploy/merge main o beta/movil. Sin dependencias nuevas ni npmci/install por node_modules enlazado.",
+    "PR297/PR298 siguen OPEN DRAFT unmerged para integracion Claude. Sus workers/results cerrados/archivados; no recrear, tocar PRs ni repetir pruebas o entregas. G9 asignado Grok.",
+    "Trabajador reporta nativamente solo a su coordinador, solo coordinador a Claude. Subagentes utiles permitidos con checkout/scopes/recursos propios; no duplicar runners.",
+    "Deadline propio60min desde admision; acabar operacion en curso, checkpoint fuente durable y RETURN propios al primer punto seguro. Relevo solo si sigue activa, nuevo chat Aely con admision y OWN propios.",
+    "Repo publico: preflight payload completo incluyendo claves por fda31257; sin rutas/IDs privados ni URLs. No modificar helper/filtro; conservar errores y ajustes solo semanticos neutros autorizados.",
+    "La continuidad conserva los verdes anteriores por hashes; ROJO/VERDE originales NO se repiten. Si cambia fuente, justificar prueba nueva y no relabel de evidencia anterior.",
+    "Nuevo ROOT88 es padre admitido; gates/runners locales son NUEVOS de esta identidad, originales inmutables. Recursos antiguos devueltos no conceden lease propio."
+  ],
+  "objective": "FIN-36 continuidad del WIP privado de deuda/calendario Madrid: terminar SOLO mutantes separados mes/dia, regresiones de deuda justificadas y revision/prueba final; entregar PR draft independiente. Conservar ROJO causal y verdes779unit18DOM por hash sin repetir salvo cambio/fallo nuevo. Tarea anterior cerrada; nuevo titular/claim/OWN sin herencia.",
+  "previousTaskId": "fin36-debt-madrid-month-beta169-codex-20261025",
+  "previousResult": "3a7242d0e37ea3ff67a4900ed2e5e924a0b5abca",
+  "previousRETURN": "8cf69a44f793db4965f03c469b5e61fc7d90bbed",
+  "scopeGrants": [
+    "cb8e9ed08289b384a795af95cf78f50bccbf0b33",
+    "e42252eb4444e23228b565b7d2da5b0ee5e13e43",
+    "9b249646373944ae619233048f431d9bd91a1ee2",
+    "a26df510fbe2d8a41d90b20fddaea729c37b33ba"
+  ],
+  "priority": 1,
+  "acceptance": [
+    "Recepcion propia identidad/cwd/runtime/proyecto Aely LOCAL, sesion/nonce NUEVOS segmentados8hex-8hex-8hex-8hex comenzando fda31257. ACK privado fsync/readback; esperar admision expresaROOT88 y OWN claim/readback/ACK propios antes codigo/tests.",
+    "Verificar checkpoint86c261dd y continuidadeb97ba7a, cierre/result3a7242d0/RETURN8cf69a44. Recuperar WIP en checkout exclusivo NUEVO desde72a0f48c sin tocar fuentes/gates/claims originales. Conservar779unit18DOM y fuentes exactas; estado/ledger antiguos evolucionaron por cierre, valores finales en proof de cierre.",
+    "Solo mutantes causales separados mes/dia ya preparados: EXIT1 monetario esperado, restauracion y reconstruccion verificadas. Despues regresiones seleccionadas justificadas y validacion final necesaria; fuentes codigo/tests/generados exactas en cada run. Nunca repetir verdes por cambio de titular o reloj.",
+    "Revision independiente de fuentes/evidencias sin duplicar corridas. Solo corregir fallo nuevo dentro alcance; preservar oracle al centimo y ROJO original. FIN37 queda fuera. Si aparece cambio de contrato/fechas/importe separado informar antes de ampliar.",
+    "PR draft contra beta, base/head exactos. Distinguir fuente72a0f48c de beta vigente al entregar; integracion Claude. Result/RETURN nuevos propios released al terminar o al relevo seguro, sin reabrir tarea cerrada ni heredar recursos."
+  ]
+}
