@@ -2,6 +2,37 @@ H2 candidata, ronda 2: saldo y movimientos independientes por cuenta, valor/fech
 
 # Arquitectura — Aely
 
+**Sincronización del estado entre móviles (beta 4.26.170, FIN-04 fase 2 A + SAVEDAT).** El
+estado (todo menos los gastos, que viven en su tabla) viaja entero por «último que escribe»
+(`_savedAt`) en `app_state`, con este orden en `11-app-main.js`:
+
+1. **Primer pull.** Al arrancar, al iniciar sesión, al reconectar y al volver a primer plano sin
+   lectura válida se llama a `syncFromCloud`, que hace un solo vuelo por titular
+   (`cloudPullRef`): GET del estado, mezcla en un `set(…,false)` y, después, los gastos.
+   La lectura queda acreditada (`cloudReadRef`, `read.ready/valid`, revisión en
+   `cloudUpdatedAtRef`) solo cuando React **compromete** ese estado (`commitCloudRead` en un
+   `useLayoutEffect`); un updater evaluado y descartado no acredita nada.
+2. **Nada sube antes.** `pushAppState` sin lectura confirmada del mismo titular no envía:
+   relanza la lectura. El debounce (1,2 s) toma la copia comprometida al dispararse.
+3. **INSERT o CAS.** Sin fila en la nube se crea con `insert` (nunca `upsert`); si el otro
+   móvil la creó entre medias (23505), una relectura limitada. Con fila, `update` con CAS por
+   titular y `updated_at` leído; cero filas = conflicto → aviso `st_sync_conflict` y relectura.
+   La respuesta exige una fila con revisión y la sesión revalidada. Un reflejo idéntico de lo
+   leído (salvo `_savedAt`/`lastSync`) no se reenvía si no hay escrituras pendientes.
+4. **Gastos en un solo vuelo.** `syncCloudExpenses` comparte el vuelo de la misma sesión; una
+   petición que llega durante el GET marca una **relectura pendiente** y la promesa común no se
+   resuelve hasta drenarla (un gasto escrito por el otro móvil durante el GET se ve sin otro
+   evento).
+5. **`_savedAt` de arranque.** `set(updater, edited)` solo sella con `edited=true` (formularios,
+   dinero, aportación mensual). Mantenimiento (fotos de presupuesto, inversión, bienes y saldos,
+   widget, divisas, logros, cuotas), adopción del remoto, pull de gastos y acuses guardan sin
+   sellar: abrir una copia vieja ya no la hace «más nueva» que la edición del otro móvil.
+   El sync de brókers de arranque y la copia diaria esperan al primer pull válido.
+
+Pendiente (fase 2 B, PR294): fusionar por objeto las ediciones simultáneas de recibos y deudas;
+hoy dos ediciones a la vez del estado siguen resolviéndose por LWW con aviso de conflicto.
+El detalle de cada ronda de revisión está en los párrafos siguientes y en los briefs.
+
 FIN04 fase 2, candidata A R3: el envío exige una lectura del mismo titular y solo
 crea con INSERT tras acreditar ausencia. Tras un fallo inicial, conexión, regreso
 o edición reabren GET. Un formato inválido avisa y permite rescate local con CAS
