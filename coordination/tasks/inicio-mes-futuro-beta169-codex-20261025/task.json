@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "id": "inicio-mes-futuro-beta169-codex-20261025",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261025-r85-fda31257-137a12f3-c8aea7ed-44c939ec",
+  "createdAt": "2026-10-25T00:23:32.833Z",
+  "to": "codex",
+  "kind": "worker",
+  "baseSHA": "72a0f48ccd03e48c1245899cf6eaf3b2e8d18313",
+  "baseVersion": "4.26.169",
+  "baseFreshReadAtUTC": "2026-10-25T00:23:32.587601+00:00",
+  "objective": "INICIO-MES-FUTURO sobre beta vigente exacta: un apunte con fecha del mes siguiente cuenta en SU mes Madrid y no suma en Inicio/widget del mes actual; Inicio = Gastos = widget, RED causal con centimos antes de cambiar la frontera. Una PR draft independiente.",
+  "scope": [
+    "src/modules/08-motor-bank.js",
+    "src/modules/04-tab-gastos.js",
+    "src/modules/11-app-main.js",
+    "tests/inicio-mes-futuro.test.mjs",
+    "tests/widget-inicio-paridad.test.mjs",
+    "e2e/inicio-mes-futuro.spec.mjs",
+    "scripts/run-tests.mjs",
+    "scripts/relevant-tests.mjs",
+    "docs/ARQUITECTURA.md",
+    "docs/TESTING.md"
+  ],
+  "scopeBoundary": "Solo frontera mensual budgetPeriodOf y consumidores cliente/widget que compartan el fallo; no refactor de cuentas/deudas/recibos ni backend. Si la paridad requiere cambiar otra fuente reservada, evidencia concreta y consulta al coordinador, no ampliar scope.",
+  "scopeGrants": [
+    "47f2f8e29aea86eaa2bf36de98b9de99891c6467",
+    "1d805690de4fa3c6c9aaa0d4193ef9a33462ec2d",
+    "ef83d17b30231c3791fb11f9263cbfade4630d16",
+    "e42252eb4444e23228b565b7d2da5b0ee5e13e43"
+  ],
+  "priority": 2,
+  "previousPriorityCompletedTask": "pr294-rebuild-debt-tombstones-codex-20261025",
+  "previousPriorityReleasedResult": "03c44e824c54250885dac1f89bb3ae0cb3da5e4d",
+  "replacesUnclaimedQueuedTaskId": "inicio-mes-futuro-codex-20261024",
+  "replacementReason": "Old immutable queued task was never claimed/dispatched and pins obsolete beta162/identity; latest Claude explicitly orders current beta after PR294. Preserve old task unchanged, do not claim it or reuse its session.",
+  "workerOwnStartupGrant": "e42252eb4444e23228b565b7d2da5b0ee5e13e43",
+  "workerOwnStartupAllowance": 20,
+  "acceptance": [
+    "Recepcion propia primero; identidad/cwd/runtime/proyecto y nonce publico segmentado8hex-8hex-8hex-8hex desde inicio; ACK privado fsync/readback. Esperar admision expresa y luego ownclaim/readback/ACK antes codigo/tests.",
+    "Beta169 exacta como base y checkout aislado limpio propio. No reutilizar candidato anterior ni presupuesto/claim/lease ni fuentes de otro trabajador.",
+    "ROJO causal antes del fix: todayEndMs Infinity permite apuntes del proximo mes en mes actual. Oraculo independiente en centimos, ingresos/gastos sinteticos, fechas limite dia1 siguiente mes Europe/Madrid, fin de ano y DST relevantes. No acomodar esperado al motor.",
+    "Inicio = Gastos = widget en periodo mensual actual. El limite es inicio del siguiente mes Madrid; preservar la semantica de dias futuros dentro del mismo mes. Unknown metadata/referencias y exactitud monetaria se conservan.",
+    "E2E abre Inicio real y comprueba DOM/importe sintetico. Widget: comprobar via consumidor y oraculo fieles, no inferir APK o aceptacion fisica. Registrar nuevos unitarios/E2E en runner y mapa.",
+    "Mi ciclo solo si comparte exactamente el mismo fallo; comunicar alcance al coordinador antes de cambiarlo. No introducir reglas independientes de ciclo.",
+    "Un mutante causal para frontera mensual/consumidor; preservar REDs, fuente antes de cada run, comandos y EXIT reales y hashes de codigo/tests/generados. Si ya esta corregido, demostrarlo sin inventar fallo ni cambio.",
+    "Entrega PRdraft contra beta, cabeza y publicacion leidas de vuelta, result propio released/RETURN con limitaciones. Integracion/CI general/servido/movil separados, no ProductREADY."
+  ],
+  "constraints": [
+    "OWN20 propio desde0 tras admision e42252eb; primer fetch/internos/readbacks contados todos y >=30s. Leer FULL TODOS nuevos deltas/cancelaciones antes de actuar, ledger exclusivo, no herencia/reset/proxy/filtros alternativos.",
+    "Runner OWN censo/admission serial/local/puerto antes de cada run, CPU1 un worker cero retries stopfirstfailure, logs/report durables y RETURN propio. Solo nuevos dirigidos y regresiones justificadas por cambio; no repetir pruebas cerradas sin causa.",
+    "No suite Node entera, full browser suite, CPU6, VERSION/catalogo/notas/caps, backend/Edge/SQL/live cloud/banco/Gradle/APK/deploy/merge main o beta ni movil real. Sin dependencias nuevas ni npm ci/install por node_modules enlazado.",
+    "No modificar ni cerrar PR293/PR296/PR297 ni repetir sus pruebas; solo tarea exacta.",
+    "Trabajador reporta por nativa solo a su coordinador; solo coordinador reporta a Claude. Subagentes temporales utiles permitidos con scopes/recursos aislados y sin duplicar corridas.",
+    "Deadline propio60min desde admision: finalizar operacion actual, primer punto seguro, checkpoint/fuente durable y RETURN propios. Si completo archivar sin sucesor; si sigue activo relevo nuevo en Aely bajo admision expresa y OWN nuevos.",
+    "Repo publico: payload completo preflight incluyendo claves por fda31257; no rutas/IDs privados ni URLs en canal, no modificar helper/filtro. Conservar fallos mecanicos y solo ajustes semanticos neutros permitidos."
+  ]
+}
