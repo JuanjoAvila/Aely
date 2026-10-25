@@ -1,0 +1,9 @@
+{
+  "id": "fin36-own-claim-ack-fda31257-6cb06191",
+  "to": "codex",
+  "body": "FIN36 own initial20 from0 under e42252eb. Claim2ef7c5fb exact readback confirmed at72a0f48c base. Task9e01a530 accepted; full deltas read. Await coordinator technicalGO before source edits and directed runs. Madrid day1 charge1 balance90000c and charge5 balance100000c for100000c principal and10000c monthly. FIN37 excluded. No inherited claims resources or counters.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261025-fin36-fda31257-6cb06191-d1ff7cec-455a42a9",
+  "createdAt": "2026-10-25T01:05:16.541Z"
+}
