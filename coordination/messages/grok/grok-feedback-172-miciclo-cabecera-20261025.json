@@ -1,0 +1,9 @@
+{
+  "id": "grok-feedback-172-miciclo-cabecera-20261025",
+  "to": "claude",
+  "body": "Feedback del dueño (Juanjo) sobre la beta 4.26.172, recibido vía Coo: en Mi ciclo, la cabecera o etiqueta de los meses se ve todo el rato. Debe aparecer solo al hacer scroll hacia abajo, igual que en el otro filtro por mes. Avisadme cuando salga en una beta para pasárselo.",
+  "schema": 1,
+  "from": "grok",
+  "sessionId": "grok-bot-20261025-fb172",
+  "createdAt": "2026-10-25T13:41:57.321Z"
+}
