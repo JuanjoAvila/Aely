@@ -694,6 +694,8 @@ en la base `f7b66aef`, modificaba `app_state` y podía resucitar borrados por ba
 de una aplicación financiera requiere identidad/revisión/ACK y autorización propios.
 [Ensayo histórico, aceptación del visor y límites](briefs/ops02-restauracion-probada.md).
 
+Los importes que la app envía al widget (`spent`, `budget`, `cash`, `budgetLeft`, `safeLiq` y `afford`) están en EUR implícitos y Android los pinta en euros, conservando la unidad de los cálculos y de sus deltas. `settings.currency` solo cambia la visualización dentro de la app; no convierte estas cifras ni selecciona la moneda del widget.
+
 El widget recibe la cifra de `dashboardBudgetStats` desde la app al cambiar sus cifras. Al volver a primer plano,
 `visibilitychange` o `App.appStateChange` disparan primero la lectura de gastos de Supabase y
 solo tras completarla se envía el snapshot local: el estado anterior a la notificación no puede
