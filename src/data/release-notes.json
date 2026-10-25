@@ -1,5 +1,61 @@
 [
   {
+    "v": "4.26.173",
+    "d": "2026-10-25",
+    "t": {
+      "es": "Plan al día entre dos móviles",
+      "en": "Plan in sync across two phones",
+      "ca": "Pla al dia entre dos mòbils"
+    },
+    "items": {
+      "es": [
+        "Si cambias recibos o deudas en dos móviles, los cambios de cada uno se juntan en lugar de pisarse; si los dos cambian lo mismo, la app te lo enseña y eliges.",
+        "Si borras una deuda en un móvil y en el otro la habías cambiado, se queda; y si se borra mientras la editas, desde Plan puedes recuperarla o descartar tu cambio."
+      ],
+      "en": [
+        "If you change bills or debts on two phones, each phone's changes are combined instead of overwriting each other; if both change the same thing, the app shows you and you choose.",
+        "If you delete a debt on one phone and you had changed it on the other, it stays; and if it gets deleted while you are editing it, you can recover it or discard your change from Plan."
+      ],
+      "ca": [
+        "Si canvies rebuts o deutes en dos mòbils, els canvis de cadascun s'ajunten en lloc de trepitjar-se; si tots dos canvien el mateix, l'app t'ho ensenya i tries.",
+        "Si esborres un deute en un mòbil i a l'altre l'havies canviat, es queda; i si s'esborra mentre l'edites, des de Pla pots recuperar-lo o descartar el teu canvi."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "plan-dos-moviles",
+        "t": {
+          "es": "Dos móviles: cambios distintos en la misma deuda se juntan",
+          "en": "Two phones: different changes to the same debt are combined",
+          "ca": "Dos mòbils: canvis diferents al mateix deute s'ajunten"
+        },
+        "items": {
+          "es": [
+            "1. Hace falta esta versión en dos móviles con tu cuenta (A y B). En A cierra la app del todo (quítala de las apps recientes) y activa el modo avión. En B ve a Plan → Deudas, toca una deuda, anota su «Nombre» y su «Día», cambia el «Día» por otro y toca «Guardar cambios». MAL: no se guarda o sale un aviso de error.",
+            "2. Con A todavía en modo avión, ábrela. En Plan → Deudas esa deuda aún tiene el día de antes: es lo normal, no ha tenido red. Tócala, añade « A» al final de su «Nombre» y toca «Guardar cambios». MAL: sin red no te deja guardar.",
+            "3. Quita el modo avión en A y déjala abierta medio minuto. En Plan → Deudas esa deuda ya lleva el nombre con « A» Y el día nuevo que pusiste en B. MAL: se ha quedado con el día de antes, ha perdido el « A» o sale el aviso «Cambio pendiente de revisar».",
+            "4. Cierra la app del todo en B y vuelve a abrirla. En Plan → Deudas la deuda lleva también el nombre con « A» y el día nuevo. MAL: en B falta uno de los dos cambios.",
+            "5. Deja todo como estaba: en B pon otra vez el «Nombre» y el «Día» de antes y toca «Guardar cambios». MAL: sale el aviso «Cambio pendiente de revisar»."
+          ],
+          "en": [
+            "1. You need this version on two phones with your account (A and B). On A close the app completely (swipe it out of recent apps) and turn on airplane mode. On B go to Plan → Debts, tap a debt, note its \"Name\" and its \"Day\", change the \"Day\" to another one and tap \"Save changes\". WRONG: it doesn't save or an error notice appears.",
+            "2. With A still in airplane mode, open it. In Plan → Debts that debt still has the old day: that's normal, it has had no network. Tap it, add \" A\" at the end of its \"Name\" and tap \"Save changes\". WRONG: without network it won't let you save.",
+            "3. Turn airplane mode off on A and leave it open for half a minute. In Plan → Debts that debt now has the name with \" A\" AND the new day you set on B. WRONG: it kept the old day, lost the \" A\" or the \"Change to review\" notice appears.",
+            "4. Close the app completely on B and open it again. In Plan → Debts the debt also has the name with \" A\" and the new day. WRONG: on B one of the two changes is missing.",
+            "5. Put everything back: on B set the old \"Name\" and \"Day\" again and tap \"Save changes\". WRONG: the \"Change to review\" notice appears."
+          ],
+          "ca": [
+            "1. Cal aquesta versió en dos mòbils amb el teu compte (A i B). A A tanca l'app del tot (treu-la de les apps recents) i activa el mode avió. A B ves a Pla → Deutes, toca un deute, anota el seu «Nom» i el seu «Dia», canvia el «Dia» per un altre i toca «Desa els canvis». MALAMENT: no es desa o surt un avís d'error.",
+            "2. Amb A encara en mode avió, obre-la. A Pla → Deutes aquest deute encara té el dia d'abans: és normal, no ha tingut xarxa. Toca'l, afegeix « A» al final del seu «Nom» i toca «Desa els canvis». MALAMENT: sense xarxa no et deixa desar.",
+            "3. Treu el mode avió a A i deixa-la oberta mig minut. A Pla → Deutes aquest deute ja porta el nom amb « A» I el dia nou que vas posar a B. MALAMENT: s'ha quedat amb el dia d'abans, ha perdut l'« A» o surt l'avís «Canvi pendent de revisar».",
+            "4. Tanca l'app del tot a B i torna-la a obrir. A Pla → Deutes el deute porta també el nom amb « A» i el dia nou. MALAMENT: a B falta un dels dos canvis.",
+            "5. Deixa-ho tot com estava: a B posa un altre cop el «Nom» i el «Dia» d'abans i toca «Desa els canvis». MALAMENT: surt l'avís «Canvi pendent de revisar»."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.172",
     "d": "2026-10-25",
     "t": {

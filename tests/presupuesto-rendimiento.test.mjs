@@ -339,7 +339,8 @@ const PRESUPUESTO = {
   // Integración 4.26.168 (24/10): la 167 más Gastos v5 tanda 4 (Suscripciones como bandeja con fichas: dos hojas, las tarjetas, la detección con los últimos cobros, textos en tres idiomas y CSS): 1.500.696 B minificado y 416.698 B gzip (1465,5 y 406,9 KiB) medidos en local con el sello .99999 y la reserva de 95 B, frente a 1.491.689 / 414.917 en la 167 (+9,0 KB / +1,8 KB). SUBE por lógica de producto (mandato 11/10): 1467 KiB minificado (quedan ~1,5 KB) y 408 KiB de gzip (quedan ~1,1 KB).
   // Integración 4.26.170 (25/10): la 169 más FIN-04 parte A (PR293: primera lectura antes de subir, INSERT sin revisión, vuelo único de gastos con relectura pendiente, copia diaria tras el pull) y SAVEDAT (PR296: el mantenimiento no sella y el bróker de arranque espera al pull): 1.505.255 B minificado y 417.880 B gzip (1469,98 y 408,09 KiB) medidos en local con el sello .99999 y la reserva de 95 B, frente a 1.498.938 / 416.443 en la 169 (+6,3 KB / +1,4 KB). Es lógica de dinero entre móviles, sin textos que recortar. SUBE (mandato 11/10): 1471 KiB minificado (quedan 1.049 B) y 409 KiB de gzip (quedan 936 B).
   // Integración 4.26.172 (25/10): la 171 más la aportación a meta desde la ficha (marca, cajón, progreso al vuelo, nube con la fila exacta, acuse y reintento de la marca pendiente), la fila gris de Inversiones, la tanda 6 de Gastos v5 (fila de ciclos, cifra de lo filtrado, raya del final, cinco de más gasto, pulsación larga) y el arreglo del lag (sin envío por gesto): 1.523.095 B minificado y 422.795 B gzip (1487,40 y 412,89 KiB) medidos en local con el sello .99999 y la reserva de 95 B, frente a 1.505.924 / 418.082 en la 171 (+17,2 KB / +4,7 KB). Son tres pedidos del dueño de la misma mañana, casi todo lógica y sus textos es: no hay grasa que quitar sin quitar una de ellas. SUBE (mandato 11/10): 1489 KiB minificado (quedan 1.641 B) y 414 KiB de gzip (quedan 1.141 B).
-  minificado: 1489 * 1024,
+  // Integración 4.26.173 (25/10): la 172 más FIN-04 fase 2 parte B (PR297 R2: fusión a tres vías de recibos y deudas con base privada, lápidas de deuda con SHA-256, borrador privado con Recuperar/Descartar, sus textos en tres idiomas y la hoja de conflicto) y la nota con una tanda: 1515 KiB minificado y 421 KiB gzip medidos en local frente a 1489 / 414 de la 172 (+26 / +7 KiB). Es lógica de dinero entre móviles y su interfaz de revisión, sin nada que recortar sin quitar la garantía. SUBE (mandato 11/10): 1520 KiB minificado y 423 KiB de gzip.
+  minificado: 1520 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -375,7 +376,7 @@ const PRESUPUESTO = {
   // 1.445.348/401.213 → 1.446.618/401.660 B (+1.270/+447). Es código, sin textos. 392 KiB se queda
   // corto por 252 B: 393 KiB (quedan 772 B); el crudo cabe en 1413 KiB con 294 B.
   // Integración 4.26.159 (con fin23-24): 1418 KiB minificado y 394 KiB gzip medidos en local; el gzip queda a 1 KiB. SUBE por producto: gzip 396 KiB (el minificado conserva 3 KiB de margen).
-  gzip: 414 * 1024,
+  gzip: 423 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 
