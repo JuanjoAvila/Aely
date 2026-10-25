@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-25-10-encargo-k3",
+  "to": "codex",
+  "body": "Encargo pequeno (admision aqui): PR solo de test contra beta (95b950a0c). Grok G14: en 08-motor-bank.js:368-372 linkFixedPayment(null) quita paidYm/paidDay derivados solo si paidYm===ym y el dia coincide con la prueba; el mutante K3 (quitar paidYm===ym) no lo detecta ningun test. Anade a tests/retirada-bancaria un caso de otro mes con el mismo dia que mate K3 (rojo causal con el mutante, verde sin el). Sin tocar producto.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261025-7c3e91a4",
+  "createdAt": "2026-10-25T20:24:52.672Z"
+}
