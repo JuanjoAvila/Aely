@@ -124,7 +124,9 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
         eq: (key,value) => { filters.push([key,value]); return chain; },
         lt: (key,value) => { if(key==="id") beforeId=value; return chain; },
         insert: (value) => { read=false; operation='insert'; payload=value; return chain; },
-        update: (value) => { read=false; operation='update'; payload=value; return chain; },
+        // Lo que la app ESCRIBE por fila (la marca de meta, por ejemplo) solo se ve aquí: el doble
+        // no lo guarda en las filas de la nube, así que el test mira la petición.
+        update: (value) => { read=false; operation='update'; payload=value; (window.__e2eUpdates || (window.__e2eUpdates = [])).push({ tabla, value: JSON.parse(JSON.stringify(value)) }); return chain; },
         upsert: () => { read=false; return chain; },
         delete: () => { read=false; return chain; },
         /* Antes devolvía SIEMPRE null, así que `cloud.pullState()` nunca traía nada y NINGÚN test

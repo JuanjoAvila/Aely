@@ -291,7 +291,10 @@ function appConNube(n) {
 const HUCHA = gasto(marcado, "e-hucha");
 const FILA = { fecha: HUCHA.date, importe: 250, comercio: HUCHA.merchant, cat: "otros" };
 for (const [caso, antes, despues, n, peticiones] of [
-  ["sin marca en la nube: la pone y conserva lo de detrás", "ob:trade_republic#refr2#n2", "ob:trade_republic~meta.viaje#refr2#n2", 1, ["lee 1", "cambia 1"]],
+  ["sin marca en la nube: la pone y conserva lo de detrás", "ob:trade_republic#refr2#acctr", "ob:trade_republic~meta.viaje#refr2#acctr", 1, ["lee 1", "cambia 1"]],
+  ["es la gemela con otro ordinal: no se toca", "ob:trade_republic#refr2#n2", "ob:trade_republic#refr2#n2", 0, ["lee 1"]],
+  ["es otro cargo del banco (otra referencia): no se toca", "ob:trade_republic#refr9", "ob:trade_republic#refr9", 0, ["lee 1"]],
+  ["es un posible repetido: no se le pone marca", "ob:trade_republic#dup#refr2", "ob:trade_republic#dup#refr2", 0, ["lee 1"]],
   ["de Importar histórico: conserva su origen", "ob-hist:trade_republic", "ob-hist:trade_republic~meta.viaje", 1, ["lee 1", "cambia 1"]],
   ["ya la tenía: no escribe y lo da por confirmado", "ob:trade_republic~meta.viaje#refr2", "ob:trade_republic~meta.viaje#refr2", 1, ["lee 1"]],
   ["en la nube es cuota de una deuda: no se toca (una marca por gasto)", "ob:trade_republic~deuda.robot", "ob:trade_republic~deuda.robot", 0, ["lee 1"]],
@@ -314,6 +317,31 @@ await tt("nube · quitar la marca la quita y deja el resto como estaba", async (
   assert.equal(await vm.runInContext("cloud", app).setExpenseMeta(sin), 1);
   assert.equal(nube.tabla[0].source, "ob:trade_republic#refr2#acctr");
 });
+/* DOS BIZUMS GEMELOS (revisión del 25/10/2026): TR, mismo día, mismo importe, mismo comercio; solo
+   los separan el ordinal y la referencia. Se marca UNO. Oráculo a mano: meta 100 + 50 = 150 €; el
+   otro bizum sigue siendo gasto, 50 €. Antes salía 200 € y 0 €. Se prueba dos veces: con las fechas
+   que escribe la app (la gemela va 1 ms detrás, el índice único las separa) y con la misma fecha,
+   que es lo que pasaría si esa garantía se perdiera. Sin referencia (filas viejas), solo las
+   separa el ordinal. */
+for (const [caso, msGemela, refs] of [["fechas de la app (+1 ms)", 1, true], ["misma fecha", 0, true], ["misma fecha y filas sin referencia", 0, false]]) {
+  await tt("nube · dos bizums gemelos, se marca uno: " + caso, async () => {
+    const D = "2026-10-05T10:00:00.000Z", D2 = new Date(Date.parse(D) + msGemela).toISOString();
+    const s0 = Object.assign(estado(), { goals: [{ id: "viaje", name: "Viaje", target: 1000, saved: 100 }], expenses: [
+      { id: "b1", date: D, merchant: "Bizum hucha", amount: 50, category: "otros", source: "ob", ent: "trade_republic", extId: refs ? "A" : undefined },
+      { id: "b2", date: D2, merchant: "Bizum hucha", amount: 50, category: "otros", source: "ob", ent: "trade_republic", extId: refs ? "B" : undefined, obOrd: 2 },
+    ] });
+    const r = cli.marcarAportacionMeta(s0, "b1", "viaje");
+    const nube = nubeFalsa(s0.expenses.map((e) => ({ fecha: e.date, importe: e.amount, comercio: e.merchant, cat: e.category, source: cli.expenseSourceForCloud(e) }))), app = appConNube(nube);
+    assert.equal(await vm.runInContext("cloud", app).setExpenseMeta(r.e), 1);
+    assert.deepEqual(nube.tabla.map((x) => x.source), refs ? ["ob:trade_republic~meta.viaje#refA", "ob:trade_republic#refB#n2"] : ["ob:trade_republic~meta.viaje", "ob:trade_republic#n2"]);
+    // Tras el acuse, el pull: la gemela, sin `metaPend` que la proteja, adopta lo que diga la nube.
+    const tras = cli.mergeExpensesFromCloud(cli.ackMetaWrite(r.state.expenses, r.e, "viaje"), nube.tabla.map((x) => cli.expenseFromRow(x)), Date.now()).list;
+    assert.deepEqual(Array.from(tras.filter((e) => e.merchant === "Bizum hucha"), (e) => [e.id, e.goalId]), [["b1", "viaje"], ["b2", undefined]]);
+    const s2 = Object.assign({}, r.state, { expenses: tras });
+    assert.equal(cents(cli.metaAhorrado(s2.goals[0], s2)), 15000);
+    assert.equal(cents(cli.monthBudgetStats(s2).spent), 5000);
+  });
+}
 await tt("nube · en el modo pruebas no se escribe nada (CLOUD_WRITES) y no hay acuse", async () => {
   const nube = nubeFalsa([Object.assign({}, FILA, { source: "ob:trade_republic" })]), app = appConNube(nube);
   vm.runInContext("mcSandbox=function(){ return true; }", app);
@@ -321,6 +349,59 @@ await tt("nube · en el modo pruebas no se escribe nada (CLOUD_WRITES) y no hay 
   assert.equal(r, null);
   assert.deepEqual(nube.log, []);
   assert.equal(nube.tabla[0].source, "ob:trade_republic");
+});
+
+/* UNA MARCA POR GASTO, VISTA DESDE LOS DEMÁS (revisión del 25/10/2026): la meta no se queda una fila
+   que ya es de una deuda o de un recibo, y al revés, la cuota automática, el recibo, la pareja de
+   aviso y banco, la foto del Hogar y la limpieza de UUID repetidos respetan la marca. Cada caso se
+   comprueba con y sin marca, para que no pase por estar mal montado. */
+t("regla 1 · la cuota automática no reclama un cargo marcado como aportación", () => {
+  const conCuota = (goalId) => Object.assign(estado(), { fixed: [], expenses: [
+    { id: "x", date: "2026-10-05T10:00:00.000Z", merchant: "Robot", amount: 99, category: "otros", source: "ob", ent: "trade_republic", extId: "r9", status: "BOOK", goalId },
+  ], debts: [{ id: "robot", name: "Robot", value: 900, monthly: 99, account: "trade_republic", day: 5 }] });
+  assert.deepEqual(Array.from(cli.cuotasDeDeudaPorMarcar(conCuota(undefined)), (a) => a.e.id + ">" + a.debtId), ["x>robot"]);
+  assert.deepEqual(Array.from(cli.cuotasDeDeudaPorMarcar(conCuota("viaje")), (a) => a.e.id), []);
+});
+t("regla 1 · un recibo no se paga con un cargo marcado como aportación", () => {
+  for (const [goalId, elegible] of [[undefined, true], ["viaje", false]]) {
+    const yt = { id: "yt", name: "YouTube Premium", amount: 29.99, account: "sabadell", freq: "mes", day: 2 };
+    const x = { id: "cargo", extId: "R1", date: "2026-10-02", merchant: "YouTube Premium", amount: 29.99, ent: "sabadell", category: "recibos", source: "ob", status: "BOOK", goalId };
+    const s = { accounts: [{ id: "a1", ent: "sabadell", role: "ambos", spendFrom: true, value: 800 }], fixed: [yt], expenses: [x], bankTx: [], debts: [], oneoffs: [], deleted: [], flows: [], goals: estado().goals };
+    assert.equal(cli.fixedExpenseEligible(s, x, yt, 2026, 10, 15), elegible);
+    assert.equal(cli.fixedPaymentState(s, yt, 2026, 10, 15).paid, elegible);
+  }
+});
+t("regla 1 · con cuota o recibo la marca de meta no vale", () => {
+  assert.equal(cli.metaDeGasto({ goalId: "viaje" }), "viaje");
+  assert.equal(cli.metaDeGasto({ goalId: "viaje", debtId: "robot" }), null);
+  assert.equal(cli.metaDeGasto({ goalId: "viaje", reciboId: "luz" }), null);
+});
+t("regla 1 · marcar a mano como cuota quita la marca de meta", () => {
+  const e = cli.marcarCuotaAMano(marcado, "e-hucha", "robot").e;
+  assert.equal(e.debtId, "robot");
+  assert.equal(e.goalId, undefined);
+  assert.equal(e.metaPend, undefined);
+});
+t("una copia repetida del mismo UUID no pierde la marca", () => {
+  const U = "11111111-1111-4111-8111-111111111111";
+  const fila = { id: U, date: "2026-10-05T10:00:00.000Z", merchant: "Traspaso hucha", amount: 250, category: "otros", source: "ob", ent: "trade_republic", extId: "r2" };
+  const [e] = cli.uniqueExpenseUuids([Object.assign({}, fila, { goalId: "viaje", metaPend: true }), Object.assign({}, fila, { expenseEditAt: 1 })]);
+  assert.equal(e.goalId, "viaje");
+  assert.equal(e.metaPend, true);
+});
+t("la pareja automática aviso/banco no esconde una fila marcada", () => {
+  const g = { id: "g", date: "2026-10-05T10:00:00.000Z", merchant: "Movimiento", amount: 5, source: "ob", ent: "trade_republic" };
+  assert.equal(cli.gemeloBancoAutomatico(g), true);
+  assert.equal(cli.gemeloBancoAutomatico(Object.assign({}, g, { goalId: "viaje" })), false);
+});
+// La foto del Hogar vive tras el corte de la lógica pura: se carga aparte, como en los de recibos.
+vm.runInNewContext(src("src/modules/13-hogar.js"), cli);
+t("la foto del Hogar no cuenta lo marcado como gasto", () => {
+  const porCat = (st) => Object.fromEntries(Array.from(cli.buildHouseholdSnapshot(st, {}, "a@b.c").expensesByCat, (c) => [c.id, cents(c.spent)]));
+  // «otros» = la hucha 250 + Sabadell 40: la foto del Hogar no filtra por banco de gasto diario.
+  assert.equal(porCat(estado()).otros, 29000);
+  assert.equal(porCat(marcado).otros, 4000);
+  assert.equal(porCat(marcado).ocio, 766);
 });
 
 console.log("meta-aportacion: OK");

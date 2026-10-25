@@ -137,3 +137,19 @@ test("una cuota o un apunte a mano no ofrecen la marca de meta", async ({ page }
   await fila(page, "Cine").click();
   await expect(page.getByTestId("exp-meta")).toHaveCount(0);
 });
+
+/* LA MARCA QUE NO LLEGÓ A LA NUBE SE REINTENTA (revisión del 25/10/2026). Marcada sin red, la fila
+   se queda con `metaPend`, que la protege del pull; si nadie volvía a subirla, este móvil la sacaba
+   del gasto y el otro y el widget la seguían contando para siempre. Al abrir Gastos se reintenta. */
+test("una marca de meta pendiente se vuelve a subir al abrir", async ({ page }) => {
+  await seedLoggedInDashboard(page, { ...base,
+    expenses: [e("TRASPASO HUCHA", "2026-09-20", 250, "otros", { extId: "ref-hucha", goalId: "viaje", metaPend: true })],
+    __cloudRows: { expenses: [{ id: "7d0c3a4e-0b9f-4c55-9d7e-1f2a3b4c5d6e", fecha: "2026-09-20T12:00:00.000Z", importe: 250, comercio: "TRASPASO HUCHA", cat: "otros", source: "ob:trade_republic#refref-hucha" }] } });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 30_000 });
+  await page.waitForFunction(() => !document.getElementById("mc-load"));
+  await dismissNews(page);
+  await aTab(page, "gastos");
+  await expect.poll(() => page.evaluate(() => (window.__e2eUpdates || []).filter((u) => u.tabla === "expenses").map((u) => u.value.source)))
+    .toContain("ob:trade_republic~meta.viaje#refref-hucha");
+});
