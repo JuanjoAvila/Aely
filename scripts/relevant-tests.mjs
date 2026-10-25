@@ -78,6 +78,9 @@ export const E2E_MAP = [
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-deuda-futura.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/widget-banco.spec.mjs", "e2e/inc1710-reload-fallback-delay.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/fin04-first-pull.spec.mjs", "e2e/fin04-recovery.spec.mjs", "e2e/savedat-arranque.spec.mjs"] },
+  // «Abrir en Cartera ›» de la fila gris de Inversiones: el destino (`goInversiones`) y su marca en Cartera.
+  { file: "src/modules/11-app-main.js", specs: ["e2e/gastos-inversion-gris.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/gastos-inversion-gris.spec.mjs"] },
   {file:"src/modules/16-help-assistant.js",specs:["e2e/help-assistant.spec.mjs","e2e/help-preguntar-borde.spec.mjs"]},
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-grafica-reservas.spec.mjs", "e2e/inicio-v42.spec.mjs", "e2e/inicio-v42-rendimiento.spec.mjs", "e2e/inicio-grafica-feedback.spec.mjs", "e2e/dashboard-memo-profile.spec.mjs", "e2e/help-assistant.spec.mjs",
     "e2e/listas-render.spec.mjs",
@@ -127,6 +130,8 @@ export const E2E_MAP = [
     "e2e/gastos-v5-filtros.spec.mjs",
     // «Es aportación a la meta X»: ficha, fila gris de Metas, cifra sin ella y progreso en Plan.
     "e2e/gastos-meta-aportacion.spec.mjs",
+    // Fila gris de Inversiones: aportaciones a brókers con su destino, cifras iguales y «Abrir en Cartera».
+    "e2e/gastos-inversion-gris.spec.mjs",
     // Apuntes iguales de TR por el cableado real: filas en Gastos, «Es el mismo» desde la ficha.
     "e2e/tr-iguales-ordinal.spec.mjs",
     "e2e/tr-emparejado-automatico.spec.mjs",

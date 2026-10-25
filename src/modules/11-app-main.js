@@ -2859,6 +2859,23 @@ function App(){
     const pg=trackRef.current&&trackRef.current.children&&trackRef.current.children[i];
     if(pg){ pg.scrollTop=0; syncPageTouchAction(pg, i); }
   };
+  /* ADÓNDE LLEVA «Abrir en Cartera ›» DE LA FILA GRIS DE INVERSIONES (Gastos v5, 25/10/2026).
+     El destino vive SOLO aquí a propósito: cuando exista la pestaña de inversiones (petición
+     del dueño, «ya le añadiremos que se redirija a una tab nueva»), se cambia esta función y
+     nada más. Hoy: Cartera, con el bloque «Tus inversiones» arriba. El bloque se puede haber
+     reordenado, así que se busca por su marca; se baja con `scrollTop` de la propia página y no
+     con `scrollIntoView`, que también movería el carrusel de pestañas. */
+  const goInversiones=function(){
+    const i=tabIds.indexOf("cartera");
+    if(i<0) return;
+    goTabTop(i);
+    requestAnimationFrame(function(){
+      const pg=trackRef.current&&trackRef.current.children&&trackRef.current.children[i];
+      const sec=pg&&pg.querySelector('[data-cartera-sec="inversiones"]');
+      if(!sec) return;
+      pg.scrollTop=Math.max(0,pg.scrollTop+sec.getBoundingClientRect().top-pg.getBoundingClientRect().top-12);
+    });
+  };
 
   /* swipe — distingue eje vertical/horizontal, menos sensible */
   const startX=useRef(0), startY=useRef(0), startT=useRef(0), dx=useRef(0), axis=useRef(null), dragging=useRef(false), trackRef=useRef(null);
@@ -3758,7 +3775,8 @@ function App(){
     // reconstruye el árbol entero encima del gesto (asimetría Deudas→Gastos vs →Cartera).
     if(id==="gastos") return React.createElement(Expenses,{state:state,set:set,showToast:showToast,stopSwipe:stopSwipe,cancelSwipe:cancelSwipe,focusExp:gotoExp,clearFocus:function(){ setGotoExp(null); },forceAllTs:gastosForceAll,
       // «Abrir en Plan · Recibos/Deudas» de las filas grises (Gastos v5): mismo camino que Inicio.
-      onGoPlan:function(seg){ if(seg) setPlanGoto({id:seg,ts:Date.now()}); const i=tabIds.indexOf("plan"); if(i>=0) goTabTop(i); }});
+      onGoPlan:function(seg){ if(seg) setPlanGoto({id:seg,ts:Date.now()}); const i=tabIds.indexOf("plan"); if(i>=0) goTabTop(i); },
+      onGoInversiones:goInversiones});
     if(id==="plan") return React.createElement(PlanTab,{state:state,set:set,totals:totals,showToast:showToast,simple:simple,gotoSeg:planGoto,clearGoto:function(){ setPlanGoto(null); }});
     // El «Sincronizar» de Cartera actualiza TODO lo conectado: Open Banking + TR + MyInvestor
     // (petición 2026-07-18: «que también sincronice Trade Republic y MyInvestor»).

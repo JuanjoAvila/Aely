@@ -1216,6 +1216,7 @@
   .gx-gris-dot{width:8px;height:8px;border-radius:4px;flex:0 0 auto;background:var(--muted);}
   .gx-gris-dot-deuda{background:var(--coral);}
   .gx-gris-dot-meta{background:var(--blue);}
+  .gx-gris-dot-inversion{background:var(--tan);}
   .gx-gris-t{flex:1;min-width:0;}
   .gx-gris-n{min-width:20px;height:20px;padding:0 6px;box-sizing:border-box;border-radius:10px;background:var(--sur2);font-size:12px;
     display:flex;align-items:center;justify-content:center;}
@@ -7472,6 +7473,11 @@ Object.assign(LANG.es,{f_meta_row:"Es aportación a una meta", f_meta_hint:"Elig
   gl_delete_linked:"Esta meta tiene aportaciones marcadas en Gastos. Quita antes la marca desde la ficha de cada gasto."});
 
 
+// Fila gris de Inversiones en Gastos v5 (25/10/2026): aportaciones y compras a brókers, que ya no
+// cuentan en el gasto. El enlace lleva a Cartera hasta que exista la pestaña de inversiones.
+Object.assign(LANG.es,{gv5_cartera_open:"Abrir en Cartera", g_inv_dest:"Inversión: {name}"});
+
+
 // Gastos v5, tanda 2: secciones (Movimientos / Categorías / Suscripciones) y sus cabeceras.
 Object.assign(LANG.es,{gv5_secciones:"Secciones de Gastos", gv5_sec_movs:"Movimientos", gv5_sec_cats:"Categorías", gv5_sec_subs:"Suscripciones",
   gv5_subs_globo:"{n} por revisar", gv5_cats_pre:"{period} por categoría", gv5_cats_pres:"Presupuesto gastado", gv5_cats_of:"de {x}",
@@ -8157,6 +8163,28 @@ function metaEtiqueta(s, e){
   if(!id) return "";
   const g=((s&&s.goals)||[]).find(function(x){ return x && x.id===id; });
   return g ? tf("g_meta_de",{ name:(g.emoji?g.emoji+" ":"")+(g.name||"") }) : t("g_meta_borrada");
+}
+/* Lo que la lista escribe junto a una aportación a un bróker: «Inversión: Trade Republic», o ""
+   si no se sabe adónde fue (mejor nada que inventar un destino). Por orden de certeza: la
+   posición que compró la app con ESTE cargo (`investInvId`), un bróker nombrado en el comercio o
+   el concepto, y la posición de recompensas de la cuenta que pagó (`rewardInv`, la misma a la que
+   `applyInvestBuy` manda el dinero). Solo pinta: no cambia qué cuenta. */
+function inversionEtiqueta(s, e){
+  if(!e || e.category!=="inversion") return "";
+  const invs=(s&&s.investments)||[];
+  const porId=function(id){ return id ? invs.find(function(i){ return i && i.id===id; }) : null; };
+  const comprada=porId(e.investInvId);
+  if(comprada&&comprada.name) return tf("g_inv_dest",{ name:comprada.name });
+  const txt=(String(e.merchant||"")+" "+String(e.note||"")+" "+String(e.obName||"")).toLowerCase();
+  const ents=["trade_republic","myinvestor"];
+  invs.forEach(function(i){ if(i && i.ent && ENT[i.ent] && ents.indexOf(i.ent)<0) ents.push(i.ent); });
+  for(let k=0;k<ents.length;k++){
+    const lab=entOf(ents[k]).label;
+    if(lab && txt.indexOf(lab.toLowerCase())>=0) return tf("g_inv_dest",{ name:lab });
+  }
+  const acc=((s&&s.accounts)||[]).find(function(a){ return a && a.ent===e.ent && a.rewardInv; });
+  const premio=acc&&porId(acc.rewardInv);
+  return premio&&premio.name ? tf("g_inv_dest",{ name:premio.name }) : "";
 }
 /* Redondeo y saveback estimados del mes para la tarjeta de Cartera. Sin el cargo de un recibo,
    que no es una compra: con él dentro el redondeo subía con cada recibo (4,30 → 9,50 medido). */
@@ -12492,7 +12520,7 @@ function GxSubInfo({open, onClose}){
         React.createElement("button",{type:"button",className:"btn btn-primary btn-block",onClick:swipe.close},t("gv5_sub_i_ok"))
       )), document.body);
 }
-function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clearFocus, forceAllTs, onGoPlan}){
+function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clearFocus, forceAllTs, onGoPlan, onGoInversiones}){
   /* «Ver todo» desde una ficha puede llegar antes de que Gastos termine de montar. Conservamos
      ese destino solo durante la navegación: el estado inicial lo consume y el evento cubre el
      caso en que la pestaña ya estaba viva. No se guarda en preferencias. */
@@ -13144,10 +13172,9 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       if(fil){
         if(filVentana && (ms<filVentana.startMs || ms>=filVentana.todayEndMs)) continue;
         if(catOf(e.category||"otros").id!==fil.id) continue;
-        // Los cargos de recibos y cuotas (las filas grises) no se enseñan con filtro (SPEC §4.4):
-        // no suman a la categoría. Siguen en Movimientos sin filtro y en su fila gris.
-        const bk=expenseBucket(e, state);
-        if(bk==="recibo"||bk==="deuda"||bk==="meta") continue;
+        // Los cargos de las filas grises (recibos, cuotas, metas, inversiones) no se enseñan con
+        // filtro (SPEC §4.4): no suman a la categoría. Siguen en Movimientos sin filtro y en su fila gris.
+        if(grisDeGasto(e, expenseBucket(e, state))) continue;
       }
       // `debt:<id>` en la misma lista que las categorías: el chip de cada deuda (4.21.0).
       if(catSet && !catSet.has(e.category) && !(e.debtId && catSet.has("debt:"+e.debtId))) continue;
@@ -13801,7 +13828,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       React.createElement(GastosLista,{filtered:filtered, visible:visible, state:state, cifra:cifraCat||cifra, mode:cifraCat?"split":monthSummary.mode,
         q:q, sel:sel, bucketSel:bucketSel, bankSelIsDefault:bankSelIsDefault, preset:preset, hayHistorico:(expensesDef||[]).length>0,
         dragExpense:dragExpense, openDetail:openDetail, startExpenseDrag:startExpenseDrag, moveExpenseDrag:moveExpenseDrag, endExpenseDrag:endExpenseDrag,
-        onGoPlan:onGoPlan, simple:simple, l10nKey:l10nKey, sentinelRefCb:sentinelRefCb}),
+        onGoPlan:onGoPlan, onGoInversiones:onGoInversiones, simple:simple, l10nKey:l10nKey, sentinelRefCb:sentinelRefCb}),
       /* Sin «Actualizar gastos» (decisión del dueño, 20/10/2026): la nube ya se lee sola al abrir y
          al volver a la app, y la hora de la última lectura vive al pie de Filtros. El pie se queda
          vacío porque es el hueco que deja subir el último día hasta la cabecera. */
@@ -13902,7 +13929,7 @@ const GX_LARGA_MS=450;
    datos, los filtros o la tanda pintada: las callbacks van en `useCallback` y nada viaja como
    `Date`. Si añades una prop, que sea estable, o el memo queda de adorno. */
 const GastosLista=React.memo(function GastosLista({filtered, visible, state, cifra, mode, q, sel, bucketSel, bankSelIsDefault, preset, hayHistorico,
-    dragExpense, openDetail, startExpenseDrag, moveExpenseDrag, endExpenseDrag, onGoPlan, simple, l10nKey, sentinelRefCb}){
+    dragExpense, openDetail, startExpenseDrag, moveExpenseDrag, endExpenseDrag, onGoPlan, onGoInversiones, simple, l10nKey, sentinelRefCb}){
   const shown=filtered.slice(0,visible);
   /* A LA FILA SE LE PASA EL NÚMERO, NO EL `Date` (2026-07-27, y esto llevaba roto desde siempre).
      `parseDate` cachea los MILISEGUNDOS pero devuelve `new Date(ms)`: un objeto NUEVO en cada
@@ -13927,14 +13954,14 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
   shown.forEach(function(e){
     const ms=dateMs(e.date), info=gastosDia(ms);
     if(!dia||dia.k!==info.k||dia.ym!==info.ym){ dia={k:info.k, ym:info.ym, ms:ms, rows:[], gris:[]}; dias.push(dia); }
-    const bucket=expenseBucket(e, state);
+    const bucket=expenseBucket(e, state), gris=grisDeGasto(e, bucket);
     const l=e.debtId&&filterSelLabel("debt:"+e.debtId,state.debts);
-    // En una aportación, la «etiqueta» es la meta: la fila suelta (buscando) y la gris dicen cuál.
-    const recibo=bucket==="meta"?metaEtiqueta(state,e):reciboEtiqueta(state,e);
-    if(agrupa && (bucket==="recibo"||bucket==="deuda"||bucket==="meta")){
-      let g=dia.gris.find(function(x){ return x.kind===bucket; });
-      if(!g){ g={kind:bucket, items:[], total:0}; dia.gris.push(g); }
-      g.items.push({e:e, ms:ms, sub:bucket==="deuda"?(l||catName("deudas")):recibo});
+    // En una aportación, la «etiqueta» es la meta (o el bróker): la fila suelta (buscando) y la gris dicen cuál.
+    const recibo=gris==="meta"?metaEtiqueta(state,e):gris==="inversion"?inversionEtiqueta(state,e):reciboEtiqueta(state,e);
+    if(agrupa && gris){
+      let g=dia.gris.find(function(x){ return x.kind===gris; });
+      if(!g){ g={kind:gris, items:[], total:0}; dia.gris.push(g); }
+      g.items.push({e:e, ms:ms, sub:gris==="deuda"?(l||catName("deudas")):recibo});
       g.total+=Math.abs(e.amount||0);
     } else dia.rows.push({e:e, ms:ms, l:l, bucket:bucket, recibo:recibo});
   });
@@ -13983,7 +14010,7 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
                     onDragStart:startExpenseDrag,onDragMove:moveExpenseDrag,onDragEnd:endExpenseDrag});
                 }),
                 d.gris.slice().sort(function(a,b){ return GX_GRIS[a.kind].ord-GX_GRIS[b.kind].ord; }).map(function(g){
-                  return React.createElement(GastosGris,{key:d.k+"|"+g.kind, g:g, onOpen:openDetail, onGoPlan:onGoPlan, simple:simple});
+                  return React.createElement(GastosGris,{key:d.k+"|"+g.kind, g:g, onOpen:openDetail, onGoPlan:onGoPlan, onGoInversiones:onGoInversiones, simple:simple});
                 }));
             }),
         visible<filtered.length && React.createElement("div",{className:"sentinel",ref:sentinelRefCb},t("g_loadmore")),
@@ -14135,19 +14162,34 @@ function GxCifra({n}){
     React.createElement("span",{className:"gx-num-ent","aria-hidden":true},celdas(ent,"e")),
     React.createElement("span",{className:"gx-num-dec","aria-hidden":true},celdas(dec,"d")," "+p.sym));
 }
-/* FILA GRIS: los cargos de un día que pagan recibos o cuotas, o que van a una meta (SPEC §4.4). Se ven, no suman al
-   día ni a la cifra (ya cuentan en el Plan, regla de siempre), y se despliegan con un solo toque
+/* FILA GRIS: los cargos de un día que pagan recibos o cuotas, o que van a una meta o a un bróker (SPEC §4.4). Se
+   ven, no suman al día ni a la cifra (ya cuentan en el Plan, o son dinero tuyo que cambia de sitio), y se despliegan con un solo toque
    de vibración. Cada cargo sigue abriendo su ficha: ahí viven «No es este recibo» y «no es la
    cuota», que no se pueden quedar sin camino por plegarlos. El estado de abierto es de la fila:
    abrir una no repinta la lista. */
-// Orden en el día: Recibos, Deudas y Metas, el mismo que los segmentos de Plan.
-const GX_GRIS={recibo:{lab:"v4_plan_recibos",seg:"recibos",ord:0}, deuda:{lab:"v4_plan_deudas",seg:"deudas",ord:1}, meta:{lab:"v4_plan_metas",seg:"metas",ord:2}};
-function GastosGris({g, onOpen, onGoPlan, simple}){
+// Orden en el día: Recibos, Deudas y Metas, el mismo que los segmentos de Plan; Inversiones al
+// final, que no es del Plan sino de Cartera (`cartera`: su enlace va a `onGoInversiones`).
+const GX_GRIS={recibo:{lab:"v4_plan_recibos",seg:"recibos",ord:0}, deuda:{lab:"v4_plan_deudas",seg:"deudas",ord:1}, meta:{lab:"v4_plan_metas",seg:"metas",ord:2},
+  inversion:{lab:"tab_inv",cartera:true,ord:3}};
+/* ¿Va este cargo a una fila gris? → su clase, o null. Sale del cajón (`expenseBucket`), así que no
+   cambia qué cuenta: solo cómo se pinta. Las inversiones son el cajón «neutra» pero SOLO la
+   categoría Inversión y solo lo que sale (25/10/2026): un traspaso entre cuentas propias o una
+   cuota sin deuda no son inversiones, y el rótulo tiene que decir la verdad de lo que agrupa; y
+   una venta o un rescate (entra dinero) no puede sumarse a un total de aportaciones. Esos siguen
+   como tarjeta atenuada con su «no es un gasto». */
+function grisDeGasto(e, bucket){
+  if(bucket==="recibo"||bucket==="deuda"||bucket==="meta") return bucket;
+  if(bucket==="neutra" && e && e.category==="inversion" && (e.amount||0)>0) return "inversion";
+  return null;
+}
+function GastosGris({g, onOpen, onGoPlan, onGoInversiones, simple}){
   const [open,setOpen]=useState(false);
   const def=GX_GRIS[g.kind];
   const toggle=function(){ setOpen(function(o){ return !o; }); mcTickHaptic(); };
-  // En modo sencillo Plan solo tiene Recibos: «Abrir en Plan · Deudas» llevaría a otro sitio.
-  const conPlan=!!onGoPlan && (!simple || g.kind==="recibo");
+  // En modo sencillo Plan solo tiene Recibos: «Abrir en Plan · Deudas» llevaría a otro sitio. Y
+  // Cartera no enseña inversiones: el enlace llevaría a un bloque que no está.
+  const ir=def.cartera?onGoInversiones:onGoPlan;
+  const conPlan=!!ir && (!simple || g.kind==="recibo");
   return React.createElement("div",{className:"gx-gris"+(open?" abierto":""),"data-gris":g.kind},
     React.createElement("button",{type:"button",className:"gx-gris-h","aria-expanded":open,onClick:toggle},
       React.createElement("span",{className:"gx-gris-dot gx-gris-dot-"+g.kind,"aria-hidden":true}),
@@ -14166,8 +14208,8 @@ function GastosGris({g, onOpen, onGoPlan, simple}){
               React.createElement("span",{className:"gx-gris-it-sub"},[it.sub,fecha,bk?(entOf(bk).label||entOf(bk).mono):null].filter(Boolean).join(" · "))),
             React.createElement("span",{className:"gx-gris-it-amt num"},eur(Math.abs(e.amount||0))));
         }),
-        conPlan && React.createElement("button",{type:"button",className:"gx-gris-plan",tabIndex:open?0:-1,onClick:function(){ onGoPlan(def.seg); }},
-          tf("gv5_plan_open",{x:t(def.lab)})+" ›")))
+        conPlan && React.createElement("button",{type:"button",className:"gx-gris-plan",tabIndex:open?0:-1,onClick:function(){ ir(def.seg); }},
+          (def.cartera?t("gv5_cartera_open"):tf("gv5_plan_open",{x:t(def.lab)}))+" ›")))
   );
 }
 
@@ -14211,7 +14253,8 @@ const MovRow=React.memo(function MovRow({e, ms, l, onOpen, bucket, recibo, dragg
   const skip=bucket==="neutra"||bucket==="otrobanco"||bucket==="posible"||bucket==="deuda"||bucket==="recibo"||bucket==="meta";
   // El recibo dice CUÁL es, y si solo lo parece lo pregunta: «no cuenta» a secas haría dudar. La
   // aportación, igual: a qué meta va.
-  const skipTxt=!skip?"":(bucket==="recibo"||bucket==="meta"?recibo:t("g_skip_"+bucket));
+  // Una aportación a un bróker dice adónde fue si se sabe (`inversionEtiqueta`); si no, «no es un gasto».
+  const skipTxt=!skip?"":(bucket==="recibo"||bucket==="meta"||(bucket==="neutra"&&recibo)?recibo:t("g_skip_"+bucket));
   return React.createElement("button",{type:"button","data-expense-id":e.id,"data-expense-day":String(e.date||"").slice(0,10),
       className:"v4-mov"+(skip?" v4-mov-skip":"")+(dragging?" dragging":"")+(dragOver?" drag-over":""),
       onClick:function(ev){ if(ev.target&&ev.target.closest&&ev.target.closest(".v4-mov-drag")) return; onOpen(e); },style:skip?{opacity:.72}:null},
@@ -25574,7 +25617,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="6d73930a67d2ad0c2ef60f4202af5bca7390a11988f8f10263a99c994e524d49";
+var _rnSha="1aa0d74a9c435df8b737b36bf303cbe2398f3c04606ecd1f9c4199c2706449cb";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -28219,7 +28262,9 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
         React.createElement("div",{className:"v4-sec-h"}, t("pt_goods")),
         React.createElement(Wealth,{state:state,set:set,totals:totals,parte:"bienes"})
       ) },
-      !simple && { id:"inversiones", label:t("v4_inversiones"), el:React.createElement("div",{className:"rise",style:{animationDelay:".12s"}},
+      // `data-cartera-sec`: aquí aterriza «Abrir en Cartera ›» de la fila gris de Inversiones de
+      // Gastos (`goInversiones`, 11-app-main), aunque el bloque se haya reordenado.
+      !simple && { id:"inversiones", label:t("v4_inversiones"), el:React.createElement("div",{className:"rise","data-cartera-sec":"inversiones",style:{animationDelay:".12s"}},
         React.createElement("div",{className:"v4-sec-h"}, t("v4_inversiones")),
         React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,showToast:showToast}),
         React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:10},ref:invLinkRef,onClick:function(){ setInvTools(true); }}, t("iv_see_all")+" ›")
@@ -31997,6 +32042,23 @@ function App(){
     const pg=trackRef.current&&trackRef.current.children&&trackRef.current.children[i];
     if(pg){ pg.scrollTop=0; syncPageTouchAction(pg, i); }
   };
+  /* ADÓNDE LLEVA «Abrir en Cartera ›» DE LA FILA GRIS DE INVERSIONES (Gastos v5, 25/10/2026).
+     El destino vive SOLO aquí a propósito: cuando exista la pestaña de inversiones (petición
+     del dueño, «ya le añadiremos que se redirija a una tab nueva»), se cambia esta función y
+     nada más. Hoy: Cartera, con el bloque «Tus inversiones» arriba. El bloque se puede haber
+     reordenado, así que se busca por su marca; se baja con `scrollTop` de la propia página y no
+     con `scrollIntoView`, que también movería el carrusel de pestañas. */
+  const goInversiones=function(){
+    const i=tabIds.indexOf("cartera");
+    if(i<0) return;
+    goTabTop(i);
+    requestAnimationFrame(function(){
+      const pg=trackRef.current&&trackRef.current.children&&trackRef.current.children[i];
+      const sec=pg&&pg.querySelector('[data-cartera-sec="inversiones"]');
+      if(!sec) return;
+      pg.scrollTop=Math.max(0,pg.scrollTop+sec.getBoundingClientRect().top-pg.getBoundingClientRect().top-12);
+    });
+  };
 
   /* swipe — distingue eje vertical/horizontal, menos sensible */
   const startX=useRef(0), startY=useRef(0), startT=useRef(0), dx=useRef(0), axis=useRef(null), dragging=useRef(false), trackRef=useRef(null);
@@ -32896,7 +32958,8 @@ function App(){
     // reconstruye el árbol entero encima del gesto (asimetría Deudas→Gastos vs →Cartera).
     if(id==="gastos") return React.createElement(Expenses,{state:state,set:set,showToast:showToast,stopSwipe:stopSwipe,cancelSwipe:cancelSwipe,focusExp:gotoExp,clearFocus:function(){ setGotoExp(null); },forceAllTs:gastosForceAll,
       // «Abrir en Plan · Recibos/Deudas» de las filas grises (Gastos v5): mismo camino que Inicio.
-      onGoPlan:function(seg){ if(seg) setPlanGoto({id:seg,ts:Date.now()}); const i=tabIds.indexOf("plan"); if(i>=0) goTabTop(i); }});
+      onGoPlan:function(seg){ if(seg) setPlanGoto({id:seg,ts:Date.now()}); const i=tabIds.indexOf("plan"); if(i>=0) goTabTop(i); },
+      onGoInversiones:goInversiones});
     if(id==="plan") return React.createElement(PlanTab,{state:state,set:set,totals:totals,showToast:showToast,simple:simple,gotoSeg:planGoto,clearGoto:function(){ setPlanGoto(null); }});
     // El «Sincronizar» de Cartera actualiza TODO lo conectado: Open Banking + TR + MyInvestor
     // (petición 2026-07-18: «que también sincronice Trade Republic y MyInvestor»).

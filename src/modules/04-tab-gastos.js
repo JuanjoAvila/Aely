@@ -266,7 +266,7 @@ function GxSubInfo({open, onClose}){
         React.createElement("button",{type:"button",className:"btn btn-primary btn-block",onClick:swipe.close},t("gv5_sub_i_ok"))
       )), document.body);
 }
-function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clearFocus, forceAllTs, onGoPlan}){
+function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clearFocus, forceAllTs, onGoPlan, onGoInversiones}){
   /* «Ver todo» desde una ficha puede llegar antes de que Gastos termine de montar. Conservamos
      ese destino solo durante la navegación: el estado inicial lo consume y el evento cubre el
      caso en que la pestaña ya estaba viva. No se guarda en preferencias. */
@@ -918,10 +918,9 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       if(fil){
         if(filVentana && (ms<filVentana.startMs || ms>=filVentana.todayEndMs)) continue;
         if(catOf(e.category||"otros").id!==fil.id) continue;
-        // Los cargos de recibos y cuotas (las filas grises) no se enseñan con filtro (SPEC §4.4):
-        // no suman a la categoría. Siguen en Movimientos sin filtro y en su fila gris.
-        const bk=expenseBucket(e, state);
-        if(bk==="recibo"||bk==="deuda"||bk==="meta") continue;
+        // Los cargos de las filas grises (recibos, cuotas, metas, inversiones) no se enseñan con
+        // filtro (SPEC §4.4): no suman a la categoría. Siguen en Movimientos sin filtro y en su fila gris.
+        if(grisDeGasto(e, expenseBucket(e, state))) continue;
       }
       // `debt:<id>` en la misma lista que las categorías: el chip de cada deuda (4.21.0).
       if(catSet && !catSet.has(e.category) && !(e.debtId && catSet.has("debt:"+e.debtId))) continue;
@@ -1575,7 +1574,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       React.createElement(GastosLista,{filtered:filtered, visible:visible, state:state, cifra:cifraCat||cifra, mode:cifraCat?"split":monthSummary.mode,
         q:q, sel:sel, bucketSel:bucketSel, bankSelIsDefault:bankSelIsDefault, preset:preset, hayHistorico:(expensesDef||[]).length>0,
         dragExpense:dragExpense, openDetail:openDetail, startExpenseDrag:startExpenseDrag, moveExpenseDrag:moveExpenseDrag, endExpenseDrag:endExpenseDrag,
-        onGoPlan:onGoPlan, simple:simple, l10nKey:l10nKey, sentinelRefCb:sentinelRefCb}),
+        onGoPlan:onGoPlan, onGoInversiones:onGoInversiones, simple:simple, l10nKey:l10nKey, sentinelRefCb:sentinelRefCb}),
       /* Sin «Actualizar gastos» (decisión del dueño, 20/10/2026): la nube ya se lee sola al abrir y
          al volver a la app, y la hora de la última lectura vive al pie de Filtros. El pie se queda
          vacío porque es el hueco que deja subir el último día hasta la cabecera. */
@@ -1676,7 +1675,7 @@ const GX_LARGA_MS=450;
    datos, los filtros o la tanda pintada: las callbacks van en `useCallback` y nada viaja como
    `Date`. Si añades una prop, que sea estable, o el memo queda de adorno. */
 const GastosLista=React.memo(function GastosLista({filtered, visible, state, cifra, mode, q, sel, bucketSel, bankSelIsDefault, preset, hayHistorico,
-    dragExpense, openDetail, startExpenseDrag, moveExpenseDrag, endExpenseDrag, onGoPlan, simple, l10nKey, sentinelRefCb}){
+    dragExpense, openDetail, startExpenseDrag, moveExpenseDrag, endExpenseDrag, onGoPlan, onGoInversiones, simple, l10nKey, sentinelRefCb}){
   const shown=filtered.slice(0,visible);
   /* A LA FILA SE LE PASA EL NÚMERO, NO EL `Date` (2026-07-27, y esto llevaba roto desde siempre).
      `parseDate` cachea los MILISEGUNDOS pero devuelve `new Date(ms)`: un objeto NUEVO en cada
@@ -1701,14 +1700,14 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
   shown.forEach(function(e){
     const ms=dateMs(e.date), info=gastosDia(ms);
     if(!dia||dia.k!==info.k||dia.ym!==info.ym){ dia={k:info.k, ym:info.ym, ms:ms, rows:[], gris:[]}; dias.push(dia); }
-    const bucket=expenseBucket(e, state);
+    const bucket=expenseBucket(e, state), gris=grisDeGasto(e, bucket);
     const l=e.debtId&&filterSelLabel("debt:"+e.debtId,state.debts);
-    // En una aportación, la «etiqueta» es la meta: la fila suelta (buscando) y la gris dicen cuál.
-    const recibo=bucket==="meta"?metaEtiqueta(state,e):reciboEtiqueta(state,e);
-    if(agrupa && (bucket==="recibo"||bucket==="deuda"||bucket==="meta")){
-      let g=dia.gris.find(function(x){ return x.kind===bucket; });
-      if(!g){ g={kind:bucket, items:[], total:0}; dia.gris.push(g); }
-      g.items.push({e:e, ms:ms, sub:bucket==="deuda"?(l||catName("deudas")):recibo});
+    // En una aportación, la «etiqueta» es la meta (o el bróker): la fila suelta (buscando) y la gris dicen cuál.
+    const recibo=gris==="meta"?metaEtiqueta(state,e):gris==="inversion"?inversionEtiqueta(state,e):reciboEtiqueta(state,e);
+    if(agrupa && gris){
+      let g=dia.gris.find(function(x){ return x.kind===gris; });
+      if(!g){ g={kind:gris, items:[], total:0}; dia.gris.push(g); }
+      g.items.push({e:e, ms:ms, sub:gris==="deuda"?(l||catName("deudas")):recibo});
       g.total+=Math.abs(e.amount||0);
     } else dia.rows.push({e:e, ms:ms, l:l, bucket:bucket, recibo:recibo});
   });
@@ -1757,7 +1756,7 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
                     onDragStart:startExpenseDrag,onDragMove:moveExpenseDrag,onDragEnd:endExpenseDrag});
                 }),
                 d.gris.slice().sort(function(a,b){ return GX_GRIS[a.kind].ord-GX_GRIS[b.kind].ord; }).map(function(g){
-                  return React.createElement(GastosGris,{key:d.k+"|"+g.kind, g:g, onOpen:openDetail, onGoPlan:onGoPlan, simple:simple});
+                  return React.createElement(GastosGris,{key:d.k+"|"+g.kind, g:g, onOpen:openDetail, onGoPlan:onGoPlan, onGoInversiones:onGoInversiones, simple:simple});
                 }));
             }),
         visible<filtered.length && React.createElement("div",{className:"sentinel",ref:sentinelRefCb},t("g_loadmore")),
@@ -1909,19 +1908,34 @@ function GxCifra({n}){
     React.createElement("span",{className:"gx-num-ent","aria-hidden":true},celdas(ent,"e")),
     React.createElement("span",{className:"gx-num-dec","aria-hidden":true},celdas(dec,"d")," "+p.sym));
 }
-/* FILA GRIS: los cargos de un día que pagan recibos o cuotas, o que van a una meta (SPEC §4.4). Se ven, no suman al
-   día ni a la cifra (ya cuentan en el Plan, regla de siempre), y se despliegan con un solo toque
+/* FILA GRIS: los cargos de un día que pagan recibos o cuotas, o que van a una meta o a un bróker (SPEC §4.4). Se
+   ven, no suman al día ni a la cifra (ya cuentan en el Plan, o son dinero tuyo que cambia de sitio), y se despliegan con un solo toque
    de vibración. Cada cargo sigue abriendo su ficha: ahí viven «No es este recibo» y «no es la
    cuota», que no se pueden quedar sin camino por plegarlos. El estado de abierto es de la fila:
    abrir una no repinta la lista. */
-// Orden en el día: Recibos, Deudas y Metas, el mismo que los segmentos de Plan.
-const GX_GRIS={recibo:{lab:"v4_plan_recibos",seg:"recibos",ord:0}, deuda:{lab:"v4_plan_deudas",seg:"deudas",ord:1}, meta:{lab:"v4_plan_metas",seg:"metas",ord:2}};
-function GastosGris({g, onOpen, onGoPlan, simple}){
+// Orden en el día: Recibos, Deudas y Metas, el mismo que los segmentos de Plan; Inversiones al
+// final, que no es del Plan sino de Cartera (`cartera`: su enlace va a `onGoInversiones`).
+const GX_GRIS={recibo:{lab:"v4_plan_recibos",seg:"recibos",ord:0}, deuda:{lab:"v4_plan_deudas",seg:"deudas",ord:1}, meta:{lab:"v4_plan_metas",seg:"metas",ord:2},
+  inversion:{lab:"tab_inv",cartera:true,ord:3}};
+/* ¿Va este cargo a una fila gris? → su clase, o null. Sale del cajón (`expenseBucket`), así que no
+   cambia qué cuenta: solo cómo se pinta. Las inversiones son el cajón «neutra» pero SOLO la
+   categoría Inversión y solo lo que sale (25/10/2026): un traspaso entre cuentas propias o una
+   cuota sin deuda no son inversiones, y el rótulo tiene que decir la verdad de lo que agrupa; y
+   una venta o un rescate (entra dinero) no puede sumarse a un total de aportaciones. Esos siguen
+   como tarjeta atenuada con su «no es un gasto». */
+function grisDeGasto(e, bucket){
+  if(bucket==="recibo"||bucket==="deuda"||bucket==="meta") return bucket;
+  if(bucket==="neutra" && e && e.category==="inversion" && (e.amount||0)>0) return "inversion";
+  return null;
+}
+function GastosGris({g, onOpen, onGoPlan, onGoInversiones, simple}){
   const [open,setOpen]=useState(false);
   const def=GX_GRIS[g.kind];
   const toggle=function(){ setOpen(function(o){ return !o; }); mcTickHaptic(); };
-  // En modo sencillo Plan solo tiene Recibos: «Abrir en Plan · Deudas» llevaría a otro sitio.
-  const conPlan=!!onGoPlan && (!simple || g.kind==="recibo");
+  // En modo sencillo Plan solo tiene Recibos: «Abrir en Plan · Deudas» llevaría a otro sitio. Y
+  // Cartera no enseña inversiones: el enlace llevaría a un bloque que no está.
+  const ir=def.cartera?onGoInversiones:onGoPlan;
+  const conPlan=!!ir && (!simple || g.kind==="recibo");
   return React.createElement("div",{className:"gx-gris"+(open?" abierto":""),"data-gris":g.kind},
     React.createElement("button",{type:"button",className:"gx-gris-h","aria-expanded":open,onClick:toggle},
       React.createElement("span",{className:"gx-gris-dot gx-gris-dot-"+g.kind,"aria-hidden":true}),
@@ -1940,8 +1954,8 @@ function GastosGris({g, onOpen, onGoPlan, simple}){
               React.createElement("span",{className:"gx-gris-it-sub"},[it.sub,fecha,bk?(entOf(bk).label||entOf(bk).mono):null].filter(Boolean).join(" · "))),
             React.createElement("span",{className:"gx-gris-it-amt num"},eur(Math.abs(e.amount||0))));
         }),
-        conPlan && React.createElement("button",{type:"button",className:"gx-gris-plan",tabIndex:open?0:-1,onClick:function(){ onGoPlan(def.seg); }},
-          tf("gv5_plan_open",{x:t(def.lab)})+" ›")))
+        conPlan && React.createElement("button",{type:"button",className:"gx-gris-plan",tabIndex:open?0:-1,onClick:function(){ ir(def.seg); }},
+          (def.cartera?t("gv5_cartera_open"):tf("gv5_plan_open",{x:t(def.lab)}))+" ›")))
   );
 }
 
@@ -1985,7 +1999,8 @@ const MovRow=React.memo(function MovRow({e, ms, l, onOpen, bucket, recibo, dragg
   const skip=bucket==="neutra"||bucket==="otrobanco"||bucket==="posible"||bucket==="deuda"||bucket==="recibo"||bucket==="meta";
   // El recibo dice CUÁL es, y si solo lo parece lo pregunta: «no cuenta» a secas haría dudar. La
   // aportación, igual: a qué meta va.
-  const skipTxt=!skip?"":(bucket==="recibo"||bucket==="meta"?recibo:t("g_skip_"+bucket));
+  // Una aportación a un bróker dice adónde fue si se sabe (`inversionEtiqueta`); si no, «no es un gasto».
+  const skipTxt=!skip?"":(bucket==="recibo"||bucket==="meta"||(bucket==="neutra"&&recibo)?recibo:t("g_skip_"+bucket));
   return React.createElement("button",{type:"button","data-expense-id":e.id,"data-expense-day":String(e.date||"").slice(0,10),
       className:"v4-mov"+(skip?" v4-mov-skip":"")+(dragging?" dragging":"")+(dragOver?" drag-over":""),
       onClick:function(ev){ if(ev.target&&ev.target.closest&&ev.target.closest(".v4-mov-drag")) return; onOpen(e); },style:skip?{opacity:.72}:null},

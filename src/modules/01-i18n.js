@@ -1588,6 +1588,11 @@ Object.assign(LANG.ca,{f_meta_row:"És una aportació a una meta", f_meta_hint:"
   f_meta_ok:"Aportació a «{name}»: ja no compta com a despesa", f_meta_off:"Torna a comptar com a despesa",
   g_meta_de:"Meta: {name}", g_meta_borrada:"Meta esborrada", gl_from_gastos:"{x} des de Despeses",
   gl_delete_linked:"Aquesta meta té aportacions marcades a Despeses. Treu abans la marca des de la fitxa de cada despesa."});
+// Fila gris de Inversiones en Gastos v5 (25/10/2026): aportaciones y compras a brókers, que ya no
+// cuentan en el gasto. El enlace lleva a Cartera hasta que exista la pestaña de inversiones.
+Object.assign(LANG.es,{gv5_cartera_open:"Abrir en Cartera", g_inv_dest:"Inversión: {name}"});
+Object.assign(LANG.en,{gv5_cartera_open:"Open in Portfolio", g_inv_dest:"Investment: {name}"});
+Object.assign(LANG.ca,{gv5_cartera_open:"Obre a Cartera", g_inv_dest:"Inversió: {name}"});
 // Gastos v5, tanda 2: secciones (Movimientos / Categorías / Suscripciones) y sus cabeceras.
 Object.assign(LANG.es,{gv5_secciones:"Secciones de Gastos", gv5_sec_movs:"Movimientos", gv5_sec_cats:"Categorías", gv5_sec_subs:"Suscripciones",
   gv5_subs_globo:"{n} por revisar", gv5_cats_pre:"{period} por categoría", gv5_cats_pres:"Presupuesto gastado", gv5_cats_of:"de {x}",
@@ -2931,6 +2936,28 @@ function metaEtiqueta(s, e){
   if(!id) return "";
   const g=((s&&s.goals)||[]).find(function(x){ return x && x.id===id; });
   return g ? tf("g_meta_de",{ name:(g.emoji?g.emoji+" ":"")+(g.name||"") }) : t("g_meta_borrada");
+}
+/* Lo que la lista escribe junto a una aportación a un bróker: «Inversión: Trade Republic», o ""
+   si no se sabe adónde fue (mejor nada que inventar un destino). Por orden de certeza: la
+   posición que compró la app con ESTE cargo (`investInvId`), un bróker nombrado en el comercio o
+   el concepto, y la posición de recompensas de la cuenta que pagó (`rewardInv`, la misma a la que
+   `applyInvestBuy` manda el dinero). Solo pinta: no cambia qué cuenta. */
+function inversionEtiqueta(s, e){
+  if(!e || e.category!=="inversion") return "";
+  const invs=(s&&s.investments)||[];
+  const porId=function(id){ return id ? invs.find(function(i){ return i && i.id===id; }) : null; };
+  const comprada=porId(e.investInvId);
+  if(comprada&&comprada.name) return tf("g_inv_dest",{ name:comprada.name });
+  const txt=(String(e.merchant||"")+" "+String(e.note||"")+" "+String(e.obName||"")).toLowerCase();
+  const ents=["trade_republic","myinvestor"];
+  invs.forEach(function(i){ if(i && i.ent && ENT[i.ent] && ents.indexOf(i.ent)<0) ents.push(i.ent); });
+  for(let k=0;k<ents.length;k++){
+    const lab=entOf(ents[k]).label;
+    if(lab && txt.indexOf(lab.toLowerCase())>=0) return tf("g_inv_dest",{ name:lab });
+  }
+  const acc=((s&&s.accounts)||[]).find(function(a){ return a && a.ent===e.ent && a.rewardInv; });
+  const premio=acc&&porId(acc.rewardInv);
+  return premio&&premio.name ? tf("g_inv_dest",{ name:premio.name }) : "";
 }
 /* Redondeo y saveback estimados del mes para la tarjeta de Cartera. Sin el cargo de un recibo,
    que no es una compra: con él dentro el redondeo subía con cada recibo (4,30 → 9,50 medido). */
