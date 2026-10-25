@@ -620,7 +620,9 @@ t("«ob-hist:…#n2» y los tramos «~deuda.» / «~recibo.» se leen con el ban
   assert.equal(r.ent, "sabadell"); assert.equal(r.obOrd, 2); assert.equal(r.possibleDup, true);
   const h = c.expenseFromRow({ id: "w", fecha: ymd(-1) + "T10:00:00.000Z", importe: 40, comercio: "Luz", cat: "luz", source: "ob-hist:sabadell~recibo.r1#n2" });
   assert.equal(h.ent, "sabadell"); assert.equal(h.obOrd, 2);
-  same(Object.keys(c.partirEntDeuda("sabadell~recibo.r1")).sort(), ["debtId", "ent", "reciboId"]);
+  // Desde la 4.26.172 la partición también devuelve `goalId` (aportación a meta), vacío si hay cuota o recibo: una marca por gasto.
+  same(Object.keys(c.partirEntDeuda("sabadell~recibo.r1")).sort(), ["debtId", "ent", "goalId", "reciboId"]);
+  assert.ok(!c.partirEntDeuda("sabadell~recibo.r1~meta.g1").goalId, "con recibo la meta no se lee");
   assert.equal(c.partirEntDeuda("sabadell~recibo.r1").reciboId, "r1");
   assert.equal(c.partirEntDeuda("sabadell~recibo.r1~deuda.d1").debtId, "d1");
 });
