@@ -30,6 +30,7 @@ const handlerJs = transformSync(stripped, { loader: "ts" }).code;
 function fakeDb(opts = {}) {
   const rows = (opts.rows || []).map((x) => ({ ...x }));
   let appState=opts.state || { accounts: [{ ent: "trade_republic", role: "diario" }], settings: {} };
+  let appRow=opts.absentState?null:{user_id:"user",data:appState,updated_at:opts.updated_at||"2026-10-01T00:00:00.000Z"};
   const events = [];
   let seq = rows.length;
   let ackReads = 0;
@@ -37,7 +38,7 @@ function fakeDb(opts = {}) {
   function table(name) {
     const q = { name, op: "select", cols: "*", filters: [], row: null, returning: false };
     const api = {
-      select(cols = "*", options) { q.cols = cols; q.count = options?.count; if (["upsert","update","delete"].includes(q.op)) q.returning = true; else q.op = "select"; return api; },
+      select(cols = "*", options) { q.cols = cols; q.count = options?.count; if (["insert","upsert","update","delete"].includes(q.op)) q.returning = true; else q.op = "select"; return api; },
       abortSignal() { return api; },
       eq(k, v) { q.filters.push(["eq", k, v]); return api; },
       in(k, values) { q.filters.push(["in", k, values]); return api; },
@@ -52,7 +53,7 @@ function fakeDb(opts = {}) {
       delete() { q.op = "delete"; return api; },
       insert(row) { q.op = "insert"; q.row = row; return api; },
       maybeSingle: async () => {
-        if (name === "app_state") return { data: { data: appState } };
+        if (name === "app_state") return { data: appRow&&q.filters.every(([,k,v])=>appRow[k]===v)?{...appRow}:null,error:null };
         return { data: null };
       },
       then(resolve, reject) { return Promise.resolve(run()).then(resolve, reject); },
@@ -69,7 +70,9 @@ function fakeDb(opts = {}) {
     function run() {
       if (name === "app_events" && q.op === "insert") { events.push(q.row); return { data: null, error: null }; }
       if (name === "app_state") {
-        if(q.op === "upsert" || q.op === "update") { appState=q.row.data; return {data:[{updated_at:q.row.updated_at}],error:null}; }
+        if(q.op === "insert"&&appRow)return {data:null,error:{code:"23505",message:"duplicate key"}};
+        if(q.op === "update"&&(!appRow||!q.filters.every(([,k,v])=>appRow[k]===v)))return {data:[],error:null};
+        if(["insert","upsert","update"].includes(q.op)) { appRow={...appRow,...q.row};appState=appRow.data;return {data:q.returning?[{updated_at:appRow.updated_at}]:null,error:null}; }
         return { data: [], error: null };
       }
       if (name !== "expenses") return { data: [], error: null };

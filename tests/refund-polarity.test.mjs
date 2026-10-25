@@ -148,8 +148,9 @@ function zeroCycle(f,raw=clientSource,initial=[]){
  const p=raw.indexOf('      const delSet=expenseDeletedSet(',raw.indexOf('const syncCloudExpenses=')),q=raw.indexOf('        const rec=reconcileObDupes',p);
  assert.ok(a>=0&&b>a&&p>=0&&q>p,'bloques reales encontrados');
  const names=['flattenBankTx','importObExpenses','applyInvestBuy','cuotasDeDeudaPorMarcar','gemelosDeImportacion','pushGemelos','reconcileGemelosAutomaticos','enrichNotesFromBankTx','tagObAccountsFromBankTx','reconcileFixedPaymentProofs','reconcileEarlyIncomeAnchors','applyBankBalances','bankIssuesOf','expenseFromRow','expensesFromRows','expenseIsTombstoned','expenseDeletedSet','keyOfExpense','expenseIdentityScopes','expenseMergeKey','keepCategoryChoices','mergeExpensesFromCloud','fusionarGemelos'];
- const namesExtra=['set','links','dbLinks','DEUDA_CAT','Date','at','setTimeout','subirGasto','opts','showToast','tf','stateRef','rows','readStartedAt','cloudGemelos','cloud'];
- const invoke=(code,rows)=>new Function(...names,...namesExtra,code)(...names.map(n=>c[n]),set,links,[],{id:'deudas'},Clock,now,fn=>fn(),e=>uploaded.push(e),{},msg=>notices.push(msg),(k,o)=>[k,o.n],ref,rows,now,[],{});
+ const readSession={user:{id:'synthetic'}};
+ const namesExtra=['set','links','dbLinks','DEUDA_CAT','Date','at','setTimeout','subirGasto','opts','showToast','tf','stateRef','rows','readStartedAt','cloudGemelos','cloud','ps','wS','readSession','sessionRef'];
+ const invoke=(code,rows)=>new Function(...names,...namesExtra,code)(...names.map(n=>c[n]),set,links,[],{id:'deudas'},Clock,now,fn=>fn(),e=>uploaded.push(e),{},msg=>notices.push(msg),(k,o)=>[k,o.n],ref,rows,now,[],{},1,{current:1},readSession,{current:readSession});
  for(let i=0;i<3;i++){
   const u=uploaded.length,n=notices.length;
   invoke('let obAdded=[];'+raw.slice(a,b),[]);

@@ -120,10 +120,10 @@ test("FIN07: mezcla conserva adicionales, lápidas, notas editadas y possibleDup
 
 // Ejecuta el call site de App: no basta con que el paginador rechace si el sync confirma un parcial.
 function syncHarness(pull,native=null,options={}){
-  const main=fs.readFileSync(new URL("../src/modules/11-app-main.js",import.meta.url),"utf8");
+  const main=fs.readFileSync(process.env.FIN04_EXPENSE_PULL_SOURCE||new URL("../src/modules/11-app-main.js",import.meta.url),"utf8");
   const ini=main.indexOf("const syncCloudExpenses=function(){"),end=main.indexOf("\n  };",ini)+5;
   const cli=withOwnerStorage(loadPureLogicFromFile()),local={id:uuid(9999),date:"2019-01-01T12:00:00.000Z",amount:5,merchant:"Solo local",source:"manual"};
-  const h={wS:{current:0},wR:{current:true},wP:{current:null},wC:{current:"|anterior|"},wRead:{current:null},sessionRef:{current:{user:{id:"synthetic-user"}}},stateRef:{current:{expenses:[local],deleted:["lapida"]}},sets:0,uploads:0};
+  const h={wS:{current:0},wR:{current:true},wP:{current:null},wC:{current:"|anterior|"},wRead:{current:null},wOwner:{current:null},sessionRef:{current:{user:{id:"synthetic-user"}}},stateRef:{current:{expenses:[local],deleted:["lapida"]}},sets:0,uploads:0};
   const env={...cli,...h,cloud:{pullExpenses:async proof=>{const r=await pull(proof);if(options.prove!==false){proof.valid=true;proof.userId="synthetic-user";}return r;},setExpenseCat:()=>Promise.resolve()},inicioDeMesMs:()=>0,
     retryObAbsorbedCloud:()=>cli.obAbsorbedRetry(()=>h.stateRef.current,()=>h.sessionRef.current&&h.sessionRef.current.user.id,fn=>env.set(fn)),
     mcSandbox:()=>!!options.sandbox,setTimeout:options.setTimeout||setTimeout,clearTimeout:options.clearTimeout||clearTimeout,
@@ -177,6 +177,8 @@ test("widget: lectura sin prueba explícita, otro usuario y ambos modos de prueb
 test("FIN07: sync nuevo termina antes, el viejo no pisa ni ACK ni histórico",async()=>{
   const pending=[];const h=syncHarness(()=>new Promise(resolve=>pending.push(resolve)));
   const old=h.sync();await new Promise(resolve=>setImmediate(resolve));
+  // La misma sesión comparte vuelo; una sesión nueva del mismo UID sí invalida el anterior.
+  h.sessionRef.current={user:{id:"synthetic-user"}};
   const latest=h.sync();await new Promise(resolve=>setImmediate(resolve));
   pending[1]([{...rows(1)[0],source:"macrodroid",ingest_event_id:"nuevo"}]);
   await latest;const before=h.stateRef.current,ack=h.wC.current;
@@ -203,10 +205,21 @@ test("widget: lectura superada no publica su marca; APK anterior conserva lectur
     beginWidgetRead:()=>new Promise(resolve=>marks.push(resolve))});
   const old=h.sync();await new Promise(resolve=>setImmediate(resolve));
   marks[0]({readGeneration:"old",nativeCut:"1"});await new Promise(resolve=>setImmediate(resolve));
+  h.sessionRef.current={user:{id:"synthetic-user"}};
   const latest=h.sync();await new Promise(resolve=>setImmediate(resolve));
   marks[1]({readGeneration:"new",nativeCut:"2"});await new Promise(resolve=>setImmediate(resolve));
   pending[1](rows(1));await latest;pending[0](rows(2));await old;
   assert.equal(h.wRead.current.readGeneration,"new");assert.equal(h.sets,1);
   const legacy=syncHarness(()=>Promise.resolve(rows(1)),{beginWidgetRead:()=>Promise.reject(new Error("no disponible"))});
   await legacy.sync();assert.equal(legacy.wRead.current,null);assert.equal(legacy.wR.current,true);
+});
+
+test("FIN07: la misma sesión comparte vuelo y una sesión nueva del mismo UID no hereda la respuesta",async()=>{
+  const pending=[],h=syncHarness(()=>new Promise(resolve=>pending.push(resolve)));
+  const old=h.sync(),same=h.sync();assert.equal(same,old);
+  await new Promise(resolve=>setImmediate(resolve));assert.equal(pending.length,1);
+  h.sessionRef.current={user:{id:"synthetic-user"}};
+  const fresh=h.sync();assert.notEqual(fresh,old);await new Promise(resolve=>setImmediate(resolve));assert.equal(pending.length,2);
+  pending[0](rows(2));await old;assert.equal(h.sets,0);assert.equal(h.wR.current,false);assert.equal(h.wRead.current,null);
+  pending[1](rows(1));await fresh;assert.equal(h.sets,1);assert.equal(h.wR.current,true);
 });
