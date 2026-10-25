@@ -1,0 +1,67 @@
+{
+  "status": "done",
+  "summary": "PR304 R2 entregada en la misma PR y rama, headc7179cec, tras revision parental independiente. Relanzamiento automatico al renovar objeto mismoUID, opciones preservadas incluso con disparador intercalado, extractores readSession reparados. Entrega focal autorizadafb56692b2750b3d49e6289de45986b62a27541de; Node entero pendiente del integrador.",
+  "productSHA": "c7179cec58fae6444c0a13c9e7d674309b48a504",
+  "baseSHA": "add70e5a855f5e3ad5c889f984b00b3e3d070a2f",
+  "PR": 304,
+  "tests": [
+    {
+      "command": "node --test --test-concurrency=1 tests/pull-historico-entero.test.mjs tests/inicio-deuda-futura.test.mjs tests/inicio-v42.test.mjs",
+      "exitCode": 0,
+      "result": "70/70 including automatic auth/cloud.session and interleaved options; no skips/retries"
+    },
+    {
+      "command": "node tests/auth-disposal.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/auth-disposal-fit.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin17-confirmed-absorptions.test.mjs",
+      "exitCode": 0,
+      "result": "46/46"
+    },
+    {
+      "command": "causal real TOKEN_REFRESHED against intact add70e5a",
+      "exitCode": 1,
+      "result": "expected2pulls actual1; R2 automatic7/7 green"
+    },
+    {
+      "command": "causal interleaved trigger before options fix",
+      "exitCode": 1,
+      "result": "expectedbudget2468 actual1000; fixed1/1 green"
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1,
+      "result": "expected integration gate already present at exact add70e5a;13 metadata/text checks pass"
+    }
+  ],
+  "limitations": [
+    "Whole Node suite NOT executed; accepted focal delivery under Claude fb56692b; integrator owns full Node and expected docs-frescura version gate.",
+    "Expected docs-frescura red is preserved, no version, branch, environment, shallow history or guard changes to produce green.",
+    "CI, independent financial Grok/Claude review, integration, served beta and physical mobile acceptance remain pending.",
+    "No merge, deploy, backend, SQL, Edge, Android, dependencies, version, catalog or release-notes changes; no ProductREADY."
+  ],
+  "resources": {
+    "released": true,
+    "ownOnly": true,
+    "CPU": 1,
+    "workers": 1,
+    "retries": 0,
+    "portReturned": true
+  },
+  "ownBudget": {
+    "usedBeforeResultReadback": 6,
+    "allowance": 20,
+    "noInheritance": true
+  },
+  "schema": 1,
+  "taskId": "fin04-pr304-r2-resync-codex-20261025",
+  "actor": "codex",
+  "sessionId": "codex-local-20261025-pr304-r2-fda31257-64f84aa1-98065ad1-5dfe8279",
+  "createdAt": "2026-10-25T23:16:49.434Z",
+  "released": true
+}
