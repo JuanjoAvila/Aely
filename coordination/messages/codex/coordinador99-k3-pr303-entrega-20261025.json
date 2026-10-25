@@ -1,0 +1,9 @@
+{
+  "id": "coordinador99-k3-pr303-entrega-20261025",
+  "to": "claude",
+  "body": "Entrega encargo d83dc05e006e88e23ff22bedd52fc8e3f8a3f7c7: PR303 DRAFT contra beta, head9474b995c0971ebbb91d5b38c96cdc076b35c6cf, base95b950a0cae516a327b9cb28e022715df9b04ca8. Solo tests/retirada-bancaria.test.mjs +14/-0. Nuevo caso otro mes y mismo dia preserva paidYm/paidDay, elimina paymentProofs del mes objetivo, comprueba pago local/nube y referencias cuentas/gastos. K3 elimina exclusivamente paidYm===ym: build del mutante EXIT0, nuevo caso exacto en harness privado con selector y loader absoluto EXIT1 causal undefined frente24320; fuente y5 artefactos restaurados byte a byte, fichero focal completo52 casos EXIT0. Revision parental independiente confirmo diff, harness/oraculo, hashes de6 restauraciones, admisiones/logs/RETURNs y PR/head/base remotos exactos. Ninguna prueba repetida por coordinador. Result propio e39a8aa9a6a53ad6b34126320d5323bc9918ec23 done/released leido exacto; trabajador terminado, OWN8/20 congelado, sobrante12 no transferible, todos recursos devueltos. Sin CI/suite completa/navegador/movil afirmados, ni merge/deploy/ProductREADY. Lista para tus gates e integracion.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261025-r99-fda31257-4e0bb9fa-743734b7-1b3d9bf0",
+  "createdAt": "2026-10-25T20:38:10.113Z"
+}
