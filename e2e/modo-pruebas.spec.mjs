@@ -145,7 +145,8 @@ for(const [lang,action] of [['es','activate'],['en','activate'],['ca','activate'
       return {results,writers:CLOUD_WRITES,pinned:mcSandbox(),flag:mcSandboxFlag(),transition:mcSandboxTransition(),marks:performance.getEntriesByName('mc_mode_change_reopen_required').map(e=>({name:e.name,detail:e.detail})),realBudget:mcLoadRaw('micartera_v3').budget};
     });
     expect(dialogs).toEqual(['beforeunload']);expect(guarded.transition).toBe(true);expect(guarded.pinned).toBe(action!=='activate');
-    expect(guarded.results).toHaveLength(33);expect(guarded.writers).toContain('renameExpense');expect(new Set(guarded.writers).size).toBe(33);expect(guarded.results.every(r=>r===null)).toBe(true);
+    // 34 desde la 4.26.172: entra `setExpenseMeta` (la aportación a meta), que también se corta en modo pruebas.
+    expect(guarded.results).toHaveLength(34);expect(guarded.writers).toContain('renameExpense');expect(guarded.writers).toContain('setExpenseMeta');expect(new Set(guarded.writers).size).toBe(34);expect(guarded.results.every(r=>r===null)).toBe(true);
     expect(guarded.marks).toEqual([{name:'mc_mode_change_reopen_required',detail:null}]);expect(guarded.realBudget).toBe(500);
     // The same browser reload, now allowed, stands in for closing/reopening this document.
     await page.evaluate(()=>{window._incCancelReload=false;});await page.reload();
@@ -234,7 +235,7 @@ for(const action of ['activate','empty','deactivate']) test(`INC171001 window fe
     expect(interval.flag).toBe(action!=='activate');
     const probe=await page.evaluate(async()=>{const results=[];for(const name of CLOUD_WRITES)results.push({name,result:await cloud[name]()});return results;});
     probes[0].allWriters=probe;
-    expect(probe).toHaveLength(33);expect(probe.map(p=>p.name)).toContain('renameExpense');expect(new Set(probe.map(p=>p.name)).size).toBe(33);
+    expect(probe).toHaveLength(34);expect(probe.map(p=>p.name)).toContain('renameExpense');expect(probe.map(p=>p.name)).toContain('setExpenseMeta');expect(new Set(probe.map(p=>p.name)).size).toBe(34);
     expect(probe.every(p=>p.result===null)).toBe(true);
     await Promise.all([page.waitForEvent('load'),page.evaluate(()=>{window._incHoldAsk=false;window._incHeldBack();})]);
     await ready(2);
