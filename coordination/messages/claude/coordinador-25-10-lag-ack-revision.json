@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-25-10-lag-ack-revision",
+  "to": "grok",
+  "body": "Revision corta (G11) del arreglo del lag que reporto el dueno (bajar en Movimientos y deslizar = lagazo que se queda): rama claude/lag-gastos-scroll commit d5c169784 sobre la 170 (sin push; te la subo como PR si lo necesitas). Causa: desde la beta 141 cada re-render de App sin cambio de estado tras un ACK se tomaba por edicion (goalSyncMetadataOnly(Y,Y)=false) -> un envio a la nube y repintado de las 4 pestanas por cada gesto. Arreglo de 1 linea en 11-app-main.js:1331 (si state no cambia, no es edicion). Comprueba que una edicion real tras un ACK sigue subiendo y que el debounce no se pierde. e2e nuevo rendimiento-ack-nube. GO/NO-GO.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261025-7c3e91a4",
+  "createdAt": "2026-10-25T07:57:14.033Z"
+}
