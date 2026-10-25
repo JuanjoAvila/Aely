@@ -21,42 +21,7 @@
         "Recuperar la connexió ja no reescriu tot l'historial de despeses, així l'app va més lleugera."
       ]
     },
-    "tandas": [
-      {
-        "id": "sync-dos-moviles",
-        "t": {
-          "es": "Dos móviles: abrir la app ya no deshace lo que cambiaste en el otro",
-          "en": "Two phones: opening the app no longer undoes what you changed on the other one",
-          "ca": "Dos mòbils: obrir l'app ja no desfà el que vas canviar a l'altre"
-        },
-        "items": {
-          "es": [
-            "1. Hace falta esta versión en dos móviles con tu cuenta (A y B). En A cierra la app del todo (quítala de las apps recientes). En B ve a Plan → Deudas, toca una deuda, añade « 2» al final de su «Nombre» y toca «Guardar cambios». MAL: no se guarda o sale un aviso de error.",
-            "2. Espera unos segundos y abre la app en A. En Plan → Deudas esa deuda ya se llama con el « 2». MAL: sale con el nombre de antes.",
-            "3. Deja A abierta un minuto sin tocar nada. Después cierra la app del todo en B y vuelve a abrirla: la deuda sigue con el « 2». MAL: ha vuelto el nombre de antes.",
-            "4. Durante los pasos 1 a 3 no sale en ninguno de los dos móviles el aviso «⚠ Otro dispositivo guardó cambios antes…». MAL: sale ese aviso.",
-            "5. Pon A en modo avión. Abre esa deuda, quita el « 2» del «Nombre» y toca «Guardar cambios». Quita el modo avión y deja la app abierta medio minuto. MAL: sin red no te deja guardar, o al volver la red sale un aviso de error.",
-            "6. Cierra la app del todo en B y vuelve a abrirla: la deuda vuelve a llamarse como siempre, sin el « 2». MAL: en B sigue con el « 2», o en A ha vuelto a salir el « 2»."
-          ],
-          "en": [
-            "1. You need this version on two phones with your account (A and B). On A close the app completely (swipe it away from recent apps). On B go to Plan → Debts, tap a debt, add \" 2\" at the end of its \"Name\" and tap \"Save changes\". WRONG: it isn't saved or an error message appears.",
-            "2. Wait a few seconds and open the app on A. In Plan → Debts that debt is already called with the \" 2\". WRONG: it shows the old name.",
-            "3. Leave A open for a minute without touching anything. Then close the app completely on B and open it again: the debt still has the \" 2\". WRONG: the old name is back.",
-            "4. During steps 1 to 3 neither phone shows the message \"⚠ Another device saved changes first…\". WRONG: that message appears.",
-            "5. Put A in airplane mode. Open that debt, remove the \" 2\" from its \"Name\" and tap \"Save changes\". Turn airplane mode off and leave the app open for half a minute. WRONG: it doesn't let you save without a connection, or an error message appears when the connection comes back.",
-            "6. Close the app completely on B and open it again: the debt is back to its usual name, without the \" 2\". WRONG: on B it still has the \" 2\", or on A the \" 2\" has come back."
-          ],
-          "ca": [
-            "1. Cal aquesta versió en dos mòbils amb el teu compte (A i B). A A tanca l'app del tot (treu-la de les apps recents). A B ves a Pla → Deutes, toca un deute, afegeix « 2» al final del seu «Nom» i toca «Desa els canvis». MALAMENT: no es desa o surt un avís d'error.",
-            "2. Espera uns segons i obre l'app a A. A Pla → Deutes aquell deute ja es diu amb el « 2». MALAMENT: surt amb el nom d'abans.",
-            "3. Deixa A oberta un minut sense tocar res. Després tanca l'app del tot a B i torna-la a obrir: el deute continua amb el « 2». MALAMENT: ha tornat el nom d'abans.",
-            "4. Durant els passos 1 a 3 no surt en cap dels dos mòbils l'avís «⚠ Un altre dispositiu ha desat canvis abans…». MALAMENT: surt aquest avís.",
-            "5. Posa A en mode avió. Obre aquell deute, treu el « 2» del «Nom» i toca «Desa els canvis». Treu el mode avió i deixa l'app oberta mig minut. MALAMENT: sense xarxa no et deixa desar, o en tornar la xarxa surt un avís d'error.",
-            "6. Tanca l'app del tot a B i torna-la a obrir: el deute torna a dir-se com sempre, sense el « 2». MALAMENT: a B continua amb el « 2», o a A ha tornat a sortir el « 2»."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.170",

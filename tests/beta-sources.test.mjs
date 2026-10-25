@@ -150,7 +150,7 @@ const sourceBeta167=sourceAt("03c979f2f378e019a8eedf79856437eb7f563f69");
 const sourceBeta168=sourceAt("1624090184b34fe6a09027ee07cfe81159799f5c");
 // Catálogo169 pasa a histórico con la 170: se lee de la 4.26.169 servida en beta (72a0f48cc); sus tres tandas (hoja de Filtros, secciones y movimientos) siguen SIN veredicto y se quedan en la 169: la 170 no cambia la conducta de ninguno de sus pasos.
 const sourceBeta169=sourceAt("72a0f48ccd03e48c1245899cf6eaf3b2e8d18313");
-// Catálogo170 pasa a histórico con la 171: se lee de la 4.26.170 servida en beta (c670f7ddd); su tanda sync-dos-moviles sigue SIN veredicto y se MUEVE a la 171 (cambia el vuelo de gastos y la persistencia que sus pasos 5 y 6 recorren al recuperar la red); las cinco de Gastos v5 se quedan donde están.
+// Catálogo170 pasa a histórico con la 171: se lee de la 4.26.170 servida en beta (c670f7ddd); su tanda sync-dos-moviles la aprobó el dueño después (25/10, 07:36) y NO pasa a la 171 (aunque su huella se mueve con el vuelo de gastos y la persistencia); las cinco de Gastos v5 se quedan donde están.
 const sourceBeta170=sourceAt("c670f7ddd5f5fd6351f506741e20f296654659eb");
 const sourceBeta153=sourceAt("80752dff055dc391c52c3067ce238f49e0a14598");
 // Catálogo137 pasa a histórico en la promoción 137: se lee de la beta 4.26.137.1 aprobada (6f18228c), lo último que probó el móvil y lo que sube entero.
@@ -5670,56 +5670,40 @@ test("Catálogo170 histórico añade la tanda de dos móviles (solo web) sobre l
   assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
 });
 
-const expected171={"v":"4.26.171","d":"2026-10-25","t":{"es":"Gastos al día con mala cobertura","en":"Spending up to date on a weak signal","ca":"Despeses al dia amb mala cobertura"},"items":{"es":["Si la conexión se queda colgada un momento, la app ya no deja de traer los gastos nuevos: se recupera sola.","Recuperar la conexión ya no reescribe todo el histórico de gastos, así la app va más ligera."],"en":["If the connection hangs for a moment, the app no longer stops bringing in new expenses: it recovers on its own.","Getting the connection back no longer rewrites the whole expense history, so the app runs lighter."],"ca":["Si la connexió es queda penjada un moment, l'app ja no deixa de portar les despeses noves: es recupera sola.","Recuperar la connexió ja no reescriu tot l'historial de despeses, així l'app va més lleugera."]},"tandas":[{"id":"sync-dos-moviles","t":{"es":"Dos móviles: abrir la app ya no deshace lo que cambiaste en el otro","en":"Two phones: opening the app no longer undoes what you changed on the other one","ca":"Dos mòbils: obrir l'app ja no desfà el que vas canviar a l'altre"},"items":{"es":["1. Hace falta esta versión en dos móviles con tu cuenta (A y B). En A cierra la app del todo (quítala de las apps recientes). En B ve a Plan → Deudas, toca una deuda, añade « 2» al final de su «Nombre» y toca «Guardar cambios». MAL: no se guarda o sale un aviso de error.","2. Espera unos segundos y abre la app en A. En Plan → Deudas esa deuda ya se llama con el « 2». MAL: sale con el nombre de antes.","3. Deja A abierta un minuto sin tocar nada. Después cierra la app del todo en B y vuelve a abrirla: la deuda sigue con el « 2». MAL: ha vuelto el nombre de antes.","4. Durante los pasos 1 a 3 no sale en ninguno de los dos móviles el aviso «⚠ Otro dispositivo guardó cambios antes…». MAL: sale ese aviso.","5. Pon A en modo avión. Abre esa deuda, quita el « 2» del «Nombre» y toca «Guardar cambios». Quita el modo avión y deja la app abierta medio minuto. MAL: sin red no te deja guardar, o al volver la red sale un aviso de error.","6. Cierra la app del todo en B y vuelve a abrirla: la deuda vuelve a llamarse como siempre, sin el « 2». MAL: en B sigue con el « 2», o en A ha vuelto a salir el « 2»."],"en":["1. You need this version on two phones with your account (A and B). On A close the app completely (swipe it away from recent apps). On B go to Plan → Debts, tap a debt, add \" 2\" at the end of its \"Name\" and tap \"Save changes\". WRONG: it isn't saved or an error message appears.","2. Wait a few seconds and open the app on A. In Plan → Debts that debt is already called with the \" 2\". WRONG: it shows the old name.","3. Leave A open for a minute without touching anything. Then close the app completely on B and open it again: the debt still has the \" 2\". WRONG: the old name is back.","4. During steps 1 to 3 neither phone shows the message \"⚠ Another device saved changes first…\". WRONG: that message appears.","5. Put A in airplane mode. Open that debt, remove the \" 2\" from its \"Name\" and tap \"Save changes\". Turn airplane mode off and leave the app open for half a minute. WRONG: it doesn't let you save without a connection, or an error message appears when the connection comes back.","6. Close the app completely on B and open it again: the debt is back to its usual name, without the \" 2\". WRONG: on B it still has the \" 2\", or on A the \" 2\" has come back."],"ca":["1. Cal aquesta versió en dos mòbils amb el teu compte (A i B). A A tanca l'app del tot (treu-la de les apps recents). A B ves a Pla → Deutes, toca un deute, afegeix « 2» al final del seu «Nom» i toca «Desa els canvis». MALAMENT: no es desa o surt un avís d'error.","2. Espera uns segons i obre l'app a A. A Pla → Deutes aquell deute ja es diu amb el « 2». MALAMENT: surt amb el nom d'abans.","3. Deixa A oberta un minut sense tocar res. Després tanca l'app del tot a B i torna-la a obrir: el deute continua amb el « 2». MALAMENT: ha tornat el nom d'abans.","4. Durant els passos 1 a 3 no surt en cap dels dos mòbils l'avís «⚠ Un altre dispositiu ha desat canvis abans…». MALAMENT: surt aquest avís.","5. Posa A en mode avió. Obre aquell deute, treu el « 2» del «Nom» i toca «Desa els canvis». Treu el mode avió i deixa l'app oberta mig minut. MALAMENT: sense xarxa no et deixa desar, o en tornar la xarxa surt un avís d'error.","6. Tanca l'app del tot a B i torna-la a obrir: el deute torna a dir-se com sempre, sense el « 2». MALAMENT: a B continua amb el « 2», o a A ha tornat a sortir el « 2»."]}}]};
+const expected171={"v":"4.26.171","d":"2026-10-25","t":{"es":"Gastos al día con mala cobertura","en":"Spending up to date on a weak signal","ca":"Despeses al dia amb mala cobertura"},"items":{"es":["Si la conexión se queda colgada un momento, la app ya no deja de traer los gastos nuevos: se recupera sola.","Recuperar la conexión ya no reescribe todo el histórico de gastos, así la app va más ligera."],"en":["If the connection hangs for a moment, the app no longer stops bringing in new expenses: it recovers on its own.","Getting the connection back no longer rewrites the whole expense history, so the app runs lighter."],"ca":["Si la connexió es queda penjada un moment, l'app ja no deixa de portar les despeses noves: es recupera sola.","Recuperar la connexió ja no reescriu tot l'historial de despeses, així l'app va més lleugera."]},"tandas":[]};
 // 4.26.171 (25/10/2026): fix-170 (ac96a1c9f) sobre la beta 4.26.170 servida (c670f7ddd), solo web y sin APK nueva (sigue la 61). Una lectura de gastos que ni responde ni falla ya no retiene las bajadas: pasados 25 s (EXP_READ_PLAZO) y con una relectura pedida, ésta releva al vuelo y la respuesta tardía no se mezcla; y la relectura al recuperar la red, que devuelve las mismas filas en otro array, ya no marca la reescritura del histórico de gastos (mcPersistCommit). El resto del commit es arnés (esperaNubeQuieta, insert en dobles, updated_at en mocks, lifecycle-inflight al contrato singleflight).
-// Sin tanda nueva: sync-dos-moviles (170) NO tiene veredicto y se MUEVE a la 171 tal cual, porque sus pasos 5 y 6 (sin red → vuelve la red → el otro móvil reabre en frío) recorren justo la relectura y la persistencia que cambian y su huella se mueve. Las cinco de Gastos v5 se quedan donde están: ninguno de sus pasos cambia de conducta.
+// Sin tanda nueva: sync-dos-moviles (170) la APROBÓ el dueño (25/10, 07:36, 6 ok / 0 fallo en la 4.26.170.1) y lo aprobado sale del panel: la 170 y la 171 quedan con tandas:[]. Su huella se mueve igualmente, pero un descriptor aprobado no vuelve. Las cinco de Gastos v5 se quedan donde están: ninguno de sus pasos cambia de conducta.
 // Registro: ningún descriptor nuevo ni cambiado; los anclajes siguen valiendo y la lista cerrada de huellas que se mueven se declara abajo.
-test("Catálogo171 mueve a la 171 la tanda de dos móviles (solo web) sobre la 170, deja las cinco de Gastos v5 donde están y declara cada huella que mueve",()=>{
-  const tandas=["sync-dos-moviles"],pasos=[6],A0="src/modules/11-app-main.js",C0="src/modules/00-core.js",I0="src/modules/01-i18n.js";
+test("Catálogo171 (solo web) saca del panel la tanda de dos móviles, ya aprobada, deja las cinco de Gastos v5 donde están y declara cada huella que mueve",()=>{
+  const desc="sync-dos-moviles",A0="src/modules/11-app-main.js",C0="src/modules/00-core.js",I0="src/modules/01-i18n.js";
   const integrated=JSON.parse(sourceBeta170("scripts/beta-sources.json")),before=JSON.parse(sourceBeta170("src/data/release-notes.json"));
   const source=f=>nl(read(f)),old=f=>nl(sourceBeta170(f));
   assert.equal(before[0].v,"4.26.170");
-  assert.deepEqual(before[0].tandas.map(g=>g.id),tandas,"la 170 llevaba la de dos móviles, sin veredicto");
+  assert.deepEqual(before[0].tandas.map(g=>g.id),[desc],"la 170 servida llevaba la de dos móviles, que el dueño aprobó después");
   assert.deepEqual(before[1].tandas.map(g=>g.id),["gastos-v5-filtros-hoja","gastos-v5-secciones","gastos-v5-movimientos"],"la 169 llevaba la hoja de Filtros, las secciones y los movimientos, sin veredicto");
   assert.deepEqual(before[2].tandas.map(g=>g.id),["gastos-v5-subs"],"la 168 llevaba las suscripciones, sin veredicto");
   assert.deepEqual(before[3].tandas.map(g=>g.id),["gastos-v5-filtro"],"la 167 llevaba el filtro, sin veredicto");
-  // La tanda pasa tal cual: ni un paso ni un título cambian; solo cambia de nota.
-  assert.deepEqual(expected171.tandas,before[0].tandas,"sync-dos-moviles se mueve a la 171 sin tocar su guion");
+  assert.deepEqual(expected171.tandas,[],"la 171 no lleva tanda: la de dos móviles está aprobada y no se vuelve a pedir");
   const expectedNotes=[expected171,{...before[0],tandas:[]},...before.slice(1)];
   const notes=JSON.parse(source("src/data/release-notes.json"));
-  assert.deepEqual(notes,expectedNotes,"la nota 171 literal delante, la 170 con tandas:[] y todo lo demás intacto (las cinco de Gastos v5 donde estaban)");
-  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.171",tandas[0],0],["4.26.169","gastos-v5-filtros-hoja",0],["4.26.169","gastos-v5-secciones",0],["4.26.169","gastos-v5-movimientos",0],["4.26.168","gastos-v5-subs",0],["4.26.167","gastos-v5-filtro",0]],"el panel enseña seis tandas, ninguna con APK");
+  assert.deepEqual(notes,expectedNotes,"la nota 171 literal delante (con tandas:[]), la 170 con tandas:[] y todo lo demás intacto (las cinco de Gastos v5 donde estaban)");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.169","gastos-v5-filtros-hoja",0],["4.26.169","gastos-v5-secciones",0],["4.26.169","gastos-v5-movimientos",0],["4.26.168","gastos-v5-subs",0],["4.26.167","gastos-v5-filtro",0]],"el panel enseña cinco tandas, ninguna con APK");
+  assert.deepEqual(notes[0].tandas,[],"la 171 queda con tandas:[]");
   assert.deepEqual(notes[1].tandas,[],"la 170 queda con tandas:[]");
   for(const n of notes.slice(5))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] (la propiedad se conserva, vacía)");
   assert.equal(notes.length,268);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
-  notes[0].tandas.forEach(g=>assert.deepEqual(Object.keys(g),["id","t","items"],"sin apk: "+g.id));
-  const jerga=/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|FIN-|SES-|UX-|\d+\.\d+\.\d+/i;
-  const textos=source(I0);
-  const rotulo=key=>{const m={};for(const lang of ["es","en","ca"]){const all=[...textos.matchAll(new RegExp("(?<![A-Za-z0-9_])"+key+':"([^"]*)"',"g"))].map(x=>x[1]);assert.equal(all.length,3,key+": un texto por idioma");m[lang]=all[["es","en","ca"].indexOf(lang)];}return m;};
+  const jerga=/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|FIN-|SES-|UX-|d+.d+.d+/i;
   for(const lang of ["es","en","ca"]){
     assert.equal(notes[0].items[lang].length,2,lang+": dos puntos familiares");
-    notes[0].tandas.forEach((g,gi)=>{
-      assert.equal(g.items[lang].length,pasos[gi],lang+": pasos de "+g.id);
-      g.items[lang].forEach((step,j)=>assert.ok(step.startsWith((j+1)+". "),lang+": paso numerado "+(j+1)+" de "+g.id));
-      for(const text of g.items[lang])assert.ok(/MAL|WRONG|MALAMENT/.test(text),lang+": cada paso dice qué es MAL: "+text);
-    });
     for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
   }
-  // Cada rótulo que cita un paso es el texto real de la app en su idioma (el aviso de conflicto, hasta los dos puntos).
-  for(const [key,paso,cortaEn] of [["tab_plan",0],["v4_plan_deudas",0],["plan_edit_name",0],["db_savechanges",0],["tab_plan",1],["v4_plan_deudas",1],["st_sync_conflict",3,":"],["plan_edit_name",4],["db_savechanges",4]]){
-    const r=rotulo(key);for(const lang of ["es","en","ca"]){const txt=cortaEn?r[lang].split(cortaEn)[0]:r[lang];assert.ok(txt,lang+": "+key+" existe");assert.ok(notes[0].tandas[0].items[lang][paso].includes(txt),lang+": el paso "+(paso+1)+" cita «"+txt+"» ("+key+")");}
-  }
-  // Lo que el guion pide tocar existe tal cual: la hoja de editar deuda con su campo de nombre y el guardado local (sin red).
-  const deudas=source("src/modules/09-tab-debts-goals.js");
-  assert.ok(deudas.includes('input("name","plan_edit_name")')&&deudas.includes('onClick:submit},t("db_savechanges"))'),"la hoja de editar deuda tiene «Nombre» y «Guardar cambios»");
   const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
-  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verifyNotes(twice),assert.AssertionError,"no duplicar una tanda");
+  const volver=structuredClone(notes);volver[0].tandas.push(structuredClone(before[0].tandas[0]));assert.throws(()=>verifyNotes(volver),assert.AssertionError,"la aprobada no vuelve al panel de la 171");
   const filtrosMovida=structuredClone(notes);filtrosMovida[0].tandas.push(filtrosMovida[2].tandas.shift());assert.throws(()=>verifyNotes(filtrosMovida),assert.AssertionError,"la hoja de Filtros se queda en la 169");
   const subsMovida=structuredClone(notes);subsMovida[0].tandas.push(subsMovida[3].tandas.pop());assert.throws(()=>verifyNotes(subsMovida),assert.AssertionError,"las suscripciones se quedan en la 168");
-  const sinMover=structuredClone(notes);sinMover[1].tandas.push(sinMover[0].tandas.pop());assert.throws(()=>verifyNotes(sinMover),assert.AssertionError,"la tanda no se queda en la 170");
-  const conApk=structuredClone(notes);conApk[0].tandas[0].apk=61;assert.throws(()=>verifyNotes(conApk),assert.AssertionError,"la tanda no exige APK: es solo web");
-  // Registro: idéntico al de la 170, descriptor de la tanda incluido (se mueve de nota, no de contenido).
-  const scopes=JSON.parse(source("scripts/beta-sources.json")),{[tandas[0]]:ahora,...resto}=scopes;
+  const enLa170=structuredClone(notes);enLa170[1].tandas.push(structuredClone(before[0].tandas[0]));assert.throws(()=>verifyNotes(enLa170),assert.AssertionError,"la aprobada no se queda en la 170");
+  // Registro: idéntico al de la 170, descriptor de la tanda aprobada incluido (se queda como histórico: la huella se sigue midiendo).
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),{[desc]:ahora,...resto}=scopes;
   assert.deepEqual(scopes,integrated,"el registro de la 170, intacto");
   assert.deepEqual(Object.keys(scopes),Object.keys(integrated),"mismo orden, sin descriptores nuevos");
   assert.deepEqual(Object.keys(ahora),["web","unidades"],"solo web");assert.equal(ahora.unidades,true);
@@ -5736,7 +5720,7 @@ test("Catálogo171 mueve a la 171 la tanda de dos móviles (solo web) sobre la 1
     {file:A0,from:"  const brokerBootOwner=useRef(null);",to:"  /* Cuotas de deuda a «Deudas» (4.21.0)"},
     {file:A0,from:"  const invSnapRef=useRef(\"\");",to:"  // GAMIFICACIÓN:"},
     {file:C0,data:"cloud",members:["enabled","session","onAuth","pullState","pushState","pullExpenses","backupState","setExpenseRecibo","setExpenseCat","setExpenseDup","logEvent","addExpense"]}];
-  assert.deepEqual(ahora.web.slice(0,propias.length),propias,"las unidades propias de la tanda (el set de App con su sello, la lectura y el envío, el vuelo de gastos, el pull, la sesión, el debounce, la vuelta a primer plano, la copia diaria, la reconexión, el bróker de arranque y las fotos de inversión y bienes, más los métodos de la nube que se llaman de verdad, como exige el guardián de métodos), en este orden, y el cierre de lectores detrás");
+  assert.deepEqual(ahora.web.slice(0,propias.length),propias,"las unidades propias del descriptor (el set de App con su sello, la lectura y el envío, el vuelo de gastos, el pull, la sesión, el debounce, la vuelta a primer plano, la copia diaria, la reconexión, el bróker de arranque y las fotos de inversión y bienes, más los métodos de la nube que se llaman de verdad, como exige el guardián de métodos), en este orden, y el cierre de lectores detrás");
   {const fns=logicFunctions(source),dat=logicData(source);let web=propias.slice();
     for(let ronda=0;ronda<10;ronda++){
       const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];
@@ -5753,7 +5737,7 @@ test("Catálogo171 mueve a la 171 la tanda de dos móviles (solo web) sobre la 1
   assert.equal(source("public/apk.json"),old("public/apk.json"),"apk.json intacto: sigue la APK 61");
   assert.equal(source("android/app/build.gradle"),old("android/app/build.gradle"),"build.gradle intacto");
   assert.equal(execFileSync("git",["diff","--name-only","c670f7ddd5f5fd6351f506741e20f296654659eb","HEAD","--","supabase","android"],{encoding:"utf8"}).trim(),"","sin SQL, Edge ni nativo");
-  // Huellas que se mueven (lista cerrada, todas solo web): la propia tanda también se mueve (cambia el vuelo de gastos y mcPersistCommit, que su descriptor recorre) y por eso va a la 171 con su guion.
+  // Huellas que se mueven (lista cerrada, todas solo web): el descriptor de dos móviles también se mueve (cambia el vuelo de gastos y mcPersistCommit, que recorre), pero está aprobado y no vuelve al panel.
   // Las cinco vivas de Gastos v5 se reabren si llevan el set de App o la lectura de gastos; el resto son descriptores aprobados que llevan el bloque del guardado (mcPersistCommit) o el pull,
   // y no vuelven al panel.
   const expectedMoves={"bancos-acuse-reconexion":["web"],"bancos-sin-hueco":["web"],"bienes-completo":["web"],"cartera-moneda":["web"],"cartera-ordenar-brokers":["web"],"cartera-sin-lagazo":["web"],"categoria-coche":["web"],"compras-identicas-ids":["web"],"cuenta-parte-mia":["web"],"cuenta-saldo-cierre-atras":["web"],"deuda-bajar-cuota-alarga-plazo":["web"],"deuda-nueva-desde-su-dia":["web"],"deudas-metas-hoja-cierre-suave":["web"],"deudas-metas-hoja-edicion":["web"],"deudas-plazo-cuota-encaja":["web"],"feature-0210-01-gasolina-taxi":["web"],"feature-0310-01-movilidad":["web"],"fichas-cierre-suave-atras":["web"],"fin05-pago-cerrada":["web"],"fin05-widget-reentrada":["web"],"gastos-dos-bancos":["web"],"gastos-suscripciones-botones":["web"],"gastos-v5-filtro":["web"],"gastos-v5-filtros-hoja":["web"],"gastos-v5-movimientos":["web"],"gastos-v5-secciones":["web"],"gastos-v5-subs":["web"],"gestionar-plan-ola":["web"],"gestionar-plan-ola-r2":["web"],"gestionar-plan-sin-ola":["web"],"inc-0210-02-categoria-elegida":["web"],"inc-0210-03-gastos-periodo":["web"],"inc-0310-01-meta-regla":["web"],"inc-0310-broker-resultados":["web"],"inc-0310-gastos-sin-limite":["web"],"inc-0710-auth-disposal":["web"],"inc-0710-gastos-mes-madrid":["web"],"inc-0810-metas-editar-regla":["web"],"inc-2709-10-perfil":["web"],"inc-2809-02-ayuda-ciclo":["web"],"inc-2909-01-widget-periodo":["web"],"inc-2909-02-inicio-natural":["web"],"inc-2909-03-retirada":["web"],"inc-3009-01-cargos":["web"],"inc-3009-nomina-anticipada":["web"],"inicio-mes-pasado-mismo-dia":["web"],"inicio-patrimonio-flujos":["web"],"limpieza-ajustes-perfil":["web"],"myinvestor-contador-a-cero":["web"],"recibo-cargo-en-gastos":["web"],"recibo-renombrado-sigue-pagado":["web"],"recibos-cargo-unico":["web"],"recibos-cifra-cuadra":["web"],"recibos-meses-a-mano":["web"],"renombrar-sin-cobertura":["web"],"renombrar-y-notas-seguras":["web"],"sync-dos-moviles":["web"],"tr-empareja-sin-preguntar":["web"],"tr-iguales-ordinal":["web"],"vibracion-ajustador":["web"],"vibracion-ajustador-r2":["web"],"vibracion-r4":["web"],"vuelta-sin-tiron":["web"],"widget-app-cerrada":["web"],"widget-banco":["web"],"widget-ciclo-puente":["web"],"widget-pago-app-cerrada":["web"]};
@@ -5772,12 +5756,12 @@ test("Catálogo171 mueve a la 171 la tanda de dos móviles (solo web) sobre la 1
   };
   assert.deepEqual(measure(source),expectedMoves,"lista cerrada: ni una huella extra ni una declarada que no cambie");
   const vivas=notes.flatMap(n=>(n.tandas||[]).map(g=>g.id));
-  for(const id of Object.keys(expectedMoves).filter(id=>!vivas5.includes(id)&&id!==tandas[0]))assert.equal(vivas.includes(id),false,"huella que se mueve sin tanda viva: "+id);
-  assert.deepEqual(vivas,[...tandas,...vivas5]);
-  const current=betaRevision(tandas[0],source,undefined,scopes[tandas[0]]);
+  for(const id of Object.keys(expectedMoves).filter(id=>!vivas5.includes(id)))assert.equal(vivas.includes(id),false,"huella que se mueve sin tanda viva: "+id);
+  assert.deepEqual(vivas,vivas5);
+  const current=betaRevision(desc,source,undefined,scopes[desc]);
   assert.ok(current.web);assert.equal(current.edge,undefined,"sin huella de Edge");assert.equal(current.native,undefined);
   // Mutantes sobre la fuente real: volver a sellar el mantenimiento, el upsert sin revisión, subir antes del primer pull, quitar el vuelo único de gastos o su plazo,
-  // empujar sin releer al reconectar, el bróker de arranque antes del pull o la foto de inversión que sella reabren la tanda.
+  // empujar sin releer al reconectar, el bróker de arranque antes del pull o la foto de inversión que sella cambian la huella del descriptor.
   for(const [file,a,b] of [
     [A0,"return edited?Object.assign({},next,{_savedAt:Date.now()}):next;","return Object.assign({},next,{_savedAt:Date.now()});"],
     [C0,"        .insert({ user_id:uid, data:data, updated_at:now })","        .upsert({ user_id:uid, data:data, updated_at:now }, { onConflict:'user_id' })"],
@@ -5790,14 +5774,11 @@ test("Catálogo171 mueve a la 171 la tanda de dos móviles (solo web) sobre la 1
     [A0,"return h===s.invHistory?s:Object.assign({},s,{invHistory:h});\n    },false);","return h===s.invHistory?s:Object.assign({},s,{invHistory:h});\n    });"],
   ]){
     assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
-    const mutated=betaRevision(tandas[0],f=>f===file?source(f).replace(a,()=>b):source(f),undefined,scopes[tandas[0]]);
-    assert.notEqual(mutated.web,current.web,tandas[0]+" reabre la tanda: "+a);
+    const mutated=betaRevision(desc,f=>f===file?source(f).replace(a,()=>b):source(f),undefined,scopes[desc]);
+    assert.notEqual(mutated.web,current.web,desc+" cambia de huella: "+a);
   }
   const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes);
   assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),vivas,"lo que el build entrega al panel");
-  const g0=built[0].tandas[0];
-  assert.equal(g0.web,current.web);assert.equal(g0.edge,undefined);assert.equal(g0.native,undefined);assert.equal(g0.apk,undefined);assert.equal(receipt.web[tandas[0]],current.web);
-  for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g0[key],undefined,"guion nuevo sin "+key);
   for(const id of vivas5)assert.equal(receipt.web[id],betaRevision(id,source,undefined,scopes[id]).web,"la tanda de "+id+" se mide contra la fuente nueva");
   assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
 });
