@@ -216,7 +216,7 @@ Un apunte de banco SIN id (Trade Republic por Open Banking: sin `entry_reference
 
 Viaje: en `source` como último tramo `#n2` (`ob:trade_republic#dup#n2`), que un móvil o servidor anterior ignora (`split("#")[0]` sigue dando el banco y `[1]` la marca `dup`), y en `fecha` como mediodía + (ordinal−1) ms, porque el índice único de `expenses` es usuario+fecha+importe+comercio y sin ello la segunda fila igual chocaría y nunca subiría. Determinista: dos móviles que suban el mismo ordinal escriben la misma fila. Un móvil anterior funde las k filas al bajar (ve una, como hoy) y su importador no añade ninguna.
 
-**Formato completo de `source` para un apunte de banco** (lo que leen `expenseFromRow`, `expenseBankOf`, `partirEntDeuda` y `bancoDeSource`/`ordinalDeSource` del servidor): `ob:<ent>[~deuda.<id> | ~recibo.<id>][#dup][#n<k>]`, y lo mismo con `ob-hist:`. Los tramos `~` van pegados al banco (una app anterior lee un banco raro y deja la fila fuera: el lado seguro); los tramos `#` van detrás y una app anterior los ignora. `~recibo.<id>` lo escribe la entrega del recibo que entra en Gastos; esta rama ya lo lee aunque no lo escriba. Cualquier lector o escritor nuevo de `source` (FIN-04 incluido) tiene que aceptar exactamente esa expresión: `/^ob(-hist)?:[^~#]+(~(deuda|recibo)\.[A-Za-z0-9_-]+)*(#dup)?(#n\d{1,6})?$/`.
+**Formato completo de `source` para un apunte de banco** (lo que leen `expenseFromRow`, `expenseBankOf`, `partirEntDeuda` y `bancoDeSource`/`ordinalDeSource` del servidor): `ob:<ent>[~deuda.<id> | ~recibo.<id> | ~meta.<id>][#dup][#n<k>]`, y lo mismo con `ob-hist:` (que no lleva `~deuda.`). Los tramos `~` van pegados al banco (una app anterior lee un banco raro y deja la fila fuera: el lado seguro); los tramos `#` van detrás y una app anterior los ignora. `~recibo.<id>` lo escribe la entrega del recibo que entra en Gastos; esta rama ya lo lee aunque no lo escriba. Cualquier lector o escritor nuevo de `source` (FIN-04 incluido) tiene que aceptar exactamente esa expresión: `/^ob(-hist)?:[^~#]+(~(deuda|recibo|meta)\.[A-Za-z0-9_-]+)*(#dup)?(#n\d{1,6})?$/`. `~meta.<id>` (aportación a una meta, 24/10/2026) es distinta en el lado seguro: una app anterior y el servidor sin desplegar leen el banco limpio y la CUENTAN como gasto normal (ver «Aportación a una meta» más abajo).
 
 **Versiones mezcladas en la misma cuenta** (beta en un móvil, producción en otro): el móvil anterior baja las k filas y las funde en una (ve la de siempre); si edita o resuelve esa fila la vuelve a subir SIN `#n` y sin el milisegundo, así que su escritura choca con la ranura 1 (misma fecha, importe y comercio) y no toca las demás. No hay pérdida muda: las filas 2..k siguen en la tabla y el móvil nuevo las sigue viendo; lo único que converge contestando es la marca `#dup` de la ranura 1, que el viejo puede quitar o poner. Un servidor sin `ordinalDeSource` funde las k en el widget hasta que se despliegue `ingest` (orden de despliegue en `SETUP-SUPABASE.md`).
 
@@ -467,7 +467,25 @@ un UPDATE por id que no casa no toca nada ni da error), lee antes de escribir y 
 `ob:<ent>` u `ob-hist:<ent>`, conservando prefijo, `#dup` y `#n<k>`; una cuota, un aviso del
 móvil o un gasto a mano que coincidan no se tocan, y a un posible repetido no se le pone marca.
 La usan el alta cuando la fila ya existía, «No es este recibo», su vuelta atrás y el borrado de
-un recibo. Al bajar gastos de la nube, el aviso del móvil gana al cargo de recibo de su mismo
+un recibo.
+
+**Aportación a una meta (24/10/2026).** Desde la ficha de un cargo del banco (`ob`/`ob-hist`, gasto
+> 0, sin cuota ni recibo, ni posible repetido ni pendiente: `metaAdmiteMarca`) se marca «Es
+aportación a la meta X». La fila lleva `goalId` y viaja como `~meta.<goalId>`, que solo se escribe
+si no hay `~deuda.` ni `~recibo.` (una marca por gasto; si llegan juntas gana la deuda y después el
+recibo, en `partirEntDeuda`, `expenseSourceForCloud` y `uniqueExpenseUuids`). La marca sola
+(`metaDeGasto`) la saca de `expenseCountsBudget` —y con ello del gastado, la cifra de Gastos, Inicio,
+Categorías, la racha, el informe del mes y la foto del hogar— pero NO de `expenseCountsCash`: el
+dinero salió de la cuenta y el saldo lo sigue restando. Cajón `meta`, fila gris «Metas · no
+cuentan». El progreso de la meta es `saved` + lo marcado (`metaAportes`, en céntimos, sin posibles
+repetidos ni lápidas), calculado al vuelo y nunca escrito en `saved`; las pantallas pintan
+`metaConAportes` y las hojas que editan reciben la meta tal cual. Una meta con aportaciones no se
+borra (`metaTieneAportes`). En la nube la escribe `cloud.setExpenseMeta` (misma búsqueda que la del
+recibo; no toca filas con cuota o recibo) y devuelve cuántas filas quedaron como la local: la fila
+queda `metaPend` hasta ese acuse (`ackMetaWrite`), y mientras tanto el pull no la pisa; sin
+`metaPend`, el pull adopta lo que diga la nube, también la AUSENCIA de marca, que es como la
+retirada hecha en el otro móvil llega a este. El servidor la excluye con `esAportacionAMeta`
+(`_shared/presupuesto.ts`); hasta que se despliegue, el widget la cuenta como gasto. Al bajar gastos de la nube, el aviso del móvil gana al cargo de recibo de su mismo
 día, importe y comercio llegue en el orden que llegue (`mergeExpensesFromCloud`), que es lo que
 pasa cuando el aviso estaba antes. «No es este recibo»
 (`quitarCargoDeRecibo`) quita la marca, guarda el veto en `state.reciboNo` (recibo + identidad

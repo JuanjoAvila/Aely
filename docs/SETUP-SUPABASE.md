@@ -156,6 +156,20 @@ cliente nuevo y el `ingest` de hoy, el servidor funde las k filas iguales en una
 de cuadrar con la app (36 o 48 frente a 60 en la sonda de la revisión). Rollback: desplegar el
 `ingest` anterior; las filas con `#n` se leen con el banco de siempre y solo pierden la separación.
 
+## Aportación a una meta (24/10, rama `claude/meta-aportacion`): `ingest` con `esAportacionAMeta`
+
+La web marca un cargo del banco como aportación a una meta con `ob:<ent>~meta.<id>` y lo saca del
+gasto del mes. El `ingest` desplegado lee el banco limpio (`bancoDeSource` corta en `~`) y lo
+CUENTA: hasta desplegar el `ingest` con `esAportacionAMeta` (`_shared/presupuesto.ts`), el widget
+de quien use la marca dice más gastado que Inicio (exactamente el importe marcado). Es inocuo
+adelantarlo: sin la web nueva no existe ninguna fila `~meta.`. Sin migración ni secreto. Desplegar
+`ingest` (lo importan `ingest/index.ts` y `ingest/widget.ts`) va aparte, con el OK del dueño.
+
+Un móvil con una versión anterior lee esa fila como un gasto normal (la cuenta, igual que el
+servidor viejo) y, si cambia su banco o resuelve un «posible repetido» en ella, reescribe `source`
+sin la marca: la fila vuelve a contar en todos los móviles. Degrada al lado que se ve, no esconde
+dinero; con todos los móviles de la cuenta en la versión nueva no pasa.
+
 ## Cargo de recibo en Gastos (13/10, rama `claude/recibo-banco-no-acredita`): `ingest` DE ESTA RAMA antes que su web
 
 El `ingest` del ordinal lee el banco LIMPIO también en `ob:<ent>~recibo.<id>` (`bancoDeSource`),

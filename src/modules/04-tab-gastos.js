@@ -614,6 +614,30 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     if(subir && cloud.enabled()) cloud.setExpenseDeuda(subir).catch(function(){});
     if(showToast) showToast(tf("v4_moved_cat",{cat:DEUDA_CAT.icon+" "+catName("deudas")}));
   };
+  /* «Es aportación a la meta X» desde la ficha (decisión suya del 24/10/2026). Toca dinero, así que
+     PONERLA se confirma diciendo qué cambia («de 100 € a 350 €»), y si la meta ya tenía algo
+     ahorrado avisa de lo único que la app no puede saber: si ese mismo dinero ya lo sumó él a mano
+     con «Aportar» o con un reparto. En ese caso contaría dos veces, y la app no adivina cuál de los
+     dos apuntes es el bueno. QUITARLA no pregunta: deja todo como estaba. La marca sube a la nube
+     (`setExpenseMeta`) y solo deja de protegerse con su acuse (`ackMetaWrite`). */
+  const setMeta=function(ex,goalId){
+    const subirMeta=function(){
+      let subir=null;
+      set(function(s){ const r=marcarAportacionMeta(s, ex.id, goalId); if(!r) return s; subir=r.e; return r.state; });
+      if(!subir) return;
+      const g=goalId&&(state.goals||[]).find(function(x){ return x.id===goalId; });
+      if(showToast) showToast(goalId?tf("f_meta_ok",{name:(g&&g.name)||""}):t("f_meta_off"));
+      if(cloud.enabled()) cloud.setExpenseMeta(subir).then(function(n){
+        if(n>0) set(function(p){ const l=ackMetaWrite(p.expenses, subir, goalId); return l===p.expenses?p:Object.assign({},p,{expenses:l}); });
+      }).catch(function(){});
+    };
+    if(goalId==null){ subirMeta(); return; }
+    const g=(state.goals||[]).find(function(x){ return x.id===goalId; });
+    if(!g) return;
+    const antes=metaAhorrado(g,state);
+    const sub=tf("f_meta_confirm_sub",{x:eur(ex.amount),a:eur(antes),b:eur(Math.round((antes+ex.amount)*100)/100)})+((g.saved||0)>0?" "+t("f_meta_confirm_doble"):"");
+    askConfirm({title:tf("f_meta_confirm_t",{name:g.name||""}),sub:sub,ok:t("f_meta_confirm_ok")}).then(function(yes){ if(yes) subirMeta(); });
+  };
   /* «No es este recibo» (12/10/2026): el sync casa por nombre e importe parecidos y puede
      equivocarse. Sin la marca, la fila vuelve a contar como un gasto cualquiera. */
   const quitarRecibo=function(ex){
@@ -897,7 +921,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
         // Los cargos de recibos y cuotas (las filas grises) no se enseñan con filtro (SPEC §4.4):
         // no suman a la categoría. Siguen en Movimientos sin filtro y en su fila gris.
         const bk=expenseBucket(e, state);
-        if(bk==="recibo"||bk==="deuda") continue;
+        if(bk==="recibo"||bk==="deuda"||bk==="meta") continue;
       }
       // `debt:<id>` en la misma lista que las categorías: el chip de cada deuda (4.21.0).
       if(catSet && !catSet.has(e.category) && !(e.debtId && catSet.has("debt:"+e.debtId))) continue;
@@ -1626,7 +1650,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
         if(!skipSave && ex && editExp) saveEdit(ex);
         setDetailId(null); setEditExp(null);
       },
-      setCat:setCat, setCuota:setCuota, setReceipt:setReceipt, quitarRecibo:quitarRecibo, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
+      setCat:setCat, setCuota:setCuota, setMeta:setMeta, setReceipt:setReceipt, quitarRecibo:quitarRecibo, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
       resolveDup:resolveDup, separarGemelo:separarGemelo, recognizeWithdrawal:recognizeWithdrawal, withdrawalStatus:withdrawalStatus,
       showToast:showToast, aiBusy:aiBusy, suggestAi:suggestAi, state:state
     }),
@@ -1679,11 +1703,12 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
     if(!dia||dia.k!==info.k||dia.ym!==info.ym){ dia={k:info.k, ym:info.ym, ms:ms, rows:[], gris:[]}; dias.push(dia); }
     const bucket=expenseBucket(e, state);
     const l=e.debtId&&filterSelLabel("debt:"+e.debtId,state.debts);
-    const recibo=reciboEtiqueta(state,e);
-    if(agrupa && (bucket==="recibo"||bucket==="deuda")){
+    // En una aportación, la «etiqueta» es la meta: la fila suelta (buscando) y la gris dicen cuál.
+    const recibo=bucket==="meta"?metaEtiqueta(state,e):reciboEtiqueta(state,e);
+    if(agrupa && (bucket==="recibo"||bucket==="deuda"||bucket==="meta")){
       let g=dia.gris.find(function(x){ return x.kind===bucket; });
       if(!g){ g={kind:bucket, items:[], total:0}; dia.gris.push(g); }
-      g.items.push({e:e, ms:ms, sub:bucket==="recibo"?recibo:(l||catName("deudas"))});
+      g.items.push({e:e, ms:ms, sub:bucket==="deuda"?(l||catName("deudas")):recibo});
       g.total+=Math.abs(e.amount||0);
     } else dia.rows.push({e:e, ms:ms, l:l, bucket:bucket, recibo:recibo});
   });
@@ -1731,7 +1756,7 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
                     dragOver:!!(dragExpense&&dragExpense.to===g.e.id&&dragExpense.from!==g.e.id),
                     onDragStart:startExpenseDrag,onDragMove:moveExpenseDrag,onDragEnd:endExpenseDrag});
                 }),
-                d.gris.slice().sort(function(a,b){ return a.kind==="recibo"?-1:b.kind==="recibo"?1:0; }).map(function(g){
+                d.gris.slice().sort(function(a,b){ return GX_GRIS[a.kind].ord-GX_GRIS[b.kind].ord; }).map(function(g){
                   return React.createElement(GastosGris,{key:d.k+"|"+g.kind, g:g, onOpen:openDetail, onGoPlan:onGoPlan, simple:simple});
                 }));
             }),
@@ -1884,12 +1909,13 @@ function GxCifra({n}){
     React.createElement("span",{className:"gx-num-ent","aria-hidden":true},celdas(ent,"e")),
     React.createElement("span",{className:"gx-num-dec","aria-hidden":true},celdas(dec,"d")," "+p.sym));
 }
-/* FILA GRIS: los cargos de un día que pagan recibos o cuotas (SPEC §4.4). Se ven, no suman al
+/* FILA GRIS: los cargos de un día que pagan recibos o cuotas, o que van a una meta (SPEC §4.4). Se ven, no suman al
    día ni a la cifra (ya cuentan en el Plan, regla de siempre), y se despliegan con un solo toque
    de vibración. Cada cargo sigue abriendo su ficha: ahí viven «No es este recibo» y «no es la
    cuota», que no se pueden quedar sin camino por plegarlos. El estado de abierto es de la fila:
    abrir una no repinta la lista. */
-const GX_GRIS={recibo:{lab:"v4_plan_recibos",seg:"recibos"}, deuda:{lab:"v4_plan_deudas",seg:"deudas"}};
+// Orden en el día: Recibos, Deudas y Metas, el mismo que los segmentos de Plan.
+const GX_GRIS={recibo:{lab:"v4_plan_recibos",seg:"recibos",ord:0}, deuda:{lab:"v4_plan_deudas",seg:"deudas",ord:1}, meta:{lab:"v4_plan_metas",seg:"metas",ord:2}};
 function GastosGris({g, onOpen, onGoPlan, simple}){
   const [open,setOpen]=useState(false);
   const def=GX_GRIS[g.kind];
@@ -1956,9 +1982,10 @@ const MovRow=React.memo(function MovRow({e, ms, l, onOpen, bucket, recibo, dragg
   // Un ingreso NO va apagado: entra dinero, no es un gasto que se descarta. Solo se atenúan los
   // dos cajones que no mueven el presupuesto, y cada uno dice el suyo en vez de un «no afecta»
   // genérico que hacía que una inversión y un recibo de Sabadell parecieran lo mismo.
-  const skip=bucket==="neutra"||bucket==="otrobanco"||bucket==="posible"||bucket==="deuda"||bucket==="recibo";
-  // El recibo dice CUÁL es, y si solo lo parece lo pregunta: «no cuenta» a secas haría dudar.
-  const skipTxt=!skip?"":(bucket==="recibo"?recibo:t("g_skip_"+bucket));
+  const skip=bucket==="neutra"||bucket==="otrobanco"||bucket==="posible"||bucket==="deuda"||bucket==="recibo"||bucket==="meta";
+  // El recibo dice CUÁL es, y si solo lo parece lo pregunta: «no cuenta» a secas haría dudar. La
+  // aportación, igual: a qué meta va.
+  const skipTxt=!skip?"":(bucket==="recibo"||bucket==="meta"?recibo:t("g_skip_"+bucket));
   return React.createElement("button",{type:"button","data-expense-id":e.id,"data-expense-day":String(e.date||"").slice(0,10),
       className:"v4-mov"+(skip?" v4-mov-skip":"")+(dragging?" dragging":"")+(dragOver?" drag-over":""),
       onClick:function(ev){ if(ev.target&&ev.target.closest&&ev.target.closest(".v4-mov-drag")) return; onOpen(e); },style:skip?{opacity:.72}:null},
@@ -2157,7 +2184,7 @@ function expensePaymentLabelUI(state,e,kind,relation){
   var rows=(kind==="debt"?state.debts||[]:(state.fixed||[]).concat(state.oneoffs||[])).filter(function(x){return x&&x.id===id;});
   return rows.length===1&&String(rows[0].name||"").trim()?tf("f_link_unconfirmed",{name:rows[0].name}):"—";
 }
-function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus}){
+function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setMeta, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus}){
   /* UNA SOLA CONDICIÓN para pintarse y para los candados. Iban por separado (`!!exp` en los hooks,
      `!exp || !editExp` para pintar) y en cuanto se separaban el sheet desaparecía dejando el
      `overflow:hidden` y el bloqueo de `touchmove` puestos sobre una pantalla vacía: nada respondía
@@ -2284,6 +2311,11 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
       withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status!=="done" && React.createElement("div",{role:"status"},
         t(withdrawalStatus.status==="pending"?"f_withdraw_pending":"f_withdraw_error"))));
   const debtOptions=(state.debts||[]).filter(function(d){ return d&&d.id; });
+  // Metas a las que se puede aportar: las abiertas, y la que ya tiene aunque esté cumplida.
+  const metaActual=exp.goalId?(state.goals||[]).find(function(g){ return g&&g.id===exp.goalId; }):null;
+  const metaOpciones=(state.goals||[]).filter(function(g){ return g&&g.id&&(!g.done||g.id===exp.goalId); });
+  const metaOtraMarca=!exp.goalId&&esFilaDeBanco(exp)&&(!!exp.debtId||!!exp.reciboId);
+  const metaRowOn=!!exp.goalId||((metaAdmiteMarca(exp)||metaOtraMarca)&&(state.goals||[]).length>0);
   const receiptDate=String(exp.date||"").slice(0,10),receiptYear=Number(receiptDate.slice(0,4)),receiptMonth=Number(receiptDate.slice(5,7)),receiptNow=new Date();
   const receiptToday=receiptYear===receiptNow.getFullYear()&&receiptMonth===receiptNow.getMonth()+1?receiptNow.getDate():new Date(receiptYear,receiptMonth,0).getDate();
   const receiptLinked=withdrawalReceiptLink(state,exp);
@@ -2335,6 +2367,21 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
       adjustOpen==="debt" && React.createElement("div",{className:"v4-chips wrap v4-ficha-adjust-open","data-testid":"exp-cuota-de"},
         debtOptions.map(function(d){ const on=exp.category==="deudas"&&exp.debtId===d.id; return React.createElement("button",{key:d.id,type:"button",className:"v4-chip"+(on?" on":""),
           onClick:function(){ if(!on) setCuota(exp,d.id); }},DEUDA_CAT.icon+" "+(String(d.name||"").trim()||catName("deudas"))); }))),
+    /* «Es aportación a una meta» (24/10/2026). Sale en los cargos del banco que pueden llevarla y en
+       los que ya la llevan (si no, quitarla no tendría camino). En una cuota o un recibo se ve, pero
+       explica por qué no se puede: una marca por gasto. Un apunte a mano no la ofrece: para eso está
+       «Aportar» en la meta, y esta marca solo sabe viajar en las filas del banco. */
+    !isIncome && metaRowOn && React.createElement(React.Fragment,null,
+      React.createElement("button",{type:"button",className:"v4-ficha-adjust-row","data-testid":"exp-meta",onClick:function(){ setAdjustOpen(adjustOpen==="meta"?null:"meta"); }},
+        React.createElement("span",null,t("f_meta_row")),
+        React.createElement("span",{className:"value","data-testid":"exp-meta-value"},metaActual?((metaActual.emoji||"🎯")+" "+(metaActual.name||"")):(exp.goalId?t("g_meta_borrada"):t("f_no"))),
+        React.createElement("span",{className:"chev"},"›")),
+      adjustOpen==="meta" && React.createElement("div",{className:"v4-ficha-adjust-open","data-testid":"exp-meta-options"},
+        React.createElement("div",{className:"hint"},t(metaOtraMarca?"f_meta_otra":(metaOpciones.length||exp.goalId)?"f_meta_hint":"f_meta_ninguna")),
+        !metaOtraMarca && React.createElement("div",{className:"v4-chips wrap"},
+          metaOpciones.map(function(g){ const on=exp.goalId===g.id; return React.createElement("button",{key:g.id,type:"button",className:"v4-chip"+(on?" on":""),"data-testid":"exp-meta-"+g.id,"aria-pressed":on,
+            onClick:function(){ if(!on) setMeta(exp,g.id); }},(g.emoji||"🎯")+" "+(String(g.name||"").trim()||t("v4_plan_metas"))); }),
+          exp.goalId && React.createElement("button",{type:"button",className:"v4-chip","data-testid":"exp-meta-quitar",onClick:function(){ setMeta(exp,null); }},t("f_meta_quitar"))))),
     React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",onClick:function(){
       if(auto){ lockedToast(); return; }
       const income=!editExp.income; setEditExp(function(p){ return Object.assign({},p,{income:income}); }); saveEdit(exp,{income:income});

@@ -296,7 +296,7 @@ function fixedPaymentProof(s,e,y,m,today){
 }
 function fixedExpenseEligible(s,x,e,y,m,today){
   var target=e.bankAmount>0?e.bankAmount:occAmountIn(e,m);
-  return !!x&&fixedPaymentUnique(s,e)&&!x.possibleDup&&!x.debtId&&(!x.status||String(x.status).toUpperCase()==="BOOK")&&!!expenseBankOf(x)&&!CAT_NEUTRAS[x.category]&&x.category!=="ingreso"&&
+  return !!x&&fixedPaymentUnique(s,e)&&!x.possibleDup&&!x.debtId&&!metaDeGasto(x)&&(!x.status||String(x.status).toUpperCase()==="BOOK")&&!!expenseBankOf(x)&&!CAT_NEUTRAS[x.category]&&x.category!=="ingreso"&&
     Number.isFinite(Number(x.amount))&&Number.isFinite(Number(target))&&Number(x.amount)>0&&target>0&&occursIn(e,m)&&
     fixedPaymentDate(x.date,y,m,today)&&!expenseIsTombstoned(x,expenseDeletedSet(s))&&fixedPaymentFeedClear(s,fixedPaymentIdentity(expenseBankOf(x),x))&&
     (fixedPaymentExpenses(s,String(x.date||"").slice(0,7)).identity.get(fixedPaymentIdentity(expenseBankOf(x),x))||[]).length===1&&
@@ -551,7 +551,7 @@ function paymentEvidenceUI(s,y,m,today){
   var current=function(x){ return !paymentEvidenceRowIssue(s,x,index,deleted); };
   var add=function(x,kind,f){
     if(!current(x)) return;
-    if(kind==="fixed"&&(x.debtId||x.reciboId&&x.reciboId!==f.id||reciboVetado(s,f.id,reciboNoIdentidad(x),x.id))) return;
+    if(kind==="fixed"&&(x.debtId||metaDeGasto(x)||x.reciboId&&x.reciboId!==f.id||reciboVetado(s,f.id,reciboNoIdentidad(x),x.id))) return;
     // Dos propietarios nunca eligen por orden de arrays.
     byExpense.set(x.id,byExpense.has(x.id)?null:{kind:kind,id:f.id,name:f.name});
   };
@@ -1343,7 +1343,8 @@ function flattenBankTx(links, previous){
 const gemeloCache=new WeakMap(), gemeloDatosCache=new WeakMap(), gemeloDiasCache=new Map();
 // Un comercio real no identifica un gemelo por importe: el extracto de recibos perdió
 // 750,50 al emparejar dos nombres distintos sin id (CI 13/10/2026). Sólo el genérico carece de identidad.
-function gemeloBancoAutomatico(e){ return !!(e&&e.id)&&esFilaDeBanco(e)&&!e.extId&&!e.reciboId&&!e.debtId&&sinComercioReal(e.obName!=null?e.obName:e.merchant); }
+// Una fila que él marcó como aportación a meta tampoco se esconde sola: su marca se perdería de vista.
+function gemeloBancoAutomatico(e){ return !!(e&&e.id)&&esFilaDeBanco(e)&&!e.extId&&!e.reciboId&&!e.debtId&&!e.goalId&&sinComercioReal(e.obName!=null?e.obName:e.merchant); }
 function gemeloAvisoAutomatico(e){ return !!(e&&e.id)&&!esFilaDeBanco(e)&&!isManualExpenseSource(e.source)&&!e.possibleDup&&!e.pending&&!e.reciboId&&!e.debtId; }
 function gemeloDatos(e){
   if(!e) return {grupo:"",dia:NaN};
@@ -2072,7 +2073,7 @@ function quitarCargoDeRecibo(s, expenseId, ahora){
 // La marca viaja en `source` y solo `ob`/`ob-hist` saben llevarla; y solo del banco del recibo.
 // La usan quien la repone y el diálogo que lo anuncia, para que digan lo mismo.
 function admiteMarcaDe(x, f){
-  return !!x && !!f && !x.debtId && (x.source==="ob" || x.source==="ob-hist") && expenseBankOf(x)===accOf(f);
+  return !!x && !!f && !x.debtId && !metaDeGasto(x) && (x.source==="ob" || x.source==="ob-hist") && expenseBankOf(x)===accOf(f);
 }
 /* CONFIRMAR A MANO EL PAGO CON UN CARGO DEL QUE SE DIJO «NO ES ESTE RECIBO» DESHACE AQUELLO: lo
    último que dijo la persona manda. Se levanta el veto (sin esto el vínculo se guardaba y el
@@ -2293,7 +2294,8 @@ function cuotasDeDeudaPorMarcar(s){
   const usada=cuotasUsadas(todas, exps);
   const cands=[];
   exps.forEach(function(e){
-    if(!e || e.debtId || cargoDeRecibo(e, s) || !(e.amount>0) || e.possibleDup) return;
+    // Una aportación a meta ya tiene dueño: el motor no la reclama como cuota (una marca por gasto).
+    if(!e || e.debtId || cargoDeRecibo(e, s) || metaDeGasto(e) || !(e.amount>0) || e.possibleDup) return;
     // A mano, solo si ya está en «Deudas» (se re-deduce la deuda tras reinstalar).
     if(isManualExpenseSource(e.source) && e.category!=="deudas") return;
     // Un traspaso o una inversión no casa SOLO con una cuota… salvo que él ya enseñó ese comercio
@@ -2348,12 +2350,54 @@ function marcarCuotaAMano(s, expenseId, debtId){
   const e=Object.assign({}, orig, { category:DEUDA_CAT.id, debtId:d.id });
   // Lo que él marca a mano manda sobre la marca automática de recibo, aquí y en la nube.
   delete e.reciboId;
+  // Y sobre la de meta: una marca por gasto, y la última que puso él es la que vale. En la nube la
+  // cuota también gana (`expenseSourceForCloud` escribe `~deuda.` y no `~meta.`).
+  delete e.goalId; delete e.metaPend;
   const k=keyOfExpense(orig);
   const out={ expenses:(s.expenses||[]).map(function(x){ return x===orig ? e : x; }) };
   if((s.cuotaNo||[]).indexOf(k)>=0) out.cuotaNo=(s.cuotaNo||[]).filter(function(x){ return x!==k; });
   const ak=cuotaAliasKey(orig);
   if(ak){ out.cuotaAlias=Object.assign({}, s.cuotaAlias||{}); out.cuotaAlias[ak]=d.id; }
   return { state:Object.assign({}, s, out), e:e };
+}
+/* «ES APORTACIÓN A LA META X» (decisión suya del 24/10/2026). Qué cargo admite la marca:
+   · del banco (`ob`/`ob-hist`): es lo único que sabe llevarla en `source` y que viaja a la nube y
+     al widget. Un apunte a mano o un aviso del móvil se aportan con «Aportar» en la meta;
+   · un gasto (>0) que ya se sabe que es uno: ni posible repetido ni pendiente del banco;
+   · sin otra marca: la cuota de una deuda y el cargo de un recibo ya cuentan en el Plan, y
+     marcarlos además como meta los sacaría dos veces (una marca por gasto). */
+function metaAdmiteMarca(e){
+  return !!e && esFilaDeBanco(e) && !!e.ent && e.amount>0 && !e.possibleDup && !e.autoGemelo && !e.obPending && !e.debtId && !e.reciboId;
+}
+/* Pone (goalId) o quita (null) la marca. Puro: no toca la meta —su progreso lo suma
+   `metaAportes` al vuelo— ni la categoría, así que quitarla deja la fila como estaba. La fila
+   queda `metaPend` hasta el acuse de la nube (`ackMetaWrite`): sin eso, el pull siguiente, que
+   aún no se ha enterado, se la quitaría. → {state, e} (la fila nueva, para subirla) o null. */
+function marcarAportacionMeta(s, expenseId, goalId){
+  const orig=((s&&s.expenses)||[]).find(function(x){ return x && x.id===expenseId; });
+  if(!orig) return null;
+  if(goalId!=null){
+    const g=((s&&s.goals)||[]).find(function(x){ return x && x.id===goalId; });
+    // A una meta cumplida no se le aporta (como el reparto de la nómina); sí se puede dejar la que ya tenía.
+    if(!g || (g.done && orig.goalId!==g.id) || !metaAdmiteMarca(orig) || orig.goalId===g.id) return null;
+  } else if(!orig.goalId) return null;
+  const e=Object.assign({}, orig);
+  if(goalId!=null) e.goalId=goalId; else delete e.goalId;
+  e.metaPend=true;
+  return { state:Object.assign({}, s, { expenses:(s.expenses||[]).map(function(x){ return x===orig ? e : x; }) }), e:e };
+}
+/* La nube confirmó la marca de `e`: deja de protegerse en las filas que siguen diciendo lo mismo.
+   Si entre medias él volvió a cambiarla, esa fila espera a su propio acuse. Sin cambios, el mismo
+   array (ni re-render ni reescritura del histórico). */
+function ackMetaWrite(list, e, goalId){
+  let out=list;
+  (list||[]).forEach(function(x,i){
+    if(!x || !x.metaPend || x.date!==e.date || x.amount!==e.amount || x.merchant!==e.merchant || expenseBankOf(x)!==expenseBankOf(e)) return;
+    if((x.goalId||null)!==(goalId||null)) return;
+    if(out===list) out=list.slice();
+    const y=Object.assign({}, x); delete y.metaPend; out[i]=y;
+  });
+  return out;
 }
 
 /* ============================================================

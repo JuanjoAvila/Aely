@@ -1563,6 +1563,31 @@ Object.assign(LANG.ca,{gv5_spent_in:"gastat al {mes}", gv5_net_in:"balanç al {m
   gv5_cycle:"al teu cicle", gv5_cycle_upto:"al teu cicle fins al {d}", gv5_period_upto:"{period} · fins al {d}", gv5_all:"tot l'historial",
   gv5_no_cuentan:"{x} · no compten", gv5_plan_open:"Obre al Pla · {x}", gv5_end:"Fins aquí: {d}",
   gv5_net_sub:"despeses {g} · ingressos {i}", gv5_meses:"Mesos", gv5_periodo:"Període", gv5_p_months:"Mesos", gv5_p_range:"Rang"});
+// «Es aportación a la meta X» en la ficha de un gasto y su fila gris de Metas (24/10/2026).
+Object.assign(LANG.es,{f_meta_row:"Es aportación a una meta", f_meta_hint:"Elige la meta. El cargo deja de contar en el gasto del mes y en el presupuesto, y suma a lo ahorrado de la meta. El saldo del banco no cambia.",
+  f_meta_quitar:"No es una aportación", f_meta_otra:"Este cargo ya cuenta en el Plan como cuota o recibo. Cada gasto lleva una sola marca.",
+  f_meta_ninguna:"No tienes metas abiertas. Crea una en Plan → Metas.",
+  f_meta_confirm_t:"¿Es aportación a «{name}»?", f_meta_confirm_sub:"{x} dejan de contar en el gasto del mes y la meta pasa de {a} a {b}.",
+  f_meta_confirm_doble:"Si ya lo sumaste en la meta con «Aportar» o con un reparto, no lo marques: contaría dos veces.", f_meta_confirm_ok:"Sí, es para la meta",
+  f_meta_ok:"Aportación a «{name}»: ya no cuenta como gasto", f_meta_off:"Vuelve a contar como gasto",
+  g_meta_de:"Meta: {name}", g_meta_borrada:"Meta borrada", gl_from_gastos:"{x} desde Gastos",
+  gl_delete_linked:"Esta meta tiene aportaciones marcadas en Gastos. Quita antes la marca desde la ficha de cada gasto."});
+Object.assign(LANG.en,{f_meta_row:"It's a goal contribution", f_meta_hint:"Choose the goal. The charge stops counting towards this month's spending and budget, and adds to what the goal has saved. Your bank balance doesn't change.",
+  f_meta_quitar:"Not a contribution", f_meta_otra:"This charge already counts in your Plan as an instalment or a bill. Each expense carries a single mark.",
+  f_meta_ninguna:"You have no open goals. Create one in Plan → Goals.",
+  f_meta_confirm_t:"Is it a contribution to “{name}”?", f_meta_confirm_sub:"{x} stop counting towards this month's spending and the goal goes from {a} to {b}.",
+  f_meta_confirm_doble:"If you already added it to the goal with “Add” or a split, don't mark it: it would count twice.", f_meta_confirm_ok:"Yes, it's for the goal",
+  f_meta_ok:"Contribution to “{name}”: no longer counts as spending", f_meta_off:"Counts as spending again",
+  g_meta_de:"Goal: {name}", g_meta_borrada:"Deleted goal", gl_from_gastos:"{x} from Spending",
+  gl_delete_linked:"This goal has contributions marked in Spending. Remove the mark from each expense first."});
+Object.assign(LANG.ca,{f_meta_row:"És una aportació a una meta", f_meta_hint:"Tria la meta. El càrrec deixa de comptar a la despesa del mes i al pressupost, i suma al que porta estalviat la meta. El saldo del banc no canvia.",
+  f_meta_quitar:"No és una aportació", f_meta_otra:"Aquest càrrec ja compta al Pla com a quota o rebut. Cada despesa porta una sola marca.",
+  f_meta_ninguna:"No tens metes obertes. Crea'n una a Pla → Metes.",
+  f_meta_confirm_t:"És una aportació a «{name}»?", f_meta_confirm_sub:"{x} deixen de comptar a la despesa del mes i la meta passa de {a} a {b}.",
+  f_meta_confirm_doble:"Si ja l'has sumat a la meta amb «Aporta» o amb un repartiment, no el marquis: comptaria dues vegades.", f_meta_confirm_ok:"Sí, és per a la meta",
+  f_meta_ok:"Aportació a «{name}»: ja no compta com a despesa", f_meta_off:"Torna a comptar com a despesa",
+  g_meta_de:"Meta: {name}", g_meta_borrada:"Meta esborrada", gl_from_gastos:"{x} des de Despeses",
+  gl_delete_linked:"Aquesta meta té aportacions marcades a Despeses. Treu abans la marca des de la fitxa de cada despesa."});
 // Gastos v5, tanda 2: secciones (Movimientos / Categorías / Suscripciones) y sus cabeceras.
 Object.assign(LANG.es,{gv5_secciones:"Secciones de Gastos", gv5_sec_movs:"Movimientos", gv5_sec_cats:"Categorías", gv5_sec_subs:"Suscripciones",
   gv5_subs_globo:"{n} por revisar", gv5_cats_pre:"{period} por categoría", gv5_cats_pres:"Presupuesto gastado", gv5_cats_of:"de {x}",
@@ -2821,7 +2846,17 @@ function expenseCountsBudget(e, s){
   // con la app cerrada (27/9/2026). No se altera cash: sus bases pueden estar ya ancladas
   // incluyendo estas filas. Las lápidas cambian por copia; el índice evita N recorridos.
   if(expenseIsTombstoned(e,expenseDeletedSet(s))) return false;
+  // Aportación a una meta (24/10/2026): el dinero va a la meta, no se gasta. Sale del gastado y del
+  // presupuesto, pero NO de `expenseCountsCash`: salió de la cuenta y el saldo tiene que seguir
+  // restándolo (mismo motivo que la cuota de deuda). Solo la marca, igual que el servidor
+  // (`esAportacionAMeta`), que no sabe qué metas existen: así los dos dan la misma cifra.
+  if(metaDeGasto(e)) return false;
   return expenseCountsCash(e, s);
+}
+/* ¿Este gasto es una aportación a una meta? → el id de la meta, o null. La marca vale sola: con
+   cuota o recibo la fila es de ellos (una marca por gasto), igual que al subirla a la nube. */
+function metaDeGasto(e){
+  return e && e.goalId && !e.debtId && !e.reciboId ? e.goalId : null;
 }
 /* EN QUÉ CAJÓN VA CADA MOVIMIENTO (2026-08-17).
    Su queja al volver del crucero: «hay bastante caos entre gastos que cuentan, ingresos y
@@ -2835,7 +2870,8 @@ function expenseCountsBudget(e, s){
      "posible"   → Open Banking sin nombre que casa con otra vía del MISMO banco (2026-09-07).
      "otrobanco" → gasto real, pero de un banco que no es de gasto diario (los recibos).
      "recibo"    → el cargo de un recibo o puntual del Plan: se ve, y ya cuenta allí (12/10/2026).
-     "cuenta"    → lo que de verdad se come el presupuesto del mes.
+     "meta"      → dinero que va a una meta: se ve, y suma a la meta, no al gasto (24/10/2026).
+     "cuenta"  → lo que de verdad se come el presupuesto del mes.
    Devuelve una etiqueta, no un booleano: la fila necesita decir POR QUÉ, y el filtro necesita
    agrupar por lo mismo. Una sola función para las dos cosas, para que no se separen. */
 function expenseBucket(e, s){
@@ -2853,6 +2889,7 @@ function expenseBucket(e, s){
   }
   if(e.debtId) return "deuda";        // cuota de una deuda: ya cuenta en el Plan (4.21.0)
   if(cargoDeRecibo(e, s)) return "recibo";
+  if(metaDeGasto(e)) return "meta";
   if(CAT_NEUTRAS[e.category]) return "neutra";
   if(!expenseCountsCash(e, s)) return "otrobanco";
   return "cuenta";
@@ -2886,6 +2923,14 @@ function reciboEtiqueta(s, e){
   if(!f) return "";
   if(!f.name) return t("bp_hist_recibo");
   return tf(cargoDeReciboFirme(e, s) ? "g_recibo_de" : "g_recibo_quiza", { name:f.name });
+}
+/* Lo que la lista escribe junto a una aportación: «Meta: Viaje», o «Meta borrada» si la meta ya no
+   está (la fila sigue fuera del gasto, como en el servidor, y su ficha deja quitar la marca). */
+function metaEtiqueta(s, e){
+  const id=metaDeGasto(e);
+  if(!id) return "";
+  const g=((s&&s.goals)||[]).find(function(x){ return x && x.id===id; });
+  return g ? tf("g_meta_de",{ name:(g.emoji?g.emoji+" ":"")+(g.name||"") }) : t("g_meta_borrada");
 }
 /* Redondeo y saveback estimados del mes para la tarjeta de Cartera. Sin el cargo de un recibo,
    que no es una compra: con él dentro el redondeo subía con cada recibo (4,30 → 9,50 medido). */
@@ -3098,6 +3143,46 @@ const RU_MULTS=[0,2,3,5,10];
 const GOAL_EMOJIS=["🎯","✈️","🏠","🚗","💍","🎓","🛟","🎮","💻","🏖️","🎁","💰","📱","🐱"];
 function goalPct(g){ const tg=(g&&g.target)||0; return tg>0 ? Math.min(100, Math.max(0,((g.saved||0)/tg)*100)) : 0; }
 function goalRemaining(g){ return Math.max(0, ((g&&g.target)||0)-((g&&g.saved)||0)); }
+/* LO QUE LLEVA CADA META DESDE GASTOS (24/10/2026): la suma de los cargos marcados «es aportación
+   a la meta X», en céntimos para no arrastrar decimales. Se calcula al vuelo y NUNCA se escribe
+   en `saved`: así quitar la marca devuelve la meta exactamente a como estaba, y el otro móvil no
+   puede sumarla otra vez al mezclar metas. Fuera lo que no es dinero de verdad: un posible
+   repetido pendiente o una fila borrada (lápida) no suman, igual que no cuentan en el gasto.
+   Una pasada para todas las metas, guardada por la referencia de `expenses` (solo cambia cuando
+   cambia algún gasto) y de las lápidas. → { goalId: {c: céntimos, n: cargos} } */
+const _metaAportesMemo=new WeakMap();
+function metaAportes(state){
+  const exps=(state&&state.expenses)||[];
+  const del=expenseDeletedSet(state);
+  const hit=_metaAportesMemo.get(exps);
+  if(hit && hit.del===del) return hit.map;
+  const map=Object.create(null);
+  exps.forEach(function(e){
+    const id=metaDeGasto(e);
+    if(!id || e.possibleDup || e.autoGemelo || !(e.amount>0)) return;
+    if(expenseIsTombstoned(e,del)) return;
+    const c=Math.round(e.amount*100);
+    if(!Number.isSafeInteger(c)) return;
+    const m=map[id]||(map[id]={c:0,n:0});
+    m.c+=c; m.n++;
+  });
+  _metaAportesMemo.set(exps,{del:del,map:map});
+  return map;
+}
+// Lo ahorrado que se ENSEÑA: lo apuntado en la meta + lo marcado desde Gastos.
+function metaAhorrado(g, state){
+  const a=g&&metaAportes(state)[g.id];
+  return +(((Math.round(((g&&g.saved)||0)*100))+(a?a.c:0))/100).toFixed(2);
+}
+/* Copia SOLO PARA PINTAR (porcentaje, barra, «X de Y», previsión): `saved` ya lleva lo marcado y
+   `aportado` dice cuánto. No se le pasa nunca a una hoja que edite la meta: guardaría la suma
+   encima de lo apuntado a mano. Sin nada marcado devuelve la meta tal cual. */
+function metaConAportes(g, state){
+  const a=g&&metaAportes(state)[g.id];
+  if(!a || !a.c) return g;
+  return Object.assign({}, g, { saved:metaAhorrado(g,state), aportado:a.c/100, aportes:a.n });
+}
+function metaTieneAportes(state, goalId){ return !!metaAportes(state)[goalId]; }
 // meses enteros desde hoy hasta una fecha "YYYY-MM" (negativo = ya pasada); null si no hay fecha
 function monthsUntil(ym){ if(!ym) return null; const p=String(ym).split("-"); const d=new Date(); return (+p[0]-d.getFullYear())*12 + ((+p[1]-1)-d.getMonth()); }
 // etiqueta "mes año" sumando n meses al mes actual
@@ -3281,7 +3366,8 @@ function underBudgetStreak(state, nowMs){
 function gamifOf(state, totals, budgetStreak){
   const tt=totals||{};
   const goals=state.goals||[];
-  const savedScore=goals.reduce(function(a,g){return a+(g.saved||0);},0) + (tt.trRewardsTotal||state.trRewardsTotal||0);
+  // Lo ahorrado de cada meta INCLUYE lo marcado desde Gastos: es dinero que fue a ella igual.
+  const savedScore=goals.reduce(function(a,g){return a+metaAhorrado(g,state);},0) +(tt.trRewardsTotal||state.trRewardsTotal||0);
   let lvl=0; for(let i=0;i<GM_LEVELS.length;i++){ if(savedScore>=GM_LEVELS[i]) lvl=i; }
   const nextMin = (lvl+1<GM_LEVELS.length) ? GM_LEVELS[lvl+1] : null;
   const base=GM_LEVELS[lvl];

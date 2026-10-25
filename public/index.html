@@ -1215,6 +1215,7 @@
     color:var(--muted);font:600 15px 'Manrope',sans-serif;text-align:left;cursor:pointer;}
   .gx-gris-dot{width:8px;height:8px;border-radius:4px;flex:0 0 auto;background:var(--muted);}
   .gx-gris-dot-deuda{background:var(--coral);}
+  .gx-gris-dot-meta{background:var(--blue);}
   .gx-gris-t{flex:1;min-width:0;}
   .gx-gris-n{min-width:20px;height:20px;padding:0 6px;box-sizing:border-box;border-radius:10px;background:var(--sur2);font-size:12px;
     display:flex;align-items:center;justify-content:center;}
@@ -3823,6 +3824,33 @@ const cloud = (function(){
         if(w.error) throw w.error;
       }
     },
+    /* LA MARCA DE APORTACIÓN A META (24/10/2026), con la misma búsqueda que la del recibo y por lo
+       mismo: el id local puede no ser el de la fila de la nube. Solo toca filas `ob:<ent>` u
+       `ob-hist:<ent>` de ESE banco y SIN cuota ni recibo: si la nube dice que la fila ya es de un
+       recibo o de una deuda, la meta no se escribe (una marca por gasto). Devuelve cuántas filas
+       quedan como `e` dice —escritas ahora o ya iguales—: con 0 no hay acuse y la marca local se
+       sigue protegiendo (`metaPend`), porque un UPDATE que no casa no da error. */
+    async setExpenseMeta(e){
+      if(!sb || !e || !e.ent) return 0;
+      const {data:{session}}=await sb.auth.getSession();
+      if(!session) return 0;
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))return 0;
+      const {data,error}=await sb.from('expenses').select('id,source,fecha,importe,comercio')
+        .eq('user_id',session.user.id).eq('fecha',e.date).eq('importe',e.amount).eq('comercio',e.merchant);
+      if(error) throw error;
+      let n=0;
+      for(const r of data||[]){
+        const m=/^(ob|ob-hist):([^~#]+)(~meta\.[^~#]*)?((?:#.*)?)$/.exec(String(r.source||""));
+        if(!m || m[2]!==e.ent) continue;
+        const src=m[1]+":"+m[2]+metaSufijo(e.goalId)+m[4];
+        if(src===r.source){ n++; continue; }
+        if(!await obConfirmedCanUpload(expenseFromRow(r),session.user.id,sb))continue;
+        const w=await sb.from('expenses').update({ source:src }).eq('user_id',session.user.id).eq('id',r.id).eq('source',r.source).select('id');
+        if(w.error) throw w.error;
+        if(Array.isArray(w.data)&&w.data.length) n++;
+      }
+      return n;
+    },
     /* IMPORT HISTÓRICO — batch con RETURNING id (tanda 3, agujero A).
        ignoreDuplicates + onConflict terna: Postgres NO devuelve las filas que chocaron.
        Solo los ids ACK son borrables después. NO toca addExpense (camino paralelo). */
@@ -5000,7 +5028,7 @@ function borrarGastoNube(e, donde){
 
    Si añades un método a `cloud` que ESCRIBA algo, añádelo a esta lista. */
 const CLOUD_WRITES=[
-  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","renameExpense","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","setExpenseRecibo","deleteExpense","deleteExpensesByIds","settleObAbsorbed",
+  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","renameExpense","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","setExpenseRecibo","setExpenseMeta","deleteExpense","deleteExpensesByIds","settleObAbsorbed",
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
   "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",
@@ -5054,6 +5082,17 @@ function reciboSufijo(reciboId){
   const id=String(reciboId||"").replace(/[^A-Za-z0-9_-]/g,"");
   return id ? "~recibo."+id : "";
 }
+/* LA APORTACIÓN A UNA META VIAJA COMO `ob:<ent>~meta.<goalId>` (decisión suya del 24/10/2026: «es
+   aportación a la meta X»). Es la tercera marca y la más débil: solo se escribe si la fila no es
+   ya cuota ni recibo (una marca por gasto). Con `~` por lo mismo que las otras dos, pero aquí el
+   lado seguro es otro: una app vieja de la familia (`partirEntDeuda` ignora tramos que no conoce)
+   y el servidor sin desplegar (`bancoDeSource` corta en `~`) leen el banco limpio y la cuentan
+   como un gasto normal, los dos igual. Ninguno la saca del saldo, que es lo que importa: el dinero
+   salió de la cuenta. Espejo en `_shared/presupuesto.ts` (`esAportacionAMeta`). */
+function metaSufijo(goalId){
+  const id=String(goalId||"").replace(/[^A-Za-z0-9_-]/g,"");
+  return id ? "~meta."+id : "";
+}
 /* Parte el tramo de banco de un `source` OB: «sabadell~deuda.x» → {ent:"sabadell", debtId:"x"};
    «sabadell~recibo.y» → {ent:"sabadell", reciboId:"y"}. Las marcas se leen en cualquier orden:
    una app anterior que marca como cuota una fila de recibo sube «sabadell~recibo.y~deuda.x» (para
@@ -5061,12 +5100,14 @@ function reciboSufijo(reciboId){
    (`expenseSourceForCloud`) y en local (`marcarCuotaAMano`): es lo que la persona dijo a mano. */
 function partirEntDeuda(tramo){
   const partes=String(tramo||"").split("~");
-  let debtId=null, reciboId=null;
+  let debtId=null, reciboId=null, goalId=null;
   partes.slice(1).forEach(function(p){
     if(p.indexOf("deuda.")===0) debtId=p.slice(6)||null;
     else if(p.indexOf("recibo.")===0) reciboId=p.slice(7)||null;
+    else if(p.indexOf("meta.")===0) goalId=p.slice(5)||null;
   });
-  return { ent:partes[0]||null, debtId:debtId, reciboId:debtId?null:reciboId };
+  // La meta solo vale sola: con cuota o recibo, la fila ya es de ellos (una marca por gasto).
+  return { ent:partes[0]||null, debtId:debtId, reciboId:debtId?null:reciboId, goalId:(debtId||reciboId)?null:goalId };
 }
 /* Tramos de un `source` OB tras el banco: «ob:tr#dup#n3» → ["dup","n3"]. El ordinal es el tramo
    `n<k>`; `dup` sigue siendo la marca de posible repetido. Espejo en `presupuesto.ts`. */
@@ -5114,11 +5155,11 @@ function expenseSourceForCloud(e){
   // final no le cambia nada: ve el banco limpio y la marca de repetido donde siempre. Con `~`
   // dentro del banco (como la cuota) ese móvil leería un banco raro y sacaría la fila del
   // presupuesto; con `#` detrás la lee como hoy. Ver `obOrdinalOf`.
-  // Orden: ob:<ent>[~deuda.<id> | ~recibo.<id>][#dup][#ref<id>][#prevref<id>][#pdng][#acc<cuenta>][#n<k>].
+  // Orden: ob:<ent>[~deuda.<id> | ~recibo.<id> | ~meta.<id>][#dup][#ref<id>][#prevref<id>][#pdng][#acc<cuenta>][#n<k>].
   // La cuenta debe sobrevivir al pull para no ensanchar la lápida al reinstalar u otro móvil.
   const acc=e&&e.obAcc?"#acc"+encodeURIComponent(String(e.obAcc)):"";
-  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+(deudaSufijo(e&&e.debtId)||reciboSufijo(e&&e.reciboId))+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+acc+ordinalSufijoCloud(e);
-  if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent+reciboSufijo(e&&e.reciboId)+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+acc+ordinalSufijoCloud(e);
+  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+(deudaSufijo(e&&e.debtId)||reciboSufijo(e&&e.reciboId)||metaSufijo(e&&e.goalId))+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+acc+ordinalSufijoCloud(e);
+  if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent+(reciboSufijo(e&&e.reciboId)||metaSufijo(e&&e.goalId))+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+acc+ordinalSufijoCloud(e);
   // Un alias TR/Wallet pendiente usa temporalmente el encoding OB que entienden también las OTA
   // anteriores; al resolver «son distintos» vuelve a su origen real `macrodroid`.
   if(s==="macrodroid"||s==="tr") return (e&&e.possibleDup)?"ob:trade_republic#dup":"macrodroid";
@@ -6005,7 +6046,7 @@ function resolvePossibleDup(state, expenseId, same){
 /* Convierte una fila de la tabla `expenses` al formato interno de la app. */
 function expenseFromRow(r){
   const raw=String(r.source||"manual");
-  let ent=null, source=raw, dup=false, debtId=null, reciboId=null, ord=1;
+  let ent=null, source=raw, dup=false, debtId=null, reciboId=null, goalId=null, ord=1;
   if(raw==="macrodroid"||raw==="tr"){ ent="trade_republic"; source="macrodroid"; }
   // «ob:ent#dup» = posible repetido que sigue pendiente de su decisión (B09-D): vuelve marcado,
   // así que la app lo sigue dejando fuera del total tras un pull, un reinicio o un segundo móvil.
@@ -6013,8 +6054,9 @@ function expenseFromRow(r){
   // «…#n2» = segundo apunte igual del mismo día (12/10/2026): vuelve con su `obOrd`, que es lo que
   // hace que la clave de mezcla no lo funda con el primero. Siempre es el último tramo.
   // «ob:ent~recibo.id» = cargo de ese recibo del Plan: vuelve con su `reciboId` y no mueve cifras.
-  else if(raw.indexOf("ob:")===0){ const p=raw.slice(3).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; debtId=pe.debtId; reciboId=pe.reciboId; source=(r.ingest_event_id&&p[1]==="dup")?"macrodroid":"ob"; dup=p[1]==="dup"; ord=ordinalDeTramos(p.slice(1)); }
-  else if(raw.indexOf("ob-hist:")===0){ const p=raw.slice(8).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; reciboId=pe.reciboId; source="ob-hist"; dup=p[1]==="dup"; ord=ordinalDeTramos(p.slice(1)); }
+  // «ob:ent~meta.id» = aportación a esa meta (24/10/2026): vuelve con su `goalId`.
+  else if(raw.indexOf("ob:")===0){ const p=raw.slice(3).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; debtId=pe.debtId; reciboId=pe.reciboId; goalId=pe.goalId; source=(r.ingest_event_id&&p[1]==="dup")?"macrodroid":"ob"; dup=p[1]==="dup"; ord=ordinalDeTramos(p.slice(1)); }
+  else if(raw.indexOf("ob-hist:")===0){ const p=raw.slice(8).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; reciboId=pe.reciboId; goalId=pe.goalId; source="ob-hist"; dup=p[1]==="dup"; ord=ordinalDeTramos(p.slice(1)); }
   else if(raw.indexOf("manual:")===0){ ent=raw.slice(7)||null; source="manual"; }   // manual con banco elegido
   else if(raw==="supabase"){ source="manual"; }   // legado: antes el pull marcaba todo como supabase
   return {
@@ -6040,6 +6082,7 @@ function expenseFromRow(r){
     possibleDup: dup ? true : undefined,
     debtId: debtId || undefined,
     reciboId: reciboId || undefined,
+    goalId: goalId || undefined,
     obOrd: ord>1 ? ord : undefined,
     extId: source==="ob"||source==="ob-hist" ? bankRefDeSource(raw) : undefined,
     obPending: (source==="ob"||source==="ob-hist")&&/#pdng(?:#|$)/.test(raw) ? true : undefined,
@@ -6096,7 +6139,9 @@ function expensesFromRows(rows, owner){
 function obBookedPreferenceKey(e){
   const bank=e&&expenseBankOf(e), day=String(e&&e.date||"").slice(0,10), cents=Math.round(Number(e&&e.amount)*100);
   if(!e||!esFilaDeBanco(e)||!bank||!e.extId||!String(e.extId).trim()||!/^\d{4}-\d{2}-\d{2}$/.test(day)||!Number.isSafeInteger(cents)||!e.merchant)return "";
-  const marks=expenseSourceForCloud(e).split("#").filter(function(t){return !/^(?:pdng|n\d{1,6})$/.test(t)&&!/^ref|^acc/.test(t);}).join("#");
+  // Sin la meta: es una marca suya sobre el gasto, no del banco, y el BOOK que la lleva y su
+  // pendiente sin ella siguen siendo el mismo cargo.
+  const marks=expenseSourceForCloud(e.goalId?Object.assign({},e,{goalId:undefined}):e).split("#").filter(function(t){return !/^(?:pdng|n\d{1,6})$/.test(t)&&!/^ref|^acc/.test(t);}).join("#");
   return JSON.stringify([bank,String(e.extId),day,obOrdinalOf(e),String(e.obAcc||""),cents,e.merchant,e.category||"",marks]);
 }
 function preferBookedExpenses(rows,delSet){
@@ -6193,6 +6238,17 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
      la nube sin marca tampoco borra la local; la RETIRADA viaja por `reciboNo` en el estado, y
      `cargoDeRecibo` la respeta aunque esta fila siga marcada aquí. */
   if(incoming.reciboId && !incoming.debtId && !local.debtId && esFilaDeBanco(local)) put("reciboId", incoming.reciboId);
+  /* Aportación a una meta (24/10/2026): aquí la nube SÍ manda también cuando no trae marca, porque
+     quitarla en el otro móvil tiene que llegar a este y no hay otra vía (la cuota y el recibo
+     tienen su lápida en el estado; esta no la necesita). Lo que la protege de una lectura vieja
+     es `metaPend`: mientras este móvil no tenga el acuse de SU cambio, la fila local manda; en
+     cuanto la nube dice lo mismo, deja de protegerse. Sin `metaPend` en las filas de la noti o a
+     mano no hay nada que adoptar: la marca solo existe en las del banco. */
+  if(esFilaDeBanco(local)){
+    const metaIn=incoming.goalId||undefined;
+    if(local.metaPend){ if((local.goalId||undefined)===metaIn) put("metaPend", undefined); }
+    else put("goalId", metaIn);
+  }
   if(!local.noteEdited && Object.prototype.hasOwnProperty.call(incoming,"note")) put("note", incoming.note);
   const confirmed=Object.keys(preserved).filter(function(k){return incoming[k]===preserved[k]||((k==="debtId"||k==="noCard")&&!incoming[k]&&!preserved[k]);});
   if(confirmed.length){
@@ -6238,12 +6294,13 @@ function uniqueExpenseUuids(rows,delSet,index){
     const edited=function(x){return !!(x.catStale&&x.catStale.length)||x.catAckAt!=null;};
     const cat=edited(e)?e:edited(a)?a:winner;
     if(cat.category!=null){merged.category=cat.category;if(cat.catStale)merged.catStale=cat.catStale;if(cat.catAckAt!=null)merged.catAckAt=cat.catAckAt;}
-    ['debtId','reciboId','noCard'].forEach(function(k){
+    ['debtId','reciboId','noCard','goalId','metaPend'].forEach(function(k){
       const has=function(x){return Object.prototype.hasOwnProperty.call(x,k)&&x[k]!==undefined;};
       const selected=has(e)?e:has(a)?a:null;
       if(selected)merged[k]=selected[k];
     });
     if(merged.debtId)delete merged.reciboId;
+    if(merged.debtId||merged.reciboId){ delete merged.goalId; delete merged.metaPend; }
     // Lo recuperado de otra copia no se pierde otra vez en un pull viejo.
     ['category','debtId','noCard'].forEach(function(k){if(merged[k]!==undefined&&a[k]!==e[k])guarded[k]=merged[k];});
     if(Object.keys(guarded).length)merged.uuidPreserved=guarded;
@@ -7404,6 +7461,17 @@ Object.assign(LANG.es,{gv5_spent_in:"gastado en {mes}", gv5_net_in:"balance de {
   gv5_net_sub:"gastos {g} · ingresos {i}", gv5_meses:"Meses", gv5_periodo:"Periodo", gv5_p_months:"Meses", gv5_p_range:"Rango"});
 
 
+// «Es aportación a la meta X» en la ficha de un gasto y su fila gris de Metas (24/10/2026).
+Object.assign(LANG.es,{f_meta_row:"Es aportación a una meta", f_meta_hint:"Elige la meta. El cargo deja de contar en el gasto del mes y en el presupuesto, y suma a lo ahorrado de la meta. El saldo del banco no cambia.",
+  f_meta_quitar:"No es una aportación", f_meta_otra:"Este cargo ya cuenta en el Plan como cuota o recibo. Cada gasto lleva una sola marca.",
+  f_meta_ninguna:"No tienes metas abiertas. Crea una en Plan → Metas.",
+  f_meta_confirm_t:"¿Es aportación a «{name}»?", f_meta_confirm_sub:"{x} dejan de contar en el gasto del mes y la meta pasa de {a} a {b}.",
+  f_meta_confirm_doble:"Si ya lo sumaste en la meta con «Aportar» o con un reparto, no lo marques: contaría dos veces.", f_meta_confirm_ok:"Sí, es para la meta",
+  f_meta_ok:"Aportación a «{name}»: ya no cuenta como gasto", f_meta_off:"Vuelve a contar como gasto",
+  g_meta_de:"Meta: {name}", g_meta_borrada:"Meta borrada", gl_from_gastos:"{x} desde Gastos",
+  gl_delete_linked:"Esta meta tiene aportaciones marcadas en Gastos. Quita antes la marca desde la ficha de cada gasto."});
+
+
 // Gastos v5, tanda 2: secciones (Movimientos / Categorías / Suscripciones) y sus cabeceras.
 Object.assign(LANG.es,{gv5_secciones:"Secciones de Gastos", gv5_sec_movs:"Movimientos", gv5_sec_cats:"Categorías", gv5_sec_subs:"Suscripciones",
   gv5_subs_globo:"{n} por revisar", gv5_cats_pre:"{period} por categoría", gv5_cats_pres:"Presupuesto gastado", gv5_cats_of:"de {x}",
@@ -8004,7 +8072,17 @@ function expenseCountsBudget(e, s){
   // con la app cerrada (27/9/2026). No se altera cash: sus bases pueden estar ya ancladas
   // incluyendo estas filas. Las lápidas cambian por copia; el índice evita N recorridos.
   if(expenseIsTombstoned(e,expenseDeletedSet(s))) return false;
+  // Aportación a una meta (24/10/2026): el dinero va a la meta, no se gasta. Sale del gastado y del
+  // presupuesto, pero NO de `expenseCountsCash`: salió de la cuenta y el saldo tiene que seguir
+  // restándolo (mismo motivo que la cuota de deuda). Solo la marca, igual que el servidor
+  // (`esAportacionAMeta`), que no sabe qué metas existen: así los dos dan la misma cifra.
+  if(metaDeGasto(e)) return false;
   return expenseCountsCash(e, s);
+}
+/* ¿Este gasto es una aportación a una meta? → el id de la meta, o null. La marca vale sola: con
+   cuota o recibo la fila es de ellos (una marca por gasto), igual que al subirla a la nube. */
+function metaDeGasto(e){
+  return e && e.goalId && !e.debtId && !e.reciboId ? e.goalId : null;
 }
 /* EN QUÉ CAJÓN VA CADA MOVIMIENTO (2026-08-17).
    Su queja al volver del crucero: «hay bastante caos entre gastos que cuentan, ingresos y
@@ -8018,7 +8096,8 @@ function expenseCountsBudget(e, s){
      "posible"   → Open Banking sin nombre que casa con otra vía del MISMO banco (2026-09-07).
      "otrobanco" → gasto real, pero de un banco que no es de gasto diario (los recibos).
      "recibo"    → el cargo de un recibo o puntual del Plan: se ve, y ya cuenta allí (12/10/2026).
-     "cuenta"    → lo que de verdad se come el presupuesto del mes.
+     "meta"      → dinero que va a una meta: se ve, y suma a la meta, no al gasto (24/10/2026).
+     "cuenta"  → lo que de verdad se come el presupuesto del mes.
    Devuelve una etiqueta, no un booleano: la fila necesita decir POR QUÉ, y el filtro necesita
    agrupar por lo mismo. Una sola función para las dos cosas, para que no se separen. */
 function expenseBucket(e, s){
@@ -8036,6 +8115,7 @@ function expenseBucket(e, s){
   }
   if(e.debtId) return "deuda";        // cuota de una deuda: ya cuenta en el Plan (4.21.0)
   if(cargoDeRecibo(e, s)) return "recibo";
+  if(metaDeGasto(e)) return "meta";
   if(CAT_NEUTRAS[e.category]) return "neutra";
   if(!expenseCountsCash(e, s)) return "otrobanco";
   return "cuenta";
@@ -8069,6 +8149,14 @@ function reciboEtiqueta(s, e){
   if(!f) return "";
   if(!f.name) return t("bp_hist_recibo");
   return tf(cargoDeReciboFirme(e, s) ? "g_recibo_de" : "g_recibo_quiza", { name:f.name });
+}
+/* Lo que la lista escribe junto a una aportación: «Meta: Viaje», o «Meta borrada» si la meta ya no
+   está (la fila sigue fuera del gasto, como en el servidor, y su ficha deja quitar la marca). */
+function metaEtiqueta(s, e){
+  const id=metaDeGasto(e);
+  if(!id) return "";
+  const g=((s&&s.goals)||[]).find(function(x){ return x && x.id===id; });
+  return g ? tf("g_meta_de",{ name:(g.emoji?g.emoji+" ":"")+(g.name||"") }) : t("g_meta_borrada");
 }
 /* Redondeo y saveback estimados del mes para la tarjeta de Cartera. Sin el cargo de un recibo,
    que no es una compra: con él dentro el redondeo subía con cada recibo (4,30 → 9,50 medido). */
@@ -8281,6 +8369,46 @@ const RU_MULTS=[0,2,3,5,10];
 const GOAL_EMOJIS=["🎯","✈️","🏠","🚗","💍","🎓","🛟","🎮","💻","🏖️","🎁","💰","📱","🐱"];
 function goalPct(g){ const tg=(g&&g.target)||0; return tg>0 ? Math.min(100, Math.max(0,((g.saved||0)/tg)*100)) : 0; }
 function goalRemaining(g){ return Math.max(0, ((g&&g.target)||0)-((g&&g.saved)||0)); }
+/* LO QUE LLEVA CADA META DESDE GASTOS (24/10/2026): la suma de los cargos marcados «es aportación
+   a la meta X», en céntimos para no arrastrar decimales. Se calcula al vuelo y NUNCA se escribe
+   en `saved`: así quitar la marca devuelve la meta exactamente a como estaba, y el otro móvil no
+   puede sumarla otra vez al mezclar metas. Fuera lo que no es dinero de verdad: un posible
+   repetido pendiente o una fila borrada (lápida) no suman, igual que no cuentan en el gasto.
+   Una pasada para todas las metas, guardada por la referencia de `expenses` (solo cambia cuando
+   cambia algún gasto) y de las lápidas. → { goalId: {c: céntimos, n: cargos} } */
+const _metaAportesMemo=new WeakMap();
+function metaAportes(state){
+  const exps=(state&&state.expenses)||[];
+  const del=expenseDeletedSet(state);
+  const hit=_metaAportesMemo.get(exps);
+  if(hit && hit.del===del) return hit.map;
+  const map=Object.create(null);
+  exps.forEach(function(e){
+    const id=metaDeGasto(e);
+    if(!id || e.possibleDup || e.autoGemelo || !(e.amount>0)) return;
+    if(expenseIsTombstoned(e,del)) return;
+    const c=Math.round(e.amount*100);
+    if(!Number.isSafeInteger(c)) return;
+    const m=map[id]||(map[id]={c:0,n:0});
+    m.c+=c; m.n++;
+  });
+  _metaAportesMemo.set(exps,{del:del,map:map});
+  return map;
+}
+// Lo ahorrado que se ENSEÑA: lo apuntado en la meta + lo marcado desde Gastos.
+function metaAhorrado(g, state){
+  const a=g&&metaAportes(state)[g.id];
+  return +(((Math.round(((g&&g.saved)||0)*100))+(a?a.c:0))/100).toFixed(2);
+}
+/* Copia SOLO PARA PINTAR (porcentaje, barra, «X de Y», previsión): `saved` ya lleva lo marcado y
+   `aportado` dice cuánto. No se le pasa nunca a una hoja que edite la meta: guardaría la suma
+   encima de lo apuntado a mano. Sin nada marcado devuelve la meta tal cual. */
+function metaConAportes(g, state){
+  const a=g&&metaAportes(state)[g.id];
+  if(!a || !a.c) return g;
+  return Object.assign({}, g, { saved:metaAhorrado(g,state), aportado:a.c/100, aportes:a.n });
+}
+function metaTieneAportes(state, goalId){ return !!metaAportes(state)[goalId]; }
 // meses enteros desde hoy hasta una fecha "YYYY-MM" (negativo = ya pasada); null si no hay fecha
 function monthsUntil(ym){ if(!ym) return null; const p=String(ym).split("-"); const d=new Date(); return (+p[0]-d.getFullYear())*12 + ((+p[1]-1)-d.getMonth()); }
 // etiqueta "mes año" sumando n meses al mes actual
@@ -8464,7 +8592,8 @@ function underBudgetStreak(state, nowMs){
 function gamifOf(state, totals, budgetStreak){
   const tt=totals||{};
   const goals=state.goals||[];
-  const savedScore=goals.reduce(function(a,g){return a+(g.saved||0);},0) + (tt.trRewardsTotal||state.trRewardsTotal||0);
+  // Lo ahorrado de cada meta INCLUYE lo marcado desde Gastos: es dinero que fue a ella igual.
+  const savedScore=goals.reduce(function(a,g){return a+metaAhorrado(g,state);},0) +(tt.trRewardsTotal||state.trRewardsTotal||0);
   let lvl=0; for(let i=0;i<GM_LEVELS.length;i++){ if(savedScore>=GM_LEVELS[i]) lvl=i; }
   const nextMin = (lvl+1<GM_LEVELS.length) ? GM_LEVELS[lvl+1] : null;
   const base=GM_LEVELS[lvl];
@@ -12050,7 +12179,9 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       React.createElement("div",{className:"v4-goals",
         onTouchStart:function(e){ e.stopPropagation(); },
         onTouchMove:function(e){ e.stopPropagation(); }},
-        goals.map(function(g){
+        goals.map(function(g0){
+          // Con lo marcado desde Gastos, como en Plan → Metas: la misma meta no puede decir dos cifras.
+          const g=metaConAportes(g0,state);
           const pct=goalPct(g); const eta=goalEta(g, tt.ahorroMensual);
           return React.createElement("div",{key:g.id,className:"v4-goal"},
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
@@ -12709,6 +12840,30 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     if(subir && cloud.enabled()) cloud.setExpenseDeuda(subir).catch(function(){});
     if(showToast) showToast(tf("v4_moved_cat",{cat:DEUDA_CAT.icon+" "+catName("deudas")}));
   };
+  /* «Es aportación a la meta X» desde la ficha (decisión suya del 24/10/2026). Toca dinero, así que
+     PONERLA se confirma diciendo qué cambia («de 100 € a 350 €»), y si la meta ya tenía algo
+     ahorrado avisa de lo único que la app no puede saber: si ese mismo dinero ya lo sumó él a mano
+     con «Aportar» o con un reparto. En ese caso contaría dos veces, y la app no adivina cuál de los
+     dos apuntes es el bueno. QUITARLA no pregunta: deja todo como estaba. La marca sube a la nube
+     (`setExpenseMeta`) y solo deja de protegerse con su acuse (`ackMetaWrite`). */
+  const setMeta=function(ex,goalId){
+    const subirMeta=function(){
+      let subir=null;
+      set(function(s){ const r=marcarAportacionMeta(s, ex.id, goalId); if(!r) return s; subir=r.e; return r.state; });
+      if(!subir) return;
+      const g=goalId&&(state.goals||[]).find(function(x){ return x.id===goalId; });
+      if(showToast) showToast(goalId?tf("f_meta_ok",{name:(g&&g.name)||""}):t("f_meta_off"));
+      if(cloud.enabled()) cloud.setExpenseMeta(subir).then(function(n){
+        if(n>0) set(function(p){ const l=ackMetaWrite(p.expenses, subir, goalId); return l===p.expenses?p:Object.assign({},p,{expenses:l}); });
+      }).catch(function(){});
+    };
+    if(goalId==null){ subirMeta(); return; }
+    const g=(state.goals||[]).find(function(x){ return x.id===goalId; });
+    if(!g) return;
+    const antes=metaAhorrado(g,state);
+    const sub=tf("f_meta_confirm_sub",{x:eur(ex.amount),a:eur(antes),b:eur(Math.round((antes+ex.amount)*100)/100)})+((g.saved||0)>0?" "+t("f_meta_confirm_doble"):"");
+    askConfirm({title:tf("f_meta_confirm_t",{name:g.name||""}),sub:sub,ok:t("f_meta_confirm_ok")}).then(function(yes){ if(yes) subirMeta(); });
+  };
   /* «No es este recibo» (12/10/2026): el sync casa por nombre e importe parecidos y puede
      equivocarse. Sin la marca, la fila vuelve a contar como un gasto cualquiera. */
   const quitarRecibo=function(ex){
@@ -12992,7 +13147,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
         // Los cargos de recibos y cuotas (las filas grises) no se enseñan con filtro (SPEC §4.4):
         // no suman a la categoría. Siguen en Movimientos sin filtro y en su fila gris.
         const bk=expenseBucket(e, state);
-        if(bk==="recibo"||bk==="deuda") continue;
+        if(bk==="recibo"||bk==="deuda"||bk==="meta") continue;
       }
       // `debt:<id>` en la misma lista que las categorías: el chip de cada deuda (4.21.0).
       if(catSet && !catSet.has(e.category) && !(e.debtId && catSet.has("debt:"+e.debtId))) continue;
@@ -13721,7 +13876,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
         if(!skipSave && ex && editExp) saveEdit(ex);
         setDetailId(null); setEditExp(null);
       },
-      setCat:setCat, setCuota:setCuota, setReceipt:setReceipt, quitarRecibo:quitarRecibo, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
+      setCat:setCat, setCuota:setCuota, setMeta:setMeta, setReceipt:setReceipt, quitarRecibo:quitarRecibo, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
       resolveDup:resolveDup, separarGemelo:separarGemelo, recognizeWithdrawal:recognizeWithdrawal, withdrawalStatus:withdrawalStatus,
       showToast:showToast, aiBusy:aiBusy, suggestAi:suggestAi, state:state
     }),
@@ -13774,11 +13929,12 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
     if(!dia||dia.k!==info.k||dia.ym!==info.ym){ dia={k:info.k, ym:info.ym, ms:ms, rows:[], gris:[]}; dias.push(dia); }
     const bucket=expenseBucket(e, state);
     const l=e.debtId&&filterSelLabel("debt:"+e.debtId,state.debts);
-    const recibo=reciboEtiqueta(state,e);
-    if(agrupa && (bucket==="recibo"||bucket==="deuda")){
+    // En una aportación, la «etiqueta» es la meta: la fila suelta (buscando) y la gris dicen cuál.
+    const recibo=bucket==="meta"?metaEtiqueta(state,e):reciboEtiqueta(state,e);
+    if(agrupa && (bucket==="recibo"||bucket==="deuda"||bucket==="meta")){
       let g=dia.gris.find(function(x){ return x.kind===bucket; });
       if(!g){ g={kind:bucket, items:[], total:0}; dia.gris.push(g); }
-      g.items.push({e:e, ms:ms, sub:bucket==="recibo"?recibo:(l||catName("deudas"))});
+      g.items.push({e:e, ms:ms, sub:bucket==="deuda"?(l||catName("deudas")):recibo});
       g.total+=Math.abs(e.amount||0);
     } else dia.rows.push({e:e, ms:ms, l:l, bucket:bucket, recibo:recibo});
   });
@@ -13826,7 +13982,7 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
                     dragOver:!!(dragExpense&&dragExpense.to===g.e.id&&dragExpense.from!==g.e.id),
                     onDragStart:startExpenseDrag,onDragMove:moveExpenseDrag,onDragEnd:endExpenseDrag});
                 }),
-                d.gris.slice().sort(function(a,b){ return a.kind==="recibo"?-1:b.kind==="recibo"?1:0; }).map(function(g){
+                d.gris.slice().sort(function(a,b){ return GX_GRIS[a.kind].ord-GX_GRIS[b.kind].ord; }).map(function(g){
                   return React.createElement(GastosGris,{key:d.k+"|"+g.kind, g:g, onOpen:openDetail, onGoPlan:onGoPlan, simple:simple});
                 }));
             }),
@@ -13979,12 +14135,13 @@ function GxCifra({n}){
     React.createElement("span",{className:"gx-num-ent","aria-hidden":true},celdas(ent,"e")),
     React.createElement("span",{className:"gx-num-dec","aria-hidden":true},celdas(dec,"d")," "+p.sym));
 }
-/* FILA GRIS: los cargos de un día que pagan recibos o cuotas (SPEC §4.4). Se ven, no suman al
+/* FILA GRIS: los cargos de un día que pagan recibos o cuotas, o que van a una meta (SPEC §4.4). Se ven, no suman al
    día ni a la cifra (ya cuentan en el Plan, regla de siempre), y se despliegan con un solo toque
    de vibración. Cada cargo sigue abriendo su ficha: ahí viven «No es este recibo» y «no es la
    cuota», que no se pueden quedar sin camino por plegarlos. El estado de abierto es de la fila:
    abrir una no repinta la lista. */
-const GX_GRIS={recibo:{lab:"v4_plan_recibos",seg:"recibos"}, deuda:{lab:"v4_plan_deudas",seg:"deudas"}};
+// Orden en el día: Recibos, Deudas y Metas, el mismo que los segmentos de Plan.
+const GX_GRIS={recibo:{lab:"v4_plan_recibos",seg:"recibos",ord:0}, deuda:{lab:"v4_plan_deudas",seg:"deudas",ord:1}, meta:{lab:"v4_plan_metas",seg:"metas",ord:2}};
 function GastosGris({g, onOpen, onGoPlan, simple}){
   const [open,setOpen]=useState(false);
   const def=GX_GRIS[g.kind];
@@ -14051,9 +14208,10 @@ const MovRow=React.memo(function MovRow({e, ms, l, onOpen, bucket, recibo, dragg
   // Un ingreso NO va apagado: entra dinero, no es un gasto que se descarta. Solo se atenúan los
   // dos cajones que no mueven el presupuesto, y cada uno dice el suyo en vez de un «no afecta»
   // genérico que hacía que una inversión y un recibo de Sabadell parecieran lo mismo.
-  const skip=bucket==="neutra"||bucket==="otrobanco"||bucket==="posible"||bucket==="deuda"||bucket==="recibo";
-  // El recibo dice CUÁL es, y si solo lo parece lo pregunta: «no cuenta» a secas haría dudar.
-  const skipTxt=!skip?"":(bucket==="recibo"?recibo:t("g_skip_"+bucket));
+  const skip=bucket==="neutra"||bucket==="otrobanco"||bucket==="posible"||bucket==="deuda"||bucket==="recibo"||bucket==="meta";
+  // El recibo dice CUÁL es, y si solo lo parece lo pregunta: «no cuenta» a secas haría dudar. La
+  // aportación, igual: a qué meta va.
+  const skipTxt=!skip?"":(bucket==="recibo"||bucket==="meta"?recibo:t("g_skip_"+bucket));
   return React.createElement("button",{type:"button","data-expense-id":e.id,"data-expense-day":String(e.date||"").slice(0,10),
       className:"v4-mov"+(skip?" v4-mov-skip":"")+(dragging?" dragging":"")+(dragOver?" drag-over":""),
       onClick:function(ev){ if(ev.target&&ev.target.closest&&ev.target.closest(".v4-mov-drag")) return; onOpen(e); },style:skip?{opacity:.72}:null},
@@ -14252,7 +14410,7 @@ function expensePaymentLabelUI(state,e,kind,relation){
   var rows=(kind==="debt"?state.debts||[]:(state.fixed||[]).concat(state.oneoffs||[])).filter(function(x){return x&&x.id===id;});
   return rows.length===1&&String(rows[0].name||"").trim()?tf("f_link_unconfirmed",{name:rows[0].name}):"—";
 }
-function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus}){
+function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setMeta, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus}){
   /* UNA SOLA CONDICIÓN para pintarse y para los candados. Iban por separado (`!!exp` en los hooks,
      `!exp || !editExp` para pintar) y en cuanto se separaban el sheet desaparecía dejando el
      `overflow:hidden` y el bloqueo de `touchmove` puestos sobre una pantalla vacía: nada respondía
@@ -14379,6 +14537,11 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
       withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status!=="done" && React.createElement("div",{role:"status"},
         t(withdrawalStatus.status==="pending"?"f_withdraw_pending":"f_withdraw_error"))));
   const debtOptions=(state.debts||[]).filter(function(d){ return d&&d.id; });
+  // Metas a las que se puede aportar: las abiertas, y la que ya tiene aunque esté cumplida.
+  const metaActual=exp.goalId?(state.goals||[]).find(function(g){ return g&&g.id===exp.goalId; }):null;
+  const metaOpciones=(state.goals||[]).filter(function(g){ return g&&g.id&&(!g.done||g.id===exp.goalId); });
+  const metaOtraMarca=!exp.goalId&&esFilaDeBanco(exp)&&(!!exp.debtId||!!exp.reciboId);
+  const metaRowOn=!!exp.goalId||((metaAdmiteMarca(exp)||metaOtraMarca)&&(state.goals||[]).length>0);
   const receiptDate=String(exp.date||"").slice(0,10),receiptYear=Number(receiptDate.slice(0,4)),receiptMonth=Number(receiptDate.slice(5,7)),receiptNow=new Date();
   const receiptToday=receiptYear===receiptNow.getFullYear()&&receiptMonth===receiptNow.getMonth()+1?receiptNow.getDate():new Date(receiptYear,receiptMonth,0).getDate();
   const receiptLinked=withdrawalReceiptLink(state,exp);
@@ -14430,6 +14593,21 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
       adjustOpen==="debt" && React.createElement("div",{className:"v4-chips wrap v4-ficha-adjust-open","data-testid":"exp-cuota-de"},
         debtOptions.map(function(d){ const on=exp.category==="deudas"&&exp.debtId===d.id; return React.createElement("button",{key:d.id,type:"button",className:"v4-chip"+(on?" on":""),
           onClick:function(){ if(!on) setCuota(exp,d.id); }},DEUDA_CAT.icon+" "+(String(d.name||"").trim()||catName("deudas"))); }))),
+    /* «Es aportación a una meta» (24/10/2026). Sale en los cargos del banco que pueden llevarla y en
+       los que ya la llevan (si no, quitarla no tendría camino). En una cuota o un recibo se ve, pero
+       explica por qué no se puede: una marca por gasto. Un apunte a mano no la ofrece: para eso está
+       «Aportar» en la meta, y esta marca solo sabe viajar en las filas del banco. */
+    !isIncome && metaRowOn && React.createElement(React.Fragment,null,
+      React.createElement("button",{type:"button",className:"v4-ficha-adjust-row","data-testid":"exp-meta",onClick:function(){ setAdjustOpen(adjustOpen==="meta"?null:"meta"); }},
+        React.createElement("span",null,t("f_meta_row")),
+        React.createElement("span",{className:"value","data-testid":"exp-meta-value"},metaActual?((metaActual.emoji||"🎯")+" "+(metaActual.name||"")):(exp.goalId?t("g_meta_borrada"):t("f_no"))),
+        React.createElement("span",{className:"chev"},"›")),
+      adjustOpen==="meta" && React.createElement("div",{className:"v4-ficha-adjust-open","data-testid":"exp-meta-options"},
+        React.createElement("div",{className:"hint"},t(metaOtraMarca?"f_meta_otra":(metaOpciones.length||exp.goalId)?"f_meta_hint":"f_meta_ninguna")),
+        !metaOtraMarca && React.createElement("div",{className:"v4-chips wrap"},
+          metaOpciones.map(function(g){ const on=exp.goalId===g.id; return React.createElement("button",{key:g.id,type:"button",className:"v4-chip"+(on?" on":""),"data-testid":"exp-meta-"+g.id,"aria-pressed":on,
+            onClick:function(){ if(!on) setMeta(exp,g.id); }},(g.emoji||"🎯")+" "+(String(g.name||"").trim()||t("v4_plan_metas"))); }),
+          exp.goalId && React.createElement("button",{type:"button",className:"v4-chip","data-testid":"exp-meta-quitar",onClick:function(){ setMeta(exp,null); }},t("f_meta_quitar"))))),
     React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",onClick:function(){
       if(auto){ lockedToast(); return; }
       const income=!editExp.income; setEditExp(function(p){ return Object.assign({},p,{income:income}); }); saveEdit(exp,{income:income});
@@ -17441,7 +17619,7 @@ function fixedPaymentProof(s,e,y,m,today){
 }
 function fixedExpenseEligible(s,x,e,y,m,today){
   var target=e.bankAmount>0?e.bankAmount:occAmountIn(e,m);
-  return !!x&&fixedPaymentUnique(s,e)&&!x.possibleDup&&!x.debtId&&(!x.status||String(x.status).toUpperCase()==="BOOK")&&!!expenseBankOf(x)&&!CAT_NEUTRAS[x.category]&&x.category!=="ingreso"&&
+  return !!x&&fixedPaymentUnique(s,e)&&!x.possibleDup&&!x.debtId&&!metaDeGasto(x)&&(!x.status||String(x.status).toUpperCase()==="BOOK")&&!!expenseBankOf(x)&&!CAT_NEUTRAS[x.category]&&x.category!=="ingreso"&&
     Number.isFinite(Number(x.amount))&&Number.isFinite(Number(target))&&Number(x.amount)>0&&target>0&&occursIn(e,m)&&
     fixedPaymentDate(x.date,y,m,today)&&!expenseIsTombstoned(x,expenseDeletedSet(s))&&fixedPaymentFeedClear(s,fixedPaymentIdentity(expenseBankOf(x),x))&&
     (fixedPaymentExpenses(s,String(x.date||"").slice(0,7)).identity.get(fixedPaymentIdentity(expenseBankOf(x),x))||[]).length===1&&
@@ -17696,7 +17874,7 @@ function paymentEvidenceUI(s,y,m,today){
   var current=function(x){ return !paymentEvidenceRowIssue(s,x,index,deleted); };
   var add=function(x,kind,f){
     if(!current(x)) return;
-    if(kind==="fixed"&&(x.debtId||x.reciboId&&x.reciboId!==f.id||reciboVetado(s,f.id,reciboNoIdentidad(x),x.id))) return;
+    if(kind==="fixed"&&(x.debtId||metaDeGasto(x)||x.reciboId&&x.reciboId!==f.id||reciboVetado(s,f.id,reciboNoIdentidad(x),x.id))) return;
     // Dos propietarios nunca eligen por orden de arrays.
     byExpense.set(x.id,byExpense.has(x.id)?null:{kind:kind,id:f.id,name:f.name});
   };
@@ -18488,7 +18666,8 @@ function flattenBankTx(links, previous){
 const gemeloCache=new WeakMap(), gemeloDatosCache=new WeakMap(), gemeloDiasCache=new Map();
 // Un comercio real no identifica un gemelo por importe: el extracto de recibos perdió
 // 750,50 al emparejar dos nombres distintos sin id (CI 13/10/2026). Sólo el genérico carece de identidad.
-function gemeloBancoAutomatico(e){ return !!(e&&e.id)&&esFilaDeBanco(e)&&!e.extId&&!e.reciboId&&!e.debtId&&sinComercioReal(e.obName!=null?e.obName:e.merchant); }
+// Una fila que él marcó como aportación a meta tampoco se esconde sola: su marca se perdería de vista.
+function gemeloBancoAutomatico(e){ return !!(e&&e.id)&&esFilaDeBanco(e)&&!e.extId&&!e.reciboId&&!e.debtId&&!e.goalId&&sinComercioReal(e.obName!=null?e.obName:e.merchant); }
 function gemeloAvisoAutomatico(e){ return !!(e&&e.id)&&!esFilaDeBanco(e)&&!isManualExpenseSource(e.source)&&!e.possibleDup&&!e.pending&&!e.reciboId&&!e.debtId; }
 function gemeloDatos(e){
   if(!e) return {grupo:"",dia:NaN};
@@ -19217,7 +19396,7 @@ function quitarCargoDeRecibo(s, expenseId, ahora){
 // La marca viaja en `source` y solo `ob`/`ob-hist` saben llevarla; y solo del banco del recibo.
 // La usan quien la repone y el diálogo que lo anuncia, para que digan lo mismo.
 function admiteMarcaDe(x, f){
-  return !!x && !!f && !x.debtId && (x.source==="ob" || x.source==="ob-hist") && expenseBankOf(x)===accOf(f);
+  return !!x && !!f && !x.debtId && !metaDeGasto(x) && (x.source==="ob" || x.source==="ob-hist") && expenseBankOf(x)===accOf(f);
 }
 /* CONFIRMAR A MANO EL PAGO CON UN CARGO DEL QUE SE DIJO «NO ES ESTE RECIBO» DESHACE AQUELLO: lo
    último que dijo la persona manda. Se levanta el veto (sin esto el vínculo se guardaba y el
@@ -19438,7 +19617,8 @@ function cuotasDeDeudaPorMarcar(s){
   const usada=cuotasUsadas(todas, exps);
   const cands=[];
   exps.forEach(function(e){
-    if(!e || e.debtId || cargoDeRecibo(e, s) || !(e.amount>0) || e.possibleDup) return;
+    // Una aportación a meta ya tiene dueño: el motor no la reclama como cuota (una marca por gasto).
+    if(!e || e.debtId || cargoDeRecibo(e, s) || metaDeGasto(e) || !(e.amount>0) || e.possibleDup) return;
     // A mano, solo si ya está en «Deudas» (se re-deduce la deuda tras reinstalar).
     if(isManualExpenseSource(e.source) && e.category!=="deudas") return;
     // Un traspaso o una inversión no casa SOLO con una cuota… salvo que él ya enseñó ese comercio
@@ -19493,12 +19673,54 @@ function marcarCuotaAMano(s, expenseId, debtId){
   const e=Object.assign({}, orig, { category:DEUDA_CAT.id, debtId:d.id });
   // Lo que él marca a mano manda sobre la marca automática de recibo, aquí y en la nube.
   delete e.reciboId;
+  // Y sobre la de meta: una marca por gasto, y la última que puso él es la que vale. En la nube la
+  // cuota también gana (`expenseSourceForCloud` escribe `~deuda.` y no `~meta.`).
+  delete e.goalId; delete e.metaPend;
   const k=keyOfExpense(orig);
   const out={ expenses:(s.expenses||[]).map(function(x){ return x===orig ? e : x; }) };
   if((s.cuotaNo||[]).indexOf(k)>=0) out.cuotaNo=(s.cuotaNo||[]).filter(function(x){ return x!==k; });
   const ak=cuotaAliasKey(orig);
   if(ak){ out.cuotaAlias=Object.assign({}, s.cuotaAlias||{}); out.cuotaAlias[ak]=d.id; }
   return { state:Object.assign({}, s, out), e:e };
+}
+/* «ES APORTACIÓN A LA META X» (decisión suya del 24/10/2026). Qué cargo admite la marca:
+   · del banco (`ob`/`ob-hist`): es lo único que sabe llevarla en `source` y que viaja a la nube y
+     al widget. Un apunte a mano o un aviso del móvil se aportan con «Aportar» en la meta;
+   · un gasto (>0) que ya se sabe que es uno: ni posible repetido ni pendiente del banco;
+   · sin otra marca: la cuota de una deuda y el cargo de un recibo ya cuentan en el Plan, y
+     marcarlos además como meta los sacaría dos veces (una marca por gasto). */
+function metaAdmiteMarca(e){
+  return !!e && esFilaDeBanco(e) && !!e.ent && e.amount>0 && !e.possibleDup && !e.autoGemelo && !e.obPending && !e.debtId && !e.reciboId;
+}
+/* Pone (goalId) o quita (null) la marca. Puro: no toca la meta —su progreso lo suma
+   `metaAportes` al vuelo— ni la categoría, así que quitarla deja la fila como estaba. La fila
+   queda `metaPend` hasta el acuse de la nube (`ackMetaWrite`): sin eso, el pull siguiente, que
+   aún no se ha enterado, se la quitaría. → {state, e} (la fila nueva, para subirla) o null. */
+function marcarAportacionMeta(s, expenseId, goalId){
+  const orig=((s&&s.expenses)||[]).find(function(x){ return x && x.id===expenseId; });
+  if(!orig) return null;
+  if(goalId!=null){
+    const g=((s&&s.goals)||[]).find(function(x){ return x && x.id===goalId; });
+    // A una meta cumplida no se le aporta (como el reparto de la nómina); sí se puede dejar la que ya tenía.
+    if(!g || (g.done && orig.goalId!==g.id) || !metaAdmiteMarca(orig) || orig.goalId===g.id) return null;
+  } else if(!orig.goalId) return null;
+  const e=Object.assign({}, orig);
+  if(goalId!=null) e.goalId=goalId; else delete e.goalId;
+  e.metaPend=true;
+  return { state:Object.assign({}, s, { expenses:(s.expenses||[]).map(function(x){ return x===orig ? e : x; }) }), e:e };
+}
+/* La nube confirmó la marca de `e`: deja de protegerse en las filas que siguen diciendo lo mismo.
+   Si entre medias él volvió a cambiarla, esa fila espera a su propio acuse. Sin cambios, el mismo
+   array (ni re-render ni reescritura del histórico). */
+function ackMetaWrite(list, e, goalId){
+  let out=list;
+  (list||[]).forEach(function(x,i){
+    if(!x || !x.metaPend || x.date!==e.date || x.amount!==e.amount || x.merchant!==e.merchant || expenseBankOf(x)!==expenseBankOf(e)) return;
+    if((x.goalId||null)!==(goalId||null)) return;
+    if(out===list) out=list.slice();
+    const y=Object.assign({}, x); delete y.metaPend; out[i]=y;
+  });
+  return out;
 }
 
 /* ============================================================
@@ -21642,6 +21864,8 @@ function GoalEditSheet({goal,state,set,onClose,onDelete,showToast}){
     onChange:function(e){setForm(Object.assign({},form,{[key]:e.target.value}));}})); };
   return React.createElement(PlanEditSheet,{title:t("gl_edit_title"),onClose:onClose,closer:closer},React.createElement("div",{className:"add-form"},
     input("name","plan_edit_name"),React.createElement("div",{className:"af-row"},input("saved","gl_saved_ph"),input("target","gl_target_ph")),
+    // Lo marcado desde Gastos NO está en este campo (se suma al vuelo): se dice para que no lo apunte otra vez.
+    metaConAportes(goal,state).aportado>0&&React.createElement("div",{className:"hint","data-testid":"goal-edit-from-gastos"},tf("gl_from_gastos",{x:eur(metaConAportes(goal,state).aportado)})),
     input("deadline","gl_deadline","month"),input("monthly","gl_monthly_ph"),
     React.createElement("div",{className:"emoji-pick"},GOAL_EMOJIS.map(function(e){return React.createElement("button",{key:e,type:"button",className:form.emoji===e?"on":"","aria-pressed":form.emoji===e,onClick:function(){setForm(Object.assign({},form,{emoji:e}));}},e);})),
     save.error&&React.createElement("div",{className:"hint",role:"alert"},t(save.error)),
@@ -22212,14 +22436,18 @@ function Goals({state, set, totals, showToast}){
       return Object.assign({},x,{saved:ns,fromBank:bank||x.fromBank,done:ns>=x.target,doneAt:(ns>=x.target&&!x.doneAt)?new Date().toISOString():x.doneAt});
     })}); });
   };
+  // Con gastos marcados como aportación a esta meta no se borra, igual que una deuda con pagos: esos
+  // cargos se quedarían fuera del gasto sin meta a la que sumar. Primero se quita la marca.
   const delGoal=function(g){
+    if(metaTieneAportes(state, g.id)){ if(showToast) showToast(t("gl_delete_linked")); return; }
     askConfirm({title:tf("gl_delete_q",{name:g.name}),sub:t("gl_delete_sub"),ok:t("gl_delete"),danger:true}).then(function(yes){
       if(!yes) return;
-      set(function(s){return Object.assign({},s,{goals:(s.goals||[]).filter(function(x){return x.id!==g.id;})});}); setEditingGoal(null);
+      set(function(s){ if(metaTieneAportes(s, g.id)) return s; return Object.assign({},s,{goals:(s.goals||[]).filter(function(x){return x.id!==g.id;})});}); setEditingGoal(null);
     });
   };
 
-  const totalSaved=goals.reduce(function(a,g){return a+(g.saved||0);},0);
+  // Lo que se PINTA lleva lo marcado desde Gastos (`metaConAportes`); lo que se edita, la meta tal cual.
+  const totalSaved=goals.reduce(function(a,g){return a+metaAhorrado(g,state);},0);
   const totalTarget=goals.reduce(function(a,g){return a+(g.target||0);},0);
 
   const emojiPicker=function(cur,onPick){
@@ -22240,13 +22468,15 @@ function Goals({state, set, totals, showToast}){
       React.createElement("div",{className:"ttl"},t("gl_empty_t")), t("gl_empty_d")),
 
     goals.map(function(g){
-      const pct=goalPct(g); const eta=goalEta(g, tt.ahorroMensual||0);
+      const gv=metaConAportes(g,state);
+      const pct=goalPct(gv); const eta=goalEta(gv, tt.ahorroMensual||0);
       return React.createElement("div",{className:"v4-goal-card rise plan-item",key:g.id,"data-goal-id":g.id,onClick:function(e){if(!e.target.closest("button"))setEditingGoal(g);}},
         React.createElement("button",{type:"button",className:"v4-debt-top plan-item-open",onClick:function(){setEditingGoal(g);},"aria-label":tf("gl_edit_named",{name:g.name})},
           React.createElement("span",{className:"v4-debt-emoji"},g.emoji||"🎯"),
           React.createElement("div",{style:{flex:1,minWidth:0}},
             React.createElement("div",{className:"v4-debt-name"},g.name,g.done&&React.createElement("span",{className:"goal-medal"}," "+t("gl_done_badge"))),
-            React.createElement("div",{className:"v4-debt-sub"}, eur0(g.saved||0)+" "+t("gl_of")+" "+eur0(g.target||0))
+            React.createElement("div",{className:"v4-debt-sub","data-testid":"goal-saved"}, eur0(gv.saved||0)+" "+t("gl_of")+" "+eur0(g.target||0)),
+            gv.aportado>0 && React.createElement("div",{className:"v4-debt-sub","data-testid":"goal-from-gastos"}, tf("gl_from_gastos",{x:eur(gv.aportado)}))
           ),
           React.createElement("div",{className:"plan-item-value"},React.createElement("div",{className:"serif num",style:{fontSize:22,fontWeight:550,color:"var(--mint)"}},Math.round(pct)+"%"),React.createElement("span",{className:"plan-item-edit"},t("fj_edit")))
         ),
@@ -25344,7 +25574,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="7510f9a15434b4bf4d570af4a6809db373b51c0ac08bef087355bc14a3084acf";
+var _rnSha="6d73930a67d2ad0c2ef60f4202af5bca7390a11988f8f10263a99c994e524d49";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -26604,6 +26834,8 @@ function buildHouseholdSnapshot(state, totals, email){
     if(parseDate(e.date)<monthStart) return;
     // El cargo de un recibo ya sale en los fijos de esta misma foto: aquí lo contaría dos veces.
     if(cargoDeRecibo(e, state)) return;
+    // Lo que va a una meta no es gasto: tampoco lo es en la foto del hogar.
+    if(metaDeGasto(e)) return;
     const k=e.category||"otros";
     byCat[k]=(byCat[k]||0)+e.amount;
   });

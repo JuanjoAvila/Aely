@@ -174,6 +174,7 @@ const steps = [
   ["month-window", ["node", "tests/month-window.test.mjs"]],
   ["presupuesto-servidor", ["node", "tests/presupuesto-servidor.test.mjs"]],
   ["cuotas-deudas", ["node", "tests/cuotas-deudas.test.mjs"]],
+  ["meta-aportacion", ["node", "tests/meta-aportacion.test.mjs"]],
   ["widget-coherente", ["node", "tests/widget-coherente.test.mjs"]],
   ["widget-arbitraje", ["node", "tests/widget-arbitraje.test.mjs"]],
   ["widget-offline", ["node", "tests/widget-offline.test.mjs"]],

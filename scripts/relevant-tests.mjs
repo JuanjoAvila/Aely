@@ -125,6 +125,8 @@ export const E2E_MAP = [
     "e2e/gastos-v5-subs.spec.mjs",
     // Gastos v5 tanda 5: la hoja de Filtros definitiva (cuatro apartados, «Ver N», Restablecer, «Las N»).
     "e2e/gastos-v5-filtros.spec.mjs",
+    // «Es aportación a la meta X»: ficha, fila gris de Metas, cifra sin ella y progreso en Plan.
+    "e2e/gastos-meta-aportacion.spec.mjs",
     // Apuntes iguales de TR por el cableado real: filas en Gastos, «Es el mismo» desde la ficha.
     "e2e/tr-iguales-ordinal.spec.mjs",
     "e2e/tr-emparejado-automatico.spec.mjs",
@@ -153,7 +155,7 @@ export const E2E_MAP = [
     "e2e/recibo-cargo-en-gastos.spec.mjs",
     "e2e/help-assistant.spec.mjs",
     "e2e/hist-pagos-mensuales.spec.mjs", "e2e/bancos-historico-filtro.spec.mjs",
-    "e2e/bancos-quitar-pending.spec.mjs", "e2e/gastos-deudas.spec.mjs",
+    "e2e/bancos-quitar-pending.spec.mjs", "e2e/gastos-deudas.spec.mjs", "e2e/gastos-meta-aportacion.spec.mjs",
     "e2e/bank-callback-msg.spec.mjs", "e2e/bancos-hueco-sync.spec.mjs", "e2e/plan-gestionar.spec.mjs",
     "e2e/bancos-descarga-incompleta.spec.mjs",
     "e2e/plan-cover.spec.mjs",
@@ -174,6 +176,7 @@ export const E2E_MAP = [
     "e2e/cartera-parte-mia.spec.mjs",
   ] },
   { file: "src/modules/09-tab-debts-goals.js", specs: [
+    "e2e/gastos-meta-aportacion.spec.mjs",
     "e2e/deudas-alargar-plazo.spec.mjs",
     "e2e/deudas-plazo-aviso.spec.mjs",
     "e2e/deudas-metas-edicion-v4.spec.mjs",
@@ -289,7 +292,7 @@ const STEPS_DOCS = ["guard-privacy", "docs-frescura", "memoria-espejo"];
 const STEPS_ANDROID = ["guard-privacy", "webdebug-guard", "widget-coherente", "widget-arbitraje", "widget-offline", "widget-unknown-loss", "widget-unknown-journal", "widget-notificacion-render", "widget-inicio-paridad", "widget-puente-ciclo", "ingest-identity", "ingest-handler"];
 const STEPS_SUPABASE = [
   "prod117-edge-compat",
-  "help-assistant", "guard-privacy", "edge-sintaxis", "presupuesto-servidor", "cuotas-deudas", "widget-coherente", "widget-arbitraje", "widget-offline", "widget-unknown-loss", "widget-unknown-journal", "widget-notificacion-render", "widget-inicio-paridad", "widget-puente-ciclo",
+  "help-assistant", "guard-privacy", "edge-sintaxis", "presupuesto-servidor", "cuotas-deudas", "meta-aportacion", "widget-coherente", "widget-arbitraje", "widget-offline", "widget-unknown-loss", "widget-unknown-journal", "widget-notificacion-render", "widget-inicio-paridad", "widget-puente-ciclo",
   "month-window", "wallet-notis", "ingest-classify", "ingest-identity", "ingest-handler", "divisa-original", "presupuesto-rendimiento",
   "grants-migraciones", "entrada-edge", "h2-account-phases", "h2-account-identity", "bank-sync-paging", "bank-rate-contracts", "bank-callback-state", "bank-rate-client", "bank-download-incomplete", "bank-sync-progreso", "bank-sync-acuse", "bank-reconnect", "bank-revoke-callback-race", "tr-open-banking", "myinvestor-sync-outcomes", "myinvestor-keepalive",
   "categorize-limitador", "categorize-handler",
