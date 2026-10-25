@@ -1,0 +1,152 @@
+{
+  "status": "blocked",
+  "summary": "FIN37 focal terminado: startDay validado una vez por fila/politica fuera de at, sin IDs como clave, cache global ni mutacion de state. PR300 draft contra beta entregada; integracion, CI general y aceptacion conservan gates separados.",
+  "baseSHA": "c670f7ddd5f5fd6351f506741e20f296654659eb",
+  "productSHA": "a41513090b0267786cc559e6f3f5669793012c1d",
+  "productPR": 300,
+  "draft": true,
+  "targetBranch": "beta",
+  "mergeableAtReadback": true,
+  "tests": [
+    {
+      "command": "node tests/fin37-debt-startday-once.test.mjs",
+      "TZ": "UTC",
+      "phase": "original causal RED on exact base before product edit",
+      "exitCode": 1,
+      "expectedFailure": true,
+      "monetaryChecksPassed": 11343,
+      "validationCalls": 126000,
+      "maximum": 300
+    },
+    {
+      "command": "node tests/fin37-debt-startday-once.test.mjs",
+      "TZ": "UTC",
+      "phase": "focal GREEN",
+      "exitCode": 0,
+      "monetaryChecksPassed": 11468,
+      "validationCalls": 300,
+      "freshPolicyAdditionalCalls": 300
+    },
+    {
+      "command": "node tests/fin37-debt-startday-once.test.mjs",
+      "TZ": "Europe/Madrid",
+      "phase": "focal GREEN",
+      "exitCode": 0,
+      "monetaryChecksPassed": 11468,
+      "validationCalls": 300,
+      "freshPolicyAdditionalCalls": 300
+    },
+    {
+      "command": "node tests/fin37-debt-startday-once.test.mjs",
+      "TZ": "America/Los_Angeles",
+      "phase": "focal GREEN",
+      "exitCode": 0,
+      "monetaryChecksPassed": 11468,
+      "validationCalls": 300,
+      "freshPolicyAdditionalCalls": 300
+    },
+    {
+      "command": "node tests/fin37-debt-startday-once.test.mjs --repeat-validation-mutant",
+      "TZ": "UTC",
+      "phase": "causal mutant restores real per-day validator",
+      "exitCode": 1,
+      "expectedFailure": true,
+      "monetaryChecksPassedBeforeCostFailure": 11465,
+      "validationCalls": 126000,
+      "maximum": 300
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "TZ": "UTC",
+      "exitCode": 0
+    },
+    {
+      "command": "Node run API tests/inicio-deuda-futura.test.mjs concurrency1 isolationNone",
+      "TZ": "UTC",
+      "exitCode": 0,
+      "passed": 33,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "command": "node tests/inicio-transito-intereses.test.mjs",
+      "TZ": "UTC",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/motor-debt.test.mjs",
+      "TZ": "UTC",
+      "exitCode": 0
+    },
+    {
+      "command": "Node run API tests/inicio-deps-ajustes.test.mjs concurrency1 isolationNone",
+      "TZ": "UTC",
+      "exitCode": 0,
+      "passed": 13,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "TZ": "UTC",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "TZ": "UTC",
+      "exitCode": 0,
+      "scriptBlocks": 7
+    }
+  ],
+  "causalCost": {
+    "debts": 300,
+    "days": 420,
+    "beforeValidationCalls": 126000,
+    "afterValidationCalls": 300,
+    "timingThresholdUsed": false,
+    "realProductionValidatorForwarded": true
+  },
+  "invariants": [
+    "independent calendar and cents oracle",
+    "full real netWorthSeries420days",
+    "valid invalid absent birth and month fallback",
+    "duplicate absent IDs independent",
+    "known anchors loan APR balloon current notes timingUnknown",
+    "monetary year2027 and Madrid DST boundaries",
+    "new policy revalidates changed state",
+    "frozen state unchanged"
+  ],
+  "independentReview": {
+    "blockingFindings": 0,
+    "duplicateRuns": 0,
+    "sourceSHA256": "1742f74852f352ab9b5a35564903bb0445cc896fb7335a6bd3104e08460386c5",
+    "testSHA256": "1f02a545995dcd256a71f61edc76f5767f848580b339facd45cd9653025e1d25"
+  },
+  "evidenceSHA256": "b4488b8dc57bd8a14dd3b49b51b3588a4fb87996670771e591b18959fbccbbf0",
+  "deliveryProofSHA256": "186b149584a51ccba2ed3b79f93357daa5279cb5aee73fa909f8f4351e8de4ef",
+  "resources": {
+    "workers": 1,
+    "retries": 0,
+    "stopFirstFailure": true,
+    "ownCensusAdmissionLogsExitRETURNPerRun": true,
+    "CPU1MetadataOnly": true,
+    "OSAffinityOrThrottlingProven": false,
+    "allOwnedRunnersReturned": true,
+    "foreignProcessesTouched": false
+  },
+  "limitations": [
+    "No general CI green; no check runs or PR workflow runs observed at snapshot",
+    "No full Node or browser suite, DOM, CPU6, served artifact or mobile acceptance",
+    "No merge deploy version catalogue notes caps backend bank or device changes",
+    "FIN36 PR299 and PR297 PR298 reserved, no duplicate owner notice",
+    "Generated local artifact preserved privately and excluded from six-file source commit",
+    "Released means own focal work/resources closed; not ProductREADY"
+  ],
+  "productReady": false,
+  "schema": 1,
+  "taskId": "fin37-debt-startday-once-beta170-codex-20261025",
+  "actor": "codex",
+  "sessionId": "codex-local-20261025-fin37-fda31257-b793a65b-b04042c6-d8c5ba7f",
+  "createdAt": "2026-10-25T08:23:17.138Z",
+  "released": true
+}
