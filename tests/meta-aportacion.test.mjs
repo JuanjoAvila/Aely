@@ -351,4 +351,57 @@ await tt("nube · en el modo pruebas no se escribe nada (CLOUD_WRITES) y no hay 
   assert.equal(nube.tabla[0].source, "ob:trade_republic");
 });
 
+/* UNA MARCA POR GASTO, VISTA DESDE LOS DEMÁS (revisión del 25/10/2026): la meta no se queda una fila
+   que ya es de una deuda o de un recibo, y al revés, la cuota automática, el recibo, la pareja de
+   aviso y banco, la foto del Hogar y la limpieza de UUID repetidos respetan la marca. Cada caso se
+   comprueba con y sin marca, para que no pase por estar mal montado. */
+t("regla 1 · la cuota automática no reclama un cargo marcado como aportación", () => {
+  const conCuota = (goalId) => Object.assign(estado(), { fixed: [], expenses: [
+    { id: "x", date: "2026-10-05T10:00:00.000Z", merchant: "Robot", amount: 99, category: "otros", source: "ob", ent: "trade_republic", extId: "r9", status: "BOOK", goalId },
+  ], debts: [{ id: "robot", name: "Robot", value: 900, monthly: 99, account: "trade_republic", day: 5 }] });
+  assert.deepEqual(Array.from(cli.cuotasDeDeudaPorMarcar(conCuota(undefined)), (a) => a.e.id + ">" + a.debtId), ["x>robot"]);
+  assert.deepEqual(Array.from(cli.cuotasDeDeudaPorMarcar(conCuota("viaje")), (a) => a.e.id), []);
+});
+t("regla 1 · un recibo no se paga con un cargo marcado como aportación", () => {
+  for (const [goalId, elegible] of [[undefined, true], ["viaje", false]]) {
+    const yt = { id: "yt", name: "YouTube Premium", amount: 29.99, account: "sabadell", freq: "mes", day: 2 };
+    const x = { id: "cargo", extId: "R1", date: "2026-10-02", merchant: "YouTube Premium", amount: 29.99, ent: "sabadell", category: "recibos", source: "ob", status: "BOOK", goalId };
+    const s = { accounts: [{ id: "a1", ent: "sabadell", role: "ambos", spendFrom: true, value: 800 }], fixed: [yt], expenses: [x], bankTx: [], debts: [], oneoffs: [], deleted: [], flows: [], goals: estado().goals };
+    assert.equal(cli.fixedExpenseEligible(s, x, yt, 2026, 10, 15), elegible);
+    assert.equal(cli.fixedPaymentState(s, yt, 2026, 10, 15).paid, elegible);
+  }
+});
+t("regla 1 · con cuota o recibo la marca de meta no vale", () => {
+  assert.equal(cli.metaDeGasto({ goalId: "viaje" }), "viaje");
+  assert.equal(cli.metaDeGasto({ goalId: "viaje", debtId: "robot" }), null);
+  assert.equal(cli.metaDeGasto({ goalId: "viaje", reciboId: "luz" }), null);
+});
+t("regla 1 · marcar a mano como cuota quita la marca de meta", () => {
+  const e = cli.marcarCuotaAMano(marcado, "e-hucha", "robot").e;
+  assert.equal(e.debtId, "robot");
+  assert.equal(e.goalId, undefined);
+  assert.equal(e.metaPend, undefined);
+});
+t("una copia repetida del mismo UUID no pierde la marca", () => {
+  const U = "11111111-1111-4111-8111-111111111111";
+  const fila = { id: U, date: "2026-10-05T10:00:00.000Z", merchant: "Traspaso hucha", amount: 250, category: "otros", source: "ob", ent: "trade_republic", extId: "r2" };
+  const [e] = cli.uniqueExpenseUuids([Object.assign({}, fila, { goalId: "viaje", metaPend: true }), Object.assign({}, fila, { expenseEditAt: 1 })]);
+  assert.equal(e.goalId, "viaje");
+  assert.equal(e.metaPend, true);
+});
+t("la pareja automática aviso/banco no esconde una fila marcada", () => {
+  const g = { id: "g", date: "2026-10-05T10:00:00.000Z", merchant: "Movimiento", amount: 5, source: "ob", ent: "trade_republic" };
+  assert.equal(cli.gemeloBancoAutomatico(g), true);
+  assert.equal(cli.gemeloBancoAutomatico(Object.assign({}, g, { goalId: "viaje" })), false);
+});
+// La foto del Hogar vive tras el corte de la lógica pura: se carga aparte, como en los de recibos.
+vm.runInNewContext(src("src/modules/13-hogar.js"), cli);
+t("la foto del Hogar no cuenta lo marcado como gasto", () => {
+  const porCat = (st) => Object.fromEntries(Array.from(cli.buildHouseholdSnapshot(st, {}, "a@b.c").expensesByCat, (c) => [c.id, cents(c.spent)]));
+  // «otros» = la hucha 250 + Sabadell 40: la foto del Hogar no filtra por banco de gasto diario.
+  assert.equal(porCat(estado()).otros, 29000);
+  assert.equal(porCat(marcado).otros, 4000);
+  assert.equal(porCat(marcado).ocio, 766);
+});
+
 console.log("meta-aportacion: OK");
