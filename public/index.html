@@ -13476,6 +13476,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   },[preset,cycle,expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.flows,cycleEnabled]);
   // El ciclo pasado elegido (null = el en curso, también si el elegido ya no existe).
   const cicloPas=ciclos&&cicloSel!=null?ciclos.find(function(c){ return c.to!=null&&c.from===cicloSel; })||null:null;
+  const cicloPasRef=useRef(cicloPas); cicloPasRef.current=cicloPas;
   /* El RANGO del ciclo que se ve, para la línea bajo la cifra (decisión del dueño, 25/10/2026:
      «mes + fechas»: la pastilla dice el mes y debajo «24 sep – 23 oct»). Uno pasado acaba el día
      antes del cobro siguiente; el en curso, el día antes del mismo día del mes que viene (el cobro
@@ -14043,15 +14044,56 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     const lejos=Math.abs(h.scrollTop-top)>h.clientHeight*2.5;
     h.scrollTo({top:Math.max(0,top), behavior:mcReduced()||lejos?"auto":"smooth"});
   };
-  const saltaADia=function(k){
-    const h=hostDe(), root=rootRef.current; if(!h||!root) return false;
+  // El scroll que deja el día `k` justo bajo la cabecera ya encogida (null si aún no está montado).
+  const destinoDe=function(k){
+    const h=hostDe(), root=rootRef.current; if(!h||!root) return null;
     const el=root.querySelector('[data-gx-day="'+k.k+'"][data-gx-ym="'+k.ym+'"]'), head=root.querySelector(".gx-head");
-    if(!el||!head) return false;
+    if(!el||!head) return null;
     // La raya de lectura es el borde de la cabecera YA ENCOGIDA (con la fila de meses debajo):
     // su caja no cambia de alto al encogerse, solo se suma lo que sobresale la fila de meses.
     const pad=parseFloat(getComputedStyle(h).paddingTop)||0;
     const raya=pad+head.offsetHeight+GX_MESES_SOBRE;
-    const top=h.scrollTop+el.getBoundingClientRect().top-h.getBoundingClientRect().top-raya+2, max=h.scrollHeight-h.clientHeight;
+    return h.scrollTop+el.getBoundingClientRect().top-h.getBoundingClientRect().top-raya+2;
+  };
+  /* AFINAR EL SALTO cuando el scroll ha parado (rechazo de la beta 4.26.173, en Meses: «si estás
+     en octubre y tocas el anterior, te lleva al día 1 y sigue sin cambiarte de mes»). Los días aún
+     sin pintar (`content-visibility:auto` en `.gx-dia`) miden lo ESTIMADO (`altoEst`) y el destino
+     se calcula con eso; al llegar se pintan los de alrededor con su alto real y el día pedido se
+     mueve. En su móvil las filas no miden lo del Pixel 5 (letra del sistema), y el error acumulado
+     de un mes de días bastaba para dejar bajo la cabecera el 1 del mes de después, con su pastilla.
+     Ya pintado alrededor, la segunda medida es la buena; se repite hasta que cuadra, porque el
+     ajuste puede pintar algún día más. Un dedo en la pantalla lo corta: manda él. */
+  const afinaRef=useRef(0);
+  const afinaSalto=function(k, min){
+    const h=hostDe(); if(!h) return;
+    if(afinaRef.current) cancelAnimationFrame(afinaRef.current);
+    let frames=0, ajustes=0, quietos=0, st=-1;
+    const corta=function(){ if(afinaRef.current) cancelAnimationFrame(afinaRef.current); afinaRef.current=0; };
+    const fin=function(){ afinaRef.current=0; h.removeEventListener("touchstart",corta); };
+    h.addEventListener("touchstart",corta,{passive:true, once:true});
+    const paso=function(){
+      if(++frames>120 || ajustes>6) return fin();
+      // El salto suave sigue moviéndose: se espera a que pare (dos frames quieto).
+      if(Math.abs(h.scrollTop-st)>0.5){ st=h.scrollTop; quietos=0; afinaRef.current=requestAnimationFrame(paso); return; }
+      if(++quietos<2){ afinaRef.current=requestAnimationFrame(paso); return; }
+      const d=destinoDe(k); if(d==null) return fin();
+      const top=Math.max(d, min||0);
+      const max=h.scrollHeight-h.clientHeight, want=Math.max(0,Math.min(top,max));
+      if(Math.abs(h.scrollTop-want)<=1) return fin();
+      ajustes++;
+      // Si el ajuste deja de caber, el día pedido manda en el tope (ver abajo `saltoForzadoRef`).
+      saltoForzadoRef.current=top>max+1?{k:k.k, ym:k.ym, st:Math.max(0,max), t:Date.now()}:null;
+      h.scrollTo({top:want, behavior:"auto"});
+      st=h.scrollTop; quietos=0;
+      afinaRef.current=requestAnimationFrame(paso);
+    };
+    afinaRef.current=requestAnimationFrame(paso);
+  };
+  const saltaADia=function(k, min){
+    const h=hostDe(); if(!h) return false;
+    let top=destinoDe(k); if(top==null) return false;
+    top=Math.max(top, min||0);
+    const max=h.scrollHeight-h.clientHeight;
     /* Sin el hueco del pie, un mes del final de la lista no puede subir hasta la raya: el scroll se
        queda en el tope. La cabecera enseña entonces el día pedido mientras el scroll siga ahí
        (lo lee `GastosCabecera`); al mover el dedo vuelve a mandar lo que queda debajo. */
@@ -14059,7 +14101,18 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     scrollHost(top);
     // Ya en el tope no hay scroll que avise a la cabecera: se le avisa a mano.
     if(saltoForzadoRef.current && Math.abs(h.scrollTop-saltoForzadoRef.current.st)<=2) h.dispatchEvent(new Event("scroll"));
+    afinaSalto(k, min);
     return true;
+  };
+  // El salto pendiente de `eligeCiclo`, ya con la lista del ciclo elegido.
+  const resuelveSaltoCiclo=function(){
+    if(!cicloPasRef.current){ saltoRef.current=null; scrollHost(0); return; }
+    const L=mesesListaRef.current;
+    if(L.newestK==null){ saltoRef.current=null; return; }
+    /* El primer día de la lista está casi arriba: dejarlo justo bajo la cabecera encogida pediría
+       menos scroll del que la encoge (`compact`, más de 40 px) y la fila se escondería. Con 41 px
+       el día queda igual a la vista: lo que pasa bajo la cabecera es su margen de arriba. */
+    if(saltaADia({k:L.newestK, ym:L.newestYm}, 41)) saltoRef.current=null;
   };
   const irAMes=useCallback(function(ym){
     const L=mesesListaRef.current, first=L.first[ym];
@@ -14104,6 +14157,17 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
      categoría, se mantiene. El ciclo en curso se guarda como null. */
   const eligeCiclo=useCallback(function(key){
     const ms=+String(key).slice(1);
+    /* En Movimientos, como la fila de Meses: la lista queda en el PRIMER día del ciclo tocado, bajo
+       la cabecera encogida y con la fila a la vista (rechazo de la beta 4.26.173: «cuando le das un
+       mes te lleva al principio del todo y se quita»). Arriba del todo la cabecera se despliega y
+       la fila se esconde. El ciclo en curso sí vuelve arriba, como el mes en curso en Meses. La
+       lista del ciclo nuevo aún no está pintada: el salto lo hace el efecto de abajo al montarse. */
+    if(seccRef.current==="movs" && !catFilRef.current){
+      saltoRef.current={ciclo:ms};
+      if(ms===cicloSelRef.current) resuelveSaltoCiclo();
+      setCicloSel(ms);
+      return;
+    }
     setCicloSel(ms);
     const h=hostDe(); if(h && h.scrollTop>0) h.scrollTo({top:0, behavior:"auto"});
   },[]);
@@ -14142,7 +14206,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   useLayoutEffect(function(){
     // La lista acaba de cambiar: la cabecera vuelve a buscar los días la próxima vez que mire.
     diasRef.current=null;
-    if(saltoRef.current!=null && saltaADia(saltoRef.current)) saltoRef.current=null;
+    if(saltoRef.current!=null && saltoRef.current.ciclo!=null) resuelveSaltoCiclo();
+    else if(saltoRef.current!=null && saltaADia(saltoRef.current)) saltoRef.current=null;
   });
   const clearFilters=function(){
     setSel([]);
@@ -26262,7 +26327,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="38a4860551607acc5b2e593702eb28332bf3dac4b2e39b52965df077e1c10322";
+var _rnSha="950e7a739854bdf3ce1a44afc4bbae878fc0770d8a7b76330b6cecf4dd64363c";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
