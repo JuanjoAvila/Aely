@@ -1333,7 +1333,11 @@ function App(){
       if(login) syncFromCloud(s, {freshLogin:true,
         dropTx:!!prev});
     });
-    return ()=>{ alive=false; clearTimeout(tmr); off(); };
+    return ()=>{ alive=false;
+      // Un vuelo que termina tras desmontar no conserva autoridad para releer ni escribir.
+      if(cloudPullRef.current&&cloudPullRef.current.commit)cloudPullRef.current.commit(false);
+      cloudPullRef.current=null;cloudReadRef.current=null;cloudUpdatedAtRef.current=null;sessionRef.current=null;
+      clearTimeout(tmr); off(); };
   },[]);
 
   // Empuja el estado a la nube (debounced) cuando cambie y haya sesión. Sin los gastos (ya en su tabla).

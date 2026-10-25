@@ -38,7 +38,7 @@ const id='inc-0710-auth-disposal',rev=betaRevision(id,read).codigo;
 for(const [file,a,b]of [
 ['src/modules/00-core.js','sub.data.subscription.unsubscribe();','void 0;'],
 ['src/modules/11-app-main.js','alive=false;','alive=true;'],
-['src/modules/11-app-main.js','alive=false; clearTimeout(tmr); off();','alive=false; off();'],
+['src/modules/11-app-main.js','clearTimeout(tmr); off();','off();'],
 ['src/modules/11-app-main.js','tmr=setTimeout(boot, 2500)','tmr=setTimeout(mcBootReady, 2500)'],
 ['src/modules/11-app-main.js','clearTimeout(tmr);\n      if(!alive) return;','clearTimeout(tmr);'],
 ['src/modules/11-app-main.js','()=>{ clearTimeout(tmr); boot(); });','()=>{ clearTimeout(tmr); mcBootReady(); });'],
@@ -48,7 +48,7 @@ for(const [file,a,b]of [
  assert.notEqual(betaRevision(id,f=>f===file?read(f).replace(a,b):read(f)).codigo,rev,a);
  const mutant=authFragments(file==='src/modules/00-core.js'?core.replace(a,b):core,file==='src/modules/11-app-main.js'?app.replace(a,b):app);
  const w=authWorld(mutant),off=w.mount(),timer=[...w.timers.values()][0];
- if(a.includes('alive=false; clearTimeout')){off();assert.equal(w.timers.size,1,'mutante cleanup conserva timer');}
+ if(a==='clearTimeout(tmr); off();'){off();assert.equal(w.timers.size,1,'mutante cleanup conserva timer');}
  else if(a==='sub.data.subscription.unsubscribe();'){off();assert.equal(w.live.size,1,'mutante transporte no se libera');}
  else if(a.includes('if(alive) syncFromCloud')){w.sessions[0].resolve(s('late'));await flush();off();const n=w.trace.length;w.idle();assert.ok(w.trace.length>n,'mutante idle actúa tras cleanup');}
  else if(a.includes('2500')){off();timer();assert.equal(count(w,'boot'),1,'mutante timer actúa tras cleanup');}
