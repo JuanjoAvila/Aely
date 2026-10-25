@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "id": "inc1710-reload-delay-ci-b172-codex-20261025",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261025-r97-fda31257-3ab6df21-a8d5eca7-1c1f3059",
+  "createdAt": "2026-10-25T18:43:31.677Z",
+  "to": "codex",
+  "baseSHA": "d30dc4016726fa1818449039debf4bd8148e3021",
+  "objective": "Diagnosticar y corregir con PR minima contra beta el rojo causal INC1710 reload-fallback-delay beta172, preservando la intencion del guard de escrituras y fallback a1800ms; admision Claude4fc865372da2c5e5319990351002e9e1e8d33b1a.",
+  "scope": [
+    "e2e/inc1710-reload-fallback-delay.spec.mjs: delay canceled entry/exit warns and marks only at1800ms then reopens; CI run40198407993 tests expected33 received34",
+    "Reproducir rojo causal sobre base exacta; bisectar171 ede7c3c4e879c3e712d0dece53099422331b4155 y170 c670f7ddd5f5fd6351f506741e20f296654659eb; no cambiar checkouts ajenos",
+    "Distinguir producto o arnes con evidencia de writers/meta-aportacion/metaPend/cloudEffectState/t6; corregir causa minima sin relajar asercion de intencion, guard de escrituras,1800ms ni topes",
+    "CPU1,1worker,0retry,stopFirstFailure/maxFailures1; censo/admission/puertoOWN/logsEXIT/RETURN antes y despues de cada corrida; sintético, sin instalaciones ni runner compartido",
+    "Checkout y rama codex propios desde baseSHA; fuentes tests y documentacion causal minima; parent review independiente antes push de draft contra beta",
+    "Sin VERSION/catalogo/notas/caps/integrador ajeno; sin SQL/livebank/backend/Edge/Android/merge/deploy/ProductREADY; no repetir pruebas cerradas ni duplicar PR298/G13 o lag/Mi ciclo ajenos",
+    "Worker grant permanente e42252eb4444e23228b565b7d2da5b0ee5e13e43 OWN20 NUEVO propio,>=30s todas lecturas y ledger exclusivo; claim/ACK propios y native admission antes codigo/tests; reportar solo al coordinador"
+  ]
+}
