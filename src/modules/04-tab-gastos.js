@@ -620,6 +620,15 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
      con «Aportar» o con un reparto. En ese caso contaría dos veces, y la app no adivina cuál de los
      dos apuntes es el bueno. QUITARLA no pregunta: deja todo como estaba. La marca sube a la nube
      (`setExpenseMeta`) y solo deja de protegerse con su acuse (`ackMetaWrite`). */
+  const metaEnVuelo=useRef({});
+  const subeMeta=function(e){
+    if(!cloud.enabled()) return;
+    const k=keyOfExpense(e)+"|"+(e.goalId||""), owner=state._historyOwner;
+    metaEnVuelo.current[k]=true;
+    cloud.setExpenseMeta(e).then(function(n){
+      if(n>0) set(function(p){ if(p._historyOwner!==owner) return p; const l=ackMetaWrite(p.expenses, e, e.goalId||null); return l===p.expenses?p:Object.assign({},p,{expenses:l}); });
+    }).catch(function(){}).then(function(){ delete metaEnVuelo.current[k]; });
+  };
   const setMeta=function(ex,goalId){
     const subirMeta=function(){
       let subir=null;
@@ -627,9 +636,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       if(!subir) return;
       const g=goalId&&(state.goals||[]).find(function(x){ return x.id===goalId; });
       if(showToast) showToast(goalId?tf("f_meta_ok",{name:(g&&g.name)||""}):t("f_meta_off"));
-      if(cloud.enabled()) cloud.setExpenseMeta(subir).then(function(n){
-        if(n>0) set(function(p){ const l=ackMetaWrite(p.expenses, subir, goalId); return l===p.expenses?p:Object.assign({},p,{expenses:l}); });
-      }).catch(function(){});
+      subeMeta(subir);
     };
     if(goalId==null){ subirMeta(); return; }
     const g=(state.goals||[]).find(function(x){ return x.id===goalId; });
@@ -752,10 +759,23 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     if(editCola.current.pend.length)subeEdicionesDeGasto(editCola.current);
   };
   retryRef.current=retryRenames;
+  /* La marca de meta que no llegó a la nube (sin red, o con la fila aún sin subir) se reintenta al
+     abrir, al volver la red y al volver a primer plano, como los renombres. Sin esto `metaPend`
+     protegía la fila para siempre: este móvil no la contaba como gasto y el otro y el widget sí, y
+     una retirada hecha en el otro móvil no llegaba nunca (revisión del 25/10/2026). Solo escribe en
+     la tabla `expenses`: no despierta ningún sync de bancos (AGENTS §7). */
+  const reintentaMetas=function(){
+    if(!cloud.enabled()||mcSandbox()||mcSandboxTransition())return;
+    const s=renameState.current, deleted=expenseDeletedSet(s);
+    (s.expenses||[]).forEach(function(e){
+      if(e&&e.metaPend&&!expenseIsTombstoned(e,deleted)&&!metaEnVuelo.current[keyOfExpense(e)+"|"+(e.goalId||"")]) subeMeta(e);
+    });
+  };
+  useEffect(function(){ reintentaMetas(); },[]);
   // Lo que se editó sin conexión se sube al volver: ver `subeEdicionesDeGasto`.
   useEffect(function(){
-    const alVolver=function(){retryRenames(true);};
-    const alVerse=function(){ if(document.visibilityState==="visible")retryRenames(true); };
+    const alVolver=function(){retryRenames(true);reintentaMetas();};
+    const alVerse=function(){ if(document.visibilityState==="visible"){retryRenames(true);reintentaMetas();} };
     retryRenames();
     window.addEventListener("online",alVolver);
     document.addEventListener("visibilitychange",alVerse);
