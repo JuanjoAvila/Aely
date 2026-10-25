@@ -5602,8 +5602,8 @@ test("Catálogo170 añade la tanda de dos móviles (solo web) sobre la 169, deja
     {file:A0,from:"    if(online && !wasOnline.current && uid){",to:"  // Cajón de Ajustes tipo Revolut"},
     {file:A0,from:"  const brokerBootOwner=useRef(null);",to:"  /* Cuotas de deuda a «Deudas» (4.21.0)"},
     {file:A0,from:"  const invSnapRef=useRef(\"\");",to:"  // GAMIFICACIÓN:"},
-    {file:C0,data:"cloud",members:["enabled","session","onAuth","pullState","pushState","pullExpenses","backupState"]}];
-  assert.deepEqual(ahora.web.slice(0,propias.length),propias,"las unidades propias de la tanda (el set de App con su sello, la lectura y el envío, el vuelo de gastos, el pull, la sesión, el debounce, la vuelta a primer plano, la copia diaria, la reconexión, el bróker de arranque y las fotos de inversión y bienes, más los métodos de la nube que usan), en este orden, y el cierre de lectores detrás");
+    {file:C0,data:"cloud",members:["enabled","session","onAuth","pullState","pushState","pullExpenses","backupState","setExpenseRecibo","setExpenseCat","setExpenseDup","logEvent","addExpense"]}];
+  assert.deepEqual(ahora.web.slice(0,propias.length),propias,"las unidades propias de la tanda (el set de App con su sello, la lectura y el envío, el vuelo de gastos, el pull, la sesión, el debounce, la vuelta a primer plano, la copia diaria, la reconexión, el bróker de arranque y las fotos de inversión y bienes, más los métodos de la nube que se llaman de verdad, como exige el guardián de métodos), en este orden, y el cierre de lectores detrás");
   {const fns=logicFunctions(source),dat=logicData(source);let web=propias.slice();
     for(let ronda=0;ronda<10;ronda++){
       const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];

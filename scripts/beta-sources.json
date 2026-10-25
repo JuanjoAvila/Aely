@@ -81562,7 +81562,12 @@
           "pullState",
           "pushState",
           "pullExpenses",
-          "backupState"
+          "backupState",
+          "setExpenseRecibo",
+          "setExpenseCat",
+          "setExpenseDup",
+          "logEvent",
+          "addExpense"
         ]
       },
       {
@@ -81799,7 +81804,27 @@
       },
       {
         "file": "src/modules/00-core.js",
+        "function": "obConfirmedCanUpload"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseSourceForCloud"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isExpenseUuid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withNotaFallback"
+      },
+      {
+        "file": "src/modules/00-core.js",
         "function": "perfilSinDatosBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLogEvent"
       },
       {
         "file": "src/modules/00-core.js",
@@ -81808,6 +81833,18 @@
       {
         "file": "src/modules/00-core.js",
         "function": "obAbsorbedValid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseCloudEq"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "reciboSufijo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseFromRow"
       },
       {
         "file": "src/modules/00-core.js",
@@ -81912,10 +81949,6 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRowMemoOk"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "expenseFromRow"
       },
       {
         "file": "src/modules/00-core.js",
@@ -82123,11 +82156,51 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "isExpenseUuid"
+        "function": "deudaSufijo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRefSufijoCloud"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ordinalSufijoCloud"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_isMissingNotaCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_isMissingDivisaCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_isMissingObNameCol"
       },
       {
         "file": "src/modules/00-core.js",
         "function": "obAbsorbedKeyOk"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseCloudKeys"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "partirEntDeuda"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ordinalDeTramos"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "resolveCategory"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRefDeSource"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -82150,24 +82223,8 @@
         "function": "madridYmdParts"
       },
       {
-        "file": "src/modules/00-core.js",
-        "function": "partirEntDeuda"
-      },
-      {
         "file": "src/modules/01-i18n.js",
         "function": "_pdMs"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "resolveCategory"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "ordinalDeTramos"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "bankRefDeSource"
       },
       {
         "file": "src/modules/00-core.js",
@@ -82254,10 +82311,6 @@
         "function": "pushDeleted"
       },
       {
-        "file": "src/modules/00-core.js",
-        "function": "expenseSourceForCloud"
-      },
-      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentIdentity"
       },
@@ -82284,22 +82337,6 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "recTokens"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "deudaSufijo"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "reciboSufijo"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "bankRefSufijoCloud"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "ordinalSufijoCloud"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -82432,6 +82469,26 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_mcSandboxTransition"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcNotaCols"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcDivisaCols"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcObNameCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USO_OK"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "GASTO_ORIGENES"
       },
       {
         "file": "src/modules/00-core.js",
