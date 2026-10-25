@@ -1,0 +1,85 @@
+{
+  "status": "done",
+  "summary": "PR306 draft entregada: revinculo bancario expense actualiza saldo y pendientes sin pull; candidato revisado432cbfba, probado enbase95b950a0. BOOK, calendario y marcas manuales conservados. Integracion y revalidacion contra beta174 NOrealizadas; conflicto docs/TESTING pendienteClaude y revision financieraGrok pendiente.",
+  "tests": [
+    {
+      "command": "node tests/fixed-ispaidin.test.mjs",
+      "exitCode": 0,
+      "checks": 26
+    },
+    {
+      "command": "Playwright e2e/fixed-ispaidin.spec.mjs (isolated owned config; workers1/retries0/maxFailures1)",
+      "exitCode": 0,
+      "tests": 1
+    },
+    {
+      "command": "node tests/recibo-invariante.test.mjs",
+      "exitCode": 0,
+      "tests": 22,
+      "syntheticExtracts": 775
+    },
+    {
+      "command": "node tests/fixed-payment-state.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/fixed-day-reconcile.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/plan-charges.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/debt-payment-state.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/payment-evidence-ui.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/recibo-un-cargo-un-recibo.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/saldo-por-banco.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/motor-debt.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "scriptBlocks": 7
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "432cbfba1cdefcd7aa7e995482e919047a5cd188",
+  "pullRequest": 306,
+  "baseSHA": "95b950a0cae516a327b9cb28e022715df9b04ca8",
+  "currentBetaSHA": "9ca1ff11e27b3daf01ecd02d51bdb7abcaabad60",
+  "limitations": [
+    "Probado en base95b950a0, no integrado ni revalidado contra beta174/9ca1ff11",
+    "Conflicto docs/TESTING.md pendiente de resolucionClaude",
+    "Revision financieraGrok, CI y aceptacionmovil pendientes",
+    "Sin merge, deploy ni ProductREADY"
+  ],
+  "resourcesReturned": {
+    "CPU1": true,
+    "serialWorker": true,
+    "port": 46053,
+    "ownLocksReleased": true
+  },
+  "schema": 1,
+  "taskId": "fijos-ispaidin-paymentproofs-codex-20261025",
+  "actor": "codex",
+  "sessionId": "codex-local-20261025-ispaidin-fda31257-fb021557-452f637a-b53cfec2",
+  "createdAt": "2026-10-25T22:51:32.139Z",
+  "released": true
+}
