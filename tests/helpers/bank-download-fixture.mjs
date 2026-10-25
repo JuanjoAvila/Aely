@@ -39,8 +39,8 @@ export function updater(source,links,overrides={},logic=ctx,commit=false){
     // que la app sí persiste, aunque el updater del banco ya hubiera terminado.
     const a=source.indexOf('  const set=useCallback((updater,edited=true)=>'),b=source.indexOf('  // En el propio commit',a);
     assert.ok(a>=0&&b>a);
-    set=new Function('useCallback','setStateRaw','reconcileGemelosAutomaticos','Date',source.slice(a,b)+'return set;')(
-      fn=>fn,fn=>state=fn(state),logic.reconcileGemelosAutomaticos,FakeDate);
+    set=new Function('useCallback','setStateRaw','reconcileGemelosAutomaticos','planSyncEditState','Date',source.slice(a,b)+'return set;')(
+      fn=>fn,fn=>state=fn(state),logic.reconcileGemelosAutomaticos,logic.planSyncEditState,FakeDate);
   }
   const args=names.map(name=>name==="reconcileFixedPaymentProofs"?(s,...a)=>{proof.push(s.bankTx);return logic[name](s,...a);}:logic[name]);
   new Function("set","links","dbLinks","DEUDA_CAT","Date","at",...names,"let obAdded=[];"+source.slice(start,end))(

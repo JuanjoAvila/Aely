@@ -2339,7 +2339,9 @@ function marcarCuotasDeDeuda(s){
     marcadas.push(n);
     return n;
   });
-  return { state:Object.assign({}, s, { expenses:expenses }), marcadas:marcadas };
+  const debtIds=new Set(asig.map(function(a){return a.debtId;}));
+  const debts=(s.debts||[]).map(function(d){return debtIds.has(d.id)?Object.assign({},d,{debtLinkRevision:(Number(d.debtLinkRevision)||0)+1}):d;});
+  return { state:Object.assign({}, s, { expenses:expenses, debts:debts }), marcadas:marcadas };
 }
 /* Marcar a mano desde la ficha. Puro: pone la fila en «Deudas» con esa deuda, le quita la lápida
    si la tenía y aprende el comercio. → {state, e} (la fila nueva, para subirla) o null. */
@@ -2355,6 +2357,9 @@ function marcarCuotaAMano(s, expenseId, debtId){
   delete e.goalId; delete e.metaPend;
   const k=keyOfExpense(orig);
   const out={ expenses:(s.expenses||[]).map(function(x){ return x===orig ? e : x; }) };
+  // Vincular una cuota es una edición de la deuda: la copia borrada en otro móvil
+  // no puede eliminar esta nueva intención ni dejar el gasto sin su identidad.
+  out.debts=(s.debts||[]).map(function(x){return x.id===d.id?Object.assign({},x,{debtLinkRevision:(Number(x.debtLinkRevision)||0)+1}):x;});
   if((s.cuotaNo||[]).indexOf(k)>=0) out.cuotaNo=(s.cuotaNo||[]).filter(function(x){ return x!==k; });
   const ak=cuotaAliasKey(orig);
   if(ak){ out.cuotaAlias=Object.assign({}, s.cuotaAlias||{}); out.cuotaAlias[ak]=d.id; }
@@ -4202,11 +4207,44 @@ function billsGroupRows(state, group, curMonth, curYear){
 function billsGroupMonthly(state, group, curMonth, curYear){
   return billsGroupRows(state,group,curMonth,curYear).reduce(function(a,r){ return a+Math.abs(Number(r.monthly)||0); },0);
 }
+function fixedPaymentDerivedDay(s,status){
+  const proof=status.proof;
+  const bankExpense=proof&&proof.kind==="expense"&&(fixedPaymentExpenses(s,String(proof.date).slice(0,7)).identity.get(proof.identity)||[]).some(function(x){return x.source==="ob"||x.source==="ob-hist";});
+  return status.bankTx?recDay(status.bankTx.date):proof&&(proof.kind==="book"||bankExpense)&&recDay(proof.date);
+}
+function planSyncDerived(s,prev){
+  if(s.fixed===prev.fixed)return s;
+  const d=new Date(),y=d.getFullYear(),m=d.getMonth()+1,today=d.getDate(),ym=y*12+m;
+  const prior=new Map((prev.fixed||[]).map(function(e){return [e.id,e];}));
+  const clean=(s.fixed||[]).map(function(e){
+    if(prior.get(e.id)===e)return e;
+    // Sin extracto no sabemos que haya dejado de pagarse: conservar la marca offline.
+    // Una prueba ligada a otro importe/cuenta sí invalida su fecha derivada.
+    if(!e.paymentProofs||!e.paymentProofs[ym]||fixedPaymentProof(s,e,y,m,today))return e;
+    const n=Object.assign({},e);delete n.paidYm;delete n.paidDay;return n;
+  });
+  const state=Object.assign({},s,{fixed:clean}),rec=reconcileBank(state,y,m,today);
+  const rows=clean.map(function(e){
+    if(prior.get(e.id)===e)return e;
+    const pd=fixedPaymentDerivedDay(state,fixedPaymentState(state,e,y,m,today));
+    let next=e;
+    if(pd)next=Object.assign({},e,{paidYm:ym,paidDay:pd});
+    else {
+      const bs=Number(state.lastBankSync)||0,age=d-bs;
+      if(dayIn(e,m)!=null&&dayIn(e,m)<=today&&rec.covered[e.id]&&bs>0&&age>=0&&age<=1800000&&dayKey(new Date(bs))===dayKey(d))next=Object.assign({},e,{wait:ym});
+    }
+    const old=prior.get(e.id);
+    return goalSyncEqual(old,next)?old:next;
+  });
+  const fixed=goalSyncEqual(rows,prev.fixed)?prev.fixed:goalSyncEqual(rows,s.fixed)?s.fixed:rows;
+  return fixed===s.fixed?s:Object.assign({},s,{fixed:fixed});
+}
 function patchFixedById(set, id, p){
   set(function(s){
-    let it=null;
+    let it=null,previous=null;
     const fx=(s.fixed||[]).map(function(e){
       if(e.id!==id) return e;
+      previous=Object.assign({},e);if(previous.freq==="mes"){delete previous.months;delete previous.schedule;}
       const n=Object.assign({},e,p);
       if(("day" in p)&&!p.day) delete n.day;
       if(n.freq==="mes"){ delete n.months; delete n.schedule; }
@@ -4227,14 +4265,13 @@ function patchFixedById(set, id, p){
       it=n; return n;
     });
     const n=Object.assign({},s,{fixed:fx});
-    if(it&&(("day" in p)||("amount" in p)||("account" in p))){
+    const contractChanged=["amount","bankAmount","account","freq","months","schedule"].some(function(k){return previous&&it&&!goalSyncEqual(previous[k],it[k]);});
+    if(it&&(("day" in p)||contractChanged)){
       const d=new Date(),y=d.getFullYear(),m=d.getMonth()+1,t=d.getDate();
-      if(("amount" in p)||("account" in p)){ delete it.paidYm; delete it.paidDay; }
+      if(contractChanged){ delete it.paidYm; delete it.paidDay; }
       // Una prueba BOOK o un vínculo manual a un gasto del banco protegen la fecha.
       // La prueba expense sin fila local no demuestra su fuente; una notificación tampoco.
-      const ym=y*12+m,rec=reconcileBank(n,y,m,t),status=fixedPaymentState(n,it,y,m,t),proof=status.proof;
-      const bankExpense=proof&&proof.kind==="expense"&&(fixedPaymentExpenses(n,String(proof.date).slice(0,7)).identity.get(proof.identity)||[]).some(function(x){ return x.source==="ob"||x.source==="ob-hist"; });
-      const pd=status.bankTx?recDay(status.bankTx.date):proof&&(proof.kind==="book"||bankExpense)&&recDay(proof.date);
+      const ym=y*12+m,rec=reconcileBank(n,y,m,t),pd=fixedPaymentDerivedDay(n,fixedPaymentState(n,it,y,m,t));
       if(pd){
         it.paidYm=ym;
         it.paidDay=pd;
@@ -4243,7 +4280,7 @@ function patchFixedById(set, id, p){
         // Un movimiento antiguo del mes NO demuestra que el banco ya haya informado de hoy. Solo
         // una sync reciente y del mismo día local puede negar el cobro (Pepegas, 01:06 del 25/9).
         const bs=Number(n.lastBankSync)||0,age=d-bs;
-        if(("amount" in p)||("account" in p)){ delete it.paidYm; delete it.paidDay; }
+        if(contractChanged){ delete it.paidYm; delete it.paidDay; }
         if(it.paidYm!==ym && dayIn(it,m)<=t && rec.covered[id] && bs>0&&age>=0&&age<=1800000&&dayKey(new Date(bs))===dayKey(d)) it.wait=ym;
         else delete it.wait;
       }

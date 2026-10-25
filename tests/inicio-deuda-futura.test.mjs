@@ -133,7 +133,9 @@ test("revision1: nube real proyecta, push/pull y merge conservan startMonth",asy
   const factory=vm.runInContext("(function(sessionRef,cloudState,cloudPack,u,opts,freshLogin,mergeExpenses,fixMovInvasion,fixRevoDupes,fixInvAuto,fixInvSold,reconcileTR,seedFlows,reconcileEarlyIncomeAnchors){const obAbsorbedWriteBlocked={current:false},read={owner:u,ready:false},cloudReadRef={current:read},cloudPullRef={current:read},cloudMergeKey={current:Symbol('merge')};return function(prev){"+body+"};})",c);
   const identity=x=>x;
   const merge=(local,freshLogin=false)=>factory({current:{user:{id:"synthetic"}}},pack.data,pack,"synthetic",{},freshLogin,(a,b)=>({list:a}),identity,identity,identity,identity,identity,c.seedFlows,identity)(local);
-  for(const local of [{...fixture([]),_savedAt:10},{...fixture([{...d,name:"Cambio local"}]),_savedAt:30}]){
+  // La edición concurrente parte de una lectura confirmada, no de la prioridad del reloj.
+  const edited={...fixture([d]),_savedAt:30};Object.assign(edited,c.planSyncPull(edited,pack.data,"synthetic",pack.updated_at,false));edited.debts=[{...d,name:"Cambio local"}];
+  for(const local of [{...fixture([]),_savedAt:10},edited]){
     const merged=merge(local);
     assert.equal(merged.debts[0].startMonth,2026*12+7);
     assert.equal(merged.debts[0].name,local._savedAt>20?"Cambio local":d.name);

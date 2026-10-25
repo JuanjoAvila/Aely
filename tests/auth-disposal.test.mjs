@@ -38,7 +38,7 @@ const id='inc-0710-auth-disposal',rev=betaRevision(id,read).codigo;
 for(const [file,a,b]of [
 ['src/modules/00-core.js','sub.data.subscription.unsubscribe();','void 0;'],
 ['src/modules/11-app-main.js','alive=false;','alive=true;'],
-['src/modules/11-app-main.js','alive=false; clearTimeout(tmr); off();','alive=false; off();'],
+['src/modules/11-app-main.js','clearTimeout(tmr); off();','off();'],
 ['src/modules/11-app-main.js','tmr=setTimeout(boot, 2500)','tmr=setTimeout(mcBootReady, 2500)'],
 ['src/modules/11-app-main.js','clearTimeout(tmr);\n      if(!alive) return;','clearTimeout(tmr);'],
 ['src/modules/11-app-main.js','()=>{ clearTimeout(tmr); boot(); });','()=>{ clearTimeout(tmr); mcBootReady(); });'],
@@ -48,7 +48,7 @@ for(const [file,a,b]of [
  assert.notEqual(betaRevision(id,f=>f===file?read(f).replace(a,b):read(f)).codigo,rev,a);
  const mutant=authFragments(file==='src/modules/00-core.js'?core.replace(a,b):core,file==='src/modules/11-app-main.js'?app.replace(a,b):app);
  const w=authWorld(mutant),off=w.mount(),timer=[...w.timers.values()][0];
- if(a.includes('alive=false; clearTimeout')){off();assert.equal(w.timers.size,1,'mutante cleanup conserva timer');}
+ if(a==='clearTimeout(tmr); off();'){off();assert.equal(w.timers.size,1,'mutante cleanup conserva timer');}
  else if(a==='sub.data.subscription.unsubscribe();'){off();assert.equal(w.live.size,1,'mutante transporte no se libera');}
  else if(a.includes('if(alive) syncFromCloud')){w.sessions[0].resolve(s('late'));await flush();off();const n=w.trace.length;w.idle();assert.ok(w.trace.length>n,'mutante idle actúa tras cleanup');}
  else if(a.includes('2500')){off();timer();assert.equal(count(w,'boot'),1,'mutante timer actúa tras cleanup');}
@@ -79,13 +79,15 @@ assert.deepEqual(currentReg[id],{...historicalReg[id],web:[{...historicalReg[id]
 // Partir el historial cambia los lectores/escritores compartidos, aunque no cambie auth.
 // No se hereda el OK106: se acredita por separado el contrato auth y el cambio de identidad.
 // Metas141 y FIN17 amplían la limpieza al salir. Se fija el bloque exacto; FIN17S prueba además conservación de IDs, ACK y aislamiento entre titulares.
-const auth106=authFragments(history106('src/modules/00-core.js'),history106('src/modules/11-app-main.js')),viejoSalida="      if(!s&&ev===\"SIGNED_OUT\") set(p=>Object.assign({},p,{bankTx:[]}));",nuevoSalida="      // Otra cuenta (o ninguna): ni gastos memorizados ni hora de lectura de la anterior.\n      if(login&&prev||!s&&ev===\"SIGNED_OUT\") expenseRowMemoReset();\n      if(!s&&ev===\"SIGNED_OUT\"){\n        // El evento ya trae sesión nula: la partición pertenece a la sesión saliente.\n        const owner=prev&&prev.user&&prev.user.id;\n        if(owner){\n          const key=obConfirmedStorageKey(owner);\n          try{obConfirmedStorage().removeItem(key);}catch(e){}\n          obConfirmedReadCache.delete(key);obConfirmedBlocked.delete(owner);\n          obAbsorbedClearNotice(owner);\n        }\n        if(prev&&prev.user)goalSyncClear(mcStateKey(),prev.user.id);\n        set(p=>{obAbsorbedSignOut(owner,p);return Object.assign({},p,{bankTx:[],_goalSync:null,obAbsorbedPending:[],obAbsorbedConfirmed:[]});});\n      }";
+const auth106=authFragments(history106('src/modules/00-core.js'),history106('src/modules/11-app-main.js')),viejoSalida="      if(!s&&ev===\"SIGNED_OUT\") set(p=>Object.assign({},p,{bankTx:[]}));",nuevoSalida="      // Otra cuenta (o ninguna): ni gastos memorizados ni hora de lectura de la anterior.\n      if(login&&prev||!s&&ev===\"SIGNED_OUT\") expenseRowMemoReset();\n      if(!s&&ev===\"SIGNED_OUT\"){\n        // El evento ya trae sesión nula: la partición pertenece a la sesión saliente.\n        const owner=prev&&prev.user&&prev.user.id;\n        if(owner){\n          const key=obConfirmedStorageKey(owner);\n          try{obConfirmedStorage().removeItem(key);}catch(e){}\n          obConfirmedReadCache.delete(key);obConfirmedBlocked.delete(owner);\n          obAbsorbedClearNotice(owner);\n        }\n        if(prev&&prev.user){goalSyncClear(mcStateKey(),prev.user.id);planSyncClear(mcStateKey(),prev.user.id);}\n        set(p=>{obAbsorbedSignOut(owner,p);return Object.assign({},p,{bankTx:[],_goalSync:null,_planSync:null,obAbsorbedPending:[],obAbsorbedConfirmed:[]});});\n      }";
 assert.equal(auth106.effect.split(viejoSalida).length,2,'la salida de sesión de la 106 está una sola vez');
 const cacheSalida='if(ev==="SIGNED_OUT")statePushCache.clear();';
 assert.equal(parts.method.split(cacheSalida).length,2,"FIN17 invalida exactamente una vez su cache al salir");
 const firstPullReset="      if(!s){if(cloudPullRef.current&&cloudPullRef.current.commit)cloudPullRef.current.commit(false);cloudReadRef.current=null;cloudUpdatedAtRef.current=null;cloudPullRef.current=null;}\n",ownerReset="      if(!s||login){if(cloudPullRef.current&&cloudPullRef.current.commit)cloudPullRef.current.commit(false);cloudReadRef.current=null;cloudUpdatedAtRef.current=null;cloudPullRef.current=null;}\n";
-const expectedEffect=auth106.effect.replace(viejoSalida,nuevoSalida).replace('      if(s) mcScheduleIdle',firstPullReset+'      if(s) mcScheduleIdle').replace('      const login=s&&(!prev||prev.user.id!==s.user.id);\n','      const login=s&&(!prev||prev.user.id!==s.user.id);\n'+ownerReset);
+const oldCleanup='return ()=>{ alive=false; clearTimeout(tmr); off(); };',newCleanup='return ()=>{ alive=false;\n      // Un vuelo que termina tras desmontar no conserva autoridad para releer ni escribir.\n      if(cloudPullRef.current&&cloudPullRef.current.commit)cloudPullRef.current.commit(false);\n      cloudPullRef.current=null;cloudReadRef.current=null;cloudUpdatedAtRef.current=null;sessionRef.current=null;\n      clearTimeout(tmr); off(); };';
+const expectedEffect=auth106.effect.replace(viejoSalida,nuevoSalida).replace('      if(s) mcScheduleIdle',firstPullReset+'      if(s) mcScheduleIdle').replace('      const login=s&&(!prev||prev.user.id!==s.user.id);\n','      const login=s&&(!prev||prev.user.id!==s.user.id);\n'+ownerReset).replace(oldCleanup,newCleanup);
 assert.deepEqual(parts,{method:auth106.method.replace(" cb(s,ev);", " "+cacheSalida+"cb(s,ev);"),effect:expectedEffect});
+{const w=authWorld(parts),off=w.mount();let cancelled=0;w.env.sessionRef.current=s('active');w.env.cloudPullRef.current={commit:()=>cancelled++};w.env.cloudReadRef.current={owner:'active'};w.env.cloudUpdatedAtRef.current='revision';off();assert.equal(cancelled,1);for(const key of ['sessionRef','cloudPullRef','cloudReadRef','cloudUpdatedAtRef'])assert.equal(w.env[key].current,null);}
 for(const event of ["SIGNED_OUT","SIGNED_IN"]){const w=authWorld(parts);w.mount();w.env.cloudReadRef.current={owner:"old",ready:true};w.env.cloudUpdatedAtRef.current="old-revision";w.env.cloudPullRef.current={owner:"old",promise:Promise.resolve()};w.event(event,event==="SIGNED_OUT"?null:s("new"));assert.equal(w.env.cloudReadRef.current,null);assert.equal(w.env.cloudUpdatedAtRef.current,null);assert.equal(w.env.cloudPullRef.current,null);}
 // mcPersistCommit (fix-170): mismas filas en otro array no marcan reescritura de gastos; también es persistencia.
 const storage=['mcLoadRaw','mcSaveRaw','mcResetSandbox','mcPersistCommit'],file='src/modules/00-core.js';
@@ -95,7 +97,7 @@ for(const name of storage)previousStorage=previousStorage.replace(scopeText({fil
 const guardado106=historicalReg[id].web.find(u=>u.from&&u.from.includes('INC-0410 guardado')),appFile='src/modules/11-app-main.js';
 // El `set` de App (dentro del bloque del guardado) gana en la 130 el emparejado automático: también es persistencia, no auth.
 // Se normalizan únicamente las ampliaciones explícitas de Metas/FIN17; el contrato de cancelación y callbacks permanece íntegro.
-const previousApp=read(appFile).replace(scopeText(guardado106,read),scopeText(guardado106,history106)).replace(nuevoSalida,viejoSalida).replace(firstPullReset,"").replace(ownerReset,"");
+const previousApp=read(appFile).replace(scopeText(guardado106,read),scopeText(guardado106,history106)).replace(nuevoSalida,viejoSalida).replace(firstPullReset,"").replace(ownerReset,"").replace(newCleanup,oldCleanup);
 assert.deepEqual(betaRevision(id,f=>f===file?previousStorage:f===appFile?previousApp:read(f),undefined,historicalReg[id]),betaRevision(id,history106,undefined,historicalReg[id]),'sólo la persistencia (y el emparejado del set) cambia la identidad auth; resto del contrato106 intacto');
 assert.notEqual(betaRevision(id,read).codigo,betaRevision(id,history106,undefined,historicalReg[id]).codigo,'persistencia y su unión nueva exigen revisión, nunca aprobación106');
 console.log('✓ auth disposal: remount, callbacks/promesas/timer/idle tardíos, controles activos, rojo anterior; '+Object.keys(oldReg).length+' revisiones anteriores intactas');

@@ -62,7 +62,7 @@ for(const scenario of ['debounce','online','read-error','invalid','missing-revis
    if(scenario==='collision'){expect(gets).toBeGreaterThan(1);const inserts=requests.filter(r=>r.table==='app_state'&&r.method==='POST');expect(inserts).toHaveLength(1);expect(inserts[0].status).toBe(409);}
    if(scenario==='invalid'){expect(requests.filter(r=>r.table==='app_state'&&r.method==='POST')).toHaveLength(0);expect(requests.some(r=>r.method==='PATCH'&&r.filters.updated_at==='eq.2026-10-19T10:00:00.000Z')).toBe(true);}
    // Otro contexto lee la misma nube; no se confunde el estado de A con la persistencia remota.
-   const stored=await page.evaluate(()=>loadState());stored._savedAt=0;stored.fixed[0].name='Segundo móvil atrasado';
+   const stored=await page.evaluate(()=>loadState());delete stored._planSync;delete stored._goalSync;stored._savedAt=0;stored.fixed[0].name='Segundo móvil atrasado';
    const b=await browser.newContext({serviceWorkers:'block',timezoneId:'Europe/Madrid'});contexts.push(b);await install(b,'B',stored);const pb=await b.newPage();await pb.goto(baseURL+'/');await expect.poll(()=>pb.evaluate(()=>typeof loadState==='function'?loadState().fixed[0]?.name:null)).toBe(row.data.fixed[0].name);
   }
   expect(errors).toEqual([]);

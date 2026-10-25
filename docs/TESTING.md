@@ -1,3 +1,7 @@
+PR297 R2: `pr297-r2-plan-sync.test.mjs` está registrado en el runner y `pr297-r2-plan-sync.spec.mjs` en el mapa del núcleo/transporte. Oráculos sintéticos de céntimos, LWW sin base y tres vías con base, confirmaciones compactas por owner, vínculo local sin gastos en app_state, metadata de pago, referencias estables y 1000 lápidas. La versión completa se contrasta con `node:crypto`, incluyendo Unicode, padding SHA-256, claves JSON especiales e id numérico frente a string.
+
+El navegador cuenta lecturas/avisos durante más de doce segundos con Plan inválido y exige un PATCH/CAS no vacío tras una edición real, con propietario, revisión y céntimos. Retiene GET de estado y de gastos para comprobar intenciones que llegan durante el vuelo. El dispositivo B de primera lectura no hereda `_planSync`/`_goalSync` privados de A. La prueba de toque real desplaza el botón a la vista y registra su geometría antes del tap; conserva el oráculo de cierre y movimiento.
+
 SAVEDAT: `savedat-arranque.spec.mjs`, registrado para `07-tab-patri-fijos.js` y `11-app-main.js`,
 usa reloj natural, dos titulares, edición DOM, offline/recarga/CAS y campos desconocidos.
 El backup se exige después de la primera lectura/commit exitosos; con GET retenido
@@ -19,6 +23,23 @@ debounce, backup sin re-sello y ACK antiguo durante otro merge, tanto en respues
 como en updater diferido. El doble común respeta INSERT único, filtros CAS y filas
 devueltas. Persistencia/refresco se ejecutan por sus nombres reales de spec.
 [Alcance A](briefs/fin04-primera-lectura.md).
+
+Plan reconstruido: `tests/fin04-plan-three-way.test.mjs` está registrado en el runner;
+`e2e/fin04-plan-three-way.spec.mjs`, en el mapa de sus siete módulos. Protegen grupos
+atómicos, céntimos, referencias y campos desconocidos, ACK durante edición, conflictos
+privados sin truncado, lápidas de deuda frente a copia intacta o editada en ambos
+sentidos, y marcas offline con y sin base privada anterior. El pull real extraído
+distingue render descartado y commit: Plan inválido avisa, termina su vuelo y permite
+un segundo GET válido y su CAS. Los E2E usan dos SDK/React reales con transporte
+sintético, borrado/edición DOM, recarga de ambos clientes, recuperación explícita y
+descarte confirmado en es/en/ca. Un mutante dirigido vigila cada contrato causal.
+No se ejecutan operaciones bancarias ni se acredita aceptación móvil real con estos
+clientes. Logs, fuentes previas y recursos propios de cada corrida se conservan por
+separado; una corrección del arnés no cuenta como ROJO del producto.
+Los arneses extraídos de seguridad/auth suministran el ACK real y la limpieza de
+Plan. El caso de deuda futura parte de una lectura confirmada antes de editar;
+conserva sus aserciones monetarias. El cierre de dependencias del catálogo sigue
+siendo un gate de integración independiente de estos ajustes de contexto.
 
 R4 añade `refresh-single-flight` en el spec FIN04 de renombrado: retiene gastos y
 repite eventos de primer plano/conexión, exigiendo una sola lectura simultánea.

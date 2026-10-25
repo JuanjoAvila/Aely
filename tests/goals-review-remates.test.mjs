@@ -71,8 +71,8 @@ test("g-M12: ACK real conserva foto enviada mientras se edita durante la petici�
    scrollear): tomarlo por edición reenviaba tras cada ACK — lagazo de Gastos del 25/10. */
 test("g-M9: contar pushes del efecto real mata el bucle de ACK",async()=>{
  const b=machine(based(seed()),null),c=b.c,refs=[],timers=new Map();let hook=0,effect,next=0;
- const render=vm.runInContext("(function(state,uid,useRef,useEffect,setTimeout,clearTimeout,pushAppState,t,showToast,syncFromCloud,sessionRef,obAbsorbedWriteBlocked,stateRef){"+b.effectSource+"})",c);
- function frame(){hook=0;render(b.state(),owner,v=>refs[hook++]||(refs[hook-1]={current:v}),(fn,deps)=>{if(!effect||deps.some((v,i)=>v!==effect.deps[i])){if(effect?.clean)effect.clean();effect={deps,clean:fn()};}},fn=>{timers.set(++next,fn);return next;},id=>timers.delete(id),b.pushFunction,x=>x,()=>{},()=>{},b.deps.sessionRef,b.deps.obAbsorbedWriteBlocked,b.deps.stateRef);}
+ const render=vm.runInContext("(function(state,uid,useRef,useEffect,setTimeout,clearTimeout,pushAppState,t,showToast,syncFromCloud,sessionRef,obAbsorbedWriteBlocked,stateRef,cloudMergeKey){"+b.effectSource+"})",c);
+ function frame(){hook=0;render(b.state(),owner,v=>refs[hook++]||(refs[hook-1]={current:v}),(fn,deps)=>{if(!effect||deps.some((v,i)=>v!==effect.deps[i])){if(effect?.clean)effect.clean();effect={deps,clean:fn()};}},fn=>{timers.set(++next,fn);return next;},id=>timers.delete(id),b.pushFunction,x=>x,()=>{},()=>{},b.deps.sessionRef,b.deps.obAbsorbedWriteBlocked,b.deps.stateRef,b.deps.cloudMergeKey);}
  frame();for(let i=0;i<4;i++){if(!timers.size)break;const [id,fn]=timers.entries().next().value;timers.delete(id);fn();b.ack();for(let j=0;j<12;j++)await Promise.resolve();frame();frame();}
  assert.equal(b.calls.length,1);assert.equal(timers.size,0);
 });
