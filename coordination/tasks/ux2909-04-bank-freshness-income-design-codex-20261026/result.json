@@ -1,0 +1,62 @@
+{
+  "status": "done",
+  "summary": "Design-only brief delivered in one draft PR310 against beta after independent parent review of exact d4093fb8. Includes per-bank/account/phase freshness evidence, manual versus bank income review, ES/EN/CA copy, boundaries, data gaps and future cent-based acceptance oracles. No runtime or financial behavior changed.",
+  "tests": [],
+  "productSHA": "d4093fb8b4066e0dabe5680796cf1cc2ee126107",
+  "baseSHA": "78c41edf87e2784ed31f8c9a083656c786d2632f",
+  "changedFiles": [
+    "docs/briefs/ux2909-04-bank-freshness-income-review.md"
+  ],
+  "validation": [
+    {
+      "command": "git diff HEAD^ HEAD --check",
+      "exitCode": 0
+    },
+    {
+      "command": "git status --porcelain",
+      "exitCode": 0,
+      "result": "clean"
+    },
+    {
+      "kind": "independent parent exact-source and design review",
+      "decision": "GO",
+      "candidateSHA": "d4093fb8b4066e0dabe5680796cf1cc2ee126107"
+    },
+    {
+      "kind": "GitHub PR readback",
+      "headSHA": "d4093fb8b4066e0dabe5680796cf1cc2ee126107",
+      "base": "beta",
+      "draft": true,
+      "merged": false
+    }
+  ],
+  "resourcesReturned": {
+    "runnerAcquired": false,
+    "portAcquired": false,
+    "serverStarted": false,
+    "leaseAcquired": false
+  },
+  "ownBudget": {
+    "grant": "e42252eb4444e23228b565b7d2da5b0ee5e13e43",
+    "allowance": 20,
+    "usedActualBeforeResultReadback": 6,
+    "remainingBeforeReadback": 14,
+    "noTransfer": true,
+    "spacingMinimumSeconds": 30
+  },
+  "limitations": [
+    "Design only; no tests/build/npm/runner were executed",
+    "Global sync timestamp, bank balance timestamp and transaction cursor do not establish every per-account phase success",
+    "Same-income guard without validated pair is proposed, not implemented",
+    "Reverse-arrival matching, account identity and atomic shared decisions require future implementation contracts",
+    "No deployment, CI-green, served-beta or physical mobile acceptance claim",
+    "UX15 runtime and unmerged PR308/309 remain outside this change"
+  ],
+  "pullRequestNumber": 310,
+  "schema": 1,
+  "taskId": "ux2909-04-bank-freshness-income-design-codex-20261026",
+  "actor": "codex",
+  "sessionId": "codex-local-20261026-ux2909design-fda31257-25279566-a7de-44ee-b680-486841e2279c",
+  "createdAt": "2026-10-26T01:28:13.309Z",
+  "released": true
+}
