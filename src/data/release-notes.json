@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.26.182",
+    "d": "2026-10-26",
+    "t": {
+      "es": "Cada recibo, como un movimiento más, y textos más cortos y claros",
+      "en": "Each bill as one more movement, and shorter, clearer texts",
+      "ca": "Cada rebut, com un moviment més, i textos més curts i clars"
+    },
+    "items": {
+      "es": [
+        "En Gastos, cada recibo se ve como un movimiento más, en gris, y al tocarlo se abre su ficha.",
+        "Textos más cortos y claros en toda la app.",
+        "En Plan, la sección de lo que falta por pagar vuelve a llamarse «Pendiente»."
+      ],
+      "en": [
+        "In Spending, each bill looks like one more movement, in grey, and tapping it opens its detail.",
+        "Shorter, clearer texts across the whole app.",
+        "In Plan, the section for what is still to pay is called \"Pending\" again."
+      ],
+      "ca": [
+        "A Despeses, cada rebut es veu com un moviment més, en gris, i en tocar-lo s'obre la seva fitxa.",
+        "Textos més curts i clars a tota l'app.",
+        "A Pla, la secció del que falta per pagar torna a dir-se «Pendent»."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "gastos-recibo-fila-textos-cortos",
+        "t": {
+          "es": "Gastos: cada recibo como un movimiento más, y Plan y Ajustes con textos más cortos",
+          "en": "Spending: each bill as one more movement, and Plan and Settings with shorter texts",
+          "ca": "Despeses: cada rebut com un moviment més, i Pla i Ajustos amb textos més curts"
+        },
+        "items": {
+          "es": [
+            "1. Gastos → baja hasta un día con un recibo del banco ya pagado (por ejemplo, el gas o la luz). MAL: el recibo aparece dentro de un bloque plegado «Recibos · no cuentan». BIEN: cada recibo sale como un movimiento más, en gris, con «Recibo: …» debajo, y al tocarlo se abre su ficha; las cuotas de deudas, las aportaciones a metas y las inversiones siguen en su bloque plegado, y la cifra de arriba no cambia.",
+            "2. Plan → Recibos y Ajustes: la sección de lo que falta por pagar se llama «Pendiente» y ya no lleva la frase «Se suma a lo que queda por pagar». MAL: ves párrafos largos de explicación bajo los ajustes. BIEN: cada ayuda es una frase corta o no hay."
+          ],
+          "en": [
+            "1. Spending → scroll down to a day with an already paid bank bill (for example, gas or electricity). WRONG: the bill appears inside a collapsed \"Bills · don't count\" block. RIGHT: each bill shows up as one more movement, in grey, with \"Bill: …\" underneath, and tapping it opens its detail; debt instalments, goal contributions and investments stay in their collapsed block, and the figure at the top does not change.",
+            "2. Plan → Bills and Settings: the section for what is still to pay is called \"Pending\" and no longer carries the sentence \"Included in the amount left to pay\". WRONG: you see long paragraphs of explanation under the settings. RIGHT: each help text is one short sentence, or there is none."
+          ],
+          "ca": [
+            "1. Despeses → baixa fins a un dia amb un rebut del banc ja pagat (per exemple, el gas o la llum). MALAMENT: el rebut apareix dins d'un bloc plegat «Rebuts · no compten». BÉ: cada rebut surt com un moviment més, en gris, amb «Rebut: …» a sota, i en tocar-lo s'obre la seva fitxa; les quotes de deutes, les aportacions a objectius i les inversions segueixen en el seu bloc plegat, i la xifra de dalt no canvia.",
+            "2. Pla → Rebuts i Ajustos: la secció del que falta per pagar es diu «Pendent» i ja no porta la frase «Es suma al que queda per pagar». MALAMENT: veus paràgrafs llargs d'explicació sota els ajustos. BÉ: cada ajuda és una frase curta o no n'hi ha."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.181",
     "d": "2026-10-26",
     "t": {
@@ -21,30 +71,7 @@
         "A Ajustos, les mides de lletra ara es diuen Normal, Gran, Molt gran i Enorme. Ningú canvia de mida: només canvien els noms."
       ]
     },
-    "tandas": [
-      {
-        "id": "gastos-meses-letra-nombres",
-        "t": {
-          "es": "Gastos: elegir un mes, y Ajustes: tamaños de letra con nombres nuevos",
-          "en": "Spending: picking a month, and Settings: text sizes with new names",
-          "ca": "Despeses: triar un mes, i Ajustos: mides de lletra amb noms nous"
-        },
-        "items": {
-          "es": [
-            "1. Gastos → Movimientos → Periodo → Meses: baja un poco y toca un mes anterior. MAL: te lleva al día 1 o se queda con otro mes marcado. BIEN: debajo de la cabecera queda el último día de ese mes, con ese mes marcado. Repítelo con la letra en «Normal» y en «Muy grande».",
-            "2. Ajustes → Accesibilidad → Tamaño de letra: salen cuatro botones: Normal, Grande, Muy grande, Enorme. MAL: sale «Pequeña» o la letra de tu app cambia de tamaño al actualizar. BIEN: el botón marcado es el que ya tenías (si usabas la letra de antes «Normal», ahora marca «Grande» y se ve igual que antes)."
-          ],
-          "en": [
-            "1. Spending → Transactions → Period → Months: scroll down a little and tap an earlier month. WRONG: it takes you to day 1 or leaves another month highlighted. RIGHT: under the header you see the last day of that month, with that month highlighted. Repeat it with the text on \"Normal\" and on \"Extra large\".",
-            "2. Settings → Accessibility → Text size: four buttons appear: Normal, Large, Extra large, Huge. WRONG: it says \"Small\" or the text of your app changes size after updating. RIGHT: the highlighted button is the one you already had (if you used the old \"Normal\" text, it now highlights \"Large\" and looks the same as before)."
-          ],
-          "ca": [
-            "1. Despeses → Moviments → Període → Mesos: baixa una mica i toca un mes anterior. MALAMENT: et porta al dia 1 o es queda amb un altre mes marcat. BÉ: sota la capçalera queda l'últim dia d'aquell mes, amb aquell mes marcat. Repeteix-ho amb la lletra en «Normal» i en «Molt gran».",
-            "2. Ajustos → Accessibilitat → Mida de la lletra: surten quatre botons: Normal, Gran, Molt gran, Enorme. MALAMENT: surt «Petita» o la lletra de la teva app canvia de mida en actualitzar. BÉ: el botó marcat és el que ja tenies (si feies servir la lletra d'abans «Normal», ara marca «Gran» i es veu igual que abans)."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.180",
