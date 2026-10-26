@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "id": "sec02-native-debounce-event-identity-codex-20261026",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261026-r108-fda31257-6d5d49d9-f6ee-4568-bd65-64a84f4316d8",
+  "createdAt": "2026-10-26T05:59:42.761Z",
+  "to": "codex",
+  "baseSHA": "c639081ca807bba526dd77cdc9413a6c4587247b",
+  "objective": "Corregir el debounce nativo de180s que descarta eventos diferentes con titulo/texto iguales antes de calcular su huella; conservar reentrega del mismo evento como un solo envio y todos los contratos de evento, cola y reintentos.",
+  "scope": [
+    "android/app/src/main/java/com/micartera/app/TrExpenseListener.java",
+    "android/app/src/main/java/com/micartera/app/NativeEventDebounce.java",
+    "tests/native-event-debounce.test.mjs",
+    "scripts/run-tests.mjs",
+    "docs/SETUP-ANDROID.md",
+    "docs/TESTING.md"
+  ],
+  "grants": [
+    "610071b531a0d91176e014beec3375e8078abafa",
+    "6660a49c8fa52825491d7a284ce65dd16464ed0a",
+    "e42252eb4444e23228b565b7d2da5b0ee5e13e43"
+  ],
+  "requirements": [
+    "OWN nuevo20 desdecero, claim/ACK/readback propios y GO tecnico antesproducto. Sin herencia ni recursos ajenos.",
+    "RED causal y GREEN con mismo oraculo ejecutable de logica Java real del listener o helper real consumido. Dos eventos distintos con igual contenido en menos180s deben llegar; reentrega mismaidentidad sigue una. Cubrir identidad key/postTime/fallback, fuente/paquete, limites temporales y concurrencia si aplicable. Datos sinteticos sin red.",
+    "Preservar hash estable v1, postTime, payload, token, cola/reintento/ACK y exactitud centimos. Nunca tratar prueba de fuente/regex o modelo duplicado como ejecucion Java.",
+    "CPU1 serial1worker0retry stopfirstfailure: censo/admission/logs/exits/RETURNdurables antes cada run. No tests cerrados de F1/F2/F3 ni suitecompleta.",
+    "Registro focal en runner y docs actuales. Candidato privado terminado con SHA/tree/parent/diff/bundle/hashes y evidencia real; reviewindependiente exacta antes de GO de pushnormal y una PRdraft contra beta.",
+    "APK futura necesaria para entrega al movil, fuera de este encargo. No Gradle/APK/adb/dispositivo/liveSQL/deploy/deps/version/generated/F1F2F3/clientes web/04-tab-gastos.js/shell.html."
+  ],
+  "acceptance": "Solo candidato privado completo verificable con causalidad RED/GREEN nativa. No push antesGO ni afirmacion de beta/APK servida/movil/ProductREADY."
+}
