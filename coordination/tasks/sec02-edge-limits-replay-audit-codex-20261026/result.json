@@ -1,0 +1,91 @@
+{
+  "status": "done",
+  "summary": "SEC02 audit of all14 Edge endpoints delivered as one finished draft PR312 against beta, exact reviewed head85caabc619b740908bb1a91794ae5cddc8d1a2b2 on base74ea9c63880b23a975f2a5852d82970f3cbffefd. Endpoint report, corrected backlog/testing and meaningful registered guards only. Backend/config/SQL/src/version metadata unchanged. F1callback generation race, F2native identity collision995vs1990c and F3paging13vs12attempts documented as open local findings; no productive fixes.",
+  "tests": [
+    {
+      "command": "node tests/sec02-edge-limits-replay.test.mjs",
+      "exitCode": 0,
+      "groups": 5
+    },
+    {
+      "command": "node tests/sec02-edge-limits-replay.test.mjs",
+      "environment": {
+        "SEC02_MUTANT": "help-sin-freno"
+      },
+      "exitCode": 1,
+      "expectedFailure": true,
+      "oracle": "16provider admissions versus15"
+    },
+    {
+      "command": "node tests/sec02-edge-limits-replay.test.mjs",
+      "environment": {
+        "SEC02_MUTANT": "help-fallo-abierto"
+      },
+      "exitCode": 1,
+      "expectedFailure": true,
+      "oracle": "200 versus503 when every checked guard removed"
+    },
+    {
+      "command": "node tests/sec02-edge-limits-replay.test.mjs",
+      "environment": {
+        "SEC02_MUTANT": "ingest-ack-sin-owner"
+      },
+      "exitCode": 1,
+      "expectedFailure": true,
+      "oracle": "duplicate ACK of another owner rejected by guard"
+    }
+  ],
+  "productSHA": "85caabc619b740908bb1a91794ae5cddc8d1a2b2",
+  "baseSHA": "74ea9c63880b23a975f2a5852d82970f3cbffefd",
+  "pullRequest": 312,
+  "draft": true,
+  "integrationReady": false,
+  "connectorMergeable": false,
+  "ownUsedActualAtResult": 7,
+  "ownAllowance": 20,
+  "allIntermediateFULLReviewed": true,
+  "cancellationFound": false,
+  "resourcesReturned": true,
+  "localCausalFindings": [
+    {
+      "id": "F1",
+      "priority": 1,
+      "actualExit": 3221226505,
+      "assertionCausal": true,
+      "secondaryWindowsUVFailure": true,
+      "fixed": false
+    },
+    {
+      "id": "F2",
+      "priority": 1,
+      "actualExit": 3221226505,
+      "expectedCents": 1990,
+      "observedCents": 995,
+      "assertionCausal": true,
+      "secondaryWindowsUVFailure": true,
+      "fixed": false
+    },
+    {
+      "id": "F3",
+      "priority": 2,
+      "actualExit": 1,
+      "expectedMaxAttempts": 12,
+      "observedAttempts": 13,
+      "fixed": false
+    }
+  ],
+  "limitations": [
+    "Source and synthetic evidence only; no live project/data/logs/secrets read",
+    "SDK/RPC/provider doubles; no PostgreSQL atomicity or expiry verification",
+    "Local Node24 execution; Node20 CI compatibility assessed via existing esbuild, Node20 not executed",
+    "No Deno, global CI, deployment, served beta, mobile or ProductREADY proof",
+    "Draft connector reports mergeable false; no rebase or merge authorized/performed",
+    "Subsequent callback and ingest fixes are separate queued assignments"
+  ],
+  "schema": 1,
+  "taskId": "sec02-edge-limits-replay-audit-codex-20261026",
+  "actor": "codex",
+  "sessionId": "codex-local-20261026-sec02-fda31257-25f54030-5b60-4a9f-a2ce-c93c908bf243",
+  "createdAt": "2026-10-26T02:49:33.789Z",
+  "released": true
+}
