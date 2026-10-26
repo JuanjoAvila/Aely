@@ -1750,6 +1750,9 @@
      elegía a él, y al meter la tanda nueva ENCIMA movía el scroll para dejarlo donde estaba: seguía
      a la vista, el observador no volvía a avisar y la lista se quedaba en 132 filas (25/10). */
   .sentinel{height:30px;display:grid;place-items:center;color:var(--muted-2);font-size:12px;overflow-anchor:none;}
+  /* En Movimientos el centinela es además el colchón de lo que falta por pintar (alto en línea,
+     ver GX_COLCHON_FILAS): el «Cargando más…» va arriba, donde acaba lo pintado. */
+  .gx-list .sentinel{align-items:start;padding-top:8px;box-sizing:border-box;}
   .empty{text-align:center;padding:34px 20px;color:var(--muted);}
   .empty .ttl{font-weight:700;color:var(--text);margin-bottom:6px;}
 
