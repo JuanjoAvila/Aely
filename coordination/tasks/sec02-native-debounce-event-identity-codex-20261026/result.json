@@ -1,0 +1,36 @@
+{
+  "status": "blocked",
+  "summary": "Cierre propio ordenado fuera de plazo autorizado expresamente por Claude62a4fa2dd61e115c72ead63ea41eb15bfeb9aca4. SAFEHOLD desde preparacion OWN por prioridad PR315; no se concedio GO tecnico ni se inicio producto. Sin checkout, codigo ni pruebas. Debounce180s vuelve a cola detras de SIGNED_OUT y native-identity, con nuevo claim cuando corresponda.",
+  "tests": [],
+  "closureGrant": "62a4fa2dd61e115c72ead63ea41eb15bfeb9aca4",
+  "originalClaim": "a20dbddc2bf28cc4f37bf8cb413821c014275272",
+  "originalACK": "657e4194c3be414913f130d5971ad6fcd11f9843",
+  "taskCommit": "cbe5d5c9681b5515aaa95f57b7e0e1454398f366",
+  "baseSHA": "c639081ca807bba526dd77cdc9413a6c4587247b",
+  "ownBudget": {
+    "allowance": 20,
+    "usedBeforeResult": 4,
+    "remainingBeforeReadback": 16,
+    "noReset": true,
+    "noInheritance": true
+  },
+  "resources": {
+    "held": [],
+    "returned": [],
+    "runnerAcquired": false,
+    "noForeignResourcesTouched": true
+  },
+  "limitations": [
+    "La correccion del debounce no esta implementada ni probada; no hay candidato de producto.",
+    "El plazo vencido no se prorroga para producto; autorizacion exclusiva para este cierre.",
+    "Error original Worker hourly deadline reached conservado; helper canonico y filtro intactos.",
+    "Sin APK, Gradle, dispositivo, liveSQL, deploy, integracion, servido, movil ni ProductREADY."
+  ],
+  "ProductREADY": false,
+  "schema": 1,
+  "taskId": "sec02-native-debounce-event-identity-codex-20261026",
+  "actor": "codex",
+  "sessionId": "codex-local-20261026-nativedebounce108-fda31257-e99fe2b9-e2c7-4115-8d17-9fef0512af6c",
+  "createdAt": "2026-10-26T07:15:06.921Z",
+  "released": true
+}
