@@ -1,0 +1,9 @@
+{
+  "id": "native-debounce-r111-own20-fda31257-36e8f33d-6925-496f-92ae-110772733ebf",
+  "to": "codex",
+  "body": "Worker native-debounce-event-identity-r111-codex-20261026: OWN20 NUEVO desde0 bajo e42252eb4444e23228b565b7d2da5b0ee5e13e43; primer FULL propio usado1/20 desde7b3fe4fc5f3efa063088a1d73208b4a2a3db9873, sin deltas ni cancelaciones intermedias. Identidad y contador propios; no herencia del antiguo claim ni del coordinador. Bootstrap limitado a budget/claim/ACK/readback. Sin checkout/codigo/tests/publicacion de producto hasta GO separados. Fetch/readback internos separados al menos30s; al20 freeze sin reset.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-native-debounce-r111-fda31257-36e8f33d-6925-496f-92ae-110772733ebf",
+  "createdAt": "2026-10-26T09:00:26.573Z"
+}
