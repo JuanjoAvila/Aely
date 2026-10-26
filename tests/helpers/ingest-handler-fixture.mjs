@@ -48,7 +48,7 @@ function fakeDb(opts = {}) {
       limit() { return api; },
       order(k, {ascending=true}={}) { q.order = k; q.ascending=ascending; return api; },
       range(from, to) { q.range = [from, to]; return api; },
-      upsert(row) { q.op = "upsert"; q.row = { ...row }; return api; },
+      upsert(row) { q.op = "upsert"; q.row = Array.isArray(row) ? row.map(r=>({...r})) : { ...row }; return api; },
       update(row) { q.op = "update"; q.row = { ...row }; return api; },
       delete() { q.op = "delete"; return api; },
       insert(row) { q.op = "insert"; q.row = row; return api; },
@@ -78,13 +78,13 @@ function fakeDb(opts = {}) {
       if (name !== "expenses") return { data: [], error: null };
       if (q.op === "select") {
         if (q.count && opts.widgetThrows) throw new Error("fallo sintético del widget opcional");
-        if (opts.monthReadError && q.cols === "id,importe,cat,source,fecha,comercio")
+        if (opts.monthReadError && q.cols.startsWith("id,importe,cat,source,fecha,comercio"))
           return { data: null, error: { message: "lectura mensual fallida" } };
         const usesEvent = q.cols.includes("ingest_event_id") || q.filters.some(([, k]) => k === "ingest_event_id");
         if (usesEvent) {
           if (opts.columnMissing) return { data: null, error: { message: "column ingest_event_id does not exist" } };
-          if (q.cols === "id" && q.filters.some(([, k]) => k === "ingest_event_id")) ackReads++;
-          if (opts.race23505 && q.cols === "id" && ackReads > 1 && !rows.some((r) => r.ingest_event_id === opts.raceKey)) {
+          if (q.cols.startsWith("id") && q.filters.some(([, k]) => k === "ingest_event_id")) ackReads++;
+          if (opts.race23505 && q.cols.startsWith("id") && ackReads > 1 && !rows.some((r) => r.ingest_event_id === opts.raceKey)) {
             rows.push({ id: "race-ack", user_id: "user", fecha: opts.raceDate, importe: 9.95,
               comercio: "Pans & Company", source: "macrodroid", cat: "restaurantes", ingest_event_id: opts.raceKey });
           }
@@ -93,7 +93,7 @@ function fakeDb(opts = {}) {
           opts.hideLegacyPrecheckOnce = false;
           return { data: [], error: null };
         }
-        if (opts.hideEventPrecheckOnce && q.cols === "id,fecha,importe,ingest_event_id") {
+        if (opts.hideEventPrecheckOnce && q.cols.startsWith("id,fecha,importe,ingest_event_id")) {
           opts.hideEventPrecheckOnce = false;
           return { data: [], error: null };
         }
@@ -107,10 +107,18 @@ function fakeDb(opts = {}) {
       if (q.op === "upsert") {
         if (opts.race23505) return { data: null, error: { code: "23505", message: "duplicate key" } };
         if (opts.emptyInsert) return { data: [], error: null };
+        if (Array.isArray(q.row)) {
+          const inserted=[];
+          for (const item of q.row) {
+            if (rows.some(r=>r.user_id===item.user_id&&r.fecha===item.fecha&&Number(r.importe)===Number(item.importe)&&r.comercio===item.comercio)) continue;
+            const row={id:item.id||"batch-"+(++seq),created_at:item.fecha,...item};rows.push(row);inserted.push({id:row.id});
+          }
+          return {data:q.returning?inserted:null,error:null};
+        }
         const exact = rows.find((r) => r.user_id === q.row.user_id && r.fecha === q.row.fecha &&
           Number(r.importe) === Number(q.row.importe) && r.comercio === q.row.comercio);
         if (exact) return { data: [], error: null };
-        const row = { id: "row-" + (++seq), created_at: opts.insertCreatedAt || q.row.fecha, ...q.row };
+        const row = { id: opts.uuidIds ? "11111111-1111-4111-8111-" + String(++seq).padStart(12,"0") : "row-" + (++seq), created_at: opts.insertCreatedAt || q.row.fecha, ...q.row };
         rows.push(row);
         return { data: q.returning ? [{ id: row.id }] : null, error: null };
       }
@@ -129,19 +137,19 @@ function fakeDb(opts = {}) {
     }
     return api;
   }
-  return { db: { from: table }, rows, events };
+  return { db: { from: table, nativeTwins: opts.nativeTwins === true }, rows, events };
 }
 
 function makeHandler(db, classifier=logic, code=handlerJs) {
   let handler;
   const Deno = { serve: (f) => { handler = f; }, env: { get: (k) => ({
     SUPABASE_URL: "https://db.invalid", SUPABASE_SERVICE_ROLE_KEY: "role",
-    INGEST_TOKEN: "token", INGEST_USER_ID: "user",
+    INGEST_TOKEN: "token", INGEST_USER_ID: "user", INGEST_NATIVE_TWINS: db.nativeTwins ? "1" : "",
   })[k] || "" } };
   const names = [
     "Deno", "createClient", "categorizar", "clasificarConMotivo", "extraerComercio",
     "extraerConcepto", "extraerImporte", "extraerPersona", "limpiarTexto", "aEuros", "parseWallet",
-    "claveEvento", "esGemeloIngest", "tieneGemeloAnterior", "bucketKey", "callerIp", "rateLimit",
+    "claveEvento", "esGemeloIngest", "tieneGemeloAnterior", "ordinalIngest", "fechaEventoOrdinal", "sourceIngestOrdinal", "ordinalEvento", "bucketKey", "callerIp", "rateLimit",
     "bancosDeGastoDiario", "cuentaParaPresupuesto", "filasComoLaApp", "inicioDeMesMs", "statsDelMes",
     "widgetSnapshot", "widgetStart", "readWidgetRows",
     "INGEST_MAX_BODY", "INGEST_MAX_COMERCIO", "INGEST_MAX_NOTA", "INGEST_MAX_TEXTO", "recortar", "timingSafeEqual",
@@ -150,7 +158,7 @@ function makeHandler(db, classifier=logic, code=handlerJs) {
     Deno, () => db, classifier.categorizar, classifier.clasificarConMotivo, logic.extraerComercio,
     logic.extraerConcepto, logic.extraerImporte, logic.extraerPersona, logic.limpiarTexto,
     wallet.aEuros, wallet.parseWallet, identity.claveEvento, identity.esGemeloIngest,
-    identity.tieneGemeloAnterior,
+    identity.tieneGemeloAnterior, identity.ordinalIngest, identity.fechaEventoOrdinal, identity.sourceIngestOrdinal, identity.ordinalEvento,
     async () => "bucket", () => "127.0.0.1", async () => ({ ok: true }),
     budget.bancosDeGastoDiario, budget.cuentaParaPresupuesto, budget.filasComoLaApp,
     budget.inicioDeMesMs, budget.statsDelMes,

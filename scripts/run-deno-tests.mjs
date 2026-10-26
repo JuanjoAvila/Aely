@@ -20,6 +20,7 @@ export function discoverDenoTests(cwd = root) {
 export function denoArgs(file) {
   // Conservar los permisos acotados existentes; un test nuevo no recibe permisos por arrastre.
   const permissions = {
+    "supabase/functions/ingest/native-identity.test.ts": ["--allow-env=SUPABASE_URL,SUPABASE_SERVICE_ROLE_KEY,INGEST_TOKEN,INGEST_USER_ID,INGEST_NATIVE_TWINS", "--config=supabase/functions/ingest/native-identity.deno.json", "--import-map=supabase/functions/ingest/native-identity.imports.json"],
     "supabase/functions/_shared/crypto.test.ts": ["--allow-env"],
     "supabase/functions/_shared/myinvestor-counter.test.ts": ["--allow-read=supabase/functions"],
   };

@@ -71,6 +71,7 @@ export function inicioDeMesMs(when: number | Date = Date.now(), timeZone: string
 const CAT_NEUTRAS: Record<string, number> = { inversion: 1, traspaso: 1, deudas: 1 };
 
 export type FilaGasto = {
+  ingest_event_id?: string | null;
   id?: string | null;
   importe: number | string;
   cat?: string | null;
@@ -92,7 +93,16 @@ export function esSourceManual(source?: string | null): boolean {
   return !s || s === "manual" || s.indexOf("manual:") === 0 || s === "supabase";
 }
 
+/** La escritura cloud puede conservar solo source: no depender de una columna opcional. */
+export function huellaNativaSource(source?: string | null): string {
+  const raw=String(source || "");
+  if (!raw.startsWith("native:trade_republic#")) return "";
+  const match=/#e([^#]+)(?:#|$)/.exec(raw);
+  try { return match ? decodeURIComponent(match[1]) : ""; } catch (_) { return ""; }
+}
+
 export function claveComoLaApp(f: {
+  ingest_event_id?: string | null;
   fecha?: string | null;
   importe?: number | string;
   comercio?: string | null;
@@ -102,7 +112,10 @@ export function claveComoLaApp(f: {
   const base = String(f.fecha || "").slice(0, 10) + "|" + (Number(f.importe) || 0) + "|" + (f.comercio || "");
   if (esSourceManual(f.source)) return base + "|" + String(f.id || "");
   const ord = ordinalDeSource(f.source);
-  return ord > 1 ? base + "|#" + ord : base;
+  const key = ord > 1 ? base + "|#" + ord : base;
+  const native = String(f.source || "").indexOf("native:trade_republic#") === 0;
+  const identity = native && (f.ingest_event_id || huellaNativaSource(f.source));
+  return identity ? key + "|evt:" + encodeURIComponent(identity) : key;
 }
 
 /**
@@ -114,7 +127,7 @@ export function claveComoLaApp(f: {
  */
 export function ordinalDeSource(source?: string | null): number {
   const s = String(source || "");
-  if (s.indexOf("ob:") !== 0 && s.indexOf("ob-hist:") !== 0) return 1;
+  if (s.indexOf("ob:") !== 0 && s.indexOf("ob-hist:") !== 0 && s.indexOf("native:trade_republic#") !== 0) return 1;
   const tramos = s.split("#").slice(1);
   for (const t of tramos) {
     const m = /^n(\d{1,6})$/.exec(t);
@@ -219,6 +232,8 @@ export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefine
     if (!keepIds.has(String(f.id)) && !matches(f,kept,keptIndex) && matches(f,gone,goneIndex)) continue;
     const k = claveComoLaApp(f);
     if (lap.has(k)) continue;
+    const oldNative = claveLegacySinId(f) + (ordinalDeSource(f.source) > 1 ? "|#" + ordinalDeSource(f.source) : "");
+    if ((f.ingest_event_id || huellaNativaSource(f.source)) && lap.has(oldNative)) continue;
     if (porCuenta.size && !esSourceManual(f.source)) {
       // El otro móvil puede borrar antes de recibir el renombrado. Ambas claves
       // conservan el mismo ámbito; el nombre original no puede borrar otra cuenta.
@@ -325,7 +340,7 @@ function claveAbsorcionOb(f: FilaGasto, legacy: boolean | 2 = false): string | n
  */
 export function bancoDeSource(source?: string | null): string | null {
   const s = String(source || "");
-  if (s === "macrodroid" || s === "tr") return "trade_republic";
+  if (s === "macrodroid" || s === "tr" || s.indexOf("native:trade_republic#") === 0) return "trade_republic";
   // «#dup» → B09-D; «#n2» → ordinal; «~deuda.» → cuota; «~recibo.» → cargo de un recibo (otra
   // entrega lo escribe; aquí ya se lee). El histórico (`ob-hist:`) lleva las mismas marcas: hasta
   // el 12/10/2026 devolvía «trade_republic#n2» y esa fila se caía del presupuesto del widget.

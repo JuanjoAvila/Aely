@@ -1,0 +1,5 @@
+{
+  "imports": {
+    "https://esm.sh/@supabase/supabase-js@2": "data:application/javascript,export%20function%20createClient(...args)%7Breturn%20globalThis.__ingestSyntheticClient()%3B%7D"
+  }
+}

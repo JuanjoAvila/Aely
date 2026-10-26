@@ -44,6 +44,8 @@ t("solo ingest: Deno sí, Playwright no", () => {
   assert.equal(p.playwright, false);
   assert.equal(p.e2e, "none");
   assert.ok(p.steps.includes("presupuesto-servidor"));
+  assert.ok(p.steps.includes("ingest-native-slots"));
+  assert.ok(p.steps.includes("ingest-native-phase1"));
 });
 
 t("categorize y sus helpers ejecutan el contrato real también en el recorte servidor", () => {

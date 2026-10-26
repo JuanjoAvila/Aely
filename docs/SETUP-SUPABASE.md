@@ -559,3 +559,11 @@ Las fuentes de keepalive y sync incorporan `_shared/myinvestor-refresh-save.ts`;
 No basta con un UPDATE sin error: debe devolver filas o confirmarse su propio patch tras un acuse perdido. El readback se acota; una lectura fallida queda indeterminada y no anuncia renovación ni posiciones al día. Se mantienen timeout, clasificación HTTP y limitación de telemetría de PR241. CAS no serializa dos consumos externos; OPS-09 queda fuera. [Pruebas y límites](briefs/ops08-refresh-cas.md).
 
 4.26.174 (25/10/2026): `functions/ingest/widget.ts` e `index.ts` cambian (PR298 R2, inicio-mes-futuro): el widget y el resumen mensual cuentan un apunte con fecha del mes que viene en SU mes y no en el actual, como Inicio y Gastos en la web. NO se despliega en beta; `ingest` va con la próxima producción, con el OK del dueño. Hasta entonces el widget puede sumar ese apunte al mes en curso (la web no).
+
+## SEC02 F2: candidato sin cambio de esquema
+
+El candidato [de identidad nativa de ingest](briefs/sec02-ingest-native-slots.md) conserva los índices y los onConflict existentes. Reserva ranuras de milisegundos y conserva identidad/ordinal en los lectores. No necesita SQL; despliegue y prueba móvil pendientes.
+
+### Ingest: fase 1 del lector nativo
+
+INGEST_NATIVE_TWINS permanece ausente/apagado por defecto. El código de la marca nativa propia solo se ejecuta con valor exacto1. No hay SQL ni cambio del UNIQUE de cuatro columnas. La activación queda para una PR posterior, tras confirmar todos los lectores móviles; esta fuente no acredita despliegue. [Contrato y excepciones OFF/R1](briefs/sec02-ingest-native-slots.md).

@@ -12,9 +12,14 @@ export async function readWidgetRows(db: any, userId: string, start: number): Pr
   const rows: FilaGasto[] = [], ids = new Set<string>();
   let total: number | null = null;
   for (let from = 0; ; from += 1000) {
-    const page = await db.from("expenses").select("id,importe,cat,source,fecha,comercio", { count: "exact" })
+    let page = await db.from("expenses").select("id,importe,cat,source,fecha,comercio,ingest_event_id", { count: "exact" })
       .eq("user_id", userId).gte("fecha", new Date(start).toISOString())
       .order("id", { ascending: true }).range(from, from + 999);
+    if (page.error && /ingest_event_id|column/i.test(String(page.error.message || ""))) {
+      page = await db.from("expenses").select("id,importe,cat,source,fecha,comercio", { count: "exact" })
+        .eq("user_id", userId).gte("fecha", new Date(start).toISOString())
+        .order("id", { ascending: true }).range(from, from + 999);
+    }
     if (page.error || !Array.isArray(page.data) || !Number.isSafeInteger(page.count) || page.count < 0) return null;
     if (total == null) total = page.count;
     if (page.count !== total || page.data.length !== Math.min(1000, Math.max(0, total! - from))) return null;

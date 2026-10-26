@@ -1515,3 +1515,18 @@ replay, cero/negativo y sync posterior. El DOM usa el transporte/updater reales 
 sintéticos y conserva el servidor simulado tras un UPDATE CAS y recarga. Pruebas dirigidas
 CPU1, un worker y cero reintentos; no sustituye CI general ni aceptación móvil.
 [Contrato y límites](briefs/fin27-book-charge-month.md).
+
+## Regresión SEC02 F2 de ingest
+
+Pruebas dirigidas sin red ni proyecto vivo:
+
+```sh
+deno test --cached-only --no-lock --no-prompt --fail-fast --allow-env=SUPABASE_URL,SUPABASE_SERVICE_ROLE_KEY,INGEST_TOKEN,INGEST_USER_ID --config=supabase/functions/ingest/native-identity.deno.json --import-map=supabase/functions/ingest/native-identity.imports.json supabase/functions/ingest/native-identity.test.ts
+node tests/ingest-native-slots.test.mjs
+```
+
+Cubren dos eventos1990c, reenvío995c/ACK, tercer evento, carreras23505, propietarios, incertidumbre, legacy y fronteras UTC/Madrid. El handler real usa SDK/almacenamiento sintéticos; no acredita PostgreSQL/PostgREST, despliegue ni móvil. [Contrato y límites](briefs/sec02-ingest-native-slots.md).
+
+### Ingest nativo: fase 1
+
+Los tests ingest-native-phase1 y ingest-native-slots cargan src real, no un HTML generado. El primero ejecuta el handler contra dobles SDK/storage, ambos órdenes OB y cloud.addExpense real; incluye colisiones reales de proyección SHA y el modo OFF. native-identity.test.ts usa INGEST_NATIVE_TWINS sintético explícito y cinco permisos env, sin red. Ver [contrato SEC02 y límites de evidencia](briefs/sec02-ingest-native-slots.md); los dobles no acreditan PostgreSQL/PostgREST ni despliegue.
