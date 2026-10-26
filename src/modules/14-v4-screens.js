@@ -280,11 +280,14 @@ function PlanBills({state, set, totals, charges, evidence, manageOpen, setManage
     ),
     React.createElement("div",{className:"v4-section","data-testid":"plan-due"},
       React.createElement("div",{className:"v4-section-h"},
-        React.createElement("span",null,simple?t("v4_aun_saldra"):t("v4_payment_due")),
+        // Vuelve «Pendiente»: «Por pagar» necesitaba una línea de ayuda debajo para entenderse y
+        // la palabra de antes no (petición del dueño, 26/10/2026).
+        React.createElement("span",null,simple?t("v4_aun_saldra"):t("v4_pendiente")),
         // Sencillo: sin «Gestionar» aquí — solo Ajustes → Cambiar mis recibos (NO-GO §5bis.2).
         !simple && React.createElement("button",{type:"button",className:"link",onClick:openManage}, t("v4_gestionar"))
       ),
-      pending.length>0&&React.createElement("div",{className:"ph"},t(simple&&pack.transfersPending.length?"v4_payment_mixed_hint":"v4_payment_due_hint")),
+      // Solo cuando en Sencillo se mezclan traspasos con recibos: ahí sí hace falta decir qué suma.
+      pending.length>0&&simple&&pack.transfersPending.length>0&&React.createElement("div",{className:"ph"},t("v4_payment_mixed_hint")),
       pending.length===0
         ? React.createElement("div",{className:"ph",style:{padding:"8px 4px 4px"}}, t("v4_aun_saldra_empty"))
         : (pendExpanded?pending:pending.slice(0,3)).map(row),
