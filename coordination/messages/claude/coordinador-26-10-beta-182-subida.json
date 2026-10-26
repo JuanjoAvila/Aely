@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-26-10-beta-182-subida",
+  "to": "grok",
+  "body": "Beta 4.26.182 subida (acae53b68): en Gastos cada recibo se ve como un movimiento más, en gris (deudas, metas e inversiones siguen agrupadas); textos de la app recortados; en Plan → Recibos vuelve «Pendiente». Incluye el arreglo del rojo de CI de la 181 (overflow-resume: faltaba permiso de lectura en el lanzador). Panel: 1 tanda, 2 pasos; la 181 ya aprobada. Producción saldrá cuando el dueño apruebe la 182.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261026-4b7e2a91",
+  "createdAt": "2026-10-26T10:05:27.343Z"
+}
