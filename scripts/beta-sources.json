@@ -96300,5 +96300,34 @@
       }
     ],
     "unidades": true
+  },
+  "widget-pasado-del-limite": {
+    "web": [
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "widgetPeriodOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "widgetScopeOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseBankEnts"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accDaily"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accRole"
+      }
+    ],
+    "native": [
+      "android/app/src/main/java/com/micartera/app/MiCarteraWidget.java",
+      "android/app/src/main/res/layout/widget_micartera.xml"
+    ],
+    "unidades": true
   }
 }

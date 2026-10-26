@@ -1,5 +1,47 @@
 [
   {
+    "v": "4.26.185",
+    "d": "2026-10-26",
+    "t": {
+      "es": "El widget se pone en rojo cuando te pasas del límite",
+      "en": "The widget turns red when you go over the limit",
+      "ca": "El widget es posa en vermell quan et passes del límit"
+    },
+    "items": {
+      "es": [
+        "Cuando te pasas del límite, el widget ya no dice «Puedes gastar 0 €»: la cifra y la barra salen en rojo y debajo ves cuánto te has pasado (con la app nueva)."
+      ],
+      "en": [
+        "When you go over the limit, the widget no longer says \"You can spend 0 €\": the figure and the bar turn red and below you see how much you are over (with the new app)."
+      ],
+      "ca": [
+        "Quan et passes del límit, el widget ja no diu «Pots gastar 0 €»: la xifra i la barra surten en vermell i a sota veus quant t’has passat (amb l’app nova)."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "widget-pasado-del-limite",
+        "t": {
+          "es": "Widget: pasarte del límite se ve en rojo",
+          "en": "Widget: going over the limit shows in red",
+          "ca": "Widget: passar-te del límit es veu en vermell"
+        },
+        "items": {
+          "es": [
+            "1. Instala la app nueva cuando te lo pida. Con el mes ya pasado del límite, mira el widget de Aely en la pantalla de inicio del móvil. MAL: sale «✅ Puedes gastar 0 €» o la barra verde. BIEN: la cifra y la barra salen en rojo, y debajo «… € de más 🚨»."
+          ],
+          "en": [
+            "1. Install the new app when it asks you to. With the month already over the limit, look at the Aely widget on your phone's home screen. WRONG: it shows \"✅ You can spend 0 €\" or the green bar. RIGHT: the figure and the bar are red, and below it says \"… € over 🚨\"."
+          ],
+          "ca": [
+            "1. Instal·la l’app nova quan t’ho demani. Amb el mes ja passat del límit, mira el widget d’Aely a la pantalla d’inici del mòbil. MALAMENT: surt «✅ Pots gastar 0 €» o la barra verda. BÉ: la xifra i la barra surten en vermell, i a sota «… € de més 🚨»."
+          ]
+        },
+        "apk": 62
+      }
+    ]
+  },
+  {
     "v": "4.26.184",
     "d": "2026-10-26",
     "t": {
@@ -21,30 +63,7 @@
         "A Despeses → Categories ja no surt la barra del límit."
       ]
     },
-    "tandas": [
-      {
-        "id": "gastos-margen-sin-nomina",
-        "t": {
-          "es": "Inicio y Gastos: lo que te queda del límite sin contar la nómina",
-          "en": "Home and Spending: what is left of the limit, not counting your payslip",
-          "ca": "Inici i Despeses: el que et queda del límit sense comptar la nòmina"
-        },
-        "items": {
-          "es": [
-            "1. Abre Inicio y luego Gastos: lo que te queda del límite este mes tiene que ser lo mismo en los dos sitios, descontando los Bizums y devoluciones que te han entrado pero no la nómina (hoy, unos 64 € por debajo).",
-            "2. En Gastos → Categorías ya no sale la barra verde/roja del límite debajo de los meses."
-          ],
-          "en": [
-            "1. Open Home and then Spending: what is left of the limit this month must be the same in both places, discounting the Bizums and refunds that have come in to you but not your payslip (today, about 64 € under).",
-            "2. In Spending → Categories the green/red limit bar no longer shows below the months."
-          ],
-          "ca": [
-            "1. Obre Inici i després Despeses: el que et queda del límit aquest mes ha de ser el mateix als dos llocs, descomptant els Bizums i devolucions que t’han entrat però no la nòmina (avui, uns 64 € per sota).",
-            "2. A Despeses → Categories ja no surt la barra verda/vermella del límit sota els mesos."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.183",
@@ -74,30 +93,7 @@
         "Els imports porten punt de milers (1.426,23 €)."
       ]
     },
-    "tandas": [
-      {
-        "id": "gastos-scroll-fluido-cifras",
-        "t": {
-          "es": "Gastos e Inicio: bajar sin paradas y cuánto te has pasado del límite",
-          "en": "Spending and Home: scrolling without stops and how far over the limit you are",
-          "ca": "Despeses i Inici: baixar sense aturades i quant t’has passat del límit"
-        },
-        "items": {
-          "es": [
-            "1. Gastos → Movimientos (en Meses) → desliza hacia abajo rápido varias veces seguidas. MAL: la lista se para de golpe en «Cargando más…» y tienes que volver a lanzarla. BIEN: sigue deslizando hasta frenar sola, cambiando de mes, sin pararse en seco.",
-            "2. Si este mes te has pasado del límite: Inicio y Gastos. MAL: Inicio enseña «0 %» o un importe negativo, o Gastos y Inicio dicen cantidades distintas de más. BIEN: Inicio enseña el anillo lleno en coral con el porcentaje y «X € de más», y Gastos dice «gastos X por encima» con la misma cantidad; los importes de más de mil llevan punto (1.426,23 €)."
-          ],
-          "en": [
-            "1. Spending → Movements (in Months) → swipe down fast several times in a row. WRONG: the list stops dead at \"Loading more…\" and you have to fling it again. RIGHT: it keeps gliding until it slows down on its own, changing month, without stopping dead.",
-            "2. If you are over the limit this month: Home and Spending. WRONG: Home shows \"0 %\" or a negative amount, or Spending and Home give different amounts over. RIGHT: Home shows the ring full in coral with the percentage and \"X € over\", and Spending says \"spending X over\" with the same amount; amounts above a thousand have a point (1.426,23 €)."
-          ],
-          "ca": [
-            "1. Despeses → Moviments (en Mesos) → llisca cap avall de pressa diverses vegades seguides. MALAMENT: la llista s’atura de cop a «Carregant més…» i has de tornar a llançar-la. BÉ: continua lliscant fins a frenar sola, canviant de mes, sense aturar-se en sec.",
-            "2. Si aquest mes t’has passat del límit: Inici i Despeses. MALAMENT: Inici ensenya «0 %» o un import negatiu, o Despeses i Inici diuen quantitats diferents de més. BÉ: Inici ensenya l’anell ple en corall amb el percentatge i «X € de més», i Despeses diu «despeses X per sobre» amb la mateixa quantitat; els imports de més de mil porten punt (1.426,23 €)."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.182",

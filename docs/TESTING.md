@@ -1,4 +1,4 @@
-Debounce nativo por identidad (candidata de fuente, 26/10/2026):
+Debounce nativo por identidad (integrado en la beta 4.26.185 / APK 62, 26/10/2026):
 `node tests/native-event-debounce.test.mjs`, registrado en `scripts/run-tests.mjs`,
 compila el listener completo y `NativeEventDebounce` reales con JDK 21. Android, preferencias,
 reloj y transporte son fronteras sintéticas offline. Puede fijarse `JAVA_HOME`;

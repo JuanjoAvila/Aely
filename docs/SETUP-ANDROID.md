@@ -189,7 +189,7 @@ La identidad v1 del lector se forma con origen, paquete, clave Android y `postTi
 `ingest`. Si la clave falta se conserva paquete/id/tag; si `postTime<=0` se conserva el reloj actual,
 por lo que ese caso no promete identidad estable entre reentregas con relojes distintos.
 
-La candidata de fuente del 26/10/2026 sustituye la firma local de título/texto por
+Desde la APK 62 (4.26.185, 26/10/2026) el lector sustituye la firma local de título/texto por
 `NativeEventDebounce`: cada evento guarda su instante en `micartera_ingest_dedupe` durante
 180 segundos. Dos compras con el mismo texto y distintas identidades se admiten; A/B/A conserva
 ambas marcas y una reentrega no renueva la ventana. A los 180000 ms se vuelve a admitir.
@@ -198,9 +198,17 @@ mismo proceso; `apply` mantiene su semántica de memoria inmediata y disco asín
 nueva entre procesos o ante caída. Se ignoran `sig`/`ts` antiguos y se conservan las preferencias
 ajenas. Reloj que retrocede o identidad vacía: fail-open, para no perder una compra real.
 
-La candidata sigue pendiente de integración, **APK nueva** y aceptación móvil: la OTA no cambia
-Java. Para la entrega de la identidad v1 se conserva el requisito de aplicar la migración 0025 y
+Integrada en la beta 4.26.185 (APK 62, por subir con `release:apk`); falta la aceptación móvil. La OTA no cambia
+Java. **No es todavía «dos compras iguales entran las dos»**: con `INGEST_NATIVE_TWINS` apagado el
+ingest sigue fundiendo por contenido (±2 h), y antes de encenderlo hay que comprobar en un móvil real
+si TR y Wallet actualizan la notificación de una compra (la v1 lleva `postTime`, que una
+actualización cambia). Para la entrega de la identidad v1 se conserva el requisito de aplicar la migración 0025 y
 desplegar la Edge `ingest` antes de su APK; este cambio de filtro local conserva ese contrato.
+
+APK 62 (4.26.185): pasado el límite (`spent > budget`) el widget oculta `w_afford` («✅ Puedes gastar X»)
+y enseña `w_bar_over`, una segunda barra llena en el coral del widget (`RemoteViews.setColorStateList`
+no existe por debajo de Android 12 y `minSdk` es 23); `w_sub` ya dice «… € de más 🚨». Cambio solo
+nativo: sin APK no llega.
 
 FIN-05 añade arbitraje de los dos escritores del widget en Java. Cada POST reserva un ticket;
 `ingest` devuelve el mes, el instante de lectura y la contribución del evento. Un snapshot de
