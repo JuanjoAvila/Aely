@@ -1,5 +1,58 @@
 [
   {
+    "v": "4.26.183",
+    "d": "2026-10-26",
+    "t": {
+      "es": "Bajar por Gastos va fluido y las cifras del límite coinciden en todas partes",
+      "en": "Scrolling Spending is smooth and the budget figures match everywhere",
+      "ca": "Baixar per Despeses va fluid i les xifres del límit coincideixen a tot arreu"
+    },
+    "items": {
+      "es": [
+        "Bajar rápido por Gastos va fluido, sin paradas en seco.",
+        "Gastos, Inicio y el widget dicen lo mismo sobre cuánto te has pasado del límite.",
+        "Inicio enseña el porcentaje y lo que te has pasado del límite.",
+        "Los importes llevan punto de miles (1.426,23 €)."
+      ],
+      "en": [
+        "Scrolling down Spending quickly is smooth, with no sudden stops.",
+        "Spending, Home and the widget say the same about how far over the limit you are.",
+        "Home shows the percentage and how much you are over the limit.",
+        "Amounts now have a thousands separator (1.426,23 €)."
+      ],
+      "ca": [
+        "Baixar de pressa per Despeses va fluid, sense aturades en sec.",
+        "Despeses, Inici i el widget diuen el mateix sobre quant t’has passat del límit.",
+        "Inici ensenya el percentatge i el que t’has passat del límit.",
+        "Els imports porten punt de milers (1.426,23 €)."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "gastos-scroll-fluido-cifras",
+        "t": {
+          "es": "Gastos e Inicio: bajar sin paradas y cuánto te has pasado del límite",
+          "en": "Spending and Home: scrolling without stops and how far over the limit you are",
+          "ca": "Despeses i Inici: baixar sense aturades i quant t’has passat del límit"
+        },
+        "items": {
+          "es": [
+            "1. Gastos → Movimientos (en Meses) → desliza hacia abajo rápido varias veces seguidas. MAL: la lista se para de golpe en «Cargando más…» y tienes que volver a lanzarla. BIEN: sigue deslizando hasta frenar sola, cambiando de mes, sin pararse en seco.",
+            "2. Si este mes te has pasado del límite: Inicio y Gastos. MAL: Inicio enseña «0 %» o un importe negativo, o Gastos y Inicio dicen cantidades distintas de más. BIEN: Inicio enseña el anillo lleno en coral con el porcentaje y «X € de más», y Gastos dice «gastos X por encima» con la misma cantidad; los importes de más de mil llevan punto (1.426,23 €)."
+          ],
+          "en": [
+            "1. Spending → Movements (in Months) → swipe down fast several times in a row. WRONG: the list stops dead at \"Loading more…\" and you have to fling it again. RIGHT: it keeps gliding until it slows down on its own, changing month, without stopping dead.",
+            "2. If you are over the limit this month: Home and Spending. WRONG: Home shows \"0 %\" or a negative amount, or Spending and Home give different amounts over. RIGHT: Home shows the ring full in coral with the percentage and \"X € over\", and Spending says \"spending X over\" with the same amount; amounts above a thousand have a point (1.426,23 €)."
+          ],
+          "ca": [
+            "1. Despeses → Moviments (en Mesos) → llisca cap avall de pressa diverses vegades seguides. MALAMENT: la llista s’atura de cop a «Carregant més…» i has de tornar a llançar-la. BÉ: continua lliscant fins a frenar sola, canviant de mes, sense aturar-se en sec.",
+            "2. Si aquest mes t’has passat del límit: Inici i Despeses. MALAMENT: Inici ensenya «0 %» o un import negatiu, o Despeses i Inici diuen quantitats diferents de més. BÉ: Inici ensenya l’anell ple en corall amb el percentatge i «X € de més», i Despeses diu «despeses X per sobre» amb la mateixa quantitat; els imports de més de mil porten punt (1.426,23 €)."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.182",
     "d": "2026-10-26",
     "t": {
@@ -24,30 +77,7 @@
         "A Pla, la secció del que falta per pagar torna a dir-se «Pendent»."
       ]
     },
-    "tandas": [
-      {
-        "id": "gastos-recibo-fila-textos-cortos",
-        "t": {
-          "es": "Gastos: cada recibo como un movimiento más, y Plan y Ajustes con textos más cortos",
-          "en": "Spending: each bill as one more movement, and Plan and Settings with shorter texts",
-          "ca": "Despeses: cada rebut com un moviment més, i Pla i Ajustos amb textos més curts"
-        },
-        "items": {
-          "es": [
-            "1. Gastos → baja hasta un día con un recibo del banco ya pagado (por ejemplo, el gas o la luz). MAL: el recibo aparece dentro de un bloque plegado «Recibos · no cuentan». BIEN: cada recibo sale como un movimiento más, en gris, con «Recibo: …» debajo, y al tocarlo se abre su ficha; las cuotas de deudas, las aportaciones a metas y las inversiones siguen en su bloque plegado, y la cifra de arriba no cambia.",
-            "2. Plan → Recibos y Ajustes: la sección de lo que falta por pagar se llama «Pendiente» y ya no lleva la frase «Se suma a lo que queda por pagar». MAL: ves párrafos largos de explicación bajo los ajustes. BIEN: cada ayuda es una frase corta o no hay."
-          ],
-          "en": [
-            "1. Spending → scroll down to a day with an already paid bank bill (for example, gas or electricity). WRONG: the bill appears inside a collapsed \"Bills · don't count\" block. RIGHT: each bill shows up as one more movement, in grey, with \"Bill: …\" underneath, and tapping it opens its detail; debt instalments, goal contributions and investments stay in their collapsed block, and the figure at the top does not change.",
-            "2. Plan → Bills and Settings: the section for what is still to pay is called \"Pending\" and no longer carries the sentence \"Included in the amount left to pay\". WRONG: you see long paragraphs of explanation under the settings. RIGHT: each help text is one short sentence, or there is none."
-          ],
-          "ca": [
-            "1. Despeses → baixa fins a un dia amb un rebut del banc ja pagat (per exemple, el gas o la llum). MALAMENT: el rebut apareix dins d'un bloc plegat «Rebuts · no compten». BÉ: cada rebut surt com un moviment més, en gris, amb «Rebut: …» a sota, i en tocar-lo s'obre la seva fitxa; les quotes de deutes, les aportacions a objectius i les inversions segueixen en el seu bloc plegat, i la xifra de dalt no canvia.",
-            "2. Pla → Rebuts i Ajustos: la secció del que falta per pagar es diu «Pendent» i ja no porta la frase «Es suma al que queda per pagar». MALAMENT: veus paràgrafs llargs d'explicació sota els ajustos. BÉ: cada ajuda és una frase curta o no n'hi ha."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.181",

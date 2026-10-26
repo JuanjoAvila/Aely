@@ -21016,7 +21016,7 @@ function widgetScopeOf(state,stats,anchor,bank){
     anchor||"",stats.budget,expenseBankEnts(state).slice().sort(),bank||""]);
 }
 // Inicio dice «Has gastado» en el mes natural: una nómina no puede borrar ese uso del
-// presupuesto (INC-2909-02). Gastos/Balance y el widget conservan su contrato propio.
+// presupuesto (INC-2909-02). Gastos compara con el límite sobre lo mismo (bruto en mes natural, neto en Mi ciclo; 4.26.183) y el widget v2 también.
 function dashboardBudgetStats(state){
   return monthBudgetStats(state,null,null,"split");
 }
@@ -26588,7 +26588,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="9a3d6df86b8fad29af8112a274217d04172e2e198679f6ebebcbb2e68e38b9bf";
+var _rnSha="0de70ca9c5c514305d3ab6f65ce3b54db0fa32dbc1273ce781d9bae10571405f";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
