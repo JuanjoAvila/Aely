@@ -6167,8 +6167,8 @@ test("Catálogo178 (solo web) no añade tanda sobre la 177, deja las tres sin ve
     for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
   }
   const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
-  const nueva=structuredClone(notes);nueva[0].tandas.push(structuredClone(notes[1].tandas[0]));assert.throws(()=>verifyNotes(nueva),assert.AssertionError,"la 178 no repite ni inventa una tanda");
-  const pierde=structuredClone(notes);pierde[1].tandas=[];assert.throws(()=>verifyNotes(pierde),assert.AssertionError,"la tanda de la 176, sin veredicto, no desaparece");
+  const nueva=structuredClone(notes);nueva[0].tandas.push(structuredClone(notes[2].tandas[0]));assert.throws(()=>verifyNotes(nueva),assert.AssertionError,"la 178 no repite ni inventa una tanda");
+  const pierde=structuredClone(notes);pierde[2].tandas=[];assert.throws(()=>verifyNotes(pierde),assert.AssertionError,"la tanda de la 176, sin veredicto, no desaparece");
   // Registro: el de la 177 con el delimitador CURLANG de App actualizado en tres descriptores y el cierre de lectores crecido, en cinco, con las funciones del paquete de idioma.
   const scopes=JSON.parse(source("scripts/beta-sources.json"));
   assert.deepEqual(Object.keys(scopes),Object.keys(integrated),"mismo orden, sin descriptores nuevos");
