@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "id": "native-debounce-event-identity-r111-codex-20261026",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261026-r111-fda31257-f86d176d-46f7-4dc0-9002-c50997a6ffa4",
+  "createdAt": "2026-10-26T08:54:00.368Z",
+  "to": "codex",
+  "baseSHA": "034fdb7b3b068408c2d113eb80382d13fdafa11e",
+  "objective": "Corregir el debounce nativo de 180 s en TrExpenseListener que funde compras reales distintas con el mismo titulo/texto; mantener una sola entrega del mismo evento. Encargo NUEVO despues de PR316/317, bajo prioridad Claude43b5.",
+  "scope": [
+    "android/app/src/main/java/com/micartera/app/TrExpenseListener.java",
+    "android/app/src/main/java/com/micartera/app/NativeEventDebounce.java",
+    "tests/native-event-debounce.test.mjs",
+    "scripts/run-tests.mjs",
+    "docs/SETUP-ANDROID.md",
+    "docs/TESTING.md",
+    "README.md",
+    "CHANGELOG.md",
+    "docs/ROADMAP.md"
+  ],
+  "grants": [
+    "43b5b1d5591618c15b497617a34fe5074abf2918",
+    "610071b531a0d91176e014beec3375e8078abafa",
+    "62a4fa2dd61e115c72ead63ea41eb15bfeb9aca4",
+    "e42252eb4444e23228b565b7d2da5b0ee5e13e43"
+  ],
+  "requirements": [
+    "RECEPCION primero: identidad runtime/cwd/inventario Aely propios y nonce nuevo prefijo fda31257, ACK privado fsync/readback. No fetch/claim/checkout/codigo/tests antes admision nativa. OWN20 nuevo0 bajo e422; helper/ledger/estado propios, sin heredar oldclaim ni contadores.",
+    "El oldtask sec02-native-debounce-event-identity-codex-20261026 esta blocked/released por 40a35fa86add2117548e492afd25f96ee4f11fe6 y archivado. No reabrirlo ni usar sus helpers. PR313/314/315/316/317 cerradas, no repetir tests terminados.",
+    "Tras OWNclaim/ACK/readback y GO checkout, inspeccion privada acotada y plan causal antes codigo. RED causal y GREEN con MISMO oraculo ejecutando logica Java REAL del listener o helper real consumido. Dos eventos distintos de contenido igual <180s deben llegar; reentrega misma identidad sigue una. Cubrir key/postTime/fallback, origen/paquete, limites temporales y concurrencia pertinente con datos sinteticos offline. Nunca regex/modelo duplicado como prueba Java.",
+    "Preservar hash estable v1, postTime, payload/token/cola/reintento/ACK y centimos. No cambiar contrato servidor ni cliente ni caps. Si la causa exige fuera de scope, PARAR y consultar ROOT antes editar.",
+    "CodigoGO y runnerGO separados, CPU1serial1worker0retry/stopfirstfailure, censo/admission compatible expreso antes cada run; logs/cmd/exit/report/RETURN durables. No suitecompleta ni rerun de GREEN cerrado. No Gradle/APK/adb/dispositivo/browser/servidores/CPU6/liveSQL/backend/deploy/deps/install/version/generated.",
+    "Checkout/rama propios desde base exacta. Registrar test nuevo en runner y docs pertinentes sin anunciar version publicada. Candidato privado TERMINADO con HEAD/tree/parent/diff/bundle/manifest/hashes y evidencia causal, revision independiente exactSHA y GO ROOT antes pushNORMAL y UNA PRdraft contra beta. Sin force/merge/integracion.",
+    "Solo ROOT111 recibe ACK/avances/RETURN; solo ROOT reporta a Claude. APK futura necesaria para movil, fuera de este encargo. No beta servida/movil/ProductREADY ni aviso dueno."
+  ],
+  "acceptance": "Candidato privado verificable con causalidad RED/GREEN nativa y contratos preservados, seguido de revision independiente y publicacion expresamente autorizada; sin compilacion APK ni aceptacion fisica."
+}
