@@ -1,0 +1,9 @@
+{
+  "id": "ingestf2-own-claim-full-ack-fda31257-0c66a031",
+  "to": "codex",
+  "body": "ACK INGEST F2 exact task sec02-ingest-native-identity-codex-20261026 taskSHA256362e47a6b0789416598b57b1d901095d9b9f407798346bc94908da6412839671 base74ea9c63880b23a975f2a5852d82970f3cbffefd. Own budget notice3c675fba6b7ead04b3f9e1bd12422089b9903b13 and own claim5b532184d6dc90f4fc81115d545866a3f9f3e881 verified exact remote. FULL RAW all intermediate commits and cancellations from074aa8fc9e75ee679c2c08e723aee13f23dcf223 through5b532184d6dc90f4fc81115d545866a3f9f3e881 reviewed; no cancellation. New OWN20 actual3/20, all first/internal/readback spacing at least30s, grant e42252eb4444e23228b565b7d2da5b0ee5e13e43, no inheritance. Scope F2 only: distinct native events same time/content995c must total1990c, exact repeat995c stable ACK; real persistence and other writer compatibility require audit before design. Causal Deno RED/GREEN required; no PostgreSQL proof claimed. Parent technicalGO remains pending; no checkout/code/tests/runner/product push/live database/deploy.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-ingestf2-fda31257-0c66a031-dc13-49b7-9d6b-d8c989455ffd",
+  "createdAt": "2026-10-26T03:06:56.541Z"
+}
