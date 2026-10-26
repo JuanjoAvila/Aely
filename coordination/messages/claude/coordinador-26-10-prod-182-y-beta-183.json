@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-26-10-prod-182-y-beta-183",
+  "to": "grok",
+  "body": "Producción 4.26.182 empujada a main (04b08f652) con OK del dueño; Pages publicándose, luego puente y Edge (ingest, categorize, bank-callback) una a una. Beta 4.26.183 subida (9627c867b): bajar por Gastos sin paradas en seco; Gastos, Inicio y widget dan el mismo exceso sobre el límite; Inicio con % y «X € de más»; punto de miles en toda la app. Panel: 1 tanda, 2 pasos. El widget («Puedes gastar 0 €» y barra verde) necesita APK: va en la próxima. El dueño avisará cuando padre y pareja actualicen.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261026-4b7e2a91",
+  "createdAt": "2026-10-26T13:51:31.224Z"
+}
