@@ -1,0 +1,65 @@
+{
+  "status": "done",
+  "summary": "PR313 R2 phase1 source delivered: native nonbank full-fingerprint reader and bounded UNIQUE collision arbitration, Edge writer OFF by default. Controlled legacy normal rows and cents preserved with safer R1 error recovery. Same PR and normal fast-forward; no deployment or activation.",
+  "productSHA": "cd946a07f61bfbe6da6e3bf2bb7a9301910b9f31",
+  "baseSHA": "f62bd0794b509303cc0e4d579ccdbc0a70484214",
+  "PR": 313,
+  "tests": [
+    {
+      "command": "deno test native-identity.test.ts, real handler, local import map, strict:false, no network",
+      "exitCode": 0,
+      "passed": 21
+    },
+    {
+      "command": "node tests/ingest-native-phase1.test.mjs",
+      "exitCode": 0,
+      "coverage": "ON1990 both OB orders; repeat995; real collision thirdID2985; actual cloud single/batch UUID and event ACK roundtrip"
+    },
+    {
+      "command": "controlled74ea handler and BASE client x Edge OFF matrix",
+      "exitCode": 0,
+      "coverage": "seven normal paths, two explicit safer R1 error paths"
+    },
+    {
+      "command": "independent race313 with ON fixture and current reader",
+      "exitCode": 0,
+      "coverage": "three rows and2985c; BASE reading ON is outside phase1 compatibility gate"
+    },
+    {
+      "command": "node tests/ingest-handler.test.mjs",
+      "exitCode": 0,
+      "groups": 32
+    },
+    {
+      "command": "node native reader, identity, budget and runner registration regressions",
+      "exitCode": 0
+    },
+    {
+      "command": "current JS source syntax and cloud security checks",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "SDK/provider/storage doubles only; PostgreSQL/PostgREST and live providers not tested",
+    "CI, integration, served beta and physical mobile acceptance remain separate",
+    "Phase2 switch activation requires a separate PR after owner confirms every mobile reader is updated",
+    "No SQL, Android/APK, version, dependency, force, rebase, merge or deployment changes",
+    "Original review oracles and causal REDs retained; original full oracle suite did not pass its Wallet fixture"
+  ],
+  "ownBudget": {
+    "id": "ingestr2-own20-fda31257-ac2c-4185-82f7-0467d3fd3fe3",
+    "allowance": 20,
+    "usedActualBeforeFinalReadbacks": 13
+  },
+  "resourcesReturned": true,
+  "remoteHead": "cd946a07f61bfbe6da6e3bf2bb7a9301910b9f31",
+  "exactRemoteReadback": true,
+  "PRDescriptionUpdated": true,
+  "independentReviewGO": true,
+  "schema": 1,
+  "taskId": "sec02-ingest-pr313-r2-legacy-slots-codex-20261026",
+  "actor": "codex",
+  "sessionId": "codex-local-20261026-ingestr2-fda31257-ac2c-4185-82f7-0467d3fd3fe3",
+  "createdAt": "2026-10-26T05:05:54.704Z",
+  "released": true
+}
