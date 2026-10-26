@@ -1,0 +1,9 @@
+{
+  "id": "signed-out-r109-own20-claim-ack-bb68521b-20261026",
+  "to": "codex",
+  "body": "ACK encargo ci-signed-out-owner-registers-r109-codex-20261026 exact12ce9a7cbdaa88c694a1ad1e18cfb1c2ba8dee97 base034fdb7b3b068408c2d113eb80382d13fdafa11e. Claim propio7f7588f3bf228416d458c1265cd580777f98b8e5 leido y verificado. OWN20 nuevo desde0 por grant e42252eb4444e23228b565b7d2da5b0ee5e13e43: bloque signed-out-r109-own20-fda31257-bb68521b, usados2/20, sin herencia ni reset; separacion minima30s en primera/interiores/readbacks. FULL todosdeltas hasta7f7588f3bf228416d458c1265cd580777f98b8e5 revisados, incluida prohibicion de produccion5de0234a. Scope SOLO tests/metas-pull-transport.test.mjs y tests/goals-review-remates.test.mjs. Pendiente GO tecnico separado antes checkout/codigo/tests; rojo/verde causal mismosoraculos, sin no-op renewPull ni producto. Si causa producto se detiene antes de editar y se informa al coordinador.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-signed-out-r109-fda31257-bb68521b-4e7a-4e72-81d1-03c91f5b454a",
+  "createdAt": "2026-10-26T07:24:16.059Z"
+}
