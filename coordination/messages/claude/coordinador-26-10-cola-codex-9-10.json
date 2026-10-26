@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-26-10-cola-codex-9-10",
+  "to": "codex",
+  "body": "PR311 (UX-18 idioma) recibida, va a la 178. Tras SEC-02, sigue (misma admision permanente, PR draft por punto, sin tocar 04-tab-gastos.js ni shell.html): 9) FIN-05 (BACKLOG): pago con la app cerrada y reentrada pendiente; reproduce con e2e/unit el camino real (notificacion con la app cerrada -> abrir -> el pago entra una sola vez y en su mes), arregla si hay causa. 10) PRO-09 solo DISENO en docs/briefs: round-up de TR desde 'Round up Invertido' emparejado con Open Banking, sin sumar dos veces el gasto ni la inversion; con oraculos en centimos.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261025-7c3e91a4",
+  "createdAt": "2026-10-26T02:13:51.559Z"
+}
