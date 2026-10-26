@@ -63,10 +63,10 @@ test("cola beta: transporte real refresca producción, rescata recibo anterior y
     CONFIG.APP_VERSION="9.9.3.1";RELEASE_NOTES=[{v:"9.9.3",t:{es:"Beta"},tandas:[{id:"nueva",t:{es:"Nueva"},items:{es:["1. Novedad"]},codigo:"nueva",web:"nueva-web"}]},{v:"9.9.1",t:{es:"Anterior"},tandas:[g]}];
     return {notes:[{v:"9.9.2",t:{es:"Producción"},tandas:[g]}],receipt:{sourceSha:"a".repeat(40),web:{entregada:"prod-web"}}};
   });
-  let offline=true,version="9.9.2",delivered=false,noteReads=0;
+  let offline=true,version="9.9.2",delivered=false,noteReads=0,offlineReads=0,offlineGate=null;
   await page.unroute("https://juanjoavila.github.io/Aely/**");
   await page.route("https://juanjoavila.github.io/Aely/**",async route=>{
-    if(offline)return route.fulfill({status:503,body:"offline"});
+    if(offline){offlineReads++;if(offlineGate)await offlineGate;return route.fulfill({status:503,body:"offline"});}
     const asset=new URL(route.request().url()).pathname.split("/").pop();
     let body={};
     if(asset==="version.json")body={version};
@@ -77,7 +77,10 @@ test("cola beta: transporte real refresca producción, rescata recibo anterior y
   });
   await page.evaluate(()=>{const host=document.createElement("div");host.id="e2e-transport";document.body.appendChild(host);ReactDOM.createRoot(host).render(React.createElement(BetaReviewPanel,{onClose:function(){},showToast:function(){}}));});
   const panel=page.locator("#e2e-transport .beta-review");
-  await page.waitForFunction(()=>!_mcProdVerPending);
+  // El estado inicial puede pintarse antes del efecto: una lista ya vacía no acredita
+  // que haya terminado la consulta offline que después compartiría «Reintentar».
+  await expect.poll(()=>offlineReads).toBeGreaterThan(0);
+  await page.evaluate(async()=>{if(_mcProdVerCache)await _mcProdVerCache;});
   await expect(panel.locator(".beta-tanda")).toHaveCount(0);
   await expect(panel).toContainText("Comprobaciones sin confirmar");
   await expect(panel).not.toContainText("No queda nada por probar");
@@ -89,7 +92,15 @@ test("cola beta: transporte real refresca producción, rescata recibo anterior y
   expect(await page.evaluate(()=>window._mcProdVersion({refresh:true}))).toBe("9.9.2");
   expect(await page.evaluate(()=>window.__receiptWrites)).toBe(0,"el recibo idéntico no se reescribe");
   expect(noteReads).toBe(firstReads,"un recibo del mismo SHA reutiliza su guion sin descargar de nuevo todo el histórico");
-  offline=true;await page.evaluate(()=>document.dispatchEvent(new Event("visibilitychange")));
+  // La lista conserva una tanda mientras pregunta. Esperarla no separaba las dos vueltas
+  // y online podía heredar la consulta offline aún en vuelo (rojo de CI en la línea95).
+  const beforeOffline=offlineReads;let finishOffline;
+  offlineGate=new Promise(resolve=>{finishOffline=resolve;});offline=true;
+  const offlineRefresh=page.evaluate(async()=>{document.dispatchEvent(new Event("visibilitychange"));if(_mcProdVerCache)await _mcProdVerCache;});
+  try{
+    await expect.poll(()=>offlineReads).toBeGreaterThan(beforeOffline);
+    expect(await page.evaluate(()=>_mcProdVerPending)).toBe(true);
+  }finally{finishOffline();await offlineRefresh;offlineGate=null;}
   await expect(panel.locator(".beta-tanda")).toHaveCount(1);await expect(panel).not.toContainText("Estrenada");
   delivered=true;version="9.9.3";offline=false;await page.evaluate(()=>document.dispatchEvent(new Event("visibilitychange")));
   await expect(panel.locator(".beta-tanda")).toHaveCount(0);
