@@ -1,0 +1,50 @@
+{
+  "status": "done",
+  "summary": "UX18 finished after independent exact-head review. Draft PR311 head821e92c85697777196decc7b7f8bf0040acbd6a8 published against beta, eight paths verified. Two causal language defects repaired: cloud language package loading and obsolete earlier local selection. No account order defect reproduced; real gesture, delayed old pull, accepted CAS and reload replay guarded.",
+  "tests": [
+    {
+      "command": "Directed Playwright UX18 remote EN CA and package HTTP offline subset; serial one worker zero retries stop first failure",
+      "exitCode": 1,
+      "acceptedPassingSubset": 4,
+      "note": "Original run stopped on a harness text selector error; those four unaffected passing cases are retained. Not an all-green run."
+    },
+    {
+      "command": "Directed Playwright UX18 affected local pull, late selection and both unmount cases; serial one worker zero retries stop first failure",
+      "exitCode": 0,
+      "passed": 5,
+      "skipped": 0,
+      "flaky": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/inicio-deps-ajustes.test.mjs",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "821e92c85697777196decc7b7f8bf0040acbd6a8",
+  "productPR": 311,
+  "baseSHA": "78c41edf87e2784ed31f8c9a083656c786d2632f",
+  "distinctPassingScenarios": 9,
+  "notSingleFreshNineCaseSuite": true,
+  "resourcesReturned": true,
+  "ownBudgetUsedAtPublication": 5,
+  "ownBudgetAllowance": 20,
+  "limitations": [
+    "Draft PR only; beta advanced after exact parent and mergeability is false. No rebase performed.",
+    "No full suite global CI integration served beta mobile acceptance or ProductREADY claimed.",
+    "Historical RED and harness failures preserved. No financial backend generated version dependency or foreign PR changes."
+  ],
+  "schema": 1,
+  "taskId": "ux18-account-order-language-refresh-codex-20261026",
+  "actor": "codex",
+  "sessionId": "codex-local-20261026-ux18-fda31257-584d2904-e4cc-4118-8b6d-9348ed42a087",
+  "createdAt": "2026-10-26T02:12:53.563Z",
+  "released": true
+}
