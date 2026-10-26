@@ -1518,6 +1518,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -3084,6 +3088,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "native": [
@@ -4480,6 +4488,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "native": [
@@ -5428,6 +5440,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "native": [
@@ -6857,6 +6873,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "native": [
@@ -8253,6 +8273,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "native": [
@@ -10214,6 +10238,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -12869,6 +12897,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -14058,6 +14090,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -15439,6 +15475,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "native": [
@@ -17195,6 +17235,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -18016,6 +18060,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -18781,6 +18829,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -21042,6 +21094,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "edge": [
@@ -23018,6 +23074,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -24536,6 +24596,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -26228,6 +26292,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -28115,6 +28183,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "langPackUrl"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -29511,6 +29583,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "native": [
@@ -30709,6 +30785,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -32090,6 +32170,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "native": [
@@ -33418,6 +33502,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -34609,6 +34697,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "edge": [
@@ -36235,6 +36327,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "edge": [
@@ -39642,6 +39738,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "edge": [
@@ -42296,6 +42396,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -44063,6 +44167,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -47235,6 +47343,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "edge": [
@@ -48617,6 +48729,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -49957,6 +50073,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -50931,6 +51051,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -51822,6 +51946,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -52633,6 +52761,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -53545,6 +53677,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -54067,6 +54203,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "planSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -55011,6 +55151,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "_mcInicioMesByYm"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -55881,6 +56025,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -57240,6 +57388,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -57918,6 +58070,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -58812,6 +58968,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -59629,6 +59789,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -60493,6 +60657,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "native": [
@@ -61398,6 +61566,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -62860,6 +63032,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -63895,6 +64071,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -64763,6 +64943,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "native": [
@@ -65632,6 +65816,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -66782,6 +66970,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -68697,6 +68889,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "langPackUrl"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -70631,6 +70827,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "langPackUrl"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -71897,6 +72097,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -72773,6 +72977,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "native": [
@@ -73520,6 +73728,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -74477,6 +74689,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -75287,6 +75503,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -76690,6 +76910,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "edge": [
@@ -77415,6 +77639,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -78221,6 +78449,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "edge": [
@@ -79003,6 +79235,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -80349,6 +80585,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -81736,6 +81976,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -83031,6 +83275,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -84321,6 +84569,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -85607,6 +85859,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -86877,6 +87133,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -88339,6 +88599,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -89625,6 +89889,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -90930,6 +91198,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true
@@ -92295,6 +92567,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
       }
     ],
     "unidades": true

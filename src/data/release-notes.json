@@ -1,5 +1,26 @@
 [
   {
+    "v": "4.26.179",
+    "d": "2026-10-26",
+    "t": {
+      "es": "Preparados para no perder dos compras iguales seguidas",
+      "en": "Getting ready not to lose two identical purchases made back to back",
+      "ca": "Preparats per no perdre dues compres iguals fetes seguides"
+    },
+    "items": {
+      "es": [
+        "Preparamos la app para no perder dos compras iguales hechas seguidas. Por ahora no verás ningún cambio."
+      ],
+      "en": [
+        "We are getting the app ready so that two identical purchases made back to back are not lost. You will not see any change for now."
+      ],
+      "ca": [
+        "Preparem l'app perquè no es perdin dues compres iguals fetes seguides. De moment no veuràs cap canvi."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.178",
     "d": "2026-10-26",
     "t": {
