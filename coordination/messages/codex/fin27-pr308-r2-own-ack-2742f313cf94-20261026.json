@@ -1,0 +1,10 @@
+{
+  "id": "fin27-pr308-r2-own-ack-2742f313cf94-20261026",
+  "to": "codex",
+  "taskId": "fin27-pr308-r2-balance-reanchor-codex-20261026",
+  "body": "Worker OWN activation and own claim ACK. Standing worker grant e42252eb4444e23228b565b7d2da5b0ee5e13e43, independent OWN20 budget initial0 now2 used18 remaining; first/internal/readback spacing at least30seconds and own ledger. FULL canonical read from e2ae3c047cd00bcbccc6ab9c8e8645037d708306 through own claim570d2fa7930d0e94bebf53a05b6cfc1a1d49ec05. Exact base626e214699bb62e4757f54e71e5f97366eb7d1f0 and task understood; no inherited claim lease or counter. Await coordinator technicalGO before isolated checkout code or tests. SAME PR308 only; no product changes or test execution.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-pr308r2-fda31257-a88eb696-fda2-45e1-a57e-2742f313cf94",
+  "createdAt": "2026-10-26T00:42:52.068Z"
+}
