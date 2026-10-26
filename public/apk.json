@@ -1,7 +1,7 @@
 {
   "versionCode": 61,
   "versionName": "4.26.155",
-  "url": "https://github.com/JuanjoAvila/Aely/releases/download/beta/Aely-4.26.155-beta-61.apk",
+  "url": "https://github.com/JuanjoAvila/Aely/releases/download/v4.26.155/Aely-4.26.155.apk",
   "notes": "La vibración al cambiar de pestaña en Plan es un solo toque, y la fuerza del borde y del anillo de Mi ciclo vuelve a notarse. Se instala encima sin perder datos.",
   "revisiones": {
     "fin05-widget-reentrada": "78ff9b2c46f59b55936bb1390580044fdb1715a4c5583189259eeece4db230e4",
