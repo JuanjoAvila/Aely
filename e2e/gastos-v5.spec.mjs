@@ -7,7 +7,7 @@ import { seedLoggedInDashboard, dismissNews, installFixtureClock, gastosRoot, ga
    · la cifra de arriba ES la tarjeta del mes de Inicio (misma fuente, mismos bancos);
    · al bajar, la cifra es lo gastado hasta el día que queda bajo la cabecera;
    · un mes cerrado nunca se compara con el límite de hoy;
-   · recibos y cuotas del banco salen agrupados en una fila gris que no suma al día;
+   · los recibos salen sueltos y atenuados; cuotas, metas e inversiones, en su fila gris; nada de eso suma al día;
    · reagrupar no pierde ninguna fila de las que la lista enseñaba;
    · Mi ciclo sigue elegible y su cifra es la de Inicio en modo ciclo.
    El reloj es el de las fixtures: 26/9/2026 a mediodía. */
@@ -119,33 +119,51 @@ for (const zoom of [1.3, 1.6]) {
   });
 }
 
-test("recibo y cuota del banco salen agrupados en filas grises que no suman y se despliegan", async ({ page }) => {
-  await abre(page);
+/* LOS RECIBOS VAN SUELTOS Y ATENUADOS; CUOTAS, METAS E INVERSIONES, AGRUPADAS (decisión suya,
+   26/10/2026, con su captura de Gastos: «recibos grisáceo como está comunidad, y metas, deudas e
+   inversiones agrupado»). Dos recibos del mismo día y del mismo banco que los gastos, más una cuota,
+   una aportación a meta y otra a un bróker: los recibos son tarjetas atenuadas que dicen cuál son
+   y abren su ficha; lo demás sigue en su bloque. Qué cuenta no cambia: el día 20 suma 30 y el mes 100. */
+test("los recibos salen sueltos y atenuados; cuota, meta e inversión siguen en su fila gris; nada suma", async ({ page }) => {
+  await abre(page, {
+    fixed: [...base.fixed, { id: "gas", name: "Gas", amount: 5.75, freq: "mes", account: "trade_republic", day: 20 }],
+    goals: [{ id: "viaje", name: "Viaje", emoji: "✈️", target: 1000, saved: 100, done: false, createdAt: "2026-08-01T10:00:00Z" }],
+    expenses: [...expenses,
+      e("PEPE ENERGY", "2026-09-20", 5.75, "recibos", { reciboId: "gas" }),
+      e("TRASPASO HUCHA", "2026-09-20", 250, "otros", { goalId: "viaje" }),
+      e("APORTACION MYINVESTOR", "2026-09-20", 300, "inversion")],
+  });
   await aGastos(page);
+  await expect(gastosCifra(page)).toHaveText("100,00 €");
+  await expect(gastosEstado(page)).toHaveText("gastado en septiembre · 900 € por debajo");
   const dia20 = gastosRoot(page).locator('[data-gx-day="20260920"]');
-  const recibos = dia20.locator('.gx-gris[data-gris="recibo"]'), deudas = dia20.locator('.gx-gris[data-gris="deuda"]');
-  await expect(recibos.locator(".gx-gris-h")).toContainText("Recibos · no cuentan");
-  await expect(recibos.locator(".gx-gris-h")).toContainText("62,00 €");
+  await expect(dia20.getByTestId("gastos-dia-total")).toHaveText("30,00 €");
+
+  // Sin bloque de recibos: cada uno es su tarjeta atenuada, con el recibo que paga.
+  await expect(dia20.locator('.gx-gris[data-gris="recibo"]')).toHaveCount(0);
+  await expect(dia20).not.toContainText("Recibos · no cuentan");
+  const endesa = dia20.locator("button.v4-mov").filter({ hasText: "ENDESA" }), pepe = dia20.locator("button.v4-mov").filter({ hasText: "PEPE ENERGY" });
+  await expect(endesa).toHaveClass(/v4-mov-skip/);
+  await expect(endesa).toContainText("Recibo: Luz");
+  await expect(pepe).toHaveClass(/v4-mov-skip/);
+  await expect(pepe).toContainText("Recibo: Gas");
+  await expect(dia20.locator("button.v4-mov")).toHaveCount(3);
+  await expect(dia20.locator("button.v4-mov.v4-mov-skip")).toHaveCount(2);
+
+  // Cuota, meta e inversión siguen plegadas en su fila gris, cada una con su total.
+  await expect(dia20.locator(".gx-gris")).toHaveCount(3);
+  const deudas = dia20.locator('.gx-gris[data-gris="deuda"]'), metas = dia20.locator('.gx-gris[data-gris="meta"]'), inv = dia20.locator('.gx-gris[data-gris="inversion"]');
   await expect(deudas.locator(".gx-gris-h")).toContainText("Deudas · no cuentan");
   await expect(deudas.locator(".gx-gris-h")).toContainText("197,00 €");
-  // Agrupadas: no son tarjetas sueltas del día.
-  await expect(dia20.locator("button.v4-mov")).toHaveCount(1);
-  // Cerrada no deja tocar nada de dentro; abierta enseña el cargo y la salida a Plan.
-  await expect(recibos.locator(".gx-gris-it")).toBeHidden();
-  await recibos.locator(".gx-gris-h").click();
-  await expect(recibos.locator(".gx-gris-h")).toHaveAttribute("aria-expanded", "true");
-  await expect(recibos.locator(".gx-gris-it")).toBeVisible();
-  await expect(recibos.locator(".gx-gris-it")).toContainText("ENDESA");
-  await expect(recibos.locator(".gx-gris-it")).toContainText("Luz");
-  // El cargo sigue abriendo su ficha (ahí vive «No es este recibo»).
-  await recibos.locator(".gx-gris-it").click();
+  await expect(metas.locator(".gx-gris-h")).toContainText("Metas · no cuentan");
+  await expect(metas.locator(".gx-gris-h")).toContainText("250,00 €");
+  await expect(inv.locator(".gx-gris-h")).toContainText("Inversiones · no cuentan");
+  await expect(inv.locator(".gx-gris-h")).toContainText("300,00 €");
+
+  // Tocar un recibo abre su ficha, como la fila de cualquier otro movimiento (ahí vive «No es este recibo»).
+  await pepe.click();
   await expect(page.locator(".v4-exp-sheet")).toBeVisible();
-  await page.keyboard.press("Escape");
-  await page.locator(".v4-sheet-back").click({ position: { x: 5, y: 5 } }).catch(() => {});
-  await expect(page.locator(".v4-exp-sheet")).toHaveCount(0);
-  await recibos.locator(".gx-gris-plan").click();
-  await expect(page.locator('.botnav-tab[data-tour="plan"]')).toHaveClass(/active/);
-  await expect(page.locator('.page-scroll-host .v4-seg-btn.on')).toContainText("Recibos");
+  await expect(page.locator('[data-testid="exp-recibo-marca"]')).toContainText("Gas");
 });
 
 test("«Abrir en Plan · Deudas» lleva al segmento Deudas", async ({ page }) => {
@@ -166,7 +184,7 @@ test("reagrupar no pierde ninguna fila: tarjetas + cargos de las filas grises = 
   const tarjetas = await gastosRoot(page).locator("button.v4-mov").count();
   const grises = await gastosRoot(page).locator(".gx-gris-it").count();
   expect(tarjetas + grises).toBe(expenses.length);
-  expect(grises).toBe(2);
+  expect(grises).toBe(1);   // solo la cuota: los recibos van sueltos
   // Buscando no se agrupa: lo que buscas no puede quedar plegado.
   await gastosRoot(page).locator(".searchbar-in").fill("endesa");
   await expect(gastosRoot(page).locator("button.v4-mov")).toHaveCount(1);

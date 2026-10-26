@@ -7433,7 +7433,7 @@ const LANG = {
     // Accesibilidad
     v4_set_a11y:"Accesibilidad",
     st_textsize:"Tamaño de letra", st_textsize_hint:"Agranda toda la app. Si algo se descuadra en «Enorme», dímelo y lo ajusto.",
-    ts_small:"Normal", ts_normal:"Grande", ts_big:"Muy grande", ts_huge:"Enorme",
+    ts_small:"Pequeña", ts_normal:"Normal", ts_big:"Grande", ts_huge:"Enorme",
     st_reduce_motion:"Reducir animaciones", st_reduce_motion_hint:"Quita deslizamientos y rebotes: la app va más sobria y directa. Útil si mareas.",
     st_contrast:"Más contraste", st_contrast_hint:"Sube el contraste del texto para que se lea mejor.",
     // Temáticas de temporada
@@ -9309,16 +9309,9 @@ function applyTheme(t){
   }catch(e){}
 }
 // Nivel de letra (accesibilidad). Antes era un booleano (bigText); ahora 3 niveles en
-// settings.textSize (small|normal|big|huge). El zoom se aplica al BODY, no a #root: los sheets y
+// settings.textSize (normal|big|huge). El zoom se aplica al BODY, no a #root: los sheets y
 // diálogos van portaleados a document.body (fuera de #root) y con el zoom en #root se
 // quedaban a tamaño normal → «se descuadra» (feedback 2026-07-18). En body todo escala igual.
-/* LOS RÓTULOS NO SON LOS VALORES (suyo, 26/10/2026: «la actual pequeña pasa a llamarse normal y es
-   la opción por defecto; la actual normal pasa a grande; la actual grande pasa a muy grande»). Se
-   cambiaron solo los textos (`ts_*`): los valores guardados siguen siendo los de siempre, así que
-   quien eligió «normal» ve EXACTAMENTE el mismo tamaño, que ahora se llama «Grande». Sin `textSize`
-   guardado se sigue cayendo en `normal` (hoy «Grande»): las instalaciones viejas (su padre, su
-   pareja) no deben ver la letra encogerse sin haber tocado nada. El «Normal» de salida (valor
-   `small`) lo guarda el onboarding, solo en instalaciones nuevas. */
 function textSizeOf(s){ const st=s&&s.settings; if(st&&st.textSize) return st.textSize; return (st&&st.bigText)?"big":"normal"; }
 function applyTextSize(size){
   try{
@@ -13579,7 +13572,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
         if(filVentana && (ms<filVentana.startMs || ms>=filVentana.todayEndMs)) continue;
         if(catOf(e.category||"otros").id!==fil.id) continue;
         // Los cargos de las filas grises (recibos, cuotas, metas, inversiones) no se enseñan con
-        // filtro (SPEC §4.4): no suman a la categoría. Siguen en Movimientos sin filtro y en su fila gris.
+        // filtro (SPEC §4.4): no suman a la categoría. Siguen en Movimientos sin filtro (los recibos, sueltos).
         if(grisDeGasto(e, expenseBucket(e, state))) continue;
       }
       // `debt:<id>` en la misma lista que las categorías: el chip de cada deuda (4.21.0).
@@ -14113,12 +14106,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     // su caja no cambia de alto al encogerse, solo se suma lo que sobresale la fila de meses.
     const pad=parseFloat(getComputedStyle(h).paddingTop)||0;
     const raya=pad+head.offsetHeight+GX_MESES_SOBRE;
-    /* La distancia en px del BODY, que es en lo que va `scrollTop`: con la letra «Normal» (o
-       «Grande»…) el body lleva `zoom` y `getBoundingClientRect` mide en px de pantalla. Sin
-       dividir, el salto se quedaba corto un 8 % y el afinado convergía unos px por ENCIMA del día
-       pedido: debajo quedaba el 1 del mes siguiente, con su pastilla (rechazo de la beta 4.26.180
-       en Meses: «va al día 1 y no cambia de mes»; en el Pixel 5 de las pruebas no hay zoom). */
-    return h.scrollTop+(el.getBoundingClientRect().top-h.getBoundingClientRect().top)/gxZoom()-raya+2;
+    return h.scrollTop+el.getBoundingClientRect().top-h.getBoundingClientRect().top-raya+2;
   };
   /* AFINAR EL SALTO cuando el scroll ha parado (rechazo de la beta 4.26.173, en Meses: «si estás
      en octubre y tocas el anterior, te lleva al día 1 y sigue sin cambiarte de mes»). Los días aún
@@ -14561,7 +14549,8 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
      de la app en ese gesto. Con un número, la comparación acierta y la fila solo se rehace cuando
      cambia de verdad; el `Date` se construye DENTRO, que es donde se usa para formatear. */
   /* GASTOS v5 · LOS DÍAS (SPEC §4.2 y §4.4). Cada gasto en su tarjeta y, por día, los cargos del
-     banco que pagan un recibo o una cuota en UNA fila gris desplegable: se siguen viendo (4.26.122:
+     banco que pagan una cuota o van a una meta o a un bróker en UNA fila gris desplegable (los recibos, sueltos y
+     atenuados desde el 26/10/2026): se siguen viendo (4.26.122:
      todo cargo del banco aparece) sin ocupar la lista. Buscando o filtrando por categoría no se
      agrupa: lo que has pedido ver no puede quedar plegado. Ninguna regla de qué cuenta cambia: el
      cajón es el mismo `expenseBucket` que pintaba «Recibo: X» y «ya cuenta en el Plan». */
@@ -14578,7 +14567,11 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
     const l=e.debtId&&filterSelLabel("debt:"+e.debtId,state.debts);
     // En una aportación, la «etiqueta» es la meta (o el bróker): la fila suelta (buscando) y la gris dicen cuál.
     const recibo=gris==="meta"?metaEtiqueta(state,e):gris==="inversion"?inversionEtiqueta(state,e):reciboEtiqueta(state,e);
-    if(agrupa && gris){
+    // Los recibos NO se agrupan (decisión suya, 26/10/2026: «recibos grisáceo como está
+    // comunidad»): con el mismo banco para gastos y recibos, plegarlos los escondía entre cargos
+    // que sí tocan el día. Van como fila suelta atenuada, igual que un recibo de otro banco, y la
+    // fila ya dice cuál es («Recibo: X»). Solo Deudas, Metas e Inversiones siguen en su bloque.
+    if(agrupa && gris && gris!=="recibo"){
       let g=dia.gris.find(function(x){ return x.kind===gris; });
       if(!g){ g={kind:gris, items:[], total:0}; dia.gris.push(g); }
       g.items.push({e:e, ms:ms, sub:gris==="deuda"?(l||catName("deudas")):recibo});
@@ -14671,8 +14664,6 @@ const GX_SIN_MESES_RECORTE=16;
 const GX_CICLOS_MAX=12;
 // «31 ago»: el día corto de las líneas de la cabecera y del rango de los ciclos.
 function gxDiaCorto(ms){ const d=new Date(ms); return d.getDate()+" "+monthShort(d.getMonth()).toLowerCase(); }
-// El `zoom` de la letra en el body (ver `applyTextSize`): pasa de px del body a px de pantalla.
-function gxZoom(){ const z=parseFloat(getComputedStyle(document.body).zoom); return z>0&&isFinite(z)?z:1; }
 function gxRayaExtra(compact, conMeses, fijos){ return !compact||fijos?0:conMeses?GX_MESES_SOBRE:-GX_SIN_MESES_RECORTE; }
 /* CABECERA DE GASTOS v5 (SPEC §2.1 y §3). Componente propio a propósito: la cifra cambia con el
    día que queda debajo al bajar, y ese cambio NO puede re-renderizar Expenses ni la lista
@@ -14696,10 +14687,7 @@ function GastosCabecera({rootRef, cab, meses, fijos, onMes, mesesAria, stopSwipe
       const compact=host.scrollTop>40;
       let els=diasRef.current;
       if(!els) els=diasRef.current=Array.prototype.slice.call(root.querySelectorAll("[data-gx-day]"));
-      // Todo en px de pantalla, que es como mide `getBoundingClientRect`: lo que va en px del body
-      // (lo que sobresale la fila, el scroll que queda) se pasa por el zoom de la letra.
-      const z=gxZoom();
-      let raya=head.getBoundingClientRect().bottom+gxRayaExtra(compact,conMesesRef.current,fijosRef.current)*z+1;
+      let raya=head.getBoundingClientRect().bottom+gxRayaExtra(compact,conMesesRef.current,fijosRef.current)+1;
       /* AL FINAL DE LA LISTA los últimos días no pueden subir hasta la raya (debajo no hay nada que
          scrollear). Antes se les dejaba una pantalla vacía debajo para que subieran, y él lo vio
          como un fallo: el borde de la última tarjeta asomando bajo la cabecera y un hueco enorme
@@ -14707,7 +14695,7 @@ function GastosCabecera({rootRef, cab, meses, fijos, onMes, mesesAria, stopSwipe
          sube la lista, y con todo bajado llega al último día: cada día sigue pasando por la
          cabecera una vez y en orden, sin hueco. Con la lista aún por cargar (centinela) no aplica. */
       if(els.length && !root.querySelector(".gx-list .sentinel")){
-        const max=(host.scrollHeight-host.clientHeight)*z, quedan=Math.max(0,max-host.scrollTop*z);
+        const max=host.scrollHeight-host.clientHeight, quedan=Math.max(0,max-host.scrollTop);
         const falta=els[els.length-1].getBoundingClientRect().top-quedan-raya;
         const tramo=Math.min(falta,max);
         if(falta>0 && tramo>0 && quedan<tramo) raya+=falta*(1-quedan/tramo);
@@ -14827,16 +14815,19 @@ function GxCifra({n}){
     React.createElement("span",{className:"gx-num-ent","aria-hidden":true},celdas(ent,"e")),
     React.createElement("span",{className:"gx-num-dec","aria-hidden":true},celdas(dec,"d")," "+p.sym));
 }
-/* FILA GRIS: los cargos de un día que pagan recibos o cuotas, o que van a una meta o a un bróker (SPEC §4.4). Se
+/* FILA GRIS: los cargos de un día que pagan cuotas, o que van a una meta o a un bróker (SPEC §4.4). Se
    ven, no suman al día ni a la cifra (ya cuentan en el Plan, o son dinero tuyo que cambia de sitio), y se despliegan con un solo toque
    de vibración. Cada cargo sigue abriendo su ficha: ahí viven «No es este recibo» y «no es la
    cuota», que no se pueden quedar sin camino por plegarlos. El estado de abierto es de la fila:
    abrir una no repinta la lista. */
-// Orden en el día: Recibos, Deudas y Metas, el mismo que los segmentos de Plan; Inversiones al
-// final, que no es del Plan sino de Cartera (`cartera`: su enlace va a `onGoInversiones`).
-const GX_GRIS={recibo:{lab:"v4_plan_recibos",seg:"recibos",ord:0}, deuda:{lab:"v4_plan_deudas",seg:"deudas",ord:1}, meta:{lab:"v4_plan_metas",seg:"metas",ord:2},
+// Orden en el día: Deudas y Metas, el mismo que los segmentos de Plan; Inversiones al final, que
+// no es del Plan sino de Cartera (`cartera`: su enlace va a `onGoInversiones`). Los recibos no
+// tienen bloque desde el 26/10/2026: van sueltos (ver `GastosLista`).
+const GX_GRIS={deuda:{lab:"v4_plan_deudas",seg:"deudas",ord:1}, meta:{lab:"v4_plan_metas",seg:"metas",ord:2},
   inversion:{lab:"tab_inv",cartera:true,ord:3}};
-/* ¿Va este cargo a una fila gris? → su clase, o null. Sale del cajón (`expenseBucket`), así que no
+/* ¿Es un cargo que no suma al día (recibo, cuota, meta o inversión)? → su clase, o null. Los
+   recibos dan "recibo" aunque ya no se agrupen: con filtro de categoría siguen fuera igual que
+   antes. Sale del cajón (`expenseBucket`), así que no
    cambia qué cuenta: solo cómo se pinta. Las inversiones son el cajón «neutra» pero SOLO la
    categoría Inversión y solo lo que sale (25/10/2026): un traspaso entre cuentas propias o una
    cuota sin deuda no son inversiones, y el rótulo tiene que decir la verdad de lo que agrupa; y
@@ -14854,7 +14845,7 @@ function GastosGris({g, onOpen, onGoPlan, onGoInversiones, simple}){
   // En modo sencillo Plan solo tiene Recibos: «Abrir en Plan · Deudas» llevaría a otro sitio. Y
   // Cartera no enseña inversiones: el enlace llevaría a un bloque que no está.
   const ir=def.cartera?onGoInversiones:onGoPlan;
-  const conPlan=!!ir && (!simple || g.kind==="recibo");
+  const conPlan=!!ir && !simple;
   return React.createElement("div",{className:"gx-gris"+(open?" abierto":""),"data-gris":g.kind},
     React.createElement("button",{type:"button",className:"gx-gris-h","aria-expanded":open,onClick:toggle},
       React.createElement("span",{className:"gx-gris-dot gx-gris-dot-"+g.kind,"aria-hidden":true}),
@@ -26487,7 +26478,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="30b3c840ad92f8305a573bbc3ac7567f84383b3b6d49934a39e74da6ad008431";
+var _rnSha="e3d68d0758982d87e4034c44db0a17d03ab850c2bdaefa7505929e1f8c12630b";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -27078,7 +27069,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         React.createElement("div",{style:{fontSize:13,fontWeight:700,marginBottom:6}}, t("st_textsize")),
         React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap"}},
           [["small","ts_small"],["normal","ts_normal"],["big","ts_big"],["huge","ts_huge"]].map(function(ts){
-            return React.createElement("button",{key:ts[0],type:"button","data-ts":ts[0],"aria-pressed":curTextSize===ts[0],onClick:function(){ applyTextSize(ts[0]); setS({textSize:ts[0]}); },style:Object.assign({},segBtn(curTextSize===ts[0]),{flex:"1 1 40%"})}, t(ts[1]));
+            return React.createElement("button",{key:ts[0],onClick:function(){ applyTextSize(ts[0]); setS({textSize:ts[0]}); },style:Object.assign({},segBtn(curTextSize===ts[0]),{flex:"1 1 40%"})}, t(ts[1]));
           })),
         React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.5,marginTop:6}}, t("st_textsize_hint"))
       ),
@@ -27472,11 +27463,11 @@ function Onboarding({set, onCloud, onSignup}){
       return Object.assign({},s,{
         budget:bud, monthStartNet:0, history:[0],
         onboarded:true, setupHint:true, tourSeen:false,
-        /* LETRA DE SALIDA «NORMAL» (valor `small`), Y SOLO EN INSTALACIONES NUEVAS (11/9, suyo: «pon la
-           letra en pequeño para comenzar»; el 26/10 esa letra pasó a llamarse «Normal»). Se pone AQUÍ y
-           no como defecto global: `textSizeOf` sigue cayendo en `normal` para que su padre y su pareja,
-           que ya tienen la app, no vean la letra encogerse. Quien la quiera más grande la sube en
-           Ajustes, y eso manda sobre esto. */
+        /* LETRA PEQUEÑA DE SALIDA, Y SOLO EN INSTALACIONES NUEVAS (11/9, suyo: «pon la letra en
+           pequeño para comenzar, en normal es terriblemente gigantesca»). Se pone AQUÍ, en el
+           onboarding, y no como valor por defecto global: cambiarlo globalmente le reescribiría
+           el tamaño a su padre y a su pareja, que ya tienen la app y no han pedido nada. Quien la
+           quiera más grande la sube en Ajustes, y eso manda sobre esto. */
         settings: Object.assign({}, s.settings, { textSize:"small" }),
       });
     });
@@ -33982,7 +33973,7 @@ function App(){
     // Sin prop `active`: ver `mcOnGastosActive` — si viaja por props, entrar en Gastos
     // reconstruye el árbol entero encima del gesto (asimetría Deudas→Gastos vs →Cartera).
     if(id==="gastos") return React.createElement(Expenses,{state:state,set:set,showToast:showToast,stopSwipe:stopSwipe,cancelSwipe:cancelSwipe,focusExp:gotoExp,clearFocus:function(){ setGotoExp(null); },forceAllTs:gastosForceAll,
-      // «Abrir en Plan · Recibos/Deudas» de las filas grises (Gastos v5): mismo camino que Inicio.
+      // «Abrir en Plan · Deudas/Metas» de las filas grises (Gastos v5): mismo camino que Inicio.
       onGoPlan:function(seg){ if(seg) setPlanGoto({id:seg,ts:Date.now()}); const i=tabIds.indexOf("plan"); if(i>=0) goTabTop(i); },
       onGoInversiones:goInversiones});
     if(id==="plan") return React.createElement(PlanTab,{state:state,set:set,totals:totals,showToast:showToast,simple:simple,gotoSeg:planGoto,clearGoto:function(){ setPlanGoto(null); }});

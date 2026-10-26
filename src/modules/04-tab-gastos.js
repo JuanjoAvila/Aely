@@ -997,7 +997,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
         if(filVentana && (ms<filVentana.startMs || ms>=filVentana.todayEndMs)) continue;
         if(catOf(e.category||"otros").id!==fil.id) continue;
         // Los cargos de las filas grises (recibos, cuotas, metas, inversiones) no se enseñan con
-        // filtro (SPEC §4.4): no suman a la categoría. Siguen en Movimientos sin filtro y en su fila gris.
+        // filtro (SPEC §4.4): no suman a la categoría. Siguen en Movimientos sin filtro (los recibos, sueltos).
         if(grisDeGasto(e, expenseBucket(e, state))) continue;
       }
       // `debt:<id>` en la misma lista que las categorías: el chip de cada deuda (4.21.0).
@@ -1979,7 +1979,8 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
      de la app en ese gesto. Con un número, la comparación acierta y la fila solo se rehace cuando
      cambia de verdad; el `Date` se construye DENTRO, que es donde se usa para formatear. */
   /* GASTOS v5 · LOS DÍAS (SPEC §4.2 y §4.4). Cada gasto en su tarjeta y, por día, los cargos del
-     banco que pagan un recibo o una cuota en UNA fila gris desplegable: se siguen viendo (4.26.122:
+     banco que pagan una cuota o van a una meta o a un bróker en UNA fila gris desplegable (los recibos, sueltos y
+     atenuados desde el 26/10/2026): se siguen viendo (4.26.122:
      todo cargo del banco aparece) sin ocupar la lista. Buscando o filtrando por categoría no se
      agrupa: lo que has pedido ver no puede quedar plegado. Ninguna regla de qué cuenta cambia: el
      cajón es el mismo `expenseBucket` que pintaba «Recibo: X» y «ya cuenta en el Plan». */
@@ -1996,7 +1997,11 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
     const l=e.debtId&&filterSelLabel("debt:"+e.debtId,state.debts);
     // En una aportación, la «etiqueta» es la meta (o el bróker): la fila suelta (buscando) y la gris dicen cuál.
     const recibo=gris==="meta"?metaEtiqueta(state,e):gris==="inversion"?inversionEtiqueta(state,e):reciboEtiqueta(state,e);
-    if(agrupa && gris){
+    // Los recibos NO se agrupan (decisión suya, 26/10/2026: «recibos grisáceo como está
+    // comunidad»): con el mismo banco para gastos y recibos, plegarlos los escondía entre cargos
+    // que sí tocan el día. Van como fila suelta atenuada, igual que un recibo de otro banco, y la
+    // fila ya dice cuál es («Recibo: X»). Solo Deudas, Metas e Inversiones siguen en su bloque.
+    if(agrupa && gris && gris!=="recibo"){
       let g=dia.gris.find(function(x){ return x.kind===gris; });
       if(!g){ g={kind:gris, items:[], total:0}; dia.gris.push(g); }
       g.items.push({e:e, ms:ms, sub:gris==="deuda"?(l||catName("deudas")):recibo});
@@ -2245,16 +2250,19 @@ function GxCifra({n}){
     React.createElement("span",{className:"gx-num-ent","aria-hidden":true},celdas(ent,"e")),
     React.createElement("span",{className:"gx-num-dec","aria-hidden":true},celdas(dec,"d")," "+p.sym));
 }
-/* FILA GRIS: los cargos de un día que pagan recibos o cuotas, o que van a una meta o a un bróker (SPEC §4.4). Se
+/* FILA GRIS: los cargos de un día que pagan cuotas, o que van a una meta o a un bróker (SPEC §4.4). Se
    ven, no suman al día ni a la cifra (ya cuentan en el Plan, o son dinero tuyo que cambia de sitio), y se despliegan con un solo toque
    de vibración. Cada cargo sigue abriendo su ficha: ahí viven «No es este recibo» y «no es la
    cuota», que no se pueden quedar sin camino por plegarlos. El estado de abierto es de la fila:
    abrir una no repinta la lista. */
-// Orden en el día: Recibos, Deudas y Metas, el mismo que los segmentos de Plan; Inversiones al
-// final, que no es del Plan sino de Cartera (`cartera`: su enlace va a `onGoInversiones`).
-const GX_GRIS={recibo:{lab:"v4_plan_recibos",seg:"recibos",ord:0}, deuda:{lab:"v4_plan_deudas",seg:"deudas",ord:1}, meta:{lab:"v4_plan_metas",seg:"metas",ord:2},
+// Orden en el día: Deudas y Metas, el mismo que los segmentos de Plan; Inversiones al final, que
+// no es del Plan sino de Cartera (`cartera`: su enlace va a `onGoInversiones`). Los recibos no
+// tienen bloque desde el 26/10/2026: van sueltos (ver `GastosLista`).
+const GX_GRIS={deuda:{lab:"v4_plan_deudas",seg:"deudas",ord:1}, meta:{lab:"v4_plan_metas",seg:"metas",ord:2},
   inversion:{lab:"tab_inv",cartera:true,ord:3}};
-/* ¿Va este cargo a una fila gris? → su clase, o null. Sale del cajón (`expenseBucket`), así que no
+/* ¿Es un cargo que no suma al día (recibo, cuota, meta o inversión)? → su clase, o null. Los
+   recibos dan "recibo" aunque ya no se agrupen: con filtro de categoría siguen fuera igual que
+   antes. Sale del cajón (`expenseBucket`), así que no
    cambia qué cuenta: solo cómo se pinta. Las inversiones son el cajón «neutra» pero SOLO la
    categoría Inversión y solo lo que sale (25/10/2026): un traspaso entre cuentas propias o una
    cuota sin deuda no son inversiones, y el rótulo tiene que decir la verdad de lo que agrupa; y
@@ -2272,7 +2280,7 @@ function GastosGris({g, onOpen, onGoPlan, onGoInversiones, simple}){
   // En modo sencillo Plan solo tiene Recibos: «Abrir en Plan · Deudas» llevaría a otro sitio. Y
   // Cartera no enseña inversiones: el enlace llevaría a un bloque que no está.
   const ir=def.cartera?onGoInversiones:onGoPlan;
-  const conPlan=!!ir && (!simple || g.kind==="recibo");
+  const conPlan=!!ir && !simple;
   return React.createElement("div",{className:"gx-gris"+(open?" abierto":""),"data-gris":g.kind},
     React.createElement("button",{type:"button",className:"gx-gris-h","aria-expanded":open,onClick:toggle},
       React.createElement("span",{className:"gx-gris-dot gx-gris-dot-"+g.kind,"aria-hidden":true}),
