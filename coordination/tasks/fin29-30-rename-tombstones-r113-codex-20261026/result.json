@@ -1,0 +1,26 @@
+{
+  "status": "blocked",
+  "summary": "FIN29/30 blocked for continuity: one admitted baseline RED attempt exited1 before any cases because the in-memory pure-logic extractor could not locate class ErrorBoundary. Infrastructure failure only, no causal RED. Product baseline remains unchanged; no retry or GREEN. Own runner returned, no resources held. Private checkpoint and manifest preserved for fresh successor task.",
+  "tests": [
+    {
+      "command": "node fin29-30-causal-harness.mjs",
+      "exitCode": 1
+    }
+  ],
+  "limitations": [
+    "RED causal not established; zero cases reached",
+    "Harness preparation must be repaired and reviewed before a newly admitted run",
+    "No product edits or published code; GREEN and independent money review remain pending",
+    "Own claim closes released for continuity; no identity, grants or counters transfer"
+  ],
+  "resourcesHeld": [],
+  "REDRunsStarted": 1,
+  "GREENRunsStarted": 0,
+  "retries": 0,
+  "schema": 1,
+  "taskId": "fin29-30-rename-tombstones-r113-codex-20261026",
+  "actor": "codex",
+  "sessionId": "codex-local-20261026-fin29-r113-fda31257-55cf7307-de27-446e-b306-49ac16731638",
+  "createdAt": "2026-10-26T12:39:40.571Z",
+  "released": true
+}
