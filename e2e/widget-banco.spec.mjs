@@ -533,3 +533,58 @@ test("con nube y lectura nueva, Mi ciclo y un gasto nuevo llegan al widget con a
   expect(JSON.parse(snap.scope)).toHaveLength(8); expect(snap.budgetLeft).toBe(61.53);
   expect(await page.evaluate(() => !!window.__vis)).toBe(false);
 });
+
+/* ALTERNAR MI CICLO ↔ MES (reporte del dueño con la APK 62, 26/10/2026: «el widget no se cambia
+   solo; si cambio la tarjeta, al momento»). Cada cambio, en las dos direcciones, tiene que llegar a
+   `updateWidget` en el acto —con Ajustes aún abierto, sin releer la nube ni pasar por segundo
+   plano— con la ventana, la cifra y el alcance de 8 de ese modo. Que el nativo de la APK 62 lo
+   acepta lo prueba `widget-puente-ciclo` (alternar). */
+test("alternar Mi ciclo y mes empuja al widget en el acto, en las dos direcciones", async ({ page }) => {
+  await page.clock.install({ time: new Date("2026-10-26T18:00:00Z") });
+  const fila = (id, fecha, importe, comercio, cat) => ({ id, fecha, importe, comercio, cat, source: "ob:trade_republic" });
+  await seedLoggedInDashboard(page, { __seedOnce: true, budget: 1500, expenses: [],
+    accounts: [{ id: "tr", ent: "trade_republic", role: "diario", spendFrom: true, value: 5932 }],
+    settings: { autoPrices: false, budgetCycle: false, gTotalMode: "split", expenseBanks: ["trade_republic"] },
+    __cloudRows: { expenses: [
+      fila("nom-sep", "2026-09-30T08:00:00Z", -3333, "NOMINA EMPRESA SINTETICA", "ingreso"),
+      fila("g-sep", "2026-09-30T18:00:00Z", 100, "Compra sintetica de septiembre", "super"),
+      fila("g-oct", "2026-10-03T10:00:00Z", 1922.19, "Compras sinteticas", "super"),
+      fila("dev-oct", "2026-10-07T10:00:00Z", -285.72, "Devolucion sintetica", "ingreso"),
+      fila("biz-oct", "2026-10-09T10:00:00Z", -200, "Bizum cena", "bizum")] } });
+  await page.addInitScript(() => {
+    window.__widgetCalls = []; window.__reads = 0;
+    window.Capacitor = { isNativePlatform: () => false, Plugins: {
+      MiCartera: new Proxy({
+        widgetContract: async () => ({ v: 2 }),
+        appInfo: async () => ({ versionName: "4.26.185", versionCode: 62 }),
+        beginWidgetRead: async () => ({ readGeneration: "gen-" + (++window.__reads), nativeCut: "1" }),
+        updateWidget: async data => { window.__widgetCalls.push(data); },
+        addListener: async () => ({ remove() {} }),
+      }, { get: (target, key) => target[key] || (() => Promise.resolve({})) }),
+    } };
+  });
+  await page.goto("/");
+  await page.waitForFunction(() => !document.getElementById("mc-load"));
+  await dismissNews(page);
+  const last = () => page.evaluate(() => window.__widgetCalls.at(-1) || null);
+  await expect.poll(async () => (await last())?.spent).toBe(1436.47);
+  const reads = await page.evaluate(() => window.__reads), gen = (await last()).readGeneration;
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-open-settings")));
+  const settings = page.locator(".settings-push.open");
+  await settings.locator("button.set-row").filter({ hasText: /Dinero/ }).first().click();
+  const toggle = settings.locator("button.set-row").filter({ hasText: /Presupuesto por ciclo de cobro/ });
+  for (const [kind, spent, left] of [["ciclo", 1536.47, 0], ["mes", 1436.47, 63.53], ["ciclo", 1536.47, 0], ["mes", 1436.47, 63.53]]) {
+    const before = await page.evaluate(() => window.__widgetCalls.length);
+    await toggle.click();
+    await expect.poll(async () => (await last())?.periodKind).toBe(kind);
+    const snap = await last();
+    expect(await page.evaluate(() => window.__widgetCalls.length)).toBeGreaterThan(before);
+    expect(snap.spent).toBe(spent); expect(snap.budgetLeft).toBe(left);
+    expect(snap.magnitude).toBe(kind === "ciclo" ? "neto" : "gasto");
+    expect(JSON.parse(snap.scope)).toHaveLength(8); expect(JSON.parse(snap.scope)[1]).toBe(snap.periodStart);
+    // La misma lectura: alternar no relee la nube.
+    expect(snap.readGeneration).toBe(gen);
+  }
+  expect(await page.evaluate(() => window.__reads)).toBe(reads);
+  await expect(settings).toBeVisible();
+});
