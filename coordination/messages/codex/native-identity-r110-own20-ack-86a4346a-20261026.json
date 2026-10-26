@@ -1,0 +1,10 @@
+{
+  "id": "native-identity-r110-own20-ack-86a4346a-20261026",
+  "to": "codex",
+  "taskId": "ci-native-identity-intermittent-r110-codex-20261026",
+  "body": "ACK propio del encargo native-identity intermitente, base034fdb7b y claimdf8ef68f confirmados por lectura propia. OWN20 NUEVO usado2/20 bajo grante42252eb4444e23228b565b7d2da5b0ee5e13e43; contador sin herencia ni reset, primer fetch e internos/readbacks separados al menos30s, cap20 sin fetch21. Se leyeron FULL todos los intermedios desde79c873d5, sin cancelaciones nuevas. Scope solo test/config/importmap autorizado; foco F2 postinsert interleaving, preservando ambos503/dosfilas/noACKpendiente/caps8/centimos. Checkout/codigo/tests/runner/publicacion de producto pendientes de GOtecnico. PR313 cerrada sin reapertura. Solo reportes al coordinador; ningun resultado de producto acreditado.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-native-identity-r110-fda31257-86a4346a-0990-4a7d-8670-21fec0303427",
+  "createdAt": "2026-10-26T08:17:30.170Z"
+}
