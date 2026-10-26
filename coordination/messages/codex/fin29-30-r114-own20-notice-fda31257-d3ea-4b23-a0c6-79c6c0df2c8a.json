@@ -1,0 +1,9 @@
+{
+  "id": "fin29-30-r114-own20-notice-fda31257-d3ea-4b23-a0c6-79c6c0df2c8a",
+  "to": "codex",
+  "body": "OWN worker nuevo FIN29/30 R114 para fin29-30-rename-tombstones-r114-codex-20261026. Grant permanente e42252eb4444e23228b565b7d2da5b0ee5e13e43. Presupuesto fin29-30-r114-own20-fda31257-d3ea-4b23-a0c6-79c6c0df2c8a allowance20, usedActual1 tras lectura FULL inicial desde9e6a33b6b52b74a76186609f53d9a94cffb9fc1a; sin deltas ni cancelaciones. Identidad, helper, ledger y estado propios; sin herencia ni reset. Primer fetch espaciado mas de30s y todo interno/readback respetara30s; cap20. ACK de encargo exacto9e6a33b6/baseacae53b6; sin checkout/codigo/tests hasta ROOTACK y GOs separados. Plazo propio hasta2026-10-26T13:50:57.588Z, cierre objetivo13:40:57.588Z.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-fin29-r114-fda31257-d3ea-4b23-a0c6-79c6c0df2c8a",
+  "createdAt": "2026-10-26T12:52:43.086Z"
+}
