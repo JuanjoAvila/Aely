@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "id": "ci-signed-out-owner-registers-r109-codex-20261026",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261026-r109-fda31257-286be122-369b-4b56-9319-8fb8ed70692d",
+  "createdAt": "2026-10-26T07:17:04.842Z",
+  "to": "codex",
+  "baseSHA": "034fdb7b3b068408c2d113eb80382d13fdafa11e",
+  "objective": "PRIORIDAD PRIMERA por Claude be956ec5: diagnosticar y corregir sin relajar oraculos el rojo SIGNED_OUT borra registros del titular y no los recupera el siguiente guardado en metas-pull-transport y goals-review-remates, distinguiendo producto o arnes con causalidad verificable.",
+  "scope": [
+    "tests/metas-pull-transport.test.mjs",
+    "tests/goals-review-remates.test.mjs"
+  ],
+  "grants": [
+    "be956ec54268461895afb2a63e975a4283c323a7",
+    "e42252eb4444e23228b565b7d2da5b0ee5e13e43"
+  ],
+  "requirements": [
+    "Nuevo ejecutor OWN20 propio0, nonce/session nuevos, FULL todosdeltas/cancelaciones, claim/ACK/readback y GO tecnico ROOT antescheckout/codigo/tests. Sin heredar otras tareas, counters ni recursos.",
+    "Checkout/rama propios desde base exacta beta180. Comparar y ejecutar focalmente 177 f99f6d7a8 contra178 c639081ca807bba526dd77cdc9413a6c4587247b; comprobar tambien176 por PR304 R2 de sesion. Si no hay regresion177a178, demostrarlo y localizar el primer desajuste real del arnes/fuente. Preservar resultados y hashes de cada variante, sin inferir causa solo por cronologia.",
+    "Hipotesis SOLOLECTURA inicial: wrappers new Function de SIGNED_OUT/cleanup pueden omitir renewPull/resumeTimer/resumePull/cancel del bloque real. Verificar con stacktrace real; no es diagnostico aceptado ni permiso de relajar el test. Mantener comprobacion de borrado inmediato de registros propios y ausencia de resurreccion al siguiente guardado/cambio de usuario, tambien con pulls en vuelo si el oraculo existente lo cubre. Fuente SOLOLECTURA ubica PR304 R2 c7179cec58fae6444c0a13c9e7d674309b48a504 como candidato, integrado17674ea9c63880b23a975f2a5852d82970f3cbffefd; comparar mismo helper/patron authFragments o pull-historico-entero sin editarlo, no sustituir renewPull porno-op. Confirmar causa con ejecucion autorizada.",
+    "Si la causa es producto/datos, DETENER ANTESdeeditarproducto e informar pruebas/causa/archivo/alcance al ROOT paradecisionClaude. Este scope solo admite corregir arnes de los dos tests tras causalidad; no editar src ni cambiar expected rows/cents, mockear el defecto, capturar/silenciar errores, saltar casos o ampliar timeouts para ocultarlo.",
+    "CPU1 serial1worker0retry stopfirstfailure con censo/admission/logs/exits/RETURN propios antescada run. Solo suitesfocales/variantes causales necesarias para este fallo nuevo, sin suitescompletas/browser/performance. Cero red/datos reales/servicios. No npmci/install ni tocar node_modules enlazado, procesos/locks ajenos.",
+    "Candidato PRIVADO terminado con commitSHA/tree/parent, scopeexacto, diff/bundle/fuentes/manifest/hashes, comandos reales EXIT, REDcausal yGREEN mismo oraculo sinrebaja. Revision independiente exactSHA antesGOpublicacion normal y UNA PRdraft contra beta. No push antesGO.",
+    "No otros tests/clientes/producto/SQL/live/Edge/deploy/APK/Gradle/deps/version/generated. Native-identity intermitente va despues; debounce/FIN05/PRO09 luego. No recuperar tareas PR313/314/315 cerradas. Reportar SOLO ROOT109, noClaude."
+  ],
+  "acceptance": "Diagnostico producto/arnes demostrado en versiones indicadas; correccion minima del arnes dentro scope si procede, guardianes financieros/depropietario intactos, candidato privado verificable. No CIverde global/servido/movil/ProductREADY."
+}
