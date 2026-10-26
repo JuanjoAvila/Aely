@@ -1,5 +1,29 @@
 [
   {
+    "v": "4.26.178",
+    "d": "2026-10-26",
+    "t": {
+      "es": "Idioma al momento entre tus móviles",
+      "en": "Language switches right away across your phones",
+      "ca": "Idioma a l'instant entre els teus mòbils"
+    },
+    "items": {
+      "es": [
+        "Si cambias el idioma en un móvil, el otro lo aplica solo, sin tener que volver a abrir la app.",
+        "Una elección de idioma antigua ya no pisa la última que hiciste."
+      ],
+      "en": [
+        "If you change the language on one phone, the other applies it by itself, without reopening the app.",
+        "An old language choice no longer overrides the latest one you made."
+      ],
+      "ca": [
+        "Si canvies l'idioma en un mòbil, l'altre l'aplica sol, sense haver de tornar a obrir l'app.",
+        "Una elecció d'idioma antiga ja no trepitja l'última que vas fer."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.177",
     "d": "2026-10-26",
     "t": {

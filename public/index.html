@@ -26449,7 +26449,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="28b3d41fb9602a2a5e2200435ccd1e67a08280a6cdfd3bdbf47e1b7e00be9459";
+var _rnSha="f51c926db76d7ca576aa0e9ecf108a073104bf8365e82189ae04da0521cef17b";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -26941,6 +26941,10 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   };
   const sw=function(on){ return React.createElement("span",{className:"swx"+(on?" on":"")}); };
   const curLang=(state.settings&&state.settings.lang)||"es";
+  const langRequest=useRef(0);
+  // Dos descargas pueden terminar al revés: solo la última elección conserva permiso para
+  // guardarse. Cambiar de idioma desde nube o desmontar Ajustes invalida también la anterior.
+  useEffect(function(){ return function(){ langRequest.current++; }; },[curLang]);
   const curTheme=(state.settings&&state.settings.theme)||"green";
   const curCur=(state.settings&&state.settings.currency)||"EUR";
   const curSeason=(state.settings&&state.settings.season)||"none";
@@ -27020,9 +27024,10 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
           LANGS.map(function(L){
             return React.createElement("button",{key:L[0],onClick:function(){
               var lg=L[0];
+              var request=++langRequest.current;
               // en/ca pueden no estar en el bundle: carga el JSON antes de cambiar CURLANG
               // para no pintar un frame a medias en español (A/B idiomas, 4.19.103).
-              var go=function(){ CURLANG=lg; setS({lang:lg}); };
+              var go=function(){ if(request!==langRequest.current) return; CURLANG=lg; setS({lang:lg}); };
               if(typeof ensureLangPack==="function") ensureLangPack(lg).then(go, go); else go();
             },style:segBtn(curLang===L[0])}, L[1]);
           })))
@@ -30451,7 +30456,25 @@ function App(){
     if(c!=="EUR" && r>0){ DISP.sym=CUR_SYM[c]||c; DISP.k=1/r; }
     else { DISP.sym="€"; DISP.k=1; }
   })();
-  CURLANG = (state.settings&&state.settings.lang) || "es";   // idioma activo (i18n)
+  const savedLang=(state.settings&&state.settings.lang)||"es";
+  const [langLoaded,setLangLoaded]=useState(0);
+  // El pull también cambia el idioma: a diferencia del botón de Ajustes, no había pedido su
+  // JSON y los textos seguían en español hasta recargar (UX18). Cargarlo solo repinta la UI;
+  // no vuelve a guardar preferencias ni altera la revisión de la nube. Una respuesta de un
+  // idioma que ya dejamos atrás no tiene autoridad para cambiar el actual.
+  useEffect(function(){
+    let active=true;
+    const load=function(){
+      if(langPackReady(savedLang)) return;
+      ensureLangPack(savedLang).then(function(ready){
+        if(active&&ready===savedLang) setLangLoaded(function(n){ return n+1; });
+      });
+    };
+    load();
+    window.addEventListener("online",load);
+    return function(){ active=false; window.removeEventListener("online",load); };
+  },[savedLang]);
+  CURLANG = langPackReady(savedLang)?savedLang:"es";
   SIMPLEMODE = !!(state.settings&&state.settings.simpleMode); // modo sencillo → etiquetas sin jerga
 
   /* ---------- Sincronización en la nube (Supabase) ---------- */
@@ -33967,7 +33990,7 @@ function App(){
     tabIds.forEach(function(id){ if(id!=="gastos") out[id]=pageFor(id); });
     return out;
     // eslint-disable-next-line
-  },[state, totals, budgetStreak, tabIds.join("|"), gotoExp, planGoto, pricing, uid, locked]);
+  },[state, totals, budgetStreak, tabIds.join("|"), gotoExp, planGoto, pricing, uid, locked, langLoaded]);
   /* Gastos iba en memo aparte POR la prop `active` — y esa prop era el lag. Ahora se entera
      por bus (`mcSetGastosActive` abajo) y comparte deps con las otras: entrar/salir de Gastos
      ya NO reconstruye Expenses. Se deja el memo propio por si mañana vuelve a necesitar algo
@@ -33975,7 +33998,7 @@ function App(){
   const contenidoGastos=useMemo(function(){
     return tabIds.indexOf("gastos")>=0 ? pageFor("gastos") : null;
     // eslint-disable-next-line
-  },[state, totals, tabIds.join("|"), gotoExp, planGoto, pricing, uid, locked, gastosForceAll]);
+  },[state, totals, tabIds.join("|"), gotoExp, planGoto, pricing, uid, locked, gastosForceAll, langLoaded]);
   // Aviso barato a Expenses: sin setState en App que no haga falta, y sin re-render de Gastos.
   useEffect(function(){ mcSetGastosActive(tabIds[tab]==="gastos"); },[tab, tabIds]);
   useEffect(function(){ mcSetCarteraActive(tabIds[tab]==="cartera"); },[tab, tabIds]);

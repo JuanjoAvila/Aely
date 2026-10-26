@@ -26990,7 +26990,7 @@
       },
       {
         "file": "src/modules/11-app-main.js",
-        "from": "  CURLANG = (state.settings&&state.settings.lang)",
+        "from": "  CURLANG = langPackReady(savedLang)",
         "to": "\n\n  /* ---------- Sincronización"
       },
       {
@@ -28103,6 +28103,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "langPackReady"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "ensureLangPack"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "langPackUrl"
       }
     ],
     "unidades": true
@@ -36369,7 +36381,7 @@
       },
       {
         "file": "src/modules/11-app-main.js",
-        "from": "  CURLANG = (state.settings&&state.settings.lang)",
+        "from": "  CURLANG = langPackReady(savedLang)",
         "to": "\n\n  /* ---------- Sincronización"
       },
       {
@@ -37626,6 +37638,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "langPackReady"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "ensureLangPack"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "langPackUrl"
       }
     ],
     "unidades": true
@@ -39945,7 +39969,7 @@
       },
       {
         "file": "src/modules/11-app-main.js",
-        "from": "  CURLANG = (state.settings&&state.settings.lang)",
+        "from": "  CURLANG = langPackReady(savedLang)",
         "to": "\n\n  /* ---------- Sincronización"
       },
       {
@@ -41162,6 +41186,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "langPackReady"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "ensureLangPack"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "langPackUrl"
       }
     ],
     "unidades": true
@@ -68649,6 +68685,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "langPackReady"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "ensureLangPack"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "langPackUrl"
       }
     ],
     "unidades": true
@@ -70571,6 +70619,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "langPackReady"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "ensureLangPack"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "langPackUrl"
       }
     ],
     "unidades": true
