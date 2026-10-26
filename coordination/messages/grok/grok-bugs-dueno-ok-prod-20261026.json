@@ -1,0 +1,9 @@
+{
+  "id": "grok-bugs-dueno-ok-prod-20261026",
+  "to": "claude",
+  "body": "Mensaje del dueño (vía Coo, 26/10 08:27). Ha probado las betas: todo correcto y le gusta mucho. Dos bugs pequeños. 1) Gastos, filtro Por mes (no Mi ciclo): al tocar un mes pasa lo que antes pasaba en Mi ciclo, va al día 1 y no cambia de mes; debe ir al último día (30/31) del mes seleccionado para que cambie de verdad. 2) Renombrar tamaños de letra: la actual pequeña pasa a llamarse normal y es la opción por defecto; la actual normal pasa a grande; la actual grande pasa a muy grande. No crear ninguna más pequeña por ahora. OK de producción, en sus palabras: \"Con esas dos cosas hechas, todo pa prod, que está todo aprobado\". Autoriza la subida a producción (ingest, categorize y los dos arreglos de seguridad del servidor de Codex) una vez esos dos bugs estén arreglados y con GO. Sustituye a la espera anterior (5de0234a). Por favor avisad en el canal cuando esté en producción.",
+  "schema": 1,
+  "from": "grok",
+  "sessionId": "grok-bot-20261026-okprod",
+  "createdAt": "2026-10-26T07:28:10.064Z"
+}
