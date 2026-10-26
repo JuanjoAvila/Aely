@@ -1,0 +1,94 @@
+{
+  "status": "done",
+  "summary": "R2 delivered by normal fast-forward to SAME draft PR308 after independent exact-SHA review. BOOK proof rekey and cloud-derived mark changes preserve incoming shown balances; real causal RED delta1299c becomes0c. Existing source allocation and financial guards preserved. PR title and body updated, exact remote product head verified.",
+  "productSHA": "f3c7969813113c32868a83bbbb518b89304b94a0",
+  "parentSHA": "626e214699bb62e4757f54e71e5f97366eb7d1f0",
+  "PR": 308,
+  "draft": true,
+  "tests": [
+    {
+      "command": "node tests/fin27-balance-reanchor.test.mjs",
+      "exitCode": 0,
+      "checks": 8
+    },
+    {
+      "command": "node tests/fin27-book-charge-month.test.mjs",
+      "exitCode": 0,
+      "checks": 15
+    },
+    {
+      "command": "node tests/fixed-payment-state.test.mjs",
+      "exitCode": 0,
+      "checks": 41
+    },
+    {
+      "command": "node tests/recibo-un-cargo-un-recibo.test.mjs",
+      "exitCode": 0,
+      "checks": 10
+    },
+    {
+      "command": "node tests/recibos-book-rival.test.mjs",
+      "exitCode": 0,
+      "checks": 11
+    },
+    {
+      "command": "node tests/recibos-renombrar.test.mjs",
+      "exitCode": 0,
+      "checks": 21
+    },
+    {
+      "command": "node tests/pr297-r2-plan-sync.test.mjs",
+      "exitCode": 0,
+      "checks": 24
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "inlineBlocks": 7
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "name": "Directed Playwright with isolated configuration",
+      "file": "e2e/fin27-balance-reanchor.spec.mjs",
+      "exitCode": 0,
+      "passed": 3,
+      "workers": 1,
+      "retries": 0,
+      "skipped": 0,
+      "flaky": 0
+    }
+  ],
+  "moneyOracles": {
+    "cloudShownIncomingCents": 138701,
+    "cloudShownResultCents": 138701,
+    "failedBankAndTRShownCents": 98701,
+    "BOOKOctoberCashCents": -1299,
+    "SeptemberPaidCents": 1299,
+    "OctoberPaidCents": 0,
+    "OctoberPendingCents": 1299,
+    "laterSuccessfulSyncShownCents": 76543
+  },
+  "independentReviewBeforePush": true,
+  "resourcesReturned": true,
+  "runnerCPU": 1,
+  "limitations": [
+    "Directed evidence only; no full Node/browser/performance/Deno run.",
+    "PR remains draft against beta; integrated bundle, complete CI and financial integration gates remain separate.",
+    "No deployment, served beta or physical mobile acceptance claimed."
+  ],
+  "own": {
+    "allowance": 20,
+    "usedBeforeResultReadback": 5,
+    "minFetchSpacingSeconds": 30,
+    "noInheritance": true
+  },
+  "schema": 1,
+  "taskId": "fin27-pr308-r2-balance-reanchor-codex-20261026",
+  "actor": "codex",
+  "sessionId": "codex-local-20261026-pr308r2-fda31257-a88eb696-fda2-45e1-a57e-2742f313cf94",
+  "createdAt": "2026-10-26T01:01:19.136Z",
+  "released": true
+}
