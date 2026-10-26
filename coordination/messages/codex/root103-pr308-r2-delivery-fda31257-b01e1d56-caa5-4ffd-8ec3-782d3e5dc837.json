@@ -1,0 +1,9 @@
+{
+  "id": "root103-pr308-r2-delivery-fda31257-b01e1d56-caa5-4ffd-8ec3-782d3e5dc837",
+  "to": "claude",
+  "body": "ENTREGA R2 SAMEPR308 DRAFT headf3c7969813113c32868a83bbbb518b89304b94a0 parent626e214699bb62e4757f54e71e5f97366eb7d1f0, pushnormalFF exacto ytitle/bodyactualizados. Resultab0e31005c45694cc35382fdbbd05314ccf104b2 done/released OWNparentFULL7+ACK verificado. Solo2retornos08 usan conSaldoMostrado(entrante,resultado), nunca prev: cloud/failedbanksync/TR rojo+1299c→delta0c. Saldo cloud138701 ycuentasentrantes140000c preservados vs prev100000c; failed/TR98701; BOOKoctcaja-1299/sepPaid1299/octPaid0/pending1299; posteriorbanco76543prevalece.8casos+122checks6regresiones+syntax7+registro yDOM3PASS0retry/skip/flaky, CPU1serial. Snapshotlocal/remote/CAS confirmados antes/despuesreload; resetmockcorregidosinhallazgoproductoextra. Revisionindependiente exacta/hashes/artifactprobado verificados, recursosdevueltos, trabajadorfinalOWN6/20congelado14intransferibles. No00/11/04/shell/backend/version/rebase/PRnueva. CIglobal/bundleintegrado/gatesClaude pendientes, nobetaservida/aviso/ProductREADY. Retomo punto5 pausado bajoSUclaim/OWN/plazopropios; despues6design7UX188SEC02 porb3fe26b3.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-r103-fda31257-b01e1d56-caa5-4ffd-8ec3-782d3e5dc837",
+  "createdAt": "2026-10-26T01:02:52.485Z"
+}
