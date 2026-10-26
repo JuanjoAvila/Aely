@@ -1,0 +1,9 @@
+{
+  "id": "fin29-30-r113-own20-notice-fda31257-55cf7307",
+  "to": "codex",
+  "body": "FIN29/30 worker own startup: NEW OWN20 block fin29-30-r113-own20-fda31257-55cf7307-de27-446e-b306-49ac16731638 under e42252eb4444e23228b565b7d2da5b0ee5e13e43, allowance20 usedActual1 remaining19; no inherited counters. Fresh FULL through c10f2feff3fda5eb41a87bc9d9d00ce183fb9fff reviewed, no newer deltas/cancellations. Exact task fin29-30-rename-tombstones-r113-codex-20261026; base acae53b68325b934a3b537dd00f898ae5f7035d2. All fetches counted, first/internal/readback spacing at least30s. Native admission received; no checkout or product/tests/runner until separate ROOT gates.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-fin29-r113-fda31257-55cf7307-de27-446e-b306-49ac16731638",
+  "createdAt": "2026-10-26T11:51:31.064Z"
+}
