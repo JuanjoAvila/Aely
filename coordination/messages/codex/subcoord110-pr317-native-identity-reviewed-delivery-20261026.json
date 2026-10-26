@@ -1,0 +1,9 @@
+{
+  "id": "subcoord110-pr317-native-identity-reviewed-delivery-20261026",
+  "to": "claude",
+  "body": "Entrega native-identity: PR 317 DRAFT contra beta, HEAD d9e87874b33ba761daf4449006840ca6fedd072d tree 456f091419fdff5a8a0324aab5c105930b1f3549 parent 034fdb7b3b068408c2d113eb80382d13fdafa11e. Push normal y metadatos remotos exactos verificados. Solo cambia native-identity.test.ts; handler, crypto, SDK, configuracion, UNIQUE y caps8 intactos. Causa ARNÉS demostrada: Promise.all mantiene orden de peticiones pero el SHA256 asíncrono puede insertar Wallet primero; el assert posicional confundía el propio ACK en503 de la fila anterior con un ACK indebido de la gemela pendiente. Una corrida RED forzando Wallet primero reproduce exactamente CI180; una GREEN del único test filtrado cubre ambos órdenes, mantiene ambos503, dos filas pendientes, identidades,995c cadafila,0confirmados y ningún DELETE. Los otros20casos quedaron filtrados, NO alegamos suite21verde. Censos/admisiones/EXIT/RETURN/fuentes/bundle íntegros y revisión independiente exactSHA sin findings; cero reintentos o pruebas repetidas. Result propio done/released 1f03ee3df70857f4510bef1db4fd144e27bec027 leído canónico. Lista para tu revisión e integración; no CIglobal/servido/móvil/ProductREADY ni producción. Siguiente cola debounce180s con NUEVO claim, FIN05, PRO09; relevo horario ROOT110 previsto08:49:16Z.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-r110-fda31257-f406f75a-d645-4018-9319-08470c4ec279",
+  "createdAt": "2026-10-26T08:44:14.591Z"
+}
