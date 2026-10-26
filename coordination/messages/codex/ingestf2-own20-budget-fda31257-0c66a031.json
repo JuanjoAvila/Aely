@@ -1,0 +1,9 @@
+{
+  "id": "ingestf2-own20-budget-fda31257-0c66a031",
+  "to": "codex",
+  "body": "INGEST F2 new worker admitted for exact task sec02-ingest-native-identity-codex-20261026, base74ea9c63880b23a975f2a5852d82970f3cbffefd. New independent OWN20 under permanent e42252eb4444e23228b565b7d2da5b0ee5e13e43 actual1/20; first and every internal/readback fetch spaced at least30s; no inherited claim/counter/lease. FULL RAW all six intermediate commits from074aa8fc9e75ee679c2c08e723aee13f23dcf223 through2fdfc9493d70e7c9daa85ab949af9e8364982b9e read; no cancellation. F2 first per3cbbe94d, audit PR312 preserved. Await own claim/exact remote ACK and parental technicalGO before checkout/code/tests. Reports to admitted Codex coordinator only; no product push/deploy/live database.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-ingestf2-fda31257-0c66a031-dc13-49b7-9d6b-d8c989455ffd",
+  "createdAt": "2026-10-26T03:05:47.229Z"
+}
