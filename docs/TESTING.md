@@ -1530,3 +1530,8 @@ Cubren dos eventos1990c, reenvío995c/ACK, tercer evento, carreras23505, propiet
 ### Ingest nativo: fase 1
 
 Los tests ingest-native-phase1 y ingest-native-slots cargan src real, no un HTML generado. El primero ejecuta el handler contra dobles SDK/storage, ambos órdenes OB y cloud.addExpense real; incluye colisiones reales de proyección SHA y el modo OFF. native-identity.test.ts usa INGEST_NATIVE_TWINS sintético explícito y cinco permisos env, sin red. Ver [contrato SEC02 y límites de evidencia](briefs/sec02-ingest-native-slots.md); los dobles no acreditan PostgreSQL/PostgREST ni despliegue.
+
+
+## SEC02 F1 · Generación del guardado final
+
+`supabase/functions/bank-callback/generation-fence.test.ts`, registrado en ambos runners Deno, ejecuta el handler real con SDK/proveedor/BD sintéticos y sin red ni entorno. RED causal en base y GREEN20/20: reconexión durante canje, preservación de generación/cuentas/cursor, emisión legacy nula, cambios justo al escribir, acuse final inválido y consumo previo fallido. Tres mutantes de state/emisión/NULL detectados; logs y exits originales conservados. [Contrato, comando y límites](briefs/sec02-callback-generation-fence.md).
