@@ -1,0 +1,42 @@
+{
+  "status": "done",
+  "summary": "Debounce nativo por identidad existente v1 completado y entregado en PR318 draft contra beta, commit51169939442b6edcc9fa97f8aca0986a3e69a18e. Ventana local180s por evento con persistencia y monitor compartido; contratos preservados. Revision independiente exacta sin hallazgos; un RED causal y un GREEN14/14, cero retries. Recursos propios devueltos.",
+  "tests": [
+    {
+      "command": "node tests/native-event-debounce.test.mjs",
+      "phase": "RED",
+      "baseSHA": "034fdb7b3b068408c2d113eb80382d13fdafa11e",
+      "exitCode": 1,
+      "compileExitCode": 0,
+      "javaExitCode": 1,
+      "expectedFailure": "AssertionError causal two distinct event admissions expected2 actual1",
+      "runs": 1,
+      "retries": 0
+    },
+    {
+      "command": "node tests/native-event-debounce.test.mjs",
+      "phase": "GREEN",
+      "sourceSHA": "51169939442b6edcc9fa97f8aca0986a3e69a18e",
+      "exitCode": 0,
+      "compileExitCode": 0,
+      "javaExitCode": 0,
+      "groups": 14,
+      "runs": 1,
+      "retries": 0
+    }
+  ],
+  "productSHA": "51169939442b6edcc9fa97f8aca0986a3e69a18e",
+  "pullRequest": 318,
+  "baseSHA": "034fdb7b3b068408c2d113eb80382d13fdafa11e",
+  "resourcesReleased": true,
+  "limitations": [
+    "Validacion JVM offline con fronteras sinteticas; no acredita framework Android ni aceptacion fisica",
+    "Integracion, APK nueva y prueba movil pendientes; sin deploy ni ProductREADY"
+  ],
+  "schema": 1,
+  "taskId": "native-debounce-event-identity-r112-codex-20261026",
+  "actor": "codex",
+  "sessionId": "codex-local-20261026-native-debounce-r112-fda31257-62ccc336-04ab-48fc-b760-93ac1e814ba4",
+  "createdAt": "2026-10-26T11:15:09.059Z",
+  "released": true
+}
