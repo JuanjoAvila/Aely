@@ -135,8 +135,12 @@ for(const window of ['actual','futuro','anterior']){
     const svCafe=vieja.dashboardBudgetStats({...base,expenses:vieja.mergeExpenses([],[...oct,cafe].map(vieja.expenseFromRow)).list});
     assert.equal(w4.spent,cents(svCafe.shown)); assert.equal(w4.spent,1924.19);
     assert.equal(w4.budgetLeft,cents(Math.max(0,svCafe.remaining)));
-    // Listas en la ventana pero alcance de 8 (ninguna web lo escribe): sin foto.
-    assert.equal(server.widgetSnapshot({...cloud,widgetPeriod:{...cloud.widgetPeriod,scope:JSON.stringify(JSON.parse(scope).slice(0,8))}},[...oct,cafe],at,{id:'cafe',event:'e5',key:'k5'}),null);
+    // Listas en la ventana pero alcance sin ellas (ninguna web lo escribe), o con ellas de noveno
+    // elemento (la web 4.26.184/185, que el nativo descartaba): sin foto. El bueno tiene 8.
+    const partes=JSON.parse(scope);
+    assert.equal(partes.length,8,'el alcance que viaja tiene los 8 elementos que exige el nativo');
+    for(const malo of [[...partes.slice(0,4),'',...partes.slice(5)],[...partes.slice(0,4),'',...partes.slice(5),partes[4]]])
+      assert.equal(server.widgetSnapshot({...cloud,widgetPeriod:{...cloud.widgetPeriod,scope:JSON.stringify(malo)}},[...oct,cafe],at,{id:'cafe',event:'e5',key:'k5'}),null);
     checked+=6;
   }catch(err){failed++;console.error('FAIL su mes de hoy: '+err.message);}
   finally{cli.Date=RealDate;}

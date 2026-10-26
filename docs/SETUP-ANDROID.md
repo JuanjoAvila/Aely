@@ -313,6 +313,10 @@ pintarse en nativo: el nativo dibuja «quedan / de más» como límite − `spen
 sigue diciendo «GASTO» (magnitud `gasto`) porque cambiarla necesita APK. En el mes, `widgetPeriod`
 lleva `nominas`/`noNominas` y el alcance las incluye: ingest no conoce Plan ni el concepto. Ingest
 acepta también el alcance de la web anterior (8 elementos, sin listas) y le devuelve su bruto.
+**El alcance tiene SIEMPRE 8 elementos**: el nativo (desde la APK 54) descarta en mudo cualquier
+otro al acreditar una lectura nueva (`MiCarteraWidget.saveApp`) y en el pago con la app cerrada.
+Por eso las listas van en el hueco del ancla (índice 4, vacío en el mes), no de noveno elemento: la
+4.26.185 las puso al final y el widget del dueño se quedó en la regla vieja aunque abriera la app.
 
 **Pago con la app cerrada:** un servidor antiguo devuelve un total mensual que no acredita Mi ciclo. El listener conserva el importe en céntimos y su identidad cuando la fecha
 pertenece a la ventana guardada de la app y ésta sigue vigente. La selección de bancos de

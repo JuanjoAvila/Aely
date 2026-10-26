@@ -31,7 +31,8 @@ gasto − ingresos sin la nómina, con tope en 0, y usa `nominas`/`noNominas` de
 sabe decidir deja el widget sin foto. Recibos del Plan (`~recibo.`) y aportaciones a meta
 (`~meta.`) quedan fuera como en `cuentaParaPresupuesto`. **Necesita desplegar `ingest`**, sin SQL
 ni secretos, y el orden da igual: acepta los DOS alcances. La web anterior (alcance de 8, sin
-listas) recibe el bruto que pinta su Inicio; la nueva, el neto sin nómina. Un alcance que no casa
+listas) recibe el bruto que pinta su Inicio; la nueva (también de 8, con las listas en el hueco del
+ancla, que es lo único que acepta el nativo), el neto sin nómina. Un alcance que no casa
 con ninguna sigue sin foto. `month` legado no cambia.
 
 Promoción117: inventario12/10 confirma bank-syncv33 alineado; ingestv50 y pricesv13 se prueban con fuentes desplegadas exactas y transportes sintéticos en prod117-edge-compat. SEC02/ingest-widget viajan como fuente sin despliegue ni anuncio de funciones activas. [Pins y límites](briefs/prod-completa-117.md).

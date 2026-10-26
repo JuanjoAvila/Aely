@@ -2907,11 +2907,14 @@ function widgetCoveredEvents(rows,start,now,history){
 // En el mes natural el alcance lleva además qué ingresos grandes son nómina y cuáles no: ingest no
 // conoce los flujos de Plan ni el concepto, y con otra decisión daría otra cifra. Un servidor que
 // no sepa leerlo calcula otro alcance y no responde, en vez de mandar el bruto de antes.
+// LAS LISTAS VAN EN EL HUECO DEL ANCLA, NO AL FINAL: el nativo desde la APK 54 exige un alcance de
+// 8 elementos al acreditar una lectura nueva y descarta en mudo cualquier otro. Con un noveno el
+// widget del dueño se quedó en la regla vieja («1.922 € · 422 € de más») mientras Inicio decía
+// «quedan 63,53» (APK 62 + beta 4.26.185, 26/10/2026). En el mes el ancla siempre está vacía.
 function widgetScopeOf(state,stats,anchor,bank){
-  const scope=[2,stats.periodStart,stats.cycle?"ciclo":"mes",stats.cycle?"neto":"gasto",
-    anchor||"",stats.budget,expenseBankEnts(state).slice().sort(),bank||""];
-  if(!stats.cycle) scope.push([(stats.nominas||[]).slice().sort(),(stats.noNominas||[]).slice().sort()]);
-  return JSON.stringify(scope);
+  const lists=stats.cycle?(anchor||""):[(stats.nominas||[]).slice().sort(),(stats.noNominas||[]).slice().sort()];
+  return JSON.stringify([2,stats.periodStart,stats.cycle?"ciclo":"mes",stats.cycle?"neto":"gasto",
+    lists,stats.budget,expenseBankEnts(state).slice().sort(),bank||""]);
 }
 // La ventana que se deja en la nube para que ingest rehaga la cifra del widget con la app cerrada.
 function widgetPeriodOf(stats,anchor,scope){
