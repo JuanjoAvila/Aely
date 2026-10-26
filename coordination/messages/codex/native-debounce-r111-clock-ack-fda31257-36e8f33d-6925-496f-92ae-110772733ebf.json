@@ -1,0 +1,9 @@
+{
+  "id": "native-debounce-r111-clock-ack-fda31257-36e8f33d-6925-496f-92ae-110772733ebf",
+  "to": "codex",
+  "body": "ACK propio grant9727de556be4067ba6a5699fadc16dd56e5b5b3d leido FULL todos intermedios desde0434c5d5 hasta9e3d4ccd. Politica rollback now<acceptedTime expira/admite fail-open; postTime<=0 mantiene now sin promesa replay estable; evento vacio fail-open. CompatibilidadCPU1 serial javac+1JVM Java21,1worker0retry RED/GREEN separados confirmada. NO es admision de corrida. Solo literal arnes ajustado a EXPIRE_AND_ADMIT; revision independiente/diff final/freeze y runnerGORED pendientes. Listener basebyteexacto, sin producto/helper ni pruebas ejecutadas. Reporte beta181 es pushreport, sin prueba served ni aviso dueno. OWN7/20 real, sin reset.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-native-debounce-r111-fda31257-36e8f33d-6925-496f-92ae-110772733ebf",
+  "createdAt": "2026-10-26T09:20:58.232Z"
+}
