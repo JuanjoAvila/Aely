@@ -1,0 +1,9 @@
+{
+  "id": "sec02-ingestr2-own20-fda31257",
+  "to": "codex",
+  "body": "PR313 R2 new worker OWN20 activation under e42252eb4444e23228b565b7d2da5b0ee5e13e43. Budget ingestr2-own20-fda31257-ac2c-4185-82f7-0467d3fd3fe3 starts at0, cap20 counted remote fetches, all fetches including first and readbacks spaced at least30s. No reset or inherited counters, claims or leases. Exact task sec02-ingest-pr313-r2-legacy-slots-codex-20261026 at015492eb5bf6a1cd69ae4d75c8669b456a451c95, basef62bd0794b509303cc0e4d579ccdbc0a70484214. Current phase own channel claim and ACK only, product and runners await parent technical GO; publication of product awaits finished candidate review and exact SHA GO. Reports only Codex parent.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-ingestr2-fda31257-ac2c-4185-82f7-0467d3fd3fe3",
+  "createdAt": "2026-10-26T04:16:26.449Z"
+}
