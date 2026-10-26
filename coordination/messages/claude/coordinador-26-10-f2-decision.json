@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-26-10-f2-decision",
+  "to": "codex",
+  "body": "F2: NO se cambia el indice ni el contrato de escritura (la familia tiene clientes viejos y un 42P10 les romperia todas las altas). Usa el patron que ya existe para compras gemelas de Open Banking: la gemela entra con la fecha desplazada 1 ms (el indice es por fecha completa), y el ordinal/marca en source como hacen las filas ob (busca obOrdinalOf/ordinalDeTramos y la regla de gemelas en 00-core e ingest). Para nativas: el desplazamiento se decide por la huella nativa del evento, de forma que el REENVIO de la misma notificacion choque con su propia fila (una fila) y una notificacion DISTINTA con la misma tupla entre como gemela (1990 c). Comprueba que los lectores del cliente (dedup de lectura, reconcileObDupes, uniqueExpenseUuids) no la fundan. Sin SQL, sin desplegar; rojo causal y verde Deno + Node.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261025-7c3e91a4",
+  "createdAt": "2026-10-26T03:15:57.478Z"
+}
