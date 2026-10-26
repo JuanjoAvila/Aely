@@ -22,10 +22,12 @@ export function denoArgs(file) {
   const permissions = {
     "supabase/functions/_shared/crypto.test.ts": ["--allow-env"],
     "supabase/functions/_shared/myinvestor-counter.test.ts": ["--allow-read=supabase/functions"],
+    "supabase/functions/bank-sync/attempt-budget.test.ts": ["--allow-read=supabase/functions"],
   };
   // El SDK de lifecycle referencia tipos npm; usar la caché existente sin node_modules ajeno ni instalación.
   const resolver = file === "supabase/functions/bank-disconnect/lifecycle.test.ts" ? ["--node-modules-dir=none"] : [];
-  return ["test", "--cached-only", "--no-lock", "--no-prompt", ...resolver, ...(permissions[file] || []), file];
+  const budget = file === "supabase/functions/bank-sync/attempt-budget.test.ts" ? ["--node-modules-dir=none", "--fail-fast=1"] : [];
+  return ["test", "--cached-only", "--no-lock", "--no-prompt", ...resolver, ...budget, ...(permissions[file] || []), file];
 }
 
 function findDeno(spawn, options, env, platform) {

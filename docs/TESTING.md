@@ -1,3 +1,11 @@
+F3 (26/10): `node scripts/run-deno-tests.mjs supabase/functions/bank-sync/attempt-budget.test.ts`
+ejecuta catorce casos Deno con el lector y el handler reales. El SDK, proveedor y
+almacenamiento son dobles sintéticos; no abre puertos ni usa red. Un espía de
+transporte cuenta también rechazos y exige doce intentos por cuenta; cubre límites
+menores, ventana más tramo antiguo, filas/céntimos, errores, timeout, continuación,
+acuse y desbordamiento. Registrado también en `scripts/run-tests.mjs`, con lectura
+limitada a `supabase/functions`. No acredita PostgreSQL, banco real, CI ni despliegue.
+
 SEC02 (26/10): `node tests/sec02-edge-limits-replay.test.mjs`, registrado en el runner
 y en `STEPS_SUPABASE`, ejecuta handlers/helpers TypeScript reales con SDK/RPC/proveedor
 sintéticos: cinco grupos, EXIT 0. Comprueba buckets/umbrales/ventanas enviados, cuotas de

@@ -1,3 +1,9 @@
+F3 candidata de `bank-sync` (26/10/2026): `fetchBankTransactions` cuenta intentos,
+incluido el rechazo inicial `WRONG_TRANSACTIONS_PERIOD`, dentro del mismo límite de
+doce. `strategy=longest` no reinicia el presupuesto ni amplía los límites menores
+que usa el tramo antiguo. Se conservan filas, céntimos, errores, cursor y política
+de acuse por desbordamiento. Fuente y pruebas sintéticas; sin despliegue ni cambios SQL.
+
 FIN-11 candidata privada: presupuesto, ingest y widget reciben `obAbsorbedPending`
 con el titular autenticado, además de `deleted`. La protección se aplica antes de
 la deduplicación FIN-15. Sin SQL ni despliegue; servidor nuevo antes del cliente,

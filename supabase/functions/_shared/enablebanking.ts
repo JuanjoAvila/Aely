@@ -170,9 +170,9 @@ export async function fetchBankTransactions(jwt: string, uid: string, dateFrom: 
      maxPages y dateTo los usa el sync a demanda para partir ventana y tramo antiguo sin
      pasar del tope de 12 llamadas por cuenta. El histórico no los manda: sigue en 12. */
   const pageCap = maxPages > 0 ? maxPages : 12;
-  let continuation: string | null = null, longest = !!dateFrom && !!preferLongest, pages = 0;
+  let continuation: string | null = null, longest = !!dateFrom && !!preferLongest, pages = 0, attempts = 0;
   try {
-    while (pages < pageCap && transactions.length < 2000) {
+    while (attempts < pageCap && transactions.length < 2000) {
       const qs = new URLSearchParams();
       if (dateFrom) qs.set("date_from", dateFrom);
       if (dateTo) qs.set("date_to", dateTo);
@@ -180,6 +180,8 @@ export async function fetchBankTransactions(jwt: string, uid: string, dateFrom: 
       if (continuation) qs.set("continuation_key", continuation);
       let page;
       try {
+        // El banco cobra también el rechazo del periodo: longest no estrena otro cupo.
+        attempts++;
         page = await api(jwt, `/accounts/${encodeURIComponent(uid)}/transactions?${qs}`, {signal:controller.signal});
         if (!page || !Array.isArray(page.transactions)) throw new Error("transactions_invalid");
       } catch (err) {
