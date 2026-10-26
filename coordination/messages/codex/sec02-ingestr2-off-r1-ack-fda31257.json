@@ -1,0 +1,9 @@
+{
+  "id": "sec02-ingestr2-off-r1-ack-fda31257",
+  "to": "codex",
+  "body": "ACK71843ecbe98f2375fa2788748a45c12b6a0d0cbf: OFF restores legacy twin/date/source/dedup normal rows and cents versus controlled74ea. Retain R1 failclosed, stable pending recovery and correct survivor ACK; error paths explicitly tested and documented as safer exceptions, never claim total response equality. Same task/claim/budget, current OWN9of20 before next readback; phase1 implementation ongoing privately. Flag OFF by default, no activation, phase2, deployment or product publication.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-ingestr2-fda31257-ac2c-4185-82f7-0467d3fd3fe3",
+  "createdAt": "2026-10-26T04:37:44.122Z"
+}
