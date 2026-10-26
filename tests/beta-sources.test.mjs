@@ -378,7 +378,7 @@ test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CS
     ["src/modules/03-tab-dash.js",'!!(window.__mcSplashGone)','false'],
     ["src/modules/03-tab-dash.js",'Math.floor(remaining*DISP.k/days)','Math.ceil(remaining*DISP.k/days)'],
     ["src/modules/03-tab-dash.js",'const dailyMoney=budAmt>0?cycleDailyMoney(rem,timing.left):null;','const dailyMoney=cycleDailyMoney(1000,1);'],
-    ["src/modules/03-tab-dash.js",'Math.min(1,rem/budAmt)','Math.min(1,spentAgainst/budAmt)'],
+    ["src/modules/03-tab-dash.js",'Math.min(1,usedC/limC)','Math.min(1,(limC-usedC)/limC)'],
     ["src/modules/03-tab-dash.js",'Math.round((local-4)/312*(points.length-1))','0'],
     ["src/modules/02-ui-shared.js",'const t0=performance.now(), dur=950;','const t0=performance.now(), dur=1;'],
     ["src/modules/02-ui-shared.js",'if(!ready||mcReduced()||shownRef.current===tgt){','if(!ready||false||shownRef.current===tgt){'],
@@ -6211,13 +6211,15 @@ test("Catálogo186 añade la tanda del widget que se actualiza solo (web e inges
   assert.equal(source(W0).length>0,true,"el fichero de servidor existe");
   // Sin nativo: del árbol de la 185 cambian el alcance web y el de ingest (más sus pruebas); el Java, el manifiesto, apk.json y build.gradle siguen idénticos (la APK 62 ya exige longitud 8, lo que se arregla es la web).
   for(const file of [M0,W0])assert.notEqual(source(file),old(file),"cambia de verdad: "+file);
-  for(const file of ["src/modules/00-core.js","src/modules/03-tab-dash.js","src/modules/04-tab-gastos.js","src/modules/11-app-main.js","supabase/functions/ingest/index.ts",java+"MiCarteraWidget.java",java+"MiCarteraPlugin.java",java+"WidgetPeriod.java",java+"WidgetSnapshotArbiter.java",java+"TrExpenseListener.java","android/app/src/main/res/layout/widget_micartera.xml","android/app/src/main/AndroidManifest.xml","public/apk.json"])assert.equal(source(file),old(file),"sin cambios: "+file);
+  // Inicio (03-tab-dash) cambia ya sobre la 185: el anillo de la tarjeta del mes cuenta lo USADO (decisión del dueño, 26/10/2026), así que deja de ser «sin cambios».
+  for(const file of ["src/modules/00-core.js","src/modules/04-tab-gastos.js","src/modules/11-app-main.js","supabase/functions/ingest/index.ts",java+"MiCarteraWidget.java",java+"MiCarteraPlugin.java",java+"WidgetPeriod.java",java+"WidgetSnapshotArbiter.java",java+"TrExpenseListener.java","android/app/src/main/res/layout/widget_micartera.xml","android/app/src/main/AndroidManifest.xml","public/apk.json"])assert.equal(source(file),old(file),"sin cambios: "+file);
   assert.match(source("android/app/build.gradle"),/versionCode 62\s+versionName "4\.26\.185"/,"sigue la APK 62: la 186 no lleva nativo");
   assert.match(source("scripts/beta-sources.json"),/widget-se-actualiza-solo/);
   // El alcance del mes lleva 8 elementos con las listas en el índice 4.
   assert.ok(/length\s*!==?\s*8|a\.length\(\) != 8/.test(source(java+"MiCarteraWidget.java")),"el Java sigue exigiendo longitud 8");
   // Huellas que se mueven (lista cerrada): la web de las tandas cuyo descriptor lee widgetScopeOf (entre ellas la viva de la 185, que se reabre) y la de edge de tres que leen ingest/widget.ts; ninguna otra está viva.
-  const expectedMoves={"cartera-sin-lagazo":["web"],"compras-identicas-ids":["edge"],"fin05-pago-cerrada":["web"],"fin05-widget-reentrada":["web"],"gastos-margen-sin-nomina":["web"],"inc-2909-01-widget-periodo":["web"],"inc-2909-03-retirada":["web"],"recibo-cargo-en-gastos":["edge"],"recibos-cifra-cuadra":["web"],"tr-iguales-ordinal":["edge"],"widget-app-cerrada":["web"],"widget-banco":["web"],"widget-ciclo-puente":["web"],"widget-pago-app-cerrada":["web"],"widget-pasado-del-limite":["web"]};
+  // Y las cinco aprobadas o sin veredicto cuyo descriptor lee Inicio (03-tab-dash): el anillo de la tarjeta del mes cuenta lo USADO (26/10/2026) y su huella web se mueve con él.
+  const expectedMoves={"cartera-sin-lagazo":["web"],"compras-identicas-ids":["edge"],"fin05-pago-cerrada":["web"],"fin05-widget-reentrada":["web"],"gastos-margen-sin-nomina":["web"],"gastos-scroll-fluido-cifras":["web"],"inc-2909-01-widget-periodo":["web"],"inc-2909-02-inicio-natural":["web"],"inc-2909-03-retirada":["web"],"inc-3009-nomina-anticipada":["web"],"inicio-mes-pasado-mismo-dia":["web"],"inicio-patrimonio-flujos":["web"],"recibo-cargo-en-gastos":["edge"],"recibos-cifra-cuadra":["web"],"tr-iguales-ordinal":["edge"],"widget-app-cerrada":["web"],"widget-banco":["web"],"widget-ciclo-puente":["web"],"widget-pago-app-cerrada":["web"],"widget-pasado-del-limite":["web"]};
   const previous=new Map();
   const measure=reader=>{
     const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};

@@ -54,11 +54,11 @@ for (const nomina of [false, true]) {
     expect(w.budgetLeft).toBe(queda);
     expect(+(w.budget - w.spent).toFixed(2)).toBe(queda);
 
-    // Inicio: no se ha pasado; el anillo dice lo que queda.
+    // Inicio: no se ha pasado; el anillo dice lo USADO (1.436,47 de 1.500 = 96 %, decisión del 26/10/2026; antes pintaba el 4 % que queda).
     const card = page.locator(".v42-cycle");
     await expect(card).not.toHaveAttribute("data-state", "over");
     await expect(card.locator(".v42-cycle-amount>.serif")).toHaveText("63,53 €");
-    await expect(card.locator(".v42-cycle-percent")).toHaveText("4%");
+    await expect(card.locator(".v42-cycle-percent")).toHaveText("96%");
 
     // Gastos: su preferencia en grande (el balance) y el mismo margen que Inicio y el widget.
     await page.locator('.botnav-tab[data-tour="gastos"]').click();

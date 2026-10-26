@@ -35,8 +35,8 @@ for(const caso of [
   await page.waitForFunction(()=>!document.getElementById("mc-load"));
   await dismissNews(page);
   const dash=page.locator(".v4-budget");
-  // El anillo acompaña a «Te quedan»: 700 de 1000 es un 70 %, y a 16 días del 1/10 son 43 al día.
-  await expect(dash.locator(".v4-ring")).toHaveText("70%");
+  // El anillo cuenta lo usado: 300 de 1000 es un 30 % (quedan 700), y a 16 días del 1/10 son 43 al día.
+  await expect(dash.locator(".v4-ring")).toHaveText("30%");
   await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText("700 €");
   await expect(dash.locator(".v42-cycle-of")).toContainText("1.000");
   await expect(dash.getByTestId("inicio-cycle-pace")).toHaveText(caso.pace);
@@ -69,8 +69,8 @@ for(const caso of [
   await page.waitForFunction(()=>!document.getElementById("mc-load"));
   await dismissNews(page);
   const dash=page.locator(".v4-budget");
-  // Quedan 20 de 1000 (un 2 %) para los 28 días hasta el cobro del 26/10: ni un euro entero al día.
-  await expect(dash.locator(".v4-ring")).toHaveText("2%");
+  // Quedan 20 de 1000 (se ha usado un 98 %) para los 28 días hasta el cobro del 26/10: ni un euro entero al día.
+  await expect(dash.locator(".v4-ring")).toHaveText("98%");
   await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText("20 €");
   await expect(dash.locator(".v42-cycle-of")).toContainText("1.000");
   await expect(dash.getByTestId("inicio-cycle-pace")).toHaveText(caso.pace);
@@ -85,8 +85,8 @@ for(const caso of [
 });
 
 for(const caso of [
-  // Con más ingresos que gasto queda más que el presupuesto: el anillo se llena, no pasa de 100 %.
-  {income:780,pct:"100%",remaining:"1680,00",progress:"0"},
+  // Con más ingresos que gasto no hay nada contado contra el límite: el anillo marca 0 %.
+  {income:780,pct:"0%",remaining:"1680,00",progress:"0"},
   {income:50,pct:"115%",remaining:"-150,00",progress:"1150"},
 ]) test(`Mi ciclo explica el margen con ingreso ${caso.income}`,async({page})=>{
   await page.clock.install({time:new Date("2026-09-28T12:00:00Z")});
@@ -132,8 +132,8 @@ test("Inicio conserva la frase de gasto también con balance desfavorable",async
   await dismissNews(page);
   const dash=page.locator(".v4-budget");
   // Oráculo cambiado el 26/10/2026: el ingreso de 100 (no es nómina) devuelve margen en el mes
-  // natural: 300 − 100 = 200 usados, quedan 800 (antes 700, el bruto); a 16 días, 50 al día.
-  await expect(dash.locator(".v4-ring")).toHaveText("80%");
+  // natural: 300 − 100 = 200 usados (20 %), quedan 800 (antes 700, el bruto); a 16 días, 50 al día.
+  await expect(dash.locator(".v4-ring")).toHaveText("20%");
   await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText("800 €");
   await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText(/[−-]\s*300/);
   await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText("Balance en contra");
