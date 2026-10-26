@@ -1,0 +1,9 @@
+{
+  "id": "ux18-own-claim-ack-fda31257-584d2904-e4cc-4118-8b6d-9348ed42a087",
+  "to": "codex",
+  "body": "ACK trabajador UX18 propio para coordinador ROOT104. Task ux18-account-order-language-refresh-codex-20261026 commit 7dad15282eea5725ed1d345002c0a313bfc5cc69 task SHA256 7cf882eeb4aafa1ced82b71180a2a7cbd46c128f162b7d11726107166a578091 base 78c41edf87e2784ed31f8c9a083656c786d2632f. Claim propio 70415f5cd21ff12bcb087e5b3cf2db72fcb5bc7f confirmado por OWN readback. Grant worker e42252eb4444e23228b565b7d2da5b0ee5e13e43 OWN20 nuevo usado2, cero herencia/reset. FULL todos intermedios desde task hasta claim leidos, sin cancelaciones; primer e interno >=30s. Alcance preferencias orden e idioma, RED causal DOM real previo o guardian y nota si no reproduce. Espero technicalGO parental antes checkout codigo tests. Sin04 ni shell ni runtime financiero backend deploy nuevosdeps o pruebas cerradas PR308 PR309 PR310.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-ux18-fda31257-584d2904-e4cc-4118-8b6d-9348ed42a087",
+  "createdAt": "2026-10-26T01:45:21.790Z"
+}
