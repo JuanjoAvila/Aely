@@ -317,6 +317,8 @@ const denoEnLista = [
   "supabase/functions/delete-account/delete-account.test.ts",
   "supabase/functions/prices/prices.test.ts",
   "supabase/functions/bank-sync/demand-window.test.ts",
+  "supabase/functions/bank-sync/attempt-budget.test.ts",
+  "supabase/functions/bank-sync/overflow-resume.test.ts",
   "supabase/functions/bank-disconnect/lifecycle.test.ts",
   "supabase/functions/bank-callback/generation-fence.test.ts",
 ];
@@ -357,6 +359,8 @@ if (plan.deno !== false) {
       ? ["test", "--allow-read=supabase/functions,src/modules/00-core.js", testFile]
       : testFile.includes("input_handlers.test")
       ? ["test", "--allow-read=supabase/functions,supabase/config.toml", testFile]
+      : testFile.includes("bank-sync/attempt-budget.test")
+      ? ["test", "--cached-only", "--no-lock", "--no-prompt", "--node-modules-dir=none", "--allow-read=supabase/functions", "--fail-fast=1", testFile]
       : /myinvestor-(counter|token-race)\.test|bank-callback\/generation-fence\.test/.test(testFile)
       ? ["test", "--node-modules-dir=none", "--allow-read=supabase/functions", ...(testFile.includes("generation-fence.test") ? ["--fail-fast=1"] : []), testFile]
       : testFile.includes("crypto.test")

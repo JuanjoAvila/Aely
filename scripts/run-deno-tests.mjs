@@ -24,10 +24,14 @@ export function denoArgs(file) {
     "supabase/functions/_shared/crypto.test.ts": ["--allow-env"],
     "supabase/functions/_shared/myinvestor-counter.test.ts": ["--allow-read=supabase/functions"],
     "supabase/functions/bank-callback/generation-fence.test.ts": ["--allow-read=supabase/functions", "--fail-fast=1"],
+    "supabase/functions/bank-sync/attempt-budget.test.ts": ["--allow-read=supabase/functions"],
+    "supabase/functions/bank-sync/overflow-resume.test.ts": ["--allow-read=supabase/functions,src/modules"],
   };
   // El SDK de lifecycle referencia tipos npm; usar la caché existente sin node_modules ajeno ni instalación.
   const resolver = /bank-disconnect\/lifecycle\.test|bank-callback\/generation-fence\.test/.test(file) ? ["--node-modules-dir=none"] : [];
-  return ["test", "--cached-only", "--no-lock", "--no-prompt", ...resolver, ...(permissions[file] || []), file];
+  const budget = ["supabase/functions/bank-sync/attempt-budget.test.ts", "supabase/functions/bank-sync/overflow-resume.test.ts"].includes(file)
+    ? ["--node-modules-dir=none", "--fail-fast=1"] : [];
+  return ["test", "--cached-only", "--no-lock", "--no-prompt", ...resolver, ...budget, ...(permissions[file] || []), file];
 }
 
 function findDeno(spawn, options, env, platform) {

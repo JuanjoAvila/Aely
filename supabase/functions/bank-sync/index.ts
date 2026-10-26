@@ -301,7 +301,8 @@ Deno.serve(withCors(async (req: Request) => {
       const plan = demandPlan(new Date(), link.last_sync, recoverGaps);
       /* Llamadas a /transactions por cuenta, contadas al PEDIR: una que falla también le
          cuesta cupo al banco. El tramo antiguo (`hard`) no puede pasar del tope; la ventana
-         se deja como estaba. */
+         conserva doce páginas exitosas y puede sumar un rechazo inicial de periodo
+         (máximo trece intentos), como en la base. */
       const used: Record<string, number> = {};
       const counted = (uid: string, hard: boolean) => async (jwtArg: string, path: string, init: { method?: string; body?: unknown; signal?: AbortSignal } = {}) => {
         if (hard && (used[uid] || 0) >= OB_DEMAND_MAX_PAGES) throw new Error("transactions_budget");
