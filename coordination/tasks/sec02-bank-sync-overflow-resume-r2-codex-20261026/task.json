@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "id": "sec02-bank-sync-overflow-resume-r2-codex-20261026",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261026-r108-fda31257-6d5d49d9-f6ee-4568-bd65-64a84f4316d8",
+  "createdAt": "2026-10-26T06:07:54.805Z",
+  "to": "codex",
+  "baseSHA": "888b2d06982d6658b678b48dfbf3d78beca750ec",
+  "previousTaskId": "sec02-bank-sync-attempt-budget-codex-20261026",
+  "objective": "PR315 R2 PRIORITARIO: un corte del tope de12 intentos nunca acusa ni escribe ahora como cursor de una ventana no leida completa. Conserva ultimo dia completo real y permite continuar en siguientes sincronizaciones manuales sin perder filas ni centimos ni duplicar; sin llamadas extra en la pasada.",
+  "scope": [
+    "supabase/functions/_shared/enablebanking.ts",
+    "supabase/functions/bank-sync/index.ts",
+    "supabase/functions/bank-sync/demand-window.ts",
+    "supabase/functions/bank-sync/overflow-resume.test.ts",
+    "supabase/functions/bank-sync/attempt-budget.test.ts",
+    "scripts/run-tests.mjs",
+    "scripts/run-deno-tests.mjs",
+    "docs/SETUP-SUPABASE.md",
+    "docs/TESTING.md"
+  ],
+  "grants": [
+    "bc8ee4e9be2af6ceaf0cdccf79eb93483ecc454c",
+    "e42252eb4444e23228b565b7d2da5b0ee5e13e43"
+  ],
+  "requirements": [
+    "Nueva identidad OWN20/claim/ACK y GOtecnico antesproducto. Encargo anterior esta done/released y no se reabre ni hereda. Debounce nativo queda safehold antescodigo, sin solapes.",
+    "RED causal en HEADactual888b2d06 y GREEN mismo oraculo REAL Deno handler/lector. Ventana13+paginas sinteticamente acotada a capacidad de2pasadas: dos syncmanuales producen unionexacta mismasfilas/identidad/centimos que lecturaentera, cero duplicados. Espia de transporte exige<=12intentos por cuenta/pasada incluidosfallo/fallback/ventana/gap.",
+    "Cursor ultima fecha LEIDA COMPLETA EN TODAScuentas, nunca maxfecha de filas bajo orden arbitrario ni ahora portruncamiento; no inventar completitud. Cubrir ordennoordenado, fronterasmismodía, multicuenta, fallback, ACKperdido/replay/auth/reconexion, legacy y error/timeout/capsguardas. No resolver solo reteniendo cursor si queda atasco sin progreso.",
+    "Sin SQL/columnas/migraciones nuevas/liveDB/Edge/deploy/APK/deps/version/generated ni clientes web. Si el contrato actual impide progreso seguro (por ejemplo un dia excede12paginas) conservar datos/cursor y documentar limite real; comunicar decision/producto al coordinador antes ampliar alcance.",
+    "CPU1 serial1worker0retry stopfirstfailure/censo/admission/RETURN porrun. Mantener pruebas/evidencia F3 anterior inmutables; correr solo regresiones focales afectadas por NUEVOcambio, sin repetir REDviejo o auditorias cerradas.",
+    "Candidato PRIVADOterminado conSHA/tree/parent/diff/bundle/hashes/exits y reviewindependiente exacta antesGO. Publicacion SOLOtrasGO, FFnormal actualizando MISMA PR315 y rama remotaoriginal codex/sec02-paging-f3-r107-25013710; verificar headremoto888 exacto, sin force/rebase/PRnueva/merge."
+  ],
+  "acceptance": "Conservacion financiera y progreso acotado demostrados por ejecutable real, cap12intentos invariable y cursor seguro. No entrega/integracion hasta R2review; servido/movil/ProductREADY separados."
+}
