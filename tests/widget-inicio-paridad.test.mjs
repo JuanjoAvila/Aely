@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {transformSync} from 'esbuild';
-import {loadPureLogicFromFile} from '../scripts/load-pure-logic.mjs';
+import {loadPureLogic,loadPureLogicFromFile} from '../scripts/load-pure-logic.mjs';
 
 process.env.TZ='Europe/Madrid';
 const sourceArg=process.argv.find(x=>x.startsWith('--server-sha=')),serverSHA=sourceArg&&sourceArg.slice(13);
@@ -38,6 +38,10 @@ const cases=[
   ['posible-duplicado',5.45,'super','ob:trade_republic#dup'],
   ['lapida',5.45,'super','macrodroid'],
   ['duplicado-fusionado',5.45,'super','macrodroid'],
+  // Recibo del Plan y aportación a meta (R6 de la revisión, 26/10/2026): fuera en los dos lados.
+  ['meta',5.45,'super','ob:trade_republic~meta.g1'],
+  ['meta-ingreso',-5.45,'ingreso','ob:trade_republic~meta.g1'],
+  ['recibo',5.45,'recibos','ob:trade_republic~recibo.r1'],
 ];
 let checked=0,failed=0;
 try{
@@ -56,6 +60,7 @@ for(const window of ['actual','futuro','anterior']){
     const state={settings:{budgetCycle:cycle,expenseBanks:['trade_republic'],widgetBank:bank,gTotalMode:'net'},
       accounts:[{ent:'trade_republic',role:'diario',spendFrom:true},{ent:'sabadell',role:'fijos'}],
       expenses:cli.mergeExpenses([],rows.map(cli.expenseFromRow)).list,deleted:[],
+      fixed:[{id:'r1',name:'Recibo sintetico',amount:5.45,day:10,account:'trade_republic'}],
       reservaLog:budgetCase==='todo-reservado'?[{id:'synthetic-reserve',date:'2026-10-10T09:00:00Z',amount:100}]:[]};
     if(budgetCase!=='ausente')state.budget=budgetCase==='cero'?0:100;
     if(name==='lapida')state.deleted=[cli.keyOfExpense(cli.expenseFromRow(payment))];
@@ -118,9 +123,21 @@ for(const window of ['actual','futuro','anterior']){
     assert.equal(w2.against,cents(conNomina.against),'la app aparta la misma nómina');
     // Solo la empresa en el comercio: ingest no sabe si es nómina; no hay foto (la app decide al abrir).
     assert.equal(server.widgetSnapshot(cloud,[...oct,{...nomina,comercio:'EMPRESA SINTETICA SL'}],at,{id:'nom',event:'e3',key:'k3'}),null);
-    // Una ventana escrita por una app anterior (sin las listas) no recibe la cifra nueva.
-    assert.equal(server.widgetSnapshot({...cloud,widgetPeriod:{...cloud.widgetPeriod,scope:JSON.stringify(JSON.parse(scope).slice(0,8))}},[...oct,cafe],at,{id:'cafe',event:'e4',key:'k4'}),null);
-    checked+=5;
+    // La web anterior (beta 4.26.183, la de la familia mientras no se promocione): su ventana sin
+    // listas recibe SU cifra, el bruto que pinta su Inicio (R1 de la revisión, 26/10/2026).
+    const vieja=loadPureLogic(execFileSync('git',['show','9627c867b:public/index.html'],{encoding:'utf8',maxBuffer:64<<20}));
+    vieja.Date=class extends RealDate{static now(){return at;}};
+    const appVieja={...base,expenses:vieja.mergeExpenses([],oct.map(vieja.expenseFromRow)).list};
+    const sv=vieja.dashboardBudgetStats(appVieja), scopeViejo=vieja.widgetScopeOf(appVieja,sv,'','trade_republic');
+    assert.equal(JSON.parse(scopeViejo).length,8,'la web anterior escribe el alcance de 8');
+    const w4=server.widgetSnapshot({...base,widgetPeriod:{v:2,kind:'mes',start:sv.periodStart,anchor:'',scope:scopeViejo}},[...oct,cafe],at,{id:'cafe',event:'e4',key:'k4'});
+    assert.ok(w4,'la web anterior conserva su foto con ingest nuevo');
+    const svCafe=vieja.dashboardBudgetStats({...base,expenses:vieja.mergeExpenses([],[...oct,cafe].map(vieja.expenseFromRow)).list});
+    assert.equal(w4.spent,cents(svCafe.shown)); assert.equal(w4.spent,1924.19);
+    assert.equal(w4.budgetLeft,cents(Math.max(0,svCafe.remaining)));
+    // Listas en la ventana pero alcance de 8 (ninguna web lo escribe): sin foto.
+    assert.equal(server.widgetSnapshot({...cloud,widgetPeriod:{...cloud.widgetPeriod,scope:JSON.stringify(JSON.parse(scope).slice(0,8))}},[...oct,cafe],at,{id:'cafe',event:'e5',key:'k5'}),null);
+    checked+=6;
   }catch(err){failed++;console.error('FAIL su mes de hoy: '+err.message);}
   finally{cli.Date=RealDate;}
 }

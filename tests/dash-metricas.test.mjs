@@ -48,8 +48,11 @@ function referenceStreak(state,nowMs){
     const y=+k.slice(0,4),m=+k.slice(5)-1;
     const start=ctx.inicioDeMesMs(Date.UTC(y,m,15,12));
     const end=ctx.inicioDeMesMs(Date.UTC(y,m+1,15,12));
-    const stats=ctx.monthBudgetStats(Object.assign({},state,{budget:Number(state.budgetByMonth[k])}),start+12*864e5,end);
-    good[k]=stats.budget!=null&&stats.against<=stats.budget+.005;
+    const conLimite=Object.assign({},state,{budget:Number(state.budgetByMonth[k])});
+    const stats=ctx.monthBudgetStats(conLimite,start+12*864e5,end);
+    // Desde el 26/10/2026 la racha compara lo mismo que el mes en curso (gasto − ingresos sin la
+    // nómina), no la preferencia de Gastos: la referencia lo pide por la puerta de la tarjeta.
+    good[k]=stats.budget!=null&&ctx.limiteDeStats(stats,conLimite).against<=stats.budget+.005;
   }
   let best=0,run=0,prev=null;
   for(const k of keys){

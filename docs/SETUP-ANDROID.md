@@ -292,8 +292,8 @@ Inicio y el payload de `11-app-main.js`; no hay selector en el widget. En los do
 `against` (lo que se compara con el límite), redondeado a céntimos al enviarse y a euros al
 pintarse en nativo: el nativo dibuja «quedan / de más» como límite − `spent`. La etiqueta del mes
 sigue diciendo «GASTO» (magnitud `gasto`) porque cambiarla necesita APK. En el mes, `widgetPeriod`
-lleva `nominas`/`noNominas` y el alcance las incluye: ingest no conoce Plan ni el concepto, y con
-un alcance viejo (web o ingest anteriores) no hay foto en vez de una cifra con la regla vieja.
+lleva `nominas`/`noNominas` y el alcance las incluye: ingest no conoce Plan ni el concepto. Ingest
+acepta también el alcance de la web anterior (8 elementos, sin listas) y le devuelve su bruto.
 
 **Pago con la app cerrada:** un servidor antiguo devuelve un total mensual que no acredita Mi ciclo. El listener conserva el importe en céntimos y su identidad cuando la fecha
 pertenece a la ventana guardada de la app y ésta sigue vigente. La selección de bancos de

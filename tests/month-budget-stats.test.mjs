@@ -468,13 +468,24 @@ t("bordes: nómina anticipada, dos nóminas, sin nómina, ingresos mayores, devo
     const c=ctx.dashboardBudgetStats(s);
     assert.equal(c.cycle,true); assert.equal(c.mode,"net"); assert.equal(c.against,-30); assert.equal(c.remaining,1530);
   });
-  // Meses cerrados: el informe del mes con fecha explícita conserva su modo (no pasa por "mes");
-  // Gastos no enseña margen en un mes pasado (`budgetApplies`, e2e gastos-v5).
+  // Meses cerrados (oráculo cambiado en la R2 de la revisión, 26/10/2026): la cifra grande de la
+  // tarjeta sigue la preferencia (Gastos: 1.922,19 bruto), pero lo que compara con el límite es lo
+  // mismo que se vio todo el mes, 1.436,47. Antes fijaba 1.922,19 y el 1/11 diría «128 % del
+  // presupuesto» de un octubre que se vio entero «64 € por debajo». Gastos no enseña margen en un
+  // mes pasado (`budgetApplies`, e2e gastos-v5).
   aLas("2026-11-02T10:00:00Z",()=>{
     const s={...OCT,settings:{...OCT.settings,gTotalMode:"split"},expenses:filasOct().concat([NOMINA])};
     const card=ctx.closedMonthCardOf(s,Date.parse("2026-11-02T10:00:00Z"));
     assert.ok(card&&card.stats,"hay informe del mes cerrado");
-    assert.equal(card.stats.mode,"split"); assert.equal(Math.round(card.stats.against*100),192219);
+    assert.equal(card.stats.mode,"split"); assert.equal(Math.round(card.stats.shown*100),192219);
+    assert.equal(Math.round(card.stats.against*100),aMano(s.expenses));
+    assert.equal(Math.round(card.stats.remaining*100),6353);
+    // La racha de meses bajo el límite usa el límite de CADA mes y la misma regla: octubre cuenta.
+    const racha=ctx.underBudgetStreak({...s,budgetByMonth:{"2026-10":1500}},Date.parse("2026-11-02T10:00:00Z"));
+    assert.equal(JSON.stringify(racha),JSON.stringify({current:1,best:1,ever:true}));
+    // Con un límite de 1.400 aquel mes no se cumplió: la regla no regala la racha.
+    const sin=ctx.underBudgetStreak({...s,budgetByMonth:{"2026-10":1400}},Date.parse("2026-11-02T10:00:00Z"));
+    assert.equal(sin.ever,false);
   });
 });
 

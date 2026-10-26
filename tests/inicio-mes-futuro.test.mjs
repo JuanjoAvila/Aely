@@ -59,7 +59,7 @@ function load(file,imports={}){const mod={exports:{}};let raw=fs.readFileSync(ne
  new Function('module','exports',...Object.keys(imports),transformSync(raw,{loader:'ts',format:'cjs'}).code)(mod,mod.exports,...Object.values(imports));return mod.exports;}
 for(const reserve of [false,true])check(reserve?'server-reserve':'server-money',()=>{
  now=Date.parse(boundaries[0][1]);const start=Date.parse(boundaries[0][2]),end=Date.parse(boundaries[0][3]),s=fixture(start,end);if(!reserve)s.reservaLog=[];
- s.widgetPeriod={v:2,kind:'mes',start,anchor:'',scope:JSON.stringify([2,start,'mes','gasto','',reserve?96.83:100,['sabadell'],'sabadell',[[],[]]])};
+ s.widgetPeriod={v:2,nominas:[],noNominas:[],kind:'mes',start,anchor:'',scope:JSON.stringify([2,start,'mes','gasto','',reserve?96.83:100,['sabadell'],'sabadell',[[],[]]])};
  const rows=s.expenses.map(e=>({id:e.id,fecha:e.date,importe:e.amount,cat:e.category,comercio:e.merchant,source:e.source}));
  const server=load('supabase/functions/ingest/widget.ts',load('supabase/functions/_shared/presupuesto.ts'));
  const actual=server.widgetSnapshot(s,rows,now,{id:'payment',event:'synthetic',key:'synthetic'});

@@ -1138,13 +1138,8 @@
   .gx-sec.on{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
   .gx-sec-globo{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;padding:0 4px;box-sizing:border-box;border-radius:9px;
     background:var(--tan);color:var(--on-mint);font:800 11px 'Manrope',sans-serif;display:flex;align-items:center;justify-content:center;}
-  /* Categorías (SPEC §5): barra del presupuesto y la lista en una tarjeta, cada fila con su barra. */
+  /* Categorías (SPEC §5): la lista en una tarjeta, cada fila con su barra. */
   .gx-cats{display:flex;flex-direction:column;gap:14px;padding-top:8px;}
-  .gx-cats-pres{display:flex;flex-direction:column;gap:8px;}
-  .gx-cats-barra{height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden;display:flex;}
-  .gx-cats-in{display:block;background:var(--mint);}
-  .gx-cats-over{display:block;background:var(--coral);}
-  .gx-cats-pie{display:flex;justify-content:space-between;gap:10px;font-size:13px;color:var(--muted);}
   .gx-cats-lista{background:var(--surface);border-radius:22px;padding:6px 0;}
   .gx-cats .hint{margin:0;}
   .v4-gastos-cat.gx-cat{display:flex;align-items:center;gap:14px;padding:10px 16px;}
@@ -7780,13 +7775,13 @@ Object.assign(LANG.es,{gv5_cartera_open:"Abrir en Cartera", g_inv_dest:"Inversi�
 
 // Gastos v5, tanda 2: secciones (Movimientos / Categorías / Suscripciones) y sus cabeceras.
 Object.assign(LANG.es,{gv5_secciones:"Secciones de Gastos", gv5_sec_movs:"Movimientos", gv5_sec_cats:"Categorías", gv5_sec_subs:"Suscripciones",
-  gv5_subs_globo:"{n} por revisar", gv5_cats_pre:"{period} por categoría", gv5_cats_pres:"Presupuesto gastado", gv5_cats_of:"de {x}",
+  gv5_subs_globo:"{n} por revisar", gv5_cats_pre:"{period} por categoría",
   gv5_cats_vacio:"Aún no hay gastos que cuenten en este periodo.", gv5_subs_n:"al mes · {n} por revisar", gv5_subs_none:"nada por revisar",
   gv5_subs_ok_t:"Todo en orden", gv5_subs_ok_d:"Aquí saldrán los cobros repetidos que no estén en Recibos."});
 
 
 // Gastos v5, tanda 3: tocar una categoría filtra (píldora) y el límite va por pulsación larga o el chip.
-Object.assign(LANG.es,{gv5_cats_hint:"Toca una para ver sus movimientos · mantenla pulsada para ponerle un límite",
+Object.assign(LANG.es,{gv5_cats_hint:"Toca para filtrar · mantén pulsado para el límite",
   gv5_fil_n:"{n} movimientos", gv5_fil_n1:"1 movimiento", gv5_fil_quitar:"Quitar el filtro de {x}",
   gv5_fil_lim_poner:"Poner límite", gv5_fil_lim:"Límite {x}", gv5_fil_quedan:"quedan {x}", gv5_fil_pasado:"{x} de más"});
 // Gastos v5, tanda 4: Suscripciones como bandeja con su ficha (SPEC §6.1, §6.3 y §6.4).
@@ -8862,13 +8857,13 @@ function ensureBudgetMonthSnap(state,nowMs){
 }
 function underBudgetStreak(state, nowMs){
   state=state||{};
-  const budgets=state.budgetByMonth||{};
+  const budgets=state.budgetByMonth||{}, flows=nominaFlowsOf(state);
   const num=function(k){ return +k.slice(0,4)*12 + +k.slice(5)-1; };
   const curNum=num(budgetYmKey(nowMs));
   const keys=Object.keys(budgets).filter(function(k){ return num(k)<curNum; }).sort(function(a,b){ return num(a)-num(b); });
   const byMonth={}, windows=keys.map(function(k){
     const y=+k.slice(0,4),m=+k.slice(5)-1;
-    byMonth[k]={spent:0,income:0,reserved:0};
+    byMonth[k]={spent:0,income:0,reserved:0,nomina:0};
     return {k:k,start:inicioDeMesMs(Date.UTC(y,m,15,12)),end:inicioDeMesMs(Date.UTC(y,m+1,15,12))};
   });
   const monthOf=function(ms){
@@ -8891,7 +8886,12 @@ function underBudgetStreak(state, nowMs){
     const k=monthOf(dateMs(e.date));
     if(!k || !expenseCountsBudget(e,state)) return;
     if(e.amount>0) byMonth[k].spent+=e.amount;
-    else if(e.amount<0) byMonth[k].income+=Math.abs(e.amount);
+    else if(e.amount<0){
+      byMonth[k].income+=Math.abs(e.amount);
+      // La misma nómina que aparta el mes en curso (`monthBudgetStats`): si la racha comparara otra
+      // cifra, un mes visto entero «por debajo» rompería la racha al cerrarse (26/10/2026).
+      if(e.amount<=-200 && e.category!=="bizum" && !e.possibleDup && esNomina(e,flows)) byMonth[k].nomina+=Math.abs(e.amount);
+    }
   });
   (state.reservaLog||[]).forEach(function(x){
     const ms=new Date(x&&x.date).getTime();
@@ -8901,7 +8901,7 @@ function underBudgetStreak(state, nowMs){
   });
   const good={};
   keys.forEach(function(k){
-    const m=byMonth[k], stats=budgetStatsFromAmounts(m.spent,m.income,Number(budgets[k]),m.reserved,(state.settings&&state.settings.gTotalMode)||"split");
+    const m=byMonth[k], stats=budgetStatsFromAmounts(m.spent,m.income,Number(budgets[k]),m.reserved,"mes",m.nomina);
     good[k]=stats.budget!=null&&stats.against<=stats.budget+.005;
   });
   let best=0,run=0,prev=null;
@@ -9723,6 +9723,8 @@ function shareMonthReport(state, tt, showToast, opt){
     g.fillStyle=muted; g.font="700 27px Manrope, sans-serif"; g.fillText(t("rp_spent").toUpperCase(), 116, 252);
     // Misma cifra que Resumen/Gastos (`monthBudgetStats`), no thisMonthSpent.
     const bs=monthBudgetStats(state, winStart+12*864e5, winEnd!=null?winEnd:undefined);
+    // La barra mide lo mismo que Inicio y la tarjeta del mes cerrado (`limiteDeStats`, 26/10/2026).
+    bs.against=limiteDeStats(bs,state).against;
     const spentShown=bs.shown!=null?bs.shown:Math.max(0,bs.against||0);
     g.fillStyle=text;  g.font="700 96px Manrope, sans-serif"; g.fillText(eur0(spentShown), 112, 300);
     const bud=bs.budget!=null?bs.budget:0;
@@ -13691,8 +13693,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
        Inicio (`dashboardBudgetStats`, modo "mes") y el del widget (`against` de ingest): en el mes
        natural, gasto menos ingresos sin la nómina; en Mi ciclo, el neto. Cada pantalla con su
        propia regla dio tres cifras distintas del mismo mes (capturas del dueño, 26/10/2026). */
-    const lim=budgetStatsFromAmounts(bs.spent,bs.income,typeof state.budget==="number"?state.budget:0,bs.reserved,bs.cycle?"net":"mes",bs.nomina);
-    const limAgainst=lim.against;
+    const lim=limiteDeStats(bs,state);
     if(bs.budget!=null) bs.remaining=lim.remaining;
     // No existe una foto histórica del límite ni un presupuesto acumulado para varios meses.
     // Enseñar el límite actual como margen del pasado inventaría dinero disponible.
@@ -13702,7 +13703,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       : preset==="months" ? monthLong(mad.m-1) : preset==="all" ? t("gv5_all")
       : cicloPas ? cicloTxt(cicloRango.fin) : t("g_"+preset);
     return {
-      spent:bs.spent, income:bs.income, balance:bs.balance, mode:bs.mode, against:bs.against, shown:bs.shown, limAgainst:limAgainst,
+      spent:bs.spent, income:bs.income, balance:bs.balance, mode:bs.mode, against:bs.against, shown:bs.shown,
       budget:bs.budget, reserved:bs.reserved, remaining:bs.remaining,
       cycle:!!selectedPeriod.cycle,
       periodLabel:periodLabel, budgetApplies:budgetApplies
@@ -14411,7 +14412,6 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       role:"tabpanel","aria-label":t(GX_SECC_TXT[id]),style:secc===id?null:GX_OCULTO,"aria-hidden":secc!==id}, hijo);
   };
   const catsMax=catBreakdown.reduce(function(m,r){ return Math.max(m,r.spent); },0);
-  const presu=catsBudget&&monthSummary.budget>0?monthSummary.budget:null;
   const cabVista=secc==="movs"?cab:cabSecc;
   /* La píldora del filtro (SPEC §4.1) y, a su lado, el chip del LÍMITE de esa categoría: la otra
      entrada a la misma hoja que la pulsación larga. Con límite y en el periodo en que manda (mes en
@@ -14426,8 +14426,6 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   const filFmt=function(x){ x=Math.abs(x); return x<1?eur(x):eur0(x); };
   const filLimTxt=!(filLim>0)?t("gv5_fil_lim_poner")
     : tf("gv5_fil_lim",{x:eur0(filLim)})+(filManda?" · "+tf(filQueda<0?"gv5_fil_pasado":"gv5_fil_quedan",{x:filFmt(filQueda)}):"");
-  // La barra mide lo mismo que la línea «por encima/por debajo» (el gasto de Inicio).
-  const usado=Math.max(0,monthSummary.limAgainst||0);
 
   /* Con la fila de ciclos al bajar, la página tiene que poder bajar SIEMPRE lo justo para que salga:
      al empezar un ciclo hay tres gastos, no hay scroll y no habría forma de ir a un ciclo pasado
@@ -14477,19 +14475,13 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
        debajo para llegar a la cabecera (lo resuelve la raya de `GastosCabecera` al final de la
        lista). Ese hueco, con el borde de la última tarjeta asomando bajo la cabecera, era el
        «sigue habiendo esto al final» (25/10/2026). */
-    /* CATEGORÍAS (SPEC §5): el desglose que antes iba encima de la lista, con la barra del
-       presupuesto arriba (solo mes en curso / Mi ciclo: sin límite en el pasado, regla de §3).
+    /* CATEGORÍAS (SPEC §5): el desglose que antes iba encima de la lista. Sin barra del presupuesto
+       arriba (el dueño, 26/10/2026: «quítala, no me gusta»): la cifra y la línea de estado de la
+       cabecera ya dicen cuánto queda o cuánto te has pasado.
        Tocar una categoría filtra Movimientos por ella; mantenerla pulsada abre su límite (la otra
        puerta es el chip junto a la píldora del filtro). Ya no se pliega: el
        «es too much» de su pareja (10/9) era porque tapaba la lista, y aquí ya no tapa nada. */
     capa("cats", React.createElement("div",{className:"gx-cats","data-testid":"gastos-cats"},
-      presu!=null && React.createElement("div",{className:"gx-cats-pres"},
-        React.createElement("div",{className:"gx-cats-barra",role:"progressbar","aria-label":t("gv5_cats_pres"),"aria-valuemin":0,"aria-valuemax":presu,"aria-valuenow":+usado.toFixed(2)},
-          React.createElement("i",{className:"gx-cats-in",style:{width:(Math.min(usado,presu)/Math.max(usado,presu)*100)+"%"}}),
-          usado>presu && React.createElement("i",{className:"gx-cats-over",style:{width:((usado-presu)/usado*100)+"%"}})),
-        React.createElement("div",{className:"gx-cats-pie"},
-          React.createElement("span",null,tf("gv5_cats_of",{x:eur0(presu)})),
-          React.createElement("span",null,monthSummary.periodLabel))),
       // Sin la pista no se adivina que tocar filtra y que mantener pulsado pone el límite.
       catBreakdown.length>0 && React.createElement("p",{className:"hint"},t("gv5_cats_hint")),
       catBreakdown.length===0
@@ -20959,6 +20951,14 @@ function budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode,nomina){
   return {spent:spent, income:income, balance:balance, mode:mode, budget:budget, reserved:reserved,
     remaining:remaining, against:against, shown:shown};
 }
+/* Lo que unas sumas de `monthBudgetStats` comparan con el límite, con la regla del periodo: neto en
+   Mi ciclo y sin la nómina en el mes natural. La cifra grande puede seguir la preferencia (Balance
+   o Gastos), pero el margen es este en todas partes: la línea de Gastos, la tarjeta y la imagen del
+   mes cerrado. Con su propia regla cada una, el 1/11 diría «128 % del presupuesto» de un octubre que
+   se vio entero «64 € por debajo» (revisión 26/10/2026). */
+function limiteDeStats(bs, state){
+  return budgetStatsFromAmounts(bs.spent,bs.income,typeof state.budget==="number"?state.budget:0,bs.reserved,bs.cycle?"net":"mes",bs.nomina);
+}
 // El presupuesto cambia de ventana solo con la preferencia activada y un cobro real.
 // Los informes con fecha explícita conservan sus meses naturales ya cerrados.
 function budgetPeriodOf(state, nowMs){
@@ -21131,6 +21131,9 @@ function closedMonthCardOf(state, nowMs){
   if(dismissed===w.closedYm) return null;
   const stats=monthBudgetStats(state, w.startMs+12*864e5, w.endMs);
   if(!(stats.spent>0) && !(stats.income>0)) return null;
+  // La cifra grande sigue la preferencia; el % del presupuesto, la regla del mes (`limiteDeStats`).
+  const lim=limiteDeStats(stats, state);
+  stats.against=lim.against; if(stats.budget!=null) stats.remaining=lim.remaining;
   return {
     ym:w.closedYm, startMs:w.startMs, endMs:w.endMs,
     month:w.closedMonth, year:w.closedYear,
@@ -26629,7 +26632,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="c829e7cf54188c1aba267eb5c3b41665670f214f403e0b2070a8e720d3657abc";
+var _rnSha="b3d008610d6a656323c0f72e003266004b23039e04cfd655ebf9d66d54b62675";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

@@ -123,17 +123,17 @@ test("en Mi ciclo, entre la cabecera y la lista solo está el buscador; nada se 
   await expect(panel(page, "cats").locator(".v4-gastos-cat").first()).toBeVisible();
 });
 
-test("Categorías enseña el desglose de antes con la barra del presupuesto, y la cifra no cambia", async ({ page }) => {
+// Sin la barra del presupuesto arriba desde el 26/10/2026 (el dueño: «quítala, no me gusta»): la
+// cifra y la línea de estado de la cabecera ya dicen cuánto queda.
+test("Categorías enseña el desglose de antes sin la barra del presupuesto, y la cifra no cambia", async ({ page }) => {
   await abre(page);
   await expect(gastosCifra(page)).toHaveText("100,00 €");
   await gastosSeccion(page, "cats");
   await expect(tab(page, "cats")).toHaveAttribute("aria-selected", "true");
   await expect(gastosCifra(page)).toHaveText("100,00 €");
   await expect(gastosEstado(page)).toHaveText("septiembre por categoría · 900 € por debajo");
-  const barra = panel(page, "cats").locator(".gx-cats-barra");
-  await expect(barra).toHaveAttribute("aria-valuemax", "1000");
-  await expect(barra).toHaveAttribute("aria-valuenow", "100");
-  await expect(panel(page, "cats").locator(".gx-cats-pie")).toContainText("de 1.000 €");
+  await expect(panel(page, "cats").locator(".gx-cats-barra, .gx-cats-pie")).toHaveCount(0);
+  await expect(panel(page, "cats").getByText("de 1.000 €", { exact: true })).toHaveCount(0);
   const filas = panel(page, "cats").locator(".v4-gastos-cat");
   // Mayor a menor, solo lo que cuenta este mes; el límite de super sigue con su barra.
   await expect(filas).toHaveCount(3);

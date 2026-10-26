@@ -72,11 +72,14 @@ for (const nomina of [false, true]) {
   });
 }
 
-test("en modo Gastos la cifra es el bruto, pero la línea y la barra de Categorías miden lo mismo que Inicio", async ({ page }) => {
+// La barra de presupuesto de Categorías se quitó el 26/10/2026 («quítala, no me gusta»): ahora se
+// comprueba que la línea de Categorías dice el mismo margen y que la barra ya no está.
+test("en modo Gastos la cifra es el bruto, pero la línea de Movimientos y la de Categorías miden lo mismo que Inicio", async ({ page }) => {
   await abre(page, { mode: "split" });
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await expect(gastosCifra(page)).toHaveText("1.922,19 €");
   await expect(gastosEstado(page)).toHaveText("gastado en octubre · 64 € por debajo");
   await gastosRoot(page).locator('[role="tab"][data-gx-tab="cats"]').click();
-  await expect(gastosRoot(page).locator(".gx-cats-barra")).toHaveAttribute("aria-valuenow", "1436.47");
+  await expect(gastosEstado(page)).toHaveText("octubre por categoría · 64 € por debajo");
+  await expect(gastosRoot(page).locator(".gx-cats-barra")).toHaveCount(0);
 });

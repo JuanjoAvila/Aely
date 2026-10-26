@@ -31,7 +31,7 @@ for(const [name,fn] of denoCases) await t('Node ejecuta cuerpo Deno: '+name,fn);
 await t("respuesta dual: month legado intacto y widget v2 neto sin nómina para la misma compra", async () => {
   const now=Date.now(), start=budget.inicioDeMesMs(now);
   const state={budget:100,accounts:[{ent:'trade_republic',role:'diario',spendFrom:true}],settings:{gTotalMode:'net'},
-    widgetPeriod:{v:2,kind:'mes',start,anchor:'',scope:JSON.stringify([2,start,'mes','gasto','',100,['trade_republic'],'trade_republic',[[],[]]])}};
+    widgetPeriod:{v:2,nominas:[],noNominas:[],kind:'mes',start,anchor:'',scope:JSON.stringify([2,start,'mes','gasto','',100,['trade_republic'],'trade_republic',[[],[]]])}};
   const env=fakeDb({state,rows:[{id:'income',user_id:'user',fecha:new Date(now-1000).toISOString(),importe:-20,cat:'ingreso',source:'macrodroid',comercio:'Abono'}]});
   const r=await post(env,{fuente:'tr',titulo:'Trade Republic',texto:'Has gastado 5,45 € en Compra sintetica',fecha:String(now),evento:'dual'});
   assert.equal(r.data.month.spent,14.55); assert.equal(r.data.month.contract,undefined);
@@ -43,7 +43,7 @@ await t("servidor v2 no repite un scope si cambiaron las reservas", async () => 
   const now=Date.now(),start=budget.inicioDeMesMs(now);
   const state={budget:100,accounts:[{ent:'trade_republic',role:'diario',spendFrom:true}],settings:{},
     reservaLog:[{date:new Date(now).toISOString(),amount:10}],
-    widgetPeriod:{v:2,kind:'mes',start,anchor:'',scope:JSON.stringify([2,start,'mes','gasto','',100,['trade_republic'],'trade_republic',[[],[]]])}};
+    widgetPeriod:{v:2,nominas:[],noNominas:[],kind:'mes',start,anchor:'',scope:JSON.stringify([2,start,'mes','gasto','',100,['trade_republic'],'trade_republic',[[],[]]])}};
   const r=await post(fakeDb({state}),{fuente:'tr',titulo:'Trade Republic',texto:'Has gastado 5,45 € en Compra sintetica',fecha:String(now),evento:'changed'});
   assert.equal(r.data.widget,null); assert.ok(r.data.month);
 });
@@ -51,7 +51,7 @@ await t("servidor v2 no repite un scope si cambiaron las reservas", async () => 
 await t("un error del widget opcional conserva el aviso y month para APK anteriores", async () => {
   const now=Date.now(),start=budget.inicioDeMesMs(now),state={budget:100,
     accounts:[{ent:'trade_republic',role:'diario',spendFrom:true}],settings:{},
-    widgetPeriod:{v:2,kind:'mes',start,anchor:'',scope:JSON.stringify([2,start,'mes','gasto','',100,['trade_republic'],'trade_republic',[[],[]]])}};
+    widgetPeriod:{v:2,nominas:[],noNominas:[],kind:'mes',start,anchor:'',scope:JSON.stringify([2,start,'mes','gasto','',100,['trade_republic'],'trade_republic',[[],[]]])}};
   const r=await post(fakeDb({state,widgetThrows:true,rows:[{id:'before',user_id:'user',fecha:new Date(now-1000).toISOString(),
     importe:90,cat:'super',source:'macrodroid',comercio:'Compra anterior'}]}),
     {fuente:'tr',titulo:'Trade Republic',texto:'Has gastado 20,00 € en Compra sintética',fecha:String(now),evento:'widget-error'});
@@ -63,7 +63,7 @@ await t("un error del widget opcional conserva el aviso y month para APK anterio
 await t("v2 pagina más de mil filas; una lectura parcial o sin conteo no confirma cero", async () => {
   const now=Date.now(),start=budget.inicioDeMesMs(now),state={budget:3000,
     accounts:[{ent:'trade_republic',role:'diario',spendFrom:true}],settings:{},
-    widgetPeriod:{v:2,kind:'mes',start,anchor:'',scope:JSON.stringify([2,start,'mes','gasto','',3000,['trade_republic'],'trade_republic',[[],[]]])}};
+    widgetPeriod:{v:2,nominas:[],noNominas:[],kind:'mes',start,anchor:'',scope:JSON.stringify([2,start,'mes','gasto','',3000,['trade_republic'],'trade_republic',[[],[]]])}};
   const rows=Array.from({length:1005},(_,i)=>({id:'synthetic-'+i,user_id:'user',fecha:new Date(now-1000).toISOString(),
     importe:1,cat:'super',source:'macrodroid',comercio:'Compra '+i}));
   const body={fuente:'tr',titulo:'Trade Republic',texto:'Has gastado 5,45 € en Compra actual',fecha:String(now),evento:'pagination'};

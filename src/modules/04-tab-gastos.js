@@ -1096,8 +1096,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
        Inicio (`dashboardBudgetStats`, modo "mes") y el del widget (`against` de ingest): en el mes
        natural, gasto menos ingresos sin la nómina; en Mi ciclo, el neto. Cada pantalla con su
        propia regla dio tres cifras distintas del mismo mes (capturas del dueño, 26/10/2026). */
-    const lim=budgetStatsFromAmounts(bs.spent,bs.income,typeof state.budget==="number"?state.budget:0,bs.reserved,bs.cycle?"net":"mes",bs.nomina);
-    const limAgainst=lim.against;
+    const lim=limiteDeStats(bs,state);
     if(bs.budget!=null) bs.remaining=lim.remaining;
     // No existe una foto histórica del límite ni un presupuesto acumulado para varios meses.
     // Enseñar el límite actual como margen del pasado inventaría dinero disponible.
@@ -1107,7 +1106,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       : preset==="months" ? monthLong(mad.m-1) : preset==="all" ? t("gv5_all")
       : cicloPas ? cicloTxt(cicloRango.fin) : t("g_"+preset);
     return {
-      spent:bs.spent, income:bs.income, balance:bs.balance, mode:bs.mode, against:bs.against, shown:bs.shown, limAgainst:limAgainst,
+      spent:bs.spent, income:bs.income, balance:bs.balance, mode:bs.mode, against:bs.against, shown:bs.shown,
       budget:bs.budget, reserved:bs.reserved, remaining:bs.remaining,
       cycle:!!selectedPeriod.cycle,
       periodLabel:periodLabel, budgetApplies:budgetApplies
@@ -1816,7 +1815,6 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       role:"tabpanel","aria-label":t(GX_SECC_TXT[id]),style:secc===id?null:GX_OCULTO,"aria-hidden":secc!==id}, hijo);
   };
   const catsMax=catBreakdown.reduce(function(m,r){ return Math.max(m,r.spent); },0);
-  const presu=catsBudget&&monthSummary.budget>0?monthSummary.budget:null;
   const cabVista=secc==="movs"?cab:cabSecc;
   /* La píldora del filtro (SPEC §4.1) y, a su lado, el chip del LÍMITE de esa categoría: la otra
      entrada a la misma hoja que la pulsación larga. Con límite y en el periodo en que manda (mes en
@@ -1831,8 +1829,6 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   const filFmt=function(x){ x=Math.abs(x); return x<1?eur(x):eur0(x); };
   const filLimTxt=!(filLim>0)?t("gv5_fil_lim_poner")
     : tf("gv5_fil_lim",{x:eur0(filLim)})+(filManda?" · "+tf(filQueda<0?"gv5_fil_pasado":"gv5_fil_quedan",{x:filFmt(filQueda)}):"");
-  // La barra mide lo mismo que la línea «por encima/por debajo» (el gasto de Inicio).
-  const usado=Math.max(0,monthSummary.limAgainst||0);
 
   /* Con la fila de ciclos al bajar, la página tiene que poder bajar SIEMPRE lo justo para que salga:
      al empezar un ciclo hay tres gastos, no hay scroll y no habría forma de ir a un ciclo pasado
@@ -1882,19 +1878,13 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
        debajo para llegar a la cabecera (lo resuelve la raya de `GastosCabecera` al final de la
        lista). Ese hueco, con el borde de la última tarjeta asomando bajo la cabecera, era el
        «sigue habiendo esto al final» (25/10/2026). */
-    /* CATEGORÍAS (SPEC §5): el desglose que antes iba encima de la lista, con la barra del
-       presupuesto arriba (solo mes en curso / Mi ciclo: sin límite en el pasado, regla de §3).
+    /* CATEGORÍAS (SPEC §5): el desglose que antes iba encima de la lista. Sin barra del presupuesto
+       arriba (el dueño, 26/10/2026: «quítala, no me gusta»): la cifra y la línea de estado de la
+       cabecera ya dicen cuánto queda o cuánto te has pasado.
        Tocar una categoría filtra Movimientos por ella; mantenerla pulsada abre su límite (la otra
        puerta es el chip junto a la píldora del filtro). Ya no se pliega: el
        «es too much» de su pareja (10/9) era porque tapaba la lista, y aquí ya no tapa nada. */
     capa("cats", React.createElement("div",{className:"gx-cats","data-testid":"gastos-cats"},
-      presu!=null && React.createElement("div",{className:"gx-cats-pres"},
-        React.createElement("div",{className:"gx-cats-barra",role:"progressbar","aria-label":t("gv5_cats_pres"),"aria-valuemin":0,"aria-valuemax":presu,"aria-valuenow":+usado.toFixed(2)},
-          React.createElement("i",{className:"gx-cats-in",style:{width:(Math.min(usado,presu)/Math.max(usado,presu)*100)+"%"}}),
-          usado>presu && React.createElement("i",{className:"gx-cats-over",style:{width:((usado-presu)/usado*100)+"%"}})),
-        React.createElement("div",{className:"gx-cats-pie"},
-          React.createElement("span",null,tf("gv5_cats_of",{x:eur0(presu)})),
-          React.createElement("span",null,monthSummary.periodLabel))),
       // Sin la pista no se adivina que tocar filtra y que mantener pulsado pone el límite.
       catBreakdown.length>0 && React.createElement("p",{className:"hint"},t("gv5_cats_hint")),
       catBreakdown.length===0

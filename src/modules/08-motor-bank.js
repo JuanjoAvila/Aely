@@ -2815,6 +2815,14 @@ function budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode,nomina){
   return {spent:spent, income:income, balance:balance, mode:mode, budget:budget, reserved:reserved,
     remaining:remaining, against:against, shown:shown};
 }
+/* Lo que unas sumas de `monthBudgetStats` comparan con el límite, con la regla del periodo: neto en
+   Mi ciclo y sin la nómina en el mes natural. La cifra grande puede seguir la preferencia (Balance
+   o Gastos), pero el margen es este en todas partes: la línea de Gastos, la tarjeta y la imagen del
+   mes cerrado. Con su propia regla cada una, el 1/11 diría «128 % del presupuesto» de un octubre que
+   se vio entero «64 € por debajo» (revisión 26/10/2026). */
+function limiteDeStats(bs, state){
+  return budgetStatsFromAmounts(bs.spent,bs.income,typeof state.budget==="number"?state.budget:0,bs.reserved,bs.cycle?"net":"mes",bs.nomina);
+}
 // El presupuesto cambia de ventana solo con la preferencia activada y un cobro real.
 // Los informes con fecha explícita conservan sus meses naturales ya cerrados.
 function budgetPeriodOf(state, nowMs){
@@ -2987,6 +2995,9 @@ function closedMonthCardOf(state, nowMs){
   if(dismissed===w.closedYm) return null;
   const stats=monthBudgetStats(state, w.startMs+12*864e5, w.endMs);
   if(!(stats.spent>0) && !(stats.income>0)) return null;
+  // La cifra grande sigue la preferencia; el % del presupuesto, la regla del mes (`limiteDeStats`).
+  const lim=limiteDeStats(stats, state);
+  stats.against=lim.against; if(stats.budget!=null) stats.remaining=lim.remaining;
   return {
     ym:w.closedYm, startMs:w.startMs, endMs:w.endMs,
     month:w.closedMonth, year:w.closedYear,
