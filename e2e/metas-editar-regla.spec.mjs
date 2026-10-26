@@ -88,7 +88,8 @@ for(const lang of Object.keys(textos)){
     expect(await expenseRaw(page)).toBe(expenses);
     await expect(page.locator(".v4-goal-card").filter({hasText:"Meta A"}).locator(".v4-debt-sub")).toHaveText(/^100\s/);
     await expect(page.locator(".v4-goal-card").filter({hasText:"Meta B"}).locator(".v4-debt-sub")).toHaveText(/^0\s/);
-    await nav(page,"gastos"); await expect(page.locator(".v4-gastos-summary-budget")).toContainText(/900[,.]00/);
+    // Gastos v5: sin gastos, el margen de la cabecera es el presupuesto que deja la reserva.
+    await nav(page,"gastos"); await expect(page.locator('.page-scroll-host [data-testid="gastos-estado"]')).toContainText(/900 € (por debajo|under|per sota)/);
     await nav(page,"inicio"); await expect(page.locator(".v4-budget .ph")).toContainText("900");
     await page.reload();
     await page.waitForFunction(()=>!document.getElementById("mc-load"));
@@ -140,7 +141,7 @@ for(const lang of Object.keys(textos)){
     expect(once.goals.map(g=>g.saved)).toEqual([100,75]);
     // La vuelta real espera pull válido; el mock devuelve el estado recién persistido.
     await page.evaluate(state=>{
-      cloud.pullState=async()=>({data:state});
+      cloud.pullState=async()=>({data:state,updated_at:new Date().toISOString()});
       window.__editOffset+=Date.parse("2026-10-31T23:30:00Z")-Date.now();
       localStorage.setItem("_mr2026-11","1"); document.dispatchEvent(new Event("visibilitychange"));
     },once);

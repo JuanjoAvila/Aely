@@ -45,13 +45,14 @@ async function cifras(page){
   const result={now:await hero.locator(".v4-hero-amt").innerText(),card:await page.locator(".v42-cycle-amount>.serif").innerText(),delta:await hero.getByTestId("inicio-net-delta").innerText(),line:await hero.locator(".v42-net-line").getAttribute("d")};
   await page.getByRole("button",{name:"Ver gastos ›",exact:true}).tap();
   await expect(page.locator('.botnav-tab[data-tour="gastos"]')).toHaveClass(/active/);
-  await expect(page.locator(".v4-gastos-summary")).toBeVisible();
-  result.gastos=await page.locator(".v4-gastos-summary").innerText();
+  // Gastos v5: la cifra y su línea de la cabecera fija sustituyen a la tarjeta resumen.
+  await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toBeVisible();
+  result.gastos=await page.evaluate(()=>[...document.querySelectorAll('.page-scroll-host [data-testid="gastos-cifra"], .page-scroll-host [data-testid="gastos-estado"]')].map(el=>el.textContent).join(" · "));
   return result;
 }
 async function estadoNavegacion(page){
   return page.evaluate(()=>{
-    return {tabs:[...document.querySelectorAll(".botnav-tab")].map(el=>({tab:el.dataset.tour,class:el.className})),settings:!!document.querySelector(".settings-push.open"),splash:!!document.getElementById("mc-load"),text:document.querySelector("#root")?.innerText,summary:document.querySelector(".v4-gastos-summary")?.innerText};
+    return {tabs:[...document.querySelectorAll(".botnav-tab")].map(el=>({tab:el.dataset.tour,class:el.className})),settings:!!document.querySelector(".settings-push.open"),splash:!!document.getElementById("mc-load"),text:document.querySelector("#root")?.innerText,summary:document.querySelector('.page-scroll-host [data-testid="gastos-cifra"]')?.textContent};
   }).catch(error=>({readError:String(error)}));
 }
 for(const mode of ["sin-efectivo","con-efectivo","traspaso-cajero","transfer-alone","transfer-pair","confirmada-tarjeta","confirmada-efectivo"]) test("reservas: gráfica y cifras actuales antes/después "+mode,{annotation:{type:"own-clock",description:"14/10/2026"}},async({browser},testInfo)=>{

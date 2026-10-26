@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, gastosPeriodo } from "./fixtures.mjs";
 
 const uuid=n=>"00000000-0000-4000-8000-"+n.toString(16).padStart(12,"0");
 const rows=Array.from({length:2501},(_,i)=>({id:uuid(i+1),fecha:"2020-01-01T12:00:00Z",importe:i+1,
@@ -61,8 +61,8 @@ test("FIN07: más de 2000, histórico antiguo en Gastos y guardado una sola vez"
   // La carga inicial guarda su copia local; la descarga completa produce una sola escritura más.
   expect(await page.evaluate(()=>window.__fin07.writes)).toEqual([1,2502]);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await page.locator(".v4-period-btn").last().click();
-  await page.getByRole("button",{name:"Todo",exact:true}).click();
+  // Gastos v5: «Todo» se elige en Filtros.
+  await gastosPeriodo(page,"all");
   await page.locator(".searchbar-in").fill("Archivo antiguo FIN07");
   const hit=page.locator(".v4-gastos-list-body button.v4-mov");
   await expect(hit).toHaveCount(1);await expect(hit).toContainText("Archivo antiguo FIN07");

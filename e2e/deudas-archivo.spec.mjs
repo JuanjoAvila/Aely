@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews, FIXTURE_NOW, installFixtureClock } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, FIXTURE_NOW, installFixtureClock, gastosGrisFila } from "./fixtures.mjs";
 
 test.beforeEach(async ({ page }) => { await installFixtureClock(page); });
 
@@ -37,7 +37,8 @@ test("saldo proyectado cero pide confirmación; archivar conserva la cuota y per
 
   // El archivo solo afecta la lista de Deudas: Gastos sigue encontrando la cuota por su id.
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await expect(page.locator(".v4-gastos-list-body button.v4-mov").filter({hasText:"Cuota ejemplo"})).toContainText("Préstamo ejemplo");
+  // Desde Gastos v5 el cargo de una cuota vive en la fila gris del día, con la deuda en su subtítulo.
+  await expect(await gastosGrisFila(page,"Cuota ejemplo")).toContainText("Préstamo ejemplo");
   await page.reload();
   await expect(page.locator(".botnav")).toBeVisible({timeout:15_000});
   await dismissNews(page);

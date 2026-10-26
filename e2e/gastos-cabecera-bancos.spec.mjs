@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, gastosCifra } from "./fixtures.mjs";
 
 /* B09-A: la cabecera de Gastos debe recalcularse al cambiar bancos de gasto diario SIN esperar
    a que un sync mute `expenses`. En 4.18.6 el useMemo de monthSummary omitía accounts/settings
@@ -32,7 +32,7 @@ async function abreGastos(page) {
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await expect(page.locator(".v4-gastos-summary")).toBeVisible();
+  await expect(gastosCifra(page)).toBeVisible();
 }
 
 test("cabecera Gastos baja al quitar un banco de gasto diario sin sync", async ({ page }) => {
@@ -40,8 +40,8 @@ test("cabecera Gastos baja al quitar un banco de gasto diario sin sync", async (
   await seedLoggedInDashboard(page, { accounts, settings, expenses, budget: 1000 });
   await abreGastos(page);
 
-  const bar = page.locator('.v4-gastos-progress[role="progressbar"]');
-  await expect(bar).toHaveAttribute("aria-valuenow", "100");
+  // Gastos v5: la cifra de la cabecera es lo que cuenta contra el límite (modo gasto bruto).
+  await expect(gastosCifra(page)).toHaveText("100,00 €");
   const expensesBefore = await page.evaluate(() => JSON.parse(localStorage.getItem("micartera_v3_exp") || "[]"));
 
   // Bloquear el resync automático de rol: en e2e no hay banco real y un bankSync podría
@@ -58,11 +58,11 @@ test("cabecera Gastos baja al quitar un banco de gasto diario sin sync", async (
   await page.locator(".v4-sheet-back").click({ position: { x: 10, y: 10 } });
 
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await expect(page.locator(".v4-gastos-summary")).toBeVisible();
+  await expect(gastosCifra(page)).toBeVisible();
 
   // Misma lista de gastos en disco; solo cambió qué bancos cuentan.
   const expensesAfter = await page.evaluate(() => JSON.parse(localStorage.getItem("micartera_v3_exp") || "[]"));
   expect(expensesAfter, "expenses no deben mutar para esta prueba").toEqual(expensesBefore);
 
-  await expect(bar, "sin el fix la cabecera se quedaría en 100 hasta un sync").toHaveAttribute("aria-valuenow", "30");
+  await expect(gastosCifra(page), "sin el fix la cabecera se quedaría en 100 hasta un sync").toHaveText("30,00 €");
 });

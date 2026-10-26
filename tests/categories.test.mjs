@@ -237,3 +237,18 @@ t("«energia» ya no existe, y el agua NO lleva el rayo", () => {
 });
 
 console.log("\ncategories: OK");
+
+/* Coche (mantenimiento del vehículo). Solo altas nuevas: nada recategoriza lo guardado. */
+t("Coche: taller, ITV, ruedas y lavado van a Coche", () => {
+  for (const m of ["Taller Pepe", "ITV Cerdanyola", "Norauto Sabadell", "Neumáticos Midas", "Autolavado Express", "Feu Vert", "Carglass", "Cambio de aceite"]) {
+    assert.equal(ctx.autoCategory(m), "coche", m);
+  }
+});
+
+t("Coche no le roba gastos a Gasolina, Parking ni Luz", () => {
+  assert.equal(ctx.autoCategory("Repsol"), "transporte");
+  assert.equal(ctx.categoryOfNewMerchant("Gasolinera Repsol"), "gasolina");
+  assert.equal(ctx.autoCategory("Parking Saba"), "parking");
+  assert.notEqual(ctx.autoCategory("Aire acondicionado Pere"), "coche");
+  assert.notEqual(ctx.autoCategory("Sabadell Midasmar"), "coche", "midas solo como palabra entera");
+});

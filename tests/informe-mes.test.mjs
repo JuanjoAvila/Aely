@@ -2,8 +2,8 @@
 /**
  * INFORME DEL MES CERRADO — tope superior de monthBudgetStats.
  *
- * Sin `hastaMs`, pasar una fecha de agosto suma agosto + septiembre + lo que venga
- * (criterio 3 del brief). El default infinito deja Inicio/Gastos/widget iguales.
+ * El mes de Madrid acota también la llamada sin `hastaMs`; una ventana explícita
+ * sin límite conserva la demostración histórica de agosto + septiembre.
  */
 import assert from "node:assert/strict";
 import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
@@ -28,8 +28,10 @@ t("★ criterio 3: un gasto del mes NUEVO no se cuela en el informe del mes cerr
       { date: "2026-09-02T12:00:00.000Z", amount: 99, category: "super" },
     ],
   };
-  // Sin tope: el bug histórico (40+99).
-  assert.equal(ctx.monthBudgetStats(s, augMs).spent, 139);
+  // El default mensual cuenta sólo agosto; el escenario histórico sin tope es explícito.
+  assert.equal(ctx.monthBudgetStats(s, augMs).spent, 40);
+  assert.equal(ctx.monthBudgetStats(s, augMs, null, null,
+    {startMs:ctx.inicioDeMesMs(augMs),todayEndMs:Infinity,cycle:null}).spent, 139);
   // Con hastaMs = inicio de septiembre: solo agosto.
   const cerrado = ctx.monthBudgetStats(s, augMs, sepStart);
   assert.equal(cerrado.spent, 40, "septiembre no puede entrar en el informe de agosto");

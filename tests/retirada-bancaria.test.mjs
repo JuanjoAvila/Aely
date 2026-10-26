@@ -302,6 +302,30 @@ await check("deshacer por linkFixedPayment habilita retirada ACK sin pago residu
   assert.equal(marked.expenses[0].category,"traspaso");assert.equal(c.updates,1);assert.equal(marked.fixed,unlinked.fixed);
   assert.equal(marked.accounts,linked.accounts);assertPaidBoth(marked,false);
 });
+await check("deshacer el vínculo quita también la marca de pago que un pull derivó de esa prueba, y respeta una marca de otro día",()=>{
+  const {e,linked}=receiptFixture(),ym=2026*12+9;
+  // PR297 (planSyncDerived) escribe paidYm/paidDay desde la prueba tras un pull: al deshacerla no puede quedar el recibo «pagado» sin cargo.
+  const derivada={...linked,fixed:linked.fixed.map(f=>({...f,paidYm:ym,paidDay:25}))};
+  const unlinked=ctx.linkFixedPayment(derivada,e.id,null,2026,9,26);
+  assert.equal(unlinked.fixed[0].paidYm,undefined);assert.equal(unlinked.fixed[0].paidDay,undefined);assert.equal(unlinked.fixed[0].paymentProofs[ym],undefined);
+  const manual={...linked,fixed:linked.fixed.map(f=>({...f,paidYm:ym,paidDay:3}))};
+  const keep=ctx.linkFixedPayment(manual,e.id,null,2026,9,26);
+  assert.equal(keep.fixed[0].paidYm,ym);assert.equal(keep.fixed[0].paidDay,3);
+});
+await check("deshacer el vínculo conserva paidYm/paidDay de otro mes aunque coincida el día de la prueba",()=>{
+  const {e,linked}=receiptFixture(),ym=2026*12+9,otroMes=ym-1;
+  // Coincidir en día no hace que una marca de otro mes proceda de la prueba que se deshace.
+  const marcada={...linked,fixed:linked.fixed.map(f=>({...f,paidYm:otroMes,paidDay:25}))};
+  assert.equal(marcada.fixed[0].paymentProofs[ym].date,"2026-09-25");assertPaidBoth(marcada,true);
+  const unlinked=ctx.linkFixedPayment(marcada,e.id,null,2026,9,26);
+  assert.equal(unlinked.fixed[0].paidYm,otroMes);assert.equal(unlinked.fixed[0].paidDay,25);
+  assert.equal(unlinked.fixed[0].paymentProofs[ym],undefined);assertPaidBoth(unlinked,false);
+  const b=ctx.slimForCloud(unlinked);
+  assert.equal(b.fixed[0].paidYm,otroMes);assert.equal(b.fixed[0].paidDay,25);
+  assert.equal(b.fixed[0].paymentProofs[ym],undefined);
+  assert.equal(unlinked.accounts,marcada.accounts);assert.equal(unlinked.expenses,marcada.expenses);
+  assert.equal(ctx.canRecognizeWithdrawal(e,unlinked),true);
+});
 await check("renombrar conserva vínculo real por UUID/identidad y su puerta de deshacer",()=>{
   const {e,linked}=receiptFixture(),renamed={...e,merchant:"Nombre visible cambiado"};
   const rekeyed=ctx.rekeyFixedPaymentExpense(linked,e,renamed),s={...rekeyed,expenses:[renamed]};

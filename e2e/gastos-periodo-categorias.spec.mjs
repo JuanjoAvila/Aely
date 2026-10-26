@@ -1,5 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, gastosRoot, gastosCifra, gastosEstado, gastosPeriodo, gastosBajaAlMes, gastosSeccion } from "./fixtures.mjs";
+
+/* Gastos v5 (20/10/2026): el periodo se elige en Filtros (Meses · Mi ciclo · Rango · Todo) y el
+   desglose sigue al periodo elegido, igual que antes. «Mes pasado» ya no es un periodo: es bajar al
+   mes anterior en la lista, donde la cifra es su total y «cerrado», sin límite. «Últimos 3 meses»
+   sale por diseño (SPEC §7). Lo que se protege sigue siendo lo mismo: lista, cifra y categorías
+   cuentan lo mismo para el periodo, y fuera del mes/ciclo en curso no hay margen contra el límite. */
 
 // Mes y ciclo se solapan sin ser iguales; el rango contiene categorías que no existen en ambos.
 const now = new Date("2026-10-02T12:00:00Z");
@@ -16,88 +22,84 @@ const expenses = [
   expense("Octubre devolución", "2026-10-01", -5, "ingreso"),
 ];
 const words = {
-  es:{more:"Más…",last:"Mes pasado",month:"Este mes",cycle:"Mi ciclo",custom:"Rango…",all:"Todo",three:"Últimos 3 meses",prev:"Mes anterior",unknown:/no tiene un presupuesto registrado/},
-  en:{more:"More…",last:"Last month",month:"This month",cycle:"My cycle",custom:"Range…",all:"All",three:"Last 3 months",prev:"Previous month",unknown:/no budget is recorded/},
-  ca:{more:"Més…",last:"Mes passat",month:"Aquest mes",cycle:"El meu cicle",custom:"Rang…",all:"Tot",three:"Últims 3 mesos",prev:"Mes anterior",unknown:/no té un pressupost registrat/},
+  es:{cycle:"Mi ciclo por categoría",cats1:"octubre por categoría",cerrado:"septiembre · cerrado"},
+  en:{cycle:"My cycle by category",cats1:"October by category",cerrado:"September · closed"},
+  ca:{cycle:"El meu cicle per categoria",cats1:"octubre per categoria",cerrado:"setembre · tancat"},
 };
-const rows = page => page.locator(".v4-gastos-list-body button.v4-mov");
-const cats = page => page.locator(".v4-gastos-cat");
-async function choose(page,w,name){
-  await page.locator(".v4-periods").getByRole("button",{name:w.more,exact:true}).click();
-  await page.locator(".v4-sheet").getByRole("button",{name,exact:true}).click();
-}
+const SIN_MARGEN=/por debajo|por encima|under|over|per sota|per sobre/;
+const rows = page => gastosRoot(page).locator(".v4-gastos-list-body button.v4-mov");
+const cats = page => gastosRoot(page).locator(".v4-gastos-cat");
+// Gastos v5 (tanda 2): el desglose se mira en su sección y se vuelve a Movimientos.
 async function check(page, expected, spent){
+  await gastosSeccion(page,"cats");
   await expect(cats(page)).toHaveCount(Object.keys(expected).length);
-  for(const [id,amount] of Object.entries(expected)) await expect(page.locator('.v4-gastos-cat[data-cat="'+id+'"] .v4-gastos-cat-amt')).toHaveText(amount+" €");
-  await expect(page.locator(".v4-gastos-summary-amount")).toContainText(spent+",00");
+  for(const [id,amount] of Object.entries(expected)) await expect(gastosRoot(page).locator('.v4-gastos-cat[data-cat="'+id+'"] .v4-gastos-cat-amt')).toHaveText(amount+" €");
+  await expect(gastosCifra(page)).toHaveText(spent+",00 €");
+  await gastosSeccion(page,"movs");
+  await expect(gastosCifra(page)).toHaveText(spent+",00 €");
 }
-async function checkBudgetAbsent(page,w){
-  await expect(page.locator(".v4-gastos-summary-budget")).toHaveCount(0);
-  await expect(page.locator(".v4-gastos-summary-left")).toHaveCount(0);
-  await expect(page.locator(".v4-gastos-summary")).not.toContainText(w.unknown);
-  const widths=await page.locator(".v4-gastos-summary-top").evaluate(el=>({top:el.getBoundingClientRect().width,main:el.querySelector(".v4-gastos-summary-main").getBoundingClientRect().width}));
-  expect(Math.abs(widths.main-widths.top)).toBeLessThanOrEqual(1);
+// El Rango se elige en Filtros → Periodo (tanda 2: las fechas viven con el periodo).
+async function rangoEnFiltros(page, desde, hasta){
+  await gastosRoot(page).locator("button.v4-chip").filter({ hasText: "🎛️" }).first().click();
+  const hoja=page.locator(".v4-gastos-filter-sheet");
+  for(const [i,dia] of [[0,desde],[1,hasta]]){
+    await hoja.locator(".range button").nth(i).click();
+    await page.locator(".mc-cal-nav button").first().click(); await page.locator(".mc-cal-nav button").first().click();
+    await page.locator(".mc-cal-day").getByText(dia,{exact:true}).click();
+  }
+  await page.locator(".v4-sheet-back").click({ position: { x: 5, y: 5 } });
+  await page.locator(".v4-sheet-back").waitFor({ state: "detached" });
+}
+async function checkBudgetAbsent(page){
+  await expect(gastosEstado(page)).not.toContainText(SIN_MARGEN);
 }
 for(const lang of ["es","en","ca"]){
-  test("Gastos periodo único: mes, ciclo, rango y todos en "+lang, async ({page})=>{
+  test("Gastos periodo único: ciclo, meses, mes cerrado, rango y todo en "+lang, async ({page})=>{
     const w=words[lang];
     await page.clock.install({time:now});
     await seedLoggedInDashboard(page,{accounts,expenses,budget:1000,categoryBudgets:{super:200},
       settings:{autoPrices:false,lang,theme:"green",expenseBanks:["sabadell"],budgetCycle:true,gTotalMode:"split"}});
     await page.goto("/"); await dismissNews(page);
     await page.locator('.botnav-tab[data-tour="gastos"]').click();
+    await expect(gastosRoot(page)).toHaveAttribute("data-periodo","cycle");
     await check(page,{bares:40,super:25},60);
-    await expect(page.locator(".v4-gastos-summary-budget")).toHaveCount(1);
-    await expect(page.locator('.v4-gastos-progress')).toHaveAttribute("aria-valuenow","60");
-    await expect(page.locator('.v4-gastos-summary-left')).toContainText("940,00");
+    await expect(gastosEstado(page)).toContainText(/940 €/);
 
-    await choose(page,w,w.last);
-    await check(page,{compras:70,bares:40},110);
-    await expect(rows(page)).toHaveCount(3);
-    await expect(rows(page).filter({hasText:"Octubre compra"})).toHaveCount(0);
-    await checkBudgetAbsent(page,w);
-    await expect(cats(page).locator('[role="progressbar"]')).toHaveCount(0);
-    await expect(page.locator(".v4-gastos-progress")).toHaveCount(0);
-
-    await page.locator(".v4-periods").getByRole("button",{name:w.month,exact:true}).click();
+    await gastosPeriodo(page,"months");
     await check(page,{super:25},25);
-    await page.locator('.v4-gastos-cats-h').click();
-    await expect(page.locator('.v4-gastos-cats-t')).toHaveText({es:"1 categoría · Este mes",en:"1 category · This month",ca:"1 categoria · Aquest mes"}[lang]);
-    await page.locator('.v4-gastos-cats-h').click();
-    await expect(rows(page)).toHaveCount(2);
-    await expect(page.locator('.v4-gastos-summary-left')).toContainText("975,00");
-    await expect(page.locator('.v4-gastos-cat[data-cat="super"] [role="progressbar"]')).toHaveAttribute("aria-valuenow","25");
+    await gastosSeccion(page,"cats");
+    await expect(gastosEstado(page)).toContainText(w.cats1);
+    await expect(gastosRoot(page).locator('.v4-gastos-cat[data-cat="super"] [role="progressbar"]')).toHaveAttribute("aria-valuenow","25");
+    await gastosSeccion(page,"movs");
+    await expect(gastosEstado(page)).toContainText(/975 €/);
+    // El mes anterior, bajando: su total (compras 70 + café 40) y «cerrado», sin margen.
+    await expect(gastosRoot(page).locator('.gx-dia[data-gx-ym="2026-09"] button.v4-mov')).toHaveCount(3);
+    await gastosBajaAlMes(page,"2026-09");
+    await expect(gastosCifra(page)).toHaveText("110,00 €");
+    await expect(gastosEstado(page)).toHaveText(w.cerrado);
+    await page.evaluate(()=>document.querySelector(".page-scroll-host").scrollTo(0,0));
 
-    await choose(page,w,w.custom);
-    await page.locator(".range button").first().click();
-    await page.locator(".mc-cal-nav button").first().click(); await page.locator(".mc-cal-nav button").first().click();
-    await page.locator(".mc-cal-day").getByText("10",{exact:true}).click();
-    await page.locator(".range button").last().click();
-    await page.locator(".mc-cal-nav button").first().click(); await page.locator(".mc-cal-nav button").first().click();
-    await page.locator(".mc-cal-day").getByText("20",{exact:true}).click();
+    await gastosPeriodo(page,"custom");
+    await rangoEnFiltros(page,"10","20");
     await check(page,{salud:23,transporte:11},34);
     await expect(rows(page)).toHaveCount(2);
-    await checkBudgetAbsent(page,w);
+    await checkBudgetAbsent(page);
+    await expect(cats(page).locator('[role="progressbar"]')).toHaveCount(0);
+    await expect(gastosRoot(page).locator(".gx-cats-barra")).toHaveCount(0);
 
-    await choose(page,w,w.three);
+    await gastosPeriodo(page,"all");
     await check(page,{compras:70,bares:40,super:25,salud:23,transporte:11,ocio:9},178);
-    await checkBudgetAbsent(page,w);
-    await choose(page,w,w.all);
-    await check(page,{compras:70,bares:40,super:25,salud:23,transporte:11,ocio:9},178);
-    await checkBudgetAbsent(page,w);
-    await page.locator(".v4-periods").getByRole("button",{name:w.cycle,exact:true}).click();
+    await checkBudgetAbsent(page);
+    await gastosPeriodo(page,"cycle");
     await check(page,{bares:40,super:25},60);
-    // Tras explorar todo el histórico, el ciclo debe recuperar su límite y su progreso.
-    await expect(page.locator(".v4-gastos-summary-budget")).toHaveCount(1);
-    await expect(page.locator('.v4-gastos-summary-budget > div').first()).toContainText("1000,00");
-    await expect(page.locator('.v4-gastos-summary-left')).toContainText("940,00");
-    await expect(page.locator('.v4-gastos-progress')).toHaveAttribute("aria-valuemax","1000");
-    await expect(page.locator('.v4-gastos-progress')).toHaveAttribute("aria-valuenow","60");
-    await page.locator('.v4-gastos-cats-h').click();
-    await expect(page.locator('.v4-gastos-cats-t')).toContainText(w.cycle);
-    await page.locator('input.searchbar-in[type="search"]').first().fill("Octubre compra");
+    // Tras explorar todo el histórico, el ciclo debe recuperar su margen contra el límite.
+    await expect(gastosEstado(page)).toContainText(/940 €/);
+    await gastosSeccion(page,"cats");
+    await expect(gastosEstado(page)).toContainText(w.cycle);
+    await gastosSeccion(page,"movs");
+    await gastosRoot(page).locator('input.searchbar-in[type="search"]').first().fill("Octubre compra");
     await expect(rows(page)).toHaveCount(1);
-    await expect(page.locator('.v4-gastos-summary-amount')).toContainText("60,00");
+    await expect(gastosCifra(page)).toHaveText("60,00 €");
   });
 }
 
@@ -113,25 +115,44 @@ test("Mi ciclo: un apunte futuro queda fuera de lista y categorías",async({page
 });
 
 
-test("Mes pasado: búsqueda, categoría y banco exploran sin cambiar sus cifras",async({page})=>{
+/* Tanda 6 (su «cuando tocas un filtro el número de arriba no cambia», 25/10): con un filtro de
+   categoría o de banco la cifra de MOVIMIENTOS es la de lo filtrado; Categorías y su cifra siguen
+   siendo las del presupuesto, y la búsqueda sola explora sin cambiar nada. */
+async function checkFiltrado(page, expected, spent, movs){
+  await gastosSeccion(page,"cats");
+  await expect(cats(page)).toHaveCount(Object.keys(expected).length);
+  for(const [id,amount] of Object.entries(expected)) await expect(gastosRoot(page).locator('.v4-gastos-cat[data-cat="'+id+'"] .v4-gastos-cat-amt')).toHaveText(amount+" €");
+  await expect(gastosCifra(page)).toHaveText(spent+",00 €");
+  await gastosSeccion(page,"movs");
+  await expect(gastosCifra(page)).toHaveText(movs);
+}
+test("categoría y banco cambian la cifra de Movimientos (no la de Categorías); la búsqueda sola no",async({page})=>{
   await page.clock.install({time:now});
   const other=Object.assign(expense("Septiembre otro banco","2026-09-10",90,"salud"),{ent:"revolut"});
   await seedLoggedInDashboard(page,{accounts:accounts.concat({id:"other",ent:"revolut",name:"Otra",role:"fijos",value:100}),expenses:expenses.concat(other),budget:1000,
     settings:{autoPrices:false,lang:"es",theme:"green",expenseBanks:["sabadell"],budgetCycle:true,gTotalMode:"split"}});
   await page.goto("/"); await dismissNews(page);
-  await page.locator('.botnav-tab[data-tour="gastos"]').click(); await choose(page,words.es,words.es.last);
-  await check(page,{compras:70,bares:40},110);
-  await page.locator('.filters button[title="Filtros"]').click();
+  await page.locator('.botnav-tab[data-tour="gastos"]').click(); await gastosPeriodo(page,"months");
+  await check(page,{super:25},25);
+  await gastosRoot(page).locator('.filters button[title="Filtros"]').click();
   await page.locator('.v4-filter-cats-toggle').click(); await page.getByTestId('gastos-filter-cat-compras').click();
   await page.locator('.v4-gastos-filter-sheet .btn-primary').click();
-  await expect(rows(page)).toHaveCount(1); await check(page,{compras:70,bares:40},110);
-  await page.locator('.filters button[title="Filtros"]').click();
-  await page.locator('.v4-gastos-filter-sheet .btn-ghost').click();
+  // Compras en octubre: nada (la única es de septiembre, y sale en su mes de la lista).
+  await expect(rows(page)).toHaveCount(1); await checkFiltrado(page,{super:25},25,"0,00 €");
+  await expect(gastosEstado(page)).toHaveText("0 movimientos · igual que en septiembre a estas alturas");
+  await gastosRoot(page).locator('.filters button[title="Filtros"]').click();
+  await page.locator('.v4-gastos-filter-sheet .gx-fil-reset').click();
+  // «Restablecer» también vuelve al periodo de entrada (Mi ciclo): se elige otra vez Meses.
+  await page.locator('.v4-gastos-filter-sheet [data-periodo="months"]').click();
   await page.locator('.v4-gastos-filter-sheet').getByRole('button',{name:'Sabadell',exact:true}).click();
   await page.locator('.v4-gastos-filter-sheet').getByRole('button',{name:'Revolut',exact:true}).click();
   await page.locator('.v4-gastos-filter-sheet .btn-primary').click();
+  // Solo Revolut: su único cargo es de un banco que no es de gasto diario («no cuenta»), así que no suma.
   await expect(rows(page)).toHaveCount(1); await expect(rows(page)).toContainText('Septiembre otro banco');
-  await check(page,{compras:70,bares:40},110);
-  await page.locator('input.searchbar-in[type="search"]').first().fill('no existe');
-  await expect(rows(page)).toHaveCount(0); await check(page,{compras:70,bares:40},110);
+  await checkFiltrado(page,{super:25},25,"0,00 €");
+  await gastosRoot(page).locator('input.searchbar-in[type="search"]').first().fill('no existe');
+  await expect(rows(page)).toHaveCount(0); await checkFiltrado(page,{super:25},25,"0,00 €");
+  // Sin filtros (Limpiar vuelve también al periodo de entrada, Mi ciclo), la búsqueda sola no cambia la cifra.
+  await gastosRoot(page).getByRole("button",{name:"Limpiar"}).click();
+  await expect(rows(page)).toHaveCount(0); await check(page,{bares:40,super:25},60);
 });

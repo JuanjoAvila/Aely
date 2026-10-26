@@ -81,7 +81,7 @@ test("entrar por primera vez en cada pestaña no bloquea el hilo principal", asy
   // Inicio es la prueba de que el trabajo se adelantó. Es una comprobación estructural, no de
   // tiempos: no puede quedarse en flaky cuando el CI vaya lento.
   expect(await page.locator('.botnav-tab.active').getAttribute("data-tour")).toBe("inicio");
-  const subs = await page.locator(".sub-row").count();
+  const subs = await page.locator(".gx-sub").count();
   expect(subs, "la tarjeta cara de Gastos no se ha adelantado: sigue esperando a que entres").toBeGreaterThan(0);
 
   // Y la comprobación cara, solo en la pestaña que motivó el feedback (Deudas y Metas). Se mide

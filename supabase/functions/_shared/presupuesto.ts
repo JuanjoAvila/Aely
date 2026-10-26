@@ -71,12 +71,14 @@ export function inicioDeMesMs(when: number | Date = Date.now(), timeZone: string
 const CAT_NEUTRAS: Record<string, number> = { inversion: 1, traspaso: 1, deudas: 1 };
 
 export type FilaGasto = {
+  ingest_event_id?: string | null;
   id?: string | null;
   importe: number | string;
   cat?: string | null;
   source?: string | null;
   fecha?: string | null;
   comercio?: string | null;
+  ob_name?: string | null;
 };
 
 /**
@@ -91,7 +93,16 @@ export function esSourceManual(source?: string | null): boolean {
   return !s || s === "manual" || s.indexOf("manual:") === 0 || s === "supabase";
 }
 
+/** La escritura cloud puede conservar solo source: no depender de una columna opcional. */
+export function huellaNativaSource(source?: string | null): string {
+  const raw=String(source || "");
+  if (!raw.startsWith("native:trade_republic#")) return "";
+  const match=/#e([^#]+)(?:#|$)/.exec(raw);
+  try { return match ? decodeURIComponent(match[1]) : ""; } catch (_) { return ""; }
+}
+
 export function claveComoLaApp(f: {
+  ingest_event_id?: string | null;
   fecha?: string | null;
   importe?: number | string;
   comercio?: string | null;
@@ -101,7 +112,10 @@ export function claveComoLaApp(f: {
   const base = String(f.fecha || "").slice(0, 10) + "|" + (Number(f.importe) || 0) + "|" + (f.comercio || "");
   if (esSourceManual(f.source)) return base + "|" + String(f.id || "");
   const ord = ordinalDeSource(f.source);
-  return ord > 1 ? base + "|#" + ord : base;
+  const key = ord > 1 ? base + "|#" + ord : base;
+  const native = String(f.source || "").indexOf("native:trade_republic#") === 0;
+  const identity = native && (f.ingest_event_id || huellaNativaSource(f.source));
+  return identity ? key + "|evt:" + encodeURIComponent(identity) : key;
 }
 
 /**
@@ -113,7 +127,7 @@ export function claveComoLaApp(f: {
  */
 export function ordinalDeSource(source?: string | null): number {
   const s = String(source || "");
-  if (s.indexOf("ob:") !== 0 && s.indexOf("ob-hist:") !== 0) return 1;
+  if (s.indexOf("ob:") !== 0 && s.indexOf("ob-hist:") !== 0 && s.indexOf("native:trade_republic#") !== 0) return 1;
   const tramos = s.split("#").slice(1);
   for (const t of tramos) {
     const m = /^n(\d{1,6})$/.exec(t);
@@ -190,8 +204,21 @@ export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefine
   // el escritor para proteger a la superviviente; ambos índices se calculan una vez.
   const sinCuenta = new Set<string>();
   const cuentaAusente = new Set<string>();
+  const porCuenta = new Map<string, [string, string][]>();
   for (const k of lap) {
     const p = k.split("|");
+    // Espejo de expenseDeletionKey: un DELETE fallido no devuelve al widget una
+    // compra borrada, ni permite que su lápida oculte la de otra cuenta.
+    if (p[0] === "expense-account") {
+      try {
+        const id = JSON.parse(decodeURIComponent(p[1]));
+        if (Array.isArray(id) && id.length === 2 && id.every(x => typeof x === "string" && x)) {
+          const key = p.slice(2).join("|"), list = porCuenta.get(key) || [];
+          list.push(id as [string, string]); porCuenta.set(key, list);
+        }
+      } catch (_) { /* Una lápida corrupta no acredita ningún borrado. */ }
+      continue;
+    }
     if ((p.length === 6 && p[0] === "ob-absorbed2") || (p.length === 7 && p[0] === "ob-absorbed3")) {
       const base = p.slice(0, 4).join("|") + "||" + p[5] + (p.length === 7 ? "|" + p[6] : "");
       sinCuenta.add(base); if (!p[4]) cuentaAusente.add(base);
@@ -205,6 +232,17 @@ export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefine
     if (!keepIds.has(String(f.id)) && !matches(f,kept,keptIndex) && matches(f,gone,goneIndex)) continue;
     const k = claveComoLaApp(f);
     if (lap.has(k)) continue;
+    const oldNative = claveLegacySinId(f) + (ordinalDeSource(f.source) > 1 ? "|#" + ordinalDeSource(f.source) : "");
+    if ((f.ingest_event_id || huellaNativaSource(f.source)) && lap.has(oldNative)) continue;
+    if (porCuenta.size && !esSourceManual(f.source)) {
+      // El otro móvil puede borrar antes de recibir el renombrado. Ambas claves
+      // conservan el mismo ámbito; el nombre original no puede borrar otra cuenta.
+      const key = k;
+      const original = f.ob_name == null ? key : claveComoLaApp({ ...f, comercio: f.ob_name });
+      const bank = bancoDeSource(f.source), account = cuentaDeSource(f.source);
+      const matchesAccount = ([b, a]: [string, string]) => (!bank || bank === b) && (!account || account === a);
+      if ((porCuenta.get(key) || []).some(matchesAccount) || (original !== key && (porCuenta.get(original) || []).some(matchesAccount))) continue;
+    }
     const absorbed = claveAbsorcionOb(f);
     if (absorbed && lap.has(absorbed)) continue;
     // Reutilizar la base evita decodificar y codificar la referencia tres veces por fila.
@@ -221,15 +259,42 @@ export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefine
     const bookKey = clavePreferenciaBook(f);
     if (bookKey && !books.has(bookKey) && !/#pdng(?:#|$)/.test(String(f.source))) books.set(bookKey, f);
   }
+  // Deshacer devuelve dos cuentas conocidas aunque su contenido sea idéntico. Las filas
+  // incompletas ocupan una sola candidata, priorizando su banco como hace el cliente.
+  const identidades = new Map<T, string>(), contenidos = new Map<string, string>(), bancos = new Map<string, string>();
+  const ids = new Map<string, string>(), refs = new Map<string, string>();
+  const unica = (map: Map<string, string>, key: string, id: string) => {
+    if (!map.has(key)) map.set(key, id); else if (map.get(key) !== id) map.set(key, "");
+  };
+  for (const f of live) {
+    const bank = bancoDeSource(f.source), account = cuentaDeSource(f.source);
+    if (!bank || !account || esSourceManual(f.source)) continue;
+    const id = JSON.stringify([bank, account]), key = claveComoLaApp(f), bankKey = bank + "|" + key;
+    identidades.set(f, id);
+    if (!contenidos.has(key) || id < contenidos.get(key)!) contenidos.set(key, id);
+    if (!bancos.has(bankKey) || id < bancos.get(bankKey)!) bancos.set(bankKey, id);
+    if (f.id) unica(ids, bank + "|" + f.id, id);
+    const ref = referenciaOb(f); if (ref) unica(refs, ref, id);
+  }
+  const ambito = (f: T, key: string) => {
+    if (esSourceManual(f.source)) return "";
+    const bank = bancoDeSource(f.source);
+    return identidades.get(f) || ids.get(bank + "|" + f.id) || refs.get(referenciaOb(f)) || bancos.get(bank + "|" + key) || contenidos.get(key) || "";
+  };
   const vistas = new Map<string, Set<string>>(), referencias = new Set<string>();
   const out: T[] = [];
   for (const original of live) {
     const book = /#pdng(?:#|$)/.test(String(original.source)) && books.get(clavePreferenciaBook(original));
-    const f = book || original, k = claveComoLaApp(f);
+    const f = book || original, key = claveComoLaApp(f), scope = ambito(f, key), k = scope ? scope + "|" + key : key;
     // La fecha contable puede cambiar al pasar de PDNG a BOOK. El cliente identifica
     // banco+referencia antes de mirar el día; sin este espejo el widget suma ambos.
     // Las lápidas se aplican antes: una fila retirada no puede consumir la identidad.
-    const ref = referenciaOb(f), anteriores = vistas.get(k);
+    let ref = referenciaOb(f);
+    if (ref && scope) {
+      const parts = JSON.parse(ref);
+      if (identidades.has(f) || scope.startsWith("[" + JSON.stringify(parts[0]) + ",")) ref = JSON.stringify([scope, parts[1], parts[2]]);
+    }
+    const anteriores = vistas.get(k);
     if (ref && referencias.has(ref)) continue;
     if (ref) referencias.add(ref);
     // Dos referencias conocidas distintas son compras distintas, incluso si todavía
@@ -275,7 +340,7 @@ function claveAbsorcionOb(f: FilaGasto, legacy: boolean | 2 = false): string | n
  */
 export function bancoDeSource(source?: string | null): string | null {
   const s = String(source || "");
-  if (s === "macrodroid" || s === "tr") return "trade_republic";
+  if (s === "macrodroid" || s === "tr" || s.indexOf("native:trade_republic#") === 0) return "trade_republic";
   // «#dup» → B09-D; «#n2» → ordinal; «~deuda.» → cuota; «~recibo.» → cargo de un recibo (otra
   // entrega lo escribe; aquí ya se lee). El histórico (`ob-hist:`) lleva las mismas marcas: hasta
   // el 12/10/2026 devolvía «trade_republic#n2» y esa fila se caía del presupuesto del widget.
@@ -350,10 +415,24 @@ export function esCargoDeRecibo(source?: string | null): boolean {
   return s.slice(s.indexOf(":") + 1).split("#")[0].indexOf("~recibo.") > 0;
 }
 
+/**
+ * ¿Es dinero que va a una meta? (24/10/2026). Viaja como `ob:<ent>~meta.<id>` u
+ * `ob-hist:<ent>~meta.<id>`: él lo marca desde la ficha del gasto y suma a la meta, no al gasto
+ * del mes. Sola, como en el cliente: con cuota o recibo la fila es de ellos. Hasta que se
+ * despliegue esta función, el servidor lee el banco limpio y la CUENTA (igual que una app vieja):
+ * el widget diría más que Inicio solo para quien la use. Espejo de `metaDeGasto()`.
+ */
+export function esAportacionAMeta(source?: string | null): boolean {
+  const s = String(source || "");
+  if (s.indexOf("ob:") !== 0 && s.indexOf("ob-hist:") !== 0) return false;
+  const tramo = s.slice(s.indexOf(":") + 1).split("#")[0];
+  return tramo.indexOf("~meta.") > 0 && tramo.indexOf("~deuda.") < 0 && tramo.indexOf("~recibo.") < 0;
+}
+
 /** ¿Este movimiento mueve la cifra del presupuesto? Espejo de `expenseCountsBudget()`. */
 export function cuentaParaPresupuesto(fila: FilaGasto, ents: string[]): boolean {
   if (!fila) return false;
-  if (esCuotaDeDeuda(fila.source) || esCargoDeRecibo(fila.source)) return false;
+  if (esCuotaDeDeuda(fila.source) || esCargoDeRecibo(fila.source) || esAportacionAMeta(fila.source)) return false;
   // Pendiente de que él diga «es el mismo» o «son distintos»: no mueve saldo ni presupuesto,
   // igual que en `expenseCountsCash()`. Sin esta línea el servidor sumaba lo que la app restaba
   // y el widget decía más que Inicio.

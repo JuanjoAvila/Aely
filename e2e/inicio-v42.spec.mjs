@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews, installFixtureClock, FIXTURE_NOW, estadoHeredado } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, installFixtureClock, FIXTURE_NOW, estadoHeredado, esperaNubeQuieta } from "./fixtures.mjs";
 export const states=[
   {id:"over",spent:1001,text:"Te has pasado 1 €",tone:"coral"},
   {id:"start",spent:900,text:"Ciclo recién empezado",tone:"mint",day:3},
@@ -168,7 +168,7 @@ for(const reduced of [false,true]) test("dedo consulta y suelta "+reduced,async(
     await route.fulfill({response,body:html.replace(marker,marker+"window.__v42DashboardRenders=(window.__v42DashboardRenders||0)+1;window.__v42DashboardChanges=(window.__v42DashboardChanges||[]).concat([window.__v42PreviousState?Object.keys(state).filter(function(k){return state[k]!==window.__v42PreviousState[k];}):['mount']]);window.__v42PreviousState=state;")});
   });
   await page.emulateMedia({reducedMotion:reduced?"reduce":"no-preference"});await open(page);
-  await page.waitForFunction(()=>window.__mcBootReady===true);await page.waitForTimeout(2200);
+  await page.waitForFunction(()=>window.__mcBootReady===true);await page.waitForTimeout(2200);await esperaNubeQuieta(page);
   const hero=page.getByTestId("inicio-net-current"), amount=hero.locator(".v4-hero-amt"), before=await amount.innerText(),delta=await hero.getByTestId("inicio-net-delta").innerText();
   const chart=page.locator(".v42-net-chart"),box=await chart.boundingBox();
   expect(await chart.evaluate(el=>getComputedStyle(el).touchAction)).toBe("pan-y");

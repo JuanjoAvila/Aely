@@ -3,6 +3,10 @@ import { seedLoggedInDashboard, dismissNews, FIXTURE_NOW, installFixtureClock } 
 
 const id="550e8400-e29b-41d4-a716-446655440000";
 const expense={id,date:new Date(FIXTURE_NOW).toISOString(),merchant:"Disposición oficina ficticia",amount:80,category:"otros",source:"ob",ent:"caixabank"};
+/* Releer la nube = volver a la app (Gastos v5, tanda 5): «Actualizar gastos» ya no existe y esa
+   es la puerta que queda, la misma que usa la familia. Se simula la vuelta con visibilitychange. */
+const vuelveALaApp=page=>page.evaluate(()=>{let vis="hidden";Object.defineProperty(document,"visibilityState",{configurable:true,get:()=>vis});
+  document.dispatchEvent(new Event("visibilitychange"));vis="visible";document.dispatchEvent(new Event("visibilitychange"));});
 async function open(page,lang="es",mode="ok",remoteCat="otros",overrides={}){
   await installFixtureClock(page);
   const remote={id,fecha:expense.date,comercio:expense.merchant,importe:80,cat:remoteCat,source:"ob:caixabank"};
@@ -19,7 +23,7 @@ async function open(page,lang="es",mode="ok",remoteCat="otros",overrides={}){
         return {...base,auth:{...base.auth,getSession:async()=>({data:{session:window.__withdrawalFixture.mode==="noSession"?null:{user:{id:"e2e-user"}}}})},
           from(table){
             if(table==="app_state"&&mode.startsWith("lateReceipt")){
-              const fixture=window.__withdrawalFixture,q={select(){return q;},eq(){return q;},update(){return q;},upsert(){return q;},
+              const fixture=window.__withdrawalFixture,q={select(){return q;},eq(){return q;},update(){return q;},upsert(){return q;},insert(){return q;},
                 async maybeSingle(){return {data:fixture.receiptPack||null,error:null};},
                 async then(resolve){
                   // El conflicto CAS hace que la app baje metadatos del otro móvil por su ruta real.
@@ -60,9 +64,7 @@ async function open(page,lang="es",mode="ok",remoteCat="otros",overrides={}){
   await page.waitForFunction(()=>!document.getElementById("mc-load"));
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   if(remoteCat==="traspaso"){
-    // El botón de Gastos se llama «Actualizar gastos» desde la 4.26.138 (mismo onSync, otro texto).
-    const syncLabel=await page.evaluate(()=>t("g_refresh_expenses"));
-    await page.locator('.v4-screen:has(.v4-gastos-summary)').getByRole("button",{name:syncLabel,exact:true}).click();
+    await vuelveALaApp(page);
     await expect(page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:expense.merchant})).toHaveClass(/v4-mov-skip/);
   }
   await page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:expense.merchant}).click();
@@ -103,7 +105,8 @@ for(const lang of ["es","en","ca"])test(`cancelar, ACK, recarga y móvil B conse
   const action=sheet.getByTestId("exp-withdrawal");
   await expect(action).toHaveText(txt.action);
   const before=await stored(page);
-  await expect(page.locator('.v4-gastos-progress[role="progressbar"]')).toHaveAttribute("aria-valuenow","80");
+  // Gastos v5: la cifra de la cabecera es lo que cuenta contra el límite (antes, la barra).
+  await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toHaveText("80,00 €");
   await action.click();await page.locator('.askback .btn-ghost').click();
   expect((await stored(page)).writes).toBe(0);
   await expect(sheet.getByTestId("exp-cat-otros")).toHaveAttribute("aria-pressed","true");
@@ -117,7 +120,7 @@ for(const lang of ["es","en","ca"])test(`cancelar, ACK, recarga y móvil B conse
   expect(after.writes).toBe(1);expect(after.expenses).toHaveLength(1);
   expect(after.expenses[0]).toMatchObject({...expense,category:"traspaso"});
   expect(after.state.accounts).toEqual(before.state.accounts);
-  await expect(page.locator('.v4-gastos-progress[role="progressbar"]')).toHaveAttribute("aria-valuenow","0");
+  await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toHaveText("0,00 €");
   await expect(sheet.getByTestId("exp-withdrawal-info")).toContainText(txt.limit);
   await page.reload();await dismissNews(page);await page.waitForFunction(()=>!document.getElementById("mc-load"));
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
@@ -203,7 +206,7 @@ for(const lang of ["es","en","ca"])test(`vínculo bajado tras enviar UPDATE se c
   expect(after.state.fixed[0].paymentProofs[2026*12+9]).toBeUndefined();
   // El pull real posterior conserva la única retirada y no recrea la prueba invalidada.
   await page.locator('.v4-exp-sheet .v4-ficha-done').click();
-  const sync=await page.evaluate(()=>t("g_refresh_expenses"));await page.locator('.v4-screen:has(.v4-gastos-summary)').getByRole("button",{name:sync,exact:true}).click();
+  await vuelveALaApp(page);
   await expect.poll(async()=>(await stored(page)).expenses[0]?.category).toBe("traspaso");
   await receiptOnB(browser,lang,await page.evaluate(()=>slimForCloud(mcLoadRaw(mcStateKey()))),false,bill);
 });

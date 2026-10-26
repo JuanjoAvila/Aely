@@ -53,9 +53,22 @@ export const CORE = [
  * (mejor un minuto de más que un verde ciego).
  */
 export const E2E_MAP = [
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/fin27-book-charge-month.spec.mjs", "e2e/fin27-balance-reanchor.spec.mjs"] },
+  { file: "src/modules/00-core.js", specs: ["e2e/fin04-plan-three-way.spec.mjs", "e2e/pr297-r2-plan-sync.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/fin04-plan-three-way.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/fin04-plan-three-way.spec.mjs"] },
+  { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/fin04-plan-three-way.spec.mjs"] },
+  { file: "src/modules/10-app-components.js", specs: ["e2e/fin04-plan-three-way.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/fin04-plan-three-way.spec.mjs", "e2e/pr297-r2-plan-sync.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/fin04-plan-three-way.spec.mjs"] },
+  { file: "src/modules/06-sync-brokers.js", specs: ["e2e/fin22-cartera-divisa.spec.mjs"] },
+  { file: "src/modules/10-app-components.js", specs: ["e2e/fin22-cartera-divisa.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/fin22-cartera-divisa.spec.mjs"] },
   // La cifra grande (`useCountUp`) en Inicio, Cartera y «Tus recibos», y la mensualidad de los
   // recibos con importe por cobro (`fixedMonthlyOf`) que leen los totales y Hogar (4.26.150).
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/cifra-sin-cero.spec.mjs", "e2e/recibos-cifra-estable.spec.mjs"] },
+  // `useTironSeccion`: el tirón de sección que comparten Plan y Gastos.
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/plan-swipe-segmento.spec.mjs", "e2e/gastos-v5-secciones.spec.mjs", "e2e/gastos-v5-ciclos.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/cifra-sin-cero.spec.mjs"] },
   { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-cifra-estable.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/recibos-cifra-estable.spec.mjs"] },
@@ -70,8 +83,17 @@ export const E2E_MAP = [
   { file: "src/modules/11-app-main.js", specs: ["e2e/ux16-haptics.spec.mjs"] },
   { file: "src/modules/10-app-components.js", specs: ["e2e/ux16-ajustador.spec.mjs", "e2e/ux18-orden-idioma-al-momento.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/ux18-orden-idioma-al-momento.spec.mjs"] },
-  { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-deuda-futura.spec.mjs"] },
+  // Idioma recibido de nube, paquete externo y edición local mientras llega un pull antiguo.
+  { file: "src/modules/01-i18n.js", specs: ["e2e/ux18-preferencias-nube.spec.mjs"] },
+  { file: "src/modules/10-app-components.js", specs: ["e2e/ux18-preferencias-nube.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/ux18-preferencias-nube.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/ux18-preferencias-nube.spec.mjs"] },
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-deuda-futura.spec.mjs", "e2e/fin36-debt-madrid-month.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/widget-banco.spec.mjs", "e2e/inc1710-reload-fallback-delay.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/fin04-first-pull.spec.mjs", "e2e/fin04-recovery.spec.mjs", "e2e/savedat-arranque.spec.mjs"] },
+  // «Abrir en Cartera ›» de la fila gris de Inversiones: el destino (`goInversiones`) y su marca en Cartera.
+  { file: "src/modules/11-app-main.js", specs: ["e2e/gastos-inversion-gris.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/gastos-inversion-gris.spec.mjs"] },
   {file:"src/modules/16-help-assistant.js",specs:["e2e/help-assistant.spec.mjs","e2e/help-preguntar-borde.spec.mjs"]},
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-grafica-reservas.spec.mjs", "e2e/inicio-v42.spec.mjs", "e2e/inicio-v42-rendimiento.spec.mjs", "e2e/inicio-grafica-feedback.spec.mjs", "e2e/dashboard-memo-profile.spec.mjs", "e2e/help-assistant.spec.mjs",
     "e2e/listas-render.spec.mjs",
@@ -108,6 +130,31 @@ export const E2E_MAP = [
     "e2e/gastos-categorias-presupuesto.spec.mjs", "e2e/gastos-periodo-categorias.spec.mjs", "e2e/gastos-suelta-filas.spec.mjs",
     "e2e/gastos-deudas.spec.mjs", "e2e/cartera-ficha-cuenta.spec.mjs", "e2e/presupuesto-fluido.spec.mjs",
     "e2e/gastos-ayuda-ciclo.spec.mjs", "e2e/gastos-mes-madrid.spec.mjs",
+    // Gastos v5: cifra viva = Inicio, mes cerrado sin límite, filas grises, sin perder filas, Mi ciclo.
+    "e2e/gastos-v5.spec.mjs",
+    // Gastos v5 tanda 2: secciones, tirón con un solo toque, Categorías y Suscripciones como antes.
+    "e2e/gastos-v5-secciones.spec.mjs",
+    // Gastos v5 tanda 3: tocar una categoría filtra (píldora, cifra de la categoría, meses fijos) y
+    // el límite por pulsación larga o por el chip del filtro, la misma hoja.
+    "e2e/gastos-v5-filtro.spec.mjs",
+    // Gastos v5 tanda 4: Suscripciones como bandeja, su ficha, la «i» y las tres acciones.
+    "e2e/gastos-v5-subs.spec.mjs",
+    // Gastos v5 tanda 5: la hoja de Filtros definitiva (cuatro apartados, «Ver N», Restablecer, «Las N»).
+    "e2e/gastos-v5-filtros.spec.mjs",
+    // «Es aportación a la meta X»: ficha, fila gris de Metas, cifra sin ella y progreso en Plan.
+    "e2e/gastos-meta-aportacion.spec.mjs",
+    // Fila gris de Inversiones: aportaciones a brókers con su destino, cifras iguales y «Abrir en Cartera».
+    "e2e/gastos-inversion-gris.spec.mjs",
+    // Gastos v5 tanda 6: fin de lista sin hueco, fila de ciclos en Mi ciclo, tirón desde abajo en
+    // una sección vacía y la cifra de lo filtrado.
+    "e2e/gastos-v5-ciclos.spec.mjs",
+    // «Lagazo guapo» (25/10): con cientos de filas bajadas solo se pintan los días de cerca, y la
+    // paginación sigue llegando a «Hasta aquí».
+    "e2e/gastos-lista-ligera.spec.mjs",
+    // Rechazo de la 173: tocar un mes o un ciclo de la fila deja SU primer día bajo la cabecera.
+    "e2e/gastos-fila-salto.spec.mjs",
+    // Y el asa de ordenar ya no se come el desliz hacia Plan (solo se queda el vertical).
+    "e2e/gastos-asa-desliz.spec.mjs",
     // Apuntes iguales de TR por el cableado real: filas en Gastos, «Es el mismo» desde la ficha.
     "e2e/tr-iguales-ordinal.spec.mjs",
     "e2e/tr-emparejado-automatico.spec.mjs",
@@ -119,11 +166,13 @@ export const E2E_MAP = [
     "e2e/cartera-inversiones.spec.mjs", "e2e/brokers-selector.spec.mjs",
   ] },
   { file: "src/modules/06-sync-brokers.js", specs: [
+    "e2e/fin31-cartera-moneda.spec.mjs",
     "e2e/cartera-orden-brokers.spec.mjs",
     "e2e/cartera-inversiones.spec.mjs", "e2e/brokers-selector.spec.mjs", "e2e/revolut-csv-import.spec.mjs",
     "e2e/tr-aviso.spec.mjs",
   ] },
   { file: "src/modules/08-motor-bank.js", specs: [
+    "e2e/fin36-debt-madrid-month.spec.mjs",
     "e2e/h2-account-phases.spec.mjs",
     "e2e/plan-expense-links.spec.mjs",
     "e2e/inicio-deuda-futura.spec.mjs",
@@ -135,12 +184,15 @@ export const E2E_MAP = [
     "e2e/recibo-cargo-en-gastos.spec.mjs",
     "e2e/help-assistant.spec.mjs",
     "e2e/hist-pagos-mensuales.spec.mjs", "e2e/bancos-historico-filtro.spec.mjs",
-    "e2e/bancos-quitar-pending.spec.mjs", "e2e/gastos-deudas.spec.mjs",
+    "e2e/bancos-quitar-pending.spec.mjs", "e2e/gastos-deudas.spec.mjs", "e2e/gastos-meta-aportacion.spec.mjs",
     "e2e/bank-callback-msg.spec.mjs", "e2e/bancos-hueco-sync.spec.mjs", "e2e/plan-gestionar.spec.mjs",
     "e2e/bancos-descarga-incompleta.spec.mjs",
     "e2e/plan-cover.spec.mjs",
   ] },
   { file: "src/modules/07-tab-patri-fijos.js", specs: [
+    "e2e/fixed-ispaidin.spec.mjs",
+    "e2e/savedat-arranque.spec.mjs",
+    "e2e/fin36-debt-madrid-month.spec.mjs",
     "e2e/cartera-saldo-atras.spec.mjs",
     "e2e/h2-account-phases.spec.mjs",
     "e2e/cartera-bienes-completo.spec.mjs",
@@ -155,10 +207,14 @@ export const E2E_MAP = [
     "e2e/cartera-parte-mia.spec.mjs",
   ] },
   { file: "src/modules/09-tab-debts-goals.js", specs: [
+    "e2e/gastos-meta-aportacion.spec.mjs",
+    "e2e/fin36-debt-madrid-month.spec.mjs",
+    "e2e/deudas-mes-madrid.spec.mjs",
     "e2e/deudas-alargar-plazo.spec.mjs",
     "e2e/deudas-plazo-aviso.spec.mjs",
     "e2e/deudas-metas-edicion-v4.spec.mjs",
     "e2e/deudas-guardar-feedback.spec.mjs",
+    "e2e/inc1810-deuda-guardar.spec.mjs",
     "e2e/inicio-deuda-futura.spec.mjs",
     "e2e/metas-editar-regla.spec.mjs",
     "e2e/metas-borrar-regla.spec.mjs",
@@ -176,7 +232,7 @@ export const E2E_MAP = [
     "e2e/inicio-offline.spec.mjs",
     "e2e/modo-inicial.spec.mjs", "e2e/sin-candados.spec.mjs",
     "e2e/profile-anim.spec.mjs", "e2e/perfil-simetria.spec.mjs", "e2e/delete-account.spec.mjs",
-    "e2e/revisar-beta.spec.mjs", "e2e/beta-panel-reopen.spec.mjs", "e2e/ajustes-versiones.spec.mjs", "e2e/widget-banco.spec.mjs", "e2e/ajustes-importaciones.spec.mjs",
+    "e2e/revisar-beta.spec.mjs", "e2e/beta-panel-reopen.spec.mjs", "e2e/ajustes-versiones.spec.mjs", "e2e/ajustes-letra.spec.mjs", "e2e/widget-banco.spec.mjs", "e2e/ajustes-importaciones.spec.mjs",
     "e2e/tour-tutorial.spec.mjs", "e2e/modo-pruebas.spec.mjs", "e2e/tr-aviso.spec.mjs",
     "e2e/presupuesto-bancos.spec.mjs", "e2e/quitar-banco.spec.mjs",
     "e2e/bancos-quitar-pending.spec.mjs", "e2e/bancos-hueco-sync.spec.mjs",
@@ -189,7 +245,7 @@ export const E2E_MAP = [
   ] },
   { file: "src/modules/12-boot.js", specs: ["e2e/splash.spec.mjs", "e2e/smoke.spec.mjs", "e2e/csp.spec.mjs"] },
   { file: "src/modules/13-hogar.js", specs: ["e2e/cartera-orden-hogar.spec.mjs"] },
-  { file: "src/modules/14-v4-screens.js", specs: [ "e2e/ux16-ajustador.spec.mjs", "e2e/ux16-round9-haptics.spec.mjs",
+  { file: "src/modules/14-v4-screens.js", specs: [ "e2e/fin31-cartera-moneda.spec.mjs", "e2e/ux16-ajustador.spec.mjs", "e2e/ux16-round9-haptics.spec.mjs",
     "e2e/plan-ola-web.spec.mjs",
     "e2e/plan-native-wave.spec.mjs",
     // Un solo candidato a scroller raíz con Gestionar abierto: sin eso no hay ola nativa.
@@ -215,12 +271,14 @@ export const E2E_MAP = [
 /** Specs que no son de una pantalla: persistencia, swipes, frames. Si se toca CUALQUIER
  *  módulo de src (no el núcleo: ese ya dispara todo), van con el recorte. */
 export const CROSSCUTTING = [
+  "e2e/inicio-mes-futuro.spec.mjs",
   "e2e/backclose-handover.spec.mjs", "e2e/botnav-indicador.spec.mjs",
   "e2e/auth-disposal.spec.mjs", "e2e/lifecycle-listeners.spec.mjs",
   "e2e/botnav-fab-recorte.spec.mjs",
   "e2e/bank-merchant-category.spec.mjs",
   "e2e/gasolina-taxi.spec.mjs",
   "e2e/movilidad-categorias.spec.mjs",
+  "e2e/categoria-coche.spec.mjs",
   "e2e/divisas-sin-cambio.spec.mjs",
   "e2e/fixtures-news.spec.mjs",
   "e2e/persistencia.spec.mjs",
@@ -248,6 +306,9 @@ export const CROSSCUTTING = [
   "e2e/rendimiento.spec.mjs",
   "e2e/rendimiento-tabs.spec.mjs",
   "e2e/rendimiento-sostenido.spec.mjs",
+  /* 25/10: el ACK de la nube + cualquier re-render de App = envío y repintado de las cuatro
+     pestañas en cada desliz. Lo provoca el sync de estado, no una pantalla. */
+  "e2e/rendimiento-ack-nube.spec.mjs",
   /* Va aquí y no colgando de `04-tab-gastos.js` a propósito: lo que vigila es una regla de CSS
      global (`button{user-select:none}`), y quien la puede romper sin querer es cualquiera que
      toque `src/shell.html` o meta una pantalla nueva, no solo quien toque Gastos. */
@@ -268,9 +329,10 @@ export const CROSSCUTTING = [
 const STEPS_DOCS = ["guard-privacy", "docs-frescura", "memoria-espejo"];
 const STEPS_ANDROID = ["guard-privacy", "webdebug-guard", "widget-coherente", "widget-arbitraje", "widget-offline", "widget-unknown-loss", "widget-unknown-journal", "widget-notificacion-render", "widget-inicio-paridad", "widget-puente-ciclo", "ingest-identity", "ingest-handler"];
 const STEPS_SUPABASE = [
+  "sec02-edge-limits-replay",
   "prod117-edge-compat",
-  "help-assistant", "guard-privacy", "edge-sintaxis", "presupuesto-servidor", "cuotas-deudas", "widget-coherente", "widget-arbitraje", "widget-offline", "widget-unknown-loss", "widget-unknown-journal", "widget-notificacion-render", "widget-inicio-paridad", "widget-puente-ciclo",
-  "month-window", "wallet-notis", "ingest-classify", "ingest-identity", "ingest-handler", "divisa-original", "presupuesto-rendimiento",
+  "help-assistant", "guard-privacy", "edge-sintaxis", "presupuesto-servidor", "cuotas-deudas", "meta-aportacion", "widget-coherente", "widget-arbitraje", "widget-offline", "widget-unknown-loss", "widget-unknown-journal", "widget-notificacion-render", "widget-inicio-paridad", "widget-puente-ciclo",
+  "month-window", "wallet-notis", "ingest-classify", "ingest-identity", "ingest-handler", "ingest-native-slots", "ingest-native-phase1", "divisa-original", "presupuesto-rendimiento",
   "grants-migraciones", "entrada-edge", "h2-account-phases", "h2-account-identity", "bank-sync-paging", "bank-rate-contracts", "bank-callback-state", "bank-rate-client", "bank-download-incomplete", "bank-sync-progreso", "bank-sync-acuse", "bank-reconnect", "bank-revoke-callback-race", "tr-open-banking", "myinvestor-sync-outcomes", "myinvestor-keepalive",
   "categorize-limitador", "categorize-handler",
 ];

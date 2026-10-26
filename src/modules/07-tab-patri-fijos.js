@@ -377,7 +377,7 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
     set(function(s){
       const all=recordAccountBalances(s.accountBalanceHistory,today,rows);
       return all!==s.accountBalanceHistory?Object.assign({},s,{accountBalanceHistory:all}):s;
-    });
+    },false);
   },[parte,balanceReady,state.accounts,state.obAccounts,state.accountBalanceHistory,totals]);
   /* LA FÓRMULA INVERSA DEL SALDO, EN UN SOLO SITIO. Editas el SALDO REAL de hoy y por dentro se
      guarda la base (inicio de mes) correcta; `valueDesdeSaldo` (00-core) es la que despeja.
@@ -679,9 +679,7 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
           );
         }),
         anySynced && React.createElement("div",{className:"hint"}, t("v4_acc_locked")),
-        React.createElement("div",{className:"hint"}, t("rl_hint")),
-        // Pista: «Gasto diario» se puede marcar en varios bancos (cuentan en el mismo presupuesto).
-        (state.accounts||[]).length>1 && React.createElement("div",{className:"hint"}, t("v4_expdaily_row_hint"))
+        React.createElement("div",{className:"hint"}, t("rl_hint"))
       ),
       parte!=="cuentas" && (state.assets||[]).length>0 && React.createElement(React.Fragment,null,
         // El título solo cuando van juntos: en Cartera lo pone el bloque ordenable, y repetirlo
@@ -759,7 +757,14 @@ function isDebtPaidThisMonth(d,today,s,y,m){ return s&&debtPaymentState(s,d,y,m,
 // moverlo no convierta el mismo recibo en otro pendiente. Si se corrige a un día que ya ha llegado
 // con feed RECIÉN sincronizado que cubre el día pero sin cargo, `wait` guarda ese año-mes e
 // impide inventar el pago. Un feed viejo no sirve para negar un cobro de hoy (feedback 25/9).
-const isPaidIn=(e,m,t,y)=>{ const ym=(y||new Date().getFullYear())*12+m,d=dayIn(e,m); return e.paidYm===ym || e.wait!==ym&&d!=null&&d<=t; };
+// Rehacer un vínculo crea una prueba expense antes del pull. Solo su origen bancario local
+// adelanta el calendario; BOOK conserva su regla anterior y las notificaciones no mueven saldo.
+const isPaidIn=(e,m,t,y,s)=>{
+  const year=y||new Date().getFullYear(),ym=year*12+m,d=dayIn(e,m);
+  if(e.paidYm===ym) return true;
+  const p=s&&fixedPaymentProof(s,e,year,m,t);
+  return !!(p&&p.kind==="expense"&&fixedPaymentDerivedDay(s,{proof:p})) || e.wait!==ym&&d!=null&&d<=t;
+};
 const isPaidThisMonth=(e,today)=>{ const d=dayOf(e); return d!=null && d<=today; };
 // ¿el gasto necesita que el usuario le asigne un mes? (anual sin programar)
 const needsMonth=(e)=> (e.freq==="año"||e.freq==="anual") && !(e.months&&e.months.length) && !(e.schedule&&e.schedule.length);
@@ -791,11 +796,12 @@ const oneoffPast=(o,y,m)=> o && (o.year<y || (o.year===y && o.month<m));   // de
    `amort` es lo que reduce el principal (por defecto la cuota); puede diferir de la
    cuota en efectivo (p.ej. préstamo familiar: paga 197 € pero amortiza 250 €/mes). */
 const ymAbs=(y,m0)=> y*12+m0;                         // m0 = mes 0-indexado
-const ymNow=()=>{ const n=new Date(); return ymAbs(n.getFullYear(), n.getMonth()); };
+// Las anclas de deuda comparten el calendario de Inicio: en UTC aún puede ser el mes anterior.
+const ymNow=()=>{ const p=madridYmdParts(Date.now()); return ymAbs(p.y, p.m-1); };
 const debtAmort=(d)=> d && d.amort!=null ? d.amort : ((d&&d.monthly)||0);
 // nº de pagos ya hechos. Una financiación (con `months`) cuenta TAMBIÉN el pago de ESTE mes si ya pasó
 // su día (ej. financias el 599/4 con día 26 y hoy es 28 → el 1er pago del 26 ya cuenta).
-function debtPaidCount(d){ const anchor=(typeof d.asOf==="number")?d.asOf:ymNow(); let n=Math.max(0, ymNow()-anchor); if(d.months!=null){ const dd=debtChargeDay(d); if(dd<=new Date().getDate()) n+=1; } return n; }
+function debtPaidCount(d){ const anchor=(typeof d.asOf==="number")?d.asOf:ymNow(); let n=Math.max(0, ymNow()-anchor); if(d.months!=null){ const dd=debtChargeDay(d); if(dd<=madridYmdParts(Date.now()).d) n+=1; } return n; }
 // Financiación tipo coche: además de entrada (downPayment, ya pagada = informativa) y cuotas,
 // hay un PAGO FINAL (balloon) en el último mes del plazo. debtBalloonIn(d,y,m): balloon si (y,m 1-12)
 // es ese último mes; 0 si no. La amort lineal ya se fija a (value−balloon)/months al crear la deuda,
@@ -814,7 +820,7 @@ function monthNetForAccount(s, ent, y, m, t){
   const hit=function(d){ return closed ? true : (d!=null && d<=t); };
   const ym=y*12+m, bp=!closed&&(s.fixed||[]).some(function(e){ return e.wait===ym; })?reconcileBank(s,y,m,t).paidAt:null;
   let net=0;
-  (s.fixed||[]).forEach(function(e){ if((e.account||"sabadell")===ent && occursIn(e,m) && (closed||bp&&bp[e.id]||isPaidIn(e,m,t,y))) net -= occAmountIn(e,m); });
+  (s.fixed||[]).forEach(function(e){ if((e.account||"sabadell")===ent && occursIn(e,m) && (closed||bp&&bp[e.id]||isPaidIn(e,m,t,y,s))) net -= occAmountIn(e,m); });
   (s.debts||[]).forEach(function(d){ if(debtActive(d) && (d.account||"sabadell")===ent && hit(debtChargeDay(d))) net -= (d.monthly||0) + debtBalloonIn(d,y,m); });
   (s.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m) && (o.account||"sabadell")===ent && (o.amount||0)!==0 && hit(o.day!=null?o.day:null)) net -= o.amount; });
   (s.flows||[]).forEach(function(f){ if(flowOccursIn(f,m,y)){ const bd=f.kind==="income"?flowConfirmedDay(f,y,m):null, dd=bd!=null?bd:flowDay(f,y,m); if(hit(dd)){ if(f.kind==="income" && (f.to||"sabadell")===ent) net += (f.amount||0); else if(f.kind==="transfer" && (f.from||"sabadell")===ent) net -= (f.amount||0); } } });

@@ -328,8 +328,6 @@ function App(){
   const [tourOpen,setTourOpen]=useState(false);            // tour guiado (coach-marks)
   const [toast,setToast]=useState(null);
   const [syncReport,setSyncReport]=useState(null);
-  const [syncing,setSyncing]=useState(false);
-  const [syncStatus,setSyncStatus]=useState({type:"idle",msg:""});
 
   // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.
   // Persistencia DEBOUNCED (2026-07-18): antes cada set() serializaba TODO el estado a
@@ -360,11 +358,11 @@ function App(){
     writeNow(p);
   },[]);
   // El updater solo calcula: ni apunta el volcado ni arma el temporizador (ver `mcPersistCommit`).
-  const set=useCallback((updater)=>{ setStateRaw(prev=>{
+  const set=useCallback((updater,edited=true)=>{ setStateRaw(prev=>{
     let next=typeof updater==="function"?updater(prev):updater;
     if(next===prev) return prev;
     if(next.expenses!==prev.expenses||next.gemelos!==prev.gemelos||next.deleted!==prev.deleted) next=reconcileGemelosAutomaticos(next,prev);
-    return Object.assign({},next,{_savedAt:Date.now()});
+    return edited?planSyncEditState(next,Date.now()):next;
   }); },[]);
   // En el propio commit (layout, no pasivo): así un `pagehide` inmediato ya vuelca este estado.
   const committedRef=useRef(state);
@@ -417,34 +415,112 @@ function App(){
     if(c!=="EUR" && r>0){ DISP.sym=CUR_SYM[c]||c; DISP.k=1/r; }
     else { DISP.sym="€"; DISP.k=1; }
   })();
-  CURLANG = (state.settings&&state.settings.lang) || "es";   // idioma activo (i18n)
+  const savedLang=(state.settings&&state.settings.lang)||"es";
+  const [langLoaded,setLangLoaded]=useState(0);
+  // El pull también cambia el idioma: a diferencia del botón de Ajustes, no había pedido su
+  // JSON y los textos seguían en español hasta recargar (UX18). Cargarlo solo repinta la UI;
+  // no vuelve a guardar preferencias ni altera la revisión de la nube. Una respuesta de un
+  // idioma que ya dejamos atrás no tiene autoridad para cambiar el actual.
+  useEffect(function(){
+    let active=true;
+    const load=function(){
+      if(langPackReady(savedLang)) return;
+      ensureLangPack(savedLang).then(function(ready){
+        if(active&&ready===savedLang) setLangLoaded(function(n){ return n+1; });
+      });
+    };
+    load();
+    window.addEventListener("online",load);
+    return function(){ active=false; window.removeEventListener("online",load); };
+  },[savedLang]);
+  CURLANG = langPackReady(savedLang)?savedLang:"es";
   SIMPLEMODE = !!(state.settings&&state.settings.simpleMode); // modo sencillo → etiquetas sin jerga
 
   /* ---------- Sincronización en la nube (Supabase) ---------- */
   const [session,setSession]=useState(null);
   const uid = session && session.user ? session.user.id : null;
-  const stateRef=useRef(state); useEffect(function(){ stateRef.current=state; });
+  const stateRef=useRef(state); useLayoutEffect(function(){ stateRef.current=state; });
   const obAbsorbedLive=useRef(true),obAbsorbedCursor=useRef({owner:null,offset:0}),obAbsorbedWriteBlocked=useRef(false);
   useEffect(function(){obAbsorbedLive.current=true;return function(){obAbsorbedLive.current=false;};},[]);
   const retryObAbsorbedCloud=function(){
     const getOwner=function(){return obAbsorbedLive.current&&sessionRef.current&&sessionRef.current.user&&sessionRef.current.user.id;};
     const owner=getOwner(),cursor=obAbsorbedCursor.current;
     if(cursor.owner!==owner){cursor.owner=owner;cursor.offset=0;}
-    return obAbsorbedRetry(function(){return stateRef.current;},getOwner,set,cursor.offset).then(function(offset){if(getOwner()===owner)cursor.offset=offset;});
+    return obAbsorbedRetry(function(){return stateRef.current;},getOwner,function(updater){set(updater,false);},cursor.offset).then(function(offset){if(getOwner()===owner)cursor.offset=offset;});
   };
   const sessionRef=useRef(null);
   const cloudUpdatedAtRef=useRef(null);   // sello del servidor para sync sin pisar otro dispositivo
+  const cloudReadRef=useRef(null);   // una lectura fallida o de otro titular nunca habilita escrituras
+  const cloudPullRef=useRef(null);   // el refresco pendiente no borra la última lectura confirmada
+  // El símbolo solo viaja entre estados de React: JSON no lo persiste ni lo envía a la nube.
+  const cloudMergeKey=useRef(Symbol("cloud-merge"));
+  const commitCloudRead=function(){
+    const marker=state[cloudMergeKey.current],read=marker&&marker.read;
+    if(!read||!read.merging||cloudPullRef.current!==read||!sessionRef.current||sessionRef.current.user.id!==read.owner)return;
+    if(marker.planInvalid){
+      // Abortar también termina el vuelo: el siguiente evento debe poder hacer otro GET.
+      // El aviso espera al commit; React puede evaluar y descartar el updater varias veces.
+      cloudReadRef.current=read;cloudUpdatedAtRef.current=null;
+      stateRef.current=state;
+      read.valid=false;read.ready=false;read.planInvalid=true;read.merging=false;read.commit(false);
+      showToast(t("plan_sync_invalid"));return;
+    }
+    // La persistencia y los avisos también esperan al commit; un render descartado no escribe.
+    const pending=state.obAbsorbedPending||[],confirmed=state.obAbsorbedConfirmed||[];
+    if(marker.blocked||pending.length&&!obAbsorbedPersist(read.owner,pending)||confirmed.length&&!obConfirmedPersist(read.owner,confirmed)){
+      obAbsorbedWriteBlocked.current=true;read.merging=false;read.commit(false);obAbsorbedWarn("merge",read.owner);return;
+    }
+    stateRef.current=state;
+    cloudUpdatedAtRef.current=read.revision;cloudReadRef.current=read;
+    read.ready=true;read.valid=true;read.merging=false;read.commit(true);
+  };
+  useLayoutEffect(commitCloudRead,[state]);
   // La base corresponde al payload confirmado, no al estado que pudo editarse durante el envío.
   const pushAppState=function(u,snapshot){
+    const read=cloudReadRef.current;
+    if(!sessionRef.current || sessionRef.current.user.id!==u) return Promise.resolve(null);
+    if(cloudPullRef.current&&cloudPullRef.current.merging)return Promise.resolve(null);
+    if(!read || read.owner!==u || !read.ready){
+      // Reintentar la lectura, no el snapshot anterior a ella: el estado mezclado tendrá su debounce.
+      if(!cloudPullRef.current&&!(read&&read.planInvalid&&planSyncEditToken(snapshot)===read.editIntent)) syncFromCloud(sessionRef.current);
+      return Promise.resolve(null);
+    }
     const sent=slimForCloud(snapshot),expected=cloudUpdatedAtRef.current;
+    // Tras releer a otro móvil, el cache del último ACK tiene otra revisión. Un sello local
+    // por sí solo tampoco justifica un CAS contra esa foto: realimentaría los dos clientes.
+    const payloadKey=function(data,remote){
+      const value=slimForCloud(data),confirmed=remote?obConfirmedJoin(value.obAbsorbedConfirmed,[],u):obConfirmedMerge(value,null,u);
+      if(!confirmed)return null;
+      value.obAbsorbedConfirmed=obConfirmedPack(confirmed,u);delete value._savedAt;delete value.lastSync;
+      return obStateCanonical(value);
+    };
+    const sentKey=payloadKey(sent);
+    // El contador sobrevive a las relecturas: un envío anterior aún puede cambiar la nube.
+    const writes=cloudReadRef.pendingWrites||(cloudReadRef.pendingWrites=Object.create(null));
+    if(!writes[u]&&sentKey!==null&&read.baseData&&payloadKey(read.baseData,true)===sentKey)return Promise.resolve({updated_at:expected,unchanged:true});
+    writes[u]=(writes[u]||0)+1;read.baseData=null;
     return cloud.pushState(u,sent,expected).then(function(r){
-      if(!sessionRef.current || !sessionRef.current.user || sessionRef.current.user.id!==u) return null;
+      if(cloudReadRef.current!==read || !sessionRef.current || !sessionRef.current.user || sessionRef.current.user.id!==u) return null;
+      // Un ACK anterior tampoco acredita la base mientras React prepara otra lectura.
+      if(cloudPullRef.current&&cloudPullRef.current.merging)return null;
       if(r && r.updated_at && cloudUpdatedAtRef.current===expected){
         cloudUpdatedAtRef.current=r.updated_at;
-        setStateRaw(function(prev){ return goalSyncAck(prev,u,sent,expected,r.updated_at); });
+        // pushState puede haber incorporado confirmaciones durables posteriores al snapshot.
+        // Su cache conoce ese payload exacto; aquí sólo comparamos con un GET confirmado.
+        read.baseData=null;
+        setStateRaw(function(prev){
+          if(cloudReadRef.current!==read||!sessionRef.current||sessionRef.current.user.id!==u)return prev;
+          if(cloudPullRef.current&&cloudPullRef.current.merging)return prev;
+          return planSyncAck(goalSyncAck(prev,u,sent,expected,r.updated_at),u,sent,expected,r.updated_at);
+        });
       }
       return r;
-    });
+    }).catch(function(e){
+      if(e&&e.code==="23505"&&cloudReadRef.current===read&&sessionRef.current&&sessionRef.current.user.id===u){
+        read.ready=false;return {conflict:true};
+      }
+      throw e;
+    }).finally(function(){if(--writes[u]===0)delete writes[u];});
   };
   const notifyGoalConflicts=function(){
     const meta=state._goalSync;
@@ -503,13 +579,22 @@ function App(){
     };
   },[]);
   // INC-0410 mensual: límite del asiento del mes en App.
-  const wR=useRef(false),wS=useRef(0),wP=useRef(null),wC=useRef([]),wRead=useRef(null);
+  const wR=useRef(false),wS=useRef(0),wP=useRef(null),wC=useRef([]),wRead=useRef(null),wOwner=useRef(null);
   const bankJustConnected=useRef(false);    // marca la vuelta de ?bank=ok para sincronizar en cuanto haya sesión
 
   // Trae los gastos de la tabla y los mezcla en el estado (dedup).
   const syncCloudExpenses=function(){
+    const EXP_READ_PLAZO=25000;   // ms que una lectura de gastos puede retener a la siguiente
     const readStartedAt=Date.now();
+    const readSession=sessionRef.current;
     const readOwner=sessionRef.current&&sessionRef.current.user&&sessionRef.current.user.id;
+    // Una petición nueva puede llegar tras una escritura remota que el GET en vuelo no vio.
+    // Compartimos su promesa, pero ésta no termina hasta drenar la relectura pendiente.
+    if(wP.current&&wOwner.current&&wOwner.current.session===readSession&&wOwner.current.owner===readOwner){
+      const w=wOwner.current;w.again=true;
+      return Date.now()-w.startedAt>=EXP_READ_PLAZO?w.relevar():wP.current;
+    }
+    const flight={session:readSession,owner:readOwner,again:false,startedAt:Date.now(),relevar:null};
     if(readOwner){
       const confirmed=obConfirmedMerge(stateRef.current,null,readOwner);
       if(!confirmed)return Promise.reject(new Error("ob_confirmed_merge"));
@@ -520,7 +605,7 @@ function App(){
         if(prev._historyOwner!==readOwner) return prev;
         if(pending===prev.obAbsorbedPending&&Array.isArray(prev.obAbsorbedConfirmed)&&JSON.stringify(prev.obAbsorbedConfirmed)===JSON.stringify(confirmed)) return prev;
         return Object.assign({},prev,{obAbsorbedConfirmed:confirmed,obAbsorbedPending:pending});
-      });
+      },false);
     }
     const ps=++wS.current;
     wR.current=false;
@@ -546,12 +631,12 @@ function App(){
       // «volver a unir» del otro móvil. Sólo mezclamos gemelos, no el resto de la cartera.
       const needsGemelos=(stateRef.current.gemelos||[]).some(function(g){return g.auto;})||(stateRef.current.expenses||[]).some(function(e){return e.autoGemelo||e.gemeloSeparado;});
       return (needsGemelos?cloud.pullState():Promise.resolve(null)).then(function(pack){
-      if(ps!==wS.current||readOwner&&(!sessionRef.current||!sessionRef.current.user||sessionRef.current.user.id!==readOwner)) return {total:0,nuevos:0};
+      if(ps!==wS.current||sessionRef.current!==readSession) return {total:0,nuevos:0};
       const cloudGemelos=pack&&pack.data&&Array.isArray(pack.data.gemelos)?pack.data.gemelos:[];
       return cloud.pullExpenses(readProof).then(function(rows){
       // Si otra lectura empezó después, este resultado puede ser una foto anterior aunque
       // haya llegado el último. No mezclarlo con el estado ni reenviarlo al widget (FIN-05).
-      if(readOwner&&(!sessionRef.current||!sessionRef.current.user||sessionRef.current.user.id!==readOwner)) return {total:0,nuevos:0};
+      if(sessionRef.current!==readSession)return {total:0,nuevos:0};
       if(ps!==wS.current) return wP.current;
       // La cobertura se forma al enviar, con la ventana vigente: el ciclo no acaba el día 1.
       wC.current=rows;
@@ -583,14 +668,33 @@ function App(){
          Para hacerlo bien hace falta decisión persistida con identidad fiable y un ACK — es el
          bloqueo de identidad de gastos, no un parche de esta ronda. */
       // "nuevo" = no lo teníamos en NINGÚN origen local (así, ya sincronizado → 0 → "Ya estás al día")
-      const prevKeys={}; (stateRef.current.expenses||[]).forEach(function(e){ prevKeys[keyOfExpense(e)]=1; });
-      let count=0; const seenC={};
-      incoming.forEach(function(e){ const k=keyOfExpense(e); if(!seenC[k]){ seenC[k]=1; if(!prevKeys[k]) count++; } });
+      const previousExpenses=stateRef.current.expenses||[],identityScope=expenseIdentityScopes(previousExpenses,incoming);
+      // La nube ordena por id, no como la lista local, y esta puede conservar avisos.
+      // Solo una identidad completa idéntica acredita presencia; colisiones o cambios
+      // vuelven al cálculo con ámbito. El mapa pertenece a esta foto, nunca al siguiente pull.
+      const prevIds=new Map();
+      previousExpenses.forEach(function(e){ if(e&&e.id)prevIds.set(e.id,prevIds.has(e.id)?null:e); });
+      const missing=[];let count=0;
+      incoming.forEach(function(e){
+        const p=e&&prevIds.get(e.id);
+        if(p&&p.id===e.id&&p.date===e.date&&p.amount===e.amount&&p.merchant===e.merchant
+          &&p.source===e.source&&p.ent===e.ent&&p.obAcc===e.obAcc&&p.obOrd===e.obOrd&&p.extId===e.extId){identityScope.alias(e,p);return;}
+        missing.push(e);
+      });
+      identityScope.unmatched=missing;
+      if(missing.length){
+        // Un UUID absorbido puede seguir en la nube. Solo su clave con ámbito
+        // acredita presencia; el resto del histórico no necesita esa clave compuesta.
+        const wanted=new Set(missing.map(identityScope.key)),prevKeys={},seenC={};
+        previousExpenses.forEach(function(e){if(wanted.has(identityScope.key(e)))prevKeys[expenseMergeKey(e,identityScope)]=1;});
+        missing.forEach(function(e){const k=expenseMergeKey(e,identityScope);if(!seenC[k]){seenC[k]=1;if(!prevKeys[k])count++;}});
+      }
       set(function(prev){
+        if(ps!==wS.current||sessionRef.current!==readSession)return prev;
         // Refrescar una sola vez conserva el guardado partido: no reescribir el histórico
         // por página ni cuando las filas recibidas son iguales a las que ya había.
-        const kept=keepCategoryChoices(prev.expenses, incoming, readStartedAt);
-        const merged=mergeExpensesFromCloud(kept.prev, kept.incoming, readStartedAt, expenseDeletedSet(prev));
+        const kept=keepCategoryChoices(prev.expenses, incoming, readStartedAt,identityScope);
+        const merged=mergeExpensesFromCloud(kept.prev, kept.incoming, readStartedAt, expenseDeletedSet(prev),identityScope);
         const next=merged.list;
         // El aviso ganó a un cargo de recibo: su fila del banco deja de llevar la marca en la nube,
         // o el servidor contaría una u otra según el orden en que las lea.
@@ -608,7 +712,7 @@ function App(){
             rec.recat.forEach(function(r){ cloud.setExpenseCat(r.expense, r.cat).catch(function(){}); });
             kept.recat.forEach(function(r){
               cloud.setExpenseCat(r.expense, r.cat).then(function(n){
-                if(n>0) set(function(p){ const l=ackCategoryWrite(p.expenses, r.expense, r.cat, Date.now()); return l===p.expenses?p:Object.assign({},p,{expenses:l}); });
+                if(n>0) set(function(p){ const l=ackCategoryWrite(p.expenses, r.expense, r.cat, Date.now()); return l===p.expenses?p:Object.assign({},p,{expenses:l}); },false);
               }).catch(function(){});
             });
           },0);
@@ -630,7 +734,7 @@ function App(){
         }
         if(mismo) return prev;
         return rec.state;
-      });
+      },false);
       wR.current=true;
       // Una lista vacía sin sesión o del modo pruebas no acredita el histórico remoto.
       const current=sessionRef.current;
@@ -641,14 +745,38 @@ function App(){
       });
       });
     });
-    const completed=pull.then(function(result){
-      if(ps!==wS.current)return result;
+    // Un GET que ni responde ni falla (red móvil muerta) retenía el singleflight y, con él, todas
+    // las bajadas hasta reiniciar la app (diagnóstico de la beta 170). Pasado el plazo, la
+    // relectura pendiente releva al vuelo: su respuesta tardía ya no se mezcla (`ps` deja de ser
+    // el vigente) y quien esperaba a este vuelo recibe el resultado de la lectura nueva.
+    let relevo=null,plazo=null;
+    const relevada=new Promise(function(resolve){relevo=resolve;});
+    flight.relevar=function(){
+      if(wP.current!==completed||wOwner.current!==flight||sessionRef.current!==readSession)return wP.current;
+      clearTimeout(plazo);
+      wS.current++;wP.current=null;wOwner.current=null;
+      const next=syncCloudExpenses();relevo(next);return next;
+    };
+    // Sin nadie esperando relectura no se corta: una red lenta pero viva termina su lectura.
+    plazo=setTimeout(function(){if(flight.again)flight.relevar();},EXP_READ_PLAZO);
+    const finish=function(result,failed){
+      clearTimeout(plazo);
+      // El cierre viejo no toca el vuelo de una sesión nueva, aunque conserve el mismo UID.
+      if(wP.current===completed&&wOwner.current===flight){
+        wP.current=null;wOwner.current=null;
+        if(flight.again&&sessionRef.current===readSession&&readSession&&readSession.user&&readSession.user.id===readOwner)return syncCloudExpenses();
+      }
+      if(failed)throw result;
+      return result;
+    };
+    const completed=Promise.race([pull,relevada]).then(function(result){
+      if(ps!==wS.current||sessionRef.current!==readSession)return result;
       // La barrera del banco espera el pull completo, pero no los DELETE de la cola (FIN11).
       // Su fallo conserva la intención y no invalida la lectura que ya se mezcló.
       Promise.resolve().then(retryObAbsorbedCloud).catch(function(){});
       return result;
-    });
-    wP.current=completed;
+    }).then(function(result){return finish(result,false);},function(error){return finish(error,true);});
+    wP.current=completed;wOwner.current=flight;
     return completed;
   };
 
@@ -656,26 +784,56 @@ function App(){
   const syncFromCloud=function(s, opts){
     if(!s || !s.user) return;
     const u=s.user.id;
-    goalSyncActivate(mcStateKey(),u);
+    if(!sessionRef.current || sessionRef.current.user.id!==u)return;
+    const STATE_READ_PLAZO=25000,readSession=sessionRef.current;
+    if(cloudPullRef.current&&cloudPullRef.current.owner===u&&cloudPullRef.current.session===readSession){
+      const current=cloudPullRef.current;
+      // Solo el GET puede quedar retenido por la red: la mezcla y sus gastos terminan juntos.
+      if(current.waiting){current.again=true;if(Date.now()-current.startedAt>=STATE_READ_PLAZO)return current.relevar();}
+      return current.promise;
+    }
+    // El primer disparador tras renovar consume también las opciones del vuelo cancelado.
+    const resume=cloudPullRef.resume;
+    if(resume&&resume.owner===u){opts=resume.opts;cloudPullRef.resume=null;}
+    const read={owner:u,session:readSession,opts:opts,startedAt:Date.now(),waiting:true,again:false,ready:false,editIntent:planSyncEditToken(stateRef.current)};cloudPullRef.current=read;
+    goalSyncActivate(mcStateKey(),u);planSyncActivate(mcStateKey(),u);
     const freshLogin=!!(opts&&opts.freshLogin);   // acaba de INICIAR SESIÓN (no un reconecta del mismo user)
     // INC-0410 mensual: el asiento solo vale si ESTE pull leyó un estado válido (o aún no hay ninguno).
     const mensualPuerta=reservaMensualPuerta();
-    const pull=cloud.pullState().then(function(cloudPack){
+    const transport=cloud.pullState().then(function(cloudPack){
+      if(cloudPullRef.current!==read||sessionRef.current!==readSession)return;
+      read.waiting=false;clearTimeout(plazo);
       mensualPuerta.lee(cloudPack);
       // INC-0410 mensual: límite de la lectura válida.
       const cloudState=cloudPack ? cloudPack.data : null;
-      if(!sessionRef.current||sessionRef.current.user.id!==u)return;
+      if(cloudPullRef.current!==read||!sessionRef.current||sessionRef.current.user.id!==u)return;
+      // No confundir datos corruptos, una revisión ausente o un error con una cuenta nueva.
+      if(cloudPack && (!validCloudState(cloudState)||!cloudPack.updated_at)){
+        showToast("⚠ Nube con formato inesperado: se conservan tus datos locales");
+        // Una revisión real permite rescatar la copia del mismo titular con CAS. No acredita
+        // un mes sin aportar, ni permite crear una fila o enviar datos de otra cuenta.
+        const local=stateRef.current;
+        if(cloudPack.updated_at&&validCloudState(local)&&(!local._historyOwner||local._historyOwner===u)&&(!freshLogin||local._historyOwner===u)){
+          cloudUpdatedAtRef.current=cloudPack.updated_at;cloudReadRef.current=read;read.ready=true;
+          return pushAppState(u,local).then(function(r){if(r&&r.conflict)read.collision=true;});
+        }
+        return;
+      }
       // Si dos colas llenas no caben juntas, no se pierde ninguna ni se sobrescribe la remota.
       // El CAS se conserva sin avanzar hasta poder unirlas; el refresco siguiente puede reintentarlo.
       if(cloudState){
-        if(!obConfirmedMerge(stateRef.current,cloudState,u)){obAbsorbedWriteBlocked.current=true;return;}
+        read.confirmed=obConfirmedMerge(stateRef.current,cloudState,u);
+        if(!read.confirmed){obAbsorbedWriteBlocked.current=true;return;}
         const own=stateRef.current._historyOwner===u?stateRef.current.obAbsorbedPending:[];
         const pending=obAbsorbedMerge(own,cloudState.obAbsorbedPending,u);
         if(!pending||pending.length&&!obAbsorbedPersist(u,pending)){obAbsorbedWriteBlocked.current=true;return;}
+        read.pending=pending;read.at=Date.now();
       }
       obAbsorbedWriteBlocked.current=false;
-      if(cloudPack && cloudPack.updated_at) cloudUpdatedAtRef.current=cloudPack.updated_at;
       if(cloudState && validCloudState(cloudState)){
+        read.baseData=cloudState;
+        read.revision=cloudPack.updated_at;read.merging=true;
+        const committed=new Promise(function(resolve){read.commit=resolve;});
         // LAST-WRITE-WINS: si lo LOCAL es más reciente (p.ej. cambios hechos sin conexión),
         // NO lo pisamos con la nube vieja; solo unimos los gastos (aditivo). Si la nube es más
         // nueva o igual, adoptamos su estado. Los gastos SIEMPRE se mezclan (nunca se pierden).
@@ -684,7 +842,7 @@ function App(){
         set(function(prev){
           // Cerrar sesión mientras llega el pull no autoriza aplicar una cartera vieja
           // ni sustituir los 400 cierres locales por la ventana corta de nube.
-          if(!sessionRef.current||!sessionRef.current.user||sessionRef.current.user.id!==u)return prev;
+          if(cloudPullRef.current!==read||sessionRef.current!==readSession)return prev;
           const sameOwner=!(opts&&opts.dropTx)&&(!freshLogin||prev._historyOwner===u)&&(!prev._historyOwner||prev._historyOwner===u);
           const preferenceDeleted=expenseDeletedSet({deleted:(cloudState.deleted||[]).concat(sameOwner?prev.deleted||[]:[])});
           const merged=mergeExpenses(prev.expenses, cloudState.expenses||[], preferenceDeleted);
@@ -696,8 +854,10 @@ function App(){
           // Solo con lo local del MISMO titular: la lápida de otra cuenta que hubo en este móvil
           // escondería un gasto de esta que coincidiera en día, importe y comercio.
           const goalState=goalSyncPull(prev,cloudState,u,cloudPack.updated_at,!sameOwner,localNewer);
+          const planState=planSyncPull(Object.assign({},prev,{expenses:sameOwner?merged.list:cloudState.expenses||[]}),cloudState,u,cloudPack.updated_at,!sameOwner,localNewer);
+          if(!planState)return Object.assign({},prev,{[cloudMergeKey.current]:{read:read,planInvalid:true}});
           if(goalState._goalSync.cloudOnly) baseObj=Object.assign({},prev,cloudState,{expenses:merged.list,bankTx:prev.bankTx});
-          Object.assign(baseObj,goalState);
+          Object.assign(baseObj,goalState,planState);
           delete baseObj.obAbsorbedIssue;
           const reserveSource=goalState._goalSync.keepLocalReserves?prev:cloudState;
           baseObj.settings=Object.assign({},baseObj.settings,{reservaRules:goalSyncCopy((reserveSource.settings||{}).reservaRules||[])});
@@ -709,10 +869,9 @@ function App(){
             if(prev.deleted||cloudState.deleted) Object.assign(baseObj, lapidasUnion(prev, cloudState));
             if(prev.reciboBorrado||cloudState.reciboBorrado) Object.assign(baseObj, recibosBorradosUnion(baseObj, prev, cloudState));
           }
-          const pending=obAbsorbedMerge(sameOwner?prev.obAbsorbedPending:[],cloudState.obAbsorbedPending,u);
-          if(!pending||pending.length&&!obAbsorbedPersist(u,pending)){obAbsorbedWriteBlocked.current=true;return prev;}
-          const confirmed=obConfirmedMerge(sameOwner?prev:null,cloudState,u);
-          if(!confirmed){obAbsorbedWriteBlocked.current=true;return prev;}
+          const pending=obAbsorbedJoin(sameOwner?prev.obAbsorbedPending:[],read.pending,u,true);
+          const confirmed=obConfirmedJoin(sameOwner?prev.obAbsorbedConfirmed:[],read.confirmed,u,true,read.at,true);
+          if(!pending||!confirmed)return Object.assign({},prev,{[cloudMergeKey.current]:{read:read,blocked:true}});
           baseObj.obAbsorbedPending=pending;
           baseObj.obAbsorbedConfirmed=confirmed;
           // La nube lleva una ventana corta: un cliente antiguo no debe borrar los cierres
@@ -736,21 +895,69 @@ function App(){
           const seeded=seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR(baseObj))))));
           const now=new Date();
           // Lo de la nube también: el otro móvil puede traer una regla borrada que aún resta.
-          return liberarReservasHuerfanas(reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate()));
-        });
-      } else if(cloudState){
-        // llegó algo pero con forma inválida (corrupto/parcial) → NO machacar lo local; resube lo bueno
-        showToast("⚠ Nube con formato inesperado: se conservan tus datos locales");
-        return pushAppState(u,stateRef.current);
-      } else { return pushAppState(u,stateRef.current); }   // primera vez: sube lo que ya tienes
-    }).then(function(){ return syncCloudExpenses(); });
+          const next=liberarReservasHuerfanas(reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate()));
+          // Una lectura vieja no deshace el backup que este mismo titular ya terminó hoy.
+          const backup=prev._historyOwner===u&&prev.lastBackup===new Date().toISOString().slice(0,10)?{lastBackup:prev.lastBackup}:null;
+          return Object.assign({},planSyncDerived(next,prev),backup,{[cloudMergeKey.current]:{read:read}});
+        },false);
+        // Evaluar (incluso repetir) el updater no acredita nada: esperamos el commit de React.
+        return committed;
+      } else {
+        // También una ausencia tardía despierta backup y debounce después del commit.
+        read.revision=null;read.merging=true;
+        const committed=new Promise(function(resolve){read.commit=resolve;});
+        set(function(prev){if(cloudPullRef.current!==read||sessionRef.current!==readSession)return prev;return Object.assign({},prev,{[cloudMergeKey.current]:{read:read}});},false);
+        return committed.then(function(applied){if(applied)return pushAppState(u,stateRef.current).then(function(r){if(r&&r.conflict)read.collision=true;});});
+      }   // ausencia acreditada: INSERT, nunca upsert
+    }).then(function(){
+      // El vuelo incluye gastos: otro refresco no puede sustituir su lectura a mitad del pull.
+      if(cloudPullRef.current!==read||sessionRef.current!==readSession)return;
+      return syncCloudExpenses();
+    });
+    let relevo=null,plazo=null;
+    const relevada=new Promise(function(resolve){relevo=resolve;});
+    read.cancel=function(){
+      if(cloudPullRef.current!==read)return;
+      clearTimeout(plazo);read.waiting=false;read.merging=false;read.ready=false;
+      if(read.commit)read.commit(false);
+      cloudPullRef.current=null;relevo();
+    };
+    read.relevar=function(){
+      if(cloudPullRef.current!==read||sessionRef.current!==readSession||!read.waiting)return cloudPullRef.current&&cloudPullRef.current.promise;
+      clearTimeout(plazo);read.waiting=false;cloudPullRef.current=null;
+      // Mantener opts del vuelo original: un refresco no pierde freshLogin ni dropTx.
+      const next=syncFromCloud(s,opts);read.replacement=next;relevo(next);return next;
+    };
+    // Como EXP_READ_PLAZO: sin otra petición una red lenta sigue viva, sin abortar el backend.
+    plazo=setTimeout(function(){if(read.again)read.relevar();},STATE_READ_PLAZO);
+    const finish=function(result,failed){
+      clearTimeout(plazo);read.waiting=false;
+      const own=cloudPullRef.current===read&&sessionRef.current===readSession;
+      if(cloudPullRef.current===read)cloudPullRef.current=null;
+      // Cada vuelo consume la intención con la que empezó. Otra edición puede compartir
+      // milisegundo con ella; el token privado también distingue ese caso sin persistirlo.
+      if(own&&!failed&&read.planInvalid&&planSyncEditToken(stateRef.current)!==read.editIntent&&cloudReadRef.current===read)return syncFromCloud(s,opts);
+      // INSERT puede competir con otro móvil. Una relectura inmediata resuelve esa carrera;
+      // si tampoco sirve, el próximo evento volverá a intentar, sin bucle de 409.
+      if(own&&!failed&&read.collision&&cloudReadRef.current===read&&!(opts&&opts.afterCollision))return syncFromCloud(s,Object.assign({},opts,{afterCollision:true}));
+      if(own&&read.again)return syncFromCloud(s,opts);
+      if(failed)throw result;
+      return result;
+    };
+    // Una respuesta o un error viejos pueden ganar la carrera mientras el sucesor espera:
+    // también ese camino debe adoptar su promesa, sin liberar su guardián ni acreditar el mes.
+    const completed=Promise.race([transport.then(function(result){return read.replacement||result;},function(e){if(read.replacement)return read.replacement;throw e;}),relevada])
+      .then(function(result){return finish(result,false);},function(e){return finish(e,true);});
+    read.promise=completed;
+    const pull=completed.then(function(){if(!read.ready||cloudReadRef.current!==read||sessionRef.current!==readSession)throw new Error("cloud_read_not_applied");});
     pullOkRef.current=pull.then(function(){ return true; }, function(){ return false; });
     reservaMensualAlDia(pullOkRef.current.then(mensualPuerta.vale));
     // INC-0410 mensual: límite del pull de estado del que depende el asiento.
-    pull.catch(function(e){ if(navigator.onLine!==false) showToast("✕ Nube: "+((e&&e.message)||e)); })   // si estás sin conexión, ni avisamos (es normal)
+    completed.catch(function(e){ if(!read.replacement&&navigator.onLine!==false&&sessionRef.current===readSession) showToast("✕ Nube: "+((e&&e.message)||e)); })   // si estás sin conexión, ni avisamos (es normal)
       // Pase lo que pase, el splash se va: lo que se vea a partir de aquí ya es lo definitivo
       // (o lo mejor que hay). Ver el porqué en el script del final de shell.html.
       .then(mcBootReady, mcBootReady);
+    return completed;
   };
 
   // CAPA 2 — Open Banking: lee el saldo del banco y re-ancla el motor (= editar el saldo a mano,
@@ -1161,18 +1368,42 @@ function App(){
        instante. Con red se conserva el margen de 2500 ms para no pintar cifras que luego saltan. */
     try{ if(navigator.onLine===false) mcBootReady(); }catch(e){}
     // Al desmontar no deben quedar callbacks que cambien sesión o inicien otra lectura.
-    var alive=true;
+    var alive=true,resumePull=null,resumeTimer=null;
+    // La renovación invalida el objeto viejo, pero conserva la intención y opciones del pull.
+    // Diferir la nueva llamada evita entrar en Supabase dentro de su callback de autenticación.
+    const renewPull=function(s){
+      const read=cloudPullRef.current;
+      if(resumePull&&(!s||resumePull.owner!==s.user.id)){clearTimeout(resumeTimer);resumePull=null;cloudPullRef.resume=null;}
+      if(!read||read.session===s||!read.cancel)return;
+      if(s&&read.owner===s.user.id){
+        resumePull={owner:read.owner,opts:read.opts};cloudPullRef.resume=resumePull;clearTimeout(resumeTimer);
+        resumeTimer=setTimeout(function(){
+          const pending=resumePull;resumePull=null;
+          if(!pending||cloudPullRef.resume!==pending)return;
+          cloudPullRef.resume=null;
+          const current=sessionRef.current;
+          if(alive&&pending&&current&&current.user.id===pending.owner&&!cloudPullRef.current)syncFromCloud(current,pending.opts);
+        },0);
+      }
+      read.cancel();
+    };
     const boot=()=>{ if(alive) mcBootReady(); }, tmr=setTimeout(boot, 2500);
     cloud.session().then(s=>{
       clearTimeout(tmr);
       if(!alive) return;
+      if(sessionRef.current!==s)renewPull(s);
       setSession(sessionRef.current=s);
-      if(s) mcScheduleIdle(()=>{ if(alive) syncFromCloud(s); }); else boot();
+      if(!s){if(cloudPullRef.current&&cloudPullRef.current.commit)cloudPullRef.current.commit(false);cloudReadRef.current=null;cloudUpdatedAtRef.current=null;cloudPullRef.current=null;}
+      if(s){if(!resumePull&&!cloudPullRef.current)mcScheduleIdle(()=>{ if(sessionRef.current===s&&!cloudPullRef.current){ if(alive) syncFromCloud(s); } });}else boot();
     }, ()=>{ clearTimeout(tmr); boot(); });
     const off=cloud.onAuth((s,ev)=>{
       if(!alive) return;
       const prev=sessionRef.current;
       const login=s&&(!prev||prev.user.id!==s.user.id);
+      // También TOKEN_REFRESHED cambia el objeto sin cambiar UID: fuera del updater se
+      // cancela su espera de commit, que React puede descartar sin ejecutar sus efectos.
+      if(prev!==s)renewPull(s);
+      if(!s||login){if(cloudPullRef.current&&cloudPullRef.current.commit)cloudPullRef.current.commit(false);cloudReadRef.current=null;cloudUpdatedAtRef.current=null;cloudPullRef.current=null;}
       setSession(sessionRef.current=s);
       // Cerrar sesión rompe la asociación implícita del extracto local con el titular. El
       // próximo login no debe heredar sus apuntes, aunque no exista cartera en la nube.
@@ -1187,8 +1418,8 @@ function App(){
           obConfirmedReadCache.delete(key);obConfirmedBlocked.delete(owner);
           obAbsorbedClearNotice(owner);
         }
-        if(prev&&prev.user)goalSyncClear(mcStateKey(),prev.user.id);
-        set(p=>{obAbsorbedSignOut(owner,p);return Object.assign({},p,{bankTx:[],_goalSync:null,obAbsorbedPending:[],obAbsorbedConfirmed:[]});});
+        if(prev&&prev.user){goalSyncClear(mcStateKey(),prev.user.id);planSyncClear(mcStateKey(),prev.user.id);}
+        set(p=>{obAbsorbedSignOut(owner,p);return Object.assign({},p,{bankTx:[],_goalSync:null,_planSync:null,obAbsorbedPending:[],obAbsorbedConfirmed:[]});});
       }
       // Vuelta del email de recuperación: abre el panel para poner contraseña nueva.
       if(ev==="PASSWORD_RECOVERY"){ setRecovery(true); setShowAuth(true); }
@@ -1196,7 +1427,12 @@ function App(){
       if(login) syncFromCloud(s, {freshLogin:true,
         dropTx:!!prev});
     });
-    return ()=>{ alive=false; clearTimeout(tmr); off(); };
+    return ()=>{ alive=false;clearTimeout(resumeTimer);resumePull=null;cloudPullRef.resume=null;
+      // Un vuelo que termina tras desmontar no conserva autoridad para releer ni escribir.
+      if(cloudPullRef.current&&cloudPullRef.current.cancel)cloudPullRef.current.cancel();
+      else if(cloudPullRef.current&&cloudPullRef.current.commit)cloudPullRef.current.commit(false);
+      cloudPullRef.current=null;cloudReadRef.current=null;cloudUpdatedAtRef.current=null;sessionRef.current=null;
+      clearTimeout(tmr); off(); };
   },[]);
 
   // Empuja el estado a la nube (debounced) cuando cambie y haya sesión. Sin los gastos (ya en su tabla).
@@ -1206,7 +1442,13 @@ function App(){
   const cloudEffectState=useRef(null);
   const cloudUploadState=useRef(state);
   // Un ACK privado no debe limpiar el debounce de una edición posterior que sigue pendiente.
-  if(!goalSyncMetadataOnly(cloudEffectState.current,state)) cloudUploadState.current=state;
+  /* Y un render SIN cambio de estado tampoco es una edición (25/10, «bajas en Gastos, deslizas y
+     el lagazo se queda»). `goalSyncMetadataOnly(Y,Y)` da false —mismo `_goalSync`—, así que el
+     primer re-render de App tras un ACK (el `setHostTab` de cada desliz, la barra al scrollear)
+     tomaba Y como estado nuevo: otro envío 1,2 s después, otro ACK con `_goalSync` nuevo, y las
+     cuatro pestañas repintadas — Gastos con todas las filas que hubieras bajado. Un envío a la
+     nube y un repintado entero por cada gesto, sin fin. */
+  if(cloudEffectState.current!==state && !goalSyncMetadataOnly(cloudEffectState.current,state,cloudMergeKey.current)) cloudUploadState.current=state;
   cloudEffectState.current=state;
   const uploadState=cloudUploadState.current;
   useEffect(function(){
@@ -1217,7 +1459,7 @@ function App(){
       tmr=setTimeout(function(){
         tmr=null;
         if(obAbsorbedWriteBlocked.current||!sessionRef.current||sessionRef.current.user.id!==uid)return;
-        pushAppState(uid,uploadState).then(function(r){
+        pushAppState(uid,stateRef.current).then(function(r){
           if(r && r.conflict){ showToast(t("st_sync_conflict")); syncFromCloud(sessionRef.current); return; }
         }).catch(function(){});
       }, 1200);
@@ -1263,7 +1505,9 @@ function App(){
       setCalendarDay(madridDay());
       // Un ingest puede escribir mientras la app está oculta incluso tras un pull reciente.
       // Releer antes de dejar que el widget reciba el snapshot local de reentrada (FIN-05).
-      syncCloudExpenses().catch(function(){});
+      const read=cloudReadRef.current;
+      if(!read||read.owner!==uid||!read.ready)syncFromCloud(sessionRef.current);
+      else syncCloudExpenses().catch(function(){});
       // (2026-07-18) Aquí había un bankSync automático al volver a primer plano. RETIRADO:
       // cada apertura disparaba una consulta PSD2 desatendida y los bancos (Caixa, Sabadell)
       // acababan tumbando el consentimiento por «uso robótico». Ahora el banco se sincroniza
@@ -1410,12 +1654,15 @@ function App(){
     const today=new Date().toISOString().slice(0,10);
     if(state.lastBackup===today) return;
     const tm=setTimeout(function(){
+      const read=cloudReadRef.current;
+      if(!read||read.owner!==uid||!read.ready||!read.valid||cloudPullRef.current&&cloudPullRef.current.merging)return;
+      if(!sessionRef.current||sessionRef.current.user.id!==uid)return;
       cloud.backupState(uid, stateRef.current)
-        .then(function(){ set(function(s){ return Object.assign({},s,{lastBackup:today}); }); })
+        .then(function(){ if(cloudReadRef.current!==read||!sessionRef.current||sessionRef.current.user.id!==uid)return;set(function(s){ return Object.assign({},s,{lastBackup:today}); },false); })
         .catch(function(){});   // tabla 0002 sin aplicar u offline → se reintenta otro día
     }, 4000);
     return function(){ clearTimeout(tm); };
-  },[uid,state.lastBackup]);
+  },[uid,state.lastBackup,state[cloudMergeKey.current]]);
 
   /* Activar el canal beta desde una URL: ?canal=beta (y ?canal=estable para volver).
      Sirve para arrancar el canal en un móvil cuya app todavía no tiene el interruptor de Ajustes.
@@ -1473,7 +1720,22 @@ function App(){
   // Y lo mismo para los brókers que SÍ sincronizan solos (TR nativo + MyInvestor): al abrir,
   // Brokers: sync suave al abrir (solo si ya conectados). Nunca crea posiciones nuevas.
   // TR/MI: authExpired/softFail/waf se callan — no piden OTP/captcha (feedback 2026-07-17).
-  useEffect(function(){ if(uid) mcScheduleIdle(function(){ runBrokerSync(); }); },[uid]);
+  const brokerBootOwner=useRef(null);
+  useEffect(function(){
+    if(!uid){brokerBootOwner.current=null;return;}
+    const read=cloudReadRef.current;
+    if(brokerBootOwner.current===uid||!read||read.owner!==uid||!read.ready||!read.valid)return;
+    let off=false;
+    // La respuesta del bróker no puede convertir una copia anterior al GET en la más nueva.
+    (pullOkRef.current||Promise.resolve(false)).then(function(ok){
+      if(!ok||off)return;
+      mcScheduleIdle(function(){
+        if(off||brokerBootOwner.current===uid||!sessionRef.current||sessionRef.current.user.id!==uid||cloudReadRef.current!==read||!read.ready||!read.valid)return;
+        brokerBootOwner.current=uid;runBrokerSync();
+      });
+    });
+    return function(){off=true;};
+  },[uid,state[cloudMergeKey.current]]);
 
   /* Cuotas de deuda a «Deudas» (4.21.0): sea cual sea la vía por la que entró el cargo (sync del
      banco, noti de TR, pull de otro móvil) o si él acaba de crear la deuda. La pasada devuelve
@@ -1481,7 +1743,7 @@ function App(){
   useEffect(function(){
     const r=marcarCuotasDeDeuda(stateRef.current);
     if(!r) return;
-    set(function(prev){ const r2=marcarCuotasDeDeuda(prev); return r2 ? r2.state : prev; });
+    set(function(prev){ const r2=marcarCuotasDeDeuda(prev); return r2 ? r2.state : prev; },false);
     if(cloud.enabled()) r.marcadas.forEach(function(e){
       cloud.setExpenseDeuda(e).catch(function(err){ cloud.logEvent("error","setExpenseDeuda: "+keyOfExpense(e), _errCloudMsg(err)); });
     });
@@ -1634,9 +1896,8 @@ function App(){
   useEffect(function(){
     if(online && !wasOnline.current && uid){ retryObAbsorbedCloud().then(function(){
       if(obAbsorbedWriteBlocked.current||!sessionRef.current||sessionRef.current.user.id!==uid)return;
-      return pushAppState(uid,stateRef.current).then(function(r){
-      if(r && r.conflict){ showToast(t("st_sync_conflict")); syncFromCloud(sessionRef.current); return; }
-    }); }).catch(function(){}); }   // reconectó → sube lo de offline
+      return syncFromCloud(sessionRef.current);
+    }).catch(function(){}); }   // reconectó → lee antes de enviar lo de offline
     wasOnline.current=online;
   },[online,uid]);
 
@@ -2153,7 +2414,7 @@ function App(){
     const acc=(amt,bank,paid)=>{ chargesByBank[bank]=(chargesByBank[bank]||0)+amt;
       if(paid){ paidThisMonth+=amt; }
       else { pendingThisMonth+=amt; pendingByBank[bank]=(pendingByBank[bank]||0)+amt; } };
-    state.fixed.forEach(e=>{ if(occursIn(e,curMonth)) acc(occAmountIn(e,curMonth),accOf(e),isPaidIn(e,curMonth,today)); });
+    state.fixed.forEach(e=>{ if(occursIn(e,curMonth)) acc(occAmountIn(e,curMonth),accOf(e),isPaidIn(e,curMonth,today,curYear,state)); });
     state.debts.forEach(d=>{ if(debtActive(d)) acc((d.monthly||0)+debtBalloonIn(d,curYear,curMonth),d.account||"sabadell",isDebtPaidThisMonth(d,today,state,curYear,curMonth)); });
     (state.oneoffs||[]).forEach(o=>{ if(oneoffOccurs(o,curYear,curMonth) && (o.amount||0)!==0) acc(o.amount,o.account||"sabadell",isPaidThisMonth(o,today)); });
     // --- CASH-FLOW: ingresos (nómina) y transferencias recurrentes PENDIENTES este mes ---
@@ -2176,7 +2437,7 @@ function App(){
     // (día 0, peor caso) e ingresos al final (día 99). ---
     const evsByBank={};
     const pushEv=(bank,day,amt)=>{ (evsByBank[bank]=evsByBank[bank]||[]).push({day:day,amt:amt}); };
-    state.fixed.forEach(e=>{ if(occursIn(e,curMonth)&&!isPaidIn(e,curMonth,today)) pushEv(accOf(e), dayIn(e,curMonth)||0, -occAmountIn(e,curMonth)); });
+    state.fixed.forEach(e=>{ if(occursIn(e,curMonth)&&!isPaidIn(e,curMonth,today,curYear,state)) pushEv(accOf(e), dayIn(e,curMonth)||0, -occAmountIn(e,curMonth)); });
     state.debts.forEach(d=>{ if(debtActive(d)&&!isDebtPaidThisMonth(d,today,state,curYear,curMonth)){ pushEv(d.account||"sabadell", debtChargeDay(d), -d.monthly); const bl=debtBalloonIn(d,curYear,curMonth); if(bl>0) pushEv(d.account||"sabadell", debtChargeDay(d), -bl); } });
     (state.oneoffs||[]).forEach(o=>{ if(oneoffOccurs(o,curYear,curMonth)&&(o.amount||0)!==0&&!isPaidThisMonth(o,today)) pushEv(o.account||"sabadell", o.day||0, -o.amount); });
     (state.flows||[]).forEach(f=>{ if(!flowOccursIn(f,curMonth,curYear)||flowPaidIn(state,f,curYear,curMonth,today))return; const dd=flowDay(f,curYear,curMonth); if(f.kind==="income") pushEv(f.to||"sabadell", dd||99, f.amount); else if(f.kind==="transfer") pushEv(f.from||"sabadell", dd||0, -f.amount); });
@@ -2201,7 +2462,7 @@ function App(){
        monthNetForAccount → fixed/debts/oneoffs/flows; flowPaidIn → bankTx;
        toEurAmt/invValueEur → fx y fxRates). */
     return {fxMissing:fxMissingOf(state),liquid,invested,investedCost,assetsTotal,debtTotal,activos,netWorth,thisMonthSpent,spentByBank,injTR,fijosMensual,ahorroMensual,cargosMes,fijosEsteMes,liquidTrasFijos,curMonth,curYear,today,sinProgramar,bankBal,chargesByBank,pendingByBank,paidThisMonth,pendingThisMonth,mainBank,mainBal,mainCharges,mainPending,bankAlerts,incomeInByBank,transferOutByBank,pendingIncome,pendingTransferOut,projectedByBank,mainIncome,mainTransferOut,mainProjected,minByBank,minDayByBank,mainMin,mainMinDay,roundupThisMonth,savebackThisMonth,monthlyInvestThisMonth,trRewardsTotal,paidNetByBank};
-  // Antes esto dependía de `[state]` entero. Como `set()` sella `_savedAt` en CADA cambio, el
+  // Antes esto dependía de `[state]` entero. Como `set()` sella `_savedAt` al editar, el
   // objeto de estado es nuevo siempre → el memo NUNCA acertaba y este cálculo (que recorre gastos,
   // fijos, deudas, flujos y simula el mes día a día) se rehacía al abrir una ficha, al escribir en
   // el buscador, al salir un toast… Con las porciones reales solo se recalcula cuando cambia el
@@ -2213,7 +2474,7 @@ function App(){
   const budgetMonth=budgetYmKey();
   useEffect(function(){
     const patch=ensureBudgetMonthSnap(state);
-    if(patch) set(function(s){ return Object.assign({},s,patch); });
+    if(patch) set(function(s){ return Object.assign({},s,patch); },false);
   },[budgetMonth,state.budget,state.budgetByMonth]);
 
   /* Una sola racha compartida por Inicio y el detector de logros. Con históricos grandes,
@@ -2247,7 +2508,7 @@ function App(){
         if(usd>0) patch.fx=+(usd.toFixed(4));
         if(fxDate) patch.fxDate=fxDate;
         return Object.assign({},s,patch);
-      });
+      },false);
       return fxRates;
     }).catch(function(){ return null; });
   };
@@ -2347,7 +2608,7 @@ function App(){
     // La nómina que abre el ciclo no cuenta en su neto; su identidad debe viajar con la ventana.
     const kind=budW.cycle?"ciclo":"mes", start=budW.periodStart, anchor=wAnchor, w=state.widgetPeriod;
     if(w && w.v===2 && w.scope===wScope) return;
-    set(function(s){ return Object.assign({},s,{widgetPeriod:{v:2,kind:kind,start:start,anchor:anchor,scope:wScope}}); });
+    set(function(s){ return Object.assign({},s,{widgetPeriod:{v:2,kind:kind,start:start,anchor:anchor,scope:wScope}}); },false);
   },[wV2,wScope,state.widgetPeriod]);
   const widgetCash=trAccW ? Math.round((totals.bankBal[trAccW.ent]||0)*100)/100 : null;
   // El límite combina presupuesto global y liquidez del banco elegido. Se mandan las piezas
@@ -2515,7 +2776,7 @@ function App(){
       (state.fixed||[]).forEach(function(e){
         if(!occursIn(e,cm)) return;
         const d=dayIn(e,cm); if(d==null) return;
-        if(isPaidIn(e,cm,today)) return;
+        if(isPaidIn(e,cm,today,cy,state)) return;
         const amt=occAmountIn(e,cm)||0;
         if(!(amt>0)) return;
         const daysLeft=d-today;
@@ -2544,7 +2805,7 @@ function App(){
         }).catch(run);
       }catch(e){ run(); }
     } else run();
-  },[state.onboarded,locked,showAuth,state.fixed,state.debts,state.expenses,state.bankTx,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,totals.today,totals.curMonth,totals.curYear]);
+  },[state.onboarded,locked,showAuth,state.fixed,state.debts,state.oneoffs,state.accounts,state.expenses,state.bankTx,state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,totals.today,totals.curMonth,totals.curYear]);
 
   // Empuja el calendario de recibos del mes al NATIVO (APK ≥29): AlertCheckWorker avisa la
   // víspera aunque la app esté CERRADA. Intercambio de sellos para no avisar dos veces:
@@ -2607,8 +2868,8 @@ function App(){
     invSnapRef.current=key;
     set(function(s){
       const h=recordInvSnapshot(s.invHistory, today, v, c);
-      return Object.assign({},s,{invHistory:h});
-    });
+      return h===s.invHistory?s:Object.assign({},s,{invHistory:h});
+    },false);
   },[totals.invested, totals.investedCost, totals.fxMissing,calendarDay]);
 
   // Una edición manual sólo acredita su fecha: no se proyecta el precio nuevo hacia atrás.
@@ -2620,7 +2881,7 @@ function App(){
     set(function(s){
       const h=recordAssetValues(s.assetValueHistory,today,s.assets,previous);
       return h!==s.assetValueHistory?Object.assign({},s,{assetValueHistory:h}):s;
-    });
+    },false);
   },[state.assets,calendarDay]);
 
   // GAMIFICACIÓN: detecta logros nuevos y subidas de nivel → toast/confeti (1ª vez siembra sin avisar).
@@ -2632,7 +2893,7 @@ function App(){
     const seeded=state.gmLevel!=null;
     const levelUp=seeded && g.lvl>state.gmLevel;
     if(!fresh.length && !levelUp && seeded) return;
-    set(function(s){ return Object.assign({},s,{badges:Array.from(new Set((s.badges||[]).concat(nowUnlocked))),gmLevel:g.lvl}); });
+    set(function(s){ return Object.assign({},s,{badges:Array.from(new Set((s.badges||[]).concat(nowUnlocked))),gmLevel:g.lvl}); },false);
     if(levelUp){ showToast(tf("gm_levelup",{n:g.lvl+1})); }   // rediseño 1c: subir de nivel = aviso tranquilo, sin confeti (el confeti se reserva a metas)
     else if(fresh.length && seeded){ showToast(tf("gm_badge_new",{x:t("gm_b_"+fresh[0])})); }
   },[state.expenses,state.goals,state.budget,state.budgetByMonth,state.trRewardsTotal,
@@ -2672,15 +2933,6 @@ function App(){
     }).catch(function(err){
       if(!silent) showToast("✕ "+((err&&err.message)?err.message:"No se pudieron traer precios"));
     }).then(function(){ if(!silent) setPricing(false); });
-  };
-
-  const onSync=function(){
-    if(!(cloud.enabled() && uid)){ setSyncStatus({type:"err",msg:"Inicia sesión para sincronizar"}); showToast("Inicia sesión para sincronizar"); return; }
-    setSyncing(true); setSyncStatus({type:"idle",msg:"Conectando con Supabase…"});
-    syncCloudExpenses().then(function(r){
-      if(r.nuevos>0){ const m="✓ "+r.nuevos+(r.nuevos===1?" gasto nuevo":" gastos nuevos"); setSyncStatus({type:"",msg:m}); showToast(m); }
-      else { setSyncStatus({type:"",msg:"Ya estás al día · "+r.total+" gastos en la nube"}); showToast("✓ Ya estás al día"); }
-    }).catch(function(e){ setSyncStatus({type:"err",msg:"No se pudo conectar con Supabase: "+((e&&e.message)||e)}); showToast("✕ Error al sincronizar"); }).then(function(){ setSyncing(false); });
   };
 
   const tabIds = tabOrderOf(state);
@@ -2727,9 +2979,29 @@ function App(){
     const pg=trackRef.current&&trackRef.current.children&&trackRef.current.children[i];
     if(pg){ pg.scrollTop=0; syncPageTouchAction(pg, i); }
   };
+  /* ADÓNDE LLEVA «Abrir en Cartera ›» DE LA FILA GRIS DE INVERSIONES (Gastos v5, 25/10/2026).
+     El destino vive SOLO aquí a propósito: cuando exista la pestaña de inversiones (petición
+     del dueño, «ya le añadiremos que se redirija a una tab nueva»), se cambia esta función y
+     nada más. Hoy: Cartera, con el bloque «Tus inversiones» arriba. El bloque se puede haber
+     reordenado, así que se busca por su marca; se baja con `scrollTop` de la propia página y no
+     con `scrollIntoView`, que también movería el carrusel de pestañas. */
+  const goInversiones=function(){
+    const i=tabIds.indexOf("cartera");
+    if(i<0) return;
+    goTabTop(i);
+    requestAnimationFrame(function(){
+      const pg=trackRef.current&&trackRef.current.children&&trackRef.current.children[i];
+      const sec=pg&&pg.querySelector('[data-cartera-sec="inversiones"]');
+      if(!sec) return;
+      pg.scrollTop=Math.max(0,pg.scrollTop+sec.getBoundingClientRect().top-pg.getBoundingClientRect().top-12);
+    });
+  };
 
   /* swipe — distingue eje vertical/horizontal, menos sensible */
   const startX=useRef(0), startY=useRef(0), startT=useRef(0), dx=useRef(0), axis=useRef(null), dragging=useRef(false), trackRef=useRef(null);
+  // El dedo empezó en una zona `data-noswipe="y"` (el asa de ordenar de Gastos): suya en vertical,
+  // nuestra en horizontal. Ver `onMove`.
+  const soloX=useRef(false);
   /* PINTAR UNA VEZ POR FRAME, NO UNA POR `touchmove` (2026-09-10, medido en su OnePlus).
      Su queja, con sus palabras: «si desplazas fluido no se nota apenas, es ir LENTO y ahí se nota
      el tirón, no va super smooth». Y tenía razón otra vez: arrastrando despacio, el avance del
@@ -2978,7 +3250,9 @@ function App(){
     const dur=420;
     const step=function(now){
       if(gen!==settleGen.current) return;
-      const p=Math.min(1,(now-t0)/dur);
+      // Mismo motivo que useCountUp: un primer frame con `now` anterior a t0 daría p<0 y el track
+      // retrocedería un instante antes de avanzar.
+      const p=Math.min(1,Math.max(0,(now-t0)/dur));
       const x=fromX+(toX-fromX)*easeTrack(p);
       el.style.transform="translate3d("+x+"px,0,0)";
       if(p<1){ settleRaf.current=requestAnimationFrame(step); }
@@ -3012,11 +3286,15 @@ function App(){
        listener nativo en `.viewport` se dispara ANTES que los de React, así que el
        `stopPropagation` de `stopSwipe` ya no llegaría a tiempo: hay que mirarlo aquí.
          · `[data-noswipe]`: buscador y rango de fechas de Gastos, que lo piden explícitamente.
+           `data-noswipe="y"` (el asa de ordenar de Gastos) solo pide el vertical: en horizontal
+           sigue siendo cambiar de pestaña (rechazo de la beta 4.26.173, ver `startExpenseDrag`).
          · cualquier cosa con scroll horizontal propio (las filas de chips): el dedo es del
            navegador, no nuestro. Antes esto «funcionaba» de rebote —el navegador se quedaba el
            gesto porque no podíamos impedírselo— y ahora que sí podemos hay que ser explícitos. */
     const t=e.target;
-    if(t&&t.closest&&t.closest("[data-noswipe]")) return;
+    const noSwipe=t&&t.closest?t.closest("[data-noswipe]"):null;
+    if(noSwipe && noSwipe.getAttribute("data-noswipe")!=="y") return;
+    soloX.current=!!noSwipe;
     for(let el=t; el&&el!==document.body; el=el.parentElement){
       if(el.classList&&el.classList.contains("page")) break;
       if(el.scrollWidth>el.clientWidth+4){
@@ -3084,6 +3362,8 @@ function App(){
       // dedo es lo que hacía que una bajada con deriva lateral acabara cambiando de pestaña.
       const eje=gestureAxis(ddx,ddy);
       if(!eje) return;
+      // En el asa, el vertical es ordenar: el gesto no es nuestro. Hasta aquí no se ha tocado nada.
+      if(soloX.current && eje!=="x"){ dragging.current=false; soloX.current=false; return; }
       /* A MITAD, ABAJO o ARRIBA: el arco del pulgar gana `x` pronto → preventDefault +
          leaveScrollHost + freezeShell matan scroll/ola. Una diagonal sigue siendo scroll/ola,
          también en el fondo; pero un horizontal inequívoco tiene que cambiar de pestaña sin
@@ -3622,7 +3902,10 @@ function App(){
       onGoPlan:function(seg){ if(seg) setPlanGoto({id:seg,ts:Date.now()}); const i=tabIds.indexOf("plan"); if(i>=0) goTabTop(i); }});
     // Sin prop `active`: ver `mcOnGastosActive` — si viaja por props, entrar en Gastos
     // reconstruye el árbol entero encima del gesto (asimetría Deudas→Gastos vs →Cartera).
-    if(id==="gastos") return React.createElement(Expenses,{state:state,set:set,onSync:onSync,syncing:syncing,syncStatus:syncStatus,showToast:showToast,stopSwipe:stopSwipe,cancelSwipe:cancelSwipe,focusExp:gotoExp,clearFocus:function(){ setGotoExp(null); },forceAllTs:gastosForceAll});
+    if(id==="gastos") return React.createElement(Expenses,{state:state,set:set,showToast:showToast,stopSwipe:stopSwipe,cancelSwipe:cancelSwipe,focusExp:gotoExp,clearFocus:function(){ setGotoExp(null); },forceAllTs:gastosForceAll,
+      // «Abrir en Plan · Deudas/Metas» de las filas grises (Gastos v5): mismo camino que Inicio.
+      onGoPlan:function(seg){ if(seg) setPlanGoto({id:seg,ts:Date.now()}); const i=tabIds.indexOf("plan"); if(i>=0) goTabTop(i); },
+      onGoInversiones:goInversiones});
     if(id==="plan") return React.createElement(PlanTab,{state:state,set:set,totals:totals,showToast:showToast,simple:simple,gotoSeg:planGoto,clearGoto:function(){ setPlanGoto(null); }});
     // El «Sincronizar» de Cartera actualiza TODO lo conectado: Open Banking + TR + MyInvestor
     // (petición 2026-07-18: «que también sincronice Trade Republic y MyInvestor»).
@@ -3666,7 +3949,7 @@ function App(){
     tabIds.forEach(function(id){ if(id!=="gastos") out[id]=pageFor(id); });
     return out;
     // eslint-disable-next-line
-  },[state, totals, budgetStreak, tabIds.join("|"), syncing, syncStatus, gotoExp, planGoto, pricing, uid, locked]);
+  },[state, totals, budgetStreak, tabIds.join("|"), gotoExp, planGoto, pricing, uid, locked, langLoaded]);
   /* Gastos iba en memo aparte POR la prop `active` — y esa prop era el lag. Ahora se entera
      por bus (`mcSetGastosActive` abajo) y comparte deps con las otras: entrar/salir de Gastos
      ya NO reconstruye Expenses. Se deja el memo propio por si mañana vuelve a necesitar algo
@@ -3674,7 +3957,7 @@ function App(){
   const contenidoGastos=useMemo(function(){
     return tabIds.indexOf("gastos")>=0 ? pageFor("gastos") : null;
     // eslint-disable-next-line
-  },[state, totals, tabIds.join("|"), syncing, syncStatus, gotoExp, planGoto, pricing, uid, locked, gastosForceAll]);
+  },[state, totals, tabIds.join("|"), gotoExp, planGoto, pricing, uid, locked, gastosForceAll, langLoaded]);
   // Aviso barato a Expenses: sin setState en App que no haga falta, y sin re-render de Gastos.
   useEffect(function(){ mcSetGastosActive(tabIds[tab]==="gastos"); },[tab, tabIds]);
   useEffect(function(){ mcSetCarteraActive(tabIds[tab]==="cartera"); },[tab, tabIds]);

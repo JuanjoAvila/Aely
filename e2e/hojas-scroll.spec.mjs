@@ -7,13 +7,13 @@ import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
  */
 test.use({ viewport: { width: 390, height: 700 } });
 
-test("hoja SIN body: overflow auto y scrollea (CSS del filtro / Más…)", async ({ page }) => {
+test("hoja SIN body: overflow auto y scrollea (CSS del filtro)", async ({ page }) => {
   await seedLoggedInDashboard(page);
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await dismissNews(page);
 
-  // Inyecta el mismo markup que PeriodMoreSheet / filtro (sin .v4-sheet-body): así el
+  // Inyecta el mismo markup que la hoja de filtros (sin .v4-sheet-body): así el
   // guardián no depende de abrir Gastos con el cajón de Ajustes encima.
   await page.evaluate(() => {
     const back = document.createElement("div");

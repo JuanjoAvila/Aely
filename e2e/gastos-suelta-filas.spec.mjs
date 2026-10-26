@@ -24,8 +24,7 @@ test("bajar pagina, y al volver arriba la lista vuelve a la primera tanda", asyn
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await expect(page.locator("button.v4-mov").first()).toBeVisible({ timeout: 15_000 });
-  await page.getByRole("button", { name: "Más…" }).click();
-  await page.getByRole("button", { name: "Todo", exact: true }).click();
+  // Gastos v5: sin «Más… → Todo». La vista de entrada ya es el histórico entero, mes a mes.
 
   const filas = () => page.locator(".page-scroll-host button.v4-mov").count();
   const inicial = await filas();
@@ -52,8 +51,7 @@ test("a media lista NO se suelta nada (solo arriba del todo)", async ({ page }) 
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await expect(page.locator("button.v4-mov").first()).toBeVisible({ timeout: 15_000 });
-  await page.getByRole("button", { name: "Más…" }).click();
-  await page.getByRole("button", { name: "Todo", exact: true }).click();
+  // Gastos v5: sin «Más… → Todo». La vista de entrada ya es el histórico entero, mes a mes.
   const filas = () => page.locator(".page-scroll-host button.v4-mov").count();
   await page.mouse.move(195, 450);
   for (let i = 0; i < 10; i++) { await page.mouse.wheel(0, 2500); await page.waitForTimeout(120); }

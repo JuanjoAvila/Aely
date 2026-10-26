@@ -1,3 +1,4 @@
+import { expect } from "@playwright/test";
 // Las suites de listas relativas necesitan el mismo mes en Node y en la página.
 // Las pruebas con reloj explícito omiten este helper mediante la anotación own-clock.
 export const FIXTURE_NOW = Date.parse("2026-09-26T12:00:00Z");
@@ -98,14 +99,34 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
       /* Una cadena POR consulta (15/9): con una sola compartida, un `from("bank_links")` que
          arrancaba entre el `from("expenses")` y su `await` le cambiaba la tabla a la otra. */
       const makeChain = (tabla) => {
-      let rowLimit=Infinity, beforeId=null, rowOrders=[], read=true;
+      let rowLimit=Infinity, beforeId=null, rowOrders=[], read=true, operation=null, payload=null, filters=[], columns=null;
+      const matches = row => filters.every(([key,value]) => (key==='user_id' ? row[key]??session.user.id : row[key])===value);
+      // app_state necesita INSERT único y UPDATE con CAS: un doble que los omite oculta
+      // fallos de la primera lectura o inventa conflictos que el servidor no devolvería.
+      const stateResult = () => {
+        const rows=cloudRows.app_state||(cloudRows.app_state=[]);let result=rows.filter(matches);
+        if(operation==='insert'){
+          const values=Array.isArray(payload)?payload:[payload];
+          if(values.some((v,i)=>rows.some(r=>(r.user_id??session.user.id)===v.user_id)||values.slice(0,i).some(r=>r.user_id===v.user_id)))return {data:null,error:{code:'23505',message:'Synthetic unique app_state user_id'}};
+          result=values.map(v=>JSON.parse(JSON.stringify(v)));rows.push(...result);
+        }else if(operation==='update'){
+          result=result.map(row=>{Object.assign(row,JSON.parse(JSON.stringify(payload)));return row;});
+        }
+        // Cuenta las escrituras aceptadas: `esperaNubeQuieta` sabe así cuándo dejó de subir el arranque.
+        if(operation==='insert'||operation==='update'&&result.length)window.__e2eStateWrites=(window.__e2eStateWrites||0)+1;
+        const selected=columns?result.map(row=>columns==='*'?row:Object.fromEntries(columns.split(',').map(k=>[k,row[k]]))):null;
+        return {data:selected,error:null};
+      };
       const chain = {
-        select: () => chain,
+        select: (value='*') => { columns=value; return chain; },
         order: (key,opts) => { rowOrders.push([key,opts]); return chain; },
         limit: (n) => { rowLimit=n; return chain; },
-        eq: () => chain,
+        eq: (key,value) => { filters.push([key,value]); return chain; },
         lt: (key,value) => { if(key==="id") beforeId=value; return chain; },
-        update: () => { read=false; return chain; },
+        insert: (value) => { read=false; operation='insert'; payload=value; return chain; },
+        // Lo que la app ESCRIBE por fila (la marca de meta, por ejemplo) solo se ve aquí: el doble
+        // no lo guarda en las filas de la nube, así que el test mira la petición.
+        update: (value) => { read=false; operation='update'; payload=value; (window.__e2eUpdates || (window.__e2eUpdates = [])).push({ tabla, value: JSON.parse(JSON.stringify(value)) }); return chain; },
         upsert: () => { read=false; return chain; },
         delete: () => { read=false; return chain; },
         /* Antes devolvía SIEMPRE null, así que `cloud.pullState()` nunca traía nada y NINGÚN test
@@ -116,6 +137,7 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
         maybeSingle: async () => {
           if (cloudDelays[tabla]) await new Promise((r) => setTimeout(r, cloudDelays[tabla]));
           if (cloudErrors[tabla]) return { data: null, error: { message: cloudErrors[tabla] } };
+          if(tabla==='app_state'){const result=stateResult();return {...result,data:result.data?.[0]||null};}
           return { data: (cloudRows[tabla] || [])[0] || null, error: null };
         },
         single: async () => ({ data: null, error: null }),
@@ -133,7 +155,7 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
         }
         const out = cloudErrors[t]
           ? { data: null, error: { message: cloudErrors[t] } }
-          : { data, error: null };
+          : t==='app_state'?stateResult():{ data, error: null };
         if (delay) setTimeout(() => resolve(out), delay);
         else resolve(out);
       };
@@ -238,6 +260,31 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
   }, overrides);
 }
 
+/** Espera a que el arranque deje de subir `app_state` y su ACK esté guardado en local.
+ *  Desde la 4.26.170 el doble devuelve filas al UPDATE CAS, así que el envío con debounce que
+ *  sigue al primer pull recibe acuse y reescribe `_goalSync.revision` ~1,5 s después. Una foto
+ *  «estable» tomada antes compara contra un estado a medio asentar (beta 170: ~50 e2e en rojo
+ *  sin ningún cambio de datos). Quieto = sin escrituras nuevas durante `quiet` ms reales y con
+ *  la revisión local igual a la de la fila de la nube. */
+export async function esperaNubeQuieta(page, { quiet = 2500, timeout = 20000 } = {}) {
+  const probe = () => page.evaluate(() => {
+    const row = (window.__e2eCloudRows?.app_state || [])[0];
+    let rev = null;
+    try { rev = JSON.parse(localStorage.getItem(mcStateKey()) || "{}")._goalSync?.revision ?? null; } catch (e) {}
+    return { n: window.__e2eStateWrites || 0, ok: !row || rev === row.updated_at };
+  });
+  const end = Date.now() + timeout;
+  let last = null, since = Date.now();
+  for (;;) {
+    const p = await probe();
+    if (!last || last.n !== p.n || !p.ok) since = Date.now();
+    else if (Date.now() - since >= quiet) return;
+    last = p;
+    if (Date.now() > end) throw new Error("la nube del arranque no se asentó: " + JSON.stringify(p));
+    await new Promise((r) => setTimeout(r, 200));
+  }
+}
+
 /** Cierra el popup de Novedades si sale (cambia de versión en cada release). Llamar tras el
  *  primer goto("/") en cualquier test que necesite interactuar con la pantalla.
  *  ⚠ Esperar de verdad: con varias betas el mismo día el popup a veces monta DESPUÉS del
@@ -263,4 +310,112 @@ export async function dismissNews(page) {
   }
   await btn.first().click();
   await page.locator(".wn-panel").waitFor({ state: "detached", timeout: 5_000 }).catch(() => {});
+}
+
+/* ===== Gastos v5 (20/10/2026) =====
+   La tarjeta resumen y los botones de periodo se fueron: la cifra viva vive en la cabecera fija
+   (`gastos-cifra`, texto entero en un nodo oculto a la vista) con su línea (`gastos-estado`), y el
+   periodo (Meses · Mi ciclo · Rango · Todo) se elige en Filtros. Estas ayudas existen para que
+   cada spec no reinvente el camino. */
+/** La pantalla de Gastos ACTIVA (Gastos se premonta escondida; acotar evita leer la copia). */
+export const gastosRoot = (page) => page.locator(".page-scroll-host .gx-root");
+export const gastosCifra = (page) => gastosRoot(page).getByTestId("gastos-cifra");
+export const gastosEstado = (page) => gastosRoot(page).getByTestId("gastos-estado");
+/** Cambia de sección de Gastos v5 tocando su icono: "movs" | "cats" | "subs". */
+export async function gastosSeccion(page, id) {
+  await gastosRoot(page).locator(`[role="tab"][data-gx-tab="${id}"]`).click();
+  await expect(gastosRoot(page)).toHaveAttribute("data-secc", id);
+}
+/** Abre y cierra la hoja de Filtros de Gastos (ahí viven el periodo, la ayuda de Mi ciclo y el Rango). */
+export async function gastosAbreFiltros(page) {
+  await gastosRoot(page).locator("button.v4-chip").filter({ hasText: "🎛️" }).first().click();
+  await expect(page.locator(".v4-gastos-filter-sheet")).toBeVisible();
+}
+export async function gastosCierraFiltros(page) {
+  await page.locator(".v4-sheet-back").click({ position: { x: 5, y: 5 } });
+  await page.locator(".v4-sheet-back").waitFor({ state: "detached" });
+}
+/** Elige periodo en la hoja de Filtros: "months" | "cycle" | "custom" | "all". */
+export async function gastosPeriodo(page, id) {
+  await gastosAbreFiltros(page);
+  await page.locator(`.v4-gastos-filter-sheet [data-periodo="${id}"]`).click();
+  await gastosCierraFiltros(page);
+  await expect(gastosRoot(page)).toHaveAttribute("data-periodo", id);
+}
+/** Baja la lista hasta dejar el día `ymd` (aaaa-mm-dd) justo bajo la cabecera ya encogida.
+ *  `ym` (mes de Madrid) distingue las dos mitades de un día local que cae en dos meses (fuera de España). */
+export async function gastosBajaAlDia(page, ymd, ym) {
+  const k = ymd.replaceAll("-", "");
+  await page.evaluate(async ([k, ym]) => {
+    const host = document.querySelector(".page-scroll-host"), el = host.querySelector(`[data-gx-day="${k}"]` + (ym ? `[data-gx-ym="${ym}"]` : ""));
+    const head = host.querySelector(".gx-head"), pad = parseFloat(getComputedStyle(host).paddingTop) || 0;
+    // Con la letra «Normal» (zoom 0,92 en el body) los rect vienen en px de pantalla y scrollTop no.
+    const z = parseFloat(getComputedStyle(document.body).zoom) || 1;
+    const top = host.scrollTop + (el.getBoundingClientRect().top - host.getBoundingClientRect().top) / z - (pad + head.offsetHeight + (head.classList.contains("meses-fijos") ? 0 : head.querySelector(".gx-meses") ? 36 : -16)) + 2;
+    const max = host.scrollHeight - host.clientHeight;
+    if (top <= max - host.clientHeight) { host.scrollTo(0, top); return; }
+    /* Cerca del final de la lista (tanda 6, sin pie) la raya de la cabecera BAJA en el último
+       tramo del scroll (lo que mida el final de la lista, como mucho una pantalla), así que poner
+       el día justo bajo la cabecera ya no basta: se busca el scroll por bisección mirando qué día
+       manda (`data-gx-vista`). La lista va de más nuevo a más viejo, así que bajar más solo puede
+       dar días más viejos. */
+    const frame = () => new Promise((r) => requestAnimationFrame(r));
+    // El día que manda se lee cuando el scroll ha llegado y la cabecera lleva dos frames sin cambiar
+    // (la cabecera calcula en un rAF y React pinta después: un solo frame a veces leía el anterior).
+    const lee = async (st) => {
+      let prev = null, quietos = 0;
+      for (let i = 0; i < 30 && quietos < 2; i++) {
+        await frame();
+        const v = head.getAttribute("data-gx-vista");
+        quietos = Math.abs(host.scrollTop - st) <= 1 && v === prev ? quietos + 1 : 0;
+        prev = v;
+      }
+      return prev;
+    };
+    const want = k + "|" + (ym || el.getAttribute("data-gx-ym"));
+    const orden = (v) => { const [dk, dym] = v.split("|"); return +dk * 100 + (+dym.slice(5, 7)); };
+    let lo = 0, hi = max;
+    for (let i = 0; i < 30 && lo <= hi; i++) {
+      const mid = Math.floor((lo + hi) / 2);
+      host.scrollTo(0, mid);
+      const v = await lee(mid);
+      if (v === want) return;
+      if (!v || orden(v) > orden(want)) lo = mid + 1; else hi = mid - 1;
+    }
+  }, [k, ym]);
+}
+/** Mantiene pulsado un elemento (pulsación larga de Gastos v5: el límite de una categoría). Con
+ *  punteros, como la app: el ratón de Playwright los genera igual que un dedo. */
+export async function gastosPulsaLarga(page, loc, ms = 700) {
+  const box = await loc.boundingBox();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(ms);
+  await page.mouse.up();
+}
+/** Un cargo de una fila gris (recibos/cuotas agrupados por día, SPEC §4.4): abre su fila si está
+ *  plegada y devuelve el cargo. Antes eran tarjetas sueltas (`button.v4-mov`). */
+export async function gastosGrisFila(page, nombre) {
+  // `has` va relativo a la fila gris: un localizador que empieza en la raíz no casaría nunca.
+  const grupo = gastosRoot(page).locator(".gx-gris").filter({ has: page.locator(".gx-gris-it", { hasText: nombre }) }).first();
+  const item = grupo.locator(".gx-gris-it").filter({ hasText: nombre }).first();
+  const cab = grupo.locator(".gx-gris-h");
+  if ((await cab.getAttribute("aria-expanded")) !== "true") await cab.click();
+  await expect(item).toBeVisible();
+  return item;
+}
+/** Abre la ficha de un gasto de la lista esté donde esté: tarjeta suelta o cargo de una fila gris.
+ *  Los cargos vinculados a un recibo o a una deuda viven en su fila gris desde Gastos v5; un spec que
+ *  no trata de la agrupación solo quiere la ficha, y así no depende de en qué cajón cae el cargo. */
+export async function gastosAbreGasto(page, nombre) {
+  const sitio = gastosRoot(page).locator(".v4-gastos-list-body button.v4-mov, .gx-gris-it").filter({ hasText: nombre }).first();
+  await expect(sitio).toBeAttached();
+  if (await sitio.evaluate((el) => el.classList.contains("gx-gris-it"))) await (await gastosGrisFila(page, nombre)).click();
+  else await sitio.click();
+}
+/** Baja hasta el primer día pintado del mes `ym` (aaaa-mm, mes de Madrid) en la lista. */
+export async function gastosBajaAlMes(page, ym) {
+  const k = await gastosRoot(page).locator(`.gx-dia[data-gx-ym="${ym}"]`).first().getAttribute("data-gx-day");
+  const ymd = k.slice(0, 4) + "-" + k.slice(4, 6) + "-" + k.slice(6, 8);
+  await gastosBajaAlDia(page, ymd, ym);
 }

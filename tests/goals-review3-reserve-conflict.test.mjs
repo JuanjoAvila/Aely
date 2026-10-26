@@ -1,3 +1,4 @@
+import {commitCloudFixture} from './helpers/cloud-commit-fixture.mjs';
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -19,11 +20,12 @@ function bank(){
  function device(){
   const c=logic();class Clock extends Date{constructor(...a){super(...(a.length?a:[now]));}static now(){return now;}}c.Date=Clock;
   let state=seed();Object.assign(state,c.goalSyncPull(state,copy(state),owner,"r0",false));const beforeMonthly=[];
-  const deps={obAbsorbedWriteBlocked:{current:false},stateRef:{current:state},sessionRef:{current:{user:{id:owner}}},cloudUpdatedAtRef:{current:"r0"},pullOkRef:{current:null},uid:owner,useCallback:f=>f,
+  const deps={cloudMergeKey:{current:Symbol("merge")},cloudPullRef:{current:null},cloudReadRef:{current:{owner,ready:true}},obAbsorbedWriteBlocked:{current:false},stateRef:{current:state},sessionRef:{current:{user:{id:owner}}},cloudUpdatedAtRef:{current:"r0"},pullOkRef:{current:null},uid:owner,useCallback:f=>f,
    setStateRaw:f=>{state=f(state);deps.stateRef.current=state;},syncCloudExpenses:async()=>{beforeMonthly.push(copy(state));},showToast:()=>{},mcBootReady:()=>{},t:x=>x,navigator:{onLine:true},reconcileGemelosAutomaticos:x=>x,
    seedFlows:x=>x,fixMovInvasion:x=>x,fixRevoDupes:x=>x,fixInvAuto:x=>x,fixInvSold:x=>x,reconcileTR:x=>x,reconcileEarlyIncomeAnchors:x=>x};
+  const applyState=deps.setStateRaw;deps.setStateRaw=f=>{applyState(f);commitCloudFixture(app,c,deps,state);};
   deps.cloud=vm.runInContext("(function(sb){const statePushCache=new Map();return {"+["async session(","async pullState(","async pushState("].map(t=>block(core,t)).join(",")+"};})",c)(sb);
-  const a=app.indexOf("const set=useCallback((updater)=>"),b=app.indexOf("},[]);",a)+"},[]);".length,names=Object.keys(deps);
+  const a=app.indexOf("const set=useCallback((updater,edited=true)=>"),b=app.indexOf("},[]);",a)+"},[]);".length,names=Object.keys(deps);
   const api=vm.runInContext("(function("+names.join(",")+"){"+app.slice(a,b)+block(app,"const reservaMensualAlDia=function(")+";"+block(app,"const pushAppState=function(")+";"+block(app,"const syncFromCloud=function(")+";return {set,push:pushAppState,sync:syncFromCloud};})",c)(...names.map(k=>deps[k]));
   return {c,state:()=>copy(state),beforeMonthly,edit:fn=>{now+=1000;api.set(fn);},settle:()=>{now+=1000;api.set(s=>c.applyReservaMensual(s,now));},send:async()=>{now+=1000;const r=await api.push(owner,state);if(r?.conflict){api.sync(deps.sessionRef.current);await deps.pullOkRef.current;await Promise.resolve();}return r;}};
  }

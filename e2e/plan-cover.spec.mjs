@@ -1,6 +1,6 @@
 /* Portada de Plan §5bis + NO-GO 17/9 + addendum Claude 1845Z. */
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, gastosPeriodo, gastosAbreFiltros } from "./fixtures.mjs";
 
 const RELOJ = new Date("2026-09-10T12:00:00Z");
 
@@ -53,7 +53,10 @@ test("un abono bancario adelantado ancla el ciclo y deja de preverse otra nómin
   });
   await expect(page.locator('.v4-screen > [data-seg="recibos"]')).not.toContainText("Lo que aún entrará");
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await page.getByRole("button",{name:"Mi ciclo"}).click();
+  // Gastos v5: Mi ciclo se elige en Filtros.
+  await gastosPeriodo(page,"cycle");
+  // La ayuda de Mi ciclo (qué cobro lo ancla) vive en Filtros → Periodo desde la tanda 2.
+  await gastosAbreFiltros(page);
   await expect(page.locator(".v4-cycle-box")).toContainText("Empresa");
 });
 

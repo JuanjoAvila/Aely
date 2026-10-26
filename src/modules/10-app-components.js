@@ -2056,7 +2056,7 @@ function BackupRecoveryPreview({snapshot,current,day,onClose}){
   const compared=useMemo(function(){ return compareBackupExpenses(snapshot.expenses,current.expenses); },[snapshot.expenses,current.expenses]);
   const stateFields=useMemo(function(){
     // Los sellos de transporte no son una diferencia financiera de la copia.
-    return backupChangedFields(snapshot,current,["expenses","_savedAt","lastSync","lastPriceSync","lastBackup"]);
+    return backupChangedFields(snapshot,current,["_planSync","debtDeleted","expenses","_savedAt","lastSync","lastPriceSync","lastBackup"]);
   },[snapshot,current]);
   const rows=compared.list.filter(function(r){ return filter==="all" || r.status===filter; });
   const label=function(k){ return LANG.es["bk_field_"+k] ? t("bk_field_"+k) : k; };
@@ -2233,8 +2233,7 @@ function WhatsNew({onClose, showToast, set, state}){
   const [showOlder,setShowOlder]=useState(false);
   const list=showOlder ? notes : shown;
   return ReactDOM.createPortal(React.createElement("div",{className:"wn-panel"}, React.createElement("div",{className:"wn-inner"},
-    React.createElement("div",{className:"serif",style:{fontSize:25,margin:"2px 0 2px"}}, "✨ "+t("wn_title")),
-    React.createElement("div",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.5,marginBottom:14}}, t("wn_sub")),
+    React.createElement("div",{className:"serif",style:{fontSize:25,margin:"2px 0 14px"}}, "✨ "+t("wn_title")),
     !notes.length && React.createElement(React.Fragment,null,
       React.createElement("div",{className:"hint"},t("notes_unavailable")),
       React.createElement(ReleaseNotesRetry,{onReady:function(arr){ setNotes(arr.slice()); if(arr.length)setOpenV(arr[0].v); }})),
@@ -2639,6 +2638,10 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   };
   const sw=function(on){ return React.createElement("span",{className:"swx"+(on?" on":"")}); };
   const curLang=(state.settings&&state.settings.lang)||"es";
+  const langRequest=useRef(0);
+  // Dos descargas pueden terminar al revés: solo la última elección conserva permiso para
+  // guardarse. Cambiar de idioma desde nube o desmontar Ajustes invalida también la anterior.
+  useEffect(function(){ return function(){ langRequest.current++; }; },[curLang]);
   const curTheme=(state.settings&&state.settings.theme)||"green";
   const curCur=(state.settings&&state.settings.currency)||"EUR";
   const curSeason=(state.settings&&state.settings.season)||"none";
@@ -2718,9 +2721,10 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
           LANGS.map(function(L){
             return React.createElement("button",{key:L[0],onClick:function(){
               var lg=L[0];
+              var request=++langRequest.current;
               // en/ca pueden no estar en el bundle: carga el JSON antes de cambiar CURLANG
               // para no pintar un frame a medias en español (A/B idiomas, 4.19.103).
-              var go=function(){ CURLANG=lg; setS({lang:lg}); };
+              var go=function(){ if(request!==langRequest.current) return; CURLANG=lg; setS({lang:lg}); };
               if(typeof ensureLangPack==="function") ensureLangPack(lg).then(go, go); else go();
             },style:segBtn(curLang===L[0])}, L[1]);
           })))
@@ -2733,7 +2737,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         React.createElement("div",{style:{fontSize:13,fontWeight:700,marginBottom:6}}, t("st_textsize")),
         React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap"}},
           [["small","ts_small"],["normal","ts_normal"],["big","ts_big"],["huge","ts_huge"]].map(function(ts){
-            return React.createElement("button",{key:ts[0],onClick:function(){ applyTextSize(ts[0]); setS({textSize:ts[0]}); },style:Object.assign({},segBtn(curTextSize===ts[0]),{flex:"1 1 40%"})}, t(ts[1]));
+            return React.createElement("button",{key:ts[0],type:"button","data-ts":ts[0],"aria-pressed":curTextSize===ts[0],onClick:function(){ applyTextSize(ts[0]); setS({textSize:ts[0]}); },style:Object.assign({},segBtn(curTextSize===ts[0]),{flex:"1 1 40%"})}, t(ts[1]));
           })),
         React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.5,marginTop:6}}, t("st_textsize_hint"))
       ),
@@ -3127,11 +3131,11 @@ function Onboarding({set, onCloud, onSignup}){
       return Object.assign({},s,{
         budget:bud, monthStartNet:0, history:[0],
         onboarded:true, setupHint:true, tourSeen:false,
-        /* LETRA PEQUEÑA DE SALIDA, Y SOLO EN INSTALACIONES NUEVAS (11/9, suyo: «pon la letra en
-           pequeño para comenzar, en normal es terriblemente gigantesca»). Se pone AQUÍ, en el
-           onboarding, y no como valor por defecto global: cambiarlo globalmente le reescribiría
-           el tamaño a su padre y a su pareja, que ya tienen la app y no han pedido nada. Quien la
-           quiera más grande la sube en Ajustes, y eso manda sobre esto. */
+        /* LETRA DE SALIDA «NORMAL» (valor `small`), Y SOLO EN INSTALACIONES NUEVAS (11/9, suyo: «pon la
+           letra en pequeño para comenzar»; el 26/10 esa letra pasó a llamarse «Normal»). Se pone AQUÍ y
+           no como defecto global: `textSizeOf` sigue cayendo en `normal` para que su padre y su pareja,
+           que ya tienen la app, no vean la letra encogerse. Quien la quiera más grande la sube en
+           Ajustes, y eso manda sobre esto. */
         settings: Object.assign({}, s.settings, { textSize:"small" }),
       });
     });
@@ -3360,7 +3364,7 @@ class ErrorBoundary extends React.Component{
     const wrap={position:"fixed",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:13,padding:24,textAlign:"center",background:"#0B1410",color:"#E8F0EB",fontFamily:"Manrope,sans-serif",zIndex:9999};
     const btn={padding:"13px 22px",borderRadius:14,border:"none",background:"#5FD08A",color:"#06120C",fontWeight:800,fontSize:15,cursor:"pointer"};
     const btn2=Object.assign({},btn,{background:"transparent",border:"1px solid #2a3a31",color:"#E8F0EB"});
-    const dl=function(){ try{ const data=JSON.stringify(mcLoadRaw(mcStateKey())||{},null,2); const url=URL.createObjectURL(new Blob([data],{type:"application/json"})); const a=document.createElement("a"); a.href=url; a.download="mi-cartera-backup-"+new Date().toISOString().slice(0,10)+".json"; a.click(); setTimeout(function(){URL.revokeObjectURL(url);},1000); }catch(e){ alert("Export error: "+e); } };
+    const dl=function(){ try{ const snapshot=Object.assign({},mcLoadRaw(mcStateKey())||{});delete snapshot._planSync;const data=JSON.stringify(snapshot,null,2); const url=URL.createObjectURL(new Blob([data],{type:"application/json"})); const a=document.createElement("a"); a.href=url; a.download="mi-cartera-backup-"+new Date().toISOString().slice(0,10)+".json"; a.click(); setTimeout(function(){URL.revokeObjectURL(url);},1000); }catch(e){ alert("Export error: "+e); } };
     return React.createElement("div",{style:wrap},
       React.createElement("div",{style:{fontSize:46}},"🛟"),
       React.createElement("div",{style:{fontWeight:800,fontSize:21,fontFamily:"Fraunces,serif"}}, t("eb_title")),

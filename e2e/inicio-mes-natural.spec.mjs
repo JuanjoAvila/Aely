@@ -82,8 +82,8 @@ for(const caso of idiomas) for(const perfil of ["split","net"]){
     await expect(dash.getByTestId("inicio-cycle-pace")).toHaveText(caso.pace(100));
     await page.locator('.botnav-tab[data-tour="gastos"]').click();
     // El balance mensual positivo es legítimo; no se transforma en gasto para arreglar Inicio.
-    const summary=page.locator(".v4-gastos-summary");
-    await expect(summary.locator(".v4-gastos-summary-amount")).toContainText(perfil==="net"?"1480":"600");
+    // Gastos v5: la cifra de la cabecera fija sustituye a la de la tarjeta resumen.
+    await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toContainText(perfil==="net"?"1480":"600");
     await page.locator('.botnav-tab[data-tour="inicio"]').click();
     await ciclo(page,caso);
     await expect(ring).toHaveText("98%");

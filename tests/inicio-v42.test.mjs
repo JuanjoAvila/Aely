@@ -369,16 +369,18 @@ const editHistory=c.recordAssetValues(undefined,"2026-09-05",[{id:"old-car",valu
 assert.deepEqual(plain(editHistory["old-car"]),[{day:"2026-09-04",value:15000,legacy:true},{day:"2026-09-05",value:14000}],"una edición real registra valor propio y el anterior, sin inventar el alta");
 const appSource=fs.readFileSync(new URL("../src/modules/11-app-main.js",import.meta.url),"utf8");
 const cloudApply=callback(appSource,"function(prev){",appSource.indexOf("const syncFromCloud=function("));
-const identity=x=>x,sessionRef={current:null};
-const applyCloud=vm.runInContext("(function(sessionRef,cloudState,cloudPack,u,opts,mergeExpenses,fixMovInvasion,fixRevoDupes,fixInvAuto,fixInvSold,reconcileTR,seedFlows,reconcileEarlyIncomeAnchors){const freshLogin=false;return "+cloudApply+";})",c);
+const identity=x=>x,sessionRef={current:{user:{id:"same-owner"}}};
+const applyCloud=vm.runInContext("(function(sessionRef,cloudState,cloudPack,u,opts,mergeExpenses,fixMovInvasion,fixRevoDupes,fixInvAuto,fixInvSold,reconcileTR,seedFlows,reconcileEarlyIncomeAnchors){const readSession=sessionRef.current,freshLogin=false,read={owner:u,ready:false},cloudReadRef={current:read},cloudPullRef={current:read},cloudMergeKey={current:Symbol('merge')};return "+cloudApply+";})",c);
 const localHistory={...cloudState,_historyOwner:"same-owner",assetValueHistory:{home:points}};
 const incomingHistory={...cloudState,accountBalanceHistory:{"acc:history-0":largeHistory["acc:history-0"].slice(-14)},assetValueHistory:{home:points.slice(-14)}};
 const cloudCallback=applyCloud(sessionRef,incomingHistory,{updated_at:"synthetic"},"same-owner",{},(a,b)=>({list:a}),identity,identity,identity,identity,identity,identity,identity);
+sessionRef.current=null;
 assert.equal(cloudCallback(localHistory),localHistory,"sesión nula al ejecutar el callback conserva el estado entero y los400 cierres");
 sessionRef.current={user:{id:"other-owner"}};
 assert.equal(cloudCallback(localHistory),localHistory,"un pull tardío tampoco sustituye el historial de otro dueño");
 sessionRef.current={user:{id:"same-owner"}};
-const sameOwner=cloudCallback(localHistory);
+assert.equal(cloudCallback(localHistory),localHistory,"una sesión nueva del mismo UID también invalida el callback viejo");
+const sameOwner=applyCloud(sessionRef,incomingHistory,{updated_at:"synthetic"},"same-owner",{},(a,b)=>({list:a}),identity,identity,identity,identity,identity,identity,identity)(localHistory);
 assert.equal(sameOwner.accountBalanceHistory,largeHistory,"la ventana nube14 se une sin sustituir el local400");
 assert.equal(sameOwner.assetValueHistory,localHistory.assetValueHistory);
 console.log("inicio-v42: ronda3 alta explícita, legado constante, escalones propios y carrera de sesión OK");
@@ -602,7 +604,8 @@ console.log("inicio-v42: comparación hoy frente al mismo día (ahorrador sin ro
 const html=fs.readFileSync(new URL("../public/index.html",import.meta.url),"utf8").replace(/\r\n/g,"\n");
 const mutantCases=[
   ["céntimos","cents:Math.round(e.amount*100),f:factorOf(e,bank,day)","cents:Math.trunc(e.amount)*100,f:factorOf(e,bank,day)",m=>assert.equal(m.netWorthSeries({...base,expenses:coverage.concat(entry("mut-cent","2026-09-02",1.37))},opts)[0].value,601.37)],
-  ["borrados","expenseIsTombstoned(e,del)","false",m=>assert.equal(m.netWorthSeries({...base,expenses:coverage.concat(deleted),deleted:[m.keyOfExpense(deleted)]},opts)[0].value,600)],
+  // Ancla con su contexto desde la 4.26.172: `metaAportes` también salta las lápidas con la misma llamada.
+  ["borrados","e.possibleDup||expenseIsTombstoned(e,del)||","e.possibleDup||false||",m=>assert.equal(m.netWorthSeries({...base,expenses:coverage.concat(deleted),deleted:[m.keyOfExpense(deleted)]},opts)[0].value,600)],
   ["manual actual","day===today||!s.points.length?s.value","!s.points.length?s.value",m=>assert.equal(m.netWorthSeries({...manual,accounts:manual.accounts.map(a=>a.id==="cash"?{...a,value:101.37}:a)},{...opts,liquid:701.37}).at(-1).value,701.37)],
   ["sobrado","CYCLE_COMFORT_DIFF=-15","CYCLE_COMFORT_DIFF=-5",m=>assert.equal(m.cyclePaceState(251,1000,12,30).id,"good")],
   ["no finito","if(values.some(function(v){ return typeof v!==\"number\"||!Number.isFinite(v); }))","if(false)",m=>assert.equal(m.netWorthSeries({...base,accounts:[{...base.accounts[0],value:Infinity}]},opts).length,0)],

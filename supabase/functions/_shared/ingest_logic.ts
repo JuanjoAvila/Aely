@@ -18,6 +18,7 @@ export const CATEGORIAS: Record<string, string[]> = {
   viajes:     ["booking","airbnb","hotel","hostal","hostel","apartament turistic","apartamento turistico","vueling","iberia","ryanair","easyjet","vuelos","vuelo ","aeropuerto","airport","expedia","trivago","kayak","edreams","rumbo","logitravel","civitatis","getyourguide","marriott","hilton","ibis ","nh hotel","melia","barcelo","ac hotel","travelodge","camping","ferry","balearia","crucero","cruise","turismo"],
   transporte: ["transport","renfe","fgc","tmb","metro","autobus","bus ","taxi","cabify","uber","gasolina","repsol","cepsa","shell","bp ","galp","autopista","peaje","tram","bicing","blablacar","flixbus","moove","bolt","ouigo","iryo","avlo","rodalies","emt ","alsa","avanza","ok mobility","sixt","hertz","europcar","ballenoil","carburante","gasoleo","diesel","recarga electr","free now","freenow"],
   parking:    ["parking","parquimetro","parkimetro","parquímetro","aparcament","aparcamiento","saba","b:sm","bsm","empark","interparking","apk2","apk80","onepark","elparking","easypark","telpark","zona azul","zona verde","area verde","àrea verda","grua municipal","indigo parking"],
+  coche:      ["taller","itv","lavado de coche","lavado coche","lavadero","autolavado","car wash","neumatico","neumatic","norauto","midas","feu vert","cambio de aceite","recambio","carglass"],
   /* AGUA / LUZ / GAS. Espejo EXACTO de `00-core.js` y en el MISMO orden: `agua` va primera para
      que lo específico gane a lo genérico, y las ambiguas (Naturgy/Endesa/…) caen en `luz`.
      El guardián `categorias-dual` saca las palabras de AQUÍ y exige que las dos partes
@@ -50,6 +51,7 @@ const KW_PALABRA: Record<string, number> = {
   "saba": 1,      // SABA aparcamientos ⊂ SABADELL — «Transferencia a banco Sabadell» → parking
   "zara": 1,      // Zara ⊂ ZARAGOZA
   "hospital": 1,  // hospital ⊂ HOSPITALET
+  "midas": 1,     // Midas (talleres) como palabra entera
   "mango": 1,     // la tienda Mango ⊂ MANGOpay, la pasarela de Vinted (2026-09-12)
 };
 

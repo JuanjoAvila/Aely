@@ -68,7 +68,7 @@ function entorno(src) {
   c.expenseFromRow = function () { env.calls.row++; return row.apply(this, arguments); };
   // El `set` de App (11-app-main.js): mismo atajo y mismo sello. Se cuenta cuándo hay estado nuevo.
   const factory = vm.runInContext("(function(api){const stateRef=api.stateRef,sessionRef={current:{user:{id:'" + OWNER + "'}}};" +
-    "const wR={current:false},wS={current:0},wP={current:null},wC={current:[]},wRead={current:null};const retryObAbsorbedCloud=function(){return Promise.resolve();};" +
+    "const wR={current:false},wS={current:0},wP={current:null},wC={current:[]},wRead={current:null},wOwner={current:null};const retryObAbsorbedCloud=function(){return Promise.resolve();};" +
     "const set=function(u){const prev=stateRef.current;let next=typeof u==='function'?u(prev):u;if(next===prev)return;" +
     "if(next.expenses!==prev.expenses||next.gemelos!==prev.gemelos||next.deleted!==prev.deleted)next=reconcileGemelosAutomaticos(next,prev);" +
     "api.sets++;stateRef.current=Object.assign({},next,{_savedAt:Date.now()});};" + src + "return syncCloudExpenses;})", c);

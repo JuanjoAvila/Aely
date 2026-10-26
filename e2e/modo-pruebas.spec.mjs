@@ -44,7 +44,8 @@ test("dentro del modo pruebas se ven los datos de PRUEBA, no los reales", async 
   await expect(page.locator(".sandbox-bar")).toBeVisible();
 
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await expect(page.locator(".v4-gastos-summary")).toContainText("9999");
+  // Gastos v5: el presupuesto de PRUEBA se ve en el margen de la cabecera (sin gastos, todo).
+  await expect(page.locator('.page-scroll-host [data-testid="gastos-estado"]')).toContainText(/9[.,]?999 €/);
 });
 
 test("lo que haces en pruebas NO toca la cartera real", async ({ page }) => {
@@ -144,7 +145,8 @@ for(const [lang,action] of [['es','activate'],['en','activate'],['ca','activate'
       return {results,writers:CLOUD_WRITES,pinned:mcSandbox(),flag:mcSandboxFlag(),transition:mcSandboxTransition(),marks:performance.getEntriesByName('mc_mode_change_reopen_required').map(e=>({name:e.name,detail:e.detail})),realBudget:mcLoadRaw('micartera_v3').budget};
     });
     expect(dialogs).toEqual(['beforeunload']);expect(guarded.transition).toBe(true);expect(guarded.pinned).toBe(action!=='activate');
-    expect(guarded.results).toHaveLength(33);expect(guarded.writers).toContain('renameExpense');expect(new Set(guarded.writers).size).toBe(33);expect(guarded.results.every(r=>r===null)).toBe(true);
+    // 34 desde la 4.26.172: entra `setExpenseMeta` (la aportación a meta), que también se corta en modo pruebas.
+    expect(guarded.results).toHaveLength(34);expect(guarded.writers).toContain('renameExpense');expect(guarded.writers).toContain('setExpenseMeta');expect(new Set(guarded.writers).size).toBe(34);expect(guarded.results.every(r=>r===null)).toBe(true);
     expect(guarded.marks).toEqual([{name:'mc_mode_change_reopen_required',detail:null}]);expect(guarded.realBudget).toBe(500);
     // The same browser reload, now allowed, stands in for closing/reopening this document.
     await page.evaluate(()=>{window._incCancelReload=false;});await page.reload();
@@ -205,7 +207,7 @@ for(const action of ['activate','empty','deactivate']) test(`INC171001 window fe
   try{
     await page.goto('/');await expect(page.locator('.botnav')).toBeVisible();await ready(1);await dismissNews(page);
     // No startup-settling sleep and no write counters reset. Prove writers remain usable.
-    if(action==='activate')await page.evaluate(()=>cloud.pushState('e2e-user',slimForCloud(mcLoadRaw(mcStateKey())),null));
+    if(action==='activate')await page.evaluate(async()=>{const row=await cloud.pullState();return cloud.pushState('e2e-user',slimForCloud(mcLoadRaw(mcStateKey())),row?.updated_at||null);});
     const open=async()=>{await page.locator('.v4-avatar').click();await page.getByRole('button',{name:'Ir a Ajustes',exact:true}).click();await expect(page.locator('.settings-push.open')).toBeVisible();};
     await open();
     if(action==='activate'){
@@ -233,7 +235,7 @@ for(const action of ['activate','empty','deactivate']) test(`INC171001 window fe
     expect(interval.flag).toBe(action!=='activate');
     const probe=await page.evaluate(async()=>{const results=[];for(const name of CLOUD_WRITES)results.push({name,result:await cloud[name]()});return results;});
     probes[0].allWriters=probe;
-    expect(probe).toHaveLength(33);expect(probe.map(p=>p.name)).toContain('renameExpense');expect(new Set(probe.map(p=>p.name)).size).toBe(33);
+    expect(probe).toHaveLength(34);expect(probe.map(p=>p.name)).toContain('renameExpense');expect(probe.map(p=>p.name)).toContain('setExpenseMeta');expect(new Set(probe.map(p=>p.name)).size).toBe(34);
     expect(probe.every(p=>p.result===null)).toBe(true);
     await Promise.all([page.waitForEvent('load'),page.evaluate(()=>{window._incHoldAsk=false;window._incHeldBack();})]);
     await ready(2);

@@ -168,7 +168,9 @@ export async function fetchBankTransactions(jwt: string, uid: string, dateFrom: 
      devolver vacío sin `WRONG_TRANSACTIONS_PERIOD`; esperar al error dejaba la pantalla a cero.
      El sync diario no activa `preferLongest`: allí interesa la ventana reciente exacta.
      maxPages y dateTo los usa el sync a demanda para partir ventana y tramo antiguo sin
-     pasar del tope de 12 llamadas por cuenta. El histórico no los manda: sigue en 12. */
+     pasar de 12 páginas exitosas. Un único rechazo inicial WRONG_TRANSACTIONS_PERIOD
+     puede añadir un intento (máximo 13); otros errores no estrenan cupo. El histórico
+     no los manda y usa longest desde el inicio: conserva su límite de 12 páginas. */
   const pageCap = maxPages > 0 ? maxPages : 12;
   let continuation: string | null = null, longest = !!dateFrom && !!preferLongest, pages = 0;
   try {

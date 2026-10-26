@@ -1,5 +1,44 @@
 [
   {
+    "v": "4.26.182",
+    "d": "2026-10-26",
+    "t": {
+      "es": "Gastos renovado, dos móviles sin pisarse y cuentas que cuadran",
+      "en": "A renewed Spending screen, two phones in step and figures that add up",
+      "ca": "Despeses renovades, dos mòbils sense trepitjar-se i comptes que quadren"
+    },
+    "items": {
+      "es": [
+        "Gastos, renovado: arriba ves cuánto llevas gastado y cuánto te queda, cada gasto va en su tarjeta con el total del día, y al bajar aparecen los meses y los ciclos para saltar a uno con un toque. Los recibos salen como un movimiento más, en gris, y se abren con un toque.",
+        "Gastos tiene tres secciones: tus movimientos, tus categorías (toca una para ver solo sus gastos del mes o mantenla pulsada para ponerle un límite) y las suscripciones, cada una con su tarjeta para pasarla a Recibos o marcarla como dada de baja.",
+        "Filtros nuevos: eliges el periodo, qué contar, tus bancos y tus categorías, y te dice cuántos movimientos vas a ver. Ya no hace falta «Actualizar gastos»: los gastos llegan solos al abrir la app y al volver a ella. En Mi ciclo salen sus fechas y tus ciclos anteriores.",
+        "Un gasto se puede marcar como dinero para una de tus metas: deja de contar en el mes y suma a lo ahorrado de la meta. Las aportaciones a tus inversiones salen agrupadas aparte y tampoco cuentan como gasto.",
+        "Si usas la app en dos móviles, lo que cambias en uno ya no se pierde ni lo pisa el otro: los cambios en recibos y deudas se juntan, y si los dos tocan lo mismo eliges tú. Lo hecho sin conexión se sube al volver la red, y el idioma cambia solo en el otro móvil.",
+        "Cuentas que cuadran: dos compras iguales el mismo día en bancos distintos cuentan las dos, un gasto con fecha del mes que viene se queda en su mes, un recibo pagado con tarjeta a fin de mes cuenta en su mes y una financiación nueva no baja la gráfica de Inicio antes de darla de alta.",
+        "Y además: nueva categoría Coche para taller, ITV, ruedas y lavado; la moneda que eliges también llega a los brókers de Cartera; los tamaños de letra tienen nombres nuevos; textos más cortos y claros, y si la conexión se queda colgada la app se recupera sola."
+      ],
+      "en": [
+        "Spending, renewed: at the top you see how much you have spent and how much is left, each expense has its own card with the day's total, and as you scroll the months and cycles appear so you can jump to one with a tap. Bills show up as one more movement, in grey, and open with a tap.",
+        "Spending has three sections: your transactions, your categories (tap one to see only its spending for the month, or hold it to set a limit) and your subscriptions, each with its own card to move it to Bills or mark it as cancelled.",
+        "New filters: pick the period, what to count, your banks and your categories, and it tells you how many transactions you will see. «Refresh expenses» is no longer needed: expenses come in on their own when you open the app and when you come back to it. My cycle shows its dates and your previous cycles.",
+        "An expense can be marked as money for one of your goals: it stops counting for the month and adds to what the goal has saved. Contributions to your investments are grouped separately and do not count as spending either.",
+        "If you use the app on two phones, what you change on one is no longer lost or overwritten by the other: changes to bills and debts are combined, and if both change the same thing you choose. What you do offline goes up when you are back online, and the language changes on its own on the other phone.",
+        "Figures that add up: two identical purchases on the same day at different banks both count, an expense dated next month stays in its own month, a bill paid by card at the end of the month counts in its own month, and a new loan no longer lowers the Home chart before you add it.",
+        "Also: a new Car category for garage, MOT, tyres and car wash; the currency you choose now reaches the brokers in Portfolio; the text sizes have new names; shorter, clearer texts, and if the connection hangs the app recovers on its own."
+      ],
+      "ca": [
+        "Despeses, renovades: a dalt veus quant portes gastat i quant et queda, cada despesa va a la seva targeta amb el total del dia, i en baixar apareixen els mesos i els cicles per saltar a un amb un toc. Els rebuts surten com un moviment més, en gris, i s'obren amb un toc.",
+        "Despeses té tres seccions: els teus moviments, les teves categories (toca'n una per veure només les seves despeses del mes o mantén-la premuda per posar-li un límit) i les subscripcions, cadascuna amb la seva targeta per passar-la a Rebuts o marcar-la com a donada de baixa.",
+        "Filtres nous: tries el període, què comptar, els teus bancs i les teves categories, i et diu quants moviments veuràs. Ja no cal «Actualitza les despeses»: les despeses arriben soles en obrir l'app i en tornar-hi. A El meu cicle surten les seves dates i els teus cicles anteriors.",
+        "Una despesa es pot marcar com a diners per a una de les teves metes: deixa de comptar al mes i suma al que porta estalviat la meta. Les aportacions a les teves inversions surten agrupades a part i tampoc compten com a despesa.",
+        "Si fas servir l'app en dos mòbils, el que canvies en un ja no es perd ni el trepitja l'altre: els canvis en rebuts i deutes s'ajunten, i si tots dos toquen el mateix tries tu. El que fas sense connexió es puja en tornar la xarxa, i l'idioma canvia sol a l'altre mòbil.",
+        "Comptes que quadren: dues compres iguals el mateix dia en bancs diferents compten les dues, una despesa amb data del mes que ve es queda al seu mes, un rebut pagat amb targeta a final de mes compta al seu mes i un finançament nou no abaixa la gràfica d'Inici abans de donar-lo d'alta.",
+        "I a més: nova categoria Cotxe per a taller, ITV, rodes i rentat; la moneda que tries també arriba als bròquers de Cartera; les mides de lletra tenen noms nous; textos més curts i clars, i si la connexió es queda penjada l'app es recupera sola."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.159",
     "d": "2026-10-20",
     "t": {

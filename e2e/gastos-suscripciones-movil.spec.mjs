@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews, installFixtureClock } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, installFixtureClock, gastosSeccion } from "./fixtures.mjs";
 
 const names = ["Servicio sintético de contenidos familiares con nombre muy largo", "SuscripcionSinteticaSinEspaciosConNombreExtraordinariamenteLargo"];
 const expenses = names.flatMap((merchant, i) => [7, 8, 9].map(month => ({
@@ -8,10 +8,16 @@ const expenses = names.flatMap((merchant, i) => [7, 8, 9].map(month => ({
 })));
 
 // Medir el DOM pintado: visible para Playwright no basta cuando otro control tapa el botón.
-async function geometry(rows) {
-  return rows.evaluateAll(els => els.map(row => {
+// `cajas`: lo que se mide (tarjetas de la bandeja o la ficha); dentro, nombre, importe y botones.
+async function geometry(cajas) {
+  return cajas.evaluateAll(els => els.map(row => {
     const rect = el => { const r = el.getBoundingClientRect(); return {left:r.left,right:r.right,top:r.top,bottom:r.bottom}; };
-    const rr = rect(row), amount = rect(row.querySelector(".sub-amt"));
+    const rr = rect(row), amount = rect(row.querySelector(".gx-sub-am"));
+    const issues = [];
+    if (rr.left < 0 || rr.right > innerWidth + 1) issues.push("caja fuera del viewport");
+    const nm = rect(row.querySelector(".gx-sub-nm,.gx-subf-nm"));
+    if (nm.right > amount.left + 1) issues.push("el nombre pisa el importe");
+    if (amount.right > rr.right + 1) issues.push("importe recortado");
     const buttons = [...row.querySelectorAll("button")].map(button => {
       const r = rect(button), issues = [];
       if (r.left < rr.left - 1 || r.right > rr.right + 1 || r.left < 0 || r.right > innerWidth) issues.push("fuera de fila/viewport");
@@ -28,7 +34,7 @@ async function geometry(rows) {
       if (!hit || !button.contains(hit)) issues.push("centro tapado");
       return {text:button.textContent,rect:r,issues};
     });
-    return {name:row.querySelector(".sub-name").textContent,row:rr,amount,buttons};
+    return {name:row.querySelector(".gx-sub-nm,.gx-subf-nm").textContent,row:rr,amount,issues,buttons};
   }));
 }
 
@@ -43,19 +49,31 @@ for (const [width, lang] of [[320,"es"],[360,"en"],[390,"ca"],[414,"es"]]) {
     await dismissNews(page);
     await page.locator('.botnav-tab[data-tour="gastos"]').click();
     await page.waitForFunction(() => !document.getElementById("mc-load"));
-    const rows = page.locator(".sub-row").filter({has:page.locator(".sub-name")});
+    // Gastos v5 (tanda 4): la bandeja enseña una tarjeta por suscripción y las acciones van en su ficha.
+    await gastosSeccion(page, "subs");
+    const rows = page.locator(".gx-sub");
     await expect(rows).toHaveCount(2);
     await rows.first().scrollIntoViewIfNeeded();
     const measured = await geometry(rows);
-    await info.attach("geometria",{body:JSON.stringify({width,lang,measured},null,2),contentType:"application/json"});
+    const ficha = page.locator('[data-sheet="sub-ficha"]');
+    await rows.first().click();
+    await expect(ficha).toBeVisible();
+    await page.waitForTimeout(400);   // la hoja sube con animación: medir con ella quieta
+    const medidaFicha = await geometry(ficha);
+    await info.attach("geometria",{body:JSON.stringify({width,lang,measured,medidaFicha},null,2),contentType:"application/json"});
     await page.screenshot({path:info.outputPath("suscripciones.png")});
-    expect(measured.flatMap(r => r.buttons.flatMap(b => b.issues)), "botones sin recorte ni solapamiento").toEqual([]);
+    expect(measured.flatMap(r => r.issues), "tarjetas sin recorte ni solapamiento").toEqual([]);
+    expect(medidaFicha.flatMap(r => r.issues.concat(r.buttons.flatMap(b => b.issues))), "ficha: botones sin recorte ni solapamiento").toEqual([]);
+    expect(medidaFicha[0].buttons.length, "las tres acciones").toBe(3);
 
-    // Ejercitar los handlers originales y comprobar lo guardado, incluido el importe editado.
-    await rows.first().locator("input").fill("123,45");
-    await rows.first().locator("button").first().click();
+    // Ejercitar las acciones y comprobar lo guardado, incluido el importe editado.
+    await ficha.getByTestId("sub-importe").fill("123,45");
+    await ficha.locator('[data-sub-accion="recibos"]').click();
     await expect(rows).toHaveCount(1);
-    await rows.first().locator("button").nth(1).click();
+    await expect(ficha).toHaveCount(0);
+    await rows.first().click();
+    await ficha.locator('[data-sub-accion="no"]').click();
+    await page.locator(".askback .btn-primary").click();
     await expect(rows).toHaveCount(0);
     // El guardado está diferido: la desaparición de la fila confirma React, aún no el disco.
     await expect.poll(() => page.evaluate(() => {

@@ -1,3 +1,16 @@
+PR315, contrato de paginado (26/10/2026): se conserva el comportamiento del lector y
+handler base. Cada lectura admite hasta doce páginas exitosas. Solo un rechazo
+inicial `WRONG_TRANSACTIONS_PERIOD` puede añadir un intento para cambiar a
+`strategy=longest`: máximo trece en ese caso, doce sin rechazo. Otros errores no
+permiten un intento extra. El histórico usa longest desde el principio. El tramo
+antiguo conserva su guardia de transporte compartida: no estrena doce llamadas.
+
+No se introduce lectura por intervalos nueva, `window_slice`, cambios de cliente ni
+SQL. La ventana que cabe en doce páginas se devuelve entera también con rechazo,
+con las mismas filas y céntimos que la base. El cursor a «ahora» cuando una ventana
+rebasa esos límites y el contrato partial/sealed del cliente quedan pendientes
+aparte en [BACKLOG](BACKLOG.md). Fuente y pruebas sintéticas; sin despliegue.
+
 FIN-11 candidata privada: presupuesto, ingest y widget reciben `obAbsorbedPending`
 con el titular autenticado, además de `deleted`. La protección se aplica antes de
 la deduplicación FIN-15. Sin SQL ni despliegue; servidor nuevo antes del cliente,
@@ -155,6 +168,20 @@ clientes viejos (sin `#n`) devuelve EXACTAMENTE lo mismo que el servidor anterio
 cliente nuevo y el `ingest` de hoy, el servidor funde las k filas iguales en una y el widget deja
 de cuadrar con la app (36 o 48 frente a 60 en la sonda de la revisión). Rollback: desplegar el
 `ingest` anterior; las filas con `#n` se leen con el banco de siempre y solo pierden la separación.
+
+## Aportación a una meta (24/10, rama `claude/meta-aportacion`): `ingest` con `esAportacionAMeta`
+
+La web marca un cargo del banco como aportación a una meta con `ob:<ent>~meta.<id>` y lo saca del
+gasto del mes. El `ingest` desplegado lee el banco limpio (`bancoDeSource` corta en `~`) y lo
+CUENTA: hasta desplegar el `ingest` con `esAportacionAMeta` (`_shared/presupuesto.ts`), el widget
+de quien use la marca dice más gastado que Inicio (exactamente el importe marcado). Es inocuo
+adelantarlo: sin la web nueva no existe ninguna fila `~meta.`. Sin migración ni secreto. Desplegar
+`ingest` (lo importan `ingest/index.ts` y `ingest/widget.ts`) va aparte, con el OK del dueño.
+
+Un móvil con una versión anterior lee esa fila como un gasto normal (la cuenta, igual que el
+servidor viejo) y, si cambia su banco o resuelve un «posible repetido» en ella, reescribe `source`
+sin la marca: la fila vuelve a contar en todos los móviles. Degrada al lado que se ve, no esconde
+dinero; con todos los móviles de la cuenta en la versión nueva no pasa.
 
 ## Cargo de recibo en Gastos (13/10, rama `claude/recibo-banco-no-acredita`): `ingest` DE ESTA RAMA antes que su web
 
@@ -543,3 +570,22 @@ La fuente es candidata sobre esa dependencia, no una función desplegada de beta
 Las fuentes de keepalive y sync incorporan `_shared/myinvestor-refresh-save.ts`; desplegar ambas con su helper requiere revisión y operación exclusiva de Claude. No añade SQL/migración/secretos. Exige `connection_version` ya introducida en la migración0026: comprobar su disponibilidad dentro del circuito de despliegue existente. Si falta, keepalive omite el enlace sin consumir refresh. El recifrado legacy de sync compara el snapshot antes de escribir y vuelve a leerlo; `token_store.ts` permanece igual a main.
 
 No basta con un UPDATE sin error: debe devolver filas o confirmarse su propio patch tras un acuse perdido. El readback se acota; una lectura fallida queda indeterminada y no anuncia renovación ni posiciones al día. Se mantienen timeout, clasificación HTTP y limitación de telemetría de PR241. CAS no serializa dos consumos externos; OPS-09 queda fuera. [Pruebas y límites](briefs/ops08-refresh-cas.md).
+
+4.26.174 (25/10/2026): `functions/ingest/widget.ts` e `index.ts` cambian (PR298 R2, inicio-mes-futuro): el widget y el resumen mensual cuentan un apunte con fecha del mes que viene en SU mes y no en el actual, como Inicio y Gastos en la web. NO se despliega en beta; `ingest` va con la próxima producción, con el OK del dueño. Hasta entonces el widget puede sumar ese apunte al mes en curso (la web no).
+
+## SEC02 F2: candidato sin cambio de esquema
+
+El candidato [de identidad nativa de ingest](briefs/sec02-ingest-native-slots.md) conserva los índices y los onConflict existentes. Reserva ranuras de milisegundos y conserva identidad/ordinal en los lectores. No necesita SQL; despliegue y prueba móvil pendientes.
+
+### Ingest: fase 1 del lector nativo
+
+INGEST_NATIVE_TWINS permanece ausente/apagado por defecto. El código de la marca nativa propia solo se ejecuta con valor exacto1. No hay SQL ni cambio del UNIQUE de cuatro columnas. La activación queda para una PR posterior, tras confirmar todos los lectores móviles; esta fuente no acredita despliegue. [Contrato y excepciones OFF/R1](briefs/sec02-ingest-native-slots.md).
+
+Riesgo exacto antes de la fase 2 (revisión independiente de la PR313, punto E). Encender `INGEST_NATIVE_TWINS` mientras algún móvil siga con un lector anterior a esta fase 1 es dinero mal contado: ese móvil no conoce la marca `native:trade_republic#…`, la lee como «a mano sin banco» y (1) la cuenta siempre, (2) funde las gemelas del mismo día (dos compras iguales cuentan una), y (3) al sincronizar Open Banking de Trade Republic el «Movimiento» no se empareja con el aviso, así que cada compra nativa cuenta DOBLE (9,95 → 19,90). Esa fila de banco sube a la nube sin `#dup`, de modo que el doble se propaga a los demás móviles y al widget. **Condición de la fase 2:** todos los móviles de la familia en una versión igual o posterior a la 4.26.179 una vez promocionada a producción (la primera de producción que lleve este lector), confirmado por el dueño. Desplegar `ingest` con el interruptor apagado es inocuo: con valor ausente/0/false el handler conserva filas y céntimos de siempre.
+
+
+## bank-callback · Carrera con una reconexión posterior
+
+El guardado final condiciona el UPDATE a la fila/propietario y a la generación consumida: `state IS NULL` más `state_issued_at` original, con `IS NULL` para legacy. Exige acuse de una única fila con el id esperado; si falta o es ambiguo devuelve error sin restaurar state, reintentar ni tocar una autorización nueva. No añade SQL, migraciones ni revocaciones al proveedor. [Causa y pruebas sintéticas](briefs/sec02-callback-generation-fence.md); despliegue y aceptación reales son pasos separados.
+
+4.26.180 (26/10/2026): `functions/bank-callback/index.ts` cambia (PR314, SEC-02 F1): el guardado final exige id, dueño, `state IS NULL` y la `state_issued_at` original (o NULL en legacy), de modo que un callback tardío no pisa una reconexión posterior. Sin SQL ni variables nuevas. **`bank-callback` queda por desplegar en producción**: NO se despliega en beta; va con la próxima producción, Edge una a una y con el OK del dueño (orden recomendado arriba: `bank-sync`, `bank-callback`, cliente). Reserva: el callback tardío que pierde la carrera deja su sesión de Enable Banking huérfana en el proveedor, sin revocar (ver BACKLOG, SEC-02).

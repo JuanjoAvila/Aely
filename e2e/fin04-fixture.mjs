@@ -9,6 +9,7 @@ const base={fx:1,budget:500,monthStartNet:3000,accounts:[{id:'acc',name:'Cuenta 
 const expense={id:expenseId,user_id:owner,fecha:new Date().toISOString(),importe:12.34,comercio:'Compra sintética',cat:'super',source:'manual:sabadell',no_card:false,nota:'Nota inicial',nota_edit:true};
 const ids=[owner,owner];
 const db={app_state:[...new Set(ids)].map(uid=>({user_id:uid,data:{...clone(base),_historyOwner:uid},updated_at:'2026-10-19T10:00:00.000Z'})),expenses:[clone(expense)],households:[{id:house,name:'Hogar sintético',created_by:owner}],household_members:[{household_id:house,user_id:owner,role:'owner'},{household_id:house,user_id:partner,role:'member'}],household_snapshots:[]};
+if(scenario==='expense-reread'){db.expenses[0].importe=40;db.expenses.push({...clone(expense),id:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',importe:30,comercio:'Segunda compra'});}
 if(scenario==='rename-unrelated')db.expenses.push({...clone(expense),id:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',importe:-8.97,comercio:'Otro movimiento',cat:'ingreso',nota:'Intocable'});
 if(scenario==='permanent-rename')db.expenses.push({...clone(expense),id:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',importe:4.56,comercio:'Otra compra',cat:'ocio',nota:'Intocable'});
 const evidence={scenario,baseSHA:'408d8d3484568e1c02fa25dcd2df30ad71477bf1',startedAt:new Date().toISOString(),workers:1,retries:0,CPU6Calls:0,profileCalls:0,traceCalls:0,initial:clone(db),requests:[],blockedExternal:[],pageErrors:[],snapshots:[],assertions:[],events:[]};
@@ -49,7 +50,7 @@ async function execute(route,actor,uid){
  const answer=processQuery(req,actor,uid);await route.fulfill({status:answer.status,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:answer.status===204?'':JSON.stringify(answer.data)});
 }
 async function install(ctx,actor,uid){await ctx.route('**/*',async route=>{const url=new URL(route.request().url());if(url.origin===baseURL)return route.continue();
- if(url.hostname.endsWith('.supabase.co')&&url.pathname.startsWith('/rest/v1/')){if(offline.has(actor))return route.abort('internetdisconnected');const q={route,actor,uid};if(hold&&hold(route.request(),actor)){held.push(q);record('held',{actor,urlPath:url.pathname,method:route.request().method()});return;}return execute(route,actor,uid);}
+ if(url.hostname.endsWith('.supabase.co')&&url.pathname.startsWith('/rest/v1/')){if(offline.has(actor))return route.abort('internetdisconnected');const q={route,actor,uid};if(hold&&hold(route.request(),actor)){if(scenario==='expense-reread')q.answer=processQuery(route.request(),actor,uid);held.push(q);record('held',{actor,urlPath:url.pathname,method:route.request().method()});return;}return execute(route,actor,uid);}
  if(url.hostname.endsWith('.supabase.co')&&url.pathname.startsWith('/functions/v1/')){record('mock-function',{actor,name:url.pathname.split('/').at(-1)});return route.fulfill({status:200,contentType:'application/json',body:'{}'});}
  evidence.blockedExternal.push({actor,method:route.request().method(),host:url.hostname,path:url.pathname});await route.abort();});
  await ctx.addInitScript(({base,uid,actor,scenario})=>{
@@ -72,7 +73,7 @@ async function install(ctx,actor,uid){await ctx.route('**/*',async route=>{const
  },{base,uid,actor,scenario});}
 async function snap(label,pages){const clients=[];for(const p of pages)clients.push(await p.evaluate(()=>({state:loadState(),main:localStorage.getItem('micartera_v3'),exp:localStorage.getItem('micartera_v3_exp'),toasts:window.__finToasts,text:document.body.innerText})));const data={label,at:Date.now(),clients,db:clone(db)};evidence.snapshots.push(data);return data;}
 async function waitHeld(n){for(let i=0;i<200;i++){if(held.length>=n)return;await sleep(50);}throw Error('Held timeout '+held.length+'/'+n);}
-async function release(actor){const i=held.findIndex(x=>x.actor===actor);if(i<0)throw Error('missing held '+actor);const q=held.splice(i,1)[0];await execute(q.route,q.actor,q.uid);}
+async function release(actor){const i=held.findIndex(x=>x.actor===actor);if(i<0)throw Error('missing held '+actor);const q=held.splice(i,1)[0];if(q.answer)await q.route.fulfill({status:q.answer.status,contentType:'application/json',body:JSON.stringify(q.answer.data)});else await execute(q.route,q.actor,q.uid);}
 async function ready(p){await p.waitForFunction(()=>typeof cloud!=='undefined'&&document.querySelector('.botnav-tab')&&!document.getElementById('mc-load'),null,{timeout:20000});await sleep(1800);}
 async function expOpen(p,id=expenseId){await p.locator('.botnav-tab[data-tour="gastos"]').click();await p.locator(`[data-expense-id="${id}"]`).click();}
 async function noteEdit(p,text){await p.getByRole('button',{name:/Nota/}).last().click();await p.locator('input.v4-exp-note-in').fill(text);await p.locator('input.v4-exp-note-in').press('Tab');}
@@ -180,6 +181,36 @@ try{
   offline.clear();for(const p of pages){await p.reload();await ready(p);}s=await snap('legacy-online-stale-pull',pages);
   if(scenario==='legacy-amounts')check('cloud pull preserves both conflicting amounts',s.clients.map(amounts),[[-897,1234],[-897,1234]]);
   else check('stale pull keeps recovered category debt card and human note',s.clients.map(x=>x.state.expenses.map(e=>[Math.round(e.amount*100),e.category,e.debtId,e.noCard,e.note])),[[[1234,'ocio','debt-fin04',true,'Humana legacy']],[[1234,'ocio','debt-fin04',true,'Humana legacy']]]);
+ }else if(scenario==='expense-reread'){
+  const cents=()=>db.expenses.reduce((n,e)=>n+Math.round(e.importe*100),0);
+  check('both clients start with exact 70',initial.clients.map(x=>x.state.expenses.reduce((n,e)=>n+Math.round(e.amount*100),0)),[7000,7000]);
+  hold=(req,actor)=>actor==='A'&&req.method()==='GET'&&new URL(req.url()).pathname.endsWith('/expenses');
+  await pages[0].evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));await waitHeld(1);
+  check('held GET snapshot precedes peer write',held[0].answer.data.reduce((n,e)=>n+Math.round(e.importe*100),0),7000);
+  await pages[1].evaluate(async()=>{await cloud.addExpense({id:'cccccccc-cccc-4ccc-8ccc-cccccccccccc',date:new Date().toISOString(),amount:10,merchant:'Tercera compra',category:'otros',source:'manual',ent:'sabadell'});});
+  check('second client really wrote exact 80 remotely',cents(),8000);
+  const afterWrite=evidence.requests.length;
+  await pages[0].evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));await sleep(80);
+  check('pending request does not start a simultaneous GET',held.length,1);
+  hold=null;await release('A');
+  for(let i=0;i<100;i++){if(await pages[0].evaluate(()=>loadState().expenses.reduce((n,e)=>n+Math.round(e.amount*100),0))===8000)break;await sleep(50);}
+  check('receiver automatically reaches exact 80 without another event',await pages[0].evaluate(()=>loadState().expenses.reduce((n,e)=>n+Math.round(e.amount*100),0)),8000);
+  await pages[1].evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));
+  await pages[1].waitForFunction(()=>loadState().expenses.reduce((n,e)=>n+Math.round(e.amount*100),0)===8000,null,{timeout:5000});
+  const final=await snap('peer-write-drained-without-extra-human-event',pages);
+  check('both clients converge to exact 80',final.clients.map(x=>x.state.expenses.reduce((n,e)=>n+Math.round(e.amount*100),0)),[8000,8000]);
+  check('receiver rereads after the peer write',evidence.requests.slice(afterWrite).some(x=>x.actor==='A'&&x.table==='expenses'&&x.method==='GET'&&x.response.some(e=>e.id==='cccccccc-cccc-4ccc-8ccc-cccccccccccc')),true);
+  check('remote financial rows survive reread',db.expenses.map(e=>[e.id,Math.round(e.importe*100)]),[[expenseId,4000],['bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',3000],['cccccccc-cccc-4ccc-8ccc-cccccccccccc',1000]]);
+ }else if(scenario==='refresh-single-flight'){
+  hold=(req,actor)=>actor==='A'&&req.method()==='GET'&&new URL(req.url()).pathname.endsWith('/expenses');
+  await pages[0].evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));await waitHeld(1);
+  for(let i=0;i<3;i++){
+    await pages[0].evaluate(()=>{window.dispatchEvent(new Event('online'));document.dispatchEvent(new Event('visibilitychange'));});await sleep(120);
+  }
+  check('repeated foreground and online share one expense read in flight',held.length,1);
+  await release('A');hold=null;await sleep(300);
+  const s=await snap('one-refresh-released',pages);
+  check('shared refresh preserves exact amount and identity',s.clients[0].state.expenses.map(e=>[e.id,Math.round(e.amount*100)]),[[expenseId,1234]]);
  }else if(scenario==='permanent-rename'){
   await expOpen(pages[0]);const noticeStart=await pages[0].evaluate(()=>window.__finToastCalls.length);await pages[0].locator('input.v4-ficha-concept').fill('Nombre bloqueado');await pages[0].locator('input.v4-ficha-concept').press('Tab');
   await sleep(800);for(let i=0;i<3;i++){await pages[0].evaluate(()=>window.dispatchEvent(new Event('online')));await sleep(120);}
@@ -233,6 +264,8 @@ try{
 
 
  evidence.status='PASS';
-}catch(e){evidence.status=e.productFailure?'PRODUCT_RED':'HARNESS_ERROR';evidence.error=String(e.stack||e);throw e;
+}catch(e){evidence.status=e.productFailure?'PRODUCT_RED':'HARNESS_ERROR';evidence.error=String(e.stack||e);
+ for(const ctx of contexts)for(const p of ctx.pages())evidence.snapshots.push({label:'failure-client',client:await p.evaluate(()=>({state:loadState(),toasts:window.__finToasts,calls:window.__finToastCalls}))});
+ throw e;
 }finally{hold=null;for(const q of held){try{await q.route.abort();}catch{}}for(const c of contexts)await c.close();evidence.finalDatabase=clone(db);evidence.cleanup={contextsClosed:true};await onEvidence(evidence);}
 }

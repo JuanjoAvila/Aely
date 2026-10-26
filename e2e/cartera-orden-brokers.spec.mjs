@@ -34,10 +34,10 @@ async function setup(page, overrides = seed) {
           const q={select:()=>q,eq:(k,v)=>{filters[k]=v;return q;},
             maybeSingle:async()=>({data:window.__e2eCloudRows.app_state?.[0]||null,error:null}),
             update:p=>{payload=p;operation="update";return q;},
-            upsert:p=>{payload=p;operation="upsert";return q;},
+            upsert:p=>{payload=p;operation="upsert";return q;},insert:p=>{payload=p;operation="insert";return q;},
             then:resolve=>{
               const prior=window.__e2eCloudRows.app_state?.[0];
-              const ok=operation==="upsert"||(prior&&prior.updated_at===filters.updated_at&&prior.user_id===filters.user_id);
+              const ok=operation==="upsert"||operation==="insert"&&!prior||(prior&&prior.updated_at===filters.updated_at&&prior.user_id===filters.user_id);
               if(payload&&ok){window.__e2eCloudRows.app_state=[structuredClone(payload)];window.__brokerWrites.push({operation,filters,payload:structuredClone(payload)});}
               resolve({data:ok?[{updated_at:payload.updated_at}]:[],error:null});
             }};

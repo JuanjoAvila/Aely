@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, esperaNubeQuieta } from "./fixtures.mjs";
 
 /* RENDIMIENTO con histórico grande (feedback 2026-07-24: «cuanto más tiempo la uso, más se
    ralentiza, hasta ir lagueadísima»).
@@ -40,15 +40,9 @@ test("Gastos aguanta 3.000 movimientos y sigue respondiendo al escribir", async 
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await expect(page.locator("button.v4-mov").first()).toBeVisible({ timeout: 15_000 });
 
-  // El filtro por defecto es "Este mes": el histórico sintético reparte sus 3.000 movimientos
-  // cada ~5h HACIA ATRÁS desde el instante real de la ejecución, así que el día 1 (o las
-  // primeras horas de cualquier mes) casi todo el histórico cae en el mes ANTERIOR y "Repsol"
-  // puede quedar fuera de "Este mes" — no es que falte el dato, es que el test busca en la
-  // ventana equivocada. Se cambia a "Todo" (sin límite de fecha) para probar de verdad lo que
-  // el test dice probar: filtrar sobre el histórico COMPLETO, no sobre un mes que puede tener
-  // uno o dos movimientos si acaba de empezar (2026-08-01: así se cazó).
-  await page.getByRole("button", { name: "Más…" }).click();
-  await page.getByRole("button", { name: "Todo", exact: true }).click();
+  // Se filtra sobre el histórico COMPLETO, no sobre un mes que puede tener uno o dos movimientos
+  // si acaba de empezar (2026-08-01: así se cazó con el «Este mes» de entonces). Desde Gastos v5
+  // (20/10/2026) la vista de entrada ya es el histórico entero, mes a mes: no hace falta pedir «Todo».
 
   // Escribir en el buscador es el peor caso: refiltra y reordena el histórico en cada tecla.
   const t0 = Date.now();
@@ -168,7 +162,8 @@ test("volver a primer plano con la nube igual: ni filas reconvertidas, ni catego
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 20_000 });
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await expect(page.locator(".sync-note")).toContainText(/\d/, { timeout: 15_000 });
+  // La hora de la última lectura vive en Filtros desde la tanda 5: se espera a la lectura misma.
+  await page.waitForFunction(() => _mcLecturaNube > 0, null, { timeout: 15_000 });
 
   // Funciones globales del bundle: envolverlas cuenta las llamadas que hace la propia app.
   await page.evaluate(() => {
@@ -191,7 +186,16 @@ test("volver a primer plano con la nube igual: ni filas reconvertidas, ni catego
   };
   // La primera vuelta puede coincidir con la lectura del arranque; la segunda ya es pura repetición.
   await vuelta();
-  const sync0 = await page.locator(".sync-note").textContent();
+  // La copia diaria también es del arranque, no de esta vuelta: desde la 4.26.170 espera a una
+  // lectura válida (su temporizador de 4 s se rearma tras el pull) y caía DESPUÉS de que la nube
+  // pareciera quieta. Su `lastBackup` provoca un envío y el ACK reescribe `_goalSync.revision`:
+  // una escritura al día que la segunda vuelta se apuntaba como suya (rojo 2/2 en la CI de la 171).
+  await page.waitForFunction(() => {
+    try { return JSON.parse(localStorage.getItem(mcStateKey()) || "{}").lastBackup === new Date().toISOString().slice(0, 10); } catch (e) { return false; }
+  }, null, { timeout: 15_000 });
+  // El ACK del envío de arranque llega tarde y reescribe la revisión: no es de esta vuelta.
+  await esperaNubeQuieta(page);
+  const sync0 = await page.evaluate(() => _mcLecturaNube);
   await page.evaluate(() => { const n = window.__vuelta; n.filas = 0; n.kw = 0; n.escrituras = []; });
   await vuelta();
   const n = await page.evaluate(() => window.__vuelta);
@@ -199,8 +203,11 @@ test("volver a primer plano con la nube igual: ni filas reconvertidas, ni catego
   expect(n.kw, "barridos de palabras clave en una vuelta sin cambios").toBe(0);
   expect(n.escrituras, "la cartera no se reescribe si la nube trae lo mismo").toEqual([]);
   // «Última sincronización» sigue con hora aunque el estado no haya cambiado (la da la lectura).
-  expect(sync0).toMatch(/\d/);
-  await expect(page.locator(".sync-note")).toContainText(/\d/);
+  expect(await page.evaluate(() => _mcLecturaNube), "la vuelta sin cambios también deja su hora").toBeGreaterThan(sync0);
+  await page.locator(".page-scroll-host .gx-root button.v4-chip").filter({ hasText: "🎛️" }).first().click();
+  await expect(page.locator(".v4-gastos-filter-sheet").getByTestId("gastos-lectura")).toContainText(/\d/);
+  await page.locator(".v4-sheet-back").click({ position: { x: 5, y: 5 } });
+  await page.locator(".v4-sheet-back").waitFor({ state: "detached" });
 
   // Y si cambia UNA fila, esa sí entra (y solo esa se reconvierte).
   await page.evaluate(() => { const r = window.__e2eCloudRows.expenses; r[1] = { ...r[1], importe: 777.77 }; window.__vuelta.filas = 0; });

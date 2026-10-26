@@ -103,7 +103,11 @@ function sincroniza(c,s,txs,saldos){
 }
 // Las cifras, cada una por su camino. `previsto` = lo pintado más lo que el Plan aún va a mover.
 function cifras(c,s,y,m,d){
-  const st=c.monthBudgetStats(s), i=c.insumosSaldoGasto(s);
+  // La referencia antigua contaba también noviembre en octubre. Solo su presupuesto mensual
+  // se acota al siguiente mes de Madrid; ciclo, saldos, filas y cierres siguen comparándose enteros.
+  const periodo=c.budgetPeriodOf(s), hastaReferencia=c===base.c&&!periodo.cycle
+    ? c.inicioDeMesMs(periodo.startMs+35*864e5) : undefined;
+  const st=c.monthBudgetStats(s,null,hastaReferencia), i=c.insumosSaldoGasto(s);
   const pintado=s.accounts.map(a=>+c.saldoCuentaMostrada(a,{injTR:i.injTR,spentByBank:i.spentByBank,paidNetByBank:i.paidNetByBank,roundup:i.roundup,monthlyInvest:i.monthlyInvest}).toFixed(2));
   const hoy=s.accounts.map(a=>+c.monthNetForAccount(s,a.ent,y,m,d).toFixed(2)), cerrado=s.accounts.map(a=>+c.monthNetForAccount(s,a.ent,y,m,null).toFixed(2));
   const numeros={}; Object.keys(st).sort().forEach(k=>{ if(typeof st[k]==="number") numeros[k]=+st[k].toFixed(2); });
@@ -345,6 +349,10 @@ test("segunda familia: deudas, puntuales, no mensuales, redondeo, «Mi ciclo» y
   let conMarca=0, conReimporte=0, conDeuda=0, conRedondeoSimulado=0;
   for(let k=1;k<=AMPLIOS;k++){
     const ex=extractoAmplio(7000+k*13), r=compara(ex,"amplio #"+k);
+    if(k===1){
+      assert.equal(r.a.pasos.sync.presupuesto.spent,281.96,"la referencia de octubre excluye los 51,40 de noviembre");
+      assert.equal(r.b.pasos.sync.presupuesto.spent,281.96,"la candidata conserva el oráculo mensual de Madrid");
+    }
     extractos++;
     if(r.marcadas) conMarca++;
     if(r.reimportadas){ conReimporte++; assert.ok(r.menos>=0,"amplio #"+k+": nunca más gastado que en la 119"); }

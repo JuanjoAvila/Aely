@@ -11,6 +11,7 @@
 // editar 10 → 12 → 10 (el gasto desaparecía) y editar sin conexión.
 // Los bloques de pantalla se ejecutan sacados del bundle servido (`public/index.html`).
 import {withOwnerStorage} from "./helpers/owner-storage-fixture.mjs";
+import {receiptCloudCommitFixture} from "./helpers/receipt-cloud-commit-fixture.mjs";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
@@ -54,11 +55,8 @@ const mostrado=s=>{ const i=c.insumosSaldoGasto(s);
 const fila=e=>({id:e.id,user_id:"u1",fecha:e.date,importe:e.amount,comercio:e.merchant,cat:e.category,source:c.expenseSourceForCloud(e),ob_name:e.obName,no_card:!!e.noCard,nota:e.note||null,nota_edit:!!e.noteEdited});
 const sube=(s,savedAt)=>{ const x=clon(c.slimForCloud(s)); if(savedAt!=null) x._savedAt=savedAt; return x; };
 
-// El bloque REAL con el que App aplica el estado que baja de la nube (`syncFromCloud`).
-const mBaja=/const sameOwner=![^\n]*\n\s*const preferenceDeleted=[\s\S]*?if\(freshLogin\s*&&\s*\(cloudState\.accounts/.exec(bundle);
-assert.ok(mBaja,"no se encuentra el bloque de último-que-escribe en syncFromCloud");
-const bloqueBaja=vm.runInContext("(function(prev,cloudState,freshLogin,opts,sessionRef,u,cloudPack){const obAbsorbedWriteBlocked={current:false};"+mBaja[0].replace(/if\(freshLogin\s*&&\s*\(cloudState\.accounts$/,"")+"\nreturn baseObj;})",c);
-const baja=(prev,nube,freshLogin)=>bloqueBaja(prev,nube,!!freshLogin,null,{current:{user:{id:"u1"}}},"u1",{updated_at:"synthetic"});
+// El updater REAL completo y su commit de layout usan el titular de estos casos.
+const baja=receiptCloudCommitFixture(bundle,c,"u1");
 
 const viejo=(ym,imp,rec)=>({id:"v-"+ym+"-"+imp,date:ym+"-05T10:00:00.000Z",merchant:rec?"ENDESA ENERGIA XXI":"CARREFOUR",obName:rec?"ENDESA ENERGIA XXI":"CARREFOUR",amount:imp,category:rec?"recibos":"super",source:"ob",ent:"bbva",extId:"x-"+ym+"-"+imp,reciboId:rec?"luz":undefined});
 const TXS_LUZ=[T("o1","bbva","2026-10-05",62.4,"ENDESA ENERGIA XXI"),T("o2","bbva","2026-10-07",40,"CARREFOUR",{card:true})];
@@ -350,14 +348,25 @@ test("5 · borrar, «Deshacer», «es el mismo» y editar pasan por las lápidas
   new Function("set","pending","lapidaLevanta",levanta[0])(f=>{ s=f(s); },{key:key,expense:e,index:0},c.lapidaLevanta);
   assert.equal(j([s.expenses.length,s.deleted,s.deletedAt[key]>puesta]),j([1,[],true]));
   // «Es el mismo» borra la fila del banco: su lápida también lleva hora.
-  const mismo=/next=Object\.assign\(\{\},next,lapidaPon\(next, keyOfE\(e\)\)\);/.exec(bundle);
+  // FIN-19 (4.26.160): la lápida de «es el mismo» ya no usa keyOfE(e) a secas sino expenseDeletionKey(e), que con banco y cuenta conocidos
+  // lleva ámbito (si no, borrar la fila de un banco ocultaría la gemela de otra cuenta). Sigue siendo UNA lápida con hora, solo cambia la clave:
+  // se exige igual que exista el bloque real, que ponga la clave de borrado de la fila y que lleve hora.
+  const mismo=/next=Object\.assign\(\{\},next,lapidaPon\(next, expenseDeletionKey\(e\)\)\);/.exec(bundle);
   assert.ok(mismo,"no se encuentra la lápida de «es el mismo»");
-  const tras=new Function("next","e","keyOfE","lapidaPon",mismo[0]+"\nreturn next;")({deleted:[]},e,c.keyOfExpense,c.lapidaPon);
+  const lapidaMismo=function(fila){ return new Function("next","e","expenseDeletionKey","lapidaPon",mismo[0]+"\nreturn next;")({deleted:[]},fila,c.expenseDeletionKey,c.lapidaPon); };
+  const tras=lapidaMismo(e);
   assert.equal(j([tras.deleted,typeof tras.deletedAt[key]]),j([[key],"number"]));
+  // Con la cuenta del banco conocida la clave lleva ámbito, y la lápida sigue existiendo y llevando hora.
+  const eCuenta=Object.assign({},e,{obAcc:"ES0000000000000001"}), claveCuenta=c.expenseDeletionKey(eCuenta);
+  assert.notEqual(claveCuenta,key,"con cuenta conocida la clave de borrado lleva ámbito");
+  const trasCuenta=lapidaMismo(eCuenta);
+  assert.equal(j([trasCuenta.deleted,typeof trasCuenta.deletedAt[claveCuenta]]),j([[claveCuenta],"number"]));
   // Editar: retira la clave vieja y levanta la nueva si constaba. 10 → 12 → 10 escondía el gasto (gastado 0).
-  const edita=/set\(function\(s\)\{ return rekeyFixedPaymentExpense\(Object\.assign\(\{\},s,\{\s*expenses:s\.expenses\.map\(function\(x\)\{ return x\.id===orig\.id\?upd:x; \}\)\s*\},lapidasAlEditar\(s, keyOfE\(orig\), keyOfE\(upd\)\)\),orig,upd\); \}\);/.exec(bundle);
+  const edita=/set\(function\(s\)\{ return rekeyFixedPaymentExpense\(Object\.assign\(\{\},s,\{\s*expenses:s\.expenses\.map\(function\(x\)\{ return x\.id===orig\.id\?upd:x; \}\)\s*\},lapidasAlEditar\(s, soloNombreBanco\?keyOfExpense\(orig\):expenseDeletionKey\(orig\), soloNombreBanco\?keyOfExpense\(upd\):expenseDeletionKey\(upd\)\)\),orig,upd\); \}\);/.exec(bundle);
   assert.ok(edita,"no se encuentra el guardado de `saveEdit`");
-  const guarda=vm.runInContext("(function(set,orig,upd){ const keyOfE=keyOfExpense; "+edita[0]+" })",c);
+  // FIN-19 (4.26.160): saveEdit pone la lápida con la clave de borrado con ámbito (expenseDeletionKey) y, al cambiar solo el nombre del banco, con la clave sin ámbito de FIN04.
+  // Aquí se edita un gasto manual (sin identidad bancaria): ambas claves son keyOfExpense, y la lápida sigue pasando por lapidasAlEditar (con hora).
+  const guarda=vm.runInContext("(function(set,orig,upd){ const soloNombreBanco=false; "+edita[0]+" })",c);
   const cafe={id:"33333333-3333-4333-8333-333333333333",date:"2026-10-05T10:00:00.000Z",merchant:"Café Sol",amount:10,category:"restaurantes",source:"manual"};
   const a12=Object.assign({},cafe,{amount:12});
   let g=estado({expenses:[cafe]});

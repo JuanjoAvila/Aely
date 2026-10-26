@@ -39,7 +39,8 @@ async function saved(page,amount){
 }
 async function presupuesto(page,amount){
   await nav(page,"gastos");
-  await expect(page.locator(".v4-gastos-summary-budget")).toContainText(amount+",00");
+  // Gastos v5: sin gastos, el margen de la cabecera es el presupuesto que deja la reserva.
+  await expect(page.locator('.page-scroll-host [data-testid="gastos-estado"]')).toContainText(new RegExp(amount+" € (por debajo|under|per sota)"));
   await nav(page,"inicio");
   await expect(page.locator(".v42-cycle-of")).toContainText(String(amount));
 }

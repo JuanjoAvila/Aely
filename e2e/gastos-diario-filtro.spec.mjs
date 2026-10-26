@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews, FIXTURE_NOW, installFixtureClock } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, FIXTURE_NOW, installFixtureClock, gastosCifra } from "./fixtures.mjs";
 
 test.beforeEach(async ({ page }) => { await installFixtureClock(page); });
 
@@ -23,11 +23,14 @@ const expenses = [
 
 const lista = (page) => page.locator(".v4-gastos-list-body button.v4-mov");
 const fila = (page, nombre) => lista(page).filter({ hasText: nombre });
+// La aportación va a la fila gris de Inversiones desde el 25/10/2026: se ve, agrupada, y no cuenta.
+const aporte = (page) => page.locator('.v4-gastos-list-body .gx-gris[data-gris="inversion"] .gx-gris-it').filter({ hasText: "Aporte TR" });
 
 async function mostrarTodosLosBancos(page) {
   await page.locator("button.v4-chip").filter({ hasText: "🎛️" }).first().click();
   await page.getByRole("button", { name: /Todos los bancos|All banks|Tots els bancs/i }).click();
-  await page.getByRole("button", { name: /Listo|Done|Fet/i }).click();
+  // El único botón de abajo dice cuántos movimientos va a enseñar y cierra (tanda 5).
+  await page.locator(".v4-gastos-filter-sheet .btn-primary").click();
 }
 
 test.use({ viewport: { width: 375, height: 812 } });
@@ -42,19 +45,17 @@ test("por defecto salen todos los bancos de gasto diario, no el resto", async ({
   // SIN tocar ningún filtro: los dos bancos diarios, incluida Revolut (no solo el principal).
   await expect(fila(page, "Mercadona TR")).toHaveCount(1);
   await expect(fila(page, "Cafe Revolut")).toHaveCount(1);
-  await expect(fila(page, "Aporte TR")).toHaveCount(1);
+  await expect(aporte(page)).toHaveCount(1);
   await expect(fila(page, "RECIBO LUZ"), "Sabadell no está marcado como gasto diario").toHaveCount(0);
 
   // Y lo que CUENTA sigue siendo solo lo suyo del día a día: las otras dos salen apagadas,
   // cada una diciendo POR QUÉ, que son motivos distintos.
   await expect(fila(page, "Mercadona TR")).not.toHaveClass(/v4-mov-skip/);
   await expect(fila(page, "Cafe Revolut")).not.toHaveClass(/v4-mov-skip/);
-  await expect(fila(page, "Aporte TR")).toHaveClass(/v4-mov-skip/);
-  await expect(fila(page, "Aporte TR")).toContainText("no es un gasto");
-  // El total del mes: 12 + 8. La inversión no puede colarse.
-  const resumen = page.locator(".v4-gastos-summary");
-  await expect(resumen, "enseñar un movimiento no es contarlo").toContainText("20,00");
-  await expect(resumen).not.toContainText("100,00");
+  await expect(fila(page, "Aporte TR"), "agrupada en su fila gris, no suelta").toHaveCount(0);
+  // El total del mes: 12 + 8. La inversión no puede colarse. (Gastos v5: la cifra de la cabecera
+  // sustituye a la tarjeta resumen; el contrato es el mismo.)
+  await expect(gastosCifra(page), "enseñar un movimiento no es contarlo").toHaveText("20,00 €");
 });
 
 test("★ un ingreso de un banco que no es de gasto diario dice que no cuenta, como un gasto (14/9)", async ({ page }) => {
@@ -89,7 +90,7 @@ test("al entrar, Gastos NO cree que ya tiene un filtro puesto", async ({ page })
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await expect(page.locator(".v4-gastos-summary")).toBeVisible();
+  await expect(gastosCifra(page)).toBeVisible();
 
   /* El síntoma exacto: el botón de Filtros (🎛️) se encendía con la clase `on` y un contador al
      lado. Se mide ESO y no la existencia del chip de limpiar, que es lo que se me ocurrió primero
@@ -106,7 +107,7 @@ test("«Todos los bancos» amplía el histórico y «Limpiar» vuelve a gasto di
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await expect(page.locator(".v4-gastos-summary")).toBeVisible();
+  await expect(gastosCifra(page)).toBeVisible();
 
   await expect(fila(page, "RECIBO LUZ")).toHaveCount(0);
   await mostrarTodosLosBancos(page);

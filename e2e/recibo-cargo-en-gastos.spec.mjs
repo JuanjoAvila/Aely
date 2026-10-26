@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews, installFixtureClock } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, installFixtureClock, gastosCifra } from "./fixtures.mjs";
 
 /* EL CARGO DE UN RECIBO SALE EN GASTOS Y NO CUENTA DOS VECES (decisión del dueño, 12/10/2026).
    Sus palabras: «yo solo quiero que salga todo en gastos… si sale en recibos pero no en gastos
@@ -25,8 +25,12 @@ const links = [{
 
 const lista = (page) => page.locator(".v4-gastos-list-body button.v4-mov");
 const fila = (page, nombre) => lista(page).filter({ hasText: nombre });
-// `textContent` y no `innerText`: la cabecera puede estar plegada y entonces no «se ve» texto.
-const gastado = async (page) => (await page.locator(".v4-gastos-summary-amount").first().textContent()).trim();
+// `textContent`: la cifra entera vive en un nodo oculto a la vista (las cifras ruedan aparte).
+const gastado = async (page) => (await gastosCifra(page).textContent()).trim();
+/* El cargo de un recibo es una tarjeta suelta ATENUADA que dice de qué recibo es y abre su ficha
+   (decisión suya, 26/10/2026; del 20/10 al 26/10 iba plegado en un bloque «Recibos · no cuentan»).
+   Al decir «No es este recibo» vuelve a ser una tarjeta normal. */
+const bloques = (page) => page.locator(".v4-gastos-list-body .gx-gris");
 
 /** El resumen del sync tapa la barra inferior hasta que se cierra tocando fuera. */
 async function cierraInforme(page) {
@@ -78,8 +82,9 @@ for (const lang of ["es", "en", "ca"]) {
 
     await page.locator('.botnav-tab[data-tour="gastos"]').click();
     const cargo = fila(page, "COMUNIDAD DE PROPIETARIOS");
-    await expect(cargo).toHaveCount(1);
+    await expect(cargo, "suelto, no plegado en un bloque").toHaveCount(1);
     await expect(cargo).toHaveClass(/v4-mov-skip/);
+    await expect(bloques(page)).toHaveCount(0);
     await expect(cargo).toContainText(textos.de);
     // La compra normal del mismo sync sí suma: la cifra se mueve 3,40 y ni un céntimo más.
     await expect(fila(page, "Panadería Sol")).not.toHaveClass(/v4-mov-skip/);
@@ -97,7 +102,7 @@ for (const lang of ["es", "en", "ca"]) {
     const dudoso = fila(page, "AGUACATES DEL SUR");
     await expect(dudoso).toHaveClass(/v4-mov-skip/);
     await expect(dudoso).toContainText(textos.quiza);
-    // …y se corrige de un toque al abrirlo, sin desplegar nada. El saldo no se mueve; el gastado sí.
+    // …y se corrige de un toque al abrirlo. El saldo no se mueve; el gastado sí.
     await dudoso.click();
     await expect(page.locator('[data-testid="exp-recibo-marca"]')).toContainText("Agua");
     await page.locator('[data-testid="exp-recibo-no"]').click();
@@ -105,9 +110,10 @@ for (const lang of ["es", "en", "ca"]) {
     expect(await page.evaluate(() => { const s = mcLoadRaw(mcStateKey()), i = insumosSaldoGasto(s);
       return saldoCuentaMostrada(s.accounts[0], { injTR: i.injTR, spentByBank: i.spentByBank, paidNetByBank: i.paidNetByBank, roundup: i.roundup, monthlyInvest: i.monthlyInvest }); })).toBeCloseTo(1900, 2);
     await page.locator(".v4-sheet-back").last().click({ position: { x: 5, y: 5 } });
+    await expect(fila(page, "AGUACATES DEL SUR")).toHaveCount(1);
     await expect(fila(page, "AGUACATES DEL SUR")).not.toHaveClass(/v4-mov-skip/);
 
-    await cargo.click();
+    await fila(page, "COMUNIDAD DE PROPIETARIOS").click();
     await page.locator('[data-testid="exp-receipt"]').click();
     await expect(page.locator('[data-testid="exp-receipt-value"]')).toHaveText("Comunidad");
     await expect(page.locator('[data-testid="exp-recibo-marca"]')).toContainText("Comunidad");
@@ -181,8 +187,9 @@ test("un «No es este recibo» sobre un puntual tiene vuelta atrás desde la mis
     expenses: [{ id: "c-itv", date: "2026-09-14T12:00:00.000Z", amount: 45, merchant: "ITV COCHE MADRID", obName: "ITV COCHE MADRID", category: "otros", source: "ob", ent: "sabadell", extId: "sb-itv", reciboId: "itv" }] });
   const foto = () => page.evaluate(() => { const s = mcLoadRaw(mcStateKey()); return { spent: monthBudgetStats(s).spent, marca: s.expenses[0].reciboId || null, vetos: (s.reciboNo || []).length }; });
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await expect(fila(page, "ITV COCHE MADRID")).toContainText("Recibo: ITV coche");
-  await fila(page, "ITV COCHE MADRID").click();
+  const itv = fila(page, "ITV COCHE MADRID");
+  await expect(itv).toContainText("Recibo: ITV coche");
+  await itv.click();
   await page.locator('[data-testid="exp-recibo-no"]').click();
   await expect.poll(foto).toEqual({ spent: 45, marca: null, vetos: 2 });
   await page.locator('[data-testid="exp-receipt"]').click();

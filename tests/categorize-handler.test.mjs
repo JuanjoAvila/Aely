@@ -151,7 +151,7 @@ const keywords = [
   ["Taxi Barcelona", "taxi"],
 ];
 const allowed = ["super", "pan", "bares", "cine", "padel", "heladeria", "ia", "ocio", "gaming", "viajes",
-  "transporte", "gasolina", "taxi", "parking", "multas", "zona_azul", "peajes", "agua", "luz", "gas",
+  "transporte", "gasolina", "taxi", "parking", "multas", "zona_azul", "peajes", "coche", "agua", "luz", "gas",
   "tasas", "recibos", "compras", "educacion", "salud", "pelu", "mascotas", "hogar", "regalos", "joyeria", "otros"];
 
 async function keywordOracle(compiled = code) {

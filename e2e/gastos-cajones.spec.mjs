@@ -52,16 +52,19 @@ async function cierraSheet(page) {
    ningún timeout lo arregla. */
 const lista = (page) => page.locator(".v4-gastos-list-body button.v4-mov");
 const fila = (page, nombre) => lista(page).filter({ hasText: nombre });
+/* Desde la fila gris de Inversiones (25/10/2026) la aportación ya no es tarjeta suelta: va
+   agrupada en «Inversiones · no cuentan». Sigue sin contar; cambia solo dónde se pinta. */
+const grisInv = (page) => page.locator('.v4-gastos-list-body .gx-gris[data-gris="inversion"]');
 
 test("una inversión y un recibo de otro banco ya NO dicen lo mismo", async ({ page }) => {
   await seedLoggedInDashboard(page, { accounts, settings, expenses, budget: 1000 });
   await abreGastos(page);
 
   // Los dos siguen sin contar…
-  await expect(fila(page, "Aporte FTSE")).toHaveClass(/v4-mov-skip/);
+  await expect(grisInv(page).locator(".gx-gris-it").filter({ hasText: "Aporte FTSE" })).toHaveCount(1);
   await expect(fila(page, "RECIBO ENDESA")).toHaveClass(/v4-mov-skip/);
-  // …pero cada uno dice POR QUÉ, que es lo que pedía.
-  await expect(fila(page, "Aporte FTSE")).toContainText("no es un gasto");
+  // …pero cada uno dice POR QUÉ, que es lo que pedía: la inversión en su fila gris.
+  await expect(grisInv(page).locator(".gx-gris-h")).toContainText("Inversiones · no cuentan");
   await expect(fila(page, "RECIBO ENDESA")).toContainText("no es del día a día");
   // Y el genérico de antes ya no sale por ninguna parte.
   await expect(page.locator(".v4-gastos-list-body")).not.toContainText("no afecta");
@@ -80,14 +83,15 @@ test("un gasto normal y un ingreso no salen apagados", async ({ page }) => {
 test("el filtro «Qué contar» deja ver un cajón a solas", async ({ page }) => {
   await seedLoggedInDashboard(page, { accounts, settings, expenses, budget: 1000 });
   await abreGastos(page);
-  await expect(lista(page)).toHaveCount(4);
+  await expect(lista(page)).toHaveCount(3);
+  await expect(grisInv(page)).toHaveCount(1);
 
   await page.locator('button.v4-chip:has-text("🎛️")').first().click();
   await page.locator('.v4-sheet button.v4-chip:has-text("Inversión y traspasos")').click();
   await cierraSheet(page);
 
-  await expect(lista(page)).toHaveCount(1);
-  await expect(fila(page, "Aporte FTSE")).toHaveCount(1);
+  await expect(lista(page)).toHaveCount(0);
+  await expect(grisInv(page).locator(".gx-gris-it").filter({ hasText: "Aporte FTSE" })).toHaveCount(1);
 });
 
 test("Categorías usa las mismas fichas de Apuntar y permite elegir varias", async ({ page }) => {
@@ -272,12 +276,13 @@ test("y se puede volver a verlo todo sin dejar el filtro pegado", async ({ page 
   /* «Limpiar» se lleva el cajón y vuelve al default confirmado el 16/9: bancos de gasto diario.
      Para ver el histórico entero se elige «Todos los bancos» expresamente. */
   await page.locator('button.v4-chip:has-text("Limpiar")').first().click();
-  await expect(lista(page)).toHaveCount(3);
+  await expect(lista(page)).toHaveCount(2);
+  await expect(grisInv(page)).toHaveCount(1);
   await expect(fila(page, "RECIBO ENDESA")).toHaveCount(0);
 
   await page.locator('button.v4-chip:has-text("🎛️")').first().click();
   await page.locator('.v4-sheet button.v4-chip:has-text("Todos los bancos")').click();
   await cierraSheet(page);
-  await expect(lista(page)).toHaveCount(4);
+  await expect(lista(page)).toHaveCount(3);
   await expect(fila(page, "RECIBO ENDESA"), "Todos los bancos recupera el histórico completo").toHaveCount(1);
 });

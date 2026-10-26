@@ -1,5 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, gastosRoot, gastosPeriodo, gastosAbreFiltros, gastosCierraFiltros } from "./fixtures.mjs";
+
+// Gastos v5: el periodo ya no son botones en pantalla; se lee del atributo de la pantalla y se
+// elige en Filtros. Desde la tanda 2 la ayuda de Mi ciclo también vive ahí, junto al periodo
+// (encima de la lista tapaba los movimientos, captura de la beta 4.26.164). Lo que se protege
+// —que la ayuda esté, se pliegue y se recuerde— no cambia.
 
 test.use({ viewport:{width:375,height:812}, hasTouch:true });
 
@@ -25,9 +30,10 @@ for(const caso of [
     expenses:[{id:"nomina",date:"2026-09-26T12:00:00Z",amount:-2000,merchant:"Nómina",category:"ingreso"}],
   });
   await abrirGastos(page);
+  await gastosAbreFiltros(page);
   const card=page.getByTestId("gastos-cycle-help");
   const toggle=card.getByRole("button");
-  await expect(page.locator(".v4-period-btn.on")).toHaveText(caso.period);
+  await expect(gastosRoot(page)).toHaveAttribute("data-periodo","cycle");
   await expect(card).toContainText(caso.from);
   await expect(card.locator(".v4-cycle-explanation")).toContainText(caso.hint);
   await expect(toggle).toHaveText(caso.hide);
@@ -37,15 +43,18 @@ for(const caso of [
   await expect(toggle).toHaveText(caso.show);
   await expect(toggle).toHaveAttribute("aria-expanded","false");
   await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")||"{}").settings?.gastosCycleHelpOff)).toBe(true);
+  await gastosCierraFiltros(page);
   await page.locator('.botnav-tab[data-tour="inicio"]').click();
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await gastosAbreFiltros(page);
   await expect(card.locator(".v4-cycle-explanation")).toHaveCount(0);
   await page.reload();
   await expect(page.locator(".botnav")).toBeVisible();
   await page.waitForFunction(()=>!document.getElementById("mc-load"));
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await expect(page.locator(".v4-period-btn.on")).toHaveText(caso.period);
+  await expect(gastosRoot(page)).toHaveAttribute("data-periodo","cycle");
+  await gastosAbreFiltros(page);
   await expect(card).toContainText(caso.from);
   await expect(card.locator(".v4-cycle-explanation")).toHaveCount(0);
   await toggle.click();
@@ -58,13 +67,14 @@ test("sin nómina, plegar la ayuda conserva visible que el presupuesto usa el me
   await page.clock.install({time:new Date("2026-09-28T12:00:00Z")});
   await seedLoggedInDashboard(page,{budget:1000,settings:{autoPrices:false,theme:"green",lang:"es",budgetCycle:true},expenses:[]});
   await abrirGastos(page);
+  await gastosAbreFiltros(page);
   const card=page.getByTestId("gastos-cycle-help");
   await expect(card).toContainText("Sin nómina detectada");
   await expect(card.locator(".v4-cycle-explanation")).toContainText("Apunta la nómina");
   await card.getByRole("button",{name:"Ocultar"}).click();
   await expect(card).toContainText("El presupuesto usa el mes natural");
   await expect(card.locator(".v4-cycle-explanation")).toHaveCount(0);
-  await expect(page.locator(".v4-period-btn.on")).toHaveText("Mi ciclo");
+  await expect(gastosRoot(page)).toHaveAttribute("data-periodo","cycle");
 });
 
 test("el filtro Mi ciclo sin presupuesto conserva una ayuda útil",async({page})=>{
@@ -74,7 +84,8 @@ test("el filtro Mi ciclo sin presupuesto conserva una ayuda útil",async({page})
     expenses:[{id:"cobro",date:"2026-09-26T12:00:00Z",amount:-2000,merchant:"Cobro",category:"ingreso"}],
   });
   await abrirGastos(page);
-  await page.getByRole("button",{name:"Mi ciclo",exact:true}).click();
+  await gastosPeriodo(page,"cycle");
+  await gastosAbreFiltros(page);
   const card=page.getByTestId("gastos-cycle-help");
   await expect(card).toContainText("Del 26/9");
   await expect(card.locator(".v4-cycle-explanation")).toContainText("no cambia el presupuesto mensual");

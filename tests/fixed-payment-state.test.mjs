@@ -285,14 +285,23 @@ function createdBill(ctx,route,merchant){
   try{
     let tree;
     if(route==="histórico")state.fixed=ctx.histFijosFromSelection([{merchant,amount:42,ent:"sabadell",date:"2026-09-25"}],[0]);
-    if(route==="suscripción")tree=ctx.SubRow({sp:{name:merchant,key:ctx.catKey(merchant),amount:42,cat:ctx.categoryOfNewMerchant(merchant),months:3,yearly:504},state,set,showToast:noop});
+    // «Pasar a Recibos» vive ahora en la ficha de la suscripción (GxSubFicha), cuyo onRecibos es el
+    // subARecibos de Expenses (la tanda 4 borró SubRow): se pinta Expenses de verdad y se llama a lo
+    // que recibe la ficha, con la misma suscripción que antes (4.26.169).
+    if(route==="suscripción"){
+      const sp={name:merchant,key:ctx.catKey(merchant),amount:42,cat:ctx.categoryOfNewMerchant(merchant),months:3,yearly:504,lastMs:Date.parse("2026-09-25T12:00:00Z"),ult:[{e:{date:"2026-09-25"}}]};
+      const page=ctx.Expenses({state,set,showToast:noop,stopSwipe:noop,cancelSwipe:noop,focusExp:null,clearFocus:noop,forceAllTs:0,onGoPlan:noop});
+      const ficha=nodes(page).find(x=>x.type===ctx.GxSubFicha);
+      assert.ok(ficha&&typeof ficha.props.onRecibos==="function","la ficha real recibe el creador de Recibos");
+      ficha.props.onRecibos(sp,"42");
+    }
     if(route==="conciliación"){
       state.bankTx=[{id:"crear",ent:"sabadell",merchant,amount:42,date:"2026-09-25",status:"BOOK"}];
       tree=ctx.Reconcile({state,set});
     }
     if(route==="hoja")tree=ctx.BillsAddWizard({step:"when",setStep:noop,form:{kind:"fixed",name:merchant,amount:"42",freq:"mes",account:"sabadell",day:"25"},setForm:noop,banks:["sabadell"],onClose:noop,set,onSaved:noop});
     if(tree){
-      const handler=route==="suscripción"?"toFixed":route==="conciliación"?"addAsFixed":"commit";
+      const handler=route==="conciliación"?"addAsFixed":"commit";
       const button=nodes(tree).find(x=>x.type==="button"&&typeof x.props.onClick==="function"&&(x.props.onClick.name===handler||x.props.onClick.toString().includes(handler+"(")));
       assert.ok(button,"botón real del creador "+route);button.props.onClick();
     }
@@ -563,7 +572,7 @@ const paymentGuards=[
     const state=Object.assign({},base,{bankTx:[tx,Object.assign({},tx,{id:"segundo",date:"2026-09-26"})],expenses:[row]});
     assert.equal(ctx.fixedPaymentState(state,fixed,2026,9,30).paid,false,"un gasto guardado no rescata dos BOOK ambiguos");
   }},
-  {id:"prueba-invalida",from:'&&!(e.paymentProofs&&e.paymentProofs[y*12+m])',to:'&&true',check(ctx){
+  {id:"prueba-invalida",from:'&&!fixedPaymentStoredProof(s,e,y,m)',to:'&&true',check(ctx){
     const stale=Object.assign({},fixed,{paymentProofs:{[2026*12+9]:{kind:"expense",model:"modelo sustituido",identity:ctx.fixedPaymentIdentity("sabadell",recorded),date:"2026-09-25",amount:42,bank:"sabadell"}}});
     const state=Object.assign({},recordedState,{fixed:[stale]});
     assert.equal(ctx.fixedPaymentState(state,stale,2026,9,30).paid,false,"una prueba invalidada no se sustituye por inferencia");

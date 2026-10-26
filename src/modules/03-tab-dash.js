@@ -377,8 +377,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
     !showSkel && closedCard && React.createElement("div",{className:"v4-card rise","data-tour":"closed-month",style:{animationDelay:".02s",marginTop:4}},
       React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}},
         React.createElement("div",null,
-          React.createElement("div",{style:{fontWeight:800,fontSize:15}}, tf("mr_title",{mes:monthLong(closedCard.month)+" "+closedCard.year})),
-          React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",marginTop:4,lineHeight:1.4}}, t("mr_sub"))
+          React.createElement("div",{style:{fontWeight:800,fontSize:15}}, tf("mr_title",{mes:monthLong(closedCard.month)+" "+closedCard.year}))
         ),
         React.createElement("button",{type:"button",className:"link",style:{flexShrink:0,fontSize:13},onClick:function(){
           set(function(s){ return dismissClosedMonthCard(s, closedCard.ym); });
@@ -532,7 +531,9 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       React.createElement("div",{className:"v4-goals",
         onTouchStart:function(e){ e.stopPropagation(); },
         onTouchMove:function(e){ e.stopPropagation(); }},
-        goals.map(function(g){
+        goals.map(function(g0){
+          // Con lo marcado desde Gastos, como en Plan → Metas: la misma meta no puede decir dos cifras.
+          const g=metaConAportes(g0,state);
           const pct=goalPct(g); const eta=goalEta(g, tt.ahorroMensual);
           return React.createElement("div",{key:g.id,className:"v4-goal"},
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},

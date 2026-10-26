@@ -18,7 +18,7 @@ for(const pairs of [380,5708])test("CPU6: 20000 filas y "+pairs+" pares, categor
   const match=/setStateRaw\(prev=>\{([\s\S]*?)\}\); \},\[\]\);/.exec(html);expect(match).toBeTruthy();
   const cdp=await page.context().newCDPSession(page);await cdp.send("Emulation.setCPUThrottlingRate",{rate:6});
   result.sources[name]=await page.evaluate(({pairs,body})=>{
-   const upd=new Function("prev","updater",body),expenses=[];
+   const set=new Function("prev","updater","edited",body),upd=(prev,updater)=>set(prev,updater,true),expenses=[];
    for(let i=0;i<pairs;i++){
     const amount=(1000+i)/100,day="2026-10-08";
     expenses.push({id:"a"+i,date:day+"T08:00:00Z",amount,merchant:"Aviso "+i,category:"otros",source:"macrodroid",ent:"trade_republic"});

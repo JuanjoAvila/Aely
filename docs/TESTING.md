@@ -1,3 +1,140 @@
+PR315 (26/10): `node scripts/run-deno-tests.mjs supabase/functions/bank-sync/overflow-resume.test.ts`
+ejecuta el guardián del contrato conservado: hasta doce páginas exitosas, con un
+único intento inicial extra si se rechaza el periodo (máximo trece). La ventana de
+doce páginas debe llegar ENTERA, con referencias y céntimos exactos, con y sin
+rechazo, en dos cuentas independientes. Otros errores no estrenan otro cupo.
+
+Incluye sin rebajar las cinco regresiones con `flattenBankTx` y `obReferenceKey`
+reales, cargadas de `src/modules`: corrección de céntimos, signo y comercio,
+PDNG→BOOK y retirada de una fila. El handler/lector son reales; SDK, BD y proveedor
+son dobles sintéticos. No abre puertos ni usa red. Registrado en ambos runners con
+lectura acotada a `supabase/functions` y `src/modules`. El oráculo nuevo falla en la
+cabeza de tope estricto y pasa al restaurar la semántica base. No acredita banco
+real, atomicidad PostgreSQL, CI, despliegue ni aceptación móvil.
+
+`attempt-budget.test.ts` conserva los catorce casos del lector/handler, adaptados
+al contrato de páginas exitosas: límites menores, rechazos y otros errores, filas,
+céntimos, timeout, continuación y guardia de transporte compartida del tramo. Los
+hallazgos del cursor desbordado y partial/sealed quedan en BACKLOG, sin arreglo en
+esta conversión.
+
+SEC02 (26/10): `node tests/sec02-edge-limits-replay.test.mjs`, registrado en el runner
+y en `STEPS_SUPABASE`, ejecuta handlers/helpers TypeScript reales con SDK/RPC/proveedor
+sintéticos: cinco grupos, EXIT 0. Comprueba buckets/umbrales/ventanas enviados, cuotas de
+ayuda por usuario/día/global, 16 invocaciones solapadas con 15 pagos admitidos, cierre ante
+fallo del RPC y separación de ACK/importe por owner y mes (1990 céntimos). `quotaDb` es un
+doble: no valida atomicidad ni expiración real de PostgreSQL. No usa Deno, red ni datos reales.
+La fixture usa el esbuild existente del proyecto y sintaxis compatible con Node 20 de CI;
+no se cambian dependencias. `AELY_SEC02_ESBUILD` permite leer otra instalación ya existente
+en el arnés local, sin instalar ni modificar `node_modules`.
+
+Mutaciones opcionales `SEC02_MUTANT=help-sin-freno`, `help-fallo-abierto` e
+`ingest-ack-sin-owner` deben hacer fallar el oráculo correspondiente; no se ejecutan en
+la corrida normal. El segundo elimina los chequeos `checked` de las tres cuotas: quitar
+solo el primero sigue cerrado por el siguiente. Los RED de producto permanecen privados;
+no se registra como verde una expectativa que congele el defecto. [Informe, límites y
+hallazgos](briefs/sec02-edge-limits-replay-audit.md). No acredita CI, BD, despliegue o móvil.
+
+PR304 R2: `pull-historico-entero.test.mjs`, ya registrado, ejecuta el efecto real de
+autenticación y `cloud.onAuth` con transporte/reloj sintéticos. La regresión automática
+no llama a `start` ni a sync después de renovar: cubre `TOKEN_REFRESHED`, `SIGNED_IN`,
+`INITIAL_SESSION` y la continuación de `cloud.session` con otro objeto del mismo UID.
+Comprueba opciones del login, commit React diferido, gastos, reserva mensual,
+respuestas/rechazos viejos, ráfagas, salida y desmontaje. Un caso separado confronta
+un disparador de primer plano/edición antes del turno diferido. Los extractores de
+`inicio-deuda-futura` e `inicio-v42` inyectan la identidad `readSession`; el segundo
+rechaza el callback de una sesión sustituida y comprueba la unión de 400 cierres
+con un callback nuevo de la sesión vigente. La focal de pull y ambos extractores
+terminó 70/70; los consumidores de auth de FIN17, 46/46. Los contratos históricos
+`auth-disposal` y `auth-disposal-fit` terminaron con EXIT 0. La regresión automática
+falla causalmente sobre `add70e5a` (un GET en vez de dos); el caso del disparador
+intercalado falló antes de conservar opciones (1000 en vez de 2468), y pasa tras
+el ajuste. Se mantienen los oráculos financieros y de descarte tardío.
+
+La validación Node completa sigue pendiente del turno serial y de resolver
+el gate histórico de versión: `docs-frescura` da EXIT 1 ya con HEAD `add70e5a`,
+por el único cambio de producto posterior al ancla `95b950a0`, con versión
+4.26.173. Sus trece comprobaciones de metadata y texto pasan. Test y metadatos
+son idénticos a esa base; no se cambian rama, entorno, historia ni versión para
+alterar el resultado. Revisión parental, CI, integración y móvil siguen pendientes.
+
+INC1810-01: `inc1810-deuda-guardar.spec.mjs`, registrado para `09-tab-debts-goals.js`,
+abre la hoja real de Deudas y guarda sin cambios, nombre/nota/TAE y una subida válida
+de cuota. Comprueba céntimos, campos desconocidos y persistencia tras recargar.
+La negativa FIN16 debe responder en dos intentos con el error completo dentro de la
+pantalla y sin modificar datos; cancelar conserva el estado. Un campo mal formado
+mantiene el borrador y permite corregirlo. Los cinco casos pasan en la base intacta
+`78c41edf87e2784ed31f8c9a083656c786d2632f`; no reproducen el bloqueo humano ni
+acreditan aceptación móvil. [Alcance y evidencia](briefs/inc1810-deuda-guardar.md).
+
+UX18: `e2e/ux18-preferencias-nube.spec.mjs` está registrado para i18n, Ajustes, App y Cartera. Usa SDK/DOM/paquetes reales con transporte CAS sintético persistente al recargar. Protege idioma remoto EN/CA, orden local con pull retenido, replay, campos desconocidos, fallo HTTP/offline y recuperación, selecciones tardías y desmontaje. [Causa y límites](briefs/ux18-preferencias-nube.md).
+
+PR297 R2: `pr297-r2-plan-sync.test.mjs` está registrado en el runner y `pr297-r2-plan-sync.spec.mjs` en el mapa del núcleo/transporte. Oráculos sintéticos de céntimos, LWW sin base y tres vías con base, confirmaciones compactas por owner, vínculo local sin gastos en app_state, metadata de pago, referencias estables y 1000 lápidas. La versión completa se contrasta con `node:crypto`, incluyendo Unicode, padding SHA-256, claves JSON especiales e id numérico frente a string.
+
+El navegador cuenta lecturas/avisos durante más de doce segundos con Plan inválido y exige un PATCH/CAS no vacío tras una edición real, con propietario, revisión y céntimos. Retiene GET de estado y de gastos para comprobar intenciones que llegan durante el vuelo. El dispositivo B de primera lectura no hereda `_planSync`/`_goalSync` privados de A. La prueba de toque real desplaza el botón a la vista y registra su geometría antes del tap; conserva el oráculo de cierre y movimiento.
+
+SAVEDAT: `savedat-arranque.spec.mjs`, registrado para `07-tab-patri-fijos.js` y `11-app-main.js`,
+usa reloj natural, dos titulares, edición DOM, offline/recarga/CAS y campos desconocidos.
+El backup se exige después de la primera lectura/commit exitosos; con GET retenido
+no hay POST ni actualización de lastBackup. `persist-commit.test.mjs` verifica el setter real.
+R2 fuerza un histórico de bienes discordante al cambiar de día y una respuesta de
+bróker disponible mientras A espera su primer GET. Exige el sello antiguo antes
+del pull, ningún sync prematuro y después la edición de B, sus campos desconocidos
+y los importes exactos. Se conservan los cuatro casos anteriores, incluida la
+edición humana durante GET; una respuesta real del bróker posterior sí puede sellar.
+[Contrato](briefs/savedat-arranque.md).
+
+FIN04 primera lectura: `fin04-first-pull.test.mjs` en el runner y
+`fin04-first-pull.spec.mjs` en el mapa de `11-app-main.js`. GET retenido, SDK real,
+dos contextos sintéticos, INSERT/CAS/ACK y sesión. R2 añade `fin04-recovery.spec.mjs`
+para recuperación por eventos, rescate inválido, colisión y refresco fallido;
+`metas-pull-transport.test.mjs` comprueba React diferido, lecturas intercaladas y cambio
+de sesión. R3 añade `fin04-commit.test.mjs`: commit frente a render descartado,
+debounce, backup sin re-sello y ACK antiguo durante otro merge, tanto en respuesta
+como en updater diferido. El doble común respeta INSERT único, filtros CAS y filas
+devueltas. Persistencia/refresco se ejecutan por sus nombres reales de spec.
+[Alcance A](briefs/fin04-primera-lectura.md).
+
+Plan reconstruido: `tests/fin04-plan-three-way.test.mjs` está registrado en el runner;
+`e2e/fin04-plan-three-way.spec.mjs`, en el mapa de sus siete módulos. Protegen grupos
+atómicos, céntimos, referencias y campos desconocidos, ACK durante edición, conflictos
+privados sin truncado, lápidas de deuda frente a copia intacta o editada en ambos
+sentidos, y marcas offline con y sin base privada anterior. El pull real extraído
+distingue render descartado y commit: Plan inválido avisa, termina su vuelo y permite
+un segundo GET válido y su CAS. Los E2E usan dos SDK/React reales con transporte
+sintético, borrado/edición DOM, recarga de ambos clientes, recuperación explícita y
+descarte confirmado en es/en/ca. Un mutante dirigido vigila cada contrato causal.
+No se ejecutan operaciones bancarias ni se acredita aceptación móvil real con estos
+clientes. Logs, fuentes previas y recursos propios de cada corrida se conservan por
+separado; una corrección del arnés no cuenta como ROJO del producto.
+Los arneses extraídos de seguridad/auth suministran el ACK real y la limpieza de
+Plan. El caso de deuda futura parte de una lectura confirmada antes de editar;
+conserva sus aserciones monetarias. El cierre de dependencias del catálogo sigue
+siendo un gate de integración independiente de estos ajustes de contexto.
+
+R4 añade `refresh-single-flight` en el spec FIN04 de renombrado: retiene gastos y
+repite eventos de primer plano/conexión, exigiendo una sola lectura simultánea.
+`permanent-rename` conserva la aserción de una llamada real a `showToast`, los tres
+rechazos, la cuarentena durable y el reintento explícito. La evidencia de fallo
+incluye los avisos y sus llamadas para distinguir el rechazo del renombrado de un
+conflicto CAS incidental; ningún aviso de conflicto humano se filtra por sesión.
+Cinco guardianes nuevos en `fin04-commit.test.mjs` cubren el no-op remoto, la
+confirmación durable que falta en nube, las reversiones con envíos pendientes y
+conflictos visibles de dinero/campos desconocidos. Los nueve casos anteriores
+conservan sus aserciones. Los harnesses del pull extraído reciben la referencia de
+sesión nueva; la reentrada normal comparte vuelo y la sustitución adversarial de
+transporte se inyecta expresamente, conservando los oráculos de Metas y del widget.
+
+R5 añade cinco casos focales al mismo `fin04-commit.test.mjs`: ráfaga y promesa
+retenida hasta la nueva foto, recuperación de error con solicitud pendiente,
+rechazo final y cambio de sesión del mismo o de otro titular. Conservan una edición
+local y los 80 remotos frente a la foto anterior de 70. `expense-reread` usa dos
+contextos con SDK real: B inserta el gasto después de capturar el GET retenido de A,
+y A debe releer sin otro evento humano. La regresión del widget vive además en
+`persistencia`, con su aserción original de 80. Los dobles de `refund-polarity` y
+`fin19-r3-scope-cost` suministran generación y sesión coherentes al updater real,
+sin retirar su guarda ni cambiar las aserciones financieras.
+
 FIN04 fase 1: `fin04-rename-note-ack.test.mjs` en el runner Node y `fin04-rename-note-ack.spec.mjs`
 en el mapa de Gastos. Dos contextos y SDK real con transporte simulado; ACK exacto, identidad
 local, nota concurrente, reintento y cero escrituras en modo pruebas (33 escritores). R2 añade
@@ -12,6 +149,8 @@ de cero filas convertidas, misma referencia y resultado equivalente sin atajos.
 UX08: `plan-native-wave.spec.mjs` protege scroll nativo del contenido, geometría de los grupos y simulador, retorno del alta y cancelación durante la salida después de desplazar la ficha. Oráculos de frames y persistencia cruda; tacto real CDP, un worker, cero retry y red externa abortada. Dos RED independientes. [Contrato y límites](briefs/ux08-native-wave-close-jump.md).
 
 INC-2709-03/UX-08: `plan-ola-web.spec.mjs` está en el mapa de `14-v4-screens`; CORE de shell/02 se mantiene. Cuatro RED causales y cuatro GREEN web, más nueve guardianes de Gestionar (un worker, cero retry). Compara capas de reposo, geometría fixed, tacto real, normal/reducido y cancelación/reanudación, con persistencia cruda exacta. DOM y PNG por frame son observaciones visuales, sin CPU6 ni perfilado; no acreditan ola nativa Android. [Acta y fallos conservados](briefs/inc270903-ux08-ola-web.md).
+
+Deudas, mes de Madrid: `deudas-mes-madrid.test.mjs` (12 contratos Node, en el runner) y `deudas-mes-madrid.spec.mjs` (12 casos DOM, mapa del módulo 09) cubren tarjeta y las dos fechas del asesor, es/en/ca, fronteras opuestas en Los Ángeles y Tokio y salto de año. Conservan saldo, cuotas y persistencia. [Causa y casos](briefs/deudas-mes-madrid.md).
 
 Deudas: `deudas-alargar-plazo.test.mjs` está en el runner Node; `deudas-alargar-plazo.spec.mjs` está en el mapa de `09-tab-debts-goals.js`. Cubre elección explícita, guardado, datos conservados y tres idiomas. [Casos y límites](briefs/deudas-alargar-plazo-20261019.md).
 
@@ -78,12 +217,26 @@ La suite completa y la aceptación móvil conservan sus gates independientes.
 UX15 (beta 4.26.138): `e2e/gastos-sincronizar-alcance.spec.mjs` registrado en el mapa de Gastos;
 DOM real es/en/ca, texto/ocupado/descripción accesible, una lectura en nube y ninguna
 invocación bancaria por pulsación. ROJO previo y mutaciones focales con 1 worker/0 reintentos.
+Desde la tanda 5 de Gastos v5 el mismo spec comprueba que el botón ya no existe, que volver a la app
+relee la nube una vez sin `bank-sync` y que Filtros enseña la hora y la explicación (es/en/ca).
 [Contrato, evidencia y límites](briefs/ux15-sincronizar-gastos-20261016.md).
 FIN12 revisión1: `tests/inicio-deuda-futura.test.mjs` registra 25 casos con 13 mutantes;
 altas reales 08/09, migración, reancla y transporte/merge de nube simulado.
 `e2e/inicio-deuda-futura.spec.mjs` comprueba seis puntos de la gráfica real al dedo,
-el regreso al presente y dos regresiones de legado. Sólo `startMonth` entero acredita
-inicio; `asOf` no. [Acta y límites](briefs/fin12-deuda-futura-inicio-20261016.md).
+el regreso al presente y dos regresiones de legado. Un `startDay` válido acredita el día;
+si falta o es inválido se conserva el inicio mensual de `startMonth` entero. `asOf` no
+acredita nacimiento. [Acta y límites](briefs/fin12-deuda-futura-inicio-20261016.md).
+FIN37: `tests/fin37-debt-startday-once.test.mjs` (registrado en `run-tests`) carga las fuentes
+editables y compara política y serie completa con un calendario de cargos y céntimos independiente.
+Observa llamadas reales a `netWorthPointOk`: 300 deudas y 420 días requieren como máximo 300
+validaciones por política; otra política debe revalidar. Incluye fechas inválidas, IDs duplicados
+o ausentes, préstamos, APR racional, balloon, estado congelado y fronteras monetarias de año/DST.
+`--repeat-validation-mutant` restaura en memoria la validación por día: debe conservar las cifras
+y fallar solo por conteo. No usa tiempos de hardware ni acredita CPU6 o aceptación móvil.
+
+FIN36: `tests/fin36-debt-madrid-month.test.mjs`, registrado en el runner, compara las altas reales manual y de compra a las 00:30 de Madrid del día 1 en verano, invierno y cambio de año, con dispositivo Madrid, UTC, Los Ángeles y Tokio. Fija céntimos de saldo y serie sin suministrar el saldo actual al motor de deuda; incluye cargo día 1/5 y antes/en/después, cuotas previas, migración sin nacimiento inventado, edición con y sin plazo y pago final. Dos mutantes obligatorios restauran el mes local o el día local y deben cambiar los importes. `--html ruta` permite comprobar cada bundle mutado de forma dirigida. `e2e/fin36-debt-madrid-month.spec.mjs`, registrado para los módulos 07/08/09, comprueba 18 altas por Plan, saldo visible, resumen de deuda, hero y punto anterior de la gráfica de Inicio, además de recarga, en Madrid/UTC/Los Ángeles. Son datos sintéticos; no acreditan integración, servido ni aceptación móvil.
+
+`tests/debts.test.mjs` conserva sus nueve escenarios y fija el reloj sólo dentro del sandbox de producto. Ocho instantes con calendario Madrid literal e independiente cubren la víspera UTC, cambios de mes/año, febrero y el salto CET/CEST; añade un saldo de 79,96 € antes del cargo y 59,97 € en su día. Se ejecuta sin cambiar fixtures en `TZ=Europe/Madrid`, `TZ=UTC` y `TZ=America/Los_Angeles`. La bisección 173→174 sitúa el fallo del test antiguo en el merge de PR299: su «mañana» local ya era hoy en Madrid. Se mantiene el oráculo de cuatro cuotas futuras y el contrato de producción de FIN36; no se cambia el huso global del runner ni el código financiero.
 ## Runner Deno focal · PR255, remates privados, 17/10/2026
 
 `scripts/run-deno-tests.mjs` descubre recursivamente `*.test.ts` y `*_test.ts` en
@@ -1341,3 +1494,64 @@ Son dobles locales, sin bancos ni SQL vivos; no acreditan CI general, integraci�
 ## FIN17: revisión F1–F5
 
 `fin17-confirmed-absorptions.test.mjs` cubre unión sobre1000, expulsión estricta>90d, aviso local, pack y colisiones forzadas, CAS, SIGNED_OUT con guardado posterior y conflicto de Metas beta141. M9/M11/M12 reconstruidos tienen ejecuciones causales independientes. El spec homónimo abre Gastos, reabre la aplicación, verifica avisos es/en/ca, consumo por incidencia y limpieza tras SIGNED_OUT. Datos/SDK sintéticos, sin aceptación móvil ni despliegue. [Mediciones y alcance](briefs/fin17-confirmed-absorptions-20261018.md).
+
+## UX-17 Gastos v5 · tanda 1 (20/10/2026)
+
+`tests/gastos-v5-cifra.test.mjs` (en `steps`) comprueba por dos vías que la suma por días de la cifra viva (`gastosCifraDias`, que usa la misma regla fila a fila que `monthBudgetStats` vía `budgetRowSigned`) da el mismo gastado que el mes de `monthBudgetStats` y que la tarjeta de Inicio, el acumulado hasta un día sin cruzar meses, qué meses cubre el histórico entero y el neto de Mi ciclo. `e2e/gastos-v5.spec.mjs` (en el mapa de Gastos) abre la pantalla: cifra de arriba = Inicio, acumulado al bajar, mes cerrado sin margen contra el límite de hoy, salto por la fila de meses, filas grises de recibos y cuotas (no suman, se despliegan, abren su ficha y «Abrir en Plan» lleva a su segmento), que reagrupar no pierde filas y que Mi ciclo sigue elegible con la cifra de Inicio. Las specs que leían la tarjeta resumen o los botones de periodo usan ahora las ayudas de `e2e/fixtures.mjs` (`gastosCifra`, `gastosEstado`, `gastosPeriodo`, `gastosBajaAlDia`, `gastosBajaAlMes`, `gastosGrisFila`).
+
+Tanda 2 (secciones): `e2e/gastos-v5-secciones.spec.mjs` (en el mapa de Gastos y de `02-ui-shared.js`, donde vive `useTironSeccion`, el tirón que comparten Plan y Gastos) abre la pantalla y comprueba los tres iconos con su pestaña activa y el globito de las suscripciones por revisar; que en Mi ciclo entre la cabecera y la lista solo está el buscador (la ayuda de Mi ciclo y las fechas del Rango viven en Filtros → Periodo, «Actualizar gastos» al pie de la lista); el tirón arriba del todo Movimientos → Categorías → Suscripciones → Movimientos con UN toque de vibración por cambio (doble del motor que apunta las llamadas) y que a mitad de lista es scroll normal; que Categorías enseña el desglose de antes con la barra del presupuesto y que mantener pulsada una categoría abre su límite; Suscripciones como estaban y vacía («Todo en orden»); y que al salir de Gastos se vuelve a Movimientos. Las specs que miraban el desglose o las suscripciones encima de la lista cambian de sección con `gastosSeccion`; la hoja de Filtros se abre y cierra con `gastosAbreFiltros`/`gastosCierraFiltros`. También que una categoría con un id que ya no existe se junte con «Otros» en una sola fila y que la suma de las filas cuadre con la cifra de la cabecera (antes salían dos filas «Otros»).
+
+Tanda 3 (categorías → filtro): `e2e/gastos-v5-filtro.spec.mjs` (en el mapa de Gastos) abre la pantalla y comprueba que tocar una categoría en Categorías lleva a Movimientos filtrado por ella y por su mes, con la píldora de su color; que la cifra es la de su fila en Categorías (misma regla del desglose), que los totales del día la suman y que bajando dice lo de la categoría hasta el día de arriba; que el cargo de un recibo no sale con el filtro; que la línea compara con la misma categoría el mes anterior (hasta el mismo día en el mes en curso, solo si el histórico cubre ese mes entero); que la fila de meses está siempre en Categorías y con filtro y cambia de mes sin soltar la categoría (en un mes cerrado, sin límite ni barra del presupuesto); que la píldora, cambiar de sección y salir de Gastos quitan el filtro; que el límite se pone manteniendo pulsada la categoría (un toque de vibración, no filtra; con el dedo, la hoja no se cierra al soltar y arrastrar no la abre) y se quita desde el chip junto a la píldora, que dice lo que queda, sin mover el presupuesto general; y Mi ciclo sin fila de meses. `gastosPulsaLarga` (fixtures) mantiene pulsado con punteros; las specs que ponían límite tocando la categoría la mantienen pulsada.
+
+Tanda 5 (hoja de Filtros): `e2e/gastos-v5-filtros.spec.mjs` (en el mapa de Gastos) abre la hoja y comprueba los cuatro apartados en orden (Periodo · Qué contar · Bancos · Categorías), «Restablecer» arriba y un único botón «Ver N movimientos» cuyo N es el de la lista entera (se cuenta bajando hasta «Hasta aquí», porque la lista pinta de 12 en 12); los bancos de gasto diario marcados con ✓ al entrar y «Todos los bancos» como ampliación; los tres cajones de «Qué contar» sin chip «Todo»; las cinco categorías más usadas y «Las N», con la marcada desde la cuadrícula a la vista al plegarla; y que «Restablecer» devuelve periodo, bancos y cajones de entrada. `gastos-diario-filtro`, `gastos-periodo-categorias`, `gastos-v5-secciones`, `retirada-bancaria` (relee la nube volviendo a la app) y `rendimiento` (la hora se lee en Filtros) adaptados sin quitar aserciones.
+
+Tanda 6 (25/10, cuatro reportes del dueño): `e2e/gastos-v5-ciclos.spec.mjs` (en el mapa de Gastos y en el de `02-ui-shared.js`) comprueba que al final de Movimientos no queda pantalla vacía bajo «Hasta aquí» (ya no hay `.gx-pie`) y que con todo bajado la cabecera habla del último día; que Mi ciclo tiene su fila de ciclos fija y marcada, que cambiar a un ciclo pasado cambia lista, cifra (sin límite) y desglose y que los totales de los días suman la cifra; que el tirón de sección funciona empezando debajo de una sección vacía (comprueba que el dedo aterriza en la página y no en la sección); que con un filtro de categoría de la hoja la cifra, su desglose y el total de cada día son los de lo filtrado (con una devolución); que mantener pulsada una categoría no deja empezar una selección ni abrir el menú contextual mientras el dedo sigue puesto (y que al soltar los campos vuelven a ser seleccionables); y que a 393 px nombre y categoría de cada fila van en una línea (enteros a tamaño normal; con la letra al 130 %, recortados con «…»). `gastos-periodo-categorias` cambia de contrato: con categoría o banco filtrados la cifra de Movimientos es la de lo filtrado, la de Categorías sigue siendo la del presupuesto y la búsqueda sola no cambia nada. `gastos-v5-filtros` pasa a exigir las cinco categorías de más gasto, iguales a las cinco primeras de Categorías. `gastosBajaAlDia` (fixtures) busca por bisección el scroll que pone el día en la cabecera cuando el día está al final de la lista (lee `data-gx-vista` de `.gx-head`).
+
+Tanda 4 (suscripciones): `e2e/gastos-v5-subs.spec.mjs` (en el mapa de Gastos) abre la sección Suscripciones y comprueba la bandeja (una tarjeta por cada una con «N meses seguidos» o «N de M meses», el banco del último cobro si se sabe e importe al mes; globito y cifra = suma al mes de las pendientes); la «i» de la línea de estado (solo en Suscripciones, foco al título, «Entendido» la cierra); la ficha (día y banco del último cobro, o «banco: —» si se apuntó a mano, los tres últimos cobros, «Unos X € al año» de la detección y «si se cobra todos los meses» cuando faltan meses); «Pasar a Recibos» con el importe corregido y el día; «Ya la he dado de baja» y «No es una suscripción» preguntan (cancelar no toca nada) y guardan `subsBaja`/`subsDismissed`; dada de baja con un cobro posterior vuelve con aviso y sin cobros nuevos no cuenta; Atrás cierra la ficha. `gastos-suscripciones-movil` mide a 320–414 px las tarjetas y la ficha (sin recortes ni solapes) y ejercita las acciones desde la ficha; `gastos-v5-secciones` descarta desde la ficha con su confirmación; `rendimiento-tabs` busca `.gx-sub` para comprobar que la detección se adelanta.
+
+
+
+## Apuntes del mes siguiente
+
+`tests/inicio-mes-futuro.test.mjs`, registrado en steps, usa constantes independientes en céntimos y límites UTC de Madrid: otoño, cambio de año y primavera, en cuatro zonas de dispositivo. Cubre gasto, ingreso, reservas, futuro dentro del mismo mes, transición al siguiente, bruto/neto, categorías, fallback sin nómina y ciclo acreditado. Ejecuta el consumidor V2 y el handler legacy reales con todas las filas sintéticas sin prefiltrarlas en el test; las reservas futuras se prueban aparte para detectar el scope que antes devolvía null. Los probes `--case=client`, `fallback`, `cycle`, `server-money`, `server-reserve` y `legacy` permiten corridas dirigidas que abortan al primer fallo. `--mutant=client-window`, `server-window` y `legacy-window` restituyen la frontera sin tope en memoria, sin alterar fuentes.
+
+`e2e/inicio-mes-futuro.spec.mjs`, en CROSSCUTTING, abre Inicio real y compara sus céntimos, el resumen de Gastos y el payload real del puente widget V2/legacy en Madrid y Los Ángeles para los tres cambios de calendario. El doble sustituye solo el transporte nativo; no acredita widget físico ni servidor desplegado. El modo neto conserva su contrato existente.
+
+El handler legacy conserva las cifras ante entradas null en reservaLog, que el lector anterior ignoraba. `informe-mes` exige ahora agosto40 sin tope explícito y conserva el histórico40+99=139 sólo con una ventana explícita infinita; todas las aserciones de informe cerrado, tarjeta y dismiss permanecen.
+
+## Vínculo bancario y saldo inmediato (25/10/2026)
+
+`tests/fixed-ispaidin.test.mjs`, registrado en `steps`, carga los módulos fuente y reproduce deshacer/rehacer sin pull ni `planSyncDerived`. Contrasta saldo, pendiente y proyección en céntimos con una cuenta anclada; ejecuta también los callbacks reales de totals y recordatorios. Conserva BOOK y sus marcas/calendario anteriores (incluido alquiler750 sin día el2 de noviembre); cubre ob/ob-hist, veto, lápida, retirada, PDNG, duplicados, modelo/identidad, otros meses/años, marcas manuales y el calendario. Wallet/macrodroid/tr/manual y prueba expense sin fila local conservan su frontera visual.
+
+`e2e/fixed-ispaidin.spec.mjs`, en el mapa de07, abre las fichas reales: saldo800,23 → deshacer842,60 → rehacer800,23; Plan pasa de42,37 pendientes a cero cargos pendientes. Se espían pull/derivación y se exige cero llamadas, cuentas/gastos intactos y ningún evento bancario futuro duplicado. Datos sintéticos, Chromium aislado; no acredita aceptación móvil.
+
+
+## FIN-27 R2 · Saldo al migrar el mes del BOOK
+
+`tests/fin27-balance-reanchor.test.mjs` está registrado en `steps`; el spec homónimo se registra
+en el mapa de `08-motor-bank.js`. Comprueba el saldo que pinta la cuenta por separado de la
+caja BOOK y la asignación mensual, con pull cloud entrante, rekey con banco fallido o puente TR,
+replay, cero/negativo y sync posterior. El DOM usa el transporte/updater reales con datos
+sintéticos y conserva el servidor simulado tras un UPDATE CAS y recarga. Pruebas dirigidas
+CPU1, un worker y cero reintentos; no sustituye CI general ni aceptación móvil.
+[Contrato y límites](briefs/fin27-book-charge-month.md).
+
+## Regresión SEC02 F2 de ingest
+
+Pruebas dirigidas sin red ni proyecto vivo:
+
+```sh
+deno test --cached-only --no-lock --no-prompt --fail-fast --allow-env=SUPABASE_URL,SUPABASE_SERVICE_ROLE_KEY,INGEST_TOKEN,INGEST_USER_ID --config=supabase/functions/ingest/native-identity.deno.json --import-map=supabase/functions/ingest/native-identity.imports.json supabase/functions/ingest/native-identity.test.ts
+node tests/ingest-native-slots.test.mjs
+```
+
+Cubren dos eventos1990c, reenvío995c/ACK, tercer evento, carreras23505, propietarios, incertidumbre, legacy y fronteras UTC/Madrid. El handler real usa SDK/almacenamiento sintéticos; no acredita PostgreSQL/PostgREST, despliegue ni móvil. [Contrato y límites](briefs/sec02-ingest-native-slots.md).
+
+### Ingest nativo: fase 1
+
+Los tests ingest-native-phase1 y ingest-native-slots cargan src real, no un HTML generado. El primero ejecuta el handler contra dobles SDK/storage, ambos órdenes OB y cloud.addExpense real; incluye colisiones reales de proyección SHA y el modo OFF. native-identity.test.ts usa INGEST_NATIVE_TWINS sintético explícito y cinco permisos env, sin red. Ver [contrato SEC02 y límites de evidencia](briefs/sec02-ingest-native-slots.md); los dobles no acreditan PostgreSQL/PostgREST ni despliegue.
+
+
+## SEC02 F1 · Generación del guardado final
+
+`supabase/functions/bank-callback/generation-fence.test.ts`, registrado en ambos runners Deno, ejecuta el handler real con SDK/proveedor/BD sintéticos y sin red ni entorno. RED causal en base y GREEN20/20: reconexión durante canje, preservación de generación/cuentas/cursor, emisión legacy nula, cambios justo al escribir, acuse final inválido y consumo previo fallido. Tres mutantes de state/emisión/NULL detectados; logs y exits originales conservados. [Contrato, comando y límites](briefs/sec02-callback-generation-fence.md).

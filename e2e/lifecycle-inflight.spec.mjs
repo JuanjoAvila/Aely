@@ -13,6 +13,7 @@ async function visibility(page,state){
  expect(result.visibility).toBe(state);expect(result.hidden).toBe(state==="hidden");return result;
 }
 for(const terminal of ["success","error"])test("lifecycle drena lectura retenida con final antiguo "+terminal,async({page,context},testInfo)=>{
+ test.setTimeout(120000);   // el plazo de la lectura colgada corre en tiempo real
  const errors=[];const pageError=()=>errors.push("pageerror");page.on("pageerror",pageError);
  const origin=new URL(testInfo.project.use.baseURL).origin;
  await context.route("**/*",route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
@@ -60,20 +61,23 @@ for(const terminal of ["success","error"])test("lifecycle drena lectura retenida
   });
   await visibility(page,"hidden");await visibility(page,"visible");
   await page.waitForFunction(()=>window.__inflight.records[0]?.phase==="held-before-delivery");
-  await visibility(page,"hidden");await context.setOffline(true);
-  expect((await visibility(page,"visible")).online).toBe(false);
-  await page.waitForFunction(()=>window.__inflight.records[1]?.phase==="rejected"&&window.__inflight.records[1].settled);
+  const heldAt=Date.now();
+  // Singleflight (4.26.170): una vuelta con la lectura A en vuelo se cuelga de ella y deja
+  // pedida la relectura; no lanza otra petición en paralelo.
+  await visibility(page,"hidden");await visibility(page,"visible");await frames(page);
+  expect(await page.evaluate(()=>window.__inflight.records.length)).toBe(1);
+  // Pero un GET que ni responde ni falla no retiene las bajadas para siempre: al vencer el
+  // plazo entra la relectura pendiente (C) aunque A siga colgado (fix-170).
+  await page.waitForFunction(()=>window.__inflight.records[1]?.phase==="fulfilled"&&window.__inflight.records[1].settled,null,{timeout:45000});
+  expect(Date.now()-heldAt).toBeGreaterThan(15000);
   expect(await page.evaluate(()=>window.__inflight.records[0].phase)).toBe("held-before-delivery");
-  await visibility(page,"hidden");await context.setOffline(false);
-  expect((await visibility(page,"visible")).online).toBe(true);
   // Una lectura con filas idénticas deja el estado como estaba y ya no sube `lastSync` (perf-vuelta,
   // 19/10/2026): C se acredita por su promesa cumplida, no por el sello persistido.
-  await page.waitForFunction(()=>window.__inflight.records[2]?.phase==="fulfilled"&&window.__inflight.records[2].settled);
   await frames(page);await visibility(page,"hidden");
   const afterC=await raw(page);
   const preRelease=await page.evaluate(()=>({phases:window.__inflight.records.map(r=>r.phase),inFlight:window.__inflight.inFlight,
-   payloadSame:window.__inflight.records[0].payload===window.__inflight.records[2].payload}));
-  expect(preRelease).toEqual({phases:["held-before-delivery","rejected","fulfilled"],inFlight:1,payloadSame:true});
+   payloadSame:window.__inflight.records[0].payload===window.__inflight.records[1].payload}));
+  expect(preRelease).toEqual({phases:["held-before-delivery","fulfilled"],inFlight:1,payloadSame:true});
   await page.evaluate(terminal=>window.__inflight.records[0].release(terminal),terminal);
   await page.waitForFunction(()=>window.__inflight.inFlight===0&&window.__inflight.records.every(r=>r.settled));
   // El hidden real del fixture vuelve a ejecutar flushPersist tras el commit de React:
@@ -81,7 +85,7 @@ for(const terminal of ["success","error"])test("lifecycle drena lectura retenida
   await frames(page);await visibility(page,"hidden");expect(await raw(page)).toEqual(afterC);
   const final=await page.evaluate(()=>({phases:window.__inflight.records.map(r=>r.phase),inFlight:window.__inflight.inFlight,
    starts:window.__inflight.records.length,unhandled:window.__inflight.unhandled,bankSync:window.__inflight.bankSync}));
-  expect(final).toEqual({phases:[terminal==="success"?"fulfilled":"rejected","rejected","fulfilled"],inFlight:0,starts:3,unhandled:0,bankSync:0});
+  expect(final).toEqual({phases:[terminal==="success"?"fulfilled":"rejected","fulfilled"],inFlight:0,starts:2,unhandled:0,bankSync:0});
   expect(errors).toEqual([]);
   console.log("LIFECYCLE_INFLIGHT_SYNTHETIC "+JSON.stringify({terminal,preRelease,final,transitions:await page.evaluate(()=>window.__inflight.transitions),rawInvariantAfterC:true,
    limits:"same synthetic payload; hidden getters+visibilitychange, Chromium offline, explicit promise rejection; no socket cancellation, OS suspension, bank transport or lag conclusion"}));

@@ -30,6 +30,8 @@ export function createLogicSandbox(extra = {}) {
     useRef: (v) => ({ current: v }),
     useMemo: (fn) => fn(),
     useCallback: (fn) => fn,
+    // Expenses lo pide: lo necesitan los tests que lo pintan de verdad (fixed-payment-state R3.2).
+    useDeferredValue: (v) => v,
     memo: (fn) => fn,
     Fragment: "Fragment",
   };

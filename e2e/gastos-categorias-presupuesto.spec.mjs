@@ -1,8 +1,8 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, gastosCifra, gastosEstado, gastosSeccion, gastosPulsaLarga } from "./fixtures.mjs";
 
-/* Presupuesto por categoría: desglose bajo la cabecera, límite informativo, misma regla
-   que expenseCountsBudget (banco fuera de gasto diario no llena la barra). */
+/* Presupuesto por categoría: desglose en la sección Categorías (Gastos v5, tanda 2), límite
+   informativo, misma regla que expenseCountsBudget (banco fuera de gasto diario no llena la barra). */
 
 const now = new Date("2026-09-15T12:00:00Z");
 const d = (n) => new Date(now.getTime() - n * 86400000).toISOString();
@@ -31,7 +31,9 @@ async function abreGastos(page) {
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await expect(page.locator(".v4-gastos-summary")).toBeVisible();
+  await expect(gastosCifra(page)).toBeVisible();
+  // Gastos v5 (tanda 2): el desglose vive en su sección, ya no encima de la lista.
+  await gastosSeccion(page, "cats");
 }
 
 test("Gastos: desglose por categoría cuadra con la cabecera y excluye neutras/otrobanco", async ({ page }) => {
@@ -42,8 +44,8 @@ test("Gastos: desglose por categoría cuadra con la cabecera y excluye neutras/o
   });
   await abreGastos(page);
 
-  const bar = page.locator('.v4-gastos-progress[role="progressbar"]');
-  await expect(bar).toHaveAttribute("aria-valuenow", "60");
+  // Gastos v5: la cifra de la cabecera es lo que cuenta contra el límite.
+  await expect(gastosCifra(page)).toHaveText("60,00 €");
 
   const cats = page.locator('[data-testid="gastos-cats"] .v4-gastos-cat');
   await expect(cats).toHaveCount(2);
@@ -69,18 +71,19 @@ test("Gastos: poner y quitar límite de categoría no mueve el presupuesto gener
   });
   await abreGastos(page);
 
-  const head = page.locator('.v4-gastos-progress[role="progressbar"]');
-  await expect(head).toHaveAttribute("aria-valuenow", "40");
-  await expect(head).toHaveAttribute("aria-valuemax", "1000");
+  // Gastos v5: cifra y margen contra el presupuesto general en la cabecera (1000 − 40).
+  await expect(gastosCifra(page)).toHaveText("40,00 €");
+  await expect(gastosEstado(page)).toContainText("960 € por debajo");
 
-  await page.locator('.v4-gastos-cat[data-cat="super"]').click();
+  // Gastos v5, tanda 3: tocar filtra; el límite se abre manteniendo pulsada la categoría.
+  await gastosPulsaLarga(page, page.locator('.v4-gastos-cat[data-cat="super"]'));
   await expect(page.locator(".ask-sheet, .tabsheet").first()).toBeVisible();
   await page.locator(".chip", { hasText: "200 €" }).click();
   await page.locator(".btn-primary", { hasText: /Guardar|Save|Desa/ }).click();
 
   await expect(page.locator('.v4-gastos-cat[data-cat="super"] [role="progressbar"]')).toHaveAttribute("aria-valuemax", "200");
-  await expect(head).toHaveAttribute("aria-valuemax", "1000");
-  await expect(head).toHaveAttribute("aria-valuenow", "40");
+  await expect(gastosCifra(page)).toHaveText("40,00 €");
+  await expect(gastosEstado(page)).toContainText("960 € por debajo");
 
   // set() vuelca a localStorage con debounce 400 ms — esperar a que quede escrito.
   await expect.poll(async () => {
@@ -92,107 +95,37 @@ test("Gastos: poner y quitar límite de categoría no mueve el presupuesto gener
 });
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   SE PUEDE OCULTAR — petición de su pareja, 10/9
-   Sus palabras: «esta chulo pero mi pareja lo vio y me dijo que es too much, que le gustaria que
-   se pudiera ocultar y habilitarlo si tu quieres». El desglose lista TODAS las categorías con
-   gasto del mes: con vida normal son ocho o diez filas fijas encima de la lista de gastos. A él
-   le sirve, a ella le tapa lo que viene a mirar. No es un fallo: es que no todos quieren lo mismo
-   abierto siempre.
+   YA NO SE PLIEGA (Gastos v5, tanda 2, 24/10/2026)
+   Se podía ocultar a petición de su pareja (10/9): «es too much» porque eran ocho o diez filas
+   fijas ENCIMA de la lista de gastos. Ahora vive en su propia sección y no tapa nada, así que
+   plegarlo dejaría una sección vacía (SPEC §8: «ya no hace falta»). Lo que se defiende es que
+   quien lo tenía plegado no se encuentre la sección en blanco.
    ───────────────────────────────────────────────────────────────────────────── */
 
 const OUT_TIROS = process.env.MC_TIROS || "";
 
-async function gastosSembrado(page) {
+async function gastosSembrado(page, extra = {}) {
   await page.clock.install({ time: now });
-  await seedLoggedInDashboard(page, { accounts, settings, expenses, budget: 1000, __seedOnce: true });
+  await seedLoggedInDashboard(page, { accounts, settings: { ...settings, ...extra }, expenses, budget: 1000, __seedOnce: true });
   await abreGastos(page);
 }
 
-test("★ por defecto se ve ABIERTO: a quien ya lo tenía no se le esconde nada sin avisar", async ({ page }) => {
-  await gastosSembrado(page);
-  const cab = page.locator('[data-testid="gastos-cats"] .v4-gastos-cats-h');
-  await expect(cab).toHaveAttribute("aria-expanded", "true");
+test("★ quien lo tenía plegado lo ve entero en Categorías, y sin interruptor", async ({ page }) => {
+  await gastosSembrado(page, { gastosCatsOff: true });
+  await expect(page.locator('[data-testid="gastos-cats"] .v4-gastos-cat')).toHaveCount(2);
   await expect(page.locator('[data-testid="gastos-cats"] .v4-gastos-cat').first()).toBeVisible();
+  await expect(page.locator(".v4-gastos-cats-h")).toHaveCount(0);
 });
 
-test("★ plegarlo deja UNA línea, y dice cuántas categorías esconde", async ({ page }) => {
+test("★ y en Movimientos ya no hay desglose encima de la lista", async ({ page }) => {
   await gastosSembrado(page);
-  const bloque = page.locator('[data-testid="gastos-cats"]');
-  const cab = bloque.locator(".v4-gastos-cats-h");
-  const cuerpo = bloque.locator(".v4-gastos-cats-body");
-  const cuantas = await bloque.locator(".v4-gastos-cat").count();
-  expect(cuantas).toBeGreaterThan(0);
-  expect(await cuerpo.evaluate((el) => getComputedStyle(el).transitionProperty)).toContain("grid-template-rows");
-  expect(await bloque.evaluate((el) => getComputedStyle(el).transitionProperty)).toContain("margin-top");
-  expect(await cab.evaluate((el) => getComputedStyle(el).transitionProperty)).toContain("margin-bottom");
-
-  await cab.click();
-  await expect(cab).toHaveAttribute("aria-expanded", "false");
-  await expect(cuerpo).toHaveAttribute("aria-hidden", "true");
-  await expect(cuerpo).toHaveCSS("visibility", "hidden");
-  await expect(cuerpo).not.toHaveAttribute("hidden", "");
-  await expect.poll(async () => cuerpo.evaluate((el) => el.getBoundingClientRect().height)).toBe(0);
-  // Plegado no puede quedarse mudo: tiene que decir qué hay debajo, o parece que se ha perdido.
-  await expect(bloque.locator(".v4-gastos-cats-t")).toContainText(String(cuantas));
-  await expect(bloque.locator(".v4-gastos-cats-fold")).toContainText(/Ver/i);
+  await gastosSeccion(page, "movs");
+  await expect(page.locator('[data-gx-secc="movs"] .v4-gastos-cat')).toHaveCount(0);
+  await expect(page.locator('[data-testid="gastos-cats"]')).toBeHidden();
 });
 
-test("★ y se queda plegado al volver: es una preferencia, no un gesto que haya que repetir", async ({ page }) => {
-  await gastosSembrado(page);
-  await page.locator('[data-testid="gastos-cats"] .v4-gastos-cats-h').click();
-  await expect(page.locator('[data-testid="gastos-cats"] .v4-gastos-cats-h')).toHaveAttribute("aria-expanded", "false");
-  /* Se guarda en `settings`, o sea por cuenta: él puede tenerlo abierto y ella cerrado.
-     Con `poll` porque el guardado no es instantáneo (va por el volcado diferido del estado):
-     leerlo a pelo justo después del toque lo pilla a medias y el test parpadea. */
-  await expect.poll(async () => page.evaluate(() => (mcLoadRaw("micartera_v3").settings || {}).gastosCatsOff),
-    { timeout: 10_000 }).toBe(true);
-
-  await page.reload();
-  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
-  await dismissNews(page);
-  await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await expect(page.locator(".v4-gastos-summary")).toBeVisible();
-  await expect(page.locator('[data-testid="gastos-cats"] .v4-gastos-cats-h')).toHaveAttribute("aria-expanded", "false");
-});
-
-test("volver a abrirlo lo deja como estaba, con sus límites y sus barras", async ({ page }) => {
-  await gastosSembrado(page);
-  const cab = page.locator('[data-testid="gastos-cats"] .v4-gastos-cats-h');
-  const antes = await page.locator('[data-testid="gastos-cats"] .v4-gastos-cat').count();
-  await cab.click();
-  await cab.click();
-  await expect(cab).toHaveAttribute("aria-expanded", "true");
-  await expect(page.locator('[data-testid="gastos-cats"] .v4-gastos-cat')).toHaveCount(antes);
-  /* Con poll y no leyendo al momento (13/9): el guardado va diferido ~400 ms, y con la suite entera
-     en paralelo la lectura pillaba el `true` del PRIMER toque antes de que el segundo se guardara.
-     Lo que se defiende es el estado FINAL guardado, no el intermedio. */
-  await expect.poll(() => page.evaluate(() => (mcLoadRaw("micartera_v3").settings || {}).gastosCatsOff),
-    { timeout: 5_000 }).toBeUndefined();
-});
-
-test("plegar el desglose NO toca ni un límite ni una cifra", async ({ page }) => {
-  await gastosSembrado(page);
-  const antes = await page.evaluate(() => JSON.stringify(mcLoadRaw("micartera_v3").categoryBudgets || {}));
-  /* La cifra grande del mes, NO el texto entero de la cabecera. Y con la clase que EXISTE de
-     verdad (`.v4-gastos-summary-amount`): antes iba un selector doble con `.v4-gastos-progress-lbl`
-     delante, que no existe en el DOM — funcionaba de rebote por el segundo. Lo cazó Cursor
-     revisando. Un selector muerto en un test es una mentira esperando su turno: el día que
-     alguien cambie el segundo, este test pasa a mirar la nada y sigue verde.
-     Motivo del test: el desglose vive DENTRO de
-     `.v4-gastos-summary`, así que plegarlo cambia ese texto por definición. Lo que no puede
-     cambiar es el dinero. */
-  const cifra = await page.locator(".v4-gastos-summary-amount").first().innerText();
-  await page.locator('[data-testid="gastos-cats"] .v4-gastos-cats-h').click();
-  expect(await page.evaluate(() => JSON.stringify(mcLoadRaw("micartera_v3").categoryBudgets || {}))).toBe(antes);
-  expect(await page.locator(".v4-gastos-summary-amount").first().innerText()).toBe(cifra);
-});
-
-test("tiros: cómo se ve abierto y plegado", async ({ page }) => {
+test("tiros: cómo se ve la sección Categorías", async ({ page }) => {
   test.skip(!OUT_TIROS, "solo cuando se piden capturas con MC_TIROS");
   await gastosSembrado(page);
-  await page.locator('[data-testid="gastos-cats"]').scrollIntoViewIfNeeded();
-  await page.screenshot({ path: OUT_TIROS + "/cats-abierto.png" });
-  await page.locator('[data-testid="gastos-cats"] .v4-gastos-cats-h').click();
-  await page.waitForTimeout(300);
-  await page.screenshot({ path: OUT_TIROS + "/cats-plegado.png" });
+  await page.screenshot({ path: OUT_TIROS + "/cats-seccion.png" });
 });

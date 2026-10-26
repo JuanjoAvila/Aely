@@ -3,6 +3,8 @@
    Spec: docs/design/handoff/SPEC-v4.md §5–7
    ============================================================ */
 
+// Orden fijo del tirón de Plan (ver `useTironSeccion`: no puede ser un literal del render).
+const PLAN_SEG_ORDEN=["recibos","deudas","metas"];
 function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
   const [seg,setSeg]=useState("recibos");
   const [manageOpen,setManageOpen]=useState(false);
@@ -145,141 +147,15 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
   };
 
   /* DESLIZAR VERTICAL PARA CAMBIAR DE SEGMENTO (petición 2026-08-03: «no depender de la otra
-     mano para tocar arriba»). SOLO arriba del todo tirando hacia abajo: Recibos → Deudas → Metas
-     → Recibos. Abajo del todo es la OLA nativa (feedback 4/8 noche), no el sentido inverso — si
-     reclamábamos ese borde con `touch-action:none` + preventDefault, matábamos la ola. A mitad
-     de lista = scroll normal. Eje x/y con `gestureAxis` (mismo que el swipe de pestañas); si sale
-     horizontal, este gesto se aparta y deja pasar el de `.viewport`. */
+     mano para tocar arriba»). Recibos → Deudas → Metas → Recibos. La mecánica vive en
+     `useTironSeccion` (02-ui-shared.js) desde Gastos v5, que la usa igual: un solo sitio. */
   const planScreenRef=useRef(null);
-  const enterDirRef=useRef(null);
-  useEffect(function(){
-    if(simple) return undefined;   // modo sencillo: un único segmento, no hay a dónde ir
-    const root=planScreenRef.current; if(!root) return undefined;
-    // Orden fijo, NO derivado de `segs` (ese array es literal nuevo en cada render de PlanTab):
-    // si esta lista dependiera de `segs`, el efecto se desmontaría y remontaría en CUALQUIER
-    // re-render del componente —cambie o no `simple`/`seg`—, y si eso pasa a mitad de un gesto
-    // (entre un touchmove y el siguiente) los listeners viejos se sueltan y los nuevos arrancan
-    // con sx/sy/axis en blanco: el primer arrastre después de aterrizar en Plan se perdía así
-    // (visto en el e2e: el primer deslizamiento no cambiaba de segmento y el segundo sí).
-    const order=["recibos","deudas","metas"];
-    const TH=0.07, FLICK_V=0.4, FLICK_MIN=26, MAX_PULL=46;
-    // Solo ARRIBA → abajo cambia de segmento. Abajo = ola. Plan va SIEMPRE en pan-y: si se
-    // pone `touch-action:none` estando arriba, bloquea también BAJAR a ver el contenido
-    // (feedback 5/8). Y ponerlo DENTRO del touchstart no sirve de nada: el navegador decide el
-    // touch-action de un gesto antes de ejecutar ese handler (medido 2026-10-13, ver `onMove`).
-    // Así que el tirón de segmento se reclama solo con preventDefault, y el scroll es del navegador.
-    let sx=0, sy=0, t0=0, axis=null, mode=null, dir=0, dyRaw=0, raf=0, pend=null;
-    let startAtTop=false, pageEl=null;
-    const paint=function(){
-      raf=0;
-      const el=segElRef.current[seg];
-      if(el) el.style.transform=pend?("translate3d(0,"+pend+"px,0)"):"";
-    };
-    const queue=function(v){ pend=v; if(!raf) raf=requestAnimationFrame(paint); };
-    const resist=function(px){ return Math.pow(Math.min(1,px/160),0.72)*MAX_PULL; };
-    const cleanup=function(el){ if(el){ el.style.transition=""; el.style.transform=""; } };
-    const atTopOf=function(pg){ return !pg || (pg.scrollTop||0)<=2; };
-    const onStart=function(e){
-      if(document.documentElement.classList.contains("sheet-open")) return;
-      if(!(e.touches&&e.touches[0])) return;
-      const tt=e.touches[0];
-      pageEl=root.closest(".page");
-      sx=tt.clientX; sy=tt.clientY; t0=Date.now();
-      axis=null; mode=null; dir=0; dyRaw=0;
-      startAtTop=atTopOf(pageEl);
-      // Arriba del todo, tirar hacia abajo es cambiar de segmento: el vigía de bordes no debe
-      // sonar además del toque de segmento (ronda 9 de la vibración).
-      if(startAtTop) e.mcSegPull=true;
-    };
-    const onMove=function(e){
-      if(axis==="x"||mode==="x") return;
-      if(!(e.touches&&e.touches[0])) return;
-      const tt=e.touches[0], ddx=tt.clientX-sx, ddy=tt.clientY-sy;
-      if(axis===null){
-        const eje=gestureAxis(ddx,ddy);
-        if(!eje) return;
-        axis=eje;
-        if(axis==="x"){ mode="x"; return; }
-        if(ddy>0 && startAtTop && atTopOf(pageEl)){ dir=1; mode="seg"; }
-        else { mode="scroll"; }
-      }
-      if(mode==="scroll"){
-        /* Scroll normal: lo lleva el navegador y aquí NO se toca `scrollTop` (2026-10-13).
-           Antes, si el gesto nacía arriba del todo, el touchstart ponía `mc-touch-own`
-           (touch-action:none) y aquí se empujaba `scrollTop` a mano con TODO lo recorrido desde
-           el touchstart, «porque con none el navegador no scrollea». Medido en Chromium: el
-           touch-action de un gesto se decide ANTES de ejecutar el touchstart, así que esa clase
-           nunca gobernaba el gesto en curso y el navegador YA estaba scrolleando en nativo. El
-           empujón se sumaba encima: al bajar despacio desde el tope de Plan el contenido saltaba
-           12-16 px de golpe en un frame y se quedaba por delante del dedo — la queja del dueño,
-           «la pantalla se mueve sola» (INC-0710-01). Solo se corta la propagación para que el
-           swipe de pestañas del `.viewport` no se quede este touchmove. */
-        e.stopPropagation();
-        return;
-      }
-      if(mode!=="seg") return;
-      e.stopPropagation();
-      if((dir>0&&ddy<0)||(dir<0&&ddy>0)){ dyRaw=0; queue(0); return; }
-      dyRaw=Math.abs(ddy);
-      if(e.cancelable) e.preventDefault();
-      queue(mcReduced()?0:dir*resist(dyRaw));
-    };
-    const finish=function(allowCommit){
-      if(raf){ cancelAnimationFrame(raf); raf=0; }
-      pend=null;
-      if(mode!=="seg"){
-        axis=null; mode=null;
-        return;
-      }
-      const el=segElRef.current[seg];
-      const dt=Math.max(1,Date.now()-t0);
-      const vel=dyRaw/dt;
-      const pasa=allowCommit && (dyRaw>(window.innerHeight||700)*TH || (vel>FLICK_V && dyRaw>FLICK_MIN));
-      if(pasa){
-        // El mismo tick que los botones de segmento y la gráfica; sin la APK, el de siempre.
-        if(!mcTickHaptic()){ try{ if(navigator.vibrate) navigator.vibrate(8); }catch(err){} }
-        const i=order.indexOf(seg);
-        const nextId=order[(i+(dir>0?1:-1)+order.length)%order.length];
-        cleanup(el);
-        enterDirRef.current=dir>0?"down":"up";
-        setSegMounted(function(m){ return m[nextId]?m:Object.assign({},m,{[nextId]:true}); });
-        setSeg(nextId);
-      } else if(el && !mcReduced()){
-        el.style.transition="transform .22s cubic-bezier(.32,.72,0,1)";
-        el.style.transform="";
-        setTimeout(function(){ cleanup(el); }, 230);
-      } else cleanup(el);
-      axis=null; mode=null; dir=0; dyRaw=0;
-    };
-    const onTouchEnd=function(){ finish(true); };
-    // `touchcancel` (el sistema se lleva el dedo): el gesto NO cuenta, se queda como estaba —
-    // mismo criterio que el cierre del perfil en `onCancel` de 11-app-main.js.
-    const onTouchCancel=function(){ finish(false); };
-    root.addEventListener("touchstart", onStart, {passive:true});
-    root.addEventListener("touchmove", onMove, {passive:false});
-    root.addEventListener("touchend", onTouchEnd, {passive:true});
-    root.addEventListener("touchcancel", onTouchCancel, {passive:true});
-    return function(){
-      if(raf) cancelAnimationFrame(raf);
-      root.removeEventListener("touchstart", onStart);
-      root.removeEventListener("touchmove", onMove);
-      root.removeEventListener("touchend", onTouchEnd);
-      root.removeEventListener("touchcancel", onTouchCancel);
-    };
-  },[simple, seg]);
-  // Entrada sutil SOLO cuando el segmento cambia por este gesto (tocar la pestaña de arriba
-  // sigue siendo instantáneo, a propósito: ese toque ya es una decisión explícita del usuario).
-  useEffect(function(){
-    const dir=enterDirRef.current; if(!dir) return;
-    enterDirRef.current=null;
-    const el=segElRef.current[seg]; if(!el) return;
-    const cls=dir==="down"?"v4-seg-enter-down":"v4-seg-enter-up";
-    el.classList.add(cls);
-    const clear=function(){ el.classList.remove(cls); el.removeEventListener("animationend",clear); };
-    el.addEventListener("animationend", clear);
-    const to=setTimeout(clear, 500);   // red de seguridad si el evento no llega
-    return function(){ clearTimeout(to); };
-  },[seg]);
+  useTironSeccion(planScreenRef,{activo:!simple, seg:seg, orden:PLAN_SEG_ORDEN, respaldo:true, cortaScroll:true,
+    capa:function(id){ return segElRef.current[id]; },
+    alPasar:function(nextId){
+      setSegMounted(function(m){ return m[nextId]?m:Object.assign({},m,{[nextId]:true}); });
+      setSeg(nextId);
+    }});
 
   return React.createElement("div",{className:"v4-screen",ref:planScreenRef,"data-edge-capture":simple?null:"1"},
     React.createElement("h1",{className:"v4-title serif"}, simple?t("v4s_plan_left_title"):t("v4_plan_title")),
@@ -350,6 +226,9 @@ function PlanBills({state, set, totals, charges, evidence, manageOpen, setManage
     return tag+(bank?" · "+entOf(bank).label:"")+(changedPaid(x)?" · "+tf("v4_charge_actual",{x:eur(x.paidAmount)}):"");
   };
   const row=function(x){
+    const match=String(x.id).match(/^(fixed|debt|balloon)_(.*)$/),kind=match&&match[1]!=="fixed"?"debts":"fixed";
+    const item=match&&(state[kind]||[]).find(function(e){return String(e.id)===match[2];});
+    const conflict=item&&planSyncConflict(state,kind,item.id);
     const income=!!x.income || (x.amount<0);
     const amt=Math.abs(x.amount),amountLabel=changedPaid(x)?React.createElement(React.Fragment,null,
       React.createElement("small",{style:{display:"block",fontSize:10,color:"var(--muted)",fontWeight:400}},tf("v4_charge_expected",{x:""}).trim()),eur(amt)):eur(amt);
@@ -358,7 +237,7 @@ function PlanBills({state, set, totals, charges, evidence, manageOpen, setManage
       return React.createElement("div",{className:cls,key:x.id},
         React.createElement("div",{className:"tile","aria-hidden":true}, x.day||"—"),
         React.createElement("div",{className:"nm"},
-          React.createElement("div",{className:"nm-title"}, x.paid?"✓ "+x.name:x.name),
+          React.createElement("div",{className:"nm-title"}, x.paid?"✓ "+x.name:x.name,React.createElement(PlanConflictDot,{record:conflict})),
           React.createElement("div",{className:"meta"}, rowSub(x))
         ),
         React.createElement("div",{className:"am"+(income?" pos":"")}, income?"+":"",amountLabel)
@@ -370,7 +249,7 @@ function PlanBills({state, set, totals, charges, evidence, manageOpen, setManage
         React.createElement("div",{className:"m"}, monthShort(month-1))
       ),
       React.createElement("div",{className:"nm"},
-        React.createElement("div",null, x.paid?"✓ "+x.name:x.name),
+        React.createElement("div",null, x.paid?"✓ "+x.name:x.name,React.createElement(PlanConflictDot,{record:conflict})),
         React.createElement("div",{className:"sub"}, rowSub(x))
       ),
       React.createElement("div",{className:"am"+(income?" pos":"")}, income?"+":"",amountLabel)
@@ -401,11 +280,14 @@ function PlanBills({state, set, totals, charges, evidence, manageOpen, setManage
     ),
     React.createElement("div",{className:"v4-section","data-testid":"plan-due"},
       React.createElement("div",{className:"v4-section-h"},
-        React.createElement("span",null,simple?t("v4_aun_saldra"):t("v4_payment_due")),
+        // Vuelve «Pendiente»: «Por pagar» necesitaba una línea de ayuda debajo para entenderse y
+        // la palabra de antes no (petición del dueño, 26/10/2026).
+        React.createElement("span",null,simple?t("v4_aun_saldra"):t("v4_pendiente")),
         // Sencillo: sin «Gestionar» aquí — solo Ajustes → Cambiar mis recibos (NO-GO §5bis.2).
         !simple && React.createElement("button",{type:"button",className:"link",onClick:openManage}, t("v4_gestionar"))
       ),
-      pending.length>0&&React.createElement("div",{className:"ph"},t(simple&&pack.transfersPending.length?"v4_payment_mixed_hint":"v4_payment_due_hint")),
+      // Solo cuando en Sencillo se mezclan traspasos con recibos: ahí sí hace falta decir qué suma.
+      pending.length>0&&simple&&pack.transfersPending.length>0&&React.createElement("div",{className:"ph"},t("v4_payment_mixed_hint")),
       pending.length===0
         ? React.createElement("div",{className:"ph",style:{padding:"8px 4px 4px"}}, t("v4_aun_saldra_empty"))
         : (pendExpanded?pending:pending.slice(0,3)).map(row),
@@ -476,6 +358,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
   const [group,setGroup]=React.useState(null);
   const [q,setQ]=React.useState("");
   const [detail,setDetail]=React.useState(null);
+  const [reviewBill,setReviewBill]=React.useState(null);
   const [addStep,setAddStep]=React.useState(null);
   const [addForm,setAddForm]=React.useState({name:"",amount:"",freq:"mes",months:[],day:"",when:"",account:"sabadell",kind:"fixed"});
   const [undoBill,setUndoBill]=React.useState(null);
@@ -529,7 +412,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
     sub.close();
   },[view, detail, addStep]);
   popRef.current=pop; detailRef.current=detail; addStepRef.current=addStep;
-  const closeDetail=React.useCallback(function(){ setDetail(null); },[]);
+  const closeDetail=React.useCallback(function(){ setDetail(null);setReviewBill(null); },[]);
   const closeAdd=React.useCallback(function(){ setAddStep(null); },[]);
   useBackClose(!!open, pop);
   // El hub conserva su entrada y cada pantalla hija añade otra. Antes toda la pila compartía
@@ -670,7 +553,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
     return React.createElement("button",Object.assign({type:"button",className:"v4-mov v4-bills-row",key:r.kind+"_"+r.id,onClick:function(){ openDetail(r); }},attrs),
       React.createElement("div",{className:"tile v4-bill-kind-icon","data-bill-icon":billGlyph(r),"aria-hidden":"true"}, billGlyph(r)),
       React.createElement("div",{className:"nm"},
-        React.createElement("div",{className:"nm-title"}, r.name||"—"),
+        React.createElement("div",{className:"nm-title"}, r.name||"—",React.createElement(PlanConflictDot,{record:planSyncConflict(state,r.kind==="debt"?"debts":r.kind,r.id)})),
         React.createElement("div",{className:"meta"}, r.locked?gbTxt("gb_locked"):entOf(r.bank).label)),
       React.createElement("div",{className:"am num"+(r.income?" pos":"")}, (r.income?"+":"")+eur(Math.abs(r.monthly||0))));
   };
@@ -744,10 +627,14 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
         role:"dialog","aria-modal":"true","aria-labelledby":"bills-manage-title"},
         hub,
         view!=="hub" && React.createElement("div",{ref:subRef,className:"settings-push open v4-bills-push mc-page-enter"}, view==="list"?listView:affordView)),
-      detail && React.createElement(BillsItemSheet,{
-        row:detail, set:set, banks:bankList, simple:simple,
-        onClose:closeDetail, onRemove:removeWithUndo
-      }),
+      detail && (detail.kind==="fixed"&&planSyncConflict(state,"fixed",detail.id)&&!reviewBill?React.createElement(PlanConflictSheet,{
+        record:planSyncConflict(state,"fixed",detail.id),current:(state.fixed||[]).find(function(f){return f.id===detail.id;})||detail.item,onClose:closeDetail,
+        onDiscard:function(){const c=planSyncConflict(state,"fixed",detail.id);set(function(s){return planSyncDiscard(s,c);});closeDetail();},
+        onReview:function(){setReviewBill(planSyncConflict(state,"fixed",detail.id));setDetail(Object.assign({},detail,{item:(state.fixed||[]).find(function(f){return f.id===detail.id;})||detail.item}));}
+      }):React.createElement(BillsItemSheet,{
+        row:detail, state:state, set:set, banks:bankList, simple:simple,review:reviewBill,
+        onClose:function(){setReviewBill(null);closeDetail();}, onRemove:removeWithUndo
+      })),
       addStep && React.createElement(BillsAddWizard,{
         step:addStep, setStep:setAddStep, form:addForm, setForm:setAddForm, banks:bankList,
         onClose:closeAdd, set:set, onSaved:confirmSaved
@@ -763,18 +650,21 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
     document.body);
 }
 
-function BillsItemSheet({row, set, banks, simple, onClose, onRemove}){
-  const item=row.item;
+function BillsItemSheet({row, state, set, banks, simple, onClose, onRemove,review}){
+  const item=planReviewDraft(row.item,review);
+  const [reviewPatch,setReviewPatch]=React.useState({});
+  const [reviewError,setReviewError]=React.useState("");
+  const reviewCommit=usePlanEditSave({state:state,set:set,field:"fixed",item:row.item,review:review,onClose:onClose});
   const locked=row.kind==="debt"&&!simple;
   const [name,setName]=React.useState(item.name||"");
-  const [amount,setAmount]=React.useState("");
+  const [amount,setAmount]=React.useState(review&&review.fields.indexOf("amount")>=0&&item.amount!=null?String(item.amount):"");
   const [freq,setFreq]=React.useState(item.freq||"mes");
   // En deudas, months es el plazo NUMÉRICO; solo los recibos guardan meses como lista
   // (crash real al abrir una cuota, 2026-09-27).
   const [months,setMonths]=React.useState(row.kind==="fixed"&&Array.isArray(item.months)?item.months.slice():[]);
   const [day,setDay]=React.useState(item.day?String(item.day):"");
   const [when,setWhen]=React.useState(item.when||"");
-  const [account,setAccount]=React.useState(row.bank||banks[0]||"sabadell");
+  const [account,setAccount]=React.useState(review?item.account||row.bank||banks[0]||"sabadell":row.bank||banks[0]||"sabadell");
   const [amort,setAmort]=React.useState(item.amort!=null?String(item.amort):"");
   const hasSched=hasSchedule(item);
   const titleRef=React.useRef(null);
@@ -783,7 +673,7 @@ function BillsItemSheet({row, set, banks, simple, onClose, onRemove}){
   const side=useEdgePageClose(true,onClose,true,sideRef,{plainScroll:true});
   const sheetRef=swipe.sheetRef;
   const titleId="bills-item-title";
-  React.useEffect(function(){ setAmount(""); },[row.id]);
+  React.useEffect(function(){ if(!review)setAmount(""); },[row.id]);
   useBackClose(true, side.close);
   // Portal hermano del hub: dialog propio con trap/Escape; restore lo hace el hub (Codex 2050/2100Z).
   // deps=[]: si [onClose] remonta, cada tecla (saveMeta→set) reenfoca el h1 (Claude NO-GO / Codex 2120Z).
@@ -830,10 +720,17 @@ function BillsItemSheet({row, set, banks, simple, onClose, onRemove}){
   };
   const saveMeta=function(patch){
     if(locked) return;
+    if(review){setReviewPatch(function(p){return Object.assign({},p,patch);});return;}
     if(row.kind==="fixed") patchFixedById(set,item.id,patch);
     else if(row.kind==="flow") patchFlowById(set,item.id,patch);
     else if(row.kind==="oneoff") patchOneoffById(set,item.id,patch);
     else if(row.kind==="debt"&&simple) patchDebtFields(set,item.id,patch);
+  };
+  const saveReview=function(){
+    const patch=Object.assign({},reviewPatch);
+    if(!name.trim()||day!==""&&cleanDay(day)==null){setReviewError("plan_edit_invalid");return;}
+    if(amount.trim()&&!hasSched){const n=parseNumPadRaw(amount);if(!Number.isFinite(n)){setReviewError("plan_edit_invalid");return;}patch.amount=n;}
+    reviewCommit.save(planFixedReviewResult(state,row.item,review,patch));
   };
   const freqs=[["mes","gb_freq_m"],["bimestral","gb_freq_2m"],["trimestral","gb_freq_3m"],["semestral","gb_freq_6m"],["año","gb_freq_y"]];
   return React.createElement("div",{ref:sideRef,className:"v4-sheet-back",onClick:swipe.close},
@@ -854,7 +751,7 @@ function BillsItemSheet({row, set, banks, simple, onClose, onRemove}){
           React.createElement(NumPad,{value:amount,onChange:function(next){
             setAmount(function(prev){ return typeof next==="function"?next(prev):next; });
           }}),
-          React.createElement("button",{type:"button",className:"v4-bills-add",style:{width:"100%",marginTop:8},onClick:saveAmt,"aria-live":"polite"}, t("done")))),
+          !review&&React.createElement("button",{type:"button",className:"v4-bills-add",style:{width:"100%",marginTop:8},onClick:saveAmt,"aria-live":"polite"}, t("done")))),
       row.kind==="fixed" && !locked && React.createElement("div",{style:{marginTop:14}},
         React.createElement("div",{className:"v4-ficha-k"}, gbTxt("gb_step_how_often")),
         freqs.map(function(f){
@@ -889,7 +786,10 @@ function BillsItemSheet({row, set, banks, simple, onClose, onRemove}){
         bankListButtons(banks, account, function(b){ setAccount(b); const p=row.kind==="flow"?(item.kind==="income"?{to:b}:{from:b}):{account:b}; saveMeta(p); })),
       row.kind==="debt"&&simple && React.createElement("input",{className:"v4-bills-search",style:{marginTop:8},value:amort,placeholder:t("fj_amort"),
         onChange:function(e){ setAmort(e.target.value); }, onBlur:function(){ const n=parseFloat(String(amort).replace(",",".")); if(isFinite(n)) saveMeta({amort:n}); }}),
-      !locked && row.kind!=="debt" && React.createElement("button",{type:"button",className:"v4-ficha-quitar","data-act":"bill-remove",style:{width:"100%",marginTop:16},
+      review&&["cat","category"].filter(function(k){return review.fields.indexOf(k)>=0;}).map(function(k){return React.createElement("label",{key:k},t("plan_conflict_category"),React.createElement("input",{className:"v4-bills-search",value:reviewPatch[k]==null?"":String(reviewPatch[k]),onChange:function(e){saveMeta({[k]:e.target.value});}}));}),
+      (reviewError||reviewCommit.error)&&React.createElement("div",{role:"alert",className:"hint"},t(reviewError||reviewCommit.error)),
+      review&&React.createElement("button",{type:"button",className:"btn btn-primary btn-block",disabled:reviewCommit.pending,onClick:saveReview},t("db_savechanges")),
+      !review&&!locked && row.kind!=="debt" && React.createElement("button",{type:"button",className:"v4-ficha-quitar","data-act":"bill-remove",style:{width:"100%",marginTop:16},
         onClick:function(){ onRemove(row); }}, gbTxt("gb_del")),
       locked && React.createElement("div",{className:"hint",style:{marginTop:16}}, gbTxt("gb_locked"))
     ));
@@ -1256,7 +1156,9 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
         React.createElement("div",{className:"v4-sec-h"}, t("pt_goods")),
         React.createElement(Wealth,{state:state,set:set,totals:totals,parte:"bienes"})
       ) },
-      !simple && { id:"inversiones", label:t("v4_inversiones"), el:React.createElement("div",{className:"rise",style:{animationDelay:".12s"}},
+      // `data-cartera-sec`: aquí aterriza «Abrir en Cartera ›» de la fila gris de Inversiones de
+      // Gastos (`goInversiones`, 11-app-main), aunque el bloque se haya reordenado.
+      !simple && { id:"inversiones", label:t("v4_inversiones"), el:React.createElement("div",{className:"rise","data-cartera-sec":"inversiones",style:{animationDelay:".12s"}},
         React.createElement("div",{className:"v4-sec-h"}, t("v4_inversiones")),
         React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,showToast:showToast}),
         React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:10},ref:invLinkRef,onClick:function(){ setInvTools(true); }}, t("iv_see_all")+" ›")

@@ -1,7 +1,9 @@
 import {test,expect} from '@playwright/test';
-import {seedLoggedInDashboard,dismissNews} from './fixtures.mjs';
+import {seedLoggedInDashboard,dismissNews,gastosAbreGasto,esperaNubeQuieta} from './fixtures.mjs';
 import {paymentFixture} from '../tests/fixtures/payment-ui.mjs';
 
+// La métrica de uso (`tab_gastos`, una vez por sesión) no es una escritura de pagos: el espía
+// la ignora para no depender de si cae antes o después de la foto (beta 170).
 async function openRound2(page,state,settings={}){
   await page.clock.install({time:new Date('2026-10-18T12:00:00+02:00')});
   await page.route('**/*',route=>new URL(route.request().url()).hostname==='127.0.0.1'?route.continue():route.abort());
@@ -10,9 +12,9 @@ async function openRound2(page,state,settings={}){
     const descriptor=Object.getOwnPropertyDescriptor(window,'supabase');window.__paymentWrites=[];
     Object.defineProperty(window,'supabase',{...descriptor,set(lib){descriptor.set(lib);const mock=descriptor.get();if(!mock)return;
       const create=mock.createClient;mock.createClient=function(...args){const client=create(...args),from=client.from.bind(client);
-        client.from=function(table){const q=from(table);for(const method of ['insert','update','upsert','delete'])if(q[method]){const original=q[method];q[method]=function(...args){window.__paymentWrites.push({table,method});return original.apply(this,args);};}return q;};return client;};}});
+        client.from=function(table){const q=from(table);for(const method of ['insert','update','upsert','delete'])if(q[method]){const original=q[method];q[method]=function(...args){if(table!=='app_events')window.__paymentWrites.push({table,method});return original.apply(this,args);};}return q;};return client;};}});
   });
-  await page.goto('/');await expect(page.locator('.botnav')).toBeVisible();await page.waitForFunction(()=>!document.getElementById('mc-load'));await dismissNews(page);await page.clock.runFor(6000);
+  await page.goto('/');await expect(page.locator('.botnav')).toBeVisible();await page.waitForFunction(()=>!document.getElementById('mc-load'));await dismissNews(page);await page.clock.runFor(6000);await esperaNubeQuieta(page);
   await page.evaluate(()=>{window.__paymentWrites=[];window.__paymentBefore=JSON.stringify(mcLoadRaw(mcStateKey()));});
 }
 async function unchangedRound2(page){
@@ -26,7 +28,7 @@ for(const kind of ['debt','receipt'])for(const missing of [false,true])test('R1 
   if(missing)e[kind==='debt'?'debtId':'reciboId']='missing-synthetic';
   await openRound2(page,s);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:e.merchant}).click();
+  await gastosAbreGasto(page,e.merchant);
   const row=page.locator('.v4-exp-sheet .v4-ficha-adjust-row').filter({hasText:kind==='debt'?'Es la cuota de una deuda':'Paga un recibo'});
   await expect(row.locator('.value')).toHaveText(missing?'—':(kind==='debt'?s.debts[0].name:s.fixed[0].name)+' · sin confirmar');
   if(kind==='debt'&&!missing){await row.click();await expect(page.getByTestId('exp-cuota-de').locator('.v4-chip.on')).toContainText(s.debts[0].name);}
@@ -34,9 +36,9 @@ for(const kind of ['debt','receipt'])for(const missing of [false,true])test('R1 
   await unchangedRound2(page);
 });
 const round2Text={
-  es:{due:'Por pagar',inside:'Se suma a lo que queda por pagar.',outside:'No se suma a lo que queda por pagar.',pending:'Por confirmar · 1',one:'Todo pagado, salvo 1 cargo por confirmar.',many:'Todo pagado, salvo 2 cargos por confirmar.'},
-  en:{due:'Still to pay',inside:'Included in the amount left to pay.',outside:'Not included in the amount left to pay.',pending:'To confirm · 1',one:'Everything paid, except 1 charge awaiting confirmation.',many:'Everything paid, except 2 charges awaiting confirmation.'},
-  ca:{due:'Per pagar',inside:'Es suma al que queda per pagar.',outside:'No es suma al que queda per pagar.',pending:'Per confirmar · 1',one:'Tot pagat, excepte 1 càrrec per confirmar.',many:'Tot pagat, excepte 2 càrrecs per confirmar.'}
+  es:{due:'Pendiente',outside:'No cuenta en lo pendiente.',pending:'Por confirmar · 1',one:'Todo pagado, salvo 1 cargo por confirmar.',many:'Todo pagado, salvo 2 cargos por confirmar.'},
+  en:{due:'Pending',outside:'Not counted as pending.',pending:'To confirm · 1',one:'Everything paid, except 1 charge awaiting confirmation.',many:'Everything paid, except 2 charges awaiting confirmation.'},
+  ca:{due:'Pendent',outside:'No compta en el pendent.',pending:'Per confirmar · 1',one:'Tot pagat, excepte 1 càrrec per confirmar.',many:'Tot pagat, excepte 2 càrrecs per confirmar.'}
 };
 for(const lang of ['es','en','ca']){
   test('A3 simple title and grouped transfers '+lang,async({page})=>{
@@ -46,14 +48,17 @@ for(const lang of ['es','en','ca']){
     await expect(due.locator('.v4-section-h')).toHaveText(await page.evaluate(()=>t('v4_aun_saldra')));
     await expect(due).toContainText('Movimiento previsto');await expect(page.getByTestId('plan-transfers')).toHaveCount(0);
     await expect(due).toContainText(await page.evaluate(()=>t('v4_payment_mixed_hint')));
-    if(lang==='ca')await expect(page.getByTestId('plan-unconfirmed')).toContainText('No es suma');
+    if(lang==='ca')await expect(page.getByTestId('plan-unconfirmed')).toContainText('No compta');
     await unchangedRound2(page);
   });
   test('R2 separate remaining and confirmation '+lang,async({page},info)=>{
     const s=paymentFixture('debt'),txt=round2Text[lang];await openRound2(page,s,{lang});
     await page.locator('.botnav-tab[data-tour="plan"]').click();
     const plan=page.locator('div[data-seg="recibos"]'),pending=page.getByTestId('plan-unconfirmed');
-    await expect.soft(plan).toContainText(txt.inside);await expect.soft(pending).toContainText(txt.outside);
+    // El rótulo basta: sin la línea de ayuda que llevaba «Por pagar» (petición del dueño, 26/10).
+    const due=page.getByTestId('plan-due');
+    await expect.soft(due.locator('.v4-section-h > span')).toHaveText(txt.due);await expect.soft(due.locator(':scope > .ph')).toHaveCount(0);
+    await expect.soft(pending).toContainText(txt.outside);
     await expect.soft(pending.locator('.v4-section-h')).toHaveText(txt.pending);
     const row=pending.locator('.v4-charge');await expect.soft(row.locator('.sub')).toHaveText('Sabadell');
     await expect(row).toContainText('197');await expect(plan.locator('.v4-card-hero .serif')).toContainText('42');
@@ -85,14 +90,14 @@ for(const kind of ['debt','receipt','linked-debt'])test(kind+' payment evidence 
       const create=mock.createClient;mock.createClient=function(...args){
         const client=create(...args),from=client.from.bind(client);
         client.from=function(table){const q=from(table);for(const method of ['insert','update','upsert','delete'])if(q[method]){
-          const original=q[method];q[method]=function(...args){window.__paymentWrites.push({table,method});return original.apply(this,args);};
+          const original=q[method];q[method]=function(...args){if(table!=='app_events')window.__paymentWrites.push({table,method});return original.apply(this,args);};
         }return q;};return client;
       };
     }});
   });
   await page.goto('/');await expect(page.locator('.botnav')).toBeVisible();
   await page.waitForFunction(()=>!document.getElementById('mc-load'));await dismissNews(page);
-  await page.clock.runFor(6000);
+  await page.clock.runFor(6000);await esperaNubeQuieta(page);
   // Capture after startup reconciliation. Opening these views must not persist anything.
   const before=await page.evaluate(()=>JSON.stringify(mcLoadRaw(mcStateKey())));
   await page.evaluate(()=>{window.__paymentWrites=[];});
@@ -111,7 +116,7 @@ for(const kind of ['debt','receipt','linked-debt'])test(kind+' payment evidence 
   await row.screenshot({path:info.outputPath('plan-row.png')});
   await page.screenshot({path:info.outputPath('plan.png')});
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:state.expenses[0].merchant}).click();
+  await gastosAbreGasto(page,state.expenses[0].merchant);
   const sheet=page.locator('.v4-exp-sheet');await expect(sheet).toBeVisible();
   if(kind==='receipt')await expect.soft(page.getByTestId('exp-receipt-value')).toHaveText(name);
   else await expect.soft(sheet.locator('.v4-ficha-adjust-row').filter({hasText:'Es la cuota de una deuda'}).locator('.value')).toHaveText(kind==='linked-debt'?name:'No');
@@ -129,7 +134,7 @@ test('confirmed withdrawal retains cash warning',async({page})=>{
   await seedLoggedInDashboard(page,{...state,lastBackup:'2026-10-18',settings:{autoPrices:false,lang:'es',expenseBanks:['sabadell']}});
   await page.goto('/');await expect(page.locator('.botnav')).toBeVisible();await page.waitForFunction(()=>!document.getElementById('mc-load'));await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:state.expenses[0].merchant}).click();
+  await gastosAbreGasto(page,state.expenses[0].merchant);
   await expect(page.locator('.v4-exp-sheet')).toContainText('Esta retirada no suma dinero');
 });
 
@@ -158,7 +163,7 @@ for(const kind of ['marked','calendar','overdue'])test('INC-1810-04 '+kind+' cha
   await expect(page.locator('div[data-seg="recibos"] .v4-charge').filter({hasText:'YouTube Premium'})).not.toHaveClass(/v4-paid/);
   if(kind==='calendar')await expect(page.getByTestId('plan-unconfirmed')).toContainText('YouTube Premium');
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:'YOUTUBE PREMIUM'}).click();
+  await gastosAbreGasto(page,'YOUTUBE PREMIUM');
   await expect(page.getByTestId('exp-receipt-value')).toHaveText(kind==='marked'?'YouTube Premium · sin confirmar':'No');
   if(kind==='marked')await page.getByTestId('exp-recibo-si').click();
   else{await page.getByTestId('exp-receipt').click();await page.getByTestId('exp-receipt-receipt-synthetic').click();}
@@ -191,7 +196,7 @@ for(const channel of ['beta','stable'])test('receipt diagnostics only on beta ·
   },channel);
   await openRound2(page,s);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:'YOUTUBE PREMIUM'}).click();
+  await gastosAbreGasto(page,'YOUTUBE PREMIUM');
   await page.getByTestId('exp-receipt').click();
   await expect(page.getByTestId('exp-receipt-options')).toBeVisible();
   const btn=page.getByTestId('exp-receipt-diag');
@@ -223,7 +228,7 @@ test('INC-1810-04 r3 BOOK proof of the renamed charge shows in the detail',async
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:'YouTube Premium'})).toHaveCount(1);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:'YouTube Premium'}).click();
+  await gastosAbreGasto(page,'YouTube Premium');
   await expect(page.getByTestId('exp-receipt-value')).toHaveText('YouTube Premium');
   await unchangedRound2(page);
 });
@@ -242,7 +247,7 @@ test('INC-1810-04 r4 BOOK booked days after the card charge shows in the detail'
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:'YouTube Premium'})).toHaveCount(1);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:'YouTube Premium'}).click();
+  await gastosAbreGasto(page,'YouTube Premium');
   await expect(page.getByTestId('exp-receipt-value')).toHaveText('YouTube Premium');
   await unchangedRound2(page);
 });
@@ -264,7 +269,7 @@ for(const stored of [false,true]) test('FIN-23 the BOOK of a charge keeps a seco
   await expect(recibos.locator('.v4-paid').filter({hasText:'Spotify'})).toHaveCount(0);
   await expect(recibos.locator('.v4-mov:not(.v4-paid), .v4-charge:not(.v4-paid)').filter({hasText:'Spotify'})).toHaveCount(1);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:'YouTube Premium'}).click();
+  await gastosAbreGasto(page,'YouTube Premium');
   await expect(page.getByTestId('exp-receipt-value')).toHaveText('YouTube Premium');
   await page.getByTestId('exp-receipt').click();
   await expect(page.getByTestId('exp-receipt-options')).toBeVisible();

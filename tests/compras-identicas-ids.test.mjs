@@ -88,7 +88,7 @@ test("nube: truncada y completa dejan app y servidor en 320 c tras pull, repetir
  // La referencia adoptada también puede llegar por su escritor de source vigente. Aun
  // con esa metadata actualizada, la otra fila seguía contando en el servidor para siempre.
  await cloud.setExpenseBank(s.expenses[0],"caixabank");
- await cloud.pushState("user",c.slimForCloud(s));
+ await cloud.pushState("user",c.slimForCloud(s),(await cloud.pullState())?.updated_at);
  let remote=(await cloud.pullState()).data;
  console.log(JSON.stringify({truncatedThenComplete:{appCents:cents(s),serverCents:serverCents(env,remote),sources:env.rows.map(r=>r.source)}}));
  assert.equal(serverCents(env,remote),320,"el BOOK absorbido debe quedar fuera también en la nube");
@@ -105,10 +105,10 @@ test("nube: truncada y completa dejan app y servidor en 320 c tras pull, repetir
  assert.equal(server.filasComoLaApp([{...wire(absorbed),comercio:"Nombre posterior",importe:3.21}],remote.deleted).length,0);
  const pull=async(local)=>{const pack=await cloud.pullState(),del=c.lapidasUnion(local,pack.data),incoming=(await cloud.pullExpenses()).map(c.expenseFromRow).filter(e=>!c.expenseIsTombstoned(e,c.expenseDeletedSet(del)));return {...local,...del,expenses:c.mergeExpensesFromCloud(local.expenses,incoming).list};};
  s=await pull(s);assert.equal(cents(s),320);assert.equal(serverCents(env,remote),320);
- s=committed(s,complete.data.links);await cloud.pushState("user",c.slimForCloud(s));assert.equal(cents(await pull(s)),320);
+ s=committed(s,complete.data.links);await cloud.pushState("user",c.slimForCloud(s),(await cloud.pullState())?.updated_at);assert.equal(cents(await pull(s)),320);
  let other=await pull(state());assert.equal(cents(other),320);other=committed(other,complete.data.links);assert.equal(cents(other),320);
  const stats=c.dashboardBudgetStats(s);s.widgetPeriod={v:2,kind:"mes",start:stats.periodStart,anchor:"",scope:c.widgetScopeOf(s,stats,"","caixabank")};
- await cloud.pushState("user",c.slimForCloud(s));
+ await cloud.pushState("user",c.slimForCloud(s),(await cloud.pullState())?.updated_at);
  // Aviso de otro banco, fuera del gasto diario: dispara month/widget reales sin añadir
  // gasto de Caixa y acredita que ambos lectores respetan la lápida del BOOK absorbido.
  const result=await post(env,{fuente:"tr",titulo:"Trade Republic",texto:"Has gastado 0,01 € en Otra cuenta sintetica",fecha:String(Date.now()),evento:"absorbed-cloud-contract"});
@@ -143,7 +143,7 @@ async function retentionScenario(source=html,{sandbox=false}={}){
  const at=s.deletedAt[key];
  for(let i=0;i<501;i++)s={...s,...ctx.lapidaPon(s,"synthetic-newer-deletion-"+i,at+i+1)};
  assert.equal(s.deleted.includes(key),false,"la poda real 500/200 retira el marcador antiguo");
- await transport.pushState("user",ctx.slimForCloud(s));
+ await transport.pushState("user",ctx.slimForCloud(s),(await transport.pullState())?.updated_at);
  const pull=async local=>{const remote=(await transport.pullState()).data,del={...ctx.lapidasUnion(local,remote),_historyOwner:"user",obAbsorbedPending:ctx.obAbsorbedJoin(local.obAbsorbedPending,remote.obAbsorbedPending,"user")},incoming=(await transport.pullExpenses()).map(ctx.expenseFromRow).filter(e=>!ctx.expenseIsTombstoned(e,ctx.expenseDeletedSet(del)));return {...local,...del,expenses:ctx.mergeExpensesFromCloud(local.expenses,incoming).list};};
  s=await pull(s);
  const app=cents(await pull(state()),ctx),serverValue=serverCents(env,s);
@@ -432,7 +432,7 @@ test("mutaciones: identidad, referencia en nube, ID repetido y aviso de un solo 
   ["sin guardia de ID dentro de la tanda",s=>s.replace('if(seen[obReferenceKey(tx.ent,tx.id,tx.amount)]||seenLegacy[obReferenceKey("",tx.id,tx.amount)])return;',''),m=>{const feed=links([tx("a"),{...tx("a"),creditor:{name:"Otro nombre"}}]);assert.equal((m.importObExpenses(state(),m.flattenBankTx(feed),feed)||[]).length,1);} ],
   ["aviso reutilizable",s=>s.replace('usadoDup[hit.i]=1;return hit.e;','return hit.e;'),m=>{const notice={...expense(undefined,"notice"),ent:"caixabank",source:"macrodroid"};const feed=links([tx("a"),tx("b")].map(t=>({...t,creditor:undefined})));const add=m.importObExpenses(state([notice]),m.flattenBankTx(feed),feed)||[];assert.equal(add.filter(e=>e.possibleDup).length,1);} ],
   ["alias sin id suma otro cargo",s=>s.replace('g.conId=Math.max(g.conId||0,obOrdinalOf(c.e));','g.conId=0;'),m=>{const feed=links([tx("a"),tx(null)]);assert.equal((m.importObExpenses(state(),m.flattenBankTx(feed),feed)||[]).length,1);} ],
-  ["sin identidad de lápida",s=>s.replace('if(tx.id&&(deletedRefs[(tx.ent||"")+"|"+tx.id]||deletedSignedRefs[obReferenceKey(tx.ent,tx.id,tx.amount)]))return null;',''),m=>{const gone=expense("a"),seed={...state(),deleted:[m.keyOfExpense(gone)],gemelos:[m.bankDeletionLink(gone)]};const feed=links([tx("a")]);assert.equal((m.importObExpenses(seed,m.flattenBankTx(feed),feed)||[]).length,0);} ],
+  ["sin identidad de lápida",s=>s.replace(/if\(tx\.id&&\(deletedRefs\[[^\n]+?return null;/,''),m=>{const gone=expense("a"),seed={...state(),deleted:[m.keyOfExpense(gone)],gemelos:[m.bankDeletionLink(gone)]};const feed=links([tx("a")]);assert.equal((m.importObExpenses(seed,m.flattenBankTx(feed),feed)||[]).length,0);} ],
   ["misma referencia con metadatos distintos",s=>s.replaceAll('const ref=esFilaDeBanco(e)&&e.extId&&','const ref=false&&'),m=>assert.equal(m.mergeExpenses([expense("a")],[{...expense("a","second"),merchant:"Nombre posterior"}]).list.length,1)],
  ];
  for(const [name,mutate,check] of mutants){const changed=mutate(html);assert.notEqual(changed,html,name+": mutante aplicado");assert.throws(()=>check(loadPureLogic(changed)),undefined,name+": debe morir");}

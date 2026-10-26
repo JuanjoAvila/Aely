@@ -17,6 +17,7 @@
 //   · el cargo de un recibo no se puede reconocer como retirada de efectivo.
 // Datos sintéticos; el reloj es fijo y se mueve a mano para cruzar de mes.
 import {withOwnerStorage} from "./helpers/owner-storage-fixture.mjs";
+import {receiptCloudCommitFixture} from "./helpers/receipt-cloud-commit-fixture.mjs";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
@@ -792,21 +793,12 @@ test("cuando el aviso gana al cargo marcado, la fila conserva lo que él puso a 
 // que ejecuta el móvil: una mutación sobre el bundle también los alcanza.
 const bundle=source("public/index.html");
 test("al bajar el estado de la nube, App une los vetos con `reciboNoUnion` (el bloque REAL de syncFromCloud)", ()=>{
-  const m=/(?:const|let) baseObj = localNewer[\s\S]*?if\(freshLogin && \(cloudState\.accounts/.exec(bundle)||/(?:const|let) baseObj\s*=\s*localNewer[\s\S]*?if\(freshLogin\s*&&\s*\(cloudState\.accounts/.exec(bundle);
-  assert.ok(m,"no se encuentra el bloque de último-que-escribe en syncFromCloud");
-  const owner=/const sameOwner=![^\n]*;/.exec(bundle);
-  assert.ok(owner,"no se encuentra la guarda real de titular anterior al merge");
-  // Desde la unión con Inicio v4.2 (4.26.122) el mismo bloque une además el historial de cuentas
-  // para el titular de la sesión: se le da la sesión de ese titular y la unión real.
-  const bloque=new Function("prev","cloudState","freshLogin","localNewer","merged","opts","reciboNoUnion","fusionarGemelos","sessionRef","u","mergeAccountBalanceHistory","cloudPack","goalSyncPull","goalSyncCopy","obAbsorbedMerge","obAbsorbedPersist","obConfirmedMerge","obAbsorbedWriteBlocked",owner[0]+"\n"+m[0].replace(/if\(freshLogin\s*&&\s*\(cloudState\.accounts$/,"")+"\nreturn baseObj;");
-  // La 141 (Metas a tres vías) hace que el bloque lea `cloudPack.updated_at` y llame a `goalSyncPull`/`goalSyncCopy`: se le dan los reales del bundle.
-  const adopta=(...a)=>bloque(...a,{current:{user:{id:"titular"}}},"titular",c.mergeAccountBalanceHistory,{updated_at:"synthetic"},c.goalSyncPull,c.goalSyncCopy,c.obAbsorbedMerge,c.obAbsorbedPersist,c.obConfirmedMerge,{current:false});
+  const adopta=receiptCloudCommitFixture(bundle,c,"titular");
   const prev={_savedAt:1,expenses:[],reciboNo:["com|x"],reciboNoAt:{"com|x":10}}, nube={_savedAt:2,reciboNo:[],reciboNoAt:{"com|x":20}};
-  const fus=(a,b)=>a||b;
   // La nube lo levantó después: aquí deja de estar. Y un veto local más reciente sobrevive a una nube que no lo trae.
-  assert.equal(j(adopta(prev,nube,false,false,{list:[]},null,c.reciboNoUnion,fus).reciboNo),j([]));
+  assert.equal(j(adopta(prev,nube).reciboNo),j([]));
   const local={_savedAt:1,expenses:[],reciboNo:["com|x"],reciboNoAt:{"com|x":30}};
-  assert.equal(j(adopta(local,nube,false,false,{list:[]},null,c.reciboNoUnion,fus).reciboNo),j(["com|x"]),"sin la unión, la lista de la nube lo borraría");
+  assert.equal(j(adopta(local,nube).reciboNo),j(["com|x"]),"sin la unión, la lista de la nube lo borraría");
 });
 
 test("tras el pull, App reescribe en la nube las filas que `sinMarca` le deja (el bloque REAL de syncCloudExpenses)", ()=>{

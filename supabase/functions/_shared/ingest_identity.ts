@@ -15,6 +15,7 @@ export type CandidatoIngest = {
   importe: number | string;
   ingest_event_id?: string | null;
   created_at?: string | null;
+  source?: string | null;
 };
 
 const EVENTO_MAX = 160;
@@ -61,7 +62,7 @@ export function esGemeloIngest(actual: CandidatoIngest, anterior: CandidatoInges
     (ob === "tr:trade_republic" && oa === "wallet:trade_republic");
   if (!cruzado) return false;
   if (Math.abs(Number(actual.importe) - Number(anterior.importe)) > 0.02) return false;
-  const ta = new Date(actual.fecha).getTime(), tb = new Date(anterior.fecha).getTime();
+  const ta = instanteIngest(actual), tb = instanteIngest(anterior);
   return isFinite(ta) && isFinite(tb) && Math.abs(ta - tb) <= GEMELO_MS;
 }
 
@@ -91,4 +92,45 @@ export function tieneGemeloAnterior(actual: CandidatoIngest, filas: CandidatoIng
     const gemela = esGemeloIngest(actual, otra) || esGemeloLegacy(actual, otra);
     return gemela && esAnterior(otra, actual);
   });
+}
+
+/** El ordinal ya viaja en source para las gemelas OB; una identidad nativa reserva su ranura. */
+export function ordinalIngest(source: unknown): number {
+  const m = /#n([1-9]\d{0,5})(?:#|$)/.exec(String(source || ""));
+  return m ? Math.max(1, Number(m[1])) : 1;
+}
+
+const diaMadrid = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Madrid", year: "numeric", month: "2-digit", day: "2-digit" });
+/** Nunca enviar un pago al día/mes siguiente por reservar los milisegundos de su gemela. */
+export function fechaEventoOrdinal(fecha: string, ordinal: number): string | null {
+  const base = new Date(fecha), ms = base.getTime();
+  if (!Number.isFinite(ms) || !Number.isInteger(ordinal) || ordinal < 1 || ordinal > 999999) return null;
+  const sameDay = (date: Date) => date.toISOString().slice(0, 10) === fecha.slice(0, 10)
+    && diaMadrid.format(date) === diaMadrid.format(base);
+  const delta = ordinal - 1;
+  const after = new Date(ms + delta);
+  if (sameDay(after)) return after.toISOString();
+  const before = new Date(ms - delta);
+  return sameDay(before) ? before.toISOString() : null;
+}
+
+/** La marca nueva solo se escribe con el interruptor de fase 1; la huella viaja completa. */
+export function sourceIngestOrdinal(ordinal: number, pendiente = false, evento?: string | null, fecha?: string): string {
+  if (evento) return "native:trade_republic#e" + encodeURIComponent(evento) + "#t" + Date.parse(fecha || "") + (pendiente ? "#dup" : "") + "#n" + ordinal;
+  return pendiente || ordinal > 1
+    ? "ob:trade_republic" + (pendiente ? "#dup" : "") + (ordinal > 1 ? "#n" + ordinal : "")
+    : "macrodroid";
+}
+
+/** La proyección usa TODOS los bytes SHA256; nunca sustituye a la huella persistida.
+ * El índice histórico arbitra colisiones, y el probe desplaza como máximo unos pocos ms más. */
+export async function ordinalEvento(evento: string): Promise<number> {
+  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(evento)));
+  let value = 0;
+  for (const byte of digest) value = (value * 256 + byte) % 1000;
+  return value + 1;
+}
+function instanteIngest(row: CandidatoIngest): number {
+  const match = /^native:trade_republic#/.test(String(row.source || '')) && /#t(\d+)(?:#|$)/.exec(String(row.source));
+  return match ? Number(match[1]) : new Date(row.fecha).getTime();
 }

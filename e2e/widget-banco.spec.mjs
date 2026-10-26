@@ -42,8 +42,8 @@ test("FIN-05: app y widget excluyen lápidas conservadas al reabrir después de 
   await expect(inicio.locator('.v4-mov').filter({ hasText: "Compra ficticia" })).toHaveCount(1);
   await expect(inicio.locator('.v4-mov').filter({ hasText: /Borrado ficticio|Ingreso borrado/ })).toHaveCount(0);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  const bar = page.locator('.v4-gastos-progress[role="progressbar"]');
-  await expect(bar).toHaveAttribute("aria-valuenow", "181");
+  // Gastos v5: la cifra de la cabecera es lo que cuenta contra el límite (antes, la barra).
+  await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toHaveText("181,00 €");
   await expect(page.locator('[data-expense-id="live"]')).toBeVisible();
   await expect(page.locator('[data-expense-id="gone-out"]')).toHaveCount(0);
   await expect(page.locator('[data-expense-id="gone-in"]')).toHaveCount(0);
@@ -59,7 +59,7 @@ test("FIN-05: app y widget excluyen lápidas conservadas al reabrir después de 
   await expect.poll(() => page.evaluate(() => window.__widgetSnapshot?.budgetLeft)).toBe(813.55);
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await expect(bar).toHaveAttribute("aria-valuenow", "186.45");
+  await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toHaveText("186,45 €");
   const afterCash = await page.evaluate(() => ({ cash: window.__widgetSnapshot.cash, safe: window.__widgetSnapshot.safeLiq }));
   expect(afterCash.cash).toBeCloseTo(beforeCash.cash - 5.45, 2);
   expect(afterCash.safe).toBeCloseTo(beforeCash.safe - 5.45, 2);
