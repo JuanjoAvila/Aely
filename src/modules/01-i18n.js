@@ -1538,7 +1538,7 @@ Object.assign(LANG.ca,{
    como una frase («gastado en octubre · 139 € por encima»). */
 Object.assign(LANG.es,{gv5_spent_in:"gastado en {mes}", gv5_net_in:"balance de {mes}",
   gv5_upto:"gastado en {mes} hasta el {d}", gv5_upto_net:"balance de {mes} hasta el {d}",
-  gv5_closed:"{mes} · cerrado", gv5_over:"{x} por encima", gv5_under:"{x} por debajo", gv5_over_g:"gastos {x} por encima", gv5_under_g:"gastos {x} por debajo",
+  gv5_closed:"{mes} · cerrado", gv5_over:"{x} por encima", gv5_under:"{x} por debajo",
   gv5_more:"{x} más que en {mes}", gv5_less:"{x} menos que en {mes}", gv5_same:"igual que en {mes}",
   gv5_more_sd:"{x} más que en {mes} a estas alturas", gv5_less_sd:"{x} menos que en {mes} a estas alturas", gv5_same_sd:"igual que en {mes} a estas alturas",
   gv5_cycle:"en tu ciclo", gv5_cycle_upto:"en tu ciclo hasta el {d}", gv5_period_upto:"{period} · hasta el {d}", gv5_all:"todo el histórico",
@@ -1546,7 +1546,7 @@ Object.assign(LANG.es,{gv5_spent_in:"gastado en {mes}", gv5_net_in:"balance de {
   gv5_net_sub:"gastos {g} · ingresos {i}", gv5_meses:"Meses", gv5_periodo:"Periodo", gv5_p_months:"Meses", gv5_p_range:"Rango"});
 Object.assign(LANG.en,{gv5_spent_in:"spent in {mes}", gv5_net_in:"balance for {mes}",
   gv5_upto:"spent in {mes} through day {d}", gv5_upto_net:"balance for {mes} through day {d}",
-  gv5_closed:"{mes} · closed", gv5_over:"{x} over", gv5_under:"{x} under", gv5_over_g:"spending {x} over", gv5_under_g:"spending {x} under",
+  gv5_closed:"{mes} · closed", gv5_over:"{x} over", gv5_under:"{x} under",
   gv5_more:"{x} more than in {mes}", gv5_less:"{x} less than in {mes}", gv5_same:"same as in {mes}",
   gv5_more_sd:"{x} more than {mes} at this point", gv5_less_sd:"{x} less than {mes} at this point", gv5_same_sd:"same as {mes} at this point",
   gv5_cycle:"in your cycle", gv5_cycle_upto:"in your cycle through {d}", gv5_period_upto:"{period} · through {d}", gv5_all:"all history",
@@ -1554,7 +1554,7 @@ Object.assign(LANG.en,{gv5_spent_in:"spent in {mes}", gv5_net_in:"balance for {m
   gv5_net_sub:"spent {g} · income {i}", gv5_meses:"Months", gv5_periodo:"Period", gv5_p_months:"Months", gv5_p_range:"Range"});
 Object.assign(LANG.ca,{gv5_spent_in:"gastat al {mes}", gv5_net_in:"balanç al {mes}",
   gv5_upto:"gastat al {mes} fins al dia {d}", gv5_upto_net:"balanç al {mes} fins al dia {d}",
-  gv5_closed:"{mes} · tancat", gv5_over:"{x} per sobre", gv5_under:"{x} per sota", gv5_over_g:"despeses {x} per sobre", gv5_under_g:"despeses {x} per sota",
+  gv5_closed:"{mes} · tancat", gv5_over:"{x} per sobre", gv5_under:"{x} per sota",
   gv5_more:"{x} més que al {mes}", gv5_less:"{x} menys que al {mes}", gv5_same:"igual que al {mes}",
   gv5_more_sd:"{x} més que al {mes} a aquestes alçades", gv5_less_sd:"{x} menys que al {mes} a aquestes alçades", gv5_same_sd:"igual que al {mes} a aquestes alçades",
   gv5_cycle:"al teu cicle", gv5_cycle_upto:"al teu cicle fins al {d}", gv5_period_upto:"{period} · fins al {d}", gv5_all:"tot l'historial",

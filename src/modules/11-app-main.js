@@ -2606,9 +2606,11 @@ function App(){
   useEffect(function(){
     if(!wV2) return;
     // La nómina que abre el ciclo no cuenta en su neto; su identidad debe viajar con la ventana.
-    const kind=budW.cycle?"ciclo":"mes", start=budW.periodStart, anchor=wAnchor, w=state.widgetPeriod;
+    // En el mes natural viajan las nóminas y los ingresos grandes que no lo son (ver `widgetScopeOf`).
+    const w=state.widgetPeriod;
     if(w && w.v===2 && w.scope===wScope) return;
-    set(function(s){ return Object.assign({},s,{widgetPeriod:{v:2,kind:kind,start:start,anchor:anchor,scope:wScope}}); },false);
+    const next=widgetPeriodOf(budW,wAnchor,wScope);
+    set(function(s){ return Object.assign({},s,{widgetPeriod:next}); },false);
   },[wV2,wScope,state.widgetPeriod]);
   const widgetCash=trAccW ? Math.round((totals.bankBal[trAccW.ent]||0)*100)/100 : null;
   // El límite combina presupuesto global y liquidez del banco elegido. Se mandan las piezas
@@ -2643,8 +2645,11 @@ function App(){
       // consuman esta ventana. No se confirma por fecha, ni por una foto sin identidad.
       coveredEvents:widgetCoveredEvents(wC.current,budW.periodStart,Date.now(),!!wV2),
       deletedKeys:"|"+(state.deleted||[]).map(encodeURIComponent).join("|")+"|",
-      // En el ciclo, el neto con signo, como Inicio; `shown` sería |neto| (la cabecera de Gastos).
-      spent:Math.round(((budW.cycle?budW.against:budW.shown)||0)*100)/100,
+      // V2: lo que Inicio compara con el límite (neto en el ciclo, gasto menos ingresos sin la
+      // nómina en el mes), porque el nativo dibuja «quedan / de más» como límite − `spent`; con el
+      // bruto decía 422 € de más cuando Inicio decía 64 € por debajo (26/10/2026). La APK51
+      // (sin contrato) conserva su payload legado.
+      spent:Math.round(((wV2||budW.cycle?budW.against:budW.shown)||0)*100)/100,
       budget:budW.budget!=null?budW.budget:(state.budget||0)
     };
     if(wV2){ data.contract=2; data.periodKind=budW.cycle?"ciclo":"mes"; data.magnitude=budW.cycle?"neto":"gasto"; data.lang=CURLANG; data.scope=wScope; }

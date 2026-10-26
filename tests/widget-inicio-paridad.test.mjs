@@ -26,6 +26,10 @@ const cases=[
   ['compra',5.45,'super','macrodroid'],
   ['bizum-grande',-300,'bizum','ob:sabadell'],
   ['nomina',-1200,'ingreso','macrodroid'],
+  // Mes natural (26/10/2026): un ingreso grande sin nombre de nómina SÍ devuelve margen, y una
+  // devolución de compra resta una sola vez.
+  ['ingreso-grande',-300,'ingreso','macrodroid'],
+  ['devolucion',-5.45,'super','macrodroid'],
   ['inversion',5.45,'inversion','macrodroid'],
   ['traspaso',-300,'traspaso','macrodroid'],
   ['deudas',5.45,'deudas','ob:trade_republic~deuda.synthetic'],
@@ -58,21 +62,67 @@ for(const window of ['actual','futuro','anterior']){
     const stats=cli.dashboardBudgetStats(state),period=cli.budgetPeriodOf(state);
     const anchor=stats.cycle?cli.keyOfExpense(period.cycle.inc):'';
     const scope=cli.widgetScopeOf(state,stats,anchor,bank);
-    state.widgetPeriod={v:2,kind:stats.cycle?'ciclo':'mes',start:stats.periodStart,anchor,scope};
+    state.widgetPeriod=cli.widgetPeriodOf(stats,anchor,scope);
     const w=server.widgetSnapshot(state,rows,now,{id:'payment',event:'synthetic',key:'synthetic-key'});
     const e=state.expenses.find(e=>e.id==='payment'),ms=Date.parse(fecha);
     const visible=e&&!cli.expenseIsTombstoned(e,cli.expenseDeletedSet(state))&&ms>=period.startMs&&ms<period.todayEndMs;
     if(!visible){assert.equal(w,null,'pago fuera de ventana o retirado no acredita absoluto');checked++;continue;}
+    // En el ciclo un cobro grande posterior al ancla puede ser la nómina nueva: ingest no lo adivina.
+    if(stats.cycle&&name==='ingreso-grande'){assert.equal(w,null,'ciclo: posible ancla nueva sin foto');checked++;continue;}
     assert.ok(w,'un pago conocido de la misma ventana conserva cifra');
-    const before=cli.monthBudgetStats({...state,expenses:state.expenses.filter(e=>e.id!=='payment')},null,null,'split',period);
+    const before=cli.monthBudgetStats({...state,expenses:state.expenses.filter(e=>e.id!=='payment')},null,null,'mes',period);
     assert.equal(w.scope,scope);assert.equal(w.periodKind,state.widgetPeriod.kind);
-    assert.equal(w.spent,cents(stats.cycle?stats.against:stats.shown));
+    // El widget pinta lo que Inicio compara con el límite: neto en el ciclo, sin nómina en el mes.
+    assert.equal(w.spent,cents(stats.against));
     assert.equal(w.against,cents(stats.against));assert.equal(w.budget,stats.budget==null?0:stats.budget);
     assert.equal(w.budgetLeft,stats.remaining==null?-1:cents(Math.max(0,stats.remaining)));
-    assert.equal(w.shownDelta,cents((stats.cycle?stats.against:stats.shown)-(stats.cycle?before.against:before.shown)));
+    assert.equal(w.shownDelta,cents(stats.against-before.against));
     assert.equal(w.againstDelta,cents(stats.against-before.against));checked++;
   }catch(err){failed++;console.error('FAIL '+label+': '+err.message);}
 }
 }finally{cli.Date=RealDate;}
+/* SU MES DE HOY POR EL SERVIDOR (decisión del dueño, 26/10/2026). Mes natural: 1.922,19 € de gasto,
+   485,72 € recibidos, límite 1.500 € → el widget dice lo que Inicio, 63,53 € por debajo. El 30/10
+   entra la nómina con la app cerrada: si el comercio dice «nómina», ingest la aparta y la cifra no
+   se mueve; si no lo dice (empresa en el comercio), no se adivina y no hay foto. Importes sintéticos. */
+{
+  const at=Date.parse('2026-10-30T12:00:00Z');
+  cli.Date=class extends RealDate{static now(){return at;}};
+  try{
+    const oct=[
+      {id:'g1',fecha:'2026-10-03T10:00:00Z',importe:1200,cat:'super',source:'macrodroid',comercio:'Compra sintetica'},
+      {id:'g2',fecha:'2026-10-10T10:00:00Z',importe:722.19,cat:'ocio',source:'macrodroid',comercio:'Ocio sintetico'},
+      {id:'i1',fecha:'2026-10-12T10:00:00Z',importe:-400,cat:'bizum',source:'macrodroid',comercio:'Bizum cena'},
+      {id:'i2',fecha:'2026-10-15T10:00:00Z',importe:-85.72,cat:'ingreso',source:'macrodroid',comercio:'Devolucion tienda'},
+      {id:'t1',fecha:'2026-10-14T10:00:00Z',importe:300,cat:'traspaso',source:'macrodroid',comercio:'Traspaso sintetico'},
+    ];
+    const base={budget:1500,settings:{budgetCycle:false,expenseBanks:['trade_republic'],widgetBank:'trade_republic',gTotalMode:'net'},
+      accounts:[{ent:'trade_republic',role:'diario',spendFrom:true}],deleted:[],reservaLog:[]};
+    // La app abierta antes de la nómina deja su ventana en la nube.
+    const app={...base,expenses:cli.mergeExpenses([],oct.map(cli.expenseFromRow)).list};
+    const stats=cli.dashboardBudgetStats(app), scope=cli.widgetScopeOf(app,stats,'','trade_republic');
+    assert.equal(Math.round(stats.remaining*100),6353);
+    const cloud={...base,widgetPeriod:cli.widgetPeriodOf(stats,'',scope)};
+    // Un café con la app cerrada: el servidor llega a la misma cifra por su cuenta.
+    const cafe={id:'cafe',fecha:'2026-10-30T09:00:00Z',importe:2,cat:'super',source:'macrodroid',comercio:'Cafe sintetico'};
+    const w1=server.widgetSnapshot(cloud,[...oct,cafe],at,{id:'cafe',event:'e1',key:'k1'});
+    assert.ok(w1,'mes natural con ventana de la app: hay foto');
+    assert.equal(w1.spent,1438.47); assert.equal(w1.against,1438.47); assert.equal(w1.budgetLeft,61.53);
+    const conCafe=cli.dashboardBudgetStats({...base,expenses:cli.mergeExpenses([],[...oct,cafe].map(cli.expenseFromRow)).list});
+    assert.equal(w1.against,cents(conCafe.against),'misma cifra que Inicio');
+    // Nómina con la palabra en el comercio y la app cerrada: fuera, no mueve nada.
+    const nomina={id:'nom',fecha:'2026-10-30T08:00:00Z',importe:-3333,cat:'ingreso',source:'macrodroid',comercio:'NÓMINA EMPRESA SINTETICA'};
+    const w2=server.widgetSnapshot(cloud,[...oct,nomina],at,{id:'nom',event:'e2',key:'k2'});
+    assert.ok(w2); assert.equal(w2.spent,1436.47); assert.equal(w2.budgetLeft,63.53); assert.equal(w2.shownDelta,0);
+    const conNomina=cli.dashboardBudgetStats({...base,expenses:cli.mergeExpenses([],[...oct,nomina].map(cli.expenseFromRow)).list});
+    assert.equal(w2.against,cents(conNomina.against),'la app aparta la misma nómina');
+    // Solo la empresa en el comercio: ingest no sabe si es nómina; no hay foto (la app decide al abrir).
+    assert.equal(server.widgetSnapshot(cloud,[...oct,{...nomina,comercio:'EMPRESA SINTETICA SL'}],at,{id:'nom',event:'e3',key:'k3'}),null);
+    // Una ventana escrita por una app anterior (sin las listas) no recibe la cifra nueva.
+    assert.equal(server.widgetSnapshot({...cloud,widgetPeriod:{...cloud.widgetPeriod,scope:JSON.stringify(JSON.parse(scope).slice(0,8))}},[...oct,cafe],at,{id:'cafe',event:'e4',key:'k4'}),null);
+    checked+=5;
+  }catch(err){failed++;console.error('FAIL su mes de hoy: '+err.message);}
+  finally{cli.Date=RealDate;}
+}
 console.log('widget-inicio-paridad: '+checked+' casos correctos; '+failed+' fallos');
 if(failed)process.exitCode=1;

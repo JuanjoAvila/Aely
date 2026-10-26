@@ -1,5 +1,5 @@
 import {
-  bancoDeSource, bancosDeGastoDiario, claveComoLaApp,
+  bancoDeSource, bancosDeGastoDiario, claveComoLaApp, comercioDeNomina,
   esPosibleRepetido, filasComoLaApp, inicioDeMesMs, statsDelMes, type FilaGasto,
 } from "../_shared/presupuesto.ts";
 
@@ -73,26 +73,46 @@ export function widgetSnapshot(data: any, rows: FilaGasto[], now: number, paymen
       && f.cat !== "bizum" && Date.parse(String(f.fecha)) > Date.parse(String(anchor.fecha)))) return null;
   }
   const ents = bancosDeGastoDiario(data);
+  const daily = (f: FilaGasto) => { const bank = bancoDeSource(f.source); return !bank || ents.includes(bank); };
+  /* Mes natural: gasto menos ingresos SIN la nómina (decisión del dueño, 26/10/2026; espejo del
+     modo "mes" de `budgetStatsFromAmounts`). Un ingreso grande (≥200 €, no Bizum, de un banco que
+     cuenta) se decide con la lista que dejó la app, que conoce Plan y el concepto; si la app aún
+     no lo vio, solo se acepta como nómina lo que lo dice en el comercio. Cualquier otro no se
+     adivina: sin foto, y el widget se queda con la cifra de la app hasta que ella decida. */
+  const nominas = new Set<string>(cycle ? [] : (Array.isArray(w.nominas) ? w.nominas : []).filter((k: unknown) => typeof k === "string"));
+  const noNominas = new Set<string>(cycle ? [] : (Array.isArray(w.noNominas) ? w.noNominas : []).filter((k: unknown) => typeof k === "string"));
+  const esNomina = new Map<FilaGasto, boolean>();
+  if (!cycle) {
+    for (const f of visible) {
+      if (!(Number(f.importe) <= -200) || neutral(f) || f.cat === "bizum" || !daily(f)) continue;
+      const k = claveComoLaApp(f);
+      if (nominas.has(k)) esNomina.set(f, true);
+      else if (noNominas.has(k)) esNomina.set(f, false);
+      else if (comercioDeNomina(f.comercio)) esNomina.set(f, true);
+      else return null;
+    }
+  }
   const rawBudget = typeof data.budget === "number" && Number.isFinite(data.budget) ? data.budget : 0;
   const budgetKnown = rawBudget > 0;
   const scopedData = { ...data, budget: rawBudget, settings: { ...data.settings, gTotalMode: cycle ? "net" : "split" },
     reservaLog: (data.reservaLog || []).filter((x: { date: string }) => Date.parse(x.date) < end) };
-  const daily = (f: FilaGasto) => { const bank = bancoDeSource(f.source); return !bank || ents.includes(bank); };
   function stats(filas: FilaGasto[]) {
     const eligible = filas.filter(f => !(cycle && claveComoLaApp(f) === w.anchor));
     // El contrato antiguo filtra también la marca de cuota. Inicio manda por categoría:
     // una categoría explícita ajena a Deudas sigue contando, igual que expenseCountsBudget.
     // La matriz diferencial 10/10 protege esta diferencia sin alterar month legacy.
     const result = statsDelMes([], scopedData, start);
-    let spent = 0, income = 0;
+    let spent = 0, income = 0, nomina = 0;
     for (const f of eligible) {
       if (neutral(f)) continue;
       const amount = Number(f.importe);
-      if (amount < 0 && (cycle || daily(f))) income -= amount;
+      if (amount < 0 && (cycle || daily(f))) { income -= amount; if (esNomina.get(f)) nomina -= amount; }
       else if (amount > 0 && daily(f)) spent += amount;
     }
     result.spent = +spent.toFixed(2); result.income = +income.toFixed(2);
-    result.against = +(cycle ? spent - income : spent).toFixed(2);
+    // Sin tope en el ciclo (contrato de la 4.26.73); en el mes, unos ingresos mayores que el gasto
+    // dejan lo usado a 0 y no estiran el límite.
+    result.against = cycle ? +(spent - income).toFixed(2) : Math.max(0, +(spent - (income - nomina)).toFixed(2));
     result.shown = cycle ? +Math.abs(income - spent).toFixed(2) : result.spent;
     return result;
   }
@@ -100,11 +120,16 @@ export function widgetSnapshot(data: any, rows: FilaGasto[], now: number, paymen
   const accounts = data.accounts || [], chosen = data.settings?.widgetBank;
   const bank = accounts.find((a: { ent: string }) => a.ent === chosen && !["efectivo", "familia"].includes(a.ent))
     || accounts.find((a: { spendFrom: boolean }) => a.spendFrom);
-  const scope = JSON.stringify([2, start, w.kind, cycle ? "neto" : "gasto", w.anchor || "", budgetKnown ? after.budget : null, ents.slice().sort(), bank?.ent || ""]);
+  const parts: unknown[] = [2, start, w.kind, cycle ? "neto" : "gasto", w.anchor || "", budgetKnown ? after.budget : null, ents.slice().sort(), bank?.ent || ""];
+  // Las listas entran en el alcance como en `widgetScopeOf`: una app anterior (bruto) no las
+  // escribe y su alcance no casa, así que no recibe una cifra calculada con otra regla.
+  if (!cycle) parts.push([[...nominas].sort(), [...noNominas].sort()]);
+  const scope = JSON.stringify(parts);
   // No repetir un scope de la app si reservas/bancos/ancla ya han cambiado en la nube.
   if (w.scope !== scope) return null;
   const amount = visible.find(f => String(f.id) === payment.id);
-  const shown = cycle ? after.against : after.spent, oldShown = cycle ? before.against : before.spent;
+  // El nativo pinta «quedan / de más» como límite − `spent`: va lo que se compara con el límite.
+  const shown = after.against, oldShown = before.against;
   return { contract: 2, periodKind: w.kind, scope, periodStart: start, readAt: now,
     eventKey: payment.event, expenseKey: payment.key, spent: shown, budget: after.budget,
     against: after.against, budgetLeft: budgetKnown ? +Math.max(0, after.budget - after.against).toFixed(2) : -1,

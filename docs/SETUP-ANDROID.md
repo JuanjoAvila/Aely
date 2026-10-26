@@ -286,10 +286,14 @@ Sin marca nueva, se conserva el contrato previo: conciliación por cobertura exa
 
 Compatibilidad: la APK anterior ignora los dos campos nuevos. Con APK nueva y web anterior, abrir la app aún no recupera una identidad perdida: debe llegar también la web nueva. Con ambas actualizadas, abrir y terminar la lectura recupera la cifra; sin conexión o con lectura fallida permanece el aviso. No borrar preferencias para forzar dinero confirmado.
 
-Mes bruto y Mi ciclo neto ya forman parte del contrato v2 de la base. La preferencia
-`settings.budgetCycle` llega a `dashboardBudgetStats`, compartido por Inicio y el payload
-de `11-app-main.js`; no hay selector en el widget. La cifra con signo del ciclo es `against`
-y la del mes es `shown`, redondeadas a céntimos al enviarse y a euros al pintarse en nativo.
+Mi ciclo neto y el mes natural «gasto − ingresos sin la nómina» (26/10/2026) forman parte del
+contrato v2. La preferencia `settings.budgetCycle` llega a `dashboardBudgetStats`, compartido por
+Inicio y el payload de `11-app-main.js`; no hay selector en el widget. En los dos el `spent` v2 es
+`against` (lo que se compara con el límite), redondeado a céntimos al enviarse y a euros al
+pintarse en nativo: el nativo dibuja «quedan / de más» como límite − `spent`. La etiqueta del mes
+sigue diciendo «GASTO» (magnitud `gasto`) porque cambiarla necesita APK. En el mes, `widgetPeriod`
+lleva `nominas`/`noNominas` y el alcance las incluye: ingest no conoce Plan ni el concepto, y con
+un alcance viejo (web o ingest anteriores) no hay foto en vez de una cifra con la regla vieja.
 
 **Pago con la app cerrada:** un servidor antiguo devuelve un total mensual que no acredita Mi ciclo. El listener conserva el importe en céntimos y su identidad cuando la fecha
 pertenece a la ventana guardada de la app y ésta sigue vigente. La selección de bancos de

@@ -26,17 +26,20 @@ for(const v2 of [true,false])for(const tz of ['Europe/Madrid','America/Los_Angel
   await page.goto('/');await expect(page.locator('.botnav')).toBeVisible();
   await page.waitForFunction(()=>!document.getElementById('mc-load'));await dismissNews(page);
   // Comprobar el importe realmente pintado en Inicio antes de consultar el puente nativo.
-  await expect.poll(async()=>(await page.locator('.v4-budget .v42-cycle-amount>.serif').innerText()).replace(/\D/g,'')).toBe('7129');
-  await expect.poll(()=>page.evaluate(()=>Math.round(window.__monthlyWidget?.spent*100))).toBe(2554);
+  // Oráculo cambiado el 26/10/2026: el mes natural compara gasto − ingresos sin nómina
+  // (2554c − 535c = 2019c), así que en Inicio quedan 9683c − 2019c = 7664c (antes 7129c, el bruto).
+  // El widget v2 lleva esa misma cifra; la APK51 (sin contrato) conserva su payload legado.
+  await expect.poll(async()=>(await page.locator('.v4-budget .v42-cycle-amount>.serif').innerText()).replace(/\D/g,'')).toBe('7664');
+  await expect.poll(()=>page.evaluate(()=>Math.round(window.__monthlyWidget?.spent*100))).toBe(v2?2019:2554);
   const snapshot=await page.evaluate(()=>window.__monthlyWidget);
   expect(snapshot.contract).toBe(v2?2:undefined);if(v2)expect(snapshot.periodKind).toBe('mes');expect(snapshot.periodStart).toBe(start);
-  expect(Math.round(snapshot.budget*100)).toBe(9683);expect(Math.round(snapshot.budgetLeft*100)).toBe(7129);
+  expect(Math.round(snapshot.budget*100)).toBe(9683);expect(Math.round(snapshot.budgetLeft*100)).toBe(v2?7664:7129);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await expect(gastosRoot(page)).toHaveAttribute('data-periodo','months');
   await expect.poll(async()=>(await gastosCifra(page).innerText()).replace(/\D/g,'')).toBe('2554');
   const ym=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Madrid',year:'numeric',month:'2-digit'}).format(end);
   await expect(gastosRoot(page).locator('.gx-dia[data-gx-ym="'+ym+'"] button.v4-mov').filter({hasText:/Siguiente mes/})).toHaveCount(1);
   await page.locator('.botnav-tab[data-tour="inicio"]').click();
-  await expect.poll(async()=>(await page.locator('.v4-budget .v42-cycle-amount>.serif').innerText()).replace(/\D/g,'')).toBe('7129');
+  await expect.poll(async()=>(await page.locator('.v4-budget .v42-cycle-amount>.serif').innerText()).replace(/\D/g,'')).toBe('7664');
  });
 });

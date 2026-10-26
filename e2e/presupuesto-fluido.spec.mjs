@@ -25,7 +25,9 @@ for(const caso of [
     accounts:[{id:"tr",ent:"trade_republic",name:"Efectivo",value:1000,role:"diario",spendFrom:true}],
     expenses:[
       {id:"g",date:"2026-09-14T12:00:00Z",amount:300,merchant:"Compra",category:"super",ent:"trade_republic"},
-      {id:"i",date:"2026-09-14T12:00:00Z",amount:-1000,merchant:"Ingreso",category:"ingreso",ent:"trade_republic"},
+      // Es la nómina (26/10/2026): desde que el mes natural resta los ingresos SALVO la nómina, un
+      // ingreso de 1.000 sin nombre sí devolvería margen. Lo que se protege es que la nómina no.
+      {id:"i",date:"2026-09-14T12:00:00Z",amount:-1000,merchant:"Nómina",category:"ingreso",ent:"trade_republic"},
     ],
   });
   await page.goto("/");
@@ -129,12 +131,14 @@ test("Inicio conserva la frase de gasto también con balance desfavorable",async
   await page.waitForFunction(()=>!document.getElementById("mc-load"));
   await dismissNews(page);
   const dash=page.locator(".v4-budget");
-  await expect(dash.locator(".v4-ring")).toHaveText("70%");
-  await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText("700 €");
+  // Oráculo cambiado el 26/10/2026: el ingreso de 100 (no es nómina) devuelve margen en el mes
+  // natural: 300 − 100 = 200 usados, quedan 800 (antes 700, el bruto); a 16 días, 50 al día.
+  await expect(dash.locator(".v4-ring")).toHaveText("80%");
+  await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText("800 €");
   await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText(/[−-]\s*300/);
   await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText("Balance en contra");
-  await expect(dash.getByTestId("inicio-cycle-pace")).toHaveText("43 € al día durante 16 días");
-  await expect(dash).toHaveAttribute("aria-label",/^Vas sobrado\. Te quedan 700 € de 1\.000 €/);
+  await expect(dash.getByTestId("inicio-cycle-pace")).toHaveText("50 € al día durante 16 días");
+  await expect(dash).toHaveAttribute("aria-label",/^Vas sobrado\. Te quedan 800 € de 1\.000 €/);
 });
 
 test("el cobro del 26 reinicia el presupuesto opcional y Mi ciclo abre por defecto",async({page})=>{

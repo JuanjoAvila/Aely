@@ -14,7 +14,7 @@ Deno.test("FIN15 revision1: PDNG30 BOOK33 month y widget conservan primera fila"
   const p = {id:"pending",fecha:"2026-10-08T21:59:00Z",importe:30,comercio:"Compra sintetica",cat:"otros",source:"ob:caixabank#refstable#pdng"};
   const b = {...p,id:"booked",fecha:"2026-10-09T10:00:00Z",importe:33,source:"ob:caixabank#refstable"};
   const trigger = {...b,id:"trigger",importe:0.01,source:"ob:trade_republic#refother"};
-  const data = {budget:1000,accounts:[{ent:"caixabank",role:"diario",spendFrom:true}],settings:{expenseBanks:["caixabank"]},widgetPeriod:{v:2,kind:"mes",start,anchor:"",scope:JSON.stringify([2,start,"mes","gasto","",1000,["caixabank"],"caixabank"])}};
+  const data = {budget:1000,accounts:[{ent:"caixabank",role:"diario",spendFrom:true}],settings:{expenseBanks:["caixabank"]},widgetPeriod:{v:2,kind:"mes",start,anchor:"",scope:JSON.stringify([2,start,"mes","gasto","",1000,["caixabank"],"caixabank",[[],[]]])}};
   for (const rows of [[p,b],[b,p]]) {
     assertEquals(statsDelMes(filasComoLaApp(rows,[]),data,start).spent,rows[0].importe);
     assertEquals(widgetSnapshot(data,[...rows,trigger],now,{id:"trigger",event:"revision1",key:"synthetic"})?.spent,rows[0].importe);
@@ -51,11 +51,12 @@ function state(cycle = false) {
   return { accounts: [{ ent: "trade_republic", role: "diario", spendFrom: true }, { ent: "sabadell", role: "fijos" }],
     settings: { budgetCycle: cycle }, budget: 100, deleted: [], reservaLog: [],
     widgetPeriod: { v: 2, kind, start: from, anchor,
-      scope: JSON.stringify([2, from, kind, cycle ? "neto" : "gasto", anchor, 100, ["trade_republic"], "trade_republic"]) } };
+      // En el mes natural el alcance lleva qué ingresos grandes son nómina y cuáles no (26/10/2026).
+      scope: JSON.stringify(([2, from, kind, cycle ? "neto" : "gasto", anchor, 100, ["trade_republic"], "trade_republic"] as unknown[]).concat(cycle ? [] : [[[], []]])) } };
 }
 const payment = { id: "payment", event: "tr:synthetic", key: "synthetic-key" };
 
-Deno.test("widget v2 mes bruto y delta exacto; el contrato no copia Balance legacy", () => {
+Deno.test("widget v2 mes natural y delta exacto; el contrato no copia Balance legacy", () => {
   const w = widgetSnapshot(state(), rows, now, payment)!;
   assertEquals(w.contract, 2); assertEquals(w.periodKind, "mes");
   assertEquals(w.spent, 35.45); assertEquals(w.shownDelta, 5.45); assertEquals(w.budgetLeft, 64.55);
@@ -151,4 +152,41 @@ Deno.test("el cargo de un recibo del Plan no cuenta, con el banco ya leído limp
     assertEquals(cuentaParaPresupuesto(fila(s), ents), true, s);
   }
   assertEquals(esCargoDeRecibo("macrodroid"), false);
+});
+
+/* Mes natural: gasto menos ingresos SIN la nómina (decisión del dueño, 26/10/2026). Su mes con
+   importes sintéticos: 1.922,19 de gasto, 485,72 recibidos, límite 1.500 → 63,53 por debajo. */
+Deno.test("mes natural: los ingresos devuelven margen salvo la nómina; ingreso dudoso sin foto", () => {
+  const oct = [
+    { id: "g1", fecha: "2026-10-03T10:00:00Z", importe: 1200, cat: "super", source: "macrodroid", comercio: "Compra" },
+    { id: "g2", fecha: "2026-10-08T10:00:00Z", importe: 722.19, cat: "ocio", source: "macrodroid", comercio: "Ocio" },
+    { id: "i1", fecha: "2026-10-06T10:00:00Z", importe: -400, cat: "bizum", source: "macrodroid", comercio: "Bizum cena" },
+    { id: "i2", fecha: "2026-10-07T10:00:00Z", importe: -85.72, cat: "ingreso", source: "macrodroid", comercio: "Devolucion" },
+    { id: "payment", fecha: "2026-10-10T10:00:00Z", importe: 2, cat: "super", source: "macrodroid", comercio: "Cafe" },
+  ];
+  const lists = (nominas: string[], noNominas: string[]) => {
+    const scope = JSON.stringify([2, start, "mes", "gasto", "", 1500, ["trade_republic"], "trade_republic", [nominas.slice().sort(), noNominas.slice().sort()]]);
+    return { ...state(), budget: 1500, widgetPeriod: { v: 2, kind: "mes", start, anchor: "", scope, nominas, noNominas } };
+  };
+  const w = widgetSnapshot(lists([], []), oct, now, payment)!;
+  assertEquals(w.spent, 1438.47); assertEquals(w.against, 1438.47); assertEquals(w.budgetLeft, 61.53); assertEquals(w.shownDelta, 2);
+  // La nómina que la app ya apartó (por concepto o por Plan) no mueve nada aunque el comercio no lo diga.
+  const nomina = { id: "nom", fecha: "2026-10-09T08:00:00Z", importe: -3333, cat: "ingreso", source: "macrodroid", comercio: "Empresa SL" };
+  assertEquals(widgetSnapshot(lists([claveComoLaApp(nomina)], []), [...oct, nomina], now, payment)?.budgetLeft, 61.53);
+  // Si la app dijo que NO es nómina, devuelve margen; y el margen no pasa del límite.
+  assertEquals(widgetSnapshot(lists([], [claveComoLaApp(nomina)]), [...oct, nomina], now, payment)?.budgetLeft, 1500);
+  assertEquals(widgetSnapshot(lists([], [claveComoLaApp(nomina)]), [...oct, nomina], now, payment)?.against, 0);
+  // Llega con la app cerrada: con «nómina» en el comercio se aparta; sin él, no se adivina.
+  const llega = { ...nomina, comercio: "NÓMINA EMPRESA SL" };
+  assertEquals(widgetSnapshot(lists([], []), [...oct, llega], now, payment)?.budgetLeft, 61.53);
+  assertEquals(widgetSnapshot(lists([], []), [...oct, nomina], now, payment), null);
+  // Un ingreso grande de un banco que no es de gasto diario no cuenta ni bloquea.
+  assertEquals(widgetSnapshot(lists([], []), [...oct, { ...nomina, source: "ob:sabadell" }], now, payment)?.budgetLeft, 61.53);
+  // Devolución de una compra con la misma referencia: dos filas por el signo, resta una vez.
+  const compra = { id: "c", fecha: "2026-10-04T10:00:00Z", importe: 250, cat: "ropa", source: "ob:trade_republic#refR1", comercio: "Tienda" };
+  const devol = { ...compra, id: "d", fecha: "2026-10-05T10:00:00Z", importe: -250 };
+  assertEquals(widgetSnapshot(lists([], [claveComoLaApp(devol)]), [...oct, compra, devol], now, payment)?.against, 1438.47);
+  // Una ventana de una app anterior (sin listas) no recibe la cifra nueva.
+  const viejo = lists([], []); viejo.widgetPeriod.scope = JSON.stringify(JSON.parse(viejo.widgetPeriod.scope).slice(0, 8));
+  assertEquals(widgetSnapshot(viejo, oct, now, payment), null);
 });

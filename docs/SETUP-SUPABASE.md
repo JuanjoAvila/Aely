@@ -25,6 +25,13 @@ Month legacy y widget v2 comparten el lector. **Claude despliega ingest ANTES de
 y verifica la fuente desplegada; la beta no acredita ese despliegue. Sin SQL ni migración.
 Referencias diferentes entre días sin alias estable siguen siendo filas distintas.
 
+Mes natural sin la nómina (26/10/2026, rama `claude/neto-sin-nomina`): `ingest/widget.ts` compara
+gasto − ingresos sin la nómina, con tope en 0, y usa `nominas`/`noNominas` de `widgetPeriod`
+(más `comercioDeNomina` para una nómina que llega con la app cerrada); un ingreso grande que no
+sabe decidir deja el widget sin foto. **Necesita desplegar `ingest`**, sin SQL ni secretos. El
+orden no es peligroso: con web e ingest de versiones distintas el alcance no casa y no hay foto
+(la app manda la cifra al abrir), nunca la cifra con la otra regla. `month` legado no cambia.
+
 Promoción117: inventario12/10 confirma bank-syncv33 alineado; ingestv50 y pricesv13 se prueban con fuentes desplegadas exactas y transportes sintéticos en prod117-edge-compat. SEC02/ingest-widget viajan como fuente sin despliegue ni anuncio de funciones activas. [Pins y límites](briefs/prod-completa-117.md).
 
 Compras4 (15/10/2026, candidata PR235): la absorción de un BOOK tras lectura truncada guarda
