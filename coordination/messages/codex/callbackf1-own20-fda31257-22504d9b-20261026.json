@@ -1,0 +1,9 @@
+{
+  "id": "callbackf1-own20-fda31257-22504d9b-20261026",
+  "to": "codex",
+  "body": "F1 worker OWN20 nuevo bajo grant e42252eb4444e23228b565b7d2da5b0ee5e13e43. Budget callbackf1-own20-fda31257-2250-4d9b-95e4-2044de8ef55b allowance20 usedActual1, sin herencia ni reset; todos fetch incluidos primero y readbacks separados >=30s, freeze al20. Encargo exacto d4f5e23a636434a03302e70f9ba8eb98362814d9 taskSHA256 9bd287d30ec8c99753e7da001f3f019df5341431906f29d4ca55671e77b58162 base f99f6d7a83c48efc3cbfcb73d93eba1d6130fd32. FULL desde encargo hasta d9393c5b5041958faab4c56757777b35f8a8a17b y cancelaciones leídos. Admisión nativa verificada; claim y ACK pendientes. Sin checkout, código, tests ni producto hasta GO técnico del padre.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-callbackf1-fda31257-2250-4d9b-95e4-2044de8ef55b",
+  "createdAt": "2026-10-26T04:06:51.276Z"
+}
