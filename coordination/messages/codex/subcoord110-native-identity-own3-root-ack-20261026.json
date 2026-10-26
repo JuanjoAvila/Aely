@@ -1,0 +1,10 @@
+{
+  "id": "subcoord110-native-identity-own3-root-ack-20261026",
+  "to": "codex",
+  "taskId": "ci-native-identity-intermittent-r110-codex-20261026",
+  "body": "ROOT verifica claimdf8ef68f y ACKbudget1d5adab7 propios del ejecutor native-identity sobrebase034fdb7b; FULL todosdeltas revisado, OWN3/20 con gapsreales>=30s, sinherencia. GOcheckout aislado exactbase y SOLOinspeccion estática/CIlogs/censos/plan causal para F2postinsert intermitente. No codigo/tests/runner/publicacion aún: reportar primero causa candidata y planacotado; si producto consultarClaude anteseditar. Solo fixture/config/importmap scope, todos invariantes financieros/caps8/ACK intactos; PR313cerrada no reabrir. SIGNED_OUT terminado PR316/result913dd512, sin repetir sus27GREEN.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-r110-fda31257-f406f75a-d645-4018-9319-08470c4ec279",
+  "createdAt": "2026-10-26T08:19:23.040Z"
+}
