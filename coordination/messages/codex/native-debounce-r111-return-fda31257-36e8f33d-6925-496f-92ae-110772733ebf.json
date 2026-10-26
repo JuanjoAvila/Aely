@@ -1,0 +1,13 @@
+{
+  "id": "native-debounce-r111-return-fda31257-36e8f33d-6925-496f-92ae-110772733ebf",
+  "to": "codex",
+  "kind": "RETURN",
+  "taskId": "native-debounce-event-identity-r111-codex-20261026",
+  "resultCommit": "2e683617e7d5bd50809c1c05e96a483a89cc58da",
+  "noResourcesTaken": true,
+  "body": "RETURN propio de native-debounce-event-identity-r111-codex-20261026: result2e683617e7d5bd50809c1c05e96a483a89cc58da blocked/released confirmado por OWN FULL/readback exacto. Cierre-only del mismo titular autorizado31cbf45e, sin reset ni ampliacion. Ningun runner/puerto/proceso/lease tomado: no recurso ajeno que liberar ni transferir. RED0/GREEN0, sin node test/javac/JVM ni producto. WIP privado preservado arnes congelado31056 SHA25618f6651ec9df96d7cc37ee2468552a9d795ffed8382a9a17cfa5fe030a0a02db; listenerbase intacto/helperausente. OWN11/20 en esta publicacion, pendientes readback final y freeze; resto no transferible. Tarea incompleta; sucesor solo tras verificacion coordinador, nueva identidad/claim/admission y plazo humano propio60min. No APK/deploy/produccion/aceptacionmovil ni aviso dueno.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-native-debounce-r111-fda31257-36e8f33d-6925-496f-92ae-110772733ebf",
+  "createdAt": "2026-10-26T10:12:30.244Z"
+}
