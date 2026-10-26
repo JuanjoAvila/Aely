@@ -103,12 +103,12 @@ test("tocar una categoría filtra Movimientos por ella y su mes; la cifra es la 
   expect(await page.evaluate(() => { const h = document.querySelector(".page-scroll-host"); return h.scrollHeight - h.clientHeight; })).toBeLessThanOrEqual(1);
   await expect(gastosCifra(page)).toHaveText("55,00 €");
 
-  // La píldora quita el filtro: vuelve todo, con la cifra del presupuesto y las filas grises.
+  // La píldora quita el filtro: vuelve todo, con la cifra del presupuesto y el recibo atenuado.
   await pildora(page).locator(".gx-fil-pil").click();
   await expect(pildora(page)).toHaveCount(0);
   await expect(gastosCifra(page)).toHaveText("100,00 €");
   await expect(gastosEstado(page)).toHaveText("gastado en septiembre · 900 € por debajo");
-  await expect(panel(page, "movs").locator('.gx-gris[data-gris="recibo"]')).toHaveCount(1);
+  await expect(tarjetas(page).filter({ hasText: "ENDESA" })).toHaveClass(/v4-mov-skip/);   // el recibo, suelto y atenuado (26/10)
   await expect(tarjetas(page).filter({ hasText: "Bar ayer" })).toHaveCount(1);
 });
 

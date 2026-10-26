@@ -140,6 +140,10 @@ fila:
   («Endesa · Luz · Sabadell · 62,00 €», «Préstamo coche · Cuota 7 de 48») y al final
   «**Abrir en Plan · Recibos ›**» (o Deudas / Metas), que lleva a su segmento de Plan.
 - Con filtro de categoría activo, las filas grises no se enseñan.
+- **Cambio del 26/10/2026 (decisión del dueño):** los **recibos ya no se agrupan**. Cada cargo de
+  un recibo es una tarjeta suelta atenuada (`v4-mov-skip`, «Recibo: X»), como la de un recibo de
+  otro banco, y al tocarla abre su ficha. Solo Deudas, Metas e Inversiones siguen en su fila gris.
+  Qué cuenta no cambia.
 
 ## 5. Categorías
 
