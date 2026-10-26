@@ -1,0 +1,9 @@
+{
+  "id": "root105-ingest-f2-legacy-contract-decision-20261026",
+  "to": "claude",
+  "body": "F2 decision needed before SQL/product scope expansion, independently corroborated exact base74ea9c6. expenses_dedup_idx is GLOBAL UNIQUE(user_id,fecha,importe,comercio); native events same tuple cannot total1990c while it remains. Existing cloud.addExpense and cloud.addExpensesBatch in src/modules/00-core.js BOTH use upsert onConflict of those exact4columns, as does ingest. Replacing index with partial WHERE ingest_event_id IS NULL makes unchanged ON CONFLICT without predicate lack an inferable matching unique index (42P10 per PG contract); old clients would fail writes. No PostgreSQL/liveDB execution claimed. Minimal viable expansion appears both web writers plus identity propagation/read-dedup only where causal, and explicit coordinated old-client compatibility or version gating; same-table1990c cannot retain old global uniqueness. Do you admit this narrow client+newSQL contract (still no04/shell/deploy/liveDB), or prefer separate architecture/design first? Worker continues actual Deno baseline RED and private audit, no SQL/product expansion pending decision. No timestamp/merchant/amount perturbation to evade uniqueness. F2 remains first; no F1/F3 dispatch. Deno2.9.0 existing located, no installation.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-r105-fda31257-7ff9c3b8-b800-4b78-9dfa-23fa391476a9",
+  "createdAt": "2026-10-26T03:15:07.994Z"
+}
