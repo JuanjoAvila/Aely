@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "id": "fin29-30-rename-tombstones-r114-codex-20261026",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261026-r114-fda31257-109aa9b9-d0cc-4f2d-b795-cd7aca4b70ea",
+  "createdAt": "2026-10-26T12:45:27.581Z",
+  "to": "codex",
+  "baseSHA": "acae53b68325b934a3b537dd00f898ae5f7035d2",
+  "objective": "FIN29/30 sucesor: corregir infraestructura de carga del test conservando fallo previo; establecer RED causal de renombrado, implementar alias/lapidas de alcance acotado y verificar GREEN/filas/centimos antes de revision independiente y una PR draft beta.",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/04-tab-gastos.js",
+    "src/modules/08-motor-bank.js",
+    "supabase/functions/_shared/presupuesto.ts",
+    "tests/fin19-r7-ficha-rename.test.mjs",
+    "tests/fin19-r5-remote-rename.test.mjs",
+    "tests/fin29-30-rename-scope.test.mjs",
+    "scripts/run-tests.mjs",
+    "docs/TESTING.md",
+    "docs/BACKLOG.md",
+    "docs/ARQUITECTURA.md",
+    "CHANGELOG.md",
+    "docs/ROADMAP.md",
+    "README.md"
+  ],
+  "grants": [
+    "7ae3e7e57d70e08ce6859efa6dd1518c35630680",
+    "c4d9c5a44f3a8e1f775c509e89735a5c07198977",
+    "de7e8878ab7d4b105e408b679e48e5b7c3892229",
+    "e42252eb4444e23228b565b7d2da5b0ee5e13e43",
+    "db3299cd69020ccf15563e787d1a1f4b69e8a753",
+    "0db3182dd205cf33e8897e467d58a9a35143df66",
+    "aac63502965539a9bf615f4a5a4687eee2923cfb",
+    "bc1c5e1df6bcbf0c8a9463015046f6848ea338b1"
+  ],
+  "requirements": [
+    "Sucesor exacto del task fin29-30-rename-tombstones-r113-codex-20261026 cerrado bloqueado/released b7713a7dfa22cecc82cec941ee018d26116b73e7 por titular anterior y RETURN256ee228c1477141eeb669ff6b79ae17acc493d0; OWNfinal12/20frozen ocho sobrantes intransferibles. Identidad/claim/OWN/leases no se transfieren. RECEPCION primero runtimepropio/proyectoAely local/nonce prefijofda31257 nuevo/ACKprivado fsync-readback. Sinfetch/claim/checkout/codigo/tests/despachos hasta admisionNATIVA ROOT vigente; sourceDeadline12:49:32.444Z, no admisionantes. Nuevo OWN20 inicial0 con grant e42252eb, aviso/ACK/readback>=30s/helperledgerstate propios y FULLtodosdeltas/cancelaciones; claim/ACKreadbackpropios y ROOTACK antescheckoutGO.",
+    "Orden Claude0db3182: reutilizar carga que ya usan tests/fin19-r*.test.mjs y mismo loader de npmtest, RED como testnuevo tests/fin29-30-*.test.mjs registrado en steps scripts/run-tests.mjs. Anterior UNICA corrida EXIT1INFRA antescasos: ErrorBoundary no encontrado, NOREDcausal; preservarlo. Diagnosticoestatico: reemplazo string de ensamblado expande dollar-comilla literal de05-dialogs-inv:233; corregir solo preparacion literal/callback o usar loaderexistente, sin tocar extractor/fixture compartidos ni producto ni oraculo para ocultarfallo. Reintento infraestructura EXPRESAMENTE permitido por0db3182, distinto de retrycausal. Nuevoshashes/harness/fuente/plan revisadosROOT antesrun.",
+    "GrantPERMANENTE aac63502: pureNode/Deno/JVM offline CPU1serial1worker0retry sinbrowser/servidor/puerto/red/DB compatible con agentes observados; censo actual+admisionROOT exacta+ENTER/RETURNprivados propios bastan; nohayledgeraparte ni volverconsultar esecontrato. Suiteentera/PW/CPU6/Gradle/APK/deploy requieren consultaexpresa y NOadmitidos aqui.",
+    "Limite exacto Claude7ae: en00-core SOLO contrato alias/lapidas/renombrado; en04-tab-gastos SOLO ficha renombrado~886-891; en08-motor-bank SOLO lectorlapidas~1946-1956. No lista/cifra viva/scroll/Gastos/Inicio/widget ajenos. _shared/presupuesto.ts SOLO fuente espejo con paridad; ningun Edge/SQL/deploy/backend por arrastre. Si alcance requiere otro hunk, STOP y consulta ROOT antes editar.",
+    "Causa estatica no es RED ejecutado: expenseRenameAck y ficha offline/sandbox/transition usan keys globales; expenseIsTombstoned oculta otra cuenta/banco. Sustituir ciegamente por expenseDeletionKey tambien oculta la fila propia porobName. Separar alias tipado de renombrado y borrado con identidad/UUID/banco/cuenta; conservar scoped identity FIN19 y contratos de absorciones/owner/ordinales/referencias. No inferir titular ni modificar historico ambiguo por parecido.",
+    "Preparar checkout/rama propios nuevos desde base exacta. Reutilizar extractor/logica y fixturefin19-r4 para harness causal enmemoria, sin build/browser/DB. Disenar nueva evidencia dirigida y oraculo independiente alcentimo/filas completas: dosbancos y doscuentas mismo banco con igual fechaimportecomercio; renombrarA mantiene2filas640c/320porbanco, persist/reload/pull/reimport sin duplicar, renameback, FIN04ACK, borrado/undo segun intencion confirmada, manual/abono/notas/referencias intactos.",
+    "Los testsfin19-r7/r5 que documentan la perdida de una fila por renombrado deben corregirse al oraculo2filas640c SOLO donde sea ese escenario. No blanket cambiar totales legitimos de borrado/undo a640 ni reinterpretar legacy sinambito sin autoridad suficiente; si contrato irreduciblemente ambiguo consultaROOT con caso preciso. Explicar cada correccion de oraculo encommit. Nada de datos reales, scripts de reparacion o migracion automatica.",
+    "RED primero contra fuente base, producto sin editar. ROOT revisa plan/harness exactos y concede runnerGO/admissionRED separados. Solo trasREDcausal yROOTGO codigo; GREEN separado con mismooraculo/harness y admission propia. CPU1serial1worker0retry/stopfirstfailure, fuentes/logs/cmd/EXIT/report yRETURN propios durables, censo actual y recursos propios; no fullsuite/JVM/Gradle/APK/ADB/browser/server ni procesos ajenos por arrastre. No repetir tests cerrados sin cambio causal nuevo.",
+    "Preparar copia/rama/checkouts NUEVOS desde base exacta, no escribir checkout anterior preservado. Reutilizar SOLOevidencias yplan/oraculo de anterior como fuente, no afirmar tests válidos ya cerrados. Congelar test/harnessnuevo ymanifest con loader/dependencias/fuente reales; RED exacto separado tras censo/admision, NOproducto antesREDcausal revisado; GREENseparado mismooraculo ymanifest nuevo para fuentescambiadas.",
+    "Plazo propio real60min desdeadmision yobjetivocierre10minantes, sinheredar fecha de anterior; registrohorasreales. Reportar solo alROOTnativo vigente, nuncaClaude. ROOT114deadline13:01:29.466Z independiente no reinicia tuidentidad/claim/OWN/plazo. AlrelevoROOT soloactualizarrutasguardsprivados expresamenteadmitidos. FIN05aplazado/PR318R2encola, nolas tomes. SinAPK/Gradle/SQL/live/Edge/deploy/deps/version/generated/servido/movil/ProductREADY/avisodueno."
+  ],
+  "acceptance": "RED causal y GREEN dirigidos con filas completas y exactitud alcentimo, contratos financieros/ambito preservados, revision monetaria independiente y candidata final verificada, seguida de PRdraft beta autorizada; fuente espejo sin deploy y sin aceptacion live/movil."
+}
