@@ -94,9 +94,11 @@ public class WidgetNotificationTest {
     final Map<Integer,Integer> visibility=new HashMap<>();
     RemoteViews(String p,int layout){}
     void setTextViewText(int id,String value){text.put(id,value);}
-    void setTextColor(int id,int color){}
+    final Map<Integer,Integer> color=new HashMap<>();
+    final Map<Integer,Integer> progress=new HashMap<>();
+    void setTextColor(int id,int c){color.put(id,c);}
     void setViewVisibility(int id,int value){visibility.put(id,value);}
-    void setProgressBar(int id,int max,int current,boolean indeterminate){}
+    void setProgressBar(int id,int max,int current,boolean indeterminate){progress.put(id,current);}
     void setOnClickPendingIntent(int id,PendingIntent p){}
   }
   static class View {static final int VISIBLE=0,GONE=8;}
@@ -108,7 +110,7 @@ public class WidgetNotificationTest {
   }
   static class R {
     static class layout {static final int widget_micartera=0;}
-    static class id {static final int w_title=1,w_amount=2,w_afford=3,w_sub=4,w_bar=5,w_foot=6,w_root=7;}
+    static class id {static final int w_title=1,w_amount=2,w_afford=3,w_sub=4,w_bar=5,w_foot=6,w_root=7,w_bar_over=8;}
   }
   static class MiCarteraWidget {
     static final String PREFS="micartera_widget";
@@ -410,7 +412,38 @@ ${transport}
       ok(MiCarteraWidget.last.text.get(R.id.w_amount).equals("—"),"registro antiguo pequeño sin causa de formato no demuestra pérdida ausente");
       System.out.println("PASS: overflow Java74 real, prefs sin marca, sólo ACK retenido mantiene pérdida bloqueada");
     }
+  /* Su captura del 26/10/2026: 1.912 € de 1.500 € y el widget decía «✅ Puedes gastar 0 €» en rojo
+     sobre la barra verde llena. Pasado del límite no hay «puedes gastar» y la barra es la coral. */
+  static void overBudget(){
+    String[][] casos={{"es","de 1.500 € este mes · 412 € de más 🚨"},{"en","of 1.500 € this month · 412 € over 🚨"},
+      {"ca","de 1.500 € aquest mes · 412 € de més 🚨"}};
+    long month=WidgetPeriod.monthStart(System.currentTimeMillis());
+    for(String[] caso:casos){
+      Listener c=production52(month);
+      c.prefs.edit().putString("lang",caso[0]).putFloat("spent",1911.95f).putFloat("budget",1500f)
+        .putFloat("budgetLeft",0f).putFloat("safeLiq",2000f).commit();
+      render(c); RemoteViews v=MiCarteraWidget.last;
+      ok(v.text.get(R.id.w_amount).equals("1.912 €")&&v.color.get(R.id.w_amount)==MiCarteraWidget.CORAL,"cifra pasada en coral ("+caso[0]+")");
+      ok(v.text.get(R.id.w_sub).equals(caso[1]),"exceso dicho una vez ("+caso[0]+"): "+v.text.get(R.id.w_sub));
+      ok(v.visibility.get(R.id.w_afford)==View.GONE,"sin «puedes gastar» pasado del límite ("+caso[0]+")");
+      ok(v.visibility.get(R.id.w_bar)==View.GONE&&v.visibility.get(R.id.w_bar_over)==View.VISIBLE,"barra coral, no la verde ("+caso[0]+")");
+      c.prefs.edit().putFloat("spent",900f).putFloat("budgetLeft",600f).commit();
+      render(c); v=MiCarteraWidget.last;
+      ok(v.visibility.get(R.id.w_afford)==View.VISIBLE&&v.color.get(R.id.w_afford)==MiCarteraWidget.MINT
+        &&v.text.get(R.id.w_afford).endsWith(" 600 €"),"dentro del límite vuelve «puedes gastar» ("+caso[0]+")");
+      ok(v.visibility.get(R.id.w_bar)==View.VISIBLE&&v.visibility.get(R.id.w_bar_over)==View.GONE&&v.progress.get(R.id.w_bar)==60,
+        "dentro del límite, barra verde al 60 % ("+caso[0]+")");
+    }
+    Listener sinPres=production52(month);
+    sinPres.prefs.edit().putFloat("budget",0f).putFloat("spent",1911.95f).commit();
+    render(sinPres);
+    ok(MiCarteraWidget.last.visibility.get(R.id.w_bar)==View.GONE&&MiCarteraWidget.last.visibility.get(R.id.w_bar_over)==View.GONE,
+      "sin presupuesto no hay ninguna barra");
+    System.out.println("PASS: pasado del límite sin «puedes gastar» y con barra coral (es/en/ca)");
+  }
   public static void main(String[] args){
+    if(args.length>0&&args[0].equals("over")){overBudget();return;}
+    overBudget();
     if(args.length>0&&args[0].equals("guards")){moneyGuards();return;}
     if(args.length>0&&args[0].equals("fresh")){freshRecovery();return;}
     if(args.length>0&&args[0].equals("races")){readRaces();return;}

@@ -202,7 +202,7 @@ public class Fx {
   }
   public static class R {
     public static class layout {public static final int widget_micartera=0;}
-    public static class id {public static final int w_title=1,w_amount=2,w_afford=3,w_sub=4,w_bar=5,w_foot=6,w_root=7;}
+    public static class id {public static final int w_title=1,w_amount=2,w_afford=3,w_sub=4,w_bar=5,w_foot=6,w_root=7,w_bar_over=8;}
   }
   public static class Notif {
     public static int idFor(String s){return s.hashCode();}
