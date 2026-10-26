@@ -1,0 +1,91 @@
+{
+  "status": "done",
+  "summary": "PR308 DRAFT beta, exact head626e214699bb62e4757f54e71e5f97366eb7d1f0 tras revision parental independiente. FIN27 BOOK acredita mes del cargo por MISMA referencia exacta; cargo30Sept BOOK2Oct pagaSept, conserva cajaOct. Dosoraculos de Plan y caja/feed/net porbanco/mes en centimos; prueba chargeDate/rekey/merge2ordenes/offline/feedparcial, derivedDay30 ymarcas derivadas antiguas controladas. Segundo rojo por hintajeno invalido corregido con guardas decontrato/identidad/veto/feed sinrecursion. Baseprobada9ca1ff11(174); betaactual78c41edf(175) con drift8commits e integracion176 pendiente, sinrebase. Solo08/test/registro/brief. No07/00/04/shell/metadatarelease/backend/native.",
+  "productSHA": "626e214699bb62e4757f54e71e5f97366eb7d1f0",
+  "pullRequestNumber": 308,
+  "baseSHA": "9ca1ff11e27b3daf01ecd02d51bdb7abcaabad60",
+  "parentReviewApproved": true,
+  "tests": [
+    {
+      "command": "node tests/fin27-book-charge-month.test.mjs on intact base9ca1ff11 before fix",
+      "exitCode": 1,
+      "expectedDiagnostic": true,
+      "expectedSeptemberPaidCents": 1299,
+      "actualSeptemberPaidCents": 0
+    },
+    {
+      "command": "directed invalid-other-proof probe on first candidatea8ffc82a",
+      "exitCode": 1,
+      "expectedDiagnostic": true
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/fin27-book-charge-month.test.mjs",
+      "exitCode": 0,
+      "cases": 15
+    },
+    {
+      "command": "TZ=UTC node tests/fin27-book-charge-month.test.mjs",
+      "exitCode": 0,
+      "cases": 15
+    },
+    {
+      "command": "TZ=America/Los_Angeles node tests/fin27-book-charge-month.test.mjs",
+      "exitCode": 0,
+      "cases": 15
+    },
+    {
+      "command": "serial directed fixed-payment-state/payment-evidence-ui/recibo-un-cargo-un-recibo/recibos-book-rival/recibos-renombrar/retirada-bancaria",
+      "exitCode": 0,
+      "files": 6
+    },
+    {
+      "command": "playwright fin27-book-charge-month.spec.mjs; 1worker0retry maxFailures1",
+      "exitCode": 0,
+      "cases": 2,
+      "skips": 0,
+      "retries": 0,
+      "flaky": 0
+    },
+    {
+      "command": "FIN27 directed semantic mutants and month-rival/syncUpgrade guards",
+      "exitCode": 0,
+      "killed": 8
+    },
+    {
+      "command": "node scripts/build-app.mjs; node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    }
+  ],
+  "resources": {
+    "released": true,
+    "ownOnly": true,
+    "CPU": 1,
+    "serial": true,
+    "workers": 1,
+    "retries": 0,
+    "port": 46227,
+    "portReturnedVerified": true,
+    "runnerLeaseReleased": true
+  },
+  "limitations": [
+    "Draft only; Grok financial review/fullNode/fullbrowser/Deno/integrator gates pending.",
+    "Tested174base; registration and other175deltas require integrator review; no integrated176 qualification.",
+    "No global CIgreen, integration, deployment, served beta, physical mobile acceptance or ProductREADY claimed."
+  ],
+  "ownBudget": {
+    "allowance": 20,
+    "usedActualBeforeResultReadback": 6,
+    "noReset": true,
+    "noInheritance": true
+  },
+  "schema": 1,
+  "taskId": "fin27-book-cargo-month-codex-20261026",
+  "actor": "codex",
+  "sessionId": "codex-local-20261026-fin27-fda31257-c69b54ae-91730495-286a83e8",
+  "createdAt": "2026-10-26T00:17:53.323Z",
+  "released": true
+}
