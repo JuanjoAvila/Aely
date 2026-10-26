@@ -348,7 +348,9 @@ for (const caso of [{ lang: "es" }, { lang: "en" }, { lang: "ca" }]) {
   });
 }
 
-test("v2 sin Mi ciclo recibe el mes en bruto", async ({ page }) => {
+// Oráculo cambiado el 26/10/2026 (decisión del dueño): sin Mi ciclo el widget recibe el gasto menos
+// los ingresos SIN la nómina: 850 − 100 del Bizum = 750 (antes 850, el bruto). La nómina no resta.
+test("v2 sin Mi ciclo recibe el mes sin la nómina", async ({ page }) => {
   await page.clock.install({ time: new Date("2026-09-27T10:00:00Z") });
   await seedLoggedInDashboard(page, { __seedOnce: true, budget: 1000, expenses: CICLO,
     accounts: [{ id: "tr", ent: "trade_republic", role: "diario", spendFrom: true, value: 2000 }],
@@ -359,7 +361,7 @@ test("v2 sin Mi ciclo recibe el mes en bruto", async ({ page }) => {
   const snap = await page.evaluate(() => window.__widgetSnapshot);
   expect(snap.periodKind).toBe("mes");
   expect(snap.magnitude).toBe("gasto");
-  expect(snap.spent).toBe(850);
+  expect(snap.spent).toBe(750);
   expect(snap.periodStart).toBe(await page.evaluate(() => inicioDeMesMs(Date.now())));
 });
 
@@ -458,9 +460,11 @@ for (const lang of ["es","en","ca"]) for (const mode of ["net","split"]) for (co
     await bridgeV2(page);await page.goto("/");
     await expect.poll(()=>page.evaluate(()=>window.__widgetSnapshot?.contract)).toBe(2);
     const snap=await page.evaluate(()=>window.__widgetSnapshot);
-    expect(snap.spent).toBe(cycle?-1000:500);expect(snap.budgetLeft).toBe(cycle?2000:500);
+    // Mes natural (26/10/2026): la nómina no resta, la devolución de 1.500 sí, y lo usado no baja
+    // de 0: quedan los 1.000 del límite, no 2.000 (antes el bruto, 500). Mi ciclo conserva su neto.
+    expect(snap.spent).toBe(cycle?-1000:0);expect(snap.budgetLeft).toBe(cycle?2000:1000);
     expect(snap.magnitude).toBe(cycle?"neto":"gasto");expect(snap.periodKind).toBe(cycle?"ciclo":"mes");
     await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
-    await expect(page.locator(".v4-budget .ph")).toContainText(cycle?/1[.,\s]?000/:"500");
+    await expect(page.locator(".v4-budget .ph")).toContainText(/1[.,\s]?000/);
   });
 }

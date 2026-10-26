@@ -443,6 +443,18 @@ export function cuentaParaPresupuesto(fila: FilaGasto, ents: string[]): boolean 
   return ents.indexOf(ent) >= 0;
 }
 
+/**
+ * ¿El comercio dice que es una nómina? Espejo de la parte por NOMBRE de `esNomina()` del cliente
+ * (la que abre Mi ciclo), con la normalización de `recNorm()`. El cliente mira además el concepto y
+ * los ingresos periódicos de Plan, que aquí no se tienen: por eso la app manda en `widgetPeriod`
+ * qué ingresos grandes ya decidió, y esto solo sirve para una nómina que llega con la app cerrada.
+ */
+export function comercioDeNomina(comercio?: string | null): boolean {
+  const n = String(comercio || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+  return /\b(nomina|salario|sueldo|salary|payroll|haberes)\b/.test(n);
+}
+
 /** Lo apartado para metas desde `desdeMs`. Espejo de `reservedSince()`: se resta del presupuesto. */
 // deno-lint-ignore no-explicit-any
 export function reservadoDesde(data: any, desdeMs: number): number {

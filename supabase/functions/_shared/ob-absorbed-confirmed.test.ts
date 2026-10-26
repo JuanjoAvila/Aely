@@ -19,8 +19,8 @@ Deno.test('FIN17 ocultar confirmado antes de consumir la referencia entre días'
  for(const rows of [[row,later],[later,row]])eq(filasComoLaApp(rows,[],[],owner,[entry]),[later]);
 });
 Deno.test('FIN17 widget usa confirmado;un pago oculto no obtiene snapshot',()=>{
- const now=Date.parse('2026-10-18T12:00:00Z'),start=inicioDeMesMs(now),scope=JSON.stringify([2,start,'mes','gasto','',1000,['caixabank'],'caixabank']);
- const data={budget:1000,accounts:[{ent:'caixabank',role:'diario',spendFrom:true}],settings:{expenseBanks:['caixabank']},widgetPeriod:{v:2,kind:'mes',start,scope},deleted:[],obAbsorbedPending:[],obAbsorbedConfirmed:[entry]};
+ const now=Date.parse('2026-10-18T12:00:00Z'),start=inicioDeMesMs(now),scope=JSON.stringify([2,start,'mes','gasto','',1000,['caixabank'],'caixabank',[[],[]]]);
+ const data={budget:1000,accounts:[{ent:'caixabank',role:'diario',spendFrom:true}],settings:{expenseBanks:['caixabank']},widgetPeriod:{v:2,kind:'mes',start,scope,nominas:[],noNominas:[]},deleted:[],obAbsorbedPending:[],obAbsorbedConfirmed:[entry]};
  eq(widgetSnapshot(data,[kept,row],now,{id:row.id,event:'synthetic',key:'synthetic'},owner),null);
  const result=widgetSnapshot(data,[kept,row],now,{id:kept.id,event:'synthetic',key:'synthetic'},owner);eq(result?.spent,3.2);
 });

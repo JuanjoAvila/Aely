@@ -110,7 +110,9 @@ function cifras(c,s,y,m,d){
   const st=c.monthBudgetStats(s,null,hastaReferencia), i=c.insumosSaldoGasto(s);
   const pintado=s.accounts.map(a=>+c.saldoCuentaMostrada(a,{injTR:i.injTR,spentByBank:i.spentByBank,paidNetByBank:i.paidNetByBank,roundup:i.roundup,monthlyInvest:i.monthlyInvest}).toFixed(2));
   const hoy=s.accounts.map(a=>+c.monthNetForAccount(s,a.ent,y,m,d).toFixed(2)), cerrado=s.accounts.map(a=>+c.monthNetForAccount(s,a.ent,y,m,null).toFixed(2));
-  const numeros={}; Object.keys(st).sort().forEach(k=>{ if(typeof st[k]==="number") numeros[k]=+st[k].toFixed(2); });
+  // `nomina` (26/10/2026) no existe en la referencia: es lo que el mes natural aparta del ingreso, no
+  // otra cifra del recibo. Las que sí comparten se siguen comparando todas.
+  const numeros={}; Object.keys(st).sort().forEach(k=>{ if(typeof st[k]==="number"&&k!=="nomina") numeros[k]=+st[k].toFixed(2); });
   return {presupuesto:numeros,pintado,base:s.accounts.map(a=>a.value),previsto:pintado.map((x,k)=>+(x+cerrado[k]-hoy[k]).toFixed(2))};
 }
 function recorre({c,reloj},ex){

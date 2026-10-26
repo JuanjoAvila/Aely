@@ -1138,13 +1138,8 @@
   .gx-sec.on{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
   .gx-sec-globo{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;padding:0 4px;box-sizing:border-box;border-radius:9px;
     background:var(--tan);color:var(--on-mint);font:800 11px 'Manrope',sans-serif;display:flex;align-items:center;justify-content:center;}
-  /* Categorías (SPEC §5): barra del presupuesto y la lista en una tarjeta, cada fila con su barra. */
+  /* Categorías (SPEC §5): la lista en una tarjeta, cada fila con su barra. */
   .gx-cats{display:flex;flex-direction:column;gap:14px;padding-top:8px;}
-  .gx-cats-pres{display:flex;flex-direction:column;gap:8px;}
-  .gx-cats-barra{height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden;display:flex;}
-  .gx-cats-in{display:block;background:var(--mint);}
-  .gx-cats-over{display:block;background:var(--coral);}
-  .gx-cats-pie{display:flex;justify-content:space-between;gap:10px;font-size:13px;color:var(--muted);}
   .gx-cats-lista{background:var(--surface);border-radius:22px;padding:6px 0;}
   .gx-cats .hint{margin:0;}
   .v4-gastos-cat.gx-cat{display:flex;align-items:center;gap:14px;padding:10px 16px;}
@@ -7754,7 +7749,7 @@ Object.assign(LANG.es,{
    como una frase («gastado en octubre · 139 € por encima»). */
 Object.assign(LANG.es,{gv5_spent_in:"gastado en {mes}", gv5_net_in:"balance de {mes}",
   gv5_upto:"gastado en {mes} hasta el {d}", gv5_upto_net:"balance de {mes} hasta el {d}",
-  gv5_closed:"{mes} · cerrado", gv5_over:"{x} por encima", gv5_under:"{x} por debajo", gv5_over_g:"gastos {x} por encima", gv5_under_g:"gastos {x} por debajo",
+  gv5_closed:"{mes} · cerrado", gv5_over:"{x} por encima", gv5_under:"{x} por debajo",
   gv5_more:"{x} más que en {mes}", gv5_less:"{x} menos que en {mes}", gv5_same:"igual que en {mes}",
   gv5_more_sd:"{x} más que en {mes} a estas alturas", gv5_less_sd:"{x} menos que en {mes} a estas alturas", gv5_same_sd:"igual que en {mes} a estas alturas",
   gv5_cycle:"en tu ciclo", gv5_cycle_upto:"en tu ciclo hasta el {d}", gv5_period_upto:"{period} · hasta el {d}", gv5_all:"todo el histórico",
@@ -7780,13 +7775,13 @@ Object.assign(LANG.es,{gv5_cartera_open:"Abrir en Cartera", g_inv_dest:"Inversi�
 
 // Gastos v5, tanda 2: secciones (Movimientos / Categorías / Suscripciones) y sus cabeceras.
 Object.assign(LANG.es,{gv5_secciones:"Secciones de Gastos", gv5_sec_movs:"Movimientos", gv5_sec_cats:"Categorías", gv5_sec_subs:"Suscripciones",
-  gv5_subs_globo:"{n} por revisar", gv5_cats_pre:"{period} por categoría", gv5_cats_pres:"Presupuesto gastado", gv5_cats_of:"de {x}",
+  gv5_subs_globo:"{n} por revisar", gv5_cats_pre:"{period} por categoría",
   gv5_cats_vacio:"Aún no hay gastos que cuenten en este periodo.", gv5_subs_n:"al mes · {n} por revisar", gv5_subs_none:"nada por revisar",
   gv5_subs_ok_t:"Todo en orden", gv5_subs_ok_d:"Aquí saldrán los cobros repetidos que no estén en Recibos."});
 
 
 // Gastos v5, tanda 3: tocar una categoría filtra (píldora) y el límite va por pulsación larga o el chip.
-Object.assign(LANG.es,{gv5_cats_hint:"Toca una para ver sus movimientos · mantenla pulsada para ponerle un límite",
+Object.assign(LANG.es,{gv5_cats_hint:"Toca para filtrar · mantén pulsado para el límite",
   gv5_fil_n:"{n} movimientos", gv5_fil_n1:"1 movimiento", gv5_fil_quitar:"Quitar el filtro de {x}",
   gv5_fil_lim_poner:"Poner límite", gv5_fil_lim:"Límite {x}", gv5_fil_quedan:"quedan {x}", gv5_fil_pasado:"{x} de más"});
 // Gastos v5, tanda 4: Suscripciones como bandeja con su ficha (SPEC §6.1, §6.3 y §6.4).
@@ -8862,13 +8857,13 @@ function ensureBudgetMonthSnap(state,nowMs){
 }
 function underBudgetStreak(state, nowMs){
   state=state||{};
-  const budgets=state.budgetByMonth||{};
+  const budgets=state.budgetByMonth||{}, flows=nominaFlowsOf(state);
   const num=function(k){ return +k.slice(0,4)*12 + +k.slice(5)-1; };
   const curNum=num(budgetYmKey(nowMs));
   const keys=Object.keys(budgets).filter(function(k){ return num(k)<curNum; }).sort(function(a,b){ return num(a)-num(b); });
   const byMonth={}, windows=keys.map(function(k){
     const y=+k.slice(0,4),m=+k.slice(5)-1;
-    byMonth[k]={spent:0,income:0,reserved:0};
+    byMonth[k]={spent:0,income:0,reserved:0,nomina:0};
     return {k:k,start:inicioDeMesMs(Date.UTC(y,m,15,12)),end:inicioDeMesMs(Date.UTC(y,m+1,15,12))};
   });
   const monthOf=function(ms){
@@ -8891,7 +8886,12 @@ function underBudgetStreak(state, nowMs){
     const k=monthOf(dateMs(e.date));
     if(!k || !expenseCountsBudget(e,state)) return;
     if(e.amount>0) byMonth[k].spent+=e.amount;
-    else if(e.amount<0) byMonth[k].income+=Math.abs(e.amount);
+    else if(e.amount<0){
+      byMonth[k].income+=Math.abs(e.amount);
+      // La misma nómina que aparta el mes en curso (`monthBudgetStats`): si la racha comparara otra
+      // cifra, un mes visto entero «por debajo» rompería la racha al cerrarse (26/10/2026).
+      if(e.amount<=-200 && e.category!=="bizum" && !e.possibleDup && esNomina(e,flows)) byMonth[k].nomina+=Math.abs(e.amount);
+    }
   });
   (state.reservaLog||[]).forEach(function(x){
     const ms=new Date(x&&x.date).getTime();
@@ -8901,7 +8901,7 @@ function underBudgetStreak(state, nowMs){
   });
   const good={};
   keys.forEach(function(k){
-    const m=byMonth[k], stats=budgetStatsFromAmounts(m.spent,m.income,Number(budgets[k]),m.reserved,(state.settings&&state.settings.gTotalMode)||"split");
+    const m=byMonth[k], stats=budgetStatsFromAmounts(m.spent,m.income,Number(budgets[k]),m.reserved,"mes",m.nomina);
     good[k]=stats.budget!=null&&stats.against<=stats.budget+.005;
   });
   let best=0,run=0,prev=null;
@@ -9723,6 +9723,8 @@ function shareMonthReport(state, tt, showToast, opt){
     g.fillStyle=muted; g.font="700 27px Manrope, sans-serif"; g.fillText(t("rp_spent").toUpperCase(), 116, 252);
     // Misma cifra que Resumen/Gastos (`monthBudgetStats`), no thisMonthSpent.
     const bs=monthBudgetStats(state, winStart+12*864e5, winEnd!=null?winEnd:undefined);
+    // La barra mide lo mismo que Inicio y la tarjeta del mes cerrado (`limiteDeStats`, 26/10/2026).
+    bs.against=limiteDeStats(bs,state).against;
     const spentShown=bs.shown!=null?bs.shown:Math.max(0,bs.against||0);
     g.fillStyle=text;  g.font="700 96px Manrope, sans-serif"; g.fillText(eur0(spentShown), 112, 300);
     const bud=bs.budget!=null?bs.budget:0;
@@ -12623,18 +12625,28 @@ function lastPaydayOf(expenses, nowMs, delSet, eligible){
 // que se ha cobrado la nómina. El filtro informativo antiguo conserva su ancla histórica;
 // el límite solo se reinicia con un ingreso identificado por nombre o flujo periódico.
 function budgetPaydayOf(state, nowMs, expenses){
-  const flows=(state.flows||[]).filter(function(f){ return f&&f.kind==="income"&&!f.once&&Number(f.amount)>=200; });
-  return lastPaydayOf(expenses||state.expenses, nowMs, expenseDeletedSet(state), function(e){
-    if(CAT_NEUTRAS[e.category] || e.category==="bizum") return false;
-    // Algunos bancos ponen la empresa como comercio y «NÓMINA» solo en el concepto.
-    const name=recNorm([e.merchant,e.note,e.concept].join(" "));
-    if(/\b(nomina|salario|sueldo|salary|payroll|haberes)\b/.test(name)) return true;
-    const bank=expenseBankOf(e);
-    if(!bank) return false;
-    const d=parseDate(e.date), month=d.getMonth()+1, year=d.getFullYear();
-    return flows.some(function(f){ return (f.to||"sabadell")===bank && flowOccursIn(f,month,year)
-      && recAmtClose(Number(f.amount),Math.abs(e.amount)) && recNameMatch(f.name,e.merchant); });
-  });
+  const flows=nominaFlowsOf(state);
+  return lastPaydayOf(expenses||state.expenses, nowMs, expenseDeletedSet(state), function(e){ return esNomina(e,flows); });
+}
+// Los ingresos periódicos de Plan que pueden ser una nómina. Se calculan una vez por recorrido.
+function nominaFlowsOf(state){
+  return (state.flows||[]).filter(function(f){ return f&&f.kind==="income"&&!f.once&&Number(f.amount)>=200; });
+}
+/* ¿Este ingreso es la nómina? La MISMA identificación que abre Mi ciclo (`budgetPaydayOf`), sin
+   su ventana de 45 días: el mes natural la usa para dejar la nómina fuera de lo que devuelve
+   margen al límite (decisión del dueño, 26/10/2026). Una sola regla para los dos modos: si se
+   separaran, la misma nómina abriría el ciclo y a la vez «pagaría» el mes. El importe mínimo y el
+   posible duplicado los pone quien llama, como `lastPaydayOf`. */
+function esNomina(e, flows){
+  if(CAT_NEUTRAS[e.category] || e.category==="bizum") return false;
+  // Algunos bancos ponen la empresa como comercio y «NÓMINA» solo en el concepto.
+  const name=recNorm([e.merchant,e.note,e.concept].join(" "));
+  if(/\b(nomina|salario|sueldo|salary|payroll|haberes)\b/.test(name)) return true;
+  const bank=expenseBankOf(e);
+  if(!bank) return false;
+  const d=parseDate(e.date), month=d.getMonth()+1, year=d.getFullYear();
+  return flows.some(function(f){ return (f.to||"sabadell")===bank && flowOccursIn(f,month,year)
+    && recAmtClose(Number(f.amount),Math.abs(e.amount)) && recNameMatch(f.name,e.merchant); });
 }
 /* Límites del período EN MILISEGUNDOS, calculados UNA vez. Antes `inPreset` se llamaba por gasto y
    se construía dentro tres o cuatro `new Date()` (startOfMonth, el mes pasado…): con un histórico
@@ -13678,12 +13690,10 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   const monthSummary=useMemo(function(){
     const bs=monthBudgetStats(Object.assign({},state,{expenses:expensesDef}),null,null,null,selectedPeriod);
     /* La cifra grande sigue su modo (Balance o Gastos), pero el margen contra el límite es el de
-       Inicio (`dashboardBudgetStats`, modo "split") y el del widget (`against` de ingest): gasto
-       bruto en el mes natural, neto en Mi ciclo. Con el balance, los ingresos «devolvían» límite
-       solo aquí: 1.912 € gastados y 486 € de ingresos contra 1.500 € daban «74 € por debajo»
-       mientras Inicio y el widget decían 412 € de más (capturas del dueño, 26/10/2026). */
-    const lim=budgetStatsFromAmounts(bs.spent,bs.income,typeof state.budget==="number"?state.budget:0,bs.reserved,bs.cycle?"net":"split");
-    const limAgainst=lim.against;
+       Inicio (`dashboardBudgetStats`, modo "mes") y el del widget (`against` de ingest): en el mes
+       natural, gasto menos ingresos sin la nómina; en Mi ciclo, el neto. Cada pantalla con su
+       propia regla dio tres cifras distintas del mismo mes (capturas del dueño, 26/10/2026). */
+    const lim=limiteDeStats(bs,state);
     if(bs.budget!=null) bs.remaining=lim.remaining;
     // No existe una foto histórica del límite ni un presupuesto acumulado para varios meses.
     // Enseñar el límite actual como margen del pasado inventaría dinero disponible.
@@ -13693,7 +13703,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       : preset==="months" ? monthLong(mad.m-1) : preset==="all" ? t("gv5_all")
       : cicloPas ? cicloTxt(cicloRango.fin) : t("g_"+preset);
     return {
-      spent:bs.spent, income:bs.income, balance:bs.balance, mode:bs.mode, against:bs.against, shown:bs.shown, limAgainst:limAgainst,
+      spent:bs.spent, income:bs.income, balance:bs.balance, mode:bs.mode, against:bs.against, shown:bs.shown,
       budget:bs.budget, reserved:bs.reserved, remaining:bs.remaining,
       cycle:!!selectedPeriod.cycle,
       periodLabel:periodLabel, budgetApplies:budgetApplies
@@ -14001,10 +14011,9 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     const vsBudget=function(){
       const r=monthSummary.remaining;
       if(r==null) return null;
-      // Con el balance en grande y el mes natural, el margen es del GASTO: se dice, o «balance de
-      // octubre · 74 € por debajo» parecería comparar el balance con el límite.
-      const g=mode==="net"&&!monthSummary.cycle?"_g":"";
-      return r<0?{tail:tf("gv5_over"+g,{x:fmt(r)}),tone:"coral"}:{tail:tf("gv5_under"+g,{x:fmt(r)}),tone:"mint"};
+      // Sin «gastos» delante desde el 26/10/2026: el margen ya no es del gasto bruto sino del gasto
+      // menos lo recibido sin la nómina, y él lo quería dicho así: «64 € por debajo».
+      return r<0?{tail:tf("gv5_over",{x:fmt(r)}),tone:"coral"}:{tail:tf("gv5_under",{x:fmt(r)}),tone:"mint"};
     };
     const vsPrev=function(cur,prev,ym,mismoDia){
       const diff=cur-prev, mes=mesDe(ym), sd=mismoDia?"_sd":"";
@@ -14126,12 +14135,10 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     } else if(secc==="cats"){
       const per=preset==="months"?monthLong(mad.m-1):preset==="cycle"&&!cicloPas?t("g_cycle"):monthSummary.periodLabel;
       const r=monthSummary.remaining, x=r==null?null:Math.abs(r)<1?eur(Math.abs(r)):eur0(Math.abs(r));
-      // El mismo matiz que la línea de Movimientos: en Balance y mes natural el margen es del gasto.
-      const g=monthSummary.mode==="net"&&!monthSummary.cycle?"_g":"";
       // Categorías enseña siempre la cifra del presupuesto: su desglose no sigue a los filtros.
       const pres=cab.pres||cab.top;
       top={n:pres.n, sub:pres.sub, ym:cab.ciclos?cab.top.ym:catsYm, pre:tf("gv5_cats_pre",{period:per}),
-        tail:r==null?null:tf((r<0?"gv5_over":"gv5_under")+g,{x:x}), tone:r==null?null:r<0?"coral":"mint"};
+        tail:r==null?null:tf(r<0?"gv5_over":"gv5_under",{x:x}), tone:r==null?null:r<0?"coral":"mint"};
     } else {
       const n=novelSubs.length;
       top={n:heavyOk?subsMes:null, ym:null, pre:!heavyOk?"":n?tf("gv5_subs_n",{n:n}):t("gv5_subs_none")};
@@ -14405,7 +14412,6 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       role:"tabpanel","aria-label":t(GX_SECC_TXT[id]),style:secc===id?null:GX_OCULTO,"aria-hidden":secc!==id}, hijo);
   };
   const catsMax=catBreakdown.reduce(function(m,r){ return Math.max(m,r.spent); },0);
-  const presu=catsBudget&&monthSummary.budget>0?monthSummary.budget:null;
   const cabVista=secc==="movs"?cab:cabSecc;
   /* La píldora del filtro (SPEC §4.1) y, a su lado, el chip del LÍMITE de esa categoría: la otra
      entrada a la misma hoja que la pulsación larga. Con límite y en el periodo en que manda (mes en
@@ -14420,8 +14426,6 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   const filFmt=function(x){ x=Math.abs(x); return x<1?eur(x):eur0(x); };
   const filLimTxt=!(filLim>0)?t("gv5_fil_lim_poner")
     : tf("gv5_fil_lim",{x:eur0(filLim)})+(filManda?" · "+tf(filQueda<0?"gv5_fil_pasado":"gv5_fil_quedan",{x:filFmt(filQueda)}):"");
-  // La barra mide lo mismo que la línea «por encima/por debajo» (el gasto de Inicio).
-  const usado=Math.max(0,monthSummary.limAgainst||0);
 
   /* Con la fila de ciclos al bajar, la página tiene que poder bajar SIEMPRE lo justo para que salga:
      al empezar un ciclo hay tres gastos, no hay scroll y no habría forma de ir a un ciclo pasado
@@ -14471,19 +14475,13 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
        debajo para llegar a la cabecera (lo resuelve la raya de `GastosCabecera` al final de la
        lista). Ese hueco, con el borde de la última tarjeta asomando bajo la cabecera, era el
        «sigue habiendo esto al final» (25/10/2026). */
-    /* CATEGORÍAS (SPEC §5): el desglose que antes iba encima de la lista, con la barra del
-       presupuesto arriba (solo mes en curso / Mi ciclo: sin límite en el pasado, regla de §3).
+    /* CATEGORÍAS (SPEC §5): el desglose que antes iba encima de la lista. Sin barra del presupuesto
+       arriba (el dueño, 26/10/2026: «quítala, no me gusta»): la cifra y la línea de estado de la
+       cabecera ya dicen cuánto queda o cuánto te has pasado.
        Tocar una categoría filtra Movimientos por ella; mantenerla pulsada abre su límite (la otra
        puerta es el chip junto a la píldora del filtro). Ya no se pliega: el
        «es too much» de su pareja (10/9) era porque tapaba la lista, y aquí ya no tapa nada. */
     capa("cats", React.createElement("div",{className:"gx-cats","data-testid":"gastos-cats"},
-      presu!=null && React.createElement("div",{className:"gx-cats-pres"},
-        React.createElement("div",{className:"gx-cats-barra",role:"progressbar","aria-label":t("gv5_cats_pres"),"aria-valuemin":0,"aria-valuemax":presu,"aria-valuenow":+usado.toFixed(2)},
-          React.createElement("i",{className:"gx-cats-in",style:{width:(Math.min(usado,presu)/Math.max(usado,presu)*100)+"%"}}),
-          usado>presu && React.createElement("i",{className:"gx-cats-over",style:{width:((usado-presu)/usado*100)+"%"}})),
-        React.createElement("div",{className:"gx-cats-pie"},
-          React.createElement("span",null,tf("gv5_cats_of",{x:eur0(presu)})),
-          React.createElement("span",null,monthSummary.periodLabel))),
       // Sin la pista no se adivina que tocar filtra y que mantener pulsado pone el límite.
       catBreakdown.length>0 && React.createElement("p",{className:"hint"},t("gv5_cats_hint")),
       catBreakdown.length===0
@@ -20934,14 +20932,32 @@ function reservedSince(state, fromMs, hastaMs){
     return a+(x&&x.amount||0);
   },0);
 }
-function budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode){
+/* `mode` dice qué se compara con el límite: "net" gasto − ingresos (Mi ciclo, o Balance en un
+   informe), "split" gasto bruto y "mes" gasto − ingresos SIN la nómina (`nomina`, lo que de
+   `income` es nómina). El mes natural es "mes" desde el 26/10/2026, decisión del dueño: un Bizum
+   recibido o una devolución devuelven margen al límite, la nómina no. Con el neto entero la
+   nómina dejaba el mes a 0 % (INC-2909-02) y con el bruto los Bizums de una cena adelantada no
+   devolvían nada («gastos 422 € por encima» con 486 € recibidos).
+   En "mes" el margen NO pasa del límite: unos ingresos mayores que el gasto dejan lo gastado a 0,
+   no convierten 1.500 € de límite en 1.900 € «para gastar». El límite es un tope de gasto que él
+   eligió; Mi ciclo conserva su neto sin tope (contrato de la 4.26.73). */
+function budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode,nomina){
   const budget=budgetRaw>0?Math.max(0,+(budgetRaw-reserved).toFixed(2)):null;
   const balance=income-spent;
-  const against=mode==="net"?(spent-income):spent;
+  const against=mode==="net"?(spent-income)
+    :mode==="mes"?Math.max(0,+(spent-(income-(nomina||0))).toFixed(2)):spent;
   const shown=mode==="net"?Math.abs(balance):spent;
   const remaining=budget==null?null:budget-against;
   return {spent:spent, income:income, balance:balance, mode:mode, budget:budget, reserved:reserved,
     remaining:remaining, against:against, shown:shown};
+}
+/* Lo que unas sumas de `monthBudgetStats` comparan con el límite, con la regla del periodo: neto en
+   Mi ciclo y sin la nómina en el mes natural. La cifra grande puede seguir la preferencia (Balance
+   o Gastos), pero el margen es este en todas partes: la línea de Gastos, la tarjeta y la imagen del
+   mes cerrado. Con su propia regla cada una, el 1/11 diría «128 % del presupuesto» de un octubre que
+   se vio entero «64 € por debajo» (revisión 26/10/2026). */
+function limiteDeStats(bs, state){
+  return budgetStatsFromAmounts(bs.spent,bs.income,typeof state.budget==="number"?state.budget:0,bs.reserved,bs.cycle?"net":"mes",bs.nomina);
 }
 // El presupuesto cambia de ventana solo con la preferencia activada y un cobro real.
 // Los informes con fecha explícita conservan sus meses naturales ya cerrados.
@@ -20984,23 +21000,36 @@ function monthBudgetStats(state, nowMs, hastaMs, budgetMode, selectedPeriod){
   // `hastaMs` acota un informe cerrado; solo el ciclo actual termina mañana para que un
   // apunte futuro no gaste hoy. El mes natural conserva la misma cifra que el widget.
   const endMs=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : period.todayEndMs;
-  let spent=0, income=0;
+  let spent=0, income=0, nomina=0;
   const delSet=period.cycle?expenseDeletedSet(state):null;
+  // Fuera del ciclo la nómina se aparta del ingreso que devuelve margen (modo "mes"). En el ciclo
+  // ya la aparta `budgetRowSigned`: es la que lo abre. `nominas`/`noNominas` son las claves de los
+  // ingresos grandes que se decidieron aquí, para que ingest no tenga que adivinarlos (widget).
+  const flows=period.cycle?null:nominaFlowsOf(state);
+  const nominas=[], noNominas=[];
   (state.expenses||[]).forEach(function(e){
     const ms=dateMs(e.date);
     if(ms<startMs) return;
     if(ms>=endMs) return;
     const v=budgetRowSigned(e, state, period, delSet);
     if(v>0) spent+=v;
-    else if(v<0) income-=v;
+    else if(v<0){
+      income-=v;
+      // El mismo umbral que el cobro de Mi ciclo (≥200 €, sin posibles duplicados): una nómina
+      // anticipada al 28 cae en SU mes de banco y allí se aparta; dos en un mes, las dos.
+      if(flows && v<=-200 && e.category!=="bizum" && !e.possibleDup){
+        if(esNomina(e,flows)){ nomina-=v; nominas.push(keyOfExpense(e)); }
+        else noNominas.push(keyOfExpense(e));
+      }
+    }
   });
   const reserved=reservedSince(state, startMs, endMs===Infinity?undefined:endMs);
   const budgetRaw=typeof state.budget==="number" ? state.budget : 0;
   // El ciclo usa el neto aunque el mes natural prefiera gasto bruto: si adelantas una cena,
   // los Bizums recibidos devuelven margen al límite elegido (feedback 28/9).
   const mode=period.cycle?"net":(budgetMode||(state.settings&&state.settings.gTotalMode)||"split");
-  return Object.assign(budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode),
-    {periodStart:startMs,cycle:!!period.cycle});
+  return Object.assign(budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode,nomina),
+    {periodStart:startMs,cycle:!!period.cycle,nomina:+nomina.toFixed(2),nominas:nominas,noNominas:noNominas});
 }
 
 // V2 confirma recepción también fuera del ciclo: una fila anterior puede mover el saldo.
@@ -21011,14 +21040,26 @@ function widgetCoveredEvents(rows,start,now,history){
 }
 // Una respuesta de otra selección de bancos/reservas no puede reutilizar el delta de la foto
 // actual aunque el día de inicio coincida. El servidor debe devolver este alcance exacto.
+// En el mes natural el alcance lleva además qué ingresos grandes son nómina y cuáles no: ingest no
+// conoce los flujos de Plan ni el concepto, y con otra decisión daría otra cifra. Un servidor que
+// no sepa leerlo calcula otro alcance y no responde, en vez de mandar el bruto de antes.
 function widgetScopeOf(state,stats,anchor,bank){
-  return JSON.stringify([2,stats.periodStart,stats.cycle?"ciclo":"mes",stats.cycle?"neto":"gasto",
-    anchor||"",stats.budget,expenseBankEnts(state).slice().sort(),bank||""]);
+  const scope=[2,stats.periodStart,stats.cycle?"ciclo":"mes",stats.cycle?"neto":"gasto",
+    anchor||"",stats.budget,expenseBankEnts(state).slice().sort(),bank||""];
+  if(!stats.cycle) scope.push([(stats.nominas||[]).slice().sort(),(stats.noNominas||[]).slice().sort()]);
+  return JSON.stringify(scope);
 }
-// Inicio dice «Has gastado» en el mes natural: una nómina no puede borrar ese uso del
-// presupuesto (INC-2909-02). Gastos compara con el límite sobre lo mismo (bruto en mes natural, neto en Mi ciclo; 4.26.183) y el widget v2 también.
+// La ventana que se deja en la nube para que ingest rehaga la cifra del widget con la app cerrada.
+function widgetPeriodOf(stats,anchor,scope){
+  const w={v:2,kind:stats.cycle?"ciclo":"mes",start:stats.periodStart,anchor:anchor||"",scope:scope};
+  if(!stats.cycle){ w.nominas=(stats.nominas||[]).slice(); w.noNominas=(stats.noNominas||[]).slice(); }
+  return w;
+}
+// Inicio, Gastos (margen) y el widget v2 comparan con el límite lo mismo: en el mes natural, gasto
+// menos ingresos sin la nómina (modo "mes", 26/10/2026); en Mi ciclo, el neto. Una nómina no puede
+// borrar el uso del presupuesto (INC-2909-02), pero un Bizum recibido sí lo devuelve.
 function dashboardBudgetStats(state){
-  return monthBudgetStats(state,null,null,"split");
+  return monthBudgetStats(state,null,null,"mes");
 }
 
 /* Desglose del mes por categoría (brief PRESUPUESTO-POR-CATEGORIA). Misma ventana y misma
@@ -21090,6 +21131,9 @@ function closedMonthCardOf(state, nowMs){
   if(dismissed===w.closedYm) return null;
   const stats=monthBudgetStats(state, w.startMs+12*864e5, w.endMs);
   if(!(stats.spent>0) && !(stats.income>0)) return null;
+  // La cifra grande sigue la preferencia; el % del presupuesto, la regla del mes (`limiteDeStats`).
+  const lim=limiteDeStats(stats, state);
+  stats.against=lim.against; if(stats.budget!=null) stats.remaining=lim.remaining;
   return {
     ym:w.closedYm, startMs:w.startMs, endMs:w.endMs,
     month:w.closedMonth, year:w.closedYear,
@@ -26588,7 +26632,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="7b547730b5a15943b022cadca796aafc612259e67e07f8f06e9dd329a269d27d";
+var _rnSha="b3d008610d6a656323c0f72e003266004b23039e04cfd655ebf9d66d54b62675";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -32788,9 +32832,11 @@ function App(){
   useEffect(function(){
     if(!wV2) return;
     // La nómina que abre el ciclo no cuenta en su neto; su identidad debe viajar con la ventana.
-    const kind=budW.cycle?"ciclo":"mes", start=budW.periodStart, anchor=wAnchor, w=state.widgetPeriod;
+    // En el mes natural viajan las nóminas y los ingresos grandes que no lo son (ver `widgetScopeOf`).
+    const w=state.widgetPeriod;
     if(w && w.v===2 && w.scope===wScope) return;
-    set(function(s){ return Object.assign({},s,{widgetPeriod:{v:2,kind:kind,start:start,anchor:anchor,scope:wScope}}); },false);
+    const next=widgetPeriodOf(budW,wAnchor,wScope);
+    set(function(s){ return Object.assign({},s,{widgetPeriod:next}); },false);
   },[wV2,wScope,state.widgetPeriod]);
   const widgetCash=trAccW ? Math.round((totals.bankBal[trAccW.ent]||0)*100)/100 : null;
   // El límite combina presupuesto global y liquidez del banco elegido. Se mandan las piezas
@@ -32825,8 +32871,11 @@ function App(){
       // consuman esta ventana. No se confirma por fecha, ni por una foto sin identidad.
       coveredEvents:widgetCoveredEvents(wC.current,budW.periodStart,Date.now(),!!wV2),
       deletedKeys:"|"+(state.deleted||[]).map(encodeURIComponent).join("|")+"|",
-      // En el ciclo, el neto con signo, como Inicio; `shown` sería |neto| (la cabecera de Gastos).
-      spent:Math.round(((budW.cycle?budW.against:budW.shown)||0)*100)/100,
+      // V2: lo que Inicio compara con el límite (neto en el ciclo, gasto menos ingresos sin la
+      // nómina en el mes), porque el nativo dibuja «quedan / de más» como límite − `spent`; con el
+      // bruto decía 422 € de más cuando Inicio decía 64 € por debajo (26/10/2026). La APK51
+      // (sin contrato) conserva su payload legado.
+      spent:Math.round(((wV2||budW.cycle?budW.against:budW.shown)||0)*100)/100,
       budget:budW.budget!=null?budW.budget:(state.budget||0)
     };
     if(wV2){ data.contract=2; data.periodKind=budW.cycle?"ciclo":"mes"; data.magnitude=budW.cycle?"neto":"gasto"; data.lang=CURLANG; data.scope=wScope; }

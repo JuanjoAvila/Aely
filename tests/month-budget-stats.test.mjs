@@ -20,7 +20,10 @@ function t(name, fn) {
 
 console.log("month-budget-stats");
 
-t("Inicio mensual usa bruto sin alterar Balance ni filas al desactivar Mi ciclo",()=>{
+// Oráculo cambiado el 26/10/2026 (decisión del dueño): el mes natural ya no compara el bruto
+// (600) sino el gasto menos los ingresos sin la nómina: 600 − 80 del Bizum = 520. La nómina de
+// 2.000 sigue sin «pagar» el mes, que es lo que protegía INC-2909-02.
+t("Inicio mensual: gasto menos ingresos sin la nómina, sin alterar Balance ni filas al desactivar Mi ciclo",()=>{
   const RealDate=ctx.Date;
   const s={budget:1000,settings:{budgetCycle:true,gTotalMode:"net",expenseBanks:["sabadell"]},
     accounts:[{ent:"sabadell",role:"diario",spendFrom:true},{ent:"revolut",role:"ahorro"}],
@@ -41,21 +44,21 @@ t("Inicio mensual usa bruto sin alterar Balance ni filas al desactivar Mi ciclo"
     assert.equal(ctx.gamifOf(s,{}).budgetReto.margin,980);
     s.settings.budgetCycle=false;
     const before=JSON.stringify(s), dash=ctx.dashboardBudgetStats(s), month=ctx.monthBudgetStats(s);
-    assert.equal(dash.against,600); assert.equal(dash.budget,900); assert.equal(dash.remaining,300);
-    assert.equal(dash.mode,"split"); assert.equal(month.balance,1480); assert.equal(month.against,-1480);
+    assert.equal(dash.against,520); assert.equal(dash.budget,900); assert.equal(dash.remaining,380);
+    assert.equal(dash.mode,"mes"); assert.equal(dash.nomina,2000); assert.equal(month.balance,1480); assert.equal(month.against,-1480);
     const snap=helpCtx.helpSnap(s,{}), reto=ctx.gamifOf(s,{}).budgetReto;
-    assert.equal(snap.remaining,300,"Pregúntame conserva el margen mensual visible en Inicio");
-    assert.equal(snap.spent,600); assert.equal(snap.budget,900);
-    assert.equal(reto.margin,300); assert.equal(reto.spent,600); assert.equal(reto.budget,900);
+    assert.equal(snap.remaining,380,"Pregúntame conserva el margen mensual visible en Inicio");
+    assert.equal(snap.spent,520); assert.equal(snap.budget,900);
+    assert.equal(reto.margin,380); assert.equal(reto.spent,520); assert.equal(reto.budget,900);
     assert.equal(JSON.stringify(s),before,"pintar Inicio no escribe ni modifica ajustes o filas");
     for(const budget of [0,500,600]){
       const b=ctx.dashboardBudgetStats({...s,budget,reservaLog:[]});
-      assert.equal(b.budget,budget||null); assert.equal(b.remaining,budget?budget-600:null);
+      assert.equal(b.budget,budget||null); assert.equal(b.remaining,budget?budget-520:null);
     }
     const reserved=ctx.dashboardBudgetStats({...s,reservaLog:[{date:"2026-09-21T12:00:00Z",amount:1000}]});
-    assert.equal(reserved.budget,0); assert.equal(reserved.remaining,-600);
+    assert.equal(reserved.budget,0); assert.equal(reserved.remaining,-520);
     const over={...s,budget:500,reservaLog:[]};
-    assert.equal(helpCtx.helpSnap(over,{}).remaining,-100);
+    assert.equal(helpCtx.helpSnap(over,{}).remaining,-20);
     assert.equal(ctx.gamifOf(over,{}).budgetReto.done,false,"la nómina no da por cumplido un reto mensual excedido");
     s.settings.budgetCycle=true;
     s.expenses.push({date:"2026-09-27T18:00:00Z",amount:-200,category:"ingreso",ent:"sabadell"});
@@ -354,34 +357,136 @@ t("el mes natural conserva la misma cifra que el widget con apuntes fechados ma�
   }finally{ ctx.Date=RealDate; }
 });
 
-// Capturas del dueño (26/10/2026, mes natural, modo Balance): widget e Inicio decían 412 € de más
-// y Gastos «74 € por debajo» porque comparaba el balance. El margen contra el límite es uno solo.
-t("Balance en grande, pero el margen contra el límite es el de Inicio y el widget", () => {
-  const RealDate=ctx.Date;
-  const rows=[
-    {date:"2026-10-03T12:00:00Z",amount:1200,category:"super",ent:"sabadell"},
-    {date:"2026-10-10T12:00:00Z",amount:711.95,category:"ocio",ent:"sabadell"},
-    {date:"2026-10-12T12:00:00Z",amount:-485.72,merchant:"Bizum",category:"ingreso",ent:"sabadell"},
-    {date:"2026-10-14T12:00:00Z",amount:300,category:"traspaso",ent:"sabadell"},
-  ];
-  const s={budget:1500,settings:{budgetCycle:false,gTotalMode:"net",expenseBanks:["sabadell"]},
-    accounts:[{ent:"sabadell",role:"diario",spendFrom:true}],expenses:rows};
-  try{
-    ctx.Date=class extends RealDate { static now(){ return Date.parse("2026-10-26T10:46:00Z"); } };
-    const gastos=ctx.monthBudgetStats(s), inicio=ctx.dashboardBudgetStats(s);
-    assert.equal(gastos.mode,"net");
-    assert.equal(Math.round(gastos.shown*100),142623);          // la cifra grande de Gastos
-    // Lo que hace Gastos con sus propias sumas: el margen en modo "split" (mes natural).
-    const lim=ctx.budgetStatsFromAmounts(gastos.spent,gastos.income,s.budget,gastos.reserved,"split").against;
-    // Segunda vía, a mano: lo que sale de los bancos de gasto diario, sin traspasos.
-    const aMano=rows.filter(r=>r.amount>0&&r.category!=="traspaso").reduce((x,r)=>x+r.amount,0);
-    assert.equal(Math.round(lim*100),Math.round(aMano*100));
-    assert.equal(Math.round(lim*100),Math.round(inicio.against*100));
-    assert.equal(Math.round((gastos.budget-lim)*100),Math.round(inicio.remaining*100));
-    assert.equal(Math.round(inicio.remaining*100),-41195);
-    // En Mi ciclo el límite se mide en neto, como el widget de ciclo.
-    assert.equal(ctx.budgetStatsFromAmounts(100,30,1000,0,"net").against,70);
-  }finally{ ctx.Date=RealDate; }
+/* MES NATURAL: GASTO MENOS INGRESOS, SIN LA NÓMINA (decisión del dueño, 26/10/2026). Su mes de
+   hoy: 1.922,19 € de gasto, 485,72 € recibidos (Bizums, devoluciones) y límite 1.500 €. Con el
+   bruto la app decía «422 € por encima»; tiene que decir «64 € por debajo» y seguir diciéndolo
+   cuando el 30/10 entre la nómina de 3.333 €. Importes con la misma forma que su mes; nada real. */
+const OCT={budget:1500,settings:{budgetCycle:false,gTotalMode:"net",expenseBanks:["sabadell"]},
+  accounts:[{ent:"sabadell",role:"diario",spendFrom:true}]};
+const filasOct=()=>[
+  {id:"g1",date:"2026-10-03T12:00:00Z",amount:1200,merchant:"Compra sintética",category:"super",ent:"sabadell"},
+  {id:"g2",date:"2026-10-10T12:00:00Z",amount:722.19,merchant:"Ocio sintético",category:"ocio",ent:"sabadell"},
+  {id:"i1",date:"2026-10-12T12:00:00Z",amount:-400,merchant:"Bizum cena",category:"bizum",ent:"sabadell"},
+  {id:"i2",date:"2026-10-15T12:00:00Z",amount:-85.72,merchant:"Devolución tienda",category:"ingreso",ent:"sabadell"},
+  {id:"t1",date:"2026-10-14T12:00:00Z",amount:300,merchant:"Traspaso sintético",category:"traspaso",ent:"sabadell"},
+];
+const NOMINA={id:"n1",date:"2026-10-30T08:00:00Z",amount:-3333,merchant:"Empresa sintética",note:"NÓMINA OCTUBRE",category:"ingreso",ent:"sabadell"};
+const aLas=(iso,fn)=>{ const RealDate=ctx.Date;
+  try{ ctx.Date=class extends RealDate { static now(){ return Date.parse(iso); } }; return fn(); } finally{ ctx.Date=RealDate; } };
+// Primera vía: a mano, con las filas sembradas. Sin traspasos y sin las filas que son nómina
+// (se marcan aquí por id, no con la regla de la app: si la regla se rompe, esto no la sigue).
+const NOMINAS_A_MANO=new Set(["n0","n1","n2"]);
+const aMano=rows=>{
+  const g=rows.filter(r=>r.amount>0&&r.category!=="traspaso").reduce((x,r)=>x+r.amount,0);
+  const i=rows.filter(r=>r.amount<0&&r.category!=="traspaso"&&!NOMINAS_A_MANO.has(r.id)).reduce((x,r)=>x-r.amount,0);
+  return Math.max(0,Math.round((g-i)*100));
+};
+
+t("su mes de hoy: 1.922,19 − 485,72 = 1.436,47 → 63,53 € por debajo en Inicio y en Gastos", () => {
+  aLas("2026-10-26T10:46:00Z",()=>{
+    const s={...OCT,expenses:filasOct()};
+    const inicio=ctx.dashboardBudgetStats(s), gastos=ctx.monthBudgetStats(s);
+    assert.equal(aMano(s.expenses),143647);
+    // Segunda vía: el motor, por las dos puertas que usan Inicio/widget y la línea de Gastos.
+    assert.equal(Math.round(inicio.against*100),143647);
+    assert.equal(Math.round(inicio.remaining*100),6353);
+    const lim=ctx.budgetStatsFromAmounts(gastos.spent,gastos.income,s.budget,gastos.reserved,gastos.cycle?"net":"mes",gastos.nomina);
+    assert.equal(Math.round(lim.remaining*100),6353,"la línea de Gastos dice lo mismo que Inicio");
+    assert.equal(Math.round(gastos.shown*100),143647,"la cifra grande de Gastos sigue su modo (Balance)");
+    assert.equal(Math.round(inicio.spent*100),192219,"el gasto bruto se sigue sabiendo");
+    assert.equal(JSON.stringify([inicio.nominas,inicio.noNominas.length]),"[[],0]","el Bizum de 400 es Bizum; la devolución no llega a 200");
+  });
+});
+
+t("el 30/10 entra la nómina de 3.333 € y no cambia nada", () => {
+  aLas("2026-10-30T10:00:00Z",()=>{
+    const s={...OCT,expenses:filasOct().concat([NOMINA])};
+    const inicio=ctx.dashboardBudgetStats(s), gastos=ctx.monthBudgetStats(s);
+    assert.equal(aMano(s.expenses),143647);
+    assert.equal(Math.round(inicio.remaining*100),6353);
+    assert.equal(inicio.nomina,3333); assert.equal(JSON.stringify(inicio.nominas),JSON.stringify([ctx.keyOfExpense(NOMINA)]));
+    const lim=ctx.budgetStatsFromAmounts(gastos.spent,gastos.income,s.budget,gastos.reserved,"mes",gastos.nomina);
+    assert.equal(Math.round(lim.remaining*100),6353);
+    // El balance (Gastos en Balance) sí cambia: es otra cifra y no se compara con el límite.
+    assert.equal(Math.round(gastos.balance*100),333300+48572-192219);
+  });
+});
+
+t("bordes: nómina anticipada, dos nóminas, sin nómina, ingresos mayores, devolución, ciclo y meses cerrados", () => {
+  // Anticipada: la de noviembre cae el 28/10 y es nómina en octubre; noviembre no tiene ninguna.
+  aLas("2026-10-29T10:00:00Z",()=>{
+    const s={...OCT,expenses:filasOct().concat([{...NOMINA,id:"n0",date:"2026-10-28T08:00:00Z"}])};
+    assert.equal(aMano(s.expenses),143647);
+    assert.equal(Math.round(ctx.dashboardBudgetStats(s).remaining*100),6353);
+  });
+  aLas("2026-11-03T10:00:00Z",()=>{
+    const s={...OCT,expenses:filasOct().concat([{...NOMINA,id:"n0",date:"2026-10-28T08:00:00Z"},
+      {id:"g3",date:"2026-11-02T12:00:00Z",amount:50,merchant:"Compra noviembre",category:"super",ent:"sabadell"}])};
+    const nov=ctx.dashboardBudgetStats(s);
+    assert.equal(nov.against,50); assert.equal(nov.remaining,1450); assert.equal(nov.nomina,0);
+  });
+  // Dos nóminas en el mismo mes (anticipada y la del mes, o dos pagadores): fuera las dos.
+  aLas("2026-10-30T10:00:00Z",()=>{
+    const s={...OCT,expenses:filasOct().concat([NOMINA,{...NOMINA,id:"n2",date:"2026-10-01T08:00:00Z",amount:-1200,merchant:"Otra empresa",note:"SALARIO"}])};
+    const b=ctx.dashboardBudgetStats(s);
+    assert.equal(aMano(s.expenses),143647);
+    assert.equal(b.nomina,4533); assert.equal(Math.round(b.remaining*100),6353);
+  });
+  // Un ingreso periódico de Plan también identifica la nómina sin la palabra (la regla de Mi ciclo).
+  aLas("2026-10-30T10:00:00Z",()=>{
+    const sin={...NOMINA,note:"",merchant:"ACME SINTETICA SL"};
+    const flows=[{id:"f",kind:"income",name:"ACME SINTETICA",amount:3333,to:"sabadell",day:30}];
+    const conPlan=ctx.dashboardBudgetStats({...OCT,flows,expenses:filasOct().concat([sin])});
+    assert.equal(Math.round(conPlan.remaining*100),6353);
+    // Sin nómina detectada: el ingreso cuenta como cualquier otro y el margen no pasa del límite.
+    const sinPlan=ctx.dashboardBudgetStats({...OCT,expenses:filasOct().concat([sin])});
+    assert.equal(sinPlan.nomina,0); assert.equal(sinPlan.against,0); assert.equal(sinPlan.remaining,1500,
+      "ingresos mayores que el gasto: lo usado es 0 y quedan 1.500, no 3.396");
+    assert.equal(JSON.stringify(sinPlan.noNominas),JSON.stringify([ctx.keyOfExpense(sin)]));
+  });
+  // Ingresos mayores que el gasto, sin nómina: tope en el límite (el neto se sigue viendo en balance).
+  aLas("2026-10-26T10:00:00Z",()=>{
+    const s={...OCT,expenses:[{id:"g",date:"2026-10-03T12:00:00Z",amount:100,category:"super",ent:"sabadell"},
+      {id:"b",date:"2026-10-04T12:00:00Z",amount:-150,merchant:"Bizum",category:"bizum",ent:"sabadell"}]};
+    const b=ctx.dashboardBudgetStats(s);
+    assert.equal(b.against,0); assert.equal(b.remaining,1500); assert.equal(b.balance,50);
+  });
+  // Devolución de una compra: la compra suma y su devolución resta UNA vez (filas con signo propio).
+  aLas("2026-10-26T10:00:00Z",()=>{
+    const compra={id:"c",date:"2026-10-05T12:00:00Z",amount:250,merchant:"Tienda sintética",category:"ropa",ent:"sabadell",source:"ob:sabadell#refR1"};
+    const devol={...compra,id:"d",date:"2026-10-07T12:00:00Z",amount:-250};
+    const s={...OCT,expenses:[compra,devol,{id:"g",date:"2026-10-08T12:00:00Z",amount:100,category:"super",ent:"sabadell"}]};
+    const b=ctx.dashboardBudgetStats(s);
+    assert.equal(b.spent,350); assert.equal(b.income,250); assert.equal(b.against,100); assert.equal(b.remaining,1400);
+    assert.equal(JSON.stringify(b.noNominas),JSON.stringify([ctx.keyOfExpense(devol)]),"una devolución grande viaja como no-nómina al widget");
+  });
+  // Mi ciclo no cambia: neto sin tope, la nómina que lo abre fuera.
+  aLas("2026-10-30T10:00:00Z",()=>{
+    const s={...OCT,settings:{...OCT.settings,budgetCycle:true},expenses:filasOct().concat([NOMINA,
+      {id:"g4",date:"2026-10-30T09:00:00Z",amount:20,category:"super",ent:"sabadell"},
+      {id:"b4",date:"2026-10-30T09:30:00Z",amount:-50,merchant:"Bizum",category:"bizum",ent:"sabadell"}])};
+    const c=ctx.dashboardBudgetStats(s);
+    assert.equal(c.cycle,true); assert.equal(c.mode,"net"); assert.equal(c.against,-30); assert.equal(c.remaining,1530);
+  });
+  // Meses cerrados (oráculo cambiado en la R2 de la revisión, 26/10/2026): la cifra grande de la
+  // tarjeta sigue la preferencia (Gastos: 1.922,19 bruto), pero lo que compara con el límite es lo
+  // mismo que se vio todo el mes, 1.436,47. Antes fijaba 1.922,19 y el 1/11 diría «128 % del
+  // presupuesto» de un octubre que se vio entero «64 € por debajo». Gastos no enseña margen en un
+  // mes pasado (`budgetApplies`, e2e gastos-v5).
+  aLas("2026-11-02T10:00:00Z",()=>{
+    const s={...OCT,settings:{...OCT.settings,gTotalMode:"split"},expenses:filasOct().concat([NOMINA])};
+    const card=ctx.closedMonthCardOf(s,Date.parse("2026-11-02T10:00:00Z"));
+    assert.ok(card&&card.stats,"hay informe del mes cerrado");
+    assert.equal(card.stats.mode,"split"); assert.equal(Math.round(card.stats.shown*100),192219);
+    assert.equal(Math.round(card.stats.against*100),aMano(s.expenses));
+    assert.equal(Math.round(card.stats.remaining*100),6353);
+    // La racha de meses bajo el límite usa el límite de CADA mes y la misma regla: octubre cuenta.
+    const racha=ctx.underBudgetStreak({...s,budgetByMonth:{"2026-10":1500}},Date.parse("2026-11-02T10:00:00Z"));
+    assert.equal(JSON.stringify(racha),JSON.stringify({current:1,best:1,ever:true}));
+    // Con un límite de 1.400 aquel mes no se cumplió: la regla no regala la racha.
+    const sin=ctx.underBudgetStreak({...s,budgetByMonth:{"2026-10":1400}},Date.parse("2026-11-02T10:00:00Z"));
+    assert.equal(sin.ever,false);
+  });
 });
 
 t("los importes llevan punto de miles también con cuatro cifras", () => {

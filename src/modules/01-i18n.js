@@ -1538,7 +1538,7 @@ Object.assign(LANG.ca,{
    como una frase («gastado en octubre · 139 € por encima»). */
 Object.assign(LANG.es,{gv5_spent_in:"gastado en {mes}", gv5_net_in:"balance de {mes}",
   gv5_upto:"gastado en {mes} hasta el {d}", gv5_upto_net:"balance de {mes} hasta el {d}",
-  gv5_closed:"{mes} · cerrado", gv5_over:"{x} por encima", gv5_under:"{x} por debajo", gv5_over_g:"gastos {x} por encima", gv5_under_g:"gastos {x} por debajo",
+  gv5_closed:"{mes} · cerrado", gv5_over:"{x} por encima", gv5_under:"{x} por debajo",
   gv5_more:"{x} más que en {mes}", gv5_less:"{x} menos que en {mes}", gv5_same:"igual que en {mes}",
   gv5_more_sd:"{x} más que en {mes} a estas alturas", gv5_less_sd:"{x} menos que en {mes} a estas alturas", gv5_same_sd:"igual que en {mes} a estas alturas",
   gv5_cycle:"en tu ciclo", gv5_cycle_upto:"en tu ciclo hasta el {d}", gv5_period_upto:"{period} · hasta el {d}", gv5_all:"todo el histórico",
@@ -1546,7 +1546,7 @@ Object.assign(LANG.es,{gv5_spent_in:"gastado en {mes}", gv5_net_in:"balance de {
   gv5_net_sub:"gastos {g} · ingresos {i}", gv5_meses:"Meses", gv5_periodo:"Periodo", gv5_p_months:"Meses", gv5_p_range:"Rango"});
 Object.assign(LANG.en,{gv5_spent_in:"spent in {mes}", gv5_net_in:"balance for {mes}",
   gv5_upto:"spent in {mes} through day {d}", gv5_upto_net:"balance for {mes} through day {d}",
-  gv5_closed:"{mes} · closed", gv5_over:"{x} over", gv5_under:"{x} under", gv5_over_g:"spending {x} over", gv5_under_g:"spending {x} under",
+  gv5_closed:"{mes} · closed", gv5_over:"{x} over", gv5_under:"{x} under",
   gv5_more:"{x} more than in {mes}", gv5_less:"{x} less than in {mes}", gv5_same:"same as in {mes}",
   gv5_more_sd:"{x} more than {mes} at this point", gv5_less_sd:"{x} less than {mes} at this point", gv5_same_sd:"same as {mes} at this point",
   gv5_cycle:"in your cycle", gv5_cycle_upto:"in your cycle through {d}", gv5_period_upto:"{period} · through {d}", gv5_all:"all history",
@@ -1554,7 +1554,7 @@ Object.assign(LANG.en,{gv5_spent_in:"spent in {mes}", gv5_net_in:"balance for {m
   gv5_net_sub:"spent {g} · income {i}", gv5_meses:"Months", gv5_periodo:"Period", gv5_p_months:"Months", gv5_p_range:"Range"});
 Object.assign(LANG.ca,{gv5_spent_in:"gastat al {mes}", gv5_net_in:"balanç al {mes}",
   gv5_upto:"gastat al {mes} fins al dia {d}", gv5_upto_net:"balanç al {mes} fins al dia {d}",
-  gv5_closed:"{mes} · tancat", gv5_over:"{x} per sobre", gv5_under:"{x} per sota", gv5_over_g:"despeses {x} per sobre", gv5_under_g:"despeses {x} per sota",
+  gv5_closed:"{mes} · tancat", gv5_over:"{x} per sobre", gv5_under:"{x} per sota",
   gv5_more:"{x} més que al {mes}", gv5_less:"{x} menys que al {mes}", gv5_same:"igual que al {mes}",
   gv5_more_sd:"{x} més que al {mes} a aquestes alçades", gv5_less_sd:"{x} menys que al {mes} a aquestes alçades", gv5_same_sd:"igual que al {mes} a aquestes alçades",
   gv5_cycle:"al teu cicle", gv5_cycle_upto:"al teu cicle fins al {d}", gv5_period_upto:"{period} · fins al {d}", gv5_all:"tot l'historial",
@@ -1592,19 +1592,19 @@ Object.assign(LANG.en,{gv5_cartera_open:"Open in Portfolio", g_inv_dest:"Investm
 Object.assign(LANG.ca,{gv5_cartera_open:"Obre a Cartera", g_inv_dest:"Inversió: {name}"});
 // Gastos v5, tanda 2: secciones (Movimientos / Categorías / Suscripciones) y sus cabeceras.
 Object.assign(LANG.es,{gv5_secciones:"Secciones de Gastos", gv5_sec_movs:"Movimientos", gv5_sec_cats:"Categorías", gv5_sec_subs:"Suscripciones",
-  gv5_subs_globo:"{n} por revisar", gv5_cats_pre:"{period} por categoría", gv5_cats_pres:"Presupuesto gastado", gv5_cats_of:"de {x}",
+  gv5_subs_globo:"{n} por revisar", gv5_cats_pre:"{period} por categoría",
   gv5_cats_vacio:"Aún no hay gastos que cuenten en este periodo.", gv5_subs_n:"al mes · {n} por revisar", gv5_subs_none:"nada por revisar",
   gv5_subs_ok_t:"Todo en orden", gv5_subs_ok_d:"Aquí saldrán los cobros repetidos que no estén en Recibos."});
 Object.assign(LANG.en,{gv5_secciones:"Spending sections", gv5_sec_movs:"Transactions", gv5_sec_cats:"Categories", gv5_sec_subs:"Subscriptions",
-  gv5_subs_globo:"{n} to review", gv5_cats_pre:"{period} by category", gv5_cats_pres:"Budget spent", gv5_cats_of:"of {x}",
+  gv5_subs_globo:"{n} to review", gv5_cats_pre:"{period} by category",
   gv5_cats_vacio:"No spending that counts in this period yet.", gv5_subs_n:"a month · {n} to review", gv5_subs_none:"nothing to review",
   gv5_subs_ok_t:"All clear", gv5_subs_ok_d:"Repeating charges not in Bills will show up here."});
 Object.assign(LANG.ca,{gv5_secciones:"Seccions de Despeses", gv5_sec_movs:"Moviments", gv5_sec_cats:"Categories", gv5_sec_subs:"Subscripcions",
-  gv5_subs_globo:"{n} per revisar", gv5_cats_pre:"{period} per categoria", gv5_cats_pres:"Pressupost gastat", gv5_cats_of:"de {x}",
+  gv5_subs_globo:"{n} per revisar", gv5_cats_pre:"{period} per categoria",
   gv5_cats_vacio:"Encara no hi ha despeses que comptin en aquest període.", gv5_subs_n:"al mes · {n} per revisar", gv5_subs_none:"res per revisar",
   gv5_subs_ok_t:"Tot en ordre", gv5_subs_ok_d:"Aquí sortiran els càrrecs repetits que no siguin a Rebuts."});
 // Gastos v5, tanda 3: tocar una categoría filtra (píldora) y el límite va por pulsación larga o el chip.
-Object.assign(LANG.es,{gv5_cats_hint:"Toca una para ver sus movimientos · mantenla pulsada para ponerle un límite",
+Object.assign(LANG.es,{gv5_cats_hint:"Toca para filtrar · mantén pulsado para el límite",
   gv5_fil_n:"{n} movimientos", gv5_fil_n1:"1 movimiento", gv5_fil_quitar:"Quitar el filtro de {x}",
   gv5_fil_lim_poner:"Poner límite", gv5_fil_lim:"Límite {x}", gv5_fil_quedan:"quedan {x}", gv5_fil_pasado:"{x} de más"});
 // Gastos v5, tanda 4: Suscripciones como bandeja con su ficha (SPEC §6.1, §6.3 y §6.4).
@@ -1619,7 +1619,7 @@ Object.assign(LANG.es,{gv5_sub_info:"Suscripciones detectadas", gv5_sub_i_que_t:
   gv5_sub_baja:"Ya la he dado de baja", gv5_sub_baja_q:"¿Ya has dado de baja «{n}»?", gv5_sub_baja_sub:"Sale de esta lista. Si vuelve a cobrarte, aparecerá otra vez con un aviso.",
   gv5_sub_baja_si:"Sí, ya la he dado de baja", gv5_sub_baja_ok:"«{n}» sale de la lista · si vuelve a cobrar, saldrá aquí",
   gv5_sub_no_q:"¿«{n}» no es una suscripción?", gv5_sub_no_sub:"Se queda como un gasto normal y no volverá a salir aquí. No se puede deshacer."});
-Object.assign(LANG.en,{gv5_cats_hint:"Tap one to see its transactions · press and hold to set a limit",
+Object.assign(LANG.en,{gv5_cats_hint:"Tap to filter · hold to set a limit",
   gv5_fil_n:"{n} transactions", gv5_fil_n1:"1 transaction", gv5_fil_quitar:"Remove the {x} filter",
   gv5_fil_lim_poner:"Set limit", gv5_fil_lim:"Limit {x}", gv5_fil_quedan:"{x} left", gv5_fil_pasado:"{x} over"});
 Object.assign(LANG.en,{gv5_sub_info:"Detected subscriptions", gv5_sub_i_que_t:"What shows up here", gv5_sub_i_que:"Charges that repeat and aren't in Bills yet.",
@@ -1633,7 +1633,7 @@ Object.assign(LANG.en,{gv5_sub_info:"Detected subscriptions", gv5_sub_i_que_t:"W
   gv5_sub_baja:"I've cancelled it", gv5_sub_baja_q:"Have you cancelled \"{n}\"?", gv5_sub_baja_sub:"It leaves this list. If it charges you again, it'll come back with a warning.",
   gv5_sub_baja_si:"Yes, I've cancelled it", gv5_sub_baja_ok:"\"{n}\" left the list · if it charges again, it'll show up here",
   gv5_sub_no_q:"\"{n}\" isn't a subscription?", gv5_sub_no_sub:"It stays as a normal expense and won't show up here again. This can't be undone."});
-Object.assign(LANG.ca,{gv5_cats_hint:"Toca'n una per veure'n els moviments · mantén-la premuda per posar-li un límit",
+Object.assign(LANG.ca,{gv5_cats_hint:"Toca per filtrar · mantén premut per al límit",
   gv5_fil_n:"{n} moviments", gv5_fil_n1:"1 moviment", gv5_fil_quitar:"Treu el filtre de {x}",
   gv5_fil_lim_poner:"Posa un límit", gv5_fil_lim:"Límit {x}", gv5_fil_quedan:"en queden {x}", gv5_fil_pasado:"{x} de més"});
 Object.assign(LANG.ca,{gv5_sub_info:"Subscripcions detectades", gv5_sub_i_que_t:"Què hi apareix", gv5_sub_i_que:"Càrrecs que es repeteixen i que encara no són a Rebuts.",
@@ -3330,13 +3330,13 @@ function ensureBudgetMonthSnap(state,nowMs){
 }
 function underBudgetStreak(state, nowMs){
   state=state||{};
-  const budgets=state.budgetByMonth||{};
+  const budgets=state.budgetByMonth||{}, flows=nominaFlowsOf(state);
   const num=function(k){ return +k.slice(0,4)*12 + +k.slice(5)-1; };
   const curNum=num(budgetYmKey(nowMs));
   const keys=Object.keys(budgets).filter(function(k){ return num(k)<curNum; }).sort(function(a,b){ return num(a)-num(b); });
   const byMonth={}, windows=keys.map(function(k){
     const y=+k.slice(0,4),m=+k.slice(5)-1;
-    byMonth[k]={spent:0,income:0,reserved:0};
+    byMonth[k]={spent:0,income:0,reserved:0,nomina:0};
     return {k:k,start:inicioDeMesMs(Date.UTC(y,m,15,12)),end:inicioDeMesMs(Date.UTC(y,m+1,15,12))};
   });
   const monthOf=function(ms){
@@ -3359,7 +3359,12 @@ function underBudgetStreak(state, nowMs){
     const k=monthOf(dateMs(e.date));
     if(!k || !expenseCountsBudget(e,state)) return;
     if(e.amount>0) byMonth[k].spent+=e.amount;
-    else if(e.amount<0) byMonth[k].income+=Math.abs(e.amount);
+    else if(e.amount<0){
+      byMonth[k].income+=Math.abs(e.amount);
+      // La misma nómina que aparta el mes en curso (`monthBudgetStats`): si la racha comparara otra
+      // cifra, un mes visto entero «por debajo» rompería la racha al cerrarse (26/10/2026).
+      if(e.amount<=-200 && e.category!=="bizum" && !e.possibleDup && esNomina(e,flows)) byMonth[k].nomina+=Math.abs(e.amount);
+    }
   });
   (state.reservaLog||[]).forEach(function(x){
     const ms=new Date(x&&x.date).getTime();
@@ -3369,7 +3374,7 @@ function underBudgetStreak(state, nowMs){
   });
   const good={};
   keys.forEach(function(k){
-    const m=byMonth[k], stats=budgetStatsFromAmounts(m.spent,m.income,Number(budgets[k]),m.reserved,(state.settings&&state.settings.gTotalMode)||"split");
+    const m=byMonth[k], stats=budgetStatsFromAmounts(m.spent,m.income,Number(budgets[k]),m.reserved,"mes",m.nomina);
     good[k]=stats.budget!=null&&stats.against<=stats.budget+.005;
   });
   let best=0,run=0,prev=null;
