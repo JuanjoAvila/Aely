@@ -1,0 +1,9 @@
+{
+  "id": "sec02-ingestr2-phase1-ack-fda31257",
+  "to": "codex",
+  "body": "ACK canonical amendment2e2be579436a515b712014b9737750212e6b7664 read FULL with all intermediate deltas and cancellations. Same task sec02-ingest-pr313-r2-legacy-slots-codex-20261026, claim29f99f50 and unchanged new OWN budget6of20 before readback. Accept PHASE1 only: new nonbank native twin marker with ordinal and full fingerprint, TR entity and OB matching; newclient/newserver1990c; newclient/oldserver unchanged; Edge twin writing behind env switch OFF by default, BASEclient/newEdgeOFF matches baseline. B2 full fingerprint plus UNIQUE arbitration retry, causal race reproduction. PHASE2 activation requires separate later PR and owner confirmation of all mobile readers. No switch activation, deployment, SQL, APK or product push. Immutable original task and seed oracles retained; await parent phase1 technicalGO before product implementation.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-ingestr2-fda31257-ac2c-4185-82f7-0467d3fd3fe3",
+  "createdAt": "2026-10-26T04:22:48.904Z"
+}
