@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "id": "native-debounce-event-identity-r112-codex-20261026",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261026-r112-fda31257-1b4e4b89-6f90-4005-8993-d7880e9c02a8",
+  "createdAt": "2026-10-26T10:14:54.918Z",
+  "to": "codex",
+  "baseSHA": "034fdb7b3b068408c2d113eb80382d13fdafa11e",
+  "objective": "Continuar en identidad NUEVA el debounce nativo de 180s, solo despues del cierre blocked/released verificado del predecessor native-debounce-event-identity-r111-codex-20261026; preservar el arnes congelado y lograr causalidad RED/GREEN Java bajo Claude31cbf45e/43b5.",
+  "scope": [
+    "android/app/src/main/java/com/micartera/app/TrExpenseListener.java",
+    "android/app/src/main/java/com/micartera/app/NativeEventDebounce.java",
+    "tests/native-event-debounce.test.mjs",
+    "scripts/run-tests.mjs",
+    "docs/SETUP-ANDROID.md",
+    "docs/TESTING.md",
+    "README.md",
+    "CHANGELOG.md",
+    "docs/ROADMAP.md"
+  ],
+  "grants": [
+    "43b5b1d5591618c15b497617a34fe5074abf2918",
+    "610071b531a0d91176e014beec3375e8078abafa",
+    "62a4fa2dd61e115c72ead63ea41eb15bfeb9aca4",
+    "e42252eb4444e23228b565b7d2da5b0ee5e13e43",
+    "31cbf45e05d69864250862656d4a6e859f760ac9",
+    "297aac5235571486a06519ca69c8b52516b69c95",
+    "9727de556be4067ba6a5699fadc16dd56e5b5b3d"
+  ],
+  "requirements": [
+    "RECEPCION primero: identidad runtime/cwd/inventario Aely propios y nonce nuevo prefijo fda31257, ACK privado fsync/readback. No fetch/claim/checkout/codigo/tests antes admision nativa. OWN20 nuevo0 bajo e422; helper/ledger/estado propios, sin heredar oldclaim ni contadores.",
+    "PREDECESOR native-debounce-event-identity-r111-codex-20261026 CERRADO blocked/released por titular propio result2e683617e7d5bd50809c1c05e96a483a89cc58da y RETURN89a366ca354af29336a742464bf7ab92be66df03 verificados porROOT OWN FULL. OWNfinal12/20frozen8sobrantes intransferibles. Su claimfe30b3d8, sesion, helper, deadline y contador no se heredan. PR313-317 y tests cerrados permanecen cerrados.",
+    "Tras OWNclaim/ACK/readback y GO checkout nuevo desde base exacta, copiar solo arnes congelado31056/SHA18f6651ec9df96d7cc37ee2468552a9d795ffed8382a9a17cfa5fe030a0a02db desde artefacto privado durable. Base listenerSHA1ae96be5d32e2b90772a3886e0bd38726f3e652dac07166ca599a8c731fe769a intacto y NativeEventDebounce ausente. RED aun0/1: exige javacEXIT0 y AssertionError expected2 actual1. No repetir tests cerrados; no hay RED/GREEN anteriores ejecutados. Mismo arnesSHA para RED/GREEN y logica JavaREAL. Plan causal y revisión exacta previos preservados, no reimplementar oraculo. ProductoGO SOLO despuesREDcausal ROOT; GREEN requiere otroGO/admission propia.",
+    "Preservar hash estable v1, postTime, payload/token/cola/reintento/ACK y centimos. No cambiar contrato servidor ni cliente ni caps. Si la causa exige fuera de scope, PARAR y consultar ROOT antes editar.",
+    "CodigoGO y runnerGO separados, CPU1serial1worker0retry/stopfirstfailure, censo/admission compatible expreso antes cada run; logs/cmd/exit/report/RETURN durables. No suitecompleta ni rerun de GREEN cerrado. No Gradle/APK/adb/dispositivo/browser/servidores/CPU6/liveSQL/backend/deploy/deps/install/version/generated.",
+    "Checkout/rama propios desde base exacta. Registrar test nuevo en runner y docs pertinentes sin anunciar version publicada. Candidato privado TERMINADO con HEAD/tree/parent/diff/bundle/manifest/hashes y evidencia causal, revision independiente exactSHA y GO ROOT antes pushNORMAL y UNA PRdraft contra beta. Sin force/merge/integracion.",
+    "Solo ROOT112 recibe ACK/avances/RETURN; solo ROOT reporta aClaude. Recepcion/admission nativas y deadlinePROPIO60min por orden humana horaria; no aplicar sugerenciaClaude90min. APK futura y aceptacionmovil fuera de encargo. Sin beta servida/ProductREADY/avisodueno.",
+    "Compatible expresamente por Claude297aac52/31cbf45e con beta-sources y otros Node/Playwright de sus agentes; nunca tocar procesos ajenos. Compatibilidad no sustituye censo/ENTER/admission/RETURN propios por corrida, ni transfiere runnerGO del predecesor. CPU1serial javac+1JVM/1worker0retry, RED/GREEN separados."
+  ],
+  "acceptance": "Candidato privado verificable con causalidad RED/GREEN nativa y contratos preservados, seguido de revision independiente y publicacion expresamente autorizada; sin compilacion APK ni aceptacion fisica."
+}
