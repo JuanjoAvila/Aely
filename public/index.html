@@ -1750,6 +1750,9 @@
      elegía a él, y al meter la tanda nueva ENCIMA movía el scroll para dejarlo donde estaba: seguía
      a la vista, el observador no volvía a avisar y la lista se quedaba en 132 filas (25/10). */
   .sentinel{height:30px;display:grid;place-items:center;color:var(--muted-2);font-size:12px;overflow-anchor:none;}
+  /* En Movimientos el centinela es además el colchón de lo que falta por pintar (alto en línea,
+     ver GX_COLCHON_FILAS): el «Cargando más…» va arriba, donde acaba lo pintado. */
+  .gx-list .sentinel{align-items:start;padding-top:8px;box-sizing:border-box;}
   .empty{text-align:center;padding:34px 20px;color:var(--muted);}
   .empty .ttl{font-weight:700;color:var(--text);margin-bottom:6px;}
 
@@ -13857,28 +13860,49 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
         `filtered.length` —volver a pulsar el filtro que ya estaba puesto resetea `visible` a 12
         con la misma lista— nadie lo vigilaba: «Cargando más…» ahí clavado para siempre.
         Ahora el observador se ata al nodo con una callback ref, así que se rehace exactamente
-        cuando el centinela nace o muere, pasen lo que pasen las dependencias del efecto. */
-  const filtLen=useRef(0); filtLen.current=filtered.length;   // el observador vive fuera del render: sin esto cerraría sobre una longitud vieja
-  const ioRef=useRef(null);
+        cuando el centinela nace o muere, pasen lo que pasen las dependencias del efecto.
+     3. «Al bajar rápido hay tirones o paradas; Revolut no los tiene» (vídeo suyo del 26/10, OnePlus
+        13 a 120 Hz, mirado fotograma a fotograma). Los cuatro flings del vídeo acaban IGUAL: la
+        lista va a toda velocidad y se para en seco en «Cargando más…» (30 sept, 5 sept, 16 ago,
+        31 jul), sin frenar. No era un frame caro: era el FINAL de la lista. El fling del móvil lo
+        mueve el compositor y, si llega al borde antes de que la tanda esté pintada, se acaba ahí;
+        cuando la tanda llega ya no queda inercia. Tres cosas:
+        · El centinela es ahora un COLCHÓN con el alto estimado de lo que falta por pintar (hasta
+          GX_COLCHON_FILAS filas): el fling sigue de largo por ese hueco mientras la tanda llega.
+        · Las tandas se piden por DISTANCIA en cada scroll y se encadenan al pintar, de
+          GX_TANDA en GX_TANDA: tandas cortas, pintados cortos. NO en `startTransition`: se
+          probó y la tanda no llegaba a pintarse nunca (la transición se quedaba esperando con
+          la app quieta y la lista clavada en 12 filas). Con el colchón el observador ya no
+          sirve: un centinela alto sigue «visible» después de cada tanda y el observador, que
+          solo avisa al CAMBIAR, no volvía a pedir.
+        · Lo que se calculaba en CADA tanda para TODAS las filas ya pintadas (cajón, etiquetas,
+          el día escrito) se guarda (ver `gxFilaInfo` y `gxDiaTexto`). */
+  const filtLen=useRef(0); filtLen.current=filtered.length;   // `pideMas` vive fuera del render: sin esto cerraría sobre una longitud vieja
+  const sentinelElRef=useRef(null), tandaEnCursoRef=useRef(false), pideMasRef=useRef(null);
+  pideMasRef.current=function(){
+    // Con Movimientos escondido (otra sección) no se piden tandas: cargaría la lista entera por
+    // detrás sin que nadie la mire.
+    const el=sentinelElRef.current;
+    if(tandaEnCursoRef.current || seccRef.current!=="movs" || !el || !el.isConnected) return;
+    const host=el.closest(".page");
+    /* Arriba del todo no se pide nada: al entrar se pinta solo la primera tanda (lo que vigila el
+       presupuesto de rendimiento) y «se suelta al volver arriba» (abajo) tiene que quedarse en
+       ella. El colchón de debajo ya deja arrancar un fling desde ahí sin tope. */
+    if(!host || host.scrollTop<=150 || el.getBoundingClientRect().top-host.getBoundingClientRect().bottom>GX_ANTES*gxZoom()) return;
+    tandaEnCursoRef.current=true;
+    setVisible(function(v){ return v<filtLen.current ? v+GX_TANDA : v; });
+  };
   const sentinelRefCb=useCallback(function(el){
-    if(ioRef.current){ ioRef.current.disconnect(); ioRef.current=null; }
-    if(!el) return;
-    // Con Movimientos escondido (otra sección) el centinela no puede pedir tandas: cargaría la
-    // lista entera por detrás sin que nadie la mire.
-    const io=new IntersectionObserver(function(es){
-      if(es[0].isIntersecting && seccRef.current==="movs") setVisible(function(v){ return v<filtLen.current ? v+CONFIG.PAGE_SIZE*5 : v; });
-    },{rootMargin:"2000px"});
-    io.observe(el); ioRef.current=io; sentinelElRef.current=el;
+    sentinelElRef.current=el;
+    if(el) requestAnimationFrame(function(){ pideMasRef.current(); });
   },[]);
-  // Y al volver a Movimientos se le vuelve a preguntar: si ya estaba a la vista mientras se
-  // ignoraba, el observador no avisa otra vez por sí solo y «Cargando más…» se quedaría clavado.
-  const sentinelElRef=useRef(null);
+  // Pintada una tanda (o cambiada la lista, o de vuelta a Movimientos) se mira otra vez: si el
+  // final aún queda cerca, la siguiente. Así se encadenan sin esperar a otro evento de scroll.
   useEffect(function(){
-    const io=ioRef.current, el=sentinelElRef.current;
-    if(secc!=="movs" || !io || !el || !el.isConnected) return;
-    io.unobserve(el); io.observe(el);
-  },[secc]);
-  useEffect(function(){ return function(){ if(ioRef.current) ioRef.current.disconnect(); }; },[]);
+    tandaEnCursoRef.current=false;
+    const raf=requestAnimationFrame(function(){ pideMasRef.current(); });
+    return function(){ cancelAnimationFrame(raf); };
+  },[visible, filtered.length, secc]);
   /* LA LISTA SE SUELTA AL VOLVER ARRIBA (13/9, medido en su OnePlus 13 con 2.500 gastos).
      Su queja: «he bajado y subido varias veces… y de repente se ha comenzado a ralentizar».
      La paginación solo CRECÍA: cada vez que bajaba se añadían 60 filas y ninguna se iba al subir.
@@ -13894,8 +13918,10 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     const root=rootRef.current;
     const host=root && root.closest ? root.closest(".page") : null;
     if(!host) return undefined;
-    let tm=0;
+    let tm=0, raf=0;
+    const mira=function(){ raf=0; pideMasRef.current(); };
     const onScroll=function(){
+      if(!raf) raf=requestAnimationFrame(mira);
       if(host.scrollTop>150 || visibleRef.current<=CONFIG.PAGE_SIZE) return;
       if(tm) clearTimeout(tm);
       tm=setTimeout(function(){
@@ -13904,7 +13930,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       }, 300);
     };
     host.addEventListener("scroll", onScroll, {passive:true});
-    return function(){ host.removeEventListener("scroll", onScroll); if(tm) clearTimeout(tm); };
+    return function(){ host.removeEventListener("scroll", onScroll); if(tm) clearTimeout(tm); if(raf) cancelAnimationFrame(raf); };
   },[]);
 
   // Abrir la ficha de un movimiento. useCallback = referencia ESTABLE: si cambiara en cada render,
@@ -14570,12 +14596,9 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
   const ayerK=ayer.getFullYear()*10000+(ayer.getMonth()+1)*100+ayer.getDate();
   const dias=[]; let dia=null;
   shown.forEach(function(e){
-    const ms=dateMs(e.date), info=gastosDia(ms);
+    const f=gxFilaInfo(e, state, l10nKey), ms=f.ms, info=gastosDia(ms);
     if(!dia||dia.k!==info.k||dia.ym!==info.ym){ dia={k:info.k, ym:info.ym, ms:ms, rows:[], gris:[]}; dias.push(dia); }
-    const bucket=expenseBucket(e, state), gris=grisDeGasto(e, bucket);
-    const l=e.debtId&&filterSelLabel("debt:"+e.debtId,state.debts);
-    // En una aportación, la «etiqueta» es la meta (o el bróker): la fila suelta (buscando) y la gris dicen cuál.
-    const recibo=gris==="meta"?metaEtiqueta(state,e):gris==="inversion"?inversionEtiqueta(state,e):reciboEtiqueta(state,e);
+    const bucket=f.bucket, gris=f.gris, l=f.l, recibo=f.recibo;
     // Los recibos NO se agrupan (decisión suya, 26/10/2026: «recibos grisáceo como está
     // comunidad»): con el mismo banco para gastos y recibos, plegarlos los escondía entre cargos
     // que sí tocan el día. Van como fila suelta atenuada, igual que un recibo de otro banco, y la
@@ -14590,9 +14613,7 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
   const etiquetaDia=function(d){
     if(d.k===hoyK) return t("g_today");
     if(d.k===ayerK) return t("g_yesterday");
-    const f=new Date(d.ms), o={weekday:"short",day:"numeric",month:"short"};
-    if(f.getFullYear()!==hoy.getFullYear()) o.year="numeric";
-    return f.toLocaleDateString(loc(),o).replace(/,/g,"");
+    return gxDiaTexto(d.k, d.ms, hoy.getFullYear());
   };
   // Lo que cuenta ese día, con la misma regla que la cifra de arriba: sumados, dan la cifra.
   const totalDia=function(k,ym){
@@ -14644,7 +14665,9 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
                   return React.createElement(GastosGris,{key:d.k+"|"+g.kind, g:g, onOpen:openDetail, onGoPlan:onGoPlan, onGoInversiones:onGoInversiones, simple:simple});
                 }));
             }),
-        visible<filtered.length && React.createElement("div",{className:"sentinel",ref:sentinelRefCb},t("g_loadmore")),
+        // El colchón: lo que falta por pintar, estimado, para que un fling no se estrelle aquí.
+        visible<filtered.length && React.createElement("div",{className:"sentinel",ref:sentinelRefCb,
+          style:{height:30+Math.min(filtered.length-visible,GX_COLCHON_FILAS)*GX_FILA_ALTO}},t("g_loadmore")),
         // El final de la lista dice hasta dónde llega el histórico: sin esto no se sabe si no hay
         // más o si falta por cargar (SPEC §4, «Hasta aquí: 1 de agosto»).
         shown.length>0 && visible>=filtered.length && React.createElement("div",{className:"gx-fin"},
@@ -14661,6 +14684,54 @@ const GX_MESES_SOBRE=36;
    (padding 18 + título), fila normal (~90 con la línea de abajo + hueco de 6; medido con
    Pixel 5) y franja gris cerrada (48 + 2 de borde + 6). Tienen que seguir a `.gx-dia`, `.gx-list .v4-mov` y `.gx-gris-h` en shell.html. */
 const GX_DIA_CAB=46, GX_FILA_ALTO=96, GX_GRIS_ALTO=56;
+/* Paginación de Movimientos (ver «LA PAGINACIÓN DE LA LISTA», punto 3): filas por tanda, a
+   cuántos px del final de lo pintado se pide la siguiente y cuántas filas estimadas mide el
+   colchón de debajo. Tandas pequeñas y pedidas con margen = cada pintado es corto y el fling
+   nunca alcanza el borde; el colchón cubre un fling entero de los suyos (~8.000 px). */
+const GX_TANDA=30, GX_ANTES=3000, GX_COLCHON_FILAS=80;
+/* Lo de cada fila que solo depende del gasto, del estado y del idioma: el cajón, si va a una
+   franja gris y sus etiquetas. Se guarda mientras no cambie el estado: antes, cada tanda nueva lo
+   recalculaba para TODAS las filas ya pintadas (recibos, metas y deudas buscados en el estado),
+   y el coste de bajar crecía con lo bajado. */
+let _gxFilaCache={s:null, k:null, m:null};
+function gxFilaInfo(e, s, l10n){
+  const c=_gxFilaCache;
+  if(c.s!==s || c.k!==l10n){ c.s=s; c.k=l10n; c.m=new WeakMap(); }
+  let v=c.m.get(e);
+  if(v) return v;
+  const bucket=expenseBucket(e, s), gris=grisDeGasto(e, bucket);
+  const l=e.debtId&&filterSelLabel("debt:"+e.debtId,s.debts);
+  // En una aportación, la «etiqueta» es la meta (o el bróker): la fila suelta (buscando) y la gris dicen cuál.
+  const recibo=gris==="meta"?metaEtiqueta(s,e):gris==="inversion"?inversionEtiqueta(s,e):reciboEtiqueta(s,e);
+  v={ms:dateMs(e.date), bucket:bucket, gris:gris, l:l, recibo:recibo};
+  c.m.set(e, v);
+  return v;
+}
+/* `toLocaleDateString` con opciones monta un formateador NUEVO en cada llamada, y la lista lo
+   pedía una vez por fila al pintarla: era lo más caro de cada tanda después de React. El
+   formateador se guarda por idioma y formato; el texto sale idéntico (es la misma API). */
+const GX_FECHA_OPC={dm:{day:"2-digit",month:"2-digit"}, dia:{weekday:"short",day:"numeric",month:"short"},
+  "dia-anio":{weekday:"short",day:"numeric",month:"short",year:"numeric"}};
+const _gxFechaFmt=new Map();
+function gxFecha(d, tipo){
+  const key=loc()+"|"+tipo;
+  let f=_gxFechaFmt.get(key);
+  if(!f){ f=new Intl.DateTimeFormat(loc(), GX_FECHA_OPC[tipo]); _gxFechaFmt.set(key, f); }
+  return f.format(d);
+}
+/* «mié 30 sept»: el día escrito se pedía para cada día pintado en cada tanda. Solo depende del
+   idioma, del día y de si es de otro año. */
+const _gxDiaTextoCache=new Map();
+function gxDiaTexto(k, ms, anioHoy){
+  // `k` es AAAAMMDD del día del dispositivo: el año sale de ahí sin construir un `Date`.
+  const otroAnio=Math.floor(k/10000)!==anioHoy, key=loc()+"|"+k+"|"+(otroAnio?1:0);
+  let v=_gxDiaTextoCache.get(key);
+  if(v!=null) return v;
+  v=gxFecha(new Date(ms), otroAnio?"dia-anio":"dia").replace(/,/g,"");
+  if(_gxDiaTextoCache.size>5000) _gxDiaTextoCache.clear();
+  _gxDiaTextoCache.set(key, v);
+  return v;
+}
 /* Sin fila de meses (Mi ciclo sin ciclos detectados, Rango, Todo) el fondo encogido se QUEDA DENTRO de la caja: la cifra
    y la línea suben al encogerse y lo que quedaba debajo era hueco. Rechazo suyo de la beta
    4.26.164 (24/10, Mi ciclo + balance): el fondo seguía bajando 36 px para unos meses que no
@@ -14937,7 +15008,7 @@ const MovRow=React.memo(function MovRow({e, ms, l, onOpen, bucket, recibo, dragg
       note && React.createElement("div",{className:"nm-note"}, note),
       React.createElement("div",{className:"nm-cat",style:{color:c.color}}, l||catName(e.category)),
       React.createElement("div",{className:"meta"},
-        React.createElement("span",null,d.toLocaleDateString(loc(),{day:'2-digit',month:'2-digit'})),
+        React.createElement("span",null,gxFecha(d,"dm")),
         bk?React.createElement(React.Fragment,null,
           React.createElement("span",{className:"sep"},"·"),
           React.createElement("span",null,entOf(bk).label||entOf(bk).mono)
@@ -26490,7 +26561,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="6dc8d7903e20f6e2779b88f3db63a0686864275b81353f64d7d4ac64ba6df531";
+var _rnSha="756a8541b260969a4601e7cac31072f440a0722ece4e8fb6da6360ee2a53c30d";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

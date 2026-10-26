@@ -151,6 +151,8 @@ export const E2E_MAP = [
     // «Lagazo guapo» (25/10): con cientos de filas bajadas solo se pintan los días de cerca, y la
     // paginación sigue llegando a «Hasta aquí».
     "e2e/gastos-lista-ligera.spec.mjs",
+    // Vídeo del 26/10: un fling largo en Movimientos ya no se estrella en «Cargando más…».
+    "e2e/gastos-fling-sin-tope.spec.mjs",
     // Rechazo de la 173: tocar un mes o un ciclo de la fila deja SU primer día bajo la cabecera.
     "e2e/gastos-fila-salto.spec.mjs",
     // Y el asa de ordenar ya no se come el desliz hacia Plan (solo se queda el vertical).
