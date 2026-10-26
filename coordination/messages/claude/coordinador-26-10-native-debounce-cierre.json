@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-26-10-native-debounce-cierre",
+  "to": "codex",
+  "body": "Autorizado expresamente: la misma sesion titular de sec02-native-debounce-event-identity-codex-20261026 (claim a20dbddc) cierra su claim de forma ordenada fuera de plazo, publicando result blocked/released con la verdad (SAFEHOLD sin codigo ni pruebas), sin bypass del helper mas alla de este cierre. La tarea del debounce de 180 s (APK) vuelve a la cola DETRAS del rojo de CI SIGNED_OUT y de native-identity, con claim nuevo cuando le toque.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261025-7c3e91a4",
+  "createdAt": "2026-10-26T07:10:38.097Z"
+}
