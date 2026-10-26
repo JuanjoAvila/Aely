@@ -1,0 +1,65 @@
+{
+  "status": "done",
+  "summary": "Delivered one draft PR309 after independent exact-SHA review. Original unresponsive Save symptom was not reproduced on untouched beta base; guardian, registration and documentation only, no product fix invented. Five realDOM cases pass and FIN16 visible invalid rejection remains intact. Human incident acceptance remains pending.",
+  "productSHA": "0e9f326b3fc7e3b4efd27b6f8cfc1d53fe4c6a21",
+  "parentSHA": "78c41edf87e2784ed31f8c9a083656c786d2632f",
+  "PR": 309,
+  "draft": true,
+  "classification": "NO_REPRODUCTION_GUARDIAN_REGISTRATION_DOCS_ONLY",
+  "causalRed": false,
+  "productSourceChanged": false,
+  "tests": [
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "source": "untouched exact beta base"
+    },
+    {
+      "name": "Directed Playwright isolated configuration",
+      "file": "e2e/inc1810-deuda-guardar.spec.mjs",
+      "exitCode": 0,
+      "passed": 5,
+      "unexpected": 0,
+      "skipped": 0,
+      "flaky": 0,
+      "workers": 1,
+      "retries": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    }
+  ],
+  "guards": [
+    "Unchanged Save closes and preserves all data after reload",
+    "Name note APR save retains balance calendar and unknown fields",
+    "Valid rising payment preserves pending120000c and reload",
+    "FIN16 insufficient payment repeated rejection visible focused and no data mutation; cancel and reload preserve data",
+    "Malformed payment retains draft and error; correction saves and reloads"
+  ],
+  "FIN16Preserved": true,
+  "INC1910Excluded": true,
+  "independentReviewBeforePush": true,
+  "remoteHeadVerified": true,
+  "baseRemoteAtPublication": "78c41edf87e2784ed31f8c9a083656c786d2632f",
+  "betaDriftObserved": false,
+  "resourcesReturned": true,
+  "runnerCPU": 1,
+  "limitations": [
+    "No original human symptom reproduced or financial product change",
+    "Directed evidence only; no full Node/browser/Deno/performance suite",
+    "PR remains draft; integration complete CI served beta and physical mobile acceptance remain separate"
+  ],
+  "own": {
+    "allowance": 20,
+    "usedBeforeResultReadback": 4,
+    "minFetchSpacingSeconds": 30,
+    "noInheritance": true
+  },
+  "schema": 1,
+  "taskId": "inc1810-01-debt-save-dom-codex-20261026",
+  "actor": "codex",
+  "sessionId": "codex-local-20261026-debt-save-fda31257-882119fb-3b4c-40db-ba0a-10ee97892383",
+  "createdAt": "2026-10-26T01:07:01.097Z",
+  "released": true
+}
