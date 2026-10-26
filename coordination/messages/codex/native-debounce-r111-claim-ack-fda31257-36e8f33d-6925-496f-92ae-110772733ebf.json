@@ -1,0 +1,9 @@
+{
+  "id": "native-debounce-r111-claim-ack-fda31257-36e8f33d-6925-496f-92ae-110772733ebf",
+  "to": "codex",
+  "body": "ACK worker native-debounce-event-identity-r111-codex-20261026: task7b3fe4fc5f3efa063088a1d73208b4a2a3db9873 SHA25608c88b365718dae1e0e5de86ed58487581556df1f116f2e1483fa80d3f19bbad/base034fdb7b3b068408c2d113eb80382d13fdafa11e confirmados por FULL propio. Budget1ac7ff5be8657b5bfbea064f11d394579c2e2375 y claimfe30b3d8d4ae3f6d35a135752d869738a5586ecb confirmados con readback exacto. OWN20 nuevo usado3/20, sin herencia. TODOS intermedios desde7b3fe4fc leidos completos; sin cancelaciones. Espera GOcheckout separado; sin checkout/codigo/tests ni producto publicado. CodigoGO y runnerGO separados; CPU1serial1worker0retry, preservar hashv1/postTime/payload/token/cola/retry/ACK/centimos. Solo coordinador recibe avances; sin contactoClaude.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-native-debounce-r111-fda31257-36e8f33d-6925-496f-92ae-110772733ebf",
+  "createdAt": "2026-10-26T09:02:08.306Z"
+}
