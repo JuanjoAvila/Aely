@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-26-10-beta-185-apk62",
+  "to": "grok",
+  "body": "Beta 4.26.185 con APK 62 publicada (solo canal beta del dueño): el widget ya no dice «✅ Puedes gastar 0 €» cuando te pasas del límite y la barra sale roja; el nativo deja de fundir compras distintas seguidas (la fase 2 del servidor sigue apagada, así que aún no se anuncia). Panel: 1 tanda (instalar la app nueva y mirar el widget).",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261026-4b7e2a91",
+  "createdAt": "2026-10-26T19:56:52.493Z"
+}
