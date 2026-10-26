@@ -415,7 +415,25 @@ function App(){
     if(c!=="EUR" && r>0){ DISP.sym=CUR_SYM[c]||c; DISP.k=1/r; }
     else { DISP.sym="€"; DISP.k=1; }
   })();
-  CURLANG = (state.settings&&state.settings.lang) || "es";   // idioma activo (i18n)
+  const savedLang=(state.settings&&state.settings.lang)||"es";
+  const [langLoaded,setLangLoaded]=useState(0);
+  // El pull también cambia el idioma: a diferencia del botón de Ajustes, no había pedido su
+  // JSON y los textos seguían en español hasta recargar (UX18). Cargarlo solo repinta la UI;
+  // no vuelve a guardar preferencias ni altera la revisión de la nube. Una respuesta de un
+  // idioma que ya dejamos atrás no tiene autoridad para cambiar el actual.
+  useEffect(function(){
+    let active=true;
+    const load=function(){
+      if(langPackReady(savedLang)) return;
+      ensureLangPack(savedLang).then(function(ready){
+        if(active&&ready===savedLang) setLangLoaded(function(n){ return n+1; });
+      });
+    };
+    load();
+    window.addEventListener("online",load);
+    return function(){ active=false; window.removeEventListener("online",load); };
+  },[savedLang]);
+  CURLANG = langPackReady(savedLang)?savedLang:"es";
   SIMPLEMODE = !!(state.settings&&state.settings.simpleMode); // modo sencillo → etiquetas sin jerga
 
   /* ---------- Sincronización en la nube (Supabase) ---------- */
@@ -3931,7 +3949,7 @@ function App(){
     tabIds.forEach(function(id){ if(id!=="gastos") out[id]=pageFor(id); });
     return out;
     // eslint-disable-next-line
-  },[state, totals, budgetStreak, tabIds.join("|"), gotoExp, planGoto, pricing, uid, locked]);
+  },[state, totals, budgetStreak, tabIds.join("|"), gotoExp, planGoto, pricing, uid, locked, langLoaded]);
   /* Gastos iba en memo aparte POR la prop `active` — y esa prop era el lag. Ahora se entera
      por bus (`mcSetGastosActive` abajo) y comparte deps con las otras: entrar/salir de Gastos
      ya NO reconstruye Expenses. Se deja el memo propio por si mañana vuelve a necesitar algo
@@ -3939,7 +3957,7 @@ function App(){
   const contenidoGastos=useMemo(function(){
     return tabIds.indexOf("gastos")>=0 ? pageFor("gastos") : null;
     // eslint-disable-next-line
-  },[state, totals, tabIds.join("|"), gotoExp, planGoto, pricing, uid, locked, gastosForceAll]);
+  },[state, totals, tabIds.join("|"), gotoExp, planGoto, pricing, uid, locked, gastosForceAll, langLoaded]);
   // Aviso barato a Expenses: sin setState en App que no haga falta, y sin re-render de Gastos.
   useEffect(function(){ mcSetGastosActive(tabIds[tab]==="gastos"); },[tab, tabIds]);
   useEffect(function(){ mcSetCarteraActive(tabIds[tab]==="cartera"); },[tab, tabIds]);
