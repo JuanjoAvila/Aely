@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "taskId": "sec02-edge-limits-replay-audit-codex-20261026",
+  "actor": "codex",
+  "sessionId": "codex-local-20261026-sec02-fda31257-25f54030-5b60-4a9f-a2ce-c93c908bf243",
+  "createdAt": "2026-10-26T02:24:52.673Z",
+  "baseSHA": "74ea9c63880b23a975f2a5852d82970f3cbffefd"
+}
