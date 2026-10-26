@@ -1,5 +1,52 @@
 [
   {
+    "v": "4.26.184",
+    "d": "2026-10-26",
+    "t": {
+      "es": "El límite del mes descuenta lo que te entra, menos la nómina",
+      "en": "The monthly limit discounts what comes in to you, except your payslip",
+      "ca": "El límit del mes descompta el que t’entra, menys la nòmina"
+    },
+    "items": {
+      "es": [
+        "En el mes, los Bizums y las devoluciones que te entran descuentan de tu límite (la nómina no), igual en Inicio, Gastos y el widget.",
+        "En Gastos → Categorías ya no sale la barra del límite."
+      ],
+      "en": [
+        "During the month, the Bizums and refunds that come in to you are discounted from your limit (your payslip is not), the same in Home, Spending and the widget.",
+        "In Spending → Categories the limit bar no longer shows."
+      ],
+      "ca": [
+        "Durant el mes, els Bizums i les devolucions que t’entren descompten del teu límit (la nòmina no), igual a Inici, Despeses i el widget.",
+        "A Despeses → Categories ja no surt la barra del límit."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "gastos-margen-sin-nomina",
+        "t": {
+          "es": "Inicio y Gastos: lo que te queda del límite sin contar la nómina",
+          "en": "Home and Spending: what is left of the limit, not counting your payslip",
+          "ca": "Inici i Despeses: el que et queda del límit sense comptar la nòmina"
+        },
+        "items": {
+          "es": [
+            "1. Abre Inicio y luego Gastos: lo que te queda del límite este mes tiene que ser lo mismo en los dos sitios, descontando los Bizums y devoluciones que te han entrado pero no la nómina (hoy, unos 64 € por debajo).",
+            "2. En Gastos → Categorías ya no sale la barra verde/roja del límite debajo de los meses."
+          ],
+          "en": [
+            "1. Open Home and then Spending: what is left of the limit this month must be the same in both places, discounting the Bizums and refunds that have come in to you but not your payslip (today, about 64 € under).",
+            "2. In Spending → Categories the green/red limit bar no longer shows below the months."
+          ],
+          "ca": [
+            "1. Obre Inici i després Despeses: el que et queda del límit aquest mes ha de ser el mateix als dos llocs, descomptant els Bizums i devolucions que t’han entrat però no la nòmina (avui, uns 64 € per sota).",
+            "2. A Despeses → Categories ja no surt la barra verda/vermella del límit sota els mesos."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.183",
     "d": "2026-10-26",
     "t": {
