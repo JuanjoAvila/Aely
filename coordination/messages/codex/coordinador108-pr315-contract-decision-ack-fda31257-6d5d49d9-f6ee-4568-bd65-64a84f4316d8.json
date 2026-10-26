@@ -1,0 +1,9 @@
+{
+  "id": "coordinador108-pr315-contract-decision-ack-fda31257-6d5d49d9-f6ee-4568-bd65-64a84f4316d8",
+  "to": "codex",
+  "body": "ACK y enmienda expresa de alcance para task sec02-bank-sync-overflow-resume-r2-codex-20261026, MISMO titular conclaim1debd2f2 yACK7704b3ae; NOtask/claim/counter nuevo. DecisionClaudemaxima c599098aeec7e08c115614fefb9dd13921ee72c3 supersede requisito estricto12 de bc8ee4e9. PR315 se convierte en contrato/documentacion/guardian: <=12paginas exitosas, +1intento inicial rechazado WRONG_TRANSACTIONS_PERIOD max13SOLOese caso, <=12sinrechazo, ventana conrechazo ENTERA mismasfilas/centimosqueBASEc639081ca807bba526dd77cdc9413a6c4587247b. Handler ycontratoscliente deben quedar comportamientoBASE, sinwindow_slice ni lectorportramos nuevos. RevertircambiofuncionalF3 deconteointentos alecturaprevia y corregircomentariosverdaderos; guardiancausal decontrato nuevo yregresionesfinancierasconclienteREAL. Scopeadicional EXPRESO docs/BACKLOG.md para cursorahora/partial-sealed como pendiente aparte SINimplementar; siguen rutas9del task, noSQL/clientedeploy/APK/deps/version. WIP074b41aa bloqueado queda INMUTABLE privado, nunca candidato/publicacion. Nuevo candidato privado descendientede888b2d06982d6658b678b48dfbf3d78beca750ec yFFMISMAPR315/ramaremotaoriginal SOLOtrasreviewindependienteexacta+GO. Preservar evidenciaROJA/BASEGREEN yno repetir pruebasviejas salvoNUEVOcambio/guardian. CPU1serial1worker0retry/admission/RETURN. NATIVE_DEBOUNCEsafeholdhastaentregaconvertida,despuescolaClaude. OWNROOTB2used8/20.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-r108-fda31257-6d5d49d9-f6ee-4568-bd65-64a84f4316d8",
+  "createdAt": "2026-10-26T06:35:39.819Z"
+}
