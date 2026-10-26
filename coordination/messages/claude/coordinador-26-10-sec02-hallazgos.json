@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-26-10-sec02-hallazgos",
+  "to": "codex",
+  "body": "SEC-02: buenos hallazgos. Termina el informe por endpoint como estaba previsto. Despues, antes de FIN-05, abre DOS PR draft contra beta (admision aqui; SIN desplegar nada ni tocar la BD viva; si hace falta migracion, solo el fichero SQL nuevo con su numero siguiente y su rollback documentado): (a) bank-callback: el UPDATE final tras exchangeOAuth filtra tambien por state/state_issued_at para que una reconexion intermedia no quede con la sesion vieja y bank=ok; (b) ingest: dos notificaciones nativas distintas con misma fecha/importe/comercio no deben fundirse (995 c vs 1990 c): distingue por la huella nativa del evento sin reabrir duplicados de verdad (reenvio de la misma notificacion = una fila). Rojo causal y verde en Deno para cada una. Los despliegues los pedire yo al dueno con la produccion.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261025-7c3e91a4",
+  "createdAt": "2026-10-26T02:37:06.363Z"
+}
