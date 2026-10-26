@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "id": "fin27-pr308-r2-balance-reanchor-codex-20261026",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261026-r103-fda31257-b01e1d56-caa5-4ffd-8ec3-782d3e5dc837",
+  "createdAt": "2026-10-26T00:38:44.223Z",
+  "to": "codex",
+  "baseSHA": "626e214699bb62e4757f54e71e5f97366eb7d1f0",
+  "objective": "Claude cb1176dc1c5eb8c399f35384d9eeaead762db501 EXPRESS PRIORITY: R2 in SAME PR308 before integration. Old October paidYm deletion by planSyncDerived cloud merge and rekey in failed bank sync or TR loses the balance anchor and visibly adds1299c until successful sync. Reanchor these paths or retain old mark until safe reanchor. Preserve actual causal RED measuring visible1299c, GREEN after narrow fix and independent financial review. New worker and claim; predecessor FIN27 closed, never reanimate.",
+  "scope": [
+    "New isolated checkout and codex branch from exact published PR308 head626e214699bb62e4757f54e71e5f97366eb7d1f0. Read AGENTS/EMPIEZA/protocol and task completely. Original PR308 tests are closed: inspect evidence, do not repeat without changedcode/newfailure. No automatic rebase/cherry-pick, no force, no main/beta merge. Keep SAME PR308 and append finished R2 by normal fast-forward to existing PR branch only after exact parentGO; no second PR.",
+    "Narrow src/modules/08-motor-bank.js and directly required payment allocation helpers in07, meaningful regressiontests, registration anddocs only when causally justified. NEVER04-tab-gastos.js orsrc/shell.html. Preserve PR308 exact-reference BOOK allocation, ambiguous/missingref safeguards, orphan/relink/deleted/idempotency contracts. NoVERSION/release/catalog/caps/backend/SQL/Edge/native/Gradle/APK/deploy/mobile/newdeps.",
+    "First immutable causalRED on intact626e2146 for BOTH cloudmerge planSyncDerived and failedsync/TR migration/rekey paths, with actual visible balance1299c delta. Two independent money oracles: visible account balance vs ledger/payment allocation cents. Assert expectedpreexistingbalance, never observedbadvalue as expected. Cover later successfulsync, repeatedmerge/replay/rekey and no doublecount, source fallback/marks retained when anchor unavailable; negative/zero balances and dateboundary if relevant. Register meaningful focalDOM ifvisible financial behavior changes. No synthetic fixture shortcuts that skip production paths.",
+    "Directed focal tests only CPU1serial one worker0retry stopfirstfailure. Owncensus/admission/isolatedserver uniqueport beforeEACHrun, logs/EXIT/RETURN durable. Directedgrant027aeb19133c2129faef080bc70e27b2e0addce9. NofullNode/browser/perfCPU6/Deno/Gradle carriedover. No foreign process/lock mutation or reservation expiry byclock. Preserve priorfailures and finishedtest evidence.",
+    "Standingworkergrant e42252eb4444e23228b565b7d2da5b0ee5e13e43 OWN20 NEW0. Reception verifies ownruntime/project and savesACK, then parentnative admission before ownclaim; readFULL allintermediates/cancellations and ACK underfresh ownsession, parentremoteverified technicalGO beforecheckout/code/tests. First/internal/readback>=30s exclusiveledger. No predecessorclaims/leases/grants/counters inherited. Native reports only current coordinator ROOT103 underhuman74authorization, neverClaude.",
+    "Deliver private finishedcandidateSHA/parent/diff and manifest, causalRED/GREEN commands/exits/logs, visiblecents+independentoracle, runnerRETURN andlimits for independent parent review BEFOREpush. After exactGO fastforward SAME PR308 existingbranchcodex/fin27-book-cargo-286a83e8 only if remoteheadstill626e2146 (or explicit renewed exactGO). OWNresultdone/released/readback and native compactdelivery. Claude integration remains separate; no claims of globalCIgreen/servedbeta/mobile/ProductREADY."
+  ]
+}
