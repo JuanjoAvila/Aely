@@ -17927,7 +17927,14 @@ function isDebtPaidThisMonth(d,today,s,y,m){ return s&&debtPaymentState(s,d,y,m,
 // moverlo no convierta el mismo recibo en otro pendiente. Si se corrige a un día que ya ha llegado
 // con feed RECIÉN sincronizado que cubre el día pero sin cargo, `wait` guarda ese año-mes e
 // impide inventar el pago. Un feed viejo no sirve para negar un cobro de hoy (feedback 25/9).
-const isPaidIn=(e,m,t,y)=>{ const ym=(y||new Date().getFullYear())*12+m,d=dayIn(e,m); return e.paidYm===ym || e.wait!==ym&&d!=null&&d<=t; };
+// Rehacer un vínculo crea una prueba expense antes del pull. Solo su origen bancario local
+// adelanta el calendario; BOOK conserva su regla anterior y las notificaciones no mueven saldo.
+const isPaidIn=(e,m,t,y,s)=>{
+  const year=y||new Date().getFullYear(),ym=year*12+m,d=dayIn(e,m);
+  if(e.paidYm===ym) return true;
+  const p=s&&fixedPaymentProof(s,e,year,m,t);
+  return !!(p&&p.kind==="expense"&&fixedPaymentDerivedDay(s,{proof:p})) || e.wait!==ym&&d!=null&&d<=t;
+};
 const isPaidThisMonth=(e,today)=>{ const d=dayOf(e); return d!=null && d<=today; };
 // ¿el gasto necesita que el usuario le asigne un mes? (anual sin programar)
 const needsMonth=(e)=> (e.freq==="año"||e.freq==="anual") && !(e.months&&e.months.length) && !(e.schedule&&e.schedule.length);
@@ -17983,7 +17990,7 @@ function monthNetForAccount(s, ent, y, m, t){
   const hit=function(d){ return closed ? true : (d!=null && d<=t); };
   const ym=y*12+m, bp=!closed&&(s.fixed||[]).some(function(e){ return e.wait===ym; })?reconcileBank(s,y,m,t).paidAt:null;
   let net=0;
-  (s.fixed||[]).forEach(function(e){ if((e.account||"sabadell")===ent && occursIn(e,m) && (closed||bp&&bp[e.id]||isPaidIn(e,m,t,y))) net -= occAmountIn(e,m); });
+  (s.fixed||[]).forEach(function(e){ if((e.account||"sabadell")===ent && occursIn(e,m) && (closed||bp&&bp[e.id]||isPaidIn(e,m,t,y,s))) net -= occAmountIn(e,m); });
   (s.debts||[]).forEach(function(d){ if(debtActive(d) && (d.account||"sabadell")===ent && hit(debtChargeDay(d))) net -= (d.monthly||0) + debtBalloonIn(d,y,m); });
   (s.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m) && (o.account||"sabadell")===ent && (o.amount||0)!==0 && hit(o.day!=null?o.day:null)) net -= o.amount; });
   (s.flows||[]).forEach(function(f){ if(flowOccursIn(f,m,y)){ const bd=f.kind==="income"?flowConfirmedDay(f,y,m):null, dd=bd!=null?bd:flowDay(f,y,m); if(hit(dd)){ if(f.kind==="income" && (f.to||"sabadell")===ent) net += (f.amount||0); else if(f.kind==="transfer" && (f.from||"sabadell")===ent) net -= (f.amount||0); } } });
@@ -19100,7 +19107,7 @@ function applyBankBalances(s, links){
 // por el simulador "¿me lo puedo permitir?". today = día de hoy (solo cuenta lo no pagado).
 function bankPendingEvents(state, bank, y, m, today){
   const evs=[];
-  (state.fixed||[]).forEach(function(e){ if(occursIn(e,m)&&accOf(e)===bank&&!isPaidIn(e,m,today,y)) evs.push({day:dayIn(e,m)||0, amt:-occAmountIn(e,m)}); });
+  (state.fixed||[]).forEach(function(e){ if(occursIn(e,m)&&accOf(e)===bank&&!isPaidIn(e,m,today,y,state)) evs.push({day:dayIn(e,m)||0, amt:-occAmountIn(e,m)}); });
   (state.debts||[]).forEach(function(d){ if(debtActive(d)&&(d.account||"sabadell")===bank&&!isDebtPaidThisMonth(d,today,state,y,m)){ evs.push({day:debtChargeDay(d), amt:-(d.monthly||0)}); const bl=debtBalloonIn(d,y,m); if(bl>0) evs.push({day:debtChargeDay(d), amt:-bl}); } });
   (state.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m)&&(o.account||"sabadell")===bank&&(o.amount||0)!==0&&!isPaidThisMonth(o,today)) evs.push({day:o.day||0, amt:-o.amount}); });
   (state.flows||[]).forEach(function(f){ if(!flowOccursIn(f,m,y)||flowPaidIn(state,f,y,m,today))return; const dd=flowDay(f,y,m); if(f.kind==="income"&&(f.to||"sabadell")===bank) evs.push({day:dd||99, amt:f.amount}); else if(f.kind==="transfer"&&(f.from||"sabadell")===bank) evs.push({day:dd||0, amt:-f.amount}); });
@@ -26363,7 +26370,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="3c930d43b9cfe37085eda0e751b8c73a05629475a54ee4b85fe27e651051e775";
+var _rnSha="83f196aad0cef92975bf55e535268e6fc5420bfa9bb2ef0a3bab4ce976efdc44";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -30717,13 +30724,24 @@ function App(){
     if(!s || !s.user) return;
     const u=s.user.id;
     if(!sessionRef.current || sessionRef.current.user.id!==u)return;
-    if(cloudPullRef.current&&cloudPullRef.current.owner===u)return cloudPullRef.current.promise;
-    const read={owner:u,ready:false,editIntent:planSyncEditToken(stateRef.current)};cloudPullRef.current=read;
+    const STATE_READ_PLAZO=25000,readSession=sessionRef.current;
+    if(cloudPullRef.current&&cloudPullRef.current.owner===u&&cloudPullRef.current.session===readSession){
+      const current=cloudPullRef.current;
+      // Solo el GET puede quedar retenido por la red: la mezcla y sus gastos terminan juntos.
+      if(current.waiting){current.again=true;if(Date.now()-current.startedAt>=STATE_READ_PLAZO)return current.relevar();}
+      return current.promise;
+    }
+    // El primer disparador tras renovar consume también las opciones del vuelo cancelado.
+    const resume=cloudPullRef.resume;
+    if(resume&&resume.owner===u){opts=resume.opts;cloudPullRef.resume=null;}
+    const read={owner:u,session:readSession,opts:opts,startedAt:Date.now(),waiting:true,again:false,ready:false,editIntent:planSyncEditToken(stateRef.current)};cloudPullRef.current=read;
     goalSyncActivate(mcStateKey(),u);planSyncActivate(mcStateKey(),u);
     const freshLogin=!!(opts&&opts.freshLogin);   // acaba de INICIAR SESIÓN (no un reconecta del mismo user)
     // INC-0410 mensual: el asiento solo vale si ESTE pull leyó un estado válido (o aún no hay ninguno).
     const mensualPuerta=reservaMensualPuerta();
     const transport=cloud.pullState().then(function(cloudPack){
+      if(cloudPullRef.current!==read||sessionRef.current!==readSession)return;
+      read.waiting=false;clearTimeout(plazo);
       mensualPuerta.lee(cloudPack);
       // INC-0410 mensual: límite de la lectura válida.
       const cloudState=cloudPack ? cloudPack.data : null;
@@ -30763,7 +30781,7 @@ function App(){
         set(function(prev){
           // Cerrar sesión mientras llega el pull no autoriza aplicar una cartera vieja
           // ni sustituir los 400 cierres locales por la ventana corta de nube.
-          if(cloudPullRef.current!==read||!sessionRef.current||!sessionRef.current.user||sessionRef.current.user.id!==u)return prev;
+          if(cloudPullRef.current!==read||sessionRef.current!==readSession)return prev;
           const sameOwner=!(opts&&opts.dropTx)&&(!freshLogin||prev._historyOwner===u)&&(!prev._historyOwner||prev._historyOwner===u);
           const preferenceDeleted=expenseDeletedSet({deleted:(cloudState.deleted||[]).concat(sameOwner?prev.deleted||[]:[])});
           const merged=mergeExpenses(prev.expenses, cloudState.expenses||[], preferenceDeleted);
@@ -30827,29 +30845,54 @@ function App(){
         // También una ausencia tardía despierta backup y debounce después del commit.
         read.revision=null;read.merging=true;
         const committed=new Promise(function(resolve){read.commit=resolve;});
-        set(function(prev){if(cloudPullRef.current!==read||!sessionRef.current||sessionRef.current.user.id!==u)return prev;return Object.assign({},prev,{[cloudMergeKey.current]:{read:read}});},false);
+        set(function(prev){if(cloudPullRef.current!==read||sessionRef.current!==readSession)return prev;return Object.assign({},prev,{[cloudMergeKey.current]:{read:read}});},false);
         return committed.then(function(applied){if(applied)return pushAppState(u,stateRef.current).then(function(r){if(r&&r.conflict)read.collision=true;});});
       }   // ausencia acreditada: INSERT, nunca upsert
     }).then(function(){
       // El vuelo incluye gastos: otro refresco no puede sustituir su lectura a mitad del pull.
-      if(cloudPullRef.current!==read||!sessionRef.current||sessionRef.current.user.id!==u)return;
+      if(cloudPullRef.current!==read||sessionRef.current!==readSession)return;
       return syncCloudExpenses();
     });
-    const completed=transport.then(function(){
+    let relevo=null,plazo=null;
+    const relevada=new Promise(function(resolve){relevo=resolve;});
+    read.cancel=function(){
+      if(cloudPullRef.current!==read)return;
+      clearTimeout(plazo);read.waiting=false;read.merging=false;read.ready=false;
+      if(read.commit)read.commit(false);
+      cloudPullRef.current=null;relevo();
+    };
+    read.relevar=function(){
+      if(cloudPullRef.current!==read||sessionRef.current!==readSession||!read.waiting)return cloudPullRef.current&&cloudPullRef.current.promise;
+      clearTimeout(plazo);read.waiting=false;cloudPullRef.current=null;
+      // Mantener opts del vuelo original: un refresco no pierde freshLogin ni dropTx.
+      const next=syncFromCloud(s,opts);read.replacement=next;relevo(next);return next;
+    };
+    // Como EXP_READ_PLAZO: sin otra petición una red lenta sigue viva, sin abortar el backend.
+    plazo=setTimeout(function(){if(read.again)read.relevar();},STATE_READ_PLAZO);
+    const finish=function(result,failed){
+      clearTimeout(plazo);read.waiting=false;
+      const own=cloudPullRef.current===read&&sessionRef.current===readSession;
       if(cloudPullRef.current===read)cloudPullRef.current=null;
       // Cada vuelo consume la intención con la que empezó. Otra edición puede compartir
       // milisegundo con ella; el token privado también distingue ese caso sin persistirlo.
-      if(read.planInvalid&&planSyncEditToken(stateRef.current)!==read.editIntent&&cloudReadRef.current===read&&sessionRef.current&&sessionRef.current.user.id===u)return syncFromCloud(s,opts);
+      if(own&&!failed&&read.planInvalid&&planSyncEditToken(stateRef.current)!==read.editIntent&&cloudReadRef.current===read)return syncFromCloud(s,opts);
       // INSERT puede competir con otro móvil. Una relectura inmediata resuelve esa carrera;
       // si tampoco sirve, el próximo evento volverá a intentar, sin bucle de 409.
-      if(read.collision&&cloudReadRef.current===read&&!(opts&&opts.afterCollision)&&sessionRef.current&&sessionRef.current.user.id===u)return syncFromCloud(s,Object.assign({},opts,{afterCollision:true}));
-    },function(e){if(cloudPullRef.current===read)cloudPullRef.current=null;throw e;});
+      if(own&&!failed&&read.collision&&cloudReadRef.current===read&&!(opts&&opts.afterCollision))return syncFromCloud(s,Object.assign({},opts,{afterCollision:true}));
+      if(own&&read.again)return syncFromCloud(s,opts);
+      if(failed)throw result;
+      return result;
+    };
+    // Una respuesta o un error viejos pueden ganar la carrera mientras el sucesor espera:
+    // también ese camino debe adoptar su promesa, sin liberar su guardián ni acreditar el mes.
+    const completed=Promise.race([transport.then(function(result){return read.replacement||result;},function(e){if(read.replacement)return read.replacement;throw e;}),relevada])
+      .then(function(result){return finish(result,false);},function(e){return finish(e,true);});
     read.promise=completed;
-    const pull=completed.then(function(){if(!read.ready||cloudReadRef.current!==read||!sessionRef.current||sessionRef.current.user.id!==u)throw new Error("cloud_read_not_applied");});
+    const pull=completed.then(function(){if(!read.ready||cloudReadRef.current!==read||sessionRef.current!==readSession)throw new Error("cloud_read_not_applied");});
     pullOkRef.current=pull.then(function(){ return true; }, function(){ return false; });
     reservaMensualAlDia(pullOkRef.current.then(mensualPuerta.vale));
     // INC-0410 mensual: límite del pull de estado del que depende el asiento.
-    completed.catch(function(e){ if(navigator.onLine!==false&&sessionRef.current&&sessionRef.current.user.id===u) showToast("✕ Nube: "+((e&&e.message)||e)); })   // si estás sin conexión, ni avisamos (es normal)
+    completed.catch(function(e){ if(!read.replacement&&navigator.onLine!==false&&sessionRef.current===readSession) showToast("✕ Nube: "+((e&&e.message)||e)); })   // si estás sin conexión, ni avisamos (es normal)
       // Pase lo que pase, el splash se va: lo que se vea a partir de aquí ya es lo definitivo
       // (o lo mejor que hay). Ver el porqué en el script del final de shell.html.
       .then(mcBootReady, mcBootReady);
@@ -31264,19 +31307,41 @@ function App(){
        instante. Con red se conserva el margen de 2500 ms para no pintar cifras que luego saltan. */
     try{ if(navigator.onLine===false) mcBootReady(); }catch(e){}
     // Al desmontar no deben quedar callbacks que cambien sesión o inicien otra lectura.
-    var alive=true;
+    var alive=true,resumePull=null,resumeTimer=null;
+    // La renovación invalida el objeto viejo, pero conserva la intención y opciones del pull.
+    // Diferir la nueva llamada evita entrar en Supabase dentro de su callback de autenticación.
+    const renewPull=function(s){
+      const read=cloudPullRef.current;
+      if(resumePull&&(!s||resumePull.owner!==s.user.id)){clearTimeout(resumeTimer);resumePull=null;cloudPullRef.resume=null;}
+      if(!read||read.session===s||!read.cancel)return;
+      if(s&&read.owner===s.user.id){
+        resumePull={owner:read.owner,opts:read.opts};cloudPullRef.resume=resumePull;clearTimeout(resumeTimer);
+        resumeTimer=setTimeout(function(){
+          const pending=resumePull;resumePull=null;
+          if(!pending||cloudPullRef.resume!==pending)return;
+          cloudPullRef.resume=null;
+          const current=sessionRef.current;
+          if(alive&&pending&&current&&current.user.id===pending.owner&&!cloudPullRef.current)syncFromCloud(current,pending.opts);
+        },0);
+      }
+      read.cancel();
+    };
     const boot=()=>{ if(alive) mcBootReady(); }, tmr=setTimeout(boot, 2500);
     cloud.session().then(s=>{
       clearTimeout(tmr);
       if(!alive) return;
+      if(sessionRef.current!==s)renewPull(s);
       setSession(sessionRef.current=s);
       if(!s){if(cloudPullRef.current&&cloudPullRef.current.commit)cloudPullRef.current.commit(false);cloudReadRef.current=null;cloudUpdatedAtRef.current=null;cloudPullRef.current=null;}
-      if(s) mcScheduleIdle(()=>{ if(alive) syncFromCloud(s); }); else boot();
+      if(s){if(!resumePull&&!cloudPullRef.current)mcScheduleIdle(()=>{ if(sessionRef.current===s&&!cloudPullRef.current){ if(alive) syncFromCloud(s); } });}else boot();
     }, ()=>{ clearTimeout(tmr); boot(); });
     const off=cloud.onAuth((s,ev)=>{
       if(!alive) return;
       const prev=sessionRef.current;
       const login=s&&(!prev||prev.user.id!==s.user.id);
+      // También TOKEN_REFRESHED cambia el objeto sin cambiar UID: fuera del updater se
+      // cancela su espera de commit, que React puede descartar sin ejecutar sus efectos.
+      if(prev!==s)renewPull(s);
       if(!s||login){if(cloudPullRef.current&&cloudPullRef.current.commit)cloudPullRef.current.commit(false);cloudReadRef.current=null;cloudUpdatedAtRef.current=null;cloudPullRef.current=null;}
       setSession(sessionRef.current=s);
       // Cerrar sesión rompe la asociación implícita del extracto local con el titular. El
@@ -31301,9 +31366,10 @@ function App(){
       if(login) syncFromCloud(s, {freshLogin:true,
         dropTx:!!prev});
     });
-    return ()=>{ alive=false;
+    return ()=>{ alive=false;clearTimeout(resumeTimer);resumePull=null;cloudPullRef.resume=null;
       // Un vuelo que termina tras desmontar no conserva autoridad para releer ni escribir.
-      if(cloudPullRef.current&&cloudPullRef.current.commit)cloudPullRef.current.commit(false);
+      if(cloudPullRef.current&&cloudPullRef.current.cancel)cloudPullRef.current.cancel();
+      else if(cloudPullRef.current&&cloudPullRef.current.commit)cloudPullRef.current.commit(false);
       cloudPullRef.current=null;cloudReadRef.current=null;cloudUpdatedAtRef.current=null;sessionRef.current=null;
       clearTimeout(tmr); off(); };
   },[]);
@@ -32287,7 +32353,7 @@ function App(){
     const acc=(amt,bank,paid)=>{ chargesByBank[bank]=(chargesByBank[bank]||0)+amt;
       if(paid){ paidThisMonth+=amt; }
       else { pendingThisMonth+=amt; pendingByBank[bank]=(pendingByBank[bank]||0)+amt; } };
-    state.fixed.forEach(e=>{ if(occursIn(e,curMonth)) acc(occAmountIn(e,curMonth),accOf(e),isPaidIn(e,curMonth,today)); });
+    state.fixed.forEach(e=>{ if(occursIn(e,curMonth)) acc(occAmountIn(e,curMonth),accOf(e),isPaidIn(e,curMonth,today,curYear,state)); });
     state.debts.forEach(d=>{ if(debtActive(d)) acc((d.monthly||0)+debtBalloonIn(d,curYear,curMonth),d.account||"sabadell",isDebtPaidThisMonth(d,today,state,curYear,curMonth)); });
     (state.oneoffs||[]).forEach(o=>{ if(oneoffOccurs(o,curYear,curMonth) && (o.amount||0)!==0) acc(o.amount,o.account||"sabadell",isPaidThisMonth(o,today)); });
     // --- CASH-FLOW: ingresos (nómina) y transferencias recurrentes PENDIENTES este mes ---
@@ -32310,7 +32376,7 @@ function App(){
     // (día 0, peor caso) e ingresos al final (día 99). ---
     const evsByBank={};
     const pushEv=(bank,day,amt)=>{ (evsByBank[bank]=evsByBank[bank]||[]).push({day:day,amt:amt}); };
-    state.fixed.forEach(e=>{ if(occursIn(e,curMonth)&&!isPaidIn(e,curMonth,today)) pushEv(accOf(e), dayIn(e,curMonth)||0, -occAmountIn(e,curMonth)); });
+    state.fixed.forEach(e=>{ if(occursIn(e,curMonth)&&!isPaidIn(e,curMonth,today,curYear,state)) pushEv(accOf(e), dayIn(e,curMonth)||0, -occAmountIn(e,curMonth)); });
     state.debts.forEach(d=>{ if(debtActive(d)&&!isDebtPaidThisMonth(d,today,state,curYear,curMonth)){ pushEv(d.account||"sabadell", debtChargeDay(d), -d.monthly); const bl=debtBalloonIn(d,curYear,curMonth); if(bl>0) pushEv(d.account||"sabadell", debtChargeDay(d), -bl); } });
     (state.oneoffs||[]).forEach(o=>{ if(oneoffOccurs(o,curYear,curMonth)&&(o.amount||0)!==0&&!isPaidThisMonth(o,today)) pushEv(o.account||"sabadell", o.day||0, -o.amount); });
     (state.flows||[]).forEach(f=>{ if(!flowOccursIn(f,curMonth,curYear)||flowPaidIn(state,f,curYear,curMonth,today))return; const dd=flowDay(f,curYear,curMonth); if(f.kind==="income") pushEv(f.to||"sabadell", dd||99, f.amount); else if(f.kind==="transfer") pushEv(f.from||"sabadell", dd||0, -f.amount); });
@@ -32649,7 +32715,7 @@ function App(){
       (state.fixed||[]).forEach(function(e){
         if(!occursIn(e,cm)) return;
         const d=dayIn(e,cm); if(d==null) return;
-        if(isPaidIn(e,cm,today)) return;
+        if(isPaidIn(e,cm,today,cy,state)) return;
         const amt=occAmountIn(e,cm)||0;
         if(!(amt>0)) return;
         const daysLeft=d-today;
@@ -32678,7 +32744,7 @@ function App(){
         }).catch(run);
       }catch(e){ run(); }
     } else run();
-  },[state.onboarded,locked,showAuth,state.fixed,state.debts,state.expenses,state.bankTx,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,totals.today,totals.curMonth,totals.curYear]);
+  },[state.onboarded,locked,showAuth,state.fixed,state.debts,state.oneoffs,state.accounts,state.expenses,state.bankTx,state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,totals.today,totals.curMonth,totals.curYear]);
 
   // Empuja el calendario de recibos del mes al NATIVO (APK ≥29): AlertCheckWorker avisa la
   // víspera aunque la app esté CERRADA. Intercambio de sellos para no avisar dos veces:

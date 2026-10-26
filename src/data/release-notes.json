@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.26.176",
+    "d": "2026-10-26",
+    "t": {
+      "es": "Recibos y saldo al momento, y lecturas que no se quedan colgadas",
+      "en": "Bills and balance update instantly, and reads no longer hang",
+      "ca": "Rebuts i saldo al moment, i lectures que no es queden penjades"
+    },
+    "items": {
+      "es": [
+        "Si deshaces y rehaces el vínculo de un recibo con su cargo, el saldo de la cuenta y lo que queda por pagar se actualizan al momento.",
+        "Si la conexión se queda colgada, la app vuelve a leer tus datos sola, sin que tengas que cerrarla."
+      ],
+      "en": [
+        "If you undo and redo the link between a bill and its charge, the account balance and what is left to pay update right away.",
+        "If the connection hangs, the app reads your data again by itself, without you having to close it."
+      ],
+      "ca": [
+        "Si desfàs i refàs el vincle d'un rebut amb el seu càrrec, el saldo del compte i el que queda per pagar s'actualitzen al moment.",
+        "Si la connexió es queda penjada, l'app torna a llegir les teves dades sola, sense que l'hagis de tancar."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "recibo-vinculo-saldo",
+        "t": {
+          "es": "Recibos: deshacer y rehacer el vínculo con su cargo",
+          "en": "Bills: undo and redo the link with its charge",
+          "ca": "Rebuts: desfer i refer el vincle amb el seu càrrec"
+        },
+        "items": {
+          "es": [
+            "1. Cartera: anota el saldo de una cuenta de banco que tenga un recibo ya cobrado este mes (en Plan → Recibos sale como pagado). Gastos: abre el cargo de ese recibo, toca «Paga un recibo», toca «Deshacer vínculo» y cierra la ficha. Vuelve a Cartera y a Plan. MAL: el saldo no cambia o el recibo sigue como pagado. BIEN: el saldo sube lo que cuesta el recibo y Plan lo enseña pendiente de pagar.",
+            "2. Gastos: abre otra vez ese mismo cargo, toca «Paga un recibo», toca el recibo (nombre e importe) y confirma. Cierra la ficha y vuelve a Cartera y a Plan. MAL: el saldo sigue con el importe sumado, o el recibo sigue pendiente. BIEN: el saldo vuelve al que anotaste en el paso 1 y el recibo sale pagado en Plan → Recibos.",
+            "3. Cierra la app del todo y ábrela de nuevo. Mira el saldo de esa cuenta y el recibo en Plan. MAL: el saldo o el estado del recibo cambian al reabrir. BIEN: todo sigue igual que al terminar el paso 2."
+          ],
+          "en": [
+            "1. Portfolio: note the balance of a bank account that has a bill already charged this month (in Plan → Bills it shows as paid). Spending: open that bill's charge, tap \"Pays a bill\", tap \"Undo link\" and close the sheet. Go back to Portfolio and to Plan. WRONG: the balance doesn't change or the bill still shows as paid. RIGHT: the balance goes up by the bill's amount and Plan shows it as still to pay.",
+            "2. Spending: open that same charge again, tap \"Pays a bill\", tap the bill (name and amount) and confirm. Close the sheet and go back to Portfolio and to Plan. WRONG: the balance still includes the added amount, or the bill is still pending. RIGHT: the balance returns to the one you noted in step 1 and the bill shows as paid in Plan → Bills.",
+            "3. Close the app completely and open it again. Check that account's balance and the bill in Plan. WRONG: the balance or the bill's status changes when you reopen. RIGHT: everything is as it was at the end of step 2."
+          ],
+          "ca": [
+            "1. Cartera: anota el saldo d'un compte de banc que tingui un rebut ja cobrat aquest mes (a Pla → Rebuts surt com a pagat). Despeses: obre el càrrec d'aquest rebut, toca «Paga un rebut», toca «Desfer vincle» i tanca la fitxa. Torna a Cartera i a Pla. MALAMENT: el saldo no canvia o el rebut continua com a pagat. BÉ: el saldo puja el que costa el rebut i Pla el mostra pendent de pagar.",
+            "2. Despeses: obre un altre cop aquest mateix càrrec, toca «Paga un rebut», toca el rebut (nom i import) i confirma. Tanca la fitxa i torna a Cartera i a Pla. MALAMENT: el saldo continua amb l'import sumat, o el rebut continua pendent. BÉ: el saldo torna al que vas anotar al pas 1 i el rebut surt pagat a Pla → Rebuts.",
+            "3. Tanca l'app del tot i obre-la de nou. Mira el saldo d'aquest compte i el rebut a Pla. MALAMENT: el saldo o l'estat del rebut canvien en reobrir. BÉ: tot continua igual que en acabar el pas 2."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.175",
     "d": "2026-10-25",
     "t": {
