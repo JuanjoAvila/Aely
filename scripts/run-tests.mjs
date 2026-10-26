@@ -34,6 +34,7 @@ if (plan.build !== false) {
 }
 
 const steps = [
+  ["sec02-edge-limits-replay", ["node", "tests/sec02-edge-limits-replay.test.mjs"]],
   ["fixed-ispaidin", ["node", "tests/fixed-ispaidin.test.mjs"]],
   ["pr297-r2-plan-sync", ["node", "--test", "--test-concurrency=1", "tests/pr297-r2-plan-sync.test.mjs"]],
   ["fin04-commit", ["node", "--test", "--test-concurrency=1", "tests/fin04-commit.test.mjs"]],

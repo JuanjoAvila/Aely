@@ -1,3 +1,20 @@
+SEC02 (26/10): `node tests/sec02-edge-limits-replay.test.mjs`, registrado en el runner
+y en `STEPS_SUPABASE`, ejecuta handlers/helpers TypeScript reales con SDK/RPC/proveedor
+sintéticos: cinco grupos, EXIT 0. Comprueba buckets/umbrales/ventanas enviados, cuotas de
+ayuda por usuario/día/global, 16 invocaciones solapadas con 15 pagos admitidos, cierre ante
+fallo del RPC y separación de ACK/importe por owner y mes (1990 céntimos). `quotaDb` es un
+doble: no valida atomicidad ni expiración real de PostgreSQL. No usa Deno, red ni datos reales.
+La fixture usa el esbuild existente del proyecto y sintaxis compatible con Node 20 de CI;
+no se cambian dependencias. `AELY_SEC02_ESBUILD` permite leer otra instalación ya existente
+en el arnés local, sin instalar ni modificar `node_modules`.
+
+Mutaciones opcionales `SEC02_MUTANT=help-sin-freno`, `help-fallo-abierto` e
+`ingest-ack-sin-owner` deben hacer fallar el oráculo correspondiente; no se ejecutan en
+la corrida normal. El segundo elimina los chequeos `checked` de las tres cuotas: quitar
+solo el primero sigue cerrado por el siguiente. Los RED de producto permanecen privados;
+no se registra como verde una expectativa que congele el defecto. [Informe, límites y
+hallazgos](briefs/sec02-edge-limits-replay-audit.md). No acredita CI, BD, despliegue o móvil.
+
 PR304 R2: `pull-historico-entero.test.mjs`, ya registrado, ejecuta el efecto real de
 autenticación y `cloud.onAuth` con transporte/reloj sintéticos. La regresión automática
 no llama a `start` ni a sync después de renovar: cubre `TOKEN_REFRESHED`, `SIGNED_IN`,
