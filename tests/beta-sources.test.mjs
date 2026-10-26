@@ -170,6 +170,8 @@ const sourceBeta177=sourceAt("f99f6d7a83c48efc3cbfcb73d93eba1d6130fd32");
 const sourceBeta178=sourceAt("c639081ca807bba526dd77cdc9413a6c4587247b");
 // Catálogo179 pasa a histórico con la 180: se lee de la 4.26.179 servida en beta (b4ae0563d); sus tres tandas vivas (recibo-vinculo-saldo, gastos-lag-ciclos-r3 e inicio-mes-futuro) no tienen veredicto y la 180 las deja donde están, sin tanda nueva.
 const sourceBeta179=sourceAt("b4ae0563d592c48a1d6eb3394fff8072f1c6602c");
+// Catálogo180 pasa a histórico con la 181: se lee de la 4.26.180 servida en beta (034fdb7b3); sus tres tandas vivas (recibo-vinculo-saldo, gastos-lag-ciclos-r3 e inicio-mes-futuro) ya tienen la aprobación del dueño y la 181 las retira.
+const sourceBeta180=sourceAt("034fdb7b3b068408c2d113eb80382d13fdafa11e");
 const sourceBeta153=sourceAt("80752dff055dc391c52c3067ce238f49e0a14598");
 // Catálogo137 pasa a histórico en la promoción 137: se lee de la beta 4.26.137.1 aprobada (6f18228c), lo último que probó el móvil y lo que sube entero.
 const sourceBeta137=sourceAt("6f18228cbd81c1cc9abfa7fabce0a878819234f4");
@@ -6148,6 +6150,132 @@ test("Catálogo176 añade la tanda del vínculo de recibo (solo web) sobre la 17
   assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
 });
 
+const expected181={"v":"4.26.181","d":"2026-10-26","t":{"es":"Elegir un mes te deja en su último día, y la letra con nombres nuevos","en":"Picking a month leaves you on its last day, and text sizes with new names","ca":"Triar un mes et deixa en el seu últim dia, i la lletra amb noms nous"},"items":{"es":["Al elegir un mes en Gastos, la lista te deja en su último día, también con la letra más grande.","En Ajustes, los tamaños de letra se llaman ahora Normal, Grande, Muy grande y Enorme. Nadie cambia de tamaño: solo cambian los nombres."],"en":["When you pick a month in Spending, the list leaves you on its last day, also with larger text.","In Settings, the text sizes are now called Normal, Large, Extra large and Huge. Nobody's text changes size: only the names change."],"ca":["En triar un mes a Despeses, la llista et deixa en el seu últim dia, també amb la lletra més gran.","A Ajustos, les mides de lletra ara es diuen Normal, Gran, Molt gran i Enorme. Ningú canvia de mida: només canvien els noms."]},"tandas":[{"id":"gastos-meses-letra-nombres","t":{"es":"Gastos: elegir un mes, y Ajustes: tamaños de letra con nombres nuevos","en":"Spending: picking a month, and Settings: text sizes with new names","ca":"Despeses: triar un mes, i Ajustos: mides de lletra amb noms nous"},"items":{"es":["1. Gastos → Movimientos → Periodo → Meses: baja un poco y toca un mes anterior. MAL: te lleva al día 1 o se queda con otro mes marcado. BIEN: debajo de la cabecera queda el último día de ese mes, con ese mes marcado. Repítelo con la letra en «Normal» y en «Muy grande».","2. Ajustes → Accesibilidad → Tamaño de letra: salen cuatro botones: Normal, Grande, Muy grande, Enorme. MAL: sale «Pequeña» o la letra de tu app cambia de tamaño al actualizar. BIEN: el botón marcado es el que ya tenías (si usabas la letra de antes «Normal», ahora marca «Grande» y se ve igual que antes)."],"en":["1. Spending → Transactions → Period → Months: scroll down a little and tap an earlier month. WRONG: it takes you to day 1 or leaves another month highlighted. RIGHT: under the header you see the last day of that month, with that month highlighted. Repeat it with the text on \"Normal\" and on \"Extra large\".","2. Settings → Accessibility → Text size: four buttons appear: Normal, Large, Extra large, Huge. WRONG: it says \"Small\" or the text of your app changes size after updating. RIGHT: the highlighted button is the one you already had (if you used the old \"Normal\" text, it now highlights \"Large\" and looks the same as before)."],"ca":["1. Despeses → Moviments → Període → Mesos: baixa una mica i toca un mes anterior. MALAMENT: et porta al dia 1 o es queda amb un altre mes marcat. BÉ: sota la capçalera queda l'últim dia d'aquell mes, amb aquell mes marcat. Repeteix-ho amb la lletra en «Normal» i en «Molt gran».","2. Ajustos → Accessibilitat → Mida de la lletra: surten quatre botons: Normal, Gran, Molt gran, Enorme. MALAMENT: surt «Petita» o la lletra de la teva app canvia de mida en actualitzar. BÉ: el botó marcat és el que ja tenies (si feies servir la lletra d'abans «Normal», ara marca «Gran» i es veu igual que abans)."]}}]};
+// 4.26.181 (26/10/2026): el arreglo de «Meses → último día del mes» con la letra del móvil (el body lleva zoom y scrollTop va en px del body), los rótulos nuevos del tamaño de letra (Normal, Grande, Muy grande, Enorme; los valores guardados no cambian) y la PR315 (SEC-02 F3: solo documenta y prueba el contrato 12+1 de páginas de bank-sync; en el servidor cambian tres comentarios) sobre la beta 4.26.180 servida (034fdb7b3), solo web y sin APK nueva (sigue la 61).
+// Una tanda NUEVA (gastos-meses-letra-nombres, dos pasos: elegir un mes de Gastos con dos tamaños de letra y mirar los cuatro botones de Ajustes). Las tres anteriores (176, 175 y 174) ya tienen la aprobación del dueño (26/10, 08:21 a 08:23, beta 4.26.180.1): salen del panel (tandas:[], propiedad conservada). El panel enseña una.
+// Servidor: bank-sync solo cambia comentarios y tests (enablebanking.ts, demand-window.ts, index.ts); NO se despliega nada en beta.
+// Registro: entra el descriptor nuevo, el último. El cierre de lectores no crece en ningún descriptor: gxZoom y las unidades de la letra no entran en el cierre de las funciones de lógica.
+test("Catálogo181 añade la tanda de Meses y los rótulos de letra (solo web) sobre la 180, retira las tres aprobadas y declara cada huella que mueve",()=>{
+  const tandas=["gastos-meses-letra-nombres"],vivas3=["recibo-vinculo-saldo","gastos-lag-ciclos-r3","inicio-mes-futuro"],pasos=[2],G0="src/modules/04-tab-gastos.js",I0="src/modules/01-i18n.js",A0="src/modules/10-app-components.js";
+  const integrated=JSON.parse(sourceBeta180("scripts/beta-sources.json")),before=JSON.parse(sourceBeta180("src/data/release-notes.json"));
+  const source=f=>nl(read(f)),old=f=>nl(sourceBeta180(f));
+  assert.equal(before[0].v,"4.26.180");
+  assert.deepEqual(before.slice(0,7).map(n=>n.tandas.map(g=>g.id)),[[],[],[],[],[vivas3[0]],[vivas3[1]],[vivas3[2]]],"la 180 servida no lleva tanda y conserva las tres que el dueño ha aprobado después");
+  for(const n of before.slice(7))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] en la 180 servida");
+  assert.deepEqual(expected181.tandas.map(g=>g.id),tandas);
+  const expectedNotes=[expected181,...before.map(n=>({...n,tandas:[]}))];
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.deepEqual(notes,expectedNotes,"la nota 181 literal delante, las tres tandas aprobadas fuera y todo lo demás intacto");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.181",tandas[0],0]],"el panel enseña una tanda, sin APK");
+  for(const n of notes.slice(1))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] (la propiedad se conserva, vacía)");
+  assert.equal(notes.length,278);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
+  notes[0].tandas.forEach(g=>assert.deepEqual(Object.keys(g),["id","t","items"],"sin apk: "+g.id));
+  const jerga=/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|FIN-|SES-|UX-|SEC-|zoom|\d+\.\d+\.\d+/i;
+  const textos=source(I0),rotulo=key=>{const m={};for(const lang of ["es","en","ca"]){const all=[...textos.matchAll(new RegExp("(?<![A-Za-z0-9_])"+key+':"([^"]*)"',"g"))].map(x=>x[1]);assert.equal(all.length,3,key+": un texto por idioma");m[lang]=all[["es","en","ca"].indexOf(lang)];}return m;};
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,2,lang+": dos puntos familiares");
+    notes[0].tandas.forEach((g,gi)=>{
+      assert.equal(g.items[lang].length,pasos[gi],lang+": pasos de "+g.id);
+      g.items[lang].forEach((step,j)=>assert.ok(step.startsWith((j+1)+". "),lang+": paso numerado "+(j+1)+" de "+g.id));
+      for(const text of g.items[lang])assert.ok(/MAL|WRONG|MALAMENT/.test(text),lang+": cada paso dice qué es MAL: "+text);
+    });
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
+  }
+  // El paso 2 cita los cuatro botones, el rótulo de la fila y la sección de Ajustes tal y como los pinta la app en cada idioma; «Pequeña» (el rótulo que desaparece) ya no es de la app.
+  {const botones=["ts_small","ts_normal","ts_big","ts_huge"].map(rotulo),fila=rotulo("st_textsize"),sec=rotulo("v4_set_a11y");
+    for(const lang of ["es","en","ca"]){const paso=notes[0].tandas[0].items[lang][1];
+      assert.deepEqual(botones.map(b=>b[lang]),{es:["Normal","Grande","Muy grande","Enorme"],en:["Normal","Large","Extra large","Huge"],ca:["Normal","Gran","Molt gran","Enorme"]}[lang],lang+": los cuatro rótulos nuevos");
+      for(const x of [...botones.map(b=>b[lang]),fila[lang],sec[lang]])assert.ok(paso.includes(x),lang+": el paso 2 cita «"+x+"»");}}
+  assert.ok(!/ts_small:"(Pequeña|Small|Petita)"/.test(source(I0)),"el rótulo «Pequeña» ya no existe en ningún idioma");
+  // Los valores guardados NO cambian (nadie cambia de tamaño al actualizar): los cuatro botones guardan small|normal|big|huge, y sin valor guardado se sigue cayendo en normal.
+  assert.ok(source(A0).includes('[["small","ts_small"],["normal","ts_normal"],["big","ts_big"],["huge","ts_huge"]].map(function(ts){'),"los botones guardan los mismos valores de siempre");
+  assert.ok(source(I0).includes('return (st&&st.bigText)?"big":"normal"; }'),"sin textSize guardado se sigue cayendo en «normal» (hoy «Grande»)");
+  const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
+  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verifyNotes(twice),assert.AssertionError,"no duplicar una tanda");
+  const vuelve=structuredClone(notes);vuelve[3].tandas.push(structuredClone(before[4].tandas[0]));assert.throws(()=>verifyNotes(vuelve),assert.AssertionError,"una tanda aprobada no vuelve al panel");
+  const sinTanda=structuredClone(notes);sinTanda[0].tandas=[];assert.throws(()=>verifyNotes(sinTanda),assert.AssertionError,"la tanda nueva no desaparece");
+  const conApk=structuredClone(notes);conApk[0].tandas[0].apk=61;assert.throws(()=>verifyNotes(conApk),assert.AssertionError,"la tanda no exige APK: es solo web");
+  // Registro: el de la 180 con, detrás, el descriptor nuevo; los demás, intactos (el cierre de lectores no crece).
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),{[tandas[0]]:ahora,...resto}=scopes;
+  assert.deepEqual(Object.keys(scopes),[...Object.keys(integrated),tandas[0]],"el descriptor nuevo, el último");
+  assert.deepEqual(resto,integrated,"los descriptores de la 180, intactos");
+  {const fns=logicFunctions(source),dat=logicData(source);
+    for(const [key,antes] of Object.entries(integrated)){
+      if(!antes.web||key===archiveId)continue;
+      let web=antes.web.slice();
+      for(let ronda=0;ronda<12;ronda++){
+        const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];
+        for(const fn of scopeDependencies({web},source,fns))if(!tiene(fn.file,fn.name,"function"))extra.push({file:fn.file,function:fn.name});
+        for(const d of scopeDataDependencies({web},source,fns,dat))if(!tiene(d.file,d.name,"data"))extra.push({file:d.file,data:d.name});
+        if(!extra.length)break;web=web.concat(extra);
+      }
+      assert.equal(web.length,antes.web.length,key+": el cierre de lectores no crece con esta versión");
+    }}
+  assert.deepEqual(Object.keys(ahora),["web","unidades"],"solo web");assert.equal(ahora.unidades,true);
+  const propias=[
+    {file:G0,from:"  // El scroll que deja el día `k` justo bajo la cabecera ya encogida",to:"  /* AFINAR EL SALTO cuando el scroll ha parado"},
+    {file:G0,function:"GastosCabecera"},{file:G0,function:"gxZoom"},{file:G0,function:"gxRayaExtra"},
+    {file:I0,function:"textSizeOf"},{file:I0,function:"applyTextSize"},
+    {file:I0,from:'ts_small:"Normal", ts_normal:"Grande", ts_big',to:'ts_huge:"Enorme",',includeTo:true},
+    {file:I0,from:'ts_small:"Normal", ts_normal:"Large", ts_big',to:'ts_huge:"Huge",',includeTo:true},
+    {file:I0,from:'ts_small:"Normal", ts_normal:"Gran", ts_big',to:'ts_huge:"Enorme",',includeTo:true},
+    {file:A0,from:'[["small","ts_small"],["normal","ts_normal"],["big","ts_big"],["huge","ts_huge"]].map(function(ts){',to:'t("st_textsize_hint"))',includeTo:true},
+    {file:A0,from:"/* LETRA DE SALIDA «NORMAL» (valor",to:'{ textSize:"small" }),',includeTo:true},
+  ];
+  assert.deepEqual(ahora.web.slice(0,propias.length),propias,"las unidades propias de la tanda (el destino del salto a un mes, la cabecera y su zoom, y los rótulos y valores de la letra), en este orden");
+  {const fns=logicFunctions(source),dat=logicData(source);let web=propias.slice();
+    for(let ronda=0;ronda<12;ronda++){
+      const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];
+      for(const fn of scopeDependencies({web},source,fns))if(!tiene(fn.file,fn.name,"function"))extra.push({file:fn.file,function:fn.name});
+      for(const d of scopeDataDependencies({web},source,fns,dat))if(!tiene(d.file,d.name,"data"))extra.push({file:d.file,data:d.name});
+      if(!extra.length)break;web=web.concat(extra);
+    }
+    const clave=u=>JSON.stringify(u);
+    assert.equal(ahora.web.length,web.length,"el cierre de lectores del descriptor es exactamente el calculado");
+    assert.deepEqual(new Set(ahora.web.map(clave)),new Set(web.map(clave)),"el cierre de lectores del descriptor es exactamente el calculado");}
+  for(const u of ahora.web)assert.ok(scopeText(u,source).length>0,"la unidad existe en la fuente: "+JSON.stringify(u));
+  // Solo web: apk.json, build.gradle, el nativo y el SQL quedan como en la 180; del servidor solo cambia bank-sync (comentarios y tests de la PR315), sin desplegar.
+  assert.equal(source("public/apk.json"),old("public/apk.json"),"apk.json intacto: sigue la APK 61");
+  assert.equal(source("android/app/build.gradle"),old("android/app/build.gradle"),"build.gradle intacto");
+  assert.equal(execFileSync("git",["diff","--name-only","034fdb7b3b068408c2d113eb80382d13fdafa11e","36cca7cb5","--","android","supabase/migrations"],{encoding:"utf8"}).trim(),"","sin SQL ni nativo");
+  assert.deepEqual(execFileSync("git",["diff","--name-only","034fdb7b3b068408c2d113eb80382d13fdafa11e","36cca7cb5","--","supabase/functions"],{encoding:"utf8"}).trim().split(String.fromCharCode(10)).filter(Boolean).sort(),["supabase/functions/_shared/enablebanking.ts","supabase/functions/bank-sync/attempt-budget.test.ts","supabase/functions/bank-sync/demand-window.ts","supabase/functions/bank-sync/index.ts","supabase/functions/bank-sync/overflow-resume.test.ts"],"del servidor, solo comentarios y tests de bank-sync (PR315)");
+  // Huellas que se mueven (lista cerrada). Todas son de tandas ya aprobadas y no vuelven al panel: las web leen Expenses, la cabecera, los botones de letra o los rótulos que cambian; las edge, el contrato de páginas de bank-sync (solo comentarios).
+  const expectedMoves={"tr-descripcion-clasificacion":["edge"],"inc-0210-03-gastos-periodo":["web"],"feature-0310-01-movilidad":["web"],"inc-0310-gastos-sin-limite":["web"],"inc-0710-gastos-mes-madrid":["web"],"bancos-acuse-reconexion":["edge"],"recibo-cargo-en-gastos":["web"],"bancos-reconexion-revoca":["edge"],"limpieza-ajustes-perfil":["web"],"gastos-suscripciones-botones":["web"],"vuelta-sin-tiron":["web"],"vibracion-ajustador":["web"],"renombrar-y-notas-seguras":["web"],"vibracion-ajustador-r2":["web"],"renombrar-sin-cobertura":["web"],"vibracion-r4":["web"],"gastos-dos-bancos":["web"],"gastos-v5-movimientos":["web"],"gastos-v5-secciones":["web"],"gastos-v5-filtro":["web"],"gastos-v5-subs":["web"],"gastos-v5-filtros-hoja":["web"],"gastos-v5-ciclos-metas-inversiones":["web"],"gastos-lag-ciclos":["web"],"gastos-lag-ciclos-r3":["web"]};
+  const previous=new Map();
+  const measure=reader=>{
+    const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};
+    for(const [key,scope] of Object.entries(integrated)){
+      if(key===archiveId)continue;
+      if(!previous.has(key))previous.set(key,betaRevision(key,sourceBeta180,undefined,scope));
+      const a=previous.get(key),b=betaRevision(key,reader,undefined,now[key]);
+      const surfaces=["web","native","edge"].filter(x=>a[x]!==b[x]);
+      if(surfaces.length)moved[key]=surfaces;
+    }
+    return moved;
+  };
+  assert.deepEqual(measure(source),expectedMoves,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  const vivas=notes.flatMap(n=>(n.tandas||[]).map(g=>g.id));
+  for(const id of Object.keys(expectedMoves))assert.equal(vivas.includes(id),false,"huella que se mueve sin tanda viva: "+id);
+  assert.deepEqual(vivas,tandas);
+  const current=betaRevision(tandas[0],source,undefined,scopes[tandas[0]]);
+  assert.ok(current.web);assert.equal(current.edge,undefined,"sin huella de Edge");assert.equal(current.native,undefined);
+  // Mutantes sobre la fuente real: dividir por el zoom de la letra en el destino del salto, o volver a llamar «Grande» a la letra «Muy grande», reabre la tanda.
+  for(const [file,a,b] of [
+    [G0,"return h.scrollTop+(el.getBoundingClientRect().top-h.getBoundingClientRect().top)/gxZoom()-raya+2;","return h.scrollTop+(el.getBoundingClientRect().top-h.getBoundingClientRect().top)-raya+2;"],
+    [I0,'ts_big:"Muy grande", ts_huge:"Enorme",','ts_big:"Grande", ts_huge:"Enorme",'],
+  ]){
+    assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
+    const mutated=betaRevision(tandas[0],f=>f===file?source(f).replace(a,()=>b):source(f),undefined,scopes[tandas[0]]);
+    assert.notEqual(mutated.web,current.web,tandas[0]+" reabre la tanda: "+a);
+  }
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes);
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),vivas,"lo que el build entrega al panel");
+  const g0=built[0].tandas[0];
+  assert.equal(g0.web,current.web);assert.equal(g0.edge,undefined);assert.equal(g0.native,undefined);assert.equal(g0.apk,undefined);assert.equal(receipt.web[tandas[0]],current.web);
+  for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g0[key],undefined,"guion nuevo sin "+key);
+  assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
+});
+
 const expected180={"v":"4.26.180","d":"2026-10-26","t":{"es":"Más seguro reconectar un banco","en":"Safer to reconnect a bank","ca":"Més segur reconnectar un banc"},"items":{"es":["Reconectar un banco es ahora más seguro. No verás ningún cambio."],"en":["Reconnecting a bank is now safer. You will not see any change."],"ca":["Reconnectar un banc ara és més segur. No veuràs cap canvi."]},"tandas":[]};
 // 4.26.180 (26/10/2026): PR314 (SEC-02 F1: el guardado final de bank-callback exige id, dueño, state NULL y la emisión original, para que un callback tardío no pise una reconexión) sobre la beta 4.26.179 servida (b4ae0563d), solo web y sin APK nueva (sigue la 61). Solo cambia una Edge Function (bank-callback) y su test; NO se despliega nada.
 // SIN tanda nueva: no hay nada visible. Las de la 176 (recibo-vinculo-saldo), la 175 (gastos-lag-ciclos-r3) y la 174 (inicio-mes-futuro) no tienen veredicto y se quedan donde están, con la huella web que ya tenían: la PR no toca src/.
@@ -6155,7 +6283,7 @@ const expected180={"v":"4.26.180","d":"2026-10-26","t":{"es":"Más seguro recone
 test("Catálogo180 (solo web) no añade tanda sobre la 179, deja las tres sin veredicto donde están y declara la única huella que mueve",()=>{
   const vivas3=["recibo-vinculo-saldo","gastos-lag-ciclos-r3","inicio-mes-futuro"];
   const integrated=JSON.parse(sourceBeta179("scripts/beta-sources.json")),before=JSON.parse(sourceBeta179("src/data/release-notes.json"));
-  const source=f=>nl(read(f)),old=f=>nl(sourceBeta179(f));
+  const source=f=>nl(sourceBeta180(f)),old=f=>nl(sourceBeta179(f));
   assert.equal(before[0].v,"4.26.179");
   assert.deepEqual(before.slice(0,6).map(n=>n.tandas.map(g=>g.id)),[[],[],[],[vivas3[0]],[vivas3[1]],[vivas3[2]]],"la 179 servida no lleva tanda y conserva las tres sin veredicto");
   for(const n of before.slice(6))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] en la 179 servida");
@@ -6180,8 +6308,8 @@ test("Catálogo180 (solo web) no añade tanda sobre la 179, deja las tres sin ve
   // Solo web: apk.json, build.gradle, el nativo y el SQL quedan como en la 179; de las Edge solo cambia bank-callback.
   assert.equal(source("public/apk.json"),old("public/apk.json"),"apk.json intacto: sigue la APK 61");
   assert.equal(source("android/app/build.gradle"),old("android/app/build.gradle"),"build.gradle intacto");
-  assert.equal(execFileSync("git",["diff","--name-only","b4ae0563d592c48a1d6eb3394fff8072f1c6602c","HEAD","--","android","supabase/migrations","src/modules","src/shell.html"],{encoding:"utf8"}).trim(),"","sin SQL, nativo ni código web");
-  const edgeCambiadas=execFileSync("git",["diff","--name-only","b4ae0563d592c48a1d6eb3394fff8072f1c6602c","HEAD","--","supabase/functions"],{encoding:"utf8"}).trim().split(String.fromCharCode(10)).filter(Boolean).sort();
+  assert.equal(execFileSync("git",["diff","--name-only","b4ae0563d592c48a1d6eb3394fff8072f1c6602c","034fdb7b3b068408c2d113eb80382d13fdafa11e","--","android","supabase/migrations","src/modules","src/shell.html"],{encoding:"utf8"}).trim(),"","sin SQL, nativo ni código web");
+  const edgeCambiadas=execFileSync("git",["diff","--name-only","b4ae0563d592c48a1d6eb3394fff8072f1c6602c","034fdb7b3b068408c2d113eb80382d13fdafa11e","--","supabase/functions"],{encoding:"utf8"}).trim().split(String.fromCharCode(10)).filter(Boolean).sort();
   assert.deepEqual(edgeCambiadas,["supabase/functions/bank-callback/generation-fence.test.ts","supabase/functions/bank-callback/index.ts"],"solo bank-callback y su test");
   // Huella que se mueve (lista cerrada): la Edge bank-callback/index.ts solo la vigila bancos-acuse-reconexion. Ninguna tanda viva se mueve.
   const expectedMoves={"bancos-acuse-reconexion":["edge"]};

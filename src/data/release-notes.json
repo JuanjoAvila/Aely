@@ -1,5 +1,52 @@
 [
   {
+    "v": "4.26.181",
+    "d": "2026-10-26",
+    "t": {
+      "es": "Elegir un mes te deja en su último día, y la letra con nombres nuevos",
+      "en": "Picking a month leaves you on its last day, and text sizes with new names",
+      "ca": "Triar un mes et deixa en el seu últim dia, i la lletra amb noms nous"
+    },
+    "items": {
+      "es": [
+        "Al elegir un mes en Gastos, la lista te deja en su último día, también con la letra más grande.",
+        "En Ajustes, los tamaños de letra se llaman ahora Normal, Grande, Muy grande y Enorme. Nadie cambia de tamaño: solo cambian los nombres."
+      ],
+      "en": [
+        "When you pick a month in Spending, the list leaves you on its last day, also with larger text.",
+        "In Settings, the text sizes are now called Normal, Large, Extra large and Huge. Nobody's text changes size: only the names change."
+      ],
+      "ca": [
+        "En triar un mes a Despeses, la llista et deixa en el seu últim dia, també amb la lletra més gran.",
+        "A Ajustos, les mides de lletra ara es diuen Normal, Gran, Molt gran i Enorme. Ningú canvia de mida: només canvien els noms."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "gastos-meses-letra-nombres",
+        "t": {
+          "es": "Gastos: elegir un mes, y Ajustes: tamaños de letra con nombres nuevos",
+          "en": "Spending: picking a month, and Settings: text sizes with new names",
+          "ca": "Despeses: triar un mes, i Ajustos: mides de lletra amb noms nous"
+        },
+        "items": {
+          "es": [
+            "1. Gastos → Movimientos → Periodo → Meses: baja un poco y toca un mes anterior. MAL: te lleva al día 1 o se queda con otro mes marcado. BIEN: debajo de la cabecera queda el último día de ese mes, con ese mes marcado. Repítelo con la letra en «Normal» y en «Muy grande».",
+            "2. Ajustes → Accesibilidad → Tamaño de letra: salen cuatro botones: Normal, Grande, Muy grande, Enorme. MAL: sale «Pequeña» o la letra de tu app cambia de tamaño al actualizar. BIEN: el botón marcado es el que ya tenías (si usabas la letra de antes «Normal», ahora marca «Grande» y se ve igual que antes)."
+          ],
+          "en": [
+            "1. Spending → Transactions → Period → Months: scroll down a little and tap an earlier month. WRONG: it takes you to day 1 or leaves another month highlighted. RIGHT: under the header you see the last day of that month, with that month highlighted. Repeat it with the text on \"Normal\" and on \"Extra large\".",
+            "2. Settings → Accessibility → Text size: four buttons appear: Normal, Large, Extra large, Huge. WRONG: it says \"Small\" or the text of your app changes size after updating. RIGHT: the highlighted button is the one you already had (if you used the old \"Normal\" text, it now highlights \"Large\" and looks the same as before)."
+          ],
+          "ca": [
+            "1. Despeses → Moviments → Període → Mesos: baixa una mica i toca un mes anterior. MALAMENT: et porta al dia 1 o es queda amb un altre mes marcat. BÉ: sota la capçalera queda l'últim dia d'aquell mes, amb aquell mes marcat. Repeteix-ho amb la lletra en «Normal» i en «Molt gran».",
+            "2. Ajustos → Accessibilitat → Mida de la lletra: surten quatre botons: Normal, Gran, Molt gran, Enorme. MALAMENT: surt «Petita» o la lletra de la teva app canvia de mida en actualitzar. BÉ: el botó marcat és el que ja tenies (si feies servir la lletra d'abans «Normal», ara marca «Gran» i es veu igual que abans)."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.180",
     "d": "2026-10-26",
     "t": {
@@ -111,33 +158,7 @@
         "Si la connexió es queda penjada, l'app torna a llegir les teves dades sola, sense que l'hagis de tancar."
       ]
     },
-    "tandas": [
-      {
-        "id": "recibo-vinculo-saldo",
-        "t": {
-          "es": "Recibos: deshacer y rehacer el vínculo con su cargo",
-          "en": "Bills: undo and redo the link with its charge",
-          "ca": "Rebuts: desfer i refer el vincle amb el seu càrrec"
-        },
-        "items": {
-          "es": [
-            "1. Cartera: anota el saldo de una cuenta de banco que tenga un recibo ya cobrado este mes (en Plan → Recibos sale como pagado). Gastos: abre el cargo de ese recibo, toca «Paga un recibo», toca «Deshacer vínculo» y cierra la ficha. Vuelve a Cartera y a Plan. MAL: el saldo no cambia o el recibo sigue como pagado. BIEN: el saldo sube lo que cuesta el recibo y Plan lo enseña pendiente de pagar.",
-            "2. Gastos: abre otra vez ese mismo cargo, toca «Paga un recibo», toca el recibo (nombre e importe) y confirma. Cierra la ficha y vuelve a Cartera y a Plan. MAL: el saldo sigue con el importe sumado, o el recibo sigue pendiente. BIEN: el saldo vuelve al que anotaste en el paso 1 y el recibo sale pagado en Plan → Recibos.",
-            "3. Cierra la app del todo y ábrela de nuevo. Mira el saldo de esa cuenta y el recibo en Plan. MAL: el saldo o el estado del recibo cambian al reabrir. BIEN: todo sigue igual que al terminar el paso 2."
-          ],
-          "en": [
-            "1. Portfolio: note the balance of a bank account that has a bill already charged this month (in Plan → Bills it shows as paid). Spending: open that bill's charge, tap \"Pays a bill\", tap \"Undo link\" and close the sheet. Go back to Portfolio and to Plan. WRONG: the balance doesn't change or the bill still shows as paid. RIGHT: the balance goes up by the bill's amount and Plan shows it as still to pay.",
-            "2. Spending: open that same charge again, tap \"Pays a bill\", tap the bill (name and amount) and confirm. Close the sheet and go back to Portfolio and to Plan. WRONG: the balance still includes the added amount, or the bill is still pending. RIGHT: the balance returns to the one you noted in step 1 and the bill shows as paid in Plan → Bills.",
-            "3. Close the app completely and open it again. Check that account's balance and the bill in Plan. WRONG: the balance or the bill's status changes when you reopen. RIGHT: everything is as it was at the end of step 2."
-          ],
-          "ca": [
-            "1. Cartera: anota el saldo d'un compte de banc que tingui un rebut ja cobrat aquest mes (a Pla → Rebuts surt com a pagat). Despeses: obre el càrrec d'aquest rebut, toca «Paga un rebut», toca «Desfer vincle» i tanca la fitxa. Torna a Cartera i a Pla. MALAMENT: el saldo no canvia o el rebut continua com a pagat. BÉ: el saldo puja el que costa el rebut i Pla el mostra pendent de pagar.",
-            "2. Despeses: obre un altre cop aquest mateix càrrec, toca «Paga un rebut», toca el rebut (nom i import) i confirma. Tanca la fitxa i torna a Cartera i a Pla. MALAMENT: el saldo continua amb l'import sumat, o el rebut continua pendent. BÉ: el saldo torna al que vas anotar al pas 1 i el rebut surt pagat a Pla → Rebuts.",
-            "3. Tanca l'app del tot i obre-la de nou. Mira el saldo d'aquest compte i el rebut a Pla. MALAMENT: el saldo o l'estat del rebut canvien en reobrir. BÉ: tot continua igual que en acabar el pas 2."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.175",
@@ -164,33 +185,7 @@
         "El mes en què acaben els deutes surt bé a qualsevol hora del dia."
       ]
     },
-    "tandas": [
-      {
-        "id": "gastos-lag-ciclos-r3",
-        "t": {
-          "es": "Gastos: deslizar a Plan desde una fila y tocar un mes o un ciclo",
-          "en": "Spending: swipe to Plan from a row and tap a month or a cycle",
-          "ca": "Despeses: lliscar a Pla des d'una fila i tocar un mes o un cicle"
-        },
-        "items": {
-          "es": [
-            "1. Gastos → Movimientos con Periodo → Todo: baja con fuerza muchas veces y sube otras tantas. Luego desliza hacia Plan con el pulgar empezando en el borde derecho de la pantalla, encima del ⠿ de una fila. MAL: se queda en Gastos, va a tirones o no cambia a la primera. BIEN: pasa a Plan a la primera y sin tirón (arrastrar el ⠿ hacia arriba o abajo sigue ordenando los gastos del día).",
-            "2. Gastos → Movimientos con Periodo → Meses: baja un poco y toca el mes anterior en la fila de meses. MAL: la lista te lleva al día 1 de otro mes, al principio del todo o se queda con otro mes marcado. BIEN: debajo de la cabecera queda el último día de ese mes (30 o 31), con ese mes marcado y su cifra.",
-            "3. Gastos → Movimientos con Periodo → Mi ciclo: baja un poco y toca un ciclo anterior en la fila de ciclos. MAL: te lleva arriba del todo y la fila se esconde, o el ciclo no queda marcado. BIEN: la lista se queda en el primer día de ese ciclo, con la fila de ciclos a la vista y el ciclo marcado con su rango de fechas."
-          ],
-          "en": [
-            "1. Spending → Transactions with Period → All: scroll down hard many times and back up as many. Then swipe towards Plan with your thumb starting at the right edge of the screen, on top of a row's ⠿. WRONG: it stays in Spending, feels jerky or doesn't switch the first time. RIGHT: it switches to Plan the first time, smoothly (dragging the ⠿ up or down still reorders the day's expenses).",
-            "2. Spending → Transactions with Period → Months: scroll down a little and tap the previous month in the months row. WRONG: the list takes you to day 1 of another month, to the very top, or leaves another month highlighted. RIGHT: under the header you see the last day of that month (30th or 31st), with that month highlighted and its figure.",
-            "3. Spending → Transactions with Period → My cycle: scroll down a little and tap an earlier cycle in the cycles row. WRONG: it takes you to the very top and the row hides, or the cycle isn't highlighted. RIGHT: the list stays on the first day of that cycle, with the cycles row in view and the cycle highlighted with its date range."
-          ],
-          "ca": [
-            "1. Despeses → Moviments amb Període → Tot: baixa amb força moltes vegades i puja'n altres tantes. Després llisca cap a Pla amb el polze començant a la vora dreta de la pantalla, damunt del ⠿ d'una fila. MALAMENT: es queda a Despeses, va a batzegades o no canvia a la primera. BÉ: passa a Pla a la primera i sense batzegada (arrossegar el ⠿ amunt o avall continua ordenant les despeses del dia).",
-            "2. Despeses → Moviments amb Període → Mesos: baixa una mica i toca el mes anterior a la fila de mesos. MALAMENT: la llista et porta al dia 1 d'un altre mes, al principi de tot o es queda amb un altre mes marcat. BÉ: sota la capçalera queda l'últim dia d'aquell mes (30 o 31), amb aquell mes marcat i la seva xifra.",
-            "3. Despeses → Moviments amb Període → El meu cicle: baixa una mica i toca un cicle anterior a la fila de cicles. MALAMENT: et porta dalt de tot i la fila s'amaga, o el cicle no queda marcat. BÉ: la llista es queda al primer dia d'aquell cicle, amb la fila de cicles a la vista i el cicle marcat amb el seu rang de dates."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.174",
@@ -214,33 +209,7 @@
         "Els deutes fan servir sempre la data de Madrid, també si el mòbil té una altra zona horària, així el mes d'alta i les quotes no es desfasen."
       ]
     },
-    "tandas": [
-      {
-        "id": "inicio-mes-futuro",
-        "t": {
-          "es": "Inicio: un gasto con fecha del mes que viene no cuenta en este mes",
-          "en": "Home: an expense dated next month doesn't count in this month",
-          "ca": "Inici: una despesa amb data del mes que ve no compta en aquest mes"
-        },
-        "items": {
-          "es": [
-            "1. Inicio: apunta la cifra grande de la tarjeta del presupuesto (lo que te queda este mes; si no tienes presupuesto puesto, pon uno antes). Toca el botón + de abajo, pon 5, toca la fecha (📅), elige un día del mes que viene y toca «Apuntar». MAL: la cifra de Inicio baja 5 € o el gasto no se apunta.",
-            "2. Gastos → Movimientos con Periodo → Meses: la cifra de arriba (este mes) no ha cambiado y el gasto de prueba sale dentro del mes que viene, no en este. MAL: la cifra de este mes cambia o el gasto sale en este mes.",
-            "3. Deja todo como estaba: en Gastos abre el gasto de prueba y bórralo. Vuelve a Inicio: la cifra es la misma del paso 1. MAL: la cifra sube 5 € al borrarlo (ese gasto no contaba) o no se puede borrar."
-          ],
-          "en": [
-            "1. Home: note the big figure on the budget card (what you have left this month; if you have no budget set, set one first). Tap the + button below, enter 5, tap the date (📅), pick a day next month and tap \"Add\". WRONG: the Home figure drops 5 € or the expense isn't added.",
-            "2. Spending → Transactions with Period → Months: the figure at the top (this month) hasn't changed and the test expense appears inside next month, not this one. WRONG: this month's figure changes or the expense appears in this month.",
-            "3. Put everything back: in Spending open the test expense and delete it. Back in Home: the figure is the same as in step 1. WRONG: the figure goes up 5 € when you delete it (that expense didn't count) or it can't be deleted."
-          ],
-          "ca": [
-            "1. Inici: anota la xifra gran de la targeta del pressupost (el que et queda aquest mes; si no tens pressupost posat, posa'n un abans). Toca el botó + de baix, posa 5, toca la data (📅), tria un dia del mes que ve i toca «Apuntar». MALAMENT: la xifra d'Inici baixa 5 € o la despesa no s'apunta.",
-            "2. Despeses → Moviments amb Període → Mesos: la xifra de dalt (aquest mes) no ha canviat i la despesa de prova surt dins del mes que ve, no en aquest. MALAMENT: la xifra d'aquest mes canvia o la despesa surt en aquest mes.",
-            "3. Deixa-ho tot com estava: a Despeses obre la despesa de prova i esborra-la. Torna a Inici: la xifra és la mateixa del pas 1. MALAMENT: la xifra puja 5 € en esborrar-la (aquesta despesa no comptava) o no es pot esborrar."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.173",

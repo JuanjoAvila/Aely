@@ -92915,5 +92915,65 @@
       }
     ],
     "unidades": true
+  },
+  "gastos-meses-letra-nombres": {
+    "web": [
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "from": "  // El scroll que deja el día `k` justo bajo la cabecera ya encogida",
+        "to": "  /* AFINAR EL SALTO cuando el scroll ha parado"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "GastosCabecera"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "gxZoom"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "gxRayaExtra"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "textSizeOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "applyTextSize"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "ts_small:\"Normal\", ts_normal:\"Grande\", ts_big",
+        "to": "ts_huge:\"Enorme\",",
+        "includeTo": true
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "ts_small:\"Normal\", ts_normal:\"Large\", ts_big",
+        "to": "ts_huge:\"Huge\",",
+        "includeTo": true
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "ts_small:\"Normal\", ts_normal:\"Gran\", ts_big",
+        "to": "ts_huge:\"Enorme\",",
+        "includeTo": true
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "from": "[[\"small\",\"ts_small\"],[\"normal\",\"ts_normal\"],[\"big\",\"ts_big\"],[\"huge\",\"ts_huge\"]].map(function(ts){",
+        "to": "t(\"st_textsize_hint\"))",
+        "includeTo": true
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "from": "/* LETRA DE SALIDA «NORMAL» (valor",
+        "to": "{ textSize:\"small\" }),",
+        "includeTo": true
+      }
+    ],
+    "unidades": true
   }
 }
