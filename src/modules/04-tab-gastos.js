@@ -1082,6 +1082,14 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   const budgetApplies=preset==="months"||preset==="cycle"&&!cicloPas;
   const monthSummary=useMemo(function(){
     const bs=monthBudgetStats(Object.assign({},state,{expenses:expensesDef}),null,null,null,selectedPeriod);
+    /* La cifra grande sigue su modo (Balance o Gastos), pero el margen contra el límite es el de
+       Inicio (`dashboardBudgetStats`, modo "split") y el del widget (`against` de ingest): gasto
+       bruto en el mes natural, neto en Mi ciclo. Con el balance, los ingresos «devolvían» límite
+       solo aquí: 1.912 € gastados y 486 € de ingresos contra 1.500 € daban «74 € por debajo»
+       mientras Inicio y el widget decían 412 € de más (capturas del dueño, 26/10/2026). */
+    const lim=budgetStatsFromAmounts(bs.spent,bs.income,typeof state.budget==="number"?state.budget:0,bs.reserved,bs.cycle?"net":"split");
+    const limAgainst=lim.against;
+    if(bs.budget!=null) bs.remaining=lim.remaining;
     // No existe una foto histórica del límite ni un presupuesto acumulado para varios meses.
     // Enseñar el límite actual como margen del pasado inventaría dinero disponible.
     if(!budgetApplies){ bs.budget=null; bs.remaining=null; }
@@ -1090,7 +1098,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       : preset==="months" ? monthLong(mad.m-1) : preset==="all" ? t("gv5_all")
       : cicloPas ? cicloTxt(cicloRango.fin) : t("g_"+preset);
     return {
-      spent:bs.spent, income:bs.income, balance:bs.balance, mode:bs.mode, against:bs.against, shown:bs.shown,
+      spent:bs.spent, income:bs.income, balance:bs.balance, mode:bs.mode, against:bs.against, shown:bs.shown, limAgainst:limAgainst,
       budget:bs.budget, reserved:bs.reserved, remaining:bs.remaining,
       cycle:!!selectedPeriod.cycle,
       periodLabel:periodLabel, budgetApplies:budgetApplies
@@ -1398,7 +1406,10 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     const vsBudget=function(){
       const r=monthSummary.remaining;
       if(r==null) return null;
-      return r<0?{tail:tf("gv5_over",{x:fmt(r)}),tone:"coral"}:{tail:tf("gv5_under",{x:fmt(r)}),tone:"mint"};
+      // Con el balance en grande y el mes natural, el margen es del GASTO: se dice, o «balance de
+      // octubre · 74 € por debajo» parecería comparar el balance con el límite.
+      const g=mode==="net"&&!monthSummary.cycle?"_g":"";
+      return r<0?{tail:tf("gv5_over"+g,{x:fmt(r)}),tone:"coral"}:{tail:tf("gv5_under"+g,{x:fmt(r)}),tone:"mint"};
     };
     const vsPrev=function(cur,prev,ym,mismoDia){
       const diff=cur-prev, mes=mesDe(ym), sd=mismoDia?"_sd":"";
@@ -1520,10 +1531,12 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     } else if(secc==="cats"){
       const per=preset==="months"?monthLong(mad.m-1):preset==="cycle"&&!cicloPas?t("g_cycle"):monthSummary.periodLabel;
       const r=monthSummary.remaining, x=r==null?null:Math.abs(r)<1?eur(Math.abs(r)):eur0(Math.abs(r));
+      // El mismo matiz que la línea de Movimientos: en Balance y mes natural el margen es del gasto.
+      const g=monthSummary.mode==="net"&&!monthSummary.cycle?"_g":"";
       // Categorías enseña siempre la cifra del presupuesto: su desglose no sigue a los filtros.
       const pres=cab.pres||cab.top;
       top={n:pres.n, sub:pres.sub, ym:cab.ciclos?cab.top.ym:catsYm, pre:tf("gv5_cats_pre",{period:per}),
-        tail:r==null?null:tf(r<0?"gv5_over":"gv5_under",{x:x}), tone:r==null?null:r<0?"coral":"mint"};
+        tail:r==null?null:tf((r<0?"gv5_over":"gv5_under")+g,{x:x}), tone:r==null?null:r<0?"coral":"mint"};
     } else {
       const n=novelSubs.length;
       top={n:heavyOk?subsMes:null, ym:null, pre:!heavyOk?"":n?tf("gv5_subs_n",{n:n}):t("gv5_subs_none")};
@@ -1812,7 +1825,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   const filFmt=function(x){ x=Math.abs(x); return x<1?eur(x):eur0(x); };
   const filLimTxt=!(filLim>0)?t("gv5_fil_lim_poner")
     : tf("gv5_fil_lim",{x:eur0(filLim)})+(filManda?" · "+tf(filQueda<0?"gv5_fil_pasado":"gv5_fil_quedan",{x:filFmt(filQueda)}):"");
-  const usado=Math.max(0,monthSummary.against||0);
+  // La barra mide lo mismo que la línea «por encima/por debajo» (el gasto de Inicio).
+  const usado=Math.max(0,monthSummary.limAgainst||0);
 
   /* Con la fila de ciclos al bajar, la página tiene que poder bajar SIEMPRE lo justo para que salga:
      al empezar un ciclo hay tres gastos, no hay scroll y no habría forma de ir a un ciclo pasado

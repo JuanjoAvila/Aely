@@ -21,8 +21,8 @@ async function ciclo(page,caso){
 
 for(const caso of idiomas) for(const limite of [
   {name:"agotado",spent:1000,pct:"0%",over:false},
-  {name:"excedido",spent:1200,pct:"0%",over:true},
-  {name:"reservado entero",spent:100,reserved:1000,pct:"0%",over:true},
+  {name:"excedido",spent:1200,pct:"120%",over:true},
+  {name:"reservado entero",spent:100,reserved:1000,pct:">100%",over:true},
   {name:"sin actividad",spent:0,pct:"100%",over:false,daily:333},
   {name:"sin presupuesto",spent:100,budget:0},
 ]) test(`Inicio distingue ${limite.name} (${caso.lang})`,async({page})=>{
@@ -43,7 +43,9 @@ for(const caso of idiomas) for(const limite of [
     await expect(page.locator(".v4-empty").filter({hasText:/Ponle un presupuesto|Set a monthly budget|Posa-li un pressupost/})).toBeVisible();
   }else{
     await expect(dash.locator(".v4-ring .num")).toHaveText(limite.pct);
-    await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText(String(1000-(limite.reserved||0)-limite.spent)+" €");
+    // Pasado del límite se enseña el exceso en positivo y el anillo cuenta lo usado (26/10/2026).
+    const rem=1000-(limite.reserved||0)-limite.spent;
+    await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText(new Intl.NumberFormat("es-ES",{useGrouping:"always"}).format(Math.abs(rem))+" €");
     await expect(dash).toHaveAttribute("data-state",limite.over?"over":limite.spent===0?"comfort":"good");
     if(limite.daily) await expect(dash.getByTestId("inicio-cycle-pace")).toHaveText(caso.pace(limite.daily));
     else await expect(dash.getByTestId("inicio-cycle-pace")).toHaveCount(0);
@@ -83,7 +85,7 @@ for(const caso of idiomas) for(const perfil of ["split","net"]){
     await page.locator('.botnav-tab[data-tour="gastos"]').click();
     // El balance mensual positivo es legítimo; no se transforma en gasto para arreglar Inicio.
     // Gastos v5: la cifra de la cabecera fija sustituye a la de la tarjeta resumen.
-    await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toContainText(perfil==="net"?"1480":"600");
+    await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toContainText(perfil==="net"?"1.480":"600");
     await page.locator('.botnav-tab[data-tour="inicio"]').click();
     await ciclo(page,caso);
     await expect(ring).toHaveText("98%");

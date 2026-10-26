@@ -12,7 +12,7 @@ const investments=[
 ];
 const norm=s=>s.replace(/[\u00a0\u202f]/g,' ').trim();
 // Oráculo independiente: 1 USD = 0,8 EUR; no llama al formateador ni al conversor del producto.
-const expected={EUR:{tr:'1200 €',rv:'160 €',mi:'800 €',cash:'500,00 €',hero:'2910,40 €',position:'1200,40 €'},USD:{tr:'1501 $',rv:'200 $',mi:'1000 $',cash:'625,00 $',hero:'3638,00 $',position:'1500,50 $'}};
+const expected={EUR:{tr:'1.200 €',rv:'160 €',mi:'800 €',cash:'500,00 €',hero:'2.910,40 €',position:'1.200,40 €'},USD:{tr:'1.501 $',rv:'200 $',mi:'1.000 $',cash:'625,00 $',hero:'3.638,00 $',position:'1.500,50 $'}};
 const broker=(page,id)=>page.locator('.page [data-broker-key="'+id+'"]');
 async function stored(page){return page.evaluate(()=>{const s=JSON.parse(localStorage.getItem('micartera_v3'));return {accounts:s.accounts,investments:s.investments,currency:s.settings.currency,fx:s.fx,fxRates:s.fxRates};});}
 async function open(page,currency='EUR',fx=0.8){
@@ -81,16 +81,16 @@ test('FIN22 USD inicial y selector local de Inversiones no cambian la moneda de 
  await open(page,'USD');await assertAmounts(page,'USD');
  await page.getByRole('button',{name:/Ver todas tus inversiones/}).click();
  const screen=page.locator('[data-inv-screen]');
- await expect(screen.locator('[data-inv-hero]')).toContainText('2700,50 $');
+ await expect(screen.locator('[data-inv-hero]')).toContainText('2.700,50 $');
  await screen.getByRole('button',{name:'€',exact:true}).click();
- await expect(screen.locator('[data-inv-hero]')).toContainText('2160,40 €');
+ await expect(screen.locator('[data-inv-hero]')).toContainText('2.160,40 €');
  await screen.locator('[data-act="back"]').click();await expect(screen).toHaveCount(0);await assertAmounts(page,'USD');
  expect((await stored(page)).currency).toBe('USD');await snapshot(page,testInfo,'local-selector-independent');
 });
 
 test('FIN22 sin FX conserva el fallback EUR y los originales desconocidos',async({page},testInfo)=>{
  await open(page,'USD',null);
- await expect(broker(page,'trade_republic').locator('.am')).toHaveText('1200 €');
+ await expect(broker(page,'trade_republic').locator('.am')).toHaveText('1.200 €');
  await expect(page.locator('[data-account-id="tr-cash"] .am')).toHaveText('500,00 €');
  await broker(page,'revolut').click();
  await expect(page.locator('.page [data-inv-position="rv-usd"]')).toContainText('200,00 USD · Sin conversión');

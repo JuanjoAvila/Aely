@@ -354,4 +354,44 @@ t("el mes natural conserva la misma cifra que el widget con apuntes fechados ma�
   }finally{ ctx.Date=RealDate; }
 });
 
+// Capturas del dueño (26/10/2026, mes natural, modo Balance): widget e Inicio decían 412 € de más
+// y Gastos «74 € por debajo» porque comparaba el balance. El margen contra el límite es uno solo.
+t("Balance en grande, pero el margen contra el límite es el de Inicio y el widget", () => {
+  const RealDate=ctx.Date;
+  const rows=[
+    {date:"2026-10-03T12:00:00Z",amount:1200,category:"super",ent:"sabadell"},
+    {date:"2026-10-10T12:00:00Z",amount:711.95,category:"ocio",ent:"sabadell"},
+    {date:"2026-10-12T12:00:00Z",amount:-485.72,merchant:"Bizum",category:"ingreso",ent:"sabadell"},
+    {date:"2026-10-14T12:00:00Z",amount:300,category:"traspaso",ent:"sabadell"},
+  ];
+  const s={budget:1500,settings:{budgetCycle:false,gTotalMode:"net",expenseBanks:["sabadell"]},
+    accounts:[{ent:"sabadell",role:"diario",spendFrom:true}],expenses:rows};
+  try{
+    ctx.Date=class extends RealDate { static now(){ return Date.parse("2026-10-26T10:46:00Z"); } };
+    const gastos=ctx.monthBudgetStats(s), inicio=ctx.dashboardBudgetStats(s);
+    assert.equal(gastos.mode,"net");
+    assert.equal(Math.round(gastos.shown*100),142623);          // la cifra grande de Gastos
+    // Lo que hace Gastos con sus propias sumas: el margen en modo "split" (mes natural).
+    const lim=ctx.budgetStatsFromAmounts(gastos.spent,gastos.income,s.budget,gastos.reserved,"split").against;
+    // Segunda vía, a mano: lo que sale de los bancos de gasto diario, sin traspasos.
+    const aMano=rows.filter(r=>r.amount>0&&r.category!=="traspaso").reduce((x,r)=>x+r.amount,0);
+    assert.equal(Math.round(lim*100),Math.round(aMano*100));
+    assert.equal(Math.round(lim*100),Math.round(inicio.against*100));
+    assert.equal(Math.round((gastos.budget-lim)*100),Math.round(inicio.remaining*100));
+    assert.equal(Math.round(inicio.remaining*100),-41195);
+    // En Mi ciclo el límite se mide en neto, como el widget de ciclo.
+    assert.equal(ctx.budgetStatsFromAmounts(100,30,1000,0,"net").against,70);
+  }finally{ ctx.Date=RealDate; }
+});
+
+t("los importes llevan punto de miles también con cuatro cifras", () => {
+  // `eur`/`eur0` son `const` del monolito: no cuelgan del contexto, se evalúan dentro.
+  const fmt=(expr)=>vm.runInContext(expr,ctx).replace(/\s/g," ");
+  assert.equal(fmt("eur(1426.23)"),"1.426,23 €");
+  assert.equal(fmt("eur0(1911.95)"),"1.912 €");
+  assert.equal(fmt("eur(193993.44)"),"193.993,44 €");
+  assert.equal(fmt("eur(999.5)"),"999,50 €");
+  assert.equal(ctx.eurParts(1426.23).ent,"1.426");
+});
+
 console.log("\nmonth-budget-stats: OK");

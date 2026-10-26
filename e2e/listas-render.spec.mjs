@@ -67,8 +67,8 @@ test("Metas: una tarjeta por meta, con lo ahorrado y el objetivo", async ({ page
   await expect(cards.nth(0)).toContainText("Viaje a Japón");
   // El «X de Y» y el % son lo que de verdad mira el usuario: si el .map se rompe o el cálculo
   // deriva, aquí sale otra cosa (1500/4000 = 38 %).
-  await expect(cards.nth(0)).toContainText("1500 €");
-  await expect(cards.nth(0)).toContainText("4000 €");
+  await expect(cards.nth(0)).toContainText("1.500 €");
+  await expect(cards.nth(0)).toContainText("4.000 €");
   await expect(cards.nth(0)).toContainText("38%");
   await expect(cards.nth(1)).toContainText("Colchón");
   await expect(cards.nth(0).getByRole("button",{name:"Editar Viaje a Japón",exact:true})).toBeVisible();

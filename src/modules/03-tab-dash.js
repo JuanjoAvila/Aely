@@ -343,9 +343,19 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
   // ya está en la lista y repetirla enseñaba «Movimiento · Otros» con el mismo importe. Misma regla
   // que Gastos (visto por el dueño en la beta 4.26.131, 14/10/2026).
   const recent=useMemo((s=state)=>(s.expenses||[]).filter(e=>!e.autoGemelo&&!expenseIsTombstoned(e,expenseDeletedSet(s))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
-  const ringPct=budAmt>0?Math.max(0,Math.min(1,rem/budAmt)):0;
+  /* Pasado del límite el anillo deja de contar lo que QUEDA (siempre 0 %) y cuenta lo USADO,
+     lleno y en coral, con el exceso en positivo: «0 %» y «-411,95 € de 1500 €» se leían como un
+     mes sin empezar (capturas del dueño, 26/10/2026). Hacia abajo, para que 100,4 % no parezca
+     justo el límite; si redondea a 100 o el límite está todo reservado, «>100 %». */
+  const over=paceState.id==="over";
+  // En céntimos enteros: 1150/1000*100 en coma flotante da 114,99… y saldría «114 %».
+  const usedPct=over&&budAmt>0?Math.floor(Math.round(spentAgainst*100)*100/Math.round(budAmt*100)):0;
+  const ringPct=over?1:budAmt>0?Math.max(0,Math.min(1,rem/budAmt)):0;
   // Un céntimo disponible no debe confundirse con un presupuesto agotado por el redondeo visual.
-  const ringLabel=Math.round(rem*100)>0&&Math.round(ringPct*100)===0?t("v42_cycle_under_one"):Math.round(ringPct*100)+"%";
+  const ringLabel=over?(usedPct>100?usedPct+"%":">100%")
+    :Math.round(rem*100)>0&&Math.round(ringPct*100)===0?t("v42_cycle_under_one"):Math.round(ringPct*100)+"%";
+  const amountTxt=over?cycleMoney(paceState.excess):cycleMoney(rem);
+  const amountOf=tf(over?"v42_cycle_excess_of":"v42_cycle_of",{x:cycleMoney(budAmt)});
   /* P6 — el anillo usa una animación de montaje, con estado final directo si se reduce
      el movimiento. Pausarla hasta que salga el splash evita gastarla detrás de la cortina. */
   const monthName=monthLong(new Date().getMonth());
@@ -419,7 +429,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
          rato, feedback 2026-10-13— y lo dicen el color del anillo y el de la línea «al día». Sigue
          leyéndose entero para lectores de pantalla, con las mismas claves de texto de antes. */
       React.createElement("div",{className:"v4-card v4-budget v42-cycle",role:"button",tabIndex:0,"data-state":paceState.id,
-        "aria-label":tf("v42_cycle_"+paceState.id,{x:cycleMoney(paceState.excess)})+". "+t("v42_remaining")+" "+cycleMoney(rem)+" "+tf("v42_cycle_of",{x:cycleMoney(budAmt)})+
+        "aria-label":tf("v42_cycle_"+paceState.id,{x:cycleMoney(paceState.excess)})+". "+(over?"":t("v42_remaining")+" ")+amountTxt+" "+amountOf+
           (dailyMoney!=null?". "+tf("v42_cycle_daily",{x:dailyMoney})+" "+tf(timing.left===1?"v42_cycle_day":"v42_cycle_days",{n:timing.left}):""),
         style:{color:"var(--"+paceState.tone+")","--cycle-color":"var(--"+paceState.tone+")","--v42-play":splashGone?"running":"paused"},onClick:function(){ setBudgetOpen(true); },
         onKeyDown:function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); setBudgetOpen(true); } }},
@@ -432,8 +442,8 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
           React.createElement("div",{className:"v42-cycle-percent num"},ringLabel.slice(0,-1),React.createElement("span",null,"%"))),
         React.createElement("div",{className:"v4-budget-txt"},
           React.createElement("div",{className:"ph v42-cycle-amount"},
-            React.createElement("span",{className:"serif num",style:{color:paceState.id==="over"?"var(--coral)":"var(--text)"}},cycleMoney(rem)),
-            React.createElement("span",{className:"v42-cycle-of"},tf("v42_cycle_of",{x:cycleMoney(budAmt)}))),
+            React.createElement("span",{className:"serif num",style:{color:over?"var(--coral)":"var(--text)"}},amountTxt),
+            React.createElement("span",{className:"v42-cycle-of"},amountOf)),
           dailyMoney!=null&&React.createElement("div",{className:"v42-cycle-pace","data-testid":"inicio-cycle-pace"},
             React.createElement("b",null,tf("v42_cycle_daily",{x:dailyMoney})),
             " ",tf(timing.left===1?"v42_cycle_day":"v42_cycle_days",{n:timing.left}))

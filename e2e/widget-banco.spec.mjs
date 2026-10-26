@@ -385,7 +385,7 @@ for (const lang of ["es", "en", "ca"]) {
     expect(snap.periodKind).toBe("ciclo");expect(snap.magnitude).toBe("neto");expect(snap.lang).toBe(lang);
     expect(snap.periodStart).toBe(Date.parse("2026-09-26T00:00:00+02:00"));
     await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
-    await expect(page.locator(".v42-cycle-amount>.serif")).toHaveText("1080 €");
+    await expect(page.locator(".v42-cycle-amount>.serif")).toHaveText("1.080 €");
     // Quedan 1080 de 900: el anillo se llena y no pasa de 100 %. Texto exacto, que
     // «contiene 0%» lo cumplían igual el 100 %, el 10 % y el 0 %.
     await expect(page.locator(".v4-budget .v4-ring")).toHaveText("100%");

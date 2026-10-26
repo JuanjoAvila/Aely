@@ -55,12 +55,13 @@ async function metas(page,t){
 async function presupuesto(page,value,mode){
   await nav(page,"gastos");
   /* Gastos v5: «de X» ya no se pinta en Gastos (está en Inicio, abajo); el presupuesto que deja la
-     reserva se ve en el margen de la cabecera: X − lo que cuenta (100 en bruto, −1900 en balance). */
-  const margen=mode==="net"?value+1900:value-100;
+     reserva se ve en el margen de la cabecera: X − lo gastado (100). En Balance también: el margen
+     contra el límite es el gasto, como en Inicio y el widget (26/10/2026); solo la cifra es el neto. */
+  const margen=value-100;
   await expect(page.locator('.page-scroll-host [data-testid="gastos-estado"]')).toContainText(new RegExp(String(margen).replace(/\B(?=(\d{3})+$)/g,"[.,\\s]?")+" € (por debajo|under|per sota)"));
   await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toContainText(mode==="net"?/1[.,\s]?900/:"100");
   await nav(page,"inicio");
-  await expect(page.locator(".v42-cycle-of")).toContainText(String(value));
+  await expect(page.locator(".v42-cycle-of")).toContainText(String(value).replace(/\B(?=(\d{3})+$)/g,"."));
   await expect(page.locator(".v42-cycle-amount>.serif")).toHaveText(String(value-100)+" €");
 }
 async function disk(page){ return page.evaluate(()=>{

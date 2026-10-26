@@ -21,10 +21,10 @@ for(const tz of ["UTC","Europe/Madrid","America/Los_Angeles"])test.describe(tz,(
     const response=await page.goto("/");
     if(process.env.FIN36_HTML_SHA256)expect(response.headers()["x-fin36-html-sha256"]).toBe(process.env.FIN36_HTML_SHA256);
     await page.waitForFunction(()=>!document.getElementById("mc-load")&&window.__mcBootReady);await dismissNews(page);
-    const hero=page.getByTestId("inicio-net-current"),amount=hero.locator(".v4-hero-amt");await expect(amount).toContainText("5000,00 €");
+    const hero=page.getByTestId("inicio-net-current"),amount=hero.locator(".v4-hero-amt");await expect(amount).toContainText("5.000,00 €");
     await page.locator('.botnav-tab[data-tour="plan"]').click();await page.getByRole("tab",{name:"Deudas",exact:true}).click();await page.getByRole("button",{name:"Añadir deuda",exact:true}).click();
     const form=page.locator(".add-form");await form.getByPlaceholder("Concepto (ej. Financiación móvil)",{exact:true}).fill("Deuda FIN36 sintética");await form.getByPlaceholder("Importe €",{exact:true}).fill("1000");await form.getByPlaceholder("Cuota/mes € (vacío si 0%)",{exact:true}).fill("100");await form.getByPlaceholder("Plazo (meses)",{exact:true}).fill("10");await form.getByPlaceholder("Día",{exact:true}).fill(String(day));await form.getByRole("button",{name:"Añadir deuda",exact:true}).click();
-    const expectedBalance=day===1?"900,00 €":"1000,00 €",current=day===1?"4100,00 €":"4000,00 €";
+    const expectedBalance=day===1?"900,00 €":"1.000,00 €",current=day===1?"4.100,00 €":"4.000,00 €";
     await expect(page.locator(".v4-debt-bal")).toContainText(expectedBalance);
     await expect(page.locator(".plan-summary").filter({has:page.getByText("Debes en total",{exact:true})}).locator(".plan-summary-amount")).toContainText(expectedBalance);
     const stored=()=>page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).debts);
@@ -34,7 +34,7 @@ for(const tz of ["UTC","Europe/Madrid","America/Los_Angeles"])test.describe(tz,(
     await hero.locator(".v42-net-ranges button").last().click();
     const box=await hero.locator(".v42-net-chart svg").boundingBox(),cdp=await page.context().newCDPSession(page);
     await cdp.send("Input.dispatchTouchEvent",{type:"touchStart",touchPoints:[{x:box.x+box.width*4/320,y:box.y+35}]});
-    await expect(hero.getByTestId("inicio-net-date")).toContainText(new RegExp("^"+Number(sample.before.slice(-2))+"\\b"));await expect(amount).toContainText("5000,00 €");
+    await expect(hero.getByTestId("inicio-net-date")).toContainText(new RegExp("^"+Number(sample.before.slice(-2))+"\\b"));await expect(amount).toContainText("5.000,00 €");
     await cdp.send("Input.dispatchTouchEvent",{type:"touchEnd",touchPoints:[]});await expect(amount).toContainText(current);await cdp.detach();
     await page.reload();await page.waitForFunction(()=>!document.getElementById("mc-load")&&window.__mcBootReady);await dismissNews(page);await expect(amount).toContainText(current);expect(await stored()).toEqual(debts);
     await info.attach("fin36-money.json",{body:JSON.stringify({tz,...sample,day,expectedBalance,current,debts},null,2),contentType:"application/json"});

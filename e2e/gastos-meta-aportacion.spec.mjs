@@ -89,7 +89,7 @@ test("★ marcar un cargo como aportación: fila gris de Metas, no suma, la meta
   // Plan → Metas: 100 a mano + 250 marcados = 350 (35 %), y dice de dónde vienen.
   await aMetas(page);
   const card = page.locator('[data-goal-id="viaje"]');
-  await expect(card.getByTestId("goal-saved")).toHaveText("350 € de 1000 €");
+  await expect(card.getByTestId("goal-saved")).toHaveText("350 € de 1.000 €");
   await expect(card.getByTestId("goal-from-gastos")).toHaveText("250,00 € desde Gastos");
   await expect(card).toContainText("35%");
   // Lo apuntado a mano NO cambia: el campo de la meta sigue diciendo 100.
@@ -111,7 +111,7 @@ test("★ marcar un cargo como aportación: fila gris de Metas, no suma, la meta
   await expect(gastosCifra(page)).toHaveText("300,00 €");
   await expect(dia20(page).getByTestId("gastos-dia-total")).toHaveText("280,00 €");
   await aMetas(page);
-  await expect(page.locator('[data-goal-id="viaje"]').getByTestId("goal-saved")).toHaveText("100 € de 1000 €");
+  await expect(page.locator('[data-goal-id="viaje"]').getByTestId("goal-saved")).toHaveText("100 € de 1.000 €");
   await expect(page.locator('[data-goal-id="viaje"]').getByTestId("goal-from-gastos")).toHaveCount(0);
 });
 
