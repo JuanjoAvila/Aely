@@ -208,7 +208,7 @@ for(const lang of ["es","en","ca"]) test("NO-GO último día natural y etiqueta 
   await expect(page.locator(".v42-cycle")).not.toContainText(labels[1]);
   await expect(page.locator(".v42-cycle")).toHaveAttribute("aria-label",new RegExp(labels[1]+" 100 €"));
   await expect(page.getByTestId("inicio-cycle-pace")).toHaveText(labels[2]);
-  await expect(page.locator(".v42-cycle-percent")).toHaveText("10%");
+  await expect(page.locator(".v42-cycle-percent")).toHaveText("90%");
 });
 test("NO-GO presupuesto agotado no ofrece gasto diario",async({page})=>{
   await open(page,{cycle:false,spent:1000});await expect(page.getByTestId("inicio-cycle-pace")).toHaveCount(0);

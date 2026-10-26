@@ -12352,17 +12352,21 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
   // ya está en la lista y repetirla enseñaba «Movimiento · Otros» con el mismo importe. Misma regla
   // que Gastos (visto por el dueño en la beta 4.26.131, 14/10/2026).
   const recent=useMemo((s=state)=>(s.expenses||[]).filter(e=>!e.autoGemelo&&!expenseIsTombstoned(e,expenseDeletedSet(s))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
-  /* Pasado del límite el anillo deja de contar lo que QUEDA (siempre 0 %) y cuenta lo USADO,
-     lleno y en coral, con el exceso en positivo: «0 %» y «-411,95 € de 1500 €» se leían como un
-     mes sin empezar (capturas del dueño, 26/10/2026). Hacia abajo, para que 100,4 % no parezca
-     justo el límite; si redondea a 100 o el límite está todo reservado, «>100 %». */
+  /* El anillo cuenta SIEMPRE lo USADO del límite: de 0 % a 100 % según se gasta y, pasado el límite,
+     sigue subiendo (127 %) en coral. Entre 2798bfda9 y la 4.26.186 pintaba lo que QUEDA por debajo
+     del límite y saltaba de 0 % a 100 % al agotarlo; el dueño lo rechazó (26/10/2026: con 1.436,47
+     de 1.500 debe marcar 96 %). Hacia abajo en el exceso, para que 100,4 % no parezca justo el
+     límite; si redondea a 100 o el límite está todo reservado, «>100 %». Por debajo, nunca «100 %»
+     sin haber llegado al límite (99,6 se queda en 99). */
   const over=paceState.id==="over";
   // En céntimos enteros: 1150/1000*100 en coma flotante da 114,99… y saldría «114 %».
-  const usedPct=over&&budAmt>0?Math.floor(Math.round(spentAgainst*100)*100/Math.round(budAmt*100)):0;
-  const ringPct=over?1:budAmt>0?Math.max(0,Math.min(1,rem/budAmt)):0;
-  // Un céntimo disponible no debe confundirse con un presupuesto agotado por el redondeo visual.
+  const usedC=Math.round(spentAgainst*100), limC=Math.round(budAmt*100);
+  const usedExact=limC>0?usedC*100/limC:0;
+  const usedPct=over?(limC>0?Math.floor(usedExact):0):limC>0?Math.min(usedC<limC?99:100,Math.round(usedExact)):0;
+  const ringPct=over?1:limC>0?Math.max(0,Math.min(1,usedC/limC)):0;
+  // Un céntimo usado no debe confundirse con un mes sin empezar por el redondeo visual.
   const ringLabel=over?(usedPct>100?usedPct+"%":">100%")
-    :Math.round(rem*100)>0&&Math.round(ringPct*100)===0?t("v42_cycle_under_one"):Math.round(ringPct*100)+"%";
+    :usedC>0&&usedPct===0?t("v42_cycle_under_one"):usedPct+"%";
   const amountTxt=over?cycleMoney(paceState.excess):cycleMoney(rem);
   const amountOf=tf(over?"v42_cycle_excess_of":"v42_cycle_of",{x:cycleMoney(budAmt)});
   /* P6 — el anillo usa una animación de montaje, con estado final directo si se reduce

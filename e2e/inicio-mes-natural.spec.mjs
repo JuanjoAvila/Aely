@@ -22,10 +22,10 @@ async function ciclo(page,caso){
 }
 
 for(const caso of idiomas) for(const limite of [
-  {name:"agotado",spent:1000,pct:"0%",over:false},
+  {name:"agotado",spent:1000,pct:"100%",over:false},
   {name:"excedido",spent:1200,pct:"120%",over:true},
   {name:"reservado entero",spent:100,reserved:1000,pct:">100%",over:true},
-  {name:"sin actividad",spent:0,pct:"100%",over:false,daily:333},
+  {name:"sin actividad",spent:0,pct:"0%",over:false,daily:333},
   {name:"sin presupuesto",spent:100,budget:0},
 ]) test(`Inicio distingue ${limite.name} (${caso.lang})`,async({page})=>{
   await page.clock.install({time:new Date("2026-09-28T12:00:00Z")});
@@ -78,10 +78,10 @@ for(const caso of idiomas) for(const perfil of ["split","net"]){
     const dash=page.locator(".v4-budget"), ring=dash.locator(".v4-ring .num");
     // En el ciclo quedan 980 de 1000; al salir, el mes natural deja 380 de 900: 600 de compras
     // menos el Bizum de 80 (la nómina no resta; decisión del dueño, 26/10/2026; antes 300 = bruto).
-    await expect(ring).toHaveText("98%");
+    await expect(ring).toHaveText("2%");
     await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText("980 €");
     await ciclo(page,caso);
-    await expect(ring).toHaveText("42%");
+    await expect(ring).toHaveText("58%");
     await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText("380 €");
     await expect(dash.locator(".v42-cycle-of")).toContainText("900");
     // 380 € entre 3 días son 126,67: el reparto diario redondea hacia abajo para no pasarse.
@@ -92,13 +92,13 @@ for(const caso of idiomas) for(const perfil of ["split","net"]){
     await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toContainText(perfil==="net"?"1.480":"600");
     await page.locator('.botnav-tab[data-tour="inicio"]').click();
     await ciclo(page,caso);
-    await expect(ring).toHaveText("98%");
+    await expect(ring).toHaveText("2%");
     await ciclo(page,caso);
     await page.reload();
     await expect(page.locator(".botnav")).toBeVisible();
     await page.waitForFunction(()=>!document.getElementById("mc-load"));
     await dismissNews(page);
-    await expect(ring).toHaveText("42%");
+    await expect(ring).toHaveText("58%");
     expect(await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).settings.gTotalMode)).toBe(perfil);
   });
 }
