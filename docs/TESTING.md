@@ -21,6 +21,15 @@ por el único cambio de producto posterior al ancla `95b950a0`, con versión
 son idénticos a esa base; no se cambian rama, entorno, historia ni versión para
 alterar el resultado. Revisión parental, CI, integración y móvil siguen pendientes.
 
+INC1810-01: `inc1810-deuda-guardar.spec.mjs`, registrado para `09-tab-debts-goals.js`,
+abre la hoja real de Deudas y guarda sin cambios, nombre/nota/TAE y una subida válida
+de cuota. Comprueba céntimos, campos desconocidos y persistencia tras recargar.
+La negativa FIN16 debe responder en dos intentos con el error completo dentro de la
+pantalla y sin modificar datos; cancelar conserva el estado. Un campo mal formado
+mantiene el borrador y permite corregirlo. Los cinco casos pasan en la base intacta
+`78c41edf87e2784ed31f8c9a083656c786d2632f`; no reproducen el bloqueo humano ni
+acreditan aceptación móvil. [Alcance y evidencia](briefs/inc1810-deuda-guardar.md).
+
 PR297 R2: `pr297-r2-plan-sync.test.mjs` está registrado en el runner y `pr297-r2-plan-sync.spec.mjs` en el mapa del núcleo/transporte. Oráculos sintéticos de céntimos, LWW sin base y tres vías con base, confirmaciones compactas por owner, vínculo local sin gastos en app_state, metadata de pago, referencias estables y 1000 lápidas. La versión completa se contrasta con `node:crypto`, incluyendo Unicode, padding SHA-256, claves JSON especiales e id numérico frente a string.
 
 El navegador cuenta lecturas/avisos durante más de doce segundos con Plan inválido y exige un PATCH/CAS no vacío tras una edición real, con propietario, revisión y céntimos. Retiene GET de estado y de gastos para comprobar intenciones que llegan durante el vuelo. El dispositivo B de primera lectura no hereda `_planSync`/`_goalSync` privados de A. La prueba de toque real desplaza el botón a la vista y registra su geometría antes del tap; conserva el oráculo de cierre y movimiento.

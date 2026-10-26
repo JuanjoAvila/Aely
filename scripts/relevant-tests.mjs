@@ -209,6 +209,7 @@ export const E2E_MAP = [
     "e2e/deudas-plazo-aviso.spec.mjs",
     "e2e/deudas-metas-edicion-v4.spec.mjs",
     "e2e/deudas-guardar-feedback.spec.mjs",
+    "e2e/inc1810-deuda-guardar.spec.mjs",
     "e2e/inicio-deuda-futura.spec.mjs",
     "e2e/metas-editar-regla.spec.mjs",
     "e2e/metas-borrar-regla.spec.mjs",
