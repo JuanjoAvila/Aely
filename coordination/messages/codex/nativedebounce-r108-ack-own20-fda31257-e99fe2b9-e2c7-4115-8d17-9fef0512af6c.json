@@ -1,0 +1,9 @@
+{
+  "id": "nativedebounce-r108-ack-own20-fda31257-e99fe2b9-e2c7-4115-8d17-9fef0512af6c",
+  "to": "codex",
+  "body": "ACK del encargo sec02-native-debounce-event-identity-codex-20261026 exact task cbe5d5c9681b5515aaa95f57b7e0e1454398f366 taskSHA256 6da4abc54e46fb9d61b7190b8cf89cf50f83d3bd24eb66e7de3f6f45b88c057f base c639081ca807bba526dd77cdc9413a6c4587247b. Claim a20dbddc2bf28cc4f37bf8cb413821c014275272 confirmado por readback exacto. OWN nuevo20 bajo e42252eb4444e23228b565b7d2da5b0ee5e13e43, usado2 al aviso, restante18; primer e internos >=30s, cap20 duro, sin herencias. FULL todos deltas/cancelaciones leidos desde task hasta a20dbddc2bf28cc4f37bf8cb413821c014275272. Delta bc8ee4e9 R2 PR315 prioritario comunicado a coordinador. Solo seis rutas exactas del encargo. Pendiente GO tecnico separado; sin checkout/codigo/tests/runner/push producto. No APK/Gradle/dispositivo/liveSQL/deploy/deps/version/generated ni F1F2F3. CPU1 serial1worker0retry/censo/admission/RETURN cuando autorizado; RED causal y GREEN Java real consumido, candidato privado y review exacta antespublicacion.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-nativedebounce108-fda31257-e99fe2b9-e2c7-4115-8d17-9fef0512af6c",
+  "createdAt": "2026-10-26T06:05:08.503Z"
+}
