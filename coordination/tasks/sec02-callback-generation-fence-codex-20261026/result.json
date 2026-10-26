@@ -1,0 +1,36 @@
+{
+  "status": "blocked",
+  "summary": "Continuidad horaria F1 en SAFEHOLD por prioridad PR313 R2; sin checkout, codigo ni pruebas de producto. Cierre propio ordenado por coordinador; trabajo F1 pendiente.",
+  "tests": [],
+  "limitations": [
+    "No implementacion ni pruebas de producto realizadas; no candidato ni entrega funcional.",
+    "PR313 R2 conserva prioridad; F1 requiere nuevo encargo sucesor, admision, OWN y claim propios antes de continuar.",
+    "Ningun runner, proceso, puerto o lease de producto adquirido; no hay recursos pendientes de devolver.",
+    "No despliegue, CI, servido, movil ni ProductREADY acreditados."
+  ],
+  "checkpoint": {
+    "schema": 1,
+    "taskCommit": "d4f5e23a636434a03302e70f9ba8eb98362814d9",
+    "taskSHA256": "9bd287d30ec8c99753e7da001f3f019df5341431906f29d4ca55671e77b58162",
+    "baseSHA": "f99f6d7a83c48efc3cbfcb73d93eba1d6130fd32",
+    "channelSHA": "c8bbfa27fa8473ed78e7b94a4efbfd82ef3eac55",
+    "claimCommit": "17d6c04a1793e37945435bfabddc032d8471902d",
+    "privateCheckpointSHA256": "a8401f550be0b50d8ea069e3892bb7f287dc23eae712c0ee1c35105b5ce2f6de",
+    "state": "SAFE_HOLD_BEFORE_CHECKOUT",
+    "checkoutCreated": false,
+    "codeChanges": 0,
+    "testsExecuted": 0,
+    "productWIP": false,
+    "resourcesOutstanding": 0,
+    "allDeltasAndCancellationsRead": true,
+    "ownUsedBeforeResultReadback": 6,
+    "ownAllowance": 20,
+    "nextAction": "New successor task and native admission under coordinator; no identity, claim, counter or unused balance transfer"
+  },
+  "schema": 1,
+  "taskId": "sec02-callback-generation-fence-codex-20261026",
+  "actor": "codex",
+  "sessionId": "codex-local-20261026-callbackf1-fda31257-2250-4d9b-95e4-2044de8ef55b",
+  "createdAt": "2026-10-26T05:01:22.381Z",
+  "released": true
+}
