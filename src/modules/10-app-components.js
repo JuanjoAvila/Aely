@@ -2639,6 +2639,10 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   };
   const sw=function(on){ return React.createElement("span",{className:"swx"+(on?" on":"")}); };
   const curLang=(state.settings&&state.settings.lang)||"es";
+  const langRequest=useRef(0);
+  // Dos descargas pueden terminar al revés: solo la última elección conserva permiso para
+  // guardarse. Cambiar de idioma desde nube o desmontar Ajustes invalida también la anterior.
+  useEffect(function(){ return function(){ langRequest.current++; }; },[curLang]);
   const curTheme=(state.settings&&state.settings.theme)||"green";
   const curCur=(state.settings&&state.settings.currency)||"EUR";
   const curSeason=(state.settings&&state.settings.season)||"none";
@@ -2718,9 +2722,10 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
           LANGS.map(function(L){
             return React.createElement("button",{key:L[0],onClick:function(){
               var lg=L[0];
+              var request=++langRequest.current;
               // en/ca pueden no estar en el bundle: carga el JSON antes de cambiar CURLANG
               // para no pintar un frame a medias en español (A/B idiomas, 4.19.103).
-              var go=function(){ CURLANG=lg; setS({lang:lg}); };
+              var go=function(){ if(request!==langRequest.current) return; CURLANG=lg; setS({lang:lg}); };
               if(typeof ensureLangPack==="function") ensureLangPack(lg).then(go, go); else go();
             },style:segBtn(curLang===L[0])}, L[1]);
           })))

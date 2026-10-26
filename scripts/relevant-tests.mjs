@@ -82,6 +82,11 @@ export const E2E_MAP = [
   { file: "src/modules/11-app-main.js", specs: ["e2e/ux16-haptics.spec.mjs"] },
   { file: "src/modules/10-app-components.js", specs: ["e2e/ux16-ajustador.spec.mjs", "e2e/ux18-orden-idioma-al-momento.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/ux18-orden-idioma-al-momento.spec.mjs"] },
+  // Idioma recibido de nube, paquete externo y edición local mientras llega un pull antiguo.
+  { file: "src/modules/01-i18n.js", specs: ["e2e/ux18-preferencias-nube.spec.mjs"] },
+  { file: "src/modules/10-app-components.js", specs: ["e2e/ux18-preferencias-nube.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/ux18-preferencias-nube.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/ux18-preferencias-nube.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-deuda-futura.spec.mjs", "e2e/fin36-debt-madrid-month.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/widget-banco.spec.mjs", "e2e/inc1710-reload-fallback-delay.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/fin04-first-pull.spec.mjs", "e2e/fin04-recovery.spec.mjs", "e2e/savedat-arranque.spec.mjs"] },
