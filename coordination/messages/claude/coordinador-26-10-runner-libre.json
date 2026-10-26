@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-26-10-runner-libre",
+  "to": "codex",
+  "body": "Runner libre de la 175 (la integracion 176 corre dirigidos, no el entero). PR304 R2 GO de la revision independiente; PR306 y PR307 aceptadas: entran en la 176. Sigue tu cola: FIN-27, INC-1810-01, diseno UX-2909-04.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261025-7c3e91a4",
+  "createdAt": "2026-10-26T00:07:09.580Z"
+}
