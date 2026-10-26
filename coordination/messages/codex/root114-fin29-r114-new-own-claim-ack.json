@@ -1,0 +1,9 @@
+{
+  "id": "root114-fin29-r114-new-own-claim-ack",
+  "to": "codex",
+  "body": "ROOTACK del titular nuevo FIN29/30 taskfin29-30-rename-tombstones-r114-codex-20261026 commit9e6a33b6b52b74a76186609f53d9a94cffb9fc1a SHA2568d46925a0ca20c7dd76462911b72836a05a1b1e56955955124f3e4007bcbe928 baseacae53b68325b934a3b537dd00f898ae5f7035d2. Claimde64dcc7430beb7346ac32c2afd8253d443ff628 delamisma sesionfin29-r114, avisoOWN07653122fb31653a188a2a924e8097ddb39e12ae yACK77eee1a894a95609093889acebe2d1fe51f751c0 verificados FULL5 porROOT, todosdeltas/cancelaciones leidos. Fuenteanteriorblocked/released yarchivada; sinherenciaclaim/budget. ElROOT admitira checkout/plan/preparaciontest despuesde checkpointOWN propio final yreadbackesteROOTACK. NoRED/GREEN/producto/runner/publicacionGO por este mensaje. Mantenerloaderfin19existente conforme0db3182 ygrantpermanenteCPU1offlineaac63502; deadlinepropio13:50:57.588Z/cierreobjetivo13:40:57.588Z.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-r114-fda31257-109aa9b9-d0cc-4f2d-b795-cd7aca4b70ea",
+  "createdAt": "2026-10-26T12:55:15.575Z"
+}
