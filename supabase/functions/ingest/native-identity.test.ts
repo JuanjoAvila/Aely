@@ -14,8 +14,10 @@ Deno.env.set('INGEST_TOKEN','');Deno.env.set('INGEST_USER_ID','owner-synthetic')
 await import('./index.ts');
 function equal(actual:any,expected:any,label:string){if(JSON.stringify(actual)!==JSON.stringify(expected))throw Error(label+': expected '+JSON.stringify(expected)+', actual '+JSON.stringify(actual));}
 function storage(opts:any={}){
- const rows:any[]=(opts.rows||[]).map((r:any)=>({...r})),events:any[]=[],writes:any[]=[];
+ const rows:any[]=(opts.rows||[]).map((r:any)=>({...r})),events:any[]=[],writes:any[]=[],interleaving:any[]=[];
  let insertSeq=0,nearCount=0,releaseNear:any;const insertOrigin=Date.now(),bothNear=new Promise<void>(resolve=>{releaseNear=resolve;});
+ const insertOrder:string[]=opts.insertOrder||[];let insertedCount=0,releaseFirst:any,releaseBoth:any;
+ const firstInserted=new Promise<void>(resolve=>{releaseFirst=resolve;}),bothInserted=new Promise<void>(resolve=>{releaseBoth=resolve;});
  function from(name:string){const q:any={op:'select',filters:[],cols:'*',row:null};const api:any={
  select(cols='*'){q.cols=cols;return api;},eq(k:string,v:any){if(k==='token')q.token=v;q.filters.push((r:any)=>String(r[k])===String(v));return api;},
  in(k:string,v:any[]){q.filters.push((r:any)=>v.includes(r[k]));return api;},
@@ -23,7 +25,7 @@ function storage(opts:any={}){
  limit(n:number){q.limit=n;return api;},range(a:number,b:number){q.range=[a,b];return api;},order(){return api;},abortSignal(){return api;},
  upsert(row:any,opts:any){q.op='upsert';q.row={...row};q.options=opts;return api;},insert(row:any){q.op='insert';q.row={...row};return api;},update(row:any){q.op='update';q.row={...row};return api;},delete(){q.op='delete';return api;},
  async maybeSingle(){return name==='ingest_tokens'?{data:{user_id:q.token==='token-other'?'owner-other':'owner-synthetic'},error:null}:name==='app_state'?{data:{data:{accounts:[{ent:'trade_republic',role:'diario'}],settings:{}}},error:null}:{data:null,error:null};},
- then(resolve:any,reject:any){return Promise.resolve().then(run).then(async result=>{if(opts.syncPrechecks&&q.op==='select'&&q.cols==='id,fecha,importe,ingest_event_id,source'&&nearCount<2){nearCount++;if(nearCount===2)releaseNear();await bothNear;}return result;}).then(resolve,reject);}};
+ then(resolve:any,reject:any){return Promise.resolve().then(insertOrder.length?runScheduled:run).then(async result=>{if(opts.syncPrechecks&&q.op==='select'&&q.cols==='id,fecha,importe,ingest_event_id,source'&&nearCount<2){nearCount++;if(nearCount===2)releaseNear();await bothNear;}return result;}).then(resolve,reject);}};
  function run(){
  if(name==='app_events'){events.push(q.row);return {data:null,error:null};}if(name!=='expenses')return {data:[],error:null};
  const matches=()=>rows.filter(r=>q.filters.every((f:any)=>f(r)));
@@ -39,8 +41,21 @@ function storage(opts:any={}){
  if(q.op==='update'){if(opts.releaseError){opts.releaseError=false;return {data:null,error:{message:'synthetic release failure'}};}for(const r of matches())Object.assign(r,q.row);return {data:[],error:null};}
  if(q.op==='delete'){if(opts.deleteError)return {data:null,error:{message:'synthetic delete failure'}};const gone=new Set(matches());for(let i=rows.length-1;i>=0;i--)if(gone.has(rows[i]))rows.splice(i,1);return {data:Array.from(gone).map((r:any)=>({id:r.id})),error:null};}
  throw Error('Unexpected query');}
+ // El SHA-256 real termina fuera de orden: el escenario fija las inserciones y espera ambas antes del chequeo posterior.
+ async function runScheduled(){
+ const inserting=name==='expenses'&&(q.op==='upsert'||q.op==='insert');
+ const postinsert=name==='expenses'&&q.op==='select'&&q.cols==='id,fecha,importe,ingest_event_id,created_at,source';
+ if(inserting){equal(insertOrder.includes(q.row.ingest_event_id),true,'scheduled event belongs to scenario');if(q.row.ingest_event_id!==insertOrder[0])await firstInserted;}
+ if(postinsert)await bothInserted;
+ const result=run();
+ if(inserting){equal(result.error,null,'scheduled insert succeeded');equal(result.data.length,1,'scheduled insert created one row');
+ equal(q.row.ingest_event_id,insertOrder[insertedCount],'explicit insertion order');interleaving.push({op:'insert',eventKey:q.row.ingest_event_id});
+ if(++insertedCount===1)releaseFirst();if(insertedCount===insertOrder.length)releaseBoth();}
+ if(postinsert)interleaving.push({op:'postinsert',rows:result.data.map((r:any)=>r.id)});
+ if(q.op==='delete')interleaving.push({op:'delete'});
+ return result;}
  return api;}
- return {db:{from,rpc:()=>Promise.resolve({data:true,error:null})},rows,events,writes};}
+ return {db:{from,rpc:()=>Promise.resolve({data:true,error:null})},rows,events,writes,interleaving};}
 const body=(evento:string)=>({evento,fuente:'tr',fecha:'1792137600000',texto:'Has gastado 9,95 € en COMERCIO SINTETICO',titulo:'Trade Republic'});
 async function post(s:any,b:any,token='token-synthetic'){activeDb=s.db;const response=await handler(new Request('https://synthetic.invalid/ingest',{method:'POST',headers:{'x-ingest-token':token},body:JSON.stringify(b)}));return {status:response.status,data:await response.json()};}
 Deno.test('F2 real handler: distinct native IDs same millisecond/content persist1990c',async()=>{
@@ -137,12 +152,25 @@ Deno.test('F2 double-pending cross-door replays never ACK an unconfirmed survivo
 });
 
 Deno.test('F2 postinsert never deletes own row or ACKs an earlier pending twin',async()=>{
- const s=storage({releaseError:true,syncPrechecks:true});const tr=body('v1_post_pending_tr');
+ const tr=body('v1_post_pending_tr');
  const wallet={evento:'v1_post_pending_wallet',fuente:'wallet',fecha:tr.fecha,titulo:'ALIAS POST SINTETICO',texto:'9,95 € con Trade Republic Visa Card'};
+ const trKey=claveEvento(tr.evento,'tr',tr.texto)!,walletKey=claveEvento(wallet.evento,'wallet',wallet.texto)!;
+ for(const trFirst of [true,false]){
+ const insertOrder=trFirst?[trKey,walletKey]:[walletKey,trKey];
+ const s=storage({releaseError:true,syncPrechecks:true,insertOrder});
  const rs=await Promise.all([post(s,tr),post(s,wallet)]);
- console.log(JSON.stringify({statuses:rs.map(r=>r.status),rows:s.rows.length,sources:s.rows.map(r=>r.source),ACKs:rs.map(r=>r.data.ack||null)}));
+ console.log(JSON.stringify({insertOrder,statuses:rs.map(r=>r.status),rows:s.rows.length,sources:s.rows.map(r=>r.source),ACKs:rs.map(r=>r.data.ack||null),interleaving:s.interleaving}));
  equal(rs.map(r=>r.status),[503,503],'postinsert pending twin cannot confirm success');equal(s.rows.length,2,'do not delete while survivor is pending');
- equal(rs[1].data.ack,undefined,'no pending survivor ACK');
+ equal(s.rows.map(r=>r.ingest_event_id),insertOrder,'actual event identities follow scheduled inserts');
+ equal(s.rows.every(r=>String(r.source).includes('#dup')),true,'both rows remain pending');
+ equal(s.interleaving.filter(r=>r.op==='postinsert').map(r=>r.rows.length),[2,2],'both postinsert reads see both rows');
+ equal(s.interleaving.filter(r=>r.op==='delete').length,0,'no pending row deletion attempted');
+ equal(s.rows.map(r=>Math.round(Number(r.importe)*100)),[995,995],'both original amounts unchanged');
+ equal(s.rows.filter(r=>!String(r.source).includes('#dup')).reduce((n,r)=>n+Math.round(Number(r.importe)*100),0),0,'pending rows contribute no confirmed cents');
+ // Promise.all conserva el orden de las peticiones, no el del INSERT: la posterior nunca acusa la gemela pendiente.
+ if(trFirst)equal(rs[1].data.ack,undefined,'no pending survivor ACK');
+ else equal(rs[0].data.ack,undefined,'no pending survivor ACK');
+ }
 });
 
 Deno.test('R2 B2 causal GREEN: different original hours retain three complete identities',async()=>{
