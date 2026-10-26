@@ -1,0 +1,92 @@
+{
+  "status": "done",
+  "summary": "SEC02 F2 delivered one finished draft PR313 against beta at independently reviewed exact f62bd0794b509303cc0e4d579ccdbc0a70484214, base74ea9c63880b23a975f2a5852d82970f3cbffefd. Distinct native events1990c, true repeat995c/stable own ACK; millisecond slots and native identity readers preserve money. R1 closes pending cross-door ACK with automatic stable-order recovery to one confirmed995c row. Existing global index and four-column writer contracts unchanged; no SQL or deployment.",
+  "tests": [
+    {
+      "command": "deno test native-identity.test.ts (directed configured local SDK/storage harness)",
+      "exitCode": 0,
+      "cases": 14,
+      "phase": "ceab6ca1 initial candidate; not rerun full afterR1"
+    },
+    {
+      "command": "deno test read-identity.test.ts (unchanged original pure-reader oracle)",
+      "exitCode": 0,
+      "cases": 1,
+      "expectedCents": 1990,
+      "observedCents": 1990
+    },
+    {
+      "command": "node tests/ingest-native-slots.test.mjs",
+      "exitCode": 0,
+      "phase": "initial source reader/roundtrip/UUID/reconcile evidence"
+    },
+    {
+      "command": "node tests/ingest-handler.test.mjs",
+      "exitCode": 0,
+      "groups": 32,
+      "phase": "initial candidate handler regression; Node24 with existing esbuild"
+    },
+    {
+      "command": "deno test native-identity.test.ts --filter=double-pending",
+      "exitCode": 1,
+      "expectedFailure": true,
+      "phase": "new causal RED cross-door200/200 ACKs while both pending"
+    },
+    {
+      "command": "deno test native-identity.test.ts --filter=\"postinsert never\"",
+      "exitCode": 1,
+      "expectedFailure": true,
+      "phase": "new causal RED postinsert503/200 and deletion before survivor released"
+    },
+    {
+      "command": "deno test native-identity.test.ts --filter=double-pending",
+      "exitCode": 0,
+      "cases": 1,
+      "phase": "R1 automatic recovery via real handler replays, no external source edits"
+    },
+    {
+      "command": "deno test native-identity.test.ts --filter=\"postinsert never\"",
+      "exitCode": 0,
+      "cases": 1,
+      "phase": "R1 preserves both pending rows and returns503, no premature ACK"
+    },
+    {
+      "command": "deno test native-identity.test.ts --filter=\"TR Wallet cross-door still\"",
+      "exitCode": 0,
+      "cases": 1,
+      "phase": "R1 precise released-survivor regression"
+    }
+  ],
+  "productSHA": "f62bd0794b509303cc0e4d579ccdbc0a70484214",
+  "baseSHA": "74ea9c63880b23a975f2a5852d82970f3cbffefd",
+  "pullRequest": 313,
+  "draft": true,
+  "independentReview": true,
+  "independentReviewGOExact": "f62bd0794b509303cc0e4d579ccdbc0a70484214",
+  "ownUsedActualAtPreparation": 9,
+  "ownAllowance": 20,
+  "allIntermediateFULLReviewed": true,
+  "cancellationFound": false,
+  "resourcesReturned": true,
+  "sqlChanges": 0,
+  "indexChanged": false,
+  "writerContractChanged": false,
+  "integrationReady": false,
+  "mergeableObserved": false,
+  "limitations": [
+    "Synthetic SDK/provider/storage only; no PostgreSQL or PostgREST execution",
+    "Deno handler harness strict:false; preexisting typecheck failures preserved, not causalRED",
+    "No complete16-case suite afterR1: initial14 andNode plus2newGREEN and1precise regression",
+    "Original180s native Android debounce is source-only open finding; Android unchanged",
+    "No CI/global suite/build/deployment/served/mobile/ProductREADY proof",
+    "Draft connector initially reports mergeable false; no rebase/merge authorized or performed"
+  ],
+  "ownUsedActualAtResult": 10,
+  "commandEvidence": "Commands abbreviated to portable relative names; exact executable/arguments/cwd and no-network permissions preserved in private admissions.",
+  "schema": 1,
+  "taskId": "sec02-ingest-native-identity-codex-20261026",
+  "actor": "codex",
+  "sessionId": "codex-local-20261026-ingestf2-fda31257-0c66a031-dc13-49b7-9d6b-d8c989455ffd",
+  "createdAt": "2026-10-26T04:00:09.879Z",
+  "released": true
+}
