@@ -559,3 +559,8 @@ Las fuentes de keepalive y sync incorporan `_shared/myinvestor-refresh-save.ts`;
 No basta con un UPDATE sin error: debe devolver filas o confirmarse su propio patch tras un acuse perdido. El readback se acota; una lectura fallida queda indeterminada y no anuncia renovación ni posiciones al día. Se mantienen timeout, clasificación HTTP y limitación de telemetría de PR241. CAS no serializa dos consumos externos; OPS-09 queda fuera. [Pruebas y límites](briefs/ops08-refresh-cas.md).
 
 4.26.174 (25/10/2026): `functions/ingest/widget.ts` e `index.ts` cambian (PR298 R2, inicio-mes-futuro): el widget y el resumen mensual cuentan un apunte con fecha del mes que viene en SU mes y no en el actual, como Inicio y Gastos en la web. NO se despliega en beta; `ingest` va con la próxima producción, con el OK del dueño. Hasta entonces el widget puede sumar ese apunte al mes en curso (la web no).
+
+
+## bank-callback · Carrera con una reconexión posterior
+
+El guardado final condiciona el UPDATE a la fila/propietario y a la generación consumida: `state IS NULL` más `state_issued_at` original, con `IS NULL` para legacy. Exige acuse de una única fila con el id esperado; si falta o es ambiguo devuelve error sin restaurar state, reintentar ni tocar una autorización nueva. No añade SQL, migraciones ni revocaciones al proveedor. [Causa y pruebas sintéticas](briefs/sec02-callback-generation-fence.md); despliegue y aceptación reales son pasos separados.

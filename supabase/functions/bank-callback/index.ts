@@ -198,7 +198,10 @@ Deno.serve(async (req) => {
        Los acuses que tuviera un móvil de antes de reconectar dejan de valer solos: van
        ligados a `state_issued_at`, que `bank-connect` renovó al empezar (`ackLinkKey`). */
     const keep = !!uid && keepsCursor(link, accts);
-    const saved = await admin.from("bank_links").update({
+    // El canje puede tardar: bank-connect reutiliza esta misma fila para otra
+    // autorización. Solo la generación que consumimos sigue siendo nuestra;
+    // state=null por sí solo tampoco basta si el callback nuevo ya lo gastó.
+    let save = admin.from("bank_links").update({
       session_id: await encryptSessionId(sessionId),
       account_uid: uid,
       iban,
@@ -206,7 +209,11 @@ Deno.serve(async (req) => {
       status: uid ? "active" : "error",
       ...(keep ? {} : { last_sync: null }),
       updated_at: new Date().toISOString(),
-    }).eq("id", link.id).select("id");
+    }).eq("id", link.id).eq("user_id", link.user_id).is("state", null);
+    save = link.state_issued_at == null
+      ? save.is("state_issued_at", null)
+      : save.eq("state_issued_at", link.state_issued_at);
+    const saved = await save.select("id");
     // También puede desaparecer la fila después del consumo: cero filas sin error
     // no confirma que la sesión se haya guardado. No anunciar éxito ni reintentar.
     if (saved?.error || !Array.isArray(saved?.data)

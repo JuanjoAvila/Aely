@@ -1496,3 +1496,8 @@ replay, cero/negativo y sync posterior. El DOM usa el transporte/updater reales 
 sintéticos y conserva el servidor simulado tras un UPDATE CAS y recarga. Pruebas dirigidas
 CPU1, un worker y cero reintentos; no sustituye CI general ni aceptación móvil.
 [Contrato y límites](briefs/fin27-book-charge-month.md).
+
+
+## SEC02 F1 · Generación del guardado final
+
+`supabase/functions/bank-callback/generation-fence.test.ts`, registrado en ambos runners Deno, ejecuta el handler real con SDK/proveedor/BD sintéticos y sin red ni entorno. RED causal en base y GREEN20/20: reconexión durante canje, preservación de generación/cuentas/cursor, emisión legacy nula, cambios justo al escribir, acuse final inválido y consumo previo fallido. Tres mutantes de state/emisión/NULL detectados; logs y exits originales conservados. [Contrato, comando y límites](briefs/sec02-callback-generation-fence.md).
