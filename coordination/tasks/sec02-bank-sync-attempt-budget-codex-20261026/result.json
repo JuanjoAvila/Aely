@@ -1,0 +1,67 @@
+{
+  "status": "done",
+  "summary": "F3 transaction reader counts the initial WRONG_TRANSACTIONS_PERIOD rejection and longest fallback inside the existing12-attempt cap and smaller old-gap budgets. Successful-page error semantics and rows cents cursor ACK overflow guards preserved. Exact independently reviewed finished source delivered as one draft PR against beta.",
+  "productSHA": "888b2d06982d6658b678b48dfbf3d78beca750ec",
+  "baseSHA": "c639081ca807bba526dd77cdc9413a6c4587247b",
+  "PR": 315,
+  "tests": [
+    {
+      "command": "deno test --cached-only --no-lock --no-prompt --node-modules-dir=none --allow-read=supabase/functions --fail-fast=1 --filter=\"F3 lector causal\" supabase/functions/bank-sync/attempt-budget.test.ts",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "phase": "causal RED exact base13 attempts vs12"
+    },
+    {
+      "command": "deno test --cached-only --no-lock --no-prompt --node-modules-dir=none --allow-read=supabase/functions --fail-fast=1 --filter=\"F3 handler causal\" supabase/functions/bank-sync/attempt-budget.test.ts",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "phase": "causal RED real handler13 attempts per account vs12"
+    },
+    {
+      "command": "deno test --cached-only --no-lock --no-prompt --node-modules-dir=none --allow-read=supabase/functions --fail-fast=1 supabase/functions/bank-sync/attempt-budget.test.ts",
+      "exitCode": 0,
+      "passed": 14,
+      "phase": "same-oracle GREEN"
+    },
+    {
+      "command": "synthetic fixture cents1250 to1251 against unchanged financial oracle; Deno filter F3 lector: doce exitos",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "phase": "sensitivity only; exact test bytes restored"
+    },
+    {
+      "command": "node scripts/run-deno-tests.mjs supabase/functions/bank-sync/attempt-budget.test.ts",
+      "exitCode": 0,
+      "passed": 14
+    },
+    {
+      "command": "node --check scripts/run-tests.mjs and scripts/run-deno-tests.mjs; git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "SDK provider and storage doubles in Deno only; no live bank, SQL or PostgreSQL/PostgREST acceptance",
+    "CI integration deployment served beta and physical mobile acceptance remain separate",
+    "No F1 F2 Android180s APK versions generated assets dependency merge rebase force or deployment changes",
+    "Closed prior Node RED and audit tests were not repeated"
+  ],
+  "ownBudget": {
+    "id": "pagingf3r107-own20-fda31257-25013710-632d-41ed-8ae2-bd4d53aa7877",
+    "allowance": 20,
+    "usedActualBeforeFinalReadback": 5
+  },
+  "resourcesReturned": true,
+  "remoteHead": "888b2d06982d6658b678b48dfbf3d78beca750ec",
+  "exactRemoteReadback": true,
+  "draftPR": true,
+  "baseBranch": "beta",
+  "changedFiles": 6,
+  "independentReviewGO": true,
+  "productReady": false,
+  "schema": 1,
+  "taskId": "sec02-bank-sync-attempt-budget-codex-20261026",
+  "actor": "codex",
+  "sessionId": "codex-local-20261026-pagingf3-fda31257-25013710-632d-41ed-8ae2-bd4d53aa7877",
+  "createdAt": "2026-10-26T05:56:27.549Z",
+  "released": true
+}
