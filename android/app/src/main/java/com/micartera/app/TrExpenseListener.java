@@ -15,8 +15,10 @@ import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.security.MessageDigest;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -161,16 +163,7 @@ public class TrExpenseListener extends NotificationListenerService {
         if (text.isEmpty()) return;
         if (!text.contains("€") && !HAS_AMOUNT.matcher(text).find()) return;
 
-        // DEDUPE (bug pareja 2026-07-10): Android re-entrega la MISMA notificación cuando TR la
-        // actualiza → cada re-entrega inmediata disparaba otro POST. Esto solo es un debounce para
-        // la ráfaga local; la identidad duradera y el ACK viven en el servidor porque otra noti
-        // intercalada reemplaza esta única firma. Mismo texto en <3 min ⇒ no hace falta ni enviarla.
-        android.content.SharedPreferences dd =
-                getSharedPreferences("micartera_ingest_dedupe", MODE_PRIVATE);
-        int sig = (title + "|" + text).hashCode();
         long now = System.currentTimeMillis();
-        if (dd.getInt("sig", 0) == sig && now - dd.getLong("ts", 0) < 180000) return;
-        dd.edit().putInt("sig", sig).putLong("ts", now).apply();
 
         /* Identidad del EVENTO, no de sus datos financieros. Android conserva key/postTime al
            reentregar una notificación activa; dos compras reales conservan ids distintos aunque
@@ -183,6 +176,37 @@ public class TrExpenseListener extends NotificationListenerService {
             nativeKey = sbn.getPackageName() + "|" + sbn.getId() + "|" + String.valueOf(sbn.getTag());
         }
         final String evento = stableEventId(fuente, sbn.getPackageName(), nativeKey, postedAt);
+
+        // Dos compras con el mismo texto son eventos distintos; A debe seguir recordado tras B.
+        // El monitor del helper cubre también la lectura y apply entre instancias del listener.
+        final android.content.SharedPreferences dd =
+                getSharedPreferences("micartera_ingest_dedupe", MODE_PRIVATE);
+        if (!NativeEventDebounce.admit(evento, now, new NativeEventDebounce.Store() {
+            private final Set<String> eventKeys = new HashSet<>();
+
+            public Map<String, Long> read() {
+                Map<String, Long> accepted = new HashMap<>();
+                for (Map.Entry<String, ?> entry : dd.getAll().entrySet()) {
+                    String key = entry.getKey();
+                    if (key == null || !key.startsWith("event_")) continue;
+                    eventKeys.add(key);
+                    if (entry.getValue() instanceof Long) {
+                        accepted.put(key.substring(6), (Long) entry.getValue());
+                    }
+                }
+                return accepted;
+            }
+
+            public void write(Map<String, Long> accepted) {
+                android.content.SharedPreferences.Editor edit = dd.edit();
+                // Solo esta familia de claves: sig/ts antiguos no identifican un evento.
+                for (String key : eventKeys) edit.remove(key);
+                for (Map.Entry<String, Long> entry : accepted.entrySet()) {
+                    edit.putLong("event_" + entry.getKey(), entry.getValue());
+                }
+                edit.apply();
+            }
+        })) return;
 
         new Thread(() -> {
             String body;

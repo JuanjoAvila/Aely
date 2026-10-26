@@ -1,3 +1,11 @@
+## Candidata nativa sin publicar — 2026-10-26 · Debounce local por identidad de evento
+
+- **Causa.** El filtro de 180 segundos comparaba `hashCode(titulo|texto)` antes de crear la identidad Android: descartaba compras distintas con el mismo contenido y solo recordaba la última firma.
+- **Fuente.** El listener consume `NativeEventDebounce`: marcas por `evento` v1 en `micartera_ingest_dedupe`, con lectura, poda, consulta y `apply` bajo un monitor estático compartido entre listeners. A/B/A conserva ambos eventos; una reentrega no renueva su marca. La frontera es estricta: 179999 ms suprime, 180000 admite.
+- **Discontinuidades y preferencias.** Si el reloj retrocede, la marca futura expira y se admite; una identidad nula o vacía se admite sin guardarla. Se ignoran `sig`/`ts` antiguos, se conservan las preferencias ajenas y no se introduce un cupo de eventos. Se mantienen los bytes de `stableEventId`, los fallbacks de key/postTime y el bloque de payload, token, transporte, cola/reintentos y ACK.
+- **Verificación.** El arnés de JVM compila el listener entero, está registrado en el runner y conserva el mismo oráculo para RED/GREEN. El RED de la base ya confirma compile0 y el fallo causal expected2/actual1; la candidata requiere su GREEN con admisión independiente. Las fronteras sintéticas no acreditan Android físico.
+- **Entrega pendiente.** Candidata privada de fuente; integración, APK nueva y aceptación móvil pendientes. La OTA no distribuye Java.
+
 ## [4.26.180] — 2026-10-26 · Candidata de beta: el guardado final de bank-callback cierra id + dueño + state NULL + emisión original (SEC-02 F1, PR314), solo una Edge sin desplegar
 
 - **Qué lleva.** La PR314 de Codex (`b5a9ef236`, revisada con GO) con `--no-ff` sobre la beta 4.26.179 (`b4ae0563d`). Conflictos solo en `docs/SETUP-SUPABASE.md` y `docs/TESTING.md` (se conservan las dos partes). Sin cambios de lógica de dinero por mi parte; se conserva todo lo de 171-179.
