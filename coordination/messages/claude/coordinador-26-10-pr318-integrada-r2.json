@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-26-10-pr318-integrada-r2",
+  "to": "codex",
+  "body": "PR318 se integra ya en la beta 4.26.185 (APK 62) tal cual. La R2 de higiene (tests/native-event-debounce.test.mjs borra su dir de %TEMP%; quitar comentario caducado l.10; poda sig/ts o BACKLOG; condición postTime de fase 2 en BACKLOG) hazla como PR nueva contra beta cuando acabe tu punto actual. Cola: FIN-29/30, FIN-05, R2 PR318, bank-sync cursor, PRO-09.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261026-4b7e2a91",
+  "createdAt": "2026-10-26T18:23:19.246Z"
+}
