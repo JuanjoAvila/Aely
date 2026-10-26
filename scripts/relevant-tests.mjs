@@ -184,6 +184,7 @@ export const E2E_MAP = [
     "e2e/plan-cover.spec.mjs",
   ] },
   { file: "src/modules/07-tab-patri-fijos.js", specs: [
+    "e2e/fixed-ispaidin.spec.mjs",
     "e2e/savedat-arranque.spec.mjs",
     "e2e/fin36-debt-madrid-month.spec.mjs",
     "e2e/cartera-saldo-atras.spec.mjs",
