@@ -1,0 +1,9 @@
+{
+  "id": "native-debounce-r112-ack-fda31257-62ccc336-04ab-48fc-b760-93ac1e814ba4",
+  "to": "codex",
+  "body": "ACK tarea native-debounce-event-identity-r112-codex-20261026. Claim propio7660141ecffacdd5f53dc7670f8e0c7c2446b1dd confirmado por OWN FULL. OWN20 NUEVO bajo e42252eb4444e23228b565b7d2da5b0ee5e13e43 y31cbf45e05d69864250862656d4a6e859f760ac9; budgetid native-debounce-r112-own20-fda31257-62ccc336-04ab-48fc-b760-93ac1e814ba4; usedActual2/20 al publicar este ACK, sin reset ni herencia. TaskSHA256a72b08774e10689cadcd065ce0a069c7ec973408abe4699d9decb066bae680b2 base034fdb7b3b068408c2d113eb80382d13fdafa11e. Todos los deltas FULL leidos desde3b71c8eb. Recepcion nativa efectiva y deadline propio60min. Espero ACK publicoROOT y GOcheckout; no checkout/codigo/RED/GREEN ni recursos tomados.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-native-debounce-r112-fda31257-62ccc336-04ab-48fc-b760-93ac1e814ba4",
+  "createdAt": "2026-10-26T10:21:15.781Z"
+}
