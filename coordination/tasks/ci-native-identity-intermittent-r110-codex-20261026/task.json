@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "id": "ci-native-identity-intermittent-r110-codex-20261026",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261026-r110-fda31257-f406f75a-d645-4018-9319-08470c4ec279",
+  "createdAt": "2026-10-26T08:12:11.238Z",
+  "to": "codex",
+  "baseSHA": "034fdb7b3b068408c2d113eb80382d13fdafa11e",
+  "objective": "Tras SIGNED_OUT, diagnosticar y estabilizar el Deno ingest/native-identity intermitente en integraciones179/180, por admisionClaude4576f98a reafirmada a45d257b. Determinar causa real sin rebajar oraculos y entregar una PRdraft contra beta.",
+  "scope": [
+    "supabase/functions/ingest/native-identity.test.ts",
+    "supabase/functions/ingest/native-identity.deno.json",
+    "supabase/functions/ingest/native-identity.imports.json"
+  ],
+  "grants": [
+    "4576f98ad8da8d7180fcd5981eb295771c6ee02e",
+    "a45d257bc20251e7152630e0d147a8595302bcd3",
+    "e42252eb4444e23228b565b7d2da5b0ee5e13e43",
+    "43b5b1d5591618c15b497617a34fe5074abf2918"
+  ],
+  "requirements": [
+    "Nuevo deltamandatorioClaude43b5b1d: foco exacto del intermitente F2 postinsert never deletes own row or ACKs an earlier pending twin. Investigar arnes de interleaving antes de producto; conservar sus invariantes de ambos503/dosfilas/noACKpendiente.",
+    "RECEPCION inicial identidad/runtime/cwd/inventario Aely propios, nuevo nonce prefijofda31257 y publicSession propio. Sin fetch/claim/codigo/tests/despacho antes admision nativa y nueva reserva OWN. Worker OWN20 nuevo0 bajo regla permanente e422, nunca heredar PR313 ni worker SIGNED_OUT.",
+    "Primero recopilar evidencia exacta de CI179/180 y fuente/base, fallo/nombre/cmd/log/exit, comparar orden/reloj/azar/concurrencia y aislamiento SDK sintetico. PR313 esta cerrada, NO reabrirla ni actualizar su rama. Este encargo es diagnostico NUEVO de intermitencia, sin repetir casos cerrados salvo necesario para ESTE fallo nuevo.",
+    "Solo test/config/importmap de scope. Si causa es producto/handler/shared/money/UNIQUE real: PARAR ANTESdeeditarproducto, reportar causa/fichero/alcance/alternativas a ROOT para decisionClaude. No ampliar scope ni cambiar contrato de4columnas/caps8/origen/rows/cents/ACK, flags INGEST_NATIVE_TWINS por defecto o SQL.",
+    "Codigo/testGO y runnerGO separados. Lectura privada/inspeccion inicial tras OWN y GOcheckout; pruebas SOLO tras CPU1serial1worker0retry/censo/admission compatibles expresos. Repeticiones autorizadas por fallo NUEVOintermitente: plan acotado justificado que reproduce secuencia causal y elimina azar; stopfirstfailure, no repetir GREENcerrados sin causa/cambio nuevos, preservar todosRED y setupfailures. Cero red en Deno/SDK real; synthetic import map, sin liveSQL/livebank/backend/deploy.",
+    "Cada editor/runner checkout/rama propios desde base exacta, fuentes antes/despues/hashes, logs/report/EXIT/RETURN durables y recursos aislados. No npmci/install ni deps/versions/Gradle/APK/servidores/browser/CPU6/suitecompleta. Si usa API Supabase nueva verificar skill/documentacion antesimplementar; nada live por arrastre.",
+    "Candidato PRIVADO terminado con HEAD/tree/parent, diff/fuentes/bundle/manifest/hashes y causalRED/GREEN mismosoraculos. Revision independiente EXACTSHA y GOexplicitoROOT antes pushNORMAL y UNA PRdraftbeta. No force/rebase/deploy/integracion. Solo reportar ROOT110; unicamenteROOT reportaClaude."
+  ],
+  "acceptance": "Causa de intermitencia demostrada y arnes/test estable sin rebajar invariantes, o bloqueo producto concreto consultado anteseditar. CIglobal/servido/movil/ProductREADY no acreditados."
+}
