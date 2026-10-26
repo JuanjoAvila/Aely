@@ -2878,7 +2878,7 @@ function widgetScopeOf(state,stats,anchor,bank){
     anchor||"",stats.budget,expenseBankEnts(state).slice().sort(),bank||""]);
 }
 // Inicio dice «Has gastado» en el mes natural: una nómina no puede borrar ese uso del
-// presupuesto (INC-2909-02). Gastos/Balance y el widget conservan su contrato propio.
+// presupuesto (INC-2909-02). Gastos compara con el límite sobre lo mismo (bruto en mes natural, neto en Mi ciclo; 4.26.183) y el widget v2 también.
 function dashboardBudgetStats(state){
   return monthBudgetStats(state,null,null,"split");
 }

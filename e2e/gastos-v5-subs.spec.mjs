@@ -71,7 +71,8 @@ test("la «i» abre la explicación y Entendido la cierra; solo está en Suscrip
   await expect(hoja.locator("h1")).toHaveText("Suscripciones detectadas");
   await expect(hoja.locator("h1")).toBeFocused();
   await expect(hoja.locator(".gx-subi-t")).toHaveText(["Qué aparece aquí", "Cómo se detectan", "Qué puedes hacer"]);
-  await expect(hoja).toContainText("Lo ideal es que esta lista esté vacía.");
+  // La 4.26.182 acortó este texto (gv5_sub_i_hacer); se aserta una frase que sigue en la versión corta.
+  await expect(hoja).toContainText("márcala como dada de baja");
   await hoja.getByRole("button", { name: "Entendido" }).click();
   await expect(hoja).toHaveCount(0);
   await gastosSeccion(page, "movs");
