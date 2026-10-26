@@ -12,21 +12,21 @@ test("FIN12 día: alta desde Plan y gráfico real antes, en y después, cuota y 
   await seedLoggedInDashboard(page,{__seedOnce:true,_dynBalAnchored:true,accounts,debts:[],accountBalanceHistory:{'acc:cash':[{day:'2026-09-30',value:5000.13}]},investments:[],assets:[],expenses:[],flows:[],fixed:[],oneoffs:[],obAccounts:[],settings:{lang:'es',autoPrices:false,theme:'green'}});
   const response=await page.goto('/');if(process.env.FIN12_HTML_SHA256)expect(response.headers()['x-fin12-html-sha256']).toBe(process.env.FIN12_HTML_SHA256);
   await page.waitForFunction(()=>!document.getElementById('mc-load')&&window.__mcBootReady);await dismissNews(page);
-  const hero=page.getByTestId('inicio-net-current'),amount=hero.locator('.v4-hero-amt');await expect(amount).toContainText('5000,13 €');
+  const hero=page.getByTestId('inicio-net-current'),amount=hero.locator('.v4-hero-amt');await expect(amount).toContainText('5.000,13 €');
   await page.locator('.botnav-tab[data-tour="plan"]').click();await page.getByRole('tab',{name:'Deudas',exact:true}).click();await page.getByRole('button',{name:'Añadir deuda',exact:true}).click();
   const form=page.locator('.add-form');await form.getByPlaceholder('Concepto (ej. Financiación móvil)',{exact:true}).fill('Compra FIN12 sintética');await form.getByPlaceholder('Importe €',{exact:true}).fill('600,12');await form.getByPlaceholder('Cuota/mes € (vacío si 0%)',{exact:true}).fill('50,01');await form.getByPlaceholder('Plazo (meses)',{exact:true}).fill('12');await form.getByPlaceholder('Día',{exact:true}).fill('16');await form.getByRole('button',{name:'Añadir deuda',exact:true}).click();
   const stored=()=>page.evaluate(()=>{const s=JSON.parse(localStorage.getItem('micartera_v3'));return{debts:s.debts,accounts:s.accounts};});
   await expect.poll(async()=> (await stored()).debts.length).toBe(1);const before=await stored();expect(before.debts[0]).toMatchObject({value:600.12,monthly:50.01,amort:50.01,months:12,day:16});
-  await page.locator('.botnav-tab[data-tour="inicio"]').click();await expect(amount).toContainText('4400,01 €');
+  await page.locator('.botnav-tab[data-tour="inicio"]').click();await expect(amount).toContainText('4.400,01 €');
   const samples=[],cdp=await page.context().newCDPSession(page);
   async function point(day,current,today,expected){
     await hero.locator('.v42-net-ranges button').last().click();const box=await hero.locator('.v42-net-chart svg').boundingBox(),fraction=(Date.parse(day)-Date.parse('2026-09-30'))/(Date.parse(today)-Date.parse('2026-09-30'));
     await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:box.x+box.width*(4+312*fraction)/320,y:box.y+35}]});await expect(hero.getByTestId('inicio-net-date')).toContainText(new RegExp('^'+Number(day.slice(-2))+'\\b'));await expect(amount).toContainText(expected+' €');samples.push({day,shown:await amount.innerText()});await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await expect(amount).toContainText(current+' €');
   }
-  await point('2026-10-09','4400,01','2026-10-10','5000,13');await point('2026-10-10','4400,01','2026-10-10','4400,01');
+  await point('2026-10-09','4.400,01','2026-10-10','5.000,13');await point('2026-10-10','4.400,01','2026-10-10','4.400,01');
   expect(before.debts[0].startDay).toBe('2026-10-10');
-  await page.evaluate(()=>sessionStorage.setItem('__fin12now',String(Date.parse('2026-10-20T12:00:00Z'))));await page.reload();await page.waitForFunction(()=>!document.getElementById('mc-load')&&window.__mcBootReady);await dismissNews(page);await expect(amount).toContainText('4450,02 €');
-  for(const [day,value]of [['2026-10-09','5000,13'],['2026-10-10','4400,01'],['2026-10-11','4400,01'],['2026-10-15','4400,01'],['2026-10-16','4450,02'],['2026-10-17','4450,02']])await point(day,'4450,02','2026-10-20',value);
+  await page.evaluate(()=>sessionStorage.setItem('__fin12now',String(Date.parse('2026-10-20T12:00:00Z'))));await page.reload();await page.waitForFunction(()=>!document.getElementById('mc-load')&&window.__mcBootReady);await dismissNews(page);await expect(amount).toContainText('4.450,02 €');
+  for(const [day,value]of [['2026-10-09','5.000,13'],['2026-10-10','4.400,01'],['2026-10-11','4.400,01'],['2026-10-15','4.400,01'],['2026-10-16','4.450,02'],['2026-10-17','4.450,02']])await point(day,'4.450,02','2026-10-20',value);
   expect(await stored()).toEqual(before);await cdp.detach();await info.attach('fin12-day-series.json',{body:JSON.stringify({samples,before,after:await stored()},null,2),contentType:'application/json'});await info.attach('fin12-day-chart.png',{body:await hero.screenshot({animations:'disabled'}),contentType:'image/png'});
 });
 
@@ -42,13 +42,13 @@ for(const reanchored of [false,true]) test("revision1: pasado conservado tras "+
   await seedLoggedInDashboard(page,{__seedOnce:true,_dynBalAnchored:true,accounts:[{id:"cash",ent:"efectivo",value:5000.13,role:"fijos"}],debts:[debt],
     accountBalanceHistory:{"acc:cash":[{day:"2026-08-15",value:5000.13}]},investments:[],assets:[],expenses:[],flows:[],fixed:[],oneoffs:[],obAccounts:[]});
   await page.goto("/");await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
-  const hero=page.getByTestId("inicio-net-current"),amount=hero.locator(".v4-hero-amt"),current=reanchored?"4400,10 €":"4450,11 €";
+  const hero=page.getByTestId("inicio-net-current"),amount=hero.locator(".v4-hero-amt"),current=reanchored?"4.400,10 €":"4.450,11 €";
   await expect(amount).toContainText(current);
   await hero.locator(".v42-net-ranges button").last().click();
   const box=await hero.locator(".v42-net-chart svg").boundingBox(),cdp=await page.context().newCDPSession(page);
   await cdp.send("Input.dispatchTouchEvent",{type:"touchStart",touchPoints:[{x:box.x+box.width*4/320,y:box.y+35}]});
   await expect(hero.getByTestId("inicio-net-date")).toContainText(/^15\b/);
-  await expect(amount).toContainText("4400,10 €");
+  await expect(amount).toContainText("4.400,10 €");
   await testInfo.attach("revision1-pasado",{body:await hero.screenshot({animations:"disabled"}),contentType:"image/png"});
   await cdp.send("Input.dispatchTouchEvent",{type:"touchEnd",touchPoints:[]});await expect(amount).toContainText(current);await cdp.detach();
 });
@@ -68,18 +68,18 @@ test("financiaciones: el dedo muestra cero deuda antes del inicio y conserva hoy
     accountBalanceHistory:{"acc:cash":[{day:"2026-09-30",value:5000.13}]},investments:[],assets:[],expenses:[],flows:[],fixed:[],oneoffs:[],obAccounts:[]});
   await page.goto("/");await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
   const hero=page.getByTestId("inicio-net-current"),amount=hero.locator(".v4-hero-amt");
-  await expect(amount).toContainText("3150,00 €");
+  await expect(amount).toContainText("3.150,00 €");
   await hero.locator(".v42-net-ranges button").last().click();
   const chart=hero.locator(".v42-net-chart svg"),box=await chart.boundingBox(),cdp=await page.context().newCDPSession(page);
   const samples=[];
-  for(const [day,value] of [["2026-09-30","5000,13"],["2026-10-01","4400,10"],["2026-10-16","4450,11"],["2026-11-01","4090,02"],["2026-12-01","2969,97"],["2026-12-26","3150,00"]]){
+  for(const [day,value] of [["2026-09-30","5.000,13"],["2026-10-01","4.400,10"],["2026-10-16","4.450,11"],["2026-11-01","4.090,02"],["2026-12-01","2.969,97"],["2026-12-26","3.150,00"]]){
     const fraction=(Date.parse(day)-Date.parse("2026-09-30"))/(Date.parse("2026-12-26")-Date.parse("2026-09-30"));
     await cdp.send("Input.dispatchTouchEvent",{type:"touchStart",touchPoints:[{x:box.x+box.width*(4+312*fraction)/320,y:box.y+35}]});
     await expect(hero.getByTestId("inicio-net-date")).toContainText(new RegExp("^"+Number(day.slice(-2))+"\\b"));
     await expect(amount).toContainText(value+" €");
     samples.push({day,shown:await amount.innerText()});
     await cdp.send("Input.dispatchTouchEvent",{type:"touchEnd",touchPoints:[]});
-    await expect(amount).toContainText("3150,00 €");
+    await expect(amount).toContainText("3.150,00 €");
   }
   await cdp.detach();
   expect(await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).debts)).toEqual(debts);

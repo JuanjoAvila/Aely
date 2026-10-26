@@ -39,31 +39,31 @@ async function capture(p,info,name){await info.attach(name+'.json',{body:JSON.st
 test('FIN31 missing FX: broker unknown and FIN06 partial totals, original rows survive toggles and reload',async({page:p},info)=>{
  const before=await boot(p,'EUR',{});await capture(p,info,'missing-fx-base');
  await money(broker(p,'revolut').locator('.am'),'—');await expect(broker(p,'revolut')).toContainText('Sin conversión');
- await money(p.locator('.cartera-hero-amt'),'1950,40 €');await expect(p.locator('.page [data-fx-incomplete]').first()).toBeVisible();
- await money(broker(p,'trade_republic').locator('.am'),'1200 €');await money(broker(p,'sabadell').locator('.am'),'0 €');
+ await money(p.locator('.cartera-hero-amt'),'1.950,40 €');await expect(p.locator('.page [data-fx-incomplete]').first()).toBeVisible();
+ await money(broker(p,'trade_republic').locator('.am'),'1.200 €');await money(broker(p,'sabadell').locator('.am'),'0 €');
  await p.locator('.botnav-tab[data-tour="inicio"]').click();await money(p.locator('[data-testid="inicio-net-current"] [data-tour="hero-amt"]'),'—');await p.locator('.botnav-tab[data-tour="cartera"]').click();
- await openChild(p);await money(child(p).locator('[data-inv-hero] .serif'),'1200,40 €');await expect(child(p).locator('[data-fx-incomplete]')).toContainText('Total incompleto');await money(child(p).locator('[data-broker-key="revolut"] .am'),'—');
+ await openChild(p);await money(child(p).locator('[data-inv-hero] .serif'),'1.200,40 €');await expect(child(p).locator('[data-fx-incomplete]')).toContainText('Total incompleto');await money(child(p).locator('[data-broker-key="revolut"] .am'),'—');
  await child(p).locator('[data-broker-key="revolut"]').click();await expect(child(p).locator('[data-inv-position="rv-usd"]')).toContainText('200,00 USD · Sin conversión');
  await local(p,'USD');await money(child(p).locator('[data-inv-hero] .serif'),'—');await expect(child(p).locator('[data-fx-incomplete]')).toBeVisible();
  await child(p).locator('[data-inv-projection-card] > button').click();await expect(child(p).locator('[data-inv-projection]')).toContainText('—');await expect(child(p).locator('[data-inv-projection] svg')).toHaveCount(0);
- await local(p,'GBP');await money(child(p).locator('[data-inv-hero] .serif'),'—');await child(p).locator('[data-act="back"]').click();await money(p.locator('.cartera-hero-amt'),'1950,40 €');
- await p.reload();await ready(p);await p.locator('.botnav-tab[data-tour="cartera"]').click();await money(p.locator('.cartera-hero-amt'),'1950,40 €');expect(await stored(p)).toEqual(before);await capture(p,info,'missing-fx-final');
+ await local(p,'GBP');await money(child(p).locator('[data-inv-hero] .serif'),'—');await child(p).locator('[data-act="back"]').click();await money(p.locator('.cartera-hero-amt'),'1.950,40 €');
+ await p.reload();await ready(p);await p.locator('.botnav-tab[data-tour="cartera"]').click();await money(p.locator('.cartera-hero-amt'),'1.950,40 €');expect(await stored(p)).toEqual(before);await capture(p,info,'missing-fx-final');
 });
 
 test('FIN31 GBP: selected local option and independent cents, local-global controls',async({page:p},info)=>{
  const before=await boot(p,'GBP');await openChild(p);await capture(p,info,'gbp-base');
- await money(child(p).locator('[data-inv-hero] .serif'),'1188,72 £');await expect(child(p).getByRole('button',{name:'£',exact:true})).toHaveAttribute('aria-pressed','true');
+ await money(child(p).locator('[data-inv-hero] .serif'),'1.188,72 £');await expect(child(p).getByRole('button',{name:'£',exact:true})).toHaveAttribute('aria-pressed','true');
  await money(child(p).locator('[data-broker-key="revolut"] .am'),'128 £');await child(p).locator('[data-broker-key="myinvestor"]').click();await money(child(p).locator('[data-inv-position="mi-gbp"] .rval'),'100,40 £');
- await local(p,'EUR');await money(child(p).locator('[data-inv-hero] .serif'),'1485,90 €');await local(p,'USD');await money(child(p).locator('[data-inv-hero] .serif'),'1857,38 $');
- await child(p).locator('[data-act="back"]').click();await money(p.locator('.cartera-hero-amt'),'1788,72 £');
- await global(p,'EUR');await money(p.locator('.cartera-hero-amt'),'2235,90 €');await global(p,'GBP');await p.reload();await ready(p);await p.locator('.botnav-tab[data-tour="cartera"]').click();await openChild(p);await money(child(p).locator('[data-inv-hero] .serif'),'1188,72 £');expect(await stored(p)).toEqual(before);await capture(p,info,'gbp-final');
+ await local(p,'EUR');await money(child(p).locator('[data-inv-hero] .serif'),'1.485,90 €');await local(p,'USD');await money(child(p).locator('[data-inv-hero] .serif'),'1.857,38 $');
+ await child(p).locator('[data-act="back"]').click();await money(p.locator('.cartera-hero-amt'),'1.788,72 £');
+ await global(p,'EUR');await money(p.locator('.cartera-hero-amt'),'2.235,90 €');await global(p,'GBP');await p.reload();await ready(p);await p.locator('.botnav-tab[data-tour="cartera"]').click();await openChild(p);await money(child(p).locator('[data-inv-hero] .serif'),'1.188,72 £');expect(await stored(p)).toEqual(before);await capture(p,info,'gbp-final');
 });
 
 test('FIN31 projection: every amount and axis follows local EUR USD GBP with unchanged principal',async({page:p},info)=>{
  const before=await boot(p,'USD');await openChild(p);await child(p).locator('[data-inv-projection-card] > button').click();const proj=child(p).locator('[data-inv-projection]');await capture(p,info,'projection-base');
  // Independent oracle: 148590 EUR cents principal, 15000 cents/month, 2 years at 0%.
  await proj.locator('input[inputmode="decimal"]').fill('0');await proj.locator('input[inputmode="numeric"]').fill('2');
- for(const [cur,k,sym,monthly,future] of [['USD',1.25,'$','188 $','6357 $'],['EUR',1,'€','150 €','5086 €'],['GBP',0.8,'£','120 £','4069 £']]){
+ for(const [cur,k,sym,monthly,future] of [['USD',1.25,'$','188 $','6.357 $'],['EUR',1,'€','150 €','5.086 €'],['GBP',0.8,'£','120 £','4.069 £']]){
   await local(p,cur);await money(proj.locator('.num').nth(2),monthly);await money(proj.locator('.serif').first(),future);
   const r=.02/12,max=1485.9*(1+r)**24+150*((1+r)**24-1)/r;
   const ticks=Array.from({length:5},(_,i)=>{const v=max*(i+1)/5*k;return v>=1000?Math.round(v/1000)+'K '+sym:Math.round(v)+' '+sym;});
@@ -75,13 +75,13 @@ test('FIN31 projection: every amount and axis follows local EUR USD GBP with unc
 test('FIN31 missing display GBP rate: no relabelled EUR, meaningful selected option',async({page:p})=>{
  // Missing GBP affects both an original position and the local display conversion.
  const before=await boot(p,'GBP',{USD:0.8});await openChild(p);await expect(child(p).getByRole('button',{name:'£',exact:true})).toHaveAttribute('aria-pressed','true');
- await money(child(p).locator('[data-broker-key="trade_republic"] .am'),'—');await expect(child(p).locator('[data-fx-incomplete]')).toBeVisible();await local(p,'EUR');await money(child(p).locator('[data-broker-key="trade_republic"] .am'),'1200 €');expect(await stored(p)).toEqual(before);
+ await money(child(p).locator('[data-broker-key="trade_republic"] .am'),'—');await expect(child(p).locator('[data-fx-incomplete]')).toBeVisible();await local(p,'EUR');await money(child(p).locator('[data-broker-key="trade_republic"] .am'),'1.200 €');expect(await stored(p)).toEqual(before);
 });
 
 test('FIN31 boundary partial selection excludes unknown investment, mixed broker stays unknown',async({page:p},info)=>{
  const mixed=[...investments,{id:'rv-eur',ent:'revolut',name:'Control EUR mismo bróker',cur:'EUR',value:50.25,cost:40.2}];
  const before=await boot(p,'EUR',{}, {investments:mixed});await money(broker(p,'revolut').locator('.am'),'—');
- const inv=p.locator('.page .v4-legend-btn').filter({hasText:'Inversiones'});await inv.click();await money(p.locator('.cartera-hero-amt'),'750,00 €');await inv.click();await money(p.locator('.cartera-hero-amt'),'2000,65 €');
+ const inv=p.locator('.page .v4-legend-btn').filter({hasText:'Inversiones'});await inv.click();await money(p.locator('.cartera-hero-amt'),'750,00 €');await inv.click();await money(p.locator('.cartera-hero-amt'),'2.000,65 €');
  await openChild(p);await money(child(p).locator('[data-broker-key="revolut"] .am'),'—');await child(p).locator('[data-inv-hero]').screenshot({path:info.outputPath('unknown-hero.png'),animations:'disabled'});expect(await stored(p)).toEqual(before);
 });
 
@@ -89,7 +89,7 @@ test('FIN31 boundary missing display rate alone preserves known EUR assets and s
  const onlyKnown=investments.filter(i=>i.cur!=='GBP');const before=await boot(p,'GBP',{USD:0.8},{investments:onlyKnown});await openChild(p);
  await money(child(p).locator('[data-inv-hero] .serif'),'—');await expect(child(p).locator('[data-fx-incomplete]')).toBeVisible();await child(p).locator('[data-inv-projection-card] > button').click();
  const proj=child(p).locator('[data-inv-projection]');await expect(proj).toContainText('Sin tipo de cambio');await expect(proj.locator('svg')).toHaveCount(0);
- await local(p,'EUR');await money(child(p).locator('[data-inv-hero] .serif'),'1360,40 €');await expect(proj.locator('svg')).toHaveCount(1);await local(p,'GBP');await expect(proj.locator('svg')).toHaveCount(0);expect(await stored(p)).toEqual(before);await proj.screenshot({path:info.outputPath('display-rate-unknown.png'),animations:'disabled'});
+ await local(p,'EUR');await money(child(p).locator('[data-inv-hero] .serif'),'1.360,40 €');await expect(proj.locator('svg')).toHaveCount(1);await local(p,'GBP');await expect(proj.locator('svg')).toHaveCount(0);expect(await stored(p)).toEqual(before);await proj.screenshot({path:info.outputPath('display-rate-unknown.png'),animations:'disabled'});
 });
 
 test('FIN31 R2 default contribution is 500, slider converts amounts without storing them',async({page:p},info)=>{
@@ -104,7 +104,7 @@ test('FIN31 R2 EUR principal preserves rounding saveback and monthly investment,
  const before=await boot(p,'EUR',undefined,{accounts:rewards});await openChild(p);await child(p).locator('[data-inv-projection-card] > button').click();const proj=child(p).locator('[data-inv-projection]');
  // Oráculo independiente de totals: 148590 + 525 + 375 + 12500 = 161990 céntimos.
  const principal=1619.9,monthly=150;const end=annual=>{let balance=principal;for(let m=0;m<240;m++)balance=balance*(1+annual/1200)+monthly;return balance;};
- const fmt=n=>new Intl.NumberFormat('es-ES',{maximumFractionDigits:0}).format(Math.round(n))+' €';
+ const fmt=n=>new Intl.NumberFormat('es-ES',{maximumFractionDigits:0,useGrouping:'always'}).format(Math.round(n))+' €';
  const expected={future:fmt(end(7)),contribution:fmt(principal+monthly*240),monthly:'150 €',gain:'+'+fmt(end(7)-principal-monthly*240),principal:fmt(principal),axis:Array.from({length:5},(_,i)=>{const n=end(9)*(i+1)/5;return n>=1000?Math.round(n/1000)+'K €':Math.round(n)+' €';})};
  const observed={future:await text(proj.locator('.serif').first()),contribution:await text(proj.locator('.serif').nth(1)),monthly:await text(proj.locator('.num').nth(2)),axis:await proj.locator('svg g text').allTextContents(),text:await text(proj)};
  await info.attach('eur-baseline-contract.json',{body:JSON.stringify({expected,observed,before},null,2),contentType:'application/json'});
@@ -117,7 +117,7 @@ test('FIN31 R2 EUR empty contributions preserve default 500, baseline outputs',a
  const before=await boot(p,'EUR',undefined,{accounts:rewards,aportaciones:[]});await openChild(p);await child(p).locator('[data-inv-projection-card] > button').click();const proj=child(p).locator('[data-inv-projection]');
  // Oráculo independiente de totals: 148590 + 525 + 375 + 12500 = 161990 céntimos.
  const principal=1619.9,monthly=500;const end=annual=>{let balance=principal;for(let m=0;m<240;m++)balance=balance*(1+annual/1200)+monthly;return balance;};
- const fmt=n=>new Intl.NumberFormat('es-ES',{maximumFractionDigits:0}).format(Math.round(n))+' €';
+ const fmt=n=>new Intl.NumberFormat('es-ES',{maximumFractionDigits:0,useGrouping:'always'}).format(Math.round(n))+' €';
  const expected={future:fmt(end(7)),contribution:fmt(principal+monthly*240),monthly:'500 €',gain:'+'+fmt(end(7)-principal-monthly*240),principal:fmt(principal),axis:Array.from({length:5},(_,i)=>{const n=end(9)*(i+1)/5;return n>=1000?Math.round(n/1000)+'K €':Math.round(n)+' €';})};
  const observed={future:await text(proj.locator('.serif').first()),contribution:await text(proj.locator('.serif').nth(1)),monthly:await text(proj.locator('.num').nth(2)),axis:await proj.locator('svg g text').allTextContents(),text:await text(proj)};
  await info.attach('eur-default-baseline-contract.json',{body:JSON.stringify({expected,observed,before},null,2),contentType:'application/json'});

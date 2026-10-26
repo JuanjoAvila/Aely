@@ -7146,8 +7146,11 @@ function bankConnectOnce(aspsp_name, country){
 }
 
 /* ---------- Helpers ---------- */
-const NF  = new Intl.NumberFormat('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
-const NF0 = new Intl.NumberFormat('es-ES',{maximumFractionDigits:0});
+// Punto de miles también con cuatro cifras: el español de Intl no lo pone hasta las cinco, y la
+// app decía «1426,23 €» junto a «193.993,44 €» y al «1.912 €» del widget nativo (capturas del
+// dueño, 26/10/2026). Un motor sin `"always"` lo toma como `true`: vuelve a lo de antes, sin romper.
+const NF  = new Intl.NumberFormat('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:"always"});
+const NF0 = new Intl.NumberFormat('es-ES',{maximumFractionDigits:0,useGrouping:"always"});
 // Moneda de visualización. Todos los importes de la app están en € (base); DISP los convierte
 // a la moneda elegida (k = factor sobre €, sym = símbolo). Se fija en App según ajustes + fx.
 let DISP = { sym:"€", k:1 };
@@ -7266,7 +7269,7 @@ const LANG = {
     v42_range_1m:"1M", v42_range_3m:"3M", v42_range_6m:"6M", v42_range_1y:"1A", v42_range_all:"Todo",
     v42_net_cmp_up:"{x} más que {when}", v42_net_cmp_down:"{x} menos que {when}", v42_net_cmp_same:"Igual que {when}", v42_net_cmp_none:"Aún sin datos para comparar",
     v42_net_when_1:"el mes pasado", v42_net_when_n:"hace {n} meses", v42_net_when_12:"hace un año", v42_net_i_cmp:"Comparación", v42_net_i_cmp_1m:"frente al mismo día del mes pasado", v42_net_i_cmp_n:"frente al mismo día de hace {n} meses", v42_net_i_cmp_12:"frente al mismo día de hace un año", v42_net_i_cmp_all:"desde el principio",
-    v42_this_cycle:"Este ciclo", v42_cycle_over:"Te has pasado {x}", v42_cycle_start:"Ciclo recién empezado", v42_cycle_comfort:"Vas sobrado", v42_cycle_good:"Vas bien", v42_cycle_tight:"Vas justito", v42_cycle_slow:"Toca frenar un poco", v42_cycle_of:"de {x}", v42_cycle_daily:"{x} al día", v42_cycle_day:"durante 1 día", v42_cycle_days:"durante {n} días",
+    v42_this_cycle:"Este ciclo", v42_cycle_over:"Te has pasado {x}", v42_cycle_start:"Ciclo recién empezado", v42_cycle_comfort:"Vas sobrado", v42_cycle_good:"Vas bien", v42_cycle_tight:"Vas justito", v42_cycle_slow:"Toca frenar un poco", v42_cycle_of:"de {x}", v42_cycle_excess_of:"de más · límite {x}", v42_cycle_daily:"{x} al día", v42_cycle_day:"durante 1 día", v42_cycle_days:"durante {n} días",
     // INC-0810 es: fin del patrimonio de ahora.
     v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Sin un tope al mes no se puede saber cuánto te queda.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
     v4_upcoming:"Próximos cargos", 
@@ -7748,7 +7751,7 @@ Object.assign(LANG.es,{
    como una frase («gastado en octubre · 139 € por encima»). */
 Object.assign(LANG.es,{gv5_spent_in:"gastado en {mes}", gv5_net_in:"balance de {mes}",
   gv5_upto:"gastado en {mes} hasta el {d}", gv5_upto_net:"balance de {mes} hasta el {d}",
-  gv5_closed:"{mes} · cerrado", gv5_over:"{x} por encima", gv5_under:"{x} por debajo",
+  gv5_closed:"{mes} · cerrado", gv5_over:"{x} por encima", gv5_under:"{x} por debajo", gv5_over_g:"gastos {x} por encima", gv5_under_g:"gastos {x} por debajo",
   gv5_more:"{x} más que en {mes}", gv5_less:"{x} menos que en {mes}", gv5_same:"igual que en {mes}",
   gv5_more_sd:"{x} más que en {mes} a estas alturas", gv5_less_sd:"{x} menos que en {mes} a estas alturas", gv5_same_sd:"igual que en {mes} a estas alturas",
   gv5_cycle:"en tu ciclo", gv5_cycle_upto:"en tu ciclo hasta el {d}", gv5_period_upto:"{period} · hasta el {d}", gv5_all:"todo el histórico",
@@ -12344,9 +12347,19 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
   // ya está en la lista y repetirla enseñaba «Movimiento · Otros» con el mismo importe. Misma regla
   // que Gastos (visto por el dueño en la beta 4.26.131, 14/10/2026).
   const recent=useMemo((s=state)=>(s.expenses||[]).filter(e=>!e.autoGemelo&&!expenseIsTombstoned(e,expenseDeletedSet(s))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
-  const ringPct=budAmt>0?Math.max(0,Math.min(1,rem/budAmt)):0;
+  /* Pasado del límite el anillo deja de contar lo que QUEDA (siempre 0 %) y cuenta lo USADO,
+     lleno y en coral, con el exceso en positivo: «0 %» y «-411,95 € de 1500 €» se leían como un
+     mes sin empezar (capturas del dueño, 26/10/2026). Hacia abajo, para que 100,4 % no parezca
+     justo el límite; si redondea a 100 o el límite está todo reservado, «>100 %». */
+  const over=paceState.id==="over";
+  // En céntimos enteros: 1150/1000*100 en coma flotante da 114,99… y saldría «114 %».
+  const usedPct=over&&budAmt>0?Math.floor(Math.round(spentAgainst*100)*100/Math.round(budAmt*100)):0;
+  const ringPct=over?1:budAmt>0?Math.max(0,Math.min(1,rem/budAmt)):0;
   // Un céntimo disponible no debe confundirse con un presupuesto agotado por el redondeo visual.
-  const ringLabel=Math.round(rem*100)>0&&Math.round(ringPct*100)===0?t("v42_cycle_under_one"):Math.round(ringPct*100)+"%";
+  const ringLabel=over?(usedPct>100?usedPct+"%":">100%")
+    :Math.round(rem*100)>0&&Math.round(ringPct*100)===0?t("v42_cycle_under_one"):Math.round(ringPct*100)+"%";
+  const amountTxt=over?cycleMoney(paceState.excess):cycleMoney(rem);
+  const amountOf=tf(over?"v42_cycle_excess_of":"v42_cycle_of",{x:cycleMoney(budAmt)});
   /* P6 — el anillo usa una animación de montaje, con estado final directo si se reduce
      el movimiento. Pausarla hasta que salga el splash evita gastarla detrás de la cortina. */
   const monthName=monthLong(new Date().getMonth());
@@ -12420,7 +12433,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
          rato, feedback 2026-10-13— y lo dicen el color del anillo y el de la línea «al día». Sigue
          leyéndose entero para lectores de pantalla, con las mismas claves de texto de antes. */
       React.createElement("div",{className:"v4-card v4-budget v42-cycle",role:"button",tabIndex:0,"data-state":paceState.id,
-        "aria-label":tf("v42_cycle_"+paceState.id,{x:cycleMoney(paceState.excess)})+". "+t("v42_remaining")+" "+cycleMoney(rem)+" "+tf("v42_cycle_of",{x:cycleMoney(budAmt)})+
+        "aria-label":tf("v42_cycle_"+paceState.id,{x:cycleMoney(paceState.excess)})+". "+(over?"":t("v42_remaining")+" ")+amountTxt+" "+amountOf+
           (dailyMoney!=null?". "+tf("v42_cycle_daily",{x:dailyMoney})+" "+tf(timing.left===1?"v42_cycle_day":"v42_cycle_days",{n:timing.left}):""),
         style:{color:"var(--"+paceState.tone+")","--cycle-color":"var(--"+paceState.tone+")","--v42-play":splashGone?"running":"paused"},onClick:function(){ setBudgetOpen(true); },
         onKeyDown:function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); setBudgetOpen(true); } }},
@@ -12433,8 +12446,8 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
           React.createElement("div",{className:"v42-cycle-percent num"},ringLabel.slice(0,-1),React.createElement("span",null,"%"))),
         React.createElement("div",{className:"v4-budget-txt"},
           React.createElement("div",{className:"ph v42-cycle-amount"},
-            React.createElement("span",{className:"serif num",style:{color:paceState.id==="over"?"var(--coral)":"var(--text)"}},cycleMoney(rem)),
-            React.createElement("span",{className:"v42-cycle-of"},tf("v42_cycle_of",{x:cycleMoney(budAmt)}))),
+            React.createElement("span",{className:"serif num",style:{color:over?"var(--coral)":"var(--text)"}},amountTxt),
+            React.createElement("span",{className:"v42-cycle-of"},amountOf)),
           dailyMoney!=null&&React.createElement("div",{className:"v42-cycle-pace","data-testid":"inicio-cycle-pace"},
             React.createElement("b",null,tf("v42_cycle_daily",{x:dailyMoney})),
             " ",tf(timing.left===1?"v42_cycle_day":"v42_cycle_days",{n:timing.left}))
@@ -13661,6 +13674,14 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   const budgetApplies=preset==="months"||preset==="cycle"&&!cicloPas;
   const monthSummary=useMemo(function(){
     const bs=monthBudgetStats(Object.assign({},state,{expenses:expensesDef}),null,null,null,selectedPeriod);
+    /* La cifra grande sigue su modo (Balance o Gastos), pero el margen contra el límite es el de
+       Inicio (`dashboardBudgetStats`, modo "split") y el del widget (`against` de ingest): gasto
+       bruto en el mes natural, neto en Mi ciclo. Con el balance, los ingresos «devolvían» límite
+       solo aquí: 1.912 € gastados y 486 € de ingresos contra 1.500 € daban «74 € por debajo»
+       mientras Inicio y el widget decían 412 € de más (capturas del dueño, 26/10/2026). */
+    const lim=budgetStatsFromAmounts(bs.spent,bs.income,typeof state.budget==="number"?state.budget:0,bs.reserved,bs.cycle?"net":"split");
+    const limAgainst=lim.against;
+    if(bs.budget!=null) bs.remaining=lim.remaining;
     // No existe una foto histórica del límite ni un presupuesto acumulado para varios meses.
     // Enseñar el límite actual como margen del pasado inventaría dinero disponible.
     if(!budgetApplies){ bs.budget=null; bs.remaining=null; }
@@ -13669,7 +13690,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       : preset==="months" ? monthLong(mad.m-1) : preset==="all" ? t("gv5_all")
       : cicloPas ? cicloTxt(cicloRango.fin) : t("g_"+preset);
     return {
-      spent:bs.spent, income:bs.income, balance:bs.balance, mode:bs.mode, against:bs.against, shown:bs.shown,
+      spent:bs.spent, income:bs.income, balance:bs.balance, mode:bs.mode, against:bs.against, shown:bs.shown, limAgainst:limAgainst,
       budget:bs.budget, reserved:bs.reserved, remaining:bs.remaining,
       cycle:!!selectedPeriod.cycle,
       periodLabel:periodLabel, budgetApplies:budgetApplies
@@ -13954,7 +13975,10 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     const vsBudget=function(){
       const r=monthSummary.remaining;
       if(r==null) return null;
-      return r<0?{tail:tf("gv5_over",{x:fmt(r)}),tone:"coral"}:{tail:tf("gv5_under",{x:fmt(r)}),tone:"mint"};
+      // Con el balance en grande y el mes natural, el margen es del GASTO: se dice, o «balance de
+      // octubre · 74 € por debajo» parecería comparar el balance con el límite.
+      const g=mode==="net"&&!monthSummary.cycle?"_g":"";
+      return r<0?{tail:tf("gv5_over"+g,{x:fmt(r)}),tone:"coral"}:{tail:tf("gv5_under"+g,{x:fmt(r)}),tone:"mint"};
     };
     const vsPrev=function(cur,prev,ym,mismoDia){
       const diff=cur-prev, mes=mesDe(ym), sd=mismoDia?"_sd":"";
@@ -14076,10 +14100,12 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     } else if(secc==="cats"){
       const per=preset==="months"?monthLong(mad.m-1):preset==="cycle"&&!cicloPas?t("g_cycle"):monthSummary.periodLabel;
       const r=monthSummary.remaining, x=r==null?null:Math.abs(r)<1?eur(Math.abs(r)):eur0(Math.abs(r));
+      // El mismo matiz que la línea de Movimientos: en Balance y mes natural el margen es del gasto.
+      const g=monthSummary.mode==="net"&&!monthSummary.cycle?"_g":"";
       // Categorías enseña siempre la cifra del presupuesto: su desglose no sigue a los filtros.
       const pres=cab.pres||cab.top;
       top={n:pres.n, sub:pres.sub, ym:cab.ciclos?cab.top.ym:catsYm, pre:tf("gv5_cats_pre",{period:per}),
-        tail:r==null?null:tf(r<0?"gv5_over":"gv5_under",{x:x}), tone:r==null?null:r<0?"coral":"mint"};
+        tail:r==null?null:tf((r<0?"gv5_over":"gv5_under")+g,{x:x}), tone:r==null?null:r<0?"coral":"mint"};
     } else {
       const n=novelSubs.length;
       top={n:heavyOk?subsMes:null, ym:null, pre:!heavyOk?"":n?tf("gv5_subs_n",{n:n}):t("gv5_subs_none")};
@@ -14368,7 +14394,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   const filFmt=function(x){ x=Math.abs(x); return x<1?eur(x):eur0(x); };
   const filLimTxt=!(filLim>0)?t("gv5_fil_lim_poner")
     : tf("gv5_fil_lim",{x:eur0(filLim)})+(filManda?" · "+tf(filQueda<0?"gv5_fil_pasado":"gv5_fil_quedan",{x:filFmt(filQueda)}):"");
-  const usado=Math.max(0,monthSummary.against||0);
+  // La barra mide lo mismo que la línea «por encima/por debajo» (el gasto de Inicio).
+  const usado=Math.max(0,monthSummary.limAgainst||0);
 
   /* Con la fila de ciclos al bajar, la página tiene que poder bajar SIEMPRE lo justo para que salga:
      al empezar un ciclo hay tres gastos, no hay scroll y no habría forma de ir a un ciclo pasado
@@ -26490,7 +26517,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="6dc8d7903e20f6e2779b88f3db63a0686864275b81353f64d7d4ac64ba6df531";
+var _rnSha="615cd589657bb5160ab9e898b228c863a3e4695666cf9ce4c1e6dab5f395fc53";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

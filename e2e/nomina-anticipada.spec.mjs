@@ -44,7 +44,7 @@ async function check(page,count,balance,cycle,remaining=500){
   await page.locator('.botnav-tab[data-tour="cartera"]').click();
   const account=page.locator('.v4-card-list button.v4-mov').filter({hasText:"Cuenta ficticia"});
   await expect(account).toHaveCount(1);
-  await expect(account).toContainText(balance===400?"400,00":"2200,00");
+  await expect(account).toContainText(balance===400?"400,00":"2.200,00");
 }
 for(const lang of ["es","en","ca"]){
   test(lang+": pendiente, futuro y estado desconocido no crean ingreso ni ciclo",async({page})=>{

@@ -133,7 +133,7 @@ test("Categorías enseña el desglose de antes con la barra del presupuesto, y l
   const barra = panel(page, "cats").locator(".gx-cats-barra");
   await expect(barra).toHaveAttribute("aria-valuemax", "1000");
   await expect(barra).toHaveAttribute("aria-valuenow", "100");
-  await expect(panel(page, "cats").locator(".gx-cats-pie")).toContainText("de 1000 €");
+  await expect(panel(page, "cats").locator(".gx-cats-pie")).toContainText("de 1.000 €");
   const filas = panel(page, "cats").locator(".v4-gastos-cat");
   // Mayor a menor, solo lo que cuenta este mes; el límite de super sigue con su barra.
   await expect(filas).toHaveCount(3);

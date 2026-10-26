@@ -4622,8 +4622,11 @@ function bankConnectOnce(aspsp_name, country){
 }
 
 /* ---------- Helpers ---------- */
-const NF  = new Intl.NumberFormat('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
-const NF0 = new Intl.NumberFormat('es-ES',{maximumFractionDigits:0});
+// Punto de miles también con cuatro cifras: el español de Intl no lo pone hasta las cinco, y la
+// app decía «1426,23 €» junto a «193.993,44 €» y al «1.912 €» del widget nativo (capturas del
+// dueño, 26/10/2026). Un motor sin `"always"` lo toma como `true`: vuelve a lo de antes, sin romper.
+const NF  = new Intl.NumberFormat('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:"always"});
+const NF0 = new Intl.NumberFormat('es-ES',{maximumFractionDigits:0,useGrouping:"always"});
 // Moneda de visualización. Todos los importes de la app están en € (base); DISP los convierte
 // a la moneda elegida (k = factor sobre €, sym = símbolo). Se fija en App según ajustes + fx.
 let DISP = { sym:"€", k:1 };
