@@ -1506,6 +1506,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
       }
     ],
     "unidades": true
@@ -3060,6 +3072,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentDerivedDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "native": [
@@ -4444,6 +4468,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentDerivedDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "native": [
@@ -5380,6 +5416,18 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "metaDeGasto"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "native": [
@@ -6797,6 +6845,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentDerivedDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "native": [
@@ -8181,6 +8241,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentDerivedDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "native": [
@@ -10130,6 +10202,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentDerivedDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "unidades": true
@@ -12773,6 +12857,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
       }
     ],
     "unidades": true
@@ -13950,6 +14046,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "unidades": true
@@ -15319,6 +15427,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentDerivedDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "native": [
@@ -15762,6 +15882,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentDerivedDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ]
   },
@@ -17051,6 +17183,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "GEST_MAX"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "unidades": true
@@ -20886,6 +21030,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "GEST_MAX"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "edge": [
@@ -22850,6 +23006,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "GEST_MAX"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "unidades": true
@@ -24356,6 +24524,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "GEST_MAX"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "unidades": true
@@ -25256,6 +25436,18 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "metaDeGasto"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "unidades": true
@@ -27899,6 +28091,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DUP_DIAS_MS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
       }
     ],
     "unidades": true
@@ -29283,6 +29487,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentDerivedDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "native": [
@@ -30465,6 +30681,22 @@
       {
         "file": "src/modules/00-core.js",
         "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "conSaldoMostrado"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
       }
     ],
     "unidades": true
@@ -31834,6 +32066,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentDerivedDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "native": [
@@ -33150,6 +33394,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
       }
     ],
     "unidades": true
@@ -34325,6 +34581,22 @@
       {
         "file": "src/modules/00-core.js",
         "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "conSaldoMostrado"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
       }
     ],
     "edge": [
@@ -35939,6 +36211,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "REC_GRACE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
       }
     ],
     "edge": [
@@ -37330,6 +37614,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "fixedPaymentOwnerDepth"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
       }
     ],
     "unidades": true
@@ -39310,6 +39606,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "GEST_MAX"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
       }
     ],
     "edge": [
@@ -40842,6 +41150,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "fixedPaymentOwnerDepth"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
       }
     ],
     "unidades": true
@@ -43695,6 +44015,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "REC_GRACE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "unidades": true
@@ -44808,6 +45140,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "unidades": true
@@ -46843,6 +47187,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "REC_GRACE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
       }
     ],
     "edge": [
@@ -49553,6 +49909,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "GEST_MAX"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "unidades": true
@@ -54503,6 +54871,110 @@
       {
         "file": "src/modules/00-core.js",
         "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "conSaldoMostrado"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "insumosSaldoGasto"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoCuentaMostrada"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "startOfMonth"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "parseDate"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseCountsCash"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "nominaYaEntro"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accInject"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "roundupOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "gastoDelMesPorBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accDaily"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoCuentaGasto"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isEfectivoEnt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "inicioDeMesMs"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseBankEnts"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "lastWorkingDay"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "isCardSpend"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "spareOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "MC_TZ"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesTz"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesYmFmt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesDiaFmt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesByYm"
       }
     ],
     "unidades": true
@@ -55361,6 +55833,18 @@
       {
         "file": "src/modules/00-core.js",
         "function": "planSyncConflict"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "unidades": true
@@ -56708,6 +57192,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "GEST_MAX"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "unidades": true
@@ -59085,6 +59581,18 @@
       {
         "file": "src/modules/00-core.js",
         "function": "planSyncConflict"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "unidades": true
@@ -62304,6 +62812,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "GEST_MAX"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "unidades": true
@@ -63327,6 +63847,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
       }
     ],
     "unidades": true
@@ -65461,6 +65993,18 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "metaDeGasto"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "unidades": true
@@ -66190,6 +66734,18 @@
       {
         "file": "src/modules/00-core.js",
         "function": "metaSufijo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "unidades": true
@@ -68081,6 +68637,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "REC_GRACE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
       }
     ],
     "unidades": true
@@ -69991,6 +70559,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "REC_GRACE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "unidades": true
@@ -71245,6 +71825,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "GEST_MAX"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "unidades": true
@@ -72856,6 +73448,18 @@
       {
         "file": "src/modules/00-core.js",
         "function": "metaSufijo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "unidades": true
@@ -73801,6 +74405,18 @@
       {
         "file": "src/modules/00-core.js",
         "function": "metaSufijo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "unidades": true
@@ -76002,6 +76618,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "GEST_MAX"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "edge": [
@@ -79649,6 +80277,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "GEST_MAX"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "unidades": true
@@ -81024,6 +81664,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "unidades": true
@@ -82307,6 +82959,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "GEST_MAX"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "unidades": true
@@ -83585,6 +84249,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "GEST_MAX"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "unidades": true
@@ -84859,6 +85535,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "GEST_MAX"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "unidades": true
@@ -86117,6 +86805,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "fixedPaymentOwnerDepth"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
       }
     ],
     "unidades": true
@@ -87567,6 +88267,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "unidades": true
@@ -88841,6 +89553,18 @@
       {
         "file": "src/modules/00-core.js",
         "function": "withdrawalReceiptLink"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
       }
     ],
     "unidades": true
@@ -90134,6 +90858,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "GEST_MAX"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "unidades": true
@@ -91487,6 +92223,18 @@
       {
         "file": "src/modules/00-core.js",
         "function": "resolveCategory"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
       }
     ],
     "unidades": true
@@ -91816,6 +92564,18 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "_pdCache"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
       }
     ],
     "unidades": true

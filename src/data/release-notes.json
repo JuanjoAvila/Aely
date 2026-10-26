@@ -1,5 +1,29 @@
 [
   {
+    "v": "4.26.177",
+    "d": "2026-10-26",
+    "t": {
+      "es": "Recibos pagados con tarjeta a fin de mes, en su mes",
+      "en": "Bills paid by card at month end, in their own month",
+      "ca": "Rebuts pagats amb targeta a final de mes, al seu mes"
+    },
+    "items": {
+      "es": [
+        "Un recibo pagado con tarjeta a fin de mes cuenta como pagado en su mes, aunque el banco apunte el cargo unos días después.",
+        "Los recibos de este tipo que ya tenías apuntados se colocan en su mes sin que cambie tu saldo."
+      ],
+      "en": [
+        "A bill paid by card at the end of the month counts as paid in its own month, even if the bank records the charge a few days later.",
+        "Bills of this kind you already had are moved to their own month without your balance changing."
+      ],
+      "ca": [
+        "Un rebut pagat amb targeta a final de mes compta com a pagat al seu mes, encara que el banc apunti el càrrec uns dies després.",
+        "Els rebuts d'aquest tipus que ja tenies apuntats se situen al seu mes sense que canviï el teu saldo."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.176",
     "d": "2026-10-26",
     "t": {

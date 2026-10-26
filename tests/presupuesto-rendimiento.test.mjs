@@ -341,7 +341,8 @@ const PRESUPUESTO = {
   // Integración 4.26.172 (25/10): la 171 más la aportación a meta desde la ficha (marca, cajón, progreso al vuelo, nube con la fila exacta, acuse y reintento de la marca pendiente), la fila gris de Inversiones, la tanda 6 de Gastos v5 (fila de ciclos, cifra de lo filtrado, raya del final, cinco de más gasto, pulsación larga) y el arreglo del lag (sin envío por gesto): 1.523.095 B minificado y 422.795 B gzip (1487,40 y 412,89 KiB) medidos en local con el sello .99999 y la reserva de 95 B, frente a 1.505.924 / 418.082 en la 171 (+17,2 KB / +4,7 KB). Son tres pedidos del dueño de la misma mañana, casi todo lógica y sus textos es: no hay grasa que quitar sin quitar una de ellas. SUBE (mandato 11/10): 1489 KiB minificado (quedan 1.641 B) y 414 KiB de gzip (quedan 1.141 B).
   // Integración 4.26.173 (25/10): la 172 más FIN-04 fase 2 parte B (PR297 R2: fusión a tres vías de recibos y deudas con base privada, lápidas de deuda con SHA-256, borrador privado con Recuperar/Descartar, sus textos en tres idiomas y la hoja de conflicto) y la nota con una tanda: 1515 KiB minificado y 421 KiB gzip medidos en local frente a 1489 / 414 de la 172 (+26 / +7 KiB). Es lógica de dinero entre móviles y su interfaz de revisión, sin nada que recortar sin quitar la garantía. SUBE (mandato 11/10): 1520 KiB minificado y 423 KiB de gzip.
   // Integración 4.26.176 (26/10): la 175 más FIN-04 (PR304 R2: plazo de 25 s para la lectura del estado con relevo y relanzado al renovar la sesión del mismo titular) y las pruebas de pago en isPaidIn (PR306), más la nota con una tanda en tres idiomas: 1.557.115 B minificado y 432.257 B gzip medidos en local con el sello .99999 y la reserva de 95 B, 635 B sobre el tope anterior de 1520 KiB; el gzip cabe en 423 KiB (quedan 895 B). Es lógica de dinero y de sincronización, más texto, sin nada que recortar sin quitar la garantía. SUBE (mandato 11/10): 1522 KiB minificado (quedan 1.413 B).
-  minificado: 1522 * 1024,
+  // Integración 4.26.177 (26/10): la 176 más FIN-27 R2 (PR308: el cargo de tarjeta de fin de mes paga el recibo del mes del cargo por la misma referencia, con la migración de marcas antiguas que conserva el saldo mostrado), más la nota en tres idiomas: 1.561.638 B minificado y 433.248 B gzip (1525,0 y 423,1 KiB) medidos en local con el sello .99999, frente a 1.557.115 / 432.257 en la 176 (+4,5 KB / +1,0 KB). Es lógica de dinero (fecha bancaria frente a mes del cargo), sin nada que recortar sin quitar la garantía. SUBE (mandato 11/10): 1527 KiB minificado y 424 KiB de gzip.
+  minificado: 1527 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -377,7 +378,7 @@ const PRESUPUESTO = {
   // 1.445.348/401.213 → 1.446.618/401.660 B (+1.270/+447). Es código, sin textos. 392 KiB se queda
   // corto por 252 B: 393 KiB (quedan 772 B); el crudo cabe en 1413 KiB con 294 B.
   // Integración 4.26.159 (con fin23-24): 1418 KiB minificado y 394 KiB gzip medidos en local; el gzip queda a 1 KiB. SUBE por producto: gzip 396 KiB (el minificado conserva 3 KiB de margen).
-  gzip: 423 * 1024,
+  gzip: 424 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

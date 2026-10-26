@@ -162,6 +162,8 @@ const sourceBeta173=sourceAt("95b950a0cae516a327b9cb28e022715df9b04ca8");
 const sourceBeta174=sourceAt("9ca1ff11e27b3daf01ecd02d51bdb7abcaabad60");
 // Catálogo175 pasa a histórico con la 176: se lee de la 4.26.175 servida en beta (78c41edf8); sus tandas (gastos-lag-ciclos-r3 e inicio-mes-futuro) no tienen veredicto y la 176 las deja donde están; la 176 suma la tanda del vínculo de recibo.
 const sourceBeta175=sourceAt("78c41edf87e2784ed31f8c9a083656c786d2632f");
+// Catálogo176 pasa a histórico con la 177: se lee de la 4.26.176 servida en beta (74ea9c638); sus tres tandas (recibo-vinculo-saldo, gastos-lag-ciclos-r3 e inicio-mes-futuro) no tienen veredicto y la 177 las deja donde están, sin tanda nueva.
+const sourceBeta176=sourceAt("74ea9c63880b23a975f2a5852d82970f3cbffefd");
 const sourceBeta153=sourceAt("80752dff055dc391c52c3067ce238f49e0a14598");
 // Catálogo137 pasa a histórico en la promoción 137: se lee de la beta 4.26.137.1 aprobada (6f18228c), lo último que probó el móvil y lo que sube entero.
 const sourceBeta137=sourceAt("6f18228cbd81c1cc9abfa7fabce0a878819234f4");
@@ -6036,7 +6038,7 @@ const expected176={"v":"4.26.176","d":"2026-10-26","t":{"es":"Recibos y saldo al
 test("Catálogo176 añade la tanda del vínculo de recibo (solo web) sobre la 175, que conserva la suya y la de la 174, y declara cada huella que mueve",()=>{
   const tandas=["recibo-vinculo-saldo"],pasos=[3],F7="src/modules/07-tab-patri-fijos.js",A0="src/modules/11-app-main.js",I0="src/modules/01-i18n.js";
   const integrated=JSON.parse(sourceBeta175("scripts/beta-sources.json")),before=JSON.parse(sourceBeta175("src/data/release-notes.json"));
-  const source=f=>nl(read(f)),old=f=>nl(sourceBeta175(f));
+  const source=f=>nl(sourceBeta176(f)),old=f=>nl(sourceBeta175(f));
   assert.equal(before[0].v,"4.26.175");
   assert.deepEqual(before[0].tandas.map(g=>g.id),["gastos-lag-ciclos-r3"],"la 175 servida lleva su tanda del lag de Gastos, sin veredicto");
   assert.deepEqual(before[1].tandas.map(g=>g.id),["inicio-mes-futuro"],"la 174 servida lleva su tanda del mes futuro, sin veredicto");
@@ -6100,7 +6102,7 @@ test("Catálogo176 añade la tanda del vínculo de recibo (solo web) sobre la 17
   // Solo web: apk.json, build.gradle, el nativo, el SQL y las Edge quedan exactamente como en la 175.
   assert.equal(source("public/apk.json"),old("public/apk.json"),"apk.json intacto: sigue la APK 61");
   assert.equal(source("android/app/build.gradle"),old("android/app/build.gradle"),"build.gradle intacto");
-  assert.equal(execFileSync("git",["diff","--name-only","78c41edf87e2784ed31f8c9a083656c786d2632f","HEAD","--","supabase","android"],{encoding:"utf8"}).trim(),"","sin SQL, Edge ni nativo");
+  assert.equal(execFileSync("git",["diff","--name-only","78c41edf87e2784ed31f8c9a083656c786d2632f","74ea9c63880b23a975f2a5852d82970f3cbffefd","--","supabase","android"],{encoding:"utf8"}).trim(),"","sin SQL, Edge ni nativo");
   // Huellas que se mueven (lista cerrada, solo web): el plazo de la lectura del estado (PR304) y las pruebas de pago en isPaidIn (PR306) las llevan los descriptores que leen la lectura de la nube o el calendario de recibos. Todos son de tandas ya votadas: ninguno vuelve al panel. Las de la 175 y la 174 (gastos-lag-ciclos-r3, inicio-mes-futuro) no se mueven.
   const expectedMoves={"inc-3009-01-cargos":["web"],"fin05-widget-reentrada":["web"],"fin05-pago-cerrada":["web"],"widget-banco":["web"],"widget-app-cerrada":["web"],"inc-2909-02-inicio-natural":["web"],"inc-3009-nomina-anticipada":["web"],"inc-2909-01-widget-periodo":["web"],"inc-0210-01-plan-cuota":["web"],"inc-0310-01-meta-regla":["web"],"inc-0710-auth-disposal":["web"],"inc-0810-metas-editar-regla":["web"],"inicio-grafica-vuelve":["web"],"widget-pago-app-cerrada":["web"],"widget-ciclo-puente":["web"],"recibos-cargo-unico":["web"],"tr-iguales-ordinal":["web"],"inicio-patrimonio-flujos":["web"],"recibo-cargo-en-gastos":["web"],"inicio-mes-pasado-mismo-dia":["web"],"tr-empareja-sin-preguntar":["web"],"compras-identicas-ids":["web"],"recibos-cifra-cuadra":["web"],"cartera-sin-lagazo":["web"],"deuda-nueva-desde-su-dia":["web"],"sync-dos-moviles":["web"],"plan-dos-moviles":["web"]};
   const previous=new Map();
@@ -6137,6 +6139,67 @@ test("Catálogo176 añade la tanda del vínculo de recibo (solo web) sobre la 17
   assert.equal(receipt.web["gastos-lag-ciclos-r3"],betaRevision("gastos-lag-ciclos-r3",old,undefined,integrated["gastos-lag-ciclos-r3"]).web,"la huella de la tanda de la 175 es la que ya probó el móvil");
   assert.equal(receipt.web["inicio-mes-futuro"],betaRevision("inicio-mes-futuro",old,undefined,integrated["inicio-mes-futuro"]).web,"la huella de la tanda de la 174 es la que ya probó el móvil");
   for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g0[key],undefined,"guion nuevo sin "+key);
+  assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
+});
+
+const expected177={"v":"4.26.177","d":"2026-10-26","t":{"es":"Recibos pagados con tarjeta a fin de mes, en su mes","en":"Bills paid by card at month end, in their own month","ca":"Rebuts pagats amb targeta a final de mes, al seu mes"},"items":{"es":["Un recibo pagado con tarjeta a fin de mes cuenta como pagado en su mes, aunque el banco apunte el cargo unos días después.","Los recibos de este tipo que ya tenías apuntados se colocan en su mes sin que cambie tu saldo."],"en":["A bill paid by card at the end of the month counts as paid in its own month, even if the bank records the charge a few days later.","Bills of this kind you already had are moved to their own month without your balance changing."],"ca":["Un rebut pagat amb targeta a final de mes compta com a pagat al seu mes, encara que el banc apunti el càrrec uns dies després.","Els rebuts d'aquest tipus que ja tenies apuntats se situen al seu mes sense que canviï el teu saldo."]},"tandas":[]};
+// 4.26.177 (26/10/2026): PR308 R2 (FIN-27: el cargo de tarjeta de fin de mes paga el recibo del mes del cargo por la misma referencia; la migración de marcas antiguas conserva el saldo mostrado), PR309 (INC-1810-01 NO_REPRO: solo guardián e2e y docs) y PR310 (solo el diseño UX-2909-04) sobre la beta 4.26.176 servida (74ea9c638), solo web y sin APK nueva (sigue la 61).
+// SIN tanda nueva: no se puede asegurar que su cuenta tenga hoy un recibo con cargo de tarjeta a fin de mes. Las de la 176 (recibo-vinculo-saldo), la 175 (gastos-lag-ciclos-r3) y la 174 (inicio-mes-futuro) no tienen veredicto y se quedan donde están: el panel sigue enseñando tres, sin APK.
+// Registro: ningún descriptor nuevo ni cambiado; la lista cerrada de huellas que se mueven se declara abajo.
+test("Catálogo177 (solo web) no añade tanda sobre la 176, deja las tres sin veredicto donde están y declara cada huella que mueve",()=>{
+  const vivas3=["recibo-vinculo-saldo","gastos-lag-ciclos-r3","inicio-mes-futuro"];
+  const integrated=JSON.parse(sourceBeta176("scripts/beta-sources.json")),before=JSON.parse(sourceBeta176("src/data/release-notes.json"));
+  const source=f=>nl(read(f)),old=f=>nl(sourceBeta176(f));
+  assert.equal(before[0].v,"4.26.176");
+  assert.deepEqual(before.slice(0,3).map(n=>n.tandas.map(g=>g.id)),[[vivas3[0]],[vivas3[1]],[vivas3[2]]],"la 176 servida lleva sus tres tandas sin veredicto");
+  for(const n of before.slice(3))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] en la 176 servida");
+  assert.deepEqual(expected177.tandas,[],"la 177 no lleva tanda");
+  const expectedNotes=[expected177,...before];
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.deepEqual(notes,expectedNotes,"la nota 177 literal delante (con tandas:[]) y todo lo demás intacto");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.176",vivas3[0],0],["4.26.175",vivas3[1],0],["4.26.174",vivas3[2],0]],"el panel enseña tres tandas, sin APK");
+  assert.equal(notes.length,274);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
+  const jerga=/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|FIN-|SES-|UX-|\d+\.\d+\.\d+/i;
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,2,lang+": dos puntos familiares");
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
+  }
+  const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
+  const nueva=structuredClone(notes);nueva[0].tandas.push(structuredClone(notes[1].tandas[0]));assert.throws(()=>verifyNotes(nueva),assert.AssertionError,"la 177 no repite ni inventa una tanda");
+  const pierde=structuredClone(notes);pierde[1].tandas=[];assert.throws(()=>verifyNotes(pierde),assert.AssertionError,"la tanda de la 176, sin veredicto, no desaparece");
+  // Registro idéntico al de la 176.
+  const scopes=JSON.parse(source("scripts/beta-sources.json"));
+  assert.deepEqual(scopes,integrated,"el registro de la 176, intacto");
+  assert.deepEqual(Object.keys(scopes),Object.keys(integrated),"mismo orden, sin descriptores nuevos");
+  for(const id of vivas3)for(const u of scopes[id].web)assert.ok(scopeText(u,source).length>0,"la unidad existe en la fuente: "+id+" "+JSON.stringify(u));
+  // Solo web: apk.json, build.gradle, el nativo, el SQL y las Edge quedan exactamente como en la 176.
+  assert.equal(source("public/apk.json"),old("public/apk.json"),"apk.json intacto: sigue la APK 61");
+  assert.equal(source("android/app/build.gradle"),old("android/app/build.gradle"),"build.gradle intacto");
+  assert.equal(execFileSync("git",["diff","--name-only","74ea9c63880b23a975f2a5852d82970f3cbffefd","HEAD","--","supabase","android"],{encoding:"utf8"}).trim(),"","sin SQL, Edge ni nativo");
+  // Huellas que se mueven (lista cerrada, solo web): el mes del recibo por la referencia del cargo (FIN-27) lo leen los descriptores que recorren fixedPaymentProof. Salvo recibo-vinculo-saldo (176) y gastos-lag-ciclos-r3 (175), que SÍ se mueven (leen fixedPaymentProof o su cierre: el código que prueban ha cambiado de verdad) y siguen sin veredicto con la huella nueva, todos son de tandas ya votadas y no vuelven al panel; inicio-mes-futuro (174) NO se mueve.
+  const expectedMoves={"inc-3009-01-cargos":["web"],"fin05-widget-reentrada":["web"],"fin05-pago-cerrada":["web"],"tr-descripcion-clasificacion":["web"],"widget-banco":["web"],"widget-app-cerrada":["web"],"inc-2909-02-inicio-natural":["web"],"inc-3009-nomina-anticipada":["web"],"inc-2909-03-retirada":["web"],"inc-2909-01-widget-periodo":["web"],"inc-0210-01-plan-cuota":["web"],"inc-0210-03-gastos-periodo":["web"],"feature-0310-01-movilidad":["web"],"inc-0310-gastos-sin-limite":["web"],"inc-0710-gastos-mes-madrid":["web"],"inc-0810-dashboard-recents-memo":["web"],"inicio-grafica-vuelve":["web"],"widget-pago-app-cerrada":["web"],"bancos-sin-hueco":["web"],"widget-ciclo-puente":["web"],"recibos-cargo-unico":["web"],"bancos-acuse-reconexion":["web"],"tr-iguales-ordinal":["web"],"inicio-patrimonio-flujos":["web"],"recibo-cargo-en-gastos":["web"],"inicio-mes-pasado-mismo-dia":["web"],"tr-empareja-sin-preguntar":["web"],"cuenta-parte-mia":["web"],"compras-identicas-ids":["web"],"gastos-suscripciones-botones":["web"],"recibo-renombrado-sigue-pagado":["web"],"plan-por-confirmar-prestamo-youtube":["web"],"vuelta-sin-tiron":["web"],"youtube-enlazar-recibo":["web"],"renombrar-y-notas-seguras":["web"],"gestionar-plan-ola":["web"],"vibracion-r3":["web"],"youtube-diagnostico":["web"],"recibos-cifra-cuadra":["web"],"cartera-sin-lagazo":["web"],"renombrar-sin-cobertura":["web"],"youtube-ficha-reconoce":["web"],"youtube-r4":["web"],"gastos-dos-bancos":["web"],"gastos-v5-movimientos":["web"],"gastos-v5-secciones":["web"],"gastos-v5-filtro":["web"],"gastos-v5-subs":["web"],"gastos-v5-filtros-hoja":["web"],"sync-dos-moviles":["web"],"gastos-v5-ciclos-metas-inversiones":["web"],"plan-dos-moviles":["web"],"gastos-lag-ciclos":["web"],"gastos-lag-ciclos-r3":["web"],"recibo-vinculo-saldo":["web"]};
+  const previous=new Map();
+  const measure=reader=>{
+    const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};
+    for(const [key,scope] of Object.entries(integrated)){
+      if(key===archiveId)continue;
+      if(!previous.has(key))previous.set(key,betaRevision(key,sourceBeta176,undefined,scope));
+      const a=previous.get(key),b=betaRevision(key,reader,undefined,now[key]);
+      const surfaces=["web","native","edge"].filter(x=>a[x]!==b[x]);
+      if(surfaces.length)moved[key]=surfaces;
+    }
+    return moved;
+  };
+  assert.deepEqual(measure(source),expectedMoves,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  const vivas=notes.flatMap(n=>(n.tandas||[]).map(g=>g.id));
+  assert.deepEqual(vivas,vivas3);
+  const movidasVivas=["recibo-vinculo-saldo","gastos-lag-ciclos-r3"];
+  assert.deepEqual(vivas.filter(id=>expectedMoves[id]),movidasVivas,"de las tres vivas, solo se mueven las dos que leen la prueba de pago");
+  for(const id of Object.keys(expectedMoves).filter(id=>!movidasVivas.includes(id)))assert.equal(vivas.includes(id),false,"huella que se mueve sin tanda viva: "+id);
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes);
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),vivas,"lo que el build entrega al panel");
+  for(const id of vivas3)assert.equal(receipt.web[id],betaRevision(id,movidasVivas.includes(id)?source:old,undefined,movidasVivas.includes(id)?scopes[id]:integrated[id]).web,"la huella de la tanda "+id+(movidasVivas.includes(id)?" se mide contra la fuente nueva":" es la que ya enseñaba la 176"));
+  assert.equal(receipt.web["inicio-mes-futuro"],betaRevision("inicio-mes-futuro",old,undefined,integrated["inicio-mes-futuro"]).web,"la tanda de la 174 conserva la huella que ya probó el móvil");
   assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
 });
 
