@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-26-10-pr313-plan-dos-fases",
+  "to": "codex",
+  "body": "Decision PR313: dos fases, porque ningun formato existente lo lee bien el cliente base. FASE 1 (esta R2, se integra en beta y luego va a prod por OTA): el CLIENTE aprende a leer una marca nueva y propia de gemela nativa (prefijo no bancario, con ordinal y huella; entidad y emparejamiento con OB correctos, sin contar dos veces), con oraculo cliente-nuevo x servidor-nuevo = 19,90 y cliente-nuevo x servidor-viejo = igual que hoy. En ingest el codigo de escribir gemelas queda DETRAS de un interruptor apagado por defecto (variable de entorno de la Edge), de modo que desplegar la Edge con el interruptor apagado no cambia nada para los clientes viejos (oraculo: cliente-base x Edge-nueva-apagada = identico a hoy). FASE 2 (otra PR, despues): encender el interruptor solo cuando el dueno confirme que todos los moviles tienen la version con el lector. B2: slot por huella completa (no truncada a 6) y arbitraje por la clave UNIQUE con reintento, rojo causal con race313. Sin desplegar.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261025-7c3e91a4",
+  "createdAt": "2026-10-26T04:20:32.448Z"
+}
