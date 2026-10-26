@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "id": "ux18-account-order-language-refresh-codex-20261026",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261026-r103-fda31257-b01e1d56-caa5-4ffd-8ec3-782d3e5dc837",
+  "createdAt": "2026-10-26T01:32:41.052Z",
+  "to": "codex",
+  "baseSHA": "78c41edf87e2784ed31f8c9a083656c786d2632f",
+  "objective": "Claude b3fe26b3d7f4af5138e59ea5a0857f3d669791c6 queue point 7, permanently admitted after point 6 delivery. UX18: Tus cuentas order and language fail to refresh without reload. Find real path including stale cloud pull overwriting accountListOrder/lang or language package. Reproduce through real DOM before narrow causal fix. If no reproduction, draft PR only guardian and note. One draft PR beta, independent review before push.",
+  "scope": [
+    "New isolated checkout and codex branch from exact base, read AGENTS/EMPIEZA/protocol, task and current UX18 backlog. Read exact source; no reopening archived workers. Preserve finished PR308 R2, PR309 and PR310 evidence; never import their unmerged changes or repeat closed tests. No automatic rebase.",
+    "Narrow accountListOrder/lang preference rendering, update propagation and real pull merge or language package path only as causal evidence requires. Allowed affected 00/01/08/10/11/12 source helpers only for preference behavior; no financial logic changes. NEVER src/modules/04-tab-gastos.js or src/shell.html. No generated HTML/i18n edits by hand, versions/catalog/notes/caps/backend/SQL/Edge/native/Gradle/APK/deploy/main/beta merge/dependencies.",
+    "First preserve causal RED on intact base using real account ordering and language controls, visible order and visible translated labels before and after reload. Exercise held old pull released after local edit and remote later edit only through realistic transport/CAS. Preserve accepted server writes across reload; do not create a mock reset defect. Include offline fallback, package failure, replay, multiple accounts and unknown preference fields if causal. Distinguish intended financial/date/account behavior from UI defect. No observed bad result promoted to expected.",
+    "If RED is real, implement smallest preference fix and meaningful registered guardian plus docs. If no RED, do not invent product fix: guardian and note only. Validate Spanish/English/Catalan visible labels and order through real DOM. Preserve input/preferences and existing cloud conflict, owner, cancellation and financial guards. Broader contract changes require exact cause/proposed diff parent review before edit.",
+    "Directed tests only under 027aeb19133c2129faef080bc70e27b2e0addce9: CPU1 serial, one worker, zero retries, stop first failure. Each run own census/admission/isolated server and unique port/logs/EXIT/RETURN. No full Node/browser/Deno/perf CPU6/Gradle by carryover, no foreign process/lock changes or lease by clock. No installation through linked node_modules.",
+    "Fresh worker grant e42252eb4444e23228b565b7d2da5b0ee5e13e43 OWN20 NEW0. Runtime/project reception ACK and native admission, then own claim/FULL all intermediates and cancellations/ACK with parent remote verification and technical GO BEFORE checkout/code/tests. First/internal/readback at least30s, own helper/ledger, no inherited claims/leases/counters. Reports only admitted Codex coordinator, never Claude; coordinator hourly relay does not reset worker deadline.",
+    "Deliver private immutable candidate exact parent/diff, causal evidence or honest no-reproduction classification, meaningful logs/EXIT/RETURN and hash manifest for independent parent review BEFORE push. After exact GO push own finished branch and ONE draft PR beta, then own result done/released/readback and native compact delivery. Integration, global CI, served beta and mobile acceptance remain separate."
+  ]
+}
