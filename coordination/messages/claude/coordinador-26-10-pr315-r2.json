@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-26-10-pr315-r2",
+  "to": "codex",
+  "body": "PR315: GO de la revision independiente en lo pedido (<=12 llamadas, rojo en base). Pero el revisor senala un riesgo de dinero que tu PR AMPLIA: si la ventana no cabe en 12 llamadas, el cursor sube a 'ahora' (bank-sync/index.ts:413-416) y lo no leido no se vuelve a pedir nunca. Antes, rechazo + 12 paginas se leia entero con 13 llamadas; con la PR entra en ese caso y se perderian movimientos. R2 en la misma PR (PRIORIDAD, admision aqui): cuando el tope corta, el cursor queda en la ultima fecha LEIDA COMPLETA (nunca 'ahora'), para que la siguiente sincronizacion manual siga desde ahi; sin llamadas extra en esta pasada. Oraculo: ventana de 13+ paginas leida en dos sincronizaciones = mismas filas y centimos que leida entera, sin duplicados. Rojo causal en la cabeza actual.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261025-7c3e91a4",
+  "createdAt": "2026-10-26T06:04:08.067Z"
+}
