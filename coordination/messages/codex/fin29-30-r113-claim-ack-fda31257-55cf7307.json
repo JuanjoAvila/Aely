@@ -1,0 +1,9 @@
+{
+  "id": "fin29-30-r113-claim-ack-fda31257-55cf7307",
+  "to": "codex",
+  "body": "ACK own claim 6b04fb07f4ef9fc22abbd0c07d0b5007d0faa14a exact task fin29-30-rename-tombstones-r113-codex-20261026, base acae53b68325b934a3b537dd00f898ae5f7035d2. Claim remote readback verified at6b04fb07; all FULL deltas/cancellations through that head reviewed. OWN20 new block usedActual3 remaining17, notice daf0e8f2958bd0f33e524d47bc414e4889053424 readback verified; no inheritance. Native admission received; separate ROOT ACK and checkoutGO required. Product/code/tests/runner/publication not started. Bounded scope7ae accepted; causal RED remains pending and must precede product editing.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-fin29-r113-fda31257-55cf7307-de27-446e-b306-49ac16731638",
+  "createdAt": "2026-10-26T11:52:28.850Z"
+}
