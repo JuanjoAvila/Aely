@@ -87,8 +87,8 @@ export function widgetSnapshot(data: any, rows: FilaGasto[], now: number, paymen
      no lo vio, solo se acepta como nómina lo que lo dice en el comercio. Cualquier otro no se
      adivina: sin foto, y el widget se queda con la cifra de la app hasta que ella decida. */
   /* Dos webs conviven mientras se despliega: la que escribe las listas (regla nueva) y la anterior,
-     cuyo alcance tiene 8 elementos y cuyo Inicio compara el gasto bruto. Cada una recibe SU cifra:
-     así ingest se puede desplegar antes o después de la web sin dejar sin foto el widget de nadie
+     cuyo alcance lleva el ancla vacía donde la nueva lleva las listas, y cuyo Inicio compara el
+     gasto bruto. Cada una recibe SU cifra: así ingest se puede desplegar antes o después de la web sin dejar sin foto el widget de nadie
      (revisión 26/10/2026). Un alcance que no casa con ninguna de las dos sigue sin foto. */
   const conListas = !cycle && Array.isArray(w.nominas) && Array.isArray(w.noNominas);
   const nominas = new Set<string>(conListas ? w.nominas.filter((k: unknown) => typeof k === "string") : []);
@@ -133,9 +133,11 @@ export function widgetSnapshot(data: any, rows: FilaGasto[], now: number, paymen
   const accounts = data.accounts || [], chosen = data.settings?.widgetBank;
   const bank = accounts.find((a: { ent: string }) => a.ent === chosen && !["efectivo", "familia"].includes(a.ent))
     || accounts.find((a: { spendFrom: boolean }) => a.spendFrom);
-  const parts: unknown[] = [2, start, w.kind, cycle ? "neto" : "gasto", w.anchor || "", budgetKnown ? after.budget : null, ents.slice().sort(), bank?.ent || ""];
-  // Las listas entran en el alcance como en `widgetScopeOf`, solo si la web las escribió.
-  if (conListas) parts.push([[...nominas].sort(), [...noNominas].sort()]);
+  // Las listas entran en el alcance como en `widgetScopeOf`, solo si la web las escribió, y en el
+  // hueco del ancla (vacío en el mes): el nativo exige 8 elementos y un noveno lo descartaba (26/10/2026).
+  const parts: unknown[] = [2, start, w.kind, cycle ? "neto" : "gasto",
+    conListas ? [[...nominas].sort(), [...noNominas].sort()] : (w.anchor || ""),
+    budgetKnown ? after.budget : null, ents.slice().sort(), bank?.ent || ""];
   const scope = JSON.stringify(parts);
   // No repetir un scope de la app si reservas/bancos/ancla ya han cambiado en la nube.
   if (w.scope !== scope) return null;

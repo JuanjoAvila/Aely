@@ -94,6 +94,39 @@ const puente=data=>JSON.stringify({type:'message',callbackId:'1',pluginId:'MiCar
 for(const [web,codes] of [['w111',{52:true,53:true,54:true}],['w115',{52:true,53:true,54:true}],['nueva',W]]) for(const code of [52,53,54]) for(const h of [0,1,2,3])
   for(const marca of [false,true]) datos.fotos[[web,code,h,marca?'marca':'sin'].join('/')]=puente(foto(web,codes[code],h,marca).data);
 datos.fotos['nueva/54/mes']=puente(foto('nueva',W[54],0,true,false).data);
+/* SU MES DEL 26/10 CON LA APK 62 (beta 4.26.185): Inicio decía «63,53 € de 1.500 €» y el widget
+   seguía en «1.922 € · 422 € de más» aunque abriera la app desde el icono. La foto de la regla
+   nueva llevaba un alcance de 9 elementos (las listas de nómina al final) y la APK 62 exige 8 en
+   una lectura nueva: la descartaba en mudo. Sólo entraba por el camino sin marca de lectura.
+   Aquí viaja su mes tal cual: gastos 1.922,19, ingresos 485,72 sin nómina, límite 1.500. */
+const suMes={budget:1500,accounts:[{ent:'trade_republic',role:'diario'}],reservaLog:[],deleted:[],
+  settings:{expenseBanks:['trade_republic'],budgetCycle:false,gTotalMode:'split'},expenses:[
+    {date:iso(mes+1000),amount:1922.19,category:'super',source:'macrodroid'},
+    {date:iso(mes+2000),amount:-285.72,category:'ingreso',source:'ob:trade_republic',merchant:'DEVOLUCION SEGURO'},
+    {date:iso(mes+3000),amount:-200,category:'bizum',source:'ob:trade_republic',merchant:'Bizum cena'}]};
+{
+  const bud=cli.dashboardBudgetStats(suMes);
+  assert.equal(bud.cycle,false); assert.equal(bud.against,1436.47,'su mes compara 1.436,47 con el límite');
+  const scope=cli.widgetScopeOf(suMes,bud,'','trade_republic');
+  assert.equal(JSON.parse(scope).length,8,'el alcance que viaja a la APK 62 tiene los 8 elementos que ella exige');
+  const data=WEB.nueva(bud,suMes,{current:[]},W[54],'es',scope,cli.widgetCoveredEvents,cli.Date,MARCA,5932,{ent:'trade_republic'},
+    ()=>({label:'Trade Republic'}),Math.round(Math.max(0,bud.remaining)*100)/100,5932);
+  assert.equal(data.spent,1436.47); assert.equal(data.budgetLeft,63.53);
+  datos.fotos['suMes/nueva']=puente(data);
+  // La foto que tenía el widget: la de la regla vieja (bruto 1.922,19), con el alcance de la 183.
+  const vieja=Object.assign({},data,{spent:1922.19,budgetLeft:0,afford:0,
+    scope:JSON.stringify([2,bud.periodStart,'mes','gasto','',1500,['trade_republic'],'trade_republic'])});
+  delete vieja.readGeneration; delete vieja.nativeCut;
+  datos.fotos['suMes/vieja']=puente(vieja);
+  // La foto que mandaba la 4.26.185: la misma cifra, con las listas de noveno elemento.
+  const p=JSON.parse(scope);
+  datos.fotos['suMes/185']=puente(Object.assign({},data,{scope:JSON.stringify([...p.slice(0,4),'',...p.slice(5),p[4]])}));
+  // Un café de 2 € con la app cerrada: ingest devuelve el mismo alcance y la cifra de Inicio.
+  const cafe={periodStart:bud.periodStart,readAt:nowMs,eventKey:'evento-cafe',expenseKey:'clave-cafe',spent:1438.47,budget:1500,
+    budgetLeft:61.53,shownDelta:2,againstDelta:2,counts:1,cashCounts:1};
+  datos.pagos['suMes/cafe']=JSON.stringify({ok:true,tipo:'gasto',importe:2,fecha:iso(nowMs-1000),cat:'super',comercio:'Café sintético',ack:'fila-cafe',
+    month:Object.assign({},cafe,{spent:1924.19,budgetLeft:0}),widget:Object.assign({},cafe,{contract:2,periodKind:'mes',scope})});
+}
 for(const p of PAGOS) for(const v2 of [false,true]) datos.pagos[(v2?'v2':'legacy')+'/'+p.n]=respuesta(p,v2);
 cli.Date=RealDate;
 
@@ -397,12 +430,41 @@ public class Driver {
     ok(cifra(tarde).equals(neto(2))&&tarde.prefs().getLong("periodStart",0)==ciclo,"APK 53 sin marca: la foto cubre los pagos y deja la ventana real: "+cifra(tarde));
     System.out.println("PASS heredado: registro lleno + aviso se recuperan con lectura nueva en APK 53 (web nueva) y APK 54");
   }
+  /** Su mes del 26/10 con la APK 62: foto vieja de la regla bruta y luego abrir la app desde el
+      icono (lectura nueva con marca). La cifra tiene que pasar a la regla nueva. */
+  static void suMes(){
+    Apk a=apk(54);
+    a.updateWidget(Fx.bridge(fotos.optString("suMes/vieja",null)));
+    ok(cifra(a).equals("1.922 €"),"partida: el widget enseña la regla vieja: "+cifra(a));
+    String[] mark=a.beginRead();
+    ok(mark!=null,"la APK 62 abre una lectura nueva al abrir la app");
+    // REPRODUCIDO: la foto de la 4.26.185 (alcance de 9) se descarta en mudo con lectura nueva.
+    int antes=a.prefs().commits;
+    a.updateWidget(Fx.bridge(fotos.optString("suMes/185",null).replace("@GEN@",mark[0]).replace("@CUT@",mark[1])));
+    ok(a.prefs().commits==antes&&cifra(a).equals("1.922 €"),"la APK 62 descarta en mudo el alcance de 9 de la web 185: "+cifra(a));
+    // Sin marca de lectura (el corte no llegó a tiempo) sí entraba: por eso a veces se arreglaba solo.
+    Apk sinMarca=apk(54); heredar(a,sinMarca);
+    sinMarca.updateWidget(Fx.bridge(fotos.optString("suMes/185",null).replace("@GEN@","otra").replace("@CUT@","0")));
+    ok(cifra(sinMarca).equals("1.436 €"),"sin marca la foto de 9 entraba por la conciliación: "+cifra(sinMarca));
+    a.updateWidget(Fx.bridge(fotos.optString("suMes/nueva",null).replace("@GEN@",mark[0]).replace("@CUT@",mark[1])));
+    ok(cifra(a).equals("1.436 €"),"APK 62 + web nueva al abrir desde el icono: el widget coge la cifra de Inicio: "+cifra(a)+" / "+pie(a));
+    ok(pie(a).contains("1.500 €")&&pie(a).contains("64 €")&&!pie(a).contains("🚨"),"y dice lo que queda, no «de más»: "+pie(a));
+    // Reabrir con otra lectura y la misma foto no cambia nada.
+    mark=a.beginRead();
+    a.updateWidget(Fx.bridge(fotos.optString("suMes/nueva",null).replace("@GEN@",mark[0]).replace("@CUT@",mark[1])));
+    ok(cifra(a).equals("1.436 €"),"reabrir mantiene la cifra: "+cifra(a));
+    // Con la app cerrada, el café que devuelve ingest con el mismo alcance sube la cifra.
+    a.pay(pagos.optString("suMes/cafe",null));
+    ok(cifra(a).equals("1.438 €")&&!pie(a).equals(AVISO),"un pago con la app cerrada sigue la regla nueva: "+cifra(a)+" / "+pie(a));
+    System.out.println("PASS su mes del 26/10 en la APK 62: abrir la app con lectura nueva cambia 1.922 € por 1.436 € (quedan 64 €)");
+  }
   public static void main(String[] args) throws Exception {
     datos=new JSONObject(new String(Files.readAllBytes(Paths.get(args[0])),"UTF-8"));
     fotos=datos.optJSONObject("fotos"); pagos=datos.optJSONObject("pagos");
     ciclo=datos.optLong("ciclo",0); mes=datos.optLong("mes",0);
     diagnostico();
     contrato54();
+    suMes();
     for(int code:new int[]{52,53,54}) for(boolean v2:new boolean[]{false,true}) secuencia(code,v2);
     System.out.println("PASS secuencia del dueño (aviso → abrir → pagar cerrada → abrir) en APK 52, 53 y 54 con servidor legacy y v2");
     heredadoLleno();

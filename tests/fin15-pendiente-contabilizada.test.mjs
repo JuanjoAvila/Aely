@@ -54,7 +54,7 @@ for(const [i,rows] of orders([pending,booked]).entries())test("FIN15 ROJO servid
 
 for(const [i,rows] of orders([pending,booked]).entries())test("FIN15 ROJO widget real: orden "+i,()=>{
  const s=state(),start=budget.inicioDeMesMs(now);
- s.widgetPeriod={v:2,nominas:[],noNominas:[],kind:"mes",start,anchor:"",scope:JSON.stringify([2,start,"mes","gasto","",1000,["caixabank"],"caixabank",[[],[]]])};
+ s.widgetPeriod={v:2,nominas:[],noNominas:[],kind:"mes",start,anchor:"",scope:JSON.stringify([2,start,"mes","gasto",[[],[]],1000,["caixabank"],"caixabank"])};
  const trigger=row("trigger","BOOK","2026-10-16T09:00:00Z","other","trade_republic");
  const snapshot=widgetBudget.widgetSnapshot(s,[...rows,trigger],now,{id:trigger.id,event:"fin15",key:"synthetic"});
  assert.ok(snapshot);assert.equal(Math.round(snapshot.spent*100),320);
@@ -62,7 +62,7 @@ for(const [i,rows] of orders([pending,booked]).entries())test("FIN15 ROJO widget
 
 for(const [i,rows] of orders([pending,booked]).entries())test("FIN15 handler ingest real: month y widget tras PDNG/BOOK, orden "+i,async()=>{
  const s=state(),start=budget.inicioDeMesMs(Date.now());
- s.widgetPeriod={v:2,nominas:[],noNominas:[],kind:"mes",start,anchor:"",scope:JSON.stringify([2,start,"mes","gasto","",1000,["caixabank"],"caixabank",[[],[]]])};
+ s.widgetPeriod={v:2,nominas:[],noNominas:[],kind:"mes",start,anchor:"",scope:JSON.stringify([2,start,"mes","gasto",[[],[]],1000,["caixabank"],"caixabank"])};
  // El handler usa el reloj actual. Se conserva la distancia entre días dentro de su mes.
  const day1=new Date(start+36*3600000).toISOString().slice(0,10),day2=new Date(start+60*3600000).toISOString().slice(0,10);
  const env=fakeDb({state:s,rows:rows.map(r=>({...r,fecha:(r.id==="pending"?day1:day2)+"T10:00:00Z"}))});
@@ -208,7 +208,7 @@ test("FIN15 revision1: guarda banco/prefijo tiene oraculo propio",()=>{
 
 for(const [i,rows] of orders([{...pending,importe:30},{...booked,importe:33}]).entries())test("FIN15 revision1: PDNG30 BOOK33 fija month/widget dependientes del orden "+i,async()=>{
  const expected=i===0?3000:3300,s=state(),start=budget.inicioDeMesMs(Date.now());
- s.widgetPeriod={v:2,nominas:[],noNominas:[],kind:"mes",start,anchor:"",scope:JSON.stringify([2,start,"mes","gasto","",1000,["caixabank"],"caixabank",[[],[]]])};
+ s.widgetPeriod={v:2,nominas:[],noNominas:[],kind:"mes",start,anchor:"",scope:JSON.stringify([2,start,"mes","gasto",[[],[]],1000,["caixabank"],"caixabank"])};
  const day1=new Date(start+36*3600000).toISOString().slice(0,10),day2=new Date(start+60*3600000).toISOString().slice(0,10);
  const current=rows.map(r=>({...r,fecha:(r.id==="pending"?day1:day2)+"T10:00:00Z"}));
  assert.equal(cents({...s,expenses:c.mergeExpensesFromCloud([],current.map(c.expenseFromRow)).list}),expected);

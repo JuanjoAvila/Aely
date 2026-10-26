@@ -30,7 +30,7 @@ Deno.test("FIN11 widget real usa el titular autenticado y conserva 320 céntimos
   const now = Date.parse("2026-10-17T12:00:00Z"), start = inicioDeMesMs(now);
   const data = { _historyOwner: "stale-other-owner", budget: 1000, accounts: [{ ent: "caixabank", role: "diario", spendFrom: true }],
     settings: { expenseBanks: ["caixabank"] }, deleted: [], obAbsorbedPending: pending,
-    widgetPeriod: { v: 2, nominas: [], noNominas: [], kind: "mes", start, scope: JSON.stringify([2, start, "mes", "gasto", "", 1000, ["caixabank"], "caixabank", [[], []]]) } };
+    widgetPeriod: { v: 2, nominas: [], noNominas: [], kind: "mes", start, scope: JSON.stringify([2, start, "mes", "gasto", [[],[]], 1000, ["caixabank"], "caixabank"]) } };
   const kept = { ...row, id: "kept", source: "ob:caixabank#refp#accaccount-a", fecha: "2026-10-16T12:00:00.000Z" };
   const snapshot = widgetSnapshot(data, [kept, row], now, { id: "kept", event: "synthetic", key }, owner);
   eq(snapshot?.spent, 3.2);

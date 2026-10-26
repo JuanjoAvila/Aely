@@ -14,7 +14,7 @@ Deno.test("FIN15 revision1: PDNG30 BOOK33 month y widget conservan primera fila"
   const p = {id:"pending",fecha:"2026-10-08T21:59:00Z",importe:30,comercio:"Compra sintetica",cat:"otros",source:"ob:caixabank#refstable#pdng"};
   const b = {...p,id:"booked",fecha:"2026-10-09T10:00:00Z",importe:33,source:"ob:caixabank#refstable"};
   const trigger = {...b,id:"trigger",importe:0.01,source:"ob:trade_republic#refother"};
-  const data = {budget:1000,accounts:[{ent:"caixabank",role:"diario",spendFrom:true}],settings:{expenseBanks:["caixabank"]},widgetPeriod:{v:2,nominas:[],noNominas:[],kind:"mes",start,anchor:"",scope:JSON.stringify([2,start,"mes","gasto","",1000,["caixabank"],"caixabank",[[],[]]])}};
+  const data = {budget:1000,accounts:[{ent:"caixabank",role:"diario",spendFrom:true}],settings:{expenseBanks:["caixabank"]},widgetPeriod:{v:2,nominas:[],noNominas:[],kind:"mes",start,anchor:"",scope:JSON.stringify([2,start,"mes","gasto",[[],[]],1000,["caixabank"],"caixabank"])}};
   for (const rows of [[p,b],[b,p]]) {
     assertEquals(statsDelMes(filasComoLaApp(rows,[]),data,start).spent,rows[0].importe);
     assertEquals(widgetSnapshot(data,[...rows,trigger],now,{id:"trigger",event:"revision1",key:"synthetic"})?.spent,rows[0].importe);
@@ -51,8 +51,9 @@ function state(cycle = false) {
   return { accounts: [{ ent: "trade_republic", role: "diario", spendFrom: true }, { ent: "sabadell", role: "fijos" }],
     settings: { budgetCycle: cycle }, budget: 100, deleted: [], reservaLog: [],
     widgetPeriod: { v: 2, kind, start: from, anchor, ...(cycle ? {} : { nominas: [], noNominas: [] }),
-      // En el mes natural el alcance lleva qué ingresos grandes son nómina y cuáles no (26/10/2026).
-      scope: JSON.stringify(([2, from, kind, cycle ? "neto" : "gasto", anchor, 100, ["trade_republic"], "trade_republic"] as unknown[]).concat(cycle ? [] : [[[], []]])) } };
+      // En el mes natural el alcance lleva qué ingresos grandes son nómina y cuáles no, en el hueco
+      // del ancla: el nativo exige 8 elementos y descartaba un noveno (26/10/2026).
+      scope: JSON.stringify([2, from, kind, cycle ? "neto" : "gasto", cycle ? anchor : [[], []], 100, ["trade_republic"], "trade_republic"]) } };
 }
 const payment = { id: "payment", event: "tr:synthetic", key: "synthetic-key" };
 
@@ -165,7 +166,7 @@ Deno.test("mes natural: los ingresos devuelven margen salvo la nómina; ingreso 
     { id: "payment", fecha: "2026-10-10T10:00:00Z", importe: 2, cat: "super", source: "macrodroid", comercio: "Cafe" },
   ];
   const lists = (nominas: string[], noNominas: string[]) => {
-    const scope = JSON.stringify([2, start, "mes", "gasto", "", 1500, ["trade_republic"], "trade_republic", [nominas.slice().sort(), noNominas.slice().sort()]]);
+    const scope = JSON.stringify([2, start, "mes", "gasto", [nominas.slice().sort(), noNominas.slice().sort()], 1500, ["trade_republic"], "trade_republic"]);
     return { ...state(), budget: 1500, widgetPeriod: { v: 2, kind: "mes", start, anchor: "", scope, nominas, noNominas } };
   };
   const w = widgetSnapshot(lists([], []), oct, now, payment)!;
@@ -186,9 +187,16 @@ Deno.test("mes natural: los ingresos devuelven margen salvo la nómina; ingreso 
   const compra = { id: "c", fecha: "2026-10-04T10:00:00Z", importe: 250, cat: "ropa", source: "ob:trade_republic#refR1", comercio: "Tienda" };
   const devol = { ...compra, id: "d", fecha: "2026-10-05T10:00:00Z", importe: -250 };
   assertEquals(widgetSnapshot(lists([], [claveComoLaApp(devol)]), [...oct, compra, devol], now, payment)?.against, 1438.47);
-  // Listas escritas pero alcance de 8 (o al revés): no casa con ninguna web, sin foto.
-  const mezcla = lists([], []); mezcla.widgetPeriod.scope = JSON.stringify(JSON.parse(mezcla.widgetPeriod.scope).slice(0, 8));
+  // Listas escritas pero alcance sin ellas, o con ellas al final (la web 4.26.184/185, que el
+  // nativo descartaba): no casa con ninguna web, sin foto.
+  const mezcla = lists([], []), partes = JSON.parse(mezcla.widgetPeriod.scope);
+  mezcla.widgetPeriod.scope = JSON.stringify([...partes.slice(0, 4), "", ...partes.slice(5)]);
   assertEquals(widgetSnapshot(mezcla, oct, now, payment), null);
+  const nueve = lists([], []);
+  nueve.widgetPeriod.scope = JSON.stringify([...partes.slice(0, 4), "", ...partes.slice(5), [[], []]]);
+  assertEquals(widgetSnapshot(nueve, oct, now, payment), null);
+  // El alcance que acepta tiene los 8 elementos que exige el nativo.
+  assertEquals(JSON.parse(String(w.scope)).length, 8);
 });
 
 /* Los DOS alcances (R1 de la revisión, 26/10/2026): mientras convivan la web anterior y la nueva,
@@ -209,7 +217,7 @@ Deno.test("mes natural: la web anterior (alcance de 8, sin listas) recibe su bru
   // palabra no bloquea (esa web no decide nóminas).
   assertEquals(w.spent, 1924.19); assertEquals(w.against, 1924.19); assertEquals(w.budgetLeft, 0); assertEquals(w.shownDelta, 2);
   const nueva = { ...state(), budget: 1500, widgetPeriod: { v: 2, kind: "mes", start, anchor: "", nominas: [claveComoLaApp(oct[3])], noNominas: [claveComoLaApp(oct[2])],
-    scope: JSON.stringify([...base, [[claveComoLaApp(oct[3])], [claveComoLaApp(oct[2])]]]) } };
+    scope: JSON.stringify([...base.slice(0, 4), [[claveComoLaApp(oct[3])], [claveComoLaApp(oct[2])]], ...base.slice(5)]) } };
   const n = widgetSnapshot(nueva, oct, now, payment)!;
   assertEquals(n.spent, 1438.47); assertEquals(n.budgetLeft, 61.53);
 });

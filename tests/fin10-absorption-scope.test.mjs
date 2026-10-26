@@ -51,7 +51,7 @@ function rematesScenario(ctx,srv,keepAccount,bookAccount,ordinal){
  const other=ctx.mergeExpensesFromCloud([],incoming).list;
  const otherCents=other.filter(e=>ctx.expenseCountsBudget(e,{...after,expenses:other})).reduce((n,e)=>n+Math.round(e.amount*100),0);
  const start=srv.inicioDeMesMs(Date.now());
- const widgetState={...after,widgetPeriod:{v:2,nominas:[],noNominas:[],kind:"mes",start,anchor:"",scope:JSON.stringify([2,start,"mes","gasto","",1000,["caixabank"],"caixabank",[[],[]]])}};
+ const widgetState={...after,widgetPeriod:{v:2,nominas:[],noNominas:[],kind:"mes",start,anchor:"",scope:JSON.stringify([2,start,"mes","gasto",[[],[]],1000,["caixabank"],"caixabank"])}};
  const trigger={id:"outside-budget",fecha:new Date().toISOString(),importe:0.01,comercio:"Otro banco sintetico",cat:"otros",source:"ob:trade_republic#refoutside"};
  const snapshot=widgetBudget.widgetSnapshot(widgetState,cloudRows.concat(trigger),Date.now(),{id:trigger.id,event:"fin10-review",key:"synthetic"});
  const widgetCents=snapshot&&Math.round(snapshot.spent*100);
