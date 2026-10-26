@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "id": "fin29-30-rename-tombstones-r113-codex-20261026",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261026-r113-fda31257-221e8bd3-0daf-4283-8543-0a7be9dfe532",
+  "createdAt": "2026-10-26T11:46:01.847Z",
+  "to": "codex",
+  "baseSHA": "acae53b68325b934a3b537dd00f898ae5f7035d2",
+  "objective": "FIN29/30: distinguir alias de renombrado y lapida de borrado para que editar A no oculte una fila distinta del mismo dia/importe/nombre en otra cuenta o banco; causalidad RED/GREEN y paridad por filas/centimos, PR draft beta tras revision independiente.",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/04-tab-gastos.js",
+    "src/modules/08-motor-bank.js",
+    "supabase/functions/_shared/presupuesto.ts",
+    "tests/fin19-r7-ficha-rename.test.mjs",
+    "tests/fin19-r5-remote-rename.test.mjs",
+    "tests/fin29-30-rename-scope.test.mjs",
+    "scripts/run-tests.mjs",
+    "docs/TESTING.md",
+    "docs/BACKLOG.md",
+    "docs/ARQUITECTURA.md",
+    "CHANGELOG.md",
+    "docs/ROADMAP.md",
+    "README.md"
+  ],
+  "grants": [
+    "7ae3e7e57d70e08ce6859efa6dd1518c35630680",
+    "c4d9c5a44f3a8e1f775c509e89735a5c07198977",
+    "de7e8878ab7d4b105e408b679e48e5b7c3892229",
+    "e42252eb4444e23228b565b7d2da5b0ee5e13e43",
+    "db3299cd69020ccf15563e787d1a1f4b69e8a753"
+  ],
+  "requirements": [
+    "RECEPCION primero: runtime threadId/sessionId/cwd propios e inventario nativo Aely local, nonce nuevo prefijo fda31257, ACK privado fsync/readback; sinfetch/claim/checkout/codigo/tests antes admision nativa ROOT. Identidad nueva no hereda claim/counter/helper de debounce ni de ROOT. OWN20 inicial nuevo0 bajo e42252eb, helper/ledger/state propios, todosFULL/cancelaciones y aviso/ACK/readback>=30s antes de producto. Claim/ACK/readback propios y ROOTACK antes de checkoutGO.",
+    "Limite exacto Claude7ae: en00-core SOLO contrato alias/lapidas/renombrado; en04-tab-gastos SOLO ficha renombrado~886-891; en08-motor-bank SOLO lectorlapidas~1946-1956. No lista/cifra viva/scroll/Gastos/Inicio/widget ajenos. _shared/presupuesto.ts SOLO fuente espejo con paridad; ningun Edge/SQL/deploy/backend por arrastre. Si alcance requiere otro hunk, STOP y consulta ROOT antes editar.",
+    "Causa estatica no es RED ejecutado: expenseRenameAck y ficha offline/sandbox/transition usan keys globales; expenseIsTombstoned oculta otra cuenta/banco. Sustituir ciegamente por expenseDeletionKey tambien oculta la fila propia porobName. Separar alias tipado de renombrado y borrado con identidad/UUID/banco/cuenta; conservar scoped identity FIN19 y contratos de absorciones/owner/ordinales/referencias. No inferir titular ni modificar historico ambiguo por parecido.",
+    "Preparar checkout/rama propios nuevos desde base exacta. Reutilizar extractor/logica y fixturefin19-r4 para harness causal enmemoria, sin build/browser/DB. Disenar nueva evidencia dirigida y oraculo independiente alcentimo/filas completas: dosbancos y doscuentas mismo banco con igual fechaimportecomercio; renombrarA mantiene2filas640c/320porbanco, persist/reload/pull/reimport sin duplicar, renameback, FIN04ACK, borrado/undo segun intencion confirmada, manual/abono/notas/referencias intactos.",
+    "Los testsfin19-r7/r5 que documentan la perdida de una fila por renombrado deben corregirse al oraculo2filas640c SOLO donde sea ese escenario. No blanket cambiar totales legitimos de borrado/undo a640 ni reinterpretar legacy sinambito sin autoridad suficiente; si contrato irreduciblemente ambiguo consultaROOT con caso preciso. Explicar cada correccion de oraculo encommit. Nada de datos reales, scripts de reparacion o migracion automatica.",
+    "RED primero contra fuente base, producto sin editar. ROOT revisa plan/harness exactos y concede runnerGO/admissionRED separados. Solo trasREDcausal yROOTGO codigo; GREEN separado con mismooraculo/harness y admission propia. CPU1serial1worker0retry/stopfirstfailure, fuentes/logs/cmd/EXIT/report yRETURN propios durables, censo actual y recursos propios; no fullsuite/JVM/Gradle/APK/ADB/browser/server ni procesos ajenos por arrastre. No repetir tests cerrados sin cambio causal nuevo.",
+    "Registrar test nuevo en runner y docs tecnicas pertinentes, sinversiones/catalogo/RELEASE_NOTES/generated/deps/install. Candidato privado TERMINADO HEAD/tree/parent/diff/bundle/manifest/hashes, prueba causal y revision financiera independiente exactSHA antes ROOTGO publicacion. Solo pushnormal rama propia y UNA PRdraft beta, sinforce/rebase/merge/integracion. No publicacion de codigo incompleto.",
+    "Deadline propio real60min desdeadmision; ROOT113 termina su turno horario independientemente a11:56:48.066Z, su relevo no cambia tuclaim/OWN/deadline. Planear cierre/checkpoint/RETURN/readbacks con margen10min antes de tu limite para absorber NFF, no nueva corrida larga sin margen. No extender90min ni bypass; operaciones en curso primerpunto seguro.",
+    "Reporta ACK/avances/recursos/RETURN SOLO al ROOT nativo vigente segun current; SOLO ROOT reportaClaude. Si ROOT cambia, actualiza solo tu ruta/guards privados bajo admision nueva, nunca identidadclaimcontadorplazo. Sin movil/servido/ProductREADY/avisodueno. FIN05 aplazado hasta beta183+avisoClaude; no tomarotras tareas."
+  ],
+  "acceptance": "RED causal y GREEN dirigidos con filas completas y exactitud alcentimo, contratos financieros/ambito preservados, revision monetaria independiente y candidata final verificada, seguida de PRdraft beta autorizada; fuente espejo sin deploy y sin aceptacion live/movil."
+}
