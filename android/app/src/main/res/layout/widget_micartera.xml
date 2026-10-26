@@ -38,6 +38,20 @@
         android:max="100"
         android:progress="0" />
 
+    <!-- Pasado del límite: la misma barra, llena y en el coral de la cifra (CORAL del widget).
+         Va aparte porque cambiar el tinte desde RemoteViews exige Android 12. -->
+    <ProgressBar
+        android:id="@+id/w_bar_over"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="6dp"
+        android:layout_marginTop="6dp"
+        android:progressTint="#F28B82"
+        android:progressBackgroundTint="#1E2B24"
+        android:max="100"
+        android:progress="100"
+        android:visibility="gone" />
+
     <TextView
         android:id="@+id/w_sub"
         android:layout_width="wrap_content"

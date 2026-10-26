@@ -406,11 +406,15 @@ public class MiCarteraWidget extends AppWidgetProvider {
         RemoteViews rv = new RemoteViews(ctx.getPackageName(), R.layout.widget_micartera);
         rv.setTextViewText(R.id.w_title, t[WidgetPeriod.TITULO]);
         rv.setTextViewText(R.id.w_amount, mesDistinto || sinDato ? "—" : eur0(spent));
-        rv.setTextColor(R.id.w_amount, (budget > 0 && spent > budget) ? CORAL : MINT);
+        boolean over = budget > 0 && spent > budget;
+        rv.setTextColor(R.id.w_amount, over ? CORAL : MINT);
 
         // «Lo que te puedes permitir» (gasto seguro): lo que puedes gastar sin pasarte ni quedarte
         // en rojo. Es la cifra que el usuario quería ver, no solo lo ya gastado (feedback 2026-07-18).
-        if (hasAfford) {
+        // Pasado del límite se calla: salía «✅ Puedes gastar 0 €» en rojo con la barra verde llena
+        // (1.912 € de 1.500, 26/10/2026). El exceso ya lo dice `w_sub` («412 € de más 🚨», como el
+        // «de más» de Inicio); una segunda frase con la misma cifra solo repetiría.
+        if (hasAfford && !over) {
             rv.setViewVisibility(R.id.w_afford, View.VISIBLE);
             rv.setTextViewText(R.id.w_afford, t[WidgetPeriod.PUEDES] + eur0(afford));
             rv.setTextColor(R.id.w_afford, afford > 0 ? MINT : CORAL);
@@ -421,16 +425,21 @@ public class MiCarteraWidget extends AppWidgetProvider {
         if (mesDistinto || sinDato) {
             rv.setTextViewText(R.id.w_sub, mesDistinto ? t[WidgetPeriod.SIN_DATOS] : t[WidgetPeriod.ABRE_APP]);
             rv.setViewVisibility(R.id.w_bar, View.GONE);
+            rv.setViewVisibility(R.id.w_bar_over, View.GONE);
         } else if (budget > 0) {
             double left = budget - spent;
             rv.setTextViewText(R.id.w_sub, (left >= 0 ? t[WidgetPeriod.QUEDAN] : t[WidgetPeriod.EXCESO])
                     .replace("{b}", eur0(budget)).replace("{l}", eur0(left)).replace("{x}", eur0(-left)));
             // En el ciclo el neto puede ser negativo (cobraste más de lo que gastaste): barra a 0.
             rv.setProgressBar(R.id.w_bar, 100, (int) Math.max(0, Math.min(100, Math.round(spent / budget * 100))), false);
-            rv.setViewVisibility(R.id.w_bar, View.VISIBLE);
+            // Pasado, la barra va en coral como la cifra. Es otra barra y no un tinte porque
+            // `setColorStateList` en RemoteViews no existe hasta Android 12 y minSdk es 23.
+            rv.setViewVisibility(R.id.w_bar, over ? View.GONE : View.VISIBLE);
+            rv.setViewVisibility(R.id.w_bar_over, over ? View.VISIBLE : View.GONE);
         } else {
             rv.setTextViewText(R.id.w_sub, t[WidgetPeriod.SIN_PRESUPUESTO]);
             rv.setViewVisibility(R.id.w_bar, View.GONE);
+            rv.setViewVisibility(R.id.w_bar_over, View.GONE);
         }
 
         String foot = "";
