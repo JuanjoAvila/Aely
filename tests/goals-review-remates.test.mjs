@@ -89,7 +89,8 @@ test("bajos: telemetría una vez por registro tras dos arranques",()=>{
 test("bajos: SIGNED_OUT borra registros del titular y no los recupera el siguiente guardado",()=>{
  const x=logic(),c=x.c;let current=based(seed());current._goalSync.conflicts=[{code:"goals_reserve_conflict",local:{goals:current.goals}}];c.mcSaveRaw("micartera_v3",current);
  const a=app.indexOf("const prev=sessionRef.current;",app.indexOf("const off=cloud.onAuth")),z=app.indexOf("// Vuelta del email",a);
- const auth=vm.runInContext("(function(s,ev,sessionRef,setSession,set){const cloudPullRef={current:null},cloudReadRef={current:null},cloudUpdatedAtRef={current:null};"+app.slice(a,z)+"})",c);
+ // La renovación vive en el mismo cierre del callback real; aislarlo sin ella abortaba antes del borrado.
+ const auth=vm.runInContext("(function(s,ev,sessionRef,setSession,set){let alive=true,resumePull=null,resumeTimer=null;const cloudPullRef={current:null},cloudReadRef={current:null},cloudUpdatedAtRef={current:null};"+block(app,"const renewPull=function(")+";"+app.slice(a,z)+"})",c);
  auth(null,"SIGNED_OUT",{current:{user:{id:owner}}},()=>{},f=>{current=f(current);});c.mcSaveRaw("micartera_v3",current,{expenses:false});
  assert.ok(!current._goalSync || !(current._goalSync.conflicts||[]).length);const restored=c.mcLoadRaw("micartera_v3");assert.ok(!restored._goalSync || !(restored._goalSync.conflicts||[]).length);
  c.mcSaveRaw("micartera_v3",{...current,_goalSync:{owner,conflicts:[{code:"goals_reserve_conflict",local:{goals:current.goals}}]}},{expenses:false});
