@@ -1476,3 +1476,14 @@ El handler legacy conserva las cifras ante entradas null en reservaLog, que el l
 `tests/fixed-ispaidin.test.mjs`, registrado en `steps`, carga los módulos fuente y reproduce deshacer/rehacer sin pull ni `planSyncDerived`. Contrasta saldo, pendiente y proyección en céntimos con una cuenta anclada; ejecuta también los callbacks reales de totals y recordatorios. Conserva BOOK y sus marcas/calendario anteriores (incluido alquiler750 sin día el2 de noviembre); cubre ob/ob-hist, veto, lápida, retirada, PDNG, duplicados, modelo/identidad, otros meses/años, marcas manuales y el calendario. Wallet/macrodroid/tr/manual y prueba expense sin fila local conservan su frontera visual.
 
 `e2e/fixed-ispaidin.spec.mjs`, en el mapa de07, abre las fichas reales: saldo800,23 → deshacer842,60 → rehacer800,23; Plan pasa de42,37 pendientes a cero cargos pendientes. Se espían pull/derivación y se exige cero llamadas, cuentas/gastos intactos y ningún evento bancario futuro duplicado. Datos sintéticos, Chromium aislado; no acredita aceptación móvil.
+
+
+## FIN-27 R2 · Saldo al migrar el mes del BOOK
+
+`tests/fin27-balance-reanchor.test.mjs` está registrado en `steps`; el spec homónimo se registra
+en el mapa de `08-motor-bank.js`. Comprueba el saldo que pinta la cuenta por separado de la
+caja BOOK y la asignación mensual, con pull cloud entrante, rekey con banco fallido o puente TR,
+replay, cero/negativo y sync posterior. El DOM usa el transporte/updater reales con datos
+sintéticos y conserva el servidor simulado tras un UPDATE CAS y recarga. Pruebas dirigidas
+CPU1, un worker y cero reintentos; no sustituye CI general ni aceptación móvil.
+[Contrato y límites](briefs/fin27-book-charge-month.md).

@@ -177,7 +177,7 @@ function fixedPaymentUnique(s,e){
   return !!e.id&&(s.fixed||[]).filter(function(f){ return f.id===e.id; }).length===1;
 }
 function fixedPaymentBookRival(s,e,y,m,identity){
-  var p=e.paymentProofs&&e.paymentProofs[y*12+m];
+  var p=fixedPaymentStoredProof(s,e,y,m);
   // La ambigüedad puede invalidar el pago, pero no regalar su cargo al recibo nuevo.
   // Solo esta identidad y este mes conservan el nombre que vinculó el BOOK al id.
   return p&&p.kind==="book"&&p.modelVersion===2&&p.identity===identity&&
@@ -257,9 +257,9 @@ function reciboNoUnion(local,nube){
   return out;
 }
 function fixedPaymentProof(s,e,y,m,today){
-  var p=e.paymentProofs&&e.paymentProofs[y*12+m];
+  var p=fixedPaymentStoredProof(s,e,y,m);
   if(p&&reciboVetado(s,e.id,p.identity)) return null;
-  if(!p||!fixedPaymentUnique(s,e)||!p.identity||!(p.amount>0)||!p.bank||!occursIn(e,m)||!fixedPaymentModelMatches(p,e,m)||!fixedPaymentDate(p.date,y,m,today)) return null;
+  if(!p||!fixedPaymentUnique(s,e)||!p.identity||!(p.amount>0)||!p.bank||!occursIn(e,m)||!fixedPaymentModelMatches(p,e,m)||!fixedPaymentDate(p.kind==="book"?fixedPaymentBookDate(s,p):p.date,y,m,today)) return null;
   if(p.kind!=="expense"&&p.kind!=="book") return null;
   if(p.kind==="expense"){
     if(!fixedPaymentFeedClear(s,p.identity)) return null;
@@ -283,13 +283,13 @@ function fixedPaymentProof(s,e,y,m,today){
     if((s.accounts||[]).filter(function(a){ return a.ent===p.bank&&accFixed(a); }).length!==1||
       !fixedPaymentAutoOwner(owners,owner,y,m,p.bank,p.merchant,p.amount,null,true,p.identity)) return null;
     if((s.bankTx||[]).filter(function(tx){
-      return tx.ent===p.bank&&String(tx.status||"").toUpperCase()==="BOOK"&&fixedPaymentDate(tx.date,y,m,today)&&Number(tx.amount)>0&&recNameMatch(owner.name,tx.merchant)&&recAmtClose(target,Number(tx.amount));
+      return tx.ent===p.bank&&String(tx.status||"").toUpperCase()==="BOOK"&&fixedPaymentDate(fixedPaymentBookDate(s,fixedPaymentBookRecord(tx)),y,m,today)&&Number(tx.amount)>0&&recNameMatch(owner.name,tx.merchant)&&recAmtClose(target,Number(tx.amount));
     }).length>1) return null;
   }
   // La identidad elegida viaja en app_state, incluso si este móvil no tiene extracto. No cambia
   // paidYm: ese campo interviene en los saldos; acreditar el recibo solo cambia su estado visual.
   if((s.fixed||[]).some(function(f){
-    var q=f.paymentProofs&&f.paymentProofs[y*12+m];
+    var q=fixedPaymentStoredProof(s,f,y,m);
     return f.id!==e.id&&q&&q.identity===p.identity&&fixedPaymentModelMatches(q,f,m);
   })) return null;
   return p;
@@ -312,12 +312,64 @@ function fixedPaymentBookSameRef(s,p,x){
     Math.round(Number(x.amount)*100)===Math.round(Number(p.amount)*100)&&
     !(s.bankTx||[]).some(function(t){ return t.ent===p.bank&&String(t.id)===String(x.extId)&&x.obAcc&&t.acc&&String(t.acc)!==String(x.obAcc); });
 }
+function fixedPaymentBookRecord(tx){ return {bank:tx.ent,key:tx.id==null||String(tx.id)===""?null:tx.ent+"|"+tx.id,date:tx.date,amount:tx.amount,identity:fixedPaymentIdentity(tx.ent,tx)}; }
+/* FIN-27: el asiento mantiene su fecha bancaria; SOLO su cargo inequívoco con la misma ref
+   fija el mes del recibo. No adivinamos por nombre/importe ni elegimos entre refs repetidas.
+   El índice depende del histórico, pero los vetos, lápidas y estado del cargo se leen vivos. */
+function fixedPaymentBookDate(s,p){
+  var expenses=s.expenses,cache=fixedPaymentBookDate.cache||(fixedPaymentBookDate.cache=new WeakMap()),refs=Array.isArray(expenses)&&cache.get(expenses);
+  if(!refs){
+    refs=new Map();
+    (expenses||[]).forEach(function(x){
+      if(!x||!x.extId||!(Number(x.amount)>0)) return;
+      var key=expenseBankOf(x)+"|"+x.extId,rows=refs.get(key);
+      if(rows) rows.push(x);else refs.set(key,[x]);
+    });
+    if(Array.isArray(expenses)) cache.set(expenses,refs);
+  }
+  var rows=refs.get(p.key)||[],x=rows.length===1?rows[0]:null;
+  if(x&&!x.possibleDup&&!x.obPending&&!x.debtId&&!metaDeGasto(x)&&!CAT_NEUTRAS[x.category]&&x.category!=="ingreso"&&
+    ["ob","ob-hist"].indexOf(x.source)>=0&&String(x.status||"").toUpperCase()==="BOOK"&&
+    (!(x.cur||x.currency)||String(x.cur||x.currency).toUpperCase()==="EUR")&&!expenseIsTombstoned(x,expenseDeletedSet(s))&&fixedPaymentBookSameRef(s,p,x)){
+    var account=(s.accounts||[]).find(function(a){ return a.ent===p.bank&&accFixed(a); });
+    var known=account?[account.bankIban,account.bankUid].filter(Boolean).map(String):[];
+    if(!x.obAcc||!known.length||known.indexOf(String(x.obAcc))>=0) return String(x.date).slice(0,7)!==String(p.date).slice(0,7)?String(x.date).slice(0,10):String(p.date).slice(0,10);
+  }
+  // El merge puede reunir la prueba antigua (mes BOOK) y la nueva (mes cargo). La misma
+  // identidad conserva UNA atribución aun sin histórico local, sin borrar la copia offline.
+  if(!rows.length){
+    var dates=new Set(),add=function(q){
+      if(q&&q.kind==="book"&&q.key===p.key&&q.identity===p.identity&&q.bank===p.bank&&Number(q.amount)===Number(p.amount)&&q.chargeDate&&
+        fixedPaymentBookSameRef(s,p,{extId:String(p.key||"").slice(p.bank.length+1),ent:p.bank,date:q.chargeDate,amount:p.amount})) dates.add(q.chargeDate);
+    };
+    add(p);(s.fixed||[]).forEach(function(f){
+      if(!fixedPaymentUnique(s,f)||p.receiptId!=null&&p.receiptId!==f.id) return;
+      Object.keys(f.paymentProofs||{}).forEach(function(k){
+        var q=f.paymentProofs[k],M=Number(String(q&&q.chargeDate||"").slice(5,7)),name=q&&q.modelVersion===2?q.receiptName:f.name;
+        // No usar fixedPaymentProof aquí: vuelve a pedir esta fecha. El aporte ajeno necesita
+        // su contrato propio, identidad bancaria y estado firmes antes de compartir el mes.
+        if(q&&q.kind==="book"&&q.bank===accOf(f)&&occursIn(f,M)&&fixedPaymentModelMatches(q,f,M)&&
+          q.identity===fixedPaymentIdentity(q.bank,q)&&q.amount>0&&recNameMatch(name,q.merchant)&&recAmtClose(f.bankAmount>0?f.bankAmount:occAmountIn(f,M),q.amount)&&
+          !reciboVetado(s,f.id,q.identity)&&fixedPaymentFeedClear(s,q.identity)&&
+          (s.accounts||[]).filter(function(a){ return a.ent===q.bank&&accFixed(a); }).length===1&&
+          (s.bankTx||[]).filter(function(tx){ return tx.ent===q.bank&&q.key===tx.ent+"|"+tx.id; }).length<=1) add(q);
+      });
+    });
+    if(dates.size) return dates.size===1?Array.from(dates)[0]:"";
+  }
+  return String(p.date||"").slice(0,10);
+}
+function fixedPaymentStoredProof(s,e,y,m){
+  var proofs=e.paymentProofs||{},p=proofs[y*12+m],ym=y+"-"+String(m).padStart(2,"0");
+  if(!p){ var next=proofs[y*12+m+1];if(next&&next.kind==="book") p=next; }
+  return p&&p.kind==="book"&&fixedPaymentBookDate(s,p).slice(0,7)!==ym?null:p;
+}
 /* UN CARGO PAGA UN RECIBO (FIN-23, revisión de youtube-r4, 19/10/2026). Con el BOOK de YouTube
    contabilizado días después del cargo, la identidad de su prueba lleva la fecha y el texto del
    BOOK y no casaba con el cargo: la ficha ofrecía Spotify (mismo banco y céntimos), el enlace se
    escribía y Plan daba los dos por pagados con un solo cargo. Devuelve el OTRO recibo cuyo BOOK
-   (prueba guardada o extracto) es este cargo; mira también el mes siguiente, porque el BOOK del 30
-   puede caer el 2, y ahí cuenta incluso el mismo recibo (un cargo, un mes). Gana el BOOK: así un
+   (prueba guardada o extracto) es este cargo; mira también el mes siguiente para conservar las
+   pruebas anteriores a FIN-27 que aún estén bajo la fecha bancaria. Gana el BOOK: así un
    enlace a mano que ya se guardó deja de contar sin borrarlo, y la ficha lo enseña para deshacerlo.
    Dentro de la comprobación se lee el recibo del BOOK con la regla de antes: sin el contador, su
    estado volvería a preguntar por el enlace de Spotify y no acabaría nunca. */
@@ -334,14 +386,13 @@ function fixedPaymentChargeOwner(s,x,e,y,m,today){
     for(var ym=y*12+m;ym<=y*12+m+1&&ym<=cur&&!owner;ym++){
       var Y=Math.floor((ym-1)/12),M=ym-Y*12,T=ym===y*12+m?today:ym===cur?now.getDate():new Date(Y,M,0).getDate();
       owner=(s.fixed||[]).find(function(f){
-        // El mes siguiente vale también para el MISMO recibo: si su BOOK ya paga octubre, ese cargo
-        // del 30 no le paga además septiembre.
+        // Conserva el propietario aunque la prueba antigua siga guardada bajo el mes del BOOK.
         if(f.id===e.id&&ym===y*12+m||!occursIn(f,M)) return false;
-        var q=f.paymentProofs&&f.paymentProofs[ym];
+        var q=fixedPaymentStoredProof(s,f,Y,M);
         if(q&&q.kind==="book"&&q.key===ref&&fixedPaymentBookSameRef(s,q,x)&&fixedPaymentProof(s,f,Y,M,T)===q) return true;
         // El extracto solo cuenta si es lo que acredita ese recibo: con su propia prueba, el BOOK
         // que además casa por nombre no le suma otro pago.
-        if(accOf(f)!==bank||!txs.some(function(tx){ return String(tx.date||"").slice(0,7)===Y+"-"+String(M).padStart(2,"0")&&recNameMatch(f.name,tx.merchant); })) return false;
+        if(accOf(f)!==bank||!txs.some(function(tx){ return fixedPaymentBookDate(s,fixedPaymentBookRecord(tx)).slice(0,7)===Y+"-"+String(M).padStart(2,"0")&&recNameMatch(f.name,tx.merchant); })) return false;
         var st=fixedPaymentState(s,f,Y,M,T);
         return !st.proof&&txs.indexOf(st.bankTx)>=0;
       })||null;
@@ -394,18 +445,42 @@ function linkFixedPayment(s,expenseId,fixedId,y,m,today,expected){
 function reconcileFixedPaymentProofs(s,y,m,today){
   var changed=false,ym=y*12+m;
   var fixed=(s.fixed||[]).map(function(e){
-    if(!occursIn(e,m)||fixedPaymentProof(s,e,y,m,today)) return e;
+    var posted=e.paymentProofs&&e.paymentProofs[ym];
+    if(posted&&posted.kind==="book"){
+      var date=fixedPaymentBookDate(s,posted),Y=Number(date.slice(0,4)),M=Number(date.slice(5,7)),targetYm=Y*12+M;
+      if(targetYm===ym-1&&!e.paymentProofs[targetYm]&&fixedPaymentProof(s,e,Y,M,new Date(Y,M,0).getDate())===posted){
+        var rekeyed=Object.assign({},e.paymentProofs,{[targetYm]:Object.assign({},posted,{chargeDate:date})});delete rekeyed[ym];
+        changed=true;e=Object.assign({},e,{paymentProofs:rekeyed});
+        if(e.paidYm===ym&&e.paidDay===recDay(posted.date)){ delete e.paidYm;delete e.paidDay; }
+      }
+    }
+    if(!occursIn(e,m)) return e;
+    var existing=fixedPaymentProof(s,e,y,m,today);
+    if(existing){
+      if(existing.kind!=="book") return e;
+      var chargeDate=fixedPaymentBookDate(s,existing);
+      if(chargeDate===String(existing.date).slice(0,10)||existing.chargeDate===chargeDate&&e.paymentProofs[ym]===existing) return e;
+      var moved=Object.assign({},e.paymentProofs,{[ym]:Object.assign({},existing,{chargeDate:chargeDate})});
+      // Solo se mueve ESTA prueba válida; una prueba inválida u otra referencia se conserva.
+      if(moved[ym+1]===existing) delete moved[ym+1];
+      changed=true;var movedFixed=Object.assign({},e,{paymentProofs:moved});
+      if(e.paidYm===ym+1&&e.paidDay===recDay(existing.date)){ delete movedFixed.paidYm;delete movedFixed.paidDay; }
+      return movedFixed;
+    }
     // Una prueba existente inválida necesita confirmación expresa, no una conversión
     // por coincidencia de nombre al sincronizar (incluido Ibi → IBI).
-    if(e.paymentProofs&&Object.prototype.hasOwnProperty.call(e.paymentProofs,ym)) return e;
+    if(e.paymentProofs&&Object.prototype.hasOwnProperty.call(e.paymentProofs,ym)||fixedPaymentStoredProof(s,e,y,m)) return e;
     var status=fixedPaymentState(s,e,y,m,today),tx=status.bankTx;
     if(!tx) return e;
     changed=true;
     var p={kind:"book",key:tx.ent+"|"+(tx.id||[tx.date,tx.amount,tx.merchant].join("|")),identity:fixedPaymentIdentity(tx.ent,tx),date:tx.date,bank:tx.ent,merchant:tx.merchant,amount:Number(tx.amount),model:fixedPaymentModel(e,m)};
+    var chargeDate=fixedPaymentBookDate(s,p);if(chargeDate!==String(p.date).slice(0,10)) p.chargeDate=chargeDate;
     p=fixedPaymentBind(p,e,m);
     return Object.assign({},e,{paymentProofs:Object.assign({},e.paymentProofs,{[ym]:p})});
   });
-  return changed?Object.assign({},s,{fixed:fixed}):s;
+  // Mover la prueba o su marca no trae un saldo nuevo: el banco puede fallar y TR
+  // puede depender del puente nativo. La migración conserva el saldo ya mostrado.
+  return changed?conSaldoMostrado(s,Object.assign({},s,{fixed:fixed})):s;
 }
 function rekeyFixedPaymentExpense(s,old,next){
   if(old.id!==next.id||fixedPaymentIdentity(expenseBankOf(old),old)!==fixedPaymentIdentity(expenseBankOf(next),next)) return s;
@@ -434,12 +509,14 @@ function fixedPaymentState(s,e,y,m,today){
   var target=typeof e.bankAmount==="number"&&e.bankAmount>0?e.bankAmount:occAmountIn(e,m);
   var bank=accOf(e),matches=(s.bankTx||[]).filter(function(tx){
     if(!tx||tx.ent!==bank||tx.possibleDup||String(tx.status||"").toUpperCase()!=="BOOK") return false;
-    var ds=String(tx.date||"").slice(0,10),d=recDay(ds);
+    var ds=fixedPaymentBookDate(s,fixedPaymentBookRecord(tx)),d=recDay(ds);
     if(!/^\d{4}-\d{2}-\d{2}$/.test(ds)||ds.slice(0,7)!==ym||d==null||d>today||d>new Date(y,m,0).getDate()) return false;
     return Number(tx.amount)>0&&recNameMatch(e.name,tx.merchant)&&recAmtClose(target,Number(tx.amount))&&!reciboVetado(s,e.id,fixedPaymentIdentity(tx.ent,tx));
   });
   var paidDay=e.paidYm===y*12+m&&Number(e.paidDay);
   var persisted=paidDay>=1&&paidDay<=today&&paidDay<=new Date(y,m,0).getDate();
+  var posted=e.paymentProofs&&e.paymentProofs[y*12+m];
+  if(posted&&posted.kind==="book"&&paidDay===recDay(posted.date)&&fixedPaymentBookDate(s,posted).slice(0,7)!==ym) persisted=false;
   var tx=matches.length===1?matches[0]:null;
   if(tx){
     if((s.fixed||[]).some(function(f){
@@ -458,7 +535,7 @@ function fixedPaymentState(s,e,y,m,today){
   // nombre completo y los céntimos deben identificar un único recibo incluso en otra
   // entidad; un token genérico o importe parecido requiere confirmación expresa (10/10).
   var name=recNorm(e.name);
-  if(!proof&&!persisted&&!tx&&matches.length<2&&name.length>=4&&!(e.paymentProofs&&e.paymentProofs[y*12+m])){
+  if(!proof&&!persisted&&!tx&&matches.length<2&&name.length>=4&&!fixedPaymentStoredProof(s,e,y,m)){
     var rows=fixedPaymentExpenseRows(s,name,ym,target).filter(function(x){
       if(!x||["ob","ob-hist","wallet","macrodroid","tr"].indexOf(x.source)<0||String(x.date||"").slice(0,7)!==ym) return false;
       if((x.cur||x.currency)&&String(x.cur||x.currency).toUpperCase()!=="EUR"||expenseBankOf(x)==="efectivo") return false;
@@ -486,7 +563,7 @@ function fixedPaymentState(s,e,y,m,today){
     expense=fixedPaymentExpenseChoice(rows);
   }
   var paid=!!proof||!!persisted||!!tx||!!expense;
-  return {paid:paid,day:paid?(proof?recDay(proof.date):persisted?paidDay:recDay((tx||expense).date)):day,
+  return {paid:paid,day:paid?(proof?recDay(proof.kind==="book"?fixedPaymentBookDate(s,proof):proof.date):persisted?paidDay:tx?recDay(fixedPaymentBookDate(s,fixedPaymentBookRecord(tx))):recDay(expense.date)):day,
     overdue:!paid&&day!=null&&day<today,bankTx:tx,paidBank:paid?(proof?proof.bank:tx?tx.ent:expense?expenseBankOf(expense):bank):null,
     paidAmount:proof?Number(proof.amount):tx?Number(tx.amount):expense?Number(expense.amount):null,proof:proof,expense:expense};
 }
@@ -4216,7 +4293,7 @@ function billsGroupMonthly(state, group, curMonth, curYear){
 function fixedPaymentDerivedDay(s,status){
   const proof=status.proof;
   const bankExpense=proof&&proof.kind==="expense"&&(fixedPaymentExpenses(s,String(proof.date).slice(0,7)).identity.get(proof.identity)||[]).some(function(x){return x.source==="ob"||x.source==="ob-hist";});
-  return status.bankTx?recDay(status.bankTx.date):proof&&(proof.kind==="book"||bankExpense)&&recDay(proof.date);
+  return status.bankTx?recDay(fixedPaymentBookDate(s,fixedPaymentBookRecord(status.bankTx))):proof&&(proof.kind==="book"||bankExpense)&&recDay(proof.kind==="book"?fixedPaymentBookDate(s,proof):proof.date);
 }
 function planSyncDerived(s,prev){
   if(s.fixed===prev.fixed)return s;
@@ -4243,7 +4320,9 @@ function planSyncDerived(s,prev){
     return goalSyncEqual(old,next)?old:next;
   });
   const fixed=goalSyncEqual(rows,prev.fixed)?prev.fixed:goalSyncEqual(rows,s.fixed)?s.fixed:rows;
-  return fixed===s.fixed?s:Object.assign({},s,{fixed:fixed});
+  // El pull ya eligió las cuentas entrantes: comparar con prev desharía sus cambios
+  // legítimos de saldo. Sólo compensamos lo que estas marcas derivadas acaban de mover.
+  return fixed===s.fixed?s:conSaldoMostrado(s,Object.assign({},s,{fixed:fixed}));
 }
 function patchFixedById(set, id, p){
   set(function(s){

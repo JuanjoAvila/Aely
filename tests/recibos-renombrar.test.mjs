@@ -12,7 +12,7 @@ if(process.env.AELY_RENAME_MUTANT){
     legacy:["p.model===fixedPaymentModel(e,m)","true"],
     noUpgrade:["if(p.name!==e.name&&", "if(false&&p.name!==e.name&&"],
     bookName:["owner=Object.assign({},e,{name:p.receiptName});","owner=e;"],
-    syncUpgrade:["if(e.paymentProofs&&Object.prototype.hasOwnProperty.call(e.paymentProofs,ym)) return e;", ""],
+    syncUpgrade:["if(e.paymentProofs&&Object.prototype.hasOwnProperty.call(e.paymentProofs,ym)||fixedPaymentStoredProof(s,e,y,m)) return e;", ""],
     tombstone:["if((s.deleted||[]).indexOf(p.expenseKey)>=0||(p.expenseLegacyKey&&(s.deleted||[]).indexOf(p.expenseLegacyKey)>=0)) return null;",""]
   };
   const [from,to]=mutants[process.env.AELY_RENAME_MUTANT]||[];

@@ -9,7 +9,7 @@ if(process.env.AELY_BOOK_RIVAL_MUTANT){
     both:[['var p=fixedPaymentProof(s,f,y,m,today)||fixedPaymentBookRival(s,f,y,m,fixedPaymentIdentity(tx.ent,tx));','var p=fixedPaymentProof(s,f,y,m,today);'],['if(rival) f=Object.assign({},f,{name:rival.receiptName});','']],
     name:[['if(rival) f=Object.assign({},f,{name:rival.receiptName});','']],
     identity:[['p.identity===identity&&','true&&']],
-    month:[['var p=e.paymentProofs&&e.paymentProofs[y*12+m];','var p=e.paymentProofs&&Object.values(e.paymentProofs)[0];']],
+    month:[['var p=fixedPaymentStoredProof(s,e,y,m);','var p=e.paymentProofs&&Object.values(e.paymentProofs)[0];']],
     kind:[['p.kind==="book"&&p.modelVersion===2&&','p.modelVersion===2&&']],
     veto:[['&&!reciboVetado(s,e.id,identity)', '']]
   };

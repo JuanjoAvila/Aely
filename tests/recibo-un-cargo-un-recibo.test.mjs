@@ -66,12 +66,12 @@ check('a manual link written before the BOOK arrives yields to it',()=>{
   const r=c.reconcileFixedPaymentProofs(s,2026,10,18);assert.equal(r.fixed[0].paymentProofs[24322].kind,'book');assert.deepEqual(paid(r),{yt:true,sp:false});});
 check('a booking that crosses the month still owns its charge',()=>{
   const s=state({chargeDate:'2026-09-30',bookDate:'2026-10-02'});
-  assert.deepEqual(paid(s),{yt:true,sp:false});
+  assert.deepEqual(paid(s),{yt:false,sp:false});
   assert.equal(c.fixedExpenseEligible(s,s.expenses[0],s.fixed[1],2026,9,30),false);
   assert.equal(c.linkFixedPayment(s,'cargo','sp',2026,9,30),s);
   const d=storedDouble({chargeDate:'2026-09-30',bookDate:'2026-10-02'});
-  assert.deepEqual(paid(d,9,30),{yt:false,sp:false},'septiembre: el cargo ya es de octubre');
-  assert.deepEqual(paid(d),{yt:true,sp:false});});
+  assert.deepEqual(paid(d,9,30),{yt:true,sp:false},'FIN-27: septiembre conserva su cargo y su único recibo');
+  assert.deepEqual(paid(d),{yt:false,sp:false});});
 check('a charge that is NOT the BOOK of another receipt still links',()=>{for(const [label,mutate,opts] of [
   ['other reference',s=>{s.expenses[0].extId='OTRA-REF';}],
   ['no reference',s=>{delete s.expenses[0].extId;}],
@@ -98,11 +98,11 @@ check('FIN-24: the same reference twice in the month names nobody, inside the wi
     s.expenses=s.expenses.concat([{...s.expenses[0],id:'gemelo',date:twin}]);
     const named=relation(s);
     assert.equal(named&&named.id||null,twin.startsWith('2026-09')?'yt':null,'gemelo '+twin);}});
-check('one charge pays one month: its BOOK in the next month keeps it from paying this one too',()=>{
+check('one charge pays its own month even when its BOOK posts next month',()=>{
   const s=state({chargeDate:'2026-09-30',bookDate:'2026-10-02'});s.fixed=[s.fixed[0]];
   Object.assign(s.expenses[0],{merchant:'YouTube Premium',obName:'COMPRA YOUTUBE PREMIUM'});
-  assert.deepEqual(paid(s),{yt:true},'octubre por su BOOK');
-  assert.deepEqual(paid(s,9,30),{yt:false},'septiembre no lo cuenta otra vez');
+  assert.deepEqual(paid(s),{yt:false},'FIN-27: el BOOK no paga además octubre');
+  assert.deepEqual(paid(s,9,30),{yt:true},'septiembre por la referencia exacta del cargo');
   delete s.fixed[0].paymentProofs;s.bankTx=[];
   assert.deepEqual(paid(s,9,30),{yt:true},'sin ese BOOK, septiembre sí lo adopta');});
 check('a receipt paid by ANOTHER charge does not claim this one through the feed',()=>{
