@@ -7433,7 +7433,7 @@ const LANG = {
     // Accesibilidad
     v4_set_a11y:"Accesibilidad",
     st_textsize:"Tamaño de letra", st_textsize_hint:"Agranda toda la app. Si algo se descuadra en «Enorme», dímelo y lo ajusto.",
-    ts_small:"Pequeña", ts_normal:"Normal", ts_big:"Grande", ts_huge:"Enorme",
+    ts_small:"Normal", ts_normal:"Grande", ts_big:"Muy grande", ts_huge:"Enorme",
     st_reduce_motion:"Reducir animaciones", st_reduce_motion_hint:"Quita deslizamientos y rebotes: la app va más sobria y directa. Útil si mareas.",
     st_contrast:"Más contraste", st_contrast_hint:"Sube el contraste del texto para que se lea mejor.",
     // Temáticas de temporada
@@ -9309,9 +9309,16 @@ function applyTheme(t){
   }catch(e){}
 }
 // Nivel de letra (accesibilidad). Antes era un booleano (bigText); ahora 3 niveles en
-// settings.textSize (normal|big|huge). El zoom se aplica al BODY, no a #root: los sheets y
+// settings.textSize (small|normal|big|huge). El zoom se aplica al BODY, no a #root: los sheets y
 // diálogos van portaleados a document.body (fuera de #root) y con el zoom en #root se
 // quedaban a tamaño normal → «se descuadra» (feedback 2026-07-18). En body todo escala igual.
+/* LOS RÓTULOS NO SON LOS VALORES (suyo, 26/10/2026: «la actual pequeña pasa a llamarse normal y es
+   la opción por defecto; la actual normal pasa a grande; la actual grande pasa a muy grande»). Se
+   cambiaron solo los textos (`ts_*`): los valores guardados siguen siendo los de siempre, así que
+   quien eligió «normal» ve EXACTAMENTE el mismo tamaño, que ahora se llama «Grande». Sin `textSize`
+   guardado se sigue cayendo en `normal` (hoy «Grande»): las instalaciones viejas (su padre, su
+   pareja) no deben ver la letra encogerse sin haber tocado nada. El «Normal» de salida (valor
+   `small`) lo guarda el onboarding, solo en instalaciones nuevas. */
 function textSizeOf(s){ const st=s&&s.settings; if(st&&st.textSize) return st.textSize; return (st&&st.bigText)?"big":"normal"; }
 function applyTextSize(size){
   try{
@@ -14106,7 +14113,12 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     // su caja no cambia de alto al encogerse, solo se suma lo que sobresale la fila de meses.
     const pad=parseFloat(getComputedStyle(h).paddingTop)||0;
     const raya=pad+head.offsetHeight+GX_MESES_SOBRE;
-    return h.scrollTop+el.getBoundingClientRect().top-h.getBoundingClientRect().top-raya+2;
+    /* La distancia en px del BODY, que es en lo que va `scrollTop`: con la letra «Normal» (o
+       «Grande»…) el body lleva `zoom` y `getBoundingClientRect` mide en px de pantalla. Sin
+       dividir, el salto se quedaba corto un 8 % y el afinado convergía unos px por ENCIMA del día
+       pedido: debajo quedaba el 1 del mes siguiente, con su pastilla (rechazo de la beta 4.26.180
+       en Meses: «va al día 1 y no cambia de mes»; en el Pixel 5 de las pruebas no hay zoom). */
+    return h.scrollTop+(el.getBoundingClientRect().top-h.getBoundingClientRect().top)/gxZoom()-raya+2;
   };
   /* AFINAR EL SALTO cuando el scroll ha parado (rechazo de la beta 4.26.173, en Meses: «si estás
      en octubre y tocas el anterior, te lleva al día 1 y sigue sin cambiarte de mes»). Los días aún
@@ -14659,6 +14671,8 @@ const GX_SIN_MESES_RECORTE=16;
 const GX_CICLOS_MAX=12;
 // «31 ago»: el día corto de las líneas de la cabecera y del rango de los ciclos.
 function gxDiaCorto(ms){ const d=new Date(ms); return d.getDate()+" "+monthShort(d.getMonth()).toLowerCase(); }
+// El `zoom` de la letra en el body (ver `applyTextSize`): pasa de px del body a px de pantalla.
+function gxZoom(){ const z=parseFloat(getComputedStyle(document.body).zoom); return z>0&&isFinite(z)?z:1; }
 function gxRayaExtra(compact, conMeses, fijos){ return !compact||fijos?0:conMeses?GX_MESES_SOBRE:-GX_SIN_MESES_RECORTE; }
 /* CABECERA DE GASTOS v5 (SPEC §2.1 y §3). Componente propio a propósito: la cifra cambia con el
    día que queda debajo al bajar, y ese cambio NO puede re-renderizar Expenses ni la lista
@@ -14682,7 +14696,10 @@ function GastosCabecera({rootRef, cab, meses, fijos, onMes, mesesAria, stopSwipe
       const compact=host.scrollTop>40;
       let els=diasRef.current;
       if(!els) els=diasRef.current=Array.prototype.slice.call(root.querySelectorAll("[data-gx-day]"));
-      let raya=head.getBoundingClientRect().bottom+gxRayaExtra(compact,conMesesRef.current,fijosRef.current)+1;
+      // Todo en px de pantalla, que es como mide `getBoundingClientRect`: lo que va en px del body
+      // (lo que sobresale la fila, el scroll que queda) se pasa por el zoom de la letra.
+      const z=gxZoom();
+      let raya=head.getBoundingClientRect().bottom+gxRayaExtra(compact,conMesesRef.current,fijosRef.current)*z+1;
       /* AL FINAL DE LA LISTA los últimos días no pueden subir hasta la raya (debajo no hay nada que
          scrollear). Antes se les dejaba una pantalla vacía debajo para que subieran, y él lo vio
          como un fallo: el borde de la última tarjeta asomando bajo la cabecera y un hueco enorme
@@ -14690,7 +14707,7 @@ function GastosCabecera({rootRef, cab, meses, fijos, onMes, mesesAria, stopSwipe
          sube la lista, y con todo bajado llega al último día: cada día sigue pasando por la
          cabecera una vez y en orden, sin hueco. Con la lista aún por cargar (centinela) no aplica. */
       if(els.length && !root.querySelector(".gx-list .sentinel")){
-        const max=host.scrollHeight-host.clientHeight, quedan=Math.max(0,max-host.scrollTop);
+        const max=(host.scrollHeight-host.clientHeight)*z, quedan=Math.max(0,max-host.scrollTop*z);
         const falta=els[els.length-1].getBoundingClientRect().top-quedan-raya;
         const tramo=Math.min(falta,max);
         if(falta>0 && tramo>0 && quedan<tramo) raya+=falta*(1-quedan/tramo);
@@ -26470,7 +26487,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="fa3d8522418282382d5d725ea7e72e7e688827c72d855b7384d306430bacccb4";
+var _rnSha="7b17e7bd8425f191f0f2af9d76e33652a8633f54ee522f8b94846d2ed088cee2";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -27061,7 +27078,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         React.createElement("div",{style:{fontSize:13,fontWeight:700,marginBottom:6}}, t("st_textsize")),
         React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap"}},
           [["small","ts_small"],["normal","ts_normal"],["big","ts_big"],["huge","ts_huge"]].map(function(ts){
-            return React.createElement("button",{key:ts[0],onClick:function(){ applyTextSize(ts[0]); setS({textSize:ts[0]}); },style:Object.assign({},segBtn(curTextSize===ts[0]),{flex:"1 1 40%"})}, t(ts[1]));
+            return React.createElement("button",{key:ts[0],type:"button","data-ts":ts[0],"aria-pressed":curTextSize===ts[0],onClick:function(){ applyTextSize(ts[0]); setS({textSize:ts[0]}); },style:Object.assign({},segBtn(curTextSize===ts[0]),{flex:"1 1 40%"})}, t(ts[1]));
           })),
         React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.5,marginTop:6}}, t("st_textsize_hint"))
       ),
@@ -27455,11 +27472,11 @@ function Onboarding({set, onCloud, onSignup}){
       return Object.assign({},s,{
         budget:bud, monthStartNet:0, history:[0],
         onboarded:true, setupHint:true, tourSeen:false,
-        /* LETRA PEQUEÑA DE SALIDA, Y SOLO EN INSTALACIONES NUEVAS (11/9, suyo: «pon la letra en
-           pequeño para comenzar, en normal es terriblemente gigantesca»). Se pone AQUÍ, en el
-           onboarding, y no como valor por defecto global: cambiarlo globalmente le reescribiría
-           el tamaño a su padre y a su pareja, que ya tienen la app y no han pedido nada. Quien la
-           quiera más grande la sube en Ajustes, y eso manda sobre esto. */
+        /* LETRA DE SALIDA «NORMAL» (valor `small`), Y SOLO EN INSTALACIONES NUEVAS (11/9, suyo: «pon la
+           letra en pequeño para comenzar»; el 26/10 esa letra pasó a llamarse «Normal»). Se pone AQUÍ y
+           no como defecto global: `textSizeOf` sigue cayendo en `normal` para que su padre y su pareja,
+           que ya tienen la app, no vean la letra encogerse. Quien la quiera más grande la sube en
+           Ajustes, y eso manda sobre esto. */
         settings: Object.assign({}, s.settings, { textSize:"small" }),
       });
     });

@@ -349,7 +349,9 @@ export async function gastosBajaAlDia(page, ymd, ym) {
   await page.evaluate(async ([k, ym]) => {
     const host = document.querySelector(".page-scroll-host"), el = host.querySelector(`[data-gx-day="${k}"]` + (ym ? `[data-gx-ym="${ym}"]` : ""));
     const head = host.querySelector(".gx-head"), pad = parseFloat(getComputedStyle(host).paddingTop) || 0;
-    const top = host.scrollTop + el.getBoundingClientRect().top - host.getBoundingClientRect().top - (pad + head.offsetHeight + (head.classList.contains("meses-fijos") ? 0 : head.querySelector(".gx-meses") ? 36 : -16)) + 2;
+    // Con la letra «Normal» (zoom 0,92 en el body) los rect vienen en px de pantalla y scrollTop no.
+    const z = parseFloat(getComputedStyle(document.body).zoom) || 1;
+    const top = host.scrollTop + (el.getBoundingClientRect().top - host.getBoundingClientRect().top) / z - (pad + head.offsetHeight + (head.classList.contains("meses-fijos") ? 0 : head.querySelector(".gx-meses") ? 36 : -16)) + 2;
     const max = host.scrollHeight - host.clientHeight;
     if (top <= max - host.clientHeight) { host.scrollTo(0, top); return; }
     /* Cerca del final de la lista (tanda 6, sin pie) la raya de la cabecera BAJA en el último

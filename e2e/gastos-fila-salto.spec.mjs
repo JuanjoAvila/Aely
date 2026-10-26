@@ -71,8 +71,12 @@ async function bajaUnPoco(page) {
   await expect(fila(page)).toHaveAttribute("aria-hidden", "false");
 }
 
-test("Meses: tocar el mes anterior deja su último día bajo la cabecera, marcado y con su cifra", async ({ page }) => {
-  await abre(page);
+/* Y CON LA LETRA «NORMAL» (la de 0,92 de zoom, la suya; rechazo de la beta 4.26.180: «al tocar un
+   mes … va al día 1 y no cambia de mes»). Con `zoom` en el body, `getBoundingClientRect` mide en
+   px de pantalla y `scrollTop` en px del body: sin convertir, el salto se quedaba corto un 8 % y el
+   afinado convergía unos px por encima del día pedido, con el 1 del mes de después debajo. */
+for (const textSize of [undefined, "small", "big"]) test(`Meses: tocar el mes anterior deja su último día bajo la cabecera, marcado y con su cifra${textSize ? ` (letra ${textSize})` : ""}`, async ({ page }) => {
+  await abre(page, textSize ? { textSize } : {});
   await gastosPeriodo(page, "months");
   await bajaUnPoco(page);
   await expect(fila(page).locator(".gx-mes.on")).toHaveAttribute("data-ym", "2026-09");
@@ -96,8 +100,8 @@ test("Meses: tocar el mes anterior deja su último día bajo la cabecera, marcad
   await expect(fila(page).locator(".gx-mes.on")).toHaveAttribute("data-ym", "2026-07");
 });
 
-test("Mi ciclo: tocar un ciclo pasado no vuelve arriba ni esconde la fila: su primer día, marcado", async ({ page }) => {
-  await abre(page, { budgetCycle: true });
+for (const textSize of [undefined, "small"]) test(`Mi ciclo: tocar un ciclo pasado no vuelve arriba ni esconde la fila: su primer día, marcado${textSize ? ` (letra ${textSize})` : ""}`, async ({ page }) => {
+  await abre(page, { budgetCycle: true, ...(textSize ? { textSize } : {}) });
   await expect(gastosRoot(page)).toHaveAttribute("data-periodo", "cycle");
   await bajaUnPoco(page);
   await expect(fila(page).locator(".gx-mes.on")).toHaveText("octubre");

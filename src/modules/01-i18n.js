@@ -272,7 +272,7 @@ const LANG = {
     // Accesibilidad
     v4_set_a11y:"Accesibilidad",
     st_textsize:"Tamaño de letra", st_textsize_hint:"Agranda toda la app. Si algo se descuadra en «Enorme», dímelo y lo ajusto.",
-    ts_small:"Pequeña", ts_normal:"Normal", ts_big:"Grande", ts_huge:"Enorme",
+    ts_small:"Normal", ts_normal:"Grande", ts_big:"Muy grande", ts_huge:"Enorme",
     st_reduce_motion:"Reducir animaciones", st_reduce_motion_hint:"Quita deslizamientos y rebotes: la app va más sobria y directa. Útil si mareas.",
     st_contrast:"Más contraste", st_contrast_hint:"Sube el contraste del texto para que se lea mejor.",
     // Temáticas de temporada
@@ -554,7 +554,7 @@ const LANG = {
     gl_contribute_title:"Add to {name}", gl_contribute_from:"Which bank does it come from?", gl_contribute_save:"Add {x}", gl_contribute_need:"Enter an amount 🙂",
     v4_set_a11y:"Accessibility",
     st_textsize:"Text size", st_textsize_hint:"Enlarges the whole app. If anything breaks on «Huge», tell me and I'll fix it.",
-    ts_small:"Small", ts_normal:"Normal", ts_big:"Large", ts_huge:"Huge",
+    ts_small:"Normal", ts_normal:"Large", ts_big:"Extra large", ts_huge:"Huge",
     st_reduce_motion:"Reduce motion", st_reduce_motion_hint:"Removes slides and bounces: the app feels calmer and more direct. Useful if motion bothers you.",
     st_contrast:"More contrast", st_contrast_hint:"Boosts text contrast for easier reading.",
     st_theme_season:"Theme", st_theme_season_hint:"Changes colors and gently drifts a seasonal touch behind the cards (snow, leaves, sun…). Turn it off anytime.",
@@ -833,7 +833,7 @@ const LANG = {
     gl_contribute_title:"Aportar a {name}", gl_contribute_from:"De quin banc surt?", gl_contribute_save:"Aportar {x}", gl_contribute_need:"Posa un import 🙂",
     v4_set_a11y:"Accessibilitat",
     st_textsize:"Mida de la lletra", st_textsize_hint:"Amplia tota l'app. Si alguna cosa es descoloca amb «Enorme», digues-m'ho i ho ajusto.",
-    ts_small:"Petita", ts_normal:"Normal", ts_big:"Gran", ts_huge:"Enorme",
+    ts_small:"Normal", ts_normal:"Gran", ts_big:"Molt gran", ts_huge:"Enorme",
     st_reduce_motion:"Reduir animacions", st_reduce_motion_hint:"Treu lliscaments i rebots: l'app va més sòbria i directa. Útil si et mareges.",
     st_contrast:"Més contrast", st_contrast_hint:"Puja el contrast del text perquè es llegeixi millor.",
     st_theme_season:"Temàtica", st_theme_season_hint:"Canvia els colors i deixa caure un detall molt suau per darrere de les cartilles (neu, fulles, sol…). Treu-lo quan vulguis.",
@@ -3787,9 +3787,16 @@ function applyTheme(t){
   }catch(e){}
 }
 // Nivel de letra (accesibilidad). Antes era un booleano (bigText); ahora 3 niveles en
-// settings.textSize (normal|big|huge). El zoom se aplica al BODY, no a #root: los sheets y
+// settings.textSize (small|normal|big|huge). El zoom se aplica al BODY, no a #root: los sheets y
 // diálogos van portaleados a document.body (fuera de #root) y con el zoom en #root se
 // quedaban a tamaño normal → «se descuadra» (feedback 2026-07-18). En body todo escala igual.
+/* LOS RÓTULOS NO SON LOS VALORES (suyo, 26/10/2026: «la actual pequeña pasa a llamarse normal y es
+   la opción por defecto; la actual normal pasa a grande; la actual grande pasa a muy grande»). Se
+   cambiaron solo los textos (`ts_*`): los valores guardados siguen siendo los de siempre, así que
+   quien eligió «normal» ve EXACTAMENTE el mismo tamaño, que ahora se llama «Grande». Sin `textSize`
+   guardado se sigue cayendo en `normal` (hoy «Grande»): las instalaciones viejas (su padre, su
+   pareja) no deben ver la letra encogerse sin haber tocado nada. El «Normal» de salida (valor
+   `small`) lo guarda el onboarding, solo en instalaciones nuevas. */
 function textSizeOf(s){ const st=s&&s.settings; if(st&&st.textSize) return st.textSize; return (st&&st.bigText)?"big":"normal"; }
 function applyTextSize(size){
   try{
