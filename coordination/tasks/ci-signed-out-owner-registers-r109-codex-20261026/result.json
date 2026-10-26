@@ -1,0 +1,66 @@
+{
+  "status": "done",
+  "summary": "PR316 draft contra beta publicada en commit6c1f79f127765630791e30cb20da8f597215b9b8 tras revision independiente exacta y GO. Diagnostico causal: arnes incompleto desdePR304 R2 c7179cec; ambos casos originales pasan enparentadd70e5a y fallan en176/177/178/180. Solo contexto lexico de2tests: renewPull REAL y variablesdelcleanup. GREENcompleto27casos,78aserciones identicas, sinrebaja. RETURN propio: runners finalizados y recursos propios devueltos; sin procesos ni locks ajenos tocados.",
+  "tests": [
+    {
+      "command": "node --test --test-isolation=none --test-concurrency=1 tests/goals-review-remates.test.mjs",
+      "reporting": "same command with private stop-first reporter; exact invocation retained in reviewed evidence",
+      "exitCode": 0,
+      "passed": 10,
+      "skipped": 0
+    },
+    {
+      "command": "node tests/metas-pull-transport.test.mjs",
+      "reporting": "complete module imported by private serial launcher with stop-first error reporting; exact invocation retained in reviewed evidence",
+      "exitCode": 0,
+      "passed": 17,
+      "skipped": 0
+    },
+    {
+      "command": "unchanged SIGNED_OUT and unmount focal cases on add70e5a",
+      "exitCode": 0
+    },
+    {
+      "command": "unchanged SIGNED_OUT and unmount focal cases on c7179cec and beta176/177/178/180",
+      "exitCode": 1,
+      "expectedCausalRed": true
+    }
+  ],
+  "productSHA": "6c1f79f127765630791e30cb20da8f597215b9b8",
+  "treeSHA": "52c804c3849dbcb3b3ac7c21ed1be203ea9d0c44",
+  "parentSHA": "034fdb7b3b068408c2d113eb80382d13fdafa11e",
+  "prNumber": 316,
+  "draft": true,
+  "targetBranch": "beta",
+  "changedPaths": [
+    "tests/goals-review-remates.test.mjs",
+    "tests/metas-pull-transport.test.mjs"
+  ],
+  "normalPushConfirmed": true,
+  "independentExactSHAReview": "GO without findings",
+  "assertionCallsUnchanged": 78,
+  "testsRepeatedAfterGreen": false,
+  "ownBudget": {
+    "allowance": 20,
+    "usedActualBeforeResultReadback": 6,
+    "remainingBeforeReadback": 14,
+    "noReset": true
+  },
+  "runnerReturn": {
+    "released": true,
+    "inFlight": false,
+    "foreignProcessesTouched": false
+  },
+  "limitations": [
+    "No global CI green claim",
+    "No served or mobile acceptance",
+    "No ProductREADY or production deployment",
+    "Integration remains with coordinator"
+  ],
+  "schema": 1,
+  "taskId": "ci-signed-out-owner-registers-r109-codex-20261026",
+  "actor": "codex",
+  "sessionId": "codex-local-20261026-signed-out-r109-fda31257-bb68521b-4e7a-4e72-81d1-03c91f5b454a",
+  "createdAt": "2026-10-26T08:09:09.715Z",
+  "released": true
+}
