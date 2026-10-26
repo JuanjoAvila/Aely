@@ -1,3 +1,24 @@
+## Pendiente separado · 26/10/2026 · cursor bancario y contrato partial/sealed
+
+PR315 documenta y protege el comportamiento existente: doce páginas exitosas más
+un único rechazo inicial de periodo, máximo trece intentos solo en ese caso. No
+resuelve que una ventana que tampoco cabe en esas doce páginas pueda acusarse como
+«ahora» y dejar movimientos sin volver a pedir. Sigue PENDIENTE; decisión de alcance
+separada, sin SQL ni cambios del cliente en PR315.
+
+El prototipo de continuación por fechas acreditó que dos pulsaciones podían sumar
+los prefijos sin pérdida, pero marcarlos como partial/sealed en el cliente real
+retuvo un BOOK antiguo de 1251 céntimos frente a su corrección a 1252 y dejó PDNG
+frente a BOOK con la misma referencia. Las cinco regresiones de céntimos, signo,
+comercio, PDNG→BOOK y retirada pasan con la base. La clave real usa banco/referencia/
+signo: un cambio de céntimos con igual signo se suprime; no es una nueva identidad.
+
+El trabajo futuro necesita un contrato explícito de cobertura y reconciliación que
+conserve prefijos, permita corregir filas anteriores y preserve clientes existentes,
+ACK perdido/replay/reconexión, multiplicidad sin referencia, multicuenta, fechas y
+horizonte. Debe tratar también el día indivisible que supera los límites sin fingir
+completitud. Ni ese contrato ni la reparación de huecos históricos están entregados.
+
 ## Estado vivo · 18/10/2026
 
 **Fuente para empezar: esta lista.** Corte documental del lote de coordinación del 18/10 (`ee788a05`), sobre beta 4.26.141 en rama (`ff53b0e7`). Lo que hay debajo conserva el historial. «Cerrado» en esta ronda significa cierre del encargo técnico por Claude: un GO, una PR en borrador o un resultado `released` no acreditan por sí solos integración, despliegue, artefacto servido ni aceptación móvil. Claude anuncia la 141 servida; esta revisión no verifica sus hashes servidos ni declara ProductREADY.

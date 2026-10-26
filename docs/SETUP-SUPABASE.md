@@ -1,8 +1,15 @@
-F3 candidata de `bank-sync` (26/10/2026): `fetchBankTransactions` cuenta intentos,
-incluido el rechazo inicial `WRONG_TRANSACTIONS_PERIOD`, dentro del mismo límite de
-doce. `strategy=longest` no reinicia el presupuesto ni amplía los límites menores
-que usa el tramo antiguo. Se conservan filas, céntimos, errores, cursor y política
-de acuse por desbordamiento. Fuente y pruebas sintéticas; sin despliegue ni cambios SQL.
+PR315, contrato de paginado (26/10/2026): se conserva el comportamiento del lector y
+handler base. Cada lectura admite hasta doce páginas exitosas. Solo un rechazo
+inicial `WRONG_TRANSACTIONS_PERIOD` puede añadir un intento para cambiar a
+`strategy=longest`: máximo trece en ese caso, doce sin rechazo. Otros errores no
+permiten un intento extra. El histórico usa longest desde el principio. El tramo
+antiguo conserva su guardia de transporte compartida: no estrena doce llamadas.
+
+No se introduce lectura por intervalos nueva, `window_slice`, cambios de cliente ni
+SQL. La ventana que cabe en doce páginas se devuelve entera también con rechazo,
+con las mismas filas y céntimos que la base. El cursor a «ahora» cuando una ventana
+rebasa esos límites y el contrato partial/sealed del cliente quedan pendientes
+aparte en [BACKLOG](BACKLOG.md). Fuente y pruebas sintéticas; sin despliegue.
 
 FIN-11 candidata privada: presupuesto, ingest y widget reciben `obAbsorbedPending`
 con el titular autenticado, además de `deleted`. La protección se aplica antes de

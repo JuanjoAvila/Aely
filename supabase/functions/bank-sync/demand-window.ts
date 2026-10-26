@@ -15,9 +15,10 @@ export const OB_DEMAND_MARGIN_DAYS = 8;
 // uno o dos días antes: el movimiento llega en la respuesta con una fecha anterior al primer
 // día pedido. El suelo que viaja al cliente baja estos días para que no lo tire (N5, 12/10).
 export const OB_DEMAND_SKEW_DAYS = 3;
-// Tope fijo de llamadas a /transactions por cuenta y pulsación. Lo comparten
-// la ventana de siempre y el tramo antiguo: nunca 12 + 12. Es el mismo techo
-// que ya tenía el bucle de páginas (2026-10-10).
+// Doce páginas exitosas por lectura. La ventana puede sumar UN rechazo inicial
+// WRONG_TRANSACTIONS_PERIOD (máximo trece intentos); no son doce intentos estrictos.
+// El tramo antiguo comparte el contador de transporte y solo usa lo que quede de
+// doce: no estrena otro cupo tras la ventana. No cambia el comportamiento previo.
 export const OB_DEMAND_MAX_PAGES = 12;
 
 const DAY_MS = 86400000;

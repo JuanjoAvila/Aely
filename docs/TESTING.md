@@ -1,10 +1,22 @@
-F3 (26/10): `node scripts/run-deno-tests.mjs supabase/functions/bank-sync/attempt-budget.test.ts`
-ejecuta catorce casos Deno con el lector y el handler reales. El SDK, proveedor y
-almacenamiento son dobles sintéticos; no abre puertos ni usa red. Un espía de
-transporte cuenta también rechazos y exige doce intentos por cuenta; cubre límites
-menores, ventana más tramo antiguo, filas/céntimos, errores, timeout, continuación,
-acuse y desbordamiento. Registrado también en `scripts/run-tests.mjs`, con lectura
-limitada a `supabase/functions`. No acredita PostgreSQL, banco real, CI ni despliegue.
+PR315 (26/10): `node scripts/run-deno-tests.mjs supabase/functions/bank-sync/overflow-resume.test.ts`
+ejecuta el guardián del contrato conservado: hasta doce páginas exitosas, con un
+único intento inicial extra si se rechaza el periodo (máximo trece). La ventana de
+doce páginas debe llegar ENTERA, con referencias y céntimos exactos, con y sin
+rechazo, en dos cuentas independientes. Otros errores no estrenan otro cupo.
+
+Incluye sin rebajar las cinco regresiones con `flattenBankTx` y `obReferenceKey`
+reales, cargadas de `src/modules`: corrección de céntimos, signo y comercio,
+PDNG→BOOK y retirada de una fila. El handler/lector son reales; SDK, BD y proveedor
+son dobles sintéticos. No abre puertos ni usa red. Registrado en ambos runners con
+lectura acotada a `supabase/functions` y `src/modules`. El oráculo nuevo falla en la
+cabeza de tope estricto y pasa al restaurar la semántica base. No acredita banco
+real, atomicidad PostgreSQL, CI, despliegue ni aceptación móvil.
+
+`attempt-budget.test.ts` conserva los catorce casos del lector/handler, adaptados
+al contrato de páginas exitosas: límites menores, rechazos y otros errores, filas,
+céntimos, timeout, continuación y guardia de transporte compartida del tramo. Los
+hallazgos del cursor desbordado y partial/sealed quedan en BACKLOG, sin arreglo en
+esta conversión.
 
 SEC02 (26/10): `node tests/sec02-edge-limits-replay.test.mjs`, registrado en el runner
 y en `STEPS_SUPABASE`, ejecuta handlers/helpers TypeScript reales con SDK/RPC/proveedor

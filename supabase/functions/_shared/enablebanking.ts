@@ -168,11 +168,13 @@ export async function fetchBankTransactions(jwt: string, uid: string, dateFrom: 
      devolver vacío sin `WRONG_TRANSACTIONS_PERIOD`; esperar al error dejaba la pantalla a cero.
      El sync diario no activa `preferLongest`: allí interesa la ventana reciente exacta.
      maxPages y dateTo los usa el sync a demanda para partir ventana y tramo antiguo sin
-     pasar del tope de 12 llamadas por cuenta. El histórico no los manda: sigue en 12. */
+     pasar de 12 páginas exitosas. Un único rechazo inicial WRONG_TRANSACTIONS_PERIOD
+     puede añadir un intento (máximo 13); otros errores no estrenan cupo. El histórico
+     no los manda y usa longest desde el inicio: conserva su límite de 12 páginas. */
   const pageCap = maxPages > 0 ? maxPages : 12;
-  let continuation: string | null = null, longest = !!dateFrom && !!preferLongest, pages = 0, attempts = 0;
+  let continuation: string | null = null, longest = !!dateFrom && !!preferLongest, pages = 0;
   try {
-    while (attempts < pageCap && transactions.length < 2000) {
+    while (pages < pageCap && transactions.length < 2000) {
       const qs = new URLSearchParams();
       if (dateFrom) qs.set("date_from", dateFrom);
       if (dateTo) qs.set("date_to", dateTo);
@@ -180,8 +182,6 @@ export async function fetchBankTransactions(jwt: string, uid: string, dateFrom: 
       if (continuation) qs.set("continuation_key", continuation);
       let page;
       try {
-        // El banco cobra también el rechazo del periodo: longest no estrena otro cupo.
-        attempts++;
         page = await api(jwt, `/accounts/${encodeURIComponent(uid)}/transactions?${qs}`, {signal:controller.signal});
         if (!page || !Array.isArray(page.transactions)) throw new Error("transactions_invalid");
       } catch (err) {

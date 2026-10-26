@@ -17,14 +17,14 @@ function attemptSpy(reply: (url: URL, n: number, init: any) => any) {
   } };
 }
 
-Deno.test("F3 lector causal: el fallback inicial comparte doce intentos", async () => {
+Deno.test("F3 lector: doce páginas más un rechazo inicial de periodo", async () => {
   const spy = attemptSpy((_url, n) => {
     if (n === 1) throw new Error("EB 422 WRONG_TRANSACTIONS_PERIOD");
     return { transactions: [movement("tx-" + n)], continuation_key: "page-" + n };
   });
   const result = await fetchBankTransactions("synthetic", "account-a", "2026-09-01", spy.api);
-  assertEquals(spy.calls.length, 12, "el rechazo inicial también consume una llamada");
-  assertEquals(result.transactions, Array.from({ length: 11 }, (_, i) => movement("tx-" + (i + 2))));
+  assertEquals(spy.calls.length, 13, "doce páginas exitosas más el único rechazo inicial");
+  assertEquals(result.transactions, Array.from({ length: 12 }, (_, i) => movement("tx-" + (i + 2))));
   assertEquals(result.truncated, true);
   assertEquals(result.readReason, "page_limit");
   assertEquals(spy.calls[0].searchParams.has("strategy"), false);
@@ -38,8 +38,8 @@ for (const cap of [1, 2, 3]) {
       return { transactions: [movement("tx-" + n)], continuation_key: "page-" + n };
     });
     const result = await fetchBankTransactions("synthetic", "account-a", "2026-09-01", spy.api, 1000, false, cap);
-    assertEquals(spy.calls.length, cap);
-    assertEquals(result.transactions.length, cap - 1);
+    assertEquals(spy.calls.length, cap + 1);
+    assertEquals(result.transactions.length, cap);
     assertEquals(result.truncated, true);
     assertEquals(result.readReason, "page_limit");
   });
@@ -208,16 +208,16 @@ async function sync(reply: (url: URL, ordinal: number) => any, options: { gap?: 
   }
 }
 
-Deno.test("F3 handler causal: fallback no hace trece llamadas por cuenta", async () => {
+Deno.test("F3 handler: fallback conserva doce páginas y trece intentos por cuenta", async () => {
   const result = await sync((_url, n) => n === 1
     ? Response.json({ error: "WRONG_TRANSACTIONS_PERIOD" }, { status: 422 })
     : { transactions: [movement("tx-" + n)], continuation_key: "page-" + n }, { gap: true, accounts: ["account-a", "account-b"] });
-  assertEquals(result.counts, { "account-a": 12, "account-b": 12 }, "presupuesto independiente por cuenta");
+  assertEquals(result.counts, { "account-a": 13, "account-b": 13 }, "doce páginas y un rechazo independiente por cuenta");
   const bank = result.data.links[0];
   for (const account of bank.accounts) {
-    assertEquals(account.count, 11);
+    assertEquals(account.count, 12);
     assertEquals(account.transactions.map((t: any) => [t.ext_id, Math.round(t.amount * 100)]),
-      Array.from({ length: 11 }, (_, i) => ["tx-" + (i + 2), 1250]));
+      Array.from({ length: 12 }, (_, i) => ["tx-" + (i + 2), 1250]));
     assertEquals(account.truncated, true);
     assertEquals(account.readReason, "page_limit");
   }
@@ -241,7 +241,9 @@ Deno.test("F3 handler: ventana y gap comparten doce intentos con fallback en el 
   const bank = result.data.links[0];
   assertEquals(bank.accounts[0].count, 10, "un tramo incompleto no entrega filas sin sellar");
   assertEquals(bank.gapPending, true);
-  assertEquals(bank.readReason, "page_limit");
+  // El guardia de transporte del handler corta el segundo intento exitoso del tramo;
+  // el lector base conserva su clase histórica, sin cambiarla en esta conversión.
+  assertEquals(bank.readReason, "provider_error");
   assertEquals(bank.ack, undefined);
   assertEquals(result.link.last_sync, result.originalCursor);
 });

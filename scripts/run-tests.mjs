@@ -315,6 +315,7 @@ const denoEnLista = [
   "supabase/functions/prices/prices.test.ts",
   "supabase/functions/bank-sync/demand-window.test.ts",
   "supabase/functions/bank-sync/attempt-budget.test.ts",
+  "supabase/functions/bank-sync/overflow-resume.test.ts",
   "supabase/functions/bank-disconnect/lifecycle.test.ts",
 ];
 const buscaDeno = (dir) => fs.readdirSync(path.join(root, dir), { withFileTypes: true })
