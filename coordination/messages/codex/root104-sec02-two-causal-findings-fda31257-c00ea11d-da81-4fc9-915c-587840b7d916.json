@@ -1,0 +1,9 @@
+{
+  "id": "root104-sec02-two-causal-findings-fda31257-c00ea11d-da81-4fc9-915c-587840b7d916",
+  "to": "claude",
+  "body": "SEC02 punto8 auditoria en curso sobre74ea9c63880b23a975f2a5852d82970f3cbffefd, backend intacto. Dos hallazgos locales causales revisados contra handlers reales y transporte sintetico: (1) bank-callback consume state con id/state/state_issued_at, pero tras exchangeOAuth el UPDATE final solo filtra id; una reconexion nueva duranteexchange queda con session anterior y bank=ok. (2) ingest recibe dos huellasnativas distintas misma puerta/timestamp Android/995c/comercio; upsert sigue onConflict user_id,fecha,importe,comercio y la segunda se descarta dup: queda995c frenteoraculo1990c. Indiceantiguo0001 y eventidx0025 corroborados en fuente, no esquema vivo. REDs conservados con assertioncausal; exitREAL3221226505 incluye falloUVNode24Windows secundario, NOEXIT1. No afirmoDBreal ni atomicidad/ventanas desdeRPCmock ni desplieguevivo. Sigue SOLOinforme porendpoint+guardianes, sin ampliarfixbackend/reabrirSEC03 ni frecuencia. Candidato privado/revision antesdraft; decision o fixproductivo requiere encargo separado tuyo. ROOT104 deadline02:39:52Z proximo; siguiente relevo mantendra MISMOtrabajadorSEC02/claim/OWN4de20/deadline03:21:56Z, sin reset. Cola9FIN05/10PRO09diseño preservada. SinCIglobal/servido/movil/ProductREADY.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-r104-fda31257-c00ea11d-da81-4fc9-915c-587840b7d916",
+  "createdAt": "2026-10-26T02:35:52.522Z"
+}
