@@ -6191,7 +6191,7 @@ test("Catálogo183 añade la tanda de scroll fluido y cifras coherentes (solo we
   assert.ok(source(G0).includes('bs.cycle?"net":"split"'),"Gastos compara con el límite en bruto en mes natural y en neto en Mi ciclo, como Inicio");
   assert.ok(source(D0).includes('over?"v42_cycle_excess_of":"v42_cycle_of"'),"Inicio pasado de límite enseña «de más»");
   assert.ok(source(C0).includes('maximumFractionDigits:2,useGrouping:"always"'),"los importes llevan punto de miles");
-  assert.ok(source(G0).includes("GX_ANTES=3000"),"el scroll pide la tanda siguiente a 3.000 px del final");
+  assert.ok(source(G0).includes("bottom>GX_ANTES*gxZoom()"),"el scroll pide la tanda siguiente a 3.000 px del final");
   const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
   const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verifyNotes(twice),assert.AssertionError,"no duplicar una tanda");
   const vuelve=structuredClone(notes);vuelve[1].tandas.push(structuredClone(before[0].tandas[0]));assert.throws(()=>verifyNotes(vuelve),assert.AssertionError,"una tanda aprobada no vuelve al panel");
@@ -6214,8 +6214,8 @@ test("Catálogo183 añade la tanda de scroll fluido y cifras coherentes (solo we
       assert.equal(web.length,antes.web.length,key+": el cierre de lectores no crece con esta versión");
     }}
   assert.deepEqual(Object.keys(ahora),["web","unidades"],"solo web");assert.equal(ahora.unidades,true);
-  const propias=[{file:G0,function:"Expenses"},{file:G0,data:"GastosLista"},{file:G0,function:"gxFilaInfo"},{file:G0,function:"gxDiaTexto"},{file:G0,function:"gxFecha"},{file:D0,function:"Dashboard"}];
-  assert.deepEqual(ahora.web.slice(0,propias.length),propias,"las unidades propias de la tanda (la pantalla de Gastos, su lista, el precálculo del scroll y la tarjeta de presupuesto de Inicio), en este orden");
+  const propias=[{file:G0,function:"Expenses"},{file:G0,data:"GastosLista"},{file:G0,function:"gxFilaInfo"},{file:G0,function:"gxDiaTexto"},{file:G0,function:"gxFecha"},{file:D0,function:"Dashboard"},{file:"src/modules/11-app-main.js",from:"  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",to:"  // INC-0410 guardado: límite."}];
+  assert.deepEqual(ahora.web.slice(0,propias.length),propias,"las unidades propias de la tanda (la pantalla de Gastos, su lista, el precálculo del scroll, la tarjeta de presupuesto de Inicio y el bloque del guardado de App, porque Expenses escribe con set()), en este orden");
   {const fns=logicFunctions(source),dat=logicData(source);let web=propias.slice();
     for(let ronda=0;ronda<12;ronda++){
       const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];
@@ -6256,7 +6256,7 @@ test("Catálogo183 añade la tanda de scroll fluido y cifras coherentes (solo we
     [G0,'bs.cycle?"net":"split"','bs.cycle?"net":"net"'],
     [D0,'over?"v42_cycle_excess_of":"v42_cycle_of"','over?"v42_cycle_of":"v42_cycle_of"'],
     [C0,'maximumFractionDigits:2,useGrouping:"always"','maximumFractionDigits:2'],
-    [G0,"GX_ANTES=3000","GX_ANTES=30"],
+    [G0,"bottom>GX_ANTES*gxZoom()","bottom>GX_ANTES*gxZoom()*100"],
   ]){
     assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
     const mutated=betaRevision(tandas[1],f=>f===file?source(f).replace(a,()=>b):source(f),undefined,scopes[tandas[1]]);
@@ -9303,7 +9303,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   const marca="INC-0410 guardado: de aquí al límite";
   const dependientes=Object.keys(registro).filter(id=>registro[id].web.some(x=>x.from&&x.from.includes(marca)));
   const ajenas=Object.keys(registro).filter(id=>!dependientes.includes(id));
-  assert.equal(dependientes.length,71);
+  assert.equal(dependientes.length,72);
   for(const id of ["deudas-metas-hoja-edicion","deudas-plazo-cuota-encaja","deudas-metas-hoja-cierre-suave","fichas-cierre-suave-atras","gastos-suscripciones-botones"])assert.ok(dependientes.includes(id),id+": las hojas de Deudas y Metas y SubRow escriben estado con el set real y llevan el bloque del guardado");
   assert.ok(dependientes.includes("myinvestor-contador-a-cero"),"la sincronización de brókers de App escribe posiciones con el set real y lleva el bloque del guardado");
   assert.ok(dependientes.includes("compras-identicas-ids"),"las compras idénticas fusionan filas y guardan lápidas con el set real y llevan el bloque del guardado");
@@ -9317,6 +9317,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   assert.ok(dependientes.includes("tr-empareja-sin-preguntar"),"el emparejado borra, edita y deshace con el set real y lleva el bloque del guardado");
   assert.ok(dependientes.includes("categoria-coche"),"Apuntar guarda el gasto nuevo con el set real (ApuntarSheet) y lleva el bloque del guardado");
   assert.ok(dependientes.includes("deuda-nueva-desde-su-dia"),"el alta de Deudas (addDebt) y la compra de AffordSim (createDebt) sellan startDay y guardan con el set real: llevan el bloque del guardado");
+  assert.ok(dependientes.includes("gastos-scroll-fluido-cifras"),"Expenses escribe gastos con el set real: la tanda del scroll y las cifras lleva el bloque del guardado");
   assert.ok(dependientes.includes("gastos-v5-movimientos"),"Gastos v5 ordena, borra y marca gastos con el set real de Expenses: lleva el bloque del guardado");
   assert.ok(dependientes.includes("gastos-v5-secciones"),"las secciones de Gastos viven en Expenses, que ordena, borra y marca gastos con el set real: llevan el bloque del guardado");
   assert.ok(dependientes.includes("gastos-v5-filtro"),"el filtro por categoría de Gastos vive en Expenses, que ordena, borra y marca gastos con el set real: lleva el bloque del guardado");
@@ -9340,7 +9341,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   assert.ok(dependientes.includes("widget-pago-app-cerrada"),"la lectura que acredita el widget mezcla gastos con el set real");
   assert.ok(dependientes.includes("inc-0810-metas-editar-regla"),"editar una regla escribe con el set real y conserva el cierre de persistencia");
   assert.ok(dependientes.includes("inc-0710-gastos-mes-madrid"),"Gastos99 conserva la dependencia real de guardado de Expenses");
-  assert.deepEqual(ajenas.slice().sort(),["banco-pruebas-sin-aviso","bancos-reconexion-revoca","beta-panel-veredictos","compras-pendientes-otro-dia","deudas-aviso-plazo","deudas-guardar-motivo","deudas-metas-hoja-sin-parpadeo","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","gastos-meses-letra-nombres","gastos-recibo-fila-textos-cortos","gastos-scroll-fluido-cifras","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-backclose-handover","inc-0810-dashboard-recents-memo","inc-0810-inicio-grafica-significado","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","inicio-grafica-reservas","inicio-grafica-vuelve","inicio-mes-futuro","inicio-recientes-sin-repetidos","inicio-solape-gastos","inicio-tarjeta-ciclo-limpia","ops-0410-panel-cola","pestanas-swipe-rapido","plan-por-confirmar-prestamo-youtube","plan-scroll-lento","recibo-vinculo-saldo","renombrar-lista-al-momento","scroll-borde-barra","splash-animado","teclado-atras-conserva","tr-descripcion-clasificacion","vibracion-borde-y-mi-ciclo","vibracion-r3","vibracion-r5","vibracion-r6","vibracion-suave-ronda-2","vibracion-suave-ronda-3","youtube-diagnostico","youtube-enlazar-recibo","youtube-ficha-reconoce","youtube-r4"]);
+  assert.deepEqual(ajenas.slice().sort(),["banco-pruebas-sin-aviso","bancos-reconexion-revoca","beta-panel-veredictos","compras-pendientes-otro-dia","deudas-aviso-plazo","deudas-guardar-motivo","deudas-metas-hoja-sin-parpadeo","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","gastos-meses-letra-nombres","gastos-recibo-fila-textos-cortos","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-backclose-handover","inc-0810-dashboard-recents-memo","inc-0810-inicio-grafica-significado","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","inicio-grafica-reservas","inicio-grafica-vuelve","inicio-mes-futuro","inicio-recientes-sin-repetidos","inicio-solape-gastos","inicio-tarjeta-ciclo-limpia","ops-0410-panel-cola","pestanas-swipe-rapido","plan-por-confirmar-prestamo-youtube","plan-scroll-lento","recibo-vinculo-saldo","renombrar-lista-al-momento","scroll-borde-barra","splash-animado","teclado-atras-conserva","tr-descripcion-clasificacion","vibracion-borde-y-mi-ciclo","vibracion-r3","vibracion-r5","vibracion-r6","vibracion-suave-ronda-2","vibracion-suave-ronda-3","youtube-diagnostico","youtube-enlazar-recibo","youtube-ficha-reconoce","youtube-r4"]);
   /* Quién depende del guardado lo decide el CÓDIGO, no la marca del registro (auditoría del
      coordinador, 4/10): se quita de cada alcance el bloque del guardado y se mira si lo que queda
      llama a `set` de App —las dependencias transitivas ya son unidades del alcance—. Tiene que
