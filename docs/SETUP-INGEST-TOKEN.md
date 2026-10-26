@@ -58,3 +58,7 @@ La Edge Function `ingest` resuelve `?token=` → `user_id` en `ingest_tokens`; s
 ## Identidad y reintentos de ingest (candidato SEC02 F2)
 
 La huella pertenece al evento y al usuario del token, no al importe/comercio. El [contrato de ranuras y ACK](briefs/sec02-ingest-native-slots.md) documenta las colisiones, reintentos503, lectores y compatibilidad sin SQL. Android conserva un debounce previo de180s que queda fuera de este cambio.
+
+### PR313 R2: lector antes de activar escritura
+
+La fase 1 añade la marca nativa no bancaria con huella completa. La Edge solo la escribe con INGEST_NATIVE_TWINS=1; por defecto está OFF y conserva filas/céntimos legacy normales, reteniendo R1 failclosed/recovery/ACK. No activar por este candidato: la fase 2 es otra PR tras confirmación del dueño de todos los móviles actualizados. Contrato y matriz en [SEC02](briefs/sec02-ingest-native-slots.md).

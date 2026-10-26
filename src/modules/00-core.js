@@ -1286,6 +1286,8 @@ const cloud = (function(){
       // source lleva el banco embebido (ob:caixa…) para filtrar en Gastos tras reinstalación
       // sin columna nueva en Supabase (feedback 2026-07-16).
       const base={ user_id:session.user.id, fecha:e.date, importe:e.amount, comercio:e.merchant, cat:e.category, source:expenseSourceForCloud(e), no_card:!!e.noCard };
+      // La huella existente también debe sobrevivir si otro móvil vuelve a insertar esta fila.
+      if(e.nativeTwin&&e.ingestEventId) base.ingest_event_id=e.ingestEventId;
       // Id local = id de fila cuando es uuid (2026-09-07). Sin esto la tabla genera otro uuid
       // y las escrituras por id no casarían hasta el siguiente pull.
       if(isExpenseUuid(e&&e.id)) base.id=e.id;
@@ -1404,6 +1406,8 @@ const cloud = (function(){
         const active=records&&!obConfirmedBlocked.has(uid)?checked.filter(function(e){return !obConfirmedMatches(e,records,uid);}):[];
         const filas=active.map(function(e){
           const base={ user_id:uid, fecha:e.date, importe:e.amount, comercio:e.merchant, cat:e.category, source:expenseSourceForCloud(e), no_card:!!e.noCard };
+          // La huella existente también debe sobrevivir si otro móvil vuelve a insertar esta fila.
+          if(e.nativeTwin&&e.ingestEventId) base.ingest_event_id=e.ingestEventId;
           if(isExpenseUuid(e&&e.id)) base.id=e.id;
           let fila=base;
           if(conNota) fila=Object.assign({},fila,{ nota:(e.note?String(e.note).slice(0,160):null), nota_edit:!!e.noteEdited });
@@ -2054,7 +2058,7 @@ function expenseBankIdOrdinals(list,reserved,identityScope){
 function keyOfExpense(e){
   const base=keyOfExpenseLegacy(e);
   if(isManualExpenseSource(e&&e.source)) return base+"|"+String((e&&e.id)||"");
-  return base+obOrdinalSufijo(e)+(e&&e.ingestEventId?"|evt:"+encodeURIComponent(e.ingestEventId):"");
+  return base+obOrdinalSufijo(e)+(e&&e.nativeTwin&&e.ingestEventId?"|evt:"+encodeURIComponent(e.ingestEventId):"");
 }
 /* FIN19: desconocido conserva el grupo por contenido. Solo dos identidades COMPLETAS
    distintas separan dinero. El aviso ocupa una sola ranura, nunca une transitivamente
@@ -2665,8 +2669,15 @@ function bankRefDeSource(raw,tag){
 }
 /* Codifica el banco en `source` de la tabla (sin migración SQL): ob:caixa, ob-hist:sabadell,
    macrodroid (= Trade Republic). Así el filtro por banco sobrevive a reinstalaciones. */
+function nativeEventFromSource(raw){
+  if(String(raw||"").indexOf("native:trade_republic#")!==0) return undefined;
+  const m=/#e([^#]+)(?:#|$)/.exec(String(raw));
+  try{return m?decodeURIComponent(m[1]):undefined;}catch(_){return undefined;}
+}
 function expenseSourceForCloud(e){
   const ent=e&&e.ent; const s=(e&&e.source)||"manual";
+  // El prefijo propio conserva identidad y hora original sin convertir el aviso en banco.
+  if(e&&e.nativeTwin&&e.ingestEventId) return "native:trade_republic#e"+encodeURIComponent(e.ingestEventId)+"#t"+(e.ingestOriginalTime||Date.parse(e.date))+((e&&e.possibleDup)?"#dup":"")+"#n"+obOrdinalOf(e);
   // POSIBLE REPETIDO PENDIENTE (B09-D, 2026-09-08): la decisión tiene que VIAJAR. Hasta hoy
   // `possibleDup` solo existía en el móvil: la app lo excluía del total del mes y el servidor
   // —que solo lee fecha/importe/comercio/cat/source— lo sumaba. De ahí que el widget dijera más
@@ -3061,7 +3072,7 @@ function expenseBankOf(e){
   if(!e) return null;
   if(e.ent) return e.ent;
   const s=String(e.source||"");
-  if(s==="macrodroid"||s==="tr") return "trade_republic";
+  if(s==="macrodroid"||s==="tr"||s.indexOf("native:trade_republic#")===0) return "trade_republic";
   if(s.indexOf("ob:")===0) return partirEntDeuda(s.slice(3).split("#")[0]).ent;   // «#dup» = posible repetido (B09-D); «~deuda.» = cuota
   // El histórico lleva las mismas marcas («~recibo.», «#dup», «#n2») y el banco tiene que salir igual de limpio.
   if(s.indexOf("ob-hist:")===0) return partirEntDeuda(s.slice(8).split("#")[0]).ent;
@@ -3582,7 +3593,9 @@ function resolvePossibleDup(state, expenseId, same){
 function expenseFromRow(r){
   const raw=String(r.source||"manual");
   let ent=null, source=raw, dup=false, debtId=null, reciboId=null, goalId=null, ord=1;
-  if(raw==="macrodroid"||raw==="tr"){ ent="trade_republic"; source="macrodroid"; }
+  const nativeTwin=raw.indexOf("native:trade_republic#")===0, nativeTime=nativeTwin&&/#t(\d+)(?:#|$)/.exec(raw);
+  if(nativeTwin){ ent="trade_republic"; source="macrodroid"; dup=raw.split("#").indexOf("dup")>=0; ord=ordinalDeTramos(raw.split("#").slice(1)); }
+  else if(raw==="macrodroid"||raw==="tr"){ ent="trade_republic"; source="macrodroid"; }
   // «ob:ent#dup» = posible repetido que sigue pendiente de su decisión (B09-D): vuelve marcado,
   // así que la app lo sigue dejando fuera del total tras un pull, un reinicio o un segundo móvil.
   // «ob:ent~deuda.id» = cuota de esa deuda (4.21.0): vuelve con su `debtId` para el filtro.
@@ -3596,7 +3609,9 @@ function expenseFromRow(r){
   else if(raw==="supabase"){ source="manual"; }   // legado: antes el pull marcaba todo como supabase
   return {
     id: r.id,
-    ingestEventId: r.ingest_event_id || undefined,
+    ingestEventId: r.ingest_event_id || nativeEventFromSource(raw),
+    nativeTwin: nativeTwin || undefined,
+    ingestOriginalTime: nativeTime ? Number(nativeTime[1]) : undefined,
     date: new Date(r.fecha).toISOString(),
     merchant: r.comercio || "Gasto",
     amount: Number(r.importe) || 0,
@@ -3742,6 +3757,7 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
   if(Object.prototype.hasOwnProperty.call(incoming,"obName")) put("obName", incoming.obName);
   if(incoming.extId) put("extId",incoming.extId);
   if(incoming.ingestEventId) put("ingestEventId",incoming.ingestEventId);
+  if(incoming.nativeTwin){ put("nativeTwin",true); put("ingestOriginalTime",incoming.ingestOriginalTime); put("obOrd",incoming.obOrd); }
   // Un pull legacy sin cuenta no prueba que haya desaparecido la que ya sabemos.
   if(incoming.obAcc) put("obAcc",incoming.obAcc);
   if(Object.prototype.hasOwnProperty.call(incoming,"obPending")) put("obPending",incoming.obPending);

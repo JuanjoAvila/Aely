@@ -35,6 +35,7 @@ if (plan.build !== false) {
 
 const steps = [
   ["ingest-native-slots", ["node", "tests/ingest-native-slots.test.mjs"]],
+  ["ingest-native-phase1", ["node", "tests/ingest-native-phase1.test.mjs"]],
   ["fixed-ispaidin", ["node", "tests/fixed-ispaidin.test.mjs"]],
   ["pr297-r2-plan-sync", ["node", "--test", "--test-concurrency=1", "tests/pr297-r2-plan-sync.test.mjs"]],
   ["fin04-commit", ["node", "--test", "--test-concurrency=1", "tests/fin04-commit.test.mjs"]],
@@ -347,7 +348,7 @@ if (plan.deno !== false) {
   for (const testFile of denoTests) {
     const started = performance.now();
     const denoArgs = testFile.includes("ingest/native-identity.test")
-      ? ["test", "--allow-env=SUPABASE_URL,SUPABASE_SERVICE_ROLE_KEY,INGEST_TOKEN,INGEST_USER_ID", "--config=supabase/functions/ingest/native-identity.deno.json", "--import-map=supabase/functions/ingest/native-identity.imports.json", testFile]
+      ? ["test", "--allow-env=SUPABASE_URL,SUPABASE_SERVICE_ROLE_KEY,INGEST_TOKEN,INGEST_USER_ID,INGEST_NATIVE_TWINS", "--config=supabase/functions/ingest/native-identity.deno.json", "--import-map=supabase/functions/ingest/native-identity.imports.json", testFile]
       : testFile.includes("myinvestor_inputs.test")
       ? ["test", "--allow-read=supabase/functions,src/modules/00-core.js", testFile]
       : testFile.includes("input_handlers.test")

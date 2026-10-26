@@ -124,6 +124,7 @@ mi-cartera/
 ├── tests/beta-veredictos.test.mjs # Contrato compartido del panel y listo; beta-sources protege el ensamblado
 ├── tests/listo-actor.test.mjs # CLI real sin red: actor Dev autorizado y fallo cerrado si no se acredita
 ├── tests/backclose-history.test.mjs # Propiedad del historial y transferencias de overlays (selección110)
+├── tests/ingest-native-phase1.test.mjs # Marca nativa, ambos órdenes OB, UUID cloud, colisiones SHA y switch OFF (candidato)
 ├── tests/bank-callback-state.test.mjs # Consumo único de state y fallos de guardado; handler real con BD/OAuth sintéticos
 ├── e2e/backclose-handover.spec.mjs · botnav-indicador.spec.mjs · metas-editar-regla.spec.mjs # Pantallas reales de110/107/108
 ├── tests/sync-memoria.test.mjs # Exportación sintética: cantidades, aviso Cloud e idempotencia; rechazo sin escrituras/borrados

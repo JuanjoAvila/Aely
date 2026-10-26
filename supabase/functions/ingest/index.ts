@@ -35,7 +35,7 @@ import {
   limpiarTexto, type Fuente, type Tipo,
 } from "../_shared/ingest_logic.ts";
 import { aEuros, parseWallet } from "../_shared/wallet.ts";
-import { claveEvento, esGemeloIngest, tieneGemeloAnterior, ordinalIngest, fechaEventoOrdinal, sourceIngestOrdinal } from "../_shared/ingest_identity.ts";
+import { claveEvento, esGemeloIngest, tieneGemeloAnterior, ordinalIngest, fechaEventoOrdinal, sourceIngestOrdinal, ordinalEvento } from "../_shared/ingest_identity.ts";
 import { bucketKey, callerIp, rateLimit } from "../_shared/ratelimit.ts";
 import { bancosDeGastoDiario, cuentaParaPresupuesto, filasComoLaApp, inicioDeMesMs, statsDelMes } from "../_shared/presupuesto.ts";
 import { readWidgetRows, widgetSnapshot, widgetStart } from "./widget.ts";
@@ -125,6 +125,8 @@ Deno.serve(async (req) => {
      la respuesta. Reintentar entonces no es otro gasto: es el mismo evento esperando acuse. La
      huella no contiene texto ni dinero, y el índice único cierra también la carrera entre dos POST.
      Una APK anterior no manda `evento`: conserva temporalmente la red legacy de abajo. */
+  // Fase 1: nunca emitir la marca nueva hasta que el lector esté en todos los móviles.
+  const nativeTwins = Deno.env.get("INGEST_NATIVE_TWINS") === "1";
   let eventKey = claveEvento(data.evento, fuente, texto);
   let pendingNative: Record<string, any> | null = null;
   if (eventKey) {
@@ -213,14 +215,14 @@ Deno.serve(async (req) => {
   const fuentesIngest = ["macrodroid", "wallet", "ob:trade_republic#dup", "ob:wallet#dup"];
   let possibleDup = false;
   if (eventKey) {
-    const { data: cercanos } = await supabase.from("expenses")
-      .select("id,fecha,importe,ingest_event_id,source")
-      .eq("user_id", userId)
+    let nearQuery = supabase.from("expenses").select("id,fecha,importe,ingest_event_id,source").eq("user_id", userId);
+    if (!nativeTwins) nearQuery = nearQuery.in("source", fuentesIngest);
+    const { data: cercanos } = await nearQuery
       .gte("importe", importe - 0.02).lte("importe", importe + 0.02)
-      .gte("fecha", new Date(t0 - 2 * 60 * 60 * 1000).toISOString())
-      .lte("fecha", new Date(t0 + 2 * 60 * 60 * 1000).toISOString());
+      .gte("fecha", new Date(t0 - 2 * 60 * 60 * 1000 - (nativeTwins ? 1010 : 0)).toISOString())
+      .lte("fecha", new Date(t0 + 2 * 60 * 60 * 1000 + (nativeTwins ? 1010 : 0)).toISOString());
     const gemelo = (cercanos || []).find((r) => esGemeloIngest(
-      { fecha, importe, ingest_event_id: eventKey }, r,
+      { fecha: fechaOriginal, importe, ingest_event_id: eventKey }, r,
     ));
     if (gemelo && !pendingNative) {
       // El ACK retira el aviso de la cola del APK. Dos puertas aún pendientes no pueden
@@ -249,29 +251,21 @@ Deno.serve(async (req) => {
     possibleDup = possibleDup || !!(dupDia && dupDia.length);
   }
 
-  // La huella reserva una ranura diaria, también cuando la fecha original no colisiona: de lo
-  // contrario el lector por día|importe|comercio volvería a fundir dos compras reales.
+  // La huella COMPLETA sigue siendo la identidad. Su proyección de 1..1000 solo propone
+  // unos milisegundos próximos; el UNIQUE histórico y el probe arbitran cualquier colisión.
   let ordinal = 1;
-  if (eventKey) {
-    if (pendingNative) {
-      if (Number(pendingNative.importe) !== importe || pendingNative.comercio !== comercio)
-        return json({ ok: false, error: "evento pendiente con contenido distinto" }, 503);
-      ordinal = ordinalIngest(pendingNative.source);
-      fecha = String(pendingNative.fecha);
-    } else {
-      const day = fechaOriginal.slice(0, 10);
-      const { data: slots, error: slotsError } = await supabase.from("expenses")
-        .select("id,fecha,source,ingest_event_id").eq("user_id", userId)
-        .eq("comercio", comercio).eq("importe", importe)
-        .gte("fecha", day + "T00:00:00.000Z").lte("fecha", day + "T23:59:59.999Z");
-      if (slotsError) return json({ ok: false, error: "no se pudo reservar la identidad nativa" }, 503);
-      ordinal = 1 + Math.max(0, ...(slots || []).filter((r) => r.ingest_event_id)
-        .map((r) => ordinalIngest(r.source)));
-      const assigned = fechaEventoOrdinal(fechaOriginal, ordinal);
-      if (!assigned) return json({ ok: false, error: "sin ranura en el día del pago" }, 503);
-      fecha = assigned;
-    }
+  if (pendingNative) {
+    if (Number(pendingNative.importe) !== importe || pendingNative.comercio !== comercio)
+      return json({ ok: false, error: "evento pendiente con contenido distinto" }, 503);
+    ordinal = ordinalIngest(pendingNative.source);
+    fecha = String(pendingNative.fecha);
+  } else if (eventKey && nativeTwins) {
+    ordinal = await ordinalEvento(eventKey);
+    const assigned = fechaEventoOrdinal(fechaOriginal, ordinal);
+    if (!assigned) return json({ ok: false, error: "sin ranura en el día del pago" }, 503);
+    fecha = assigned;
   }
+  const nativeSource = (pending: boolean) => sourceIngestOrdinal(ordinal, pending, nativeTwins ? eventKey : null, fechaOriginal);
 
   /* La compra entra PENDIENTE y se libera después del INSERT. Es lo que cierra la carrera real
      Consum/Wallet + TR del 23/9: las dos peticiones consultaron antes de que la otra fila existiese.
@@ -282,7 +276,7 @@ Deno.serve(async (req) => {
     /* `#dup` es aquí una puerta TRANSITORIA: incluso un cliente anterior deja la fila fuera de
        las cifras mientras cerramos la carrera posterior al INSERT. En el camino normal se libera
        a `macrodroid` o se retira antes de responder; no se convierte en una decisión del usuario. */
-    source: eventKey ? sourceIngestOrdinal(ordinal, necesitaPuertaCarrera)
+    source: eventKey ? nativeSource(necesitaPuertaCarrera)
       : necesitaPuertaCarrera || possibleDup ? "ob:trade_republic#dup" : "macrodroid",
     no_card: noCard, nota: nota || null,
   };
@@ -313,7 +307,6 @@ Deno.serve(async (req) => {
         return json({ ok: false, deferred: true, ack: ack[0].id, error: "evento aún pendiente" }, 503);
       return skip("dup: carrera del mismo evento nativo", { tipo, dup: true, ack: ack[0].id });
     }
-    if (error) return json({ ok: false, error: "conflicto nativo sin acuse comprobado" }, 503);
     const { data: occupied, error: occupiedError } = await supabase.from("expenses")
       .select("id,ingest_event_id").eq("user_id", userId).eq("fecha", fecha)
       .eq("importe", importe).eq("comercio", comercio).limit(1);
@@ -321,13 +314,18 @@ Deno.serve(async (req) => {
     // confirmar con su ACK. El 503 conserva el aviso en la cola del APK hasta poder resolverlo.
     if (occupiedError || !occupied?.length || !occupied[0].ingest_event_id)
       return json({ ok: false, error: "colisión sin identidad nativa comprobada" }, 503);
+    // OFF conserva el conflicto normal legacy, pero una incertidumbre sigue fallando cerrada.
+    if (!nativeTwins) {
+      if (error) return json({ ok: false, error: "conflicto nativo sin acuse comprobado" }, 503);
+      break;
+    }
     // Otro evento ocupó la fecha entre SELECT e INSERT. El índice viejo sigue arbitrando;
     // probar la siguiente ranura no cambia ni el importe ni el comercio ni el período.
     ordinal++;
     const assigned = fechaEventoOrdinal(fechaOriginal, ordinal);
     if (!assigned || attempt === 7) return json({ ok: false, error: "sin ranura nativa confirmada" }, 503);
     fecha = assigned; fila.fecha = fecha;
-    fila.source = sourceIngestOrdinal(ordinal, necesitaPuertaCarrera);
+    fila.source = nativeSource(necesitaPuertaCarrera);
   }
   if (error) {
     await logIngestError(supabase, userId, "no se pudo guardar el gasto",
@@ -339,12 +337,12 @@ Deno.serve(async (req) => {
   const ackId = inserted[0].id;
 
   if (necesitaPuertaCarrera) {
-    const ventana = eventKey ? 2 * 60 * 60 * 1000 : 10 * 60 * 1000;
+    const ventana = eventKey ? 2 * 60 * 60 * 1000 + (nativeTwins ? 1010 : 0) : 10 * 60 * 1000;
     const columnas = eventKey
       ? "id,fecha,importe,ingest_event_id,created_at,source"
       : "id,fecha,importe,created_at,source";
     let raceQuery = supabase.from("expenses").select(columnas).eq("user_id", userId);
-    if (!eventKey) raceQuery = raceQuery.in("source", fuentesIngest);
+    if (!eventKey || !nativeTwins) raceQuery = raceQuery.in("source", fuentesIngest);
     const { data: trasInsert, error: raceError } = await raceQuery
       .gte("importe", importe - 0.02).lte("importe", importe + 0.02)
       .gte("fecha", new Date(t0 - ventana).toISOString())
@@ -382,7 +380,7 @@ Deno.serve(async (req) => {
       return skip("dup: mismo pago avisado por TR y Wallet", { tipo, dup: true, ack: survivor.id });
     }
     const { error: liberarError } = await supabase.from("expenses")
-      .update({ source: eventKey ? sourceIngestOrdinal(ordinal) : "macrodroid" }).eq("user_id", userId).eq("id", ackId);
+      .update({ source: eventKey ? nativeSource(false) : "macrodroid" }).eq("user_id", userId).eq("id", ackId);
     if (liberarError) {
       await logIngestError(supabase, userId,
         "no se pudo confirmar el gasto: queda pendiente y fuera de las cifras",
@@ -390,7 +388,7 @@ Deno.serve(async (req) => {
       if (eventKey) return json({ ok: false, deferred: true, ack: ackId, error: "confirmación pendiente" }, 503);
       return skip("anti-dup: confirmación pendiente", { tipo, deferred: true, ack: ackId });
     }
-    fila.source = eventKey ? sourceIngestOrdinal(ordinal) : "macrodroid";
+    fila.source = eventKey ? nativeSource(false) : "macrodroid";
   }
 
   // 4) Total del mes + alerta de presupuesto server-side (best-effort): el lector

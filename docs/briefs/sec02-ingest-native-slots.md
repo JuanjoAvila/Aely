@@ -1,47 +1,43 @@
-# SEC02 F2: identidad nativa y ranuras de ingest
+# SEC02 PR313 R2: lector nativo y escritura en dos fases
 
-Candidato de fuente sobre 74ea9c63880b23a975f2a5852d82970f3cbffefd. Sin publicación ni despliegue acreditados.
+Candidato privado sobre f62bd0794b509303cc0e4d579ccdbc0a70484214. El control de compatibilidad es 74ea9c63880b23a975f2a5852d82970f3cbffefd; no se afirma que sea el SHA de una Edge desplegada. Sin despliegue ni activación acreditados.
 
-## Contrato
+## Fase 1 de esta PR
 
-Dos huellas nativas distintas, misma puerta/instante/importe/comercio, conservan dos filas y1990c. La misma huella recupera siempre el ACK de su propia fila y995c; no se confirma usando una fila de otro evento. El propietario sale exclusivamente del token validado.
+El cliente y los lectores del presupuesto reconocen la marca propia no bancaria native:trade_republic#e<evento-codificado>#t<instante-original>#n<ranura>, con #dup mientras el gasto siga pendiente. El evento completo conserva origen y huella opaca; no contiene texto de la notificación. Se recuperan entidad TR, ordinal, identidad completa y hora original. La fila se lee como aviso macrodroid, nunca como fila OB ni manual: puede emparejar correctamente con OB llegue antes o después y conserva el refresco de categoría.
 
-Se conservan las migraciones0001/0025 y el índice global de cuatro columnas. También se conservan los dos onConflict de cloud.addExpense/addExpensesBatch. No hay SQL nuevo ni cambio de contrato PostgREST. El evento reserva su ranura existente; una gemela recibe desplazamiento en milisegundos y source ob:trade_republic#n2, como las gemelas OB. La reserva queda ligada a user_id+ingest_event_id, no a una nueva huella de dinero.
+La escritura de esa marca en ingest requiere exactamente INGEST_NATIVE_TWINS=1. Variable ausente, 0, false o true permanecen OFF. Este candidato no configura ni activa la variable. La fase 2 será otra PR, únicamente después de que el dueño confirme que todos los móviles tienen el lector nuevo. No se despliega como parte de este trabajo.
 
-Los ordinales no bastan para todas las carreras: dos horas originales diferentes pueden reservar el mismo ordinal. Por eso los lectores conservan además ingestEventId/ingest_event_id en su clave. expenseFromRow, mezcla cliente, lectura mensual y widget mantienen ambas compras. El roundtrip conserva #dup y #n; las lápidas antiguas mantienen su alcance anterior y las nuevas distinguen eventos.
+## Huella, ranuras y carrera
 
-## Concurrencia e incertidumbre
+La identidad es el evento completo, ligado al usuario del token y persistido en ingest_event_id y en source. El SHA256 completo propone una proyección 1..1000, usando todos sus bytes; esa proyección finita NO sustituye a la identidad y puede colisionar. Cada propuesta desplaza 0..999 ms cerca del instante original; el índice UNIQUE existente de user_id,fecha,importe,comercio arbitra la colisión. Tras comprobar el evento propio y la identidad nativa de la fila ocupante se prueba el siguiente desplazamiento. Hay como máximo ocho intentos, con desplazamiento máximo de1006 ms. Sin ocupante comprobado, ante fila manual/legacy, lectura incierta o agotamiento, se devuelve503 sin ACK ajeno.
 
-El índice viejo arbitra las colisiones de fecha; tras un INSERT vacío se comprueba el evento propio y después la identidad nativa de la fila que ocupa la ranura. Solo entonces se prueba otra ranura, con un máximo de8 intentos. Un23505 sin ACK propio, consulta fallida, inserción vacía sin fila comprobable o choque con fila manual/legacy devuelve503 reintentable; no inventa otro pago ni entrega un ACK ajeno. Una fila nativa pendiente sigue fuera del total y puede reanudar su confirmación con el mismo evento. El APK existente reencola los5xx.
+Una proyección u ordinal repetido con horas distintas no funde filas: cliente y presupuesto distinguen la huella completa. Reenvíos y handlers nuevos recuperan el ACK del mismo evento, incluido el tercer ID después de colisiones. Se conservan el índice y los dos escritores cloud con su onConflict de cuatro columnas, sin SQL ni índice nuevo. Los dos escritores reales cloud.addExpense/addExpensesBatch conservan UUID y la columna ingest_event_id existente cuando la fila lleva la marca nativa. El conflicto sigue usando las mismas cuatro columnas. Además, source conserva por sí solo la identidad para lectores que no reciban esa columna.
 
-Los desplazamientos conservan tanto el día UTC usado en las claves históricas como el día Europe/Madrid. Si sumar milisegundos cruza alguno, se busca hacia atrás; si tampoco existe ranura segura, se devuelve503. Esto conserva mes/año contable, incluido DST. Importe y comercio no se alteran.
+Los milisegundos se suman solo si conservan simultáneamente los días UTC y Europe/Madrid; de lo contrario se prueban hacia atrás. Importe y comercio no cambian. Mes, año y DST quedan en el periodo original. Para emparejar TR/Wallet se usa el instante original de la marca, evitando que el desplazamiento altere el límite exacto de dos horas. Una Wallet solo se atribuye a TR cuando identifica esa tarjeta: no se modifica esa guarda para satisfacer fixtures.
 
-El emparejado TR/Wallet conserva su contrato. La retirada de un alias devuelve el ACK de la superviviente. Las notificaciones sin identidad conservan el camino legacy; no se les atribuye certeza nativa.
+## OFF y mejoras de seguridad R1
 
-## Compatibilidad y entrega
+Con OFF se mantiene la política legacy de gemela, fecha, source y deduplicación. En caminos normales, BASE cliente por Edge nueva OFF conserva las mismas filas y céntimos que el control74ea. El cliente nuevo con servidor viejo conserva la interpretación de filas legacy: solo la marca nativa nueva añade la huella a la clave. No se presenta el OFF como solución a la multiplicidad histórica; ON sigue obligado a1990c por dos eventos reales y995c por reenvío exacto.
 
-Actualizar primero los lectores web y después ingest es la secuencia propuesta al integrador. Los clientes anteriores siguen pudiendo escribir con sus cuatro columnas: no hay índice parcial ni riesgo42P10 introducido. Reconocen #n como antes; aún conservan su dedup de lectura antiguo hasta recibir la actualización. Las lecturas que reciben error por ausencia de ingest_event_id conservan el fallback de columnas legacy. No se han probado clientes físicos ni PostgREST/PostgreSQL reales.
+Se retienen las mejoras R1 también en OFF: fallo cerrado, recuperación estable de fila pendiente y ACK de la superviviente. Es una excepción explícita a la igualdad de respuestas de error con74ea. Una fila pendiente no se confirma con200 ni se usa para liberar un alias. Una respuesta perdida puede recuperarse sin cambiar source desde el doble. Estos caminos pueden ser más seguros que el control, nunca menos.
 
-Hallazgo separado de fuente: TrExpenseListener descarta el mismo título+texto durante180s ANTES de calcular stableEventId; puede impedir que una notificación distinta llegue al endpoint. No se modifica Android/APK en este candidato y esto sigue abierto. Tampoco se cambia callback, paginación, interfaz de Gastos, shell, versiones, dependencias o catálogo.
+## Evidencia y límites
 
-## Evidencia dirigida
+Los RED anteriores permanecen inmutables: B1 mostraba2985c frente a1990c con servidor f62 y BASE; B2 guardaba tres filas pero dos #n2, y race313 dejaba solo1990c frente a2985c. El oráculo313 original se detuvo en un fixture Wallet que no identifica tarjeta TR; se conserva ese fallo y no se afirma que su suite completa pase. Un oráculo B1 independiente y dirigido aisló el problema contable sin cambiar sus importes.
 
-RED real Deno2.9.0 sobre handler base:995c en vez de1990c. RED independiente de lectura base: dos filas se reducían a995c. Un RED adicional encontró la carrera de ordinales con milisegundos originales distintos. Los fallos anteriores se conservan. GREEN dirigido:14 casos Deno del handler real con SDK/almacenamiento sintéticos y pruebas Node de lectores/roundtrip/UUID/reconcile. El arnés del handler usa strict:false por tipos ya existentes en la base y tipado del SDK doble; no es prueba de chequeo estricto del handler ni de PostgreSQL. La lectura pura también se ejecuta con el strict por defecto. Cada ejecución es serial,1worker,0retry y sin permisos de red. La regresión Node anterior se ajusta a fallar en la primera aserción; los casos de incertidumbre exigen503 en lugar de éxito skipped.
+La matriz dirigida Node usa el handler real y las funciones reales de importación, mezcla, reconciliación y escritura cloud: ON1990c en ambos órdenes OB, UUID/full fingerprint por roundtrip, categoría, proyecciones SHA realmente colisionadas y reenvíos. Otra matriz privada carga el handler y cliente74ea controlados: siete caminos normales comparan filas/céntimos y status/ACK; errores R1 prueban por separado503, pendiente excluida y recuperación995c. No son pruebas de una BD viva.
 
-Registro de CI: native-identity.test.ts está en denoEnLista y en el descubrimiento automático; ambos runners reciben su config/import-map local y permisos únicamente para las cuatro variables que el test sobrescribe con valores sintéticos, sin allow-net. ingest-native-slots.test.mjs está en steps. CI, despliegue, entrega servida y aceptación móvil quedan pendientes.
+Deno ejecuta el handler real con SDK y almacenamiento sintéticos, sin red. El run final de21 casos pasó completo con comprobación de tipos y strict:false del arnés. Incluye GREEN causal con las mismas tres huellas del RED, colisiones SHA reales, límite de ocho probes, frontera de dos horas, switch ausente/deshabilitado y las recuperaciones R1. Los fallos y runs intermedios se conservan; el arnés fuerza los prechecks de las carreras y usa created_at de inserción, no la fecha contable del pago. La evidencia no acredita un chequeo con strict:true ni PostgreSQL real.
 
-## Referencias de diseño consultadas
+Cada run tiene censo y admisión propios,1worker serial,0 retries del runner, parada al primer fallo y logs/EXIT/RETURN durables. Los reintentos del protocolo de ingest son un comportamiento bajo prueba. native-identity.test.ts y los tests Node están registrados en sus runners; Deno solo recibe las cinco variables sintéticas que sobrescribe, sin allow-net. El tipado estricto del handler, PostgreSQL/PostgREST reales, CI, beta servida y aceptación móvil no quedan acreditados por estos dobles.
 
-- [Upsert de Supabase](https://supabase.com/docs/reference/javascript/upsert): onConflict determina las columnas del conflicto.
-- [INSERT de PostgreSQL](https://www.postgresql.org/docs/current/sql-insert.html): inferencia de índices y filas realmente devueltas por RETURNING.
-- [PostgREST On Conflict](https://docs.postgrest.org/en/stable/references/api/tables_views.html#on-conflict): contrato de columnas UNIQUE.
+## Fuera de alcance
 
-El changelog oficial de Supabase se revisó antes del diseño. La incompatibilidad del índice parcial fue una deducción del contrato documentado; nunca se presentó como prueba SQL ejecutada.
+Sin F1 callback, F3 paginación, SQL, Android, APK, versiones, dependencias, catálogo, merge ni deploy. El debounce Android180s es otra pieza posterior a F1/F3. La entrega exige candidato privado terminado con diff/bundle/manifest, revisión independiente ROOT y GO de SHA exacto antes del push normal a la misma PR313.
 
-## Corrección tras revisión independiente: gemelas pendientes
+## Referencias
 
-El primer candidato permitía ACK cruzado de dos filas #dup antes de que hubiera una superviviente liberada. Dos RED nuevos del handler real reprodujeron el ACK cruzado200/200 y el borrado posterior con superviviente aún pendiente503/200. Ese candidato y sus evidencias se conservan.
-
-El precheck ahora selecciona source y solo confirma una gemela liberada cuando NO existe una fila propia pendiente. Una propia pendiente continúa al arbitraje estable por created_at/id: la anterior puede reanudar su liberación; la posterior devuelve503 sin borrar ni confirmar mientras la superviviente está #dup. Tras liberarse la anterior, el reenvío de la posterior retira únicamente su fila propia con source aún igual al observado y confirma el ACK de la superviviente. La prueba termina por reenvíos al handler con una fila995c, sin liberar source manualmente desde el SDK.
-
-Se ejecutaron únicamente los dos casos nuevos y la regresión precisa de superviviente ya liberada; los14 casos anteriores y Node conservan su evidencia previa, sin anunciar una suite16 completa posterior. Almacenamiento/SDK siguen siendo sintéticos y no hay SQL, despliegue ni publicación.
+- [Pruebas de Edge Functions](https://supabase.com/docs/guides/functions/unit-test): separar pruebas del handler de una integración real.
+- [Upsert de Supabase](https://supabase.com/docs/reference/javascript/upsert): conflicto por columnas y retorno mediante select.
+- [Changelog de Supabase](https://supabase.com/changelog): revisado antes del cambio; sin cambio de SDK ni de esquema.

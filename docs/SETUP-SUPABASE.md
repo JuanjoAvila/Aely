@@ -563,3 +563,7 @@ No basta con un UPDATE sin error: debe devolver filas o confirmarse su propio pa
 ## SEC02 F2: candidato sin cambio de esquema
 
 El candidato [de identidad nativa de ingest](briefs/sec02-ingest-native-slots.md) conserva los índices y los onConflict existentes. Reserva ranuras de milisegundos y conserva identidad/ordinal en los lectores. No necesita SQL; despliegue y prueba móvil pendientes.
+
+### Ingest: fase 1 del lector nativo
+
+INGEST_NATIVE_TWINS permanece ausente/apagado por defecto. El código de la marca nativa propia solo se ejecuta con valor exacto1. No hay SQL ni cambio del UNIQUE de cuatro columnas. La activación queda para una PR posterior, tras confirmar todos los lectores móviles; esta fuente no acredita despliegue. [Contrato y excepciones OFF/R1](briefs/sec02-ingest-native-slots.md).

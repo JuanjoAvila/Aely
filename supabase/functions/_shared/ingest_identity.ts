@@ -15,6 +15,7 @@ export type CandidatoIngest = {
   importe: number | string;
   ingest_event_id?: string | null;
   created_at?: string | null;
+  source?: string | null;
 };
 
 const EVENTO_MAX = 160;
@@ -61,7 +62,7 @@ export function esGemeloIngest(actual: CandidatoIngest, anterior: CandidatoInges
     (ob === "tr:trade_republic" && oa === "wallet:trade_republic");
   if (!cruzado) return false;
   if (Math.abs(Number(actual.importe) - Number(anterior.importe)) > 0.02) return false;
-  const ta = new Date(actual.fecha).getTime(), tb = new Date(anterior.fecha).getTime();
+  const ta = instanteIngest(actual), tb = instanteIngest(anterior);
   return isFinite(ta) && isFinite(tb) && Math.abs(ta - tb) <= GEMELO_MS;
 }
 
@@ -113,9 +114,23 @@ export function fechaEventoOrdinal(fecha: string, ordinal: number): string | nul
   return sameDay(before) ? before.toISOString() : null;
 }
 
-/** Las OTA anteriores ya conocen ob:<banco>[#dup]#n<k>: no cambia el contrato de escritura. */
-export function sourceIngestOrdinal(ordinal: number, pendiente = false): string {
+/** La marca nueva solo se escribe con el interruptor de fase 1; la huella viaja completa. */
+export function sourceIngestOrdinal(ordinal: number, pendiente = false, evento?: string | null, fecha?: string): string {
+  if (evento) return "native:trade_republic#e" + encodeURIComponent(evento) + "#t" + Date.parse(fecha || "") + (pendiente ? "#dup" : "") + "#n" + ordinal;
   return pendiente || ordinal > 1
     ? "ob:trade_republic" + (pendiente ? "#dup" : "") + (ordinal > 1 ? "#n" + ordinal : "")
     : "macrodroid";
+}
+
+/** La proyección usa TODOS los bytes SHA256; nunca sustituye a la huella persistida.
+ * El índice histórico arbitra colisiones, y el probe desplaza como máximo unos pocos ms más. */
+export async function ordinalEvento(evento: string): Promise<number> {
+  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(evento)));
+  let value = 0;
+  for (const byte of digest) value = (value * 256 + byte) % 1000;
+  return value + 1;
+}
+function instanteIngest(row: CandidatoIngest): number {
+  const match = /^native:trade_republic#/.test(String(row.source || '')) && /#t(\d+)(?:#|$)/.exec(String(row.source));
+  return match ? Number(match[1]) : new Date(row.fecha).getTime();
 }

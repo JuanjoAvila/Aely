@@ -4,7 +4,8 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import { execFileSync } from "node:child_process";
 import { transformSync } from "esbuild";
-import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
+import { loadPureLogic } from "../scripts/load-pure-logic.mjs";
+const loadPureLogicFromFile=()=>loadPureLogic("<script>"+JSON.parse(read("src/build-order.json")).map(p=>read("src/modules/"+p)).join("\n")+"</script>");
 
 import {root,read,mod,logic,wallet,identity,budget,widgetBudget,entrada,handlerJs,fakeDb,makeHandler,post} from "./helpers/ingest-handler-fixture.mjs";
 
@@ -236,12 +237,12 @@ await t("si falla retirar el gemelo actual, queda fuera de cifras y sin pedir un
 });
 
 await t("dos compras legítimas idénticas por TR se conservan como dos filas limpias", async () => {
-  const env = fakeDb();
+  const env = fakeDb({nativeTwins:true});
   const base = { fuente: "tr", titulo: "Trade Republic", texto: "Has gastado 9,95 € en Pans & Company" };
   await post(env, { ...base, fecha: String(Date.parse("2026-09-17T14:24:00+02:00")), evento: "v1_buy_a" });
   const b = await post(env, { ...base, fecha: String(Date.parse("2026-09-17T14:29:00+02:00")), evento: "v1_buy_b" });
   assert.equal(b.data.skipped, undefined); assert.equal(b.data.possibleDup, undefined);
-  assert.equal(env.rows.length, 2); assert.deepEqual(env.rows.map((r) => r.source), ["macrodroid", "ob:trade_republic#n2"]);
+  assert.equal(env.rows.length, 2); assert.equal(env.rows.every(r=>String(r.source).startsWith("native:trade_republic#e")),true);
 });
 
 await t("ON CONFLICT nativo sin fila ni identidad comprobada devuelve reintento, nunca éxito", async () => {

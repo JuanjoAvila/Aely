@@ -1487,3 +1487,7 @@ node tests/ingest-native-slots.test.mjs
 ```
 
 Cubren dos eventos1990c, reenvío995c/ACK, tercer evento, carreras23505, propietarios, incertidumbre, legacy y fronteras UTC/Madrid. El handler real usa SDK/almacenamiento sintéticos; no acredita PostgreSQL/PostgREST, despliegue ni móvil. [Contrato y límites](briefs/sec02-ingest-native-slots.md).
+
+### Ingest nativo: fase 1
+
+Los tests ingest-native-phase1 y ingest-native-slots cargan src real, no un HTML generado. El primero ejecuta el handler contra dobles SDK/storage, ambos órdenes OB y cloud.addExpense real; incluye colisiones reales de proyección SHA y el modo OFF. native-identity.test.ts usa INGEST_NATIVE_TWINS sintético explícito y cinco permisos env, sin red. Ver [contrato SEC02 y límites de evidencia](briefs/sec02-ingest-native-slots.md); los dobles no acreditan PostgreSQL/PostgREST ni despliegue.

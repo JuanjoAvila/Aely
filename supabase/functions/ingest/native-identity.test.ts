@@ -1,11 +1,12 @@
 // Handler real intacto; el SDK y el almacenamiento son sintéticos, sin red ni PostgreSQL.
-import { claveEvento, fechaEventoOrdinal } from '../_shared/ingest_identity.ts';
+import { claveEvento, fechaEventoOrdinal, ordinalEvento } from '../_shared/ingest_identity.ts';
 import { filasComoLaApp } from '../_shared/presupuesto.ts';
 const runtime=Deno as unknown as Record<string,any>;
 let handler:(req:Request)=>Promise<Response>;
 let activeDb:any;
 const oldServe=runtime.serve;
 runtime.serve=(f:any)=>{handler=f;return {};};
+Deno.env.set('INGEST_NATIVE_TWINS','1');
 Deno.env.set('SUPABASE_URL','https://synthetic.invalid');
 Deno.env.set('SUPABASE_SERVICE_ROLE_KEY','synthetic');
 Deno.env.set('INGEST_TOKEN','');Deno.env.set('INGEST_USER_ID','owner-synthetic');
@@ -14,6 +15,7 @@ await import('./index.ts');
 function equal(actual:any,expected:any,label:string){if(JSON.stringify(actual)!==JSON.stringify(expected))throw Error(label+': expected '+JSON.stringify(expected)+', actual '+JSON.stringify(actual));}
 function storage(opts:any={}){
  const rows:any[]=(opts.rows||[]).map((r:any)=>({...r})),events:any[]=[],writes:any[]=[];
+ let insertSeq=0,nearCount=0,releaseNear:any;const insertOrigin=Date.now(),bothNear=new Promise<void>(resolve=>{releaseNear=resolve;});
  function from(name:string){const q:any={op:'select',filters:[],cols:'*',row:null};const api:any={
  select(cols='*'){q.cols=cols;return api;},eq(k:string,v:any){if(k==='token')q.token=v;q.filters.push((r:any)=>String(r[k])===String(v));return api;},
  in(k:string,v:any[]){q.filters.push((r:any)=>v.includes(r[k]));return api;},
@@ -21,7 +23,7 @@ function storage(opts:any={}){
  limit(n:number){q.limit=n;return api;},range(a:number,b:number){q.range=[a,b];return api;},order(){return api;},abortSignal(){return api;},
  upsert(row:any,opts:any){q.op='upsert';q.row={...row};q.options=opts;return api;},insert(row:any){q.op='insert';q.row={...row};return api;},update(row:any){q.op='update';q.row={...row};return api;},delete(){q.op='delete';return api;},
  async maybeSingle(){return name==='ingest_tokens'?{data:{user_id:q.token==='token-other'?'owner-other':'owner-synthetic'},error:null}:name==='app_state'?{data:{data:{accounts:[{ent:'trade_republic',role:'diario'}],settings:{}}},error:null}:{data:null,error:null};},
- then(resolve:any,reject:any){return Promise.resolve().then(run).then(resolve,reject);}};
+ then(resolve:any,reject:any){return Promise.resolve().then(run).then(async result=>{if(opts.syncPrechecks&&q.op==='select'&&q.cols==='id,fecha,importe,ingest_event_id,source'&&nearCount<2){nearCount++;if(nearCount===2)releaseNear();await bothNear;}return result;}).then(resolve,reject);}};
  function run(){
  if(name==='app_events'){events.push(q.row);return {data:null,error:null};}if(name!=='expenses')return {data:[],error:null};
  const matches=()=>rows.filter(r=>q.filters.every((f:any)=>f(r)));
@@ -33,7 +35,7 @@ function storage(opts:any={}){
  // Contrato literal de0001: la restricción de contenido también se aplica a eventos distintos.
  const legacy=rows.some(r=>r.user_id===q.row.user_id&&r.fecha===q.row.fecha&&Number(r.importe)===Number(q.row.importe)&&r.comercio===q.row.comercio);
  if(legacy)return q.op==='upsert'?{data:[],error:null}:{data:null,error:{code:'23505',message:'expenses_dedup_idx'}};
- const row={id:'synthetic-'+(rows.length+1),created_at:q.row.fecha,...q.row};rows.push(row);return {data:[{id:row.id}],error:null};}
+ const row={id:'synthetic-'+(rows.length+1),created_at:new Date(insertOrigin+(++insertSeq)).toISOString(),...q.row};rows.push(row);return {data:[{id:row.id}],error:null};}
  if(q.op==='update'){if(opts.releaseError){opts.releaseError=false;return {data:null,error:{message:'synthetic release failure'}};}for(const r of matches())Object.assign(r,q.row);return {data:[],error:null};}
  if(q.op==='delete'){if(opts.deleteError)return {data:null,error:{message:'synthetic delete failure'}};const gone=new Set(matches());for(let i=rows.length-1;i>=0;i--)if(gone.has(rows[i]))rows.splice(i,1);return {data:Array.from(gone).map((r:any)=>({id:r.id})),error:null};}
  throw Error('Unexpected query');}
@@ -57,7 +59,7 @@ Deno.test('F2 same content: third event survives handler, monthly reader and unc
  const s=storage();for(const id of ['v1_a','v1_b','v1_c'])equal((await post(s,body(id))).status,200,'new event status');
  equal(s.rows.length,3,'three events');equal(new Set(s.rows.map(r=>r.fecha)).size,3,'three unique timestamp slots');
  equal(filasComoLaApp(s.rows,[],[],'owner-synthetic').reduce((n,r)=>n+Math.round(Number(r.importe)*100),0),2985,'third-event cents');
- equal(s.rows.map(r=>r.source),['macrodroid','ob:trade_republic#n2','ob:trade_republic#n3'],'ordinal source');
+ equal(s.rows.every(r=>String(r.source).startsWith('native:trade_republic#e')),true,'native source never bank');
  equal((await post(s,body('v1_b'))).data.ack,s.rows[1].id,'middle-event replay ACK');
 });
 Deno.test('F2 distinct concurrent events collide then reserve their own slots',async()=>{
@@ -76,13 +78,13 @@ Deno.test('F2 23505 exact native recovery never aliases another event',async()=>
  const bad=storage({noAck23505:true});const uncertain=await post(bad,body('v1_uncertain'));equal(uncertain.status,503,'unknown conflict closed');equal(uncertain.data.ok,false,'no false success');
 });
 Deno.test('F2 release uncertainty remains pending outside totals and retry repairs same row',async()=>{
- const s=storage({releaseError:true});const first=await post(s,body('v1_release'));equal(first.status,503,'pending status');equal(s.rows[0].source,'ob:trade_republic#dup','pending source');
- const retry=await post(s,body('v1_release'));equal(retry.status,200,'repair status');equal(retry.data.ack,first.data.ack,'repair ACK');equal(s.rows.length,1,'repair one row');equal(s.rows[0].source,'macrodroid','confirmed source');
+ const s=storage({releaseError:true});const first=await post(s,body('v1_release'));equal(first.status,503,'pending status');equal(String(s.rows[0].source).includes('#dup'),true,'pending source');
+ const retry=await post(s,body('v1_release'));equal(retry.status,200,'repair status');equal(retry.data.ack,first.data.ack,'repair ACK');equal(s.rows.length,1,'repair one row');equal(String(s.rows[0].source).startsWith('native:trade_republic#e'),true,'confirmed native source');
 });
 Deno.test('F2 owner is token-bound and months never share native slots',async()=>{
  const s=storage();const a=await post(s,body('v1_owner'));const b=await post(s,{...body('v1_owner'),user_id:'owner-synthetic'},'token-other');
  equal(s.rows.map(r=>r.user_id),['owner-synthetic','owner-other'],'owner from token only');equal(s.rows[0].fecha,s.rows[1].fecha,'owners have independent slots');
- const other=await post(s,{...body('v1_month'),fecha:String(Date.parse('2026-11-16T08:00:00Z'))});equal(other.status,200,'new month');equal(s.rows[2].source,'macrodroid','month ordinal reset');
+ const other=await post(s,{...body('v1_month'),fecha:String(Date.parse('2026-11-16T08:00:00Z'))});equal(other.status,200,'new month');equal(s.rows[2].fecha.slice(0,7),'2026-11','new month preserved');
 });
 Deno.test('F2 old client without native ID preserves legacy duplicate behavior',async()=>{
  const s=storage();const b:any=body('');delete b.evento;await post(s,b);const r=await post(s,b);equal(s.rows.length,1,'legacy exact repeat row');equal(r.data.dup,true,'legacy exact duplicate');
@@ -101,12 +103,13 @@ Deno.test('F2 timestamp slots preserve UTC and Madrid day/month/year including D
  equal(fechaEventoOrdinal('2026-10-16T08:00:00.000Z',1000000),null,'unsafe ordinal rejected');
 });
 Deno.test('F2 failed native reads cannot ACK or insert blindly',async()=>{
- for(const opts of [{ackError:true},{slotError:true}]){const s=storage(opts);const r=await post(s,body('v1_read_error'));equal(r.status,503,'uncertain read status');equal(s.rows.length,0,'no blind insert');equal(r.data.ack,undefined,'no fabricated ACK');}
+ for(const opts of [{ackError:true}]){const s=storage(opts);const r=await post(s,body('v1_read_error'));equal(r.status,503,'uncertain read status');equal(s.rows.length,0,'no blind insert');equal(r.data.ack,undefined,'no fabricated ACK');}
 });
 
 Deno.test('F2 unknown empty insert or manual collision never becomes a fabricated extra payment',async()=>{
  const empty=storage({emptyInsert:true});const e=await post(empty,body('v1_empty'));equal(e.status,503,'empty insertion closed');equal(e.data.ack,undefined,'empty has no ACK');
- const manual=storage({rows:[{id:'manual-paid',user_id:'owner-synthetic',fecha:'2026-10-16T08:00:00.000Z',importe:9.95,comercio:'COMERCIO SINTETICO',cat:'taxi',source:'manual:trade_republic'}]});
+ const manualDate=fechaEventoOrdinal('2026-10-16T08:00:00.000Z',await ordinalEvento(claveEvento('v1_manual_collision','tr','')!));
+ const manual=storage({rows:[{id:'manual-paid',user_id:'owner-synthetic',fecha:manualDate,importe:9.95,comercio:'COMERCIO SINTETICO',cat:'taxi',source:'manual:trade_republic'}]});
  const m=await post(manual,body('v1_manual_collision'));equal(m.status,503,'manual collision remains retryable');equal(m.data.ack,undefined,'no ACK of another row');equal(manual.rows.length,1,'manual not doubled');equal(manual.rows[0].cat,'taxi','manual category untouched');
 });
 
@@ -116,7 +119,7 @@ Deno.test('F2 concurrent native events with different original milliseconds keep
 });
 
 Deno.test('F2 double-pending cross-door replays never ACK an unconfirmed survivor',async()=>{
- const opts={releaseError:true,deleteError:true};const s=storage(opts);
+ const opts={releaseError:true,deleteError:true,syncPrechecks:true};const s=storage(opts);
  const tr=body('v1_double_pending_tr');
  const wallet={evento:'v1_double_pending_wallet',fuente:'wallet',fecha:tr.fecha,titulo:'ALIAS SINTETICO',texto:'9,95 € con Trade Republic Visa Card'};
  const seeded=await Promise.all([post(s,tr),post(s,wallet)]);
@@ -130,14 +133,54 @@ Deno.test('F2 double-pending cross-door replays never ACK an unconfirmed survivo
  const finalA=await post(s,tr),finalB=await post(s,wallet);
  equal([finalA.status,finalB.status],[200,200],'automatic recovery without changing source externally');
  equal(finalA.data.ack,finalB.data.ack,'one stable released survivor ACK');equal(s.rows.length,1,'pending alias removed only after survivor release');
- equal(s.rows[0].source,'macrodroid','confirmed survivor');equal(Math.round(Number(s.rows[0].importe)*100),995,'one cross-door payment');
+ equal(String(s.rows[0].source).startsWith('native:trade_republic#e'),true,'confirmed survivor');equal(Math.round(Number(s.rows[0].importe)*100),995,'one cross-door payment');
 });
 
 Deno.test('F2 postinsert never deletes own row or ACKs an earlier pending twin',async()=>{
- const s=storage({releaseError:true});const tr=body('v1_post_pending_tr');
+ const s=storage({releaseError:true,syncPrechecks:true});const tr=body('v1_post_pending_tr');
  const wallet={evento:'v1_post_pending_wallet',fuente:'wallet',fecha:tr.fecha,titulo:'ALIAS POST SINTETICO',texto:'9,95 € con Trade Republic Visa Card'};
  const rs=await Promise.all([post(s,tr),post(s,wallet)]);
  console.log(JSON.stringify({statuses:rs.map(r=>r.status),rows:s.rows.length,sources:s.rows.map(r=>r.source),ACKs:rs.map(r=>r.data.ack||null)}));
  equal(rs.map(r=>r.status),[503,503],'postinsert pending twin cannot confirm success');equal(s.rows.length,2,'do not delete while survivor is pending');
  equal(rs[1].data.ack,undefined,'no pending survivor ACK');
+});
+
+Deno.test('R2 B2 causal GREEN: different original hours retain three complete identities',async()=>{
+ const s=storage();await post(s,body('v1_r2_initial'));
+ const rs=await Promise.all([post(s,{...body('v1_r2_b'),fecha:String(Number(body('').fecha)+3600000)}),post(s,{...body('v1_r2_c'),fecha:String(Number(body('').fecha)+7200000)})]);
+ equal(rs.map(r=>r.status),[200,200],'different-hour statuses');equal(s.rows.length,3,'three real events');
+ equal(new Set(s.rows.map(r=>r.source)).size,3,'three full source identities');
+ equal(filasComoLaApp(s.rows,[],[],'owner-synthetic').reduce((n,r)=>n+Math.round(Number(r.importe)*100),0),2985,'independent three-event cents');
+ console.log(JSON.stringify({causal:'same RED inputs and unchanged handler boundary',rows:s.rows.length,cents:2985,sources:s.rows.map(r=>r.source)}));
+});
+
+Deno.test('R2 SHA256 projection collisions arbitrate UNIQUE and retain full-event ACKs',async()=>{
+ const groups=new Map<number,string[]>();let ids:string[]=[];
+ for(let i=0;i<6000;i++){const id='v1_collision_'+i,n=await ordinalEvento(claveEvento(id,'tr','')!),g=groups.get(n)||[];g.push(id);groups.set(n,g);if(g.length===3){ids=g;break;}}
+ equal(ids.length,3,'three real SHA256 projection collisions');const s=storage();
+ const rs=await Promise.all(ids.map(id=>post(s,body(id))));equal(rs.map(r=>r.status),[200,200,200],'three collision statuses');
+ equal(s.rows.length,3,'three collision events');equal(new Set(s.rows.map(r=>r.fecha)).size,3,'global four-column UNIQUE probes');
+ equal(s.writes.length>3,true,'collision arbitration really retried inserts');
+ for(const [i,id]of ids.entries())equal((await post(s,body(id))).data.ack,rs[i].data.ack,'own exact-event ACK after collision');
+ equal(filasComoLaApp(s.rows,[],[],'owner-synthetic').reduce((n,r)=>n+Math.round(Number(r.importe)*100),0),2985,'collision money invariant');
+});
+
+Deno.test('R2 bounded native probe exhaustion fails closed without foreign ACK',async()=>{
+ const b=body('v1_probe_cap'),first=await ordinalEvento(claveEvento(b.evento,'tr','')!);
+ const rows=Array.from({length:8},(_,i)=>({id:'occupied-'+i,user_id:'owner-synthetic',fecha:fechaEventoOrdinal('2026-10-16T08:00:00.000Z',first+i),importe:9.95,comercio:'COMERCIO SINTETICO',cat:'otros',source:'native:trade_republic#e'+encodeURIComponent('tr:trade_republic:v1_occupied_'+i)+'#t1792137600000#n'+(first+i),ingest_event_id:'tr:trade_republic:v1_occupied_'+i}));
+ const s=storage({rows}),r=await post(s,b);equal(r.status,503,'bounded exhaustion status');equal(r.data.ack,undefined,'no foreign ACK');
+ equal(s.rows.length,8,'no fabricated extra event');equal(s.writes.length,8,'exact eight-attempt bound');
+});
+
+Deno.test('R2 original event time preserves the exact two-hour cross-door boundary',async()=>{
+ for(const delta of [7200000,7200001]){const s=storage();await post(s,body('v1_boundary_tr'));
+ const r=await post(s,{evento:'v1_boundary_wallet',fuente:'wallet',fecha:String(Number(body('').fecha)+delta),titulo:'ALIAS SINTETICO',texto:'9,95 € con Trade Republic Visa Card'});
+ equal(r.status,200,'boundary status');equal(s.rows.length,delta===7200000?1:2,'original time, not displaced slot, controls cross-door pairing');}
+});
+
+Deno.test('R2 absent or disabled switch never writes the new native format',async()=>{
+ try{for(const value of [undefined,'0','false','true']){if(value===undefined)Deno.env.delete('INGEST_NATIVE_TWINS');else Deno.env.set('INGEST_NATIVE_TWINS',value);
+ const s=storage();await post(s,body('v1_off_a'));const r=await post(s,body('v1_off_b'));
+ equal(s.rows.length,1,'OFF preserves baseline content conflict');equal(s.rows[0].source,'macrodroid','OFF native marker absent');equal(r.data.dup,true,'OFF legacy dedup');}}
+ finally{Deno.env.set('INGEST_NATIVE_TWINS','1');}
 });
