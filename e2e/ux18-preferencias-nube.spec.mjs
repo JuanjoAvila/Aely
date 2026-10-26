@@ -50,10 +50,18 @@ async function harness(browser,baseURL,info,{holdFirst=false,failPack=false,hold
   });
   await ctx.addInitScript(({local,owner})=>{
     if(location.protocol!=="http:")return;
-    document.addEventListener("DOMContentLoaded",()=>{
-      const create=ReactDOM.createRoot;
-      ReactDOM.createRoot=function(...args){const root=create(...args);window.__ux18Root=root;return root;};
-    },{once:true});
+    // El gancho se pone en cuanto ReactDOM existe, no en DOMContentLoaded: si la app monta
+    // antes de ese evento, __ux18Root quedaba sin poner y el desmontaje fallaba (main, 26/10).
+    // El UMD asigna `ReactDOM = {}` y rellena después, por eso se intercepta createRoot como propiedad.
+    const wrapRoot=R=>{
+      if(!R||R.__ux18p)return R;let real=R.createRoot;
+      Object.defineProperty(R,"createRoot",{configurable:true,enumerable:true,
+        get(){return real&&function(...args){const root=real.apply(this,args);window.__ux18Root=root;return root;};},
+        set(fn){real=fn;}});
+      Object.defineProperty(R,"__ux18p",{value:1});return R;
+    };
+    if(window.ReactDOM)wrapRoot(window.ReactDOM);
+    else{let rd;Object.defineProperty(window,"ReactDOM",{configurable:true,get:()=>rd,set:x=>{rd=wrapRoot(x);}});}
     let lib;const session={access_token:"synthetic-only",expires_at:4102444800,user:{id:owner}};
     Object.defineProperty(window,"supabase",{configurable:true,get:()=>lib,set:value=>{
       if(!value?.createClient){lib=value;return;}
