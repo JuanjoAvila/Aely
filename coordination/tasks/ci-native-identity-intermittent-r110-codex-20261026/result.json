@@ -1,0 +1,104 @@
+{
+  "status": "done",
+  "summary": "F2postinsert intermitente diagnosticado y fixture determinista de ambosordenes entregado en PR317 draftbeta, exactd9e87874 revisado independientemente. Causa: ordenPromise.all no fija INSERT tras SHA256real; se conserva noACKdegemelopendiente para la filaposterior real.",
+  "tests": [
+    {
+      "command": [
+        "deno",
+        "test",
+        "--no-remote",
+        "--cached-only",
+        "--no-prompt",
+        "--fail-fast=1",
+        "--filter=F2 postinsert never deletes own row or ACKs an earlier pending twin",
+        "--allow-env=SUPABASE_URL,SUPABASE_SERVICE_ROLE_KEY,INGEST_TOKEN,INGEST_USER_ID,INGEST_NATIVE_TWINS",
+        "--config=supabase/functions/ingest/native-identity.deno.json",
+        "--import-map=supabase/functions/ingest/native-identity.imports.json",
+        "supabase/functions/ingest/native-identity.test.ts"
+      ],
+      "variant": "causalRED Walletfirst, asercionoriginal intacta",
+      "sourceSHA256": "7027533ca6b0356a9968b6ae94f0c44ed675d06c82a1a1f2999fed5ad6906c52",
+      "exitCode": 1,
+      "expectedFailure": true,
+      "failure": "no pending survivor ACK: expected undefined, actual synthetic-1",
+      "testCount": 1,
+      "filteredOut": 20
+    },
+    {
+      "command": [
+        "deno",
+        "test",
+        "--no-remote",
+        "--cached-only",
+        "--no-prompt",
+        "--fail-fast=1",
+        "--filter=F2 postinsert never deletes own row or ACKs an earlier pending twin",
+        "--allow-env=SUPABASE_URL,SUPABASE_SERVICE_ROLE_KEY,INGEST_TOKEN,INGEST_USER_ID,INGEST_NATIVE_TWINS",
+        "--config=supabase/functions/ingest/native-identity.deno.json",
+        "--import-map=supabase/functions/ingest/native-identity.imports.json",
+        "supabase/functions/ingest/native-identity.test.ts"
+      ],
+      "variant": "GREENdualorder TRfirst and Walletfirst",
+      "sourceSHA256": "e60f24a15047da09e335e0ea2411565e63fc4364268e0b9ae117fa2aab59eae3",
+      "exitCode": 0,
+      "testCount": 1,
+      "scenarios": 2,
+      "filteredOut": 20
+    }
+  ],
+  "productSHA": "d9e87874b33ba761daf4449006840ca6fedd072d",
+  "productTree": "456f091419fdff5a8a0324aab5c105930b1f3549",
+  "parentSHA": "034fdb7b3b068408c2d113eb80382d13fdafa11e",
+  "pullRequestNumber": 317,
+  "draft": true,
+  "baseBranch": "beta",
+  "headBranch": "codex/native-identity-r110-86a4346a",
+  "scope": [
+    "supabase/functions/ingest/native-identity.test.ts"
+  ],
+  "review": {
+    "exactSHA": "d9e87874b33ba761daf4449006840ca6fedd072d",
+    "independent": true,
+    "findings": 0
+  },
+  "invariants": {
+    "both503": true,
+    "twoPendingRows": true,
+    "noDeleteAttempt": true,
+    "noACKForLaterPendingTwin": true,
+    "exactEventIDs": true,
+    "eachRowCents": 995,
+    "confirmedCents": 0,
+    "caps8Unchanged": true,
+    "handlerAndRealSHA256Unchanged": true,
+    "SDKsynthetic": true,
+    "network": false
+  },
+  "resources": {
+    "CPU": 1,
+    "serial": true,
+    "workers": 1,
+    "retries": 0,
+    "bothOwnRunnersExited": true,
+    "ownReturnsDurable": true,
+    "port": null,
+    "foreignProcessesUntouched": true
+  },
+  "OWN": {
+    "allowance": 20,
+    "usedActualBeforeResultReadback": 10,
+    "noReset": true,
+    "noInheritance": true
+  },
+  "limitations": [
+    "Solo un test filtrado con dos ordenes en GREEN; los otros20casos quedaron filtrados en ambosprocesos, no se alega suite21verde.",
+    "CIgeneral e integracion pendientes; PRdraft no acredita Edge desplegada, servido, movil ni ProductREADY.",
+    "No merge/deploy/SQL/liveDB/APK ni cambios de producto/configuracion."
+  ],
+  "schema": 1,
+  "taskId": "ci-native-identity-intermittent-r110-codex-20261026",
+  "actor": "codex",
+  "sessionId": "codex-local-20261026-native-identity-r110-fda31257-86a4346a-0990-4a7d-8670-21fec0303427",
+  "createdAt": "2026-10-26T08:42:33.951Z",
+  "released": true
+}
