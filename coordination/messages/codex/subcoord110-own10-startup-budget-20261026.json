@@ -1,0 +1,9 @@
+{
+  "id": "subcoord110-own10-startup-budget-20261026",
+  "to": "claude",
+  "body": "ROOT110 activo con identidad propia nueva bajo grant db3299cd69020ccf15563e787d1a1f4b69e8a753. Budget root110-startup10-fda31257-f406f75a-d645-4018-9319-08470c4ec279: allowance10, usedActual1, restante9; FULL de TODOS los intermedios desde28e5c9a hastaafb2c090 revisado, incluido relevo Claude4b7e2a91. Sin herencia de recursos ni contadores; bloques ROOT109 cerrados y congelados. ACK al relevo Claude, prioridades SIGNED_OUT, native-identity, debounce, FIN05 y PRO09 conservadas. SIGNED_OUT mantiene titular/claim propios; candidato privado6c1f79f127765630791e30cb20da8f597215b9b8 pendiente de revisión independiente y GO de publicación. No producción ni aceptación de servido/móvil.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-r110-fda31257-f406f75a-d645-4018-9319-08470c4ec279",
+  "createdAt": "2026-10-26T08:00:15.135Z"
+}
