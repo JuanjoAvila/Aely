@@ -185,11 +185,22 @@ trae **basura de codificación** (una compra real salió como `10638 CORNELLAÂ�
 que cuela es un NUL, **Postgres rechaza el INSERT entero**. `limpiarTexto()` los quita antes de
 guardar.
 
-Desde 4.26.6 el lector no deduplica por título o texto: Wallet y Trade Republic pueden describir
-la misma compra de forma distinta. La identidad se forma con origen, paquete, clave de Android y
-`postTime` (o paquete, id y tag como fallback) y viaja a `ingest`. Este cambio exige **APK nueva**
-y debe publicarse solo después de aplicar la migración 0025 y desplegar la Edge `ingest`; de otro
-modo el móvil conserva la deduplicación anterior aunque reciba la OTA.
+La identidad v1 del lector se forma con origen, paquete, clave Android y `postTime`, y viaja a
+`ingest`. Si la clave falta se conserva paquete/id/tag; si `postTime<=0` se conserva el reloj actual,
+por lo que ese caso no promete identidad estable entre reentregas con relojes distintos.
+
+La candidata de fuente del 26/10/2026 sustituye la firma local de título/texto por
+`NativeEventDebounce`: cada evento guarda su instante en `micartera_ingest_dedupe` durante
+180 segundos. Dos compras con el mismo texto y distintas identidades se admiten; A/B/A conserva
+ambas marcas y una reentrega no renueva la ventana. A los 180000 ms se vuelve a admitir.
+La lectura/poda/consulta/escritura y `apply` comparten un monitor estático entre listeners del
+mismo proceso; `apply` mantiene su semántica de memoria inmediata y disco asíncrono, sin garantía
+nueva entre procesos o ante caída. Se ignoran `sig`/`ts` antiguos y se conservan las preferencias
+ajenas. Reloj que retrocede o identidad vacía: fail-open, para no perder una compra real.
+
+La candidata sigue pendiente de integración, **APK nueva** y aceptación móvil: la OTA no cambia
+Java. Para la entrega de la identidad v1 se conserva el requisito de aplicar la migración 0025 y
+desplegar la Edge `ingest` antes de su APK; este cambio de filtro local conserva ese contrato.
 
 FIN-05 añade arbitraje de los dos escritores del widget en Java. Cada POST reserva un ticket;
 `ingest` devuelve el mes, el instante de lectura y la contribución del evento. Un snapshot de

@@ -1,3 +1,17 @@
+Debounce nativo por identidad (candidata de fuente, 26/10/2026):
+`node tests/native-event-debounce.test.mjs`, registrado en `scripts/run-tests.mjs`,
+compila el listener completo y `NativeEventDebounce` reales con JDK 21. Android, preferencias,
+reloj y transporte son fronteras sintéticas offline. Puede fijarse `JAVA_HOME`;
+`MC_NATIVE_DEBOUNCE_OUTPUT_DIR` conserva manifest, comandos, stdout/stderr y EXIT.
+Javac y una JVM corren en serie con `ActiveProcessorCount=1`/SerialGC y cero reintentos.
+El RED de la base compila con EXIT 0 y falla en la primera aserción causal: dos eventos
+de igual texto deben admitir dos envíos, pero admite uno. El GREEN usa el mismo arnés
+con el helper de producto: A/B/A, persistencia entre listeners, 179999/180000 ms sin
+renovar duplicados, concurrencia controlada, rollback fail-open, identidad vacía,
+fallback de key/postTime y payload/v1. El tail de hash/transporte/cola/ACK se coteja
+con la base. Estas comprobaciones JVM no acreditan el framework Android ni un móvil;
+la entrega exige APK nueva y aceptación física. RED y GREEN requieren admisiones separadas.
+
 PR315 (26/10): `node scripts/run-deno-tests.mjs supabase/functions/bank-sync/overflow-resume.test.ts`
 ejecuta el guardián del contrato conservado: hasta doce páginas exitosas, con un
 único intento inicial extra si se rechaza el periodo (máximo trece). La ventana de
