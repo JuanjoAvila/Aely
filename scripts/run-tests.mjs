@@ -361,6 +361,10 @@ if (plan.deno !== false) {
       ? ["test", "--allow-read=supabase/functions,supabase/config.toml", testFile]
       : testFile.includes("bank-sync/attempt-budget.test")
       ? ["test", "--cached-only", "--no-lock", "--no-prompt", "--node-modules-dir=none", "--allow-read=supabase/functions", "--fail-fast=1", testFile]
+      // overflow-resume lee también bank-sync/index.ts y src/modules (su contrato 12+1 se comprueba contra el código real): sin
+      // --allow-read el job tests de la CI de la 4.26.181 caía con «NotCapable: Requires read access». Mismos argumentos que en run-deno-tests.mjs.
+      : testFile.includes("bank-sync/overflow-resume.test")
+      ? ["test", "--cached-only", "--no-lock", "--no-prompt", "--node-modules-dir=none", "--allow-read=supabase/functions,src/modules", "--fail-fast=1", testFile]
       : /myinvestor-(counter|token-race)\.test|bank-callback\/generation-fence\.test/.test(testFile)
       ? ["test", "--node-modules-dir=none", "--allow-read=supabase/functions", ...(testFile.includes("generation-fence.test") ? ["--fail-fast=1"] : []), testFile]
       : testFile.includes("crypto.test")
