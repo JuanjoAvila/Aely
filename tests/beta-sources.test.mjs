@@ -168,6 +168,8 @@ const sourceBeta176=sourceAt("74ea9c63880b23a975f2a5852d82970f3cbffefd");
 const sourceBeta177=sourceAt("f99f6d7a83c48efc3cbfcb73d93eba1d6130fd32");
 // Catálogo178 pasa a histórico con la 179: se lee de la 4.26.178 servida en beta (c639081ca); sus tres tandas vivas (recibo-vinculo-saldo, gastos-lag-ciclos-r3 e inicio-mes-futuro) no tienen veredicto y la 179 las deja donde están, sin tanda nueva.
 const sourceBeta178=sourceAt("c639081ca807bba526dd77cdc9413a6c4587247b");
+// Catálogo179 pasa a histórico con la 180: se lee de la 4.26.179 servida en beta (b4ae0563d); sus tres tandas vivas (recibo-vinculo-saldo, gastos-lag-ciclos-r3 e inicio-mes-futuro) no tienen veredicto y la 180 las deja donde están, sin tanda nueva.
+const sourceBeta179=sourceAt("b4ae0563d592c48a1d6eb3394fff8072f1c6602c");
 const sourceBeta153=sourceAt("80752dff055dc391c52c3067ce238f49e0a14598");
 // Catálogo137 pasa a histórico en la promoción 137: se lee de la beta 4.26.137.1 aprobada (6f18228c), lo último que probó el móvil y lo que sube entero.
 const sourceBeta137=sourceAt("6f18228cbd81c1cc9abfa7fabce0a878819234f4");
@@ -6146,6 +6148,65 @@ test("Catálogo176 añade la tanda del vínculo de recibo (solo web) sobre la 17
   assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
 });
 
+const expected180={"v":"4.26.180","d":"2026-10-26","t":{"es":"Más seguro reconectar un banco","en":"Safer to reconnect a bank","ca":"Més segur reconnectar un banc"},"items":{"es":["Reconectar un banco es ahora más seguro. No verás ningún cambio."],"en":["Reconnecting a bank is now safer. You will not see any change."],"ca":["Reconnectar un banc ara és més segur. No veuràs cap canvi."]},"tandas":[]};
+// 4.26.180 (26/10/2026): PR314 (SEC-02 F1: el guardado final de bank-callback exige id, dueño, state NULL y la emisión original, para que un callback tardío no pise una reconexión) sobre la beta 4.26.179 servida (b4ae0563d), solo web y sin APK nueva (sigue la 61). Solo cambia una Edge Function (bank-callback) y su test; NO se despliega nada.
+// SIN tanda nueva: no hay nada visible. Las de la 176 (recibo-vinculo-saldo), la 175 (gastos-lag-ciclos-r3) y la 174 (inicio-mes-futuro) no tienen veredicto y se quedan donde están, con la huella web que ya tenían: la PR no toca src/.
+// Registro: idéntico al de la 179 (ningún descriptor nuevo, ninguna unidad web movida). Solo se mueve la huella EDGE de bancos-acuse-reconexion, el único descriptor que vigila bank-callback/index.ts.
+test("Catálogo180 (solo web) no añade tanda sobre la 179, deja las tres sin veredicto donde están y declara la única huella que mueve",()=>{
+  const vivas3=["recibo-vinculo-saldo","gastos-lag-ciclos-r3","inicio-mes-futuro"];
+  const integrated=JSON.parse(sourceBeta179("scripts/beta-sources.json")),before=JSON.parse(sourceBeta179("src/data/release-notes.json"));
+  const source=f=>nl(read(f)),old=f=>nl(sourceBeta179(f));
+  assert.equal(before[0].v,"4.26.179");
+  assert.deepEqual(before.slice(0,6).map(n=>n.tandas.map(g=>g.id)),[[],[],[],[vivas3[0]],[vivas3[1]],[vivas3[2]]],"la 179 servida no lleva tanda y conserva las tres sin veredicto");
+  for(const n of before.slice(6))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] en la 179 servida");
+  assert.deepEqual(expected180.tandas,[],"la 180 no lleva tanda");
+  const expectedNotes=[expected180,...before];
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.deepEqual(notes,expectedNotes,"la nota 180 literal delante (con tandas:[]) y todo lo demás intacto");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.176",vivas3[0],0],["4.26.175",vivas3[1],0],["4.26.174",vivas3[2],0]],"el panel enseña tres tandas, sin APK");
+  assert.equal(notes.length,277);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
+  const jerga=/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|FIN-|SES-|UX-|SEC-|ingest|d+.d+.d+/i;
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,1,lang+": un punto familiar");
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
+  }
+  const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
+  const nueva=structuredClone(notes);nueva[0].tandas.push(structuredClone(notes[4].tandas[0]));assert.throws(()=>verifyNotes(nueva),assert.AssertionError,"la 180 no repite ni inventa una tanda");
+  const pierde=structuredClone(notes);pierde[4].tandas=[];assert.throws(()=>verifyNotes(pierde),assert.AssertionError,"la tanda de la 176, sin veredicto, no desaparece");
+  // Registro: exactamente el de la 179 (la PR no toca src/, así que no crece ningún cierre de lectores).
+  const scopes=JSON.parse(source("scripts/beta-sources.json"));
+  assert.deepEqual(scopes,integrated,"registro intacto: ni descriptores nuevos ni unidades movidas");
+  for(const id of vivas3)for(const u of scopes[id].web)assert.ok(scopeText(u,source).length>0,"la unidad existe en la fuente: "+id+" "+JSON.stringify(u));
+  // Solo web: apk.json, build.gradle, el nativo y el SQL quedan como en la 179; de las Edge solo cambia bank-callback.
+  assert.equal(source("public/apk.json"),old("public/apk.json"),"apk.json intacto: sigue la APK 61");
+  assert.equal(source("android/app/build.gradle"),old("android/app/build.gradle"),"build.gradle intacto");
+  assert.equal(execFileSync("git",["diff","--name-only","b4ae0563d592c48a1d6eb3394fff8072f1c6602c","HEAD","--","android","supabase/migrations","src/modules","src/shell.html"],{encoding:"utf8"}).trim(),"","sin SQL, nativo ni código web");
+  const edgeCambiadas=execFileSync("git",["diff","--name-only","b4ae0563d592c48a1d6eb3394fff8072f1c6602c","HEAD","--","supabase/functions"],{encoding:"utf8"}).trim().split(String.fromCharCode(10)).filter(Boolean).sort();
+  assert.deepEqual(edgeCambiadas,["supabase/functions/bank-callback/generation-fence.test.ts","supabase/functions/bank-callback/index.ts"],"solo bank-callback y su test");
+  // Huella que se mueve (lista cerrada): la Edge bank-callback/index.ts solo la vigila bancos-acuse-reconexion. Ninguna tanda viva se mueve.
+  const expectedMoves={"bancos-acuse-reconexion":["edge"]};
+  const previous=new Map();
+  const measure=reader=>{
+    const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};
+    for(const [key,scope] of Object.entries(integrated)){
+      if(key===archiveId)continue;
+      if(!previous.has(key))previous.set(key,betaRevision(key,sourceBeta179,undefined,scope));
+      const a=previous.get(key),b=betaRevision(key,reader,undefined,now[key]);
+      const surfaces=["web","native","edge"].filter(x=>a[x]!==b[x]);
+      if(surfaces.length)moved[key]=surfaces;
+    }
+    return moved;
+  };
+  assert.deepEqual(measure(source),expectedMoves,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  const vivas=notes.flatMap(n=>(n.tandas||[]).map(g=>g.id));
+  assert.deepEqual(vivas,vivas3);
+  assert.deepEqual(vivas.filter(id=>expectedMoves[id]),[],"ninguna tanda viva mueve huella");
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes);
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),vivas,"lo que el build entrega al panel");
+  for(const id of vivas3)assert.equal(receipt.web[id],betaRevision(id,old,undefined,integrated[id]).web,"la tanda "+id+" conserva la huella web que ya enseñaba la 179");
+  assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
+});
+
 const expected179={"v":"4.26.179","d":"2026-10-26","t":{"es":"Preparados para no perder dos compras iguales seguidas","en":"Getting ready not to lose two identical purchases made back to back","ca":"Preparats per no perdre dues compres iguals fetes seguides"},"items":{"es":["Preparamos la app para no perder dos compras iguales hechas seguidas. Por ahora no verás ningún cambio."],"en":["We are getting the app ready so that two identical purchases made back to back are not lost. You will not see any change for now."],"ca":["Preparem l'app perquè no es perdin dues compres iguals fetes seguides. De moment no veuràs cap canvi."]},"tandas":[]};
 // 4.26.179 (26/10/2026): PR313 (SEC-02 F2 fase 1: el cliente lee la marca no bancaria de gemela nativa; el escritor de gemelas del ingest queda detrás de INGEST_NATIVE_TWINS, APAGADO por defecto) sobre la beta 4.26.178 servida (c639081ca), solo web y sin APK nueva (sigue la 61). No se despliega ni se enciende nada.
 // SIN tanda nueva: no hay nada visible. Las de la 176 (recibo-vinculo-saldo), la 175 (gastos-lag-ciclos-r3) y la 174 (inicio-mes-futuro) no tienen veredicto y se quedan donde están. Como en la 177, las dos que leen el código que cambia (recibo-vinculo-saldo y gastos-lag-ciclos-r3) mueven su huella y siguen sin veredicto con la nueva; inicio-mes-futuro conserva la suya.
@@ -6153,7 +6214,7 @@ const expected179={"v":"4.26.179","d":"2026-10-26","t":{"es":"Preparados para no
 test("Catálogo179 (solo web) no añade tanda sobre la 178, deja las tres sin veredicto donde están y declara cada huella que mueve",()=>{
   const vivas3=["recibo-vinculo-saldo","gastos-lag-ciclos-r3","inicio-mes-futuro"];
   const integrated=JSON.parse(sourceBeta178("scripts/beta-sources.json")),before=JSON.parse(sourceBeta178("src/data/release-notes.json"));
-  const source=f=>nl(read(f)),old=f=>nl(sourceBeta178(f));
+  const source=f=>nl(sourceBeta179(f)),old=f=>nl(sourceBeta178(f));
   assert.equal(before[0].v,"4.26.178");
   assert.deepEqual(before.slice(0,5).map(n=>n.tandas.map(g=>g.id)),[[],[],[vivas3[0]],[vivas3[1]],[vivas3[2]]],"la 178 servida no lleva tanda y conserva las tres sin veredicto");
   for(const n of before.slice(5))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] en la 178 servida");
@@ -6169,8 +6230,8 @@ test("Catálogo179 (solo web) no añade tanda sobre la 178, deja las tres sin ve
     for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
   }
   const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
-  const nueva=structuredClone(notes);nueva[0].tandas.push(structuredClone(notes[3].tandas[0]));assert.throws(()=>verifyNotes(nueva),assert.AssertionError,"la 179 no repite ni inventa una tanda");
-  const pierde=structuredClone(notes);pierde[3].tandas=[];assert.throws(()=>verifyNotes(pierde),assert.AssertionError,"la tanda de la 176, sin veredicto, no desaparece");
+  const nueva=structuredClone(notes);nueva[0].tandas.push(structuredClone(notes[4].tandas[0]));assert.throws(()=>verifyNotes(nueva),assert.AssertionError,"la 179 no repite ni inventa una tanda");
+  const pierde=structuredClone(notes);pierde[4].tandas=[];assert.throws(()=>verifyNotes(pierde),assert.AssertionError,"la tanda de la 176, sin veredicto, no desaparece");
   // Registro: el de la 178 sin descriptores nuevos ni delimitadores movidos; solo crece el cierre de lectores con nativeEventFromSource.
   const scopes=JSON.parse(source("scripts/beta-sources.json"));
   assert.deepEqual(Object.keys(scopes),Object.keys(integrated),"mismo orden, sin descriptores nuevos");
@@ -6204,7 +6265,7 @@ test("Catálogo179 (solo web) no añade tanda sobre la 178, deja las tres sin ve
   // Solo web: apk.json, build.gradle, el nativo y el SQL quedan exactamente como en la 178; las Edge solo cambian con el interruptor apagado de la PR313.
   assert.equal(source("public/apk.json"),old("public/apk.json"),"apk.json intacto: sigue la APK 61");
   assert.equal(source("android/app/build.gradle"),old("android/app/build.gradle"),"build.gradle intacto");
-  assert.equal(execFileSync("git",["diff","--name-only","c639081ca807bba526dd77cdc9413a6c4587247b","HEAD","--","android","supabase/migrations"],{encoding:"utf8"}).trim(),"","sin SQL ni nativo");
+  assert.equal(execFileSync("git",["diff","--name-only","c639081ca807bba526dd77cdc9413a6c4587247b","b4ae0563d592c48a1d6eb3394fff8072f1c6602c","--","android","supabase/migrations"],{encoding:"utf8"}).trim(),"","sin SQL ni nativo");
   // Huellas que se mueven (lista cerrada): la lectura de la marca nativa en 00-core.js (y las Edge que comparten identidad) la recorren los descriptores que leen expenseFromRow, keyOfExpense, expenseSourceForCloud o la nube de gastos. Las dos vivas que se mueven (recibo-vinculo-saldo y gastos-lag-ciclos-r3) siguen sin veredicto con la huella nueva; inicio-mes-futuro conserva la suya.
   const expectedMoves={"inc-3009-01-cargos":["web"],"fin05-widget-reentrada":["web"],"fin05-pago-cerrada":["web","edge"],"tr-descripcion-clasificacion":["web"],"widget-banco":["web"],"widget-app-cerrada":["web","edge"],"inc-2809-02-ayuda-ciclo":["web"],"inc-2909-02-inicio-natural":["web"],"inc-2709-10-perfil":["web"],"inc-3009-nomina-anticipada":["web"],"inc-2909-03-retirada":["web"],"inc-2909-01-widget-periodo":["web"],"inc-0210-01-plan-cuota":["web"],"inc-0210-03-gastos-periodo":["web"],"feature-0210-01-gasolina-taxi":["web"],"inc-0210-02-categoria-elegida":["web"],"inc-0310-01-meta-regla":["web"],"feature-0310-01-movilidad":["web"],"inc-0310-broker-resultados":["web"],"inc-0310-gastos-sin-limite":["web"],"inc-0710-gastos-mes-madrid":["web"],"inc-0710-auth-disposal":["web"],"inc-0810-dashboard-recents-memo":["web"],"inc-0810-metas-editar-regla":["web"],"bienes-completo":["web"],"inicio-grafica-vuelve":["web"],"widget-pago-app-cerrada":["web"],"bancos-sin-hueco":["web"],"widget-ciclo-puente":["web"],"recibos-cargo-unico":["web"],"bancos-acuse-reconexion":["web"],"tr-iguales-ordinal":["web","edge"],"inicio-patrimonio-flujos":["web"],"recibo-cargo-en-gastos":["web","edge"],"inicio-mes-pasado-mismo-dia":["web"],"limpieza-ajustes-perfil":["web"],"tr-empareja-sin-preguntar":["web"],"cuenta-parte-mia":["web"],"inicio-recientes-sin-repetidos":["web"],"inicio-grafica-reservas":["web"],"compras-identicas-ids":["web","edge"],"myinvestor-contador-a-cero":["web"],"deudas-metas-hoja-edicion":["web"],"gastos-suscripciones-botones":["web"],"compras-pendientes-otro-dia":["web","edge"],"deudas-plazo-cuota-encaja":["web"],"deudas-metas-hoja-sin-parpadeo":["web"],"deudas-metas-hoja-cierre-suave":["web"],"fichas-cierre-suave-atras":["web"],"cuenta-saldo-cierre-atras":["web"],"banco-pruebas-sin-aviso":["web"],"recibo-renombrado-sigue-pagado":["web"],"plan-por-confirmar-prestamo-youtube":["web"],"vuelta-sin-tiron":["web"],"deuda-bajar-cuota-alarga-plazo":["web"],"cartera-ordenar-brokers":["web"],"youtube-enlazar-recibo":["web"],"vibracion-ajustador":["web"],"gestionar-plan-sin-ola":["web"],"renombrar-y-notas-seguras":["web"],"gestionar-plan-ola":["web"],"vibracion-ajustador-r2":["web"],"gestionar-plan-ola-r2":["web"],"vibracion-r3":["web"],"youtube-diagnostico":["web"],"renombrar-lista-al-momento":["web"],"recibos-cifra-cuadra":["web"],"cartera-sin-lagazo":["web"],"renombrar-sin-cobertura":["web"],"vibracion-r4":["web"],"youtube-ficha-reconoce":["web"],"youtube-r4":["web"],"recibos-meses-a-mano":["web"],"gastos-dos-bancos":["web","edge"],"cartera-moneda":["web"],"categoria-coche":["web"],"deuda-nueva-desde-su-dia":["web"],"gastos-v5-movimientos":["web"],"gastos-v5-secciones":["web"],"gastos-v5-filtro":["web"],"gastos-v5-subs":["web"],"gastos-v5-filtros-hoja":["web"],"sync-dos-moviles":["web"],"gastos-v5-ciclos-metas-inversiones":["web"],"plan-dos-moviles":["web"],"gastos-lag-ciclos":["web"],"gastos-lag-ciclos-r3":["web"],"recibo-vinculo-saldo":["web"]};
   const previous=new Map();
@@ -6253,8 +6314,8 @@ test("Catálogo178 (solo web) no añade tanda sobre la 177, deja las tres sin ve
     for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
   }
   const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
-  const nueva=structuredClone(notes);nueva[0].tandas.push(structuredClone(notes[3].tandas[0]));assert.throws(()=>verifyNotes(nueva),assert.AssertionError,"la 178 no repite ni inventa una tanda");
-  const pierde=structuredClone(notes);pierde[3].tandas=[];assert.throws(()=>verifyNotes(pierde),assert.AssertionError,"la tanda de la 176, sin veredicto, no desaparece");
+  const nueva=structuredClone(notes);nueva[0].tandas.push(structuredClone(notes[4].tandas[0]));assert.throws(()=>verifyNotes(nueva),assert.AssertionError,"la 178 no repite ni inventa una tanda");
+  const pierde=structuredClone(notes);pierde[4].tandas=[];assert.throws(()=>verifyNotes(pierde),assert.AssertionError,"la tanda de la 176, sin veredicto, no desaparece");
   // Registro: el de la 177 con el delimitador CURLANG de App actualizado en tres descriptores y el cierre de lectores crecido, en cinco, con las funciones del paquete de idioma.
   const scopes=JSON.parse(source("scripts/beta-sources.json"));
   assert.deepEqual(Object.keys(scopes),Object.keys(integrated),"mismo orden, sin descriptores nuevos");

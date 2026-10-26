@@ -1,5 +1,26 @@
 [
   {
+    "v": "4.26.180",
+    "d": "2026-10-26",
+    "t": {
+      "es": "Más seguro reconectar un banco",
+      "en": "Safer to reconnect a bank",
+      "ca": "Més segur reconnectar un banc"
+    },
+    "items": {
+      "es": [
+        "Reconectar un banco es ahora más seguro. No verás ningún cambio."
+      ],
+      "en": [
+        "Reconnecting a bank is now safer. You will not see any change."
+      ],
+      "ca": [
+        "Reconnectar un banc ara és més segur. No veuràs cap canvi."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.179",
     "d": "2026-10-26",
     "t": {

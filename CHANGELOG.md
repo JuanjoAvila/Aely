@@ -1,3 +1,12 @@
+## [4.26.180] — 2026-10-26 · Candidata de beta: el guardado final de bank-callback cierra id + dueño + state NULL + emisión original (SEC-02 F1, PR314), solo una Edge sin desplegar
+
+- **Qué lleva.** La PR314 de Codex (`b5a9ef236`, revisada con GO) con `--no-ff` sobre la beta 4.26.179 (`b4ae0563d`). Conflictos solo en `docs/SETUP-SUPABASE.md` y `docs/TESTING.md` (se conservan las dos partes). Sin cambios de lógica de dinero por mi parte; se conserva todo lo de 171-179.
+- **Por qué.** Un callback lento (A) podía terminar su canje después de que el usuario reconectara (B) y pisar con su UPDATE final la sesión nueva, porque el guardado solo filtraba por `id`. Ahora filtra además por dueño, `state IS NULL` y la `state_issued_at` original (`IS NULL` para legacy), igual que el consumo previo; exige acuse de una sola fila y, si no cuadra, devuelve error sin tocar la autorización nueva. Ninguna llamada nueva al banco. Test `generation-fence.test.ts` (20/20), rojo contra la base y con mutantes cazados.
+- **Reserva.** El callback tardío deja su sesión de Enable Banking huérfana en el proveedor (no se revoca; la PR lo declara fuera de alcance). Anotado en BACKLOG como pendiente.
+- **Despliegue.** `bank-callback` NO se despliega con la beta: va con la próxima producción, con el OK del dueño. Esta beta no toca SQL, nativo ni variables.
+- **Panel.** Veredictos releídos con `errores.mjs --kind=beta`; sin tanda nueva (no hay nada visible). Las tres sin votar (176, 175 y 174) se quedan con su huella web.
+- **Catálogo y registro.** Catálogo179 pasa a histórico (lee de `b4ae0563d`) y entra Catálogo180: registro intacto; solo se mueve la huella edge de `bancos-acuse-reconexion` (único descriptor que vigila `bank-callback/index.ts`). Nota 4.26.180 en es/en/ca.
+
 ## [4.26.179] — 2026-10-26 · Candidata de beta: el cliente lee la marca no bancaria de gemela nativa (SEC-02 F2 fase 1, PR313), escritor del ingest apagado, solo web
 
 - **Qué lleva.** La PR313 de Codex (`cd946a07f`, revisada con GO para la fase 1) con `--no-ff` sobre la beta 4.26.178 (`c639081ca`). Conflictos solo en `docs/TESTING.md` y `scripts/run-tests.mjs` (se conservan las dos partes). Sin cambios de lógica de dinero por mi parte; se conserva todo lo de 171-178.
