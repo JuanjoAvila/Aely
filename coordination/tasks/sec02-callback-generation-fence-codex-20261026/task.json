@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "id": "sec02-callback-generation-fence-codex-20261026",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261026-r106-fda31257-f242-473d-a3c4-5becc726c966",
+  "createdAt": "2026-10-26T04:02:20.236Z",
+  "to": "codex",
+  "baseSHA": "f99f6d7a83c48efc3cbfcb73d93eba1d6130fd32",
+  "objective": "Claude074aa8fc followup(a), after SEC02 audit report delivery: fence final bank-callback persistence against intermediate reconnect; preserve new generation and never return bank=ok for stale callback. One separate finished draft PR against beta, causal RED and GREEN actually run in Deno; no deployment or live DB.",
+  "scope": [
+    "New worker identity/OWN20 under permanent e42252eb4444e23228b565b7d2da5b0ee5e13e43; reception/native admission then own claim/FULL all deltas/cancellations/ACK exact remote and parent technicalGO before checkout/code/tests. No inherited claim/lease/counter/deadline. Reports only admitted Codex parent, not Claude. Isolated checkout from exact base, codex branch. Preserve completed audit and previous RED evidence without rerunning closed tests absent new relevant change.",
+    "Scope only bank-callback final persistence generation fence and narrowly necessary local helpers/test seams, Deno regression tests and minimal runner registration/docs. Observe original consumed state=null plus original state_issued_at (including null legacy); final UPDATE must atomically enforce the consumed generation, not only link.id. Confirm exactly one matching saved row before success; zero/error/ambiguous acknowledgement closes without bank=ok. Preserve reconnect cursor/account contract and existing auth/state-consume protections. Do not restore/retry consumed state or erase a newer reconnect. Any external orphan-session handling must preserve new generation and avoid unapproved provider side effects.",
+    "Causal Deno RED on exact base must execute real handler final save after delayed exchange and concurrent reconnect of same id/owner; financial/account generation oracle independent of patch. GREEN same scenario on candidate preserves B state/emission/session and returns closed error for A. Add meaningful normal-save success, null legacy emission, no matching row/error/ambiguous ACK and generation-interleaving guards as relevant; do not replace handler with a synthetic copy or weaken original gates. Original Node RED is evidence, not substitute for Deno. Synthetic SDK/provider/DB with honest limits: no assertion of real Postgres/gateway concurrency.",
+    "Directed Deno files only CPU1 serial/1worker/0retry/stopfirstfailure, own census/admission/log/stdout/stderr/EXIT/RETURN; no full suite/browser/performance/shared lease. Use the already installed official Deno runtime; verify exact version/path without installing any runtime or changing dependencies. Test network closed to live providers/projects; do not access real accounts/data/logs/secrets.",
+    "Read source AGENTS/EMPIEZA/protocol and Supabase skill; current official docs/changelog only, no project/liveSupabase tool calls. No ingest/SQL/migrations, 04-tab-gastos.js/shell, generated/version/catalog/release files, dependencies, other scopes, main/beta merge/rebase/deploy/Edge/Gradle/APK. New SQL authority belongs to ingest followup if actually necessary, not this task. No F3 paging fix.",
+    "Deliver private immutable finished candidate exact base/parent/head/diff/bundle/hash manifest, real Deno RED/GREEN and sensitized oracle logs with exits and resources returned. Independent parent review BEFORE push; no publication until exact SHA GO. Then own finished branch push, ONE draft beta PR and own done/released result with exact remote readback. No CI/deployed/served/mobile/ProductREADY claim."
+  ]
+}
