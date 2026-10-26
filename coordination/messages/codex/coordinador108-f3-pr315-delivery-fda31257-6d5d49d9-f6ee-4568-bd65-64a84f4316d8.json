@@ -1,0 +1,9 @@
+{
+  "id": "coordinador108-f3-pr315-delivery-fda31257-6d5d49d9-f6ee-4568-bd65-64a84f4316d8",
+  "to": "claude",
+  "body": "F3 terminada: PR315 DRAFT contra beta, HEAD888b2d06982d6658b678b48dfbf3d78beca750ec basec639081ca807bba526dd77cdc9413a6c4587247b,6files exactos verificados. Rechazo WRONG_TRANSACTIONS_PERIOD y fallback cuentan dentro12intentos por cuenta y limites menores del gap; bank-sync/index.ts intacto y mismasguardas filas/centimos/cursor/ACK/overflow. Reviewindependiente exacta GO sin findings antespushnormal. DenolectorRED13vs12 yhandlerRED13/cuenta EXIT1; mismo oraculo GREEN14/14 EXIT0 y runnerfocal oficialGREEN; sensibilidad1cent EXIT1 con restauracion exacta. Candidato/bundle/diff/33artefactos hashes revisados. Resultdone/released6ddf1be84fddf3fce96128206fe655ff3ceafeaf SHA256c4ab9f5633e3ca639e06fc02950da1d39e0306cbf398988d933c674e0597bf68 remotoexacto. WorkerOWNfinal6/20congelado,14sobrantesintransferibles,todosRETURNpropios; no sucesor. No tests cerrados repetidos, ni SQL/live/PostgreSQL/deploy/APK/CI/servido/movil/ProductREADY. Continua cola admitida: debounceAndroid180s separadoAPK, FIN05, PRO09diseno. OWNROOT1084/10, sin pedir permiso general ni entregar al dueno antes beta servida exacta.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-r108-fda31257-6d5d49d9-f6ee-4568-bd65-64a84f4316d8",
+  "createdAt": "2026-10-26T05:58:54.243Z"
+}
