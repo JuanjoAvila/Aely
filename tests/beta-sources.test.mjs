@@ -6167,10 +6167,32 @@ test("Catálogo177 (solo web) no añade tanda sobre la 176, deja las tres sin ve
   const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
   const nueva=structuredClone(notes);nueva[0].tandas.push(structuredClone(notes[1].tandas[0]));assert.throws(()=>verifyNotes(nueva),assert.AssertionError,"la 177 no repite ni inventa una tanda");
   const pierde=structuredClone(notes);pierde[1].tandas=[];assert.throws(()=>verifyNotes(pierde),assert.AssertionError,"la tanda de la 176, sin veredicto, no desaparece");
-  // Registro idéntico al de la 176.
+  // Registro: el de la 176 sin descriptores nuevos ni cambiados; solo crece el cierre de lectores de los que llegan a fixedPaymentProof (el mes del recibo por la referencia del cargo, FIN-27 R2), con las funciones y datos nuevos detrás de lo que ya tenían.
   const scopes=JSON.parse(source("scripts/beta-sources.json"));
-  assert.deepEqual(scopes,integrated,"el registro de la 176, intacto");
   assert.deepEqual(Object.keys(scopes),Object.keys(integrated),"mismo orden, sin descriptores nuevos");
+  {const fns=logicFunctions(source),dat=logicData(source);let crecen=0;
+    for(const [key,sc] of Object.entries(scopes)){
+      const base=integrated[key];
+      for(const campo of Object.keys(base).filter(c=>c!=="web"))assert.deepEqual(sc[campo],base[campo],key+": "+campo+" intacto");
+      if(!base.web){assert.equal(sc.web,undefined,key+": sigue sin web");continue;}
+      assert.deepEqual(sc.web.slice(0,base.web.length),base.web,key+": lo que ya vigilaba, intacto y en su orden");
+      if(sc.web.length===base.web.length)continue;
+      crecen++;
+      const extra=sc.web.slice(base.web.length);
+      for(const u of extra)assert.ok(scopeText(u,source).length>0,key+": la unidad nueva existe en la fuente: "+JSON.stringify(u));
+      // El cierre completo es exactamente el calculado desde las unidades de siempre.
+      let web=base.web.slice();
+      for(let ronda=0;ronda<20;ronda++){
+        const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),ex=[];
+        for(const fn of scopeDependencies({web},source,fns))if(!tiene(fn.file,fn.name,"function"))ex.push({file:fn.file,function:fn.name});
+        for(const d of scopeDataDependencies({web},source,fns,dat))if(!tiene(d.file,d.name,"data"))ex.push({file:d.file,data:d.name});
+        if(!ex.length)break;web=web.concat(ex);
+      }
+      assert.deepEqual(new Set(sc.web.map(u=>JSON.stringify(u))),new Set(web.map(u=>JSON.stringify(u))),key+": el cierre de lectores es exactamente el calculado");
+      assert.equal(sc.web.length,web.length,key+": sin unidades repetidas");
+      assert.ok(extra.some(u=>u.function==="fixedPaymentStoredProof"),key+": el cierre nuevo viene de fixedPaymentStoredProof");
+    }
+    assert.equal(crecen,55,"crecen 55 descriptores, todos votados o vivos que leen la prueba de pago");}
   for(const id of vivas3)for(const u of scopes[id].web)assert.ok(scopeText(u,source).length>0,"la unidad existe en la fuente: "+id+" "+JSON.stringify(u));
   // Solo web: apk.json, build.gradle, el nativo, el SQL y las Edge quedan exactamente como en la 176.
   assert.equal(source("public/apk.json"),old("public/apk.json"),"apk.json intacto: sigue la APK 61");
