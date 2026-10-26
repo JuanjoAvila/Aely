@@ -78,13 +78,13 @@ function fakeDb(opts = {}) {
       if (name !== "expenses") return { data: [], error: null };
       if (q.op === "select") {
         if (q.count && opts.widgetThrows) throw new Error("fallo sintético del widget opcional");
-        if (opts.monthReadError && q.cols === "id,importe,cat,source,fecha,comercio")
+        if (opts.monthReadError && q.cols.startsWith("id,importe,cat,source,fecha,comercio"))
           return { data: null, error: { message: "lectura mensual fallida" } };
         const usesEvent = q.cols.includes("ingest_event_id") || q.filters.some(([, k]) => k === "ingest_event_id");
         if (usesEvent) {
           if (opts.columnMissing) return { data: null, error: { message: "column ingest_event_id does not exist" } };
-          if (q.cols === "id" && q.filters.some(([, k]) => k === "ingest_event_id")) ackReads++;
-          if (opts.race23505 && q.cols === "id" && ackReads > 1 && !rows.some((r) => r.ingest_event_id === opts.raceKey)) {
+          if (q.cols.startsWith("id") && q.filters.some(([, k]) => k === "ingest_event_id")) ackReads++;
+          if (opts.race23505 && q.cols.startsWith("id") && ackReads > 1 && !rows.some((r) => r.ingest_event_id === opts.raceKey)) {
             rows.push({ id: "race-ack", user_id: "user", fecha: opts.raceDate, importe: 9.95,
               comercio: "Pans & Company", source: "macrodroid", cat: "restaurantes", ingest_event_id: opts.raceKey });
           }
@@ -141,7 +141,7 @@ function makeHandler(db, classifier=logic, code=handlerJs) {
   const names = [
     "Deno", "createClient", "categorizar", "clasificarConMotivo", "extraerComercio",
     "extraerConcepto", "extraerImporte", "extraerPersona", "limpiarTexto", "aEuros", "parseWallet",
-    "claveEvento", "esGemeloIngest", "tieneGemeloAnterior", "bucketKey", "callerIp", "rateLimit",
+    "claveEvento", "esGemeloIngest", "tieneGemeloAnterior", "ordinalIngest", "fechaEventoOrdinal", "sourceIngestOrdinal", "bucketKey", "callerIp", "rateLimit",
     "bancosDeGastoDiario", "cuentaParaPresupuesto", "filasComoLaApp", "inicioDeMesMs", "statsDelMes",
     "widgetSnapshot", "widgetStart", "readWidgetRows",
     "INGEST_MAX_BODY", "INGEST_MAX_COMERCIO", "INGEST_MAX_NOTA", "INGEST_MAX_TEXTO", "recortar", "timingSafeEqual",
@@ -150,7 +150,7 @@ function makeHandler(db, classifier=logic, code=handlerJs) {
     Deno, () => db, classifier.categorizar, classifier.clasificarConMotivo, logic.extraerComercio,
     logic.extraerConcepto, logic.extraerImporte, logic.extraerPersona, logic.limpiarTexto,
     wallet.aEuros, wallet.parseWallet, identity.claveEvento, identity.esGemeloIngest,
-    identity.tieneGemeloAnterior,
+    identity.tieneGemeloAnterior, identity.ordinalIngest, identity.fechaEventoOrdinal, identity.sourceIngestOrdinal,
     async () => "bucket", () => "127.0.0.1", async () => ({ ok: true }),
     budget.bancosDeGastoDiario, budget.cuentaParaPresupuesto, budget.filasComoLaApp,
     budget.inicioDeMesMs, budget.statsDelMes,

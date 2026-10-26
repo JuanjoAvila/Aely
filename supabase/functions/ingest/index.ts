@@ -35,7 +35,7 @@ import {
   limpiarTexto, type Fuente, type Tipo,
 } from "../_shared/ingest_logic.ts";
 import { aEuros, parseWallet } from "../_shared/wallet.ts";
-import { claveEvento, esGemeloIngest, tieneGemeloAnterior } from "../_shared/ingest_identity.ts";
+import { claveEvento, esGemeloIngest, tieneGemeloAnterior, ordinalIngest, fechaEventoOrdinal, sourceIngestOrdinal } from "../_shared/ingest_identity.ts";
 import { bucketKey, callerIp, rateLimit } from "../_shared/ratelimit.ts";
 import { bancosDeGastoDiario, cuentaParaPresupuesto, filasComoLaApp, inicioDeMesMs, statsDelMes } from "../_shared/presupuesto.ts";
 import { readWidgetRows, widgetSnapshot, widgetStart } from "./widget.ts";
@@ -126,18 +126,24 @@ Deno.serve(async (req) => {
      huella no contiene texto ni dinero, y el índice único cierra también la carrera entre dos POST.
      Una APK anterior no manda `evento`: conserva temporalmente la red legacy de abajo. */
   let eventKey = claveEvento(data.evento, fuente, texto);
+  let pendingNative: Record<string, any> | null = null;
   if (eventKey) {
     const { data: ack, error: ackError } = await supabase.from("expenses")
-      .select("id").eq("user_id", userId).eq("ingest_event_id", eventKey).limit(1);
-    if (!ackError && ack && ack.length) return skip("dup: mismo evento nativo", { dup: true, ack: ack[0].id });
+      .select("id,fecha,importe,comercio,source").eq("user_id", userId).eq("ingest_event_id", eventKey).limit(1);
+    if (!ackError && ack && ack.length) {
+      if (String(ack[0].source).includes("#dup")) pendingNative = ack[0];
+      else return skip("dup: mismo evento nativo", { dup: true, ack: ack[0].id });
+    }
     // Despliegue compatible: si la migración aún no ha llegado, sigue con el camino antiguo.
     if (ackError && /ingest_event_id|column/i.test(String(ackError.message || ""))) eventKey = null;
+    else if (ackError) return json({ ok: false, error: "no se pudo comprobar el evento nativo" }, 503);
   }
 
   const { tipo, motivo } = clasificarConMotivo(texto, titulo, fuente);
   if (tipo === "ignorado") return skip(motivo || "ignorado", { tipo });
 
-  const fecha = parseFecha(triggertime);
+  const fechaOriginal = parseFecha(triggertime);
+  let fecha = fechaOriginal;
   let importe = 0;
   let comercio: string;
   let cat: string;
@@ -210,7 +216,6 @@ Deno.serve(async (req) => {
     const { data: cercanos } = await supabase.from("expenses")
       .select("id,fecha,importe,ingest_event_id")
       .eq("user_id", userId)
-      .in("source", fuentesIngest)
       .gte("importe", importe - 0.02).lte("importe", importe + 0.02)
       .gte("fecha", new Date(t0 - 2 * 60 * 60 * 1000).toISOString())
       .lte("fecha", new Date(t0 + 2 * 60 * 60 * 1000).toISOString());
@@ -238,6 +243,30 @@ Deno.serve(async (req) => {
     possibleDup = possibleDup || !!(dupDia && dupDia.length);
   }
 
+  // La huella reserva una ranura diaria, también cuando la fecha original no colisiona: de lo
+  // contrario el lector por día|importe|comercio volvería a fundir dos compras reales.
+  let ordinal = 1;
+  if (eventKey) {
+    if (pendingNative) {
+      if (Number(pendingNative.importe) !== importe || pendingNative.comercio !== comercio)
+        return json({ ok: false, error: "evento pendiente con contenido distinto" }, 503);
+      ordinal = ordinalIngest(pendingNative.source);
+      fecha = String(pendingNative.fecha);
+    } else {
+      const day = fechaOriginal.slice(0, 10);
+      const { data: slots, error: slotsError } = await supabase.from("expenses")
+        .select("id,fecha,source,ingest_event_id").eq("user_id", userId)
+        .eq("comercio", comercio).eq("importe", importe)
+        .gte("fecha", day + "T00:00:00.000Z").lte("fecha", day + "T23:59:59.999Z");
+      if (slotsError) return json({ ok: false, error: "no se pudo reservar la identidad nativa" }, 503);
+      ordinal = 1 + Math.max(0, ...(slots || []).filter((r) => r.ingest_event_id)
+        .map((r) => ordinalIngest(r.source)));
+      const assigned = fechaEventoOrdinal(fechaOriginal, ordinal);
+      if (!assigned) return json({ ok: false, error: "sin ranura en el día del pago" }, 503);
+      fecha = assigned;
+    }
+  }
+
   /* La compra entra PENDIENTE y se libera después del INSERT. Es lo que cierra la carrera real
      Consum/Wallet + TR del 23/9: las dos peticiones consultaron antes de que la otra fila existiese.
      Si se descubre el gemelo después, se borra solo la fila recién creada; el primer gasto queda. */
@@ -247,7 +276,8 @@ Deno.serve(async (req) => {
     /* `#dup` es aquí una puerta TRANSITORIA: incluso un cliente anterior deja la fila fuera de
        las cifras mientras cerramos la carrera posterior al INSERT. En el camino normal se libera
        a `macrodroid` o se retira antes de responder; no se convierte en una decisión del usuario. */
-    source: necesitaPuertaCarrera || possibleDup ? "ob:trade_republic#dup" : "macrodroid",
+    source: eventKey ? sourceIngestOrdinal(ordinal, necesitaPuertaCarrera)
+      : necesitaPuertaCarrera || possibleDup ? "ob:trade_republic#dup" : "macrodroid",
     no_card: noCard, nota: nota || null,
   };
   if (eventKey) fila.ingest_event_id = eventKey;
@@ -258,20 +288,40 @@ Deno.serve(async (req) => {
     .from("expenses")
     .upsert(fila, { onConflict: "user_id,fecha,importe,comercio", ignoreDuplicates: true })
     .select("id");
-  let { data: inserted, error } = await guardar();
-  // Si la migración 0020 va por detrás de la función, se reintenta SIN el rastro de la divisa:
-  // mejor el gasto sin «eran liras» que ningún gasto. El aviso queda en el panel.
-  if (error && divisaOrig && /importe_orig|divisa/i.test(String(error.message || ""))) {
-    await logIngestError(supabase, userId, "faltan las columnas de divisa (migración 0020): apuntado solo en euros",
-      { currency: divisaOrig });
-    delete fila.importe_orig; delete fila.divisa;
+  let inserted: { id: string }[] | null = pendingNative ? [{ id: String(pendingNative.id) }] : null;
+  let error: any = null;
+  if (!pendingNative) for (let attempt = 0; attempt < 8; attempt++) {
     ({ data: inserted, error } = await guardar());
-  }
-  // Respuesta perdida + reintento simultáneo: el índice exacto puede ganar entre SELECT e INSERT.
-  if (error && eventKey && String(error.code || "") === "23505") {
-    const { data: ack } = await supabase.from("expenses").select("id")
+    if (error && divisaOrig && /importe_orig|divisa/i.test(String(error.message || ""))) {
+      await logIngestError(supabase, userId, "faltan las columnas de divisa (migración 0020): apuntado solo en euros", { currency: divisaOrig });
+      delete fila.importe_orig; delete fila.divisa;
+      ({ data: inserted, error } = await guardar());
+    }
+    if (!eventKey || (inserted && inserted.length) || (error && String(error.code || "") !== "23505")) break;
+    // Una carrera del MISMO evento solo puede confirmar SU fila, nunca la de otro pago parecido.
+    const { data: ack, error: ackError } = await supabase.from("expenses").select("id,source")
       .eq("user_id", userId).eq("ingest_event_id", eventKey).limit(1);
-    if (ack && ack.length) return skip("dup: carrera del mismo evento nativo", { tipo, dup: true, ack: ack[0].id });
+    if (ackError) return json({ ok: false, error: "acuse nativo no comprobado" }, 503);
+    if (ack && ack.length) {
+      if (String(ack[0].source).includes("#dup"))
+        return json({ ok: false, deferred: true, ack: ack[0].id, error: "evento aún pendiente" }, 503);
+      return skip("dup: carrera del mismo evento nativo", { tipo, dup: true, ack: ack[0].id });
+    }
+    if (error) return json({ ok: false, error: "conflicto nativo sin acuse comprobado" }, 503);
+    const { data: occupied, error: occupiedError } = await supabase.from("expenses")
+      .select("id,ingest_event_id").eq("user_id", userId).eq("fecha", fecha)
+      .eq("importe", importe).eq("comercio", comercio).limit(1);
+    // Una fila manual/legacy no prueba otro evento nativo: no inventar una compra adicional ni
+    // confirmar con su ACK. El 503 conserva el aviso en la cola del APK hasta poder resolverlo.
+    if (occupiedError || !occupied?.length || !occupied[0].ingest_event_id)
+      return json({ ok: false, error: "colisión sin identidad nativa comprobada" }, 503);
+    // Otro evento ocupó la fecha entre SELECT e INSERT. El índice viejo sigue arbitrando;
+    // probar la siguiente ranura no cambia ni el importe ni el comercio ni el período.
+    ordinal++;
+    const assigned = fechaEventoOrdinal(fechaOriginal, ordinal);
+    if (!assigned || attempt === 7) return json({ ok: false, error: "sin ranura nativa confirmada" }, 503);
+    fecha = assigned; fila.fecha = fecha;
+    fila.source = sourceIngestOrdinal(ordinal, necesitaPuertaCarrera);
   }
   if (error) {
     await logIngestError(supabase, userId, "no se pudo guardar el gasto",
@@ -287,9 +337,9 @@ Deno.serve(async (req) => {
     const columnas = eventKey
       ? "id,fecha,importe,ingest_event_id,created_at,source"
       : "id,fecha,importe,created_at,source";
-    const { data: trasInsert, error: raceError } = await supabase.from("expenses")
-      .select(columnas).eq("user_id", userId)
-      .in("source", fuentesIngest)
+    let raceQuery = supabase.from("expenses").select(columnas).eq("user_id", userId);
+    if (!eventKey) raceQuery = raceQuery.in("source", fuentesIngest);
+    const { data: trasInsert, error: raceError } = await raceQuery
       .gte("importe", importe - 0.02).lte("importe", importe + 0.02)
       .gte("fecha", new Date(t0 - ventana).toISOString())
       .lte("fecha", new Date(t0 + ventana).toISOString());
@@ -298,6 +348,7 @@ Deno.serve(async (req) => {
       await logIngestError(supabase, userId,
         "no se pudo cerrar la comprobación anti-duplicado: queda pendiente y fuera de las cifras",
         { code: "race_check", source: fuente });
+      if (eventKey) return json({ ok: false, deferred: true, ack: ackId, error: "comprobación pendiente" }, 503);
       return skip("anti-dup: comprobación pendiente", { tipo, deferred: true, ack: ackId });
     }
     const gemeloAnterior=tieneGemeloAnterior(actual, trasInsert || []);
@@ -314,19 +365,22 @@ Deno.serve(async (req) => {
         await logIngestError(supabase, userId,
           "se detectó el aviso duplicado pero no se pudo retirar: queda fuera de las cifras",
           { code: "dup_delete", source: fuente });
+        if (eventKey) return json({ ok: false, deferred: true, ack: ackId, error: "retirada pendiente" }, 503);
         return skip("dup: retirada pendiente", { tipo, dup: true, deferred: true, ack: ackId });
       }
-      return skip("dup: mismo pago avisado por TR y Wallet", { tipo, dup: true, ack: ackId });
+      const survivor = (trasInsert || []).find((r) => tieneGemeloAnterior(actual, [r]));
+      return skip("dup: mismo pago avisado por TR y Wallet", { tipo, dup: true, ack: survivor?.id || ackId });
     }
     const { error: liberarError } = await supabase.from("expenses")
-      .update({ source: "macrodroid" }).eq("user_id", userId).eq("id", ackId);
+      .update({ source: eventKey ? sourceIngestOrdinal(ordinal) : "macrodroid" }).eq("user_id", userId).eq("id", ackId);
     if (liberarError) {
       await logIngestError(supabase, userId,
         "no se pudo confirmar el gasto: queda pendiente y fuera de las cifras",
         { code: "release", source: fuente });
+      if (eventKey) return json({ ok: false, deferred: true, ack: ackId, error: "confirmación pendiente" }, 503);
       return skip("anti-dup: confirmación pendiente", { tipo, deferred: true, ack: ackId });
     }
-    fila.source = "macrodroid";
+    fila.source = eventKey ? sourceIngestOrdinal(ordinal) : "macrodroid";
   }
 
   // 4) Total del mes + alerta de presupuesto server-side (best-effort): el lector
@@ -347,9 +401,13 @@ Deno.serve(async (req) => {
     // El orden corresponde al INICIO de la lectura: una consulta lenta puede acabar después
     // de otra más nueva aunque su snapshot sea anterior.
     const readAt = Date.now();
-    const { data: rows, error: rowsError } = await supabase
-      .from("expenses").select("id,importe,cat,source,fecha,comercio")
+    let { data: rows, error: rowsError } = await supabase
+      .from("expenses").select("id,importe,cat,source,fecha,comercio,ingest_event_id")
       .eq("user_id", userId).gte("fecha", desde).lt("fecha", new Date(hastaMs).toISOString());
+    if (rowsError && /ingest_event_id|column/i.test(String(rowsError.message || ""))) {
+      ({ data: rows, error: rowsError } = await supabase.from("expenses").select("id,importe,cat,source,fecha,comercio")
+        .eq("user_id", userId).gte("fecha", desde).lt("fecha", new Date(hastaMs).toISOString()));
+    }
     if (rowsError) throw rowsError;
     // La lectura absoluta puede responder después de otra más nueva. El nativo compara este
     // instante de lectura, no la llegada de la respuesta ni la fecha del movimiento.

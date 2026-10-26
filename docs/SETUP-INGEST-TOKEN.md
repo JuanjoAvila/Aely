@@ -54,3 +54,7 @@ La Edge Function `ingest` resuelve `?token=` → `user_id` en `ingest_tokens`; s
 - Setup Supabase: [SETUP-SUPABASE.md](SETUP-SUPABASE.md)
 - App Android: [SETUP-ANDROID.md](SETUP-ANDROID.md)
 - Migración multiusuario: `supabase/migrations/0008_ingest_tokens.sql`
+
+## Identidad y reintentos de ingest (candidato SEC02 F2)
+
+La huella pertenece al evento y al usuario del token, no al importe/comercio. El [contrato de ranuras y ACK](briefs/sec02-ingest-native-slots.md) documenta las colisiones, reintentos503, lectores y compatibilidad sin SQL. Android conserva un debounce previo de180s que queda fuera de este cambio.

@@ -1476,3 +1476,14 @@ El handler legacy conserva las cifras ante entradas null en reservaLog, que el l
 `tests/fixed-ispaidin.test.mjs`, registrado en `steps`, carga los módulos fuente y reproduce deshacer/rehacer sin pull ni `planSyncDerived`. Contrasta saldo, pendiente y proyección en céntimos con una cuenta anclada; ejecuta también los callbacks reales de totals y recordatorios. Conserva BOOK y sus marcas/calendario anteriores (incluido alquiler750 sin día el2 de noviembre); cubre ob/ob-hist, veto, lápida, retirada, PDNG, duplicados, modelo/identidad, otros meses/años, marcas manuales y el calendario. Wallet/macrodroid/tr/manual y prueba expense sin fila local conservan su frontera visual.
 
 `e2e/fixed-ispaidin.spec.mjs`, en el mapa de07, abre las fichas reales: saldo800,23 → deshacer842,60 → rehacer800,23; Plan pasa de42,37 pendientes a cero cargos pendientes. Se espían pull/derivación y se exige cero llamadas, cuentas/gastos intactos y ningún evento bancario futuro duplicado. Datos sintéticos, Chromium aislado; no acredita aceptación móvil.
+
+## Regresión SEC02 F2 de ingest
+
+Pruebas dirigidas sin red ni proyecto vivo:
+
+```sh
+deno test --cached-only --no-lock --no-prompt --fail-fast --allow-env=SUPABASE_URL,SUPABASE_SERVICE_ROLE_KEY,INGEST_TOKEN,INGEST_USER_ID --config=supabase/functions/ingest/native-identity.deno.json --import-map=supabase/functions/ingest/native-identity.imports.json supabase/functions/ingest/native-identity.test.ts
+node tests/ingest-native-slots.test.mjs
+```
+
+Cubren dos eventos1990c, reenvío995c/ACK, tercer evento, carreras23505, propietarios, incertidumbre, legacy y fronteras UTC/Madrid. El handler real usa SDK/almacenamiento sintéticos; no acredita PostgreSQL/PostgREST, despliegue ni móvil. [Contrato y límites](briefs/sec02-ingest-native-slots.md).

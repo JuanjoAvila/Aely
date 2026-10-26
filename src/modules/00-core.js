@@ -2054,7 +2054,7 @@ function expenseBankIdOrdinals(list,reserved,identityScope){
 function keyOfExpense(e){
   const base=keyOfExpenseLegacy(e);
   if(isManualExpenseSource(e&&e.source)) return base+"|"+String((e&&e.id)||"");
-  return base+obOrdinalSufijo(e);
+  return base+obOrdinalSufijo(e)+(e&&e.ingestEventId?"|evt:"+encodeURIComponent(e.ingestEventId):"");
 }
 /* FIN19: desconocido conserva el grupo por contenido. Solo dos identidades COMPLETAS
    distintas separan dinero. El aviso ocupa una sola ranura, nunca une transitivamente
@@ -2232,6 +2232,8 @@ function expenseIsTombstoned(e, delSet){
     if((expenseKnownIdentity(original)&&delSet[expenseDeletionKey(original)])||expenseUnknownDeletionMatches(original,delSet))return true;
   }
   if(isManualExpenseSource(e&&e.source) && delSet[keyOfExpenseLegacy(e)]) return true;
+  // Las lápidas previas a la identidad nativa conservan el alcance que ya tenían.
+  if(e&&e.ingestEventId&&delSet[keyOfExpenseLegacy(e)+obOrdinalSufijo(e)]) return true;
   return false;
 }
 /* Signo, cuenta y día acotan las absorciones nuevas. Las claves antiguas se conservan solo
@@ -2694,7 +2696,8 @@ function expenseSourceForCloud(e){
   if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent+(reciboSufijo(e&&e.reciboId)||metaSufijo(e&&e.goalId))+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+acc+ordinalSufijoCloud(e);
   // Un alias TR/Wallet pendiente usa temporalmente el encoding OB que entienden también las OTA
   // anteriores; al resolver «son distintos» vuelve a su origen real `macrodroid`.
-  if(s==="macrodroid"||s==="tr") return (e&&e.possibleDup)?"ob:trade_republic#dup":"macrodroid";
+  if(s==="macrodroid"||s==="tr") return (e&&e.possibleDup)||obOrdinalOf(e)>1
+    ? "ob:trade_republic"+((e&&e.possibleDup)?"#dup":"")+ordinalSufijoCloud(e) : "macrodroid";
   if(s==="supabase") return "manual";
   // Manual CON banco elegido (2026-07-18): mismo truco que ob: — el banco viaja en source
   // y sobrevive a reinstalaciones sin migración SQL.
@@ -3587,12 +3590,13 @@ function expenseFromRow(r){
   // hace que la clave de mezcla no lo funda con el primero. Siempre es el último tramo.
   // «ob:ent~recibo.id» = cargo de ese recibo del Plan: vuelve con su `reciboId` y no mueve cifras.
   // «ob:ent~meta.id» = aportación a esa meta (24/10/2026): vuelve con su `goalId`.
-  else if(raw.indexOf("ob:")===0){ const p=raw.slice(3).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; debtId=pe.debtId; reciboId=pe.reciboId; goalId=pe.goalId; source=(r.ingest_event_id&&p[1]==="dup")?"macrodroid":"ob"; dup=p[1]==="dup"; ord=ordinalDeTramos(p.slice(1)); }
+  else if(raw.indexOf("ob:")===0){ const p=raw.slice(3).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; debtId=pe.debtId; reciboId=pe.reciboId; goalId=pe.goalId; source=(r.ingest_event_id&&(p[1]==="dup"||ordinalDeTramos(p.slice(1))>1))?"macrodroid":"ob"; dup=p[1]==="dup"; ord=ordinalDeTramos(p.slice(1)); }
   else if(raw.indexOf("ob-hist:")===0){ const p=raw.slice(8).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; reciboId=pe.reciboId; goalId=pe.goalId; source="ob-hist"; dup=p[1]==="dup"; ord=ordinalDeTramos(p.slice(1)); }
   else if(raw.indexOf("manual:")===0){ ent=raw.slice(7)||null; source="manual"; }   // manual con banco elegido
   else if(raw==="supabase"){ source="manual"; }   // legado: antes el pull marcaba todo como supabase
   return {
     id: r.id,
+    ingestEventId: r.ingest_event_id || undefined,
     date: new Date(r.fecha).toISOString(),
     merchant: r.comercio || "Gasto",
     amount: Number(r.importe) || 0,
@@ -3737,6 +3741,7 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
   if(!protects("noCard")&&Object.prototype.hasOwnProperty.call(incoming,"noCard")) put("noCard", incoming.noCard||undefined);
   if(Object.prototype.hasOwnProperty.call(incoming,"obName")) put("obName", incoming.obName);
   if(incoming.extId) put("extId",incoming.extId);
+  if(incoming.ingestEventId) put("ingestEventId",incoming.ingestEventId);
   // Un pull legacy sin cuenta no prueba que haya desaparecido la que ya sabemos.
   if(incoming.obAcc) put("obAcc",incoming.obAcc);
   if(Object.prototype.hasOwnProperty.call(incoming,"obPending")) put("obPending",incoming.obPending);

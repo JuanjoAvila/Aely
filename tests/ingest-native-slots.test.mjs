@@ -1,0 +1,38 @@
+#!/usr/bin/env node
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {loadPureLogic} from '../scripts/load-pure-logic.mjs';
+const root=new URL('../',import.meta.url),read=p=>fs.readFileSync(new URL(p,root),'utf8');
+const order=JSON.parse(read('src/build-order.json'));
+// Carga las fuentes reales en memoria: ningún build ni artefacto generado sustituye al candidato.
+const cli=loadPureLogic('<script>'+order.map(p=>read('src/modules/'+p)).join('\n')+'</script>');
+const row=(n,more={})=>({id:'11111111-1111-4111-8111-'+String(n).padStart(12,'0'),fecha:'2026-10-16T08:00:00.'+String(n-1).padStart(3,'0')+'Z',importe:9.95,comercio:'COMERCIO SINTETICO',cat:'otros',source:n===1?'macrodroid':'ob:trade_republic#n'+n,ingest_event_id:'tr:trade_republic:v1_'+n,...more});
+const items=[1,2,3].map(n=>cli.expenseFromRow(row(n)));
+assert.deepEqual(items.map(e=>e.source),['macrodroid','macrodroid','macrodroid']);
+assert.deepEqual(items.map(e=>cli.obOrdinalOf(e)),[1,2,3]);
+assert.equal(new Set(items.map(e=>cli.keyOfExpense(e))).size,3);
+assert.deepEqual(items.map(e=>cli.expenseSourceForCloud(e)),['macrodroid','ob:trade_republic#n2','ob:trade_republic#n3']);
+const merged=cli.mergeExpenses([],items).list;
+assert.equal(merged.length,3);assert.equal(merged.reduce((n,e)=>n+Math.round(e.amount*100),0),2985);
+assert.equal(cli.mergeExpenses(merged,items).list.length,3,'true repeat reader');
+assert.equal(cli.uniqueExpenseUuids(items,new Set()).length,3,'distinct native UUIDs');
+assert.equal(cli.uniqueExpenseUuids(items.concat(items[1]),new Set()).length,3,'same UUID repeat');
+const reconciled=cli.reconcileObDupes({expenses:items,accounts:[{ent:'trade_republic'}]});
+assert.equal(reconciled.state.expenses.length,3);assert.equal(reconciled.borrar.length,0);
+assert.equal(reconciled.state.expenses.reduce((n,e)=>n+Math.round(e.amount*100),0),2985);
+const pending=cli.expenseFromRow(row(2,{source:'ob:trade_republic#dup#n2'}));
+assert.equal(pending.source,'macrodroid');assert.equal(pending.possibleDup,true);
+assert.equal(cli.expenseSourceForCloud(pending),'ob:trade_republic#dup#n2');
+const old=cli.expenseFromRow(row(2,{ingest_event_id:null}));
+assert.equal(old.source,'ob','legacy OB stays OB');assert.equal(cli.obOrdinalOf(old),2);
+const sameOrdinal=[cli.expenseFromRow(row(1)),cli.expenseFromRow(row(2,{source:'macrodroid'}))];
+assert.equal(new Set(sameOrdinal.map(e=>cli.keyOfExpense(e))).size,2,'native ID separates concurrent equal ordinals');
+assert.equal(cli.mergeExpenses([],sameOrdinal).list.length,2);
+const gone={};gone[cli.keyOfExpense(sameOrdinal[0])]=1;
+assert.equal(cli.expenseIsTombstoned(sameOrdinal[0],gone),true);assert.equal(cli.expenseIsTombstoned(sameOrdinal[1],gone),false,'new native tombstone is exact');
+const legacyGone={};legacyGone[cli.keyOfExpenseLegacy(sameOrdinal[0])]=1;
+assert.equal(cli.expenseIsTombstoned(sameOrdinal[0],legacyGone),true,'old native tombstone retained');
+const ownerA=read('supabase/migrations/0001_init.sql');
+assert.match(ownerA,/on public.expenses \(user_id, fecha, importe, comercio\)/);
+const core=read('src/modules/00-core.js');assert.equal((core.match(/onConflict:'user_id,fecha,importe,comercio'/g)||[]).length,2,'both old writer contracts stay intact');
+console.log('PASS F2 source roundtrip, reader merge, UUIDs, reconcile, legacy and unchanged writer contracts');

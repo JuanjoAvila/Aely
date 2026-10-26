@@ -71,6 +71,7 @@ export function inicioDeMesMs(when: number | Date = Date.now(), timeZone: string
 const CAT_NEUTRAS: Record<string, number> = { inversion: 1, traspaso: 1, deudas: 1 };
 
 export type FilaGasto = {
+  ingest_event_id?: string | null;
   id?: string | null;
   importe: number | string;
   cat?: string | null;
@@ -93,6 +94,7 @@ export function esSourceManual(source?: string | null): boolean {
 }
 
 export function claveComoLaApp(f: {
+  ingest_event_id?: string | null;
   fecha?: string | null;
   importe?: number | string;
   comercio?: string | null;
@@ -102,7 +104,8 @@ export function claveComoLaApp(f: {
   const base = String(f.fecha || "").slice(0, 10) + "|" + (Number(f.importe) || 0) + "|" + (f.comercio || "");
   if (esSourceManual(f.source)) return base + "|" + String(f.id || "");
   const ord = ordinalDeSource(f.source);
-  return ord > 1 ? base + "|#" + ord : base;
+  const key = ord > 1 ? base + "|#" + ord : base;
+  return f.ingest_event_id ? key + "|evt:" + encodeURIComponent(f.ingest_event_id) : key;
 }
 
 /**
@@ -219,6 +222,8 @@ export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefine
     if (!keepIds.has(String(f.id)) && !matches(f,kept,keptIndex) && matches(f,gone,goneIndex)) continue;
     const k = claveComoLaApp(f);
     if (lap.has(k)) continue;
+    const oldNative = claveLegacySinId(f) + (ordinalDeSource(f.source) > 1 ? "|#" + ordinalDeSource(f.source) : "");
+    if (f.ingest_event_id && lap.has(oldNative)) continue;
     if (porCuenta.size && !esSourceManual(f.source)) {
       // El otro móvil puede borrar antes de recibir el renombrado. Ambas claves
       // conservan el mismo ámbito; el nombre original no puede borrar otra cuenta.

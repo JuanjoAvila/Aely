@@ -11,7 +11,7 @@ import {root,read,mod,logic,wallet,identity,budget,widgetBudget,entrada,handlerJ
 let failures = 0;
 async function t(name, fn) {
   try { await fn(); console.log("  ✓ " + name); }
-  catch (e) { failures++; console.error("  ✗ " + name + "\n      " + e.stack); }
+  catch (e) { failures++; console.error("  ✗ " + name + "\n      " + e.stack); throw e; }
 }
 console.log("ingest-handler");
 
@@ -229,7 +229,7 @@ await t("si falla retirar el gemelo actual, queda fuera de cifras y sin pedir un
   const tr = await post(env, { fuente: "tr", titulo: "Trade Republic",
     texto: "Has gastado 15,02 € en CONSUM CHARTER",
     fecha: String(Date.parse("2026-09-23T15:21:16.886+02:00")), evento: "v1_consum_tr" });
-  assert.equal(tr.data.skipped, true); assert.equal(tr.data.deferred, true);
+  assert.equal(tr.status, 503); assert.equal(tr.data.deferred, true);
   assert.equal(tr.data.possibleDup, undefined);
   assert.equal(env.rows.filter((r) => r.source === "macrodroid").length, 1);
   assert.equal(env.rows.filter((r) => String(r.source).endsWith("#dup")).length, 1);
@@ -241,14 +241,14 @@ await t("dos compras legítimas idénticas por TR se conservan como dos filas li
   await post(env, { ...base, fecha: String(Date.parse("2026-09-17T14:24:00+02:00")), evento: "v1_buy_a" });
   const b = await post(env, { ...base, fecha: String(Date.parse("2026-09-17T14:29:00+02:00")), evento: "v1_buy_b" });
   assert.equal(b.data.skipped, undefined); assert.equal(b.data.possibleDup, undefined);
-  assert.equal(env.rows.length, 2); assert.ok(env.rows.every((r) => r.source === "macrodroid"));
+  assert.equal(env.rows.length, 2); assert.deepEqual(env.rows.map((r) => r.source), ["macrodroid", "ob:trade_republic#n2"]);
 });
 
-await t("ON CONFLICT sin fila devuelta se responde skipped, nunca 'gasto apuntado'", async () => {
+await t("ON CONFLICT nativo sin fila ni identidad comprobada devuelve reintento, nunca éxito", async () => {
   const env = fakeDb({ emptyInsert: true });
   const r = await post(env, { fuente: "tr", titulo: "Trade Republic", texto: "Has gastado 4,00 € en Cafe",
     fecha: String(Date.parse("2026-09-17T15:10:00+02:00")), evento: "v1_empty" });
-  assert.equal(r.data.skipped, true); assert.equal(r.data.ack, undefined); assert.equal(env.rows.length, 0);
+  assert.equal(r.status, 503); assert.equal(r.data.ok, false); assert.equal(r.data.ack, undefined); assert.equal(env.rows.length, 0);
 });
 
 
@@ -262,7 +262,7 @@ await t("ingest con clasificador anterior respeta gasolina/taxi manual en retry 
   const env=fakeDb({rows:[{id:"manual-"+cat,user_id:"user",fecha,importe:10,comercio,cat,source:"macrodroid",ingest_event_id:identity.claveEvento(body.evento,"tr",body.texto)}]});
   const retry=await post(env,body,priorClassifier);assert.equal(retry.data.ack,"manual-"+cat);assert.equal(env.rows.length,1);assert.equal(env.rows[0].cat,cat);
   const manual=fakeDb({rows:[{id:"alta-"+cat,user_id:"user",fecha,importe:10,comercio,cat,source:"manual:trade_republic"}]});
-  const conflict=await post(manual,body,priorClassifier);assert.equal(conflict.data.skipped,true);assert.equal(manual.rows.length,1);assert.equal(manual.rows[0].cat,cat);
+  const conflict=await post(manual,body,priorClassifier);assert.equal(conflict.status,503);assert.equal(conflict.data.ok,false);assert.equal(manual.rows.length,1);assert.equal(manual.rows[0].cat,cat);
  }
 });
 await t("ingest del baseline conserva multas/zona azul/peajes elegidos en retry y conflicto",async()=>{
@@ -272,7 +272,7 @@ await t("ingest del baseline conserva multas/zona azul/peajes elegidos en retry 
   const env=fakeDb({rows:[{id:"manual-"+cat,user_id:"user",fecha,importe:10,comercio,cat,source:"macrodroid",ingest_event_id:identity.claveEvento(body.evento,"tr",body.texto)}]});
   const retry=await post(env,body,priorClassifier);assert.equal(retry.data.ack,"manual-"+cat);assert.equal(env.rows.length,1);assert.equal(env.rows[0].cat,cat);
   const manual=fakeDb({rows:[{id:"alta-"+cat,user_id:"user",fecha,importe:10,comercio,cat,source:"manual:trade_republic"}]});
-  const conflict=await post(manual,body,priorClassifier);assert.equal(conflict.data.skipped,true);assert.equal(manual.rows.length,1);assert.equal(manual.rows[0].cat,cat);
+  const conflict=await post(manual,body,priorClassifier);assert.equal(conflict.status,503);assert.equal(conflict.data.ok,false);assert.equal(manual.rows.length,1);assert.equal(manual.rows[0].cat,cat);
  }
 });
 if (failures) process.exitCode = 1;

@@ -92,3 +92,30 @@ export function tieneGemeloAnterior(actual: CandidatoIngest, filas: CandidatoIng
     return gemela && esAnterior(otra, actual);
   });
 }
+
+/** El ordinal ya viaja en source para las gemelas OB; una identidad nativa reserva su ranura. */
+export function ordinalIngest(source: unknown): number {
+  const m = /#n([1-9]\d{0,5})(?:#|$)/.exec(String(source || ""));
+  return m ? Math.max(1, Number(m[1])) : 1;
+}
+
+const diaMadrid = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Madrid", year: "numeric", month: "2-digit", day: "2-digit" });
+/** Nunca enviar un pago al día/mes siguiente por reservar los milisegundos de su gemela. */
+export function fechaEventoOrdinal(fecha: string, ordinal: number): string | null {
+  const base = new Date(fecha), ms = base.getTime();
+  if (!Number.isFinite(ms) || !Number.isInteger(ordinal) || ordinal < 1 || ordinal > 999999) return null;
+  const sameDay = (date: Date) => date.toISOString().slice(0, 10) === fecha.slice(0, 10)
+    && diaMadrid.format(date) === diaMadrid.format(base);
+  const delta = ordinal - 1;
+  const after = new Date(ms + delta);
+  if (sameDay(after)) return after.toISOString();
+  const before = new Date(ms - delta);
+  return sameDay(before) ? before.toISOString() : null;
+}
+
+/** Las OTA anteriores ya conocen ob:<banco>[#dup]#n<k>: no cambia el contrato de escritura. */
+export function sourceIngestOrdinal(ordinal: number, pendiente = false): string {
+  return pendiente || ordinal > 1
+    ? "ob:trade_republic" + (pendiente ? "#dup" : "") + (ordinal > 1 ? "#n" + ordinal : "")
+    : "macrodroid";
+}
