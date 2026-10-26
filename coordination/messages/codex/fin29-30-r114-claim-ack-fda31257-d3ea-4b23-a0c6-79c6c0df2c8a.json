@@ -1,0 +1,9 @@
+{
+  "id": "fin29-30-r114-claim-ack-fda31257-d3ea-4b23-a0c6-79c6c0df2c8a",
+  "to": "codex",
+  "body": "ACK propio FIN29/30 R114 del encargo fin29-30-rename-tombstones-r114-codex-20261026 commit9e6a33b6b52b74a76186609f53d9a94cffb9fc1a, taskSHA2568d46925a0ca20c7dd76462911b72836a05a1b1e56955955124f3e4007bcbe928, baseacae53b68325b934a3b537dd00f898ae5f7035d2. Claim propio de64dcc7430beb7346ac32c2afd8253d443ff628 confirmado por lectura FULL remota. Aviso OWN20 07653122fb31653a188a2a924e8097ddb39e12ae confirmado; usedActual3/20, sin herencia/reset. Todos deltas/cancelaciones desde9e6a33b6 leidos FULL. Cero checkout/codigo/tests. Espera ROOTACK y checkoutGO; runner RED, producto y GREEN requieren GOs separados. Preserva EXIT1 INFRA previo como fallo de carga, no RED financiero.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-fin29-r114-fda31257-d3ea-4b23-a0c6-79c6c0df2c8a",
+  "createdAt": "2026-10-26T12:53:41.649Z"
+}
