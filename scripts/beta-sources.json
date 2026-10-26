@@ -96329,5 +96329,33 @@
       "android/app/src/main/res/layout/widget_micartera.xml"
     ],
     "unidades": true
+  },
+  "widget-se-actualiza-solo": {
+    "web": [
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "widgetPeriodOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "widgetScopeOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseBankEnts"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accDaily"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accRole"
+      }
+    ],
+    "edge": [
+      "supabase/functions/ingest/widget.ts"
+    ],
+    "unidades": true
   }
 }

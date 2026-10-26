@@ -1,5 +1,46 @@
 [
   {
+    "v": "4.26.186",
+    "d": "2026-10-26",
+    "t": {
+      "es": "El widget vuelve a actualizarse solo",
+      "en": "The widget updates by itself again",
+      "ca": "El widget torna a actualitzar-se sol"
+    },
+    "items": {
+      "es": [
+        "El widget vuelve a actualizarse solo al usar la app, con lo que te queda del límite este mes."
+      ],
+      "en": [
+        "The widget updates by itself again when you use the app, showing what is left of this month's limit."
+      ],
+      "ca": [
+        "El widget torna a actualitzar-se sol en usar l’app, amb el que et queda del límit aquest mes."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "widget-se-actualiza-solo",
+        "t": {
+          "es": "Widget: se actualiza solo al usar la app",
+          "en": "Widget: it updates by itself when you use the app",
+          "ca": "Widget: s’actualitza sol en usar l’app"
+        },
+        "items": {
+          "es": [
+            "1. Abre la app desde el icono (no desde el widget), cambia algo (por ejemplo apunta un gasto pequeño y bórralo) y sal. MAL: el widget sigue con la cifra de antes. BIEN: el widget enseña lo mismo que Inicio sobre lo que te queda del límite este mes."
+          ],
+          "en": [
+            "1. Open the app from its icon (not from the widget), change something (for example, add a small expense and delete it) and leave. WRONG: the widget still shows the previous figure. RIGHT: the widget shows the same as Home about what is left of this month's limit."
+          ],
+          "ca": [
+            "1. Obre l’app des de la icona (no des del widget), canvia alguna cosa (per exemple, apunta una despesa petita i esborra-la) i surt. MALAMENT: el widget segueix amb la xifra d’abans. BÉ: el widget ensenya el mateix que Inici sobre el que et queda del límit aquest mes."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.185",
     "d": "2026-10-26",
     "t": {

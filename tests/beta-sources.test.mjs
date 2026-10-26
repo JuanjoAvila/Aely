@@ -180,6 +180,8 @@ const sourceBeta182=sourceAt("acae53b68325b934a3b537dd00f898ae5f7035d2");
 const sourceBeta183=sourceAt("9627c867b1bea1c29e0b5f02adaf47e9360f1648");
 // Catálogo184 pasa a histórico con la 185: se lee de la 4.26.184 servida en beta (5a02ad17f); sus dos tandas (gastos-scroll-fluido-cifras y gastos-margen-sin-nomina) ya tienen la aprobación del dueño (26/10, 19:18 y 19:19, beta 4.26.184.1) y la 185 las retira.
 const sourceBeta184=sourceAt("5a02ad17f2bfcfb90652ab7dc45216af3b330b5c");
+// Catálogo185 pasa a histórico con la 186: se lee de la 4.26.185 servida en beta (fc737a7df, con la APK 62); su tanda (widget-pasado-del-limite) no tiene veredicto y la 186 la deja donde está.
+const sourceBeta185=sourceAt("fc737a7dfc292312b38d4fc1f3276a97436444f2");
 const sourceBeta153=sourceAt("80752dff055dc391c52c3067ce238f49e0a14598");
 // Catálogo137 pasa a histórico en la promoción 137: se lee de la beta 4.26.137.1 aprobada (6f18228c), lo último que probó el móvil y lo que sube entero.
 const sourceBeta137=sourceAt("6f18228cbd81c1cc9abfa7fabce0a878819234f4");
@@ -6158,6 +6160,100 @@ test("Catálogo176 añade la tanda del vínculo de recibo (solo web) sobre la 17
   assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
 });
 
+const expected186={"v":"4.26.186","d":"2026-10-26","t":{"es":"El widget vuelve a actualizarse solo","en":"The widget updates by itself again","ca":"El widget torna a actualitzar-se sol"},"items":{"es":["El widget vuelve a actualizarse solo al usar la app, con lo que te queda del límite este mes."],"en":["The widget updates by itself again when you use the app, showing what is left of this month's limit."],"ca":["El widget torna a actualitzar-se sol en usar l’app, amb el que et queda del límit aquest mes."]},"tandas":[{"id":"widget-se-actualiza-solo","t":{"es":"Widget: se actualiza solo al usar la app","en":"Widget: it updates by itself when you use the app","ca":"Widget: s’actualitza sol en usar l’app"},"items":{"es":["1. Abre la app desde el icono (no desde el widget), cambia algo (por ejemplo apunta un gasto pequeño y bórralo) y sal. MAL: el widget sigue con la cifra de antes. BIEN: el widget enseña lo mismo que Inicio sobre lo que te queda del límite este mes."],"en":["1. Open the app from its icon (not from the widget), change something (for example, add a small expense and delete it) and leave. WRONG: the widget still shows the previous figure. RIGHT: the widget shows the same as Home about what is left of this month's limit."],"ca":["1. Obre l’app des de la icona (no des del widget), canvia alguna cosa (per exemple, apunta una despesa petita i esborra-la) i surt. MALAMENT: el widget segueix amb la xifra d’abans. BÉ: el widget ensenya el mateix que Inici sobre el que et queda del límit aquest mes."]}}]};
+// 4.26.186 (26/10/2026): claude/widget-stale (b7f1bc268, con su revisión independiente en GO) sobre la beta 4.26.185 servida (fc737a7df), solo web e ingest y SIN APK nueva (sigue la 62): widgetScopeOf vuelve a un alcance de 8 elementos (las listas de nómina del mes van en el hueco del ancla, índice 4) porque MiCarteraWidget.java:207/302 exige longitud 8 y descartaba en mudo la foto con lectura nueva.
+// Una tanda NUEVA (widget-se-actualiza-solo, un paso, sin APK). La de la 185 (widget-pasado-del-limite) NO tiene veredicto: se deja donde está, así que el panel enseña dos. Su huella web se mueve igualmente (widgetScopeOf cambia).
+test("Catálogo186 añade la tanda del widget que se actualiza solo (web e ingest) sobre la 185, deja la de la 185 sin veredicto y declara las huellas que mueve",()=>{
+  const tandas=["widget-pasado-del-limite","widget-se-actualiza-solo"],M0="src/modules/08-motor-bank.js",W0="supabase/functions/ingest/widget.ts",java="android/app/src/main/java/com/micartera/app/";
+  const integrated=JSON.parse(sourceBeta185("scripts/beta-sources.json")),before=JSON.parse(sourceBeta185("src/data/release-notes.json"));
+  const source=f=>nl(read(f)),old=f=>nl(sourceBeta185(f));
+  assert.equal(before[0].v,"4.26.185");
+  assert.deepEqual(before[0].tandas.map(g=>g.id),[tandas[0]],"la 185 servida lleva su tanda (sin veredicto)");
+  for(const n of before.slice(1))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] en la 185 servida");
+  const expectedNotes=[expected186,...before];
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.deepEqual(notes,expectedNotes,"la nota 186 literal delante y todo lo demás intacto (la tanda de la 185 sigue)");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.186",tandas[1],0],["4.26.185",tandas[0],62]],"el panel enseña dos tandas: la nueva, sin APK, y la de la 185, con APK 62");
+  assert.equal(notes.length,283);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
+  for(const n of notes.slice(2))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] (la propiedad se conserva, vacía)");
+  assert.deepEqual(Object.keys(notes[0].tandas[0]),["id","t","items"],"la tanda nueva no pide APK");
+  const jerga=/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|FIN-|SES-|UX-|SEC-|zoom|\d+\.\d+\.\d+/i;
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,1,lang+": un punto familiar");
+    const steps=notes[0].tandas[0].items[lang];
+    assert.equal(steps.length,1,lang+": un paso");
+    assert.ok(steps[0].startsWith("1. "),lang+": paso numerado");
+    assert.ok(/MAL|WRONG|MALAMENT/.test(steps[0])&&/BIEN|RIGHT|BÉ/.test(steps[0]),lang+": el paso dice qué es MAL y qué es BIEN");
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
+  }
+  const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
+  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verifyNotes(twice),assert.AssertionError,"no duplicar una tanda");
+  const sinViva185=structuredClone(notes);sinViva185[1].tandas=[];assert.throws(()=>verifyNotes(sinViva185),assert.AssertionError,"la tanda de la 185 no se retira sin veredicto");
+  // Registro: el de la 185 intacto con el descriptor nuevo detrás.
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),{[tandas[1]]:ahora,...resto}=scopes;
+  assert.deepEqual(Object.keys(scopes),[...Object.keys(integrated),tandas[1]],"el descriptor nuevo, el último");
+  assert.deepEqual(resto,integrated,"ningún descriptor anterior cambia");
+  assert.deepEqual(Object.keys(ahora),["web","edge","unidades"]);assert.equal(ahora.unidades,true);
+  assert.deepEqual(ahora.edge,[W0],"servidor: el formato del alcance que ingest devuelve al widget");
+  const propias=[{file:M0,function:"widgetPeriodOf"},{file:M0,function:"widgetScopeOf"}];
+  assert.deepEqual(ahora.web.slice(0,propias.length),propias,"las unidades web propias: la ventana y el alcance que el widget lee");
+  {const fns=logicFunctions(source),dat=logicData(source);let web=propias.slice();
+    for(let ronda=0;ronda<12;ronda++){
+      const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];
+      for(const fn of scopeDependencies({web},source,fns))if(!tiene(fn.file,fn.name,"function"))extra.push({file:fn.file,function:fn.name});
+      for(const d of scopeDataDependencies({web},source,fns,dat))if(!tiene(d.file,d.name,"data"))extra.push({file:d.file,data:d.name});
+      if(!extra.length)break;web=web.concat(extra);
+    }
+    const clave=u=>JSON.stringify(u);
+    assert.equal(ahora.web.length,web.length,"el cierre de lectores del descriptor es exactamente el calculado");
+    assert.deepEqual(new Set(ahora.web.map(clave)),new Set(web.map(clave)),"el cierre de lectores del descriptor es exactamente el calculado");}
+  for(const u of ahora.web)assert.ok(scopeText(u,source).length>0,"la unidad existe en la fuente: "+JSON.stringify(u));
+  assert.equal(source(W0).length>0,true,"el fichero de servidor existe");
+  // Sin nativo: del árbol de la 185 cambian el alcance web y el de ingest (más sus pruebas); el Java, el manifiesto, apk.json y build.gradle siguen idénticos (la APK 62 ya exige longitud 8, lo que se arregla es la web).
+  for(const file of [M0,W0])assert.notEqual(source(file),old(file),"cambia de verdad: "+file);
+  for(const file of ["src/modules/00-core.js","src/modules/03-tab-dash.js","src/modules/04-tab-gastos.js","src/modules/11-app-main.js","supabase/functions/ingest/index.ts",java+"MiCarteraWidget.java",java+"MiCarteraPlugin.java",java+"WidgetPeriod.java",java+"WidgetSnapshotArbiter.java",java+"TrExpenseListener.java","android/app/src/main/res/layout/widget_micartera.xml","android/app/src/main/AndroidManifest.xml","public/apk.json"])assert.equal(source(file),old(file),"sin cambios: "+file);
+  assert.match(source("android/app/build.gradle"),/versionCode 62\s+versionName "4\.26\.185"/,"sigue la APK 62: la 186 no lleva nativo");
+  assert.match(source("scripts/beta-sources.json"),/widget-se-actualiza-solo/);
+  // El alcance del mes lleva 8 elementos con las listas en el índice 4.
+  assert.ok(/length\s*!==?\s*8|a\.length\(\) != 8/.test(source(java+"MiCarteraWidget.java")),"el Java sigue exigiendo longitud 8");
+  // Huellas que se mueven (lista cerrada): web de la tanda viva de la 185 (widgetScopeOf es suya) y las de edge que leen ingest/widget.ts.
+  const expectedMoves={};
+  const previous=new Map();
+  const measure=reader=>{
+    const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};
+    for(const [key,scope] of Object.entries(integrated)){
+      if(key===archiveId)continue;
+      if(!previous.has(key))previous.set(key,betaRevision(key,sourceBeta185,undefined,scope));
+      const a=previous.get(key),b=betaRevision(key,reader,undefined,now[key]);
+      const surfaces=["web","native","edge"].filter(x=>a[x]!==b[x]);
+      if(surfaces.length)moved[key]=surfaces;
+    }
+    return moved;
+  };
+  assert.deepEqual(measure(source),expectedMoves,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  const vivas=notes.flatMap(n=>(n.tandas||[]).map(g=>g.id));
+  assert.deepEqual(vivas,tandas.slice().reverse());
+  assert.deepEqual(Object.keys(expectedMoves).filter(id=>vivas.includes(id)),[tandas[0]],"la única tanda viva que se mueve es la de la 185 (web)");
+  const current=betaRevision(tandas[1],source,undefined,scopes[tandas[1]]);
+  assert.ok(current.web);assert.ok(current.edge);assert.equal(current.native,undefined,"sin huella nativa");
+  // Mutantes sobre la fuente real: ingest o el alcance web cambian y la tanda se reabre solo por su superficie.
+  {const mutated=betaRevision(tandas[1],f=>f===W0?source(f)+"\n// mutante":source(f),undefined,scopes[tandas[1]]);
+    assert.notEqual(mutated.edge,current.edge,tandas[1]+" reabre la huella de servidor: "+W0);
+    assert.equal(mutated.web,current.web);}
+  {const a="function widgetScopeOf(",b="function widgetScopeOf(/*x*/";
+    assert.equal(source(M0).split(a).length,2,"mutante sobre fuente real: "+a);
+    const mutated=betaRevision(tandas[1],f=>f===M0?source(f).replace(a,()=>b):source(f),undefined,scopes[tandas[1]]);
+    assert.notEqual(mutated.web,current.web,tandas[1]+" reabre la tanda web: "+a);
+    assert.equal(mutated.edge,current.edge);}
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes);
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),vivas,"lo que el build entrega al panel");
+  const g0=built[0].tandas[0];
+  assert.equal(g0.web,current.web);assert.equal(g0.edge,current.edge,"el panel la marca con servidor por confirmar");assert.equal(g0.native,undefined);assert.equal(g0.apk,undefined);assert.equal(receipt.web[tandas[1]],current.web);
+  for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g0[key],undefined,"identidad nueva sin "+key);
+  assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
+});
+
+
 const expected185={"v":"4.26.185","d":"2026-10-26","t":{"es":"El widget se pone en rojo cuando te pasas del límite","en":"The widget turns red when you go over the limit","ca":"El widget es posa en vermell quan et passes del límit"},"items":{"es":["Cuando te pasas del límite, el widget ya no dice «Puedes gastar 0 €»: la cifra y la barra salen en rojo y debajo ves cuánto te has pasado (con la app nueva)."],"en":["When you go over the limit, the widget no longer says \"You can spend 0 €\": the figure and the bar turn red and below you see how much you are over (with the new app)."],"ca":["Quan et passes del límit, el widget ja no diu «Pots gastar 0 €»: la xifra i la barra surten en vermell i a sota veus quant t’has passat (amb l’app nova)."]},"tandas":[{"id":"widget-pasado-del-limite","t":{"es":"Widget: pasarte del límite se ve en rojo","en":"Widget: going over the limit shows in red","ca":"Widget: passar-te del límit es veu en vermell"},"items":{"es":["1. Instala la app nueva cuando te lo pida. Con el mes ya pasado del límite, mira el widget de Aely en la pantalla de inicio del móvil. MAL: sale «✅ Puedes gastar 0 €» o la barra verde. BIEN: la cifra y la barra salen en rojo, y debajo «… € de más 🚨»."],"en":["1. Install the new app when it asks you to. With the month already over the limit, look at the Aely widget on your phone's home screen. WRONG: it shows \"✅ You can spend 0 €\" or the green bar. RIGHT: the figure and the bar are red, and below it says \"… € over 🚨\"."],"ca":["1. Instal·la l’app nova quan t’ho demani. Amb el mes ja passat del límit, mira el widget d’Aely a la pantalla d’inici del mòbil. MALAMENT: surt «✅ Pots gastar 0 €» o la barra verda. BÉ: la xifra i la barra surten en vermell, i a sota «… € de més 🚨»."]},"apk":62}]};
 // 4.26.185 (26/10/2026): tres piezas sobre la beta 4.26.184 servida (5a02ad17f), con APK NUEVA (62): claude/widget-nativo (e4d436fba: pasado el límite, el widget no dice «Puedes gastar 0 €» y la barra sale en coral), la PR318 de Codex (51169939: el debounce nativo de avisos de compra va por la identidad v1 del evento y no por el hash del texto) y el arreglo del test compras-identicas-ids (0b3670143). Cero código web: ningún alcance web se mueve.
 // Una tanda NUEVA (widget-pasado-del-limite, un paso, apk 62). Las dos de la 184 (gastos-scroll-fluido-cifras y gastos-margen-sin-nomina) las aprobó el dueño el 26/10 (19:18 y 19:19, 4.26.184.1): salen del panel (tandas:[], propiedad conservada).
@@ -6165,7 +6261,7 @@ const expected185={"v":"4.26.185","d":"2026-10-26","t":{"es":"El widget se pone 
 test("Catálogo185 añade la tanda del widget pasado del límite (APK 62), retira las dos aprobadas de la 184 y declara las huellas nativas que mueve",()=>{
   const tandas=["widget-pasado-del-limite"],M0="src/modules/08-motor-bank.js",java="android/app/src/main/java/com/micartera/app/";
   const integrated=JSON.parse(sourceBeta184("scripts/beta-sources.json")),before=JSON.parse(sourceBeta184("src/data/release-notes.json"));
-  const source=f=>nl(read(f)),old=f=>nl(sourceBeta184(f));
+  const source=f=>nl(sourceBeta185(f)),old=f=>nl(sourceBeta184(f));
   assert.equal(before[0].v,"4.26.184");
   assert.deepEqual(before.slice(0,2).map(n=>n.tandas.map(g=>g.id)),[["gastos-margen-sin-nomina"],["gastos-scroll-fluido-cifras"]],"la 184 servida lleva sus dos tandas, ambas aprobadas");
   const expectedNotes=[expected185,...before.map((n,i)=>i<2?{...n,tandas:[]}:n)];
