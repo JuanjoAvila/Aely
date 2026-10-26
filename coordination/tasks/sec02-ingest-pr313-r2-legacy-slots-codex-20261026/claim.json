@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "taskId": "sec02-ingest-pr313-r2-legacy-slots-codex-20261026",
+  "actor": "codex",
+  "sessionId": "codex-local-20261026-ingestr2-fda31257-ac2c-4185-82f7-0467d3fd3fe3",
+  "createdAt": "2026-10-26T04:16:54.081Z",
+  "baseSHA": "f62bd0794b509303cc0e4d579ccdbc0a70484214"
+}
