@@ -1,0 +1,67 @@
+{
+  "status": "done",
+  "summary": "F1 final callback save now fences id, owner, consumed NULL state and original emission including legacy NULL. Delayed callback A preserves reconnect B and closes without success. Finished exact reviewed source delivered as one draft PR against beta; no deployment.",
+  "productSHA": "b5a9ef23608da217392eee275c060f845bcbac2d",
+  "baseSHA": "f99f6d7a83c48efc3cbfcb73d93eba1d6130fd32",
+  "PR": 314,
+  "tests": [
+    {
+      "command": "deno test --cached-only --no-lock --no-prompt --node-modules-dir=none --allow-read=supabase/functions --fail-fast=1 --filter=\"callback lento\" supabase/functions/bank-callback/generation-fence.test.ts",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "phase": "causal RED on exact base; stale A overwrites B session/accounts/status"
+    },
+    {
+      "command": "deno test --cached-only --no-lock --no-prompt --node-modules-dir=none --allow-read=supabase/functions --fail-fast=1 supabase/functions/bank-callback/generation-fence.test.ts",
+      "exitCode": 0,
+      "passed": 20,
+      "phase": "GREEN same unchanged oracle and real handler"
+    },
+    {
+      "command": "deno test --cached-only --no-lock --no-prompt --node-modules-dir=none --allow-read=supabase/functions --fail-fast=1 --filter=state-only supabase/functions/bank-callback/generation-fence.test.ts",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "sourceMutant": "remove final state fence"
+    },
+    {
+      "command": "deno test --cached-only --no-lock --no-prompt --node-modules-dir=none --allow-read=supabase/functions --fail-fast=1 --filter=emission-only supabase/functions/bank-callback/generation-fence.test.ts",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "sourceMutant": "remove final emission fence"
+    },
+    {
+      "command": "deno test --cached-only --no-lock --no-prompt --node-modules-dir=none --allow-read=supabase/functions --fail-fast=1 --filter=\"legacy null, web\" supabase/functions/bank-callback/generation-fence.test.ts",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "sourceMutant": "legacy equality instead of IS NULL"
+    },
+    {
+      "command": "git diff --check; node --check scripts/run-tests.mjs; node --check scripts/run-deno-tests.mjs; directed registration inventory",
+      "exitCode": 0
+    }
+  ],
+  "independentReviewGO": true,
+  "exactRemoteHeadReadback": true,
+  "PRDraft": true,
+  "PRBase": "beta",
+  "resourcesReturned": true,
+  "runnerPolicy": "CPU1 serial one worker zero retries stop first failure; own census admission stdout stderr EXIT RETURN",
+  "ownBudget": {
+    "id": "callbackf1r107-own20-fda31257-bd95-4bc9-9268-f09cd6bc91c2",
+    "allowance": 20,
+    "usedActualBeforeFinalReadback": 6
+  },
+  "limitations": [
+    "Real handler executed in Deno with synthetic SDK provider storage encryption and runtime only; no network or environment permissions",
+    "PostgreSQL PostgREST gateway concurrency and real provider behavior not tested",
+    "CI integration deployment served beta and physical mobile acceptance remain separate",
+    "No SQL migrations F3 Android APK versions dependencies force rebase merge or provider revocations",
+    "Consumed-state guard and exact-one acknowledgment preserved; no restoration or retries"
+  ],
+  "schema": 1,
+  "taskId": "sec02-callback-generation-fence-relay107-codex-20261026",
+  "actor": "codex",
+  "sessionId": "codex-local-20261026-callbackf1r107-fda31257-bd95-4bc9-9268-f09cd6bc91c2",
+  "createdAt": "2026-10-26T05:27:28.100Z",
+  "released": true
+}
