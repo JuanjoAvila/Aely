@@ -114,7 +114,8 @@ test("★ TR por Open Banking dice que es la conexión de BANCO (compras con tar
   await expect(banner).toContainText(/\(banco\)/i);
   await expect(banner).toContainText(/compras con tarjeta/i);
   // Y dice explícitamente que lo OTRO no está afectado, que es lo que le confundía.
-  await expect(banner).toContainText(/posiciones y (tu )?efectivo/i);
+  // Textos mínimos (4.26.182) lo dejó en «No afecta a tus posiciones ni al efectivo.»: vale la frase nueva y la de antes.
+  await expect(banner).toContainText(/posiciones ni (al )?efectivo|posiciones y (tu )?efectivo/i);
   await expect(banner.getByRole("button")).toContainText(/permiso del banco/i);
 });
 

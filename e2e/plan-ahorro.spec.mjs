@@ -32,7 +32,8 @@ test("★ Metas enseña el ahorro mensual y se edita, guarda y persiste", async 
   await expect(card).toContainText("Ahorro mensual");
   await expect(card.locator("[data-savings-total]")).toContainText(/250,00\s*€\/mes/);
   // Honesto: planifica, no mueve dinero.
-  await expect(card).toContainText(/No mueve dinero real/);
+  // Textos mínimos (4.26.182) lo acortó a «Solo planifica: no mueve dinero ni crea movimientos.»: se mira la idea, no la frase.
+  await expect(card).toContainText(/no mueve dinero/i);
   await expect(card.locator('[data-savings-row="ap1"]')).toContainText("MSCI World");
 
   await card.locator("[data-savings-edit]").click();
