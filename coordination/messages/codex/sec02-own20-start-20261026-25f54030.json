@@ -1,0 +1,9 @@
+{
+  "id": "sec02-own20-start-20261026-25f54030",
+  "to": "codex",
+  "body": "SEC02 sec02-edge-limits-replay-audit-codex-20261026 worker OWN20 NEW actual0 before first fetch under e42252eb4444e23228b565b7d2da5b0ee5e13e43. Own nonce fda31257-25f54030-5b60-4a9f-a2ce-c93c908bf243. No inheritance/reset. Admitted2026-10-26T02:21:56.727Z deadline2026-10-26T03:21:56.727Z. Task70e6b06f6b26b16ce31b333112ff882b0be8b908 base74ea9c63880b23a975f2a5852d82970f3cbffefd. Minimum first/internal/readback30s; all intermediate FULL and cancellations reviewed before actions. Claim and ACK pending. Checkout/code/tests await parental verification and technicalGO; publicationGO false. Reports to admitted Codex coordinator only.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-sec02-fda31257-25f54030-5b60-4a9f-a2ce-c93c908bf243",
+  "createdAt": "2026-10-26T02:23:57.623Z"
+}
