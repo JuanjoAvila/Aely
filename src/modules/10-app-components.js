@@ -2738,7 +2738,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         React.createElement("div",{style:{fontSize:13,fontWeight:700,marginBottom:6}}, t("st_textsize")),
         React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap"}},
           [["small","ts_small"],["normal","ts_normal"],["big","ts_big"],["huge","ts_huge"]].map(function(ts){
-            return React.createElement("button",{key:ts[0],onClick:function(){ applyTextSize(ts[0]); setS({textSize:ts[0]}); },style:Object.assign({},segBtn(curTextSize===ts[0]),{flex:"1 1 40%"})}, t(ts[1]));
+            return React.createElement("button",{key:ts[0],type:"button","data-ts":ts[0],"aria-pressed":curTextSize===ts[0],onClick:function(){ applyTextSize(ts[0]); setS({textSize:ts[0]}); },style:Object.assign({},segBtn(curTextSize===ts[0]),{flex:"1 1 40%"})}, t(ts[1]));
           })),
         React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.5,marginTop:6}}, t("st_textsize_hint"))
       ),
@@ -3132,11 +3132,11 @@ function Onboarding({set, onCloud, onSignup}){
       return Object.assign({},s,{
         budget:bud, monthStartNet:0, history:[0],
         onboarded:true, setupHint:true, tourSeen:false,
-        /* LETRA PEQUEÑA DE SALIDA, Y SOLO EN INSTALACIONES NUEVAS (11/9, suyo: «pon la letra en
-           pequeño para comenzar, en normal es terriblemente gigantesca»). Se pone AQUÍ, en el
-           onboarding, y no como valor por defecto global: cambiarlo globalmente le reescribiría
-           el tamaño a su padre y a su pareja, que ya tienen la app y no han pedido nada. Quien la
-           quiera más grande la sube en Ajustes, y eso manda sobre esto. */
+        /* LETRA DE SALIDA «NORMAL» (valor `small`), Y SOLO EN INSTALACIONES NUEVAS (11/9, suyo: «pon la
+           letra en pequeño para comenzar»; el 26/10 esa letra pasó a llamarse «Normal»). Se pone AQUÍ y
+           no como defecto global: `textSizeOf` sigue cayendo en `normal` para que su padre y su pareja,
+           que ya tienen la app, no vean la letra encogerse. Quien la quiera más grande la sube en
+           Ajustes, y eso manda sobre esto. */
         settings: Object.assign({}, s.settings, { textSize:"small" }),
       });
     });
