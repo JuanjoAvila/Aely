@@ -127,6 +127,34 @@ const suMes={budget:1500,accounts:[{ent:'trade_republic',role:'diario'}],reserva
   datos.pagos['suMes/cafe']=JSON.stringify({ok:true,tipo:'gasto',importe:2,fecha:iso(nowMs-1000),cat:'super',comercio:'Café sintético',ack:'fila-cafe',
     month:Object.assign({},cafe,{spent:1924.19,budgetLeft:0}),widget:Object.assign({},cafe,{contract:2,periodKind:'mes',scope})});
 }
+/* ALTERNAR MI CICLO ↔ MES (reporte del dueño con la APK 62, 26/10/2026): «cuando cambio de Mi
+   ciclo a mes y al revés, el widget no se cambia solo; si cambio la tarjeta, al momento». Su mes
+   con la nómina del 30 del mes anterior y una compra después: el ciclo compara 100 € más. */
+const conCiclo=cycle=>Object.assign({},suMes,{settings:Object.assign({},suMes.settings,{budgetCycle:cycle}),expenses:suMes.expenses.concat([
+  {date:iso(mes-5*86400000),amount:-3333,category:'ingreso',source:'ob:trade_republic',merchant:'NOMINA EMPRESA SINTETICA'},
+  {date:iso(mes-2*86400000),amount:100,category:'super',source:'macrodroid'}])});
+// Con y sin un café pagado con la app cerrada (ya en el registro del nativo y en la lectura de la app).
+const cafeFila={id:'fila-cafe',fecha:iso(nowMs-1000),ingest_event_id:'evento-cafe',source:'macrodroid'};
+for(const cafe of [false,true]) for(const cycle of [false,true]){
+  const st=conCiclo(cycle);
+  if(cafe) st.expenses=st.expenses.concat([{id:'fila-cafe',date:cafeFila.fecha,amount:2,category:'super',source:'macrodroid'}]);
+  const bud=cli.dashboardBudgetStats(st);
+  assert.equal(bud.cycle,cycle,'el estado de prueba ancla Mi ciclo');
+  const anchor=cycle?cli.keyOfExpense(cli.budgetPaydayOf(st,nowMs).inc):'';
+  const scope=cli.widgetScopeOf(st,bud,anchor,'trade_republic');
+  const data=WEB.nueva(bud,st,{current:cafe?[cafeFila]:[]},W[54],'es',scope,cli.widgetCoveredEvents,cli.Date,MARCA,5932-(cafe?2:0),
+    {ent:'trade_republic'},()=>({label:'Trade Republic'}),Math.round(Math.max(0,bud.remaining)*100)/100,5932-(cafe?2:0));
+  assert.equal(data.spent,(cycle?1536.47:1436.47)+(cafe?2:0));
+  datos.fotos['alternar'+(cafe?'Cafe':'')+'/'+(cycle?'ciclo':'mes')]=puente(data);
+  // La web 4.26.185 mandaba el mes con las listas de noveno elemento (el ciclo no cambia).
+  if(!cafe){ const q=JSON.parse(scope); datos.fotos['alternar185/'+(cycle?'ciclo':'mes')]=puente(cycle?data:Object.assign({},data,{scope:JSON.stringify([...q.slice(0,4),'',...q.slice(5),q[4]])})); }
+  if(!cafe&&!cycle){
+    const w={periodStart:bud.periodStart,readAt:nowMs,eventKey:'evento-cafe',expenseKey:'clave-cafe',spent:1438.47,budget:1500,
+      budgetLeft:61.53,shownDelta:2,againstDelta:2,counts:1,cashCounts:1};
+    datos.pagos['alternar/cafe']=JSON.stringify({ok:true,tipo:'gasto',importe:2,fecha:cafeFila.fecha,cat:'super',comercio:'Café sintético',ack:'fila-cafe',
+      month:Object.assign({},w,{spent:1924.19,budgetLeft:0}),widget:Object.assign({},w,{contract:2,periodKind:'mes',scope})});
+  }
+}
 for(const p of PAGOS) for(const v2 of [false,true]) datos.pagos[(v2?'v2':'legacy')+'/'+p.n]=respuesta(p,v2);
 cli.Date=RealDate;
 
@@ -458,6 +486,40 @@ public class Driver {
     ok(cifra(a).equals("1.438 €")&&!pie(a).equals(AVISO),"un pago con la app cerrada sigue la regla nueva: "+cifra(a)+" / "+pie(a));
     System.out.println("PASS su mes del 26/10 en la APK 62: abrir la app con lectura nueva cambia 1.922 € por 1.436 € (quedan 64 €)");
   }
+  static void empujar(Apk a,String modo,String[] mark){
+    String f=fotos.optString(modo,null);
+    a.updateWidget(Fx.bridge(mark!=null?f.replace("@GEN@",mark[0]).replace("@CUT@",mark[1]):f.replace("@GEN@","sin").replace("@CUT@","0")));
+  }
+  /** Alternar Mi ciclo ↔ mes con la app abierta. Tres formas de llegar la marca de lectura:
+      «una» (lo que hace la app: alternar no relee, todas las fotos llevan la misma), «cada» (se
+      salió y volvió entre medias: lectura nueva en cada foto) y «sin» (el corte no llegó). Y con
+      un café ya pagado con la app cerrada en el registro del nativo. */
+  static void alternar(){
+    for(boolean cafe:new boolean[]{false,true}) for(String lectura:new String[]{"una","cada","sin"}){
+      Apk a=apk(54);
+      String[] mark=lectura.equals("sin")?null:a.beginRead();
+      empujar(a,"alternar/mes",mark);
+      if(cafe) a.pay(pagos.optString("alternar/cafe",null));
+      String extra=cafe?"(café) ":"", donde=lectura+" "+extra;
+      ok(cifra(a).equals(cafe?"1.438 €":"1.436 €"),"partida en el mes "+donde+": "+cifra(a));
+      for(String paso:new String[]{"ciclo","mes","ciclo","mes"}){
+        if(lectura.equals("cada"))mark=a.beginRead();
+        empujar(a,"alternar"+(cafe?"Cafe":"")+"/"+paso,mark);
+        boolean c=paso.equals("ciclo");
+        String esperado=c?(cafe?"1.538 €":"1.536 €"):(cafe?"1.438 €":"1.436 €");
+        ok(a.text(R.id.w_title).equals(c?"AELY · MI CICLO · GASTO NETO":"AELY · ESTE MES · GASTO")&&cifra(a).equals(esperado)&&!pie(a).equals(AVISO),
+          "APK 62 + web 186, alternar a "+paso+" "+donde+": "+a.text(R.id.w_title)+" | "+cifra(a)+" | "+pie(a));
+      }
+    }
+    // Con la web 4.26.185 el mes llevaba 9 elementos: tras volver a la app (lectura nueva) el
+    // paso a mes se descartaba en mudo y el widget se quedaba en el ciclo. El de ciclo sí entraba.
+    Apk v185=apk(54); v185.updateWidget(Fx.bridge(fotos.optString("suMes/vieja",null)));
+    String[] m=v185.beginRead(); empujar(v185,"alternar185/ciclo",m);
+    ok(cifra(v185).equals("1.536 €"),"web 185: el paso a ciclo entraba: "+cifra(v185));
+    m=v185.beginRead(); empujar(v185,"alternar185/mes",m);
+    ok(cifra(v185).equals("1.536 €")&&v185.text(R.id.w_title).contains("MI CICLO"),"web 185: el paso a mes con lectura nueva se descartaba: "+cifra(v185));
+    System.out.println("PASS alternar Mi ciclo ↔ mes en la APK 62 con la web 186: misma lectura, lectura nueva o sin marca, con y sin pago cerrado (con la 185 el mes se perdía)");
+  }
   public static void main(String[] args) throws Exception {
     datos=new JSONObject(new String(Files.readAllBytes(Paths.get(args[0])),"UTF-8"));
     fotos=datos.optJSONObject("fotos"); pagos=datos.optJSONObject("pagos");
@@ -465,6 +527,7 @@ public class Driver {
     diagnostico();
     contrato54();
     suMes();
+    alternar();
     for(int code:new int[]{52,53,54}) for(boolean v2:new boolean[]{false,true}) secuencia(code,v2);
     System.out.println("PASS secuencia del dueño (aviso → abrir → pagar cerrada → abrir) en APK 52, 53 y 54 con servidor legacy y v2");
     heredadoLleno();
