@@ -7195,7 +7195,7 @@ const LANG = {
     help_goals_body:"Abre Plan → Metas.\nCrea la meta e indica el objetivo y la fecha.\nRevisa el ahorro mensual que le asignas.",
     help_history:"Importar histórico",
     help_history_body:"Abre Importar histórico.\nElige el banco y el periodo.\nRevisa cada movimiento antes de importarlo.",
-    help_intro:"Escribe o dicta qué quieres hacer. Te respondo en una frase y te llevo al sitio.",
+    help_intro:"Escribe o dicta qué quieres hacer.",
     help_limited:"Has llegado al límite temporal de consultas. Las guías siguen disponibles.",
     help_open_accounts:"Abrir cuentas",
     help_open_banks:"Abrir Mis bancos",
@@ -7268,10 +7268,10 @@ const LANG = {
     v42_net_when_1:"el mes pasado", v42_net_when_n:"hace {n} meses", v42_net_when_12:"hace un año", v42_net_i_cmp:"Comparación", v42_net_i_cmp_1m:"frente al mismo día del mes pasado", v42_net_i_cmp_n:"frente al mismo día de hace {n} meses", v42_net_i_cmp_12:"frente al mismo día de hace un año", v42_net_i_cmp_all:"desde el principio",
     v42_this_cycle:"Este ciclo", v42_cycle_over:"Te has pasado {x}", v42_cycle_start:"Ciclo recién empezado", v42_cycle_comfort:"Vas sobrado", v42_cycle_good:"Vas bien", v42_cycle_tight:"Vas justito", v42_cycle_slow:"Toca frenar un poco", v42_cycle_of:"de {x}", v42_cycle_daily:"{x} al día", v42_cycle_day:"durante 1 día", v42_cycle_days:"durante {n} días",
     // INC-0810 es: fin del patrimonio de ahora.
-    v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Es la mitad de la app: sin un tope al mes no se puede saber cuánto te queda. Puedes cambiarlo cuando quieras.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Un viaje, un colchón, lo que sea: la app te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
+    v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Sin un tope al mes no se puede saber cuánto te queda.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
     v4_upcoming:"Próximos cargos", 
     v4_charges_overdue:"Cargos vencidos", v4_charge_unconfirmed:"Sin pago acreditado", v4_payment_pending:"Por confirmar",
-    v4_payment_due:"Por pagar", v4_payment_due_hint:"Se suma a lo que queda por pagar.", v4_payment_pending_hint:"No se suma a lo que queda por pagar.",
+    v4_payment_pending_hint:"No cuenta en lo pendiente.",
     v4_payment_mixed_hint:"Solo los recibos y las cuotas se suman a lo que queda por pagar.",
     v4_payment_all_except_one:"Todo pagado, salvo {n} cargo por confirmar.", v4_payment_all_except:"Todo pagado, salvo {n} cargos por confirmar.",
     v4_plan_transfers:"Traspasos previstos", f_link_unconfirmed:"{name} · sin confirmar",
@@ -7296,7 +7296,7 @@ const LANG = {
     v4_ver_mas:"Ver más · {n}", v4_ver_menos:"Ver menos",
     v4_gastos_title:"Tus gastos",
     v4_gastos_cat_limit:"límite {x}",
-    g_cat_budget_title:"Límite en {cat}", g_cat_budget_sub:"Solo para verlo: no cambia tu presupuesto ni te bloquea. Vacío o 0 = quitar el límite.",
+    g_cat_budget_title:"Límite en {cat}", g_cat_budget_sub:"Orientativo: no cambia tu presupuesto. Vacío o 0 = sin límite.",
     g_cat_budget_clear:"Quitar límite",
     v4_cartera_title:"Tu cartera", v4_cuentas:"Tus cuentas", v4_connect_accounts:"Conectar cuentas", v4_inversiones:"Tus inversiones", v4_inv_positions:"{n} posiciones",
     v4_sync_banks:"Sincronizar bancos", v4_sync_banks_done:"✓ Bancos sincronizados",
@@ -7319,7 +7319,7 @@ const LANG = {
     bk_tr_cta:"Reconectar Trade Republic",
     bk_tr_ob:"⚠ Trade Republic (banco): permiso caducado",
     bk_tr_ob_noacct:"⚠ Trade Republic (banco): no devuelve ninguna cuenta",
-    bk_tr_ob_sub:"Esto es la conexión de BANCO, la que trae tus compras con tarjeta. Se renueva entrando en Trade Republic desde aquí. Tus posiciones y tu efectivo van por otro camino y no se ven afectados.",
+    bk_tr_ob_sub:"Conexión de banco: trae tus compras con tarjeta. No afecta a tus posiciones ni al efectivo.",
     bk_tr_ob_cta:"Renovar el permiso del banco",
     v4_acc_locked:"El saldo de las cuentas conectadas lo trae el banco solo; el nombre y el rol sí puedes cambiarlos.",
     v4_sel_partial:"Seleccionado", v4_edit_goods:"Editar bienes",
@@ -7348,7 +7348,7 @@ const LANG = {
     v4_set_appear:"Apariencia", v4_set_easy:"Para empezar fácil", v4_set_conn:"Conexiones",
     v4_set_money:"Dinero", v4_set_app:"App",
     v4_set_tour:"Ver el tutorial", v4_set_adv:"Avanzado",
-   hv_title:"Vibración", hv_usage:"Tipo de vibración", hv_usage_hint:"Si al probar todas las fuerzas se notan igual, prueba otro tipo.", hv_u_touch:"Toque", hv_u_hardware:"Botones", hv_u_media:"Multimedia", hv_u_unknown:"Genérica", hv_motor_amp:"Tu móvil ajusta la fuerza y el ritmo de la vibración.", hv_motor_onoff:"Tu móvil no ajusta la fuerza: se nota como toques más largos o más cortos.", hv_intro:"Busca la vibración que te guste. Se guarda solo en este móvil.", hv_cycle:"Mi ciclo (el anillo de Inicio)", hv_cycle_hint:"Unos toques suaves mientras se rellena el anillo: más toques cuanto más lleno esté.", hv_edge:"Al llegar arriba o abajo", hv_seg:"Al cambiar entre Recibos, Deudas y Metas", hv_tick:"Cursor de la gráfica de Inicio", hv_strength:"Fuerza", hv_length:"Duración", hv_every:"Repite cada (si sigues tirando)", hv_try:"Probar", hv_copy:"Copiar valores", hv_copied:"Valores copiados", hv_copy_fail:"No se pudieron copiar", hv_reset:"Volver a los de serie", hv_need_apk:"Para notar estos valores hay que instalar la última versión de la app.", hv_no_native:"La vibración solo funciona en la app de Android.",
+   hv_title:"Vibración", hv_usage:"Tipo de vibración", hv_usage_hint:"Si al probar todas las fuerzas se notan igual, prueba otro tipo.", hv_u_touch:"Toque", hv_u_hardware:"Botones", hv_u_media:"Multimedia", hv_u_unknown:"Genérica", hv_motor_amp:"Tu móvil ajusta la fuerza y el ritmo de la vibración.", hv_motor_onoff:"Tu móvil no ajusta la fuerza: se nota como toques más largos o más cortos.", hv_intro:"Busca la vibración que te guste. Se guarda solo en este móvil.", hv_cycle:"Mi ciclo (el anillo de Inicio)", hv_cycle_hint:"Más toques cuanto más lleno esté el anillo.", hv_edge:"Al llegar arriba o abajo", hv_seg:"Al cambiar entre Recibos, Deudas y Metas", hv_tick:"Cursor de la gráfica de Inicio", hv_strength:"Fuerza", hv_length:"Duración", hv_every:"Repite cada (si sigues tirando)", hv_try:"Probar", hv_copy:"Copiar valores", hv_copied:"Valores copiados", hv_copy_fail:"No se pudieron copiar", hv_reset:"Volver a los de serie", hv_need_apk:"Para notar estos valores hay que instalar la última versión de la app.", hv_no_native:"La vibración solo funciona en la app de Android.",
     v4_moved_cat:"Movido a {cat}", 
     v4_exp_del:"Borrar", v4_exp_del_q:"¿Borrar «{name}»?", v4_exp_del_sub:"Podrás recuperarlo durante 5 segundos.",
     f_amount_aria:"Importe", f_concept_ph:"Toca para escribir el concepto", f_cat:"Categoría",
@@ -7385,7 +7385,7 @@ const LANG = {
     // pintaba la clave pelada «tb_removed» / «tb_nodel» en el toast (bug encontrado 2026-07-24
     // por el test de claves i18n).
     tb_removed:"Pestaña quitada · recupérala con el +", 
-    st_mode_hint:"Sencillo deja Inicio, Gastos, Plan (solo recibos) y Cartera. Ideal para empezar.",
+    st_mode_hint:"Solo Inicio, Gastos, Plan (recibos) y Cartera.",
     settings:"Ajustes", language:"Idioma", theme:"Tema de color", currency:"Moneda de visualización",
     save:"Guardar", backup:"Copia de seguridad", st_imports:"Importaciones",
     eb_title:"Algo se ha torcido", eb_msg:"La app ha tenido un error al dibujar. Tus datos están a salvo. Descarga una copia por si acaso y recarga.", eb_export:"⬇️ Descargar copia de seguridad", eb_reload:"🔄 Recargar la app",
@@ -7414,15 +7414,15 @@ const LANG = {
     st_delete_acc_pwd_sub:"Por seguridad, escribe la contraseña de tu cuenta de Aely.",
     st_delete_acc_done:"✓ Cuenta borrada · datos eliminados",
     st_sync_conflict:"⚠ Otro dispositivo guardó cambios antes: se ha recargado la versión de la nube",
-    wn_title:"Novedades", wn_sub:"Qué ha cambiado en cada versión. Toca una versión para ver su detalle.", wn_current:"tu versión",
+    wn_title:"Novedades", wn_current:"tu versión",
     wn_older:"Ver {n} versiones anteriores",
-    wn_fb_title:"💬 ¿Algo que contar?", wn_fb_hint:"Sugerencias, errores o cosas raras: quedan apuntadas aquí abajo y le llegan a Juanjo con tu versión, para que no se olviden.",
+    wn_fb_title:"💬 ¿Algo que contar?", wn_fb_hint:"Sugerencias o errores: quedan guardados y llegan con tu versión.",
     wn_fb_ph:"Escribe la sugerencia o el error que has visto…", wn_fb_send:"Enviar", wn_fb_sent:"✓ Apuntado y enviado", wn_fb_offline:"✓ Apuntado en tus notas (no se pudo enviar; se queda guardado)",
     wn_yours:"Tus apuntes", wn_close:"¡Entendido!",
-    st_trnotif:"Avisar de cada gasto apuntado (TR)", st_trnotif_hint:"Si lo apagas, Aely deja de confirmar cada gasto con una notificación (Trade Republic ya te avisa del cargo). Los avisos de presupuesto siguen llegando.",
+    st_trnotif:"Avisar de cada gasto apuntado (TR)", st_trnotif_hint:"Apagado, no hay notificación por cada gasto. Los avisos de presupuesto siguen.",
     st_tring:"Apuntar aquí mis gastos de Trade Republic", st_tring_hint:"Al activarlo, esta app lee las notificaciones de gasto de Trade Republic de ESTE móvil y las apunta en TU cuenta (no en la de nadie más). Cada persona lo activa en su propio teléfono. Solo lee la notificación; nunca entra en tu banco. Puedes apagarlo cuando quieras.", st_tring_on:"✓ Listo · tus compras con la tarjeta de Trade Republic entrarán solas en esta cuenta", st_tring_off:"Apuntado de Trade Republic desactivado", st_tring_nornd:"✕ Este navegador no puede generar una clave segura · no se activa (mejor eso que una clave adivinable)",
-    st_banksync_notif:"Al detectar aviso del banco, sincronizar movimientos", st_banksync_notif_hint:"Opcional y apagado por defecto: cada consulta consume el límite diario del banco. Si lo activas, Aely hará como máximo una cada 12 horas. La sincronización manual sigue disponible.",
-    st_aicat:"Sugerir categoría (IA) en «Otros»", st_aicat_hint:"Al apuntar un gasto, las palabras clave eligen categoría solas. Si no saben y esto está encendido, la IA te ofrece un chip (un toque). En la ficha de un gasto ya guardado también puedes pedirlo. No se envía el importe.",
+    st_banksync_notif:"Al detectar aviso del banco, sincronizar movimientos", st_banksync_notif_hint:"Apagado por defecto: gasta el límite diario del banco. Como mucho, una cada 12 h.",
+    st_aicat:"Sugerir categoría (IA) en «Otros»", st_aicat_hint:"Si las palabras clave no saben la categoría, la IA te sugiere una. No envía el importe.",
     th_green:"Verde", th_dark:"Oscuro", th_light:"Claro", th_blue:"Azul", th_cyber:"Cyberpunk", cur_eur:"€ Euro", cur_usd:"$ Dólar", cur_gbp:"£ Libra", cur_chf:"CHF Franco suizo",
     rp_saved:"✓ Informe guardado en Descargas (busca «mi-cartera-…png»)",
     rp_saved_notif:"📊 Informe del mes guardado en Descargas: {f}. Ábrelo desde tu app de Archivos o la galería.",
@@ -7432,16 +7432,16 @@ const LANG = {
     gl_contribute_title:"Aportar a {name}", gl_contribute_from:"¿De qué banco sale?", gl_contribute_save:"Aportar {x}", gl_contribute_need:"Pon un importe 🙂",
     // Accesibilidad
     v4_set_a11y:"Accesibilidad",
-    st_textsize:"Tamaño de letra", st_textsize_hint:"Agranda toda la app. Si algo se descuadra en «Enorme», dímelo y lo ajusto.",
+    st_textsize:"Tamaño de letra", st_textsize_hint:"Agranda toda la app.",
     ts_small:"Pequeña", ts_normal:"Normal", ts_big:"Grande", ts_huge:"Enorme",
-    st_reduce_motion:"Reducir animaciones", st_reduce_motion_hint:"Quita deslizamientos y rebotes: la app va más sobria y directa. Útil si mareas.",
+    st_reduce_motion:"Reducir animaciones", st_reduce_motion_hint:"Quita deslizamientos y rebotes.",
     st_contrast:"Más contraste", st_contrast_hint:"Sube el contraste del texto para que se lea mejor.",
     // Temáticas de temporada
-    st_theme_season:"Temática", st_theme_season_hint:"Cambia los colores y deja caer un detalle muy suave por detrás de las cartillas (nieve, hojas, sol…). Quítalo cuando quieras.",
+    st_theme_season:"Temática", st_theme_season_hint:"Colores y un detalle suave de fondo según la estación.",
     th_none:"Ninguna", th_mundial:"Mundial 🇪🇸", th_halloween:"Halloween 🎃", th_navidad:"Navidad 🎄", th_verano:"Verano ☀️", th_invierno:"Invierno ❄️", th_pascua:"Pascua 🐣", th_otono:"Otoño 🍂", th_primavera:"Primavera 🌸",
     // Bancos de gasto diario (varios)
     v4_shared_sub:"Hogar, pareja y grupos de gastos",
-    v4_expdaily_chip:"En gasto diario", v4_expdaily_row_hint:"Cada banco es UNA cosa: Recibos, Gasto diario o Todo (ambas). «Gasto diario» se puede marcar en varios bancos y sus compras cuentan en el mismo presupuesto del día; el primero es la cuenta principal (de la que sale el efectivo).",
+    v4_expdaily_chip:"En gasto diario",
     // Comparativa de monedas
     st_cur_compare_empty:"Aún no hay tipos de cambio. Comprueba la conexión y pulsa reintentar.",
     st_cur_compare_retry:"Reintentar",
@@ -7451,7 +7451,7 @@ const LANG = {
     st_cur_convert_swap:"Intercambiar",
     st_cur_convert_hint:"Tipos del BCE (referencia). El resultado usa el cambio del día.",
     st_cur_convert_search_ph:"🔎 Buscar moneda…", st_cur_convert_search_none:"Ninguna moneda con ese nombre.",
-    currency_hint:"Cambia cómo se ven los importes en toda la app (pantallas, totales, gráficos). Al apuntar un gasto eliges la moneda ahí mismo, aparte.",
+    currency_hint:"Cómo se ven los importes en toda la app. Al apuntar eliges la moneda aparte.",
     fx_unconverted:"Sin conversión", fx_total_incomplete:"Total incompleto: faltan tipos de cambio. Los importes sin convertir no se incluyen en euros.",
     cur_czk:"Corona checa", cur_hkd:"Dólar de Hong Kong", cur_huf:"Forinto húngaro", cur_idr:"Rupia indonesia", cur_ils:"Séquel israelí", cur_isk:"Corona islandesa", cur_krw:"Won surcoreano", cur_myr:"Ringgit malasio", cur_nzd:"Dólar neozelandés", cur_php:"Peso filipino", cur_ron:"Leu rumano", cur_sgd:"Dólar de Singapur", cur_thb:"Baht tailandés", cur_zar:"Rand sudafricano",
     fx_waiting:"⏳ Trayendo el tipo de cambio…", fx_no_rate:"✕ Sin tipo de cambio para esa moneda. Prueba con conexión.",
@@ -7537,13 +7537,13 @@ Object.assign(LANG.es,{
   tour_next:"Siguiente", tour_skip:"Saltar", tour_done:"¡Listo!",
   h_ok:"Entendido",
   // INC-0410 es: la ayuda de la tarjeta promete lo mismo que el reparto.
-  h_reserva:"Cada regla aparta su importe al guardarla y, después, cada mes al abrir la app: se descuenta de tu presupuesto mensual y se suma a la meta que elijas, para que lo reservado se note de verdad. Las reglas que ya tenías siguen repartiendo cuando se detecta un ingreso, con tu confirmación.",
+  h_reserva:"Cada regla aparta su importe del presupuesto y lo suma a la meta: al guardarla y cada mes. Las antiguas reparten cada ingreso si lo confirmas.",
   // INC-0410 es: límite de la ayuda del reparto.
   ru_interest:"Interés del efectivo (% anual)",
-  ru_interest_hint:"TR paga un {p}% anual sobre tu efectivo y lo abona el día 1. La app lo suma sola al cerrar cada mes, para que el saldo no se descuadre poco a poco. Pon el % que TR te aplique ahora mismo (sale en su app).",
-  h_ru:"Trade Republic redondea cada compra con tarjeta al euro y ese pico lo invierte solo (round-up). El saveback es un 1% de regalo por pagar con la tarjeta. Esta tarjeta calcula cuánto se está moviendo y a qué inversión va.",
-  h_afford:"Escribe un gasto que estás pensando hacer (importe y día) y te digo si te lo puedes permitir sin quedarte en números rojos antes de que entre la nómina.",
-  h_recon:"Compara lo que TÚ tienes apuntado (recibos, cuotas) con lo que el banco dice que ha cobrado de verdad. Si algo no cuadra o falta, te lo marca.",
+  ru_interest_hint:"TR paga un {p}% anual el día 1; la app lo suma al cerrar cada mes.",
+  h_ru:"Round-up: TR redondea cada compra con tarjeta al euro y lo invierte. Saveback: un 1 % de regalo por pagar con ella.",
+  h_afford:"Pon importe y día y te digo si llegas sin números rojos hasta la nómina.",
+  h_recon:"Compara tus recibos y cuotas con lo que el banco ha cobrado y marca lo que no cuadra.",
 });
 
 
@@ -7556,21 +7556,21 @@ Object.assign(LANG.es,{
   ac_role_fijos:"Para los recibos", ac_role_fijos_d:"De aquí salen la luz, el móvil y el alquiler.", ac_role_diario:"Para el día a día", ac_role_diario_d:"Con esta pagas el súper y los bares.", ac_role_ambos:"Las dos cosas", ac_role_ambos_d:"Recibos y día a día salen de aquí.", ac_last_movs:"Lo último de esta cuenta", ac_last_bank:"Lo último de {bank}", ac_see_all:"Ver todo ›", ac_change_sign:"Cambiar signo",
   st_stale:"datos del {day}",
   rl_fijos:"🏦 Recibos", rl_diario:"🛒 Gasto diario", rl_ambos:"🔁 Todo",
-  rl_hint:"«Recibos» = pagos fijos (luz, cuotas…). «Gasto diario» = compras del día a día (presupuesto y round-up; la primera cuenta marcada es la principal). «Todo» = ambas en la misma. Varios bancos de tarjeta: pon «Gasto diario» o «Todo» en cada uno. Al cambiar el rol, el saldo mostrado se conserva.",
+  rl_hint:"Recibos: pagos fijos · Gasto diario: compras del día, en uno o varios bancos · Todo: ambas.",
   ob_imported:"🏦 {n} compras con tarjeta añadidas a Gastos",
   rp_btn:"📸 Informe del mes (imagen)", rp_spent:"Gastado este mes", rp_of_budget:"de {b} de presupuesto ({p}%)",
   rp_top:"Top categorías", rp_networth:"Patrimonio", rp_footer:"hecho con Aely",
-  mr_title:"Así acabó {mes}", mr_sub:"Resumen del mes que acaba de cerrar. Compártelo o descártalo como imagen.",
+  mr_title:"Así acabó {mes}",
   mr_share:"📸 Crear imagen del informe", mr_later:"Descartar", mr_shared:"✓ Informe listo para compartir",
   mr_top:"Más gasto: {cat} ({x})", mr_saved:"Ahorraste {x}", mr_over:"Gastaste {x} más de lo que entró",
-  hh_title:"Hogar compartido", hh_intro:"Como la cuenta conjunta del banco: cada uno ve el patrimonio fusionado, sin mezclar datos privados.",
+  hh_title:"Hogar compartido", hh_intro:"Cada uno ve el patrimonio conjunto, sin mezclar datos privados.",
   hh_need_cloud:"Inicia sesión para crear o unirte a un hogar.", hh_need_login:"Inicia sesión para usar el hogar compartido.",
   hh_create:"Crear hogar", hh_join:"Unirme con código", hh_name_ph:"Nombre (ej. Casa Avila)", hh_code_ph:"Código de invitación",
   hh_create_go:"Crear y obtener código", hh_join_go:"Unirme", hh_default_name:"Mi hogar",
   hh_created:"✓ Hogar creado · comparte el código", hh_joined:"✓ Te has unido al hogar", hh_code_short:"Escribe el código completo",
   hh_code_bad:"Código no encontrado", hh_code_wait:"Demasiados intentos seguidos · espera unos minutos", hh_code_show:"Código invitación: {c}", hh_fused_net:"Patrimonio del hogar",
   hh_members_n:"{n} miembro(s) con vista publicada", hh_publish:"Actualizar mi vista en el hogar", hh_pub_ok:"✓ Vista publicada",
-  hh_pub_busy:"Publicando…", hh_pub_hint:"Publica cuando cambie algo importante. Los demás solo ven tu snapshot, nunca editan tus datos.",
+  hh_pub_busy:"Publicando…", hh_pub_hint:"Los demás solo ven lo que publicas; nunca editan tus datos.",
   hh_updated:"Actualizado", hh_leave:"Salir", hh_leave_q:"¿Salir del hogar?", hh_leave_sub:"Tu vista dejará de mostrarse. Tus datos locales no se borran.",
   hh_leave_ok:"Sí, salir", hh_left:"Has salido del hogar",
   hh_rls_fix:"La nube necesita un ajuste (migración 0015 en Supabase → SQL Editor). Ver docs/HOGAR.md",
@@ -7615,7 +7615,7 @@ Object.assign(LANG.es,{
 /* Importador CSV del bróker (Inversiones) */
 Object.assign(LANG.es,{
   bi_title:"Importar del bróker (CSV)", bi_sub:"re-ancla posiciones con tu extracto",
-  bi_hint:"Exporta tus movimientos desde la app del bróker (en Trade Republic: Perfil → Actividad/Documentos → Exportar CSV) y súbelo aquí, o pega el texto. Todo se procesa EN TU MÓVIL: el fichero no se sube a ningún sitio.",
+  bi_hint:"Sube el CSV de tu bróker o pega el texto. Se procesa en tu móvil, no se sube.",
   bi_file:"📄 Elegir CSV (puedes marcar varios)", bi_paste_ph:"…o pega aquí el contenido del CSV", bi_analyze:"Analizar",
   bi_err:"No he podido leer el CSV (¿formato raro?). Pega unas líneas y dime qué columnas tiene.",
   bi_err_pnl:"Ese es el «Extracto de Pérdidas y Ganancias»: solo trae lo que YA vendiste, no lo que tienes. Necesito el «Extracto de cuenta» (el de arriba del todo en Documentos). Ojo: alguno se llama «trading-account-statement» pero por dentro es el de P&G.",
@@ -7634,7 +7634,7 @@ Object.assign(LANG.es,{
   bi_done:"✓ {n} posiciones re-ancladas con el extracto",
   /* Importar una hoja de cálculo con gastos (petición 2026-07-28: la hoja de su madre). */
   ih_title:"Importar una hoja de gastos",
-  ih_intro:"¿Llevas tus gastos en un Excel, un Word o un PDF? Súbelo y los paso a la app. Da igual cómo se llamen tus columnas ni en qué orden estén: te propongo qué es cada una y lo corriges si me equivoco.",
+  ih_intro:"Sube tu Excel, Word o PDF de gastos. Te propongo qué es cada columna y lo corriges.",
   ih_steps:["Vale un Excel (.xlsx), un CSV, un Word (.docx) o un PDF con texto (no una foto escaneada). Si tu fichero es .xls o .doc antiguo, ábrelo y haz «Guardar como» → .xlsx o .docx.","Que haya una columna con la fecha, otra con el concepto y otra con el importe. Lo demás es opcional.","Lo miras antes de guardar: te enseño lo que entra y lo que ya tenías apuntado."],
   ih_pick:"Elegir el fichero",
   ih_leyendo:"Leyendo…",
@@ -7681,7 +7681,6 @@ Object.assign(LANG.es,{
   na_body:"⚠ El apunte automático de gastos (lector de notificaciones de TR) no tiene permiso — los gastos NO entran solos. Pasa al reinstalar la app: actívalo para Aely.",
   na_fix:"Activar acceso a notificaciones",
   na_restricted:"Si Android dice «acceso denegado» o «ajuste restringido» (pasa al instalar la app fuera de la Play Store): ve a Ajustes de Android → Aplicaciones → Aely → menú ⋮ (arriba a la derecha) → «Permitir ajustes restringidos», y vuelve a intentarlo. Es una sola vez.",
-  tr_tos:"Conexión no oficial · puede pedir el 2FA de vez en cuando · tus credenciales no salen del móvil.",
   tr_phone_ph:"Teléfono (+34…)", tr_pin_ph:"PIN de Trade Republic",
   tr_connect:"Conectar", tr_connecting:"Conectando…",
   tr_code_intro:"Mete el código de 4 dígitos que te ha llegado a la app de Trade Republic (o por SMS).",
@@ -7718,7 +7717,7 @@ Object.assign(LANG.es,{
 
   ob2_go:"Empezar", ob2_next:"Siguiente",
   ob2_budget_t:"¿Cuánto quieres gastar al mes?", ob2_budget_d:"Tu presupuesto para el día a día (súper, bares, caprichos…). La app te avisa antes de pasarte.",
-  tr_createnew:"➕ Crear como posición nueva", tr_apply:"Aplicar a {n} posiciones", tr_apply_hint:"Al aplicar: participaciones, valor y coste se re-anclan con lo que dice Trade Republic ahora mismo (es dato en vivo, no hace falta actualizar precios).",
+  tr_createnew:"➕ Crear como posición nueva", tr_apply:"Aplicar a {n} posiciones", tr_apply_hint:"Participaciones, valor y coste se ajustan a lo que dice Trade Republic ahora.",
   tr_done:"✓ {n} posiciones actualizadas desde Trade Republic",
   tr_err:"No se pudo conectar con Trade Republic. Revisa teléfono/PIN o el código, e inténtalo otra vez.",
   tr_expired_re:"Tu sesión de Trade Republic caducó de verdad. Vuelve a conectar: el teléfono ya está puesto — solo PIN y el código nuevo.",
@@ -7777,7 +7776,7 @@ Object.assign(LANG.es,{gv5_cartera_open:"Abrir en Cartera", g_inv_dest:"Inversi�
 Object.assign(LANG.es,{gv5_secciones:"Secciones de Gastos", gv5_sec_movs:"Movimientos", gv5_sec_cats:"Categorías", gv5_sec_subs:"Suscripciones",
   gv5_subs_globo:"{n} por revisar", gv5_cats_pre:"{period} por categoría", gv5_cats_pres:"Presupuesto gastado", gv5_cats_of:"de {x}",
   gv5_cats_vacio:"Aún no hay gastos que cuenten en este periodo.", gv5_subs_n:"al mes · {n} por revisar", gv5_subs_none:"nada por revisar",
-  gv5_subs_ok_t:"Todo en orden", gv5_subs_ok_d:"Si un comercio te cobra algo parecido en tres meses o más y no está en Recibos, aparecerá aquí para que decidas qué hacer."});
+  gv5_subs_ok_t:"Todo en orden", gv5_subs_ok_d:"Aquí saldrán los cobros repetidos que no estén en Recibos."});
 
 
 // Gastos v5, tanda 3: tocar una categoría filtra (píldora) y el límite va por pulsación larga o el chip.
@@ -7786,8 +7785,8 @@ Object.assign(LANG.es,{gv5_cats_hint:"Toca una para ver sus movimientos · mante
   gv5_fil_lim_poner:"Poner límite", gv5_fil_lim:"Límite {x}", gv5_fil_quedan:"quedan {x}", gv5_fil_pasado:"{x} de más"});
 // Gastos v5, tanda 4: Suscripciones como bandeja con su ficha (SPEC §6.1, §6.3 y §6.4).
 Object.assign(LANG.es,{gv5_sub_info:"Suscripciones detectadas", gv5_sub_i_que_t:"Qué aparece aquí", gv5_sub_i_que:"Cobros que se repiten y que todavía no están en Recibos.",
-  gv5_sub_i_como_t:"Cómo se detectan", gv5_sub_i_como:"El mismo comercio te ha cobrado un importe parecido en tres meses o más, y el último cobro es de este mes o de los dos anteriores. El importe al mes es lo que suele cobrar; el del año, ese importe por doce.",
-  gv5_sub_i_hacer_t:"Qué puedes hacer", gv5_sub_i_hacer:"Toca una para verla y pásala a Recibos, márcala como dada de baja o déjala como gasto normal. Lo ideal es que esta lista esté vacía. Al pasarla a Recibos se apunta en tu cuenta de Recibos: si quieres que el cargo salga de ahí de verdad, cambia la tarjeta en la web de la suscripción.", gv5_sub_i_ok:"Entendido",
+  gv5_sub_i_como_t:"Cómo se detectan", gv5_sub_i_como:"Mismo comercio, importe parecido, tres meses o más y un cobro reciente.",
+  gv5_sub_i_hacer_t:"Qué puedes hacer", gv5_sub_i_hacer:"Pásala a Recibos (se apunta en tu cuenta de Recibos), márcala como dada de baja o déjala como gasto normal.", gv5_sub_i_ok:"Entendido",
   gv5_sub_seguidos:"{n} meses seguidos", gv5_sub_de:"{n} de {m} meses", gv5_sub_almes:"al mes", gv5_sub_vuelve:"Ha vuelto a cobrar después de darla de baja",
   gv5_sub_dia:"Se cobra el día {d}", gv5_sub_sinbanco:"banco: — (apuntada a mano)", gv5_sub_ultimos:"Últimos cobros",
   gv5_sub_anio:"Unos {y} al año.", gv5_sub_anio_si:"Unos {y} al año si se cobra todos los meses.", gv5_sub_fijo:"Si es un gasto fijo, pásalo a Recibos y lo tendrás en Plan con los demás.",
@@ -7855,8 +7854,8 @@ Object.assign(LANG.es,{
   g_search:"Buscar comercio o categoría…",
   sub_dismiss:"No es una suscripción", sub_dismissed_ok:"Descartada · no volverá a salir aquí",
   g_totalfilt:"Gastos del período", g_n_one:"gasto", g_n_many:"gastos", g_inc_one:"ingreso", g_inc_many:"ingresos", g_balance:"Balance", g_lbl_spent:"Gastos", g_lbl_income:"Ingresos",
-  g_totalnet:"Balance del período", st_gview:"Total de Gastos", st_gview_split:"Gastos e ingresos", st_gview_split_d:"El total de gastos arriba; debajo, los ingresos y el balance (ingresos − gastos) en una línea.", st_gview_net:"Balance", st_gview_net_d:"Manda el balance (ingresos − gastos del período); debajo, gastos e ingresos en pequeño. Verde si te queda dinero, rojo si gastaste de más.", st_budget_cycle:"Presupuesto por ciclo de cobro", st_budget_cycle_d:"Con una nómina reconocida, Gastos abre en Mi ciclo y cuenta gastos e ingresos. Sin nómina, mes natural. El widget Android sigue por mes natural.",
-  sv_title:"Ahorro mensual", sv_note:"Planifica lo que apartas cada mes para calcular cuándo llegas a tus metas. No mueve dinero real ni crea movimientos.", sv_saved:"Ahorro mensual guardado", sv_name_aria:"Concepto de la aportación", sv_amount_aria:"Importe al mes", sv_bank_aria:"Banco o bróker", sv_del_aria:"Quitar esta aportación", sv_add:"Añadir aportación", sv_name_ph:"Concepto (ej. MSCI World)", sv_empty:"Aún no has apuntado aportaciones. Toca «Editar» para añadir lo que apartas cada mes.",
+  g_totalnet:"Balance del período", st_gview:"Total de Gastos", st_gview_split:"Gastos e ingresos", st_gview_split_d:"Gastos en grande; ingresos y balance debajo.", st_gview_net:"Balance", st_gview_net_d:"El balance en grande; gastos e ingresos debajo. Verde si te sobra, rojo si no.", st_budget_cycle:"Presupuesto por ciclo de cobro", st_budget_cycle_d:"Con nómina reconocida, Gastos va de nómina a nómina; si no, por mes natural.",
+  sv_title:"Ahorro mensual", sv_note:"Solo planifica: no mueve dinero ni crea movimientos.", sv_saved:"Ahorro mensual guardado", sv_name_aria:"Concepto de la aportación", sv_amount_aria:"Importe al mes", sv_bank_aria:"Banco o bróker", sv_del_aria:"Quitar esta aportación", sv_add:"Añadir aportación", sv_name_ph:"Concepto (ej. MSCI World)", sv_empty:"Aún no has apuntado aportaciones. Toca «Editar» para añadir lo que apartas cada mes.",
   sec_order:"⇅ Ordenar secciones", 
   g_sync:"Sincronizar", g_syncing:"Sincronizando…", g_add:"Apuntar",
   g_lastsync:"Última sincronización: {d}", g_nosync:"Sin sincronizar todavía",
@@ -7864,7 +7863,7 @@ Object.assign(LANG.es,{
   g_addgasto:"Añadir gasto", g_addingreso:"Añadir ingreso", g_date:"Fecha (vacía = hoy)",
   g_card:"Con tarjeta", g_nocard:"Bizum o transferencia",
   g_empty_t:"No hay gastos aquí", g_empty_d:"Cambia el filtro, sincroniza o apunta uno.", g_loadmore:"Cargando más…",
-  g_empty_period_t:"Aún no hay gastos en este período", g_empty_period_d:"Es normal si acaba de empezar el mes o tu ciclo — irán apareciendo según sincronices o apuntes alguno.",
+  g_empty_period_t:"Aún no hay gastos en este período", g_empty_period_d:"Irán apareciendo según sincronices o apuntes.",
   g_today:"Hoy", g_yesterday:"Ayer", g_invalid:"Pon un importe válido", g_saved_g:"✓ Gasto apuntado", g_saved_i:"✓ Ingreso apuntado", g_deleted:"Eliminado", g_changecat:"Cambiar categoría",
   cat_super:"Supermercado", cat_pan:"Panadería", cat_bares:"Bares y restaurantes", cat_cine:"Cine", cat_padel:"Pádel", cat_heladeria:"Heladería", cat_ia:"Inteligencia artificial", cat_ocio:"Ocio", cat_gaming:"Videojuegos", cat_viajes:"Viajes", cat_transporte:"Transporte", cat_gasolina:"Gasolina", cat_taxi:"Taxi", cat_multas:"Multas", cat_zona_azul:"Zona azul", cat_peajes:"Peajes", cat_coche:"Coche", cat_parking:"Parking", cat_agua:"Agua", cat_luz:"Luz", cat_gas:"Gas", cat_tasas:"Impuestos y multas", cat_recibos:"Recibos", cat_compras:"Compras", cat_educacion:"Educación", cat_salud:"Salud", cat_pelu:"Peluquería", cat_mascotas:"Mascotas", cat_hogar:"Hogar", cat_regalos:"Regalos", cat_joyeria:"Joyería", cat_bizum:"Bizum", cat_otros:"Otros", cat_ingreso:"Ingreso", cat_inversion:"Inversión", cat_traspaso:"Traspaso", cat_deudas:"Cuota",
   // Fijos
@@ -7897,33 +7896,33 @@ Object.assign(LANG.es,{
   inv_save:"Guardar", inv_cancel:"Cancelar", inv_editmanual:"Editar a mano",
   inv_alsoinvested:"También ajustar lo invertido (si he comprado o vendido)",
   inv_sold:"💸 Líquido vendido (realizado)", inv_proj:"Proyección de tu ahorro", inv_proj_sub:"Interés compuesto",
-  inv_hint_edit:"Escribe el valor actual de cada posición (al tocar se selecciona solo). El % de ganancia se calcula automáticamente.",
-  inv_hint_view:"«Precios USD» trae solas las cotizaciones de las acciones con ticker. Lo que no tiene precio automático (fondos, oro, algunos ETF) se edita con «Editar a mano». Cambio dólar→euro: {fx} · BCE en vivo.",
+  inv_hint_edit:"Escribe el valor actual de cada posición; el % se calcula solo.",
+  inv_hint_view:"Sin precio automático (fondos, oro…): usa «Editar a mano». Dólar→euro: {fx}.",
   inv_sold_part:"Vendí parte →", inv_value:"Valor", inv_invested:"Invertido", inv_sell_prompt:"¿Qué % de «{name}» has vendido?",
   inv_sell_sub:"Pon el porcentaje (30 = un 30 %). Se ajustan valor, coste y participaciones, y el líquido se apunta como vendido.",
   inv_delete:"Borrar", inv_delete_confirm:"¿Borrar «{name}» de tu cartera?", inv_delete_sub:"Esto no toca tu bróker: solo la quita de la app.",
   ru_title:"Round-up & Saveback (TR)", ru_sub_on:"redondeo ×{m} activo", ru_sub_off:"desactivado",
   ru_title_simple:"Redondeo y regalo por pagar", ru_sub_simple:"cada compra suma un poquito a tu inversión",
-  ru_hint_simple:"Cada vez que pagas con la tarjeta, la app redondea la compra al euro y esa diferencia se invierte sola. Además, Trade Republic te devuelve un 1% de lo que pagas con su tarjeta, y también se invierte.",
+  ru_hint_simple:"Redondea cada compra al euro e invierte la diferencia, más el 1 % que devuelve TR.",
   ru_mult:"Multiplicador del redondeo", ru_off:"Off", ru_dest:"Inversión destino", ru_pick:"Elige una inversión…",
   ru_saveback:"Saveback 1% (cashback de TR, máx 15€/mes)",
   ru_month_ru:"Round-up ya invertido (este mes)", ru_month_sb:"Saveback ya invertido (este mes)", ru_total:"Aportado vía TR (total acumulado)",
   ru_plan:"Aporte periódico a inversión", ru_plan_amt:"Cada mes (€)", ru_plan_hint:"{x}/mes salen de tu efectivo de TR y compran {inv} (tu plan de ahorro). Así tu saldo de TR cuadra sin tocar nada.", 
-  ru_hint:"El round-up redondea cada compra al € superior × multiplicador y sale de tu efectivo TR hacia {inv} (TR lo invierte los días 2/9/16/23). El Saveback es un 1% que TR te regala e invierte el día 2. La app lo aplica a tu efectivo e inversión al CERRAR cada mes. Estimación según tus gastos registrados: tu saldo TR real siempre manda.",
-  ru_hint_off:"Actívalo si en TR tienes Round-up o Saveback, para que tu efectivo TR cuadre con el real (TR mueve esa calderilla a inversión).",
-  ru_manual_hint:"Puedes escribir el importe REAL que ves en TR para corregir la estimación (déjalo vacío para que lo calcule solo).",
+  ru_hint:"Sale de tu efectivo TR hacia {inv} al cerrar cada mes. Es una estimación.",
+  ru_hint_off:"Actívalo si usas Round-up o Saveback en TR, para que tu efectivo cuadre.",
+  ru_manual_hint:"Escribe el importe real de TR para corregir la estimación (vacío = automático).",
   type_acciones:"Acciones", type_etf:"ETF", type_fondo:"Fondo indexado", type_materias:"Materias primas",
   pj_projvalue:"Valor proyectado", pj_contrib:"Tu contribución", pj_monthly:"Contribución mensual", pj_rate:"Interés anual %", pj_years:"Años",
   pj_gain:"Ganancia estimada en {y} años", pj_hint:"Sobre lo ya invertido ({x}). La banda es ±2% sobre el interés. Estimación, no garantía.",
   pt_accounts:"Cuentas", 
-  pt_trb_hint:"💳 = compra con tarjeta (cuenta para el round-up). 🔄 = bizum/transferencia (NO cuenta). Si ves un bizum marcado 💳, cámbialo en Gastos para que no infle el round-up. Este saldo se recalcula solo: base + nómina − gastos − round-up. Un descuadre PEQUEÑO con TR es normal: TR abona intereses del efectivo el día 1 (ponlos en Inversiones → Round-up para que la app los sume sola) e invierte round-ups/saveback los días 2/9/16/23. Si molesta, edita el saldo en Cuentas y se re-ancla.", pt_ob_extra:"Cuenta", pt_ob_badge:"del banco", pt_ob_stale:"sin actualizar", pt_ob_joint:"Conjunta", pt_ob_saving:"Ahorro", pt_ob_current:"Corriente",
+  pt_ob_extra:"Cuenta", pt_ob_badge:"del banco", pt_ob_stale:"sin actualizar", pt_ob_joint:"Conjunta", pt_ob_saving:"Ahorro", pt_ob_current:"Corriente",
   pt_goods:"Bienes", 
   db_total:"Deuda total", db_quota:"Cuota {x}/mes", db_amort:"amortiza {x}/mes", db_amort_q:"amortiza {x}/mes (cuota {y})", db_paidoff:"Amortizado {x} ({p}%)",
   db_pending:"Pendiente", db_pending_sub:"baja solo cada mes", db_delete:"Eliminar esta deuda", db_savechanges:"Guardar cambios", db_editbalances:"Editar saldos pendientes",
   db_concept:"Concepto (ej. Financiación móvil)", db_amount:"Importe €", db_quota_ph:"Cuota/mes € (vacío si 0%)", db_add:"Añadir deuda", db_newdebt:"Nueva deuda", db_addedmanual:"Añadida manualmente",
-  db_months_ph:"Plazo (meses)", db_day_ph:"Día", db_left:"Quedan {n}/{tot} cuotas · {x}/mes", db_paidoff_done:"✓ Financiación pagada", db_financing_hint:"Pon el plazo en meses para una financiación: la cuota aparece sola en Gastos fijos cada mes y se para al acabar. Si es 0% deja la cuota vacía (la calculo). Para interés, escribe la cuota real.",
-  db_down_ph:"Entrada € (opcional)", db_balloon_ph:"Pago final € (coche)", db_balloon_tag:"(pago final)", db_balloon_hint:"¿Coche? Entrada al inicio + cuotas + un PAGO FINAL grande al acabar el plazo. Pon el importe financiado, el pago final y el plazo: la cuota se calcula sola y el pago final aparece como cargo el último mes.", db_balloon_line:"Pago final: {x}", db_down_line:"Entrada: {x}",
-  db_hint:"El saldo baja solo cada mes según lo que amortizas. Cuando te llegue el saldo real del banco, edítalo aquí y se vuelve a anclar. La cuota y la amortización (si difieren, p.ej. pagas 197 € pero amortizas 250 €) se ponen en Fijos → Cuotas de deuda.",
+  db_months_ph:"Plazo (meses)", db_day_ph:"Día", db_left:"Quedan {n}/{tot} cuotas · {x}/mes", db_paidoff_done:"✓ Financiación pagada", db_financing_hint:"Plazo en meses: la cuota se apunta sola y para al acabar. Al 0 % déjala vacía; con interés, pon la real.",
+  db_down_ph:"Entrada € (opcional)", db_balloon_ph:"Pago final € (coche)", db_balloon_tag:"(pago final)", db_balloon_hint:"Coche con pago final: pon importe financiado, pago final y plazo; la cuota sale sola.", db_balloon_line:"Pago final: {x}", db_down_line:"Entrada: {x}",
+  db_hint:"El saldo baja solo cada mes. Corrígelo aquí cuando tengas el real del banco.",
   db_err_amount:"⚠ Falta el importe total de la deuda", db_err_quota:"⚠ Pon la cuota/mes o el plazo en meses", db_err_paid:"⚠ Has pagado tantas cuotas como el plazo: esa deuda ya está liquidada", db_added:"✓ Deuda añadida",
   db_paid_ph:"Cuotas ya pagadas", db_paid_hint:"¿Ya la tienes empezada? Pon cuántas cuotas llevas pagadas y el pendiente se calcula solo.",
   db_amortize:"Amortizar", db_amortize_prompt:"¿Cuánto amortizas de «{name}»?", db_amortize_sub:"Pendiente ahora: {x}. Lo que pongas baja el saldo y acorta el plazo, manteniendo la misma cuota.", db_amortized:"✓ Amortizado {x} · pendiente {y}", db_amortize_full:"🎉 ¡Deuda liquidada!",
@@ -7952,7 +7951,7 @@ Object.assign(LANG.es,{
   au_toup:"¿No tienes cuenta? Crear una", au_toin:"¿Ya tienes cuenta? Inicia sesión", au_cancel:"Cancelar",
   au_forgot:"¿Olvidaste tu contraseña?", au_reset_title:"Recuperar contraseña", au_reset_send:"Enviar email de recuperación", au_reset_sent:"📩 Si el email existe, te hemos enviado un enlace para cambiarla.", au_need_email:"Pon tu email", au_newpass_title:"Nueva contraseña", au_newpass_save:"Guardar contraseña", au_pass_changed:"✓ Contraseña actualizada", au_pass_short:"Mínimo 6 caracteres", au_back:"← Volver",
   au_need:"Pon email y contraseña", au_signedin:"✓ Sesión iniciada", au_created:"✓ Cuenta creada", au_signedout:"Sesión cerrada", au_bio_dis:"Huella desactivada", au_bio_en:"✓ Huella activada",
-  bk_auto_title:"Copias automáticas", bk_auto_hint:"Las copias diarias se guardan en la nube durante 30 días. Puedes abrirlas y compararlas sin cambiar tu cartera.", bk_auto_none:"Aún no hay copias guardadas.", bk_auto_confirm:"¿Restaurar la copia del {day}?",
+  bk_auto_title:"Copias automáticas", bk_auto_hint:"Una copia al día, 30 días en la nube. Abrirlas no cambia tu cartera.", bk_auto_none:"Aún no hay copias guardadas.", bk_auto_confirm:"¿Restaurar la copia del {day}?",
 });
 
 
@@ -7993,7 +7992,7 @@ Object.assign(LANG.es,{
   rr_name_ph:"Nombre (opcional, ej. Parking recibos)",
   // INC-0410 es: los avisos del alta y el estado del reparto también deben invalidar su revisión.
   rr_title:"Reservar dinero de tus ingresos", rr_sub:"{n} regla(s)", rr_sub_empty:"sin reglas",
-  rr_none:"Aún no tienes ninguna regla. Añade una: su importe se descuenta de tu presupuesto del mes y se aporta a la meta al guardarla, y otra vez cada mes, al abrir la app.",
+  rr_none:"Añade una para apartar dinero cada mes hacia una meta.",
   rr_kind_fixed:"Importe fijo €", rr_kind_pct:"% del ingreso",
   rr_row_fixed:"{v} fijos", rr_row_pct:"{v} %",
   rr_goal_gone:"(meta borrada)",
@@ -8082,7 +8081,7 @@ Object.assign(LANG.es,{
   rec_adjust:"Ajustar a {x}", rec_mark_shared:"Pago solo mi parte", rec_ignore:"Ignorar",
   rec_shared_t:"ℹ Pagas solo tu parte (te reintegran el resto)", rec_shared_l:"{name} — pagas {net}, el banco cobra {gross}", rec_unshare:"deshacer",
   rec_pay_from:"lo pago desde:",
-  rec_hint:"Compara lo que tienes apuntado con lo que el banco cobró. Un cargo nuevo se puede «Confirmar y apuntar» a tus recibos sin teclearlo: no toca tu saldo ni Gastos.",
+  rec_hint:"«Confirmar y apuntar» lo añade a tus recibos sin tocar tu saldo ni Gastos.",
 });
 // --- Open Banking · sección "Mis bancos" (multibanco) ---
 Object.assign(LANG.es,{
@@ -8090,7 +8089,7 @@ Object.assign(LANG.es,{
   bp_manage:"Gestionar mis bancos", bp_close:"Ajustes", bp_back:"Mis bancos",
   bp_empty:"Aún no has conectado ningún banco.", bp_add:"Conectar un banco",
   bp_hist_pickbank:"Elige qué banco consultar. De entrada están marcados solo los bancos de gasto diario.",
-  bp_hist_btn:"Importar histórico", bp_hist_title:"Importar histórico", bp_hist_sub:"Trae movimientos de los últimos meses de: {banks}. Por defecto van a Gastos (o Ingresos). Un recibo fijo solo se crea si lo marcas tú, y te pedirá confirmación.", bp_hist_m:"{n} mes(es)", bp_hist_search:"Buscar movimientos", bp_hist_searching:"Buscando…", bp_hist_none:"No hay movimientos nuevos en ese periodo (o ya están todos apuntados). Recuerda: el banco solo deja ver ~90 días.", bp_hist_all_logged:"Cuentas compartidas por {bank}: {accounts}. Movimientos entregados: {n}, todos ya apuntados. Si falta otra cuenta, vuelve a conectar el banco y selecciónala; si aun así no aparece, el banco no la está compartiendo con Aely.", bp_hist_view_logged:"Verlos en Gastos", bp_hist_found:"{n} movimientos · marca y elige destino", bp_hist_notcard:"no es tarjeta", bp_hist_import:"Importar {n}", bp_hist_done:"✓ {n} importados", bp_hist_as_gasto:"🛒 Gasto", bp_hist_as_recibo:"🧾 Recibo", bp_hist_as_ingreso:"💰 Ingreso", bp_hist_recibo:"Recibo", bp_hist_done_g:"✓ {n} en Gastos", bp_hist_done_i:"✓ {n} ingresos", bp_hist_done_r:"✓ {n} recibos", bp_hist_dup:"ya está en tu Plan · se cuenta una sola vez",
+  bp_hist_btn:"Importar histórico", bp_hist_title:"Importar histórico", bp_hist_sub:"Trae los últimos meses de {banks} a Gastos. Los recibos fijos, solo si los marcas.", bp_hist_m:"{n} mes(es)", bp_hist_search:"Buscar movimientos", bp_hist_searching:"Buscando…", bp_hist_none:"No hay movimientos nuevos en ese periodo (o ya están todos apuntados). Recuerda: el banco solo deja ver ~90 días.", bp_hist_all_logged:"Cuentas compartidas por {bank}: {accounts}. Movimientos entregados: {n}, todos ya apuntados. Si falta otra cuenta, vuelve a conectar el banco y selecciónala; si aun así no aparece, el banco no la está compartiendo con Aely.", bp_hist_view_logged:"Verlos en Gastos", bp_hist_found:"{n} movimientos · marca y elige destino", bp_hist_notcard:"no es tarjeta", bp_hist_import:"Importar {n}", bp_hist_done:"✓ {n} importados", bp_hist_as_gasto:"🛒 Gasto", bp_hist_as_recibo:"🧾 Recibo", bp_hist_as_ingreso:"💰 Ingreso", bp_hist_recibo:"Recibo", bp_hist_done_g:"✓ {n} en Gastos", bp_hist_done_i:"✓ {n} ingresos", bp_hist_done_r:"✓ {n} recibos", bp_hist_dup:"ya está en tu Plan · se cuenta una sola vez",
   bp_hist_nuevos:"nuevos", bp_hist_repes:"repetidos", bp_hist_dupexist:"ya lo tienes apuntado (mismo día e importe)", bp_hist_dupmaybe:"puede que ya lo tengas (mismo importe, fecha cercana)",
   bp_hist_esrecibo:"es tu recibo «{name}»: se verá en Gastos sin contarse dos veces",
   bp_hist_quizarecibo:"parece tu recibo «{name}»: se verá en Gastos sin contarse dos veces",
@@ -8149,8 +8148,7 @@ Object.assign(LANG.es,{
   bp_rm_stop_sub:"Sus compras salen del gasto del mes. Ojo: también cambia lo que ves en los meses ya pasados, porque la cifra se recalcula.",
   bp_foot:"",
   bp_brokers:"Brókers",
-  bp_which:"¿Qué brókers usas? Toca para añadir o quitar — solo verás los que marques.",
-  bp_apk_hint:"Si Trade Republic se desconecta solo: hace falta el APK nuevo (el arreglo es nativo). MyInvestor pide captcha por su anti-bot — espera un rato y reintenta.",
+  bp_which:"¿Qué brókers usas? Toca para añadir o quitar.",
 });
 
 
@@ -8308,7 +8306,7 @@ function widgetBankOf(s){
   const accounts=s.accounts||[], chosen=s.settings&&s.settings.widgetBank;
   return widgetBankAccounts(s).find(function(a){ return a.ent===chosen; }) || accounts.find(function(a){ return a.spendFrom; }) || null;
 }
-Object.assign(LANG.es,{st_widget_bank:"Banco del widget",st_widget_auto:"Cuenta de gasto diario",st_widget_bank_hint:"El saldo y cuánto puedes gastar se calculan para este banco. Sus cuentas se suman. El presupuesto no cambia."});
+Object.assign(LANG.es,{st_widget_bank:"Banco del widget",st_widget_auto:"Cuenta de gasto diario",st_widget_bank_hint:"El widget usa el saldo de este banco (sus cuentas, sumadas). El presupuesto no cambia."});
 
 
 /* Bancos cuyas compras con tarjeta Open Banking entran en Gastos. Independiente del
@@ -12373,8 +12371,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
     !showSkel && closedCard && React.createElement("div",{className:"v4-card rise","data-tour":"closed-month",style:{animationDelay:".02s",marginTop:4}},
       React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}},
         React.createElement("div",null,
-          React.createElement("div",{style:{fontWeight:800,fontSize:15}}, tf("mr_title",{mes:monthLong(closedCard.month)+" "+closedCard.year})),
-          React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",marginTop:4,lineHeight:1.4}}, t("mr_sub"))
+          React.createElement("div",{style:{fontWeight:800,fontSize:15}}, tf("mr_title",{mes:monthLong(closedCard.month)+" "+closedCard.year}))
         ),
         React.createElement("button",{type:"button",className:"link",style:{flexShrink:0,fontSize:13},onClick:function(){
           set(function(s){ return dismissClosedMonthCard(s, closedCard.ym); });
@@ -17868,9 +17865,7 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
           );
         }),
         anySynced && React.createElement("div",{className:"hint"}, t("v4_acc_locked")),
-        React.createElement("div",{className:"hint"}, t("rl_hint")),
-        // Pista: «Gasto diario» se puede marcar en varios bancos (cuentan en el mismo presupuesto).
-        (state.accounts||[]).length>1 && React.createElement("div",{className:"hint"}, t("v4_expdaily_row_hint"))
+        React.createElement("div",{className:"hint"}, t("rl_hint"))
       ),
       parte!=="cuentas" && (state.assets||[]).length>0 && React.createElement(React.Fragment,null,
         // El título solo cuando van juntos: en Cartera lo pone el bloque ordenable, y repetirlo
@@ -26556,8 +26551,7 @@ function WhatsNew({onClose, showToast, set, state}){
   const [showOlder,setShowOlder]=useState(false);
   const list=showOlder ? notes : shown;
   return ReactDOM.createPortal(React.createElement("div",{className:"wn-panel"}, React.createElement("div",{className:"wn-inner"},
-    React.createElement("div",{className:"serif",style:{fontSize:25,margin:"2px 0 2px"}}, "✨ "+t("wn_title")),
-    React.createElement("div",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.5,marginBottom:14}}, t("wn_sub")),
+    React.createElement("div",{className:"serif",style:{fontSize:25,margin:"2px 0 14px"}}, "✨ "+t("wn_title")),
     !notes.length && React.createElement(React.Fragment,null,
       React.createElement("div",{className:"hint"},t("notes_unavailable")),
       React.createElement(ReleaseNotesRetry,{onReady:function(arr){ setNotes(arr.slice()); if(arr.length)setOpenV(arr[0].v); }})),
@@ -28268,11 +28262,14 @@ function PlanBills({state, set, totals, charges, evidence, manageOpen, setManage
     ),
     React.createElement("div",{className:"v4-section","data-testid":"plan-due"},
       React.createElement("div",{className:"v4-section-h"},
-        React.createElement("span",null,simple?t("v4_aun_saldra"):t("v4_payment_due")),
+        // Vuelve «Pendiente»: «Por pagar» necesitaba una línea de ayuda debajo para entenderse y
+        // la palabra de antes no (petición del dueño, 26/10/2026).
+        React.createElement("span",null,simple?t("v4_aun_saldra"):t("v4_pendiente")),
         // Sencillo: sin «Gestionar» aquí — solo Ajustes → Cambiar mis recibos (NO-GO §5bis.2).
         !simple && React.createElement("button",{type:"button",className:"link",onClick:openManage}, t("v4_gestionar"))
       ),
-      pending.length>0&&React.createElement("div",{className:"ph"},t(simple&&pack.transfersPending.length?"v4_payment_mixed_hint":"v4_payment_due_hint")),
+      // Solo cuando en Sencillo se mezclan traspasos con recibos: ahí sí hace falta decir qué suma.
+      pending.length>0&&simple&&pack.transfersPending.length>0&&React.createElement("div",{className:"ph"},t("v4_payment_mixed_hint")),
       pending.length===0
         ? React.createElement("div",{className:"ph",style:{padding:"8px 4px 4px"}}, t("v4_aun_saldra_empty"))
         : (pendExpanded?pending:pending.slice(0,3)).map(row),

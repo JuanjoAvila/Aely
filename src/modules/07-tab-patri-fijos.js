@@ -679,9 +679,7 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
           );
         }),
         anySynced && React.createElement("div",{className:"hint"}, t("v4_acc_locked")),
-        React.createElement("div",{className:"hint"}, t("rl_hint")),
-        // Pista: «Gasto diario» se puede marcar en varios bancos (cuentan en el mismo presupuesto).
-        (state.accounts||[]).length>1 && React.createElement("div",{className:"hint"}, t("v4_expdaily_row_hint"))
+        React.createElement("div",{className:"hint"}, t("rl_hint"))
       ),
       parte!=="cuentas" && (state.assets||[]).length>0 && React.createElement(React.Fragment,null,
         // El título solo cuando van juntos: en Cartera lo pone el bloque ordenable, y repetirlo

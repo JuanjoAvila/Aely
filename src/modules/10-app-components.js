@@ -2233,8 +2233,7 @@ function WhatsNew({onClose, showToast, set, state}){
   const [showOlder,setShowOlder]=useState(false);
   const list=showOlder ? notes : shown;
   return ReactDOM.createPortal(React.createElement("div",{className:"wn-panel"}, React.createElement("div",{className:"wn-inner"},
-    React.createElement("div",{className:"serif",style:{fontSize:25,margin:"2px 0 2px"}}, "✨ "+t("wn_title")),
-    React.createElement("div",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.5,marginBottom:14}}, t("wn_sub")),
+    React.createElement("div",{className:"serif",style:{fontSize:25,margin:"2px 0 14px"}}, "✨ "+t("wn_title")),
     !notes.length && React.createElement(React.Fragment,null,
       React.createElement("div",{className:"hint"},t("notes_unavailable")),
       React.createElement(ReleaseNotesRetry,{onReady:function(arr){ setNotes(arr.slice()); if(arr.length)setOpenV(arr[0].v); }})),
