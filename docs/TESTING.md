@@ -1,3 +1,26 @@
+PR304 R2: `pull-historico-entero.test.mjs`, ya registrado, ejecuta el efecto real de
+autenticación y `cloud.onAuth` con transporte/reloj sintéticos. La regresión automática
+no llama a `start` ni a sync después de renovar: cubre `TOKEN_REFRESHED`, `SIGNED_IN`,
+`INITIAL_SESSION` y la continuación de `cloud.session` con otro objeto del mismo UID.
+Comprueba opciones del login, commit React diferido, gastos, reserva mensual,
+respuestas/rechazos viejos, ráfagas, salida y desmontaje. Un caso separado confronta
+un disparador de primer plano/edición antes del turno diferido. Los extractores de
+`inicio-deuda-futura` e `inicio-v42` inyectan la identidad `readSession`; el segundo
+rechaza el callback de una sesión sustituida y comprueba la unión de 400 cierres
+con un callback nuevo de la sesión vigente. La focal de pull y ambos extractores
+terminó 70/70; los consumidores de auth de FIN17, 46/46. Los contratos históricos
+`auth-disposal` y `auth-disposal-fit` terminaron con EXIT 0. La regresión automática
+falla causalmente sobre `add70e5a` (un GET en vez de dos); el caso del disparador
+intercalado falló antes de conservar opciones (1000 en vez de 2468), y pasa tras
+el ajuste. Se mantienen los oráculos financieros y de descarte tardío.
+
+La validación Node completa sigue pendiente del turno serial y de resolver
+el gate histórico de versión: `docs-frescura` da EXIT 1 ya con HEAD `add70e5a`,
+por el único cambio de producto posterior al ancla `95b950a0`, con versión
+4.26.173. Sus trece comprobaciones de metadata y texto pasan. Test y metadatos
+son idénticos a esa base; no se cambian rama, entorno, historia ni versión para
+alterar el resultado. Revisión parental, CI, integración y móvil siguen pendientes.
+
 PR297 R2: `pr297-r2-plan-sync.test.mjs` está registrado en el runner y `pr297-r2-plan-sync.spec.mjs` en el mapa del núcleo/transporte. Oráculos sintéticos de céntimos, LWW sin base y tres vías con base, confirmaciones compactas por owner, vínculo local sin gastos en app_state, metadata de pago, referencias estables y 1000 lápidas. La versión completa se contrasta con `node:crypto`, incluyendo Unicode, padding SHA-256, claves JSON especiales e id numérico frente a string.
 
 El navegador cuenta lecturas/avisos durante más de doce segundos con Plan inválido y exige un PATCH/CAS no vacío tras una edición real, con propietario, revisión y céntimos. Retiene GET de estado y de gastos para comprobar intenciones que llegan durante el vuelo. El dispositivo B de primera lectura no hereda `_planSync`/`_goalSync` privados de A. La prueba de toque real desplaza el botón a la vista y registra su geometría antes del tap; conserva el oráculo de cierre y movimiento.

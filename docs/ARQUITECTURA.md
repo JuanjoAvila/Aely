@@ -20,6 +20,26 @@ estado (todo menos los gastos, que viven en su tabla) viaja entero por «último
    La lectura queda acreditada (`cloudReadRef`, `read.ready/valid`, revisión en
    `cloudUpdatedAtRef`) solo cuando React **compromete** ese estado (`commitCloudRead` en un
    `useLayoutEffect`); un updater evaluado y descartado no acredita nada.
+   El GET de `cloud.pullState` también tiene un plazo de 25 s, con el mismo criterio que
+   `EXP_READ_PLAZO`: solo se releva si hay otra lectura solicitada. Antes del plazo las
+   peticiones comparten promesa; al vencer, o al solicitar después, una única lectura nueva
+   toma el relevo y todas esperan su resultado. Una respuesta o error del GET sustituido
+   no mezcla, no acredita revisión ni mes y no libera el vuelo nuevo. La sesión se compara
+   por identidad, no solo por UID. El relevo conserva `freshLogin`/`dropTx` y termina al
+   recibir el GET: nunca sustituye una mezcla pendiente de commit ni sus gastos a mitad;
+   una intención previa se drena después de completar ambos. Sin nueva petición la red
+   lenta sigue viva; el transporte no se aborta ni cambia la API de nube.
+   Un cambio de objeto de sesión (también `TOKEN_REFRESHED` con la misma UID) o desmontar
+   cancela explícitamente la espera local del vuelo y su commit pendiente. La cancelación
+   ocurre fuera del updater, no acredita el mes y no deja promesas retenidas si React
+   descarta ese updater. Si el UID sigue siendo el mismo, el efecto de autenticación
+   programa una lectura de la sesión vigente fuera del callback de Supabase; conserva
+   `freshLogin`/`dropTx`, agrupa renovaciones consecutivas y evita un segundo vuelo si
+   ya empezó otro disparador. La intención privada en `cloudPullRef.resume` permite
+   que ese primer disparador consuma las mismas opciones; el turno diferido comprueba
+   su identidad y queda inerte si ya se consumió, aunque el vuelo nuevo haya terminado. `cloud.session` respeta ese relevo y no encola una lectura
+   del objeto anterior. Salir, cambiar de titular o desmontar descarta el relevo pendiente;
+   un login de otro titular conserva su lectura propia con las opciones de aislamiento.
 2. **Nada sube antes.** `pushAppState` sin lectura confirmada del mismo titular no envía:
    relanza la lectura. El debounce (1,2 s) toma la copia comprometida al dispararse.
 3. **INSERT o CAS.** Sin fila en la nube se crea con `insert` (nunca `upsert`); si el otro
@@ -35,8 +55,8 @@ estado (todo menos los gastos, que viven en su tabla) viaja entero por «último
    relectura pendiente y el vuelo lleva 25 s, la relectura lo **releva**: sube `wS` (la
    respuesta tardía ya no se mezcla), libera `wP`/`wOwner`, lanza la lectura nueva y resuelve
    con ella la promesa del vuelo viejo (`Promise.race`), de modo que `syncFromCloud` tampoco se
-   queda colgado. Sin nadie esperando no se corta nada. Pendiente: el mismo plazo para el
-   `cloud.pullState` de `syncFromCloud` (BACKLOG).
+   queda colgado. Sin nadie esperando no se corta nada. `cloud.pullState` usa el relevo
+   descrito en el primer paso, limitado al GET de estado.
 5. **`_savedAt` de arranque.** `set(updater, edited)` solo sella con `edited=true` (formularios,
    dinero, aportación mensual). Mantenimiento (fotos de presupuesto, inversión, bienes y saldos,
    widget, divisas, logros, cuotas), adopción del remoto, pull de gastos y acuses guardan sin

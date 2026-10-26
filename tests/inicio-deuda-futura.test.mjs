@@ -130,7 +130,7 @@ test("revision1: nube real proyecta, push/pull y merge conservan startMonth",asy
   assert.deepEqual(pack.data.debts,plain(remote.debts),"el transporte JSON conserva todos los campos de la deuda");
   const app=fs.readFileSync(new URL("../src/modules/11-app-main.js",import.meta.url),"utf8");
   const body=callbackBody(app.slice(app.indexOf("const syncFromCloud=function(")),"function(prev){");
-  const factory=vm.runInContext("(function(sessionRef,cloudState,cloudPack,u,opts,freshLogin,mergeExpenses,fixMovInvasion,fixRevoDupes,fixInvAuto,fixInvSold,reconcileTR,seedFlows,reconcileEarlyIncomeAnchors){const obAbsorbedWriteBlocked={current:false},read={owner:u,ready:false},cloudReadRef={current:read},cloudPullRef={current:read},cloudMergeKey={current:Symbol('merge')};return function(prev){"+body+"};})",c);
+  const factory=vm.runInContext("(function(sessionRef,cloudState,cloudPack,u,opts,freshLogin,mergeExpenses,fixMovInvasion,fixRevoDupes,fixInvAuto,fixInvSold,reconcileTR,seedFlows,reconcileEarlyIncomeAnchors){const readSession=sessionRef.current,obAbsorbedWriteBlocked={current:false},read={owner:u,ready:false},cloudReadRef={current:read},cloudPullRef={current:read},cloudMergeKey={current:Symbol('merge')};return function(prev){"+body+"};})",c);
   const identity=x=>x;
   const merge=(local,freshLogin=false)=>factory({current:{user:{id:"synthetic"}}},pack.data,pack,"synthetic",{},freshLogin,(a,b)=>({list:a}),identity,identity,identity,identity,identity,c.seedFlows,identity)(local);
   // La edición concurrente parte de una lectura confirmada, no de la prioridad del reloj.

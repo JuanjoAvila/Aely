@@ -1,9 +1,12 @@
 import { test } from "node:test";
+import { authFragments } from "./helpers/auth-disposal-fixture.mjs";
 import {withOwnerStorage} from "./helpers/owner-storage-fixture.mjs";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
 import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
+import { codeMask } from "../scripts/beta-source-code.mjs";
+import { commitCloudFixture } from "./helpers/cloud-commit-fixture.mjs";
 
 const core=fs.readFileSync(new URL("../src/modules/00-core.js",import.meta.url),"utf8");
 const uuid=n=>"00000000-0000-4000-8000-"+n.toString(16).padStart(12,"0");
@@ -224,4 +227,218 @@ test("FIN07: la misma sesión comparte vuelo y una sesión nueva del mismo UID n
   const fresh=h.sync();assert.notEqual(fresh,old);await new Promise(resolve=>setImmediate(resolve));assert.equal(pending.length,2);
   pending[0](rows(2));await old;assert.equal(h.sets,0);assert.equal(h.wR.current,false);assert.equal(h.wRead.current,null);
   pending[1](rows(1));await fresh;assert.equal(h.sets,1);assert.equal(h.wR.current,true);
+});
+
+// Reloj y transportes controlados, pero mezcla, commit y puerta mensual de la fuente real.
+// El plazo solo puede relevar el GET: nunca una mezcla de React ni sus gastos a medio bajar.
+function statePullHarness(){
+  const app=fs.readFileSync(new URL("../src/modules/11-app-main.js",import.meta.url),"utf8");
+  const mask=codeMask(app),start=mask.indexOf("const syncFromCloud=function(");
+  assert.ok(start>=0);let end=mask.indexOf("{",start)+1,depth=1;
+  for(;depth;end++){if(mask[end]==="{")depth++;if(mask[end]==="}")depth--;}
+  const c=withOwnerStorage(loadPureLogicFromFile()),monthly=c.applyReservaMensual,gate=c.reservaMensualPuerta;
+  const nowStart=Date.parse("2026-11-02T12:00:00Z"),timers=new Map(),pulls=[],expenses=[],updates=[],gates=[],monthlyResults=[],notices=[],writes=[];
+  let now=nowStart,timerId=0;
+  class Clock extends Date{constructor(...args){super(...(args.length?args:[now]));}static now(){return now;}}
+  const deferred=()=>{let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return {promise,resolve,reject};};
+  const initial={budget:1000,accounts:[],investments:[],debts:[],fixed:[],expenses:[{id:"local",date:"2026-10-31T12:00:00Z",amount:0.01,merchant:"Local",source:"manual"}],
+    bankTx:[{id:"local-tx"}],goals:[{id:"g",name:"Sintética",target:5000,saved:100}],
+    settings:{reservaRules:[{id:"r",goalId:"g",kind:"fixed",value:100,mensual:true}]},
+    reservaLog:[{id:"mensual|r|2026-10",incomeKey:"mensual|r|2026-10",ruleId:"r",goalId:"g",amount:100,mensual:"2026-10",date:"2026-10-31T12:00:00Z"}],_savedAt:100,_historyOwner:"synthetic"};
+  Object.assign(c,{Date:Clock,navigator:{onLine:true},setTimeout:(fn,ms)=>{const id=++timerId;timers.set(id,{fn,at:now+ms});return id;},clearTimeout:id=>timers.delete(id),
+    stateRef:{current:initial},cloudReadRef:{current:null},cloudPullRef:{current:null},cloudUpdatedAtRef:{current:null},cloudMergeKey:{current:Symbol("merge")},pullOkRef:{current:null},
+    sessionRef:{current:{user:{id:"synthetic"}}},obAbsorbedWriteBlocked:{current:false},
+    cloud:{pullState:()=>{const d=deferred();pulls.push(d);return d.promise;}},
+    set:fn=>updates.push(fn),syncCloudExpenses:()=>{const d=deferred();expenses.push(d);return d.promise;},
+    pushAppState:async(u,s,revision)=>{writes.push({u,s,revision});return {updated_at:"synthetic-write"};},
+    reservaMensualPuerta:()=>{const p=gate(),record={reads:0};gates.push(record);return {lee:pack=>{record.reads++;p.lee(pack);},vale:p.vale};},
+    reservaMensualAlDia:p=>p.then(ok=>{monthlyResults.push(ok);if(ok)c.set(s=>monthly(s,nowStart));}),
+    showToast:m=>notices.push(m),mcBootReady:()=>{}});
+  vm.createContext(c);
+  const names=["stateRef","cloudReadRef","cloudPullRef","cloudUpdatedAtRef","cloudMergeKey","pullOkRef","sessionRef","obAbsorbedWriteBlocked","cloud","set","syncCloudExpenses","pushAppState","reservaMensualPuerta","reservaMensualAlDia","showToast","mcBootReady","setTimeout","clearTimeout","navigator"];
+  c.sync=vm.runInContext("(function("+names.join(",")+"){"+app.slice(start,end)+";return syncFromCloud;})",c)(...names.map(k=>c[k]));
+  const authSessions=[],idles=[];let authEvent,authCleanup;
+  function mountAuth(){
+    const parts=authFragments(core,app);
+    const sb={auth:{onAuthStateChange:cb=>{authEvent=cb;return {data:{subscription:{unsubscribe(){authEvent=null;}}}};}}};
+    c.cloud.onAuth=vm.runInContext("(function(sb){const statePushCache=new Map();return {"+parts.method+"};})",c)(sb).onAuth;
+    Object.assign(c.cloud,{enabled:()=>true,session:()=>{const d=deferred();authSessions.push(d);return d.promise;}});
+    Object.assign(c,{syncFromCloud:c.sync,setSession:()=>{},mcScheduleIdle:fn=>idles.push(fn),
+      setRecovery:()=>{},setShowAuth:()=>{},useEffect:fn=>{authCleanup=fn();}});
+    const env=["cloud","sessionRef","cloudPullRef","cloudReadRef","cloudUpdatedAtRef","setSession","mcScheduleIdle","syncFromCloud","setTimeout","clearTimeout","navigator","mcBootReady","useEffect","set","setRecovery","setShowAuth"];
+    vm.runInContext("(function("+env.join(",")+"){"+parts.effect+"})",c)(...env.map(k=>c[k]));
+  }
+  return {c,pulls,expenses,updates,gates,monthlyResults,notices,writes,timers,authSessions,idles,mountAuth,
+    auth:(event,session)=>authEvent(event,session),idle(){for(const fn of idles.splice(0))fn();},unmountAuth:()=>authCleanup(),
+    start:opts=>c.sync(c.sessionRef.current,opts),
+    refresh:()=>refresh({user:{id:"synthetic"}},"TOKEN_REFRESHED"),
+    pack:(patch={})=>({data:{...JSON.parse(JSON.stringify(initial)),budget:2000,_savedAt:200,...patch},updated_at:"synthetic-revision"}),
+    flush(){for(const fn of updates.splice(0)){c.stateRef.current=fn(c.stateRef.current);commitCloudFixture(app,c,c,c.stateRef.current);}},
+    elapse(ms){now+=ms;for(const [id,t] of [...timers])if(t.at<=now){timers.delete(id);t.fn();}},
+    dispose(){const cleanup=app.match(/return\s*\(\)\s*=>\{\s*alive=false;[\s\S]*?off\(\);\s*\};/);assert.ok(cleanup);
+      new Function("cloudPullRef","cloudReadRef","cloudUpdatedAtRef","sessionRef","let alive=true,resumeTimer=null,resumePull=null;const tmr=0,clearTimeout=()=>{},off=()=>{};"+cleanup[0])(c.cloudPullRef,c.cloudReadRef,c.cloudUpdatedAtRef,c.sessionRef)();}
+  };
+}
+const stateTicks=async()=>{for(let i=0;i<40;i++)await Promise.resolve();};
+async function finishStatePull(b,index=0,pack=b.pack()){
+  b.pulls[index].resolve(pack);await stateTicks();b.flush();await stateTicks();
+  b.expenses.at(-1).resolve();await stateTicks();b.flush();
+}
+
+test("FIN04 plazo: nueva petición a los 25 s releva el GET colgado y todas esperan al sucesor",async()=>{
+  const b=statePullHarness(),old=b.start(),oldOk=b.c.pullOkRef.current,before=b.c.stateRef.current;
+  b.elapse(25000);assert.equal(b.pulls.length,1,"sin solicitante no se corta una red lenta");
+  const fresh=b.start(),freshOk=b.c.pullOkRef.current;
+  assert.equal(b.pulls.length,2,"una petición tras el plazo debe lanzar otro pullState");
+  const active=b.c.cloudPullRef.current;let finished=0;old.then(()=>finished++);fresh.then(()=>finished++);
+  b.pulls[0].resolve(b.pack({budget:9999}));await stateTicks();b.flush();
+  assert.equal(finished,0,"una respuesta relevada no termina las promesas mientras el sucesor espera");
+  assert.equal(b.c.cloudPullRef.current,active);assert.equal(b.c.stateRef.current,before);
+  assert.equal(b.gates[0].reads,0);assert.equal(b.c.cloudReadRef.current,null);assert.equal(b.c.cloudUpdatedAtRef.current,null);
+  assert.equal(b.expenses.length,0);assert.equal(b.monthlyResults.length,0);
+  await finishStatePull(b,1);await Promise.all([old,fresh]);await stateTicks();b.flush();
+  assert.equal(await oldOk,false);assert.equal(await freshOk,true);assert.equal(b.c.pullOkRef.current,freshOk);
+  assert.equal(b.c.cloudReadRef.current,active);assert.equal(active.ready,true);assert.equal(active.valid,true);
+  assert.equal(b.c.cloudUpdatedAtRef.current,"synthetic-revision");assert.equal(b.c.cloudPullRef.current,null);
+  assert.equal(b.c.stateRef.current.budget,2000);assert.equal(b.c.stateRef.current.expenses[0].id,"local");
+  assert.equal(Math.round(b.c.stateRef.current.expenses[0].amount*100),1);
+  assert.equal(b.c.stateRef.current.goals[0].saved,200);assert.equal(b.c.stateRef.current.reservaLog.length,2);
+  assert.equal(b.monthlyResults.filter(Boolean).length,1);assert.equal(b.pulls.length,2);
+});
+
+test("FIN04 plazo: ráfaga temprana comparte promesa y el temporizador drena un solo relevo aunque el viejo rechace",async()=>{
+  const b=statePullHarness(),old=b.start(),same=b.start(),again=b.start();
+  assert.equal(same,old);assert.equal(again,old);b.elapse(24999);assert.equal(b.pulls.length,1);
+  b.elapse(1);assert.equal(b.pulls.length,2);const active=b.c.cloudPullRef.current,newOk=b.c.pullOkRef.current;
+  let finished=false;old.then(()=>{finished=true;});b.pulls[0].reject(Error("GET relevado offline"));await stateTicks();
+  assert.equal(finished,false);assert.equal(b.c.cloudPullRef.current,active);assert.equal(b.c.pullOkRef.current,newOk);assert.equal(b.notices.length,0);
+  await finishStatePull(b,1);await Promise.all([old,same,again]);await stateTicks();b.flush();
+  assert.equal(b.pulls.length,2);assert.equal(b.monthlyResults.filter(Boolean).length,1);assert.equal(b.c.stateRef.current.goals[0].saved,200);
+});
+
+test("FIN04 plazo: red lenta sin nueva solicitud termina viva y limpia su temporizador",async()=>{
+  const b=statePullHarness(),pull=b.start();b.elapse(60000);assert.equal(b.pulls.length,1);
+  await finishStatePull(b);await pull;await stateTicks();b.flush();
+  assert.equal(await b.c.pullOkRef.current,true);assert.equal(b.c.stateRef.current.goals[0].saved,200);assert.equal(b.timers.size,0);
+});
+
+test("FIN04 plazo: una mezcla retenida y sus gastos no se relevan a mitad; la intención espera al vuelo completo",async()=>{
+  const b=statePullHarness(),old=b.start(),same=b.start();b.pulls[0].resolve(b.pack());await stateTicks();
+  const read=b.c.cloudPullRef.current;assert.equal(read.merging,true);b.elapse(30000);
+  assert.equal(b.start(),old);assert.equal(b.pulls.length,1);assert.equal(b.c.cloudReadRef.current,null);assert.equal(b.expenses.length,0);
+  b.flush();await stateTicks();assert.equal(b.expenses.length,1);assert.equal(b.c.cloudReadRef.current,read);
+  b.elapse(30000);assert.equal(b.start(),old);assert.equal(b.pulls.length,1);assert.equal(b.c.cloudPullRef.current,read);
+  b.expenses[0].resolve();await stateTicks();assert.equal(b.pulls.length,2,"la relectura espera también a gastos");
+  await finishStatePull(b,1);await Promise.all([old,same]);await stateTicks();b.flush();
+  assert.equal(b.c.stateRef.current.goals[0].saved,200);assert.equal(b.monthlyResults.filter(Boolean).length,1);
+});
+
+test("FIN04 plazo: relevo conserva freshLogin/dropTx y una ausencia vieja no acredita el mes",async()=>{
+  const b=statePullHarness();b.c.stateRef.current={...b.c.stateRef.current,_savedAt:9999};
+  const old=b.start({freshLogin:true,dropTx:true});b.elapse(25000);const fresh=b.start();
+  assert.equal(b.pulls.length,2);await finishStatePull(b,1,b.pack({accounts:[{id:"remote-account"}]}));await fresh;await stateTicks();b.flush();
+  const state=b.c.stateRef.current,revision=b.c.cloudUpdatedAtRef.current,read=b.c.cloudReadRef.current,results=b.monthlyResults.length;
+  b.pulls[0].resolve(null);await old;await stateTicks();b.flush();
+  assert.equal(b.c.stateRef.current,state);assert.equal(b.c.cloudUpdatedAtRef.current,revision);assert.equal(b.c.cloudReadRef.current,read);
+  assert.equal(state.budget,2000);assert.deepEqual(Array.from(state.bankTx),[]);assert.equal(state.onboarded,true);assert.equal(state.setupHint,false);
+  assert.equal(b.gates[0].reads,0);assert.equal(b.monthlyResults.filter(Boolean).length,1);assert.equal(b.monthlyResults.length,results);assert.equal(b.writes.length,0);
+});
+
+for(const mode of ["misma UID","otro titular","desmontada"])test("FIN04 plazo: sesión "+mode+" no hereda ni reinicia el vuelo antiguo",async()=>{
+  const b=statePullHarness(),old=b.start();b.start();const initial=b.c.stateRef.current;
+  if(mode==="desmontada")b.dispose();else b.c.sessionRef.current={user:{id:mode==="misma UID"?"synthetic":"other"}};
+  b.elapse(25000);assert.equal(b.pulls.length,1);b.pulls[0].resolve(b.pack());await old;await stateTicks();b.flush();
+  assert.equal(b.c.stateRef.current,initial);assert.equal(b.c.cloudReadRef.current,null);assert.equal(b.c.cloudUpdatedAtRef.current,null);
+  assert.equal(b.expenses.length,0);assert.equal(b.monthlyResults.filter(Boolean).length,0);assert.equal(b.writes.length,0);
+  if(mode==="misma UID"){
+    const fresh=b.start();await finishStatePull(b,1);await fresh;await stateTicks();b.flush();assert.equal(await b.c.pullOkRef.current,true);
+  }
+});
+
+test("FIN04 plazo: error vigente libera el guardián y permite reintentar sin acreditar mes",async()=>{
+  const b=statePullHarness(),failed=b.start();b.pulls[0].reject(Error("sin red"));await assert.rejects(failed,/sin red/);await stateTicks();b.flush();
+  assert.equal(b.c.cloudPullRef.current,null);assert.equal(await b.c.pullOkRef.current,false);assert.equal(b.c.stateRef.current.goals[0].saved,100);assert.equal(b.timers.size,0);
+  const fresh=b.start();await finishStatePull(b,1);await fresh;await stateTicks();b.flush();assert.equal(await b.c.pullOkRef.current,true);
+});
+
+test("FIN04 plazo: TOKEN_REFRESHED con updater en cola cancela su commit sin retener ni liberar el vuelo nuevo",async()=>{
+  const b=statePullHarness();b.mountAuth();const old=b.start(),oldOk=b.c.pullOkRef.current,initial=b.c.stateRef.current;
+  b.pulls[0].resolve(b.pack());await stateTicks();assert.equal(b.updates.length,1);assert.equal(b.c.cloudPullRef.current.merging,true);
+  let finished=false;old.then(()=>{finished=true;});b.auth("TOKEN_REFRESHED",{user:{id:"synthetic"}});await stateTicks();b.elapse(0);await stateTicks();
+  assert.equal(finished,true,"descartar el updater no puede dejar pendiente el commit antiguo");assert.equal(await oldOk,false);
+  assert.equal(b.c.cloudReadRef.current,null);assert.equal(b.c.cloudUpdatedAtRef.current,null);assert.equal(b.c.stateRef.current,initial);
+  const active=b.c.cloudPullRef.current,fresh=active.promise;b.flush();await stateTicks();
+  assert.equal(b.c.stateRef.current,initial);assert.equal(b.c.cloudPullRef.current,active);assert.equal(b.expenses.length,0);assert.equal(b.monthlyResults.filter(Boolean).length,0);
+  await finishStatePull(b,1,b.pack({budget:2300}));await Promise.all([old,fresh]);await stateTicks();b.flush();
+  assert.equal(b.c.cloudReadRef.current,active);assert.equal(active.ready,true);assert.equal(b.c.stateRef.current.budget,2300);
+  assert.equal(b.c.stateRef.current.goals[0].saved,200);assert.equal(b.monthlyResults.filter(Boolean).length,1);assert.equal(b.expenses.length,1);
+});
+
+// R2: eventos reales de cloud.onAuth y continuación real de cloud.session; sin start tras renovar.
+for(const event of ["TOKEN_REFRESHED","SIGNED_IN","INITIAL_SESSION"])test("FIN04 R2 automático: "+event+" mismo UID recupera el pull sin otra petición",async()=>{
+  const b=statePullHarness();b.mountAuth();const old=b.start({freshLogin:true,dropTx:true}),oldOk=b.c.pullOkRef.current;
+  const next={user:{id:"synthetic"}};b.auth(event,next);await stateTicks();b.elapse(0);await stateTicks();
+  assert.equal(b.pulls.length,2,"el callback debe relanzar automáticamente la lectura cancelada");
+  const active=b.c.cloudPullRef.current,newOk=b.c.pullOkRef.current;
+  b.pulls[0].resolve(b.pack({budget:9999}));await old;await stateTicks();b.flush();
+  assert.equal(await oldOk,false);assert.equal(b.c.cloudPullRef.current,active);assert.equal(b.c.cloudUpdatedAtRef.current,null);
+  await finishStatePull(b,1,b.pack({budget:2300,accounts:[{id:"remote"}]}));await active.promise;await stateTicks();b.flush();
+  assert.equal(await newOk,true);assert.equal(b.c.stateRef.current.budget,2300);assert.equal(b.c.stateRef.current.onboarded,true);
+  assert.deepEqual(Array.from(b.c.stateRef.current.bankTx),[]);assert.equal(b.c.stateRef.current.goals[0].saved,200);
+  assert.equal(b.monthlyResults.filter(Boolean).length,1);assert.equal(b.pulls.length,2);b.unmountAuth();
+});
+
+
+test("FIN04 R2 automático: SIGNED_IN seguido de cloud.session e INITIAL_SESSION conserva login sin duplicar",async()=>{
+  const b=statePullHarness();b.c.sessionRef.current=null;b.c.stateRef.current={...b.c.stateRef.current,_savedAt:9999};b.mountAuth();
+  b.auth("SIGNED_IN",{user:{id:"synthetic"}});const old=b.c.cloudPullRef.current.promise,oldOk=b.c.pullOkRef.current;
+  b.authSessions[0].resolve({user:{id:"synthetic"}});await stateTicks();
+  b.auth("INITIAL_SESSION",{user:{id:"synthetic"}});await stateTicks();assert.equal(b.pulls.length,1,"no se consulta dentro del callback");
+  b.idle();b.elapse(0);await stateTicks();assert.equal(b.pulls.length,2);
+  const active=b.c.cloudPullRef.current,newOk=b.c.pullOkRef.current;
+  b.pulls[0].reject(Error("rechazo viejo"));await old;await stateTicks();assert.equal(await oldOk,false);assert.equal(b.notices.length,0);
+  await finishStatePull(b,1,b.pack({budget:2345,accounts:[{id:"remote"}]}));await active.promise;await stateTicks();b.flush();
+  assert.equal(await newOk,true);assert.equal(b.c.stateRef.current.budget,2345);assert.equal(b.c.stateRef.current.onboarded,true);
+  assert.equal(b.c.stateRef.current.bankTx[0].id,"local-tx","login sin titular previo conserva dropTx=false");
+  assert.equal(b.c.stateRef.current.goals[0].saved,200);assert.equal(b.monthlyResults.filter(Boolean).length,1);
+  b.idle();b.elapse(60000);await stateTicks();assert.equal(b.pulls.length,2);b.unmountAuth();
+});
+
+for(const mode of ["logout","unmount"])test("FIN04 R2 automático: "+mode+" elimina relevo pendiente sin reiniciar",async()=>{
+  const b=statePullHarness();b.mountAuth();const old=b.start(),initial=b.c.stateRef.current;
+  b.auth("TOKEN_REFRESHED",{user:{id:"synthetic"}});
+  if(mode==="logout")b.auth("SIGNED_OUT",null);else b.unmountAuth();
+  b.elapse(60000);b.pulls[0].resolve(b.pack({budget:9999}));await old;await stateTicks();b.flush();
+  assert.equal(b.pulls.length,1);assert.equal(b.c.stateRef.current.budget,initial.budget);assert.equal(b.c.cloudReadRef.current,null);
+  assert.equal(b.c.cloudUpdatedAtRef.current,null);assert.equal(b.expenses.length,0);assert.equal(b.monthlyResults.filter(Boolean).length,0);
+  if(mode==="logout")b.unmountAuth();
+});
+
+test("FIN04 R2 automático: ráfaga usa última sesión, otro UID conserva su login y descarta datos viejos",async()=>{
+  const b=statePullHarness();b.mountAuth();const old=b.start({freshLogin:true,dropTx:false});
+  b.auth("TOKEN_REFRESHED",{user:{id:"synthetic"}});const last={user:{id:"synthetic"}};
+  b.auth("SIGNED_IN",last);b.auth("TOKEN_REFRESHED",last);b.elapse(0);await stateTicks();
+  assert.equal(b.pulls.length,2);assert.equal(b.c.cloudPullRef.current.session,last);
+  b.auth("TOKEN_REFRESHED",last);assert.equal(b.pulls.length,2,"mismo objeto no cancela ni duplica");
+  const cancelled=b.c.cloudPullRef.current.promise;b.auth("SIGNED_IN",{user:{id:"other"}});
+  const active=b.c.cloudPullRef.current;assert.equal(b.pulls.length,3);assert.equal(active.owner,"other");
+  b.elapse(0);b.pulls[0].resolve(b.pack({budget:9999}));b.pulls[1].reject(Error("sesión saliente"));
+  await Promise.all([old,cancelled]);await stateTicks();b.flush();assert.equal(b.c.cloudReadRef.current,null);
+  await finishStatePull(b,2,b.pack({_historyOwner:"other",budget:4567,accounts:[{id:"other-account"}],expenses:[]}));
+  await active.promise;await stateTicks();b.flush();assert.equal(b.c.stateRef.current._historyOwner,"other");
+  assert.equal(b.c.stateRef.current.budget,4567);assert.deepEqual(Array.from(b.c.stateRef.current.bankTx),[]);
+  assert.equal(b.c.stateRef.current.onboarded,true);assert.equal(b.notices.length,0);assert.equal(b.pulls.length,3);b.unmountAuth();
+});
+
+
+test("FIN04 R2 intención: otro disparador entre cancelación y defer conserva freshLogin/dropTx",async()=>{
+  const b=statePullHarness();b.mountAuth();b.c.stateRef.current={...b.c.stateRef.current,_savedAt:9999};
+  const old=b.start({freshLogin:true,dropTx:true});b.auth("TOKEN_REFRESHED",{user:{id:"synthetic"}});
+  // Simula primer plano/edición antes del turno diferido; no es el oráculo del relanzamiento automático.
+  const external=b.start(),active=b.c.cloudPullRef.current;b.elapse(0);await stateTicks();assert.equal(b.pulls.length,2);
+  b.pulls[0].resolve(b.pack({budget:9999}));await old;await finishStatePull(b,1,b.pack({budget:2468,accounts:[{id:"remote"}]}));
+  await external;await stateTicks();b.flush();assert.equal(b.c.cloudReadRef.current,active);assert.equal(await b.c.pullOkRef.current,true);
+  assert.equal(b.c.stateRef.current.budget,2468,"el trigger concurrente conserva freshLogin aunque el reloj local sea mayor");
+  assert.deepEqual(Array.from(b.c.stateRef.current.bankTx),[],"dropTx no se pierde entre cancelación y relevo");
+  assert.equal(b.c.stateRef.current.onboarded,true);assert.equal(b.monthlyResults.filter(Boolean).length,1);assert.equal(b.pulls.length,2);b.unmountAuth();
 });

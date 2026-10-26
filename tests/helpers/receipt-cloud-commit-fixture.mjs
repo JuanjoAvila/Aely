@@ -15,7 +15,7 @@ export function receiptCloudCommitFixture(bundle,context,owner){
  const open=mask.indexOf('{',start);let end=open+1,depth=1;
  for(;depth&&end<mask.length;end++){if(mask[end]==='{')depth++;if(mask[end]==='}')depth--;}
  assert.equal(depth,0,'el updater de adopción debe estar completo');
- const names=['cloudState','cloudPack','u','opts','freshLogin','read','cloudMergeKey','cloudPullRef','sessionRef'];
+ const names=['cloudState','cloudPack','u','opts','freshLogin','read','cloudMergeKey','cloudPullRef','sessionRef','readSession'];
  const factory=vm.runInContext('(function('+names.join(',')+'){return function(prev){'+app.slice(open+1,end-1)+'};})',context);
  return function(prev,cloudState,freshLogin=false){
   const cloudPack={data:cloudState,updated_at:'synthetic'},read={owner,ready:false,merging:true,revision:cloudPack.updated_at};
@@ -25,7 +25,8 @@ export function receiptCloudCommitFixture(bundle,context,owner){
   read.at=vm.runInContext('Date.now()',context);
   let applied=false;read.commit=value=>{applied=value;};
   const refs={cloudMergeKey:{current:Symbol('receipt-cloud-merge')},cloudPullRef:{current:read},cloudReadRef:{current:null},cloudUpdatedAtRef:{current:null},sessionRef:{current:{user:{id:owner}}},stateRef:{current:prev},obAbsorbedWriteBlocked:{current:false}};
-  const deps={cloudState,cloudPack,u:owner,opts:null,freshLogin,read,...refs};
+  // El updater captura la sesión exacta del GET, además del titular, como App.
+  const deps={cloudState,cloudPack,u:owner,opts:null,freshLogin,read,...refs,readSession:refs.sessionRef.current};
   const next=factory(...names.map(k=>deps[k]))(prev);
   refs.stateRef.current=next;
   commitCloudFixture(app,context,refs,next);
