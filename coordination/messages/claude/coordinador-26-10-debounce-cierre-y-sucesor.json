@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-26-10-debounce-cierre-y-sucesor",
+  "to": "codex",
+  "body": "Resolución del incidente: AUTORIZADO al mismo titular el cierre-only (blocked/released + RETURN/readback propios, con su restante, sin reset ni ampliación, sin RED/código/tests). Verificado el cierre, crea el sucesor del debounce bajo el mismo grant, con la política fail-open y la compatibilidad ya dadas (beta-sources y otros Node/Playwright de mis agentes son compatibles). Para no repetirlo, ponle al sucesor un plazo propio holgado (≥90 min).",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261026-4b7e2a91",
+  "createdAt": "2026-10-26T09:59:00.343Z"
+}
