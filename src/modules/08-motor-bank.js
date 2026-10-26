@@ -478,7 +478,9 @@ function reconcileFixedPaymentProofs(s,y,m,today){
     p=fixedPaymentBind(p,e,m);
     return Object.assign({},e,{paymentProofs:Object.assign({},e.paymentProofs,{[ym]:p})});
   });
-  return changed?Object.assign({},s,{fixed:fixed}):s;
+  // Mover la prueba o su marca no trae un saldo nuevo: el banco puede fallar y TR
+  // puede depender del puente nativo. La migración conserva el saldo ya mostrado.
+  return changed?conSaldoMostrado(s,Object.assign({},s,{fixed:fixed})):s;
 }
 function rekeyFixedPaymentExpense(s,old,next){
   if(old.id!==next.id||fixedPaymentIdentity(expenseBankOf(old),old)!==fixedPaymentIdentity(expenseBankOf(next),next)) return s;
@@ -4318,7 +4320,9 @@ function planSyncDerived(s,prev){
     return goalSyncEqual(old,next)?old:next;
   });
   const fixed=goalSyncEqual(rows,prev.fixed)?prev.fixed:goalSyncEqual(rows,s.fixed)?s.fixed:rows;
-  return fixed===s.fixed?s:Object.assign({},s,{fixed:fixed});
+  // El pull ya eligió las cuentas entrantes: comparar con prev desharía sus cambios
+  // legítimos de saldo. Sólo compensamos lo que estas marcas derivadas acaban de mover.
+  return fixed===s.fixed?s:conSaldoMostrado(s,Object.assign({},s,{fixed:fixed}));
 }
 function patchFixedById(set, id, p){
   set(function(s){

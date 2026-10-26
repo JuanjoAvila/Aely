@@ -1442,3 +1442,14 @@ Tanda 4 (suscripciones): `e2e/gastos-v5-subs.spec.mjs` (en el mapa de Gastos) ab
 `e2e/inicio-mes-futuro.spec.mjs`, en CROSSCUTTING, abre Inicio real y compara sus céntimos, el resumen de Gastos y el payload real del puente widget V2/legacy en Madrid y Los Ángeles para los tres cambios de calendario. El doble sustituye solo el transporte nativo; no acredita widget físico ni servidor desplegado. El modo neto conserva su contrato existente.
 
 El handler legacy conserva las cifras ante entradas null en reservaLog, que el lector anterior ignoraba. `informe-mes` exige ahora agosto40 sin tope explícito y conserva el histórico40+99=139 sólo con una ventana explícita infinita; todas las aserciones de informe cerrado, tarjeta y dismiss permanecen.
+
+
+## FIN-27 R2 · Saldo al migrar el mes del BOOK
+
+`tests/fin27-balance-reanchor.test.mjs` está registrado en `steps`; el spec homónimo se registra
+en el mapa de `08-motor-bank.js`. Comprueba el saldo que pinta la cuenta por separado de la
+caja BOOK y la asignación mensual, con pull cloud entrante, rekey con banco fallido o puente TR,
+replay, cero/negativo y sync posterior. El DOM usa el transporte/updater reales con datos
+sintéticos y conserva el servidor simulado tras un UPDATE CAS y recarga. Pruebas dirigidas
+CPU1, un worker y cero reintentos; no sustituye CI general ni aceptación móvil.
+[Contrato y límites](briefs/fin27-book-charge-month.md).

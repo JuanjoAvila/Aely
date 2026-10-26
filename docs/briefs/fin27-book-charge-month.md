@@ -24,7 +24,8 @@ como negativa de regresión, junto con los casos positivos de dos clientes.
 
 `fixedPaymentDerivedDay` usa el día del cargo. Solo se retira una marca derivada del BOOK que
 quedó bajo el mes equivocado y conserva exactamente su día; una marca manual de otro día se
-respeta. No cambia `07-tab-patri-fijos`, `isPaidIn`, cuentas, anclas ni previsiones por calendario.
+respeta. No cambia `07-tab-patri-fijos`, `isPaidIn` ni las previsiones por calendario. La corrección
+R2 de abajo compensa la base de la cuenta cuando esa marca deja de intervenir en el saldo.
 
 Dos oráculos independientes, con estados sintéticos y céntimos enteros:
 
@@ -42,3 +43,25 @@ ambos órdenes con base ausente/vieja/vacía y replay offline, ocho mutantes sem
 regresiones de pruebas/vínculos/renombrado/vetos/retirada y dos casos DOM del Plan real tras
 recarga. Specs y unitario registrados. CPU1, serie, un worker, cero reintentos. Las suites completas
 y los gates de integración pertenecen al integrador; esta evidencia no acredita una beta servida.
+
+## R2 · Reanclar el saldo al migrar la prueba
+
+Sobre la fuente publicada de PR308, retirar el `paidYm` de octubre antes del día previsto
+sumaba 1.299 céntimos al saldo visible: 987,01 → 1.000,00. Ocurría al derivar el Plan tras un
+pull y al reubicar la prueba durante un sync cuyo banco fallaba o cuyo saldo TR seguía en el
+puente nativo. Una sincronización bancaria correcta podía ocultarlo al reanclar después.
+
+Ambos recorridos usan ahora `conSaldoMostrado` entre el estado **entrante** y el que sólo acaba
+de cambiar sus pruebas o marcas. En cloud no se compara con `prev`: la nube puede traer un
+saldo legítimo diferente, otra cuenta u otro orden. El saldo nuevo del siguiente sync correcto
+sigue prevaleciendo. No cambian los asientos, las fechas, la identidad ni los céntimos del pago.
+
+`fin27-balance-reanchor` añade regresiones Node y DOM registradas. Las aserciones separan saldo
+visible, caja BOOK y recibos pagados/pendientes; incluyen cero y negativo, ambos roles de
+recibos, cambio de año, fuente ausente, feed parcial con cargo exacto, repetición y sync posterior.
+El DOM recorre el pull y el sincronizador reales y relee la cuenta tras recargar. Su servidor
+simulado conserva el UPDATE CAS aceptado: restaurar la respuesta inicial en cada recarga
+inventaba otro fallo, conservado como diagnóstico privado junto con los tres rojos originales.
+
+La candidata R2 requiere revisión independiente y autorización del SHA exacto antes de actualizar
+la misma PR308. Sin integración, publicación en beta ni aceptación móvil acreditadas por esta tanda.
