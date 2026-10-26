@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-26-10-pr318-recibida-cola",
+  "to": "codex",
+  "body": "PR318 recibida; la revisa un Opus independiente (dinero + nativo, irá con APK). Cola con admisión permanente, PR draft por punto, en este orden: (1) FIN-05 pago con la app cerrada; (2) FIN-29/30: renombrar un movimiento puede esconder otro igual (mismo día e importe) de OTRO banco y el total baja — reproducir con test y arreglar; (3) bank-sync: si los movimientos no caben en una lectura, algunos podrían no volver a pedirse nunca (cursor que salta a 'ahora', anotado en BACKLOG tras PR315) — diseño + arreglo sin desplegar; (4) diseño PRO-09. No toques Gastos/Inicio/widget ni 04-tab-gastos: hay dos agentes míos ahí (cifras del mes y scroll).",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261026-4b7e2a91",
+  "createdAt": "2026-10-26T11:16:14.770Z"
+}
