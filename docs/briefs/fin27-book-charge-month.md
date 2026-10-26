@@ -17,6 +17,11 @@ mueve exclusivamente una prueba válida al mes acreditado. El merge existente pu
 copia antigua y la nueva: ambas lecturas comparten la atribución de esa identidad incluso sin
 histórico local o con un feed parcial. No se modifica el merge de `00-core`.
 
+Una prueba de otro recibo inválida no puede aportar esa fecha: se comprueban su vinculación,
+contrato, banco, céntimos, ocurrencia, identidad, veto y limpieza del feed sin volver a llamar a
+`fixedPaymentProof`. Este caso produjo otro rojo durante la revisión previa al push y se conserva
+como negativa de regresión, junto con los casos positivos de dos clientes.
+
 `fixedPaymentDerivedDay` usa el día del cargo. Solo se retira una marca derivada del BOOK que
 quedó bajo el mes equivocado y conserva exactamente su día; una marca manual de otro día se
 respeta. No cambia `07-tab-patri-fijos`, `isPaidIn`, cuentas, anclas ni previsiones por calendario.
@@ -32,8 +37,8 @@ Dos oráculos independientes, con estados sintéticos y céntimos enteros:
 El segundo oráculo comprueba además el resultado real de `monthNetForAccount`: −1.299 por
 cuota mensual prevista y cero en otro banco, sin inferirlo de Plan ni comparar solo antes/después.
 
-Cobertura dirigida: 14 casos en Madrid/UTC/Los Ángeles con el mismo instante, merge real en
-ambos órdenes con base ausente/vieja/vacía y replay offline, siete mutantes semánticos rechazados,
+Cobertura dirigida: 15 casos en Madrid/UTC/Los Ángeles con el mismo instante, merge real en
+ambos órdenes con base ausente/vieja/vacía y replay offline, ocho mutantes semánticos rechazados,
 regresiones de pruebas/vínculos/renombrado/vetos/retirada y dos casos DOM del Plan real tras
 recarga. Specs y unitario registrados. CPU1, serie, un worker, cero reintentos. Las suites completas
 y los gates de integración pertenecen al integrador; esta evidencia no acredita una beta servida.

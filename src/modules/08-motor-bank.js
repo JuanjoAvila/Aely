@@ -342,7 +342,19 @@ function fixedPaymentBookDate(s,p){
       if(q&&q.kind==="book"&&q.key===p.key&&q.identity===p.identity&&q.bank===p.bank&&Number(q.amount)===Number(p.amount)&&q.chargeDate&&
         fixedPaymentBookSameRef(s,p,{extId:String(p.key||"").slice(p.bank.length+1),ent:p.bank,date:q.chargeDate,amount:p.amount})) dates.add(q.chargeDate);
     };
-    add(p);(s.fixed||[]).forEach(function(f){ Object.keys(f.paymentProofs||{}).forEach(function(k){ add(f.paymentProofs[k]); }); });
+    add(p);(s.fixed||[]).forEach(function(f){
+      if(!fixedPaymentUnique(s,f)||p.receiptId!=null&&p.receiptId!==f.id) return;
+      Object.keys(f.paymentProofs||{}).forEach(function(k){
+        var q=f.paymentProofs[k],M=Number(String(q&&q.chargeDate||"").slice(5,7)),name=q&&q.modelVersion===2?q.receiptName:f.name;
+        // No usar fixedPaymentProof aquí: vuelve a pedir esta fecha. El aporte ajeno necesita
+        // su contrato propio, identidad bancaria y estado firmes antes de compartir el mes.
+        if(q&&q.kind==="book"&&q.bank===accOf(f)&&occursIn(f,M)&&fixedPaymentModelMatches(q,f,M)&&
+          q.identity===fixedPaymentIdentity(q.bank,q)&&q.amount>0&&recNameMatch(name,q.merchant)&&recAmtClose(f.bankAmount>0?f.bankAmount:occAmountIn(f,M),q.amount)&&
+          !reciboVetado(s,f.id,q.identity)&&fixedPaymentFeedClear(s,q.identity)&&
+          (s.accounts||[]).filter(function(a){ return a.ent===q.bank&&accFixed(a); }).length===1&&
+          (s.bankTx||[]).filter(function(tx){ return tx.ent===q.bank&&q.key===tx.ent+"|"+tx.id; }).length<=1) add(q);
+      });
+    });
     if(dates.size) return dates.size===1?Array.from(dates)[0]:"";
   }
   return String(p.date||"").slice(0,10);
