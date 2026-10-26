@@ -1,0 +1,116 @@
+{
+  "status": "done",
+  "summary": "PR315 convertida por decision c599: hasta12 paginas exitosas y un unico intento inicial rechazado WRONG_TRANSACTIONS_PERIOD,max13 soloese caso. Lector/handler/planificador conservan comportamientoBASEc639. PublicadoSHAexacto revisado porFFnormal enMISMAPR315/ramaremotaoriginal. Cursorahora/partialsealed quedan pendientes separados enBACKLOG; no arreglo decliente/SQL ni integracion/despliegue.",
+  "productSHA": "fb7efe07e8205830c75e01a492a896c141a2fa4e",
+  "productTree": "d3bce3b393493b6c8ed687cbacff8480b49a9373",
+  "parentSHA": "888b2d06982d6658b678b48dfbf3d78beca750ec",
+  "behaviorBaseline": "c639081ca807bba526dd77cdc9413a6c4587247b",
+  "PR": 315,
+  "branch": "codex/sec02-paging-f3-r107-25013710",
+  "decisionGrant": "c599098aeec7e08c115614fefb9dd13921ee72c3",
+  "scopeAmendment": "d3c2b394cd5e5d1aad8ef50eedc98812b26bc745",
+  "tests": [
+    {
+      "command": "deno test --cached-only --no-lock --no-prompt --node-modules-dir=none --allow-read=supabase/functions,src/modules --fail-fast=1 --filter \"PR315 contrato ventana entera\" supabase/functions/bank-sync/overflow-resume.test.ts",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "context": "Causal RED on strict888:2selected,1pass1fail,8filtered;12attempts ratherthan13 means incomplete12successful-pagewindow."
+    },
+    {
+      "command": "deno test --cached-only --no-lock --no-prompt --node-modules-dir=none --allow-read=supabase/functions,src/modules --fail-fast=1 supabase/functions/bank-sync/overflow-resume.test.ts",
+      "exitCode": 0,
+      "casesPassed": 10,
+      "context": "SamebytesGREEN:5newcontract +5unchangedrealclientfinancialoracles."
+    },
+    {
+      "command": "deno test --cached-only --no-lock --no-prompt --node-modules-dir=none --allow-read=supabase/functions,src/modules --fail-fast=1 supabase/functions/bank-sync/attempt-budget.test.ts",
+      "exitCode": 1,
+      "context": "Duringrestoration11passed; nextcasefailedbecauseoldstrictcapassertionexpectedpage_limitbutunchangedBASEclassifieshardtransportguardprovider_error. OnlyassertionupdatedtoBASEclass;no runtimechange."
+    },
+    {
+      "command": "deno test --cached-only --no-lock --no-prompt --node-modules-dir=none --allow-read=supabase/functions,src/modules --fail-fast=1 --filter \"/F3 handler: (ventana|éxito normal|error no recuperable)/\" supabase/functions/bank-sync/attempt-budget.test.ts",
+      "exitCode": 0,
+      "casesPassed": 3,
+      "context": "Correctedaffectedcase andremaining2passed; originalaffected14distinct coveredas11plus3."
+    },
+    {
+      "command": "node scripts/run-deno-tests.mjs supabase/functions/bank-sync/overflow-resume.test.ts",
+      "exitCode": 0,
+      "casesPassed": 10,
+      "context": "Officialnewregistration andscopedpermissions; repeats same10cases,notadditionalcoverage."
+    },
+    {
+      "command": "node --check scripts/run-tests.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check scripts/run-deno-tests.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --cached --check",
+      "exitCode": 0
+    },
+    {
+      "command": "git bundle verify candidate.bundle",
+      "exitCode": 0
+    }
+  ],
+  "qualification": {
+    "distinctAffectedCasesPassed": 24,
+    "newCases": 10,
+    "affectedOriginalCases": 14,
+    "network": false,
+    "ports": 0,
+    "workers": 1,
+    "retries": 0,
+    "stopFirstFailure": true,
+    "financialOracles": [
+      "exactrefsand348centsperaccount12pageswith/withoutreject",
+      "sameBOOKreferencecents1251to1252",
+      "signcorrection",
+      "merchantcorrection",
+      "PDNGtoBOOK",
+      "withdrawnrow"
+    ],
+    "realClientFunctionsFromSource": true,
+    "SDKProviderDBSynthetic": true,
+    "handlerReaderDemandBehaviorBASEExceptCommentsVerified": true,
+    "oracleSHA256": "8eb852557deabcea79b5cc9de2c9293474cb43ec00165e99f4a2df3f37301105"
+  },
+  "artifacts": {
+    "manifestSHA256": "b3588b85451e9d3a9ace6f2d4f7246306f050a4bbd50d7a0095527496f14d04d",
+    "bundleSHA256": "c7ea389d33e2c4e8a6d057a6d2f9503c3c0c1c4ec1245b66f954bee1ef1215b9",
+    "diffSHA256": "116e31f9489bd9f709f1aadd6cf78a4972bede99887657942aabad36b1152ef9",
+    "independentReviewSHA256": "e38628c9c2a956b7f1833c5a42e00059cb31bbec2fee93aeddc4a1fa14c447c8",
+    "pushReadbackSHA256": "35503afe73f42503bd8319eb62fa07df6023a4bcee1b0a6d876ca5817cd59d05"
+  },
+  "publication": {
+    "normalFF": true,
+    "remoteBefore": "888b2d06982d6658b678b48dfbf3d78beca750ec",
+    "remoteAfter": "fb7efe07e8205830c75e01a492a896c141a2fa4e",
+    "samePR": true,
+    "sameOriginalBranch": true,
+    "noForce": true,
+    "noRebase": true
+  },
+  "resources": {
+    "ownRunsReturned": true,
+    "runnerLockPresent": false,
+    "noOwnPortsOrServices": true,
+    "noForeignResourcesTouched": true
+  },
+  "limitations": [
+    "Cursor to now on windows exceeding12successfulpages and partial/sealed client contract remain pending in docs/BACKLOG.md.",
+    "No client/SQL/deps/versions/Android/APK/Gradle/live bank/Edge/backend deployment changes.",
+    "No integration,CIgreen,servedbeta,physicalmobileacceptanceorProductREADY claim."
+  ],
+  "ProductREADY": false,
+  "repository": "JuanjoAvila/Aely",
+  "schema": 1,
+  "taskId": "sec02-bank-sync-overflow-resume-r2-codex-20261026",
+  "actor": "codex",
+  "sessionId": "codex-local-20261026-pagingr2r108-fda31257-3619f83e-16d0-456f-945d-8b1d58638c3b",
+  "createdAt": "2026-10-26T06:59:52.356Z",
+  "released": true
+}
