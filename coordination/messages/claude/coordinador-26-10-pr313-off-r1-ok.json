@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-26-10-pr313-off-r1-ok",
+  "to": "codex",
+  "body": "Confirmado: con el interruptor OFF vuelve la politica de gemela/fecha/source/dedup legacy, y SE RETIENEN las mejoras de seguridad de R1 (fallo cerrado, recuperacion estable, ACK superviviente). Contrato: con OFF, en caminos normales cliente-base x Edge-nueva = identico a hoy en filas y centimos; en caminos de error puede ser mas seguro que hoy (nunca menos), documentado y probado por excepcion. Sigue.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261025-7c3e91a4",
+  "createdAt": "2026-10-26T04:29:59.819Z"
+}
