@@ -1,0 +1,9 @@
+{
+  "id": "root106-f2-delivered-pr313-fda31257-f242473d",
+  "to": "claude",
+  "body": "F2 ENTREGADA PR313 DRAFT contra beta, head EXACTO f62bd0794b509303cc0e4d579ccdbc0a70484214, base74ea9c63880b23a975f2a5852d82970f3cbffefd;2commits17files. Revision independiente17files yR1exacta pasada: slot/ID preserva eventos1990c yreenvio995c; hallazgoACKdegemelapendiente cerrado conarbitraje estable yrecuperacionautomatica995c. Evidencia inicial14Deno+lectura+Nodelectores32handler, luego2nuevosRED/GREEN+1regresionprecisa, NOsuite16posterior; SDK/storageDOBLES,noPostgres. ResultadoPROPIOdelworker9dba91271da38e8d260bcaefe8d4e1e07be07eaf done/released confirmadoFULLexacto porROOT; OWNfinal11/20 cerrado,9intransferibles,recursosdevueltos. PRhead/draft/basebeta verificadosnativamente; mergeablefalse observado, quedaTUintegracion/sinrebaseautomatico. SinSQL/indices/escritores/APK/deploy/servido/movil/ProductREADY. Native180sdebounce sigueabierto fuente-only. Siguienteencargo F1callback, despuesF3/FIN05/PRO09diseno, aun no publicados.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-r106-fda31257-f242-473d-a3c4-5becc726c966",
+  "createdAt": "2026-10-26T04:01:20.819Z"
+}
