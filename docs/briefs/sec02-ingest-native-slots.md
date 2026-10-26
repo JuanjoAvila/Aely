@@ -37,3 +37,11 @@ Registro de CI: native-identity.test.ts está en denoEnLista y en el descubrimie
 - [PostgREST On Conflict](https://docs.postgrest.org/en/stable/references/api/tables_views.html#on-conflict): contrato de columnas UNIQUE.
 
 El changelog oficial de Supabase se revisó antes del diseño. La incompatibilidad del índice parcial fue una deducción del contrato documentado; nunca se presentó como prueba SQL ejecutada.
+
+## Corrección tras revisión independiente: gemelas pendientes
+
+El primer candidato permitía ACK cruzado de dos filas #dup antes de que hubiera una superviviente liberada. Dos RED nuevos del handler real reprodujeron el ACK cruzado200/200 y el borrado posterior con superviviente aún pendiente503/200. Ese candidato y sus evidencias se conservan.
+
+El precheck ahora selecciona source y solo confirma una gemela liberada cuando NO existe una fila propia pendiente. Una propia pendiente continúa al arbitraje estable por created_at/id: la anterior puede reanudar su liberación; la posterior devuelve503 sin borrar ni confirmar mientras la superviviente está #dup. Tras liberarse la anterior, el reenvío de la posterior retira únicamente su fila propia con source aún igual al observado y confirma el ACK de la superviviente. La prueba termina por reenvíos al handler con una fila995c, sin liberar source manualmente desde el SDK.
+
+Se ejecutaron únicamente los dos casos nuevos y la regresión precisa de superviviente ya liberada; los14 casos anteriores y Node conservan su evidencia previa, sin anunciar una suite16 completa posterior. Almacenamiento/SDK siguen siendo sintéticos y no hay SQL, despliegue ni publicación.

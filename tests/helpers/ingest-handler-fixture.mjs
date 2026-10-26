@@ -93,7 +93,7 @@ function fakeDb(opts = {}) {
           opts.hideLegacyPrecheckOnce = false;
           return { data: [], error: null };
         }
-        if (opts.hideEventPrecheckOnce && q.cols === "id,fecha,importe,ingest_event_id") {
+        if (opts.hideEventPrecheckOnce && q.cols.startsWith("id,fecha,importe,ingest_event_id")) {
           opts.hideEventPrecheckOnce = false;
           return { data: [], error: null };
         }

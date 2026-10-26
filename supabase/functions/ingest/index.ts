@@ -214,7 +214,7 @@ Deno.serve(async (req) => {
   let possibleDup = false;
   if (eventKey) {
     const { data: cercanos } = await supabase.from("expenses")
-      .select("id,fecha,importe,ingest_event_id")
+      .select("id,fecha,importe,ingest_event_id,source")
       .eq("user_id", userId)
       .gte("importe", importe - 0.02).lte("importe", importe + 0.02)
       .gte("fecha", new Date(t0 - 2 * 60 * 60 * 1000).toISOString())
@@ -222,7 +222,13 @@ Deno.serve(async (req) => {
     const gemelo = (cercanos || []).find((r) => esGemeloIngest(
       { fecha, importe, ingest_event_id: eventKey }, r,
     ));
-    if (gemelo) return skip("dup: mismo pago avisado por TR y Wallet", { tipo, dup: true, ack: gemelo.id });
+    if (gemelo && !pendingNative) {
+      // El ACK retira el aviso de la cola del APK. Dos puertas aún pendientes no pueden
+      // confirmarse una a otra mientras ambas filas siguen fuera de las cifras.
+      if (!gemelo.source || String(gemelo.source).includes("#dup"))
+        return json({ ok: false, deferred: true, error: "gemelo nativo aún pendiente" }, 503);
+      return skip("dup: mismo pago avisado por TR y Wallet", { tipo, dup: true, ack: gemelo.id });
+    }
   } else {
     /* Una APK antigua no aporta identidad suficiente para borrar por parecido. Conservamos la
        segunda señal fuera de las cifras y respondemos skipped para que no confirme dos veces;
@@ -359,17 +365,21 @@ Deno.serve(async (req) => {
         { tipo, dup: true, possibleDup: true, ack: ackId });
     }
     if (gemeloAnterior) {
-      const { error: borrarError } = await supabase.from("expenses")
-        .delete().eq("user_id", userId).eq("id", ackId);
-      if (borrarError) {
+      const survivor = (trasInsert || []).find((r) => tieneGemeloAnterior(actual, [r]));
+      // La posterior espera: retirar su cola antes de que la anterior se libere puede dejar
+      // el pago sin ninguna fila contable. La anterior sí puede reanudar su propia liberación.
+      if (!survivor?.source || String(survivor.source).includes("#dup"))
+        return json({ ok: false, deferred: true, error: "superviviente nativa aún pendiente" }, 503);
+      const { data: removed, error: borrarError } = await supabase.from("expenses")
+        .delete().eq("user_id", userId).eq("id", ackId).eq("source", String(actual.source)).select("id");
+      if (borrarError || !removed?.length) {
         await logIngestError(supabase, userId,
           "se detectó el aviso duplicado pero no se pudo retirar: queda fuera de las cifras",
           { code: "dup_delete", source: fuente });
         if (eventKey) return json({ ok: false, deferred: true, ack: ackId, error: "retirada pendiente" }, 503);
         return skip("dup: retirada pendiente", { tipo, dup: true, deferred: true, ack: ackId });
       }
-      const survivor = (trasInsert || []).find((r) => tieneGemeloAnterior(actual, [r]));
-      return skip("dup: mismo pago avisado por TR y Wallet", { tipo, dup: true, ack: survivor?.id || ackId });
+      return skip("dup: mismo pago avisado por TR y Wallet", { tipo, dup: true, ack: survivor.id });
     }
     const { error: liberarError } = await supabase.from("expenses")
       .update({ source: eventKey ? sourceIngestOrdinal(ordinal) : "macrodroid" }).eq("user_id", userId).eq("id", ackId);

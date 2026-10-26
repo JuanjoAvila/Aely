@@ -35,7 +35,7 @@ function storage(opts:any={}){
  if(legacy)return q.op==='upsert'?{data:[],error:null}:{data:null,error:{code:'23505',message:'expenses_dedup_idx'}};
  const row={id:'synthetic-'+(rows.length+1),created_at:q.row.fecha,...q.row};rows.push(row);return {data:[{id:row.id}],error:null};}
  if(q.op==='update'){if(opts.releaseError){opts.releaseError=false;return {data:null,error:{message:'synthetic release failure'}};}for(const r of matches())Object.assign(r,q.row);return {data:[],error:null};}
- if(q.op==='delete'){const gone=new Set(matches());for(let i=rows.length-1;i>=0;i--)if(gone.has(rows[i]))rows.splice(i,1);return {data:[],error:null};}
+ if(q.op==='delete'){if(opts.deleteError)return {data:null,error:{message:'synthetic delete failure'}};const gone=new Set(matches());for(let i=rows.length-1;i>=0;i--)if(gone.has(rows[i]))rows.splice(i,1);return {data:Array.from(gone).map((r:any)=>({id:r.id})),error:null};}
  throw Error('Unexpected query');}
  return api;}
  return {db:{from,rpc:()=>Promise.resolve({data:true,error:null})},rows,events,writes};}
@@ -113,4 +113,31 @@ Deno.test('F2 unknown empty insert or manual collision never becomes a fabricate
 Deno.test('F2 concurrent native events with different original milliseconds keep distinct read identity',async()=>{
  const s=storage();await Promise.all([post(s,body('v1_time_a')),post(s,{...body('v1_time_b'),fecha:String(Number(body('').fecha)+10)})]);
  equal(s.rows.length,2,'different-time concurrent rows');equal(filasComoLaApp(s.rows,[],[],'owner-synthetic').reduce((n,r)=>n+Math.round(Number(r.importe)*100),0),1990,'different-time concurrent cents');
+});
+
+Deno.test('F2 double-pending cross-door replays never ACK an unconfirmed survivor',async()=>{
+ const opts={releaseError:true,deleteError:true};const s=storage(opts);
+ const tr=body('v1_double_pending_tr');
+ const wallet={evento:'v1_double_pending_wallet',fuente:'wallet',fecha:tr.fecha,titulo:'ALIAS SINTETICO',texto:'9,95 € con Trade Republic Visa Card'};
+ const seeded=await Promise.all([post(s,tr),post(s,wallet)]);
+ equal(seeded.map(r=>r.status),[503,503],'both uncertain writes');equal(s.rows.length,2,'both uncertain rows retained');
+ equal(s.rows.every(r=>String(r.source).includes('#dup')),true,'both still pending');
+ const replays=await Promise.all([post(s,tr),post(s,wallet)]);
+ console.log(JSON.stringify({rows:s.rows.length,pending:s.rows.filter(r=>String(r.source).includes('#dup')).length,replayStatuses:replays.map(r=>r.status),replayACKs:replays.map(r=>r.data.ack||null)}));
+ for(const r of replays){if(r.status===200){const ack=s.rows.find(row=>row.id===r.data.ack);equal(!!ack&&!String(ack.source).includes('#dup'),true,'every successful ACK is released');}else equal(r.status,503,'pending remains retryable');}
+ // Se resuelve el fallo del SDK; las filas SOLO cambian mediante los reenvíos al handler real.
+ opts.deleteError=false;
+ const finalA=await post(s,tr),finalB=await post(s,wallet);
+ equal([finalA.status,finalB.status],[200,200],'automatic recovery without changing source externally');
+ equal(finalA.data.ack,finalB.data.ack,'one stable released survivor ACK');equal(s.rows.length,1,'pending alias removed only after survivor release');
+ equal(s.rows[0].source,'macrodroid','confirmed survivor');equal(Math.round(Number(s.rows[0].importe)*100),995,'one cross-door payment');
+});
+
+Deno.test('F2 postinsert never deletes own row or ACKs an earlier pending twin',async()=>{
+ const s=storage({releaseError:true});const tr=body('v1_post_pending_tr');
+ const wallet={evento:'v1_post_pending_wallet',fuente:'wallet',fecha:tr.fecha,titulo:'ALIAS POST SINTETICO',texto:'9,95 € con Trade Republic Visa Card'};
+ const rs=await Promise.all([post(s,tr),post(s,wallet)]);
+ console.log(JSON.stringify({statuses:rs.map(r=>r.status),rows:s.rows.length,sources:s.rows.map(r=>r.source),ACKs:rs.map(r=>r.data.ack||null)}));
+ equal(rs.map(r=>r.status),[503,503],'postinsert pending twin cannot confirm success');equal(s.rows.length,2,'do not delete while survivor is pending');
+ equal(rs[1].data.ack,undefined,'no pending survivor ACK');
 });
