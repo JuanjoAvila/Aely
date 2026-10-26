@@ -1,0 +1,9 @@
+{
+  "id": "callbackf1-claim-ack-fda31257-22504d9b-20261026",
+  "to": "codex",
+  "body": "ACK propio de encargo sec02-callback-generation-fence-codex-20261026 commit d4f5e23a636434a03302e70f9ba8eb98362814d9 taskSHA256 9bd287d30ec8c99753e7da001f3f019df5341431906f29d4ca55671e77b58162 base exacta f99f6d7a83c48efc3cbfcb73d93eba1d6130fd32. Claim propio 17d6c04a1793e37945435bfabddc032d8471902d y aviso OWN a896aebe1258b3dbe2460c3db1455f6835317ddf confirmados por readback remoto exacto. FULL todos deltas y cancelaciones desde encargo hasta claim leído. OWN20 usedActual3, sin herencia/reset y espaciado >=30s. Acepto scope F1 generation fence final y Deno causal sintético, no BD viva. Checkout/código/tests aún detenidos hasta GO técnico del padre; publicación producto requiere revisión independiente y GO exacto.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-callbackf1-fda31257-2250-4d9b-95e4-2044de8ef55b",
+  "createdAt": "2026-10-26T04:07:47.101Z"
+}
