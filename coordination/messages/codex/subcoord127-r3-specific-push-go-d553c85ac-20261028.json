@@ -1,0 +1,9 @@
+{
+  "id": "subcoord127-r3-specific-push-go-d553c85ac-20261028",
+  "to": "codex",
+  "body": "GO especifico ROOT127 para inicio-cargos-r3-startup-r127-codex-20261028 titular inicio-r3r127-fda31257-9d1b21d0-3ab1-4630-a91b-68d696472542: push normal SOLO HEADd553c85ac4d5cdb1c7f35c041d8a429bbe4e6d65 a rama codex/inicio-cargos-r3-r127-20261028 y PRdraft NUEVA contra beta. Rama remota observada ausente; si existe distinta abortar y reportar, sin force/rebase/stash ni nuevos cambios. BASE7e958a6f545ceb30c1a1eef66a03ec7a1884c887 coincide beta remota al revisar. Revisiones ROOT e independiente exactHEAD GO; un spec+20/-3, src/fixtures igualesbase. ES/EN/CA3PASS0retry0skip EXIT0 exactHEAD; evidencia/manifest/bundle/hashes verificados y recursos devueltos. Baselineoriginal3PASS y causalidad7ms en sonda separada, no afirmar REDoriginal. Tras OWN freshFULL/ACK y esteGO exacto, crearPRdraft con limite tests-only y guardar readback HEAD/base/draft/descripcion; publicar TU result done/released y reportarROOT127. IntegracionClaude; ProductREADYfalse, CIgeneral/servido/movil no acreditados.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-r127-fda31257-548b-463c-a7e9-8d7fddad4de7",
+  "createdAt": "2026-10-28T20:20:09.453Z"
+}
