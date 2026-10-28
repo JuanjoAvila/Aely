@@ -2437,15 +2437,14 @@ function App(){
     // Importa el ORDEN: si los fijos se cobran antes de que entre la nómina, puedes quedarte
     // en negativo a mitad de mes aunque a fin de mes cuadres. Sin día: cargos al principio
     // (día 0, peor caso) e ingresos al final (día 99). ---
+    // Los eventos salen de `pendingWalkEvents` (08), la misma lista que el simulador: lo de hoy o
+    // vencido sin cobro acreditado cuenta como cargo de HOY (decisión del dueño 28/10/2026).
     const evsByBank={};
-    // Traspasos y entradas llevan su id: «¿Te llega?» enseña (y deja editar) justo los recorridos.
-    const pushEv=(bank,day,amt,flow)=>{ (evsByBank[bank]=evsByBank[bank]||[]).push(flow?{day:day,amt:amt,kind:flow.kind,id:flow.id,name:flow.name}:{day:day,amt:amt}); };
-    state.fixed.forEach(e=>{ if(fijoDelMes(e)&&!isPaidIn(e,curMonth,today,curYear,state)) pushEv(accOf(e), dayIn(e,curMonth)||0, -occAmountIn(e,curMonth)); });
-    state.debts.forEach(d=>{ if(debtActive(d)&&!isDebtPaidThisMonth(d,today,state,curYear,curMonth)){ pushEv(d.account||"sabadell", debtChargeDay(d), -d.monthly); const bl=debtBalloonIn(d,curYear,curMonth); if(bl>0) pushEv(d.account||"sabadell", debtChargeDay(d), -bl); } });
-    (state.oneoffs||[]).forEach(o=>{ if(oneoffOccurs(o,curYear,curMonth)&&(o.amount||0)!==0&&!isPaidThisMonth(o,today)) pushEv(o.account||"sabadell", o.day||0, -o.amount); });
-    (state.flows||[]).forEach(f=>{ if(!flowOccursIn(f,curMonth,curYear)||flowPaidIn(state,f,curYear,curMonth,today))return; const dd=flowDay(f,curYear,curMonth); if(f.kind==="income") pushEv(f.to||"sabadell", dd||99, f.amount, f); else if(f.kind==="transfer") pushEv(f.from||"sabadell", dd||0, -f.amount, f); });
+    pendingWalkEvents(state,curYear,curMonth,today).forEach(ev=>{ (evsByBank[ev.bank]=evsByBank[ev.bank]||[]).push(ev); });
     const minByBank={}, minDayByBank={};
-    Object.keys(allBanks).forEach(b=>{ const r=minWalk(bankBal[b]||0, evsByBank[b]); minByBank[b]=r.min; minDayByBank[b]=r.minDay; });
+    // Un banco con solo recibos vencidos sin cobrar no está en `pendingByBank` (que va por fecha):
+    // también se recorre, o «¿Te llega?» lo pintaría como banco sin saldo.
+    Object.keys(Object.assign({},allBanks,evsByBank)).forEach(b=>{ const r=minWalk(bankBal[b]||0, evsByBank[b]); minByBank[b]=r.min; minDayByBank[b]=r.minDay; });
     // foco en el banco principal de gastos fijos (Sabadell)
     const mainBank="sabadell";
     const mainBal=bankBal[mainBank]||0;

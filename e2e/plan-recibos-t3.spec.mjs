@@ -129,6 +129,34 @@ test("editar la nómina desde la hoja: el primer número sustituye, el día se m
   expect(await saldoVisto(page)).toEqual(antes);
 });
 
+test("un recibo vencido sin cobro acreditado es cargo de hoy: filas, cifra, píldora e Inicio cuadran", async ({ page }) => {
+  // Decisión del dueño (revisión t3, B1). 800 €; Teléfono 30 del día 8 sin cargo del banco, Luz 300
+  // (15), Coche 200 (18) y Seguro 400 (25): 800 − 30 hoy − 300 − 200 − 400 = −130 el 25. Antes el
+  // recorrido daba el Teléfono por cobrado por fecha y decía «Pasa 100 €» con 930 € por pagar.
+  const recibos = await abrePlan(page, { accounts: cuenta(800),
+    fixed: [recibo("tel", "Teléfono", 30, 8), recibo("luz", "Luz", 300, 15), recibo("coche", "Coche", 200, 18), recibo("seg", "Seguro", 400, 25)] });
+  await expect(recibos.getByTestId("plan-summary").locator(".pr6-big")).toHaveText("930,00 €");
+  await expect(recibos.getByTestId("plan-llega")).toHaveText("Falta 130 €");
+  const hoja = await abreLlega(page, recibos);
+  const sab = hoja.locator('[data-testid="llega-banco"][data-bank="sabadell"]');
+  await expect(sab).toContainText("Tienes hoy800,00 €");
+  await expect(sab).toContainText("Recibos que faltan− 930,00 €");
+  await expect(sab.getByTestId("llega-cifra")).toHaveText("te faltan130,00 €");
+  await expect(sab.getByTestId("llega-tip")).toHaveText("Pasa 130 € a Sabadell antes del 25");
+  // Inicio: el mismo saldo y el Teléfono como vencido sin pago acreditado, por su importe.
+  await page.locator(".v4-sheet-back").first().click({ position: { x: 20, y: 20 } });
+  await expect(hoja).toHaveCount(0);
+  await page.locator('.botnav-tab[data-tour="inicio"]').click();
+  const inicio = page.locator(".page-live").filter({ hasText: "Cargos vencidos" });
+  await expect(inicio).toContainText("800,00 €");
+  await expect(inicio).toContainText(/Teléfono\s*Sabadell · Sin pago acreditado\s*30,00 €/);
+  expect(await saldoVisto(page)).toEqual([800]);
+  // El mínimo que usa Inicio (`totals.minByBank`, el del widget y el mínimo diario) es el mismo
+  // recorrido: el simulador lo comparte y da −130 desde el mismo saldo.
+  const min = await page.evaluate(() => { const s = mcLoadRaw(mcStateKey()); return minWalk(800, bankPendingEvents(s, "sabadell", 2026, 10, 10)).min; });
+  expect(Math.round(min * 100)).toBe(-13000);
+});
+
 test("editar solo el importe de una nómina «último laborable» conserva la regla", async ({ page }) => {
   // Octubre de 2026: el último laborable es el viernes 30; el Seguro del 31 la deja dentro de la hoja.
   const recibos = await abrePlan(page, { fixed: [recibo("luz", "Luz", 300, 15), recibo("seg", "Seguro", 400, 31)], flows: [{ id: "nom", kind: "income", name: "Nómina", amount: 1000, to: "sabadell", when: "last" }] });

@@ -787,8 +787,11 @@ el mínimo con una nómina a mitad de mes («lo más justo, el 15»), la nómina
 primero sale y luego entra (con el orden viejo el caso daba «Te llega»: comprobado), un banco sin
 cuenta con «—» fuera de la píldora, la frescura sembrada en `obBalAt`, «¿Y si gasto…?» en vivo y
 editar la nómina (el primer número sustituye, el día se mueve, el saldo mostrado no cambia y una
-nómina «último laborable» conserva la regla si solo cambia el importe). Está en `E2E_MAP` para
-`14-v4-screens`, `08-motor-bank`, `11-app-main`, `01-i18n` y `shell.html`.
+nómina «último laborable» conserva la regla si solo cambia el importe). También un recibo vencido
+sin cobro acreditado: cuenta como cargo de hoy y «Tienes hoy − Recibos que faltan» cuadra con la
+cifra, la píldora, el aviso e Inicio (con la regla vieja de «cobrado por fecha» sale rojo:
+comprobado). Está en `E2E_MAP` para `14-v4-screens`, `08-motor-bank`, `07-tab-patri-fijos`,
+`11-app-main`, `01-i18n` y `shell.html`.
 
 Descarga incompleta (candidato13/10): `tests/bank-download-incomplete.test.mjs`, registrado en
 runner y `STEPS_SUPABASE`, ejecuta lector, handler y updater real de App. Compara el updater con

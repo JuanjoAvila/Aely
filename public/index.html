@@ -18257,9 +18257,15 @@ function isDebtPaidThisMonth(d,today,s,y,m){ return s&&debtPaymentState(s,d,y,m,
 // adelanta el calendario; BOOK conserva su regla anterior y las notificaciones no mueven saldo.
 const isPaidIn=(e,m,t,y,s)=>{
   const year=y||new Date().getFullYear(),ym=year*12+m,d=dayIn(e,m);
-  if(e.paidYm===ym) return true;
+  return isPaidByProofIn(e,m,t,year,s) || e.wait!==ym&&d!=null&&d<=t;
+};
+// La parte de `isPaidIn` que NO es calendario: marca confirmada o cargo del banco enlazado. El
+// recorrido de «¿Te llega?» solo da por cobrado esto (decisión del dueño 28/10/2026, t3 B1).
+const isPaidByProofIn=(e,m,t,y,s)=>{
+  const year=y||new Date().getFullYear();
+  if(e.paidYm===year*12+m) return true;
   const p=s&&fixedPaymentProof(s,e,year,m,t);
-  return !!(p&&p.kind==="expense"&&fixedPaymentDerivedDay(s,{proof:p})) || e.wait!==ym&&d!=null&&d<=t;
+  return !!(p&&p.kind==="expense"&&fixedPaymentDerivedDay(s,{proof:p}));
 };
 const isPaidThisMonth=(e,today)=>{ const d=dayOf(e); return d!=null && d<=today; };
 // ¿el gasto necesita que el usuario le asigne un mes? (anual sin programar)
@@ -19513,16 +19519,48 @@ function applyBankBalances(s, links){
   return { state:newState, changed:changed||obChanged, synced:synced, obAccounts:obAccts };
 }
 
-// Eventos PENDIENTES de un banco este mes (cargos −, ingresos +) con su día.
-// Espejo EXACTO de la lógica evsByBank del motor (totals) para un solo banco, reutilizable
-// por el simulador "¿me lo puedo permitir?". today = día de hoy (solo cuenta lo no pagado).
-function bankPendingEvents(state, bank, y, m, today){
+/* Eventos PENDIENTES del mes que recorre `minWalk` (cargos −, entradas +), con su banco y su día.
+   Es la ÚNICA lista: la usan `totals` (11: `minByBank`, píldora, «¿Te llega?», mínimo diario de
+   Inicio) y el simulador «¿Me lo puedo permitir?» (`bankPendingEvents`).
+   Decisión del dueño (28/10/2026, revisión t3 B1): un recibo de HOY o VENCIDO sin cobro
+   acreditado es un cargo de HOY. Antes bastaba con que su día hubiera llegado (`isPaidIn` con
+   d<=today) para darlo por cobrado, mientras «Recibos que faltan» (`planChargesMonth`) lo seguía
+   contando: la hoja decía «Pasa 100 €» con 130 € por pagar en sus propias filas. Ahora un recibo
+   solo sale del recorrido con prueba (`isPaidByProofIn`: marca confirmada o cargo enlazado, la
+   misma frontera de dinero que el saldo mostrado) o en pausa. Una prueba que no mueve saldo
+   (aviso de Wallet, BOOK sin fila) sigue contando como cargo, como antes (fixed-ispaidin).
+   Las cuotas, como siempre y como Plan (`debtPaymentState`, que hoy da por pagada una vencida);
+   una cuota SIN día la descuenta `planCoverState` sin fecha. Puntuales y entradas, igual. */
+function pendingWalkEvents(state, y, m, today){
   const evs=[];
-  (state.fixed||[]).forEach(function(e){ if(occursIn(e,m)&&accOf(e)===bank&&!isPaidIn(e,m,today,y,state)&&!fixedEnPausa(state,e,y,m,today)) evs.push({day:dayIn(e,m)||0, amt:-occAmountIn(e,m)}); });
-  (state.debts||[]).forEach(function(d){ if(debtActive(d)&&(d.account||"sabadell")===bank&&!isDebtPaidThisMonth(d,today,state,y,m)){ evs.push({day:debtChargeDay(d), amt:-(d.monthly||0)}); const bl=debtBalloonIn(d,y,m); if(bl>0) evs.push({day:debtChargeDay(d), amt:-bl}); } });
-  (state.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m)&&(o.account||"sabadell")===bank&&(o.amount||0)!==0&&!isPaidThisMonth(o,today)) evs.push({day:o.day||0, amt:-o.amount}); });
-  (state.flows||[]).forEach(function(f){ if(!flowOccursIn(f,m,y)||flowPaidIn(state,f,y,m,today))return; const dd=flowDay(f,y,m); if(f.kind==="income"&&(f.to||"sabadell")===bank) evs.push({day:dd||99, amt:f.amount}); else if(f.kind==="transfer"&&(f.from||"sabadell")===bank) evs.push({day:dd||0, amt:-f.amount}); });
+  const hoy=function(d){ return d!=null&&d>0&&d<today?today:(d||0); };
+  (state.fixed||[]).forEach(function(e){
+    const a=occAmountIn(e,m);
+    if(!(a>0)||!occursIn(e,m)) return;
+    if(isPaidByProofIn(e,m,today,y,state)||fixedPausedIn(e,y,m)) return;
+    evs.push({bank:accOf(e), day:hoy(dayIn(e,m)), amt:-a});
+  });
+  (state.debts||[]).forEach(function(d){
+    if(!debtActive(d)) return;
+    const st=debtPaymentState(state,d,y,m,today);
+    if(st.paid||st.day==null||!(Number(st.day)>0)) return;
+    const b=d.account||"sabadell", bl=debtBalloonIn(d,y,m);
+    if(Number(d.monthly)>0) evs.push({bank:b, day:hoy(st.day), amt:-Number(d.monthly)});
+    if(bl>0) evs.push({bank:b, day:hoy(st.day), amt:-bl});
+  });
+  (state.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m)&&(o.amount||0)!==0&&!isPaidThisMonth(o,today)) evs.push({bank:o.account||"sabadell", day:o.day||0, amt:-o.amount}); });
+  // Traspasos y entradas llevan su id: «¿Te llega?» enseña (y deja editar) justo los recorridos.
+  (state.flows||[]).forEach(function(f){
+    if(!flowOccursIn(f,m,y)||flowPaidIn(state,f,y,m,today)) return;
+    const dd=flowDay(f,y,m), tag={kind:f.kind,id:f.id,name:f.name};
+    if(f.kind==="income") evs.push(Object.assign({bank:f.to||"sabadell", day:dd||99, amt:f.amount},tag));
+    else if(f.kind==="transfer") evs.push(Object.assign({bank:f.from||"sabadell", day:dd||0, amt:-f.amount},tag));
+  });
   return evs;
+}
+// Los de un solo banco, para el simulador «¿me lo puedo permitir?».
+function bankPendingEvents(state, bank, y, m, today){
+  return pendingWalkEvents(state,y,m,today).filter(function(ev){ return ev.bank===bank; });
 }
 // Recorre los eventos por día desde un saldo inicial y devuelve el punto MÍNIMO (peor momento) y el final.
 /* Es la ÚNICA copia del recorrido: también la usa `totals` (11) para `minByBank`, y de ahí la
@@ -28887,14 +28925,23 @@ function planRecibosLlega(totals, pack){
 }
 /* Hora de la última lectura buena del saldo de un banco (`obBalAt`, la que dice el servidor). Con
    dos conexiones del mismo banco manda la más vieja: decir «hace 2 h» de un saldo en parte de hace
-   tres días sería mentir. Sin lectura (cuenta a mano, TR por el puente) no hay frescura: 0. */
+   tres días sería mentir. Sin lectura (cuenta a mano, TR por el puente) no hay frescura: 0.
+   Tampoco la hay si una conexión de ese banco está caída o sin saldo (`bankIssues`, cuentas
+   rancias): esa no deja hora en `obBalAt` y la de la otra pasaría por la de todo el banco. */
 function pr6LecturaMs(state, bank){
+  state=state||{};
+  const rancio=(state.bankIssues||[]).some(function(i){ return i&&i.ent===bank; })
+    ||(state.accounts||[]).some(function(a){ return a&&a.ent===bank&&a.balanceStale; })
+    ||(state.obAccounts||[]).some(function(o){ return o&&o.ent===bank&&o.stale; });
+  if(rancio) return 0;
   let ms=0;
-  const at=(state&&state.obBalAt)||{};
+  const at=state.obBalAt||{};
   Object.keys(at).forEach(function(asp){
     if(entFromAspsp(asp)!==bank) return;
-    const v=dateMs(at[asp]);
-    if(v>0&&(!ms||v<ms)) ms=v;
+    // `Date.parse` y no `dateMs`: con una fecha ilegible `dateMs` devuelve AHORA y pintaría
+    // «saldo de ahora» inventado (revisión t3, R1).
+    const v=Date.parse(at[asp]);
+    if(isFinite(v)&&v>0&&(!ms||v<ms)) ms=v;
   });
   return ms;
 }
@@ -29156,7 +29203,11 @@ function LlegaSheet({state, set, totals, pack, onClose}){
   const conSaldo=base.filter(function(b){ return b.known; });
   const [raw,setRaw]=useState("");
   const [teclado,setTeclado]=useState(false);
-  const [gBank,setGBank]=useState(conSaldo.length?conSaldo[0].bank:null);
+  // Por defecto el banco principal si tiene saldo: quien teclea sin mirar los chips piensa en él.
+  const [gBank,setGBank]=useState(function(){
+    const main=conSaldo.find(function(b){ return b.bank===totals.mainBank; });
+    return main?main.bank:conSaldo.length?conSaldo[0].bank:null;
+  });
   const [flujo,setFlujo]=useState(null);
   const amt=parseNumPadRaw(raw);
   const gasto=amt>0&&gBank?{bank:gBank,amt:amt}:null;
@@ -29245,7 +29296,8 @@ function NominaSheet({flowId, state, set, totals, onClose}){
   const hold=useRef(null);
   const paraHold=function(){ const h=hold.current; if(h){ clearTimeout(h.t); clearInterval(h.i); } hold.current=null; };
   useEffect(function(){ return paraHold; },[]);
-  const paso=function(d){ setDia(function(x){ const n=x+d; return n<1?31:n>31?1:n; }); };
+  const diaTocado=useRef(false);
+  const paso=function(d){ diaTocado.current=true; setDia(function(x){ const n=x+d; return n<1?31:n>31?1:n; }); };
   // Mantener pulsado acelera: primero despacio y, al rato, rápido.
   const empieza=function(d){ return function(e){
     if(e.button!=null&&e.button!==0) return;
@@ -29260,7 +29312,8 @@ function NominaSheet({flowId, state, set, totals, onClose}){
     if(!(amt>0)) return;
     const patch={};
     if(Math.abs(amt-Number(f.amount))>=0.005) patch.amount=+amt.toFixed(2);
-    if(dia!==dia0){ patch.day=dia; patch.when=null; }
+    // Sin día previsto solo se escribe uno si lo ha movido: el 1 del selector nadie lo ha elegido.
+    if(dia0!=null?dia!==dia0:diaTocado.current){ patch.day=dia; patch.when=null; }
     if(Object.keys(patch).length) patchFlowById(set,f.id,patch);
     swipe.close();
   };
@@ -33809,15 +33862,14 @@ function App(){
     // Importa el ORDEN: si los fijos se cobran antes de que entre la nómina, puedes quedarte
     // en negativo a mitad de mes aunque a fin de mes cuadres. Sin día: cargos al principio
     // (día 0, peor caso) e ingresos al final (día 99). ---
+    // Los eventos salen de `pendingWalkEvents` (08), la misma lista que el simulador: lo de hoy o
+    // vencido sin cobro acreditado cuenta como cargo de HOY (decisión del dueño 28/10/2026).
     const evsByBank={};
-    // Traspasos y entradas llevan su id: «¿Te llega?» enseña (y deja editar) justo los recorridos.
-    const pushEv=(bank,day,amt,flow)=>{ (evsByBank[bank]=evsByBank[bank]||[]).push(flow?{day:day,amt:amt,kind:flow.kind,id:flow.id,name:flow.name}:{day:day,amt:amt}); };
-    state.fixed.forEach(e=>{ if(fijoDelMes(e)&&!isPaidIn(e,curMonth,today,curYear,state)) pushEv(accOf(e), dayIn(e,curMonth)||0, -occAmountIn(e,curMonth)); });
-    state.debts.forEach(d=>{ if(debtActive(d)&&!isDebtPaidThisMonth(d,today,state,curYear,curMonth)){ pushEv(d.account||"sabadell", debtChargeDay(d), -d.monthly); const bl=debtBalloonIn(d,curYear,curMonth); if(bl>0) pushEv(d.account||"sabadell", debtChargeDay(d), -bl); } });
-    (state.oneoffs||[]).forEach(o=>{ if(oneoffOccurs(o,curYear,curMonth)&&(o.amount||0)!==0&&!isPaidThisMonth(o,today)) pushEv(o.account||"sabadell", o.day||0, -o.amount); });
-    (state.flows||[]).forEach(f=>{ if(!flowOccursIn(f,curMonth,curYear)||flowPaidIn(state,f,curYear,curMonth,today))return; const dd=flowDay(f,curYear,curMonth); if(f.kind==="income") pushEv(f.to||"sabadell", dd||99, f.amount, f); else if(f.kind==="transfer") pushEv(f.from||"sabadell", dd||0, -f.amount, f); });
+    pendingWalkEvents(state,curYear,curMonth,today).forEach(ev=>{ (evsByBank[ev.bank]=evsByBank[ev.bank]||[]).push(ev); });
     const minByBank={}, minDayByBank={};
-    Object.keys(allBanks).forEach(b=>{ const r=minWalk(bankBal[b]||0, evsByBank[b]); minByBank[b]=r.min; minDayByBank[b]=r.minDay; });
+    // Un banco con solo recibos vencidos sin cobrar no está en `pendingByBank` (que va por fecha):
+    // también se recorre, o «¿Te llega?» lo pintaría como banco sin saldo.
+    Object.keys(Object.assign({},allBanks,evsByBank)).forEach(b=>{ const r=minWalk(bankBal[b]||0, evsByBank[b]); minByBank[b]=r.min; minDayByBank[b]=r.minDay; });
     // foco en el banco principal de gastos fijos (Sabadell)
     const mainBank="sabadell";
     const mainBal=bankBal[mainBank]||0;

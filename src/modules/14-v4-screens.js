@@ -519,14 +519,23 @@ function planRecibosLlega(totals, pack){
 }
 /* Hora de la última lectura buena del saldo de un banco (`obBalAt`, la que dice el servidor). Con
    dos conexiones del mismo banco manda la más vieja: decir «hace 2 h» de un saldo en parte de hace
-   tres días sería mentir. Sin lectura (cuenta a mano, TR por el puente) no hay frescura: 0. */
+   tres días sería mentir. Sin lectura (cuenta a mano, TR por el puente) no hay frescura: 0.
+   Tampoco la hay si una conexión de ese banco está caída o sin saldo (`bankIssues`, cuentas
+   rancias): esa no deja hora en `obBalAt` y la de la otra pasaría por la de todo el banco. */
 function pr6LecturaMs(state, bank){
+  state=state||{};
+  const rancio=(state.bankIssues||[]).some(function(i){ return i&&i.ent===bank; })
+    ||(state.accounts||[]).some(function(a){ return a&&a.ent===bank&&a.balanceStale; })
+    ||(state.obAccounts||[]).some(function(o){ return o&&o.ent===bank&&o.stale; });
+  if(rancio) return 0;
   let ms=0;
-  const at=(state&&state.obBalAt)||{};
+  const at=state.obBalAt||{};
   Object.keys(at).forEach(function(asp){
     if(entFromAspsp(asp)!==bank) return;
-    const v=dateMs(at[asp]);
-    if(v>0&&(!ms||v<ms)) ms=v;
+    // `Date.parse` y no `dateMs`: con una fecha ilegible `dateMs` devuelve AHORA y pintaría
+    // «saldo de ahora» inventado (revisión t3, R1).
+    const v=Date.parse(at[asp]);
+    if(isFinite(v)&&v>0&&(!ms||v<ms)) ms=v;
   });
   return ms;
 }
@@ -788,7 +797,11 @@ function LlegaSheet({state, set, totals, pack, onClose}){
   const conSaldo=base.filter(function(b){ return b.known; });
   const [raw,setRaw]=useState("");
   const [teclado,setTeclado]=useState(false);
-  const [gBank,setGBank]=useState(conSaldo.length?conSaldo[0].bank:null);
+  // Por defecto el banco principal si tiene saldo: quien teclea sin mirar los chips piensa en él.
+  const [gBank,setGBank]=useState(function(){
+    const main=conSaldo.find(function(b){ return b.bank===totals.mainBank; });
+    return main?main.bank:conSaldo.length?conSaldo[0].bank:null;
+  });
   const [flujo,setFlujo]=useState(null);
   const amt=parseNumPadRaw(raw);
   const gasto=amt>0&&gBank?{bank:gBank,amt:amt}:null;
@@ -877,7 +890,8 @@ function NominaSheet({flowId, state, set, totals, onClose}){
   const hold=useRef(null);
   const paraHold=function(){ const h=hold.current; if(h){ clearTimeout(h.t); clearInterval(h.i); } hold.current=null; };
   useEffect(function(){ return paraHold; },[]);
-  const paso=function(d){ setDia(function(x){ const n=x+d; return n<1?31:n>31?1:n; }); };
+  const diaTocado=useRef(false);
+  const paso=function(d){ diaTocado.current=true; setDia(function(x){ const n=x+d; return n<1?31:n>31?1:n; }); };
   // Mantener pulsado acelera: primero despacio y, al rato, rápido.
   const empieza=function(d){ return function(e){
     if(e.button!=null&&e.button!==0) return;
@@ -892,7 +906,8 @@ function NominaSheet({flowId, state, set, totals, onClose}){
     if(!(amt>0)) return;
     const patch={};
     if(Math.abs(amt-Number(f.amount))>=0.005) patch.amount=+amt.toFixed(2);
-    if(dia!==dia0){ patch.day=dia; patch.when=null; }
+    // Sin día previsto solo se escribe uno si lo ha movido: el 1 del selector nadie lo ha elegido.
+    if(dia0!=null?dia!==dia0:diaTocado.current){ patch.day=dia; patch.when=null; }
     if(Object.keys(patch).length) patchFlowById(set,f.id,patch);
     swipe.close();
   };

@@ -1188,16 +1188,48 @@ function applyBankBalances(s, links){
   return { state:newState, changed:changed||obChanged, synced:synced, obAccounts:obAccts };
 }
 
-// Eventos PENDIENTES de un banco este mes (cargos −, ingresos +) con su día.
-// Espejo EXACTO de la lógica evsByBank del motor (totals) para un solo banco, reutilizable
-// por el simulador "¿me lo puedo permitir?". today = día de hoy (solo cuenta lo no pagado).
-function bankPendingEvents(state, bank, y, m, today){
+/* Eventos PENDIENTES del mes que recorre `minWalk` (cargos −, entradas +), con su banco y su día.
+   Es la ÚNICA lista: la usan `totals` (11: `minByBank`, píldora, «¿Te llega?», mínimo diario de
+   Inicio) y el simulador «¿Me lo puedo permitir?» (`bankPendingEvents`).
+   Decisión del dueño (28/10/2026, revisión t3 B1): un recibo de HOY o VENCIDO sin cobro
+   acreditado es un cargo de HOY. Antes bastaba con que su día hubiera llegado (`isPaidIn` con
+   d<=today) para darlo por cobrado, mientras «Recibos que faltan» (`planChargesMonth`) lo seguía
+   contando: la hoja decía «Pasa 100 €» con 130 € por pagar en sus propias filas. Ahora un recibo
+   solo sale del recorrido con prueba (`isPaidByProofIn`: marca confirmada o cargo enlazado, la
+   misma frontera de dinero que el saldo mostrado) o en pausa. Una prueba que no mueve saldo
+   (aviso de Wallet, BOOK sin fila) sigue contando como cargo, como antes (fixed-ispaidin).
+   Las cuotas, como siempre y como Plan (`debtPaymentState`, que hoy da por pagada una vencida);
+   una cuota SIN día la descuenta `planCoverState` sin fecha. Puntuales y entradas, igual. */
+function pendingWalkEvents(state, y, m, today){
   const evs=[];
-  (state.fixed||[]).forEach(function(e){ if(occursIn(e,m)&&accOf(e)===bank&&!isPaidIn(e,m,today,y,state)&&!fixedEnPausa(state,e,y,m,today)) evs.push({day:dayIn(e,m)||0, amt:-occAmountIn(e,m)}); });
-  (state.debts||[]).forEach(function(d){ if(debtActive(d)&&(d.account||"sabadell")===bank&&!isDebtPaidThisMonth(d,today,state,y,m)){ evs.push({day:debtChargeDay(d), amt:-(d.monthly||0)}); const bl=debtBalloonIn(d,y,m); if(bl>0) evs.push({day:debtChargeDay(d), amt:-bl}); } });
-  (state.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m)&&(o.account||"sabadell")===bank&&(o.amount||0)!==0&&!isPaidThisMonth(o,today)) evs.push({day:o.day||0, amt:-o.amount}); });
-  (state.flows||[]).forEach(function(f){ if(!flowOccursIn(f,m,y)||flowPaidIn(state,f,y,m,today))return; const dd=flowDay(f,y,m); if(f.kind==="income"&&(f.to||"sabadell")===bank) evs.push({day:dd||99, amt:f.amount}); else if(f.kind==="transfer"&&(f.from||"sabadell")===bank) evs.push({day:dd||0, amt:-f.amount}); });
+  const hoy=function(d){ return d!=null&&d>0&&d<today?today:(d||0); };
+  (state.fixed||[]).forEach(function(e){
+    const a=occAmountIn(e,m);
+    if(!(a>0)||!occursIn(e,m)) return;
+    if(isPaidByProofIn(e,m,today,y,state)||fixedPausedIn(e,y,m)) return;
+    evs.push({bank:accOf(e), day:hoy(dayIn(e,m)), amt:-a});
+  });
+  (state.debts||[]).forEach(function(d){
+    if(!debtActive(d)) return;
+    const st=debtPaymentState(state,d,y,m,today);
+    if(st.paid||st.day==null||!(Number(st.day)>0)) return;
+    const b=d.account||"sabadell", bl=debtBalloonIn(d,y,m);
+    if(Number(d.monthly)>0) evs.push({bank:b, day:hoy(st.day), amt:-Number(d.monthly)});
+    if(bl>0) evs.push({bank:b, day:hoy(st.day), amt:-bl});
+  });
+  (state.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m)&&(o.amount||0)!==0&&!isPaidThisMonth(o,today)) evs.push({bank:o.account||"sabadell", day:o.day||0, amt:-o.amount}); });
+  // Traspasos y entradas llevan su id: «¿Te llega?» enseña (y deja editar) justo los recorridos.
+  (state.flows||[]).forEach(function(f){
+    if(!flowOccursIn(f,m,y)||flowPaidIn(state,f,y,m,today)) return;
+    const dd=flowDay(f,y,m), tag={kind:f.kind,id:f.id,name:f.name};
+    if(f.kind==="income") evs.push(Object.assign({bank:f.to||"sabadell", day:dd||99, amt:f.amount},tag));
+    else if(f.kind==="transfer") evs.push(Object.assign({bank:f.from||"sabadell", day:dd||0, amt:-f.amount},tag));
+  });
   return evs;
+}
+// Los de un solo banco, para el simulador «¿me lo puedo permitir?».
+function bankPendingEvents(state, bank, y, m, today){
+  return pendingWalkEvents(state,y,m,today).filter(function(ev){ return ev.bank===bank; });
 }
 // Recorre los eventos por día desde un saldo inicial y devuelve el punto MÍNIMO (peor momento) y el final.
 /* Es la ÚNICA copia del recorrido: también la usa `totals` (11) para `minByBank`, y de ahí la
