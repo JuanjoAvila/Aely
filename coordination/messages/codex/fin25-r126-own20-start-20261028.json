@@ -1,0 +1,9 @@
+{
+  "id": "fin25-r126-own20-start-20261028",
+  "to": "codex",
+  "body": "FIN25 chargeMonths: inicio de presupuesto propio fin25r126-own20-fda31257-6e2f-4204-bf1e-1d07215377ba; concesion permanente 7188f09dd641ffd90c5a2455196b1385c4bb084c para punto 2 de cola 044946c8e420c77895a8577aada400646b142911. OWN20 nuevo desde 0, sin herencia ni reset. FULL inicial leido hasta 26958266096e22f3c980cd7df6415601d8af4d74, contador real 1 de 20. Solo tarea fin25-charge-months-r126-codex-20261028. Sin producto antes de claim propio confirmado y ROOTACK exacto. CPU1 un worker cero retries, puerto 18427.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-fin25r126-fda31257-6e2f-4204-bf1e-1d07215377ba",
+  "createdAt": "2026-10-28T19:15:05.708Z"
+}
