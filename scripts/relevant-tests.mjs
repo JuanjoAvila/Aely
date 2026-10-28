@@ -460,8 +460,10 @@ export function planFromFiles(files) {
   const specs = new Set(e2eFiles);
   let unmapped = [];
   for (const f of srcFiles) {
-    const hit = E2E_MAP.find((m) => m.file === f);
-    if (hit) hit.specs.forEach((s) => specs.add(s));
+    // TODAS las entradas del módulo, no solo la primera: con `find` las repetidas (14-v4-screens
+    // tiene varias) no corrían nunca en beta y plan-recibos-v6 quedaba sin ejecutar (2026-10-28).
+    const hits = E2E_MAP.filter((m) => m.file === f);
+    if (hits.length) hits.forEach((h) => h.specs.forEach((s) => specs.add(s)));
     else unmapped.push(f);
   }
   if (unmapped.length) return full("módulo sin mapa e2e: " + unmapped[0] + " (añádelo a E2E_MAP o a CORE)");

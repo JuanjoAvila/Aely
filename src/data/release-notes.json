@@ -1,5 +1,52 @@
 [
   {
+    "v": "4.26.189",
+    "d": "2026-10-28",
+    "t": {
+      "es": "Las deudas se abren con suavidad",
+      "en": "Debts open smoothly",
+      "ca": "Els deutes s’obren amb suavitat"
+    },
+    "items": {
+      "es": [
+        "Al tocar una deuda, la app te lleva hasta ella con suavidad y la resalta un momento."
+      ],
+      "en": [
+        "When you tap a debt, the app takes you to it smoothly and highlights it for a moment."
+      ],
+      "ca": [
+        "En tocar un deute, l’app et porta fins a ell amb suavitat i el ressalta un moment."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "deuda-ir-suave",
+        "t": {
+          "es": "Plan: tocar una deuda te lleva a ella",
+          "en": "Plan: tapping a debt takes you to it",
+          "ca": "Pla: tocar un deute et porta fins a ell"
+        },
+        "items": {
+          "es": [
+            "1. Plan → Recibos → «Pendiente» → «Ver los N»: baja hasta una cuota de deuda que esté abajo y tócala. BIEN: Deudas entra con un deslizamiento corto, la página baja suave hasta esa deuda, queda entera a la vista (no la tapa la barra de abajo) y su borde brilla en verde un momento. MAL: cambia de golpe, aterriza arriba o en otra deuda, o la tarjeta queda cortada.",
+            "2. Gastos → un día con una cuota de deuda → fila gris «Deudas · no cuentan» → «Abrir en Plan · Deudas ›». BIEN: pasa a Plan con el deslizamiento de siempre y aparece ya en la tarjeta de esa deuda, resaltada. MAL: arriba del todo de Deudas o con un salto raro.",
+            "3. Ajustes → activa «Reducir animaciones» y repite el paso 1. BIEN: llega a la misma deuda sin deslizar ni brillar. MAL: no llega a la deuda."
+          ],
+          "en": [
+            "1. Plan → Bills → \"Pending\" → \"See all N\": scroll down to a debt instalment near the bottom and tap it. RIGHT: Debts opens with a short slide, the page scrolls smoothly down to that debt, it stays fully in view (the bottom bar does not cover it) and its border glows green for a moment. WRONG: it switches abruptly, lands at the top or on another debt, or the card is cut off.",
+            "2. Spending → a day with a debt instalment → grey row \"Debts · don't count\" → \"Open in Plan · Debts ›\". RIGHT: it goes to Plan with the usual slide and shows up already on that debt's card, highlighted. WRONG: at the very top of Debts or with an odd jump.",
+            "3. Settings → turn on \"Reduce motion\" and repeat step 1. RIGHT: it reaches the same debt without sliding or glowing. WRONG: it does not reach the debt."
+          ],
+          "ca": [
+            "1. Pla → Rebuts → «Pendent» → «Veure’ls tots (N)»: baixa fins a una quota de deute que sigui a baix i toca-la. BÉ: Deutes entra amb un lliscament curt, la pàgina baixa suau fins a aquest deute, queda sencera a la vista (no la tapa la barra de baix) i la seva vora brilla en verd un moment. MALAMENT: canvia de cop, aterra a dalt o en un altre deute, o la targeta queda tallada.",
+            "2. Despeses → un dia amb una quota de deute → fila grisa «Deutes · no compten» → «Obre al Pla · Deutes ›». BÉ: passa al Pla amb el lliscament de sempre i apareix ja a la targeta d’aquest deute, ressaltada. MALAMENT: a dalt de tot de Deutes o amb un salt estrany.",
+            "3. Ajustos → activa «Reduir animacions» i repeteix el pas 1. BÉ: arriba al mateix deute sense lliscar ni brillar. MALAMENT: no arriba al deute."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.188",
     "d": "2026-10-28",
     "t": {
@@ -18,36 +65,7 @@
         "Rebuts estrena pantalla: a dalt el que queda per pagar i si t’arriba; a sota el que convé revisar, el pendent i el ja pagat. Toca un rebut per marcar-lo pagat triant el seu càrrec."
       ]
     },
-    "tandas": [
-      {
-        "id": "plan-recibos-v6-t1",
-        "t": {
-          "es": "Plan: Recibos nuevo",
-          "en": "Plan: new Bills screen",
-          "ca": "Pla: Rebuts nou"
-        },
-        "items": {
-          "es": [
-            "1. Plan → Recibos: compara «Queda por pagar en …» con Inicio. BIEN: coinciden y debajo dice cuántos recibos quedan. MAL: no coinciden.",
-            "2. Plan → Recibos → «Para revisar» y «Pendiente»: como mucho tres en cada una; toca «Ver los N». MAL: salen más de tres sin tocar, falta alguno al desplegar o sale un recibo ya cobrado.",
-            "3. Plan → Recibos → toca un recibo pendiente → «Ya está pagado» → elige su cargo. BIEN: pasa a «Ya pagados» con «cargo de …». MAL: el cargo no aparece ni buscándolo por importe.",
-            "4. Plan → Recibos → «Ya pagados» → toca un recibo pagado → «No es este recibo» → «Aún no se ha cobrado». BIEN: el aviso de abajo dice adónde ha ido (Pendiente o Para revisar) y el recibo aparece ahí. MAL: el aviso no lo dice o el recibo no está en esa sección."
-          ],
-          "en": [
-            "1. Plan → Bills: compare \"Still to pay in …\" with Home. RIGHT: they match and below it says how many bills are left. WRONG: they do not match.",
-            "2. Plan → Bills → \"To review\" and \"Pending\": at most three in each; tap \"See all N\". WRONG: more than three show without tapping, one is missing when expanded or a bill that was already charged shows up.",
-            "3. Plan → Bills → tap a pending bill → \"It's paid\" → choose its charge. RIGHT: it moves to \"Already paid\" with \"charge from …\". WRONG: the charge does not show up, not even searching by amount.",
-            "4. Plan → Bills → \"Already paid\" → tap a paid bill → \"Not this bill\" → \"Not charged yet\". RIGHT: the notice below says where it went (Pending or To review) and the bill shows up there. WRONG: the notice does not say it or the bill is not in that section."
-          ],
-          "ca": [
-            "1. Pla → Rebuts: compara «Queda per pagar al …» amb Inici. BÉ: coincideixen i a sota diu quants rebuts queden. MALAMENT: no coincideixen.",
-            "2. Pla → Rebuts → «Per revisar» i «Pendent»: com a molt tres a cada una; toca «Veure’ls tots (N)». MALAMENT: surten més de tres sense tocar, en falta algun en desplegar o surt un rebut ja cobrat.",
-            "3. Pla → Rebuts → toca un rebut pendent → «Ja està pagat» → tria el seu càrrec. BÉ: passa a «Ja pagats» amb «càrrec de …». MALAMENT: el càrrec no apareix ni cercant-lo per import.",
-            "4. Pla → Rebuts → «Ja pagats» → toca un rebut pagat → «No és aquest rebut» → «Encara no s’ha cobrat». BÉ: l’avís de sota diu on ha anat (Pendent o Per revisar) i el rebut apareix allà. MALAMENT: l’avís no ho diu o el rebut no és en aquesta secció."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.187",

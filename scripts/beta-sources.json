@@ -97454,5 +97454,477 @@
       }
     ],
     "unidades": true
+  },
+  "deuda-ir-suave": {
+    "web": [
+      {
+        "file": "src/modules/14-v4-screens.js",
+        "function": "PlanTab"
+      },
+      {
+        "file": "src/modules/14-v4-screens.js",
+        "function": "PlanRecibos"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "useTironSeccion"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "GastosGris"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "      // «Abrir en Plan · Deudas/Metas» de las filas grises (Gastos v5): mismo camino que Inicio.",
+        "to": "      onGoInversiones:goInversiones});"
+      },
+      {
+        "file": "src/shell.html",
+        "from": ".v4-undo-toast,.v4-debt-card.v4-foco::after{",
+        "to": "transition:none !important;}"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  /* Resalte de la deuda a la que te lleva un toque (28/10/2026)",
+        "to": "  .v4-avatar{width:48px;"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "planChargesMonth"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "paymentEvidenceUI"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "planCoverPickBank"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "entOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "eur0"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "planSyncConflict"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catName"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "monthShort"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "eur"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "monthLong"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "gestureAxis"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseBankOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "loc"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentState"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debtPaymentState"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowPaidIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenses"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseDeletedSet"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "paymentEvidenceRowIssue"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "metaDeGasto"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboVetado"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboNoIdentidad"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentIdentity"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookSameRef"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedExpenseEligible"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accFixed"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cargoDeReciboFirme"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "planCoverState"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "partirEntDeuda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNameMatch"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recAmtClose"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentProof"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRival"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAutoOwner"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNorm"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseRows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContenders"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseChoice"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "dateMs"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseIsTombstoned"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCargoCercano"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFeedClear"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowConfirmedDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowBankPaid"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedExpenseKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedValid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obOrdinalSufijo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentUnique"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentChargeOwner"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accRole"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cargoDeRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cargoDeReciboFirmeCalc"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModelMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recTokens"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recFrase"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "_pdMs"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "esFilaDeBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpense"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseDeletionKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseUnknownDeletionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isManualExpenseSource"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseKnownIdentity"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpenseLegacy"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowEarlyBankTx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isExpenseUuid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedKeyOk"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obOrdinalOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboNombreCasa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboPagadoCon"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModel"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContract"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedValid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowEarlyBankMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obPolarity"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CAT_NEUTRAS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "ENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF0"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DISP"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CATEGORIES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "GEST_LEAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "GEST_MAX"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_ALIAS_DIAS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "expenseDeletedSets"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "expenseConfirmedSets"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "INGRESO_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "INVERSION_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "TRASPASO_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DEUDA_CAT"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DUP_DIAS_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "fixedPaymentOwnerDepth"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_pdCache"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obConfirmedIndexes"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "OB_CONFIRMED_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "OB_CONFIRMED_AGE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obConfirmedBlocked"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obConfirmedReadCache"
+      }
+    ],
+    "unidades": true
   }
 }
