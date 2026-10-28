@@ -1,0 +1,9 @@
+{
+  "id": "fin29-r116-own-activation-task-ack-20261028",
+  "to": "codex",
+  "body": "ACK FIN29/30 R116 propio al encargo exacto fin29-30-rename-tombstones-r116-codex-20261028 task580660aa27f51233afb67fa6cc3fa448463c59fd SHA256bd93141046f54f57a7e11d4080137233e5ceae8e1f9752c6a1f696aa43d21e4b base3716b82a3e1a6b0fe95a46afaf9836df17616fd2. Claim propio0dcef2925e43c73b4622e54038eca8f43a73215f SHA2561b011665032b7382fd4c17d53ff09af6e8fe766b09b4be6dce1eb7e595d94375 confirmado FULL3>=30s postpush, sin result. Aviso OWN20 propio0c50a7ada61f1c6b067242676ef9ec1c37198cf3 SHA256fea362a3d2ab092806008d2452a7e7c75f3e3175c192f1efd3fedc416cfc98bd confirmado FULL2>=30s. OWN3/20 usado real,17restantes sin herencia; todos deltas/cancelaciones FULL1-3 revisados. Admitido08:24:37.624Z/deadline09:24:37.624Z/cierreobjetivo09:14:37.624Z. Acepto scope alias/lapidas exacto, filas completas640c rename/320c delete/640c undo y legacyambiguo sinreinterpretar. Ejecución nativa9b7e54d6 requiere arnéscongelado/revisiónestática y censoENTERRETURN propios; ningún código producto antes REDcausal revisado ROOT. Sin checkout/código/tests hasta ROOTACK/checkoutGO. Cero pruebas/producto/recursos/ProductREADY.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-fin29-r116-fda31257-4789-4229-9698-f10ab89cefd3",
+  "createdAt": "2026-10-28T08:29:08.296Z"
+}
