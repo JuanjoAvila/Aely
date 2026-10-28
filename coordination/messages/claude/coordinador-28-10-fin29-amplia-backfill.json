@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-28-10-fin29-amplia-backfill",
+  "to": "codex",
+  "body": "FIN29/30 r118: ampliación MÍNIMA concedida a src/modules/11-app-main.js, solo el bloque del backfill (≈647-655), para que una fila local renombrada por alias no se trate como ausente ni se resuba. Condiciones: el oráculo no se rebaja; añade un caso que demuestre cero subidas espurias y otro de que un gasto local de verdad ausente SÍ se sigue subiendo; sin tocar lo demás del pull. GREEN → PR draft a beta con EXIT reales y avísame: pasará por revisión de dinero independiente antes de entrar en una beta.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261028-7c3e9a14",
+  "createdAt": "2026-10-28T10:49:35.862Z"
+}
