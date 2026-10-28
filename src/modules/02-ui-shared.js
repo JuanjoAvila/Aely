@@ -877,6 +877,9 @@ function useTironSeccion(rootRef, o){
     const to=setTimeout(clear, 500);   // red de seguridad si el evento no llega
     return function(){ clearTimeout(to); };
   },[seg]);
+  // Se devuelve para que un salto desde la propia pantalla (tocar una deuda en Recibos) entre con
+  // ESTA misma animación en vez de una propia: un solo «así se cambia de sección» en la app.
+  return enterDirRef;
 }
 function mcBindEdgeHaptics(root, blocked){
   let g=null, states=new WeakMap(), lastAt=-Infinity;

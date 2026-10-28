@@ -875,6 +875,13 @@
   @keyframes v4SegEnterUp{from{opacity:.4;transform:translateY(-16px);}to{opacity:1;transform:translateY(0);}}
   .v4-seg-enter-down{animation:v4SegEnterDown .26s var(--ease) both;}
   .v4-seg-enter-up{animation:v4SegEnterUp .26s var(--ease) both;}
+  /* Resalte de la deuda a la que te lleva un toque (28/10/2026): un borde menta que aparece y se
+     apaga. Va en un ::after y solo anima su opacidad, así que no repinta la tarjeta. Con
+     movimiento reducido no aparece: el sitio ya lo dice el scroll. */
+  .v4-debt-card.v4-foco{position:relative;}
+  .v4-debt-card.v4-foco::after{content:"";position:absolute;inset:-1px;border-radius:inherit;border:2px solid var(--mint);
+    pointer-events:none;opacity:0;animation:v4Foco 1.6s var(--ease) both;}
+  @keyframes v4Foco{0%{opacity:0;}25%{opacity:.9;}60%{opacity:.9;}100%{opacity:0;}}
   .v4-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(150deg,var(--sur2),var(--sur));border:1px solid var(--line);
     display:grid;place-items:center;font-weight:800;font-size:15px;color:var(--mint);flex:0 0 auto;
     transition:transform .42s cubic-bezier(.32,.72,0,1),box-shadow .42s cubic-bezier(.32,.72,0,1);}
@@ -1736,7 +1743,7 @@
   @keyframes v4growup{from{transform:scaleY(0);}to{transform:scaleY(1);}}
   .rise{animation:rise .32s var(--ease) both;}
   @media (prefers-reduced-motion:reduce){
-    .rise,.v4-sheet,.v4-sheet-back,.botnav,.botnav-ind,.botnav-ind span,.botnav-tab svg,.v4-stackbar i,.v4-goal .bar i,.v4-account-spark i,.settings-push,.settings-slide,.app-shell.settings-dim,.profile-pull,.app-shell.profile-dim,.v4-avatar.pulling,.set-exp,.v4-inv-drop,.v4-seg-enter-down,.v4-seg-enter-up,.v4-ficha-focus,.v4-undo-toast{animation:none !important;transition:none !important;}
+    .rise,.v4-sheet,.v4-sheet-back,.botnav,.botnav-ind,.botnav-ind span,.botnav-tab svg,.v4-stackbar i,.v4-goal .bar i,.v4-account-spark i,.settings-push,.settings-slide,.app-shell.settings-dim,.profile-pull,.app-shell.profile-dim,.v4-avatar.pulling,.set-exp,.v4-inv-drop,.v4-seg-enter-down,.v4-seg-enter-up,.v4-ficha-focus,.v4-undo-toast,.v4-debt-card.v4-foco::after{animation:none !important;transition:none !important;}
   }
 
   .card{background:linear-gradient(180deg,var(--surface),var(--bg-2));border:1px solid var(--line-soft);border-radius:var(--radius);margin-bottom:14px;box-shadow:var(--shadow);overflow:hidden;}

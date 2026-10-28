@@ -875,6 +875,13 @@
   @keyframes v4SegEnterUp{from{opacity:.4;transform:translateY(-16px);}to{opacity:1;transform:translateY(0);}}
   .v4-seg-enter-down{animation:v4SegEnterDown .26s var(--ease) both;}
   .v4-seg-enter-up{animation:v4SegEnterUp .26s var(--ease) both;}
+  /* Resalte de la deuda a la que te lleva un toque (28/10/2026): un borde menta que aparece y se
+     apaga. Va en un ::after y solo anima su opacidad, así que no repinta la tarjeta. Con
+     movimiento reducido no aparece: el sitio ya lo dice el scroll. */
+  .v4-debt-card.v4-foco{position:relative;}
+  .v4-debt-card.v4-foco::after{content:"";position:absolute;inset:-1px;border-radius:inherit;border:2px solid var(--mint);
+    pointer-events:none;opacity:0;animation:v4Foco 1.6s var(--ease) both;}
+  @keyframes v4Foco{0%{opacity:0;}25%{opacity:.9;}60%{opacity:.9;}100%{opacity:0;}}
   .v4-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(150deg,var(--sur2),var(--sur));border:1px solid var(--line);
     display:grid;place-items:center;font-weight:800;font-size:15px;color:var(--mint);flex:0 0 auto;
     transition:transform .42s cubic-bezier(.32,.72,0,1),box-shadow .42s cubic-bezier(.32,.72,0,1);}
@@ -1736,7 +1743,7 @@
   @keyframes v4growup{from{transform:scaleY(0);}to{transform:scaleY(1);}}
   .rise{animation:rise .32s var(--ease) both;}
   @media (prefers-reduced-motion:reduce){
-    .rise,.v4-sheet,.v4-sheet-back,.botnav,.botnav-ind,.botnav-ind span,.botnav-tab svg,.v4-stackbar i,.v4-goal .bar i,.v4-account-spark i,.settings-push,.settings-slide,.app-shell.settings-dim,.profile-pull,.app-shell.profile-dim,.v4-avatar.pulling,.set-exp,.v4-inv-drop,.v4-seg-enter-down,.v4-seg-enter-up,.v4-ficha-focus,.v4-undo-toast{animation:none !important;transition:none !important;}
+    .rise,.v4-sheet,.v4-sheet-back,.botnav,.botnav-ind,.botnav-ind span,.botnav-tab svg,.v4-stackbar i,.v4-goal .bar i,.v4-account-spark i,.settings-push,.settings-slide,.app-shell.settings-dim,.profile-pull,.app-shell.profile-dim,.v4-avatar.pulling,.set-exp,.v4-inv-drop,.v4-seg-enter-down,.v4-seg-enter-up,.v4-ficha-focus,.v4-undo-toast,.v4-debt-card.v4-foco::after{animation:none !important;transition:none !important;}
   }
 
   .card{background:linear-gradient(180deg,var(--surface),var(--bg-2));border:1px solid var(--line-soft);border-radius:var(--radius);margin-bottom:14px;box-shadow:var(--shadow);overflow:hidden;}
@@ -10499,6 +10506,9 @@ function useTironSeccion(rootRef, o){
     const to=setTimeout(clear, 500);   // red de seguridad si el evento no llega
     return function(){ clearTimeout(to); };
   },[seg]);
+  // Se devuelve para que un salto desde la propia pantalla (tocar una deuda en Recibos) entre con
+  // ESTA misma animación en vez de una propia: un solo «así se cambia de sección» en la app.
+  return enterDirRef;
 }
 function mcBindEdgeHaptics(root, blocked){
   let g=null, states=new WeakMap(), lastAt=-Infinity;
@@ -15058,6 +15068,8 @@ function GastosGris({g, onOpen, onGoPlan, onGoInversiones, simple}){
   // Cartera no enseña inversiones: el enlace llevaría a un bloque que no está.
   const ir=def.cartera?onGoInversiones:onGoPlan;
   const conPlan=!!ir && !simple;
+  // Cuotas de UNA sola deuda: el enlace lleva a su tarjeta y no a lo alto de Deudas (28/10/2026).
+  const unaDeuda=g.kind==="deuda"&&g.items.length&&g.items.every(function(it){ return it.e.debtId&&it.e.debtId===g.items[0].e.debtId; })?g.items[0].e.debtId:null;
   return React.createElement("div",{className:"gx-gris"+(open?" abierto":""),"data-gris":g.kind},
     React.createElement("button",{type:"button",className:"gx-gris-h","aria-expanded":open,onClick:toggle},
       React.createElement("span",{className:"gx-gris-dot gx-gris-dot-"+g.kind,"aria-hidden":true}),
@@ -15076,7 +15088,7 @@ function GastosGris({g, onOpen, onGoPlan, onGoInversiones, simple}){
               React.createElement("span",{className:"gx-gris-it-sub"},[it.sub,fecha,bk?(entOf(bk).label||entOf(bk).mono):null].filter(Boolean).join(" · "))),
             React.createElement("span",{className:"gx-gris-it-amt num"},eur(Math.abs(e.amount||0))));
         }),
-        conPlan && React.createElement("button",{type:"button",className:"gx-gris-plan",tabIndex:open?0:-1,onClick:function(){ ir(def.seg); }},
+        conPlan && React.createElement("button",{type:"button",className:"gx-gris-plan",tabIndex:open?0:-1,onClick:function(){ ir(def.seg,unaDeuda); }},
           (def.cartera?t("gv5_cartera_open"):tf("gv5_plan_open",{x:t(def.lab)}))+" ›")))
   );
 }
@@ -26737,7 +26749,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="9e200234218f7e50f61a48e1c46dbbc6440b2942230262929318d78bdcba0083";
+var _rnSha="b293ef57dff5a37a5b8a6fb7d4aa20b95d45a4e04e9b03e5203e4004fb0eec43";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -28261,6 +28273,8 @@ function HogarSection({state, totals, uid, showToast, meEmail}){
 const PLAN_SEG_ORDEN=["recibos","deudas","metas"];
 function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
   const [seg,setSeg]=useState("recibos");
+  // Deuda a la que hay que llevar al llegar a Deudas ({id,ts}); ver `irADeuda`.
+  const [focoDeuda,setFocoDeuda]=useState(null);
   const [manageOpen,setManageOpen]=useState(false);
   // «Editar» desde la ficha de un recibo abre Todos directamente en su edición.
   const [manageEdit,setManageEdit]=useState(null);
@@ -28332,6 +28346,8 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
   useEffect(function(){
     if(!gotoSeg||!gotoSeg.id) return;
     setSeg(simple?"recibos":gotoSeg.id);
+    // Desde otra pestaña la transición ya es el carrusel: la sección no anima por su cuenta.
+    if(!simple&&gotoSeg.id==="deudas"&&gotoSeg.debtId!=null) setFocoDeuda({id:String(gotoSeg.debtId),ts:gotoSeg.ts});
     if(clearGoto) clearGoto();
   },[gotoSeg&&gotoSeg.ts]);
   /* «EN DEUDAS Y METAS SE RELENTIZA DE MANERA MUY BESTIA» — CAPÍTULO 2 (2026-07-26 noche).
@@ -28406,12 +28422,75 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
      mano para tocar arriba»). Recibos → Deudas → Metas → Recibos. La mecánica vive en
      `useTironSeccion` (02-ui-shared.js) desde Gastos v5, que la usa igual: un solo sitio. */
   const planScreenRef=useRef(null);
-  useTironSeccion(planScreenRef,{activo:!simple, seg:seg, orden:PLAN_SEG_ORDEN, respaldo:true, cortaScroll:true,
+  const entradaRef=useTironSeccion(planScreenRef,{activo:!simple, seg:seg, orden:PLAN_SEG_ORDEN, respaldo:true, cortaScroll:true,
     capa:function(id){ return segElRef.current[id]; },
     alPasar:function(nextId){
       setSegMounted(function(m){ return m[nextId]?m:Object.assign({},m,{[nextId]:true}); });
       setSeg(nextId);
     }});
+
+  /* TOCAR UNA DEUDA LLEVA A SU TARJETA, CON SUAVIDAD (queja del dueño 28/10/2026: «que vaya más
+     suave y al sitio exacto de donde está la deuda, que ahora es muy bestia»). Medido antes: la
+     sección cambiaba en UN frame sin transición, el scroll se quedaba donde estaba Recibos y la
+     tarjeta tocada caía 600 px por debajo de la pantalla — había que bajar a buscarla.
+     Ahora: entra con la misma animación que el tirón entre secciones, y la página se desliza
+     (scroll nativo `smooth`, sin trabajo por frame nuestro) hasta dejar la tarjeta centrada en
+     lo que se ve entre el borde de arriba y la barra inferior. La barra se descuenta SIEMPRE,
+     aunque esté escondida: al subir reaparece y la taparía. */
+  const irADeuda=function(debtId){
+    setSegMounted(function(m){ return m.deudas?m:Object.assign({},m,{deudas:true}); });
+    if(seg!=="deudas"&&entradaRef) entradaRef.current="down";
+    setSeg("deudas");
+    setFocoDeuda(debtId!=null?{id:String(debtId),ts:Date.now()}:null);
+  };
+  useEffect(function(){
+    if(!focoDeuda||seg!=="deudas"||!segMounted.deudas) return undefined;
+    const id=focoDeuda.id;
+    let raf=0, n=0, antes=null, cancel=false;
+    // Posición en la página por `offsetTop` y no por `getBoundingClientRect`: la sección entra con
+    // un `translateY` y las tarjetas con `.rise`, y un rect medido a mitad de animación apuntaría
+    // 16 px de más. offsetTop ignora transforms.
+    const topEn=function(el,pg){
+      let y=0, n2=el;
+      while(n2&&n2!==pg){ y+=n2.offsetTop; n2=n2.offsetParent; }
+      return n2===pg?y:null;
+    };
+    const paso=function(){
+      raf=0; if(cancel) return;
+      const capaEl=segElRef.current.deudas;
+      let card=null;
+      try{ card=capaEl&&capaEl.querySelector('[data-debt-id="'+(window.CSS&&CSS.escape?CSS.escape(id):id)+'"]'); }catch(e){}
+      const pg=card&&card.closest(".page");
+      const y=pg?topEn(card,pg):null;
+      // Se espera a que el layout se quede quieto dos frames seguidos: Deudas puede estar
+      // montándose ahora mismo (premontaje en hueco libre) y medir antes da un sitio que se mueve.
+      if(y==null||antes==null||Math.abs(y-antes)>0.5){
+        antes=y;
+        if(++n<60) raf=requestAnimationFrame(paso);
+        else setFocoDeuda(null);
+        return;
+      }
+      const pr=pg.getBoundingClientRect();
+      const nav=document.querySelector(".botnav");
+      const H=window.innerHeight||pr.bottom;
+      const arriba=Math.max(pr.top,0)+16;
+      const abajo=Math.min(pr.bottom,H-(nav?nav.offsetHeight:0))-16;
+      const alto=card.offsetHeight, hueco=abajo-arriba;
+      const quiero=hueco>alto?arriba+(hueco-alto)/2:arriba;
+      const max=Math.max(0,pg.scrollHeight-pg.clientHeight);
+      const dest=Math.max(0,Math.min(max,Math.round(y+pr.top-quiero)));
+      // Si la página aún entra por el carrusel (venías de Gastos), se coloca sin deslizar: llega ya
+      // en su sitio y el movimiento es solo el del carrusel, no dos a la vez.
+      const enSitio=Math.abs(pr.left)<2;
+      try{ pg.scrollTo({top:dest,behavior:(enSitio&&!mcReduced())?"smooth":"auto"}); }catch(e){ pg.scrollTop=dest; }
+      // El resalte NO se cancela al limpiar el efecto (este mismo `setFocoDeuda(null)` lo limpia).
+      card.classList.add("v4-foco");
+      setTimeout(function(){ card.classList.remove("v4-foco"); }, 1700);
+      setFocoDeuda(null);
+    };
+    raf=requestAnimationFrame(paso);
+    return function(){ cancel=true; if(raf) cancelAnimationFrame(raf); };
+  },[focoDeuda&&focoDeuda.ts, seg, segMounted.deudas]);
 
   return React.createElement("div",{className:"v4-screen",ref:planScreenRef,"data-edge-capture":simple?null:"1"},
     React.createElement("h1",{className:"v4-title serif"}, simple?t("v4s_plan_left_title"):t("v4_plan_title")),
@@ -28433,7 +28512,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     capa("recibos", simple
       ? React.createElement(PlanBills,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen})
       : React.createElement(PlanRecibos,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen,
-          manageEdit:manageEdit,setManageEdit:setManageEdit,showToast:showToast,onGoDebts:function(){ setSeg("deudas"); }})),
+          manageEdit:manageEdit,setManageEdit:setManageEdit,showToast:showToast,onGoDebts:irADeuda})),
     !simple && capa("deudas", React.createElement(Debts,{state:state,set:set,showToast:showToast})),
     !simple && capa("metas", React.createElement(Goals,{state:state,set:set,totals:totals,showToast:showToast}))
   );
@@ -28591,7 +28670,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   useBackClose(!!paidOpen, function(){ setPaidOpen(false); });
   const openManage=function(){ setManageEdit(null); setManageOpen(true); };
   const abrir=function(x){
-    if(x.kind==="debt"||x.kind==="balloon"){ if(onGoDebts) onGoDebts(); return; }
+    if(x.kind==="debt"||x.kind==="balloon"){ if(onGoDebts) onGoDebts(String(x.id).replace(/^(debt|balloon)_/,"")); return; }
     if(/^(fixed|oneoff)_/.test(String(x.id))) setFicha({id:x.id});
   };
   // El desplegable se ve entero: mueve la página lo justo, sin escribir scrollTop a mano (INC-0710-01).
@@ -34617,7 +34696,8 @@ function App(){
     // reconstruye el árbol entero encima del gesto (asimetría Deudas→Gastos vs →Cartera).
     if(id==="gastos") return React.createElement(Expenses,{state:state,set:set,showToast:showToast,stopSwipe:stopSwipe,cancelSwipe:cancelSwipe,focusExp:gotoExp,clearFocus:function(){ setGotoExp(null); },forceAllTs:gastosForceAll,
       // «Abrir en Plan · Deudas/Metas» de las filas grises (Gastos v5): mismo camino que Inicio.
-      onGoPlan:function(seg){ if(seg) setPlanGoto({id:seg,ts:Date.now()}); const i=tabIds.indexOf("plan"); if(i>=0) goTabTop(i); },
+      // `debtId`: si todas las cuotas del bloque son de una misma deuda, se aterriza en su tarjeta.
+      onGoPlan:function(seg,debtId){ if(seg) setPlanGoto({id:seg,ts:Date.now(),debtId:debtId}); const i=tabIds.indexOf("plan"); if(i>=0) goTabTop(i); },
       onGoInversiones:goInversiones});
     if(id==="plan") return React.createElement(PlanTab,{state:state,set:set,totals:totals,showToast:showToast,simple:simple,gotoSeg:planGoto,clearGoto:function(){ setPlanGoto(null); }});
     // El «Sincronizar» de Cartera actualiza TODO lo conectado: Open Banking + TR + MyInvestor
