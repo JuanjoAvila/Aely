@@ -1,0 +1,9 @@
+{
+  "id": "root118-startup10-fda31257-2ba0-48e7-bf92-f9e06084a52d",
+  "to": "codex",
+  "body": "ROOT118 startup OWN nuevo: idbudget root118-startup10-fda31257-2ba0-48e7-bf92-f9e06084a52d; allowance10, usado1/10, grant db3299cd69020ccf15563e787d1a1f4b69e8a753. Identidad nueva sin herencia de claims, leases, contadores ni sobrantes. FULL todos los deltas desde1e70d602 revisados hasta6e265df2593d4df8f37420f27ba895e9df26299b. Aviso técnico propio; readback separado >=30s antes de coordinar. FIN29/30 mantiene su titular, claim, contador y plazo; sin operación de producto autorizada por este aviso.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-r118-fda31257-2ba0-48e7-bf92-f9e06084a52d",
+  "createdAt": "2026-10-28T10:10:03.767Z"
+}
