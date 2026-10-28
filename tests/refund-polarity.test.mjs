@@ -141,16 +141,17 @@ for(const version of [true,2])for(const sign of [-1,1])for(const missing of ['ro
 // Ronda 2: ejecutar los bloques reales de importación/aviso/subida y mezcla del pull.
 function zeroCycle(f,raw=clientSource,initial=[]){
  const {c,state,purchase,toRow}=f,uploaded=[],notices=[],rounds=[];
- let s=state(initial);const ref={get current(){return s;}};
+ // FIN-29/30 (4.26.191): el backfill lee la prueba de lectura y la cobertura por renombrado; el estado es del mismo titular que la lectura, como en la app.
+ let s=Object.assign(state(initial),{_historyOwner:'synthetic'});const ref={get current(){return s;}};
  const set=fn=>{s=fn(s);};class Clock extends Date{constructor(...a){super(...(a.length?a:[now]));}static now(){return now;}}
  const links=[{aspsp:'CaixaBank',syncFrom:'2026-10-01',transactions:[{ext_id:'zero-cycle',date:purchase.date.slice(0,10),amount:0,merchant:'Synthetic zero',status:'PDNG'}]}];
  const a=raw.indexOf('      set(function(prev){',raw.indexOf('obAckPend.current=')),b=raw.indexOf('      // INC-2909-03:',a);
  const p=raw.indexOf('      const delSet=expenseDeletedSet(',raw.indexOf('const syncCloudExpenses=')),q=raw.indexOf('        const rec=reconcileObDupes',p);
  assert.ok(a>=0&&b>a&&p>=0&&q>p,'bloques reales encontrados');
- const names=['flattenBankTx','importObExpenses','applyInvestBuy','cuotasDeDeudaPorMarcar','gemelosDeImportacion','pushGemelos','reconcileGemelosAutomaticos','enrichNotesFromBankTx','tagObAccountsFromBankTx','reconcileFixedPaymentProofs','reconcileEarlyIncomeAnchors','applyBankBalances','bankIssuesOf','expenseFromRow','expensesFromRows','expenseIsTombstoned','expenseDeletedSet','keyOfExpense','expenseIdentityScopes','expenseMergeKey','keepCategoryChoices','mergeExpensesFromCloud','fusionarGemelos'];
+ const names=['flattenBankTx','importObExpenses','applyInvestBuy','cuotasDeDeudaPorMarcar','gemelosDeImportacion','pushGemelos','reconcileGemelosAutomaticos','enrichNotesFromBankTx','tagObAccountsFromBankTx','reconcileFixedPaymentProofs','reconcileEarlyIncomeAnchors','applyBankBalances','bankIssuesOf','expenseFromRow','expensesFromRows','expenseIsTombstoned','expenseDeletedSet','keyOfExpense','isExpenseUuid','expenseRenameKey','expenseKnownIdentity','obOrdinalOf','esFilaDeBanco','expenseIdentityScopes','expenseMergeKey','keepCategoryChoices','mergeExpensesFromCloud','fusionarGemelos'];
  const readSession={user:{id:'synthetic'}};
- const namesExtra=['set','links','dbLinks','DEUDA_CAT','Date','at','setTimeout','subirGasto','opts','showToast','tf','stateRef','rows','readStartedAt','cloudGemelos','cloud','ps','wS','readSession','sessionRef'];
- const invoke=(code,rows)=>new Function(...names,...namesExtra,code)(...names.map(n=>c[n]),set,links,[],{id:'deudas'},Clock,now,fn=>fn(),e=>uploaded.push(e),{},msg=>notices.push(msg),(k,o)=>[k,o.n],ref,rows,now,[],{},1,{current:1},readSession,{current:readSession});
+ const namesExtra=['set','links','dbLinks','DEUDA_CAT','Date','at','setTimeout','subirGasto','opts','showToast','tf','stateRef','rows','readStartedAt','cloudGemelos','cloud','ps','wS','readSession','sessionRef','readProof','readOwner'];
+ const invoke=(code,rows)=>new Function(...names,...namesExtra,code)(...names.map(n=>c[n]),set,links,[],{id:'deudas'},Clock,now,fn=>fn(),e=>uploaded.push(e),{},msg=>notices.push(msg),(k,o)=>[k,o.n],ref,rows,now,[],{},1,{current:1},readSession,{current:readSession},{valid:true,userId:'synthetic'},'synthetic');
  for(let i=0;i<3;i++){
   const u=uploaded.length,n=notices.length;
   invoke('let obAdded=[];'+raw.slice(a,b),[]);
