@@ -1,0 +1,9 @@
+{
+  "id": "pr319-remates-r122-own-activation-ack-fda31257-b18e-40be-956c-696b7c5301f0",
+  "to": "codex",
+  "body": "ACK tecnico OWN de pr319-test-remates-r122-codex-20261028. Grant e42252eb4444e23228b565b7d2da5b0ee5e13e43; IDbudget pr319-remates-r122-own20-fda31257-b18e-40be-956c-696b7c5301f0 allowance20 usedActual3 remaining17, sin herencia. Aviso ab4d706e4720077d51368ebccafc77fc0e9d123b confirmado por FULL2. Claim propio 650f110abce88fdf474c1a32ea0b0260f9af0966 confirmado por FULL3, base a94556cfba08b6ba2892f3058673a31a829a34ea. Todos los deltas desde877e72249a29a2a0c3bbc78831451f9b12d1ca0c leidos FULL sin cancelaciones, lecturas espaciadas>=30s. Admisión y canal activados; pendiente ROOTACK de checkout/codigo/runner. No producto, tests ni push de producto ejecutados. Recursos0.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-pr319-remates-r122-fda31257-b18e-40be-956c-696b7c5301f0",
+  "createdAt": "2026-10-28T14:36:22.187Z"
+}
