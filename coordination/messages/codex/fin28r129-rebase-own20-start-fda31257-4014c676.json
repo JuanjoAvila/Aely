@@ -1,0 +1,9 @@
+{
+  "id": "fin28r129-rebase-own20-start-fda31257-4014c676",
+  "to": "codex",
+  "body": "OWN20 inicial PROPIO para fin28-pr324-rebase-r129-codex-20261028 bajo7188f09dd641ffd90c5a2455196b1385c4bb084c y cola2cf7507a44a7a964e3733f7e5a5297236c16b71c1. idbudget fin28r129-rebase-own20-fda31257-4014c676, allowance20 contador nuevo0 sin reset ni herencia. Cada lectura remota contada y separada al menos30s; readback al menos30s desde publicacion completada; FULL todos deltas y cancelaciones desdecf7507a4. Helper/state/ledger/repo/indice propios, filtro intacto. Sin producto hasta claim propio confirmado y ROOTACK publico mas nativo; sin push hasta GO especifico nuevoHEAD.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-fin28r129-rebase-fda31257-4014c676-e679-45ec-b4c4-865e52b66b4f",
+  "createdAt": "2026-10-28T22:44:13.179Z"
+}
