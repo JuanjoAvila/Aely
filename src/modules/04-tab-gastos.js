@@ -895,6 +895,13 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     // El alias de nombre distingue esta versión de un borrado; una clave global
     // ocultaba otra cuenta y una lápida de cuenta ocultaba también la propia por obName.
     const soloNombreBanco=esDeBanco&&upd.obName!=null&&merch!==(orig.merchant||"")&&signed===orig.amount&&newDay===origDay;
+    // La ficha también decide ingreso/no tarjeta: el eco del nombre no confirma esos campos.
+    // El pendiente nace de esta decisión real y sobrevive a otra edición y al reinicio.
+    if(soloNombreBanco){
+      const pending=Object.assign({},orig.expenseEditPending);
+      ["category","noCard"].forEach(function(k){if(upd[k]!==orig[k])pending[k]=upd[k];});
+      if(Object.keys(pending).length)upd.expenseEditPending=pending;
+    }
     set(function(s){ return rekeyFixedPaymentExpense(Object.assign({},s,{
       expenses:s.expenses.map(function(x){ return x.id===orig.id?upd:x; })
     },soloNombreBanco?lapidasAlRenombrar(s,orig,upd):lapidasAlEditar(s,expenseDeletionKey(orig),expenseDeletionKey(upd))),orig,upd); });

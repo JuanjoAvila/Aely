@@ -19,16 +19,24 @@ dentro del mismo día, sin mover a ni ordinales. Pasa 2/2 con 960 manual/640 col
 y el mutante intactos. El fallo anterior de ese spec leía el HTML generado antiguo
 y no acreditaba el candidato actual. Esbuild 0.25.5 existente coincide con el lock;
 se reutiliza sin instalación ni cambios de dependencias.
-Regresión final con el fixture nuevo: main1, R4 2, R5/R6 11, R7 28, backfill7,
-R4 counter6 y R5 counter7 pasan. FIN29_30_EVIDENCE y los overrides/evidencias
+Regresión anterior con el fixture nuevo: main1, R4 2, R5/R6 11, R7 28, backfill7,
+R4 counter6 y R5 counter7 pasaron. FIN29_30_EVIDENCE y los overrides/evidencias
 FIN19_R4, FIN19_R5, FIN19_R7 y FIN29_30_BACKFILL conservan fuentes y etapas.
-R8 income falla 0/6, también mediante su FIN19_R8_HTML existente ligado al mismo
-HTML actual que main. Los dos primeros nombres pasan sus transiciones; al volver
-al nombre original, el tercer complete-pull pierde noCard. En la transferencia,
-además, ingreso vuelve a traspaso y el ingreso split/net pasa de 20000 a cero
-céntimos, aunque el importe firmado permanece -20000. No se rebaja ese oráculo
-ni se modifica R8 fuera de alcance. Este bloqueo impide GREEN final y aceptación
-financiera. Node 24 usa tipos nativos y CI Node20 su esbuild existente; un worker,
+El RED R8 anterior0/6 queda congelado: el tercer pull perdía noCard y devolvía
+ingreso→traspaso, split/net20000→0, con el signo intacto. La decisión de contrato
+posterior protege los cambios reales de category/noCard mediante expenseEditPending.
+R8 ahora pasa12/12 con fuente literal: los seis originales conservan filas completas,
+54 etapas y cifras; otros seis comprueban writer real, liberación y autoridad remota
+posterior, confirmación parcial, otro UUID, ACK solo nombre/cero filas/rechazo/DO
+NOTHING y un eco anterior frente a una decisión nueva. No se presembran pendientes.
+La expectativa de fila completa incluye el pendiente real; la de lápidas exige
+alias exacto con hora exacta y ausencia de las antiguas lápidas global y de borrado.
+El primer intento nuevo que descubrió ese oráculo de lápida desactualizado se conserva.
+Sobre el nuevo producto pasan también42 pruebas afectadas: main1 (28 escenarios),
+R4 2, R5/R6 11 y R7 28; sus controles sin cambios no crean pendientes. Los demás
+verdes anteriores no se repiten ni se presentan como una suite final nueva.
+Sigue pendiente la revisión financiera independiente del SHA final antes de publicar.
+Node 24 usa tipos nativos y CI Node20 su esbuild existente; un worker,
 offline, cero retries. No acredita servicio remoto, widget desplegado ni móvil.
 
 Debounce nativo por identidad (integrado en la beta 4.26.185 / APK 62, 26/10/2026):

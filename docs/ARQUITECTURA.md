@@ -21,11 +21,22 @@ congelado como evidencia privada.
 El alias TS replica expenseFromRow: ob: con evento y dup en el primer tramo u
 ordinal mayor que uno es macrodroid y no recibe alias OB. Ob-hist conserva su
 tratamiento; RED JS320/TS0 y seis controles acreditan solo paridad offline.
-R4 ya usa el ensamblado actual y remotas de instantes distintos del mismo día,
-manteniendo oráculos960/640. El bloqueo final observado está en R8: tras volver
-al nombre original y completar el tercer pull, se pierde noCard y la transferencia
-recupera traspaso, con ingreso split/net20000→0. No se amplía el producto para
-ocultar ese fallo; requiere decisión de contrato y revisión financiera exacta.
+R4 usa el ensamblado actual y remotas de instantes distintos del mismo día,
+manteniendo oráculos960/640. El RED R8 previo perdía noCard y devolvía ingreso a
+traspaso (split/net20000→0) al tercer pull; se conserva como evidencia privada.
+La decisión posterior conserva lo elegido realmente en la ficha: un renombrado
+bancario sin cambio de importe/fecha guarda solo las diferencias category/noCard
+en expenseEditPending, dentro de la fila local y su persistencia existente.
+Refresh protege cada valor vigente hasta leer ese mismo valor en el mismo UUID,
+bajo las guardas existentes de owner/sesión/generación e identidad de la mezcla.
+La confirmación es por campo; los otros pendientes y uuidPreserved permanecen.
+Una coincidencia con otro UUID, un ACK solo de nombre, cero filas, un rechazo o un
+upsert DO NOTHING no son recibos de esos metadatos. Tras la confirmación, los
+cambios remotos posteriores vuelven a mandar. La cola/writer no se amplían: un
+pendiente que no logra subirse sigue pendiente, también tras reiniciar; la guarda
+no promete una nueva política de reintentos ni una subida eventual.
+R8 pasa12/12 y las42 regresiones afectadas pasan; falta revisión financiera
+independiente del SHA final y no hay publicación ni aceptación real/móvil.
 
 ## Plan: primera lectura y versiones de borrado
 

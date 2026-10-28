@@ -14,12 +14,22 @@
   autorización concreta; mantiene 960 manual/640 colisión y el mutante. Su fallo
   antiguo sobre HTML generado, la falta inicial de esbuild y el fallo de categoría
   sintética quedan conservados. La dependencia existente coincide con el lock.
-- Pasan dirigidos main1 (28 escenarios), R4 2, R5/R6 11, R7 28, backfill7 y los
-  contadores R4 6/R5 7. R8 falla 0/6 con la fuente actual: al regresar al nombre
-  original, el tercer pull pierde noCard; la transferencia vuelve a traspaso y
-  el ingreso split/net pasa de 20000 a cero céntimos. No se modifica ni rebaja ese
-  oráculo fuera de alcance. GREEN final, revisión financiera exacta y publicación
-  siguen pendientes. No se acredita pérdida real en Supabase ni aceptación móvil.
+- El RED R8 anterior0/6 conservado perdía noCard e ingreso split/net20000→0 al
+  tercer pull. Bajo la decisión posterior, la ficha crea expenseEditPending solo
+  con cambios reales category/noCard; refresh los protege y confirma por campo
+  con el mismo UUID y valor vigente. No se modifica el writer ni el undo. Otro
+  UUID, ACK solo nombre, cero filas, rechazo y DO NOTHING no confirman los campos;
+  tras confirmarlos, la elección remota posterior vuelve a aplicarse.
+- R8 pasa12/12 con fuente literal y filas completas, pendientes incluidos, sin
+  presembrarlos ni rebajar cifras. Su expectativa de lápida ahora exige alias y
+  hora exactos y rechaza explícitamente lápidas global/de borrado; el intento
+  anterior con aquella expectativa obsoleta también queda conservado. R7 incluye
+  la metadata real en sus tres controles de cambio explícito.
+- Pasan42 regresiones afectadas: main1 (28 escenarios), R4 2, R5/R6 11 y R7 28.
+  Backfill7 y contadores R4 6/R5 7 conservan sus verdes anteriores sin repetición.
+  Revisión financiera independiente del SHA final y publicación siguen pendientes.
+  Una guarda pendiente no garantiza reintentar una cola perdida al reiniciar.
+  No se acredita pérdida real en Supabase ni aceptación móvil.
 
 ## [4.26.186] — 2026-10-26 · Candidata de beta solo web e ingest: el widget vuelve a recoger la cifra nueva al usar la app
 

@@ -3751,7 +3751,8 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
   const manual=isManualExpenseSource(local.source);
   let out=local;
   const preserved=local.uuidPreserved||{};
-  const protects=function(k){return Object.prototype.hasOwnProperty.call(preserved,k)&&preserved[k]===local[k]&&incoming[k]!==local[k];};
+  const editPending=local.expenseEditPending||{};
+  const protects=function(k){return incoming[k]!==local[k]&&((Object.prototype.hasOwnProperty.call(preserved,k)&&preserved[k]===local[k])||(Object.prototype.hasOwnProperty.call(editPending,k)&&editPending[k]===local[k]));};
   const put=function(k,v){
     const a=local[k], b=v;
     if(a===b) return;
@@ -3822,6 +3823,14 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
     if(out===local)out=Object.assign({},local);
     const rest=Object.assign({},preserved);confirmed.forEach(function(k){delete rest[k];});
     if(Object.keys(rest).length)out.uuidPreserved=rest;else delete out.uuidPreserved;
+  }
+  // Una coincidencia semántica con otro UUID no es el recibo de esta escritura de ficha.
+  // Solo la misma fila y el valor aún vigente confirman cada campo, sin soltar los demás.
+  const editConfirmed=local.id&&local.id===incoming.id?Object.keys(editPending).filter(function(k){return editPending[k]===local[k]&&incoming[k]===editPending[k];}):[];
+  if(editConfirmed.length){
+    if(out===local)out=Object.assign({},local);
+    const rest=Object.assign({},editPending);editConfirmed.forEach(function(k){delete rest[k];});
+    if(Object.keys(rest).length)out.expenseEditPending=rest;else delete out.expenseEditPending;
   }
   /* NO realinear `id` aquí: settings.expenseOrder indexa por id local, y en OB el uuid de la
      nube suele diferir (ignoreDuplicates). Cambiarlo huérfana el orden a mano (4.19.74). Tanda

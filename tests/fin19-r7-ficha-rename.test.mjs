@@ -43,7 +43,7 @@ for(const mode of ['offline','sandbox','transition']){
  test('FIN19 R8 clasificación adicional conserva nombre bancario visible '+mode,()=>{
   const env=setup(mode),orig=plain(env.stateRef.current.expenses[0]);env.save(uuid(1),{merchant:'Mi bar',income:true});
   // Positive control only; real negative salary/transfer are exercised separately in R8.
-  const r=env.snap();evidence.push({mode,path:'category-noCard-edit',result:r});assert.equal(r.rows[0].amount,3.2);assert.equal(r.rows[0].category,'ingreso');assert.equal(r.rows[0].noCard,true);assert.equal(r.cents,320);assert.deepEqual(r.visible,[{...orig,merchant:'Mi bar',category:'ingreso',noCard:true}]);assert.ok(r.deleted.includes(env.c.expenseRenameKey(orig)));assert.ok(!r.deleted.includes(env.c.expenseDeletionKey(orig)));
+  const r=env.snap();evidence.push({mode,path:'category-noCard-edit',result:r});assert.equal(r.rows[0].amount,3.2);assert.equal(r.rows[0].category,'ingreso');assert.equal(r.rows[0].noCard,true);assert.equal(r.cents,320);assert.deepEqual(r.visible,[{...orig,merchant:'Mi bar',category:'ingreso',noCard:true,expenseEditPending:{category:'ingreso',noCard:true}}]);assert.ok(r.deleted.includes(env.c.expenseRenameKey(orig)));assert.ok(!r.deleted.includes(env.c.expenseDeletionKey(orig)));
  });
  test('FIN19 R7 renombrado manual conserva fila independiente '+mode,()=>{
   const env=setup(mode,[wire(1,{source:'manual:sabadell'}),wire(2,{source:'manual:sabadell'})]),orig=plain(env.stateRef.current.expenses[0]);env.save(uuid(1),{merchant:'Mi bar'});
