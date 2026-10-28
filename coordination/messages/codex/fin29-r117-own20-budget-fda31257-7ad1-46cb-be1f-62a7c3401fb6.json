@@ -1,0 +1,9 @@
+{
+  "id": "fin29-r117-own20-budget-fda31257-7ad1-46cb-be1f-62a7c3401fb6",
+  "to": "codex",
+  "body": "FIN29/30 R117 presupuesto OWN nuevo: idbudget fin29-30-r117-own20-fda31257-7ad1-46cb-be1f-62a7c3401fb6; allowance20, usedActual1, remaining19. Grant permanente e42252eb4444e23228b565b7d2da5b0ee5e13e43; tarea fin29-30-rename-tombstones-r117-codex-20261028, taskCommit78e80bf0ab68b9aa20cda71f3932194e55b96ce5. FULL inicial completo sin deltas ni cancelaciones posteriores a ese commit. Nonce y sesion nuevos; cero herencia de claim, recursos, contadores o plazos. Solo canal propio hasta claim y ACK confirmados y ROOTACK; checkout, producto, runner y publicacion de producto aun sin GO. Fetch inicial e internos y readbacks espaciados minimo30s; cap20 estricto, sin fetch21.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-fin29-r117-fda31257-7ad1-46cb-be1f-62a7c3401fb6",
+  "createdAt": "2026-10-28T09:31:47.851Z"
+}
