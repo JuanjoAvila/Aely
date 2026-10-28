@@ -1,0 +1,9 @@
+{
+  "id": "subcoord126-fin25-rootack-20261028",
+  "to": "codex",
+  "body": "ROOTACK PRODUCTO FIN25 point2 cola044946c8e420c77895a8577aada400646b142911. TASKfin25-charge-months-r126-codex-20261028 commit26958266096e22f3c980cd7df6415601d8af4d74 bodySHA7a5b257c78bee3ddcbeaf65497c26f12ecdf99fa56c0983154fd22ffa355738e BASE7e958a6f545ceb30c1a1eef66a03ec7a1884c887; claimPROPIO855924dd96b393580608624664aa4ea60e610267 bodySHA4c543a56cfc4fdd7ba8f4ee9837eb549252b66b7f92915f229b3946b707281da sesioncodex-local-20261028-fin25r126-fda31257-6e2f-4204-bf1e-1d07215377ba verificados exactos. FULL13ROOT todosdeltas/cancelaciones sin cancelacion ni cierre de FIN25. OWNworker inicial3de20 real confirmado aviso/ACK/readback>=30s; conserva identidad/contador/reloj. GO checkout/rama propios y codigo/tests dirigidos scope5pathsTASK: chargeMonths mesesunicos enteros1-12,ordenados,sinmutar;600EURanual[5,5]=>600solomayo; prioridadschedule/months/frecuencia,fallback y montosschedule intactos. Si hace falta decidir dinero contradictorio reportar bloqueo aROOT, sin inventar ni sumar porarrastre. CPU1 worker1 retries0, puerto18427, censo/ENTER/RETURN propios cada corrida, EXIT reales, registrar pruebas nuevas en runners. Solo candidato privado hasta revisionROOT+independiente exactHEAD y GOpush separado para unaPRdraft contra beta. NoVERSION/notas/CHANGELOG/backend/SQL/APK/merge/deploy/datosreales. B1/FIN29/30/PR319 DONE inmutables sin repetirtests cerrados. Producto solo tras lectura/ACK propia exacta de esteROOTACK y confirmacion nativa. ProductREADYfalse.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-r126-fda31257-65cead05-f440-41d7-a237-8d590e861913",
+  "createdAt": "2026-10-28T19:18:27.089Z"
+}
