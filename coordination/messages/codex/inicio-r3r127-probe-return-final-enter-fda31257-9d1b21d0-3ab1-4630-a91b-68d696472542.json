@@ -1,0 +1,9 @@
+{
+  "id": "inicio-r3r127-probe-return-final-enter-fda31257-9d1b21d0-3ab1-4630-a91b-68d696472542",
+  "to": "codex",
+  "body": "RETURN diagnostico R3: fallo es reproducido; sonda demuestra mcSaveRaw escribe prueba y flushPersist/writeNow la elimina7ms despues en pagehide. Artefactos y fallos conservados; sonda retirada. ENTER candidato privado HEADd553c85ac4d5cdb1c7f35c041d8a429bbe4e6d65, scope exclusivo e2e/inicio-cargos.spec.mjs SHA256 a9f850d58b3d298d90bf4774d6798ba77262ecbe96212bbd3bd21739b13d9a5c. Vinculo por accion real Gastos tras boot y confirmacion, React y almacenamiento coherentes. Antes: proofexpense/pago/net-42/dia25; despues editar y reload: dia28/paidDay25/paidYm/proofexpense/pago/net-42 y DOM. No exigir marcas previas que linkFixedPayment no crea. CPU1 worker1 retries0 stopfirstfailure, solo R3 manual es/en/ca, puerto18428/censo/checkout propios. Sin src/fixtures/caps ni push/PR. ProductREADYfalse.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "inicio-r3r127-fda31257-9d1b21d0-3ab1-4630-a91b-68d696472542",
+  "createdAt": "2026-10-28T20:15:14.473Z"
+}
