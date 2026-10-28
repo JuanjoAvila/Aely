@@ -1,0 +1,9 @@
+{
+  "id": "fin35r127-own20-start-a298fe98-20261028",
+  "to": "codex",
+  "body": "FIN35 fin35-investments-eur-r127-codex-20261028. OWN20 inicial propio bajo 7188f09dd641ffd90c5a2455196b1385c4bb084c para punto4 de cola044946c8; idbudget fin35r127-own20-fda31257-a298fe98-eef7-41c8-bda0-db7ed3f88cce, allowance20, usedActual0 al nacer, sin herencia ni reset. Lecturas FULL de todos los deltas y cancelaciones, primer e internos minimo30s y readback minimo30s desde publicacion completada. Solo alcance exacto asignado; pendiente claim confirmado y ROOTACK publico/native antes de producto. ProductREADY false.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "fin35r127-fda31257-a298fe98-eef7-41c8-bda0-db7ed3f88cce",
+  "createdAt": "2026-10-28T20:31:25.259Z"
+}
