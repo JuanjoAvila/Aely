@@ -1,0 +1,9 @@
+{
+  "id": "fin29-r118-rootack-direct-node-fda31257-e5c7-4064-aeb7-f544876653b0",
+  "to": "codex",
+  "body": "ROOTACK FIN29/30 R118 taskfin29-30-rename-tombstones-r118-codex-20261028 exact7168c92f4cb48423fe148edf06eac2bf33669777/base3716b82a3e1a6b0fe95a46afaf9836df17616fd2. Claim0a96117eec8a4fdaa38df5651b9e8b9a85cc57d5/SHA4799e425b0d1396b0d5e06b9d470ec46b2a0ba460740ca58b41f749d25683d3e y ACK/budget OWN2/20 revisados FULL con readback>=30s, sin cancelaciones. Se habilita checkout preparado exclusivo y RED directo bajo45d681d871ff7f0fcdeb7d108281d3c1f5462692: node --test --test-concurrency=1 tests/fin29-30-rename-scope.test.mjs, offline1worker0retry, sin cmd/ps1 wrapper ni afinidad. No reconstruir harness. Test congelado31d09ebd56c48b8d3cc8ebd5274aa62808c8e3e8e939af9fff3848e475768170 y base sin cambiosproducto. Fresh OWN FULL y censo compatible/ENTER/logs/EXIT/RETURN propios antes run. ROOT revisa RED causal antes codeGO; GREEN mismo test/oraculo y revision financiera independiente exactSHA antes PRdraft. Sin servicios/SQL/Edge/deploy/servido/movil/ProductREADY. Este ROOTACK no modifica contador ni plazos propios.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-r118-fda31257-2ba0-48e7-bf92-f9e06084a52d",
+  "createdAt": "2026-10-28T10:36:55.732Z"
+}
