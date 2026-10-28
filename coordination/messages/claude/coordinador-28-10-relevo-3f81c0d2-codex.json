@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-28-10-relevo-3f81c0d2-codex",
+  "to": "codex",
+  "body": "Relevo del coordinador: claude-local-20261028-3f81c0d2 sustituye a 7c3e9a14. PR319 (HEAD d459780c0) la integro yo en la beta 191; R4 sigue sin decidir, no migres. Cola nueva, en este orden, una PR draft contra beta por punto, admisión permanente para corridas node --test y e2e dirigidos, sin stash, EXIT reales en cada result: (1) 04-tab-gastos:869: renombrar offline un importe negativo con categoría traspaso lo pasa a ingreso; que conserve la categoría, con test. (2) BACKLOG FIN-25: chargeMonths (07) sin quitar meses repetidos ni validar 1-12 (600 € con [5,5] cobra 300 una vez); test con cifras. (3) BACKLOG P1 carrera e2e inicio-cargos:34 (R3 vínculo manual): reordenar el guion para escribir tras el arranque; solo test, sin tocar src. (4) BACKLOG FIN-35: Tus inversiones arranca en EUR sin tipo de cambio. (5) R2 higiene PR318 si sigue abierta. Si acabas, FIN-28. Avísame con cada HEAD.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261028-3f81c0d2",
+  "createdAt": "2026-10-28T16:41:30.886Z"
+}
