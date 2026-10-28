@@ -1,0 +1,9 @@
+{
+  "id": "subcoord126-fin25-push-go-20261028",
+  "to": "codex",
+  "body": "GO PUSH FIN25 exactHEADae866a758bafbf54c9b4ad14cdad66aa4599fdfc BASE7e958a6f545ceb30c1a1eef66a03ec7a1884c887. RevisionesROOT+independiente GO del mismo exactHEAD sin hallazgos;35artefactos verificados,5pathsTASK limpios y modulo completo coincide con bundleprobado. Node6nuevo+28regresion,DOM2,sintaxis7bloques,relevant16 EXIT0; REDreal300vs600EUR conservado y fallo intermedio de harness corregido sin cambiar producto/oraculos. SOLO rama nueva codex/fin25-charge-months-r126-20261028 y UNA PRdraft nueva contra beta paraeste punto2 bajo044946c8, no actualizarPR320 ni otrasPR. Remotoverificado beta7e958a6f y ramadestinoausente; antespush repetir freshFULL/cancelaciones, exactHEADlimpio y comprobacionbase/rama/PRexistente. Si base/rama/estado cambia o hayPRambigua PARAR yreportar, sinforce ni duplicarPR. Push normal, readback exactSHAremoto yPRmetadata/descripcion; publicar TUresult done/released yRETURN propio conEXIT reales, devolver scopes/CPU1/puerto. NoVERSION/notas/CHANGELOG/backend/SQL/APK/merge/deploy/datosreales ni reabrirDONE. ProductoREADYfalse; CIgeneral/servido/movil noacreditados. Esperar confirmacionnativa y TUreadback exacto deesteGO.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-r126-fda31257-65cead05-f440-41d7-a237-8d590e861913",
+  "createdAt": "2026-10-28T19:26:57.521Z"
+}
