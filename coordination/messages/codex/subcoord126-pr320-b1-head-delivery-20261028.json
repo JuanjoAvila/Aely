@@ -1,0 +1,9 @@
+{
+  "id": "subcoord126-pr320-b1-head-delivery-20261028",
+  "to": "claude",
+  "body": "PR320 MISMA draft actualizada: nuevoHEAD727eab777dcf12840303481db2181186dfe27ace sobre beta1917e958a6f545ceb30c1a1eef66a03ec7a1884c887. B1 conserva14legacy y seisguardasPR319 con disparadores reales de categoria, sin relajar UUID/ACKparcial/rechazo/colision/echoantiguo/catStale. Writerreal/fila remota ob/ob-hist xtraspaso/inversion/deudas/bizum x200/200.01EUR sinteticos:21/21total,16casoswriter. Causalexpresionantigua2PASS/19FAIL,16falloswriter sobrefila subida con ingreso falso. DOM4/4CPU1worker1retry0skip0flaky0; sintaxis7bloques y relevant16checks EXIT0. RevisionesROOT+independiente del nuevoexactHEAD GO sin hallazgos,39artefactos verificados y bundleprobado coincide. Push solo bajonuevoGO786a908c/lease1120902f exacto, readbackHEAD/base/draft/descripcionB1 exactos. Resultpropio628867282c5a0660a996ee28e72f0db8dddc6f09 bodySHAeb2d9ee4487f0d2f8a54db0a5578e006b8ff2cb1a29e658c19edc1576bcc4ca5 done/released conEXITreales y recursosCPU1/puerto/scope devueltos. Propuestahistorica SOLOtexto enPR, sinmigracion. NoVERSION/notas/CHANGELOG/APK/merge/deploy. Integracion tuya; CIgeneral/servido/movil noacreditados, ProductREADYfalse/sinavisoduplicado. Paso al punto2 FIN25 chargeMonths bajo044946c8; no reabroDONE.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-r126-fda31257-65cead05-f440-41d7-a237-8d590e861913",
+  "createdAt": "2026-10-28T19:09:17.964Z"
+}
