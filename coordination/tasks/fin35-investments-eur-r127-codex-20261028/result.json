@@ -1,0 +1,90 @@
+{
+  "status": "done",
+  "summary": "FIN35: Tus inversiones inicia en EUR si la moneda global carece de tipo valido, conserva la seleccion manual y los datos; PR323 draft contra beta, HEAD exacto revisado. Veinte casos distintos verdes en tramos15+5, sin afirmar una corrida unica20/20.",
+  "productSHA": "d56429691eb30a9ff080cd6ef3bf37ba56a68c78",
+  "baseSHA": "7e958a6f545ceb30c1a1eef66a03ec7a1884c887",
+  "pullRequest": 323,
+  "branch": "codex/fin35-investments-eur-r127-20261028",
+  "draft": true,
+  "scope": [
+    "src/modules/06-sync-brokers.js",
+    "e2e/fin31-cartera-moneda.spec.mjs"
+  ],
+  "tests": [
+    {
+      "command": "node run-directed.mjs red-usd \"FIN35 USD missing FX\"",
+      "exitCode": 1,
+      "expectedCausalRED": true,
+      "failed": 1,
+      "buildExitCode": 0
+    },
+    {
+      "command": "node run-directed.mjs red-gbp \"FIN35 GBP missing FX\"",
+      "exitCode": 1,
+      "expectedCausalRED": true,
+      "failed": 1,
+      "buildExitCode": 0
+    },
+    {
+      "command": "node run-directed.mjs green-fin31-fin35",
+      "exitCode": 1,
+      "passed": 0,
+      "failed": 1,
+      "notRun": 19,
+      "reason": "Preserved harness failure: attempted global-settings interaction behind investments modal.",
+      "buildExitCode": 0
+    },
+    {
+      "command": "node run-directed.mjs green-fin31-fin35-v2",
+      "exitCode": 1,
+      "passed": 15,
+      "failed": 1,
+      "notRun": 4,
+      "reason": "Preserved harness expectation failure: deliberate two portfolio legend toggles persist carteraParts; corrected expected settings for that action only.",
+      "buildExitCode": 0
+    },
+    {
+      "command": "node run-directed.mjs green-fin31-pending5 \"FIN31 boundary partial|FIN31 boundary missing|FIN31 R2\"",
+      "exitCode": 0,
+      "passed": 5,
+      "failed": 0,
+      "notRun": 0,
+      "buildExitCode": 0
+    },
+    {
+      "command": "node run-directed.mjs syntax-final-head (build and scripts/check-syntax.mjs)",
+      "exitCode": 0,
+      "buildExitCode": 0,
+      "inlineBlocksReviewed": 7
+    }
+  ],
+  "distinctGreenCases": 20,
+  "greenSegments": [
+    15,
+    5
+  ],
+  "singleFullGreenRun": false,
+  "CPU": 1,
+  "workers": 1,
+  "retries": 0,
+  "stopFirstFailure": true,
+  "resourcesReturned": true,
+  "reviews": {
+    "head": "d56429691eb30a9ff080cd6ef3bf37ba56a68c78",
+    "actionableFindings": 0,
+    "rootReportSHA256": "330a4349fd6dcc6120b820a3bc69d1e75e6c904aec106c36cc23c7844e772f09",
+    "independentReportSHA256": "d5e7240efba8e1c3a00b979a2ddd413d257e3ac7ed194e91a5ff7b00433a772d"
+  },
+  "limitations": [
+    "Green20 means20 distinct cases from15+5 segments, not one full green20/20 run on the final spec; prior failures retained.",
+    "Only the lazy initializer and existing FIN31 spec changed; financial conversion, costs, rounding and global settings are unchanged.",
+    "Integration, general CI, served beta and physical mobile acceptance pending."
+  ],
+  "ProductREADY": false,
+  "schema": 1,
+  "taskId": "fin35-investments-eur-r127-codex-20261028",
+  "actor": "codex",
+  "sessionId": "fin35r127-fda31257-a298fe98-eef7-41c8-bda0-db7ed3f88cce",
+  "createdAt": "2026-10-28T21:04:57.913Z",
+  "released": true
+}
