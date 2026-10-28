@@ -10,6 +10,7 @@ const cuenta = (value) => [{ id: "bank", ent: "sabadell", role: "fijos", value }
 const recibo = (id, name, amount, day, account) => ({ id, name, amount, freq: "mes", day, account: account || "sabadell" });
 const nomina = (day, extra) => Object.assign({ id: "nom", kind: "income", name: "Nómina", amount: 1000, to: "sabadell", day }, extra);
 const HOY = "2026-10-10T12:00:00+02:00";
+const eurTxt = (n) => n.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
 
 async function abrePlan(page, overrides) {
   test.info().annotations.push({ type: "own-clock" });
@@ -157,23 +158,43 @@ test("un recibo vencido sin cobro acreditado es cargo de hoy: filas, cifra, píl
   expect(Math.round(min * 100)).toBe(-13000);
 });
 
-/* Segunda vuelta de la revisión (28/10): un recibo YA cobrado no se resta otra vez. El saldo del
-   banco (500) ya trae la Luz del día 5; Plan la pinta pagada y el recorrido solo lleva el Seguro
-   del 20: 500 − 150 = 350, igual que en la base. Con la prueba «solo paidYm o expense» salía 50. */
-for (const [como, extra] of [
-  ["cargo BOOK en el extracto", { bankTx: [{ id: "t1", ent: "sabadell", date: "2026-10-05", amount: 300, merchant: "Luz casa", status: "BOOK" }] }],
-  ["aviso de Wallet", { expenses: [{ id: "n1", date: "2026-10-05", merchant: "Luz casa", amount: 300, ent: "sabadell", category: "recibos", source: "wallet" }] }],
-  ["gasto importado del banco", { expenses: [{ id: "o1", date: "2026-10-05", merchant: "Luz casa", amount: 300, ent: "sabadell", category: "recibos", source: "ob" }] }],
-]) test("recibo ya cobrado por " + como + ": no se resta dos veces", async ({ page }) => {
+/* Revisión t3, segunda y tercera vuelta (28/10). 500 €, Luz 300 del día 5 que Plan pinta pagada,
+   Seguro 150 del 20. Si el saldo es el del banco (lectura en `obBalAt`), cualquier cobro ya está
+   en él: 500 − 150 = 350. En una cuenta a mano, solo lo que movió el saldo mostrado (el gasto
+   marca confirmada); un aviso de Wallet, un BOOK o un gasto del banco sin enlazar no, y la Luz sigue restando HOY:
+   500 − 300 − 150 = 50. En todos, el simulador («¿Me lo puedo permitir?») recorre la misma lista
+   que la hoja y da el mismo mínimo. */
+const LECTURA = { obBalAt: { "Banco Sabadell": "2026-10-10T08:00:00Z" } };
+const BOOK = { bankTx: [{ id: "t1", ent: "sabadell", date: "2026-10-05", amount: 300, merchant: "Luz casa", status: "BOOK" }] };
+const WALLET = { expenses: [{ id: "n1", date: "2026-10-05", merchant: "Luz casa", amount: 300, ent: "sabadell", category: "recibos", source: "wallet" }] };
+const OBEXP = { expenses: [{ id: "o1", date: "2026-10-05", merchant: "Luz casa", amount: 300, ent: "sabadell", category: "recibos", source: "ob" }] };
+for (const [como, extra, cifra, luz] of [
+  ["BOOK con saldo del banco", Object.assign({}, BOOK, LECTURA), "lo más justo, el 20350,00 €"],
+  ["Wallet con saldo del banco", Object.assign({}, WALLET, LECTURA), "lo más justo, el 20350,00 €"],
+  ["marca confirmada en cuenta a mano", {}, "lo más justo, el 20350,00 €", { paidYm: 2026 * 12 + 10, paidDay: 5 }],
+  ["gasto del banco sin enlazar en cuenta a mano", OBEXP, "lo más justo, el 2050,00 €"],
+  ["Wallet en cuenta a mano", WALLET, "lo más justo, el 2050,00 €"],
+  ["BOOK sin fila en cuenta a mano", BOOK, "lo más justo, el 2050,00 €"],
+]) test("recibo cobrado por " + como + ": hoja y simulador dicen lo mismo", async ({ page }) => {
   const recibos = await abrePlan(page, Object.assign({
-    fixed: [Object.assign(recibo("luz", "Luz casa", 300, 5), { category: "recibos" }), recibo("seg", "Seguro hogar", 150, 20)] }, extra));
+    fixed: [Object.assign(recibo("luz", "Luz casa", 300, 5), { category: "recibos" }, luz), recibo("seg", "Seguro hogar", 150, 20)] }, extra));
   await expect(recibos.getByTestId("plan-summary").locator(".pr6-big")).toHaveText("150,00 €");
-  await expect(recibos.getByTestId("plan-llega")).toHaveText(/Te llega/);
   const hoja = await abreLlega(page, recibos);
   const sab = hoja.locator('[data-testid="llega-banco"][data-bank="sabadell"]');
   await expect(sab).toContainText("Tienes hoy500,00 €");
-  await expect(sab).toContainText("Recibos que faltan− 150,00 €");
-  await expect(sab.getByTestId("llega-cifra")).toHaveText("lo más justo, el 20350,00 €");
+  await expect(sab.getByTestId("llega-cifra")).toHaveText(cifra);
+  const sim = await page.evaluate(() => { const s = mcLoadRaw(mcStateKey()), i = insumosSaldoGasto(s); return minWalk(saldoCuentaMostrada(s.accounts[0], i), bankPendingEvents(s, "sabadell", 2026, 10, 10)).min; });
+  expect(eurTxt(sim)).toBe(cifra.replace(/^lo más justo, el 20/, ""));
+});
+
+test("vencido sin cobro: el simulador dice lo mismo que la hoja", async ({ page }) => {
+  const recibos = await abrePlan(page, { fixed: [recibo("luz", "Luz casa", 300, 5), recibo("seg", "Seguro hogar", 150, 20)] });
+  const hoja = await abreLlega(page, recibos);
+  const sab = hoja.locator('[data-testid="llega-banco"][data-bank="sabadell"]');
+  await expect(sab).toContainText("Recibos que faltan− 450,00 €");
+  await expect(sab.getByTestId("llega-cifra")).toHaveText("lo más justo, el 2050,00 €");
+  const sim = await page.evaluate(() => { const s = mcLoadRaw(mcStateKey()), i = insumosSaldoGasto(s); return minWalk(saldoCuentaMostrada(s.accounts[0], i), bankPendingEvents(s, "sabadell", 2026, 10, 10)).min; });
+  expect(eurTxt(sim)).toBe("50,00 €");
 });
 
 test("editar solo el importe de una nómina «último laborable» conserva la regla", async ({ page }) => {

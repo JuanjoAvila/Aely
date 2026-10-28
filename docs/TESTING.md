@@ -790,9 +790,12 @@ editar la nómina (el primer número sustituye, el día se mueve, el saldo mostr
 nómina «último laborable» conserva la regla si solo cambia el importe). También un recibo vencido
 sin cobro acreditado: cuenta como cargo de hoy y «Tienes hoy − Recibos que faltan» cuadra con la
 cifra, la píldora, el aviso e Inicio (con la regla vieja de «cobrado por fecha» sale rojo:
-comprobado). Y al revés, un recibo YA cobrado (cargo BOOK en el extracto, aviso de Wallet o gasto
-importado) no se resta dos veces: 500 − 150 = «lo más justo, el 20 · 350,00 €» (con la regla
-«solo `paidYm`» salen rojos los tres: comprobado). Está en `E2E_MAP` para `14-v4-screens`, `08-motor-bank`, `07-tab-patri-fijos`,
+comprobado). Y un recibo que Plan pinta pagado: con saldo leído del banco (BOOK o Wallet) no se
+resta dos veces (500 − 150 = 350); en una cuenta a mano solo sale si movió el saldo (`paidYm`: 350)
+y un Wallet, un BOOK o un gasto sin enlazar siguen restando (50). En cada caso, y en el vencido sin
+cobro, el simulador (`bankPendingEvents`) da el mismo mínimo que la hoja. Mutantes comprobados:
+dar por bueno cualquier pago tumba `fixed-ispaidin` y los tres casos «a mano»; no reconocer el
+saldo del banco tumba los dos «con saldo del banco». Está en `E2E_MAP` para `14-v4-screens`, `08-motor-bank`, `07-tab-patri-fijos`,
 `11-app-main`, `01-i18n` y `shell.html`.
 
 Descarga incompleta (candidato13/10): `tests/bank-download-incomplete.test.mjs`, registrado en
