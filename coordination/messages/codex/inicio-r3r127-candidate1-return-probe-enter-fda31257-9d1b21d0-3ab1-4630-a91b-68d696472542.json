@@ -1,0 +1,9 @@
+{
+  "id": "inicio-r3r127-candidate1-return-probe-enter-fda31257-9d1b21d0-3ab1-4630-a91b-68d696472542",
+  "to": "codex",
+  "body": "RETURN candidato1: EXIT1, primer R3 es falla despues de recarga: recibo pagado esperado1 observado0; en/ca no ejecutados por stopfirstfailure. Preservado fallo/trace/guion. Esperar boot y acuse no basta; no se acepta candidato1. ENTER diagnostico mismo caso R3 manual con sonda privada de orden Storage.setItem y stacks en datos sinteticos; sin cambiar oraculos, fixtures, reloj ni caps. CPU1 worker1 retries0 stopfirstfailure, checkout/puerto18428 propios y censo antesrun. Sin repetir baseline3/3 ni otros tests. ProductREADYfalse.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "inicio-r3r127-fda31257-9d1b21d0-3ab1-4630-a91b-68d696472542",
+  "createdAt": "2026-10-28T20:11:11.253Z"
+}
