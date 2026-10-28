@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "id": "fin29-30-rename-tombstones-r119-codex-20261028",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261028-r119-fda31257-9bae-45e8-ad7a-b2c8a86ef08d",
+  "createdAt": "2026-10-28T11:33:05.115Z",
+  "to": "codex",
+  "baseSHA": "3716b82a3e1a6b0fe95a46afaf9836df17616fd2",
+  "objective": "FIN29/30: continuar candidato alias/backfill preparado; implementar contrato de prueba undo autorizado por Claudeccf8861e con fixture fiel al writer real, obtener GREEN dirigido y revision financiera independiente exactSHA antes de una PR draft beta.",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/04-tab-gastos.js",
+    "src/modules/08-motor-bank.js",
+    "src/modules/11-app-main.js",
+    "supabase/functions/_shared/presupuesto.ts",
+    "tests/helpers/fin19-r4-fixture.mjs",
+    "tests/fin19-r7-ficha-rename.test.mjs",
+    "tests/fin19-r5-remote-rename.test.mjs",
+    "tests/fin29-30-rename-scope.test.mjs",
+    "tests/fin29-30-backfill-identity.test.mjs",
+    "scripts/run-tests.mjs",
+    "docs/TESTING.md",
+    "docs/BACKLOG.md",
+    "docs/ARQUITECTURA.md",
+    "CHANGELOG.md",
+    "docs/ROADMAP.md",
+    "README.md"
+  ],
+  "previousTaskId": "fin29-30-rename-tombstones-r118-codex-20261028",
+  "grants": [
+    "7ae3e7e57d70e08ce6859efa6dd1518c35630680",
+    "e42252eb4444e23228b565b7d2da5b0ee5e13e43",
+    "db3299cd69020ccf15563e787d1a1f4b69e8a753",
+    "aac63502965539a9bf615f4a5a4687eee2923cfb",
+    "bc1c5e1df6bcbf0c8a9463015046f6848ea338b1",
+    "45d681d871ff7f0fcdeb7d108281d3c1f5462692",
+    "94f44b2f890d42db78f23be28bb348418526ea30",
+    "ccf8861eb3e7452f84448b0cd3067b5dca2ea18d"
+  ],
+  "requirements": [
+    "Predecesor r118 cerro SU claim blocked/released y RETURN en b712e94d97a931f91f63791c17758355630faf6e. Ownfinal10/20 congelado,10sobrantesintransferibles; no operacion activa. Candidata privada exacta y evidencias conservadas; no GREEN final, commitfinal ni PR. RED causal real NodeEXIT1 ya revisado640->320; NO repetir RED ni volver a launcher/afinidad por rutina.",
+    "RECEPCION exclusivamente antes de admision nativa ROOT119: runtime propio nodeRepl.requestMeta.threadId/sessionId/cwd e inventario nativo Aely local, nonce nuevo prefijofda31257 y sesion propia; ACKdurable pequeno fsync/readback/hash. Sin fetch/claim/checkout/codigo/tests antes de admision. NuevoOWN20 propio inicia0 bajo e42252eb4444e23228b565b7d2da5b0ee5e13e43, helper/state/ledger propios y aviso budget/ACK/readback>=30s, FULLtodosdeltas/cancelaciones desde canonical ROOT119 vigente. Propio claim/ACK leido + ROOTACK antescheckoutGO. No usar helpers cerrados ni heredarclaim/lease/grants/counters/plazos.",
+    "Continuar checkout preparado tras nuevoOWN/claim/ROOTACK y cierre fuente verificado, autorizado Claude45d681d8; no recrear WT por rutina. Preservar base3716b82a y todos WIP/resultadosprevios. Producto actual alias/backfill y docs en snapshot de cierre. Guardas de codigo:00soloalias/lapidas,04SOLOrenombrado895-901(NOundo489),08sololector1946-1956,11SOLObackfill647-655,TSsolo paridadoffline.",
+    "Claudeccf8861eb3e7452f84448b0cd3067b5dca2ea18d AUTORIZAfixturefin19-r4 fielwriterREAL y sustitucion de expectativa uploads0 trasundo por ceroaltasespuriasrename+alta restauradora legitima idempotente sin duplicado. Mantener undo489 prudente. Conservar bytes y fallo main31d09ebd56c48b8d3cc8ebd5274aa62808c8e3e8e939af9fff3848e475768170 congelados y enlazados como evidencia; version sucesora tiene nuevoSHA y mismo path/registro permitido. No esconder fallo ni dejar specs huerfanos. PrimerfalloREAL117fullrows;118 no alcanzada, contradiccion inferida fuente. No afirmar perdidaREALSupabase.",
+    "Fixture fiel en frontera sb.from/upsert debe ejecutar cloud.addExpense REAL con guardas reales sesion/owner/confirmacion/absorcion; no mockalwaysallow. Conservar no_card/notas/nota_edit/importe_orig/divisa/ob_name/source/UUID, respetar onConflict user_id,fecha,importe,comercio eignoreDuplicates. Separar intentos de uploads de inserciones efectivas, no reemplazar fila completa por subset. Mantener extractor y sin dependencias nuevas.",
+    "Casos obligatorios: DELETE noaplicado/error, aplicado/respuestaperdida y confirmado con restore repetido; la restauracion no se suprime por false. MismoUUID/owner/camposoriginales/fechaexacta/bank-account-ref/ordinalcanonico/importe finito firmado;2filas640c,delete320c,undo640c, filas completas/visibles/remotas/espejo y budgets porbanco. Confirmacion/absorcion o owner/session denegados no mutan remoto; reportar cualquier falla sin ampliar scopeundo.",
+    "Conservar seis fichas54etapas640, dos bancosACK y controlesmanual/creditos/signo/notas/divisa/ordinal2; completar undoMirror/segundoACK/signedmanual que antes no se alcanzaron. Backfill7 ya paso incluyendo ceroespurias y realmenteausenteSIupload; repetir solo si cambiofixture o nuevofallo lo justifica. No bajar oraculos monetarios/fullrows, caps500/200h, absorcion ni reinterpretar legacy ambiguo por similitud/global/wildcard.",
+    "Pruebas dirigidas NodeDIRECTO shell node --test --test-concurrency=1 tests/<spec>.test.mjs,1worker offline0retry;45d681d8 concede admisionpermanente sin preguntaporrun. FreshFULL<=60s,censocompatible yENTER/RETURNprivados bajoaac635 suficientes. Sin wrappercmd/ps1 ni afinidadCPU1, sin customharness/43hashgate/barriers. No tocar sistema/procesos ajenos/red/DB/browser/server/ports ni repetirpruebas cerradas sin cambio.",
+    "Tras GREEN nuevo real, candidato/commitfinal exacto y revisiondinero INDEPENDIENTE exactfinalSHA antes de UNA PRdraft contra beta. La revision de contrato204b8db5 no es final. Sin pushbeta/main, version/generados/deps, SQL/livebank/Edge/backend/deploy/merge/APK/movil/CPU6/ProductREADY ni aviso duplicado. Trabajador reporta soloROOT119; soloROOTreportaClaude draftlista o bloqueoproducto.",
+    "AdmittedAtREALnuevo y nextRelay+60min propios, objetivo cierre10min antes. No extender por relojROOT. Alplazo cierrepropio/RETURN/readback/freeze y sucesor fresco; archivar fuente solo trasACK/admisión/recibo confirmado. Ningunclaim/counter/reserva se transfiere."
+  ],
+  "acceptance": "GREEN dirigido con contratoClaudeccf8861e, exactitud alcentimo640/320/640 y filas completas; restauracion prudente idempotente y ceroespuriasrename/backfill; revisiondinero finalexactSHA antesUNA PRdraftbeta; live/movil no acreditados."
+}
