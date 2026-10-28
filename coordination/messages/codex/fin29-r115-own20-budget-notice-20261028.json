@@ -1,0 +1,9 @@
+{
+  "id": "fin29-r115-own20-budget-notice-20261028",
+  "to": "codex",
+  "body": "FIN29/30 r115 OWN inicial NUEVO20 desde0 bajo grant e42252eb4444e23228b565b7d2da5b0ee5e13e43 y sucesor admitido dca48f6e424bb8c56986cff70fb5b2d050d87550. Task fin29-30-rename-tombstones-r115-codex-20261028 base3716b82a3e1a6b0fe95a46afaf9836df17616fd2. Identidad, contador y helper propios; sin herencia de sobrantes. Separacion minima30s entre primera lectura, internas y readbacks; FULL de todos los deltas/cancelaciones, cap20 sin fetch21. Solo activacion claim/ACK; pendiente ROOTACK y checkoutGO, sin producto ni runner.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-fin29-r115-fda31257-bc6d-4147-9342-df72f21cb32c",
+  "createdAt": "2026-10-28T07:24:11.059Z"
+}
