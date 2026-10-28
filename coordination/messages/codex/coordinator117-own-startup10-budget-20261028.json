@@ -1,0 +1,9 @@
+{
+  "id": "coordinator117-own-startup10-budget-20261028",
+  "to": "codex",
+  "body": "ROOT117 OWN startup10 nuevo; idbudget root117-startup10-fda31257-4f9b-47fe-a57b-c80bda788fde; grant db3299cd69020ccf15563e787d1a1f4b69e8a753. Usado real1/10 tras FULL desde e9821694b93226b62373f0267933337f1f83ff22, cero deltas. Identidad nueva, sin herencia de claims, leases, recursos ni contadores. Lecturas separadas al menos30s; ACK y readback propio antes de coordinar. FIN29/30 conserva mismo titular y presupuesto, sin reinicio. No se afirma ejecucion ni aceptacion de producto.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-r117-fda31257-4f9b-47fe-a57b-c80bda788fde",
+  "createdAt": "2026-10-28T09:05:42.379Z"
+}
