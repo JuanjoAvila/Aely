@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "id": "fin29-30-rename-tombstones-r118-codex-20261028",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261028-r118-fda31257-2ba0-48e7-bf92-f9e06084a52d",
+  "createdAt": "2026-10-28T10:29:44.809Z",
+  "to": "codex",
+  "baseSHA": "3716b82a3e1a6b0fe95a46afaf9836df17616fd2",
+  "objective": "FIN29/30 sucesor: ejecutar RED causal con Node directo sin lanzador ni afinidad, corregir alias/lapidas dentro del alcance exacto y verificar GREEN antes de revision financiera independiente y una PR draft beta.",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/04-tab-gastos.js",
+    "src/modules/08-motor-bank.js",
+    "supabase/functions/_shared/presupuesto.ts",
+    "tests/fin19-r7-ficha-rename.test.mjs",
+    "tests/fin19-r5-remote-rename.test.mjs",
+    "tests/fin29-30-rename-scope.test.mjs",
+    "scripts/run-tests.mjs",
+    "docs/TESTING.md",
+    "docs/BACKLOG.md",
+    "docs/ARQUITECTURA.md",
+    "CHANGELOG.md",
+    "docs/ROADMAP.md",
+    "README.md"
+  ],
+  "previousTaskId": "fin29-30-rename-tombstones-r117-codex-20261028",
+  "grants": [
+    "7ae3e7e57d70e08ce6859efa6dd1518c35630680",
+    "e42252eb4444e23228b565b7d2da5b0ee5e13e43",
+    "db3299cd69020ccf15563e787d1a1f4b69e8a753",
+    "0db3182dd205cf33e8897e467d58a9a35143df66",
+    "aac63502965539a9bf615f4a5a4687eee2923cfb",
+    "bc1c5e1df6bcbf0c8a9463015046f6848ea338b1",
+    "a818b5dfead2609774f127aceb847545b8089482",
+    "dca48f6e424bb8c56986cff70fb5b2d050d87550",
+    "9b7e54d6cedc6004b9edbb434931157fea4a57eb",
+    "45d681d871ff7f0fcdeb7d108281d3c1f5462692"
+  ],
+  "requirements": [
+    "Source r117 closed by its own holder: resultee0fc41cf9f05040116440c9d19334af73ced2f5 blocked/released and RETURNd951f0e16b2d4539b74beea71e4dd95aa5b35d6e, final OWN13/20 frozen with7 nontransferable. V1/V2 each consumed one directed launcher attempt, syntax EXIT1 before host/Node, zero cases/stages/causalRED/GREEN/product. V3 argv0 candidate statically approved exact manifestbae2ea2b5ea4f08587695c0324ddf5012397e2158d50fe0fec73c45a9df4fcac/controllerfdd225bd948549f6c3782444f7b6149a5fc7c2395bcdc3d9c998fb86ccbe5251 but NO-START due safe90s margin. Preserve both failures and candidate; unique launcher cause unproven. No V3 runtime approval created; anticipatory native GO immediately corrected and worker never ran. LATEST CLAUDE45d681d871ff7f0fcdeb7d108281d3c1f5462692 supersedes earlier affinity/custom-harness gates: leave that launcher behind, execute test directly with native Node, one worker offline, no ps1/cmd wrapper or CPU1 affinity. Preserve V3 as history only; do not spend another turn rebuilding it.",
+    "RECEPTION first: fresh native runtime thread/session/cwd, native Aely project local inventory, new nonce prefix fda31257, own public session and small durable ACK with file fsync/readback/hash. No fetch/claim/checkout/code/tests before native ROOT118 admission. New OWN20 starts0 under e42252eb4444e23228b565b7d2da5b0ee5e13e43, own helper/state/ledger, budget notice/ACK/readback>=30s, all FULL deltas/cancellations from45d681d871ff7f0fcdeb7d108281d3c1f5462692 or later ROOT-verified canonical. Own new claim/ACK readback and ROOTACK before checkoutGO. Do not invoke closed predecessor helpers or inherit identity, resources, claims, grants, counters or deadlines.",
+    "Latest Claude45d681d8 explicitly allows the successor to continue from the prepared checkout after native admission, own claim/ACK/ROOTACK and source closure verification; do not create work just to recreate a harness. Preserve prepared test/registration/docs and unchanged base3716b82a3e1a6b0fe95a46afaf9836df17616fd2. Test SHA25631d09ebd56c48b8d3cc8ebd5274aa62808c8e3e8e939af9fff3848e475768170 immutable for RED/GREEN. Existing FIN19 fixture and extractor unchanged. Literal assembly remains in memory over17 build-order modules+shell, no replacement-string dollar expansion or generated output. No installs/dependencies.",
+    "R117 V1/V2 launcher failures and V3 candidate are preserved immutable historical evidence, not steps to repeat. Latest Claude45d681d8 replaces all earlier frozen launcher/affinity/barrier/43-hash runtime-approval gates for directed FIN29 tests with the simplest direct Node command. Do not rebuild, run or correct the custom wrapper/harness; no cmd, ps1, executionpolicy, bypass or system guard changes. Use node --test --test-concurrency=1 tests/fin29-30-rename-scope.test.mjs from the prepared checkout, record exact command/environment, test hash, native exit/logs and causal assertion. One worker offline, zero retry; no probe/smoke/full suite.",
+    "Permanent direct-test admission Claude45d681d871ff7f0fcdeb7d108281d3c1f5462692: native Node direct, one worker and offline, without cmd/ps1 wrapper or affinityCPU1. Fresh compatible census and own private ENTER/RETURN under aac635 remain sufficient; no separate ledger and no new Claude question. Preserve simple bounded execution/logs/actual EXIT; never kill foreign processes, alter system guards, use network/DB/browser/server/ports, CPU6, Gradle/APK or deploy. Earlier9b7 native scope persists where compatible, but its affinity/custom harness requirements are superseded by this new order.",
+    "First directed RED uses unchanged base and frozen test under latest direct-Node admission, own fresh FULL<=60s, durable ENTER/log/EXIT/RETURN. Run node --test --test-concurrency=1 tests/fin29-30-rename-scope.test.mjs with no custom launcher. Loader errors are infrastructure, not causal RED; preserve any failure and inspect rather than automatic retry. ROOT reviews causal assertion before codeGO. GREEN uses same test/oracle after the scoped product fix. No per-run Claude permission. If no RED has executed by13:00 Europe/Madrid today (12:00Z), record blocked reason and continue R2 PR318 under ROOT coordination. Do not confuse INFRA with product blocker.",
+    "Claude7ae3e7e57d70e08ce6859efa6dd1518c35630680 scope:00-core only rename aliases/tombstones;04-tab-gastos only same ficha rename block895-901;08-motor-bank only tombstone reader1946-1956;supabase/functions/_shared/presupuesto.ts only offline parity mirror. No list/live figures/scroll/other widgets/backend/Edge/SQL/deploy. Preserve owner/UUID/bank/account/ref/ordinal/sign/absorption/caps. Global rename keys may not erase another row or blindly use expenseDeletionKey hiding own row via obName.",
+    "Independent oracle: renameA keeps TWO full rows640c,320 per bank when applicable; same bank distinct accounts640c. Persist/reload/pull/reimport/rename-back preserve rows without duplication. Explicit delete320c and undo640c separate from rename. Manual/credits/sign/notes/reference/currency/original/UUID/ordinal2 fields intact; compare full rows. Legacy ambiguity without scope is never inferred/migrated by similarity. Correct fin19-r5/r7 expectations encoding loss ONLY rename scenario after ROOT-reviewed RED, never blanket change deletion totals; explain in commit.",
+    "Independent financial review at exact finalSHA and final source/candidate checks before ONE draft PR against beta. No beta/main push, stash, version/dependency/generated changes, Android/ADB/Gradle/APK, SQL/livebank/Edge/deploy/merge/served/mobile/ProductREADY or user notice. Worker reports only ROOT118, and ROOT reports Claude only draft-ready or product blocker; do not send infrastructure statuses Claude.",
+    "Actual new native admittedAt plus own60min deadline and safe closure target10min earlier, never inherited dates. Worker deadline independent from ROOT118 deadline11:06:35.245Z; root relay changes only private route/inventory/guards with same worker owner/claim/OWN/deadline. Do not interrupt an operation at hourly boundary; finish at first safe point and preserve progress for the new holder, per latest Claude direct-node order. Own result/RETURN/readback/freeze then reception/admission of one new successor before archive. Queue R2PR318,FIN05,bank-sync cursor,PRO09 remains outside worker scope unless ROOT dispatches the cutoff fallback."
+  ],
+  "acceptance": "Causal RED and GREEN directed with full-row and cent accuracy; financial identity/scope preserved; independent money review exact finalSHA and one draft PR beta. Static approval/Node/CI do not prove live mobile acceptance."
+}
