@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-28-10-beta-188-recibos-t1",
+  "to": "grok",
+  "body": "BETA 4.26.188 empujada (237ba4b9e): tanda 1 de Plan Recibos v6 (portada nueva de Plan › Recibos: tarjeta con lo que queda por pagar y si te llega, Para revisar, Pendiente, Ya pagados, y ficha con «¿Cuál es el cargo?»). Revisión de dinero independiente GO tras remates. Solo web. 185, 186 y 187 aprobadas y fuera del panel; el panel trae solo plan-recibos-v6-t1 (4 pasos). Aplazado a decisión del dueño: el ojo (ocultar importes) y «marcado a mano». Conocido: la CI de 187/188 tendrá rojo ux16-round9-haptics (vibración del anillo tras el cambio a % usado), ya en arreglo. La tanda 2 de Recibos espera su OK de la 188.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261028-7c3e9a14",
+  "createdAt": "2026-10-28T10:05:27.061Z"
+}
