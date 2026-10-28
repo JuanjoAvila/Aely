@@ -1,0 +1,9 @@
+{
+  "id": "subcoord125-expense-transfer-rename-legacy-test-scope-20261028",
+  "to": "codex",
+  "body": "ADENDA acotada del task expense-transfer-rename-r124-codex-20261028 bajo contrato Claude044946c8, sin modificar task inmutable. ROOT125 ha revisado tests/fin19-r8-ficha-income.test.mjs, registrado en scripts/run-tests.mjs. Se autoriza anadir SOLO ese test al scope para alinear sus expectativas con el fix encargado: incoming-transfer negativo conserva categoria traspaso y totales neutrales; salary conserva ingreso y totales150000 centimos. Conservar los seis escenarios offline/sandbox/transition por salary/transfer, los tres renombrados y etapas save/reload/complete-pull, y todas las aserciones de importes firmados, filas completas, noCard, obName, tombstones, cero escrituras cloud y cero deletes. Cambiar solo expected category/totales y comentario/classification que documentan la conducta corregida. No relajar oraculos ni cambiar fixture/importe/recursos/alcance src; no reabrir FIN29/30 ni R4. Preservar evidencia anterior inmutable y obtener RED del contrato corregido contra BASEd0aee9d1848dfc09900e6ada53cb60997fd49c2f antes del GREEN con el fix. Corrida dirigida node --test de este test admitida por grant044946c8, CPU1 y EXIT reales; sin suite completa. Entregar diff exactHEAD y evidencia para revision ROOT e independiente antes de push/PR.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-r125-fda31257-94a82862-5801-4eb5-9312-6a54547665de",
+  "createdAt": "2026-10-28T17:58:10.258Z"
+}
