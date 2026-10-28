@@ -76,7 +76,9 @@ test('UX16 ronda 9: tocar otro segmento con la lista a medias no suma el borde d
 });
 
 test('UX16 ronda 9: el anillo de Inicio manda toques que el motor puede sentir',async({page})=>{
-  await boot(page);
+  // Desde la 4.26.187 el anillo cuenta lo USADO y la ristra sigue al trazo: con el mes sin gastar
+  // (0 %) no hay nada que rellenar y calla a propósito. Para el trazo entero, el límite agotado.
+  await boot(page,null,{budget:1000,accounts:[],expenses:[{id:'g',date:new Date().toISOString(),amount:1000,category:'super'}]});
   await expect.poll(()=>page.evaluate(()=>window.__ux16.filter(c=>c.cycle).length),{timeout:6_000}).toBe(13);
   const ring=await page.evaluate(()=>window.__ux16.filter(c=>c.cycle));
   expect(ring.every(c=>c.usage==='hardware'),'uso hardware: OxygenOS no lo cambia por su efecto de serie').toBe(true);
@@ -85,6 +87,12 @@ test('UX16 ronda 9: el anillo de Inicio manda toques que el motor puede sentir',
   expect(Math.min(...ring.map(c=>c.amplitude)),'el primero ya se siente').toBeGreaterThanOrEqual(60);
   expect(ring.every((c,i)=>i===0||c.amplitude>ring[i-1].amplitude),'cada toque más fuerte').toBe(true);
   expect(ring.at(-1).amplitude).toBe(140);
+});
+
+test('UX16 ronda 9: el anillo de Inicio vacío (nada gastado) no vibra',async({page})=>{
+  await boot(page);
+  await page.waitForTimeout(2500);
+  expect(await page.evaluate(()=>window.__ux16.filter(c=>c.cycle).length)).toBe(0);
 });
 
 test('UX16 ronda 10: abajo del todo en Plan, seguir tirando vuelve a vibrar como en las demás pestañas',async({page})=>{
