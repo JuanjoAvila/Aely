@@ -96357,5 +96357,15 @@
       "supabase/functions/ingest/widget.ts"
     ],
     "unidades": true
+  },
+  "inicio-anillo-usado": {
+    "web": [
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "  const usedC=Math.round(spentAgainst*100), limC=Math.round(budAmt*100);",
+        "to": "  const amountTxt=over?"
+      }
+    ],
+    "unidades": true
   }
 }

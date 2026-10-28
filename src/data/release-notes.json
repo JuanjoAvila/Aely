@@ -1,5 +1,46 @@
 [
   {
+    "v": "4.26.187",
+    "d": "2026-10-26",
+    "t": {
+      "es": "El anillo de Este mes se llena según gastas",
+      "en": "The This month ring fills up as you spend",
+      "ca": "L’anell d’Aquest mes s’omple segons gastes"
+    },
+    "items": {
+      "es": [
+        "El anillo de «Este mes» en Inicio se va llenando según gastas, hasta el 100 %, y si te pasas sigue subiendo en rojo."
+      ],
+      "en": [
+        "The \"This month\" ring on Home fills up as you spend, up to 100 %, and if you go over it keeps climbing in red."
+      ],
+      "ca": [
+        "L’anell d’«Aquest mes» a Inici s’omple segons gastes, fins al 100 %, i si et passes continua pujant en vermell."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inicio-anillo-usado",
+        "t": {
+          "es": "Inicio: el anillo cuenta lo gastado",
+          "en": "Home: the ring counts what you have spent",
+          "ca": "Inici: l’anell compta el que has gastat"
+        },
+        "items": {
+          "es": [
+            "1. Abre Inicio con el mes en curso. BIEN: el anillo de «Este mes» enseña lo gastado del límite (p. ej. 96 % con 1.436 de 1.500), sube sin saltos hacia 100 % y, si te pasas, sigue subiendo en coral; el importe de debajo no cambia. MAL: enseña lo que queda (4 %) o salta a 100 % al agotar el límite."
+          ],
+          "en": [
+            "1. Open Home with the current month. RIGHT: the \"This month\" ring shows how much of the limit you have spent (e.g. 96 % with 1,436 of 1,500), climbs smoothly towards 100 % and, if you go over, keeps climbing in coral; the amount below does not change. WRONG: it shows what is left (4 %) or jumps to 100 % when the limit runs out."
+          ],
+          "ca": [
+            "1. Obre Inici amb el mes en curs. BÉ: l’anell d’«Aquest mes» ensenya el que has gastat del límit (p. ex. 96 % amb 1.436 de 1.500), puja sense salts cap al 100 % i, si et passes, continua pujant en corall; l’import de sota no canvia. MALAMENT: ensenya el que queda (4 %) o salta a 100 % en esgotar el límit."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.186",
     "d": "2026-10-26",
     "t": {
