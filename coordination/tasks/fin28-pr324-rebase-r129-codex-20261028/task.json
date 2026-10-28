@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "id": "fin28-pr324-rebase-r129-codex-20261028",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261028-r129-fda31257-5e96e289-4dc8-4536-ac2d-cff5e8c2e5e9",
+  "createdAt": "2026-10-28T22:40:31.617Z",
+  "to": "codex",
+  "baseSHA": "c11dcebe7d19c0e8588b6404db8880195fe4511a",
+  "objective": "Rebasar la PR324 FIN28 sobre beta4.26.193 vigente; conservar aviso manual aprobado y contratos de dinero, resolver conflictos en privado, validar nuevo HEAD y esperar reviewROOT mas independiente y GO especifico antes de actualizar PR324.",
+  "scope": [
+    "src/modules/08-motor-bank.js",
+    "src/modules/04-tab-gastos.js",
+    "src/modules/14-v4-screens.js",
+    "src/modules/01-i18n.js",
+    "tests/recibo-un-cargo-un-recibo.test.mjs",
+    "e2e/fin28-manual-link-warning.spec.mjs",
+    "scripts/relevant-tests.mjs"
+  ],
+  "grant": "cf7507a44a7a964e3733f7e5a5297236c16b71c1",
+  "sourcePR": 324,
+  "sourceHEAD": "293b323de52a2a228811be532ceba01b0e062f93",
+  "sourceBase": "7e958a6f545ceb30c1a1eef66a03ec7a1884c887",
+  "workerInitialOwnGrant": "7188f09dd641ffd90c5a2455196b1385c4bb084c",
+  "workerInitialOwnAllowance": 20,
+  "order": 1,
+  "acceptance": [
+    "Solo este task exacto y nueva identidad; recepcion/ACK/runtime/inventario, admisionnativa, OWN20NUEVO0 aviso/FULLACK30s, claimpropio confirmado yROOTACK publico mas nativo antesproducto. No reactivar al titular anteriorDONE ni heredar su claim/contador/lease.",
+    "Prerequisito comprobado: refs/heads/beta cambio de251da4af95257fa204a021ec49de43519e61efeb a c11dcebe7d19c0e8588b6404db8880195fe4511a, VERSION4.26.193. Verificar la base fresca antes de cortar checkout; si avanza, checkpoint ycoordinar conROOT sin mezclar silenciosamente.",
+    "Checkout y rama PRIVADOS propios; preservar293b323 ysu manifest/bundle/reviews/REDs inmutables. Rebase de sus3commits autorizados desde base7e958a6f sobre beta193. Resolver conflictos solo conservando ambos cambios admitidos; duda de contrato/dinero =>checkpointROOT. No tocar WT o ramas de titularesanteriores.",
+    "Mantener criteriofec8c2cd: avisoSOLOOTRORseleccionable conBOOKacreditante mismobanco/centimos masmenos4dias,segundotoque yconsultaVIVAantesguardar; sameRpagado/identity/eligibility/proof/historial/BOOKposterior/saldos/neto/presupuesto y13canales ajenos intactos. No FIN25R1R2 niR4/core/App/backend/Supabase/VERSION/notas/catalogo/CHANGELOG porarrastre.",
+    "NuevoHEAD ybase cambian: validar dirigido15DOM de ambaspuertas/es-en-ca/cancelar-confirmar-reload-deshacer/remote-edit/BOOKduranteAsk/restore-realwrite,17checks existentes ysyntax-i18n-map. Comparar scripts/oraculos con293ybase; no debilitar ni repetir suitesR3/FIN35cerradas. CPU1worker1retry0stopfirstfailure, puertoaislado,censo/ENTERRETURN propios. Preserve fail si ocurre,rerun solo con causa corregida.",
+    "Artefactos privados manifest/bundle/hashes/nuevoHEADexacto, inputsGit ySHAHTMLHTTP; sourceSha localnull noacredita release. Review independiente NUEVA yreviewROOT del nuevoHEAD obligatorias; ningunGO de293 sehereda.",
+    "SIN push ni cambioPR mientras pendienteGOespecificoROOT. Despues solo conGO exactHEAD ylease remoto293b323 verificado actualizar ramaPR324 mediante force-with-lease acotado si necesario por rebase, NUNCA force ciego,main/beta/merge/deploy. PR324 conservaDRAFTcontra beta, describirnuevoHEAD/evidencias. No nuevaPRduplicada por defecto.",
+    "OWN yreloj propios60min,checkpointseguro sininterrumpir; resulttitular realdone/released solo traspushPRverificados yreadback30s. Reportar alROOTadmitido, noClaude. IntegracionClaude,ProductREADYfalse/generalCI-servido-movilnoacreditados,sinavisoduplicado."
+  ],
+  "limits": {
+    "noProductBeforeClaimAndROOTACK": true,
+    "noPushBeforeSpecificNewHeadGO": true,
+    "ProductREADY": false
+  }
+}
