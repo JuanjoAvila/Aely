@@ -13,18 +13,19 @@ El backfill de Gastos conserva una cobertura separada para una versión remota r
 por un alias activo: exige lectura válida, titular y sesión vigentes, UUID idéntico,
 banco/cuenta/referencia completos, instante, importe firmado finito y ordinal canónico.
 No presume ausencias ni presta identidad de otra fila; el gasto realmente ausente sigue
-subiéndose. Los siete controles dirigidos pasan. La prueba sucesora conserva el writer
-y el undo reales y simula solo el transporte: tres resultados de DELETE y los reenvíos
-de restauración conservan todos los campos y 640/320/640, sin duplicados. El fallo del
-oráculo original `31d09ebd` se conserva como evidencia privada inmutable.
+subiéndose. La prueba sucesora conserva el writer y el undo reales: transporte con
+ignoreDuplicates y UPDATE23505 atómico, tres resultados de DELETE y reenvíos de
+restauración con filas completas y 640/320/640. El oráculo original31d09ebd queda
+congelado como evidencia privada.
 
-El alias TS replica también la clasificación de `expenseFromRow`: `ob:` con evento y
-`dup` en el primer tramo u ordinal mayor que uno es `macrodroid`, y no recibe alias OB.
-La rama `ob-hist` mantiene su tratamiento. Un RED JS320/TS0 y seis controles acreditan
-la corrección offline. La aceptación final sigue bloqueada por el consumidor R4 del
-fixture fiel sobre su HTML generado anterior, aún sin ligar a la fuente actual:
-una colisión sintética de terna deja local960/espejo640 al deshacer;
-el oráculo permanece estricto y no se acredita ningún cambio remoto o pérdida real.
+El alias TS replica expenseFromRow: ob: con evento y dup en el primer tramo u
+ordinal mayor que uno es macrodroid y no recibe alias OB. Ob-hist conserva su
+tratamiento; RED JS320/TS0 y seis controles acreditan solo paridad offline.
+R4 ya usa el ensamblado actual y remotas de instantes distintos del mismo día,
+manteniendo oráculos960/640. El bloqueo final observado está en R8: tras volver
+al nombre original y completar el tercer pull, se pierde noCard y la transferencia
+recupera traspaso, con ingreso split/net20000→0. No se amplía el producto para
+ocultar ese fallo; requiere decisión de contrato y revisión financiera exacta.
 
 ## Plan: primera lectura y versiones de borrado
 

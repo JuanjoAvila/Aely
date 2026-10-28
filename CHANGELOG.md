@@ -1,31 +1,25 @@
 ## Sin publicar — FIN29/30, candidata local en verificación (2026-10-28)
 
-- El renombrado de una fila bancaria deja un alias de nombre con identidad propia,
-  separado de la lápida de borrado: una clave global ocultaba el cargo de otra cuenta
-  (RED de 640 a 320 céntimos). No se alteran las decisiones legacy ni los topes.
-- La fuente de los tests dirigidos se ensambla literalmente en memoria; se conserva
-  el extractor FIN19 y no se escriben HTML ni otros generados.
-- El guard mínimo autorizado del backfill exige owner/lectura/sesión vigentes y UUID,
-  banco, cuenta, referencia, instante, importe firmado finito y ordinal canónico exactos.
-  Siete controles pasan: cero subidas por nombre, subida de un gasto realmente ausente
-  junto a otro alias activo y rechazos de coincidencias incompletas. R5/R6 pasa 11/11 y
-  R7 28/28. La prueba sucesora usa el writer real contra `sb.from` simulado, distingue
-  intentos de inserciones y verifica tres resultados de DELETE, guardas reales,
-  restauración legítima e idempotencia sin duplicados. Pasa con todos los campos y
-  640/320/640; el undo de producto permanece intacto. El oráculo original
-  `31d09ebd56c48b8d3cc8ebd5274aa62808c8e3e8e939af9fff3848e475768170` y sus fallos
-  quedan congelados y enlazados en la evidencia privada. La categoría sintética se
-  fija en `bares`: `otros` se autodetecta al leer BAR SL; no era pérdida real de datos.
-- Un caso dirigido adicional reproduce JS320/TS0 al aplicar un alias OB a una fila
-  `ob:trade_republic#n2` con `ingest_event_id`, que JS clasifica como `macrodroid`.
-  El lector TS replica esa exclusión solo para `ob:` con evento y dup/ordinal; seis
-  controles pasan, incluidos OB ordinario y `ob-hist`. Solo se acredita paridad offline.
-- La regresión del fixture conserva un bloqueo: R4 renamed-widget, tras resolver la
-  ruta de esbuild ya instalado, usa todavía el HTML generado anterior y da
-  local960/espejo640 en el undo de `manual:true` por
-  colisión de terna con otra fila. No se rebaja el oráculo ni se cambia ese spec fuera
-  de alcance. R4 counter 6/6; R5 counter y R8 income pendientes tras el primer fallo.
-  GREEN final, revisión financiera exacta y publicación pendientes.
+- El renombrado guarda un alias con identidad propia separado del borrado. El RED
+  original 640→320 y la prueba original 31d09ebd se conservan como evidencia privada;
+  no se reinterpretan decisiones legacy ni topes de lápidas/absorción.
+- El backfill solo cubre una versión de nombre con owner, sesión, lectura y todos los
+  campos de identidad exactos. La prueba sucesora ejecuta el writer real contra
+  transporte simulado, conserva todos los campos y 640/320/640, tres DELETE y
+  restauración idempotente. El undo de producto permanece intacto.
+- La paridad offline JS/TS de alias nativo se reprodujo JS320/TS0 antes del guard TS
+  mínimo; seis controles incluyen OB ordinario y ob-hist sin exclusión por arrastre.
+- El fixture fiel no reemplaza filas por subsets ni permite UPDATE con terna
+  duplicada. R4 usa fuente actual literal e instantes +1/+2ms del mismo día bajo
+  autorización concreta; mantiene 960 manual/640 colisión y el mutante. Su fallo
+  antiguo sobre HTML generado, la falta inicial de esbuild y el fallo de categoría
+  sintética quedan conservados. La dependencia existente coincide con el lock.
+- Pasan dirigidos main1 (28 escenarios), R4 2, R5/R6 11, R7 28, backfill7 y los
+  contadores R4 6/R5 7. R8 falla 0/6 con la fuente actual: al regresar al nombre
+  original, el tercer pull pierde noCard; la transferencia vuelve a traspaso y
+  el ingreso split/net pasa de 20000 a cero céntimos. No se modifica ni rebaja ese
+  oráculo fuera de alcance. GREEN final, revisión financiera exacta y publicación
+  siguen pendientes. No se acredita pérdida real en Supabase ni aceptación móvil.
 
 ## [4.26.186] — 2026-10-26 · Candidata de beta solo web e ingest: el widget vuelve a recoger la cifra nueva al usar la app
 

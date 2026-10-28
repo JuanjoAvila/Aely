@@ -32,7 +32,13 @@ export function environment(html,remote,{deleteFails=false}={}){
     if(env.deleteResponseLost)throw Error('synthetic DELETE applied, response lost');
     return {data:selected?plain(hit):null,error:null};
    }
-   if(patch){env.writes.push({filters:plain(filters),patch:plain(patch)});hit.forEach(r=>Object.assign(r,patch));}
+   if(patch){
+    env.writes.push({filters:plain(filters),patch:plain(patch)});
+    const changed=hit.map(r=>({...r,...patch})),after=env.remote.map(r=>hit.includes(r)?changed[hit.indexOf(r)]:r),keys=['user_id','fecha','importe','comercio'];
+    // El UPDATE es atómico y respeta la misma terna que el UPSERT, antes de tocar ninguna fila.
+    if(changed.some(row=>after.some(other=>other!==row&&keys.every(k=>row[k]===other[k]))))return {data:null,error:{code:'23505',message:'synthetic unique tuple conflict'}};
+    hit.forEach(r=>Object.assign(r,patch));
+   }
    return {data:selected?plain(hit):null,error:null};
   }).then(ok,no);}};return q;
  }};

@@ -1,44 +1,35 @@
 FIN29/30, candidata local en verificación (28/10/2026):
 `node --test --test-concurrency=1 tests/fin29-30-rename-scope.test.mjs`, registrado
-en `steps`, conserva el extractor FIN19 y ejecuta el writer real mediante el fixture. Ensambla
-solo en memoria, por concatenación literal del marcador del shell, para conservar
-los caracteres dollar-comilla que antes rompían la carga. No escribe generados.
-El oráculo exige dos cargos completos y 640 céntimos tras renombrar entre bancos
-o cuentas; borrar uno exige 320 y deshacer 640. Incluye persistencia, pull,
-reimportación, vuelta al nombre original y paridad local del espejo de presupuesto.
-Node 24 usa su borrado nativo de tipos para el espejo; Node 20 de CI conserva el
-esbuild ya existente, sin dependencias nuevas. `FIN29_30_EVIDENCE` guarda las etapas
-alcanzadas incluso si falla la primera aserción. R5/R7 también leen los módulos
-reales en memoria; no dependen del HTML generado. La base falla con 320 frente a
-640 céntimos tras guardar. Ese RED y el oráculo original fallido
-`31d09ebd56c48b8d3cc8ebd5274aa62808c8e3e8e939af9fff3848e475768170`
-se conservan como evidencia privada inmutable. La versión sucesora en el mismo path
-pasa: seis fichas con 54 etapas de 640 céntimos, tres resultados de DELETE en dos
-bancos y restauración repetida, con filas completas y 640/320/640 en app y espejo.
-`fin19-r4-fixture` simula `sb.from`, no el writer: observa llamadas, upserts e
-inserciones por separado, respeta `ignoreDuplicates` y conserva todos los campos.
-Una categoría inicial explícita `bares` evita confundir la autodetección de `otros`
-al leer BAR SL con pérdida de campos al restaurar; aquel fallo también queda congelado.
-Siete controles ejecutan los vetos reales de sesión/owner/confirmación/absorción.
-`node --test --test-concurrency=1 tests/fin29-30-backfill-identity.test.mjs` está
-registrado en `steps` y pasa siete controles: cero subidas espurias, alta de un
-gasto realmente ausente junto a otro alias activo y rechazos por owner, UUID, prueba
-de lectura, cuenta o instante distintos. `FIN29_30_BACKFILL_EVIDENCE` conserva las
-filas y subidas de cada caso. R5/R6 pasa 11/11; R7 pasa 28/28 y R4 counter 6/6 con
-el fixture nuevo. Seis controles adicionales exigen la clasificación JS/TS de alias
-en filas OB nativas y ordinarias y en `ob-hist`: el RED causal conserva una fila de
-320 céntimos en JS frente a cero en TS; el guard mínimo del lector TS restaura la
-paridad sin cambiar el clasificador JS ni aplicar la exclusión a `ob-hist`.
-La regresión de consumidores se detuvo en R4 renamed-widget: falta inicial de
-esbuild resuelta reutilizando la instalación 0.25.5 que coincide con el lock; después
-el writer fiel sobre el HTML generado anterior revela una colisión sintética de terna.
-Ese spec aún no está ligado al ensamblado actual: el fallo no acredita el producto
-actual. En `manual:true`, local tiene
-960 céntimos al deshacer y el espejo 640. La expectativa y el fallo se conservan,
-sin modificar R4 fuera de alcance. R5 counter y R8 income no se ejecutaron después
-de ese fallo. No hay GREEN final ni aceptación financiera del candidato. La admisión permanente
-permite Node directo, un worker offline y cero reintentos, sin wrapper ni afinidad.
-Los resultados locales no acreditan servicio remoto, widget desplegado ni móvil.
+en `steps`, ensambla módulos y shell literalmente en memoria, sin generados ni
+cambios del extractor FIN19. La versión original fallida
+`31d09ebd56c48b8d3cc8ebd5274aa62808c8e3e8e939af9fff3848e475768170` y todos los
+fallos posteriores se conservan como evidencia privada inmutable.
+La sucesora pasa 28 escenarios: seis fichas con 54 etapas de 640 céntimos,
+tres resultados de DELETE en dos bancos con restauración repetida y 640/320/640,
+dos controles de signo/manual, ocho guardas reales (incluido UPDATE23505 atómico)
+y seis controles de alias nativo JS/TS. Exige filas completas, presupuestos por banco
+y espejo TypeScript. Un RED JS320/TS0 precede al guard TS que replica la clasificación
+macrodroid de ob: con evento y dup/ordinal, conservando OB ordinario y ob-hist.
+El fixture observa el writer real y simula sb.from: distingue llamadas, upserts e
+inserciones, respeta ignoreDuplicates y rechaza UPDATE de terna duplicada antes de
+mutar. Categoría sintética explícita bares evita confundir la autodetección de otros
+al leer BAR SL con pérdida de campos; el fallo previo también queda congelado.
+R4 renamed-widget ahora ensambla la fuente actual y separa sus instantes por +1/+2ms
+dentro del mismo día, sin mover a ni ordinales. Pasa 2/2 con 960 manual/640 colisión
+y el mutante intactos. El fallo anterior de ese spec leía el HTML generado antiguo
+y no acreditaba el candidato actual. Esbuild 0.25.5 existente coincide con el lock;
+se reutiliza sin instalación ni cambios de dependencias.
+Regresión final con el fixture nuevo: main1, R4 2, R5/R6 11, R7 28, backfill7,
+R4 counter6 y R5 counter7 pasan. FIN29_30_EVIDENCE y los overrides/evidencias
+FIN19_R4, FIN19_R5, FIN19_R7 y FIN29_30_BACKFILL conservan fuentes y etapas.
+R8 income falla 0/6, también mediante su FIN19_R8_HTML existente ligado al mismo
+HTML actual que main. Los dos primeros nombres pasan sus transiciones; al volver
+al nombre original, el tercer complete-pull pierde noCard. En la transferencia,
+además, ingreso vuelve a traspaso y el ingreso split/net pasa de 20000 a cero
+céntimos, aunque el importe firmado permanece -20000. No se rebaja ese oráculo
+ni se modifica R8 fuera de alcance. Este bloqueo impide GREEN final y aceptación
+financiera. Node 24 usa tipos nativos y CI Node20 su esbuild existente; un worker,
+offline, cero retries. No acredita servicio remoto, widget desplegado ni móvil.
 
 Debounce nativo por identidad (integrado en la beta 4.26.185 / APK 62, 26/10/2026):
 `node tests/native-event-debounce.test.mjs`, registrado en `scripts/run-tests.mjs`,

@@ -156,6 +156,14 @@ async function writerGuardScenarios(){
   assert.deepEqual(env.remote,before,variant+' no muta ninguna fila');assert.equal(env.upserts.length,0,variant+' no llega al transporte');
   record.sessionReads=env.sessionReads;record.uploads=plain(env.uploads);record.upserts=plain(env.upserts);record.remote=plain(env.remote);
  }
+ const wires=[wire(1),wire(2,'caixabank','account-b',{comercio:'Mi bar'})],env=setup('offline',wires);
+ const before=plain(env.remote),localBefore=plain(env.stateRef.current.expenses),record={kind:'real-writer-guard',variant:'UPDATE23505-atomic'};
+ evidence.cases.push(record);
+ await assert.rejects(env.cloud.renameExpense(env.stateRef.current.expenses[0],'Mi bar'),err=>err.code==='23505');
+ assert.deepEqual(env.remote,before,'UPDATE con conflicto no muta ni una fila remota');
+ assert.deepEqual(plain(env.stateRef.current.expenses),localBefore,'fallo del writer no cambia filas locales');
+ assert.equal(cents(env.stateRef.current.expenses),640);assert.equal(env.uploads.length,0);
+ record.remote=plain(env.remote);record.rows=plain(env.stateRef.current.expenses);record.writes=plain(env.writes);
 }
 async function signedManualControls(){
  for(const manual of [false,true]){

@@ -128,7 +128,7 @@ mi-cartera/
 ├── tests/backclose-history.test.mjs # Propiedad del historial y transferencias de overlays (selección110)
 ├── tests/ingest-native-phase1.test.mjs # Marca nativa, ambos órdenes OB, UUID cloud, colisiones SHA y switch OFF (candidato)
 ├── tests/native-event-debounce.test.mjs # Listener/helper Java reales: ventana local por identidad y concurrencia
-├── tests/fin29-30-*.test.mjs # Alias/borrado/backfill, writer real y paridad offline; candidato bloqueado en consumidor R4
+├── tests/fin29-30-*.test.mjs # Alias/borrado/backfill, writer real y paridad offline; candidato bloqueado en R8 con fuente actual
 ├── tests/bank-callback-state.test.mjs # Consumo único de state y fallos de guardado; handler real con BD/OAuth sintéticos
 ├── e2e/backclose-handover.spec.mjs · botnav-indicador.spec.mjs · metas-editar-regla.spec.mjs # Pantallas reales de110/107/108
 ├── tests/sync-memoria.test.mjs # Exportación sintética: cantidades, aviso Cloud e idempotencia; rechazo sin escrituras/borrados
