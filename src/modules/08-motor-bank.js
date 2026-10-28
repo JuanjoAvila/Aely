@@ -1953,7 +1953,7 @@ function importObExpenses(s, txs, links){
      (29,90 → 59,80). Mismo criterio que `histCandLapidas`. */
   const cubierta=function(g, n){
     const suf=n>1 ? "|#"+n : "",row=Object.assign({},g.expense,{obOrd:n}),key=expenseDeletionKey(row);
-    return !!(hasKey(row) || delSet[key] || delSet[g.scoped+suf] || delSet[g.base+suf] || vinculado[key] || vinculado[g.scoped+suf] || vinculado[g.base+suf]);
+    return !!(hasKey(row) || delSet[expenseRenameKey(row)] || delSet[key] || delSet[g.scoped+suf] || delSet[g.base+suf] || vinculado[key] || vinculado[g.scoped+suf] || vinculado[g.base+suf]);
   };
   /* Lápida de «es el mismo» dejada por una versión SIN `gemelos`: su aviso sigue sin marcar. Solo
      puede ser la ranura 1 (aquella versión no conocía ordinales) y solo si ningún vínculo la

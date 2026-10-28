@@ -649,10 +649,27 @@ function App(){
       // Esto garantiza que la tabla sea la fuente de verdad COMPLETA antes de dejar de duplicar
       // los gastos en app_state (ver slimForCloud). Upsert idempotente (ignoreDuplicates).
       const tableKeys={}; incoming.forEach(function(e){ tableKeys[keyOfExpense(e)]=1; });
+      // Una versión retirada del nombre sigue siendo una fila remota real del mismo titular.
+      // La cobertura no presume banco/cuenta/referencia ni acepta importes no finitos.
+      const tableRenames=Object.create(null);
+      const renameCoverageKey=function(e){
+        if(!e||!isExpenseUuid(e.id)||typeof e.amount!=="number"||!Number.isFinite(e.amount)||e.amount===0||
+          !expenseKnownIdentity(e)||typeof e.obAcc!=="string"||!e.obAcc.trim()||typeof e.extId!=="string"||!e.extId.trim())return "";
+        const key=expenseRenameKey(e);
+        // Misma normalización canónica de ordinal que el lector, no identidad literal de un inválido.
+        return key?JSON.stringify([e.id,key.split("|")[1],String(e.date),e.amount,obOrdinalOf(e)]):"";
+      };
+      if(delSet&&readProof.valid&&readProof.userId===readOwner&&sessionRef.current===readSession&&stateRef.current._historyOwner===readOwner){
+        (Array.isArray(rows)?rows:[]).forEach(function(raw){
+          if(!raw||raw.user_id!==readOwner||!isExpenseUuid(raw.id))return;
+          const e=expenseFromRow(raw),key=expenseRenameKey(e),coverage=renameCoverageKey(e);
+          if(key&&delSet[key]&&coverage)tableRenames[coverage]=1;
+        });
+      }
       // Una fila local con lápida nunca vuelve en `incoming` (se filtra arriba), así que sin esta
       // comprobación se resubía en CADA pull como «huérfana» (revisión 12/10/2026): él ya dijo que
       // ese apunte no cuenta, y la tabla no tiene que volver a verlo.
-      (stateRef.current.expenses||[]).forEach(function(e){ if(e.amount!==0 && !tableKeys[keyOfExpense(e)] && !expenseIsTombstoned(e, delSet)) subirGasto(e, "backfill"); });
+      (stateRef.current.expenses||[]).forEach(function(e){ if(e.amount!==0 && !tableKeys[keyOfExpense(e)] && !tableRenames[renameCoverageKey(e)] && !expenseIsTombstoned(e, delSet)) subirGasto(e, "backfill"); });
       /* AQUÍ NO VA UN REPASO QUE RE-MARQUE LOS POSIBLES REPETIDOS VIEJOS (B09-D, 2026-09-08).
          Lo escribí y lo retiré: `addExpense` va con ignoreDuplicates y nunca cambia el `source` de
          una fila ya presente, así que los pendientes anteriores a esta versión siguen contando en

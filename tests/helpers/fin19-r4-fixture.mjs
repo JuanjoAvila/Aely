@@ -8,13 +8,42 @@ export function section(html,start,end){const a=html.indexOf(start),b=html.index
 export function wireRows(n=3500){return Array.from({length:n},(_,i)=>({id:uuid(i+1),user_id:owner,fecha:'2026-10-19T10:00:00.000Z',importe:(i+1)/100,comercio:'Compra '+i,cat:'otros',source:'ob:'+(i%2?'sabadell':'trade_republic')+'#refref-'+i+'#accaccount-'+(i%2),ob_name:'Compra '+i}));}
 export function state(rows){return {_historyOwner:owner,expenses:rows,accounts:[],settings:{expenseBanks:['trade_republic','sabadell','caixabank']},fixed:[],debts:[],oneoffs:[],flows:[],goals:[],investments:[],assets:[],bankTx:[],gemelos:[],deleted:[],deletedAt:{},obAbsorbedPending:[],obAbsorbedConfirmed:[],lastSync:1,budget:1000};}
 export function environment(html,remote,{deleteFails=false}={}){
- const env={remote:plain(remote),writes:[],uploads:[],deletes:0,sets:0,timers:[],disk:new Map(),deleteFails};
+ const initialTuples=new Set();
+ for(const r of remote){
+  const tuple=JSON.stringify([r.user_id,Date.parse(r.fecha),Number(r.importe),r.comercio]);
+  assert.ok(!initialTuples.has(tuple),'seed respeta unique user_id/fecha/importe/comercio');initialTuples.add(tuple);
+ }
+ const env={remote:plain(remote),writes:[],uploads:[],uploadResults:[],upserts:[],inserts:[],deletes:0,sets:0,timers:[],disk:new Map(),deleteFails,
+  session:{user:{id:owner},expires_at:9e9},sessionReads:0,deleteResponseLost:false};
  const storage={getItem:k=>env.disk.get(k)??null,setItem:(k,v)=>env.disk.set(k,String(v)),removeItem:k=>env.disk.delete(k)};
- const sb={auth:{getSession:async()=>({data:{session:{user:{id:owner},expires_at:9e9}},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})},from(table){
-  const filters=[];let patch=null,selected=false;
-  const q={select(){selected=true;return q;},update(p){patch=p;return q;},eq(k,v){filters.push([k,v]);return q;},then(ok,no){return Promise.resolve().then(()=>{
+ const sb={auth:{getSession:async()=>{env.sessionReads++;return env.sessionProvider?env.sessionProvider(env.sessionReads):{data:{session:plain(env.session)},error:null};},onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})},from(table){
+  const filters=[];let patch=null,selected=false,removing=false,upsert=null,options=null;
+  const q={select(){selected=true;return q;},update(p){patch=p;return q;},delete(){removing=true;return q;},upsert(rows,opts){upsert=Array.isArray(rows)?rows:[rows];options=opts;return q;},eq(k,v){filters.push([k,v]);return q;},then(ok,no){return Promise.resolve().then(()=>{
    assert.equal(table,'expenses');const hit=env.remote.filter(r=>filters.every(([k,v])=>r[k]===v));
-   if(patch){env.writes.push({filters:plain(filters),patch:plain(patch)});hit.forEach(r=>Object.assign(r,patch));}
+   if(upsert){
+    assert.equal(options.onConflict,'user_id,fecha,importe,comercio');assert.equal(options.ignoreDuplicates,true);
+    env.upserts.push({rows:plain(upsert),options:plain(options)});const inserted=[];
+    for(const raw of upsert){
+     // DO NOTHING conserva la fila completa: el intento de restauración no es una inserción.
+     if(env.remote.some(r=>options.onConflict.split(',').every(k=>r[k]===raw[k])))continue;
+     if(env.remote.some(r=>r.id===raw.id))return {data:null,error:{code:'23505',message:'synthetic primary key conflict'}};
+     const row=plain({...raw,id:raw.id||uuid(900000+env.inserts.length)});env.remote.push(row);env.inserts.push(plain(row));inserted.push(row);
+    }
+    return {data:selected?plain(inserted):null,error:null};
+   }
+   if(removing){
+    if(env.deleteFails)return {data:null,error:{message:'synthetic failed DELETE'}};
+    env.remote=env.remote.filter(r=>!hit.includes(r));
+    if(env.deleteResponseLost)throw Error('synthetic DELETE applied, response lost');
+    return {data:selected?plain(hit):null,error:null};
+   }
+   if(patch){
+    env.writes.push({filters:plain(filters),patch:plain(patch)});
+    const changed=hit.map(r=>({...r,...patch})),after=env.remote.map(r=>hit.includes(r)?changed[hit.indexOf(r)]:r),keys=['user_id','fecha','importe','comercio'];
+    // El UPDATE es atómico y respeta la misma terna que el UPSERT, antes de tocar ninguna fila.
+    if(changed.some(row=>after.some(other=>other!==row&&keys.every(k=>row[k]===other[k]))))return {data:null,error:{code:'23505',message:'synthetic unique tuple conflict'}};
+    hit.forEach(r=>Object.assign(r,patch));
+   }
    return {data:selected?plain(hit):null,error:null};
   }).then(ok,no);}};return q;
  }};
@@ -28,8 +57,10 @@ export function environment(html,remote,{deleteFails=false}={}){
  cloud.pullState=()=>Promise.resolve(null);
  for(const m of ['setExpenseCat','setExpenseRecibo','setExpenseDup'])cloud[m]=async(...args)=>{env.writes.push({method:m,args:plain(args)});return 1;};
  cloud.logEvent=()=>Promise.resolve();
- cloud.addExpense=async e=>{env.uploads.push(plain(e));const r={id:e.id,user_id:owner,fecha:e.date,importe:e.amount,comercio:e.merchant,ob_name:e.obName,cat:e.category,source:c.expenseSourceForCloud(e)},i=env.remote.findIndex(x=>x.id===r.id);if(i<0)env.remote.push(r);else env.remote[i]=r;return true;};
- cloud.deleteExpense=async e=>{env.deletes++;if(env.deleteFails)throw Error('synthetic failed DELETE');env.remote=env.remote.filter(r=>r.id!==e.id);};
+ // Solo observadores: writer, sesiones y veto de confirmación siguen siendo los de producto.
+ const addExpense=cloud.addExpense,deleteExpense=cloud.deleteExpense;
+ cloud.addExpense=async e=>{env.uploads.push(plain(e));const result=await addExpense.call(cloud,e);env.uploadResults.push(result);return result;};
+ cloud.deleteExpense=async e=>{env.deletes++;return deleteExpense.call(cloud,e);};
  env.set=u=>{const prev=env.stateRef.current;let next=typeof u==='function'?u(prev):u;if(next===prev)return;
   if(next.expenses!==prev.expenses||next.gemelos!==prev.gemelos||next.deleted!==prev.deleted)next=c.reconcileGemelosAutomaticos(next,prev);
   env.sets++;env.stateRef.current=Object.assign({},next,{_savedAt:now});

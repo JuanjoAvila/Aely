@@ -1,3 +1,49 @@
+## FIN29/30: alias de nombre separados del borrado (candidata local, 28/10/2026)
+
+Un renombrado bancario nuevo guarda `expense-rename|identidad|clave` en la partición
+existente de lápidas. La identidad codifica banco, cuenta y referencia; si falta la
+cuenta, exige el UUID. La clave conserva día, importe con signo y ordinal. El lector
+solo retira esa versión del nombre, sin aplicar el alias a `obName`. Volver al nombre
+anterior levanta su alias con las mismas horas y topes existentes (500 lápidas y 200
+horas). El borrado explícito y su deshacer mantienen `expense-account` y sus vínculos;
+las lápidas legacy no se migran ni se reinterpretan por semejanza. El espejo TypeScript
+solo reproduce esta lectura offline; no acredita el widget desplegado.
+
+El backfill de Gastos conserva una cobertura separada para una versión remota retirada
+por un alias activo: exige lectura válida, titular y sesión vigentes, UUID idéntico,
+banco/cuenta/referencia completos, instante, importe firmado finito y ordinal canónico.
+No presume ausencias ni presta identidad de otra fila; el gasto realmente ausente sigue
+subiéndose. La prueba sucesora conserva el writer y el undo reales: transporte con
+ignoreDuplicates y UPDATE23505 atómico, tres resultados de DELETE y reenvíos de
+restauración con filas completas y 640/320/640. El oráculo original31d09ebd queda
+congelado como evidencia privada.
+
+El alias TS replica expenseFromRow: ob: con evento y dup en el primer tramo u
+ordinal mayor que uno es macrodroid y no recibe alias OB. Ob-hist conserva su
+tratamiento; RED JS320/TS0 y seis controles acreditan solo paridad offline.
+R4 usa el ensamblado actual y remotas de instantes distintos del mismo día,
+manteniendo oráculos960/640. El RED R8 previo perdía noCard y devolvía ingreso a
+traspaso (split/net20000→0) al tercer pull; se conserva como evidencia privada.
+La decisión posterior conserva lo elegido realmente en la ficha: un renombrado
+bancario sin cambio de importe/fecha guarda solo las diferencias category/noCard
+en expenseEditPending, dentro de la fila local y su persistencia existente.
+Refresh protege cada valor vigente hasta leer ese mismo valor en el mismo UUID,
+bajo las guardas existentes de owner/sesión/generación e identidad de la mezcla.
+La confirmación es por campo; los otros pendientes y uuidPreserved permanecen.
+La categoría sintetizada por keepCategoryChoices tampoco confirma: catStale local
+o entrante identifica sus dos vías de protección, sin impedir confirmar noCard.
+Una coincidencia con otro UUID, un ACK solo de nombre, cero filas, un rechazo o un
+upsert DO NOTHING no son recibos de esos metadatos. Tras la confirmación, los
+cambios remotos posteriores vuelven a mandar. La cola/writer no se amplían: un
+pendiente que no logra subirse sigue pendiente, también tras reiniciar; la guarda
+no promete una nueva política de reintentos ni una subida eventual.
+El alias TS nuevo replica comercio||Gasto del lector JS, también cuando falta el
+nombre; las claves legacy conservan su semántica. El RED JS0/TS320 queda preservado.
+Los seeds remotos respetan usuario/instante/importe/comercio únicos: separar +1ms
+dentro del mismo día conserva las claves diarias y las cifras originales.
+Pasan55 pruebas afectadas (R8 14, main2, R5 11 y R7 28); falta revisión financiera
+independiente del SHA final y no hay publicación ni aceptación real/móvil.
+
 ## Plan: primera lectura y versiones de borrado
 
 Sin base privada del dispositivo, `planSyncPull` recibe la misma preferencia `localNewer` que Metas. Con base conocida conserva tres vías; una alta concurrente no pasa a LWW por carecer de fila en esa base. Las pruebas de pago viajan por mes sin formar parte del grupo financiero; el contador de vínculo bancario es monotónico y se valida antes de proteger una deuda con gasto local vivo.

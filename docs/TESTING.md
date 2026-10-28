@@ -1,3 +1,56 @@
+FIN29/30, candidata local en verificación (28/10/2026):
+`node --test --test-concurrency=1 tests/fin29-30-rename-scope.test.mjs`, registrado
+en `steps`, ensambla módulos y shell literalmente en memoria, sin generados ni
+cambios del extractor FIN19. La versión original fallida
+`31d09ebd56c48b8d3cc8ebd5274aa62808c8e3e8e939af9fff3848e475768170` y todos los
+fallos posteriores se conservan como evidencia privada inmutable.
+La sucesora pasa 28 escenarios: seis fichas con 54 etapas de 640 céntimos,
+tres resultados de DELETE en dos bancos con restauración repetida y 640/320/640,
+dos controles de signo/manual, ocho guardas reales (incluido UPDATE23505 atómico)
+y seis controles de alias nativo JS/TS. Exige filas completas, presupuestos por banco
+y espejo TypeScript. Un RED JS320/TS0 precede al guard TS que replica la clasificación
+macrodroid de ob: con evento y dup/ordinal, conservando OB ordinario y ob-hist.
+El fixture observa el writer real y simula sb.from: distingue llamadas, upserts e
+inserciones, respeta ignoreDuplicates y rechaza UPDATE de terna duplicada antes de
+mutar. Categoría sintética explícita bares evita confundir la autodetección de otros
+al leer BAR SL con pérdida de campos; el fallo previo también queda congelado.
+R4 renamed-widget ahora ensambla la fuente actual y separa sus instantes por +1/+2ms
+dentro del mismo día, sin mover a ni ordinales. Pasa 2/2 con 960 manual/640 colisión
+y el mutante intactos. El fallo anterior de ese spec leía el HTML generado antiguo
+y no acreditaba el candidato actual. Esbuild 0.25.5 existente coincide con el lock;
+se reutiliza sin instalación ni cambios de dependencias.
+Regresión anterior con el fixture nuevo: main1, R4 2, R5/R6 11, R7 28, backfill7,
+R4 counter6 y R5 counter7 pasaron. FIN29_30_EVIDENCE y los overrides/evidencias
+FIN19_R4, FIN19_R5, FIN19_R7 y FIN29_30_BACKFILL conservan fuentes y etapas.
+El RED R8 anterior0/6 queda congelado: el tercer pull perdía noCard y devolvía
+ingreso→traspaso, split/net20000→0, con el signo intacto. La decisión de contrato
+posterior protege los cambios reales de category/noCard mediante expenseEditPending.
+R8 ahora pasa14/14 con fuente literal: los seis originales conservan filas completas,
+54 etapas y cifras; otros ocho comprueban writer real, liberación y autoridad remota
+posterior, confirmación parcial, otro UUID, ACK solo nombre/cero filas/rechazo/DO
+NOTHING y un eco anterior frente a una decisión nueva. No se presembran pendientes.
+La expectativa de fila completa incluye el pendiente real; la de lápidas exige
+alias exacto con hora exacta y ausencia de las antiguas lápidas global y de borrado.
+El primer intento nuevo que descubrió ese oráculo de lápida desactualizado se conserva.
+La revisión independiente detectó además la composición con keepCategoryChoices:
+ni catStale local ni catStale entrante de regla aprendida pueden confirmar categoría.
+Ambas ramas tienen RED sobre el candidato anterior y GREEN con la guarda mínima;
+setCat y rename son callbacks reales y el pull ejecuta la composición completa.
+La regla usa categoría aprendible y un instante remoto corregido +1ms que evita
+prestar la clave anterior desde el contador; los controles previos que no activaban
+la rama se conservan como fallos de fixture/controles negativos, no como RED causal.
+La misma revisión halló seeds con tuple único imposible. Main/R5/R7 usan instantes
+por índice +1ms en el mismo día; el fixture valida la unicidad inicial. El control
+UPDATE23505 conserva el mismo instante y comercios inicialmente distintos para que
+el conflicto nazca del UPDATE real. Se mantienen filas completas, 640/320 y mutantes.
+Pasan55 pruebas afectadas: R8 14, main2 (28 escenarios anteriores y cinco variantes
+de comercio vacío/null/ausente/espacios/ordinario con controles sin alias), R5/R6 11
+y R7 28. La paridad vacía tiene su RED JS0/TS320 antes del fallback Gasto solo en
+el alias TS nuevo. R4 y los demás verdes anteriores se conservan sin repetición.
+Sigue pendiente la revisión financiera independiente del SHA final antes de publicar.
+Node 24 usa tipos nativos y CI Node20 su esbuild existente; un worker,
+offline, cero retries. No acredita servicio remoto, widget desplegado ni móvil.
+
 Debounce nativo por identidad (integrado en la beta 4.26.185 / APK 62, 26/10/2026):
 `node tests/native-event-debounce.test.mjs`, registrado en `scripts/run-tests.mjs`,
 compila el listener completo y `NativeEventDebounce` reales con JDK 21. Android, preferencias,

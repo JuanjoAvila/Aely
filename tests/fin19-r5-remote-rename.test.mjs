@@ -3,12 +3,23 @@ import crypto from 'node:crypto';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {transformSync} from 'esbuild';
+import * as nodeModule from 'node:module';
 import {environment,section,plain,now,owner,uuid,cents} from './helpers/fin19-r4-fixture.mjs';
-const html=fs.readFileSync(process.env.FIN19_R5_HTML||new URL('../public/index.html',import.meta.url),'utf8');
+const root=new URL('../',import.meta.url),read=p=>fs.readFileSync(new URL(p,root),'utf8');
+const script=JSON.parse(read('src/build-order.json')).map(p=>read('src/modules/'+p)).map(s=>s.endsWith('\n')?s:s+'\n').join('');
+const parts=read('src/shell.html').split('<!--MC_APP_SCRIPT-->');
+assert.equal(parts.length,2,'un solo marcador del ensamblador');
+const html=process.env.FIN19_R5_HTML?fs.readFileSync(process.env.FIN19_R5_HTML,'utf8'):parts[0]+script.trimEnd()+parts[1];
 const source=fs.readFileSync(process.env.FIN19_R5_SERVER||new URL('../supabase/functions/_shared/presupuesto.ts',import.meta.url),'utf8');
-function server(text){const mod={exports:{}};new Function('module','exports',transformSync(text,{loader:'ts',format:'cjs'}).code)(mod,mod.exports);return mod.exports;}
-const srv=server(source);
+async function server(text){
+ if(typeof nodeModule.stripTypeScriptTypes==='function'){
+  const js=nodeModule.stripTypeScriptTypes(text,{mode:'strip'});
+  return import('data:text/javascript;base64,'+Buffer.from(js).toString('base64'));
+ }
+ const {transformSync}=nodeModule.createRequire(import.meta.url)('esbuild'),mod={exports:{}};
+ new Function('module','exports',transformSync(text,{loader:'ts',format:'cjs'}).code)(mod,mod.exports);return mod.exports;
+}
+const srv=await server(source);
 async function importDeleted(env,legacy){
  const trace=[],realImport=env.c.importObExpenses;
  env.c.importObExpenses=(...args)=>{const result=realImport(...args);trace.push({transactions:plain(args[1]),before:plain(args[0].expenses),result:plain(result),after:plain(result||args[0].expenses)});return result;};
@@ -25,8 +36,8 @@ async function importDeleted(env,legacy){
 }
 async function scenario({sameBank=false,ordinal=1,manual=false,legacy=false,collision=false}={},reader=srv){
  const a={id:uuid(1),user_id:owner,fecha:'2026-10-19T10:00:00.00'+(ordinal-1)+'Z',importe:3.2,comercio:'BAR SL',ob_name:'BAR SL',cat:'otros',source:'ob:sabadell#refref-a'+(legacy?'':'#accaccount-a')+(ordinal>1?'#n'+ordinal:'')};
- const b={...a,id:uuid(2),comercio:collision?'BAR SL':'Otra compra',ob_name:collision?'BAR SL':'Otra compra',source:'ob:'+(sameBank?'sabadell':'caixabank')+'#refref-c#accaccount-c'+(ordinal>1?'#n'+ordinal:'')};
- const rows=[a,b];if(manual)rows.push({...a,id:uuid(3),source:'manual:sabadell'});
+ const b={...a,id:uuid(2),fecha:new Date(Date.parse(a.fecha)+1).toISOString(),comercio:collision?'BAR SL':'Otra compra',ob_name:collision?'BAR SL':'Otra compra',source:'ob:'+(sameBank?'sabadell':'caixabank')+'#refref-c#accaccount-c'+(ordinal>1?'#n'+ordinal:'')};
+ const rows=[a,b];if(manual)rows.push({...a,id:uuid(3),fecha:new Date(Date.parse(a.fecha)+2).toISOString(),source:'manual:sabadell'});
  const env=environment(html,rows,{deleteFails:true}),other=environment(html,[a]);
  const expectedRows=plain(env.stateRef.current.expenses.filter(e=>e.id!==uuid(1)));
  await other.rename(uuid(1),'Mi bar');env.remote[0]=plain(other.remote[0]);
@@ -55,7 +66,7 @@ test('FIN19 R5 lector widget con lápida de cuenta conserva la superviviente com
 test('FIN19 R5 mutante sin clave original devuelve 640 al widget',async()=>{
  const needle='const original = f.ob_name == null ? key : claveComoLaApp({ ...f, comercio: f.ob_name });';
  assert.ok(source.includes(needle));
- const result=await scenario({},server(source.replace(needle,'const original = key;')));
+ const result=await scenario({},await server(source.replace(needle,'const original = key;')));
  assert.equal(result.first.cents,640);
  assert.equal(result.widget.cents,640);
 });

@@ -35,6 +35,48 @@
 - **Panel y huellas.** Una tanda nueva (`inicio-anillo-usado`, un paso, sin APK; descriptor web = el bloque del anillo). Las de la 186 (`widget-se-actualiza-solo`) y la 185 (`widget-pasado-del-limite`) no tienen veredicto y se quedan: tres tandas. Catálogo186 pasa a histórico (se lee de la 186 servida, 3716b82a3); Catálogo187 declara en lista cerrada las huellas web que se mueven al cambiar `03-tab-dash.js`.
 - **Despliegue.** Solo OTA web: sin APK, sin SQL, sin Edge.
 
+## Sin publicar — FIN29/30, candidata local en verificación (2026-10-28)
+
+- El renombrado guarda un alias con identidad propia separado del borrado. El RED
+  original 640→320 y la prueba original 31d09ebd se conservan como evidencia privada;
+  no se reinterpretan decisiones legacy ni topes de lápidas/absorción.
+- El backfill solo cubre una versión de nombre con owner, sesión, lectura y todos los
+  campos de identidad exactos. La prueba sucesora ejecuta el writer real contra
+  transporte simulado, conserva todos los campos y 640/320/640, tres DELETE y
+  restauración idempotente. El undo de producto permanece intacto.
+- La paridad offline JS/TS de alias nativo se reprodujo JS320/TS0 antes del guard TS
+  mínimo; seis controles incluyen OB ordinario y ob-hist sin exclusión por arrastre.
+- El fixture fiel no reemplaza filas por subsets ni permite UPDATE con terna
+  duplicada. R4 usa fuente actual literal e instantes +1/+2ms del mismo día bajo
+  autorización concreta; mantiene 960 manual/640 colisión y el mutante. Su fallo
+  antiguo sobre HTML generado, la falta inicial de esbuild y el fallo de categoría
+  sintética quedan conservados. La dependencia existente coincide con el lock.
+- El RED R8 anterior0/6 conservado perdía noCard e ingreso split/net20000→0 al
+  tercer pull. Bajo la decisión posterior, la ficha crea expenseEditPending solo
+  con cambios reales category/noCard; refresh los protege y confirma por campo
+  con el mismo UUID y valor vigente. No se modifica el writer ni el undo. Otro
+  UUID, ACK solo nombre, cero filas, rechazo y DO NOTHING no confirman los campos;
+  tras confirmarlos, la elección remota posterior vuelve a aplicarse.
+- R8 pasa14/14 con fuente literal y filas completas, pendientes incluidos, sin
+  presembrarlos ni rebajar cifras. Su expectativa de lápida ahora exige alias y
+  hora exactos y rechaza explícitamente lápidas global/de borrado; el intento
+  anterior con aquella expectativa obsoleta también queda conservado. R7 incluye
+  la metadata real en sus tres controles de cambio explícito.
+- La revisión independiente detectó confirmación sintética desde keepCategoryChoices;
+  el punto exacto de refresh impide confirmar category con catStale local/entrante.
+  RED reales con setCat y regla aprendida preceden al GREEN; no cambian writers ni pipeline.
+- El alias TS nuevo usa el mismo fallback Gasto del lector JS para comercio vacío,
+  null o ausente. El RED JS0/TS320 precede al fix; espacios y control sin alias pasan.
+- Seeds main/R5/R7 separados +1ms en el mismo día respetan el índice único, validado
+  inicialmente por el fixture. UPDATE23505 sigue naciendo de un UPDATE con conflicto,
+  sobre dos comercios distintos en el mismo instante; no se retira ese mutante.
+- Pasan55 pruebas afectadas: R8 14, main2 (28 escenarios y cinco variantes de nombre),
+  R5/R6 11 y R7 28. R4 2 conserva su verde previo sin repetición por rutina.
+  Backfill7 y contadores R4 6/R5 7 conservan sus verdes anteriores sin repetición.
+  Revisión financiera independiente del SHA final y publicación siguen pendientes.
+  Una guarda pendiente no garantiza reintentar una cola perdida al reiniciar.
+  No se acredita pérdida real en Supabase ni aceptación móvil.
+
 ## [4.26.186] — 2026-10-26 · Candidata de beta solo web e ingest: el widget vuelve a recoger la cifra nueva al usar la app
 
 - **Causa.** La 185 añadió las listas de nómina del mes como NOVENO elemento del alcance (`widgetScopeOf`, `08-motor-bank.js`). `MiCarteraWidget.java:207` (`saveApp`) exige `a.length() == 8` cuando la foto acredita una lectura nueva (`readGeneration`/`nativeCut` válidos) y la descartaba EN MUDO; el mismo control está en `MiCarteraWidget.java:302` (`applyLegacyPayment`), así que con un alcance de 9 el pago con la app cerrada tampoco se acreditaba. El Java es idéntico en las APK 54 a 62. Por eso «desde el widget sí» (sin marca de lectura la foto va por la conciliación, `invalidateScope`, que no mira la longitud) y «desde el icono no» (con marca, que es lo normal, se tiraba). La foto vieja de 1.922 € se quedaba. La app SÍ empujaba en cada cambio: la tapa era el nativo, no la frecuencia.

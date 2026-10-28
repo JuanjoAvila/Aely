@@ -2162,6 +2162,14 @@ function expenseDeletionKey(e){
   const id=expenseKnownIdentity(e);
   return id?"expense-account|"+encodeURIComponent(id)+"|"+keyOfExpense(e):keyOfExpense(e);
 }
+// Renombrar retira una versión del nombre, no la compra. Con cuenta se conserva
+// también la referencia; sin ella solo un UUID acredita la fila, nunca la similitud.
+function expenseRenameKey(e){
+  if(!e||!esFilaDeBanco(e))return "";
+  const known=expenseKnownIdentity(e),bank=expenseBankOf(e)||"",acc=String(e.obAcc||""),ref=String(e.extId||"");
+  if(!known&&!isExpenseUuid(e.id))return "";
+  return "expense-rename|"+encodeURIComponent(JSON.stringify([bank,acc,ref,known?"":e.id]))+"|"+keyOfExpense(e);
+}
 function expenseUnknownDeletionMatches(e,delSet){
   if(expenseKnownIdentity(e)||isManualExpenseSource(e&&e.source))return false;
   const index=obAbsorptionIndex(delSet).scoped;
@@ -2228,7 +2236,8 @@ function expenseIsTombstoned(e, delSet){
   if(confirmed&&obConfirmedMatches(e,confirmed.list,confirmed.owner))return true;
   if(obAbsorptionMatches(e,delSet))return true;
   const k=keyOfExpense(e);
-  if(delSet[expenseDeletionKey(e)]||delSet[k]||expenseUnknownDeletionMatches(e,delSet)) return true;
+  const rename=expenseRenameKey(e);
+  if(delSet[expenseDeletionKey(e)]||delSet[k]||(rename&&delSet[rename])||expenseUnknownDeletionMatches(e,delSet)) return true;
   // Otro móvil pudo borrar antes del renombrado. Solo la lápida de cuenta distingue
   // ese borrado de la clave antigua que el propio renombrado deja al editar.
   if(e&&e.obName!=null&&e.obName!==e.merchant&&!isManualExpenseSource(e.source)){
@@ -2854,6 +2863,11 @@ function lapidasAlEditar(s, keyOrig, keyUpd, ahora){
   const pon=lapidaPon(s, keyOrig, ahora);
   return pon.deleted.indexOf(keyUpd)<0 ? pon : lapidaLevanta(Object.assign({}, s, pon), keyUpd, ahora);
 }
+function lapidasAlRenombrar(s,orig,upd){
+  if(!esFilaDeBanco(orig))return lapidasAlEditar(s,keyOfExpense(orig),keyOfExpense(upd));
+  const before=expenseRenameKey(orig),after=expenseRenameKey(upd);
+  return before&&after&&before!==after?lapidasAlEditar(s,before,after):{};
+}
 /* LA NUBE AL EDITAR UN GASTO: EL ALTA ESPERA AL BORRADO, Y CADA EDICIÓN A LA ANTERIOR
    (13/10/2026). La fila corregida conserva su id: lanzadas a la vez, si el alta llegaba antes
    que el borrado chocaba con la fila vieja por la clave primaria (el `23505` de `addExpense`
@@ -2931,7 +2945,7 @@ function expenseRenameAck(s,orig,intent,ack){
     if(!e.notePending&&(e.noteEditAt||0)===(orig.noteEditAt||0)&&e.note===orig.note&&ack.nota_edit){after.note=ack.nota||undefined;after.noteEdited=true;}
     return after;
   });
-  return before?rekeyFixedPaymentExpense(Object.assign({},s,{expenses:rows},lapidasAlEditar(s,keyOfExpense(before),keyOfExpense(after))),before,after):s;
+  return before?rekeyFixedPaymentExpense(Object.assign({},s,{expenses:rows},lapidasAlRenombrar(s,before,after)),before,after):s;
 }
 // → {deleted[, deletedAt]}. La lista local, tal cual, si la nube no aporta nada: la leen los `useMemo`.
 function lapidasUnion(local, nube){
@@ -3737,7 +3751,8 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
   const manual=isManualExpenseSource(local.source);
   let out=local;
   const preserved=local.uuidPreserved||{};
-  const protects=function(k){return Object.prototype.hasOwnProperty.call(preserved,k)&&preserved[k]===local[k]&&incoming[k]!==local[k];};
+  const editPending=local.expenseEditPending||{};
+  const protects=function(k){return incoming[k]!==local[k]&&((Object.prototype.hasOwnProperty.call(preserved,k)&&preserved[k]===local[k])||(Object.prototype.hasOwnProperty.call(editPending,k)&&editPending[k]===local[k]));};
   const put=function(k,v){
     const a=local[k], b=v;
     if(a===b) return;
@@ -3808,6 +3823,15 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
     if(out===local)out=Object.assign({},local);
     const rest=Object.assign({},preserved);confirmed.forEach(function(k){delete rest[k];});
     if(Object.keys(rest).length)out.uuidPreserved=rest;else delete out.uuidPreserved;
+  }
+  // Una coincidencia semántica con otro UUID no es el recibo de esta escritura de ficha.
+  // keepCategoryChoices puede sintetizar categoría desde catStale o una regla aprendida:
+  // esa protección no es un eco remoto. Los otros campos se confirman por separado.
+  const editConfirmed=local.id&&local.id===incoming.id?Object.keys(editPending).filter(function(k){return editPending[k]===local[k]&&incoming[k]===editPending[k]&&(k!=="category"||(!local.catStale&&!incoming.catStale));}):[];
+  if(editConfirmed.length){
+    if(out===local)out=Object.assign({},local);
+    const rest=Object.assign({},editPending);editConfirmed.forEach(function(k){delete rest[k];});
+    if(Object.keys(rest).length)out.expenseEditPending=rest;else delete out.expenseEditPending;
   }
   /* NO realinear `id` aquí: settings.expenseOrder indexa por id local, y en OB el uuid de la
      nube suele diferir (ignoreDuplicates). Cambiarlo huérfana el orden a mano (4.19.74). Tanda
