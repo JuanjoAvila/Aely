@@ -1,0 +1,18 @@
+{
+  "status": "blocked",
+  "summary": "Hourly worker safe closure without test start: native harnessv4 statically approved, but fresh ownFULL/ACK completed after latest safe start09:13:07.624Z. No launcher or Node test was started. Preserve private prepared checkout/test/harness for successor with fresh identity/task/admission; no causalRED/GREEN/product change.",
+  "tests": [],
+  "productSHA": "3716b82a3e1a6b0fe95a46afaf9836df17616fd2",
+  "limitations": [
+    "Static approval is not runtime validation. LauncherAttempts0,NodeTests0,cases0,stages0,testEXITnull; no causalRED/GREEN or product acceptance.",
+    "V4 manifestSHA256468021b4298c9ee94f04651ec46e7b66c63acd8b4379bf77925a0eccdd284199/controller4f8ce92a5468bad7eab0c57671beb02cb23b77bdf0200ef9166dd28138055795 remain frozen; source/test/fixtures/oracle unchanged.",
+    "OWN used7/20 before closure readbacks, actual final count to be frozen after ownRETURN; unused allowance is nontransferable. No resources held.",
+    "Safe closure target09:14:37.624Z retained; hard deadline09:24:37.624Z retained. No start after allowed margin, no deadline reset or inherited identity."
+  ],
+  "schema": 1,
+  "taskId": "fin29-30-rename-tombstones-r116-codex-20261028",
+  "actor": "codex",
+  "sessionId": "codex-local-20261028-fin29-r116-fda31257-4789-4229-9698-f10ab89cefd3",
+  "createdAt": "2026-10-28T09:14:45.965Z",
+  "released": true
+}
