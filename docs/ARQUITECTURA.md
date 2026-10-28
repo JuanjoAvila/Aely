@@ -1,3 +1,31 @@
+## FIN29/30: alias de nombre separados del borrado (candidata local, 28/10/2026)
+
+Un renombrado bancario nuevo guarda `expense-rename|identidad|clave` en la partición
+existente de lápidas. La identidad codifica banco, cuenta y referencia; si falta la
+cuenta, exige el UUID. La clave conserva día, importe con signo y ordinal. El lector
+solo retira esa versión del nombre, sin aplicar el alias a `obName`. Volver al nombre
+anterior levanta su alias con las mismas horas y topes existentes (500 lápidas y 200
+horas). El borrado explícito y su deshacer mantienen `expense-account` y sus vínculos;
+las lápidas legacy no se migran ni se reinterpretan por semejanza. El espejo TypeScript
+solo reproduce esta lectura offline; no acredita el widget desplegado.
+
+El backfill de Gastos conserva una cobertura separada para una versión remota retirada
+por un alias activo: exige lectura válida, titular y sesión vigentes, UUID idéntico,
+banco/cuenta/referencia completos, instante, importe firmado finito y ordinal canónico.
+No presume ausencias ni presta identidad de otra fila; el gasto realmente ausente sigue
+subiéndose. Los siete controles dirigidos pasan. La prueba sucesora conserva el writer
+y el undo reales y simula solo el transporte: tres resultados de DELETE y los reenvíos
+de restauración conservan todos los campos y 640/320/640, sin duplicados. El fallo del
+oráculo original `31d09ebd` se conserva como evidencia privada inmutable.
+
+El alias TS replica también la clasificación de `expenseFromRow`: `ob:` con evento y
+`dup` en el primer tramo u ordinal mayor que uno es `macrodroid`, y no recibe alias OB.
+La rama `ob-hist` mantiene su tratamiento. Un RED JS320/TS0 y seis controles acreditan
+la corrección offline. La aceptación final sigue bloqueada por el consumidor R4 del
+fixture fiel sobre su HTML generado anterior, aún sin ligar a la fuente actual:
+una colisión sintética de terna deja local960/espejo640 al deshacer;
+el oráculo permanece estricto y no se acredita ningún cambio remoto o pérdida real.
+
 ## Plan: primera lectura y versiones de borrado
 
 Sin base privada del dispositivo, `planSyncPull` recibe la misma preferencia `localNewer` que Metas. Con base conocida conserva tres vías; una alta concurrente no pasa a LWW por carecer de fila en esa base. Las pruebas de pago viajan por mes sin formar parte del grupo financiero; el contador de vínculo bancario es monotónico y se valida antes de proteger una deuda con gasto local vivo.

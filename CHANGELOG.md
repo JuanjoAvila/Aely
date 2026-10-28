@@ -1,3 +1,32 @@
+## Sin publicar — FIN29/30, candidata local en verificación (2026-10-28)
+
+- El renombrado de una fila bancaria deja un alias de nombre con identidad propia,
+  separado de la lápida de borrado: una clave global ocultaba el cargo de otra cuenta
+  (RED de 640 a 320 céntimos). No se alteran las decisiones legacy ni los topes.
+- La fuente de los tests dirigidos se ensambla literalmente en memoria; se conserva
+  el extractor FIN19 y no se escriben HTML ni otros generados.
+- El guard mínimo autorizado del backfill exige owner/lectura/sesión vigentes y UUID,
+  banco, cuenta, referencia, instante, importe firmado finito y ordinal canónico exactos.
+  Siete controles pasan: cero subidas por nombre, subida de un gasto realmente ausente
+  junto a otro alias activo y rechazos de coincidencias incompletas. R5/R6 pasa 11/11 y
+  R7 28/28. La prueba sucesora usa el writer real contra `sb.from` simulado, distingue
+  intentos de inserciones y verifica tres resultados de DELETE, guardas reales,
+  restauración legítima e idempotencia sin duplicados. Pasa con todos los campos y
+  640/320/640; el undo de producto permanece intacto. El oráculo original
+  `31d09ebd56c48b8d3cc8ebd5274aa62808c8e3e8e939af9fff3848e475768170` y sus fallos
+  quedan congelados y enlazados en la evidencia privada. La categoría sintética se
+  fija en `bares`: `otros` se autodetecta al leer BAR SL; no era pérdida real de datos.
+- Un caso dirigido adicional reproduce JS320/TS0 al aplicar un alias OB a una fila
+  `ob:trade_republic#n2` con `ingest_event_id`, que JS clasifica como `macrodroid`.
+  El lector TS replica esa exclusión solo para `ob:` con evento y dup/ordinal; seis
+  controles pasan, incluidos OB ordinario y `ob-hist`. Solo se acredita paridad offline.
+- La regresión del fixture conserva un bloqueo: R4 renamed-widget, tras resolver la
+  ruta de esbuild ya instalado, usa todavía el HTML generado anterior y da
+  local960/espejo640 en el undo de `manual:true` por
+  colisión de terna con otra fila. No se rebaja el oráculo ni se cambia ese spec fuera
+  de alcance. R4 counter 6/6; R5 counter y R8 income pendientes tras el primer fallo.
+  GREEN final, revisión financiera exacta y publicación pendientes.
+
 ## [4.26.186] — 2026-10-26 · Candidata de beta solo web e ingest: el widget vuelve a recoger la cifra nueva al usar la app
 
 - **Causa.** La 185 añadió las listas de nómina del mes como NOVENO elemento del alcance (`widgetScopeOf`, `08-motor-bank.js`). `MiCarteraWidget.java:207` (`saveApp`) exige `a.length() == 8` cuando la foto acredita una lectura nueva (`readGeneration`/`nativeCut` válidos) y la descartaba EN MUDO; el mismo control está en `MiCarteraWidget.java:302` (`applyLegacyPayment`), así que con un alcance de 9 el pago con la app cerrada tampoco se acreditaba. El Java es idéntico en las APK 54 a 62. Por eso «desde el widget sí» (sin marca de lectura la foto va por la conciliación, `invalidateScope`, que no mira la longitud) y «desde el icono no» (con marca, que es lo normal, se tiraba). La foto vieja de 1.922 € se quedaba. La app SÍ empujaba en cada cambio: la tapa era el nativo, no la frecuencia.

@@ -4,7 +4,11 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 import {test,after} from 'node:test';
 import {environment,section,plain,owner,uuid,cents,now} from './helpers/fin19-r4-fixture.mjs';
-const html=fs.readFileSync(process.env.FIN19_R7_HTML||new URL('../public/index.html',import.meta.url),'utf8');
+const root=new URL('../',import.meta.url),read=p=>fs.readFileSync(new URL(p,root),'utf8');
+const script=JSON.parse(read('src/build-order.json')).map(p=>read('src/modules/'+p)).map(s=>s.endsWith('\n')?s:s+'\n').join('');
+const parts=read('src/shell.html').split('<!--MC_APP_SCRIPT-->');
+assert.equal(parts.length,2,'un solo marcador del ensamblador');
+const html=process.env.FIN19_R7_HTML?fs.readFileSync(process.env.FIN19_R7_HTML,'utf8'):parts[0]+script.trimEnd()+parts[1];
 const callback=section(html,'  const saveEdit=function(orig, extra){','  const todayKey='),evidence=[];
 const wire=(n=1,extra={})=>({id:uuid(n),user_id:owner,fecha:'2026-10-19T10:00:00.001Z',importe:3.2,comercio:'BAR SL',ob_name:'BAR SL',cat:'otros',nota:'Nota sintética',source:'ob:sabadell#refref-a#accaccount-a#n2',...extra});
 function setup(mode,rows=[wire()]){
@@ -28,7 +32,8 @@ for(const mode of ['offline','sandbox','transition'])for(const path of ['save-re
    assert.equal(r[key].cents,320,key);assert.equal(r[key].budgetCents,320,key+' budget');assert.deepEqual(r[key].visible,[expected],key+' full fields');
   }
   if(!process.env.FIN19_R7_BASE_CONTROL){
-   assert.ok(r.saved.deleted.includes(env.c.keyOfExpense(original)),'old unscoped rename key');
+   assert.ok(r.saved.deleted.includes(env.c.expenseRenameKey(original)),'alias de nombre con identidad propia');
+   assert.ok(!r.saved.deleted.includes(env.c.keyOfExpense(original)),'no nueva lápida global de renombrado');
    assert.ok(!r.saved.deleted.includes(env.c.expenseDeletionKey(original)),'no scoped original deletion');
   }
   assert.equal(env.deletes,0);assert.equal(env.writes.length,0);
@@ -38,23 +43,22 @@ for(const mode of ['offline','sandbox','transition']){
  test('FIN19 R8 clasificación adicional conserva nombre bancario visible '+mode,()=>{
   const env=setup(mode),orig=plain(env.stateRef.current.expenses[0]);env.save(uuid(1),{merchant:'Mi bar',income:true});
   // Positive control only; real negative salary/transfer are exercised separately in R8.
-  const r=env.snap();evidence.push({mode,path:'category-noCard-edit',result:r});assert.equal(r.rows[0].amount,3.2);assert.equal(r.rows[0].category,'ingreso');assert.equal(r.rows[0].noCard,true);assert.equal(r.cents,320);assert.deepEqual(r.visible,[{...orig,merchant:'Mi bar',category:'ingreso',noCard:true}]);assert.ok(r.deleted.includes(env.c.keyOfExpense(orig)));assert.ok(!r.deleted.includes(env.c.expenseDeletionKey(orig)));
+  const r=env.snap();evidence.push({mode,path:'category-noCard-edit',result:r});assert.equal(r.rows[0].amount,3.2);assert.equal(r.rows[0].category,'ingreso');assert.equal(r.rows[0].noCard,true);assert.equal(r.cents,320);assert.deepEqual(r.visible,[{...orig,merchant:'Mi bar',category:'ingreso',noCard:true}]);assert.ok(r.deleted.includes(env.c.expenseRenameKey(orig)));assert.ok(!r.deleted.includes(env.c.expenseDeletionKey(orig)));
  });
  test('FIN19 R7 renombrado manual conserva fila independiente '+mode,()=>{
   const env=setup(mode,[wire(1,{source:'manual:sabadell'}),wire(2,{source:'manual:sabadell'})]),orig=plain(env.stateRef.current.expenses[0]);env.save(uuid(1),{merchant:'Mi bar'});
   const r=env.snap();assert.equal(r.cents,640);assert.equal(r.visible.length,2);assert.ok(r.deleted.includes(env.c.expenseDeletionKey(orig)));
  });
 }
-for(const bank of ['sabadell','caixabank'])test('FIN19 R7 limitación de base: lápida sin ámbito coincide con otra cuenta '+bank,async()=>{
+for(const bank of ['sabadell','caixabank'])test('FIN19 R7 renombrar conserva la otra cuenta aunque coincida el contenido '+bank,async()=>{
  const env=setup('offline',[wire(),wire(2,{source:'ob:'+bank+'#refref-b#accaccount-b#n2'})]),before=env.snap();
  env.save(uuid(1),{merchant:'Mi bar'});const saved=env.snap();env.persist();await env.pull();const pulled=env.snap();
  evidence.push({mode:'offline',path:'distinct-account-same-content',bank,before,saved,pulled});
- // Claude 68bd61de: base158 ya oculta la segunda cuenta por esta clave sin ámbito.
- // FIN separado: el importe correcto sería640; no ampliar el escritor de R7 ni
- // confundir esta limitación con los siete contratos remotos de cuenta.
- assert.equal(before.cents,640);assert.equal(saved.cents,320);assert.equal(pulled.cents,320);
+ // FIN29/30: renombrar ya no escribe la lápida global que borraba otra cuenta.
+ // El control de borrado explícito de R5 mantiene su expectativa independiente.
+ assert.equal(before.cents,640);assert.equal(saved.cents,640);assert.equal(pulled.cents,640);
  assert.deepEqual(saved.rows,[{...before.rows[0],merchant:'Mi bar'},before.rows[1]]);
- assert.deepEqual(saved.visible,[{...before.rows[0],merchant:'Mi bar'}]);
+ assert.deepEqual(saved.visible,[{...before.rows[0],merchant:'Mi bar'},before.rows[1]]);
  assert.deepEqual(pulled.rows,saved.rows);assert.deepEqual(pulled.visible,saved.visible);
 });
 for(const mode of ['offline','sandbox','transition'])test('FIN19 R7 segunda edición vuelve al nombre original '+mode,async()=>{

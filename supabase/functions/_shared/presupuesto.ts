@@ -136,6 +136,18 @@ export function ordinalDeSource(source?: string | null): number {
   return 1;
 }
 
+// Espejo de expenseRenameKey: el alias solo retira el nombre anterior de esa fila.
+function claveRenombre(f: FilaGasto): string {
+  const source = String(f.source || "");
+  if (!source.startsWith("ob:") && !source.startsWith("ob-hist:")) return "";
+  // expenseFromRow reclasifica estas notificaciones como macrodroid: un alias OB previo no las borra.
+  if (source.startsWith("ob:") && f.ingest_event_id && (source.slice(3).split("#")[1] === "dup" || ordinalDeSource(source) > 1)) return "";
+  const bank = bancoDeSource(source) || "", account = cuentaDeSource(source), match = /#ref([^#]*)/.exec(source);
+  let ref = ""; try { ref = match ? decodeURIComponent(match[1]) : ""; } catch (_) { /* Sin referencia válida no se amplía el alias. */ }
+  const known = bank && account;
+  if (!known && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(f.id || "")) return "";
+  return "expense-rename|" + encodeURIComponent(JSON.stringify([bank, account, ref, known ? "" : f.id])) + "|" + claveComoLaApp(f);
+}
 function claveLegacySinId(f: { fecha?: string | null; importe?: number | string; comercio?: string | null }): string {
   return String(f.fecha || "").slice(0, 10) + "|" + (Number(f.importe) || 0) + "|" + (f.comercio || "");
 }
@@ -231,7 +243,8 @@ export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefine
     // una fila confirmada no puede consumir la referencia antes de quedar oculta.
     if (!keepIds.has(String(f.id)) && !matches(f,kept,keptIndex) && matches(f,gone,goneIndex)) continue;
     const k = claveComoLaApp(f);
-    if (lap.has(k)) continue;
+    const rename = claveRenombre(f);
+    if (lap.has(k) || (rename && lap.has(rename))) continue;
     const oldNative = claveLegacySinId(f) + (ordinalDeSource(f.source) > 1 ? "|#" + ordinalDeSource(f.source) : "");
     if ((f.ingest_event_id || huellaNativaSource(f.source)) && lap.has(oldNative)) continue;
     if (porCuenta.size && !esSourceManual(f.source)) {
