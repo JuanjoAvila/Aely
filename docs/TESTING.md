@@ -781,6 +781,15 @@ sale del mes; «Solo este mes» lo descuenta de «Queda por pagar» y tocar la f
 Está en `E2E_MAP` para `14-v4-screens`, `08-motor-bank`, `07-tab-patri-fijos`, `11-app-main`,
 `00-core` y `01-i18n` (la pausa se lee en el motor, en los totales y en la mezcla con la nube).
 
+Tanda 3: `e2e/plan-recibos-t3.spec.mjs` abre «¿Te llega?» desde la píldora con el reloj en el 10/10:
+el mínimo con una nómina a mitad de mes («lo más justo, el 15»), la nómina que llega tarde («Pasa
+200 € a Sabadell antes del 25», y no sale porque cae tras el último recibo), que el mismo día
+primero sale y luego entra (con el orden viejo el caso daba «Te llega»: comprobado), un banco sin
+cuenta con «—» fuera de la píldora, la frescura sembrada en `obBalAt`, «¿Y si gasto…?» en vivo y
+editar la nómina (el primer número sustituye, el día se mueve, el saldo mostrado no cambia y una
+nómina «último laborable» conserva la regla si solo cambia el importe). Está en `E2E_MAP` para
+`14-v4-screens`, `08-motor-bank`, `11-app-main`, `01-i18n` y `shell.html`.
+
 Descarga incompleta (candidato13/10): `tests/bank-download-incomplete.test.mjs`, registrado en
 runner y `STEPS_SUPABASE`, ejecuta lector, handler y updater real de App. Compara el updater con
 el padre123: ambas lecturas de `bankTx` conservan el extracto; falla sin el adaptador mínimo.

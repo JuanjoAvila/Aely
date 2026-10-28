@@ -2438,13 +2438,14 @@ function App(){
     // en negativo a mitad de mes aunque a fin de mes cuadres. Sin día: cargos al principio
     // (día 0, peor caso) e ingresos al final (día 99). ---
     const evsByBank={};
-    const pushEv=(bank,day,amt)=>{ (evsByBank[bank]=evsByBank[bank]||[]).push({day:day,amt:amt}); };
+    // Traspasos y entradas llevan su id: «¿Te llega?» enseña (y deja editar) justo los recorridos.
+    const pushEv=(bank,day,amt,flow)=>{ (evsByBank[bank]=evsByBank[bank]||[]).push(flow?{day:day,amt:amt,kind:flow.kind,id:flow.id,name:flow.name}:{day:day,amt:amt}); };
     state.fixed.forEach(e=>{ if(fijoDelMes(e)&&!isPaidIn(e,curMonth,today,curYear,state)) pushEv(accOf(e), dayIn(e,curMonth)||0, -occAmountIn(e,curMonth)); });
     state.debts.forEach(d=>{ if(debtActive(d)&&!isDebtPaidThisMonth(d,today,state,curYear,curMonth)){ pushEv(d.account||"sabadell", debtChargeDay(d), -d.monthly); const bl=debtBalloonIn(d,curYear,curMonth); if(bl>0) pushEv(d.account||"sabadell", debtChargeDay(d), -bl); } });
     (state.oneoffs||[]).forEach(o=>{ if(oneoffOccurs(o,curYear,curMonth)&&(o.amount||0)!==0&&!isPaidThisMonth(o,today)) pushEv(o.account||"sabadell", o.day||0, -o.amount); });
-    (state.flows||[]).forEach(f=>{ if(!flowOccursIn(f,curMonth,curYear)||flowPaidIn(state,f,curYear,curMonth,today))return; const dd=flowDay(f,curYear,curMonth); if(f.kind==="income") pushEv(f.to||"sabadell", dd||99, f.amount); else if(f.kind==="transfer") pushEv(f.from||"sabadell", dd||0, -f.amount); });
+    (state.flows||[]).forEach(f=>{ if(!flowOccursIn(f,curMonth,curYear)||flowPaidIn(state,f,curYear,curMonth,today))return; const dd=flowDay(f,curYear,curMonth); if(f.kind==="income") pushEv(f.to||"sabadell", dd||99, f.amount, f); else if(f.kind==="transfer") pushEv(f.from||"sabadell", dd||0, -f.amount, f); });
     const minByBank={}, minDayByBank={};
-    Object.keys(allBanks).forEach(b=>{ const evs=(evsByBank[b]||[]).slice().sort((x,y)=>x.day-y.day); let run=bankBal[b]||0, mn=run, md=0; evs.forEach(ev=>{ run+=ev.amt; if(run<mn-0.005){ mn=run; md=ev.day; } }); minByBank[b]=mn; minDayByBank[b]=md; });
+    Object.keys(allBanks).forEach(b=>{ const r=minWalk(bankBal[b]||0, evsByBank[b]); minByBank[b]=r.min; minDayByBank[b]=r.minDay; });
     // foco en el banco principal de gastos fijos (Sabadell)
     const mainBank="sabadell";
     const mainBal=bankBal[mainBank]||0;
@@ -2463,7 +2464,7 @@ function App(){
        `state.loQueSea` que se lea aquí dentro (incluidos los que leen las funciones auxiliares:
        monthNetForAccount → fixed/debts/oneoffs/flows; flowPaidIn → bankTx;
        toEurAmt/invValueEur → fx y fxRates). */
-    return {fxMissing:fxMissingOf(state),liquid,invested,investedCost,assetsTotal,debtTotal,activos,netWorth,thisMonthSpent,spentByBank,injTR,fijosMensual,ahorroMensual,cargosMes,fijosEsteMes,liquidTrasFijos,curMonth,curYear,today,sinProgramar,bankBal,chargesByBank,pendingByBank,paidThisMonth,pendingThisMonth,mainBank,mainBal,mainCharges,mainPending,bankAlerts,incomeInByBank,transferOutByBank,pendingIncome,pendingTransferOut,projectedByBank,mainIncome,mainTransferOut,mainProjected,minByBank,minDayByBank,mainMin,mainMinDay,roundupThisMonth,savebackThisMonth,monthlyInvestThisMonth,trRewardsTotal,paidNetByBank};
+    return {fxMissing:fxMissingOf(state),liquid,invested,investedCost,assetsTotal,debtTotal,activos,netWorth,thisMonthSpent,spentByBank,injTR,fijosMensual,ahorroMensual,cargosMes,fijosEsteMes,liquidTrasFijos,curMonth,curYear,today,sinProgramar,bankBal,chargesByBank,pendingByBank,paidThisMonth,pendingThisMonth,mainBank,mainBal,mainCharges,mainPending,bankAlerts,incomeInByBank,transferOutByBank,pendingIncome,pendingTransferOut,projectedByBank,mainIncome,mainTransferOut,mainProjected,minByBank,minDayByBank,mainMin,mainMinDay,evsByBank,roundupThisMonth,savebackThisMonth,monthlyInvestThisMonth,trRewardsTotal,paidNetByBank};
   // Antes esto dependía de `[state]` entero. Como `set()` sella `_savedAt` al editar, el
   // objeto de estado es nuevo siempre → el memo NUNCA acertaba y este cálculo (que recorre gastos,
   // fijos, deudas, flujos y simula el mes día a día) se rehacía al abrir una ficha, al escribir en

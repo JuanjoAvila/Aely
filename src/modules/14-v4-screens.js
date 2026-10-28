@@ -480,30 +480,75 @@ function planRecibosVista(pack, proof, today, avisos, pospuesto){
   const paidTotal=paid.reduce(function(sum,x){ return sum+Math.abs(x.amount); },0);
   return {review:review, due:due, paid:paid, week:week, paidTotal:paidTotal, paidChanged:paid.some(planChargeChanged)};
 }
-/* ¿Llega el dinero? La misma lectura que la portada de siempre (`planCoverState`, mínimo diario
-   de cada banco con recibos pendientes). Un banco sin saldo conocido no entra: sin dato no se
-   afirma nada (SPEC §4). «Falta» redondea hacia arriba en la moneda que se enseña. */
-function planRecibosLlega(totals, pack){
-  let known=0, short=0;
-  Object.keys(pack.pendingByBank||{}).forEach(function(bank){
+/* «¿Te llega?» banco a banco (SPEC §4): un bloque por banco con recibos pendientes. El mínimo es el
+   de la portada de siempre (`planCoverState` sobre el recorrido de `totals`), así la píldora y la
+   hoja no pueden decir cosas distintas. `gasto` = {bank, amt} del «¿Y si gasto…?»: un gasto de hoy
+   baja todo el recorrido por igual, así que el mínimo baja justo eso y su día no se mueve; lo que
+   sí cambia es el primer día en negativo, y ese se vuelve a recorrer (`minWalk`). */
+function planRecibosBancos(totals, pack, gasto){
+  return Object.keys(pack.pendingByBank||{}).map(function(bank){
+    const evs=(totals.evsByBank&&totals.evsByBank[bank])||[];
+    // Entradas y traspasos que caen antes del último recibo: los de después no tocan el mínimo.
+    const ultimo=pack.pendingBills.reduce(function(d,x){ return x.bank===bank?Math.max(d,Number(x.day)||0):d; },0);
+    const b={bank:bank, known:false, bal:null, pend:Number(pack.pendingByBank[bank])||0, min:null, minDay:null, shortDay:null, falta:0,
+      flows:evs.filter(function(e){ return e.id!=null&&(e.kind==="income"||e.kind==="transfer")&&e.day<=ultimo; })};
     /* `minByBank` arranca en `bankBal[b]||0` también para un banco sin cuenta: con un recibo en
        un banco que no tienes dado de alta salía «Falta 200 €» inventado (revisión 28/10/2026).
-       Solo cuentan los bancos con saldo de verdad, como hacía la portada anterior. */
+       Solo cuentan los bancos con saldo de verdad; el resto enseña «—». */
     const bal=totals.bankBal&&Object.prototype.hasOwnProperty.call(totals.bankBal,bank)?Number(totals.bankBal[bank]):NaN;
-    if(!isFinite(bal)) return;
+    if(!isFinite(bal)) return b;
     const cover=planCoverState(totals,bank,0,pack.pendingBills);
-    if(!cover||typeof cover.min!=="number"||!isFinite(cover.min)) return;
-    known++;
-    if(cover.min<0) short+=-cover.min;
+    if(!cover||typeof cover.min!=="number"||!isFinite(cover.min)) return b;
+    const extra=gasto&&gasto.bank===bank&&gasto.amt>0?gasto.amt:0;
+    b.known=true; b.bal=bal; b.min=cover.min-extra; b.minDay=cover.minDay;
+    if(b.min<-0.005){
+      b.falta=Math.ceil(-b.min*DISP.k-1e-9)/DISP.k;
+      // Una cuota sin día resta en `planCoverState` sin día conocido: entonces no se inventa fecha.
+      b.shortDay=minWalk(bal-extra,evs).shortDay;
+    }
+    return b;
   });
-  if(!known) return null;
+}
+/* ¿Llega el dinero? La píldora suma lo que falta en cada banco con saldo conocido; sin ninguno no
+   se afirma nada (SPEC §4). «Falta» redondea hacia arriba en la moneda que se enseña. */
+function planRecibosLlega(totals, pack){
+  const bs=planRecibosBancos(totals,pack,null).filter(function(b){ return b.known; });
+  if(!bs.length) return null;
+  const short=bs.reduce(function(s,b){ return b.min<0?s-b.min:s; },0);
   return short>0.005?{ok:false,falta:Math.ceil(short*DISP.k-1e-9)/DISP.k}:{ok:true};
+}
+/* Hora de la última lectura buena del saldo de un banco (`obBalAt`, la que dice el servidor). Con
+   dos conexiones del mismo banco manda la más vieja: decir «hace 2 h» de un saldo en parte de hace
+   tres días sería mentir. Sin lectura (cuenta a mano, TR por el puente) no hay frescura: 0. */
+function pr6LecturaMs(state, bank){
+  let ms=0;
+  const at=(state&&state.obBalAt)||{};
+  Object.keys(at).forEach(function(asp){
+    if(entFromAspsp(asp)!==bank) return;
+    const v=dateMs(at[asp]);
+    if(v>0&&(!ms||v<ms)) ms=v;
+  });
+  return ms;
+}
+function pr6FrescuraTxt(ms, now){
+  if(!(ms>0)) return "";
+  const min=Math.max(0,Math.floor((now-ms)/60000));
+  if(min<1) return t("pr6_fresh_now");
+  if(min<60) return tf("pr6_fresh_min",{n:min});
+  if(min<24*60) return tf("pr6_fresh_h",{n:Math.floor(min/60)});
+  // A partir de un día se cuenta en días de calendario, que es como se piensa «ayer».
+  const a=new Date(ms), b=new Date(now);
+  const d=Math.round((new Date(b.getFullYear(),b.getMonth(),b.getDate())-new Date(a.getFullYear(),a.getMonth(),a.getDate()))/864e5);
+  if(d<=1) return t("pr6_fresh_ayer");
+  if(d<7) return tf("pr6_fresh_d",{n:d});
+  return tf("pr6_fresh_fecha",{x:a.toLocaleDateString(loc(),{day:"numeric",month:"short"})});
 }
 function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setManageOpen, manageEdit, setManageEdit, showToast, onGoDebts}){
   const [revOpen,setRevOpen]=useState(false);
   const [dueOpen,setDueOpen]=useState(false);
   const [paidOpen,setPaidOpen]=useState(false);
   const [ficha,setFicha]=useState(null);
+  const [llegaOpen,setLlegaOpen]=useState(false);
   const paidRef=useRef(null);
   const [pospuesto,setPospuesto]=useState(pr6PospuestoLeer);
   const [deshacer,setDeshacer]=useState(null);
@@ -643,9 +688,13 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
       React.createElement("div",{className:"serif num pr6-big"}, eur(pack.pendingBillsTotal)),
       countLine&&React.createElement("div",{className:"pr6-count","data-testid":"plan-count"}, countLine),
       llega&&nPend>0&&React.createElement("div",{className:"pr6-pills"},
-        React.createElement("span",{className:"pr6-pill"+(llega.ok?" ok":""),"data-testid":"plan-llega"},
+        React.createElement("button",{type:"button",className:"pr6-pill"+(llega.ok?" ok":""),"data-testid":"plan-llega","aria-haspopup":"dialog",
+          onClick:function(){ setLlegaOpen(true); }},
           llega.ok&&React.createElement("span",{className:"pr6-pill-ok","aria-hidden":"true"},"✓"),
-          llega.ok?t("pr6_llega"):tf("pr6_falta",{x:eur0(llega.falta)})))),
+          llega.ok?t("pr6_llega"):tf("pr6_falta",{x:eur0(llega.falta)}),
+          // Sin la flecha no se ve que la píldora se abre.
+          React.createElement("svg",{className:"pr6-pill-go",width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
+            React.createElement("path",{d:"M9 6l6 6-6 6"}))))),
     v.review.length>0&&React.createElement("section",{className:"pr6-sec","data-testid":"plan-review","aria-label":t("pr6_revisar")},
       React.createElement("div",{className:"pr6-sec-h"},
         React.createElement("span",null, t("pr6_revisar"),React.createElement("span",{className:"pr6-n"}, v.review.length))),
@@ -668,12 +717,15 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
         pr6Chev()),
       React.createElement("div",{className:"pr6-fold"+(paidOpen?" open":""),id:"pr6-paid-list"},
         React.createElement("div",Object.assign({className:"pr6-fold-in"},plegado(paidOpen)), v.paid.map(paidRow), pausados.map(pausadoRow)))),
-    // Traspasos y entradas siguen donde estaban hasta que llegue «¿Te llega?» (tanda 3).
+    /* Traspasos y entradas siguen también aquí: los que mueven el mínimo ya salen (y se editan) en
+       «¿Te llega?», pero quitarlos de la portada deja sin verlos de un vistazo a quien los miraba
+       aquí; la SPEC no los pinta ni los descarta, así que eso lo decide el dueño. */
     pack.transfersPending.length>0&&React.createElement("div",{className:"v4-section","data-testid":"plan-transfers"},
       React.createElement("div",{className:"v4-section-h"},t("v4_plan_transfers")),pack.transfersPending.map(function(x){ return planRecibosFlowRow(x,month); })),
     (pack.incomePending||[]).length>0&&React.createElement("div",{className:"v4-section"},
       React.createElement("div",{className:"v4-section-h"},React.createElement("span",null,t("v4_aun_entrara"))),
       pack.incomePending.map(function(x){ return planRecibosFlowRow(x,month); })),
+    llegaOpen&&React.createElement(LlegaSheet,{state:state,set:set,totals:totals,pack:pack,onClose:function(){ setLlegaOpen(false); }}),
     deshacer&&React.createElement("div",{className:"v4-undo-toast",role:"status","data-testid":"plan-deshacer"},
       React.createElement("span",null, tf("pr6_manana_toast",{name:deshacer.name})),
       React.createElement("button",{type:"button",onClick:quitarPospuesto}, t("f_undo"))),
@@ -722,6 +774,152 @@ function planRecibosFlowRow(x,month){
       React.createElement("div",null, x.name),
       React.createElement("div",{className:"sub"}, tag+(x.bank?" · "+entOf(x.bank).label:""))),
     React.createElement("div",{className:"am"+(income?" pos":"")}, income?"+":"",eur(Math.abs(x.amount))));
+}
+/* Hoja «¿Te llega?» (SPEC §4): un bloque por banco con recibos pendientes, el recorrido resumido
+   (tienes hoy · recibos que faltan · entradas antes del último recibo) y, si no llega, UN aviso
+   con cuánto pasar y antes de qué día. Sin botón de actualizar ni sugerencias (descartados). */
+function LlegaSheet({state, set, totals, pack, onClose}){
+  const swipe=useSheetSwipe(true,onClose);
+  useBackClose(true,swipe.close);
+  const titleRef=useRef(null), titleId=React.useId();
+  useEffect(function(){ if(titleRef.current) titleRef.current.focus({preventScroll:true}); },[]);
+  const today=totals.today;
+  const base=useMemo(function(){ return planRecibosBancos(totals,pack,null); },[totals,pack]);
+  const conSaldo=base.filter(function(b){ return b.known; });
+  const [raw,setRaw]=useState("");
+  const [teclado,setTeclado]=useState(false);
+  const [gBank,setGBank]=useState(conSaldo.length?conSaldo[0].bank:null);
+  const [flujo,setFlujo]=useState(null);
+  const amt=parseNumPadRaw(raw);
+  const gasto=amt>0&&gBank?{bank:gBank,amt:amt}:null;
+  const bancos=gasto?planRecibosBancos(totals,pack,gasto):base;
+  const elegido=gasto&&bancos.find(function(b){ return b.bank===gBank&&b.known; });
+  const now=Date.now();
+  const justo=function(b){
+    if(b.min<-0.005) return t("pr6_te_faltan");
+    if(b.minDay==null) return t("pr6_justo_sin");
+    return b.minDay<=today?t("pr6_justo_hoy"):tf("pr6_justo",{d:b.minDay});
+  };
+  const pasa=function(b){
+    const v={x:eur0(b.falta),bank:entOf(b.bank).label};
+    if(b.shortDay==null) return tf("pr6_pasa_sin",v);
+    return b.shortDay<=today?tf("pr6_pasa_hoy",v):tf("pr6_pasa",Object.assign(v,{d:b.shortDay}));
+  };
+  const fila=function(k,lbl,val){ return React.createElement("div",{className:"pr6-ll-row",key:k},React.createElement("span",null,lbl),React.createElement("span",{className:"num"},val)); };
+  const flujoRow=function(e){
+    const nombre=e.name||t(e.kind==="income"?"fj_income":"fj_transfer");
+    const lbl=e.day>0&&e.day<99?tf("pr6_dia_n",{name:nombre,d:e.day}):nombre;
+    if(e.kind!=="income") return fila("f_"+e.id,lbl,"− "+eur(Math.abs(e.amt)));
+    return React.createElement("button",{type:"button",className:"pr6-ll-row pr6-ll-in",key:"f_"+e.id,"data-testid":"llega-flow","data-flow":e.id,onClick:function(){ setFlujo(e.id); }},
+      React.createElement("span",null,lbl),
+      React.createElement("span",{className:"num pos"},"+ "+eur(e.amt)),
+      React.createElement("svg",{width:13,height:13,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},React.createElement("path",{d:"M9 6l6 6-6 6"})));
+  };
+  const bloque=function(b){
+    const fresco=pr6FrescuraTxt(pr6LecturaMs(state,b.bank),now);
+    return React.createElement("div",{className:"pr6-ll-b",key:b.bank,"data-testid":"llega-banco","data-bank":b.bank},
+      React.createElement("div",{className:"pr6-ll-h"},
+        React.createElement(Mono,{ent:b.bank,size:38}),
+        React.createElement("span",{className:"pr6-ficha-t"},
+          React.createElement("span",{className:"pr6-ll-n"}, entOf(b.bank).label),
+          fresco&&React.createElement("span",{className:"pr6-ficha-s pr6-ll-f","data-testid":"llega-fresco"}, fresco)),
+        React.createElement("span",{className:"pr6-ll-r","data-testid":"llega-cifra"},
+          b.known&&React.createElement("span",{className:"pr6-ll-l"}, justo(b)),
+          React.createElement("span",{className:"serif num pr6-ll-a"}, b.known?eur(Math.abs(b.min)):"—"))),
+      // Con el teclado abierto se pliega el detalle: la hoja no crece y la cifra de arriba sigue a la vista.
+      React.createElement("div",{className:"pr6-fold"+(teclado?"":" open")},
+        React.createElement("div",Object.assign({className:"pr6-fold-in pr6-ll-det"},teclado?{"aria-hidden":"true",inert:""}:null),
+          fila("hoy",t("pr6_tienes_hoy"),b.known?eur(b.bal):"—"),
+          fila("rec",t("pr6_faltan_recibos"),"− "+eur(b.pend)),
+          b.flows.map(flujoRow),
+          b.known&&b.min<-0.005&&React.createElement("div",{className:"pr6-ll-tip","data-testid":"llega-tip"},
+            React.createElement("svg",{width:16,height:16,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round",strokeLinejoin:"round","aria-hidden":"true"},React.createElement("path",{d:"M5 12h14M13 6l6 6-6 6"})),
+            pasa(b)))));
+  };
+  return ReactDOM.createPortal(
+    React.createElement(React.Fragment,null,
+      React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
+        React.createElement("div",Object.assign({className:"v4-sheet pr6-ll","data-testid":"llega-sheet",role:"dialog","aria-modal":"true","aria-labelledby":titleId,
+          ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }},swipe.sheetTouch),
+          React.createElement("div",{className:"v4-sheet-handle"}),
+          React.createElement("h2",{className:"serif pr6-ll-t",id:titleId,ref:titleRef,tabIndex:-1}, t("pr6_llega_t")),
+          bancos.map(bloque),
+          conSaldo.length>0&&React.createElement("div",{className:"pr6-ll-wi","data-testid":"llega-gasto"},
+            React.createElement("span",{className:"pr6-ll-n"}, t("pr6_si_gasto")),
+            React.createElement("div",{className:"pr6-ll-wr"},
+              React.createElement("button",{type:"button",className:"serif num pr6-ll-amt"+(teclado?" on":"")+(raw?"":" ph"),"aria-expanded":teclado?"true":"false","data-testid":"llega-gasto-amt",
+                onClick:function(){ setTeclado(function(o){ return !o; }); }}, raw?eur(amt):t("pr6_importe")),
+              conSaldo.length>1&&conSaldo.map(function(b){
+                const on=b.bank===gBank;
+                return React.createElement("button",{type:"button",key:b.bank,className:"chip"+(on?" active":""),"aria-pressed":on?"true":"false","data-bank":b.bank,onClick:function(){ setGBank(b.bank); }}, entOf(b.bank).label);
+              })),
+            elegido&&React.createElement("span",{className:"pr6-ll-wt"+(elegido.min<-0.005?"":" ok"),"data-testid":"llega-gasto-txt"},
+              elegido.min<-0.005?tf("pr6_no_llega",{x:eur(-elegido.min)}):tf("pr6_si_llega",{x:eur(elegido.min)})),
+            React.createElement("div",{className:"pr6-fold"+(teclado?" open":"")},
+              React.createElement("div",Object.assign({className:"pr6-fold-in"},teclado?null:{"aria-hidden":"true",inert:""}),
+                React.createElement(NumPad,{value:raw,onChange:setRaw})))))),
+      flujo!=null&&React.createElement(NominaSheet,{key:flujo,flowId:flujo,state:state,set:set,totals:totals,onClose:function(){ setFlujo(null); }})),
+    document.body);
+}
+/* Editar una entrada prevista desde «¿Te llega?» (SPEC §4): importe con teclado y día con − / +.
+   Es la MISMA edición que Todos (`patchFlowById`): cambia la entrada para todos los meses y no
+   añade ningún campo. Si su día iba por regla («último laborable») y no se toca, la regla sigue. */
+function NominaSheet({flowId, state, set, totals, onClose}){
+  const swipe=useSheetSwipe(true,onClose);
+  useBackClose(true,swipe.close);
+  const f=(state.flows||[]).find(function(x){ return x.id===flowId; })||null;
+  const dia0=f?flowDay(f,totals.curYear,totals.curMonth):null;
+  const [raw,setRaw]=useState(function(){ return f&&f.amount>0?String(+Number(f.amount).toFixed(2)).replace(".",numPadDecSep()):""; });
+  // El primer toque del teclado sustituye la cifra en vez de añadirse detrás (SPEC §7).
+  const fresh=useRef(true);
+  const [marcado,setMarcado]=useState(true);
+  const [dia,setDia]=useState(dia0||1);
+  const hold=useRef(null);
+  const paraHold=function(){ const h=hold.current; if(h){ clearTimeout(h.t); clearInterval(h.i); } hold.current=null; };
+  useEffect(function(){ return paraHold; },[]);
+  const paso=function(d){ setDia(function(x){ const n=x+d; return n<1?31:n>31?1:n; }); };
+  // Mantener pulsado acelera: primero despacio y, al rato, rápido.
+  const empieza=function(d){ return function(e){
+    if(e.button!=null&&e.button!==0) return;
+    e.preventDefault(); paraHold(); paso(d);
+    const h={n:0,i:null};
+    h.t=setTimeout(function(){ h.i=setInterval(function(){ paso(d); h.n++; if(h.n===8){ clearInterval(h.i); h.i=setInterval(function(){ paso(d); },55); } },140); },400);
+    hold.current=h;
+  }; };
+  if(!f) return null;
+  const amt=parseNumPadRaw(raw);
+  const guardar=function(){
+    if(!(amt>0)) return;
+    const patch={};
+    if(Math.abs(amt-Number(f.amount))>=0.005) patch.amount=+amt.toFixed(2);
+    if(dia!==dia0){ patch.day=dia; patch.when=null; }
+    if(Object.keys(patch).length) patchFlowById(set,f.id,patch);
+    swipe.close();
+  };
+  const bank=f.to||"sabadell";
+  const btnDia=function(d,lbl,txt){ return React.createElement("button",{type:"button",className:"pr6-nd-b","aria-label":lbl,"data-act":d<0?"dia-menos":"dia-mas",
+    onPointerDown:empieza(d),onPointerUp:paraHold,onPointerLeave:paraHold,onPointerCancel:paraHold,
+    onKeyDown:function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); paso(d); } }},txt); };
+  return React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
+    React.createElement("div",Object.assign({className:"v4-sheet pr6-nd","data-testid":"nomina-sheet",role:"dialog","aria-modal":"true","aria-label":f.name||t("fj_income"),
+      ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }},swipe.sheetTouch),
+      React.createElement("div",{className:"v4-sheet-handle"}),
+      React.createElement("div",{className:"pr6-ll-h"},
+        React.createElement(Mono,{ent:bank,size:38}),
+        React.createElement("span",{className:"pr6-ficha-t"},
+          React.createElement("span",{className:"serif pr6-ll-t"}, f.name||t("fj_income")),
+          React.createElement("span",{className:"pr6-ficha-s"}, tf("pr6_entra_en",{bank:entOf(bank).label})))),
+      React.createElement("div",{className:"pr6-nd-v"},
+        React.createElement("span",{className:"serif num"+(marcado&&raw?" sel":""),"data-testid":"nomina-importe"}, eur(amt))),
+      React.createElement("div",{className:"pr6-nd-d"},
+        btnDia(-1,t("pr6_dia_menos"),"−"),
+        React.createElement("span",{className:"num","data-testid":"nomina-dia"}, tf("pr6_dia",{d:dia})),
+        btnDia(1,t("pr6_dia_mas"),"+")),
+      React.createElement(NumPad,{value:raw,onChange:function(fn){
+        const desde=fresh.current; fresh.current=false; setMarcado(false);
+        setRaw(function(r){ const b=desde?"":r; return typeof fn==="function"?fn(b):fn; });
+      }}),
+      React.createElement("button",{type:"button",className:"pr6-cta","data-act":"guardar",disabled:!(amt>0),onClick:guardar}, t("save"))));
 }
 
 /* «Este año» de la ficha (SPEC §2.6): lo pagado en el año, en TU parte. Solo si cada mes en que

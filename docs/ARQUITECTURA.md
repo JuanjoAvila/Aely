@@ -98,6 +98,12 @@ cobra igualmente es un pago y se ve. Pausar o reanudar compensa el saldo mostrad
 (`conSaldoMostrado`), como los vínculos de pago. `revisado` (`{distinto, fantasma}` con el
 año*12+mes) guarda los avisos de «Para revisar» ya contestados; posponer es solo de ese móvil
 (almacén local, hasta el día siguiente).
+«¿Te llega?» no tiene cálculo propio: lee el recorrido día a día de `totals` (11), que pasa por
+`minWalk` (08), la misma función del simulador «¿Me lo puedo permitir?». A igualdad de día primero
+salen los cargos y luego entran las entradas. `totals.evsByBank` expone esos eventos (los
+traspasos y entradas con su id) para que la hoja enseñe justo los que ha recorrido. La frescura es
+`obBalAt` (la hora de lectura que da el servidor; sin lectura no se dice nada). Editar la nómina
+desde la hoja es `patchFlowById`, lo mismo que Todos: no hay campos nuevos.
 
 Si la lápida alcanza una fila con un borrador privado pendiente, la fila sigue
 borrada y el borrador se ofrece en Plan → Deudas. Recuperar solo precarga el editor,

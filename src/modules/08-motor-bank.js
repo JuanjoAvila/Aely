@@ -1200,11 +1200,15 @@ function bankPendingEvents(state, bank, y, m, today){
   return evs;
 }
 // Recorre los eventos por día desde un saldo inicial y devuelve el punto MÍNIMO (peor momento) y el final.
+/* Es la ÚNICA copia del recorrido: también la usa `totals` (11) para `minByBank`, y de ahí la
+   píldora y la hoja «¿Te llega?». A igualdad de día primero sale y luego entra (SPEC Recibos §4):
+   antes mandaba el orden en que estuvieran guardados, y una nómina tapaba un traspaso del mismo
+   día. `shortDay` = primer día en negativo (el «antes del 22» de la hoja); null si no lo toca. */
 function minWalk(startBal, evs){
-  const s=evs.slice().sort(function(a,b){ return a.day-b.day; });
-  let run=startBal, mn=startBal, md=0;
-  s.forEach(function(ev){ run+=ev.amt; if(run<mn-0.005){ mn=run; md=ev.day; } });
-  return {min:mn, minDay:md, end:run};
+  const s=(evs||[]).slice().sort(function(a,b){ return (a.day-b.day)||((a.amt<0?0:1)-(b.amt<0?0:1)); });
+  let run=Number(startBal)||0, mn=run, md=0, sd=run<-0.005?0:null;
+  s.forEach(function(ev){ run+=ev.amt; if(run<mn-0.005){ mn=run; md=ev.day; } if(sd==null&&run<-0.005) sd=ev.day; });
+  return {min:mn, minDay:md, end:run, shortDay:sd};
 }
 
 /* ============================================================

@@ -1064,6 +1064,45 @@
   .pr6-pausa{flex-direction:row;flex-wrap:wrap;gap:6px;}
   .pr6-ficha .pr6-fold.open .pr6-pausa{padding:8px 0 2px;}
   .pr6-skip .pr6-nm,.pr6-skip .am{text-decoration:line-through;}
+  /* «¿Te llega?» (SPEC §4): la píldora abre la hoja; bloques por banco en surface-2 como el prototipo. */
+  button.pr6-pill{border:0;font-family:inherit;text-align:left;cursor:pointer;}
+  .pr6-pill-go{flex:none;margin-left:auto;color:var(--muted);}
+  .v4-sheet.pr6-ll,.v4-sheet.pr6-nd{display:flex;flex-direction:column;gap:16px;}
+  .pr6-ll-t{margin:0;font-size:24px;font-weight:600;outline:none;}
+  .pr6-ll-b{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:18px;background:var(--surface-2);}
+  .pr6-ll-h{display:flex;align-items:center;gap:12px;}
+  .pr6-ll-n{font-size:16px;font-weight:700;}
+  .pr6-ll-f{font-size:12px;}
+  .pr6-ll-r{display:flex;flex-direction:column;align-items:flex-end;gap:1px;flex:none;}
+  .pr6-ll-l{font-size:11px;font-weight:700;color:var(--muted);}
+  .pr6-ll-a{font-size:22px;font-weight:600;white-space:nowrap;}
+  .pr6-ll-b .pr6-fold{margin-top:-10px;}
+  .pr6-ll-det{gap:6px;font-size:14px;}
+  .pr6-ll-b .pr6-fold.open .pr6-ll-det{padding-top:10px;}
+  .pr6-ll-row{display:flex;align-items:center;justify-content:space-between;gap:6px;}
+  .pr6-ll-row>span:first-child{flex:1;min-width:0;color:var(--muted);}
+  .pr6-ll-row .num{font-weight:700;white-space:nowrap;}
+  .pr6-ll-row .num.pos{color:var(--mint-bright);}
+  .pr6-ll-in{min-height:40px;margin:-6px 0;padding:0;border:0;background:transparent;color:var(--muted);font:inherit;text-align:left;cursor:pointer;}
+  .pr6-ll-tip{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:var(--bg);font-size:14px;font-weight:700;}
+  .pr6-ll-wi{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:18px;border:1px dashed var(--line);}
+  .pr6-ll-wr{display:flex;align-items:center;gap:6px;}
+  .pr6-ll-wr .chip{height:46px;padding:0 12px;border-radius:14px;font-size:14px;font-weight:700;}
+  .pr6-ll-amt{flex:1;min-width:0;height:46px;border-radius:14px;border:1px solid var(--line);background:var(--bg);color:var(--text);padding:0 14px;
+    font-size:17px;font-weight:600;text-align:left;cursor:pointer;transition:border-color .2s ease;}
+  .pr6-ll-amt.on{border-color:var(--mint);}
+  .pr6-ll-amt.ph{color:var(--muted);}
+  .pr6-ll-wt{font-size:14px;font-weight:700;}
+  .pr6-ll-wt.ok{color:var(--mint-bright);}
+  .pr6-ll-wi .pr6-fold{margin-top:-10px;}
+  .pr6-ll-wi .pr6-fold .v4-keys{margin:10px 0 0;}
+  .pr6-nd-v{display:flex;justify-content:center;}
+  .pr6-nd-v .serif{font-size:44px;font-weight:600;line-height:1;padding:6px 14px;border-radius:16px;transition:background .2s ease;}
+  .pr6-nd-v .serif.sel{background:var(--surface-2);}
+  .pr6-nd-d{display:flex;align-items:center;gap:10px;}
+  .pr6-nd-d .num{flex:1;text-align:center;font-size:15px;font-weight:700;}
+  .pr6-nd-b{width:44px;height:40px;border-radius:12px;border:0;background:var(--surface-2);color:var(--text);font-size:20px;font-weight:700;cursor:pointer;touch-action:none;user-select:none;}
+  .pr6-nd .pr6-cta:disabled{opacity:.5;}
   @media (prefers-reduced-motion:reduce){ .pr6-fold,.pr6-chev,.pr6-track,.pr6-step,.pr6-cand,.pr6-ring{transition:none;} }
   html.reduce-motion .pr6-fold,html.reduce-motion .pr6-chev,html.reduce-motion .pr6-track,html.reduce-motion .pr6-step{transition:none;}
   .v4-paid{opacity:.55;}
@@ -7420,6 +7459,12 @@ const LANG = {
     pr6_pausar:"Pausar", pr6_hasta:"Hasta {m}", pr6_reanudar:"Reanudar", pr6_pausado_hasta:"pausado hasta {m}", pr6_este_mes_no:"este mes no",
     pr6_pausado_toast:"{name} pausado hasta {m}", pr6_pausa_mes_toast:"{name}: este mes no", pr6_reanudado_toast:"{name} reanudado",
     pr6_precio_toast:"{name}: ahora {x}", pr6_borrado_toast:"{name} borrado",
+    pr6_llega_t:"¿Te llega?", pr6_te_faltan:"te faltan", pr6_justo:"lo más justo, el {d}", pr6_justo_hoy:"lo más justo, hoy", pr6_justo_sin:"lo más justo",
+    pr6_tienes_hoy:"Tienes hoy", pr6_faltan_recibos:"Recibos que faltan", pr6_dia_n:"{name} · día {d}",
+    pr6_pasa:"Pasa {x} a {bank} antes del {d}", pr6_pasa_hoy:"Pasa {x} a {bank} hoy", pr6_pasa_sin:"Pasa {x} a {bank}",
+    pr6_si_gasto:"¿Y si gasto…?", pr6_importe:"Importe", pr6_si_llega:"Llega · te quedan {x}", pr6_no_llega:"No llega · faltan {x}",
+    pr6_entra_en:"entra en {bank}", pr6_dia:"día {d}", pr6_dia_menos:"Un día antes", pr6_dia_mas:"Un día después",
+    pr6_fresh_now:"saldo de ahora", pr6_fresh_min:"saldo de hace {n} min", pr6_fresh_h:"saldo de hace {n} h", pr6_fresh_ayer:"saldo de ayer", pr6_fresh_d:"saldo de hace {n} días", pr6_fresh_fecha:"saldo del {x}",
     v4_gastos_title:"Tus gastos",
     v4_gastos_cat_limit:"límite {x}",
     g_cat_budget_title:"Límite en {cat}", g_cat_budget_sub:"Orientativo: no cambia tu presupuesto. Vacío o 0 = sin límite.",
@@ -19480,11 +19525,15 @@ function bankPendingEvents(state, bank, y, m, today){
   return evs;
 }
 // Recorre los eventos por día desde un saldo inicial y devuelve el punto MÍNIMO (peor momento) y el final.
+/* Es la ÚNICA copia del recorrido: también la usa `totals` (11) para `minByBank`, y de ahí la
+   píldora y la hoja «¿Te llega?». A igualdad de día primero sale y luego entra (SPEC Recibos §4):
+   antes mandaba el orden en que estuvieran guardados, y una nómina tapaba un traspaso del mismo
+   día. `shortDay` = primer día en negativo (el «antes del 22» de la hoja); null si no lo toca. */
 function minWalk(startBal, evs){
-  const s=evs.slice().sort(function(a,b){ return a.day-b.day; });
-  let run=startBal, mn=startBal, md=0;
-  s.forEach(function(ev){ run+=ev.amt; if(run<mn-0.005){ mn=run; md=ev.day; } });
-  return {min:mn, minDay:md, end:run};
+  const s=(evs||[]).slice().sort(function(a,b){ return (a.day-b.day)||((a.amt<0?0:1)-(b.amt<0?0:1)); });
+  let run=Number(startBal)||0, mn=run, md=0, sd=run<-0.005?0:null;
+  s.forEach(function(ev){ run+=ev.amt; if(run<mn-0.005){ mn=run; md=ev.day; } if(sd==null&&run<-0.005) sd=ev.day; });
+  return {min:mn, minDay:md, end:run, shortDay:sd};
 }
 
 /* ============================================================
@@ -26802,7 +26851,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="bbc0b0de6ec10626f51df3d3793f9174510ec33554a960be07f4f1400384d4fb";
+var _rnSha="7bd1e3802833de07a77f4f43e337377569c45e96999020fdf8cc633c8799d709";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -28799,30 +28848,75 @@ function planRecibosVista(pack, proof, today, avisos, pospuesto){
   const paidTotal=paid.reduce(function(sum,x){ return sum+Math.abs(x.amount); },0);
   return {review:review, due:due, paid:paid, week:week, paidTotal:paidTotal, paidChanged:paid.some(planChargeChanged)};
 }
-/* ¿Llega el dinero? La misma lectura que la portada de siempre (`planCoverState`, mínimo diario
-   de cada banco con recibos pendientes). Un banco sin saldo conocido no entra: sin dato no se
-   afirma nada (SPEC §4). «Falta» redondea hacia arriba en la moneda que se enseña. */
-function planRecibosLlega(totals, pack){
-  let known=0, short=0;
-  Object.keys(pack.pendingByBank||{}).forEach(function(bank){
+/* «¿Te llega?» banco a banco (SPEC §4): un bloque por banco con recibos pendientes. El mínimo es el
+   de la portada de siempre (`planCoverState` sobre el recorrido de `totals`), así la píldora y la
+   hoja no pueden decir cosas distintas. `gasto` = {bank, amt} del «¿Y si gasto…?»: un gasto de hoy
+   baja todo el recorrido por igual, así que el mínimo baja justo eso y su día no se mueve; lo que
+   sí cambia es el primer día en negativo, y ese se vuelve a recorrer (`minWalk`). */
+function planRecibosBancos(totals, pack, gasto){
+  return Object.keys(pack.pendingByBank||{}).map(function(bank){
+    const evs=(totals.evsByBank&&totals.evsByBank[bank])||[];
+    // Entradas y traspasos que caen antes del último recibo: los de después no tocan el mínimo.
+    const ultimo=pack.pendingBills.reduce(function(d,x){ return x.bank===bank?Math.max(d,Number(x.day)||0):d; },0);
+    const b={bank:bank, known:false, bal:null, pend:Number(pack.pendingByBank[bank])||0, min:null, minDay:null, shortDay:null, falta:0,
+      flows:evs.filter(function(e){ return e.id!=null&&(e.kind==="income"||e.kind==="transfer")&&e.day<=ultimo; })};
     /* `minByBank` arranca en `bankBal[b]||0` también para un banco sin cuenta: con un recibo en
        un banco que no tienes dado de alta salía «Falta 200 €» inventado (revisión 28/10/2026).
-       Solo cuentan los bancos con saldo de verdad, como hacía la portada anterior. */
+       Solo cuentan los bancos con saldo de verdad; el resto enseña «—». */
     const bal=totals.bankBal&&Object.prototype.hasOwnProperty.call(totals.bankBal,bank)?Number(totals.bankBal[bank]):NaN;
-    if(!isFinite(bal)) return;
+    if(!isFinite(bal)) return b;
     const cover=planCoverState(totals,bank,0,pack.pendingBills);
-    if(!cover||typeof cover.min!=="number"||!isFinite(cover.min)) return;
-    known++;
-    if(cover.min<0) short+=-cover.min;
+    if(!cover||typeof cover.min!=="number"||!isFinite(cover.min)) return b;
+    const extra=gasto&&gasto.bank===bank&&gasto.amt>0?gasto.amt:0;
+    b.known=true; b.bal=bal; b.min=cover.min-extra; b.minDay=cover.minDay;
+    if(b.min<-0.005){
+      b.falta=Math.ceil(-b.min*DISP.k-1e-9)/DISP.k;
+      // Una cuota sin día resta en `planCoverState` sin día conocido: entonces no se inventa fecha.
+      b.shortDay=minWalk(bal-extra,evs).shortDay;
+    }
+    return b;
   });
-  if(!known) return null;
+}
+/* ¿Llega el dinero? La píldora suma lo que falta en cada banco con saldo conocido; sin ninguno no
+   se afirma nada (SPEC §4). «Falta» redondea hacia arriba en la moneda que se enseña. */
+function planRecibosLlega(totals, pack){
+  const bs=planRecibosBancos(totals,pack,null).filter(function(b){ return b.known; });
+  if(!bs.length) return null;
+  const short=bs.reduce(function(s,b){ return b.min<0?s-b.min:s; },0);
   return short>0.005?{ok:false,falta:Math.ceil(short*DISP.k-1e-9)/DISP.k}:{ok:true};
+}
+/* Hora de la última lectura buena del saldo de un banco (`obBalAt`, la que dice el servidor). Con
+   dos conexiones del mismo banco manda la más vieja: decir «hace 2 h» de un saldo en parte de hace
+   tres días sería mentir. Sin lectura (cuenta a mano, TR por el puente) no hay frescura: 0. */
+function pr6LecturaMs(state, bank){
+  let ms=0;
+  const at=(state&&state.obBalAt)||{};
+  Object.keys(at).forEach(function(asp){
+    if(entFromAspsp(asp)!==bank) return;
+    const v=dateMs(at[asp]);
+    if(v>0&&(!ms||v<ms)) ms=v;
+  });
+  return ms;
+}
+function pr6FrescuraTxt(ms, now){
+  if(!(ms>0)) return "";
+  const min=Math.max(0,Math.floor((now-ms)/60000));
+  if(min<1) return t("pr6_fresh_now");
+  if(min<60) return tf("pr6_fresh_min",{n:min});
+  if(min<24*60) return tf("pr6_fresh_h",{n:Math.floor(min/60)});
+  // A partir de un día se cuenta en días de calendario, que es como se piensa «ayer».
+  const a=new Date(ms), b=new Date(now);
+  const d=Math.round((new Date(b.getFullYear(),b.getMonth(),b.getDate())-new Date(a.getFullYear(),a.getMonth(),a.getDate()))/864e5);
+  if(d<=1) return t("pr6_fresh_ayer");
+  if(d<7) return tf("pr6_fresh_d",{n:d});
+  return tf("pr6_fresh_fecha",{x:a.toLocaleDateString(loc(),{day:"numeric",month:"short"})});
 }
 function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setManageOpen, manageEdit, setManageEdit, showToast, onGoDebts}){
   const [revOpen,setRevOpen]=useState(false);
   const [dueOpen,setDueOpen]=useState(false);
   const [paidOpen,setPaidOpen]=useState(false);
   const [ficha,setFicha]=useState(null);
+  const [llegaOpen,setLlegaOpen]=useState(false);
   const paidRef=useRef(null);
   const [pospuesto,setPospuesto]=useState(pr6PospuestoLeer);
   const [deshacer,setDeshacer]=useState(null);
@@ -28962,9 +29056,13 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
       React.createElement("div",{className:"serif num pr6-big"}, eur(pack.pendingBillsTotal)),
       countLine&&React.createElement("div",{className:"pr6-count","data-testid":"plan-count"}, countLine),
       llega&&nPend>0&&React.createElement("div",{className:"pr6-pills"},
-        React.createElement("span",{className:"pr6-pill"+(llega.ok?" ok":""),"data-testid":"plan-llega"},
+        React.createElement("button",{type:"button",className:"pr6-pill"+(llega.ok?" ok":""),"data-testid":"plan-llega","aria-haspopup":"dialog",
+          onClick:function(){ setLlegaOpen(true); }},
           llega.ok&&React.createElement("span",{className:"pr6-pill-ok","aria-hidden":"true"},"✓"),
-          llega.ok?t("pr6_llega"):tf("pr6_falta",{x:eur0(llega.falta)})))),
+          llega.ok?t("pr6_llega"):tf("pr6_falta",{x:eur0(llega.falta)}),
+          // Sin la flecha no se ve que la píldora se abre.
+          React.createElement("svg",{className:"pr6-pill-go",width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
+            React.createElement("path",{d:"M9 6l6 6-6 6"}))))),
     v.review.length>0&&React.createElement("section",{className:"pr6-sec","data-testid":"plan-review","aria-label":t("pr6_revisar")},
       React.createElement("div",{className:"pr6-sec-h"},
         React.createElement("span",null, t("pr6_revisar"),React.createElement("span",{className:"pr6-n"}, v.review.length))),
@@ -28987,12 +29085,15 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
         pr6Chev()),
       React.createElement("div",{className:"pr6-fold"+(paidOpen?" open":""),id:"pr6-paid-list"},
         React.createElement("div",Object.assign({className:"pr6-fold-in"},plegado(paidOpen)), v.paid.map(paidRow), pausados.map(pausadoRow)))),
-    // Traspasos y entradas siguen donde estaban hasta que llegue «¿Te llega?» (tanda 3).
+    /* Traspasos y entradas siguen también aquí: los que mueven el mínimo ya salen (y se editan) en
+       «¿Te llega?», pero quitarlos de la portada deja sin verlos de un vistazo a quien los miraba
+       aquí; la SPEC no los pinta ni los descarta, así que eso lo decide el dueño. */
     pack.transfersPending.length>0&&React.createElement("div",{className:"v4-section","data-testid":"plan-transfers"},
       React.createElement("div",{className:"v4-section-h"},t("v4_plan_transfers")),pack.transfersPending.map(function(x){ return planRecibosFlowRow(x,month); })),
     (pack.incomePending||[]).length>0&&React.createElement("div",{className:"v4-section"},
       React.createElement("div",{className:"v4-section-h"},React.createElement("span",null,t("v4_aun_entrara"))),
       pack.incomePending.map(function(x){ return planRecibosFlowRow(x,month); })),
+    llegaOpen&&React.createElement(LlegaSheet,{state:state,set:set,totals:totals,pack:pack,onClose:function(){ setLlegaOpen(false); }}),
     deshacer&&React.createElement("div",{className:"v4-undo-toast",role:"status","data-testid":"plan-deshacer"},
       React.createElement("span",null, tf("pr6_manana_toast",{name:deshacer.name})),
       React.createElement("button",{type:"button",onClick:quitarPospuesto}, t("f_undo"))),
@@ -29041,6 +29142,152 @@ function planRecibosFlowRow(x,month){
       React.createElement("div",null, x.name),
       React.createElement("div",{className:"sub"}, tag+(x.bank?" · "+entOf(x.bank).label:""))),
     React.createElement("div",{className:"am"+(income?" pos":"")}, income?"+":"",eur(Math.abs(x.amount))));
+}
+/* Hoja «¿Te llega?» (SPEC §4): un bloque por banco con recibos pendientes, el recorrido resumido
+   (tienes hoy · recibos que faltan · entradas antes del último recibo) y, si no llega, UN aviso
+   con cuánto pasar y antes de qué día. Sin botón de actualizar ni sugerencias (descartados). */
+function LlegaSheet({state, set, totals, pack, onClose}){
+  const swipe=useSheetSwipe(true,onClose);
+  useBackClose(true,swipe.close);
+  const titleRef=useRef(null), titleId=React.useId();
+  useEffect(function(){ if(titleRef.current) titleRef.current.focus({preventScroll:true}); },[]);
+  const today=totals.today;
+  const base=useMemo(function(){ return planRecibosBancos(totals,pack,null); },[totals,pack]);
+  const conSaldo=base.filter(function(b){ return b.known; });
+  const [raw,setRaw]=useState("");
+  const [teclado,setTeclado]=useState(false);
+  const [gBank,setGBank]=useState(conSaldo.length?conSaldo[0].bank:null);
+  const [flujo,setFlujo]=useState(null);
+  const amt=parseNumPadRaw(raw);
+  const gasto=amt>0&&gBank?{bank:gBank,amt:amt}:null;
+  const bancos=gasto?planRecibosBancos(totals,pack,gasto):base;
+  const elegido=gasto&&bancos.find(function(b){ return b.bank===gBank&&b.known; });
+  const now=Date.now();
+  const justo=function(b){
+    if(b.min<-0.005) return t("pr6_te_faltan");
+    if(b.minDay==null) return t("pr6_justo_sin");
+    return b.minDay<=today?t("pr6_justo_hoy"):tf("pr6_justo",{d:b.minDay});
+  };
+  const pasa=function(b){
+    const v={x:eur0(b.falta),bank:entOf(b.bank).label};
+    if(b.shortDay==null) return tf("pr6_pasa_sin",v);
+    return b.shortDay<=today?tf("pr6_pasa_hoy",v):tf("pr6_pasa",Object.assign(v,{d:b.shortDay}));
+  };
+  const fila=function(k,lbl,val){ return React.createElement("div",{className:"pr6-ll-row",key:k},React.createElement("span",null,lbl),React.createElement("span",{className:"num"},val)); };
+  const flujoRow=function(e){
+    const nombre=e.name||t(e.kind==="income"?"fj_income":"fj_transfer");
+    const lbl=e.day>0&&e.day<99?tf("pr6_dia_n",{name:nombre,d:e.day}):nombre;
+    if(e.kind!=="income") return fila("f_"+e.id,lbl,"− "+eur(Math.abs(e.amt)));
+    return React.createElement("button",{type:"button",className:"pr6-ll-row pr6-ll-in",key:"f_"+e.id,"data-testid":"llega-flow","data-flow":e.id,onClick:function(){ setFlujo(e.id); }},
+      React.createElement("span",null,lbl),
+      React.createElement("span",{className:"num pos"},"+ "+eur(e.amt)),
+      React.createElement("svg",{width:13,height:13,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},React.createElement("path",{d:"M9 6l6 6-6 6"})));
+  };
+  const bloque=function(b){
+    const fresco=pr6FrescuraTxt(pr6LecturaMs(state,b.bank),now);
+    return React.createElement("div",{className:"pr6-ll-b",key:b.bank,"data-testid":"llega-banco","data-bank":b.bank},
+      React.createElement("div",{className:"pr6-ll-h"},
+        React.createElement(Mono,{ent:b.bank,size:38}),
+        React.createElement("span",{className:"pr6-ficha-t"},
+          React.createElement("span",{className:"pr6-ll-n"}, entOf(b.bank).label),
+          fresco&&React.createElement("span",{className:"pr6-ficha-s pr6-ll-f","data-testid":"llega-fresco"}, fresco)),
+        React.createElement("span",{className:"pr6-ll-r","data-testid":"llega-cifra"},
+          b.known&&React.createElement("span",{className:"pr6-ll-l"}, justo(b)),
+          React.createElement("span",{className:"serif num pr6-ll-a"}, b.known?eur(Math.abs(b.min)):"—"))),
+      // Con el teclado abierto se pliega el detalle: la hoja no crece y la cifra de arriba sigue a la vista.
+      React.createElement("div",{className:"pr6-fold"+(teclado?"":" open")},
+        React.createElement("div",Object.assign({className:"pr6-fold-in pr6-ll-det"},teclado?{"aria-hidden":"true",inert:""}:null),
+          fila("hoy",t("pr6_tienes_hoy"),b.known?eur(b.bal):"—"),
+          fila("rec",t("pr6_faltan_recibos"),"− "+eur(b.pend)),
+          b.flows.map(flujoRow),
+          b.known&&b.min<-0.005&&React.createElement("div",{className:"pr6-ll-tip","data-testid":"llega-tip"},
+            React.createElement("svg",{width:16,height:16,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round",strokeLinejoin:"round","aria-hidden":"true"},React.createElement("path",{d:"M5 12h14M13 6l6 6-6 6"})),
+            pasa(b)))));
+  };
+  return ReactDOM.createPortal(
+    React.createElement(React.Fragment,null,
+      React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
+        React.createElement("div",Object.assign({className:"v4-sheet pr6-ll","data-testid":"llega-sheet",role:"dialog","aria-modal":"true","aria-labelledby":titleId,
+          ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }},swipe.sheetTouch),
+          React.createElement("div",{className:"v4-sheet-handle"}),
+          React.createElement("h2",{className:"serif pr6-ll-t",id:titleId,ref:titleRef,tabIndex:-1}, t("pr6_llega_t")),
+          bancos.map(bloque),
+          conSaldo.length>0&&React.createElement("div",{className:"pr6-ll-wi","data-testid":"llega-gasto"},
+            React.createElement("span",{className:"pr6-ll-n"}, t("pr6_si_gasto")),
+            React.createElement("div",{className:"pr6-ll-wr"},
+              React.createElement("button",{type:"button",className:"serif num pr6-ll-amt"+(teclado?" on":"")+(raw?"":" ph"),"aria-expanded":teclado?"true":"false","data-testid":"llega-gasto-amt",
+                onClick:function(){ setTeclado(function(o){ return !o; }); }}, raw?eur(amt):t("pr6_importe")),
+              conSaldo.length>1&&conSaldo.map(function(b){
+                const on=b.bank===gBank;
+                return React.createElement("button",{type:"button",key:b.bank,className:"chip"+(on?" active":""),"aria-pressed":on?"true":"false","data-bank":b.bank,onClick:function(){ setGBank(b.bank); }}, entOf(b.bank).label);
+              })),
+            elegido&&React.createElement("span",{className:"pr6-ll-wt"+(elegido.min<-0.005?"":" ok"),"data-testid":"llega-gasto-txt"},
+              elegido.min<-0.005?tf("pr6_no_llega",{x:eur(-elegido.min)}):tf("pr6_si_llega",{x:eur(elegido.min)})),
+            React.createElement("div",{className:"pr6-fold"+(teclado?" open":"")},
+              React.createElement("div",Object.assign({className:"pr6-fold-in"},teclado?null:{"aria-hidden":"true",inert:""}),
+                React.createElement(NumPad,{value:raw,onChange:setRaw})))))),
+      flujo!=null&&React.createElement(NominaSheet,{key:flujo,flowId:flujo,state:state,set:set,totals:totals,onClose:function(){ setFlujo(null); }})),
+    document.body);
+}
+/* Editar una entrada prevista desde «¿Te llega?» (SPEC §4): importe con teclado y día con − / +.
+   Es la MISMA edición que Todos (`patchFlowById`): cambia la entrada para todos los meses y no
+   añade ningún campo. Si su día iba por regla («último laborable») y no se toca, la regla sigue. */
+function NominaSheet({flowId, state, set, totals, onClose}){
+  const swipe=useSheetSwipe(true,onClose);
+  useBackClose(true,swipe.close);
+  const f=(state.flows||[]).find(function(x){ return x.id===flowId; })||null;
+  const dia0=f?flowDay(f,totals.curYear,totals.curMonth):null;
+  const [raw,setRaw]=useState(function(){ return f&&f.amount>0?String(+Number(f.amount).toFixed(2)).replace(".",numPadDecSep()):""; });
+  // El primer toque del teclado sustituye la cifra en vez de añadirse detrás (SPEC §7).
+  const fresh=useRef(true);
+  const [marcado,setMarcado]=useState(true);
+  const [dia,setDia]=useState(dia0||1);
+  const hold=useRef(null);
+  const paraHold=function(){ const h=hold.current; if(h){ clearTimeout(h.t); clearInterval(h.i); } hold.current=null; };
+  useEffect(function(){ return paraHold; },[]);
+  const paso=function(d){ setDia(function(x){ const n=x+d; return n<1?31:n>31?1:n; }); };
+  // Mantener pulsado acelera: primero despacio y, al rato, rápido.
+  const empieza=function(d){ return function(e){
+    if(e.button!=null&&e.button!==0) return;
+    e.preventDefault(); paraHold(); paso(d);
+    const h={n:0,i:null};
+    h.t=setTimeout(function(){ h.i=setInterval(function(){ paso(d); h.n++; if(h.n===8){ clearInterval(h.i); h.i=setInterval(function(){ paso(d); },55); } },140); },400);
+    hold.current=h;
+  }; };
+  if(!f) return null;
+  const amt=parseNumPadRaw(raw);
+  const guardar=function(){
+    if(!(amt>0)) return;
+    const patch={};
+    if(Math.abs(amt-Number(f.amount))>=0.005) patch.amount=+amt.toFixed(2);
+    if(dia!==dia0){ patch.day=dia; patch.when=null; }
+    if(Object.keys(patch).length) patchFlowById(set,f.id,patch);
+    swipe.close();
+  };
+  const bank=f.to||"sabadell";
+  const btnDia=function(d,lbl,txt){ return React.createElement("button",{type:"button",className:"pr6-nd-b","aria-label":lbl,"data-act":d<0?"dia-menos":"dia-mas",
+    onPointerDown:empieza(d),onPointerUp:paraHold,onPointerLeave:paraHold,onPointerCancel:paraHold,
+    onKeyDown:function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); paso(d); } }},txt); };
+  return React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
+    React.createElement("div",Object.assign({className:"v4-sheet pr6-nd","data-testid":"nomina-sheet",role:"dialog","aria-modal":"true","aria-label":f.name||t("fj_income"),
+      ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }},swipe.sheetTouch),
+      React.createElement("div",{className:"v4-sheet-handle"}),
+      React.createElement("div",{className:"pr6-ll-h"},
+        React.createElement(Mono,{ent:bank,size:38}),
+        React.createElement("span",{className:"pr6-ficha-t"},
+          React.createElement("span",{className:"serif pr6-ll-t"}, f.name||t("fj_income")),
+          React.createElement("span",{className:"pr6-ficha-s"}, tf("pr6_entra_en",{bank:entOf(bank).label})))),
+      React.createElement("div",{className:"pr6-nd-v"},
+        React.createElement("span",{className:"serif num"+(marcado&&raw?" sel":""),"data-testid":"nomina-importe"}, eur(amt))),
+      React.createElement("div",{className:"pr6-nd-d"},
+        btnDia(-1,t("pr6_dia_menos"),"−"),
+        React.createElement("span",{className:"num","data-testid":"nomina-dia"}, tf("pr6_dia",{d:dia})),
+        btnDia(1,t("pr6_dia_mas"),"+")),
+      React.createElement(NumPad,{value:raw,onChange:function(fn){
+        const desde=fresh.current; fresh.current=false; setMarcado(false);
+        setRaw(function(r){ const b=desde?"":r; return typeof fn==="function"?fn(b):fn; });
+      }}),
+      React.createElement("button",{type:"button",className:"pr6-cta","data-act":"guardar",disabled:!(amt>0),onClick:guardar}, t("save"))));
 }
 
 /* «Este año» de la ficha (SPEC §2.6): lo pagado en el año, en TU parte. Solo si cada mes en que
@@ -33563,13 +33810,14 @@ function App(){
     // en negativo a mitad de mes aunque a fin de mes cuadres. Sin día: cargos al principio
     // (día 0, peor caso) e ingresos al final (día 99). ---
     const evsByBank={};
-    const pushEv=(bank,day,amt)=>{ (evsByBank[bank]=evsByBank[bank]||[]).push({day:day,amt:amt}); };
+    // Traspasos y entradas llevan su id: «¿Te llega?» enseña (y deja editar) justo los recorridos.
+    const pushEv=(bank,day,amt,flow)=>{ (evsByBank[bank]=evsByBank[bank]||[]).push(flow?{day:day,amt:amt,kind:flow.kind,id:flow.id,name:flow.name}:{day:day,amt:amt}); };
     state.fixed.forEach(e=>{ if(fijoDelMes(e)&&!isPaidIn(e,curMonth,today,curYear,state)) pushEv(accOf(e), dayIn(e,curMonth)||0, -occAmountIn(e,curMonth)); });
     state.debts.forEach(d=>{ if(debtActive(d)&&!isDebtPaidThisMonth(d,today,state,curYear,curMonth)){ pushEv(d.account||"sabadell", debtChargeDay(d), -d.monthly); const bl=debtBalloonIn(d,curYear,curMonth); if(bl>0) pushEv(d.account||"sabadell", debtChargeDay(d), -bl); } });
     (state.oneoffs||[]).forEach(o=>{ if(oneoffOccurs(o,curYear,curMonth)&&(o.amount||0)!==0&&!isPaidThisMonth(o,today)) pushEv(o.account||"sabadell", o.day||0, -o.amount); });
-    (state.flows||[]).forEach(f=>{ if(!flowOccursIn(f,curMonth,curYear)||flowPaidIn(state,f,curYear,curMonth,today))return; const dd=flowDay(f,curYear,curMonth); if(f.kind==="income") pushEv(f.to||"sabadell", dd||99, f.amount); else if(f.kind==="transfer") pushEv(f.from||"sabadell", dd||0, -f.amount); });
+    (state.flows||[]).forEach(f=>{ if(!flowOccursIn(f,curMonth,curYear)||flowPaidIn(state,f,curYear,curMonth,today))return; const dd=flowDay(f,curYear,curMonth); if(f.kind==="income") pushEv(f.to||"sabadell", dd||99, f.amount, f); else if(f.kind==="transfer") pushEv(f.from||"sabadell", dd||0, -f.amount, f); });
     const minByBank={}, minDayByBank={};
-    Object.keys(allBanks).forEach(b=>{ const evs=(evsByBank[b]||[]).slice().sort((x,y)=>x.day-y.day); let run=bankBal[b]||0, mn=run, md=0; evs.forEach(ev=>{ run+=ev.amt; if(run<mn-0.005){ mn=run; md=ev.day; } }); minByBank[b]=mn; minDayByBank[b]=md; });
+    Object.keys(allBanks).forEach(b=>{ const r=minWalk(bankBal[b]||0, evsByBank[b]); minByBank[b]=r.min; minDayByBank[b]=r.minDay; });
     // foco en el banco principal de gastos fijos (Sabadell)
     const mainBank="sabadell";
     const mainBal=bankBal[mainBank]||0;
@@ -33588,7 +33836,7 @@ function App(){
        `state.loQueSea` que se lea aquí dentro (incluidos los que leen las funciones auxiliares:
        monthNetForAccount → fixed/debts/oneoffs/flows; flowPaidIn → bankTx;
        toEurAmt/invValueEur → fx y fxRates). */
-    return {fxMissing:fxMissingOf(state),liquid,invested,investedCost,assetsTotal,debtTotal,activos,netWorth,thisMonthSpent,spentByBank,injTR,fijosMensual,ahorroMensual,cargosMes,fijosEsteMes,liquidTrasFijos,curMonth,curYear,today,sinProgramar,bankBal,chargesByBank,pendingByBank,paidThisMonth,pendingThisMonth,mainBank,mainBal,mainCharges,mainPending,bankAlerts,incomeInByBank,transferOutByBank,pendingIncome,pendingTransferOut,projectedByBank,mainIncome,mainTransferOut,mainProjected,minByBank,minDayByBank,mainMin,mainMinDay,roundupThisMonth,savebackThisMonth,monthlyInvestThisMonth,trRewardsTotal,paidNetByBank};
+    return {fxMissing:fxMissingOf(state),liquid,invested,investedCost,assetsTotal,debtTotal,activos,netWorth,thisMonthSpent,spentByBank,injTR,fijosMensual,ahorroMensual,cargosMes,fijosEsteMes,liquidTrasFijos,curMonth,curYear,today,sinProgramar,bankBal,chargesByBank,pendingByBank,paidThisMonth,pendingThisMonth,mainBank,mainBal,mainCharges,mainPending,bankAlerts,incomeInByBank,transferOutByBank,pendingIncome,pendingTransferOut,projectedByBank,mainIncome,mainTransferOut,mainProjected,minByBank,minDayByBank,mainMin,mainMinDay,evsByBank,roundupThisMonth,savebackThisMonth,monthlyInvestThisMonth,trRewardsTotal,paidNetByBank};
   // Antes esto dependía de `[state]` entero. Como `set()` sella `_savedAt` al editar, el
   // objeto de estado es nuevo siempre → el memo NUNCA acertaba y este cálculo (que recorre gastos,
   // fijos, deudas, flujos y simula el mes día a día) se rehacía al abrir una ficha, al escribir en
