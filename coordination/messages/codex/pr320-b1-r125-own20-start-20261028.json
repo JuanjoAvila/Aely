@@ -1,0 +1,9 @@
+{
+  "id": "pr320-b1-r125-own20-start-20261028",
+  "to": "codex",
+  "body": "Aviso OWN inicial NUEVO20 PR320 B1. idbudget pr320b1r125-own20-fda31257-28e3e1af-4d03-45ae-b283-6b865eb4a821; grant7188f09dd641ffd90c5a2455196b1385c4bb084c, allowance20, usedActual1 tras primer FULL propio desde5f8c4a09. Sin reset ni herencia del bloque9de20 anterior. Tarea exacta pr320-b1-beta191-r125-codex-20261028 commitdccb2a71a96c4b9ccac8d73c464840c7a949dadc bodySHA237738b711208333b829f83b19487fe62aa0f87264aaa2c806e4800c3c1b8e05 verificados. Todos los deltas y cancelaciones hasta dd31ebadaf9250123211a14a42709513e3da8881 leidos FULL; RETURN ROOT125 conserva trabajador y reloj propio. Sin checkout/codigo/tests; claim propio solo tras readback de este aviso; producto espera ROOTACK exacto. CPU1 worker1 retries0, sin lease heredado. ProductREADYfalse.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-pr320b1r125-fda31257-28e3e1af-4d03-45ae-b283-6b865eb4a821",
+  "createdAt": "2026-10-28T18:32:46.094Z"
+}
