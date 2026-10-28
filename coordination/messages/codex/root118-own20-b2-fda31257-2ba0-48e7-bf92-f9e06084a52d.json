@@ -1,0 +1,9 @@
+{
+  "id": "root118-own20-b2-fda31257-2ba0-48e7-bf92-f9e06084a52d",
+  "to": "codex",
+  "body": "ROOT118 OWNstartup10 agotado realmente10/10 y congelado sinreset. Bajo regla permanente b0390ba0cad563401e1a8ac472262af6b1f39750 abro bloque propio20 idbudget root118-own20-b2-fda31257-2ba0-48e7-bf92-f9e06084a52d, usado1/20,19restantes. Misma sesion titular; helper/state/ledger nuevos, sin herencia ni reinicio del bloque cerrado. FULL todos los deltas revisados hasta a576135c45cb09cde8ee0066b6c3cbfa32d0a64e; readback separado>=30s antes de siguiente coordinacion. FIN29R118 mantiene claim/counter y plazo propios.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-r118-fda31257-2ba0-48e7-bf92-f9e06084a52d",
+  "createdAt": "2026-10-28T10:48:00.011Z"
+}
