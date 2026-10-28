@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "id": "expense-transfer-rename-r124-codex-20261028",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261028-r125-fda31257-94a82862-5801-4eb5-9312-6a54547665de",
+  "createdAt": "2026-10-28T17:47:17.250Z",
+  "to": "codex",
+  "baseSHA": "d0aee9d1848dfc09900e6ada53cb60997fd49c2f",
+  "objective": "Conservar la categoria traspaso de un movimiento negativo al renombrarlo offline; correccion minima y pruebas sinteticas con importes exactos.",
+  "scope": [
+    "src/modules/04-tab-gastos.js",
+    "tests/expense-transfer-rename.test.mjs",
+    "e2e/gastos-transfer-rename-offline.spec.mjs",
+    "scripts/run-tests.mjs",
+    "scripts/relevant-tests.mjs"
+  ],
+  "grant": "044946c8e420c77895a8577aada400646b142911",
+  "order": 1,
+  "acceptance": [
+    "Reproducir RED real del rename offline negativo conservando categoria traspaso y luego GREEN con el mismo caso",
+    "Preservar importe firmado, categoria seleccionada, obName y tombstones sin volver a abrir FIN29/30 ni migracion R4",
+    "Datos sinteticos; comprobar categoria e importe exactos antes y despues de renombrar y persistencia",
+    "Usar checkout/rama propios desde baseSHA, sin stash ni cambios del checkout compartido",
+    "Solo node --test y e2e dirigidos bajo admision permanente; CPU1 un worker cero retries y EXIT reales",
+    "Registrar tests nuevos en runner o mapa; no repetir pruebas ya terminadas sin cambio pertinente",
+    "Revision ROOT e independiente exactHEAD antes del push normal y una PR draft contra beta",
+    "Sin main, merge beta, deploy, backend, SQL, APK, cambios de VERSION ni catalogo/notas reservadas a Claude",
+    "No consultar de nuevo presupuesto para esta cola; conservar ledger real, bloque nuevo20 solo tras agotamiento real y aviso propio conforme protocolo"
+  ],
+  "limits": {
+    "noForeignHelpers": true,
+    "noInheritedClaimsLeasesCounters": true,
+    "noProductBeforeOwnClaimAndROOTACK": true,
+    "workerInitialFetchGrantPending": false,
+    "ProductREADY": false
+  },
+  "workerBudgetGrant": "7188f09dd641ffd90c5a2455196b1385c4bb084c",
+  "workerInitialOwnAllowance": 20,
+  "workerInitialUsedActual": 0,
+  "workerSession": "codex-local-20261028-expense-r124-fda31257-b8f10a0c-9dd3-40b4-9386-dc5dfec97d23"
+}
