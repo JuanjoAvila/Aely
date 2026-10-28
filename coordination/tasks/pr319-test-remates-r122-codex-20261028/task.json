@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "id": "pr319-test-remates-r122-codex-20261028",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261028-r122-fda31257-5b13-4be6-b57c-791a0721c910",
+  "createdAt": "2026-10-28T14:28:56.631Z",
+  "to": "codex",
+  "baseSHA": "a94556cfba08b6ba2892f3058673a31a829a34ea",
+  "objective": "PR319: reparar semilla R6 y dos anclas de mutantes bajo Claude4b2d, manteniendo misma logica, assertunique y oraculos; runner ORIGINAL dirigido10specs unicos, nuevo HEAD local para review en misma PR319.",
+  "scope": [
+    "tests/fin19-r5-counter.test.mjs",
+    "tests/fin15-pendiente-contabilizada.test.mjs",
+    "tests/fin19-r3-chain.test.mjs"
+  ],
+  "grants": [
+    "4b2d57315edf4869ef9562b621b6cb8d7913aa53",
+    "e42252eb4444e23228b565b7d2da5b0ee5e13e43",
+    "aac63502965539a9bf615f4a5a4687eee2923cfb",
+    "45d681d871ff7f0fcdeb7d108281d3c1f5462692",
+    "2bc27046f84d931739c56820073ec8a3cb216871"
+  ],
+  "requirements": [
+    "NUEVA tarea followup. FIN29/30 original DONE inmutable, no reabrir ni heredar claim/sesion/counters/helpers. Misma PR319, rama y checkout conservados solo tras ROOTACK; sin nueva PR/rebase/merge.",
+    "RECEPCION primero: identidad runtime nodeRepl threadId/sessionId/cwd y proyecto NATIVO Aely/local, nonce NUEVO prefijo fda31257, ACKprivado durable. No fetch/claim/checkout/codigo/tests antes admision NATIVA. OWN20 NUEVO0 por e42252eb; helper/state/ledger propios, freshFULLTODOSdeltas/cancelaciones/avisoIDbudget/ACK/readback>=30s; claim propio confirmado y ROOTACK antes producto.",
+    "SOLO tres tests del scope. R1 fin19-r5-counter71: semilla R6 con diferencias1ms dentro mismo dia, preservar uniqueassert fixture, filas e importes. R2/R3 reanclar mutantes fin15-pendiente-contabilizada179 yfin19-r3-chain110 a MISMA logica cambiada porPR en presupuesto247/motor1948. Guardas ancla y muerte semantica intactas. No producto ni quitar assert.",
+    "Inspeccionar runner antes invocar node scripts/run-tests.mjs --plan PRIVADO buildfalse denofalse playwrightfalse e2e[] stepslista10UNICOS: fin15-pendiente-contabilizada,fin19-r3-chain,fin29-30-rename-scope,fin29-30-backfill-identity,fin19-r4-renamed-widget,fin19-r4-pull-counter,fin19-r5-counter,fin19-r5-remote-rename,fin19-r7-ficha-rename,fin19-r8-ficha-income. No suite entera ni invocacion sin plan.",
+    "Ensamblado PRIVADO literal exacto productoa945 y overrides reales PORspec, nunca public/index.html viejo ni build/generados. Preservar HTML30bde, anteriores fallos/RED causales y GREEN; repetir solo diez exigidos porGO y comprobacion afectada por reparacion nueva. Un worker serial0retryoffline, freshFULL<=60s/censo/ENTERRETURNprivados por titular bajo aac635 y shellsimple45d sin afinidad/wrappers. Guardar hashes/logs/stdout/stderr/EXIT/runner-times.",
+    "TrasGREEN crea commit LOCAL limpio solo3tests y entrega exactSHA+manifest aROOT122 para review independiente. NOpush hastaGO nativo trasreview. SoloROOT edita textoPR y reportaClaude. No CHANGELOG/ROADMAP conflictos, migraciones, version/deps/PW/fullsuite/backend/live/SQL/Gradle/APK/deploy/main/beta.",
+    "AdmittedAtREAL ydeadline+60propios, presupuesto sinreset/fetch21; closure/resultRETURNpropios/recursos0 antes archivo. 2bc27046 solo cleanup mismo titular vencido sinproducto. NuncaEclaimajeno ni reactivacion tareaEbloqueada de callbackABA; generic scope tests no comparte estos tresficheros ni checkout."
+  ],
+  "acceptance": "Tres reparaciones de tests, runneroriginal dirigido10specs EXIT0 ligado a nuevoHEAD/HTMLliteral; review independiente antespush mismaPR319. Sinproducto/migracion/servido/movil."
+}
