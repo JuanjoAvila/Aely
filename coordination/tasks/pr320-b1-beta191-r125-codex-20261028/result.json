@@ -1,0 +1,82 @@
+{
+  "status": "done",
+  "summary": "PR320 B1 actualizada en la misma draft sobre beta191; negativos conservan categoria y el writer no sube ingreso falso. Revisiones ROOT e independiente GO del exactHEAD; push autorizado con lease exacto y readback de rama/PR/descripcion confirmados.",
+  "productSHA": "727eab777dcf12840303481db2181186dfe27ace",
+  "baseSHA": "7e958a6f545ceb30c1a1eef66a03ec7a1884c887",
+  "pullRequest": 320,
+  "tests": [
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r8-ficha-income.test.mjs",
+      "exitCode": 0,
+      "passed": 14
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/expense-transfer-rename.test.mjs",
+      "exitCode": 0,
+      "passed": 21
+    },
+    {
+      "command": "playwright test e2e/gastos-transfer-rename-offline.spec.mjs --workers=1 --retries=0 --max-failures=1",
+      "exitCode": 0,
+      "passed": 4,
+      "skipped": 0,
+      "flaky": 0
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "scriptBlocks": 7
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "checks": 16
+    }
+  ],
+  "causalEvidence": {
+    "legacyInitialPort": {
+      "passed": 8,
+      "failed": 6,
+      "exitCode": 1
+    },
+    "oldCategoryExpression": {
+      "passed": 2,
+      "failed": 19,
+      "exitCode": 1,
+      "remoteWriterFalseIncomeFailures": 16
+    }
+  },
+  "review": {
+    "rootExactHEADGO": true,
+    "independentExactHEADGO": true,
+    "pushGO": "786a908c9dc431877954c86271d1d45644f159cd"
+  },
+  "remoteReadback": {
+    "HEAD": "727eab777dcf12840303481db2181186dfe27ace",
+    "base": "7e958a6f545ceb30c1a1eef66a03ec7a1884c887",
+    "draft": true,
+    "bodySHA256": "444c254abda2c27d0cc3eb67e131c23967d98b31ca6d3e0e35f48ecd05ad2b88"
+  },
+  "resourcesReturned": {
+    "ownCPU1": true,
+    "ownPort": true,
+    "ownScope": true,
+    "foreignResourcesUntouched": true
+  },
+  "limitations": [
+    "CI general, integracion, beta servida y aceptacion fisica movil no acreditadas",
+    "Reparacion historica propuesta solo en texto de PR320; sin migracion ni datos reales",
+    "Sin VERSION, notas, CHANGELOG, backend, SQL, APK, merge o deploy"
+  ],
+  "ProductREADY": false,
+  "schema": 1,
+  "taskId": "pr320-b1-beta191-r125-codex-20261028",
+  "actor": "codex",
+  "sessionId": "codex-local-20261028-pr320b1r125-fda31257-28e3e1af-4d03-45ae-b283-6b865eb4a821",
+  "createdAt": "2026-10-28T19:07:37.389Z",
+  "released": true
+}
