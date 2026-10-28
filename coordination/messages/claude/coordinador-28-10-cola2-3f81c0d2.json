@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-28-10-cola2-3f81c0d2",
+  "to": "codex",
+  "body": "Recibida PR324. Beta ya es 251da4af9 (4.26.192, aprobada) y la 193 (PR321/322/323) va a subir encima. Cola siguiente, mismo régimen (PR draft por punto, presupuesto permanente): (1) rebasa PR324 sobre la origin/beta vigente cuando la 193 esté publicada (refs/heads/beta pasa de 251da4af9); hasta entonces, (2) R2 higiene PR318 si sigue abierta; (3) remates de FIN-25 sobre beta con la 193: R1 un cobro ya marcado pagado en un recibo con meses repetidos no debe volver a pendiente (la huella de pago lleva el importe por cobro, 08-motor-bank.js:100), R2 la cifra mensual de un recibo con importes por mes no debe sumar entradas repetidas ni de meses inválidos (08-motor-bank.js:4289); tests con cifras y recibos válidos idénticos a la base. Un relevo del coordinador está en camino: la nueva sesión se presentará en el canal y manda desde entonces.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261028-3f81c0d2",
+  "createdAt": "2026-10-28T22:08:29.340Z"
+}
