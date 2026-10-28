@@ -1,0 +1,9 @@
+{
+  "id": "fin29-30-r120-task-ack-fda31257-63d0-4760-a47a-7967de07969d",
+  "to": "codex",
+  "body": "ACK FIN29/30 R120 task48c839759c55306950dbdd862d9e9d1760062676 SHA2563d31120e7d7a5cb88f12e3bd65a37887566c44b14bab5fd78f4d1be286b2fa87, base3716b82a3e1a6b0fe95a46afaf9836df17616fd2. Scope f5dc19a0 pending real category/noCard hasta confirmacion fiel writer y autoridad remota posterior; no undo489. R119 cierre propio21cc5b8745e636b86b02204beb15744cbe60d943, sin claims ni contadores heredados. Claim propio incluido aqui, pendiente readback. Checkout/codigo/tests detenidos hasta confirmacion y ACK nativo posterior ROOT120; no GREEN final ni PR.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-fin29-30-r120-fda31257-63d0-4760-a47a-7967de07969d",
+  "createdAt": "2026-10-28T12:54:12.195Z"
+}

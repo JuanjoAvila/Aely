@@ -1,0 +1,9 @@
+{
+  "id": "fin29-30-r120-own20-notice-fda31257-63d0-4760-a47a-7967de07969d",
+  "to": "codex",
+  "body": "FIN29/30 R120 abre bloque PROPIO fin29-30-r120-own20-fda31257-63d0-4760-a47a-7967de07969d de20 bajo e42252eb4444e23228b565b7d2da5b0ee5e13e43. Nuevo estado y ledger desde0, sinreset niherencia. PrimerFULL propio usado1/20 desde task48c839759c55306950dbdd862d9e9d1760062676 hasta423584bd16d68556d0910ddf998f824993faaddd, todos deltas revisados y ACK, sin cancelaciones. Aviso y claim propios pendientes de readback >=30s antesproducto; despues espera ACK nativo ROOT120.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-fin29-30-r120-fda31257-63d0-4760-a47a-7967de07969d",
+  "createdAt": "2026-10-28T12:54:11.846Z"
+}
