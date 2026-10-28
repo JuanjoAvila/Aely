@@ -182,6 +182,8 @@ const sourceBeta183=sourceAt("9627c867b1bea1c29e0b5f02adaf47e9360f1648");
 const sourceBeta184=sourceAt("5a02ad17f2bfcfb90652ab7dc45216af3b330b5c");
 // Catálogo185 pasa a histórico con la 186: se lee de la 4.26.185 servida en beta (fc737a7df, con la APK 62); su tanda (widget-pasado-del-limite) no tiene veredicto y la 186 la deja donde está.
 const sourceBeta185=sourceAt("fc737a7dfc292312b38d4fc1f3276a97436444f2");
+// Catálogo186 pasa a histórico con la 187: se lee de la 4.26.186 servida en beta (3716b82a3); sus dos tandas vivas (widget-se-actualiza-solo y widget-pasado-del-limite) no tienen veredicto y la 187 las deja donde están.
+const sourceBeta186=sourceAt("3716b82a3e1a6b0fe95a46afaf9836df17616fd2");
 const sourceBeta153=sourceAt("80752dff055dc391c52c3067ce238f49e0a14598");
 // Catálogo137 pasa a histórico en la promoción 137: se lee de la beta 4.26.137.1 aprobada (6f18228c), lo último que probó el móvil y lo que sube entero.
 const sourceBeta137=sourceAt("6f18228cbd81c1cc9abfa7fabce0a878819234f4");
@@ -358,7 +360,7 @@ test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CS
   // La base es la integración120 (apuntes iguales de Trade Republic): Inicio no puede retirar su alcance ni heredar su revisión.
   const integrated=JSON.parse(source120("scripts/beta-sources.json"));
   // Detrás de Inicio sólo ha entrado el alcance de la122 (el cargo de recibo en Gastos).
-  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","limpieza-ajustes-perfil","tr-empareja-sin-preguntar","cuenta-parte-mia","inicio-recientes-sin-repetidos","scroll-borde-barra","inicio-grafica-reservas","compras-identicas-ids","myinvestor-contador-a-cero","deudas-metas-hoja-edicion","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","gastos-suscripciones-botones","compras-pendientes-otro-dia","deudas-plazo-cuota-encaja","deudas-metas-hoja-sin-parpadeo","deudas-metas-hoja-cierre-suave","teclado-atras-conserva","fichas-cierre-suave-atras","vibracion-borde-y-mi-ciclo","deudas-aviso-plazo","cuenta-saldo-cierre-atras","banco-pruebas-sin-aviso","vibracion-suave-ronda-2","deudas-guardar-motivo","recibo-renombrado-sigue-pagado","vibracion-suave-ronda-3","plan-por-confirmar-prestamo-youtube","vuelta-sin-tiron","deuda-bajar-cuota-alarga-plazo","cartera-ordenar-brokers","youtube-enlazar-recibo","vibracion-ajustador","pestanas-swipe-rapido","gestionar-plan-sin-ola","renombrar-y-notas-seguras","gestionar-plan-ola","vibracion-ajustador-r2","gestionar-plan-ola-r2","vibracion-r3","youtube-diagnostico","renombrar-lista-al-momento","recibos-cifra-cuadra","cartera-sin-lagazo","renombrar-sin-cobertura","vibracion-r4","youtube-ficha-reconoce","vibracion-r5","vibracion-r6","youtube-r4","recibos-meses-a-mano","gastos-dos-bancos","cartera-moneda","categoria-coche","deuda-nueva-desde-su-dia","gastos-v5-movimientos","gastos-v5-secciones","gastos-v5-filtro","gastos-v5-subs","gastos-v5-filtros-hoja","sync-dos-moviles","gastos-v5-ciclos-metas-inversiones","plan-dos-moviles","gastos-lag-ciclos","inicio-mes-futuro","gastos-lag-ciclos-r3","recibo-vinculo-saldo","gastos-meses-letra-nombres","gastos-recibo-fila-textos-cortos","gastos-scroll-fluido-cifras","gastos-margen-sin-nomina","widget-pasado-del-limite","widget-se-actualiza-solo"),"Inicio y las altas de la122, la124, la126, la127, la128, la129, la130, la131, la132, la133, la134, la135, la137, la138, la139, la140, la141, la143, la144, la145, la146, la147, la148, la149, la150, la151, la152 y la153, sin retirar historia120");
+  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","limpieza-ajustes-perfil","tr-empareja-sin-preguntar","cuenta-parte-mia","inicio-recientes-sin-repetidos","scroll-borde-barra","inicio-grafica-reservas","compras-identicas-ids","myinvestor-contador-a-cero","deudas-metas-hoja-edicion","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","gastos-suscripciones-botones","compras-pendientes-otro-dia","deudas-plazo-cuota-encaja","deudas-metas-hoja-sin-parpadeo","deudas-metas-hoja-cierre-suave","teclado-atras-conserva","fichas-cierre-suave-atras","vibracion-borde-y-mi-ciclo","deudas-aviso-plazo","cuenta-saldo-cierre-atras","banco-pruebas-sin-aviso","vibracion-suave-ronda-2","deudas-guardar-motivo","recibo-renombrado-sigue-pagado","vibracion-suave-ronda-3","plan-por-confirmar-prestamo-youtube","vuelta-sin-tiron","deuda-bajar-cuota-alarga-plazo","cartera-ordenar-brokers","youtube-enlazar-recibo","vibracion-ajustador","pestanas-swipe-rapido","gestionar-plan-sin-ola","renombrar-y-notas-seguras","gestionar-plan-ola","vibracion-ajustador-r2","gestionar-plan-ola-r2","vibracion-r3","youtube-diagnostico","renombrar-lista-al-momento","recibos-cifra-cuadra","cartera-sin-lagazo","renombrar-sin-cobertura","vibracion-r4","youtube-ficha-reconoce","vibracion-r5","vibracion-r6","youtube-r4","recibos-meses-a-mano","gastos-dos-bancos","cartera-moneda","categoria-coche","deuda-nueva-desde-su-dia","gastos-v5-movimientos","gastos-v5-secciones","gastos-v5-filtro","gastos-v5-subs","gastos-v5-filtros-hoja","sync-dos-moviles","gastos-v5-ciclos-metas-inversiones","plan-dos-moviles","gastos-lag-ciclos","inicio-mes-futuro","gastos-lag-ciclos-r3","recibo-vinculo-saldo","gastos-meses-letra-nombres","gastos-recibo-fila-textos-cortos","gastos-scroll-fluido-cifras","gastos-margen-sin-nomina","widget-pasado-del-limite","widget-se-actualiza-solo","inicio-anillo-usado"),"Inicio y las altas de la122, la124, la126, la127, la128, la129, la130, la131, la132, la133, la134, la135, la137, la138, la139, la140, la141, la143, la144, la145, la146, la147, la148, la149, la150, la151, la152 y la153, sin retirar historia120");
   for(const [key,value] of Object.entries(integrated))if(key!=="inicio-grafica-vuelve"){assert.deepEqual(scopes[key].native,value.native);assert.deepEqual(scopes[key].edge,value.edge);for(const part of (value.web||[]).map(limpieza129).map(retirada164).map(retirada166).map(retirada167).map(retirada169).filter(Boolean))assert.ok(scopes[key].web.map(sinMeta172).some(s=>JSON.stringify(sinMetodo122(s))===JSON.stringify(part)||JSON.stringify(sinPull130(sinMetodo122(s)))===JSON.stringify(sinPull130(sinMetodo122(part)))||JSON.stringify(sinAbsorcion143(sinCompras135(sinPull130(sinMetodo122(s)))))===JSON.stringify(sinCompras135(sinPull130(sinMetodo122(part))))||JSON.stringify(sinFin19(sinMetodo122(s)))===JSON.stringify(sinMetodo122(part))),key+": no recortar descriptor ajeno120");}
   assert.equal(scope.unidades,true);
   for(const key of ["historial","auditoria","codigosCompatibles","compatibilidadGit","compatibilidadSha"])
@@ -6160,13 +6162,100 @@ test("Catálogo176 añade la tanda del vínculo de recibo (solo web) sobre la 17
   assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
 });
 
+const expected187={"v":"4.26.187","d":"2026-10-26","t":{"es":"El anillo de Este mes se llena según gastas","en":"The This month ring fills up as you spend","ca":"L’anell d’Aquest mes s’omple segons gastes"},"items":{"es":["El anillo de «Este mes» en Inicio se va llenando según gastas, hasta el 100 %, y si te pasas sigue subiendo en rojo."],"en":["The \"This month\" ring on Home fills up as you spend, up to 100 %, and if you go over it keeps climbing in red."],"ca":["L’anell d’«Aquest mes» a Inici s’omple segons gastes, fins al 100 %, i si et passes continua pujant en vermell."]},"tandas":[{"id":"inicio-anillo-usado","t":{"es":"Inicio: el anillo cuenta lo gastado","en":"Home: the ring counts what you have spent","ca":"Inici: l’anell compta el que has gastat"},"items":{"es":["1. Abre Inicio con el mes en curso. BIEN: el anillo de «Este mes» enseña lo gastado del límite (p. ej. 96 % con 1.436 de 1.500), sube sin saltos hacia 100 % y, si te pasas, sigue subiendo en coral; el importe de debajo no cambia. MAL: enseña lo que queda (4 %) o salta a 100 % al agotar el límite."],"en":["1. Open Home with the current month. RIGHT: the \"This month\" ring shows how much of the limit you have spent (e.g. 96 % with 1,436 of 1,500), climbs smoothly towards 100 % and, if you go over, keeps climbing in coral; the amount below does not change. WRONG: it shows what is left (4 %) or jumps to 100 % when the limit runs out."],"ca":["1. Obre Inici amb el mes en curs. BÉ: l’anell d’«Aquest mes» ensenya el que has gastat del límit (p. ex. 96 % amb 1.436 de 1.500), puja sense salts cap al 100 % i, si et passes, continua pujant en corall; l’import de sota no canvia. MALAMENT: ensenya el que queda (4 %) o salta a 100 % en esgotar el límit."]}}]};
+// 4.26.187 (26/10/2026): claude/anillo-usado (25042373a) y claude/widget-ciclo-toggle (a3c4b7d19, solo guardianes) sobre la beta 4.26.186 servida (3716b82a3), solo web y SIN APK nueva (sigue la 62): el anillo de la tarjeta del mes de Inicio cuenta siempre lo USADO del límite (0 → 100 % y, pasado, 127 % en coral); antes pintaba lo que queda por debajo del límite (decisión del dueño, 26/10/2026).
+// Una tanda NUEVA (inicio-anillo-usado, un paso, sin APK). Las de la 186 (widget-se-actualiza-solo) y la 185 (widget-pasado-del-limite) NO tienen veredicto y se quedan: el panel enseña tres.
+test("Catálogo187 añade la tanda del anillo de Inicio que cuenta lo usado (solo web) sobre la 186, deja las dos anteriores sin veredicto y declara las huellas que mueve",()=>{
+  const tandas=["widget-pasado-del-limite","widget-se-actualiza-solo","inicio-anillo-usado"],D0="src/modules/03-tab-dash.js",java="android/app/src/main/java/com/micartera/app/";
+  const integrated=JSON.parse(sourceBeta186("scripts/beta-sources.json")),before=JSON.parse(sourceBeta186("src/data/release-notes.json"));
+  const source=f=>nl(read(f)),old=f=>nl(sourceBeta186(f));
+  assert.equal(before[0].v,"4.26.186");
+  assert.deepEqual(before.slice(0,2).map(n=>n.tandas.map(g=>g.id)),[[tandas[1]],[tandas[0]]],"la 186 servida lleva sus dos tandas (sin veredicto)");
+  for(const n of before.slice(2))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] en la 186 servida");
+  const expectedNotes=[expected187,...before];
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.deepEqual(notes,expectedNotes,"la nota 187 literal delante y todo lo demás intacto (las tandas de la 186 y la 185 siguen)");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.187",tandas[2],0],["4.26.186",tandas[1],0],["4.26.185",tandas[0],62]],"el panel enseña tres tandas");
+  assert.equal(notes.length,284);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
+  for(const n of notes.slice(3))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] (la propiedad se conserva, vacía)");
+  assert.deepEqual(Object.keys(notes[0].tandas[0]),["id","t","items"],"la tanda nueva no pide APK");
+  const jerga=/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|FIN-|SES-|UX-|SEC-|zoom|\d+\.\d+\.\d+/i;
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,1,lang+": un punto familiar");
+    const steps=notes[0].tandas[0].items[lang];
+    assert.equal(steps.length,1,lang+": un paso");
+    assert.ok(steps[0].startsWith("1. "),lang+": paso numerado");
+    assert.ok(/MAL|WRONG|MALAMENT/.test(steps[0])&&/BIEN|RIGHT|BÉ/.test(steps[0]),lang+": el paso dice qué es MAL y qué es BIEN");
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
+  }
+  const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
+  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verifyNotes(twice),assert.AssertionError,"no duplicar una tanda");
+  const sinViva186=structuredClone(notes);sinViva186[1].tandas=[];assert.throws(()=>verifyNotes(sinViva186),assert.AssertionError,"la tanda de la 186 no se retira sin veredicto");
+  const sinViva185=structuredClone(notes);sinViva185[2].tandas=[];assert.throws(()=>verifyNotes(sinViva185),assert.AssertionError,"la tanda de la 185 no se retira sin veredicto");
+  // Registro: los anteriores intactos con el descriptor nuevo detrás.
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),{[tandas[2]]:ahora,...resto}=scopes;
+  assert.deepEqual(Object.keys(scopes),[...Object.keys(integrated),tandas[2]],"el descriptor nuevo, el último");
+  assert.deepEqual(resto,integrated,"ningún descriptor anterior cambia");
+  assert.deepEqual(Object.keys(ahora),["web","unidades"]);assert.equal(ahora.unidades,true);
+  const propias=[{file:"src/modules/03-tab-dash.js",from:"  const usedC=Math.round(spentAgainst*100), limC=Math.round(budAmt*100);",to:"  const amountTxt=over?"}];
+  assert.deepEqual(ahora.web.slice(0,propias.length),propias,"la unidad web propia: el cálculo del anillo de la tarjeta del mes");
+  {const fns=logicFunctions(source),dat=logicData(source);let web=propias.slice();
+    for(let ronda=0;ronda<12;ronda++){
+      const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];
+      for(const fn of scopeDependencies({web},source,fns))if(!tiene(fn.file,fn.name,"function"))extra.push({file:fn.file,function:fn.name});
+      for(const d of scopeDataDependencies({web},source,fns,dat))if(!tiene(d.file,d.name,"data"))extra.push({file:d.file,data:d.name});
+      if(!extra.length)break;web=web.concat(extra);
+    }
+    const clave=u=>JSON.stringify(u);
+    assert.equal(ahora.web.length,web.length,"el cierre de lectores del descriptor es exactamente el calculado");
+    assert.deepEqual(new Set(ahora.web.map(clave)),new Set(web.map(clave)),"el cierre de lectores del descriptor es exactamente el calculado");}
+  for(const u of ahora.web)assert.ok(scopeText(u,source).length>0,"la unidad existe en la fuente: "+JSON.stringify(u));
+  // Solo cambia Inicio: del árbol de la 186 el único fichero de código que se mueve es 03-tab-dash; el widget (web, ingest y Java) y la APK 62 siguen idénticos.
+  assert.notEqual(source(D0),old(D0),"cambia de verdad: "+D0);
+  for(const file of ["src/modules/00-core.js","src/modules/04-tab-gastos.js","src/modules/08-motor-bank.js","src/modules/11-app-main.js","supabase/functions/ingest/index.ts","supabase/functions/ingest/widget.ts",java+"MiCarteraWidget.java",java+"MiCarteraPlugin.java",java+"WidgetPeriod.java",java+"WidgetSnapshotArbiter.java",java+"TrExpenseListener.java","android/app/src/main/res/layout/widget_micartera.xml","android/app/src/main/AndroidManifest.xml","public/apk.json"])assert.equal(source(file),old(file),"sin cambios: "+file);
+  assert.match(source("android/app/build.gradle"),/versionCode 62\s+versionName "4\.26\.185"/,"sigue la APK 62: la 187 no lleva nativo");
+  assert.match(source("scripts/beta-sources.json"),/inicio-anillo-usado/);
+  // Huellas que se mueven (lista cerrada): las web de los descriptores que leen Inicio (03-tab-dash); ninguna de servidor ni nativa.
+  const expectedMoves={};
+  const previous=new Map();
+  const measure=reader=>{
+    const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};
+    for(const [key,scope] of Object.entries(integrated)){
+      if(key===archiveId)continue;
+      if(!previous.has(key))previous.set(key,betaRevision(key,sourceBeta186,undefined,scope));
+      const a=previous.get(key),b=betaRevision(key,reader,undefined,now[key]);
+      const surfaces=["web","native","edge"].filter(x=>a[x]!==b[x]);
+      if(surfaces.length)moved[key]=surfaces;
+    }
+    return moved;
+  };
+  assert.deepEqual(measure(source),expectedMoves,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  const vivas=notes.flatMap(n=>(n.tandas||[]).map(g=>g.id));
+  assert.deepEqual(vivas,tandas.slice().reverse());
+  assert.deepEqual(Object.keys(expectedMoves).filter(id=>vivas.includes(id)),[],"las tandas vivas cuya huella se mueve");
+  const current=betaRevision(tandas[2],source,undefined,scopes[tandas[2]]);
+  assert.ok(current.web);assert.equal(current.edge,undefined,"sin huella de servidor");assert.equal(current.native,undefined,"sin huella nativa");
+  // Mutantes sobre la fuente real: el anillo cuenta lo que queda y la tanda se reabre.
+  for(const [a,b] of [["Math.min(1,usedC/limC)","Math.min(1,(limC-usedC)/limC)"],["Math.min(usedC<limC?99:100,Math.round(usedExact))","Math.round(usedExact)"]]){
+    assert.equal(source(D0).split(a).length,2,"mutante sobre fuente real: "+a);
+    const mutated=betaRevision(tandas[2],f=>f===D0?source(f).replace(a,()=>b):source(f),undefined,scopes[tandas[2]]);
+    assert.notEqual(mutated.web,current.web,tandas[2]+" reabre la tanda web: "+a);
+  }
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes);
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),vivas,"lo que el build entrega al panel");
+  const g0=built[0].tandas[0];
+  assert.equal(g0.web,current.web);assert.equal(g0.edge,undefined);assert.equal(g0.native,undefined);assert.equal(g0.apk,undefined);assert.equal(receipt.web[tandas[2]],current.web);
+  for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g0[key],undefined,"identidad nueva sin "+key);
+  assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
+});
+
 const expected186={"v":"4.26.186","d":"2026-10-26","t":{"es":"El widget vuelve a actualizarse solo","en":"The widget updates by itself again","ca":"El widget torna a actualitzar-se sol"},"items":{"es":["El widget vuelve a actualizarse solo al usar la app, con lo que te queda del límite este mes."],"en":["The widget updates by itself again when you use the app, showing what is left of this month's limit."],"ca":["El widget torna a actualitzar-se sol en usar l’app, amb el que et queda del límit aquest mes."]},"tandas":[{"id":"widget-se-actualiza-solo","t":{"es":"Widget: se actualiza solo al usar la app","en":"Widget: it updates by itself when you use the app","ca":"Widget: s’actualitza sol en usar l’app"},"items":{"es":["1. Abre la app desde el icono (no desde el widget), cambia algo (por ejemplo apunta un gasto pequeño y bórralo) y sal. MAL: el widget sigue con la cifra de antes. BIEN: el widget enseña lo mismo que Inicio sobre lo que te queda del límite este mes."],"en":["1. Open the app from its icon (not from the widget), change something (for example, add a small expense and delete it) and leave. WRONG: the widget still shows the previous figure. RIGHT: the widget shows the same as Home about what is left of this month's limit."],"ca":["1. Obre l’app des de la icona (no des del widget), canvia alguna cosa (per exemple, apunta una despesa petita i esborra-la) i surt. MALAMENT: el widget segueix amb la xifra d’abans. BÉ: el widget ensenya el mateix que Inici sobre el que et queda del límit aquest mes."]}}]};
 // 4.26.186 (26/10/2026): claude/widget-stale (b7f1bc268, con su revisión independiente en GO) sobre la beta 4.26.185 servida (fc737a7df), solo web e ingest y SIN APK nueva (sigue la 62): widgetScopeOf vuelve a un alcance de 8 elementos (las listas de nómina del mes van en el hueco del ancla, índice 4) porque MiCarteraWidget.java:207/302 exige longitud 8 y descartaba en mudo la foto con lectura nueva.
 // Una tanda NUEVA (widget-se-actualiza-solo, un paso, sin APK). La de la 185 (widget-pasado-del-limite) NO tiene veredicto: se deja donde está, así que el panel enseña dos. Su huella web se mueve igualmente (widgetScopeOf cambia).
 test("Catálogo186 añade la tanda del widget que se actualiza solo (web e ingest) sobre la 185, deja la de la 185 sin veredicto y declara las huellas que mueve",()=>{
   const tandas=["widget-pasado-del-limite","widget-se-actualiza-solo"],M0="src/modules/08-motor-bank.js",W0="supabase/functions/ingest/widget.ts",java="android/app/src/main/java/com/micartera/app/";
   const integrated=JSON.parse(sourceBeta185("scripts/beta-sources.json")),before=JSON.parse(sourceBeta185("src/data/release-notes.json"));
-  const source=f=>nl(read(f)),old=f=>nl(sourceBeta185(f));
+  const source=f=>nl(sourceBeta186(f)),old=f=>nl(sourceBeta185(f));
   assert.equal(before[0].v,"4.26.185");
   assert.deepEqual(before[0].tandas.map(g=>g.id),[tandas[0]],"la 185 servida lleva su tanda (sin veredicto)");
   for(const n of before.slice(1))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] en la 185 servida");
@@ -6211,15 +6300,13 @@ test("Catálogo186 añade la tanda del widget que se actualiza solo (web e inges
   assert.equal(source(W0).length>0,true,"el fichero de servidor existe");
   // Sin nativo: del árbol de la 185 cambian el alcance web y el de ingest (más sus pruebas); el Java, el manifiesto, apk.json y build.gradle siguen idénticos (la APK 62 ya exige longitud 8, lo que se arregla es la web).
   for(const file of [M0,W0])assert.notEqual(source(file),old(file),"cambia de verdad: "+file);
-  // Inicio (03-tab-dash) cambia ya sobre la 185: el anillo de la tarjeta del mes cuenta lo USADO (decisión del dueño, 26/10/2026), así que deja de ser «sin cambios».
-  for(const file of ["src/modules/00-core.js","src/modules/04-tab-gastos.js","src/modules/11-app-main.js","supabase/functions/ingest/index.ts",java+"MiCarteraWidget.java",java+"MiCarteraPlugin.java",java+"WidgetPeriod.java",java+"WidgetSnapshotArbiter.java",java+"TrExpenseListener.java","android/app/src/main/res/layout/widget_micartera.xml","android/app/src/main/AndroidManifest.xml","public/apk.json"])assert.equal(source(file),old(file),"sin cambios: "+file);
+  for(const file of ["src/modules/00-core.js","src/modules/03-tab-dash.js","src/modules/04-tab-gastos.js","src/modules/11-app-main.js","supabase/functions/ingest/index.ts",java+"MiCarteraWidget.java",java+"MiCarteraPlugin.java",java+"WidgetPeriod.java",java+"WidgetSnapshotArbiter.java",java+"TrExpenseListener.java","android/app/src/main/res/layout/widget_micartera.xml","android/app/src/main/AndroidManifest.xml","public/apk.json"])assert.equal(source(file),old(file),"sin cambios: "+file);
   assert.match(source("android/app/build.gradle"),/versionCode 62\s+versionName "4\.26\.185"/,"sigue la APK 62: la 186 no lleva nativo");
   assert.match(source("scripts/beta-sources.json"),/widget-se-actualiza-solo/);
   // El alcance del mes lleva 8 elementos con las listas en el índice 4.
   assert.ok(/length\s*!==?\s*8|a\.length\(\) != 8/.test(source(java+"MiCarteraWidget.java")),"el Java sigue exigiendo longitud 8");
   // Huellas que se mueven (lista cerrada): la web de las tandas cuyo descriptor lee widgetScopeOf (entre ellas la viva de la 185, que se reabre) y la de edge de tres que leen ingest/widget.ts; ninguna otra está viva.
-  // Y las cinco aprobadas o sin veredicto cuyo descriptor lee Inicio (03-tab-dash): el anillo de la tarjeta del mes cuenta lo USADO (26/10/2026) y su huella web se mueve con él.
-  const expectedMoves={"cartera-sin-lagazo":["web"],"compras-identicas-ids":["edge"],"fin05-pago-cerrada":["web"],"fin05-widget-reentrada":["web"],"gastos-margen-sin-nomina":["web"],"gastos-scroll-fluido-cifras":["web"],"inc-2909-01-widget-periodo":["web"],"inc-2909-02-inicio-natural":["web"],"inc-2909-03-retirada":["web"],"inc-3009-nomina-anticipada":["web"],"inicio-mes-pasado-mismo-dia":["web"],"inicio-patrimonio-flujos":["web"],"recibo-cargo-en-gastos":["edge"],"recibos-cifra-cuadra":["web"],"tr-iguales-ordinal":["edge"],"widget-app-cerrada":["web"],"widget-banco":["web"],"widget-ciclo-puente":["web"],"widget-pago-app-cerrada":["web"],"widget-pasado-del-limite":["web"]};
+  const expectedMoves={"cartera-sin-lagazo":["web"],"compras-identicas-ids":["edge"],"fin05-pago-cerrada":["web"],"fin05-widget-reentrada":["web"],"gastos-margen-sin-nomina":["web"],"inc-2909-01-widget-periodo":["web"],"inc-2909-03-retirada":["web"],"recibo-cargo-en-gastos":["edge"],"recibos-cifra-cuadra":["web"],"tr-iguales-ordinal":["edge"],"widget-app-cerrada":["web"],"widget-banco":["web"],"widget-ciclo-puente":["web"],"widget-pago-app-cerrada":["web"],"widget-pasado-del-limite":["web"]};
   const previous=new Map();
   const measure=reader=>{
     const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};
@@ -9672,7 +9759,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   assert.ok(dependientes.includes("widget-pago-app-cerrada"),"la lectura que acredita el widget mezcla gastos con el set real");
   assert.ok(dependientes.includes("inc-0810-metas-editar-regla"),"editar una regla escribe con el set real y conserva el cierre de persistencia");
   assert.ok(dependientes.includes("inc-0710-gastos-mes-madrid"),"Gastos99 conserva la dependencia real de guardado de Expenses");
-  assert.deepEqual(ajenas.slice().sort(),["banco-pruebas-sin-aviso","bancos-reconexion-revoca","beta-panel-veredictos","compras-pendientes-otro-dia","deudas-aviso-plazo","deudas-guardar-motivo","deudas-metas-hoja-sin-parpadeo","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","gastos-meses-letra-nombres","gastos-recibo-fila-textos-cortos","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-backclose-handover","inc-0810-dashboard-recents-memo","inc-0810-inicio-grafica-significado","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","inicio-grafica-reservas","inicio-grafica-vuelve","inicio-mes-futuro","inicio-recientes-sin-repetidos","inicio-solape-gastos","inicio-tarjeta-ciclo-limpia","ops-0410-panel-cola","pestanas-swipe-rapido","plan-por-confirmar-prestamo-youtube","plan-scroll-lento","recibo-vinculo-saldo","renombrar-lista-al-momento","scroll-borde-barra","splash-animado","teclado-atras-conserva","tr-descripcion-clasificacion","vibracion-borde-y-mi-ciclo","vibracion-r3","vibracion-r5","vibracion-r6","vibracion-suave-ronda-2","vibracion-suave-ronda-3","widget-pasado-del-limite","widget-se-actualiza-solo","youtube-diagnostico","youtube-enlazar-recibo","youtube-ficha-reconoce","youtube-r4"]);
+  assert.deepEqual(ajenas.slice().sort(),["inicio-anillo-usado","banco-pruebas-sin-aviso","bancos-reconexion-revoca","beta-panel-veredictos","compras-pendientes-otro-dia","deudas-aviso-plazo","deudas-guardar-motivo","deudas-metas-hoja-sin-parpadeo","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","gastos-meses-letra-nombres","gastos-recibo-fila-textos-cortos","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-backclose-handover","inc-0810-dashboard-recents-memo","inc-0810-inicio-grafica-significado","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","inicio-grafica-reservas","inicio-grafica-vuelve","inicio-mes-futuro","inicio-recientes-sin-repetidos","inicio-solape-gastos","inicio-tarjeta-ciclo-limpia","ops-0410-panel-cola","pestanas-swipe-rapido","plan-por-confirmar-prestamo-youtube","plan-scroll-lento","recibo-vinculo-saldo","renombrar-lista-al-momento","scroll-borde-barra","splash-animado","teclado-atras-conserva","tr-descripcion-clasificacion","vibracion-borde-y-mi-ciclo","vibracion-r3","vibracion-r5","vibracion-r6","vibracion-suave-ronda-2","vibracion-suave-ronda-3","widget-pasado-del-limite","widget-se-actualiza-solo","youtube-diagnostico","youtube-enlazar-recibo","youtube-ficha-reconoce","youtube-r4"]);
   /* Quién depende del guardado lo decide el CÓDIGO, no la marca del registro (auditoría del
      coordinador, 4/10): se quita de cada alcance el bloque del guardado y se mira si lo que queda
      llama a `set` de App —las dependencias transitivas ya son unidades del alcance—. Tiene que
