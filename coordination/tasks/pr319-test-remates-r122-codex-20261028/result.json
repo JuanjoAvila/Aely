@@ -1,0 +1,37 @@
+{
+  "status": "done",
+  "summary": "PR319 remates terminados y revisados: semilla R6 +1ms, dos mutantes reanclados conservando alias y guardas, tres tests unicos4ins4del. Runner original dirigido10specs GREEN102/102; push normal del exactHEAD confirmado en la rama existente.",
+  "tests": [
+    {
+      "command": "node scripts/run-tests.mjs --plan directed-plan-10.json",
+      "exitCode": 0,
+      "uniqueSpecs": 10,
+      "passed": 102,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "retries": 0,
+      "workers": 1,
+      "offline": true,
+      "fin15SemanticMutantsKilled": 11,
+      "fin15LegacyComparisons": 676
+    }
+  ],
+  "productSHA": "d459780c0a7abb6b82629e71653d7826f7c6f31a",
+  "pullRequest": 319,
+  "branch": "codex/fin29-30-r117-20261028",
+  "manifestSHA256": "3c0148cb8e47e163a81e238372eae2320b806dd2d01925eb8abf10eceb93a93c",
+  "htmlSHA256": "30bde23f36f2c76540971c7a97f5f2890d23e7b7fdd878f2db2c39336d5f431a",
+  "limitations": [
+    "No producto adicional ni migracion; producto, runner, fixtureunique y generados preservados.",
+    "Verificacion dirigida offline y review independiente; CI, integracion, entrega servida y aceptacion fisica no acreditadas."
+  ],
+  "resourcesHeld": [],
+  "returned": true,
+  "schema": 1,
+  "taskId": "pr319-test-remates-r122-codex-20261028",
+  "actor": "codex",
+  "sessionId": "codex-local-20261028-pr319-remates-r122-fda31257-b18e-40be-956c-696b7c5301f0",
+  "createdAt": "2026-10-28T14:49:59.483Z",
+  "released": true
+}
