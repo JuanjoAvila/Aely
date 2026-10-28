@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "id": "fin25-charge-months-r126-codex-20261028",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261028-r126-fda31257-65cead05-f440-41d7-a237-8d590e861913",
+  "createdAt": "2026-10-28T19:12:19.381Z",
+  "to": "codex",
+  "baseSHA": "7e958a6f545ceb30c1a1eef66a03ec7a1884c887",
+  "objective": "Corregir FIN25: chargeMonths devuelve meses validos1-12 sin duplicados para que el reparto anual use el numero real de meses; 600 EUR con months[5,5] debe cobrar600 una vez en mayo, sin cambio de importes ni reescritura de datos reales.",
+  "scope": [
+    "src/modules/07-tab-patri-fijos.js",
+    "tests/fin25-charge-months.test.mjs",
+    "e2e/fin25-charge-months.spec.mjs",
+    "scripts/run-tests.mjs",
+    "scripts/relevant-tests.mjs"
+  ],
+  "grant": "044946c8e420c77895a8577aada400646b142911",
+  "order": 2,
+  "workerInitialOwnGrant": "7188f09dd641ffd90c5a2455196b1385c4bb084c",
+  "workerInitialOwnAllowance": 20,
+  "acceptance": [
+    "Reproducir RED sobre base y GREEN de mismo contrato, con datos sinteticos y centimos exactos",
+    "chargeMonths sin duplicados, con meses enteros validos1-12, salida ordenada y sin mutar entrada; conservar prioridad schedule/months/frecuencia y fallback sin programar",
+    "600EUR anual months[5,5] produce una ocurrencia600EUR mayo; meses invalidos no crean ocurrencias ni alteran denominador de meses validos",
+    "Conservar importes de schedule y su precedencia existente; no sumar ni decidir importes contradictorios por duplicados sin reportar bloqueo de dinero a ROOT",
+    "Mantener frecuencias validas y regresiones de arrays vacios/meses frontera; pruebas dirigidas registradas en runners",
+    "Checkout/rama/puerto propios, sin stash, CPU1 unworker0retry y censoENTERRETURN/EXIT reales",
+    "Una PR draft contra beta tras revision ROOT e independiente exactHEAD; sin push anterior alGO",
+    "No VERSION/catalogo/notas/backend/SQL/APK/integracion/deploy ni reabrir tareas DONE"
+  ],
+  "limits": {
+    "noProductBeforeOwnClaimAndROOTACK": true,
+    "noInheritedClaimsLeasesCounters": true,
+    "ProductREADY": false
+  },
+  "workerSession": "codex-local-20261028-fin25r126-fda31257-6e2f-4204-bf1e-1d07215377ba",
+  "resources": {
+    "port": 18427,
+    "CPU": 1,
+    "workers": 1,
+    "retries": 0
+  },
+  "reviewBeforePush": true,
+  "modelSelection": "Configuracion actual del chat, heredada de la preferencia del usuario; tarea acotada con revision independiente."
+}
