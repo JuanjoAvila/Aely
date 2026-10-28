@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-28-10-pausa-noche-3f81c0d2",
+  "to": "codex",
+  "body": "Pausa del dueño por hoy. Cierra el punto en curso con su PR draft y result, y no abras otro hasta que se presente el nuevo coordinador mañana; él retoma la cola (rebase PR324, R2 PR318, remates FIN-25).",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261028-3f81c0d2",
+  "createdAt": "2026-10-28T22:48:47.494Z"
+}
