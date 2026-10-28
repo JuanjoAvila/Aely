@@ -164,7 +164,8 @@ test("un recibo vencido sin cobro acreditado es cargo de hoy: filas, cifra, píl
    marca confirmada); un aviso de Wallet, un BOOK o un gasto del banco sin enlazar no, y la Luz sigue restando HOY:
    500 − 300 − 150 = 50. En todos, el simulador («¿Me lo puedo permitir?») recorre la misma lista
    que la hoja y da el mismo mínimo. */
-const LECTURA = { obBalAt: { "Banco Sabadell": "2026-10-10T08:00:00Z" } };
+// Cuenta re-anclada por la sincronización (uid del banco) y su lectura de hoy.
+const LECTURA = { obBalAt: { "Banco Sabadell": "2026-10-10T08:00:00Z" }, accounts: [{ id: "bank", ent: "sabadell", role: "fijos", value: 500, bankUid: "sab-1" }] };
 const BOOK = { bankTx: [{ id: "t1", ent: "sabadell", date: "2026-10-05", amount: 300, merchant: "Luz casa", status: "BOOK" }] };
 const WALLET = { expenses: [{ id: "n1", date: "2026-10-05", merchant: "Luz casa", amount: 300, ent: "sabadell", category: "recibos", source: "wallet" }] };
 const OBEXP = { expenses: [{ id: "o1", date: "2026-10-05", merchant: "Luz casa", amount: 300, ent: "sabadell", category: "recibos", source: "ob" }] };
@@ -202,6 +203,10 @@ for (const [como, extra, cifra] of [
   ["lectura del puente sellada hoy", { accounts: TR({ saldoLeidoAt: "2026-10-10T08:00:00Z" }) }, "lo más justo, el 20350,00 €"],
   ["estado de antes del sello (lastTrSync)", { accounts: TR(), lastTrSync: "2026-10-10T08:00:00Z", settings: Object.assign({}, settings, { brokersOn: ["trade_republic"] }) }, "lo más justo, el 20350,00 €"],
   ["lectura anterior al cobro", { accounts: TR({ saldoLeidoAt: "2026-10-03T08:00:00Z" }) }, "lo más justo, el 2050,00 €"],
+  // R5-1: sellada a primera hora del mismo día del cobro (las 7:30 del 5): la prueba solo trae el
+  // día, así que el cargo de la tarde puede no estar dentro. Sigue restando hasta el día siguiente.
+  ["lectura de la mañana del mismo día del cobro", { accounts: TR({ saldoLeidoAt: "2026-10-05T05:30:00Z" }) }, "lo más justo, el 2050,00 €"],
+  ["lectura del día siguiente al cobro", { accounts: TR({ saldoLeidoAt: "2026-10-06T05:30:00Z" }) }, "lo más justo, el 20350,00 €"],
 ]) test("Trade Republic, " + como + ": hoja y simulador dicen lo mismo", async ({ page }) => {
   const recibos = await abrePlan(page, Object.assign({
     fixed: [Object.assign(recibo("spo", "Spotify casa", 300, 5, "trade_republic"), { category: "recibos" }), recibo("seg", "Seguro hogar", 150, 20, "trade_republic")] }, spotify, extra));

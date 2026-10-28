@@ -799,7 +799,9 @@ saldo del banco tumba los dos «con saldo del banco». En los casos «a mano» q
 enseña la fila «Pagado, aún sin restar del saldo − 300,00 €». Trade Republic: con la lectura del
 puente sellada hoy (`saldoLeidoAt`) o, en un estado viejo, `lastTrSync`, el recibo ya cobrado en TR
 no resta (350); leído antes del cobro, sí (50, con su fila). Mutante «ignorar la lectura del
-puente»: los dos de 350 en rojo. Está en `E2E_MAP` para `14-v4-screens`, `08-motor-bank`,
+puente»: los dos de 350 en rojo. La lectura cuenta a partir del día SIGUIENTE al pago: sellada a
+las 7:30 del mismo día del cobro, 50 con su fila; al día siguiente, 350 (mutante «el mismo día
+vale»: rojo). Los casos «con saldo del banco» siembran la cuenta re-anclada (`bankUid`). Está en `E2E_MAP` para `14-v4-screens`, `08-motor-bank`,
 `07-tab-patri-fijos`, `00-core`, `06-sync-brokers`, `11-app-main`, `01-i18n` y `shell.html`.
 
 Descarga incompleta (candidato13/10): `tests/bank-download-incomplete.test.mjs`, registrado en

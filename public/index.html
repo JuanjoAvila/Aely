@@ -19559,48 +19559,56 @@ function pendingWalkEvents(state, y, m, today){
   });
   return evs;
 }
-/* ¿Cuándo se leyó por última vez el saldo de este banco DESDE FUERA? (ms; 0 = nunca, saldo a mano).
+/* ¿Desde cuándo está leído DESDE FUERA el saldo de este banco? (ms; 0 = no se puede afirmar).
    Un cobro anterior a esa lectura ya está dentro del saldo, sea cual sea su prueba (revisión t3,
    R2 y R4: con Open Banking o con el puente de TR, un recibo ya cobrado se restaba otra vez).
-   Todas las fuentes que fijan el saldo desde fuera, con la misma señal (una hora de lectura):
-   - Open Banking: `obBalAt[aspsp]`, la hora que da el servidor (`applyBankBalances`, 11). Para
-     estados anteriores a `obBalAt`, una cuenta re-anclada (IBAN, uid o saldo crudo) usa
-     `lastBankSync`.
-   - Trade Republic por el puente nativo: `applyTrCash` (00 y la tarjeta de 06) sella
-     `saldoLeidoAt` en la cuenta; antes de existir el sello, `lastTrSync` si el puente manda.
-   - Saldo corregido a mano (Cartera → cuenta → corregir saldo): también sella `saldoLeidoAt`; lo
-     que tecleas es el saldo real de ese momento.
+   Cada cuenta del banco tiene su lectura y manda la MÁS VIEJA; si una cuenta no tiene ninguna,
+   0 (R5-2: una lectura reciente de otra cuenta no puede meter cobros que la vieja no ha visto).
+   Fuentes, todas con la misma señal (una hora de lectura en la cuenta o del banco):
+   - Puente nativo de Trade Republic: `applyTrCash` (00 y la tarjeta de 06) sella `saldoLeidoAt`;
+     para estados anteriores al sello, `lastTrSync` si el puente manda.
+   - Saldo corregido a mano (Cartera → cuenta → corregir saldo): también sella `saldoLeidoAt`.
+   - Open Banking: una cuenta re-anclada por la sincronización (IBAN, uid o saldo crudo) tiene la
+     hora de `obBalAt` de ese banco (la más vieja si hay varias conexiones). Sin `obBalAt` propio
+     no se usa `lastBankSync`: se sella aunque ese banco no diera saldo (R5-3, prudente).
    - Una cuenta adoptada de Open Banking trae `balanceAt`.
    MyInvestor y los demás brókers solo leen posiciones (Inversiones), no el saldo de una cuenta.
    Tener extracto en `bankTx` NO es una lectura: el saldo puede seguir siendo el tecleado (es el
-   alquiler BOOK de 750 que fija `fixed-ispaidin`). Se queda la lectura MÁS RECIENTE del banco. */
+   alquiler BOOK de 750 que fija `fixed-ispaidin`). */
 function saldoLeidoDelBanco(state, bank){
-  let ms=0;
-  const ver=function(v){ const t=Date.parse(v); if(isFinite(t)&&t>ms) ms=t; };
+  const ms=function(v){ const t=Date.parse(v); return isFinite(t)&&t>0?t:0; };
+  let ob=0;
   const at=state.obBalAt||{};
-  Object.keys(at).forEach(function(asp){ if(entFromAspsp(asp)===bank) ver(at[asp]); });
-  (state.accounts||[]).forEach(function(a){
-    if(!a||a.ent!==bank) return;
-    if(a.saldoLeidoAt) ver(a.saldoLeidoAt);
-    if(a.balanceAt) ver(a.balanceAt);
-    if((a.bankIban||a.bankUid||a.balSaldo!=null)&&state.lastBankSync) ver(state.lastBankSync);
+  Object.keys(at).forEach(function(asp){ if(entFromAspsp(asp)!==bank) return; const t=ms(at[asp]); if(t&&(!ob||t<ob)) ob=t; });
+  const tr=bank==="trade_republic"&&state.lastTrSync&&saldoLoMandaPuenteNativo(state,bank)?ms(state.lastTrSync):0;
+  const cuentas=(state.accounts||[]).filter(function(a){ return a&&a.ent===bank; });
+  if(!cuentas.length) return 0;
+  let viejo=Infinity;
+  cuentas.forEach(function(a){
+    let t=Math.max(ms(a.saldoLeidoAt), ms(a.balanceAt), tr);
+    if(a.bankIban||a.bankUid||a.balSaldo!=null) t=Math.max(t,ob);
+    if(t<viejo) viejo=t;
   });
-  if(bank==="trade_republic"&&state.lastTrSync&&saldoLoMandaPuenteNativo(state,bank)) ver(state.lastTrSync);
-  return ms;
+  return isFinite(viejo)?viejo:0;
 }
 /* ¿El pago de este recibo ya está en el saldo con el que se recorre?
    - Lo que mueve el saldo mostrado de la app (`isPaidIn` sin su calendario: marca confirmada o
      cargo enlazado con día), siempre.
    - Cualquier otra prueba (BOOK, aviso de Wallet, gasto sin enlazar), solo si el saldo se leyó de
-     fuera el día del pago o después (`leidoMs`). En una cuenta a mano sin lectura posterior sigue
-     restando: darlo por cobrado sería optimista (revisión t3, R3-2; lo fija `fixed-ispaidin`). */
+     fuera el DÍA SIGUIENTE al pago o después (`leidoMs`). La prueba trae el día, no la hora: una
+     lectura de primera hora del mismo día no incluye un cargo de la tarde (revisión t3, R5-1).
+     No se puede acreditar que una lectura sea posterior a la sincronización que trajo la prueba
+     (la hora de `obBalAt` es del servidor y la de `lastBankSync` del móvil), así que no hay
+     excepción: lo cobrado hoy queda en «Pagado, aún sin restar del saldo» hasta mañana.
+   - En una cuenta a mano sin lectura posterior sigue restando: darlo por cobrado sería optimista
+     (revisión t3, R3-2; lo fija `fixed-ispaidin`). */
 function reciboEnElSaldo(state, e, y, m, today, leidoMs, dia){
   if(e.paidYm===y*12+m) return true;
   const p=fixedPaymentProof(state,e,y,m,today);
   if(p&&p.kind==="expense"&&fixedPaymentDerivedDay(state,{proof:p})) return true;
   if(!(leidoMs>0)) return false;
   const d=Number(dia)>0?Number(dia):1;
-  return leidoMs>=new Date(y,m-1,d).getTime();
+  return leidoMs>=new Date(y,m-1,d+1).getTime();
 }
 // Los de un solo banco, para el simulador «¿me lo puedo permitir?».
 function bankPendingEvents(state, bank, y, m, today){

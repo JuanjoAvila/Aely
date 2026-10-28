@@ -105,12 +105,13 @@ salen los cargos y luego entran las entradas. Los eventos salen de `pendingWalkE
 «¿Me lo puedo permitir?» (`bankPendingEvents` = esa lista filtrada por banco). Un recibo sale del
 recorrido si Plan lo pinta pagado (`fixedPaymentState`) Y ese pago ya está en el saldo
 (`reciboEnElSaldo`): siempre si movió el saldo mostrado (`paidYm` o cargo enlazado con día); con
-cualquier otra prueba, solo si el saldo se leyó desde fuera el día del pago o después
-(`saldoLeidoDelBanco`, la lectura más reciente del banco). Fuentes de lectura: Open Banking
-(`obBalAt`; en estados viejos, `lastBankSync` si la cuenta está re-anclada), el puente de Trade
-Republic (`applyTrCash` sella `saldoLeidoAt` en la cuenta; antes del sello, `lastTrSync`), el saldo
-corregido a mano (también sella `saldoLeidoAt`) y `balanceAt` de una cuenta adoptada. `bankTx` no
-es lectura. Sin lectura posterior, un aviso de Wallet o un BOOK sin fila siguen restando (lo fija
+cualquier otra prueba, solo si el saldo se leyó desde fuera el DÍA SIGUIENTE al pago o después (la
+prueba trae el día, no la hora). `saldoLeidoDelBanco` da la lectura de cada cuenta del banco y se
+queda con la MÁS VIEJA (una cuenta sin lectura → no se afirma nada). Fuentes de lectura: Open
+Banking (cuenta re-anclada por la sincronización + `obBalAt` de ese banco; `lastBankSync` no vale,
+se sella aunque el banco no diera saldo), el puente de Trade Republic (`applyTrCash` sella
+`saldoLeidoAt` en la cuenta; antes del sello, `lastTrSync`), el saldo corregido a mano (también
+sella `saldoLeidoAt`) y `balanceAt` de una cuenta adoptada. `bankTx` no es lectura. Sin lectura posterior, un aviso de Wallet o un BOOK sin fila siguen restando (lo fija
 `fixed-ispaidin`) y la hoja los enseña en su fila «Pagado, aún sin restar del saldo».
 `saldoLeidoAt` viaja en la cuenta dentro de `app_state` (sin servidor); un cliente viejo lo ignora. Lo de hoy o vencido
 sin cobro es un cargo de HOY (decisión del dueño, 28/10/2026). Una frescura con una conexión
