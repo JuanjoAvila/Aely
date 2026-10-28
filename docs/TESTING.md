@@ -790,7 +790,9 @@ editar la nómina (el primer número sustituye, el día se mueve, el saldo mostr
 nómina «último laborable» conserva la regla si solo cambia el importe). También un recibo vencido
 sin cobro acreditado: cuenta como cargo de hoy y «Tienes hoy − Recibos que faltan» cuadra con la
 cifra, la píldora, el aviso e Inicio (con la regla vieja de «cobrado por fecha» sale rojo:
-comprobado). Está en `E2E_MAP` para `14-v4-screens`, `08-motor-bank`, `07-tab-patri-fijos`,
+comprobado). Y al revés, un recibo YA cobrado (cargo BOOK en el extracto, aviso de Wallet o gasto
+importado) no se resta dos veces: 500 − 150 = «lo más justo, el 20 · 350,00 €» (con la regla
+«solo `paidYm`» salen rojos los tres: comprobado). Está en `E2E_MAP` para `14-v4-screens`, `08-motor-bank`, `07-tab-patri-fijos`,
 `11-app-main`, `01-i18n` y `shell.html`.
 
 Descarga incompleta (candidato13/10): `tests/bank-download-incomplete.test.mjs`, registrado en

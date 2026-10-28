@@ -100,11 +100,13 @@ año*12+mes) guarda los avisos de «Para revisar» ya contestados; posponer es s
 (almacén local, hasta el día siguiente).
 «¿Te llega?» no tiene cálculo propio: lee el recorrido día a día de `totals` (11), que pasa por
 `minWalk` (08), la misma función del simulador «¿Me lo puedo permitir?». A igualdad de día primero
-salen los cargos y luego entran las entradas. Los eventos salen de `pendingWalkEvents` (08), la
-única lista: un recibo de hoy o vencido sin cobro acreditado es un cargo de HOY (decisión del
-dueño, 28/10/2026); solo lo saca del recorrido una prueba (`isPaidByProofIn`, la parte de
-`isPaidIn` que no es calendario) o la pausa. Así «Recibos que faltan», la cifra de la hoja, la
-píldora, el mínimo diario y el `safeLiq` del widget dicen lo mismo. Una frescura con una conexión
+salen los cargos y luego entran las entradas. Los eventos de `totals` salen de
+`pendingWalkEvents` (08): un recibo de hoy o vencido sin cobro acreditado es un cargo de HOY
+(decisión del dueño, 28/10/2026), y lo saca del recorrido la misma regla con la que Plan lo pinta
+pagado (`fixedPaymentState`: también la prueba BOOK que deja la sincronización, cuyo cargo ya trae
+el saldo del banco) o la pausa. Así «Recibos que faltan», la cifra de la hoja, la píldora, el
+mínimo diario y el `safeLiq` del widget dicen lo mismo. El simulador «¿Me lo puedo permitir?»
+sigue con `bankPendingEvents` (por `isPaidIn`), que es lo que fija `fixed-ispaidin`. Una frescura con una conexión
 del banco caída o rancia no se enseña. `totals.evsByBank` expone esos eventos (los
 traspasos y entradas con su id) para que la hoja enseñe justo los que ha recorrido. La frescura es
 `obBalAt` (la hora de lectura que da el servidor; sin lectura no se dice nada). Editar la nómina

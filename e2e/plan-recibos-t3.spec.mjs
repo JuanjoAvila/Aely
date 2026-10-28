@@ -151,10 +151,29 @@ test("un recibo vencido sin cobro acreditado es cargo de hoy: filas, cifra, píl
   await expect(inicio).toContainText("800,00 €");
   await expect(inicio).toContainText(/Teléfono\s*Sabadell · Sin pago acreditado\s*30,00 €/);
   expect(await saldoVisto(page)).toEqual([800]);
-  // El mínimo que usa Inicio (`totals.minByBank`, el del widget y el mínimo diario) es el mismo
-  // recorrido: el simulador lo comparte y da −130 desde el mismo saldo.
-  const min = await page.evaluate(() => { const s = mcLoadRaw(mcStateKey()); return minWalk(800, bankPendingEvents(s, "sabadell", 2026, 10, 10)).min; });
+  // El mínimo que usa Inicio (`totals.minByBank`, el del widget y el mínimo diario) sale de la
+  // misma lista de eventos que la hoja: −130 desde el mismo saldo.
+  const min = await page.evaluate(() => { const s = mcLoadRaw(mcStateKey()); return minWalk(800, pendingWalkEvents(s, 2026, 10, 10).filter((e) => e.bank === "sabadell")).min; });
   expect(Math.round(min * 100)).toBe(-13000);
+});
+
+/* Segunda vuelta de la revisión (28/10): un recibo YA cobrado no se resta otra vez. El saldo del
+   banco (500) ya trae la Luz del día 5; Plan la pinta pagada y el recorrido solo lleva el Seguro
+   del 20: 500 − 150 = 350, igual que en la base. Con la prueba «solo paidYm o expense» salía 50. */
+for (const [como, extra] of [
+  ["cargo BOOK en el extracto", { bankTx: [{ id: "t1", ent: "sabadell", date: "2026-10-05", amount: 300, merchant: "Luz casa", status: "BOOK" }] }],
+  ["aviso de Wallet", { expenses: [{ id: "n1", date: "2026-10-05", merchant: "Luz casa", amount: 300, ent: "sabadell", category: "recibos", source: "wallet" }] }],
+  ["gasto importado del banco", { expenses: [{ id: "o1", date: "2026-10-05", merchant: "Luz casa", amount: 300, ent: "sabadell", category: "recibos", source: "ob" }] }],
+]) test("recibo ya cobrado por " + como + ": no se resta dos veces", async ({ page }) => {
+  const recibos = await abrePlan(page, Object.assign({
+    fixed: [Object.assign(recibo("luz", "Luz casa", 300, 5), { category: "recibos" }), recibo("seg", "Seguro hogar", 150, 20)] }, extra));
+  await expect(recibos.getByTestId("plan-summary").locator(".pr6-big")).toHaveText("150,00 €");
+  await expect(recibos.getByTestId("plan-llega")).toHaveText(/Te llega/);
+  const hoja = await abreLlega(page, recibos);
+  const sab = hoja.locator('[data-testid="llega-banco"][data-bank="sabadell"]');
+  await expect(sab).toContainText("Tienes hoy500,00 €");
+  await expect(sab).toContainText("Recibos que faltan− 150,00 €");
+  await expect(sab.getByTestId("llega-cifra")).toHaveText("lo más justo, el 20350,00 €");
 });
 
 test("editar solo el importe de una nómina «último laborable» conserva la regla", async ({ page }) => {

@@ -1189,15 +1189,17 @@ function applyBankBalances(s, links){
 }
 
 /* Eventos PENDIENTES del mes que recorre `minWalk` (cargos −, entradas +), con su banco y su día.
-   Es la ÚNICA lista: la usan `totals` (11: `minByBank`, píldora, «¿Te llega?», mínimo diario de
-   Inicio) y el simulador «¿Me lo puedo permitir?» (`bankPendingEvents`).
+   La usa `totals` (11: `minByBank` → píldora, «¿Te llega?», mínimo diario y `safeLiq`); el
+   simulador sigue con `bankPendingEvents` (ver por qué junto a ella).
    Decisión del dueño (28/10/2026, revisión t3 B1): un recibo de HOY o VENCIDO sin cobro
    acreditado es un cargo de HOY. Antes bastaba con que su día hubiera llegado (`isPaidIn` con
    d<=today) para darlo por cobrado, mientras «Recibos que faltan» (`planChargesMonth`) lo seguía
    contando: la hoja decía «Pasa 100 €» con 130 € por pagar en sus propias filas. Ahora un recibo
-   solo sale del recorrido con prueba (`isPaidByProofIn`: marca confirmada o cargo enlazado, la
-   misma frontera de dinero que el saldo mostrado) o en pausa. Una prueba que no mueve saldo
-   (aviso de Wallet, BOOK sin fila) sigue contando como cargo, como antes (fixed-ispaidin).
+   sale del recorrido con la MISMA regla con la que Plan lo pinta pagado (`fixedPaymentState`,
+   igual que `planChargesMonth`) o si está en pausa: fila y cifra coinciden por construcción.
+   Ojo: no vale solo `paidYm` o la prueba «expense» (segunda vuelta de la revisión, 28/10): la
+   sincronización acredita con una prueba BOOK sin `paidYm` y el saldo del banco ya trae ese
+   cargo; sin reconocerla, con Open Banking cada recibo ya cobrado se restaba dos veces.
    Las cuotas, como siempre y como Plan (`debtPaymentState`, que hoy da por pagada una vencida);
    una cuota SIN día la descuenta `planCoverState` sin fecha. Puntuales y entradas, igual. */
 function pendingWalkEvents(state, y, m, today){
@@ -1206,8 +1208,9 @@ function pendingWalkEvents(state, y, m, today){
   (state.fixed||[]).forEach(function(e){
     const a=occAmountIn(e,m);
     if(!(a>0)||!occursIn(e,m)) return;
-    if(isPaidByProofIn(e,m,today,y,state)||fixedPausedIn(e,y,m)) return;
-    evs.push({bank:accOf(e), day:hoy(dayIn(e,m)), amt:-a});
+    const st=fixedPaymentState(state,e,y,m,today);
+    if(st.paid||fixedPausedIn(e,y,m)) return;
+    evs.push({bank:accOf(e), day:hoy(st.day), amt:-a});
   });
   (state.debts||[]).forEach(function(d){
     if(!debtActive(d)) return;
@@ -1227,9 +1230,18 @@ function pendingWalkEvents(state, y, m, today){
   });
   return evs;
 }
-// Los de un solo banco, para el simulador «¿me lo puedo permitir?».
+/* Eventos pendientes de un banco para el simulador «¿me lo puedo permitir?» y la frontera de
+   `fixed-ispaidin` (saldo mostrado + recorrido con `isPaidIn`). Se queda como estaba en la base
+   A PROPÓSITO: pasarlo a `pendingWalkEvents` cambia lo que ese test fija para pruebas que no
+   mueven saldo (Wallet, BOOK sin fila), y esa decisión es del coordinador, no de esta tanda.
+   Píldora, «¿Te llega?», mínimo diario y `safeLiq` van por `pendingWalkEvents` (totals). */
 function bankPendingEvents(state, bank, y, m, today){
-  return pendingWalkEvents(state,y,m,today).filter(function(ev){ return ev.bank===bank; });
+  const evs=[];
+  (state.fixed||[]).forEach(function(e){ if(occursIn(e,m)&&accOf(e)===bank&&!isPaidIn(e,m,today,y,state)&&!fixedEnPausa(state,e,y,m,today)) evs.push({day:dayIn(e,m)||0, amt:-occAmountIn(e,m)}); });
+  (state.debts||[]).forEach(function(d){ if(debtActive(d)&&(d.account||"sabadell")===bank&&!isDebtPaidThisMonth(d,today,state,y,m)){ evs.push({day:debtChargeDay(d), amt:-(d.monthly||0)}); const bl=debtBalloonIn(d,y,m); if(bl>0) evs.push({day:debtChargeDay(d), amt:-bl}); } });
+  (state.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m)&&(o.account||"sabadell")===bank&&(o.amount||0)!==0&&!isPaidThisMonth(o,today)) evs.push({day:o.day||0, amt:-o.amount}); });
+  (state.flows||[]).forEach(function(f){ if(!flowOccursIn(f,m,y)||flowPaidIn(state,f,y,m,today))return; const dd=flowDay(f,y,m); if(f.kind==="income"&&(f.to||"sabadell")===bank) evs.push({day:dd||99, amt:f.amount}); else if(f.kind==="transfer"&&(f.from||"sabadell")===bank) evs.push({day:dd||0, amt:-f.amount}); });
+  return evs;
 }
 // Recorre los eventos por día desde un saldo inicial y devuelve el punto MÍNIMO (peor momento) y el final.
 /* Es la ÚNICA copia del recorrido: también la usa `totals` (11) para `minByBank`, y de ahí la

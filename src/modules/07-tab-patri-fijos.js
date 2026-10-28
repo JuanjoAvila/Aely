@@ -771,15 +771,9 @@ function isDebtPaidThisMonth(d,today,s,y,m){ return s&&debtPaymentState(s,d,y,m,
 // adelanta el calendario; BOOK conserva su regla anterior y las notificaciones no mueven saldo.
 const isPaidIn=(e,m,t,y,s)=>{
   const year=y||new Date().getFullYear(),ym=year*12+m,d=dayIn(e,m);
-  return isPaidByProofIn(e,m,t,year,s) || e.wait!==ym&&d!=null&&d<=t;
-};
-// La parte de `isPaidIn` que NO es calendario: marca confirmada o cargo del banco enlazado. El
-// recorrido de «¿Te llega?» solo da por cobrado esto (decisión del dueño 28/10/2026, t3 B1).
-const isPaidByProofIn=(e,m,t,y,s)=>{
-  const year=y||new Date().getFullYear();
-  if(e.paidYm===year*12+m) return true;
+  if(e.paidYm===ym) return true;
   const p=s&&fixedPaymentProof(s,e,year,m,t);
-  return !!(p&&p.kind==="expense"&&fixedPaymentDerivedDay(s,{proof:p}));
+  return !!(p&&p.kind==="expense"&&fixedPaymentDerivedDay(s,{proof:p})) || e.wait!==ym&&d!=null&&d<=t;
 };
 const isPaidThisMonth=(e,today)=>{ const d=dayOf(e); return d!=null && d<=today; };
 // ¿el gasto necesita que el usuario le asigne un mes? (anual sin programar)
