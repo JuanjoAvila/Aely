@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "id": "fin29-30-rename-tombstones-r116-codex-20261028",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261028-r116-fda31257-d371-42d0-bb8c-20f067304c6e",
+  "createdAt": "2026-10-28T08:21:48.872Z",
+  "to": "codex",
+  "baseSHA": "3716b82a3e1a6b0fe95a46afaf9836df17616fd2",
+  "objective": "FIN29/30 sucesor: lanzar el test congelado mediante ejecutable Node nativo CPU1 sin archivo PowerShell, obtener RED causal, corregir alias/lapidas en el alcance exacto y verificar GREEN/filas/centimos antes de revision monetaria independiente y una PR draft beta.",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/04-tab-gastos.js",
+    "src/modules/08-motor-bank.js",
+    "supabase/functions/_shared/presupuesto.ts",
+    "tests/fin19-r7-ficha-rename.test.mjs",
+    "tests/fin19-r5-remote-rename.test.mjs",
+    "tests/fin29-30-rename-scope.test.mjs",
+    "scripts/run-tests.mjs",
+    "docs/TESTING.md",
+    "docs/BACKLOG.md",
+    "docs/ARQUITECTURA.md",
+    "CHANGELOG.md",
+    "docs/ROADMAP.md",
+    "README.md"
+  ],
+  "previousTaskId": "fin29-30-rename-tombstones-r115-codex-20261028",
+  "grants": [
+    "7ae3e7e57d70e08ce6859efa6dd1518c35630680",
+    "e42252eb4444e23228b565b7d2da5b0ee5e13e43",
+    "db3299cd69020ccf15563e787d1a1f4b69e8a753",
+    "0db3182dd205cf33e8897e467d58a9a35143df66",
+    "aac63502965539a9bf615f4a5a4687eee2923cfb",
+    "bc1c5e1df6bcbf0c8a9463015046f6848ea338b1",
+    "a818b5dfead2609774f127aceb847545b8089482",
+    "dca48f6e424bb8c56986cff70fb5b2d050d87550",
+    "9b7e54d6cedc6004b9edbb434931157fea4a57eb"
+  ],
+  "requirements": [
+    "Sucesor del taskfin29-30-rename-tombstones-r115-codex-20261028 cerrado por su propio titular resultff098c8987b5b48cf8ed7be667f1d93b424c17ea blocked/released yRETURNfd26cef2fc5b18764d05ec91ef77f43599e4d26d. OWNfinal14/20 frozen,6sobrantesINTRANSFERIBLES. Mantener evidencia: admision inicial expiro antesENTER, luego una tentativa launcherWindowsPowerShell EXIT1 por executionpolicy antesdelcuerpo; Nodehost/testchild0,testEXITnull,0casos/etapas,NOREDcausal. No reabrir reserva ni ejecutar helpersdelpredecesor. WIPtest/steps/doc yfallos preservados en artefactos privados con referencias separadas; ningunproductoeditado.",
+    "RECEPCIONprimero: runtimepropio nodeRepl.requestMeta.threadId/sessionId/cwd, inventarioNATIVO proyectoAely local, nonceNUEVO prefijofda31257, sesion propia yACKprivado pequeno fsync/readback/hashes. No fetch/claim/checkout/codigo/tests hasta admisionNATIVA ROOT116. OWN20 nuevo0 bajo e42252eb4444e23228b565b7d2da5b0ee5e13e43; helper/ledger/statePROPIOS, aviso/ACK/readback>=30s, FULLTODOSdeltas/cancelaciones, claim/ACKreadbackpropios yROOTACK antescheckoutGO. Sinidentidad/grant/claim/contador/plazo heredados.",
+    "NUEVAautoridadClaude9b7e54d6cedc6004b9edbb434931157fea4a57eb: ejecutable nativo node.exe/deno.exe directo,sin archivo.ps1,afinidadCPU1offline1worker0retry. CubreTODAScorridasRED/GREEN FIN29/30 ycola; NOvolverpediradmisionporcorrida. No executionpolicy ni guardas sistema alteradas, sinbypassflags, no ejecutar bytesdelps1bloqueado indirectamente. Si plazo vence,cierre/sucesor sinconsultaClaude. ROOTsolo escribeClaude porPRdraftlista obloqueoproducto, trabajadoresreportansoloROOT. Reglaaac63502 CPU1offline compatible+censofresco+ENTER/RETURNpropios permanece; sinledgeraparte, sinbrowser/server/puerto/red/DB/suiteentera/CPU6/Gradle/APK/deploy.",
+    "Preparar checkout/rama NUEVOS desdebase3716b82a3e1a6b0fe95a46afaf9836df17616fd2 ycopiar SOLOtest/registro/doc preparados delartefactoprivado custodiado,verificando bytes; noeditar checkout anterior. Test congelado31d09ebd56c48b8d3cc8ebd5274aa62808c8e3e8e939af9fff3848e475768170 yplan d173e0fe28f73ef4275695e829bcf7d7b165fd8caf66bc27a481c666a913488b/manifest8f37fa0d32679909aaf0f66957f771970fb63ed9aace5b28327bd4613226ad38 preservados; manifestnuevo propiasrutas/fuente despuéscopiar. Revisiónindependiente0040b37e83cccd4dc61f8eba507825a1c1571b59e6a9e79c51783e002e2aa1cd sobretestexactoGOsoloRED. Noafirmaraceptacionfinanciera ni recodificar oraculo paraocultarfallos.",
+    "CorregirSOLOarnesprivado para ejecutableNodenativo CPU1: STARTafinidad1 espropuesta, implementacionnoejecutada. Medir afinidad heredada delhost/hijotest antesdeimportartestcon barrera/preloadpropio revisable,EXITrealNode separado deSTART,timeout90s incluyendo barreras,terminarSOLOdescendientespropios demostrados. Congelarnuevo launcher/cmd/env/preload/manifest yROOTrevisionestatica antesprimerRED. Esta revisión exacta no esotra consultapermisocorridaaClaude. Sinprobe/smoke ni suites extra porarrastre.",
+    "Reutilizar cargaFIN19 existente tests/helpers/fin19-r4-fixture.mjs -> scripts/load-pure-logic.mjs yregistrosteps de scripts/run-tests.mjs. EnsambladoLITERAL enmemoria src/build-order17modulos+shell; no replacementstring dollar-expansion, nofixture/extractorcompartidoeditado. Node24stripTypeScriptTypes paraespejo localoffline, sin dependenciasnuevas ni generado/build/esbuildextra porarrastre. CMD/env/runtimebase/hash,censofresco,ENTER,logs/EXIT/evidenciaetapas yRETURNdurables propios antes/despuesdecada run;CPU1serial1worker0retry/stopfirstfailure,max90s.",
+    "RED primero contrafuenteBASE sinproducto. ROOT revisa resultado causal antesGOcodigo. Mismotest/oraculo paraGREENcon manifestfuenteactualizado; grant9b7cubre corridas sin admisionindividueal, conservando checks/censo yRETURN. Errorloader/launcher noRED y no retry automatico. Parar ante productobloqueo preciso o alcanceadicional; no ampliar hunks ni cambiar oraculo.",
+    "AlcanceClaude7ae3e7e57d70e08ce6859efa6dd1518c35630680:00-core SOLOalias/lapidas/renombrado;04-tab-gastos SOLOmismobloqueficharenombrado actual895-901;08-motor-bank SOLOlectorlapidas1946-1956;supabase/functions/_shared/presupuesto.ts SOLOespejologicaparidadoffline. No lista/cifraviva/scroll/otroswidgets. NingunEdge/SQL/DB/backend/deploy. Mantener contratosowner/UUID/banco/cuenta/ref/ordinal/signo/absorciones/caps; keysglobalesrename no deben borrarotrafila ni usarciegamenteexpenseDeletionKey queoculta lapropiaporobName.",
+    "Oraculoindependiente: renombrarA conservaDOSfilas640c,320porbancocuandoaplica; mismobancodistintascuentas640c. Persist/reload/pull/reimport/renameback sinperdida niduplicar; FIN04ACK,separadoborradoexplicito320c yundo640c. Manual/abono/signo/notas/ref/divisa/original/UUID/ordinal2 intactos, filascompletascomparadas. Legacyambiguosinambito nointerpretar/migrar porparecido. Corregirfin19-r5/r7 quecodifican perdidaSOLOescenariorenombrado trasREDrevisado, no blanket cambiarborradostotales; justificarencommit.",
+    "RevisiónmonetariaINDEPENDIENTEexactSHA final yfuente/candidatechecks antesUNAPRdraftcontra beta. No pushbeta/main,nostash,noAPK/Gradle/ADB/SQL/live/Edge/deploy/deps/version/generated/servido/movil/ProductREADY ni avisodueno. Noasumirintegracion,CIverdeoservido. PreservarWIPprivado durable y fuentesanteriorinmutables.",
+    "AdmittedAt REAL nuevo ydeadline60minpropio/objetivocierre10minantes,sin heredarfechasdelpredecesor. ROOT116deadline08:58:36.388Z independiente;alrelevoROOTactualizarSOLOruta/inventario/guardasprivados expresamenteautorizados manteniendoidentidad/claim/OWN/plazotrabajador. ColaR2PR318/FIN05/bank-sync cursor/PRO09noesalcancedeestetrabajador."
+  ],
+  "acceptance": "RED causal y GREEN dirigidos con filas completas y exactitud al centimo, limites financieros/identidad preservados, revision monetaria independiente exactSHA y candidata final verificada, seguida de una PRdraft beta autorizada. Fuente espejo sin deploy; sin aceptacion live/movil."
+}
