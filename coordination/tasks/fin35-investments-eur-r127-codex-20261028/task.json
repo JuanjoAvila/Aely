@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "id": "fin35-investments-eur-r127-codex-20261028",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261028-r127-fda31257-548b-463c-a7e9-8d7fddad4de7",
+  "createdAt": "2026-10-28T20:27:23.163Z",
+  "to": "codex",
+  "baseSHA": "7e958a6f545ceb30c1a1eef66a03ec7a1884c887",
+  "objective": "FIN35: Tus inversiones debe arrancar en EUR cuando la moneda global USD/GBP no tiene tipo valido, conservando seleccion manual y todos los importes originales/conversiones existentes.",
+  "scope": [
+    "src/modules/06-sync-brokers.js",
+    "e2e/fin31-cartera-moneda.spec.mjs"
+  ],
+  "grant": "044946c8e420c77895a8577aada400646b142911",
+  "order": 4,
+  "workerInitialOwnGrant": "7188f09dd641ffd90c5a2455196b1385c4bb084c",
+  "workerInitialOwnAllowance": 20,
+  "acceptance": [
+    "Al montar invCur usar moneda global solo con fxRateOf valido; si falta iniciar EUR. No autocambio posterior que deshaga seleccion local durante apertura.",
+    "GlobalUSD yGBP sin tipo propio: hija selecciona EUR, importesEURconocidos exactos, ajustesglobales intactos; casos de tipos ausentes/invalidos y controlEUR.",
+    "Mantener seleccion manual USD/GBP sin FX: elegida, importesdesconocidos con raya y proyeccionbloqueada; no inventar tasa ni cero conocido.",
+    "Actualizar expectativas iniciales anteriores FIN31 sin quitar controles manuales; probar DOM de fallback, parcial/originalessinconversion, reapertura/recarga y datosajustes sinmutar. Con tipo valido incluidoUSDlegado state.fx conservar behavior.",
+    "Solo initializerlocal y spec existente ya registrado; sin tocar core/App/proyeccion/conversion/costEur/redondeos/backend/fixtures/VERSION/notas/catalogo/CHANGELOG. Ningun texto nuevo salvo tresidiomas si necesario.",
+    "Conservar REDcausal del fallback con oraculosnuevos antescambio; GREENdirigido y regresionesFIN31 afectadas, CPU1 worker1 retries0 stopfirstfailure, censo/ENTERRETURN/puerto propios y EXIT reales; sin suitebrowser completa ni tests cerrados ajenos.",
+    "OWNactivacion+claimexacto y ROOTACK publico/native antesproducto; candidato PRIVADO exactHEAD/manifest/bundle/hashes, ROOT+independiente antespush y nuevaPRdraft contra beta soloGOespecifico."
+  ],
+  "limits": {
+    "ProductREADY": false,
+    "noProductBeforeOwnClaimAndROOTACK": true
+  }
+}
