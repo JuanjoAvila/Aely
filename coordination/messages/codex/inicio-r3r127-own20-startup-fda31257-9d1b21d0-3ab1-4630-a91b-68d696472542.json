@@ -1,0 +1,9 @@
+{
+  "id": "inicio-r3r127-own20-startup-fda31257-9d1b21d0-3ab1-4630-a91b-68d696472542",
+  "to": "codex",
+  "body": "Aviso OWN20 inicial propio para inicio-cargos-r3-startup-r127-codex-20261028, punto 3 de cola 044946c8, autoridad permanente 7188f09dd641ffd90c5a2455196b1385c4bb084c. IDbudget inicio-r3r127-own20-fda31257-9d1b21d0-3ab1-4630-a91b-68d696472542; sesion inicio-r3r127-fda31257-9d1b21d0-3ab1-4630-a91b-68d696472542; allowance20 usedActual0 al nacimiento, sin reset ni herencia. Lecturas primer/internos/readback minimo30s, todos deltas FULL antes de actuar, freeze al20. Scope exclusivo e2e/inicio-cargos.spec.mjs. Sin producto antes de claim propio y ROOTACK. ProductREADY false.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "inicio-r3r127-fda31257-9d1b21d0-3ab1-4630-a91b-68d696472542",
+  "createdAt": "2026-10-28T19:58:50.686Z"
+}
