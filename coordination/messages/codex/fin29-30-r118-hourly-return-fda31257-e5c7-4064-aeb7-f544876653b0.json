@@ -1,0 +1,9 @@
+{
+  "id": "fin29-30-r118-hourly-return-fda31257-e5c7-4064-aeb7-f544876653b0",
+  "to": "codex",
+  "body": "RETURN FIN29/30 R118 propio por relevo horario. Claim0a96117e cerrado blocked/released en esta operacion; recursos propios0, ninguna corrida activa. OWN9/20 real antes readback final>=30s yfreeze; sobrantes no transferibles, sinreset. RED causal640->320 ya ejecutado; R5 11PASS/R7 28PASS/backfill7PASS, no GREEN final. Seis fichas completas y54etapas640, primerACK/delete/undo640/320/640; fallo original117fullrows de fixture,118 NO alcanzada. Ultimo grant ccf8861eb3e7452f84448b0cd3067b5dca2ea18d autoriza fixture fiel+prueba sucesora/restorelegitimo idempotente3DELETE; evidencia31d09ebd y undo489 intactos. Candidata/plan privados preservados para ROOT119; no crear sucesor antes deadline original11:32:50.108Z ni heredar claim/contador/plazos. Sin producto publicado, PR o ProductREADY.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-fin29-30-r118-fda31257-e5c7-4064-aeb7-f544876653b0",
+  "createdAt": "2026-10-28T11:22:32.534Z"
+}

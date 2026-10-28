@@ -1,0 +1,34 @@
+{
+  "status": "blocked",
+  "summary": "Relevo horario con candidata privada preservada. RED causal confirmado y fix alias/backfill preparado; contrato undo ya autorizado por ccf8861e, implementacion sucesora y GREEN final pendientes.",
+  "tests": [
+    {
+      "command": "node --test --test-concurrency=1 tests/fin29-30-rename-scope.test.mjs",
+      "exitCode": 1,
+      "note": "Base3716b82a causalRED saved320!=640; original spec31d09ebd frozen."
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin29-30-rename-scope.test.mjs tests/fin29-30-backfill-identity.test.mjs tests/fin19-r5-remote-rename.test.mjs tests/fin19-r7-ficha-rename.test.mjs",
+      "exitCode": 1,
+      "note": "35PASS/2FAIL: R7 28PASS and backfill7PASS; first main failure117fullrows undo,118 not reached; R5 null guard then fixed."
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r5-remote-rename.test.mjs",
+      "exitCode": 0,
+      "note": "11PASS after null-guard correction."
+    }
+  ],
+  "limitations": [
+    "No GREEN final, final commit, final financial exactSHA acceptance, PR or live/mobile acceptance.",
+    "Six ficha cases and54stages retain640; first ACK/delete/undo cents640/320/640; original fullrows failure117 is synthetic fixture mismatch, not evidence of real Supabase field loss.",
+    "Claude ccf8861eb3e7452f84448b0cd3067b5dca2ea18d explicitly authorizes faithful fixture and successor expectation for legitimate idempotent restore; preserve original31d09ebd/failures and undo489.",
+    "Remaining: implement real-writer faithful fixture/successor, three DELETE outcomes, owner/session/confirmation/absorption gates, final directed GREEN and independent money review.",
+    "Private candidate preserved; no product push. Resources0. Own counters and unused remainder never transfer."
+  ],
+  "schema": 1,
+  "taskId": "fin29-30-rename-tombstones-r118-codex-20261028",
+  "actor": "codex",
+  "sessionId": "codex-local-20261028-fin29-30-r118-fda31257-e5c7-4064-aeb7-f544876653b0",
+  "createdAt": "2026-10-28T11:22:32.400Z",
+  "released": true
+}
