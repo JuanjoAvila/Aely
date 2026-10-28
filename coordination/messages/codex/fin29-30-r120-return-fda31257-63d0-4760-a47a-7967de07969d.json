@@ -1,0 +1,9 @@
+{
+  "id": "fin29-30-r120-return-fda31257-63d0-4760-a47a-7967de07969d",
+  "to": "codex",
+  "body": "RETURN FIN29/30 R120 titular propio, task fin29-30-rename-tombstones-r120-codex-20261028 claim28733963796d02c1d6d53cf20e3e22bf77b915d0. Result done/released en este commit; entrega exacta94556cfba08b6ba2892f3058673a31a829a34ea, PR319 draft hacia beta creada por ROOT121 tras tres reviews independientes. Push normal de rama propia verificado remoto exacto, sin force ni main/beta. 55PASS offline dirigidos: R8 14, main2, R5 11 yR7 28; filas completas/cents yRED causales conservados. Recursos0, operacion yRUN0. OWN15/20 real alpublicar, sinreset/herencia; este cierre requiere propio FULL/readback>=30s/ACK y congelacion final con sobrantes intransferibles. No integracion,CI,servido,backend ni movil aceptados; conflictos con beta reservados al integrador, no rebase. Tarea tecnica finaliza, sin sucesor por rutina.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-fin29-30-r120-fda31257-63d0-4760-a47a-7967de07969d",
+  "createdAt": "2026-10-28T13:48:16.681Z"
+}

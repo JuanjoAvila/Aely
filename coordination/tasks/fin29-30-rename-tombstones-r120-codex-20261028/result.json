@@ -1,0 +1,47 @@
+{
+  "status": "done",
+  "summary": "FIN29/30 exact candidate delivered for one draft PR targeting beta after independent exact-SHA finance review. 55 offline directed checks pass; prior causal failures preserved. Integration, CI, serving and physical acceptance remain separate.",
+  "tests": [
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r8-ficha-income.test.mjs",
+      "exitCode": 0,
+      "pass": 14
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin29-30-rename-scope.test.mjs",
+      "exitCode": 0,
+      "pass": 2
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r5-remote-rename.test.mjs",
+      "exitCode": 0,
+      "pass": 11
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r7-ficha-rename.test.mjs",
+      "exitCode": 0,
+      "pass": 28
+    }
+  ],
+  "productSHA": "a94556cfba08b6ba2892f3058673a31a829a34ea",
+  "limitations": [
+    "Offline synthetic evidence only; no live account or mobile acceptance.",
+    "Pending guard adds no retry or eventual upload guarantee after queue loss.",
+    "Same UUID/value read echo under existing guards is not a server write token.",
+    "No merge, deploy or main/beta push authorized.",
+    "ROOT reports current beta base conflict; integration and conflict resolution reserved to Claude, no rebase authorized."
+  ],
+  "pullRequest": 319,
+  "target": "beta",
+  "draft": true,
+  "headSHA": "a94556cfba08b6ba2892f3058673a31a829a34ea",
+  "independentReviewApproved": true,
+  "reviewScope": "Exact source offline finance approval for one draft PR only",
+  "remoteBranch": "codex/fin29-30-r117-20261028",
+  "schema": 1,
+  "taskId": "fin29-30-rename-tombstones-r120-codex-20261028",
+  "actor": "codex",
+  "sessionId": "codex-local-20261028-fin29-30-r120-fda31257-63d0-4760-a47a-7967de07969d",
+  "createdAt": "2026-10-28T13:48:16.559Z",
+  "released": true
+}
