@@ -100352,6 +100352,11 @@
         "to": "      /* AQUÍ NO VA UN REPASO QUE RE-MARQUE LOS POSIBLES REPETIDOS VIEJOS"
       },
       {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",
+        "to": "  // INC-0410 guardado: límite."
+      },
+      {
         "file": "src/modules/00-core.js",
         "function": "esFilaDeBanco"
       },
@@ -100545,6 +100550,26 @@
       },
       {
         "file": "src/modules/00-core.js",
+        "function": "mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSaveRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcStateKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "planSyncEditState"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPersistCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
         "function": "partirEntDeuda"
       },
       {
@@ -100713,6 +100738,26 @@
       },
       {
         "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "planSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mergeAccountBalanceHistory"
+      },
+      {
+        "file": "src/modules/00-core.js",
         "function": "lapidasTope"
       },
       {
@@ -100788,6 +100833,38 @@
         "function": "obAbsorbedEnqueue"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "planSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedPack"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedStorageKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedStorage"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "recDay"
       },
@@ -100844,6 +100921,18 @@
         "function": "obAbsorbedPersist"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedHash"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedRestore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedRestore"
+      },
+      {
         "file": "src/modules/01-i18n.js",
         "function": "accFixed"
       },
@@ -100877,7 +100966,31 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "mcStateKey"
+        "function": "obConfirmedMerge"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedMerge"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedRead"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedJoin"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedDisk"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedUnpack"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedIdsKey"
       },
       {
         "file": "src/modules/00-core.js",
@@ -100957,6 +101070,34 @@
       },
       {
         "file": "src/modules/00-core.js",
+        "data": "_mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "store"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mem"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXP_SUFFIX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_TEST"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_REAL"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
         "data": "OB_CONFIRMED_MAX"
       },
       {
@@ -100990,10 +101131,6 @@
       {
         "file": "src/modules/00-core.js",
         "data": "obAbsorbedNotices"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "data": "store"
       },
       {
         "file": "src/modules/00-core.js",
@@ -101061,23 +101198,11 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "data": "_mem"
-      },
-      {
-        "file": "src/modules/00-core.js",
         "data": "_AC_KW"
       },
       {
         "file": "src/modules/00-core.js",
         "data": "CATEGORIES"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "data": "STATE_KEY_TEST"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "data": "STATE_KEY_REAL"
       },
       {
         "file": "src/modules/00-core.js",
@@ -101094,14 +101219,6 @@
       {
         "file": "src/modules/00-core.js",
         "data": "KW"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "obConfirmedMerge"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "obConfirmedPack"
       },
       {
         "file": "src/modules/00-core.js",
@@ -101130,10 +101247,6 @@
       {
         "file": "src/modules/00-core.js",
         "function": "metaSufijo"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "obConfirmedRead"
       },
       {
         "file": "src/modules/00-core.js",
@@ -101177,18 +101290,6 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "obConfirmedJoin"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "obConfirmedPersist"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "obConfirmedHash"
-      },
-      {
-        "file": "src/modules/00-core.js",
         "function": "deudaSufijo"
       },
       {
@@ -101209,19 +101310,7 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "obConfirmedStorageKey"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "obConfirmedStorage"
-      },
-      {
-        "file": "src/modules/00-core.js",
         "function": "withdrawalReceiptLink"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "obConfirmedUnpack"
       }
     ],
     "edge": [
