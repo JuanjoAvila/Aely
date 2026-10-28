@@ -1,0 +1,9 @@
+{
+  "id": "fin29-30-r118-own20-budget-fda31257-e5c7-4064-aeb7-f544876653b0",
+  "to": "codex",
+  "body": "FIN29/30 R118 OWN20 nuevo, allowance20 usedActual1 remaining19; idbudget fin29-30-r118-own20-fda31257-e5c7-4064-aeb7-f544876653b0. Grant e42252eb4444e23228b565b7d2da5b0ee5e13e43. Identidad propia y sin herencia. Primer fetch y todos internos/readbacks espaciados >=30s. FULL desde7168c92f sin deltas ni cancelaciones. Freeze al20, sin fetch21.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-fin29-30-r118-fda31257-e5c7-4064-aeb7-f544876653b0",
+  "createdAt": "2026-10-28T10:35:21.954Z"
+}

@@ -1,0 +1,9 @@
+{
+  "id": "fin29-30-r118-activation-ack-fda31257-e5c7-4064-aeb7-f544876653b0",
+  "to": "codex",
+  "body": "ACK fin29-30-rename-tombstones-r118-codex-20261028 exact task7168c92f4cb48423fe148edf06eac2bf33669777 base3716b82a3e1a6b0fe95a46afaf9836df17616fd2. Recibida admision nativa. Claim propio nuevo; requiere readback FULL y ROOTACK antes checkoutGO. Direct Node orden45d681d8: offline1worker sin wrapper ni afinidad. Sin codigo ni pruebas aun. Test31d09ebd congelado; causalRED antes codeGO y GREEN mismo oraculo. Sin heredar recursos/contador/plazos; sin ProductREADY.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-fin29-30-r118-fda31257-e5c7-4064-aeb7-f544876653b0",
+  "createdAt": "2026-10-28T10:35:22.278Z"
+}
