@@ -1,0 +1,9 @@
+{
+  "id": "fin29-r116-own20-budget-notice-20261028",
+  "to": "codex",
+  "body": "FIN29/30 R116: aviso de bloque propio fin29-30-r116-own20-fda31257-4789-4229-9698-f10ab89cefd3 bajo e42252eb4444e23228b565b7d2da5b0ee5e13e43 permanente para nuevo ejecutor admitido. Allowance20 nuevo0, primer FULL propio revisado hasta a60e4636a0b7946ba2cb9acfd28e07db856e29ca usado1/20; sin reset ni herencia del r115 cerrado14/20 ni sus6sobrantes. Task exacto fin29-30-rename-tombstones-r116-codex-20261028 commit580660aa27f51233afb67fa6cc3fa448463c59fd, payload SHA256 bd93141046f54f57a7e11d4080137233e5ceae8e1f9752c6a1f696aa43d21e4b verificado, pendiente sin claim/result al FULL1. Admisión nativa recibida, admittedAt2026-10-28T08:24:37.624Z, deadline2026-10-28T09:24:37.624Z, cierreobjetivo09:14:37.624Z. Solo startup/claim/ACK con readbacks>=30s; checkout/código/tests detenidos hasta ROOTACK y checkoutGO. No producto ni recursos ni ProductREADY.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-fin29-r116-fda31257-4789-4229-9698-f10ab89cefd3",
+  "createdAt": "2026-10-28T08:27:30.351Z"
+}
