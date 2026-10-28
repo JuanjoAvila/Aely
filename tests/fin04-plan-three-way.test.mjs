@@ -312,9 +312,9 @@ function renderFixedReviewSave(c,state,current,record){
   React:{createElement:element,Fragment:'fragment',useState:init=>[typeof init==='function'?init():init,value=>{if(typeof value==='string')errors.push(value);}],useRef:()=>({current:null}),useEffect:noop,useLayoutEffect:noop},
   usePlanEditSave:()=>({save:result=>{captured=result;},pending:false,error:''}),
   useSheetSwipe:()=>({sheetRef:{current:null},close:noop,sheetTouch:{}}),useEdgePageClose:()=>({close:noop}),useBackClose:noop,
-  bankListButtons:()=>null,gbTxt:key=>key,t:key=>key,eur:value=>String(value),NumPad:noop,MonthPicker:noop
+  bankListButtons:()=>null,gbTxt:key=>key,t:key=>key,tf:key=>key,monthShort:()=>'',CURLANG:'es',eur:value=>String(value),NumPad:noop,MonthPicker:noop
  });
- const source=fs.readFileSync(new URL('../src/modules/14-v4-screens.js',import.meta.url),'utf8');vm.runInContext(fixedReviewBlock(source,'BillsItemSheet'),c);
+ const source=fs.readFileSync(new URL('../src/modules/14-v4-screens.js',import.meta.url),'utf8');for(const name of ['pr6Mes','pr6PausaTxt','BillsItemSheet'])vm.runInContext(fixedReviewBlock(source,name),c);
  const tree=c.BillsItemSheet({row:{id:current.id,kind:'fixed',item:current,bank:current.account,monthly:current.amount,name:current.name},state,set:noop,banks:['sabadell','caixabank'],simple:false,onClose:noop,onRemove:noop,review:record});
  const buttons=[];function walk(node){if(Array.isArray(node)){node.forEach(walk);return;}if(!node||typeof node!=='object')return;if(node.type==='button'&&node.props.onClick&&node.props.onClick.name==='saveReview')buttons.push(node);node.children.forEach(walk);}walk(tree);
  assert.equal(buttons.length,1,'real review Save button');buttons[0].props.onClick();return {result:captured,errors};
