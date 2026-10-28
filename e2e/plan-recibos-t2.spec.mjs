@@ -30,6 +30,8 @@ async function abrePlan(page, overrides) {
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   return page.locator('.page-live .v4-screen > [data-seg="recibos"]');
 }
+// El saldo de cada cuenta tal como lo pintan Cartera e Inicio (misma fórmula que `conSaldoMostrado`).
+const saldoVisto = (page) => page.evaluate(() => { const s = mcLoadRaw(mcStateKey()), i = insumosSaldoGasto(s); return s.accounts.map((a) => +saldoCuentaMostrada(a, i).toFixed(2)); });
 const guardado = (page, id) => page.evaluate((rid) => mcLoadRaw(mcStateKey()).fixed.find((x) => x.id === rid) || null, id);
 
 /* Cuatro avisos, uno de cada: «No ha llegado» (día 3), fantasma (cobrado en julio y nada en
@@ -88,11 +90,14 @@ test("ficha: cobró distinto → «Solo este mes» lo deja como pagado con ese c
 
 test("ficha: cobró distinto → «Desde ahora» cambia el importe sin devolver el pago a pendiente", async ({ page }) => {
   const recibos = await abrePlan(page, cuatroAvisos());
+  const antes = await saldoVisto(page);
   await recibos.getByTestId("plan-review").locator('[data-review="diff"]').click();
   const ficha = page.locator('.v4-sheet[data-sheet="recibo"]');
   await ficha.getByRole("button", { name: "Desde ahora" }).click();
   await expect(ficha).toHaveCount(0);
   await expect.poll(async () => (await guardado(page, "gas")).amount).toBe(61);
+  // Cambiar el precio de un recibo ya pagado no mueve el saldo de la cuenta (revisión 28/10: 3000 → 2999).
+  expect(await saldoVisto(page)).toEqual(antes);
   await expect(recibos.getByTestId("plan-review").locator('[data-recibo="fixed_gas"]')).toHaveCount(0);
   await expect(recibos.getByTestId("plan-due").locator('[data-recibo="fixed_gas"]')).toHaveCount(0);
   await expect(recibos.getByTestId("plan-summary").locator(".serif.num")).toHaveText(await page.evaluate(() => eur(55 + 12.5)));
@@ -102,6 +107,7 @@ test("ficha: ha subido → «Actualizar precio» cambia el importe y el recibo s
   const recibos = await abrePlan(page, cuatroAvisos());
   const review = recibos.getByTestId("plan-review");
   await review.getByRole("button", { name: /Ver los 4/ }).click();
+  const antes = await saldoVisto(page);
   await review.locator('[data-review="up"]').click();
   const ficha = page.locator('.v4-sheet[data-sheet="recibo"]');
   await expect(ficha.getByTestId("recibo-nota")).toHaveText("Antes 12,99 €");
@@ -112,6 +118,7 @@ test("ficha: ha subido → «Actualizar precio» cambia el importe y el recibo s
   await ficha.getByRole("button", { name: "Actualizar precio" }).click();
   await expect(ficha).toHaveCount(0);
   await expect.poll(async () => (await guardado(page, "nfx")).amount).toBe(13.99);
+  expect(await saldoVisto(page)).toEqual(antes);
   // Cambiar el importe no puede devolver a pendiente un pago ya hecho: la cifra no se mueve.
   await expect(review.locator('[data-recibo="fixed_nfx"]')).toHaveCount(0);
   const paid = recibos.getByTestId("plan-paid");

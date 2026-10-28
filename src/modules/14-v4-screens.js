@@ -840,22 +840,32 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
   };
   const nuevoPrecio=function(){
     // Lo que cobra el banco: en un recibo compartido es `bankAmount`; tu parte no se deduce sola.
-    patchFixedById(set,f.id,f.bankAmount>0?{bankAmount:aviso.cobrado}:{amount:aviso.cobrado});
-    /* El importe forma parte del contrato de la prueba de pago: al cambiarlo, la de este mes deja
-       de valer y el recibo volvía a pendiente, con la cifra de arriba sumando un pago ya hecho
-       (banco de pruebas, 28/10/2026). La misma prueba se ata al importe nuevo; si no basta, se vuelve
-       a enlazar el MISMO cargo, como desde Gastos. */
+    const parche=f.bankAmount>0?{bankAmount:aviso.cobrado}:{amount:aviso.cobrado};
+    // La edición de siempre (`patchFixedById`), pero recogida como updater para hacerlo todo en uno.
+    let editar=null;
+    patchFixedById(function(u){ editar=u; },f.id,parche);
     const previa=f.paymentProofs&&f.paymentProofs[cur];
     set(function(s){
-      const e=(s.fixed||[]).find(function(o){ return o.id===f.id; });
-      if(!e||fixedPaymentState(s,e,y,m,today).paid) return s;
-      if(previa){
-        const n=Object.assign({},s,{fixed:s.fixed.map(function(o){
-          return o.id===e.id?Object.assign({},o,{paymentProofs:Object.assign({},o.paymentProofs,{[cur]:fixedPaymentBind(previa,o,m)})}):o;
-        })});
-        if(fixedPaymentState(n,n.fixed.find(function(o){ return o.id===e.id; }),y,m,today).paid) return n;
+      let n=editar(s);
+      const e=(n.fixed||[]).find(function(o){ return o.id===f.id; });
+      /* El importe forma parte del contrato de la prueba de pago: al cambiarlo, la de este mes deja
+         de valer y el recibo volvía a pendiente, con la cifra de arriba sumando un pago ya hecho
+         (banco de pruebas, 28/10/2026). La misma prueba se ata al importe nuevo; si no basta, se
+         vuelve a enlazar el MISMO cargo, como desde Gastos. */
+      if(e&&!fixedPaymentState(n,e,y,m,today).paid){
+        if(previa){
+          const r=Object.assign({},n,{fixed:n.fixed.map(function(o){
+            return o.id===e.id?Object.assign({},o,{paymentProofs:Object.assign({},o.paymentProofs,{[cur]:fixedPaymentBind(previa,o,m)})}):o;
+          })});
+          if(fixedPaymentState(r,r.fixed.find(function(o){ return o.id===e.id; }),y,m,today).paid) n=r;
+        }
+        const e2=(n.fixed||[]).find(function(o){ return o.id===f.id; });
+        if(fila&&!fixedPaymentState(n,e2,y,m,today).paid) n=linkFixedPayment(n,fila.id,f.id,y,m,today);
       }
-      return fila?linkFixedPayment(s,fila.id,f.id,y,m,today):s;
+      /* El saldo que se ve no se mueve: la previsión del mes resta el importe PREVISTO de lo ya
+         pagado, y cambiarlo restaba la diferencia de precio a un saldo que ya era el del banco
+         (Luz 50 cobrada a 50,90: 2000 → 1999,10; revisión de dinero 28/10/2026). */
+      return n===s?s:conSaldoMostrado(s,n);
     });
     cerrarCon(tf("pr6_precio_toast",{name:row.name,x:eur(aviso.cobrado)}));
   };
