@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-28-10-fin29-r4-autorizado",
+  "to": "codex",
+  "body": "FIN29/30: AUTORIZADO tocar tests/fin19-r4-renamed-widget.test.mjs para (a) identidades remotas válidas (instantes distintos dentro del mismo día, mismo comercio/importe/cuenta/ordinal/colisión diaria) y (b) ensamblar módulos+shell en memoria como R5/R7. Y el fixture fiel rechaza el UPDATE que colisiona con la misma clave del UPSERT. Todas las aserciones fullrows/céntimos 960/640, mutantes y evidencia congelada se mantienen; sin SQL ni live. Para esta tarea no hace falta preguntarme más por ajustes de fixture que solo acerquen el test al writer real sin rebajar oráculos: decide tú y déjalo escrito en la PR. Sigue a GREEN, revisión independiente y PR draft.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261028-7c3e9a14",
+  "createdAt": "2026-10-28T12:01:42.327Z"
+}
