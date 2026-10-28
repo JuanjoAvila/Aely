@@ -190,6 +190,8 @@ const sourceBeta187=sourceAt("0007e27eff1ea992d01fc1635a773c6014949687");
 const sourceBeta188=sourceAt("f12194f55aa6df591bf16377ee0b479cfe446e94");
 // Catálogo189 pasa a histórico con la 190: se lee de la 4.26.189 servida en beta (2be6b3c90); su tanda (deuda-ir-suave) ya tiene la aprobación del dueño (28/10, 15:00) y la 190 la deja en tandas:[].
 const sourceBeta189=sourceAt("2be6b3c9077e42c1879766bfa3fa4145f2662049");
+// Catálogo190 pasa a histórico con la 191: se lee de la 4.26.190 servida en beta (d0aee9d18); su tanda (plan-recibos-v6-t2) ya tiene la aprobación del dueño (28/10, 16:21) y la 191 la deja en tandas:[].
+const sourceBeta190=sourceAt("d0aee9d1848dfc09900e6ada53cb60997fd49c2f");
 const sourceBeta153=sourceAt("80752dff055dc391c52c3067ce238f49e0a14598");
 // Catálogo137 pasa a histórico en la promoción 137: se lee de la beta 4.26.137.1 aprobada (6f18228c), lo último que probó el móvil y lo que sube entero.
 const sourceBeta137=sourceAt("6f18228cbd81c1cc9abfa7fabce0a878819234f4");
@@ -6168,13 +6170,118 @@ test("Catálogo176 añade la tanda del vínculo de recibo (solo web) sobre la 17
   assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
 });
 
+const expected191={"v":"4.26.191","d":"2026-10-28","t":{"es":"Renombrar un gasto ya no esconde otro","en":"Renaming an expense no longer hides another","ca":"Reanomenar una despesa ja no n’amaga una altra"},"items":{"es":["Si cambias el nombre de un gasto del banco, ya no desaparece otro gasto igual de otro banco ni se descuadran las cifras."],"en":["If you rename a bank expense, an identical expense from another bank no longer disappears and your totals stay right."],"ca":["Si canvies el nom d’una despesa del banc, ja no desapareix una altra despesa igual d’un altre banc i les xifres no es descaden."]},"tandas":[{"id":"gastos-renombrar-otro-banco","t":{"es":"Gastos: renombrar no esconde otro gasto","en":"Spending: renaming doesn’t hide another expense","ca":"Despeses: reanomenar no n’amaga una altra"},"items":{"es":["1. Gastos → busca un movimiento del banco → tócalo → toca su nombre, escribe otro y cierra la ficha. BIEN: el movimiento sale con el nombre nuevo, el importe no cambia y no aparece repetido; si ese día había otro gasto igual de otro banco, sigue en la lista. MAL: desaparece el otro gasto, sale uno de más o el total del día cambia.","2. Mira el total de Gastos y el de Inicio antes y después de renombrar. BIEN: no se mueven (solo cambia el nombre). MAL: baja o sube el importe de «Este mes».","3. Cierra la app del todo, ábrela de nuevo y vuelve a ponerle su nombre de antes. BIEN: el movimiento sigue una sola vez, con las mismas cifras de antes, y el otro gasto igual sigue ahí. MAL: reaparece repetido, o desaparece alguno."],"en":["1. Spending → find a bank transaction → tap it → tap its name, type another one and close the sheet. RIGHT: it shows with the new name, the amount does not change and it does not show up twice; if that day had an identical expense from another bank, it is still in the list. WRONG: the other expense disappears, an extra one shows up or the day total changes.","2. Look at the Spending total and the Home one before and after renaming. RIGHT: they do not move (only the name changes). WRONG: the \"This month\" amount goes down or up.","3. Close the app completely, open it again and put its old name back. RIGHT: the transaction stays once, with the same figures as before, and the identical expense is still there. WRONG: it comes back twice, or one disappears."],"ca":["1. Despeses → busca un moviment del banc → toca’l → toca el seu nom, escriu-ne un altre i tanca la fitxa. BÉ: el moviment surt amb el nom nou, l’import no canvia i no apareix repetit; si aquell dia hi havia una altra despesa igual d’un altre banc, continua a la llista. MALAMENT: desapareix l’altra despesa, en surt una de més o el total del dia canvia.","2. Mira el total de Despeses i el d’Inici abans i després de reanomenar. BÉ: no es mouen (només canvia el nom). MALAMENT: l’import d’«Aquest mes» puja o baixa.","3. Tanca l’app del tot, torna-la a obrir i posa-li el nom d’abans. BÉ: el moviment continua una sola vegada, amb les mateixes xifres d’abans, i l’altra despesa igual hi és. MALAMENT: reapareix repetit, o desapareix algun."]}}]};
+// 4.26.191 (28/10/2026): PR319 de Codex (d459780c0, FIN-29/30: renombrar un gasto del banco ya no esconde el gasto igual de otro banco; revisión de dinero GO con remates ya cerrados) y el arnés de fin04-plan-three-way (a9e077885) sobre la beta 4.26.190 servida (d0aee9d18), solo web (más el espejo de presupuesto.ts en servidor) y SIN APK nueva (sigue la 62).
+// Una tanda NUEVA (gastos-renombrar-otro-banco, tres pasos, sin APK). La de la 190 (plan-recibos-v6-t2) la aprobó el dueño el 28/10 (16:21) y pasa a tandas:[]: el panel enseña una.
+test("Catálogo191 añade la tanda de renombrar sin esconder otro gasto (web y espejo de servidor) sobre la 190, retira la aprobada y declara las huellas que mueve",()=>{
+  const tandas=["plan-recibos-v6-t2","gastos-renombrar-otro-banco"],P0="src/modules/00-core.js",java="android/app/src/main/java/com/micartera/app/";
+  const integrated=JSON.parse(sourceBeta190("scripts/beta-sources.json")),before=JSON.parse(sourceBeta190("src/data/release-notes.json"));
+  const source=f=>nl(read(f)),old=f=>nl(sourceBeta190(f));
+  assert.equal(before[0].v,"4.26.190");
+  assert.deepEqual(before.slice(0,1).map(n=>n.tandas.map(g=>g.id)),[[tandas[0]]],"la 190 servida lleva su tanda");
+  for(const n of before.slice(1))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] en la 190 servida");
+  const expectedNotes=[expected191,...before.map((n,i)=>i<1?{...n,tandas:[]}:n)];
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.deepEqual(notes,expectedNotes,"la nota 190 literal delante, la tanda aprobada vacía y todo lo demás intacto");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.190",tandas[1],0]],"el panel enseña una tanda");
+  assert.equal(notes.length,288);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
+  for(const n of notes.slice(1))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] (la propiedad se conserva, vacía)");
+  assert.deepEqual(Object.keys(notes[0].tandas[0]),["id","t","items"],"la tanda nueva no pide APK");
+  const jerga=/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|FIN-|SES-|UX-|SEC-|zoom|\d+\.\d+\.\d+/i;
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,1,lang+": un punto familiar");
+    const steps=notes[0].tandas[0].items[lang];
+    assert.equal(steps.length,3,lang+": tres pasos");
+    steps.forEach((s,j)=>{assert.ok(s.startsWith((j+1)+". "),lang+": paso numerado "+(j+1));assert.ok(/BIEN|RIGHT|BÉ|MAL|WRONG|MALAMENT/.test(s),lang+": el paso dice qué es BIEN o MAL");});
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
+  }
+  const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
+  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verifyNotes(twice),assert.AssertionError,"no duplicar una tanda");
+  {const viva=structuredClone(notes);viva[1].tandas=structuredClone(before[0].tandas);assert.throws(()=>verifyNotes(viva),assert.AssertionError,"la tanda aprobada de "+before[0].v+" no resucita");}
+  // Registro: los anteriores intactos con el descriptor nuevo detrás.
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),{[tandas[1]]:ahora,...resto}=scopes;
+  assert.deepEqual(Object.keys(scopes),[...Object.keys(integrated),tandas[1]],"el descriptor nuevo, el último");
+  // Los descriptores anteriores solo cambian por el cierre de lectores: lo nuevo que llaman (expenseRenameKey, lapidasAlRenombrar...) se suma al final de su lista. Nada se quita, se reancla ni se reordena.
+  const esperados=structuredClone(integrated),cambian=[];
+  {const fns=logicFunctions(source),dat=logicData(source);
+    for(const [id,d] of Object.entries(esperados)){
+      if(id===archiveId)continue;
+      let web=d.web.slice();
+      for(let ronda=0;ronda<12;ronda++){
+        const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];
+        for(const fn of scopeDependencies({web},source,fns))if(!tiene(fn.file,fn.name,"function"))extra.push({file:fn.file,function:fn.name});
+        for(const x of scopeDataDependencies({web},source,fns,dat))if(!tiene(x.file,x.name,"data"))extra.push({file:x.file,data:x.name});
+        if(!extra.length)break;web=web.concat(extra);
+      }
+      if(web.length!==d.web.length)cambian.push(id);
+      d.web=web;
+    }}
+  assert.deepEqual(resto,esperados,"el registro anterior, intacto salvo las dependencias nuevas del alias de renombrado");
+  for(const id of Object.keys(integrated))if(!cambian.includes(id))assert.deepEqual(resto[id],integrated[id],id+": no cambia");
+  assert.deepEqual(Object.keys(ahora),["web","edge","unidades"]);assert.equal(ahora.unidades,true);assert.deepEqual(ahora.edge,["supabase/functions/_shared/presupuesto.ts"],"servidor: el espejo del alias de renombrado");
+  const propias=[...["expenseRenameKey","lapidasAlRenombrar","expenseIsTombstoned","expenseRenameAck","refreshExpenseFromCloud"].map(name=>({file:P0,function:name})),{file:"src/modules/04-tab-gastos.js",from:"    // El alias de nombre distingue esta versión de un borrado;",to:"    sincroniza(upd); showToast(t(splitByEdit?\"g_auto_edit_separated\":\"g_edited\"));"},{file:"src/modules/08-motor-bank.js",function:"importObExpenses"},{file:"src/modules/11-app-main.js",from:"      // Una versión retirada del nombre sigue siendo una fila remota real",to:"      /* AQUÍ NO VA UN REPASO QUE RE-MARQUE LOS POSIBLES REPETIDOS VIEJOS"}];
+  assert.deepEqual(ahora.web.slice(0,propias.length),propias,"las unidades web propias: el alias de renombrado, la edición de la ficha, el importador del banco y el backfill");
+  {const fns=logicFunctions(source),dat=logicData(source);let web=propias.slice();
+    for(let ronda=0;ronda<12;ronda++){
+      const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];
+      for(const fn of scopeDependencies({web},source,fns))if(!tiene(fn.file,fn.name,"function"))extra.push({file:fn.file,function:fn.name});
+      for(const d of scopeDataDependencies({web},source,fns,dat))if(!tiene(d.file,d.name,"data"))extra.push({file:d.file,data:d.name});
+      if(!extra.length)break;web=web.concat(extra);
+    }
+    const clave=u=>JSON.stringify(u);
+    assert.equal(ahora.web.length,web.length,"el cierre de lectores del descriptor es exactamente el calculado");
+    assert.deepEqual(new Set(ahora.web.map(clave)),new Set(web.map(clave)),"el cierre de lectores del descriptor es exactamente el calculado");}
+  for(const u of ahora.web)assert.ok(scopeText(u,source).length>0,"la unidad existe en la fuente: "+JSON.stringify(u));
+  // Del árbol de la 190 se mueven el núcleo (alias de renombrado y lápidas), Gastos (la ficha), el importador del banco, App (el backfill) y el espejo de presupuesto del servidor; el widget (web, ingest y Java) y la APK 62 siguen idénticos.
+  for(const file of [P0,"src/modules/04-tab-gastos.js","src/modules/08-motor-bank.js","src/modules/11-app-main.js","supabase/functions/_shared/presupuesto.ts"])assert.notEqual(source(file),old(file),"cambia de verdad: "+file);
+  for(const file of ["src/modules/01-i18n.js","src/modules/02-ui-shared.js","src/modules/14-v4-screens.js","src/shell.html","supabase/functions/ingest/index.ts","supabase/functions/ingest/widget.ts",java+"MiCarteraWidget.java",java+"MiCarteraPlugin.java"])assert.equal(source(file),old(file),"sin cambios: "+file);
+  assert.match(source("android/app/build.gradle"),/versionCode 62\s+versionName "4\.26\.185"/,"sigue la APK 62: la 191 no lleva nativo");
+  assert.match(source("scripts/beta-sources.json"),/gastos-renombrar-otro-banco/);
+  // Huellas que se mueven (lista cerrada): la web de las tandas que leen el alias o las lápidas, y la de servidor de las que importan presupuesto.ts; ninguna nativa ni viva.
+  const expectedMoves={"inc-3009-01-cargos":["web"],"fin05-widget-reentrada":["web"],"fin05-pago-cerrada":["web"],"tr-descripcion-clasificacion":["web"],"widget-banco":["web"],"widget-app-cerrada":["web"],"inc-2809-02-ayuda-ciclo":["web"],"inc-2909-02-inicio-natural":["web"],"inc-2709-10-perfil":["web"],"inc-3009-nomina-anticipada":["web"],"inc-2909-03-retirada":["web"],"inc-2909-01-widget-periodo":["web"],"inc-0210-01-plan-cuota":["web"],"inc-0210-03-gastos-periodo":["web"],"feature-0210-01-gasolina-taxi":["web"],"inc-0210-02-categoria-elegida":["web"],"inc-0310-01-meta-regla":["web"],"feature-0310-01-movilidad":["web"],"inc-0310-broker-resultados":["web"],"inc-0310-gastos-sin-limite":["web"],"inc-0710-gastos-mes-madrid":["web"],"inc-0710-auth-disposal":["web"],"inc-0810-dashboard-recents-memo":["web"],"inc-0810-metas-editar-regla":["web"],"bienes-completo":["web"],"inicio-grafica-vuelve":["web"],"widget-pago-app-cerrada":["web"],"bancos-sin-hueco":["web"],"widget-ciclo-puente":["web"],"recibos-cargo-unico":["web"],"bancos-acuse-reconexion":["web"],"tr-iguales-ordinal":["web","edge"],"inicio-patrimonio-flujos":["web"],"recibo-cargo-en-gastos":["web","edge"],"inicio-mes-pasado-mismo-dia":["web"],"limpieza-ajustes-perfil":["web"],"tr-empareja-sin-preguntar":["web"],"cuenta-parte-mia":["web"],"inicio-recientes-sin-repetidos":["web"],"inicio-grafica-reservas":["web"],"compras-identicas-ids":["web","edge"],"myinvestor-contador-a-cero":["web"],"deudas-metas-hoja-edicion":["web"],"gastos-suscripciones-botones":["web"],"compras-pendientes-otro-dia":["web","edge"],"deudas-plazo-cuota-encaja":["web"],"deudas-metas-hoja-sin-parpadeo":["web"],"deudas-metas-hoja-cierre-suave":["web"],"fichas-cierre-suave-atras":["web"],"cuenta-saldo-cierre-atras":["web"],"recibo-renombrado-sigue-pagado":["web"],"plan-por-confirmar-prestamo-youtube":["web"],"vuelta-sin-tiron":["web"],"deuda-bajar-cuota-alarga-plazo":["web"],"cartera-ordenar-brokers":["web"],"youtube-enlazar-recibo":["web"],"vibracion-ajustador":["web"],"gestionar-plan-sin-ola":["web"],"renombrar-y-notas-seguras":["web"],"gestionar-plan-ola":["web"],"vibracion-ajustador-r2":["web"],"gestionar-plan-ola-r2":["web"],"vibracion-r3":["web"],"youtube-diagnostico":["web"],"recibos-cifra-cuadra":["web"],"cartera-sin-lagazo":["web"],"renombrar-sin-cobertura":["web"],"vibracion-r4":["web"],"youtube-ficha-reconoce":["web"],"youtube-r4":["web"],"recibos-meses-a-mano":["web"],"gastos-dos-bancos":["web","edge"],"cartera-moneda":["web"],"categoria-coche":["web"],"deuda-nueva-desde-su-dia":["web"],"gastos-v5-movimientos":["web"],"gastos-v5-secciones":["web"],"gastos-v5-filtro":["web"],"gastos-v5-subs":["web"],"gastos-v5-filtros-hoja":["web"],"sync-dos-moviles":["web"],"gastos-v5-ciclos-metas-inversiones":["web"],"plan-dos-moviles":["web"],"gastos-lag-ciclos":["web"],"gastos-lag-ciclos-r3":["web"],"recibo-vinculo-saldo":["web"],"gastos-recibo-fila-textos-cortos":["web"],"gastos-scroll-fluido-cifras":["web"],"gastos-margen-sin-nomina":["web"],"plan-recibos-v6-t1":["web"],"deuda-ir-suave":["web"],"plan-recibos-v6-t2":["web"]};
+  const previous=new Map();
+  const measure=reader=>{
+    const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};
+    for(const [key,scope] of Object.entries(integrated)){
+      if(key===archiveId)continue;
+      if(!previous.has(key))previous.set(key,betaRevision(key,sourceBeta190,undefined,scope));
+      const a=previous.get(key),b=betaRevision(key,reader,undefined,now[key]);
+      const surfaces=["web","native","edge"].filter(x=>a[x]!==b[x]);
+      if(surfaces.length)moved[key]=surfaces;
+    }
+    return moved;
+  };
+  assert.deepEqual(measure(source),expectedMoves,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  const vivas=notes.flatMap(n=>(n.tandas||[]).map(g=>g.id));
+  assert.deepEqual(vivas,[tandas[1]]);
+  assert.deepEqual(Object.keys(expectedMoves).filter(id=>vivas.includes(id)),[],"las tandas vivas cuya huella se mueve");
+  const current=betaRevision(tandas[1],source,undefined,scopes[tandas[1]]);
+  assert.ok(current.web);assert.ok(current.edge,"con huella de servidor: presupuesto.ts");assert.equal(current.native,undefined,"sin huella nativa");
+  // Mutantes sobre la fuente real: el alias, la lápida del renombrado y el backfill reabren la tanda web; el espejo del servidor, solo la de servidor.
+  for(const [f,a,b] of [[P0,'if(!e||!esFilaDeBanco(e))return "";','if(!e)return "";'],[P0,"return before&&after&&before!==after?","return before&&after&&before===after?"],["src/modules/11-app-main.js","!tableRenames[renameCoverageKey(e)] && ",""]]){
+    assert.equal(source(f).split(a).length,2,"mutante sobre fuente real: "+a);
+    const mutated=betaRevision(tandas[1],x=>x===f?source(x).replace(a,()=>b):source(x),undefined,scopes[tandas[1]]);
+    assert.notEqual(mutated.web,current.web,tandas[1]+" reabre la tanda web: "+a);
+    assert.equal(mutated.edge,current.edge);
+  }
+  {const f="supabase/functions/_shared/presupuesto.ts",mutated=betaRevision(tandas[1],x=>x===f?source(x)+"\n// mutante":source(x),undefined,scopes[tandas[1]]);
+    assert.notEqual(mutated.edge,current.edge,tandas[1]+" reabre la huella de servidor: "+f);
+    assert.equal(mutated.web,current.web);}
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes);
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),vivas,"lo que el build entrega al panel");
+  const g0=built[0].tandas[0];
+  assert.equal(g0.web,current.web);assert.equal(g0.edge,current.edge,"el panel la marca con servidor por confirmar");assert.equal(g0.native,undefined);assert.equal(g0.apk,undefined);assert.equal(receipt.web[tandas[1]],current.web);
+  for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g0[key],undefined,"identidad nueva sin "+key);
+  assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
+});
+
 const expected190={"v":"4.26.190","d":"2026-10-28","t":{"es":"Recibos: pausar y avisos","en":"Bills: pause and alerts","ca":"Rebuts: pausar i avisos"},"items":{"es":["Recibos: ahora puedes pausar un recibo (este mes o hasta cuando digas), dejar un aviso para mañana y te avisa si un recibo ha subido, cobró distinto o lleva meses sin cobrarse."],"en":["Bills: you can now pause a bill (for this month or until a date you choose), set a reminder for tomorrow, and the app tells you if a bill went up, was charged differently or has gone months without being charged."],"ca":["Rebuts: ara pots pausar un rebut (aquest mes o fins quan diguis), deixar un avís per a demà i t’avisa si un rebut ha pujat, s’ha cobrat diferent o fa mesos que no es cobra."]},"tandas":[{"id":"plan-recibos-v6-t2","t":{"es":"Plan: pausar y posponer recibos","en":"Plan: pause and postpone bills","ca":"Pla: pausar i ajornar rebuts"},"items":{"es":["1. Plan → Recibos → toca un recibo de «Pendiente» → Pausar → «Solo este mes». BIEN: «Queda por pagar» baja justo su importe y el recibo sale tachado en «Ya pagados» con «este mes no»; al tocarlo vuelve a Pendiente y la cifra vuelve a la de antes. MAL: la cifra no baja o baja otra cantidad.","2. Plan → Recibos → «Ya pagados» → toca un recibo pagado → Pausar → «Hasta …». BIEN: no aparece «Solo este mes», el recibo sigue en «Ya pagados» y la cifra no cambia; en Todos sale «pausado hasta …». MAL: desaparece de «Ya pagados» o cambia la cifra.","3. Plan → Recibos → «Para revisar» (si sale algo) → toca un aviso → «Recuérdamelo mañana». BIEN: sale de «Para revisar», aparece en «Pendiente» o «Ya pagados» y abajo «Deshacer» lo devuelve. MAL: desaparece de todas las secciones o la cifra cambia."],"en":["1. Plan → Bills → tap a bill in \"Pending\" → Pause → \"This month only\". RIGHT: \"Still to pay\" drops by exactly its amount and the bill shows struck through in \"Already paid\" with \"not this month\"; tapping it puts it back in Pending and the figure goes back to what it was. WRONG: the figure does not drop or drops by another amount.","2. Plan → Bills → \"Already paid\" → tap a paid bill → Pause → \"Until …\". RIGHT: \"This month only\" is not offered, the bill stays in \"Already paid\" and the figure does not change; in All it shows \"paused until …\". WRONG: it disappears from \"Already paid\" or the figure changes.","3. Plan → Bills → \"To review\" (if anything shows) → tap an alert → \"Remind me tomorrow\". RIGHT: it leaves \"To review\", shows up in \"Pending\" or \"Already paid\" and \"Undo\" at the bottom brings it back. WRONG: it vanishes from every section or the figure changes."],"ca":["1. Pla → Rebuts → toca un rebut de «Pendent» → Pausar → «Només aquest mes». BÉ: «Queda per pagar» baixa just el seu import i el rebut surt ratllat a «Ja pagats» amb «aquest mes no»; en tocar-lo torna a Pendent i la xifra torna a la d’abans. MALAMENT: la xifra no baixa o baixa una altra quantitat.","2. Pla → Rebuts → «Ja pagats» → toca un rebut pagat → Pausar → «Fins …». BÉ: no apareix «Només aquest mes», el rebut continua a «Ja pagats» i la xifra no canvia; a Tots surt «pausat fins …». MALAMENT: desapareix de «Ja pagats» o canvia la xifra.","3. Pla → Rebuts → «Per revisar» (si surt res) → toca un avís → «Recorda-m'ho demà». BÉ: surt de «Per revisar», apareix a «Pendent» o «Ja pagats» i a baix «Desfer» el torna. MALAMENT: desapareix de totes les seccions o canvia la xifra."]}}]};
 // 4.26.190 (28/10/2026): claude/plan-recibos-t2 (a6f27abc6, tanda 2 del rediseño de Plan › Recibos v6, con la revisión de dinero independiente R2) sobre la beta 4.26.189 servida (2be6b3c90), solo web y SIN APK nueva (sigue la 62): más avisos en «Para revisar», casos especiales en la ficha, posponer con deshacer y Pausar (pausedFrom/pausedUntil dentro del recibo).
 // Una tanda NUEVA (plan-recibos-v6-t2, tres pasos, sin APK). La de la 189 (deuda-ir-suave) la aprobó el dueño el 28/10 (15:00) y pasa a tandas:[]: el panel enseña una. La de la 188 sigue aprobada y vacía.
 test("Catálogo190 añade la tanda de pausar y posponer recibos (solo web) sobre la 189, retira la aprobada y declara las huellas que mueve",()=>{
   const tandas=["deuda-ir-suave","plan-recibos-v6-t2"],P0="src/modules/14-v4-screens.js",java="android/app/src/main/java/com/micartera/app/";
   const integrated=JSON.parse(sourceBeta189("scripts/beta-sources.json")),before=JSON.parse(sourceBeta189("src/data/release-notes.json"));
-  const source=f=>nl(read(f)),old=f=>nl(sourceBeta189(f));
+  const source=f=>nl(sourceBeta190(f)),old=f=>nl(sourceBeta189(f));
   assert.equal(before[0].v,"4.26.189");
   assert.deepEqual(before.slice(0,1).map(n=>n.tandas.map(g=>g.id)),[[tandas[0]]],"la 189 servida lleva su tanda");
   for(const n of before.slice(1))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] en la 189 servida");

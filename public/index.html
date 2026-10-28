@@ -4788,6 +4788,14 @@ function expenseDeletionKey(e){
   const id=expenseKnownIdentity(e);
   return id?"expense-account|"+encodeURIComponent(id)+"|"+keyOfExpense(e):keyOfExpense(e);
 }
+// Renombrar retira una versión del nombre, no la compra. Con cuenta se conserva
+// también la referencia; sin ella solo un UUID acredita la fila, nunca la similitud.
+function expenseRenameKey(e){
+  if(!e||!esFilaDeBanco(e))return "";
+  const known=expenseKnownIdentity(e),bank=expenseBankOf(e)||"",acc=String(e.obAcc||""),ref=String(e.extId||"");
+  if(!known&&!isExpenseUuid(e.id))return "";
+  return "expense-rename|"+encodeURIComponent(JSON.stringify([bank,acc,ref,known?"":e.id]))+"|"+keyOfExpense(e);
+}
 function expenseUnknownDeletionMatches(e,delSet){
   if(expenseKnownIdentity(e)||isManualExpenseSource(e&&e.source))return false;
   const index=obAbsorptionIndex(delSet).scoped;
@@ -4854,7 +4862,8 @@ function expenseIsTombstoned(e, delSet){
   if(confirmed&&obConfirmedMatches(e,confirmed.list,confirmed.owner))return true;
   if(obAbsorptionMatches(e,delSet))return true;
   const k=keyOfExpense(e);
-  if(delSet[expenseDeletionKey(e)]||delSet[k]||expenseUnknownDeletionMatches(e,delSet)) return true;
+  const rename=expenseRenameKey(e);
+  if(delSet[expenseDeletionKey(e)]||delSet[k]||(rename&&delSet[rename])||expenseUnknownDeletionMatches(e,delSet)) return true;
   // Otro móvil pudo borrar antes del renombrado. Solo la lápida de cuenta distingue
   // ese borrado de la clave antigua que el propio renombrado deja al editar.
   if(e&&e.obName!=null&&e.obName!==e.merchant&&!isManualExpenseSource(e.source)){
@@ -5480,6 +5489,11 @@ function lapidasAlEditar(s, keyOrig, keyUpd, ahora){
   const pon=lapidaPon(s, keyOrig, ahora);
   return pon.deleted.indexOf(keyUpd)<0 ? pon : lapidaLevanta(Object.assign({}, s, pon), keyUpd, ahora);
 }
+function lapidasAlRenombrar(s,orig,upd){
+  if(!esFilaDeBanco(orig))return lapidasAlEditar(s,keyOfExpense(orig),keyOfExpense(upd));
+  const before=expenseRenameKey(orig),after=expenseRenameKey(upd);
+  return before&&after&&before!==after?lapidasAlEditar(s,before,after):{};
+}
 /* LA NUBE AL EDITAR UN GASTO: EL ALTA ESPERA AL BORRADO, Y CADA EDICIÓN A LA ANTERIOR
    (13/10/2026). La fila corregida conserva su id: lanzadas a la vez, si el alta llegaba antes
    que el borrado chocaba con la fila vieja por la clave primaria (el `23505` de `addExpense`
@@ -5557,7 +5571,7 @@ function expenseRenameAck(s,orig,intent,ack){
     if(!e.notePending&&(e.noteEditAt||0)===(orig.noteEditAt||0)&&e.note===orig.note&&ack.nota_edit){after.note=ack.nota||undefined;after.noteEdited=true;}
     return after;
   });
-  return before?rekeyFixedPaymentExpense(Object.assign({},s,{expenses:rows},lapidasAlEditar(s,keyOfExpense(before),keyOfExpense(after))),before,after):s;
+  return before?rekeyFixedPaymentExpense(Object.assign({},s,{expenses:rows},lapidasAlRenombrar(s,before,after)),before,after):s;
 }
 // → {deleted[, deletedAt]}. La lista local, tal cual, si la nube no aporta nada: la leen los `useMemo`.
 function lapidasUnion(local, nube){
@@ -6363,7 +6377,8 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
   const manual=isManualExpenseSource(local.source);
   let out=local;
   const preserved=local.uuidPreserved||{};
-  const protects=function(k){return Object.prototype.hasOwnProperty.call(preserved,k)&&preserved[k]===local[k]&&incoming[k]!==local[k];};
+  const editPending=local.expenseEditPending||{};
+  const protects=function(k){return incoming[k]!==local[k]&&((Object.prototype.hasOwnProperty.call(preserved,k)&&preserved[k]===local[k])||(Object.prototype.hasOwnProperty.call(editPending,k)&&editPending[k]===local[k]));};
   const put=function(k,v){
     const a=local[k], b=v;
     if(a===b) return;
@@ -6434,6 +6449,15 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
     if(out===local)out=Object.assign({},local);
     const rest=Object.assign({},preserved);confirmed.forEach(function(k){delete rest[k];});
     if(Object.keys(rest).length)out.uuidPreserved=rest;else delete out.uuidPreserved;
+  }
+  // Una coincidencia semántica con otro UUID no es el recibo de esta escritura de ficha.
+  // keepCategoryChoices puede sintetizar categoría desde catStale o una regla aprendida:
+  // esa protección no es un eco remoto. Los otros campos se confirman por separado.
+  const editConfirmed=local.id&&local.id===incoming.id?Object.keys(editPending).filter(function(k){return editPending[k]===local[k]&&incoming[k]===editPending[k]&&(k!=="category"||(!local.catStale&&!incoming.catStale));}):[];
+  if(editConfirmed.length){
+    if(out===local)out=Object.assign({},local);
+    const rest=Object.assign({},editPending);editConfirmed.forEach(function(k){delete rest[k];});
+    if(Object.keys(rest).length)out.expenseEditPending=rest;else delete out.expenseEditPending;
   }
   /* NO realinear `id` aquí: settings.expenseOrder indexa por id local, y en OB el uuid de la
      nube suele diferir (ignoreDuplicates). Cambiarlo huérfana el orden a mano (4.19.74). Tanda
@@ -13621,13 +13645,19 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       set(function(s){return expenseRenameDraft(s,orig,merch,at);});
       return;
     }
-    // La lápida de cuenta significa borrado: al cambiar solo el nombre ocultaría
-    // también la fila renombrada por su obName. Como FIN04, usar ambas claves sin ámbito
-    // permite además levantar la vieja al volver al nombre original.
+    // El alias de nombre distingue esta versión de un borrado; una clave global
+    // ocultaba otra cuenta y una lápida de cuenta ocultaba también la propia por obName.
     const soloNombreBanco=esDeBanco&&upd.obName!=null&&merch!==(orig.merchant||"")&&signed===orig.amount&&newDay===origDay;
+    // La ficha también decide ingreso/no tarjeta: el eco del nombre no confirma esos campos.
+    // El pendiente nace de esta decisión real y sobrevive a otra edición y al reinicio.
+    if(soloNombreBanco){
+      const pending=Object.assign({},orig.expenseEditPending);
+      ["category","noCard"].forEach(function(k){if(upd[k]!==orig[k])pending[k]=upd[k];});
+      if(Object.keys(pending).length)upd.expenseEditPending=pending;
+    }
     set(function(s){ return rekeyFixedPaymentExpense(Object.assign({},s,{
       expenses:s.expenses.map(function(x){ return x.id===orig.id?upd:x; })
-    },lapidasAlEditar(s, soloNombreBanco?keyOfExpense(orig):expenseDeletionKey(orig), soloNombreBanco?keyOfExpense(upd):expenseDeletionKey(upd))),orig,upd); });
+    },soloNombreBanco?lapidasAlRenombrar(s,orig,upd):lapidasAlEditar(s,expenseDeletionKey(orig),expenseDeletionKey(upd))),orig,upd); });
     // Borrado y alta en la nube, en orden y detrás de la edición anterior (`subeEdicionesDeGasto`).
     if(cloud.enabled()){ editCola.current.pend.push({orig:orig, upd:upd}); subeEdicionesDeGasto(editCola.current); }
     sincroniza(upd); showToast(t(splitByEdit?"g_auto_edit_separated":"g_edited"));
@@ -20233,7 +20263,7 @@ function importObExpenses(s, txs, links){
      (29,90 → 59,80). Mismo criterio que `histCandLapidas`. */
   const cubierta=function(g, n){
     const suf=n>1 ? "|#"+n : "",row=Object.assign({},g.expense,{obOrd:n}),key=expenseDeletionKey(row);
-    return !!(hasKey(row) || delSet[key] || delSet[g.scoped+suf] || delSet[g.base+suf] || vinculado[key] || vinculado[g.scoped+suf] || vinculado[g.base+suf]);
+    return !!(hasKey(row) || delSet[expenseRenameKey(row)] || delSet[key] || delSet[g.scoped+suf] || delSet[g.base+suf] || vinculado[key] || vinculado[g.scoped+suf] || vinculado[g.base+suf]);
   };
   /* Lápida de «es el mismo» dejada por una versión SIN `gemelos`: su aviso sigue sin marcar. Solo
      puede ser la ranura 1 (aquella versión no conocía ordinales) y solo si ningún vínculo la
@@ -26802,7 +26832,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="bbc0b0de6ec10626f51df3d3793f9174510ec33554a960be07f4f1400384d4fb";
+var _rnSha="9d33ca61a9b5fdcc414de76e5a97dc27cb34c87689f96a23b56e30911098e680";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -31774,10 +31804,27 @@ function App(){
       // Esto garantiza que la tabla sea la fuente de verdad COMPLETA antes de dejar de duplicar
       // los gastos en app_state (ver slimForCloud). Upsert idempotente (ignoreDuplicates).
       const tableKeys={}; incoming.forEach(function(e){ tableKeys[keyOfExpense(e)]=1; });
+      // Una versión retirada del nombre sigue siendo una fila remota real del mismo titular.
+      // La cobertura no presume banco/cuenta/referencia ni acepta importes no finitos.
+      const tableRenames=Object.create(null);
+      const renameCoverageKey=function(e){
+        if(!e||!isExpenseUuid(e.id)||typeof e.amount!=="number"||!Number.isFinite(e.amount)||e.amount===0||
+          !expenseKnownIdentity(e)||typeof e.obAcc!=="string"||!e.obAcc.trim()||typeof e.extId!=="string"||!e.extId.trim())return "";
+        const key=expenseRenameKey(e);
+        // Misma normalización canónica de ordinal que el lector, no identidad literal de un inválido.
+        return key?JSON.stringify([e.id,key.split("|")[1],String(e.date),e.amount,obOrdinalOf(e)]):"";
+      };
+      if(delSet&&readProof.valid&&readProof.userId===readOwner&&sessionRef.current===readSession&&stateRef.current._historyOwner===readOwner){
+        (Array.isArray(rows)?rows:[]).forEach(function(raw){
+          if(!raw||raw.user_id!==readOwner||!isExpenseUuid(raw.id))return;
+          const e=expenseFromRow(raw),key=expenseRenameKey(e),coverage=renameCoverageKey(e);
+          if(key&&delSet[key]&&coverage)tableRenames[coverage]=1;
+        });
+      }
       // Una fila local con lápida nunca vuelve en `incoming` (se filtra arriba), así que sin esta
       // comprobación se resubía en CADA pull como «huérfana» (revisión 12/10/2026): él ya dijo que
       // ese apunte no cuenta, y la tabla no tiene que volver a verlo.
-      (stateRef.current.expenses||[]).forEach(function(e){ if(e.amount!==0 && !tableKeys[keyOfExpense(e)] && !expenseIsTombstoned(e, delSet)) subirGasto(e, "backfill"); });
+      (stateRef.current.expenses||[]).forEach(function(e){ if(e.amount!==0 && !tableKeys[keyOfExpense(e)] && !tableRenames[renameCoverageKey(e)] && !expenseIsTombstoned(e, delSet)) subirGasto(e, "backfill"); });
       /* AQUÍ NO VA UN REPASO QUE RE-MARQUE LOS POSIBLES REPETIDOS VIEJOS (B09-D, 2026-09-08).
          Lo escribí y lo retiré: `addExpense` va con ignoreDuplicates y nunca cambia el `source` de
          una fila ya presente, así que los pendientes anteriores a esta versión siguen contando en

@@ -1,5 +1,52 @@
 [
   {
+    "v": "4.26.191",
+    "d": "2026-10-28",
+    "t": {
+      "es": "Renombrar un gasto ya no esconde otro",
+      "en": "Renaming an expense no longer hides another",
+      "ca": "Reanomenar una despesa ja no n’amaga una altra"
+    },
+    "items": {
+      "es": [
+        "Si cambias el nombre de un gasto del banco, ya no desaparece otro gasto igual de otro banco ni se descuadran las cifras."
+      ],
+      "en": [
+        "If you rename a bank expense, an identical expense from another bank no longer disappears and your totals stay right."
+      ],
+      "ca": [
+        "Si canvies el nom d’una despesa del banc, ja no desapareix una altra despesa igual d’un altre banc i les xifres no es descaden."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "gastos-renombrar-otro-banco",
+        "t": {
+          "es": "Gastos: renombrar no esconde otro gasto",
+          "en": "Spending: renaming doesn’t hide another expense",
+          "ca": "Despeses: reanomenar no n’amaga una altra"
+        },
+        "items": {
+          "es": [
+            "1. Gastos → busca un movimiento del banco → tócalo → toca su nombre, escribe otro y cierra la ficha. BIEN: el movimiento sale con el nombre nuevo, el importe no cambia y no aparece repetido; si ese día había otro gasto igual de otro banco, sigue en la lista. MAL: desaparece el otro gasto, sale uno de más o el total del día cambia.",
+            "2. Mira el total de Gastos y el de Inicio antes y después de renombrar. BIEN: no se mueven (solo cambia el nombre). MAL: baja o sube el importe de «Este mes».",
+            "3. Cierra la app del todo, ábrela de nuevo y vuelve a ponerle su nombre de antes. BIEN: el movimiento sigue una sola vez, con las mismas cifras de antes, y el otro gasto igual sigue ahí. MAL: reaparece repetido, o desaparece alguno."
+          ],
+          "en": [
+            "1. Spending → find a bank transaction → tap it → tap its name, type another one and close the sheet. RIGHT: it shows with the new name, the amount does not change and it does not show up twice; if that day had an identical expense from another bank, it is still in the list. WRONG: the other expense disappears, an extra one shows up or the day total changes.",
+            "2. Look at the Spending total and the Home one before and after renaming. RIGHT: they do not move (only the name changes). WRONG: the \"This month\" amount goes down or up.",
+            "3. Close the app completely, open it again and put its old name back. RIGHT: the transaction stays once, with the same figures as before, and the identical expense is still there. WRONG: it comes back twice, or one disappears."
+          ],
+          "ca": [
+            "1. Despeses → busca un moviment del banc → toca’l → toca el seu nom, escriu-ne un altre i tanca la fitxa. BÉ: el moviment surt amb el nom nou, l’import no canvia i no apareix repetit; si aquell dia hi havia una altra despesa igual d’un altre banc, continua a la llista. MALAMENT: desapareix l’altra despesa, en surt una de més o el total del dia canvia.",
+            "2. Mira el total de Despeses i el d’Inici abans i després de reanomenar. BÉ: no es mouen (només canvia el nom). MALAMENT: l’import d’«Aquest mes» puja o baixa.",
+            "3. Tanca l’app del tot, torna-la a obrir i posa-li el nom d’abans. BÉ: el moviment continua una sola vegada, amb les mateixes xifres d’abans, i l’altra despesa igual hi és. MALAMENT: reapareix repetit, o desapareix algun."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.190",
     "d": "2026-10-28",
     "t": {
@@ -18,33 +65,7 @@
         "Rebuts: ara pots pausar un rebut (aquest mes o fins quan diguis), deixar un avís per a demà i t’avisa si un rebut ha pujat, s’ha cobrat diferent o fa mesos que no es cobra."
       ]
     },
-    "tandas": [
-      {
-        "id": "plan-recibos-v6-t2",
-        "t": {
-          "es": "Plan: pausar y posponer recibos",
-          "en": "Plan: pause and postpone bills",
-          "ca": "Pla: pausar i ajornar rebuts"
-        },
-        "items": {
-          "es": [
-            "1. Plan → Recibos → toca un recibo de «Pendiente» → Pausar → «Solo este mes». BIEN: «Queda por pagar» baja justo su importe y el recibo sale tachado en «Ya pagados» con «este mes no»; al tocarlo vuelve a Pendiente y la cifra vuelve a la de antes. MAL: la cifra no baja o baja otra cantidad.",
-            "2. Plan → Recibos → «Ya pagados» → toca un recibo pagado → Pausar → «Hasta …». BIEN: no aparece «Solo este mes», el recibo sigue en «Ya pagados» y la cifra no cambia; en Todos sale «pausado hasta …». MAL: desaparece de «Ya pagados» o cambia la cifra.",
-            "3. Plan → Recibos → «Para revisar» (si sale algo) → toca un aviso → «Recuérdamelo mañana». BIEN: sale de «Para revisar», aparece en «Pendiente» o «Ya pagados» y abajo «Deshacer» lo devuelve. MAL: desaparece de todas las secciones o la cifra cambia."
-          ],
-          "en": [
-            "1. Plan → Bills → tap a bill in \"Pending\" → Pause → \"This month only\". RIGHT: \"Still to pay\" drops by exactly its amount and the bill shows struck through in \"Already paid\" with \"not this month\"; tapping it puts it back in Pending and the figure goes back to what it was. WRONG: the figure does not drop or drops by another amount.",
-            "2. Plan → Bills → \"Already paid\" → tap a paid bill → Pause → \"Until …\". RIGHT: \"This month only\" is not offered, the bill stays in \"Already paid\" and the figure does not change; in All it shows \"paused until …\". WRONG: it disappears from \"Already paid\" or the figure changes.",
-            "3. Plan → Bills → \"To review\" (if anything shows) → tap an alert → \"Remind me tomorrow\". RIGHT: it leaves \"To review\", shows up in \"Pending\" or \"Already paid\" and \"Undo\" at the bottom brings it back. WRONG: it vanishes from every section or the figure changes."
-          ],
-          "ca": [
-            "1. Pla → Rebuts → toca un rebut de «Pendent» → Pausar → «Només aquest mes». BÉ: «Queda per pagar» baixa just el seu import i el rebut surt ratllat a «Ja pagats» amb «aquest mes no»; en tocar-lo torna a Pendent i la xifra torna a la d’abans. MALAMENT: la xifra no baixa o baixa una altra quantitat.",
-            "2. Pla → Rebuts → «Ja pagats» → toca un rebut pagat → Pausar → «Fins …». BÉ: no apareix «Només aquest mes», el rebut continua a «Ja pagats» i la xifra no canvia; a Tots surt «pausat fins …». MALAMENT: desapareix de «Ja pagats» o canvia la xifra.",
-            "3. Pla → Rebuts → «Per revisar» (si surt res) → toca un avís → «Recorda-m'ho demà». BÉ: surt de «Per revisar», apareix a «Pendent» o «Ja pagats» i a baix «Desfer» el torna. MALAMENT: desapareix de totes les seccions o canvia la xifra."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.189",
