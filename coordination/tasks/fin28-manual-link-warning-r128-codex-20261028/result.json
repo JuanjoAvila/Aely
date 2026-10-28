@@ -1,0 +1,73 @@
+{
+  "status": "done",
+  "summary": "FIN28 implementado y entregado en PR324 DRAFT contra beta, HEAD293b323de52a2a228811be532ceba01b0e062f93 exacto con GO ROOT129 e independiente. Aviso solo al enlace manual hacia OTRO recibo seleccionable, BOOK acreditante mismo banco y centimos a cuatro dias o menos; segundo toque Es otro pago, aviso vivo antes de guardar, historial y guardas anteriores intactos. Integracion pendiente por conflictos con beta actual.",
+  "tests": [
+    {
+      "command": "Playwright FIN28 directed spec; private configuration and output arguments omitted",
+      "spec": "e2e/fin28-manual-link-warning.spec.mjs",
+      "exitCode": 0,
+      "passed": 15,
+      "workers": 1,
+      "retries": 0,
+      "skipped": 0,
+      "flaky": 0,
+      "singleRun": true,
+      "HTMLSHA256": "2cc7aa8b58624da0964cb1ec86f6b1a14600af61842b61c6a6e0c3bcbfe7824b"
+    },
+    {
+      "command": "node tests/recibo-un-cargo-un-recibo.test.mjs",
+      "exitCode": 0,
+      "checks": 17
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/i18n-keys.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "293b323de52a2a228811be532ceba01b0e062f93",
+  "pullRequest": 324,
+  "baseBranch": "beta",
+  "draft": true,
+  "normalPushVerified": true,
+  "scopeFiles": 7,
+  "ROOTGO": "d52645929c0757c4da8f21a6fe3d13105ba4fc8f",
+  "independentReview": "GO exact293b323de52a2a228811be532ceba01b0e062f93",
+  "limits": {
+    "ProductREADY": false,
+    "generalCIProven": false,
+    "servedBetaVerified": false,
+    "physicalMobileAcceptance": false
+  },
+  "limitations": [
+    "PR324 reports mergeable CONFLICTING and mergeStateStatus DIRTY against beta251da4af95257fa204a021ec49de43519e61efeb; integration and conflict resolution remain coordinator owned, no merge or rebase performed.",
+    "General CI, served beta and physical mobile acceptance unproven.",
+    "Local synthetic evidence only; existing links, money and BOOK arrivals after existing links retain prior contracts.",
+    "Prior causal failures, intermediate regressions and NO-GO73 preserved privately."
+  ],
+  "ownBudget": {
+    "id": "fin28r128-own20-fda31257-0494",
+    "allowance": 20,
+    "usedActual": 9,
+    "noInheritance": true
+  },
+  "resources": {
+    "allRunsReturned": true,
+    "port18431Released": true,
+    "noActiveSubagents": true,
+    "noForeignProcessesOrLocksChanged": true
+  },
+  "schema": 1,
+  "taskId": "fin28-manual-link-warning-r128-codex-20261028",
+  "actor": "codex",
+  "sessionId": "codex-local-20261028-fin28r128-fda31257-0494-4a0e-a26c-0305958b8ed0",
+  "createdAt": "2026-10-28T22:06:03.015Z",
+  "released": true
+}
