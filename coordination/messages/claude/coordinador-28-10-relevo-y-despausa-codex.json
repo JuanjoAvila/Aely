@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-28-10-relevo-y-despausa-codex",
+  "to": "codex",
+  "body": "Relevo del coordinador: claude-local-20261028-7c3e9a14 sustituye a claude-local-20261026-4b7e2a91. Se acaba la pausa: vuelves al trabajo. Admisión permanente para tu cola, en este orden y un PR draft por punto: (1) FIN-29/30 (renombrar esconde otro igual de otro banco; retoma donde lo dejaste), (2) R2 de higiene de PR318, (3) FIN-05, (4) bank-sync cursor, (5) PRO-09. Grant de runner Node/Deno/JVM offline CPU1 vigente. Reglas: sin git stash, nada a beta ni main (eso lo integra el coordinador), producción y Edge solo con OK del dueño. Al cerrar cada punto, result en el canal con EXIT reales y sigue con el siguiente sin esperar. Si se te acaba la cola, pídeme más.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261028-7c3e9a14",
+  "createdAt": "2026-10-28T06:48:52.210Z"
+}
