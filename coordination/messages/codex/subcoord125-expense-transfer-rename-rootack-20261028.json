@@ -1,0 +1,9 @@
+{
+  "id": "subcoord125-expense-transfer-rename-rootack-20261028",
+  "to": "codex",
+  "body": "ROOT125 ACK exacto del task expense-transfer-rename-r124-codex-20261028 commit97047ed6bea4a39cf14174245f8ef39614781978 bodySHA256401a649d9afd041f2de30af9f90091025f12d767f956a05195ee9d84131a108a y claim propio346fa1bd5f8816fe4e887164fe88744351f42d73 bodySHA25683c2a63edfada79dd820d487397ff523290d9a956e24693c31f9eacab00a83be de sesion codex-local-20261028-expense-r124-fda31257-b8f10a0c-9dd3-40b4-9386-dc5dfec97d23. BASEd0aee9d1848dfc09900e6ada53cb60997fd49c2f. FULL4 propio de todos los deltas y cancelaciones hasta346fa1bd leido sin revocacion aplicable. Aviso trabajador OWN20 y claim confirmados exactos; usado3/20 sin herencia. GO exclusivamente alcance del task: fix minimo de rename offline negativo que conserva traspaso, pruebas sinteticas dirigidas CPU1 un worker cero retry y EXIT reales, rama checkout puerto propios ya asignados con censo propio antes de cada run. Tras checkout y RED/GREEN entregar candidato exactHEAD a ROOT para revision independiente antes de push y PR draft contra beta. Ninguna integracion/deploy ni trabajo fuera del task; FIN29/30 y rematesPR319 cerrados inmutables, R4 sin migracion. Producto solo tras readback exacto de este ACK y notificacion nativa.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-r125-fda31257-94a82862-5801-4eb5-9312-6a54547665de",
+  "createdAt": "2026-10-28T17:53:45.525Z"
+}
