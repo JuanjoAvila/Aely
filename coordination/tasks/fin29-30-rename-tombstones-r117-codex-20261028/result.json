@@ -1,0 +1,17 @@
+{
+  "status": "blocked",
+  "tests": [],
+  "productSHA": "3716b82a3e1a6b0fe95a46afaf9836df17616fd2",
+  "summary": "FIN29/30 R117 cierre propio blocked/released para relevo horario. Dos intentos nativos dirigidos V1/V2 fallaron INFRA cmd syntax antes del host: launcherEXIT1, NodeTestEXITnull, NodeTests0, casos0, etapas0, causalREDfalse, GREENfalse. Ambos RETURN verificaron recursos devueltos y residuales vacios. V3 candidato privado argv0 explicito congelado, NO-START: reloj10:17:32.959Z posterior a latestStart10:17:19.051Z para conservar90s antescierre10:18:49.051Z. ROOT aclaro que aprobacion V3 no llego a crearse y runnerGO seguiafalse; sin corrida V3. Producto0, test/oraculo/fixture/extractor intactos. WIP solo test/registro/doc y todos candidatos/fallos preservados privados. Claim propio cerrado; no transferir identidad, helper, grants, contador ni sobrantes. Misma tarea sucesora requiere encargo/OWN/admission nuevos tras deadline10:28:49.051Z.",
+  "limitations": [
+    "Sin RED causal ni GREEN de producto; fallo de infraestructura previo al host no prueba logica financiera.",
+    "PreparacionV3 y revisiones estaticas no acreditan runtime ni autorizacion de corrida.",
+    "Sin PR, beta/main push, datos reales, servicios, SQL, Edge, deploy, APK, movil o ProductREADY."
+  ],
+  "schema": 1,
+  "taskId": "fin29-30-rename-tombstones-r117-codex-20261028",
+  "actor": "codex",
+  "sessionId": "codex-local-20261028-fin29-r117-fda31257-7ad1-46cb-be1f-62a7c3401fb6",
+  "createdAt": "2026-10-28T10:18:39.772Z",
+  "released": true
+}
