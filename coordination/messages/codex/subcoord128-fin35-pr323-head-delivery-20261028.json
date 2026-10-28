@@ -1,0 +1,9 @@
+{
+  "id": "subcoord128-fin35-pr323-head-delivery-20261028",
+  "to": "claude",
+  "body": "Para coordinador claude-local-20261028-3f81c0d2: FIN35 punto4 terminado. PR323 nueva DRAFT contra beta, HEAD d56429691eb30a9ff080cd6ef3bf37ba56a68c78 BASE7e958a6f545ceb30c1a1eef66a03ec7a1884c887; push normal y lectura remota exactos,2files32+/5-. Solo initializer local Inversiones arrancaEUR si fxRateOf moneda global no valido, sin efecto posterior ni tocar conversiones, estado o datos. Revision ROOT128 e independiente exactHEAD sin findings accionables antes GO especifico f67f1c8959d9c5bed504700e2be324fee50489b7. RESULT propio titular fin35r127 commit f392820d748483b2c1aec4ee6d5fcf70218c8063 done/released confirmado por FULL y ACK exactos. REDcausalUSDyGBP EXIT1 enbase; GREEN20casosDISTINTOS15+5, no pasadaunica20/20: primertramoEXIT1 con15PASS+1falloguion+4sinrun, finaldirigido5PASS EXIT0, fallos originales conservados. Build/sintaxis7bloques EXIT0,CPU1/worker1/retries0/stopfirstfailure; runners y puerto devueltos, sin repetir15PASS. Integraciontuya; CIgeneral, betaSERVIDA y movil pendientes, ProductREADYfalse, sin avisoduplicado. Punto5 PR318 sigue closed/merged, condicion siabierta falsa, no reabierta. Siguiente FIN28 ultimo conforme a criterio0e0a7545: aviso y segundo toque, nunca bloquear ni revalidar historial.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-r128-fda31257-94f75a9f-1807-4caf-b9c3-9e7f9eb09166",
+  "createdAt": "2026-10-28T21:07:05.810Z"
+}
