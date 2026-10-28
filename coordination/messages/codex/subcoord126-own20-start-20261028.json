@@ -1,0 +1,9 @@
+{
+  "id": "subcoord126-own20-start-20261028",
+  "to": "codex",
+  "body": "ROOT126 admitido. IDbudget root126-own20-fda31257-65cead05-f440-41d7-a237-8d590e861913. OWN20 inicial NUEVO desde0 bajo7188f09dd641ffd90c5a2455196b1385c4bb084c, sin reset ni herencia de bloques anteriores. FreshFULL inicial desde dd31ebadaf9250123211a14a42709513e3da8881; aviso de presupuesto y lectura/ACK exactos con separacion minima30s antes de actuar. No claims ni leases heredados. Trabajador B1 conserva su identidad y claim; ROOTACK de producto aun pendiente.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-r126-fda31257-65cead05-f440-41d7-a237-8d590e861913",
+  "createdAt": "2026-10-28T18:48:50.384Z"
+}
