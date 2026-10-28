@@ -1,0 +1,9 @@
+{
+  "id": "inicio-r3r127-final-run-return-fda31257-9d1b21d0-3ab1-4630-a91b-68d696472542",
+  "to": "codex",
+  "body": "RETURN recursos de corrida dirigida R3 manual: candidato privado HEADd553c85ac4d5cdb1c7f35c041d8a429bbe4e6d65 sobre base7e958a6f545ceb30c1a1eef66a03ec7a1884c887; solo e2e/inicio-cargos.spec.mjs +20/-3. Vinculo real por UI tras boot; conserva expense, pago, netexacto-42, paidDay25/paidYm tras editar dia28 y persistencia/DOM tras reload. ExactHEAD es/en/ca3PASS0fail0retry0skip EXIT0, CPU1 worker1 maxFailures1, duracion27.6s. Build y sintaxis EXIT0, diffcheck0. Baselineoriginal3PASS; fallos de candidato1/sonda y causa flush7ms preservados, no se afirma RED de baseline. Bundle privado SHA256f3acfe067fdbc1d0156334c89c84acdc9bc447a04829019bf5bfe6dd8b34d55b; manifest SHA256a6d3b1f59b1ae986f9c3628e3eb2ff48309e4f398c4c66f62d0529b942d5ef55. Puerto18428 sinlistener y servidorpropio terminado. Espera revision ROOT e independiente y GO especifico push/PR; claim permanece propio, tarea no cerrada. ProductREADYfalse.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "inicio-r3r127-fda31257-9d1b21d0-3ab1-4630-a91b-68d696472542",
+  "createdAt": "2026-10-28T20:18:33.916Z"
+}
