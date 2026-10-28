@@ -1,0 +1,131 @@
+{
+  "status": "done",
+  "summary": "Renombrar offline un negativo conserva categoria traspaso e importe firmado. HEAD exacto revisado ROOT e independiente, push normal confirmado y PR320 draft contra beta creada; sin integracion ni ProductREADY.",
+  "productSHA": "1120902f91ae9c9c653f3b76231c34c26c6d20e2",
+  "baseSHA": "d0aee9d1848dfc09900e6ada53cb60997fd49c2f",
+  "pullRequest": 320,
+  "draft": true,
+  "headBranch": "codex/expense-transfer-rename-r125-20261028",
+  "targetBranch": "beta",
+  "reviewGO": "f3563fb9f9ed7cd4ffd714b3e3963820bc0bb828",
+  "legacyTestScopeGrant": "5666b3b830357c8cd5e5cf716fce2d3db3f765fa",
+  "tests": [
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "build-base2",
+      "commandPathsSanitized": false,
+      "outcome": "PASS"
+    },
+    {
+      "command": "node --test --test-concurrency=1 \"--test-name-pattern=negativo offline.*: ob$\" tests/expense-transfer-rename.test.mjs",
+      "exitCode": 1,
+      "phase": "red-node",
+      "commandPathsSanitized": false,
+      "outcome": "RED real de categoria sobre base; actual ingreso frente a traspaso"
+    },
+    {
+      "command": "node --test --test-concurrency=1 \"--test-name-pattern=incoming-transfer offline\" tests/fin19-r8-ficha-income.test.mjs",
+      "exitCode": 1,
+      "phase": "red-legacy",
+      "commandPathsSanitized": false,
+      "outcome": "RED real de categoria sobre base; actual ingreso frente a traspaso"
+    },
+    {
+      "command": "node node_modules/@playwright/test/cli.js test --config=<config-privada-propia> --workers=1 --retries=0 --max-failures=1",
+      "exitCode": 1,
+      "phase": "red-e2e",
+      "commandPathsSanitized": true,
+      "outcome": "RED real de categoria sobre base; actual ingreso frente a traspaso"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "build-green",
+      "commandPathsSanitized": false,
+      "outcome": "PASS"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/expense-transfer-rename.test.mjs",
+      "exitCode": 0,
+      "phase": "green-node",
+      "commandPathsSanitized": false,
+      "outcome": "PASS"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r8-ficha-income.test.mjs",
+      "exitCode": 0,
+      "phase": "green-legacy",
+      "commandPathsSanitized": false,
+      "outcome": "PASS"
+    },
+    {
+      "command": "node node_modules/@playwright/test/cli.js test --config=<config-privada-propia> --workers=1 --retries=0 --max-failures=1",
+      "exitCode": 0,
+      "phase": "green-e2e",
+      "commandPathsSanitized": true,
+      "outcome": "PASS"
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "phase": "syntax",
+      "commandPathsSanitized": false,
+      "outcome": "PASS"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "phase": "test-map",
+      "commandPathsSanitized": false,
+      "outcome": "PASS"
+    }
+  ],
+  "greenCounts": {
+    "newNode": 5,
+    "legacyNode": 6,
+    "e2e": 1
+  },
+  "preserved": [
+    "signed cents",
+    "selected transfer category",
+    "bank name obName",
+    "note",
+    "noCard existing contract",
+    "tombstones",
+    "six legacy scenarios and full row assertions"
+  ],
+  "normalPushVerified": true,
+  "remoteHeadExact": true,
+  "workingTreeClean": true,
+  "resourcesReturned": {
+    "CPU1Runner": true,
+    "browser": true,
+    "server": true,
+    "port": 18425,
+    "ownProcessesRemaining": 0,
+    "listenersRemaining": 0,
+    "ownRunLockAbsent": true,
+    "foreignProcessesTouched": false,
+    "worktreeAndBranchPreserved": true
+  },
+  "ownBudget": {
+    "id": "expense-transfer-rename-own20-b1-fda31257-b8f10a0c",
+    "allowance": 20,
+    "usedActualAtPublication": 8,
+    "noResetOrInheritance": true
+  },
+  "limitations": [
+    "Suite completa y CI general remota no acreditadas",
+    "Sin integracion ni beta servida ni aceptacion fisica movil",
+    "API de PR devuelve mergeable false frente a beta7e958a6f545ceb30c1a1eef66a03ec7a1884c887; integracion reservada a Claude",
+    "Comandos e2e publicos ocultan solo la ruta de config privada; comando real completo conservado en evidencia privada"
+  ],
+  "ProductREADY": false,
+  "schema": 1,
+  "taskId": "expense-transfer-rename-r124-codex-20261028",
+  "actor": "codex",
+  "sessionId": "codex-local-20261028-expense-r124-fda31257-b8f10a0c-9dd3-40b4-9386-dc5dfec97d23",
+  "createdAt": "2026-10-28T18:11:43.471Z",
+  "released": true
+}
