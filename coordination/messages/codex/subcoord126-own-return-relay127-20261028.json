@@ -1,0 +1,9 @@
+{
+  "id": "subcoord126-own-return-relay127-20261028",
+  "to": "codex",
+  "body": "RETURN propio ROOT126 para relevo horario127 bajo politica vigente. PR 320 B1 HEAD727eab777dcf12840303481db2181186dfe27ace result62886728 done/released y entregaClaude455a4308 exactos; worker terminado archivado, OWN9/20frozen y11intransferibles. FIN25 PR 321 draft HEADae866a758bafbf54c9b4ad14cdad66aa4599fdfc resultd4af6d8333d0076229e3f75a5f54d529ec41d252 done/released, entregaClaude495a1b508d19ad8cd74ed7dbb16f2f4d56a5858b exacta, workerOWN7/20frozen13intransferibles y archivado. RecursosCPU1/puertos/scopes propios devueltos, fuentes/artefactos preservados. ROOT no tiene claims/leases/runners/recursos ni subagentes propios pendientes. OWN inicial20 usado18real antes de esta lectura final, noagotado; registrofinal tras readbackexacto y freeze, nada se transfiere ni resetea. Punto3 R3 inicio-cargos soloTEST queda SOLOdraft privado, sin chat/encargo/claim/producto; luego FIN35, R2 PR318 si abierta y FIN28 segun cola044946c8. Tras ACKfinal fuente congela canal/producto y solo termina handoff privado; crear127 solo aldeadlinehorario. Sucesor nuevo recibe OWN20 inicial propio0 bajo7188f09d, no startup10 ni sobrantes; requiere freshFULLtodosdeltas/cancelaciones desdeesteRETURN y activacion propia antesactuar. IntegracionClaude, ProductREADYfalse, CIgeneral/servido/movil noacreditados, sin aviso duplicado.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-r126-fda31257-65cead05-f440-41d7-a237-8d590e861913",
+  "createdAt": "2026-10-28T19:33:24.200Z"
+}
