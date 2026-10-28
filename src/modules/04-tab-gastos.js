@@ -715,9 +715,11 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
        de verdad (`admiteMarcaDe`): con el recibo movido a otro banco no vuelve. */
     const repone=!!de&&reciboNoDe(state,fixedId,reciboNoIdentidad(ex),ex.id).length>0&&admiteMarcaDe(ex,de);
     if(!f&&!repone) return;
+    const warnings=f?fixedPaymentManualLinkWarnings(state,ex,f,y,m,today):[];
+    const sub=repone?tf("f_recibo_marca",{name:de.name}):tf("f_receipt_confirm_sub",{merchant:ex.merchant,amount:eur(ex.amount),bank:entOf(expenseBankOf(ex)).label,date:fmtIsoCorto(ds),planned:entOf(accOf(f)).label,expected:eur(f.bankAmount>0?f.bankAmount:occAmountIn(f,m))});
     askConfirm({title:tf("f_receipt_confirm",{name:de.name}),
-      sub:repone?tf("f_recibo_marca",{name:de.name}):tf("f_receipt_confirm_sub",{merchant:ex.merchant,amount:eur(ex.amount),bank:entOf(expenseBankOf(ex)).label,date:fmtIsoCorto(ds),planned:entOf(accOf(f)).label,expected:eur(f.bankAmount>0?f.bankAmount:occAmountIn(f,m))}),
-      ok:t("f_receipt_yes")}).then(function(yes){ if(yes) save(); });
+      sub:warnings.length?React.createElement("span",null,sub,React.createElement("span",{style:{display:"block"},"data-testid":"receipt-manual-link-warning"},warnings.map(function(w){ return tf("f_receipt_possible_same",{name:w.name,date:fmtIsoCorto(w.date)}); }).join(" · "))):sub,
+      ok:t(warnings.length?"f_receipt_other_payment":"f_receipt_yes")}).then(function(yes){ if(yes) save(); });
   };
   // Marca/desmarca un gasto como "no tarjeta" (bizum/transferencia) para que no cuente el round-up TR.
   const setCardFlag=function(ex,noCard){

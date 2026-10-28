@@ -115,4 +115,49 @@ check('a receipt paid by ANOTHER charge does not claim this one through the feed
 check('FIN-24: a refund with the same reference is not a second charge',()=>{
   const s=state();s.expenses=s.expenses.concat([{...s.expenses[0],id:'devolucion',date:'2026-10-08',amount:-29.99,category:'ingreso'}]);
   assert.equal(relation(s)&&relation(s).id,'yt');});
+// FIN28 consulta solo de aviso: las reglas de identidad y el enlace permisivo de arriba siguen iguales.
+function warningState(){const s=state();delete s.expenses[0].extId;s.expenses[0].source='wallet';return s;}
+const warnings=(s,f=s.fixed[1])=>c.fixedPaymentManualLinkWarnings(s,s.expenses[0],f,2026,10,18);
+check('FIN28: aviso de BOOK que paga otro recibo, sin mutar ni vetar',()=>{
+ const s=warningState(),before=JSON.stringify(s),money=moneyOf(s);
+ assert.equal(warnings(s).length,1);assert.equal(warnings(s)[0].receiptId,'yt');assert.equal(warnings(s)[0].name,'YouTube Premium');assert.equal(warnings(s)[0].date,'2026-10-05');
+ assert.equal(warnings(s,s.fixed[0]).length,0,'precision fec8c2cd: mismo recibo pagado conserva su guarda');
+ assert.equal(c.fixedExpenseEligible(s,s.expenses[0],s.fixed[1],2026,10,18),true);
+ assert.notEqual(c.linkFixedPayment(s,'cargo','sp',2026,10,18),s,'confirmar sigue permitido');
+ assert.equal(JSON.stringify(s),before);assert.equal(moneyOf(s),money);
+});
+check('FIN28: cuatro dias calendario en ambas direcciones, banco y centimos exactos',()=>{
+ for(const [date,count] of [['2026-10-01',1],['2026-10-09',1],['2026-09-30',0],['2026-10-10',0]]){const s=warningState();s.expenses[0].date=date;assert.equal(warnings(s).length,count,date);}
+ for(const mutate of [s=>{s.expenses[0].amount=29.98;},s=>{s.expenses[0].ent='caixabank';},s=>{s.expenses[0].extId='OTRA-REF';}]){const s=warningState();mutate(s);assert.equal(warnings(s).length,0);}
+});
+check('FIN28: fuentes manuales y avisos, referencia BOOK real y modo sin extracto',()=>{
+ for(const source of ['wallet','macrodroid','manual','manual:sabadell','', 'supabase']){const s=warningState();s.expenses[0].source=source;assert.equal(warnings(s).length,1,source);}
+ for(const source of ['ob','ob-hist','tr']){const s=warningState();s.expenses[0].source=source;assert.equal(warnings(s).length,0,source);}
+ const offline=warningState();offline.bankTx=[];assert.equal(warnings(offline).length,1,'BOOK guardado y vigente conserva su referencia');
+ const noRef=warningState();delete noRef.fixed[0].paymentProofs;delete noRef.bankTx[0].id;assert.equal(warnings(noRef).length,0,'no inventar referencia');
+ const unpaid=warningState();unpaid.fixed[0].paymentProofs={};unpaid.bankTx[0].merchant='Compra sin recibo';assert.equal(warnings(unpaid).length,0,'BOOK cercano que no acredita nada');
+});
+check('FIN28: varios BOOK acreditantes dan avisos estables, nunca reasignan identidad',()=>{
+ const s=warningState();s.fixed.push({id:'nf',name:'Netflix',amount:29.99,account:'sabadell',freq:'mes',day:4});s.bankTx.push({id:'BOOK-NF',ent:'sabadell',date:'2026-10-04',merchant:'NETFLIX',amount:29.99,status:'BOOK'});
+ const before=JSON.stringify(s),a=JSON.stringify(warnings(s));assert.equal(warnings(s).length,2);assert.equal(JSON.stringify(s),before);
+ const reversed={...s,fixed:[...s.fixed].reverse(),bankTx:[...s.bankTx].reverse()};assert.equal(JSON.stringify(warnings(reversed,s.fixed[1])),a);
+});
+check('FIN28: consulta no cambia enlaces guardados ni reabre un BOOK posterior',()=>{
+ let s=warningState();s.bankTx=[];s.fixed[0].paymentProofs={};s=c.linkFixedPayment(s,'cargo','sp',2026,10,18);const proof=JSON.stringify(s.fixed[1].paymentProofs);
+ s={...s,bankTx:[{id:REF,ent:'sabadell',date:'2026-10-05',merchant:BOOK,amount:29.99,status:'BOOK'}]};const before=JSON.stringify(s);warnings(s);assert.equal(JSON.stringify(s),before);assert.equal(JSON.stringify(s.fixed[1].paymentProofs),proof);assert.equal(paid(s).sp,true);
+});
+check('FIN28: prueba de gasto BOOK con referencia, fila nula y BOOK secundario',()=>{
+ const s=state({feed:false,proof:false}),book=s.expenses[0];book.date='2026-10-05';
+ const f=s.fixed[0];f.paymentProofs={24322:c.fixedPaymentBind({kind:'expense',key:c.fixedExpenseKey(book),identity:c.fixedPaymentIdentity('sabadell',book),expenseId:book.id,expenseKey:c.keyOfExpense(book),expenseLegacyKey:c.keyOfExpenseLegacy(book),date:book.date,bank:'sabadell',amount:29.99,model:c.fixedPaymentModel(f,10)},f,10)};
+ const wallet={id:'notice',source:'wallet',date:'2026-10-06',amount:29.99,merchant:'Cargo manual sintético',category:'otros',ent:'sabadell'};s.expenses=[wallet,null,book];
+ assert.equal(warnings(s).length,1,'la referencia viene de la fila BOOK que acredita la prueba');
+ delete book.extId;book.source='manual';s.expenses=[wallet,book];
+ f.paymentProofs={24322:c.fixedPaymentBind({kind:'expense',key:c.fixedExpenseKey(book),identity:c.fixedPaymentIdentity('sabadell',book),expenseId:book.id,expenseKey:c.keyOfExpense(book),expenseLegacyKey:c.keyOfExpenseLegacy(book),date:book.date,bank:'sabadell',amount:29.99,model:c.fixedPaymentModel(f,10)},f,10)};
+ s.bankTx=[{id:REF,ent:'sabadell',date:'2026-10-05',merchant:BOOK,amount:29.99,status:'BOOK'}];
+ assert.equal(warnings(s).length,0,'un BOOK secundario no sustituye el pago manual que acredita el recibo');
+});
+check('FIN28: BOOK de otro mes cercano, con extracto o prueba offline',()=>{
+ for(const feed of [true,false]){const s=warningState();s.expenses[0].date='2026-10-01';s.expenses[0].merchant='Cargo sin nombre';s.fixed[0].paymentProofs={24321:bookProof(s.fixed[0],'2026-09-29')};s.bankTx=feed?[{...s.bankTx[0],date:'2026-09-29'}]:[];assert.equal(warnings(s).length,1,'29 septiembre a 1 octubre, feed '+feed);}
+ const s=warningState(),book={...s.expenses[0],id:'bank-charge',extId:REF,date:'2026-09-30',source:'ob',status:'BOOK',obName:BOOK};s.expenses=[{...s.expenses[0],date:'2026-10-05',merchant:'Cargo sin nombre'},book];s.bankTx[0].date='2026-10-02';s.fixed[0].paymentProofs={24321:bookProof(s.fixed[0],'2026-10-02')};assert.equal(warnings(s).length,1,'FIN27 atribuye septiembre, aviso conserva fecha BOOK2octubre');assert.equal(warnings(s)[0].date,'2026-10-02');
+});
 console.log(checks+' checks');

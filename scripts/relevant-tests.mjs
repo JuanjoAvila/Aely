@@ -61,7 +61,7 @@ export const E2E_MAP = [
   { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/fin04-plan-three-way.spec.mjs", "e2e/deudas-ir-suave.spec.mjs"] },
   { file: "src/modules/10-app-components.js", specs: ["e2e/fin04-plan-three-way.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/fin04-plan-three-way.spec.mjs", "e2e/pr297-r2-plan-sync.spec.mjs"] },
-  { file: "src/modules/14-v4-screens.js", specs: ["e2e/fin04-plan-three-way.spec.mjs", "e2e/deudas-ir-suave.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/fin28-manual-link-warning.spec.mjs", "e2e/fin04-plan-three-way.spec.mjs", "e2e/deudas-ir-suave.spec.mjs"] },
   { file: "src/modules/06-sync-brokers.js", specs: ["e2e/fin22-cartera-divisa.spec.mjs"] },
   { file: "src/modules/10-app-components.js", specs: ["e2e/fin22-cartera-divisa.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/fin22-cartera-divisa.spec.mjs"] },
@@ -122,6 +122,7 @@ export const E2E_MAP = [
     "e2e/ultima-cuota-descartar.spec.mjs", "e2e/inicio-offline.spec.mjs", "e2e/presupuesto-fluido.spec.mjs", "e2e/inicio-mes-natural.spec.mjs", "e2e/cartera-parte-mia.spec.mjs", "e2e/cifras-coherentes.spec.mjs"] },
   { file: "src/modules/04-tab-gastos.js", specs: [
     "e2e/gastos-transfer-rename-offline.spec.mjs",
+    "e2e/fin28-manual-link-warning.spec.mjs",
     // Tocar una deuda (Recibos o la fila gris de Gastos) lleva a su tarjeta, a la vista y deslizando.
     "e2e/deudas-ir-suave.spec.mjs",
     "e2e/fin04-rename-note-ack.spec.mjs",
