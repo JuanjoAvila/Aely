@@ -310,6 +310,11 @@ function planRecibosVista(pack, proof, today){
 function planRecibosLlega(totals, pack){
   let known=0, short=0;
   Object.keys(pack.pendingByBank||{}).forEach(function(bank){
+    /* `minByBank` arranca en `bankBal[b]||0` también para un banco sin cuenta: con un recibo en
+       un banco que no tienes dado de alta salía «Falta 200 €» inventado (revisión 28/10/2026).
+       Solo cuentan los bancos con saldo de verdad, como hacía la portada anterior. */
+    const bal=totals.bankBal&&Object.prototype.hasOwnProperty.call(totals.bankBal,bank)?Number(totals.bankBal[bank]):NaN;
+    if(!isFinite(bal)) return;
     const cover=planCoverState(totals,bank,0,pack.pendingBills);
     if(!cover||typeof cover.min!=="number"||!isFinite(cover.min)) return;
     known++;
@@ -380,7 +385,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
           React.createElement("path",{d:late?"M12 7v5l3 2M12 21a9 9 0 100-18 9 9 0 000 18z":"M9.1 9a3 3 0 015.8 1c0 2-3 3-3 3M12 17h.01M12 21a9 9 0 100-18 9 9 0 000 18z"}))),
       React.createElement("span",{className:"nm"},
         React.createElement("span",{className:"pr6-nm"}, x.name,React.createElement(PlanConflictDot,{record:conflictOf(x)})),
-        React.createElement("span",{className:"sub pr6-why"}, late?t("pr6_no_llegado"):t("v4_charge_unconfirmed"))),
+        React.createElement("span",{className:"sub pr6-why"}, late?t("pr6_no_llegado"):t("pr6_sin_cargo"))),
       React.createElement("span",{className:"am num"}, eur(Math.abs(x.amount))));
   };
   const paidRow=function(x){
@@ -578,28 +583,42 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
     setElegido(x.id);
     mcTickHaptic();
     setTimeout(function(){
-      let ok=false, subir=[];
-      const expected={identity:fixedPaymentIdentity(expenseBankOf(x),x),model:fixedPaymentModel(f,m),paidYm:f.paidYm,paidDay:f.paidDay};
-      set(function(s){
-        let s2=s;
-        if(rechazo&&fila){ const u=reciboDesenlazar(s,f,fila,y,m,today); if(!u) return s; s2=u.state; if(u.e) subir.push(u.e); }
+      const visto={paidYm:f.paidYm||null,paidDay:f.paidDay||null};
+      // Pura: se ensaya sobre lo que se ve (aviso y subida) y se aplica sobre el estado vivo.
+      const enlaza=function(s){
+        const cur=(s.fixed||[]).find(function(e){ return e.id===f.id; });
+        // Otra confirmación llegó con la ficha abierta: no se escribe encima.
+        if(!cur||(cur.paidYm||null)!==visto.paidYm||(cur.paidDay||null)!==visto.paidDay) return null;
+        let s2=s; const subir=[];
+        if(rechazo&&fila){ const u=reciboDesenlazar(s,f,fila,y,m,today); if(!u) return null; s2=u.state; if(u.e) subir.push(u.e); }
+        /* La marca de pago se lee DESPUÉS de desenlazar: quitar el cargo viejo borra el `paidYm`
+           que el sync derivó de él, y con la de antes `linkFixedPayment` lo tomaba por otra
+           confirmación y rechazaba el nuevo («No se ha podido enlazar», revisión 28/10/2026). */
+        const f2=(s2.fixed||[]).find(function(e){ return e.id===f.id; });
+        const expected={identity:fixedPaymentIdentity(expenseBankOf(x),x),model:fixedPaymentModel(f,m),paidYm:f2.paidYm,paidDay:f2.paidDay};
         // Si de este cargo se dijo «no es este recibo», elegirlo lo deshace (como en Gastos).
         const r=reponerCargoDeRecibo(s2,x.id,f.id,y,m,today,expected);
         const n=r?r.state:linkFixedPayment(s2,x.id,f.id,y,m,today,expected);
-        if(n===s2) return s;
+        if(n===s2) return null;
         if(r&&r.e) subir.push(r.e);
-        ok=true; return n;
-      });
-      if(cloud.enabled()) subir.forEach(function(e){ cloud.setExpenseRecibo(e).catch(function(){}); });
-      if(showToast) showToast(ok?tf("pr6_pagado_toast",{name:row.name}):t("pr6_link_fail"));
+        return {state:n,subir:subir};
+      };
+      const prueba=enlaza(state);
+      if(prueba) set(function(s){ const r=enlaza(s); return r?r.state:s; });
+      if(prueba&&cloud.enabled()) prueba.subir.forEach(function(e){ cloud.setExpenseRecibo(e).catch(function(){}); });
+      if(showToast) showToast(prueba?tf("pr6_pagado_toast",{name:row.name}):t("pr6_link_fail"));
       swipe.close();
     },260);
   };
   const aunNo=function(){
-    let subir=null;
-    set(function(s){ const u=reciboDesenlazar(s,f,fila,y,m,today); if(!u) return s; subir=u.e; return u.state; });
-    if(subir&&cloud.enabled()) cloud.setExpenseRecibo(subir).catch(function(){});
-    if(showToast) showToast(tf("pr6_vuelve_toast",{name:row.name}));
+    const prueba=reciboDesenlazar(state,f,fila,y,m,today);
+    set(function(s){ const u=reciboDesenlazar(s,f,fila,y,m,today); return u?u.state:s; });
+    if(prueba&&prueba.e&&cloud.enabled()) cloud.setExpenseRecibo(prueba.e).catch(function(){});
+    /* El aviso dice dónde queda de verdad: con una marca de pago que el banco ya dejó (`paidYm`)
+       el recibo no vuelve a pendiente, pasa a «Para revisar» (revisión 28/10/2026). */
+    const f2=prueba&&(prueba.state.fixed||[]).find(function(e){ return e.id===f.id; });
+    const sigue=!!(f2&&fixedPaymentState(prueba.state,f2,y,m,today).paid);
+    if(showToast&&prueba) showToast(tf(sigue?"pr6_revisar_toast":"pr6_vuelve_toast",{name:row.name}));
     swipe.close();
   };
   const cargoRow=function(x){
