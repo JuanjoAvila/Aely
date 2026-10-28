@@ -196,6 +196,7 @@ const steps = [
   ["widget-inicio-paridad", ["node", "tests/widget-inicio-paridad.test.mjs"]],
   ["widget-puente-ciclo", ["node", "tests/widget-puente-ciclo.test.mjs"]],
   ["ob-renombrar", ["node", "tests/ob-renombrar.test.mjs"]],
+  ["expense-transfer-rename", ["node", "--test", "--test-concurrency=1", "tests/expense-transfer-rename.test.mjs"]],
   ["divisa-original", ["node", "tests/divisa-original.test.mjs"]],
   ["wallet-notis", ["node", "tests/wallet-notis.test.mjs"]],
   ["invest-category", ["node", "tests/invest-category.test.mjs"]],

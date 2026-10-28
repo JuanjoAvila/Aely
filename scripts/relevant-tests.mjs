@@ -120,6 +120,7 @@ export const E2E_MAP = [
     "e2e/pulido-vacios.spec.mjs","e2e/inicio-grafica-significado.spec.mjs","e2e/indicador-arco.spec.mjs", "e2e/smoke.spec.mjs", "e2e/informe-mes.spec.mjs",
     "e2e/ultima-cuota-descartar.spec.mjs", "e2e/inicio-offline.spec.mjs", "e2e/presupuesto-fluido.spec.mjs", "e2e/inicio-mes-natural.spec.mjs", "e2e/cartera-parte-mia.spec.mjs", "e2e/cifras-coherentes.spec.mjs"] },
   { file: "src/modules/04-tab-gastos.js", specs: [
+    "e2e/gastos-transfer-rename-offline.spec.mjs",
     // Tocar una deuda (Recibos o la fila gris de Gastos) lleva a su tarjeta, a la vista y deslizando.
     "e2e/deudas-ir-suave.spec.mjs",
     "e2e/fin04-rename-note-ack.spec.mjs",
