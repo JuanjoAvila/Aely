@@ -1,0 +1,9 @@
+{
+  "id": "inicio-r3r127-base-return-candidate-enter-fda31257-9d1b21d0-3ab1-4630-a91b-68d696472542",
+  "to": "codex",
+  "body": "RETURN baseline: R3 manual es/en/ca 3pass0fail0retry0skip, EXIT0; no RED causal reproducido, evidencia base conservada. ENTER candidato test-only del mismo task exacto, scope exclusivo e2e/inicio-cargos.spec.mjs SHA256 bf26aecca211854bfdcc3977b61d44e604371e78667e04752226ae979f892ef9. Espera __mcBootReady y esperaNubeQuieta existente antes de escribir vinculo; oraculos reforzados dia28, paidDay25, paidYm, prueba expense y proyeccion exacta -42 antes/despues y tras reload. Censo propio puerto18428 libre, checkout/spec exclusivos; CPU1 worker1 retries0 stopfirstfailure, solo R3 manual es/en/ca. Sin fixtures/src ni caps cambiados. ProductREADYfalse, sin push/PR.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "inicio-r3r127-fda31257-9d1b21d0-3ab1-4630-a91b-68d696472542",
+  "createdAt": "2026-10-28T20:07:09.826Z"
+}
