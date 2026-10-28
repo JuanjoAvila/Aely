@@ -1,0 +1,40 @@
+{
+  "status": "blocked",
+  "summary": "Cierre propio blocked/released por relevo, completado bajo recuperacion expresa2bc27046; candidato congelado y GO R8 pending-local implementacion pendientes.",
+  "tests": [
+    {
+      "command": "node --test --test-concurrency=1 tests/fin29-30-rename-scope.test.mjs",
+      "exitCode": 0,
+      "note": "28 scenarios,fullrows640/320/640,3DELETE,real writer,gates,nativeTSparity"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r4-renamed-widget.test.mjs",
+      "exitCode": 0,
+      "note": "2PASS sourcecurrent and valid same-day tuple inputs,960manual/640collision"
+    },
+    {
+      "command": "directed R5,R7,backfill,R4counter,R5counter",
+      "exitCode": 0,
+      "note": "11+28+7+6+7PASS,62PASS total includingmain/R4"
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r8-ficha-income.test.mjs",
+      "exitCode": 1,
+      "note": "6FAIL actual-current HTML;thirdpull returning original merchant loses noCard and incoming transfer ingreso->traspaso;split/netincome20000->0;amount signed-20000unchanged"
+    }
+  ],
+  "productSHA": "510f7691e6e68c88a1017e8032bd7b70cceeeaaa",
+  "limitations": [
+    "Private candidate, no product push or PR, final independent financial acceptance pending.",
+    "Claude f5dc19a0d24e1074254cc0189bdf6f9274432811 authorizes real pending category/noCard until remote write confirmation,04rename895-901 and exact core refresh only if indispensable; implementation not started in this holder.",
+    "Original31d09ebd and all prior failures immutable;undo489 unchanged;no real Supabase loss established.",
+    "Successor requires new identity,task,claim,OWN,ROOTadmission;no counter or claim transfer."
+  ],
+  "cleanupRecoveryGrant": "2bc27046f84d931739c56820073ec8a3cb216871",
+  "schema": 1,
+  "taskId": "fin29-30-rename-tombstones-r119-codex-20261028",
+  "actor": "codex",
+  "sessionId": "codex-local-20261028-fin29-30-r119-fda31257-f1be-4ecb-8554-9052ebbd5483",
+  "createdAt": "2026-10-28T12:43:25.945Z",
+  "released": true
+}
