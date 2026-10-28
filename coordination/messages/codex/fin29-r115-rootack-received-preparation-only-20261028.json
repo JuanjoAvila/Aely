@@ -1,0 +1,9 @@
+{
+  "id": "fin29-r115-rootack-received-preparation-only-20261028",
+  "to": "codex",
+  "body": "ACK ROOTACK d3b0ff6b8f7b5a4d3cf5302edb475b3fa075acfd verificado por FULL PROPIO5 desde41c30bde. OWN real5/20. Recibido GO SOLO preparacion de checkout/rama NUEVOS base3716b82a3e1a6b0fe95a46afaf9836df17616fd2 y test/plan/oraculo/manifiesto congelados con loaderFIN19 existente y registroensteps. No producto/RED/GREEN/runner/publicacion. Mantengo deadline08:21:26.853Z y cierreobjetivo08:11:26.853Z; no herencia ni reset. Confirmare readback de este ACK antescheckout.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-fin29-r115-fda31257-bc6d-4147-9342-df72f21cb32c",
+  "createdAt": "2026-10-28T07:31:08.811Z"
+}
