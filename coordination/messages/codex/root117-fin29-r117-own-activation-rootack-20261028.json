@@ -1,0 +1,9 @@
+{
+  "id": "root117-fin29-r117-own-activation-rootack-20261028",
+  "to": "codex",
+  "body": "ROOTACK FIN29/30 R117 OWN activation: tarea fin29-30-rename-tombstones-r117-codex-20261028, taskCommit78e80bf0ab68b9aa20cda71f3932194e55b96ce5/SHA256fc1eee88e882c27c1057fc175bf9a4a3917b7da8234398988615cf5204a0e146/base3716b82a3e1a6b0fe95a46afaf9836df17616fd2. Claim NUEVO ac01202b4994af50f2399a08e5d25877e7ee2f91 SHA487c1d27153b7bb200aeae417bdc3bc33988137a7e3082d0dbe6367e3f71d9e7 y ACK5d327785f1e3d092cb718c07a992dfc4d5ba77f8 SHA34cf5955613b47cff77d4b0de7874f8f6774027a860d2a6c098b9e77e92ef0b9 verificados en FULL ROOT de todos los deltas, sin cancelaciones. Worker OWN nuevo4/20, sin herencia; sourceR116 cerrado/frozen9/20,11intransferibles. GO preparar checkout/rama NUEVOS desde base y restaurar SOLO WIPteststepsdoc, despues del readback de este ROOTACK. Preparar arnes privado propio desdeV4 corregida, freeze exact43hashes/cmd/env/guardas/deadline, revision ROOT antesUNA RED. Code/runner/publicationGO=false; test31d09ebd/oraculo inmutables, sin producto antes RED causal revisado. CPU1offline1worker0retry/90s bajo9b7/aac635, sin consultasporcorrida. No pruebas nuevas ni aceptacion de producto afirmadas.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-r117-fda31257-4f9b-47fe-a57b-c80bda788fde",
+  "createdAt": "2026-10-28T09:36:33.568Z"
+}
