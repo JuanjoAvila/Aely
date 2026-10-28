@@ -154,7 +154,7 @@ test("marca sin prueba y pendiente se separan sin anillo ni mensaje diagnóstico
   const recibos = page.locator(".v4-screen > [data-seg='recibos']");
   await expect(recibos.locator(".v4-card-hero")).toContainText(/999/);
   // v6: sin cargo del banco detrás va a «Para revisar» y no suma en lo pendiente (antes «Por confirmar»).
-  await expect(recibos.getByTestId('plan-review').locator('[data-review="unconf"]')).toContainText(/Mini.*Sin pago acreditado.*1,00/s);
+  await expect(recibos.getByTestId('plan-review').locator('[data-review="unconf"]')).toContainText(/Mini.*Sin cargo del banco.*1,00/s);
   await expect(recibos).toContainText(/Ya pagado.*0,00/i);
   await expect(recibos.locator('.v4-paid')).toHaveCount(0);
   await expect(recibos).not.toContainText(/%|sin contar compras del día a día/i);
@@ -249,7 +249,7 @@ test("marca sin prueba → 0 previsto y confirmación separada, sin NaN ni diagn
   const recibos = page.locator(".v4-screen > [data-seg='recibos']");
   await expect(recibos.locator(".v4-card-hero")).toContainText(/0/);
   await expect(recibos).toContainText(/Nada pendiente|ya no sale/i);
-  await expect(recibos.getByTestId('plan-review').locator('[data-review="unconf"]')).toContainText(/Luz.*Sin pago acreditado.*40,00/s);
+  await expect(recibos.getByTestId('plan-review').locator('[data-review="unconf"]')).toContainText(/Luz.*Sin cargo del banco.*40,00/s);
   await expect(recibos).toContainText(/Ya pagado.*0,00/i);
   await expect(recibos.locator('.v4-paid')).toHaveCount(0);
   await expect(recibos).not.toContainText(/NaN|día ya|day already|dia ja/i);
@@ -357,7 +357,7 @@ test("marca sin prueba sigue visible para confirmar y no añade nómina a los re
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   const recibos = page.locator(".v4-screen > [data-seg='recibos']");
-  await expect(recibos.getByTestId('plan-review').locator('[data-review="unconf"]')).toContainText(/Luz.*Sin pago acreditado.*40,00/s);
+  await expect(recibos.getByTestId('plan-review').locator('[data-review="unconf"]')).toContainText(/Luz.*Sin cargo del banco.*40,00/s);
   await expect(recibos).toContainText(/Ya pagado.*0,00/i);
   await expect(recibos.locator('.v4-paid')).toHaveCount(0);
   await expect(recibos).toContainText("Luz");

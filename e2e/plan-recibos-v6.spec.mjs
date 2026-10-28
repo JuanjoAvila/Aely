@@ -112,6 +112,71 @@ test("ficha: enlazar el cargo lo pasa a «Ya pagados»; «No es este recibo» lo
   await expect(ficha.getByText("¿Con cuál se pagó?")).toBeVisible();
   await ficha.locator('[data-act="aun-no"]').click();
   await expect(ficha).toHaveCount(0);
+  await expect(page.locator(".toast")).toHaveText("Luz vuelve a Pendiente");
   await expect(due.locator(".v4-charge").filter({ hasText: "Luz" })).toHaveCount(1);
   await expect(paid.locator(".v4-paid").filter({ hasText: "Luz" })).toHaveCount(0);
+});
+
+/* Prueba de pago «expense» como la deja el enlace a mano, con la marca `paidYm` que el sync
+   deriva de ella en cada pull: así está en el móvil, no recién enlazado. */
+const prueba = (f, x) => ({ kind: "expense", key: "sabadell|" + x.date + "|" + x.amount + "|" + x.merchant,
+  identity: JSON.stringify(["sabadell", x.date, x.amount, x.merchant]), expenseId: x.id,
+  expenseKey: x.date + "|" + x.amount + "|" + x.merchant, expenseLegacyKey: x.date + "|" + x.amount + "|" + x.merchant,
+  date: x.date, bank: "sabadell", amount: x.amount, model: JSON.stringify([f.id, "sabadell", f.amount, null]),
+  modelVersion: 2, receiptId: f.id, receiptName: f.name });
+
+test("«No es este recibo» → elegir otro cargo funciona aunque el sync ya escribiera la marca de pago", async ({ page }) => {
+  const x1 = { id: "x1", merchant: "IBERDROLA CLIENTES SAU", date: "2026-10-14", amount: 47.9, ent: "sabadell", category: "otros", source: "ob" };
+  const x5 = { id: "x5", merchant: "ENDESA ENERGIA", date: "2026-10-15", amount: 48.2, ent: "sabadell", category: "otros", source: "ob" };
+  const luz = recibo("luz", "Luz", 48.2, 16);
+  luz.paymentProofs = { [YM]: prueba(luz, x1) }; luz.paidYm = YM; luz.paidDay = 14;
+  const recibos = await abrePlan(page, { accounts: [{ id: "bank", ent: "sabadell", role: "fijos", value: 2000 }], fixed: [luz], expenses: [x1, x5] });
+  const paid = recibos.getByTestId("plan-paid");
+  await paid.getByRole("button", { name: /Ya pagados/ }).click();
+  await paid.locator(".v4-paid").filter({ hasText: "Luz" }).click();
+  const ficha = page.locator('.v4-sheet[data-sheet="recibo"]');
+  await expect(ficha.getByTestId("recibo-cargo")).toContainText("IBERDROLA CLIENTES SAU");
+  await ficha.locator('[data-act="no-es"]').click();
+  const cargos = ficha.getByTestId("recibo-cargos");
+  // El rechazado no se vuelve a ofrecer.
+  await expect(cargos.locator(".pr6-cand")).toHaveCount(1);
+  await cargos.locator(".pr6-cand").filter({ hasText: "ENDESA ENERGIA" }).click();
+  await expect(ficha).toHaveCount(0);
+  await expect(page.locator(".toast")).toHaveText("Luz pagado");
+  const guardado = await page.evaluate(() => { const s = mcLoadRaw(mcStateKey()); const f = s.fixed.find((x) => x.id === "luz"); const p = fixedPaymentProof(s, f, 2026, 10, 18); return p && p.expenseId; });
+  expect(guardado).toBe("x5");
+  await expect(paid.locator(".v4-paid").filter({ hasText: "Luz" })).toContainText("cargo de Sabadell");
+});
+
+test("«Aún no se ha cobrado» con la marca de pago del banco: el aviso dice que pasa a revisar", async ({ page }) => {
+  // Cargo con la marca del recibo y `paidYm` derivada: vetar el cargo no borra esa marca.
+  const x1 = { id: "x1", merchant: "IBERDROLA CLIENTES SAU", date: "2026-10-14", amount: 47.9, ent: "sabadell", category: "otros", source: "ob", reciboId: "luz" };
+  const luz = recibo("luz", "Luz", 48.2, 16);
+  luz.paymentProofs = { [YM]: prueba(luz, x1) }; luz.paidYm = YM; luz.paidDay = 14;
+  const recibos = await abrePlan(page, { accounts: [{ id: "bank", ent: "sabadell", role: "fijos", value: 2000 }], fixed: [luz, recibo("agua", "Agua", 20, 25)], expenses: [x1] });
+  const paid = recibos.getByTestId("plan-paid");
+  await paid.getByRole("button", { name: /Ya pagados/ }).click();
+  await paid.locator(".v4-paid").filter({ hasText: "Luz" }).click();
+  const ficha = page.locator('.v4-sheet[data-sheet="recibo"]');
+  await ficha.locator('[data-act="no-es"]').click();
+  await ficha.locator('[data-act="aun-no"]').click();
+  await expect(ficha).toHaveCount(0);
+  await expect(page.locator(".toast")).toHaveText("Luz pasa a Para revisar");
+  await expect(recibos.getByTestId("plan-review").locator('[data-review="unconf"]')).toContainText("Luz");
+  await expect(recibos.getByTestId("plan-review").locator('[data-review="unconf"]')).toContainText("Sin cargo del banco");
+});
+
+test("píldora: un recibo en un banco sin cuenta no inventa «Falta»", async ({ page }) => {
+  const fixed = [recibo("agua", "Agua", 30, 25), Object.assign(recibo("ing", "Seguro ING", 200, 26), { account: "ing" })];
+  const recibos = await abrePlan(page, { accounts: [{ id: "bank", ent: "sabadell", role: "fijos", value: 3000 }], fixed, expenses: [] });
+  // Sabadell cubre lo suyo; de ING no se sabe el saldo: no entra en la píldora.
+  await expect(recibos.getByTestId("plan-llega")).toHaveText(/Te llega/);
+  await expect(recibos.getByTestId("plan-summary")).not.toContainText("Falta");
+});
+
+test("píldora: si ningún banco con recibos tiene saldo conocido, no sale", async ({ page }) => {
+  const fixed = [Object.assign(recibo("ing", "Seguro ING", 200, 26), { account: "ing" })];
+  const recibos = await abrePlan(page, { accounts: [{ id: "bank", ent: "sabadell", role: "fijos", value: 3000 }], fixed, expenses: [] });
+  await expect(recibos.getByTestId("plan-summary").locator(".serif.num")).toHaveText(await page.evaluate(() => eur(200)));
+  await expect(recibos.getByTestId("plan-llega")).toHaveCount(0);
 });
