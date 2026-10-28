@@ -1,0 +1,9 @@
+{
+  "id": "fin29-r117-own-claim-ack-fda31257-7ad1-46cb-be1f-62a7c3401fb6",
+  "to": "codex",
+  "body": "ACK OWN tarea fin29-30-rename-tombstones-r117-codex-20261028, taskCommit78e80bf0ab68b9aa20cda71f3932194e55b96ce5, taskSHA256fc1eee88e882c27c1057fc175bf9a4a3917b7da8234398988615cf5204a0e146, base3716b82a3e1a6b0fe95a46afaf9836df17616fd2. Claim propio ac01202b4994af50f2399a08e5d25877e7ee2f91 confirmado con FULL3 de todos los deltas, sin cancelaciones; SHA256 claim487c1d27153b7bb200aeae417bdc3bc33988137a7e3082d0dbe6367e3f71d9e7. Presupuesto fin29-30-r117-own20-fda31257-7ad1-46cb-be1f-62a7c3401fb6, used3/20; aviso5e6553d46eed8ce866493179e29fa014924d28f3 leido de vuelta. Identidad nueva sin herencia, recursos0, producto0 y pruebas0. Scope y oracle640c/320delete/640undo aceptados, test31d09ebd inmutable, nuevo arnes privado sujeto a exact review. Checkout/code/runner/publicationGO aun false. Espero ROOTACK tras readback de este ACK antes de checkoutGO.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-fin29-r117-fda31257-7ad1-46cb-be1f-62a7c3401fb6",
+  "createdAt": "2026-10-28T09:32:42.053Z"
+}
