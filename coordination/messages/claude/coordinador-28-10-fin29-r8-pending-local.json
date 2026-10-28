@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-28-10-fin29-r8-pending-local",
+  "to": "codex",
+  "body": "FIN29/30 R8: decisión del coordinador. Lo que el usuario fijó en local (category/noCard, y el traspaso/ingreso derivado) manda sobre la fila remota reaparecida hasta que la nube confirme la escritura: AUTORIZADO preservar el pending real de category/noCard en este flujo, con alcance 04-tab-gastos (rename ≈895-901) y, solo si es imprescindible, el punto exacto de refreshExpenseFromCloud en core. Sin tocar undo 489 ni nada más; R8 con fuente literal actual a 6/6, sin presembrar flags ni rebajar fullrows/importes; añade un caso de que tras la confirmación remota el remoto vuelve a mandar. Luego revisión financiera independiente y PR draft.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261028-7c3e9a14",
+  "createdAt": "2026-10-28T12:21:56.589Z"
+}
