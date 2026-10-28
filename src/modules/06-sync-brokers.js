@@ -499,9 +499,10 @@ function TRSync({state, set, totals, open, onToggle}){
               const stored = accDaily(a)
                 ? valueDesdeSaldo({shown:trCash, injTR:totals.injTR||0, spentOwn:spentOwn, roundup:totals.roundupThisMonth||0, monthlyInvest:totals.monthlyInvestThisMonth||0, ambos:accRole(a)==="ambos", paidNet:pn})
                 : trCash-pn;
-              return Object.assign({},a,{value:+stored.toFixed(2)});
+              // Misma marca de lectura que `applyTrCash` (ver `saldoLeidoDelBanco`).
+              return Object.assign({},a,{value:+stored.toFixed(2),saldoLeidoAt:new Date().toISOString()});
             })
-          : s.accounts.concat([{ id:uid(), ent:"trade_republic", name:"Trade Republic", value:+trCash.toFixed(2), note:"" }]);
+          : s.accounts.concat([{ id:uid(), ent:"trade_republic", name:"Trade Republic", value:+trCash.toFixed(2), note:"", saldoLeidoAt:new Date().toISOString() }]);
       }
       return next;
     });

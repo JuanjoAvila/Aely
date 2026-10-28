@@ -183,7 +183,35 @@ for (const [como, extra, cifra, luz] of [
   const sab = hoja.locator('[data-testid="llega-banco"][data-bank="sabadell"]');
   await expect(sab).toContainText("Tienes hoy500,00 €");
   await expect(sab.getByTestId("llega-cifra")).toHaveText(cifra);
+  // Si aún resta, la hoja lo dice en su propia fila: Tienes hoy − filas = cifra (R4-1).
+  const resta = cifra.endsWith("50,00 €") && !cifra.endsWith("350,00 €");
+  await expect(sab.getByText("Pagado, aún sin restar del saldo")).toHaveCount(resta ? 1 : 0);
+  if (resta) await expect(sab).toContainText("Pagado, aún sin restar del saldo− 300,00 €");
   const sim = await page.evaluate(() => { const s = mcLoadRaw(mcStateKey()), i = insumosSaldoGasto(s); return minWalk(saldoCuentaMostrada(s.accounts[0], i), bankPendingEvents(s, "sabadell", 2026, 10, 10)).min; });
+  expect(eurTxt(sim)).toBe(cifra.replace(/^lo más justo, el 20/, ""));
+});
+
+/* Revisión t3, R4: Trade Republic. Su saldo lo trae el puente nativo (`applyTrCash`), que sella la
+   lectura en la cuenta (`saldoLeidoAt`); para estados de antes del sello vale `lastTrSync` si el
+   puente manda. Spotify 300 € del día 5 ya cobrado en TR (Plan: «cargo de Trade Republic»), Seguro
+   150 € del 20: 500 − 150 = 350. Leído ANTES del pago (día 3), el cobro aún no está en el saldo y
+   sigue restando, con su fila: 50. Hoja y simulador, iguales. */
+const TR = (extraCuenta) => [Object.assign({ id: "tr", ent: "trade_republic", role: "fijos", value: 500 }, extraCuenta)];
+const spotify = { expenses: [{ id: "x1", date: "2026-10-05", merchant: "Spotify casa", amount: 300, ent: "trade_republic", category: "recibos", source: "tr" }] };
+for (const [como, extra, cifra] of [
+  ["lectura del puente sellada hoy", { accounts: TR({ saldoLeidoAt: "2026-10-10T08:00:00Z" }) }, "lo más justo, el 20350,00 €"],
+  ["estado de antes del sello (lastTrSync)", { accounts: TR(), lastTrSync: "2026-10-10T08:00:00Z", settings: Object.assign({}, settings, { brokersOn: ["trade_republic"] }) }, "lo más justo, el 20350,00 €"],
+  ["lectura anterior al cobro", { accounts: TR({ saldoLeidoAt: "2026-10-03T08:00:00Z" }) }, "lo más justo, el 2050,00 €"],
+]) test("Trade Republic, " + como + ": hoja y simulador dicen lo mismo", async ({ page }) => {
+  const recibos = await abrePlan(page, Object.assign({
+    fixed: [Object.assign(recibo("spo", "Spotify casa", 300, 5, "trade_republic"), { category: "recibos" }), recibo("seg", "Seguro hogar", 150, 20, "trade_republic")] }, spotify, extra));
+  await expect(recibos.getByTestId("plan-summary").locator(".pr6-big")).toHaveText("150,00 €");
+  const hoja = await abreLlega(page, recibos);
+  const tr = hoja.locator('[data-testid="llega-banco"][data-bank="trade_republic"]');
+  await expect(tr).toContainText("Tienes hoy500,00 €");
+  await expect(tr.getByTestId("llega-cifra")).toHaveText(cifra);
+  await expect(tr.getByText("Pagado, aún sin restar del saldo")).toHaveCount(cifra.endsWith("350,00 €") ? 0 : 1);
+  const sim = await page.evaluate(() => { const s = mcLoadRaw(mcStateKey()), i = insumosSaldoGasto(s); return minWalk(saldoCuentaMostrada(s.accounts[0], i), bankPendingEvents(s, "trade_republic", 2026, 10, 10)).min; });
   expect(eurTxt(sim)).toBe(cifra.replace(/^lo más justo, el 20/, ""));
 });
 

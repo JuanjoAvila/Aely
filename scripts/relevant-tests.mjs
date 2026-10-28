@@ -97,6 +97,10 @@ export const E2E_MAP = [
   { file: "src/modules/08-motor-bank.js", specs: ["e2e/plan-recibos-t3.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/plan-recibos-t3.spec.mjs"] },
   { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/plan-recibos-t3.spec.mjs"] },
+  // La marca de lectura del saldo (`saldoLeidoAt`) la escriben el puente de TR (00 y 06) y el
+  // saldo corregido a mano (07): sin ella el recorrido vuelve a restar lo ya cobrado.
+  { file: "src/modules/00-core.js", specs: ["e2e/plan-recibos-t3.spec.mjs"] },
+  { file: "src/modules/06-sync-brokers.js", specs: ["e2e/plan-recibos-t3.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/plan-recibos-t3.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/plan-recibos-t3.spec.mjs"] },
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/ux16-round9-haptics.spec.mjs", "e2e/ux16-haptics.spec.mjs", "e2e/ux16-round2-haptics.spec.mjs", "e2e/ux16-round3-haptics.spec.mjs", "e2e/ux16-ajustador.spec.mjs"] },

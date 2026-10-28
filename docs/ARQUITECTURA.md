@@ -104,10 +104,15 @@ salen los cargos y luego entran las entradas. Los eventos salen de `pendingWalkE
 única lista: la usan `totals` (píldora, hoja, mínimo diario, `safeLiq` del widget) y el simulador
 «¿Me lo puedo permitir?» (`bankPendingEvents` = esa lista filtrada por banco). Un recibo sale del
 recorrido si Plan lo pinta pagado (`fixedPaymentState`) Y ese pago ya está en el saldo
-(`reciboEnElSaldo`): con saldo leído del banco (`saldoLeidoDelBanco`: `obBalAt` o cuenta
-re-anclada) vale cualquier prueba, porque el banco ya lo descontó; en una cuenta a mano, solo lo
-que movió el saldo mostrado (`paidYm` o cargo enlazado con día). Un aviso de Wallet o un BOOK sin
-fila en una cuenta a mano siguen restando (es lo que fija `fixed-ispaidin`). Lo de hoy o vencido
+(`reciboEnElSaldo`): siempre si movió el saldo mostrado (`paidYm` o cargo enlazado con día); con
+cualquier otra prueba, solo si el saldo se leyó desde fuera el día del pago o después
+(`saldoLeidoDelBanco`, la lectura más reciente del banco). Fuentes de lectura: Open Banking
+(`obBalAt`; en estados viejos, `lastBankSync` si la cuenta está re-anclada), el puente de Trade
+Republic (`applyTrCash` sella `saldoLeidoAt` en la cuenta; antes del sello, `lastTrSync`), el saldo
+corregido a mano (también sella `saldoLeidoAt`) y `balanceAt` de una cuenta adoptada. `bankTx` no
+es lectura. Sin lectura posterior, un aviso de Wallet o un BOOK sin fila siguen restando (lo fija
+`fixed-ispaidin`) y la hoja los enseña en su fila «Pagado, aún sin restar del saldo».
+`saldoLeidoAt` viaja en la cuenta dentro de `app_state` (sin servidor); un cliente viejo lo ignora. Lo de hoy o vencido
 sin cobro es un cargo de HOY (decisión del dueño, 28/10/2026). Una frescura con una conexión
 del banco caída o rancia no se enseña. `totals.evsByBank` expone esos eventos (los
 traspasos y entradas con su id) para que la hoja enseñe justo los que ha recorrido. La frescura es

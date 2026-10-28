@@ -795,8 +795,12 @@ resta dos veces (500 − 150 = 350); en una cuenta a mano solo sale si movió el
 y un Wallet, un BOOK o un gasto sin enlazar siguen restando (50). En cada caso, y en el vencido sin
 cobro, el simulador (`bankPendingEvents`) da el mismo mínimo que la hoja. Mutantes comprobados:
 dar por bueno cualquier pago tumba `fixed-ispaidin` y los tres casos «a mano»; no reconocer el
-saldo del banco tumba los dos «con saldo del banco». Está en `E2E_MAP` para `14-v4-screens`, `08-motor-bank`, `07-tab-patri-fijos`,
-`11-app-main`, `01-i18n` y `shell.html`.
+saldo del banco tumba los dos «con saldo del banco». En los casos «a mano» que aún restan, la hoja
+enseña la fila «Pagado, aún sin restar del saldo − 300,00 €». Trade Republic: con la lectura del
+puente sellada hoy (`saldoLeidoAt`) o, en un estado viejo, `lastTrSync`, el recibo ya cobrado en TR
+no resta (350); leído antes del cobro, sí (50, con su fila). Mutante «ignorar la lectura del
+puente»: los dos de 350 en rojo. Está en `E2E_MAP` para `14-v4-screens`, `08-motor-bank`,
+`07-tab-patri-fijos`, `00-core`, `06-sync-brokers`, `11-app-main`, `01-i18n` y `shell.html`.
 
 Descarga incompleta (candidato13/10): `tests/bank-download-incomplete.test.mjs`, registrado en
 runner y `STEPS_SUPABASE`, ejecuta lector, handler y updater real de App. Compara el updater con
