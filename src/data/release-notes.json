@@ -31,19 +31,19 @@
             "1. Plan → Recibos: compara «Queda por pagar en …» con Inicio. BIEN: coinciden y debajo dice cuántos recibos quedan. MAL: no coinciden.",
             "2. Plan → Recibos → «Para revisar» y «Pendiente»: como mucho tres en cada una; toca «Ver los N». MAL: salen más de tres sin tocar, falta alguno al desplegar o sale un recibo ya cobrado.",
             "3. Plan → Recibos → toca un recibo pendiente → «Ya está pagado» → elige su cargo. BIEN: pasa a «Ya pagados» con «cargo de …». MAL: el cargo no aparece ni buscándolo por importe.",
-            "4. Plan → Recibos → «Ya pagados» → ese recibo → «No es este recibo» → «Aún no se ha cobrado». BIEN: vuelve a «Pendiente» y la cifra de arriba sube."
+            "4. Plan → Recibos → «Ya pagados» → toca un recibo pagado → «No es este recibo» → «Aún no se ha cobrado». BIEN: el aviso de abajo dice adónde ha ido (Pendiente o Para revisar) y el recibo aparece ahí. MAL: el aviso no lo dice o el recibo no está en esa sección."
           ],
           "en": [
             "1. Plan → Bills: compare \"Still to pay in …\" with Home. RIGHT: they match and below it says how many bills are left. WRONG: they do not match.",
             "2. Plan → Bills → \"To review\" and \"Pending\": at most three in each; tap \"See all N\". WRONG: more than three show without tapping, one is missing when expanded or a bill that was already charged shows up.",
             "3. Plan → Bills → tap a pending bill → \"It's paid\" → choose its charge. RIGHT: it moves to \"Already paid\" with \"charge from …\". WRONG: the charge does not show up, not even searching by amount.",
-            "4. Plan → Bills → \"Already paid\" → that bill → \"Not this bill\" → \"Not charged yet\". RIGHT: it goes back to \"Pending\" and the figure at the top goes up."
+            "4. Plan → Bills → \"Already paid\" → tap a paid bill → \"Not this bill\" → \"Not charged yet\". RIGHT: the notice below says where it went (Pending or To review) and the bill shows up there. WRONG: the notice does not say it or the bill is not in that section."
           ],
           "ca": [
             "1. Pla → Rebuts: compara «Queda per pagar al …» amb Inici. BÉ: coincideixen i a sota diu quants rebuts queden. MALAMENT: no coincideixen.",
             "2. Pla → Rebuts → «Per revisar» i «Pendent»: com a molt tres a cada una; toca «Veure’ls tots (N)». MALAMENT: surten més de tres sense tocar, en falta algun en desplegar o surt un rebut ja cobrat.",
             "3. Pla → Rebuts → toca un rebut pendent → «Ja està pagat» → tria el seu càrrec. BÉ: passa a «Ja pagats» amb «càrrec de …». MALAMENT: el càrrec no apareix ni cercant-lo per import.",
-            "4. Pla → Rebuts → «Ja pagats» → aquest rebut → «No és aquest rebut» → «Encara no s’ha cobrat». BÉ: torna a «Pendent» i la xifra de dalt puja."
+            "4. Pla → Rebuts → «Ja pagats» → toca un rebut pagat → «No és aquest rebut» → «Encara no s’ha cobrat». BÉ: l’avís de sota diu on ha anat (Pendent o Per revisar) i el rebut apareix allà. MALAMENT: l’avís no ho diu o el rebut no és en aquesta secció."
           ]
         }
       }
