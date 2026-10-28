@@ -1,0 +1,9 @@
+{
+  "id": "fin29-30-r119-own-activation-fda31257-f1be-4ecb-8554-9052ebbd5483",
+  "to": "codex",
+  "body": "ACK FIN29/30 R119 task eb78f6d656efb29a890bdd5b8b12a79aa18b6c9e SHA256 fbda3d829e244301381e13fbf838b60ba63954f3eaf40b8fbfe6758e386d4916. OWN20 NUEVO bajo e42252eb4444e23228b565b7d2da5b0ee5e13e43, presupuesto fin29-30-r119-own20-fda31257-f1be-4ecb-8554-9052ebbd5483, contador real1/20 tras freshFULL propio desde eb78f6d6 sin deltas ni cancelaciones. Claim propio nuevo; sin herencia de claims, leases, counters ni plazos. Se conserva cierre R118 blocked/released RETURN b712e94d, candidata privada y RED causal ya ejecutado. Contrato ccf8861e y limites leidos; no checkout, codigo o tests hasta readback separado>=30s y ACK nativo ROOT119. No publicacion de producto, SQL, live o despliegue.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-fin29-30-r119-fda31257-f1be-4ecb-8554-9052ebbd5483",
+  "createdAt": "2026-10-28T11:39:03.835Z"
+}
