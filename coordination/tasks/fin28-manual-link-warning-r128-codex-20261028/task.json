@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "id": "fin28-manual-link-warning-r128-codex-20261028",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261028-r128-fda31257-94f75a9f-1807-4caf-b9c3-9e7f9eb09166",
+  "createdAt": "2026-10-28T21:08:08.822Z",
+  "to": "codex",
+  "baseSHA": "7e958a6f545ceb30c1a1eef66a03ec7a1884c887",
+  "objective": "FIN28: avisar de posible doble cargo sin referencia al enlazar a mano, con segundo toque explicito que permite continuar y sin bloquear ni revalidar historial.",
+  "scope": [
+    "src/modules/08-motor-bank.js",
+    "src/modules/04-tab-gastos.js",
+    "src/modules/14-v4-screens.js",
+    "src/modules/01-i18n.js",
+    "tests/recibo-un-cargo-un-recibo.test.mjs",
+    "e2e/fin28-manual-link-warning.spec.mjs",
+    "scripts/relevant-tests.mjs"
+  ],
+  "grant": "044946c8e420c77895a8577aada400646b142911",
+  "moneyCriterion": "0e0a7545d8bea42ab9edb148afcc8bd70e28c3ad",
+  "order": 6,
+  "workerInitialOwnGrant": "7188f09dd641ffd90c5a2455196b1385c4bb084c",
+  "workerInitialOwnAllowance": 20,
+  "acceptance": [
+    "Solo al enlazar A MANO un cargo SIN extId de Wallet/MacroDroid/manual a reciboR: mismo banco, mismo importe exacto en centimos y distancia de fechas mas o menos4dias, un cargo con extId BOOK ya paga OTRO reciboR2 o el mismoR en ese mes. Consulta compartida solo de aviso; no veto en fixedExpenseEligible ni cambio en validacion de pruebas existentes.",
+    "Confirmacion manual por ambas puertas reales Gastos y Plan muestra linea Puede ser el mismo cargo que R2 del dia y exige segundo toque explicito Es otro pago; cancelacion no escribe, confirmar enlaza igual que hoy con guardas vivas de dialogo asincrono. i18n es/en/ca, sin texto tecnico ni alert nativo.",
+    "Ejemplo duplicado: Netflix12.99 BOOK Sabadelldia5 pagaNetflix y Wallet12.99 Sabadell dia6 aNetflix =>aviso. Dos pagos: Gimnasio30 BOOKdia1 y Wallet30dia20 aClases =>sinaviso. Mismodia otrobanco =>sinaviso. Incluir limites4dias y centimosdistintos, misma/otra referencia, fuentes admitidas y multiplesBOOK sin inventar identidad.",
+    "Vinculos existentes no se tocan ni se reevaluan; BOOKposterior no reabre nada ni agrega avisos retroactivos. recibo-un-cargo-un-recibo75-88 conserva oracle permisivo sinextId; no fusionar/borrar/reasignar filas ni fabricar referencias/cuentas, no alterar saldos/neto/presupuesto/rounding ni reglas BOOK.",
+    "REDcausal nuevo antesproducto y GREENdirigido posterior del aviso por ambaspuertas DOM, confirmar/cancelar/reload/deshacer, historial y BOOKposterior intactos. Unitarios registrados existentes y specFIN28nuevo registrado en mapa; no repetirR3cerrado ni FIN35 ni otras suitesbrowser. CPU1 worker1 retries0 stopfirstfailure, censo/admissionENTERRETURN/puerto propios antesdecada run, EXITreales.",
+    "Solo scope: helper puro de aviso en08 y UI/i18n, tests/mapa. No cambiar fixedPaymentIdentity/eligibility/linkproof/contracts, core/App/conversion/FIN29-30/PR319/R4/backend/Supabase/migraciones/VERSION/notas/catalogo/CHANGELOG/fixturesajenos. Si surge decision monetaria no definida, checkpoint y consultaROOT, no inventar contrato.",
+    "Primero recepcion/ACK/runtime/inventario, admisionnativa, OWN20propioNUEVO0 aviso/FULLACK>=30s desdepubcompletada, claimpropio exacto/FULL/ACK y ROOTACKpublico+nativo antesproducto. CandidatoPRIVADO exactHEAD/manifest/bundle/hash, reviewROOT+independiente yGOespecifico antespush/nuevaPRdraftcontra beta."
+  ],
+  "limits": {
+    "ProductREADY": false,
+    "noProductBeforeOwnClaimAndROOTACK": true,
+    "noHistoricalRevalidation": true,
+    "warningOnlyNeverBlock": true
+  }
+}
