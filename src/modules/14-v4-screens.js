@@ -7,6 +7,8 @@
 const PLAN_SEG_ORDEN=["recibos","deudas","metas"];
 function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
   const [seg,setSeg]=useState("recibos");
+  // Deuda a la que hay que llevar al llegar a Deudas ({id,ts}); ver `irADeuda`.
+  const [focoDeuda,setFocoDeuda]=useState(null);
   const [manageOpen,setManageOpen]=useState(false);
   // «Editar» desde la ficha de un recibo abre Todos directamente en su edición.
   const [manageEdit,setManageEdit]=useState(null);
@@ -78,6 +80,8 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
   useEffect(function(){
     if(!gotoSeg||!gotoSeg.id) return;
     setSeg(simple?"recibos":gotoSeg.id);
+    // Desde otra pestaña la transición ya es el carrusel: la sección no anima por su cuenta.
+    if(!simple&&gotoSeg.id==="deudas"&&gotoSeg.debtId!=null) setFocoDeuda({id:String(gotoSeg.debtId),ts:gotoSeg.ts});
     if(clearGoto) clearGoto();
   },[gotoSeg&&gotoSeg.ts]);
   /* «EN DEUDAS Y METAS SE RELENTIZA DE MANERA MUY BESTIA» — CAPÍTULO 2 (2026-07-26 noche).
@@ -152,12 +156,75 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
      mano para tocar arriba»). Recibos → Deudas → Metas → Recibos. La mecánica vive en
      `useTironSeccion` (02-ui-shared.js) desde Gastos v5, que la usa igual: un solo sitio. */
   const planScreenRef=useRef(null);
-  useTironSeccion(planScreenRef,{activo:!simple, seg:seg, orden:PLAN_SEG_ORDEN, respaldo:true, cortaScroll:true,
+  const entradaRef=useTironSeccion(planScreenRef,{activo:!simple, seg:seg, orden:PLAN_SEG_ORDEN, respaldo:true, cortaScroll:true,
     capa:function(id){ return segElRef.current[id]; },
     alPasar:function(nextId){
       setSegMounted(function(m){ return m[nextId]?m:Object.assign({},m,{[nextId]:true}); });
       setSeg(nextId);
     }});
+
+  /* TOCAR UNA DEUDA LLEVA A SU TARJETA, CON SUAVIDAD (queja del dueño 28/10/2026: «que vaya más
+     suave y al sitio exacto de donde está la deuda, que ahora es muy bestia»). Medido antes: la
+     sección cambiaba en UN frame sin transición, el scroll se quedaba donde estaba Recibos y la
+     tarjeta tocada caía 600 px por debajo de la pantalla — había que bajar a buscarla.
+     Ahora: entra con la misma animación que el tirón entre secciones, y la página se desliza
+     (scroll nativo `smooth`, sin trabajo por frame nuestro) hasta dejar la tarjeta centrada en
+     lo que se ve entre el borde de arriba y la barra inferior. La barra se descuenta SIEMPRE,
+     aunque esté escondida: al subir reaparece y la taparía. */
+  const irADeuda=function(debtId){
+    setSegMounted(function(m){ return m.deudas?m:Object.assign({},m,{deudas:true}); });
+    if(seg!=="deudas"&&entradaRef) entradaRef.current="down";
+    setSeg("deudas");
+    setFocoDeuda(debtId!=null?{id:String(debtId),ts:Date.now()}:null);
+  };
+  useEffect(function(){
+    if(!focoDeuda||seg!=="deudas"||!segMounted.deudas) return undefined;
+    const id=focoDeuda.id;
+    let raf=0, n=0, antes=null, cancel=false;
+    // Posición en la página por `offsetTop` y no por `getBoundingClientRect`: la sección entra con
+    // un `translateY` y las tarjetas con `.rise`, y un rect medido a mitad de animación apuntaría
+    // 16 px de más. offsetTop ignora transforms.
+    const topEn=function(el,pg){
+      let y=0, n2=el;
+      while(n2&&n2!==pg){ y+=n2.offsetTop; n2=n2.offsetParent; }
+      return n2===pg?y:null;
+    };
+    const paso=function(){
+      raf=0; if(cancel) return;
+      const capaEl=segElRef.current.deudas;
+      let card=null;
+      try{ card=capaEl&&capaEl.querySelector('[data-debt-id="'+(window.CSS&&CSS.escape?CSS.escape(id):id)+'"]'); }catch(e){}
+      const pg=card&&card.closest(".page");
+      const y=pg?topEn(card,pg):null;
+      // Se espera a que el layout se quede quieto dos frames seguidos: Deudas puede estar
+      // montándose ahora mismo (premontaje en hueco libre) y medir antes da un sitio que se mueve.
+      if(y==null||antes==null||Math.abs(y-antes)>0.5){
+        antes=y;
+        if(++n<60) raf=requestAnimationFrame(paso);
+        else setFocoDeuda(null);
+        return;
+      }
+      const pr=pg.getBoundingClientRect();
+      const nav=document.querySelector(".botnav");
+      const H=window.innerHeight||pr.bottom;
+      const arriba=Math.max(pr.top,0)+16;
+      const abajo=Math.min(pr.bottom,H-(nav?nav.offsetHeight:0))-16;
+      const alto=card.offsetHeight, hueco=abajo-arriba;
+      const quiero=hueco>alto?arriba+(hueco-alto)/2:arriba;
+      const max=Math.max(0,pg.scrollHeight-pg.clientHeight);
+      const dest=Math.max(0,Math.min(max,Math.round(y+pr.top-quiero)));
+      // Si la página aún entra por el carrusel (venías de Gastos), se coloca sin deslizar: llega ya
+      // en su sitio y el movimiento es solo el del carrusel, no dos a la vez.
+      const enSitio=Math.abs(pr.left)<2;
+      try{ pg.scrollTo({top:dest,behavior:(enSitio&&!mcReduced())?"smooth":"auto"}); }catch(e){ pg.scrollTop=dest; }
+      // El resalte NO se cancela al limpiar el efecto (este mismo `setFocoDeuda(null)` lo limpia).
+      card.classList.add("v4-foco");
+      setTimeout(function(){ card.classList.remove("v4-foco"); }, 1700);
+      setFocoDeuda(null);
+    };
+    raf=requestAnimationFrame(paso);
+    return function(){ cancel=true; if(raf) cancelAnimationFrame(raf); };
+  },[focoDeuda&&focoDeuda.ts, seg, segMounted.deudas]);
 
   return React.createElement("div",{className:"v4-screen",ref:planScreenRef,"data-edge-capture":simple?null:"1"},
     React.createElement("h1",{className:"v4-title serif"}, simple?t("v4s_plan_left_title"):t("v4_plan_title")),
@@ -179,7 +246,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     capa("recibos", simple
       ? React.createElement(PlanBills,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen})
       : React.createElement(PlanRecibos,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen,
-          manageEdit:manageEdit,setManageEdit:setManageEdit,showToast:showToast,onGoDebts:function(){ setSeg("deudas"); }})),
+          manageEdit:manageEdit,setManageEdit:setManageEdit,showToast:showToast,onGoDebts:irADeuda})),
     !simple && capa("deudas", React.createElement(Debts,{state:state,set:set,showToast:showToast})),
     !simple && capa("metas", React.createElement(Goals,{state:state,set:set,totals:totals,showToast:showToast}))
   );
@@ -337,7 +404,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   useBackClose(!!paidOpen, function(){ setPaidOpen(false); });
   const openManage=function(){ setManageEdit(null); setManageOpen(true); };
   const abrir=function(x){
-    if(x.kind==="debt"||x.kind==="balloon"){ if(onGoDebts) onGoDebts(); return; }
+    if(x.kind==="debt"||x.kind==="balloon"){ if(onGoDebts) onGoDebts(String(x.id).replace(/^(debt|balloon)_/,"")); return; }
     if(/^(fixed|oneoff)_/.test(String(x.id))) setFicha({id:x.id});
   };
   // El desplegable se ve entero: mueve la página lo justo, sin escribir scrollTop a mano (INC-0710-01).

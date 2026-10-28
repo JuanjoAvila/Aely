@@ -2359,6 +2359,8 @@ function GastosGris({g, onOpen, onGoPlan, onGoInversiones, simple}){
   // Cartera no enseña inversiones: el enlace llevaría a un bloque que no está.
   const ir=def.cartera?onGoInversiones:onGoPlan;
   const conPlan=!!ir && !simple;
+  // Cuotas de UNA sola deuda: el enlace lleva a su tarjeta y no a lo alto de Deudas (28/10/2026).
+  const unaDeuda=g.kind==="deuda"&&g.items.length&&g.items.every(function(it){ return it.e.debtId&&it.e.debtId===g.items[0].e.debtId; })?g.items[0].e.debtId:null;
   return React.createElement("div",{className:"gx-gris"+(open?" abierto":""),"data-gris":g.kind},
     React.createElement("button",{type:"button",className:"gx-gris-h","aria-expanded":open,onClick:toggle},
       React.createElement("span",{className:"gx-gris-dot gx-gris-dot-"+g.kind,"aria-hidden":true}),
@@ -2377,7 +2379,7 @@ function GastosGris({g, onOpen, onGoPlan, onGoInversiones, simple}){
               React.createElement("span",{className:"gx-gris-it-sub"},[it.sub,fecha,bk?(entOf(bk).label||entOf(bk).mono):null].filter(Boolean).join(" · "))),
             React.createElement("span",{className:"gx-gris-it-amt num"},eur(Math.abs(e.amount||0))));
         }),
-        conPlan && React.createElement("button",{type:"button",className:"gx-gris-plan",tabIndex:open?0:-1,onClick:function(){ ir(def.seg); }},
+        conPlan && React.createElement("button",{type:"button",className:"gx-gris-plan",tabIndex:open?0:-1,onClick:function(){ ir(def.seg,unaDeuda); }},
           (def.cartera?t("gv5_cartera_open"):tf("gv5_plan_open",{x:t(def.lab)}))+" ›")))
   );
 }
