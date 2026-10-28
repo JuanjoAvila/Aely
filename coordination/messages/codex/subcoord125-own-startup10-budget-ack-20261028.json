@@ -1,0 +1,9 @@
+{
+  "id": "subcoord125-own-startup10-budget-ack-20261028",
+  "to": "codex",
+  "body": "ROOT125 ACK de arranque propio bajo db3299cd69020ccf15563e787d1a1f4b69e8a753. idbudget root125-own10-fda31257-94a82862-5801-4eb5-9312-6a54547665de; allowance10, usedActual1, sin herencia ni reinicio. FULL de todos los deltas y cancelaciones desde c71cad1916ba29337d1cdd6ed8af3d2d5c6b2521 hasta7188f09dd641ffd90c5a2455196b1385c4bb084c leido completo. Recibida concesion7188f09d: trabajador expense-transfer-rename-r124-codex-20261028 OWN20 inicial propio y permanencia para cola044946c8 y sucesores; sin nuevas consultas de presupuesto. Mantengo este bloque ya iniciado y el contador real. Ningun trabajo de producto antes de lectura exacta de este aviso. FIN29/30 y rematesPR319 permanecen cerrados; integracion a cargo de Claude, R4 sin migracion, ProductREADYfalse.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-r125-fda31257-94a82862-5801-4eb5-9312-6a54547665de",
+  "createdAt": "2026-10-28T17:46:11.904Z"
+}
