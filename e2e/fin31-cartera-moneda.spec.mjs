@@ -14,7 +14,7 @@ const broker=(p,id)=>p.locator('.page [data-broker-key="'+id+'"]');
 const child=p=>p.locator('[data-inv-screen]');
 const text=async l=>norm(await l.innerText());
 async function money(l,value){await expect.poll(()=>text(l)).toBe(value);}
-async function stored(p){return p.evaluate(()=>{const s=JSON.parse(localStorage.getItem('micartera_v3'));return {accounts:s.accounts,investments:s.investments,aportaciones:s.aportaciones,fx:s.fx,fxRates:s.fxRates};});}
+async function stored(p){return p.evaluate(()=>{const s=JSON.parse(localStorage.getItem('micartera_v3'));return {accounts:s.accounts,investments:s.investments,aportaciones:s.aportaciones,fx:s.fx,fxRates:s.fxRates,settings:s.settings};});}
 async function boot(p,currency='EUR',rates={USD:0.8,GBP:1.25},overrides={}){
  await p.route('**/*',r=>new URL(r.request().url()).hostname==='127.0.0.1'?r.continue():r.abort());
  await seedLoggedInDashboard(p,{__seedOnce:true,__seenVersion:'4.26.160',accounts,investments,aportaciones,fx:rates.USD??null,fxRates:rates,lastPriceSync:Date.now(),settings:{autoPrices:false,lang:'es',theme:'green',currency},...overrides});
@@ -35,6 +35,32 @@ async function capture(p,info,name){await info.attach(name+'.json',{body:JSON.st
  // El DOM llega antes que la transición de navegación; la captura debe esperar a la pantalla.
  await p.evaluate(async()=>{await Promise.all(document.getAnimations().filter(a=>a.effect?.getComputedTiming().iterations!==Infinity).map(a=>a.finished.catch(()=>{})));});
  await info.attach(name+'.png',{body:await p.screenshot({animations:'disabled'}),contentType:'image/png'});}
+
+for(const currency of ['USD','GBP'])test('FIN35 '+currency+' missing FX opens EUR and preserves manual choice, originals and remount',async({page:p},info)=>{
+ const before=await boot(p,currency,{});await openChild(p);
+ await expect(child(p).getByRole('button',{name:'€',exact:true})).toHaveAttribute('aria-pressed','true');await money(child(p).locator('[data-inv-hero] .serif'),'1.200,40 €');
+ await expect(child(p).locator('[data-fx-incomplete]')).toContainText('Total incompleto');await money(child(p).locator('[data-broker-key="sabadell"] .am'),'0 €');
+ await child(p).locator('[data-broker-key="revolut"]').click();await expect(child(p).locator('[data-inv-position="rv-usd"]')).toContainText('200,00 USD · Sin conversión');
+ await local(p,currency);const selected=child(p).getByRole('button',{name:currency==='USD'?'$':'£',exact:true});await expect(selected).toHaveAttribute('aria-pressed','true');await money(child(p).locator('[data-inv-hero] .serif'),'—');
+ await child(p).locator('[data-inv-projection-card] > button').click();const proj=child(p).locator('[data-inv-projection]');await expect(proj).toContainText('Sin tipo de cambio');await expect(proj.locator('svg')).toHaveCount(0);
+ // Abrir otro desglose repinta la hija sin deshacer la selección manual de esta apertura.
+ await child(p).locator('[data-broker-key="myinvestor"]').click();await expect(child(p).locator('[data-inv-position="mi-gbp"]')).toContainText('100,40 GBP · Sin conversión');await expect(selected).toHaveAttribute('aria-pressed','true');await money(child(p).locator('[data-inv-hero] .serif'),'—');await expect(proj.locator('svg')).toHaveCount(0);
+ expect(await stored(p)).toEqual(before);await capture(p,info,'fin35-'+currency.toLowerCase()+'-manual');
+ await child(p).locator('[data-act="back"]').click();await openChild(p);await expect(child(p).getByRole('button',{name:'€',exact:true})).toHaveAttribute('aria-pressed','true');await money(child(p).locator('[data-inv-hero] .serif'),'1.200,40 €');
+ await p.reload();await ready(p);await p.locator('.botnav-tab[data-tour="cartera"]').click();await openChild(p);await expect(child(p).getByRole('button',{name:'€',exact:true})).toHaveAttribute('aria-pressed','true');await money(child(p).locator('[data-inv-hero] .serif'),'1.200,40 €');expect(await stored(p)).toEqual(before);
+});
+
+for(const currency of ['USD','GBP'])for(const [label,rate] of [['null',null],['zero',0],['negative',-0.5],['invalid','sin-tipo']])test('FIN35 '+currency+' '+label+' FX keeps EUR-only amounts complete',async({page:p})=>{
+ const onlyEur=investments.filter(i=>i.cur!=='GBP').map(i=>({...i,cur:'EUR'}));const before=await boot(p,currency,{[currency]:rate},{investments:onlyEur,fx:null});await openChild(p);
+ await expect(child(p).getByRole('button',{name:'€',exact:true})).toHaveAttribute('aria-pressed','true');await money(child(p).locator('[data-inv-hero] .serif'),'1.400,40 €');await expect(child(p).locator('[data-fx-incomplete]')).toHaveCount(0);
+ await child(p).locator('[data-inv-projection-card] > button').click();const proj=child(p).locator('[data-inv-projection]');await expect(proj.locator('svg')).toHaveCount(1);
+ await local(p,currency);await expect(child(p).getByRole('button',{name:currency==='USD'?'$':'£',exact:true})).toHaveAttribute('aria-pressed','true');await money(child(p).locator('[data-inv-hero] .serif'),'—');await expect(proj).toContainText('Sin tipo de cambio');await expect(proj.locator('svg')).toHaveCount(0);
+ await local(p,'EUR');await money(child(p).locator('[data-inv-hero] .serif'),'1.400,40 €');await expect(proj.locator('svg')).toHaveCount(1);expect(await stored(p)).toEqual(before);
+});
+
+test('FIN35 valid legacy USD rate preserves initial USD despite invalid table entry',async({page:p})=>{
+ const before=await boot(p,'USD',{USD:0,GBP:1.25},{fx:0.8});await openChild(p);await expect(child(p).getByRole('button',{name:'$',exact:true})).toHaveAttribute('aria-pressed','true');await money(child(p).locator('[data-inv-hero] .serif'),'1.857,38 $');await expect(child(p).locator('[data-fx-incomplete]')).toHaveCount(0);expect(await stored(p)).toEqual(before);
+});
 
 test('FIN31 missing FX: broker unknown and FIN06 partial totals, original rows survive toggles and reload',async({page:p},info)=>{
  const before=await boot(p,'EUR',{});await capture(p,info,'missing-fx-base');
@@ -74,7 +100,7 @@ test('FIN31 projection: every amount and axis follows local EUR USD GBP with unc
 
 test('FIN31 missing display GBP rate: no relabelled EUR, meaningful selected option',async({page:p})=>{
  // Missing GBP affects both an original position and the local display conversion.
- const before=await boot(p,'GBP',{USD:0.8});await openChild(p);await expect(child(p).getByRole('button',{name:'£',exact:true})).toHaveAttribute('aria-pressed','true');
+ const before=await boot(p,'GBP',{USD:0.8});await openChild(p);await expect(child(p).getByRole('button',{name:'€',exact:true})).toHaveAttribute('aria-pressed','true');await money(child(p).locator('[data-broker-key="trade_republic"] .am'),'1.200 €');await local(p,'GBP');await expect(child(p).getByRole('button',{name:'£',exact:true})).toHaveAttribute('aria-pressed','true');
  await money(child(p).locator('[data-broker-key="trade_republic"] .am'),'—');await expect(child(p).locator('[data-fx-incomplete]')).toBeVisible();await local(p,'EUR');await money(child(p).locator('[data-broker-key="trade_republic"] .am'),'1.200 €');expect(await stored(p)).toEqual(before);
 });
 
@@ -82,12 +108,12 @@ test('FIN31 boundary partial selection excludes unknown investment, mixed broker
  const mixed=[...investments,{id:'rv-eur',ent:'revolut',name:'Control EUR mismo bróker',cur:'EUR',value:50.25,cost:40.2}];
  const before=await boot(p,'EUR',{}, {investments:mixed});await money(broker(p,'revolut').locator('.am'),'—');
  const inv=p.locator('.page .v4-legend-btn').filter({hasText:'Inversiones'});await inv.click();await money(p.locator('.cartera-hero-amt'),'750,00 €');await inv.click();await money(p.locator('.cartera-hero-amt'),'2.000,65 €');
- await openChild(p);await money(child(p).locator('[data-broker-key="revolut"] .am'),'—');await child(p).locator('[data-inv-hero]').screenshot({path:info.outputPath('unknown-hero.png'),animations:'disabled'});expect(await stored(p)).toEqual(before);
+ await openChild(p);await money(child(p).locator('[data-broker-key="revolut"] .am'),'—');await child(p).locator('[data-inv-hero]').screenshot({path:info.outputPath('unknown-hero.png'),animations:'disabled'});expect(await stored(p)).toEqual({...before,settings:{...before.settings,carteraParts:{goods:true,inv:true,liq:true}}});
 });
 
 test('FIN31 boundary missing display rate alone preserves known EUR assets and suppresses projection',async({page:p},info)=>{
  const onlyKnown=investments.filter(i=>i.cur!=='GBP');const before=await boot(p,'GBP',{USD:0.8},{investments:onlyKnown});await openChild(p);
- await money(child(p).locator('[data-inv-hero] .serif'),'—');await expect(child(p).locator('[data-fx-incomplete]')).toBeVisible();await child(p).locator('[data-inv-projection-card] > button').click();
+ await money(child(p).locator('[data-inv-hero] .serif'),'1.360,40 €');await expect(child(p).locator('[data-fx-incomplete]')).toHaveCount(0);await child(p).locator('[data-inv-projection-card] > button').click();await expect(child(p).locator('[data-inv-projection] svg')).toHaveCount(1);await local(p,'GBP');await money(child(p).locator('[data-inv-hero] .serif'),'—');await expect(child(p).locator('[data-fx-incomplete]')).toBeVisible();
  const proj=child(p).locator('[data-inv-projection]');await expect(proj).toContainText('Sin tipo de cambio');await expect(proj.locator('svg')).toHaveCount(0);
  await local(p,'EUR');await money(child(p).locator('[data-inv-hero] .serif'),'1.360,40 €');await expect(proj.locator('svg')).toHaveCount(1);await local(p,'GBP');await expect(proj.locator('svg')).toHaveCount(0);expect(await stored(p)).toEqual(before);await proj.screenshot({path:info.outputPath('display-rate-unknown.png'),animations:'disabled'});
 });

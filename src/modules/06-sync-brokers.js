@@ -843,7 +843,8 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
   const plTotal=costTotal>0?(total-costTotal)/costTotal*100:0;
   // Moneda LOCAL de la pestaña Inversiones (no toca el resto de la app). Todo se calcula en €
   // internamente y se convierte con el cambio guardado de la moneda elegida.
-  const [invCur,setInvCur]=useState(function(){ return (state.settings&&state.settings.currency)||"EUR"; });
+  // Sin tipo válido arrancamos en EUR; solo al montar, para respetar la elección local posterior.
+  const [invCur,setInvCur]=useState(function(){ const cur=(state.settings&&state.settings.currency)||"EUR"; return fxRateOf(cur,state)==null?"EUR":cur; });
   const displayMissing=fxRateOf(invCur,state)==null;
   const dsym=CUR_SYM[invCur]||invCur;
   // Cartera sigue la moneda global; la pantalla hija conserva su elección independiente.
