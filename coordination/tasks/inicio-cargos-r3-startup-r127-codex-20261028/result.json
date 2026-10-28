@@ -1,0 +1,44 @@
+{
+  "status": "done",
+  "summary": "R3 manual test-only terminado: vinculo por UI tras arranque real, pago/proyeccion/persistencia conservados, PR322 draft contra beta exactHEADd553c85ac; recursos propios devueltos.",
+  "tests": [
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check e2e/inicio-cargos.spec.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check BASE HEAD",
+      "exitCode": 0
+    },
+    {
+      "command": "Playwright R3 manual es/en/ca con configuracion aislada, CPU1 workers1 retries0 maxFailures1",
+      "exitCode": 0,
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "flaky": 0
+    }
+  ],
+  "productSHA": "d553c85ac4d5cdb1c7f35c041d8a429bbe4e6d65",
+  "baseSHA": "7e958a6f545ceb30c1a1eef66a03ec7a1884c887",
+  "pullRequest": 322,
+  "draft": true,
+  "resourcesReturned": true,
+  "manifestSHA256": "a6d3b1f59b1ae986f9c3628e3eb2ff48309e4f398c4c66f62d0529b942d5ef55",
+  "bundleSHA256": "f3acfe067fdbc1d0156334c89c84acdc9bc447a04829019bf5bfe6dd8b34d55b",
+  "limitations": [
+    "Baseline original3PASS; sonda separada demuestra overwrite flush7ms, no REDoriginal afirmado.",
+    "Solo R3 manual sintetico es/en/ca; no suite completa ni CIgeneral/servido/movil acreditados.",
+    "RevisionROOT e independiente y GO939ba234 exactos; integracion pendienteClaude, ProductREADYfalse."
+  ],
+  "schema": 1,
+  "taskId": "inicio-cargos-r3-startup-r127-codex-20261028",
+  "actor": "codex",
+  "sessionId": "inicio-r3r127-fda31257-9d1b21d0-3ab1-4630-a91b-68d696472542",
+  "createdAt": "2026-10-28T20:24:15.041Z",
+  "released": true
+}
