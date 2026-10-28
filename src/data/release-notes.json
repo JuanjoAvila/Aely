@@ -1,5 +1,52 @@
 [
   {
+    "v": "4.26.192",
+    "d": "2026-10-28",
+    "t": {
+      "es": "Renombrar un traspaso ya no lo vuelve ingreso",
+      "en": "Renaming a transfer no longer turns it into income",
+      "ca": "Reanomenar un traspàs ja no el converteix en ingrés"
+    },
+    "items": {
+      "es": [
+        "Si cambias el nombre de un traspaso o un pago sin conexión, ya no pasa a contar como ingreso ni te sube las cifras."
+      ],
+      "en": [
+        "If you rename a transfer or a payment while offline, it no longer counts as income and your figures do not go up."
+      ],
+      "ca": [
+        "Si canvies el nom d’un traspàs o un pagament sense connexió, ja no passa a comptar com a ingrés ni et puja les xifres."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "gastos-renombrar-traspaso",
+        "t": {
+          "es": "Gastos: renombrar un traspaso no lo vuelve ingreso",
+          "en": "Spending: renaming a transfer doesn’t turn it into income",
+          "ca": "Despeses: reanomenar un traspàs no el converteix en ingrés"
+        },
+        "items": {
+          "es": [
+            "1. Pon el móvil en modo avión. Gastos → busca un traspaso, una inversión o un pago del banco con importe en negativo → tócalo → toca su nombre, escribe otro y cierra la ficha. BIEN: sale con el nombre nuevo, el importe sigue en negativo y igual de grande, y los totales de Gastos y de «Este mes» en Inicio no suben. MAL: el importe pasa a positivo, sale como ingreso o suben los totales.",
+            "2. Quita el modo avión, espera unos segundos y abre otra pestaña y vuelve a Gastos. BIEN: el movimiento sigue con el nombre nuevo, en negativo y con las mismas cifras de antes. MAL: vuelve a salir como ingreso, cambia el importe o se repite.",
+            "3. Con conexión normal, renombra otro movimiento negativo del banco (un traspaso, una inversión o un bizum) y cierra la ficha. BIEN: se queda en negativo con el nombre nuevo y los totales no se mueven. MAL: pasa a ingreso o cambian las cifras. Si no tienes ningún movimiento así, salta este paso."
+          ],
+          "en": [
+            "1. Put the phone in airplane mode. Spending → find a transfer, an investment or a bank payment with a negative amount → tap it → tap its name, type another one and close the sheet. RIGHT: it shows with the new name, the amount stays negative and the same size, and the Spending and Home \"This month\" totals do not go up. WRONG: the amount turns positive, it shows as income or the totals go up.",
+            "2. Turn airplane mode off, wait a few seconds, open another tab and come back to Spending. RIGHT: the transaction keeps the new name, stays negative and the figures are the same as before. WRONG: it comes back as income, the amount changes or it shows twice.",
+            "3. With a normal connection, rename another negative bank transaction (a transfer, an investment or a Bizum) and close the sheet. RIGHT: it stays negative with the new name and the totals do not move. WRONG: it becomes income or the figures change. If you have no such transaction, skip this step."
+          ],
+          "ca": [
+            "1. Posa el mòbil en mode avió. Despeses → busca un traspàs, una inversió o un pagament del banc amb import en negatiu → toca’l → toca el seu nom, escriu-ne un altre i tanca la fitxa. BÉ: surt amb el nom nou, l’import continua en negatiu i igual de gran, i els totals de Despeses i d’«Aquest mes» a Inici no pugen. MALAMENT: l’import passa a positiu, surt com a ingrés o pugen els totals.",
+            "2. Treu el mode avió, espera uns segons, obre una altra pestanya i torna a Despeses. BÉ: el moviment continua amb el nom nou, en negatiu i amb les mateixes xifres d’abans. MALAMENT: torna a sortir com a ingrés, canvia l’import o es repeteix.",
+            "3. Amb connexió normal, reanomena un altre moviment negatiu del banc (un traspàs, una inversió o un bizum) i tanca la fitxa. BÉ: es queda en negatiu amb el nom nou i els totals no es mouen. MALAMENT: passa a ingrés o canvien les xifres. Si no tens cap moviment així, salta aquest pas."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.191",
     "d": "2026-10-28",
     "t": {
@@ -18,33 +65,7 @@
         "Si canvies el nom d’una despesa del banc, ja no desapareix una altra despesa igual d’un altre banc i les xifres no es descaden."
       ]
     },
-    "tandas": [
-      {
-        "id": "gastos-renombrar-otro-banco",
-        "t": {
-          "es": "Gastos: renombrar no esconde otro gasto",
-          "en": "Spending: renaming doesn’t hide another expense",
-          "ca": "Despeses: reanomenar no n’amaga una altra"
-        },
-        "items": {
-          "es": [
-            "1. Gastos → busca un movimiento del banco → tócalo → toca su nombre, escribe otro y cierra la ficha. BIEN: el movimiento sale con el nombre nuevo, el importe no cambia y no aparece repetido; si ese día había otro gasto igual de otro banco, sigue en la lista. MAL: desaparece el otro gasto, sale uno de más o el total del día cambia.",
-            "2. Mira el total de Gastos y el de Inicio antes y después de renombrar. BIEN: no se mueven (solo cambia el nombre). MAL: baja o sube el importe de «Este mes».",
-            "3. Cierra la app del todo, ábrela de nuevo y vuelve a ponerle su nombre de antes. BIEN: el movimiento sigue una sola vez, con las mismas cifras de antes, y el otro gasto igual sigue ahí. MAL: reaparece repetido, o desaparece alguno."
-          ],
-          "en": [
-            "1. Spending → find a bank transaction → tap it → tap its name, type another one and close the sheet. RIGHT: it shows with the new name, the amount does not change and it does not show up twice; if that day had an identical expense from another bank, it is still in the list. WRONG: the other expense disappears, an extra one shows up or the day total changes.",
-            "2. Look at the Spending total and the Home one before and after renaming. RIGHT: they do not move (only the name changes). WRONG: the \"This month\" amount goes down or up.",
-            "3. Close the app completely, open it again and put its old name back. RIGHT: the transaction stays once, with the same figures as before, and the identical expense is still there. WRONG: it comes back twice, or one disappears."
-          ],
-          "ca": [
-            "1. Despeses → busca un moviment del banc → toca’l → toca el seu nom, escriu-ne un altre i tanca la fitxa. BÉ: el moviment surt amb el nom nou, l’import no canvia i no apareix repetit; si aquell dia hi havia una altra despesa igual d’un altre banc, continua a la llista. MALAMENT: desapareix l’altra despesa, en surt una de més o el total del dia canvia.",
-            "2. Mira el total de Despeses i el d’Inici abans i després de reanomenar. BÉ: no es mouen (només canvia el nom). MALAMENT: l’import d’«Aquest mes» puja o baixa.",
-            "3. Tanca l’app del tot, torna-la a obrir i posa-li el nom d’abans. BÉ: el moviment continua una sola vegada, amb les mateixes xifres d’abans, i l’altra despesa igual hi és. MALAMENT: reapareix repetit, o desapareix algun."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.190",

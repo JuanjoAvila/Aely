@@ -101317,5 +101317,51 @@
       "supabase/functions/_shared/presupuesto.ts"
     ],
     "unidades": true
+  },
+  "gastos-renombrar-traspaso": {
+    "web": [
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "from": "    // Renombrar cualquier negativo conserva su categoría",
+        "to": "    const splitByEdit=(signed!==orig.amount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategory"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USER_OVERRIDES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CAT_NEUTRAS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MERCHANT_OVERRIDES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW_PALABRA"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW_INICIO"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW"
+      }
+    ],
+    "unidades": true
   }
 }

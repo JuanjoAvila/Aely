@@ -13619,7 +13619,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     const origDay=String(orig.date||"").slice(0,10);
     const newDay=String(ed.date||origDay).slice(0,10);
     if(signed===orig.amount && merch===(orig.merchant||"") && newDay===origDay&&!orig.renamePending){ sincroniza(orig); return; }   // sin cambios
-    const cat = ed.income ? "ingreso" : (orig.category==="ingreso" ? autoCategory(merch) : orig.category);
+    // Renombrar cualquier negativo conserva su categoría: el signo no decide que sea ingreso.
+    const cat = ed.income ? (orig.amount<0 ? orig.category : "ingreso") : (orig.category==="ingreso" ? autoCategory(merch) : orig.category);
     const splitByEdit=(signed!==orig.amount||newDay!==origDay)&&!!gemeloAutomaticoDe(state,orig);
     if(splitByEdit) separarGemelo(orig);
     const upd=Object.assign({},orig,{merchant:merch, amount:signed, category:cat});
@@ -26832,7 +26833,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="4923ceba7465bb6dd7ad26fbc42d60c9f5064113f0f7251064c6c8efdbf5a26e";
+var _rnSha="392097826d40992fe3b9ef8e0de1b331ebb7bc42ed023f0f20a1adac35e44b43";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
