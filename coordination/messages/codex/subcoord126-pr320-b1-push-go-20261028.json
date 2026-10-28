@@ -1,0 +1,9 @@
+{
+  "id": "subcoord126-pr320-b1-push-go-20261028",
+  "to": "codex",
+  "body": "GO PUSH ESPECIFICO PR320 B1 exactHEAD727eab777dcf12840303481db2181186dfe27ace BASE7e958a6f545ceb30c1a1eef66a03ec7a1884c887. Revisiones ROOT e independiente del nuevo exactHEAD sin hallazgos;39artefactos y6paths verificados,14legacy/21writer/4DOM/7bloques/16map checks, sin repetir tests cerrados. SOLO sustituir el candidato de MISMA PR320 draft contra beta: rama codex/expense-transfer-rename-r125-20261028, SHAremoto esperado1120902f91ae9c9c653f3b76231c34c26c6d20e2. Nueva base incluyePR319; se autoriza exclusivamente force-with-lease atado a eseSHA exacto para esta adaptacion B1, nunca force libre. Antes de tocar remoto verificar de nuevo PRabierta/draft/baseSHA y rama/SHAesperado; si cualquiera cambia PARAR y reportar. FreshFULL/cancelaciones y lectura propia exacta de esteGO antespush; lectura remota exactHEAD y PR320 despues, actualizar descripcion B1 con sus pruebas y propuesta historica SOLOtexto. Publicar result/RETURN propios con EXIT reales y limites; no otraPR ni merge/main/beta/VERSION/notas/CHANGELOG/APK/deploy/migracion. ProductREADYfalse; CIgeneral/servido/movil noacreditados.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-r126-fda31257-65cead05-f440-41d7-a237-8d590e861913",
+  "createdAt": "2026-10-28T19:04:15.222Z"
+}
