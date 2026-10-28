@@ -762,6 +762,15 @@ de recibos. Teclea cadenas completas con `pressSequentially` para impedir que un
 robar el foco al título. El spec está en `scripts/relevant-tests.mjs`; `plan-gestionar` conserva el
 flujo histórico de alta/edición y ambos se ejecutan al tocar Plan.
 
+Plan › Recibos v6, tanda 1: `e2e/plan-recibos-v6.spec.mjs` siembra recibos con el reloj fijo y
+mira el DOM: la tarjeta suma lo pendiente, «Pendiente» y «Para revisar» enseñan tres con el resto
+plegado tras «Ver los N» (vencido pasado el margen de dos días y lo pagado solo por calendario), y
+en la ficha «¿Cuál es el cargo?» enlaza un cargo de verdad con `linkFixedPayment` (la prueba queda
+guardada y el recibo pasa a «Ya pagados»); «No es este recibo» → «Aún no se ha cobrado» lo devuelve.
+Está en `E2E_MAP` para `14-v4-screens`, `08-motor-bank` y `01-i18n`. Las filas plegadas siguen en
+el DOM (con `inert`): `toHaveCount` las cuenta y `toBeVisible` no, así que los specs que quieren
+ver una fila de «Ya pagados» la despliegan antes.
+
 Descarga incompleta (candidato13/10): `tests/bank-download-incomplete.test.mjs`, registrado en
 runner y `STEPS_SUPABASE`, ejecuta lector, handler y updater real de App. Compara el updater con
 el padre123: ambas lecturas de `bankTx` conservan el extracto; falla sin el adaptador mínimo.

@@ -77,6 +77,11 @@ export const E2E_MAP = [
   // Meses marcados a mano: la mensualidad de `fixedMonthlyOf` y la vista previa del alta (FIN-20/21).
   { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-meses-a-mano.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-meses-a-mano.spec.mjs"] },
+  // Plan › Recibos v6: tarjeta, «Para revisar», «Por pagar», «Ya pagados» y «¿Cuál es el cargo?».
+  // Las cifras y el enlace salen del motor (`planChargesMonth`, `linkFixedPayment`): también lo ata.
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-recibos-v6.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/plan-recibos-v6.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/plan-recibos-v6.spec.mjs"] },
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/ux16-round9-haptics.spec.mjs", "e2e/ux16-haptics.spec.mjs", "e2e/ux16-round2-haptics.spec.mjs", "e2e/ux16-round3-haptics.spec.mjs", "e2e/ux16-ajustador.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/ux16-round9-haptics.spec.mjs", "e2e/ux16-haptics.spec.mjs", "e2e/ux16-round3-haptics.spec.mjs", "e2e/ux16-ajustador.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-ciclo-porcentaje.spec.mjs"] },

@@ -8,6 +8,8 @@ const PLAN_SEG_ORDEN=["recibos","deudas","metas"];
 function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
   const [seg,setSeg]=useState("recibos");
   const [manageOpen,setManageOpen]=useState(false);
+  // «Editar» desde la ficha de un recibo abre Todos directamente en su edición.
+  const [manageEdit,setManageEdit]=useState(null);
   // Modo sencillo: solo Recibos (spec §2).
   const segs=simple
     ? [{id:"recibos",lab:t("v4_plan_recibos")}]
@@ -174,85 +176,60 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
           className:"v4-seg-btn"+(seg===s.id?" on":""),onClick:function(){ if(seg!==s.id) mcTickHaptic(); setSeg(s.id); }}, s.lab);
       })
     ),
-    capa("recibos", React.createElement(PlanBills,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen,simple:simple})),
+    capa("recibos", simple
+      ? React.createElement(PlanBills,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen})
+      : React.createElement(PlanRecibos,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen,
+          manageEdit:manageEdit,setManageEdit:setManageEdit,showToast:showToast,onGoDebts:function(){ setSeg("deudas"); }})),
     !simple && capa("deudas", React.createElement(Debts,{state:state,set:set,showToast:showToast})),
     !simple && capa("metas", React.createElement(Goals,{state:state,set:set,totals:totals,showToast:showToast}))
   );
 }
 
-/* Recibos conserva la portada compacta que ya funcionaba: el diagnóstico largo y el anillo
-   convertían Plan en un mensaje gigante y alejaban lo que la familia viene a mirar. «Gestionar»
-   sí se mantiene como puerta al editor nuevo (feedback real 2026-09-17). */
-function PlanBills({state, set, totals, charges, evidence, manageOpen, setManageOpen, simple}){
+/* Recibos en modo SENCILLO: la portada compacta que ya funcionaba. El rediseño v6 (`PlanRecibos`)
+   es para el modo normal y el sencillo sigue como estaba (SPEC Plan Recibos §0). Aquí no hay
+   «Gestionar»: la puerta vive en Ajustes → Cambiar mis recibos (NO-GO §5bis.2). */
+function PlanBills({state, set, totals, charges, evidence, manageOpen, setManageOpen}){
   const [paidExpanded,setPaidExpanded]=useState(false);
   const [pendExpanded,setPendExpanded]=useState(false);
   const paidPanelId="v4-paid-panel";
-  const month=totals.curMonth;
   const pack=charges||planChargesMonth(state, totals.curMonth, totals.curYear, totals.today);
   // Sencillo conserva las salidas juntas; el matiz aclara que mover dinero no suma recibos.
-  const pending=simple?pack.pendingBills.concat(pack.transfersPending):pack.pendingBills;
+  const pending=pack.pendingBills.concat(pack.transfersPending);
   const proof=evidence||paymentEvidenceUI(state,totals.curYear,totals.curMonth,totals.today);
   const unconfirmed=pack.paidBills.filter(function(x){return proof.confirmed[x.id]===false;}).map(function(x){return Object.assign({},x,{paid:false,unconfirmed:true});});
   const paid=pack.paidBills.filter(function(x){return proof.confirmed[x.id]!==false;});
   // Solo el subtotal de esta lista cambia; la previsión financiera del pack queda intacta.
   const paidTotal=paid.reduce(function(sum,x){return sum+Math.abs(x.amount);},0);
-  // La factura variable acredita su bruto real, pero no permite inventar la parte propia
-  // de un compartido: conservar la previsión y nombrarla separada del cargo bancario.
-  const changedPaid=function(x){ return x.paid&&x.paidAmount>0&&Math.abs(x.paidAmount-x.plannedBankAmount)>=0.005; };
-  const hasChangedPaid=paid.some(changedPaid);
+  const hasChangedPaid=paid.some(planChargeChanged);
   const incomePend=pack.incomePending||[];
   // Atrás real (history) pliega el «Ya has pagado»; Escape del e2e no basta (Claude 1845Z).
   useBackClose(!!paidExpanded, function(){ setPaidExpanded(false); });
-  const openManage=function(){
-    if(setManageOpen) setManageOpen(true);
-    else try{ window.dispatchEvent(new CustomEvent("mc-open-bills")); }catch(e){}
-  };
   const rowSub=function(x){
     if(x.unconfirmed) return entOf(x.bank).label;
     // El recibo conserva el banco previsto; el cargo confirmado puede haber salido de otro.
     var bank=x.paid&&x.paidBank?x.paidBank:x.bank;
     if(x.overdue) return entOf(x.bank).label+" · "+t("v4_charge_unconfirmed");
-    if(simple){
-      if(x.kind==="income") return tf("v4s_row_income",{bank:entOf(x.bank).label});
-      if(x.kind==="transfer"){
-        var toEnt=x.to||null;
-        var inv=toEnt&&((state.investments||[]).some(function(i){ return i.ent===toEnt; })||(state.accounts||[]).some(function(a){ return a.ent===toEnt&&a.role==="extra"; }));
-        return inv?tf("v4s_row_invest",{bank:entOf(toEnt).label}):tf("v4s_row_to",{bank:entOf(toEnt||x.bank).label});
-      }
-      if(x.kind==="debt"||x.kind==="balloon") return tf("v4s_row_debt",{name:x.name})+(x.paidBank&&x.paidBank!==x.bank?" · "+entOf(x.paidBank).label:"");
-      return tf("v4s_row_from",{bank:entOf(bank).label})+(changedPaid(x)?" · "+tf("v4_charge_actual",{x:eur(x.paidAmount)}):"");
+    if(x.kind==="income") return tf("v4s_row_income",{bank:entOf(x.bank).label});
+    if(x.kind==="transfer"){
+      var toEnt=x.to||null;
+      var inv=toEnt&&((state.investments||[]).some(function(i){ return i.ent===toEnt; })||(state.accounts||[]).some(function(a){ return a.ent===toEnt&&a.role==="extra"; }));
+      return inv?tf("v4s_row_invest",{bank:entOf(toEnt).label}):tf("v4s_row_to",{bank:entOf(toEnt||x.bank).label});
     }
-    var tag=x.kind==="income"?t("fj_income_tag"):(x.kind==="transfer"?t("fj_transfer_tag"):(x.kind==="debt"||x.kind==="balloon"?t("fj_debt_tag"):t("fj_fixed_tag")));
-    return tag+(bank?" · "+entOf(bank).label:"")+(changedPaid(x)?" · "+tf("v4_charge_actual",{x:eur(x.paidAmount)}):"");
+    if(x.kind==="debt"||x.kind==="balloon") return tf("v4s_row_debt",{name:x.name})+(x.paidBank&&x.paidBank!==x.bank?" · "+entOf(x.paidBank).label:"");
+    return tf("v4s_row_from",{bank:entOf(bank).label})+(planChargeChanged(x)?" · "+tf("v4_charge_actual",{x:eur(x.paidAmount)}):"");
   };
   const row=function(x){
     const match=String(x.id).match(/^(fixed|debt|balloon)_(.*)$/),kind=match&&match[1]!=="fixed"?"debts":"fixed";
     const item=match&&(state[kind]||[]).find(function(e){return String(e.id)===match[2];});
     const conflict=item&&planSyncConflict(state,kind,item.id);
     const income=!!x.income || (x.amount<0);
-    const amt=Math.abs(x.amount),amountLabel=changedPaid(x)?React.createElement(React.Fragment,null,
-      React.createElement("small",{style:{display:"block",fontSize:10,color:"var(--muted)",fontWeight:400}},tf("v4_charge_expected",{x:""}).trim()),eur(amt)):eur(amt);
-    const cls=simple?("v4-mov"+(x.paid?" v4-paid":"")):("v4-charge"+(x.paid?" v4-paid":""));
-    if(simple){
-      return React.createElement("div",{className:cls,key:x.id},
-        React.createElement("div",{className:"tile","aria-hidden":true}, x.day||"—"),
-        React.createElement("div",{className:"nm"},
-          React.createElement("div",{className:"nm-title"}, x.paid?"✓ "+x.name:x.name,React.createElement(PlanConflictDot,{record:conflict})),
-          React.createElement("div",{className:"meta"}, rowSub(x))
-        ),
-        React.createElement("div",{className:"am"+(income?" pos":"")}, income?"+":"",amountLabel)
-      );
-    }
-    return React.createElement("div",{className:cls,key:x.id},
-      React.createElement("div",{className:"dt"},
-        React.createElement("div",{className:"d"}, x.day||"—"),
-        React.createElement("div",{className:"m"}, monthShort(month-1))
-      ),
+    return React.createElement("div",{className:"v4-mov"+(x.paid?" v4-paid":""),key:x.id},
+      React.createElement("div",{className:"tile","aria-hidden":true}, x.day||"—"),
       React.createElement("div",{className:"nm"},
-        React.createElement("div",null, x.paid?"✓ "+x.name:x.name,React.createElement(PlanConflictDot,{record:conflict})),
-        React.createElement("div",{className:"sub"}, rowSub(x))
+        React.createElement("div",{className:"nm-title"}, x.paid?"✓ "+x.name:x.name,React.createElement(PlanConflictDot,{record:conflict})),
+        React.createElement("div",{className:"meta"}, rowSub(x))
       ),
-      React.createElement("div",{className:"am"+(income?" pos":"")}, income?"+":"",amountLabel)
+      React.createElement("div",{className:"am"+(income?" pos":"")}, income?"+":"",planChargeAmount(x))
     );
   };
   const paidTotalLabel=hasChangedPaid?tf("v4_charge_expected",{x:eur0(paidTotal)}):eur0(paidTotal);
@@ -260,34 +237,12 @@ function PlanBills({state, set, totals, charges, evidence, manageOpen, setManage
     ? tf("v4_paid_fold_one",{n:1,amount:paidTotalLabel})
     : tf("v4_paid_fold",{n:paid.length,amount:paidTotalLabel});
   return React.createElement(React.Fragment,null,
-    !simple && React.createElement("div",{className:"v4-card v4-card-hero rise"},
-      React.createElement("div",{className:"v4-micro"}, tf("v4_plan_left",{month:monthLong(month-1)})),
-      React.createElement("div",{className:"serif num",style:{fontSize:40,fontWeight:550,letterSpacing:"-1px",lineHeight:1.05,marginTop:6}}, eur(pack.pendingBillsTotal)),
-      React.createElement("div",{style:{display:"flex",gap:8,alignItems:"center",marginTop:14,fontSize:13.5,color:"var(--muted)"}},
-        React.createElement("span",{style:{width:8,height:8,borderRadius:"50%",background:"var(--mint)",flex:"0 0 auto"}}),
-        (function(){
-          const account=(state.accounts||[]).find(accFixed);
-          const bank=account&&account.ent;
-          /* Una sola fuente para normal y sencillo: `planCoverState` parte del mínimo diario y
-             descuenta únicamente las cuotas SIN fecha. El saldo final podía quedar positivo por
-             una nómina posterior y ocultar un descubierto anterior (feedback 2026-09-18). */
-          const cover=bank&&planCoverState(totals,bank,0,pack.pendingBills);
-          if(!cover||typeof cover.min!=="number"||!isFinite(cover.min)) return "—";
-          const day=cover.minDay>0?cover.minDay:0;
-          return tf("v4_plan_liq",{amount:eur0(cover.min),when:day?" "+tf("v4_plan_liq_day",{d:day}):"",bank:entOf(bank).label});
-        })()
-      )
-    ),
     React.createElement("div",{className:"v4-section","data-testid":"plan-due"},
       React.createElement("div",{className:"v4-section-h"},
-        // Vuelve «Pendiente»: «Por pagar» necesitaba una línea de ayuda debajo para entenderse y
-        // la palabra de antes no (petición del dueño, 26/10/2026).
-        React.createElement("span",null,simple?t("v4_aun_saldra"):t("v4_pendiente")),
-        // Sencillo: sin «Gestionar» aquí — solo Ajustes → Cambiar mis recibos (NO-GO §5bis.2).
-        !simple && React.createElement("button",{type:"button",className:"link",onClick:openManage}, t("v4_gestionar"))
+        React.createElement("span",null,t("v4_aun_saldra"))
       ),
-      // Solo cuando en Sencillo se mezclan traspasos con recibos: ahí sí hace falta decir qué suma.
-      pending.length>0&&simple&&pack.transfersPending.length>0&&React.createElement("div",{className:"ph"},t("v4_payment_mixed_hint")),
+      // Solo cuando se mezclan traspasos con recibos: ahí sí hace falta decir qué suma.
+      pending.length>0&&pack.transfersPending.length>0&&React.createElement("div",{className:"ph"},t("v4_payment_mixed_hint")),
       pending.length===0
         ? React.createElement("div",{className:"ph",style:{padding:"8px 4px 4px"}}, t("v4_aun_saldra_empty"))
         : (pendExpanded?pending:pending.slice(0,3)).map(row),
@@ -297,28 +252,415 @@ function PlanBills({state, set, totals, charges, evidence, manageOpen, setManage
     unconfirmed.length>0 && React.createElement("div",{className:"v4-section","data-testid":"plan-unconfirmed"},
       React.createElement("div",{className:"v4-section-h"},t("v4_payment_pending")+" · "+unconfirmed.length),
       React.createElement("div",{className:"ph"},t("v4_payment_pending_hint")),unconfirmed.map(row)),
-    !simple&&pack.transfersPending.length>0&&React.createElement("div",{className:"v4-section","data-testid":"plan-transfers"},
-      React.createElement("div",{className:"v4-section-h"},t("v4_plan_transfers")),pack.transfersPending.map(row)),
     incomePend.length>0 && React.createElement("div",{className:"v4-section"},
       React.createElement("div",{className:"v4-section-h"},
         React.createElement("span",null,t("v4_aun_entrara"))
       ),
       incomePend.map(row)
     ),
-    !simple && React.createElement("div",{className:"v4-section"},
-      React.createElement("div",{className:"v4-section-h"},t("v4_ya_pagado")+" · "+(hasChangedPaid?tf("v4_charge_expected",{x:eur(paidTotal)}):eur(paidTotal))),
-      (paidExpanded?paid:paid.slice(0,3)).map(row),
-      paid.length>3 && React.createElement("button",{type:"button",className:"v4-link-mini",onClick:function(){ setPaidExpanded(function(v){ return !v; }); }},
-        paidExpanded?t("v4_ver_menos"):tf("v4_ver_mas",{n:paid.length-3}))
-    ),
-    simple && paid.length>0 && React.createElement("button",{type:"button",className:"v4-paid-fold",
+    paid.length>0 && React.createElement("button",{type:"button",className:"v4-paid-fold",
       id:"v4-paid-fold-btn","aria-expanded":paidExpanded?"true":"false","aria-controls":paidPanelId,
       onClick:function(){ setPaidExpanded(function(v){ return !v; }); }},
       React.createElement("span",null, paidLabel),React.createElement("span",{"aria-hidden":true}, paidExpanded?"▾":"▸")),
-    simple && paidExpanded && React.createElement("div",{className:"v4-section",id:paidPanelId,role:"region","aria-labelledby":"v4-paid-fold-btn"}, paid.map(row)),
+    paidExpanded && React.createElement("div",{className:"v4-section",id:paidPanelId,role:"region","aria-labelledby":"v4-paid-fold-btn"}, paid.map(row)),
     // También en sencillo: la puerta vive en Ajustes → Dinero (NO-GO §5bis.2).
-    React.createElement(BillsManagePush,{open:manageOpen,onClose:function(){ setManageOpen(false); },state:state,set:set,totals:totals,simple:!!simple})
+    React.createElement(BillsManagePush,{open:manageOpen,onClose:function(){ setManageOpen(false); },state:state,set:set,totals:totals,simple:true})
   );
+}
+/* La factura variable acredita su bruto real, pero no permite inventar la parte propia de un
+   compartido: se conserva la previsión y se nombra aparte del cargo bancario. Lo usan las dos
+   portadas (sencilla y v6) para que digan lo mismo. */
+function planChargeChanged(x){ return !!(x.paid&&x.paidAmount>0&&Math.abs(x.paidAmount-x.plannedBankAmount)>=0.005); }
+function planChargeAmount(x){
+  const amt=eur(Math.abs(x.amount));
+  return planChargeChanged(x)?React.createElement(React.Fragment,null,
+    React.createElement("small",{style:{display:"block",fontSize:10,color:"var(--muted)",fontWeight:400}},tf("v4_charge_expected",{x:""}).trim()),amt):amt;
+}
+
+/* PLAN › RECIBOS v6 — tanda 1 (diseño cerrado con el dueño el 26/10/2026,
+   docs/design/plan-recibos/SPEC.md §2). Tiene que contestar de un vistazo cuánto queda por
+   pagar, qué hay que mirar y qué ya se pagó; lo demás vive un toque más abajo (Todos y la ficha).
+   Las cifras salen de la MISMA fuente que el resto de la app (`planChargesMonth` y
+   `paymentEvidenceUI`): la tarjeta y Inicio no pueden decir dos cosas distintas.
+
+   Un recibo vencido no pasa a «Para revisar» el mismo día: el banco tarda uno o dos días en
+   contabilizar un cargo y avisar de «No ha llegado» a la mañana siguiente sería ruido. */
+const PR6_MARGEN_DIAS=2;
+function planRecibosVista(pack, proof, today){
+  const review=[], due=[], paid=[];
+  pack.pendingBills.forEach(function(x){
+    if(x.overdue&&x.day!=null&&today-x.day>PR6_MARGEN_DIAS) review.push(Object.assign({},x,{rv:"late"}));
+    else due.push(x);
+  });
+  /* Pagado solo por calendario (sin cargo del banco detrás): no se enseña como pagado ni suma en
+     lo pendiente, igual que el «Por confirmar» de antes (INC-1810-03/04). Es lo que hay que mirar. */
+  pack.paidBills.forEach(function(x){
+    if(proof.confirmed[x.id]===false) review.push(Object.assign({},x,{paid:false,unconfirmed:true,rv:"unconf"}));
+    else paid.push(x);
+  });
+  const byDay=function(a,b){ return (a.day==null?99:a.day)-(b.day==null?99:b.day); };
+  review.sort(byDay);
+  const week=pack.pendingBills.filter(function(x){ return x.day!=null&&x.day-today>=0&&x.day-today<=6; }).length;
+  const paidTotal=paid.reduce(function(sum,x){ return sum+Math.abs(x.amount); },0);
+  return {review:review, due:due, paid:paid, week:week, paidTotal:paidTotal, paidChanged:paid.some(planChargeChanged)};
+}
+/* ¿Llega el dinero? La misma lectura que la portada de siempre (`planCoverState`, mínimo diario
+   de cada banco con recibos pendientes). Un banco sin saldo conocido no entra: sin dato no se
+   afirma nada (SPEC §4). «Falta» redondea hacia arriba en la moneda que se enseña. */
+function planRecibosLlega(totals, pack){
+  let known=0, short=0;
+  Object.keys(pack.pendingByBank||{}).forEach(function(bank){
+    const cover=planCoverState(totals,bank,0,pack.pendingBills);
+    if(!cover||typeof cover.min!=="number"||!isFinite(cover.min)) return;
+    known++;
+    if(cover.min<0) short+=-cover.min;
+  });
+  if(!known) return null;
+  return short>0.005?{ok:false,falta:Math.ceil(short*DISP.k-1e-9)/DISP.k}:{ok:true};
+}
+function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setManageOpen, manageEdit, setManageEdit, showToast, onGoDebts}){
+  const [revOpen,setRevOpen]=useState(false);
+  const [dueOpen,setDueOpen]=useState(false);
+  const [paidOpen,setPaidOpen]=useState(false);
+  const [ficha,setFicha]=useState(null);
+  const paidRef=useRef(null);
+  const month=totals.curMonth, today=totals.today;
+  const pack=charges||planChargesMonth(state, totals.curMonth, totals.curYear, today);
+  const proof=evidence||paymentEvidenceUI(state,totals.curYear,totals.curMonth,today);
+  const v=useMemo(function(){ return planRecibosVista(pack,proof,today); },[pack,proof,today]);
+  const llega=useMemo(function(){ return planRecibosLlega(totals,pack); },[totals.minByBank,totals.minDayByBank,totals.bankBal,pack]);
+  useBackClose(!!paidOpen, function(){ setPaidOpen(false); });
+  const openManage=function(){ setManageEdit(null); setManageOpen(true); };
+  const abrir=function(x){
+    if(x.kind==="debt"||x.kind==="balloon"){ if(onGoDebts) onGoDebts(); return; }
+    if(/^(fixed|oneoff)_/.test(String(x.id))) setFicha({id:x.id});
+  };
+  // El desplegable se ve entero: mueve la página lo justo, sin escribir scrollTop a mano (INC-0710-01).
+  const verPlegado=function(el){
+    if(!el) return;
+    setTimeout(function(){ try{ el.scrollIntoView({block:"nearest",behavior:mcReduced()?"auto":"smooth"}); }catch(e){} },380);
+  };
+  const conflictOf=function(x){
+    const match=String(x.id).match(/^(fixed|debt|balloon)_(.*)$/),kind=match&&match[1]!=="fixed"?"debts":"fixed";
+    const item=match&&(state[kind]||[]).find(function(e){return String(e.id)===match[2];});
+    return item&&planSyncConflict(state,kind,item.id);
+  };
+  const subOf=function(x){
+    if(x.kind==="debt"||x.kind==="balloon") return t("fj_debt_tag")+" · "+entOf(x.bank).label;
+    const f=/^fixed_/.test(String(x.id))&&(state.fixed||[]).find(function(e){ return "fixed_"+e.id===x.id; });
+    return (f&&f.category&&CAT[f.category]?catName(f.category)+" · ":"")+entOf(x.bank).label;
+  };
+  const cuando=function(x){
+    if(x.day==null) return "";
+    const n=x.day-today;
+    if(n===0) return t("pr6_hoy");
+    if(n===1) return t("pr6_manana");
+    if(n>1) return tf("pr6_en_dias",{n:n});
+    return n===-1?t("pr6_tocaba_ayer"):tf("pr6_tocaba",{n:-n});
+  };
+  // Las filas plegadas siguen en el DOM (se despliegan con transición), pero fuera del foco.
+  const plegado=function(open){ return open?null:{"aria-hidden":"true",inert:""}; };
+  const dueRow=function(x){
+    const n=x.day==null?null:x.day-today;
+    return React.createElement("button",{type:"button",className:"v4-charge pr6-row",key:x.id,"data-recibo":x.id,onClick:function(){ abrir(x); }},
+      React.createElement("span",{className:"dt","aria-hidden":"true"},
+        React.createElement("span",{className:"d"}, x.day||"—"),
+        React.createElement("span",{className:"m"}, monthShort(month-1))),
+      React.createElement("span",{className:"nm"},
+        React.createElement("span",{className:"pr6-nm"}, x.name,React.createElement(PlanConflictDot,{record:conflictOf(x)})),
+        React.createElement("span",{className:"sub"}, subOf(x)),
+        x.day!=null&&React.createElement("span",{className:"pr6-when"+(n!=null&&n<=1?" soon":"")}, cuando(x))),
+      React.createElement("span",{className:"am num"}, eur(Math.abs(x.amount))));
+  };
+  const revRow=function(x){
+    const late=x.rv==="late";
+    return React.createElement("button",{type:"button",className:"v4-charge pr6-rev",key:x.id,"data-recibo":x.id,"data-review":x.rv,onClick:function(){ abrir(x); }},
+      React.createElement("span",{className:"pr6-ico","aria-hidden":"true"},
+        React.createElement("svg",{width:19,height:19,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.2,strokeLinecap:"round",strokeLinejoin:"round"},
+          React.createElement("path",{d:late?"M12 7v5l3 2M12 21a9 9 0 100-18 9 9 0 000 18z":"M9.1 9a3 3 0 015.8 1c0 2-3 3-3 3M12 17h.01M12 21a9 9 0 100-18 9 9 0 000 18z"}))),
+      React.createElement("span",{className:"nm"},
+        React.createElement("span",{className:"pr6-nm"}, x.name,React.createElement(PlanConflictDot,{record:conflictOf(x)})),
+        React.createElement("span",{className:"sub pr6-why"}, late?t("pr6_no_llegado"):t("v4_charge_unconfirmed"))),
+      React.createElement("span",{className:"am num"}, eur(Math.abs(x.amount))));
+  };
+  const paidRow=function(x){
+    // Si el cargo no fue lo previsto, se dice cuánto fue (la cifra de la fila sigue siendo la previsión).
+    const how=[x.paidBank?tf("pr6_cargo_de",{bank:entOf(x.paidBank).label}):"",planChargeChanged(x)?tf("v4_charge_actual",{x:eur(x.paidAmount)}):""]
+      .filter(Boolean).join(" · ");
+    return React.createElement("button",{type:"button",className:"v4-charge v4-paid pr6-prow",key:x.id,"data-recibo":x.id,onClick:function(){ abrir(x); }},
+      React.createElement("span",{className:"pr6-tick","aria-hidden":"true"},"✓"),
+      React.createElement("span",{className:"nm"},
+        React.createElement("span",{className:"pr6-nm"}, x.name,React.createElement(PlanConflictDot,{record:conflictOf(x)})),
+        React.createElement("span",{className:"sub"},
+          x.day!=null&&React.createElement(React.Fragment,null,React.createElement("span",{className:"d"},x.day)," ",React.createElement("span",{className:"m"},monthShort(month-1)),how?" · ":""),
+          how)),
+      React.createElement("span",{className:"am num"}, planChargeAmount(x)));
+  };
+  // Como mucho tres a la vista; el resto se despliega debajo con «Ver los N» (SPEC §2.3–2.4).
+  const lista=function(items,render,open,setOpen,id){
+    const rest=items.slice(3);
+    return React.createElement(React.Fragment,null,
+      items.slice(0,3).map(render),
+      rest.length>0&&React.createElement("div",{className:"pr6-fold"+(open?" open":""),id:id},
+        React.createElement("div",Object.assign({className:"pr6-fold-in"},plegado(open)), rest.map(render))),
+      rest.length>0&&React.createElement("button",{type:"button",className:"pr6-more","aria-expanded":open?"true":"false","aria-controls":id,
+        onClick:function(e){ const sec=e.currentTarget.parentNode; setOpen(function(o){ if(o) verPlegado(sec); return !o; }); }},
+        open?t("v4_ver_menos"):tf("pr6_ver_los",{n:items.length}),
+        pr6Chev()));
+  };
+  const nPend=pack.pendingBills.length, nBills=nPend+pack.paidBills.length;
+  const countLine=nPend>0
+    ? tf(nPend===1?"pr6_count_one":"pr6_count",{n:nPend})+(v.week>0?" · "+tf("pr6_count_week",{n:v.week}):"")
+    : (nBills>0?t("pr6_all_paid"):"");
+  const paidTotalLabel=v.paidChanged?tf("v4_charge_expected",{x:eur(v.paidTotal)}):eur(v.paidTotal);
+  const fichaRow=ficha&&(pack.pendingBills.concat(pack.paidBills).find(function(x){ return x.id===ficha.id; })||null);
+  return React.createElement(React.Fragment,null,
+    React.createElement("div",{className:"v4-card v4-card-hero rise pr6-sum","data-testid":"plan-summary"},
+      React.createElement("div",{className:"v4-micro"}, tf("v4_plan_left",{month:monthLong(month-1)})),
+      React.createElement("div",{className:"serif num pr6-big"}, eur(pack.pendingBillsTotal)),
+      countLine&&React.createElement("div",{className:"pr6-count","data-testid":"plan-count"}, countLine),
+      llega&&nPend>0&&React.createElement("div",{className:"pr6-pills"},
+        React.createElement("span",{className:"pr6-pill"+(llega.ok?" ok":""),"data-testid":"plan-llega"},
+          llega.ok&&React.createElement("span",{className:"pr6-pill-ok","aria-hidden":"true"},"✓"),
+          llega.ok?t("pr6_llega"):tf("pr6_falta",{x:eur0(llega.falta)})))),
+    v.review.length>0&&React.createElement("section",{className:"pr6-sec","data-testid":"plan-review","aria-label":t("pr6_revisar")},
+      React.createElement("div",{className:"pr6-sec-h"},
+        React.createElement("span",null, t("pr6_revisar"),React.createElement("span",{className:"pr6-n"}, v.review.length))),
+      lista(v.review,revRow,revOpen,setRevOpen,"pr6-rev-more")),
+    React.createElement("section",{className:"pr6-sec","data-testid":"plan-due","aria-label":t("v4_pendiente")},
+      React.createElement("div",{className:"pr6-sec-h v4-section-h"},
+        // «Pendiente» y no «Por pagar»: la petición del dueño del 26/10/2026 (la otra palabra
+        // necesitaba una línea de ayuda debajo para entenderse) sigue en pie con el rediseño.
+        React.createElement("span",null, t("v4_pendiente")),
+        React.createElement("button",{type:"button",className:"link",onClick:openManage}, t("pr6_todos"))),
+      v.due.length===0
+        ? React.createElement("div",{className:"pr6-empty"}, t("pr6_nada"))
+        : lista(v.due,dueRow,dueOpen,setDueOpen,"pr6-due-more")),
+    nBills>0&&React.createElement("section",{className:"pr6-paid"+(paidOpen?" open":""),ref:paidRef,"data-testid":"plan-paid","aria-label":t("pr6_ya_pagados")},
+      React.createElement("button",{type:"button",className:"pr6-paid-h","aria-expanded":paidOpen?"true":"false","aria-controls":"pr6-paid-list",
+        onClick:function(){ setPaidOpen(function(o){ if(!o) verPlegado(paidRef.current); return !o; }); }},
+        React.createElement("span",{className:"pr6-tick","aria-hidden":"true"},"✓"),
+        React.createElement("span",{className:"pr6-paid-t"}, t("pr6_ya_pagados"),React.createElement("span",{className:"pr6-n"},"· "+v.paid.length)),
+        React.createElement("span",{className:"pr6-paid-amt num"}, paidTotalLabel),
+        pr6Chev()),
+      React.createElement("div",{className:"pr6-fold"+(paidOpen?" open":""),id:"pr6-paid-list"},
+        React.createElement("div",Object.assign({className:"pr6-fold-in"},plegado(paidOpen)), v.paid.map(paidRow)))),
+    // Traspasos y entradas siguen donde estaban hasta que llegue «¿Te llega?» (tanda 3).
+    pack.transfersPending.length>0&&React.createElement("div",{className:"v4-section","data-testid":"plan-transfers"},
+      React.createElement("div",{className:"v4-section-h"},t("v4_plan_transfers")),pack.transfersPending.map(function(x){ return planRecibosFlowRow(x,month); })),
+    (pack.incomePending||[]).length>0&&React.createElement("div",{className:"v4-section"},
+      React.createElement("div",{className:"v4-section-h"},React.createElement("span",null,t("v4_aun_entrara"))),
+      pack.incomePending.map(function(x){ return planRecibosFlowRow(x,month); })),
+    ficha&&fichaRow&&React.createElement(ReciboFicha,{key:ficha.id,row:fichaRow,state:state,set:set,totals:totals,evidence:proof,showToast:showToast,
+      onClose:function(){ setFicha(null); },
+      onEdit:function(id){ setFicha(null); setManageEdit(id); setManageOpen(true); }}),
+    React.createElement(BillsManagePush,{open:manageOpen,onClose:function(){ setManageOpen(false); setManageEdit(null); },state:state,set:set,totals:totals,simple:false,editId:manageEdit})
+  );
+}
+function pr6Chev(){
+  return React.createElement("svg",{className:"pr6-chev",width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
+    React.createElement("path",{d:"M6 9l6 6 6-6"}));
+}
+function planRecibosFlowRow(x,month){
+  const income=x.amount<0;
+  const tag=x.kind==="income"?t("fj_income_tag"):t("fj_transfer_tag");
+  return React.createElement("div",{className:"v4-charge",key:x.id},
+    React.createElement("div",{className:"dt"},
+      React.createElement("div",{className:"d"}, x.day||"—"),
+      React.createElement("div",{className:"m"}, monthShort(month-1))),
+    React.createElement("div",{className:"nm"},
+      React.createElement("div",null, x.name),
+      React.createElement("div",{className:"sub"}, tag+(x.bank?" · "+entOf(x.bank).label:""))),
+    React.createElement("div",{className:"am"+(income?" pos":"")}, income?"+":"",eur(Math.abs(x.amount))));
+}
+
+/* «Este año» de la ficha (SPEC §2.6): lo pagado en el año, en TU parte. Solo si cada mes en que
+   tocaba hay un pago acreditado; con un mes sin dato la suma saldría corta y aparentaría ser
+   exacta, así que no se enseña (AGENTS §1). El bruto real vale para un recibo propio; en uno
+   compartido no se puede deducir la parte propia del cargo, y cuenta la prevista. */
+function reciboPagadoEnAno(s,f,y,curM,today){
+  let total=0, alguno=false;
+  for(let m=1;m<=curM;m++){
+    const a=occAmountIn(f,m);
+    if(!(a>0)||!occursIn(f,m)) continue;
+    const st=fixedPaymentState(s,f,y,m,m===curM?today:new Date(y,m,0).getDate());
+    if(!fixedPaymentEvidence(st)){ if(m===curM) continue; return null; }
+    const compartido=f.bankAmount>0&&Math.abs(f.bankAmount-a)>=0.005;
+    total+=!compartido&&st.paidAmount>0?st.paidAmount:a;
+    alguno=true;
+  }
+  return alguno?total:null;
+}
+/* La fila de Gastos que acredita el recibo, si la hay (la que `paymentEvidenceUI` atribuye). */
+function reciboCargoFila(s,proof,fixedId){
+  let id=null;
+  proof.byExpense.forEach(function(rel,expId){ if(rel&&rel.kind==="fixed"&&rel.id===fixedId) id=expId; });
+  return id==null?null:(s.expenses||[]).find(function(x){ return x.id===id; })||null;
+}
+/* «No es este recibo»: deshace el vínculo con las MISMAS piezas que la ficha de Gastos. Con la
+   marca del cargo, `quitarCargoDeRecibo` (veta el cargo para ese recibo); sin marca, retirar la
+   prueba a mano. → {state, e} o null si no hay nada que deshacer desde aquí. */
+function reciboDesenlazar(s,f,x,y,m,today){
+  if(!x) return null;
+  if(x.reciboId===f.id) return quitarCargoDeRecibo(s,x.id)||null;
+  const n=linkFixedPayment(s,x.id,null,y,m,today);
+  return n!==s?{state:n,e:null}:null;
+}
+/* Cargos que se pueden elegir a mano para un recibo: los que el motor dejaría enlazar
+   (`fixedExpenseEligible`, del mes y hasta hoy) y que no acreditan ya a otro recibo. */
+function reciboCargosElegibles(s,f,y,m,today){
+  const ym=y+"-"+String(m).padStart(2,"0");
+  const usados=new Set();
+  (s.fixed||[]).forEach(function(o){
+    if(o.id===f.id) return;
+    const id=reciboPagadoCon(fixedPaymentState(s,o,y,m,today));
+    if(id) usados.add(id);
+  });
+  return (s.expenses||[]).filter(function(x){
+    if(!x||!(Number(x.amount)>0)||String(x.date||"").slice(0,7)!==ym||x.debtId||x.possibleDup) return false;
+    if(x.reciboId&&x.reciboId!==f.id) return false;
+    if(usados.has(fixedPaymentIdentity(expenseBankOf(x),x))) return false;
+    return fixedExpenseEligible(s,x,f,y,m,today);
+  });
+}
+function reciboCargoTexto(x){ return String((x&&(x.merchant||x.obName))||""); }
+function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onEdit}){
+  const swipe=useSheetSwipe(true,onClose);
+  useBackClose(true,swipe.close);
+  const [paso,setPaso]=useState(0);           // 0 ficha · 1 «¿Cuál es el cargo?»
+  const [rechazo,setRechazo]=useState(false); // vino de «No es este recibo»
+  const [elegido,setElegido]=useState(null);
+  const [otros,setOtros]=useState(false);
+  const [q,setQ]=useState("");
+  useBackClose(paso===1,function(){ setPaso(0); });
+  const titleRef=useRef(null), titleId=React.useId();
+  useEffect(function(){ if(titleRef.current) titleRef.current.focus({preventScroll:true}); },[]);
+  const y=totals.curYear, m=totals.curMonth, today=totals.today;
+  const fixedId=/^fixed_/.test(String(row.id))?String(row.id).slice(6):null;
+  const oneoffId=/^oneoff_/.test(String(row.id))?String(row.id).slice(7):null;
+  const f=fixedId!=null?(state.fixed||[]).find(function(e){ return String(e.id)===fixedId; }):null;
+  const st=useMemo(function(){ return f?fixedPaymentState(state,f,y,m,today):null; },[state,f,y,m,today]);
+  const confirmado=row.paid&&evidence.confirmed[row.id]!==false;
+  const fila=useMemo(function(){ return f&&confirmado?reciboCargoFila(state,evidence,f.id):null; },[state,evidence,f,confirmado]);
+  const desenlace=useMemo(function(){
+    if(!f||!fila) return null;
+    const r=reciboDesenlazar(state,f,fila,y,m,today);
+    // Solo se ofrece si de verdad deja de estar pagado con ESE cargo (si no, el botón mentiría).
+    const f2=r&&(r.state.fixed||[]).find(function(e){ return e.id===f.id; });
+    return f2&&reciboPagadoCon(fixedPaymentState(r.state,f2,y,m,today))!==fixedPaymentIdentity(expenseBankOf(fila),fila)?r:null;
+  },[state,f,fila,y,m,today]);
+  const ano=useMemo(function(){ return f?reciboPagadoEnAno(state,f,y,m,today):null; },[state,f,y,m,today]);
+  const base=rechazo&&desenlace?desenlace.state:state;
+  // Tras «No es este recibo» no se vuelve a ofrecer el cargo que se acaba de rechazar.
+  const pool=useMemo(function(){
+    if(paso!==1||!f) return [];
+    return reciboCargosElegibles(base,f,y,m,today).filter(function(x){ return !(rechazo&&fila&&x.id===fila.id); });
+  },[paso,base,f,y,m,today,rechazo,fila]);
+  const bank=f?accOf(f):row.bank;
+  const target=f?(f.bankAmount>0?f.bankAmount:occAmountIn(f,m)):Math.abs(row.amount);
+  const dayF=f?dayIn(f,m):row.day;
+  const dms=function(x){ return dateMs(String(x.date).slice(0,10)); };
+  // Lista para ELEGIR a mano, más ancha a propósito que el casado automático (SPEC §2.6.3):
+  // del banco del recibo, desde 7 días antes de su día, a ± max(2 €, 15 %), por parecido de importe.
+  const delBanco=pool.filter(function(x){ return expenseBankOf(x)===bank; });
+  const cands=delBanco.filter(function(x){
+    const d=recDay(x.date);
+    return (dayF==null||d==null||d>=dayF-7)&&Math.abs(Number(x.amount)-target)<=Math.max(2,target*0.15);
+  }).sort(function(a,b){ return Math.abs(a.amount-target)-Math.abs(b.amount-target); });
+  const recientes=delBanco.filter(function(x){ return cands.indexOf(x)<0; }).sort(function(a,b){ return dms(b)-dms(a); }).slice(0,4);
+  const qq=q.trim().toLowerCase();
+  const encontrados=qq?pool.filter(function(x){
+    const a=Number(x.amount).toFixed(2), qn=qq.replace(",",".");
+    return reciboCargoTexto(x).toLowerCase().indexOf(qq)>=0||a.indexOf(qn)>=0;
+  }).sort(function(a,b){ return dms(b)-dms(a); }):[];
+  const elegir=function(x){
+    if(elegido) return;
+    setElegido(x.id);
+    mcTickHaptic();
+    setTimeout(function(){
+      let ok=false, subir=[];
+      const expected={identity:fixedPaymentIdentity(expenseBankOf(x),x),model:fixedPaymentModel(f,m),paidYm:f.paidYm,paidDay:f.paidDay};
+      set(function(s){
+        let s2=s;
+        if(rechazo&&fila){ const u=reciboDesenlazar(s,f,fila,y,m,today); if(!u) return s; s2=u.state; if(u.e) subir.push(u.e); }
+        // Si de este cargo se dijo «no es este recibo», elegirlo lo deshace (como en Gastos).
+        const r=reponerCargoDeRecibo(s2,x.id,f.id,y,m,today,expected);
+        const n=r?r.state:linkFixedPayment(s2,x.id,f.id,y,m,today,expected);
+        if(n===s2) return s;
+        if(r&&r.e) subir.push(r.e);
+        ok=true; return n;
+      });
+      if(cloud.enabled()) subir.forEach(function(e){ cloud.setExpenseRecibo(e).catch(function(){}); });
+      if(showToast) showToast(ok?tf("pr6_pagado_toast",{name:row.name}):t("pr6_link_fail"));
+      swipe.close();
+    },260);
+  };
+  const aunNo=function(){
+    let subir=null;
+    set(function(s){ const u=reciboDesenlazar(s,f,fila,y,m,today); if(!u) return s; subir=u.e; return u.state; });
+    if(subir&&cloud.enabled()) cloud.setExpenseRecibo(subir).catch(function(){});
+    if(showToast) showToast(tf("pr6_vuelve_toast",{name:row.name}));
+    swipe.close();
+  };
+  const cargoRow=function(x){
+    const on=elegido===x.id, b=expenseBankOf(x);
+    return React.createElement("button",{type:"button",key:x.id,className:"pr6-cand"+(on?" on":""),"data-cargo":x.id,onClick:function(){ elegir(x); }},
+      React.createElement(Mono,{ent:b,size:38}),
+      React.createElement("span",{className:"pr6-cand-t"},
+        React.createElement("span",{className:"pr6-cand-n"}, reciboCargoTexto(x)||entOf(b).label),
+        React.createElement("span",{className:"pr6-cand-s"}, (recDay(x.date)||"")+" "+monthShort(m-1)+" · "+entOf(b).label)),
+      React.createElement("span",{className:"pr6-cand-a num"}, eur(Number(x.amount))),
+      React.createElement("span",{className:"pr6-ring","aria-hidden":"true"},"✓"));
+  };
+  // Cabecera y estado del pago.
+  const sub=dayF!=null?tf("pr6_se_cobra",{d:dayF,bank:entOf(bank).label}):entOf(bank).label;
+  const pagoBanco=confirmado&&st?st.paidBank||bank:null;
+  const pagoTxt=confirmado?(fila?reciboCargoTexto(fila):st&&st.bankTx?String(st.bankTx.merchant||""):st&&st.proof&&st.proof.merchant?String(st.proof.merchant):""):"";
+  const pagoDia=confirmado?(st&&st.day!=null?st.day:row.day):null;
+  const botones=[];
+  if(desenlace) botones.push(React.createElement("button",{type:"button",key:"no",className:"pr6-btn","data-act":"no-es",onClick:function(){ setRechazo(true); setElegido(null); setOtros(false); setQ(""); setPaso(1); }},t("pr6_no_es_este")));
+  if(f||oneoffId) botones.push(React.createElement("button",{type:"button",key:"ed",className:"pr6-btn","data-act":"editar",onClick:function(){ onEdit(f?f.id:oneoffId); }},t("pr6_editar")));
+  const fichaPanel=React.createElement("div",{className:"pr6-step"+(paso===0?" on":""),"aria-hidden":paso===0?null:"true",inert:paso===0?undefined:""},
+    React.createElement("div",{className:"pr6-ficha-h"},
+      React.createElement("span",{className:"pr6-dt","aria-hidden":"true"},
+        React.createElement("span",{className:"d serif num"}, dayF||"—"),
+        React.createElement("span",{className:"m"}, monthShort(m-1))),
+      React.createElement("span",{className:"pr6-ficha-t"},
+        React.createElement("span",{id:titleId,ref:titleRef,tabIndex:-1,className:"pr6-ficha-n"}, row.name),
+        React.createElement("span",{className:"pr6-ficha-s"}, sub)),
+      React.createElement("span",{className:"serif num pr6-ficha-a"}, eur(Math.abs(row.amount)))),
+    ano!=null&&React.createElement("div",{className:"pr6-chips"},
+      React.createElement("span",{className:"pr6-chip","data-testid":"recibo-ano"}, tf("pr6_este_ano",{x:eur(ano)}))),
+    confirmado&&React.createElement("div",{className:"pr6-cargo","data-testid":"recibo-cargo"},
+      React.createElement(Mono,{ent:pagoBanco,size:34}),
+      React.createElement("span",{className:"pr6-cand-t"},
+        React.createElement("span",{className:"pr6-cand-n"}, pagoTxt||entOf(pagoBanco).label),
+        React.createElement("span",{className:"pr6-cand-s"}, (pagoDia!=null?pagoDia+" "+monthShort(m-1)+" · ":"")+entOf(pagoBanco).label)),
+      React.createElement("span",{className:"pr6-ring on","aria-hidden":"true"},"✓")),
+    !confirmado&&f&&React.createElement("button",{type:"button",className:"pr6-cta","data-act":"pagado",onClick:function(){ setRechazo(false); setElegido(null); setOtros(false); setQ(""); setPaso(1); }},t("pr6_ya_pagado_btn")),
+    botones.length>0&&React.createElement("div",{className:"pr6-btns"},botones));
+  const lista=qq?encontrados:cands.concat(otros||!cands.length?recientes:[]);
+  const elegirPanel=f&&React.createElement("div",{className:"pr6-step"+(paso===1?" on":""),"aria-hidden":paso===1?null:"true",inert:paso===1?undefined:""},
+    React.createElement("div",{className:"pr6-pick-h"},
+      React.createElement("button",{type:"button",className:"pr6-back","aria-label":t("v4_back"),onClick:function(){ setPaso(0); }},"‹"),
+      React.createElement("span",{className:"pr6-ficha-t"},
+        React.createElement("span",{className:"serif pr6-pick-t"}, rechazo?t("pr6_con_cual"):t("pr6_cual_cargo")),
+        React.createElement("span",{className:"pr6-ficha-s"}, row.name+" · "+eur(Math.abs(row.amount))))),
+    React.createElement("input",{className:"pr6-search",type:"search",value:q,placeholder:t("pr6_buscar_cargo"),"aria-label":t("pr6_buscar_cargo"),
+      onChange:function(e){ setQ(e.target.value); }}),
+    !qq&&!cands.length&&recientes.length>0&&React.createElement("div",{className:"pr6-lbl"}, tf("pr6_otros_cargos",{bank:entOf(bank).label})),
+    React.createElement("div",{className:"pr6-cands","data-testid":"recibo-cargos"}, lista.map(cargoRow)),
+    !lista.length&&React.createElement("div",{className:"pr6-empty"}, qq?tf("pr6_sin_resultados",{q:q.trim()}):tf("pr6_sin_cargos",{bank:entOf(bank).label})),
+    !qq&&cands.length>0&&recientes.length>0&&React.createElement("button",{type:"button",className:"pr6-more",onClick:function(){ setOtros(function(o){ return !o; }); }},
+      otros?t("pr6_menos_cargos"):tf("pr6_otros_cargos",{bank:entOf(bank).label})),
+    rechazo&&React.createElement("button",{type:"button",className:"pr6-btn pr6-btn-wide","data-act":"aun-no",onClick:aunNo},t("pr6_aun_no")));
+  return ReactDOM.createPortal(
+    React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
+      React.createElement("div",Object.assign({className:"v4-sheet pr6-ficha","data-sheet":"recibo",role:"dialog","aria-modal":"true","aria-labelledby":titleId,
+        ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }},swipe.sheetTouch),
+        React.createElement("div",{className:"v4-sheet-handle"}),
+        React.createElement("div",{className:"pr6-track"+(paso===1?" pick":"")}, fichaPanel, elegirPanel))),
+    document.body);
 }
 
 /* §2 variante A: `.settings-push` hub. Reconcile → BankPanel (Claude). */
@@ -353,7 +695,7 @@ function billGlyph(row){
 
 /* §2 variante A: `.settings-push` hub. Reconcile → BankPanel (Claude).
    Ajustes dispara `mc-open-bills` → PlanTab abre este push con state vivo (no snapshot). */
-function BillsManagePush({open, onClose, state, set, totals, simple}){
+function BillsManagePush({open, onClose, state, set, totals, simple, editId}){
   const [stack,setStack]=React.useState(["hub"]);
   const [group,setGroup]=React.useState(null);
   const [q,setQ]=React.useState("");
@@ -391,6 +733,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
   },[open]);
   React.useEffect(function(){
     if(!open){
+      editOnly.current=false;
       setStack(["hub"]); setGroup(null); setQ(""); setDetail(null); setAddStep(null);
       if(undoTimer.current){ clearTimeout(undoTimer.current); undoTimer.current=null; }
       setUndoBill(null);
@@ -412,7 +755,20 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
     sub.close();
   },[view, detail, addStep]);
   popRef.current=pop; detailRef.current=detail; addStepRef.current=addStep;
-  const closeDetail=React.useCallback(function(){ setDetail(null);setReviewBill(null); },[]);
+  /* «Editar» desde la ficha de Recibos (v6): entra directo en la edición de ESE recibo y, al
+     cerrarla, vuelve a Recibos en vez de dejarte en Todos, que nadie había pedido abrir. */
+  const editOnly=React.useRef(false);
+  const onCloseRef=React.useRef(onClose); onCloseRef.current=onClose;
+  React.useEffect(function(){
+    if(!open||editId==null) return;
+    const r=billsGroupRows(state,"serv",cm,cy).concat(billsGroupRows(state,"once",cm,cy))
+      .find(function(x){ return String(x.id)===String(editId); });
+    if(r){ editOnly.current=true; setDetail(r); }
+  },[open,editId]);
+  const closeDetail=React.useCallback(function(){
+    setDetail(null);setReviewBill(null);
+    if(editOnly.current){ editOnly.current=false; onCloseRef.current(); }
+  },[]);
   const closeAdd=React.useCallback(function(){ setAddStep(null); },[]);
   useBackClose(!!open, pop);
   // El hub conserva su entrada y cada pantalla hija añade otra. Antes toda la pila compartía
@@ -518,6 +874,8 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
     else if(row.kind==="flow") removeFlowById(set,row.id);
     else if(row.kind==="oneoff") removeOneoffById(set,row.id);
     else return;
+    // Tras borrar se queda en Todos: ahí está el «Deshacer».
+    editOnly.current=false;
     setDetail(null);
     if(undoTimer.current) clearTimeout(undoTimer.current);
     setUndoBill(snap);

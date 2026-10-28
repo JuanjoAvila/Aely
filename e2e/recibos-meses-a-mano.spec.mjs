@@ -31,7 +31,7 @@ test("la cabecera cuenta los cobros marcados y el alta dice lo que se cobrará",
   await page.waitForFunction(() => !document.getElementById("mc-load"), null, { timeout: 30_000 });
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="plan"]').click();
-  const nombre = await page.evaluate(() => t("v4_gestionar"));
+  const nombre = await page.evaluate(() => t("pr6_todos"));
   await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button", { name: nombre, exact: true }).click();
   await expect(hub(page)).toBeVisible();
 
