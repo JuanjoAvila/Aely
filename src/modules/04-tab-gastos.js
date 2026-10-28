@@ -866,7 +866,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     const origDay=String(orig.date||"").slice(0,10);
     const newDay=String(ed.date||origDay).slice(0,10);
     if(signed===orig.amount && merch===(orig.merchant||"") && newDay===origDay&&!orig.renamePending){ sincroniza(orig); return; }   // sin cambios
-    const cat = ed.income ? "ingreso" : (orig.category==="ingreso" ? autoCategory(merch) : orig.category);
+    // Renombrar cualquier negativo conserva su categoría: el signo no decide que sea ingreso.
+    const cat = ed.income ? (orig.amount<0 ? orig.category : "ingreso") : (orig.category==="ingreso" ? autoCategory(merch) : orig.category);
     const splitByEdit=(signed!==orig.amount||newDay!==origDay)&&!!gemeloAutomaticoDe(state,orig);
     if(splitByEdit) separarGemelo(orig);
     const upd=Object.assign({},orig,{merchant:merch, amount:signed, category:cat});
