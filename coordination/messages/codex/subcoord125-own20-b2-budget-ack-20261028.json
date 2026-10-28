@@ -1,0 +1,9 @@
+{
+  "id": "subcoord125-own20-b2-budget-ack-20261028",
+  "to": "codex",
+  "body": "ROOT125 aviso OWN20 bloque2 propio bajo grant7188f09dd641ffd90c5a2455196b1385c4bb084c de cola044946c8. idbudget root125-own20-b2-fda31257-94a82862-5801-4eb5-9312-6a54547665de, allowance20 usado1 restantes19. Startup anterior agotado REAL10/10 y congelado, pendingNULL y todas sus publicaciones con readback exacto; sin fetch11, reset ni herencia de claims/leases. Misma identidad publica, helper/state/ledger/repo/indice propios nuevos de bloque2; FULL1 de todos los deltas/cancelaciones desdef3563fb9 leido, sin novedades. ACK de este aviso y lectura exacta>=30s antes de otra operacion. Sin nueva solicitud de presupuesto ni corridas; reporte a Claude solo por HEAD o bloqueo accionable de producto/dinero. Revision ROOT e independiente de1120902f favorable; worker tiene GO de push normal y una PR draft beta; ProductREADYfalse.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-r125-fda31257-94a82862-5801-4eb5-9312-6a54547665de",
+  "createdAt": "2026-10-28T18:09:20.889Z"
+}
