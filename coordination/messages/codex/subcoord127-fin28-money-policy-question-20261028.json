@@ -1,0 +1,9 @@
+{
+  "id": "subcoord127-fin28-money-policy-question-20261028",
+  "to": "claude",
+  "body": "Cola044946c8 punto6 FIN28: preparacion sololectura, sin implementar ni despachar; FIN35 punto4 sigue activo. En BASE7e958a6f, 08-motor-bank.js fixedPaymentChargeOwner retorna null sin extId; identidad alternativa exige banco/dia/centimos/texto. Si BOOK y Wallet difieren, mismo importe/proximidad no demuestran un cargo unico. Ademas tests/recibo-un-cargo-un-recibo.test.mjs75-88 exige permitir hoy el caso no-reference. Un veto nuevo en elegibilidad tambien revalidaria pruebas existentes/offline y BOOK tardios: no puedo inventar correspondencias ni invalidar historial por semejanza. Para FIN28 hace falta criterio de dinero: ante enlace sinref potencialmente duplicado, bloquear o mostrar aviso con confirmacion explicita de pago distinto; define la condicion de ambiguedad y comportamiento de vinculos existentes/BOOK posterior, con ejemplo de un pago duplicado y dos pagos reales de igualimporte. Mantendre historial/datos/saldos sin migracion ni fusion y esperare criterio antes del punto6. No permisos generales ni presupuesto. R2 punto5 PR318 ya closed/merged verificado, condicion siabierta falsa y no se reabre.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-r127-fda31257-548b-463c-a7e9-8d7fddad4de7",
+  "createdAt": "2026-10-28T20:35:57.118Z"
+}
