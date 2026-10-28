@@ -405,6 +405,13 @@ function fixedPaymentChargeOwner(s,x,e,y,m,today){
    si además bloqueaba el enlace a mano, el cargo real no había forma de confirmarlo (INC-1810-04,
    YouTube Premium, rechazo de beta 4.26.145). */
 function fixedPaymentEvidence(st){ return !!(st&&(st.proof||st.bankTx||st.expense)); }
+/* Un recibo en pausa no cuenta en el mes… salvo que esté pagado: si el banco lo cobró igual,
+   es un pago de verdad y se enseña y se descuenta como cualquier otro. Así «Pausar» con el
+   recibo ya pagado tampoco lo saca del mes (SPEC §2.6.1). Solo lee el estado del pago si hay
+   pausa en ese mes: un recibo sin pausa no paga nada por esta comprobación. */
+function fixedEnPausa(s,e,y,m,today){
+  return fixedPausedIn(e,y,m)&&!fixedPaymentState(s,e,y,m,today).paid;
+}
 function linkFixedPayment(s,expenseId,fixedId,y,m,today,expected){
   var x=(s.expenses||[]).find(function(r){ return r.id===expenseId; });
   if(!x) return s;
@@ -768,6 +775,7 @@ function planChargesMonth(s,m,y,today){
     var a=occAmountIn(e,m);
     if(!(a>0)||!occursIn(e,m)) return;
     var status=fixedPaymentState(s,e,y,m,today);
+    if(!status.paid&&fixedPausedIn(e,y,m)) return;
     r.push({id:"fixed_"+e.id,name:e.name,amount:a,day:status.day,bank:accOf(e),paid:status.paid,paidBank:status.paidBank,paidAmount:status.paidAmount,plannedBankAmount:e.bankAmount>0?Number(e.bankAmount):a,overdue:status.overdue});
   });
   (s.debts||[]).forEach(function(d){
@@ -1185,7 +1193,7 @@ function applyBankBalances(s, links){
 // por el simulador "¿me lo puedo permitir?". today = día de hoy (solo cuenta lo no pagado).
 function bankPendingEvents(state, bank, y, m, today){
   const evs=[];
-  (state.fixed||[]).forEach(function(e){ if(occursIn(e,m)&&accOf(e)===bank&&!isPaidIn(e,m,today,y,state)) evs.push({day:dayIn(e,m)||0, amt:-occAmountIn(e,m)}); });
+  (state.fixed||[]).forEach(function(e){ if(occursIn(e,m)&&accOf(e)===bank&&!isPaidIn(e,m,today,y,state)&&!fixedEnPausa(state,e,y,m,today)) evs.push({day:dayIn(e,m)||0, amt:-occAmountIn(e,m)}); });
   (state.debts||[]).forEach(function(d){ if(debtActive(d)&&(d.account||"sabadell")===bank&&!isDebtPaidThisMonth(d,today,state,y,m)){ evs.push({day:debtChargeDay(d), amt:-(d.monthly||0)}); const bl=debtBalloonIn(d,y,m); if(bl>0) evs.push({day:debtChargeDay(d), amt:-bl}); } });
   (state.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m)&&(o.account||"sabadell")===bank&&(o.amount||0)!==0&&!isPaidThisMonth(o,today)) evs.push({day:o.day||0, amt:-o.amount}); });
   (state.flows||[]).forEach(function(f){ if(!flowOccursIn(f,m,y)||flowPaidIn(state,f,y,m,today))return; const dd=flowDay(f,y,m); if(f.kind==="income"&&(f.to||"sabadell")===bank) evs.push({day:dd||99, amt:f.amount}); else if(f.kind==="transfer"&&(f.from||"sabadell")===bank) evs.push({day:dd||0, amt:-f.amount}); });
@@ -4421,6 +4429,21 @@ function patchFixedById(set, id, p){
     }
     return n;
   });
+}
+/* Pausar o reanudar (Plan › Recibos v6). Pura. Sin rango (hasta <= desde) quita la pausa.
+   El saldo que se ve no salta: un recibo vencido que se pausa dejaría de restar en la previsión
+   de golpe; se compensa como cualquier cambio de marca de pago (`conSaldoMostrado`). */
+function fixedPausa(s, id, from, until){
+  let changed=false;
+  const fixed=(s.fixed||[]).map(function(e){
+    if(e.id!==id) return e;
+    const n=Object.assign({},e);
+    if(until>from){ n.pausedFrom=from; n.pausedUntil=until; }
+    else { delete n.pausedFrom; delete n.pausedUntil; }
+    if(goalSyncEqual(n,e)) return e;
+    changed=true; return n;
+  });
+  return changed?conSaldoMostrado(s,Object.assign({},s,{fixed:fixed})):s;
 }
 function removeFixedById(set, id){
   quitarDelPlan(set,"fixed",id);

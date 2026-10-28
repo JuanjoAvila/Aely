@@ -771,6 +771,16 @@ Está en `E2E_MAP` para `14-v4-screens`, `08-motor-bank` y `01-i18n`. Las filas 
 el DOM (con `inert`): `toHaveCount` las cuenta y `toBeVisible` no, así que los specs que quieren
 ver una fila de «Ya pagados» la despliegan antes.
 
+Tanda 2: `e2e/plan-recibos-t2.spec.mjs` siembra pruebas de pago «expense» (la forma del enlace a
+mano) y mira que cada aviso sale en su caso y en su orden (no ha llegado y «hace N meses que no se
+cobra» antes que «Esperabas» y «Ha subido»; «Esperabas» solo con un cargo que casó el
+extracto, no con uno enlazado a mano, y por eso siembra `bankTx`), la pareja de botones de cada caso especial, que
+«Actualizar precio» no devuelve a pendiente un pago ya hecho, «Ya no lo tengo» con su segundo
+toque, posponer con «Deshacer» (y que al día siguiente vuelve) y Pausar: con el recibo pagado no
+sale del mes; «Solo este mes» lo descuenta de «Queda por pagar» y tocar la fila tachada lo devuelve.
+Está en `E2E_MAP` para `14-v4-screens`, `08-motor-bank`, `07-tab-patri-fijos`, `11-app-main`,
+`00-core` y `01-i18n` (la pausa se lee en el motor, en los totales y en la mezcla con la nube).
+
 Descarga incompleta (candidato13/10): `tests/bank-download-incomplete.test.mjs`, registrado en
 runner y `STEPS_SUPABASE`, ejecuta lector, handler y updater real de App. Compara el updater con
 el padre123: ambas lecturas de `bankTx` conservan el extracto; falla sin el adaptador mínimo.

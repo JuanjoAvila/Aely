@@ -2402,7 +2402,9 @@ function App(){
     const fijosMensual=fijosVar+cuotas;
     const ahorroMensual=state.aportaciones.reduce((a,x)=>a+x.amount,0);
     // --- MOTOR DINÁMICO: cargos de fijos que tocan ESTE mes, por banco ---
-    const fijosEsteMes=state.fixed.reduce((a,e)=> occursIn(e,curMonth) ? a+occAmountIn(e,curMonth) : a, 0);
+    // Un recibo en pausa (y sin cobrar) no se cobra este mes: ni suma ni baja el saldo previsto.
+    const fijoDelMes=e=> occursIn(e,curMonth) && !fixedEnPausa(state,e,curYear,curMonth,today);
+    const fijosEsteMes=state.fixed.reduce((a,e)=> fijoDelMes(e) ? a+occAmountIn(e,curMonth) : a, 0);
     const cargosMes=fijosEsteMes+cuotas;                 // fijos del mes + cuotas de deuda (todos los bancos)
     // saldo disponible por banco (la cuenta de gasto descuenta el gasto del mes)
     const bankBal={};
@@ -2414,7 +2416,7 @@ function App(){
     const acc=(amt,bank,paid)=>{ chargesByBank[bank]=(chargesByBank[bank]||0)+amt;
       if(paid){ paidThisMonth+=amt; }
       else { pendingThisMonth+=amt; pendingByBank[bank]=(pendingByBank[bank]||0)+amt; } };
-    state.fixed.forEach(e=>{ if(occursIn(e,curMonth)) acc(occAmountIn(e,curMonth),accOf(e),isPaidIn(e,curMonth,today,curYear,state)); });
+    state.fixed.forEach(e=>{ if(fijoDelMes(e)) acc(occAmountIn(e,curMonth),accOf(e),isPaidIn(e,curMonth,today,curYear,state)); });
     state.debts.forEach(d=>{ if(debtActive(d)) acc((d.monthly||0)+debtBalloonIn(d,curYear,curMonth),d.account||"sabadell",isDebtPaidThisMonth(d,today,state,curYear,curMonth)); });
     (state.oneoffs||[]).forEach(o=>{ if(oneoffOccurs(o,curYear,curMonth) && (o.amount||0)!==0) acc(o.amount,o.account||"sabadell",isPaidThisMonth(o,today)); });
     // --- CASH-FLOW: ingresos (nómina) y transferencias recurrentes PENDIENTES este mes ---
@@ -2437,7 +2439,7 @@ function App(){
     // (día 0, peor caso) e ingresos al final (día 99). ---
     const evsByBank={};
     const pushEv=(bank,day,amt)=>{ (evsByBank[bank]=evsByBank[bank]||[]).push({day:day,amt:amt}); };
-    state.fixed.forEach(e=>{ if(occursIn(e,curMonth)&&!isPaidIn(e,curMonth,today,curYear,state)) pushEv(accOf(e), dayIn(e,curMonth)||0, -occAmountIn(e,curMonth)); });
+    state.fixed.forEach(e=>{ if(fijoDelMes(e)&&!isPaidIn(e,curMonth,today,curYear,state)) pushEv(accOf(e), dayIn(e,curMonth)||0, -occAmountIn(e,curMonth)); });
     state.debts.forEach(d=>{ if(debtActive(d)&&!isDebtPaidThisMonth(d,today,state,curYear,curMonth)){ pushEv(d.account||"sabadell", debtChargeDay(d), -d.monthly); const bl=debtBalloonIn(d,curYear,curMonth); if(bl>0) pushEv(d.account||"sabadell", debtChargeDay(d), -bl); } });
     (state.oneoffs||[]).forEach(o=>{ if(oneoffOccurs(o,curYear,curMonth)&&(o.amount||0)!==0&&!isPaidThisMonth(o,today)) pushEv(o.account||"sabadell", o.day||0, -o.amount); });
     (state.flows||[]).forEach(f=>{ if(!flowOccursIn(f,curMonth,curYear)||flowPaidIn(state,f,curYear,curMonth,today))return; const dd=flowDay(f,curYear,curMonth); if(f.kind==="income") pushEv(f.to||"sabadell", dd||99, f.amount); else if(f.kind==="transfer") pushEv(f.from||"sabadell", dd||0, -f.amount); });
@@ -2747,7 +2749,8 @@ function App(){
     const ym=cy+"-"+String(cm).padStart(2,"0");
     const charges=[];
     (state.fixed||[]).forEach(function(e){
-      if(!occursIn(e,cm)) return;
+      // Pausado = este mes no se cobra: avisar la víspera de algo que no llega sería mentir.
+      if(!occursIn(e,cm)||fixedPausedIn(e,cy,cm)) return;
       const d=dayIn(e,cm); const amt=occAmountIn(e,cm)||0;
       if(d==null||!(amt>0)) return;
       charges.push({id:String(e.id),name:e.name||"Recibo",amount:+amt.toFixed(2),day:d});
@@ -2779,7 +2782,7 @@ function App(){
     };
     const run=function(){
       (state.fixed||[]).forEach(function(e){
-        if(!occursIn(e,cm)) return;
+        if(!occursIn(e,cm)||fixedPausedIn(e,cy,cm)) return;
         const d=dayIn(e,cm); if(d==null) return;
         if(isPaidIn(e,cm,today,cy,state)) return;
         const amt=occAmountIn(e,cm)||0;

@@ -4314,6 +4314,8 @@ function mergePlanThreeWay(base,local,remote,kind,deleted,localNewer){
     for(const [id,row] of r)if(planSyncDebtDeletedHas(gone,row))r.delete(id);
   }
   const payment=kind==="fixed"?["paidYm","paidDay"]:[];
+  // La pausa viaja entera: «desde» de un móvil con «hasta» del otro sería una pausa que nadie pidió.
+  const pause=kind==="fixed"?["pausedFrom","pausedUntil"]:[];
   new Set([...r.keys(),...l.keys()]).forEach(function(id){
     const old=b&&b.get(id),left=l.get(id),right=r.get(id);
     if(!left || !right){rows.push(left||right);return;}
@@ -4326,7 +4328,8 @@ function mergePlanThreeWay(base,local,remote,kind,deleted,localNewer){
       keys.filter(function(k){return independent.indexOf(k)<0 && ["id","owner","user_id","type","debtLinkRevision"].indexOf(k)<0;});
     const groups=[financial];
     if(payment.length)groups.push(payment);
-    keys.forEach(function(k){if(financial.indexOf(k)<0 && payment.indexOf(k)<0)groups.push([k]);});
+    if(pause.length)groups.push(pause);
+    keys.forEach(function(k){if(financial.indexOf(k)<0 && payment.indexOf(k)<0 && pause.indexOf(k)<0)groups.push([k]);});
     const merged={},fields=[];let paidSource=right,waitSource=right;
     groups.forEach(function(group){
       const has=function(o,k){return !!o && Object.prototype.hasOwnProperty.call(o,k);};
