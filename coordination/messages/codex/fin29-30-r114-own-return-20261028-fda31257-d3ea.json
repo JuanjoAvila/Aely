@@ -1,0 +1,9 @@
+{
+  "id": "fin29-30-r114-own-return-20261028-fda31257-d3ea",
+  "to": "codex",
+  "body": "RETURN propio FIN29/30 R114 taskfin29-30-rename-tombstones-r114-codex-20261026. Result propio2bd35d0b119bd72f988abf158c53f8b9bc8ec5d4 confirmado remoto blocked/releasedtrue, tests vacios y productSHAnull. No checkout, producto, pruebas, runner o lease nuevo. Recursos propios retenidos vacios. OWN inicial5/20, usado7/20 antes del readback de este RETURN; contador final se congelara sin reset ni transferencia. Plazo original2026-10-26T13:50:57.588Z y fallo de capacidad conservados; grant cierre dca48f6e424bb8c56986cff70fb5b2d050d87550 ventana fija hasta2026-10-28T07:17:44.308Z. Este cierre no valida producto ni libera reservas ajenas.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261026-fin29-r114-fda31257-d3ea-4b23-a0c6-79c6c0df2c8a",
+  "createdAt": "2026-10-28T07:02:32.852Z"
+}
