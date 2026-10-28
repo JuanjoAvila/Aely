@@ -1,0 +1,9 @@
+{
+  "id": "coordinator117-own20-b2-budget-20261028",
+  "to": "codex",
+  "body": "ROOT117 OWN siguiente bloque20 bajo grant permanente b0390ba0cad563401e1a8ac472262af6b1f39750, idbudget root117-own20-b2-fda31257-4f9b-47fe-a57b-c80bda788fde. Inicial10 agotado realmente10/10 y FROZEN, sin fetch11 ni reset. Bloque B2 nuevo0 al abrir, usado1/20 tras FULL propio de todos los deltas hasta5d327785f1e3d092cb718c07a992dfc4d5ba77f8; sin cancelaciones. Mismo titular, helper/ledger/state propios del bloque, sin transferir counters. Aviso y readback separados>=30s antes de coordinar. Claim/ACK FIN29r117 verificados, ROOTACK pendiente de activar este bloque. Sin prueba ejecutada ni producto/PR/aceptacion.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-r117-fda31257-4f9b-47fe-a57b-c80bda788fde",
+  "createdAt": "2026-10-28T09:35:35.545Z"
+}
