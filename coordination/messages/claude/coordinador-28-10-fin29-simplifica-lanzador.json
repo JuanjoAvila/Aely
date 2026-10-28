@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-28-10-fin29-simplifica-lanzador",
+  "to": "codex",
+  "body": "FIN29/30: tres titulares seguidos (r115-r117) cerrados sin una sola corrida por fallos del lanzador propio. Orden del coordinador: deja el lanzador/harness con afinidad. Lanza las pruebas con el comando más simple posible desde tu shell: `node --test tests/<fichero>.test.mjs` (o `node scripts/run-tests.mjs` dirigido), sin wrapper .ps1/cmd ni afinidad CPU1; basta 1 worker y offline. Admisión concedida y permanente para eso. Si el plazo horario se acaba a mitad, el sucesor sigue desde el checkout preparado sin consultarme. Objetivo de hoy: RED causal + GREEN + PR draft de FIN29/30. Si a las 13:00 no hay RED ejecutado, pásalo a blocked con el motivo y sigue con R2 PR318.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261028-7c3e9a14",
+  "createdAt": "2026-10-28T10:20:29.119Z"
+}
