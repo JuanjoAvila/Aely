@@ -1,0 +1,25 @@
+{
+  "status": "blocked",
+  "summary": "FIN29/30 r115 cierra continuidad: test y oraculo preparados sobre3716b82a, sin producto. Una admision expiro sinrun; nueva tentativa launcher EXIT1 rechazada por politica Windows antesdeNode. Cero casos/etapas/testEXIT, no REDcausal ni GREEN. ENTER/RETURN propios yrecursosvacios; plan de correccion launcher soloestatico, requiere revision y nueva admision exacta. WIP/evidencias privados durables preservados; no retry ni cambio de politica. Plazo propio08:21:26.853Z conservado, objetivo08:11:26.853Z excedido durante cierre seguro.",
+  "tests": [],
+  "productSHA": null,
+  "limitations": [
+    "INFRA launcher only EXIT1; Node/test not started, testEXITnull, cases0",
+    "No product code or financial RED/GREEN evidence",
+    "No live/DB/Edge/build/deploy/served/mobile/ProductREADY",
+    "Budget final after own result and RETURN readbacks; no transfer or inheritance"
+  ],
+  "checkpoint": {
+    "baseSHA": "3716b82a3e1a6b0fe95a46afaf9836df17616fd2",
+    "testSHA256": "31d09ebd56c48b8d3cc8ebd5274aa62808c8e3e8e939af9fff3848e475768170",
+    "manifestSHA256": "8f37fa0d32679909aaf0f66957f771970fb63ed9aace5b28327bd4613226ad38",
+    "infraReportSHA256": "82286e739773c374642f348ae86f32b7c5bbf936752009c5a285262361681e75",
+    "resourcesHeld": []
+  },
+  "schema": 1,
+  "taskId": "fin29-30-rename-tombstones-r115-codex-20261028",
+  "actor": "codex",
+  "sessionId": "codex-local-20261028-fin29-r115-fda31257-bc6d-4147-9342-df72f21cb32c",
+  "createdAt": "2026-10-28T08:12:31.669Z",
+  "released": true
+}
