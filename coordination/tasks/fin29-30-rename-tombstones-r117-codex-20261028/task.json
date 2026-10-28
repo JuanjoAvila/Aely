@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "id": "fin29-30-rename-tombstones-r117-codex-20261028",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261028-r117-fda31257-4f9b-47fe-a57b-c80bda788fde",
+  "createdAt": "2026-10-28T09:24:43.256Z",
+  "to": "codex",
+  "baseSHA": "3716b82a3e1a6b0fe95a46afaf9836df17616fd2",
+  "objective": "FIN29/30 sucesor: adaptar el arnes nativo privado v4 aprobado a identidad propia, obtener RED causal con el test congelado, corregir alias/lapidas dentro del alcance exacto y verificar GREEN antes de revision financiera independiente y una PR draft beta.",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/04-tab-gastos.js",
+    "src/modules/08-motor-bank.js",
+    "supabase/functions/_shared/presupuesto.ts",
+    "tests/fin19-r7-ficha-rename.test.mjs",
+    "tests/fin19-r5-remote-rename.test.mjs",
+    "tests/fin29-30-rename-scope.test.mjs",
+    "scripts/run-tests.mjs",
+    "docs/TESTING.md",
+    "docs/BACKLOG.md",
+    "docs/ARQUITECTURA.md",
+    "CHANGELOG.md",
+    "docs/ROADMAP.md",
+    "README.md"
+  ],
+  "previousTaskId": "fin29-30-rename-tombstones-r116-codex-20261028",
+  "grants": [
+    "7ae3e7e57d70e08ce6859efa6dd1518c35630680",
+    "e42252eb4444e23228b565b7d2da5b0ee5e13e43",
+    "db3299cd69020ccf15563e787d1a1f4b69e8a753",
+    "0db3182dd205cf33e8897e467d58a9a35143df66",
+    "aac63502965539a9bf615f4a5a4687eee2923cfb",
+    "bc1c5e1df6bcbf0c8a9463015046f6848ea338b1",
+    "a818b5dfead2609774f127aceb847545b8089482",
+    "dca48f6e424bb8c56986cff70fb5b2d050d87550",
+    "9b7e54d6cedc6004b9edbb434931157fea4a57eb"
+  ],
+  "requirements": [
+    "Source r116 closed by its own holder: result4854f181d083ee1d4bf9108ed9cd53e810bdb409 blocked/released and RETURNf2c3fadc4b0056804a182c2115f54be5c78e67f8, final OWN9/20 frozen with11 nontransferable. No launcher/Node test/cases/stages/causalRED/GREEN/product edits. V4 was statically approved but own fresh FULL/ACK completed after the safe90s start margin; preserve this NO-START outcome and all earlier failures.",
+    "RECEPTION first: fresh native runtime thread/session/cwd, native Aely project local inventory, new nonce prefix fda31257, own public session and small durable ACK with file fsync/readback/hash. No fetch/claim/checkout/code/tests before native ROOT117 admission. New OWN20 starts0 under e42252eb4444e23228b565b7d2da5b0ee5e13e43, own helper/state/ledger, budget notice/ACK/readback>=30s, all FULL deltas/cancellations from f2c3fadc4b0056804a182c2115f54be5c78e67f8 or later ROOT-verified canonical. Own new claim/ACK readback and ROOTACK before checkoutGO. Do not invoke closed predecessor helpers or inherit identity, resources, claims, grants, counters or deadlines.",
+    "New checkout/branch from exact base3716b82a3e1a6b0fe95a46afaf9836df17616fd2. Restore ONLY prepared test/registration/docs from hash-verified private WIP artifact supplied natively; never edit predecessor checkout. Test SHA25631d09ebd56c48b8d3cc8ebd5274aa62808c8e3e8e939af9fff3848e475768170 immutable for RED/GREEN. Existing FIN19 fixture and extractor unchanged. Literal assembly in memory over17 build-order modules+shell, no replacement-string dollar expansion or generated output.",
+    "V4 reference manifestSHA256468021b4298c9ee94f04651ec46e7b66c63acd8b4379bf77925a0eccdd284199/controllerSHA2564f8ce92a5468bad7eab0c57671beb02cb23b77bdf0200ef9166dd28138055795 is source evidence, not inherited runtime approval. Make a new private harness for new identity/routes/deadlines/runDir, preserve originals and logic. Freeze new exact source/harness/binary43-hash manifest/cmd/env; ROOT exact static review before first RED. Preserve v4 reused-PID fix: persisted same PID+creation candidate is evaluated BEFORE reusedPID discard; unseen command line cannot erase residual. Historical ancestry/ready/spawn/token/config/creation reconciliation and final census even after failed gates; any unproven candidate/query/evidence/cleanup uncertainty => residual/resourcesReturned false. Kill only positively owned same-creation/executable after fresh check; never foreign/reusedPID/unproven or taskkill tree.",
+    "Permanent Claude9b7e54d6cedc6004b9edbb434931157fea4a57eb covers ALL RED/GREEN FIN29/30 and queue runs via direct native node.exe/deno.exe, no ps1/executionpolicy/bypass/system guard changes and no per-run permission question. aac63502965539a9bf615f4a5a4687eee2923cfb: compatible fresh census plus own private ENTER/RETURN suffice, no separate ledger. CPU1 offline serial1worker0retry/stopfirstfailure, UV_THREADPOOL_SIZE1 and host/runner V8pool1 inherited by test child. Verify affinity/version/executable/identity before importing test. Max90s total70exec+20cleanup; real Node EXIT separate from launcher. No probe/smoke/fullsuite/browser/server/port/network/DB/CPU6/Gradle/APK/deploy.",
+    "First ONE RED on unchanged base only under exact ROOT static approval and own fresh FULL<=60s, durable census/ENTER/logs/stages/EXIT/RETURN. Loader/launcher errors are infrastructure, never causalRED; no automatic retry. ROOT reviews causal RED before codeGO. GREEN uses same test/oracle and updated source manifest. Existing9b7 authority covers later directed runs, preserving census/RETURN and timing; no further Claude per-run admission.",
+    "Claude7ae3e7e57d70e08ce6859efa6dd1518c35630680 scope:00-core only rename aliases/tombstones;04-tab-gastos only same ficha rename block895-901;08-motor-bank only tombstone reader1946-1956;supabase/functions/_shared/presupuesto.ts only offline parity mirror. No list/live figures/scroll/other widgets/backend/Edge/SQL/deploy. Preserve owner/UUID/bank/account/ref/ordinal/sign/absorption/caps. Global rename keys may not erase another row or blindly use expenseDeletionKey hiding own row via obName.",
+    "Independent oracle: renameA keeps TWO full rows640c,320 per bank when applicable; same bank distinct accounts640c. Persist/reload/pull/reimport/rename-back preserve rows without duplication. Explicit delete320c and undo640c separate from rename. Manual/credits/sign/notes/reference/currency/original/UUID/ordinal2 fields intact; compare full rows. Legacy ambiguity without scope is never inferred/migrated by similarity. Correct fin19-r5/r7 expectations encoding loss ONLY rename scenario after ROOT-reviewed RED, never blanket change deletion totals; explain in commit.",
+    "Independent financial review at exact finalSHA and final source/candidate checks before ONE draft PR against beta. No beta/main push, stash, version/dependency/generated changes, Android/ADB/Gradle/APK, SQL/livebank/Edge/deploy/merge/served/mobile/ProductREADY or user notice. Worker reports only ROOT117, and ROOT reports Claude only draft-ready or product blocker; do not send infrastructure statuses Claude.",
+    "Actual new native admittedAt plus own60min deadline and safe closure target10min earlier, never inherited dates. Worker deadline independent from ROOT117 deadline10:02:33.828Z; root relay changes only private route/inventory/guards with same worker owner/claim/OWN/deadline. At expiry preserve own durable WIP/checkpoint/manifest, own result/RETURN/readback/freeze, then reception/admission of one new successor before archive. Queue R2PR318,FIN05,bank-sync cursor,PRO09 remains outside this worker scope."
+  ],
+  "acceptance": "Causal RED and GREEN directed with full-row and cent accuracy; financial identity/scope preserved; independent money review exact finalSHA and one draft PR beta. Static approval/Node/CI do not prove live mobile acceptance."
+}
