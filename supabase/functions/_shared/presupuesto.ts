@@ -146,7 +146,8 @@ function claveRenombre(f: FilaGasto): string {
   let ref = ""; try { ref = match ? decodeURIComponent(match[1]) : ""; } catch (_) { /* Sin referencia válida no se amplía el alias. */ }
   const known = bank && account;
   if (!known && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(f.id || "")) return "";
-  return "expense-rename|" + encodeURIComponent(JSON.stringify([bank, account, ref, known ? "" : f.id])) + "|" + claveComoLaApp(f);
+  // expenseFromRow muestra Gasto cuando comercio falta; solo el alias nuevo replica ese lector.
+  return "expense-rename|" + encodeURIComponent(JSON.stringify([bank, account, ref, known ? "" : f.id])) + "|" + claveComoLaApp({ ...f, comercio: f.comercio || "Gasto" });
 }
 function claveLegacySinId(f: { fecha?: string | null; importe?: number | string; comercio?: string | null }): string {
   return String(f.fecha || "").slice(0, 10) + "|" + (Number(f.importe) || 0) + "|" + (f.comercio || "");

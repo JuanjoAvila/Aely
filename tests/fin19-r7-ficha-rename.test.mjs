@@ -10,7 +10,7 @@ const parts=read('src/shell.html').split('<!--MC_APP_SCRIPT-->');
 assert.equal(parts.length,2,'un solo marcador del ensamblador');
 const html=process.env.FIN19_R7_HTML?fs.readFileSync(process.env.FIN19_R7_HTML,'utf8'):parts[0]+script.trimEnd()+parts[1];
 const callback=section(html,'  const saveEdit=function(orig, extra){','  const todayKey='),evidence=[];
-const wire=(n=1,extra={})=>({id:uuid(n),user_id:owner,fecha:'2026-10-19T10:00:00.001Z',importe:3.2,comercio:'BAR SL',ob_name:'BAR SL',cat:'otros',nota:'Nota sintética',source:'ob:sabadell#refref-a#accaccount-a#n2',...extra});
+const wire=(n=1,extra={})=>({id:uuid(n),user_id:owner,fecha:new Date(Date.parse('2026-10-19T10:00:00.000Z')+n).toISOString(),importe:3.2,comercio:'BAR SL',ob_name:'BAR SL',cat:'otros',nota:'Nota sintética',source:'ob:sabadell#refref-a#accaccount-a#n2',...extra});
 function setup(mode,rows=[wire()]){
  const env=environment(html,rows),queues=[],toasts=[],edits=[];
  const factory=vm.runInContext('(function(api,mode,editExp){const keyOfE=keyOfExpense,state=api.stateRef.current,set=api.set,cloud=Object.assign({},api.cloud,{enabled:()=>mode!=="offline"}),mcSandbox=()=>mode==="sandbox",mcSandboxTransition=()=>mode==="transition",editCola={current:{pend:[]}},renameSequence={current:0},retryRenames=()=>{throw Error("unexpected rename retry");},separarGemelo=()=>{throw Error("unexpected twin split");},setEditExp=e=>api.edits.push(e),showToast=t=>api.toasts.push(t),subeEdicionesDeGasto=q=>api.queues.push(q.pend);'+callback+'return saveEdit;})',env.c);

@@ -25,16 +25,28 @@ FIN19_R4, FIN19_R5, FIN19_R7 y FIN29_30_BACKFILL conservan fuentes y etapas.
 El RED R8 anterior0/6 queda congelado: el tercer pull perdía noCard y devolvía
 ingreso→traspaso, split/net20000→0, con el signo intacto. La decisión de contrato
 posterior protege los cambios reales de category/noCard mediante expenseEditPending.
-R8 ahora pasa12/12 con fuente literal: los seis originales conservan filas completas,
-54 etapas y cifras; otros seis comprueban writer real, liberación y autoridad remota
+R8 ahora pasa14/14 con fuente literal: los seis originales conservan filas completas,
+54 etapas y cifras; otros ocho comprueban writer real, liberación y autoridad remota
 posterior, confirmación parcial, otro UUID, ACK solo nombre/cero filas/rechazo/DO
 NOTHING y un eco anterior frente a una decisión nueva. No se presembran pendientes.
 La expectativa de fila completa incluye el pendiente real; la de lápidas exige
 alias exacto con hora exacta y ausencia de las antiguas lápidas global y de borrado.
 El primer intento nuevo que descubrió ese oráculo de lápida desactualizado se conserva.
-Sobre el nuevo producto pasan también42 pruebas afectadas: main1 (28 escenarios),
-R4 2, R5/R6 11 y R7 28; sus controles sin cambios no crean pendientes. Los demás
-verdes anteriores no se repiten ni se presentan como una suite final nueva.
+La revisión independiente detectó además la composición con keepCategoryChoices:
+ni catStale local ni catStale entrante de regla aprendida pueden confirmar categoría.
+Ambas ramas tienen RED sobre el candidato anterior y GREEN con la guarda mínima;
+setCat y rename son callbacks reales y el pull ejecuta la composición completa.
+La regla usa categoría aprendible y un instante remoto corregido +1ms que evita
+prestar la clave anterior desde el contador; los controles previos que no activaban
+la rama se conservan como fallos de fixture/controles negativos, no como RED causal.
+La misma revisión halló seeds con tuple único imposible. Main/R5/R7 usan instantes
+por índice +1ms en el mismo día; el fixture valida la unicidad inicial. El control
+UPDATE23505 conserva el mismo instante y comercios inicialmente distintos para que
+el conflicto nazca del UPDATE real. Se mantienen filas completas, 640/320 y mutantes.
+Pasan55 pruebas afectadas: R8 14, main2 (28 escenarios anteriores y cinco variantes
+de comercio vacío/null/ausente/espacios/ordinario con controles sin alias), R5/R6 11
+y R7 28. La paridad vacía tiene su RED JS0/TS320 antes del fallback Gasto solo en
+el alias TS nuevo. R4 y los demás verdes anteriores se conservan sin repetición.
 Sigue pendiente la revisión financiera independiente del SHA final antes de publicar.
 Node 24 usa tipos nativos y CI Node20 su esbuild existente; un worker,
 offline, cero retries. No acredita servicio remoto, widget desplegado ni móvil.

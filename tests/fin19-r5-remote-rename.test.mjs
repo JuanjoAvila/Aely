@@ -36,8 +36,8 @@ async function importDeleted(env,legacy){
 }
 async function scenario({sameBank=false,ordinal=1,manual=false,legacy=false,collision=false}={},reader=srv){
  const a={id:uuid(1),user_id:owner,fecha:'2026-10-19T10:00:00.00'+(ordinal-1)+'Z',importe:3.2,comercio:'BAR SL',ob_name:'BAR SL',cat:'otros',source:'ob:sabadell#refref-a'+(legacy?'':'#accaccount-a')+(ordinal>1?'#n'+ordinal:'')};
- const b={...a,id:uuid(2),comercio:collision?'BAR SL':'Otra compra',ob_name:collision?'BAR SL':'Otra compra',source:'ob:'+(sameBank?'sabadell':'caixabank')+'#refref-c#accaccount-c'+(ordinal>1?'#n'+ordinal:'')};
- const rows=[a,b];if(manual)rows.push({...a,id:uuid(3),source:'manual:sabadell'});
+ const b={...a,id:uuid(2),fecha:new Date(Date.parse(a.fecha)+1).toISOString(),comercio:collision?'BAR SL':'Otra compra',ob_name:collision?'BAR SL':'Otra compra',source:'ob:'+(sameBank?'sabadell':'caixabank')+'#refref-c#accaccount-c'+(ordinal>1?'#n'+ordinal:'')};
+ const rows=[a,b];if(manual)rows.push({...a,id:uuid(3),fecha:new Date(Date.parse(a.fecha)+2).toISOString(),source:'manual:sabadell'});
  const env=environment(html,rows,{deleteFails:true}),other=environment(html,[a]);
  const expectedRows=plain(env.stateRef.current.expenses.filter(e=>e.id!==uuid(1)));
  await other.rename(uuid(1),'Mi bar');env.remote[0]=plain(other.remote[0]);

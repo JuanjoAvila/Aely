@@ -3825,8 +3825,9 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
     if(Object.keys(rest).length)out.uuidPreserved=rest;else delete out.uuidPreserved;
   }
   // Una coincidencia semántica con otro UUID no es el recibo de esta escritura de ficha.
-  // Solo la misma fila y el valor aún vigente confirman cada campo, sin soltar los demás.
-  const editConfirmed=local.id&&local.id===incoming.id?Object.keys(editPending).filter(function(k){return editPending[k]===local[k]&&incoming[k]===editPending[k];}):[];
+  // keepCategoryChoices puede sintetizar categoría desde catStale o una regla aprendida:
+  // esa protección no es un eco remoto. Los otros campos se confirman por separado.
+  const editConfirmed=local.id&&local.id===incoming.id?Object.keys(editPending).filter(function(k){return editPending[k]===local[k]&&incoming[k]===editPending[k]&&(k!=="category"||(!local.catStale&&!incoming.catStale));}):[];
   if(editConfirmed.length){
     if(out===local)out=Object.assign({},local);
     const rest=Object.assign({},editPending);editConfirmed.forEach(function(k){delete rest[k];});

@@ -8,6 +8,11 @@ export function section(html,start,end){const a=html.indexOf(start),b=html.index
 export function wireRows(n=3500){return Array.from({length:n},(_,i)=>({id:uuid(i+1),user_id:owner,fecha:'2026-10-19T10:00:00.000Z',importe:(i+1)/100,comercio:'Compra '+i,cat:'otros',source:'ob:'+(i%2?'sabadell':'trade_republic')+'#refref-'+i+'#accaccount-'+(i%2),ob_name:'Compra '+i}));}
 export function state(rows){return {_historyOwner:owner,expenses:rows,accounts:[],settings:{expenseBanks:['trade_republic','sabadell','caixabank']},fixed:[],debts:[],oneoffs:[],flows:[],goals:[],investments:[],assets:[],bankTx:[],gemelos:[],deleted:[],deletedAt:{},obAbsorbedPending:[],obAbsorbedConfirmed:[],lastSync:1,budget:1000};}
 export function environment(html,remote,{deleteFails=false}={}){
+ const initialTuples=new Set();
+ for(const r of remote){
+  const tuple=JSON.stringify([r.user_id,Date.parse(r.fecha),Number(r.importe),r.comercio]);
+  assert.ok(!initialTuples.has(tuple),'seed respeta unique user_id/fecha/importe/comercio');initialTuples.add(tuple);
+ }
  const env={remote:plain(remote),writes:[],uploads:[],uploadResults:[],upserts:[],inserts:[],deletes:0,sets:0,timers:[],disk:new Map(),deleteFails,
   session:{user:{id:owner},expires_at:9e9},sessionReads:0,deleteResponseLost:false};
  const storage={getItem:k=>env.disk.get(k)??null,setItem:(k,v)=>env.disk.set(k,String(v)),removeItem:k=>env.disk.delete(k)};

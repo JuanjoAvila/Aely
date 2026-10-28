@@ -3,7 +3,7 @@ import crypto from 'node:crypto';
 import vm from 'node:vm';
 import * as nodeModule from 'node:module';
 import assert from 'node:assert/strict';
-import {test} from 'node:test';
+import {test,after} from 'node:test';
 import {environment,section,plain,owner,uuid,cents,now} from './helpers/fin19-r4-fixture.mjs';
 
 const root=new URL('../',import.meta.url),read=p=>fs.readFileSync(new URL(p,root),'utf8');
@@ -27,6 +27,7 @@ function writeEvidence(){
  const fd=fs.openSync(process.env.FIN29_30_EVIDENCE,'wx');
  try{fs.writeFileSync(fd,JSON.stringify(evidence,null,2)+'\n');fs.fsyncSync(fd);}finally{fs.closeSync(fd);}
 }
+after(writeEvidence);
 async function mirrorModule(){
  // Node24 local: solo Node, sin proceso esbuild. CI Node20 conserva su dependencia ya existente.
  if(typeof nodeModule.stripTypeScriptTypes==='function'){
@@ -38,7 +39,7 @@ async function mirrorModule(){
  new Function('module','exports',transformSync(mirrorSource,{loader:'ts',format:'cjs'}).code)(mod,mod.exports);
  return mod.exports;
 }
-const wire=(n,bank='sabadell',account='account-a',extra={})=>({id:uuid(n),user_id:owner,fecha:'2026-10-19T10:00:00.001Z',importe:3.2,
+const wire=(n,bank='sabadell',account='account-a',extra={})=>({id:uuid(n),user_id:owner,fecha:new Date(Date.parse('2026-10-19T10:00:00.000Z')+n).toISOString(),importe:3.2,
  // «otros» se reclasifica al leer BAR SL: una categoría explícita conserva el mismo dato en ambas fronteras.
  comercio:'BAR SL',ob_name:'BAR SL',cat:'bares',nota:'Nota sintética',nota_edit:true,no_card:true,importe_orig:4,divisa:'USD',source:'ob:'+bank+'#refref-'+n+'#acc'+account+'#n2',...extra});
 const sorted=rows=>plain(rows).sort((a,b)=>a.id.localeCompare(b.id));
@@ -156,7 +157,8 @@ async function writerGuardScenarios(){
   assert.deepEqual(env.remote,before,variant+' no muta ninguna fila');assert.equal(env.upserts.length,0,variant+' no llega al transporte');
   record.sessionReads=env.sessionReads;record.uploads=plain(env.uploads);record.upserts=plain(env.upserts);record.remote=plain(env.remote);
  }
- const wires=[wire(1),wire(2,'caixabank','account-b',{comercio:'Mi bar'})],env=setup('offline',wires);
+ // El conflicto aparece al renombrar: antes hay dos comercios distintos en el MISMO instante.
+ const wires=[wire(1),wire(2,'caixabank','account-b',{fecha:wire(1).fecha,comercio:'Mi bar'})],env=setup('offline',wires);
  const before=plain(env.remote),localBefore=plain(env.stateRef.current.expenses),record={kind:'real-writer-guard',variant:'UPDATE23505-atomic'};
  evidence.cases.push(record);
  await assert.rejects(env.cloud.renameExpense(env.stateRef.current.expenses[0],'Mi bar'),err=>err.code==='23505');
@@ -203,12 +205,27 @@ async function nativeAliasParity(mirror){
  }
 }
 test('FIN29/30 rename conserva dos cuentas, filas completas y céntimos; delete/undo conservan su intención',async()=>{
- try{
   const mirror=await mirrorModule();
   await nativeAliasParity(mirror);
   for(const otherBank of ['caixabank','sabadell'])for(const mode of ['offline','sandbox','transition'])await fichaScenario(mode,otherBank,mirror);
   for(const otherBank of ['caixabank','sabadell'])for(const deleteMode of ['not-applied','response-lost','confirmed'])await ackDeleteScenario(otherBank,deleteMode,mirror);
   await signedManualControls();
   await writerGuardScenarios();
- }finally{writeEvidence();}
+});
+test('FIN29/30 empty merchant alias parity after real ficha callback',async()=>{
+  const mirror=await mirrorModule();
+  for(const variant of [{name:'empty',value:''},{name:'null',value:null},{name:'absent'},{name:'whitespace',value:'   '},{name:'ordinary',value:'BAR SL'}]){
+   const raw=wire(95,'sabadell','account-a',{comercio:variant.value,ob_name:null});
+   if(variant.name==='absent')delete raw.comercio;
+   const env=setup('offline',[raw]),original=plain(env.stateRef.current.expenses[0]);
+   env.save(original.id,{merchant:'Nombre elegido'});
+   const del=env.c.expenseDeletedSet(env.stateRef.current);
+   const jsRows=[raw].filter(row=>!env.c.expenseIsTombstoned(env.c.expenseFromRow(row),del));
+   const tsRows=mirror.filasComoLaApp([raw],env.stateRef.current.deleted,[],owner,[]);
+   evidence.cases.push({kind:'empty-merchant-alias',variant:variant.name,raw:plain(raw),saved:plain(env.stateRef.current.expenses),deleted:plain(env.stateRef.current.deleted),jsRows:plain(jsRows),tsRows:plain(tsRows)});
+   assert.deepEqual(plain(jsRows),[],variant.name+' old name hidden by callback-created alias');
+   assert.deepEqual(plain(tsRows),[],variant.name+' TS full rows match JS');
+   assert.equal(cents(jsRows),0);assert.equal(cents(tsRows),0);
+   assert.deepEqual(plain(mirror.filasComoLaApp([raw],[],[],owner,[])),[plain(raw)],variant.name+' no alias keeps full raw row');
+  }
 });

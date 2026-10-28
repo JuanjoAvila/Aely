@@ -12,7 +12,7 @@ const fixtures=[
  {name:'incoming-transfer',amount:-200,merchant:'TRASPASO SINTETICO',category:'traspaso',signedCents:-20000,beforeIncome:0},
 ];
 function setup(mode,f){
- const remote=[{id:uuid(1),user_id:owner,fecha:'2026-10-19T10:00:00.001Z',importe:f.amount,comercio:f.merchant,
+ const remote=[{id:uuid(1),user_id:owner,fecha:f.date||'2026-10-19T10:00:00.001Z',importe:f.amount,comercio:f.merchant,
   ob_name:f.merchant,cat:f.category,nota:'Nota sintética',source:'ob:sabadell#refincome-a#accaccount-a#n2'}];
  const env=environment(html,remote),queues=[],toasts=[],edits=[];
  const factory=vm.runInContext('(function(api,mode,editExp){const keyOfE=keyOfExpense,state=api.stateRef.current,set=api.set,cloud=Object.assign({},api.cloud,{enabled:()=>mode!=="offline"}),mcSandbox=()=>mode==="sandbox",mcSandboxTransition=()=>mode==="transition",editCola={current:{pend:[]}},renameSequence={current:0},retryRenames=()=>{throw Error("unexpected rename retry");},separarGemelo=()=>{throw Error("unexpected twin split");},setEditExp=e=>api.edits.push(e),showToast=t=>api.toasts.push(t),subeEdicionesDeGasto=q=>api.queues.push(q.pend);'+callback+'return saveEdit;})',env.c);
@@ -174,4 +174,68 @@ test('FIN19 R8 an older writer echo cannot clear a later real metadata decision'
  await env.pull();
  r.stages.push(exactIncome(env,f,{...original,merchant:'Compra elegida',category:'otros',noCard:true,
   expenseEditPending:{category:'otros'}},'old category echo cannot clear newer intent'));
+});
+test('FIN19 R8 composition setCat rename pull cannot acknowledge a synthetic category',async()=>{
+ for(const outcome of ['zero','reject','ack-after-read']){
+  const f=fixtures[1],env=setup('sandbox',f),original=plain(env.stateRef.current.expenses[0]);
+  assert.equal(Object.hasOwn(original,'catStale'),false);assert.equal(Object.hasOwn(original,'expenseEditPending'),false);
+  const jobs=[],categoryWrites=[];
+  env.c.setTimeout=(fn,ms)=>{jobs.push({fn,ms});return jobs.length;};env.c.clearTimeout=()=>{};
+  env.cloud.setExpenseCat=async(e,cat)=>{categoryWrites.push({id:e.id,cat,outcome});if(outcome==='reject')throw Error('synthetic category rejection');return 0;};
+  const setCatSource=section(html,'  const setCat=function(ex,newCat){','  const setCuota=');
+  const choose=vm.runInContext('(function(api){const set=api.set,cloud=api.cloud,showToast=null,withdrawalPending={current:{}};'+setCatSource+'return setCat;})',env.c)(env);
+  choose(env.stateRef.current.expenses[0],'bares');await Promise.resolve();
+  assert.deepEqual(plain(env.stateRef.current.expenses),[{...original,category:'bares',catStale:['traspaso']}],'setCat real crea catStale sin presembrarlo');
+  env.save('Nombre elegido');env.save(f.merchant);
+  const chosen={...original,category:'ingreso',noCard:true,catStale:['traspaso'],
+   expenseEditPending:{category:'ingreso',noCard:true}};
+  const r={kind:'category-composition',outcome,stages:[exactIncome(env,f,chosen,'real category choice then real ficha rename')]};evidence.push(r);
+  env.persist();r.stages.push(exactIncome(env,f,chosen,'real guards survive reload'));
+  if(outcome==='ack-after-read'){
+   // El ACK válido llega después de iniciarse la lectura antigua: keepCategoryChoices la sintetiza.
+   env.set(s=>({...s,expenses:env.c.ackCategoryWrite(s.expenses,s.expenses[0],'ingreso',now+1)}));
+  }
+  await env.pull();
+  for(const job of jobs.filter(j=>j.ms===0))job.fn();await env.flush();
+  const expected=outcome==='ack-after-read'?{...chosen,catAckAt:now+1}:chosen;
+  r.stages.push({phase:'old raw category after keepCategoryChoices',...env.snap()});
+  assert.equal(env.remote[0].cat,'traspaso','el transporte sigue devolviendo la categoría antigua');
+  exactIncome(env,f,expected,'synthetic incoming category is not a writer receipt');
+  r.categoryWrites=plain(categoryWrites);
+  // El writer real y una lectura posterior sí deben liberar ambas guardas.
+  await writeRealQueue(env);env.c.Date.now=()=>now+2;await env.pull();
+  const confirmed={...original,category:'ingreso',noCard:true};
+  r.stages.push(exactIncome(env,f,confirmed,'actual writer echo releases category and noCard'));
+  env.remote[0].cat='traspaso';env.remote[0].no_card=false;await env.pull();
+  const later=env.snap();assert.deepEqual(later.rows,[original]);assert.deepEqual(later.visible,[original]);
+  for(const mode of ['split','net'])assert.deepEqual(later[mode],expectedStats(0,mode));
+ }
+});
+test('FIN19 R8 learned rule cannot acknowledge category without a raw writer echo',async()=>{
+ const f={...fixtures[0],date:'2026-10-21T10:00:00.001Z'},env=setup('sandbox',f),original=plain(env.stateRef.current.expenses[0]);
+ const teacherRaw={id:uuid(7),user_id:owner,fecha:'2026-10-19T10:00:00.007Z',importe:-1,comercio:'Nombre remoto',
+  ob_name:'Nombre remoto',cat:'cine',source:'ob:sabadell#refteacher#accaccount-a#n2'};
+ env.remote.push(teacherRaw);const teacher=plain(env.c.expenseFromRow(teacherRaw));
+ env.set(s=>({...s,expenses:s.expenses.concat([env.c.expenseFromRow(teacherRaw)])}));
+ env.cloud.setExpenseCat=async()=>0;
+ const chooseSource=section(html,'  const setCat=function(ex,newCat){','  const setCuota=');
+ const choose=vm.runInContext('(function(api){const set=api.set,cloud=api.cloud,showToast=null,withdrawalPending={current:{}};'+chooseSource+'return setCat;})',env.c)(env);
+ choose(env.stateRef.current.expenses[1],'bares');await Promise.resolve();
+ assert.equal(Object.keys(env.stateRef.current.catRules).length,1,'regla aprendida por callback real');
+ env.save('BAR NUEVO',{income:false});
+ assert.equal(Object.hasOwn(env.stateRef.current.expenses[0],'catStale'),false,'el objetivo no tiene catStale local');
+ env.remote[0].comercio='Nombre remoto';env.remote[0].cat='cine';
+ // Instante corregido +1ms: el contador no presta la clave del nombre local; merge conserva UUID.
+ env.remote[0].fecha='2026-10-21T10:00:00.002Z';
+ const rawIncoming=env.c.expensesFromRows(env.remote,owner);
+ const probe=env.c.keepCategoryChoices(env.stateRef.current.expenses,rawIncoming,now);
+ assert.deepEqual(plain(probe.incoming[0].catStale),['cine'],'la regla real sintetiza la categoría entrante');
+ await env.pull();
+ const expected=[{...original,merchant:'Nombre remoto',category:'bares',expenseEditPending:{category:'bares'}},
+  {...teacher,category:'bares',catStale:['cine']}];
+ const r={kind:'learned-rule-composition',raw:plain(env.remote),...env.snap()};evidence.push(r);
+ assert.equal(env.remote[0].cat,'cine','la categoría raw no confirma bares');
+ assert.deepEqual(r.rows,expected,'filas completas: la regla no confirma pending.category');
+ assert.deepEqual(r.visible,expected);assert.equal(r.storedCents,-150100);assert.equal(r.visibleCents,-150100);
+ for(const mode of ['split','net'])assert.deepEqual(r[mode],expectedStats(150100,mode));
 });

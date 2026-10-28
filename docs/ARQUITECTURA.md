@@ -30,12 +30,18 @@ en expenseEditPending, dentro de la fila local y su persistencia existente.
 Refresh protege cada valor vigente hasta leer ese mismo valor en el mismo UUID,
 bajo las guardas existentes de owner/sesión/generación e identidad de la mezcla.
 La confirmación es por campo; los otros pendientes y uuidPreserved permanecen.
+La categoría sintetizada por keepCategoryChoices tampoco confirma: catStale local
+o entrante identifica sus dos vías de protección, sin impedir confirmar noCard.
 Una coincidencia con otro UUID, un ACK solo de nombre, cero filas, un rechazo o un
 upsert DO NOTHING no son recibos de esos metadatos. Tras la confirmación, los
 cambios remotos posteriores vuelven a mandar. La cola/writer no se amplían: un
 pendiente que no logra subirse sigue pendiente, también tras reiniciar; la guarda
 no promete una nueva política de reintentos ni una subida eventual.
-R8 pasa12/12 y las42 regresiones afectadas pasan; falta revisión financiera
+El alias TS nuevo replica comercio||Gasto del lector JS, también cuando falta el
+nombre; las claves legacy conservan su semántica. El RED JS0/TS320 queda preservado.
+Los seeds remotos respetan usuario/instante/importe/comercio únicos: separar +1ms
+dentro del mismo día conserva las claves diarias y las cifras originales.
+Pasan55 pruebas afectadas (R8 14, main2, R5 11 y R7 28); falta revisión financiera
 independiente del SHA final y no hay publicación ni aceptación real/móvil.
 
 ## Plan: primera lectura y versiones de borrado
