@@ -871,8 +871,18 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
         if(r&&r.e) subir.push(r.e);
         return {state:n,subir:subir};
       };
-      const apply=function(){
+      const apply=function(confirmedWarnings){
         if(!linkLive.current) return;
+        let live=linkState.current;
+        if(rechazo&&fila){const u=reciboDesenlazar(live,f,fila,y,m,today);if(u)live=u.state;}
+        const cur=(live.fixed||[]).find(function(e){return e.id===f.id;}),cargo=(live.expenses||[]).find(function(e){return e&&e.id===x.id;});
+        const warnings=fixedPaymentManualLinkWarnings(live,cargo,cur,y,m,today),signature=JSON.stringify(warnings);
+        // La confirmación responde al aviso vivo, también si otra sincronización añade un BOOK.
+        if(warnings.length&&signature!==confirmedWarnings){
+          askConfirm({title:tf("f_receipt_confirm",{name:cur.name}),
+            sub:React.createElement("span",{"data-testid":"receipt-manual-link-warning"},warnings.map(function(w){return tf("f_receipt_possible_same",{name:w.name,date:fmtIsoCorto(w.date)});}).join(" · ")),
+            ok:t("f_receipt_other_payment")}).then(function(yes){if(yes) apply(signature);else if(linkLive.current)setElegido(null);});return;
+        }
         const prueba=enlaza(linkState.current);
         if(!prueba){if(showToast) showToast(t("pr6_link_fail"));swipe.close();return;}
         const linked=(prueba.state.fixed||[]).find(function(e){return e.id===f.id;});
@@ -881,12 +891,7 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
           subirRows:prueba.subir.map(function(e){return {id:e.id,identity:fixedPaymentIdentity(expenseBankOf(e),e),reciboId:e.reciboId||null};})});
         set(function(s){ const r=enlaza(s); return r?r.state:s; });
       };
-      if(!linkLive.current) return;
-      const warnings=fixedPaymentManualLinkWarnings(base,x,f,y,m,today);
-      if(!warnings.length){ apply();return; }
-      askConfirm({title:tf("f_receipt_confirm",{name:f.name}),
-        sub:React.createElement("span",{"data-testid":"receipt-manual-link-warning"},warnings.map(function(w){ return tf("f_receipt_possible_same",{name:w.name,date:fmtIsoCorto(w.date)}); }).join(" · ")),
-        ok:t("f_receipt_other_payment")}).then(function(yes){ if(yes) apply();else if(linkLive.current) setElegido(null); });
+      apply();
     },260);
   };
   const aunNo=function(){

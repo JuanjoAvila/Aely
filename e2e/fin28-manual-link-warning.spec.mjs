@@ -72,3 +72,20 @@ test('plan: reponer la marca de un BOOK vetado conserva el flujo sin proof nueva
  expect(await page.evaluate(()=>mcLoadRaw(mcStateKey()).reciboNo.length)).toBe(0);
  await expect.poll(()=>page.evaluate(()=>(window.__e2eUpdates||[]).filter(r=>r.tabla==='expenses'&&String(r.value.source).includes('recibo.classes')).length)).toBe(1);
 });
+async function receiveBookProof(page,id,date,merchant){
+ await page.evaluate(async()=>{window.dispatchEvent(new Event('offline'));await new Promise(requestAnimationFrame);});
+ await page.evaluate(({id,date,merchant})=>{const s=mcLoadRaw(mcStateKey()),at=Date.now()+10000;const fixed=s.fixed.map(f=>f.id!==id?f:{...f,paymentProofs:{...f.paymentProofs,24322:fixedPaymentBind({kind:'book',key:'sabadell|SYNTHETIC-'+id,identity:JSON.stringify(['sabadell',date,12.99,merchant]),date,bank:'sabadell',merchant,amount:12.99,model:fixedPaymentModel(f,10)},f,10)}});window.__e2eCloudRows.app_state=[{user_id:'e2e-user',data:slimForCloud(planSyncEditState({...s,fixed},at)),updated_at:new Date(at).toISOString()}];window.dispatchEvent(new Event('online'));},{id,date,merchant});
+ await expect.poll(()=>page.evaluate(id=>!!mcLoadRaw(mcStateKey()).fixed.find(f=>f.id===id).paymentProofs?.[24322],id)).toBe(true);
+}
+test('gastos: BOOK llegado con la confirmación abierta exige Es otro pago antes de guardar',async({page})=>{
+ await open(page,'es',{bankTx:[]});await esperaNubeQuieta(page);await choose(page,'gastos');await expect(page.locator('.askback')).not.toContainText(labels.es.warning);
+ await receiveBookProof(page,'netflix','2026-10-05','NETFLIX');const before=await snapshot(page);await page.locator('.askback .btn-primary').click();
+ await expect(page.locator('.askback')).toContainText(labels.es.warning);expect(await linked(page)).toBe(false);expect(await snapshot(page)).toEqual(before);
+ await page.locator('.askback').getByRole('button',{name:labels.es.other,exact:true}).click();await expect.poll(()=>linked(page)).toBe(true);
+});
+test('plan: un segundo BOOK llegado con el aviso abierto exige confirmar el aviso actualizado',async({page})=>{
+ await open(page,'es',{fixed:[{id:'netflix',name:'Netflix',amount:12.99,freq:'mes',day:5,account:'sabadell'},{id:'classes',name:'Clases',amount:12.99,freq:'mes',day:6,account:'sabadell'},{id:'gym',name:'Gimnasio',amount:12.99,freq:'mes',day:4,account:'sabadell'}]});await esperaNubeQuieta(page);await choose(page,'plan');await expect(page.locator('.askback')).toContainText(labels.es.warning);
+ await receiveBookProof(page,'gym','2026-10-04','GIMNASIO');const before=await snapshot(page);await page.locator('.askback').getByRole('button',{name:labels.es.other,exact:true}).click();
+ await expect(page.locator('.askback')).toContainText('Gimnasio');expect(await linked(page)).toBe(false);expect(await snapshot(page)).toEqual(before);
+ await page.locator('.askback').getByRole('button',{name:labels.es.other,exact:true}).click();await expect.poll(()=>linked(page)).toBe(true);
+});
