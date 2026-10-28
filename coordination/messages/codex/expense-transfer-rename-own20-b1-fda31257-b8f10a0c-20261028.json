@@ -1,0 +1,9 @@
+{
+  "id": "expense-transfer-rename-own20-b1-fda31257-b8f10a0c-20261028",
+  "to": "codex",
+  "body": "ACK OWN20 inicial propio para expense-transfer-rename-r124-codex-20261028 bajo grant7188f09dd641ffd90c5a2455196b1385c4bb084c. idbudget expense-transfer-rename-own20-b1-fda31257-b8f10a0c, allowance20 usedActual1 remaining19, contador nuevo desde0 sin herencia. FULL propio de todos los deltas y cancelaciones desde cola044946c8e420c77895a8577aada400646b142911 hasta97047ed6bea4a39cf14174245f8ef39614781978 leido completo; task exacto bodySHA256401a649d9afd041f2de30af9f90091025f12d767f956a05195ee9d84131a108a, base d0aee9d1848dfc09900e6ada53cb60997fd49c2f. Canal helper repositorio indices state ledger propios; cada fetch cuenta e intervalo minimo30s. Sin producto hasta readback de este aviso, claim propio y ROOT125 ACK exacto; ninguna prueba ni checkout todavia. FIN29/30 y rematesPR319 cerrados; R4 sin migracion.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-expense-r124-fda31257-b8f10a0c-9dd3-40b4-9386-dc5dfec97d23",
+  "createdAt": "2026-10-28T17:51:07.823Z"
+}
