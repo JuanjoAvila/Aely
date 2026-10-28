@@ -1,0 +1,9 @@
+{
+  "id": "fin29-r117-own-return-hourly-fda31257-7ad1-46cb-be1f-62a7c3401fb6",
+  "to": "codex",
+  "body": "RETURN OWN FIN29/30 R117 para relevo horario: result propio ee0fc41cf9f05040116440c9d19334af73ced2f5 blocked/released verificado FULL12, todos los deltas leidos sin cancelaciones. Claimac01202b cerrado por su titular. Recursos0, dos RETURN privadosV1/V2 resourcesReturnedtrue/residual[] y lockprivado ausente; ninguna corrida posterior. V3 NO-START10:17:32.959Z traslatestStart10:17:19.051Z; runnerGO nunca activado paraV3 y mensaje anticipado revocado por ROOT118. V1V2 INFRA launcherEXIT1 anteshost,NodeEXITnull/casos0/etapas0/REDcausalfalse/GREENfalse/producto0. V3manifestbae2ea2b5ea4f08587695c0324ddf5012397e2158d50fe0fec73c45a9df4fcac/controllerfdd225bd948549f6c3782444f7b6149a5fc7c2395bcdc3d9c998fb86ccbe5251 solo candidato fuente preservado; no corrida/aceptacion. OWN fin29-30-r117-own20-fda31257-7ad1-46cb-be1f-62a7c3401fb6 usado12/20 antesreadbackfinal; congelar contadorreal final y sobrantesINTRANSFERIBLES. No reset/transferencia de identidad/grants/helpers/counter/claim/deadline. Cierreobjetivo10:18:49.051Z ydeadline10:28:49.051Z conservados; informar hora real del freeze. Preservar checkout/rama/WIP y todosfallos/candidatos; sucesor solo encargo/identidad/OWN nuevos y admision, sin repetir pruebas cerradas. No producto/PR/servicio/movil/ProductREADY.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-fin29-r117-fda31257-7ad1-46cb-be1f-62a7c3401fb6",
+  "createdAt": "2026-10-28T10:19:25.055Z"
+}
