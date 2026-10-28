@@ -64,6 +64,9 @@ for(const door of ['gastos','plan'])test(door+': una edición remota con el avis
 test('plan: reponer la marca de un BOOK vetado conserva el flujo sin proof nueva',async({page})=>{
  const identity=JSON.stringify(['sabadell','2026-10-06',12.99,'CLASES']);
  await open(page,'es',{fixed:[{id:'classes',name:'Clases',amount:12.99,freq:'mes',day:6,account:'sabadell'}],expenses:[{id:'wallet',source:'ob',status:'BOOK',extId:'SYNTHETIC-RESTORE',date:'2026-10-06',amount:12.99,merchant:'Cargo sintético',obName:'CLASES',category:'recibos',ent:'sabadell'}],bankTx:[{id:'SYNTHETIC-RESTORE',ent:'sabadell',date:'2026-10-06',merchant:'CLASES',amount:12.99,status:'BOOK'}],reciboNo:['classes|'+identity,'classes|#wallet|'+identity]});
+ await esperaNubeQuieta(page);
+ // La escritura real busca una fila remota: sembrarla conserva el oráculo de subida, no solo el toast.
+ await page.evaluate(()=>{window.__e2eCloudRows.expenses=[{id:'00000000-0000-4000-8000-000000000028',user_id:'e2e-user',fecha:'2026-10-06',importe:12.99,comercio:'Cargo sintético',cat:'recibos',source:'ob:sabadell#refSYNTHETIC-RESTORE'}];});
  await choose(page,'plan');await expect.poll(()=>page.evaluate(()=>mcLoadRaw(mcStateKey()).expenses[0].reciboId)).toBe('classes');
  expect(await linked(page)).toBe(false);await expect(page.locator('[data-sheet="recibo"]')).toHaveCount(0);await expect(page.locator('.toast')).toContainText('Clases pagado');
  expect(await page.evaluate(()=>mcLoadRaw(mcStateKey()).reciboNo.length)).toBe(0);
