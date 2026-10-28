@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "id": "pr320-b1-beta191-r125-codex-20261028",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261028-r125-fda31257-94a82862-5801-4eb5-9312-6a54547665de",
+  "createdAt": "2026-10-28T18:29:58.136Z",
+  "to": "codex",
+  "baseSHA": "7e958a6f545ceb30c1a1eef66a03ec7a1884c887",
+  "objective": "PR320 B1: adaptar el candidato1120902f a beta191, conservar guardas PR319 con disparadores reales de cambio de categoria y cubrir que un negativo renombrado no se convierte ni se sube como ingreso falso.",
+  "scope": [
+    "src/modules/04-tab-gastos.js",
+    "tests/fin19-r8-ficha-income.test.mjs",
+    "tests/expense-transfer-rename.test.mjs",
+    "e2e/gastos-transfer-rename-offline.spec.mjs",
+    "scripts/run-tests.mjs",
+    "scripts/relevant-tests.mjs"
+  ],
+  "grant": "5f8c4a09a8d00ee6a2d914e81f79c49b80889116",
+  "originalCandidate": "1120902f91ae9c9c653f3b76231c34c26c6d20e2",
+  "pullRequest": 320,
+  "updateExistingPR": true,
+  "noSecondPR": true,
+  "budgetGrant": "7188f09dd641ffd90c5a2455196b1385c4bb084c",
+  "workerInitialOwnAllowance": 20,
+  "acceptance": [
+    "Checkout y rama propios nuevos desde beta191; no reabrir ni mutar tareas originales DONE ni sus artefactos",
+    "Reproducir incompatibilidad en nueva base sin usarla como resultado del candidato anterior",
+    "Conservar14 casos del legado y coberturas PR319; cambiar disparadores a cambios verdaderos via sentido o setCat, sin relajar oraculos UUID/ACK/catStale/expenseEditPending/writer",
+    "Probar writer real y fila remota: renombrar negativo conserva categoria y no sube ingreso falso; cubrir inversion/deudas y bizum >=200EUR sinteticos",
+    "Comentario del cambio explica preservacion de cualquier negativo, no solo traspaso",
+    "No migrar ni reparar filas historicas; proponer reparacion solo como texto en PR320",
+    "node--test/e2e dirigidos grant permanente CPU1/worker1/retry0, censoENTERRETURN y EXIT reales; no repetir tests cerrados sin cambio relevante de esta base",
+    "Revision ROOT e independiente del nuevo exactHEAD antes de push; actualizar MISMA PR320 draft beta; sin otraPR ni merge/integracion",
+    "No VERSION/RELEASE_NOTES/CHANGELOG/backend/SQL/APK/deploy"
+  ],
+  "limits": {
+    "ownClaimAndROOTACKBeforeProduct": true,
+    "oldWorker9of20FrozenNotInherited": true,
+    "ProductREADY": false
+  },
+  "workerSession": "codex-local-20261028-pr320b1r125-fda31257-28e3e1af-4d03-45ae-b283-6b865eb4a821"
+}
