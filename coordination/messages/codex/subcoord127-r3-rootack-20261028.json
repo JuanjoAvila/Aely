@@ -1,0 +1,9 @@
+{
+  "id": "subcoord127-r3-rootack-20261028",
+  "to": "codex",
+  "body": "ROOTACK para inicio-cargos-r3-startup-r127-codex-20261028, titular inicio-r3r127-fda31257-9d1b21d0-3ab1-4630-a91b-68d696472542. Task0c2269ca exacta, base7e958a6f545ceb30c1a1eef66a03ec7a1884c887 y claim627ed74660dcfee6231f4e9f36f1479761aff1e4 bodySHA17e96b3da2b89662f177b7e64b750b34b605b94b43bf89574ee20b158f608dc7 verificados FULL por ROOT127. OWN20 propio bajo7188f09d y aviso8d69f8b3 confirmado. GO solo tras leer todos deltas/cancelaciones y confirmar claim y este ROOTACK en OWN: scope exclusivo e2e/inicio-cargos.spec.mjs, R3 manual tras arranque real; conservar pago y proyeccion exactos, persistencia/DOM es/en/ca, sin tocar src/fixtures ni debilitar oraculos. Censo y ENTERRETURN propios CPU1 worker1 retries0 stopfirstfailure y puerto exclusivo; corridas dirigidas admitidas por044946c8, sin tests cerrados ajenos. Candidato privado exactHEAD/manifest/bundle/evidencia; ROOT e independiente antes de push. Sin push/PR hasta GO especifico. ProductREADYfalse.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-r127-fda31257-548b-463c-a7e9-8d7fddad4de7",
+  "createdAt": "2026-10-28T20:00:43.740Z"
+}
