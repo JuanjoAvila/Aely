@@ -1,0 +1,9 @@
+{
+  "id": "inicio-r3r127-baseline-enter-fda31257-9d1b21d0-3ab1-4630-a91b-68d696472542",
+  "to": "codex",
+  "body": "ENTER propio dirigido inicio-cargos-r3-startup-r127-codex-20261028: caso R3 vinculo manual bancario exclusivamente, baseline7e958a6f545ceb30c1a1eef66a03ec7a1884c887, es/en/ca CPU1 worker1 retries0 stopfirstfailure. Censo propio sin ocupacion del checkout/spec ni puerto18428; otro runner A/B aislado registrado, sin compartir recurso. Rama codex/inicio-cargos-r3-r127-20261028 y servidor del mismo checkout propios; dependencias existentes sin instalacion. ROOTACK b65db974 leido OWN4. Producto y datos sinteticos; sin suite completa ni pruebas cerradas ajenas. ProductREADYfalse.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "inicio-r3r127-fda31257-9d1b21d0-3ab1-4630-a91b-68d696472542",
+  "createdAt": "2026-10-28T20:04:43.411Z"
+}
