@@ -4744,7 +4744,7 @@ test("Catálogo161 histórico añade la tanda de la moneda en los brókers de Ca
   assert.deepEqual(notes,expectedNotes,"la nota 161 literal delante y todo lo anterior intacto, con la tanda pendiente de la 160 en su sitio");
   assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.161",tandas[0],0],["4.26.160","gastos-dos-bancos",0]],"el panel enseña la nueva y sigue enseñando la pendiente de la 160");
   assert.deepEqual(notes[1].tandas,before[0].tandas,"la tanda pendiente de la 160 no se toca");
-  for(const n of notes.slice(1))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] (la propiedad se conserva, vacía)");
+  for(const n of notes.slice(2))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] (la propiedad se conserva, vacía)");
   assert.equal(notes.length,258);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
   notes[0].tandas.forEach(g=>assert.deepEqual(Object.keys(g),["id","t","items"],"identidad nueva, sin apk: "+g.id));
   for(const lang of ["es","en","ca"]){
@@ -4857,7 +4857,7 @@ test("Catálogo162 histórico añade la tanda de la categoría Coche (con Edge y
   assert.deepEqual(notes,expectedNotes,"la nota 162 literal delante, la 161 con su tanda pendiente, la 160 sin su tanda aprobada y todo lo demás intacto");
   assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.162",tandas[0],0],["4.26.161","cartera-moneda",0]],"el panel enseña la nueva y sigue enseñando la pendiente de la 161");
   assert.deepEqual(notes[1].tandas,before[0].tandas,"la tanda pendiente de la 161 no se toca");
-  for(const n of notes.slice(1))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] (la propiedad se conserva, vacía)");
+  for(const n of notes.slice(2))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] (la propiedad se conserva, vacía)");
   assert.equal(notes.length,259);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
   notes[0].tandas.forEach(g=>assert.deepEqual(Object.keys(g),["id","t","items"],"identidad nueva, sin apk: "+g.id));
   for(const lang of ["es","en","ca"]){
@@ -5337,7 +5337,7 @@ test("Catálogo166 añade la tanda de las secciones de Gastos (solo web) sobre l
   const notes=JSON.parse(source("src/data/release-notes.json"));
   assert.deepEqual(notes,expectedNotes,"la nota 166 literal delante y todo lo demás intacto, la tanda de la 165 incluida");
   assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.166",tandas[0],0],["4.26.165","gastos-v5-movimientos",0]],"el panel enseña dos tandas, cada una en su versión y sin APK");
-  for(const n of notes.slice(1))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] (la propiedad se conserva, vacía)");
+  for(const n of notes.slice(2))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] (la propiedad se conserva, vacía)");
   assert.equal(notes.length,263);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
   notes[0].tandas.forEach(g=>assert.deepEqual(Object.keys(g),["id","t","items"],"sin apk: "+g.id));
   const jerga=/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|FIN-|SES-|UX-|\d+\.\d+\.\d+/i;
@@ -6546,7 +6546,7 @@ test("Catálogo186 añade la tanda del widget que se actualiza solo (web e inges
   assert.deepEqual(notes,expectedNotes,"la nota 186 literal delante y todo lo demás intacto (la tanda de la 185 sigue)");
   assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.186",tandas[1],0],["4.26.185",tandas[0],62]],"el panel enseña dos tandas: la nueva, sin APK, y la de la 185, con APK 62");
   assert.equal(notes.length,283);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
-  for(const n of notes.slice(1))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] (la propiedad se conserva, vacía)");
+  for(const n of notes.slice(2))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] (la propiedad se conserva, vacía)");
   assert.deepEqual(Object.keys(notes[0].tandas[0]),["id","t","items"],"la tanda nueva no pide APK");
   const jerga=/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|FIN-|SES-|UX-|SEC-|zoom|\d+\.\d+\.\d+/i;
   for(const lang of ["es","en","ca"]){
@@ -6746,7 +6746,7 @@ test("Catálogo184 añade la tanda del límite sin la nómina (solo web) sobre l
   const notes=JSON.parse(source("src/data/release-notes.json"));
   assert.deepEqual(notes,expectedNotes,"la nota 184 literal delante y todo lo demás intacto, con la tanda de la 183 donde estaba");
   assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.184",tandas[1],0],["4.26.183",tandas[0],0]],"el panel enseña dos tandas, sin APK");
-  for(const n of notes.slice(1))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] (la propiedad se conserva, vacía)");
+  for(const n of notes.slice(2))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] (la propiedad se conserva, vacía)");
   assert.equal(notes.length,281);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
   notes[0].tandas.forEach(g=>assert.deepEqual(Object.keys(g),["id","t","items"],"sin apk: "+g.id));
   const jerga=/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|FIN-|SES-|UX-|SEC-|zoom|\d+\.\d+\.\d+/i;
@@ -6830,7 +6830,7 @@ test("Catálogo184 añade la tanda del límite sin la nómina (solo web) sobre l
   const vivas=notes.flatMap(n=>(n.tandas||[]).map(g=>g.id));
   for(const id of Object.keys(expectedMoves))if(id!==tandas[0])assert.equal(vivas.includes(id),false,"huella que se mueve sin tanda viva: "+id);
   assert.ok(expectedMoves[tandas[0]],"la de la 183 se mueve de verdad: su código cambia");
-  assert.deepEqual(vivas,[tandas[1]]);
+  assert.deepEqual(vivas,[tandas[1],tandas[0]]);
   const current=betaRevision(tandas[1],source,undefined,scopes[tandas[1]]);
   assert.ok(current.web);assert.equal(current.edge,undefined,"sin huella de Edge");assert.equal(current.native,undefined);
   // Mutantes sobre la fuente real: el límite del mes natural vuelve al bruto, el tope en 0 se quita, el umbral de la nómina cambia o la nómina deja de identificarse.
@@ -7537,7 +7537,7 @@ test("Catálogo175 añade la tanda del lag de Gastos, tercera ronda (solo web) s
   const notes=JSON.parse(source("src/data/release-notes.json"));
   assert.deepEqual(notes,expectedNotes,"la nota 175 literal delante, la 174 con su tanda y todo lo demás intacto");
   assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.175",tandas[0],0],["4.26.174","inicio-mes-futuro",0]],"el panel enseña dos tandas, sin APK");
-  for(const n of notes.slice(1))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] (la propiedad se conserva, vacía)");
+  for(const n of notes.slice(2))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] (la propiedad se conserva, vacía)");
   assert.equal(notes.length,272);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
   notes[0].tandas.forEach(g=>assert.deepEqual(Object.keys(g),["id","t","items"],"sin apk: "+g.id));
   const jerga=/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|FIN-|SES-|UX-|\d+\.\d+\.\d+/i;
@@ -7663,7 +7663,7 @@ test("Catálogo173 histórico añade la tanda de Plan entre dos móviles (solo w
   const notes=JSON.parse(source("src/data/release-notes.json"));
   assert.deepEqual(notes,expectedNotes,"la nota 173 literal delante y todo lo demás intacto (la tanda de la 172 donde estaba)");
   assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.173",tandas[0],0],["4.26.173",tandas[1],0],["4.26.172",desc172,0]],"el panel enseña tres tandas, ninguna con APK");
-  for(const n of notes.slice(1))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] (la propiedad se conserva, vacía)");
+  for(const n of notes.slice(2))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] (la propiedad se conserva, vacía)");
   assert.equal(notes.length,270);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
   notes[0].tandas.forEach(g=>assert.deepEqual(Object.keys(g),["id","t","items"],"sin apk: "+g.id));
   const jerga=/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|FIN-|SES-|UX-|\d+\.\d+\.\d+/i;
