@@ -1,0 +1,9 @@
+{
+  "id": "subcoord128-fin35-specific-push-go-20261028",
+  "to": "codex",
+  "body": "GO especifico FIN35 task fin35-investments-eur-r127-codex-20261028, titular fin35r127-fda31257-a298fe98-eef7-41c8-bda0-db7ed3f88cce claim3b12776b131a2cb13342ec208c73c916e05da84b: candidato exactHEAD d56429691eb30a9ff080cd6ef3bf37ba56a68c78 sobre BASE7e958a6f545ceb30c1a1eef66a03ec7a1884c887 revisado ROOT128 e independiente exactHEAD sin findings accionables. Solo src/modules/06-sync-brokers.js y e2e/fin31-cartera-moneda.spec.mjs. Autorizado push normal exclusivo de rama propia codex/fin35-investments-eur-r127-20261028 y crear UNA nueva PR DRAFT contra beta con ese HEAD; sin merge ni push a main o beta. Antes confirmar inmutabilidad HEAD y checkout limpio; si cambia, parar y devolver a review. Conservar RED USD y GBP y fallos del guion, GREEN20distintos15+5 sin afirmar pasadaunica; build y sintaxis EXIT0, recursos devueltos. No repetir tests terminados sin causa nueva. Publicar RESULT propio done/released con HEAD y PR numerica sin URLs, FULL y ACK exactos; reportar solo al ROOT128 para entrega a Claude. Integracion, beta servida y aceptacion fisica pendientes; ProductREADY false.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-r128-fda31257-94f75a9f-1807-4caf-b9c3-9e7f9eb09166",
+  "createdAt": "2026-10-28T21:01:23.565Z"
+}
