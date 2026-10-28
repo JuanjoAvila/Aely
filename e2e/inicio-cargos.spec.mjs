@@ -23,19 +23,36 @@ for(const lang of ["es","en","ca"]){
   test(lang+": R3 vínculo manual bancario conserva pago y proyección al editar el día",async({page})=>{
     const bill=Object.assign({},fixed,{wait:undefined}),charge={id:"vinculo-banco",date:"2026-09-25",merchant:"Cargo bancario distinto",amount:42,ent:"sabadell",category:"recibos",source:"ob-hist"};
     await open(page,lang,{fixed:[bill],expenses:[charge]},"2026-09-26T12:00:00Z");
-    const linked=await page.evaluate(({id,expense})=>{const s=mcLoadRaw(mcStateKey()),n=linkFixedPayment(s,expense,id,2026,9,26);mcSaveRaw(mcStateKey(),n);return {kind:n.fixed[0].paymentProofs[2026*12+9].kind,net:monthNetForAccount(n,"sabadell",2026,9,26)};},{id:bill.id,expense:charge.id});
-    expect(linked.kind).toBe("expense");await page.reload();await dismissNews(page);
+    // La escritura directa deja React con el estado anterior: pagehide puede pisar el
+    // vínculo al recargar. La acción real lo guarda tras el arranque en el mismo commit.
+    await page.waitForFunction(()=>window.__mcBootReady);
+    await page.locator('.botnav-tab[data-tour="gastos"]').click();
+    await page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:charge.merchant}).click();
+    await page.getByTestId("exp-receipt").click();
+    await page.getByTestId("exp-receipt-gas").click();
+    await page.locator('.askback button.btn-primary').click();
+    await expect(page.getByTestId("exp-receipt")).toContainText(bill.name);
+    await page.locator('.v4-exp-sheet .v4-ficha-done').click();
+    await expect.poll(()=>page.evaluate(()=>mcLoadRaw(mcStateKey()).fixed[0].paymentProofs?.[2026*12+9]?.kind)).toBe("expense");
+    const linked=await page.evaluate(()=>{const s=mcLoadRaw(mcStateKey());return {kind:s.fixed[0].paymentProofs[2026*12+9].kind,net:monthNetForAccount(s,"sabadell",2026,9,26)};});
+    expect(linked.kind).toBe("expense");expect(linked.net).toBe(-42);await page.reload();await dismissNews(page);
     await page.locator('.botnav-tab[data-tour="plan"]').click();
+    await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:bill.name})).toHaveCount(1);
+    const before=await page.evaluate(()=>{const s=mcLoadRaw(mcStateKey());return {bill:s.fixed[0],paid:isPaidIn(s.fixed[0],9,26,2026),net:monthNetForAccount(s,"sabadell",2026,9,26)};});
+    expect(before.bill.day).toBe(25);expect(before.bill.paymentProofs[2026*12+9].kind).toBe("expense");expect(before.paid).toBe(true);expect(before.net).toBe(linked.net);
     const manage=await page.evaluate(()=>t("pr6_todos"));
     await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button",{name:manage,exact:true}).click();
     const hub=page.locator('[data-bills-manage]');await hub.locator('.v4-bills-group').first().click();
     await hub.locator('.v4-bills-row').filter({hasText:bill.name}).click();
     await page.locator('.v4-sheet[data-sheet="bill"] input[inputmode="numeric"]').fill("28");
+    await expect.poll(()=>page.evaluate(()=>mcLoadRaw(mcStateKey()).fixed[0].day)).toBe(28);
     await expect.poll(()=>page.evaluate(()=>mcLoadRaw(mcStateKey()).fixed[0].paidDay)).toBe(25);
     const saved=await page.evaluate(()=>{const s=mcLoadRaw(mcStateKey());return {bill:s.fixed[0],paid:isPaidIn(s.fixed[0],9,26,2026),net:monthNetForAccount(s,"sabadell",2026,9,26)};});
-    expect(saved.bill.paidYm).toBe(2026*12+9);expect(saved.paid).toBe(true);expect(saved.net).toBe(linked.net);
+    expect(saved.bill.paidYm).toBe(2026*12+9);expect(saved.bill.paymentProofs[2026*12+9].kind).toBe("expense");expect(saved.paid).toBe(true);expect(saved.net).toBe(linked.net);
     await page.reload();await dismissNews(page);
     await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:bill.name})).toHaveCount(1);
+    const reloaded=await page.evaluate(()=>{const s=mcLoadRaw(mcStateKey());return {bill:s.fixed[0],paid:isPaidIn(s.fixed[0],9,26,2026),net:monthNetForAccount(s,"sabadell",2026,9,26)};});
+    expect(reloaded.bill.day).toBe(28);expect(reloaded.bill.paidDay).toBe(25);expect(reloaded.bill.paidYm).toBe(2026*12+9);expect(reloaded.bill.paymentProofs[2026*12+9].kind).toBe("expense");expect(reloaded.paid).toBe(true);expect(reloaded.net).toBe(linked.net);
   });
   test(lang+": R3 recibo creado sin categoría acredita comercio clasificado de otro banco",async({page})=>{
     await open(page,lang,{fixed:[]});
