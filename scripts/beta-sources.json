@@ -101363,5 +101363,27 @@
       }
     ],
     "unidades": true
+  },
+  "recibos-anual-inversiones-eur": {
+    "web": [
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "chargeMonths"
+      },
+      {
+        "file": "src/modules/06-sync-brokers.js",
+        "from": "  // Sin tipo válido arrancamos en EUR",
+        "to": "  const displayMissing=fxRateOf(invCur,state)==null;"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fxRateOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fxTableOf"
+      }
+    ],
+    "unidades": true
   }
 }

@@ -17144,7 +17144,8 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
   const plTotal=costTotal>0?(total-costTotal)/costTotal*100:0;
   // Moneda LOCAL de la pestaña Inversiones (no toca el resto de la app). Todo se calcula en €
   // internamente y se convierte con el cambio guardado de la moneda elegida.
-  const [invCur,setInvCur]=useState(function(){ return (state.settings&&state.settings.currency)||"EUR"; });
+  // Sin tipo válido arrancamos en EUR; solo al montar, para respetar la elección local posterior.
+  const [invCur,setInvCur]=useState(function(){ const cur=(state.settings&&state.settings.currency)||"EUR"; return fxRateOf(cur,state)==null?"EUR":cur; });
   const displayMissing=fxRateOf(invCur,state)==null;
   const dsym=CUR_SYM[invCur]||invCur;
   // Cartera sigue la moneda global; la pantalla hija conserva su elección independiente.
@@ -18190,8 +18191,9 @@ const MONTHS_ES=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","No
    quedan "sin programar" hasta que el usuario elige el mes.
    ============================================================ */
 function chargeMonths(e){
-  if(e && e.schedule && e.schedule.length) return e.schedule.map(x=>x.m).slice().sort((a,b)=>a-b);
-  if(e && e.months && e.months.length) return e.months.slice().sort((a,b)=>a-b);
+  // El anual se reparte entre meses reales: un duplicado no puede reducir su cobro (FIN-25).
+  const months=e&&e.schedule&&e.schedule.length?e.schedule.map(x=>x.m):e&&e.months&&e.months.length?e.months:null;
+  if(months) return Array.from(new Set(months.filter(m=>Number.isInteger(m)&&m>=1&&m<=12))).sort((a,b)=>a-b);
   const f=e&&e.freq;
   if(f==="mes"||f==="mensual") return [1,2,3,4,5,6,7,8,9,10,11,12];
   if(f==="bimestral")  return [1,3,5,7,9,11];
@@ -26833,7 +26835,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="392097826d40992fe3b9ef8e0de1b331ebb7bc42ed023f0f20a1adac35e44b43";
+var _rnSha="2f0bd4da5fcdacff9735b7af6f219c2bd1366bca6635860a278138a62a97889d";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
