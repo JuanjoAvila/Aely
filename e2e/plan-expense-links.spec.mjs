@@ -54,13 +54,14 @@ for(const lang of ['es','en','ca']){
   test('R2 separate remaining and confirmation '+lang,async({page},info)=>{
     const s=paymentFixture('debt'),txt=round2Text[lang];await openRound2(page,s,{lang});
     await page.locator('.botnav-tab[data-tour="plan"]').click();
-    const plan=page.locator('div[data-seg="recibos"]'),pending=page.getByTestId('plan-unconfirmed');
+    // v6: lo pagado solo por calendario va a «Para revisar» con su motivo (antes «Por confirmar»).
+    const plan=page.locator('div[data-seg="recibos"]'),pending=page.getByTestId('plan-review');
     // El rótulo basta: sin la línea de ayuda que llevaba «Por pagar» (petición del dueño, 26/10).
     const due=page.getByTestId('plan-due');
     await expect.soft(due.locator('.v4-section-h > span')).toHaveText(txt.due);await expect.soft(due.locator(':scope > .ph')).toHaveCount(0);
-    await expect.soft(pending).toContainText(txt.outside);
-    await expect.soft(pending.locator('.v4-section-h')).toHaveText(txt.pending);
-    const row=pending.locator('.v4-charge');await expect.soft(row.locator('.sub')).toHaveText('Sabadell');
+    await expect.soft(pending.locator('.pr6-sec-h')).toContainText(await page.evaluate(()=>t('pr6_revisar')));
+    await expect.soft(pending.locator('[data-review="unconf"]')).toHaveCount(1);
+    const row=pending.locator('.v4-charge[data-review="unconf"]');await expect.soft(row.locator('.sub')).toHaveText(await page.evaluate(()=>t('v4_charge_unconfirmed')));
     await expect(row).toContainText('197');await expect(plan.locator('.v4-card-hero .serif')).toContainText('42');
     await pending.screenshot({path:info.outputPath('confirmation.png')});await unchangedRound2(page);
   });
@@ -105,12 +106,14 @@ for(const kind of ['debt','receipt','linked-debt'])test(kind+' payment evidence 
   await expect(page.locator('.botnav-tab.active')).toHaveAttribute('data-tour','plan');
   const name=kind==='receipt'?state.fixed[0].name:state.debts[0].name;
   const row=page.locator('div[data-seg="recibos"] .v4-charge').filter({hasText:name});
+  // v6: lo pagado vive plegado en «Ya pagados»; se despliega como lo haría la persona.
+  if(kind!=='debt')await page.locator('div[data-seg="recibos"] [data-testid="plan-paid"] .pr6-paid-h').click();
   await expect(row).toBeVisible();await expect(row).toContainText(kind==='receipt'?'29,99':'197,00');
   await expect(row).toBeInViewport({ratio:0.9});
   if(kind==='debt'){
     await expect.soft(row).not.toHaveClass(/v4-paid/);
-    await expect.soft(row.locator('.sub')).toHaveText('Sabadell');
-    await expect.soft(page.getByTestId('plan-unconfirmed')).toContainText('Por confirmar · 1');
+    await expect.soft(row.locator('.sub')).toHaveText('Sin pago acreditado');
+    await expect.soft(page.getByTestId('plan-review').locator('[data-review="unconf"]')).toContainText(name);
     await expect.soft(row).not.toContainText('✓');
   }else await expect.soft(row).toHaveClass(/v4-paid/);
   await row.screenshot({path:info.outputPath('plan-row.png')});
@@ -161,7 +164,7 @@ for(const kind of ['marked','calendar','overdue'])test('INC-1810-04 '+kind+' cha
   await openRound2(page,s);
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   await expect(page.locator('div[data-seg="recibos"] .v4-charge').filter({hasText:'YouTube Premium'})).not.toHaveClass(/v4-paid/);
-  if(kind==='calendar')await expect(page.getByTestId('plan-unconfirmed')).toContainText('YouTube Premium');
+  if(kind==='calendar')await expect(page.getByTestId('plan-review').locator('[data-review="unconf"]')).toContainText('YouTube Premium');
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await gastosAbreGasto(page,'YOUTUBE PREMIUM');
   await expect(page.getByTestId('exp-receipt-value')).toHaveText(kind==='marked'?'YouTube Premium · sin confirmar':'No');

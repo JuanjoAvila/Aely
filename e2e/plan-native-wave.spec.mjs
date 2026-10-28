@@ -30,7 +30,7 @@ async function begin(page,info,many=false){
   await page.evaluate(()=>{window.__waveEvents=[];for(const type of ['scroll','touchstart','touchmove','touchend','touchcancel','focusin'])document.addEventListener(type,e=>{const el=e.target;queueMicrotask(()=>window.__waveEvents.push({type,target:el.className||el.tagName,scroll:el.scrollTop,prevented:e.defaultPrevented,t:performance.now()}));},{capture:true,passive:true});});
 }
 async function record(page,info,run){const before=await raw(page);const phases=[];const capture=async name=>{const s=await snap(page);phases.push({name,...s});return s;};try{await run(capture);}finally{const after=await raw(page);await info.attach('observations.json',{body:JSON.stringify({phases,events:await page.evaluate(()=>window.__waveEvents),before,after,financialExact:JSON.stringify(before)===JSON.stringify(after)},null,2),contentType:'application/json'});expect(after).toEqual(before);}}
-async function manage(page){await page.locator('.v4-screen > [data-seg="recibos"] button.link').filter({hasText:/^Gestionar$/}).tap();await expect(page.locator(hub)).toBeVisible();await settle(page);}
+async function manage(page){await page.locator('.v4-screen > [data-seg="recibos"] button.link').filter({hasText: /^Todos$/}).tap();await expect(page.locator(hub)).toBeVisible();await settle(page);}
 
 test('native wave: categoría conserva un solo dueño del scroll en ambos bordes',async({page},info)=>{
   await begin(page,info);await record(page,info,async capture=>{

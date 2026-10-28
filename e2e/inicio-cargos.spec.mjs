@@ -1,7 +1,8 @@
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
-const labels={es:{overdue:"Cargos vencidos",unknown:"Sin pago acreditado"},en:{overdue:"Overdue charges",unknown:"Payment unconfirmed"},ca:{overdue:"Càrrecs vençuts",unknown:"Sense pagament acreditat"}};
+// `late`: en Plan › Recibos v6, un recibo vencido sin cargo pasa a «Para revisar» con su motivo.
+const labels={es:{overdue:"Cargos vencidos",unknown:"Sin pago acreditado",late:"No ha llegado"},en:{overdue:"Overdue charges",unknown:"Payment unconfirmed",late:"Hasn't arrived"},ca:{overdue:"Càrrecs vençuts",unknown:"Sense pagament acreditat",late:"No ha arribat"}};
 const fixed={id:"gas",name:"Gas ficticio",amount:42,freq:"mes",day:25,account:"sabadell",wait:2026*12+9};
 const tx={id:"gas-bank",ent:"sabadell",date:"2026-09-25",amount:42,merchant:"Gas ficticio",status:"BOOK"};
 
@@ -25,7 +26,7 @@ for(const lang of ["es","en","ca"]){
     const linked=await page.evaluate(({id,expense})=>{const s=mcLoadRaw(mcStateKey()),n=linkFixedPayment(s,expense,id,2026,9,26);mcSaveRaw(mcStateKey(),n);return {kind:n.fixed[0].paymentProofs[2026*12+9].kind,net:monthNetForAccount(n,"sabadell",2026,9,26)};},{id:bill.id,expense:charge.id});
     expect(linked.kind).toBe("expense");await page.reload();await dismissNews(page);
     await page.locator('.botnav-tab[data-tour="plan"]').click();
-    const manage=await page.evaluate(()=>t("v4_gestionar"));
+    const manage=await page.evaluate(()=>t("pr6_todos"));
     await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button",{name:manage,exact:true}).click();
     const hub=page.locator('[data-bills-manage]');await hub.locator('.v4-bills-group').first().click();
     await hub.locator('.v4-bills-row').filter({hasText:bill.name}).click();
@@ -73,7 +74,7 @@ for(const lang of ["es","en","ca"]){
     await open(page,lang,{fixed:[bill],bankTx:[]},"2026-09-15T12:00:00Z");
     await page.locator('.botnav-tab[data-tour="plan"]').click();
     const before=await page.evaluate(()=>{const s=mcLoadRaw(mcStateKey());return monthNetForAccount(s,"sabadell",2026,9,15);});
-    const manage=await page.evaluate(()=>t("v4_gestionar"));
+    const manage=await page.evaluate(()=>t("pr6_todos"));
     await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button",{name:manage,exact:true}).click();
     const hub=page.locator('[data-bills-manage]');await hub.locator('.v4-bills-group').first().click();
     await hub.locator('.v4-bills-row').filter({hasText:bill.name}).click();
@@ -101,7 +102,7 @@ for(const lang of ["es","en","ca"]){
     await open(page,lang,{expenses:[cargo]});
     await expect(page.locator('.page-scroll-host .v4-charge').filter({hasText:fixed.name})).toHaveCount(0);
     await page.locator('.botnav-tab[data-tour="plan"]').click();
-    const manage=await page.evaluate(()=>t("v4_gestionar"));
+    const manage=await page.evaluate(()=>t("pr6_todos"));
     await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button",{name:manage,exact:true}).click();
     const hub=page.locator('[data-bills-manage]');
     await hub.locator('.v4-bills-group').first().click();
@@ -133,10 +134,10 @@ for(const lang of ["es","en","ca"]){
     await expect(page.locator('.page-scroll-host .v4-charge').filter({hasText:"Agua"})).toHaveCount(1);
     await page.locator('.botnav-tab[data-tour="plan"]').click();
     await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:"Agua"})).toHaveCount(0);
-    await expect(page.locator('div[data-seg="recibos"]')).toContainText(labels[lang].unknown);
+    await expect(page.locator('div[data-seg="recibos"] [data-review="late"]')).toContainText(labels[lang].late);
     await page.reload(); await dismissNews(page);
     await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:"Agua"})).toHaveCount(0);
-    await expect(page.locator('div[data-seg="recibos"]')).toContainText(labels[lang].unknown);
+    await expect(page.locator('div[data-seg="recibos"] [data-review="late"]')).toContainText(labels[lang].late);
   });
   for(const [kind,tie,tolerant,duplicate] of [["nombre más específico",false,false],["empate real",true,false],["BOOK tolerante y gasto exacto",false,true],["identificador duplicado",false,false,true]]){
     test(lang+": un cargo no acredita dos recibos · "+kind,async({page})=>{
@@ -199,7 +200,7 @@ for(const lang of ["es","en","ca"]){
       await expect(row.locator('.dt .d')).toHaveText("25");
       await page.locator('.botnav-tab[data-tour="plan"]').click();
       await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:fixed.name})).toHaveCount(0);
-      await expect(page.locator('div[data-seg="recibos"]')).toContainText(labels[lang].unknown);
+      await expect(page.locator('div[data-seg="recibos"] [data-review="late"]')).toContainText(labels[lang].late);
       expect(await page.evaluate(()=>{ const s=mcLoadRaw(mcStateKey()); return JSON.stringify([s.accounts,s.expenses,s.fixed]); })).toBe(before);
     });
   }
@@ -341,7 +342,7 @@ for(const lang of ["es","en","ca"]){
     await expect(block.locator('.dt .d')).toHaveText("25");
     await page.locator('.botnav-tab[data-tour="plan"]').click();
     await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:"Gas ficticio"})).toHaveCount(0);
-    await expect(page.locator('div[data-seg="recibos"]')).toContainText(labels[lang].unknown);
+    await expect(page.locator('div[data-seg="recibos"] [data-review="late"]')).toContainText(labels[lang].late);
   });
   test(lang+": un movimiento pendiente no acredita el pago",async({page})=>{
     await open(page,lang,{bankTx:[Object.assign({},tx,{status:"PDNG"})]});

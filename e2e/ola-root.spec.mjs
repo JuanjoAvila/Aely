@@ -63,7 +63,7 @@ test("Gestionar plan y su categoría son el ÚNICO candidato a scroller raíz, c
   await expect(page.locator(plan)).toBeVisible();
   await expect.poll(() => candidates(page), { message: "referencia: Plan, donde la ola sí sale" }).toEqual(["plan"]);
 
-  await page.locator('.v4-screen > [data-seg="recibos"] button.link').filter({ hasText: /^Gestionar$/ }).tap();
+  await page.locator('.v4-screen > [data-seg="recibos"] button.link').filter({ hasText: /^Todos$/ }).tap();
   await expect(page.locator(hub)).toBeVisible(); await quieto(page);
   // Plan tapado deja de desplazar con el dedo, pero `hidden` guarda su posición para la vuelta.
   const planTop = await page.evaluate((s) => { const p = document.querySelector(s); p.scrollTop = 40; return p.scrollTop; }, plan);

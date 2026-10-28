@@ -39,7 +39,7 @@ async function begin(page, info) {
   // escritura natural de metadatos a la navegación ni rebajar el oracle de persistencia.
   await page.waitForFunction(() => JSON.parse(localStorage.getItem("micartera_v3") || "{}").lastBackup === "2026-09-26", null, { timeout: 15000 });
   await page.locator('.botnav-tab[data-tour="plan"]').tap();
-  await page.locator('.v4-screen > [data-seg="recibos"] button.link').filter({ hasText: /^Gestionar$/ }).tap();
+  await page.locator('.v4-screen > [data-seg="recibos"] button.link').filter({ hasText: /^Todos$/ }).tap();
   await expect(root(page)).toBeVisible(); await page.waitForTimeout(650);
   await info.attach("served-html-sha.json", { body: JSON.stringify({ htmlSHA, CPUThrottlingCalls: 0 }), contentType: "application/json" });
 }

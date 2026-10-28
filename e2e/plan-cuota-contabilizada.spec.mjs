@@ -54,7 +54,8 @@ for(const lang of ["es","en","ca"]){
   test(lang+": cargo anterior al día1 conserva el vencimiento sin inventar una fecha futura",async({page})=>{
     await open(page,lang,{debts:[{...debt,day:1}],expenses:[{...cargo,date:"2026-09-30"}]});
     await page.locator('.botnav-tab[data-tour="plan"]').click();
-    await expect(pending(page)).toHaveCount(0);await expect(paid(page).locator('.dt .d')).toHaveText("1");
+    await expect(pending(page)).toHaveCount(0);// v6: en «Ya pagados» el día va en la línea de debajo («1 Oct · cargo de …»).
+    await expect(paid(page).locator('.d')).toHaveText("1");
   });
   test(lang+": sin día fiable no atribuye mes al cargo vinculado",async({page})=>{
     await open(page,lang,{debts:[{...debt,day:undefined}]});

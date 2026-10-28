@@ -17,7 +17,7 @@ for(const legacy of [false,true])for(const name of ["IBI","Impuesto de vivienda"
     expect(before.paid).toBe(true);expect(before.cents).toBe(12345);
     await page.reload();await dismissNews(page);await page.locator('.botnav-tab[data-tour="plan"]').click();
     await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:"Ibi"})).toHaveCount(1);
-    const manage=await page.evaluate(()=>t("v4_gestionar"));
+    const manage=await page.evaluate(()=>t("pr6_todos"));
     await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button",{name:manage,exact:true}).click();
     const hub=page.locator('[data-bills-manage]');await hub.locator('.v4-bills-group').first().click();
     await hub.locator('.v4-bills-row').filter({hasText:"Ibi"}).click();
