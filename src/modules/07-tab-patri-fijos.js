@@ -718,8 +718,9 @@ const MONTHS_ES=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","No
    quedan "sin programar" hasta que el usuario elige el mes.
    ============================================================ */
 function chargeMonths(e){
-  if(e && e.schedule && e.schedule.length) return e.schedule.map(x=>x.m).slice().sort((a,b)=>a-b);
-  if(e && e.months && e.months.length) return e.months.slice().sort((a,b)=>a-b);
+  // El anual se reparte entre meses reales: un duplicado no puede reducir su cobro (FIN-25).
+  const months=e&&e.schedule&&e.schedule.length?e.schedule.map(x=>x.m):e&&e.months&&e.months.length?e.months:null;
+  if(months) return Array.from(new Set(months.filter(m=>Number.isInteger(m)&&m>=1&&m<=12))).sort((a,b)=>a-b);
   const f=e&&e.freq;
   if(f==="mes"||f==="mensual") return [1,2,3,4,5,6,7,8,9,10,11,12];
   if(f==="bimestral")  return [1,3,5,7,9,11];
