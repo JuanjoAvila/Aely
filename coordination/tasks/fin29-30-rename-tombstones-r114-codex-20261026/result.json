@@ -1,0 +1,21 @@
+{
+  "status": "blocked",
+  "summary": "Cierre seguro propio blocked tras interrupcion de capacidad y plazo original2026-10-26T13:50:57.588Z vencido, bajo grant acotado dca48f6e424bb8c56986cff70fb5b2d050d87550. OWN inicial5/20 conservado sin reset; usado6/20 al publicar tras freshFULL24deltas incluidos pausa/reanudacion/cierre. Sin checkout, cambios de producto, pruebas o recursos de runner en esta identidad. FIN29/30 pendiente de sucesor con OWN/claim propios.",
+  "tests": [],
+  "productSHA": null,
+  "limitations": [
+    "No RED causal ni GREEN en esta identidad.",
+    "El fallo de infraestructura previo de otro titular sigue preservado; no acredita validacion financiera.",
+    "No publicacion ni aceptacion live o movil."
+  ],
+  "baseSHA": "acae53b68325b934a3b537dd00f898ae5f7035d2",
+  "originalDeadlineUTC": "2026-10-26T13:50:57.588Z",
+  "closureGrant": "dca48f6e424bb8c56986cff70fb5b2d050d87550",
+  "resourcesHeld": [],
+  "schema": 1,
+  "taskId": "fin29-30-rename-tombstones-r114-codex-20261026",
+  "actor": "codex",
+  "sessionId": "codex-local-20261026-fin29-r114-fda31257-d3ea-4b23-a0c6-79c6c0df2c8a",
+  "createdAt": "2026-10-28T07:02:00.912Z",
+  "released": true
+}
