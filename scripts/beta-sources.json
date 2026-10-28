@@ -96376,6 +96376,11 @@
         "to": "function planRecibosVista"
       },
       {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",
+        "to": "  // INC-0410 guardado: límite."
+      },
+      {
         "file": "src/modules/14-v4-screens.js",
         "function": "PlanRecibos"
       },
@@ -96426,6 +96431,30 @@
       {
         "file": "src/modules/14-v4-screens.js",
         "function": "planChargeAmount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSaveRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcStateKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reconcileGemelosAutomaticos"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "planSyncEditState"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPersistCommit"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -96516,6 +96545,90 @@
         "function": "reponerCargoDeRecibo"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "planSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mergeAccountBalanceHistory"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandbox"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obPendingAbsorbedState"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "gemeloMismosCampos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "gemeloDatos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "gemeloCompatible"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "gemeloDe"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "pushGemelos"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseDeletedSet"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseIsTombstoned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "gemeloAvisoKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "gemeloBancoAutomatico"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpense"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isManualExpenseSource"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "gemeloAvisoAutomatico"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "sinComercioReal"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "gemeloAsignar"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "debtPaymentState"
       },
@@ -96526,10 +96639,6 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentExpenses"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "function": "expenseDeletedSet"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -96633,10 +96742,6 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "keyOfExpense"
-      },
-      {
-        "file": "src/modules/00-core.js",
         "function": "keyOfExpenseLegacy"
       },
       {
@@ -96650,10 +96755,6 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentUnique"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "expenseIsTombstoned"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -96676,6 +96777,106 @@
         "function": "admiteMarcaDe"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "planSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedValid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedPack"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedStorageKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedStorage"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandboxFlag"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "esFilaDeBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obPendingGroup"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obIsPending"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obReferenceKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedEnqueue"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "lapidaPon"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedValid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseDeletionKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseUnknownDeletionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseKnownIdentity"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obOrdinalSufijo"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "cuotaCargoCercano"
       },
@@ -96686,14 +96887,6 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "flowBankPaid"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "obAbsorbedValid"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "obOrdinalSufijo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -96732,40 +96925,8 @@
         "function": "saldoCuentaMostrada"
       },
       {
-        "file": "src/modules/00-core.js",
-        "function": "isManualExpenseSource"
-      },
-      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContract"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "esFilaDeBanco"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "obConfirmedMatches"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "obAbsorptionMatches"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "expenseDeletionKey"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "expenseUnknownDeletionMatches"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "expenseKnownIdentity"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "flowEarlyBankTx"
       },
       {
         "file": "src/modules/00-core.js",
@@ -96773,11 +96934,55 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "obAbsorbedKeyOk"
+        "function": "obConfirmedHash"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedRestore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedRestore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obPolarity"
       },
       {
         "file": "src/modules/00-core.js",
         "function": "obOrdinalOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedWarn"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedJoin"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "lapidasTope"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "pushDeleted"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedKeyOk"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowEarlyBankTx"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -96825,15 +97030,19 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "obConfirmedValid"
+        "function": "obConfirmedMerge"
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "obAbsorptionKey"
+        "function": "obAbsorbedMerge"
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "obAbsorptionIndex"
+        "function": "obAbsorbedNoticeKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedStorageKey"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -96861,7 +97070,23 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "obPolarity"
+        "function": "obConfirmedRead"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedJoin"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedDisk"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedUnpack"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedIdsKey"
       },
       {
         "file": "src/modules/00-core.js",
@@ -96874,6 +97099,42 @@
       {
         "file": "src/modules/00-core.js",
         "data": "cloud"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "store"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mem"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXP_SUFFIX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_TEST"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_REAL"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "gemeloCache"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DUP_DIAS_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "PLAN_EDIT_INTENT"
       },
       {
         "file": "src/modules/00-core.js",
@@ -96916,8 +97177,20 @@
         "data": "USO_OK"
       },
       {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSandboxPinned"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
-        "data": "CUOTA_ALIAS_DIAS"
+        "data": "gemeloDatosCache"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "gemeloDiasCache"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "GEMELOS_MAX"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -96926,6 +97199,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "expenseConfirmedSets"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_ALIAS_DIAS"
       },
       {
         "file": "src/modules/00-core.js",
@@ -96942,10 +97219,6 @@
       {
         "file": "src/modules/00-core.js",
         "data": "DEUDA_CAT"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "data": "DUP_DIAS_MS"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -96973,15 +97246,7 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "data": "_mcSandboxPinned"
-      },
-      {
-        "file": "src/modules/00-core.js",
         "data": "obAbsorbedNotices"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "data": "store"
       },
       {
         "file": "src/modules/00-core.js",
@@ -97004,6 +97269,10 @@
         "data": "OB_CONFIRMED_AGE"
       },
       {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
+      },
+      {
         "file": "src/modules/00-core.js",
         "data": "obAbsorptionIndexes"
       },
@@ -97013,7 +97282,11 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "data": "_mem"
+        "data": "DELETED_AT_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DELETED_MAX"
       },
       {
         "file": "src/modules/00-core.js",
@@ -97022,14 +97295,6 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_AC_KW"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "data": "STATE_KEY_TEST"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "data": "STATE_KEY_REAL"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -97066,14 +97331,6 @@
       {
         "file": "src/modules/00-core.js",
         "data": "KW"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "obConfirmedMerge"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "obConfirmedPack"
       },
       {
         "file": "src/modules/00-core.js",
@@ -97117,10 +97374,6 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "obConfirmedRead"
-      },
-      {
-        "file": "src/modules/00-core.js",
         "function": "expenseCloudEq"
       },
       {
@@ -97141,19 +97394,11 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "mcSandbox"
-      },
-      {
-        "file": "src/modules/00-core.js",
         "function": "obAbsorbedCandidate"
       },
       {
         "file": "src/modules/00-core.js",
         "function": "obAbsorbedPossible"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "obAbsorbedWarn"
       },
       {
         "file": "src/modules/00-core.js",
@@ -97166,18 +97411,6 @@
       {
         "file": "src/modules/00-core.js",
         "function": "mcBetaLog"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "obConfirmedJoin"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "obConfirmedPersist"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "obConfirmedHash"
       },
       {
         "file": "src/modules/00-core.js",
@@ -97209,35 +97442,11 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "obConfirmedStorageKey"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "obConfirmedStorage"
-      },
-      {
-        "file": "src/modules/00-core.js",
         "function": "withdrawalReceiptLink"
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "mcSandboxFlag"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "obAbsorbedNoticeKey"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "obConfirmedUnpack"
-      },
-      {
-        "file": "src/modules/00-core.js",
         "function": "autoCategory"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "mcStateKey"
       },
       {
         "file": "src/modules/00-core.js",
