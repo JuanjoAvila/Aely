@@ -89,6 +89,15 @@ intacta desaparece, una edición distinta permanece. El borrado sigue protegido 
 hay cuotas vinculadas. Las marcas offline `paidYm`/`paidDay` y `wait` sobreviven
 al pull y la recarga, también al actualizar un cliente sin base privada anterior,
 si conservan importe y cuenta; no se inventan pruebas bancarias.
+La pausa de un recibo (`pausedFrom`/`pausedUntil`, año*12+mes; el «hasta» no se incluye) viaja
+en el recibo dentro de `app_state` y la mezcla de tres vías la trata como un solo grupo, para no
+juntar el «desde» de un móvil con el «hasta» de otro. Un cliente anterior la ignora y la conserva
+(no reconstruye recibos campo a campo). Un recibo en pausa y sin cobrar no cuenta en el mes
+(`fixedEnPausa`: Plan, Inicio, totales, previsión de saldo y avisos de la víspera); si el banco lo
+cobra igualmente es un pago y se ve. Pausar o reanudar compensa el saldo mostrado
+(`conSaldoMostrado`), como los vínculos de pago. `revisado` (`{distinto, fantasma}` con el
+año*12+mes) guarda los avisos de «Para revisar» ya contestados; posponer es solo de ese móvil
+(almacén local, hasta el día siguiente).
 
 Si la lápida alcanza una fila con un borrador privado pendiente, la fila sigue
 borrada y el borrador se ofrece en Plan → Deudas. Recuperar solo precarga el editor,

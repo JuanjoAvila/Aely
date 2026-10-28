@@ -82,6 +82,14 @@ export const E2E_MAP = [
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-recibos-v6.spec.mjs"] },
   { file: "src/modules/08-motor-bank.js", specs: ["e2e/plan-recibos-v6.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/plan-recibos-v6.spec.mjs"] },
+  // Tanda 2: avisos nuevos, casos especiales de la ficha, posponer y Pausar. La pausa se lee en
+  // el motor (`planChargesMonth`, totales de 11) y en la mezcla con la nube (00-core).
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-recibos-t2.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/plan-recibos-t2.spec.mjs"] },
+  { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/plan-recibos-t2.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/plan-recibos-t2.spec.mjs"] },
+  { file: "src/modules/00-core.js", specs: ["e2e/plan-recibos-t2.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/plan-recibos-t2.spec.mjs"] },
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/ux16-round9-haptics.spec.mjs", "e2e/ux16-haptics.spec.mjs", "e2e/ux16-round2-haptics.spec.mjs", "e2e/ux16-round3-haptics.spec.mjs", "e2e/ux16-ajustador.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/ux16-round9-haptics.spec.mjs", "e2e/ux16-haptics.spec.mjs", "e2e/ux16-round3-haptics.spec.mjs", "e2e/ux16-ajustador.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-ciclo-porcentaje.spec.mjs"] },
