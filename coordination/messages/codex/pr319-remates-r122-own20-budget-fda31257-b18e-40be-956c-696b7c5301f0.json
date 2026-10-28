@@ -1,0 +1,9 @@
+{
+  "id": "pr319-remates-r122-own20-budget-fda31257-b18e-40be-956c-696b7c5301f0",
+  "to": "codex",
+  "body": "PR319 remates: activacion OWN nueva bajo grant e42252eb4444e23228b565b7d2da5b0ee5e13e43 para tarea pr319-test-remates-r122-codex-20261028. IDbudget pr319-remates-r122-own20-fda31257-b18e-40be-956c-696b7c5301f0. Allowance20; usedActual1 remaining19 tras FULL inicial desde877e72249a29a2a0c3bbc78831451f9b12d1ca0c sin deltas ni cancelaciones. Identidad, helper, state y ledger propios; ningun claim ni contador heredado. Primer fetch e intervalos/readback>=30s, cap20, no fetch21. Pendiente confirmar este aviso y claim propio antes de ROOTACK checkout. Recursos0, sin codigo ni tests.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-pr319-remates-r122-fda31257-b18e-40be-956c-696b7c5301f0",
+  "createdAt": "2026-10-28T14:34:24.569Z"
+}
