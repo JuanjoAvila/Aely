@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "id": "fin25-r1r2-remates-r130-codex-20261031",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261028-r130-fda31257-4f8ab527-6ddf-45c2-96b1-b83d48e30b32",
+  "createdAt": "2026-10-31T01:09:45.868Z",
+  "to": "codex",
+  "baseSHA": "c11dcebe7d19c0e8588b6404db8880195fe4511a",
+  "objective": "FIN25 remates R1/R2 bajo orden Claude fd0c2be340dbf26060e0c4e95ea71a956be393fb: R1 un cobro ya pagado de recibo con meses repetidos no vuelve a pendiente; huella de pago usa importe por cobro en fixedPaymentModel/contrato asociado, src/modules/08-motor-bank.js. R2 fixedMonthlyOf con importes por mes no suma meses repetidos ni invalidos; mantener cifras y recibos validos identicos a beta193 base. Reparacion causal minima con RED preservado y GREEN exactHEAD, datos sinteticos, pruebas dirigidas Node y DOM afectado. No repetir suites cerradas sin cambio. Nuevo trabajador/task/session/OWN20 desde0 con aviso y FULL/ACK propios antes de codigo. Tras candidato nuevo requiere revision ROOT e independiente y GO exactHEAD antes de push/PR draft contra beta. No modificar otras areas, core/App, FIN28, backend, dinero real, VERSION/notas, ob-iguales-ordinal, ni merge/deploy/main/beta. No migrar ni reparar datos reales por arrastre. Consultar a ROOT solo bloqueo producto/decision dinero; el coordinador comunica con Claude. Identidad/eligibilidad/proofs/historial existentes y pruebas previas conservados.",
+  "scope": [
+    "src/modules/08-motor-bank.js",
+    "tests/fin25-charge-months.test.mjs",
+    "e2e/fin25-charge-months.spec.mjs"
+  ],
+  "upstreamGrant": "fd0c2be340dbf26060e0c4e95ea71a956be393fb",
+  "standingOwnGrant": "7188f09dd641ffd90c5a2455196b1385c4bb084c",
+  "directedTestGrant": "027aeb19133c2129faef080bc70e27b2e0addce9",
+  "dependency": "FIN28 rebase PR324 released and HEAD delivered to Claude before starting this task",
+  "acceptance": [
+    "R1 synthetic paid receipt repeated months remains paid and fingerprint amount per charge; reload and live read unchanged.",
+    "R2 monthly sum treats each valid integer month1-12 once and excludes invalid months; valid schedule values and receipts exactly unchanged to base.",
+    "Changes limited to three existing scoped files; no new specs or map changes unless separately coordinated.",
+    "No silent weakening of financial guards or existing proof validity; preserve causal failure and new exactHEAD evidence.",
+    "Local synthetic evidence only, no ProductREADY, served beta, full CI or mobile acceptance claims."
+  ]
+}
