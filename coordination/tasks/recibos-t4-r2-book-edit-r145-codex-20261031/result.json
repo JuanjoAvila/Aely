@@ -1,0 +1,24 @@
+{
+  "status": "blocked",
+  "summary": "Continuidad horaria: candidato privado R2 BOOK no-op incompleto y sin validar, cuatro paths de la tarea sobre base exacta. Revision ROOT NO-GO ENTER: conservar trigger previo en cambios reales de dia superior, dia efectivo e importe efectivo, incluidos Solo este mes y retirada de override. Cero pruebas ejecutadas y ningun commit ni push de producto. WIP conservado para sucesor; esto no es entrega de producto.",
+  "tests": [],
+  "baseSHA": "c89bb12c528f079640a514b95334c21b9df2d2c1",
+  "limitations": [
+    "Faltan correccion final y revision antes ENTER; no ejecutar matriz anterior sin reevaluarla.",
+    "V2 corrige cruce de vencimiento Solo este mes pero requiere preservar cambio global con mes pagado congelado y cambios efectivos al retirar override.",
+    "Pendientes red/green/causal y guardianes: pruebas cerradas cero, sin loader ni sintaxis validados.",
+    "Ninguna PR nueva ni commit/push, integracion, servido o aceptacion movil. No ProductREADY."
+  ],
+  "resourcesReturned": {
+    "ownRunnerNotStarted": true,
+    "foreignProcessesTouched": false,
+    "foreignClaimsOrLeasesTouched": false,
+    "privateWIPPreserved": true
+  },
+  "schema": 1,
+  "taskId": "recibos-t4-r2-book-edit-r145-codex-20261031",
+  "actor": "codex",
+  "sessionId": "nrelaye6d3e232c3c340e28ceeffbf79c4f969",
+  "createdAt": "2026-10-31T19:28:36.719Z",
+  "released": true
+}
