@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "id": "pro03-web-remates-r149-codex-20261031",
+  "from": "codex",
+  "coordinatorSession": "nrelay3139ab30ce2f8269b6130780b3f8a121",
+  "createdAt": "2026-10-31T22:05:38.795Z",
+  "to": "codex",
+  "baseSHA": "b2c463c12fd30b363afbd4fac397d2572d95c83a",
+  "objective": "Remates nuevos PRO03 PR334: copy es/en/ca de minimo mensual y frescura real del saldo para productor compartido WEB/Android, conforme Claude10ec0190 y1fe60f2e.",
+  "scope": [
+    "src/modules/01-i18n.js",
+    "src/modules/11-app-main.js",
+    "tests/pro03-receipt-eve-forecast.test.mjs",
+    "docs/ARQUITECTURA.md"
+  ],
+  "authorityCommits": [
+    "10ec0190b6cfb0d20d483a0409b67611ead31210",
+    "1fe60f2e7713b0d8a8169e59fdc9cf461819953a",
+    "7188f09dd641ffd90c5a2455196b1385c4bb084c"
+  ],
+  "targetPR": 334,
+  "targetBranch": "codex/pro03-saldo-r148",
+  "acceptance": [
+    "One line localized minimum for WHOLE month at bank, not inability to pay tomorrow receipt; same exact planCoverState min and no additional financial calculation.",
+    "Use actual existing obBalAt/saldoLeidoAt bank-read provenance and app conventions; reading no older than day before eve; stale/invalid/missing reading yields neutral body for both direct WEB and calendar eve consumed by PR335. Reject future invalid evidence conservatively; no new bank calls.",
+    "Do not duplicate translations or forecast in native Java; optional existing eve schema remains compatible unless explicit contradiction reviewed.",
+    "Keep payments, pauses, cents, monthly dedup, date/month limits and sandbox.",
+    "Same PR and normal fast-forward update only, no rebase/force; preserve closed source checkouts and old evidence."
+  ],
+  "limits": {
+    "receptionOnlyUntilNativeAdmission": true,
+    "own20NewFromZero": true,
+    "freshClaimRequired": true,
+    "isolatedNewCheckout": true,
+    "readOnlyPlanBeforeEditGO": true,
+    "noTestBeforeReviewedExactMatrix": true,
+    "noCommitPushBeforeReviewGO": true,
+    "noBuildGradleAPKBackendMergeDeploy": true,
+    "noProductREADY": true
+  },
+  "reportTo": "codex"
+}
