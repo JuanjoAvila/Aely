@@ -1,0 +1,43 @@
+{
+  "status": "done",
+  "summary": "Entrega tecnica WEB PRO03 PR334 draft contra beta,HEADb2c463c12fd30b363afbd4fac397d2572d95c83a: aviso vispera con cifra TeLlega ypayload opcional evev1 prelocalizado,lectura/fecha/contexto prudentes,sin lecturas bancarias programadas. Pushnormal/remoteHEAD/base/draft/titulo/cuerpo exactos confirmados.",
+  "tests": [
+    {
+      "command": "TZ=UTC node tests/pro03-receipt-eve-forecast.test.mjs --source-ref=656f17a69acdb59a4bfd14ea51a50196157b5807 --group=forecast",
+      "exitCode": 1,
+      "outcome": "expected baseline M01 RED, missing eve; no loader/import error"
+    },
+    {
+      "command": "TZ=UTC node tests/pro03-receipt-eve-forecast.test.mjs --group=all (V1)",
+      "exitCode": 1,
+      "outcome": "8PASS then M09 fixture mismatch; preserved; base110 correction test-only,expected4763 retained"
+    },
+    {
+      "command": "TZ=UTC node tests/pro03-receipt-eve-forecast.test.mjs --group=all (V2)",
+      "exitCode": 0,
+      "cases": 42
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/pro03-receipt-eve-forecast.test.mjs --group=all (V2)",
+      "exitCode": 0,
+      "cases": 42
+    }
+  ],
+  "productSHA": "b2c463c12fd30b363afbd4fac397d2572d95c83a",
+  "treeSHA": "c11199bc155885b17cefc472db6f3bf085e8269d",
+  "pullRequest": 334,
+  "distinctCases": 42,
+  "mutantsKilled": 7,
+  "limitations": [
+    "WEB and payload only; native separate. No Java/Gradle/APK/physical notification validation.",
+    "Current-month calendar boundary gap preserved. No new bank polling.",
+    "No full suite/build/served beta/human acceptance/ProductREADY. CI/integration remain coordinator review.",
+    "Old PR209/220 untouched; supersession comments held for coordinator."
+  ],
+  "schema": 1,
+  "taskId": "pro03-web-recibo-saldo-r147-codex-20261031",
+  "actor": "codex",
+  "sessionId": "nrelay699cbb00fce32019c563703660a968d2",
+  "createdAt": "2026-10-31T21:27:33.006Z",
+  "released": true
+}
