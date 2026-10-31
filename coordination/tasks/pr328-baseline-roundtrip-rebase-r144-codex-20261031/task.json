@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "id": "pr328-baseline-roundtrip-rebase-r144-codex-20261031",
+  "from": "codex",
+  "coordinatorSession": "nrelaybd2193fdb8c5aa83925520d4a700928a",
+  "createdAt": "2026-10-31T17:23:58.556Z",
+  "to": "codex",
+  "baseSHA": "550a9cf47e72aa62d7e190aa2994858ca52c5b6d",
+  "objective": "Reparar NO-GO6035c920: pausar y reanudar debe deshacer EXACTAMENTE lo hecho por cada via sin doble cargo en exclusiones. Preparar rebase PRIVADO expresamente pedido sobre beta c89bb12c528f079640a514b95334c21b9df2d2c1 conservando Recibos t4. Entregar candidato y HEAD revisables, sin publicar hasta GO exacto posterior.",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/08-motor-bank.js",
+    "src/modules/07-tab-patri-fijos.js",
+    "tests/recibos-manual-pausa.test.mjs",
+    "scripts/run-tests.mjs",
+    "docs/ARQUITECTURA.md",
+    "docs/BACKLOG.md"
+  ],
+  "authority": [
+    "6035c920ebd01b6a9f0133d981a04ee65e57c982",
+    "4822d3f442cbef2956f73b969569ddf68cc1de3f",
+    "7188f09dd641ffd90c5a2455196b1385c4bb084c"
+  ],
+  "previousTaskId": "pr328-manual-pausa-money-repair-r144-codex-20261031",
+  "previousResultSHA": "7ccc53dc0ae1629cbe448cc5deffc6fe384c4fff",
+  "previousRETURN": "561cbf003449a2948fb383426f776e1bd4e63ffc",
+  "rebaseTargetSHA": "c89bb12c528f079640a514b95334c21b9df2d2c1",
+  "explicitRebaseAuthority": "6035c920ebd01b6a9f0133d981a04ee65e57c982",
+  "acceptance": [
+    "Comparar pausar+reanudar contra comportamiento de la BASE para cada exclusion: sin sello,sellolegado,cuenta conectada,TRnativo,edicionlegacy,doscuentas. Caso sintetico98701/97402 debe volver a100000/98701 como base; no aceptar tests que bendigan la regresion.",
+    "Si pausa compenso por via de base,reanudar descompensa igual que base. Si pausa uso via nueva trazable,reanudar la deshace o no toca extra si se perdio trazabilidad,sin alterar la parte de base. Cubrir cambios deintervalo futuro/terminado y clienteviejo; no inferir origen por simple ausencia de prueba.",
+    "Conservar B1 con prueba,B2UTC/Madrid/medianoche/ambasDST/same-day yR2sameamountt3 correctos; R1 limitesdocumentados. Nuevas aserciones causales roundtrip/exclusiones+mutantes que distingan via vieja/nueva.",
+    "Rebase en checkoutPROPIO desde550a9cf4 hacia c89bb12c5 verificado,conservar fuente/t4 y cambios ajenos; conflictos en08 resueltos semanticamente. No tocar checkoutfuente ni beta/main.",
+    "Preparar diff/candidato y matrizNode dirigida exacta; reportar aROOT antes ENTER. NodeCPU1derogada por4822,sinwrapper/afinidad/PID/launcher,serial0retry/stopfirstunexpected,logs/rawexitdurables y variablesprecheckcorrectas. No repetir10cerradas en snapshotviejo; nueva validacion solo sobre cambios/rebase.",
+    "Solo4paths de reparacion publicables00core/08motor/test/ARQUITECTURA salvo GOampliado concreto; preservar cambios originales07/registro al rebasar sin extender por arrastre. BACKLOGENTEROprivado; candidato conserva blobBACKLOGdebeta, sin portarWIPprivado ni cambiosviejosdeBACKLOG. VERSION/catalogo/notas/caps fuente t4 intactos.",
+    "Revisionindependiente del HEAD final exacto yGOroot antes publicacion. Rebase autorizado NOse registra como grantforcepush. No force/forcewithlease/resetremoto/otraPR por inferencia; mecanismo actualizacion mismaPR se resolvera con candidato concreto y permiso exacto."
+  ],
+  "constraints": [
+    "Identidad/sesion/nonce/OWN20 nuevosdesde0,recepcionACK/admission/receipt/rootconfirmation anteshelper; nueva claim confirmada antes producto. No heredarOWN8FROZEN12/claim/ledger/state de fuente cerrada.",
+    "FuentesWIP/copias/checkout/helpers inmutables; nueva ruta/rama propias. Solo titular publica claim/result/RETURN,reporta soloROOT,soloROOTaClaude.",
+    "No launcherFOCAL01 rechazado ni escribir/retry/equivalente/inline/proxy/otraidentidad. Nuevogrant4822 permiteNodeDIRECTOSdirigidos,no launcher.",
+    "No build/suiteentera/npmtest/CPU6/Chromium/servidor/Gradle/SQL/backend/Edge/deploy/merge/version/notas/catalogos/caps/datosreales. PR330 servidor NO-GO yUX17cerrada no reabrir."
+  ],
+  "deliverable": "Candidato privado rebasado,regresionred/greencomparadaconbase,oraculoscausales y propuesta dirigida verificable; despuesHEAD de PR328 solo tras GO exacto.",
+  "initialState": "RECEPTION_ONLY_NATIVE_ADMISSION_STARTUP_CLAIM_REQUIRED"
+}
