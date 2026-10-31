@@ -53,25 +53,37 @@
     "v": "4.26.198",
     "d": "2026-10-31",
     "t": {
-      "es": "Inicio y Gastos, más claros",
-      "en": "Home and Spending, clearer",
-      "ca": "Inici i Despeses, més clars"
+      "es": "Recibos renovados, un límite del mes más justo y un widget que avisa",
+      "en": "Renewed Bills, a fairer monthly limit and a widget that warns you",
+      "ca": "Rebuts renovats, un límit del mes més just i un widget que avisa"
     },
     "items": {
       "es": [
-        "Inicio enseña los próximos cargos del mes que viene cuando ya está todo pagado.",
-        "Últimos movimientos muestra lo mismo que Gastos, sin traspasos entre tus cuentas.",
-        "En Gastos, los traspasos van juntos al final del día, plegados en «Traspasos · no cuentan»."
+        "Recibos estrena pantalla: arriba lo que queda por pagar; debajo lo que conviene revisar, lo pendiente y lo ya pagado. Toca un recibo para marcarlo pagado eligiendo su cargo. Al vincular un cargo a mano, la app avisa si parece el mismo que ya paga otro recibo.",
+        "En Recibos puedes pausar un recibo (este mes o hasta cuando digas) o dejar un aviso para mañana, y la app te avisa si uno ha subido, ha cobrado distinto o lleva meses sin cobrarse. Toca «Te llega» para ver, banco a banco, el día más justo del mes y qué pasaría si gastas algo hoy.",
+        "El límite del mes descuenta lo que te entra, menos la nómina: los Bizums y las devoluciones te devuelven margen. Inicio, Gastos y el widget dicen lo mismo, y el anillo de «Este mes» se llena según gastas; si te pasas, sigue subiendo en rojo.",
+        "El widget vuelve a actualizarse solo al usar la app y, cuando te pasas del límite, la cifra y la barra salen en rojo con lo que te has pasado. Para verlo hay que instalar la actualización de la app que se ofrece.",
+        "Inicio enseña los cargos del mes que viene cuando ya está todo pagado, y sus últimos movimientos son los mismos que en Gastos. En Gastos, los traspasos entre tus cuentas van juntos al final del día y no cuentan.",
+        "Renombrar un gasto ya no esconde otro igual de otro banco, y renombrar un traspaso sin conexión ya no lo convierte en ingreso. Los recibos anuales con un calendario raro cobran lo que toca cada mes.",
+        "Y además: bajar por Gastos va fluido y la barra de abajo se queda escondida al cargar más; los importes llevan punto de miles; «Tus inversiones» abre en euros si tu moneda aún no tiene cambio; tocar una deuda te lleva hasta ella con suavidad, y Trade Republic vuelve a conectar con su nuevo inicio de sesión, que se aprueba desde su app (también con la actualización de la app)."
       ],
       "en": [
-        "Home shows next month's upcoming charges once everything is paid.",
-        "Latest activity shows the same as Spending, without transfers between your accounts.",
-        "In Spending, transfers are grouped at the end of the day, folded under “Transfers · don't count”."
+        "Bills has a new screen: at the top, what is left to pay; below, what is worth checking, what is pending and what is already paid. Tap a bill to mark it as paid by choosing its charge. When you link a charge by hand, the app warns you if it looks like the same one that already pays another bill.",
+        "In Bills you can pause a bill (this month or until whenever you say) or leave a reminder for tomorrow, and the app tells you if one has gone up, charged a different amount or has not been charged for months. Tap «You're covered» to see, bank by bank, the tightest day of the month and what would happen if you spend something today.",
+        "The monthly limit takes off what comes in, except your salary: Bizums and refunds give you back margin. Home, Spending and the widget say the same, and the «This month» ring fills up as you spend; if you go over, it keeps rising in red.",
+        "The widget updates on its own again when you use the app and, when you go over the limit, the figure and the bar turn red with how much you went over. To see it you need to install the app update it offers.",
+        "Home shows next month's charges when everything is already paid, and its latest transactions are the same as in Spending. In Spending, transfers between your own accounts are grouped at the end of the day and do not count.",
+        "Renaming an expense no longer hides an identical one from another bank, and renaming a transfer offline no longer turns it into income. Yearly bills with an unusual calendar charge what they should each month.",
+        "Also: scrolling through Spending is smooth and the bottom bar stays hidden when more items load; amounts have thousands separators; «Your investments» opens in euros if your currency has no exchange rate yet; tapping a debt takes you smoothly to it, and Trade Republic connects again with its new sign-in, approved from its own app (also with the app update)."
       ],
       "ca": [
-        "Inici mostra els pròxims càrrecs del mes que ve quan ja està tot pagat.",
-        "Últims moviments mostra el mateix que Despeses, sense traspassos entre els teus comptes.",
-        "A Despeses, els traspassos van junts al final del dia, plegats a «Traspassos · no compten»."
+        "Rebuts estrena pantalla: a dalt el que queda per pagar; a sota el que convé revisar, el pendent i el ja pagat. Toca un rebut per marcar-lo pagat triant el seu càrrec. En vincular un càrrec a mà, l'app avisa si sembla el mateix que ja paga un altre rebut.",
+        "A Rebuts pots pausar un rebut (aquest mes o fins quan diguis) o deixar un avís per a demà, i l'app t'avisa si un ha pujat, ha cobrat diferent o fa mesos que no es cobra. Toca «T'arriba» per veure, banc a banc, el dia més just del mes i què passaria si gastes alguna cosa avui.",
+        "El límit del mes descompta el que t'entra, menys la nòmina: els Bizums i les devolucions et tornen marge. Inici, Despeses i el widget diuen el mateix, i l'anell de «Aquest mes» s'omple segons gastes; si et passes, continua pujant en vermell.",
+        "El widget torna a actualitzar-se sol en fer servir l'app i, quan et passes del límit, la xifra i la barra surten en vermell amb el que t'has passat. Per veure-ho cal instal·lar l'actualització de l'app que s'ofereix.",
+        "Inici ensenya els càrrecs del mes que ve quan ja està tot pagat, i els seus últims moviments són els mateixos que a Despeses. A Despeses, els traspassos entre els teus comptes van junts al final del dia i no compten.",
+        "Canviar el nom d'una despesa ja no amaga una altra d'igual d'un altre banc, i canviar el nom d'un traspàs sense connexió ja no el converteix en ingrés. Els rebuts anuals amb un calendari estrany cobren el que toca cada mes.",
+        "I a més: baixar per Despeses va fluid i la barra de baix es queda amagada en carregar-ne més; els imports porten punt de milers; «Les teves inversions» obre en euros si la teva moneda encara no té canvi; tocar un deute et porta fins a ell amb suavitat, i Trade Republic torna a connectar amb el seu nou inici de sessió, que s'aprova des de la seva app (també amb l'actualització de l'app)."
       ]
     },
     "tandas": []
