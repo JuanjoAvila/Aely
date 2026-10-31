@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "id": "pr328-manual-pausa-money-repair-r144-codex-20261031",
+  "from": "codex",
+  "coordinatorSession": "nrelaybd2193fdb8c5aa83925520d4a700928a",
+  "createdAt": "2026-10-31T16:55:46.627Z",
+  "to": "codex",
+  "baseSHA": "555fe0c3656a3aeb948ff2423c79f674c5b3f92c",
+  "objective": "Continuar PR328 tras cierre propio r143,result5ec6a50e y RETURN132a5a1e. Contrato Node resuelto expresamente por Claude4822d3f4: ejecutar diez corridas dirigidas ya propuestas, seriales, sin CPU1 ni wrapper/PID, y entregar HEAD verde en la misma PR328. Preservar B1/B2/R2 y R1 documentado; historia intacta sin rebase ni force.",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/08-motor-bank.js",
+    "src/modules/07-tab-patri-fijos.js",
+    "tests/recibos-manual-pausa.test.mjs",
+    "scripts/run-tests.mjs",
+    "docs/ARQUITECTURA.md",
+    "docs/BACKLOG.md"
+  ],
+  "authority": [
+    "3d4d05c586d4af42b417fdae585452b2de423d98",
+    "aa740946d9b7b93865f4aa4bd000724497a0bf5a",
+    "4822d3f442cbef2956f73b969569ddf68cc1de3f",
+    "7188f09dd641ffd90c5a2455196b1385c4bb084c"
+  ],
+  "previousTaskId": "pr328-manual-pausa-money-repair-r143-codex-20261031",
+  "previousResultSHA": "5ec6a50e7e37ee37a7b483c86a2a71b9307529fe",
+  "previousRETURN": "132a5a1e42d1144b17398e95236dd3604314811a",
+  "acceptance": [
+    "B1 toda reactivacion,matrix125,base exacta o failclosed tras edicion/clienteviejo; B2 UTC/Madrid/medianoche/ambasDST y exclusion same-day; R2 misma cifra sella saldoLeidoAt real t3; R1 limitaciones documentadas.",
+    "Diez corridas del test original: por TZ UTC y Europe/Madrid,guard exit0 y resumeCompensation,intervalResume,sameReadStamp,sameDay exit1 cada uno por asercion causal producto. No syntax/harness/mutacion ausente como evidencia. Salida y rawexit durables por corrida.",
+    "Serial,0retry,stopfirstunexpected. NODE_OPTIONS y RECIBOS_MANUAL_MUTANT ausentes; selector de mutante por argv como propuesta revisada. Comandos directos Node sin wrapper,afinidad ni capturaPID; no afirmar CPU1. Proponer matriz exacta compatible antes de ENTER; GO concreto root tras startup/claim.",
+    "Tras10esperados,commit PRIVADO con SOLO00-core,08-motor-bank,testmanual-pausa,ARQUITECTURA. BACKLOG ENTERO privado excluido de commit/push. No repetir estatica preENTER sin cambio.",
+    "Revision independiente del HEAD final exacto y GO root antes de push normal FF a codex/recibos-manual-pausa-r133-49759e7c,mismaPR328. Reporte HEAD aClaude solo root."
+  ],
+  "constraints": [
+    "Identidad/nonce/sesion nuevos,OWN20 desde0,recepcionACK y admision/confirmacion nativas antes helper; nueva claim confirmada antes producto. Ningun contador/claim/state heredado.",
+    "Fuente r143 cerrada OWN7FROZEN13 no transferibles. Checkouts,copias,helpers y ledger fuente inmutables,sin ejecutar helper fuente.",
+    "Launcher FOCAL01 rechazado sigue vinculante: no escribir,reintentar,ejecutar,equivalente,inline,proxy u otraidentidad. Permiso dirigido viene del NUEVO4822d3f4.",
+    "No suiteentera/npmtest/build/Chromium/servidor/Gradle/CPU6/R3/UX17/R6-2/VERSION/catalogos/notas/caps/backend/SQL/deploy/main/beta/datosreales.",
+    "Trabajador reporta solo al coordinador,solo titular publica su claim/result/RETURN; sin crear/archivar chats ni rutina propia."
+  ],
+  "deliverable": "Logs y rawexit de10corridas causales,HEADprivado4archivos,manifest con BACKLOGexcluido,revisionfinal y push normal solo trasGOexacto.",
+  "initialState": "RECEPTION_ONLY_NATIVE_ADMISSION_OWN_STARTUP_CLAIM_AND_EXACT_RUN_GO_REQUIRED"
+}
