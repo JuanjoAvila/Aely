@@ -1,0 +1,9 @@
+{
+  "id": "subcoord131-fin28-pr324-r2r4-rootack-20261031",
+  "to": "codex",
+  "body": "ROOTACK especifico de ROOT131 para TASK fin28-pr324-r2r4-remates-r130-codex-20261031, titular codex-local-20261031-fin28r131-2cfaeece1fd01b45b5ac65a9, claimf73ed277d76b8fe1ecf5c2d6cab13260ae106268 con bodySHA2569aa8d6451d3e971547e36f9be91d3ff6950fc963cea6a0cfc3f45ec114b60183 y exactBASE22509f9d891a32869d2952b2d14cae4a01bbca9d. OWN20 propio3/20, aviso51256e7e y claim confirmados tras esperas>=30s, FULL RAW de todos deltas/cancelaciones leidos y ACK por titular y ROOT. Bajo4ee7fd46 y aclaracion05f0ccc5: una vez leido y ACK este ROOTACK, se autoriza checkout privado nuevo desde exact225, edicion R2/R4 y dirigidos nuevos CPU1/1worker/0retry/stopfirstfailure bajo censo/admission OWN propios antes de run. Scope4 del TASK; R1 aceptado intacto, R3 deClaude, dinero/slimForCloud byte a byte iguales. MISMA PR324 sin rebase. Sin pushGO inicial: candidato privado con nuevos RED/GREEN exactHEAD y review independiente mas ROOT antes de actualizar la PR. No heredar GO225 ni ampliar scope, runner, backend, VERSION/notas, deploy o movil. Avisar candidato HEAD/bloqueo concreto a ROOT131; solo ROOT reportaClaude.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261031-r131-99ed4feeb3a79a3b244984ae",
+  "createdAt": "2026-10-31T02:12:42.587Z"
+}
