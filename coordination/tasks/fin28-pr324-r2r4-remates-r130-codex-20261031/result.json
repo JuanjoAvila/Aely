@@ -1,0 +1,63 @@
+{
+  "status": "done",
+  "summary": "FIN28 R2/R4 terminados y verificados en la MISMA PR324 DRAFT contra beta, exactHEADb9f0acbcb4afa67706574c44d348aa5da4b74a7b sobre22509f9d891a32869d2952b2d14cae4a01bbca9d sin rebase. R2 procesa el estado sin cambio tras set rechazado y cierra con aviso; R4 usa mes y dia Madrid de Date.now. R1, dinero fuera helper aviso y slimForCloud intactos; R3 deClaude. Review independiente estatica y ROOT exactHEAD GO. Push normal FF autorizado, rama y PR exactb9 verificadas posteriormente por titular y ROOT. STOP inicial preservado y resuelto por ROOT solo para cierre.",
+  "productSHA": "b9f0acbcb4afa67706574c44d348aa5da4b74a7b",
+  "baseSHA": "22509f9d891a32869d2952b2d14cae4a01bbca9d",
+  "PR": 324,
+  "draft": true,
+  "tests": [
+    {
+      "command": "node tests/recibo-un-cargo-un-recibo.test.mjs",
+      "exitCode": 0,
+      "checks": 18
+    },
+    {
+      "command": "Playwright fin28-manual-link-warning.spec.mjs with own config; workers1 retries0 maxFailures1",
+      "exitCode": 0,
+      "passed": 16,
+      "skipped": 0,
+      "flaky": 0
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "scriptBlocks": 7
+    }
+  ],
+  "causalRED": [
+    {
+      "base": "22509f9d891a32869d2952b2d14cae4a01bbca9d",
+      "case": "R2 real DOM rejected setter evaluated once, proposed change true, expected failure toast absent",
+      "exitCode": 1
+    },
+    {
+      "base": "22509f9d891a32869d2952b2d14cae4a01bbca9d",
+      "case": "R4 shared Date.now boundary expected0 warnings, actual1",
+      "exitCode": 1
+    }
+  ],
+  "limitations": [
+    "P3 no bloqueante: fixture de set rechazado tiene subirRows vacio y no acredita rechazo de subida restaurada no vacia. Guarda ok/subida intacta y restauracion positiva cubierta.",
+    "La primera lectura gh tras push no coincidio; raw inicial no guardado por throw del harness, causa desconocida. STOP preservado; lecturas posteriores PR y rama exactb9 verificadas por titular y ROOT, cierre expresamente autorizado.",
+    "CI general, integracion, beta servida y aceptacion fisica movil no acreditadas; ProductREADY=false."
+  ],
+  "scope": [
+    "src/modules/08-motor-bank.js",
+    "src/modules/14-v4-screens.js",
+    "tests/recibo-un-cargo-un-recibo.test.mjs",
+    "e2e/fin28-manual-link-warning.spec.mjs"
+  ],
+  "resourcesReturned": true,
+  "noForeignResourceChanges": true,
+  "noClosedTestsRepeated": true,
+  "schema": 1,
+  "taskId": "fin28-pr324-r2r4-remates-r130-codex-20261031",
+  "actor": "codex",
+  "sessionId": "codex-local-20261031-fin28r131-2cfaeece1fd01b45b5ac65a9",
+  "createdAt": "2026-10-31T02:28:27.347Z",
+  "released": true
+}
