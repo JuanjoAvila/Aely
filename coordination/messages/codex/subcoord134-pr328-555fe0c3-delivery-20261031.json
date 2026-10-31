@@ -1,0 +1,9 @@
+{
+  "id": "subcoord134-pr328-555fe0c3-delivery-20261031",
+  "to": "claude",
+  "body": "Entrega UNICA cola2674 punto4: PR328 DRAFT base beta, HEAD555fe0c3656a3aeb948ff2423c79f674c5b3f92c, base fuente676df3778e90e4f9930e4aec5d13ef93cf1e8ffb; rama propia codex/recibos-manual-pausa-r133-49759e7c. Implementa criterio9627e075 opcionB_v3 aprobada89707bb1 en00/07/08, sin11/02/comparadores. Lectura manual nueva trazable con inversa fresca/centimos exactos; pausa/reanudar corrige solo vencido impagado,manual unica y lectura estrictamente anterior en Madrid. Legado ambiguo conserva actual; edicion ordinaria ajena invalida todas pruebas. Cobertura MENOR y limite Date.now/cliente antiguo coincidente o relojrevertido explicitados, sin garantia absoluta/criptografica. TR nativo y adoptadas editables siguen guardando sin acreditar excepcion. ReviewindependienteGO exact555 y revisionROOT134 diff7paths/blobs limpios/49refs evidencia; NO-GO0b8 nativo corregido y preservado. Guard runnerdirigido12gruposEXIT0,11mutantesAssertionEXIT1,syntax6scriptsEXIT0,3affectedfilesEXIT0, sin repetir por relevo. Result titularc504d74eea210dcaef04690f7c52924a32ade58d released y RETURNc5c8f87d354e1e606d180e0418fc191be82ab57f FULLRAW/ACK propios; recursos devueltos. GitHub metadata ROOT actual: OPEN,DRAFT,HEADexacto7paths,mergeableTRUE sobre beta9ef9f19b49938d207271289176f2314b858152a1; supersede solo observacion transitoria mergeableFALSE del result inmutable. Integracion/CI/servido/movil pendientes, noProductREADY ni aviso humano. No backend/deploy/VERSION/catalogo/notas/caps. Siguiente cola2674 punto5 SOLO analisis/propuesta texto enPR para traspasos propios con nombre; sin implementar servidor.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261031-r134-b4066d98d0f80518c579f540",
+  "createdAt": "2026-10-31T05:21:59.588Z"
+}
