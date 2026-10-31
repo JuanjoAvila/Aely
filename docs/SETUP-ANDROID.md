@@ -263,7 +263,7 @@ participaciones, valor y coste. No necesita nada más.
 2. **login:** `POST https://api.traderepublic.com/api/v1/auth/web/login` con
    `{ phoneNumber, pin }` y el header del WAF → devuelve `{ processId, countdownInSeconds }` y **dispara el
    2FA** (código de 4 dígitos que llega como **push a la app de TR**; SMS es el respaldo).
-   **TR está retirando este v1 cuenta a cuenta** (426/405, y aquí un 400 el 31/10/2026). Si v1 responde
+   **TR está retirando este v1 cuenta a cuenta** (426/405, y aquí un 400 el 31/10/2026; hipótesis hasta un login real). Desde la APK 63 (4.26.196): si v1 responde
    400/404/405/410/426, el puente prueba `POST /api/v2/auth/web/login` con las cabeceras de la web de TR
    (`X-TR-Device-Info`, `X-TR-App-Version`, `X-TR-Platform`; sin ellas, 400). La versión y la plataforma
    las manda la web (`TR_V2_CLIENT` en `06-sync-brokers.js`) para poder corregirlas por OTA si TR da 426.

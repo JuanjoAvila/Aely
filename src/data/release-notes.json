@@ -1,5 +1,47 @@
 [
   {
+    "v": "4.26.196",
+    "d": "2026-10-31",
+    "t": {
+      "es": "Trade Republic vuelve a conectar",
+      "en": "Trade Republic connects again",
+      "ca": "Trade Republic torna a connectar"
+    },
+    "items": {
+      "es": [
+        "Conectar Trade Republic vuelve a funcionar con su nuevo inicio de sesión: ahora se aprueba desde la app de Trade Republic. Si algo falla, el aviso es una frase clara. Hace falta actualizar la app."
+      ],
+      "en": [
+        "Connecting Trade Republic works again with its new sign-in: you now approve it from the Trade Republic app. If something goes wrong, the message is a single clear sentence. You need to update the app."
+      ],
+      "ca": [
+        "Connectar Trade Republic torna a funcionar amb el seu nou inici de sessió: ara s’aprova des de l’app de Trade Republic. Si alguna cosa falla, l’avís és una frase clara. Cal actualitzar l’app."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "tr-login-v2",
+        "t": {
+          "es": "Ajustes: conectar Trade Republic",
+          "en": "Settings: connect Trade Republic",
+          "ca": "Ajustos: connectar Trade Republic"
+        },
+        "items": {
+          "es": [
+            "1. Instala la app nueva cuando te lo pida. Después: Ajustes › Conectar un banco › Trade Republic › teléfono y PIN › Conectar. BIEN: te pide aprobar el inicio de sesión en la app de Trade Republic (o escribir el código) y, al hacerlo, queda conectado y trae tus posiciones. MAL: sale un error y no conecta."
+          ],
+          "en": [
+            "1. Install the new app when it asks you to. Then: Settings › Connect a bank › Trade Republic › phone and PIN › Connect. RIGHT: it asks you to approve the sign-in in the Trade Republic app (or to type the code) and, once you do, it is connected and brings your positions. WRONG: an error shows up and it does not connect."
+          ],
+          "ca": [
+            "1. Instal·la l’app nova quan t’ho demani. Després: Ajustos › Connecta un banc › Trade Republic › telèfon i PIN › Connectar. BÉ: et demana aprovar l’inici de sessió a l’app de Trade Republic (o escriure el codi) i, en fer-ho, queda connectat i porta les teves posicions. MALAMENT: surt un error i no connecta."
+          ]
+        },
+        "apk": 63
+      }
+    ]
+  },
+  {
     "v": "4.26.195",
     "d": "2026-10-31",
     "t": {

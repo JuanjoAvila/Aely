@@ -200,6 +200,8 @@ const sourceBeta192=sourceAt("251da4af95257fa204a021ec49de43519e61efeb");
 const sourceBeta193=sourceAt("c11dcebe7d19c0e8588b6404db8880195fe4511a");
 // Catálogo194 pasa a histórico con la 195: se lee de la 4.26.194 servida en beta (25b683274); su tanda (plan-recibos-t3) NO tiene veredicto todavía y la 195 la conserva en el panel junto a la suya.
 const sourceBeta194=sourceAt("25b6832749eaf776d274c7f72a046d41c9d5a0e0");
+// Catálogo195 pasa a histórico con la 196: se lee de la 4.26.195 servida en beta (676df3778); sus dos tandas (plan-recibos-t3 y fin28-aviso-enlace-manual) NO tienen veredicto y la 196 las conserva en el panel junto a la suya.
+const sourceBeta195=sourceAt("676df3778e90e4f9930e4aec5d13ef93cf1e8ffb");
 const sourceBeta153=sourceAt("80752dff055dc391c52c3067ce238f49e0a14598");
 // Catálogo137 pasa a histórico en la promoción 137: se lee de la beta 4.26.137.1 aprobada (6f18228c), lo último que probó el móvil y lo que sube entero.
 const sourceBeta137=sourceAt("6f18228cbd81c1cc9abfa7fabce0a878819234f4");
@@ -6178,13 +6180,114 @@ test("Catálogo176 añade la tanda del vínculo de recibo (solo web) sobre la 17
   assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
 });
 
+const expected196={"v":"4.26.196","d":"2026-10-31","t":{"es":"Trade Republic vuelve a conectar","en":"Trade Republic connects again","ca":"Trade Republic torna a connectar"},"items":{"es":["Conectar Trade Republic vuelve a funcionar con su nuevo inicio de sesión: ahora se aprueba desde la app de Trade Republic. Si algo falla, el aviso es una frase clara. Hace falta actualizar la app."],"en":["Connecting Trade Republic works again with its new sign-in: you now approve it from the Trade Republic app. If something goes wrong, the message is a single clear sentence. You need to update the app."],"ca":["Connectar Trade Republic torna a funcionar amb el seu nou inici de sessió: ara s’aprova des de l’app de Trade Republic. Si alguna cosa falla, l’avís és una frase clara. Cal actualitzar l’app."]},"tandas":[{"id":"tr-login-v2","t":{"es":"Ajustes: conectar Trade Republic","en":"Settings: connect Trade Republic","ca":"Ajustos: connectar Trade Republic"},"items":{"es":["1. Instala la app nueva cuando te lo pida. Después: Ajustes › Conectar un banco › Trade Republic › teléfono y PIN › Conectar. BIEN: te pide aprobar el inicio de sesión en la app de Trade Republic (o escribir el código) y, al hacerlo, queda conectado y trae tus posiciones. MAL: sale un error y no conecta."],"en":["1. Install the new app when it asks you to. Then: Settings › Connect a bank › Trade Republic › phone and PIN › Connect. RIGHT: it asks you to approve the sign-in in the Trade Republic app (or to type the code) and, once you do, it is connected and brings your positions. WRONG: an error shows up and it does not connect."],"ca":["1. Instal·la l’app nova quan t’ho demani. Després: Ajustos › Connecta un banc › Trade Republic › telèfon i PIN › Connectar. BÉ: et demana aprovar l’inici de sessió a l’app de Trade Republic (o escriure el codi) i, en fer-ho, queda connectat i porta les teves posicions. MALAMENT: surt un error i no connecta."]},"apk":63}]};
+// 4.26.196 (31/10/2026): tres piezas sobre la beta 4.26.195 servida (676df3778), con APK NUEVA (63): claude/tr-login-400 (0dc7fa5e8: Conectar Trade Republic cae al login v2 de TR cuando v1 responde 400/404/405/410/426; nativo + web; la causa del 400 es hipótesis hasta un login real), la PR 325 de Codex (61676e1a8, FIN-25 R1/R2, solo web, revisión de dinero GO con remates cerrados) y claude/jarvis-resumen (945c64893, tooling local).
+// Una tanda NUEVA (tr-login-v2, un paso, apk 63). Las de la 194 (plan-recibos-t3) y la 195 (fin28-aviso-enlace-manual) NO tienen veredicto y se quedan: el panel enseña tres. FIN-25 no tiene tanda (cambio interno, nada probable hoy).
+// Registro: entra el descriptor nuevo, el último, con la huella nativa de TradeRepublicPlugin.java. Los anteriores no cambian: ningún cierre de lectores crece.
+test("Catálogo196 añade la tanda de Conectar Trade Republic (APK 63) sobre la 195, conserva las dos sin veredicto y declara las huellas que mueve",()=>{
+  const tandas=["plan-recibos-t3","fin28-aviso-enlace-manual","tr-login-v2"],S6="src/modules/06-sync-brokers.js",C0="src/modules/00-core.js",java="android/app/src/main/java/com/micartera/app/";
+  const integrated=JSON.parse(sourceBeta195("scripts/beta-sources.json")),before=JSON.parse(sourceBeta195("src/data/release-notes.json"));
+  const source=f=>nl(read(f)),old=f=>nl(sourceBeta195(f));
+  assert.equal(before[0].v,"4.26.195");
+  assert.deepEqual(before.slice(0,2).map(n=>n.tandas.map(g=>g.id)),[[tandas[1]],[tandas[0]]],"la 195 servida lleva sus dos tandas, sin veredicto");
+  for(const n of before.slice(2))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] en la 195 servida");
+  const expectedNotes=[expected196,...before];
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.deepEqual(notes,expectedNotes,"la nota 196 literal delante y todo lo demás intacto, también las dos tandas sin veredicto");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.196",tandas[2],63],["4.26.195",tandas[1],0],["4.26.194",tandas[0],0]],"el panel enseña las tres, la de Trade Republic con APK 63");
+  assert.equal(notes.length,293);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
+  for(const n of notes.slice(3))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] (la propiedad se conserva, vacía)");
+  assert.deepEqual(Object.keys(notes[0].tandas[0]),["id","t","items","apk"]);
+  const jerga=/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|FIN-|SES-|UX-|SEC-|zoom|\d+\.\d+\.\d+/i;
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,1,lang+": un punto familiar");
+    const steps=notes[0].tandas[0].items[lang];
+    assert.equal(steps.length,1,lang+": un paso");
+    assert.ok(steps[0].startsWith("1. "),lang+": paso numerado");
+    assert.ok(/MAL|WRONG|MALAMENT/.test(steps[0])&&/BIEN|RIGHT|BÉ/.test(steps[0]),lang+": el paso dice qué es MAL y qué es BIEN");
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
+  }
+  const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
+  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verifyNotes(twice),assert.AssertionError,"no duplicar una tanda");
+  const sinApk=structuredClone(notes);delete sinApk[0].tandas[0].apk;assert.throws(()=>verifyNotes(sinApk),assert.AssertionError,"la tanda de Trade Republic no puede perder su exigencia de APK");
+  {const sin=structuredClone(notes);sin[1].tandas=[];assert.throws(()=>verifyNotes(sin),assert.AssertionError,"la tanda sin veredicto de la 195 no se retira");}
+  {const sin=structuredClone(notes);sin[2].tandas=[];assert.throws(()=>verifyNotes(sin),assert.AssertionError,"la tanda sin veredicto de la 194 no se retira");}
+  // Registro: los anteriores intactos (ningún cierre de lectores crece); el descriptor nuevo, detrás.
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),{[tandas[2]]:ahora,...resto}=scopes;
+  assert.deepEqual(Object.keys(scopes),[...Object.keys(integrated),tandas[2]],"el descriptor nuevo, el último");
+  assert.deepEqual(resto,integrated,"ningún descriptor anterior cambia");
+  assert.deepEqual(Object.keys(ahora),["web","native","unidades"]);assert.equal(ahora.unidades,true);
+  const propias=[{file:S6,function:"TRSync"},{file:S6,function:"trLogFailure"},{file:S6,function:"trDiagFields"},{file:S6,data:"TR_V2_CLIENT"},{file:S6,function:"trErrKey"},{file:C0,function:"mcLogEvent"},{file:"src/modules/11-app-main.js",from:"          if(res&&res.authExpired&&!res.softFail&&!res.wafBlocked){ expiredB.push(\"Trade Republic\");",to:"          signalTrAlive({manual:opts.manual});"}];
+  assert.deepEqual(ahora.web.slice(0,propias.length),propias,"las unidades web propias: la tarjeta de Trade Republic, el registro de fallos, el cliente v2, el saneado de la telemetría y los dos puntos de App que pasan `diag`");
+  {const fns=logicFunctions(source),dat=logicData(source);let web=propias.slice();
+    for(let ronda=0;ronda<12;ronda++){
+      const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];
+      for(const fn of scopeDependencies({web},source,fns))if(!tiene(fn.file,fn.name,"function"))extra.push({file:fn.file,function:fn.name});
+      for(const d of scopeDataDependencies({web},source,fns,dat))if(!tiene(d.file,d.name,"data"))extra.push({file:d.file,data:d.name});
+      if(!extra.length)break;web=web.concat(extra);
+    }
+    const clave=u=>JSON.stringify(u);
+    assert.equal(ahora.web.length,web.length,"el cierre de lectores del descriptor es exactamente el calculado");
+    assert.deepEqual(new Set(ahora.web.map(clave)),new Set(web.map(clave)),"el cierre de lectores del descriptor es exactamente el calculado");}
+  for(const u of ahora.web)assert.ok(scopeText(u,source).length>0,"la unidad existe en la fuente: "+JSON.stringify(u));
+  assert.deepEqual(ahora.native,[java+"TradeRepublicPlugin.java"],"nativo: solo el puente de Trade Republic");
+  for(const file of ahora.native)assert.ok(source(file).length>0,"el fichero nativo existe: "+file);
+  // Del árbol de la 195 cambian el núcleo (telemetría), los textos, la tarjeta de Trade Republic, el motor (FIN-25), App (dos llamadas) y el puente; Gastos, Plan, Inicio, el widget (web, ingest y Java) y el espejo de servidor siguen idénticos.
+  for(const file of [C0,"src/modules/01-i18n.js",S6,"src/modules/08-motor-bank.js","src/modules/11-app-main.js",java+"TradeRepublicPlugin.java"])assert.notEqual(source(file),old(file),"cambia de verdad: "+file);
+  for(const file of ["src/modules/02-ui-shared.js","src/modules/03-tab-dash.js","src/modules/04-tab-gastos.js","src/modules/07-tab-patri-fijos.js","src/modules/14-v4-screens.js","src/shell.html","supabase/functions/_shared/presupuesto.ts","supabase/functions/ingest/index.ts","supabase/functions/ingest/widget.ts",java+"MiCarteraWidget.java",java+"MiCarteraPlugin.java",java+"TrExpenseListener.java","android/app/src/main/AndroidManifest.xml"])assert.equal(source(file),old(file),"sin cambios: "+file);
+  // La APK 63 anuncia la tanda nativa nueva sin perder las revisiones que ya acreditaba la 62; sha256 y sourceSha los rellena quien compila y sube.
+  const apk=JSON.parse(source("public/apk.json")),apkOld=JSON.parse(old("public/apk.json"));
+  assert.equal(apk.versionCode,63);assert.equal(apk.versionName,"4.26.196");
+  assert.ok(apk.url.endsWith("/releases/download/beta/Aely-4.26.196-beta-63.apk"),"apunta al asset de beta, no al de producción");
+  for(const [id,h] of Object.entries(apkOld.revisiones||{}))assert.equal(apk.revisiones[id],h,"conserva la revisión nativa "+id);
+  assert.match(source("android/app/build.gradle"),/versionCode 63\s+versionName "4\.26\.196"/,"build.gradle anuncia la APK 63");
+  // Huellas que se mueven (lista cerrada).
+  const expectedMoves={};
+  const previous=new Map();
+  const measure=reader=>{
+    const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};
+    for(const [key,scope] of Object.entries(integrated)){
+      if(key===archiveId)continue;
+      if(!previous.has(key))previous.set(key,betaRevision(key,sourceBeta195,undefined,scope));
+      const a=previous.get(key),b=betaRevision(key,reader,undefined,now[key]);
+      const surfaces=["web","native","edge"].filter(x=>a[x]!==b[x]);
+      if(surfaces.length)moved[key]=surfaces;
+    }
+    return moved;
+  };
+  assert.deepEqual(measure(source),expectedMoves,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  const vivas=notes.flatMap(n=>(n.tandas||[]).map(g=>g.id));
+  assert.deepEqual(vivas,[tandas[2],tandas[1],tandas[0]]);
+  assert.deepEqual(Object.keys(expectedMoves).filter(id=>vivas.includes(id)),[],"ninguna tanda viva cambia de huella");
+  const current=betaRevision(tandas[2],source,undefined,scopes[tandas[2]]);
+  assert.ok(current.web);assert.ok(current.native);assert.equal(current.edge,undefined,"sin huella de servidor");
+  assert.equal(apk.revisiones[tandas[2]],current.native,"apk.json acredita la huella nativa de la tanda de Trade Republic");
+  // Mutantes sobre la fuente real: el puente (reabre la huella nativa), la tarjeta o la telemetría (reabren la web).
+  {const f=java+"TradeRepublicPlugin.java",a="\"https://api.traderepublic.com/api/v2/auth/web/login\"",b="\"https://api.traderepublic.com/api/v3/auth/web/login\"";
+    assert.equal(source(f).split(a).length,2,"mutante sobre fuente real: "+a);
+    const mutated=betaRevision(tandas[2],x=>x===f?source(x).replace(a,()=>b):source(x),undefined,scopes[tandas[2]]);
+    assert.notEqual(mutated.native,current.native,tandas[2]+" reabre la huella nativa: "+a);
+    assert.equal(mutated.web,current.web);}
+  for(const [f,a,b] of [[S6,"if(r&&r.pending){","if(false&&r.pending){"],[C0,"\"login_pending\"","\"login_pendingx\""]]){
+    assert.equal(source(f).split(a).length,2,"mutante sobre fuente real: "+a);
+    const mutated=betaRevision(tandas[2],x=>x===f?source(x).replace(a,()=>b):source(x),undefined,scopes[tandas[2]]);
+    assert.notEqual(mutated.web,current.web,tandas[2]+" reabre la tanda web: "+a);
+    assert.equal(mutated.native,current.native);}
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes);
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),vivas,"lo que el build entrega al panel");
+  const g0=built[0].tandas[0];
+  assert.equal(g0.web,current.web);assert.equal(g0.native,current.native);assert.equal(g0.edge,undefined);assert.equal(g0.apk,63);assert.equal(receipt.web[tandas[2]],current.web);
+  for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g0[key],undefined,"identidad nueva sin "+key);
+  assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
+});
+
 const expected195={"v":"4.26.195","d":"2026-10-31","t":{"es":"Vincular cargos a recibos","en":"Linking charges to bills","ca":"Vincular càrrecs a rebuts"},"items":{"es":["Al vincular a mano un cargo con un recibo, la app avisa si parece el mismo cargo que ya paga otro recibo y pide confirmar que es otro pago."],"en":["When you link a charge to a bill by hand, the app warns you if it looks like the same charge that already pays another bill, and asks you to confirm it is another payment."],"ca":["En vincular a mà un càrrec amb un rebut, l’app avisa si sembla el mateix càrrec que ja paga un altre rebut i demana confirmar que és un altre pagament."]},"tandas":[{"id":"fin28-aviso-enlace-manual","t":{"es":"Gastos: vincular un cargo a un recibo","en":"Spending: link a charge to a bill","ca":"Despeses: vincular un càrrec a un rebut"},"items":{"es":["1. Gastos → abre un cargo que no sea de un recibo → «Paga un recibo» → elige uno pendiente. BIEN: pide «Confirmar pago completo»; al confirmar, el recibo queda pagado y el cargo conserva su importe y su banco; «Deshacer vínculo» devuelve el recibo a pendiente. MAL: no deja vincular, o el cargo cambia de importe o de banco.","2. Solo si tienes dos recibos del mismo importe en el mismo banco con cargos a pocos días de diferencia: vincula el segundo cargo al segundo recibo. BIEN: avisa «Puede ser el mismo cargo que …» y solo sigue con «Es otro pago»; cancelar no cambia nada. MAL: vincula sin avisar un cargo que ya paga otro recibo, o avisa sin que haya otro cargo igual. Si no tienes un caso así, salta este paso."],"en":["1. Spending → open a charge that does not belong to a bill → “Pays a bill” → pick a pending one. RIGHT: it asks “Confirm full payment”; once confirmed, the bill is paid and the charge keeps its amount and bank; “Undo link” puts the bill back to pending. WRONG: it will not let you link, or the charge changes amount or bank.","2. Only if you have two bills of the same amount at the same bank with charges a few days apart: link the second charge to the second bill. RIGHT: it warns “This may be the same charge as …” and only goes on with “It is another payment”; cancelling changes nothing. WRONG: it links without warning a charge that already pays another bill, or warns when there is no equal charge. If you have no such case, skip this step."],"ca":["1. Despeses → obre un càrrec que no sigui d’un rebut → «Paga un rebut» → tria’n un de pendent. BÉ: demana «Confirmar pagament complet»; en confirmar, el rebut queda pagat i el càrrec conserva l’import i el banc; «Desfer vincle» torna el rebut a pendent. MALAMENT: no deixa vincular, o el càrrec canvia d’import o de banc.","2. Només si tens dos rebuts del mateix import al mateix banc amb càrrecs a pocs dies de diferència: vincula el segon càrrec al segon rebut. BÉ: avisa «Pot ser el mateix càrrec que …» i només continua amb «És un altre pagament»; cancel·lar no canvia res. MALAMENT: vincula sense avisar un càrrec que ja paga un altre rebut, o avisa sense que hi hagi un altre càrrec igual. Si no tens un cas així, salta aquest pas."]}}]};
 // 4.26.195 (31/10/2026): PR 324 de Codex (FIN-28, b9f0acbcb: al vincular a mano un cargo sin referencia a un recibo, aviso si parece el mismo cargo que ya paga otro; revisión de dinero GO con remates) sobre la beta 4.26.194 servida (25b683274), solo web y SIN APK nueva (sigue la 62).
 // Una tanda NUEVA (fin28-aviso-enlace-manual, dos pasos, sin APK). La de la 194 (plan-recibos-t3) NO está aprobada (el dueño no la ha probado) y se queda en el panel: se acumulan dos.
 test("Catálogo195 añade la tanda del aviso al vincular un cargo a mano (solo web) sobre la 194, conserva la tanda sin veredicto y declara las huellas que mueve",()=>{
   const tandas=["plan-recibos-t3","fin28-aviso-enlace-manual"],P4="src/modules/04-tab-gastos.js",P8="src/modules/08-motor-bank.js",P14="src/modules/14-v4-screens.js",java="android/app/src/main/java/com/micartera/app/";
   const integrated=JSON.parse(sourceBeta194("scripts/beta-sources.json")),before=JSON.parse(sourceBeta194("src/data/release-notes.json"));
-  const source=f=>nl(read(f)),old=f=>nl(sourceBeta194(f));
+  const source=f=>nl(sourceBeta195(f)),old=f=>nl(sourceBeta194(f));
   assert.equal(before[0].v,"4.26.194");
   assert.deepEqual(before.slice(0,1).map(n=>n.tandas.map(g=>g.id)),[[tandas[0]]],"la 194 servida lleva su tanda");
   for(const n of before.slice(1))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] en la 194 servida");
