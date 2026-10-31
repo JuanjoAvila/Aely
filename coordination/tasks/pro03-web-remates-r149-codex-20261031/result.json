@@ -1,0 +1,65 @@
+{
+  "status": "done",
+  "summary": "PRO03 PR334 remates delivered in one normal fast-forward commit. All three languages identify the signed monthly minimum for the bill bank, preserving exact planCoverState cents and coverage. The shared WEB/native producer requires the effective bank reading from local previous-day midnight through now and neutralizes applicable future timestamps even when hidden by bank aggregation. No new forecast or native translation logic.",
+  "tests": [
+    {
+      "command": "Reviewed PRO03 new baseline cases R01 F02 F06 F19 against b2c463c12fd30b363afbd4fac397d2572d95c83a",
+      "exitCode": 1,
+      "childExits": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "expectedProductAssertionFailures": 4,
+      "harnessErrors": 0
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/pro03-receipt-eve-forecast.test.mjs",
+      "exitCode": 0,
+      "cases": 67,
+      "causalCases": 11,
+      "retries": 0
+    },
+    {
+      "command": "TZ=UTC node tests/pro03-receipt-eve-forecast.test.mjs --group=freshness",
+      "exitCode": 0,
+      "cases": 20,
+      "retries": 0
+    },
+    {
+      "command": "Outer PowerShell log collector after durable driver RETURN",
+      "exitCode": 1,
+      "phase": "POST_RETURN_LOG_COLLECTION",
+      "directDriverExitDurableCapture": null,
+      "driverAllExpected": true,
+      "recovery": "Existing logs fsynced and read back without re-running driver or children."
+    }
+  ],
+  "productSHA": "49b49e55af97c099097377f646a6f1687280b3b8",
+  "productTree": "159b34506bb11596f1983ec42cef760f7566ec4d",
+  "pullRequest": 334,
+  "branch": "codex/pro03-saldo-r148",
+  "scope": [
+    "src/modules/01-i18n.js",
+    "src/modules/11-app-main.js",
+    "tests/pro03-receipt-eve-forecast.test.mjs",
+    "docs/ARQUITECTURA.md"
+  ],
+  "remoteBranchAndPRHeadConfirmed": true,
+  "testedInputsUnchanged": 29,
+  "resourcesReturned": true,
+  "limitations": [
+    "Outer collector EXIT1 and absent direct durable driver-process EXIT capture remain preserved and explicitly accepted in review; no outer EXIT0 claimed. Six child exits are durable and match the reviewed matrix.",
+    "Pure logic and transport doubles do not validate Android framework/parser, notification audibility/device, APK, CI or served beta.",
+    "PR335 consumes this localized payload after coordinator integration; Java does not translate or calculate money.",
+    "No extra tests, full suite, build, Gradle, APK, backend, deployment or merge; ProductREADY false."
+  ],
+  "ProductREADY": false,
+  "schema": 1,
+  "taskId": "pro03-web-remates-r149-codex-20261031",
+  "actor": "codex",
+  "sessionId": "nrelaydacf4fceb4ddf60b25d453f61ce4c844",
+  "createdAt": "2026-10-31T22:33:46.186Z",
+  "released": true
+}
