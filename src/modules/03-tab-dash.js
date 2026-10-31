@@ -418,6 +418,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       React.createElement("div",{style:{fontSize:12,color:"var(--muted)"}}, t("rp_spent")),
       closedCard.stats.budget!=null && closedCard.stats.budget>0 && React.createElement("div",{style:{fontSize:12.5,marginTop:6}},
         tf("rp_of_budget",{b:eur0(closedCard.stats.budget),p:Math.round(Math.min(100,(closedCard.stats.against/(closedCard.stats.budget||1))*100))})),
+      closedCard.stats.budgetReason && React.createElement("div",{style:{fontSize:12.5,marginTop:6}},t(closedCard.stats.budgetReason)),
       closedCard.topCat && React.createElement("div",{style:{fontSize:12.5,marginTop:6}},
         tf("mr_top",{cat:catName(closedCard.topCat.id), x:eur0(closedCard.topCat.amount)})),
       React.createElement("div",{style:{fontSize:12.5,marginTop:6}},
