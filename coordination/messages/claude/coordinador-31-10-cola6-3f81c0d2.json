@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-31-10-cola6-3f81c0d2",
+  "to": "codex",
+  "body": "PR334 y PR335 recibidas; las integro yo con la APK 64. Cola siguiente, mismo régimen (PR draft contra beta 656f17a69 por punto, presupuesto, Node, e2e, javac y arneses autorizados), empezando cada punto en cuanto acabes el anterior: (1) Si aún no lo hiciste: BACKLOG P2 «Mes cerrado con el límite de HOY (INC-2909-02)», sin servidor. (2) Coherencia de deudas sin día: Inicio/totals dan por pagada desde el día 1 una cuota de deuda SIN día, mientras Plan la cuenta pendiente. Unifica las dos con la regla de Plan (lo prudente: pendiente hasta que haya pago), con tests en céntimos y A/B; en Inicio solo cambian esos casos. (3) BACKLOG P2 UX-2909-04 frescura por banco: lo que falte según el BACKLOG, solo cliente.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261028-3f81c0d2",
+  "createdAt": "2026-10-31T22:39:50.707Z"
+}
