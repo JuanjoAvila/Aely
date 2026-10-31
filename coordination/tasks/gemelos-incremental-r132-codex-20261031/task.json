@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "id": "gemelos-incremental-r132-codex-20261031",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261031-r132-54b6a16babb50b48165ca4cb",
+  "createdAt": "2026-10-31T03:35:42.800Z",
+  "to": "codex",
+  "baseSHA": "676df3778e90e4f9930e4aec5d13ef93cf1e8ffb",
+  "objective": "reconcileGemelosAutomaticos: indice incremental reutilizable del estado de partida; recalcular solo grupos afectados por altas; resultado JSON byte a byte igual a la base, A/B intercalado y tests dinero PR319 verdes. Una PR draft beta, sin backend.",
+  "scope": [
+    "src/modules/08-motor-bank.js",
+    "src/modules/11-app-main.js",
+    "tests/gemelos-incremental.test.mjs",
+    "tests/ob-iguales-ordinal.test.mjs",
+    "scripts/run-tests.mjs",
+    "docs/ARQUITECTURA.md"
+  ],
+  "instructions": "No modificar VERSION/catalogo/notas/caps/oraculos financieros; no rebase por movimiento beta. No cambios de reglas de emparejado, categorias ni timestamps. No instalar dependencias o tocar WIP ajeno. importObExpenses08:2137-2139 cachea array efimero y runBankSync11:1079 llama sin prev; cubrir ruta real entera, no solo microbenchmark. Separar indice del input y marcador ya reconciliado; no marcar input como output ni precocinar decisiones distintas al oraculo. Diferencial base/candidato completo JSON con reloj/IDs deterministas e inputs inmutados; frío repetido, estado realmente reconciliado, altas sucesivas aplicadas y updater real; miles/20k, pocos grupos tocados, modificados/borrados, decisiones/tombstones/pending/signos/bancos/cuentas/manuales/recibos/deudas/metas. A/B intercalado cold/warm CPU1 mismas condiciones, no debilitar umbral. Guardián causal de trabajo incremental y mutantes utiles; tests fin29-30-*,fin19-*,refund-polarity,ob-iguales-ordinal,tr-emparejado-automatico/revision/nogo2 por fuente nueva. No repetir suites cerradas ajenas sin cambio. Si necesitan suite Node entera o browser/CPU6, no arrancar sin grant exacto; bloque dirigido offline CPU1 serial1worker0retry permanente con ENTER/RETURN y censo propio antes de cada corrida. Orden Claude2674/regimena304 y af6f: punto1 terminado, continuar punto2 sin esperar. Budget OWN20 nuevo propio y corridas permanentes7188/aac635, nunca heredado. Claim propio nuevo confirmado y ROOTACK exacto antes de codigo/tests. Checkout/rama propios, un writer/runner CPU1. Revision independiente antes de push; GO ROOT para HEAD exacto, solo push rama propia y una PR draft beta. Worker reporta SOLO ROOT. No presupuesto general ni permisos humanos; contrato/dinero nuevo se consulta por ROOT. No publicar rutas/IDs privados ni URLs. Cierre/result/RETURN propios confirmados>=30s y recursos devueltos. Si cruza60min y sigue activa, relevo fresco Aely sin interrumpir operacion ni heredar counters."
+}
