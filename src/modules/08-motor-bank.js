@@ -1086,7 +1086,7 @@ function saldoLoMandaPuenteNativo(s, ent){
   return (s&&s.investments||[]).some(function(i){ return i && i.ent==="trade_republic"; });
 }
 // Función PURA: {state, changed, synced:[{ent,bal}], obAccounts:[]}.
-function applyBankBalances(s, links){
+function applyBankBalances(s, links, sync){
   if(!s || !Array.isArray(links) || !links.length) return { state:s, changed:false, synced:[], obAccounts:(s&&s.obAccounts)||[] };
   const now=new Date(), cy=now.getFullYear(), cm=now.getMonth()+1, td=now.getDate();
   const accounts=(s.accounts||[]).slice();
@@ -1220,6 +1220,15 @@ function applyBankBalances(s, links){
           delete accounts[ownerOf[k]].balanceStale;
           changed=true;
         }
+        // El mismo importe también es una lectura nueva. Sin sello cliente no se conserva
+        // el de otra respuesta: obBalAt pertenece al servidor, no al reloj del móvil.
+        const stamp=obClientSyncStamp(lk,sync);
+        if(stamp||a.obSync){
+          accounts[ownerOf[k]]=Object.assign({},accounts[ownerOf[k]]);
+          if(stamp) accounts[ownerOf[k]].obSync=Object.assign({},stamp,{value:newBase,balance:bal,account:ac.iban||ac.uid?String(ac.iban||ac.uid):null});
+          else delete accounts[ownerOf[k]].obSync;
+          changed=true;
+        }
       } else {
         obAccts.push(mkObAcct(lk,ac,bal,inf));
         synced.push({ ent:ent, bal:bal, iban:ac.iban||null });
@@ -1252,7 +1261,7 @@ function pendingWalkEvents(state, y, m, today){
     const b=accOf(e);
     if(!(b in leido)) leido[b]=saldoLeidoDelBanco(state,b);
     const st=fixedPaymentState(state,e,y,m,today);
-    if(st.paid&&reciboEnElSaldo(state,e,y,m,today,leido[b],st.day)) return;
+    if(st.paid&&reciboEnElSaldo(state,e,y,m,today,leido[b],st.day,st)) return;
     evs.push(st.paid?{bank:b, day:hoy(dayIn(e,m)), amt:-a, sinRestar:true}:{bank:b, day:hoy(dayIn(e,m)), amt:-a});
   });
   (state.debts||[]).forEach(function(d){
@@ -1311,18 +1320,37 @@ function saldoLeidoDelBanco(state, bank){
    - Cualquier otra prueba (BOOK, aviso de Wallet, gasto sin enlazar), solo si el saldo se leyó de
      fuera el DÍA SIGUIENTE al pago o después (`leidoMs`). La prueba trae el día, no la hora: una
      lectura de primera hora del mismo día no incluye un cargo de la tarde (revisión t3, R5-1).
-     No se puede acreditar que una lectura sea posterior a la sincronización que trajo la prueba
-     (la hora de `obBalAt` es del servidor y la de `lastBankSync` del móvil), así que no hay
-     excepción: lo cobrado hoy queda en «Pagado, aún sin restar del saldo» hasta mañana.
+     Un BOOK de la misma respuesta que re-ancló TODAS las cuentas del banco sí está incluido:
+     comparte identidad de lectura y hora cliente, y conserva el snapshot de obBalAt. No se
+     comparan relojes del servidor y del móvil. Sin esa evidencia sigue la regla d+1.
    - En una cuenta a mano sin lectura posterior sigue restando: darlo por cobrado sería optimista
      (revisión t3, R3-2; lo fija `fixed-ispaidin`). */
-function reciboEnElSaldo(state, e, y, m, today, leidoMs, dia){
+function reciboEnElSaldo(state, e, y, m, today, leidoMs, dia, status){
   if(e.paidYm===y*12+m) return true;
   const p=fixedPaymentProof(state,e,y,m,today);
   if(p&&p.kind==="expense"&&fixedPaymentDerivedDay(state,{proof:p})) return true;
+  if(reciboEnMismoSync(state,e,status||fixedPaymentState(state,e,y,m,today))) return true;
   if(!(leidoMs>0)) return false;
   const d=Number(dia)>0?Number(dia):1;
   return leidoMs>=new Date(y,m-1,d+1).getTime();
+}
+function reciboEnMismoSync(s,e,st){
+  const bank=accOf(e);
+  if(!st||!st.paid||st.paidBank!==bank||saldoLoMandaPuenteNativo(s,bank)) return false;
+  const identity=st.proof?st.proof.identity:st.bankTx?fixedPaymentIdentity(bank,st.bankTx):st.expense?fixedPaymentIdentity(bank,st.expense):null;
+  if(!identity) return false;
+  const txs=(s.bankTx||[]).filter(function(x){ return x&&fixedPaymentIdentity(x.ent,x)===identity; });
+  const rows=(s.expenses||[]).filter(function(x){ return x&&fixedPaymentIdentity(expenseBankOf(x),x)===identity; });
+  const tx=txs.length===1?txs[0]:!txs.length&&rows.length===1?rows[0]:null;
+  const expense=rows.indexOf(tx)>=0;
+  if(!tx||tx.possibleDup||tx.obPending||expense&&(["ob","ob-hist"].indexOf(tx.source)<0||tx.status&&!obIsBooked(tx))||!expense&&!obIsBooked(tx)) return false;
+  const stamp=tx.obSync,accounts=(s.accounts||[]).filter(function(a){ return a&&a.ent===bank; });
+  if(!stamp||!stamp.book||stamp.identity!==fixedPaymentIdentity(bank,tx)||stamp.ref!==(expense?tx.extId||null:tx.id||null)||!stamp.account||stamp.account!==(tx.acc||tx.obAcc||null)||
+    !stamp.id||!(stamp.at>0)||!(Date.parse(stamp.balanceAt)>0)||!accounts.length||
+    !(s.obBalAt&&s.obBalAt[stamp.aspsp]===stamp.balanceAt)) return false;
+  // Una cuenta vieja o que falló impide dar por leído el banco entero (R5-2).
+  return accounts.some(function(a){ return (a.bankIban||a.bankUid)===stamp.account; })&&accounts.every(function(a){ const b=a.obSync;return !a.balanceStale&&b&&a.value===b.value&&a.balSaldo===b.balance&&b.account===(a.bankIban||a.bankUid||null)&&
+    b.id===stamp.id&&b.at===stamp.at&&b.aspsp===stamp.aspsp&&b.balanceAt===stamp.balanceAt; });
 }
 // Los de un solo banco, para el simulador «¿me lo puedo permitir?».
 function bankPendingEvents(state, bank, y, m, today){
@@ -1494,7 +1522,11 @@ function categoryOfBankTx(tx){
 }
 // Aplana los movimientos enlazados conservando bancos; el diario aplica su ventana de fechas.
 const obPendingResponses=new WeakMap();
-function flattenBankTx(links, previous){
+function obClientSyncStamp(link,sync){
+  return sync&&typeof sync.id==="string"&&sync.id&&Number.isFinite(sync.at)&&sync.at>0?
+    {id:sync.id,at:sync.at,aspsp:link.aspsp,balanceAt:link.balanceAt||null}:null;
+}
+function flattenBankTx(links, previous, sync){
   previous=Array.isArray(previous)?previous:[];
   const out=[];
   const partial={}, reported={}, sealed={}, expired={};
@@ -1527,7 +1559,11 @@ function flattenBankTx(links, previous){
       if(partial[ent]&&(!t||t.amount==null||String(t.amount).trim()===""||!isFinite(Number(t.amount)))) return;
       // `note` = concepto del extracto (remittance_information): lo que hace que el histórico se
       // entienda sin abrir la app del banco (2026-07-24).
-      out.push({ ent:ent, id:t.ext_id||null, date:String(t.date||"").slice(0,10), amount:Number(t.amount)||0, merchant:t.merchant||"", note:t.note||"", card:!!t.card, status:t.status||"", ...(t.mcc?{mcc:t.mcc}:{}), ...(t.concept?{concept:t.concept}:{}), ...(accs[i]?{acc:String(accs[i])}:{}) });
+      const tx={ ent:ent, id:t.ext_id||null, date:String(t.date||"").slice(0,10), amount:Number(t.amount)||0, merchant:t.merchant||"", note:t.note||"", card:!!t.card, status:t.status||"", ...(t.mcc?{mcc:t.mcc}:{}), ...(t.concept?{concept:t.concept}:{}), ...(accs[i]?{acc:String(accs[i])}:{}) };
+      const stamp=obClientSyncStamp(lk,sync);
+      // Solo las filas de ESTA respuesta reciben sello; las conservadas del feed parcial no.
+      if(stamp) tx.obSync=Object.assign({},stamp,{identity:fixedPaymentIdentity(ent,tx),ref:tx.id,account:tx.acc||null,book:obIsBooked(tx)});
+      out.push(tx);
     });
   });
   if(Object.keys(partial).length||Object.keys(expired).length){
@@ -2030,6 +2066,7 @@ function importObExpenses(s, txs, links){
         merchant:tx.merchant||"Ingreso", amount:tx.amount,
         category: esTraspasoPropio(s, tx) ? TRASPASO_CAT.id : INGRESO_CAT.id, source:"ob", ent:tx.ent };
       if(tx.acc) e.obAcc=tx.acc;
+      if(tx.obSync) e.obSync=tx.obSync;
       e.obName=e.merchant;   // lo que dijo el banco: el dedup se queda con esto aunque él lo renombre
       // Ingresos fuera de gasto diario: se ven (Mi ciclo) pero no mueven el presupuesto «gastado».
       if(tx.ent && !allow[tx.ent]) e.budgetSkip=true;
@@ -2049,6 +2086,7 @@ function importObExpenses(s, txs, links){
       merchant:tx.merchant||"Compra", amount:tx.amount,
       category: esAporteInv ? "inversion" : categoryOfBankTx(tx), source:"ob", ent:tx.ent };
     if(tx.acc) e.obAcc=tx.acc;
+    if(tx.obSync) e.obSync=tx.obSync;
     e.obName=e.merchant;   // lo que dijo el banco: el dedup se queda con esto aunque él lo renombre
     if(tx.ent && !allow[tx.ent]) e.budgetSkip=true;
     // Un recibo sin id (sembrado antes de tenerlos) no tiene a qué enlazarse: se sigue tirando.
@@ -4179,7 +4217,26 @@ function enrichNotesFromBankTx(expenses, txs){
     touched=true;
     return Object.assign({},e,{note:nt});
   });
-  return touched? out : expenses;
+  return touched?out:expenses;
+}
+function tagObClientSyncFromBankTx(expenses,txs){
+  const refs=new Map();
+  (txs||[]).forEach(function(tx){
+    if(!tx||!tx.id) return;
+    const k=obReferenceKey(tx.ent,tx.id,tx.amount),rows=refs.get(k)||[];
+    rows.push(tx);refs.set(k,rows);
+  });
+  let out=expenses;
+  (expenses||[]).forEach(function(e,i){
+    if(!e||!e.extId||["ob","ob-hist"].indexOf(e.source)<0) return;
+    const rows=refs.get(obReferenceKey(expenseBankOf(e),e.extId,e.amount))||[],tx=rows.length===1?rows[0]:null;
+    if(!tx||fixedPaymentIdentity(tx.ent,tx)!==fixedPaymentIdentity(expenseBankOf(e),e)||!e.obAcc||e.obAcc!==tx.acc) return;
+    if(!tx.obSync&&!e.obSync||tx.obSync===e.obSync) return;
+    const next=Object.assign({},e);
+    if(tx.obSync) next.obSync=tx.obSync;else delete next.obSync;
+    if(out===expenses) out=expenses.slice();out[i]=next;
+  });
+  return out;
 }
 /* La cuenta de origen de lo que YA estaba apuntado (14/10/2026). Cada sincronización vuelve a leer
    el mes en curso con su cuenta, así que los movimientos de antes de guardarla la recuperan solos
@@ -4205,7 +4262,7 @@ function tagObAccountsFromBankTx(expenses, txs){
     touched=true;
     return Object.assign({},e,{obAcc:acc});
   });
-  return touched? out : expenses;
+  return tagObClientSyncFromBankTx(touched?out:expenses,txs);
 }
 
 // Selector compacto de meses (1-12) para gastos no mensuales.
