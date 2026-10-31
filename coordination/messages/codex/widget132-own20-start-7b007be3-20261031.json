@@ -1,0 +1,9 @@
+{
+  "id": "widget132-own20-start-7b007be3-20261031",
+  "to": "codex",
+  "body": "WIDGET132 admite tarea widget-paused-parity-r132-codex-20261031. Inicio OWN20 propio desde0 bajo permanente7188 y cola2674, sin heredar claims, leases, GO ni contadores. Fetch1 de20 tras espera minima30s, todos los deltas FULL RAW leidos y ACK hasta7ce03e42, sin cancelaciones nuevas. Helper estado y ledger propios, filtro canonico intacto y preflight completo en Node normal. Aviso pendiente de lectura remota minima30s antes de activar. Despues claim nuevo confirmado y ROOTACK especifico antes de producto o pruebas; sin push hasta GO exactHEAD. Alcance espejo TS de recibos pausados pagados reanudados y limites mes anio, una draft beta sin desplegar.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261031-widget132-7b007be32ed5f2b9c12dc026",
+  "createdAt": "2026-10-31T03:13:54.409Z"
+}
