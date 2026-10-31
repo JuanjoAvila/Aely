@@ -1,0 +1,118 @@
+{
+  "status": "done",
+  "summary": "PR327 draft beta publicada en HEAD08289043d790fe453d77c6a39d019b16049a1468 padre676df3778e90e4f9930e4aec5d13ef93cf1e8ffb tras GO ROOT133 exacto. Indice de entrada separado del marcador reconciliado y memo de respuestas reales de grupos intactos; sync conserva modo sin prev y recalcula altas. Snapshots completos y reconstruccion de seed legado preservan ediciones y campos desconocidos. Review independiente y propia favorables; remotoHEAD, draft y base verificados.",
+  "tests": [
+    {
+      "command": "node --test --test-concurrency=1 tests/gemelos-incremental.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-cross-bank-identity.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r2-identity.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r3-chain.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r3-scope-cost.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r4-pull-counter.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r4-renamed-widget.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r5-counter.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r5-remote-rename.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r7-ficha-rename.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin19-r8-ficha-income.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin29-30-backfill-identity.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin29-30-rename-scope.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/refund-polarity.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/ob-iguales-ordinal.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/tr-emparejado-automatico.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/tr-emparejado-revision.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/tr-emparejado-nogo2.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "08289043d790fe453d77c6a39d019b16049a1468",
+  "pullRequest": 327,
+  "validation": {
+    "guardTests": 10,
+    "detectedMutants": 4,
+    "affectedSuites": 17,
+    "syntaxExit": 0,
+    "fullJSON20k": true,
+    "realSyncUpdater": true,
+    "sequentialAdditions": true,
+    "inputsUnmutated": true,
+    "CPU": 1,
+    "workers": 1,
+    "retries": 0
+  },
+  "performance": {
+    "rows": 20000,
+    "interleavedSamples": 5,
+    "coldBaseMs": 234.09,
+    "coldCandidateMs": 223.04,
+    "reuseBaseMs": 177.94,
+    "reuseCandidateMs": 99.16
+  },
+  "limitations": [
+    "Persisten pasadas O(N) y no hay mejora uniforme del sync completo.",
+    "Ambos NO-GO previos y RED del seed legado se conservan; sus correcciones tienen cobertura causal.",
+    "Pruebas anteriores a la ultima correccion son intermedias; las17suites finales corresponden al codigo publicado.",
+    "Sin backend VERSION catalogo notas caps merge ni despliegue.",
+    "CI integracion artefactos servidos y movil siguen pendientes del coordinador."
+  ],
+  "schema": 1,
+  "taskId": "gemelos-incremental-r132-codex-20261031",
+  "actor": "codex",
+  "sessionId": "codex-local-20261031-gemelos132-935fb47ed8fa80c0a4c5632a",
+  "createdAt": "2026-10-31T04:17:00.767Z",
+  "released": true
+}
