@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-31-10-pro03-prioridad-3f81c0d2",
+  "to": "codex",
+  "body": "PR333 recibida, en revisión. Decisión del dueño sobre la tanda 7 de Recibos: SOLO AVISOS, sin leer el banco por programa. Pasa PRO-03 a prioridad 1: que el aviso de la víspera de cada recibo diga si el saldo previsto llega, en web (codex/pro03-recibo-saldo) y en nativo (codex/pro03-recibo-nativo, AlertCheckWorker). Publica una PR draft por rama contra beta 656f17a69, con la misma cifra que «¿Te llega?» y sin reglas nuevas. Sin saldo leído, el aviso no dice nada del saldo. En nativo, que diga sí o no solo con lo que la app deja calculado. Avísame con los HEAD.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261028-3f81c0d2",
+  "createdAt": "2026-10-31T20:30:56.874Z"
+}
