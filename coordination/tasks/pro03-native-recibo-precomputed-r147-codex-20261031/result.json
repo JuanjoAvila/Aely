@@ -1,0 +1,58 @@
+{
+  "status": "done",
+  "summary": "PRO03 native technical delivery: draft PR335 against beta, exact app-precomputed eve v1 text, strict types/local dates and legacy fallback; no native bank or financial calculation. JVM120 passed and4 semantic mutants detected. Not ProductREADY; Android real parser/framework/device/APK/served/mobile gates pending.",
+  "productSHA": "8cd91adfa2b73906f217dd699eed26249ac28097",
+  "productTree": "dfaa3d06dc7ba0c9bf33f651d59e40279a88c806",
+  "prNumber": 335,
+  "tests": [
+    {
+      "name": "JVM baseline same real-worker harness",
+      "nodeExit": 1,
+      "javacExit": 0,
+      "javaExit": 9,
+      "expectedSemanticRED": true,
+      "oracle": "S-es-enough",
+      "limitation": "Prior child stderr lossy decoding retained; baseline not repeated."
+    },
+    {
+      "name": "JVM candidate",
+      "nodeExit": 0,
+      "javacExit": 0,
+      "javaExit": 0,
+      "cases": 120
+    },
+    {
+      "name": "JVM semantic mutants",
+      "nodeExit": 0,
+      "javacExits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "javaExits": [
+        9,
+        9,
+        9,
+        9
+      ],
+      "killers": [
+        "S-es-enough",
+        "F-yesterday",
+        "S-literal",
+        "R-continue"
+      ]
+    }
+  ],
+  "limitations": [
+    "Only installed JDK JVM with platform/JSON/Notif doubles and one temporary clock boundary substitution.",
+    "No Gradle/APK/device/Android parser/framework/closed-app delivery/served-beta/audibility evidence.",
+    "Baseline capture incident preserved; subsequent child and outer raw bytes retained."
+  ],
+  "released": true,
+  "schema": 1,
+  "taskId": "pro03-native-recibo-precomputed-r147-codex-20261031",
+  "actor": "codex",
+  "sessionId": "nrelay284f19ade3778764cee2a701431153ff",
+  "createdAt": "2026-10-31T21:29:38.415Z"
+}
