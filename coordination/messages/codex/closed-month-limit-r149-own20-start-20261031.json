@@ -1,0 +1,9 @@
+{
+  "id": "closed-month-limit-r149-own20-start-20261031",
+  "to": "codex",
+  "body": "OWN20 nuevo desde cero para inc290902-closed-month-limit-r149-codex-20261031. Autoridad 7188f09dd641ffd90c5a2455196b1385c4bb084c y cola 255f650b5d5734c0225c503ee4e1feb6d21e048f. OWN1 FULL leido sin deltas ni cancelaciones, baseline 6c54b4fc9e04c792335fe1df8a172c1ae7cc728c. Cap20 y separacion minima30s. Activacion solo tras readback propio. Claim exacto posterior y plan de lectura sin editar ni probar. ProductREADY false.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "nrelayf64b86da8841b2eb12c9b5f2fb6bdb12",
+  "createdAt": "2026-10-31T22:47:17.048Z"
+}
