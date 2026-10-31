@@ -1,0 +1,9 @@
+{
+  "id": "subcoord134-own20-start-20261031",
+  "to": "codex",
+  "body": "OWN START ROOT134, sesion nueva b4066d98d0f80518c579f540, OWN20 inicial propio desde0 por grant permanente7188f09dd641ffd90c5a2455196b1385c4bb084c para la cola044946c8 y sus sucesores. Admision expresa y rutina unica retarget verificados. Primer fetch tras espera>=30s completo RAW y ACK desde RETURN6f7491d680e1122b6af324001227c2a6408611a8, sin deltas ni cancelaciones nuevos. Fuente ROOT133 OWN20 congelada; no se heredan claims, leases ni contadores. No producto ni despacho antes de readback OWN>=30s. Worker recibos-manual-pausa-r133-codex-20261031 conserva claim y reloj independientes; candidato555fe0c3656a3aeb948ff2423c79f674c5b3f92c pendiente revision propia. No ProductREADY.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261031-r134-b4066d98d0f80518c579f540",
+  "createdAt": "2026-10-31T05:14:26.391Z"
+}
