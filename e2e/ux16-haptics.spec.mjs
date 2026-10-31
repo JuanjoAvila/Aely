@@ -89,7 +89,10 @@ export async function ux16BrowserCases(){
 }
 
 test('UX16: borde y anillo reales con transporte nativo sintetico',async({page})=>{
-  await seedLoggedInDashboard(page,{budget:1000,accounts:[],expenses:[],__seenVersion:fs.readFileSync(new URL('../VERSION',import.meta.url),'utf8').trim()});
+  await seedLoggedInDashboard(page,{budget:1000,accounts:[],
+    // Desde la 4.26.187 el anillo cuenta lo USADO y la ristra sigue al trazo: con el mes sin gastar
+    // no hay trazo ni toques (misma siembra que ux16-round9).
+    expenses:[{id:'g',date:new Date().toISOString(),amount:1000,category:'super'}],__seenVersion:fs.readFileSync(new URL('../VERSION',import.meta.url),'utf8').trim()});
   await page.route('https://**/*',route=>route.abort());
   await page.addInitScript(()=>{
     window.__ux16={edge:[],fill:[],fillBeforeSplash:0,splashAt:0};

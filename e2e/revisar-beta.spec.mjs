@@ -1641,6 +1641,10 @@ for(const lang of ["es","en","ca"])test(`109 histórica: conserva rechazo y guio
 });
 
 for(const lang of ["es","en","ca"])test(`cola publicada: no vuelve a pedir las catorce entregadas (${lang})`,async({page})=>{
+  // Dos tandas sintéticas montan el panel entero cuatro veces cada una: ~17 s con la máquina libre y
+  // el CI (2 workers, la suite entera en paralelo) la dejó en los 60 s del límite, dos intentos seguidos
+  // (run 41170325532). Es coste de montaje, no una espera por algo que no llega: se triplica el límite.
+  test.slow();
   await abrirRevisionBeta(page,lang);
   // El retiro113 modifica sólo los dos guiones sustituidos: el histórico112 queda fijado
   // por Git, y la copia autorizada113 es un oráculo literal independiente del build.

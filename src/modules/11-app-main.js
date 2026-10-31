@@ -239,11 +239,17 @@ function App(){
     const sh=e.currentTarget.scrollHeight;
     const dy=y-lastScrollY.current;
     if(ultimoScrollH.current && sh!==ultimoScrollH.current){
+      const crecio=sh>ultimoScrollH.current;
       ultimoScrollH.current=sh;
       lastScrollY.current=y;
       // Al cambiar una regla puede variar el alto estando ya arriba: el tope debe recuperar
       // la navegación aunque el navegador no haya desplazado el contenido (DOM Metas, 4/10).
       if(Math.abs(dy)<6 && y>8) return;
+      /* Gastos pagina por scroll (tandas de GX_TANDA): al crecer la lista el motor recoloca
+         `scrollTop` hacia arriba (-96 px medidos) y eso parecía una subida suya: la barra
+         escondida reaparecía sola en pleno descenso. Un salto hacia arriba con el contenido recién
+         crecido solo cuenta como subida si hay un dedo subiendo contenido ahora mismo. */
+      if(crecio && dy<0 && y>8 && !(fingerScrollDir.current===-1 && (Date.now()-fingerScrollAt.current)<900)) return;
     } else {
       ultimoScrollH.current=sh;
       lastScrollY.current=y;
