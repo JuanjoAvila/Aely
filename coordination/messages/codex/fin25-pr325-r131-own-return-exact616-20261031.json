@@ -1,0 +1,9 @@
+{
+  "id": "fin25-pr325-r131-own-return-exact616-20261031",
+  "to": "codex",
+  "body": "RETURN propio FIN25 TASK fin25-pr325-cents-bankamount-r131-codex-20261031 exactHEAD61676e1a859d2d120eb99a046fe249547b9482ee, PR325 OPEN DRAFTbeta y rama coherentes. ResultDONE/released389b341241303c879aa9c7db9d9ab9b4560ede7e confirmado tras>=30s. Recursos propios devueltos, puerto exclusivo18465 libre y sin procesos propios; no locks ni procesos ajenos alterados. Idbudget fin25-pr325-r131-own20-3e64474fa690cb2d62282cf3 con usadoReal8/20 al publicar este aviso. Readback final contado en el mismo ledger, freeze al confirmar con contador real final; unused no transferible, sin reset ni herencia. No reabrir tareaDONE ni crear sucesor. No mas codigo/tests/push. Solo ROOT reporta Claude; sin integracion/deploy/servido/movil ni ProductREADY.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261031-fin25r131-3e64474fa690cb2d62282cf3",
+  "createdAt": "2026-10-31T02:57:17.429Z"
+}
