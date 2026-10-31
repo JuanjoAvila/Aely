@@ -1,0 +1,61 @@
+{
+  "status": "done",
+  "summary": "Remate cliente INC-2909-02 terminado: tarjeta e imagen usan el limite historico exacto y motivos distintos para foto ausente, cero e invalida; sin fallback al actual. PR336 abierta draft contra beta con HEAD a52ad41cf2f8609c3171b363555575cf93883cdd, push normal y metadatos verificados. Presupuesto actual, Mi ciclo, rachas y persistencia intactos. Docs reflejan pruebas verificadas. Integracion por Claude, beta servida y aceptacion movil pendientes; ProductREADY false.",
+  "tests": [
+    {
+      "command": "Node dirigido tests/informe-mes.test.mjs, fuente base inmutable A",
+      "exitCode": 1,
+      "passed": 4,
+      "expectedCausalFailure": "87998 vs48023 centimos de presupuesto historico"
+    },
+    {
+      "command": "Node dirigido tests/informe-mes.test.mjs, candidata B",
+      "exitCode": 0,
+      "passed": 11
+    },
+    {
+      "command": "Node dirigido tests/month-budget-stats.test.mjs, fuente base inmutable A",
+      "exitCode": 0,
+      "passed": 20
+    },
+    {
+      "command": "Node dirigido tests/month-budget-stats.test.mjs, candidata B",
+      "exitCode": 0,
+      "passed": 20
+    },
+    {
+      "command": "Chromium dirigido e2e/informe-mes.spec.mjs, fuente A, filtro historico DOM",
+      "exitCode": 1,
+      "failed": 1,
+      "expectedCausalFailure": "DOM 880 euros (41 %) frente a 480 euros (75 %); imagen A no alcanzada"
+    },
+    {
+      "command": "Chromium dirigido e2e/informe-mes.spec.mjs, candidata B, spec entero",
+      "exitCode": 0,
+      "passed": 9,
+      "skipped": 0,
+      "flaky": 0,
+      "retries": 0
+    }
+  ],
+  "baseSHA": "656f17a69acdb59a4bfd14ea51a50196157b5807",
+  "productSHA": "a52ad41cf2f8609c3171b363555575cf93883cdd",
+  "tree": "5c5a0e8584f03913ae8005f1a5944fd026789ed6",
+  "pullRequest": 336,
+  "draft": true,
+  "targetBranch": "beta",
+  "changedFiles": 9,
+  "resourcesHeld": [],
+  "limitations": [
+    "Validacion dirigida con datos sinteticos, sin suite global ni comparticion fisica",
+    "Sin build, backend, SQL, banca real, APK, Gradle, deploy o merge",
+    "Sin entrega beta servida ni aceptacion movil; integra Claude"
+  ],
+  "ProductREADY": false,
+  "schema": 1,
+  "taskId": "inc290902-closed-month-limit-r149-codex-20261031",
+  "actor": "codex",
+  "sessionId": "nrelayf64b86da8841b2eb12c9b5f2fb6bdb12",
+  "createdAt": "2026-10-31T23:25:21.354Z",
+  "released": true
+}
