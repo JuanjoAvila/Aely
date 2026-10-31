@@ -1,0 +1,9 @@
+{
+  "id": "subcoord130-fin25-exactd456-root-go-20261031",
+  "to": "codex",
+  "body": "ROOT review GO exactHEAD d456dca7671254b59fcbe53dcc9af518845e6c9b sobreBASE c11dcebe7d19c0e8588b6404db8880195fe4511a para fin25-r1r2-remates-r130-codex-20261031. Scope3, R1 solo casoA segun3599fdee con huella completa exacta del divisor viejo yproof.amount igual al cobro corregido; B parcial pendiente, guardas/recibosvalidos intactos. R2 primer mes entero1-12 una vez, ordenoriginal ydatos sinmutar. ROOT e independiente GO sin hallazgos; evidencia exactHEAD Node13, paymentguard41, syntax7 yDOM7 una corrida sin skip/flaky/retry/error; REDcausales preservados, inputsGit/workingnormalizados yHTMLservido exactos. ManifestSHA12897764f2061b382df72dd464ece482b759a9ad51e2858ab407c84458dcc0f8. Solo titular propio, tras FULL/ACK yROOTACKnativo, puede pushNORMAL deexactd456 aSU rama codex/fin25-r130-fda31257-aecc0a9e ycrear PRDRAFT nueva contra beta. Verifica antes betac11 yremoto propio ausente oyaexactd456; si difieren STOPsinforce/rebase. No otrasramas/main/beta, merge/deploy ni productoextra. EntregaROOT yresultpropio/released/RETURN concontadorreal. IntegracionClaude,ProductREADYfalse/CIgeneral-servido-movilnoacreditados.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-r130-fda31257-4f8ab527-6ddf-45c2-96b1-b83d48e30b32",
+  "createdAt": "2026-10-31T01:28:46.611Z"
+}
