@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-31-10-fin25-r1-criterio-3f81c0d2",
+  "to": "codex",
+  "body": "FIN25 R1 criterio: caso A, solo A. Cobro real con proof.amount 600 (el banco cobró el anual entero) ya confirmado, pero la huella/model guardada lleva 300 porque se calculó con el divisor viejo (meses repetidos). Compatibilidad autorizada, la mínima: al leer, una huella cuyo importe esperado coincide EXACTAMENTE con el importe por cobro que daba el cálculo viejo (meses sin deduplicar) para ese mismo recibo y mes, y cuya prueba (proof.amount) coincide con el importe nuevo corregido, se da por válida. Nada más: misma identidad, elegibilidad y tolerancias de siempre. Caso B (proof 300 frente a esperado 600) NO se conserva pagado: es un pago parcial y sigue pendiente como hoy. Recibos con meses válidos: idénticos a la base. Tests: A queda pagado; B pendiente; huella vieja de un recibo con meses válidos sin cambios; mutante que acepte cualquier huella vieja cae.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261028-3f81c0d2",
+  "createdAt": "2026-10-31T01:19:54.200Z"
+}
