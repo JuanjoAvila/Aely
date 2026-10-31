@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "id": "recibos-t4-r2-book-edit-r146-codex-20261031",
+  "from": "codex",
+  "coordinatorSession": "nrelay4bfe27f0eb57167c233180b15e5f0ad1",
+  "createdAt": "2026-10-31T19:31:40.621Z",
+  "to": "codex",
+  "baseSHA": "c89bb12c528f079640a514b95334c21b9df2d2c1",
+  "objective": "Continuacion horaria R2 Recibos t4 tras fuente blocked/released: corregir solo ediciones no economicas o importe/dia efectivamente iguales para que BOOK no fabrique paidYm ni quite Pagado aun sin restar del saldo. Completar candidato privado incompleto, preservando el contrato anterior en TODO cambio real de dia o importe, tambien Solo este mes y overrides.",
+  "scope": [
+    "src/modules/08-motor-bank.js",
+    "tests/recibos-t4-book-edit-state.test.mjs",
+    "scripts/run-tests.mjs",
+    "docs/ARQUITECTURA.md"
+  ],
+  "authority": [
+    "2b724590d9bf0c6d195396b2ab407be8035183b3",
+    "d43a86b5982b4260349cef58f37ed5ecba5ddf41",
+    "4822d3f442cbef2956f73b969569ddf68cc1de3f",
+    "7188f09dd641ffd90c5a2455196b1385c4bb084c",
+    "1d66efa042ac8ae01b70eb79044f69020d7e5208",
+    "7f04ec10af629419675f802a122917fe0fa9ced0"
+  ],
+  "previousTaskId": "recibos-t4-r2-book-edit-r145-codex-20261031",
+  "previousResultSHA": "b490ea0ca2126cdf3f141a6189e6df7664fa4e4b",
+  "previousRETURN": "8bb24f31c60b3eff22730ae71bfc65457aeab3e2",
+  "sourceState": "BLOCKED_RELEASED_PRIVATE_WIP_INCOMPLETE_UNTESTED_OWN8_FROZEN12",
+  "acceptance": [
+    "Reproducir causalmente R2 sobre beta c89: BOOK real de este mes sin lectura posterior, pago reconocido pero todavia no incluido en saldo; edicion no economica o patch con importe/dia iguales no escribe paidYm ni cambia estado, fila pendiente ni previsiones.",
+    "Usar fixedEditarRecibo y patchFixedById/fixedMarcaTrasCambio reales y puertas reales de fixedPaymentState,reciboEnElSaldo,pendingWalkEvents/minByBank. Oraculos independientes de centimos,proof BOOK e identidad; no tests de texto ni bendecir conducta base erronea. Comparar antes/despues y base en cada exclusion.",
+    "Conservar semantica de t4 Solo este mes/Desde ahora, meses ya pagados congelados, vinculos y pruebas anteriores, manual paidYm valido, notificaciones/expense y ambos calendarios. Analizar cambios reales de importe/dia sin ampliar reglas de dinero por inferencia; reportar decision concreta si el contrato fuera ambiguo.",
+    "Checkout y rama propios desde base c89 exacta; no portar reparacion privada PR332 aun no integrada ni usar fuente/checkout/helper cerrado para editar. Un escritor y runner, fuentes anteriores inmutables.",
+    "Preparar candidato/diff y matriz dirigida red/green/causal exacta; revision ROOT antes ENTER y antes nuevo commit/push. Node y e2e directos, presupuesto y adaptacion de arneses para dependencias reales autorizados por cola5/d43a. No repetir casos cerrados salvo cambio/fallo que justifique nueva validacion; serie, cero retry, stopfirstunexpected, logs y raw exits durables.",
+    "Cada punto va en su propia PR draft contra beta, con revision de HEAD exacto y GO ROOT de publicacion. BACKLOG privado, VERSION/notas/catalogo/caps y superficies ajenas intactos; documentacion de arquitectura solo si cambia flujo real.",
+    "Fuente cerro con pruebas0, sin loader ni sintaxis validados y sin producto commit/push. V2 privada NO tiene ENTERGO: no ejecutar matriz7 sin corregir y nueva revision. Importar snapshot solo tras admision/OWN/claim propios y GO concreto, a checkout NUEVO sobre c89; nunca ejecutar/editar fuente cerrada.",
+    "P1 pendiente: ruta steps debe conservar trigger previo cuando cambie dia superior O dia efectivo O importe efectivo con day presente. No basta comparar solo dayIn si el mes pagado congela cambios globales. Cubrir cruce28a17 con feed fresco, retirada override mensual, importe efectivo y mes pagado congelado; contrastar paidYm/paidDay/wait/proof/events/minByBank/cents con funciones reales de base.",
+    "Guardar mismo valor al centimo y cleanDay equivalente debe preservar BOOK/identidad/ausencia paidYm, sinRestar y proyecciones en ambas rutas. No modificar fixed-day-reconcile ni regla monetaria de cambios reales; Claude1d66efa0 confirma solo no-op."
+  ],
+  "constraints": [
+    "Recepcion ACK propia y admision nativa/receipt/confirmacion ROOT antes helper/canal/producto. Sesion,nonce,OWN20 nuevos desde cero, lectura FULL RAW y ACK TODOS los intermedios/cancelaciones desde watermark proporcionado, primera espera y notice/readback al menos30s. Nueva claim propia confirmada antes checkout/edicion.",
+    "Solo trabajador publica claim/result/RETURN propios; reporta al coordinador. Solo ROOT a Claude. No heredar counters,claim,lease,helperstate de PR332 terminado.",
+    "Launcher FOCAL01 rechazado sigue vinculante: no escribir, reintentar, ejecutar, equivalente,inline,proxy ni otra identidad. No wrapper de afinidad/PID/CPU1 claim para Node directo. No ejecutar e2e/Node fuera matriz exacta ROOT.",
+    "No suite entera/npm test/build/Gradle/CPU6/servidor/SQL/backend/Edge/deploy/merge beta/main/force/reset/datos reales ni scope ajeno por arrastre. PR332 queda revision Claude; PR330 servidor aparcada y UX17 terminada, no reabrir.",
+    "Subagentes autorizados solo si subtarea independiente util, sin duplicar pruebas ni compartir editores; reportan solo al padre.",
+    "Nueva sesion/nonce/OWN20 desde0; no heredar8/20 ni12remanentes ni claim/ledger. Reportes solo al coordinador admitido. Nuevo clock tras admision nativa.",
+    "Claude7f04ec10 permite Node/e2e dirigidos en paralelo con su integrador; propias corridas en serie, cero retry/stopfirstunexpected. No parar por procesos ajenos ni tomar/liberar sus recursos. Exclusividad de suite completa/npmtest/Gradle/rendimiento no concede ejecutarlos."
+  ],
+  "deliverable": "Candidato privado con repro red, guardianes de centimos/estado y mutantes causales; matriz exacta y HEAD revisado antes PR draft separada.",
+  "initialState": "PREPARED_FOR_HOURLY_SUCCESSOR_SOURCE_CLOSED_NO_WORKER_CREATED_NO_CLAIM"
+}
