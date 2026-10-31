@@ -7148,6 +7148,23 @@ function mergePlanThreeWay(base,local,remote,kind,deleted,localNewer){
         if(has(left,"paymentProofs")||has(right,"paymentProofs"))merged.paymentProofs=has(left,"paymentProofs")&&goalSyncEqual(proofs,a)?left.paymentProofs:has(right,"paymentProofs")&&goalSyncEqual(proofs,c)?right.paymentProofs:proofs;
         return;
       }
+      /* «Ya me lo ha pagado» (tanda 5): dos móviles que marcan a personas distintas suman las dos
+         marcas; quitarla en uno la quita si el otro no la tocó (rev. t5, R3). Mes a mes, id a id. */
+      if(kind==="fixed"&&group[0]==="repartoCobrado"&&[old,left,right].every(function(o){return !has(o,"repartoCobrado")||o.repartoCobrado&&typeof o.repartoCobrado==="object"&&!Array.isArray(o.repartoCobrado);})){
+        const b0=old&&old.repartoCobrado||{},a=left.repartoCobrado||{},c=right.repartoCobrado||{},out={};
+        new Set([...Object.keys(b0),...Object.keys(a),...Object.keys(c)]).forEach(function(month){
+          const lista=function(o){return Array.isArray(o[month])?o[month]:[];};
+          const la=lista(a),lc=lista(c),lb=lista(b0),ids=[];
+          la.concat(lc).forEach(function(id){
+            if(ids.indexOf(id)>=0)return;
+            const enA=la.indexOf(id)>=0,enC=lc.indexOf(id)>=0,enB=lb.indexOf(id)>=0;
+            if(enA&&enC||enA&&!enB||enC&&!enB)ids.push(id);
+          });
+          if(ids.length)Object.defineProperty(out,month,{value:ids,enumerable:true,writable:true,configurable:true});
+        });
+        if(Object.keys(out).length)merged.repartoCobrado=goalSyncEqual(out,a)?left.repartoCobrado:goalSyncEqual(out,c)?right.repartoCobrado:out;
+        return;
+      }
       let source=right;
       // La primera lectura tras actualizar aún no tiene base privada: una marca offline
       // no desaparece por esa ausencia si la nube conserva exactamente su importe y cuenta.
@@ -9849,7 +9866,9 @@ Object.assign(LANG.es,{
   pe_como_paga:"¿Cómo te paga?", pe_bizum:"Bizum", pe_transfer:"Transferencia", pe_debt:"Lo descuento", pe_descuenta_de:"Su parte se descuenta de",
   pe_recibos:"Sus recibos", pe_que_recibos:"¿Qué recibos comparte?", pe_sin_recibos:"Ningún recibo se puede compartir", pe_borrar:"Borrar", pe_seguro:"¿Seguro? Sale de todos sus recibos",
   rp5_mas:"Más opciones", rp5_con_alguien:"¿Lo pagas con alguien?", rp5_no_admite:"Solo se comparte un recibo de cada mes o cada pocos meses",
-  rp5_otra:"Otra", rp5_importe_de:"Parte de {name}", rp5_quitar:"Quitar a {name}", rp5_tu_parte:"Tu parte"
+  rp5_otra:"Otra", rp5_importe_de:"Parte de {name}", rp5_quitar:"Quitar a {name}", rp5_tu_parte:"Tu parte",
+  rp5_supera:"Las partes pasan del importe: no te queda parte", rp5_descuento_mensual:"«Lo descuento» solo en recibos de cada mes",
+  rp5_rehacer:"Estas partes ya no cuadraban: revísalas y guarda"
 });
 
 
@@ -19445,7 +19464,7 @@ function planChargesMonth(s,m,y,today){
     var hecho=(e.repartoCobrado&&e.repartoCobrado[y*12+m])||[];
     r.push({id:"fixed_"+e.id,name:e.name,amount:a,day:status.day,bank:accOf(e),paid:status.paid,paidBank:status.paidBank,paidAmount:status.paidAmount,plannedBankAmount:e.bankAmount>0?Number(e.bankAmount):a,overdue:status.overdue,
       // Lo que cobra el banco (entero en un compartido): con eso se mira si llega (SPEC §6).
-      bankAmt:e.bankAmount>0?Number(e.bankAmount):a,
+      bankAmt:fixedCargoBanco(e,m,y),
       teDeben:deben.length?{n:deben.length,pagados:deben.filter(function(x){ return hecho.indexOf(x.id)>=0; }).length}:null});
   });
   (s.debts||[]).forEach(function(d){
@@ -19510,10 +19529,14 @@ function planChargesMonth(s,m,y,today){
    Solo en recibos «de cada vez» (no anuales repartidos ni en varios pagos): ahí `amount` y
    `bankAmount` no miden lo mismo (total del año contra cobro) y la cuenta no tendría sentido. */
 const REPARTO_VIAS=["bizum","transfer","debt"];
+/* Lo que sale del banco por un recibo ese mes: el importe entero en un compartido. UNA regla para
+   el recorrido de «¿Te llega?», lo pendiente por banco de Plan y el previsto a fin de mes de
+   `totals` (ficha de cuenta y asistente): antes este último restaba tu parte (rev. t5, R2). */
+function fixedCargoBanco(e,m,y){ return e.bankAmount>0?Number(e.bankAmount):occAmountIn(e,m,y); }
 function repartoAdmite(e){ return !!e&&!hasSchedule(e)&&e.freq!=="año"&&e.freq!=="anual"; }
-function repartoVigente(e){
-  const r=e&&e.reparto;
-  if(!Array.isArray(r)||!r.length||!repartoAdmite(e)||!(Number(e.bankAmount)>0)) return null;
+// Una lista de partes que cuadra al céntimo con tu parte (`mia`) y lo que cobra el banco.
+function repartoLista(r,mia,banco){
+  if(!Array.isArray(r)||!r.length) return null;
   let partes=0;
   const ids={};
   for(let i=0;i<r.length;i++){
@@ -19521,16 +19544,23 @@ function repartoVigente(e){
     if(!x||typeof x.id!=="string"||!x.id||ids[x.id]||!String(x.n||"").trim()||REPARTO_VIAS.indexOf(x.via)<0||!(Number(x.amt)>0)) return null;
     ids[x.id]=1; partes+=Math.round(Number(x.amt)*100);
   }
-  const mia=Math.round(Number(e.amount)*100);
-  return mia>0&&mia+partes===Math.round(Number(e.bankAmount)*100)?r:null;
+  const yo=Math.round(Number(mia)*100);
+  return yo>0&&yo+partes===Math.round(Number(banco)*100)?r:null;
 }
-/* Las partes de ESE mes: el recibo se cobra, no está en pausa sin pagar y no tiene un importe
-   congelado («Desde ahora» con el mes ya pagado deja ahí lo que se pagó entero, sin repartir). */
+function repartoVigente(e){
+  if(!e||!repartoAdmite(e)||!(Number(e.bankAmount)>0)) return null;
+  return repartoLista(e.reparto,e.amount,e.bankAmount);
+}
+/* Las partes de ESE mes: el recibo se cobra y no está en pausa sin pagar. Un mes ya pagado que
+   «Desde ahora» dejó congelado (`soloMes[ym].amt`) usa el reparto que tenía entonces
+   (`soloMes[ym].reparto`), si lo había y sigue cuadrando: cambiar con quién pagas a mitad de mes
+   no puede borrar el «Te deben» ni el descuento de un mes que ya se pagó (rev. t5, B1). Sin
+   reparto congelado ese mes se pagó entero: compartir un recibo ya pagado cuenta desde el siguiente. */
 function repartoDelMes(s,e,y,m,today){
-  const r=repartoVigente(e);
-  if(!r||!occursIn(e,m,y)||!(occAmountIn(e,m,y)>0)) return null;
+  if(!e||!repartoAdmite(e)||!(Number(e.bankAmount)>0)||!occursIn(e,m,y)||!(occAmountIn(e,m,y)>0)) return null;
   const o=fixedSoloMes(e,y,m);
-  if(o&&o.amt!=null) return null;
+  const r=o&&o.amt!=null?repartoLista(o.reparto,o.amt,e.bankAmount):repartoVigente(e);
+  if(!r) return null;
   if(fixedPausedIn(e,y,m)&&!fixedPaymentState(s,e,y,m,today).paid) return null;
   return r;
 }
@@ -19539,8 +19569,12 @@ function repartoDelMes(s,e,y,m,today){
    quitarla de todas partes perdería dinero sin que nadie lo decidiera. */
 function repartoDescuentaDe(s,x,e){
   if(!x||x.via!=="debt"||x.debtId==null||chargeMonths(e).length!==12) return null;
-  return (s.debts||[]).find(function(d){ return d.id===x.debtId&&debtActive(d); })||null;
+  return (s.debts||[]).find(function(d){ return d.id===x.debtId&&deudaDescontable(d); })||null;
 }
+/* Solo deudas sin interés (el préstamo familiar): en una con TAE la cuota lleva intereses y
+   reescribir cuota y amortización apagaría el interés en la reconstrucción del patrimonio
+   (`rateOf` deja de aplicarlo con `amort`; rev. t5, R1). */
+function deudaDescontable(d){ return debtActive(d)&&!(Number(d&&d.apr)>0); }
 /* «Lo descuento» (SPEC §6): la parte de esa persona no te la paga; se resta de lo que le pagas a
    ella por una deuda. La cuota (`monthly`) sigue siendo lo que sale del banco; «tu parte» de la
    cuota es cuota + descuentos («pagas 197 € + 53 € de Pepephone»): ese dinero también es tuyo,
@@ -19564,15 +19598,17 @@ function deudaDescuentoBase(s,d){
   return c/100;
 }
 /* Al poner, cambiar o quitar un «Lo descuento», la cuota que sale del banco cambia con él, pero
-   solo si la deuda ya cuadraba (lo que amortiza = cuota + lo que se descontaba antes). Una deuda
-   que no cuadra (intereses, o la cuota ya bajada a mano: el préstamo familiar que paga 197 y
-   amortiza 250) no se toca: con sus cifras la cuenta sale sola y reescribirla sería adivinar. */
+   solo si la deuda cuadraba ANTES del cambio (lo que amortiza = cuota + lo que se descontaba).
+   La cuota ya bajada a mano (el préstamo familiar que paga 197 y amortiza 250) no cuadra al
+   PONER el descuento y no se toca; una vez puesto sí cuadra (197 + 53 = 250), así que al quitarlo
+   o al pasar esa parte a Bizum la cuota vuelve a 250 y se quita `amort`, que es lo coherente
+   (rev. t5, R4). Una deuda con interés no se toca nunca (ni se ofrece: `deudaDescontable`). */
 function deudasTrasReparto(antes,despues){
   let cambia=false;
   const debts=(despues.debts||[]).map(function(d){
     const prev=(antes.debts||[]).find(function(o){ return o.id===d.id; })||d;
     const dA=Math.round(deudaDescuentoBase(antes,prev)*100), dD=Math.round(deudaDescuentoBase(despues,d)*100);
-    if(dA===dD) return d;
+    if(dA===dD||Number(d.apr)>0) return d;
     const cuota=Math.round((Number(d.monthly)||0)*100), amort=Math.round((d.amort!=null?Number(d.amort):Number(d.monthly)||0)*100);
     if(amort!==cuota+dA||amort-dD<=0) return d;
     const n=Object.assign({},d,{monthly:(amort-dD)/100,amort:amort/100});
@@ -19684,11 +19720,14 @@ function personaEnRecibos(s,persona,ids,y,m,today){
   let out=s;
   (ids||[]).forEach(function(id){
     const e=(out.fixed||[]).find(function(f){ return f.id===id; });
-    // Un compartido de antes (sin reparto) no se toca: no se sabe de quién es el resto.
-    if(!e||!repartoAdmite(e)||(Number(e.bankAmount)>0&&!repartoVigente(e))) return;
+    if(!e||!repartoAdmite(e)) return;
     const r=repartoVigente(e)||[];
     if(r.some(function(x){ return x.id===persona.id; })) return;
     const x={id:persona.id,n:persona.n,via:persona.via,auto:true};
+    // Un compartido de antes (solo `bankAmount`): esa persona se queda con todo el resto y tu parte
+    // no cambia, que es lo único que se sabe de él (rev. t5, uso 4).
+    const viejo=!r.length&&Number(e.bankAmount)>0, resto=Math.round(Number(e.bankAmount)*100)-Math.round(Number(e.amount)*100);
+    if(viejo){ if(!(resto>0)) return; x.amt=resto/100; delete x.auto; }
     if(persona.via==="debt") x.debtId=persona.debtId;
     const p=repartoParche(e,r.concat([x]));
     if(p) out=fixedEditarRecibo(out,id,p,"desde",y,m,today);
@@ -20079,7 +20118,7 @@ function pendingWalkEvents(state, y, m, today){
     const st=fixedPaymentState(state,e,y,m,today);
     if(st.paid&&reciboEnElSaldo(state,e,y,m,today,leido[b],st.day)) return;
     // El banco cobra el recibo entero aunque lo compartas: lo de los demás llega después (SPEC §6).
-    const banco=e.bankAmount>0?Number(e.bankAmount):a;
+    const banco=fixedCargoBanco(e,m,y);
     evs.push(st.paid?{bank:b, day:hoy(dayIn(e,m,y)), amt:-banco, sinRestar:true}:{bank:b, day:hoy(dayIn(e,m,y)), amt:-banco});
   });
   (state.debts||[]).forEach(function(d){
@@ -23450,7 +23489,7 @@ function fixedEditarRecibo(s, id, patch, scope, y, m, today){
     // cambia. Renombrar o cambiar la cuenta no quita un «solo este mes» de importe o de día (rev. t4, B1).
     if(!antes.paid&&solo[cur]){
       const o=Object.assign({},solo[cur]);
-      if("amount" in patch||"schedule" in patch||"freq" in patch||"months" in patch) delete o.amt;
+      if("amount" in patch||"schedule" in patch||"freq" in patch||"months" in patch){ delete o.amt; delete o.reparto; }
       if("day" in patch||"schedule" in patch) delete o.day;
       if(o.amt==null&&o.day==null) delete solo[cur]; else solo[cur]=o;
     }
@@ -23460,11 +23499,14 @@ function fixedEditarRecibo(s, id, patch, scope, y, m, today){
       if(ym===cur?!antes.paid:!fixedPaymentState(s,old,f.Y,f.M,f.T).paid) continue;
       const o=Object.assign({},solo[ym]), a=occAmountIn(old,f.M,f.Y), d=dayIn(old,f.M,f.Y);
       // Un mes pagado que el recibo nuevo ya no cobra se queda apuntado como suyo (rev. t4, R3).
+      const habia=o.amt==null?repartoDelMes(s,old,f.Y,f.M,f.T):null;
       if(!occursIn(n,f.M)){ o.on=true; o.amt=a; if(d!=null) o.day=d; }
       else {
         if(Math.round(a*100)!==Math.round(occAmountIn(n,f.M)*100)) o.amt=a;
         if(d!=null&&d!==dayIn(n,f.M)) o.day=d;
       }
+      // Con el mismo cobro del banco, el mes pagado guarda también con quién se repartió (rev. t5, B1).
+      if(habia&&o.amt!=null&&Math.round(Number(old.bankAmount)*100)===Math.round(Number(n.bankAmount)*100)) o.reparto=goalSyncCopy(habia);
       if(Object.keys(o).length) solo[ym]=o;
     }
   }
@@ -27609,7 +27651,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="073b53388c921044dc9883c676687dfa881c0005aa73d608612416ceae4bb4ec";
+var _rnSha="eb3e340290c47897cefea247801f48f4ed4794341c25eb3255d18e2aefb7bca7";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -29994,9 +30036,10 @@ function PersonaSheet({pid, draft, mensual:draftMensual, sinBorrar, state, set, 
   const savedRef=useRef(false);
   // Borrada desde otro sitio (o desde el otro móvil) mientras estaba abierta: no hay qué enseñar.
   useEffect(function(){ if(edit&&!p&&!savedRef.current) swipe.close(); },[edit,p]);
-  const deudas=(state.debts||[]).filter(debtActive);
+  const deudas=(state.debts||[]).filter(deudaDescontable);
   const mensual=function(id){ const e=(state.fixed||[]).find(function(f){ return f.id===id; }); return !!e&&chargeMonths(e).length===12; };
-  const elegibles=!edit&&!draft?(state.fixed||[]).filter(function(e){ return repartoAdmite(e)&&!(Number(e.bankAmount)>0&&!repartoVigente(e)); }):[];
+  // También los compartidos de antes: la persona se queda con lo que no es tuyo (`personaEnRecibos`).
+  const elegibles=!edit&&!draft?(state.fixed||[]).filter(function(e){ return repartoAdmite(e)&&(!(Number(e.bankAmount)>0)||repartoVigente(e)||Number(e.bankAmount)>Number(e.amount)); }):[];
   // «Lo descuento» va contra una cuota mensual: solo en recibos que se cobran todos los meses.
   const debtOk=deudas.length>0&&(edit?!!p&&p.recibos.every(function(r){ return mensual(r.id); }):draft?!!draftMensual:ids.every(mensual));
   const ok=!!n.trim()&&(via!=="debt"||debtOk&&deudas.some(function(d){ return d.id===debtId; }))&&(edit||draft||ids.length>0);
@@ -30036,6 +30079,7 @@ function PersonaSheet({pid, draft, mensual:draftMensual, sinBorrar, state, set, 
           PE_VIAS.filter(function(v){ return v[0]!=="debt"||deudas.length>0; }).map(function(v){
             return chip(v[0],t(v[1]),via===v[0],function(){ setVia(v[0]); if(v[0]==="debt"&&debtId==null&&deudas.length===1) setDebtId(deudas[0].id); },v[0]==="debt"&&!debtOk);
           })),
+        deudas.length>0&&!debtOk&&(edit||draft)&&React.createElement("div",{className:"hint","data-testid":"pe-solo-mensual"}, t("rp5_descuento_mensual")),
         React.createElement("div",{className:"pr6-fold"+(via==="debt"?" open":"")},
           React.createElement("div",Object.assign({className:"pr6-fold-in"},via==="debt"?null:{"aria-hidden":"true",inert:""}),
             React.createElement("div",{className:"pr6-lbl"}, t("pe_descuenta_de")),
@@ -30052,7 +30096,8 @@ function PersonaSheet({pid, draft, mensual:draftMensual, sinBorrar, state, set, 
             elegibles.map(function(e){
               const on=ids.indexOf(e.id)>=0;
               return chip(e.id,e.name,on,function(){ setIds(function(o){ return on?o.filter(function(x){ return x!==e.id; }):o.concat([e.id]); }); },via==="debt"&&!on&&!mensual(e.id));
-            })):React.createElement("div",{className:"pr6-empty"}, t("pe_sin_recibos"))),
+            })):React.createElement("div",{className:"pr6-empty"}, t("pe_sin_recibos")),
+          via==="debt"&&elegibles.some(function(e){ return !mensual(e.id); })&&React.createElement("div",{className:"hint","data-testid":"pe-solo-mensual"}, t("rp5_descuento_mensual"))),
         React.createElement("button",{type:"button",className:"pr6-cta","data-act":"persona-guardar",disabled:!ok,"aria-disabled":ok?"false":"true",onClick:guardar}, t("rp4_guardar")),
         // Desde el alta por pasos no se borra: el borrador la seguiría teniendo y la volvería a poner.
         edit&&!sinBorrar&&React.createElement("button",{type:"button",className:"pr6-btn pr6-btn-wide"+(gone?" pr6-seguro":""),"data-act":"persona-borrar",onClick:borrar},
@@ -31186,6 +31231,9 @@ function ReciboPasos({mode, row, once, state, set, totals, banks, onClose, onSav
      solo: su importe sigue bloqueado hasta que digas con quién lo pagas (`viejo`). */
   const vigente=edit&&kind==="fixed"?repartoVigente(it):null;
   const viejo=edit&&kind==="fixed"&&!vigente&&Number(it.bankAmount)>0&&repartoAdmite(it);
+  /* Un reparto que ya no cuadra (lo rompió un cliente viejo o una mezcla a medias) se ofrece para
+     rehacerlo: sus personas vuelven al borrador y al guardar cuadra de nuevo (rev. t5, R5). */
+  const roto=viejo&&Array.isArray(it.reparto)?it.reparto.filter(function(x){ return x&&typeof x.id==="string"&&x.id&&String(x.n||"").trim()&&REPARTO_VIAS.indexOf(x.via)>=0; }):[];
   const inicial=React.useMemo(function(){
     if(!edit) return {name:"",category:"",amount:"",variable:false,mode:once?"once":"rec",freq:"mes",months:[],day:null,
       once:{ym:cur,day:null},plan:null,account:banks[0]||"sabadell",reparto:[]};
@@ -31195,7 +31243,7 @@ function ReciboPasos({mode, row, once, state, set, totals, banks, onClose, onSav
     return {name:it.name||"",category:it.category||"",amount:rp4Raw(sch?it.schedule.reduce(function(a,x){ return a+(Number(x.amt)||0); },0):vigente||viejo?it.bankAmount:it.amount),
       variable:!!it.variable,mode:sch?"split":"rec",freq:({mensual:"mes",anual:"año"})[it.freq]||it.freq||"mes",months:Array.isArray(it.months)?it.months.slice():[],day:cleanDay(it.day),
       once:{ym:cur,day:today},plan:sch?it.schedule.map(function(x){ return {m:x.m,day:cleanDay(x.day),amt:rp4Raw(x.amt)}; }):null,account:accOf(it),
-      reparto:vigente?vigente.map(function(x){ return {id:x.id,n:x.n,via:x.via,debtId:x.via==="debt"?x.debtId:null,amt:x.auto?"":rp4Raw(x.amt)}; }):[]};
+      reparto:(vigente||roto).map(function(x){ return {id:x.id,n:x.n,via:x.via,debtId:x.via==="debt"?x.debtId:null,amt:x.auto?"":rp4Raw(x.amt)}; })};
   },[]);
   const [paso,setPaso]=useState(edit?4:0);
   const [f,setF]=useState(inicial);
@@ -31209,7 +31257,7 @@ function ReciboPasos({mode, row, once, state, set, totals, banks, onClose, onSav
   const [nuevas,setNuevas]=useState([]);       // personas creadas en este alta, aún sin recibo
   // Lo que se ha tocado al editar: solo eso va al recibo. Releer y volver a escribir lo demás
   // (unos pagos sin día, unos meses por defecto) lo cambiaría sin que nadie lo pidiera.
-  const [tocado,setTocado]=useState({});
+  const [tocado,setTocado]=useState(roto.length?{reparto:true}:{});
   const toca=function(){ const ks=arguments; setTocado(function(o){ const n=Object.assign({},o); Array.prototype.forEach.call(ks,function(k){ n[k]=true; }); return n; }); };
   const savedRef=useRef(false);
   const titleRef=useRef(null), sideRef=useRef(null);
@@ -31219,7 +31267,11 @@ function ReciboPasos({mode, row, once, state, set, totals, banks, onClose, onSav
   const pasoRef=useRef(paso); pasoRef.current=paso;
   const upd=function(p){ setF(function(o){ return Object.assign({},o,p); }); };
   const ir=function(n){ setPadFor(null); setGone(false); if(n===1) setFresh(!!f.amount); setPaso(n); };
+  const padRef=useRef(padFor); padRef.current=padFor;
+  // Con un teclado abierto, Atrás (botón, gesto o sistema) cierra solo el teclado (rev. t5, uso 2).
+  useBackClose(padFor!=null,function(){ setPadFor(null); });
   const atras=React.useCallback(function(){
+    if(padRef.current!=null){ setPadFor(null); return true; }
     const p=pasoRef.current;
     setPadFor(null); setGone(false);
     if(edit){ if(p===4){ onCloseRef.current&&onCloseRef.current(); return false; } setPaso(4); return true; }
@@ -31540,12 +31592,14 @@ function ReciboPasos({mode, row, once, state, set, totals, banks, onClose, onSav
   const mesNombre=lower(monthLong(m-1));
   // Más opciones › ¿Lo pagas con alguien? (SPEC §7): rejilla de personas, una fila por cada una
   // con su importe (vacío = a partes iguales) y tu parte, que es lo que queda.
+  // La primera persona de un compartido de antes se lleva lo que no es tuyo: tu parte no cambia.
+  const primeraDeViejo=function(o){ return viejo&&!o.reparto.length&&Number(it.bankAmount)>Number(it.amount)?rp4Raw(Math.round((it.bankAmount-it.amount)*100)/100):""; };
   const enReparto=function(id){ return f.reparto.some(function(x){ return x.id===id; }); };
   const ponQuita=function(q){
     setPadFor(null); toca("reparto");
     setF(function(o){ return Object.assign({},o,{reparto:o.reparto.some(function(x){ return x.id===q.id; })
       ?o.reparto.filter(function(x){ return x.id!==q.id; })
-      :o.reparto.concat([{id:q.id,n:q.n,via:q.via,debtId:q.via==="debt"?q.debtId:null,amt:""}])}); });
+      :o.reparto.concat([{id:q.id,n:q.n,via:q.via,debtId:q.via==="debt"?q.debtId:null,amt:primeraDeViejo(o)}])}); });
   };
   const guardada=function(id){ return personasDe(state).some(function(p){ return p.id===id; }); };
   const repUI=kind==="fixed"&&f.mode!=="once"&&React.createElement("div",{key:"mas",className:"rp5-mas"},
@@ -31583,6 +31637,9 @@ function ReciboPasos({mode, row, once, state, set, totals, banks, onClose, onSav
                   setF(function(o){ return Object.assign({},o,{reparto:o.reparto.map(function(z){ return z.id===x.id?Object.assign({},z,{amt:fn(z.amt||"")}):z; })}); });
                 }}))));
         }),
+        roto.length>0&&React.createElement("div",{className:"hint","data-testid":"rp5-rehacer"}, t("rp5_rehacer")),
+        rr&&!rr.ok&&rr.mia<=0&&React.createElement("div",{className:"hint","data-testid":"rp5-supera"}, t("rp5_supera")),
+        admite&&!mensual&&conocidas.some(function(q){ return q.via==="debt"; })&&React.createElement("div",{className:"hint","data-testid":"rp5-solo-mensual"}, t("rp5_descuento_mensual")),
         (rr||viejo)&&React.createElement("div",{className:"pr6-ll-row rp5-mine","data-testid":"rp5-tu-parte"},
           React.createElement("span",null, t("rp5_tu_parte")),
           React.createElement("span",{className:"num"+(rr&&!rr.ok?" rp5-mal":"")}, rr?(rr.ok?eur(rr.mia):"—"):eur(it.amount))))));
@@ -31642,7 +31699,7 @@ function ReciboPasos({mode, row, once, state, set, totals, banks, onClose, onSav
       onCreate:function(q){
         setNuevas(function(o){ return o.concat([q]); });
         toca("reparto");
-        setF(function(o){ return Object.assign({},o,{reparto:o.reparto.concat([{id:q.id,n:q.n,via:q.via,debtId:q.via==="debt"?q.debtId:null,amt:""}])}); });
+        setF(function(o){ return Object.assign({},o,{reparto:o.reparto.concat([{id:q.id,n:q.n,via:q.via,debtId:q.via==="debt"?q.debtId:null,amt:primeraDeViejo(o)}])}); });
       }}));
 }
 
@@ -35368,6 +35425,16 @@ function App(){
       if(paid){ paidThisMonth+=amt; }
       else { pendingThisMonth+=amt; pendingByBank[bank]=(pendingByBank[bank]||0)+amt; } };
     state.fixed.forEach(e=>{ if(fijoDelMes(e)) acc(occAmountIn(e,curMonth,curYear),accOf(e),isPaidIn(e,curMonth,today,curYear,state)); });
+    // Por banco cuenta lo que sale del banco: en un compartido, el importe entero (`fixedCargoBanco`,
+    // la regla del recorrido de «¿Te llega?»). Los totales del mes siguen con tu parte. Sin esto el
+    // previsto a fin de mes de la ficha de cuenta y del asistente salía 88 € por encima (rev. t5, R2).
+    state.fixed.forEach(e=>{
+      if(!fijoDelMes(e)) return;
+      const b=accOf(e), extra=fixedCargoBanco(e,curMonth,curYear)-occAmountIn(e,curMonth,curYear);
+      if(!(Math.abs(extra)>0.0001)) return;
+      chargesByBank[b]=(chargesByBank[b]||0)+extra;
+      if(!isPaidIn(e,curMonth,today,curYear,state)) pendingByBank[b]=(pendingByBank[b]||0)+extra;
+    });
     state.debts.forEach(d=>{ if(debtActive(d)) acc((d.monthly||0)+debtBalloonIn(d,curYear,curMonth),d.account||"sabadell",isDebtPaidThisMonth(d,today,state,curYear,curMonth)); });
     (state.oneoffs||[]).forEach(o=>{ if(oneoffOccurs(o,curYear,curMonth) && (o.amount||0)!==0) acc(o.amount,o.account||"sabadell",isPaidThisMonth(o,today)); });
     // --- CASH-FLOW: ingresos (nómina) y transferencias recurrentes PENDIENTES este mes ---

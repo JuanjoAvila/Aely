@@ -212,16 +212,27 @@ cobra el banco (`bankAmount`), también en los compartidos de antes sin reparto.
 «Lo descuento» (`via:"debt"`, solo en recibos de todos los meses y con la deuda viva) no sale en
 «Te deben»: la cuota de esa deuda en Plan, Inicio y Todos es `monthly` + descuento («pagas 197 € +
 53 € de Pepephone»), mientras que lo que sale del banco, el casado de la cuota y el recorrido
-siguen con `monthly`. Al poner, cambiar o quitar un descuento (también al borrar o deshacer el
-recibo: `removeFixedById`/`addFixedItem`), `deudasTrasReparto` mueve `monthly` y deja `amort`, pero
-solo si la deuda cuadraba (`amort` = `monthly` + lo que se descontaba antes); una deuda que no
-cuadra (intereses, cuota bajada a mano) no se toca. Cambiar quién paga va por `fixedEditarRecibo`
-«Desde ahora». En la mezcla de tres vías `reparto` va en el grupo financiero (con `amount` y
-`bankAmount`); `repartoCobrado` es un grupo propio. Un cliente viejo ignora los dos campos (los
-conserva con `Object.assign`) y ve tu parte y lo que cobra el banco, que son reales; su mezcla
-puede juntar un reparto de un móvil con el importe de otro, y entonces el cliente nuevo lo ignora
-porque ya no cuadra. Si el viejo cambia tu parte o quita el compartido, lo mismo. Sin servidor ni
-columnas nuevas; el resumen del Hogar (13) no cambia.
+siguen con `monthly`. Solo se ofrece en deudas sin interés (`deudaDescontable`): en una con TAE
+reescribir cuota y amortización apagaría el interés de la reconstrucción del patrimonio. Al poner,
+cambiar o quitar un descuento (también al borrar o deshacer el recibo:
+`removeFixedById`/`addFixedItem`), `deudasTrasReparto` mueve `monthly` y deja `amort`, pero solo si
+la deuda cuadraba antes del cambio (`amort` = `monthly` + lo que se descontaba). Una cuota bajada a
+mano (197 que amortiza 250) no cuadra al poner el descuento y no se toca; ya puesto sí cuadra
+(197 + 53), así que al quitarlo o pasar esa parte a Bizum vuelve a 250 sin `amort`. Cambiar quién
+paga va por `fixedEditarRecibo` «Desde ahora»; si el banco cobra lo mismo, un mes ya pagado guarda
+también con quién se repartió (`soloMes[ym].reparto`, validado contra `soloMes[ym].amt`), para no
+perder su «Te deben» ni su descuento. En la mezcla de tres vías `reparto` va en el grupo
+financiero (con `amount` y `bankAmount`); `repartoCobrado` se une mes a mes e id a id (dos móviles
+que marcan a personas distintas suman las dos; quitar una marca la quita si el otro no la tocó).
+El previsto a fin de mes de `totals` (`pendingByBank`, `projectedByBank`: ficha de cuenta y
+asistente) usa la misma regla que el recorrido (`fixedCargoBanco`). Un cliente viejo ignora los
+campos nuevos (los conserva con `Object.assign`) y ve tu parte y lo que cobra el banco, que son
+reales; su mezcla puede juntar un reparto de un móvil con el importe de otro, o cambiar tu parte
+o quitar el compartido, y entonces el cliente nuevo deja de usar ese reparto porque no cuadra: no
+salen esas personas en Personas ni en «Te deben». Al editar ese recibo, sus personas vuelven al
+borrador con un aviso para revisarlas, y al guardar el reparto cuadra otra vez. Un compartido de
+antes (solo `bankAmount`) al que se le añade una persona le da todo el resto: tu parte no cambia.
+Sin servidor ni columnas nuevas; el resumen del Hogar (13) no cambia.
 
 Si la lápida alcanza una fila con un borrador privado pendiente, la fila sigue
 borrada y el borrador se ofrece en Plan → Deudas. Recuperar solo precarga el editor,

@@ -4392,6 +4392,23 @@ function mergePlanThreeWay(base,local,remote,kind,deleted,localNewer){
         if(has(left,"paymentProofs")||has(right,"paymentProofs"))merged.paymentProofs=has(left,"paymentProofs")&&goalSyncEqual(proofs,a)?left.paymentProofs:has(right,"paymentProofs")&&goalSyncEqual(proofs,c)?right.paymentProofs:proofs;
         return;
       }
+      /* «Ya me lo ha pagado» (tanda 5): dos móviles que marcan a personas distintas suman las dos
+         marcas; quitarla en uno la quita si el otro no la tocó (rev. t5, R3). Mes a mes, id a id. */
+      if(kind==="fixed"&&group[0]==="repartoCobrado"&&[old,left,right].every(function(o){return !has(o,"repartoCobrado")||o.repartoCobrado&&typeof o.repartoCobrado==="object"&&!Array.isArray(o.repartoCobrado);})){
+        const b0=old&&old.repartoCobrado||{},a=left.repartoCobrado||{},c=right.repartoCobrado||{},out={};
+        new Set([...Object.keys(b0),...Object.keys(a),...Object.keys(c)]).forEach(function(month){
+          const lista=function(o){return Array.isArray(o[month])?o[month]:[];};
+          const la=lista(a),lc=lista(c),lb=lista(b0),ids=[];
+          la.concat(lc).forEach(function(id){
+            if(ids.indexOf(id)>=0)return;
+            const enA=la.indexOf(id)>=0,enC=lc.indexOf(id)>=0,enB=lb.indexOf(id)>=0;
+            if(enA&&enC||enA&&!enB||enC&&!enB)ids.push(id);
+          });
+          if(ids.length)Object.defineProperty(out,month,{value:ids,enumerable:true,writable:true,configurable:true});
+        });
+        if(Object.keys(out).length)merged.repartoCobrado=goalSyncEqual(out,a)?left.repartoCobrado:goalSyncEqual(out,c)?right.repartoCobrado:out;
+        return;
+      }
       let source=right;
       // La primera lectura tras actualizar aún no tiene base privada: una marca offline
       // no desaparece por esa ausencia si la nube conserva exactamente su importe y cuenta.

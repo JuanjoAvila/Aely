@@ -868,9 +868,10 @@ function PersonaSheet({pid, draft, mensual:draftMensual, sinBorrar, state, set, 
   const savedRef=useRef(false);
   // Borrada desde otro sitio (o desde el otro móvil) mientras estaba abierta: no hay qué enseñar.
   useEffect(function(){ if(edit&&!p&&!savedRef.current) swipe.close(); },[edit,p]);
-  const deudas=(state.debts||[]).filter(debtActive);
+  const deudas=(state.debts||[]).filter(deudaDescontable);
   const mensual=function(id){ const e=(state.fixed||[]).find(function(f){ return f.id===id; }); return !!e&&chargeMonths(e).length===12; };
-  const elegibles=!edit&&!draft?(state.fixed||[]).filter(function(e){ return repartoAdmite(e)&&!(Number(e.bankAmount)>0&&!repartoVigente(e)); }):[];
+  // También los compartidos de antes: la persona se queda con lo que no es tuyo (`personaEnRecibos`).
+  const elegibles=!edit&&!draft?(state.fixed||[]).filter(function(e){ return repartoAdmite(e)&&(!(Number(e.bankAmount)>0)||repartoVigente(e)||Number(e.bankAmount)>Number(e.amount)); }):[];
   // «Lo descuento» va contra una cuota mensual: solo en recibos que se cobran todos los meses.
   const debtOk=deudas.length>0&&(edit?!!p&&p.recibos.every(function(r){ return mensual(r.id); }):draft?!!draftMensual:ids.every(mensual));
   const ok=!!n.trim()&&(via!=="debt"||debtOk&&deudas.some(function(d){ return d.id===debtId; }))&&(edit||draft||ids.length>0);
@@ -910,6 +911,7 @@ function PersonaSheet({pid, draft, mensual:draftMensual, sinBorrar, state, set, 
           PE_VIAS.filter(function(v){ return v[0]!=="debt"||deudas.length>0; }).map(function(v){
             return chip(v[0],t(v[1]),via===v[0],function(){ setVia(v[0]); if(v[0]==="debt"&&debtId==null&&deudas.length===1) setDebtId(deudas[0].id); },v[0]==="debt"&&!debtOk);
           })),
+        deudas.length>0&&!debtOk&&(edit||draft)&&React.createElement("div",{className:"hint","data-testid":"pe-solo-mensual"}, t("rp5_descuento_mensual")),
         React.createElement("div",{className:"pr6-fold"+(via==="debt"?" open":"")},
           React.createElement("div",Object.assign({className:"pr6-fold-in"},via==="debt"?null:{"aria-hidden":"true",inert:""}),
             React.createElement("div",{className:"pr6-lbl"}, t("pe_descuenta_de")),
@@ -926,7 +928,8 @@ function PersonaSheet({pid, draft, mensual:draftMensual, sinBorrar, state, set, 
             elegibles.map(function(e){
               const on=ids.indexOf(e.id)>=0;
               return chip(e.id,e.name,on,function(){ setIds(function(o){ return on?o.filter(function(x){ return x!==e.id; }):o.concat([e.id]); }); },via==="debt"&&!on&&!mensual(e.id));
-            })):React.createElement("div",{className:"pr6-empty"}, t("pe_sin_recibos"))),
+            })):React.createElement("div",{className:"pr6-empty"}, t("pe_sin_recibos")),
+          via==="debt"&&elegibles.some(function(e){ return !mensual(e.id); })&&React.createElement("div",{className:"hint","data-testid":"pe-solo-mensual"}, t("rp5_descuento_mensual"))),
         React.createElement("button",{type:"button",className:"pr6-cta","data-act":"persona-guardar",disabled:!ok,"aria-disabled":ok?"false":"true",onClick:guardar}, t("rp4_guardar")),
         // Desde el alta por pasos no se borra: el borrador la seguiría teniendo y la volvería a poner.
         edit&&!sinBorrar&&React.createElement("button",{type:"button",className:"pr6-btn pr6-btn-wide"+(gone?" pr6-seguro":""),"data-act":"persona-borrar",onClick:borrar},
@@ -2060,6 +2063,9 @@ function ReciboPasos({mode, row, once, state, set, totals, banks, onClose, onSav
      solo: su importe sigue bloqueado hasta que digas con quién lo pagas (`viejo`). */
   const vigente=edit&&kind==="fixed"?repartoVigente(it):null;
   const viejo=edit&&kind==="fixed"&&!vigente&&Number(it.bankAmount)>0&&repartoAdmite(it);
+  /* Un reparto que ya no cuadra (lo rompió un cliente viejo o una mezcla a medias) se ofrece para
+     rehacerlo: sus personas vuelven al borrador y al guardar cuadra de nuevo (rev. t5, R5). */
+  const roto=viejo&&Array.isArray(it.reparto)?it.reparto.filter(function(x){ return x&&typeof x.id==="string"&&x.id&&String(x.n||"").trim()&&REPARTO_VIAS.indexOf(x.via)>=0; }):[];
   const inicial=React.useMemo(function(){
     if(!edit) return {name:"",category:"",amount:"",variable:false,mode:once?"once":"rec",freq:"mes",months:[],day:null,
       once:{ym:cur,day:null},plan:null,account:banks[0]||"sabadell",reparto:[]};
@@ -2069,7 +2075,7 @@ function ReciboPasos({mode, row, once, state, set, totals, banks, onClose, onSav
     return {name:it.name||"",category:it.category||"",amount:rp4Raw(sch?it.schedule.reduce(function(a,x){ return a+(Number(x.amt)||0); },0):vigente||viejo?it.bankAmount:it.amount),
       variable:!!it.variable,mode:sch?"split":"rec",freq:({mensual:"mes",anual:"año"})[it.freq]||it.freq||"mes",months:Array.isArray(it.months)?it.months.slice():[],day:cleanDay(it.day),
       once:{ym:cur,day:today},plan:sch?it.schedule.map(function(x){ return {m:x.m,day:cleanDay(x.day),amt:rp4Raw(x.amt)}; }):null,account:accOf(it),
-      reparto:vigente?vigente.map(function(x){ return {id:x.id,n:x.n,via:x.via,debtId:x.via==="debt"?x.debtId:null,amt:x.auto?"":rp4Raw(x.amt)}; }):[]};
+      reparto:(vigente||roto).map(function(x){ return {id:x.id,n:x.n,via:x.via,debtId:x.via==="debt"?x.debtId:null,amt:x.auto?"":rp4Raw(x.amt)}; })};
   },[]);
   const [paso,setPaso]=useState(edit?4:0);
   const [f,setF]=useState(inicial);
@@ -2083,7 +2089,7 @@ function ReciboPasos({mode, row, once, state, set, totals, banks, onClose, onSav
   const [nuevas,setNuevas]=useState([]);       // personas creadas en este alta, aún sin recibo
   // Lo que se ha tocado al editar: solo eso va al recibo. Releer y volver a escribir lo demás
   // (unos pagos sin día, unos meses por defecto) lo cambiaría sin que nadie lo pidiera.
-  const [tocado,setTocado]=useState({});
+  const [tocado,setTocado]=useState(roto.length?{reparto:true}:{});
   const toca=function(){ const ks=arguments; setTocado(function(o){ const n=Object.assign({},o); Array.prototype.forEach.call(ks,function(k){ n[k]=true; }); return n; }); };
   const savedRef=useRef(false);
   const titleRef=useRef(null), sideRef=useRef(null);
@@ -2093,7 +2099,11 @@ function ReciboPasos({mode, row, once, state, set, totals, banks, onClose, onSav
   const pasoRef=useRef(paso); pasoRef.current=paso;
   const upd=function(p){ setF(function(o){ return Object.assign({},o,p); }); };
   const ir=function(n){ setPadFor(null); setGone(false); if(n===1) setFresh(!!f.amount); setPaso(n); };
+  const padRef=useRef(padFor); padRef.current=padFor;
+  // Con un teclado abierto, Atrás (botón, gesto o sistema) cierra solo el teclado (rev. t5, uso 2).
+  useBackClose(padFor!=null,function(){ setPadFor(null); });
   const atras=React.useCallback(function(){
+    if(padRef.current!=null){ setPadFor(null); return true; }
     const p=pasoRef.current;
     setPadFor(null); setGone(false);
     if(edit){ if(p===4){ onCloseRef.current&&onCloseRef.current(); return false; } setPaso(4); return true; }
@@ -2414,12 +2424,14 @@ function ReciboPasos({mode, row, once, state, set, totals, banks, onClose, onSav
   const mesNombre=lower(monthLong(m-1));
   // Más opciones › ¿Lo pagas con alguien? (SPEC §7): rejilla de personas, una fila por cada una
   // con su importe (vacío = a partes iguales) y tu parte, que es lo que queda.
+  // La primera persona de un compartido de antes se lleva lo que no es tuyo: tu parte no cambia.
+  const primeraDeViejo=function(o){ return viejo&&!o.reparto.length&&Number(it.bankAmount)>Number(it.amount)?rp4Raw(Math.round((it.bankAmount-it.amount)*100)/100):""; };
   const enReparto=function(id){ return f.reparto.some(function(x){ return x.id===id; }); };
   const ponQuita=function(q){
     setPadFor(null); toca("reparto");
     setF(function(o){ return Object.assign({},o,{reparto:o.reparto.some(function(x){ return x.id===q.id; })
       ?o.reparto.filter(function(x){ return x.id!==q.id; })
-      :o.reparto.concat([{id:q.id,n:q.n,via:q.via,debtId:q.via==="debt"?q.debtId:null,amt:""}])}); });
+      :o.reparto.concat([{id:q.id,n:q.n,via:q.via,debtId:q.via==="debt"?q.debtId:null,amt:primeraDeViejo(o)}])}); });
   };
   const guardada=function(id){ return personasDe(state).some(function(p){ return p.id===id; }); };
   const repUI=kind==="fixed"&&f.mode!=="once"&&React.createElement("div",{key:"mas",className:"rp5-mas"},
@@ -2457,6 +2469,9 @@ function ReciboPasos({mode, row, once, state, set, totals, banks, onClose, onSav
                   setF(function(o){ return Object.assign({},o,{reparto:o.reparto.map(function(z){ return z.id===x.id?Object.assign({},z,{amt:fn(z.amt||"")}):z; })}); });
                 }}))));
         }),
+        roto.length>0&&React.createElement("div",{className:"hint","data-testid":"rp5-rehacer"}, t("rp5_rehacer")),
+        rr&&!rr.ok&&rr.mia<=0&&React.createElement("div",{className:"hint","data-testid":"rp5-supera"}, t("rp5_supera")),
+        admite&&!mensual&&conocidas.some(function(q){ return q.via==="debt"; })&&React.createElement("div",{className:"hint","data-testid":"rp5-solo-mensual"}, t("rp5_descuento_mensual")),
         (rr||viejo)&&React.createElement("div",{className:"pr6-ll-row rp5-mine","data-testid":"rp5-tu-parte"},
           React.createElement("span",null, t("rp5_tu_parte")),
           React.createElement("span",{className:"num"+(rr&&!rr.ok?" rp5-mal":"")}, rr?(rr.ok?eur(rr.mia):"—"):eur(it.amount))))));
@@ -2516,7 +2531,7 @@ function ReciboPasos({mode, row, once, state, set, totals, banks, onClose, onSav
       onCreate:function(q){
         setNuevas(function(o){ return o.concat([q]); });
         toca("reparto");
-        setF(function(o){ return Object.assign({},o,{reparto:o.reparto.concat([{id:q.id,n:q.n,via:q.via,debtId:q.via==="debt"?q.debtId:null,amt:""}])}); });
+        setF(function(o){ return Object.assign({},o,{reparto:o.reparto.concat([{id:q.id,n:q.n,via:q.via,debtId:q.via==="debt"?q.debtId:null,amt:primeraDeViejo(o)}])}); });
       }}));
 }
 

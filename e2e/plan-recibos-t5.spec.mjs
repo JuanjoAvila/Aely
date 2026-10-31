@@ -198,3 +198,126 @@ test("un compartido de antes (sin decir con quién) no se convierte solo y su im
   const s = await guardado(page);
   expect(s.fixed.find((x) => x.id === "pepe")).toEqual(Object.assign({}, viejo, { name: "Pepephone pack" }));
 });
+
+/* Remates de la revisión de la tanda 5 (rev-recibos-t5, NO-GO). Cada uno falla sin su arreglo. */
+const editarRecibo = async (page, recibos, id) => {
+  await abreTodos(page, recibos);
+  await page.locator('[data-bills-manage] [data-group="serv"]').click();
+  await page.locator('[data-bill-id="' + id + '"]').click();
+  await expect(hoja(page)).toHaveAttribute("data-modo", "edit");
+};
+
+test("B1: añadir a alguien a un recibo ya pagado este mes no borra su «Te deben» ni el descuento", async ({ page }) => {
+  const pagado = Object.assign({}, pepe, { paidYm: YM, paidDay: 5 });
+  const recibos = await abrePlan(page, { fixed: [pagado, luz], debts: [mama] });
+  await expect(total(recibos)).toHaveText("300,00 €");
+  await expect(recibos.getByTestId("plan-deben")).toHaveText("Te deben 10,00 €");
+  await editarRecibo(page, recibos, "pepe");
+  await paso(page, 4).locator('[data-act="persona-otra"]').click();
+  await persona(page).locator('[data-pe="name"]').fill("Nuevo");
+  await persona(page).locator('[data-act="persona-guardar"]').click();
+  await hoja(page).locator(".rp4-cta").click();
+  await expect(hoja(page)).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  await expect(page.locator('[data-bills-manage][data-screen="bills-home"]')).toHaveCount(1);
+  await page.keyboard.press("Escape");
+  await expect(page.locator("[data-bills-manage]")).toHaveCount(0);
+  await expect(total(recibos)).toHaveText("300,00 €");
+  await expect(recibos.getByTestId("plan-deben")).toHaveText("Te deben 10,00 €");
+  await expect(fila(recibos, "debt_mama")).toContainText("pagas 197,00 € + 53,00 € de Pepephone");
+  await expect(fila(recibos, "debt_mama")).toContainText("250,00 €");
+  const s = await guardado(page);
+  expect(s.fixed.find((f) => f.id === "pepe").soloMes[YM].reparto.map((x) => x.id)).toEqual(["pe_pareja", "pe_fam"]);
+});
+
+test("R1: «Lo descuento» no ofrece una deuda con interés", async ({ page }) => {
+  const hipo = { id: "hipo", name: "Hipoteca", monthly: 600, value: 90000, apr: 2.5, account: "sabadell", day: 1, asOf: YM - 1 };
+  const recibos = await abrePlan(page, { fixed: [recibo("pepe", "Pepephone", 85, 20)], debts: [hipo, Object.assign({}, mama, { monthly: 250, amort: undefined })] });
+  await abreTodos(page, recibos);
+  await page.locator('[data-bills-manage] [data-group="people"]').click();
+  await page.locator('[data-act="persona-add"]').click();
+  await persona(page).locator('[data-pe="via"] button', { hasText: "Lo descuento" }).click();
+  await expect(persona(page).locator('[data-pe="deuda"] button')).toHaveText(["Mamá"]);
+});
+
+test("R2: el previsto a fin de mes de la cuenta usa lo que cobra el banco, como «¿Te llega?»", async ({ page }) => {
+  await abrePlan(page, { fixed: [pepe, yt, luz], debts: [mama] });
+  await page.locator('.botnav-tab[data-tour="cartera"]').click();
+  await page.locator(".v4-card-list button.v4-mov").filter({ hasText: "Sabadell" }).first().click();
+  await expect(page.locator(".v4-sheet .v4-account-balance")).toContainText("a fin de mes: 2.638,00 €");
+});
+
+test("R3: dos móviles que marcan «Ya me lo ha pagado» a personas distintas suman las dos", async ({ page }) => {
+  await abrePlan(page, { fixed: [luz] });
+  const r = await page.evaluate((ym) => {
+    const base = [{ id: "f", amount: 5, bankAmount: 15, freq: "mes", day: 1 }];
+    const l = JSON.parse(JSON.stringify(base)), rr = JSON.parse(JSON.stringify(base));
+    l[0].repartoCobrado = { [ym]: ["a"] }; rr[0].repartoCobrado = { [ym]: ["b"] };
+    const m = mergePlanThreeWay(base, l, rr, "fixed");
+    const q = JSON.parse(JSON.stringify(m.rows[0].repartoCobrado));
+    // Quitar una marca en un móvil la quita si el otro no la tocó.
+    const b2 = [Object.assign({}, base[0], { repartoCobrado: { [ym]: ["a", "b"] } })], l2 = JSON.parse(JSON.stringify(b2)), r2 = JSON.parse(JSON.stringify(b2));
+    l2[0].repartoCobrado = { [ym]: ["b"] }; r2[0].day = 2;
+    const m2 = mergePlanThreeWay(b2, l2, r2, "fixed");
+    return { conflictos: m.conflicts.length, marcas: q[ym].slice().sort(), quitada: m2.rows[0].repartoCobrado[ym], c2: m2.conflicts.length };
+  }, YM);
+  expect(r).toEqual({ conflictos: 0, marcas: ["a", "b"], quitada: ["b"], c2: 0 });
+});
+
+test("uso: una parte mayor que el importe dice por qué no se guarda y Atrás cierra solo el teclado", async ({ page }) => {
+  const recibos = await abrePlan(page, { fixed: [luz] });
+  await editarRecibo(page, recibos, "luz");
+  await paso(page, 4).locator('[data-act="mas-opciones"]').click();
+  await paso(page, 4).locator('[data-act="persona-otra"]').click();
+  await persona(page).locator('[data-pe="name"]').fill("Bea");
+  await persona(page).locator('[data-act="persona-guardar"]').click();
+  await expect(persona(page)).toHaveCount(0);
+  const fp = paso(page, 4).locator(".rp5-row");
+  await fp.locator("[data-rp5-importe]").click();
+  await teclea(fp, "60");
+  await expect(paso(page, 4).getByTestId("rp5-supera")).toHaveText("Las partes pasan del importe: no te queda parte");
+  await expect(hoja(page).locator(".rp4-cta")).toBeDisabled();
+  await page.goBack();
+  await expect(hoja(page)).toHaveCount(1);
+  await expect(fp.locator(".pr6-fold.open")).toHaveCount(0);
+  await expect(fp.locator("[data-rp5-importe]")).toHaveText("60,00 €");
+});
+
+test("uso: Personas › Añadir ofrece los compartidos de antes sin cambiar tu parte; «Lo descuento» dice por qué no en un no mensual", async ({ page }) => {
+  const viejo = recibo("pepe", "Pepephone", 22, 20, { bankAmount: 85 });
+  const agua = recibo("agua", "Agua", 40, 10, { freq: "bimestral" });
+  const recibos = await abrePlan(page, { fixed: [viejo, agua, luz], debts: [Object.assign({}, mama, { monthly: 250, amort: undefined })] });
+  await abreTodos(page, recibos);
+  await page.locator('[data-bills-manage] [data-group="people"]').click();
+  await page.locator('[data-act="persona-add"]').click();
+  await persona(page).locator('[data-pe="via"] button', { hasText: "Lo descuento" }).click();
+  await expect(persona(page).locator('[data-pe="recibos"] button', { hasText: "Agua" })).toBeDisabled();
+  await expect(persona(page).getByTestId("pe-solo-mensual")).toHaveText("«Lo descuento» solo en recibos de cada mes");
+  await persona(page).locator('[data-pe="via"] button', { hasText: "Bizum" }).click();
+  await persona(page).locator('[data-pe="name"]').fill("Pareja");
+  await persona(page).locator('[data-pe="recibos"] button', { hasText: "Pepephone" }).click();
+  await persona(page).locator('[data-act="persona-guardar"]').click();
+  await expect(persona(page)).toHaveCount(0);
+  const s = await guardado(page);
+  const f = s.fixed.find((x) => x.id === "pepe");
+  expect([f.amount, f.bankAmount, f.reparto.map((x) => [x.n, x.amt])]).toEqual([22, 85, [["Pareja", 63]]]);
+});
+
+test("R5: un reparto que dejó de cuadrar se puede rehacer desde Editar", async ({ page }) => {
+  const roto = Object.assign({}, pepe, { amount: 30 });
+  const recibos = await abrePlan(page, { fixed: [roto, luz], debts: [mama] });
+  await expect(recibos.getByTestId("plan-deben")).toHaveCount(0);
+  await editarRecibo(page, recibos, "pepe");
+  await expect(paso(page, 4).getByTestId("rp5-rehacer")).toBeVisible();
+  await expect(paso(page, 4).locator(".rp5-row")).toHaveCount(2);
+  await expect(paso(page, 4).getByTestId("rp5-tu-parte")).toHaveText("Tu parte22,00 €");
+  await hoja(page).locator(".rp4-cta").click();
+  await expect(hoja(page)).toHaveCount(0);
+  const s = await guardado(page);
+  expect(s.fixed.find((x) => x.id === "pepe")).toMatchObject({ amount: 22, bankAmount: 85 });
+  await page.keyboard.press("Escape");
+  await expect(page.locator('[data-bills-manage][data-screen="bills-home"]')).toHaveCount(1);
+  await page.keyboard.press("Escape");
+  await expect(page.locator("[data-bills-manage]")).toHaveCount(0);
+  await expect(recibos.getByTestId("plan-deben")).toHaveText("Te deben 10,00 €");
+});

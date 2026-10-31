@@ -4331,7 +4331,9 @@ Object.assign(LANG.es,{
   pe_como_paga:"¿Cómo te paga?", pe_bizum:"Bizum", pe_transfer:"Transferencia", pe_debt:"Lo descuento", pe_descuenta_de:"Su parte se descuenta de",
   pe_recibos:"Sus recibos", pe_que_recibos:"¿Qué recibos comparte?", pe_sin_recibos:"Ningún recibo se puede compartir", pe_borrar:"Borrar", pe_seguro:"¿Seguro? Sale de todos sus recibos",
   rp5_mas:"Más opciones", rp5_con_alguien:"¿Lo pagas con alguien?", rp5_no_admite:"Solo se comparte un recibo de cada mes o cada pocos meses",
-  rp5_otra:"Otra", rp5_importe_de:"Parte de {name}", rp5_quitar:"Quitar a {name}", rp5_tu_parte:"Tu parte"
+  rp5_otra:"Otra", rp5_importe_de:"Parte de {name}", rp5_quitar:"Quitar a {name}", rp5_tu_parte:"Tu parte",
+  rp5_supera:"Las partes pasan del importe: no te queda parte", rp5_descuento_mensual:"«Lo descuento» solo en recibos de cada mes",
+  rp5_rehacer:"Estas partes ya no cuadraban: revísalas y guarda"
 });
 Object.assign(LANG.en,{
   pr6_pagas_mas:"you pay {a} + {b} from {from}", pr6_te_han_pagado:"{a} of {n} have paid you", pr6_tu_parte:"Your share {x}",
@@ -4341,7 +4343,9 @@ Object.assign(LANG.en,{
   pe_como_paga:"How do they pay you?", pe_bizum:"Bizum", pe_transfer:"Bank transfer", pe_debt:"I deduct it", pe_descuenta_de:"Their share is deducted from",
   pe_recibos:"Their bills", pe_que_recibos:"Which bills do they share?", pe_sin_recibos:"No bill can be shared", pe_borrar:"Delete", pe_seguro:"Sure? They leave all their bills",
   rp5_mas:"More options", rp5_con_alguien:"Do you pay it with someone?", rp5_no_admite:"Only a monthly bill or one every few months can be shared",
-  rp5_otra:"Other", rp5_importe_de:"{name}'s share", rp5_quitar:"Remove {name}", rp5_tu_parte:"Your share"
+  rp5_otra:"Other", rp5_importe_de:"{name}'s share", rp5_quitar:"Remove {name}", rp5_tu_parte:"Your share",
+  rp5_supera:"The shares exceed the amount: nothing left for you", rp5_descuento_mensual:"“I deduct it” only works on monthly bills",
+  rp5_rehacer:"These shares no longer added up: check them and save"
 });
 Object.assign(LANG.ca,{
   pr6_pagas_mas:"pagues {a} + {b} de {from}", pr6_te_han_pagado:"t'han pagat {a} de {n}", pr6_tu_parte:"La teva part {x}",
@@ -4351,5 +4355,7 @@ Object.assign(LANG.ca,{
   pe_como_paga:"Com et paga?", pe_bizum:"Bizum", pe_transfer:"Transferència", pe_debt:"Ho descompto", pe_descuenta_de:"La seva part es descompta de",
   pe_recibos:"Els seus rebuts", pe_que_recibos:"Quins rebuts comparteix?", pe_sin_recibos:"Cap rebut es pot compartir", pe_borrar:"Esborrar", pe_seguro:"Segur? Surt de tots els seus rebuts",
   rp5_mas:"Més opcions", rp5_con_alguien:"El pagues amb algú?", rp5_no_admite:"Només es comparteix un rebut de cada mes o de cada pocs mesos",
-  rp5_otra:"Una altra", rp5_importe_de:"Part de {name}", rp5_quitar:"Treure {name}", rp5_tu_parte:"La teva part"
+  rp5_otra:"Una altra", rp5_importe_de:"Part de {name}", rp5_quitar:"Treure {name}", rp5_tu_parte:"La teva part",
+  rp5_supera:"Les parts superen l'import: no et queda part", rp5_descuento_mensual:"«Ho descompto» només en rebuts de cada mes",
+  rp5_rehacer:"Aquestes parts ja no quadraven: revisa-les i desa"
 });
