@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "id": "ux17-gastos-sliders-badge-r141-codex-20261031",
+  "from": "codex",
+  "coordinatorSession": "nrelay59ae0e6dcd5d38ff1ea822ceb59b63bc",
+  "createdAt": "2026-10-31T14:08:43.498Z",
+  "to": "codex",
+  "baseSHA": "9ef9f19b49938d207271289176f2314b858152a1",
+  "authority": [
+    "8987715b676191a30da552006a3400d9ff242558",
+    "aa740946d9b7b93865f4aa4bd000724497a0bf5a",
+    "757ac34fda5cef39b285bd65318306a7c769ff53"
+  ],
+  "objective": "Relevo horario UX17: conservar candidato privado exacto2b26779 y completar validacion DOM permitida usando el runner original existente. No rehacer implementacion ni repetir revision estatica ya cerrada salvo cambios o hallazgos nuevos. UX17 del BACKLOG: sustituir el chip de filtros de Gastos por un botón con icono de deslizadores y globito del número de filtros activos, según docs/design/gastos-v5/SPEC.md sección4.1. Adaptar los specs existentes que usan el chip/emoji sin relajar comportamiento, accesibilidad ni oráculos. Solo este resto obligatorio de UX17.",
+  "scope": [
+    "src/modules/04-tab-gastos.js",
+    "src/shell.html",
+    "e2e/fixtures.mjs",
+    "e2e/apuntar-sheet.spec.mjs",
+    "e2e/deudas-metas-edicion-v4.spec.mjs",
+    "e2e/gastos-cajones.spec.mjs",
+    "e2e/gastos-deudas.spec.mjs",
+    "e2e/gastos-diario-filtro.spec.mjs",
+    "e2e/gastos-periodo-categorias.spec.mjs",
+    "e2e/gastos-v5-filtros.spec.mjs",
+    "e2e/gastos-v5-secciones.spec.mjs",
+    "e2e/rendimiento.spec.mjs",
+    "docs/briefs/ux17-gastos-filters-sliders-badge.md"
+  ],
+  "acceptance": [
+    "Icono de deslizadores coherente con el sistema existente, no engranaje ni emoji de sustitución; globito independiente con número exacto de filtros activos y ausencia del globito cuando0",
+    "Mantener cálculo nFilters, selección, resúmenes, limpiar filtros y apertura/cierre reales del sheet; botón accesible con nombre localizado existente",
+    "Adaptar selectores y aserciones de todos los specs afectados, preservar comprobaciones de conteo0/1/múltiples sin weaken/skip/catch; fixtures comunes solo cambio de selector concreto",
+    "Leer SPEC completa y reglas del base exacto; no opcionales del BACKLOG ni useCountUp ni dinero/calendarios/OB",
+    "Private exact commit/manifest, independent final review and exact root GO before normal push and ONE draft PR to beta; no merge/deploy/version/catalogue",
+    "Leer nueva autoridad e2e757ac34f completa: dirigidos con config y runner del repo originales, workers1/retries0; sin reserva/lease requerida. Excluidos suite completa, npm test completo, Gradle y mediciones de rendimiento.",
+    "Proponer primero focal e2e/gastos-v5-filtros.spec.mjs,7casos0/1/3 y es/en/ca teclado, con comando original y datos sinteticos; luego siete specs funcionales restantes, sin rendimiento.",
+    "Preservar rechazo automatico blocked by policy a ESCRITURA de launcher focal: no reintentar esa escritura ni producir equivalente por otra herramienta/identidad. Solo considerar uso permitido del runner ya existente, sujeto a la revision aplicable y GO exacto; si tampoco se permite, preservar rechazo y comunicar al coordinador.",
+    "Separar raw runnerExitCode de cierre tecnico y consola baseline; verificar HTML servido contra artefacto fresco y procesos propios sin inventar pruebas o CPU1 no observado."
+  ],
+  "constraints": [
+    "Fresh own identity/OWN20/claim and readbacks before product; preserve all foreign claims/checkouts/states",
+    "PR328 worker holds exclusive00/08/07/docsBACKLOG/testmanual-pausa/run-tests scope; none of those files may be edited here. Scope is disjoint, do not modify BACKLOG or registration scripts.",
+    "Only CPU1 serial1 worker1 retries0 for any future approved run. No CPU6/full browser suite or old R3/shared lease inherited. No lease invented from absent processes or locks.",
+    "PR330 parked NO-GO pending owner OK for server; no R6-2 implementation, no backend/SQL/realDB/server product work",
+    "Worker reports only to ROOT141; only admitted root reports to Claude; no human ProductREADY notice.",
+    "Fuente cerrada OWN7FROZEN13 no transferibles; identidad, OWN20, claim y checkout nuevos; no ejecutar helpers/launchers de fuente ni heredar contadores.",
+    "Candidato fuente y dos generados tracked permanecen inmutables. Cinco copias con manifest y HTML2ce667c9 conservados; BUILD03 wrapperEXIT1, npm0 inferido/no raw exit, no verde global. Ningun e2e/browser/server/puerto ejecuto en fuente.",
+    "No installs/CDNs ni descargas; resolver dependencias existentes mediante preparacion revisada. Fresh own original npm build only if required for isolated source integrity and exact coordinator GO; preserve existing assembly evidence, no repeated tests without changes.",
+    "No custom executable launcher creation as workaround for approval rejection; review denial remains binding across hourly identity changes.",
+    "No product writes before own claim and exact coordinator scope; first prepare permitted existing-runner command for independent review."
+  ],
+  "previousTaskId": "ux17-gastos-sliders-badge-r140-codex-20261031",
+  "previousResultSHA": "ff868c114c428f42edebb028758655d83b89a8a6",
+  "previousRETURN": "f24f4539ff01fcf435965f6ab438fe02d7b33e69",
+  "candidateSHA": "2b26779b44736d45096653821c7d7ba4e37e78c7",
+  "initialState": "RECEPTION_FIRST_NO_ENTER_BEFORE_NATIVE_ADMISSION_OWN_CLAIM_AND_EXACT_ROOT_GO"
+}
