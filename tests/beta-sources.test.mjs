@@ -6241,7 +6241,8 @@ test("Catálogo200 añade la tanda del botón de filtros de Gastos (solo web) so
   assert.deepEqual(ahora.web,[
     {file:G,from:"  // Resumen de filtros activos, para el botón \"Filtros\" (badge)",to:"  const nFilters=nCatSel+nBankSel+bucketSel.length+nPeriod;",includeTo:true},
     {file:G,from:"          React.createElement(\"button\",{type:\"button\",className:\"gx-filter-btn\"",to:"\"data-testid\":\"gastos-filtros-globo\"},nFilters))",includeTo:true},
-    {file:H,from:"  .gx-filter-btn{position:relative;",to:"  .gx-filter-btn:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}",includeTo:true}],"el cómputo del contador, el botón con su globito y su CSS");
+    {file:H,from:"  .gx-filter-btn{position:relative;",to:"  .gx-filter-btn:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}",includeTo:true},
+    {file:"src/modules/01-i18n.js",function:"sameEntList"}],"el cómputo del contador, el botón con su globito, su CSS y el helper que decide si los bancos son los de entrada");
   for(const u of ahora.web)assert.ok(scopeText(u,source).length>0,"la unidad existe en la fuente: "+JSON.stringify(u));
   // Del árbol de la 199 cambian el botón de Gastos, su CSS y los textos de Novedades; el nativo, el servidor y la APK siguen idénticos.
   for(const file of [G,H])assert.notEqual(source(file),old(file),"cambia de verdad: "+file);
