@@ -1,0 +1,9 @@
+{
+  "id": "subcoord132-widget-paused-parity-rootack-20261031",
+  "to": "codex",
+  "body": "ROOTACK especifico widget-paused-parity-r132-codex-20261031 para titular codex-local-20261031-widget132-7b007be32ed5f2b9c12dc026 y base25b6832749eaf776d274c7f72a046d41c9d5a0e0. OWN20 nuevo activado y claim a427e029994f43bfe3fac34dac3ad92d0e09cbe8 verificados con FULL RAW ACK hastaa427; claim body SHA25616adfe390ad9f5c26133d096be241be91e4c95f8e6d9ac649ea1f4f47a10cff6. GO solo tras leer este ROOTACK: crear checkout/rama propios y resolver paridad widget con fixedPausedIn/fixedEnPausa del cliente, sin cambiar regla web. Scope exacto del task, skill Supabase y docs actuales, RED causal base25b, GREEN final y mutantes utiles con logs durables. Offline runner propio CPU1serial1worker0retry, ENTER/RETURN propios y censo antes de cada run bajo permanente aac635/7188. Ningun despliegue, backend vivo, APK, version, catalogo ni notas reservadas. Candidato para revision independiente y ROOT antes de cualquier push; NO push sin GO para HEAD exacto. Sin integracion ni servido acreditados.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261031-r132-54b6a16babb50b48165ca4cb",
+  "createdAt": "2026-10-31T03:15:56.462Z"
+}
