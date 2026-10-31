@@ -67,7 +67,7 @@ test('FIN17R F4 M12 reconstruido: sync mezcla disco sin presembrar confirmed en 
  await assert.rejects(()=>check(changed),e=>e.code==='ERR_ASSERTION'&&e.message.includes('sync debe incorporar'),'M12 muerto por resultado financiero');
 });
 test('FIN17R F4 M11 reconstruido: handler notificacion calcula month con confirmadas',async()=>{
- const check=async code=>{const {a}=make(),date=new Date().toISOString().slice(0,10),p={...pending,date:date+'T10:00:00.000Z'},b={...booked,date:date+'T10:00:00.001Z'};
+ const check=async code=>{const {a}=make(),date=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Madrid'}).format(new Date()),p={...pending,date:date+'T10:00:00.000Z'},b={...booked,date:date+'T10:00:00.001Z'};
  const r={...record(a),owner:'user',key:a.c.obAbsorptionKey(b),keepKey:a.c.obAbsorptionKey(p)};
  const env=fakeDb({state:{...seed(),_historyOwner:'user',expenses:[],obAbsorbedConfirmed:[r]},rows:[p,b].map(e=>({...a.wire(e),user_id:'user'}))});
  const result=await post(env,{fuente:'tr',titulo:'Trade Republic',texto:'Has gastado 0,01 € en Otra cuenta sintetica',fecha:String(Date.now()),evento:'fin17-m11'},undefined,code);
