@@ -1,0 +1,39 @@
+{
+  "status": "done",
+  "summary": "FIN25 PR325 remates terminados exact61676e1a859d2d120eb99a046fe249547b9482ee sobre d456. Fallback de prueba antigua compara centimos y bankAmount aplicable, manteniendo importe numerico finito, huella completa y guardas previas. RED causal ambos casos Node y DOM; finalNode17 y DOM15 verdes,3 mutantes rechazados. Review independiente y ROOT GO; unico push normal FF a misma PR325 OPEN DRAFTbeta sin rebase. PR y rama exact616 coherentes tras STOP inicial preservado y cierre expreso ROOT. Recursos propios devueltos; sin integracion ni entrega servida.",
+  "tests": [
+    {
+      "command": "node:test run tests/fin25-charge-months.test.mjs concurrency=1 abort-on-first-failure, exactHEAD61676e1a",
+      "exitCode": 0,
+      "passed": 17,
+      "mutantsRejected": 3
+    },
+    {
+      "command": "playwright test fin25-charge-months.spec.mjs --workers=1 --retries=0 --max-failures=1 with isolated config",
+      "exitCode": 0,
+      "passed": 15,
+      "skipped": 0,
+      "flaky": 0,
+      "retries": 0
+    }
+  ],
+  "productSHA": "61676e1a859d2d120eb99a046fe249547b9482ee",
+  "PR": 325,
+  "baseSHA": "d456dca7671254b59fcbe53dcc9af518845e6c9b",
+  "scope": [
+    "src/modules/08-motor-bank.js",
+    "tests/fin25-charge-months.test.mjs",
+    "e2e/fin25-charge-months.spec.mjs"
+  ],
+  "limitations": [
+    "Initial precommit Node smoke17 preserved separately; acceptance counts final17 once.",
+    "Static independent review; synthetic local Node and DOM. No general CI, integration, served beta, mobile or ProductREADY claim.",
+    "Postpush API and branch initially differed; original STOP and raw preserved, later readonly coherent exact616 verified and ROOT authorized closure."
+  ],
+  "schema": 1,
+  "taskId": "fin25-pr325-cents-bankamount-r131-codex-20261031",
+  "actor": "codex",
+  "sessionId": "codex-local-20261031-fin25r131-3e64474fa690cb2d62282cf3",
+  "createdAt": "2026-10-31T02:56:27.192Z",
+  "released": true
+}
