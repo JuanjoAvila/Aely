@@ -264,6 +264,7 @@ const steps = [
   ["efectivo-cierre", ["node", "tests/efectivo-cierre.test.mjs"]],
   ["atm-dual", ["node", "tests/atm-dual.test.mjs"]],
   ["tr-open-banking", ["node", "tests/tr-open-banking.test.mjs"]],
+  ["tr-login-v2", ["node", "tests/tr-login-v2.test.mjs"]],
   ["tr-emparejado-automatico", ["node", "tests/tr-emparejado-automatico.test.mjs"]],
   ["tr-emparejado-revision", ["node", "tests/tr-emparejado-revision.test.mjs"]],
   ["tr-emparejado-nogo2", ["node", "tests/tr-emparejado-nogo2.test.mjs"]],

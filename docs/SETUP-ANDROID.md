@@ -263,9 +263,20 @@ participaciones, valor y coste. No necesita nada más.
 2. **login:** `POST https://api.traderepublic.com/api/v1/auth/web/login` con
    `{ phoneNumber, pin }` y el header del WAF → devuelve `{ processId, countdownInSeconds }` y **dispara el
    2FA** (código de 4 dígitos que llega como **push a la app de TR**; SMS es el respaldo).
+   **TR está retirando este v1 cuenta a cuenta** (426/405, y aquí un 400 el 31/10/2026). Si v1 responde
+   400/404/405/410/426, el puente prueba `POST /api/v2/auth/web/login` con las cabeceras de la web de TR
+   (`X-TR-Device-Info`, `X-TR-App-Version`, `X-TR-Platform`; sin ellas, 400). La versión y la plataforma
+   las manda la web (`TR_V2_CLIENT` en `06-sync-brokers.js`) para poder corregirlas por OTA si TR da 426.
+   v2 no manda código: devuelve `{ processId }` y `GET …/v2/auth/web/login/processes/{processId}` dice
+   `requiredAction` — aprobar en la app de TR (`flow:"push"`) o código de autenticador
+   (`flow:"authenticator"`). Antes de cada login se caducan `tr_session`/`tr_refresh` del jar (las
+   restauradas no tienen caducidad y viajaban muertas).
 3. **verify:** `POST .../api/v1/auth/web/login/{processId}/{code}` → en la respuesta vienen las cookies
    `tr_session` / `tr_refresh`. **Guárdalas cifradas en el dispositivo** (EncryptedSharedPreferences /
-   Keystore), nunca en la nube.
+   Keystore), nunca en la nube. En v2, `verify({processId, api:"v2", flow})` sondea el proceso cada 2 s
+   hasta 75 s (con `authenticator`, antes manda el código a `…/authenticator-verification`) y devuelve
+   `pending:true` si aún no se ha aprobado. Los fallos traen `diag` aparte (API, HTTP, `errorCode` de TR,
+   nombres de cookie y estado del restore), nunca pegado al texto de `error`.
 4. **sync:** abre el WebSocket `wss://api.traderepublic.com/` → `connect 31 {locale,platformId:"webtrading",…}`
    con la cookie de sesión → `sub {id} {"type":"compactPortfolio"}` (y `cash` para el efectivo) → junta la
    foto de posiciones, ciérralo y devuélvelas mapeadas al shape `Position`.

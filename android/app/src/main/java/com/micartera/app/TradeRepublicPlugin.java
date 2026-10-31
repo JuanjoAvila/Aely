@@ -119,14 +119,20 @@ public class TradeRepublicPlugin extends Plugin {
                 // DIAGNÓSTICO SIN CABLE (2026-07-25). El capítulo 1 de esta saga costó 7 intentos a
                 // ciegas y se resolvió en 15 min el día que se miró el jar de cookies de verdad; el
                 // capítulo 2 se dio por cerrado sin verificar y tampoco valía. Así que cuando algo
-                // falla, el error se lleva pegado el estado del jar: la capa web ya manda el texto
-                // del error a `app_events`, o sea que la observación llega sola desde el móvil.
+                // falla, la respuesta se lleva el estado del jar en `diag` (visible por CDP).
                 // SOLO NOMBRES DE COOKIE, jamás valores: son la credencial de su banco.
                 // Si aquí sale `tr_refresh` DOS VECES, es la prueba de la hipótesis de la cookie
                 // duplicada en dos paths (ver snapshotCookies).
+                // Va APARTE, no pegado a `error` (31/10/2026): la web pintaba el texto tal cual y
+                // la familia veía «jar[…] snap[…] edad=0min restore=sí(7)» en la tarjeta. A
+                // telemetría la web solo manda enums de aquí (ver trLogFailure), nunca el texto.
                 if (!res.optBoolean("ok", false)) {
                     String base = res.getString("error", "");
-                    res.put("error", (base == null || base.isEmpty() ? "TR falló" : base) + " · " + jarDiag());
+                    if (base == null || base.isEmpty()) res.put("error", "TR falló");
+                    JSObject diag = new JSObject();
+                    try { JSONObject d = res.optJSONObject("diag"); if (d != null) diag = JSObject.fromJSONObject(d); } catch (Exception ignored) {}
+                    jarDiag(diag);
+                    res.put("diag", diag);
                 }
                 if (wasVerify && res.optBoolean("ok", false)) {
                     prefs().edit().putBoolean("connected", true).apply();   // sesión TR establecida
@@ -263,16 +269,17 @@ public class TradeRepublicPlugin extends Plugin {
         cm.flush();
     }
 
-    /** Qué hizo el último restore. Solo diagnóstico (viaja pegado a los errores, ver jarDiag). */
-    private volatile String lastRestore = "aún-no";
+    /** Qué hizo el último restore (enum: not_yet | no_snapshot | hot_jar | yes). Solo diagnóstico. */
+    private volatile String lastRestore = "not_yet";
+    private volatile int lastRestoreN = 0;
 
     /**
-     * Foto del estado de la sesión para pegarla a un error. **Solo nombres, nunca valores.**
-     * Un nombre repetido en `jar[...]` significa la MISMA cookie en dos paths distintos, que es
+     * Foto del estado de la sesión para el `diag` de un error. **Solo nombres, nunca valores.**
+     * Un nombre repetido en `jar` significa la MISMA cookie en dos paths distintos, que es
      * justo lo que envenenaba el snapshot (ver snapshotCookies).
      */
-    private String jarDiag() {
-        StringBuilder sb = new StringBuilder("jar[");
+    private void jarDiag(JSObject out) {
+        StringBuilder sb = new StringBuilder();
         try {
             String raw = CookieManager.getInstance().getCookie(SESSION_URL);
             boolean first = true;
@@ -287,23 +294,24 @@ public class TradeRepublicPlugin extends Plugin {
                 }
             }
         } catch (Exception ignored) { sb.append("?"); }
-        sb.append("] snap[").append(prefs().getString("cookieSnapNames", "—")).append("]");
+        out.put("jar", sb.toString());
+        out.put("snap", prefs().getString("cookieSnapNames", ""));
         long at = prefs().getLong("cookieSnapAt", 0);
-        sb.append(" edad=").append(at > 0 ? ((System.currentTimeMillis() - at) / 60000) + "min" : "—");
-        sb.append(" restore=").append(lastRestore);
-        return sb.toString();
+        if (at > 0) out.put("snapAgeMin", (System.currentTimeMillis() - at) / 60000);
+        out.put("restore", lastRestore);
+        out.put("restoreN", lastRestoreN);
     }
 
     private void restoreCookies() {
         String snap = prefs().getString("cookieSnap", null);
-        if (snap == null || snap.isEmpty()) { lastRestore = "sin-snapshot"; return; }
+        if (snap == null || snap.isEmpty()) { lastRestore = "no_snapshot"; return; }
         CookieManager cm = CookieManager.getInstance();
         // Jar CALIENTE (ya hay tr_refresh vivo) → NO pisar: TR ROTA tr_refresh en cada /session y
         // el snapshot puede ir por detrás de la rotación; re-inyectarlo «resucita» un refresh ya
         // consumido → 401 real y 2FA sin motivo (feedback 2026-07-17: «caduca cada dos por tres»).
         // El restore es SOLO para el arranque en frío, cuando Android tiró las cookies de sesión.
         String cur = cm.getCookie(SESSION_URL);
-        if (cur != null && cur.contains("tr_refresh=")) { lastRestore = "no(jar-caliente)"; return; }
+        if (cur != null && cur.contains("tr_refresh=")) { lastRestore = "hot_jar"; return; }
         cm.setAcceptCookie(true);
         int n = 0;
         for (String part : snap.split(";")) {
@@ -314,7 +322,7 @@ public class TradeRepublicPlugin extends Plugin {
             cm.setCookie("https://api.traderepublic.com", p + "; Path=/; Secure; SameSite=None");
         }
         cm.flush();
-        lastRestore = "sí(" + n + ")";
+        lastRestore = "yes"; lastRestoreN = n;
     }
 
     /** Recarga app.traderepublic.com y ejecuta `then` cuando termine (challenge WAF fresco). */
@@ -417,42 +425,131 @@ public class TradeRepublicPlugin extends Plugin {
         call.resolve(r);
     }
 
+    // LOGIN v2 (31/10/2026). TR está retirando `/api/v1/auth/web/login` cuenta a cuenta (pytr lo
+    // documenta desde mayo: 426/405 según la cuenta; aquí llegó como 400 sin pasar al código). Su
+    // web ya usa `/api/v2/auth/web/login`, que exige cabeceras propias (sin ellas, 400
+    // MISSING_REQUIRED_HEADER) y NO manda código: se aprueba con un aviso en la app de TR, o con el
+    // código de la app autenticadora si la cuenta la tiene. v1 se sigue probando PRIMERO porque a
+    // otras cuentas de la familia aún les vale y su flujo de código ya está probado en sus móviles.
+    // Versión y plataforma cambian con cada despliegue de la web de TR: la capa web las puede mandar
+    // (login({appVersion,platform})) para corregirlas por OTA sin APK nueva.
+    private static final String TR_V2_APP_VERSION = "2.2631.13";
+    private static final String TR_V2_PLATFORM = "web-pro";
+    private static final String V2_LOGIN = "https://api.traderepublic.com/api/v2/auth/web/login";
+
+    /**
+     * Helper JS: cabeceras del login v2 y lectura del proceso. `X-TR-Device-Info` describe ESTE
+     * navegador (lo mismo que mandaría la web de TR abierta en el Chrome del móvil). El id estable
+     * se genera una vez con crypto.getRandomValues y vive en el localStorage de app.traderepublic.com:
+     * si cambiara en cada login, TR vería un dispositivo nuevo cada vez.
+     */
+    private static final String V2JS =
+        "const ecode=(j)=>(j&&j.errors&&j.errors[0]&&j.errors[0].errorCode)||'';" +
+        "const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));" +
+        "const trHdr=(av,pf)=>{let id=null;try{id=localStorage.getItem('aely_tr_sdid');}catch(e){}" +
+        "if(!id||id.length!==128){const b=new Uint8Array(64);crypto.getRandomValues(b);id=Array.from(b,x=>x.toString(16).padStart(2,'0')).join('');try{localStorage.setItem('aely_tr_sdid',id);}catch(e){}}" +
+        "const ua=navigator.userAgent||'';const tz=(()=>{try{return Intl.DateTimeFormat().resolvedOptions().timeZone||'Etc/UTC';}catch(e){return 'Etc/UTC';}})();" +
+        "const info={stableDeviceId:id,browser:'Chrome',browserVersion:((ua.match(/Chrome\\/([\\d.]+)/)||[])[1]||''),os:'Android',osVersion:((ua.match(/Android ([\\d.]+)/)||[])[1]||'')," +
+        "timezone:tz,timezoneOffset:new Date().getTimezoneOffset(),screen:screen.width+'x'+screen.height+'x'+screen.colorDepth," +
+        "preferredLanguages:(navigator.languages&&navigator.languages.length?Array.from(navigator.languages):[navigator.language||'es']).slice(0,3),numberOfCores:navigator.hardwareConcurrency||1};" +
+        "return {'Content-Type':'application/json','X-TR-Device-Info':btoa(JSON.stringify(info)),'X-TR-App-Version':av,'X-TR-Platform':pf,'Accept-Language':(navigator.language||'es')};};" +
+        "const v2json=async(r)=>{const t=await r.text();let j={};try{j=JSON.parse(t)}catch(e){}return {status:r.status,j:j};};" +
+        "const proc=async(pid,H)=>v2json(await wfetch('" + V2_LOGIN + "/processes/'+encodeURIComponent(pid),{method:'GET',credentials:'include',headers:H}));";
+
+    private static String v2Param(PluginCall call, String key, String def, String re) {
+        String v = call.getString(key, "");
+        return (v != null && v.matches(re)) ? v : def;
+    }
+
+    /**
+     * Antes de un login NUEVO caducamos tr_session/tr_refresh del jar. Las inyecta restoreCookies
+     * SIN caducidad, así que tras un 401 real seguían viajando muertas al login — cosa que un
+     * navegador con la sesión caducada ya no manda. tr_device y las preferencias se quedan: son
+     * las que hacen que TR reconozca el dispositivo. El snapshot de prefs no se toca.
+     */
+    private void dropDeadSession() {
+        CookieManager cm = CookieManager.getInstance();
+        String[] names = {"tr_session", "tr_refresh"};
+        String[] paths = {"/", "/api/v1/auth", "/api/v1/auth/web", "/api/v2/auth", "/api/v2/auth/web"};
+        for (String n : names) for (String p : paths) {
+            String exp = n + "=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=" + p + "; Secure; SameSite=None";
+            cm.setCookie("https://api.traderepublic.com", exp);
+            cm.setCookie("https://api.traderepublic.com", exp + "; Domain=.traderepublic.com");
+        }
+        cm.flush();
+    }
+
     @PluginMethod
     public void login(final PluginCall call) {
         final String phone = call.getString("phone", "");
         final String pin = call.getString("pin", "");
         if (phone.isEmpty() || pin.isEmpty()) { resolveErr(call, "faltan teléfono o PIN"); return; }
+        final String av = v2Param(call, "appVersion", TR_V2_APP_VERSION, "[0-9][0-9.]{0,23}");
+        final String pf = v2Param(call, "platform", TR_V2_PLATFORM, "[a-z][a-z-]{0,23}");
         final String id = track(call);
+        final String body = "JSON.stringify({phoneNumber:" + jsStr(phone) + ",pin:" + jsStr(pin) + "})";
         // El login también pasa por el AWS WAF: en frío (token caducado) el primer POST puede
         // fallar sin CORS ("Failed to fetch") o con 403/405 → wfetch adjunta el token del WAF como
         // cabecera y reintentamos UNA vez tras forzar token fresco.
-        ensureWeb(() -> run(id, WFETCH +
-            "const call=async()=>{const r=await wfetch('https://api.traderepublic.com/api/v1/auth/web/login',{" +
-            "method:'POST',credentials:'include',headers:{'Content-Type':'application/json'}," +
-            "body:JSON.stringify({phoneNumber:" + jsStr(phone) + ",pin:" + jsStr(pin) + "})});" +
-            "const t=await r.text();let j={};try{j=JSON.parse(t)}catch(e){}return {status:r.status,j:j};};" +
+        ensureWeb(() -> { dropDeadSession(); run(id, WFETCH + V2JS +
+            "const call=async()=>v2json(await wfetch('https://api.traderepublic.com/api/v1/auth/web/login',{" +
+            "method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:" + body + "}));" +
             "let res;" +
-            "try{res=await call();}catch(e){await wafToken(true);try{res=await call();}catch(e2){return JSON.stringify({ok:false,error:String(e2&&e2.message||e2)+' ['+wafInfo()+']'});}}" +
+            "try{res=await call();}catch(e){await wafToken(true);try{res=await call();}catch(e2){return JSON.stringify({ok:false,error:String(e2&&e2.message||e2)+' ['+wafInfo()+']',diag:{api:'v1'}});}}" +
             "if(res.status===403||res.status===405){await wafToken(true);res=await call();}" +
-            "if(res.status===200||res.status===201)return JSON.stringify({ok:true,processId:res.j.processId||res.j.processID||null,countdown:res.j.countdownInSeconds||null});" +
-            "return JSON.stringify({ok:false,status:res.status,error:(res.j.errors&&res.j.errors[0]&&res.j.errors[0].errorMessage)||('login HTTP '+res.status)});"
-        ));
+            "if(res.status===200||res.status===201)return JSON.stringify({ok:true,api:'v1',flow:'code',processId:res.j.processId||res.j.processID||null,countdown:res.j.countdownInSeconds||null});" +
+            "const v1=res.status,v1c=ecode(res.j);" +
+            // 400/404/405/410/426 = v1 retirado o rechazado por forma → v2. 401/403/429 no: PIN mal,
+            // WAF o demasiados intentos, y v2 daría lo mismo gastando otro intento del usuario.
+            "if([400,404,405,410,426].indexOf(v1)<0)return JSON.stringify({ok:false,status:v1,error:(res.j.errors&&res.j.errors[0]&&res.j.errors[0].errorMessage)||('login HTTP '+v1),diag:{api:'v1',http:v1,trCode:v1c}});" +
+            "const H=trHdr(" + jsStr(av) + "," + jsStr(pf) + ");" +
+            "const call2=async()=>v2json(await wfetch('" + V2_LOGIN + "',{method:'POST',credentials:'include',headers:H,body:" + body + "}));" +
+            "let r2;try{r2=await call2();}catch(e){await wafToken(true);try{r2=await call2();}catch(e2){return JSON.stringify({ok:false,error:String(e2&&e2.message||e2),diag:{api:'v2',v1http:v1,v1Code:v1c}});}}" +
+            "const pid=r2.j.processId||r2.j.processID||null;" +
+            "if((r2.status===200||r2.status===201)&&pid){let ra='';try{const p=await proc(pid,H);ra=(p.j&&p.j.requiredAction)||'';}catch(e){}" +
+            "return JSON.stringify({ok:true,api:'v2',flow:ra==='AUTHENTICATOR_VERIFICATION'?'authenticator':'push',processId:pid,countdown:r2.j.countdownInSeconds||120});}" +
+            "return JSON.stringify({ok:false,status:r2.status,error:'login v2 HTTP '+r2.status,diag:{api:'v2',http:r2.status,trCode:ecode(r2.j),v1http:v1,v1Code:v1c}});"
+        ); });
     }
 
     @PluginMethod
     public void verify(final PluginCall call) {
         final String processId = call.getString("processId", "");
         final String code = call.getString("code", "");
-        if (processId.isEmpty() || code.isEmpty()) { resolveErr(call, "faltan processId o código"); return; }
+        final boolean v2 = "v2".equals(call.getString("api", "v1"));
+        final String flow = call.getString("flow", "code");
+        // Con v2 por aviso no hay código: verify espera la aprobación en la app de TR.
+        if (processId.isEmpty() || (code.isEmpty() && !(v2 && "push".equals(flow)))) { resolveErr(call, "faltan processId o código"); return; }
+        final String av = v2Param(call, "appVersion", TR_V2_APP_VERSION, "[0-9][0-9.]{0,23}");
+        final String pf = v2Param(call, "platform", TR_V2_PLATFORM, "[a-z][a-z-]{0,23}");
         final String id = track(call);
         verifyIds.add(id);   // al resolver ok=true, el Bridge marca "connected" (lo lee status())
+        if (v2) {
+            // Sondeo cada 2 s hasta 75 s: por debajo del timeout de track (90 s). Si aún no ha
+            // aprobado, vuelve `pending` y la tarjeta deja volver a esperar sin repetir el login.
+            ensureWeb(() -> run(id, WFETCH + V2JS +
+                "const H=trHdr(" + jsStr(av) + "," + jsStr(pf) + ");const pid=" + jsStr(processId) + ";" +
+                ("authenticator".equals(flow)
+                    ? "const a=await v2json(await wfetch('" + V2_LOGIN + "/processes/'+encodeURIComponent(pid)+'/authenticator-verification',{method:'POST',credentials:'include',headers:H,body:JSON.stringify({code:" + jsStr(code) + "})}));" +
+                      "if(a.status>=400)return JSON.stringify({ok:false,status:a.status,error:'código HTTP '+a.status,diag:{api:'v2',http:a.status,trCode:ecode(a.j)}});"
+                    : "") +
+                "const end=Date.now()+75000;" +
+                "while(Date.now()<end){const p=await proc(pid,H);" +
+                "if(p.status>=400)return JSON.stringify({ok:false,status:p.status,error:'proceso HTTP '+p.status,diag:{api:'v2',http:p.status,trCode:ecode(p.j)}});" +
+                "const st=(p.j&&p.j.status)||'';if(st==='CONFIRMED'||st==='COMPLETED')return JSON.stringify({ok:true});" +
+                "if(st&&st!=='PENDING')return JSON.stringify({ok:false,error:'proceso '+st,diag:{api:'v2',trCode:String(st)}});" +
+                "await sleep(2000);}" +
+                "return JSON.stringify({ok:false,pending:true,error:'sin aprobación todavía',diag:{api:'v2',trCode:'PENDING'}});"
+            ));
+            return;
+        }
         ensureWeb(() -> run(id, WFETCH +
             "const doVerify=async()=>await wfetch('https://api.traderepublic.com/api/v1/auth/web/login/'+" + jsStr(processId) + "+'/'+" + jsStr(code) + ",{" +
             "method:'POST',credentials:'include',headers:{'Content-Type':'application/json'}});" +
             "let r;try{r=await doVerify();}catch(e){await wafToken(true);try{r=await doVerify();}catch(e2){return JSON.stringify({ok:false,error:String(e2&&e2.message||e2)+' ['+wafInfo()+']'});}}" +
             "const t=await r.text();let j={};try{j=JSON.parse(t)}catch(e){}" +
             "if(r.status===200||r.status===201)return JSON.stringify({ok:true});" +
-            "return JSON.stringify({ok:false,status:r.status,error:(j.errors&&j.errors[0]&&j.errors[0].errorMessage)||('código HTTP '+r.status)});"
+            "return JSON.stringify({ok:false,status:r.status,error:(j.errors&&j.errors[0]&&j.errors[0].errorMessage)||('código HTTP '+r.status),diag:{api:'v1',http:r.status,trCode:(j.errors&&j.errors[0]&&j.errors[0].errorCode)||''}});"
         ));
         // (el flush de cookies se hace en Bridge.result, CUANDO el verify async ha terminado)
     }

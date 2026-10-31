@@ -1448,7 +1448,12 @@ Object.assign(LANG.es,{
   tr_createnew:"➕ Crear como posición nueva", tr_apply:"Aplicar a {n} posiciones", tr_apply_hint:"Participaciones, valor y coste se ajustan a lo que dice Trade Republic ahora.",
   tr_done:"✓ {n} posiciones actualizadas desde Trade Republic",
   tr_err:"No se pudo conectar con Trade Republic. Revisa teléfono/PIN o el código, e inténtalo otra vez.",
-  tr_expired_re:"Tu sesión de Trade Republic caducó de verdad. Vuelve a conectar: el teléfono ya está puesto — solo PIN y el código nuevo.",
+  tr_expired_re:"Tu sesión de Trade Republic caducó. Vuelve a conectar: el teléfono ya está puesto, solo falta el PIN.",
+  tr_err_update:"Trade Republic ha cambiado su inicio de sesión. Actualiza la app para volver a conectar.",
+  tr_push_intro:"Abre la app de Trade Republic y aprueba el inicio de sesión.",
+  tr_push_waiting:"Esperando la aprobación…", tr_push_retry:"Ya lo he aprobado",
+  tr_push_pending:"Aún no llega la aprobación. Apruébalo en la app de Trade Republic y pulsa el botón.",
+  tr_auth_intro:"Mete el código de tu app autenticadora.",
   mi_title:"Conectar MyInvestor", mi_sub:"trae tus fondos indexados",
   mi_expired:"Tu sesión de MyInvestor caducó y no se pudo renovar sola. Vuelve a entrar (usuario recordado): contraseña y, si lo pide, el código SMS.",
   mi_hint:"Login con tu usuario de MyInvestor · la contraseña no se guarda nunca.",
@@ -1533,7 +1538,12 @@ Object.assign(LANG.en,{
   mi_err:"Couldn't connect to MyInvestor. Check username/password or the code, and try again.",
   tr_done:"✓ {n} positions updated from Trade Republic",
   tr_err:"Couldn't connect to Trade Republic. Check phone/PIN or the code, and try again.",
-  tr_expired_re:"Your Trade Republic session really expired. Reconnect: your phone is already filled in — just PIN and a fresh code.",
+  tr_expired_re:"Your Trade Republic session expired. Reconnect: your phone is already filled in, just enter the PIN.",
+  tr_err_update:"Trade Republic changed how it signs in. Update the app to reconnect.",
+  tr_push_intro:"Open the Trade Republic app and approve the sign-in.",
+  tr_push_waiting:"Waiting for approval…", tr_push_retry:"I've approved it",
+  tr_push_pending:"The approval hasn't arrived yet. Approve it in the Trade Republic app and tap the button.",
+  tr_auth_intro:"Enter the code from your authenticator app.",
 });
 Object.assign(LANG.ca,{
   tr_title:"Connecta Trade Republic", tr_sub:"un botó · porta les teves posicions",
@@ -1600,7 +1610,12 @@ Object.assign(LANG.ca,{
   mi_err:"No s'ha pogut connectar amb MyInvestor. Revisa usuari/contrasenya o el codi, i torna-ho a provar.",
   tr_done:"✓ {n} posicions actualitzades des de Trade Republic",
   tr_err:"No s'ha pogut connectar amb Trade Republic. Revisa telèfon/PIN o el codi, i torna-ho a provar.",
-  tr_expired_re:"La teva sessió de Trade Republic ha caducat de debò. Torna a connectar: el telèfon ja està posat — només PIN i el codi nou.",
+  tr_expired_re:"La teva sessió de Trade Republic ha caducat. Torna a connectar: el telèfon ja està posat, només falta el PIN.",
+  tr_err_update:"Trade Republic ha canviat el seu inici de sessió. Actualitza l'app per tornar a connectar.",
+  tr_push_intro:"Obre l'app de Trade Republic i aprova l'inici de sessió.",
+  tr_push_waiting:"Esperant l'aprovació…", tr_push_retry:"Ja l'he aprovat",
+  tr_push_pending:"Encara no arriba l'aprovació. Aprova-ho a l'app de Trade Republic i prem el botó.",
+  tr_auth_intro:"Posa el codi de la teva app autenticadora.",
 });
 // meses traducidos (largos y cortos)
 /* Gastos v5 (20/10/2026, docs/design/gastos-v5/SPEC.md): la cifra viva y su línea, las filas

@@ -187,10 +187,19 @@ function mcLogEvent(kind,message,detail){
   if(m==="tr_sync" || /^TR sync:/.test(m)){
     let p=null; try{ if(typeof detail==="string") p=JSON.parse(detail); }catch(e){}
     const field=function(k,allowed){ return p&&p.schema===1&&!Array.isArray(p)&&Object.prototype.hasOwnProperty.call(p,k)&&typeof p[k]==="string"&&allowed.indexOf(p[k])>=0?p[k]:"unknown"; };
-    return {message:"tr_sync",detail:JSON.stringify({schema:1,
-      code:field("code",["auth_expired","soft_fail","sync_invalid","sync_rejected","status_rejected","status_inactive","client_error","login_failed","verify_failed","unknown"]),
+    const out={schema:1,
+      code:field("code",["auth_expired","soft_fail","sync_invalid","sync_rejected","status_rejected","status_inactive","client_error","login_failed","verify_failed","login_pending","unknown"]),
       origin:field("origin",["tr_card_sync","broker_manual_sync","tr_card_login","tr_card_verify","status_check","unknown"]),
-      snapshotAge:field("snapshotAge",["unknown","no_snapshot","invalid_clock","lt_5m","m5_lt_60m","h1_lt_24h","ge_24h"])})};
+      snapshotAge:field("snapshotAge",["unknown","no_snapshot","invalid_clock","lt_5m","m5_lt_60m","h1_lt_24h","ge_24h"])};
+    // Login v2 de TR (31/10/2026): un «login HTTP 400» sin saber qué API ni qué código devolvió
+    // TR no deja distinguir «retiraron v1» de «cabecera que falta». Solo viajan si son enums (o
+    // un errorCode de TR: MAYÚSCULAS y «_», sin dígitos ni «@», así no cabe teléfono, PIN ni correo).
+    const opt=function(k,ok){ const v=field(k,[p&&p[k]]); if(v!=="unknown"&&ok(v)) out[k]=v; };
+    opt("api",function(v){ return v==="v1"||v==="v2"; });
+    opt("http",function(v){ return ["400","401","403","404","405","410","426","429","5xx","other"].indexOf(v)>=0; });
+    opt("trCode",function(v){ return /^[A-Z][A-Z_]{2,39}$/.test(v); });
+    opt("restore",function(v){ return ["not_yet","no_snapshot","hot_jar","yes"].indexOf(v)>=0; });
+    return {message:"tr_sync",detail:JSON.stringify(out)};
   }
   const routes=[[/^addExpense\b/,"addExpense"],[/^deleteExpense\b/,"deleteExpense"],[/^setExpenseDup\b/,"setExpenseDup"],[/^setExpenseDeuda\b/,"setExpenseDeuda"],[/^MI:/,"myinvestor"],[/^bankConnect\b/,"bank_connect"],[/^OB /,"ob_balance"],[/^bankSync sin pull/,"bank_sync_pull"],[/^CRASH:/,"render_crash"],[/^TOAST:/,"toast"],[/^Promise:/,"unhandled_promise"],[/^canal /,"channel_update"],[/^OTA /,"ota_update"],[/^APK /,"apk_update"],[/^import hoja:/,"import_sheet"]];
   let route="unhandled_error";
