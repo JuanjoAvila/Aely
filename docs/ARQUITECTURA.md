@@ -196,6 +196,18 @@ apunta desde mañana (uno de hoy contaría como pagado por calendario sin cargo 
 varios pagos» es `schedule` (cada año, `freq:"año"`); «Cambia cada mes» es `variable:true`,
 solo para el «≈». No hay columnas ni servidor nuevos.
 
+El resumen del mes cerrado (Plan › Recibos v6 tanda 6, del día 1 al 7) no guarda cifras:
+`planRecibosMesCerrado` (08) vuelve a leer ese mes y el anterior con `planChargesMonth` +
+`paymentEvidenceUI` y hoy = último día, que es lo que Plan pintaba ese día. Suma lo pagado con
+prueba (tu parte, `amount`) en céntimos; lo pendiente y lo pagado solo por calendario son «no
+llegaron». Las líneas «más subió» y «subió/bajó» comparan cargos reales (`paidAmount`), nunca una
+marca a mano. Lo que sí se guarda es el descarte: `settings.pr6CerradoNo = año*12+mes`, en
+`app_state` como el resto de `settings`, para que el otro móvil tampoco lo vuelva a sacar; un
+cliente viejo lo ignora (tampoco tiene el resumen). La vista «Dic ›» es la misma lectura que los
+cargos del mes que viene de Inicio (`planChargesMonth` con hoy = 0). El primer uso importa con
+`addFixedItem` los cargos de `rp4VistoEnBanco` cobrados todos los meses seguidos, como recibos
+mensuales con su día y banco.
+
 Si la lápida alcanza una fila con un borrador privado pendiente, la fila sigue
 borrada y el borrador se ofrece en Plan → Deudas. Recuperar solo precarga el editor,
 con importes de solo lectura; Guardar valida y recupera el mismo ID mediante un

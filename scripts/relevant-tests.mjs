@@ -116,6 +116,14 @@ export const E2E_MAP = [
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/plan-recibos-t4.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/plan-recibos-t4.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/plan-recibos-t4.spec.mjs"] },
+  // Tanda 6: resumen del mes cerrado (`planRecibosMesCerrado`, 08, sobre `planChargesMonth` y
+  // `paymentEvidenceUI`), vista del mes siguiente y primer uso (14, con `rp4VistoEnBanco` sobre
+  // `detectSubscriptions` de 01 y el alta por pasos), textos (01) y su CSS en el shell.
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-recibos-t6.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/plan-recibos-t6.spec.mjs"] },
+  { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/plan-recibos-t6.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/plan-recibos-t6.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/plan-recibos-t6.spec.mjs"] },
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/ux16-round9-haptics.spec.mjs", "e2e/ux16-haptics.spec.mjs", "e2e/ux16-round2-haptics.spec.mjs", "e2e/ux16-round3-haptics.spec.mjs", "e2e/ux16-ajustador.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/ux16-round9-haptics.spec.mjs", "e2e/ux16-haptics.spec.mjs", "e2e/ux16-round3-haptics.spec.mjs", "e2e/ux16-ajustador.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-ciclo-porcentaje.spec.mjs"] },

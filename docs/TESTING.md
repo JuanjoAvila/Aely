@@ -869,6 +869,23 @@ recibo ya pagado no pregunta, su mes se queda con 30 y la prueba con su importe 
 `E2E_MAP` para `14-v4-screens`, `08-motor-bank`, `07-tab-patri-fijos`, `00-core`,
 `11-app-main`, `04-tab-gastos`, `03-tab-dash`, `01-i18n` y `shell.html`.
 
+Tanda 6: `tests/plan-recibos-cerrado.test.mjs` (en `npm test`) calcula el resumen del mes cerrado
+con el reloj en el 3/11 y lo compara en céntimos por dos vías: la cuenta a mano del escenario
+(octubre 182,99, septiembre 222,99, dos que no llegaron) y lo que Plan enseñaba con el reloj en el
+31/10 y el 30/9 (lo pagado con prueba de `planChargesMonth` + `paymentEvidenceUI`); además, pagado +
+pendiente + sin cargo = todo lo previsto. Cubre «más subió» con el cargo real, «subió» solo en los
+de precio fijo, enero contra diciembre del año anterior, sin comparación si el mes anterior no
+tenía recibos y que un pausado no cuenta como «no llegó». `e2e/plan-recibos-t6.spec.mjs` (reloj en
+el 3/11) abre la tarjeta «Octubre cerrado» con «62,99 € en recibos · 40,00 € menos que
+septiembre» y sus tres líneas; la × la pliega y tras recargar no vuelve; el 8/11 ya no sale; con el
+reloj en el 31/10 los mismos datos dan «Ya pagados» 50 + Netflix «Esperabas 12,99» (= 62,99).
+«Dic ›» cambia tarjeta y lista a diciembre (102,99, «≈» en el variable, «en 29 días»), sin
+«¿Te llega?», «Para revisar» ni «Ya pagados», y tocar una fila abre su edición. Primer uso: sin
+cargos en el banco, «Empezar» abre el alta por pasos; con cargos repetidos, la importación propone
+solo los cobrados todos los meses seguidos, «Quitar/Marcar todos», y «Añadir 1 recibo» guarda uno
+mensual con su día y banco. Está en `E2E_MAP` para `14-v4-screens`, `08-motor-bank`,
+`07-tab-patri-fijos`, `01-i18n` y `shell.html`.
+
 Descarga incompleta (candidato13/10): `tests/bank-download-incomplete.test.mjs`, registrado en
 runner y `STEPS_SUPABASE`, ejecuta lector, handler y updater real de App. Compara el updater con
 el padre123: ambas lecturas de `bankTx` conservan el extracto; falla sin el adaptador mínimo.

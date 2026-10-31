@@ -870,6 +870,61 @@ function planChargesMonth(s,m,y,today){
     transfersPending:tp, incomePending:ip
   };
 }
+/* Diferencia mínima, en céntimos, para decir que un cargo «cobró distinto» o «subió» (SPEC §2.3).
+   La comparten «Para revisar» y el resumen del mes cerrado: con dos umbrales, un recibo saldría
+   como subida en uno y no en el otro. */
+const PR6_DIF_CENT=50;
+/* RESUMEN DEL MES CERRADO de Plan › Recibos (SPEC §2.1, tanda 6). Cada mes se lee con la MISMA
+   función con la que Plan lo pintó su último día (`planChargesMonth` + `paymentEvidenceUI` con
+   hoy = fin de mes), así la cifra cuadra con lo que se vio entonces y no nace ninguna regla nueva:
+   - «en recibos» = lo pagado con prueba: lo que salía en «Ya pagados» más lo que «cobró distinto»
+     (también se pagó). Con TU parte (`amount`), como la tarjeta y «Ya pagados».
+   - «no llegaron» = lo que se quedó pendiente y lo pagado solo por calendario, sin cargo del banco
+     («Sin cargo del banco» en «Para revisar»): de ninguno de los dos consta que se cobrara.
+   Todo en céntimos enteros: 0,1 + 0,2 en flotante comparado entre dos meses daba «0 € más». */
+function planRecibosMesFoto(s,y,m){
+  var fin=new Date(y,m,0).getDate();
+  var pack=planChargesMonth(s,m,y,fin), proof=paymentEvidenceUI(s,y,m,fin);
+  var pagados=pack.paidBills.filter(function(x){ return proof.confirmed[x.id]!==false; });
+  return {y:y, m:m, pagados:pagados,
+    cent:pagados.reduce(function(c,x){ return c+Math.round(Math.abs(x.amount)*100); },0),
+    noLlegaron:pack.pendingBills.length+pack.paidBills.length-pagados.length,
+    hay:pack.paidBills.length+pack.pendingBills.length>0};
+}
+/* El mes cerrado respecto a (y, m) y sus líneas de detalle, solo con dato real (SPEC §2.1):
+   - «más subió»: el recibo cuyo cargo del banco más creció contra el mes anterior (los dos meses
+     con cargo, nunca contra una marca a mano sin importe).
+   - «subió / bajó»: un recibo de precio fijo que cobró distinto de lo previsto. Los «Cambia cada
+     mes» no: su previsión es una estimación y salir distinto es lo normal.
+   - «no llegaron»: solo si hay alguno.
+   «Te devolvieron» no sale: hoy ninguna devolución queda atada a un recibo y casarla por nombre
+   sería inventarla. Sin ningún recibo ese mes, no hay resumen. */
+function planRecibosMesCerrado(s,y,m){
+  s=s||{};
+  var cy=m===1?y-1:y, cm=m===1?12:m-1, py=cm===1?cy-1:cy, pm=cm===1?12:cm-1;
+  var c=planRecibosMesFoto(s,cy,cm);
+  if(!c.hay) return null;
+  var p=planRecibosMesFoto(s,py,pm);
+  var esFijo=function(x){ return /^fixed_/.test(String(x.id)); };
+  var reciboDe=function(x){ var id=String(x.id).replace(/^fixed_/,""); return (s.fixed||[]).find(function(f){ return String(f.id)===id; })||null; };
+  var antes={};
+  p.pagados.forEach(function(x){ if(esFijo(x)&&x.paidAmount>0) antes[x.id]=Math.round(x.paidAmount*100); });
+  var sube=null, cambia=null;
+  c.pagados.forEach(function(x){
+    if(!esFijo(x)||!(x.paidAmount>0)||antes[x.id]==null) return;
+    var d=Math.round(x.paidAmount*100)-antes[x.id];
+    if(d>=PR6_DIF_CENT&&(!sube||d>sube.cent)) sube={id:x.id,name:x.name,cent:d};
+  });
+  c.pagados.forEach(function(x){
+    if(!esFijo(x)||!(x.paidAmount>0)||(sube&&sube.id===x.id)) return;
+    var f=reciboDe(x);
+    if(!f||f.variable) return;
+    var d=Math.round(x.paidAmount*100)-Math.round(x.plannedBankAmount*100);
+    if(Math.abs(d)>=PR6_DIF_CENT&&(!cambia||Math.abs(d)>Math.abs(cambia.cent))) cambia={id:x.id,name:x.name,cent:d};
+  });
+  return {y:cy, m:cm, ym:cy*12+cm, cent:c.cent, prev:p.hay?{y:py,m:pm,cent:p.cent}:null,
+    sube:sube, cambia:cambia, noLlegaron:c.noLlegaron};
+}
 /* Pregúntame = misma regla que Plan: solo recibos, sin ingresos ni traspasos. */
 function pendingBillsSummary(state,month,year,today){
   var p=planChargesMonth(state,month,year,today);

@@ -363,7 +363,8 @@ const PR6_MARGEN_DIAS=2;
      no se afirma nada (recibo nuevo, banco sin conectar o pagado por otro lado).
    Prueba gratis y permanencia no salen: hoy ningún recibo guarda esas fechas (llegan con el alta
    por pasos, tanda 4) y un aviso sin dato sería inventado. */
-const PR6_DIF_CENT=50, PR6_FANTASMA_MIN=2, PR6_MESES_ATRAS=12, PR6_FANTASMA_CALLA=3;
+// `PR6_DIF_CENT` vive en el motor (08): lo comparte con el resumen del mes cerrado.
+const PR6_FANTASMA_MIN=2, PR6_MESES_ATRAS=12, PR6_FANTASMA_CALLA=3;
 function pr6MesesConBanco(s){
   const ex=s.expenses;
   if(!Array.isArray(ex)) return new Set();
@@ -571,6 +572,39 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   const proof=evidence||paymentEvidenceUI(state,totals.curYear,totals.curMonth,today);
   // `pack` y `proof` ya dependen de recibos, gastos y extracto; `revisado` vive en el recibo.
   const avisos=useMemo(function(){ return planRecibosAvisos(state,pack,proof,year,month,today); },[pack,proof,state.fixed,year,month,today]);
+  /* Vista del mes siguiente «Nov ›» (SPEC §2.2). Misma lectura que los cargos del mes que viene de
+     Inicio (`planChargesMonth` con hoy = 0: de ese mes aún no ha llegado nada), así las dos
+     pantallas no pueden decir cosas distintas. Solo se calcula mientras se mira. */
+  const [vista,setVista]=useState("mes");
+  const sig=vista==="sig";
+  const sigM=month===12?1:month+1, sigY=month===12?year+1:year;
+  const sigPack=useMemo(function(){ return sig?planChargesMonth(state,sigM,sigY,0):null; },
+    [sig,sigM,sigY,state.fixed,state.debts,state.oneoffs,state.flows,state.bankTx,state.accounts,state.expenses,state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
+  /* Primer uso (SPEC §9): sin recibos, puntuales, cuotas ni entradas no hay nada que enseñar y la
+     tarjeta en 0 no dice nada. Se mira el plan entero, no solo este mes, para no esconder nada. */
+  const vacio=!(state.fixed||[]).length&&!(state.oneoffs||[]).length&&!(state.debts||[]).some(debtActive)&&!(state.flows||[]).length;
+  /* Resumen del mes cerrado (SPEC §2.1): los primeros días del mes, hasta que se cierre. El
+     descarte es de ESE mes y vive en `settings` para que el otro móvil no lo vuelva a sacar. */
+  const cerrado=useMemo(function(){ return !vacio&&today<=PR6_CERRADO_DIAS?planRecibosMesCerrado(state,year,month):null; },
+    [vacio,today,year,month,state.fixed,state.debts,state.oneoffs,state.flows,state.bankTx,state.accounts,state.expenses,state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
+  const cerradoNo=Number(state.settings&&state.settings.pr6CerradoNo)||0;
+  const [cerradoAbierto,setCerradoAbierto]=useState(false);
+  const [cerradoSale,setCerradoSale]=useState(false);
+  const cerradoT=useRef(0);
+  useEffect(function(){ return function(){ clearTimeout(cerradoT.current); }; },[]);
+  const descartarCerrado=function(){
+    if(!cerrado) return;
+    const ym=cerrado.ym;
+    // Primero se pliega y luego se guarda: si se guardara antes, desaparecería de golpe.
+    setCerradoSale(true);
+    clearTimeout(cerradoT.current);
+    cerradoT.current=setTimeout(function(){
+      set(function(s){ return Object.assign({},s,{settings:Object.assign({},s.settings||{},{pr6CerradoNo:ym})}); });
+    },mcReduced()?0:400);
+  };
+  const [impOpen,setImpOpen]=useState(false);
+  const [addNow,setAddNow]=useState(0);
+  const importables=useMemo(function(){ return vacio?pr6Importables(state):[]; },[vacio,state.expenses,state.fixed]);
   const v=useMemo(function(){ return planRecibosVista(pack,proof,today,avisos,pospuesto); },[pack,proof,today,avisos,pospuesto]);
   // Pausados este mes: no suman ni salen como pendientes, pero se ven tachados en «Ya pagados»
   // para poder devolverlos al mes con un toque (SPEC §2.5).
@@ -617,9 +651,15 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     const f=/^fixed_/.test(String(x.id))&&(state.fixed||[]).find(function(e){ return "fixed_"+e.id===x.id; });
     return (f&&f.category&&CAT[f.category]?catName(f.category)+" · ":"")+entOf(x.bank).label;
   };
+  // Días que faltan; en la vista del mes siguiente, contados de calendario hasta ese día.
+  const diasHasta=function(x){
+    if(x.day==null) return null;
+    if(!sig) return x.day-today;
+    return Math.round((new Date(sigY,sigM-1,x.day)-new Date(year,month-1,today))/864e5);
+  };
   const cuando=function(x){
-    if(x.day==null) return "";
-    const n=x.day-today;
+    const n=diasHasta(x);
+    if(n==null) return "";
     if(n===0) return t("pr6_hoy");
     if(n===1) return t("pr6_manana");
     if(n>1) return tf("pr6_en_dias",{n:n});
@@ -628,12 +668,19 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   const esVariable=function(x){ const f=/^fixed_/.test(String(x.id))&&(state.fixed||[]).find(function(e){ return "fixed_"+e.id===x.id; }); return !!(f&&f.variable); };
   // Las filas plegadas siguen en el DOM (se despliegan con transición), pero fuera del foco.
   const plegado=function(open){ return open?null:{"aria-hidden":"true",inert:""}; };
+  /* En la vista del mes siguiente la ficha no vale: enseña el estado de ESTE mes (pagado, cargo…).
+     Un recibo o puntual abre su edición; una cuota, Deudas, como siempre. */
+  const abrirSig=function(x){
+    if(x.kind==="debt"||x.kind==="balloon"){ abrir(x); return; }
+    const k=/^(fixed|oneoff)_(.*)$/.exec(String(x.id));
+    if(k){ setManageEdit(k[2]); setManageOpen(true); }
+  };
   const dueRow=function(x){
-    const n=x.day==null?null:x.day-today;
-    return React.createElement("button",{type:"button",className:"v4-charge pr6-row",key:x.id,"data-recibo":x.id,onClick:function(){ abrir(x); }},
+    const n=diasHasta(x);
+    return React.createElement("button",{type:"button",className:"v4-charge pr6-row",key:x.id,"data-recibo":x.id,onClick:function(){ if(sig) abrirSig(x); else abrir(x); }},
       React.createElement("span",{className:"dt","aria-hidden":"true"},
         React.createElement("span",{className:"d"}, x.day||"—"),
-        React.createElement("span",{className:"m"}, monthShort(month-1))),
+        React.createElement("span",{className:"m"}, monthShort((sig?sigM:month)-1))),
       React.createElement("span",{className:"nm"},
         React.createElement("span",{className:"pr6-nm"}, x.name,React.createElement(PlanConflictDot,{record:conflictOf(x)})),
         React.createElement("span",{className:"sub"}, subOf(x)),
@@ -696,33 +743,94 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   // Pausar o borrar desde la ficha saca el recibo del mes antes de que la hoja termine de irse:
   // sin olvidarla, reaparecía abierta en cuanto el recibo volvía al mes.
   useEffect(function(){ if(ficha&&!fichaRow) setFicha(null); },[ficha,fichaRow]);
-  return React.createElement(React.Fragment,null,
-    React.createElement("div",{className:"v4-card v4-card-hero rise pr6-sum","data-testid":"plan-summary"},
-      React.createElement("div",{className:"v4-micro"}, tf("v4_plan_left",{month:monthLong(month-1)})),
-      React.createElement("div",{className:"serif num pr6-big"}, eur(pack.pendingBillsTotal)),
-      countLine&&React.createElement("div",{className:"pr6-count","data-testid":"plan-count"}, countLine),
-      llega&&nPend>0&&React.createElement("div",{className:"pr6-pills"},
+  // Al cambiar de mes la lista vuelve a sus tres primeras: lo desplegado era del otro mes.
+  // La entrada lateral solo al cambiar: al abrir Plan la tarjeta ya sube con `rise`.
+  const [vistaAnim,setVistaAnim]=useState(false);
+  const cambiarVista=function(){ setDueOpen(false); setVistaAnim(true); setVista(sig?"mes":"sig"); };
+  const sigN=sigPack?sigPack.pendingBills.length:0;
+  const tarjeta=React.createElement("div",{className:"v4-card v4-card-hero rise pr6-sum","data-testid":"plan-summary","data-vista":vista},
+    // Con `key` el contenido se vuelve a montar y entra desde el lado hacia el que se va (CSS).
+    React.createElement("div",{className:"pr6-vista"+(vistaAnim?" anim":"")+(sig?" sig":""),key:vista},
+      React.createElement("div",{className:"pr6-sum-h"},
+        React.createElement("div",{className:"v4-micro"}, sig?tf("pr6_se_van",{month:monthLong(sigM-1)}):tf("v4_plan_left",{month:monthLong(month-1)})),
+        React.createElement("button",{type:"button",className:"pr6-mes-nav","data-testid":"plan-mes-nav",onClick:cambiarVista,
+          "aria-label":sig?monthLong(month-1):monthLong(sigM-1)}, sig?"‹ "+monthShort(month-1):monthShort(sigM-1)+" ›")),
+      React.createElement("div",{className:"serif num pr6-big"}, eur(sig?sigPack.pendingBillsTotal:pack.pendingBillsTotal)),
+      sig
+        ? sigN>0&&React.createElement("div",{className:"pr6-count","data-testid":"plan-count"}, tf(sigN===1?"pr6_count_one":"pr6_count",{n:sigN}))
+        : countLine&&React.createElement("div",{className:"pr6-count","data-testid":"plan-count"}, countLine),
+      // «¿Te llega?» recorre el saldo de ESTE mes: en el siguiente no hay recorrido que enseñar.
+      !sig&&llega&&nPend>0&&React.createElement("div",{className:"pr6-pills"},
         React.createElement("button",{type:"button",className:"pr6-pill"+(llega.ok?" ok":""),"data-testid":"plan-llega","aria-haspopup":"dialog",
           onClick:function(){ setLlegaOpen(true); }},
           llega.ok&&React.createElement("span",{className:"pr6-pill-ok","aria-hidden":"true"},"✓"),
           llega.ok?t("pr6_llega"):tf("pr6_falta",{x:eur0(llega.falta)}),
           // Sin la flecha no se ve que la píldora se abre.
           React.createElement("svg",{className:"pr6-pill-go",width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
-            React.createElement("path",{d:"M9 6l6 6-6 6"}))))),
-    v.review.length>0&&React.createElement("section",{className:"pr6-sec","data-testid":"plan-review","aria-label":t("pr6_revisar")},
+            React.createElement("path",{d:"M9 6l6 6-6 6"}))))));
+  const manage=React.createElement(BillsManagePush,{open:manageOpen,onClose:function(){ setManageOpen(false); setManageEdit(null); setAddNow(0); },state:state,set:set,totals:totals,simple:false,editId:manageEdit,addNow:addNow});
+  if(vacio){
+    // Con cargos repetidos en el banco, la importación; sin ellos, directo al alta por pasos.
+    const empezar=function(){
+      if(importables.length){ setImpOpen(true); return; }
+      setManageEdit(null); setAddNow(Date.now()); setManageOpen(true);
+    };
+    const bancos=Array.from(new Set(importables.map(function(d){ return entOf(d.bank).label; })));
+    return React.createElement(React.Fragment,null,
+      React.createElement("section",{className:"v4-card rise pr6-onb","data-testid":"plan-onb"},
+        React.createElement("span",{className:"pr6-onb-ico","aria-hidden":"true"},
+          React.createElement("svg",{width:22,height:22,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.2,strokeLinecap:"round",strokeLinejoin:"round"},
+            React.createElement("path",{d:"M21 12a9 9 0 11-3-6.7L21 8M21 3v5h-5"}))),
+        React.createElement("span",{className:"pr6-onb-t"},
+          React.createElement("span",{className:"serif pr6-onb-n"}, importables.length?tf(importables.length===1?"pr6_onb_1":"pr6_onb_n",{n:importables.length}):t("pr6_onb_vacio")),
+          bancos.length>0&&React.createElement("span",{className:"pr6-onb-s"}, tf("pr6_onb_en",{x:pr6Lista(bancos)}))),
+        React.createElement("button",{type:"button",className:"pr6-cta","data-testid":"plan-empezar",onClick:empezar}, t("pr6_empezar"))),
+      impOpen&&React.createElement(RecibosImportSheet,{items:importables,set:set,showToast:showToast,onClose:function(){ setImpOpen(false); }}),
+      manage);
+  }
+  const verCerrado=!!cerrado&&cerrado.ym!==cerradoNo;
+  const lineasCerrado=cerrado?pr6LineasCerrado(cerrado):[];
+  return React.createElement(React.Fragment,null,
+    // Se pliega (no desaparece) al descartarlo y al pasar al mes siguiente, donde no sale (SPEC §2.1).
+    verCerrado&&React.createElement("div",Object.assign({className:"pr6-cz"+(sig||cerradoSale?" fuera":"")},sig||cerradoSale?{"aria-hidden":"true",inert:""}:null),
+      React.createElement("div",{className:"pr6-cz-in"},
+        React.createElement("section",{className:"pr6-cerr","data-testid":"plan-cerrado","aria-label":pr6TituloCerrado(cerrado)},
+          React.createElement("div",{className:"pr6-cerr-h"},
+            React.createElement("span",{className:"pr6-cerr-ico","aria-hidden":"true"},
+              React.createElement("svg",{width:17,height:17,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round",strokeLinejoin:"round"},
+                React.createElement("path",{d:"M5 12.5l4.5 4.5L19 7.5"}))),
+            React.createElement(lineasCerrado.length?"button":"div",Object.assign({className:"pr6-cerr-t"},lineasCerrado.length?{type:"button","aria-expanded":cerradoAbierto?"true":"false","aria-controls":"pr6-cerr-det",
+              onClick:function(){ setCerradoAbierto(function(o){ return !o; }); }}:null),
+              React.createElement("span",{className:"pr6-cerr-n"}, pr6TituloCerrado(cerrado)),
+              React.createElement("span",{className:"num pr6-cerr-l","data-testid":"plan-cerrado-linea"}, pr6LineaCerrado(cerrado))),
+            React.createElement("button",{type:"button",className:"pr6-cerr-x","aria-label":t("pr6c_cerrar"),"data-testid":"plan-cerrado-x",onClick:descartarCerrado},
+              React.createElement("svg",{width:15,height:15,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
+                React.createElement("path",{d:"M6 6l12 12M18 6L6 18"})))),
+          lineasCerrado.length>0&&React.createElement("div",{className:"pr6-fold"+(cerradoAbierto?" open":""),id:"pr6-cerr-det"},
+            React.createElement("div",Object.assign({className:"pr6-fold-in pr6-cerr-det"},plegado(cerradoAbierto)),
+              lineasCerrado.map(function(l){
+                return React.createElement("div",{className:"pr6-cerr-row",key:l.k,"data-linea":l.k},
+                  React.createElement("span",null,l.l),React.createElement("span",{className:"num"},l.v));
+              })))))),
+    tarjeta,
+    !sig&&v.review.length>0&&React.createElement("section",{className:"pr6-sec","data-testid":"plan-review","aria-label":t("pr6_revisar")},
       React.createElement("div",{className:"pr6-sec-h"},
         React.createElement("span",null, t("pr6_revisar"),React.createElement("span",{className:"pr6-n"}, v.review.length))),
       lista(v.review,revRow,revOpen,setRevOpen,"pr6-rev-more")),
-    React.createElement("section",{className:"pr6-sec","data-testid":"plan-due","aria-label":t("v4_pendiente")},
+    React.createElement("section",{className:"pr6-sec","data-testid":"plan-due","data-vista":vista,"aria-label":sig?tf("v4_upcoming_in",{mes:monthLong(sigM-1)}):t("v4_pendiente")},
       React.createElement("div",{className:"pr6-sec-h v4-section-h"},
         // «Pendiente» y no «Por pagar»: la petición del dueño del 26/10/2026 (la otra palabra
         // necesitaba una línea de ayuda debajo para entenderse) sigue en pie con el rediseño.
-        React.createElement("span",null, t("v4_pendiente")),
+        React.createElement("span",null, sig?pr6Cap(tf("v4_upcoming_in",{mes:monthLong(sigM-1)})):t("v4_pendiente")),
         React.createElement("button",{type:"button",className:"link",onClick:openManage}, t("pr6_todos"))),
-      v.due.length===0
-        ? React.createElement("div",{className:"pr6-empty"}, t("pr6_nada"))
-        : lista(v.due,dueRow,dueOpen,setDueOpen,"pr6-due-more")),
-    nBills>0&&React.createElement("section",{className:"pr6-paid"+(paidOpen?" open":""),ref:paidRef,"data-testid":"plan-paid","aria-label":t("pr6_ya_pagados")},
+      sig
+        ? (sigN===0
+          ? React.createElement("div",{className:"pr6-empty"}, tf("pr6_nada_sig",{month:monthLong(sigM-1)}))
+          : lista(sigPack.pendingBills,dueRow,dueOpen,setDueOpen,"pr6-due-more"))
+        : (v.due.length===0
+          ? React.createElement("div",{className:"pr6-empty"}, t("pr6_nada"))
+          : lista(v.due,dueRow,dueOpen,setDueOpen,"pr6-due-more"))),
+    !sig&&nBills>0&&React.createElement("section",{className:"pr6-paid"+(paidOpen?" open":""),ref:paidRef,"data-testid":"plan-paid","aria-label":t("pr6_ya_pagados")},
       React.createElement("button",{type:"button",className:"pr6-paid-h","aria-expanded":paidOpen?"true":"false","aria-controls":"pr6-paid-list",
         onClick:function(){ setPaidOpen(function(o){ if(!o) verPlegado(paidRef.current); return !o; }); }},
         React.createElement("span",{className:"pr6-tick","aria-hidden":"true"},"✓"),
@@ -733,10 +841,11 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
         React.createElement("div",Object.assign({className:"pr6-fold-in"},plegado(paidOpen)), v.paid.map(paidRow), pausados.map(pausadoRow)))),
     /* Traspasos y entradas siguen también aquí: los que mueven el mínimo ya salen (y se editan) en
        «¿Te llega?», pero quitarlos de la portada deja sin verlos de un vistazo a quien los miraba
-       aquí; la SPEC no los pinta ni los descarta, así que eso lo decide el dueño. */
-    pack.transfersPending.length>0&&React.createElement("div",{className:"v4-section","data-testid":"plan-transfers"},
+       aquí; la SPEC no los pinta ni los descarta, así que eso lo decide el dueño. Son de ESTE mes:
+       en la vista del siguiente no salen. */
+    !sig&&pack.transfersPending.length>0&&React.createElement("div",{className:"v4-section","data-testid":"plan-transfers"},
       React.createElement("div",{className:"v4-section-h"},t("v4_plan_transfers")),pack.transfersPending.map(function(x){ return planRecibosFlowRow(x,month); })),
-    (pack.incomePending||[]).length>0&&React.createElement("div",{className:"v4-section"},
+    !sig&&(pack.incomePending||[]).length>0&&React.createElement("div",{className:"v4-section"},
       React.createElement("div",{className:"v4-section-h"},React.createElement("span",null,t("v4_aun_entrara"))),
       pack.incomePending.map(function(x){ return planRecibosFlowRow(x,month); })),
     llegaOpen&&React.createElement(LlegaSheet,{state:state,set:set,totals:totals,pack:pack,onClose:function(){ setLlegaOpen(false); }}),
@@ -748,8 +857,93 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
       onPosponer:posponer,
       onClose:function(){ setFicha(null); },
       onEdit:function(id){ setFicha(null); setManageEdit(id); setManageOpen(true); }}),
-    React.createElement(BillsManagePush,{open:manageOpen,onClose:function(){ setManageOpen(false); setManageEdit(null); },state:state,set:set,totals:totals,simple:false,editId:manageEdit})
+    manage
   );
+}
+/* Textos del resumen del mes cerrado. El mes con mayúscula al principio («Septiembre cerrado»);
+   en catalán, con su artículo («més que l'agost», «més que el setembre»). */
+const PR6_CERRADO_DIAS=7;
+function pr6Cap(s){ s=String(s||""); return s.charAt(0).toUpperCase()+s.slice(1); }
+function pr6MesCon(m){
+  const n=monthLong(m-1);
+  if(CURLANG!=="ca") return n;
+  return /^[aeiouàèéíòóú]/i.test(n)?"l'"+n:"el "+n;
+}
+function pr6TituloCerrado(c){ return tf("pr6c_titulo",{mes:pr6Cap(monthLong(c.m-1))}); }
+function pr6LineaCerrado(c){
+  const x=tf("pr6c_linea",{x:eur(c.cent/100)});
+  if(!c.prev) return x;
+  const d=c.cent-c.prev.cent, mes=pr6MesCon(c.prev.m);
+  return x+" · "+(d===0?tf("pr6c_igual",{mes:mes}):tf(d>0?"pr6c_mas":"pr6c_menos",{x:eur(Math.abs(d)/100),mes:mes}));
+}
+// Como mucho cuatro líneas y solo las que tienen dato (SPEC §2.1); sin ninguna no se despliega.
+function pr6LineasCerrado(c){
+  const out=[];
+  if(c.sube) out.push({k:"sube",l:tf("pr6c_sube",{name:c.sube.name,mes:c.prev?pr6MesCon(c.prev.m):""}),v:"+"+eur(c.sube.cent/100)});
+  if(c.cambia) out.push({k:"cambia",l:tf(c.cambia.cent>0?"pr6c_subio":"pr6c_bajo",{name:c.cambia.name}),v:(c.cambia.cent>0?"+":"−")+eur(Math.abs(c.cambia.cent)/100)});
+  if(c.noLlegaron>0) out.push({k:"no",l:t("pr6c_no_llegaron"),v:String(c.noLlegaron)});
+  return out.slice(0,4);
+}
+// «Sabadell y Revolut» con la conjunción del idioma.
+function pr6Lista(xs){
+  try{ return new Intl.ListFormat(loc(),{type:"conjunction"}).format(xs); }catch(e){ return xs.join(", "); }
+}
+/* Primer uso (SPEC §9): cargos que se repiten en el banco y aún no son recibo. Mismo detector que
+   «Visto en tu banco» del alta por pasos, pero aquí se añaden sin pasar por el resumen de cada uno,
+   así que solo entran los que se han cobrado TODOS los meses seguidos: un cargo con huecos puede
+   ser bimestral y darlo de alta como mensual inventaría cobros que no existen. */
+function pr6Importables(state){
+  return rp4VistoEnBanco(state,0).filter(function(d){ return d.seguido&&d.day!=null&&d.bank; });
+}
+function RecibosImportSheet({items, set, showToast, onClose}){
+  const swipe=useSheetSwipe(true,onClose);
+  useBackClose(true,swipe.close);
+  const titleRef=useRef(null), titleId=React.useId();
+  useEffect(function(){ if(titleRef.current) titleRef.current.focus({preventScroll:true}); },[]);
+  const lista=useMemo(function(){ return items.slice().sort(function(a,b){ return a.day-b.day; }); },[items]);
+  const [off,setOff]=useState({});
+  const n=lista.filter(function(d,i){ return !off[i]; }).length;
+  const alguno=lista.some(function(d,i){ return off[i]; });
+  const todos=function(){
+    if(alguno){ setOff({}); return; }
+    const o={}; lista.forEach(function(d,i){ o[i]=true; }); setOff(o);
+  };
+  const hecho=useRef(false);
+  const anadir=function(){
+    if(hecho.current||!n) return;
+    hecho.current=true;
+    lista.forEach(function(d,i){
+      if(off[i]) return;
+      const it={id:uid(),name:d.name,amount:Math.round(d.amount*100)/100,freq:"mes",day:d.day,account:d.bank};
+      if(d.cat) it.category=d.cat;
+      addFixedItem(set,it);
+    });
+    mcTickHaptic();
+    if(showToast) showToast(n===1?t("pr6_imp_toast1"):tf("pr6_imp_toast",{n:n}));
+    swipe.close();
+  };
+  return ReactDOM.createPortal(
+    React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
+      React.createElement("div",Object.assign({className:"v4-sheet pr6-imp","data-testid":"plan-import",role:"dialog","aria-modal":"true","aria-labelledby":titleId,
+        ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }},swipe.sheetTouch),
+        React.createElement("div",{className:"v4-sheet-handle"}),
+        React.createElement("div",{className:"pr6-imp-h"},
+          React.createElement("h2",{className:"serif pr6-ll-t",id:titleId,ref:titleRef,tabIndex:-1}, tf("pr6_imp_t",{n:n,m:lista.length})),
+          React.createElement("button",{type:"button",className:"link","data-testid":"plan-import-todos",onClick:todos}, alguno?t("pr6_imp_marcar"):t("pr6_imp_quitar"))),
+        React.createElement("div",{className:"pr6-imp-l"},
+          lista.map(function(d,i){
+            const on=!off[i];
+            return React.createElement("button",{type:"button",key:i,role:"switch","aria-checked":on?"true":"false",className:"pr6-imp-row"+(on?"":" off"),"data-testid":"plan-import-row",
+              onClick:function(){ setOff(function(o){ const x=Object.assign({},o); x[i]=!x[i]; return x; }); }},
+              React.createElement("span",{className:"nm"},
+                React.createElement("span",{className:"pr6-nm"}, d.name),
+                React.createElement("span",{className:"sub"}, (d.cat&&CAT[d.cat]?catName(d.cat)+" · ":"")+entOf(d.bank).label+" · "+tf("pr6_dia",{d:d.day}))),
+              React.createElement("span",{className:"am num"}, eur(d.amount)),
+              React.createElement("span",{className:"pr6-imp-dot","aria-hidden":"true"}));
+          })),
+        React.createElement("button",{type:"button",className:"pr6-cta","data-testid":"plan-import-ok",disabled:!n,onClick:anadir},
+          n===0?t("pr6_imp_ninguno"):n===1?t("pr6_imp_add1"):tf("pr6_imp_add",{n:n})))),
+    document.body);
 }
 // Icono gris por tipo de aviso (SPEC §2.3): reloj, ojo tachado, subida, flechas y duda.
 const PR6_ICO={
@@ -1318,7 +1512,7 @@ function billGlyph(row){
 
 /* §2 variante A: `.settings-push` hub. Reconcile → BankPanel (Claude).
    Ajustes dispara `mc-open-bills` → PlanTab abre este push con state vivo (no snapshot). */
-function BillsManagePush({open, onClose, state, set, totals, simple, editId}){
+function BillsManagePush({open, onClose, state, set, totals, simple, editId, addNow}){
   const [stack,setStack]=React.useState(["hub"]);
   const [group,setGroup]=React.useState(null);
   const [q,setQ]=React.useState("");
@@ -1392,6 +1586,13 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId}){
       .find(function(x){ return String(x.id)===String(editId); });
     if(r){ editOnly.current=true; abrirFila(r); }
   },[open,editId]);
+  /* «Empezar» del primer uso sin cargos en el banco (SPEC §9): directo al alta por pasos y, al
+     cerrarla, de vuelta a Recibos, igual que «Editar» desde la ficha. */
+  React.useEffect(function(){
+    if(!open||!addNow||simple) return;
+    editOnly.current=true;
+    setPasos({mode:"add",once:false,n:addNow});
+  },[open,addNow]);
   const closeDetail=React.useCallback(function(){
     setDetail(null);setReviewBill(null);
     if(editOnly.current){ editOnly.current=false; onCloseRef.current(); }
@@ -1845,7 +2046,7 @@ function rp4PlanInicial(total, name, cm){
 /* «Visto en tu banco»: cargos que se repiten en el extracto (`detectSubscriptions`, el mismo
    detector de Gastos) y que aún no son un recibo. Solo filas del banco: lo apuntado a mano no se
    ha «visto» en ningún banco. */
-function rp4VistoEnBanco(state){
+function rp4VistoEnBanco(state, max){
   const fx=state.fixed||[];
   const ex=(state.expenses||[]).filter(function(x){
     return x&&esFilaDeBanco(x)&&!x.debtId&&!x.possibleDup&&!CAT_NEUTRAS[x.category]&&x.category!=="ingreso";
@@ -1853,9 +2054,10 @@ function rp4VistoEnBanco(state){
   return detectSubscriptions(ex).filter(function(g){
     if(!g.active||!(g.amount>0)||!g.ult.length) return false;
     return !fx.some(function(f){ return recNameMatch(f.name,g.name)||recNameMatch(g.name,f.name); });
-  }).slice(0,3).map(function(g){
+  }).slice(0,max===0?Infinity:(max||3)).map(function(g){
     const e=g.ult[0].e;
-    return {name:String(g.name||"").trim(), amount:g.amount, day:recDay(e.date), bank:expenseBankOf(e), cat:g.cat&&CAT[g.cat]&&!CAT_NEUTRAS[g.cat]?g.cat:""};
+    // `seguido`: cobrado todos los meses de su primer a su último cobro (`span`), sin huecos.
+    return {name:String(g.name||"").trim(), amount:g.amount, day:recDay(e.date), bank:expenseBankOf(e), cat:g.cat&&CAT[g.cat]&&!CAT_NEUTRAS[g.cat]?g.cat:"", seguido:g.span===g.months};
   }).filter(function(d){ return d.name; });
 }
 /* − / + que acelera al mantener pulsado (SPEC §7.3). El teclado (detail 0) da un paso por toque. */
