@@ -97,3 +97,43 @@ for(const version of [1,2]) for(const amount of [600,300]){
     await check();
   });
 }
+
+for(const shared of [false,true]) for(const version of [1,2]) for(const complete of [true,false]){
+  const label=shared?"bankAmount":"centimos",amount=shared?(complete?900:600):(complete?33.33:33.32);
+  test("FIN25 R3 "+label+" "+(complete?"A completo pagado":"B importe distinto pendiente")+" huella"+version+" antes y despues de recargar",async({page})=>{
+    const id="r3",name="Seguro R3 sintetico",merchant="COMERCIO SINTETICO";
+    const proof={kind:"expense",key:"revolut|2026-05-05|"+amount+"|"+merchant,
+      identity:JSON.stringify(["revolut","2026-05-05",amount,merchant]),expenseId:"r3-charge",
+      expenseKey:"2026-05-05|"+amount+"|"+merchant,expenseLegacyKey:"2026-05-05|"+amount+"|"+merchant,
+      date:"2026-05-05",bank:"revolut",amount,
+      model:JSON.stringify([version===2?id:name,"sabadell",shared?300:25,shared?900:null]),
+      ...(version===2?{modelVersion:2,receiptId:id,receiptName:name}:{})};
+    const fixed=[{id,name,amount:shared?600:100,freq:"anual",months:shared?[5,5]:[5,5,6,9],
+      day:20,account:"sabadell",...(shared?{bankAmount:900}:{}),paymentProofs:{[2026*12+5]:proof}}];
+    const recibos=await abreMayo(page,fixed),part=shared?"600,00":"33,33";
+    const check=async()=>{
+      const due=recibos.getByTestId("plan-due").locator('[data-recibo="fixed_r3"]');
+      const paid=recibos.getByTestId("plan-paid").locator('[data-recibo="fixed_r3"]');
+      await expect(due).toHaveCount(complete?0:1);
+      await expect(paid).toHaveCount(complete?1:0);
+      if(complete){
+        await recibos.getByTestId("plan-paid").locator(".pr6-paid-h").click();
+        await expect(paid).toBeVisible();
+        await expect(paid).toContainText(part);
+      } else await expect(due).toContainText(part);
+      const totals=await page.evaluate(()=>{
+        const p=planChargesMonth(mcLoadRaw(mcStateKey()),5,2026,10);
+        return {pending:p.pendingBills.map(r=>Math.round(r.amount*100)),paid:p.paidBills.map(r=>[Math.round(r.amount*100),Math.round(r.paidAmount*100)])};
+      });
+      expect(totals).toEqual(complete?{pending:[],paid:[[shared?60000:3333,shared?90000:3333]]}:{pending:[shared?60000:3333],paid:[]});
+      expect(await page.evaluate(()=>mcLoadRaw(mcStateKey()).fixed)).toEqual(fixed);
+    };
+    await check();
+    await page.reload();
+    await expect(page.locator(".botnav")).toBeVisible();
+    await page.waitForFunction(()=>!document.getElementById("mc-load"));
+    await dismissNews(page);
+    await page.locator('.botnav-tab[data-tour="plan"]').click();
+    await check();
+  });
+}

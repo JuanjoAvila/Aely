@@ -110,9 +110,9 @@ function fixedPaymentModelMatches(p,e,m){
   // FIN-25: el divisor antiguo podía guardar media cuota aunque el cargo confirmado fuese entero.
   // Sólo esa huella exacta conserva el pago completo; ni parciales ni otras pruebas rotas reviven.
   if(hasSchedule(e)||(e.freq!=="anual"&&e.freq!=="año")||!Array.isArray(e.months)||!occursIn(e,m)) return false;
-  var months=chargeMonths(e),amount=occAmountIn(e,m);
+  var months=chargeMonths(e),amount=e.bankAmount>0?e.bankAmount:occAmountIn(e,m);
   if(!months.some(function(mm){ return e.months.indexOf(mm)!==e.months.lastIndexOf(mm); })||
-    !Number.isFinite(amount)||!(amount>0)||p.amount!==amount) return false;
+    !Number.isFinite(amount)||!(amount>0)||!Number.isFinite(p.amount)||Math.round(p.amount*100)!==Math.round(amount*100)) return false;
   return p.model===JSON.stringify([legacy?e.name||"":e.id,accOf(e),e.amount/e.months.length,e.bankAmount>0?e.bankAmount:null]);
 }
 function fixedPaymentBind(p,e,m){

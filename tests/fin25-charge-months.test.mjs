@@ -82,13 +82,13 @@ test("FIN25 R2 los calendarios validos conservan exactamente su cifra mensual",(
   assert.equal(c.fixedMonthlyOf({schedule:[{m:0,amt:99},{m:13,amt:99},{m:1.5,amt:99},{m:"5",amt:99}]}),0);
 });
 
-function oldPayment(ctx,{amount=600,version=2,months=[5,5],modelAmount=300}={}){
-  const fixed={id:"r1",name:"Seguro sintetico",amount:600,freq:"anual",months,day:20,account:"sabadell"};
+function oldPayment(ctx,{amount=600,version=2,months=[5,5],modelAmount=300,annualAmount=600,bankAmount}={}){
+  const fixed={id:"r1",name:"Seguro sintetico",amount:annualAmount,freq:"anual",months,day:20,account:"sabadell",...(bankAmount===undefined?{}:{bankAmount})};
   const expense={id:"r1-charge",date:"2026-05-05T12:00:00.000Z",merchant:"COMERCIO SINTETICO",amount,ent:"revolut",source:"wallet",category:"otros"};
   const state={fixed:[fixed],accounts:[{id:"sb",ent:"sabadell",role:"fijos",value:3000}],expenses:[expense],bankTx:[],debts:[],oneoffs:[],flows:[]};
   const linked=ctx.linkFixedPayment(state,expense.id,fixed.id,2026,5,10);
   assert.ok(linked.fixed[0].paymentProofs,"el fixture parte de un cargo confirmado explicitamente");
-  const proof={...linked.fixed[0].paymentProofs[2026*12+5],model:JSON.stringify([version===2?fixed.id:fixed.name,"sabadell",modelAmount,null])};
+  const proof={...linked.fixed[0].paymentProofs[2026*12+5],model:JSON.stringify([version===2?fixed.id:fixed.name,"sabadell",modelAmount,bankAmount>0?bankAmount:null])};
   if(version!==2){delete proof.modelVersion;delete proof.receiptId;delete proof.receiptName;}
   return {...linked,fixed:[{...linked.fixed[0],paymentProofs:{[2026*12+5]:proof}}]};
 }
@@ -165,4 +165,71 @@ test("FIN25 R1 el mutante que acepta cualquier huella antigua cae",()=>{
   const mutant=loadPureLogic(read("src/shell.html").replace("<!--MC_APP_SCRIPT-->",()=>js));
   vm.runInNewContext("fixedPaymentModelMatches=function(){return true;}",mutant);
   assert.throws(()=>rejectsWrongOldModels(mutant),assert.AssertionError);
+});
+
+function centsPayment(ctx,version=2,amount=33.33){
+  return oldPayment(ctx,{version,amount,annualAmount:100,months:[5,5,6,9],modelAmount:25});
+}
+function sharedPayment(ctx,version=2,amount=900){
+  return oldPayment(ctx,{version,amount,bankAmount:900});
+}
+function keepsConfirmedPayment(ctx,make,version,charge,part){
+  const s=make(ctx,version),before=JSON.stringify(s);
+  assert.equal(paid(s,ctx),true,"la prueba completa conserva pagado");
+  const offline=JSON.parse(JSON.stringify({...s,expenses:[],bankTx:[]}));
+  assert.equal(paid(offline,ctx),true,"la misma prueba viaja sin extracto local");
+  const plan=ctx.planChargesMonth(s,5,2026,10);
+  assert.equal(plan.pendingBills.length,0);
+  assert.equal(plan.paidBills.length,1);
+  assert.equal(cents(plan.paidBills[0].amount),part);
+  assert.equal(cents(plan.paidBills[0].paidAmount),charge);
+  assert.equal(cents(plan.paidBills[0].plannedBankAmount),charge);
+  assert.equal(JSON.stringify(s),before,"leer no migra ni reescribe la prueba");
+}
+
+test("FIN25 R3 centimos conserva 33.33 confirmado para 100 entre [5,5,6,9]",()=>{
+  for(const version of [1,2]) keepsConfirmedPayment(c,centsPayment,version,3333,3333);
+});
+
+test("FIN25 R3 bankAmount conserva el cargo compartido completo y la parte propia",()=>{
+  for(const version of [1,2]) keepsConfirmedPayment(c,sharedPayment,version,90000,60000);
+});
+
+function rejectsWrongCentsAndBank(ctx){
+  for(const version of [1,2]){
+    for(const amount of [25,33.32,33.34]) assert.equal(paid(centsPayment(ctx,version,amount),ctx),false,"centimos distintos: "+amount);
+    for(const amount of [300,600,899.99,900.01]) assert.equal(paid(sharedPayment(ctx,version,amount),ctx),false,"banco exige el bruto completo: "+amount);
+    for(const make of [centsPayment,sharedPayment]){
+      const s=make(ctx,version),p=proofOf(s),model=JSON.parse(p.model);
+      for(const [index,value] of [[0,"otro"],[1,"otro banco"],[2,model[2]+0.01],[3,model[3]===null?900:null]]){
+        const wrong=model.slice();wrong[index]=value;
+        const bad={...s,fixed:[{...s.fixed[0],paymentProofs:{[2026*12+5]:{...p,model:JSON.stringify(wrong)}}}]};
+        assert.equal(paid(bad,ctx),false,"sigue exigiendo la huella completa: "+JSON.stringify(wrong));
+      }
+      const stringAmount={...s,fixed:[{...s.fixed[0],paymentProofs:{[2026*12+5]:{...p,amount:String(p.amount)}}}]};
+      assert.equal(paid(stringAmount,ctx),false,"los centimos no amplian el contrato a importes de texto");
+      assert.equal(paid({...s,deleted:[p.expenseKey]},ctx),false);
+      assert.equal(paid({...s,expenses:[{...s.expenses[0],possibleDup:true}]},ctx),false);
+      assert.equal(paid({...s,fixed:[s.fixed[0],{...s.fixed[0]}]},ctx),false);
+    }
+  }
+}
+
+test("FIN25 R3 centimos y banco no admiten parciales ni otras huellas o identidades",()=>{
+  rejectsWrongCentsAndBank(c);
+});
+
+test("FIN25 R3 mutantes float, importe propio y compatibilidad abierta son rechazados",()=>{
+  const original=c.fixedPaymentModelMatches.toString();
+  const variants=[
+    ["float",original.replace("Math.round(p.amount*100)!==Math.round(amount*100)","p.amount!==amount"),ctx=>keepsConfirmedPayment(ctx,centsPayment,2,3333,3333)],
+    ["importe propio",original.replace("amount=e.bankAmount>0?e.bankAmount:occAmountIn(e,m)","amount=occAmountIn(e,m)"),ctx=>keepsConfirmedPayment(ctx,sharedPayment,2,90000,60000)],
+    ["huella abierta","function fixedPaymentModelMatches(){return true;}",rejectsWrongCentsAndBank],
+  ];
+  for(const [name,source,check] of variants){
+    assert.notEqual(source,original,"el mutante cambia la logica: "+name);
+    const mutant=loadPureLogic(read("src/shell.html").replace("<!--MC_APP_SCRIPT-->",()=>js));
+    vm.runInNewContext("fixedPaymentModelMatches="+source,mutant);
+    assert.throws(()=>check(mutant),assert.AssertionError,name);
+  }
 });
