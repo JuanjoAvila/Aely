@@ -1,0 +1,18 @@
+{
+  "status": "blocked",
+  "summary": "Cierre horario propio de PR328. Reparacion B1/B2/R2 y documentacion R1 conservadas como WIP privado no probado sobre555fe0c3656a3aeb948ff2423c79f674c5b3f92c; ninguna publicacion de producto. B1 cubre tambien reactivacion al mover una pausa a intervalo futuro o terminado, sin sumar base cuando se pierde trazabilidad. Propuesta revisada de125 transiciones y diez corridas dirigidas preparada; falta aclaracion aplicable del contrato Node financiero CPU1 y GO exacto antes de cualquier ENTER. Cinco archivos, copias y patches preservados durables; BACKLOG entero privado y excluido del futuro commit/push. Sin runner, puerto, servidor o recurso de pruebas adquirido. Se libera solo este claim para continuidad mediante nuevo encargo e identidad propios del sucesor.",
+  "tests": [],
+  "productSHA": "555fe0c3656a3aeb948ff2423c79f674c5b3f92c",
+  "limitations": [
+    "CERO pruebas, build, commits o push de producto; revision estatica no acredita resultado ejecutado.",
+    "La reparacion B1/B2/R2 sigue sin validar; no hay verde ni entrega beta ni aceptacion movil.",
+    "No ejecutar launcher rechazado ni equivalente. No se heredan presupuestos, recursos, claims ni runners.",
+    "Requiere revision independiente final del HEAD exacto y GO antes de fast-forward a la misma PR328 sin rebase ni force."
+  ],
+  "schema": 1,
+  "taskId": "pr328-manual-pausa-money-repair-r141-codex-20261031",
+  "actor": "codex",
+  "sessionId": "nrelay7d58898d3ded21bed4b660b100f159dc",
+  "createdAt": "2026-10-31T15:48:01.766Z",
+  "released": true
+}
