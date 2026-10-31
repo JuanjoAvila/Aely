@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "id": "fin28-pr324-r2r4-remates-r130-codex-20261031",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261028-r130-fda31257-4f8ab527-6ddf-45c2-96b1-b83d48e30b32",
+  "createdAt": "2026-10-31T01:44:10.040Z",
+  "to": "codex",
+  "baseSHA": "22509f9d891a32869d2952b2d14cae4a01bbca9d",
+  "objective": "Remates FIN28 en MISMA PR324 bajo orden Claude4ee7fd4624bdc1afc44ee9ebdee6de994f9a69af. R2: si set no aplica el enlace, la ficha Plan no queda colgada sin aviso; cerrar o avisar como el flujo actual, con RED causal y test real. R4: consulta del aviso usa el hoy de la app que usa el resto, fijable por tests; no reloj real independiente. R1 aviso en mismo dialogo y boton Es otro pago aceptado tal cual: conservar. R3 orden toast/subida lo documenta Claude, no tocar CHANGELOG. Dinero y slimForCloud deben quedar byte a byte identicos a la base. Nuevo titular independiente, TASK/claim/OWN20 propios desde0; no heredar GO225 ni identidad/counters/clock. Tras OWN/FULLACK/claim confirmado y ROOTACK especifico, trabajar privado desde exactBASE225, scope4. Preservar fuentes/REDs/evidencias y demostrar nuevos dirigidos exactHEAD y nueva review ROOT e independiente antes de GO para actualizar MISMA PR324 DRAFTbeta. No pushGO inicial; sin rebase, force, merge, main/beta push, deploy, backend, core/App, VERSION/notas o decisiones de dinero por inferencia. No repetir pruebas acabadas sin nuevo cambio/fallo; consultas concretas de dinero/producto a ROOT, solo ROOT reporta Claude.",
+  "scope": [
+    "src/modules/08-motor-bank.js",
+    "src/modules/14-v4-screens.js",
+    "tests/recibo-un-cargo-un-recibo.test.mjs",
+    "e2e/fin28-manual-link-warning.spec.mjs"
+  ],
+  "upstreamGrant": "4ee7fd4624bdc1afc44ee9ebdee6de994f9a69af",
+  "standingOwnGrant": "7188f09dd641ffd90c5a2455196b1385c4bb084c",
+  "directedTestGrant": "027aeb19133c2129faef080bc70e27b2e0addce9",
+  "targetPR": 324,
+  "targetPRBase": "beta",
+  "expectedBeta": "c11dcebe7d19c0e8588b6404db8880195fe4511a",
+  "expectedRemoteHEAD": "22509f9d891a32869d2952b2d14cae4a01bbca9d",
+  "targetRemoteBranch": "codex/fin28-r128-fda31257-0494",
+  "nextAction": "ROOT131 creates a fresh native Aely reception holder after its own admission/OWN; no old worker reactivation. Before claim/product verify current remote and all canonical deltas/cancellations.",
+  "acceptance": [
+    "Set rejected or unchanged state gets closure or existing failure feedback; no cloud upload/success for unapplied state.",
+    "Warning uses consistent app today; deterministic clock boundary case and affected DOM evidence.",
+    "R1 stays accepted as-is; financial guards/proof identity/eligibility and slimForCloud unchanged.",
+    "New HEAD evidence and independent review; local synthetic verification never means served beta or mobile acceptance."
+  ]
+}
