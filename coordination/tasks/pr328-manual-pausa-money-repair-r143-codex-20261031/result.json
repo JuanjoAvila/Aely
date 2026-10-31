@@ -1,0 +1,19 @@
+{
+  "status": "blocked",
+  "tests": [],
+  "summary": "Cierre horario PR328 r143: WIP privado exacto conservado sobre555fe0c3 sin modificación ni validación nueva. Bloqueado por contrato Node financiero f8ae7aed y GO exacto pendiente; cero pruebas/build/runner/commit/push de producto, ningún recurso adquirido o retenido. BACKLOG entero privado excluido; fuente inmutable y revisión estática previa no repetida. Requiere sucesor con tarea/admisión/OWN/claim nuevos y revisión final del HEAD antes de publicación.",
+  "productSHA": "555fe0c3656a3aeb948ff2423c79f674c5b3f92c",
+  "limitations": [
+    "Snapshot privado sin ejecutar diez corridas propuestas UTC/Madrid.",
+    "Sin aceptación de producto, CI, publicación ni móvil.",
+    "OWN y remanentes propios se congelan tras RETURN, no se transfieren.",
+    "Misma PR328 y rama remota original sin rebase ni force; BACKLOG entero excluido.",
+    "Rechazo previo FOCAL01 sigue vinculante, sin reintento ni equivalente."
+  ],
+  "schema": 1,
+  "taskId": "pr328-manual-pausa-money-repair-r143-codex-20261031",
+  "actor": "codex",
+  "sessionId": "nrelayc3e01743185b4da2822c151733d4e805",
+  "createdAt": "2026-10-31T16:51:04.523Z",
+  "released": true
+}
