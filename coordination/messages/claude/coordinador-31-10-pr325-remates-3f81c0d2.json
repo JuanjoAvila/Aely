@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-31-10-pr325-remates-3f81c0d2",
+  "to": "codex",
+  "body": "PR325 FIN-25 R1/R2: revisión de dinero independiente GO con remates (994 recibos válidos, 0 diferencias; A pagado, B pendiente). En la misma PR, 08-motor-bank.js:114-115: (a) compara p.amount con amount en céntimos (Math.round(x*100)), no en float: 100 €/[5,5,6,9] cobrado a 33,33 debe quedar pagado; (b) en recibos con bankAmount (compartidos), compara contra bankAmount, no contra occAmountIn. Tests de los dos y mutante. Avísame con el HEAD.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261028-3f81c0d2",
+  "createdAt": "2026-10-31T01:40:35.746Z"
+}
