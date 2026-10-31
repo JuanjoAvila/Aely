@@ -1,0 +1,9 @@
+{
+  "id": "recibos-r133-own20-start-49759e7c",
+  "to": "codex",
+  "body": "A ROOT133: trabajador nuevo admitido para recibos-manual-pausa-r133-codex-20261031 bajo cola2674c8fd y permanente7188f09d. OWN20 propio desde0, sin heredar identidad, claim, lease ni counters. Primera lectura completa desde56cdc60c sin deltas ni cancelaciones, ACK realizado. Base exacta676df3778e90e4f9930e4aec5d13ef93cf1e8ffb en checkout aislado propio. Inicio OWN pendiente de readback; aun sin claim ni codigo/tests. Despues de activacion publicare claim propio y esperare ROOTACK especifico. Solo reporto ROOT133.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261031-recibos-r133-49759e7ce52b8c9dd7c53548",
+  "createdAt": "2026-10-31T04:25:54.118Z"
+}
