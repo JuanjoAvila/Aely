@@ -1,0 +1,241 @@
+{
+  "status": "done",
+  "summary": "Entrega tecnica R2: PR333 draft contra beta, un commit90e75782 sobre c89. Edicion equivalente solo conserva pago cuando prueba persistida valida o paidYm valido; BOOK nuevo sin prueba mantiene contrato previo. Cinco paths autorizados, revision ROOT del HEAD exacto y push normal/readback confirmados. No ProductREADY.",
+  "productSHA": "90e75782cc92e2da66ef93f48678238c21edf5e1",
+  "productTree": "147f5c8483518e29a7117d37c6f11d6ef78360d4",
+  "productParent": "c89bb12c528f079640a514b95334c21b9df2d2c1",
+  "pullRequest": 333,
+  "repository": "JuanjoAvila/Aely",
+  "draft": true,
+  "tests": [
+    {
+      "command": "node --test --test-name-pattern=^BOOK  tests/recibos-t4-book-edit-state.test.mjs",
+      "env": {
+        "TZ": "UTC",
+        "AELY_T4_SOURCE": "base"
+      },
+      "exitCode": 1,
+      "expectedExit": 1,
+      "revision": "V4",
+      "classification": "accepted causal RED: two paidYm assertion failures"
+    },
+    {
+      "command": "node --test tests/recibos-t4-book-edit-state.test.mjs",
+      "env": {
+        "TZ": "UTC"
+      },
+      "exitCode": 1,
+      "expectedExit": 0,
+      "revision": "V4",
+      "classification": "failed32of36, VM fixture normalization needed, retained"
+    },
+    {
+      "command": "node --test tests/recibos-t4-book-edit-state.test.mjs",
+      "env": {
+        "TZ": "UTC"
+      },
+      "exitCode": 1,
+      "expectedExit": 0,
+      "revision": "V5",
+      "classification": "failed35of36, baseline representation oracle needed, retained"
+    },
+    {
+      "command": "node --test tests/recibos-t4-book-edit-state.test.mjs",
+      "env": {
+        "TZ": "UTC"
+      },
+      "exitCode": 0,
+      "expectedExit": 0,
+      "revision": "V6",
+      "classification": "passed",
+      "counts": {
+        "tests": 36,
+        "pass": 36,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "command": "node --test tests/recibos-t4-book-edit-state.test.mjs",
+      "env": {
+        "TZ": "Europe/Madrid"
+      },
+      "exitCode": 0,
+      "expectedExit": 0,
+      "revision": "V6",
+      "classification": "passed",
+      "counts": {
+        "tests": 36,
+        "pass": 36,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "command": "node --test --test-name-pattern=BOOK patch tests/recibos-t4-book-edit-state.test.mjs",
+      "env": {
+        "TZ": "UTC",
+        "AELY_T4_MUTANT": "patch"
+      },
+      "exitCode": 1,
+      "expectedExit": 1,
+      "revision": "V6",
+      "classification": "expected causal mutant assertion",
+      "counts": {
+        "tests": 1,
+        "pass": 0,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "command": "node --test --test-name-pattern=BOOK steps tests/recibos-t4-book-edit-state.test.mjs",
+      "env": {
+        "TZ": "UTC",
+        "AELY_T4_MUTANT": "steps"
+      },
+      "exitCode": 1,
+      "expectedExit": 1,
+      "revision": "V6",
+      "classification": "expected causal mutant assertion",
+      "counts": {
+        "tests": 1,
+        "pass": 0,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "command": "node --test --test-name-pattern=sin persistida patch: BOOK nuevo con wait tests/recibos-t4-book-edit-state.test.mjs",
+      "env": {
+        "TZ": "UTC",
+        "AELY_T4_MUTANT": "persisted-patch"
+      },
+      "exitCode": 1,
+      "expectedExit": 1,
+      "revision": "V6",
+      "classification": "expected causal mutant assertion",
+      "counts": {
+        "tests": 1,
+        "pass": 0,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "command": "node --test --test-name-pattern=sin persistida steps: BOOK nuevo con wait tests/recibos-t4-book-edit-state.test.mjs",
+      "env": {
+        "TZ": "UTC",
+        "AELY_T4_MUTANT": "persisted-steps"
+      },
+      "exitCode": 1,
+      "expectedExit": 1,
+      "revision": "V6",
+      "classification": "expected causal mutant assertion",
+      "counts": {
+        "tests": 1,
+        "pass": 0,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "command": "node --test --test-name-pattern=frontera día global: tests/recibos-t4-book-edit-state.test.mjs",
+      "env": {
+        "TZ": "UTC",
+        "AELY_T4_MUTANT": "steps-top-day"
+      },
+      "exitCode": 1,
+      "expectedExit": 1,
+      "revision": "V6",
+      "classification": "expected causal mutant assertion",
+      "counts": {
+        "tests": 1,
+        "pass": 0,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "command": "node tests/fixed-day-reconcile.test.mjs",
+      "env": {
+        "TZ": "UTC"
+      },
+      "exitCode": 0,
+      "expectedExit": 0,
+      "revision": "V6",
+      "classification": "passed",
+      "counts": {}
+    },
+    {
+      "command": "node tests/fixed-ispaidin.test.mjs",
+      "env": {
+        "TZ": "UTC"
+      },
+      "exitCode": 0,
+      "expectedExit": 0,
+      "revision": "V6",
+      "classification": "passed",
+      "counts": {}
+    },
+    {
+      "command": "node --test tests/recibos-renombrar.test.mjs",
+      "env": {
+        "TZ": "UTC"
+      },
+      "exitCode": 0,
+      "expectedExit": 0,
+      "revision": "V6",
+      "classification": "passed",
+      "counts": {
+        "tests": 21,
+        "pass": 21,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    }
+  ],
+  "actualNodeInvocations": 13,
+  "finalExactExits": [
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0
+  ],
+  "validationSummary": "36of36 UTC and Madrid; five causal mutants each exactly one intended assertion; fixed-day-reconcile src original guardian exit0, fixed-ispaidin26 checks, rename21of21. Earlier failed32of36 and35of36 preserved, causalRED not repeated.",
+  "resourcesReleased": true,
+  "limitations": [
+    "Claude review, exact CI, integration, served artifacts and human mobile acceptance remain pending.",
+    "No build, full suite, e2e, server, backend, SQL, Edge, deployment, merge, version or catalog changes.",
+    "Synthetic directed validation only; no real financial data or device acceptance."
+  ],
+  "ProductREADY": false,
+  "schema": 1,
+  "taskId": "recibos-t4-r2-book-edit-r146-codex-20261031",
+  "actor": "codex",
+  "sessionId": "nrelaya7ffc10ed95fa345c42fdf229ce649e7",
+  "createdAt": "2026-10-31T20:24:14.310Z",
+  "released": true
+}
