@@ -1,5 +1,52 @@
 [
   {
+    "v": "4.26.194",
+    "d": "2026-10-31",
+    "t": {
+      "es": "Recibos: ¿te llega?",
+      "en": "Bills: will it cover?",
+      "ca": "Rebuts: t’arriba?"
+    },
+    "items": {
+      "es": [
+        "Recibos: toca «Te llega» para ver, banco a banco, el día más justo del mes, cuánto tendrías que pasar si no llega y qué pasaría si gastas algo hoy. La nómina se puede corregir desde ahí."
+      ],
+      "en": [
+        "Bills: tap “You're covered” to see, bank by bank, the tightest day of the month, how much to move if it won’t cover, and what would happen if you spent something today. You can also adjust your salary from there."
+      ],
+      "ca": [
+        "Rebuts: toca «T'arriba» per veure, banc a banc, el dia més just del mes, quant hauries de passar si no arriba i què passaria si gastes alguna cosa avui. La nòmina es pot corregir des d’allà."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "plan-recibos-t3",
+        "t": {
+          "es": "Plan: ¿te llega el dinero?",
+          "en": "Plan: will the money cover it?",
+          "ca": "Pla: t’arriben els diners?"
+        },
+        "items": {
+          "es": [
+            "1. Plan → Recibos → toca la píldora «Te llega» o «Falta …». BIEN: sale «¿Te llega?» con un bloque por cada banco que tiene recibos en «Pendiente»; «Tienes hoy» es el saldo que ves en Cartera para ese banco y «Recibos que faltan» suma lo de «Pendiente» de ese banco. MAL: falta o sobra un banco, o las cifras no cuadran con Cartera o con «Pendiente».",
+            "2. En esa hoja, mira si algún banco tiene la fila «Pagado, aún sin restar del saldo». BIEN: si sale, es un recibo que ya está en «Ya pagados» pero cuyo cobro el saldo del banco todavía no recoge. Un recibo cobrado hoy sale ahí hasta que se lea el saldo de ese banco otro día, y eso es normal; la cifra grande es «Tienes hoy» menos todas las filas. MAL: la cifra no sale de restar las filas, o sale un recibo que no está en «Ya pagados».",
+            "3. En la hoja → «¿Y si gasto…?» → toca «Importe» y escribe 50. BIEN: la cifra grande de ese banco baja justo 50 y la línea dice «Llega · te quedan …» o «No llega · faltan …» con esa cifra; al borrar, vuelve a la de antes. MAL: baja otra cantidad o cambia otro banco."
+          ],
+          "en": [
+            "1. Plan → Bills → tap the “You're covered” or “Short …” pill. RIGHT: “Will it cover?” opens with one block for each bank that has bills in “Pending”; “You have today” is the balance you see in Portfolio for that bank and “Bills to come” adds up that bank’s “Pending”. WRONG: a bank is missing or extra, or the figures do not match Portfolio or “Pending”.",
+            "2. In that sheet, check whether any bank has the row “Paid, not yet in the balance”. RIGHT: if it shows, it is a bill already in “Already paid” whose charge the bank balance does not include yet. A bill paid today shows there until that bank’s balance is read on another day, and that is normal; the big figure is “You have today” minus all the rows. WRONG: the figure is not the rows subtracted, or a bill shows that is not in “Already paid”.",
+            "3. In the sheet → “What if I spend…?” → tap “Amount” and type 50. RIGHT: that bank’s big figure drops by exactly 50 and the line says “Covered · … left” or “Not covered · short …” with that figure; when you clear it, it goes back to what it was. WRONG: it drops by another amount or another bank changes."
+          ],
+          "ca": [
+            "1. Pla → Rebuts → toca la píndola «T'arriba» o «Falten …». BÉ: surt «T'arriba?» amb un bloc per cada banc que té rebuts a «Pendent»; «Tens avui» és el saldo que veus a Cartera per a aquest banc i «Rebuts que falten» suma el de «Pendent» d’aquest banc. MALAMENT: falta o sobra un banc, o les xifres no quadren amb Cartera o amb «Pendent».",
+            "2. En aquest full, mira si algun banc té la fila «Pagat, encara sense restar del saldo». BÉ: si surt, és un rebut que ja és a «Ja pagats» però el saldo del banc encara no recull el seu cobrament. Un rebut cobrat avui surt allà fins que es llegeixi el saldo d’aquest banc un altre dia, i això és normal; la xifra gran és «Tens avui» menys totes les files. MALAMENT: la xifra no surt de restar les files, o surt un rebut que no és a «Ja pagats».",
+            "3. Al full → «I si gasto…?» → toca «Import» i escriu 50. BÉ: la xifra gran d’aquest banc baixa just 50 i la línia diu «Arriba · et queden …» o «No arriba · falten …» amb aquesta xifra; en esborrar, torna a la d’abans. MALAMENT: baixa una altra quantitat o canvia un altre banc."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.193",
     "d": "2026-10-28",
     "t": {
@@ -21,30 +68,7 @@
         "«Les teves inversions» s’obre en euros quan la moneda triada encara no té canvi."
       ]
     },
-    "tandas": [
-      {
-        "id": "recibos-anual-inversiones-eur",
-        "t": {
-          "es": "Recibos anuales y moneda de inversiones",
-          "en": "Annual bills and investments currency",
-          "ca": "Rebuts anuals i moneda d’inversions"
-        },
-        "items": {
-          "es": [
-            "1. Plan → Recibos: mira un recibo anual o de pocos cobros al año que tengas. BIEN: sigue con el mismo importe y el mismo mes de cobro de siempre. MAL: el importe sale partido o distinto, o el mes cambia o desaparece.",
-            "2. Cartera → Inversiones («Tus inversiones»). BIEN: abre en euros (€) y las cifras salen con su importe, no con «—». MAL: salen guiones o un símbolo de otra moneda sin que la hayas elegido."
-          ],
-          "en": [
-            "1. Plan → Bills: look at an annual bill, or one charged only a few times a year. RIGHT: it keeps the same amount and the same charge month as always. WRONG: the amount is split or different, or the month changes or disappears.",
-            "2. Portfolio → Investments (\"Your investments\"). RIGHT: it opens in euros (€) and the figures show their amount, not \"—\". WRONG: dashes show up, or a symbol of another currency you did not choose."
-          ],
-          "ca": [
-            "1. Pla → Rebuts: mira un rebut anual o de pocs cobraments a l’any que tinguis. BÉ: continua amb el mateix import i el mateix mes de cobrament de sempre. MALAMENT: l’import surt partit o diferent, o el mes canvia o desapareix.",
-            "2. Cartera → Inversions («Les teves inversions»). BÉ: s’obre en euros (€) i les xifres surten amb el seu import, no amb «—». MALAMENT: surten guions o un símbol d’una altra moneda que no has triat."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.192",
