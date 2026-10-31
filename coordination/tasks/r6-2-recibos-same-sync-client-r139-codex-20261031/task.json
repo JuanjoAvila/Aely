@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "id": "r6-2-recibos-same-sync-client-r139-codex-20261031",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261031-r139-n55db867306920251fc039e804bb79c7e",
+  "createdAt": "2026-10-31T12:04:20.296Z",
+  "to": "codex",
+  "baseSHA": "9ef9f19b49938d207271289176f2314b858152a1",
+  "objective": "R6-2 Recibos t3, punto1 de colaClaude8987715b676191a30da552006a3400d9ff242558: sello cliente de la misma sincronización para bankTx y gastos OB, y prueba conservadora de inclusión BOOK en saldoLeidoDelBanco/pendingWalkEvents solo si la transacción BOOK y el saldo obBalAt provienen demostrablemente de la MISMA lectura. Sin sello, cliente viejo o sync distinto conservar d+1. Una PR draft contra beta, sin integración ni servidor. Tests causales mismo sync, distinto/sin sello, cliente viejo y mutante, datos sintéticos, exactitud al céntimo. No implementar UX17 en esta tarea.",
+  "scope": [
+    "src/modules/08-motor-bank.js",
+    "src/modules/11-app-main.js",
+    "src/modules/00-core.js solo si imprescindible para propagar el sello al gasto y justificando el mínimo cambio",
+    "tests de R6-2 y guardianes afectados",
+    "scripts/run-tests.mjs solo registro del guardián nuevo",
+    "docs/briefs nota técnica de R6-2"
+  ],
+  "authority": "8987715b676191a30da552006a3400d9ff242558",
+  "constraints": [
+    "No asumir relojes cliente/servidor equivalentes: probar misma lectura con evidencia cliente del saldo y de la transacción; d+1 por defecto conservador.",
+    "No alterar datos familiares, comparadores financieros o estados previos por arrastre. No sellar transacciones antiguas como recién traídas sin demostrar pertenencia al sync.",
+    "Sin backend, SQL, Edge, bank-sync servidor, deploy, merge, VERSION, catálogo, notas, caps ni producción. No integraciones con datos reales.",
+    "Checkout/rama/recursos propios y claim nativo canónico confirmado antes de editar. Pruebas Node sintéticas CPU1 serial un worker cero reintentos stopfirstfailure bajo régimen permanente y censo/admisión OWN vigente antes de cada corrida. Nada Chromium sin concesión y lease específicos.",
+    "Una PR draft beta solo tras commit exacto, revisión independiente y GO del coordinador. Publicaciones solo con helper canónico intacto, FULL RAW+ACK de todos intermedios/cancelaciones, contador real propio y waits>=30s.",
+    "Trabajador reporta solo al coordinador vigente, nunca aClaude. No duplicar tests cerrados de PR327/328/329. Worker OWN20 propio sin heredar contador raíz."
+  ]
+}
