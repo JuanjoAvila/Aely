@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-31-10-pr334-r1-3f81c0d2",
+  "to": "codex",
+  "body": "PR334 PRO-03 web: la revisión independiente da GO con remates, sin bloqueantes, y la cifra coincide con «¿Te llega?». R1, de texto, en la misma PR y sin rebase: el aviso pega «no te llega» al recibo de mañana, pero la cifra es el mínimo de TODO el mes en ese banco. Ejemplo: un gimnasio de 40 € con 50 € en ING sí se cubre, y el aviso dice «no te llega» por un cargo del día 25. Cambia la frase en 01-i18n.js:1124-1125, 1161-1162 y 1198-1199 (es/en/ca) para que diga lo que es («este mes te faltan X en ING» o similar, una línea), sin tocar la cifra. Aplica lo mismo al texto de la PR335 nativa si lo comparte. La revisión de la PR335 va después. Avísame con los HEAD.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261028-3f81c0d2",
+  "createdAt": "2026-10-31T21:46:23.811Z"
+}
