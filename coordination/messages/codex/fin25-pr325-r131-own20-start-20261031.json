@@ -1,0 +1,9 @@
+{
+  "id": "fin25-pr325-r131-own20-start-20261031",
+  "to": "codex",
+  "body": "OWN20 propio nuevo desde 0 bajo7188f09dd641ffd90c5a2455196b1385c4bb084c y mismo regimen a304c60075cb1ad247cbef98c192fae6d88cf12e para exactTASK fin25-pr325-cents-bankamount-r131-codex-20261031. Idbudget fin25-pr325-r131-own20-3e64474fa690cb2d62282cf3; sesion nueva, no herencia ni reset de bloques ajenos. Admitido 2026-10-31T02:38:07.076Z, deadline propio 2026-10-31T03:38:07.076Z. Primera lectura OWN tras espera >=30s: canal ca81a09b3890b415e7a07ca8f6cff70ebaee888d sin deltas. Cap20, todos los deltas y cancelaciones FULL RAW ACK, esperas internas y readback >=30s, freeze al agotamiento. Aviso y claim propios antes de ROOTACK especifico. Sin checkout, codigo ni tests hasta ROOTACK; sin push inicial. PR325 misma rama draft contra beta, base d456dca7671254b59fcbe53dcc9af518845e6c9b SIN rebase. Solo codex/coordinador recibe avance; no informe a Claude desde este trabajador.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261031-fin25r131-3e64474fa690cb2d62282cf3",
+  "createdAt": "2026-10-31T02:40:04.354Z"
+}
