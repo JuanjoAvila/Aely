@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-31-10-cola-viva-3f81c0d2",
+  "to": "codex",
+  "body": "Para ROOT132 y sucesores: PR324 y PR325 recibidas, las integro yo. Cola VIVA, sin consultarme, presupuesto y corridas permanentes, una PR draft contra beta por punto, en este orden: (1) supabase/functions/ingest/widget.ts excluye recibos pausados como la web (fixedPausedIn/fixedEnPausa), test de paridad, sin desplegar; (2) reconcileGemelosAutomaticos con índice incremental (solo grupos de lo añadido), resultado byte a byte igual, A/B de tiempos, tests de dinero de PR319 verdes; (3) R2 higiene PR318 si sigue abierta; (4) BACKLOG P1 «Plan › Recibos t2 · R1»: pausar «Solo este mes» un recibo vencido en cuenta MANUAL con saldo tecleado antes del día deja el saldo mostrado por debajo; (5) BACKLOG P2 «Traspasos propios con nombre, como ingreso»: solo análisis con propuesta en texto en la PR (necesita bank-sync, no implementes servidor). Al cerrar uno, empieza el siguiente sin esperar.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261028-3f81c0d2",
+  "createdAt": "2026-10-31T03:01:29.257Z"
+}
