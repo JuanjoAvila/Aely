@@ -17,6 +17,7 @@ const mutations={
  preserveUnchanged:["if(Math.round(typed*100)===Math.round(shown*100)) return a;","if(Math.round(typed*100)===Math.round(shown*100)){rows.push({before:manualBalanceModel(a),next:Object.assign(manualBalanceModel(a),{origin:'manual-v1'}),typed:typed});return a;}"],
  snapshot:["manualBalanceSame(p,manualBalanceModel(a))","true"],
  manual:["return !!a&&!a.bankIban&&!a.bankUid&&a.balSaldo==null&&!a.balanceAt&&!saldoLoMandaPuenteNativo(s,a.ent);","return !!a;"],
+ nativeWrite:["||a.bankIban||a.bankUid||a._obKey) return a;","||!manualBalanceIsManual(s,a)) return a;"],
  target:["if(![\"id\",\"ent\",\"role\",\"spendFrom\"].every(function(k){return r.expected[k]===target[k];})) return a;",""]
 };
 const mutant=process.env.RECIBOS_MANUAL_MUTANT||process.argv[2];
@@ -77,6 +78,12 @@ await check('writer viejo real conserva sello; vínculo de estado detecta base i
  const c=h.c;let slots=[],idx=0;const use=vm.runInNewContext('('+oldEditable+')',{useState(init){const i=idx++;if(!(i in slots))slots[i]=typeof init==='function'?init():init;return[slots[i],v=>{slots[i]=typeof v==='function'?v(slots[i]):v;}];}});
  const start=copy(h.s.accounts[0]);function render(){idx=0;return use(h.s.accounts,it=>{h.s=Object.assign({},h.s,{accounts:it,_savedAt:now});},{display:a=>c.saldoCuentaMostrada(a,c.insumosSaldoGasto(h.s)),toStored:(a,v)=>+(v-(c.insumosSaldoGasto(h.s).paidNetByBank[a.ent]||0)).toFixed(2)});}
  clock('2026-10-10T12:00:00Z');let w=render();w.start();w=render();w.setDraft({a:'987,01'});render().save();assert.deepEqual(copy(h.s.accounts[0]),start);assert.equal(c.manualBalanceRead(h.s,'a'),null);h.pause();assert.equal(h.shown(),98701);
+});
+await check('corregir saldo sigue disponible en TR nativo y adoptadas sin identidad OB',()=>{
+ for(const extra of [{ent:'trade_republic'},{balSaldo:1000},{balanceAt:'2026-10-01T00:00:00Z'}]){
+  clock('2026-10-10T12:00:00Z');const s=fixture(extra,{account:extra.ent||'sabadell'});if(extra.ent)s.settings.brokersOn=['trade_republic'];const h=harness(s);h.read(500);assert.equal(h.shown(),50000);assert.equal(h.s.accounts[0].saldoLeidoAt,new Date(now).toISOString());assert.equal(h.s.manualBalanceReads,undefined,'guardar no equivale a acreditar lectura manual');h.pause();assert.equal(h.shown(),50000);
+  h.legacy('600,25');assert.equal(h.shown(),60025);assert.equal(h.s.manualBalanceReads,undefined);
+ }
 });
 await check('fresh inverse y objetivo esperado del render',()=>{
  clock('2026-10-10T12:00:00Z');const h=harness(),w=h.render();h.s=Object.assign({},h.s,{fixed:h.s.fixed.map(f=>Object.assign({},f,{amount:25.37}))});tick();w.save('a',500);assert.equal(h.shown(),50000);assert.equal(cents(h.s.accounts[0].value),52537);assert.ok(h.c.manualBalanceRead(h.s,'a'));

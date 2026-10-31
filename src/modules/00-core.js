@@ -4370,21 +4370,25 @@ function manualBalanceCommit(s,at){
 function manualBalanceWrite(s,readings){
   const input=insumosSaldoGasto(s),rows=[],submitted=Object.create(null);
   (readings||[]).forEach(function(r){if(r&&Number.isFinite(r.typed)&&r.expected) submitted[r.id]=r;});
-  let changed=false,manual=false;
+  let changed=false,editable=false;
   const accounts=(s.accounts||[]).map(function(a){
-    if(!Object.prototype.hasOwnProperty.call(submitted,a.id)||!manualBalanceAccount(s,a.id)||!manualBalanceIsManual(s,a)) return a;
+    if(!Object.prototype.hasOwnProperty.call(submitted,a.id)||!manualBalanceAccount(s,a.id)||a.bankIban||a.bankUid||a._obKey) return a;
     const r=submitted[a.id],target=manualBalanceTarget(a);
     if(!["id","ent","role","spendFrom"].every(function(k){return r.expected[k]===target[k];})) return a;
-    manual=true;
+    editable=true;
     const typed=+(r.typed).toFixed(2),shown=saldoCuentaMostrada(a,input);
     // Confirmar la cifra proyectada puede dejar la base idéntica: invalida, pero no refecha.
     if(Math.round(typed*100)===Math.round(shown*100)) return a;
     const pn=input.paidNetByBank[a.ent]||0,spent=input.spentByBank[a.ent]||0;
     const value=accDaily(a)?valueDesdeSaldo({shown:typed,injTR:input.injTR,spentOwn:spent,roundup:input.roundup,monthlyInvest:input.monthlyInvest,ambos:accRole(a)==="ambos",paidNet:pn}):isEfectivoEnt(a)?+(typed+spent).toFixed(2):+(typed-pn).toFixed(2);
     const n=Object.assign({},a,{value:value,saldoLeidoAt:new Date().toISOString()});
-    changed=true;rows.push({before:manualBalanceModel(a),next:Object.assign(manualBalanceModel(n),{origin:"manual-v1"}),typed:typed});return n;
+    changed=true;
+    // Editabilidad y procedencia no son lo mismo: TR nativo sigue admitiendo corregir saldo,
+    // aunque esa lectura nunca autorice a retirar una proyección al pausar.
+    if(manualBalanceIsManual(s,a)) rows.push({before:manualBalanceModel(a),next:Object.assign(manualBalanceModel(n),{origin:"manual-v1"}),typed:typed});
+    return n;
   });
-  if(!manual) return s;
+  if(!editable) return s;
   const next=changed?Object.assign({},s,{accounts:accounts}):s,after=insumosSaldoGasto(next);
   const exact=rows.filter(function(r){const a=manualBalanceAccount(next,r.next.id);return a&&Math.round(saldoCuentaMostrada(a,after)*100)===Math.round(r.typed*100);});
   return manualBalanceStage(next,s,"read",exact);
