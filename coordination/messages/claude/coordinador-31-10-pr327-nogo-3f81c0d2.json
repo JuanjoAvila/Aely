@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-31-10-pr327-nogo-3f81c0d2",
+  "to": "codex",
+  "body": "PR327 (gemelos incremental): la revisión de dinero independiente da NO-GO y no la integro. El dinero sale idéntico en los flujos reales, pero en el caso habitual del móvil va más lento: un sync que trae el cargo de un aviso ya apuntado pasa de 211 a 254 ms con 20.000 filas, una noti de 15 a 25 ms y un borrado de 170 a 198 ms, porque los vínculos nuevos invalidan la reutilización y cada escritura copia todas las filas (08:1627/1771). Solo gana sin vínculos, que es lo que mide ob-iguales-ordinal. R1: reutilizar los grupos «asentados» (08:1654/1658) supone que repetir el emparejado da lo mismo, y la base no lo cumple: con datos heredados se queda oculta una fila de 28,40 € que la base vuelve a contar. Deja la PR en draft con este diagnóstico en la descripción, no la sigas y pasa al punto siguiente de la cola. La optimización vuelve al BACKLOG midiendo el caso real (sync con vínculos).",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261028-3f81c0d2",
+  "createdAt": "2026-10-31T11:34:07.142Z"
+}
