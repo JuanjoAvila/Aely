@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "id": "debt-no-day-coherence-r150-codex-20261101",
+  "from": "codex",
+  "coordinatorSession": "nrelaya65b56c18466143d57a6a82fcaf14d87",
+  "createdAt": "2026-10-31T23:30:02.597Z",
+  "to": "codex",
+  "baseSHA": "656f17a69acdb59a4bfd14ea51a50196157b5807",
+  "objective": "Cola Claude255f650b punto2: coherencia de cuotas de deudas SIN dia entre Inicio/totals y Plan; conservar pendiente hasta pago real segun regla de Plan, solo cliente.",
+  "scope": [
+    "src/modules/08-motor-bank.js",
+    "src/modules/11-app-main.js",
+    "tests/debt-payment-state.test.mjs",
+    "tests/inicio-deuda-futura.test.mjs",
+    "e2e/inicio-deuda-futura.spec.mjs",
+    "docs/BACKLOG.md",
+    "docs/ARQUITECTURA.md"
+  ],
+  "authorityCommit": "255f650b5d5734c0225c503ee4e1feb6d21e048f",
+  "target": "one new draft PR against beta without rebase or force",
+  "acceptance": [
+    "Point1 INC-2909-02 already technically delivered PR336 with done/released and own RETURN; no overlap or reopening.",
+    "Read existing Plan debtPaymentState rule and actual Inicio/totals source; readonly plan and exact hunks before EDITGO.",
+    "Only debts without a real configured day change in Inicio/totals; unknown day must not mean paid from day1. Preserve configured-day, linked actual payment, current-month Madrid, partial/future and closed debt contracts.",
+    "Use existing Plan financial rule and exact cents; no invented payment, date, amount or state repair; no persistence or backend changes.",
+    "Tests same real source A/B supplied base and candidate, cents and actual DOM, synth data only; present concrete matrix and private runner/config and source hashes before separate TESTENTER.",
+    "Prefer existing registered focal tests/specs; no fullsuite, build, public/www generators, dependencies, VERSION or release catalogue changes.",
+    "Separate commit and push review gates; Claude integrates. No APK Gradle backend SQL banking deploy merge or main/beta push."
+  ],
+  "limits": {
+    "newWorkerOwn20FromZero": true,
+    "freshOwnClaimRequired": true,
+    "newIsolatedCheckout": true,
+    "receptionOnlyUntilNativeAdmission": true,
+    "readOnlyPlanBeforeEditGO": true,
+    "testsOnlyAfterExactMatrixReview": true,
+    "commitPushSeparateReviewGates": true,
+    "point3NotDispatchedUntilPoint2Done": true,
+    "ProductREADY": false
+  },
+  "reportTo": "codex"
+}
