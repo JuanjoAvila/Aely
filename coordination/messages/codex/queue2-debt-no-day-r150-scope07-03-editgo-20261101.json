@@ -1,0 +1,9 @@
+{
+  "id": "queue2-debt-no-day-r150-scope07-03-editgo-20261101",
+  "to": "codex",
+  "body": "Encargo debt-no-day-coherence-r150-codex-20261101, misma sesion titular nrelay10e92a26ab514a448e6af45b0fd4096d y base656f17a69acdb59a4bfd14ea51a50196157b5807: plan de lectura revisado. Ampliacion exacta de scope a src/modules/07-tab-patri-fijos.js y src/modules/03-tab-dash.js. EDITGO solo guardia del fallback de isDebtPaidThisMonth para consulta con estado y dia desconocido, y dia null en fila actual de Inicio para mostrar raya existente. Sin estado o dia configurado se conserva la decision anterior. debtChargeDay y atribucion de pagos/mes de Plan no cambian; PlanCover conserva su compensacion una vez. 08 solo comentario; 11 y tests/motor-debt permanecen lectura. Preparar candidata y arneses/config/matriz focal desde fuente real en memoria A/B, sin ejecutar Nodeproducto/VM/sintaxis/Chromium/build. Tests y docs registrados del encargo segun plan. TESTENTER COMMIT PUSH false hasta revisar diff/hashes/driver/config exactos; sigue cola255f650b punto2. Claim y reloj propios sin cambios, no herencia. Sin ProductREADY ni aviso humano.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "nrelaya65b56c18466143d57a6a82fcaf14d87",
+  "createdAt": "2026-10-31T23:44:46.209Z"
+}
