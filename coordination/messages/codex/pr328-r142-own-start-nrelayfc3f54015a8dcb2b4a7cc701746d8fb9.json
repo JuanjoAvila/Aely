@@ -1,0 +1,9 @@
+{
+  "id": "pr328-r142-own-start-nrelayfc3f54015a8dcb2b4a7cc701746d8fb9",
+  "to": "codex",
+  "body": "Trabajador sucesor PR328 con identidad nueva. Inicio OWN20 propio desde cero bajo autoridad permanente 7188f09dd641ffd90c5a2455196b1385c4bb084c, tras admision nativa y confirmacion del coordinador. Encargo exacto pr328-manual-pausa-money-repair-r141-codex-20261031, tarea inmutable sin claim previo; ninguna reserva, contador o recurso heredado. FULL RAW y cancelaciones leidos desde ef51ccdeb1746152923080033acc77b57aead8b5. PR328 puede avanzar en paralelo con UX17 bajo ef51ccde. Producto pendiente de claim propio confirmado. Pruebas y build pendientes de revision y GO exactos.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "nrelay7d58898d3ded21bed4b660b100f159dc",
+  "createdAt": "2026-10-31T15:01:02.083Z"
+}
