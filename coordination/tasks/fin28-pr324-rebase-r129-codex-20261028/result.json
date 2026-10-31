@@ -1,0 +1,87 @@
+{
+  "status": "done",
+  "summary": "Rebase FIN28 completado sobre beta193; misma PR324 DRAFTbeta actualizada al HEAD exact225 tras reviews ROOT e independiente nuevas y GO especifico. Force-with-lease limitado al remoto293 confirmado, refs y PRHEAD/base/draft/descripción verificados. Sin pruebas repetidas ni otro encargo.",
+  "productSHA": "22509f9d891a32869d2952b2d14cae4a01bbca9d",
+  "baseSHA": "c11dcebe7d19c0e8588b6404db8880195fe4511a",
+  "sourceSHA": "293b323de52a2a228811be532ceba01b0e062f93",
+  "PR": 324,
+  "draft": true,
+  "baseBranch": "beta",
+  "tests": [
+    {
+      "kind": "syntheticDOM",
+      "spec": "e2e/fin28-manual-link-warning.spec.mjs",
+      "expected": 15,
+      "passed": 15,
+      "skipped": 0,
+      "flaky": 0,
+      "retries": 0,
+      "workers": 1,
+      "cpu": 1,
+      "exitCode": 0,
+      "HEAD": "22509f9d891a32869d2952b2d14cae4a01bbca9d",
+      "HTMLSHA256": "0358ab5be3d4b7236f31f32fff6eb99efde214b606f45dd5e80e0e694248c5f4",
+      "sourceHTTPHashAssertedEveryTest": true
+    },
+    {
+      "command": "node tests/recibo-un-cargo-un-recibo.test.mjs",
+      "checks": 17,
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/i18n-keys.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    }
+  ],
+  "scope": [
+    "e2e/fin28-manual-link-warning.spec.mjs",
+    "scripts/relevant-tests.mjs",
+    "src/modules/01-i18n.js",
+    "src/modules/04-tab-gastos.js",
+    "src/modules/08-motor-bank.js",
+    "src/modules/14-v4-screens.js",
+    "tests/recibo-un-cargo-un-recibo.test.mjs"
+  ],
+  "reviews": {
+    "ROOT": "GO_EXACT225_REBASE_ONLY",
+    "ROOTProofSHA256": "33b301185c6053fd8a003d4db6f1a55a1d42a5fdbfb6e36060a8417169d21360",
+    "independent": "GO_STATIC",
+    "independentProofSHA256": "d3fdedc9a7c1fdf0eb888b3593469496372afbda9948bd27a32eff39085ec9b2",
+    "GOCommit": "c0dd8b79bcd3a0320ab9bf1eae1b1eab508b40ea"
+  },
+  "provenance": {
+    "manifestSHA256": "2d223f5bc5f1a700b782a4688da519d41afefad6a80de16419cc2079e5b78e37",
+    "bundleSHA256": "88fe1af4187165e2307501c70c7f0961d5203740097f6ac7aa07b6d12e2e6029",
+    "workingAndGitInputsVerified": true,
+    "localBuildSourceSha": null,
+    "priorSourcesAndFailuresPreserved": true
+  },
+  "resourcesReturned": true,
+  "ownBudget": {
+    "id": "fin28r129-rebase-own20-fda31257-4014c676",
+    "allowance": 20,
+    "usedAtResultPublication": 6,
+    "closurePendingFinalReadbacks": true,
+    "noResetOrTransfer": true
+  },
+  "limitations": [
+    "Integracion Claude pendiente; sin merge, main/beta push ni deploy",
+    "CI general, beta servida y aceptacion fisica movil no acreditados",
+    "ProductREADY false"
+  ],
+  "ProductREADY": false,
+  "schema": 1,
+  "taskId": "fin28-pr324-rebase-r129-codex-20261028",
+  "actor": "codex",
+  "sessionId": "codex-local-20261028-fin28r129-rebase-fda31257-4014c676-e679-45ec-b4c4-865e52b66b4f",
+  "createdAt": "2026-10-31T01:06:33.325Z",
+  "released": true
+}
