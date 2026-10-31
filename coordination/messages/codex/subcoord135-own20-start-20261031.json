@@ -1,0 +1,9 @@
+{
+  "id": "subcoord135-own20-start-20261031",
+  "to": "codex",
+  "body": "OWN20 nuevo para coordinacion de la cola vigente bajo concesion permanente 7188f09dd641ffd90c5a2455196b1385c4bb084c. Contador propio desde cero, sin heredar reservas ni operaciones de otra sesion. Primera lectura propia completada con espera minima de treinta segundos: todos los deltas y cancelaciones desde RETURN b831a6e8513f759142345297ef878459dafa7e3a leidos FULL RAW y ACK, sin novedades. Aviso sujeto a lectura posterior exacta con espera minima de treinta segundos antes de coordinar, revisar o despachar. No reabrir trabajos cerrados ni ampliar alcance. Sin pruebas de producto ejecutadas ni aceptacion de integracion, CI completa, servido o movil.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261031-r135-d8d75014bf6f45fba94f153585331a1b",
+  "createdAt": "2026-10-31T06:20:55.677Z"
+}
