@@ -1,0 +1,245 @@
+{
+  "status": "done",
+  "summary": "Entrega tecnica: restaura roundtrip de base en exclusiones y conserva origen explicito de pausa manual nueva; rebase privado t4 y publicacion normal del HEAD revisado en nueva rama autorizada. PR332 draft sustituye328; pendiente revision Claude,CI e integracion.",
+  "productSHA": "380121e69b0352be290c7e2b2c7c23b08d966b29",
+  "productTree": "7118854f3ed01e0f25dd6d3cdbb9b91d1865e2d2",
+  "rebaseTarget": "c89bb12c528f079640a514b95334c21b9df2d2c1",
+  "pullRequest": 332,
+  "branch": "codex/recibos-manual-pausa-r145",
+  "replacesPR": 328,
+  "oldBranchHEADUnchanged": "550a9cf47e72aa62d7e190aa2994858ca52c5b6d",
+  "tests": [
+    {
+      "phase": "V3 causal red retained",
+      "command": "node tests/recibos-manual-pausa.test.mjs --pause-source=550a9cf47e72aa62d7e190aa2994858ca52c5b6d --roundtrip-only",
+      "environment": {
+        "TZ": "UTC"
+      },
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "note": "Expected assertion: sin sello reanudar vs base; rejected987.01 vs baseline1000. Not repeated.",
+      "outputSHA256": "f244ccedde68d0422758691320cdf503a83922e896969324240ca09178b1d05d",
+      "rawExitSHA256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "phase": "V3 unexpected preserved",
+      "command": "node --test tests/recibos-manual-pausa.test.mjs",
+      "environment": {
+        "TZ": "UTC"
+      },
+      "exitCode": 1,
+      "expectedExitCode": 0,
+      "note": "Stopped: synthetic legacy save clocks differed10ms. Authorized test-only clock fix followed; full comparisons retained.",
+      "outputSHA256": "4927c1a37dba1b89028b09087ad080ebc23c1cd12f2b0a0ea88a53919ee69a6e",
+      "rawExitSHA256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "phase": "V4 unexpected preserved",
+      "command": "node --test tests/recibos-manual-pausa.test.mjs",
+      "environment": {
+        "TZ": "UTC"
+      },
+      "exitCode": 1,
+      "expectedExitCode": 0,
+      "note": "Stopped: fixture with two fixed accounts starts97402c per existing base; explicit independent base oracle corrected without runtime changes.",
+      "outputSHA256": "7ce582869b4fd391bcfd86fdbcfb06275e8a183b025deb1f82ef39442c6c744f",
+      "rawExitSHA256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "phase": "V5",
+      "command": "node --test tests/recibos-manual-pausa.test.mjs",
+      "environment": {
+        "TZ": "UTC"
+      },
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "note": "19 directed groups pass; complete interval matrix, six exclusions, B1/B2/R2, both DST changes, persistence and cloud fixtures.",
+      "outputSHA256": "d59e994ea98f36106a34b0389b3d36154ca99805905e0c785b25c64301e740dc",
+      "rawExitSHA256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "phase": "V5",
+      "command": "node --test tests/recibos-manual-pausa.test.mjs",
+      "environment": {
+        "TZ": "Europe/Madrid"
+      },
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "note": "19 directed groups pass; complete interval matrix, six exclusions, B1/B2/R2, both DST changes, persistence and cloud fixtures.",
+      "outputSHA256": "f33eb9b570b913ab1953523f88f9143b758194a15d4719ff4663f8b4970d05d1",
+      "rawExitSHA256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "phase": "V5",
+      "command": "node tests/recibos-manual-pausa.test.mjs --baseline=555fe0c3656a3aeb948ff2423c79f674c5b3f92c --roundtrip-only",
+      "environment": {
+        "TZ": "UTC"
+      },
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "note": "Six exclusions times three resume destinations compared against actual historical fixedPausa function.",
+      "outputSHA256": "e1cd5ec33ebaf263e7677e2736551da6f304b8cfe0c0f397e196d0eb0da41255",
+      "rawExitSHA256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "phase": "V5",
+      "command": "node tests/recibos-manual-pausa.test.mjs --baseline=c89bb12c528f079640a514b95334c21b9df2d2c1 --roundtrip-only",
+      "environment": {
+        "TZ": "UTC"
+      },
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "note": "Six exclusions times three resume destinations compared against actual historical fixedPausa function.",
+      "outputSHA256": "e1cd5ec33ebaf263e7677e2736551da6f304b8cfe0c0f397e196d0eb0da41255",
+      "rawExitSHA256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "phase": "V5",
+      "command": "node tests/recibos-manual-pausa.test.mjs resumeCompensation",
+      "environment": {
+        "TZ": "UTC"
+      },
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "note": "Expected causal ERR_ASSERTION; no syntax, ReferenceError, mutation-anchor or harness failure.",
+      "outputSHA256": "594e7d9ee7c957dbf7caace49213be6a8ff61de0588be6ded23a3f7aa615641b",
+      "rawExitSHA256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "phase": "V5",
+      "command": "node tests/recibos-manual-pausa.test.mjs intervalResume",
+      "environment": {
+        "TZ": "UTC"
+      },
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "note": "Expected causal ERR_ASSERTION; no syntax, ReferenceError, mutation-anchor or harness failure.",
+      "outputSHA256": "428924a39e26bc18cbf56d3c80184119064eae79c5dc2763d1bbd46a3a31a0f0",
+      "rawExitSHA256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "phase": "V5",
+      "command": "node tests/recibos-manual-pausa.test.mjs loseOrigin",
+      "environment": {
+        "TZ": "UTC"
+      },
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "note": "Expected causal ERR_ASSERTION; no syntax, ReferenceError, mutation-anchor or harness failure.",
+      "outputSHA256": "38bd62a8fe7ff1b3969fe7e8aaa9d785f57e21f1401243cc4a791e08b8dffe1f",
+      "rawExitSHA256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "phase": "V5",
+      "command": "node tests/recibos-manual-pausa.test.mjs splitOrigin",
+      "environment": {
+        "TZ": "UTC"
+      },
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "note": "Expected causal ERR_ASSERTION; no syntax, ReferenceError, mutation-anchor or harness failure.",
+      "outputSHA256": "839b468a606623c4903b69b9f22220af2eecda905fb43b13abf8f59424ffa6f8",
+      "rawExitSHA256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "phase": "V5",
+      "command": "node tests/recibos-manual-pausa.test.mjs sameDay",
+      "environment": {
+        "TZ": "UTC"
+      },
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "note": "Expected causal ERR_ASSERTION; no syntax, ReferenceError, mutation-anchor or harness failure.",
+      "outputSHA256": "75fdc03937f5fe9797829cac1da7ce70d67272691d9efd4fc99c7fedce379bee",
+      "rawExitSHA256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "phase": "V5",
+      "command": "node tests/recibos-manual-pausa.test.mjs sameReadStamp",
+      "environment": {
+        "TZ": "UTC"
+      },
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "note": "Expected causal ERR_ASSERTION; no syntax, ReferenceError, mutation-anchor or harness failure.",
+      "outputSHA256": "ec6236c944ba299f4791940642817a5987b011f145408c265842382db1dfd37a",
+      "rawExitSHA256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "phase": "V5",
+      "command": "node tests/recibos-manual-pausa.test.mjs uniqueBank",
+      "environment": {
+        "TZ": "UTC"
+      },
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "note": "Expected causal ERR_ASSERTION; no syntax, ReferenceError, mutation-anchor or harness failure.",
+      "outputSHA256": "697c20156572ddf3334ca4f00f61ab05b0bb3896f4037f0c408a8169f5bf7140",
+      "rawExitSHA256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "phase": "V5",
+      "command": "node tests/recibos-manual-pausa.test.mjs originMonth",
+      "environment": {
+        "TZ": "UTC"
+      },
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "note": "Expected causal ERR_ASSERTION; no syntax, ReferenceError, mutation-anchor or harness failure.",
+      "outputSHA256": "487d92f754992a20795913bf9e045acff2fdd3ee3a7f2dab42d65b3bfe8aaeb5",
+      "rawExitSHA256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "phase": "V5",
+      "command": "node --test --test-concurrency=1 tests/pr297-r2-plan-sync.test.mjs tests/fixed-payment-state.test.mjs tests/recibos-renombrar.test.mjs",
+      "environment": {
+        "TZ": "UTC"
+      },
+      "exitCode": 1,
+      "expectedExitCode": 0,
+      "note": "Stopped: three directed files85pass/1fail of86; PR297 isolated extractor omitted new real manualBalanceCommit dependency. Other two files not repeated.",
+      "outputSHA256": "df3a95b73e5f5abce12d49f1c20f4ed54cdb692fdb66be2ffe9646699e255c3f",
+      "rawExitSHA256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "phase": "Authorized affected extractor only",
+      "command": "node --test --test-concurrency=1 tests/pr297-r2-plan-sync.test.mjs",
+      "environment": {
+        "TZ": "UTC"
+      },
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "note": "24/24pass after exact real dependency block loader fix underd43a86b5. No stubs or relaxed assertions; no repeat of12 closed runs or old red.",
+      "outputSHA256": "e187db058b6ae6fdcca55b2d568549bbbe5ceaea74f143432c1d9d6073e3a695",
+      "rawExitSHA256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    }
+  ],
+  "testExecutionCount": 17,
+  "serial": true,
+  "retry": 0,
+  "directNodeNoCPU1Claim": true,
+  "allUnexpectedRunsPreserved": true,
+  "backlogBlobExactBeta": true,
+  "original07AndRunnerPreserved": true,
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/08-motor-bank.js",
+    "tests/recibos-manual-pausa.test.mjs",
+    "docs/ARQUITECTURA.md",
+    "tests/pr297-r2-plan-sync.test.mjs"
+  ],
+  "limitations": [
+    "Technical delivery only, not ProductREADY. PR332 remains draft; Claude independent review, CI, integration, served beta and human mobile acceptance pending.",
+    "No claim of a new single86case integration run: original85/86 preserved, only affected PR297 file later24/24.",
+    "R1 unchanged-clock or reverted-clock old clients not fully distinguishable.",
+    "Loss of manualBalanceReads covered while explicit fixed origin survives unknown-field-preserving edits; total removal of all origin metadata remains indistinguishable from legacy.",
+    "No build, whole suite, Chromium, backend, deployment, real financial data or extra test execution.",
+    "New branch normal push only under32adec2b; no force, reset, publication merge commit or edit of old PR328 branch."
+  ],
+  "schema": 1,
+  "taskId": "pr328-baseline-roundtrip-rebase-r144-codex-20261031",
+  "actor": "codex",
+  "sessionId": "nrelay2815c8f76453ea4e153fdeb4744e38d5",
+  "createdAt": "2026-10-31T18:20:38.242Z",
+  "released": true
+}
