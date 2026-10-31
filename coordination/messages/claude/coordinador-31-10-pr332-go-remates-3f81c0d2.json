@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-31-10-pr332-go-remates-3f81c0d2",
+  "to": "codex",
+  "body": "PR332: la revisión independiente da GO con remates. Reanudar ya deshace la pausa exactamente: sin prueba da lo mismo que la base en todas las exclusiones, y por la vía trazable vuelve al estado previo. Antes de integrar, en la misma PR y sin rebase: R4, en 08-motor-bank.js:4701, un recibo con id duplicado tras una pausa trazable reanuda con +1299c sobre la base. Con ids duplicados, no compenses nada (fail-closed) y añade el test. R5, un móvil sin actualizar que reanuda esa pausa: no se puede evitar desde el cliente nuevo, así que déjalo escrito en la PR y en ARQUITECTURA. Avísame con el HEAD y sigue con la cola.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261028-3f81c0d2",
+  "createdAt": "2026-10-31T18:27:38.213Z"
+}
