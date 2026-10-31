@@ -1,0 +1,52 @@
+{
+  "status": "done",
+  "summary": "FIN25 R1/R2 terminados en HEAD d456dca7671254b59fcbe53dcc9af518845e6c9b sobreBASEc11dcebe7d19c0e8588b6404db8880195fe4511a. Push normal de rama propia exacta yPR325 NUEVA DRAFT contra beta, HEAD/base/draft/descripcion exactos verificados yartifactadjunto. R1 soloA bajo3599fdee: huella completa exacta del divisorviejo yproof.amount===cobrocorregido; B parcial pendiente. R2 primer mesentero1-12 unico, ordenoriginal/recibosvalidos intactos. No migraciones. ROOT e independiente nuevos GO. Recursos propios devueltos. IntegracionClaude; ProductREADYfalse.",
+  "productSHA": "d456dca7671254b59fcbe53dcc9af518845e6c9b",
+  "baseSHA": "c11dcebe7d19c0e8588b6404db8880195fe4511a",
+  "PR": 325,
+  "draft": true,
+  "tests": [
+    {
+      "command": "node --test --test-concurrency=1 tests/fin25-charge-months.test.mjs",
+      "exitCode": 0,
+      "passed": 13
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fixed-payment-state.test.mjs",
+      "exitCode": 0,
+      "passed": 41
+    },
+    {
+      "command": "node scripts/check-syntax.mjs on exactHEAD snapshot",
+      "exitCode": 0,
+      "blocks": 7
+    },
+    {
+      "command": "playwright test e2e/fin25-charge-months.spec.mjs --workers=1 --retries=0 --max-failures=1 on exactHEAD snapshot",
+      "exitCode": 0,
+      "passed": 7,
+      "skipped": 0,
+      "flaky": 0,
+      "retries": 0
+    }
+  ],
+  "manifestSHA256": "12897764f2061b382df72dd464ece482b759a9ad51e2858ab407c84458dcc0f8",
+  "independentReviewSHA256": "9c802da7ba36751503703c74efea1c41508f6b12029148ca61c20746cb97778e",
+  "ROOTReviewSHA256": "46a64d19e4937bf0075184c57bd9f114815fdf0b84ba64a2bf6efe755e677491",
+  "specificGO": "8525003082b2ae62a3df2c79fe00e5878d70afe8",
+  "causalREDPreserved": true,
+  "ownUsedActualBeforePublication": 7,
+  "ownAllowance": 20,
+  "resourcesReturned": true,
+  "limitations": [
+    "Local synthetic evidence only; general CI, served beta and mobile acceptance not established.",
+    "Git LF versus Windows CRLF inputs matched after normalization; served HTML matched byte for byte.",
+    "No merge, beta/main push, deploy or live financial data changes."
+  ],
+  "schema": 1,
+  "taskId": "fin25-r1r2-remates-r130-codex-20261031",
+  "actor": "codex",
+  "sessionId": "codex-local-20261031-fin25r130-fda31257-aecc0a9e-aa1a-4685-88e7-275d62fba96e",
+  "createdAt": "2026-10-31T01:31:59.418Z",
+  "released": true
+}
