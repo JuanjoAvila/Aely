@@ -405,10 +405,10 @@ const TR_V2_CLIENT={appVersion:"2.2631.13", platform:"web-pro"};
 // Clave de UNA línea para la tarjeta: el texto del puente trae códigos HTTP y el estado de las
 // cookies, y llegó tal cual a la pantalla de la familia (31/10/2026). Ese detalle va a telemetría.
 function trErrKey(r){
-  const d=r&&r.diag, h=d&&d.http;
-  if(h===426||(d&&d.api==="v2"&&h===400)) return "tr_err_update";
-  // APK 62: aún sin `diag`, y su login v1 es justo el que TR está retirando.
-  if(!d&&r&&typeof r.error==="string"&&/^login HTTP (400|405|426)\b/.test(r.error)) return "tr_err_update";
+  // Solo la APK 62 (puente sin `diag`) necesita actualizarse: su login v1 es el que TR está
+  // retirando. Con el puente nuevo, un 400/426 de v2 se arregla por OTA (TR_V2_CLIENT) y pedir
+  // «actualiza la app» a quien ya tiene la última no sirve de nada (revisión 31/10/2026).
+  if(r&&!r.diag&&typeof r.error==="string"&&/^login HTTP (400|405|426)\b/.test(r.error)) return "tr_err_update";
   return "tr_err";
 }
 // Ambos consumidores de status comparten etiqueta: logEvent deduplica el mismo aviso en
@@ -460,7 +460,7 @@ function TRSync({state, set, totals, open, onToggle}){
         // Caducidad explícita (sin fallo temporal): al formulario con el teléfono ya puesto. Antes se
         // pedía pulsar «Desconectar» — que además borra el snapshot bueno (feedback 2026-07-17).
         setConnected(false); markTrAuthExpired(); setExpired(true); setStep("idle");
-        trLogFailure("tr_card_sync","auth_expired");
+        trLogFailure("tr_card_sync","auth_expired",r.diag);
         return;
       }
       if(r&&(r.softFail||r.wafBlocked)){ fail(r,"tr_card_sync","soft_fail"); return; }   // anti-bot: sesión sigue, no pedir 2FA

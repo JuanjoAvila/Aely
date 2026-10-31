@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
+import { planFromFiles } from "../scripts/relevant-tests.mjs";
 
 // Login de TR que pasó a v2 (31/10/2026): «login HTTP 400 · jar[…] snap[…] edad=0min restore=sí(7)»
 // salía tal cual en la tarjeta y TR no llegaba a pedir el código. Aquí se vigila el contrato
@@ -21,7 +22,7 @@ function mount(bridge){
   Object.assign(c,{trBridge:()=>bridge,trPhoneSaved:()=>"",useEffect(){},markTrAuthExpired(){},markTrConnected(){},brokerSuggest:()=>null,t:k=>k,
     useState:initial=>{const i=hook++;return [i in init?init[i]:initial,v=>{sets[i]=v;}];}});
   const s=web.indexOf("function TRSync("),e=web.indexOf("  const mappedN=",s);
-  vm.runInContext(web.slice(s,e)+"return {doLogin,doVerify};}\nglobalThis.card=TRSync({state:{investments:[]}});",c);
+  vm.runInContext(web.slice(s,e)+"return {doLogin,doVerify,doSync};}\nglobalThis.card=TRSync({state:{investments:[]}});",c);
   return {card:c.card,events,sets,c};
 }
 const tick=()=>new Promise(r=>setImmediate(r));
@@ -36,6 +37,25 @@ await t("el puente nativo cae a v2 cuando v1 contesta 400/405/426, no en 401/429
 await t("el texto de error nativo ya no lleva el jar pegado",()=>{
   assert.ok(!/\+ " · " \+ jarDiag\(\)/.test(java));
   assert.ok(!/restore=|edad=|snap\[/.test(java.replace(/\/\/.*$/gm,"")));
+});
+await t("el reintento tras «Failed to fetch» de un login vuelve a caducar la sesión muerta",()=>{
+  assert.match(java,/reloadThen\(\(\) -> \{ if \(isLogin\) dropDeadSession\(\); run\(id, body\); \}\)/);
+  assert.match(java,/loginIds\.add\(id\)/);
+});
+await t("caducidad del sync: la telemetría lleva el diag cerrado (tarjeta y sync general)",async()=>{
+  const {card,events}=mount({sync:async()=>({ok:false,authExpired:true,error:"x",diag:{api:"v1",http:401,snapAgeMin:90,restore:"yes",jar:"tr_device"}})});
+  await card.doSync();await tick();
+  const row=sanitize("error","tr_sync",JSON.stringify(events[0]));
+  assert.deepEqual(JSON.parse(row.detail),{schema:1,code:"auth_expired",origin:"tr_card_sync",snapshotAge:"h1_lt_24h",api:"v1",http:"401",restore:"yes"});
+  assert.ok(read("src/modules/11-app-main.js").includes('trLogFailure("broker_manual_sync","auth_expired",res.diag)'));
+});
+await t("beta corre este guardián al tocar la tarjeta, el sanitizador o el puente",()=>{
+  const runner=read("scripts/run-tests.mjs");
+  assert.ok(runner.includes('["tr-login-v2", ["node", "tests/tr-login-v2.test.mjs"]]'));
+  for(const f of ["src/modules/06-sync-brokers.js","src/modules/00-core.js","src/modules/11-app-main.js","android/app/src/main/java/com/micartera/app/TradeRepublicPlugin.java"]){
+    const steps=planFromFiles([f]).steps;
+    assert.ok(steps==="all"||steps.includes("tr-login-v2"),f+" → "+JSON.stringify(steps));
+  }
 });
 await t("versión y plataforma por defecto: web y nativo dicen lo mismo",()=>{
   const w=web.match(/TR_V2_CLIENT=\{appVersion:"([^"]+)", platform:"([^"]+)"\}/);
@@ -53,7 +73,8 @@ await t("APK nueva: el diag viaja a telemetría solo como enums",async()=>{
   const diag={api:"v2",http:400,trCode:"MISSING_REQUIRED_HEADER",v1http:400,jar:"tr_device,tr_refresh",snap:"tr_device",snapAgeMin:3,restore:"yes",restoreN:7};
   const {card,events,sets}=mount({login:async()=>({ok:false,status:400,error:"login v2 HTTP 400",diag})});
   card.doLogin();await tick();await tick();
-  assert.equal(sets[7],"tr_err_update");
+  // Con el puente nuevo ya está en la última APK: «actualiza la app» no le serviría (se arregla por OTA).
+  assert.equal(sets[7],"tr_err");
   const row=sanitize("error","tr_sync",JSON.stringify(events[0]));
   assert.deepEqual(JSON.parse(row.detail),{schema:1,code:"login_failed",origin:"tr_card_login",snapshotAge:"lt_5m",api:"v2",http:"400",trCode:"MISSING_REQUIRED_HEADER",restore:"yes"});
 });

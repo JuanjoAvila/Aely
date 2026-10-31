@@ -29,10 +29,17 @@ import java.util.concurrent.ConcurrentHashMap;
  * (public/index.html, componente TRSync → trBridge()):
  *
  *   status()                     -> { connected }
- *   login({phone,pin})           -> { ok, processId?, error? }   (dispara el 2FA)
- *   verify({processId,code})     -> { ok, error? }               (guarda la sesión en cookies)
+ *   login({phone,pin,appVersion?,platform?})
+ *                                -> { ok, processId?, api:"v1"|"v2", flow:"code"|"push"|"authenticator", error?, diag? }
+ *   verify({processId,code,api?,flow?,appVersion?,platform?})
+ *                                -> { ok, pending?, error?, diag? }   (guarda la sesión en cookies)
  *   sync()                       -> { ok, positions:[{isin,name,shares,value,cost}], cash?, error? }
  *   logout()                     -> { ok }
+ *
+ * `api`/`flow` (31/10/2026): v1 confirma con código; v2 con aviso en la app de TR (`push`, verify sin
+ * código, `pending:true` si aún no se aprobó) o con el código del autenticador. `diag` acompaña a
+ * todo fallo: api, http, trCode, nombres de cookie y estado del restore; nunca valores. La web solo
+ * manda a telemetría enums sacados de él.
  *
  * CLAVE de diseño: TODO el HTTP/WebSocket contra TR se hace DENTRO de una WebView
  * oculta cargada en https://app.traderepublic.com — así el token de AWS WAF, las
@@ -88,6 +95,7 @@ public class TradeRepublicPlugin extends Plugin {
     private final ConcurrentHashMap<String, PluginCall> pending = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, String> bodies = new ConcurrentHashMap<>();      // id → JS (para reintentar tras recargar)
     private final java.util.Set<String> verifyIds = java.util.Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private final java.util.Set<String> loginIds = java.util.Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final java.util.Set<String> retriedIds = java.util.Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final android.os.Handler main = new android.os.Handler(android.os.Looper.getMainLooper());
 
@@ -107,12 +115,15 @@ public class TradeRepublicPlugin extends Plugin {
                         && pending.containsKey(id) && !retriedIds.contains(id)) {
                     retriedIds.add(id);
                     String body = bodies.get(id);
-                    if (body != null) { reloadThen(() -> run(id, body)); return; }
+                    // La recarga pasa por restoreCookies: en un login volvería a meter la sesión
+                    // muerta que dropDeadSession acaba de caducar (revisión 31/10/2026).
+                    final boolean isLogin = loginIds.contains(id);
+                    if (body != null) { reloadThen(() -> { if (isLogin) dropDeadSession(); run(id, body); }); return; }
                 }
             } catch (Exception ignored) {}
             PluginCall call = pending.remove(id);
             boolean wasVerify = verifyIds.remove(id);
-            retriedIds.remove(id); bodies.remove(id);
+            retriedIds.remove(id); bodies.remove(id); loginIds.remove(id);
             if (call == null) return;
             try {
                 JSObject res = new JSObject(json);
@@ -404,7 +415,7 @@ public class TradeRepublicPlugin extends Plugin {
         // "timeout" falso tras un minuto de espera (feedback 2026-07-11).
         main.postDelayed(() -> {
             PluginCall stale = pending.remove(id);
-            bodies.remove(id); retriedIds.remove(id); verifyIds.remove(id);
+            bodies.remove(id); retriedIds.remove(id); verifyIds.remove(id); loginIds.remove(id);
             if (stale != null) resolveErr(stale, "TR no respondió (timeout) · reintenta");
         }, 90000);
         return id;
@@ -487,6 +498,7 @@ public class TradeRepublicPlugin extends Plugin {
         final String av = v2Param(call, "appVersion", TR_V2_APP_VERSION, "[0-9][0-9.]{0,23}");
         final String pf = v2Param(call, "platform", TR_V2_PLATFORM, "[a-z][a-z-]{0,23}");
         final String id = track(call);
+        loginIds.add(id);   // el reintento tras «Failed to fetch» también caduca la sesión muerta
         final String body = "JSON.stringify({phoneNumber:" + jsStr(phone) + ",pin:" + jsStr(pin) + "})";
         // El login también pasa por el AWS WAF: en frío (token caducado) el primer POST puede
         // fallar sin CORS ("Failed to fetch") o con 403/405 → wfetch adjunta el token del WAF como
