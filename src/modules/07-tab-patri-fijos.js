@@ -730,7 +730,9 @@ function chargeMonths(e){
   return [];   // anual sin mes asignado → sin programar
 }
 // ¿se cobra este gasto en el mes m (1-12)?
-const occursIn=(e,m)=> chargeMonths(e).indexOf(m)>=0;
+// Con año, un mes ya pagado que el recibo nuevo ya no cobra sigue contando como suyo si «Desde
+// ahora» lo dejó apuntado (`soloMes[ym].on`): editar no borra un pago del historial.
+const occursIn=(e,m,y)=> chargeMonths(e).indexOf(m)>=0 || !!(y!=null&&fixedSoloMes(e,y,m)&&fixedSoloMes(e,y,m).on===true);
 /* Pausa de un recibo (Plan › Recibos v6). `pausedFrom` y `pausedUntil` son año*12+mes, como
    `paidYm`: desde `pausedFrom` incluido hasta `pausedUntil` sin incluir, que es el mes en que
    vuelve («Hasta dic» = se cobra otra vez en diciembre, como en el prototipo aprobado). Son
@@ -741,9 +743,20 @@ function fixedPausedIn(e,y,m){
   const ym=y*12+m;
   return ym>=(Number(e.pausedFrom)||0)&&ym<u;
 }
+/* «Solo este mes» (Plan › Recibos v6, tanda 4). `soloMes` = {[año*12+mes]: {amt?, day?}}: lo que
+   ese mes concreto se cobra distinto sin tocar el recibo. «Desde ahora» lo usa también para dejar
+   los meses ya pagados con las cifras con que se pagaron. Sin año (`y`) no aplica: los meses de
+   otro año y las medias (`fixedMonthlyOf`) leen el recibo de siempre. Un cliente sin esto lo
+   ignora y ve el importe de siempre, que es real, no inventado. */
+function fixedSoloMes(e,y,m){
+  const o=e&&e.soloMes&&y!=null&&e.soloMes[y*12+m];
+  return o&&typeof o==="object"?o:null;
+}
 // importe del cobro EN EL MES m. Si hay `schedule` (importes a medida, p.ej. seguro 172,05 + 166,94)
 // usa ese importe; si es anual sin schedule reparte el total entre los meses marcados; si no, amount.
-function occAmountIn(e,m){
+function occAmountIn(e,m,y){
+  const o=fixedSoloMes(e,y,m);
+  if(o&&typeof o.amt==="number"&&isFinite(o.amt)&&o.amt>=0) return o.amt;
   if(e.schedule && e.schedule.length){ const s=e.schedule.find(x=>x.m===m); return s?(s.amt||0):0; }
   if(e.freq==="año"||e.freq==="anual"){ const n=chargeMonths(e).length||1; return e.amount/n; }
   return e.amount;
@@ -755,7 +768,7 @@ const accOf=(e)=> e.account||"sabadell";
 // día válido (1-31) o null — global para que lo usen Fijos y Deudas
 const cleanDay=(v)=>{ const n=parseInt(String(v),10); return (n>=1&&n<=31)?n:null; };
 // día del cobro en el mes m (schedule tiene su propio día por cobro)
-function dayIn(e,m){ if(e&&e.schedule&&e.schedule.length){ const s=e.schedule.find(x=>x.m===m); return s?(s.day||null):null; } return (e&&e.day)||null; }
+function dayIn(e,m,y){ const o=fixedSoloMes(e,y,m); if(o&&cleanDay(o.day)) return cleanDay(o.day); if(e&&e.schedule&&e.schedule.length){ const s=e.schedule.find(x=>x.m===m); return s?(s.day||null):null; } return (e&&e.day)||null; }
 // día simple (objetos sin schedule: deudas)
 const dayOf=(e)=> (e&&e.day)||null;
 // Deudas sin día explícito: día 1 (entran en el motor de líquido como los fijos; antes quedaban
@@ -772,7 +785,7 @@ function isDebtPaidThisMonth(d,today,s,y,m){ return s&&debtPaymentState(s,d,y,m,
 // Rehacer un vínculo crea una prueba expense antes del pull. Solo su origen bancario local
 // adelanta el calendario; BOOK conserva su regla anterior y las notificaciones no mueven saldo.
 const isPaidIn=(e,m,t,y,s)=>{
-  const year=y||new Date().getFullYear(),ym=year*12+m,d=dayIn(e,m);
+  const year=y||new Date().getFullYear(),ym=year*12+m,d=dayIn(e,m,year);
   if(e.paidYm===ym) return true;
   const p=s&&fixedPaymentProof(s,e,year,m,t);
   return !!(p&&p.kind==="expense"&&fixedPaymentDerivedDay(s,{proof:p})) || e.wait!==ym&&d!=null&&d<=t;
@@ -832,7 +845,7 @@ function monthNetForAccount(s, ent, y, m, t){
   const hit=function(d){ return closed ? true : (d!=null && d<=t); };
   const ym=y*12+m, bp=!closed&&(s.fixed||[]).some(function(e){ return e.wait===ym; })?reconcileBank(s,y,m,t).paidAt:null;
   let net=0;
-  (s.fixed||[]).forEach(function(e){ if((e.account||"sabadell")===ent && occursIn(e,m) && !fixedEnPausa(s,e,y,m,closed?new Date(y,m,0).getDate():t) && (closed||bp&&bp[e.id]||isPaidIn(e,m,t,y,s))) net -= occAmountIn(e,m); });
+  (s.fixed||[]).forEach(function(e){ if((e.account||"sabadell")===ent && occursIn(e,m,y) && !fixedEnPausa(s,e,y,m,closed?new Date(y,m,0).getDate():t) && (closed||bp&&bp[e.id]||isPaidIn(e,m,t,y,s))) net -= occAmountIn(e,m,y); });
   (s.debts||[]).forEach(function(d){ if(debtActive(d) && (d.account||"sabadell")===ent && hit(debtChargeDay(d))) net -= (d.monthly||0) + debtBalloonIn(d,y,m); });
   (s.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m) && (o.account||"sabadell")===ent && (o.amount||0)!==0 && hit(o.day!=null?o.day:null)) net -= o.amount; });
   (s.flows||[]).forEach(function(f){ if(flowOccursIn(f,m,y)){ const bd=f.kind==="income"?flowConfirmedDay(f,y,m):null, dd=bd!=null?bd:flowDay(f,y,m); if(hit(dd)){ if(f.kind==="income" && (f.to||"sabadell")===ent) net += (f.amount||0); else if(f.kind==="transfer" && (f.from||"sabadell")===ent) net -= (f.amount||0); } } });

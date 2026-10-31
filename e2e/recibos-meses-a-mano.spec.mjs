@@ -19,7 +19,9 @@ const A_MANO = 50 + 90 * 3 / 12;            // 72,50
 const CON_ALTA = A_MANO + 600 / 12;         // 122,50
 
 const hub = (page) => page.locator("[data-bills-manage]");
-const alta = (page) => page.locator('.v4-sheet[data-sheet="bill-add"]');
+// El alta de un recibo es la hoja por pasos (Plan › Recibos v6, tanda 4).
+const alta = (page) => page.locator('.v4-sheet[data-sheet="recibo-pasos"]');
+const paso = (page, n) => alta(page).locator('[data-rp4-paso="' + n + '"]');
 const num = (s) => Number(String(s).replace(/[^\d,]/g, "").replace(",", "."));
 const cifra = async (page) => num(await hub(page).locator(".v4-bills-hero-amt").innerText());
 const grupo = async (page, id) => num(await hub(page).locator(`.v4-bills-group[data-group="${id}"] .v4-bills-group-amt`).innerText());
@@ -39,23 +41,23 @@ test("la cabecera cuenta los cobros marcados y el alta dice lo que se cobrará",
   expect(await grupo(page, "serv")).toBeCloseTo(A_MANO, 2);
 
   await hub(page).locator(".v4-bills-add").first().click();
-  await alta(page).locator("input.v4-bills-search").fill("Seguro coche");
-  await alta(page).locator(".v4-cta").click();
-  for (const k of ["6", "0", "0"]) await alta(page).getByRole("button", { name: k, exact: true }).click();
-  await alta(page).locator(".v4-cta").click();
-  await alta(page).locator(".v4-ficha-op").filter({ hasText: "Una vez al año" }).click();
-  await alta(page).locator(".v4-cta").click();
-  await expect(alta(page)).toHaveAttribute("data-step", "months");
-  await alta(page).locator(".mchip").filter({ hasText: /^mar$/i }).click();
-  await alta(page).locator(".mchip").filter({ hasText: /^sep$/i }).click();
-  const aviso = alta(page).locator(".hint");
+  await paso(page, 0).locator('[data-rp4="name"]').fill("Seguro coche");
+  await alta(page).locator(".rp4-cta").click();
+  for (const k of ["6", "0", "0"]) await paso(page, 1).locator(".v4-keys").getByRole("button", { name: k, exact: true }).click();
+  await alta(page).locator(".rp4-cta").click();
+  await paso(page, 2).locator('[data-rp4-freq="año"]').click();
+  await paso(page, 2).locator(".mchip").filter({ hasText: /^mar$/i }).click();
+  await paso(page, 2).locator(".mchip").filter({ hasText: /^sep$/i }).click();
+  const aviso = paso(page, 2).locator(".hint");
   await expect(aviso).toHaveText("Se cobrarán 300,00 € en Mar, Sep (600,00 € al año): 50,00 € al mes repartidos.");
   await expect(aviso).not.toContainText("1200");
   await expect(aviso).not.toContainText("1.200");
 
-  await alta(page).locator(".v4-cta").click();
-  await expect(alta(page)).toHaveAttribute("data-step", "when");
-  await alta(page).locator('.v4-cta[data-act="confirm"]').click();
+  await paso(page, 2).locator('[data-rp4-dia="15"]').click();
+  await alta(page).locator(".rp4-cta").click();
+  await paso(page, 3).locator(".pr6-cand").first().click();
+  await expect(alta(page)).toHaveAttribute("data-paso", "4");
+  await alta(page).locator('.rp4-cta[data-act="confirm"]').click();
   await expect(alta(page)).toHaveCount(0, { timeout: 5000 });
 
   // Lo guardado es lo que la vista previa describía: 600 € al año, en marzo y septiembre.

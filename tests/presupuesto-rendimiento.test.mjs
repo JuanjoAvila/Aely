@@ -344,7 +344,10 @@ const PRESUPUESTO = {
   // Integración 4.26.177 (26/10): la 176 más FIN-27 R2 (PR308: el cargo de tarjeta de fin de mes paga el recibo del mes del cargo por la misma referencia, con la migración de marcas antiguas que conserva el saldo mostrado), más la nota en tres idiomas: 1.561.638 B minificado y 433.248 B gzip (1525,0 y 423,1 KiB) medidos en local con el sello .99999, frente a 1.557.115 / 432.257 en la 176 (+4,5 KB / +1,0 KB). Es lógica de dinero (fecha bancaria frente a mes del cargo), sin nada que recortar sin quitar la garantía. SUBE (mandato 11/10): 1527 KiB minificado y 424 KiB de gzip.
   // Integración 4.26.179 (26/10): la 178 más SEC-02 F2 fase 1 (PR313: el cliente lee la marca no bancaria de gemela nativa de compras iguales seguidas, con su identidad y ordinal en 00-core.js; el escritor del ingest queda apagado) y la nota en tres idiomas, +1 KiB de tope: el margen de la 178 era menor de 1 KiB y esto es código de verdad, no literales.
   // Integración 4.26.188 (28/10): el rediseño Plan Recibos v6 tanda 1 (PlanRecibos, ficha del recibo, selector de cargo y su CSS, en tres idiomas) sube a 1551 KiB minificado y 428 KiB de gzip (+23 KiB / +4 KiB). SUBE (mandato 11/10: el tope de tamaño no bloquea) con ~5 % de holgura para las seis tandas que faltan del rediseño: 1630 KiB minificado y 450 KiB de gzip.
-  minificado: 1630 * 1024,
+  // Plan Recibos v6 tanda 4 sobre la 4.26.196 (31/10): la hoja por pasos (alta y edición, «Solo
+  // este mes / Desde ahora», varios pagos) llega a 1631 KiB minificado y 450 KiB gzip: las tandas
+  // 2-4 se han comido la holgura. SUBE (mandato 11/10) a 1700 / 470 KiB para las tres que faltan.
+  minificado: 1700 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -381,7 +384,7 @@ const PRESUPUESTO = {
   // corto por 252 B: 393 KiB (quedan 772 B); el crudo cabe en 1413 KiB con 294 B.
   // Integración 4.26.159 (con fin23-24): 1418 KiB minificado y 394 KiB gzip medidos en local; el gzip queda a 1 KiB. SUBE por producto: gzip 396 KiB (el minificado conserva 3 KiB de margen).
   // Mismo motivo que el minificado (Plan Recibos v6): 428 KiB medidos en la 188, tope con ~5 % de holgura.
-  gzip: 450 * 1024,
+  gzip: 470 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

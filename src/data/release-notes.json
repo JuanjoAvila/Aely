@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.26.199",
+    "d": "2026-10-31",
+    "t": {
+      "es": "Recibos, por pasos",
+      "en": "Bills, step by step",
+      "ca": "Rebuts, per passos"
+    },
+    "items": {
+      "es": [
+        "Añadir o cambiar un recibo va por pasos, con sugerencias y los cargos que se repiten en tu banco.",
+        "Pagos de una sola vez o en varios plazos, y al cambiar el importe eliges si es solo este mes o desde ahora."
+      ],
+      "en": [
+        "Adding or changing a bill now goes step by step, with suggestions and the charges that repeat in your bank.",
+        "One-off payments or several instalments, and when you change the amount you choose this month only or from now on."
+      ],
+      "ca": [
+        "Afegir o canviar un rebut va per passos, amb suggeriments i els càrrecs que es repeteixen al teu banc.",
+        "Pagaments d'una sola vegada o en diversos terminis, i en canviar l'import tries si és només aquest mes o des d'ara."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "plan-recibos-t4",
+        "t": {
+          "es": "Plan: añadir y editar recibos por pasos",
+          "en": "Plan: add and edit bills step by step",
+          "ca": "Pla: afegir i editar rebuts per passos"
+        },
+        "items": {
+          "es": [
+            "1. Plan → Recibos → Todos → «+» → escribe un nombre (o toca una sugerencia) → importe → día → banco → Añadir recibo. BIEN: cinco pasos con su barra; el primer número que tecleas sustituye; deslizar a la derecha vuelve un paso; al terminar sale en Pendiente con su importe y «Queda por pagar» sube justo eso. MAL: se crea dos veces, falta un paso o la cifra de arriba sube otra cantidad.",
+            "2. Toca un recibo aún sin pagar → Editar → Importe → otro importe → Listo → «Solo octubre» → Guardar. BIEN: este mes sale con el importe nuevo; vuelve a Editar y el importe del recibo sigue siendo el de siempre (el mes que viene vuelve a lo normal). MAL: cambia también otros meses o la cifra de arriba no cuadra.",
+            "3. En un recibo que ya está en «Ya pagados» → Editar → cambia el importe → Guardar. BIEN: no pregunta; sigue en «Ya pagados» con lo que se pagó y no sale en «Para revisar». MAL: vuelve a Pendiente, cambia lo pagado o aparece «cobró distinto»."
+          ],
+          "en": [
+            "1. Plan → Bills → All → “+” → type a name (or tap a suggestion) → amount → day → bank → Add bill. RIGHT: five steps with their bar; the first number you type replaces the old one; swiping right goes back a step; when done it shows under Pending with its amount and “Left to pay” rises by exactly that. WRONG: it is created twice, a step is missing or the figure at the top rises by a different amount.",
+            "2. Tap a bill that is not paid yet → Edit → Amount → another amount → Done → “Only October” → Save. RIGHT: this month shows the new amount; go back to Edit and the bill's amount is still the usual one (next month goes back to normal). WRONG: other months change too or the figure at the top does not add up.",
+            "3. On a bill that is already under “Already paid” → Edit → change the amount → Save. RIGHT: it does not ask; it stays under “Already paid” with what was paid and does not show under “To review”. WRONG: it goes back to Pending, what was paid changes or “charged differently” appears."
+          ],
+          "ca": [
+            "1. Pla → Rebuts → Tots → «+» → escriu un nom (o toca un suggeriment) → import → dia → banc → Afegir rebut. BÉ: cinc passos amb la seva barra; el primer número que tecleges substitueix; lliscar a la dreta torna un pas; en acabar surt a Pendent amb el seu import i «Queda per pagar» puja just això. MALAMENT: es crea dues vegades, falta un pas o la xifra de dalt puja una altra quantitat.",
+            "2. Toca un rebut encara sense pagar → Editar → Import → un altre import → Fet → «Només octubre» → Desar. BÉ: aquest mes surt amb l'import nou; torna a Editar i l'import del rebut continua sent el de sempre (el mes que ve torna a la normalitat). MALAMENT: canvia també altres mesos o la xifra de dalt no quadra.",
+            "3. En un rebut que ja és a «Ja pagats» → Editar → canvia l'import → Desar. BÉ: no pregunta; continua a «Ja pagats» amb el que es va pagar i no surt a «Per revisar». MALAMENT: torna a Pendent, canvia el que es va pagar o apareix «va cobrar diferent»."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.198",
     "d": "2026-10-31",
     "t": {
@@ -24,33 +74,7 @@
         "A Despeses, els traspassos van junts al final del dia, plegats a «Traspassos · no compten»."
       ]
     },
-    "tandas": [
-      {
-        "id": "inicio-traspasos",
-        "t": {
-          "es": "Inicio y Gastos: cargos del mes que viene y traspasos",
-          "en": "Home and Spending: next month's charges and transfers",
-          "ca": "Inici i Despeses: càrrecs del mes que ve i traspassos"
-        },
-        "items": {
-          "es": [
-            "1. Abre Inicio. En «Próximos cargos», si ya no queda nada este mes, salen los de noviembre con «En noviembre» al lado del título (y nada de «Aún no hay recibos»). BIEN: ves recibos de noviembre con su día y «nov». MAL: sale «Aún no hay recibos · Conecta tu banco», o salen cargos de octubre ya pagados.",
-            "2. En Inicio, «Últimos movimientos». BIEN: solo movimientos de tus bancos de gasto diario y ninguno de los traspasos a MyInvestor / Trade Republic (1.550 € y 500 €). MAL: vuelve a salir tu nombre con «Otros» o un «Traspaso».",
-            "3. Abre Gastos y busca el día del traspaso a Trade Republic. BIEN: abajo del día hay un bloque plegado «Traspasos · no cuentan»; al tocarlo se abre suave y dentro está «Movimiento +1.550,00 €»; la cifra de arriba y el total del día no cambian. MAL: el traspaso sigue suelto, el bloque sale arriba, o alguna cifra cambia."
-          ],
-          "en": [
-            "1. Open Home. Under “Upcoming”, if nothing is left this month, next month's charges appear with “In November” next to the title (and no “No bills yet”). RIGHT: you see November bills with their day and “Nov”. WRONG: “No bills yet · Connect your bank” shows up, or October charges that are already paid appear.",
-            "2. In Home, “Latest activity”. RIGHT: only transactions from your daily-spending banks and none of the transfers to MyInvestor / Trade Republic (€1,550 and €500). WRONG: your own name shows up again as “Other” or a “Transfer”.",
-            "3. Open Spending and find the day of the transfer to Trade Republic. RIGHT: at the bottom of that day there is a folded block “Transfers · don't count”; tapping it opens it smoothly and inside is “Movimiento +€1,550.00”; the figure at the top and the day total do not change. WRONG: the transfer is still loose, the block appears at the top, or some figure changes."
-          ],
-          "ca": [
-            "1. Obre Inici. A «Pròxims càrrecs», si ja no queda res aquest mes, surten els de novembre amb «Al novembre» al costat del títol (i res d'«Encara no hi ha rebuts»). BÉ: veus rebuts de novembre amb el seu dia i «nov». MALAMENT: surt «Encara no hi ha rebuts · Connecta el teu banc», o surten càrrecs d'octubre ja pagats.",
-            "2. A Inici, «Últims moviments». BÉ: només moviments dels teus bancs de despesa diària i cap dels traspassos a MyInvestor / Trade Republic (1.550 € i 500 €). MALAMENT: torna a sortir el teu nom amb «Altres» o un «Traspàs».",
-            "3. Obre Despeses i busca el dia del traspàs a Trade Republic. BÉ: a baix del dia hi ha un bloc plegat «Traspassos · no compten»; en tocar-lo s'obre suaument i a dins hi ha «Moviment +1.550,00 €»; la xifra de dalt i el total del dia no canvien. MALAMENT: el traspàs continua solt, el bloc surt a dalt, o alguna xifra canvia."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.197",
@@ -71,27 +95,7 @@
         "A Despeses, en baixar per la llista i carregar més moviments, la barra de baix ja no reapareix sola: segueix amagada fins que puges."
       ]
     },
-    "tandas": [
-      {
-        "id": "barra-gastos-carga",
-        "t": {
-          "es": "Gastos: la barra de abajo al cargar más",
-          "en": "Spending: the bottom bar when more loads",
-          "ca": "Despeses: la barra de baix en carregar més"
-        },
-        "items": {
-          "es": [
-            "1. Gastos › Movimientos: baja con el dedo, sin soltar, hasta que cargue más movimientos. BIEN: la barra de abajo sigue escondida hasta que subas. MAL: reaparece sola mientras bajas."
-          ],
-          "en": [
-            "1. Spending › Entries: keep scrolling down until more entries load. RIGHT: the bottom bar stays hidden until you scroll up. WRONG: it comes back by itself while you scroll down."
-          ],
-          "ca": [
-            "1. Despeses › Moviments: baixa amb el dit, sense deixar-lo, fins que carregui més moviments. BÉ: la barra de baix continua amagada fins que pugis. MALAMENT: reapareix sola mentre baixes."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.196",
@@ -112,28 +116,7 @@
         "Connectar Trade Republic torna a funcionar amb el seu nou inici de sessió: ara s’aprova des de l’app de Trade Republic. Si alguna cosa falla, l’avís és una frase clara. Cal actualitzar l’app."
       ]
     },
-    "tandas": [
-      {
-        "id": "tr-login-v2",
-        "t": {
-          "es": "Ajustes: conectar Trade Republic",
-          "en": "Settings: connect Trade Republic",
-          "ca": "Ajustos: connectar Trade Republic"
-        },
-        "items": {
-          "es": [
-            "1. Instala la app nueva cuando te lo pida. Después: Ajustes › Conectar un banco › Trade Republic › teléfono y PIN › Conectar. BIEN: te pide aprobar el inicio de sesión en la app de Trade Republic (o escribir el código) y, al hacerlo, queda conectado y trae tus posiciones. MAL: sale un error y no conecta."
-          ],
-          "en": [
-            "1. Install the new app when it asks you to. Then: Settings › Connect a bank › Trade Republic › phone and PIN › Connect. RIGHT: it asks you to approve the sign-in in the Trade Republic app (or to type the code) and, once you do, it is connected and brings your positions. WRONG: an error shows up and it does not connect."
-          ],
-          "ca": [
-            "1. Instal·la l’app nova quan t’ho demani. Després: Ajustos › Connecta un banc › Trade Republic › telèfon i PIN › Connectar. BÉ: et demana aprovar l’inici de sessió a l’app de Trade Republic (o escriure el codi) i, en fer-ho, queda connectat i porta les teves posicions. MALAMENT: surt un error i no connecta."
-          ]
-        },
-        "apk": 63
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.195",
@@ -154,30 +137,7 @@
         "En vincular a mà un càrrec amb un rebut, l’app avisa si sembla el mateix càrrec que ja paga un altre rebut i demana confirmar que és un altre pagament."
       ]
     },
-    "tandas": [
-      {
-        "id": "fin28-aviso-enlace-manual",
-        "t": {
-          "es": "Gastos: vincular un cargo a un recibo",
-          "en": "Spending: link a charge to a bill",
-          "ca": "Despeses: vincular un càrrec a un rebut"
-        },
-        "items": {
-          "es": [
-            "1. Gastos → abre un cargo que no sea de un recibo → «Paga un recibo» → elige uno pendiente. BIEN: pide «Confirmar pago completo»; al confirmar, el recibo queda pagado y el cargo conserva su importe y su banco; «Deshacer vínculo» devuelve el recibo a pendiente. MAL: no deja vincular, o el cargo cambia de importe o de banco.",
-            "2. Solo si tienes dos recibos del mismo importe en el mismo banco con cargos a pocos días de diferencia: vincula el segundo cargo al segundo recibo. BIEN: avisa «Puede ser el mismo cargo que …» y solo sigue con «Es otro pago»; cancelar no cambia nada. MAL: vincula sin avisar un cargo que ya paga otro recibo, o avisa sin que haya otro cargo igual. Si no tienes un caso así, salta este paso."
-          ],
-          "en": [
-            "1. Spending → open a charge that does not belong to a bill → “Pays a bill” → pick a pending one. RIGHT: it asks “Confirm full payment”; once confirmed, the bill is paid and the charge keeps its amount and bank; “Undo link” puts the bill back to pending. WRONG: it will not let you link, or the charge changes amount or bank.",
-            "2. Only if you have two bills of the same amount at the same bank with charges a few days apart: link the second charge to the second bill. RIGHT: it warns “This may be the same charge as …” and only goes on with “It is another payment”; cancelling changes nothing. WRONG: it links without warning a charge that already pays another bill, or warns when there is no equal charge. If you have no such case, skip this step."
-          ],
-          "ca": [
-            "1. Despeses → obre un càrrec que no sigui d’un rebut → «Paga un rebut» → tria’n un de pendent. BÉ: demana «Confirmar pagament complet»; en confirmar, el rebut queda pagat i el càrrec conserva l’import i el banc; «Desfer vincle» torna el rebut a pendent. MALAMENT: no deixa vincular, o el càrrec canvia d’import o de banc.",
-            "2. Només si tens dos rebuts del mateix import al mateix banc amb càrrecs a pocs dies de diferència: vincula el segon càrrec al segon rebut. BÉ: avisa «Pot ser el mateix càrrec que …» i només continua amb «És un altre pagament»; cancel·lar no canvia res. MALAMENT: vincula sense avisar un càrrec que ja paga un altre rebut, o avisa sense que hi hagi un altre càrrec igual. Si no tens un cas així, salta aquest pas."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.194",
@@ -198,33 +158,7 @@
         "Rebuts: toca «T'arriba» per veure, banc a banc, el dia més just del mes, quant hauries de passar si no arriba i què passaria si gastes alguna cosa avui. La nòmina es pot corregir des d’allà."
       ]
     },
-    "tandas": [
-      {
-        "id": "plan-recibos-t3",
-        "t": {
-          "es": "Plan: ¿te llega el dinero?",
-          "en": "Plan: will the money cover it?",
-          "ca": "Pla: t’arriben els diners?"
-        },
-        "items": {
-          "es": [
-            "1. Plan → Recibos → toca la píldora «Te llega» o «Falta …». BIEN: sale «¿Te llega?» con un bloque por cada banco que tiene recibos en «Pendiente»; «Tienes hoy» es el saldo que ves en Cartera para ese banco y «Recibos que faltan» suma lo de «Pendiente» de ese banco. MAL: falta o sobra un banco, o las cifras no cuadran con Cartera o con «Pendiente».",
-            "2. En esa hoja, mira si algún banco tiene la fila «Pagado, aún sin restar del saldo». BIEN: si sale, es un recibo que ya está en «Ya pagados» pero cuyo cobro el saldo del banco todavía no recoge. Un recibo cobrado hoy sale ahí hasta que se lea el saldo de ese banco otro día, y eso es normal; la cifra grande es «Tienes hoy» menos todas las filas. MAL: la cifra no sale de restar las filas, o sale un recibo que no está en «Ya pagados».",
-            "3. En la hoja → «¿Y si gasto…?» → toca «Importe» y escribe 50. BIEN: la cifra grande de ese banco baja justo 50 y la línea dice «Llega · te quedan …» o «No llega · faltan …» con esa cifra; al borrar, vuelve a la de antes. MAL: baja otra cantidad o cambia otro banco."
-          ],
-          "en": [
-            "1. Plan → Bills → tap the “You're covered” or “Short …” pill. RIGHT: “Will it cover?” opens with one block for each bank that has bills in “Pending”; “You have today” is the balance you see in Portfolio for that bank and “Bills to come” adds up that bank’s “Pending”. WRONG: a bank is missing or extra, or the figures do not match Portfolio or “Pending”.",
-            "2. In that sheet, check whether any bank has the row “Paid, not yet in the balance”. RIGHT: if it shows, it is a bill already in “Already paid” whose charge the bank balance does not include yet. A bill paid today shows there until that bank’s balance is read on another day, and that is normal; the big figure is “You have today” minus all the rows. WRONG: the figure is not the rows subtracted, or a bill shows that is not in “Already paid”.",
-            "3. In the sheet → “What if I spend…?” → tap “Amount” and type 50. RIGHT: that bank’s big figure drops by exactly 50 and the line says “Covered · … left” or “Not covered · short …” with that figure; when you clear it, it goes back to what it was. WRONG: it drops by another amount or another bank changes."
-          ],
-          "ca": [
-            "1. Pla → Rebuts → toca la píndola «T'arriba» o «Falten …». BÉ: surt «T'arriba?» amb un bloc per cada banc que té rebuts a «Pendent»; «Tens avui» és el saldo que veus a Cartera per a aquest banc i «Rebuts que falten» suma el de «Pendent» d’aquest banc. MALAMENT: falta o sobra un banc, o les xifres no quadren amb Cartera o amb «Pendent».",
-            "2. En aquest full, mira si algun banc té la fila «Pagat, encara sense restar del saldo». BÉ: si surt, és un rebut que ja és a «Ja pagats» però el saldo del banc encara no recull el seu cobrament. Un rebut cobrat avui surt allà fins que es llegeixi el saldo d’aquest banc un altre dia, i això és normal; la xifra gran és «Tens avui» menys totes les files. MALAMENT: la xifra no surt de restar les files, o surt un rebut que no és a «Ja pagats».",
-            "3. Al full → «I si gasto…?» → toca «Import» i escriu 50. BÉ: la xifra gran d’aquest banc baixa just 50 i la línia diu «Arriba · et queden …» o «No arriba · falten …» amb aquesta xifra; en esborrar, torna a la d’abans. MALAMENT: baixa una altra quantitat o canvia un altre banc."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.193",

@@ -4360,7 +4360,9 @@ function mergePlanThreeWay(base,local,remote,kind,deleted,localNewer){
       rows.push(right);conflicts.push({kind:kind,id:id,fields:keys,local:goalSyncCopy(left)});return;
     }
     const independent=kind==="fixed"?["name","cat","category"]:["name","note"];
-    const financial=kind==="fixed"?["amount","bankAmount","account","freq","months","schedule","day"]:
+    // `soloMes` va con lo que se cobra: «Desde ahora» cambia el importe Y congela los meses pagados
+    // en la misma edición; mezclar el importe de un móvil con los meses del otro no lo pidió nadie.
+    const financial=kind==="fixed"?["amount","bankAmount","account","freq","months","schedule","day","soloMes"]:
       keys.filter(function(k){return independent.indexOf(k)<0 && ["id","owner","user_id","type","debtLinkRevision"].indexOf(k)<0;});
     const groups=[financial];
     if(payment.length)groups.push(payment);

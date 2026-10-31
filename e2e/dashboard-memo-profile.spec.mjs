@@ -88,6 +88,7 @@ for(const size of [3000,5200])for(const variant of ["baseline","memo"])test("Das
     await page.evaluate(()=>{const p=window.__dashProfile;p.originalExpenses=p.state.expenses;p.originalDeleted=p.state.deleted;});
     // Idéntico contrato con state nuevo y referencias relevantes conservadas.
     for(const [name,mutate] of [
+      ["unrelated",()=>{const p=window.__dashProfile;p.set(s=>({...s,profileSyntheticUnrelated:!s.profileSyntheticUnrelated}));}],
       ["settings",()=>{const p=window.__dashProfile;p.set(s=>({...s,settings:{...s.settings,profileSyntheticToggle:!s.settings.profileSyntheticToggle}}));}],
       ["edit",()=>{const p=window.__dashProfile;p.set(s=>({...s,expenses:s.expenses.map((e,i)=>i===0?{...e,amount:e.amount+1,merchant:"Edición sintética"}:e)}));}],
       ["undo-edit",()=>{const p=window.__dashProfile;p.set(s=>({...s,expenses:p.originalExpenses}));}],
@@ -103,9 +104,11 @@ for(const size of [3000,5200])for(const variant of ["baseline","memo"])test("Das
       const before=await page.evaluate(()=>{const p=window.__dashProfile;p.before={expenses:p.state.expenses,deleted:p.state.deleted,json:JSON.stringify(p.state.expenses)};return {computes:p.metrics.computes,hits:p.metrics.renders-p.metrics.computes,rows:p.verify().rows};});
       await page.evaluate(mutate);await delay(350);
       const after=await page.evaluate(()=>{const p=window.__dashProfile;if(JSON.stringify(p.before.expenses)!==p.before.json)throw new Error("Mutación in-place del histórico");return {computes:p.metrics.computes,hits:p.metrics.renders-p.metrics.computes,check:p.verify(),dom:p.verifyDOM(),sameExpenses:p.state.expenses===p.before.expenses,sameDeleted:p.state.deleted===p.before.deleted};});
-      if(name==="settings"||name==="clock"){expect(after.check.rows).toEqual(before.rows);if(variant==="memo")expect(after.hits).toBeGreaterThan(before.hits);else expect(after.computes).toBeGreaterThan(before.computes);}
+      // Desde la 4.26.198 el memo depende de `state.settings` (el filtro de bancos de Gastos): un cambio de ajustes recalcula UNA vez la lista (mismas filas); lo ajeno a sus dependencias sigue siendo un acierto.
+      if(name==="unrelated"){expect(after.check.rows).toEqual(before.rows);if(variant==="memo")expect(after.hits).toBeGreaterThan(before.hits);else expect(after.computes).toBeGreaterThan(before.computes);}
+      else if(name==="settings"||name==="clock"){expect(after.check.rows).toEqual(before.rows);expect(after.computes).toBeGreaterThan(before.computes);}
       else expect(after.computes).toBeGreaterThan(before.computes);
-      if(name==="settings"||name==="clock"){expect(after.sameExpenses).toBe(true);expect(after.sameDeleted).toBe(true);}
+      if(name==="unrelated"||name==="settings"||name==="clock"){expect(after.sameExpenses).toBe(true);expect(after.sameDeleted).toBe(true);}
       if(name==="edit"||name==="undo-edit"||name==="manual-add"||name==="undo-add"){expect(after.sameExpenses).toBe(false);expect(after.sameDeleted).toBe(true);}
       if(name==="manual-legacy"||name==="undo-remove"){expect(after.sameExpenses).toBe(true);expect(after.sameDeleted).toBe(false);}
       if(name==="edit")expect(after.check.rows[0].merchant).toBe("Edición sintética");

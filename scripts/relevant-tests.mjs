@@ -104,6 +104,18 @@ export const E2E_MAP = [
   { file: "src/modules/06-sync-brokers.js", specs: ["e2e/plan-recibos-t3.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/plan-recibos-t3.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/plan-recibos-t3.spec.mjs"] },
+  // Tanda 4: alta y edición por pasos (14). «Solo este mes / Desde ahora» lo escribe
+  // `fixedEditarRecibo` (08) sobre `soloMes`, que leen `occAmountIn`/`dayIn` (07) y viaja en la
+  // mezcla de dos móviles (00); `totals` (11) y Gastos (04) piden el importe con su año.
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-recibos-t4.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/plan-recibos-t4.spec.mjs"] },
+  { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/plan-recibos-t4.spec.mjs"] },
+  { file: "src/modules/00-core.js", specs: ["e2e/plan-recibos-t4.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/plan-recibos-t4.spec.mjs"] },
+  { file: "src/modules/04-tab-gastos.js", specs: ["e2e/plan-recibos-t4.spec.mjs"] },
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/plan-recibos-t4.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/plan-recibos-t4.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/plan-recibos-t4.spec.mjs"] },
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/ux16-round9-haptics.spec.mjs", "e2e/ux16-haptics.spec.mjs", "e2e/ux16-round2-haptics.spec.mjs", "e2e/ux16-round3-haptics.spec.mjs", "e2e/ux16-ajustador.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/ux16-round9-haptics.spec.mjs", "e2e/ux16-haptics.spec.mjs", "e2e/ux16-round3-haptics.spec.mjs", "e2e/ux16-ajustador.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-ciclo-porcentaje.spec.mjs"] },

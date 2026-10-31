@@ -857,6 +857,18 @@ las 7:30 del mismo día del cobro, 50 con su fila; al día siguiente, 350 (mutan
 vale»: rojo). Los casos «con saldo del banco» siembran la cuenta re-anclada (`bankUid`). Está en `E2E_MAP` para `14-v4-screens`, `08-motor-bank`,
 `07-tab-patri-fijos`, `00-core`, `06-sync-brokers`, `11-app-main`, `01-i18n` y `shell.html`.
 
+Tanda 4: `e2e/plan-recibos-t4.spec.mjs` (reloj en el 18/10) añade un recibo por los cinco pasos
+(el primer número sustituye, «3.275,00 €» con miles, Atrás del sistema vuelve un paso) y lo ve en
+Pendiente con «Queda por pagar» sumando justo su importe; «Solo una vez» guarda un puntual de
+noviembre que no suma en octubre; «En varios pagos» con Hacienda propone 600 el 30 jun y el resto
+(400) el 5 nov sin dejar repetir mes; «Visto en tu banco» rellena nombre, importe, día y banco y
+deja de proponerse al ser recibo; el duplicado lleva a editar el que ya existe. Editar: «Solo
+octubre» deja el recibo en 50 y octubre en 80 (`soloMes`), «Desde ahora» cambia el recibo; un
+recibo ya pagado no pregunta, su mes se queda con 30 y la prueba con su importe real, sin aviso de
+«cobró distinto»; «Ya no lo tengo» pide un segundo toque que se cancela tocando fuera. Está en
+`E2E_MAP` para `14-v4-screens`, `08-motor-bank`, `07-tab-patri-fijos`, `00-core`,
+`11-app-main`, `04-tab-gastos`, `03-tab-dash`, `01-i18n` y `shell.html`.
+
 Descarga incompleta (candidato13/10): `tests/bank-download-incomplete.test.mjs`, registrado en
 runner y `STEPS_SUPABASE`, ejecuta lector, handler y updater real de App. Compara el updater con
 el padre123: ambas lecturas de `bankTx` conservan el extracto; falla sin el adaptador mínimo.

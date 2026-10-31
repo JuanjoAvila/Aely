@@ -428,7 +428,8 @@ test("Modo sencillo: Ajustes › Dinero desde Inicio frío abre BillsManage vivo
   await expect(hub).toContainText(/2 recibos|NetflixVivo/i);
 });
 
-test("hojas BillsItem/BillsAdd son dialog con trap y restauran foco", async ({ page }) => {
+// Modo normal: el alta y la edición de un recibo son la hoja por pasos (Plan › Recibos v6, tanda 4).
+test("hojas de alta y edición por pasos son dialog con trap y restauran foco", async ({ page }) => {
   await openPlan(page, {
     fixed: [{ id: "luz", name: "Luz", amount: 40, freq: "mes", day: 28, account: "sabadell" }],
   });
@@ -439,14 +440,14 @@ test("hojas BillsItem/BillsAdd son dialog con trap y restauran foco", async ({ p
   const addBtn = hub.locator(".v4-bills-add").first();
   await addBtn.focus();
   await addBtn.click();
-  const alta = page.locator('.v4-sheet[data-sheet="bill-add"]');
+  const alta = page.locator('.v4-sheet[data-sheet="recibo-pasos"]');
   await expect(alta).toBeVisible();
   await expect(alta).toHaveAttribute("role", "dialog");
   await expect(alta).toHaveAttribute("aria-modal", "true");
-  await expect(alta).toHaveAccessibleName(/Qué es/i);
-  await expect(page.getByRole("dialog", { name: /Qué es/i })).toBeVisible();
-  // Teclear no debe robar foco al h1 (Codex 2120Z)
-  const altaIn = alta.locator("input.v4-bills-search");
+  await expect(alta).toHaveAccessibleName(/Qué recibo es/i);
+  await expect(page.getByRole("dialog", { name: /Qué recibo es/i })).toBeVisible();
+  // Teclear no debe robar foco al título (Codex 2120Z)
+  const altaIn = alta.locator('[data-rp4="name"]');
   await altaIn.click();
   await altaIn.pressSequentially("Netflix", { delay: 20 });
   await expect(altaIn).toHaveValue("Netflix");
@@ -464,17 +465,22 @@ test("hojas BillsItem/BillsAdd son dialog con trap y restauran foco", async ({ p
   const fila = hub.locator(".v4-bills-row").filter({ hasText: "Luz" });
   await fila.focus();
   await fila.click();
-  const ficha = page.locator('.v4-sheet[data-sheet="bill"]');
+  const ficha = page.locator('.v4-sheet[data-sheet="recibo-pasos"][data-modo="edit"]');
   await expect(ficha).toBeVisible();
   await expect(ficha).toHaveAttribute("role", "dialog");
   await expect(ficha).toHaveAttribute("aria-modal", "true");
-  await expect(ficha).toHaveAccessibleName(/Luz/i);
-  await expect(page.getByRole("dialog", { name: /Luz/i })).toBeVisible();
-  const fichaIn = ficha.locator("input.v4-bills-search").first();
+  await expect(ficha).toHaveAccessibleName(/Editar recibo/i);
+  await expect(ficha.locator(".pr6-ficha-n").last()).toHaveText("Luz");
+  // Teclear el nombre en la edición tampoco roba el foco al campo (Codex 2120Z).
+  await ficha.locator('[data-rp4-fila="0"]').click();
+  const fichaIn = ficha.locator('[data-rp4-paso="0"] [data-rp4="name"]');
   await fichaIn.click();
   await fichaIn.pressSequentially("ABC", { delay: 20 });
   await expect(fichaIn).toHaveValue(/ABC/);
   await expect(fichaIn).toBeFocused();
+  // Escape vuelve al resumen sin guardar; el siguiente cierra la hoja.
+  await page.keyboard.press("Escape");
+  await expect(ficha).toHaveAttribute("data-paso", "4");
   await page.keyboard.press("Tab");
   expect(await ficha.evaluate((el) => el.contains(document.activeElement))).toBe(true);
   await page.keyboard.press("Shift+Tab");

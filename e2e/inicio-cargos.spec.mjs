@@ -22,6 +22,20 @@ async function open(page,lang,overrides={},time="2026-09-30T12:00:00Z"){
   await expect(page.locator('.v4-skel')).toHaveCount(0);
 }
 
+/* Editar el día de un recibo desde Todos: la hoja por pasos (Plan › Recibos v6, tanda 4) abre en
+   el resumen; «Día» lleva al paso de cuándo y guardar vuelve a Todos. */
+async function editarDia(page,hub,name,day){
+  await hub.locator('.v4-bills-row').filter({hasText:name}).click();
+  const sheet=page.locator('.v4-sheet[data-sheet="recibo-pasos"]');
+  await expect(sheet).toHaveAttribute("data-modo","edit");
+  await sheet.locator('[data-rp4-fila="2"]').click();
+  await sheet.locator('[data-rp4-paso="2"] [data-rp4-dia="'+day+'"]').click();
+  await sheet.locator(".rp4-cta").click();
+  await expect(sheet).toHaveAttribute("data-paso","4");
+  await sheet.locator(".rp4-cta").click();
+  await expect(sheet).toHaveCount(0);
+}
+
 for(const lang of ["es","en","ca"]){
   test(lang+": R3 vínculo manual bancario conserva pago y proyección al editar el día",async({page})=>{
     const bill=Object.assign({},fixed,{wait:undefined}),charge={id:"vinculo-banco",date:"2026-09-25",merchant:"Cargo bancario distinto",amount:42,ent:"sabadell",category:"recibos",source:"ob-hist"};
@@ -46,8 +60,7 @@ for(const lang of ["es","en","ca"]){
     const manage=await page.evaluate(()=>t("pr6_todos"));
     await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button",{name:manage,exact:true}).click();
     const hub=page.locator('[data-bills-manage]');await hub.locator('.v4-bills-group').first().click();
-    await hub.locator('.v4-bills-row').filter({hasText:bill.name}).click();
-    await page.locator('.v4-sheet[data-sheet="bill"] input[inputmode="numeric"]').fill("28");
+    await editarDia(page,hub,bill.name,28);
     await expect.poll(()=>page.evaluate(()=>mcLoadRaw(mcStateKey()).fixed[0].day)).toBe(28);
     await expect.poll(()=>page.evaluate(()=>mcLoadRaw(mcStateKey()).fixed[0].paidDay)).toBe(25);
     const saved=await page.evaluate(()=>{const s=mcLoadRaw(mcStateKey());return {bill:s.fixed[0],paid:isPaidIn(s.fixed[0],9,26,2026),net:monthNetForAccount(s,"sabadell",2026,9,26)};});
@@ -97,8 +110,7 @@ for(const lang of ["es","en","ca"]){
     const manage=await page.evaluate(()=>t("pr6_todos"));
     await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button",{name:manage,exact:true}).click();
     const hub=page.locator('[data-bills-manage]');await hub.locator('.v4-bills-group').first().click();
-    await hub.locator('.v4-bills-row').filter({hasText:bill.name}).click();
-    const sheet=page.locator('.v4-sheet[data-sheet="bill"]');await sheet.locator('input[inputmode="numeric"]').fill("25");
+    await editarDia(page,hub,bill.name,25);
     await expect.poll(()=>page.evaluate(()=>mcLoadRaw(mcStateKey()).fixed[0].paidDay)).toBe(12);
     const saved=await page.evaluate(()=>{const s=mcLoadRaw(mcStateKey());return {bill:s.fixed[0],net:monthNetForAccount(s,"sabadell",2026,9,15)};});
     expect(saved.bill.day).toBe(25);expect(saved.bill.paidYm).toBe(2026*12+9);expect(saved.bill.paymentProofs[2026*12+9].kind).toBe("book");expect(saved.net).toBe(before);
@@ -126,16 +138,12 @@ for(const lang of ["es","en","ca"]){
     await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button",{name:manage,exact:true}).click();
     const hub=page.locator('[data-bills-manage]');
     await hub.locator('.v4-bills-group').first().click();
-    await hub.locator('.v4-bills-row').filter({hasText:fixed.name}).click();
-    const sheet=page.locator('.v4-sheet[data-sheet="bill"]');
-    await sheet.locator('input[inputmode="numeric"]').fill("26");
+    await editarDia(page,hub,fixed.name,26);
     await expect.poll(()=>page.evaluate(()=>mcLoadRaw(mcStateKey()).fixed[0].day)).toBe(26);
     const edited=await page.evaluate(()=>mcLoadRaw(mcStateKey()).fixed[0]);
     expect(edited.day).toBe(26);
     expect(edited.paidYm).toBeUndefined();
     expect(edited.paidDay).toBeUndefined();
-    await sheet.locator('.settings-push-h .back').click();
-    await expect(sheet).toHaveCount(0);
     await hub.locator(':scope > .v4-bills-push > [data-screen="bills-group"] > .settings-push-h .back').click();
     await expect(hub.locator(':scope > .v4-bills-push')).toHaveCount(0);
     await hub.locator(':scope > [data-screen="bills-home"] > .settings-push-h .back').click();

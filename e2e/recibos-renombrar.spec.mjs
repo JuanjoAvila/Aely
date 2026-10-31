@@ -21,7 +21,14 @@ for(const legacy of [false,true])for(const name of ["IBI","Impuesto de vivienda"
     await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button",{name:manage,exact:true}).click();
     const hub=page.locator('[data-bills-manage]');await hub.locator('.v4-bills-group').first().click();
     await hub.locator('.v4-bills-row').filter({hasText:"Ibi"}).click();
-    await page.locator('.v4-sheet[data-sheet="bill"] input.v4-bills-search:not([inputmode])').fill(name);
+    // Renombrar es la hoja por pasos (Plan › Recibos v6, tanda 4): resumen → Nombre → Guardar.
+    const pasos=page.locator('.v4-sheet[data-sheet="recibo-pasos"]');
+    await pasos.locator('[data-rp4-fila="0"]').click();
+    await pasos.locator('[data-rp4-paso="0"] [data-rp4="name"]').fill(name);
+    await pasos.locator(".rp4-cta").click();
+    await expect(pasos).toHaveAttribute("data-paso","4");
+    await pasos.locator(".rp4-cta").click();
+    await expect(pasos).toHaveCount(0);
     await expect.poll(()=>page.evaluate(()=>mcLoadRaw(mcStateKey()).fixed[0].name)).toBe(name);
     await page.reload();await dismissNews(page);
     const after=await page.evaluate(()=>{const s=mcLoadRaw(mcStateKey()),r=s.fixed[0],p=fixedPaymentState(s,r,2026,10,18);return {id:r.id,name:r.name,paid:p.paid,cents:Math.round(p.paidAmount*100),proof:r.paymentProofs[24322],expenses:s.expenses,accounts:s.accounts};});
