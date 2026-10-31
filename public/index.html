@@ -19593,13 +19593,74 @@ function planRecibosItems(s,y,m,dia,pack,proof){
   });
   return out;
 }
-/* Guarda la foto del mes en curso si cambió. Devuelve el mismo estado si no hay nada nuevo (sin
-   escritura ni subida). Se queda con los últimos `PR6_FOTO_MESES` meses. */
+/* LA FOTO SOLO SABE MÁS, NUNCA MENOS (revisión R2, 31/10/2026). Cada móvil calcula su foto con
+   SUS datos (el extracto `bankTx` no viaja), así que dos fotos del mismo mes pueden diferir. Si
+   ganara «la última», los dos móviles se la irían pisando en cada vuelta a primer plano. Por eso
+   se mezclan cargo a cargo quedándose con lo que más sabe (pagado con prueba > pagado sin cargo >
+   no llegó > no se sabe) y el día mayor: es conmutativo e idempotente, así que los dos móviles
+   acaban con la misma foto y, desde ahí, ninguno vuelve a escribir. A igual estado decide el texto
+   del cargo (orden fijo), para que no dependa de quién baja primero. Los cargos van ordenados por
+   id: así «el mismo contenido» es el mismo objeto también al compararlo. */
+const PR6_RANGO={"?":0,q:1,s:2,p:3};
+function pr6ItemMas(a,b){
+  var ra=PR6_RANGO[a.st]||0, rb=PR6_RANGO[b.st]||0;
+  if(ra!==rb) return ra>rb?a:b;
+  // «Ya no estaba en Plan» (`x`) también es saber más: lo vio un móvil después del borrado.
+  if(!a.x!==!b.x) return a.x?a:b;
+  return JSON.stringify(a)>=JSON.stringify(b)?a:b;
+}
+function pr6PorId(xs){ return xs.slice().sort(function(a,b){ return a.id<b.id?-1:a.id>b.id?1:0; }); }
+function pr6FotoUnion(fa,fb){
+  if(!fa||!Array.isArray(fa.it)) return fb;
+  if(!fb||!Array.isArray(fb.it)) return fa;
+  var m={};
+  fa.it.concat(fb.it).forEach(function(x){ m[x.id]=m[x.id]?pr6ItemMas(m[x.id],x):x; });
+  var foto={d:Math.max(Number(fa.d)||0,Number(fb.d)||0),it:pr6PorId(Object.keys(m).map(function(k){ return m[k]; }))};
+  // Sin cambios se devuelve el MISMO objeto: un objeto nuevo igual sería otra escritura (AGENTS §7 bis).
+  if(goalSyncEqual(foto,fa)) return fa;
+  if(goalSyncEqual(foto,fb)) return fb;
+  return foto;
+}
+/* Al bajar de la nube: mes a mes, la mezcla de arriba. Devuelve `a` si no cambia nada. */
+function pr6FotosUnion(a,b){
+  a=a||{}; b=b||{};
+  var out={},cambia=false,max=0;
+  Object.keys(a).concat(Object.keys(b)).forEach(function(k){ max=Math.max(max,Number(k)||0); });
+  Object.keys(a).concat(Object.keys(b)).forEach(function(k){
+    if(Object.prototype.hasOwnProperty.call(out,k)||!(Number(k)>max-PR6_FOTO_MESES)) return;
+    out[k]=pr6FotoUnion(a[k],b[k]);
+    if(out[k]!==a[k]) cambia=true;
+  });
+  if(Object.keys(a).some(function(k){ return !Object.prototype.hasOwnProperty.call(out,k); })) cambia=true;
+  return cambia?out:a;
+}
+/* Guarda la foto del mes en curso solo si cambia lo que dice: un cargo que sabe más o uno nuevo.
+   No quita ninguno: si quitara el de un recibo borrado, la mezcla con la foto del otro móvil lo
+   volvería a traer y se reescribirían en bucle. Uno sin pagar que Plan ya no enseña (borrado en
+   el mes o pausado) se marca con `x` y al leer no cuenta. Si vuelve sin pagar, la `x` se queda:
+   quitarla haría que la mezcla con el otro móvil la volviera a poner en bucle. El
+   día solo se renueva si hay movimientos del banco posteriores a la foto: sin ellos la foto vieja
+   sigue viendo el mes entero y reescribirla cada día sería subirla sin motivo. Sin cambios devuelve
+   el MISMO estado (ni escritura local ni subida). Se queda con los últimos `PR6_FOTO_MESES` meses. */
 function planRecibosConFoto(s,y,m,dia,pack,proof){
   var ym=y*12+m,st=s.settings||{},fotos=st.pr6Fotos||{},prev=fotos[ym];
-  if(prev&&Number(prev.d)>dia) return s;
-  var foto={d:dia,it:planRecibosItems(s,y,m,dia,pack,proof)};
-  if(prev&&goalSyncEqual(prev,foto)) return s;
+  var hoy=planRecibosItems(s,y,m,dia,pack,proof),foto;
+  if(prev&&Array.isArray(prev.it)){
+    var m2={};
+    hoy.forEach(function(x){ m2[x.id]=x; });
+    prev.it.forEach(function(x){
+      var h=m2[x.id];
+      var rh=h?PR6_RANGO[h.st]||0:-1, rx=PR6_RANGO[x.st]||0;
+      if(rh>rx||rh===rx&&!x.x) m2[x.id]=h;
+      else if(!h&&rx<2&&!x.x) m2[x.id]=Object.assign({},x,{x:1});
+      else m2[x.id]=x;
+    });
+    var mov=pr6MovMes(s,y,m),ult=Object.keys(mov).reduce(function(a,b){ return Math.max(a,mov[b]); },0);
+    var d=Number(prev.d)||0;
+    if(ult>d) d=Math.max(d,dia);
+    foto={d:d,it:pr6PorId(Object.keys(m2).map(function(k){ return m2[k]; }))};
+    if(goalSyncEqual(prev,foto)) return s;
+  } else foto={d:dia,it:pr6PorId(hoy)};
   var next={};
   Object.keys(fotos).forEach(function(k){ if(Number(k)>ym-PR6_FOTO_MESES&&Number(k)!==ym) next[k]=fotos[k]; });
   next[ym]=foto;
@@ -19616,18 +19677,22 @@ function planRecibosMesFoto(s,y,m){
   var vieja=ult>Number(foto.d);
   var porId={};
   hoy.forEach(function(x){ porId[x.id]=x; });
-  var items=foto.it.map(function(x){
+  // Un cargo sin pagar que Plan dejó de enseñar DENTRO del mes (`x`: borrado o pausado) no cuenta:
+  // el último día ya no salía. Lo pagado se queda (el dinero salió) y lo borrado después del mes
+  // no lleva `x` (la foto ya no se escribe). Si volvió (deshacer) y se pagó, la prueba lo sube.
+  var items=foto.it.filter(function(x){ return x.st==="p"||x.st==="s"||!x.x; }).map(function(x){
     var h=porId[x.id];
     if(x.st==="p") return x;
+    // Lo de hoy solo SUBE a pagado. Bajar un «no se sabe» a «no llegó» con el extracto de hoy
+    // sería afirmar algo que la foto no vio (revisión R2-1: el cargo pudo llegar y caducar).
     if(h&&(h.st==="p"||h.st==="s")) return h;
-    if(h&&h.st==="q") return h;
     if(x.st==="q"&&vieja) return Object.assign({},x,{st:"?"});
     return x;
   });
   // Lo que la foto no tenía (alta de ese mes después de la foto): solo lo que hoy se sabe.
   var enFoto={};
   foto.it.forEach(function(x){ enFoto[x.id]=1; });
-  hoy.forEach(function(x){ if(!enFoto[x.id]) items.push(x); });
+  hoy.forEach(function(x){ if(!enFoto[x.id]) items.push(x.st==="q"?Object.assign({},x,{st:"?"}):x); });
   return {items:items,fiable:items.every(function(x){ return x.st!=="?"; }),foto:true};
 }
 /* El mes cerrado respecto a (y, m) y sus líneas, solo con dato acreditado (SPEC §2.1):
@@ -33795,6 +33860,13 @@ function App(){
           // Los «no es este recibo» no se pisan con la lista de quien llegó el último: clave a
           // clave gana lo más reciente que se dijo, sea ponerlo o levantarlo (`reciboNoUnion`).
           if(prev.reciboNo||cloudState.reciboNo) Object.assign(baseObj, reciboNoUnion(prev, cloudState));
+          // Las fotos del mes de Plan › Recibos se mezclan mes a mes con lo que más sabe cada una
+          // (`pr6FotosUnion`, 08): gane quien gane el estado, los dos móviles acaban con la misma.
+          const fotosL=sameOwner&&(prev.settings||{}).pr6Fotos, fotosN=(cloudState.settings||{}).pr6Fotos;
+          if(fotosL||fotosN){
+            const fotos=pr6FotosUnion((baseObj.settings||{}).pr6Fotos, fotosL===(baseObj.settings||{}).pr6Fotos?fotosN:fotosL);
+            if(fotos!==(baseObj.settings||{}).pr6Fotos) baseObj.settings=Object.assign({},baseObj.settings,{pr6Fotos:fotos});
+          }
           // Usuario que ya tenía cartera en la nube: no repetir onboarding en otro dispositivo.
           if(freshLogin && (cloudState.accounts||[]).length) baseObj.onboarded=true;
           if(freshLogin && ((cloudState.accounts||[]).length || (cloudState.monthStartNet||0)>0)) baseObj.setupHint=false;

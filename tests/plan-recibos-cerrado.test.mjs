@@ -78,7 +78,7 @@ pon("2026-11-03T12:00:00+01:00");
 assert.ok(s.settings.pr6Fotos[2026 * 12 + 9] && s.settings.pr6Fotos[2026 * 12 + 10], "fotos de septiembre y octubre");
 
 // Vía A: la cuenta a mano. Octubre: Luz 50 + Netflix 12,99 + Agua 20 (tu parte) + Coche 100.
-const A_OCT = 5000 + 1299 + 2000 + 10000, A_SEP = A_OCT + 4000;
+const A_OCT = 5000 + 1299 + 2000 + 10000, A_SEP = A_OCT + 4000, OCT_YM = 2026 * 12 + 10;
 const r = c.planRecibosMesCerrado(s, 2026, 11);
 assert.ok(r, "hay resumen de octubre");
 assert.equal(r.y, 2026); assert.equal(r.m, 10); assert.equal(r.ym, 2026 * 12 + 10);
@@ -175,6 +175,58 @@ assert.equal(c.planRecibosMesCerrado({ fixed: [], debts: [], oneoffs: [], flows:
   pon("2026-11-03T12:00:00+01:00");
   const e = c.planRecibosMesCerrado(p, 2026, 11);
   same([e.cent, e.noLlegaron], [A_OCT, 0]);
+}
+// R2-1 · Si la foto no sabía el estado de un cargo, lo de hoy solo lo sube a pagado: el extracto de
+// hoy no puede convertir un «no se sabe» en «no llegó».
+{
+  const fotos = JSON.parse(JSON.stringify(s.settings.pr6Fotos));
+  fotos[OCT_YM].it.find((x) => x.id === "fixed_gym").st = "?";
+  const e = c.planRecibosMesCerrado(Object.assign({}, s, { settings: { pr6Fotos: fotos } }), 2026, 11);
+  assert.equal(e.cent, null, "sigue sin saberse: «—»");
+  assert.equal(e.noLlegaron, null, "y no se cuenta como «no llegó»");
+  // Si hoy sí hay prueba de pago, sube.
+  const pagado = Object.assign({}, s, { settings: { pr6Fotos: fotos }, bankTx: [{ id: "g10", ent: "sabadell", date: "2026-10-02", amount: 40, merchant: "Gimnasio", status: "BOOK" }] });
+  const e2 = c.planRecibosMesCerrado(pagado, 2026, 11);
+  assert.equal(e2.cent, A_OCT + 4000, "el Gimnasio pagado hoy acreditado sube la cifra");
+}
+// R2-2 · Volver a primer plano sin cambios no escribe: el mismo estado (ni local ni subida), aunque
+// `pack` y `proof` sean objetos nuevos y aunque cambie el día sin movimientos nuevos del banco.
+{
+  pon("2026-10-31T21:00:00+01:00");
+  const otraVuelta = c.planRecibosConFoto(s, 2026, 10, 31, c.planChargesMonth(s, 10, 2026, 31), c.paymentEvidenceUI(s, 2026, 10, 31));
+  assert.equal(otraVuelta, s, "misma foto → mismo estado");
+  // El 20/10 el extracto llega hasta el 15: el 21 no hay nada nuevo.
+  let t = Object.assign({}, s, { settings: {}, expenses: s.expenses.filter((x) => x.date <= "2026-10-15") });
+  pon("2026-10-20T10:00:00+02:00");
+  t = c.planRecibosConFoto(t, 2026, 10, 20);
+  pon("2026-10-21T10:00:00+02:00");
+  assert.equal(c.planRecibosConFoto(t, 2026, 10, 21), t, "al día siguiente sin movimientos nuevos no se reescribe");
+  pon("2026-11-03T12:00:00+01:00");
+}
+// R2-2 · Dos móviles con datos distintos (el extracto no viaja) convergen a la misma foto y, desde
+// ahí, ninguno vuelve a escribir.
+{
+  pon("2026-10-31T21:00:00+01:00");
+  const base = Object.assign({}, s, { settings: {} });
+  const extracto = [{ id: "g10", ent: "sabadell", date: "2026-10-02", amount: 40, merchant: "Gimnasio", status: "BOOK" }];
+  let A = c.planRecibosConFoto(Object.assign({}, base, { bankTx: extracto }), 2026, 10, 31);   // ve el Gimnasio pagado
+  let B = c.planRecibosConFoto(base, 2026, 10, 31);                                          // no lo ve
+  const fA = A.settings.pr6Fotos, fB = B.settings.pr6Fotos;
+  const uA = c.pr6FotosUnion(fA, fB), uB = c.pr6FotosUnion(fB, fA);
+  same(uA, uB, "la mezcla no depende de quién baja primero");
+  assert.equal(uA, fA, "A ya sabía más: su foto no cambia (mismo objeto, sin escritura)");
+  assert.equal(uA[OCT_YM].it.find((x) => x.id === "fixed_gym").st, "p");
+  A = Object.assign({}, A, { settings: Object.assign({}, A.settings, { pr6Fotos: uA }) });
+  B = Object.assign({}, B, { settings: Object.assign({}, B.settings, { pr6Fotos: uB }) });
+  assert.equal(c.planRecibosConFoto(A, 2026, 10, 31), A, "A no reescribe");
+  assert.equal(c.planRecibosConFoto(B, 2026, 10, 31), B, "B no la baja a «no llegó» ni reescribe");
+  assert.equal(c.pr6FotosUnion(uA, uB), uA, "mezclar otra vez no cambia nada");
+  // Un recibo sin pagar que se borra dentro del mes: queda marcado y no cuenta, en los dos.
+  const sinGym = Object.assign({}, B, { fixed: B.fixed.filter((f) => f.id !== "nfx") });
+  const nfxPagado = uB[OCT_YM].it.find((x) => x.id === "fixed_nfx").st === "p";
+  assert.ok(nfxPagado, "Netflix estaba pagado: borrarlo no lo quita");
+  assert.equal(c.planRecibosConFoto(sinGym, 2026, 10, 31), sinGym, "lo pagado se conserva sin reescribir");
+  pon("2026-11-03T12:00:00+01:00");
 }
 // Leer no cambia el estado.
 const antes = JSON.stringify(s);

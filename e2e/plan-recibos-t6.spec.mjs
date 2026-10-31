@@ -279,3 +279,28 @@ test("primer uso (revisión): doble toque en «Añadir» no abre Apuntar y la ho
   await expect(page.locator(".v4-exp-sheet")).toHaveCount(0);
   await expect(recibos.getByTestId("plan-due").locator(".v4-charge")).toHaveCount(3);
 });
+
+test("foto (revisión R2-2): volver a primer plano sin cambios no reescribe el estado", async ({ page }) => {
+  const recibos = await abrePlan(page, "2026-10-31T20:00:00+01:00", { accounts: cuenta, fixed, bankTx });
+  await conFoto(page, OCT);
+  await expect(recibos.getByTestId("plan-summary")).toBeVisible();
+  await page.waitForTimeout(1200);
+  await page.evaluate(() => {
+    window.__w = 0;
+    const orig = localStorage.setItem.bind(localStorage);
+    localStorage.setItem = function (k, v) { if (k === "micartera_v3") window.__w++; return orig(k, v); };
+  });
+  for (let i = 0; i < 3; i++) {
+    await page.evaluate(() => {
+      Object.defineProperty(document, "visibilityState", { value: "hidden", configurable: true });
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    await page.waitForTimeout(80);
+    await page.evaluate(() => {
+      Object.defineProperty(document, "visibilityState", { value: "visible", configurable: true });
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    await page.waitForTimeout(700);
+  }
+  expect(await page.evaluate(() => window.__w)).toBe(0);
+});

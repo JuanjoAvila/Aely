@@ -209,9 +209,15 @@ Sin foto, o con algún «?», la cifra es «—» (null), nunca más baja que la
 el mes anterior sigue la misma regla. Los recibos nuevos llevan `createdYm` (`conMesDeAlta`: alta
 por pasos, importación, Gastos «Pasar a Recibos», alta vieja y el motor) y no cuentan en meses
 anteriores; `createdYm` es un grupo propio en la mezcla de tres vías y no lo lee nada más.
-Mezcla de `settings`: viaja dentro de `app_state` y gana el estado más nuevo; cada foto es la
-lectura completa de su mes, así que la que gane vale entera, y en este móvil una foto de un día
-anterior no pisa a una posterior. Un cliente viejo no escribe ni lee fotos ni `createdYm`; sus
+Mezcla entre móviles (revisión R2): cada móvil calcula su foto con SUS datos (el extracto no
+viaja), así que no gana «la última»: al bajar de la nube (`syncFromCloud`, 11) `pr6FotosUnion` (08)
+mezcla mes a mes cargo a cargo quedándose con lo que más sabe (p > s > q > ?, luego la marca `x`,
+luego el texto) y el día mayor. Es conmutativa e idempotente: los dos móviles convergen y desde
+ahí ninguno escribe. El escritor tampoco baja nunca un estado, solo guarda si cambia el contenido
+(un día nuevo sin movimientos del banco posteriores no cuenta) y devuelve el MISMO estado si no
+(AGENTS §7 bis). Un cargo sin pagar que Plan deja de enseñar dentro del mes (borrado o pausado)
+se marca `x` y no cuenta al leer. Al leer, lo de hoy solo sube un cargo a pagado: nunca baja un
+«no se sabe» a «no llegó». Un cliente viejo no escribe ni lee fotos ni `createdYm`; sus
 escritores copian `settings` y el recibo con `Object.assign`, así que los conserva. El descarte de
 la tarjeta es `settings.pr6CerradoNo = año*12+mes`. La vista «Dic ›» es la misma lectura que los
 cargos del mes que viene de Inicio (`planChargesMonth` con hoy = 0). El primer uso importa con

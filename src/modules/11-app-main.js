@@ -911,6 +911,13 @@ function App(){
           // Los «no es este recibo» no se pisan con la lista de quien llegó el último: clave a
           // clave gana lo más reciente que se dijo, sea ponerlo o levantarlo (`reciboNoUnion`).
           if(prev.reciboNo||cloudState.reciboNo) Object.assign(baseObj, reciboNoUnion(prev, cloudState));
+          // Las fotos del mes de Plan › Recibos se mezclan mes a mes con lo que más sabe cada una
+          // (`pr6FotosUnion`, 08): gane quien gane el estado, los dos móviles acaban con la misma.
+          const fotosL=sameOwner&&(prev.settings||{}).pr6Fotos, fotosN=(cloudState.settings||{}).pr6Fotos;
+          if(fotosL||fotosN){
+            const fotos=pr6FotosUnion((baseObj.settings||{}).pr6Fotos, fotosL===(baseObj.settings||{}).pr6Fotos?fotosN:fotosL);
+            if(fotos!==(baseObj.settings||{}).pr6Fotos) baseObj.settings=Object.assign({},baseObj.settings,{pr6Fotos:fotos});
+          }
           // Usuario que ya tenía cartera en la nube: no repetir onboarding en otro dispositivo.
           if(freshLogin && (cloudState.accounts||[]).length) baseObj.onboarded=true;
           if(freshLogin && ((cloudState.accounts||[]).length || (cloudState.monthStartNet||0)>0)) baseObj.setupHint=false;
