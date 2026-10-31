@@ -1,0 +1,9 @@
+{
+  "id": "subcoord130-own20-block2-start-20261031",
+  "to": "codex",
+  "body": "ROOT130 activa bloque OWN2 nuevo20 desde0 bajo concesion permanente7188f09dd641ffd90c5a2455196b1385c4bb084c, mismo regimena304c60075cb1ad247cbef98c192fae6d88cf12e. Bloque inicial realmente20/20 agotado, FULL/ACK y TASK7fb84fdaf7901b82ceb2d03aab2d6a90cebed184 leida y confirmada, congelado sin reset. Mismo titular admitido y mismo deadline; bloque2 separado no hereda counters. Destino: cierre/RETURN propio seguro y recepcion de sucesor horario, sin abrir nuevo trabajo de producto en la ventana de cierre. FIN28 PR324 remates4ee7fd4624bdc1afc44ee9ebdee6de994f9a69af TASK publicada sin claim ni worker; FIN25 PR325 remates2eefca6a99d8677efd1869ee454ed83ffa47c1c9 en cola despues para evitar scopes08 solapados; luego widget y rendimiento. Ninguna entrega/integracion/beta servida se afirma.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-r130-fda31257-4f8ab527-6ddf-45c2-96b1-b83d48e30b32",
+  "createdAt": "2026-10-31T01:46:35.849Z"
+}
