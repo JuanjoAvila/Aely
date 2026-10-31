@@ -7,6 +7,8 @@ function receiptEveProducer(state,totals,now){
   const dateKey=function(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
   const calculatedOn=dateKey(now), tomorrow=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,12);
   const current=totals.curYear===now.getFullYear()&&totals.curMonth===now.getMonth()+1&&totals.today===now.getDate();
+  const readSince=new Date(now.getFullYear(),now.getMonth(),now.getDate()-1).getTime(), readNow=now.getTime();
+  const futureRead=function(v){ const at=Date.parse(v); return isFinite(at)&&at>readNow; };
   const byBank=Object.create(null);
   let pending=null;
   return function(charge,bank){
@@ -19,11 +21,21 @@ function receiptEveProducer(state,totals,now){
     if(!current||dueOn!==dateKey(tomorrow)||typeof bank!=="string"||!bank) return eve;
     if(!Object.prototype.hasOwnProperty.call(byBank,bank)){
       const bal=totals.bankBal&&Object.prototype.hasOwnProperty.call(totals.bankBal,bank)?totals.bankBal[bank]:null;
+      let bankOB=false, future=false;
       const stale=(state.bankIssues||[]).some(function(i){ return i&&i.ent===bank; })
-        ||(state.accounts||[]).some(function(a){ return a&&a.ent===bank&&a.balanceStale; })
+        ||(state.accounts||[]).some(function(a){
+          if(!a||a.ent!==bank) return false;
+          if(a.bankIban||a.bankUid||a.balSaldo!=null) bankOB=true;
+          if(futureRead(a.saldoLeidoAt)||futureRead(a.balanceAt)) future=true;
+          return a.balanceStale;
+        })
         ||(state.obAccounts||[]).some(function(a){ return a&&a.ent===bank&&a.stale; });
+      // Una lectura futura no se vuelve fiable porque otra cuenta o conexion tenga un sello anterior.
+      if(bankOB&&!future) future=Object.keys(state.obBalAt||{}).some(function(asp){ return entFromAspsp(asp)===bank&&futureRead(state.obBalAt[asp]); });
+      if(!future&&bank==="trade_republic"&&saldoLoMandaPuenteNativo(state,bank)) future=futureRead(state.lastTrSync);
+      const readAt=saldoLeidoDelBanco(state,bank);
       let min=null;
-      if(typeof bal==="number"&&isFinite(bal)&&!stale&&saldoLeidoDelBanco(state,bank)>0){
+      if(typeof bal==="number"&&isFinite(bal)&&!stale&&readAt>0&&readAt>=readSince&&readAt<=readNow&&!future){
         if(pending===null) pending=planChargesMonth(state,totals.curMonth,totals.curYear,totals.today).pendingBills;
         const cover=planCoverState(totals,bank,0,pending);
         if(cover&&typeof cover.min==="number"&&isFinite(cover.min)) min=cover.min;
@@ -33,7 +45,7 @@ function receiptEveProducer(state,totals,now){
     const min=byBank[bank];
     if(min===null) return eve;
     eve.coverage=min<-0.005?"short":"enough";
-    eve.body=tf(eve.coverage==="short"?"rc_body_tmrw_short":"rc_body_tmrw_enough",Object.assign({},vals,{saldo:eur(min)}));
+    eve.body=tf(eve.coverage==="short"?"rc_body_tmrw_short":"rc_body_tmrw_enough",Object.assign({},vals,{saldo:eur(min),bank:String(entOf(bank).label).replace(/[\r\n\u2028\u2029]+/g," ")}));
     return eve;
   };
 }

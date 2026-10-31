@@ -149,8 +149,12 @@ Los avisos de la víspera usan el mismo cálculo que «¿Te llega?».
 `planCoverState(totals, banco, 0, planChargesMonth(...).pendingBills)`, incluida la corrección
 existente de cuotas sin día. No vuelve a recorrer el dinero ni descuenta de nuevo el recibo.
 Solo afirma suficiencia con banco explícito, saldo finito, lectura acreditada por
-`saldoLeidoDelBanco` y sin incidencias/saldos rancios actuales. Sin esa evidencia conserva el
-aviso genérico. Las dos llamadas a `setAlertData` y la notificación web comparten el calendario
+`saldoLeidoDelBanco`, desde la medianoche local del día anterior a la víspera y nunca posterior
+al instante del cálculo, y sin incidencias/saldos rancios actuales. Una fuente de lectura
+aplicable con hora futura deja el aviso neutro aunque otra cuenta o conexión oculte esa hora
+en el mínimo del banco. El texto expresa el mínimo previsto del mes en ese banco, conservando
+su cifra y signo; no afirma que el recibo de mañana sea impagable. Sin esa evidencia conserva
+el aviso genérico. Las dos llamadas a `setAlertData` y la notificación web comparten el calendario
 memorizado y su texto localizado en es/en/ca; los cambios de saldo, lectura, pagos, flujos,
 idioma y fecha invalidan ese calendario. El banco de pruebas no envía estos avisos ni calendarios.
 

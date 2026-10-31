@@ -169,9 +169,10 @@ test("M18","importe variable exacto de la ocurrencia",()=>{
   const r=evaluate(s);assert.equal(cents(r.row.amount),8954);assert(r.row.eve.body.includes("89,54 €"));assert(r.row.eve.body.includes("110,46 €"));
 });
 const texts={
-  es:{enough:"Recibo sintético: mañana se cobran 42,37 €. Saldo previsto: 57,63 €; te llega.",short:"Recibo sintético: mañana se cobran 42,37 €. Saldo previsto: -0,01 €; no te llega.",unknown:"Recibo sintético: mañana se cobran 42,37 €. Si algo no cuadra, aún estás a tiempo."},
-  en:{enough:"Recibo sintético: 42,37 € will be charged tomorrow. Projected balance: 57,63 €; enough to cover it.",short:"Recibo sintético: 42,37 € will be charged tomorrow. Projected balance: -0,01 €; not enough to cover it.",unknown:"Recibo sintético: 42,37 € will be charged tomorrow. If something's off, there's still time."},
-  ca:{enough:"Recibo sintético: demà es cobren 42,37 €. Saldo previst: 57,63 €; és suficient.",short:"Recibo sintético: demà es cobren 42,37 €. Saldo previst: -0,01 €; és insuficient.",unknown:"Recibo sintético: demà es cobren 42,37 €. Si alguna cosa no quadra, encara ets a temps."}
+  // El mínimo pertenece al mes del banco; el importe de mañana no determina esa suficiencia.
+  es:{enough:"Recibo sintético: mañana se cobran 42,37 €. Mínimo previsto este mes en Sabadell: 57,63 €.",short:"Recibo sintético: mañana se cobran 42,37 €. Mínimo previsto este mes en Sabadell: -0,01 €.",unknown:"Recibo sintético: mañana se cobran 42,37 €. Si algo no cuadra, aún estás a tiempo."},
+  en:{enough:"Recibo sintético: 42,37 € will be charged tomorrow. Lowest projected balance this month at Sabadell: 57,63 €.",short:"Recibo sintético: 42,37 € will be charged tomorrow. Lowest projected balance this month at Sabadell: -0,01 €.",unknown:"Recibo sintético: 42,37 € will be charged tomorrow. If something's off, there's still time."},
+  ca:{enough:"Recibo sintético: demà es cobren 42,37 €. Saldo mínim previst aquest mes a Sabadell: 57,63 €.",short:"Recibo sintético: demà es cobren 42,37 €. Saldo mínim previst aquest mes a Sabadell: -0,01 €.",unknown:"Recibo sintético: demà es cobren 42,37 €. Si alguna cosa no quadra, encara ets a temps."}
 };
 test("M19","nueve textos exactos, una línea",()=>{
   for(const lang of ["es","en","ca"])for(const coverage of ["enough","short","unknown"]){
@@ -229,7 +230,8 @@ test("D06","día local real, también con entorno UTC",()=>{
   const h=harness(),s=fixture();h.clock(2026,10,18,23);const t=h.totals(s),cal=h.calendar(s,t);assert.equal(cal.charges[0].eve.calculatedOn,"2026-10-18");assert.equal(cal.charges[0].eve.dueOn,"2026-10-19");
 },"context");
 test("D07","mañana de calendario al cambiar horario",()=>{
-  const h=harness(),s=fixture();h.clock(2026,10,24,23);s.fixed[0].day=25;const r=h.calendar(s,h.totals(s));assert.equal(r.charges[0].eve.dueOn,"2026-10-25");assert.equal(r.charges[0].eve.coverage,"enough");
+  // Mantener la lectura del día anterior a ESTA víspera aísla el calendario del nuevo corte de frescura.
+  const h=harness(),s=fixture();h.clock(2026,10,24,23);s.accounts[0].saldoLeidoAt=new Date(2026,9,23,8).toISOString();s.fixed[0].day=25;const r=h.calendar(s,h.totals(s));assert.equal(r.charges[0].eve.dueOn,"2026-10-25");assert.equal(r.charges[0].eve.coverage,"enough");
 },"context");
 test("D08","anterior fecha de cálculo pasa a neutral",()=>{
   const h=harness(),s=fixture(),t=h.totals(s);h.clock(2026,10,19);const r=h.calendar(s,t);assert.equal(r.charges[0].eve.calculatedOn,"2026-10-19");assert.equal(r.charges[0].eve.coverage,"unknown");
@@ -245,21 +247,157 @@ test("D11","respuesta del puente después de medianoche",async()=>{
   h.reminder(s,totals,cal,nat,st).run();h.clock(2026,10,19);answer({fired:[]});await flush();
   assert.equal(sent.length,0);assert.equal(st.getItem("_rc1_r_2026-10"),null);
 },"context");
+test("R01","el recibo de mañana cabe pero el mínimo mensual es negativo",()=>{
+  const expected={
+    es:"Recibo sintético: mañana se cobran 40,00 €. Mínimo previsto este mes en ING: -10,00 €.",
+    en:"Recibo sintético: 40,00 € will be charged tomorrow. Lowest projected balance this month at ING: -10,00 €.",
+    ca:"Recibo sintético: demà es cobren 40,00 €. Saldo mínim previst aquest mes a ING: -10,00 €."
+  };
+  const s=fixture();s.accounts[0].ent="ing";s.accounts[0].value=50;s.fixed[0].account="ing";s.fixed[0].amount=40;
+  s.fixed.push({...s.fixed[0],id:"later",name:"Cargo posterior",day:25,amount:20});
+  const r=expectForecast(s,-1000,"short");
+  assert.equal(cents(r.totals.bankBal.ing)-cents(r.row.amount),1000,"mañana aún quedan diez euros");
+  for(const lang of ["es","en","ca"]){
+    const h=harness();h.language(lang);const row=h.calendar(s,h.totals(s)).charges.find(c=>c.id==="r");
+    assert.equal(row.eve.coverage,"short");assert.equal(row.eve.body,expected[lang]);assert(!/[\r\n\u2028\u2029]/.test(row.eve.body));
+  }
+});
+const localAt=(y,m,d,hour=0,ms=0)=>new Date(y,m-1,d,hour,0,0,ms).toISOString();
+function readFixture(at){const s=fixture();s.accounts[0].saldoLeidoAt=at;return s;}
+function reading(s,coverage,main=baseMain){return coverage==="unknown"?expectUnknown(s,main):expectForecast(s,5763,coverage,main);}
+function timedReading(y,m,d,hour,at,coverage,main=baseMain){
+  const h=harness(main),s=readFixture(at);h.clock(y,m,d,hour);s.fixed[0].day=d+1;
+  const before=JSON.stringify(s),totals=h.totals(s),cal=h.calendar(s,totals),row=cal.charges.find(c=>c.id==="r");
+  assert.equal(JSON.stringify(s),before,"ni calcular ni envejecer la lectura modifica el estado");
+  assert(row?.eve);assert.equal(row.eve.coverage,coverage);
+  if(coverage==="unknown")assert.equal(row.eve.body,texts.es.unknown);
+  else {const bank=h.banks(s,totals).find(b=>b.bank==="sabadell");assert(bank?.known);assert.equal(cents(bank.min),5763);assert.equal(row.eve.body,texts.es.enough);}
+  return {h,s,totals,cal,row};
+}
+// Fechas de entrada independientes del productor; el oráculo monetario sigue siendo Plan real.
+const freshnessCases=[
+  ["F01","medianoche anterior inclusiva, con saldo positivo y negativo",main=>{
+    reading(readFixture(localAt(2026,10,17)),"enough",main);
+    const s=readFixture(localAt(2026,10,17));s.accounts[0].value=42.36;expectForecast(s,-1,"short",main);
+  }],
+  ["F02","un milisegundo anterior al umbral es neutral",main=>reading(readFixture(localAt(2026,10,16,23,3599999)),"unknown",main)],
+  ["F03","todo el día anterior sirve aunque pasen más de veinticuatro horas",main=>{
+    const at=localAt(2026,10,17);assert(new Date(2026,9,18,23).getTime()-Date.parse(at)>86400000);
+    timedReading(2026,10,18,23,at,"enough",main);
+  }],
+  ["F04","el saldo tecleado no acredita lectura",main=>{const s=fixture();delete s.accounts[0].saldoLeidoAt;reading(s,"unknown",main);}],
+  ["F05","sellos ausentes o no parseables conservan el cuerpo neutral",main=>{
+    for(const at of [undefined,null,"","lectura-invalida"])reading(readFixture(at),"unknown",main);
+  }],
+  ["F06","un milisegundo futuro no acredita lectura",main=>reading(readFixture(localAt(2026,10,18,12,1)),"unknown",main)],
+  ["F07","el instante actual sí acredita lectura",main=>reading(readFixture(localAt(2026,10,18,12)),"enough",main)],
+  ["F08","OB propio con cualquiera de los anclajes existentes",main=>{
+    for(const [key,value] of [["bankUid","synthetic"],["bankIban","synthetic-account"],["balSaldo",100]]){
+      const s=fixture();delete s.accounts[0].saldoLeidoAt;s.accounts[0][key]=value;s.obBalAt={sabadell:localAt(2026,10,17)};reading(s,"enough",main);
+    }
+  }],
+  ["F09","sync global u otro banco reciente no rejuvenecen OB antiguo",main=>{
+    const s=fixture();delete s.accounts[0].saldoLeidoAt;s.accounts[0].bankUid="synthetic";
+    s.obBalAt={sabadell:localAt(2026,10,16,23,3599999),ing:localAt(2026,10,18,12)};s.lastBankSync=localAt(2026,10,18,12);reading(s,"unknown",main);
+    delete s.obBalAt.sabadell;reading(s,"unknown",main);
+  }],
+  ["F10","TR exige lectura fresca y puente activo",main=>{
+    for(const [enabled,at,coverage] of [[true,localAt(2026,10,17),"enough"],[true,localAt(2026,10,16),"unknown"],[false,localAt(2026,10,18,12),"unknown"]]){
+      const s=fixture();s.accounts[0].ent="trade_republic";delete s.accounts[0].saldoLeidoAt;s.fixed[0].account="trade_republic";
+      s.settings.brokersOn=enabled?["trade_republic"]:[];s.lastTrSync=at;reading(s,coverage,main);
+    }
+  }],
+  ["F11","balanceAt adoptado distingue lectura fresca y antigua",main=>{
+    for(const [at,coverage] of [[localAt(2026,10,17),"enough"],[localAt(2026,10,16),"unknown"]]){
+      const s=fixture();delete s.accounts[0].saldoLeidoAt;s.accounts[0].balanceAt=at;reading(s,coverage,main);
+    }
+  }],
+  ["F12","manda la cuenta antigua en cualquier orden",main=>{
+    for(const reverse of [false,true]){const s=readFixture(localAt(2026,10,18,12));s.accounts.push({...s.accounts[0],id:"old",value:0,saldoLeidoAt:localAt(2026,10,16)});if(reverse)s.accounts.reverse();reading(s,"unknown",main);}
+  }],
+  ["F13","dos cuentas frescas conservan el umbral inclusivo",main=>{
+    for(const reverse of [false,true]){const s=readFixture(localAt(2026,10,18,12));s.accounts.push({...s.accounts[0],id:"boundary",value:0,saldoLeidoAt:localAt(2026,10,17)});if(reverse)s.accounts.reverse();reading(s,"enough",main);}
+  }],
+  ["F14","otra cuenta sin lectura o solo otro banco no bastan",main=>{
+    const s=fixture();s.accounts.push({id:"unread",ent:"sabadell",role:"fijos",value:0});reading(s,"unknown",main);
+    const absent=fixture();absent.accounts=[];reading(absent,"unknown",main);
+    const other=fixture();delete other.accounts[0].saldoLeidoAt;other.obBalAt={ing:localAt(2026,10,18,12)};reading(other,"unknown",main);
+  }],
+  ["F15","corte local en ambas transiciones de horario",main=>{
+    for(const [month,day,madridHours] of [[10,25,37],[3,29,35]]){
+      const at=localAt(2026,month,day-1),age=new Date(2026,month-1,day,12).getTime()-Date.parse(at);
+      if(process.env.TZ==="Europe/Madrid")assert.equal(age,madridHours*3600000);
+      if(process.env.TZ==="UTC")assert.equal(age,36*3600000);
+      timedReading(2026,month,day,12,at,"enough",main);
+      timedReading(2026,month,day,12,new Date(Date.parse(at)-1).toISOString(),"unknown",main);
+    }
+  }],
+  ["F16","el calendario del día siguiente no renueva la lectura",main=>{
+    const h=harness(main),at=localAt(2026,10,17),s=readFixture(at);s.fixed.push({...s.fixed[0],id:"next",day:20});
+    const first=h.calendar(s,h.totals(s));assert.equal(first.charges.find(c=>c.id==="r").eve.coverage,"enough");
+    h.clock(2026,10,19);const next=h.calendar(s,h.totals(s));assert.notEqual(next,first);
+    assert.equal(next.charges.find(c=>c.id==="next").eve.coverage,"unknown");assert.equal(s.accounts[0].saldoLeidoAt,at);
+  }],
+  ["F17","web y las dos rutas del puente comparten frescura y texto",async main=>{
+    for(const [at,coverage] of [[localAt(2026,10,18,12),"enough"],[localAt(2026,10,16),"unknown"],["lectura-invalida","unknown"],[localAt(2026,10,18,12,1),"unknown"]]){
+      const h=harness(main),s=readFixture(at),before=JSON.stringify(s),totals=h.totals(s),st=storage(),cal=h.calendar(s,totals,st),sent=[],pushed=[];
+      assert.equal(cal.charges[0].eve.coverage,coverage);assert.equal(cal.charges[0].eve.body,texts.es[coverage]);
+      const nat={showNotification:n=>{sent.push(n);return Promise.resolve();},setAlertData:c=>{pushed.push(c);return Promise.resolve({fired:[]});}};
+      h.reminder(s,totals,cal,nat,st).run();await flush();h.native(s,totals,cal,nat,st,true,true).run();await flush();
+      assert.equal(pushed.length,2);assert(pushed.every(c=>c===cal));assert.equal(sent.length,1);
+      assert.deepEqual(plain(sent[0]),{title:cal.charges[0].eve.title,body:texts.es[coverage]});
+      h.reminder(s,totals,cal,nat,st).run();await flush();assert.equal(sent.length,1);assert.equal(JSON.stringify(s),before);
+    }
+  }],
+  ["F18","movimientos nuevos y lastBankSync no actualizan la lectura vieja",main=>{
+    const s=readFixture(localAt(2026,10,16));s.lastBankSync=localAt(2026,10,18,12);s.bankTx=[{id:"synthetic",ent:"sabadell",date:"2026-10-18",amount:1,status:"BOOK"}];reading(s,"unknown",main);
+  }],
+  ["F19","una lectura futura oculta por el mínimo conserva aviso neutral",main=>{
+    const fresh=localAt(2026,10,18,12),future=localAt(2026,10,18,12,1);
+    for(const reverse of [false,true]){
+      const s=readFixture(fresh);s.accounts.push({...s.accounts[0],id:"future",value:0,saldoLeidoAt:future});if(reverse)s.accounts.reverse();
+      const r=reading(s,"unknown",main);assert.equal(r.h.c.saldoLeidoDelBanco(s,"sabadell"),Date.parse(fresh),"la agregación por sí sola oculta el futuro");
+    }
+    for(const reverse of [false,true]){
+      const s=readFixture(fresh);s.accounts[0].bankUid="synthetic";
+      const entries=[["sabadell",fresh],["Banco de Sabadell",future]];s.obBalAt=Object.fromEntries(reverse?entries.reverse():entries);
+      const r=reading(s,"unknown",main);assert.equal(r.h.c.saldoLeidoDelBanco(s,"sabadell"),Date.parse(fresh),"el OB más viejo oculta la otra conexión futura");
+    }
+  }],
+  ["F20","solo las fuentes futuras aplicables neutralizan",main=>{
+    const fresh=localAt(2026,10,18,12),future=localAt(2026,10,18,12,1);
+    for(const mutate of [s=>s.obBalAt={sabadell:future},s=>{s.accounts[0].bankUid="synthetic";s.obBalAt={ing:future};},s=>s.accounts.push({id:"other",ent:"ing",value:0,saldoLeidoAt:future}),s=>s.lastTrSync=future,s=>s.obAccounts=[{ent:"sabadell",balanceAt:future,stale:false}]]){
+      const s=readFixture(fresh);mutate(s);reading(s,"enough",main);
+    }
+    const inactive=readFixture(fresh);inactive.accounts[0].ent="trade_republic";inactive.fixed[0].account="trade_republic";inactive.settings.brokersOn=[];inactive.lastTrSync=future;reading(inactive,"enough",main);
+    const active=plain(inactive);active.settings.brokersOn=["trade_republic"];reading(active,"unknown",main);
+    const account=readFixture(fresh);account.accounts[0].balanceAt=future;reading(account,"unknown",main);
+    const ob=readFixture(fresh);ob.accounts[0].bankUid="synthetic";ob.obBalAt={sabadell:future};reading(ob,"unknown",main);
+  }]
+];
+for(const [id,name,run] of freshnessCases)test(id,name,()=>run(baseMain),"freshness");
+const freshOracle=(id,main)=>freshnessCases.find(c=>c[0]===id)[2](main);
 const mutants=[
   ["C01","banco principal",s=>s.replace("eveOf(c,e.account)",'eveOf(c,"sabadell")'),m=>{const s=fixture();s.accounts[0].value=10000;s.accounts.push({...s.accounts[0],id:"b",ent:"ing",value:100});s.fixed[0].account="ing";s.fixed[0].amount=150;expectForecast(s,-5000,"short",m);}],
   ["C02","doble descuento",s=>s.replace("min=cover.min;","min=cover.min-charge.amount;"),m=>expectForecast(fixture(),5763,"enough",m)],
   ["C03","saldo final",s=>s.replace("planCoverState(totals,bank,0,pending)","({min:totals.projectedByBank[bank]})"),m=>{const s=fixture();s.fixed[0].amount=150;income(s,25);expectForecast(s,-5000,"short",m);}],
-  ["C04","sin lectura",s=>s.replace("&&saldoLeidoDelBanco(state,bank)>0",""),m=>{const s=fixture();delete s.accounts[0].saldoLeidoAt;expectUnknown(s,m);}],
+  // Retirar el contrato completo mantiene el mismo oráculo de ausencia de lectura del C04 anterior.
+  ["C04","sin lectura",s=>s.replace("&&readAt>0&&readAt>=readSince&&readAt<=readNow&&!future",""),m=>{const s=fixture();delete s.accounts[0].saldoLeidoAt;expectUnknown(s,m);}],
   ["C05","sin cuota no fechada",s=>s.replace("planCoverState(totals,bank,0,pending)","planCoverState(totals,bank,0,[])"),m=>{const s=fixture();s.accounts[0].value=110;s.debts=[{id:"d",monthly:10,value:100,account:"sabadell"}];const r=expectForecast(s,4763,"enough",m);assert.equal(cents(r.totals.paidNetByBank.sabadell),-1000);assert.equal(cents(r.totals.bankBal.sabadell),10000);assert.equal(cents(r.totals.minByBank.sabadell),5763);assert.equal(11000-1000-4237-1000,4763);}],
   ["C06","calendario sin mensaje",s=>s.replace("c.eve=eveOf(c,e.account);","c.eve=undefined;"),m=>expectForecast(fixture(),5763,"enough",m)],
-  ["DC01","fecha de cálculo ignorada",s=>s.replace(/const current=[^;]+;/,"const current=true;"),m=>{const h=harness(m),s=fixture(),t=h.totals(s);t.today=17;assert.equal(h.calendar(s,t).charges[0].eve.coverage,"unknown");}]
+  ["DC01","fecha de cálculo ignorada",s=>s.replace(/const current=[^;]+;/,"const current=true;"),m=>{const h=harness(m),s=fixture(),t=h.totals(s);t.today=17;assert.equal(h.calendar(s,t).charges[0].eve.coverage,"unknown");}],
+  ["FC01","lectura anterior al corte",s=>s.replace("&&readAt>=readSince",""),m=>freshOracle("F02",m)],
+  // Ambas defensas rechazan un futuro aislado; FC04 aísla la guardia que el mínimo puede ocultar.
+  ["FC02","lectura futura admitida",s=>s.replace("&&readAt<=readNow&&!future",""),m=>freshOracle("F06",m)],
+  ["FC03","ventana errónea de veinticuatro horas",s=>s.replace("new Date(now.getFullYear(),now.getMonth(),now.getDate()-1).getTime()","now.getTime()-86400000"),m=>freshOracle("F03",m)],
+  ["FC04","futuro oculto sin guardia de metadatos",s=>s.replace("&&readAt<=readNow&&!future","&&readAt<=readNow"),m=>freshOracle("F19",m)]
 ];
 for(const [id,name,mutate,oracle] of mutants)test(id,"mata mutante "+name,()=>{
   const changed=mutate(baseMain);assert.notEqual(changed,baseMain,"mutación aplicada");let caught;
   try{oracle(changed);}catch(e){caught=e;}
   assert(caught instanceof assert.AssertionError,"mutante muerto por oráculo, no por fallo de arnés: "+(caught?.stack||"sobrevive"));
 },"causal");
-assert(["all","forecast","context","causal"].includes(group),"grupo conocido");
+assert(["all","forecast","context","freshness","causal"].includes(group),"grupo conocido");
 let count=0;
 for(const t of cases){
   if(group!=="all"&&group!==t.kind||selected&&selected!==t.id)continue;
