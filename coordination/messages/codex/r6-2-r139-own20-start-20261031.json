@@ -1,0 +1,9 @@
+{
+  "id": "r6-2-r139-own20-start-20261031",
+  "to": "codex",
+  "body": "OWN20 propio nuevo activado para r6-2-recibos-same-sync-client-r139-codex-20261031 bajo autoridad permanente7188f09dd641ffd90c5a2455196b1385c4bb084c y cola8987715b676191a30da552006a3400d9ff242558. Contador real2/20; primer wait>=30s cumplido; FULL RAW y ACK de todos los intermedios desde8396c33b completos. Sin identidad ni contadores heredados. Claim propio y readback>=30s pendientes antes de producto. Ámbito R6-2 únicamente, sin UX17 ni backend. Recursos de pruebas aún no solicitados ni usados.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261031-r6-2-r139-nrelayd5061d97de4ede50d379e0f9968fbe08",
+  "createdAt": "2026-10-31T12:11:44.545Z"
+}
