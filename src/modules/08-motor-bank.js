@@ -104,8 +104,16 @@ function fixedPaymentContract(e,m){
   return JSON.stringify([e.id,accOf(e),occAmountIn(e,m),e.bankAmount>0?e.bankAmount:null]);
 }
 function fixedPaymentModelMatches(p,e,m){
-  // Las pruebas antiguas siguen siendo estrictas: no recuperar un pago roto al leerlo.
-  return p.modelVersion==null?p.model===fixedPaymentModel(e,m):p.modelVersion===2&&p.receiptId===e.id&&typeof p.receiptName==="string"&&p.model===fixedPaymentContract(e,m);
+  var legacy=p.modelVersion==null;
+  if(!legacy&&(p.modelVersion!==2||p.receiptId!==e.id||typeof p.receiptName!=="string")) return false;
+  if(p.model===(legacy?fixedPaymentModel(e,m):fixedPaymentContract(e,m))) return true;
+  // FIN-25: el divisor antiguo podía guardar media cuota aunque el cargo confirmado fuese entero.
+  // Sólo esa huella exacta conserva el pago completo; ni parciales ni otras pruebas rotas reviven.
+  if(hasSchedule(e)||(e.freq!=="anual"&&e.freq!=="año")||!Array.isArray(e.months)||!occursIn(e,m)) return false;
+  var months=chargeMonths(e),amount=occAmountIn(e,m);
+  if(!months.some(function(mm){ return e.months.indexOf(mm)!==e.months.lastIndexOf(mm); })||
+    !Number.isFinite(amount)||!(amount>0)||p.amount!==amount) return false;
+  return p.model===JSON.stringify([legacy?e.name||"":e.id,accOf(e),e.amount/e.months.length,e.bankAmount>0?e.bankAmount:null]);
 }
 function fixedPaymentBind(p,e,m){
   return Object.assign({},p,{modelVersion:2,receiptId:e.id,receiptName:e.name||"",model:fixedPaymentContract(e,m)});
@@ -4286,7 +4294,14 @@ function Reconcile({state, set}){
 /* Helpers puros para §2 variante A (Gestionar → Tus recibos). Los usa el hub en `14`. No tocan UI. */
 function fixedMonthlyOf(e){
   if(!e) return 0;
-  if(hasSchedule(e)) return e.schedule.reduce(function(a,x){ return a+(Number(x.amt)||0); },0)/12;
+  if(hasSchedule(e)){
+    // El primer cobro de cada mes es el que usa el calendario; no sumar copias ni meses imposibles.
+    const seen=new Set();
+    return e.schedule.reduce(function(a,x){
+      if(!Number.isInteger(x.m)||x.m<1||x.m>12||seen.has(x.m)) return a;
+      seen.add(x.m); return a+(Number(x.amt)||0);
+    },0)/12;
+  }
   const base=(Number(e.amount)||0)*(FREQ_M[e.freq]||1);
   // Meses marcados a mano: cuenta los cobros que hace el calendario, no los de la frecuencia. Un
   // trimestral con 3 meses se cobra 3 veces y salía como 4 (30 € al mes en vez de 22,50 — FIN-20).

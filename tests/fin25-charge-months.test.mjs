@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import vm from "node:vm";
 import {test} from "node:test";
 import {loadPureLogic} from "../scripts/load-pure-logic.mjs";
 const read=f=>fs.readFileSync(new URL("../"+f,import.meta.url),"utf8");
@@ -53,4 +54,115 @@ test("la lectura ordena una copia y no muta los arrays ni objetos guardados",()=
   assert.deepEqual(months(e),[1,12]);
   assert.deepEqual(months({months:list}),[1,12]);
   assert.equal(JSON.stringify(e),before);
+});
+
+test("FIN25 R2 la cifra mensual cuenta una vez cada mes entero valido de schedule",()=>{
+  const schedule=Object.freeze([
+    Object.freeze({m:9,amt:166.94,day:20}),Object.freeze({m:3,amt:172.05,day:10}),
+    Object.freeze({m:3,amt:999,day:25}),Object.freeze({m:0,amt:90}),
+    Object.freeze({m:13,amt:90}),Object.freeze({m:2.5,amt:90}),
+    Object.freeze({m:"6",amt:90}),Object.freeze({m:null,amt:90}),
+  ]);
+  const e=Object.freeze({amount:999,freq:"anual",months:Object.freeze([5,5]),schedule});
+  const before=JSON.stringify(e);
+  assert.equal(c.fixedMonthlyOf(e),(166.94+172.05)/12);
+  assert.deepEqual(calendar(e),[0,0,17205,0,0,0,0,0,16694,0,0,0]);
+  assert.equal(JSON.stringify(e),before,"no normaliza ni escribe el calendario guardado");
+});
+
+test("FIN25 R2 los calendarios validos conservan exactamente su cifra mensual",()=>{
+  for(const schedule of [
+    [{m:9,amt:166.94,day:20},{m:3,amt:172.05,day:10}],
+    [{m:12,amt:0.1},{m:2,amt:0.2},{m:7,amt:0.3}],
+    [{m:1,amt:0},{m:12,amt:51.37}],
+  ]){
+    const e={amount:999,freq:"anual",schedule};
+    assert.equal(c.fixedMonthlyOf(e),schedule.reduce((a,x)=>a+(Number(x.amt)||0),0)/12);
+  }
+  assert.equal(c.fixedMonthlyOf({schedule:[{m:0,amt:99},{m:13,amt:99},{m:1.5,amt:99},{m:"5",amt:99}]}),0);
+});
+
+function oldPayment(ctx,{amount=600,version=2,months=[5,5],modelAmount=300}={}){
+  const fixed={id:"r1",name:"Seguro sintetico",amount:600,freq:"anual",months,day:20,account:"sabadell"};
+  const expense={id:"r1-charge",date:"2026-05-05T12:00:00.000Z",merchant:"COMERCIO SINTETICO",amount,ent:"revolut",source:"wallet",category:"otros"};
+  const state={fixed:[fixed],accounts:[{id:"sb",ent:"sabadell",role:"fijos",value:3000}],expenses:[expense],bankTx:[],debts:[],oneoffs:[],flows:[]};
+  const linked=ctx.linkFixedPayment(state,expense.id,fixed.id,2026,5,10);
+  assert.ok(linked.fixed[0].paymentProofs,"el fixture parte de un cargo confirmado explicitamente");
+  const proof={...linked.fixed[0].paymentProofs[2026*12+5],model:JSON.stringify([version===2?fixed.id:fixed.name,"sabadell",modelAmount,null])};
+  if(version!==2){delete proof.modelVersion;delete proof.receiptId;delete proof.receiptName;}
+  return {...linked,fixed:[{...linked.fixed[0],paymentProofs:{[2026*12+5]:proof}}]};
+}
+const proofOf=s=>s.fixed[0].paymentProofs[2026*12+5];
+const paid=(s,ctx=c)=>ctx.fixedPaymentState(s,s.fixed[0],2026,5,10).paid;
+
+test("FIN25 R1 A el cobro completo conserva pagado con la huella del divisor viejo",()=>{
+  for(const version of [1,2]){
+    const s=oldPayment(c,{version}),before=JSON.stringify(s);
+    assert.equal(paid(s),true,"pago real600 y modelo historico300, version"+version);
+    const offline=JSON.parse(JSON.stringify({...s,expenses:[],bankTx:[]}));
+    assert.equal(paid(offline),true,"recarga sin filas bancarias locales");
+    const plan=c.planChargesMonth(s,5,2026,10);
+    assert.equal(plan.pendingBills.length,0);
+    assert.equal(plan.paidBills.length,1);
+    assert.equal(plan.paidBills[0].amount,600);
+    assert.equal(plan.paidBills[0].paidAmount,600);
+    assert.equal(JSON.stringify(s),before,"leer no migra ni reescribe la prueba");
+  }
+});
+
+function rejectsWrongOldModels(ctx){
+  for(const version of [1,2]){
+    for(const modelAmount of [0,200,299.99,300.01]) assert.equal(paid(oldPayment(ctx,{version,modelAmount}),ctx),false,"huella ajena al divisor viejo: "+modelAmount);
+    for(const amount of [300,599.99,600.01]) assert.equal(paid(oldPayment(ctx,{version,amount}),ctx),false,"B/parcial o importe distinto: "+amount);
+  }
+}
+test("FIN25 R1 B y cualquier otra huella antigua siguen pendientes",()=>{
+  rejectsWrongOldModels(c);
+  for(const version of [1,2]){
+    const valid=oldPayment(c,{version,amount:300,months:[5,9]});
+    assert.equal(paid(valid),true,"recibo valido conserva la misma prueba y el mismo cobro300");
+    assert.equal(c.occAmountIn(valid.fixed[0],5),300);
+    assert.equal(paid(oldPayment(c,{version,months:[5,9],modelAmount:200})),false);
+    const invalidOnly=oldPayment(c,{version,months:[5,0]});
+    assert.equal(paid(invalidOnly),false,"sin un mes repetido no se abre compatibilidad");
+  }
+});
+
+test("FIN25 R1 la excepcion conserva identidad, version, banco y elegibilidad",()=>{
+  for(const version of [1,2]){
+    const s=oldPayment(c,{version}),p=proofOf(s);
+    const patches=[{model:JSON.stringify([version===2?"otro":"Otro seguro","sabadell",300,null])},
+      {model:JSON.stringify([version===2?"r1":"Seguro sintetico","revolut",300,null])},
+      {model:JSON.stringify([version===2?"r1":"Seguro sintetico","sabadell",300,10])},
+      {modelVersion:3},{kind:"desconocido"},{date:"2026-06-05"},{identity:"otra identidad"}];
+    if(version===2) patches.push({receiptId:"otro"},{receiptName:null});
+    for(const patch of patches){
+      const bad={...s,fixed:[{...s.fixed[0],paymentProofs:{[2026*12+5]:{...p,...patch}}}]};
+      assert.equal(paid(bad),false,JSON.stringify(patch));
+    }
+    assert.equal(paid({...s,deleted:[p.expenseKey]}),false,"una lapida sigue invalidando el pago");
+    assert.equal(paid({...s,expenses:[{...s.expenses[0],possibleDup:true}]}),false);
+    assert.equal(paid({...s,fixed:[s.fixed[0],{...s.fixed[0]}]}),false,"id de recibo duplicado");
+  }
+});
+
+test("FIN25 R1 BOOK completo conserva su prueba sin aceptar parciales ni ampliar calendarios",()=>{
+  const fixed={id:"r1",name:"Seguro sintetico",amount:600,freq:"anual",months:[5,5],day:20,account:"sabadell"};
+  const tx={id:"book-r1",ent:"sabadell",date:"2026-05-05",amount:600,merchant:fixed.name,status:"BOOK"};
+  const s=c.reconcileFixedPaymentProofs({fixed:[fixed],accounts:[{id:"sb",ent:"sabadell",role:"fijos",value:3000}],bankTx:[tx],expenses:[],debts:[],oneoffs:[],flows:[]},2026,5,10);
+  const p={...proofOf(s),model:JSON.stringify(["r1","sabadell",300,null])};
+  assert.equal(p.kind,"book");
+  const old={...s,bankTx:[],fixed:[{...s.fixed[0],paymentProofs:{[2026*12+5]:p}}]};
+  assert.equal(paid(old),true);
+  assert.equal(paid({...old,fixed:[{...old.fixed[0],paymentProofs:{[2026*12+5]:{...p,amount:300}}}]}),false);
+  for(const patch of [{freq:"mes"},{schedule:[{m:5,amt:600},{m:5,amt:600}]}]){
+    const expense=oldPayment(c);
+    assert.equal(paid({...expense,fixed:[{...expense.fixed[0],...patch}]}),false);
+  }
+});
+
+test("FIN25 R1 el mutante que acepta cualquier huella antigua cae",()=>{
+  const mutant=loadPureLogic(read("src/shell.html").replace("<!--MC_APP_SCRIPT-->",()=>js));
+  vm.runInNewContext("fixedPaymentModelMatches=function(){return true;}",mutant);
+  assert.throws(()=>rejectsWrongOldModels(mutant),assert.AssertionError);
 });

@@ -47,3 +47,53 @@ test("FIN25 ignora meses invalidos y mantiene el importe de schedule prioritario
   await expect(recibos.getByTestId("plan-summary").locator(".serif.num")).toHaveText("412,05 €");
   expect(await page.evaluate(() => mcLoadRaw(mcStateKey()).fixed)).toEqual(fixed);
 });
+
+test("FIN25 R2 Gestionar conserva la cifra mensual y los datos al ignorar meses repetidos e invalidos", async ({page}) => {
+  const fixed=[{id:"r2",name:"Seguro mensual sintetico",amount:999,freq:"anual",account:"sabadell",
+    schedule:[{m:9,amt:166.94,day:20},{m:5,amt:172.05,day:20},{m:5,amt:999,day:25},
+      {m:0,amt:90},{m:13,amt:90},{m:2.5,amt:90},{m:"6",amt:90},{m:null,amt:90}]}];
+  const recibos=await abreMayo(page,fixed);
+  await expect(recibos.getByTestId("plan-due").locator('[data-recibo="fixed_r2"]')).toContainText("172,05");
+  const manage=await page.evaluate(() => t("pr6_todos"));
+  await recibos.getByRole("button",{name:manage,exact:true}).click();
+  const hub=page.locator("[data-bills-manage]");
+  await expect(hub).toBeVisible();
+  await expect(hub.locator(".v4-bills-hero-amt")).toHaveText("28,25 €");
+  await expect(hub.locator('.v4-bills-group[data-group="serv"] .v4-bills-group-amt')).toContainText("28,25 €");
+  expect(await page.evaluate(() => mcLoadRaw(mcStateKey()).fixed)).toEqual(fixed);
+  await page.reload();
+  await expect(page.locator(".botnav")).toBeVisible();
+  expect(await page.evaluate(() => mcLoadRaw(mcStateKey()).fixed)).toEqual(fixed);
+});
+
+for(const version of [1,2]) for(const amount of [600,300]){
+  test("FIN25 R1 "+(amount===600?"A completo pagado":"B parcial pendiente")+" huella"+version+" antes y despues de recargar", async ({page}) => {
+    const name="Seguro pagado sintetico",id="r1",merchant="COMERCIO SINTETICO";
+    const proof={kind:"expense",key:"revolut|2026-05-05|"+amount+"|"+merchant,
+      identity:JSON.stringify(["revolut","2026-05-05",amount,merchant]),expenseId:"r1-charge",
+      expenseKey:"2026-05-05|"+amount+"|"+merchant,expenseLegacyKey:"2026-05-05|"+amount+"|"+merchant,
+      date:"2026-05-05",bank:"revolut",amount,model:JSON.stringify([version===2?id:name,"sabadell",300,null]),
+      ...(version===2?{modelVersion:2,receiptId:id,receiptName:name}:{})};
+    const fixed=[{id,name,amount:600,freq:"anual",months:[5,5],day:20,account:"sabadell",paymentProofs:{[2026*12+5]:proof}}];
+    const recibos=await abreMayo(page,fixed);
+    const check=async()=>{
+      const due=recibos.getByTestId("plan-due").locator('[data-recibo="fixed_r1"]');
+      const paid=recibos.getByTestId("plan-paid").locator('[data-recibo="fixed_r1"]');
+      await expect(due).toHaveCount(amount===600?0:1);
+      await expect(paid).toHaveCount(amount===600?1:0);
+      if(amount===600){
+        await recibos.getByTestId("plan-paid").locator(".pr6-paid-h").click();
+        await expect(paid).toBeVisible();
+        await expect(paid).toContainText("600,00");
+      } else await expect(due).toContainText("600,00");
+      expect(await page.evaluate(() => mcLoadRaw(mcStateKey()).fixed)).toEqual(fixed);
+    };
+    await check();
+    await page.reload();
+    await expect(page.locator(".botnav")).toBeVisible();
+    await page.waitForFunction(() => !document.getElementById("mc-load"));
+    await dismissNews(page);
+    await page.locator('.botnav-tab[data-tour="plan"]').click();
+    await check();
+  });
+}
