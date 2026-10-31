@@ -1,0 +1,60 @@
+{
+  "status": "done",
+  "summary": "PR328 repaired and independently reviewed; normal fast-forward push of exact four-path HEAD to original PR branch. B1 interval resume keeps base or fails closed, B2 UTC/Madrid boundary guards, R2 same-amount fresh reading stamp, R1 limits documented. Ten directed outcomes match expectations.",
+  "tests": [
+    {
+      "command": "TZ=UTC node tests/recibos-manual-pausa.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "TZ=UTC node tests/recibos-manual-pausa.test.mjs resumeCompensation",
+      "exitCode": 1
+    },
+    {
+      "command": "TZ=UTC node tests/recibos-manual-pausa.test.mjs intervalResume",
+      "exitCode": 1
+    },
+    {
+      "command": "TZ=UTC node tests/recibos-manual-pausa.test.mjs sameReadStamp",
+      "exitCode": 1
+    },
+    {
+      "command": "TZ=UTC node tests/recibos-manual-pausa.test.mjs sameDay",
+      "exitCode": 1
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/recibos-manual-pausa.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/recibos-manual-pausa.test.mjs resumeCompensation",
+      "exitCode": 1
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/recibos-manual-pausa.test.mjs intervalResume",
+      "exitCode": 1
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/recibos-manual-pausa.test.mjs sameReadStamp",
+      "exitCode": 1
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/recibos-manual-pausa.test.mjs sameDay",
+      "exitCode": 1
+    }
+  ],
+  "productSHA": "550a9cf47e72aa62d7e190aa2994858ca52c5b6d",
+  "limitations": [
+    "Run1 correctly named mutant environment precheck was not recorded; accepted original guardian behavior evidence without active mutant. Retrospective evidence remains separate.",
+    "Existing CRLF working files are stored as LF Git blobs through unchanged core.autocrlf=true; committed blobs equal tested normalized source.",
+    "Synthetic directed Node only; no full suite, build, CI, integration, served beta, mobile acceptance or general financial closure claimed.",
+    "Entire BACKLOG excluded from product commit and push. Legacy timestamp collisions and conservative broad invalidation remain documented."
+  ],
+  "PR": 328,
+  "schema": 1,
+  "taskId": "pr328-manual-pausa-money-repair-r144-codex-20261031",
+  "actor": "codex",
+  "sessionId": "nrelaybda53bd9d30bb535519b82aaf37821ab",
+  "createdAt": "2026-10-31T17:17:01.315Z",
+  "released": true
+}
