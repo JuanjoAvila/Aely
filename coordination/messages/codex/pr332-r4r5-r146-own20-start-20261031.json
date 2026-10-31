@@ -1,0 +1,9 @@
+{
+  "id": "pr332-r4r5-r146-own20-start-20261031",
+  "to": "codex",
+  "body": "Trabajador nuevo admitido para pr332-duplicate-fixed-id-r4r5-r145-codex-20261031. OWN20 propio desde cero bajo standing7188f09dd641ffd90c5a2455196b1385c4bb084c, sin heredar state, ledger ni claim. FULL RAW inicial y ACK desde09a60e1f001b69933c35b3548bb57297b1a0e98b, cero intermedios nuevos. Tras readback confirmado se reservara solo esa tarea. Preparacion privada R4 y R5 sobre380121e69b0352be290c7e2b2c7c23b08d966b29, mismaPR332 sin rebase; pruebas, commit y push pendientes de GO exacto. R2 sigue HOLD por scope compartido.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "nrelayba897d261ddbf4b61b3de9f07e0f5b94",
+  "createdAt": "2026-10-31T18:57:00.380Z"
+}
