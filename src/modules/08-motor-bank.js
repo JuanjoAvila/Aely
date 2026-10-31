@@ -411,14 +411,14 @@ function fixedPaymentManualLinkWarnings(s,x,e,y,m,today){
   if(!x||!e||x.extId!=null&&String(x.extId)!==""||
     !isManualExpenseSource(x.source)&&["wallet","macrodroid"].indexOf(x.source)<0||
     !fixedExpenseEligible(s,x,e,y,m,today)||fixedPaymentEvidence(fixedPaymentState(s,e,y,m,today))) return [];
-  var bank=expenseBankOf(x),cents=Math.round(Number(x.amount)*100),warnings=[],seen=new Set(),now=new Date(),cur=now.getFullYear()*12+now.getMonth()+1;
+  var bank=expenseBankOf(x),cents=Math.round(Number(x.amount)*100),warnings=[],seen=new Set(),now=madridYmdParts(Date.now()),cur=now.y*12+now.m;
   var day=function(date){ var ds=String(date||"").slice(0,10);return /^\d{4}-\d{2}-\d{2}$/.test(ds)?Date.parse(ds+"T00:00:00Z"):NaN; };
   (s.fixed||[]).forEach(function(f){
     if(f.id===e.id) return;
     // La ventana bancaria puede cruzar el mes; FIN27 conserva además el mes de su cargo.
     [y*12+m-1,y*12+m,y*12+m+1].forEach(function(ym){
     if(ym>cur) return;
-    var Y=Math.floor((ym-1)/12),M=ym-Y*12,T=ym===y*12+m?today:ym===cur?now.getDate():new Date(Y,M,0).getDate();
+    var Y=Math.floor((ym-1)/12),M=ym-Y*12,T=ym===y*12+m?today:ym===cur?now.d:new Date(Y,M,0).getDate();
     var st=fixedPaymentState(s,f,Y,M,T),p=st.proof,b=null,ref=null;
     if(p&&p.kind==="book"){
       b=p;ref=p.key&&p.key.indexOf(p.bank+"|")===0?p.key.slice(p.bank.length+1):null;

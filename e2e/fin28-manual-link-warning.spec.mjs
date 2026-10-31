@@ -77,6 +77,26 @@ async function receiveBookProof(page,id,date,merchant){
  await page.evaluate(({id,date,merchant})=>{const s=mcLoadRaw(mcStateKey()),at=Date.now()+10000;const fixed=s.fixed.map(f=>f.id!==id?f:{...f,paymentProofs:{...f.paymentProofs,24322:fixedPaymentBind({kind:'book',key:'sabadell|SYNTHETIC-'+id,identity:JSON.stringify(['sabadell',date,12.99,merchant]),date,bank:'sabadell',merchant,amount:12.99,model:fixedPaymentModel(f,10)},f,10)}});window.__e2eCloudRows.app_state=[{user_id:'e2e-user',data:slimForCloud(planSyncEditState({...s,fixed},at)),updated_at:new Date(at).toISOString()}];window.dispatchEvent(new Event('online'));},{id,date,merchant});
  await expect.poll(()=>page.evaluate(id=>!!mcLoadRaw(mcStateKey()).fixed.find(f=>f.id===id).paymentProofs?.[24322],id)).toBe(true);
 }
+test('plan R2: set rechazado cierra la ficha con aviso y sin subida ni éxito',async({page})=>{
+ await open(page);await esperaNubeQuieta(page);
+ // Se monta la ficha real; el padre evalúa el updater pero rechaza su resultado.
+ await page.evaluate(()=>{
+  const original=ReciboFicha;
+  ReciboFicha=function(props){return React.createElement(original,{...props,set:function(updater){
+   const next=typeof updater==='function'?updater(props.state):updater;
+   window.__fin28RejectedSet={calls:(window.__fin28RejectedSet?.calls||0)+1,proposedChange:next!==props.state};
+  }});};
+ });
+ await choose(page,'plan');const before=await snapshot(page);
+ const writes=await page.evaluate(()=>(window.__e2eUpdates||[]).filter(r=>r.tabla==='expenses').length);
+ await page.locator('.askback').getByRole('button',{name:labels.es.other,exact:true}).click();
+ await expect.poll(()=>page.evaluate(()=>window.__fin28RejectedSet)).toEqual({calls:1,proposedChange:true});
+ await expect(page.locator('.toast')).toContainText(await page.evaluate(()=>t('pr6_link_fail')));
+ await expect(page.locator('[data-sheet="recibo"]')).toHaveCount(0);await expect(page.locator('.askback')).toHaveCount(0);
+ expect(await linked(page)).toBe(false);expect(await snapshot(page)).toEqual(before);
+ expect(await page.evaluate(()=>(window.__e2eUpdates||[]).filter(r=>r.tabla==='expenses').length)).toBe(writes);
+});
+
 test('gastos: BOOK llegado con la confirmación abierta exige Es otro pago antes de guardar',async({page})=>{
  await open(page,'es',{bankTx:[]});await esperaNubeQuieta(page);await choose(page,'gastos');await expect(page.locator('.askback')).not.toContainText(labels.es.warning);
  await receiveBookProof(page,'netflix','2026-10-05','NETFLIX');const before=await snapshot(page);await page.locator('.askback .btn-primary').click();

@@ -798,7 +798,8 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
   const f=fixedId!=null?(state.fixed||[]).find(function(e){ return String(e.id)===fixedId; }):null;
   const st=useMemo(function(){ return f?fixedPaymentState(state,f,y,m,today):null; },[state,f,y,m,today]);
   useEffect(function(){
-    if(!linkPending||state===linkPending.before||linkHandled.current===linkPending.serial) return;
+    // Si el padre rechaza el updater, el mismo estado también debe cerrar con el aviso de fallo.
+    if(!linkPending||linkHandled.current===linkPending.serial) return;
     linkHandled.current=linkPending.serial;setLinkPending(null);
     const cur=(state.fixed||[]).find(function(e){ return e.id===linkPending.fixedId; });
     const x=(state.expenses||[]).find(function(e){return e&&e.id===linkPending.expenseId;});
@@ -886,7 +887,7 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
         const prueba=enlaza(linkState.current);
         if(!prueba){if(showToast) showToast(t("pr6_link_fail"));swipe.close();return;}
         const linked=(prueba.state.fixed||[]).find(function(e){return e.id===f.id;});
-        setLinkPending({serial:++linkSerial.current,before:linkState.current,fixedId:f.id,expenseId:x.id,identity:fixedPaymentIdentity(expenseBankOf(x),x),model:fixedPaymentModel(f,m),
+        setLinkPending({serial:++linkSerial.current,fixedId:f.id,expenseId:x.id,identity:fixedPaymentIdentity(expenseBankOf(x),x),model:fixedPaymentModel(f,m),
           proof:linked.paymentProofs&&linked.paymentProofs[y*12+m]||null,paymentIdentity:reciboPagadoCon(fixedPaymentState(prueba.state,linked,y,m,today))||null,
           subirRows:prueba.subir.map(function(e){return {id:e.id,identity:fixedPaymentIdentity(expenseBankOf(e),e),reciboId:e.reciboId||null};})});
         set(function(s){ const r=enlaza(s); return r?r.state:s; });

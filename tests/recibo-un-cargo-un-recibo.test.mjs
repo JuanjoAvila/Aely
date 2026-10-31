@@ -160,4 +160,17 @@ check('FIN28: BOOK de otro mes cercano, con extracto o prueba offline',()=>{
  for(const feed of [true,false]){const s=warningState();s.expenses[0].date='2026-10-01';s.expenses[0].merchant='Cargo sin nombre';s.fixed[0].paymentProofs={24321:bookProof(s.fixed[0],'2026-09-29')};s.bankTx=feed?[{...s.bankTx[0],date:'2026-09-29'}]:[];assert.equal(warnings(s).length,1,'29 septiembre a 1 octubre, feed '+feed);}
  const s=warningState(),book={...s.expenses[0],id:'bank-charge',extId:REF,date:'2026-09-30',source:'ob',status:'BOOK',obName:BOOK};s.expenses=[{...s.expenses[0],date:'2026-10-05',merchant:'Cargo sin nombre'},book];s.bankTx[0].date='2026-10-02';s.fixed[0].paymentProofs={24321:bookProof(s.fixed[0],'2026-10-02')};assert.equal(warnings(s).length,1,'FIN27 atribuye septiembre, aviso conserva fecha BOOK2octubre');assert.equal(warnings(s)[0].date,'2026-10-02');
 });
+check('FIN28 R4: el aviso comparte el hoy de Madrid fijado por Date.now al cruzar mes y medianoche',()=>{
+ const s=warningState();s.expenses[0].date='2026-09-30';s.expenses[0].merchant='Cargo sin nombre';
+ s.fixed[0].paymentProofs={24322:bookProof(s.fixed[0],'2026-10-02')};s.bankTx[0].date='2026-10-02';
+ const before=JSON.stringify(s),now=c.Date.now;
+ try{
+  // El constructor sigue en 18/10: solo se fija el reloj que usa la fecha común de la app.
+  for(const [at,count] of [['2026-09-30T21:30:00Z',0],['2026-09-30T22:30:00Z',0],['2026-10-01T22:30:00Z',1]]){
+   c.Date.now=()=>Date.parse(at);
+   assert.equal(c.fixedPaymentManualLinkWarnings(s,s.expenses[0],s.fixed[1],2026,9,30).length,count,at);
+  }
+ }finally{c.Date.now=now;}
+ assert.equal(JSON.stringify(s),before,'consultar el aviso no cambia pagos ni datos');
+});
 console.log(checks+' checks');
