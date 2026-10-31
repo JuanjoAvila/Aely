@@ -2,22 +2,25 @@ import { createHash } from "node:crypto";
 
 /* Sólo altera la respuesta local del test. Ningún byte de producto se escribe.
    Las tres anclas completas fallan cerradas si cambia el contrato observado. */
-export const RECENT = 'const recent=(state.expenses||[]).filter(function(e){ return !expenseIsTombstoned(e,expenseDeletedSet(state)); }).sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); }).slice(0,3);';
+export const RECENT = 'const recent=useMemo(function(){ return gastosDePortada(state,3); },[state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,\n    state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,state.reciboBorrado]);';
 export const DASH = 'function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){';
 export const SYNC = 'const syncCloudExpenses=function(){';
 
-export const MEMO = 'const recent=useMemo((s=state)=>(s.expenses||[]).filter(e=>!e.autoGemelo&&!expenseIsTombstoned(e,expenseDeletedSet(s))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);';
+export const MEMO = RECENT;
 export function instrumentDashboard(html, variant){
+  // El memo ocupa dos líneas: con CRLF (checkout de Windows) el ancla no casaría.
+  html=html.replace(/\r\n/g,"\n");
   if(html.split(MEMO).length!==2)throw new Error("Memo recent ausente/duplicado");
-  const source=variant==="baseline"?html.replace(MEMO,RECENT):html;
-  for(const anchor of [variant==="baseline"?RECENT:MEMO,DASH,SYNC]){
+  // «baseline» = la lista de Últimos movimientos recalculada en CADA render (sin useMemo); «memo» = el memo real, solo con el cálculo medido.
+  const compute='window.__dashProfile.portada(state)';
+  const replacement=variant==="baseline"?'const recent='+compute+';':MEMO.replace('gastosDePortada(state,3)',compute);
+  const source=html;
+  for(const anchor of [MEMO,DASH,SYNC]){
     if(source.split(anchor).length!==2)throw new Error("Ancla ausente/duplicada");
   }
-  const compute='window.__dashProfile.derive(state,function(e){ return !expenseIsTombstoned(e,expenseDeletedSet(state)); },function(a,b){ return String(b.date).localeCompare(String(a.date)); })';
-  const replacement=variant==="baseline"?'const recent='+compute+';':'const recent=useMemo((s=state)=>'+compute.replace('derive(state,','derive(s,').replace('expenseDeletedSet(state)','expenseDeletedSet(s)')+',[state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);';
   const transformed=source
     .replace(DASH,DASH+'\nwindow.__dashProfile.guardBanks();window.__dashProfile.metrics.renders++;window.__dashProfile.state=state;window.__dashProfile.set=set;window.__dashProfile.totals=totals;')
-    .replace(variant==="baseline"?RECENT:MEMO,replacement)
+    .replace(MEMO,function(){ return replacement; })
     .replace(SYNC,'const syncCloudExpenses=window.__dashProfile.sync=function(){');
   return {html:transformed,sourceSHA256:createHash("sha256").update(html).digest("hex"),scenarioSHA256:createHash("sha256").update(source).digest("hex"),instrumentedSHA256:createHash("sha256").update(transformed).digest("hex"),anchors:3};
 }
@@ -38,18 +41,17 @@ export function installDashboardProfile(){
   };
   const metrics=()=>({renders:0,computes:0,hits:0,rows:0,comparisons:0,filterMs:0,sortMs:0,deriveMs:0});
   p.metrics=metrics();
-  p.derive=function(state,predicate,compare){
+  // La lista real de Inicio es `gastosDePortada(state,3)` (la misma que abre Gastos): se mide cuántas veces se recalcula y cuánto cuesta.
+  // El orden lo decide `sortExpensesForDisplay` dentro de la función, así que no hay contador de comparaciones.
+  p.portada=function(state){
     const start=performance.now(),m=p.metrics;
-    const expenses=state.expenses;
-    m.computes++;const input=expenses||[],f=performance.now();
-    const filtered=input.filter(predicate);m.rows+=input.length;m.filterMs+=performance.now()-f;
-    const s=performance.now();filtered.sort(function(a,b){m.comparisons++;return compare(a,b);});m.sortMs+=performance.now()-s;
-    p.rows=filtered.slice(0,3);m.deriveMs+=performance.now()-start;
+    m.computes++;m.rows+=(state.expenses||[]).length;
+    p.rows=gastosDePortada(state,3);m.deriveMs+=performance.now()-start;
     return p.rows;
   };
   p.verify=function(){
     const state=p.state;
-    const expected=(state.expenses||[]).filter(function(e){return !expenseIsTombstoned(e,expenseDeletedSet(state));}).sort(function(a,b){return String(b.date).localeCompare(String(a.date));}).slice(0,3);
+    const expected=gastosDePortada(state,3);
     if(expected.length!==p.rows.length||expected.some((e,i)=>e!==p.rows[i]))throw new Error("Recent cambió filas/orden/referencias");
     return {rows:expected.map(e=>({id:e.id,date:e.date,amount:e.amount,merchant:e.merchant,source:e.source})),netWorth:p.totals.netWorth,budget:state.budget,accounts:state.accounts};
   };
