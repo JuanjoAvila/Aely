@@ -869,6 +869,19 @@ recibo ya pagado no pregunta, su mes se queda con 30 y la prueba con su importe 
 `E2E_MAP` para `14-v4-screens`, `08-motor-bank`, `07-tab-patri-fijos`, `00-core`,
 `11-app-main`, `04-tab-gastos`, `03-tab-dash`, `01-i18n` y `shell.html`.
 
+QA de la beta 4.26.200: `e2e/plan-recibos-qa.spec.mjs` (reloj en el 31/10, último día del mes, con
+Sabadell, CaixaBank y Trade Republic) repite lo que el dueño encontró en su móvil. La hoja por pasos:
+Atrás (botón y arrastre con CDP) vuelve un paso con la hoja quieta en su sitio y solo en el primero
+cierra; el borde de arriba no se mueve entre pasos; «Visto en tu banco» de 2.050 € lleva al resumen,
+tocar «Importe» y «Listo» vuelve al resumen y Atrás vuelve a la lista; al elegir los meses, el día
+31 queda encima del botón fijo; «Solo una vez» arranca en noviembre y guarda el 1/11. Una cuota de
+deuda enlazada en Gastos (641,27 € sobre 640 €, o sin día de cobro) dice «Enlazado · …» en su fila
+y abre su ficha con el cargo y el motivo sin saltar a Deudas; «Queda por pagar» sigue en 240,00 €
+(igual que antes del cambio); con el cargo justo, la ficha la da por pagada. «¿Y si gasto…?» abre el
+teclado tocando la zona y lo deja dentro de la pantalla; «¿Me lo puedo permitir?» se abre desplegado.
+Las nueve fallaban con el bundle de antes. Está en `E2E_MAP` para `14-v4-screens`, `02-ui-shared`,
+`08-motor-bank`, `01-i18n` y `shell.html`.
+
 Descarga incompleta (candidato13/10): `tests/bank-download-incomplete.test.mjs`, registrado en
 runner y `STEPS_SUPABASE`, ejecuta lector, handler y updater real de App. Compara el updater con
 el padre123: ambas lecturas de `bankTx` conservan el extracto; falla sin el adaptador mínimo.

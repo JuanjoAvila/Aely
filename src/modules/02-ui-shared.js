@@ -1778,6 +1778,10 @@ function useEdgePageClose(open,onClose,on,ref,opts){
   },[open,on]);
   const close=function(){
     if(busy.current) return;
+    // Una hoja por pasos que solo vuelve un paso no se va: la página regresa a su sitio y el
+    // carril de pasos hace la animación. Antes salía volando entera y reaparecía de golpe un paso
+    // atrás («si tiras para atrás se buguea todo», beta 4.26.200).
+    if(opts.soloPaso&&opts.soloPaso()){ reset(); cb.current&&cb.current(); return; }
     stopRest();
     const el=ref.current;
     if(!el||mcReduced()){ cb.current&&cb.current(); return; }

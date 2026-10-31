@@ -116,6 +116,13 @@ export const E2E_MAP = [
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/plan-recibos-t4.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/plan-recibos-t4.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/plan-recibos-t4.spec.mjs"] },
+  // QA de la beta 4.26.200: la hoja por pasos (14, su CSS y el gesto de `useEdgePageClose` en 02),
+  // la ficha de una cuota de deuda que lee `debtPaymentState` (08) y los dos simuladores (14 y 08).
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-recibos-qa.spec.mjs"] },
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/plan-recibos-qa.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/plan-recibos-qa.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/plan-recibos-qa.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/plan-recibos-qa.spec.mjs"] },
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/ux16-round9-haptics.spec.mjs", "e2e/ux16-haptics.spec.mjs", "e2e/ux16-round2-haptics.spec.mjs", "e2e/ux16-round3-haptics.spec.mjs", "e2e/ux16-ajustador.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/ux16-round9-haptics.spec.mjs", "e2e/ux16-haptics.spec.mjs", "e2e/ux16-round3-haptics.spec.mjs", "e2e/ux16-ajustador.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-ciclo-porcentaje.spec.mjs"] },

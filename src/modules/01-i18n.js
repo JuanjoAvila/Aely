@@ -154,6 +154,7 @@ const LANG = {
     pr6_llega_t:"¿Te llega?", pr6_te_faltan:"te faltan", pr6_justo:"lo más justo, el {d}", pr6_justo_hoy:"lo más justo, hoy", pr6_justo_sin:"lo más justo",
     pr6_tienes_hoy:"Tienes hoy", pr6_faltan_recibos:"Recibos que faltan", pr6_dia_n:"{name} · día {d}",
     pr6_pasa:"Pasa {x} a {bank} antes del {d}", pr6_pasa_hoy:"Pasa {x} a {bank} hoy", pr6_pasa_sin:"Pasa {x} a {bank}",
+    pr6_enlazado_x:"Enlazado · {x}", pr6_ver_deuda:"Ver en Deudas", pr6_deuda_importe:"Se cobró {x} y la cuota es {y}.", pr6_deuda_sin_dia:"La cuota no tiene día de cobro.", pr6_deuda_sin_banco:"Aún no está en el extracto del banco.",
     pr6_si_gasto:"¿Y si gasto…?", pr6_importe:"Importe", pr6_si_llega:"Llega · te quedan {x}", pr6_no_llega:"No llega · faltan {x}",
     pr6_entra_en:"entra en {bank}", pr6_dia:"día {d}", pr6_dia_menos:"Un día antes", pr6_dia_mas:"Un día después",
     pr6_sin_restar:"Pagado, aún sin restar del saldo", pr6_fresh_now:"saldo de ahora", pr6_fresh_min:"saldo de hace {n} min", pr6_fresh_h:"saldo de hace {n} h", pr6_fresh_ayer:"saldo de ayer", pr6_fresh_d:"saldo de hace {n} días", pr6_fresh_fecha:"saldo del {x}",
@@ -481,6 +482,7 @@ const LANG = {
     pr6_llega_t:"Will it cover?", pr6_te_faltan:"short by", pr6_justo:"lowest on the {d}", pr6_justo_hoy:"lowest today", pr6_justo_sin:"lowest point",
     pr6_tienes_hoy:"You have today", pr6_faltan_recibos:"Bills to come", pr6_dia_n:"{name} · day {d}",
     pr6_pasa:"Move {x} to {bank} before the {d}", pr6_pasa_hoy:"Move {x} to {bank} today", pr6_pasa_sin:"Move {x} to {bank}",
+    pr6_enlazado_x:"Linked · {x}", pr6_ver_deuda:"See in Debts", pr6_deuda_importe:"{x} was charged and the payment is {y}.", pr6_deuda_sin_dia:"The payment has no charge day.", pr6_deuda_sin_banco:"Not in the bank statement yet.",
     pr6_si_gasto:"What if I spend…?", pr6_importe:"Amount", pr6_si_llega:"Covered · {x} left", pr6_no_llega:"Not covered · short {x}",
     pr6_entra_en:"goes into {bank}", pr6_dia:"day {d}", pr6_dia_menos:"One day earlier", pr6_dia_mas:"One day later",
     pr6_sin_restar:"Paid, not yet in the balance", pr6_fresh_now:"balance from just now", pr6_fresh_min:"balance from {n} min ago", pr6_fresh_h:"balance from {n} h ago", pr6_fresh_ayer:"balance from yesterday", pr6_fresh_d:"balance from {n} days ago", pr6_fresh_fecha:"balance from {x}",
@@ -795,6 +797,7 @@ const LANG = {
     pr6_llega_t:"T'arriba?", pr6_te_faltan:"et falten", pr6_justo:"el més just, el {d}", pr6_justo_hoy:"el més just, avui", pr6_justo_sin:"el més just",
     pr6_tienes_hoy:"Tens avui", pr6_faltan_recibos:"Rebuts que falten", pr6_dia_n:"{name} · dia {d}",
     pr6_pasa:"Passa {x} a {bank} abans del {d}", pr6_pasa_hoy:"Passa {x} a {bank} avui", pr6_pasa_sin:"Passa {x} a {bank}",
+    pr6_enlazado_x:"Enllaçat · {x}", pr6_ver_deuda:"Veure a Deutes", pr6_deuda_importe:"Es va cobrar {x} i la quota és {y}.", pr6_deuda_sin_dia:"La quota no té dia de cobrament.", pr6_deuda_sin_banco:"Encara no és a l'extracte del banc.",
     pr6_si_gasto:"I si gasto…?", pr6_importe:"Import", pr6_si_llega:"Arriba · et queden {x}", pr6_no_llega:"No arriba · falten {x}",
     pr6_entra_en:"entra a {bank}", pr6_dia:"dia {d}", pr6_dia_menos:"Un dia abans", pr6_dia_mas:"Un dia després",
     pr6_sin_restar:"Pagat, encara sense restar del saldo", pr6_fresh_now:"saldo d'ara", pr6_fresh_min:"saldo de fa {n} min", pr6_fresh_h:"saldo de fa {n} h", pr6_fresh_ayer:"saldo d'ahir", pr6_fresh_d:"saldo de fa {n} dies", pr6_fresh_fecha:"saldo del {x}",
@@ -1043,7 +1046,6 @@ Object.assign(LANG.es,{
   ru_interest:"Interés del efectivo (% anual)",
   ru_interest_hint:"TR paga un {p}% anual el día 1; la app lo suma al cerrar cada mes.",
   h_ru:"Round-up: TR redondea cada compra con tarjeta al euro y lo invierte. Saveback: un 1 % de regalo por pagar con ella.",
-  h_afford:"Pon importe y día y te digo si llegas sin números rojos hasta la nómina.",
   h_recon:"Compara tus recibos y cuotas con lo que el banco ha cobrado y marca lo que no cuadra.",
 });
 Object.assign(LANG.en,{
@@ -1065,7 +1067,6 @@ Object.assign(LANG.en,{
   ru_interest:"Cash interest (% p.a.)",
   ru_interest_hint:"TR pays {p}% p.a. on the 1st; the app adds it at each month close.",
   h_ru:"Round-up: TR rounds each card purchase up to the euro and invests it. Saveback: a 1% reward for paying by card.",
-  h_afford:"Enter amount and day and I'll tell you if you stay out of the red until payday.",
   h_recon:"Compares your bills and instalments with what the bank charged and flags mismatches.",
 });
 Object.assign(LANG.ca,{
@@ -1087,7 +1088,6 @@ Object.assign(LANG.ca,{
   ru_interest:"Interès de l'efectiu (% anual)",
   ru_interest_hint:"TR paga un {p}% anual el dia 1; l'app el suma en tancar cada mes.",
   h_ru:"Round-up: TR arrodoneix cada compra amb targeta a l'euro i ho inverteix. Saveback: un 1 % de regal per pagar-hi.",
-  h_afford:"Posa import i dia i et dic si arribes sense números vermells fins a la nòmina.",
   h_recon:"Compara els teus rebuts i quotes amb el que ha cobrat el banc i marca el que no quadra.",
 });
 /* Roles de cuenta + import OB + informe mensual */
@@ -1838,7 +1838,7 @@ Object.assign(LANG.es,{
   g_today:"Hoy", g_yesterday:"Ayer", g_invalid:"Pon un importe válido", g_saved_g:"✓ Gasto apuntado", g_saved_i:"✓ Ingreso apuntado", g_deleted:"Eliminado", g_changecat:"Cambiar categoría",
   cat_super:"Supermercado", cat_pan:"Panadería", cat_bares:"Bares y restaurantes", cat_cine:"Cine", cat_padel:"Pádel", cat_heladeria:"Heladería", cat_ia:"Inteligencia artificial", cat_ocio:"Ocio", cat_gaming:"Videojuegos", cat_viajes:"Viajes", cat_transporte:"Transporte", cat_gasolina:"Gasolina", cat_taxi:"Taxi", cat_multas:"Multas", cat_zona_azul:"Zona azul", cat_peajes:"Peajes", cat_coche:"Coche", cat_parking:"Parking", cat_agua:"Agua", cat_luz:"Luz", cat_gas:"Gas", cat_tasas:"Impuestos y multas", cat_recibos:"Recibos", cat_compras:"Compras", cat_educacion:"Educación", cat_salud:"Salud", cat_pelu:"Peluquería", cat_mascotas:"Mascotas", cat_hogar:"Hogar", cat_regalos:"Regalos", cat_joyeria:"Joyería", cat_bizum:"Bizum", cat_otros:"Otros", cat_ingreso:"Ingreso", cat_inversion:"Inversión", cat_traspaso:"Traspaso", cat_deudas:"Cuota",
   // Fijos
-  af_title:"💸 ¿Me lo puedo permitir?", af_sub:"Simula una compra y mira el impacto", af_amount:"Importe €", af_day:"Día", af_enter:"Escribe un importe para simular el gasto.",
+  af_amount:"Importe €", af_day:"Día", af_enter:"Escribe un importe para simular el gasto.",
   af_yes:"✅ Sí, puedes permitírtelo", af_tight:"🟠 Puedes, pero te quedarías muy justo", af_no:"🔴 Mejor no: te quedarías en negativo",
   af_low:"Tu punto más bajo del mes sería {x} (día {d})", af_low_noday:"Tu punto más bajo del mes sería {x}", af_from_to:"sin la compra {a} → con ella {b}",
   af_floor:"🛟 Colchón mínimo de {bank}", af_floor_ph:"sin tope", af_floor_break:"🟠 Puedes, PERO bajarías de tu colchón de {x}", af_below:"⚠ Ya estás por debajo de tu colchón de {x} (vas {y})",
@@ -1903,7 +1903,7 @@ Object.assign(LANG.en,{
   g_empty_period_t:"No expenses yet this period", g_empty_period_d:"They'll show up as you sync or add them.",
   g_today:"Today", g_yesterday:"Yesterday", g_invalid:"Enter a valid amount", g_saved_g:"✓ Expense added", g_saved_i:"✓ Income added", g_deleted:"Deleted", g_changecat:"Change category",
   cat_super:"Groceries", cat_pan:"Bakery", cat_bares:"Bars & restaurants", cat_cine:"Cinema", cat_padel:"Padel", cat_heladeria:"Ice cream", cat_ia:"Artificial intelligence", cat_ocio:"Leisure", cat_gaming:"Games", cat_viajes:"Travel", cat_transporte:"Transport", cat_gasolina:"Fuel", cat_taxi:"Taxi", cat_multas:"Fines", cat_zona_azul:"Blue zone", cat_peajes:"Tolls", cat_coche:"Car", cat_parking:"Parking", cat_agua:"Water", cat_luz:"Power", cat_gas:"Gas", cat_tasas:"Taxes & fines", cat_recibos:"Bills", cat_compras:"Shopping", cat_educacion:"Education", cat_salud:"Health", cat_pelu:"Hair & beauty", cat_mascotas:"Pets", cat_hogar:"Home", cat_regalos:"Gifts", cat_joyeria:"Jewellery", cat_bizum:"Bizum", cat_otros:"Other", cat_ingreso:"Income", cat_inversion:"Investment", cat_traspaso:"Transfer", cat_deudas:"Debt payment",
-  af_title:"💸 Can I afford it?", af_sub:"Simulate a purchase and see the impact", af_amount:"Amount €", af_day:"Day", af_enter:"Type an amount to simulate the purchase.",
+  af_amount:"Amount €", af_day:"Day", af_enter:"Type an amount to simulate the purchase.",
   af_yes:"✅ Yes, you can afford it", af_tight:"🟠 You can, but it'd be very tight", af_no:"🔴 Better not: you'd go negative",
   af_low:"Your lowest point this month would be {x} (day {d})", af_low_noday:"Your lowest point this month would be {x}", af_from_to:"without it {a} → with it {b}",
   af_floor:"🛟 {bank} safety floor", af_floor_ph:"no floor", af_floor_break:"🟠 You can, BUT you'd dip below your {x} floor", af_below:"⚠ You're already below your {x} floor (at {y})",
@@ -1968,7 +1968,7 @@ Object.assign(LANG.ca,{
   g_empty_period_t:"Encara no hi ha despeses en aquest període", g_empty_period_d:"Aniran sortint a mesura que sincronitzis o apuntis.",
   g_today:"Avui", g_yesterday:"Ahir", g_invalid:"Posa un import vàlid", g_saved_g:"✓ Despesa apuntada", g_saved_i:"✓ Ingrés apuntat", g_deleted:"Eliminat", g_changecat:"Canvia la categoria",
   cat_super:"Supermercat", cat_pan:"Fleca", cat_bares:"Bars i restaurants", cat_cine:"Cinema", cat_padel:"Pàdel", cat_heladeria:"Gelateria", cat_ia:"Intel·ligència artificial", cat_ocio:"Oci", cat_gaming:"Videojocs", cat_viajes:"Viatges", cat_transporte:"Transport", cat_gasolina:"Benzina", cat_taxi:"Taxi", cat_multas:"Multes", cat_zona_azul:"Zona blava", cat_peajes:"Peatges", cat_coche:"Cotxe", cat_parking:"Pàrquing", cat_agua:"Aigua", cat_luz:"Llum", cat_gas:"Gas", cat_tasas:"Impostos i multes", cat_recibos:"Rebuts", cat_compras:"Compres", cat_educacion:"Educació", cat_salud:"Salut", cat_pelu:"Perruqueria", cat_mascotas:"Mascotes", cat_hogar:"Llar", cat_regalos:"Regals", cat_joyeria:"Joieria", cat_bizum:"Bizum", cat_otros:"Altres", cat_ingreso:"Ingrés", cat_inversion:"Inversió", cat_traspaso:"Traspàs", cat_deudas:"Quota de deute",
-  af_title:"💸 M'ho puc permetre?", af_sub:"Simula una compra i mira l'impacte", af_amount:"Import €", af_day:"Dia", af_enter:"Escriu un import per simular la despesa.",
+  af_amount:"Import €", af_day:"Dia", af_enter:"Escriu un import per simular la despesa.",
   af_yes:"✅ Sí, t'ho pots permetre", af_tight:"🟠 Pots, però et quedaries molt just", af_no:"🔴 Millor no: et quedaries en negatiu",
   af_low:"El teu punt més baix del mes seria {x} (dia {d})", af_low_noday:"El teu punt més baix del mes seria {x}", af_from_to:"sense la compra {a} → amb ella {b}",
   af_floor:"🛟 Coixí mínim de {bank}", af_floor_ph:"sense límit", af_floor_break:"🟠 Pots, PERÒ baixaries del teu coixí de {x}", af_below:"⚠ Ja estàs per sota del teu coixí de {x} (vas {y})",

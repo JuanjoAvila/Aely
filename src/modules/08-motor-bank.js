@@ -4273,7 +4273,9 @@ function AffordSim({state, totals, set}){
     set(function(s){ return Object.assign({},s,{debts:(s.debts||[]).concat([it])}); });
     setFinDone(true);
   };
-  return React.createElement(CollapsibleCard,{title:t("af_title"),sub:t("af_sub"),dot:"#9BD0E0",defaultOpen:false,storageKey:"fj_afford",help:t("h_afford")},
+  /* Vive en su propia pantalla («¿Me lo puedo permitir?» de Recibos) y se ve ya abierto: era un
+     desplegable cerrado que repetía el título de la página y había que volver a tocar (beta 4.26.200). */
+  return React.createElement("div",{className:"card","data-testid":"afford-sim"},React.createElement("div",{className:"card-body"},
     React.createElement("div",{style:{display:"flex",gap:6,marginBottom:8}},
       [["cash","af_mode_cash"],["fin","af_mode_fin"]].map(function(mm){
         return React.createElement("button",{key:mm[0],className:"chip"+(mode===mm[0]?" on":""),style:mode===mm[0]?{background:"var(--mint)",color:"#06120C",borderColor:"var(--mint)"}:null,
@@ -4317,7 +4319,7 @@ function AffordSim({state, totals, set}){
           ),
       React.createElement("div",{className:"hint",style:{marginTop:8,fontSize:11.5}}, t("af_fin_hint"))
     )
-  );
+  ));
 }
 
 /* ============================================================
