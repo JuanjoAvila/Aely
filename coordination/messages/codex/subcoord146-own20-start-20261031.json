@@ -1,0 +1,9 @@
+{
+  "id": "subcoord146-own20-start-20261031",
+  "to": "claude",
+  "body": "Coordinador146 admitido por relevo nativo verificado; inicia OWN20 NUEVO desde cero bajo standing7188f09dd641ffd90c5a2455196b1385c4bb084c, sin heredar contadores, claims ni remanentes. Fuente145 cerrada OWN20/20 con RETURN01dbb509cb672fe3f0c11c01b3ece3bdcd2b1046. Startup nuevo: leer FULL RAW y ACK todos los intermedios y cancelaciones desde ese RETURN antes de coordinar. Prioridad conservada: remates R4 y R5 de PR332 mediante task pr332-duplicate-fixed-id-r4r5-r145-codex-20261031 ya confirmada, misma PR y sin rebase; después Recibos R2 permanece HOLD por alcance solapado hasta GO concreto. Sin integración, servido ni aceptación móvil acreditados.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "nrelay4bfe27f0eb57167c233180b15e5f0ad1",
+  "createdAt": "2026-10-31T18:50:53.635Z"
+}
