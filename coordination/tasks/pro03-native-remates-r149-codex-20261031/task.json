@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "id": "pro03-native-remates-r149-codex-20261031",
+  "from": "codex",
+  "coordinatorSession": "nrelay3139ab30ce2f8269b6130780b3f8a121",
+  "createdAt": "2026-10-31T22:06:35.375Z",
+  "to": "codex",
+  "baseSHA": "8cd91adfa2b73906f217dd699eed26249ac28097",
+  "objective": "Remates nuevos PRO03 PR335: cleanup de TEMP nuevos del test JVM y skip claro JDK ausente; verificar compatibilidad R1/R2 suministrados por productor PR334 sin finanzas Java.",
+  "scope": [
+    "tests/pro03-native-precomputed-alert.test.mjs",
+    "docs/TESTING.md"
+  ],
+  "authorityCommits": [
+    "10ec0190b6cfb0d20d483a0409b67611ead31210",
+    "1fe60f2e7713b0d8a8169e59fdc9cf461819953a",
+    "7188f09dd641ffd90c5a2455196b1385c4bb084c",
+    "5aeb834eb8bff5563391ae2cccda172464d6e2dd"
+  ],
+  "targetPR": 335,
+  "targetBranch": "codex/pro03-nativo-r148",
+  "acceptance": [
+    "Only new invocation-owned TEMP directories are cleaned on success/failure; never remove prior closed output-dir/evidence artifacts. Resolve and validate cleanup paths within fresh runtime root; no recursive traversal through foreign links. Preserve durable diagnostic proof outside transient classes/source as needed.",
+    "Missing JDK becomes clear explicit SKIP with exit success, including npm test registration path; present installed JDK still compiles/runs semantic cases and failures remain failures. No install or Gradle.",
+    "R1 monthly localized text and R2 actual bank-read freshness belong to shared PR334 producer; inspect and report contract contradictions, no speculative Java monetary or translation logic.",
+    "Same PR335 fast-forward only from supplied HEAD, no rebase/force; old closed worker checkout/evidence immutable."
+  ],
+  "limits": {
+    "receptionOnlyUntilNativeAdmission": true,
+    "own20NewFromZero": true,
+    "freshClaimRequired": true,
+    "isolatedNewCheckout": true,
+    "readOnlyPlanBeforeEditGO": true,
+    "noTestBeforeReviewedExactMatrix": true,
+    "noCommitPushBeforeReviewGO": true,
+    "noBuildGradleAPKBackendMergeDeploy": true,
+    "noProductREADY": true
+  },
+  "reportTo": "codex"
+}
