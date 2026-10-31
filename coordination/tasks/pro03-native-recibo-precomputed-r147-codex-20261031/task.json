@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "id": "pro03-native-recibo-precomputed-r147-codex-20261031",
+  "from": "codex",
+  "coordinatorSession": "nrelay2861fb2a8f681b75e8643117e23d119a",
+  "createdAt": "2026-10-31T20:35:02.243Z",
+  "to": "codex",
+  "baseSHA": "656f17a69acdb59a4bfd14ea51a50196157b5807",
+  "objective": "PRO03 prioridad1 NATIVO: AlertCheckWorker muestra si el saldo previsto llega SOLO con lo precomputado que la app deja en calendario; no consulta banco ni recalcula dinero. Una PRdraft rama codex/pro03-recibo-nativo contra beta656f.",
+  "targetBranch": "codex/pro03-recibo-nativo",
+  "scope": [
+    "android/app/src/main/java/com/micartera/app/AlertCheckWorker.java",
+    "android/app/src/main/java/com/micartera/app/MiCarteraPlugin.java",
+    "tests/pro03-native-precomputed-alert.test.mjs",
+    "scripts/run-tests.mjs",
+    "docs/ARQUITECTURA.md"
+  ],
+  "authority": [
+    "70a7f3f4253ccc88f7060ce88dfb73c626355f97",
+    "d43a86b5982b4260349cef58f37ed5ecba5ddf41",
+    "7188f09dd641ffd90c5a2455196b1385c4bb084c",
+    "7f04ec10af629419675f802a122917fe0fa9ced0"
+  ],
+  "relatedWebTaskId": "pro03-web-recibo-saldo-r147-codex-20261031",
+  "relatedWebTaskCommit": "55f8d2e69a7c83868c1089e5b8089482bca44ab5",
+  "acceptance": [
+    "SOLO AVISOS: sin sync/lectura bancaria por programa, background fetch, servidor, consultas ni nuevas reglas financieras. Nativo no calcula suficiencia: solo respeta los datos/calculo opcionales preparados por WEB con la misma cifra de Te llega.",
+    "Antes de editar acordar contrato minimo aditivo con tarea WEB/ROOT: dato suficiente/insuficiente/ausente y texto/precomputadoidioma. Si no hay lectura declarada por app, el aviso nativo no afirma nada del saldo. No adivinar banco/saldo desde cantidad o nombre.",
+    "Conservar compatibilidad del calendario anterior: campos opcionales ausentes no dan si/no ni rompen avisos; mismoimporte exacto/vencimiento/mes/sellos/deduplicacion y sin nuevas lecturas. No usar cifras reales en pruebas ni cambiar datos del movil.",
+    "Cliente Java solo dentro paths exactos. Checkout nuevo base656f y rama codex/pro03-recibo-nativo exactos. No editar WEB src; coordinar payload con su titular. No portar PR333/PR332 o cambios cerrados.",
+    "Preparar PRNATIVA separada contra beta; primero plan/contrato y matriz concreta de validacion disponible. No afirmar que Node o revision estatica prueban Android, notificacion fisica, app cerrada ni APK. Si compilacion exige Gradle/APK o scope adicional, reportar necesidad concreta antes de ejecutarla.",
+    "Compartidos scripts/run-tests y arquitectura serializados: proponer diffs y esperar GO ROOT despues del freeze del candidato WEB antes de editar esos dos paths. Edicion Java aislada solo despues de contrato y GO privado concreto.",
+    "Candidato privado,fuentes reales,pruebas de compatibilidad/payload y oraculos independientes;no stubs de logica financiera ni copiar algoritmoTeLlega. ENTER/commit/push/PR separados tras revision ROOT y HEAD exacto."
+  ],
+  "constraints": [
+    "Recepcion exclusiva ACK,nuevaidentidad/sesionnonce/OWN0,relojnull;admision/receipt/confirmacion nativos antes helpers/canal/claim/producto.",
+    "OWN20 nuevo standing7188,primer wait>=30s,FULLRAW+ACK TODOSdeltas/cancelaciones,notice/readback>=30s,claimPROPIA exacta confirmada;no heredar R2 ni WEB/root.",
+    "Solo publicar propiosclaim/result/RETURN y reportarROOT admitido,nuncaClaude. No coordinacion a otroproveedor ni automationsnuevas.",
+    "Node/e2e dirigidos permitidos bajo7f04 solo con GOmatrizexacta ROOT,propiascorridas serial0retry/stopfirstunexpected/logsraw;no pruebasduplicadas con WEB ni interferir integrador.",
+    "LauncherFOCAL01 rechazado vinculante:no escribir/reintentar/ejecutar/equivalente/inline/proxy/otraidentidad;sin wrapper/afinidad/PID/CPU1claim.",
+    "No suiteentera/npmtest/build/CPU6/Chromium/Gradle/APK/backend/SQL/Edge/servidor/deploy/merge/version/notas/catalogo/caps/datosreales/dispositivos. No tests/compilacion extra por arrastre de scopeJava.",
+    "No tocar fuentes/helpers/state/ledger cerrados ni worktrees ajenos. Reloj propio60min/safe50 desdeadmision;ROOT puede relevarsinreiniciarlo."
+  ],
+  "deliverable": "Contrato de payload nativo coordinado, candidatoJava compatible y matrizrealista revisada; PRdraft separada sin declarar ProductREADY ni Android probado sin evidencia.",
+  "initialState": "PREPARED_NATIVE_WORKER_NOT_CREATED_NO_CLAIM_PRODUCT_NO_GO"
+}
