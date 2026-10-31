@@ -144,6 +144,27 @@ cobra igualmente es un pago y se ve. Pausar o reanudar compensa el saldo mostrad
 (`conSaldoMostrado`), como los vínculos de pago. `revisado` (`{distinto, fantasma}` con el
 año*12+mes) guarda los avisos de «Para revisar» ya contestados; posponer es solo de ese móvil
 (almacén local, hasta el día siguiente).
+«¿Te llega?» no tiene cálculo propio: lee el recorrido día a día de `totals` (11), que pasa por
+`minWalk` (08), la misma función del simulador «¿Me lo puedo permitir?». A igualdad de día primero
+salen los cargos y luego entran las entradas. Los eventos salen de `pendingWalkEvents` (08), la
+única lista: la usan `totals` (píldora, hoja, mínimo diario, `safeLiq` del widget) y el simulador
+«¿Me lo puedo permitir?» (`bankPendingEvents` = esa lista filtrada por banco). Un recibo sale del
+recorrido si Plan lo pinta pagado (`fixedPaymentState`) Y ese pago ya está en el saldo
+(`reciboEnElSaldo`): siempre si movió el saldo mostrado (`paidYm` o cargo enlazado con día); con
+cualquier otra prueba, solo si el saldo se leyó desde fuera el DÍA SIGUIENTE al pago o después (la
+prueba trae el día, no la hora). `saldoLeidoDelBanco` da la lectura de cada cuenta del banco y se
+queda con la MÁS VIEJA (una cuenta sin lectura → no se afirma nada). Fuentes de lectura: Open
+Banking (cuenta re-anclada por la sincronización + `obBalAt` de ese banco; `lastBankSync` no vale,
+se sella aunque el banco no diera saldo), el puente de Trade Republic (`applyTrCash` sella
+`saldoLeidoAt` en la cuenta; antes del sello, `lastTrSync`), el saldo corregido a mano (también
+sella `saldoLeidoAt`) y `balanceAt` de una cuenta adoptada. `bankTx` no es lectura. Sin lectura posterior, un aviso de Wallet o un BOOK sin fila siguen restando (lo fija
+`fixed-ispaidin`) y la hoja los enseña en su fila «Pagado, aún sin restar del saldo».
+`saldoLeidoAt` viaja en la cuenta dentro de `app_state` (sin servidor); un cliente viejo lo ignora. Lo de hoy o vencido
+sin cobro es un cargo de HOY (decisión del dueño, 28/10/2026). Una frescura con una conexión
+del banco caída o rancia no se enseña. `totals.evsByBank` expone esos eventos (los
+traspasos y entradas con su id) para que la hoja enseñe justo los que ha recorrido. La frescura es
+`obBalAt` (la hora de lectura que da el servidor; sin lectura no se dice nada). Editar la nómina
+desde la hoja es `patchFlowById`, lo mismo que Todos: no hay campos nuevos.
 
 Si la lápida alcanza una fila con un borrador privado pendiente, la fila sigue
 borrada y el borrador se ofrece en Plan → Deudas. Recuperar solo precarga el editor,

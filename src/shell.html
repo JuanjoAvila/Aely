@@ -1064,6 +1064,45 @@
   .pr6-pausa{flex-direction:row;flex-wrap:wrap;gap:6px;}
   .pr6-ficha .pr6-fold.open .pr6-pausa{padding:8px 0 2px;}
   .pr6-skip .pr6-nm,.pr6-skip .am{text-decoration:line-through;}
+  /* «¿Te llega?» (SPEC §4): la píldora abre la hoja; bloques por banco en surface-2 como el prototipo. */
+  button.pr6-pill{border:0;font-family:inherit;text-align:left;cursor:pointer;}
+  .pr6-pill-go{flex:none;margin-left:auto;color:var(--muted);}
+  .v4-sheet.pr6-ll,.v4-sheet.pr6-nd{display:flex;flex-direction:column;gap:16px;}
+  .pr6-ll-t{margin:0;font-size:24px;font-weight:600;outline:none;}
+  .pr6-ll-b{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:18px;background:var(--surface-2);}
+  .pr6-ll-h{display:flex;align-items:center;gap:12px;}
+  .pr6-ll-n{font-size:16px;font-weight:700;}
+  .pr6-ll-f{font-size:12px;}
+  .pr6-ll-r{display:flex;flex-direction:column;align-items:flex-end;gap:1px;flex:none;}
+  .pr6-ll-l{font-size:11px;font-weight:700;color:var(--muted);}
+  .pr6-ll-a{font-size:22px;font-weight:600;white-space:nowrap;}
+  .pr6-ll-b .pr6-fold{margin-top:-10px;}
+  .pr6-ll-det{gap:6px;font-size:14px;}
+  .pr6-ll-b .pr6-fold.open .pr6-ll-det{padding-top:10px;}
+  .pr6-ll-row{display:flex;align-items:center;justify-content:space-between;gap:6px;}
+  .pr6-ll-row>span:first-child{flex:1;min-width:0;color:var(--muted);}
+  .pr6-ll-row .num{font-weight:700;white-space:nowrap;}
+  .pr6-ll-row .num.pos{color:var(--mint-bright);}
+  .pr6-ll-in{min-height:40px;margin:-6px 0;padding:0;border:0;background:transparent;color:var(--muted);font:inherit;text-align:left;cursor:pointer;}
+  .pr6-ll-tip{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:var(--bg);font-size:14px;font-weight:700;}
+  .pr6-ll-wi{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:18px;border:1px dashed var(--line);}
+  .pr6-ll-wr{display:flex;align-items:center;gap:6px;}
+  .pr6-ll-wr .chip{height:46px;padding:0 12px;border-radius:14px;font-size:14px;font-weight:700;}
+  .pr6-ll-amt{flex:1;min-width:0;height:46px;border-radius:14px;border:1px solid var(--line);background:var(--bg);color:var(--text);padding:0 14px;
+    font-size:17px;font-weight:600;text-align:left;cursor:pointer;transition:border-color .2s ease;}
+  .pr6-ll-amt.on{border-color:var(--mint);}
+  .pr6-ll-amt.ph{color:var(--muted);}
+  .pr6-ll-wt{font-size:14px;font-weight:700;}
+  .pr6-ll-wt.ok{color:var(--mint-bright);}
+  .pr6-ll-wi .pr6-fold{margin-top:-10px;}
+  .pr6-ll-wi .pr6-fold .v4-keys{margin:10px 0 0;}
+  .pr6-nd-v{display:flex;justify-content:center;}
+  .pr6-nd-v .serif{font-size:44px;font-weight:600;line-height:1;padding:6px 14px;border-radius:16px;transition:background .2s ease;}
+  .pr6-nd-v .serif.sel{background:var(--surface-2);}
+  .pr6-nd-d{display:flex;align-items:center;gap:10px;}
+  .pr6-nd-d .num{flex:1;text-align:center;font-size:15px;font-weight:700;}
+  .pr6-nd-b{width:44px;height:40px;border-radius:12px;border:0;background:var(--surface-2);color:var(--text);font-size:20px;font-weight:700;cursor:pointer;touch-action:none;user-select:none;}
+  .pr6-nd .pr6-cta:disabled{opacity:.5;}
   @media (prefers-reduced-motion:reduce){ .pr6-fold,.pr6-chev,.pr6-track,.pr6-step,.pr6-cand,.pr6-ring{transition:none;} }
   html.reduce-motion .pr6-fold,html.reduce-motion .pr6-chev,html.reduce-motion .pr6-track,html.reduce-motion .pr6-step{transition:none;}
   .v4-paid{opacity:.55;}

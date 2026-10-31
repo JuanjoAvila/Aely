@@ -401,7 +401,8 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
     set(function(s){
       return Object.assign({},s,{accounts:(s.accounts||[]).map(function(x){
         if(x.id!==id) return x;
-        return Object.assign({},x,{value: valorDesdeTecleado(x, tecleado)});
+        // El saldo tecleado es el real de ahora: lo cobrado antes ya está dentro (`saldoLeidoDelBanco`).
+        return Object.assign({},x,{value: valorDesdeTecleado(x, tecleado), saldoLeidoAt:new Date().toISOString()});
       })});
     });
   };

@@ -3376,6 +3376,9 @@ function applyTrCash(state, cash, totals){
   if(!state || cash==null || !isFinite(Number(cash)) || !totals) return state;
   const shown=Number(cash);
   const accounts=state.accounts||[];
+  // Hora de esta lectura: «¿Te llega?» sabe así que lo cobrado antes ya está en el saldo
+  // (`saldoLeidoDelBanco`, revisión t3 R4: sin ella un recibo ya cobrado en TR se restaba otra vez).
+  const leido=new Date().toISOString();
   const hasTR=accounts.some(function(a){ return a.ent==="trade_republic"; });
   const next=hasTR ? accounts.map(function(a){
     if(a.ent!=="trade_republic") return a;
@@ -3384,8 +3387,8 @@ function applyTrCash(state, cash, totals){
     const stored=accDaily(a)
       ? valueDesdeSaldo({shown:shown,injTR:totals.injTR||0,spentOwn:spentOwn,roundup:totals.roundupThisMonth||0,monthlyInvest:totals.monthlyInvestThisMonth||0,ambos:accRole(a)==="ambos",paidNet:pn})
       : shown-pn;
-    return Object.assign({},a,{value:+stored.toFixed(2)});
-  }) : accounts.concat([{id:uid(),ent:"trade_republic",name:"Trade Republic",value:+shown.toFixed(2),note:""}]);
+    return Object.assign({},a,{value:+stored.toFixed(2),saldoLeidoAt:leido});
+  }) : accounts.concat([{id:uid(),ent:"trade_republic",name:"Trade Republic",value:+shown.toFixed(2),note:"",saldoLeidoAt:leido}]);
   return Object.assign({},state,{accounts:next});
 }
 

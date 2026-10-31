@@ -834,6 +834,29 @@ sale del mes; «Solo este mes» lo descuenta de «Queda por pagar» y tocar la f
 Está en `E2E_MAP` para `14-v4-screens`, `08-motor-bank`, `07-tab-patri-fijos`, `11-app-main`,
 `00-core` y `01-i18n` (la pausa se lee en el motor, en los totales y en la mezcla con la nube).
 
+Tanda 3: `e2e/plan-recibos-t3.spec.mjs` abre «¿Te llega?» desde la píldora con el reloj en el 10/10:
+el mínimo con una nómina a mitad de mes («lo más justo, el 15»), la nómina que llega tarde («Pasa
+200 € a Sabadell antes del 25», y no sale porque cae tras el último recibo), que el mismo día
+primero sale y luego entra (con el orden viejo el caso daba «Te llega»: comprobado), un banco sin
+cuenta con «—» fuera de la píldora, la frescura sembrada en `obBalAt`, «¿Y si gasto…?» en vivo y
+editar la nómina (el primer número sustituye, el día se mueve, el saldo mostrado no cambia y una
+nómina «último laborable» conserva la regla si solo cambia el importe). También un recibo vencido
+sin cobro acreditado: cuenta como cargo de hoy y «Tienes hoy − Recibos que faltan» cuadra con la
+cifra, la píldora, el aviso e Inicio (con la regla vieja de «cobrado por fecha» sale rojo:
+comprobado). Y un recibo que Plan pinta pagado: con saldo leído del banco (BOOK o Wallet) no se
+resta dos veces (500 − 150 = 350); en una cuenta a mano solo sale si movió el saldo (`paidYm`: 350)
+y un Wallet, un BOOK o un gasto sin enlazar siguen restando (50). En cada caso, y en el vencido sin
+cobro, el simulador (`bankPendingEvents`) da el mismo mínimo que la hoja. Mutantes comprobados:
+dar por bueno cualquier pago tumba `fixed-ispaidin` y los tres casos «a mano»; no reconocer el
+saldo del banco tumba los dos «con saldo del banco». En los casos «a mano» que aún restan, la hoja
+enseña la fila «Pagado, aún sin restar del saldo − 300,00 €». Trade Republic: con la lectura del
+puente sellada hoy (`saldoLeidoAt`) o, en un estado viejo, `lastTrSync`, el recibo ya cobrado en TR
+no resta (350); leído antes del cobro, sí (50, con su fila). Mutante «ignorar la lectura del
+puente»: los dos de 350 en rojo. La lectura cuenta a partir del día SIGUIENTE al pago: sellada a
+las 7:30 del mismo día del cobro, 50 con su fila; al día siguiente, 350 (mutante «el mismo día
+vale»: rojo). Los casos «con saldo del banco» siembran la cuenta re-anclada (`bankUid`). Está en `E2E_MAP` para `14-v4-screens`, `08-motor-bank`,
+`07-tab-patri-fijos`, `00-core`, `06-sync-brokers`, `11-app-main`, `01-i18n` y `shell.html`.
+
 Descarga incompleta (candidato13/10): `tests/bank-download-incomplete.test.mjs`, registrado en
 runner y `STEPS_SUPABASE`, ejecuta lector, handler y updater real de App. Compara el updater con
 el padre123: ambas lecturas de `bankTx` conservan el extracto; falla sin el adaptador mínimo.

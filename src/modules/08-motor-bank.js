@@ -1188,23 +1188,112 @@ function applyBankBalances(s, links){
   return { state:newState, changed:changed||obChanged, synced:synced, obAccounts:obAccts };
 }
 
-// Eventos PENDIENTES de un banco este mes (cargos −, ingresos +) con su día.
-// Espejo EXACTO de la lógica evsByBank del motor (totals) para un solo banco, reutilizable
-// por el simulador "¿me lo puedo permitir?". today = día de hoy (solo cuenta lo no pagado).
-function bankPendingEvents(state, bank, y, m, today){
-  const evs=[];
-  (state.fixed||[]).forEach(function(e){ if(occursIn(e,m)&&accOf(e)===bank&&!isPaidIn(e,m,today,y,state)&&!fixedEnPausa(state,e,y,m,today)) evs.push({day:dayIn(e,m)||0, amt:-occAmountIn(e,m)}); });
-  (state.debts||[]).forEach(function(d){ if(debtActive(d)&&(d.account||"sabadell")===bank&&!isDebtPaidThisMonth(d,today,state,y,m)){ evs.push({day:debtChargeDay(d), amt:-(d.monthly||0)}); const bl=debtBalloonIn(d,y,m); if(bl>0) evs.push({day:debtChargeDay(d), amt:-bl}); } });
-  (state.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m)&&(o.account||"sabadell")===bank&&(o.amount||0)!==0&&!isPaidThisMonth(o,today)) evs.push({day:o.day||0, amt:-o.amount}); });
-  (state.flows||[]).forEach(function(f){ if(!flowOccursIn(f,m,y)||flowPaidIn(state,f,y,m,today))return; const dd=flowDay(f,y,m); if(f.kind==="income"&&(f.to||"sabadell")===bank) evs.push({day:dd||99, amt:f.amount}); else if(f.kind==="transfer"&&(f.from||"sabadell")===bank) evs.push({day:dd||0, amt:-f.amount}); });
+/* Eventos PENDIENTES del mes que recorre `minWalk` (cargos −, entradas +), con su banco y su día.
+   Es la ÚNICA lista: la usan `totals` (11: `minByBank` → píldora, «¿Te llega?», mínimo diario y
+   `safeLiq`) y el simulador «¿Me lo puedo permitir?» (`bankPendingEvents`), así que no pueden dar
+   veredictos opuestos sobre el mismo dinero (revisión t3, R3-1).
+   Un recibo sale del recorrido solo si está pagado (`fixedPaymentState`, la regla con la que Plan
+   lo pinta) Y ese pago ya está en el saldo con el que se recorre (`reciboEnElSaldo`). Si no, es
+   un cargo; si su día ya pasó, de HOY (decisión del dueño 28/10/2026, B1). Pausados, fuera.
+   Los pagados que aún restan llevan `sinRestar`: «¿Te llega?» los enseña en su propia fila para
+   que «Tienes hoy − filas = cifra» se cumpla siempre (revisión t3, R4-1).
+   Las cuotas, como Plan (`debtPaymentState`, que hoy da por pagada una vencida); una cuota SIN
+   día la descuenta `planCoverState` sin fecha. Puntuales y entradas, como siempre. */
+function pendingWalkEvents(state, y, m, today){
+  const evs=[], leido={};
+  const hoy=function(d){ return d!=null&&d>0&&d<today?today:(d||0); };
+  (state.fixed||[]).forEach(function(e){
+    const a=occAmountIn(e,m);
+    if(!(a>0)||!occursIn(e,m)||fixedPausedIn(e,y,m)) return;
+    const b=accOf(e);
+    if(!(b in leido)) leido[b]=saldoLeidoDelBanco(state,b);
+    const st=fixedPaymentState(state,e,y,m,today);
+    if(st.paid&&reciboEnElSaldo(state,e,y,m,today,leido[b],st.day)) return;
+    evs.push(st.paid?{bank:b, day:hoy(dayIn(e,m)), amt:-a, sinRestar:true}:{bank:b, day:hoy(dayIn(e,m)), amt:-a});
+  });
+  (state.debts||[]).forEach(function(d){
+    if(!debtActive(d)) return;
+    const st=debtPaymentState(state,d,y,m,today);
+    if(st.paid||st.day==null||!(Number(st.day)>0)) return;
+    const b=d.account||"sabadell", bl=debtBalloonIn(d,y,m);
+    if(Number(d.monthly)>0) evs.push({bank:b, day:hoy(st.day), amt:-Number(d.monthly)});
+    if(bl>0) evs.push({bank:b, day:hoy(st.day), amt:-bl});
+  });
+  (state.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m)&&(o.amount||0)!==0&&!isPaidThisMonth(o,today)) evs.push({bank:o.account||"sabadell", day:o.day||0, amt:-o.amount}); });
+  // Traspasos y entradas llevan su id: «¿Te llega?» enseña (y deja editar) justo los recorridos.
+  (state.flows||[]).forEach(function(f){
+    if(!flowOccursIn(f,m,y)||flowPaidIn(state,f,y,m,today)) return;
+    const dd=flowDay(f,y,m), tag={kind:f.kind,id:f.id,name:f.name};
+    if(f.kind==="income") evs.push(Object.assign({bank:f.to||"sabadell", day:dd||99, amt:f.amount},tag));
+    else if(f.kind==="transfer") evs.push(Object.assign({bank:f.from||"sabadell", day:dd||0, amt:-f.amount},tag));
+  });
   return evs;
 }
+/* ¿Desde cuándo está leído DESDE FUERA el saldo de este banco? (ms; 0 = no se puede afirmar).
+   Un cobro anterior a esa lectura ya está dentro del saldo, sea cual sea su prueba (revisión t3,
+   R2 y R4: con Open Banking o con el puente de TR, un recibo ya cobrado se restaba otra vez).
+   Cada cuenta del banco tiene su lectura y manda la MÁS VIEJA; si una cuenta no tiene ninguna,
+   0 (R5-2: una lectura reciente de otra cuenta no puede meter cobros que la vieja no ha visto).
+   Fuentes, todas con la misma señal (una hora de lectura en la cuenta o del banco):
+   - Puente nativo de Trade Republic: `applyTrCash` (00 y la tarjeta de 06) sella `saldoLeidoAt`;
+     para estados anteriores al sello, `lastTrSync` si el puente manda.
+   - Saldo corregido a mano (Cartera → cuenta → corregir saldo): también sella `saldoLeidoAt`.
+   - Open Banking: una cuenta re-anclada por la sincronización (IBAN, uid o saldo crudo) tiene la
+     hora de `obBalAt` de ese banco (la más vieja si hay varias conexiones). Sin `obBalAt` propio
+     no se usa `lastBankSync`: se sella aunque ese banco no diera saldo (R5-3, prudente).
+   - Una cuenta adoptada de Open Banking trae `balanceAt`.
+   MyInvestor y los demás brókers solo leen posiciones (Inversiones), no el saldo de una cuenta.
+   Tener extracto en `bankTx` NO es una lectura: el saldo puede seguir siendo el tecleado (es el
+   alquiler BOOK de 750 que fija `fixed-ispaidin`). */
+function saldoLeidoDelBanco(state, bank){
+  const ms=function(v){ const t=Date.parse(v); return isFinite(t)&&t>0?t:0; };
+  let ob=0;
+  const at=state.obBalAt||{};
+  Object.keys(at).forEach(function(asp){ if(entFromAspsp(asp)!==bank) return; const t=ms(at[asp]); if(t&&(!ob||t<ob)) ob=t; });
+  const tr=bank==="trade_republic"&&state.lastTrSync&&saldoLoMandaPuenteNativo(state,bank)?ms(state.lastTrSync):0;
+  const cuentas=(state.accounts||[]).filter(function(a){ return a&&a.ent===bank; });
+  if(!cuentas.length) return 0;
+  let viejo=Infinity;
+  cuentas.forEach(function(a){
+    let t=Math.max(ms(a.saldoLeidoAt), ms(a.balanceAt), tr);
+    if(a.bankIban||a.bankUid||a.balSaldo!=null) t=Math.max(t,ob);
+    if(t<viejo) viejo=t;
+  });
+  return isFinite(viejo)?viejo:0;
+}
+/* ¿El pago de este recibo ya está en el saldo con el que se recorre?
+   - Lo que mueve el saldo mostrado de la app (`isPaidIn` sin su calendario: marca confirmada o
+     cargo enlazado con día), siempre.
+   - Cualquier otra prueba (BOOK, aviso de Wallet, gasto sin enlazar), solo si el saldo se leyó de
+     fuera el DÍA SIGUIENTE al pago o después (`leidoMs`). La prueba trae el día, no la hora: una
+     lectura de primera hora del mismo día no incluye un cargo de la tarde (revisión t3, R5-1).
+     No se puede acreditar que una lectura sea posterior a la sincronización que trajo la prueba
+     (la hora de `obBalAt` es del servidor y la de `lastBankSync` del móvil), así que no hay
+     excepción: lo cobrado hoy queda en «Pagado, aún sin restar del saldo» hasta mañana.
+   - En una cuenta a mano sin lectura posterior sigue restando: darlo por cobrado sería optimista
+     (revisión t3, R3-2; lo fija `fixed-ispaidin`). */
+function reciboEnElSaldo(state, e, y, m, today, leidoMs, dia){
+  if(e.paidYm===y*12+m) return true;
+  const p=fixedPaymentProof(state,e,y,m,today);
+  if(p&&p.kind==="expense"&&fixedPaymentDerivedDay(state,{proof:p})) return true;
+  if(!(leidoMs>0)) return false;
+  const d=Number(dia)>0?Number(dia):1;
+  return leidoMs>=new Date(y,m-1,d+1).getTime();
+}
+// Los de un solo banco, para el simulador «¿me lo puedo permitir?».
+function bankPendingEvents(state, bank, y, m, today){
+  return pendingWalkEvents(state,y,m,today).filter(function(ev){ return ev.bank===bank; });
+}
 // Recorre los eventos por día desde un saldo inicial y devuelve el punto MÍNIMO (peor momento) y el final.
+/* Es la ÚNICA copia del recorrido: también la usa `totals` (11) para `minByBank`, y de ahí la
+   píldora y la hoja «¿Te llega?». A igualdad de día primero sale y luego entra (SPEC Recibos §4):
+   antes mandaba el orden en que estuvieran guardados, y una nómina tapaba un traspaso del mismo
+   día. `shortDay` = primer día en negativo (el «antes del 22» de la hoja); null si no lo toca. */
 function minWalk(startBal, evs){
-  const s=evs.slice().sort(function(a,b){ return a.day-b.day; });
-  let run=startBal, mn=startBal, md=0;
-  s.forEach(function(ev){ run+=ev.amt; if(run<mn-0.005){ mn=run; md=ev.day; } });
-  return {min:mn, minDay:md, end:run};
+  const s=(evs||[]).slice().sort(function(a,b){ return (a.day-b.day)||((a.amt<0?0:1)-(b.amt<0?0:1)); });
+  let run=Number(startBal)||0, mn=run, md=0, sd=run<-0.005?0:null;
+  s.forEach(function(ev){ run+=ev.amt; if(run<mn-0.005){ mn=run; md=ev.day; } if(sd==null&&run<-0.005) sd=ev.day; });
+  return {min:mn, minDay:md, end:run, shortDay:sd};
 }
 
 /* ============================================================
