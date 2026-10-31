@@ -4422,7 +4422,7 @@ function mergePlanThreeWay(base,local,remote,kind,deleted,localNewer){
   }
   const payment=kind==="fixed"?["paidYm","paidDay"]:[];
   // La pausa viaja entera: «desde» de un móvil con «hasta» del otro sería una pausa que nadie pidió.
-  const pause=kind==="fixed"?["pausedFrom","pausedUntil"]:[];
+  const pause=kind==="fixed"?["pausedFrom","pausedUntil","manualPauseBalance"]:[];
   new Set([...r.keys(),...l.keys()]).forEach(function(id){
     const old=b&&b.get(id),left=l.get(id),right=r.get(id);
     if(!left || !right){rows.push(left||right);return;}

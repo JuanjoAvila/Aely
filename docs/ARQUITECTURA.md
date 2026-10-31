@@ -141,8 +141,9 @@ juntar el «desde» de un móvil con el «hasta» de otro. Un cliente anterior l
 (no reconstruye recibos campo a campo). Un recibo en pausa y sin cobrar no cuenta en el mes
 (`fixedEnPausa`: Plan, Inicio, totales, previsión de saldo y avisos de la víspera); si el banco lo
 cobra igualmente es un pago y se ve. Pausar conserva normalmente el saldo mostrado
-(`conSaldoMostrado`), como los vínculos de pago. Reanudar no suma una base compensatoria:
-también se considera reanudar mover una pausa vigente a un intervalo futuro o terminado.
+(`conSaldoMostrado`), como los vínculos de pago. Reanudar deshace esa misma compensación de
+base, también al mover una pausa vigente a un intervalo futuro o terminado: las exclusiones
+legadas vuelven a su base anterior, sin descontar el recibo por segunda vez.
 La excepción es una lectura manual **nueva y
 trazable** anterior al día de un recibo vencido e impagado: una única cuenta de recibos de ese
 banco puede retirar o restaurar esa proyección manteniendo su base leída. No se infiere nada
@@ -159,20 +160,32 @@ revalidado después del reconciliador; no acredita una lectura nueva.
 pareja coherente sobrevive al guardado/lectura y viaja íntegra en `app_state`; una adopción,
 cambio de rol/base/banco o un cliente antiguo con sello desfasado no la revalida. Sin prueba,
 con varias cuentas de recibos del banco, conexión bancaria, TR nativo, fecha inválida/futura,
-mismo día o posterior, pausar conserva el saldo mostrado. Reanudar mantiene la base entrante
-sin compensación positiva; con prueba íntegra coincide con la base anterior a la pausa, y tras
-una edición o un cliente viejo no se inventa dinero para ocultar la proyección reactivada.
+mismo día o posterior, pausar conserva el saldo mostrado y reanudar sigue la vía de base.
+Sólo cuando la pausa nueva retira efectivamente una compensación guarda en el recibo
+`manualPauseBalance` (versión, mes local, ID y entidad de su cuenta). Esta marca de origen es
+distinta de la prueba de lectura; viaja atómicamente con el intervalo en la mezcla de tres vías.
+Reanudar esa pausa mantiene la base entrante sólo de su cuenta original, con prueba íntegra o
+tras perderla por una edición/cliente viejo; las demás cuentas conservan su compensación de
+base. La marca se consume al reactivar, también moviendo el intervalo, y no se deduce de la
+ausencia de prueba. Conserva el origen mientras la pausa siga vigente al cambiar de mes;
+iniciar otra pausa desde un mes que ya no estaba pausado no lo hereda. Una lectura posterior
+no reclasifica una pausa legada.
 TR manual sin puente sí puede
 ser elegible. El calendario compara días de Madrid; si el motor local está en otro día, falla
 prudente. `_savedAt` usa el reloj existente: no garantiza distinguir un cliente antiguo con
-timestamp exactamente coincidente o reloj revertido. No es una reparación completa de todos
+timestamp exactamente coincidente o reloj revertido. Si un cliente elimina también la marca
+de origen del recibo, su estado resulta indistinguible del legado y rige la vía de base: la
+protección ante pérdida de prueba presupone que se conservan los campos desconocidos del
+recibo, como hacen los editores anteriores. No es una reparación completa de todos
 los saldos manuales. No se alteran las dos comparaciones semánticas de nube ni se avanza un
 sello por sí solo: la invalidación es un cambio real una vez y no genera un ticker de escrituras.
 Lo vigila `tests/recibos-manual-pausa.test.mjs`, registrado en el runner, con writers, setter,
 callback, almacenamiento y ambas puertas de nube reales bajo dobles offline. La matriz de
 intervalos cubre pausa actual corta/larga, futura, terminada y borrada; sus mutantes separan
-la compensación antigua general y la que aún escapaba al mover un intervalo no vacío. El
-oráculo temporal exige resultados concretos en UTC y Madrid, incluido el día de cambio de hora;
+la compensación de base, la nueva, la pérdida de su origen y la atomicidad del intervalo. Cada
+exclusión compara cuentas y céntimos antes/pausa/reanudación con un oráculo separado de base;
+dos pasadas dirigidas pueden cargar además las funciones reales de 555fe0c3 y beta t4 c89bb12c5.
+El oráculo temporal exige resultados concretos en UTC y Madrid, medianoche y ambos cambios DST;
 el mutante R2 retira sólo el sellado de una confirmación idéntica. R1 conserva el límite del
 reloj de clientes antiguos descrito arriba; no se declara resuelto todo saldo manual.
 `revisado` (`{distinto, fantasma}` con el

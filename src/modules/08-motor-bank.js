@@ -4676,35 +4676,42 @@ function fixedEditarRecibo(s, id, patch, scope, y, m, today){
   // plan-gestionar «cambiar al día de hoy»). Los meses ya pagados no se mueven: quedan congelados.
   return goalSyncEqual(n,old)?s:out;
 }
-/* Pausar o reanudar (Plan › Recibos v6). Pura. Sin rango (hasta <= desde) quita la pausa.
-   El saldo que se ve no salta: un recibo vencido que se pausa dejaría de restar en la previsión
-   de golpe; se compensa como cualquier cambio de marca de pago (`conSaldoMostrado`). */
 /* Una lectura manual NUEVA anterior al vencimiento aún no contenía el cargo proyectado.
-   Sólo esa prueba permite retirar/restaurar la proyección. Reanudar nunca suma una compensación
-   sin prueba: tras otra edición o un cliente viejo crearía dinero. No se atribuye un recibo
-   entre varias cuentas del mismo banco. */
+   La pausa guarda qué cuenta siguió esa vía: perder después la prueba de lectura no convierte
+   esa pausa en una compensación de la base. Las demás cuentas conservan la regla anterior. */
 function fixedPausa(s, id, from, until){
   let changed=false;
+  const now=new Date(),md=madridYmdParts(Date.now()),y=now.getFullYear(),m=now.getMonth()+1,ym=y*12+m;
   const fixed=(s.fixed||[]).map(function(e){
     if(e.id!==id) return e;
     const n=Object.assign({},e);
     if(until>from){ n.pausedFrom=from; n.pausedUntil=until; }
     else { delete n.pausedFrom; delete n.pausedUntil; }
+    if(!fixedPausedIn(e,y,m)||!fixedPausedIn(n,y,m)) delete n.manualPauseBalance;
     if(goalSyncEqual(n,e)) return e;
     changed=true; return n;
   });
   if(!changed) return s;
-  const next=Object.assign({},s,{fixed:fixed}),now=new Date(),md=madridYmdParts(Date.now());
+  const next=Object.assign({},s,{fixed:fixed});
   const e=(s.fixed||[]).find(function(f){return f.id===id;}),f=fixed.find(function(x){return x.id===id;});
-  // Mover la pausa al futuro o al pasado también reactiva el mes, aunque el intervalo no esté vacío.
-  // Sin trazabilidad no se suma una base compensatoria en ninguna de esas puertas.
-  const resumes=(s.fixed||[]).some(function(e){return e.id===id&&fixedPausedIn(e,now.getFullYear(),now.getMonth()+1)&&!fixedPausedIn(f,now.getFullYear(),now.getMonth()+1);});
-  const out=resumes?next:conSaldoMostrado(s,next);
+  const out=conSaldoMostrado(s,next),origin=e&&e.manualPauseBalance;
+  // Borrar la pausa o moverla fuera del mes deshace su vía, no la deduce de una prueba ausente.
+  // La marca persiste con el recibo aunque una nota/cliente viejo invalide manualBalanceReads.
+  if(e&&f&&(s.fixed||[]).filter(function(x){return x.id===id;}).length===1&&fixedPausedIn(e,y,m)&&!fixedPausedIn(f,y,m)&&origin&&origin.schema===1&&origin.origin==="manual-v1"&&Number.isSafeInteger(origin.ym)&&origin.ym>0&&origin.ym<=ym){
+    // Si otro cliente duplicó el ID ya no sabemos cuál era la fila original: ninguna copia
+    // de esa identidad recibe dinero. Las demás filas siguen la compensación de base.
+    const restored=Object.assign({},out,{accounts:(out.accounts||[]).map(function(x,i){const a=(s.accounts||[])[i];return a&&a.id===origin.accountId&&a.ent===origin.ent?Object.assign({},x,{value:a.value}):x;})});
+    const a=manualBalanceAccount(s,origin.accountId),proof=a&&a.ent===origin.ent&&manualBalanceRead(s,a.id);
+    return proof?manualBalanceStage(restored,s,"pause",[{before:manualBalanceModel(a),next:Object.assign({},proof)}]):restored;
+  }
   if(!e||!f||(s.fixed||[]).filter(function(x){return x.id===id;}).length!==1||now.getFullYear()!==md.y||now.getMonth()+1!==md.m||now.getDate()!==md.d||!occursIn(e,md.m)) return out;
   const day=Number(dayIn(e,md.m)),bank=e.account||"sabadell",accounts=(s.accounts||[]).filter(function(a){return a.ent===bank&&accFixed(a);});
   if(accounts.length!==1||!Number.isInteger(day)||!(day>=1&&day<=31&&day<=md.d)||fixedPaymentState(s,e,md.y,md.m,md.d).paid||fixedPaymentState(next,f,md.y,md.m,md.d).paid||fixedEnPausa(s,e,md.y,md.m,md.d)===fixedEnPausa(next,f,md.y,md.m,md.d)) return out;
   const a=accounts[0],proof=manualBalanceRead(s,a.id),read=proof&&madridYmdParts(Date.parse(proof.readAt));
-  if(!proof||read.y!==md.y||read.m!==md.m||read.d>=day) return out;
+  if(!proof||read.y!==md.y||read.m!==md.m||read.d>=day||fixedPausedIn(e,y,m)||!fixedPausedIn(f,y,m)) return out;
+  const compensated=manualBalanceAccount(out,a.id);
+  if(!compensated||Math.abs(compensated.value-a.value)<=0.005) return out;
+  f.manualPauseBalance={schema:1,origin:"manual-v1",ym:ym,accountId:a.id,ent:a.ent};
   const restored=Object.assign({},out,{accounts:(out.accounts||[]).map(function(x){return x.id===a.id?Object.assign({},x,{value:a.value}):x;})});
   return manualBalanceStage(restored,s,"pause",[{before:manualBalanceModel(a),next:Object.assign({},proof)}]);
 }
