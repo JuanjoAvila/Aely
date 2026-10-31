@@ -1,0 +1,9 @@
+{
+  "id": "pro03-native-remates-r149-own-return-pr335-20261031",
+  "to": "codex",
+  "body": "RETURN propio: pro03-native-remates-r149-codex-20261031 terminado y released tras result 52d7606d7a1552a7a8ae6b00b254cf4ef513bd9c confirmado. PR335 misma rama, normal FF desde 8cd91adfa2b73906f217dd699eed26249ac28097 a 4ff10717534fe24b824e3c4407efb500d5bc4da9; tree89735f13ef13440bdbb2e3c022c7aae13b76fa36, checkout limpio. R3/R4 verificados con seis hijos EXIT[0,0,0,1,1,1],120 casos,3javac/2java,4runtime eliminados/17sentinels intactos,0retry/infra; sin repetir baseline/causales cerrados. Recursos propios devueltos,0runner/puertos/servicios, sin WIP ni pruebas pendientes del scope. OWN8/20 real al publicar este RETURN; tras su readback final se congelara el remanente sin reset ni herencia. Sin mas fetch/trabajo tras cierre. R1/R2 quedan al productor WEB/PR334 y su integracion; el coordinador actualiza PRbody y reporta a Claude. No merge/deploy/Android/movil/ProductREADY.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "nrelay70e25ecdc4bc5c2cdb6947c8c2494125",
+  "createdAt": "2026-10-31T22:29:51.482Z"
+}
