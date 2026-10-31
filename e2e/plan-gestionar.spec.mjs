@@ -788,6 +788,8 @@ test("la ola nativa vuelve por el mes del cargo único y por la clase del ingres
   await pasoN(page, 1).locator(".v4-keys").getByRole("button",{name:"9",exact:true}).click();
   await pasos(page).locator(".rp4-cta").click();
   await expect(pasoN(page, 2).locator('[data-rp4-modo="once"]')).toHaveAttribute("aria-checked","true");
+  // Sin día por defecto: se elige (este mes, desde mañana).
+  await pasoN(page, 2).getByRole("button",{name:"Un día después"}).click();
   await pasos(page).locator(".rp4-cta").click();
   await expect(pasos(page)).toHaveAttribute("data-paso","3");
   await back();
@@ -832,6 +834,8 @@ test("un cargo de una sola vez se apunta por mes y año, no por periodicidad", a
   await pasos(page).locator(".rp4-cta").click();
   // «Solo una vez» ya va marcado: no pide cada cuánto.
   await expect(pasoN(page, 2).locator('[data-rp4-modo="once"]')).toHaveAttribute("aria-checked","true");
+  // Sin día por defecto: se elige (este mes, desde mañana).
+  await pasoN(page, 2).getByRole("button",{name:"Un día después"}).click();
   await expect(pasoN(page, 2).locator(".pr6-fold").filter({ has: page.locator('[data-rp4-freq="mes"]') })).not.toHaveClass(/open/);
   await pasos(page).locator(".rp4-cta").click();
   await pasoN(page, 3).locator(".pr6-cand").first().click();
@@ -868,6 +872,7 @@ for (const caso of [
       for(const k of String(caso.amount)) await pasoN(page, 1).locator(".v4-keys").getByRole("button",{name:k,exact:true}).click();
       await pasos(page).locator('[data-act="next"]').click();
       if(caso.kind==="fixed") await pasoN(page, 2).locator('[data-rp4-dia="10"]').click();
+      else await pasoN(page, 2).getByRole("button",{name:caso.lang==="en"?"One day later":"Un día después"}).click();
       await pasos(page).locator('[data-act="next"]').click();
       await pasoN(page, 3).locator(".pr6-cand").first().click();
       await expect(pasos(page)).toHaveAttribute("data-paso","4");
