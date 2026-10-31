@@ -39,11 +39,13 @@ if (options["jdk-home"]) {
     if (jdk) break;
   }
 }
-assert.ok(jdk, "Falta JDK: indicar --jdk-home, JAVA_HOME o java/javac juntos en PATH; no se omite la prueba");
+if (!jdk) {
+  console.log("SKIP pro03-native-precomputed-alert: falta JDK (java y javac); indicar --jdk-home, JAVA_HOME o PATH");
+  process.exit(0);
+}
 const { java, javac } = jdk;
-const output = path.resolve(options["output-dir"] || path.join(os.tmpdir(), "aely-pro03-native"));
-fs.mkdirSync(output, { recursive: true });
-const dir = fs.mkdtempSync(path.join(output, phase + "-"));
+let runtimeParent, runtime, runtimeIdentity, dir;
+const keepEvidence = !!options["output-dir"];
 const hash = bytes => createHash("sha256").update(bytes).digest("hex");
 function durable(file, bytes) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
@@ -54,6 +56,36 @@ function durable(file, bytes) {
   return { path: file, bytes: b.length, sha256: hash(b), fileFsync: true, readbackExact: true, directoryDurabilityClaimed: false };
 }
 const json = (file, value) => durable(file, JSON.stringify(value, null, 2) + "\n");
+function assertRuntime() {
+  assert.equal(path.resolve(runtime), runtime, "runtime absoluto propio");
+  assert.equal(path.dirname(runtime), runtimeParent, "solo el hijo mkdtemp propio, nunca su padre");
+  assert.equal(fs.realpathSync(runtimeParent), runtimeParent, "padre real sin redirección");
+  const current = fs.lstatSync(runtime);
+  assert.ok(current.isDirectory() && !current.isSymbolicLink(), "root propio no sustituido por enlace");
+  assert.equal(current.dev, runtimeIdentity.dev, "dispositivo del root propio");
+  assert.equal(current.ino, runtimeIdentity.ino, "identidad del root propio");
+  assert.equal(fs.realpathSync(runtime), runtime, "root real sin redirección");
+}
+function cleanupRuntime() {
+  assertRuntime();
+  function remove(entry) {
+    assertRuntime();
+    const relative = path.relative(runtime, entry);
+    assert.ok(!path.isAbsolute(relative) && relative !== ".." && !relative.startsWith(".." + path.sep), "cleanup dentro del runtime propio");
+    assert.equal(fs.realpathSync(path.dirname(entry)), path.dirname(entry), "no atravesar padres enlazados");
+    const stat = fs.lstatSync(entry);
+    // lstat distingue junctions/enlaces: se quita el enlace, nunca se visita su destino.
+    if (stat.isSymbolicLink()) fs.unlinkSync(entry);
+    else if (stat.isDirectory()) {
+      assert.equal(fs.realpathSync(entry), entry, "directorio real dentro del runtime");
+      for (const name of fs.readdirSync(entry)) remove(path.join(entry, name));
+      fs.rmdirSync(entry);
+    } else fs.unlinkSync(entry);
+  }
+  for (const name of fs.readdirSync(runtime)) remove(path.join(runtime, name));
+  assertRuntime();
+  fs.rmdirSync(runtime);
+}
 let attempt = 0;
 const processes = [];
 function run(command, args, label) {
@@ -228,19 +260,30 @@ public class ReceiptNativeFixture {
 
 const sourceManifest = [], results = [];
 function compileAndRun(worker, label, selectedCase) {
-  const sandbox = path.join(dir, label), sourceDir = path.join(sandbox, "sources"), classes = path.join(sandbox, "classes");
+  const sandbox = path.join(runtime, label), sourceDir = path.join(sandbox, "sources"), classes = path.join(sandbox, "classes");
   fs.mkdirSync(classes, { recursive: true });
   const files = [];
   for (const [name, text] of Object.entries({ ...doubles, "com/micartera/app/AlertCheckWorker.java": worker })) {
     const file = path.join(sourceDir, name);
-    const record = durable(file, text); sourceManifest.push({ label, ...record }); files.push(file);
+    const record = durable(file, text); sourceManifest.push({ label, transient: true, ...record }); files.push(file);
   }
-  const compiled = run(javac, ["-encoding", "UTF-8", "-d", classes, ...files], label + "-javac");
+  const compiled = run(javac, ["-J-XX:ActiveProcessorCount=1", "-J-XX:+UseSerialGC", "-encoding", "UTF-8", "-d", classes, ...files], label + "-javac");
   assert.equal(compiled.status, 0, "compilación debe pasar; no cuenta como mutante detectado");
-  return run(java, ["-Dfile.encoding=UTF-8", "-cp", classes, "com.micartera.app.ReceiptNativeFixture", selectedCase], label + "-java");
+  return run(java, ["-XX:ActiveProcessorCount=1", "-XX:+UseSerialGC", "-Dfile.encoding=UTF-8", "-cp", classes, "com.micartera.app.ReceiptNativeFixture", selectedCase], label + "-java");
 }
-let original;
+let original, failure = null, cleanupError = null, runtimeRemoved = false;
 try {
+  runtimeParent = fs.realpathSync(os.tmpdir());
+  runtime = fs.mkdtempSync(path.join(runtimeParent, "aely-pro03-native-runtime-"));
+  runtimeIdentity = fs.lstatSync(runtime);
+  assertRuntime();
+  if (keepEvidence) {
+    const output = path.resolve(options["output-dir"]);
+    fs.mkdirSync(output, { recursive: true });
+    const realOutput = fs.realpathSync(output), relative = path.relative(runtime, realOutput);
+    assert.ok(relative === ".." || relative.startsWith(".." + path.sep) || path.isAbsolute(relative), "evidencia fuera del runtime que se recoge");
+    dir = fs.mkdtempSync(path.join(realOutput, phase + "-"));
+  } else dir = runtime;
   if (phase === "baseline") {
     const read = run("git", ["show", options["source-ref"] + ":" + sourcePath], "baseline-source");
     assert.equal(read.status, 0, "lectura exacta de base"); original = read.stdout;
@@ -276,9 +319,24 @@ try {
       results.push({ mutation: mutation.id, killer: mutation.killer, detectedByBehavior: true, javaExit: execution.status });
     }
   }
-  json(path.join(dir, "RESULT.json"), { phase, status: "PASS", sourceManifest, processes, results, javaWorkerExecuted: true, androidParserFrameworkDeviceValidated: false });
-  console.log(JSON.stringify({ phase, output: dir, results, javaWorkerExecuted: true, androidValidated: false }));
 } catch (error) {
-  json(path.join(dir, "RESULT.json"), { phase, status: "FAIL", error: String(error), sourceManifest, processes, results, androidValidated: false });
+  failure = String(error);
   console.error(error); process.exitCode = 1;
+} finally {
+  if (runtime) {
+    try { cleanupRuntime(); runtimeRemoved = true; }
+    catch (error) { cleanupError = String(error); console.error("Cleanup: " + cleanupError); process.exitCode = 1; }
+  }
+  const report = {
+    phase, status: failure || cleanupError ? "FAIL" : "PASS", error: failure, cleanupError,
+    runtimePath: runtime || null, runtimeRemoved, sourceManifest, processes, results,
+    javaWorkerExecuted: processes.some(p => p.command === java && p.error === null),
+    androidParserFrameworkDeviceValidated: false
+  };
+  // Solo --output-dir conserva pruebas: la ejecución normal no deja fuentes, clases ni logs TEMP.
+  if (keepEvidence && dir) {
+    try { json(path.join(dir, "RESULT.json"), report); }
+    catch (error) { report.status = "FAIL"; console.error(error); process.exitCode = 1; }
+  }
+  console.log(JSON.stringify({ ...report, output: keepEvidence && dir ? dir : null, evidenceRetained: keepEvidence && !!dir }));
 }
