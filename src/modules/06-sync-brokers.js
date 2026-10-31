@@ -379,10 +379,37 @@ function trSignalStatus(connected, opts){
   try{ window.dispatchEvent(new CustomEvent("mc-tr-status",{detail:{connected:!!connected, ack:!!opts.ack, authExpired:!!opts.authExpired}})); }catch(e){}
 }
 function markTrConnected(opts){ try{ localStorage.removeItem("_trAuthExpired"); }catch(e){} trSignalStatus(true, opts||{}); }
-// La APK actual no entrega edad/causa nativa estructurada: unknown es deliberado. Nunca
-// deducirlas del error libre ni de lastTrSync, que fecha la cartera y no las cookies.
-function trLogFailure(origin, code){
-  try{ const sent=cloud.logEvent("error","tr_sync",JSON.stringify({schema:1,code:code,origin:origin,snapshotAge:"unknown"})); if(sent&&typeof sent.catch==="function") sent.catch(function(){}); }catch(e){}
+// Edad y causa salen SOLO del `diag` estructurado del puente (APK con login v2, 31/10/2026); la
+// APK 62 no lo trae y queda unknown. Nunca deducirlas del error libre ni de lastTrSync, que fecha
+// la cartera y no las cookies. El sanitizador de 00-core vuelve a filtrar cada campo.
+function trLogFailure(origin, code, diag){
+  try{ const sent=cloud.logEvent("error","tr_sync",JSON.stringify(Object.assign({schema:1,code:code,origin:origin},trDiagFields(diag)))); if(sent&&typeof sent.catch==="function") sent.catch(function(){}); }catch(e){}
+}
+function trDiagFields(diag){
+  const out={snapshotAge:"unknown"};
+  if(!diag||typeof diag!=="object") return out;
+  const age=diag.snapAgeMin;
+  if(typeof age==="number"&&isFinite(age)) out.snapshotAge=age<0?"invalid_clock":age<5?"lt_5m":age<60?"m5_lt_60m":age<1440?"h1_lt_24h":"ge_24h";
+  else if(diag.restore==="no_snapshot") out.snapshotAge="no_snapshot";
+  if(diag.api==="v1"||diag.api==="v2") out.api=diag.api;
+  const h=diag.http;
+  if(typeof h==="number"&&h>=400) out.http=h>=500?"5xx":[400,401,403,404,405,410,426,429].indexOf(h)>=0?String(h):"other";
+  if(typeof diag.trCode==="string"&&/^[A-Z][A-Z_]{2,39}$/.test(diag.trCode)) out.trCode=diag.trCode;
+  if(["not_yet","no_snapshot","hot_jar","yes"].indexOf(diag.restore)>=0) out.restore=diag.restore;
+  return out;
+}
+/* Versión y plataforma que manda el login v2 de TR (ver TradeRepublicPlugin.login). Las fija
+   la web de TR en cada despliegue y, si se quedan viejas, TR responde 426: viven AQUÍ para
+   poder corregirlas por OTA sin APK nueva. Valores de pytr (ab39136 + #382, octubre 2026). */
+const TR_V2_CLIENT={appVersion:"2.2631.13", platform:"web-pro"};
+// Clave de UNA línea para la tarjeta: el texto del puente trae códigos HTTP y el estado de las
+// cookies, y llegó tal cual a la pantalla de la familia (31/10/2026). Ese detalle va a telemetría.
+function trErrKey(r){
+  // Solo la APK 62 (puente sin `diag`) necesita actualizarse: su login v1 es el que TR está
+  // retirando. Con el puente nuevo, un 400/426 de v2 se arregla por OTA (TR_V2_CLIENT) y pedir
+  // «actualiza la app» a quien ya tiene la última no sirve de nada (revisión 31/10/2026).
+  if(r&&!r.diag&&typeof r.error==="string"&&/^login HTTP (400|405|426)\b/.test(r.error)) return "tr_err_update";
+  return "tr_err";
 }
 // Ambos consumidores de status comparten etiqueta: logEvent deduplica el mismo aviso en
 // esta sesión aunque se remonte la tarjeta o cambie el motivo. No se toca la conexión.
@@ -398,20 +425,24 @@ function TRSync({state, set, totals, open, onToggle}){
   const [busy,setBusy]=useState(false);
   const [expired,setExpired]=useState(false);   // authExpired explícito del puente: formulario con aviso propio
   const [err,setErr]=useState(false);
-  const [errMsg,setErrMsg]=useState("");   // mensaje REAL que devuelve TR (para no depurar a ciegas)
+  const [errKey,setErrKey]=useState("");   // clave i18n de la línea de error (el detalle va a telemetría)
   const [processId,setProcessId]=useState(null);
   const [connected,setConnected]=useState(false);
   const [positions,setPositions]=useState(null);
   const [cash,setCash]=useState(null);
   const [map,setMap]=useState({});
   const [doneN,setDoneN]=useState(null);
+  // Cómo se confirma el login: «code» (v1, código de 4 dígitos), «push» (v2, se aprueba en la app
+  // de TR) o «authenticator» (v2 con app autenticadora). APK 62 no lo manda → «code», como siempre.
+  const [flow,setFlow]=useState("code");
+  const [api,setApi]=useState("v1");
   useEffect(function(){
     if(!bridge||!bridge.status) return;
     Promise.resolve(bridge.status()).then(function(r){ trLogStartupStatus(r); if(r&&r.connected) setConnected(true); }).catch(function(){});
   },[]);
-  // El texto sigue en la UI local; soporte recibe solo la operación y su resultado cerrado.
-  const fail=function(e,origin,code){ setBusy(false); setErr(true); const m=(e&&(e.error||e.message))||(typeof e==="string"?e:""); setErrMsg(m);
-    trLogFailure(origin,code); };
+  // La tarjeta pinta una línea traducida; soporte recibe la operación y enums cerrados del `diag`.
+  const fail=function(e,origin,code){ setBusy(false); setErr(true); setErrKey(trErrKey(e));
+    trLogFailure(origin,code,e&&e.diag); };
   // Normaliza el teléfono a formato internacional (TR exige +CC…). Sin prefijo → asume España (+34).
   const normPhone=function(p){
     let s=(p||"").replace(/[\s().-]/g,"");
@@ -422,14 +453,14 @@ function TRSync({state, set, totals, open, onToggle}){
   };
   const doSync=function(opts){
     opts=opts||{};
-    setBusy(true); setErr(false); setErrMsg(""); setStep("idle"); setDoneN(null);
+    setBusy(true); setErr(false); setErrKey(""); setStep("idle"); setDoneN(null);
     return Promise.resolve().then(function(){ return bridge.sync(); }).then(function(r){
       setBusy(false);
       if(r&&r.authExpired && !r.softFail && !r.wafBlocked){
         // Caducidad explícita (sin fallo temporal): al formulario con el teléfono ya puesto. Antes se
         // pedía pulsar «Desconectar» — que además borra el snapshot bueno (feedback 2026-07-17).
         setConnected(false); markTrAuthExpired(); setExpired(true); setStep("idle");
-        trLogFailure("tr_card_sync","auth_expired");
+        trLogFailure("tr_card_sync","auth_expired",r.diag);
         return;
       }
       if(r&&(r.softFail||r.wafBlocked)){ fail(r,"tr_card_sync","soft_fail"); return; }   // anti-bot: sesión sigue, no pedir 2FA
@@ -449,18 +480,26 @@ function TRSync({state, set, totals, open, onToggle}){
   };
   const doLogin=function(){
     if(!phone.trim()||!pin.trim()) return;
-    setBusy(true); setErr(false); setErrMsg("");
-    Promise.resolve().then(function(){ return bridge.login({phone:normPhone(phone),pin:pin.trim()}); }).then(function(r){
+    setBusy(true); setErr(false); setErrKey("");
+    Promise.resolve().then(function(){ return bridge.login(Object.assign({phone:normPhone(phone),pin:pin.trim()},TR_V2_CLIENT)); }).then(function(r){
       setBusy(false);
       if(!r||!r.ok){ fail(r,"tr_card_login","login_failed"); return; }
       try{ localStorage.setItem("mc_tr_phone", normPhone(phone)); }catch(e){}
-      setProcessId(r.processId||null); setStep("code");
+      const f=r.flow==="push"||r.flow==="authenticator"?r.flow:"code", a=r.api==="v2"?"v2":"v1";
+      setProcessId(r.processId||null); setFlow(f); setApi(a); setStep("code");
+      // Sin código que teclear: se espera la aprobación en la app de TR sin otro toque.
+      if(f==="push") doVerify({processId:r.processId||null,flow:f,api:a});
     }).catch(function(e){ fail(e,"tr_card_login","login_failed"); });
   };
-  const doVerify=function(){
-    if(code.trim().length<4) return;
-    setBusy(true); setErr(false); setErrMsg("");
-    Promise.resolve().then(function(){ return bridge.verify({processId:processId,code:code.trim()}); }).then(function(r){
+  // `now` llega solo desde doLogin: el estado de React aún no tiene el processId recién creado.
+  const doVerify=function(now){
+    const pr=now&&now.flow?now:{processId:processId,flow:flow,api:api};
+    const push=pr.flow==="push";
+    if(!push&&code.trim().length<4) return;
+    setBusy(true); setErr(false); setErrKey("");
+    Promise.resolve().then(function(){ return bridge.verify(Object.assign({processId:pr.processId,code:push?"":code.trim(),flow:pr.flow,api:pr.api},TR_V2_CLIENT)); }).then(function(r){
+      // Aún sin aprobar en la app de TR: no es un fallo, se puede volver a esperar.
+      if(r&&r.pending){ setBusy(false); setErr(true); setErrKey("tr_push_pending"); trLogFailure("tr_card_verify","login_pending",r.diag); return; }
       if(!r||!r.ok){ fail(r,"tr_card_verify","verify_failed"); return; }
       // Acuse visible al completar el 2FA (rechazo 4.19.0/tr-reactivo). doSync sin ack otra vez.
       setConnected(true); markTrConnected({ack:true}); setExpired(false); setCode(""); doSync();
@@ -525,10 +564,14 @@ function TRSync({state, set, totals, open, onToggle}){
           React.createElement("input",{className:"af-in",style:inpStyle,type:"password",inputMode:"numeric",placeholder:t("tr_pin_ph"),value:pin,onChange:function(e){ setPin(e.target.value); }}),
           React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:12},disabled:busy||!phone.trim()||!pin.trim(),onClick:doLogin}, busy?t("tr_connecting"):t("tr_connect"))
         ),
-        step==="code" && React.createElement(React.Fragment,null,
-          React.createElement("div",{className:"hint",style:{marginTop:0}},t("tr_code_intro")),
+        step==="code" && flow==="push" && React.createElement(React.Fragment,null,
+          React.createElement("div",{className:"hint",style:{marginTop:0}},t("tr_push_intro")),
+          React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:12},disabled:busy,onClick:function(){ doVerify(); }}, busy?t("tr_push_waiting"):t("tr_push_retry"))
+        ),
+        step==="code" && flow!=="push" && React.createElement(React.Fragment,null,
+          React.createElement("div",{className:"hint",style:{marginTop:0}},t(flow==="authenticator"?"tr_auth_intro":"tr_code_intro")),
           React.createElement("input",{className:"af-in num",style:Object.assign({},inpStyle,{letterSpacing:"0.3em",textAlign:"center",fontSize:20}),type:"tel",inputMode:"numeric",maxLength:6,placeholder:t("tr_code_ph"),value:code,onChange:function(e){ setCode(e.target.value.replace(/[^0-9]/g,"")); }}),
-          React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:12},disabled:busy||code.trim().length<4,onClick:doVerify}, busy?t("tr_verifying"):t("tr_verify"))
+          React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:12},disabled:busy||code.trim().length<4,onClick:function(){ doVerify(); }}, busy?t("tr_verifying"):t("tr_verify"))
         ),
         connected && step!=="preview" && React.createElement(React.Fragment,null,
           React.createElement("div",{className:"hint",style:{marginTop:0,color:"var(--mint)",fontWeight:700}},t("tr_connected")),
@@ -561,7 +604,7 @@ function TRSync({state, set, totals, open, onToggle}){
           React.createElement("div",{className:"hint"},t("tr_apply_hint"))
         ),
         doneN!=null && React.createElement("div",{className:"hint",style:{color:"var(--mint)",fontWeight:700}},tf("tr_done",{n:doneN})),
-        err && React.createElement("div",{className:"alarmbox",style:{marginTop:10}}, errMsg? (t("tr_err")+" ("+errMsg+")") : t("tr_err"))
+        err && React.createElement("div",{className:"alarmbox",style:{marginTop:10}}, t(errKey||"tr_err"))
       );
   return React.createElement("div",{className:"bk-card bk-tr"},
     bkBrand({logo:"TR", logoStyle:{background:"#111",color:"#fff"}, title:t("tr_title"), sub:t("tr_sub"),

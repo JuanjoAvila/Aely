@@ -925,6 +925,10 @@ diagonal de un gesto horizontal deliberado: el primero conserva la ola y el segu
 pestaña sin obligar a subir antes. También verifican que Gastos y Ajustes conserven `overflow`
 desplazable sin dibujar la barra lateral.
 `tests/tr-open-banking.test.mjs` protege contra el antiguo corte global de 150 movimientos.
+`tests/tr-login-v2.test.mjs` (también en el recorte de Android) fija el contrato del login de TR
+con caída a v2: el puente prueba v2 tras un 400/405/426 de v1, la tarjeta espera la aprobación por
+aviso sin pedir código, pinta una sola línea traducida y a telemetría solo van enums del `diag`.
+No hace peticiones a TR: el HTTP real solo se comprueba con la cuenta del usuario en su móvil.
 
 ## Tiempos y preparación de Novedades
 

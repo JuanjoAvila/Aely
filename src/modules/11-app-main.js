@@ -1315,10 +1315,10 @@ function App(){
           tried++; let request;
           try{ request=bridge.sync(); }catch(e){ soft.push("Trade Republic"); trLogFailure("broker_manual_sync","sync_rejected"); return Promise.resolve(); }
           return Promise.resolve(request).then(function(res){
-          if(res&&res.authExpired&&!res.softFail&&!res.wafBlocked){ expiredB.push("Trade Republic"); signalTrDead(); trLogFailure("broker_manual_sync","auth_expired"); return; }
+          if(res&&res.authExpired&&!res.softFail&&!res.wafBlocked){ expiredB.push("Trade Republic"); signalTrDead(); trLogFailure("broker_manual_sync","auth_expired",res.diag); return; }
           /* anti-bot/hipo: en automático silencio y se reintenta luego. Pero si lo has pedido TÚ, callarse
              es el «sale conectado pero no te avisa ni nada» (rechazo tr-reactivo, 8/9): se dice. */
-          if(!res||!res.ok||!Array.isArray(res.positions)){ soft.push("Trade Republic"); trLogFailure("broker_manual_sync",res&&(res.softFail||res.wafBlocked)?"soft_fail":"sync_invalid"); return; }
+          if(!res||!res.ok||!Array.isArray(res.positions)){ soft.push("Trade Republic"); trLogFailure("broker_manual_sync",res&&(res.softFail||res.wafBlocked)?"soft_fail":"sync_invalid",res&&res.diag); return; }
           signalTrAlive({manual:opts.manual});
           applyBrokerPositions(res.positions, "lastTrSync", res.cash); updatedB.push("Trade Republic");
         },function(){ soft.push("Trade Republic"); trLogFailure("broker_manual_sync","sync_rejected"); }).catch(function(){ soft.push("Trade Republic"); trLogFailure("broker_manual_sync","client_error"); }); };

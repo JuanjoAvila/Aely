@@ -1120,13 +1120,20 @@ del sync manual general pasan por `trLogFailure` y el `cloud.logEvent` existente
 
 | Campo | Valores admitidos |
 |---|---|
-| `code` | `auth_expired`, `soft_fail`, `sync_invalid`, `sync_rejected`, `status_rejected`, `status_inactive`, `client_error`, `login_failed`, `verify_failed`, `unknown` |
+| `code` | `auth_expired`, `soft_fail`, `sync_invalid`, `sync_rejected`, `status_rejected`, `status_inactive`, `client_error`, `login_failed`, `verify_failed`, `login_pending`, `unknown` |
 | `origin` | `tr_card_sync`, `broker_manual_sync`, `tr_card_login`, `tr_card_verify`, `status_check`, `unknown` |
 | `snapshotAge` | `unknown`, `no_snapshot`, `invalid_clock`, `lt_5m`, `m5_lt_60m`, `h1_lt_24h`, `ge_24h` |
+| `api` (opcional) | `v1`, `v2` |
+| `http` (opcional) | `400`, `401`, `403`, `404`, `405`, `410`, `426`, `429`, `5xx`, `other` |
+| `trCode` (opcional) | `errorCode` de TR que case `^[A-Z][A-Z_]{2,39}$` (sin dígitos ni `@`) |
+| `restore` (opcional) | `not_yet`, `no_snapshot`, `hot_jar`, `yes` |
 
-Todos los productores de esta entrega emiten `snapshotAge:unknown`: la APK existente no entrega
-edad estructurada. Los tramos reservan menos de5min, de5min a menos de1h, de1h a menos de24h y
-24h o más; no se calcula edad desde `lastTrSync`, el texto del error ni timestamps del cliente.
+La APK 62 no entrega edad estructurada y emite `snapshotAge:unknown` sin campos opcionales. Desde
+el login v2 (31/10/2026) el puente devuelve en los fallos un `diag` aparte del texto de `error`, y
+`trDiagFields` lo traduce: la edad sale de `diag.snapAgeMin` en minutos. Los tramos reservan menos
+de5min, de5min a menos de1h, de1h a menos de24h y 24h o más; no se calcula edad desde
+`lastTrSync`, el texto del error ni timestamps del cliente. Los nombres de cookie del `diag` no
+viajan. La tarjeta pinta una sola línea traducida (`trErrKey`), nunca el texto del puente.
 JSON inválido, campos extra y valores fuera de lista no pasan al registro. El prefijo antiguo
 `TR sync:` conserva la ruta sin analizar su texto para inferir una causa.
 
