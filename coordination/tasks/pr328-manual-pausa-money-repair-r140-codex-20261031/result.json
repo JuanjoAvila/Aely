@@ -1,0 +1,18 @@
+{
+  "status": "blocked",
+  "summary": "Cierre propio para relevo horario, en espera segura por prioridad UX17. WIP privado durable preservado sobre HEAD555fe; ninguna reparacion validada ni publicada.",
+  "tests": [],
+  "productSHA": "555fe0c3656a3aeb948ff2423c79f674c5b3f92c",
+  "limitations": [
+    "Cero tests, build, runner ENTER, commit y push de producto en esta identidad.",
+    "Candidatos B1/B2/R2 y anotacion PR330 solo en WIP privado; revision y pruebas pendientes.",
+    "Claim y presupuesto de este titular no se transfieren; sucesor necesita nueva recepcion, admision, OWN y claim.",
+    "Permiso e2e permanente conocido, pero no levanta la espera de esta tarea."
+  ],
+  "schema": 1,
+  "taskId": "pr328-manual-pausa-money-repair-r140-codex-20261031",
+  "actor": "codex",
+  "sessionId": "codex-local-20261031-pr328-r140-nrelay54ed6f7db83bddc339e8f703778da600",
+  "createdAt": "2026-10-31T13:43:31.345Z",
+  "released": true
+}
