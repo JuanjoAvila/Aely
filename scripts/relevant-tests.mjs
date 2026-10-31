@@ -124,6 +124,8 @@ export const E2E_MAP = [
   { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/plan-recibos-t6.spec.mjs"] },
   // «Pasar a Recibos» de Gastos pone el mes de alta (`createdYm`) que lee el resumen.
   { file: "src/modules/04-tab-gastos.js", specs: ["e2e/plan-recibos-t6.spec.mjs"] },
+  // La mezcla de las fotos del mes al bajar de la nube vive en `syncFromCloud` (11).
+  { file: "src/modules/11-app-main.js", specs: ["e2e/plan-recibos-t6.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/plan-recibos-t6.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/plan-recibos-t6.spec.mjs"] },
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/ux16-round9-haptics.spec.mjs", "e2e/ux16-haptics.spec.mjs", "e2e/ux16-round2-haptics.spec.mjs", "e2e/ux16-round3-haptics.spec.mjs", "e2e/ux16-ajustador.spec.mjs"] },

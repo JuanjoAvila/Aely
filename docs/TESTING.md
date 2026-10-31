@@ -884,8 +884,12 @@ sep»; marcado a mano sin «no llegaron»; el 8/11 ya no sale. «Dic ›» cambi
 vista entra de lado), el atrás (`_mcBackCloseNative`) y pasar por Gastos vuelven a noviembre, y en
 catalán «A l'abril». Primer uso: sin cargos, alta por pasos; con cargos, importación con el último
 importe (Netflix 13,99), sin «Octubre cerrado» tras importar el 1/11, y un doble toque en «Añadir»
-no abre Apuntar. Los casos «(revisión)» fallan con el bundle de 799859495. Está en `E2E_MAP` para
-`14-v4-screens`, `08-motor-bank`, `07-tab-patri-fijos`, `04-tab-gastos`, `01-i18n` y `shell.html`.
+no abre Apuntar. Los casos «(revisión)» fallan con el bundle de 799859495. Revisión R2: el banco
+Node fija que lo de hoy solo sube un cargo a pagado (nunca «no se sabe» → «no llegó»), que sin
+cambios `planRecibosConFoto` devuelve el mismo estado (también otro día sin movimientos nuevos) y
+que dos móviles con extractos distintos convergen con `pr6FotosUnion` sin volver a escribir; el e2e
+cuenta cero escrituras en tres vueltas a primer plano. Está en `E2E_MAP` para `14-v4-screens`,
+`08-motor-bank`, `07-tab-patri-fijos`, `04-tab-gastos`, `11-app-main`, `01-i18n` y `shell.html`.
 
 Descarga incompleta (candidato13/10): `tests/bank-download-incomplete.test.mjs`, registrado en
 runner y `STEPS_SUPABASE`, ejecuta lector, handler y updater real de App. Compara el updater con
