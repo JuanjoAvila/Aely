@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "id": "pro03-receipt-eve-forecast-r147-codex-20261031",
+  "from": "codex",
+  "coordinatorSession": "nrelay2861fb2a8f681b75e8643117e23d119a",
+  "createdAt": "2026-10-31T20:28:24.098Z",
+  "to": "codex",
+  "baseSHA": "c89bb12c528f079640a514b95334c21b9df2d2c1",
+  "objective": "PRO03: el aviso de la vispera de un recibo dice si el saldo previsto llega con la MISMA cifra de Te llega (pendingWalkEvents/minByBank), sin reglas nuevas. Texto de una linea es/en/ca; sin saldo leido no afirma si llega.",
+  "scope": [
+    "src/modules/11-app-main.js",
+    "src/modules/01-i18n.js",
+    "src/modules/08-motor-bank.js",
+    "tests/pro03-receipt-eve-forecast.test.mjs",
+    "scripts/run-tests.mjs",
+    "docs/ARQUITECTURA.md"
+  ],
+  "authority": [
+    "2b724590d9bf0c6d195396b2ab407be8035183b3",
+    "d43a86b5982b4260349cef58f37ed5ecba5ddf41",
+    "7188f09dd641ffd90c5a2455196b1385c4bb084c",
+    "7f04ec10af629419675f802a122917fe0fa9ced0"
+  ],
+  "acceptance": [
+    "Usar proyeccion real compartida de Te llega: pendingWalkEvents/minByBank del banco correcto, mismos centimos y orden temporal; no estimacion nueva ni restar el recibo dos veces. No inferir banco ni saldo si desconocidos.",
+    "No afirmar llega/no llega sin saldo leido segun validadores existentes; texto exacto de una linea en es/en/ca. Conservar importe exacto, condiciones de pago/pausa/ocurrencia y deduplicacion previa de avisos.",
+    "Analizar ambos efectos reales de alerta web y calendario enviado a setAlertData/AlertCheckWorker, asi como deuda y borde de mes. Leer Java actual solo para plan: sin modificar Android, Gradle o APK bajo este encargo inicial; si se requiere ampliar path para cerrar app, reportar plan concreto al ROOT antes de esa edicion. No presentar web sola como entrega completa del circuito.",
+    "Checkout/rama nuevos desde baseSHA exacto, sin heredar R2 o portar PR333/PR332 por inferencia. Un escritor y runner. Fuentes terminadas inmutables.",
+    "Preparar candidato privado/diff, evidencia de dependencias reales y matriz dirigida red/green/causal en centimos con base y oraculos independientes antes ENTER; adaptacion de harness para dependencias reales autorizada, sin stubs de logica financiera ni relajar aserciones.",
+    "Solo ejecutar Node/e2e dirigidos tras GO concreto ROOT de matriz exacta. Propias corridas seriales,0retry,stopfirstunexpected; stdout/stderr/rawexit durables. No repetir tests cerrados sin cambio/fallo nuevo.",
+    "Cada punto PR draft separada contra beta con revision independiente de candidato y HEAD exacto antes commit/push; reportar limites de CI/servido/movil y no ProductREADY."
+  ],
+  "constraints": [
+    "Recepcion exclusiva ACK + admision/receipt/confirmacion nativos antes helper/canal/claim/producto. Sesion/nonce/OWN20 propios nuevos desde0; no heredar claim/lease/counters/plazos. Primera espera y notice/readback>=30s, FULLRAW+ACK todos deltas/cancelaciones desde watermark dado.",
+    "Solo trabajador publica claim/result/RETURN propios para taskId exacto; reporta exclusivamente a coordinador admitido, nunca a Claude. Solo ROOT coordina a Claude.",
+    "Preparacion/correccion privada solo tras nueva claim confirmada y GO concreto; ENTER/commit/push/PR separados con revision previa.",
+    "LauncherFOCAL01 rechazado sigue vinculante: no escribir/reintentar/ejecutar/equivalente/inline/proxy/otra identidad; sin wrapper de afinidad/PID/CPU1claim. Node directo no levanta ese rechazo.",
+    "No suite entera/npmtest/build/CPU6/Chromium/Gradle/APK/backend/SQL/Edge/servidor/deploy/merge/version/notas/catalogo/caps/datos reales ni scope ajeno por arrastre.",
+    "No tocar procesos o recursos ajenos; Node/e2e dirigidos pueden coexistir con integrador bajo7f04ec10, propias corridas en serie.",
+    "R2 y PR332 terminadas: no reabrir claims/helpers/WT ni repetir sus pruebas. PRO03 precede mes cerrado; no empezar servidor ni PR330/UX17/FIN cerradas.",
+    "Reloj propio60min desde admision, safe50min: terminar operacion actual al primer punto seguro; si termina tarea archivar sin sucesor tras entrega/cierre verificados."
+  ],
+  "deliverable": "Candidato privado PRO03 con proyeccion/ausencia de lectura/textos/avisos existentes preservados, matriz causal exacta revisada; luego commit y PRdraft bajo GO separado.",
+  "initialState": "TASK_PREPARED_NO_WORKER_NO_CLAIM_NO_PRODUCT_GO"
+}
