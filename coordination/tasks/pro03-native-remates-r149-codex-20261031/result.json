@@ -1,0 +1,47 @@
+{
+  "status": "done",
+  "summary": "PRO03 PR335 R3/R4 delivered in one normal fast-forward commit: new invocation-owned transient sources/classes/logs are collected on success and failure; explicit output keeps durable diagnostics outside runtime. Missing JDK clearly skips with exit 0; real javac/java failures remain nonzero. Original worker and 120 behavioral oracles unchanged.",
+  "tests": [
+    {
+      "command": "Reviewed PRO03 remates six-child driver, one invocation",
+      "exitCode": 0,
+      "childExits": [
+        0,
+        0,
+        0,
+        1,
+        1,
+        1
+      ],
+      "behavioralCases": 120,
+      "javacInvocations": 3,
+      "javaInvocations": 2,
+      "transientRuntimeRootsRemoved": 4,
+      "sentinelsUnchanged": 17,
+      "retries": 0,
+      "details": "T1 real worker candidate PASS120; T2 explicit missing-JDK SKIP0; T3 registered no-argument missing-JDK entry SKIP0; T4 real javac failure1; T5 real java missing-class failure1; T6 linked-target cleanup with intentional failure1. Negative fixtures are isolated copies. No closed baseline/causal reruns."
+    }
+  ],
+  "productSHA": "4ff10717534fe24b824e3c4407efb500d5bc4da9",
+  "productTree": "89735f13ef13440bdbb2e3c022c7aae13b76fa36",
+  "pullRequest": 335,
+  "branch": "codex/pro03-nativo-r148",
+  "scope": [
+    "tests/pro03-native-precomputed-alert.test.mjs",
+    "docs/TESTING.md"
+  ],
+  "remoteBranchAndPRHeadConfirmed": true,
+  "limitations": [
+    "R1/R2 remain the shared WEB producer PR334 integration dependency; no speculative Java money or translation logic.",
+    "JVM doubles do not validate Android parser/framework, device, APK or served beta.",
+    "No new full suite, build, Gradle, APK, backend, deployment or merge. ProductREADY false."
+  ],
+  "resourcesReturned": true,
+  "ProductREADY": false,
+  "schema": 1,
+  "taskId": "pro03-native-remates-r149-codex-20261031",
+  "actor": "codex",
+  "sessionId": "nrelay70e25ecdc4bc5c2cdb6947c8c2494125",
+  "createdAt": "2026-10-31T22:28:53.467Z",
+  "released": true
+}
