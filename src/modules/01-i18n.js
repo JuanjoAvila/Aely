@@ -158,7 +158,7 @@ const LANG = {
     pr6_entra_en:"entra en {bank}", pr6_dia:"día {d}", pr6_dia_menos:"Un día antes", pr6_dia_mas:"Un día después",
     pr6_sin_restar:"Pagado, aún sin restar del saldo", pr6_fresh_now:"saldo de ahora", pr6_fresh_min:"saldo de hace {n} min", pr6_fresh_h:"saldo de hace {n} h", pr6_fresh_ayer:"saldo de ayer", pr6_fresh_d:"saldo de hace {n} días", pr6_fresh_fecha:"saldo del {x}",
     // Plan › Recibos v6, tanda 6: resumen del mes cerrado, vista del mes siguiente y primer uso.
-    pr6c_titulo:"{mes} cerrado", pr6c_linea:"{x} en recibos", pr6c_mas:"{x} más que {mes}", pr6c_menos:"{x} menos que {mes}", pr6c_igual:"igual que {mes}",
+    pr6c_titulo:"{mes} cerrado", pr6c_vs:"{d} vs. {mes}", pr6c_igual:"igual que {mes}",
     pr6c_sube:"{name}, más que {mes}", pr6c_subio:"{name} subió", pr6c_bajo:"{name} bajó", pr6c_no_llegaron:"Recibos que no llegaron", pr6c_cerrar:"Cerrar el resumen",
     pr6_se_van:"Se te van en {month}", pr6_nada_sig:"Nada previsto en {month}",
     pr6_onb_n:"{n} cargos que se repiten", pr6_onb_1:"1 cargo que se repite", pr6_onb_en:"en {x}", pr6_onb_vacio:"Aún no tienes recibos", pr6_empezar:"Empezar",
@@ -492,7 +492,7 @@ const LANG = {
     pr6_entra_en:"goes into {bank}", pr6_dia:"day {d}", pr6_dia_menos:"One day earlier", pr6_dia_mas:"One day later",
     pr6_sin_restar:"Paid, not yet in the balance", pr6_fresh_now:"balance from just now", pr6_fresh_min:"balance from {n} min ago", pr6_fresh_h:"balance from {n} h ago", pr6_fresh_ayer:"balance from yesterday", pr6_fresh_d:"balance from {n} days ago", pr6_fresh_fecha:"balance from {x}",
     // Plan › Bills v6, batch 6: closed-month summary, next-month view and first use.
-    pr6c_titulo:"{mes} closed", pr6c_linea:"{x} in bills", pr6c_mas:"{x} more than {mes}", pr6c_menos:"{x} less than {mes}", pr6c_igual:"same as {mes}",
+    pr6c_titulo:"{mes} closed", pr6c_vs:"{d} vs {mes}", pr6c_igual:"same as {mes}",
     pr6c_sube:"{name}, more than {mes}", pr6c_subio:"{name} went up", pr6c_bajo:"{name} went down", pr6c_no_llegaron:"Bills that didn't arrive", pr6c_cerrar:"Close the summary",
     pr6_se_van:"Going out in {month}", pr6_nada_sig:"Nothing due in {month}",
     pr6_onb_n:"{n} repeating charges", pr6_onb_1:"1 repeating charge", pr6_onb_en:"in {x}", pr6_onb_vacio:"No bills yet", pr6_empezar:"Get started",
@@ -813,7 +813,7 @@ const LANG = {
     pr6_entra_en:"entra a {bank}", pr6_dia:"dia {d}", pr6_dia_menos:"Un dia abans", pr6_dia_mas:"Un dia després",
     pr6_sin_restar:"Pagat, encara sense restar del saldo", pr6_fresh_now:"saldo d'ara", pr6_fresh_min:"saldo de fa {n} min", pr6_fresh_h:"saldo de fa {n} h", pr6_fresh_ayer:"saldo d'ahir", pr6_fresh_d:"saldo de fa {n} dies", pr6_fresh_fecha:"saldo del {x}",
     // Pla › Rebuts v6, tanda 6: resum del mes tancat, vista del mes següent i primer ús.
-    pr6c_titulo:"{mes} tancat", pr6c_linea:"{x} en rebuts", pr6c_mas:"{x} més que {mes}", pr6c_menos:"{x} menys que {mes}", pr6c_igual:"igual que {mes}",
+    pr6c_titulo:"{mes} tancat", pr6c_vs:"{d} vs. {mes}", pr6c_igual:"igual que {mes}",
     pr6c_sube:"{name}, més que {mes}", pr6c_subio:"{name} ha pujat", pr6c_bajo:"{name} ha baixat", pr6c_no_llegaron:"Rebuts que no han arribat", pr6c_cerrar:"Tanca el resum",
     pr6_se_van:"Previst · {month}", pr6_nada_sig:"Res previst per a {month}",
     pr6_onb_n:"{n} càrrecs que es repeteixen", pr6_onb_1:"1 càrrec que es repeteix", pr6_onb_en:"a {x}", pr6_onb_vacio:"Encara no tens rebuts", pr6_empezar:"Comença",

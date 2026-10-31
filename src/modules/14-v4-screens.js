@@ -245,7 +245,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     ),
     capa("recibos", simple
       ? React.createElement(PlanBills,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen})
-      : React.createElement(PlanRecibos,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen,
+      : React.createElement(PlanRecibos,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen,activo:seg==="recibos",
           manageEdit:manageEdit,setManageEdit:setManageEdit,showToast:showToast,onGoDebts:irADeuda})),
     !simple && capa("deudas", React.createElement(Debts,{state:state,set:set,showToast:showToast})),
     !simple && capa("metas", React.createElement(Goals,{state:state,set:set,totals:totals,showToast:showToast}))
@@ -556,7 +556,7 @@ function pr6FrescuraTxt(ms, now){
   if(d<7) return tf("pr6_fresh_d",{n:d});
   return tf("pr6_fresh_fecha",{x:a.toLocaleDateString(loc(),{day:"numeric",month:"short"})});
 }
-function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setManageOpen, manageEdit, setManageEdit, showToast, onGoDebts}){
+function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setManageOpen, manageEdit, setManageEdit, showToast, onGoDebts, activo}){
   const [revOpen,setRevOpen]=useState(false);
   const [dueOpen,setDueOpen]=useState(false);
   const [paidOpen,setPaidOpen]=useState(false);
@@ -585,8 +585,9 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   const vacio=!(state.fixed||[]).length&&!(state.oneoffs||[]).length&&!(state.debts||[]).some(debtActive)&&!(state.flows||[]).length;
   /* Resumen del mes cerrado (SPEC §2.1): los primeros días del mes, hasta que se cierre. El
      descarte es de ESE mes y vive en `settings` para que el otro móvil no lo vuelva a sacar. */
+  const fotos=state.settings&&state.settings.pr6Fotos;
   const cerrado=useMemo(function(){ return !vacio&&today<=PR6_CERRADO_DIAS?planRecibosMesCerrado(state,year,month):null; },
-    [vacio,today,year,month,state.fixed,state.debts,state.oneoffs,state.flows,state.bankTx,state.accounts,state.expenses,state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
+    [vacio,today,year,month,fotos,state.fixed,state.debts,state.oneoffs,state.flows,state.bankTx,state.accounts,state.expenses,state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
   const cerradoNo=Number(state.settings&&state.settings.pr6CerradoNo)||0;
   const [cerradoAbierto,setCerradoAbierto]=useState(false);
   const [cerradoSale,setCerradoSale]=useState(false);
@@ -602,6 +603,12 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
       set(function(s){ return Object.assign({},s,{settings:Object.assign({},s.settings||{},{pr6CerradoNo:ym})}); });
     },mcReduced()?0:400);
   };
+  /* Foto del mes en curso (ver `planRecibosConFoto`, 08): lo que Plan enseña hoy, para que el
+     resumen del mes que viene no tenga que releer este mes con datos que ya habrán cambiado. Sin
+     sello de edición (`set(…, false)`): es lectura, no algo que él haya cambiado. */
+  useEffect(function(){
+    set(function(s){ return planRecibosConFoto(s,year,month,today,pack,proof); },false);
+  },[pack,proof,year,month,today]);
   const [impOpen,setImpOpen]=useState(false);
   const [addNow,setAddNow]=useState(0);
   const importables=useMemo(function(){ return vacio?pr6Importables(state):[]; },[vacio,state.expenses,state.fixed]);
@@ -746,11 +753,28 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   // Al cambiar de mes la lista vuelve a sus tres primeras: lo desplegado era del otro mes.
   // La entrada lateral solo al cambiar: al abrir Plan la tarjeta ya sube con `rise`.
   const [vistaAnim,setVistaAnim]=useState(false);
-  const cambiarVista=function(){ setDueOpen(false); setVistaAnim(true); setVista(sig?"mes":"sig"); };
+  const irVista=function(v){ setDueOpen(false); setVistaAnim(true); setVista(v); };
+  const cambiarVista=function(){ irVista(sig?"mes":"sig"); };
+  /* El mes siguiente es una capa más: el atrás (también el de la APK) vuelve primero al mes en
+     curso. Y al salir de Recibos (otro segmento u otra pestaña) se vuelve al mes en curso: Plan
+     está premontado y, si no, al volver seguía en diciembre (revisión 31/10/2026). La pestaña
+     activa no llega como prop a propósito (11-app-main.js: cambiar de pestaña no re-renderiza las
+     páginas), así que se mira la pestaña de Plan de la barra (`active`) solo mientras dura la vista.
+     La clase de la página no sirve: `page-live` la llevan también las vecinas premontadas. */
+  useBackClose(sig,function(){ irVista("mes"); });
+  useEffect(function(){ if(sig&&activo===false) setVista("mes"); },[sig,activo]);
+  useEffect(function(){
+    if(!sig) return undefined;
+    const tab=document.querySelector('.botnav-tab[data-tour="plan"]');
+    if(!tab||typeof MutationObserver==="undefined") return undefined;
+    const mo=new MutationObserver(function(){ if(!tab.classList.contains("active")) setVista("mes"); });
+    mo.observe(tab,{attributes:true,attributeFilter:["class"]});
+    return function(){ mo.disconnect(); };
+  },[sig]);
   const sigN=sigPack?sigPack.pendingBills.length:0;
-  const tarjeta=React.createElement("div",{className:"v4-card v4-card-hero rise pr6-sum","data-testid":"plan-summary","data-vista":vista},
-    // Con `key` el contenido se vuelve a montar y entra desde el lado hacia el que se va (CSS).
-    React.createElement("div",{className:"pr6-vista"+(vistaAnim?" anim":"")+(sig?" sig":""),key:vista},
+  // Al cambiar de mes la tarjeta no repite su `rise`: entra de lado con el resto de la vista.
+  const tarjeta=React.createElement("div",{className:"v4-card v4-card-hero pr6-sum"+(vistaAnim?"":" rise"),"data-testid":"plan-summary","data-vista":vista},
+    React.createElement("div",{className:"pr6-vista"},
       React.createElement("div",{className:"pr6-sum-h"},
         React.createElement("div",{className:"v4-micro"}, sig?tf("pr6_se_van",{month:monthLong(sigM-1)}):tf("v4_plan_left",{month:monthLong(month-1)})),
         React.createElement("button",{type:"button",className:"pr6-mes-nav","data-testid":"plan-mes-nav",onClick:cambiarVista,
@@ -769,6 +793,11 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
           React.createElement("svg",{className:"pr6-pill-go",width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
             React.createElement("path",{d:"M9 6l6 6-6 6"}))))));
   const manage=React.createElement(BillsManagePush,{open:manageOpen,onClose:function(){ setManageOpen(false); setManageEdit(null); setAddNow(0); },state:state,set:set,totals:totals,simple:false,editId:manageEdit,addNow:addNow});
+  /* La hoja de importar vive fuera de la rama del primer uso: al añadir, el plan deja de estar
+     vacío y, dentro de esa rama, la hoja se desmontaba de golpe; el segundo toque de un doble
+     toque caía entonces en el «+» de abajo (revisión 31/10/2026). Ahora cierra con su animación y
+     añade al terminar, con el velo aún encima. */
+  const importar=impOpen&&React.createElement(RecibosImportSheet,{items:importables,set:set,showToast:showToast,onClose:function(){ setImpOpen(false); }});
   if(vacio){
     // Con cargos repetidos en el banco, la importación; sin ellos, directo al alta por pasos.
     const empezar=function(){
@@ -785,7 +814,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
           React.createElement("span",{className:"serif pr6-onb-n"}, importables.length?tf(importables.length===1?"pr6_onb_1":"pr6_onb_n",{n:importables.length}):t("pr6_onb_vacio")),
           bancos.length>0&&React.createElement("span",{className:"pr6-onb-s"}, tf("pr6_onb_en",{x:pr6Lista(bancos)}))),
         React.createElement("button",{type:"button",className:"pr6-cta","data-testid":"plan-empezar",onClick:empezar}, t("pr6_empezar"))),
-      impOpen&&React.createElement(RecibosImportSheet,{items:importables,set:set,showToast:showToast,onClose:function(){ setImpOpen(false); }}),
+      importar,
       manage);
   }
   const verCerrado=!!cerrado&&cerrado.ym!==cerradoNo;
@@ -812,16 +841,18 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
                 return React.createElement("div",{className:"pr6-cerr-row",key:l.k,"data-linea":l.k},
                   React.createElement("span",null,l.l),React.createElement("span",{className:"num"},l.v));
               })))))),
+    // Toda la vista entra de lado al cambiar de mes, no solo la tarjeta (feedback 28/10).
+    React.createElement("div",{className:"pr6-vistas"+(vistaAnim?" anim":"")+(sig?" sig":""),key:vista},
     tarjeta,
     !sig&&v.review.length>0&&React.createElement("section",{className:"pr6-sec","data-testid":"plan-review","aria-label":t("pr6_revisar")},
       React.createElement("div",{className:"pr6-sec-h"},
         React.createElement("span",null, t("pr6_revisar"),React.createElement("span",{className:"pr6-n"}, v.review.length))),
       lista(v.review,revRow,revOpen,setRevOpen,"pr6-rev-more")),
-    React.createElement("section",{className:"pr6-sec","data-testid":"plan-due","data-vista":vista,"aria-label":sig?tf("v4_upcoming_in",{mes:monthLong(sigM-1)}):t("v4_pendiente")},
+    React.createElement("section",{className:"pr6-sec","data-testid":"plan-due","data-vista":vista,"aria-label":sig?pr6EnMes(sigM):t("v4_pendiente")},
       React.createElement("div",{className:"pr6-sec-h v4-section-h"},
         // «Pendiente» y no «Por pagar»: la petición del dueño del 26/10/2026 (la otra palabra
         // necesitaba una línea de ayuda debajo para entenderse) sigue en pie con el rediseño.
-        React.createElement("span",null, sig?pr6Cap(tf("v4_upcoming_in",{mes:monthLong(sigM-1)})):t("v4_pendiente")),
+        React.createElement("span",null, sig?pr6Cap(pr6EnMes(sigM)):t("v4_pendiente")),
         React.createElement("button",{type:"button",className:"link",onClick:openManage}, t("pr6_todos"))),
       sig
         ? (sigN===0
@@ -847,7 +878,8 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
       React.createElement("div",{className:"v4-section-h"},t("v4_plan_transfers")),pack.transfersPending.map(function(x){ return planRecibosFlowRow(x,month); })),
     !sig&&(pack.incomePending||[]).length>0&&React.createElement("div",{className:"v4-section"},
       React.createElement("div",{className:"v4-section-h"},React.createElement("span",null,t("v4_aun_entrara"))),
-      pack.incomePending.map(function(x){ return planRecibosFlowRow(x,month); })),
+      pack.incomePending.map(function(x){ return planRecibosFlowRow(x,month); }))),
+    importar,
     llegaOpen&&React.createElement(LlegaSheet,{state:state,set:set,totals:totals,pack:pack,onClose:function(){ setLlegaOpen(false); }}),
     deshacer&&React.createElement("div",{className:"v4-undo-toast",role:"status","data-testid":"plan-deshacer"},
       React.createElement("span",null, tf("pr6_manana_toast",{name:deshacer.name})),
@@ -870,11 +902,22 @@ function pr6MesCon(m){
   return /^[aeiouàèéíòóú]/i.test(n)?"l'"+n:"el "+n;
 }
 function pr6TituloCerrado(c){ return tf("pr6c_titulo",{mes:pr6Cap(monthLong(c.m-1))}); }
+/* Una sola línea a 393 px (revisión 31/10/2026): «62,99 € · −40,00 € vs. sep». Lo que no se
+   puede acreditar es «—», nunca una cifra más baja que la real. */
 function pr6LineaCerrado(c){
-  const x=tf("pr6c_linea",{x:eur(c.cent/100)});
+  // Sin la cifra del mes no hay nada que comparar: «—» a secas.
+  if(c.cent==null) return "—";
+  const x=eur(c.cent/100);
   if(!c.prev) return x;
-  const d=c.cent-c.prev.cent, mes=pr6MesCon(c.prev.m);
-  return x+" · "+(d===0?tf("pr6c_igual",{mes:mes}):tf(d>0?"pr6c_mas":"pr6c_menos",{x:eur(Math.abs(d)/100),mes:mes}));
+  const mes=pr6Mes(c.prev.y*12+c.prev.m);
+  if(c.prev.cent==null) return x+" · "+tf("pr6c_vs",{d:"—",mes:mes});
+  const d=c.cent-c.prev.cent;
+  return x+" · "+(d===0?tf("pr6c_igual",{mes:mes}):tf("pr6c_vs",{d:(d>0?"+":"−")+eur(Math.abs(d)/100),mes:mes}));
+}
+// «En diciembre», y en catalán «A l'abril» con los meses que empiezan por vocal, como Inicio.
+function pr6EnMes(m){
+  const n=monthLong(m-1);
+  return tf(/^[aeiouàèéíòóú]/i.test(n)?"v4_upcoming_in_v":"v4_upcoming_in",{mes:n});
 }
 // Como mucho cuatro líneas y solo las que tienen dato (SPEC §2.1); sin ninguna no se despliega.
 function pr6LineasCerrado(c){
@@ -893,10 +936,27 @@ function pr6Lista(xs){
    así que solo entran los que se han cobrado TODOS los meses seguidos: un cargo con huecos puede
    ser bimestral y darlo de alta como mensual inventaría cobros que no existen. */
 function pr6Importables(state){
-  return rp4VistoEnBanco(state,0).filter(function(d){ return d.seguido&&d.day!=null&&d.bank; });
+  // Con el importe del ÚLTIMO cargo, no la mediana: si subió, el recibo nuevo tiene que casar ya
+  // con el cobro de este mes (revisión 31/10/2026: Netflix 12,99 → 13,99).
+  return rp4VistoEnBanco(state,0).filter(function(d){ return d.seguido&&d.day!=null&&d.bank; })
+    .map(function(d){ return d.ultimo>0?Object.assign({},d,{amount:d.ultimo}):d; });
 }
 function RecibosImportSheet({items, set, showToast, onClose}){
-  const swipe=useSheetSwipe(true,onClose);
+  const elegidos=useRef(null);
+  const alCerrar=function(){
+    const xs=elegidos.current;
+    elegidos.current=null;
+    if(xs&&xs.length){
+      xs.forEach(function(d){
+        const it=conMesDeAlta({id:uid(),name:d.name,amount:Math.round(d.amount*100)/100,freq:"mes",day:d.day,account:d.bank});
+        if(d.cat) it.category=d.cat;
+        addFixedItem(set,it);
+      });
+      if(showToast) showToast(xs.length===1?t("pr6_imp_toast1"):tf("pr6_imp_toast",{n:xs.length}));
+    }
+    onClose();
+  };
+  const swipe=useSheetSwipe(true,alCerrar);
   useBackClose(true,swipe.close);
   const titleRef=useRef(null), titleId=React.useId();
   useEffect(function(){ if(titleRef.current) titleRef.current.focus({preventScroll:true}); },[]);
@@ -912,14 +972,10 @@ function RecibosImportSheet({items, set, showToast, onClose}){
   const anadir=function(){
     if(hecho.current||!n) return;
     hecho.current=true;
-    lista.forEach(function(d,i){
-      if(off[i]) return;
-      const it={id:uid(),name:d.name,amount:Math.round(d.amount*100)/100,freq:"mes",day:d.day,account:d.bank};
-      if(d.cat) it.category=d.cat;
-      addFixedItem(set,it);
-    });
+    // Se añade al terminar de bajar la hoja (`alCerrar`): mientras baja, el velo sigue encima y
+    // un segundo toque no llega a lo de debajo.
+    elegidos.current=lista.filter(function(d,i){ return !off[i]; });
     mcTickHaptic();
-    if(showToast) showToast(n===1?t("pr6_imp_toast1"):tf("pr6_imp_toast",{n:n}));
     swipe.close();
   };
   return ReactDOM.createPortal(
@@ -2057,7 +2113,7 @@ function rp4VistoEnBanco(state, max){
   }).slice(0,max===0?Infinity:(max||3)).map(function(g){
     const e=g.ult[0].e;
     // `seguido`: cobrado todos los meses de su primer a su último cobro (`span`), sin huecos.
-    return {name:String(g.name||"").trim(), amount:g.amount, day:recDay(e.date), bank:expenseBankOf(e), cat:g.cat&&CAT[g.cat]&&!CAT_NEUTRAS[g.cat]?g.cat:"", seguido:g.span===g.months};
+    return {name:String(g.name||"").trim(), amount:g.amount, day:recDay(e.date), bank:expenseBankOf(e), cat:g.cat&&CAT[g.cat]&&!CAT_NEUTRAS[g.cat]?g.cat:"", seguido:g.span===g.months, ultimo:Number(g.ult[0].amount)||0};
   }).filter(function(d){ return d.name; });
 }
 /* − / + que acelera al mantener pulsado (SPEC §7.3). El teclado (detail 0) da un paso por toque. */
@@ -2208,7 +2264,7 @@ function ReciboPasos({mode, row, once, state, set, totals, banks, onClose, onSav
         addOneoffItem(set,{id:uid(),name:nombre,amount:Math.round(amt*100)/100,month:M,year:Y,day:f.once.day,account:f.account});
         onSaved("oneoff",nombre);
       } else {
-        addFixedItem(set,Object.assign({id:uid()},borrador()));
+        addFixedItem(set,conMesDeAlta(Object.assign({id:uid()},borrador())));
         onSaved("fixed",nombre);
       }
     } else if(kind==="oneoff"){
@@ -2553,7 +2609,7 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, onSa
       const d=cleanDay(form.day); if(d) it.day=d;
       addOneoffItem(set,it);
     } else {
-      const it=Object.assign({id:uid()},fixedDraft(amt));
+      const it=conMesDeAlta(Object.assign({id:uid()},fixedDraft(amt)));
       const d=cleanDay(form.day); if(d) it.day=d;
       addFixedItem(set,it);
     }

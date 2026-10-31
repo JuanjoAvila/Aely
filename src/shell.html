@@ -1171,13 +1171,14 @@
   .pr6-nd .pr6-cta:disabled{opacity:.5;}
   /* Tanda 6 (SPEC §2.1, §2.2, §9): resumen del mes cerrado, «Nov ›» y primer uso. */
   .pr6-vista{display:flex;flex-direction:column;gap:12px;}
-  .pr6-vista.anim{animation:pr6VistaAtras .32s var(--ease) both;}
-  .pr6-vista.anim.sig{animation-name:pr6VistaSig;}
+  /* Al cambiar de mes entra de lado TODA la vista (tarjeta y secciones), hacia donde se va. */
+  .pr6-vistas.anim{animation:pr6VistaAtras .32s var(--ease) both;}
+  .pr6-vistas.anim.sig{animation-name:pr6VistaSig;}
   @keyframes pr6VistaSig{from{opacity:0;transform:translateX(16px);}to{opacity:1;transform:none;}}
   @keyframes pr6VistaAtras{from{opacity:0;transform:translateX(-16px);}to{opacity:1;transform:none;}}
   .pr6-sum-h{display:flex;align-items:center;gap:2px;}
   .pr6-sum-h .v4-micro{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .pr6-mes-nav{flex:none;min-height:36px;margin:-8px -6px -8px 0;padding:0 6px;border:0;background:transparent;color:var(--mint-bright);
+  .pr6-mes-nav{flex:none;min-width:44px;min-height:44px;margin:-12px -10px -12px 0;padding:0 10px;border:0;background:transparent;color:var(--mint-bright);
     font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;}
   .pr6-cz{display:grid;grid-template-rows:1fr;transition:grid-template-rows .38s var(--ease),opacity .25s ease;}
   .pr6-cz.fuera{grid-template-rows:0fr;opacity:0;}
@@ -1188,8 +1189,8 @@
   .pr6-cerr-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;}
   button.pr6-cerr-t{cursor:pointer;}
   .pr6-cerr-n{font-size:15px;font-weight:800;}
-  .pr6-cerr-l{font-size:13px;color:var(--muted);}
-  .pr6-cerr-x{width:36px;height:36px;flex:none;border:0;background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .pr6-cerr-l{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .pr6-cerr-x{width:44px;height:44px;margin:-4px -4px -4px 0;flex:none;border:0;background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;}
   .pr6-cerr .pr6-fold{margin-top:-10px;}
   .pr6-cerr-det{gap:6px;padding:0 8px 0 44px;}
   .pr6-cerr .pr6-fold.open .pr6-cerr-det{padding-top:10px;}
@@ -1217,8 +1218,8 @@
     transition:border-color .2s ease,background .2s ease;}
   .pr6-imp-row.off .pr6-imp-dot{border-color:var(--line);background:transparent;}
   .pr6-imp .pr6-cta:disabled{opacity:.5;cursor:default;}
-  @media (prefers-reduced-motion:reduce){ .pr6-cz,.pr6-imp-row,.pr6-imp-dot{transition:none;} .pr6-vista.anim{animation:none;} }
-  html.reduce-motion .pr6-cz,html.reduce-motion .pr6-imp-row{transition:none;} html.reduce-motion .pr6-vista.anim{animation:none;}
+  @media (prefers-reduced-motion:reduce){ .pr6-cz,.pr6-imp-row,.pr6-imp-dot{transition:none;} .pr6-vistas.anim{animation:none;} }
+  html.reduce-motion .pr6-cz,html.reduce-motion .pr6-imp-row{transition:none;} html.reduce-motion .pr6-vistas.anim{animation:none;}
   @media (prefers-reduced-motion:reduce){ .pr6-fold,.pr6-chev,.pr6-track,.pr6-step,.pr6-cand,.pr6-ring{transition:none;} }
   html.reduce-motion .pr6-fold,html.reduce-motion .pr6-chev,html.reduce-motion .pr6-track,html.reduce-motion .pr6-step{transition:none;}
   .v4-paid{opacity:.55;}

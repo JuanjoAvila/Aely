@@ -1256,7 +1256,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   const subARecibos=function(sp, amtTxt){
     const useAmt=parseFloat(String(amtTxt).replace(",","."))||sp.amount;
     const acc=(state.accounts||[]).find(function(a){ return accRole(a)==="fijos"; })||(state.accounts||[]).find(function(a){ return accRole(a)==="ambos"; });
-    const it={ id:uid(), name:sp.name, amount:useAmt, freq:"mes", account:(acc&&acc.ent)||"sabadell" };
+    // Con su mes de alta: el resumen del mes cerrado de Plan no lo cuenta en meses de antes.
+    const it=conMesDeAlta({ id:uid(), name:sp.name, amount:useAmt, freq:"mes", account:(acc&&acc.ent)||"sabadell" });
     const dd=parseDate(sp.ult[0].e.date).getDate(); if(dd>=1&&dd<=31) it.day=dd;
     set(function(s){ return Object.assign({},s,{fixed:(s.fixed||[]).concat([it])}); });
     showToast(tf("gv5_sub_recibos_ok",{n:sp.name,b:entOf((acc&&acc.ent)||"sabadell").label}));

@@ -869,22 +869,23 @@ recibo ya pagado no pregunta, su mes se queda con 30 y la prueba con su importe 
 `E2E_MAP` para `14-v4-screens`, `08-motor-bank`, `07-tab-patri-fijos`, `00-core`,
 `11-app-main`, `04-tab-gastos`, `03-tab-dash`, `01-i18n` y `shell.html`.
 
-Tanda 6: `tests/plan-recibos-cerrado.test.mjs` (en `npm test`) calcula el resumen del mes cerrado
-con el reloj en el 3/11 y lo compara en céntimos por dos vías: la cuenta a mano del escenario
-(octubre 182,99, septiembre 222,99, dos que no llegaron) y lo que Plan enseñaba con el reloj en el
-31/10 y el 30/9 (lo pagado con prueba de `planChargesMonth` + `paymentEvidenceUI`); además, pagado +
-pendiente + sin cargo = todo lo previsto. Cubre «más subió» con el cargo real, «subió» solo en los
-de precio fijo, enero contra diciembre del año anterior, sin comparación si el mes anterior no
-tenía recibos y que un pausado no cuenta como «no llegó». `e2e/plan-recibos-t6.spec.mjs` (reloj en
-el 3/11) abre la tarjeta «Octubre cerrado» con «62,99 € en recibos · 40,00 € menos que
-septiembre» y sus tres líneas; la × la pliega y tras recargar no vuelve; el 8/11 ya no sale; con el
-reloj en el 31/10 los mismos datos dan «Ya pagados» 50 + Netflix «Esperabas 12,99» (= 62,99).
-«Dic ›» cambia tarjeta y lista a diciembre (102,99, «≈» en el variable, «en 29 días»), sin
-«¿Te llega?», «Para revisar» ni «Ya pagados», y tocar una fila abre su edición. Primer uso: sin
-cargos en el banco, «Empezar» abre el alta por pasos; con cargos repetidos, la importación propone
-solo los cobrados todos los meses seguidos, «Quitar/Marcar todos», y «Añadir 1 recibo» guarda uno
-mensual con su día y banco. Está en `E2E_MAP` para `14-v4-screens`, `08-motor-bank`,
-`07-tab-patri-fijos`, `01-i18n` y `shell.html`.
+Tanda 6: `tests/plan-recibos-cerrado.test.mjs` (en `npm test`) guarda las fotos de septiembre y
+octubre con el reloj en su último día y calcula el resumen el 3/11, en céntimos y por dos vías: la
+cuenta a mano (octubre 182,99, septiembre 222,99) y lo que pintaba Plan › Recibos ese día
+(`planRecibosVista` de 14: «Ya pagados» + lo que cobró distinto). Fija lo de la revisión NO-GO
+del 31/10: un alta de noviembre (`createdYm`) no toca octubre ni septiembre; borrar en octubre un
+recibo pagado en septiembre no cambia septiembre; sin foto, o con una foto del día 20 y el cargo
+del 29 ya fuera del extracto, la cifra es «—» (null); lo marcado a mano no es «no llegó» y sin
+movimientos del banco tampoco; la foto no se reescribe si no cambia ni la pisa una de un día
+anterior. `e2e/plan-recibos-t6.spec.mjs` recorre 30/9 → 31/10 → 3/11 con `page.clock`: «Octubre
+cerrado» con «62,99 € · −40,00 € vs. sep» en un renglón a 393 px, sus tres líneas, la × y dianas
+de 44 px; borrar el Gimnasio en octubre deja septiembre en 102,99; sin foto de septiembre «— vs.
+sep»; marcado a mano sin «no llegaron»; el 8/11 ya no sale. «Dic ›» cambia tarjeta y lista (toda la
+vista entra de lado), el atrás (`_mcBackCloseNative`) y pasar por Gastos vuelven a noviembre, y en
+catalán «A l'abril». Primer uso: sin cargos, alta por pasos; con cargos, importación con el último
+importe (Netflix 13,99), sin «Octubre cerrado» tras importar el 1/11, y un doble toque en «Añadir»
+no abre Apuntar. Los casos «(revisión)» fallan con el bundle de 799859495. Está en `E2E_MAP` para
+`14-v4-screens`, `08-motor-bank`, `07-tab-patri-fijos`, `04-tab-gastos`, `01-i18n` y `shell.html`.
 
 Descarga incompleta (candidato13/10): `tests/bank-download-incomplete.test.mjs`, registrado en
 runner y `STEPS_SUPABASE`, ejecuta lector, handler y updater real de App. Compara el updater con

@@ -196,17 +196,27 @@ apunta desde mañana (uno de hoy contaría como pagado por calendario sin cargo 
 varios pagos» es `schedule` (cada año, `freq:"año"`); «Cambia cada mes» es `variable:true`,
 solo para el «≈». No hay columnas ni servidor nuevos.
 
-El resumen del mes cerrado (Plan › Recibos v6 tanda 6, del día 1 al 7) no guarda cifras:
-`planRecibosMesCerrado` (08) vuelve a leer ese mes y el anterior con `planChargesMonth` +
-`paymentEvidenceUI` y hoy = último día, que es lo que Plan pintaba ese día. Suma lo pagado con
-prueba (tu parte, `amount`) en céntimos; lo pendiente y lo pagado solo por calendario son «no
-llegaron». Las líneas «más subió» y «subió/bajó» comparan cargos reales (`paidAmount`), nunca una
-marca a mano. Lo que sí se guarda es el descarte: `settings.pr6CerradoNo = año*12+mes`, en
-`app_state` como el resto de `settings`, para que el otro móvil tampoco lo vuelva a sacar; un
-cliente viejo lo ignora (tampoco tiene el resumen). La vista «Dic ›» es la misma lectura que los
+El resumen del mes cerrado (Plan › Recibos v6 tanda 6, del día 1 al 7) NO relee el mes con el
+estado de hoy (revisión NO-GO 31/10/2026: altas y bajas posteriores y el extracto caducado lo
+cambiaban). Mientras un mes está en curso, cada cálculo de Plan guarda su foto en
+`settings.pr6Fotos[año*12+mes] = {d: día, it: [{id, n, a (céntimos de tu parte), st, pa?, pb?, v?, d?}]}`
+(`planRecibosConFoto`, 08; solo si cambió, sin sello de edición, últimos tres meses). `st`: «p»
+pagado con prueba, «s» pagado sin cargo del banco (marca a mano, calendario), «q» no llegó
+(tocaba con dos días de margen y el banco tiene movimientos de ese mes después) y «?» no se sabe.
+`planRecibosMesCerrado` parte de la foto y solo la mejora con lo que hoy se acredita (un «?» o
+«q» que hoy sale pagado); una foto anterior al último movimiento del mes convierte sus «q» en «?».
+Sin foto, o con algún «?», la cifra es «—» (null), nunca más baja que la real; la comparación con
+el mes anterior sigue la misma regla. Los recibos nuevos llevan `createdYm` (`conMesDeAlta`: alta
+por pasos, importación, Gastos «Pasar a Recibos», alta vieja y el motor) y no cuentan en meses
+anteriores; `createdYm` es un grupo propio en la mezcla de tres vías y no lo lee nada más.
+Mezcla de `settings`: viaja dentro de `app_state` y gana el estado más nuevo; cada foto es la
+lectura completa de su mes, así que la que gane vale entera, y en este móvil una foto de un día
+anterior no pisa a una posterior. Un cliente viejo no escribe ni lee fotos ni `createdYm`; sus
+escritores copian `settings` y el recibo con `Object.assign`, así que los conserva. El descarte de
+la tarjeta es `settings.pr6CerradoNo = año*12+mes`. La vista «Dic ›» es la misma lectura que los
 cargos del mes que viene de Inicio (`planChargesMonth` con hoy = 0). El primer uso importa con
 `addFixedItem` los cargos de `rp4VistoEnBanco` cobrados todos los meses seguidos, como recibos
-mensuales con su día y banco.
+mensuales con su día, su banco y el importe del último cargo.
 
 Si la lápida alcanza una fila con un borrador privado pendiente, la fila sigue
 borrada y el borrador se ofrece en Plan → Deudas. Recuperar solo precarga el editor,
