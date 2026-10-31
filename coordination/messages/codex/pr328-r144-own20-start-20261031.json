@@ -1,0 +1,9 @@
+{
+  "id": "pr328-r144-own20-start-20261031",
+  "to": "codex",
+  "body": "Inicio OWN20 propio desde cero bajo autoridad permanente7188f09dd641ffd90c5a2455196b1385c4bb084c para pr328-manual-pausa-money-repair-r144-codex-20261031. Sesion y nonce nuevos; sin contadores ni claim heredados. Fuente previa cerrada. Lectura FULL RAW y ACK de todos los intermedios y cancelaciones desde509a086ae3c55722d21d05e81fcb4084df20918d; espera minima30s por fetch y readback. Solo claim propio tras confirmar este aviso. Diez Node dirigidos siguen pendientes de GO exacto del coordinador; sin launcher ni afinidad ni capturaPID.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "nrelaybda53bd9d30bb535519b82aaf37821ab",
+  "createdAt": "2026-10-31T17:04:08.594Z"
+}
