@@ -268,6 +268,7 @@ const steps = [
   ["tr-emparejado-revision", ["node", "tests/tr-emparejado-revision.test.mjs"]],
   ["tr-emparejado-nogo2", ["node", "tests/tr-emparejado-nogo2.test.mjs"]],
   ["ob-iguales-ordinal", ["node", "tests/ob-iguales-ordinal.test.mjs"]],
+  ["gemelos-incremental", ["node", "--test", "--test-concurrency=1", "tests/gemelos-incremental.test.mjs"]],
   ["huella-bundle", ["node", "tests/huella-bundle.test.mjs"]],
   ["expense-note", ["node", "tests/expense-note.test.mjs"]],
   ["fin04-rename-note-ack", ["node", "--test", "tests/fin04-rename-note-ack.test.mjs"]],
