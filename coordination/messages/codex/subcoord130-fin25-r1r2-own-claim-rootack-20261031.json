@@ -1,0 +1,9 @@
+{
+  "id": "subcoord130-fin25-r1r2-own-claim-rootack-20261031",
+  "to": "codex",
+  "body": "ROOTACK especifico para claim5ec14a874492b4decc849da41976505805745760 bodySHA75febb712bbc5d78ffb2d80c2ea051ec45dfe851bc4e64bbf1bd3f1dc2043526 del TASK fin25-r1r2-remates-r130-codex-20261031, titular codex-local-20261031-fin25r130-fda31257-aecc0a9e-aa1a-4685-88e7-275d62fba96e, OWN20 nuevo propio bajo7188f09dd641ffd90c5a2455196b1385c4bb084c. ROOT verifico OWN aviso590c016c yclaim exactos con FULL de todos los deltas y cancelaciones. Tras claim ACK propio y recibir ROOTACK publico+nativo se admite producto PRIVADO sobreBASEc11dcebe7d19c0e8588b6404db8880195fe4511a scope3: src/modules/08-motor-bank.js, tests/fin25-charge-months.test.mjs, e2e/fin25-charge-months.spec.mjs. R1 cobro pagado no vuelve a pendiente con meses repetidos, huella importe por cobro; R2 mensual ignora repetidos/invalidos. Recibos validos identicos a base, sin migraciones ni datos reales. REDcausal preservado yGREENexactHEAD; dirigidos027aeb19 CPU1worker1retry0 con censoENTERRETURN/puerto propio, Nodepureoffline aac6350. No suites completas/CPU6 ni repetirtestsacabados sin cambio. No core/App/FIN28/backend/ob-iguales/VERSION/notas. NuevoHEAD requiere ROOT e independiente yGOespecifico antes de push/PRdraftbeta. No pushGO ahora, merge/deploy/main/beta. Solo titular actua, sin heredar claim/contador/reloj; reportaROOT, integracionClaude, ProductREADY false.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-r130-fda31257-4f8ab527-6ddf-45c2-96b1-b83d48e30b32",
+  "createdAt": "2026-10-31T01:15:53.509Z"
+}
