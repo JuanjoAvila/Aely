@@ -25,8 +25,16 @@ function logic(){
   }:{};
   const mutation=mutations[process.env.PR297_MUTANT];if(mutation){assert(source.includes(mutation[0]),'mutant anchor');source=source.replace(...mutation);}
   if(process.env.PR297_MUTANT==='derived'&&file==='08-motor-bank')source=source.replace('if(s.fixed===prev.fixed)return s;','').replaceAll('if(prior.get(e.id)===e)return e;','');
+  // El token y el estado comparten los símbolos y dependencias reales del núcleo actual.
+  // Aislar el bloque evita redeclararlos cuando el bundle ya los contiene.
+  if(file==='00-core'){
+   const anchor='const PLAN_EDIT_INTENT=Symbol(',tail='function goalSyncMetadataOnly(',start=source.indexOf(anchor),end=source.indexOf(tail,start);
+   assert(start>=0&&end>start&&source.lastIndexOf(anchor)===start&&source.lastIndexOf(tail)===end,'bloque real único de intención y lectura manual');
+   Object.assign(c,vm.runInContext('(function(){'+source.slice(start,end)+';return {planSyncEditToken,planSyncEditState};})()',c));
+  }
   const mask=codeMask(source);
   for(const match of source.matchAll(/^function (planSync\w+|mergePlanThreeWay|fixedPaymentDerivedDay|goalSyncMetadataOnly)\(/gm)){
+   if(file==='00-core'&&['planSyncEditToken','planSyncEditState'].includes(match[1]))continue;
    const start=match.index,open=mask.indexOf('{',start);let end=open+1,n=1;
    for(;n;end++){if(mask[end]==='{')n++;else if(mask[end]==='}')n--;}
    vm.runInContext(source.slice(start,end),c);

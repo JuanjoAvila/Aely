@@ -391,19 +391,20 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
     if(isEfectivoEnt(i)) return +((Number(typed)||0) + spentOwn(i)).toFixed(2);
     return (typed - pn(i));
   };
-  const accEd=useEditable(state.accounts,it=>set(s=>Object.assign({},s,{accounts:it})),{
+  const accEd=useEditable(state.accounts,it=>set(function(s){
+    return manualBalanceWrite(s,it.filter(function(a){return Object.prototype.hasOwnProperty.call(a,MANUAL_BALANCE_TYPED);}).map(function(a){return Object.assign({id:a.id},a[MANUAL_BALANCE_TYPED]);}));
+  }),{
     display:  i => shownAcc(i),
-    toStored: valorDesdeTecleado
+    toStored: valorDesdeTecleado,
+    // El importe viaja privado hasta el updater: allí se despeja contra el estado fresco.
+    extra: function(i,typed){return {[MANUAL_BALANCE_TYPED]:{typed:typed,expected:manualBalanceTarget(i)}};}
   });
   /* Guardar el saldo de UNA cuenta (lo que hace la ficha). Mismo camino que el editor de siempre:
      misma fórmula, mismo `set`. */
   const guardarSaldoDe=function(id, tecleado){
+    const expected=manualBalanceTarget((state.accounts||[]).find(function(a){return a.id===id;}));
     set(function(s){
-      return Object.assign({},s,{accounts:(s.accounts||[]).map(function(x){
-        if(x.id!==id) return x;
-        // El saldo tecleado es el real de ahora: lo cobrado antes ya está dentro (`saldoLeidoDelBanco`).
-        return Object.assign({},x,{value: valorDesdeTecleado(x, tecleado), saldoLeidoAt:new Date().toISOString()});
-      })});
+      return manualBalanceWrite(s,[{id:id,typed:Number(tecleado),expected:expected}]);
     });
   };
   // Cartera pinta cuentas y bienes planos; inversiones van aparte (Investments).
