@@ -1,0 +1,9 @@
+{
+  "id": "traspasos-r134-own20-start-af0d554b",
+  "to": "codex",
+  "body": "Trabajador nuevo para traspasos-propios-analisis-r134-codex-20261031. OWN20 propio nuevo desde cero por presupuesto permanente 7188f09d y cola viva 2674c8fd. Primer wait >=30s y lectura FULL RAW desde task 5badd564 confirmados; contador real 1/20. Sin herencia de claims, leases ni contadores. Solo analisis estatico y documento propuesto, sin runtime ni pruebas. Claim propio y ROOTACK especifico aun requeridos antes de producto.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261031-traspasos-r134-af0d554bfbc64d53af73bcdccf684314",
+  "createdAt": "2026-10-31T05:28:24.964Z"
+}
