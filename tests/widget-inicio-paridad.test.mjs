@@ -2,6 +2,7 @@
 // La cifra se compara con los lectores de Inicio, no con otra copia del helper del servidor.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import vm from 'node:vm';
 import {execFileSync} from 'node:child_process';
 import {transformSync} from 'esbuild';
 import {loadPureLogic,loadPureLogicFromFile} from '../scripts/load-pure-logic.mjs';
@@ -44,6 +45,8 @@ const cases=[
   ['recibo',5.45,'recibos','ob:trade_republic~recibo.r1'],
 ];
 let checked=0,failed=0;
+const pauseOnly=process.argv.includes('--widget-pause-only');
+if(!pauseOnly){
 try{
 for(const cycle of [false,true])for(const budgetCase of ['ausente','cero','positivo','todo-reservado'])
 for(const bank of ['trade_republic','sabadell'])for(const anchorCase of ['actual','mes-anterior','sin-cobro'])for(const [name,amount,cat,source] of cases)
@@ -144,6 +147,91 @@ for(const window of ['actual','futuro','anterior']){
     checked+=6;
   }catch(err){failed++;console.error('FAIL su mes de hoy: '+err.message);}
   finally{cli.Date=RealDate;}
+}
+}
+/* La pausa vive en la liquidez que manda la app, no en widgetSnapshot. Ejecutar los lectores
+   y el escritor reales evita inventar una tercera simulación de recibos en ingest (31/10/2026). */
+{
+  const read=file=>fs.readFileSync(new URL('../'+file,import.meta.url),'utf8');
+  const order=JSON.parse(read('src/build-order.json'));
+  const modules=Object.fromEntries(order.map(file=>[file,read('src/modules/'+file).replaceAll('\r\n','\n')]));
+  function route(change){
+    const sources={...modules};
+    if(change){
+      assert.ok(sources[change.file].includes(change.from),'el mutante encuentra su punto real');
+      sources[change.file]=sources[change.file].replace(change.from,change.to);
+    }
+    const c=loadPureLogic(read('src/shell.html').replace('<!--MC_APP_SCRIPT-->',()=>order.map(file=>sources[file]).join('\n')));
+    const main=sources['11-app-main.js'],a=main.indexOf('const totals=useMemo(()=>{'),b=main.indexOf('\n\n  const budgetMonth=',a);
+    const start=main.indexOf('const budW=wV2?'),end=main.indexOf('  // Tour de bienvenida:',start);
+    assert.ok(a>=0&&b>a&&start>=0&&end>start,'bloques reales de totals y envío nativo');
+    const totals=vm.runInNewContext('(function(state,calendarDay){'+main.slice(a,b)+';return totals;})',c);
+    const send=vm.runInNewContext('(function(state,totals,wV2,useEffect,natPlugin,cloud,uid,wR,wC,wRead,CURLANG,calendarDay,setCalendarDay,set,document){const lecturaNube=0;'+main.slice(start,end)+'})',c);
+    return {c,totals,send};
+  }
+  function exercise(r){
+    let n=0;
+    for(const date of ['2026-10-31','2026-11-01','2026-12-31','2027-01-01'])
+    for(const kind of ['paused','before-start','resumed','paid-paused','budget-cap']){
+      const at=Date.parse(date+'T12:00:00Z'),y=Number(date.slice(0,4)),m=Number(date.slice(5,7)),day=Number(date.slice(8)),ym=y*12+m;
+      const c=r.c;
+      c.Date=class extends Date{constructor(...args){super(...(args.length?args:[at]));}static now(){return at;}};
+      const paused=kind==='paused'||kind==='paid-paused'||kind==='budget-cap',paid=kind==='paid-paused';
+      const fixed={id:'r1',name:'Recibo sintetico',freq:'mes',amount:25.45,day:28,account:'trade_republic',wait:ym,
+        pausedFrom:kind==='before-start'?ym+1:ym-1,pausedUntil:kind==='resumed'?ym:ym+1};
+      const rows=[{id:'payment',fecha:date+'T09:00:00Z',importe:5.45,cat:'super',source:'macrodroid',comercio:'Cafe sintetico'}];
+      if(paid)rows.push({id:'receipt',fecha:date+'T08:00:00Z',importe:25.45,cat:'recibos',source:'ob:trade_republic~recibo.r1#refsynthetic',comercio:'Cargo bancario sintetico'});
+      let state={budget:kind==='budget-cap'?100:2000,settings:{budgetCycle:false,expenseBanks:['trade_republic'],widgetBank:'trade_republic'},
+        accounts:[{id:'tr',ent:'trade_republic',role:'fijos',value:500},{id:'other',ent:'sabadell',role:'fijos',value:99}],
+        fixed:[fixed],expenses:c.mergeExpenses([],rows.map(c.expenseFromRow)).list,bankTx:[],debts:[],oneoffs:[],flows:[],deleted:[],
+        investments:[],assets:[],aportaciones:[],obAccounts:[],reservaLog:[]};
+      if(paid){
+        state=c.linkFixedPayment(state,'receipt','r1',y,m,day);
+        assert.ok(c.fixedPaymentProof(state,state.fixed[0],y,m,day),'pago con prueba bancaria vigente');
+      }
+      const before=JSON.stringify(state),t=r.totals(state,date),calls=[],cleanups=[];
+      let cloudState=state;
+      r.send(state,t,62,fn=>{const cleanup=fn();if(typeof cleanup==='function')cleanups.push(cleanup);},
+        ()=>({updateWidget:data=>{calls.push(data);return Promise.resolve();}}),{enabled:()=>false},null,
+        {current:false},{current:[]},{current:null},'es',date,()=>{},fn=>{cloudState=fn(cloudState);},
+        {addEventListener(){},removeEventListener(){}});
+      cleanups.forEach(fn=>fn());
+      assert.equal(calls.length,1,'el escritor real llama al puente nativo');
+      const data=calls[0],label=date+'/'+kind;
+      // Saldo de partida sintético 500: el pagado ya resta del saldo; el pendiente del mínimo.
+      const safe=paused&&!paid?500:474.55,cash=paid?474.55:500;
+      assert.equal(data.cash,cash,label+' saldo real');
+      assert.equal(t.fijosEsteMes,paused&&!paid?0:25.45,label+' pausa conserva el pago en totals');
+      assert.equal(data.safeLiq,safe,label+' pausa/pago/reanudación llega al nativo');
+      assert.equal(data.afford,kind==='budget-cap'?94.55:safe,label+' mínimo de presupuesto y liquidez');
+      assert.equal(data.contract,2);assert.equal(data.cashEnt,'trade_republic');
+      assert.equal(data.spent,5.45);assert.equal(data.budgetLeft,state.budget-5.45);
+      assert.equal(JSON.stringify(state),before,'totals y envío no mutan la cartera');
+      const w=server.widgetSnapshot(cloudState,rows,at,{id:'payment',event:'synthetic',key:'synthetic-key'});
+      assert.ok(w,label+' ingest reconoce la ventana que dejó el escritor');
+      assert.equal(w.spent,data.spent);assert.equal(w.budgetLeft,data.budgetLeft);assert.equal(w.scope,data.scope);
+      assert.equal(Object.hasOwn(w,'safeLiq'),false,'ingest no inventa liquidez ni duplica el motor de recibos');
+      n++;
+    }
+    return n;
+  }
+  const mutants=[
+    {name:'recorrido sin pausa',file:'08-motor-bank.js',from:'||fixedPausedIn(e,y,m)) return;',to:') return;'},
+    {name:'saldo sin pausa',file:'08-motor-bank.js',from:'return fixedPausedIn(e,y,m)&&!fixedPaymentState(s,e,y,m,today).paid;',to:'return false;'},
+    {name:'pausa oculta pago',file:'08-motor-bank.js',from:'return fixedPausedIn(e,y,m)&&!fixedPaymentState(s,e,y,m,today).paid;',to:'return fixedPausedIn(e,y,m);'},
+    {name:'reanudación inclusiva',file:'07-tab-patri-fijos.js',from:'&&ym<u;',to:'&&ym<=u;'},
+    {name:'envío usa saldo en vez de mínimo',file:'11-app-main.js',from:'data.safeLiq=widgetSafeLiq;',to:'data.safeLiq=widgetCash;'},
+    {name:'envío omite liquidez',file:'11-app-main.js',from:'if(widgetSafeLiq!=null) data.safeLiq=widgetSafeLiq;',to:'if(false) data.safeLiq=widgetSafeLiq;'},
+    {name:'afford omite mínimo',file:'11-app-main.js',from:'Math.min(widgetBudgetLeft, widgetSafeLiq)',to:'widgetBudgetLeft'},
+  ];
+  const count=exercise(route());
+  for(const mutant of mutants){
+    const mutated=route(mutant);
+    assert.throws(()=>exercise(mutated),err=>err instanceof assert.AssertionError&&/^(2026|2027)-\d\d-\d\d\//.test(err.message),mutant.name+' debe romper una cifra del recorrido');
+    console.log('widget-pausa mutante detectado: '+mutant.name);
+  }
+  checked+=count;
+  console.log('widget-pausa: '+count+' recorridos app→totals→updateWidget/ingest; '+mutants.length+' mutantes detectados');
 }
 console.log('widget-inicio-paridad: '+checked+' casos correctos; '+failed+' fallos');
 if(failed)process.exitCode=1;
