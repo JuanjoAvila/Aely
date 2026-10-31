@@ -204,6 +204,8 @@ const sourceBeta194=sourceAt("25b6832749eaf776d274c7f72a046d41c9d5a0e0");
 const sourceBeta195=sourceAt("676df3778e90e4f9930e4aec5d13ef93cf1e8ffb");
 // Catálogo196 pasa a histórico con la 197: se lee de la 4.26.196 servida en beta (9ef9f19b4, con la APK 63); sus tres tandas (plan-recibos-t3, fin28-aviso-enlace-manual y tr-login-v2) NO tienen veredicto y la 197 las conserva en el panel junto a la suya.
 const sourceBeta196=sourceAt("9ef9f19b49938d207271289176f2314b858152a1");
+// Catálogo197 pasa a histórico con la 198: se lee de la 4.26.197 servida en beta (258688411, sin APK nueva, APK 63); sus cuatro tandas (plan-recibos-t3, fin28-aviso-enlace-manual, tr-login-v2 y barra-gastos-carga) NO tienen veredicto y la 198 las conserva en el panel junto a la suya.
+const sourceBeta197=sourceAt("25868841165407b0f3c630870ff387c9e10ade78");
 const sourceBeta153=sourceAt("80752dff055dc391c52c3067ce238f49e0a14598");
 // Catálogo137 pasa a histórico en la promoción 137: se lee de la beta 4.26.137.1 aprobada (6f18228c), lo último que probó el móvil y lo que sube entero.
 const sourceBeta137=sourceAt("6f18228cbd81c1cc9abfa7fabce0a878819234f4");
@@ -267,6 +269,8 @@ const limpieza129=u=>{
 // La 135 suma `deleteExpense` y `logEvent` a los métodos de `cloud` que leen varios descriptores (la fusión de gastos con la nube borra la fila absorbida y deja traza): se descuentan de los dos lados.
 // La 143 reescribe dos anclas de texto (dependencias del memo de Recientes y del bloque de «parte mía») para añadir lo que lee FIN-17: se comparan con su forma anterior.
 const sinAbsorcion143=u=>u&&u.to===",[state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);"?{...u,to:",[state.expenses,state.deleted]);"}:u&&u.from==="     state.flows,state.oneoffs,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.aportaciones,state.obAccounts,"?{...u,from:"     state.flows,state.oneoffs,state.deleted,state.aportaciones,state.obAccounts,"}:u;
+// La 198 reescribe cuatro anclas de Inicio (el vacío de «Próximos cargos», el fin del memo de Recientes y su comentario): esta función devuelve el descriptor de hoy a su forma de la 197 para compararlo con la historia.
+const desde198=u=>!u||typeof u!=="object"?u:u.from==="    !showSkel && nada && novato"?{...u,from:"    !showSkel && upcoming.length===0",to:"    !showSkel && upcoming.length>0"}:u.to==="state.reciboBorrado]);"?{...u,from:u.from==="  // Lo mismo que abre Gastos, sin lo plegado en sus bloques (`gastosDePortada`)"?"  // La fila del banco de una pareja automática (`autoGemelo`)":u.from,to:",[state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);"}:u;
 const sinCompras135=u=>u&&u.members?{...u,members:u.members.filter(m=>m!=="deleteExpense"&&m!=="logEvent")}:u;
 const empty=[{v:"4.26.67",tandas:[]}];
 const archiveRefs=JSON.parse(read("scripts/beta-archives.json"));
@@ -380,8 +384,8 @@ test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CS
   // La base es la integración120 (apuntes iguales de Trade Republic): Inicio no puede retirar su alcance ni heredar su revisión.
   const integrated=JSON.parse(source120("scripts/beta-sources.json"));
   // Detrás de Inicio sólo ha entrado el alcance de la122 (el cargo de recibo en Gastos).
-  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","limpieza-ajustes-perfil","tr-empareja-sin-preguntar","cuenta-parte-mia","inicio-recientes-sin-repetidos","scroll-borde-barra","inicio-grafica-reservas","compras-identicas-ids","myinvestor-contador-a-cero","deudas-metas-hoja-edicion","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","gastos-suscripciones-botones","compras-pendientes-otro-dia","deudas-plazo-cuota-encaja","deudas-metas-hoja-sin-parpadeo","deudas-metas-hoja-cierre-suave","teclado-atras-conserva","fichas-cierre-suave-atras","vibracion-borde-y-mi-ciclo","deudas-aviso-plazo","cuenta-saldo-cierre-atras","banco-pruebas-sin-aviso","vibracion-suave-ronda-2","deudas-guardar-motivo","recibo-renombrado-sigue-pagado","vibracion-suave-ronda-3","plan-por-confirmar-prestamo-youtube","vuelta-sin-tiron","deuda-bajar-cuota-alarga-plazo","cartera-ordenar-brokers","youtube-enlazar-recibo","vibracion-ajustador","pestanas-swipe-rapido","gestionar-plan-sin-ola","renombrar-y-notas-seguras","gestionar-plan-ola","vibracion-ajustador-r2","gestionar-plan-ola-r2","vibracion-r3","youtube-diagnostico","renombrar-lista-al-momento","recibos-cifra-cuadra","cartera-sin-lagazo","renombrar-sin-cobertura","vibracion-r4","youtube-ficha-reconoce","vibracion-r5","vibracion-r6","youtube-r4","recibos-meses-a-mano","gastos-dos-bancos","cartera-moneda","categoria-coche","deuda-nueva-desde-su-dia","gastos-v5-movimientos","gastos-v5-secciones","gastos-v5-filtro","gastos-v5-subs","gastos-v5-filtros-hoja","sync-dos-moviles","gastos-v5-ciclos-metas-inversiones","plan-dos-moviles","gastos-lag-ciclos","inicio-mes-futuro","gastos-lag-ciclos-r3","recibo-vinculo-saldo","gastos-meses-letra-nombres","gastos-recibo-fila-textos-cortos","gastos-scroll-fluido-cifras","gastos-margen-sin-nomina","widget-pasado-del-limite","widget-se-actualiza-solo","inicio-anillo-usado","plan-recibos-v6-t1","deuda-ir-suave","plan-recibos-v6-t2","gastos-renombrar-otro-banco","gastos-renombrar-traspaso","recibos-anual-inversiones-eur","plan-recibos-t3","fin28-aviso-enlace-manual","tr-login-v2","barra-gastos-carga"),"Inicio y las altas de la122, la124, la126, la127, la128, la129, la130, la131, la132, la133, la134, la135, la137, la138, la139, la140, la141, la143, la144, la145, la146, la147, la148, la149, la150, la151, la152 y la153, sin retirar historia120");
-  for(const [key,value] of Object.entries(integrated))if(key!=="inicio-grafica-vuelve"){assert.deepEqual(scopes[key].native,value.native);assert.deepEqual(scopes[key].edge,value.edge);for(const part of (value.web||[]).map(limpieza129).map(retirada164).map(retirada166).map(retirada167).map(retirada169).filter(Boolean))assert.ok(scopes[key].web.map(sinMeta172).some(s=>JSON.stringify(sinMetodo122(s))===JSON.stringify(part)||JSON.stringify(sinPull130(sinMetodo122(s)))===JSON.stringify(sinPull130(sinMetodo122(part)))||JSON.stringify(sinAbsorcion143(sinCompras135(sinPull130(sinMetodo122(s)))))===JSON.stringify(sinCompras135(sinPull130(sinMetodo122(part))))||JSON.stringify(sinFin19(sinMetodo122(s)))===JSON.stringify(sinMetodo122(part))),key+": no recortar descriptor ajeno120");}
+  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","limpieza-ajustes-perfil","tr-empareja-sin-preguntar","cuenta-parte-mia","inicio-recientes-sin-repetidos","scroll-borde-barra","inicio-grafica-reservas","compras-identicas-ids","myinvestor-contador-a-cero","deudas-metas-hoja-edicion","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","gastos-suscripciones-botones","compras-pendientes-otro-dia","deudas-plazo-cuota-encaja","deudas-metas-hoja-sin-parpadeo","deudas-metas-hoja-cierre-suave","teclado-atras-conserva","fichas-cierre-suave-atras","vibracion-borde-y-mi-ciclo","deudas-aviso-plazo","cuenta-saldo-cierre-atras","banco-pruebas-sin-aviso","vibracion-suave-ronda-2","deudas-guardar-motivo","recibo-renombrado-sigue-pagado","vibracion-suave-ronda-3","plan-por-confirmar-prestamo-youtube","vuelta-sin-tiron","deuda-bajar-cuota-alarga-plazo","cartera-ordenar-brokers","youtube-enlazar-recibo","vibracion-ajustador","pestanas-swipe-rapido","gestionar-plan-sin-ola","renombrar-y-notas-seguras","gestionar-plan-ola","vibracion-ajustador-r2","gestionar-plan-ola-r2","vibracion-r3","youtube-diagnostico","renombrar-lista-al-momento","recibos-cifra-cuadra","cartera-sin-lagazo","renombrar-sin-cobertura","vibracion-r4","youtube-ficha-reconoce","vibracion-r5","vibracion-r6","youtube-r4","recibos-meses-a-mano","gastos-dos-bancos","cartera-moneda","categoria-coche","deuda-nueva-desde-su-dia","gastos-v5-movimientos","gastos-v5-secciones","gastos-v5-filtro","gastos-v5-subs","gastos-v5-filtros-hoja","sync-dos-moviles","gastos-v5-ciclos-metas-inversiones","plan-dos-moviles","gastos-lag-ciclos","inicio-mes-futuro","gastos-lag-ciclos-r3","recibo-vinculo-saldo","gastos-meses-letra-nombres","gastos-recibo-fila-textos-cortos","gastos-scroll-fluido-cifras","gastos-margen-sin-nomina","widget-pasado-del-limite","widget-se-actualiza-solo","inicio-anillo-usado","plan-recibos-v6-t1","deuda-ir-suave","plan-recibos-v6-t2","gastos-renombrar-otro-banco","gastos-renombrar-traspaso","recibos-anual-inversiones-eur","plan-recibos-t3","fin28-aviso-enlace-manual","tr-login-v2","barra-gastos-carga","inicio-traspasos"),"Inicio y las altas de la122, la124, la126, la127, la128, la129, la130, la131, la132, la133, la134, la135, la137, la138, la139, la140, la141, la143, la144, la145, la146, la147, la148, la149, la150, la151, la152 y la153, sin retirar historia120");
+  for(const [key,value] of Object.entries(integrated))if(key!=="inicio-grafica-vuelve"){assert.deepEqual(scopes[key].native,value.native);assert.deepEqual(scopes[key].edge,value.edge);for(const part of (value.web||[]).map(limpieza129).map(retirada164).map(retirada166).map(retirada167).map(retirada169).filter(Boolean))assert.ok(scopes[key].web.map(desde198).map(sinMeta172).some(s=>JSON.stringify(sinMetodo122(s))===JSON.stringify(part)||JSON.stringify(sinPull130(sinMetodo122(s)))===JSON.stringify(sinPull130(sinMetodo122(part)))||JSON.stringify(sinAbsorcion143(sinCompras135(sinPull130(sinMetodo122(s)))))===JSON.stringify(sinCompras135(sinPull130(sinMetodo122(part))))||JSON.stringify(sinFin19(sinMetodo122(s)))===JSON.stringify(sinMetodo122(part))),key+": no recortar descriptor ajeno120");}
   assert.equal(scope.unidades,true);
   for(const key of ["historial","auditoria","codigosCompatibles","compatibilidadGit","compatibilidadSha"])
     assert.equal(scope[key],undefined,"no hereda identidad anterior: "+key);
@@ -6182,6 +6186,120 @@ test("Catálogo176 añade la tanda del vínculo de recibo (solo web) sobre la 17
   assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
 });
 
+const expected198={"v":"4.26.198","d":"2026-10-31","t":{"es":"Inicio y Gastos, más claros","en":"Home and Spending, clearer","ca":"Inici i Despeses, més clars"},"items":{"es":["Inicio enseña los próximos cargos del mes que viene cuando ya está todo pagado.","Últimos movimientos muestra lo mismo que Gastos, sin traspasos entre tus cuentas.","En Gastos, los traspasos van juntos al final del día, plegados en «Traspasos · no cuentan»."],"en":["Home shows next month's upcoming charges once everything is paid.","Latest activity shows the same as Spending, without transfers between your accounts.","In Spending, transfers are grouped at the end of the day, folded under “Transfers · don't count”."],"ca":["Inici mostra els pròxims càrrecs del mes que ve quan ja està tot pagat.","Últims moviments mostra el mateix que Despeses, sense traspassos entre els teus comptes.","A Despeses, els traspassos van junts al final del dia, plegats a «Traspassos · no compten»."]},"tandas":[{"id":"inicio-traspasos","t":{"es":"Inicio y Gastos: cargos del mes que viene y traspasos","en":"Home and Spending: next month's charges and transfers","ca":"Inici i Despeses: càrrecs del mes que ve i traspassos"},"items":{"es":["1. Abre Inicio. En «Próximos cargos», si ya no queda nada este mes, salen los de noviembre con «En noviembre» al lado del título (y nada de «Aún no hay recibos»). BIEN: ves recibos de noviembre con su día y «nov». MAL: sale «Aún no hay recibos · Conecta tu banco», o salen cargos de octubre ya pagados.","2. En Inicio, «Últimos movimientos». BIEN: solo movimientos de tus bancos de gasto diario y ninguno de los traspasos a MyInvestor / Trade Republic (1.550 € y 500 €). MAL: vuelve a salir tu nombre con «Otros» o un «Traspaso».","3. Abre Gastos y busca el día del traspaso a Trade Republic. BIEN: abajo del día hay un bloque plegado «Traspasos · no cuentan»; al tocarlo se abre suave y dentro está «Movimiento +1.550,00 €»; la cifra de arriba y el total del día no cambian. MAL: el traspaso sigue suelto, el bloque sale arriba, o alguna cifra cambia."],"en":["1. Open Home. Under “Upcoming”, if nothing is left this month, next month's charges appear with “In November” next to the title (and no “No bills yet”). RIGHT: you see November bills with their day and “Nov”. WRONG: “No bills yet · Connect your bank” shows up, or October charges that are already paid appear.","2. In Home, “Latest activity”. RIGHT: only transactions from your daily-spending banks and none of the transfers to MyInvestor / Trade Republic (€1,550 and €500). WRONG: your own name shows up again as “Other” or a “Transfer”.","3. Open Spending and find the day of the transfer to Trade Republic. RIGHT: at the bottom of that day there is a folded block “Transfers · don't count”; tapping it opens it smoothly and inside is “Movimiento +€1,550.00”; the figure at the top and the day total do not change. WRONG: the transfer is still loose, the block appears at the top, or some figure changes."],"ca":["1. Obre Inici. A «Pròxims càrrecs», si ja no queda res aquest mes, surten els de novembre amb «Al novembre» al costat del títol (i res d'«Encara no hi ha rebuts»). BÉ: veus rebuts de novembre amb el seu dia i «nov». MALAMENT: surt «Encara no hi ha rebuts · Connecta el teu banc», o surten càrrecs d'octubre ja pagats.","2. A Inici, «Últims moviments». BÉ: només moviments dels teus bancs de despesa diària i cap dels traspassos a MyInvestor / Trade Republic (1.550 € i 500 €). MALAMENT: torna a sortir el teu nom amb «Altres» o un «Traspàs».","3. Obre Despeses i busca el dia del traspàs a Trade Republic. BÉ: a baix del dia hi ha un bloc plegat «Traspassos · no compten»; en tocar-lo s'obre suaument i a dins hi ha «Moviment +1.550,00 €»; la xifra de dalt i el total del dia no canvien. MALAMENT: el traspàs continua solt, el bloc surt a dalt, o alguna xifra canvia."]}}]};
+// 4.26.198 (31/10/2026): una pieza sobre la beta 4.26.197 servida (258688411, sin APK nueva: sigue la 63), solo web: claude/inicio-traspasos (c652fc7e9). Inicio › Próximos cargos enseña los del mes que viene si este mes no queda nada; Inicio › Últimos movimientos = la lista de Gastos tal como se abre; Gastos: traspasos al final del día en «Traspasos · no cuentan». Qué cuenta no cambia (banco de pruebas A/B contra 9ef9f19b4, idéntico a 31/10 y 15/10).
+// Una tanda NUEVA (inicio-traspasos, tres pasos, sin APK). Las de la 194 (plan-recibos-t3), 195 (fin28-aviso-enlace-manual), 196 (tr-login-v2, APK 63) y 197 (barra-gastos-carga) NO tienen veredicto y se quedan: el panel enseña cinco.
+// Registro: entra el descriptor nuevo, el último. Los cuatro anteriores que anclaban en trozos de Inicio que esta tanda reescribe (cargos, recibo-cargo-único, memo de Recientes y Recientes sin repetidos) se reanclan al texto de hoy sin cambiar de unidad: `desde198` los devuelve a su forma de la 197.
+test("Catálogo198 añade la tanda de Inicio y Gastos (solo web) sobre la 197, conserva las cuatro sin veredicto, reancla cuatro descriptores y declara las huellas que mueve",()=>{
+  const tandas=["plan-recibos-t3","fin28-aviso-enlace-manual","tr-login-v2","barra-gastos-carga","inicio-traspasos"],D="src/modules/03-tab-dash.js",G="src/modules/04-tab-gastos.js",java="android/app/src/main/java/com/micartera/app/";
+  const integrated=JSON.parse(sourceBeta197("scripts/beta-sources.json")),before=JSON.parse(sourceBeta197("src/data/release-notes.json"));
+  const source=f=>nl(read(f)),old=f=>nl(sourceBeta197(f));
+  assert.equal(before[0].v,"4.26.197");
+  assert.deepEqual(before.slice(0,4).map(n=>n.tandas.map(g=>g.id)),[[tandas[3]],[tandas[2]],[tandas[1]],[tandas[0]]],"la 197 servida lleva sus cuatro tandas, sin veredicto");
+  for(const n of before.slice(4))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] en la 197 servida");
+  const expectedNotes=[expected198,...before];
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.deepEqual(notes,expectedNotes,"la nota 198 literal delante y todo lo demás intacto, también las cuatro tandas sin veredicto");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.198",tandas[4],0],["4.26.197",tandas[3],0],["4.26.196",tandas[2],63],["4.26.195",tandas[1],0],["4.26.194",tandas[0],0]],"el panel enseña las cinco, sin APK nueva en la de Inicio");
+  assert.equal(notes.length,295);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
+  for(const n of notes.slice(5))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] (la propiedad se conserva, vacía)");
+  assert.deepEqual(Object.keys(notes[0].tandas[0]),["id","t","items"],"la tanda nueva no pide APK");
+  const jerga=/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|FIN-|SES-|UX-|SEC-|zoom|\d+\.\d+\.\d+/i;
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,3,lang+": tres puntos familiares");
+    const steps=notes[0].tandas[0].items[lang];
+    assert.equal(steps.length,3,lang+": tres pasos");
+    steps.forEach((s,i)=>{
+      assert.ok(s.startsWith((i+1)+". "),lang+": paso numerado "+(i+1));
+      assert.ok(/MAL|WRONG|MALAMENT/.test(s)&&/BIEN|RIGHT|BÉ/.test(s),lang+": el paso "+(i+1)+" dice qué es MAL y qué es BIEN");
+    });
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
+  }
+  const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
+  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verifyNotes(twice),assert.AssertionError,"no duplicar una tanda");
+  for(const k of [1,2,3,4]){const sin=structuredClone(notes);sin[k].tandas=[];assert.throws(()=>verifyNotes(sin),assert.AssertionError,"la tanda sin veredicto de "+notes[k].v+" no se retira");}
+  // Registro: los anteriores intactos salvo los cuatro reanclados; el descriptor nuevo, detrás.
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),{[tandas[4]]:ahora,...resto}=scopes;
+  assert.deepEqual(Object.keys(scopes),[...Object.keys(integrated),tandas[4]],"el descriptor nuevo, el último");
+  const reanclados=["inc-3009-01-cargos","recibos-cargo-unico","inc-0810-dashboard-recents-memo","inicio-recientes-sin-repetidos"];
+  for(const key of reanclados){
+    assert.notDeepEqual(resto[key].web,integrated[key].web,key+": se reancla de verdad");
+    assert.deepEqual(resto[key].web.map(desde198),integrated[key].web,key+": mismas unidades, solo cambia el texto de las anclas");
+    assert.deepEqual({...resto[key],web:integrated[key].web},integrated[key],key+": nada más cambia");
+  }
+  // Tres descriptores que ya leían Inicio entero ganan lo que ahora llama (`planChargesMonth` y, por él, el estado de las cuotas): el cierre de lectores crece, sin tocar lo que había.
+  const M8="src/modules/08-motor-bank.js",plan={file:M8,function:"planChargesMonth"},cuotas=[{file:M8,function:"debtPaymentState"},{file:M8,function:"cuotaCargoCercano"},{file:M8,data:"CUOTA_ALIAS_DIAS"}];
+  const crecen={"cartera-sin-lagazo":[plan],"gastos-scroll-fluido-cifras":[plan,...cuotas],"gastos-margen-sin-nomina":[plan,...cuotas]};
+  for(const [key,extra] of Object.entries(crecen)){
+    assert.deepEqual(resto[key].web,integrated[key].web.concat(extra),key+": el descriptor anterior entero y, detrás, solo lo que gana");
+    assert.deepEqual({...resto[key],web:integrated[key].web},integrated[key],key+": nada más cambia");
+  }
+  assert.deepEqual(Object.fromEntries(Object.entries(resto).filter(([k])=>!reanclados.includes(k)&&!crecen[k])),Object.fromEntries(Object.entries(integrated).filter(([k])=>!reanclados.includes(k)&&!crecen[k])),"ningún otro descriptor anterior cambia");
+  assert.deepEqual(Object.keys(ahora),["web","unidades"],"solo web");assert.equal(ahora.unidades,true);
+  const propias=[
+    {file:D,from:"  /* SIN NADA PENDIENTE ESTE MES (31/10/2026).",to:"  const sigName=monthLong(sigM-1);",includeTo:true},
+    {file:D,from:"  // Lo mismo que abre Gastos, sin lo plegado en sus bloques (`gastosDePortada`)",to:"state.reciboBorrado]);",includeTo:true},
+    {file:D,from:"    !showSkel && nada && novato && React.createElement(",to:"    !showSkel && overdue.length>0 && React.createElement("},
+    {file:G,from:"      if(bankSet && !bankSet.has(gastosBancoFiltro(e))) continue;",to:"      if(bkSet && !bkSet.has(expenseBucket(e, state))) continue;",includeTo:true},
+    {file:G,function:"gastosDePortada"},{file:G,function:"gxPlegada"},{file:G,function:"gastosBancoFiltro"},{file:G,function:"grisDeGasto"},{file:G,data:"GX_GRIS"},{file:G,function:"GastosGris"},{file:G,data:"GastosLista"}];
+  assert.deepEqual(ahora.web.slice(0,propias.length),propias,"las unidades propias: lo que Inicio pinta de cargos y de últimos movimientos y lo que Gastos pliega");
+  {const fns=logicFunctions(source),dat=logicData(source);let web=propias.slice();
+    for(let ronda=0;ronda<12;ronda++){
+      const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];
+      for(const fn of scopeDependencies({web},source,fns))if(!tiene(fn.file,fn.name,"function"))extra.push({file:fn.file,function:fn.name});
+      for(const d of scopeDataDependencies({web},source,fns,dat))if(!tiene(d.file,d.name,"data"))extra.push({file:d.file,data:d.name});
+      if(!extra.length)break;web=web.concat(extra);
+    }
+    const clave=u=>JSON.stringify(u);
+    assert.equal(ahora.web.length,web.length,"el cierre de lectores del descriptor es exactamente el calculado");
+    assert.deepEqual(new Set(ahora.web.map(clave)),new Set(web.map(clave)),"el cierre de lectores del descriptor es exactamente el calculado");}
+  for(const u of ahora.web)assert.ok(scopeText(u,source).length>0,"la unidad existe en la fuente: "+JSON.stringify(u));
+  // Del árbol de la 197 cambian Inicio, Gastos, los textos y el CSS; el resto del código, el nativo, el servidor y la APK siguen idénticos.
+  for(const file of [D,G,"src/modules/01-i18n.js","src/shell.html"])assert.notEqual(source(file),old(file),"cambia de verdad: "+file);
+  for(const file of ["src/modules/00-core.js","src/modules/02-ui-shared.js","src/modules/06-sync-brokers.js","src/modules/07-tab-patri-fijos.js","src/modules/08-motor-bank.js","src/modules/11-app-main.js","src/modules/14-v4-screens.js","supabase/functions/_shared/presupuesto.ts","supabase/functions/ingest/index.ts","supabase/functions/ingest/widget.ts",java+"MiCarteraWidget.java",java+"MiCarteraPlugin.java",java+"TrExpenseListener.java",java+"TradeRepublicPlugin.java","android/app/src/main/AndroidManifest.xml","android/app/build.gradle","public/apk.json"])assert.equal(source(file),old(file),"sin cambios: "+file);
+  // Huellas que se mueven (lista cerrada).
+  const expectedMoves={"inc-3009-01-cargos":["web"],"inc-3009-nomina-anticipada":["web"],"inc-0210-01-plan-cuota":["web"],"inc-0210-03-gastos-periodo":["web"],"feature-0310-01-movilidad":["web"],"inc-0310-gastos-sin-limite":["web"],"inc-0410-inicio-tres-metas":["web"],"inc-0710-gastos-mes-madrid":["web"],"inc-0810-dashboard-recents-memo":["web"],"recibos-cargo-unico":["web"],"recibo-cargo-en-gastos":["web"],"inicio-recientes-sin-repetidos":["web"],"gastos-suscripciones-botones":["web"],"vuelta-sin-tiron":["web"],"renombrar-y-notas-seguras":["web"],"cartera-sin-lagazo":["web"],"renombrar-sin-cobertura":["web"],"gastos-dos-bancos":["web"],"gastos-v5-movimientos":["web"],"gastos-v5-secciones":["web"],"gastos-v5-filtro":["web"],"gastos-v5-subs":["web"],"gastos-v5-filtros-hoja":["web"],"gastos-v5-ciclos-metas-inversiones":["web"],"gastos-lag-ciclos":["web"],"gastos-lag-ciclos-r3":["web"],"gastos-recibo-fila-textos-cortos":["web"],"gastos-scroll-fluido-cifras":["web"],"gastos-margen-sin-nomina":["web"],"deuda-ir-suave":["web"]};
+  const previous=new Map();
+  const measure=reader=>{
+    const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};
+    for(const [key,scope] of Object.entries(integrated)){
+      if(key===archiveId)continue;
+      if(!previous.has(key))previous.set(key,betaRevision(key,sourceBeta197,undefined,scope));
+      const a=previous.get(key),b=betaRevision(key,reader,undefined,now[key]);
+      const surfaces=["web","native","edge"].filter(x=>a[x]!==b[x]);
+      if(surfaces.length)moved[key]=surfaces;
+    }
+    return moved;
+  };
+  assert.deepEqual(measure(source),expectedMoves,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  const vivas=notes.flatMap(n=>(n.tandas||[]).map(g=>g.id));
+  assert.deepEqual(vivas,[tandas[4],tandas[3],tandas[2],tandas[1],tandas[0]]);
+  const current=betaRevision(tandas[4],source,undefined,scopes[tandas[4]]);
+  assert.ok(current.web);assert.equal(current.native,undefined,"sin huella nativa");assert.equal(current.edge,undefined,"sin huella de servidor");
+  // Mutantes sobre la fuente real: deshacer lo plegado de los traspasos o el mes siguiente reabre la huella de la tanda.
+  for(const [file,a,b] of [[G,'function gxPlegada(gris){ return !!gris && gris!=="recibo"; }','function gxPlegada(gris){ return !!gris && gris!=="recibo" && gris!=="traspaso"; }'],[D,"if(!nada||novato) return [];","if(!nada) return [];"]]){
+    assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
+    const mutated=betaRevision(tandas[4],x=>x===file?source(x).replace(a,()=>b):source(x),undefined,scopes[tandas[4]]);
+    assert.notEqual(mutated.web,current.web,tandas[4]+" reabre la tanda web: "+a);}
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes);
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),vivas,"lo que el build entrega al panel");
+  const g0=built[0].tandas[0];
+  assert.equal(g0.web,current.web);assert.equal(g0.native,undefined);assert.equal(g0.edge,undefined);assert.equal(g0.apk,undefined);assert.equal(receipt.web[tandas[4]],current.web);
+  for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g0[key],undefined,"identidad nueva sin "+key);
+  assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
+});
+
+// Recientes106 queda congelado en la 197 servida; aquí se comprueba el descriptor de HOY: el memo de Inicio llama a `gastosDePortada` y su ancla (comentario + dependencias) existe una sola vez.
+test("Recientes198: el memo de Últimos movimientos vigila gastosDePortada y las dependencias del filtro de Gastos",()=>{
+  const file="src/modules/03-tab-dash.js",id="inc-0810-dashboard-recents-memo";
+  const actual=JSON.parse(read("scripts/beta-sources.json"))[id];
+  assert.deepEqual(actual.web[0],{file,from:"  const recent=useMemo",to:"state.reciboBorrado]);",includeTo:true});
+  const texto=scopeText(actual.web[0],read);
+  for(const trozo of ["gastosDePortada(state,3)","state.accounts","state.settings","state.fixed","state.oneoffs","state.reciboNo","state.reciboBorrado","state._historyOwner"])assert.ok(texto.includes(trozo),"el memo declara: "+trozo);
+  const lista=JSON.parse(read("scripts/beta-sources.json"))["inicio-recientes-sin-repetidos"];
+  assert.ok(scopeText(lista.web[0],read).includes("gastosDePortada(state,3)"),"Recientes sin repetidos ancla en el mismo memo");
+});
+
 const expected197={"v":"4.26.197","d":"2026-10-31","t":{"es":"La barra de abajo, quieta en Gastos","en":"The bottom bar stays put in Spending","ca":"La barra de baix, quieta a Despeses"},"items":{"es":["En Gastos, al bajar por la lista y cargar más movimientos, la barra de abajo ya no reaparece sola: sigue escondida hasta que subes."],"en":["In Spending, when you scroll down the list and more entries load, the bottom bar no longer pops back by itself: it stays hidden until you scroll up."],"ca":["A Despeses, en baixar per la llista i carregar més moviments, la barra de baix ja no reapareix sola: segueix amagada fins que puges."]},"tandas":[{"id":"barra-gastos-carga","t":{"es":"Gastos: la barra de abajo al cargar más","en":"Spending: the bottom bar when more loads","ca":"Despeses: la barra de baix en carregar més"},"items":{"es":["1. Gastos › Movimientos: baja con el dedo, sin soltar, hasta que cargue más movimientos. BIEN: la barra de abajo sigue escondida hasta que subas. MAL: reaparece sola mientras bajas."],"en":["1. Spending › Entries: keep scrolling down until more entries load. RIGHT: the bottom bar stays hidden until you scroll up. WRONG: it comes back by itself while you scroll down."],"ca":["1. Despeses › Moviments: baixa amb el dit, sense deixar-lo, fins que carregui més moviments. BÉ: la barra de baix continua amagada fins que pugis. MALAMENT: reapareix sola mentre baixes."]}}]};
 // 4.26.197 (31/10/2026): dos piezas sobre la beta 4.26.196 servida (9ef9f19b4, con la APK 63), solo web y SIN APK nueva: claude/fix-ci-196 (fddb81854: arreglo de producto en onPageScroll, la barra inferior escondida ya no reaparece sola cuando Gastos carga más filas; el resto son oráculos de e2e) y la PR 326 de Codex (e142a5e98, solo la guardia widget-inicio-paridad).
 // Una tanda NUEVA (barra-gastos-carga, un paso, sin APK). Las de la 194 (plan-recibos-t3), la 195 (fin28-aviso-enlace-manual) y la 196 (tr-login-v2, APK 63) NO tienen veredicto y se quedan: el panel enseña cuatro.
@@ -6189,7 +6307,7 @@ const expected197={"v":"4.26.197","d":"2026-10-31","t":{"es":"La barra de abajo,
 test("Catálogo197 añade la tanda de la barra inferior al cargar más en Gastos (solo web) sobre la 196, conserva las tres sin veredicto y declara las huellas que mueve",()=>{
   const tandas=["plan-recibos-t3","fin28-aviso-enlace-manual","tr-login-v2","barra-gastos-carga"],A11="src/modules/11-app-main.js",java="android/app/src/main/java/com/micartera/app/";
   const integrated=JSON.parse(sourceBeta196("scripts/beta-sources.json")),before=JSON.parse(sourceBeta196("src/data/release-notes.json"));
-  const source=f=>nl(read(f)),old=f=>nl(sourceBeta196(f));
+  const source=f=>nl(sourceBeta197(f)),old=f=>nl(sourceBeta196(f));
   assert.equal(before[0].v,"4.26.196");
   assert.deepEqual(before.slice(0,3).map(n=>n.tandas.map(g=>g.id)),[[tandas[2]],[tandas[1]],[tandas[0]]],"la 196 servida lleva sus tres tandas, sin veredicto");
   for(const n of before.slice(3))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] en la 196 servida");
@@ -10736,7 +10854,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   assert.ok(dependientes.includes("gastos-renombrar-otro-banco"),"renombrar en la ficha (Expenses) y el backfill de App escriben gastos y lápidas con el set real: lleva el bloque del guardado");
   assert.ok(dependientes.includes("inc-0810-metas-editar-regla"),"editar una regla escribe con el set real y conserva el cierre de persistencia");
   assert.ok(dependientes.includes("inc-0710-gastos-mes-madrid"),"Gastos99 conserva la dependencia real de guardado de Expenses");
-  assert.deepEqual(ajenas.slice().sort(),["banco-pruebas-sin-aviso","bancos-reconexion-revoca","barra-gastos-carga","beta-panel-veredictos","compras-pendientes-otro-dia","deudas-aviso-plazo","deudas-guardar-motivo","deudas-metas-hoja-sin-parpadeo","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","gastos-meses-letra-nombres","gastos-recibo-fila-textos-cortos","gastos-renombrar-traspaso","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-backclose-handover","inc-0810-dashboard-recents-memo","inc-0810-inicio-grafica-significado","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","inicio-anillo-usado","inicio-grafica-reservas","inicio-grafica-vuelve","inicio-mes-futuro","inicio-recientes-sin-repetidos","inicio-solape-gastos","inicio-tarjeta-ciclo-limpia","ops-0410-panel-cola","pestanas-swipe-rapido","plan-por-confirmar-prestamo-youtube","plan-scroll-lento","recibo-vinculo-saldo","recibos-anual-inversiones-eur","renombrar-lista-al-momento","scroll-borde-barra","splash-animado","teclado-atras-conserva","tr-descripcion-clasificacion","vibracion-borde-y-mi-ciclo","vibracion-r3","vibracion-r5","vibracion-r6","vibracion-suave-ronda-2","vibracion-suave-ronda-3","widget-pasado-del-limite","widget-se-actualiza-solo","youtube-diagnostico","youtube-enlazar-recibo","youtube-ficha-reconoce","youtube-r4"]);
+  assert.deepEqual(ajenas.slice().sort(),["banco-pruebas-sin-aviso","bancos-reconexion-revoca","barra-gastos-carga","beta-panel-veredictos","compras-pendientes-otro-dia","deudas-aviso-plazo","deudas-guardar-motivo","deudas-metas-hoja-sin-parpadeo","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","gastos-meses-letra-nombres","gastos-recibo-fila-textos-cortos","gastos-renombrar-traspaso","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-backclose-handover","inc-0810-dashboard-recents-memo","inc-0810-inicio-grafica-significado","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","inicio-anillo-usado","inicio-grafica-reservas","inicio-grafica-vuelve","inicio-mes-futuro","inicio-recientes-sin-repetidos","inicio-solape-gastos","inicio-tarjeta-ciclo-limpia","inicio-traspasos","ops-0410-panel-cola","pestanas-swipe-rapido","plan-por-confirmar-prestamo-youtube","plan-scroll-lento","recibo-vinculo-saldo","recibos-anual-inversiones-eur","renombrar-lista-al-momento","scroll-borde-barra","splash-animado","teclado-atras-conserva","tr-descripcion-clasificacion","vibracion-borde-y-mi-ciclo","vibracion-r3","vibracion-r5","vibracion-r6","vibracion-suave-ronda-2","vibracion-suave-ronda-3","widget-pasado-del-limite","widget-se-actualiza-solo","youtube-diagnostico","youtube-enlazar-recibo","youtube-ficha-reconoce","youtube-r4"]);
   /* Quién depende del guardado lo decide el CÓDIGO, no la marca del registro (auditoría del
      coordinador, 4/10): se quita de cada alcance el bloque del guardado y se mira si lo que queda
      llama a `set` de App —las dependencias transitivas ya son unidades del alcance—. Tiene que
@@ -11198,12 +11316,14 @@ test("la referencia histórica visible vigila el texto completo en los tres idio
   }
 });
 
+// Congelado en la 197 servida: la 198 reescribe el memo (`gastosDePortada`) y su ancla; el descriptor de hoy se comprueba en «Recientes198».
 test("Recientes106 reanclada conserva expresión, identidad y recibo completos",()=>{
+  const read=f=>nl(sourceBeta197(f));
   const id="inc-0810-dashboard-recents-memo",file="src/modules/03-tab-dash.js";
   const actual=JSON.parse(read("scripts/beta-sources.json"))[id];
   const anchor={file,from:"  const recent=useMemo",to:",[state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);",includeTo:true};
   assert.deepEqual(actual.web[0],anchor);
-  const currentText=scopeText(anchor,read),current=betaRevision(id,read);
+  const currentText=scopeText(anchor,read),current=betaRevision(id,read,undefined,actual);
   // Desde la120 `keyOfExpense` lleva el ordinal de los apuntes iguales, y Recientes lee las lápidas
   // por esa clave: es dependencia real y mueve su huella (declarado en Catálogo120, que fija las
   // dos unidades que el descriptor gana). La igualdad con los commits históricos se sigue
@@ -11243,12 +11363,12 @@ test("Recientes106 reanclada conserva expresión, identidad y recibo completos",
     assert.ok(currentText.includes(from),"mutante debe tocar la expresión real");
     const changed=f=>f===file?read(f).replace(currentText,currentText.replace(from,to)):read(f);
     let after;
-    try{after=betaRevision(id,changed);}
+    try{after=betaRevision(id,changed,undefined,actual);}
     catch(error){assert.equal(error.code,"BETA_SCOPE_ABSENT","un cambio de ancla falla cerrado");continue;}
     assert.notEqual(after.web,current.web,"hook/deps/tombstones/selección siguen vigilados");
   }
-  const notes=betaNotes(JSON.parse(read("src/data/release-notes.json")));
-  const receipt=betaDelivery(notes,read);
+  const notes=betaNotes(JSON.parse(read("src/data/release-notes.json")),read,{...JSON.parse(read("scripts/beta-sources.json"))});
+  const receipt=betaDelivery(notes,read,JSON.parse(read("scripts/beta-sources.json")));
   assert.equal(receipt.web[id],current.web,"106 no desaparece silenciosamente del recibo");
   const old=f=>at("23a7808f65ef6d28e8a906f7100ffdf229917abb",f);
   assert.equal(logicFunctions(read,["src/modules/01-i18n.js"]).get("seedFlows").text,logicFunctions(old,["src/modules/01-i18n.js"]).get("seedFlows").text,"seedFlows entero conserva los bytes111, incluido el incidente fechado");

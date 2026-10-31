@@ -1673,3 +1673,6 @@ Los tests ingest-native-phase1 y ingest-native-slots cargan src real, no un HTML
 ## Resumen para Jarvis
 
 `tests/jarvis-resumen.test.mjs` (runner unitario) arma con `estadoComoApp` un estado inventado (filas de `expenses` en formato de la nube, recibos pausado/pagado/vencido, una cuota y dos cuentas) con el reloj fijo y `fetch` bloqueado, y comprueba el formato v1 cerrado, `gastado` y categorías a mano y contra `monthBudgetStats`, los cobros de 30 días contra `planChargesMonth`, los saldos contra `saldoCuentaMostrada`, que no salgan IBAN, ids ni correos y la escritura atómica. No toca Supabase ni la cartera real; la ejecución real (`npm run jarvis-resumen`) es manual.
+
+
+`e2e/inicio-traspasos.spec.mjs` (4.26.198, 31/10/2026) abre Inicio y Gastos con un estado sembrado y comprueba en el DOM: Próximos cargos del mes siguiente («En noviembre») cuando este mes no queda nada, la sección oculta si tampoco hay y el vacío de bienvenida solo sin banco ni recibos; Últimos movimientos sin las patas de traspaso ni lo de bancos que no son de gasto diario; y en Gastos el bloque plegado «Traspasos · no cuentan» al final del día sin que cambie el total del día. Está en `E2E_MAP` de `03-tab-dash` y `04-tab-gastos`.

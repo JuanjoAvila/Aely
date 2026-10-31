@@ -1,5 +1,58 @@
 [
   {
+    "v": "4.26.198",
+    "d": "2026-10-31",
+    "t": {
+      "es": "Inicio y Gastos, más claros",
+      "en": "Home and Spending, clearer",
+      "ca": "Inici i Despeses, més clars"
+    },
+    "items": {
+      "es": [
+        "Inicio enseña los próximos cargos del mes que viene cuando ya está todo pagado.",
+        "Últimos movimientos muestra lo mismo que Gastos, sin traspasos entre tus cuentas.",
+        "En Gastos, los traspasos van juntos al final del día, plegados en «Traspasos · no cuentan»."
+      ],
+      "en": [
+        "Home shows next month's upcoming charges once everything is paid.",
+        "Latest activity shows the same as Spending, without transfers between your accounts.",
+        "In Spending, transfers are grouped at the end of the day, folded under “Transfers · don't count”."
+      ],
+      "ca": [
+        "Inici mostra els pròxims càrrecs del mes que ve quan ja està tot pagat.",
+        "Últims moviments mostra el mateix que Despeses, sense traspassos entre els teus comptes.",
+        "A Despeses, els traspassos van junts al final del dia, plegats a «Traspassos · no compten»."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inicio-traspasos",
+        "t": {
+          "es": "Inicio y Gastos: cargos del mes que viene y traspasos",
+          "en": "Home and Spending: next month's charges and transfers",
+          "ca": "Inici i Despeses: càrrecs del mes que ve i traspassos"
+        },
+        "items": {
+          "es": [
+            "1. Abre Inicio. En «Próximos cargos», si ya no queda nada este mes, salen los de noviembre con «En noviembre» al lado del título (y nada de «Aún no hay recibos»). BIEN: ves recibos de noviembre con su día y «nov». MAL: sale «Aún no hay recibos · Conecta tu banco», o salen cargos de octubre ya pagados.",
+            "2. En Inicio, «Últimos movimientos». BIEN: solo movimientos de tus bancos de gasto diario y ninguno de los traspasos a MyInvestor / Trade Republic (1.550 € y 500 €). MAL: vuelve a salir tu nombre con «Otros» o un «Traspaso».",
+            "3. Abre Gastos y busca el día del traspaso a Trade Republic. BIEN: abajo del día hay un bloque plegado «Traspasos · no cuentan»; al tocarlo se abre suave y dentro está «Movimiento +1.550,00 €»; la cifra de arriba y el total del día no cambian. MAL: el traspaso sigue suelto, el bloque sale arriba, o alguna cifra cambia."
+          ],
+          "en": [
+            "1. Open Home. Under “Upcoming”, if nothing is left this month, next month's charges appear with “In November” next to the title (and no “No bills yet”). RIGHT: you see November bills with their day and “Nov”. WRONG: “No bills yet · Connect your bank” shows up, or October charges that are already paid appear.",
+            "2. In Home, “Latest activity”. RIGHT: only transactions from your daily-spending banks and none of the transfers to MyInvestor / Trade Republic (€1,550 and €500). WRONG: your own name shows up again as “Other” or a “Transfer”.",
+            "3. Open Spending and find the day of the transfer to Trade Republic. RIGHT: at the bottom of that day there is a folded block “Transfers · don't count”; tapping it opens it smoothly and inside is “Movimiento +€1,550.00”; the figure at the top and the day total do not change. WRONG: the transfer is still loose, the block appears at the top, or some figure changes."
+          ],
+          "ca": [
+            "1. Obre Inici. A «Pròxims càrrecs», si ja no queda res aquest mes, surten els de novembre amb «Al novembre» al costat del títol (i res d'«Encara no hi ha rebuts»). BÉ: veus rebuts de novembre amb el seu dia i «nov». MALAMENT: surt «Encara no hi ha rebuts · Connecta el teu banc», o surten càrrecs d'octubre ja pagats.",
+            "2. A Inici, «Últims moviments». BÉ: només moviments dels teus bancs de despesa diària i cap dels traspassos a MyInvestor / Trade Republic (1.550 € i 500 €). MALAMENT: torna a sortir el teu nom amb «Altres» o un «Traspàs».",
+            "3. Obre Despeses i busca el dia del traspàs a Trade Republic. BÉ: a baix del dia hi ha un bloc plegat «Traspassos · no compten»; en tocar-lo s'obre suaument i a dins hi ha «Moviment +1.550,00 €»; la xifra de dalt i el total del dia no canvien. MALAMENT: el traspàs continua solt, el bloc surt a dalt, o alguna xifra canvia."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.197",
     "d": "2026-10-31",
     "t": {
