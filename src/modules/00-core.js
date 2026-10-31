@@ -4331,7 +4331,78 @@ function goalSyncAck(prev,owner,sent,expected,revision){
 }
 const PLAN_EDIT_INTENT=Symbol("plan-edit-intent");
 function planSyncEditToken(s){return s&&s[PLAN_EDIT_INTENT];}
-function planSyncEditState(s,at){return Object.assign({},s,{_savedAt:at,[PLAN_EDIT_INTENT]:{}});}
+// Una fecha antigua pudo sobrevivir a otro editor: sólo estas transiciones nuevas acreditan
+// una lectura manual. El intento es privado y puro; React puede evaluar el updater dos veces.
+const MANUAL_BALANCE_INTENT=Symbol("manualBalanceIntent"), MANUAL_BALANCE_TYPED=Symbol("manualBalanceTyped");
+function manualBalanceModel(a){
+  return a?{id:a.id,ent:a.ent,value:a.value,role:accRole(a),spendFrom:!!a.spendFrom,readAt:a.saldoLeidoAt}:null;
+}
+function manualBalanceTarget(a){return a?{id:a.id,ent:a.ent,role:accRole(a),spendFrom:!!a.spendFrom}:null;}
+function manualBalanceSame(a,b){
+  return !!a&&!!b&&["id","ent","value","role","spendFrom","readAt"].every(function(k){return a[k]===b[k];});
+}
+function manualBalanceAccount(s,id){
+  const rows=(s.accounts||[]).filter(function(a){return a.id===id;});
+  return rows.length===1?rows[0]:null;
+}
+function manualBalanceIsManual(s,a){
+  return !!a&&!a.bankIban&&!a.bankUid&&a.balSaldo==null&&!a.balanceAt&&!saldoLoMandaPuenteNativo(s,a.ent);
+}
+function manualBalanceRead(s,id){
+  const env=s.manualBalanceReads,a=manualBalanceAccount(s,id);
+  if(s[MANUAL_BALANCE_INTENT]||!env||env.schema!==1||!Number.isFinite(env.stateAt)||env.stateAt<=0||env.stateAt!==s._savedAt||!env.byId||!Object.prototype.hasOwnProperty.call(env.byId,id)) return null;
+  const p=env.byId[id],ms=p&&Date.parse(p.readAt);
+  return p&&p.origin==="manual-v1"&&typeof p.value==="number"&&Number.isFinite(p.value)&&ms>0&&ms<=env.stateAt&&ms<=Date.now()&&manualBalanceIsManual(s,a)&&manualBalanceSame(p,manualBalanceModel(a))?p:null;
+}
+function manualBalanceStage(next,source,kind,rows){
+  const out=Object.assign({},next);delete out.manualBalanceReads;
+  out[MANUAL_BALANCE_INTENT]={source:source,envelope:source.manualBalanceReads,savedAt:source._savedAt,kind:kind,rows:rows};
+  return out;
+}
+function manualBalanceCommit(s,at){
+  const intent=s[MANUAL_BALANCE_INTENT];
+  if(!intent&&!s.manualBalanceReads) return s;
+  const out=Object.assign({},s);delete out[MANUAL_BALANCE_INTENT];delete out.manualBalanceReads;
+  // Cualquier edición ajena rompe la trazabilidad; nunca se pone al día una marca heredada.
+  if(!intent||!Number.isFinite(at)||at<=0||!intent.source||intent.source._savedAt!==intent.savedAt||intent.source.manualBalanceReads!==intent.envelope||s._savedAt!==intent.savedAt||intent.savedAt!=null&&(!Number.isFinite(intent.savedAt)||at<=intent.savedAt)||!["read","pause"].includes(intent.kind)) return out;
+  const byId=Object.create(null);
+  (Array.isArray(intent.rows)?intent.rows:[]).forEach(function(r){
+    if(!r||!r.next||!r.before) return;
+    const before=manualBalanceAccount(intent.source,r.next.id),after=manualBalanceAccount(s,r.next.id),ms=Date.parse(r.next.readAt);
+    if(!manualBalanceSame(r.before,manualBalanceModel(before))||!manualBalanceSame(r.next,manualBalanceModel(after))||!manualBalanceIsManual(s,after)||!Number.isFinite(r.next.value)||!(ms>0&&ms<=at)||r.next.origin!=="manual-v1") return;
+    if(intent.kind==="pause"&&!manualBalanceSame(manualBalanceRead(intent.source,r.next.id),r.next)) return;
+    byId[r.next.id]=Object.assign({},r.next);
+  });
+  if(Object.keys(byId).length) out.manualBalanceReads={schema:1,stateAt:at,byId:byId};
+  return out;
+}
+function manualBalanceWrite(s,readings){
+  const input=insumosSaldoGasto(s),rows=[],submitted=Object.create(null);
+  (readings||[]).forEach(function(r){if(r&&Number.isFinite(r.typed)&&r.expected) submitted[r.id]=r;});
+  let changed=false,editable=false;
+  const accounts=(s.accounts||[]).map(function(a){
+    if(!Object.prototype.hasOwnProperty.call(submitted,a.id)||!manualBalanceAccount(s,a.id)||a.bankIban||a.bankUid||a._obKey) return a;
+    const r=submitted[a.id],target=manualBalanceTarget(a);
+    if(!["id","ent","role","spendFrom"].every(function(k){return r.expected[k]===target[k];})) return a;
+    editable=true;
+    const typed=+(r.typed).toFixed(2),shown=saldoCuentaMostrada(a,input);
+    // La misma cifra sigue siendo una lectura nueva (t3), aunque no acredite otra base manual.
+    if(Math.round(typed*100)===Math.round(shown*100)){changed=true;return Object.assign({},a,{saldoLeidoAt:new Date().toISOString()});}
+    const pn=input.paidNetByBank[a.ent]||0,spent=input.spentByBank[a.ent]||0;
+    const value=accDaily(a)?valueDesdeSaldo({shown:typed,injTR:input.injTR,spentOwn:spent,roundup:input.roundup,monthlyInvest:input.monthlyInvest,ambos:accRole(a)==="ambos",paidNet:pn}):isEfectivoEnt(a)?+(typed+spent).toFixed(2):+(typed-pn).toFixed(2);
+    const n=Object.assign({},a,{value:value,saldoLeidoAt:new Date().toISOString()});
+    changed=true;
+    // Editabilidad y procedencia no son lo mismo: TR nativo sigue admitiendo corregir saldo,
+    // aunque esa lectura nunca autorice a retirar una proyección al pausar.
+    if(manualBalanceIsManual(s,a)) rows.push({before:manualBalanceModel(a),next:Object.assign(manualBalanceModel(n),{origin:"manual-v1"}),typed:typed});
+    return n;
+  });
+  if(!editable) return s;
+  const next=changed?Object.assign({},s,{accounts:accounts}):s,after=insumosSaldoGasto(next);
+  const exact=rows.filter(function(r){const a=manualBalanceAccount(next,r.next.id);return a&&Math.round(saldoCuentaMostrada(a,after)*100)===Math.round(r.typed*100);});
+  return manualBalanceStage(next,s,"read",exact);
+}
+function planSyncEditState(s,at){return Object.assign({},manualBalanceCommit(s,at),{_savedAt:at,[PLAN_EDIT_INTENT]:{}});}
 function goalSyncMetadataOnly(prev,next,commitKey){
   if(!prev || prev._goalSync===next._goalSync && prev._planSync===next._planSync && (!commitKey || prev[commitKey]===next[commitKey])) return false;
   return [...new Set([...Object.keys(prev),...Object.keys(next)])].every(function(k){ return k==="_goalSync" || k==="_planSync" || k==="_savedAt" || prev[k]===next[k]; });
@@ -4351,7 +4422,7 @@ function mergePlanThreeWay(base,local,remote,kind,deleted,localNewer){
   }
   const payment=kind==="fixed"?["paidYm","paidDay"]:[];
   // La pausa viaja entera: «desde» de un móvil con «hasta» del otro sería una pausa que nadie pidió.
-  const pause=kind==="fixed"?["pausedFrom","pausedUntil"]:[];
+  const pause=kind==="fixed"?["pausedFrom","pausedUntil","manualPauseBalance"]:[];
   new Set([...r.keys(),...l.keys()]).forEach(function(id){
     const old=b&&b.get(id),left=l.get(id),right=r.get(id);
     if(!left || !right){rows.push(left||right);return;}
