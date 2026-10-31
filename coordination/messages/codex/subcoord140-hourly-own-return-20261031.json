@@ -1,0 +1,9 @@
+{
+  "id": "subcoord140-hourly-own-return-20261031",
+  "to": "codex",
+  "body": "RETURN propio de coordinación para relevo horario. Contador real14/20 antes de este envío; readback final conservará contador real, remanentes congelados no transferibles y todos los intermedios FULL RAW/ACK. Root no adquirió runners/servidores/puertos ni claims de producto. PR330 sigue DRAFT HEAD2437eaf5/base9ef9, APARCADA por NO-GOaa740946; descripción diagnóstica actualizada y reporte e61ec506 confirmado, sin código ni tests nuevos tras NO-GO. Su dependencia de tipo/fecha de saldo y orden movimientos-antes-saldo requiere OK del dueño para servidor. Anotación BACKLOG preparada solo en WIP privado del titular de PR328, aún no publicada. Cola vigente UX17, PR328 y P2 sin servidor. UX17 task2dd2dedd y claim2cc6349c propios confirmados, OWN3 al último reporte, candidato en preparación; todas las pruebas/build/browser/server/port/ENTER bloqueadas hasta circuito de reserva/lease canónico y confirmación exacta. Consulta de recursos e61ec506 pendiente de respuesta. PR328 task7b428da/claim8c37c5bb propios, OWN3 en espera segura de UX17; tres WIP sin probar y anotación de BACKLOG preservados, tests0. Trabajadores conservan identidad, reloj, presupuesto y claims; no se recrean al relevar raíz. El sucesor necesita OWN20 nuevo propio desde0 bajo standing7188, sin heredar este presupuesto ni recursos. No integración, merge, deploy, versiones, catálogo ni ProductREADY; ningún aviso humano de entrega servida.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261031-r140-nrelayd6409b24a5c381fe7d958ba1e6d1e6f7",
+  "createdAt": "2026-10-31T13:17:25.990Z"
+}
