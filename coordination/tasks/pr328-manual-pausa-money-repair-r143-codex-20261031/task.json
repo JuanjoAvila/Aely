@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "id": "pr328-manual-pausa-money-repair-r143-codex-20261031",
+  "from": "codex",
+  "coordinatorSession": "nrelay5c612bc07029d0a4dc66f648d2f90803",
+  "createdAt": "2026-10-31T15:51:13.623Z",
+  "to": "codex",
+  "baseSHA": "555fe0c3656a3aeb948ff2423c79f674c5b3f92c",
+  "objective": "Relevo horario de PR328 tras result propio efb39823 y RETURN40e92de4. Conservar WIP privado exacto ya revisado estaticamente y continuar reparacion B1/B2/R2 y documentacion R1 SOLO tras resolver contrato Node financiero y GO exacto del coordinador. Misma PR328, historia555fe preservada, sin rebase ni force.",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/08-motor-bank.js",
+    "src/modules/07-tab-patri-fijos.js",
+    "tests/recibos-manual-pausa.test.mjs",
+    "scripts/run-tests.mjs",
+    "docs/ARQUITECTURA.md",
+    "docs/BACKLOG.md"
+  ],
+  "authority": [
+    "3d4d05c586d4af42b417fdae585452b2de423d98",
+    "aa740946d9b7b93865f4aa4bd000724497a0bf5a"
+  ],
+  "acceptance": [
+    "Reproducciones causales de edición entre pausa/reanudación y cliente viejo, con exactitud al céntimo y estado antes/después",
+    "Guard en TZ=UTC y TZ=Europe/Madrid sin debilitar expectativa",
+    "R2 misma cifra modifica sello saldoLeidoAt, incluida fecha/puertas reales pertinentes",
+    "Mutante para B1 y R2 que prueba causalidad sin cambiar implementación al declarar verde",
+    "Misma PR draft y rama remota original, fast-forward desde555fe, no rebase ni merge main/beta",
+    "Revisión independiente del diff final y GO del coordinador al HEAD exacto antes push; reportar una vez HEAD a Claude",
+    "Sin R6-2/UX17/VERSION/catalogo/notas/caps/backend/SQL/servidor/deploy/DB real",
+    "BACKLOG entero queda WIP privado excluido de commit y push. Solo cuatro archivos publicables:00-core,08-motor-bank,test manual-pausa,ARQUITECTURA.",
+    "No repetir revision pre-ENTER del snapshot sin cambios; revision final independiente del HEAD exacto antes de GO/push."
+  ],
+  "constraints": [
+    "Fresh own identity, OWN20 from zero, native admission and source confirmation before helper/startup; own claim confirmed before product. No prior identity, claim, state, grants or counters inherited.",
+    "Source PR328-r142 closed OWN6/20, remaining14 frozen non-transferable; result blocked/released and RETURN confirmed. Source checkout, preserved copies, helper and ledger immutable.",
+    "Node tests remain without ENTER: original CPU1 serial worker1 retries0 contract awaits concrete clarification f8ae7aed. No direct Node waiver inferred from e2e authority ef51. Exact coordinator GO required.",
+    "Prior rejected launcher FOCAL01 remains binding: no writing, retry, execution, equivalent inline/proxy/other identity.",
+    "Ten synthetic focused Node runs proposed only: guard exit0 and four causal mutants each exit1 under UTC and Europe/Madrid,serial/retry0/stopfirstunexpected,durable output and raw exit. No full npm test or R3 by carry-over.",
+    "Worker reports only to current coordinator; only root reports to Claude.",
+    "No R6-2/UX17/VERSION/catalogue/notes/caps/backend/SQL/server/deploy/merge main or beta.",
+    "Preserve same original PR328 remote branch codex/recibos-manual-pausa-r133-49759e7c. Final independent HEAD review and exact root GO before normal fast-forward push.",
+    "BACKLOG entire private WIP excluded from product commit/push."
+  ],
+  "deliverable": "Private exact commit with causal fixes/tests under UTC and Madrid, independent final review and manifest; then exact root GO before updating same draft PR328. Do not create another PR.",
+  "previousTaskId": "pr328-manual-pausa-money-repair-r141-codex-20261031",
+  "previousResultSHA": "efb39823d5d819d8c648301ac3c8cd283db750ce",
+  "previousRETURN": "40e92de4b0930d9e953b2a8861960a872078a829",
+  "initialState": "WAIT_NODE_CONTRACT_AND_EXACT_ROOT_GO"
+}
