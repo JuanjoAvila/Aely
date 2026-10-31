@@ -140,8 +140,30 @@ en el recibo dentro de `app_state` y la mezcla de tres vías la trata como un so
 juntar el «desde» de un móvil con el «hasta» de otro. Un cliente anterior la ignora y la conserva
 (no reconstruye recibos campo a campo). Un recibo en pausa y sin cobrar no cuenta en el mes
 (`fixedEnPausa`: Plan, Inicio, totales, previsión de saldo y avisos de la víspera); si el banco lo
-cobra igualmente es un pago y se ve. Pausar o reanudar compensa el saldo mostrado
-(`conSaldoMostrado`), como los vínculos de pago. `revisado` (`{distinto, fantasma}` con el
+cobra igualmente es un pago y se ve. Pausar o reanudar conserva normalmente el saldo mostrado
+(`conSaldoMostrado`), como los vínculos de pago. La excepción es una lectura manual **nueva y
+trazable** anterior al día de un recibo vencido e impagado: una única cuenta de recibos de ese
+banco puede retirar o restaurar esa proyección manteniendo su base leída. No se infiere nada
+de fechas antiguas: el editor legacy podía conservar `saldoLeidoAt` tras cambiar el importe.
+`manualBalanceReads` guarda fuera de `accounts` la pareja `_savedAt`/`stateAt` y snapshots por
+identidad, entidad, rol, base y hora de lectura. Sólo una corrección manual con importe cambiado
+crea la prueba; ambas puertas de edición calculan la inversa con el estado fresco y verifican los
+céntimos mostrados. Confirmar una cifra igual invalida sin fechar de nuevo. La pausa/reanudación
+sólo conserva la prueba del ID verificado mediante un intento privado, puro y no serializable,
+revalidado después del reconciliador; no acredita una lectura nueva.
+**Cobertura conservadora:** cualquier edición ordinaria ajena invalida todas las pruebas. La
+pareja coherente sobrevive al guardado/lectura y viaja íntegra en `app_state`; una adopción,
+cambio de rol/base/banco o un cliente antiguo con sello desfasado no la revalida. Sin prueba,
+con varias cuentas de recibos del banco, conexión bancaria, TR nativo, fecha inválida/futura,
+mismo día o posterior, se conserva el comportamiento anterior. TR manual sin puente sí puede
+ser elegible. El calendario compara días de Madrid; si el motor local está en otro día, falla
+prudente. `_savedAt` usa el reloj existente: no garantiza distinguir un cliente antiguo con
+timestamp exactamente coincidente o reloj revertido. No es una reparación completa de todos
+los saldos manuales. No se alteran las dos comparaciones semánticas de nube ni se avanza un
+sello por sí solo: la invalidación es un cambio real una vez y no genera un ticker de escrituras.
+Lo vigila `tests/recibos-manual-pausa.test.mjs`, registrado en el runner, con writers, setter,
+callback, almacenamiento y ambas puertas de nube reales bajo dobles offline.
+`revisado` (`{distinto, fantasma}` con el
 año*12+mes) guarda los avisos de «Para revisar» ya contestados; posponer es solo de ese móvil
 (almacén local, hasta el día siguiente).
 «¿Te llega?» no tiene cálculo propio: lee el recorrido día a día de `totals` (11), que pasa por
