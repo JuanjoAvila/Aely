@@ -4555,9 +4555,9 @@ function patchFixedById(set, id, p){
     return n;
   });
 }
-/* Pausar o reanudar (Plan › Recibos v6). Pura. Sin rango (hasta <= desde) quita la pausa.
-   El saldo que se ve no salta: un recibo vencido que se pausa dejaría de restar en la previsión
-   de golpe; se compensa como cualquier cambio de marca de pago (`conSaldoMostrado`). */
+/* Una lectura manual NUEVA anterior al vencimiento aún no contenía el cargo proyectado.
+   Sólo esa prueba permite retirar/restaurar la proyección; legado o edición ajena conservan
+   la compensación anterior. No se atribuye un recibo entre varias cuentas del mismo banco. */
 function fixedPausa(s, id, from, until){
   let changed=false;
   const fixed=(s.fixed||[]).map(function(e){
@@ -4568,7 +4568,16 @@ function fixedPausa(s, id, from, until){
     if(goalSyncEqual(n,e)) return e;
     changed=true; return n;
   });
-  return changed?conSaldoMostrado(s,Object.assign({},s,{fixed:fixed})):s;
+  if(!changed) return s;
+  const next=Object.assign({},s,{fixed:fixed}),out=conSaldoMostrado(s,next);
+  const e=(s.fixed||[]).find(function(f){return f.id===id;}),f=fixed.find(function(x){return x.id===id;}),now=new Date(),md=madridYmdParts(Date.now());
+  if(!e||!f||(s.fixed||[]).filter(function(x){return x.id===id;}).length!==1||now.getFullYear()!==md.y||now.getMonth()+1!==md.m||now.getDate()!==md.d||!occursIn(e,md.m)) return out;
+  const day=Number(dayIn(e,md.m)),bank=e.account||"sabadell",accounts=(s.accounts||[]).filter(function(a){return a.ent===bank&&accFixed(a);});
+  if(accounts.length!==1||!Number.isInteger(day)||!(day>=1&&day<=31&&day<=md.d)||fixedPaymentState(s,e,md.y,md.m,md.d).paid||fixedPaymentState(next,f,md.y,md.m,md.d).paid||fixedEnPausa(s,e,md.y,md.m,md.d)===fixedEnPausa(next,f,md.y,md.m,md.d)) return out;
+  const a=accounts[0],proof=manualBalanceRead(s,a.id),read=proof&&madridYmdParts(Date.parse(proof.readAt));
+  if(!proof||read.y!==md.y||read.m!==md.m||read.d>=day) return out;
+  const restored=Object.assign({},out,{accounts:(out.accounts||[]).map(function(x){return x.id===a.id?Object.assign({},x,{value:a.value}):x;})});
+  return manualBalanceStage(restored,s,"pause",[{before:manualBalanceModel(a),next:Object.assign({},proof)}]);
 }
 function removeFixedById(set, id){
   quitarDelPlan(set,"fixed",id);
