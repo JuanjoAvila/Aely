@@ -1664,3 +1664,8 @@ Los tests ingest-native-phase1 y ingest-native-slots cargan src real, no un HTML
 ## SEC02 F1 · Generación del guardado final
 
 `supabase/functions/bank-callback/generation-fence.test.ts`, registrado en ambos runners Deno, ejecuta el handler real con SDK/proveedor/BD sintéticos y sin red ni entorno. RED causal en base y GREEN20/20: reconexión durante canje, preservación de generación/cuentas/cursor, emisión legacy nula, cambios justo al escribir, acuse final inválido y consumo previo fallido. Tres mutantes de state/emisión/NULL detectados; logs y exits originales conservados. [Contrato, comando y límites](briefs/sec02-callback-generation-fence.md).
+
+
+## Resumen para Jarvis
+
+`tests/jarvis-resumen.test.mjs` (runner unitario) arma con `estadoComoApp` un estado inventado (filas de `expenses` en formato de la nube, recibos pausado/pagado/vencido, una cuota y dos cuentas) con el reloj fijo y `fetch` bloqueado, y comprueba el formato v1 cerrado, `gastado` y categorías a mano y contra `monthBudgetStats`, los cobros de 30 días contra `planChargesMonth`, los saldos contra `saldoCuentaMostrada`, que no salgan IBAN, ids ni correos y la escritura atómica. No toca Supabase ni la cartera real; la ejecución real (`npm run jarvis-resumen`) es manual.
