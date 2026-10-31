@@ -164,6 +164,7 @@ mi-cartera/
 ├── scripts/
 │   ├── build-app.mjs       # Ensambla src/ → public/index.html
 │   ├── run-tests.mjs       # build + unit + Deno + E2E; tiempos por etapa en test-results/
+│   ├── jarvis-resumen.mjs  # `npm run jarvis-resumen`: gasto del mes, próximos cobros y saldos a %LOCALAPPDATA%/Aely/jarvis-resumen.json (solo lectura; .env.local con SUPABASE_SERVICE_ROLE_KEY y AELY_JARVIS_USER=<correo>)
 │   └── stamp-version.mjs
 ├── docs/                   # BACKLOG, ARQUITECTURA, TESTING, SENTRY, ROADMAP…
 ├── playwright.config.mjs

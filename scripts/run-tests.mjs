@@ -181,6 +181,7 @@ const steps = [
   ["inicio-transito-intereses", ["node", "tests/inicio-transito-intereses.test.mjs"]],
   ["cuenta-parte-mia", ["node", "tests/cuenta-parte-mia.test.mjs"]],
   ["informe-mes", ["node", "tests/informe-mes.test.mjs"]],
+  ["jarvis-resumen", ["node", "tests/jarvis-resumen.test.mjs"]],
   ["presupuesto-categoria", ["node", "tests/presupuesto-categoria.test.mjs"]],
   ["month-window", ["node", "tests/month-window.test.mjs"]],
   ["presupuesto-servidor", ["node", "tests/presupuesto-servidor.test.mjs"]],
