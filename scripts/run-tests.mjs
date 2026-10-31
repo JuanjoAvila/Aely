@@ -38,6 +38,7 @@ const steps = [
   ["ingest-native-slots", ["node", "tests/ingest-native-slots.test.mjs"]],
   ["ingest-native-phase1", ["node", "tests/ingest-native-phase1.test.mjs"]],
   ["fixed-ispaidin", ["node", "tests/fixed-ispaidin.test.mjs"]],
+  ["pro03-receipt-eve-forecast", ["node", "tests/pro03-receipt-eve-forecast.test.mjs"]],
   ["pr297-r2-plan-sync", ["node", "--test", "--test-concurrency=1", "tests/pr297-r2-plan-sync.test.mjs"]],
   ["fin04-commit", ["node", "--test", "--test-concurrency=1", "tests/fin04-commit.test.mjs"]],
   ["fin36-debt-madrid-month", ["node", "tests/fin36-debt-madrid-month.test.mjs"]],

@@ -1,5 +1,42 @@
 // Motivo con identidad: `runBankSync` no llamó al banco porque no había pull de la nube (15/9).
 const SYNC_SIN_NUBE={motivo:"sync-sin-nube"};
+// El worker no vuelve a leer el banco: solo puede enseñar el cálculo de ESTA víspera.
+// La cifra es la de «¿Te llega?», incluidas las cuotas sin día de planCoverState.
+function receiptEveProducer(state,totals,now){
+  now=now||new Date();
+  const dateKey=function(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+  const calculatedOn=dateKey(now), tomorrow=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,12);
+  const current=totals.curYear===now.getFullYear()&&totals.curMonth===now.getMonth()+1&&totals.today===now.getDate();
+  const byBank=Object.create(null);
+  let pending=null;
+  return function(charge,bank){
+    const due=new Date(totals.curYear,totals.curMonth-1,charge.day,12);
+    const validDay=typeof charge.day==="number"&&Number.isInteger(charge.day)&&due.getFullYear()===totals.curYear&&due.getMonth()+1===totals.curMonth&&due.getDate()===charge.day;
+    const dueOn=validDay?dateKey(due):"";
+    const name=String(charge.name||"?").replace(/[\r\n\u2028\u2029]+/g," ");
+    const vals={name:name,x:eur(charge.amount)};
+    const eve={v:1,title:t("rc_title_tmrw"),body:tf("rc_body_tmrw",vals),coverage:"unknown",calculatedOn:calculatedOn,dueOn:dueOn};
+    if(!current||dueOn!==dateKey(tomorrow)||typeof bank!=="string"||!bank) return eve;
+    if(!Object.prototype.hasOwnProperty.call(byBank,bank)){
+      const bal=totals.bankBal&&Object.prototype.hasOwnProperty.call(totals.bankBal,bank)?totals.bankBal[bank]:null;
+      const stale=(state.bankIssues||[]).some(function(i){ return i&&i.ent===bank; })
+        ||(state.accounts||[]).some(function(a){ return a&&a.ent===bank&&a.balanceStale; })
+        ||(state.obAccounts||[]).some(function(a){ return a&&a.ent===bank&&a.stale; });
+      let min=null;
+      if(typeof bal==="number"&&isFinite(bal)&&!stale&&saldoLeidoDelBanco(state,bank)>0){
+        if(pending===null) pending=planChargesMonth(state,totals.curMonth,totals.curYear,totals.today).pendingBills;
+        const cover=planCoverState(totals,bank,0,pending);
+        if(cover&&typeof cover.min==="number"&&isFinite(cover.min)) min=cover.min;
+      }
+      byBank[bank]=min;
+    }
+    const min=byBank[bank];
+    if(min===null) return eve;
+    eve.coverage=min<-0.005?"short":"enough";
+    eve.body=tf(eve.coverage==="short"?"rc_body_tmrw_short":"rc_body_tmrw_enough",Object.assign({},vals,{saldo:eur(min)}));
+    return eve;
+  };
+}
 function App(){
   const [state,setStateRaw]=useState(loadState);
   const [modeChangePending,setModeChangePending]=useState(false);
@@ -2767,31 +2804,40 @@ function App(){
   },[state.onboarded,locked,showAuth,tourOpen]);
   // Calendario de cargos del mes (fijos + cuotas) para el intercambio con el nativo: lo usan
   // el efecto de avisos de la víspera Y el push al AlertCheckWorker — misma lista en ambos.
-  const alertCalendarOf=function(){
+  const alertCalendar=useMemo(function(){
     const cm=totals.curMonth, cy=totals.curYear;
     const ym=cy+"-"+String(cm).padStart(2,"0");
     const charges=[];
+    const eveOf=receiptEveProducer(state,totals);
     (state.fixed||[]).forEach(function(e){
       // Pausado = este mes no se cobra: avisar la víspera de algo que no llega sería mentir.
       if(!occursIn(e,cm,cy)||fixedPausedIn(e,cy,cm)) return;
+      if(isPaidIn(e,cm,totals.today,cy,state)) return;
       const d=dayIn(e,cm,cy); const amt=occAmountIn(e,cm,cy)||0;
       if(d==null||!(amt>0)) return;
-      charges.push({id:String(e.id),name:e.name||"Recibo",amount:+amt.toFixed(2),day:d});
+      const c={id:String(e.id),name:e.name||"Recibo",amount:+amt.toFixed(2),day:d};
+      c.eve=eveOf(c,e.account); charges.push(c);
     });
     (state.debts||[]).forEach(function(d){
       if(!debtActive(d)||!(d.monthly>0)) return;
-      charges.push({id:"debt_"+d.id,name:d.name||"Cuota",amount:+d.monthly.toFixed(2),day:debtChargeDay(d)});
+      if(isDebtPaidThisMonth(d,totals.today,state,cy,cm)) return;
+      const c={id:"debt_"+d.id,name:d.name||"Cuota",amount:+d.monthly.toFixed(2),day:debtChargeDay(d)};
+      c.eve=eveOf(c,d.account); charges.push(c);
     });
     const fired=[];
     charges.forEach(function(c){ try{ if(localStorage.getItem("_rc1_"+c.id+"_"+ym)==="1") fired.push(c.id); }catch(e){} });
     return {ym:ym,charges:charges,fired:fired};
-  };
+  },[state.fixed,state.debts,state.oneoffs,state.flows,state.accounts,state.obAccounts,state.expenses,state.bankTx,
+     state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,
+     state.obBalAt,state.lastTrSync,state.bankIssues,state.settings,totals,calendarDay,CURLANG,DISP.k,DISP.sym]);
+  const alertCalendarOf=function(){ return alertCalendar; };
   // Recordatorio de recibos: TODOS avisan LA VÍSPERA (petición 2026-07-18: «el banco no te
   // avisa, la app podría»); los gordos además con 2–3 días de antelación como hasta ahora.
   // Incluye también las cuotas de deuda. Una noti por cargo y mes. Importes con eur() EXACTO:
   // redondear aquí hizo que «la luz» saliera como 90 € cuando el cargo real era 89,54 (2026-07-21).
   useEffect(function(){
     if(state.onboarded===false||locked||showAuth) return;
+    if(mcSandbox()) return;
     const nat=natPlugin();
     if(!nat||!nat.showNotification) return;
     const today=totals.today||new Date().getDate();
@@ -2799,11 +2845,20 @@ function App(){
     const minAmt=Math.max(80, (totals.fijosMensual||0)*0.12);
     const cal=alertCalendarOf();
     const ym=cal.ym;
+    let cancelled=false;
+    const messageOf=function(id,name,amt){
+      const c=cal.charges.find(function(c){ return c.id===id; });
+      return c&&c.eve||{title:t("rc_title_tmrw"),body:tf("rc_body_tmrw",{name:name||"?",x:eur(amt)})};
+    };
     const notify=function(key,title,body){
       try{ if(localStorage.getItem(key)==="1") return; localStorage.setItem(key,"1"); }catch(err){}
       try{ nat.showNotification({title:title,body:body}).catch(function(){}); }catch(err){}
     };
     const run=function(){
+      if(cancelled) return;
+      // El intercambio de sellos puede resolver tras medianoche: ese cálculo ya no es de hoy.
+      const now=new Date();
+      if(totals.curYear!==now.getFullYear()||totals.curMonth!==now.getMonth()+1||totals.today!==now.getDate()) return;
       (state.fixed||[]).forEach(function(e){
         if(!occursIn(e,cm,cy)||fixedPausedIn(e,cy,cm)) return;
         const d=dayIn(e,cm,cy); if(d==null) return;
@@ -2812,7 +2867,8 @@ function App(){
         if(!(amt>0)) return;
         const daysLeft=d-today;
         if(daysLeft===1){
-          notify("_rc1_"+e.id+"_"+ym, t("rc_title_tmrw"), tf("rc_body_tmrw",{name:e.name||"?",x:eur(amt)}));
+          const msg=messageOf(String(e.id),e.name,amt);
+          notify("_rc1_"+e.id+"_"+ym, msg.title, msg.body);
         } else if(amt>=minAmt && daysLeft>=2 && daysLeft<=3){
           notify("_rc_"+e.id+"_"+ym+"_"+d, t("rc_title"), tf("rc_body",{name:e.name||"?",x:eur(amt),d:String(d)}));
         }
@@ -2822,7 +2878,8 @@ function App(){
         if(!debtActive(d) || !(d.monthly>0)) return;
         if(isDebtPaidThisMonth(d,today,state,cy,cm)) return;
         if(debtChargeDay(d)-today!==1) return;
-        notify("_rc1_debt_"+d.id+"_"+ym, t("rc_title_tmrw"), tf("rc_body_tmrw",{name:d.name||"?",x:eur(d.monthly)}));
+        const msg=messageOf("debt_"+d.id,d.name,d.monthly);
+        notify("_rc1_debt_"+d.id+"_"+ym, msg.title, msg.body);
       });
     };
     // ANTES de avisar, sella lo que el NATIVO ya avisó. Este efecto corría en paralelo al
@@ -2836,7 +2893,8 @@ function App(){
         }).catch(run);
       }catch(e){ run(); }
     } else run();
-  },[state.onboarded,locked,showAuth,state.fixed,state.debts,state.oneoffs,state.accounts,state.expenses,state.bankTx,state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,totals.today,totals.curMonth,totals.curYear]);
+    return function(){ cancelled=true; };
+  },[state.onboarded,locked,showAuth,alertCalendar]);
 
   // Empuja el calendario de recibos del mes al NATIVO (APK ≥29): AlertCheckWorker avisa la
   // víspera aunque la app esté CERRADA. Intercambio de sellos para no avisar dos veces:
@@ -2844,6 +2902,7 @@ function App(){
   // aparte del efecto de arriba para que el calendario llegue al worker TAMBIÉN con la app
   // bloqueada o a medio onboarding (el de arriba sale temprano en esos casos).
   useEffect(function(){
+    if(mcSandbox()) return;
     const nat=natPlugin();
     if(!nat||!nat.setAlertData) return;
     const cal=alertCalendarOf();
@@ -2852,7 +2911,7 @@ function App(){
         ((r&&r.fired)||[]).forEach(function(id){ try{ localStorage.setItem("_rc1_"+id+"_"+cal.ym,"1"); }catch(e){} });
       }).catch(function(){});
     }catch(e){}
-  },[state.fixed,state.debts,totals.curMonth]);
+  },[alertCalendar]);
 
   // Avisos de presupuesto al cruzar 50/80/95/100% (petición 2026-07-18). Una noti por umbral
   // y mes; si al abrir ya vas por el 97%, solo suena el umbral MÁS ALTO (los demás se sellan
