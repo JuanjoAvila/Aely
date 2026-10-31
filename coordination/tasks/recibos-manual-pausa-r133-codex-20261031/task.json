@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "id": "recibos-manual-pausa-r133-codex-20261031",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261031-r133-e4a2de73a43391e42b068b23",
+  "createdAt": "2026-10-31T04:21:32.789Z",
+  "to": "codex",
+  "baseSHA": "676df3778e90e4f9930e4aec5d13ef93cf1e8ffb",
+  "objective": "Cola2674 punto4 P1 Plan Recibos t2 R1: reproducir y corregir saldo al pausar Solo este mes un recibo vencido sin cargo en cuenta MANUAL cuando el saldo fue tecleado antes del vencimiento; una PR draft beta con pruebas causales y decisiones financieras explicitas.",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/02-ui-shared.js",
+    "src/modules/07-tab-patri-fijos.js",
+    "src/modules/08-motor-bank.js",
+    "tests/recibos-manual-pausa.test.mjs",
+    "scripts/run-tests.mjs",
+    "docs/ARQUITECTURA.md",
+    "docs/BACKLOG.md"
+  ],
+  "instructions": "Autoridad Claude2674c8fd y regimen7188f09d permanente, presupuestoOWN20 propio nuevo0 y corridas dirigidas offlineCPU1 serial1worker0retry con censo/admission/ENTER/RETURN antes de cada run. Primero recepcion nativa Aely/local, ACK privado, admision expresa ROOT133, helper/state/ledger nuevos, primer wait>=30s FULL RAW ALLdeltas/cancelaciones ACK, avisoOWN/readback>=30s, claimPROPIO confirmado y ROOTACK especifico confirmado antes de codigo/tests. Checkout/rama propios desde base exacta, un escritor/runner, no tocar otro. No instalar dependencias ni rebase por beta. AGENTS/EMPIEZA y protocolo completos. BACKLOG afirma que falta fecha de tecleo, pero base676 ya tiene saldoLeidoAt en guardarSaldoDe07 y setTRCash00: audita TODOS escritores/lectores reales y no inventes otro dato sin necesidad ni asumas que la fecha cubre todas las puertas legacy. Reproduce causalmente en base con datos sinteticos y oraculo independiente al centimo: tecleo antes/despues del cargo, recibo vencido sin cargo, pagado/vinculado, reanudar, vencimiento futuro, varias cuentas manuales y conectadas, cambio de mes, estado antiguo sin fecha, persistencia y deshacer. Traza fixedPausa/conSaldoMostrado/saldoCuentaMostrada/valueDesdeSaldo y calendarioMadrid. Si queda ambiguo el contrato legacy o hace falta nuevo dato/regla de dinero, entrega propuesta concreta con RED y pregunta a ROOT antes de aplicar la decision. No corregir con compensacion incondicional que cambie casos no afectados ni debilitar oraculos/topes. Prueba writer y callback reales; registra nuevo guard en runner y docs. Sin backend/SQL/Edge/migracion/deploy/APK/Gradle/VERSION/catalogo/notas/caps/sesionesbank ni datos reales. Scope adicional requiere concretarlo con ROOT; no tocar codigoGEMELOS ni importar su patch. No repetir tests cerrados sin cambio/fallo; no fullsuite/browser/CPU6 por arrastre. Revision independiente y ROOT GO exactHEAD antes de push SOLO tu rama y UNA draft beta, sin merge. Worker reporta soloROOT; resultados/RETURN propios confirmados>=30s y recursos devueltos. No aviso humano ni permisos generales. Clock60min nuevo en admision, no herencia de identities/claims/counters."
+}
