@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "id": "inc290902-closed-month-limit-r149-codex-20261031",
+  "from": "codex",
+  "coordinatorSession": "nrelay3139ab30ce2f8269b6130780b3f8a121",
+  "createdAt": "2026-10-31T22:43:50.211Z",
+  "to": "codex",
+  "baseSHA": "656f17a69acdb59a4bfd14ea51a50196157b5807",
+  "objective": "Cola Claude255f650b punto1: corregir Mes cerrado con limite de HOY INC-2909-02, solo cliente; tarjeta e imagen usan limite del mes cerrado con contrato historico coherente.",
+  "scope": [
+    "src/modules/01-i18n.js",
+    "src/modules/02-ui-shared.js",
+    "src/modules/03-tab-dash.js",
+    "src/modules/08-motor-bank.js",
+    "tests/informe-mes.test.mjs",
+    "tests/month-budget-stats.test.mjs",
+    "e2e/informe-mes.spec.mjs",
+    "docs/BACKLOG.md",
+    "docs/ARQUITECTURA.md"
+  ],
+  "authorityCommit": "255f650b5d5734c0225c503ee4e1feb6d21e048f",
+  "target": "one new draft PR against beta, no rebase/force",
+  "acceptance": [
+    "First verify point is not already delivered; BACKLOG/source show current-limit bug, no new matching title PR found. Do not reopen previous closed scope.",
+    "Closed-month card and shared image must agree on budgetByMonth for exact historical year-month, preserving spent/income/nomina/reserved/against semantics and cents. Streak historical budget handling is read-only reference, not authority to invent missing data.",
+    "Current month and Mi ciclo remain unchanged. Month/year boundaries and budget changes after month close must not rewrite historical evidence.",
+    "Review explicit absent/zero/invalid historical-budget behavior before edit; no invented past limit or silent new financial fallback. If money decision remains, send precise concrete case to coordinator for Claude.",
+    "Synthetic tests, cents, A/B against exact supplied base, same actual source and UI/canvas consumers. Existing registered specs preferred; no unrelated full suite/build.",
+    "No backend, SQL, live bank, APK, Gradle, deploy or merge; VERSION/catalogue/release remain reserved."
+  ],
+  "limits": {
+    "newWorkerOwn20FromZero": true,
+    "freshOwnClaimRequired": true,
+    "newIsolatedCheckout": true,
+    "receptionOnlyUntilNativeAdmission": true,
+    "readOnlyPlanBeforeEditGO": true,
+    "testsOnlyAfterExactMatrixReview": true,
+    "commitPushSeparateReviewGates": true,
+    "priorPRO03WorkersAndEvidenceImmutable": true,
+    "queuePoints2And3NotDispatchedUntilPoint1Done": true,
+    "ProductREADY": false
+  },
+  "reportTo": "codex"
+}
