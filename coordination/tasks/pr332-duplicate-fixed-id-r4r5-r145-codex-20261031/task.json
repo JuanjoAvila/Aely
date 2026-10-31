@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "id": "pr332-duplicate-fixed-id-r4r5-r145-codex-20261031",
+  "from": "codex",
+  "coordinatorSession": "nrelay4ecf15517e2340a899068026676f08a9",
+  "createdAt": "2026-10-31T18:34:42.275Z",
+  "to": "codex",
+  "baseSHA": "380121e69b0352be290c7e2b2c7c23b08d966b29",
+  "objective": "Remates Claude R4/R5 antes de integrar PR332: al reanudar una pausa trazable con ID de RECIBO duplicado, no compensar nada fail-closed. Documentar que un movil antiguo que reanuda la pausa no puede corregirse desde el cliente nuevo. Misma PR332, sin rebase, normal fast-forward solo tras revision exacta y GO ROOT.",
+  "scope": [
+    "src/modules/08-motor-bank.js",
+    "tests/recibos-manual-pausa.test.mjs",
+    "docs/ARQUITECTURA.md"
+  ],
+  "authority": [
+    "6cdf9a6641d751a8a6be0cb52064300fec8702c6",
+    "32adec2bc5e1ae88980d36f1688fd258b272fc70",
+    "d43a86b5982b4260349cef58f37ed5ecba5ddf41",
+    "7188f09dd641ffd90c5a2455196b1385c4bb084c"
+  ],
+  "previousTaskId": "pr328-baseline-roundtrip-rebase-r144-codex-20261031",
+  "previousResultSHA": "ece6a9a8494a8d5759a30e07ef47aa8d7a8ab1a1",
+  "previousRETURN": "d326dbc6aeda6921716cd68194111231d359336a",
+  "targetPR": 332,
+  "targetBranch": "codex/recibos-manual-pausa-r145",
+  "noRebase": true,
+  "priorityBefore": "recibos-t4-r2-book-edit-r145-codex-20261031",
+  "acceptance": [
+    "R4: reproducir RED causal con funcion real del HEAD380; primero pausa trazable manual, despues duplicar fixed.id (NO confundir con account.id ya cubierto), reanudar sin rango o mover intervalo al futuro/terminado. Cero compensacion positiva con ids duplicados, cuentas/base entrante exactas al centimo; fail-closed conforme orden Claude.",
+    "Conservar roundtrips BASE de seis exclusiones, via manual trazable unica, perdida de proof con origen, B2 UTC/Madrid y ambasDST, R2sameamount y semantica t4. No debilitar oraculos existentes ni usar ausencia de proof como origen.",
+    "R5: escribir limite explicito de movil sin actualizar que reanuda esa pausa en docs/ARQUITECTURA y en descripcion PR332. No fingir que cliente nuevo puede evitar escritura de cliente viejo; no intentar reparacion de datos reales.",
+    "Checkout/rama nuevos propios desde380 exacto; source anterior terminado inmutable y archivado, sin reabrir su claim/helper/WT para ejecutar o editar. Estado/sesion/nonce/OWN20 desde cero. Nueva claim propia confirmada tras admision/startup antes producto.",
+    "Preparar candidato/diff y matriz dirigida minima red/green/causal exacta para ROOT antes ENTER. Conservar17corridas anteriores y fallos sin repetirlas en snapshot380; cambioR4 justifica nuevos guardianes afectados, no suite entera. Node directo,serial0retry,stopfirstunexpected,logs/rawexitdurables y prechecks correctos; presupuesto y arneses reales autorizados de antemano.",
+    "Revision independiente de HEAD exacto y GO ROOT antes nuevo commit/push normalFF a MISMA rama dePR332, sin rebase/force/reset/nuevaPR/merge beta o main. Metadata R5 se actualiza trasHEAD revisado. Documentar limites y noProductREADY."
+  ],
+  "constraints": [
+    "Recepcion ACK y admision nativa/receipt/confirmacion antes helper/canal/producto. Primerwait y notice/readback >=30s; FULLRAW+ACK TODOS intermedios/cancelaciones desde watermark proporcionado. Solo trabajador claim/result/RETURN propios, solo al coordinador; solo ROOT a Claude.",
+    "Task R2 t4 ya admitida queda HOLD de producto antescheckout por solape08, claim/plazos propios conservados. No usar su reserva ni interrumpir startup; serializar scopes y runner. Despacho de este remate espera admision del coordinador sucesor.",
+    "LauncherFOCAL01 rechazado sigue vinculante sin escritura/retry/equivalente/inline/proxy/otraidentidad. No wrapper/afinidad/PID/CPU1claim Node directo. No build/suiteentera/npmtest/CPU6/Chromium/backend/servidor/SQL/Edge/deploy/version/notas/catalogo/caps/datos reales por arrastre.",
+    "BACKLOG entero privado, conservar blob beta de candidato332 y todos paths ajenos exactos. PR 330 servidor aparcada y UX 17 cerrada no reabrir. No port de R2t4 aPR332."
+  ],
+  "deliverable": "Parche privado minimo R4, test red/green/causal y limiteR5 documentado, HEAD revisable y despues actualizacion de mismaPR332 tras GO exacto.",
+  "initialState": "PREPARED_FOR_NEXT_COORDINATOR_NO_WORKER_CREATED_NO_CLAIM"
+}
