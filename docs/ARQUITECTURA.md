@@ -56,6 +56,19 @@ H2 candidata, ronda 2: saldo y movimientos independientes por cuenta, valor/fech
 
 # Arquitectura — Aely
 
+**Aviso nativo de recibos, contrato opcional `charge.eve` v1 (candidato).** La app entrega
+`{v,title,body,coverage,calculatedOn,dueOn}` dentro de cada cargo de `setAlertData`; el plugin
+ya conserva ese objeto. `AlertCheckWorker` solo acepta tipos reales, cobertura
+`enough|short|unknown`, texto completo de una línea y fechas que coincidan con hoy y mañana
+del reloj local existente y con el mes/día del cargo. Usa el título/cuerpo literalmente:
+el cálculo de «¿Te llega?» y la lectura válida pertenecen a la web. Si falta el objeto, es
+inválido o no se recalculó hoy, mantiene el aviso anterior sin afirmar saldo. No consulta
+el banco ni cambia sellos, importes, deduplicación o el hueco existente al cambiar de mes.
+El test JVM ejecuta el worker con un reloj temporal determinista y dobles de Android/JSON;
+no acredita el parser real, WorkManager, una APK ni la entrega con la app cerrada. Sin JDK
+la prueba falla explícitamente; por defecto usa `JAVA_HOME`/`PATH` y conserva sus artefactos
+en un temporal propio.
+
 **Sincronización del estado entre móviles (beta 4.26.170, FIN-04 fase 2 A + SAVEDAT).** El
 estado (todo menos los gastos, que viven en su tabla) viaja entero por «último que escribe»
 (`_savedAt`) en `app_state`, con este orden en `11-app-main.js`:
