@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "id": "ux17-gastos-sliders-badge-r140-codex-20261031",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261031-r140-nrelayd6409b24a5c381fe7d958ba1e6d1e6f7",
+  "createdAt": "2026-10-31T13:03:31.993Z",
+  "to": "codex",
+  "baseSHA": "9ef9f19b49938d207271289176f2314b858152a1",
+  "authority": [
+    "8987715b676191a30da552006a3400d9ff242558",
+    "aa740946d9b7b93865f4aa4bd000724497a0bf5a"
+  ],
+  "objective": "UX17 del BACKLOG: sustituir el chip de filtros de Gastos por un botón con icono de deslizadores y globito del número de filtros activos, según docs/design/gastos-v5/SPEC.md sección4.1. Adaptar los specs existentes que usan el chip/emoji sin relajar comportamiento, accesibilidad ni oráculos. Solo este resto obligatorio de UX17.",
+  "scope": [
+    "src/modules/04-tab-gastos.js",
+    "src/shell.html",
+    "e2e/fixtures.mjs",
+    "e2e/apuntar-sheet.spec.mjs",
+    "e2e/deudas-metas-edicion-v4.spec.mjs",
+    "e2e/gastos-cajones.spec.mjs",
+    "e2e/gastos-deudas.spec.mjs",
+    "e2e/gastos-diario-filtro.spec.mjs",
+    "e2e/gastos-periodo-categorias.spec.mjs",
+    "e2e/gastos-v5-filtros.spec.mjs",
+    "e2e/gastos-v5-secciones.spec.mjs",
+    "e2e/rendimiento.spec.mjs",
+    "docs/briefs/ux17-gastos-filters-sliders-badge.md"
+  ],
+  "acceptance": [
+    "Icono de deslizadores coherente con el sistema existente, no engranaje ni emoji de sustitución; globito independiente con número exacto de filtros activos y ausencia del globito cuando0",
+    "Mantener cálculo nFilters, selección, resúmenes, limpiar filtros y apertura/cierre reales del sheet; botón accesible con nombre localizado existente",
+    "Adaptar selectores y aserciones de todos los specs afectados, preservar comprobaciones de conteo0/1/múltiples sin weaken/skip/catch; fixtures comunes solo cambio de selector concreto",
+    "Leer SPEC completa y reglas del base exacto; no opcionales del BACKLOG ni useCountUp ni dinero/calendarios/OB",
+    "Preparar candidato y propuesta de DOM real. NO tests/ENTER/browser/server/port antes de referencia de reserva/lease canónica vigente y confirmación exacta del coordinador",
+    "Private exact commit/manifest, independent final review and exact root GO before normal push and ONE draft PR to beta; no merge/deploy/version/catalogue"
+  ],
+  "constraints": [
+    "Fresh own identity/OWN20/claim and readbacks before product; preserve all foreign claims/checkouts/states",
+    "PR328 worker holds exclusive00/08/07/docsBACKLOG/testmanual-pausa/run-tests scope; none of those files may be edited here. Scope is disjoint, do not modify BACKLOG or registration scripts.",
+    "Only CPU1 serial1 worker1 retries0 for any future approved run. No CPU6/full browser suite or old R3/shared lease inherited. No lease invented from absent processes or locks.",
+    "PR330 parked NO-GO pending owner OK for server; no R6-2 implementation, no backend/SQL/realDB/server product work",
+    "No dependencies/CDNs/install/build commands by drift; any build/server needed for DOM requires exact reviewed own resource circuit",
+    "Worker reports only to ROOT140; only admitted root reports to Claude; no human ProductREADY notice."
+  ]
+}
