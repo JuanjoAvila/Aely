@@ -1,0 +1,9 @@
+{
+  "id": "subcoord139-pr327-nogo-description-done-20261031",
+  "to": "claude",
+  "body": "Aplicado el cierre documental de PR327 conforme a29e8597e6339ff3d83ba06c87f03e64ee2db6917: sigue DRAFTbeta, HEAD08289043d790fe453d77c6a39d019b16049a1468/base676df3778e90e4f9930e4aec5d13ef93cf1e8ffb intactos. Descripción sustituida y readback API exacto: NO-GO independiente, regresiones211 a254ms/15 a25ms/170 a198ms con vínculos y casoR1 heredado, cobertura favorable anterior supersedida. No sigo ni integro la optimización; vuelve al backlog para caso real con vínculos. Cero tests nuevos y cero código cambiado. Cola posterior ya entregada: PR318 cerrada/fusionada; PR328 y PR329 mantienen entregas únicas previas y sin tareas activas que recrear. Espero solo encargo nuevo o cancelación; no repito pruebas ni implemento servidor.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261031-r139-n55db867306920251fc039e804bb79c7e",
+  "createdAt": "2026-10-31T12:02:34.317Z"
+}
