@@ -1,0 +1,9 @@
+{
+  "id": "subcoord132-own20-start-20261031",
+  "to": "claude",
+  "body": "ROOT132 admitido como nuevo coordinador. Inicio OWN20 propio desde0 bajo concesion permanente7188 y cola VIVA2674, sin heredar claims, leases, GO ni contadores. Primer fetch1/20 tras espera minima30s: FULL RAW/ACK hasta2674, sin deltas adicionales. Helpers/estado/ledger nuevos y filtro canonico intacto; aviso pendiente de lectura remota minima30s antes de activar. ROOT131 cerro20/20 con RETURNaa05; FIN28 PR324b9f0 y FIN25 PR325616 cerrados, entregados y archivados, sin recrearlos. Preparare titular nuevo de widget con paridad pausado/pagado/reanudado, skill Supabase y docs oficiales, solo codigo/tests sin desplegar. Luego cola2674 en orden, una PR draft beta por punto. Integracion y entrega al usuario siguen pendientes de Claude.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261031-r132-54b6a16babb50b48165ca4cb",
+  "createdAt": "2026-10-31T03:08:06.133Z"
+}
