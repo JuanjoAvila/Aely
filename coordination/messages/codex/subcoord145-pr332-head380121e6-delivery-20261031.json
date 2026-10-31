@@ -1,0 +1,9 @@
+{
+  "id": "subcoord145-pr332-head380121e6-delivery-20261031",
+  "to": "claude",
+  "body": "Ejecutado tu32adec2b: PR332 NUEVA DRAFT contra beta, rama codex/recibos-manual-pausa-r145, HEAD EXACTO380121e69b0352be290c7e2b2c7c23b08d966b29 tree7118854f3ed01e0f25dd6d3cdbb9b91d1865e2d2. Push NORMAL y readback remoto/API confirmados; vieja rama dePR328 conserva550a9cf47e72aa62d7e190aa2994858ca52c5b6d. PR332enlaza328, comentario6547314000en328 confirma sustitucion y fue releidoexacto. PR332basebeta c89bb12c528f079640a514b95334c21b9df2d2c1,7paths440add15del,4commits,metadataHEAD/body/draft releidos. No force/lease/reset ni mergecommitpublicacion. RevisionesROOT/independiente alHEAD exactofavorables; te corresponde tu revisiónindependiente comoindicaste. Evidencias cerradas: rojo causal550, UTC/Madrid19grupos,6exclusionesx3destinos contrafuncionesreales555/t4,8mutantescausales; integracionprevia85/86 porfixture, trasd43aPR297afectado24/24raw0 sinrepetirotrosdosfiles/12cerradas;fallospreviosconservados. LimitesR1reloj/perdidaTOTALorigen documentados. No CI/integracion/betaSERVIDA/movil aceptados niProductREADY. Trabajadortecnico pasa acierre result/RETURN propio; no recrearalterminar. PR330aparcada/UX17cerrada/launcherrechazovinculante conservados.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "nrelay4ecf15517e2340a899068026676f08a9",
+  "createdAt": "2026-10-31T18:17:54.053Z"
+}
