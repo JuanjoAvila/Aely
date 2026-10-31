@@ -1542,6 +1542,38 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedMarcaTrasCambio"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -10426,6 +10458,34 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -11001,6 +11061,42 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accRole"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ]
   },
@@ -13113,6 +13209,34 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "reciboEnElSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -14314,6 +14438,34 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentManualLinkWarnings"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -15731,6 +15883,34 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "native": [
@@ -17539,6 +17719,38 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentManualLinkWarnings"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -18368,6 +18580,38 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -19141,6 +19385,42 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accRole"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -19933,6 +20213,38 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -21426,6 +21738,38 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentManualLinkWarnings"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "edge": [
@@ -22099,6 +22443,38 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -23426,6 +23802,38 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentManualLinkWarnings"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -24964,6 +25372,38 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentManualLinkWarnings"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -25520,6 +25960,42 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accRole"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -26672,6 +27148,42 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accRole"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -27298,6 +27810,42 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accRole"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ]
   },
@@ -30007,6 +30555,34 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "native": [
@@ -31213,6 +31789,34 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -32630,6 +33234,34 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "native": [
@@ -33982,6 +34614,38 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedMarcaTrasCambio"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -35181,6 +35845,34 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "edge": [
@@ -36815,6 +37507,34 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "edge": [
@@ -38238,6 +38958,38 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -40250,6 +41002,34 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentManualLinkWarnings"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "edge": [
@@ -41814,6 +42594,38 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -42920,6 +43732,38 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -44699,6 +45543,34 @@
       {
         "file": "src/modules/00-core.js",
         "function": "lapidasAlRenombrar"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -45828,6 +46700,34 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -47891,6 +48791,34 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "edge": [
@@ -48414,6 +49342,42 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accRole"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "edge": [
@@ -49285,6 +50249,42 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accRole"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -50645,6 +51645,38 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentManualLinkWarnings"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -51631,6 +52663,42 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accRole"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -52534,6 +53602,42 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accRole"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -53353,6 +54457,38 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -54273,6 +55409,38 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -55755,6 +56923,38 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedMarcaTrasCambio"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -58012,6 +59212,38 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentManualLinkWarnings"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -58698,6 +59930,42 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accRole"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -59600,6 +60868,38 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -61297,6 +62597,42 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accRole"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "native": [
@@ -62210,6 +63546,38 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -63692,6 +65060,38 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentManualLinkWarnings"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -64743,6 +66143,38 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedMarcaTrasCambio"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -65619,6 +67051,42 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accRole"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "native": [
@@ -66496,6 +67964,38 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -69609,6 +71109,34 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "debtPaymentState"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -71587,6 +73115,34 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "planChargesMonth"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -72873,6 +74429,38 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentManualLinkWarnings"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -73757,6 +75345,42 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accRole"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "native": [
@@ -76295,6 +77919,38 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -77718,6 +79374,38 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentManualLinkWarnings"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "edge": [
@@ -78451,6 +80139,42 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accRole"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -79265,6 +80989,38 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "edge": [
@@ -80187,6 +81943,34 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "CUOTA_ALIAS_DIAS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -81553,6 +83337,38 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentManualLinkWarnings"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -82960,6 +84776,38 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentManualLinkWarnings"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -84275,6 +86123,38 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentManualLinkWarnings"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -85585,6 +87465,38 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentManualLinkWarnings"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -86891,6 +88803,38 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentManualLinkWarnings"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -88169,6 +90113,38 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -89651,6 +91627,38 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentManualLinkWarnings"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -90945,6 +92953,38 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -92270,6 +94310,38 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentManualLinkWarnings"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -93655,6 +95727,38 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentManualLinkWarnings"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -95969,6 +98073,38 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "CUOTA_ALIAS_DIAS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -97363,6 +99499,38 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "CUOTA_ALIAS_DIAS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -98577,6 +100745,38 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedMarcaTrasCambio"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -99626,6 +101826,38 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -100773,6 +103005,38 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedMarcaTrasCambio"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -101773,6 +104037,38 @@
       {
         "file": "src/modules/00-core.js",
         "function": "withdrawalReceiptLink"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "edge": [
@@ -103152,6 +105448,34 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedMarcaTrasCambio"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -104144,6 +106468,38 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedMarcaTrasCambio"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true
@@ -104859,6 +107215,38 @@
       {
         "file": "src/modules/00-core.js",
         "function": "autoCategoryKw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "native": [
@@ -106512,6 +108900,38 @@
       {
         "file": "src/modules/00-core.js",
         "function": "autoCategoryKw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
       }
     ],
     "unidades": true

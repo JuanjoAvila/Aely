@@ -1,5 +1,26 @@
 [
   {
+    "v": "4.26.201",
+    "d": "2026-10-31",
+    "t": {
+      "es": "Recibos vencidos, mejor pausados",
+      "en": "Overdue bills, paused properly",
+      "ca": "Rebuts vençuts, ben pausats"
+    },
+    "items": {
+      "es": [
+        "Pausar un recibo ya vencido en una cuenta que llevas a mano ya no deja el saldo por debajo de lo que tecleaste, y al reanudarlo todo vuelve a como estaba."
+      ],
+      "en": [
+        "Pausing an overdue bill on an account you keep by hand no longer leaves the balance below what you typed, and resuming it puts everything back as it was."
+      ],
+      "ca": [
+        "Pausar un rebut ja vençut en un compte que portes a mà ja no deixa el saldo per sota del que vas teclejar, i en reprendre'l tot torna a com estava."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.200",
     "d": "2026-10-31",
     "t": {
@@ -18,30 +39,7 @@
         "El botó de filtres de Despeses és ara una icona de lliscadors, i un globus et diu quants filtres tens posats."
       ]
     },
-    "tandas": [
-      {
-        "id": "gastos-filtros-icono",
-        "t": {
-          "es": "Gastos: botón de filtros con deslizadores",
-          "en": "Spending: sliders filter button",
-          "ca": "Despeses: botó de filtres amb lliscadors"
-        },
-        "items": {
-          "es": [
-            "1. Gastos, junto al buscador. BIEN: un botón redondo con un icono de deslizadores, sin emoji y sin número mientras no hay filtros. MAL: sigue el emoji o sale un número sin haber puesto nada.",
-            "2. Toca el botón → elige un banco o un tipo de movimiento → Ver. BIEN: el botón se marca y un globito dice cuántos filtros llevas; con Restablecer el globito desaparece. MAL: el globito dice otro número, no aparece o se queda tras restablecer."
-          ],
-          "en": [
-            "1. Spending, next to the search box. RIGHT: a round button with a sliders icon, no emoji and no number while no filter is on. WRONG: the emoji is still there or a number shows without setting anything.",
-            "2. Tap the button → pick a bank or a type of movement → View. RIGHT: the button lights up and a small badge shows how many filters are on; after Reset the badge disappears. WRONG: the badge shows another number, does not appear or stays after Reset."
-          ],
-          "ca": [
-            "1. Despeses, al costat del cercador. BÉ: un botó rodó amb una icona de lliscadors, sense emoji i sense número mentre no hi ha filtres. MALAMENT: continua l'emoji o surt un número sense haver posat res.",
-            "2. Toca el botó → tria un banc o un tipus de moviment → Veure. BÉ: el botó es marca i un globus diu quants filtres tens; amb Restablir el globus desapareix. MALAMENT: el globus diu un altre número, no apareix o es queda després de restablir."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.199",
@@ -65,33 +63,7 @@
         "Pagaments d'una sola vegada o en diversos terminis, i en canviar l'import tries si és només aquest mes o des d'ara."
       ]
     },
-    "tandas": [
-      {
-        "id": "plan-recibos-t4",
-        "t": {
-          "es": "Plan: añadir y editar recibos por pasos",
-          "en": "Plan: add and edit bills step by step",
-          "ca": "Pla: afegir i editar rebuts per passos"
-        },
-        "items": {
-          "es": [
-            "1. Plan → Recibos → Todos → «+» → escribe un nombre (o toca una sugerencia) → importe → día → banco → Añadir recibo. BIEN: cinco pasos con su barra; el primer número que tecleas sustituye; deslizar a la derecha vuelve un paso; al terminar sale en Pendiente con su importe y «Queda por pagar» sube justo eso. MAL: se crea dos veces, falta un paso o la cifra de arriba sube otra cantidad.",
-            "2. Toca un recibo aún sin pagar → Editar → Importe → otro importe → Listo → «Solo octubre» → Guardar. BIEN: este mes sale con el importe nuevo; vuelve a Editar y el importe del recibo sigue siendo el de siempre (el mes que viene vuelve a lo normal). MAL: cambia también otros meses o la cifra de arriba no cuadra.",
-            "3. En un recibo que ya está en «Ya pagados» → Editar → cambia el importe → Guardar. BIEN: no pregunta; sigue en «Ya pagados» con lo que se pagó y no sale en «Para revisar». MAL: vuelve a Pendiente, cambia lo pagado o aparece «cobró distinto»."
-          ],
-          "en": [
-            "1. Plan → Bills → All → “+” → type a name (or tap a suggestion) → amount → day → bank → Add bill. RIGHT: five steps with their bar; the first number you type replaces the old one; swiping right goes back a step; when done it shows under Pending with its amount and “Left to pay” rises by exactly that. WRONG: it is created twice, a step is missing or the figure at the top rises by a different amount.",
-            "2. Tap a bill that is not paid yet → Edit → Amount → another amount → Done → “Only October” → Save. RIGHT: this month shows the new amount; go back to Edit and the bill's amount is still the usual one (next month goes back to normal). WRONG: other months change too or the figure at the top does not add up.",
-            "3. On a bill that is already under “Already paid” → Edit → change the amount → Save. RIGHT: it does not ask; it stays under “Already paid” with what was paid and does not show under “To review”. WRONG: it goes back to Pending, what was paid changes or “charged differently” appears."
-          ],
-          "ca": [
-            "1. Pla → Rebuts → Tots → «+» → escriu un nom (o toca un suggeriment) → import → dia → banc → Afegir rebut. BÉ: cinc passos amb la seva barra; el primer número que tecleges substitueix; lliscar a la dreta torna un pas; en acabar surt a Pendent amb el seu import i «Queda per pagar» puja just això. MALAMENT: es crea dues vegades, falta un pas o la xifra de dalt puja una altra quantitat.",
-            "2. Toca un rebut encara sense pagar → Editar → Import → un altre import → Fet → «Només octubre» → Desar. BÉ: aquest mes surt amb l'import nou; torna a Editar i l'import del rebut continua sent el de sempre (el mes que ve torna a la normalitat). MALAMENT: canvia també altres mesos o la xifra de dalt no quadra.",
-            "3. En un rebut que ja és a «Ja pagats» → Editar → canvia l'import → Desar. BÉ: no pregunta; continua a «Ja pagats» amb el que es va pagar i no surt a «Per revisar». MALAMENT: torna a Pendent, canvia el que es va pagar o apareix «va cobrar diferent»."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.198",

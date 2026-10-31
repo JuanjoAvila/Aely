@@ -210,6 +210,8 @@ const sourceBeta197=sourceAt("25868841165407b0f3c630870ff387c9e10ade78");
 const sourceBeta198=sourceAt("52a1ee1d9a2a9a78dcb982e310ac74ca3038df2e");
 // Catálogo199 pasa a histórico con la 200: se lee de la 4.26.199 servida en beta (c89bb12c5, sin APK nueva, APK 63); su tanda (plan-recibos-t4) NO tiene veredicto y la 200 la conserva en el panel junto a la suya.
 const sourceBeta199=sourceAt("c89bb12c528f079640a514b95334c21b9df2d2c1");
+// Catálogo200 pasa a histórico con la 201: se lee de la 4.26.200 servida en beta (656f17a69, sin APK nueva, APK 63); su tanda (gastos-filtros-icono) NO tiene veredicto y la 201 la conserva en el panel.
+const sourceBeta200=sourceAt("656f17a69acdb59a4bfd14ea51a50196157b5807");
 // Producción 4.26.182 servida (main, 496a8a83d): el historial que la promoción 198 conserva debajo de su nota única y el árbol que lee Promoción182 histórico.
 const sourceProd182=sourceAt("496a8a83d6785563d93d8bbb6e67ba7e9ffce582");
 // Producción 4.26.159 servida (main, merge del PR 292, a6bc05df4): el historial que la promoción 182 conservó debajo de su nota única y el árbol que lee Promoción159 histórico.
@@ -6200,14 +6202,83 @@ test("Catálogo176 añade la tanda del vínculo de recibo (solo web) sobre la 17
   assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
 });
 
+const expected201={"v":"4.26.201","d":"2026-10-31","t":{"es":"Recibos vencidos, mejor pausados","en":"Overdue bills, paused properly","ca":"Rebuts vençuts, ben pausats"},"items":{"es":["Pausar un recibo ya vencido en una cuenta que llevas a mano ya no deja el saldo por debajo de lo que tecleaste, y al reanudarlo todo vuelve a como estaba."],"en":["Pausing an overdue bill on an account you keep by hand no longer leaves the balance below what you typed, and resuming it puts everything back as it was."],"ca":["Pausar un rebut ja vençut en un compte que portes a mà ja no deixa el saldo per sota del que vas teclejar, i en reprendre'l tot torna a com estava."]},"tandas":[]};
+// 4.26.201 (31/10/2026): una pieza sobre la beta 4.26.200 servida (656f17a69, sin APK nueva: sigue la 63), solo web: la PR 332 de Codex (f39494e0e, sobre c89bb12c5): pausar «Solo este mes» un recibo vencido en una cuenta a mano, con el saldo tecleado antes del día del cargo, compensa con una lectura manual trazable (manualBalanceReads) y reanudar la deshace exactamente (manualPauseBalance en el recibo). Revisión de dinero independiente: GO con remates (R4 cerrado; R1 residual y R5 apuntados).
+// SIN tanda nueva: el caso exige un saldo tecleado antes del día de un cargo ya vencido y hoy no se puede montar en el móvil. El dueño aprobó la 199 (plan-recibos-t4) el 31/10 a las 21:13 y la 200 (gastos-filtros-icono) a las 21:37: la 201 pone tandas:[] en las dos y el panel queda sin tandas.
+// Registro: ningún descriptor nuevo. planSyncEditState llama ahora a manualBalanceCommit (y esta a Account, Same, Model, IsManual, Read, accRole y saldoLoMandaPuenteNativo) y lee MANUAL_BALANCE_INTENT: el test «cada llamada de lógica» exige que todo descriptor que lleva planSyncEditState vigile sus dependencias: se suman al final las que le faltan a cada uno (76 descriptores). Se mueven las huellas históricas que leen planSyncEditState; ninguna es de una tanda viva.
+test("Catálogo201 retira las dos tandas aprobadas (199 y 200), deja el panel sin tandas, no crea descriptor y declara las huellas que mueve",()=>{
+  const viva200="gastos-filtros-icono",retirada="plan-recibos-t4",C0="src/modules/00-core.js";
+  const integrated=JSON.parse(sourceBeta200("scripts/beta-sources.json")),before=JSON.parse(sourceBeta200("src/data/release-notes.json"));
+  const source=f=>nl(read(f)),old=f=>nl(sourceBeta200(f));
+  assert.equal(before[0].v,"4.26.200");
+  assert.deepEqual(before.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id])),[["4.26.200",viva200],["4.26.199",retirada]],"la 200 servida lleva dos tandas: la suya y la de la 199");
+  const expectedNotes=[expected201,...before.map(n=>["4.26.199","4.26.200"].includes(n.v)?{...n,tandas:[]}:n)];
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.deepEqual(notes,expectedNotes,"la nota 201 literal delante, la 199 y la 200 con tandas:[] y todo lo demás intacto");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[],"el panel queda sin tandas");
+  assert.equal(notes.length,298);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
+  assert.deepEqual(notes[0].tandas,[],"la 201 no lleva tanda");
+  for(const n of notes)assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] (la propiedad se conserva, vacía)");
+  const jerga=/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|FIN-|SES-|UX-|SEC-|zoom|\d+\.\d+\.\d+/i;
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,1,lang+": un punto familiar");
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
+  }
+  const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
+  {const vuelve=structuredClone(notes);vuelve[1].tandas=structuredClone(before[0].tandas);assert.throws(()=>verifyNotes(vuelve),assert.AssertionError,"la de la 200, aprobada, no vuelve");}
+  {const vuelve=structuredClone(notes);vuelve[2].tandas=structuredClone(before[1].tandas);assert.throws(()=>verifyNotes(vuelve),assert.AssertionError,"la de la 199, aprobada, no vuelve");}
+  // Registro: mismas claves; solo dos descriptores crecen, y solo por el final con las unidades de la lectura manual.
+  const scopes=JSON.parse(source("scripts/beta-sources.json"));
+  assert.deepEqual(Object.keys(scopes),Object.keys(integrated),"ningún descriptor nuevo ni retirado");
+  const canon=[...["manualBalanceCommit","manualBalanceAccount","manualBalanceSame","manualBalanceModel","manualBalanceIsManual","manualBalanceRead"].map(function_=>({file:C0,function:function_})),{file:"src/modules/01-i18n.js",function:"accRole"},{file:"src/modules/08-motor-bank.js",function:"saldoLoMandaPuenteNativo"},{file:C0,data:"MANUAL_BALANCE_INTENT"}];
+  let crecen=0;
+  for(const [key,scope] of Object.entries(integrated)){
+    const ahora=scopes[key];
+    assert.deepEqual(Object.keys(ahora),Object.keys(scope),key+": mismas claves");
+    for(const k of Object.keys(scope))if(k!=="web")assert.deepEqual(ahora[k],scope[k],key+": "+k+" intacto");
+    assert.deepEqual(ahora.web.slice(0,scope.web.length),scope.web,key+": lo anterior intacto");
+    const cola=ahora.web.slice(scope.web.length);
+    for(const u of cola)assert.ok(canon.some(c=>JSON.stringify(c)===JSON.stringify(u)),key+": solo unidades de la lectura manual al final: "+JSON.stringify(u));
+    assert.deepEqual(cola,canon.filter(c=>cola.some(u=>JSON.stringify(u)===JSON.stringify(c))),key+": en orden canónico y sin repetir");
+    if(cola.length){crecen++;assert.ok(scope.web.some(u=>u.function==="planSyncEditState"),key+": solo crece quien lleva planSyncEditState");}
+  }
+  assert.equal(crecen,76,"crecen los 76 descriptores que llevan planSyncEditState y aún no vigilaban la lectura manual");
+  assert.ok(integrated["inicio-patrimonio-flujos"].web.some(u=>u.function==="accRole"),"Inicio ya llevaba accRole: no se repite");
+  // Del árbol de la 200 cambian el núcleo, el motor, Plan › Recibos y los textos de Novedades; el servidor y la APK siguen idénticos.
+  for(const file of [C0,"src/modules/07-tab-patri-fijos.js","src/modules/08-motor-bank.js"])assert.notEqual(source(file),old(file),"cambia de verdad: "+file);
+  for(const file of ["src/modules/04-tab-gastos.js","src/modules/01-i18n.js","src/modules/14-v4-screens.js","src/shell.html","supabase/functions/_shared/presupuesto.ts","supabase/functions/ingest/index.ts","android/app/build.gradle","public/apk.json"])assert.equal(source(file),old(file),"sin cambios: "+file);
+  // Huellas que se mueven (lista cerrada): las que leen planSyncEditState o el motor de pausas.
+  const expectedMoves={"inc-3009-01-cargos":["web"],"fin05-widget-reentrada":["web"],"fin05-pago-cerrada":["web"],"widget-banco":["web"],"widget-app-cerrada":["web"],"inc-2809-02-ayuda-ciclo":["web"],"inc-2909-02-inicio-natural":["web"],"inc-2709-10-perfil":["web"],"inc-3009-nomina-anticipada":["web"],"inc-2909-03-retirada":["web"],"inc-2909-01-widget-periodo":["web"],"inc-0210-03-gastos-periodo":["web"],"feature-0210-01-gasolina-taxi":["web"],"inc-0210-02-categoria-elegida":["web"],"inc-0310-01-meta-regla":["web"],"feature-0310-01-movilidad":["web"],"inc-0310-broker-resultados":["web"],"inc-0310-gastos-sin-limite":["web"],"inc-0710-gastos-mes-madrid":["web"],"inc-0710-auth-disposal":["web"],"inc-0810-metas-editar-regla":["web"],"bienes-completo":["web"],"widget-pago-app-cerrada":["web"],"bancos-sin-hueco":["web"],"widget-ciclo-puente":["web"],"recibos-cargo-unico":["web"],"bancos-acuse-reconexion":["web"],"tr-iguales-ordinal":["web"],"inicio-patrimonio-flujos":["web"],"recibo-cargo-en-gastos":["web"],"inicio-mes-pasado-mismo-dia":["web"],"limpieza-ajustes-perfil":["web"],"tr-empareja-sin-preguntar":["web"],"cuenta-parte-mia":["web"],"compras-identicas-ids":["web"],"myinvestor-contador-a-cero":["web"],"deudas-metas-hoja-edicion":["web"],"gastos-suscripciones-botones":["web"],"deudas-plazo-cuota-encaja":["web"],"deudas-metas-hoja-cierre-suave":["web"],"fichas-cierre-suave-atras":["web"],"cuenta-saldo-cierre-atras":["web"],"recibo-renombrado-sigue-pagado":["web"],"vuelta-sin-tiron":["web"],"deuda-bajar-cuota-alarga-plazo":["web"],"cartera-ordenar-brokers":["web"],"vibracion-ajustador":["web"],"gestionar-plan-sin-ola":["web"],"renombrar-y-notas-seguras":["web"],"gestionar-plan-ola":["web"],"vibracion-ajustador-r2":["web"],"gestionar-plan-ola-r2":["web"],"recibos-cifra-cuadra":["web"],"cartera-sin-lagazo":["web"],"renombrar-sin-cobertura":["web"],"vibracion-r4":["web"],"recibos-meses-a-mano":["web"],"gastos-dos-bancos":["web"],"cartera-moneda":["web"],"categoria-coche":["web"],"deuda-nueva-desde-su-dia":["web"],"gastos-v5-movimientos":["web"],"gastos-v5-secciones":["web"],"gastos-v5-filtro":["web"],"gastos-v5-subs":["web"],"gastos-v5-filtros-hoja":["web"],"sync-dos-moviles":["web"],"gastos-v5-ciclos-metas-inversiones":["web"],"plan-dos-moviles":["web"],"gastos-lag-ciclos":["web"],"gastos-lag-ciclos-r3":["web"],"gastos-scroll-fluido-cifras":["web"],"gastos-margen-sin-nomina":["web"],"plan-recibos-v6-t1":["web"],"deuda-ir-suave":["web"],"plan-recibos-v6-t2":["web"],"gastos-renombrar-otro-banco":["web"],"plan-recibos-t3":["web"],"fin28-aviso-enlace-manual":["web"],"tr-login-v2":["web"],"plan-recibos-t4":["web"]};
+  const moved={};
+  for(const [key,scope] of Object.entries(integrated)){
+    if(key===archiveId)continue;
+    const a=betaRevision(key,old,undefined,scope),b=betaRevision(key,source,undefined,scopes[key]);
+    const surfaces=["web","native","edge"].filter(x=>a[x]!==b[x]);
+    if(surfaces.length)moved[key]=surfaces;
+  }
+  assert.deepEqual(moved,expectedMoves,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  const vivas=notes.flatMap(n=>(n.tandas||[]).map(g=>g.id));
+  assert.deepEqual(vivas,[],"sin tandas vivas");
+  assert.ok(!expectedMoves[viva200],"la de filtros de Gastos, aprobada, no cambia de huella");
+  assert.ok(expectedMoves[retirada],"la de Recibos de la 199, aprobada, sí se mueve y ya no importa");
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes);
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),vivas,"lo que el build entrega al panel");
+  assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
+  // Mutante sobre la fuente real: quitar la guarda de «sin sobre ni intención» reabre la huella de Inicio, que ya vigila la lectura manual.
+  const a="if(!intent&&!s.manualBalanceReads) return s;",b="if(!intent) return s;";
+  assert.equal(source(C0).split(a).length,2,"mutante sobre fuente real: "+a);
+  const mutated=x=>x===C0?source(x).replace(a,()=>b):source(x);
+  assert.notEqual(betaRevision("inicio-patrimonio-flujos",mutated,undefined,scopes["inicio-patrimonio-flujos"]).web,betaRevision("inicio-patrimonio-flujos",source,undefined,scopes["inicio-patrimonio-flujos"]).web,"reabre la huella de Inicio: "+a);
+});
+
 const expected200={"v":"4.26.200","d":"2026-10-31","t":{"es":"Filtros de Gastos, más claros","en":"Spending filters, clearer","ca":"Filtres de Despeses, més clars"},"items":{"es":["El botón de filtros de Gastos es ahora un icono de deslizadores, y un globito te dice cuántos filtros llevas puestos."],"en":["The Spending filters button is now a sliders icon, and a small badge tells you how many filters are on."],"ca":["El botó de filtres de Despeses és ara una icona de lliscadors, i un globus et diu quants filtres tens posats."]},"tandas":[{"id":"gastos-filtros-icono","t":{"es":"Gastos: botón de filtros con deslizadores","en":"Spending: sliders filter button","ca":"Despeses: botó de filtres amb lliscadors"},"items":{"es":["1. Gastos, junto al buscador. BIEN: un botón redondo con un icono de deslizadores, sin emoji y sin número mientras no hay filtros. MAL: sigue el emoji o sale un número sin haber puesto nada.","2. Toca el botón → elige un banco o un tipo de movimiento → Ver. BIEN: el botón se marca y un globito dice cuántos filtros llevas; con Restablecer el globito desaparece. MAL: el globito dice otro número, no aparece o se queda tras restablecer."],"en":["1. Spending, next to the search box. RIGHT: a round button with a sliders icon, no emoji and no number while no filter is on. WRONG: the emoji is still there or a number shows without setting anything.","2. Tap the button → pick a bank or a type of movement → View. RIGHT: the button lights up and a small badge shows how many filters are on; after Reset the badge disappears. WRONG: the badge shows another number, does not appear or stays after Reset."],"ca":["1. Despeses, al costat del cercador. BÉ: un botó rodó amb una icona de lliscadors, sense emoji i sense número mentre no hi ha filtres. MALAMENT: continua l'emoji o surt un número sense haver posat res.","2. Toca el botó → tria un banc o un tipus de moviment → Veure. BÉ: el botó es marca i un globus diu quants filtres tens; amb Restablir el globus desapareix. MALAMENT: el globus diu un altre número, no apareix o es queda després de restablir."]}}]};
 // 4.26.200 (31/10/2026): dos piezas sobre la beta 4.26.199 servida (c89bb12c5, sin APK nueva: sigue la 63), solo web: (1) el cierre de la producción 4.26.198 (9e7237a3b, con main como primer padre) mezclado en beta, para que el próximo promote no tenga mina: la nota única de la 198 sustituye a la del corte de beta 198; (2) la PR 331 de Codex (UX-17, 2b26779b4): el botón de filtros de Gastos pasa del emoji a un icono de deslizadores con un globito que cuenta los filtros activos.
 // Una tanda NUEVA (gastos-filtros-icono, dos pasos, sin APK). La de la 199 (plan-recibos-t4) NO tiene veredicto y se queda en el panel junto a la nueva.
 // Registro: entra el descriptor nuevo, el último; ninguno anterior cambia de descriptor. Las huellas que se mueven (lista cerrada) son las que leen la unidad Expenses o el CSS de shell.html que toca la PR; ninguna es de una tanda viva.
-test("Catálogo200 añade la tanda del botón de filtros de Gastos (solo web) sobre la 199, conserva la de Recibos sin veredicto, integra la nota única de la producción 198 y declara las huellas que mueve",()=>{
+test("Catálogo200 histórico añade la tanda del botón de filtros de Gastos (solo web) sobre la 199, conserva la de Recibos sin veredicto, integra la nota única de la producción 198 y declara las huellas que mueve",()=>{
   const tanda="gastos-filtros-icono",viva199="plan-recibos-t4",G="src/modules/04-tab-gastos.js",H="src/shell.html",java="android/app/src/main/java/com/micartera/app/";
   const integrated=JSON.parse(sourceBeta199("scripts/beta-sources.json")),before=JSON.parse(sourceBeta199("src/data/release-notes.json"));
-  const source=f=>nl(read(f)),old=f=>nl(sourceBeta199(f));
+  const source=f=>nl(sourceBeta200(f)),old=f=>nl(sourceBeta199(f));
   assert.equal(before[0].v,"4.26.199");
   assert.deepEqual(before[0].tandas.map(g=>g.id),[viva199],"la 199 servida lleva su tanda, sin veredicto");
   for(const n of before.slice(1))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] en la 199 servida");
