@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "id": "pro03-web-recibo-saldo-r147-codex-20261031",
+  "from": "codex",
+  "coordinatorSession": "nrelay2861fb2a8f681b75e8643117e23d119a",
+  "createdAt": "2026-10-31T20:33:42.482Z",
+  "to": "codex",
+  "baseSHA": "656f17a69acdb59a4bfd14ea51a50196157b5807",
+  "objective": "PRO03 prioridad1 WEB: aviso de vispera dice si llega con MISMA cifra de Te llega pendingWalkEvents/minByBank, una linea es/en/ca, sin lectura no decir saldo. Solo avisos; ninguna lectura bancaria programada.",
+  "targetBranch": "codex/pro03-recibo-saldo",
+  "scope": [
+    "src/modules/11-app-main.js",
+    "src/modules/01-i18n.js",
+    "src/modules/08-motor-bank.js",
+    "tests/pro03-receipt-eve-forecast.test.mjs",
+    "scripts/run-tests.mjs",
+    "docs/ARQUITECTURA.md"
+  ],
+  "authority": [
+    "70a7f3f4253ccc88f7060ce88dfb73c626355f97",
+    "d43a86b5982b4260349cef58f37ed5ecba5ddf41",
+    "7188f09dd641ffd90c5a2455196b1385c4bb084c",
+    "7f04ec10af629419675f802a122917fe0fa9ced0"
+  ],
+  "supersedesUnclaimedTaskId": "pro03-receipt-eve-forecast-r147-codex-20261031",
+  "supersededTaskCommit": "d234f6c39aadba4332926c0f1df00c5591a69800",
+  "cancellation": "El encargo generico c89 anterior queda cancelado SIN claim/admission/OWN/producto. No reclamarlo. Nueva orden70a7 exige base656f,web y nativo en ramas y PRs separados.",
+  "acceptance": [
+    "Calcular o reutilizar exactamente la cifra existente de Te llega del banco correcto, mismo pendingWalkEvents/minByBank y centimos; no algoritmo paralelo, umbrales nuevos ni doble descuento.",
+    "Una linea en es/en/ca; sin saldo leido mediante validadores actuales no afirmar si llega. Conservar importes exactos, pago/pausas/ocurrencia/dia/mes/sellos de deduplicacion.",
+    "Definir ANTES de editar interfaz minima aditiva de calendario setAlertData para que nativo use SOLO suficiencia/body precomputados por la app. Acordar con ROOT y tarea nativa; sin tocar Java en WEB. No leer el banco por programa, ni introducir refresh/background.",
+    "Checkout nuevo desde base656f exacta, rama codex/pro03-recibo-saldo exacta, PR draft separada contra beta. No portar PR333 pendiente ni patches cerrados por inferencia.",
+    "Preparar plan inicial de contrato web/nativo y matriz dirigida causal con codigo real, base y oraculos independientes en centimos. Helpers financieros no stub ni reglas nuevas. Dependencias reales de harness bajo d43a.",
+    "Candidato privado y diff inmutable revisados antes ENTER; matriz exacta Node/e2e dirigidos, propios serial0retry/stopfirstunexpected, logs/rawexit durables. No repetir pruebas ya terminadas sin nuevo cambio/fallo.",
+    "Revision independiente de HEAD antes commit/push/PR separados. Web sola no acredita circuito nativo ni servido/movil."
+  ],
+  "constraints": [
+    "Recepcion ACK exclusiva NUEVA para alcance/base/branch WEB; anterior ACK de generico no es admision. Nueva identidad ya creada conserva OWN0/relojnull/sesionnonce propios porque nunca admitida ni reclamada; no herencia.",
+    "Admision nativa,receipt,confirmacion ROOT antes OWN. Primer wait y notice/readback>=30s; FULLRAW+ACK todos deltas/cancelaciones desde nuevo watermark. Claim PROPIA exacta confirmada antes checkout y GO privado concreto.",
+    "Solo trabajador publica propiosclaim/result/RETURN;reporta ROOT admitido,nunca Claude. Ninguna automation por trabajador.",
+    "LauncherFOCAL01 rechazado: no escribir/reintentar/ejecutar/equivalente/inline/proxy/otraidentidad; sin wrapper/afinidad/PID/CPU1claim.",
+    "Sin suite entera/npmtest/build/CPU6/Chromium/Gradle/APK/backend/SQL/Edge/servidor/deploy/merge/version/notas/catalogo/caps/datosreales ni scopeajeno. Sin Java en WEB.",
+    "Comparar scopes con NATIVO; contrato primero, escritores/checkout separados, tests coordinados sin duplicar ni compartir edicion. ROOT coordina paths compartidos runner/docs antes cambios nativos.",
+    "Cada reloj propio60min/safe50 desde admision; no heredar deadline del root/R2. R2/PR332 fuentes cerradas inmutables y pruebas conservadas."
+  ],
+  "deliverable": "Plan de contrato aditivo, candidato WEB privado con matriz causal exacta y luego una PRdraft codex/pro03-recibo-saldo contra beta, sin ProductREADY por arrastre.",
+  "initialState": "PREPARED_REPLACES_CANCELLED_UNCLAIMED_GENERIC_NO_CLAIM"
+}
