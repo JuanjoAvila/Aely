@@ -4362,7 +4362,9 @@ function mergePlanThreeWay(base,local,remote,kind,deleted,localNewer){
     const independent=kind==="fixed"?["name","cat","category"]:["name","note"];
     // `soloMes` va con lo que se cobra: «Desde ahora» cambia el importe Y congela los meses pagados
     // en la misma edición; mezclar el importe de un móvil con los meses del otro no lo pidió nadie.
-    const financial=kind==="fixed"?["amount","bankAmount","account","freq","months","schedule","day","soloMes"]:
+    // `reparto` (tanda 5) también: tu parte + las partes = lo que cobra el banco, y media suma de
+    // cada móvil no cuadraría (el cliente nuevo la descartaría, pero no hace falta llegar ahí).
+    const financial=kind==="fixed"?["amount","bankAmount","account","freq","months","schedule","day","soloMes","reparto"]:
       keys.filter(function(k){return independent.indexOf(k)<0 && ["id","owner","user_id","type","debtLinkRevision"].indexOf(k)<0;});
     const groups=[financial];
     if(payment.length)groups.push(payment);

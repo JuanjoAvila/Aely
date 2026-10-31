@@ -116,6 +116,18 @@ export const E2E_MAP = [
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/plan-recibos-t4.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/plan-recibos-t4.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/plan-recibos-t4.spec.mjs"] },
+  // Tanda 5: personas y compartidos. El reparto, «Te deben» y «Lo descuento» viven en 08 (y mueven
+  // el recorrido de «¿Te llega?»), la mezcla de dos móviles en 00, la cuota con su descuento en
+  // Deudas (09) e Inicio (03), y las hojas en 14.
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-recibos-t5.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/plan-recibos-t5.spec.mjs"] },
+  { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/plan-recibos-t5.spec.mjs"] },
+  { file: "src/modules/00-core.js", specs: ["e2e/plan-recibos-t5.spec.mjs"] },
+  { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/plan-recibos-t5.spec.mjs"] },
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/plan-recibos-t5.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/plan-recibos-t5.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/plan-recibos-t5.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/plan-recibos-t5.spec.mjs"] },
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/ux16-round9-haptics.spec.mjs", "e2e/ux16-haptics.spec.mjs", "e2e/ux16-round2-haptics.spec.mjs", "e2e/ux16-round3-haptics.spec.mjs", "e2e/ux16-ajustador.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/ux16-round9-haptics.spec.mjs", "e2e/ux16-haptics.spec.mjs", "e2e/ux16-round3-haptics.spec.mjs", "e2e/ux16-ajustador.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-ciclo-porcentaje.spec.mjs"] },
