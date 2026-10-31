@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "taskId": "pr328-baseline-roundtrip-rebase-r144-codex-20261031",
+  "actor": "codex",
+  "sessionId": "nrelay2815c8f76453ea4e153fdeb4744e38d5",
+  "createdAt": "2026-10-31T17:31:22.441Z",
+  "baseSHA": "550a9cf47e72aa62d7e190aa2994858ca52c5b6d"
+}
