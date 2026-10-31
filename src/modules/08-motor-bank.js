@@ -171,7 +171,7 @@ function fixedPaymentFeedClear(s,identity){
   return rows.length<=1&&!rows.some(function(tx){ return tx.possibleDup||String(tx.status||"").toUpperCase()!=="BOOK"; });
 }
 function fixedPaymentContenders(s,y,m){
-  return (s.fixed||[]).filter(function(f){ return occursIn(f,m); }).map(function(f){
+  return (s.fixed||[]).filter(function(f){ return occursIn(f,m,y); }).map(function(f){
     return {id:f.id,kind:"fixed",name:f.name,category:f.category,bank:accOf(f),amount:f.bankAmount>0?f.bankAmount:occAmountIn(f,m,y)};
   }).concat((s.debts||[]).filter(debtActive).map(function(d){
     return {name:d.name,bank:d.account||"sabadell",amount:d.bankAmount>0?d.bankAmount:(d.monthly||0)+debtBalloonIn(d,y,m)};
@@ -189,7 +189,7 @@ function fixedPaymentBookRival(s,e,y,m,identity){
   // La ambigüedad puede invalidar el pago, pero no regalar su cargo al recibo nuevo.
   // Solo esta identidad y este mes conservan el nombre que vinculó el BOOK al id.
   return p&&p.kind==="book"&&p.modelVersion===2&&p.identity===identity&&
-    fixedPaymentUnique(s,e)&&occursIn(e,m)&&fixedPaymentModelMatches(p,e,m)&&p.bank===accOf(e)&&
+    fixedPaymentUnique(s,e)&&occursIn(e,m,y)&&fixedPaymentModelMatches(p,e,m)&&p.bank===accOf(e)&&
     p.identity===fixedPaymentIdentity(p.bank,p)&&!reciboVetado(s,e.id,identity)?p:null;
 }
 function fixedPaymentAutoOwner(s,e,y,m,bank,merchant,amount,category,book,identity){
@@ -267,7 +267,7 @@ function reciboNoUnion(local,nube){
 function fixedPaymentProof(s,e,y,m,today){
   var p=fixedPaymentStoredProof(s,e,y,m);
   if(p&&reciboVetado(s,e.id,p.identity)) return null;
-  if(!p||!fixedPaymentUnique(s,e)||!p.identity||!(p.amount>0)||!p.bank||!occursIn(e,m)||!fixedPaymentModelMatches(p,e,m)||!fixedPaymentDate(p.kind==="book"?fixedPaymentBookDate(s,p):p.date,y,m,today)) return null;
+  if(!p||!fixedPaymentUnique(s,e)||!p.identity||!(p.amount>0)||!p.bank||!occursIn(e,m,y)||!fixedPaymentModelMatches(p,e,m)||!fixedPaymentDate(p.kind==="book"?fixedPaymentBookDate(s,p):p.date,y,m,today)) return null;
   if(p.kind!=="expense"&&p.kind!=="book") return null;
   if(p.kind==="expense"){
     if(!fixedPaymentFeedClear(s,p.identity)) return null;
@@ -305,7 +305,7 @@ function fixedPaymentProof(s,e,y,m,today){
 function fixedExpenseEligible(s,x,e,y,m,today){
   var target=e.bankAmount>0?e.bankAmount:occAmountIn(e,m,y);
   return !!x&&fixedPaymentUnique(s,e)&&!x.possibleDup&&!x.debtId&&!metaDeGasto(x)&&(!x.status||String(x.status).toUpperCase()==="BOOK")&&!!expenseBankOf(x)&&!CAT_NEUTRAS[x.category]&&x.category!=="ingreso"&&
-    Number.isFinite(Number(x.amount))&&Number.isFinite(Number(target))&&Number(x.amount)>0&&target>0&&occursIn(e,m)&&
+    Number.isFinite(Number(x.amount))&&Number.isFinite(Number(target))&&Number(x.amount)>0&&target>0&&occursIn(e,m,y)&&
     fixedPaymentDate(x.date,y,m,today)&&!expenseIsTombstoned(x,expenseDeletedSet(s))&&fixedPaymentFeedClear(s,fixedPaymentIdentity(expenseBankOf(x),x))&&
     (fixedPaymentExpenses(s,String(x.date||"").slice(0,7)).identity.get(fixedPaymentIdentity(expenseBankOf(x),x))||[]).length===1&&
     !fixedPaymentChargeOwner(s,x,e,y,m,today);
@@ -356,7 +356,7 @@ function fixedPaymentBookDate(s,p){
         var q=f.paymentProofs[k],M=Number(String(q&&q.chargeDate||"").slice(5,7)),name=q&&q.modelVersion===2?q.receiptName:f.name;
         // No usar fixedPaymentProof aquí: vuelve a pedir esta fecha. El aporte ajeno necesita
         // su contrato propio, identidad bancaria y estado firmes antes de compartir el mes.
-        if(q&&q.kind==="book"&&q.bank===accOf(f)&&occursIn(f,M)&&fixedPaymentModelMatches(q,f,M)&&
+        if(q&&q.kind==="book"&&q.bank===accOf(f)&&occursIn(f,M,Number(String(q.chargeDate).slice(0,4)))&&fixedPaymentModelMatches(q,f,M)&&
           q.identity===fixedPaymentIdentity(q.bank,q)&&q.amount>0&&recNameMatch(name,q.merchant)&&recAmtClose(f.bankAmount>0?f.bankAmount:occAmountIn(f,M,Number(String(q.chargeDate).slice(0,4))),q.amount)&&
           !reciboVetado(s,f.id,q.identity)&&fixedPaymentFeedClear(s,q.identity)&&
           (s.accounts||[]).filter(function(a){ return a.ent===q.bank&&accFixed(a); }).length===1&&
@@ -395,7 +395,7 @@ function fixedPaymentChargeOwner(s,x,e,y,m,today){
       var Y=Math.floor((ym-1)/12),M=ym-Y*12,T=ym===y*12+m?today:ym===cur?now.getDate():new Date(Y,M,0).getDate();
       owner=(s.fixed||[]).find(function(f){
         // Conserva el propietario aunque la prueba antigua siga guardada bajo el mes del BOOK.
-        if(f.id===e.id&&ym===y*12+m||!occursIn(f,M)) return false;
+        if(f.id===e.id&&ym===y*12+m||!occursIn(f,M,Y)) return false;
         var q=fixedPaymentStoredProof(s,f,Y,M);
         if(q&&q.kind==="book"&&q.key===ref&&fixedPaymentBookSameRef(s,q,x)&&fixedPaymentProof(s,f,Y,M,T)===q) return true;
         // El extracto solo cuenta si es lo que acredita ese recibo: con su propia prueba, el BOOK
@@ -505,7 +505,7 @@ function reconcileFixedPaymentProofs(s,y,m,today){
         if(e.paidYm===ym&&e.paidDay===recDay(posted.date)){ delete e.paidYm;delete e.paidDay; }
       }
     }
-    if(!occursIn(e,m)) return e;
+    if(!occursIn(e,m,y)) return e;
     var existing=fixedPaymentProof(s,e,y,m,today);
     if(existing){
       if(existing.kind!=="book") return e;
@@ -778,7 +778,7 @@ function reciboDiagText(s,x){
   out.push(" identidad:"+identity+" · EXTRACTO misma ref: "+(mismaRef.length?mismaRef.map(function(tx){ return (tx.ent||"-")+" "+String(tx.date||"").slice(0,10)+" "+JSON.stringify(tx.merchant||"")+" acc:"+cola(tx.acc)+" status:"+(tx.status||"-"); }).join(" | "):"ninguno"));
   out.push("EXTRACTO misma identidad: "+(txs.length?txs.map(function(tx){ return "id:"+(tx.id||"-")+" acc:"+cola(tx.acc)+" status:"+(tx.status||"-")+(tx.possibleDup?" dup":""); }).join(" | "):"ninguno")+" · extracto total "+(s.bankTx||[]).length);
   (s.fixed||[]).forEach(function(f){
-    if(!occursIn(f,m)) return;
+    if(!occursIn(f,m,y)) return;
     var st=fixedPaymentState(s,f,y,m,today),target=f.bankAmount>0?f.bankAmount:occAmountIn(f,m,y);
     // La key y la identidad de la prueba solo si es de ESTE cargo o de su ref: de otros recibos
     // saldrían referencias y comercios de otros gastos, y para el chat basta con el motivo.
@@ -817,7 +817,7 @@ function planChargesMonth(s,m,y,today){
   var r=[];
   (s.fixed||[]).forEach(function(e){
     var a=occAmountIn(e,m,y);
-    if(!(a>0)||!occursIn(e,m)) return;
+    if(!(a>0)||!occursIn(e,m,y)) return;
     var status=fixedPaymentState(s,e,y,m,today);
     if(!status.paid&&fixedPausedIn(e,y,m)) return;
     r.push({id:"fixed_"+e.id,name:e.name,amount:a,day:status.day,bank:accOf(e),paid:status.paid,paidBank:status.paidBank,paidAmount:status.paidAmount,plannedBankAmount:e.bankAmount>0?Number(e.bankAmount):a,overdue:status.overdue});
@@ -1248,7 +1248,7 @@ function pendingWalkEvents(state, y, m, today){
   const hoy=function(d){ return d!=null&&d>0&&d<today?today:(d||0); };
   (state.fixed||[]).forEach(function(e){
     const a=occAmountIn(e,m,y);
-    if(!(a>0)||!occursIn(e,m)||fixedPausedIn(e,y,m)) return;
+    if(!(a>0)||!occursIn(e,m,y)||fixedPausedIn(e,y,m)) return;
     const b=accOf(e);
     if(!(b in leido)) leido[b]=saldoLeidoDelBanco(state,b);
     const st=fixedPaymentState(state,e,y,m,today);
@@ -1388,7 +1388,7 @@ function reconcileBank(state, y, m, today){
   const feedCovers=function(ent,day){ const md=entCoverMinDay[ent]; return md!=null && day>=md; };
   // cargos modelados de este mes por entidad
   const modeled=[];
-  (state.fixed||[]).forEach(function(e){ const ent=accOf(e); if(!obEnts[ent]||!occursIn(e,m)) return; const amt=occAmountIn(e,m,y),day=dayIn(e,m,y); if(amt<=0) return; modeled.push({name:e.name,amount:amt,day:day,ent:ent,id:e.id,kind:"fixed",bankAmount:(typeof e.bankAmount==="number"?e.bankAmount:null)}); if(feedCovers(ent,day)) res.covered[e.id]=1; });
+  (state.fixed||[]).forEach(function(e){ const ent=accOf(e); if(!obEnts[ent]||!occursIn(e,m,y)) return; const amt=occAmountIn(e,m,y),day=dayIn(e,m,y); if(amt<=0) return; modeled.push({name:e.name,amount:amt,day:day,ent:ent,id:e.id,kind:"fixed",bankAmount:(typeof e.bankAmount==="number"?e.bankAmount:null)}); if(feedCovers(ent,day)) res.covered[e.id]=1; });
   (state.debts||[]).forEach(function(d){ const ent=d.account||"sabadell"; if(!obEnts[ent]||!debtActive(d)) return; const amt=(d.monthly||0)+debtBalloonIn(d,y,m); if(amt<=0) return; modeled.push({name:d.name||"Cuota",amount:amt,day:d.day||null,ent:ent,id:d.id,kind:"debt",bankAmount:(typeof d.bankAmount==="number"?d.bankAmount:null)}); });
   (state.oneoffs||[]).forEach(function(o){ const ent=o.account||"sabadell"; if(!obEnts[ent]||!oneoffOccurs(o,y,m)||(o.amount||0)<=0) return; modeled.push({name:o.name||"Cargo",amount:o.amount,day:o.day||null,ent:ent,id:o.id,kind:"oneoff",bankAmount:(typeof o.bankAmount==="number"?o.bankAmount:null)}); });
 
@@ -1992,7 +1992,7 @@ function importObExpenses(s, txs, links){
      mes pasado ya se cuentan por su lado, y con la lista del mes en curso entraban otra vez. */
   const modeledByEnt={};
   const pushModeled=function(ent,name,amount,debtId,otro,id){ if(!ent||!(amount>0)) return; (modeledByEnt[ent]=modeledByEnt[ent]||[]).push({name:name,amount:amount,debtId:debtId||null,otro:otro,id:id||null}); };
-  (s.fixed||[]).forEach(function(f){ chargeMonths(f).concat(ym).forEach(function(mm){ pushModeled(accOf(f), f.name, occAmountIn(f,mm,yy), 0, mm!==ym||!occursIn(f,ym), f.id); }); });
+  (s.fixed||[]).forEach(function(f){ chargeMonths(f).concat(ym).forEach(function(mm){ pushModeled(accOf(f), f.name, occAmountIn(f,mm,yy), 0, mm!==ym||!occursIn(f,ym,yy), f.id); }); });
   (s.debts||[]).forEach(function(d){ if(debtActive(d)) pushModeled(d.account||"sabadell", d.name||"Cuota", (d.monthly||0)+debtBalloonIn(d,yy,ym), d.id); });
   (s.oneoffs||[]).forEach(function(o){ pushModeled(o.account||"sabadell", o.name||"Cargo", o.amount||0, 0, !oneoffOccurs(o,yy,ym), o.id); });
   /* QUÉ casó, no solo SI casó (4.21.0). Una DEUDA casada entra y `marcarCuotasDeDeuda` la pone
@@ -3799,7 +3799,7 @@ function histMatchesModeled(state, cand){
   const ent=cand.ent;
   const modeled=[];
   const push=function(e,name,amt,id){ if(e&&amt>0) modeled.push({ent:e,name:name,amount:amt,id:id||null}); };
-  (state.fixed||[]).forEach(function(f){ if(occursIn(f,ym)) push(accOf(f), f.name, occAmountIn(f,ym,yy), f.id); });
+  (state.fixed||[]).forEach(function(f){ if(occursIn(f,ym,yy)) push(accOf(f), f.name, occAmountIn(f,ym,yy), f.id); });
   // Las DEUDAS ya no se descartan aquí (4.22.0): entran en «Deudas» por `histCuotasDeDeuda`.
   (state.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,yy,ym)) push(o.account||"sabadell", o.name||"Cargo", o.amount||0, o.id); });
   const hits=modeled.filter(function(mm){ return mm.ent===ent && recAmtClose(mm.amount,amount) && recNameMatch(mm.name,merchant); });
@@ -4597,8 +4597,8 @@ function fixedEditarRecibo(s, id, patch, scope, y, m, today){
   const fin=function(ym){ const Y=Math.floor((ym-1)/12),M=ym-Y*12; return {Y:Y,M:M,T:ym===cur?today:new Date(Y,M,0).getDate()}; };
   if(mes){
     const o=Object.assign({},solo[cur]);
-    // Se guarda lo que se cobra ESE mes: un anual repartido en dos meses cobra la mitad cada vez.
-    if("amount" in p){ const a=Number(p.amount); if(isFinite(a)&&a>0) o.amt=occAmountIn(Object.assign({},old,p,{amount:a}),m); delete p.amount; }
+    // Lo tecleado es lo que se cobra ESE mes, también en un anual repartido (el resumen lo dice).
+    if("amount" in p){ const a=Number(p.amount); if(isFinite(a)&&a>0) o.amt=a; delete p.amount; }
     if("day" in p){ const d=cleanDay(p.day); if(d) o.day=d; else delete o.day; delete p.day; }
     solo[cur]=o;
   }
@@ -4614,15 +4614,25 @@ function fixedEditarRecibo(s, id, patch, scope, y, m, today){
     if(o.day!=null&&o.day===dayIn(n,m)) delete o.day;
     if(!Object.keys(o).length) delete solo[cur];
   } else {
-    // «Desde ahora» con este mes pendiente: manda lo nuevo también este mes.
-    if(!antes.paid) delete solo[cur];
+    // «Desde ahora» con este mes pendiente: lo nuevo manda también este mes, pero solo en lo que se
+    // cambia. Renombrar o cambiar la cuenta no quita un «solo este mes» de importe o de día (rev. t4, B1).
+    if(!antes.paid&&solo[cur]){
+      const o=Object.assign({},solo[cur]);
+      if("amount" in patch||"schedule" in patch||"freq" in patch||"months" in patch) delete o.amt;
+      if("day" in patch||"schedule" in patch) delete o.day;
+      if(o.amt==null&&o.day==null) delete solo[cur]; else solo[cur]=o;
+    }
     for(let ym=cur-FIXED_SOLO_ATRAS+1; ym<=cur; ym++){
       const f=fin(ym);
-      if(!occursIn(old,f.M)||!occursIn(n,f.M)) continue;
+      if(!occursIn(old,f.M,f.Y)) continue;
       if(ym===cur?!antes.paid:!fixedPaymentState(s,old,f.Y,f.M,f.T).paid) continue;
       const o=Object.assign({},solo[ym]), a=occAmountIn(old,f.M,f.Y), d=dayIn(old,f.M,f.Y);
-      if(Math.round(a*100)!==Math.round(occAmountIn(n,f.M)*100)) o.amt=a;
-      if(d!=null&&d!==dayIn(n,f.M)) o.day=d;
+      // Un mes pagado que el recibo nuevo ya no cobra se queda apuntado como suyo (rev. t4, R3).
+      if(!occursIn(n,f.M)){ o.on=true; o.amt=a; if(d!=null) o.day=d; }
+      else {
+        if(Math.round(a*100)!==Math.round(occAmountIn(n,f.M)*100)) o.amt=a;
+        if(d!=null&&d!==dayIn(n,f.M)) o.day=d;
+      }
       if(Object.keys(o).length) solo[ym]=o;
     }
   }

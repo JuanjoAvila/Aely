@@ -471,6 +471,16 @@ test("hojas de alta y edición por pasos son dialog con trap y restauran foco", 
   await expect(ficha).toHaveAttribute("aria-modal", "true");
   await expect(ficha).toHaveAccessibleName(/Editar recibo/i);
   await expect(ficha.locator(".pr6-ficha-n").last()).toHaveText("Luz");
+  // Teclear el nombre en la edición tampoco roba el foco al campo (Codex 2120Z).
+  await ficha.locator('[data-rp4-fila="0"]').click();
+  const fichaIn = ficha.locator('[data-rp4-paso="0"] [data-rp4="name"]');
+  await fichaIn.click();
+  await fichaIn.pressSequentially("ABC", { delay: 20 });
+  await expect(fichaIn).toHaveValue(/ABC/);
+  await expect(fichaIn).toBeFocused();
+  // Escape vuelve al resumen sin guardar; el siguiente cierra la hoja.
+  await page.keyboard.press("Escape");
+  await expect(ficha).toHaveAttribute("data-paso", "4");
   await page.keyboard.press("Tab");
   expect(await ficha.evaluate((el) => el.contains(document.activeElement))).toBe(true);
   await page.keyboard.press("Shift+Tab");

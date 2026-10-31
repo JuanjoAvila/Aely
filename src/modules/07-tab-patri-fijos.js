@@ -730,7 +730,9 @@ function chargeMonths(e){
   return [];   // anual sin mes asignado → sin programar
 }
 // ¿se cobra este gasto en el mes m (1-12)?
-const occursIn=(e,m)=> chargeMonths(e).indexOf(m)>=0;
+// Con año, un mes ya pagado que el recibo nuevo ya no cobra sigue contando como suyo si «Desde
+// ahora» lo dejó apuntado (`soloMes[ym].on`): editar no borra un pago del historial.
+const occursIn=(e,m,y)=> chargeMonths(e).indexOf(m)>=0 || !!(y!=null&&fixedSoloMes(e,y,m)&&fixedSoloMes(e,y,m).on===true);
 /* Pausa de un recibo (Plan › Recibos v6). `pausedFrom` y `pausedUntil` son año*12+mes, como
    `paidYm`: desde `pausedFrom` incluido hasta `pausedUntil` sin incluir, que es el mes en que
    vuelve («Hasta dic» = se cobra otra vez en diciembre, como en el prototipo aprobado). Son
@@ -843,7 +845,7 @@ function monthNetForAccount(s, ent, y, m, t){
   const hit=function(d){ return closed ? true : (d!=null && d<=t); };
   const ym=y*12+m, bp=!closed&&(s.fixed||[]).some(function(e){ return e.wait===ym; })?reconcileBank(s,y,m,t).paidAt:null;
   let net=0;
-  (s.fixed||[]).forEach(function(e){ if((e.account||"sabadell")===ent && occursIn(e,m) && !fixedEnPausa(s,e,y,m,closed?new Date(y,m,0).getDate():t) && (closed||bp&&bp[e.id]||isPaidIn(e,m,t,y,s))) net -= occAmountIn(e,m,y); });
+  (s.fixed||[]).forEach(function(e){ if((e.account||"sabadell")===ent && occursIn(e,m,y) && !fixedEnPausa(s,e,y,m,closed?new Date(y,m,0).getDate():t) && (closed||bp&&bp[e.id]||isPaidIn(e,m,t,y,s))) net -= occAmountIn(e,m,y); });
   (s.debts||[]).forEach(function(d){ if(debtActive(d) && (d.account||"sabadell")===ent && hit(debtChargeDay(d))) net -= (d.monthly||0) + debtBalloonIn(d,y,m); });
   (s.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m) && (o.account||"sabadell")===ent && (o.amount||0)!==0 && hit(o.day!=null?o.day:null)) net -= o.amount; });
   (s.flows||[]).forEach(function(f){ if(flowOccursIn(f,m,y)){ const bd=f.kind==="income"?flowConfirmedDay(f,y,m):null, dd=bd!=null?bd:flowDay(f,y,m); if(hit(dd)){ if(f.kind==="income" && (f.to||"sabadell")===ent) net += (f.amount||0); else if(f.kind==="transfer" && (f.from||"sabadell")===ent) net -= (f.amount||0); } } });

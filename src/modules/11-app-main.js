@@ -2420,7 +2420,7 @@ function App(){
     const ahorroMensual=state.aportaciones.reduce((a,x)=>a+x.amount,0);
     // --- MOTOR DINÁMICO: cargos de fijos que tocan ESTE mes, por banco ---
     // Un recibo en pausa (y sin cobrar) no se cobra este mes: ni suma ni baja el saldo previsto.
-    const fijoDelMes=e=> occursIn(e,curMonth) && !fixedEnPausa(state,e,curYear,curMonth,today);
+    const fijoDelMes=e=> occursIn(e,curMonth,curYear) && !fixedEnPausa(state,e,curYear,curMonth,today);
     const fijosEsteMes=state.fixed.reduce((a,e)=> fijoDelMes(e) ? a+occAmountIn(e,curMonth,curYear) : a, 0);
     const cargosMes=fijosEsteMes+cuotas;                 // fijos del mes + cuotas de deuda (todos los bancos)
     // saldo disponible por banco (la cuenta de gasto descuenta el gasto del mes)
@@ -2767,7 +2767,7 @@ function App(){
     const charges=[];
     (state.fixed||[]).forEach(function(e){
       // Pausado = este mes no se cobra: avisar la víspera de algo que no llega sería mentir.
-      if(!occursIn(e,cm)||fixedPausedIn(e,cy,cm)) return;
+      if(!occursIn(e,cm,cy)||fixedPausedIn(e,cy,cm)) return;
       const d=dayIn(e,cm,cy); const amt=occAmountIn(e,cm,cy)||0;
       if(d==null||!(amt>0)) return;
       charges.push({id:String(e.id),name:e.name||"Recibo",amount:+amt.toFixed(2),day:d});
@@ -2799,7 +2799,7 @@ function App(){
     };
     const run=function(){
       (state.fixed||[]).forEach(function(e){
-        if(!occursIn(e,cm)||fixedPausedIn(e,cy,cm)) return;
+        if(!occursIn(e,cm,cy)||fixedPausedIn(e,cy,cm)) return;
         const d=dayIn(e,cm,cy); if(d==null) return;
         if(isPaidIn(e,cm,today,cy,state)) return;
         const amt=occAmountIn(e,cm,cy)||0;

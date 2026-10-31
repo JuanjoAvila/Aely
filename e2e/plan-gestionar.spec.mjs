@@ -601,6 +601,25 @@ test("cambiar Pepegas del 20 al 25 a la una no reutiliza el extracto de ayer", {
   await expect(pepegas.locator(".d")).toHaveText("25");
 });
 
+test("editar un recibo: dos toques en Guardar escriben una sola vez y la hoja sale animando", async ({ page }) => {
+  await appLista(page);
+  await abreTusRecibos(page);
+  await grupo(page, "Servicios y suministros").click();
+  await fila(page, "Luz").click();
+  await expect(pasos(page)).toHaveAttribute("data-modo", "edit");
+  await pasos(page).locator('[data-rp4-fila="1"]').click();
+  for(const k of ["1","2","3"]) await pasoN(page, 1).locator(".v4-keys").getByRole("button",{name:k,exact:true}).click();
+  await pasos(page).locator(".rp4-cta").click();
+  await expect(pasos(page)).toHaveAttribute("data-paso", "4");
+  const hoja=pasos(page);
+  await hoja.locator(".rp4-cta").evaluate((el)=>{ el.click(); el.click(); });
+  await expect(hoja).toHaveCount(1);
+  await expect.poll(async()=>hoja.first().evaluate((n)=>getComputedStyle(n).transform!=="none")).toBe(true);
+  await expect(hoja).toHaveCount(0,{timeout:1500});
+  await expect.poll(async()=>{ const luz=((await estado(page)).fixed||[]).find((x)=>x.id==="luz"); return luz&&luz.amount; }).toBe(123);
+  expect(((await estado(page)).fixed||[]).filter((x)=>x.id==="luz")).toHaveLength(1);
+});
+
 test("Listo confirma a la vista, guarda una sola vez y después cierra", async ({ page }) => {
   await appLista(page);
   await abreTusRecibos(page);
@@ -701,6 +720,9 @@ test("alta por pasos: cada dos meses pregunta EN QUÉ meses y el teclado empieza
   const hojaAlta=pasos(page);
   // Dos toques dentro del mismo frame no pueden crear dos recibos mientras la hoja sale.
   await hojaAlta.locator(".rp4-cta").evaluate((el)=>{ el.click(); el.click(); });
+  // La hoja sale animando (no desaparece de golpe) y solo después se desmonta.
+  await expect(hojaAlta).toHaveCount(1);
+  await expect.poll(async()=>hojaAlta.first().evaluate((n)=>getComputedStyle(n).transform!=="none")).toBe(true);
   await expect(hojaAlta).toHaveCount(0,{timeout:1500});
 
   await expect.poll(async () => {

@@ -91,9 +91,10 @@ test("añadir: «Solo una vez» es un cargo puntual de ese mes y no suma en octu
   await paso(page, 2).locator('[data-rp4-modo="once"]').click();
   await expect(paso(page, 2).locator('[data-rp4-modo="once"]')).toHaveAttribute("aria-checked", "true");
   await paso(page, 2).locator(".rp4-mes", { hasText: /^nov$/i }).click();
-  // Arranca en el día de hoy (18): dos «−» lo dejan en el 16.
-  await paso(page, 2).getByRole("button", { name: "Un día antes" }).click();
-  await paso(page, 2).getByRole("button", { name: "Un día antes" }).click();
+  // Sin día hasta que se elige: no se puede guardar a ciegas. En noviembre, «+» empieza en el 1.
+  await expect(paso(page, 2).locator('[data-rp4="dia"]')).toHaveText("día —");
+  await expect(siguiente(page)).toBeDisabled();
+  for (let i = 0; i < 16; i++) await paso(page, 2).getByRole("button", { name: "Un día después" }).click();
   await expect(paso(page, 2).locator('[data-rp4="dia"]')).toHaveText("día 16");
   await siguiente(page).click();
   await paso(page, 3).locator('[data-rp4-banco="sabadell"]').click();
@@ -107,6 +108,68 @@ test("añadir: «Solo una vez» es un cargo puntual de ese mes y no suma en octu
   expect(s.fixed).toHaveLength(1);
   await page.keyboard.press("Escape");
   await expect(total(recibos)).toHaveText("50,00 €");
+});
+
+test("añadir: «Solo una vez» este mes empieza mañana y queda pendiente, también en «¿Te llega?»", async ({ page }) => {
+  const recibos = await abrePlan(page, { fixed: [recibo("luz", "Luz", 50, 28)] });
+  await abreAlta(page, recibos);
+  await paso(page, 0).locator('[data-rp4="name"]').fill("Dentista");
+  await siguiente(page).click();
+  await teclea(page, 1, "90");
+  await siguiente(page).click();
+  await paso(page, 2).locator('[data-rp4-modo="once"]').click();
+  // Octubre (el mes en curso) ya va marcado; el primer «+» da mañana (19) y «−» desde ahí no baja a hoy.
+  await paso(page, 2).getByRole("button", { name: "Un día después" }).click();
+  await expect(paso(page, 2).locator('[data-rp4="dia"]')).toHaveText("día 19");
+  await paso(page, 2).getByRole("button", { name: "Un día antes" }).click();
+  await expect(paso(page, 2).locator('[data-rp4="dia"]')).toHaveText("día 31");
+  await paso(page, 2).getByRole("button", { name: "Un día después" }).click();
+  await expect(paso(page, 2).locator('[data-rp4="dia"]')).toHaveText("día 19");
+  await siguiente(page).click();
+  await paso(page, 3).locator('[data-rp4-banco="sabadell"]').click();
+  await expect(hoja(page)).toHaveAttribute("data-paso", "4");
+  await siguiente(page).click();
+  await expect(hoja(page)).toHaveCount(0);
+  const s = await guardado(page);
+  expect(s.oneoffs[0]).toMatchObject({ name: "Dentista", amount: 90, month: 10, year: 2026, day: 19 });
+  await page.keyboard.press("Escape");
+  // Pendiente, suma en lo que queda y el recorrido de «¿Te llega?» lo resta (3000 − 50 − 90).
+  await expect(total(recibos)).toHaveText("140,00 €");
+  await expect(recibos.getByTestId("plan-due").locator('[data-recibo^="oneoff_"]')).toContainText("90,00 €");
+  const min = await page.evaluate(() => { const s = mcLoadRaw(mcStateKey()), evs = pendingWalkEvents(s, 2026, 10, 18).filter((e) => e.bank === "sabadell");
+    return Math.round(minWalk(3000, evs).min * 100); });
+  expect(min).toBe(286000);
+});
+
+test("editar: «Solo octubre» sigue en pie tras renombrar el recibo", async ({ page }) => {
+  const recibos = await abrePlan(page, { fixed: [recibo("luz", "Luz", 50, 28), recibo("gas", "Gas", 30, 26)] });
+  const editarLuz = async () => {
+    await recibos.getByTestId("plan-due").locator('[data-recibo="fixed_luz"]').click();
+    await page.locator('.v4-sheet[data-sheet="recibo"] [data-act="editar"]').click();
+    await expect(hoja(page)).toHaveAttribute("data-modo", "edit");
+  };
+  await editarLuz();
+  await paso(page, 4).locator('[data-rp4-fila="1"]').click();
+  await teclea(page, 1, "80");
+  await siguiente(page).click();
+  await paso(page, 4).getByTestId("rp4-scope").getByRole("radio", { name: "Solo octubre" }).click();
+  await expect(paso(page, 4).getByTestId("rp4-scope-mes")).toHaveText("Este mes se cobra 80,00 €");
+  await siguiente(page).click();
+  await expect(hoja(page)).toHaveCount(0);
+  await expect(total(recibos)).toHaveText("110,00 €");
+  await editarLuz();
+  await paso(page, 4).locator('[data-rp4-fila="0"]').click();
+  await paso(page, 0).locator('[data-rp4="name"]').fill("Luz casa");
+  await siguiente(page).click();
+  await expect(paso(page, 4).getByTestId("rp4-scope")).toHaveCount(0);
+  await siguiente(page).click();
+  await expect(hoja(page)).toHaveCount(0);
+  const s = await guardado(page);
+  const luz = s.fixed.find((f) => f.id === "luz");
+  expect(luz).toMatchObject({ name: "Luz casa", amount: 50 });
+  expect(luz.soloMes).toEqual({ [YM]: { amt: 80 } });
+  await expect(total(recibos)).toHaveText("110,00 €");
+  await expect(recibos.getByTestId("plan-due").locator('[data-recibo="fixed_luz"]')).toContainText("80,00 €");
 });
 
 test("añadir: «En varios pagos» con Hacienda propone 60 % el 30 jun y el resto el 5 nov", async ({ page }) => {

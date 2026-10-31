@@ -148,6 +148,21 @@ test('native wave: cancelar Atrás lateral de la ficha limpia la capa al reposar
     await swipe(page,140,400,210,0);await expect(page.locator('[data-sheet="bill"]')).toHaveCount(0);await expect(page.locator(child)).toBeVisible();
   });
 });
+// La hoja por pasos de un recibo (tanda 4): el mismo gesto lateral, con el borde superior libre
+// para el navegador y el regreso a la misma categoría sin mover la lista.
+test('native wave: hoja por pasos de un recibo cancela y vuelve de lado sin mover su lista',async({page},info)=>{
+  await begin(page,info);await record(page,info,async capture=>{
+    await manage(page);await page.locator(hub+' button[data-group="serv"]').tap();await expect(page.locator(child)).toBeVisible();await settle(page);
+    const before=await capture('serv-before-pasos');
+    await page.locator(child+' .v4-bills-row').first().tap();const hoja=page.locator('[data-sheet="recibo-pasos"]');await expect(hoja).toBeVisible();await settle(page);
+    const open=await capture('pasos-open');expect(open.sheet.transform).toBe('none');expect(open.sheet.willChange).toBe('auto');expect(open.sheet.touch).toMatch(/auto|pan-y/);
+    const back=page.locator('.v4-sheet-back').filter({has:hoja});
+    await swipe(page,160,400,65,0,'touchCancel');
+    await expect.poll(()=>back.evaluate(e=>getComputedStyle(e).transform)).toBe('none');await expect(hoja).toHaveAttribute('data-paso','4');
+    await swipe(page,140,400,210,0);await expect(hoja).toHaveCount(0);await expect(page.locator(child)).toBeVisible();await settle(page);
+    const after=await capture('serv-after-pasos');expect(after.child.scroll).toBe(before.child.scroll);expect(after.plan.scroll).toBe(before.plan.scroll);
+  });
+});
 test('native wave: simulador conserva geometría y vuelve un nivel',async({page},info)=>{
   await page.setViewportSize({width:393,height:500});await begin(page,info);await record(page,info,async capture=>{
     await manage(page);await page.locator(hub+' .v4-bills-afford').tap();await expect(page.locator(child)).toBeVisible();await settle(page);const before=await capture('afford-open');

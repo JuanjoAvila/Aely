@@ -389,7 +389,7 @@ function planRecibosAvisos(s, pack, proof, y, m, today){
     let antes=null;
     for(let k=1;k<=PR6_MESES_ATRAS&&antes==null;k++){
       const p=atras(k);
-      if(!occursIn(f,p.m)) continue;
+      if(!occursIn(f,p.m,p.y)) continue;
       const st=fixedPaymentState(s,f,p.y,p.m,p.fin);
       antes=fixedPaymentEvidence(st)&&st.paidAmount>0?st.paidAmount:0;
     }
@@ -414,7 +414,7 @@ function planRecibosAvisos(s, pack, proof, y, m, today){
     const p=atras(k), clave="|"+p.y+"-"+String(p.m).padStart(2,"0");
     vivos.forEach(function(c){
       const f=c.f;
-      if(!occursIn(f,p.m)||!(occAmountIn(f,p.m,p.y)>0)||fixedPausedIn(f,p.y,p.m)) return;
+      if(!occursIn(f,p.m,p.y)||!(occAmountIn(f,p.m,p.y)>0)||fixedPausedIn(f,p.y,p.m)) return;
       if(fixedPaymentEvidence(fixedPaymentState(s,f,p.y,p.m,p.fin))){ c.last=p.ym; c.done=true; return; }
       // Sin movimientos de ese banco ese mes no se sabe si se cobró: ahí se deja de contar.
       if(!meses.has(accOf(f)+clave)){ c.done=true; return; }
@@ -575,7 +575,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   // Pausados este mes: no suman ni salen como pendientes, pero se ven tachados en «Ya pagados»
   // para poder devolverlos al mes con un toque (SPEC §2.5).
   const pausados=useMemo(function(){
-    return (state.fixed||[]).filter(function(f){ return occursIn(f,month)&&occAmountIn(f,month,year)>0&&fixedEnPausa(state,f,year,month,today); });
+    return (state.fixed||[]).filter(function(f){ return occursIn(f,month,year)&&occAmountIn(f,month,year)>0&&fixedEnPausa(state,f,year,month,today); });
   },[pack,state.fixed,year,month,today]);
   const posponer=function(x){
     const next=Object.assign({},pr6PospuestoLeer(),{[x.id]:pr6Hoy()});
@@ -951,7 +951,7 @@ function reciboPagadoEnAno(s,f,y,curM,today){
   let total=0, alguno=false;
   for(let m=1;m<=curM;m++){
     const a=occAmountIn(f,m,y);
-    if(!(a>0)||!occursIn(f,m)) continue;
+    if(!(a>0)||!occursIn(f,m,y)) continue;
     const st=fixedPaymentState(s,f,y,m,m===curM?today:new Date(y,m,0).getDate());
     if(!fixedPaymentEvidence(st)){ if(m===curM) continue; return null; }
     const compartido=f.bankAmount>0&&Math.abs(f.bankAmount-a)>=0.005;
@@ -1817,6 +1817,10 @@ function rp4Raw(n){
 }
 function rp4Cent(n){ return Math.round((Number(n)||0)*100); }
 function rp4DiasMes(ym){ const Y=Math.floor((ym-1)/12), M=ym-Y*12; return new Date(Y,M,0).getDate(); }
+/* Un cargo de una sola vez de hoy o de antes este mes ya «se habría cobrado» por calendario sin
+   ningún cargo detrás: lo de hoy sin cobro es cargo de hoy (decisión del dueño, t3). Se apunta
+   desde mañana; lo de hoy ya cobrado está en Gastos. */
+function rp4OnceOk(o, cur, today){ return !!o&&cleanDay(o.day)!=null&&o.day<=rp4DiasMes(o.ym)&&(o.ym>cur||o.ym===cur&&o.day>today); }
 function rp4MesTxt(m, y, curY){ return monthShort(m-1)+(y!=null&&y!==curY?" "+String(y).slice(2):""); }
 /* Pagos de «En varios pagos»: el último es el resto (SPEC §7.3). Céntimos para no perder uno al
    repartir. Meses distintos: `schedule` no admite dos pagos el mismo mes (el segundo no se cobraría). */
@@ -1877,7 +1881,7 @@ function ReciboPasos({mode, row, once, state, set, totals, banks, onClose, onSav
   const vivo=edit&&kind==="fixed"?(state.fixed||[]).find(function(e){ return e.id===row.id; })||it:it;
   const inicial=React.useMemo(function(){
     if(!edit) return {name:"",category:"",amount:"",variable:false,mode:once?"once":"rec",freq:"mes",months:[],day:null,
-      once:{ym:cur,day:today},plan:null,account:banks[0]||"sabadell"};
+      once:{ym:cur,day:null},plan:null,account:banks[0]||"sabadell"};
     if(kind==="oneoff") return {name:it.name||"",category:"",amount:rp4Raw(it.amount),variable:false,mode:"once",freq:"mes",months:[],day:it.day||null,
       once:{ym:(Number(it.year)||y)*12+(Number(it.month)||m),day:cleanDay(it.day)||1},plan:null,account:it.account||banks[0]||"sabadell"};
     const sch=hasSchedule(it);
@@ -1947,7 +1951,7 @@ function ReciboPasos({mode, row, once, state, set, totals, banks, onClose, onSav
   const ok=[
     !!String(f.name||"").trim(),
     amt>0,
-    f.mode==="once"?cleanDay(f.once.day)!=null&&f.once.day<=onceDias&&f.once.ym>=cur
+    f.mode==="once"?cleanDay(f.once.day)!=null&&f.once.day<=onceDias&&f.once.ym>=cur&&(edit&&!tocado.when||rp4OnceOk(f.once,cur,today))
       :f.mode==="split"?!!(pr&&pr.ok)
       :cleanDay(f.day)!=null&&(f.freq!=="año"||f.months.length>0),
     !!f.account,
@@ -2034,7 +2038,7 @@ function ReciboPasos({mode, row, once, state, set, totals, banks, onClose, onSav
   const onceY=Math.floor((f.once.ym-1)/12), onceM=f.once.ym-onceY*12;
   const proximo=pr?(pr.sched.find(function(x){ return x.m>=m; })||pr.sched[0]):null;
   const amtTxt=amt>0?(f.variable?"≈ ":"")+eur(amt):"—";
-  const cuandoTxt=f.mode==="once"?(f.once.day+" "+rp4MesTxt(onceM,onceY,y))
+  const cuandoTxt=f.mode==="once"?((f.once.day||"—")+" "+rp4MesTxt(onceM,onceY,y))
     :f.mode==="split"?(pr?pr.sched.map(function(x){ return (x.day||"—")+" "+monthShort(x.m-1); }).join(" · "):"—")
     :(cleanDay(f.day)?f.day+" · "+lower(freqTxt(f.freq)):"—");
   const subTxt=[f.category&&CAT[f.category]?catName(f.category):"",bankLabel(f.account),
@@ -2109,12 +2113,18 @@ function ReciboPasos({mode, row, once, state, set, totals, banks, onClose, onSav
   const tarjeta=function(x,i,n,soloUna){
     const ultimo=i===n-1;
     const meses=[];
-    if(soloUna){ for(let k=0;k<12;k++){ const ym=cur+k, Y=Math.floor((ym-1)/12), M=ym-Y*12; meses.push({k:ym,on:f.once.ym===ym,label:rp4MesTxt(M,Y,y),go:function(){ upd({once:{ym:ym,day:Math.min(f.once.day,rp4DiasMes(ym))}}); toca("when"); }}); } }
+    if(soloUna){ for(let k=0;k<12;k++){ const ym=cur+k, Y=Math.floor((ym-1)/12), M=ym-Y*12;
+      meses.push({k:ym,on:f.once.ym===ym,dis:ym===cur&&today>=rp4DiasMes(ym),label:rp4MesTxt(M,Y,y),go:function(){
+        const d=f.once.day?Math.min(f.once.day,rp4DiasMes(ym)):null;
+        upd({once:{ym:ym,day:d&&rp4OnceOk({ym:ym,day:d},cur,today)?d:null}}); toca("when"); }}); } }
     else for(let M=1;M<=12;M++){ const usado=plan.some(function(o,j){ return j!==i&&o.m===M; }); meses.push({k:M,on:x.m===M,dis:usado,label:monthShort(M-1),go:function(){ setPlan(function(pl){ pl[i].m=M; }); toca("when"); }}); }
     const max=soloUna?onceDias:31;
     const mover=function(dir){
       toca("when");
-      if(soloUna) setF(function(o){ const dd=o.once.day+dir, mx=rp4DiasMes(o.once.ym); return Object.assign({},o,{once:{ym:o.once.ym,day:dd<1?mx:dd>mx?1:dd}}); });
+      // Este mes, desde mañana: un puntual de hoy sin cargo contaría como pagado (rev. t4, B2).
+      if(soloUna) setF(function(o){ const mx=rp4DiasMes(o.once.ym), mn=o.once.ym===cur?today+1:1;
+        const dd=o.once.day==null?(dir>0?mn:mx):o.once.day+dir;
+        return Object.assign({},o,{once:{ym:o.once.ym,day:dd<mn?mx:dd>mx?mn:dd}}); });
       else setPlan(function(pl){ const dd=(pl[i].day||0)+dir; pl[i].day=dd<1?31:dd>31?1:dd; });
     };
     const dia=soloUna?f.once.day:x.day;
@@ -2204,7 +2214,7 @@ function ReciboPasos({mode, row, once, state, set, totals, banks, onClose, onSav
   const p4=panel(4,[
     React.createElement("div",{key:"h",className:"pr6-ficha-h rp4-sum-h"},
       React.createElement("span",{className:"pr6-dt","aria-hidden":"true"},
-        React.createElement("span",{className:"d serif num"}, f.mode==="once"?f.once.day:proximo?(proximo.day||"—"):(cleanDay(f.day)||"—")),
+        React.createElement("span",{className:"d serif num"}, f.mode==="once"?(f.once.day||"—"):proximo?(proximo.day||"—"):(cleanDay(f.day)||"—")),
         React.createElement("span",{className:"m"}, f.mode==="once"?monthShort(onceM-1):proximo?monthShort(proximo.m-1):t("rp4_dia"))),
       React.createElement("span",{className:"pr6-ficha-t"},
         React.createElement("span",{className:"pr6-ficha-n"}, f.name||"—"),
@@ -2224,6 +2234,7 @@ function ReciboPasos({mode, row, once, state, set, totals, banks, onClose, onSav
         return React.createElement("button",{type:"button",role:"radio","aria-checked":on?"true":"false",key:o[0],className:"rp4-mode"+(on?" on":""),"data-rp4-scope":o[0],
           onClick:function(){ setScope(o[0]); }}, o[1]);
       })),
+    conScope&&scope==="mes"&&amt>0&&React.createElement("div",{key:"scx",className:"hint","data-testid":"rp4-scope-mes"}, tf("rp4_mes_cobra",{x:eur(amt)})),
     pausa&&React.createElement("button",{type:"button",key:"pa",className:"pr6-btn pr6-btn-wide","data-act":"bill-resume",
       onClick:function(){ set(function(s){ return fixedPausa(s,row.id,0,0); }); }}, pausa+" · "+t("pr6_reanudar")),
     edit&&gone&&baja&&React.createElement("a",{key:"bj",className:"pr6-baja",href:baja.url,target:"_blank",rel:"noopener noreferrer"}, tf("rp4_baja_antes",{name:baja.name})),

@@ -178,11 +178,23 @@ siempre; las pruebas de esos meses se atan al contrato nuevo conservando su impo
 marca `paidYm` de un mes pagado no se borra. Si este mes ya está pagado o no toca, «Solo este
 mes» va como «Desde ahora». Como `patchFixedById`, no compensa el saldo mostrado: un día movido
 que el calendario daba por cobrado y el banco no trae vuelve al saldo. En la mezcla de
-tres vías `soloMes` va en el grupo financiero (con importe, día, cuenta…). Un cliente viejo ve el
-importe de siempre en el mes cambiado (real, no inventado) y, tras un «Desde ahora», el importe
-nuevo también en los meses pagados (sus pruebas siguen valiendo). «Solo una vez» es un cargo
-puntual (`oneoffs`) y «En varios pagos» es `schedule` (cada año, `freq:"año"`); «Cambia cada
-mes» es `variable:true`, solo para el «≈». No hay columnas ni servidor nuevos.
+tres vías `soloMes` va en el grupo financiero (con importe, día, cuenta…). Una edición que no toca
+importe ni día no toca `soloMes` de este mes. Un mes pagado que el recibo nuevo ya no cobra
+(otros meses o pagos) queda en `soloMes` con `on:true`, y `occursIn(e,m,y)` lo sigue contando
+como suyo; sin año manda el calendario nuevo. «Solo este mes» guarda lo tecleado como cargo de
+ese mes, también en un anual repartido.
+
+Un cliente viejo (la primera apertura tras el OTA, mientras el Service Worker sirve el bundle
+anterior) ignora `soloMes`: en el mes de «Solo este mes» ve el importe del recibo (real, pero no
+el que se puso). Tras «Desde ahora» con meses pagados por BOOK compara el BOOK con el importe
+nuevo: los meses pasados le salen sin pagar, octubre pagado por el importe nuevo, y su
+`planSyncDerived` puede borrar `paidYm`/`paidDay` de este mes y subirlo a la nube. Las pruebas
+de un enlace a mano (`expense`) sí le siguen valiendo. El cliente nuevo sigue correcto aunque el
+viejo quite `paidYm`, porque la prueba re-atada vale. Es lo mismo que ya hacía la ficha de antes
+(`patchFixedById`) en el propio móvil. «Solo una vez» es un cargo puntual (`oneoffs`) que se
+apunta desde mañana (uno de hoy contaría como pagado por calendario sin cargo detrás) y «En
+varios pagos» es `schedule` (cada año, `freq:"año"`); «Cambia cada mes» es `variable:true`,
+solo para el «≈». No hay columnas ni servidor nuevos.
 
 Si la lápida alcanza una fila con un borrador privado pendiente, la fila sigue
 borrada y el borrador se ofrece en Plan → Deudas. Recuperar solo precarga el editor,
