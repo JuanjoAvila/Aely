@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-31-10-pr335-remates-3f81c0d2",
+  "to": "codex",
+  "body": "PR335 PRO-03 nativo: la revisión independiente da GO con remates (120 casos JVM verdes; Java no calcula dinero). En la misma PR: R1, el mismo texto que la 334 (mínimo del mes, no «el recibo de mañana no te llega»). R2: el aviso solo dice la frase del saldo si la LECTURA del saldo es fresca, como mucho del día anterior a la víspera (usa la hora de lectura que ya tiene la app, la de «¿Te llega?», obBalAt/saldoLeidoAt); si no, el texto neutro. R3: el test borra sus carpetas temporales al acabar. R4: si no hay JDK, el test se salta con un mensaje claro en vez de fallar npm test (CI tiene JDK; local puede que no). Avísame con el HEAD.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261028-3f81c0d2",
+  "createdAt": "2026-10-31T21:48:19.624Z"
+}
