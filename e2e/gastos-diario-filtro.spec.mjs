@@ -27,7 +27,7 @@ const fila = (page, nombre) => lista(page).filter({ hasText: nombre });
 const aporte = (page) => page.locator('.v4-gastos-list-body .gx-gris[data-gris="inversion"] .gx-gris-it').filter({ hasText: "Aporte TR" });
 
 async function mostrarTodosLosBancos(page) {
-  await page.locator("button.v4-chip").filter({ hasText: "🎛️" }).first().click();
+  await page.locator('.page-scroll-host .gx-root').getByTestId("gastos-filtros").click();
   await page.getByRole("button", { name: /Todos los bancos|All banks|Tots els bancs/i }).click();
   // El único botón de abajo dice cuántos movimientos va a enseñar y cierra (tanda 5).
   await page.locator(".v4-gastos-filter-sheet .btn-primary").click();
@@ -92,13 +92,14 @@ test("al entrar, Gastos NO cree que ya tiene un filtro puesto", async ({ page })
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await expect(gastosCifra(page)).toBeVisible();
 
-  /* El síntoma exacto: el botón de Filtros (🎛️) se encendía con la clase `on` y un contador al
+  /* El síntoma exacto: el botón de Filtros se encendía con la clase `on` y un contador al
      lado. Se mide ESO y no la existencia del chip de limpiar, que es lo que se me ocurrió primero
      y no cazaba nada — comprobado volviendo a meter el fallo. */
-  const btnFiltros = page.locator("button.v4-chip").filter({ hasText: "🎛️" }).first();
+  const btnFiltros = page.locator('.page-scroll-host .gx-root').getByTestId("gastos-filtros");
   await expect(btnFiltros).toBeVisible();
   await expect(btnFiltros, "el botón de filtros no puede salir encendido sin filtros").not.toHaveClass(/\bon\b/);
-  await expect(btnFiltros, "ni con un contador al lado").toHaveText("🎛️");
+  await expect(btnFiltros.getByTestId("gastos-filtros-globo"), "ni con un contador al lado").toHaveCount(0);
+  await expect(btnFiltros).toHaveText("");
 });
 
 test("«Todos los bancos» amplía el histórico y «Limpiar» vuelve a gasto diario", async ({ page }) => {

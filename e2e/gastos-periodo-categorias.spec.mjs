@@ -40,7 +40,7 @@ async function check(page, expected, spent){
 }
 // El Rango se elige en Filtros → Periodo (tanda 2: las fechas viven con el periodo).
 async function rangoEnFiltros(page, desde, hasta){
-  await gastosRoot(page).locator("button.v4-chip").filter({ hasText: "🎛️" }).first().click();
+  await gastosRoot(page).getByTestId("gastos-filtros").click();
   const hoja=page.locator(".v4-gastos-filter-sheet");
   for(const [i,dia] of [[0,desde],[1,hasta]]){
     await hoja.locator(".range button").nth(i).click();

@@ -1870,9 +1870,13 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
             React.createElement("input",{className:"searchbar-in",type:"search",placeholder:t("g_search"),value:q,onChange:e=>setQ(e.target.value)}),
             q && React.createElement("button",{className:"searchbar-x",onClick:()=>setQ(""),title:"×"},"✕")
           ),
-          React.createElement("button",{type:"button",className:"v4-chip"+(nFilters?" on":""),onClick:function(){ setFilterOpen(true); },title:t("g_filters"),
-            style:{minHeight:0,padding:"0 14px",fontWeight:700,flex:"0 0 auto"}},
-            "🎛️"+(nFilters?" "+nFilters:""))
+          React.createElement("button",{type:"button",className:"gx-filter-btn"+(nFilters?" on":""),onClick:function(){ setFilterOpen(true); },title:t("g_filters"),
+            "aria-label":t("g_filters"),"aria-expanded":filterOpen,"data-testid":"gastos-filtros"},
+            React.createElement("svg",{"aria-hidden":true,width:22,height:22,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.2,strokeLinecap:"round",strokeLinejoin:"round"},
+              React.createElement("path",{d:"M4 7h4m4 0h8M4 17h8m4 0h4"}),
+              React.createElement("circle",{cx:10,cy:7,r:2}),
+              React.createElement("circle",{cx:14,cy:17,r:2})),
+            nFilters>0 && React.createElement("span",{className:"gx-sec-globo num","aria-hidden":true,"data-testid":"gastos-filtros-globo"},nFilters))
         ),
         // Resumen de los filtros activos (categorías/bancos) + botón para quitarlos. El botón que
         // ABRE el sheet ya no vive aquí: se movió junto al buscador (ver arriba).

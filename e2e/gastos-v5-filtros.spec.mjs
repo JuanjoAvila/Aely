@@ -37,8 +37,8 @@ const expenses = [
   e("RECIBO AGUA", "2026-09-08", 40, "agua", "sabadell"),
 ];
 
-async function abre(page) {
-  await seedLoggedInDashboard(page, { ...base, expenses });
+async function abre(page, lang = "es") {
+  await seedLoggedInDashboard(page, { ...base, settings: { ...base.settings, lang }, expenses });
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 30_000 });
   await page.waitForFunction(() => !document.getElementById("mc-load"));
@@ -61,7 +61,27 @@ async function cuentaTodas(page) {
   }).toBe(1);
   return (await tarjetas(page).count()) + (await gastosRoot(page).locator('[data-gx-secc="movs"] .gx-gris-it').count());
 }
-const botonFiltros = (page) => gastosRoot(page).locator("button.v4-chip").filter({ hasText: "🎛️" }).first();
+const botonFiltros = (page) => gastosRoot(page).getByTestId("gastos-filtros");
+
+for (const [lang, nombre] of [["es", "Filtros"], ["en", "Filters"], ["ca", "Filtres"]]) {
+  test(`botón de deslizadores: nombre localizado y apertura con teclado (${lang})`, async ({ page }) => {
+    await abre(page, lang);
+    const boton = botonFiltros(page);
+    await expect(boton).toHaveAccessibleName(nombre);
+    await expect(boton).toHaveAttribute("title", nombre);
+    await expect(boton).toHaveAttribute("aria-expanded", "false");
+    await expect(boton.locator('svg[aria-hidden="true"]')).toBeVisible();
+    await expect(boton).toHaveText("");
+    await expect(boton.getByTestId("gastos-filtros-globo")).toHaveCount(0);
+    await boton.focus();
+    await boton.press("Enter");
+    await expect(hoja(page)).toBeVisible();
+    await expect(boton).toHaveAttribute("aria-expanded", "true");
+    await page.locator(".v4-sheet-back").click({ position: { x: 5, y: 5 } });
+    await expect(hoja(page)).toHaveCount(0);
+    await expect(boton).toHaveAttribute("aria-expanded", "false");
+  });
+}
 
 test("cuatro apartados en orden, Restablecer arriba, «Ver N» abajo y lo de entrada marcado", async ({ page }) => {
   await abre(page);
@@ -106,7 +126,9 @@ test("cada toque filtra en vivo y «Ver N» cuadra con la lista; Restablecer vue
   await ver(page).click();
   await expect(hoja(page)).toHaveCount(0);
   await expect(tarjetas(page)).toHaveCount(3);
-  await expect(botonFiltros(page)).toHaveText("🎛️ 1");
+  await expect(botonFiltros(page).getByTestId("gastos-filtros-globo")).toHaveText("1");
+  await expect(botonFiltros(page)).toHaveText("1");
+  await expect(botonFiltros(page)).toHaveClass(/\bon\b/);
 
   // Dos cajones que no casan con Bares: la hoja lo dice antes de cerrar.
   await gastosAbreFiltros(page);
@@ -122,6 +144,13 @@ test("cada toque filtra en vivo y «Ver N» cuadra con la lista; Restablecer vue
   await expect(ver(page)).toHaveText("Ver 9 movimientos");
   await hoja(page).locator('[data-periodo="all"]').click();
 
+  // Un cajón, un banco y el periodo: el globito cuenta los tres filtros reales.
+  await ver(page).click();
+  await expect(tarjetas(page)).toHaveCount(9);
+  await expect(botonFiltros(page).getByTestId("gastos-filtros-globo")).toHaveText("3");
+  await expect(botonFiltros(page)).toHaveText("3");
+  await gastosAbreFiltros(page);
+
   await hoja(page).locator(".gx-fil-reset").click();
   await expect(ver(page)).toHaveText("Ver 14 movimientos");
   await expect(chip(page, "cuenta")).toHaveAttribute("aria-pressed", "false");
@@ -129,7 +158,9 @@ test("cada toque filtra en vivo y «Ver N» cuadra con la lista; Restablecer vue
   await expect(hoja(page).locator('[data-periodo="months"]')).toHaveAttribute("aria-checked", "true");
   await ver(page).click();
   expect(await cuentaTodas(page)).toBe(14);
-  await expect(botonFiltros(page)).toHaveText("🎛️");
+  await expect(botonFiltros(page).getByTestId("gastos-filtros-globo")).toHaveCount(0);
+  await expect(botonFiltros(page)).toHaveText("");
+  await expect(botonFiltros(page)).not.toHaveClass(/\bon\b/);
 });
 
 test("«Las N» abre todas; la marcada desde ahí se queda a la vista; «Todos los bancos» amplía", async ({ page }) => {
