@@ -1,0 +1,43 @@
+{
+  "status": "done",
+  "summary": "Analisis documental de traspasos propios con nombre terminado en PR329 draft base beta, HEAD b3422a70a65d44d04ce395a9b3df1cb02be85774. Unico documento con evidencia fuente exacta, contrato conservador y 25 casos sinteticos FUTUROS no ejecutados. Revision estatica independiente final sin pendientes; ROOTGO exactHEAD confirmado. Ninguna implementacion cliente/servidor ni prueba/runtime/datos reales.",
+  "tests": [],
+  "productSHA": "b3422a70a65d44d04ce395a9b3df1cb02be85774",
+  "pullRequest": 329,
+  "baseSHA": "9ef9f19b49938d207271289176f2314b858152a1",
+  "changedFiles": [
+    "docs/briefs/traspasos-propios-nombre-analisis.md"
+  ],
+  "staticChecks": [
+    {
+      "check": "git diff --check",
+      "exitCode": 0
+    },
+    {
+      "check": "Independent static review final exact HEAD",
+      "result": "no pending findings"
+    },
+    {
+      "check": "Native remote PR metadata and body",
+      "result": "exact head, beta base, draft and one document"
+    }
+  ],
+  "limitations": [
+    "Proveedor y sintoma real no verificados",
+    "Matriz FUTURA no ejecutada",
+    "Sin implementacion ni validacion movil ni ProductREADY",
+    "Sin merge, deploy ni CI manual"
+  ],
+  "resources": {
+    "runnerLeasesAcquired": 0,
+    "portsAcquired": 0,
+    "resourceLeasesOutstanding": 0
+  },
+  "ownUsedActual": 6,
+  "schema": 1,
+  "taskId": "traspasos-propios-analisis-r134-codex-20261031",
+  "actor": "codex",
+  "sessionId": "codex-local-20261031-traspasos-r134-af0d554bfbc64d53af73bcdccf684314",
+  "createdAt": "2026-10-31T05:40:12.547Z",
+  "released": true
+}
