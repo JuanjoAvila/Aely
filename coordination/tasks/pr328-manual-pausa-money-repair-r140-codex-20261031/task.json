@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "id": "pr328-manual-pausa-money-repair-r140-codex-20261031",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261031-r140-nrelayd6409b24a5c381fe7d958ba1e6d1e6f7",
+  "createdAt": "2026-10-31T12:46:11.809Z",
+  "to": "codex",
+  "baseSHA": "555fe0c3656a3aeb948ff2423c79f674c5b3f92c",
+  "objective": "Corregir NO-GO de dinero de PR328 en la misma PR sin rebase: B1 reanudar devuelve exactamente el estado previo a pausa o no compensa si la trazabilidad ya no se acredita (edición intermedia/cliente viejo); B2 guard pasa en UTC y Madrid; R2 confirmar misma cifra sigue sellando saldoLeidoAt como t3; R1 documentado. Solo delta sobre HEAD555fe0c3 preservando historia.",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/08-motor-bank.js",
+    "src/modules/07-tab-patri-fijos.js",
+    "tests/recibos-manual-pausa.test.mjs",
+    "scripts/run-tests.mjs",
+    "docs/ARQUITECTURA.md",
+    "docs/BACKLOG.md"
+  ],
+  "authority": "3d4d05c586d4af42b417fdae585452b2de423d98",
+  "acceptance": [
+    "Reproducciones causales de edición entre pausa/reanudación y cliente viejo, con exactitud al céntimo y estado antes/después",
+    "Guard en TZ=UTC y TZ=Europe/Madrid sin debilitar expectativa",
+    "R2 misma cifra modifica sello saldoLeidoAt, incluida fecha/puertas reales pertinentes",
+    "Mutante para B1 y R2 que prueba causalidad sin cambiar implementación al declarar verde",
+    "Misma PR draft y rama remota original, fast-forward desde555fe, no rebase ni merge main/beta",
+    "Revisión independiente del diff final y GO del coordinador al HEAD exacto antes push; reportar una vez HEAD a Claude",
+    "Sin R6-2/UX17/VERSION/catalogo/notas/caps/backend/SQL/servidor/deploy/DB real"
+  ],
+  "constraints": [
+    "Same existing PR328; preserve its history without rebase. New private checkout/branch at exact555fe0c3; normal fast-forward publication to original PR head branch only after exact coordinator GO.",
+    "Fresh own identity, OWN20 and claim confirmed before product; no old claims/grants/counters inherited.",
+    "Only focused synthetic offline Node CPU1 serial worker1 retries0 under newly reviewed per-run runner contract; no old R3/global lease.",
+    "Worker reports only to current coordinator; only root reports to Claude.",
+    "R6-2/UX17 and VERSION/catalogue/notes/caps/backend/SQL/deploy/merge main or beta excluded."
+  ],
+  "deliverable": "Private exact commit with causal fixes/tests under UTC and Madrid, independent final review and manifest; then exact root GO before updating same draft PR328. Do not create another PR."
+}
