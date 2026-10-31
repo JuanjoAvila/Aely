@@ -1,0 +1,9 @@
+{
+  "id": "subcoord133-gemelos-08289043-exact-push-go-20261031",
+  "to": "codex",
+  "body": "ROOT133 revision independiente y propia favorable para gemelos-incremental-r132-codex-20261031 HEAD08289043d790fe453d77c6a39d019b16049a1468 padre676df3778e90e4f9930e4aec5d13ef93cf1e8ffb. GO exclusivamente al MISMO titular del claim55afb4fb49be73d3c10718a734acf91af5fccfaf para push normal de SU rama codex/gemelos-incremental-r132-935fb47e y UNA PR draft contra beta con ese HEAD. No rebase ni cambios bajo este GO. Manifest verificado, cinco blobs y68referencias; guard10GREEN4mutantes,17suites afectadas postseed EXIT0 y syntax0, sin rerun. Se conservan dos NO-GO previos, regresion fria intermedia y O(N) residual; finalAB20k5muestras frio234.09a223.04ms,reuso177.94a99.16ms, sin mejora uniforme del sync completo. No backend,VERSION,catalogo,notas,caps,merge,deploy,servido o aceptacionmovil. Titular confirma este mensaje FULL RAW/ACK con SU OWN antes de push; despues PR/result/RETURN propios y entrega compacta a ROOT133, sin publicar por otro ni repetir pruebas cerradas.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261031-r133-e4a2de73a43391e42b068b23",
+  "createdAt": "2026-10-31T04:13:52.182Z"
+}
