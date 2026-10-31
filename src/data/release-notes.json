@@ -1,5 +1,46 @@
 [
   {
+    "v": "4.26.197",
+    "d": "2026-10-31",
+    "t": {
+      "es": "La barra de abajo, quieta en Gastos",
+      "en": "The bottom bar stays put in Spending",
+      "ca": "La barra de baix, quieta a Despeses"
+    },
+    "items": {
+      "es": [
+        "En Gastos, al bajar por la lista y cargar más movimientos, la barra de abajo ya no reaparece sola: sigue escondida hasta que subes."
+      ],
+      "en": [
+        "In Spending, when you scroll down the list and more entries load, the bottom bar no longer pops back by itself: it stays hidden until you scroll up."
+      ],
+      "ca": [
+        "A Despeses, en baixar per la llista i carregar més moviments, la barra de baix ja no reapareix sola: segueix amagada fins que puges."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "barra-gastos-carga",
+        "t": {
+          "es": "Gastos: la barra de abajo al cargar más",
+          "en": "Spending: the bottom bar when more loads",
+          "ca": "Despeses: la barra de baix en carregar més"
+        },
+        "items": {
+          "es": [
+            "1. Gastos › Movimientos: baja con el dedo, sin soltar, hasta que cargue más movimientos. BIEN: la barra de abajo sigue escondida hasta que subas. MAL: reaparece sola mientras bajas."
+          ],
+          "en": [
+            "1. Spending › Entries: keep scrolling down until more entries load. RIGHT: the bottom bar stays hidden until you scroll up. WRONG: it comes back by itself while you scroll down."
+          ],
+          "ca": [
+            "1. Despeses › Moviments: baixa amb el dit, sense deixar-lo, fins que carregui més moviments. BÉ: la barra de baix continua amagada fins que pugis. MALAMENT: reapareix sola mentre baixes."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.196",
     "d": "2026-10-31",
     "t": {

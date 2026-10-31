@@ -104797,5 +104797,15 @@
       "android/app/src/main/java/com/micartera/app/TradeRepublicPlugin.java"
     ],
     "unidades": true
+  },
+  "barra-gastos-carga": {
+    "web": [
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const onPageScroll=function(e){",
+        "to": "  const applyNavHideRef=useRef(applyNavHide);"
+      }
+    ],
+    "unidades": true
   }
 }

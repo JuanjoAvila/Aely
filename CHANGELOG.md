@@ -1,3 +1,12 @@
+## [4.26.197] — 2026-10-31 · Candidata de beta solo web: la barra inferior escondida ya no reaparece sola cuando Gastos carga más filas; guardia de paridad del widget (PR 326) y oráculos de e2e corregidos
+
+- **Qué lleva (--no-ff sobre la beta 4.26.196, 9ef9f19b4, publicada con APK 63 y sin veredicto en 194/195/196).** `claude/fix-ci-196` (fddb81854) y la PR 326 de Codex (`codex/widget-paused-parity-r132-7b007be3`, e142a5e98, solo `tests/widget-inicio-paridad.test.mjs`, ya registrado en `run-tests` y `relevant-tests`).
+- **Producto: `onPageScroll` (11-app-main.js).** Gastos v5 pagina por scroll (`GX_TANDA`): al crecer la lista el motor recoloca `scrollTop` unos -96 px hacia arriba y, con `scrollHeight` cambiado y |dy|>=6, caía en `dy<0 -> revealNav()`: la barra escondida reaparecía sola en pleno descenso (medido con CPU frenada x4/x8; no es regresión de la 196, ya pasaba en c11dcebe7). Si el alto creció, `dy<0`, `y>8` y no hay dedo subiendo contenido (`fingerScrollDir===-1` en <900 ms), no se revela. E2E determinista nuevo en `rebote-barra-inferior` (cae sin el arreglo).
+- **Oráculos de e2e.** `pulido-vacios` espera el anillo «usado» (20 de 100 con 100 gastados de 500, desde la 4.26.187), `ux16-haptics` siembra un gasto para que haya trazo, y `revisar-beta` «cola publicada» usa `test.slow()` (20 s de CPU de Node entre `git show` y `toEqual` del catálogo rozaban los 60 s en CI; causa de CI inferida por tiempos locales, no reproducida).
+- **Widget (PR 326).** Guardia: un recibo pausado no cuenta en lo que la app manda al widget. Sin cambio de código de producto.
+- **Panel y huellas.** Una tanda nueva `barra-gastos-carga` (un paso es/en/ca con BIEN/MAL, sin APK): descriptor con la unidad `onPageScroll` (cierre de lectores vacío). Las de la 194 (`plan-recibos-t3`), 195 (`fin28-aviso-enlace-manual`) y 196 (`tr-login-v2`, APK 63) no tienen veredicto y se quedan: el panel enseña cuatro. `build.gradle` y `apk.json` no se tocan (sigue la APK 63).
+- **Despliegue.** OTA web; sin SQL, nada en servidor.
+
 ## [4.26.196] — 2026-10-31 · Candidata de beta con APK 63: Conectar Trade Republic cae al login v2 de TR, FIN-25 R1/R2 (PR 325) y `npm run jarvis-resumen`
 
 - **Qué lleva (--no-ff sobre la beta 4.26.195, 676df3778, publicada sin veredicto).** `claude/tr-login-400` (0dc7fa5e8, revisión independiente GO con remates ya cerrados), la PR 325 de Codex (`codex/fin25-r130-fda31257-aecc0a9e`, 61676e1a8, revisión de dinero GO con remates cerrados) y `claude/jarvis-resumen` (945c64893, tooling).
