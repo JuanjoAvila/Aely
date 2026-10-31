@@ -130,6 +130,8 @@ export const E2E_MAP = [
     "e2e/metas-alta-regla.spec.mjs",
     "e2e/metas-mensual.spec.mjs",
     "e2e/inicio-cargos.spec.mjs",
+    // Próximos cargos del mes que viene y «Últimos movimientos» con el filtro de Gastos (31/10/2026).
+    "e2e/inicio-traspasos.spec.mjs",
     "e2e/recibo-cargo-en-gastos.spec.mjs",
     "e2e/pulido-vacios.spec.mjs","e2e/inicio-grafica-significado.spec.mjs","e2e/indicador-arco.spec.mjs", "e2e/smoke.spec.mjs", "e2e/informe-mes.spec.mjs",
     "e2e/ultima-cuota-descartar.spec.mjs", "e2e/inicio-offline.spec.mjs", "e2e/presupuesto-fluido.spec.mjs", "e2e/inicio-mes-natural.spec.mjs", "e2e/cartera-parte-mia.spec.mjs", "e2e/cifras-coherentes.spec.mjs"] },
@@ -156,6 +158,8 @@ export const E2E_MAP = [
     "e2e/retirada-bancaria.spec.mjs",
     "e2e/recibo-cargo-en-gastos.spec.mjs",
     "e2e/gastos-cajones.spec.mjs", "e2e/gastos-concepto.spec.mjs", "e2e/apuntar-sheet.spec.mjs",
+    // El bloque «Traspasos · no cuentan» y la portada de Inicio leen `gxPlegada`/`gastosDePortada`.
+    "e2e/inicio-traspasos.spec.mjs",
     "e2e/categoria-elegida.spec.mjs",
     "e2e/gastos-diario-filtro.spec.mjs", "e2e/gastos-cabecera-bancos.spec.mjs", "e2e/gastos-orden.spec.mjs",
     "e2e/gastos-categorias-presupuesto.spec.mjs", "e2e/gastos-periodo-categorias.spec.mjs", "e2e/gastos-suelta-filas.spec.mjs",

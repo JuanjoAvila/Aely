@@ -108,7 +108,7 @@ const LANG = {
     v42_this_cycle:"Este ciclo", v42_cycle_over:"Te has pasado {x}", v42_cycle_start:"Ciclo recién empezado", v42_cycle_comfort:"Vas sobrado", v42_cycle_good:"Vas bien", v42_cycle_tight:"Vas justito", v42_cycle_slow:"Toca frenar un poco", v42_cycle_of:"de {x}", v42_cycle_excess_of:"de más · límite {x}", v42_cycle_daily:"{x} al día", v42_cycle_day:"durante 1 día", v42_cycle_days:"durante {n} días",
     // INC-0810 es: fin del patrimonio de ahora.
     v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Sin un tope al mes no se puede saber cuánto te queda.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
-    v4_upcoming:"Próximos cargos", 
+    v4_upcoming:"Próximos cargos", v4_upcoming_in:"En {mes}", v4_upcoming_in_v:"En {mes}", 
     v4_charges_overdue:"Cargos vencidos", v4_charge_unconfirmed:"Sin pago acreditado", v4_payment_pending:"Por confirmar",
     v4_payment_pending_hint:"No cuenta en lo pendiente.",
     v4_payment_mixed_hint:"Solo los recibos y las cuotas se suman a lo que queda por pagar.",
@@ -425,7 +425,7 @@ const LANG = {
     v42_this_cycle:"This cycle", v42_cycle_over:"You are {x} over budget", v42_cycle_start:"Cycle just started", v42_cycle_comfort:"Plenty of room", v42_cycle_good:"On track", v42_cycle_tight:"Getting tight", v42_cycle_slow:"Time to slow down", v42_cycle_of:"of {x}", v42_cycle_excess_of:"over · limit {x}", v42_cycle_daily:"{x} a day", v42_cycle_day:"for 1 day", v42_cycle_days:"for {n} days",
     // INC-0810 en: fin del patrimonio de ahora.
     v4_nobud_t:"Set a monthly budget", v4_nobud_p:"Without a monthly cap there's no way to know what's left.", v4_nobud_cta:"Set a budget", v4_noup_t:"No bills yet", v4_noup_p:"Connect your bank and this month's bills show up on their own, with day and amount.", v4_noup_cta:"Connect your bank", v4_nogoal_t:"Set your first goal", v4_nogoal_p:"It tells you how much is left and when you'll get there.", v4_nogoal_cta:"Create a goal", v4_see_gastos:"See spending ›", v4_see_plan:"See plan ›",
-    v4_upcoming:"Upcoming", 
+    v4_upcoming:"Upcoming", v4_upcoming_in:"In {mes}", v4_upcoming_in_v:"In {mes}", 
     v4_charges_overdue:"Overdue charges", v4_charge_unconfirmed:"Payment unconfirmed", v4_payment_pending:"To confirm",
     v4_payment_pending_hint:"Not counted as pending.",
     v4_payment_mixed_hint:"Only bills and installments are included in the amount left to pay.",
@@ -728,7 +728,7 @@ const LANG = {
     v42_this_cycle:"Aquest cicle", v42_cycle_over:"T'has passat {x}", v42_cycle_start:"Cicle acabat de començar", v42_cycle_comfort:"Vas sobrat", v42_cycle_good:"Vas bé", v42_cycle_tight:"Vas justet", v42_cycle_slow:"Toca frenar una mica", v42_cycle_of:"de {x}", v42_cycle_excess_of:"de més · límit {x}", v42_cycle_daily:"{x} al dia", v42_cycle_day:"durant 1 dia", v42_cycle_days:"durant {n} dies",
     // INC-0810 ca: fin del patrimonio de ahora.
     v4_nobud_t:"Posa-li un pressupost", v4_nobud_p:"Sense un límit al mes no es pot saber quant et queda.", v4_nobud_cta:"Posa-li un pressupost", v4_noup_t:"Encara no hi ha rebuts", v4_noup_p:"Connecta el teu banc i els rebuts del mes apareixen sols, amb el seu dia i el seu import.", v4_noup_cta:"Connecta el teu banc", v4_nogoal_t:"Posa't el teu primer objectiu", v4_nogoal_p:"Et diu quant falta i quan hi arribes.", v4_nogoal_cta:"Crear un objectiu", v4_see_gastos:"Veure despeses ›", v4_see_plan:"Veure pla ›",
-    v4_upcoming:"Pròxims càrrecs", 
+    v4_upcoming:"Pròxims càrrecs", v4_upcoming_in:"Al {mes}", v4_upcoming_in_v:"A l'{mes}", 
     v4_charges_overdue:"Càrrecs vençuts", v4_charge_unconfirmed:"Sense pagament acreditat", v4_payment_pending:"Per confirmar",
     v4_payment_pending_hint:"No compta en el pendent.",
     v4_payment_mixed_hint:"Només els rebuts i les quotes se sumen al que queda per pagar.",
@@ -1630,7 +1630,7 @@ Object.assign(LANG.es,{gv5_spent_in:"gastado en {mes}", gv5_net_in:"balance de {
   gv5_more:"{x} más que en {mes}", gv5_less:"{x} menos que en {mes}", gv5_same:"igual que en {mes}",
   gv5_more_sd:"{x} más que en {mes} a estas alturas", gv5_less_sd:"{x} menos que en {mes} a estas alturas", gv5_same_sd:"igual que en {mes} a estas alturas",
   gv5_cycle:"en tu ciclo", gv5_cycle_upto:"en tu ciclo hasta el {d}", gv5_period_upto:"{period} · hasta el {d}", gv5_all:"todo el histórico",
-  gv5_no_cuentan:"{x} · no cuentan", gv5_plan_open:"Abrir en Plan · {x}", gv5_end:"Hasta aquí: {d}",
+  gv5_no_cuentan:"{x} · no cuentan", gv5_traspasos:"Traspasos", gv5_plan_open:"Abrir en Plan · {x}", gv5_end:"Hasta aquí: {d}",
   gv5_net_sub:"gastos {g} · ingresos {i}", gv5_meses:"Meses", gv5_periodo:"Periodo", gv5_p_months:"Meses", gv5_p_range:"Rango"});
 Object.assign(LANG.en,{gv5_spent_in:"spent in {mes}", gv5_net_in:"balance for {mes}",
   gv5_upto:"spent in {mes} through day {d}", gv5_upto_net:"balance for {mes} through day {d}",
@@ -1638,7 +1638,7 @@ Object.assign(LANG.en,{gv5_spent_in:"spent in {mes}", gv5_net_in:"balance for {m
   gv5_more:"{x} more than in {mes}", gv5_less:"{x} less than in {mes}", gv5_same:"same as in {mes}",
   gv5_more_sd:"{x} more than {mes} at this point", gv5_less_sd:"{x} less than {mes} at this point", gv5_same_sd:"same as {mes} at this point",
   gv5_cycle:"in your cycle", gv5_cycle_upto:"in your cycle through {d}", gv5_period_upto:"{period} · through {d}", gv5_all:"all history",
-  gv5_no_cuentan:"{x} · don't count", gv5_plan_open:"Open in Plan · {x}", gv5_end:"That's everything: {d}",
+  gv5_no_cuentan:"{x} · don't count", gv5_traspasos:"Transfers", gv5_plan_open:"Open in Plan · {x}", gv5_end:"That's everything: {d}",
   gv5_net_sub:"spent {g} · income {i}", gv5_meses:"Months", gv5_periodo:"Period", gv5_p_months:"Months", gv5_p_range:"Range"});
 Object.assign(LANG.ca,{gv5_spent_in:"gastat al {mes}", gv5_net_in:"balanç al {mes}",
   gv5_upto:"gastat al {mes} fins al dia {d}", gv5_upto_net:"balanç al {mes} fins al dia {d}",
@@ -1646,7 +1646,7 @@ Object.assign(LANG.ca,{gv5_spent_in:"gastat al {mes}", gv5_net_in:"balanç al {m
   gv5_more:"{x} més que al {mes}", gv5_less:"{x} menys que al {mes}", gv5_same:"igual que al {mes}",
   gv5_more_sd:"{x} més que al {mes} a aquestes alçades", gv5_less_sd:"{x} menys que al {mes} a aquestes alçades", gv5_same_sd:"igual que al {mes} a aquestes alçades",
   gv5_cycle:"al teu cicle", gv5_cycle_upto:"al teu cicle fins al {d}", gv5_period_upto:"{period} · fins al {d}", gv5_all:"tot l'historial",
-  gv5_no_cuentan:"{x} · no compten", gv5_plan_open:"Obre al Pla · {x}", gv5_end:"Fins aquí: {d}",
+  gv5_no_cuentan:"{x} · no compten", gv5_traspasos:"Traspassos", gv5_plan_open:"Obre al Pla · {x}", gv5_end:"Fins aquí: {d}",
   gv5_net_sub:"despeses {g} · ingressos {i}", gv5_meses:"Mesos", gv5_periodo:"Període", gv5_p_months:"Mesos", gv5_p_range:"Rang"});
 // «Es aportación a la meta X» en la ficha de un gasto y su fila gris de Metas (24/10/2026).
 Object.assign(LANG.es,{f_meta_row:"Es aportación a una meta", f_meta_hint:"Elige la meta. El cargo deja de contar en el gasto del mes y en el presupuesto, y suma a lo ahorrado de la meta. El saldo del banco no cambia.",

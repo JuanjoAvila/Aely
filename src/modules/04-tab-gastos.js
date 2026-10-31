@@ -1031,7 +1031,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       }
       // `debt:<id>` en la misma lista que las categorías: el chip de cada deuda (4.21.0).
       if(catSet && !catSet.has(e.category) && !(e.debtId && catSet.has("debt:"+e.debtId))) continue;
-      if(bankSet && !bankSet.has(expenseBankOf(e)||"_manual")) continue;
+      if(bankSet && !bankSet.has(gastosBancoFiltro(e))) continue;
       if(bkSet && !bkSet.has(expenseBucket(e, state))) continue;
       if(needle){
         // El concepto también se busca: si tu padre busca «alquiler» tiene que salir el bizum
@@ -2050,11 +2050,14 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
     // comunidad»): con el mismo banco para gastos y recibos, plegarlos los escondía entre cargos
     // que sí tocan el día. Van como fila suelta atenuada, igual que un recibo de otro banco, y la
     // fila ya dice cuál es («Recibo: X»). Solo Deudas, Metas e Inversiones siguen en su bloque.
-    if(agrupa && gris && gris!=="recibo"){
+    if(agrupa && gxPlegada(gris)){
       let g=dia.gris.find(function(x){ return x.kind===gris; });
       if(!g){ g={kind:gris, items:[], total:0}; dia.gris.push(g); }
       g.items.push({e:e, ms:ms, sub:gris==="deuda"?(l||catName("deudas")):recibo});
       g.total+=Math.abs(e.amount||0);
+      // Los traspasos van en los dos sentidos: sumar 1.550 que salen y 1.550 que entran daría
+      // 3.100 € que no se han movido. El rótulo solo lleva cifra si todos van hacia el mismo lado.
+      if((e.amount||0)<0) g.entra=true; else g.sale=true;
     } else dia.rows.push({e:e, ms:ms, l:l, bucket:bucket, recibo:recibo});
   });
   const etiquetaDia=function(d){
@@ -2347,7 +2350,7 @@ function GxCifra({n}){
     React.createElement("span",{className:"gx-num-ent","aria-hidden":true},celdas(ent,"e")),
     React.createElement("span",{className:"gx-num-dec","aria-hidden":true},celdas(dec,"d")," "+p.sym));
 }
-/* FILA GRIS: los cargos de un día que pagan cuotas, o que van a una meta o a un bróker (SPEC §4.4). Se
+/* FILA GRIS: los cargos de un día que pagan cuotas, van a una meta o a un bróker, o son traspasos (SPEC §4.4). Se
    ven, no suman al día ni a la cifra (ya cuentan en el Plan, o son dinero tuyo que cambia de sitio), y se despliegan con un solo toque
    de vibración. Cada cargo sigue abriendo su ficha: ahí viven «No es este recibo» y «no es la
    cuota», que no se pueden quedar sin camino por plegarlos. El estado de abierto es de la fila:
@@ -2355,20 +2358,45 @@ function GxCifra({n}){
 // Orden en el día: Deudas y Metas, el mismo que los segmentos de Plan; Inversiones al final, que
 // no es del Plan sino de Cartera (`cartera`: su enlace va a `onGoInversiones`). Los recibos no
 // tienen bloque desde el 26/10/2026: van sueltos (ver `GastosLista`).
+// Los traspasos, los últimos y sin enlace: son dinero tuyo entre tus cuentas y no viven en ningún
+// sitio que abrir (petición del dueño, 31/10/2026: «abajo, plegados, como Deudas · no cuentan»).
 const GX_GRIS={deuda:{lab:"v4_plan_deudas",seg:"deudas",ord:1}, meta:{lab:"v4_plan_metas",seg:"metas",ord:2},
-  inversion:{lab:"tab_inv",cartera:true,ord:3}};
+  inversion:{lab:"tab_inv",cartera:true,ord:3}, traspaso:{lab:"gv5_traspasos",sinIr:true,ord:4}};
 /* ¿Es un cargo que no suma al día (recibo, cuota, meta o inversión)? → su clase, o null. Los
    recibos dan "recibo" aunque ya no se agrupen: con filtro de categoría siguen fuera igual que
    antes. Sale del cajón (`expenseBucket`), así que no
    cambia qué cuenta: solo cómo se pinta. Las inversiones son el cajón «neutra» pero SOLO la
    categoría Inversión y solo lo que sale (25/10/2026): un traspaso entre cuentas propias o una
    cuota sin deuda no son inversiones, y el rótulo tiene que decir la verdad de lo que agrupa; y
-   una venta o un rescate (entra dinero) no puede sumarse a un total de aportaciones. Esos siguen
-   como tarjeta atenuada con su «no es un gasto». */
+   una venta o un rescate (entra dinero) no puede sumarse a un total de aportaciones. La venta
+   sigue como tarjeta atenuada con su «no es un gasto»; el traspaso tiene su bloque (31/10/2026). */
 function grisDeGasto(e, bucket){
   if(bucket==="recibo"||bucket==="deuda"||bucket==="meta") return bucket;
   if(bucket==="neutra" && e && e.category==="inversion" && (e.amount||0)>0) return "inversion";
+  // El traspaso, en los dos sentidos: las dos patas son el mismo dinero cambiando de cuenta.
+  if(bucket==="neutra" && e && e.category==="traspaso") return "traspaso";
   return null;
+}
+/* ¿Va plegada en su bloque del día? Los recibos no (van sueltos desde el 26/10/2026). La usan la
+   lista y los «Últimos movimientos» de Inicio: los dos tienen que dejar fuera lo mismo. */
+function gxPlegada(gris){ return !!gris && gris!=="recibo"; }
+/* El banco con el que filtra la lista de Gastos: lo apuntado sin banco va como "_manual". */
+function gastosBancoFiltro(e){ return expenseBankOf(e)||"_manual"; }
+/* «ÚLTIMOS MOVIMIENTOS» DE INICIO = LA LISTA DE GASTOS TAL COMO SE ABRE (31/10/2026). Le salían
+   sus transferencias de Sabadell a MyInvestor y a Trade Republic: Inicio leía el histórico entero
+   y Gastos arranca con los bancos del gasto diario. Mismo filtro de bancos (`expenseBankEnts`,
+   vacío = todos), misma lápida y lo plegado en los bloques del día («… · no cuentan») fuera.
+   Primero lo barato y la ordenación de la lista; el cajón solo se mira hasta tener `n`. */
+function gastosDePortada(s, n){
+  const ents=expenseBankEnts(s), bancos=ents.length?new Set(ents):null, del=expenseDeletedSet(s);
+  const base=(s.expenses||[]).filter(function(e){
+    return e && !e.autoGemelo && !expenseIsTombstoned(e,del) && (!bancos || bancos.has(gastosBancoFiltro(e)));
+  });
+  const orden=sortExpensesForDisplay(base, s), out=[];
+  for(let i=0;i<orden.length && out.length<n;i++){
+    if(!gxPlegada(grisDeGasto(orden[i], expenseBucket(orden[i], s)))) out.push(orden[i]);
+  }
+  return out;
 }
 function GastosGris({g, onOpen, onGoPlan, onGoInversiones, simple}){
   const [open,setOpen]=useState(false);
@@ -2376,7 +2404,9 @@ function GastosGris({g, onOpen, onGoPlan, onGoInversiones, simple}){
   const toggle=function(){ setOpen(function(o){ return !o; }); mcTickHaptic(); };
   // En modo sencillo Plan solo tiene Recibos: «Abrir en Plan · Deudas» llevaría a otro sitio. Y
   // Cartera no enseña inversiones: el enlace llevaría a un bloque que no está.
-  const ir=def.cartera?onGoInversiones:onGoPlan;
+  const ir=def.sinIr?null:def.cartera?onGoInversiones:onGoPlan;
+  // Con patas de ida y de vuelta el rótulo no lleva cifra (ver `GastosLista`); si todas entran, «+».
+  const mixto=g.entra&&g.sale;
   const conPlan=!!ir && !simple;
   // Cuotas de UNA sola deuda: el enlace lleva a su tarjeta y no a lo alto de Deudas (28/10/2026).
   const unaDeuda=g.kind==="deuda"&&g.items.length&&g.items.every(function(it){ return it.e.debtId&&it.e.debtId===g.items[0].e.debtId; })?g.items[0].e.debtId:null;
@@ -2384,7 +2414,7 @@ function GastosGris({g, onOpen, onGoPlan, onGoInversiones, simple}){
     React.createElement("button",{type:"button",className:"gx-gris-h","aria-expanded":open,onClick:toggle},
       React.createElement("span",{className:"gx-gris-dot gx-gris-dot-"+g.kind,"aria-hidden":true}),
       React.createElement("span",{className:"gx-gris-t"},tf("gv5_no_cuentan",{x:t(def.lab)})),
-      React.createElement("span",{className:"gx-gris-amt num"},eur(g.total)),
+      !mixto&&React.createElement("span",{className:"gx-gris-amt num"},(g.entra?"+":"")+eur(g.total)),
       React.createElement("span",{className:"gx-gris-n num"},g.items.length)),
     React.createElement("div",{className:"gx-gris-body","aria-hidden":!open},
       React.createElement("div",{className:"gx-gris-inner"},
@@ -2396,7 +2426,7 @@ function GastosGris({g, onOpen, onGoPlan, onGoInversiones, simple}){
             React.createElement("span",{className:"gx-gris-it-txt"},
               React.createElement("span",{className:"gx-gris-it-nm"},nombre||"—"),
               React.createElement("span",{className:"gx-gris-it-sub"},[it.sub,fecha,bk?(entOf(bk).label||entOf(bk).mono):null].filter(Boolean).join(" · "))),
-            React.createElement("span",{className:"gx-gris-it-amt num"},eur(Math.abs(e.amount||0))));
+            React.createElement("span",{className:"gx-gris-it-amt num"},((e.amount||0)<0?"+":"")+eur(Math.abs(e.amount||0))));
         }),
         conPlan && React.createElement("button",{type:"button",className:"gx-gris-plan",tabIndex:open?0:-1,onClick:function(){ ir(def.seg,unaDeuda); }},
           (def.cartera?t("gv5_cartera_open"):tf("gv5_plan_open",{x:t(def.lab)}))+" ›")))

@@ -7,6 +7,16 @@ const expense={id,date:new Date(FIXTURE_NOW).toISOString(),merchant:"Disposició
    es la puerta que queda, la misma que usa la familia. Se simula la vuelta con visibilitychange. */
 const vuelveALaApp=page=>page.evaluate(()=>{let vis="hidden";Object.defineProperty(document,"visibilityState",{configurable:true,get:()=>vis});
   document.dispatchEvent(new Event("visibilitychange"));vis="visible";document.dispatchEvent(new Event("visibilitychange"));});
+/* Una retirada confirmada es un traspaso: va plegada en «Traspasos · no cuentan» (31/10/2026).
+   Se abre el bloque y se usa su fila; sin bloque, la tarjeta suelta de siempre. */
+async function filaRetirada(page){
+  const gris=page.locator('.v4-gastos-list-body .gx-gris[data-gris="traspaso"]');
+  if(await gris.count()){
+    if(await gris.locator(".gx-gris-h").getAttribute("aria-expanded")!=="true") await gris.locator(".gx-gris-h").click();
+    return gris.locator(".gx-gris-it").filter({hasText:expense.merchant});
+  }
+  return page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:expense.merchant});
+}
 async function open(page,lang="es",mode="ok",remoteCat="otros",overrides={}){
   await installFixtureClock(page);
   const remote={id,fecha:expense.date,comercio:expense.merchant,importe:80,cat:remoteCat,source:"ob:caixabank"};
@@ -65,9 +75,9 @@ async function open(page,lang="es",mode="ok",remoteCat="otros",overrides={}){
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   if(remoteCat==="traspaso"){
     await vuelveALaApp(page);
-    await expect(page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:expense.merchant})).toHaveClass(/v4-mov-skip/);
+    await expect(page.locator('.v4-gastos-list-body .gx-gris[data-gris="traspaso"]')).toHaveCount(1);
   }
-  await page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:expense.merchant}).click();
+  await (await filaRetirada(page)).click();
   return page.getByTestId("exp",{exact:true});
 }
 
@@ -124,7 +134,8 @@ for(const lang of ["es","en","ca"])test(`cancelar, ACK, recarga y móvil B conse
   await expect(sheet.getByTestId("exp-withdrawal-info")).toContainText(txt.limit);
   await page.reload();await dismissNews(page);await page.waitForFunction(()=>!document.getElementById("mc-load"));
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  const row=page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:expense.merchant});
+  await expect(page.locator('.v4-gastos-list-body .gx-gris[data-gris="traspaso"]')).toHaveCount(1);
+  const row=await filaRetirada(page);
   await expect(row).toHaveCount(1);await row.click();
   await expect(page.getByTestId("exp-withdrawal-neutral")).toHaveText(txt.neutral);
   const deviceB=await browser.newContext({viewport:{width:393,height:851},isMobile:true,hasTouch:true});
@@ -153,7 +164,8 @@ async function receiptOnB(browser,lang,snapshot,paid,bill){
     await seedLoggedInDashboard(b,{__seedOnce:true,...snapshot,expenses:[],bankTx:[],settings:{...snapshot.settings,lang}});
     await b.goto("/");await dismissNews(b);await b.waitForFunction(()=>!document.getElementById("mc-load"));
     await expect(b.locator('.v4-skel')).toHaveCount(0);
-    await expect(b.locator('.page-scroll-host .v4-charge').filter({hasText:bill.name})).toHaveCount(paid?0:1);
+    // Solo los de este mes: con todo pagado, Inicio enseña los del que viene (31/10/2026).
+    await expect(b.locator('.page-scroll-host .v4-section:not([data-mes="siguiente"]) .v4-charge').filter({hasText:bill.name})).toHaveCount(paid?0:1);
     await b.locator('.botnav-tab[data-tour="plan"]').click();
     await expect(b.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:bill.name})).toHaveCount(paid?1:0);
   }finally{await device.close();}

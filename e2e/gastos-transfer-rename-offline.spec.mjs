@@ -32,7 +32,11 @@ for(const fixture of [{category:"traspaso",amount:-123.45},{category:"inversion"
     expect(before.row.category).toBe(fixture.category);
     expect(Math.round(before.row.amount*100)).toBe(Math.round(fixture.amount*100));
     expect(before.cloudEnabled).toBe(false);
-    const row=page.locator(".page-scroll-host .gx-root button.v4-mov").filter({hasText:"Traspaso sintético"});
+    // El traspaso va plegado en «Traspasos · no cuentan» (31/10/2026): se abre el bloque y se toca su fila.
+    const traspaso=fixture.category==="traspaso";
+    const fila=nombre=>page.locator(".page-scroll-host .gx-root").locator(traspaso?".gx-gris-it":"button.v4-mov").filter({hasText:nombre});
+    if(traspaso) await page.locator('.page-scroll-host .gx-root .gx-gris[data-gris="traspaso"] .gx-gris-h').click();
+    const row=fila("Traspaso sintético");
     await row.click();
     const concept=page.locator("input.v4-ficha-concept");
     await expect(concept).toBeVisible();
@@ -50,8 +54,8 @@ for(const fixture of [{category:"traspaso",amount:-123.45},{category:"inversion"
     const reloaded=await stored();
     expect(reloaded.row).toEqual(saved.row);
     expect(reloaded.visible).toBe(true);
-    const renamed=page.locator(".page-scroll-host .gx-root button.v4-mov").filter({hasText:"Traspaso renombrado"});
+    const renamed=fila("Traspaso renombrado");
     await expect(renamed).toHaveCount(1);
     const label=await page.evaluate(category=>catName(category),fixture.category);
-    await expect(renamed.locator(".nm-cat")).toHaveText(label);
+    if(!traspaso) await expect(renamed.locator(".nm-cat")).toHaveText(label);
   });
