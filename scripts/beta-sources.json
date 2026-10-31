@@ -106515,5 +106515,28 @@
       }
     ],
     "unidades": true
+  },
+  "gastos-filtros-icono": {
+    "web": [
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "from": "  // Resumen de filtros activos, para el botón \"Filtros\" (badge)",
+        "to": "  const nFilters=nCatSel+nBankSel+bucketSel.length+nPeriod;",
+        "includeTo": true
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "from": "          React.createElement(\"button\",{type:\"button\",className:\"gx-filter-btn\"",
+        "to": "\"data-testid\":\"gastos-filtros-globo\"},nFilters))",
+        "includeTo": true
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .gx-filter-btn{position:relative;",
+        "to": "  .gx-filter-btn:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}",
+        "includeTo": true
+      }
+    ],
+    "unidades": true
   }
 }

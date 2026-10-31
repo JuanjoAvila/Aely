@@ -208,6 +208,8 @@ const sourceBeta196=sourceAt("9ef9f19b49938d207271289176f2314b858152a1");
 const sourceBeta197=sourceAt("25868841165407b0f3c630870ff387c9e10ade78");
 // Catálogo198 pasa a histórico con la 199: se lee de la 4.26.198 servida en beta (52a1ee1d9, sin APK nueva, APK 63); sus cinco tandas (plan-recibos-t3, fin28-aviso-enlace-manual, tr-login-v2, barra-gastos-carga e inicio-traspasos) NO tienen veredicto y la 199 las conserva en el panel junto a la suya.
 const sourceBeta198=sourceAt("52a1ee1d9a2a9a78dcb982e310ac74ca3038df2e");
+// Catálogo199 pasa a histórico con la 200: se lee de la 4.26.199 servida en beta (c89bb12c5, sin APK nueva, APK 63); su tanda (plan-recibos-t4) NO tiene veredicto y la 200 la conserva en el panel junto a la suya.
+const sourceBeta199=sourceAt("c89bb12c528f079640a514b95334c21b9df2d2c1");
 // Producción 4.26.182 servida (main, 496a8a83d): el historial que la promoción 198 conserva debajo de su nota única y el árbol que lee Promoción182 histórico.
 const sourceProd182=sourceAt("496a8a83d6785563d93d8bbb6e67ba7e9ffce582");
 // Producción 4.26.159 servida (main, merge del PR 292, a6bc05df4): el historial que la promoción 182 conservó debajo de su nota única y el árbol que lee Promoción159 histórico.
@@ -6198,14 +6200,94 @@ test("Catálogo176 añade la tanda del vínculo de recibo (solo web) sobre la 17
   assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
 });
 
+const expected200={"v":"4.26.200","d":"2026-10-31","t":{"es":"Filtros de Gastos, más claros","en":"Spending filters, clearer","ca":"Filtres de Despeses, més clars"},"items":{"es":["El botón de filtros de Gastos es ahora un icono de deslizadores, y un globito te dice cuántos filtros llevas puestos."],"en":["The Spending filters button is now a sliders icon, and a small badge tells you how many filters are on."],"ca":["El botó de filtres de Despeses és ara una icona de lliscadors, i un globus et diu quants filtres tens posats."]},"tandas":[{"id":"gastos-filtros-icono","t":{"es":"Gastos: botón de filtros con deslizadores","en":"Spending: sliders filter button","ca":"Despeses: botó de filtres amb lliscadors"},"items":{"es":["1. Gastos, junto al buscador. BIEN: un botón redondo con un icono de deslizadores, sin emoji y sin número mientras no hay filtros. MAL: sigue el emoji o sale un número sin haber puesto nada.","2. Toca el botón → elige un banco o un tipo de movimiento → Ver. BIEN: el botón se marca y un globito dice cuántos filtros llevas; con Restablecer el globito desaparece. MAL: el globito dice otro número, no aparece o se queda tras restablecer."],"en":["1. Spending, next to the search box. RIGHT: a round button with a sliders icon, no emoji and no number while no filter is on. WRONG: the emoji is still there or a number shows without setting anything.","2. Tap the button → pick a bank or a type of movement → View. RIGHT: the button lights up and a small badge shows how many filters are on; after Reset the badge disappears. WRONG: the badge shows another number, does not appear or stays after Reset."],"ca":["1. Despeses, al costat del cercador. BÉ: un botó rodó amb una icona de lliscadors, sense emoji i sense número mentre no hi ha filtres. MALAMENT: continua l'emoji o surt un número sense haver posat res.","2. Toca el botó → tria un banc o un tipus de moviment → Veure. BÉ: el botó es marca i un globus diu quants filtres tens; amb Restablir el globus desapareix. MALAMENT: el globus diu un altre número, no apareix o es queda després de restablir."]}}]};
+// 4.26.200 (31/10/2026): dos piezas sobre la beta 4.26.199 servida (c89bb12c5, sin APK nueva: sigue la 63), solo web: (1) el cierre de la producción 4.26.198 (9e7237a3b, con main como primer padre) mezclado en beta, para que el próximo promote no tenga mina: la nota única de la 198 sustituye a la del corte de beta 198; (2) la PR 331 de Codex (UX-17, 2b26779b4): el botón de filtros de Gastos pasa del emoji a un icono de deslizadores con un globito que cuenta los filtros activos.
+// Una tanda NUEVA (gastos-filtros-icono, dos pasos, sin APK). La de la 199 (plan-recibos-t4) NO tiene veredicto y se queda en el panel junto a la nueva.
+// Registro: entra el descriptor nuevo, el último; ninguno anterior cambia de descriptor. Las huellas que se mueven (lista cerrada) son las que leen la unidad Expenses o el CSS de shell.html que toca la PR; ninguna es de una tanda viva.
+test("Catálogo200 añade la tanda del botón de filtros de Gastos (solo web) sobre la 199, conserva la de Recibos sin veredicto, integra la nota única de la producción 198 y declara las huellas que mueve",()=>{
+  const tanda="gastos-filtros-icono",viva199="plan-recibos-t4",G="src/modules/04-tab-gastos.js",H="src/shell.html",java="android/app/src/main/java/com/micartera/app/";
+  const integrated=JSON.parse(sourceBeta199("scripts/beta-sources.json")),before=JSON.parse(sourceBeta199("src/data/release-notes.json"));
+  const source=f=>nl(read(f)),old=f=>nl(sourceBeta199(f));
+  assert.equal(before[0].v,"4.26.199");
+  assert.deepEqual(before[0].tandas.map(g=>g.id),[viva199],"la 199 servida lleva su tanda, sin veredicto");
+  for(const n of before.slice(1))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] en la 199 servida");
+  const expectedNotes=[expected200,...before.map(n=>n.v==="4.26.198"?JSON.parse(sourceProd198("src/data/release-notes.json"))[0]:n)];
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.deepEqual(notes,expectedNotes,"la nota 200 literal delante, la nota única de la producción 198 en lugar de la del corte de beta y todo lo demás intacto, también la tanda de la 199");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.200",tanda,0],["4.26.199",viva199,0]],"el panel enseña dos, sin APK nueva");
+  assert.equal(notes.length,297);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
+  assert.deepEqual(notes.find(n=>n.v==="4.26.198"),JSON.parse(sourceProd198("src/data/release-notes.json"))[0],"la nota única de la producción 198 está tal cual");
+  for(const n of notes.slice(2))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] (la propiedad se conserva, vacía)");
+  assert.deepEqual(Object.keys(notes[0].tandas[0]),["id","t","items"],"la tanda nueva no pide APK");
+  const jerga=/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|FIN-|SES-|UX-|SEC-|zoom|\d+\.\d+\.\d+/i;
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,1,lang+": un punto familiar");
+    const steps=notes[0].tandas[0].items[lang];
+    assert.equal(steps.length,2,lang+": dos pasos");
+    steps.forEach((s,i)=>{
+      assert.ok(s.startsWith((i+1)+". "),lang+": paso numerado "+(i+1));
+      assert.ok(/MAL|WRONG|MALAMENT/.test(s)&&/BIEN|RIGHT|BÉ/.test(s),lang+": el paso "+(i+1)+" dice qué es MAL y qué es BIEN");
+    });
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
+  }
+  const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
+  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verifyNotes(twice),assert.AssertionError,"no duplicar una tanda");
+  {const sin=structuredClone(notes);sin[1].tandas=[];assert.throws(()=>verifyNotes(sin),assert.AssertionError,"la tanda de la 199, sin veredicto, no se vacía");}
+  // Registro: los anteriores intactos; el descriptor nuevo, detrás.
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),{[tanda]:ahora,...resto}=scopes;
+  assert.deepEqual(Object.keys(scopes),[...Object.keys(integrated),tanda],"el descriptor nuevo, el último");
+  assert.deepEqual(resto,integrated,"ningún descriptor anterior cambia");
+  assert.deepEqual(Object.keys(ahora),["web","unidades"],"solo web");assert.equal(ahora.unidades,true);
+  assert.deepEqual(ahora.web,[
+    {file:G,from:"  // Resumen de filtros activos, para el botón \"Filtros\" (badge)",to:"  const nFilters=nCatSel+nBankSel+bucketSel.length+nPeriod;",includeTo:true},
+    {file:G,from:"          React.createElement(\"button\",{type:\"button\",className:\"gx-filter-btn\"",to:"\"data-testid\":\"gastos-filtros-globo\"},nFilters))",includeTo:true},
+    {file:H,from:"  .gx-filter-btn{position:relative;",to:"  .gx-filter-btn:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}",includeTo:true}],"el cómputo del contador, el botón con su globito y su CSS");
+  for(const u of ahora.web)assert.ok(scopeText(u,source).length>0,"la unidad existe en la fuente: "+JSON.stringify(u));
+  // Del árbol de la 199 cambian el botón de Gastos, su CSS y los textos de Novedades; el nativo, el servidor y la APK siguen idénticos.
+  for(const file of [G,H])assert.notEqual(source(file),old(file),"cambia de verdad: "+file);
+  for(const file of ["src/modules/02-ui-shared.js","src/modules/06-sync-brokers.js","src/modules/07-tab-patri-fijos.js","src/modules/08-motor-bank.js","src/modules/14-v4-screens.js","supabase/functions/_shared/presupuesto.ts","supabase/functions/ingest/index.ts","supabase/functions/ingest/widget.ts",java+"MiCarteraWidget.java",java+"MiCarteraPlugin.java",java+"TrExpenseListener.java",java+"TradeRepublicPlugin.java","android/app/src/main/AndroidManifest.xml","android/app/build.gradle","public/apk.json"])assert.equal(source(file),old(file),"sin cambios: "+file);
+  // Huellas que se mueven (lista cerrada).
+  const expectedMoves={"feature-0310-01-movilidad":["web"],"gastos-dos-bancos":["web"],"gastos-lag-ciclos":["web"],"gastos-lag-ciclos-r3":["web"],"gastos-margen-sin-nomina":["web"],"gastos-scroll-fluido-cifras":["web"],"gastos-suscripciones-botones":["web"],"gastos-v5-ciclos-metas-inversiones":["web"],"gastos-v5-filtro":["web"],"gastos-v5-filtros-hoja":["web"],"gastos-v5-movimientos":["web"],"gastos-v5-secciones":["web"],"gastos-v5-subs":["web"],"inc-0210-03-gastos-periodo":["web"],"inc-0310-gastos-sin-limite":["web"],"inc-0710-gastos-mes-madrid":["web"],"recibo-cargo-en-gastos":["web"],"renombrar-sin-cobertura":["web"],"renombrar-y-notas-seguras":["web"],"vuelta-sin-tiron":["web"]};
+  const previous=new Map();
+  const measure=reader=>{
+    const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};
+    for(const [key,scope] of Object.entries(integrated)){
+      if(key===archiveId)continue;
+      if(!previous.has(key))previous.set(key,betaRevision(key,sourceBeta199,undefined,scope));
+      const a=previous.get(key),b=betaRevision(key,reader,undefined,now[key]);
+      const surfaces=["web","native","edge"].filter(x=>a[x]!==b[x]);
+      if(surfaces.length)moved[key]=surfaces;
+    }
+    return moved;
+  };
+  assert.deepEqual(measure(source),expectedMoves,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  const vivas=notes.flatMap(n=>(n.tandas||[]).map(g=>g.id));
+  assert.deepEqual(vivas,[tanda,viva199]);
+  assert.deepEqual(vivas.filter(id=>expectedMoves[id]),[],"la de Recibos, sin veredicto, no cambia de huella; la nueva no tiene huella anterior");
+  const current=betaRevision(tanda,source,undefined,scopes[tanda]);
+  assert.ok(current.web);assert.equal(current.native,undefined,"sin huella nativa");assert.equal(current.edge,undefined,"sin huella de servidor");
+  // Mutantes sobre la fuente real: contar cero bancos distintos de los de entrada, cambiar el color del botón encendido o pintar el globito sin filtros reabre la huella de la tanda.
+  for(const [file,a,b] of [[G,"const nBankSel=bankSelIsDefault?0:Math.max(1,bankSel.length);","const nBankSel=bankSelIsDefault?0:bankSel.length;"],[H,".gx-filter-btn.on{border-color:var(--mint-deep);",".gx-filter-btn.on{border-color:var(--line);"],[G,"nFilters>0 && React.createElement(\"span\",{className:\"gx-sec-globo","nFilters>=0 && React.createElement(\"span\",{className:\"gx-sec-globo"]]){
+    assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
+    const mutated=betaRevision(tanda,x=>x===file?source(x).replace(a,()=>b):source(x),undefined,scopes[tanda]);
+    assert.notEqual(mutated.web,current.web,tanda+" reabre la tanda web: "+a);}
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes);
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),vivas,"lo que el build entrega al panel");
+  const g0=built[0].tandas[0];
+  assert.equal(g0.web,current.web);assert.equal(g0.native,undefined);assert.equal(g0.edge,undefined);assert.equal(g0.apk,undefined);assert.equal(receipt.web[tanda],current.web);
+  assert.equal(receipt.web[viva199],betaRevision(viva199,old,undefined,integrated[viva199]).web,"la huella de la tanda de la 199 es la que ya sirvió la beta");
+  for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g0[key],undefined,"identidad nueva sin "+key);
+  assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
+});
+
 const expected199={"v":"4.26.199","d":"2026-10-31","t":{"es":"Recibos, por pasos","en":"Bills, step by step","ca":"Rebuts, per passos"},"items":{"es":["Añadir o cambiar un recibo va por pasos, con sugerencias y los cargos que se repiten en tu banco.","Pagos de una sola vez o en varios plazos, y al cambiar el importe eliges si es solo este mes o desde ahora."],"en":["Adding or changing a bill now goes step by step, with suggestions and the charges that repeat in your bank.","One-off payments or several instalments, and when you change the amount you choose this month only or from now on."],"ca":["Afegir o canviar un rebut va per passos, amb suggeriments i els càrrecs que es repeteixen al teu banc.","Pagaments d'una sola vegada o en diversos terminis, i en canviar l'import tries si és només aquest mes o des d'ara."]},"tandas":[{"id":"plan-recibos-t4","t":{"es":"Plan: añadir y editar recibos por pasos","en":"Plan: add and edit bills step by step","ca":"Pla: afegir i editar rebuts per passos"},"items":{"es":["1. Plan → Recibos → Todos → «+» → escribe un nombre (o toca una sugerencia) → importe → día → banco → Añadir recibo. BIEN: cinco pasos con su barra; el primer número que tecleas sustituye; deslizar a la derecha vuelve un paso; al terminar sale en Pendiente con su importe y «Queda por pagar» sube justo eso. MAL: se crea dos veces, falta un paso o la cifra de arriba sube otra cantidad.","2. Toca un recibo aún sin pagar → Editar → Importe → otro importe → Listo → «Solo octubre» → Guardar. BIEN: este mes sale con el importe nuevo; vuelve a Editar y el importe del recibo sigue siendo el de siempre (el mes que viene vuelve a lo normal). MAL: cambia también otros meses o la cifra de arriba no cuadra.","3. En un recibo que ya está en «Ya pagados» → Editar → cambia el importe → Guardar. BIEN: no pregunta; sigue en «Ya pagados» con lo que se pagó y no sale en «Para revisar». MAL: vuelve a Pendiente, cambia lo pagado o aparece «cobró distinto»."],"en":["1. Plan → Bills → All → “+” → type a name (or tap a suggestion) → amount → day → bank → Add bill. RIGHT: five steps with their bar; the first number you type replaces the old one; swiping right goes back a step; when done it shows under Pending with its amount and “Left to pay” rises by exactly that. WRONG: it is created twice, a step is missing or the figure at the top rises by a different amount.","2. Tap a bill that is not paid yet → Edit → Amount → another amount → Done → “Only October” → Save. RIGHT: this month shows the new amount; go back to Edit and the bill's amount is still the usual one (next month goes back to normal). WRONG: other months change too or the figure at the top does not add up.","3. On a bill that is already under “Already paid” → Edit → change the amount → Save. RIGHT: it does not ask; it stays under “Already paid” with what was paid and does not show under “To review”. WRONG: it goes back to Pending, what was paid changes or “charged differently” appears."],"ca":["1. Pla → Rebuts → Tots → «+» → escriu un nom (o toca un suggeriment) → import → dia → banc → Afegir rebut. BÉ: cinc passos amb la seva barra; el primer número que tecleges substitueix; lliscar a la dreta torna un pas; en acabar surt a Pendent amb el seu import i «Queda per pagar» puja just això. MALAMENT: es crea dues vegades, falta un pas o la xifra de dalt puja una altra quantitat.","2. Toca un rebut encara sense pagar → Editar → Import → un altre import → Fet → «Només octubre» → Desar. BÉ: aquest mes surt amb l'import nou; torna a Editar i l'import del rebut continua sent el de sempre (el mes que ve torna a la normalitat). MALAMENT: canvia també altres mesos o la xifra de dalt no quadra.","3. En un rebut que ja és a «Ja pagats» → Editar → canvia l'import → Desar. BÉ: no pregunta; continua a «Ja pagats» amb el que es va pagar i no surt a «Per revisar». MALAMENT: torna a Pendent, canvia el que es va pagar o apareix «va cobrar diferent»."]}}]};
 // 4.26.199 (31/10/2026): una pieza sobre la beta 4.26.198 servida (52a1ee1d9, sin APK nueva: sigue la 63), solo web: claude/plan-recibos-t4 (aa8fb4b16). Plan › Recibos v6, tanda 4: añadir y editar un recibo por pasos (ReciboPasos), «Solo este mes / Desde ahora» con el campo nuevo soloMes, «Solo una vez» y «En varios pagos». Banco de pruebas y revisión de dinero independiente (GO con remates en la vuelta 2).
 // Una tanda NUEVA (plan-recibos-t4, tres pasos, sin APK). El dueño aprobó las de la 194 a la 198 (plan-recibos-t3, fin28-aviso-enlace-manual, tr-login-v2, barra-gastos-carga e inicio-traspasos) el 31/10/2026 (16:10-16:12): la 199 pone tandas:[] en las cinco y el panel enseña solo la suya.
 // Registro: entra el descriptor nuevo, el último. Ocho descriptores ganan una unidad (fixedMarcaTrasCambio, extraída de patchFixedById que ya leían) y el de la ola de Gestionar plan reancla su regla de CSS (desde199). Se mueven las huellas de varios descriptores que leen occAmountIn/dayIn/isPaidIn/planChargesMonth (ahora con año); ninguna es de una tanda viva.
-test("Catálogo199 añade la tanda de añadir y editar recibos por pasos (solo web) sobre la 198, retira las cinco aprobadas, reancla un descriptor, crece ocho y declara las huellas que mueve",()=>{
+test("Catálogo199 histórico añade la tanda de añadir y editar recibos por pasos (solo web) sobre la 198, retira las cinco aprobadas, reancla un descriptor, crece ocho y declara las huellas que mueve",()=>{
   const tandas=["plan-recibos-t3","fin28-aviso-enlace-manual","tr-login-v2","barra-gastos-carga","inicio-traspasos","plan-recibos-t4"],C0="src/modules/00-core.js",F7="src/modules/07-tab-patri-fijos.js",M8="src/modules/08-motor-bank.js",S14="src/modules/14-v4-screens.js",A11="src/modules/11-app-main.js",java="android/app/src/main/java/com/micartera/app/";
   const integrated=JSON.parse(sourceBeta198("scripts/beta-sources.json")),before=JSON.parse(sourceBeta198("src/data/release-notes.json"));
-  const source=f=>nl(read(f)),old=f=>nl(sourceBeta198(f));
+  const source=f=>nl(sourceBeta199(f)),old=f=>nl(sourceBeta198(f));
   assert.equal(before[0].v,"4.26.198");
   assert.deepEqual(before.slice(0,5).map(n=>n.tandas.map(g=>g.id)),[[tandas[4]],[tandas[3]],[tandas[2]],[tandas[1]],[tandas[0]]],"la 198 servida lleva sus cinco tandas (aprobadas después por el dueño)");
   for(const n of before.slice(5))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] en la 198 servida");

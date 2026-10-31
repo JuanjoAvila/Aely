@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.26.200",
+    "d": "2026-10-31",
+    "t": {
+      "es": "Filtros de Gastos, más claros",
+      "en": "Spending filters, clearer",
+      "ca": "Filtres de Despeses, més clars"
+    },
+    "items": {
+      "es": [
+        "El botón de filtros de Gastos es ahora un icono de deslizadores, y un globito te dice cuántos filtros llevas puestos."
+      ],
+      "en": [
+        "The Spending filters button is now a sliders icon, and a small badge tells you how many filters are on."
+      ],
+      "ca": [
+        "El botó de filtres de Despeses és ara una icona de lliscadors, i un globus et diu quants filtres tens posats."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "gastos-filtros-icono",
+        "t": {
+          "es": "Gastos: botón de filtros con deslizadores",
+          "en": "Spending: sliders filter button",
+          "ca": "Despeses: botó de filtres amb lliscadors"
+        },
+        "items": {
+          "es": [
+            "1. Gastos, junto al buscador. BIEN: un botón redondo con un icono de deslizadores, sin emoji y sin número mientras no hay filtros. MAL: sigue el emoji o sale un número sin haber puesto nada.",
+            "2. Toca el botón → elige un banco o un tipo de movimiento → Ver. BIEN: el botón se marca y un globito dice cuántos filtros llevas; con Restablecer el globito desaparece. MAL: el globito dice otro número, no aparece o se queda tras restablecer."
+          ],
+          "en": [
+            "1. Spending, next to the search box. RIGHT: a round button with a sliders icon, no emoji and no number while no filter is on. WRONG: the emoji is still there or a number shows without setting anything.",
+            "2. Tap the button → pick a bank or a type of movement → View. RIGHT: the button lights up and a small badge shows how many filters are on; after Reset the badge disappears. WRONG: the badge shows another number, does not appear or stays after Reset."
+          ],
+          "ca": [
+            "1. Despeses, al costat del cercador. BÉ: un botó rodó amb una icona de lliscadors, sense emoji i sense número mentre no hi ha filtres. MALAMENT: continua l'emoji o surt un número sense haver posat res.",
+            "2. Toca el botó → tria un banc o un tipus de moviment → Veure. BÉ: el botó es marca i un globus diu quants filtres tens; amb Restablir el globus desapareix. MALAMENT: el globus diu un altre número, no apareix o es queda després de restablir."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.199",
     "d": "2026-10-31",
     "t": {
