@@ -1,0 +1,61 @@
+{
+  "status": "done",
+  "summary": "PR328 DRAFT base beta HEAD555fe0c3656a3aeb948ff2423c79f674c5b3f92c, opcionB conservadora con revision independiente yROOT exactas; push normal propio confirmado. Lecturas nuevas trazables corrigen pausa/reanudar de proyeccion vencida impagada en manual unica; legado ambiguo conserva comportamiento actual. Sin integracion ni ProductREADY.",
+  "productSHA": "555fe0c3656a3aeb948ff2423c79f674c5b3f92c",
+  "prNumber": 328,
+  "prDraft": true,
+  "baseBranch": "beta",
+  "branch": "codex/recibos-manual-pausa-r133-49759e7c",
+  "tests": [
+    {
+      "command": "node tests/recibos-manual-pausa.test.mjs via runner dirigido registrado",
+      "exitCode": 0,
+      "groups": 12
+    },
+    {
+      "command": "node tests/recibos-manual-pausa.test.mjs mutant dirigido",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "assertionKilled": 11,
+      "total": 11
+    },
+    {
+      "command": "node tests/fixed-ispaidin.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fixed-payment-state.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/fin04-plan-three-way.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "tool": "Node vm.Script sobre fuente ensamblada",
+      "exitCode": 0,
+      "inlineScripts": 6
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "Cobertura reducida: cualquier edicion ordinaria ajena invalida TODAS pruebas; fallback actual hasta nueva lectura cambiada.",
+    "Legacy no migrado, sin inferir fecha vieja. Date.now con colision exacta/reloj revertido de cliente antiguo no da garantia absoluta.",
+    "Sin cambios11/02/comparadores, backend, deploy, versiones, notas, catalogos ni caps; sin fullsuite/browser ni aceptacion movil.",
+    "PR draft; GitHub indica mergeable false con beta actual. Sin rebase: integracion a cargo de coordinador/Claude."
+  ],
+  "review": "Independiente GO fuente exact555fe0c3 yROOT134 GOPUSHffe01767 confirmados; NO-GO0b8 nativo preservado y corregido555.",
+  "resourcesReturned": true,
+  "noActiveRunnerServerPortLease": true,
+  "checkoutRetainedForReview": true,
+  "noHumanNotice": true,
+  "schema": 1,
+  "taskId": "recibos-manual-pausa-r133-codex-20261031",
+  "actor": "codex",
+  "sessionId": "codex-local-20261031-recibos-r133-49759e7ce52b8c9dd7c53548",
+  "createdAt": "2026-10-31T05:19:48.396Z",
+  "released": true
+}
