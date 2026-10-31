@@ -1,0 +1,9 @@
+{
+  "id": "pr328-r143-own20-start-20261031",
+  "to": "codex",
+  "body": "PR328 r143 inicia OWN20 propio desde cero bajo standing7188f09dd641ffd90c5a2455196b1385c4bb084c, nonce nrelayf0627986075000f1ce5b6d1bd8f3a987. Encargo exacto pr328-manual-pausa-money-repair-r143-codex-20261031 confirmado en16db4a9d8acefbbb1f55a9009452dbed33cc3ab8. Predecesor cerrado result efb39823d5d819d8c648301ac3c8cd283db750ce y RETURN40e92de4b0930d9e953b2a8861960a872078a829; OWN6 con14remanentes congelados no transferibles. Identidad, helper, estado y ledger propios, sin herencia. Primera lectura y todas las posteriores con espera al menos30s, FULL RAW y ACK de cada intermedio/cancelación. Claim propio pendiente de notice y readback confirmados. Snapshot privado B1/B2/R2/R1 revisado estáticamente permanece sin cambios; BACKLOG entero privado excluido. Node ENTER retenido por contrato f8ae7aedcb9349529082d129005e807e81d1214e y GO exacto pendiente; publicación de producto también retenida. No se infiere waiver por ef51 ni se reintenta o reproduce el launcher rechazado. Sin pruebas, build, runner ni producto ejecutado. Reporte solo al coordinador Codex.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "nrelayc3e01743185b4da2822c151733d4e805",
+  "createdAt": "2026-10-31T16:04:22.260Z"
+}
