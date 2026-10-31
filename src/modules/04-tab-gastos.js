@@ -692,8 +692,18 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     const today=y===now.getFullYear()&&m===now.getMonth()+1?now.getDate():new Date(y,m,0).getDate();
     const f=(state.fixed||[]).find(function(x){ return x.id===fixedId; });
     const expected={identity:fixedPaymentIdentity(expenseBankOf(ex),ex),model:f&&fixedPaymentModel(f,m),paidYm:f&&f.paidYm,paidDay:f&&f.paidDay};
-    const save=function(){
+    const save=function(confirmedWarnings){
       if(withdrawalPending.current[ex.id]){ showToast(t("f_withdraw_receipt_pending")); return; }
+      if(fixedId!=null){
+        const live=withdrawalState.current,cur=(live.fixed||[]).find(function(f){return f.id===fixedId;}),x=(live.expenses||[]).find(function(x){return x&&x.id===ex.id;});
+        const warnings=fixedPaymentManualLinkWarnings(live,x,cur,y,m,today),signature=JSON.stringify(warnings);
+        // Un BOOK que llega ANTES de enlazar todavía necesita el segundo toque explícito.
+        if(warnings.length&&signature!==confirmedWarnings){
+          askConfirm({title:tf("f_receipt_confirm",{name:cur.name}),
+            sub:React.createElement("span",{"data-testid":"receipt-manual-link-warning"},warnings.map(function(w){return tf("f_receipt_possible_same",{name:w.name,date:fmtIsoCorto(w.date)});}).join(" · ")),
+            ok:t("f_receipt_other_payment")}).then(function(yes){if(yes) save(signature);});return;
+        }
+      }
       let subir=null;
       // El diálogo es asíncrono: otra sincronización puede sustituir el cargo o editar el recibo.
       set(function(s){
@@ -715,9 +725,11 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
        de verdad (`admiteMarcaDe`): con el recibo movido a otro banco no vuelve. */
     const repone=!!de&&reciboNoDe(state,fixedId,reciboNoIdentidad(ex),ex.id).length>0&&admiteMarcaDe(ex,de);
     if(!f&&!repone) return;
+    const warnings=f?fixedPaymentManualLinkWarnings(state,ex,f,y,m,today):[];
+    const sub=repone?tf("f_recibo_marca",{name:de.name}):tf("f_receipt_confirm_sub",{merchant:ex.merchant,amount:eur(ex.amount),bank:entOf(expenseBankOf(ex)).label,date:fmtIsoCorto(ds),planned:entOf(accOf(f)).label,expected:eur(f.bankAmount>0?f.bankAmount:occAmountIn(f,m))});
     askConfirm({title:tf("f_receipt_confirm",{name:de.name}),
-      sub:repone?tf("f_recibo_marca",{name:de.name}):tf("f_receipt_confirm_sub",{merchant:ex.merchant,amount:eur(ex.amount),bank:entOf(expenseBankOf(ex)).label,date:fmtIsoCorto(ds),planned:entOf(accOf(f)).label,expected:eur(f.bankAmount>0?f.bankAmount:occAmountIn(f,m))}),
-      ok:t("f_receipt_yes")}).then(function(yes){ if(yes) save(); });
+      sub:warnings.length?React.createElement("span",null,sub,React.createElement("span",{style:{display:"block"},"data-testid":"receipt-manual-link-warning"},warnings.map(function(w){ return tf("f_receipt_possible_same",{name:w.name,date:fmtIsoCorto(w.date)}); }).join(" · "))):sub,
+      ok:t(warnings.length?"f_receipt_other_payment":"f_receipt_yes")}).then(function(yes){ if(yes) save(JSON.stringify(warnings)); });
   };
   // Marca/desmarca un gasto como "no tarjeta" (bizum/transferencia) para que no cuente el round-up TR.
   const setCardFlag=function(ex,noCard){

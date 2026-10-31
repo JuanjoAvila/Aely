@@ -405,6 +405,42 @@ function fixedPaymentChargeOwner(s,x,e,y,m,today){
    si además bloqueaba el enlace a mano, el cargo real no había forma de confirmarlo (INC-1810-04,
    YouTube Premium, rechazo de beta 4.26.145). */
 function fixedPaymentEvidence(st){ return !!(st&&(st.proof||st.bankTx||st.expense)); }
+/* FIN28: parecido sin referencia solo pide una decisión al enlazar A MANO. Se consulta el
+   pago que acredita OTRO recibo; nunca entra en identidad, elegibilidad ni pruebas guardadas. */
+function fixedPaymentManualLinkWarnings(s,x,e,y,m,today){
+  if(!x||!e||x.extId!=null&&String(x.extId)!==""||
+    !isManualExpenseSource(x.source)&&["wallet","macrodroid"].indexOf(x.source)<0||
+    !fixedExpenseEligible(s,x,e,y,m,today)||fixedPaymentEvidence(fixedPaymentState(s,e,y,m,today))) return [];
+  var bank=expenseBankOf(x),cents=Math.round(Number(x.amount)*100),warnings=[],seen=new Set(),now=madridYmdParts(Date.now()),cur=now.y*12+now.m;
+  var day=function(date){ var ds=String(date||"").slice(0,10);return /^\d{4}-\d{2}-\d{2}$/.test(ds)?Date.parse(ds+"T00:00:00Z"):NaN; };
+  (s.fixed||[]).forEach(function(f){
+    if(f.id===e.id) return;
+    // La ventana bancaria puede cruzar el mes; FIN27 conserva además el mes de su cargo.
+    [y*12+m-1,y*12+m,y*12+m+1].forEach(function(ym){
+    if(ym>cur) return;
+    var Y=Math.floor((ym-1)/12),M=ym-Y*12,T=ym===y*12+m?today:ym===cur?now.d:new Date(Y,M,0).getDate();
+    var st=fixedPaymentState(s,f,Y,M,T),p=st.proof,b=null,ref=null;
+    if(p&&p.kind==="book"){
+      b=p;ref=p.key&&p.key.indexOf(p.bank+"|")===0?p.key.slice(p.bank.length+1):null;
+    } else {
+      var row=st.expense;
+      if(p&&p.kind==="expense"){
+        var rows=(s.expenses||[]).filter(function(r){ return r&&fixedPaymentIdentity(expenseBankOf(r),r)===p.identity&&(!p.expenseId||r.id===p.expenseId); });
+        row=rows.length===1?rows[0]:null;
+      } else if(!p&&st.bankTx){ b=fixedPaymentBookRecord(st.bankTx);ref=st.bankTx.id; }
+      if(!b&&row&&["ob","ob-hist"].indexOf(row.source)>=0&&String(row.status||"").toUpperCase()==="BOOK"){
+        b={bank:expenseBankOf(row),date:row.date,amount:row.amount};ref=row.extId;
+      }
+    }
+    if(!b||ref==null||String(ref)===""||b.bank!==bank||Math.round(Number(b.amount)*100)!==cents||
+      !(Math.abs(day(b.date)-day(x.date))<=4*864e5)) return;
+    var date=String(b.date).slice(0,10),key=JSON.stringify([f.id,bank,String(ref),date]);
+    if(!seen.has(key)){seen.add(key);warnings.push({receiptId:f.id,name:f.name||"",date:date});}
+    });
+  });
+  // Orden de presentación estable: no adjudica cargos ni elige una identidad entre BOOK iguales.
+  return warnings.sort(function(a,b){ var A=a.date+"|"+a.receiptId,B=b.date+"|"+b.receiptId;return A<B?-1:A>B?1:0; });
+}
 /* Un recibo en pausa no cuenta en el mes… salvo que esté pagado: si el banco lo cobró igual,
    es un pago de verdad y se enseña y se descuenta como cualquier otro. Así «Pausar» con el
    recibo ya pagado tampoco lo saca del mes (SPEC §2.6.1). Solo lee el estado del pago si hay
