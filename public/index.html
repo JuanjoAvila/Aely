@@ -19222,9 +19222,13 @@ function debtPaymentState(s,d,y,m,today){
     // amount ya está normalizado a EUR; origCur solo conserva el rastro bancario. Un
     // esquema externo que aún rotule amount con otra moneda no acredita euros.
     if(x&&(x.cur||x.currency)&&String(x.cur||x.currency).toUpperCase()!=="EUR") return false;
-    // La previsión muestra la cuota acordada: un cargo parecido no acredita ese importe.
-    // Se comparan céntimos EUR, sin heredar la tolerancia del clasificador de movimientos.
-    if(!x||x.debtId!==d.id||x.category!=="deudas"||x.possibleDup||!isFinite(Number(x.amount))||!(Number(x.amount)>0)||Math.round(target*100)!==Math.round(Number(x.amount)*100)) return false;
+    /* Una fila marcada como cuota de ESTA deuda la paga ese mes, cobre lo que cobre (decisión del
+       dueño, beta 4.26.200: «si se enlaza en Gastos debería estar enlazado en Recibos»). Antes se
+       exigía la cuota exacta al céntimo y una hipoteca de 640 cobrada a 641,27 seguía restando
+       aunque el saldo del banco ya la llevara. Quién marca la fila no cambia: el motor por banco +
+       céntimo + día ±4 (`cuotasDeDeudaPorMarcar`) o él a mano, y la ventana del mes es la de abajo.
+       La diferencia se enseña como en los recibos (`paidAmount` frente a la cuota). */
+    if(!x||x.debtId!==d.id||x.category!=="deudas"||x.possibleDup||!isFinite(Number(x.amount))||!(Number(x.amount)>0)) return false;
     if(x.status&&String(x.status).toUpperCase()!=="BOOK") return false;
     var ds=String(x.date||"").slice(0,10),ms=dateMs(ds),bank=expenseBankOf(x);
     if(!/^\d{4}-\d{2}-\d{2}$/.test(ds)||!isFinite(ms)||ms>end||!bank||expenseIsTombstoned(x,deleted)) return false;
@@ -19240,7 +19244,10 @@ function debtPaymentState(s,d,y,m,today){
       return fixedPaymentIdentity(expenseBankOf(other),other)===identity;
     }).length===1;
   });
-  var x=rows.length===1?rows[0]:null;
+  // Manda la que cobra la cuota exacta, como siempre: otra fila enlazada con otro importe en el mismo
+  // mes no puede deshacer un pago que ya estaba acreditado. Sin exacta, vale la única enlazada.
+  var exactas=rows.filter(function(r){ return Math.round(target*100)===Math.round(Number(r.amount)*100); });
+  var x=exactas.length===1?exactas[0]:!exactas.length&&rows.length===1?rows[0]:null;
   // La fila de Plan rotula el mes de vencimiento: un cargo del mes anterior no puede
   // aparecer allí con una fecha futura ficticia (por ejemplo, «31 de octubre»).
   var sameMonth=x&&String(x.date).slice(0,7)===y+"-"+String(m).padStart(2,"0");
@@ -19421,7 +19428,9 @@ function planChargesMonth(s,m,y,today){
     // (ese fallback a día 1 marcaba la cuota como ya pagada desde el día 1 — NO-GO 17/9).
     var status=debtPaymentState(s,d,y,m,today),dy=status.day,p=status.paid;
     var a=Number(d.monthly)||0;
-    if(a>0) r.push({id:"debt_"+d.id,name:d.name,amount:a,day:dy,bank:b,paid:p,paidBank:status.paidBank,kind:"debt"});
+    // Lo cobrado de verdad frente a la cuota (y su pago final, si lo hay): la fila lo dice como un recibo.
+    var plan=a+debtBalloonIn(d,y,m);
+    if(a>0) r.push({id:"debt_"+d.id,name:d.name,amount:a,day:dy,bank:b,paid:p,paidBank:status.paidBank,paidAmount:status.paidAmount,plannedBankAmount:plan,kind:"debt"});
     var bl=debtBalloonIn(d,y,m);
     if(bl>0) r.push({id:"balloon_"+d.id,name:d.name+" "+t("db_balloon_tag"),amount:bl,day:dy,bank:b,paid:p,paidBank:status.paidBank,kind:"balloon"});
   });
@@ -27362,7 +27371,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="cec6b302033096ee8ff7a0a930505297efb8a5e07b04469e50bf5201bb260866";
+var _rnSha="eef5c28870d60a700d6ec2deeba8b52962052fd2fe4480e6f47965d76cc22903";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -29767,7 +29776,7 @@ function LlegaSheet({state, set, totals, pack, onClose}){
           React.createElement("h2",{className:"serif pr6-ll-t",id:titleId,ref:titleRef,tabIndex:-1}, t("pr6_llega_t")),
           bancos.map(bloque),
           conSaldo.length>0&&React.createElement("div",{className:"pr6-ll-wi","data-testid":"llega-gasto",ref:zonaRef,
-            onClick:function(){ if(!teclado) setTeclado(true); }},
+            onClick:function(e){ if(!teclado&&!(e.target.closest&&e.target.closest(".chip"))) setTeclado(true); }},
             React.createElement("span",{className:"pr6-ll-n"}, t("pr6_si_gasto")),
             React.createElement("div",{className:"pr6-ll-wr"},
               React.createElement("button",{type:"button",className:"serif num pr6-ll-amt"+(teclado?" on":"")+(raw?"":" ph"),"aria-expanded":teclado?"true":"false","data-testid":"llega-gasto-amt",
@@ -29900,12 +29909,13 @@ function reciboCargoTexto(x){ return String((x&&(x.merchant||x.obName))||""); }
 /* La cuota de una deuda en Recibos (beta 4.26.200): «sale un cargo que YA está enlazado, no deja
    pulsarlo y te lleva a Deudas». Tocarla abre su ficha con el cargo que Gastos le ha marcado este
    mes y, si aún no la da por pagada, el motivo. Solo LEE: quién acredita la cuota sigue siendo
-   `debtPaymentState` (08), con su importe exacto y su día; aquí no se decide nada de dinero.
+   `debtPaymentState` (08): la fila enlazada paga la cuota con lo que cobró (decisión del dueño); aquí no
+   se decide nada de dinero.
    → {x, acredita, motivo} o null sin cargo marcado. */
 function deudaCargoEnlazado(s, d, y, m, today){
   if(!d) return null;
   const st=debtPaymentState(s,d,y,m,today);
-  if(st.expense) return {x:st.expense, acredita:true, motivo:null};
+  if(st.expense) return {x:st.expense, acredita:true, motivo:null, cuota:(Number(d.monthly)||0)+debtBalloonIn(d,y,m)};
   const fin=new Date(y,m-1,today,23,59,59).getTime(), borrados=expenseDeletedSet(s);
   // La misma ventana que usa el motor para atar un cargo a la cuota de un mes.
   const filas=(s.expenses||[]).filter(function(x){
@@ -29930,7 +29940,8 @@ function DeudaFicha({row, state, totals, onClose, onGoDebts}){
   const d=(state.debts||[]).find(function(o){ return String(o.id)===id; })||null;
   const ce=useMemo(function(){ return deudaCargoEnlazado(state,d,y,m,today); },[state,d,y,m,today]);
   const x=ce&&ce.x, b=x?expenseBankOf(x)||row.bank:row.bank;
-  const nota=!ce||ce.acredita?"":ce.motivo==="importe"?tf("pr6_deuda_importe",{x:eur(Number(x.amount)),y:eur(ce.cuota)})
+  // Pagada con otro importe: se dice lo previsto, como en los recibos («Esperabas X»).
+  const nota=!ce?"":ce.acredita?(Math.round(ce.cuota*100)!==Math.round(Number(x.amount)*100)?tf("pr6_esperabas",{x:eur(ce.cuota)}):""):ce.motivo==="importe"?tf("pr6_deuda_importe",{x:eur(Number(x.amount)),y:eur(ce.cuota)})
     :ce.motivo==="sin_dia"?t("pr6_deuda_sin_dia"):t("pr6_deuda_sin_banco");
   // Se cierra la hoja y, al terminar de bajar, Deudas se abre con la deuda a la vista.
   const verDeuda=function(){ swipe.close(); setTimeout(function(){ if(onGoDebts) onGoDebts(id); },320); };
@@ -29953,7 +29964,8 @@ function DeudaFicha({row, state, totals, onClose, onGoDebts}){
             React.createElement("span",{className:"pr6-cand-t"},
               React.createElement("span",{className:"pr6-cand-n"}, reciboCargoTexto(x)||entOf(b).label),
               React.createElement("span",{className:"pr6-cand-s"}, (recDay(x.date)||"")+" "+monthShort((Number(String(x.date).slice(5,7))||m)-1)+" · "+entOf(b).label+" · "+eur(Number(x.amount)))),
-            React.createElement("span",{className:"pr6-ring"+(ce.acredita?" on":""),"aria-hidden":"true"},"✓")),
+            // El aro vacío parecía algo que marcar: solo sale, lleno, cuando el cargo paga la cuota.
+            ce.acredita&&React.createElement("span",{className:"pr6-ring on","aria-hidden":"true"},"✓")),
           nota&&React.createElement("div",{className:"pr6-nota","data-testid":"deuda-nota"}, nota),
           React.createElement("div",{className:"pr6-btns"},
             React.createElement("button",{type:"button",className:"pr6-btn","data-act":"ver-deuda",onClick:verDeuda}, t("pr6_ver_deuda")))))),
@@ -30897,8 +30909,13 @@ function ReciboPasos({mode, row, once, state, set, totals, banks, onClose, onSav
     setPadFor(null); setGone(false);
     const p=pasoRef.current, r=rastro.current;
     if(n===p) return;
-    // Ir adonde se venía es volver: el rastro no crece al ir y volver del resumen.
-    if(r.length&&r[r.length-1]===n) r.pop(); else r.push(p);
+    /* Del resumen a cualquier paso se apunta SIEMPRE el resumen: Atrás vuelve a él (antes, «Nombre»
+       tras «Visto en tu banco» vaciaba el rastro y Atrás cerraba la hoja con el borrador; revisión
+       del QA). Volver al resumen recorta el rastro hasta él; ir adonde se venía es volver. */
+    const ri=n===4?r.lastIndexOf(4):-1;
+    if(p===4) r.push(p);
+    else if(ri>=0) r.length=ri;
+    else if(r.length&&r[r.length-1]===n) r.pop(); else r.push(p);
     if(n===1) setFresh(!!f.amount);
     if(n===4) setResumido(true);
     pasoRef.current=n; setPaso(n);
@@ -31019,9 +31036,11 @@ function ReciboPasos({mode, row, once, state, set, totals, banks, onClose, onSav
     }
     swipe.close();
   };
-  const siguiente=function(){
+  const siguiente=function(e){
     if(!ok[paso]) return;
-    if(paso===4){ guardar(); return; }
+    /* El segundo toque de un doble toque en «Siguiente»/«Listo» cae ya en el resumen (`detail` 2):
+       no guarda sin haberlo visto (revisión del QA). Un toque suelto siempre lleva `detail` 1. */
+    if(paso===4){ if(e&&e.detail>1) return; guardar(); return; }
     ir(resumido?4:paso+1);
   };
   const titulos=["rp4_t_name","rp4_t_amount","rp4_t_when","rp4_t_account",edit?"rp4_t_edit":"rp4_t_sum"];

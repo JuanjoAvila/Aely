@@ -34,9 +34,9 @@ const debts = [
 ];
 const obBalAt = { "Banco Sabadell": "2026-10-31T08:00:00Z", "CaixaBank": "2026-10-31T08:00:00Z" };
 
-async function abre(page, overrides) {
+async function abre(page, overrides, cuando) {
   test.info().annotations.push({ type: "own-clock" });
-  await page.clock.install({ time: new Date("2026-10-31T12:00:00+01:00") });
+  await page.clock.install({ time: new Date(cuando || "2026-10-31T12:00:00+01:00") });
   await page.route("**/*", (r) => new URL(r.request().url()).hostname === "127.0.0.1" ? r.continue() : r.abort());
   await seedLoggedInDashboard(page, Object.assign({ __seedOnce: true, lastBackup: "2026-10-31", bankTx: [], obBalAt, debts, flows: [], oneoffs: [], expenses, settings, accounts, fixed }, overrides || {}));
   await page.goto("/");
@@ -133,6 +133,71 @@ test("«Visto en tu banco» de 2.050 €: Atrás vuelve a la lista y cada línea
   await expect(hoja(page)).toHaveCount(0);
 });
 
+test("el camino del dueño: «Visto en tu banco» → resumen → «Nombre» → Atrás vuelve al resumen con el borrador", async ({ page }) => {
+  const recibos = await abre(page);
+  await abreAlta(page, recibos);
+  await paso(page, 0).getByTestId("rp4-visto").locator(".pr6-cand", { hasText: "ALQUILER PISO SL" }).click();
+  await expect(hoja(page)).toHaveAttribute("data-paso", "4");
+  await paso(page, 4).locator('[data-rp4-fila="0"]').click();
+  await expect(hoja(page)).toHaveAttribute("data-paso", "0");
+  await hoja(page).locator('[data-act="back"]').click();
+  await expect(hoja(page)).toHaveAttribute("data-paso", "4");
+  await expect(paso(page, 4).locator('[data-rp4="sum-amt"]')).toHaveText("2.050,00 €");
+  // También con el atrás del sistema.
+  await paso(page, 4).locator('[data-rp4-fila="0"]').click();
+  await expect(hoja(page)).toHaveAttribute("data-paso", "0");
+  await page.goBack();
+  await expect(hoja(page)).toHaveAttribute("data-paso", "4");
+});
+
+test("desde el resumen, «Cuenta» y «Cuándo» vuelven al resumen con Atrás", async ({ page }) => {
+  const recibos = await abre(page);
+  await abreAlta(page, recibos);
+  await paso(page, 0).locator('[data-rp4="name"]').fill("Agua");
+  await cta(page).click();
+  await teclea(page, 1, "30");
+  await cta(page).click();
+  await paso(page, 2).locator('[data-rp4-dia="5"]').click();
+  await cta(page).click();
+  await paso(page, 3).locator('[data-rp4-banco="sabadell"]').click();
+  await expect(hoja(page)).toHaveAttribute("data-paso", "4");
+  for (const fila of ["3", "2", "1"]) {
+    await paso(page, 4).locator('[data-rp4-fila="' + fila + '"]').click();
+    await expect(hoja(page)).toHaveAttribute("data-paso", fila);
+    await hoja(page).locator('[data-act="back"]').click();
+    await expect(hoja(page)).toHaveAttribute("data-paso", "4");
+  }
+  // Y el camino de ida sigue entero detrás: Cuenta, Cuándo, Importe, Nombre y cerrar.
+  for (const n of ["3", "2", "1", "0"]) { await hoja(page).locator('[data-act="back"]').click(); await expect(hoja(page)).toHaveAttribute("data-paso", n); }
+});
+
+test("un doble toque en «Siguiente» o «Listo» no guarda sin pasar por el resumen", async ({ page }) => {
+  const recibos = await abre(page);
+  await abreAlta(page, recibos);
+  await paso(page, 0).locator('[data-rp4="name"]').fill("Agua");
+  await cta(page).click();
+  await teclea(page, 1, "30");
+  await cta(page).click();
+  await paso(page, 2).locator('[data-rp4-dia="5"]').click();
+  await cta(page).click();
+  await expect(hoja(page)).toHaveAttribute("data-paso", "3");
+  await cta(page).dblclick();
+  await expect(hoja(page)).toHaveAttribute("data-paso", "4");
+  await page.waitForTimeout(500);
+  await expect(hoja(page)).toBeVisible();
+  expect(await page.evaluate(() => mcLoadRaw(mcStateKey()).fixed.some((f) => f.name === "Agua"))).toBe(false);
+  // En edición: «Listo» dos veces enseña el resumen y no guarda el importe.
+  await paso(page, 4).locator('[data-rp4-fila="1"]').click();
+  await teclea(page, 1, "45");
+  await cta(page).dblclick();
+  await expect(hoja(page)).toHaveAttribute("data-paso", "4");
+  await page.waitForTimeout(500);
+  await expect(hoja(page)).toBeVisible();
+  await cta(page).click();
+  await expect(hoja(page)).toHaveCount(0);
+  expect(await page.evaluate(() => mcLoadRaw(mcStateKey()).fixed.filter((f) => f.name === "Agua").map((f) => f.amount))).toEqual([45]);
+});
+
 test("Cuándo: al elegir los meses, los días quedan a la vista", async ({ page }) => {
   const recibos = await abre(page);
   await abreAlta(page, recibos);
@@ -176,15 +241,20 @@ test("«Solo una vez» el último día del mes empieza el mes que viene", async 
 test("cuota de deuda enlazada en Gastos: se abre su ficha con el cargo, sin saltar a Deudas", async ({ page }) => {
   const recibos = await abre(page);
   const cifra = recibos.getByTestId("plan-summary").locator(".serif.num");
-  // Lo que queda por pagar no cambia: la ficha solo enseña (Internet 40 + préstamo 200).
+  // Internet 40 + préstamo sin día 200 (ese caso sigue igual: es la propuesta pendiente).
   await expect(cifra).toHaveText("240,00 €");
-  const hipo = recibos.locator('[data-recibo="debt_hipo"]');
-  await expect(hipo).toContainText("Enlazado · 641,27 €");
+  // Enlazada con 641,27 sobre una cuota de 640: pagada, en «Ya pagados», con lo cobrado y lo previsto.
+  await recibos.getByTestId("plan-paid").locator(".pr6-paid-h").click();
+  const hipo = recibos.getByTestId("plan-paid").locator('[data-recibo="debt_hipo"]');
+  await expect(hipo).toContainText("Cargo 641,27 €");
+  await expect(hipo).toContainText("640,00 €");
+  await expect(recibos.getByTestId("plan-review").locator('[data-recibo="debt_hipo"]')).toHaveCount(0);
   await hipo.click();
   const ficha = page.locator('.v4-sheet[data-sheet="deuda"]');
   await expect(ficha).toBeVisible();
   await expect(ficha.getByTestId("deuda-cargo")).toContainText("641,27 €");
-  await expect(ficha.getByTestId("deuda-nota")).toHaveText("Se cobró 641,27 € y la cuota es 640,00 €.");
+  await expect(ficha.getByTestId("deuda-cargo")).toHaveAttribute("data-acredita", "1");
+  await expect(ficha.getByTestId("deuda-nota")).toHaveText("Esperabas 640,00 €");
   await expect(page.locator('.v4-seg-btn[data-seg="recibos"]')).toHaveAttribute("aria-selected", "true");
   await page.goBack();
   await expect(ficha).toHaveCount(0);
@@ -192,6 +262,8 @@ test("cuota de deuda enlazada en Gastos: se abre su ficha con el cargo, sin salt
   await expect(coche).toContainText("Enlazado · 200,00 €");
   await coche.click();
   await expect(ficha.getByTestId("deuda-nota")).toHaveText("La cuota no tiene día de cobro.");
+  // Sin pagar, el cargo no lleva un aro vacío que parezca algo que marcar.
+  await expect(ficha.getByTestId("deuda-cargo").locator(".pr6-ring")).toHaveCount(0);
   await ficha.locator('[data-act="ver-deuda"]').click();
   await expect(ficha).toHaveCount(0);
   await expect(page.locator('.v4-seg-btn[data-seg="deudas"]')).toHaveAttribute("aria-selected", "true");
@@ -218,6 +290,37 @@ test("«¿Y si gasto…?»: tocar la zona abre el teclado y queda a la vista con
     .toBeLessThanOrEqual(page.viewportSize().height);
   await tecla.click();
   await expect(page.getByTestId("llega-gasto-txt")).toBeVisible();
+});
+
+test("cuota enlazada con otro importe antes de su día: pagada en Recibos, Inicio y «¿Te llega?», sin restarse dos veces", async ({ page }) => {
+  // 18/10: préstamo de 200 que vence el 20 y ya cobró CaixaBank el 17 con 203,40, enlazado en Gastos.
+  const recibos = await abre(page, {
+    debts: [{ id: "coche", name: "Préstamo coche", value: 6000, original: 9000, monthly: 200, account: "caixabank", day: 20, asOf: 2026 * 12 + 9 }],
+    expenses: [g("coche10", "FINANC COCHE", "2026-10-17", 203.4, "caixabank", { category: "deudas", debtId: "coche" })],
+    fixed: [{ id: "net", name: "Internet", amount: 40, freq: "mes", day: 25, account: "caixabank" }],
+  }, "2026-10-18T12:00:00+02:00");
+  await expect(recibos.getByTestId("plan-summary").locator(".serif.num")).toHaveText("40,00 €");
+  await expect(recibos.getByTestId("plan-due").locator('[data-recibo="debt_coche"]')).toHaveCount(0);
+  await recibos.getByTestId("plan-paid").locator(".pr6-paid-h").click();
+  await expect(recibos.getByTestId("plan-paid").locator('[data-recibo="debt_coche"]')).toContainText("Cargo 203,40 €");
+  // «¿Te llega?» de CaixaBank: el saldo (900 menos el cargo de 203,40) − Internet 40; la cuota no se resta otra vez (antes 456,60).
+  await recibos.getByTestId("plan-llega").click();
+  await expect(page.locator('[data-testid="llega-banco"][data-bank="caixabank"]').getByTestId("llega-cifra")).toContainText("656,60 €");
+  await page.keyboard.press("Escape");
+  await page.goBack();
+  await page.locator('.botnav-tab[data-tour="inicio"]').click();
+  await expect(page.locator(".page-scroll-host .v4-charge").filter({ hasText: "Internet" }).first()).toBeVisible();
+  await expect(page.locator(".page-scroll-host .v4-charge").filter({ hasText: "Préstamo coche" })).toHaveCount(0);
+});
+
+test("«¿Y si gasto…?»: elegir otro banco no abre el teclado", async ({ page }) => {
+  const recibos = await abre(page, { fixed: fixed.concat([{ id: "gym", name: "Gimnasio", amount: 30, freq: "mes", day: 31, account: "trade_republic" }]) });
+  await recibos.getByTestId("plan-llega").click();
+  const zona = page.getByTestId("llega-gasto");
+  await zona.locator('.chip[data-bank="caixabank"]').click();
+  await expect(zona.locator('.chip[data-bank="caixabank"]')).toHaveAttribute("aria-pressed", "true");
+  await page.waitForTimeout(450);
+  await expect(page.getByTestId("llega-gasto-amt")).toHaveAttribute("aria-expanded", "false");
 });
 
 test("«¿Me lo puedo permitir?» se abre ya desplegado", async ({ page }) => {

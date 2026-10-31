@@ -879,7 +879,11 @@ deuda enlazada en Gastos (641,27 € sobre 640 €, o sin día de cobro) dice «
 y abre su ficha con el cargo y el motivo sin saltar a Deudas; «Queda por pagar» sigue en 240,00 €
 (igual que antes del cambio); con el cargo justo, la ficha la da por pagada. «¿Y si gasto…?» abre el
 teclado tocando la zona y lo deja dentro de la pantalla; «¿Me lo puedo permitir?» se abre desplegado.
-Las nueve fallaban con el bundle de antes. Está en `E2E_MAP` para `14-v4-screens`, `02-ui-shared`,
+Remates de la revisión: el camino del dueño («Visto en tu banco» → resumen → «Nombre» → Atrás vuelve al
+resumen), «Cuenta»/«Cuándo»/«Importe» desde el resumen vuelven a él, un doble toque en «Siguiente» o «Listo»
+no guarda sin ver el resumen, el chip de banco de «¿Y si gasto…?» no abre el teclado, y la cuota enlazada con
+otro importe (203,40 sobre 200, el 18/10) sale pagada en Recibos con «Cargo 203,40 €», no sale en Inicio y
+«¿Te llega?» no la resta otra vez (656,60 €). Todas fallaban con el bundle anterior. Está en `E2E_MAP` para `14-v4-screens`, `02-ui-shared`,
 `08-motor-bank`, `01-i18n` y `shell.html`.
 
 Descarga incompleta (candidato13/10): `tests/bank-download-incomplete.test.mjs`, registrado en

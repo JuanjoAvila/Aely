@@ -32,7 +32,7 @@ test("solo retira la deuda vinculada aunque otra tenga mismo importe y fecha",()
   assert.equal(p.pendingBills[0].id,"debt_loan-b");
   assert.equal(c.minWalk(800,c.bankPendingEvents(s,"sabadell",y,m,2)).end,740);
 });
-for(const [label,patch] of [["sin vínculo",{debtId:undefined}],["otra deuda",{debtId:"loan-b"}],["duplicado posible",{possibleDup:true}],["pendiente bancario",{status:"PDNG"}],["importe incompatible",{amount:15}],["categoría corregida",{category:"otros"}],["cargo futuro",{date:date(4)}],["año distinto",{date:date(2,m,y-1)}]]){
+for(const [label,patch] of [["sin vínculo",{debtId:undefined}],["otra deuda",{debtId:"loan-b"}],["duplicado posible",{possibleDup:true}],["pendiente bancario",{status:"PDNG"}],["categoría corregida",{category:"otros"}],["cargo futuro",{date:date(4)}],["año distinto",{date:date(2,m,y-1)}]]){
   test(label+" no acredita cuota",()=>assert.equal(pending(state({expenses:[{...expense,...patch}]})).length,1));
 }
 test("dos cargos compatibles vinculados no eligen por orden",()=>assert.equal(pending(state({expenses:[expense,{...expense,id:"charge-b",date:date(1)}]})).length,1));
@@ -63,8 +63,24 @@ test("sin fecha prevista no infiere el mes de una cuota",()=>{
 });
 test("identidad de deuda duplicada no atribuye el cargo",()=>assert.equal(pending(state({debts:[debt,{...debt}]})).length,2));
 test("original USD es solo rastro, amount EUR acredita la cuota sin reconvertir",()=>assert.equal(pending(state({expenses:[{...expense,origAmount:75,origCur:"USD"}]})).length,0));
-test("igual número USD no acredita importe EUR distinto",()=>assert.equal(pending(state({expenses:[{...expense,amount:48,origAmount:60,origCur:"USD"}]})).length,1));
-test("59 EUR no acredita una cuota prevista de60 EUR",()=>assert.equal(pending(state({expenses:[{...expense,amount:59}]})).length,1));
+/* Decisión del dueño (beta 4.26.200): la fila marcada como cuota de esta deuda la paga ese mes con lo
+   que cobró el banco, aunque no sea la cuota exacta. No se resta otra vez del saldo y la fila lo dice. */
+for(const [label,patch] of [["59 EUR",{amount:59}],["641,27 EUR",{amount:641.27}],["48 EUR con rastro de 60 USD",{amount:48,origAmount:60,origCur:"USD"}],["15 EUR",{amount:15}]]){
+  test("vinculado con "+label+" acredita la cuota de 60 EUR con su importe real",()=>{
+    const s=state({expenses:[{...expense,...patch}]}),p=c.planChargesMonth(s,m,y,2);
+    assert.equal(pending(s).length,0);
+    const row=p.paidBills.find(x=>x.id==="debt_"+debt.id);
+    assert.equal(row.paidAmount,patch.amount);assert.equal(row.plannedBankAmount,60);
+    assert.equal(c.bankPendingEvents(s,"sabadell",y,m,2).length,0,"no se resta dos veces del saldo");
+    assert.equal(c.isDebtPaidThisMonth(debt,2,s,y,m),true);
+  });
+}
+test("la exacta manda: otra fila enlazada con otro importe no deshace el pago",()=>{
+  const s=state({expenses:[expense,{...expense,id:"charge-b",merchant:"Otro",obName:"Otro",amount:15}]});
+  assert.equal(pending(s).length,0);assert.equal(c.debtPaymentState(s,debt,y,m,2).expense.id,expense.id);
+});
+test("dos filas enlazadas sin la exacta no eligen por orden",()=>assert.equal(pending(state({expenses:[{...expense,amount:59},{...expense,id:"charge-b",merchant:"Otro",obName:"Otro",amount:15}]})).length,1));
+test("sin vínculo, un cargo de 59 EUR del mismo banco y día no paga la cuota",()=>assert.equal(pending(state({expenses:[{...expense,amount:59,debtId:undefined,category:"otros"}]})).length,1));
 test("decimal cuota+balloon acredita solo sus céntimos normalizados",()=>{
   const d={...debt,monthly:0.1,balloon:0.2,months:1};
   const p=c.planChargesMonth(state({debts:[d],expenses:[{...expense,amount:0.3}]}),m,y,2);

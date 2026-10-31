@@ -888,7 +888,7 @@ function LlegaSheet({state, set, totals, pack, onClose}){
           React.createElement("h2",{className:"serif pr6-ll-t",id:titleId,ref:titleRef,tabIndex:-1}, t("pr6_llega_t")),
           bancos.map(bloque),
           conSaldo.length>0&&React.createElement("div",{className:"pr6-ll-wi","data-testid":"llega-gasto",ref:zonaRef,
-            onClick:function(){ if(!teclado) setTeclado(true); }},
+            onClick:function(e){ if(!teclado&&!(e.target.closest&&e.target.closest(".chip"))) setTeclado(true); }},
             React.createElement("span",{className:"pr6-ll-n"}, t("pr6_si_gasto")),
             React.createElement("div",{className:"pr6-ll-wr"},
               React.createElement("button",{type:"button",className:"serif num pr6-ll-amt"+(teclado?" on":"")+(raw?"":" ph"),"aria-expanded":teclado?"true":"false","data-testid":"llega-gasto-amt",
@@ -1021,12 +1021,13 @@ function reciboCargoTexto(x){ return String((x&&(x.merchant||x.obName))||""); }
 /* La cuota de una deuda en Recibos (beta 4.26.200): «sale un cargo que YA está enlazado, no deja
    pulsarlo y te lleva a Deudas». Tocarla abre su ficha con el cargo que Gastos le ha marcado este
    mes y, si aún no la da por pagada, el motivo. Solo LEE: quién acredita la cuota sigue siendo
-   `debtPaymentState` (08), con su importe exacto y su día; aquí no se decide nada de dinero.
+   `debtPaymentState` (08): la fila enlazada paga la cuota con lo que cobró (decisión del dueño); aquí no
+   se decide nada de dinero.
    → {x, acredita, motivo} o null sin cargo marcado. */
 function deudaCargoEnlazado(s, d, y, m, today){
   if(!d) return null;
   const st=debtPaymentState(s,d,y,m,today);
-  if(st.expense) return {x:st.expense, acredita:true, motivo:null};
+  if(st.expense) return {x:st.expense, acredita:true, motivo:null, cuota:(Number(d.monthly)||0)+debtBalloonIn(d,y,m)};
   const fin=new Date(y,m-1,today,23,59,59).getTime(), borrados=expenseDeletedSet(s);
   // La misma ventana que usa el motor para atar un cargo a la cuota de un mes.
   const filas=(s.expenses||[]).filter(function(x){
@@ -1051,7 +1052,8 @@ function DeudaFicha({row, state, totals, onClose, onGoDebts}){
   const d=(state.debts||[]).find(function(o){ return String(o.id)===id; })||null;
   const ce=useMemo(function(){ return deudaCargoEnlazado(state,d,y,m,today); },[state,d,y,m,today]);
   const x=ce&&ce.x, b=x?expenseBankOf(x)||row.bank:row.bank;
-  const nota=!ce||ce.acredita?"":ce.motivo==="importe"?tf("pr6_deuda_importe",{x:eur(Number(x.amount)),y:eur(ce.cuota)})
+  // Pagada con otro importe: se dice lo previsto, como en los recibos («Esperabas X»).
+  const nota=!ce?"":ce.acredita?(Math.round(ce.cuota*100)!==Math.round(Number(x.amount)*100)?tf("pr6_esperabas",{x:eur(ce.cuota)}):""):ce.motivo==="importe"?tf("pr6_deuda_importe",{x:eur(Number(x.amount)),y:eur(ce.cuota)})
     :ce.motivo==="sin_dia"?t("pr6_deuda_sin_dia"):t("pr6_deuda_sin_banco");
   // Se cierra la hoja y, al terminar de bajar, Deudas se abre con la deuda a la vista.
   const verDeuda=function(){ swipe.close(); setTimeout(function(){ if(onGoDebts) onGoDebts(id); },320); };
@@ -1074,7 +1076,8 @@ function DeudaFicha({row, state, totals, onClose, onGoDebts}){
             React.createElement("span",{className:"pr6-cand-t"},
               React.createElement("span",{className:"pr6-cand-n"}, reciboCargoTexto(x)||entOf(b).label),
               React.createElement("span",{className:"pr6-cand-s"}, (recDay(x.date)||"")+" "+monthShort((Number(String(x.date).slice(5,7))||m)-1)+" · "+entOf(b).label+" · "+eur(Number(x.amount)))),
-            React.createElement("span",{className:"pr6-ring"+(ce.acredita?" on":""),"aria-hidden":"true"},"✓")),
+            // El aro vacío parecía algo que marcar: solo sale, lleno, cuando el cargo paga la cuota.
+            ce.acredita&&React.createElement("span",{className:"pr6-ring on","aria-hidden":"true"},"✓")),
           nota&&React.createElement("div",{className:"pr6-nota","data-testid":"deuda-nota"}, nota),
           React.createElement("div",{className:"pr6-btns"},
             React.createElement("button",{type:"button",className:"pr6-btn","data-act":"ver-deuda",onClick:verDeuda}, t("pr6_ver_deuda")))))),
@@ -2018,8 +2021,13 @@ function ReciboPasos({mode, row, once, state, set, totals, banks, onClose, onSav
     setPadFor(null); setGone(false);
     const p=pasoRef.current, r=rastro.current;
     if(n===p) return;
-    // Ir adonde se venía es volver: el rastro no crece al ir y volver del resumen.
-    if(r.length&&r[r.length-1]===n) r.pop(); else r.push(p);
+    /* Del resumen a cualquier paso se apunta SIEMPRE el resumen: Atrás vuelve a él (antes, «Nombre»
+       tras «Visto en tu banco» vaciaba el rastro y Atrás cerraba la hoja con el borrador; revisión
+       del QA). Volver al resumen recorta el rastro hasta él; ir adonde se venía es volver. */
+    const ri=n===4?r.lastIndexOf(4):-1;
+    if(p===4) r.push(p);
+    else if(ri>=0) r.length=ri;
+    else if(r.length&&r[r.length-1]===n) r.pop(); else r.push(p);
     if(n===1) setFresh(!!f.amount);
     if(n===4) setResumido(true);
     pasoRef.current=n; setPaso(n);
@@ -2140,9 +2148,11 @@ function ReciboPasos({mode, row, once, state, set, totals, banks, onClose, onSav
     }
     swipe.close();
   };
-  const siguiente=function(){
+  const siguiente=function(e){
     if(!ok[paso]) return;
-    if(paso===4){ guardar(); return; }
+    /* El segundo toque de un doble toque en «Siguiente»/«Listo» cae ya en el resumen (`detail` 2):
+       no guarda sin haberlo visto (revisión del QA). Un toque suelto siempre lleva `detail` 1. */
+    if(paso===4){ if(e&&e.detail>1) return; guardar(); return; }
     ir(resumido?4:paso+1);
   };
   const titulos=["rp4_t_name","rp4_t_amount","rp4_t_when","rp4_t_account",edit?"rp4_t_edit":"rp4_t_sum"];
