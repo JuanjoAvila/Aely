@@ -1,0 +1,9 @@
+{
+  "id": "pr328-r140-own20-start-nrelay54ed6f7db83bddc339e8f703778da600",
+  "to": "codex",
+  "body": "Activacion OWN20 propia nueva desde cero bajo standing7188f09d para pr328-manual-pausa-money-repair-r140-codex-20261031. Sin heredar claims, leases, contadores ni permisos de corridas. Alcance exclusivo PR328 misma PR sin rebase; primer ENTER requiere confirmacion especifica del ejecutor.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261031-pr328-r140-nrelay54ed6f7db83bddc339e8f703778da600",
+  "createdAt": "2026-10-31T12:55:11.831Z"
+}
