@@ -4556,8 +4556,9 @@ function patchFixedById(set, id, p){
   });
 }
 /* Una lectura manual NUEVA anterior al vencimiento aún no contenía el cargo proyectado.
-   Sólo esa prueba permite retirar/restaurar la proyección; legado o edición ajena conservan
-   la compensación anterior. No se atribuye un recibo entre varias cuentas del mismo banco. */
+   Sólo esa prueba permite retirar/restaurar la proyección. Reanudar nunca suma una compensación
+   sin prueba: tras otra edición o un cliente viejo crearía dinero. No se atribuye un recibo
+   entre varias cuentas del mismo banco. */
 function fixedPausa(s, id, from, until){
   let changed=false;
   const fixed=(s.fixed||[]).map(function(e){
@@ -4569,8 +4570,12 @@ function fixedPausa(s, id, from, until){
     changed=true; return n;
   });
   if(!changed) return s;
-  const next=Object.assign({},s,{fixed:fixed}),out=conSaldoMostrado(s,next);
-  const e=(s.fixed||[]).find(function(f){return f.id===id;}),f=fixed.find(function(x){return x.id===id;}),now=new Date(),md=madridYmdParts(Date.now());
+  const next=Object.assign({},s,{fixed:fixed}),now=new Date(),md=madridYmdParts(Date.now());
+  const e=(s.fixed||[]).find(function(f){return f.id===id;}),f=fixed.find(function(x){return x.id===id;});
+  // Mover la pausa al futuro o al pasado también reactiva el mes, aunque el intervalo no esté vacío.
+  // Sin trazabilidad no se suma una base compensatoria en ninguna de esas puertas.
+  const resumes=(s.fixed||[]).some(function(e){return e.id===id&&fixedPausedIn(e,now.getFullYear(),now.getMonth()+1)&&!fixedPausedIn(f,now.getFullYear(),now.getMonth()+1);});
+  const out=resumes?next:conSaldoMostrado(s,next);
   if(!e||!f||(s.fixed||[]).filter(function(x){return x.id===id;}).length!==1||now.getFullYear()!==md.y||now.getMonth()+1!==md.m||now.getDate()!==md.d||!occursIn(e,md.m)) return out;
   const day=Number(dayIn(e,md.m)),bank=e.account||"sabadell",accounts=(s.accounts||[]).filter(function(a){return a.ent===bank&&accFixed(a);});
   if(accounts.length!==1||!Number.isInteger(day)||!(day>=1&&day<=31&&day<=md.d)||fixedPaymentState(s,e,md.y,md.m,md.d).paid||fixedPaymentState(next,f,md.y,md.m,md.d).paid||fixedEnPausa(s,e,md.y,md.m,md.d)===fixedEnPausa(next,f,md.y,md.m,md.d)) return out;

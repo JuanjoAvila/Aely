@@ -4377,8 +4377,8 @@ function manualBalanceWrite(s,readings){
     if(!["id","ent","role","spendFrom"].every(function(k){return r.expected[k]===target[k];})) return a;
     editable=true;
     const typed=+(r.typed).toFixed(2),shown=saldoCuentaMostrada(a,input);
-    // Confirmar la cifra proyectada puede dejar la base idéntica: invalida, pero no refecha.
-    if(Math.round(typed*100)===Math.round(shown*100)) return a;
+    // La misma cifra sigue siendo una lectura nueva (t3), aunque no acredite otra base manual.
+    if(Math.round(typed*100)===Math.round(shown*100)){changed=true;return Object.assign({},a,{saldoLeidoAt:new Date().toISOString()});}
     const pn=input.paidNetByBank[a.ent]||0,spent=input.spentByBank[a.ent]||0;
     const value=accDaily(a)?valueDesdeSaldo({shown:typed,injTR:input.injTR,spentOwn:spent,roundup:input.roundup,monthlyInvest:input.monthlyInvest,ambos:accRole(a)==="ambos",paidNet:pn}):isEfectivoEnt(a)?+(typed+spent).toFixed(2):+(typed-pn).toFixed(2);
     const n=Object.assign({},a,{value:value,saldoLeidoAt:new Date().toISOString()});

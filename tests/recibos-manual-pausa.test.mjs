@@ -14,7 +14,10 @@ const mutations={
  missingLink:["env.stateAt!==s._savedAt||",""],
  resurrect:["if(!intent&&!s.manualBalanceReads) return s;","if(!intent&&s.manualBalanceReads) return Object.assign({},s,{manualBalanceReads:Object.assign({},s.manualBalanceReads,{stateAt:at})});if(!intent&&!s.manualBalanceReads) return s;"],
  staleInverse:["const input=insumosSaldoGasto(s),rows=[]","const input={paidNetByBank:{},spentByBank:{},injTR:0,roundup:0,monthlyInvest:0},rows=[]"],
- preserveUnchanged:["if(Math.round(typed*100)===Math.round(shown*100)) return a;","if(Math.round(typed*100)===Math.round(shown*100)){rows.push({before:manualBalanceModel(a),next:Object.assign(manualBalanceModel(a),{origin:'manual-v1'}),typed:typed});return a;}"],
+ preserveUnchanged:["if(Math.round(typed*100)===Math.round(shown*100)){changed=true;return Object.assign({},a,{saldoLeidoAt:new Date().toISOString()});}","if(Math.round(typed*100)===Math.round(shown*100)){rows.push({before:manualBalanceModel(a),next:Object.assign(manualBalanceModel(a),{origin:'manual-v1'}),typed:typed});return a;}"],
+ sameReadStamp:["if(Math.round(typed*100)===Math.round(shown*100)){changed=true;return Object.assign({},a,{saldoLeidoAt:new Date().toISOString()});}","if(Math.round(typed*100)===Math.round(shown*100)) return a;"],
+ resumeCompensation:["out=resumes?next:conSaldoMostrado(s,next)","out=conSaldoMostrado(s,next)"],
+ intervalResume:["out=resumes?next:conSaldoMostrado(s,next)","out=until>from?conSaldoMostrado(s,next):next"],
  snapshot:["manualBalanceSame(p,manualBalanceModel(a))","true"],
  manual:["return !!a&&!a.bankIban&&!a.bankUid&&a.balSaldo==null&&!a.balanceAt&&!saldoLoMandaPuenteNativo(s,a.ent);","return !!a;"],
  nativeWrite:["||a.bankIban||a.bankUid||a._obKey) return a;","||!manualBalanceIsManual(s,a)) return a;"],
@@ -64,14 +67,51 @@ await check('legado, mismo día, posterior, futuro y día inválido mantienen sa
  for(const at of ['2026-10-05T08:00:00Z','2026-10-10T12:00:00Z']){clock(at);const h=harness();h.read();clock('2026-10-18T12:00:00Z');h.pause();assert.equal(h.shown(),100000);}
  for(const day of [25,null,1.5]){const h=beforeDue({}, {day}),before=h.shown();h.pause();assert.equal(h.shown(),before);}
 });
+await check('reanudar restaura la base previa o no compensa sin prueba B1',()=>{
+ const clean=beforeDue(),prior=copy(clean.s.accounts);clean.pause();assert.equal(clean.shown(),100000);clean.pause(0,0);assert.deepEqual(copy(clean.s.accounts),prior);assert.equal(clean.shown(),98701);
+ for(const edit of ['nota','base','lectura posterior']){
+  const h=beforeDue(),prior=copy(h.s.accounts);h.pause();assert.equal(h.shown(),100000);
+  if(edit==='lectura posterior')h.read(800);else{tick();h.set(s=>edit==='nota'?Object.assign({},s,{note:'otra edición'}):Object.assign({},s,{accounts:s.accounts.map(a=>Object.assign({},a,{value:800}))}));}
+  const base=cents(h.s.accounts[0].value);h.pause(0,0);assert.equal(cents(h.s.accounts[0].value),base,'B1 no suma 1299c tras '+edit);assert.equal(h.shown(),base-1299);if(edit==='nota')assert.deepEqual(copy(h.s.accounts),prior);
+ }
+ for(const old of ['sin prueba','sello desfasado','base distinta']){
+  const h=beforeDue();h.pause();const oldState=copy(h.s);tick();
+  if(old==='sin prueba')delete oldState.manualBalanceReads;else if(old==='sello desfasado')oldState._savedAt=now;else oldState.accounts[0].value=800;
+  h.s=oldState;assert.equal(h.c.manualBalanceRead(h.s,'a'),null);const base=cents(h.s.accounts[0].value);h.pause(0,0);assert.equal(cents(h.s.accounts[0].value),base,'B1 cliente viejo '+old);assert.equal(h.shown(),base-1299);
+ }
+});
+await check('B1: matriz completa de intervalos conserva base o falla cerrada al reactivar',()=>{
+ const cur=2026*12+10,ranges=[[0,0],[cur,cur+1],[cur-1,cur+2],[cur+1,cur+2],[cur-2,cur]];
+ for(const source of ranges)for(const target of ranges)for(const mode of ['íntegra','nota','base','sin prueba','cliente viejo']){
+  const h=beforeDue();h.pause(...source);
+  if(mode==='nota'||mode==='base'){tick();h.set(s=>mode==='nota'?Object.assign({},s,{note:'cambio intermedio'}):Object.assign({},s,{accounts:s.accounts.map(a=>Object.assign({},a,{value:800.25}))}));}
+  if(mode==='sin prueba')delete h.s.manualBalanceReads;
+  if(mode==='cliente viejo')h.s=Object.assign({},h.s,{_savedAt:now+1});
+  const prior=copy(h.s.accounts),base=cents(prior[0].value),shown=h.shown(),proof=!!h.c.manualBalanceRead(h.s,'a');
+  const paused=source[0]<=cur&&cur<source[1],nextPaused=target[0]<=cur&&cur<target[1],resumes=paused&&!nextPaused;
+  h.pause(...target);
+  const label=JSON.stringify({source,target,mode});
+  if(proof||resumes||paused===nextPaused)assert.deepEqual(copy(h.s.accounts),prior,'base exacta: '+label);
+  else assert.equal(h.shown(),shown,'pausar sin prueba conserva lo mostrado: '+label);
+  assert.ok(cents(h.s.accounts[0].value)<=base,'ninguna transición inventa base: '+label);
+  if(resumes)assert.equal(h.shown(),base-1299,'reactivar devuelve la proyección: '+label);
+ }
+});
 await check('edición ajena invalida una vez, sin resurrección ni clonar cuentas',()=>{
  const h=beforeDue(),a=h.s.accounts,proof=h.s.manualBalanceReads;tick();h.set(s=>Object.assign({},s,{note:'edición ajena'}));assert.equal(h.s.accounts,a);assert.equal(h.s.manualBalanceReads,undefined);h.pause();assert.equal(h.shown(),98701);
  const old=beforeDue();old.s=Object.assign({},old.s,{_savedAt:now});assert.equal(old.c.manualBalanceRead(old.s,'a'),null);tick();old.set(s=>Object.assign({},s,{note:'otra'}));assert.equal(old.s.manualBalanceReads,undefined);assert.ok(proof);
 });
 await check('editor legacy real: lectura nueva, confirmación idéntica y filas conectadas',()=>{
  const h=beforeDue();clock('2026-10-10T12:00:00Z');h.legacy('1234,56');assert.equal(h.shown(),123456);assert.equal(h.s.accounts[0].saldoLeidoAt,new Date(now).toISOString());h.pause();assert.equal(h.shown(),123456);
- const same=beforeDue();same.legacy('987,01');assert.equal(same.s.manualBalanceReads,undefined);assert.equal(same.s.accounts[0].saldoLeidoAt,'2026-10-01T12:00:00.010Z');same.pause();assert.equal(same.shown(),98701);
+ const same=beforeDue();same.legacy('987,01');assert.equal(same.s.manualBalanceReads,undefined);assert.equal(same.s.accounts[0].saldoLeidoAt,new Date(now).toISOString());same.pause();assert.equal(same.shown(),98701);
  clock('2026-10-01T12:00:00Z');const linked=harness(fixture({bankUid:'SYNTHETIC',value:1000}));const account=linked.s.accounts[0];linked.legacy('2000');assert.equal(linked.s.accounts[0],account);assert.equal(account.saldoLeidoAt,undefined);
+});
+await check('ficha: confirmar la misma cifra sella lectura t3 sin cambiar base R2',()=>{
+ for(const at of ['2026-10-18T12:00:00Z','2026-10-18T23:30:00Z','2026-10-19T12:00:00Z']){
+  const h=beforeDue(),base=cents(h.s.accounts[0].value),shown=h.shown(),old=h.s.accounts[0].saldoLeidoAt;clock(at);h.read(shown/100);
+  assert.notEqual(h.s.accounts[0].saldoLeidoAt,old);assert.equal(h.s.accounts[0].saldoLeidoAt,new Date(now).toISOString(),'R2 misma cifra sella t3');assert.equal(h.c.saldoLeidoDelBanco(h.s,'sabadell'),now,'puerta real de lectura ve t3');assert.equal(cents(h.s.accounts[0].value),base);assert.equal(h.shown(),shown);assert.equal(h.s.manualBalanceReads,undefined,'la misma cifra no fabrica prueba manual');
+  assert.equal(h.c.reciboEnElSaldo(h.s,h.s.fixed[0],2026,10,new Date(now).getDate(),h.c.saldoLeidoDelBanco(h.s,'sabadell'),18),now>=new Date(2026,9,19).getTime(),'t3 sólo incluye el cargo desde el día siguiente local');
+ }
 });
 await check('writer viejo real conserva sello; vínculo de estado detecta base idéntica',()=>{
  const h=beforeDue(),oldShared=read('src/modules/02-ui-shared.js'),oldEditable=oldShared.slice(oldShared.indexOf('function useEditable('),oldShared.indexOf('/* Cuentas y brókers comparten el mismo HOLD'));
@@ -106,9 +146,15 @@ await check('carry ligado a entrada, tras reconciler, relojes y edited=false',()
  h.set(s=>Object.assign({},s,{accounts:s.accounts.map(a=>Object.assign({},a,{role:'ambos'}))}),false);assert.equal(c.manualBalanceRead(h.s,'a'),null);
 });
 await check('días Madrid en el borde UTC y fallback si el calendario local difiere',()=>{
- clock('2026-10-04T22:30:00Z');const same=harness();same.read();clock('2026-10-18T12:00:00Z');same.pause();assert.equal(same.shown(),100000,'4/oct UTC ya es 5/oct Madrid: mismo día, no anterior');
- clock('2026-10-04T21:59:00Z');const earlier=harness();earlier.read();clock('2026-10-18T12:00:00Z');earlier.pause();assert.equal(earlier.shown(),100000,'todavía 4/oct Madrid: sí retira proyección');
- const beforeTZ=process.env.TZ;try{process.env.TZ='UTC';const other=beforeDue();clock('2026-10-04T22:30:00Z');other.pause();assert.equal(other.shown(),100000);assert.equal(other.s.manualBalanceReads,undefined,'días distintos: no conserva carry optimista');}finally{process.env.TZ=beforeTZ;}
+ const beforeTZ=process.env.TZ;try{
+ for(const tz of ['UTC','Europe/Madrid']){
+  process.env.TZ=tz;
+  clock('2026-10-04T22:30:00Z');const same=harness();same.read();clock('2026-10-18T12:00:00Z');same.pause();assert.equal(same.shown(),tz==='UTC'?98701:100000,'lectura del día 5 Madrid no retira proyección: '+tz);assert.equal(same.s.manualBalanceReads,undefined,'mismo día Madrid no conserva prueba');
+  clock('2026-10-04T21:59:00Z');const earlier=harness();earlier.read();clock('2026-10-18T12:00:00Z');earlier.pause();assert.equal(earlier.shown(),100000,'todavía día 4 Madrid: retira proyección en '+tz);assert.ok(earlier.c.manualBalanceRead(earlier.s,'a'));
+  const other=beforeDue();clock('2026-10-04T22:30:00Z');other.pause();assert.equal(other.shown(),100000);assert.equal(!!other.c.manualBalanceRead(other.s,'a'),tz==='Europe/Madrid','días locales distintos no conservan carry: '+tz);
+  for(const at of ['2026-10-25T00:30:00Z','2026-10-25T01:30:00Z']){const dst=beforeDue();clock(at);dst.pause();assert.equal(dst.shown(),100000);assert.ok(dst.c.manualBalanceRead(dst.s,'a'),'ambas horas del cambio de horario son el mismo día: '+tz);}
+ }
+ }finally{if(beforeTZ===undefined)delete process.env.TZ;else process.env.TZ=beforeTZ;}
 });
 await check('varios bancos y roles: sólo la cuenta manual inequívoca cambia',()=>{
  for(const role of ['fijos','ambos']){
