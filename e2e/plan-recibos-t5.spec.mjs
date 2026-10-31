@@ -296,11 +296,56 @@ test("uso: Personas › Añadir ofrece los compartidos de antes sin cambiar tu p
   await persona(page).locator('[data-pe="via"] button', { hasText: "Bizum" }).click();
   await persona(page).locator('[data-pe="name"]').fill("Pareja");
   await persona(page).locator('[data-pe="recibos"] button', { hasText: "Pepephone" }).click();
+  await expect(persona(page).getByTestId("pe-viejo")).toHaveText("En Pepephone ajustarás las partes antes de guardar");
   await persona(page).locator('[data-act="persona-guardar"]').click();
   await expect(persona(page)).toHaveCount(0);
+  // El compartido de antes se abre en Editar con la persona y todo el resto a la vista.
+  await expect(hoja(page)).toHaveAttribute("data-modo", "edit");
+  await expect(paso(page, 4).locator(".rp5-row [data-rp5-importe]")).toHaveText(["63,00 €"]);
+  await expect(paso(page, 4).getByTestId("rp5-tu-parte")).toHaveText("Tu parte22,00 €");
+  await hoja(page).locator(".rp4-cta").click();
+  await expect(hoja(page)).toHaveCount(0);
   const s = await guardado(page);
   const f = s.fixed.find((x) => x.id === "pepe");
   expect([f.amount, f.bankAmount, f.reparto.map((x) => [x.n, x.amt])]).toEqual([22, 85, [["Pareja", 63]]]);
+});
+
+test("R2-1: «Lo descuento» en un compartido de antes deja ajustar la parte: Mamá 197 + 53 = 250, no 260", async ({ page }) => {
+  const viejo = recibo("pepe", "Pepephone", 22, 20, { bankAmount: 85 });
+  const recibos = await abrePlan(page, { fixed: [viejo, luz], debts: [mama] });
+  await abreTodos(page, recibos);
+  await page.locator('[data-bills-manage] [data-group="people"]').click();
+  await page.locator('[data-act="persona-add"]').click();
+  await persona(page).locator('[data-pe="name"]').fill("Familia");
+  await persona(page).locator('[data-pe="via"] button', { hasText: "Lo descuento" }).click();
+  await persona(page).locator('[data-pe="deuda"] button', { hasText: "Mamá" }).click();
+  await persona(page).locator('[data-pe="recibos"] button', { hasText: "Pepephone" }).click();
+  await persona(page).locator('[data-act="persona-guardar"]').click();
+  await expect(hoja(page)).toHaveAttribute("data-modo", "edit");
+  const fam = paso(page, 4).locator(".rp5-row").first();
+  await expect(fam.locator("[data-rp5-importe]")).toHaveText("63,00 €");
+  await fam.locator("[data-rp5-importe]").click();
+  await teclea(fam, "53");
+  await paso(page, 4).locator('[data-act="persona-otra"]').click();
+  await persona(page).locator('[data-pe="name"]').fill("Pareja");
+  await persona(page).locator('[data-act="persona-guardar"]').click();
+  const par = paso(page, 4).locator(".rp5-row").nth(1);
+  await par.locator("[data-rp5-importe]").click();
+  await teclea(par, "10");
+  await expect(paso(page, 4).getByTestId("rp5-tu-parte")).toHaveText("Tu parte22,00 €");
+  await hoja(page).locator(".rp4-cta").click();
+  await expect(hoja(page)).toHaveCount(0);
+  const s = await guardado(page);
+  const f = s.fixed.find((x) => x.id === "pepe");
+  expect([f.amount, f.bankAmount, f.reparto.map((x) => [x.n, x.via, x.amt])]).toEqual([22, 85, [["Familia", "debt", 53], ["Pareja", "bizum", 10]]]);
+  expect(s.debts[0]).toMatchObject({ monthly: 197, amort: 250 });
+  await page.keyboard.press("Escape");
+  await expect(page.locator('[data-bills-manage][data-screen="bills-home"]')).toHaveCount(1);
+  await page.keyboard.press("Escape");
+  await expect(page.locator("[data-bills-manage]")).toHaveCount(0);
+  await expect(fila(recibos, "debt_mama")).toContainText("pagas 197,00 € + 53,00 € de Pepephone");
+  await expect(fila(recibos, "debt_mama")).toContainText("250,00 €");
+  await expect(recibos.getByTestId("plan-deben")).toHaveText("Te deben 10,00 €");
 });
 
 test("R5: un reparto que dejó de cuadrar se puede rehacer desde Editar", async ({ page }) => {

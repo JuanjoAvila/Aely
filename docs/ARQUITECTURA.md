@@ -231,7 +231,8 @@ reales; su mezcla puede juntar un reparto de un móvil con el importe de otro, o
 o quitar el compartido, y entonces el cliente nuevo deja de usar ese reparto porque no cuadra: no
 salen esas personas en Personas ni en «Te deben». Al editar ese recibo, sus personas vuelven al
 borrador con un aviso para revisarlas, y al guardar el reparto cuadra otra vez. Un compartido de
-antes (solo `bankAmount`) al que se le añade una persona le da todo el resto: tu parte no cambia.
+antes (solo `bankAmount`) al que se le añade una persona le da todo el resto (tu parte no cambia), y
+desde Todos › Personas se abre su edición con esa parte a la vista para ajustarla antes de guardar.
 Sin servidor ni columnas nuevas; el resumen del Hogar (13) no cambia.
 
 Si la lápida alcanza una fila con un borrador privado pendiente, la fila sigue

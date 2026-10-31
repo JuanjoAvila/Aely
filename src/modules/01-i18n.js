@@ -4333,7 +4333,7 @@ Object.assign(LANG.es,{
   rp5_mas:"Más opciones", rp5_con_alguien:"¿Lo pagas con alguien?", rp5_no_admite:"Solo se comparte un recibo de cada mes o cada pocos meses",
   rp5_otra:"Otra", rp5_importe_de:"Parte de {name}", rp5_quitar:"Quitar a {name}", rp5_tu_parte:"Tu parte",
   rp5_supera:"Las partes pasan del importe: no te queda parte", rp5_descuento_mensual:"«Lo descuento» solo en recibos de cada mes",
-  rp5_rehacer:"Estas partes ya no cuadraban: revísalas y guarda"
+  rp5_rehacer:"Estas partes ya no cuadraban: revísalas y guarda", pe_viejo_ajustar:"En {name} ajustarás las partes antes de guardar"
 });
 Object.assign(LANG.en,{
   pr6_pagas_mas:"you pay {a} + {b} from {from}", pr6_te_han_pagado:"{a} of {n} have paid you", pr6_tu_parte:"Your share {x}",
@@ -4345,7 +4345,7 @@ Object.assign(LANG.en,{
   rp5_mas:"More options", rp5_con_alguien:"Do you pay it with someone?", rp5_no_admite:"Only a monthly bill or one every few months can be shared",
   rp5_otra:"Other", rp5_importe_de:"{name}'s share", rp5_quitar:"Remove {name}", rp5_tu_parte:"Your share",
   rp5_supera:"The shares exceed the amount: nothing left for you", rp5_descuento_mensual:"“I deduct it” only works on monthly bills",
-  rp5_rehacer:"These shares no longer added up: check them and save"
+  rp5_rehacer:"These shares no longer added up: check them and save", pe_viejo_ajustar:"You'll adjust the shares of {name} before saving"
 });
 Object.assign(LANG.ca,{
   pr6_pagas_mas:"pagues {a} + {b} de {from}", pr6_te_han_pagado:"t'han pagat {a} de {n}", pr6_tu_parte:"La teva part {x}",
@@ -4357,5 +4357,5 @@ Object.assign(LANG.ca,{
   rp5_mas:"Més opcions", rp5_con_alguien:"El pagues amb algú?", rp5_no_admite:"Només es comparteix un rebut de cada mes o de cada pocs mesos",
   rp5_otra:"Una altra", rp5_importe_de:"Part de {name}", rp5_quitar:"Treure {name}", rp5_tu_parte:"La teva part",
   rp5_supera:"Les parts superen l'import: no et queda part", rp5_descuento_mensual:"«Ho descompto» només en rebuts de cada mes",
-  rp5_rehacer:"Aquestes parts ja no quadraven: revisa-les i desa"
+  rp5_rehacer:"Aquestes parts ja no quadraven: revisa-les i desa", pe_viejo_ajustar:"A {name} ajustaràs les parts abans de desar"
 });

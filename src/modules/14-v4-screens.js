@@ -852,7 +852,7 @@ function TeDebenSheet({state, set, totals, deben, onClose}){
    - sin `pid` desde Todos: nueva, y hay que decir qué recibos comparte (sin recibo no tiene dónde
      vivir: las personas están dentro de los recibos, no en una lista aparte).
    - `draft` desde el alta por pasos: no escribe nada, devuelve la persona al reparto del borrador. */
-function PersonaSheet({pid, draft, mensual:draftMensual, sinBorrar, state, set, totals, onClose, onCreate}){
+function PersonaSheet({pid, draft, mensual:draftMensual, sinBorrar, state, set, totals, onClose, onCreate, onCompartidoViejo}){
   const swipe=useSheetSwipe(true,onClose);
   useBackClose(true,swipe.close);
   const titleRef=useRef(null), titleId=React.useId();
@@ -869,6 +869,7 @@ function PersonaSheet({pid, draft, mensual:draftMensual, sinBorrar, state, set, 
   // Borrada desde otro sitio (o desde el otro móvil) mientras estaba abierta: no hay qué enseñar.
   useEffect(function(){ if(edit&&!p&&!savedRef.current) swipe.close(); },[edit,p]);
   const deudas=(state.debts||[]).filter(deudaDescontable);
+  const esViejo=function(id){ const e=(state.fixed||[]).find(function(f){ return f.id===id; }); return !!e&&Number(e.bankAmount)>0&&!repartoVigente(e); };
   const mensual=function(id){ const e=(state.fixed||[]).find(function(f){ return f.id===id; }); return !!e&&chargeMonths(e).length===12; };
   // También los compartidos de antes: la persona se queda con lo que no es tuyo (`personaEnRecibos`).
   const elegibles=!edit&&!draft?(state.fixed||[]).filter(function(e){ return repartoAdmite(e)&&(!(Number(e.bankAmount)>0)||repartoVigente(e)||Number(e.bankAmount)>Number(e.amount)); }):[];
@@ -882,7 +883,16 @@ function PersonaSheet({pid, draft, mensual:draftMensual, sinBorrar, state, set, 
     if(via==="debt") datos.debtId=debtId;
     if(draft) onCreate(Object.assign({id:"pe_"+uid()},datos));
     else if(edit) set(function(s){ return personaEditar(s,pid,datos,y,m,today); });
-    else set(function(s){ return personaEnRecibos(s,Object.assign({id:"pe_"+uid()},datos),ids,y,m,today); });
+    else {
+      /* Un compartido de antes no dice de quién es el resto: darle todo a esta persona sin
+         enseñarlo ponía «Lo descuento» de 63 donde eran 53 (rev. t5 R2-1). Ese recibo se abre en
+         Editar con la persona ya en el reparto, para ver y ajustar las partes antes de guardar. */
+      const persona=Object.assign({id:"pe_"+uid()},datos);
+      const viejo=ids.find(function(id){ return esViejo(id); });
+      const resto=ids.filter(function(id){ return id!==viejo; });
+      if(resto.length) set(function(s){ return personaEnRecibos(s,persona,resto,y,m,today); });
+      if(viejo&&onCompartidoViejo){ savedRef.current=true; onClose(); onCompartidoViejo(viejo,persona); return; }
+    }
     swipe.close();
   };
   const borrar=function(){
@@ -927,9 +937,11 @@ function PersonaSheet({pid, draft, mensual:draftMensual, sinBorrar, state, set, 
           elegibles.length?React.createElement("div",{className:"v4-chips wrap","data-pe":"recibos"},
             elegibles.map(function(e){
               const on=ids.indexOf(e.id)>=0;
-              return chip(e.id,e.name,on,function(){ setIds(function(o){ return on?o.filter(function(x){ return x!==e.id; }):o.concat([e.id]); }); },via==="debt"&&!on&&!mensual(e.id));
+              // Un solo compartido de antes cada vez: sus partes se ajustan en su propia hoja.
+              return chip(e.id,e.name,on,function(){ setIds(function(o){ return on?o.filter(function(x){ return x!==e.id; }):o.filter(function(x){ return !(esViejo(e.id)&&esViejo(x)); }).concat([e.id]); }); },via==="debt"&&!on&&!mensual(e.id));
             })):React.createElement("div",{className:"pr6-empty"}, t("pe_sin_recibos")),
-          via==="debt"&&elegibles.some(function(e){ return !mensual(e.id); })&&React.createElement("div",{className:"hint","data-testid":"pe-solo-mensual"}, t("rp5_descuento_mensual"))),
+          via==="debt"&&elegibles.some(function(e){ return !mensual(e.id); })&&React.createElement("div",{className:"hint","data-testid":"pe-solo-mensual"}, t("rp5_descuento_mensual")),
+          ids.some(esViejo)&&React.createElement("div",{className:"hint","data-testid":"pe-viejo"}, tf("pe_viejo_ajustar",{name:((state.fixed||[]).find(function(f){ return f.id===ids.find(esViejo); })||{}).name||""}))),
         React.createElement("button",{type:"button",className:"pr6-cta","data-act":"persona-guardar",disabled:!ok,"aria-disabled":ok?"false":"true",onClick:guardar}, t("rp4_guardar")),
         // Desde el alta por pasos no se borra: el borrador la seguiría teniendo y la volvería a poner.
         edit&&!sinBorrar&&React.createElement("button",{type:"button",className:"pr6-btn pr6-btn-wide"+(gone?" pr6-seguro":""),"data-act":"persona-borrar",onClick:borrar},
@@ -1801,7 +1813,8 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId}){
         role:"dialog","aria-modal":"true","aria-labelledby":"bills-manage-title"},
         hub,
         view!=="hub" && React.createElement("div",{ref:subRef,className:"settings-push open v4-bills-push mc-page-enter"}, view==="list"?listView:view==="people"?peopleView:affordView)),
-      persona && React.createElement(PersonaSheet,{key:persona.pid||"nueva",pid:persona.pid,state:state,set:set,totals:totals,onClose:function(){ setPersona(null); }}),
+      persona && React.createElement(PersonaSheet,{key:persona.pid||"nueva",pid:persona.pid,state:state,set:set,totals:totals,onClose:function(){ setPersona(null); },
+        onCompartidoViejo:function(id,p){ const r=billsGroupRows(state,"serv",cm,cy).find(function(x){ return x.id===id; }); if(r) setPasos({mode:"edit",row:r,conPersona:p,n:Date.now()}); }}),
       detail && (detail.kind==="fixed"&&planSyncConflict(state,"fixed",detail.id)&&!reviewBill?React.createElement(PlanConflictSheet,{
         record:planSyncConflict(state,"fixed",detail.id),current:(state.fixed||[]).find(function(f){return f.id===detail.id;})||detail.item,onClose:closeDetail,
         onDiscard:function(){const c=planSyncConflict(state,"fixed",detail.id);set(function(s){return planSyncDiscard(s,c);});closeDetail();},
@@ -1815,7 +1828,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId}){
         onClose:closeAdd, set:set, onSaved:confirmSaved
       }),
       pasos && React.createElement(ReciboPasos,{key:pasos.mode+"_"+(pasos.row?pasos.row.kind+pasos.row.id:"n")+"_"+pasos.n,
-        mode:pasos.mode, row:pasos.row, once:pasos.once, state:state, set:set, totals:totals, banks:bankList,
+        mode:pasos.mode, row:pasos.row, once:pasos.once, conPersona:pasos.conPersona, state:state, set:set, totals:totals, banks:bankList,
         onClose:closePasos, onSaved:confirmSaved, onRemove:removeWithUndo,
         onEditOther:function(id){ const r=billsGroupRows(state,"serv",cm,cy).find(function(x){ return x.id===id; }); if(r) setPasos({mode:"edit",row:r,n:Date.now()}); }
       }),
@@ -2052,7 +2065,7 @@ function RpPaso({label, onStep, dir}){
     onPointerDown:down,onPointerUp:stop,onPointerLeave:stop,onPointerCancel:stop,
     onClick:function(e){ if(e.detail===0) onStep(dir); }}, dir<0?"−":"+");
 }
-function ReciboPasos({mode, row, once, state, set, totals, banks, onClose, onSaved, onEditOther, onRemove}){
+function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, onClose, onSaved, onEditOther, onRemove}){
   const edit=mode==="edit";
   const y=totals.curYear, m=totals.curMonth, today=totals.today, cur=y*12+m;
   const kind=edit?row.kind:(once?"oneoff":"fixed");
@@ -2075,7 +2088,10 @@ function ReciboPasos({mode, row, once, state, set, totals, banks, onClose, onSav
     return {name:it.name||"",category:it.category||"",amount:rp4Raw(sch?it.schedule.reduce(function(a,x){ return a+(Number(x.amt)||0); },0):vigente||viejo?it.bankAmount:it.amount),
       variable:!!it.variable,mode:sch?"split":"rec",freq:({mensual:"mes",anual:"año"})[it.freq]||it.freq||"mes",months:Array.isArray(it.months)?it.months.slice():[],day:cleanDay(it.day),
       once:{ym:cur,day:today},plan:sch?it.schedule.map(function(x){ return {m:x.m,day:cleanDay(x.day),amt:rp4Raw(x.amt)}; }):null,account:accOf(it),
-      reparto:(vigente||roto).map(function(x){ return {id:x.id,n:x.n,via:x.via,debtId:x.via==="debt"?x.debtId:null,amt:x.auto?"":rp4Raw(x.amt)}; })};
+      reparto:(vigente||roto).map(function(x){ return {id:x.id,n:x.n,via:x.via,debtId:x.via==="debt"?x.debtId:null,amt:x.auto?"":rp4Raw(x.amt)}; })
+        // Desde Todos › Personas con un compartido de antes: la persona entra con todo el resto a la vista.
+        .concat(conPersona&&viejo&&!roto.length?[{id:conPersona.id,n:conPersona.n,via:conPersona.via,debtId:conPersona.via==="debt"?conPersona.debtId:null,
+          amt:Number(it.bankAmount)>Number(it.amount)?rp4Raw(Math.round((it.bankAmount-it.amount)*100)/100):""}]:[])};
   },[]);
   const [paso,setPaso]=useState(edit?4:0);
   const [f,setF]=useState(inicial);
@@ -2086,10 +2102,10 @@ function ReciboPasos({mode, row, once, state, set, totals, banks, onClose, onSav
   const [tecleado,setTecleado]=useState(false);
   const [mas,setMas]=useState(!!vigente||viejo);
   const [persona,setPersona]=useState(null);   // {pid} o {draft:true}: ficha de persona encima
-  const [nuevas,setNuevas]=useState([]);       // personas creadas en este alta, aún sin recibo
+  const [nuevas,setNuevas]=useState(conPersona?[conPersona]:[]);       // personas creadas en este alta, aún sin recibo
   // Lo que se ha tocado al editar: solo eso va al recibo. Releer y volver a escribir lo demás
   // (unos pagos sin día, unos meses por defecto) lo cambiaría sin que nadie lo pidiera.
-  const [tocado,setTocado]=useState(roto.length?{reparto:true}:{});
+  const [tocado,setTocado]=useState(roto.length||conPersona&&viejo?{reparto:true}:{});
   const toca=function(){ const ks=arguments; setTocado(function(o){ const n=Object.assign({},o); Array.prototype.forEach.call(ks,function(k){ n[k]=true; }); return n; }); };
   const savedRef=useRef(false);
   const titleRef=useRef(null), sideRef=useRef(null);
@@ -2426,6 +2442,7 @@ function ReciboPasos({mode, row, once, state, set, totals, banks, onClose, onSav
   // con su importe (vacío = a partes iguales) y tu parte, que es lo que queda.
   // La primera persona de un compartido de antes se lleva lo que no es tuyo: tu parte no cambia.
   const primeraDeViejo=function(o){ return viejo&&!o.reparto.length&&Number(it.bankAmount)>Number(it.amount)?rp4Raw(Math.round((it.bankAmount-it.amount)*100)/100):""; };
+  const padFresco=useRef(null);
   const enReparto=function(id){ return f.reparto.some(function(x){ return x.id===id; }); };
   const ponQuita=function(q){
     setPadFor(null); toca("reparto");
@@ -2460,13 +2477,18 @@ function ReciboPasos({mode, row, once, state, set, totals, banks, onClose, onSav
                 React.createElement("span",{className:"rp5-nm-n"}, q.n),
                 React.createElement("span",{className:"rp4-dim"}, peViaTxt(state,q))),
               React.createElement("button",{type:"button",className:"num rp4-pago-a"+(padFor===k?" on":"")+(tecleo?"":" rp5-auto"),"data-rp5-importe":x.id,"aria-label":tf("rp5_importe_de",{name:q.n}),
-                onClick:function(){ setPadFor(padFor===k?null:k); }}, tecleo?eur(parseNumPadRaw(x.amt)):r&&r.amt>0?eur(r.amt):"—"),
+                onClick:function(){ padFresco.current=padFor===k?null:k; setPadFor(padFor===k?null:k); }}, tecleo?eur(parseNumPadRaw(x.amt)):r&&r.amt>0?eur(r.amt):"—"),
               React.createElement("button",{type:"button",className:"rp4-x","aria-label":tf("rp5_quitar",{name:q.n}),onClick:function(){ ponQuita(q); }},"×")),
             React.createElement("div",{className:"pr6-fold"+(padFor===k?" open":"")},
               React.createElement("div",Object.assign({className:"pr6-fold-in"},padFor===k?null:{"aria-hidden":"true",inert:""}),
                 React.createElement(NumPad,{value:x.amt,onChange:function(fn){
                   toca("reparto");
-                  setF(function(o){ return Object.assign({},o,{reparto:o.reparto.map(function(z){ return z.id===x.id?Object.assign({},z,{amt:fn(z.amt||"")}):z; })}); });
+                  // Como en el importe: el primer número al abrir el teclado sustituye la parte que había.
+                  const fresco=padFresco.current===k; padFresco.current=null;
+                  setF(function(o){ return Object.assign({},o,{reparto:o.reparto.map(function(z){
+                    if(z.id!==x.id) return z;
+                    const nuevo=fresco?fn(""):"";
+                    return Object.assign({},z,{amt:fresco&&nuevo!==""?nuevo:fn(z.amt||"")}); })}); });
                 }}))));
         }),
         roto.length>0&&React.createElement("div",{className:"hint","data-testid":"rp5-rehacer"}, t("rp5_rehacer")),
