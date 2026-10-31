@@ -1,0 +1,24 @@
+{
+  "status": "done",
+  "summary": "Punto1 cerrado sin cambio de producto por ordenaf6f. PR326 draft beta agrega solo guardia de liquidez que calcula y envia la app al widget, sin simular fixed en servidor.20 recorridos GREEN y7mutantes detectados, revision independiente favorable y GO ROOT exacte142. RemotoHEAD y PR draft/base verificados.",
+  "tests": [
+    {
+      "command": "node tests/widget-inicio-paridad.test.mjs --widget-pause-only",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "e142a5e98f416c03e38a4ac2f6f0e62de0f2e7e0",
+  "pullRequest": 326,
+  "limitations": [
+    "Solo test; no cambia producto ni despliega.",
+    "Puente nativo sintetico; no acredita render ni aceptacion fisica.",
+    "No se repitieron matrices previas ni suites ajenas.",
+    "Integracion CI servido y movil quedan pendientes del coordinador."
+  ],
+  "schema": 1,
+  "taskId": "widget-paused-parity-r132-codex-20261031",
+  "actor": "codex",
+  "sessionId": "codex-local-20261031-widget132-7b007be32ed5f2b9c12dc026",
+  "createdAt": "2026-10-31T03:31:22.807Z",
+  "released": true
+}
