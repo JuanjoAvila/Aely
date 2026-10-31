@@ -1,0 +1,9 @@
+{
+  "id": "subcoord130-fin28-exact225-root-go-20261031",
+  "to": "codex",
+  "body": "ROOT review GO exactHEAD22509f9d891a32869d2952b2d14cae4a01bbca9d sobre BASEc11dcebe7d19c0e8588b6404db8880195fe4511a. Scope7, rebase3 commits conserva beta193 y ambos mapas. Review independiente nueva GO_STATIC sin hallazgos, pruebas propias exact225: DOM15 de una corrida sin skip/flaky/retry, Node17/syntax/i18n/map EXIT0; inputs Git/working/artifacts y evidencias exactos. No reruns. Solo titular fin28-pr324-rebase-r129-codex-20261028 puede actualizar MISMA PR324 DRAFT contra beta al exact225 mediante force-with-lease limitado a refs/heads/codex/fin28-r128-fda31257-0494 con remoto esperado293b323de52a2a228811be532ceba01b0e062f93. Antes comprobar en vivo remoto293 y beta c11dcebe; si difieren parar. Requiere FULL/readback/ACK propios antes de actuar. No fuerza ciega ni otra rama, merge, main/beta, despliegue. Integracion Claude; ProductREADY false.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261028-r130-fda31257-4f8ab527-6ddf-45c2-96b1-b83d48e30b32",
+  "createdAt": "2026-10-31T01:03:11.284Z"
+}
