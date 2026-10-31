@@ -6226,8 +6226,8 @@ test("Catálogo195 añade la tanda del aviso al vincular un cargo a mano (solo w
   assert.deepEqual(resto,esperados,"el registro anterior, intacto salvo las dependencias nuevas de la consulta del aviso");
   for(const id of Object.keys(integrated))if(!cambian.includes(id))assert.deepEqual(resto[id],integrated[id],id+": no cambia");
   assert.deepEqual(Object.keys(ahora),["web","unidades"],"solo web");assert.equal(ahora.unidades,true);
-  const propias=[{file:P8,function:"fixedPaymentManualLinkWarnings"},{file:P14,function:"ReciboFicha"},{file:P4,from:"    const save=function(confirmedWarnings){",to:"      let subir=null;"},{file:P4,from:"    const warnings=f?fixedPaymentManualLinkWarnings(state,ex,f,y,m,today):[];",to:"  // Marca/desmarca un gasto como \"no tarjeta\""}];
-  assert.deepEqual(ahora.web.slice(0,propias.length),propias,"las unidades web propias: la consulta del motor, la ficha del recibo en Plan y los dos puntos de Gastos que enlazan a mano");
+  const propias=[{file:P8,function:"fixedPaymentManualLinkWarnings"},{file:P14,function:"ReciboFicha"},{file:P4,from:"    const save=function(confirmedWarnings){",to:"      let subir=null;"},{file:P4,from:"    const warnings=f?fixedPaymentManualLinkWarnings(state,ex,f,y,m,today):[];",to:"  // Marca/desmarca un gasto como \"no tarjeta\""},{file:"src/modules/11-app-main.js",from:"  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",to:"  // INC-0410 guardado: límite."}];
+  assert.deepEqual(ahora.web.slice(0,propias.length),propias,"las unidades web propias: la consulta del motor, la ficha del recibo en Plan, los dos puntos de Gastos que enlazan a mano y el bloque del guardado (escriben con el set real)");
   {const fns=logicFunctions(source),dat=logicData(source);let web=propias.slice();
     for(let ronda=0;ronda<12;ronda++){
       const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];
@@ -10504,7 +10504,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   const marca="INC-0410 guardado: de aquí al límite";
   const dependientes=Object.keys(registro).filter(id=>registro[id].web.some(x=>x.from&&x.from.includes(marca)));
   const ajenas=Object.keys(registro).filter(id=>!dependientes.includes(id));
-  assert.equal(dependientes.length,78);assert.ok(dependientes.includes("plan-recibos-t3"),"la nómina editable (patchFlowById), corregir saldo y la importación de TR escriben con el set real: «¿Te llega?» lleva el bloque del guardado");
+  assert.equal(dependientes.length,79);assert.ok(dependientes.includes("plan-recibos-t3"),"la nómina editable (patchFlowById), corregir saldo y la importación de TR escriben con el set real: «¿Te llega?» lleva el bloque del guardado");
   for(const id of ["deudas-metas-hoja-edicion","deudas-plazo-cuota-encaja","deudas-metas-hoja-cierre-suave","fichas-cierre-suave-atras","gastos-suscripciones-botones"])assert.ok(dependientes.includes(id),id+": las hojas de Deudas y Metas y SubRow escriben estado con el set real y llevan el bloque del guardado");
   assert.ok(dependientes.includes("myinvestor-contador-a-cero"),"la sincronización de brókers de App escribe posiciones con el set real y lleva el bloque del guardado");
   assert.ok(dependientes.includes("compras-identicas-ids"),"las compras idénticas fusionan filas y guardan lápidas con el set real y llevan el bloque del guardado");
@@ -10537,6 +10537,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   assert.ok(dependientes.includes("tr-iguales-ordinal"),"el sync, el borrado a mano y el histórico guardan vínculos y filas con el set real");
   assert.ok(dependientes.includes("inicio-patrimonio-flujos"),"las fotos de bienes e inversión de la unidad nueva escriben con el set real");
   assert.ok(dependientes.includes("bancos-acuse-reconexion"),"el acuse se guarda detrás de las filas que escribe el set real");
+  assert.ok(dependientes.includes("fin28-aviso-enlace-manual"),"vincular un cargo a un recibo (Gastos y la ficha del recibo en Plan) escribe con el set real: el aviso del parecido lleva el bloque del guardado");
   assert.ok(dependientes.includes("recibos-cargo-unico"),"mover el día de un recibo o vincular su cargo escribe con el set real");
   assert.ok(dependientes.includes("widget-ciclo-puente"),"el widget corregido lee gastos con el set real");
   assert.ok(dependientes.includes("bancos-sin-hueco"),"el sync de bancos escribe estado con el set real");
