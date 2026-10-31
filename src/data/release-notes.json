@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.26.195",
+    "d": "2026-10-31",
+    "t": {
+      "es": "Vincular cargos a recibos",
+      "en": "Linking charges to bills",
+      "ca": "Vincular càrrecs a rebuts"
+    },
+    "items": {
+      "es": [
+        "Al vincular a mano un cargo con un recibo, la app avisa si parece el mismo cargo que ya paga otro recibo y pide confirmar que es otro pago."
+      ],
+      "en": [
+        "When you link a charge to a bill by hand, the app warns you if it looks like the same charge that already pays another bill, and asks you to confirm it is another payment."
+      ],
+      "ca": [
+        "En vincular a mà un càrrec amb un rebut, l’app avisa si sembla el mateix càrrec que ja paga un altre rebut i demana confirmar que és un altre pagament."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "fin28-aviso-enlace-manual",
+        "t": {
+          "es": "Gastos: vincular un cargo a un recibo",
+          "en": "Spending: link a charge to a bill",
+          "ca": "Despeses: vincular un càrrec a un rebut"
+        },
+        "items": {
+          "es": [
+            "1. Gastos → abre un cargo que no sea de un recibo → «Paga un recibo» → elige uno pendiente. BIEN: pide «Confirmar pago completo»; al confirmar, el recibo queda pagado y el cargo conserva su importe y su banco; «Deshacer vínculo» devuelve el recibo a pendiente. MAL: no deja vincular, o el cargo cambia de importe o de banco.",
+            "2. Solo si tienes dos recibos del mismo importe en el mismo banco con cargos a pocos días de diferencia: vincula el segundo cargo al segundo recibo. BIEN: avisa «Puede ser el mismo cargo que …» y solo sigue con «Es otro pago»; cancelar no cambia nada. MAL: vincula sin avisar un cargo que ya paga otro recibo, o avisa sin que haya otro cargo igual. Si no tienes un caso así, salta este paso."
+          ],
+          "en": [
+            "1. Spending → open a charge that does not belong to a bill → “Pays a bill” → pick a pending one. RIGHT: it asks “Confirm full payment”; once confirmed, the bill is paid and the charge keeps its amount and bank; “Undo link” puts the bill back to pending. WRONG: it will not let you link, or the charge changes amount or bank.",
+            "2. Only if you have two bills of the same amount at the same bank with charges a few days apart: link the second charge to the second bill. RIGHT: it warns “This may be the same charge as …” and only goes on with “It is another payment”; cancelling changes nothing. WRONG: it links without warning a charge that already pays another bill, or warns when there is no equal charge. If you have no such case, skip this step."
+          ],
+          "ca": [
+            "1. Despeses → obre un càrrec que no sigui d’un rebut → «Paga un rebut» → tria’n un de pendent. BÉ: demana «Confirmar pagament complet»; en confirmar, el rebut queda pagat i el càrrec conserva l’import i el banc; «Desfer vincle» torna el rebut a pendent. MALAMENT: no deixa vincular, o el càrrec canvia d’import o de banc.",
+            "2. Només si tens dos rebuts del mateix import al mateix banc amb càrrecs a pocs dies de diferència: vincula el segon càrrec al segon rebut. BÉ: avisa «Pot ser el mateix càrrec que …» i només continua amb «És un altre pagament»; cancel·lar no canvia res. MALAMENT: vincula sense avisar un càrrec que ja paga un altre rebut, o avisa sense que hi hagi un altre càrrec igual. Si no tens un cas així, salta aquest pas."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.194",
     "d": "2026-10-31",
     "t": {

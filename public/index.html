@@ -7557,6 +7557,7 @@ const LANG = {
     f_receipt_none:"No hay recibos pendientes de ese mes que puedan vincularse a este cargo.", f_receipt_diag:"Copiar diagnóstico",
     f_receipt_confirm:"Confirmar pago de {name}", f_receipt_confirm_sub:"Cargo: {merchant} · {amount} · {bank} · {date}. Previsto: {expected} · {planned}. Confirma solo si este cargo paga el recibo completo, aunque el importe haya variado. Si es parcial, cancela. El importe previsto, el saldo y el presupuesto se conservan.",
     f_receipt_yes:"Confirmar pago completo", f_receipt_unlink:"Deshacer vínculo",
+    f_receipt_possible_same:"Puede ser el mismo cargo que {name} del {date}", f_receipt_other_payment:"Es otro pago",
     f_recibo_marca:"Es el cargo de tu recibo «{name}»: ya está contado en tu Plan y aquí no suma otra vez.", f_recibo_quiza:"Parece el cargo de tu recibo «{name}»: por eso aquí no suma otra vez. Si no lo es, dilo y contará como un gasto más.", f_recibo_no:"No es este recibo", f_recibo_si:"Sí, es este recibo",
     f_from_bank:"Lo trajo una notificación de {bank}", f_from_bank_sub:"{date} · «{raw}» · el banco fija el importe y la cuenta",
     f_trace_missing:"— texto original no disponible",
@@ -13493,8 +13494,18 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     const today=y===now.getFullYear()&&m===now.getMonth()+1?now.getDate():new Date(y,m,0).getDate();
     const f=(state.fixed||[]).find(function(x){ return x.id===fixedId; });
     const expected={identity:fixedPaymentIdentity(expenseBankOf(ex),ex),model:f&&fixedPaymentModel(f,m),paidYm:f&&f.paidYm,paidDay:f&&f.paidDay};
-    const save=function(){
+    const save=function(confirmedWarnings){
       if(withdrawalPending.current[ex.id]){ showToast(t("f_withdraw_receipt_pending")); return; }
+      if(fixedId!=null){
+        const live=withdrawalState.current,cur=(live.fixed||[]).find(function(f){return f.id===fixedId;}),x=(live.expenses||[]).find(function(x){return x&&x.id===ex.id;});
+        const warnings=fixedPaymentManualLinkWarnings(live,x,cur,y,m,today),signature=JSON.stringify(warnings);
+        // Un BOOK que llega ANTES de enlazar todavía necesita el segundo toque explícito.
+        if(warnings.length&&signature!==confirmedWarnings){
+          askConfirm({title:tf("f_receipt_confirm",{name:cur.name}),
+            sub:React.createElement("span",{"data-testid":"receipt-manual-link-warning"},warnings.map(function(w){return tf("f_receipt_possible_same",{name:w.name,date:fmtIsoCorto(w.date)});}).join(" · ")),
+            ok:t("f_receipt_other_payment")}).then(function(yes){if(yes) save(signature);});return;
+        }
+      }
       let subir=null;
       // El diálogo es asíncrono: otra sincronización puede sustituir el cargo o editar el recibo.
       set(function(s){
@@ -13516,9 +13527,11 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
        de verdad (`admiteMarcaDe`): con el recibo movido a otro banco no vuelve. */
     const repone=!!de&&reciboNoDe(state,fixedId,reciboNoIdentidad(ex),ex.id).length>0&&admiteMarcaDe(ex,de);
     if(!f&&!repone) return;
+    const warnings=f?fixedPaymentManualLinkWarnings(state,ex,f,y,m,today):[];
+    const sub=repone?tf("f_recibo_marca",{name:de.name}):tf("f_receipt_confirm_sub",{merchant:ex.merchant,amount:eur(ex.amount),bank:entOf(expenseBankOf(ex)).label,date:fmtIsoCorto(ds),planned:entOf(accOf(f)).label,expected:eur(f.bankAmount>0?f.bankAmount:occAmountIn(f,m))});
     askConfirm({title:tf("f_receipt_confirm",{name:de.name}),
-      sub:repone?tf("f_recibo_marca",{name:de.name}):tf("f_receipt_confirm_sub",{merchant:ex.merchant,amount:eur(ex.amount),bank:entOf(expenseBankOf(ex)).label,date:fmtIsoCorto(ds),planned:entOf(accOf(f)).label,expected:eur(f.bankAmount>0?f.bankAmount:occAmountIn(f,m))}),
-      ok:t("f_receipt_yes")}).then(function(yes){ if(yes) save(); });
+      sub:warnings.length?React.createElement("span",null,sub,React.createElement("span",{style:{display:"block"},"data-testid":"receipt-manual-link-warning"},warnings.map(function(w){ return tf("f_receipt_possible_same",{name:w.name,date:fmtIsoCorto(w.date)}); }).join(" · "))):sub,
+      ok:t(warnings.length?"f_receipt_other_payment":"f_receipt_yes")}).then(function(yes){ if(yes) save(JSON.stringify(warnings)); });
   };
   // Marca/desmarca un gasto como "no tarjeta" (bizum/transferencia) para que no cuente el round-up TR.
   const setCardFlag=function(ex,noCard){
@@ -18768,6 +18781,42 @@ function fixedPaymentChargeOwner(s,x,e,y,m,today){
    si además bloqueaba el enlace a mano, el cargo real no había forma de confirmarlo (INC-1810-04,
    YouTube Premium, rechazo de beta 4.26.145). */
 function fixedPaymentEvidence(st){ return !!(st&&(st.proof||st.bankTx||st.expense)); }
+/* FIN28: parecido sin referencia solo pide una decisión al enlazar A MANO. Se consulta el
+   pago que acredita OTRO recibo; nunca entra en identidad, elegibilidad ni pruebas guardadas. */
+function fixedPaymentManualLinkWarnings(s,x,e,y,m,today){
+  if(!x||!e||x.extId!=null&&String(x.extId)!==""||
+    !isManualExpenseSource(x.source)&&["wallet","macrodroid"].indexOf(x.source)<0||
+    !fixedExpenseEligible(s,x,e,y,m,today)||fixedPaymentEvidence(fixedPaymentState(s,e,y,m,today))) return [];
+  var bank=expenseBankOf(x),cents=Math.round(Number(x.amount)*100),warnings=[],seen=new Set(),now=madridYmdParts(Date.now()),cur=now.y*12+now.m;
+  var day=function(date){ var ds=String(date||"").slice(0,10);return /^\d{4}-\d{2}-\d{2}$/.test(ds)?Date.parse(ds+"T00:00:00Z"):NaN; };
+  (s.fixed||[]).forEach(function(f){
+    if(f.id===e.id) return;
+    // La ventana bancaria puede cruzar el mes; FIN27 conserva además el mes de su cargo.
+    [y*12+m-1,y*12+m,y*12+m+1].forEach(function(ym){
+    if(ym>cur) return;
+    var Y=Math.floor((ym-1)/12),M=ym-Y*12,T=ym===y*12+m?today:ym===cur?now.d:new Date(Y,M,0).getDate();
+    var st=fixedPaymentState(s,f,Y,M,T),p=st.proof,b=null,ref=null;
+    if(p&&p.kind==="book"){
+      b=p;ref=p.key&&p.key.indexOf(p.bank+"|")===0?p.key.slice(p.bank.length+1):null;
+    } else {
+      var row=st.expense;
+      if(p&&p.kind==="expense"){
+        var rows=(s.expenses||[]).filter(function(r){ return r&&fixedPaymentIdentity(expenseBankOf(r),r)===p.identity&&(!p.expenseId||r.id===p.expenseId); });
+        row=rows.length===1?rows[0]:null;
+      } else if(!p&&st.bankTx){ b=fixedPaymentBookRecord(st.bankTx);ref=st.bankTx.id; }
+      if(!b&&row&&["ob","ob-hist"].indexOf(row.source)>=0&&String(row.status||"").toUpperCase()==="BOOK"){
+        b={bank:expenseBankOf(row),date:row.date,amount:row.amount};ref=row.extId;
+      }
+    }
+    if(!b||ref==null||String(ref)===""||b.bank!==bank||Math.round(Number(b.amount)*100)!==cents||
+      !(Math.abs(day(b.date)-day(x.date))<=4*864e5)) return;
+    var date=String(b.date).slice(0,10),key=JSON.stringify([f.id,bank,String(ref),date]);
+    if(!seen.has(key)){seen.add(key);warnings.push({receiptId:f.id,name:f.name||"",date:date});}
+    });
+  });
+  // Orden de presentación estable: no adjudica cargos ni elige una identidad entre BOOK iguales.
+  return warnings.sort(function(a,b){ var A=a.date+"|"+a.receiptId,B=b.date+"|"+b.receiptId;return A<B?-1:A>B?1:0; });
+}
 /* Un recibo en pausa no cuenta en el mes… salvo que esté pagado: si el banco lo cobró igual,
    es un pago de verdad y se enseña y se descuenta como cualquier otro. Así «Pausar» con el
    recibo ya pagado tampoco lo saca del mes (SPEC §2.6.1). Solo lee el estado del pago si hay
@@ -26974,7 +27023,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="2b1a595a3e83b48dd6d8628e3feca0de3d9f3d742c84ea4ca6c57a388e599fbc";
+var _rnSha="cad1347d6a8f55e1f7ca555f46b9d5ecf0fd654694687a8be368fa74978d3fa8";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -29490,6 +29539,11 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
   const [gone,setGone]=useState(false);       // «Ya no lo tengo» pide un segundo toque
   const [rechazo,setRechazo]=useState(false); // vino de «No es este recibo»
   const [elegido,setElegido]=useState(null);
+  const linkLive=useRef(true);
+  const linkState=useRef(state);linkState.current=state;
+  const [linkPending,setLinkPending]=useState(null);
+  const linkSerial=useRef(0),linkHandled=useRef(0);
+  useEffect(function(){ linkLive.current=true;return function(){ linkLive.current=false; }; },[]);
   const [otros,setOtros]=useState(false);
   const [q,setQ]=useState("");
   useBackClose(paso===1,function(){ setPaso(0); });
@@ -29500,6 +29554,23 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
   const oneoffId=/^oneoff_/.test(String(row.id))?String(row.id).slice(7):null;
   const f=fixedId!=null?(state.fixed||[]).find(function(e){ return String(e.id)===fixedId; }):null;
   const st=useMemo(function(){ return f?fixedPaymentState(state,f,y,m,today):null; },[state,f,y,m,today]);
+  useEffect(function(){
+    // Si el padre rechaza el updater, el mismo estado también debe cerrar con el aviso de fallo.
+    if(!linkPending||linkHandled.current===linkPending.serial) return;
+    linkHandled.current=linkPending.serial;setLinkPending(null);
+    const cur=(state.fixed||[]).find(function(e){ return e.id===linkPending.fixedId; });
+    const x=(state.expenses||[]).find(function(e){return e&&e.id===linkPending.expenseId;});
+    const p=cur&&fixedPaymentProof(state,cur,y,m,today);
+    const restored=linkPending.subirRows.every(function(row){const e=(state.expenses||[]).find(function(x){return x&&x.id===row.id;});return e&&fixedPaymentIdentity(expenseBankOf(e),e)===row.identity&&(e.reciboId||null)===row.reciboId;});
+    // Reponer un veto también puede recuperar solo la marca o el BOOK, sin crear una proof.
+    const ok=!!cur&&!!x&&fixedPaymentModel(cur,m)===linkPending.model&&fixedPaymentIdentity(expenseBankOf(x),x)===linkPending.identity&&restored&&
+      (linkPending.proof?!!p&&JSON.stringify(p)===JSON.stringify(linkPending.proof):
+        !reciboNoDe(state,cur.id,reciboNoIdentidad(x),x.id).length&&(reciboPagadoCon(fixedPaymentState(state,cur,y,m,today))||null)===linkPending.paymentIdentity);
+    // El Ask puede durar: solo el estado comprometido permite anunciar o subir el enlace.
+    if(ok&&cloud.enabled()) linkPending.subirRows.forEach(function(row){const e=(state.expenses||[]).find(function(x){return x&&x.id===row.id;});if(e) cloud.setExpenseRecibo(e).catch(function(){});});
+    if(showToast) showToast(ok?tf("pr6_pagado_toast",{name:row.name}):t("pr6_link_fail"));
+    swipe.close();
+  },[state,linkPending,y,m,today]);
   const confirmado=row.paid&&evidence.confirmed[row.id]!==false;
   const fila=useMemo(function(){ return f&&confirmado?reciboCargoFila(state,evidence,f.id):null; },[state,evidence,f,confirmado]);
   const desenlace=useMemo(function(){
@@ -29558,11 +29629,27 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
         if(r&&r.e) subir.push(r.e);
         return {state:n,subir:subir};
       };
-      const prueba=enlaza(state);
-      if(prueba) set(function(s){ const r=enlaza(s); return r?r.state:s; });
-      if(prueba&&cloud.enabled()) prueba.subir.forEach(function(e){ cloud.setExpenseRecibo(e).catch(function(){}); });
-      if(showToast) showToast(prueba?tf("pr6_pagado_toast",{name:row.name}):t("pr6_link_fail"));
-      swipe.close();
+      const apply=function(confirmedWarnings){
+        if(!linkLive.current) return;
+        let live=linkState.current;
+        if(rechazo&&fila){const u=reciboDesenlazar(live,f,fila,y,m,today);if(u)live=u.state;}
+        const cur=(live.fixed||[]).find(function(e){return e.id===f.id;}),cargo=(live.expenses||[]).find(function(e){return e&&e.id===x.id;});
+        const warnings=fixedPaymentManualLinkWarnings(live,cargo,cur,y,m,today),signature=JSON.stringify(warnings);
+        // La confirmación responde al aviso vivo, también si otra sincronización añade un BOOK.
+        if(warnings.length&&signature!==confirmedWarnings){
+          askConfirm({title:tf("f_receipt_confirm",{name:cur.name}),
+            sub:React.createElement("span",{"data-testid":"receipt-manual-link-warning"},warnings.map(function(w){return tf("f_receipt_possible_same",{name:w.name,date:fmtIsoCorto(w.date)});}).join(" · ")),
+            ok:t("f_receipt_other_payment")}).then(function(yes){if(yes) apply(signature);else if(linkLive.current)setElegido(null);});return;
+        }
+        const prueba=enlaza(linkState.current);
+        if(!prueba){if(showToast) showToast(t("pr6_link_fail"));swipe.close();return;}
+        const linked=(prueba.state.fixed||[]).find(function(e){return e.id===f.id;});
+        setLinkPending({serial:++linkSerial.current,fixedId:f.id,expenseId:x.id,identity:fixedPaymentIdentity(expenseBankOf(x),x),model:fixedPaymentModel(f,m),
+          proof:linked.paymentProofs&&linked.paymentProofs[y*12+m]||null,paymentIdentity:reciboPagadoCon(fixedPaymentState(prueba.state,linked,y,m,today))||null,
+          subirRows:prueba.subir.map(function(e){return {id:e.id,identity:fixedPaymentIdentity(expenseBankOf(e),e),reciboId:e.reciboId||null};})});
+        set(function(s){ const r=enlaza(s); return r?r.state:s; });
+      };
+      apply();
     },260);
   };
   const aunNo=function(){
