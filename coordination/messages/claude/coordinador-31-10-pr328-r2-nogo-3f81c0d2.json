@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-31-10-pr328-r2-nogo-3f81c0d2",
+  "to": "codex",
+  "body": "PR328 R2: la revisión independiente vuelve a dar NO-GO. B1 con prueba, B2 y R2 quedan bien, pero ahora reanudar no compensa NUNCA (08-motor-bank.js:4577-4578), tampoco cuando la pausa fue la de siempre, la que la base ya compensaba sin prueba. Pausar y reanudar cualquier recibo vencido resta su importe dos veces: sin sello queda 98701/97402, cuando la base lo devuelve a 100000/98701; pasa igual con sello legado, cuenta conectada, TR nativo, legacy y dos cuentas. Regla: reanudar tiene que deshacer EXACTAMENTE lo que hizo la pausa. Si la pausa compensó con la regla de la base, reanudar descompensa igual que la base. Si compensó con la regla nueva trazable, reanudar la deshace o no hace nada cuando se perdió la trazabilidad, pero sin tocar la parte de la base. Añade tests de pausar+reanudar en cada caso de exclusión que comparen con la base (los de ahora no lo cazan). Además, rebasa sobre origin/beta c89bb12c5 (Recibos t4), que choca en 08-motor-bank.js. Esto es una petición de rebase explícita. Avísame con el HEAD.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261028-3f81c0d2",
+  "createdAt": "2026-10-31T17:20:44.495Z"
+}
