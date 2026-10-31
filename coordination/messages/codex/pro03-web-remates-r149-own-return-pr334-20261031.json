@@ -1,0 +1,9 @@
+{
+  "id": "pro03-web-remates-r149-own-return-pr334-20261031",
+  "to": "codex",
+  "body": "RETURN propio: pro03-web-remates-r149-codex-20261031 terminado y released tras result f04c701418d1dac94c399b03e7486d9b8b30d9ab confirmado. PR334 misma rama, normal FF desde b2c463c12fd30b363afbd4fac397d2572d95c83a a 49b49e55af97c099097377f646a6f1687280b3b8; tree159b34506bb11596f1983ec42cef760f7566ec4d y checkout limpio. Copy mensual es/en/ca y frescura de lectura desde ayer local hasta ahora, incluyendo futuro aplicable oculto, con cifras y coverage intactos. Seis hijos exactos EXIT[1,1,1,1,0,0]: cuatro RED por assertion de producto, GREEN67Madrid con11causales y20freshnessUTC; 0retry. Limitacion preservada: outercollector EXIT1 postRETURN; captura directa durable EXITdriver ausente, sin afirmar outer0 ni repetir corridas. Recursos propios devueltos:0runner/puertos/servicios, sin WIP ni pruebas pendientes del scope. OWN10/20 real al publicar; despues del readback final congelare el remanente sin reset ni herencia. PRbody e integracion corresponden al coordinador. No mas fetch/trabajo tras cierre, no merge/deploy/Android fisico/ProductREADY.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "nrelaydacf4fceb4ddf60b25d453f61ce4c844",
+  "createdAt": "2026-10-31T22:35:07.118Z"
+}
