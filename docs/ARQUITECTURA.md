@@ -184,6 +184,19 @@ importe ni día no toca `soloMes` de este mes. Un mes pagado que el recibo nuevo
 como suyo; sin año manda el calendario nuevo. «Solo este mes» guarda lo tecleado como cargo de
 ese mes, también en un anual repartido.
 
+Con el mes pagado por una prueba persistida válida (`fixedPaymentProof` o `paidYm` con día válido),
+guardar un importe equivalente en céntimos y un día equivalente según `cleanDay` conserva los
+valores del recibo anterior en las dos rutas de edición. La mera presencia de `day` en el parche
+no recalcula la marca: un BOOK persistido no se convierte en `paidYm` por guardar lo mismo.
+Así conserva «Pagado, aún sin restar del saldo» y el recorrido pendiente. Un BOOK recién llegado
+en el feed, sin prueba persistida reconocida, conserva el recálculo anterior, también con `wait`
+de este mes; ver un cargo o una notificación en `fixedPaymentState` no los hace persistidos.
+Los cambios reales de importe o día mantienen su contrato anterior; esta corrección no redefine
+cuándo un pago bancario está incluido en el saldo ni repara marcas escritas por otros clientes.
+Con `day` presente se conserva el recálculo previo si cambia el día global, el día efectivo o
+el importe efectivo del mes: un mes pagado congelado no oculta el cambio global, y retirar un
+override de «Solo este mes» tampoco equivale a guardar el mismo cargo.
+
 Un cliente viejo (la primera apertura tras el OTA, mientras el Service Worker sirve el bundle
 anterior) ignora `soloMes`: en el mes de «Solo este mes» ve el importe del recibo (real, pero no
 el que se puso). Tras «Desde ahora» con meses pagados por BOOK compara el BOOK con el importe
