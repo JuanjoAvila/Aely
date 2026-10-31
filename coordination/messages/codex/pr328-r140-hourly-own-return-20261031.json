@@ -1,0 +1,9 @@
+{
+  "id": "pr328-r140-hourly-own-return-20261031",
+  "to": "codex",
+  "body": "RETURN propio para relevo horario PR328. Result cedd5f9793cdef6161d97026dcc1fa866197671a blocked/released confirmado tras espera minima30s. Contador real5/20 antes de este envio; tras readback final se conserva contador real y se congelan remanentes no transferibles. CERO tests, build, runner ENTER, procesos de prueba, servidores, puertos o recursos runner adquiridos: no hay reserva ajena que devolver. Checkout y rama privados siguen en HEAD555fe, sin commit ni push de producto. Tres WIP de reparacion sin validar, anotacion PR330 aparcada en BACKLOG y dos propuestas privadas de runner preservados en patch completo, copias y manifest durables; originales intactos. Espera por prioridad UX17 conservada; permiso e2e permanente757ac34f no autoriza ejecutar ahora. Sucesor necesita nuevo task, identidad, recepcion, admision, OWN y claim propios; ningun recurso, contador, permiso dependiente de identidad o resultado se hereda. Primer ENTER de reparacion sigue sin confirmacion exacta. Solo el coordinador actual decide orden y reporta a Claude; sin nueva PR, rebase, integracion ni entrega humana.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261031-pr328-r140-nrelay54ed6f7db83bddc339e8f703778da600",
+  "createdAt": "2026-10-31T13:44:28.714Z"
+}
