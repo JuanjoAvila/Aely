@@ -76,7 +76,8 @@ for(const lang of ["es","en","ca"]){
   });
   test(lang+": cargo vinculado antes del vencimiento desaparece de pendiente y proyección, también al reabrir",async({page})=>{
     await open(page,lang);
-    await expect(page.locator('.page-scroll-host .v4-charge').filter({hasText:debt.name})).toHaveCount(0);
+    // Solo los de este mes: con todo pagado, Inicio enseña los del que viene (31/10/2026).
+    await expect(page.locator('.page-scroll-host .v4-section:not([data-mes="siguiente"]) .v4-charge').filter({hasText:debt.name})).toHaveCount(0);
     await page.locator('.botnav-tab[data-tour="gastos"]').click();
     // Gastos v5: el cargo vinculado vive en la fila gris de cuotas («no cuentan»: ya cuenta en el Plan).
     const row=await gastosGrisFila(page,cargo.merchant);
