@@ -1347,6 +1347,10 @@
   .gx-sec.on{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
   .gx-sec-globo{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;padding:0 4px;box-sizing:border-box;border-radius:9px;
     background:var(--tan);color:var(--on-mint);font:800 11px 'Manrope',sans-serif;display:flex;align-items:center;justify-content:center;}
+  .gx-filter-btn{position:relative;flex:0 0 46px;width:46px;height:46px;padding:0;border-radius:23px;box-sizing:border-box;
+    display:flex;align-items:center;justify-content:center;border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer;}
+  .gx-filter-btn.on{border-color:var(--mint-deep);background:color-mix(in srgb,var(--mint) 16%,var(--surface));color:var(--mint);}
+  .gx-filter-btn:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}
   /* Categorías (SPEC §5): la lista en una tarjeta, cada fila con su barra. */
   .gx-cats{display:flex;flex-direction:column;gap:14px;padding-top:8px;}
   .gx-cats-lista{background:var(--surface);border-radius:22px;padding:6px 0;}

@@ -328,7 +328,7 @@ export async function gastosSeccion(page, id) {
 }
 /** Abre y cierra la hoja de Filtros de Gastos (ahí viven el periodo, la ayuda de Mi ciclo y el Rango). */
 export async function gastosAbreFiltros(page) {
-  await gastosRoot(page).locator("button.v4-chip").filter({ hasText: "🎛️" }).first().click();
+  await gastosRoot(page).getByTestId("gastos-filtros").click();
   await expect(page.locator(".v4-gastos-filter-sheet")).toBeVisible();
 }
 export async function gastosCierraFiltros(page) {

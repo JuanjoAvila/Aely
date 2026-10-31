@@ -334,7 +334,7 @@ for(const scenario of [{kind:"debt",how:"back"},{kind:"debt",how:"x"},{kind:"deb
  const {kind,how}=scenario;
  await open(page,"es",reviewRows,true);if(kind==="goal")await page.getByRole("tab",{name:"Metas",exact:true}).click();
  if(kind==="apuntar")await page.locator(".botnav-fab").evaluate(b=>b.click());
- else if(kind==="filtros"){await page.locator('.botnav-tab[data-tour="gastos"]').click();await page.locator("button.v4-chip").filter({hasText:"🎛️"}).first().evaluate(b=>b.click());}
+ else if(kind==="filtros"){await page.locator('.botnav-tab[data-tour="gastos"]').click();await page.locator('.page-scroll-host .gx-root').getByTestId("gastos-filtros").evaluate(b=>b.click());}
  else await page.locator(kind==="debt"?'[data-debt-id="debt"] .plan-item-open':'[data-goal-id="goal"] .plan-item-open').evaluate(b=>b.click());
  await page.waitForFunction(()=>{const el=document.querySelector(".v4-sheet");return !!el&&getComputedStyle(el).transform==="none";},null,{timeout:10000});
  await page.waitForTimeout(150);

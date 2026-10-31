@@ -36,7 +36,7 @@ async function abreGastos(page) {
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   // El filtro de banco arranca en la cuenta diaria; para ver los cuatro cajones hace falta todo.
-  await page.locator('button.v4-chip[title="Filtros"], button.v4-chip:has-text("🎛️")').first().click();
+  await page.locator('.page-scroll-host .gx-root').getByTestId("gastos-filtros").click();
   await page.locator('.v4-sheet button.v4-chip:has-text("Todos los bancos")').click();
   await cierraSheet(page);
 }
@@ -86,7 +86,7 @@ test("el filtro «Qué contar» deja ver un cajón a solas", async ({ page }) =>
   await expect(lista(page)).toHaveCount(3);
   await expect(grisInv(page)).toHaveCount(1);
 
-  await page.locator('button.v4-chip:has-text("🎛️")').first().click();
+  await page.locator('.page-scroll-host .gx-root').getByTestId("gastos-filtros").click();
   await page.locator('.v4-sheet button.v4-chip:has-text("Inversión y traspasos")').click();
   await cierraSheet(page);
 
@@ -98,7 +98,7 @@ test("Categorías usa las mismas fichas de Apuntar y permite elegir varias", asy
   await seedLoggedInDashboard(page, { accounts, settings, expenses, budget: 1000 });
   await abreGastos(page);
 
-  await page.locator('button.v4-chip:has-text("🎛️")').first().click();
+  await page.locator('.page-scroll-host .gx-root').getByTestId("gastos-filtros").click();
   const toggle=page.locator(".v4-gastos-filter-sheet .v4-filter-cats-toggle");
   await expect(toggle).toHaveAttribute("aria-expanded","false");
   await toggle.click();
@@ -268,7 +268,7 @@ test("y se puede volver a verlo todo sin dejar el filtro pegado", async ({ page 
   await seedLoggedInDashboard(page, { accounts, settings, expenses, budget: 1000 });
   await abreGastos(page);
 
-  await page.locator('button.v4-chip:has-text("🎛️")').first().click();
+  await page.locator('.page-scroll-host .gx-root').getByTestId("gastos-filtros").click();
   await page.locator('.v4-sheet button.v4-chip:has-text("Ingresos")').click();
   await cierraSheet(page);
   await expect(lista(page)).toHaveCount(1);
@@ -280,7 +280,7 @@ test("y se puede volver a verlo todo sin dejar el filtro pegado", async ({ page 
   await expect(grisInv(page)).toHaveCount(1);
   await expect(fila(page, "RECIBO ENDESA")).toHaveCount(0);
 
-  await page.locator('button.v4-chip:has-text("🎛️")').first().click();
+  await page.locator('.page-scroll-host .gx-root').getByTestId("gastos-filtros").click();
   await page.locator('.v4-sheet button.v4-chip:has-text("Todos los bancos")').click();
   await cierraSheet(page);
   await expect(lista(page)).toHaveCount(3);
