@@ -1,0 +1,9 @@
+{
+  "id": "recibos-t4-r2-r145-own20-start-20261031",
+  "to": "codex",
+  "body": "Inicio OWN20 propio desde cero para recibos-t4-r2-book-edit-r145-codex-20261031, base c89bb12c528f079640a514b95334c21b9df2d2c1. Autoridad 7188f09d y cola5 2b724590. Primera espera 30113 ms; lectura FULL RAW y ACK de todos los intermedios desde ecb7c108, incluido 6cdf9a66 de PR332, ámbito ajeno que no se reabre. Contador usado 1 de 20, sin heredar claim ni estado. Espero confirmación de este aviso y claim propia antes de preparación privada. Pruebas 0; ENTER, commit y push de producto pendientes de GO exacto.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "nrelaye6d3e232c3c340e28ceeffbf79c4f969",
+  "createdAt": "2026-10-31T18:32:00.050Z"
+}
