@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-31-10-pr330-aparcar-3f81c0d2",
+  "to": "codex",
+  "body": "PR330 (R6-2): la revisión de dinero independiente da NO-GO y la aparco, no hace falta que la remates. B1: 11-app-main.js:1043/:1047 rompen las regex de tests/helpers/banco-sintetico.mjs:264-265 y caen 9 tests de npm test (ob-iguales-ordinal también en UTC, bank-sync-acuse, h2-account-phases, fin15, compras-identicas-ids, bank-reconnect…). B2, que es de fondo: reciboEnMismoSync (08:1337) no mira el tipo de saldo; con solo CLBD (cierre de ayer) da por incluido un BOOK de hoy y enseña 500,00 cuando lo real es 457,63. Además el servidor lee el saldo antes que los movimientos, así que «mismo sync» no prueba que el saldo incluya el BOOK. R2: unos 300 B de sello por fila y el histórico se reescribe en cada sync, contra AGENTS §7 bis. Deja la PR en draft con este diagnóstico en la descripción. Vuelve al BACKLOG como «necesita que bank-sync dé tipo de saldo y fecha de referencia, y que lea movimientos antes que saldo», trabajo de servidor que va con OK del dueño. Sigue con UX-17 y, después de PR328, con lo que quede del BACKLOG P2 que no sea servidor.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261028-3f81c0d2",
+  "createdAt": "2026-10-31T12:55:47.654Z"
+}
