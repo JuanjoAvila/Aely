@@ -126,6 +126,33 @@ test("seguir tirando abajo no revela la barra oculta; subir contenido sí", asyn
   }).toBe(false);
 });
 
+/* Gastos pagina por scroll: al crecer la lista el motor recoloca `scrollTop` unas decenas de px
+   hacia arriba. Eso no es una subida del dedo y no puede devolver la barra escondida (en CI, con la
+   CPU justa, el test anterior caía por esto mismo). Aquí se fabrica ese salto de forma determinista. */
+test("la lista que crece y recoloca el scroll hacia arriba no devuelve la barra escondida", async ({ page }) => {
+  await seedLoggedInDashboard(page, { expenses: historico(200) });
+  await page.goto("/");
+  await appLista(page);
+  await irAGastosConTodo(page);
+  await scrollear(page, 0);
+  await page.waitForTimeout(1100);
+  await scrollear(page, 1200);
+  await expect.poll(async () => (await estado(page)).hidden).toBe(true);
+  await page.waitForTimeout(400);
+
+  await page.evaluate(() => {
+    const h = document.querySelector(".page.page-scroll-host");
+    const y = h.scrollTop;
+    const relleno = document.createElement("div");
+    relleno.style.cssText = "height:900px";
+    h.appendChild(relleno);          // el contenido crece...
+    h.scrollTop = y - 96;            // ...y el motor recoloca el scroll hacia arriba
+    h.dispatchEvent(new Event("scroll", { bubbles: true }));
+  });
+  await page.waitForTimeout(300);
+  expect((await estado(page)).hidden, "el crecimiento de la lista no es una subida del dedo").toBe(true);
+});
+
 /* Regresión 4.26.97→4.26.132 (14/10/2026): el margen de clip de la barra escondida (30 px para que
    el + salga entero) hacía desplazable el `<html>`. Un fling real hasta el fondo saltaba del host a
    la raíz, la subía 30 px y se paraba en seco: sin ola nativa y con media barra asomando abajo.

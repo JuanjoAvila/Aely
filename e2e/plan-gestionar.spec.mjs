@@ -137,7 +137,7 @@ async function abreTusRecibos(page) {
     await billsBtn.evaluate((el) => el.click());
   } else {
     await page.locator('.botnav-tab[data-tour="plan"]').click();
-    const nombre = await page.evaluate(() => t("v4_gestionar"));
+    const nombre = await page.evaluate(() => t("pr6_todos"));
     await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button", { name: nombre, exact: true }).click();
   }
   await expect(hub(page)).toBeVisible();

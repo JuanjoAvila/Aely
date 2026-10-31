@@ -1,10 +1,16 @@
 import fs from 'node:fs';
+import crypto from 'node:crypto';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {transformSync} from 'esbuild';
 import {environment,section,plain,now,owner,uuid,cents} from './helpers/fin19-r4-fixture.mjs';
-const html=fs.readFileSync(process.env.FIN19_R4_HTML||new URL('../public/index.html',import.meta.url),'utf8');
+const root=new URL('../',import.meta.url),read=p=>fs.readFileSync(new URL(p,root),'utf8');
+const script=JSON.parse(read('src/build-order.json')).map(p=>read('src/modules/'+p)).map(s=>s.endsWith('\n')?s:s+'\n').join('');
+const parts=read('src/shell.html').split('<!--MC_APP_SCRIPT-->');
+assert.equal(parts.length,2,'un solo marcador del ensamblador');
+// Fuente actual literal: el HTML generado anterior no acredita el candidato que se está revisando.
+const html=process.env.FIN19_R4_HTML?fs.readFileSync(process.env.FIN19_R4_HTML,'utf8'):parts[0]+script.trimEnd()+parts[1];
 const source=fs.readFileSync(process.env.FIN19_R4_SERVER||new URL('../supabase/functions/_shared/presupuesto.ts',import.meta.url),'utf8');
 function server(text){const mod={exports:{}};new Function('module','exports',transformSync(text,{loader:'ts',format:'cjs'}).code)(mod,mod.exports);return mod.exports;}
 const srv=server(source);
@@ -24,8 +30,9 @@ async function importDeleted(env,legacy){
 }
 async function scenario({sameBank=false,ordinal=1,manual=false,legacy=false,collision=false}={},reader=srv){
  const a={id:uuid(1),user_id:owner,fecha:'2026-10-19T10:00:00.00'+(ordinal-1)+'Z',importe:3.2,comercio:'BAR SL',cat:'otros',source:'ob:sabadell#refref-a'+(legacy?'':'#accaccount-a')+(ordinal>1?'#n'+ordinal:'')};
- const b={...a,id:uuid(2),comercio:collision?'Mi bar':'Otra compra',source:'ob:'+(sameBank?'sabadell':'caixabank')+'#refref-c#accaccount-c'+(ordinal>1?'#n'+ordinal:'')};
- const rows=[a,b];if(manual)rows.push({...a,id:uuid(3),comercio:'Mi bar',source:'manual:sabadell'});
+ // La colisión de contenido sigue siendo del mismo día; la terna remota necesita instantes distintos.
+ const b={...a,id:uuid(2),fecha:new Date(Date.parse(a.fecha)+1).toISOString(),comercio:collision?'Mi bar':'Otra compra',source:'ob:'+(sameBank?'sabadell':'caixabank')+'#refref-c#accaccount-c'+(ordinal>1?'#n'+ordinal:'')};
+ const rows=[a,b];if(manual)rows.push({...a,id:uuid(3),fecha:new Date(Date.parse(a.fecha)+2).toISOString(),comercio:'Mi bar',source:'manual:sabadell'});
  const env=environment(html,rows,{deleteFails:true});await env.rename(uuid(1),'Mi bar');
  const renamed=plain(env.stateRef.current.expenses.find(e=>e.id===uuid(1)));
  assert.equal(renamed.merchant,'Mi bar');assert.equal(renamed.obName,'BAR SL');
@@ -46,7 +53,8 @@ else{
  cases.push(await scenario({manual:true}));cases.push(await scenario({legacy:true}));
  cases.push(await scenario({collision:true}));cases.push(await scenario({collision:true,sameBank:true}));
 }
-if(process.env.FIN19_R4_EVIDENCE)fs.writeFileSync(process.env.FIN19_R4_EVIDENCE,JSON.stringify({variant:process.env.FIN19_R4_LABEL||'current',cases},null,2)+'\n',{flag:'wx'});
+if(process.env.FIN19_R4_EVIDENCE)fs.writeFileSync(process.env.FIN19_R4_EVIDENCE,JSON.stringify({variant:process.env.FIN19_R4_LABEL||'current',
+ htmlSource:process.env.FIN19_R4_HTML?'explicit-override':'literal-current-modules',htmlSHA256:crypto.createHash('sha256').update(html).digest('hex'),serverSHA256:crypto.createHash('sha256').update(source).digest('hex'),cases},null,2)+'\n',{flag:'wx'});
 test('FIN19 R4 actual rename writer/delete/failed DELETE/persistence/full pull/widget',()=>{
  for(const r of cases){
   const expected=r.manual?640:320;assert.equal(r.deleteCalls,1);assert.equal(r.remote.length,r.manual?3:2);

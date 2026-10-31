@@ -1,3 +1,70 @@
+FIN29/30, candidata local en verificación (28/10/2026):
+`node --test --test-concurrency=1 tests/fin29-30-rename-scope.test.mjs`, registrado
+en `steps`, ensambla módulos y shell literalmente en memoria, sin generados ni
+cambios del extractor FIN19. La versión original fallida
+`31d09ebd56c48b8d3cc8ebd5274aa62808c8e3e8e939af9fff3848e475768170` y todos los
+fallos posteriores se conservan como evidencia privada inmutable.
+La sucesora pasa 28 escenarios: seis fichas con 54 etapas de 640 céntimos,
+tres resultados de DELETE en dos bancos con restauración repetida y 640/320/640,
+dos controles de signo/manual, ocho guardas reales (incluido UPDATE23505 atómico)
+y seis controles de alias nativo JS/TS. Exige filas completas, presupuestos por banco
+y espejo TypeScript. Un RED JS320/TS0 precede al guard TS que replica la clasificación
+macrodroid de ob: con evento y dup/ordinal, conservando OB ordinario y ob-hist.
+El fixture observa el writer real y simula sb.from: distingue llamadas, upserts e
+inserciones, respeta ignoreDuplicates y rechaza UPDATE de terna duplicada antes de
+mutar. Categoría sintética explícita bares evita confundir la autodetección de otros
+al leer BAR SL con pérdida de campos; el fallo previo también queda congelado.
+R4 renamed-widget ahora ensambla la fuente actual y separa sus instantes por +1/+2ms
+dentro del mismo día, sin mover a ni ordinales. Pasa 2/2 con 960 manual/640 colisión
+y el mutante intactos. El fallo anterior de ese spec leía el HTML generado antiguo
+y no acreditaba el candidato actual. Esbuild 0.25.5 existente coincide con el lock;
+se reutiliza sin instalación ni cambios de dependencias.
+Regresión anterior con el fixture nuevo: main1, R4 2, R5/R6 11, R7 28, backfill7,
+R4 counter6 y R5 counter7 pasaron. FIN29_30_EVIDENCE y los overrides/evidencias
+FIN19_R4, FIN19_R5, FIN19_R7 y FIN29_30_BACKFILL conservan fuentes y etapas.
+El RED R8 anterior0/6 queda congelado: el tercer pull perdía noCard y devolvía
+ingreso→traspaso, split/net20000→0, con el signo intacto. La decisión de contrato
+posterior protege los cambios reales de category/noCard mediante expenseEditPending.
+R8 ahora pasa14/14 con fuente literal: los seis originales conservan filas completas,
+54 etapas y cifras; otros ocho comprueban writer real, liberación y autoridad remota
+posterior, confirmación parcial, otro UUID, ACK solo nombre/cero filas/rechazo/DO
+NOTHING y un eco anterior frente a una decisión nueva. No se presembran pendientes.
+La expectativa de fila completa incluye el pendiente real; la de lápidas exige
+alias exacto con hora exacta y ausencia de las antiguas lápidas global y de borrado.
+El primer intento nuevo que descubrió ese oráculo de lápida desactualizado se conserva.
+La revisión independiente detectó además la composición con keepCategoryChoices:
+ni catStale local ni catStale entrante de regla aprendida pueden confirmar categoría.
+Ambas ramas tienen RED sobre el candidato anterior y GREEN con la guarda mínima;
+setCat y rename son callbacks reales y el pull ejecuta la composición completa.
+La regla usa categoría aprendible y un instante remoto corregido +1ms que evita
+prestar la clave anterior desde el contador; los controles previos que no activaban
+la rama se conservan como fallos de fixture/controles negativos, no como RED causal.
+La misma revisión halló seeds con tuple único imposible. Main/R5/R7 usan instantes
+por índice +1ms en el mismo día; el fixture valida la unicidad inicial. El control
+UPDATE23505 conserva el mismo instante y comercios inicialmente distintos para que
+el conflicto nazca del UPDATE real. Se mantienen filas completas, 640/320 y mutantes.
+Pasan55 pruebas afectadas: R8 14, main2 (28 escenarios anteriores y cinco variantes
+de comercio vacío/null/ausente/espacios/ordinario con controles sin alias), R5/R6 11
+y R7 28. La paridad vacía tiene su RED JS0/TS320 antes del fallback Gasto solo en
+el alias TS nuevo. R4 y los demás verdes anteriores se conservan sin repetición.
+Sigue pendiente la revisión financiera independiente del SHA final antes de publicar.
+Node 24 usa tipos nativos y CI Node20 su esbuild existente; un worker,
+offline, cero retries. No acredita servicio remoto, widget desplegado ni móvil.
+
+Debounce nativo por identidad (integrado en la beta 4.26.185 / APK 62, 26/10/2026):
+`node tests/native-event-debounce.test.mjs`, registrado en `scripts/run-tests.mjs`,
+compila el listener completo y `NativeEventDebounce` reales con JDK 21. Android, preferencias,
+reloj y transporte son fronteras sintéticas offline. Puede fijarse `JAVA_HOME`;
+`MC_NATIVE_DEBOUNCE_OUTPUT_DIR` conserva manifest, comandos, stdout/stderr y EXIT.
+Javac y una JVM corren en serie con `ActiveProcessorCount=1`/SerialGC y cero reintentos.
+El RED de la base compila con EXIT 0 y falla en la primera aserción causal: dos eventos
+de igual texto deben admitir dos envíos, pero admite uno. El GREEN usa el mismo arnés
+con el helper de producto: A/B/A, persistencia entre listeners, 179999/180000 ms sin
+renovar duplicados, concurrencia controlada, rollback fail-open, identidad vacía,
+fallback de key/postTime y payload/v1. El tail de hash/transporte/cola/ACK se coteja
+con la base. Estas comprobaciones JVM no acreditan el framework Android ni un móvil;
+la entrega exige APK nueva y aceptación física. RED y GREEN requieren admisiones separadas.
+
 PR315 (26/10): `node scripts/run-deno-tests.mjs supabase/functions/bank-sync/overflow-resume.test.ts`
 ejecuta el guardián del contrato conservado: hasta doce páginas exitosas, con un
 único intento inicial extra si se rechaza el periodo (máximo trece). La ventana de
@@ -748,6 +815,48 @@ de recibos. Teclea cadenas completas con `pressSequentially` para impedir que un
 robar el foco al título. El spec está en `scripts/relevant-tests.mjs`; `plan-gestionar` conserva el
 flujo histórico de alta/edición y ambos se ejecutan al tocar Plan.
 
+Plan › Recibos v6, tanda 1: `e2e/plan-recibos-v6.spec.mjs` siembra recibos con el reloj fijo y
+mira el DOM: la tarjeta suma lo pendiente, «Pendiente» y «Para revisar» enseñan tres con el resto
+plegado tras «Ver los N» (vencido pasado el margen de dos días y lo pagado solo por calendario), y
+en la ficha «¿Cuál es el cargo?» enlaza un cargo de verdad con `linkFixedPayment` (la prueba queda
+guardada y el recibo pasa a «Ya pagados»); «No es este recibo» → «Aún no se ha cobrado» lo devuelve.
+Está en `E2E_MAP` para `14-v4-screens`, `08-motor-bank` y `01-i18n`. Las filas plegadas siguen en
+el DOM (con `inert`): `toHaveCount` las cuenta y `toBeVisible` no, así que los specs que quieren
+ver una fila de «Ya pagados» la despliegan antes.
+
+Tanda 2: `e2e/plan-recibos-t2.spec.mjs` siembra pruebas de pago «expense» (la forma del enlace a
+mano) y mira que cada aviso sale en su caso y en su orden (no ha llegado y «hace N meses que no se
+cobra» antes que «Esperabas» y «Ha subido»; «Esperabas» solo con un cargo que casó el
+extracto, no con uno enlazado a mano, y por eso siembra `bankTx`), la pareja de botones de cada caso especial, que
+«Actualizar precio» no devuelve a pendiente un pago ya hecho, «Ya no lo tengo» con su segundo
+toque, posponer con «Deshacer» (y que al día siguiente vuelve) y Pausar: con el recibo pagado no
+sale del mes; «Solo este mes» lo descuenta de «Queda por pagar» y tocar la fila tachada lo devuelve.
+Está en `E2E_MAP` para `14-v4-screens`, `08-motor-bank`, `07-tab-patri-fijos`, `11-app-main`,
+`00-core` y `01-i18n` (la pausa se lee en el motor, en los totales y en la mezcla con la nube).
+
+Tanda 3: `e2e/plan-recibos-t3.spec.mjs` abre «¿Te llega?» desde la píldora con el reloj en el 10/10:
+el mínimo con una nómina a mitad de mes («lo más justo, el 15»), la nómina que llega tarde («Pasa
+200 € a Sabadell antes del 25», y no sale porque cae tras el último recibo), que el mismo día
+primero sale y luego entra (con el orden viejo el caso daba «Te llega»: comprobado), un banco sin
+cuenta con «—» fuera de la píldora, la frescura sembrada en `obBalAt`, «¿Y si gasto…?» en vivo y
+editar la nómina (el primer número sustituye, el día se mueve, el saldo mostrado no cambia y una
+nómina «último laborable» conserva la regla si solo cambia el importe). También un recibo vencido
+sin cobro acreditado: cuenta como cargo de hoy y «Tienes hoy − Recibos que faltan» cuadra con la
+cifra, la píldora, el aviso e Inicio (con la regla vieja de «cobrado por fecha» sale rojo:
+comprobado). Y un recibo que Plan pinta pagado: con saldo leído del banco (BOOK o Wallet) no se
+resta dos veces (500 − 150 = 350); en una cuenta a mano solo sale si movió el saldo (`paidYm`: 350)
+y un Wallet, un BOOK o un gasto sin enlazar siguen restando (50). En cada caso, y en el vencido sin
+cobro, el simulador (`bankPendingEvents`) da el mismo mínimo que la hoja. Mutantes comprobados:
+dar por bueno cualquier pago tumba `fixed-ispaidin` y los tres casos «a mano»; no reconocer el
+saldo del banco tumba los dos «con saldo del banco». En los casos «a mano» que aún restan, la hoja
+enseña la fila «Pagado, aún sin restar del saldo − 300,00 €». Trade Republic: con la lectura del
+puente sellada hoy (`saldoLeidoAt`) o, en un estado viejo, `lastTrSync`, el recibo ya cobrado en TR
+no resta (350); leído antes del cobro, sí (50, con su fila). Mutante «ignorar la lectura del
+puente»: los dos de 350 en rojo. La lectura cuenta a partir del día SIGUIENTE al pago: sellada a
+las 7:30 del mismo día del cobro, 50 con su fila; al día siguiente, 350 (mutante «el mismo día
+vale»: rojo). Los casos «con saldo del banco» siembran la cuenta re-anclada (`bankUid`). Está en `E2E_MAP` para `14-v4-screens`, `08-motor-bank`,
+`07-tab-patri-fijos`, `00-core`, `06-sync-brokers`, `11-app-main`, `01-i18n` y `shell.html`.
+
 Descarga incompleta (candidato13/10): `tests/bank-download-incomplete.test.mjs`, registrado en
 runner y `STEPS_SUPABASE`, ejecuta lector, handler y updater real de App. Compara el updater con
 el padre123: ambas lecturas de `bankTx` conservan el extracto; falla sin el adaptador mínimo.
@@ -816,6 +925,10 @@ diagonal de un gesto horizontal deliberado: el primero conserva la ola y el segu
 pestaña sin obligar a subir antes. También verifican que Gastos y Ajustes conserven `overflow`
 desplazable sin dibujar la barra lateral.
 `tests/tr-open-banking.test.mjs` protege contra el antiguo corte global de 150 movimientos.
+`tests/tr-login-v2.test.mjs` (también en el recorte de Android) fija el contrato del login de TR
+con caída a v2: el puente prueba v2 tras un 400/405/426 de v1, la tarjeta espera la aprobación por
+aviso sin pedir código, pinta una sola línea traducida y a telemetría solo van enums del `diag`.
+No hace peticiones a TR: el HTTP real solo se comprueba con la cuenta del usuario en su móvil.
 
 ## Tiempos y preparación de Novedades
 
@@ -1499,7 +1612,7 @@ Son dobles locales, sin bancos ni SQL vivos; no acreditan CI general, integraci�
 
 `tests/gastos-v5-cifra.test.mjs` (en `steps`) comprueba por dos vías que la suma por días de la cifra viva (`gastosCifraDias`, que usa la misma regla fila a fila que `monthBudgetStats` vía `budgetRowSigned`) da el mismo gastado que el mes de `monthBudgetStats` y que la tarjeta de Inicio, el acumulado hasta un día sin cruzar meses, qué meses cubre el histórico entero y el neto de Mi ciclo. `e2e/gastos-v5.spec.mjs` (en el mapa de Gastos) abre la pantalla: cifra de arriba = Inicio, acumulado al bajar, mes cerrado sin margen contra el límite de hoy, salto por la fila de meses, filas grises de recibos y cuotas (no suman, se despliegan, abren su ficha y «Abrir en Plan» lleva a su segmento), que reagrupar no pierde filas y que Mi ciclo sigue elegible con la cifra de Inicio. Las specs que leían la tarjeta resumen o los botones de periodo usan ahora las ayudas de `e2e/fixtures.mjs` (`gastosCifra`, `gastosEstado`, `gastosPeriodo`, `gastosBajaAlDia`, `gastosBajaAlMes`, `gastosGrisFila`).
 
-Tanda 2 (secciones): `e2e/gastos-v5-secciones.spec.mjs` (en el mapa de Gastos y de `02-ui-shared.js`, donde vive `useTironSeccion`, el tirón que comparten Plan y Gastos) abre la pantalla y comprueba los tres iconos con su pestaña activa y el globito de las suscripciones por revisar; que en Mi ciclo entre la cabecera y la lista solo está el buscador (la ayuda de Mi ciclo y las fechas del Rango viven en Filtros → Periodo, «Actualizar gastos» al pie de la lista); el tirón arriba del todo Movimientos → Categorías → Suscripciones → Movimientos con UN toque de vibración por cambio (doble del motor que apunta las llamadas) y que a mitad de lista es scroll normal; que Categorías enseña el desglose de antes con la barra del presupuesto y que mantener pulsada una categoría abre su límite; Suscripciones como estaban y vacía («Todo en orden»); y que al salir de Gastos se vuelve a Movimientos. Las specs que miraban el desglose o las suscripciones encima de la lista cambian de sección con `gastosSeccion`; la hoja de Filtros se abre y cierra con `gastosAbreFiltros`/`gastosCierraFiltros`. También que una categoría con un id que ya no existe se junte con «Otros» en una sola fila y que la suma de las filas cuadre con la cifra de la cabecera (antes salían dos filas «Otros»).
+Tanda 2 (secciones): `e2e/gastos-v5-secciones.spec.mjs` (en el mapa de Gastos y de `02-ui-shared.js`, donde vive `useTironSeccion`, el tirón que comparten Plan y Gastos) abre la pantalla y comprueba los tres iconos con su pestaña activa y el globito de las suscripciones por revisar; que en Mi ciclo entre la cabecera y la lista solo está el buscador (la ayuda de Mi ciclo y las fechas del Rango viven en Filtros → Periodo, «Actualizar gastos» al pie de la lista); el tirón arriba del todo Movimientos → Categorías → Suscripciones → Movimientos con UN toque de vibración por cambio (doble del motor que apunta las llamadas) y que a mitad de lista es scroll normal; que Categorías enseña el desglose de antes, ya sin la barra del presupuesto (quitada el 26/10/2026), y que mantener pulsada una categoría abre su límite; Suscripciones como estaban y vacía («Todo en orden»); y que al salir de Gastos se vuelve a Movimientos. Las specs que miraban el desglose o las suscripciones encima de la lista cambian de sección con `gastosSeccion`; la hoja de Filtros se abre y cierra con `gastosAbreFiltros`/`gastosCierraFiltros`. También que una categoría con un id que ya no existe se junte con «Otros» en una sola fila y que la suma de las filas cuadre con la cifra de la cabecera (antes salían dos filas «Otros»).
 
 Tanda 3 (categorías → filtro): `e2e/gastos-v5-filtro.spec.mjs` (en el mapa de Gastos) abre la pantalla y comprueba que tocar una categoría en Categorías lleva a Movimientos filtrado por ella y por su mes, con la píldora de su color; que la cifra es la de su fila en Categorías (misma regla del desglose), que los totales del día la suman y que bajando dice lo de la categoría hasta el día de arriba; que el cargo de un recibo no sale con el filtro; que la línea compara con la misma categoría el mes anterior (hasta el mismo día en el mes en curso, solo si el histórico cubre ese mes entero); que la fila de meses está siempre en Categorías y con filtro y cambia de mes sin soltar la categoría (en un mes cerrado, sin límite ni barra del presupuesto); que la píldora, cambiar de sección y salir de Gastos quitan el filtro; que el límite se pone manteniendo pulsada la categoría (un toque de vibración, no filtra; con el dedo, la hoja no se cierra al soltar y arrastrar no la abre) y se quita desde el chip junto a la píldora, que dice lo que queda, sin mover el presupuesto general; y Mi ciclo sin fila de meses. `gastosPulsaLarga` (fixtures) mantiene pulsado con punteros; las specs que ponían límite tocando la categoría la mantienen pulsada.
 
@@ -1555,3 +1668,11 @@ Los tests ingest-native-phase1 y ingest-native-slots cargan src real, no un HTML
 ## SEC02 F1 · Generación del guardado final
 
 `supabase/functions/bank-callback/generation-fence.test.ts`, registrado en ambos runners Deno, ejecuta el handler real con SDK/proveedor/BD sintéticos y sin red ni entorno. RED causal en base y GREEN20/20: reconexión durante canje, preservación de generación/cuentas/cursor, emisión legacy nula, cambios justo al escribir, acuse final inválido y consumo previo fallido. Tres mutantes de state/emisión/NULL detectados; logs y exits originales conservados. [Contrato, comando y límites](briefs/sec02-callback-generation-fence.md).
+
+
+## Resumen para Jarvis
+
+`tests/jarvis-resumen.test.mjs` (runner unitario) arma con `estadoComoApp` un estado inventado (filas de `expenses` en formato de la nube, recibos pausado/pagado/vencido, una cuota y dos cuentas) con el reloj fijo y `fetch` bloqueado, y comprueba el formato v1 cerrado, `gastado` y categorías a mano y contra `monthBudgetStats`, los cobros de 30 días contra `planChargesMonth`, los saldos contra `saldoCuentaMostrada`, que no salgan IBAN, ids ni correos y la escritura atómica. No toca Supabase ni la cartera real; la ejecución real (`npm run jarvis-resumen`) es manual.
+
+
+`e2e/inicio-traspasos.spec.mjs` (4.26.198, 31/10/2026) abre Inicio y Gastos con un estado sembrado y comprueba en el DOM: Próximos cargos del mes siguiente («En noviembre») cuando este mes no queda nada, la sección oculta si tampoco hay y el vacío de bienvenida solo sin banco ni recibos; Últimos movimientos sin las patas de traspaso ni lo de bancos que no son de gasto diario; y en Gastos el bloque plegado «Traspasos · no cuentan» al final del día sin que cambie el total del día. Está en `E2E_MAP` de `03-tab-dash` y `04-tab-gastos`.

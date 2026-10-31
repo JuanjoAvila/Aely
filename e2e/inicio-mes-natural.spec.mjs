@@ -9,6 +9,8 @@ const idiomas=[
 // El anillo enseña lo que QUEDA, igual que la cifra «Te quedan» de su derecha (Inicio v4.2):
 // agotado o pasado es 0 %, sin tocar es 100 %. Y el reparto diario sale siempre que quede
 // dinero y días, también en el mes natural: el 28/9 faltan 3 días para el 1/10.
+// Desde el 26/10/2026 el mes natural resta los ingresos SALVO la nómina: el ingreso de 2.000 lleva
+// «Nómina» para seguir probando que la nómina no vacía el uso del límite (sin nombre contaría).
 
 async function ciclo(page,caso){
   await page.evaluate(()=>window.dispatchEvent(new CustomEvent("mc-open-settings")));
@@ -20,17 +22,17 @@ async function ciclo(page,caso){
 }
 
 for(const caso of idiomas) for(const limite of [
-  {name:"agotado",spent:1000,pct:"0%",over:false},
-  {name:"excedido",spent:1200,pct:"0%",over:true},
-  {name:"reservado entero",spent:100,reserved:1000,pct:"0%",over:true},
-  {name:"sin actividad",spent:0,pct:"100%",over:false,daily:333},
+  {name:"agotado",spent:1000,pct:"100%",over:false},
+  {name:"excedido",spent:1200,pct:"120%",over:true},
+  {name:"reservado entero",spent:100,reserved:1000,pct:">100%",over:true},
+  {name:"sin actividad",spent:0,pct:"0%",over:false,daily:333},
   {name:"sin presupuesto",spent:100,budget:0},
 ]) test(`Inicio distingue ${limite.name} (${caso.lang})`,async({page})=>{
   await page.clock.install({time:new Date("2026-09-28T12:00:00Z")});
   await seedLoggedInDashboard(page,{budget:limite.budget==null?1000:limite.budget,
     settings:{autoPrices:false,theme:"green",lang:caso.lang,gTotalMode:"net",budgetCycle:false},
     expenses:limite.spent?[{id:"g",date:"2026-09-27T12:00:00Z",amount:limite.spent,category:"super"},
-      {id:"i",date:"2026-09-26T12:00:00Z",amount:-2000,category:"ingreso"}]:[],
+      {id:"i",date:"2026-09-26T12:00:00Z",amount:-2000,merchant:"Nómina",category:"ingreso"}]:[],
     reservaLog:limite.reserved?[{date:"2026-09-27T12:00:00Z",amount:limite.reserved}]:[],
   });
   await page.goto("/");
@@ -43,7 +45,9 @@ for(const caso of idiomas) for(const limite of [
     await expect(page.locator(".v4-empty").filter({hasText:/Ponle un presupuesto|Set a monthly budget|Posa-li un pressupost/})).toBeVisible();
   }else{
     await expect(dash.locator(".v4-ring .num")).toHaveText(limite.pct);
-    await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText(String(1000-(limite.reserved||0)-limite.spent)+" €");
+    // Pasado del límite se enseña el exceso en positivo y el anillo cuenta lo usado (26/10/2026).
+    const rem=1000-(limite.reserved||0)-limite.spent;
+    await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText(new Intl.NumberFormat("es-ES",{useGrouping:"always"}).format(Math.abs(rem))+" €");
     await expect(dash).toHaveAttribute("data-state",limite.over?"over":limite.spent===0?"comfort":"good");
     if(limite.daily) await expect(dash.getByTestId("inicio-cycle-pace")).toHaveText(caso.pace(limite.daily));
     else await expect(dash.getByTestId("inicio-cycle-pace")).toHaveCount(0);
@@ -72,27 +76,29 @@ for(const caso of idiomas) for(const perfil of ["split","net"]){
     await page.waitForFunction(()=>!document.getElementById("mc-load"));
     await dismissNews(page);
     const dash=page.locator(".v4-budget"), ring=dash.locator(".v4-ring .num");
-    // En el ciclo quedan 980 de 1000; al salir, el mes natural deja 300 de 900.
-    await expect(ring).toHaveText("98%");
+    // En el ciclo quedan 980 de 1000; al salir, el mes natural deja 380 de 900: 600 de compras
+    // menos el Bizum de 80 (la nómina no resta; decisión del dueño, 26/10/2026; antes 300 = bruto).
+    await expect(ring).toHaveText("2%");
     await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText("980 €");
     await ciclo(page,caso);
-    await expect(ring).toHaveText("33%");
-    await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText("300 €");
+    await expect(ring).toHaveText("58%");
+    await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText("380 €");
     await expect(dash.locator(".v42-cycle-of")).toContainText("900");
-    await expect(dash.getByTestId("inicio-cycle-pace")).toHaveText(caso.pace(100));
+    // 380 € entre 3 días son 126,67: el reparto diario redondea hacia abajo para no pasarse.
+    await expect(dash.getByTestId("inicio-cycle-pace")).toHaveText(caso.pace(126));
     await page.locator('.botnav-tab[data-tour="gastos"]').click();
     // El balance mensual positivo es legítimo; no se transforma en gasto para arreglar Inicio.
     // Gastos v5: la cifra de la cabecera fija sustituye a la de la tarjeta resumen.
-    await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toContainText(perfil==="net"?"1480":"600");
+    await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toContainText(perfil==="net"?"1.480":"600");
     await page.locator('.botnav-tab[data-tour="inicio"]').click();
     await ciclo(page,caso);
-    await expect(ring).toHaveText("98%");
+    await expect(ring).toHaveText("2%");
     await ciclo(page,caso);
     await page.reload();
     await expect(page.locator(".botnav")).toBeVisible();
     await page.waitForFunction(()=>!document.getElementById("mc-load"));
     await dismissNews(page);
-    await expect(ring).toHaveText("33%");
+    await expect(ring).toHaveText("58%");
     expect(await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).settings.gTotalMode)).toBe(perfil);
   });
 }

@@ -47,8 +47,19 @@ async function abre(page, overrides = {}) {
 }
 const fila = (page) => gastosRoot(page).getByTestId("gastos-meses");
 const euros = (txt) => Number(txt.replace(/[^\d,+-]/g, "").replace(",", "."));
-/* Baja hasta el final con la lista ya entera (pinta de 12 en 12 y carga al acercarse al final). */
+/* Baja hasta el final con la lista ya entera (pinta de 12 en 12 y carga al acercarse al final).
+   Antes espera a que pare el salto de tocar un ciclo: es suave y luego se AFINA mientras el scroll
+   esté quieto (`afinaSalto`, que solo corta un dedo). Un `scrollTop` a mano en mitad del salto se lo
+   come el afinado y vuelve arriba. Antes no se veía porque la lista llegaba en tandas y el sondeo
+   repetía el scroll después; desde que las tandas se piden por adelantado (26/10) llega entera a
+   la primera y el scroll a mano caía justo dentro del salto. */
 async function alFinal(page) {
+  await page.evaluate(() => new Promise((ok) => {
+    const h = document.querySelector(".page-scroll-host");
+    let st = -1, quietos = 0;
+    const paso = () => { quietos = Math.abs(h.scrollTop - st) < 0.5 ? quietos + 1 : 0; st = h.scrollTop; if (quietos >= 8) ok(); else requestAnimationFrame(paso); };
+    requestAnimationFrame(paso);
+  }));
   await expect.poll(async () => {
     await page.evaluate(() => { const h = document.querySelector(".page-scroll-host"); h.scrollTop = h.scrollHeight; });
     return gastosRoot(page).locator(".gx-fin").count();

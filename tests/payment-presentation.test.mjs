@@ -34,9 +34,11 @@ for(const lang of ['es','en','ca']){
   vm.runInNewContext('CURLANG='+JSON.stringify(lang),c);
   const txt={es:['Pendiente','No cuenta en lo pendiente.','Por confirmar · 1','Todo pagado, salvo 1 cargo por confirmar.','Todo pagado, salvo 2 cargos por confirmar.'],en:['Pending','Not counted as pending.','To confirm · 1','Everything paid, except 1 charge awaiting confirmation.','Everything paid, except 2 charges awaiting confirmation.'],ca:['Pendent','No compta en el pendent.','Per confirmar · 1','Tot pagat, excepte 1 càrrec per confirmar.','Tot pagat, excepte 2 càrrecs per confirmar.']}[lang];
   check('A1 overdue receipt retains unconfirmed status '+lang,()=>{
-    const s=paymentFixture('debt'),tree=c.PlanBills({state:s,totals,simple:false});
-    const row=nodes(find(tree,'plan-due')).find(n=>n.props.className==='v4-charge');
-    assert(text(row).includes(translate('v4_charge_unconfirmed')));assert(text(row).includes('Sabadell'));
+    // Modo normal = PlanRecibos (v6): el recibo vencido sin cargo NO se da por pagado ni por pendiente,
+    // vive en «Para revisar» con su estado explícito (antes PlanBills pintaba el banco en la fila).
+    const s=paymentFixture('debt'),tree=c.PlanRecibos({state:s,totals,manageOpen:false,setManageOpen(){},setManageEdit(){},showToast(){}});
+    const row=nodes(find(tree,'plan-review')).find(n=>/v4-charge/.test(n.props.className||'')&&text(n).includes('Luz'));
+    assert(row);assert(text(row).includes(translate('pr6_no_llegado')));assert(!text(find(tree,'plan-due')).includes('Luz'));
   });
   check('A2 known negative balance precedes all-paid phrase '+lang,()=>{
     const s=paymentFixture('debt');s.fixed=[];s.accounts[0].value=-80;
@@ -53,11 +55,12 @@ for(const lang of ['es','en','ca']){
   check('R2 distinct scopes, bank and separate count '+lang,()=>{
     const s=paymentFixture('debt');s.flows=[{id:'transfer',kind:'transfer',name:'Transferencia prevista',from:'sabadell',to:'revolut',amount:100,day:25}];
     const before=JSON.stringify(s),pack=JSON.stringify(c.planChargesMonth(s,10,2026,18));
-    const tree=c.PlanBills({state:s,totals,simple:false}),pending=find(tree,'plan-due'),unconfirmed=find(tree,'plan-unconfirmed');
-    assert(text(pending).includes(txt[0]));assert(text(unconfirmed).includes(txt[1]));assert(text(unconfirmed).includes(txt[2]));
-    assert(!text(pending).includes('Transferencia prevista'));assert(text(find(tree,'plan-transfers')).includes('Transferencia prevista'));
-    const row=nodes(unconfirmed).find(n=>n.props.className==='v4-charge');
-    assert.equal(text(nodes(row).find(n=>n.props.className==='sub')),'Sabadell');
+    // Modo normal = PlanRecibos (v6): «Para revisar» sustituye a «Por confirmar» y sus textos largos.
+    const tree=c.PlanRecibos({state:s,totals,manageOpen:false,setManageOpen(){},setManageEdit(){},showToast(){}}),pending=find(tree,'plan-due'),review=find(tree,'plan-review');
+    assert(text(pending).includes(txt[0]));assert(text(review).includes(translate('pr6_revisar')));assert(text(review).includes(translate('pr6_sin_cargo')));
+    assert(!text(pending).includes('Transferencia prevista'));assert(!text(review).includes('Transferencia prevista'));assert(text(find(tree,'plan-transfers')).includes('Transferencia prevista'));
+    const row=nodes(review).find(n=>/v4-charge/.test(n.props.className||'')&&text(n).includes('Prestamo'));
+    assert(row);assert(text(row).includes(translate('pr6_sin_cargo')));
     assert.equal(JSON.stringify(c.planChargesMonth(s,10,2026,18)),pack);assert.equal(JSON.stringify(s),before);
   });
   for(const count of [1,2])check('R3 complete singular/plural '+lang+' '+count,()=>{

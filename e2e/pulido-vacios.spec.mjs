@@ -125,11 +125,11 @@ test("★ P6: el anillo arranca vacío y se llena, no aparece relleno", async ({
   // La cabecera de Inicio identifica la tarjeta que la prueba quiere vigilar sin depender del
   // orden de pestañas ni de cuántos SVG haya en las demás pantallas (regresión 2026-09-17).
   const anillo = page.locator(".v4-screen:has(.v4-inicio-head) .v4-budget svg circle").last();
-  // Gastados 100 de 500, el trazo acaba en el 80 % que queda.
+  // Gastados 100 de 500, el trazo acaba en el 20 % USADO (desde la 4.26.187 el anillo cuenta lo usado).
   await expect(anillo).toHaveAttribute("pathLength","100");
-  await expect(anillo).toHaveAttribute("stroke-dasharray","80 100");
+  await expect(anillo).toHaveAttribute("stroke-dasharray","20 100");
   expect(await anillo.evaluate(el=>el.getAnimations()[0].effect.getKeyframes()[0].strokeDasharray.replace(/px/g,"").split(/[,\s]+/).filter(Boolean).map(Number))).toEqual([0,100]);
-  await expect.poll(()=>anillo.evaluate(el=>parseFloat(getComputedStyle(el).strokeDasharray)),{timeout:10000}).toBe(80);
+  await expect.poll(()=>anillo.evaluate(el=>parseFloat(getComputedStyle(el).strokeDasharray)),{timeout:10000}).toBe(20);
 });
 
 test("P6 con reduced-motion: el valor final, directo y sin animar", async ({ page }) => {
@@ -137,9 +137,9 @@ test("P6 con reduced-motion: el valor final, directo y sin animar", async ({ pag
   await inicio(page, { history: [100, 200], budget: 500, expenses: [{ id: "e1", date: "2026-09-09T12:00:00.000Z", amount: 100, merchant: "Super", category: "super" }] });
   // Mismo alcance que el caso animado: el selector debe seguir perteneciendo a Inicio.
   const anillo = page.locator(".v4-screen:has(.v4-inicio-head) .v4-budget svg circle").last();
-  await expect(anillo).toHaveAttribute("stroke-dasharray","80 100");
+  await expect(anillo).toHaveAttribute("stroke-dasharray","20 100");
   expect(await anillo.evaluate(el=>getComputedStyle(el).animationName)).toBe("none");
-  expect(await anillo.evaluate(el=>parseFloat(getComputedStyle(el).strokeDasharray))).toBe(80);
+  expect(await anillo.evaluate(el=>parseFloat(getComputedStyle(el).strokeDasharray))).toBe(20);
 });
 
 /* P14 — NO SE APLICA, y aquí queda por qué, medido (9/9).

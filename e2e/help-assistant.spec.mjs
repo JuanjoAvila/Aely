@@ -25,7 +25,7 @@ test("responde offline con la cifra local y no consulta ningún servicio",async(
   await page.evaluate(()=>{ window.__helpCalls=0; cloud.askHelp=async()=>{ window.__helpCalls++; throw Error("no debe llamarse"); }; });
   await page.context().setOffline(true);
   await ask(dialog,"¿Cuánto me queda este mes?");
-  await expect(dialog.getByRole("status")).toContainText(/1000/);
+  await expect(dialog.getByRole("status")).toContainText(/1.?000/); // punto de miles desde la 4.26.183 («1.000 €»)
   expect(await page.evaluate(()=>window.__helpCalls)).toBe(0);
 });
 

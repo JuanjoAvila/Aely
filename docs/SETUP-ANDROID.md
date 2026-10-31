@@ -185,11 +185,30 @@ trae **basura de codificación** (una compra real salió como `10638 CORNELLAÂ�
 que cuela es un NUL, **Postgres rechaza el INSERT entero**. `limpiarTexto()` los quita antes de
 guardar.
 
-Desde 4.26.6 el lector no deduplica por título o texto: Wallet y Trade Republic pueden describir
-la misma compra de forma distinta. La identidad se forma con origen, paquete, clave de Android y
-`postTime` (o paquete, id y tag como fallback) y viaja a `ingest`. Este cambio exige **APK nueva**
-y debe publicarse solo después de aplicar la migración 0025 y desplegar la Edge `ingest`; de otro
-modo el móvil conserva la deduplicación anterior aunque reciba la OTA.
+La identidad v1 del lector se forma con origen, paquete, clave Android y `postTime`, y viaja a
+`ingest`. Si la clave falta se conserva paquete/id/tag; si `postTime<=0` se conserva el reloj actual,
+por lo que ese caso no promete identidad estable entre reentregas con relojes distintos.
+
+Desde la APK 62 (4.26.185, 26/10/2026) el lector sustituye la firma local de título/texto por
+`NativeEventDebounce`: cada evento guarda su instante en `micartera_ingest_dedupe` durante
+180 segundos. Dos compras con el mismo texto y distintas identidades se admiten; A/B/A conserva
+ambas marcas y una reentrega no renueva la ventana. A los 180000 ms se vuelve a admitir.
+La lectura/poda/consulta/escritura y `apply` comparten un monitor estático entre listeners del
+mismo proceso; `apply` mantiene su semántica de memoria inmediata y disco asíncrono, sin garantía
+nueva entre procesos o ante caída. Se ignoran `sig`/`ts` antiguos y se conservan las preferencias
+ajenas. Reloj que retrocede o identidad vacía: fail-open, para no perder una compra real.
+
+Integrada en la beta 4.26.185 (APK 62, por subir con `release:apk`); falta la aceptación móvil. La OTA no cambia
+Java. **No es todavía «dos compras iguales entran las dos»**: con `INGEST_NATIVE_TWINS` apagado el
+ingest sigue fundiendo por contenido (±2 h), y antes de encenderlo hay que comprobar en un móvil real
+si TR y Wallet actualizan la notificación de una compra (la v1 lleva `postTime`, que una
+actualización cambia). Para la entrega de la identidad v1 se conserva el requisito de aplicar la migración 0025 y
+desplegar la Edge `ingest` antes de su APK; este cambio de filtro local conserva ese contrato.
+
+APK 62 (4.26.185): pasado el límite (`spent > budget`) el widget oculta `w_afford` («✅ Puedes gastar X»)
+y enseña `w_bar_over`, una segunda barra llena en el coral del widget (`RemoteViews.setColorStateList`
+no existe por debajo de Android 12 y `minSdk` es 23); `w_sub` ya dice «… € de más 🚨». Cambio solo
+nativo: sin APK no llega.
 
 FIN-05 añade arbitraje de los dos escritores del widget en Java. Cada POST reserva un ticket;
 `ingest` devuelve el mes, el instante de lectura y la contribución del evento. Un snapshot de
@@ -244,9 +263,20 @@ participaciones, valor y coste. No necesita nada más.
 2. **login:** `POST https://api.traderepublic.com/api/v1/auth/web/login` con
    `{ phoneNumber, pin }` y el header del WAF → devuelve `{ processId, countdownInSeconds }` y **dispara el
    2FA** (código de 4 dígitos que llega como **push a la app de TR**; SMS es el respaldo).
+   **TR está retirando este v1 cuenta a cuenta** (426/405, y aquí un 400 el 31/10/2026; hipótesis hasta un login real). Desde la APK 63 (4.26.196): si v1 responde
+   400/404/405/410/426, el puente prueba `POST /api/v2/auth/web/login` con las cabeceras de la web de TR
+   (`X-TR-Device-Info`, `X-TR-App-Version`, `X-TR-Platform`; sin ellas, 400). La versión y la plataforma
+   las manda la web (`TR_V2_CLIENT` en `06-sync-brokers.js`) para poder corregirlas por OTA si TR da 426.
+   v2 no manda código: devuelve `{ processId }` y `GET …/v2/auth/web/login/processes/{processId}` dice
+   `requiredAction` — aprobar en la app de TR (`flow:"push"`) o código de autenticador
+   (`flow:"authenticator"`). Antes de cada login se caducan `tr_session`/`tr_refresh` del jar (las
+   restauradas no tienen caducidad y viajaban muertas).
 3. **verify:** `POST .../api/v1/auth/web/login/{processId}/{code}` → en la respuesta vienen las cookies
    `tr_session` / `tr_refresh`. **Guárdalas cifradas en el dispositivo** (EncryptedSharedPreferences /
-   Keystore), nunca en la nube.
+   Keystore), nunca en la nube. En v2, `verify({processId, api:"v2", flow})` sondea el proceso cada 2 s
+   hasta 75 s (con `authenticator`, antes manda el código a `…/authenticator-verification`) y devuelve
+   `pending:true` si aún no se ha aprobado. Los fallos traen `diag` aparte (API, HTTP, `errorCode` de TR,
+   nombres de cookie y estado del restore), nunca pegado al texto de `error`.
 4. **sync:** abre el WebSocket `wss://api.traderepublic.com/` → `connect 31 {locale,platformId:"webtrading",…}`
    con la cookie de sesión → `sub {id} {"type":"compactPortfolio"}` (y `cash` para el efectivo) → junta la
    foto de posiciones, ciérralo y devuélvelas mapeadas al shape `Position`.
@@ -286,10 +316,18 @@ Sin marca nueva, se conserva el contrato previo: conciliación por cobertura exa
 
 Compatibilidad: la APK anterior ignora los dos campos nuevos. Con APK nueva y web anterior, abrir la app aún no recupera una identidad perdida: debe llegar también la web nueva. Con ambas actualizadas, abrir y terminar la lectura recupera la cifra; sin conexión o con lectura fallida permanece el aviso. No borrar preferencias para forzar dinero confirmado.
 
-Mes bruto y Mi ciclo neto ya forman parte del contrato v2 de la base. La preferencia
-`settings.budgetCycle` llega a `dashboardBudgetStats`, compartido por Inicio y el payload
-de `11-app-main.js`; no hay selector en el widget. La cifra con signo del ciclo es `against`
-y la del mes es `shown`, redondeadas a céntimos al enviarse y a euros al pintarse en nativo.
+Mi ciclo neto y el mes natural «gasto − ingresos sin la nómina» (26/10/2026) forman parte del
+contrato v2. La preferencia `settings.budgetCycle` llega a `dashboardBudgetStats`, compartido por
+Inicio y el payload de `11-app-main.js`; no hay selector en el widget. En los dos el `spent` v2 es
+`against` (lo que se compara con el límite), redondeado a céntimos al enviarse y a euros al
+pintarse en nativo: el nativo dibuja «quedan / de más» como límite − `spent`. La etiqueta del mes
+sigue diciendo «GASTO» (magnitud `gasto`) porque cambiarla necesita APK. En el mes, `widgetPeriod`
+lleva `nominas`/`noNominas` y el alcance las incluye: ingest no conoce Plan ni el concepto. Ingest
+acepta también el alcance de la web anterior (8 elementos, sin listas) y le devuelve su bruto.
+**El alcance tiene SIEMPRE 8 elementos**: el nativo (desde la APK 54) descarta en mudo cualquier
+otro al acreditar una lectura nueva (`MiCarteraWidget.saveApp`) y en el pago con la app cerrada.
+Por eso las listas van en el hueco del ancla (índice 4, vacío en el mes), no de noveno elemento: la
+4.26.185 las puso al final y el widget del dueño se quedó en la regla vieja aunque abriera la app.
 
 **Pago con la app cerrada:** un servidor antiguo devuelve un total mensual que no acredita Mi ciclo. El listener conserva el importe en céntimos y su identidad cuando la fecha
 pertenece a la ventana guardada de la app y ésta sigue vigente. La selección de bancos de

@@ -28,18 +28,28 @@ function lastPaydayOf(expenses, nowMs, delSet, eligible){
 // que se ha cobrado la nómina. El filtro informativo antiguo conserva su ancla histórica;
 // el límite solo se reinicia con un ingreso identificado por nombre o flujo periódico.
 function budgetPaydayOf(state, nowMs, expenses){
-  const flows=(state.flows||[]).filter(function(f){ return f&&f.kind==="income"&&!f.once&&Number(f.amount)>=200; });
-  return lastPaydayOf(expenses||state.expenses, nowMs, expenseDeletedSet(state), function(e){
-    if(CAT_NEUTRAS[e.category] || e.category==="bizum") return false;
-    // Algunos bancos ponen la empresa como comercio y «NÓMINA» solo en el concepto.
-    const name=recNorm([e.merchant,e.note,e.concept].join(" "));
-    if(/\b(nomina|salario|sueldo|salary|payroll|haberes)\b/.test(name)) return true;
-    const bank=expenseBankOf(e);
-    if(!bank) return false;
-    const d=parseDate(e.date), month=d.getMonth()+1, year=d.getFullYear();
-    return flows.some(function(f){ return (f.to||"sabadell")===bank && flowOccursIn(f,month,year)
-      && recAmtClose(Number(f.amount),Math.abs(e.amount)) && recNameMatch(f.name,e.merchant); });
-  });
+  const flows=nominaFlowsOf(state);
+  return lastPaydayOf(expenses||state.expenses, nowMs, expenseDeletedSet(state), function(e){ return esNomina(e,flows); });
+}
+// Los ingresos periódicos de Plan que pueden ser una nómina. Se calculan una vez por recorrido.
+function nominaFlowsOf(state){
+  return (state.flows||[]).filter(function(f){ return f&&f.kind==="income"&&!f.once&&Number(f.amount)>=200; });
+}
+/* ¿Este ingreso es la nómina? La MISMA identificación que abre Mi ciclo (`budgetPaydayOf`), sin
+   su ventana de 45 días: el mes natural la usa para dejar la nómina fuera de lo que devuelve
+   margen al límite (decisión del dueño, 26/10/2026). Una sola regla para los dos modos: si se
+   separaran, la misma nómina abriría el ciclo y a la vez «pagaría» el mes. El importe mínimo y el
+   posible duplicado los pone quien llama, como `lastPaydayOf`. */
+function esNomina(e, flows){
+  if(CAT_NEUTRAS[e.category] || e.category==="bizum") return false;
+  // Algunos bancos ponen la empresa como comercio y «NÓMINA» solo en el concepto.
+  const name=recNorm([e.merchant,e.note,e.concept].join(" "));
+  if(/\b(nomina|salario|sueldo|salary|payroll|haberes)\b/.test(name)) return true;
+  const bank=expenseBankOf(e);
+  if(!bank) return false;
+  const d=parseDate(e.date), month=d.getMonth()+1, year=d.getFullYear();
+  return flows.some(function(f){ return (f.to||"sabadell")===bank && flowOccursIn(f,month,year)
+    && recAmtClose(Number(f.amount),Math.abs(e.amount)) && recNameMatch(f.name,e.merchant); });
 }
 /* Límites del período EN MILISEGUNDOS, calculados UNA vez. Antes `inPreset` se llamaba por gasto y
    se construía dentro tres o cuatro `new Date()` (startOfMonth, el mes pasado…): con un histórico
@@ -682,8 +692,18 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     const today=y===now.getFullYear()&&m===now.getMonth()+1?now.getDate():new Date(y,m,0).getDate();
     const f=(state.fixed||[]).find(function(x){ return x.id===fixedId; });
     const expected={identity:fixedPaymentIdentity(expenseBankOf(ex),ex),model:f&&fixedPaymentModel(f,m),paidYm:f&&f.paidYm,paidDay:f&&f.paidDay};
-    const save=function(){
+    const save=function(confirmedWarnings){
       if(withdrawalPending.current[ex.id]){ showToast(t("f_withdraw_receipt_pending")); return; }
+      if(fixedId!=null){
+        const live=withdrawalState.current,cur=(live.fixed||[]).find(function(f){return f.id===fixedId;}),x=(live.expenses||[]).find(function(x){return x&&x.id===ex.id;});
+        const warnings=fixedPaymentManualLinkWarnings(live,x,cur,y,m,today),signature=JSON.stringify(warnings);
+        // Un BOOK que llega ANTES de enlazar todavía necesita el segundo toque explícito.
+        if(warnings.length&&signature!==confirmedWarnings){
+          askConfirm({title:tf("f_receipt_confirm",{name:cur.name}),
+            sub:React.createElement("span",{"data-testid":"receipt-manual-link-warning"},warnings.map(function(w){return tf("f_receipt_possible_same",{name:w.name,date:fmtIsoCorto(w.date)});}).join(" · ")),
+            ok:t("f_receipt_other_payment")}).then(function(yes){if(yes) save(signature);});return;
+        }
+      }
       let subir=null;
       // El diálogo es asíncrono: otra sincronización puede sustituir el cargo o editar el recibo.
       set(function(s){
@@ -705,9 +725,11 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
        de verdad (`admiteMarcaDe`): con el recibo movido a otro banco no vuelve. */
     const repone=!!de&&reciboNoDe(state,fixedId,reciboNoIdentidad(ex),ex.id).length>0&&admiteMarcaDe(ex,de);
     if(!f&&!repone) return;
+    const warnings=f?fixedPaymentManualLinkWarnings(state,ex,f,y,m,today):[];
+    const sub=repone?tf("f_recibo_marca",{name:de.name}):tf("f_receipt_confirm_sub",{merchant:ex.merchant,amount:eur(ex.amount),bank:entOf(expenseBankOf(ex)).label,date:fmtIsoCorto(ds),planned:entOf(accOf(f)).label,expected:eur(f.bankAmount>0?f.bankAmount:occAmountIn(f,m))});
     askConfirm({title:tf("f_receipt_confirm",{name:de.name}),
-      sub:repone?tf("f_recibo_marca",{name:de.name}):tf("f_receipt_confirm_sub",{merchant:ex.merchant,amount:eur(ex.amount),bank:entOf(expenseBankOf(ex)).label,date:fmtIsoCorto(ds),planned:entOf(accOf(f)).label,expected:eur(f.bankAmount>0?f.bankAmount:occAmountIn(f,m))}),
-      ok:t("f_receipt_yes")}).then(function(yes){ if(yes) save(); });
+      sub:warnings.length?React.createElement("span",null,sub,React.createElement("span",{style:{display:"block"},"data-testid":"receipt-manual-link-warning"},warnings.map(function(w){ return tf("f_receipt_possible_same",{name:w.name,date:fmtIsoCorto(w.date)}); }).join(" · "))):sub,
+      ok:t(warnings.length?"f_receipt_other_payment":"f_receipt_yes")}).then(function(yes){ if(yes) save(JSON.stringify(warnings)); });
   };
   // Marca/desmarca un gasto como "no tarjeta" (bizum/transferencia) para que no cuente el round-up TR.
   const setCardFlag=function(ex,noCard){
@@ -856,7 +878,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     const origDay=String(orig.date||"").slice(0,10);
     const newDay=String(ed.date||origDay).slice(0,10);
     if(signed===orig.amount && merch===(orig.merchant||"") && newDay===origDay&&!orig.renamePending){ sincroniza(orig); return; }   // sin cambios
-    const cat = ed.income ? "ingreso" : (orig.category==="ingreso" ? autoCategory(merch) : orig.category);
+    // Renombrar cualquier negativo conserva su categoría: el signo no decide que sea ingreso.
+    const cat = ed.income ? (orig.amount<0 ? orig.category : "ingreso") : (orig.category==="ingreso" ? autoCategory(merch) : orig.category);
     const splitByEdit=(signed!==orig.amount||newDay!==origDay)&&!!gemeloAutomaticoDe(state,orig);
     if(splitByEdit) separarGemelo(orig);
     const upd=Object.assign({},orig,{merchant:merch, amount:signed, category:cat});
@@ -882,13 +905,19 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       set(function(s){return expenseRenameDraft(s,orig,merch,at);});
       return;
     }
-    // La lápida de cuenta significa borrado: al cambiar solo el nombre ocultaría
-    // también la fila renombrada por su obName. Como FIN04, usar ambas claves sin ámbito
-    // permite además levantar la vieja al volver al nombre original.
+    // El alias de nombre distingue esta versión de un borrado; una clave global
+    // ocultaba otra cuenta y una lápida de cuenta ocultaba también la propia por obName.
     const soloNombreBanco=esDeBanco&&upd.obName!=null&&merch!==(orig.merchant||"")&&signed===orig.amount&&newDay===origDay;
+    // La ficha también decide ingreso/no tarjeta: el eco del nombre no confirma esos campos.
+    // El pendiente nace de esta decisión real y sobrevive a otra edición y al reinicio.
+    if(soloNombreBanco){
+      const pending=Object.assign({},orig.expenseEditPending);
+      ["category","noCard"].forEach(function(k){if(upd[k]!==orig[k])pending[k]=upd[k];});
+      if(Object.keys(pending).length)upd.expenseEditPending=pending;
+    }
     set(function(s){ return rekeyFixedPaymentExpense(Object.assign({},s,{
       expenses:s.expenses.map(function(x){ return x.id===orig.id?upd:x; })
-    },lapidasAlEditar(s, soloNombreBanco?keyOfExpense(orig):expenseDeletionKey(orig), soloNombreBanco?keyOfExpense(upd):expenseDeletionKey(upd))),orig,upd); });
+    },soloNombreBanco?lapidasAlRenombrar(s,orig,upd):lapidasAlEditar(s,expenseDeletionKey(orig),expenseDeletionKey(upd))),orig,upd); });
     // Borrado y alta en la nube, en orden y detrás de la edición anterior (`subeEdicionesDeGasto`).
     if(cloud.enabled()){ editCola.current.pend.push({orig:orig, upd:upd}); subeEdicionesDeGasto(editCola.current); }
     sincroniza(upd); showToast(t(splitByEdit?"g_auto_edit_separated":"g_edited"));
@@ -1002,7 +1031,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       }
       // `debt:<id>` en la misma lista que las categorías: el chip de cada deuda (4.21.0).
       if(catSet && !catSet.has(e.category) && !(e.debtId && catSet.has("debt:"+e.debtId))) continue;
-      if(bankSet && !bankSet.has(expenseBankOf(e)||"_manual")) continue;
+      if(bankSet && !bankSet.has(gastosBancoFiltro(e))) continue;
       if(bkSet && !bkSet.has(expenseBucket(e, state))) continue;
       if(needle){
         // El concepto también se busca: si tu padre busca «alquiler» tiene que salir el bizum
@@ -1082,6 +1111,12 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   const budgetApplies=preset==="months"||preset==="cycle"&&!cicloPas;
   const monthSummary=useMemo(function(){
     const bs=monthBudgetStats(Object.assign({},state,{expenses:expensesDef}),null,null,null,selectedPeriod);
+    /* La cifra grande sigue su modo (Balance o Gastos), pero el margen contra el límite es el de
+       Inicio (`dashboardBudgetStats`, modo "mes") y el del widget (`against` de ingest): en el mes
+       natural, gasto menos ingresos sin la nómina; en Mi ciclo, el neto. Cada pantalla con su
+       propia regla dio tres cifras distintas del mismo mes (capturas del dueño, 26/10/2026). */
+    const lim=limiteDeStats(bs,state);
+    if(bs.budget!=null) bs.remaining=lim.remaining;
     // No existe una foto histórica del límite ni un presupuesto acumulado para varios meses.
     // Enseñar el límite actual como margen del pasado inventaría dinero disponible.
     if(!budgetApplies){ bs.budget=null; bs.remaining=null; }
@@ -1278,28 +1313,49 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
         `filtered.length` —volver a pulsar el filtro que ya estaba puesto resetea `visible` a 12
         con la misma lista— nadie lo vigilaba: «Cargando más…» ahí clavado para siempre.
         Ahora el observador se ata al nodo con una callback ref, así que se rehace exactamente
-        cuando el centinela nace o muere, pasen lo que pasen las dependencias del efecto. */
-  const filtLen=useRef(0); filtLen.current=filtered.length;   // el observador vive fuera del render: sin esto cerraría sobre una longitud vieja
-  const ioRef=useRef(null);
+        cuando el centinela nace o muere, pasen lo que pasen las dependencias del efecto.
+     3. «Al bajar rápido hay tirones o paradas; Revolut no los tiene» (vídeo suyo del 26/10, OnePlus
+        13 a 120 Hz, mirado fotograma a fotograma). Los cuatro flings del vídeo acaban IGUAL: la
+        lista va a toda velocidad y se para en seco en «Cargando más…» (30 sept, 5 sept, 16 ago,
+        31 jul), sin frenar. No era un frame caro: era el FINAL de la lista. El fling del móvil lo
+        mueve el compositor y, si llega al borde antes de que la tanda esté pintada, se acaba ahí;
+        cuando la tanda llega ya no queda inercia. Tres cosas:
+        · El centinela es ahora un COLCHÓN con el alto estimado de lo que falta por pintar (hasta
+          GX_COLCHON_FILAS filas): el fling sigue de largo por ese hueco mientras la tanda llega.
+        · Las tandas se piden por DISTANCIA en cada scroll y se encadenan al pintar, de
+          GX_TANDA en GX_TANDA: tandas cortas, pintados cortos. NO en `startTransition`: se
+          probó y la tanda no llegaba a pintarse nunca (la transición se quedaba esperando con
+          la app quieta y la lista clavada en 12 filas). Con el colchón el observador ya no
+          sirve: un centinela alto sigue «visible» después de cada tanda y el observador, que
+          solo avisa al CAMBIAR, no volvía a pedir.
+        · Lo que se calculaba en CADA tanda para TODAS las filas ya pintadas (cajón, etiquetas,
+          el día escrito) se guarda (ver `gxFilaInfo` y `gxDiaTexto`). */
+  const filtLen=useRef(0); filtLen.current=filtered.length;   // `pideMas` vive fuera del render: sin esto cerraría sobre una longitud vieja
+  const sentinelElRef=useRef(null), tandaEnCursoRef=useRef(false), pideMasRef=useRef(null);
+  pideMasRef.current=function(){
+    // Con Movimientos escondido (otra sección) no se piden tandas: cargaría la lista entera por
+    // detrás sin que nadie la mire.
+    const el=sentinelElRef.current;
+    if(tandaEnCursoRef.current || seccRef.current!=="movs" || !el || !el.isConnected) return;
+    const host=el.closest(".page");
+    /* Arriba del todo no se pide nada: al entrar se pinta solo la primera tanda (lo que vigila el
+       presupuesto de rendimiento) y «se suelta al volver arriba» (abajo) tiene que quedarse en
+       ella. El colchón de debajo ya deja arrancar un fling desde ahí sin tope. */
+    if(!host || host.scrollTop<=150 || el.getBoundingClientRect().top-host.getBoundingClientRect().bottom>GX_ANTES*gxZoom()) return;
+    tandaEnCursoRef.current=true;
+    setVisible(function(v){ return v<filtLen.current ? v+GX_TANDA : v; });
+  };
   const sentinelRefCb=useCallback(function(el){
-    if(ioRef.current){ ioRef.current.disconnect(); ioRef.current=null; }
-    if(!el) return;
-    // Con Movimientos escondido (otra sección) el centinela no puede pedir tandas: cargaría la
-    // lista entera por detrás sin que nadie la mire.
-    const io=new IntersectionObserver(function(es){
-      if(es[0].isIntersecting && seccRef.current==="movs") setVisible(function(v){ return v<filtLen.current ? v+CONFIG.PAGE_SIZE*5 : v; });
-    },{rootMargin:"2000px"});
-    io.observe(el); ioRef.current=io; sentinelElRef.current=el;
+    sentinelElRef.current=el;
+    if(el) requestAnimationFrame(function(){ pideMasRef.current(); });
   },[]);
-  // Y al volver a Movimientos se le vuelve a preguntar: si ya estaba a la vista mientras se
-  // ignoraba, el observador no avisa otra vez por sí solo y «Cargando más…» se quedaría clavado.
-  const sentinelElRef=useRef(null);
+  // Pintada una tanda (o cambiada la lista, o de vuelta a Movimientos) se mira otra vez: si el
+  // final aún queda cerca, la siguiente. Así se encadenan sin esperar a otro evento de scroll.
   useEffect(function(){
-    const io=ioRef.current, el=sentinelElRef.current;
-    if(secc!=="movs" || !io || !el || !el.isConnected) return;
-    io.unobserve(el); io.observe(el);
-  },[secc]);
-  useEffect(function(){ return function(){ if(ioRef.current) ioRef.current.disconnect(); }; },[]);
+    tandaEnCursoRef.current=false;
+    const raf=requestAnimationFrame(function(){ pideMasRef.current(); });
+    return function(){ cancelAnimationFrame(raf); };
+  },[visible, filtered.length, secc]);
   /* LA LISTA SE SUELTA AL VOLVER ARRIBA (13/9, medido en su OnePlus 13 con 2.500 gastos).
      Su queja: «he bajado y subido varias veces… y de repente se ha comenzado a ralentizar».
      La paginación solo CRECÍA: cada vez que bajaba se añadían 60 filas y ninguna se iba al subir.
@@ -1315,8 +1371,10 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     const root=rootRef.current;
     const host=root && root.closest ? root.closest(".page") : null;
     if(!host) return undefined;
-    let tm=0;
+    let tm=0, raf=0;
+    const mira=function(){ raf=0; pideMasRef.current(); };
     const onScroll=function(){
+      if(!raf) raf=requestAnimationFrame(mira);
       if(host.scrollTop>150 || visibleRef.current<=CONFIG.PAGE_SIZE) return;
       if(tm) clearTimeout(tm);
       tm=setTimeout(function(){
@@ -1325,7 +1383,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       }, 300);
     };
     host.addEventListener("scroll", onScroll, {passive:true});
-    return function(){ host.removeEventListener("scroll", onScroll); if(tm) clearTimeout(tm); };
+    return function(){ host.removeEventListener("scroll", onScroll); if(tm) clearTimeout(tm); if(raf) cancelAnimationFrame(raf); };
   },[]);
 
   // Abrir la ficha de un movimiento. useCallback = referencia ESTABLE: si cambiara en cada render,
@@ -1375,6 +1433,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     const vsBudget=function(){
       const r=monthSummary.remaining;
       if(r==null) return null;
+      // Sin «gastos» delante desde el 26/10/2026: el margen ya no es del gasto bruto sino del gasto
+      // menos lo recibido sin la nómina, y él lo quería dicho así: «64 € por debajo».
       return r<0?{tail:tf("gv5_over",{x:fmt(r)}),tone:"coral"}:{tail:tf("gv5_under",{x:fmt(r)}),tone:"mint"};
     };
     const vsPrev=function(cur,prev,ym,mismoDia){
@@ -1774,7 +1834,6 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       role:"tabpanel","aria-label":t(GX_SECC_TXT[id]),style:secc===id?null:GX_OCULTO,"aria-hidden":secc!==id}, hijo);
   };
   const catsMax=catBreakdown.reduce(function(m,r){ return Math.max(m,r.spent); },0);
-  const presu=catsBudget&&monthSummary.budget>0?monthSummary.budget:null;
   const cabVista=secc==="movs"?cab:cabSecc;
   /* La píldora del filtro (SPEC §4.1) y, a su lado, el chip del LÍMITE de esa categoría: la otra
      entrada a la misma hoja que la pulsación larga. Con límite y en el periodo en que manda (mes en
@@ -1789,7 +1848,6 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   const filFmt=function(x){ x=Math.abs(x); return x<1?eur(x):eur0(x); };
   const filLimTxt=!(filLim>0)?t("gv5_fil_lim_poner")
     : tf("gv5_fil_lim",{x:eur0(filLim)})+(filManda?" · "+tf(filQueda<0?"gv5_fil_pasado":"gv5_fil_quedan",{x:filFmt(filQueda)}):"");
-  const usado=Math.max(0,monthSummary.against||0);
 
   /* Con la fila de ciclos al bajar, la página tiene que poder bajar SIEMPRE lo justo para que salga:
      al empezar un ciclo hay tres gastos, no hay scroll y no habría forma de ir a un ciclo pasado
@@ -1839,19 +1897,13 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
        debajo para llegar a la cabecera (lo resuelve la raya de `GastosCabecera` al final de la
        lista). Ese hueco, con el borde de la última tarjeta asomando bajo la cabecera, era el
        «sigue habiendo esto al final» (25/10/2026). */
-    /* CATEGORÍAS (SPEC §5): el desglose que antes iba encima de la lista, con la barra del
-       presupuesto arriba (solo mes en curso / Mi ciclo: sin límite en el pasado, regla de §3).
+    /* CATEGORÍAS (SPEC §5): el desglose que antes iba encima de la lista. Sin barra del presupuesto
+       arriba (el dueño, 26/10/2026: «quítala, no me gusta»): la cifra y la línea de estado de la
+       cabecera ya dicen cuánto queda o cuánto te has pasado.
        Tocar una categoría filtra Movimientos por ella; mantenerla pulsada abre su límite (la otra
        puerta es el chip junto a la píldora del filtro). Ya no se pliega: el
        «es too much» de su pareja (10/9) era porque tapaba la lista, y aquí ya no tapa nada. */
     capa("cats", React.createElement("div",{className:"gx-cats","data-testid":"gastos-cats"},
-      presu!=null && React.createElement("div",{className:"gx-cats-pres"},
-        React.createElement("div",{className:"gx-cats-barra",role:"progressbar","aria-label":t("gv5_cats_pres"),"aria-valuemin":0,"aria-valuemax":presu,"aria-valuenow":+usado.toFixed(2)},
-          React.createElement("i",{className:"gx-cats-in",style:{width:(Math.min(usado,presu)/Math.max(usado,presu)*100)+"%"}}),
-          usado>presu && React.createElement("i",{className:"gx-cats-over",style:{width:((usado-presu)/usado*100)+"%"}})),
-        React.createElement("div",{className:"gx-cats-pie"},
-          React.createElement("span",null,tf("gv5_cats_of",{x:eur0(presu)})),
-          React.createElement("span",null,monthSummary.periodLabel))),
       // Sin la pista no se adivina que tocar filtra y que mantener pulsado pone el límite.
       catBreakdown.length>0 && React.createElement("p",{className:"hint"},t("gv5_cats_hint")),
       catBreakdown.length===0
@@ -1991,29 +2043,27 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
   const ayerK=ayer.getFullYear()*10000+(ayer.getMonth()+1)*100+ayer.getDate();
   const dias=[]; let dia=null;
   shown.forEach(function(e){
-    const ms=dateMs(e.date), info=gastosDia(ms);
+    const f=gxFilaInfo(e, state, l10nKey), ms=f.ms, info=gastosDia(ms);
     if(!dia||dia.k!==info.k||dia.ym!==info.ym){ dia={k:info.k, ym:info.ym, ms:ms, rows:[], gris:[]}; dias.push(dia); }
-    const bucket=expenseBucket(e, state), gris=grisDeGasto(e, bucket);
-    const l=e.debtId&&filterSelLabel("debt:"+e.debtId,state.debts);
-    // En una aportación, la «etiqueta» es la meta (o el bróker): la fila suelta (buscando) y la gris dicen cuál.
-    const recibo=gris==="meta"?metaEtiqueta(state,e):gris==="inversion"?inversionEtiqueta(state,e):reciboEtiqueta(state,e);
+    const bucket=f.bucket, gris=f.gris, l=f.l, recibo=f.recibo;
     // Los recibos NO se agrupan (decisión suya, 26/10/2026: «recibos grisáceo como está
     // comunidad»): con el mismo banco para gastos y recibos, plegarlos los escondía entre cargos
     // que sí tocan el día. Van como fila suelta atenuada, igual que un recibo de otro banco, y la
     // fila ya dice cuál es («Recibo: X»). Solo Deudas, Metas e Inversiones siguen en su bloque.
-    if(agrupa && gris && gris!=="recibo"){
+    if(agrupa && gxPlegada(gris)){
       let g=dia.gris.find(function(x){ return x.kind===gris; });
       if(!g){ g={kind:gris, items:[], total:0}; dia.gris.push(g); }
       g.items.push({e:e, ms:ms, sub:gris==="deuda"?(l||catName("deudas")):recibo});
       g.total+=Math.abs(e.amount||0);
+      // Los traspasos van en los dos sentidos: sumar 1.550 que salen y 1.550 que entran daría
+      // 3.100 € que no se han movido. El rótulo solo lleva cifra si todos van hacia el mismo lado.
+      if((e.amount||0)<0) g.entra=true; else g.sale=true;
     } else dia.rows.push({e:e, ms:ms, l:l, bucket:bucket, recibo:recibo});
   });
   const etiquetaDia=function(d){
     if(d.k===hoyK) return t("g_today");
     if(d.k===ayerK) return t("g_yesterday");
-    const f=new Date(d.ms), o={weekday:"short",day:"numeric",month:"short"};
-    if(f.getFullYear()!==hoy.getFullYear()) o.year="numeric";
-    return f.toLocaleDateString(loc(),o).replace(/,/g,"");
+    return gxDiaTexto(d.k, d.ms, hoy.getFullYear());
   };
   // Lo que cuenta ese día, con la misma regla que la cifra de arriba: sumados, dan la cifra.
   const totalDia=function(k,ym){
@@ -2065,7 +2115,9 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
                   return React.createElement(GastosGris,{key:d.k+"|"+g.kind, g:g, onOpen:openDetail, onGoPlan:onGoPlan, onGoInversiones:onGoInversiones, simple:simple});
                 }));
             }),
-        visible<filtered.length && React.createElement("div",{className:"sentinel",ref:sentinelRefCb},t("g_loadmore")),
+        // El colchón: lo que falta por pintar, estimado, para que un fling no se estrelle aquí.
+        visible<filtered.length && React.createElement("div",{className:"sentinel",ref:sentinelRefCb,
+          style:{height:30+Math.min(filtered.length-visible,GX_COLCHON_FILAS)*GX_FILA_ALTO}},t("g_loadmore")),
         // El final de la lista dice hasta dónde llega el histórico: sin esto no se sabe si no hay
         // más o si falta por cargar (SPEC §4, «Hasta aquí: 1 de agosto»).
         shown.length>0 && visible>=filtered.length && React.createElement("div",{className:"gx-fin"},
@@ -2082,6 +2134,54 @@ const GX_MESES_SOBRE=36;
    (padding 18 + título), fila normal (~90 con la línea de abajo + hueco de 6; medido con
    Pixel 5) y franja gris cerrada (48 + 2 de borde + 6). Tienen que seguir a `.gx-dia`, `.gx-list .v4-mov` y `.gx-gris-h` en shell.html. */
 const GX_DIA_CAB=46, GX_FILA_ALTO=96, GX_GRIS_ALTO=56;
+/* Paginación de Movimientos (ver «LA PAGINACIÓN DE LA LISTA», punto 3): filas por tanda, a
+   cuántos px del final de lo pintado se pide la siguiente y cuántas filas estimadas mide el
+   colchón de debajo. Tandas pequeñas y pedidas con margen = cada pintado es corto y el fling
+   nunca alcanza el borde; el colchón cubre un fling entero de los suyos (~8.000 px). */
+const GX_TANDA=30, GX_ANTES=3000, GX_COLCHON_FILAS=80;
+/* Lo de cada fila que solo depende del gasto, del estado y del idioma: el cajón, si va a una
+   franja gris y sus etiquetas. Se guarda mientras no cambie el estado: antes, cada tanda nueva lo
+   recalculaba para TODAS las filas ya pintadas (recibos, metas y deudas buscados en el estado),
+   y el coste de bajar crecía con lo bajado. */
+let _gxFilaCache={s:null, k:null, m:null};
+function gxFilaInfo(e, s, l10n){
+  const c=_gxFilaCache;
+  if(c.s!==s || c.k!==l10n){ c.s=s; c.k=l10n; c.m=new WeakMap(); }
+  let v=c.m.get(e);
+  if(v) return v;
+  const bucket=expenseBucket(e, s), gris=grisDeGasto(e, bucket);
+  const l=e.debtId&&filterSelLabel("debt:"+e.debtId,s.debts);
+  // En una aportación, la «etiqueta» es la meta (o el bróker): la fila suelta (buscando) y la gris dicen cuál.
+  const recibo=gris==="meta"?metaEtiqueta(s,e):gris==="inversion"?inversionEtiqueta(s,e):reciboEtiqueta(s,e);
+  v={ms:dateMs(e.date), bucket:bucket, gris:gris, l:l, recibo:recibo};
+  c.m.set(e, v);
+  return v;
+}
+/* `toLocaleDateString` con opciones monta un formateador NUEVO en cada llamada, y la lista lo
+   pedía una vez por fila al pintarla: era lo más caro de cada tanda después de React. El
+   formateador se guarda por idioma y formato; el texto sale idéntico (es la misma API). */
+const GX_FECHA_OPC={dm:{day:"2-digit",month:"2-digit"}, dia:{weekday:"short",day:"numeric",month:"short"},
+  "dia-anio":{weekday:"short",day:"numeric",month:"short",year:"numeric"}};
+const _gxFechaFmt=new Map();
+function gxFecha(d, tipo){
+  const key=loc()+"|"+tipo;
+  let f=_gxFechaFmt.get(key);
+  if(!f){ f=new Intl.DateTimeFormat(loc(), GX_FECHA_OPC[tipo]); _gxFechaFmt.set(key, f); }
+  return f.format(d);
+}
+/* «mié 30 sept»: el día escrito se pedía para cada día pintado en cada tanda. Solo depende del
+   idioma, del día y de si es de otro año. */
+const _gxDiaTextoCache=new Map();
+function gxDiaTexto(k, ms, anioHoy){
+  // `k` es AAAAMMDD del día del dispositivo: el año sale de ahí sin construir un `Date`.
+  const otroAnio=Math.floor(k/10000)!==anioHoy, key=loc()+"|"+k+"|"+(otroAnio?1:0);
+  let v=_gxDiaTextoCache.get(key);
+  if(v!=null) return v;
+  v=gxFecha(new Date(ms), otroAnio?"dia-anio":"dia").replace(/,/g,"");
+  if(_gxDiaTextoCache.size>5000) _gxDiaTextoCache.clear();
+  _gxDiaTextoCache.set(key, v);
+  return v;
+}
 /* Sin fila de meses (Mi ciclo sin ciclos detectados, Rango, Todo) el fondo encogido se QUEDA DENTRO de la caja: la cifra
    y la línea suben al encogerse y lo que quedaba debajo era hueco. Rechazo suyo de la beta
    4.26.164 (24/10, Mi ciclo + balance): el fondo seguía bajando 36 px para unos meses que no
@@ -2250,7 +2350,7 @@ function GxCifra({n}){
     React.createElement("span",{className:"gx-num-ent","aria-hidden":true},celdas(ent,"e")),
     React.createElement("span",{className:"gx-num-dec","aria-hidden":true},celdas(dec,"d")," "+p.sym));
 }
-/* FILA GRIS: los cargos de un día que pagan cuotas, o que van a una meta o a un bróker (SPEC §4.4). Se
+/* FILA GRIS: los cargos de un día que pagan cuotas, van a una meta o a un bróker, o son traspasos (SPEC §4.4). Se
    ven, no suman al día ni a la cifra (ya cuentan en el Plan, o son dinero tuyo que cambia de sitio), y se despliegan con un solo toque
    de vibración. Cada cargo sigue abriendo su ficha: ahí viven «No es este recibo» y «no es la
    cuota», que no se pueden quedar sin camino por plegarlos. El estado de abierto es de la fila:
@@ -2258,20 +2358,45 @@ function GxCifra({n}){
 // Orden en el día: Deudas y Metas, el mismo que los segmentos de Plan; Inversiones al final, que
 // no es del Plan sino de Cartera (`cartera`: su enlace va a `onGoInversiones`). Los recibos no
 // tienen bloque desde el 26/10/2026: van sueltos (ver `GastosLista`).
+// Los traspasos, los últimos y sin enlace: son dinero tuyo entre tus cuentas y no viven en ningún
+// sitio que abrir (petición del dueño, 31/10/2026: «abajo, plegados, como Deudas · no cuentan»).
 const GX_GRIS={deuda:{lab:"v4_plan_deudas",seg:"deudas",ord:1}, meta:{lab:"v4_plan_metas",seg:"metas",ord:2},
-  inversion:{lab:"tab_inv",cartera:true,ord:3}};
+  inversion:{lab:"tab_inv",cartera:true,ord:3}, traspaso:{lab:"gv5_traspasos",sinIr:true,ord:4}};
 /* ¿Es un cargo que no suma al día (recibo, cuota, meta o inversión)? → su clase, o null. Los
    recibos dan "recibo" aunque ya no se agrupen: con filtro de categoría siguen fuera igual que
    antes. Sale del cajón (`expenseBucket`), así que no
    cambia qué cuenta: solo cómo se pinta. Las inversiones son el cajón «neutra» pero SOLO la
    categoría Inversión y solo lo que sale (25/10/2026): un traspaso entre cuentas propias o una
    cuota sin deuda no son inversiones, y el rótulo tiene que decir la verdad de lo que agrupa; y
-   una venta o un rescate (entra dinero) no puede sumarse a un total de aportaciones. Esos siguen
-   como tarjeta atenuada con su «no es un gasto». */
+   una venta o un rescate (entra dinero) no puede sumarse a un total de aportaciones. La venta
+   sigue como tarjeta atenuada con su «no es un gasto»; el traspaso tiene su bloque (31/10/2026). */
 function grisDeGasto(e, bucket){
   if(bucket==="recibo"||bucket==="deuda"||bucket==="meta") return bucket;
   if(bucket==="neutra" && e && e.category==="inversion" && (e.amount||0)>0) return "inversion";
+  // El traspaso, en los dos sentidos: las dos patas son el mismo dinero cambiando de cuenta.
+  if(bucket==="neutra" && e && e.category==="traspaso") return "traspaso";
   return null;
+}
+/* ¿Va plegada en su bloque del día? Los recibos no (van sueltos desde el 26/10/2026). La usan la
+   lista y los «Últimos movimientos» de Inicio: los dos tienen que dejar fuera lo mismo. */
+function gxPlegada(gris){ return !!gris && gris!=="recibo"; }
+/* El banco con el que filtra la lista de Gastos: lo apuntado sin banco va como "_manual". */
+function gastosBancoFiltro(e){ return expenseBankOf(e)||"_manual"; }
+/* «ÚLTIMOS MOVIMIENTOS» DE INICIO = LA LISTA DE GASTOS TAL COMO SE ABRE (31/10/2026). Le salían
+   sus transferencias de Sabadell a MyInvestor y a Trade Republic: Inicio leía el histórico entero
+   y Gastos arranca con los bancos del gasto diario. Mismo filtro de bancos (`expenseBankEnts`,
+   vacío = todos), misma lápida y lo plegado en los bloques del día («… · no cuentan») fuera.
+   Primero lo barato y la ordenación de la lista; el cajón solo se mira hasta tener `n`. */
+function gastosDePortada(s, n){
+  const ents=expenseBankEnts(s), bancos=ents.length?new Set(ents):null, del=expenseDeletedSet(s);
+  const base=(s.expenses||[]).filter(function(e){
+    return e && !e.autoGemelo && !expenseIsTombstoned(e,del) && (!bancos || bancos.has(gastosBancoFiltro(e)));
+  });
+  const orden=sortExpensesForDisplay(base, s), out=[];
+  for(let i=0;i<orden.length && out.length<n;i++){
+    if(!gxPlegada(grisDeGasto(orden[i], expenseBucket(orden[i], s)))) out.push(orden[i]);
+  }
+  return out;
 }
 function GastosGris({g, onOpen, onGoPlan, onGoInversiones, simple}){
   const [open,setOpen]=useState(false);
@@ -2279,13 +2404,17 @@ function GastosGris({g, onOpen, onGoPlan, onGoInversiones, simple}){
   const toggle=function(){ setOpen(function(o){ return !o; }); mcTickHaptic(); };
   // En modo sencillo Plan solo tiene Recibos: «Abrir en Plan · Deudas» llevaría a otro sitio. Y
   // Cartera no enseña inversiones: el enlace llevaría a un bloque que no está.
-  const ir=def.cartera?onGoInversiones:onGoPlan;
+  const ir=def.sinIr?null:def.cartera?onGoInversiones:onGoPlan;
+  // Con patas de ida y de vuelta el rótulo no lleva cifra (ver `GastosLista`); si todas entran, «+».
+  const mixto=g.entra&&g.sale;
   const conPlan=!!ir && !simple;
+  // Cuotas de UNA sola deuda: el enlace lleva a su tarjeta y no a lo alto de Deudas (28/10/2026).
+  const unaDeuda=g.kind==="deuda"&&g.items.length&&g.items.every(function(it){ return it.e.debtId&&it.e.debtId===g.items[0].e.debtId; })?g.items[0].e.debtId:null;
   return React.createElement("div",{className:"gx-gris"+(open?" abierto":""),"data-gris":g.kind},
     React.createElement("button",{type:"button",className:"gx-gris-h","aria-expanded":open,onClick:toggle},
       React.createElement("span",{className:"gx-gris-dot gx-gris-dot-"+g.kind,"aria-hidden":true}),
       React.createElement("span",{className:"gx-gris-t"},tf("gv5_no_cuentan",{x:t(def.lab)})),
-      React.createElement("span",{className:"gx-gris-amt num"},eur(g.total)),
+      !mixto&&React.createElement("span",{className:"gx-gris-amt num"},(g.entra?"+":"")+eur(g.total)),
       React.createElement("span",{className:"gx-gris-n num"},g.items.length)),
     React.createElement("div",{className:"gx-gris-body","aria-hidden":!open},
       React.createElement("div",{className:"gx-gris-inner"},
@@ -2297,9 +2426,9 @@ function GastosGris({g, onOpen, onGoPlan, onGoInversiones, simple}){
             React.createElement("span",{className:"gx-gris-it-txt"},
               React.createElement("span",{className:"gx-gris-it-nm"},nombre||"—"),
               React.createElement("span",{className:"gx-gris-it-sub"},[it.sub,fecha,bk?(entOf(bk).label||entOf(bk).mono):null].filter(Boolean).join(" · "))),
-            React.createElement("span",{className:"gx-gris-it-amt num"},eur(Math.abs(e.amount||0))));
+            React.createElement("span",{className:"gx-gris-it-amt num"},((e.amount||0)<0?"+":"")+eur(Math.abs(e.amount||0))));
         }),
-        conPlan && React.createElement("button",{type:"button",className:"gx-gris-plan",tabIndex:open?0:-1,onClick:function(){ ir(def.seg); }},
+        conPlan && React.createElement("button",{type:"button",className:"gx-gris-plan",tabIndex:open?0:-1,onClick:function(){ ir(def.seg,unaDeuda); }},
           (def.cartera?t("gv5_cartera_open"):tf("gv5_plan_open",{x:t(def.lab)}))+" ›")))
   );
 }
@@ -2358,7 +2487,7 @@ const MovRow=React.memo(function MovRow({e, ms, l, onOpen, bucket, recibo, dragg
       note && React.createElement("div",{className:"nm-note"}, note),
       React.createElement("div",{className:"nm-cat",style:{color:c.color}}, l||catName(e.category)),
       React.createElement("div",{className:"meta"},
-        React.createElement("span",null,d.toLocaleDateString(loc(),{day:'2-digit',month:'2-digit'})),
+        React.createElement("span",null,gxFecha(d,"dm")),
         bk?React.createElement(React.Fragment,null,
           React.createElement("span",{className:"sep"},"·"),
           React.createElement("span",null,entOf(bk).label||entOf(bk).mono)

@@ -71,7 +71,9 @@ for(const lang of ["es","en","ca"]){
     await expect(gastosEstado(page)).toContainText(w.cats1);
     await expect(gastosRoot(page).locator('.v4-gastos-cat[data-cat="super"] [role="progressbar"]')).toHaveAttribute("aria-valuenow","25");
     await gastosSeccion(page,"movs");
-    await expect(gastosEstado(page)).toContainText(/975 €/);
+    // Oráculo cambiado el 26/10/2026: en el mes natural la devolución de 5 devuelve margen (la
+    // nómina no): 25 − 5 = 20 usados, quedan 980 (antes 975, el bruto).
+    await expect(gastosEstado(page)).toContainText(/980 €/);
     // El mes anterior, bajando: su total (compras 70 + café 40) y «cerrado», sin margen.
     await expect(gastosRoot(page).locator('.gx-dia[data-gx-ym="2026-09"] button.v4-mov')).toHaveCount(3);
     await gastosBajaAlMes(page,"2026-09");

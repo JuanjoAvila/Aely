@@ -53,14 +53,15 @@ export const CORE = [
  * (mejor un minuto de más que un verde ciego).
  */
 export const E2E_MAP = [
+  { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/fin25-charge-months.spec.mjs"] },
   { file: "src/modules/08-motor-bank.js", specs: ["e2e/fin27-book-charge-month.spec.mjs", "e2e/fin27-balance-reanchor.spec.mjs"] },
   { file: "src/modules/00-core.js", specs: ["e2e/fin04-plan-three-way.spec.mjs", "e2e/pr297-r2-plan-sync.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/fin04-plan-three-way.spec.mjs"] },
   { file: "src/modules/08-motor-bank.js", specs: ["e2e/fin04-plan-three-way.spec.mjs"] },
-  { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/fin04-plan-three-way.spec.mjs"] },
+  { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/fin04-plan-three-way.spec.mjs", "e2e/deudas-ir-suave.spec.mjs"] },
   { file: "src/modules/10-app-components.js", specs: ["e2e/fin04-plan-three-way.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/fin04-plan-three-way.spec.mjs", "e2e/pr297-r2-plan-sync.spec.mjs"] },
-  { file: "src/modules/14-v4-screens.js", specs: ["e2e/fin04-plan-three-way.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/fin28-manual-link-warning.spec.mjs", "e2e/fin04-plan-three-way.spec.mjs", "e2e/deudas-ir-suave.spec.mjs"] },
   { file: "src/modules/06-sync-brokers.js", specs: ["e2e/fin22-cartera-divisa.spec.mjs"] },
   { file: "src/modules/10-app-components.js", specs: ["e2e/fin22-cartera-divisa.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/fin22-cartera-divisa.spec.mjs"] },
@@ -77,6 +78,32 @@ export const E2E_MAP = [
   // Meses marcados a mano: la mensualidad de `fixedMonthlyOf` y la vista previa del alta (FIN-20/21).
   { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-meses-a-mano.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-meses-a-mano.spec.mjs"] },
+  // Plan › Recibos v6: tarjeta, «Para revisar», «Por pagar», «Ya pagados» y «¿Cuál es el cargo?».
+  // Las cifras y el enlace salen del motor (`planChargesMonth`, `linkFixedPayment`): también lo ata.
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-recibos-v6.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/plan-recibos-v6.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/plan-recibos-v6.spec.mjs"] },
+  // Tanda 2: avisos nuevos, casos especiales de la ficha, posponer y Pausar. La pausa se lee en
+  // el motor (`planChargesMonth`, totales de 11) y en la mezcla con la nube (00-core).
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-recibos-t2.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/plan-recibos-t2.spec.mjs"] },
+  { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/plan-recibos-t2.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/plan-recibos-t2.spec.mjs"] },
+  { file: "src/modules/00-core.js", specs: ["e2e/plan-recibos-t2.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/plan-recibos-t2.spec.mjs"] },
+  // Tanda 3: hoja «¿Te llega?». El recorrido es `minWalk` (08) con `pendingWalkEvents` (08, con la
+  // pausa y el día de 07) y lo alimenta `totals` (11); la
+  // nómina se edita con `patchFlowById` (08) y la hoja tiene su CSS en el shell.
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-recibos-t3.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/plan-recibos-t3.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/plan-recibos-t3.spec.mjs"] },
+  { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/plan-recibos-t3.spec.mjs"] },
+  // La marca de lectura del saldo (`saldoLeidoAt`) la escriben el puente de TR (00 y 06) y el
+  // saldo corregido a mano (07): sin ella el recorrido vuelve a restar lo ya cobrado.
+  { file: "src/modules/00-core.js", specs: ["e2e/plan-recibos-t3.spec.mjs"] },
+  { file: "src/modules/06-sync-brokers.js", specs: ["e2e/plan-recibos-t3.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/plan-recibos-t3.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/plan-recibos-t3.spec.mjs"] },
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/ux16-round9-haptics.spec.mjs", "e2e/ux16-haptics.spec.mjs", "e2e/ux16-round2-haptics.spec.mjs", "e2e/ux16-round3-haptics.spec.mjs", "e2e/ux16-ajustador.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/ux16-round9-haptics.spec.mjs", "e2e/ux16-haptics.spec.mjs", "e2e/ux16-round3-haptics.spec.mjs", "e2e/ux16-ajustador.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-ciclo-porcentaje.spec.mjs"] },
@@ -103,10 +130,16 @@ export const E2E_MAP = [
     "e2e/metas-alta-regla.spec.mjs",
     "e2e/metas-mensual.spec.mjs",
     "e2e/inicio-cargos.spec.mjs",
+    // Próximos cargos del mes que viene y «Últimos movimientos» con el filtro de Gastos (31/10/2026).
+    "e2e/inicio-traspasos.spec.mjs",
     "e2e/recibo-cargo-en-gastos.spec.mjs",
     "e2e/pulido-vacios.spec.mjs","e2e/inicio-grafica-significado.spec.mjs","e2e/indicador-arco.spec.mjs", "e2e/smoke.spec.mjs", "e2e/informe-mes.spec.mjs",
-    "e2e/ultima-cuota-descartar.spec.mjs", "e2e/inicio-offline.spec.mjs", "e2e/presupuesto-fluido.spec.mjs", "e2e/inicio-mes-natural.spec.mjs", "e2e/cartera-parte-mia.spec.mjs"] },
+    "e2e/ultima-cuota-descartar.spec.mjs", "e2e/inicio-offline.spec.mjs", "e2e/presupuesto-fluido.spec.mjs", "e2e/inicio-mes-natural.spec.mjs", "e2e/cartera-parte-mia.spec.mjs", "e2e/cifras-coherentes.spec.mjs"] },
   { file: "src/modules/04-tab-gastos.js", specs: [
+    "e2e/gastos-transfer-rename-offline.spec.mjs",
+    "e2e/fin28-manual-link-warning.spec.mjs",
+    // Tocar una deuda (Recibos o la fila gris de Gastos) lleva a su tarjeta, a la vista y deslizando.
+    "e2e/deudas-ir-suave.spec.mjs",
     "e2e/fin04-rename-note-ack.spec.mjs",
     "e2e/plan-expense-links.spec.mjs",
     "e2e/fin17-confirmed-absorptions.spec.mjs",
@@ -125,6 +158,8 @@ export const E2E_MAP = [
     "e2e/retirada-bancaria.spec.mjs",
     "e2e/recibo-cargo-en-gastos.spec.mjs",
     "e2e/gastos-cajones.spec.mjs", "e2e/gastos-concepto.spec.mjs", "e2e/apuntar-sheet.spec.mjs",
+    // El bloque «Traspasos · no cuentan» y la portada de Inicio leen `gxPlegada`/`gastosDePortada`.
+    "e2e/inicio-traspasos.spec.mjs",
     "e2e/categoria-elegida.spec.mjs",
     "e2e/gastos-diario-filtro.spec.mjs", "e2e/gastos-cabecera-bancos.spec.mjs", "e2e/gastos-orden.spec.mjs",
     "e2e/gastos-categorias-presupuesto.spec.mjs", "e2e/gastos-periodo-categorias.spec.mjs", "e2e/gastos-suelta-filas.spec.mjs",
@@ -132,6 +167,8 @@ export const E2E_MAP = [
     "e2e/gastos-ayuda-ciclo.spec.mjs", "e2e/gastos-mes-madrid.spec.mjs",
     // Gastos v5: cifra viva = Inicio, mes cerrado sin límite, filas grises, sin perder filas, Mi ciclo.
     "e2e/gastos-v5.spec.mjs",
+    // El exceso sobre el límite: el mismo en Gastos (también en Balance), Inicio y el widget.
+    "e2e/cifras-coherentes.spec.mjs",
     // Gastos v5 tanda 2: secciones, tirón con un solo toque, Categorías y Suscripciones como antes.
     "e2e/gastos-v5-secciones.spec.mjs",
     // Gastos v5 tanda 3: tocar una categoría filtra (píldora, cifra de la categoría, meses fijos) y
@@ -151,6 +188,8 @@ export const E2E_MAP = [
     // «Lagazo guapo» (25/10): con cientos de filas bajadas solo se pintan los días de cerca, y la
     // paginación sigue llegando a «Hasta aquí».
     "e2e/gastos-lista-ligera.spec.mjs",
+    // Vídeo del 26/10: un fling largo en Movimientos ya no se estrella en «Cargando más…».
+    "e2e/gastos-fling-sin-tope.spec.mjs",
     // Rechazo de la 173: tocar un mes o un ciclo de la fila deja SU primer día bajo la cabecera.
     "e2e/gastos-fila-salto.spec.mjs",
     // Y el asa de ordenar ya no se come el desliz hacia Plan (solo se queda el vertical).
@@ -327,7 +366,7 @@ export const CROSSCUTTING = [
 ];
 
 const STEPS_DOCS = ["guard-privacy", "docs-frescura", "memoria-espejo"];
-const STEPS_ANDROID = ["guard-privacy", "webdebug-guard", "widget-coherente", "widget-arbitraje", "widget-offline", "widget-unknown-loss", "widget-unknown-journal", "widget-notificacion-render", "widget-inicio-paridad", "widget-puente-ciclo", "ingest-identity", "ingest-handler"];
+const STEPS_ANDROID = ["guard-privacy", "webdebug-guard", "widget-coherente", "widget-arbitraje", "widget-offline", "widget-unknown-loss", "widget-unknown-journal", "widget-notificacion-render", "widget-inicio-paridad", "widget-puente-ciclo", "ingest-identity", "ingest-handler", "tr-login-v2"];
 const STEPS_SUPABASE = [
   "sec02-edge-limits-replay",
   "prod117-edge-compat",
@@ -449,8 +488,10 @@ export function planFromFiles(files) {
   const specs = new Set(e2eFiles);
   let unmapped = [];
   for (const f of srcFiles) {
-    const hit = E2E_MAP.find((m) => m.file === f);
-    if (hit) hit.specs.forEach((s) => specs.add(s));
+    // TODAS las entradas del módulo, no solo la primera: con `find` las repetidas (14-v4-screens
+    // tiene varias) no corrían nunca en beta y plan-recibos-v6 quedaba sin ejecutar (2026-10-28).
+    const hits = E2E_MAP.filter((m) => m.file === f);
+    if (hits.length) hits.forEach((h) => h.specs.forEach((s) => specs.add(s)));
     else unmapped.push(f);
   }
   if (unmapped.length) return full("módulo sin mapa e2e: " + unmapped[0] + " (añádelo a E2E_MAP o a CORE)");

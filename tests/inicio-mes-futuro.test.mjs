@@ -32,11 +32,14 @@ check('client',()=>{
   const dash=cli.dashboardBudgetStats(s),gastos=cli.monthBudgetStats(s,null,null,null,cli.gastosPeriodOf('month',cli.presetBoundsMs('month',{}),null));
   console.log(JSON.stringify({case:label,tz,spentCents:cents(dash.spent),expectedSpentCents:2554,incomeCents:cents(dash.income),reservedCents:cents(dash.reserved),remainingCents:cents(dash.remaining)}));
   assert.equal(cents(dash.spent),2554,'Inicio excluye 2719c del mes siguiente y conserva 811c futuros del mismo mes');
-  assert.equal(cents(dash.income),535);assert.equal(cents(dash.reserved),317);assert.equal(cents(dash.budget),9683);assert.equal(cents(dash.remaining),7129);
+  assert.equal(cents(dash.income),535);assert.equal(cents(dash.reserved),317);assert.equal(cents(dash.budget),9683);
+  // Oráculo cambiado el 26/10/2026: Inicio compara gasto menos ingresos sin nómina (2554−535=2019c),
+  // así que quedan 9683−2019=7664c; antes, con el bruto, 7129c. `monthBudgetStats` en «split» no cambia.
+  assert.equal(cents(dash.against),2019);assert.equal(cents(dash.remaining),7664);
   assert.equal(cents(gastos.shown),2554);assert.equal(cents(gastos.remaining),7129);assert.equal(cli.budgetPeriodOf(s).startMs,start);assert.equal(cli.budgetPeriodOf(s).todayEndMs,end);
   assert.equal(cents(cli.categorySpentByMonth(s).reduce((a,x)=>a+x.spent,0)),2554);
   const net=cli.monthBudgetStats({...s,settings:{...s.settings,gTotalMode:'net'}});assert.equal(cents(net.against),2019);assert.equal(cents(net.remaining),7664);
-  now=end+12*3600000;const next=cli.dashboardBudgetStats(s);assert.equal(cents(next.spent),2719);assert.equal(cents(next.income),1307);assert.equal(cents(next.reserved),211);assert.equal(cents(next.remaining),7070);
+  now=end+12*3600000;const next=cli.dashboardBudgetStats(s);assert.equal(cents(next.spent),2719);assert.equal(cents(next.income),1307);assert.equal(cents(next.reserved),211);assert.equal(cents(next.remaining),9789-(2719-1307));
   assert.equal(JSON.stringify(s),before,'la selección de periodo no muta filas ni metadatos');
  }
 });
@@ -56,12 +59,13 @@ function load(file,imports={}){const mod={exports:{}};let raw=fs.readFileSync(ne
  new Function('module','exports',...Object.keys(imports),transformSync(raw,{loader:'ts',format:'cjs'}).code)(mod,mod.exports,...Object.values(imports));return mod.exports;}
 for(const reserve of [false,true])check(reserve?'server-reserve':'server-money',()=>{
  now=Date.parse(boundaries[0][1]);const start=Date.parse(boundaries[0][2]),end=Date.parse(boundaries[0][3]),s=fixture(start,end);if(!reserve)s.reservaLog=[];
- s.widgetPeriod={v:2,kind:'mes',start,anchor:'',scope:JSON.stringify([2,start,'mes','gasto','',reserve?96.83:100,['sabadell'],'sabadell'])};
+ s.widgetPeriod={v:2,nominas:[],noNominas:[],kind:'mes',start,anchor:'',scope:JSON.stringify([2,start,'mes','gasto',[[],[]],reserve?96.83:100,['sabadell'],'sabadell'])};
  const rows=s.expenses.map(e=>({id:e.id,fecha:e.date,importe:e.amount,cat:e.category,comercio:e.merchant,source:e.source}));
  const server=load('supabase/functions/ingest/widget.ts',load('supabase/functions/_shared/presupuesto.ts'));
  const actual=server.widgetSnapshot(s,rows,now,{id:'payment',event:'synthetic',key:'synthetic'});
  console.log(JSON.stringify({case:reserve?'server-reserve':'server-money',actual,expectedSpentCents:2554,expectedBudgetCents:reserve?9683:10000}));
- assert.ok(actual,'reservas del mes siguiente no invalidan el scope mensual actual');assert.equal(cents(actual.spent),2554,'consumidor real recibe todas las filas, sin prefiltrar el mes siguiente');assert.equal(cents(actual.budget),reserve?9683:10000);
+ // Desde el 26/10/2026 el widget lleva lo que Inicio compara: 2554c de gasto − 535c de ingresos.
+ assert.ok(actual,'reservas del mes siguiente no invalidan el scope mensual actual');assert.equal(cents(actual.spent),2019,'consumidor real recibe todas las filas, sin prefiltrar el mes siguiente');assert.equal(cents(actual.budget),reserve?9683:10000);
 });
 if(!only||only==='legacy'||only==='legacy-null'){
  const {fakeDb,post,logic,handlerJs}=await import('./helpers/ingest-handler-fixture.mjs');

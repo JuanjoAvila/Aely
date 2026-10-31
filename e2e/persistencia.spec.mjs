@@ -205,9 +205,9 @@ test("nube conserva inversión y traspaso al pintar Inicio y Gastos", async ({ p
   // La cifra que este caso protege es la de Inicio; se acota porque las pestañas se premontan.
   await expect(page.locator(".v4-screen:has(.v4-inicio-head) .v4-budget-txt .ph")).toContainText("480 €");
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  // La aportación va agrupada en la fila gris de Inversiones (25/10/2026); el traspaso, suelto y atenuado.
+  // La aportación va agrupada en la fila gris de Inversiones (25/10/2026); el traspaso, en la suya (31/10/2026).
   await expect(page.locator('.gx-gris[data-gris="inversion"] .gx-gris-it').filter({ hasText: "Aporte prueba" })).toHaveCount(1);
-  await expect(page.locator("button.v4-mov").filter({ hasText: "Traspaso prueba" })).toHaveClass(/v4-mov-skip/);
+  await expect(page.locator('.gx-gris[data-gris="traspaso"] .gx-gris-it').filter({ hasText: "Traspaso prueba" })).toHaveCount(1);
   await expect(page.locator("button.v4-mov").filter({ hasText: "Compra" })).not.toHaveClass(/v4-mov-skip/);
 });
 

@@ -67,8 +67,8 @@ test("Metas: una tarjeta por meta, con lo ahorrado y el objetivo", async ({ page
   await expect(cards.nth(0)).toContainText("Viaje a Japón");
   // El «X de Y» y el % son lo que de verdad mira el usuario: si el .map se rompe o el cálculo
   // deriva, aquí sale otra cosa (1500/4000 = 38 %).
-  await expect(cards.nth(0)).toContainText("1500 €");
-  await expect(cards.nth(0)).toContainText("4000 €");
+  await expect(cards.nth(0)).toContainText("1.500 €");
+  await expect(cards.nth(0)).toContainText("4.000 €");
   await expect(cards.nth(0)).toContainText("38%");
   await expect(cards.nth(1)).toContainText("Colchón");
   await expect(cards.nth(0).getByRole("button",{name:"Editar Viaje a Japón",exact:true})).toBeVisible();
@@ -122,16 +122,19 @@ test("Plan › Recibos: un anual de otro mes NO se cuela en el mes en curso", as
   await expect(paginaActiva(page).getByText("Seguro coche anual", { exact: false })).toHaveCount(esMarzo ? 1 : 0);
 });
 
-test("Plan › Recibos: pinta el saldo más bajo y no inventa el día de una cuota sin fecha", async ({ page }) => {
+test("Plan › Recibos: dice si llega y no inventa el día de una cuota sin fecha", async ({ page }) => {
   await abrirPlan(page, /Recibos|Bills|Rebuts/i, {
     accounts: [{ id: "a1", ent: "sabadell", name: "Cuenta recibos", value: 500, role: "fijos" }],
     fixed: [], oneoffs: [], flows: [],
     debts: [{ id: "d1", name: "Préstamo sin fecha", value: 800, monthly: 80, account: "sabadell" }],
   });
   const hero=paginaActiva(page).locator(".v4-card-hero").first();
-  await expect(hero).toContainText(/saldo más bajo|lowest balance|saldo més baix/i);
-  await expect(hero).toContainText("420 €");
-  await expect(hero).not.toContainText(/día 1|day 1|dia 1/i);
+  // v6: la tarjeta suma la cuota (80) y la píldora dice si llega (500 − 80 = 420 ≥ 0).
+  await expect(hero.locator(".serif.num")).toContainText("80");
+  await expect(hero.getByTestId("plan-llega")).toHaveText(/Te llega|You're covered|T'arriba/);
+  const cuota=paginaActiva(page).getByTestId("plan-due").locator(".v4-charge").filter({ hasText: "Préstamo sin fecha" });
+  await expect(cuota.locator(".dt .d")).toHaveText("—");
+  await expect(cuota).not.toContainText(/día 1|day 1|dia 1|hoy|mañana|today|tomorrow|avui|demà/i);
 });
 
 /* ---------------- Cartera › Tus cuentas ---------------- */

@@ -1,3 +1,49 @@
+## FIN29/30: alias de nombre separados del borrado (candidata local, 28/10/2026)
+
+Un renombrado bancario nuevo guarda `expense-rename|identidad|clave` en la partición
+existente de lápidas. La identidad codifica banco, cuenta y referencia; si falta la
+cuenta, exige el UUID. La clave conserva día, importe con signo y ordinal. El lector
+solo retira esa versión del nombre, sin aplicar el alias a `obName`. Volver al nombre
+anterior levanta su alias con las mismas horas y topes existentes (500 lápidas y 200
+horas). El borrado explícito y su deshacer mantienen `expense-account` y sus vínculos;
+las lápidas legacy no se migran ni se reinterpretan por semejanza. El espejo TypeScript
+solo reproduce esta lectura offline; no acredita el widget desplegado.
+
+El backfill de Gastos conserva una cobertura separada para una versión remota retirada
+por un alias activo: exige lectura válida, titular y sesión vigentes, UUID idéntico,
+banco/cuenta/referencia completos, instante, importe firmado finito y ordinal canónico.
+No presume ausencias ni presta identidad de otra fila; el gasto realmente ausente sigue
+subiéndose. La prueba sucesora conserva el writer y el undo reales: transporte con
+ignoreDuplicates y UPDATE23505 atómico, tres resultados de DELETE y reenvíos de
+restauración con filas completas y 640/320/640. El oráculo original31d09ebd queda
+congelado como evidencia privada.
+
+El alias TS replica expenseFromRow: ob: con evento y dup en el primer tramo u
+ordinal mayor que uno es macrodroid y no recibe alias OB. Ob-hist conserva su
+tratamiento; RED JS320/TS0 y seis controles acreditan solo paridad offline.
+R4 usa el ensamblado actual y remotas de instantes distintos del mismo día,
+manteniendo oráculos960/640. El RED R8 previo perdía noCard y devolvía ingreso a
+traspaso (split/net20000→0) al tercer pull; se conserva como evidencia privada.
+La decisión posterior conserva lo elegido realmente en la ficha: un renombrado
+bancario sin cambio de importe/fecha guarda solo las diferencias category/noCard
+en expenseEditPending, dentro de la fila local y su persistencia existente.
+Refresh protege cada valor vigente hasta leer ese mismo valor en el mismo UUID,
+bajo las guardas existentes de owner/sesión/generación e identidad de la mezcla.
+La confirmación es por campo; los otros pendientes y uuidPreserved permanecen.
+La categoría sintetizada por keepCategoryChoices tampoco confirma: catStale local
+o entrante identifica sus dos vías de protección, sin impedir confirmar noCard.
+Una coincidencia con otro UUID, un ACK solo de nombre, cero filas, un rechazo o un
+upsert DO NOTHING no son recibos de esos metadatos. Tras la confirmación, los
+cambios remotos posteriores vuelven a mandar. La cola/writer no se amplían: un
+pendiente que no logra subirse sigue pendiente, también tras reiniciar; la guarda
+no promete una nueva política de reintentos ni una subida eventual.
+El alias TS nuevo replica comercio||Gasto del lector JS, también cuando falta el
+nombre; las claves legacy conservan su semántica. El RED JS0/TS320 queda preservado.
+Los seeds remotos respetan usuario/instante/importe/comercio únicos: separar +1ms
+dentro del mismo día conserva las claves diarias y las cifras originales.
+Pasan55 pruebas afectadas (R8 14, main2, R5 11 y R7 28); falta revisión financiera
+independiente del SHA final y no hay publicación ni aceptación real/móvil.
+
 ## Plan: primera lectura y versiones de borrado
 
 Sin base privada del dispositivo, `planSyncPull` recibe la misma preferencia `localNewer` que Metas. Con base conocida conserva tres vías; una alta concurrente no pasa a LWW por carecer de fila en esa base. Las pruebas de pago viajan por mes sin formar parte del grupo financiero; el contador de vínculo bancario es monotónico y se valida antes de proteger una deuda con gasto local vivo.
@@ -89,6 +135,36 @@ intacta desaparece, una edición distinta permanece. El borrado sigue protegido 
 hay cuotas vinculadas. Las marcas offline `paidYm`/`paidDay` y `wait` sobreviven
 al pull y la recarga, también al actualizar un cliente sin base privada anterior,
 si conservan importe y cuenta; no se inventan pruebas bancarias.
+La pausa de un recibo (`pausedFrom`/`pausedUntil`, año*12+mes; el «hasta» no se incluye) viaja
+en el recibo dentro de `app_state` y la mezcla de tres vías la trata como un solo grupo, para no
+juntar el «desde» de un móvil con el «hasta» de otro. Un cliente anterior la ignora y la conserva
+(no reconstruye recibos campo a campo). Un recibo en pausa y sin cobrar no cuenta en el mes
+(`fixedEnPausa`: Plan, Inicio, totales, previsión de saldo y avisos de la víspera); si el banco lo
+cobra igualmente es un pago y se ve. Pausar o reanudar compensa el saldo mostrado
+(`conSaldoMostrado`), como los vínculos de pago. `revisado` (`{distinto, fantasma}` con el
+año*12+mes) guarda los avisos de «Para revisar» ya contestados; posponer es solo de ese móvil
+(almacén local, hasta el día siguiente).
+«¿Te llega?» no tiene cálculo propio: lee el recorrido día a día de `totals` (11), que pasa por
+`minWalk` (08), la misma función del simulador «¿Me lo puedo permitir?». A igualdad de día primero
+salen los cargos y luego entran las entradas. Los eventos salen de `pendingWalkEvents` (08), la
+única lista: la usan `totals` (píldora, hoja, mínimo diario, `safeLiq` del widget) y el simulador
+«¿Me lo puedo permitir?» (`bankPendingEvents` = esa lista filtrada por banco). Un recibo sale del
+recorrido si Plan lo pinta pagado (`fixedPaymentState`) Y ese pago ya está en el saldo
+(`reciboEnElSaldo`): siempre si movió el saldo mostrado (`paidYm` o cargo enlazado con día); con
+cualquier otra prueba, solo si el saldo se leyó desde fuera el DÍA SIGUIENTE al pago o después (la
+prueba trae el día, no la hora). `saldoLeidoDelBanco` da la lectura de cada cuenta del banco y se
+queda con la MÁS VIEJA (una cuenta sin lectura → no se afirma nada). Fuentes de lectura: Open
+Banking (cuenta re-anclada por la sincronización + `obBalAt` de ese banco; `lastBankSync` no vale,
+se sella aunque el banco no diera saldo), el puente de Trade Republic (`applyTrCash` sella
+`saldoLeidoAt` en la cuenta; antes del sello, `lastTrSync`), el saldo corregido a mano (también
+sella `saldoLeidoAt`) y `balanceAt` de una cuenta adoptada. `bankTx` no es lectura. Sin lectura posterior, un aviso de Wallet o un BOOK sin fila siguen restando (lo fija
+`fixed-ispaidin`) y la hoja los enseña en su fila «Pagado, aún sin restar del saldo».
+`saldoLeidoAt` viaja en la cuenta dentro de `app_state` (sin servidor); un cliente viejo lo ignora. Lo de hoy o vencido
+sin cobro es un cargo de HOY (decisión del dueño, 28/10/2026). Una frescura con una conexión
+del banco caída o rancia no se enseña. `totals.evsByBank` expone esos eventos (los
+traspasos y entradas con su id) para que la hoja enseñe justo los que ha recorrido. La frescura es
+`obBalAt` (la hora de lectura que da el servidor; sin lectura no se dice nada). Editar la nómina
+desde la hoja es `patchFlowById`, lo mismo que Todos: no hay campos nuevos.
 
 Si la lápida alcanza una fila con un borrador privado pendiente, la fila sigue
 borrada y el borrador se ofrece en Plan → Deudas. Recuperar solo precarga el editor,
@@ -241,7 +317,7 @@ no añade telemetría financiera. [Acta](briefs/inc-3009-nomina-anticipada.md).
 
 ## Presupuesto de Inicio mensual (INC-2909-02)
 
-`dashboardBudgetStats` pide modo bruto al argumento opcional `budgetMode` de `monthBudgetStats`, sin otro recorrido del histórico ni cambiar `gTotalMode`. En mes natural, frase, anillo, margen, Pregúntame, avisos y reto describen las mismas compras y el límite tras reservas. El ciclo reconocido conserva neto, incluso negativo; Gastos e informes mantienen sus propias llamadas y modos. El widget v2 sigue Inicio desde APK52; APK51 conserva su payload legado. No modifica saldos ni escrituras.
+`dashboardBudgetStats` pide el modo `"mes"` al argumento opcional `budgetMode` de `monthBudgetStats`, sin otro recorrido del histórico ni cambiar `gTotalMode`. Desde el 26/10/2026 (decisión del dueño) el mes natural compara con el límite **gasto − ingresos sin la nómina**: Bizums recibidos y devoluciones devuelven margen; la nómina no (con el neto entero dejaba el mes a 0 %, que es lo que corrigió INC-2909-02). La nómina se identifica con `esNomina` (`04-tab-gastos.js`), la MISMA regla que abre Mi ciclo en `budgetPaydayOf`: ingreso ≥200 €, no neutro ni Bizum ni posible duplicado, con «nómina/salario/sueldo/…» en comercio, nota o concepto, o que casa con un ingreso periódico de Plan; sin la ventana de 45 días, así que una nómina anticipada al 28 se aparta en SU mes y dos en un mes se apartan las dos. En este modo lo usado nunca baja de 0: unos ingresos mayores que el gasto no estiran el límite. `monthBudgetStats` devuelve además `nomina`, `nominas` y `noNominas` (claves de los ingresos grandes que decidió). Frase, anillo, margen, Pregúntame, avisos, reto, la línea de Gastos, la tarjeta y la imagen del mes cerrado (`limiteDeStats`: `budgetStatsFromAmounts(..., cycle?"net":"mes", nomina)`), las rachas (`underBudgetStreak`, con el límite de cada mes) y el widget v2 (`spent` = `against`) dicen lo mismo; la cifra grande de Gastos y de la tarjeta sigue la preferencia. El ciclo reconocido conserva neto, incluso negativo. APK51 conserva su payload legado. No modifica saldos ni escrituras.
 
 INC-0210-03, candidata84: Gastos pasa una ventana explícita opcional a `monthBudgetStats` y `categorySpentByMonth`, calculada por el mismo `presetBoundsMs` de la lista. Los demás lectores conservan su ventana anterior. Las cifras y categorías leen el mismo array diferido que las filas; búsqueda, banco y categoría siguen siendo filtros exploratorios. El rango usa medianoche/final del día locales; mes y tres meses terminan al cierre del mes seleccionado, y Mi ciclo al final de hoy. La nómina ancla y los ingresos del ciclo conservan sus reglas. Fuera del mes/ciclo actual no hay presupuesto histórico ni acumulado registrado: se muestran presupuesto/margen desconocidos con motivo y se omiten barras de límites mensuales de categoría. No modifica preferencias, datos, saldos ni el payload nativo.
 
@@ -1044,13 +1120,20 @@ del sync manual general pasan por `trLogFailure` y el `cloud.logEvent` existente
 
 | Campo | Valores admitidos |
 |---|---|
-| `code` | `auth_expired`, `soft_fail`, `sync_invalid`, `sync_rejected`, `status_rejected`, `status_inactive`, `client_error`, `login_failed`, `verify_failed`, `unknown` |
+| `code` | `auth_expired`, `soft_fail`, `sync_invalid`, `sync_rejected`, `status_rejected`, `status_inactive`, `client_error`, `login_failed`, `verify_failed`, `login_pending`, `unknown` |
 | `origin` | `tr_card_sync`, `broker_manual_sync`, `tr_card_login`, `tr_card_verify`, `status_check`, `unknown` |
 | `snapshotAge` | `unknown`, `no_snapshot`, `invalid_clock`, `lt_5m`, `m5_lt_60m`, `h1_lt_24h`, `ge_24h` |
+| `api` (opcional) | `v1`, `v2` |
+| `http` (opcional) | `400`, `401`, `403`, `404`, `405`, `410`, `426`, `429`, `5xx`, `other` |
+| `trCode` (opcional) | `errorCode` de TR que case `^[A-Z][A-Z_]{2,39}$` (sin dígitos ni `@`) |
+| `restore` (opcional) | `not_yet`, `no_snapshot`, `hot_jar`, `yes` |
 
-Todos los productores de esta entrega emiten `snapshotAge:unknown`: la APK existente no entrega
-edad estructurada. Los tramos reservan menos de5min, de5min a menos de1h, de1h a menos de24h y
-24h o más; no se calcula edad desde `lastTrSync`, el texto del error ni timestamps del cliente.
+La APK 62 no entrega edad estructurada y emite `snapshotAge:unknown` sin campos opcionales. Desde
+el login v2 (31/10/2026) el puente devuelve en los fallos un `diag` aparte del texto de `error`, y
+`trDiagFields` lo traduce: la edad sale de `diag.snapAgeMin` en minutos. Los tramos reservan menos
+de5min, de5min a menos de1h, de1h a menos de24h y 24h o más; no se calcula edad desde
+`lastTrSync`, el texto del error ni timestamps del cliente. Los nombres de cookie del `diag` no
+viajan. La tarjeta pinta una sola línea traducida (`trErrKey`), nunca el texto del puente.
 JSON inválido, campos extra y valores fuera de lista no pasan al registro. El prefijo antiguo
 `TR sync:` conserva la ruta sin analizar su texto para inferir una causa.
 
@@ -1229,3 +1312,11 @@ La identidad de un gasto bancario lleva banco y cuenta cuando se conocen, de mod
 `budgetPeriodOf` delimita el mes natural con [día 1 de Madrid, día 1 del mes siguiente). Los apuntes y reservas futuros del mismo mes cuentan; los del siguiente se cuentan en su mes. Inicio, el resumen mensual de Gastos y el puente del widget usan esa ventana. Sin nómina acreditada, Mi ciclo conserva su fallback mensual; con ancla real conserva su límite de mañana. El modo balance de Gastos y del widget legacy sigue siendo configurable; Inicio mensual y V2 conservan el gasto bruto.
 
 El caller mensual de ingest acota su lectura y una copia de las reservas antes de calcular los absolutos y deltas legacy; no modifica app_state ni el helper compartido de presupuesto. V2 aplica el mismo extremo superior a filas y reservas antes de validar el scope: una reserva del próximo mes no invalida la foto actual. Las pruebas locales de fuentes de servidor no acreditan despliegue, APK instalada ni aceptación física.
+
+## Resumen para Jarvis
+
+`npm run jarvis-resumen` (`scripts/jarvis-resumen.mjs`) deja en `%LOCALAPPDATA%/Aely/jarvis-resumen.json` lo que el asistente personal del dueño lee en su PC. Es una herramienta local de solo lectura, como `errores.mjs`: lee `app_state` y la tabla `expenses` con la `service_role` de `.env.local` (carpeta desde la que se ejecuta, gitignored), no escribe en Supabase ni en el repo y no imprime la clave. Con varios usuarios en la nube elige el de `AELY_JARVIS_USER` (correo o `user_id`, también en `.env.local`); sin él y con más de uno, sale con error en vez de adivinar.
+
+- **Estado:** el de un primer inicio de sesión. `app_state` (sin gastos, `slimForCloud`) pasa por la cadena de `loadState`/`syncFromCloud`, y el histórico entero por `expensesFromRows` y la mezcla de `syncCloudExpenses`. El extracto local del banco (`bankTx`) no viaja a la nube: un recibo que el móvil da por pagado solo por ese extracto puede salir aquí como pendiente.
+- **Cifras:** con el bundle cargado por `load-pure-logic`, nunca con una copia. `mes.gastado` = `monthBudgetStats(...).spent` con la ventana de Gastos › Meses (el «gastado» del mes natural, también en modo Balance); `porCategoria` = `categorySpentByMonth` con la misma ventana, nombres de `catName`. `proximosCobros` = `planChargesMonth` (pausados y pagados fuera) de este mes desde hoy y del siguiente hasta hoy+30; lo vencido sin pagar no sale; sin día, `fecha:null` (solo el mes en curso); cuotas como `deuda`, el resto como `recibo` (Plan no distingue suscripciones). `cuentas` = `accountRowsInOrder` con `saldoCuentaMostrada`/`insumosSaldoGasto` y `leidoEn` de `saldoLeidoDelBanco` (null si no hay lectura externa).
+- **Formato v1:** `{version, generadoEn, mes:{gastado, porCategoria:[{cat, importe}]}, proximosCobros:[{nombre, importe, fecha, tipo}], cuentas:[{nombre, saldo, leidoEn}]}`, euros con dos decimales, sin IBAN, ids, correos ni tokens. Escritura atómica (temporal + rename). `tests/jarvis-resumen.test.mjs` fija formato, cifras por dos vías y ausencia de identificadores con un estado inventado y sin red.

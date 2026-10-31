@@ -104,8 +104,16 @@ function fixedPaymentContract(e,m){
   return JSON.stringify([e.id,accOf(e),occAmountIn(e,m),e.bankAmount>0?e.bankAmount:null]);
 }
 function fixedPaymentModelMatches(p,e,m){
-  // Las pruebas antiguas siguen siendo estrictas: no recuperar un pago roto al leerlo.
-  return p.modelVersion==null?p.model===fixedPaymentModel(e,m):p.modelVersion===2&&p.receiptId===e.id&&typeof p.receiptName==="string"&&p.model===fixedPaymentContract(e,m);
+  var legacy=p.modelVersion==null;
+  if(!legacy&&(p.modelVersion!==2||p.receiptId!==e.id||typeof p.receiptName!=="string")) return false;
+  if(p.model===(legacy?fixedPaymentModel(e,m):fixedPaymentContract(e,m))) return true;
+  // FIN-25: el divisor antiguo podía guardar media cuota aunque el cargo confirmado fuese entero.
+  // Sólo esa huella exacta conserva el pago completo; ni parciales ni otras pruebas rotas reviven.
+  if(hasSchedule(e)||(e.freq!=="anual"&&e.freq!=="año")||!Array.isArray(e.months)||!occursIn(e,m)) return false;
+  var months=chargeMonths(e),amount=e.bankAmount>0?e.bankAmount:occAmountIn(e,m);
+  if(!months.some(function(mm){ return e.months.indexOf(mm)!==e.months.lastIndexOf(mm); })||
+    !Number.isFinite(amount)||!(amount>0)||!Number.isFinite(p.amount)||Math.round(p.amount*100)!==Math.round(amount*100)) return false;
+  return p.model===JSON.stringify([legacy?e.name||"":e.id,accOf(e),e.amount/e.months.length,e.bankAmount>0?e.bankAmount:null]);
 }
 function fixedPaymentBind(p,e,m){
   return Object.assign({},p,{modelVersion:2,receiptId:e.id,receiptName:e.name||"",model:fixedPaymentContract(e,m)});
@@ -405,6 +413,49 @@ function fixedPaymentChargeOwner(s,x,e,y,m,today){
    si además bloqueaba el enlace a mano, el cargo real no había forma de confirmarlo (INC-1810-04,
    YouTube Premium, rechazo de beta 4.26.145). */
 function fixedPaymentEvidence(st){ return !!(st&&(st.proof||st.bankTx||st.expense)); }
+/* FIN28: parecido sin referencia solo pide una decisión al enlazar A MANO. Se consulta el
+   pago que acredita OTRO recibo; nunca entra en identidad, elegibilidad ni pruebas guardadas. */
+function fixedPaymentManualLinkWarnings(s,x,e,y,m,today){
+  if(!x||!e||x.extId!=null&&String(x.extId)!==""||
+    !isManualExpenseSource(x.source)&&["wallet","macrodroid"].indexOf(x.source)<0||
+    !fixedExpenseEligible(s,x,e,y,m,today)||fixedPaymentEvidence(fixedPaymentState(s,e,y,m,today))) return [];
+  var bank=expenseBankOf(x),cents=Math.round(Number(x.amount)*100),warnings=[],seen=new Set(),now=madridYmdParts(Date.now()),cur=now.y*12+now.m;
+  var day=function(date){ var ds=String(date||"").slice(0,10);return /^\d{4}-\d{2}-\d{2}$/.test(ds)?Date.parse(ds+"T00:00:00Z"):NaN; };
+  (s.fixed||[]).forEach(function(f){
+    if(f.id===e.id) return;
+    // La ventana bancaria puede cruzar el mes; FIN27 conserva además el mes de su cargo.
+    [y*12+m-1,y*12+m,y*12+m+1].forEach(function(ym){
+    if(ym>cur) return;
+    var Y=Math.floor((ym-1)/12),M=ym-Y*12,T=ym===y*12+m?today:ym===cur?now.d:new Date(Y,M,0).getDate();
+    var st=fixedPaymentState(s,f,Y,M,T),p=st.proof,b=null,ref=null;
+    if(p&&p.kind==="book"){
+      b=p;ref=p.key&&p.key.indexOf(p.bank+"|")===0?p.key.slice(p.bank.length+1):null;
+    } else {
+      var row=st.expense;
+      if(p&&p.kind==="expense"){
+        var rows=(s.expenses||[]).filter(function(r){ return r&&fixedPaymentIdentity(expenseBankOf(r),r)===p.identity&&(!p.expenseId||r.id===p.expenseId); });
+        row=rows.length===1?rows[0]:null;
+      } else if(!p&&st.bankTx){ b=fixedPaymentBookRecord(st.bankTx);ref=st.bankTx.id; }
+      if(!b&&row&&["ob","ob-hist"].indexOf(row.source)>=0&&String(row.status||"").toUpperCase()==="BOOK"){
+        b={bank:expenseBankOf(row),date:row.date,amount:row.amount};ref=row.extId;
+      }
+    }
+    if(!b||ref==null||String(ref)===""||b.bank!==bank||Math.round(Number(b.amount)*100)!==cents||
+      !(Math.abs(day(b.date)-day(x.date))<=4*864e5)) return;
+    var date=String(b.date).slice(0,10),key=JSON.stringify([f.id,bank,String(ref),date]);
+    if(!seen.has(key)){seen.add(key);warnings.push({receiptId:f.id,name:f.name||"",date:date});}
+    });
+  });
+  // Orden de presentación estable: no adjudica cargos ni elige una identidad entre BOOK iguales.
+  return warnings.sort(function(a,b){ var A=a.date+"|"+a.receiptId,B=b.date+"|"+b.receiptId;return A<B?-1:A>B?1:0; });
+}
+/* Un recibo en pausa no cuenta en el mes… salvo que esté pagado: si el banco lo cobró igual,
+   es un pago de verdad y se enseña y se descuenta como cualquier otro. Así «Pausar» con el
+   recibo ya pagado tampoco lo saca del mes (SPEC §2.6.1). Solo lee el estado del pago si hay
+   pausa en ese mes: un recibo sin pausa no paga nada por esta comprobación. */
+function fixedEnPausa(s,e,y,m,today){
+  return fixedPausedIn(e,y,m)&&!fixedPaymentState(s,e,y,m,today).paid;
+}
 function linkFixedPayment(s,expenseId,fixedId,y,m,today,expected){
   var x=(s.expenses||[]).find(function(r){ return r.id===expenseId; });
   if(!x) return s;
@@ -768,6 +819,7 @@ function planChargesMonth(s,m,y,today){
     var a=occAmountIn(e,m);
     if(!(a>0)||!occursIn(e,m)) return;
     var status=fixedPaymentState(s,e,y,m,today);
+    if(!status.paid&&fixedPausedIn(e,y,m)) return;
     r.push({id:"fixed_"+e.id,name:e.name,amount:a,day:status.day,bank:accOf(e),paid:status.paid,paidBank:status.paidBank,paidAmount:status.paidAmount,plannedBankAmount:e.bankAmount>0?Number(e.bankAmount):a,overdue:status.overdue});
   });
   (s.debts||[]).forEach(function(d){
@@ -1180,23 +1232,112 @@ function applyBankBalances(s, links){
   return { state:newState, changed:changed||obChanged, synced:synced, obAccounts:obAccts };
 }
 
-// Eventos PENDIENTES de un banco este mes (cargos −, ingresos +) con su día.
-// Espejo EXACTO de la lógica evsByBank del motor (totals) para un solo banco, reutilizable
-// por el simulador "¿me lo puedo permitir?". today = día de hoy (solo cuenta lo no pagado).
-function bankPendingEvents(state, bank, y, m, today){
-  const evs=[];
-  (state.fixed||[]).forEach(function(e){ if(occursIn(e,m)&&accOf(e)===bank&&!isPaidIn(e,m,today,y,state)) evs.push({day:dayIn(e,m)||0, amt:-occAmountIn(e,m)}); });
-  (state.debts||[]).forEach(function(d){ if(debtActive(d)&&(d.account||"sabadell")===bank&&!isDebtPaidThisMonth(d,today,state,y,m)){ evs.push({day:debtChargeDay(d), amt:-(d.monthly||0)}); const bl=debtBalloonIn(d,y,m); if(bl>0) evs.push({day:debtChargeDay(d), amt:-bl}); } });
-  (state.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m)&&(o.account||"sabadell")===bank&&(o.amount||0)!==0&&!isPaidThisMonth(o,today)) evs.push({day:o.day||0, amt:-o.amount}); });
-  (state.flows||[]).forEach(function(f){ if(!flowOccursIn(f,m,y)||flowPaidIn(state,f,y,m,today))return; const dd=flowDay(f,y,m); if(f.kind==="income"&&(f.to||"sabadell")===bank) evs.push({day:dd||99, amt:f.amount}); else if(f.kind==="transfer"&&(f.from||"sabadell")===bank) evs.push({day:dd||0, amt:-f.amount}); });
+/* Eventos PENDIENTES del mes que recorre `minWalk` (cargos −, entradas +), con su banco y su día.
+   Es la ÚNICA lista: la usan `totals` (11: `minByBank` → píldora, «¿Te llega?», mínimo diario y
+   `safeLiq`) y el simulador «¿Me lo puedo permitir?» (`bankPendingEvents`), así que no pueden dar
+   veredictos opuestos sobre el mismo dinero (revisión t3, R3-1).
+   Un recibo sale del recorrido solo si está pagado (`fixedPaymentState`, la regla con la que Plan
+   lo pinta) Y ese pago ya está en el saldo con el que se recorre (`reciboEnElSaldo`). Si no, es
+   un cargo; si su día ya pasó, de HOY (decisión del dueño 28/10/2026, B1). Pausados, fuera.
+   Los pagados que aún restan llevan `sinRestar`: «¿Te llega?» los enseña en su propia fila para
+   que «Tienes hoy − filas = cifra» se cumpla siempre (revisión t3, R4-1).
+   Las cuotas, como Plan (`debtPaymentState`, que hoy da por pagada una vencida); una cuota SIN
+   día la descuenta `planCoverState` sin fecha. Puntuales y entradas, como siempre. */
+function pendingWalkEvents(state, y, m, today){
+  const evs=[], leido={};
+  const hoy=function(d){ return d!=null&&d>0&&d<today?today:(d||0); };
+  (state.fixed||[]).forEach(function(e){
+    const a=occAmountIn(e,m);
+    if(!(a>0)||!occursIn(e,m)||fixedPausedIn(e,y,m)) return;
+    const b=accOf(e);
+    if(!(b in leido)) leido[b]=saldoLeidoDelBanco(state,b);
+    const st=fixedPaymentState(state,e,y,m,today);
+    if(st.paid&&reciboEnElSaldo(state,e,y,m,today,leido[b],st.day)) return;
+    evs.push(st.paid?{bank:b, day:hoy(dayIn(e,m)), amt:-a, sinRestar:true}:{bank:b, day:hoy(dayIn(e,m)), amt:-a});
+  });
+  (state.debts||[]).forEach(function(d){
+    if(!debtActive(d)) return;
+    const st=debtPaymentState(state,d,y,m,today);
+    if(st.paid||st.day==null||!(Number(st.day)>0)) return;
+    const b=d.account||"sabadell", bl=debtBalloonIn(d,y,m);
+    if(Number(d.monthly)>0) evs.push({bank:b, day:hoy(st.day), amt:-Number(d.monthly)});
+    if(bl>0) evs.push({bank:b, day:hoy(st.day), amt:-bl});
+  });
+  (state.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m)&&(o.amount||0)!==0&&!isPaidThisMonth(o,today)) evs.push({bank:o.account||"sabadell", day:o.day||0, amt:-o.amount}); });
+  // Traspasos y entradas llevan su id: «¿Te llega?» enseña (y deja editar) justo los recorridos.
+  (state.flows||[]).forEach(function(f){
+    if(!flowOccursIn(f,m,y)||flowPaidIn(state,f,y,m,today)) return;
+    const dd=flowDay(f,y,m), tag={kind:f.kind,id:f.id,name:f.name};
+    if(f.kind==="income") evs.push(Object.assign({bank:f.to||"sabadell", day:dd||99, amt:f.amount},tag));
+    else if(f.kind==="transfer") evs.push(Object.assign({bank:f.from||"sabadell", day:dd||0, amt:-f.amount},tag));
+  });
   return evs;
 }
+/* ¿Desde cuándo está leído DESDE FUERA el saldo de este banco? (ms; 0 = no se puede afirmar).
+   Un cobro anterior a esa lectura ya está dentro del saldo, sea cual sea su prueba (revisión t3,
+   R2 y R4: con Open Banking o con el puente de TR, un recibo ya cobrado se restaba otra vez).
+   Cada cuenta del banco tiene su lectura y manda la MÁS VIEJA; si una cuenta no tiene ninguna,
+   0 (R5-2: una lectura reciente de otra cuenta no puede meter cobros que la vieja no ha visto).
+   Fuentes, todas con la misma señal (una hora de lectura en la cuenta o del banco):
+   - Puente nativo de Trade Republic: `applyTrCash` (00 y la tarjeta de 06) sella `saldoLeidoAt`;
+     para estados anteriores al sello, `lastTrSync` si el puente manda.
+   - Saldo corregido a mano (Cartera → cuenta → corregir saldo): también sella `saldoLeidoAt`.
+   - Open Banking: una cuenta re-anclada por la sincronización (IBAN, uid o saldo crudo) tiene la
+     hora de `obBalAt` de ese banco (la más vieja si hay varias conexiones). Sin `obBalAt` propio
+     no se usa `lastBankSync`: se sella aunque ese banco no diera saldo (R5-3, prudente).
+   - Una cuenta adoptada de Open Banking trae `balanceAt`.
+   MyInvestor y los demás brókers solo leen posiciones (Inversiones), no el saldo de una cuenta.
+   Tener extracto en `bankTx` NO es una lectura: el saldo puede seguir siendo el tecleado (es el
+   alquiler BOOK de 750 que fija `fixed-ispaidin`). */
+function saldoLeidoDelBanco(state, bank){
+  const ms=function(v){ const t=Date.parse(v); return isFinite(t)&&t>0?t:0; };
+  let ob=0;
+  const at=state.obBalAt||{};
+  Object.keys(at).forEach(function(asp){ if(entFromAspsp(asp)!==bank) return; const t=ms(at[asp]); if(t&&(!ob||t<ob)) ob=t; });
+  const tr=bank==="trade_republic"&&state.lastTrSync&&saldoLoMandaPuenteNativo(state,bank)?ms(state.lastTrSync):0;
+  const cuentas=(state.accounts||[]).filter(function(a){ return a&&a.ent===bank; });
+  if(!cuentas.length) return 0;
+  let viejo=Infinity;
+  cuentas.forEach(function(a){
+    let t=Math.max(ms(a.saldoLeidoAt), ms(a.balanceAt), tr);
+    if(a.bankIban||a.bankUid||a.balSaldo!=null) t=Math.max(t,ob);
+    if(t<viejo) viejo=t;
+  });
+  return isFinite(viejo)?viejo:0;
+}
+/* ¿El pago de este recibo ya está en el saldo con el que se recorre?
+   - Lo que mueve el saldo mostrado de la app (`isPaidIn` sin su calendario: marca confirmada o
+     cargo enlazado con día), siempre.
+   - Cualquier otra prueba (BOOK, aviso de Wallet, gasto sin enlazar), solo si el saldo se leyó de
+     fuera el DÍA SIGUIENTE al pago o después (`leidoMs`). La prueba trae el día, no la hora: una
+     lectura de primera hora del mismo día no incluye un cargo de la tarde (revisión t3, R5-1).
+     No se puede acreditar que una lectura sea posterior a la sincronización que trajo la prueba
+     (la hora de `obBalAt` es del servidor y la de `lastBankSync` del móvil), así que no hay
+     excepción: lo cobrado hoy queda en «Pagado, aún sin restar del saldo» hasta mañana.
+   - En una cuenta a mano sin lectura posterior sigue restando: darlo por cobrado sería optimista
+     (revisión t3, R3-2; lo fija `fixed-ispaidin`). */
+function reciboEnElSaldo(state, e, y, m, today, leidoMs, dia){
+  if(e.paidYm===y*12+m) return true;
+  const p=fixedPaymentProof(state,e,y,m,today);
+  if(p&&p.kind==="expense"&&fixedPaymentDerivedDay(state,{proof:p})) return true;
+  if(!(leidoMs>0)) return false;
+  const d=Number(dia)>0?Number(dia):1;
+  return leidoMs>=new Date(y,m-1,d+1).getTime();
+}
+// Los de un solo banco, para el simulador «¿me lo puedo permitir?».
+function bankPendingEvents(state, bank, y, m, today){
+  return pendingWalkEvents(state,y,m,today).filter(function(ev){ return ev.bank===bank; });
+}
 // Recorre los eventos por día desde un saldo inicial y devuelve el punto MÍNIMO (peor momento) y el final.
+/* Es la ÚNICA copia del recorrido: también la usa `totals` (11) para `minByBank`, y de ahí la
+   píldora y la hoja «¿Te llega?». A igualdad de día primero sale y luego entra (SPEC Recibos §4):
+   antes mandaba el orden en que estuvieran guardados, y una nómina tapaba un traspaso del mismo
+   día. `shortDay` = primer día en negativo (el «antes del 22» de la hoja); null si no lo toca. */
 function minWalk(startBal, evs){
-  const s=evs.slice().sort(function(a,b){ return a.day-b.day; });
-  let run=startBal, mn=startBal, md=0;
-  s.forEach(function(ev){ run+=ev.amt; if(run<mn-0.005){ mn=run; md=ev.day; } });
-  return {min:mn, minDay:md, end:run};
+  const s=(evs||[]).slice().sort(function(a,b){ return (a.day-b.day)||((a.amt<0?0:1)-(b.amt<0?0:1)); });
+  let run=Number(startBal)||0, mn=run, md=0, sd=run<-0.005?0:null;
+  s.forEach(function(ev){ run+=ev.amt; if(run<mn-0.005){ mn=run; md=ev.day; } if(sd==null&&run<-0.005) sd=ev.day; });
+  return {min:mn, minDay:md, end:run, shortDay:sd};
 }
 
 /* ============================================================
@@ -1945,7 +2086,7 @@ function importObExpenses(s, txs, links){
      (29,90 → 59,80). Mismo criterio que `histCandLapidas`. */
   const cubierta=function(g, n){
     const suf=n>1 ? "|#"+n : "",row=Object.assign({},g.expense,{obOrd:n}),key=expenseDeletionKey(row);
-    return !!(hasKey(row) || delSet[key] || delSet[g.scoped+suf] || delSet[g.base+suf] || vinculado[key] || vinculado[g.scoped+suf] || vinculado[g.base+suf]);
+    return !!(hasKey(row) || delSet[expenseRenameKey(row)] || delSet[key] || delSet[g.scoped+suf] || delSet[g.base+suf] || vinculado[key] || vinculado[g.scoped+suf] || vinculado[g.base+suf]);
   };
   /* Lápida de «es el mismo» dejada por una versión SIN `gemelos`: su aviso sigue sin marcar. Solo
      puede ser la ranura 1 (aquella versión no conocía ordinales) y solo si ningún vínculo la
@@ -2796,14 +2937,32 @@ function reservedSince(state, fromMs, hastaMs){
     return a+(x&&x.amount||0);
   },0);
 }
-function budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode){
+/* `mode` dice qué se compara con el límite: "net" gasto − ingresos (Mi ciclo, o Balance en un
+   informe), "split" gasto bruto y "mes" gasto − ingresos SIN la nómina (`nomina`, lo que de
+   `income` es nómina). El mes natural es "mes" desde el 26/10/2026, decisión del dueño: un Bizum
+   recibido o una devolución devuelven margen al límite, la nómina no. Con el neto entero la
+   nómina dejaba el mes a 0 % (INC-2909-02) y con el bruto los Bizums de una cena adelantada no
+   devolvían nada («gastos 422 € por encima» con 486 € recibidos).
+   En "mes" el margen NO pasa del límite: unos ingresos mayores que el gasto dejan lo gastado a 0,
+   no convierten 1.500 € de límite en 1.900 € «para gastar». El límite es un tope de gasto que él
+   eligió; Mi ciclo conserva su neto sin tope (contrato de la 4.26.73). */
+function budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode,nomina){
   const budget=budgetRaw>0?Math.max(0,+(budgetRaw-reserved).toFixed(2)):null;
   const balance=income-spent;
-  const against=mode==="net"?(spent-income):spent;
+  const against=mode==="net"?(spent-income)
+    :mode==="mes"?Math.max(0,+(spent-(income-(nomina||0))).toFixed(2)):spent;
   const shown=mode==="net"?Math.abs(balance):spent;
   const remaining=budget==null?null:budget-against;
   return {spent:spent, income:income, balance:balance, mode:mode, budget:budget, reserved:reserved,
     remaining:remaining, against:against, shown:shown};
+}
+/* Lo que unas sumas de `monthBudgetStats` comparan con el límite, con la regla del periodo: neto en
+   Mi ciclo y sin la nómina en el mes natural. La cifra grande puede seguir la preferencia (Balance
+   o Gastos), pero el margen es este en todas partes: la línea de Gastos, la tarjeta y la imagen del
+   mes cerrado. Con su propia regla cada una, el 1/11 diría «128 % del presupuesto» de un octubre que
+   se vio entero «64 € por debajo» (revisión 26/10/2026). */
+function limiteDeStats(bs, state){
+  return budgetStatsFromAmounts(bs.spent,bs.income,typeof state.budget==="number"?state.budget:0,bs.reserved,bs.cycle?"net":"mes",bs.nomina);
 }
 // El presupuesto cambia de ventana solo con la preferencia activada y un cobro real.
 // Los informes con fecha explícita conservan sus meses naturales ya cerrados.
@@ -2846,23 +3005,36 @@ function monthBudgetStats(state, nowMs, hastaMs, budgetMode, selectedPeriod){
   // `hastaMs` acota un informe cerrado; solo el ciclo actual termina mañana para que un
   // apunte futuro no gaste hoy. El mes natural conserva la misma cifra que el widget.
   const endMs=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : period.todayEndMs;
-  let spent=0, income=0;
+  let spent=0, income=0, nomina=0;
   const delSet=period.cycle?expenseDeletedSet(state):null;
+  // Fuera del ciclo la nómina se aparta del ingreso que devuelve margen (modo "mes"). En el ciclo
+  // ya la aparta `budgetRowSigned`: es la que lo abre. `nominas`/`noNominas` son las claves de los
+  // ingresos grandes que se decidieron aquí, para que ingest no tenga que adivinarlos (widget).
+  const flows=period.cycle?null:nominaFlowsOf(state);
+  const nominas=[], noNominas=[];
   (state.expenses||[]).forEach(function(e){
     const ms=dateMs(e.date);
     if(ms<startMs) return;
     if(ms>=endMs) return;
     const v=budgetRowSigned(e, state, period, delSet);
     if(v>0) spent+=v;
-    else if(v<0) income-=v;
+    else if(v<0){
+      income-=v;
+      // El mismo umbral que el cobro de Mi ciclo (≥200 €, sin posibles duplicados): una nómina
+      // anticipada al 28 cae en SU mes de banco y allí se aparta; dos en un mes, las dos.
+      if(flows && v<=-200 && e.category!=="bizum" && !e.possibleDup){
+        if(esNomina(e,flows)){ nomina-=v; nominas.push(keyOfExpense(e)); }
+        else noNominas.push(keyOfExpense(e));
+      }
+    }
   });
   const reserved=reservedSince(state, startMs, endMs===Infinity?undefined:endMs);
   const budgetRaw=typeof state.budget==="number" ? state.budget : 0;
   // El ciclo usa el neto aunque el mes natural prefiera gasto bruto: si adelantas una cena,
   // los Bizums recibidos devuelven margen al límite elegido (feedback 28/9).
   const mode=period.cycle?"net":(budgetMode||(state.settings&&state.settings.gTotalMode)||"split");
-  return Object.assign(budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode),
-    {periodStart:startMs,cycle:!!period.cycle});
+  return Object.assign(budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode,nomina),
+    {periodStart:startMs,cycle:!!period.cycle,nomina:+nomina.toFixed(2),nominas:nominas,noNominas:noNominas});
 }
 
 // V2 confirma recepción también fuera del ciclo: una fila anterior puede mover el saldo.
@@ -2873,14 +3045,29 @@ function widgetCoveredEvents(rows,start,now,history){
 }
 // Una respuesta de otra selección de bancos/reservas no puede reutilizar el delta de la foto
 // actual aunque el día de inicio coincida. El servidor debe devolver este alcance exacto.
+// En el mes natural el alcance lleva además qué ingresos grandes son nómina y cuáles no: ingest no
+// conoce los flujos de Plan ni el concepto, y con otra decisión daría otra cifra. Un servidor que
+// no sepa leerlo calcula otro alcance y no responde, en vez de mandar el bruto de antes.
+// LAS LISTAS VAN EN EL HUECO DEL ANCLA, NO AL FINAL: el nativo desde la APK 54 exige un alcance de
+// 8 elementos al acreditar una lectura nueva y descarta en mudo cualquier otro. Con un noveno el
+// widget del dueño se quedó en la regla vieja («1.922 € · 422 € de más») mientras Inicio decía
+// «quedan 63,53» (APK 62 + beta 4.26.185, 26/10/2026). En el mes el ancla siempre está vacía.
 function widgetScopeOf(state,stats,anchor,bank){
+  const lists=stats.cycle?(anchor||""):[(stats.nominas||[]).slice().sort(),(stats.noNominas||[]).slice().sort()];
   return JSON.stringify([2,stats.periodStart,stats.cycle?"ciclo":"mes",stats.cycle?"neto":"gasto",
-    anchor||"",stats.budget,expenseBankEnts(state).slice().sort(),bank||""]);
+    lists,stats.budget,expenseBankEnts(state).slice().sort(),bank||""]);
 }
-// Inicio dice «Has gastado» en el mes natural: una nómina no puede borrar ese uso del
-// presupuesto (INC-2909-02). Gastos/Balance y el widget conservan su contrato propio.
+// La ventana que se deja en la nube para que ingest rehaga la cifra del widget con la app cerrada.
+function widgetPeriodOf(stats,anchor,scope){
+  const w={v:2,kind:stats.cycle?"ciclo":"mes",start:stats.periodStart,anchor:anchor||"",scope:scope};
+  if(!stats.cycle){ w.nominas=(stats.nominas||[]).slice(); w.noNominas=(stats.noNominas||[]).slice(); }
+  return w;
+}
+// Inicio, Gastos (margen) y el widget v2 comparan con el límite lo mismo: en el mes natural, gasto
+// menos ingresos sin la nómina (modo "mes", 26/10/2026); en Mi ciclo, el neto. Una nómina no puede
+// borrar el uso del presupuesto (INC-2909-02), pero un Bizum recibido sí lo devuelve.
 function dashboardBudgetStats(state){
-  return monthBudgetStats(state,null,null,"split");
+  return monthBudgetStats(state,null,null,"mes");
 }
 
 /* Desglose del mes por categoría (brief PRESUPUESTO-POR-CATEGORIA). Misma ventana y misma
@@ -2952,6 +3139,9 @@ function closedMonthCardOf(state, nowMs){
   if(dismissed===w.closedYm) return null;
   const stats=monthBudgetStats(state, w.startMs+12*864e5, w.endMs);
   if(!(stats.spent>0) && !(stats.income>0)) return null;
+  // La cifra grande sigue la preferencia; el % del presupuesto, la regla del mes (`limiteDeStats`).
+  const lim=limiteDeStats(stats, state);
+  stats.against=lim.against; if(stats.budget!=null) stats.remaining=lim.remaining;
   return {
     ym:w.closedYm, startMs:w.startMs, endMs:w.endMs,
     month:w.closedMonth, year:w.closedYear,
@@ -4229,7 +4419,14 @@ function Reconcile({state, set}){
 /* Helpers puros para §2 variante A (Gestionar → Tus recibos). Los usa el hub en `14`. No tocan UI. */
 function fixedMonthlyOf(e){
   if(!e) return 0;
-  if(hasSchedule(e)) return e.schedule.reduce(function(a,x){ return a+(Number(x.amt)||0); },0)/12;
+  if(hasSchedule(e)){
+    // El primer cobro de cada mes es el que usa el calendario; no sumar copias ni meses imposibles.
+    const seen=new Set();
+    return e.schedule.reduce(function(a,x){
+      if(!Number.isInteger(x.m)||x.m<1||x.m>12||seen.has(x.m)) return a;
+      seen.add(x.m); return a+(Number(x.amt)||0);
+    },0)/12;
+  }
   const base=(Number(e.amount)||0)*(FREQ_M[e.freq]||1);
   // Meses marcados a mano: cuenta los cobros que hace el calendario, no los de la frecuencia. Un
   // trimestral con 3 meses se cobra 3 veces y salía como 4 (30 € al mes en vez de 22,50 — FIN-20).
@@ -4372,6 +4569,21 @@ function patchFixedById(set, id, p){
     }
     return n;
   });
+}
+/* Pausar o reanudar (Plan › Recibos v6). Pura. Sin rango (hasta <= desde) quita la pausa.
+   El saldo que se ve no salta: un recibo vencido que se pausa dejaría de restar en la previsión
+   de golpe; se compensa como cualquier cambio de marca de pago (`conSaldoMostrado`). */
+function fixedPausa(s, id, from, until){
+  let changed=false;
+  const fixed=(s.fixed||[]).map(function(e){
+    if(e.id!==id) return e;
+    const n=Object.assign({},e);
+    if(until>from){ n.pausedFrom=from; n.pausedUntil=until; }
+    else { delete n.pausedFrom; delete n.pausedUntil; }
+    if(goalSyncEqual(n,e)) return e;
+    changed=true; return n;
+  });
+  return changed?conSaldoMostrado(s,Object.assign({},s,{fixed:fixed})):s;
 }
 function removeFixedById(set, id){
   quitarDelPlan(set,"fixed",id);

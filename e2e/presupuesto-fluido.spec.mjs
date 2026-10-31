@@ -25,7 +25,9 @@ for(const caso of [
     accounts:[{id:"tr",ent:"trade_republic",name:"Efectivo",value:1000,role:"diario",spendFrom:true}],
     expenses:[
       {id:"g",date:"2026-09-14T12:00:00Z",amount:300,merchant:"Compra",category:"super",ent:"trade_republic"},
-      {id:"i",date:"2026-09-14T12:00:00Z",amount:-1000,merchant:"Ingreso",category:"ingreso",ent:"trade_republic"},
+      // Es la nómina (26/10/2026): desde que el mes natural resta los ingresos SALVO la nómina, un
+      // ingreso de 1.000 sin nombre sí devolvería margen. Lo que se protege es que la nómina no.
+      {id:"i",date:"2026-09-14T12:00:00Z",amount:-1000,merchant:"Nómina",category:"ingreso",ent:"trade_republic"},
     ],
   });
   await page.goto("/");
@@ -33,10 +35,10 @@ for(const caso of [
   await page.waitForFunction(()=>!document.getElementById("mc-load"));
   await dismissNews(page);
   const dash=page.locator(".v4-budget");
-  // El anillo acompaña a «Te quedan»: 700 de 1000 es un 70 %, y a 16 días del 1/10 son 43 al día.
-  await expect(dash.locator(".v4-ring")).toHaveText("70%");
+  // El anillo cuenta lo usado: 300 de 1000 es un 30 % (quedan 700), y a 16 días del 1/10 son 43 al día.
+  await expect(dash.locator(".v4-ring")).toHaveText("30%");
   await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText("700 €");
-  await expect(dash.locator(".v42-cycle-of")).toContainText("1000");
+  await expect(dash.locator(".v42-cycle-of")).toContainText("1.000");
   await expect(dash.getByTestId("inicio-cycle-pace")).toHaveText(caso.pace);
   await expect(dash).not.toContainText(caso.start);
   await expect(page.locator("[data-testid='dash-budget-streak']")).toHaveCount(0);
@@ -67,25 +69,25 @@ for(const caso of [
   await page.waitForFunction(()=>!document.getElementById("mc-load"));
   await dismissNews(page);
   const dash=page.locator(".v4-budget");
-  // Quedan 20 de 1000 (un 2 %) para los 28 días hasta el cobro del 26/10: ni un euro entero al día.
-  await expect(dash.locator(".v4-ring")).toHaveText("2%");
+  // Quedan 20 de 1000 (se ha usado un 98 %) para los 28 días hasta el cobro del 26/10: ni un euro entero al día.
+  await expect(dash.locator(".v4-ring")).toHaveText("98%");
   await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText("20 €");
-  await expect(dash.locator(".v42-cycle-of")).toContainText("1000");
+  await expect(dash.locator(".v42-cycle-of")).toContainText("1.000");
   await expect(dash.getByTestId("inicio-cycle-pace")).toHaveText(caso.pace);
   await expect(page.locator(".v4-budget-foot")).toHaveCount(0);
-  await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText("1450");
+  await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText(/1\.?450/);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await expect(gastosRoot(page)).toHaveAttribute("data-periodo","cycle");
   await expect(gastosCifra(page)).toHaveText("980,00 €");
-  await expect(desglose(page)).toContainText("1450,00");
+  await expect(desglose(page)).toContainText("1.450,00");
   await expect(desglose(page)).toContainText("470,00");
   await expect(gastosEstado(page)).toContainText({es:"20 € por debajo",en:"20 € under",ca:"20 € per sota"}[caso.lang]);
 });
 
 for(const caso of [
-  // Con más ingresos que gasto queda más que el presupuesto: el anillo se llena, no pasa de 100 %.
-  {income:780,pct:"100%",remaining:"1680,00",progress:"0"},
-  {income:50,pct:"0%",remaining:"-150,00",progress:"1150"},
+  // Con más ingresos que gasto no hay nada contado contra el límite: el anillo marca 0 %.
+  {income:780,pct:"0%",remaining:"1680,00",progress:"0"},
+  {income:50,pct:"115%",remaining:"-150,00",progress:"1150"},
 ]) test(`Mi ciclo explica el margen con ingreso ${caso.income}`,async({page})=>{
   await page.clock.install({time:new Date("2026-09-28T12:00:00Z")});
   await seedLoggedInDashboard(page,{
@@ -103,14 +105,14 @@ for(const caso of [
   await dismissNews(page);
   const dash=page.locator(".v4-budget");
   await expect(dash.locator(".v4-ring")).toHaveText(caso.pct);
-  await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText((caso.income===780?"1680":"-150")+" €");
+  await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText((caso.income===780?"1.680":"150")+" €");
   await expect(dash).toHaveAttribute("data-state",caso.income===780?"start":"over");
   if(caso.income===780) await expect(dash.getByTestId("inicio-cycle-pace")).toHaveText("60 € al día durante 28 días");
   else await expect(dash.getByTestId("inicio-cycle-pace")).toHaveCount(0);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await expect(gastosEstado(page)).toContainText(caso.income===780?"1680 € por debajo":"150 € por encima");
+  await expect(gastosEstado(page)).toContainText(caso.income===780?"1.680 € por debajo":"150 € por encima");
   // Con más ingresos que gasto el balance es a favor: la cifra es su valor, sin signo.
-  await expect(gastosCifra(page)).toHaveText(caso.income===780?"680,00 €":"1150,00 €");
+  await expect(gastosCifra(page)).toHaveText(caso.income===780?"680,00 €":"1.150,00 €");
   await expect(gastosEstado(page).locator(caso.income===780?".gx-tone-mint":".gx-tone-coral")).toHaveCount(1);
 });
 
@@ -129,12 +131,14 @@ test("Inicio conserva la frase de gasto también con balance desfavorable",async
   await page.waitForFunction(()=>!document.getElementById("mc-load"));
   await dismissNews(page);
   const dash=page.locator(".v4-budget");
-  await expect(dash.locator(".v4-ring")).toHaveText("70%");
-  await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText("700 €");
+  // Oráculo cambiado el 26/10/2026: el ingreso de 100 (no es nómina) devuelve margen en el mes
+  // natural: 300 − 100 = 200 usados (20 %), quedan 800 (antes 700, el bruto); a 16 días, 50 al día.
+  await expect(dash.locator(".v4-ring")).toHaveText("20%");
+  await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText("800 €");
   await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText(/[−-]\s*300/);
   await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText("Balance en contra");
-  await expect(dash.getByTestId("inicio-cycle-pace")).toHaveText("43 € al día durante 16 días");
-  await expect(dash).toHaveAttribute("aria-label",/^Vas sobrado\. Te quedan 700 € de 1000 €/);
+  await expect(dash.getByTestId("inicio-cycle-pace")).toHaveText("50 € al día durante 16 días");
+  await expect(dash).toHaveAttribute("aria-label",/^Vas sobrado\. Te quedan 800 € de 1\.000 €/);
 });
 
 test("el cobro del 26 reinicia el presupuesto opcional y Mi ciclo abre por defecto",async({page})=>{
@@ -178,7 +182,7 @@ test("el cobro del 26 reinicia el presupuesto opcional y Mi ciclo abre por defec
   // El ciclo nuevo ya no arrastra los 600 del anterior: el margen vuelve a ser el límite entero
   // (el Bizum del 27 aún no ha llegado a esta hora).
   await expect(gastosCifra(page)).not.toContainText(/600/);
-  await expect(gastosEstado(page)).toContainText("1000 € por debajo");
+  await expect(gastosEstado(page)).toContainText("1.000 € por debajo");
   await page.locator('.botnav-tab[data-tour="inicio"]').click();
   await expect(page.locator(".v4-budget")).toHaveAttribute("aria-label",/^Ciclo recién empezado\. /);
   await page.clock.pauseAt(new Date("2026-09-28T10:00:00Z"));
@@ -246,7 +250,7 @@ test("Mi ciclo incluye el alquiler recibido y puede dejar más margen que el lí
   await expect(gastosRoot(page)).toHaveAttribute("data-periodo","cycle");
   await expect(gastosCifra(page)).toHaveText("680,00 €");
   await expect(desglose(page)).toContainText("780");
-  await expect(gastosEstado(page)).toContainText("1680 € por debajo");
+  await expect(gastosEstado(page)).toContainText("1.680 € por debajo");
 });
 
 test("sin activar el ciclo Gastos abre en Este mes",async({page})=>{

@@ -226,7 +226,7 @@ test("Corregir saldo empieza limpio aunque el saldo guardado tenga un float larg
   }
   await page.locator(".v4-sheet-back").click({ position: { x: 10, y: 10 } });
   await fila(page, "Efectivo").click();
-  await expect(ficha(page).locator(".v4-account-amount")).toContainText(/1234[.,]00/);
+  await expect(ficha(page).locator(".v4-account-amount")).toContainText(/1.?234[.,]00/); // desde la 4.26.183 los importes llevan punto de miles («1.234,00 €»)
 });
 
 /* Rechazo 4.19.67 paso 5 (2026-09-12): *«si solo pones un número… y lo quitas… no se guarda;

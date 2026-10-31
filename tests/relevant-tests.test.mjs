@@ -136,6 +136,16 @@ t(".gitignore cuenta como meta, no como desconocido", () => {
   assert.equal(p.e2e, "none");
 });
 
+t("un módulo con varias entradas en E2E_MAP corre los specs de TODAS", () => {
+  const f = "src/modules/14-v4-screens.js";
+  const todos = new Set(E2E_MAP.filter((m) => m.file === f).flatMap((m) => m.specs));
+  assert.ok(E2E_MAP.filter((m) => m.file === f).length > 1, "el caso de prueba necesita entradas repetidas");
+  const p = planFromFiles([f]);
+  const faltan = [...todos].filter((s) => !p.e2e.includes(s));
+  assert.deepEqual(faltan, [], "specs de entradas repetidas que no corren: " + faltan.join(", "));
+  assert.ok(p.e2e.includes("e2e/plan-recibos-v6.spec.mjs"));
+});
+
 t("todo e2e está en el mapa o en transversales (si no, el siguiente se duerme)", () => {
   const classified = new Set(E2E_MAP.flatMap((m) => m.specs).concat(CROSSCUTTING));
   const specs = fs.readdirSync(path.join(root, "e2e"))

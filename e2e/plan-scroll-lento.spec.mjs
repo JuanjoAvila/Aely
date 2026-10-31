@@ -86,8 +86,8 @@ for (const segNombre of ["recibos", "deudas", "metas"]) {
       await page.locator(".v4-seg-btn", { hasText: segNombre === "deudas" ? /deuda/i : /meta/i }).click();
       await expect.poll(() => segmentoActivo(page), { timeout: 5_000 }).toBe(segNombre);
     } else {
-      // Recibos arranca recogido (tres y «Ver más»): se despliega para tener lista que bajar.
-      await page.locator('[data-seg="recibos"]').getByText(/Ver más|See more|Veure més/).first().click();
+      // Recibos arranca recogido (tres y «Ver los N»): se despliega para tener lista que bajar.
+      await page.locator('[data-seg="recibos"] [data-testid="plan-due"] .pr6-more').first().click();
       await page.evaluate(() => { document.querySelectorAll(".page")[2].scrollTop = 0; });
     }
     await page.waitForTimeout(600);

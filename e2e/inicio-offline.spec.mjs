@@ -111,8 +111,8 @@ test("★ red débil: tras el splash no reaparecen barras grises mientras la ses
   await expect(page.locator("[data-tour=hero]")).toBeVisible({ timeout: 5_000 });
   expect(await page.evaluate(() => window.__sawOfflineSkeleton),
     "el estado local ya existe; no debe esperar otra vez tras el splash").toBe(false);
-  await expect(page.locator("[data-tour=hero-amt]")).toContainText("1000,00", { timeout: 4_000 });
-  await expect(page.locator("[data-tour=hero-amt]")).toContainText("1200,00", { timeout: 10_000 });
+  await expect(page.locator("[data-tour=hero-amt]")).toContainText("1.000,00", { /* punto de miles desde la 4.26.183 */ timeout: 4_000 });
+  await expect(page.locator("[data-tour=hero-amt]")).toContainText("1.200,00", { timeout: 10_000 });
 });
 
 test("★ onLine false al montar: tras el splash Inicio ya nace relleno", async ({ page }) => {

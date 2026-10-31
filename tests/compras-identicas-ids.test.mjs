@@ -107,7 +107,10 @@ test("nube: truncada y completa dejan app y servidor en 320 c tras pull, repetir
  s=await pull(s);assert.equal(cents(s),320);assert.equal(serverCents(env,remote),320);
  s=committed(s,complete.data.links);await cloud.pushState("user",c.slimForCloud(s),(await cloud.pullState())?.updated_at);assert.equal(cents(await pull(s)),320);
  let other=await pull(state());assert.equal(cents(other),320);other=committed(other,complete.data.links);assert.equal(cents(other),320);
- const stats=c.dashboardBudgetStats(s);s.widgetPeriod={v:2,kind:"mes",start:stats.periodStart,anchor:"",scope:c.widgetScopeOf(s,stats,"","caixabank")};
+ // La ventana se escribe como la app (`widgetPeriodOf`): desde el mes sin nómina (4.26.184) lleva
+ // `nominas`/`noNominas` y el alcance las incluye. Montada a mano sin las listas, el alcance de 9
+ // no casaba con ninguno de los dos que acepta ingest y el widget se quedaba sin foto.
+ const stats=c.dashboardBudgetStats(s);s.widgetPeriod=c.widgetPeriodOf(stats,"",c.widgetScopeOf(s,stats,"","caixabank"));
  await cloud.pushState("user",c.slimForCloud(s),(await cloud.pullState())?.updated_at);
  // Aviso de otro banco, fuera del gasto diario: dispara month/widget reales sin añadir
  // gasto de Caixa y acredita que ambos lectores respetan la lápida del BOOK absorbido.

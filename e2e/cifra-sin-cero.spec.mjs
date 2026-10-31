@@ -40,12 +40,12 @@ test("Cartera: ningún frame del deslizamiento enseña 0,00 € con 2.300 € de
   await dismissNews(page);
   await page.evaluate(() => { window.__frames.length = 0; });
   await page.locator('.botnav-tab[data-tour="cartera"]').click();
-  await expect(page.locator(".cartera-hero-amt")).toContainText("2300,00 €");
+  await expect(page.locator(".cartera-hero-amt")).toContainText("2.300,00 €");
   await page.waitForTimeout(1200);
   const frames = await page.evaluate(() => window.__frames);
   expect(frames.length).toBeGreaterThan(5);
   const distintos = [...new Set(frames)];
-  expect(distintos, JSON.stringify(distintos.slice(0, 8))).toEqual(["2300,00 €"]);
+  expect(distintos, JSON.stringify(distintos.slice(0, 8))).toEqual(["2.300,00 €"]);
 });
 
 test("Inicio: la cifra sale con su valor desde el primer frame visible", async ({ page }) => {
@@ -55,5 +55,5 @@ test("Inicio: la cifra sale con su valor desde el primer frame visible", async (
   const frames = await page.evaluate(() => window.__frames);
   expect(frames.length).toBeGreaterThan(5);
   const distintos = [...new Set(frames)];
-  expect(distintos.every((f) => f.includes("2300,00 €")), JSON.stringify(distintos.slice(0, 8))).toBe(true);
+  expect(distintos.every((f) => f.includes("2.300,00 €")), JSON.stringify(distintos.slice(0, 8))).toBe(true);
 });

@@ -420,7 +420,13 @@ t("importObExpenses con 20.000 gastos guardados: el coste no se dispara frente a
   const txs = []; for (let i = 0; i < 150; i++) txs.push(ob(-(i % 5), c2(1 + i * 0.01)));
   const mide = (cc) => { const s = monta(cc); const t0 = process.hrtime.bigint(); let n = 0; for (let k = 0; k < 5; k++) n += (cc.importObExpenses(s, flat(txs, cc), LINKS) || []).length; return { ms: Number(process.hrtime.bigint() - t0) / 5e6, n: n / 5 }; };
   mide(viejo); mide(ctx);   // calentar
-  const tv = mide(viejo), tn = mide(ctx);
+  // Mediana de 5 muestras intercaladas (cada una, 5 importaciones como antes): con UNA sola, el mismo código daba en CI de 1,26× a 1,58×
+  // (4.26.190 vs 191, idénticos en local) y el rojo era el runner, no el motor. El umbral no cambia.
+  // Con menos importaciones por muestra pesa más la primera, en frío, y ya no se mide lo mismo.
+  const vs = [], ns = [];
+  for (let k = 0; k < 5; k++) { vs.push(mide(viejo)); ns.push(mide(ctx)); }
+  const mediana = (a) => a.slice().sort((x, y) => x.ms - y.ms)[2];
+  const tv = mediana(vs), tn = mediana(ns);
   assert.equal(tn.n, tv.n, "mismas filas importadas");
   console.log(`    importObExpenses con 20.000 gastos y 150 apuntes (${tn.n} entran): antes ${tv.ms.toFixed(1)} ms · ahora ${tn.ms.toFixed(1)} ms`);
   assert.ok(tn.ms < Math.max(tv.ms * 1.5, tv.ms + 15), "se dispara: algo recorre el histórico por apunte");
@@ -540,13 +546,15 @@ const mainSrc = H.read("public/index.html");
 t("backfill: una fila local con lápida no se resube en cada pull", () => {
   const m = mainSrc.match(/const delSet=expenseDeletedSet\(stateRef\.current\);[\s\S]*?subirGasto\(e, "backfill"\); \}\);/);
   assert.ok(m, "no se encuentra el bloque del backfill en syncCloudExpenses");
-  const pull = new Function("stateRef", "rows", "expenseFromRow", "expenseIsTombstoned", "keyOfExpense", "subirGasto", "expenseDeletedSet", "expensesFromRows", m[0]);
+  const pull = new Function("stateRef", "rows", "expenseFromRow", "expenseIsTombstoned", "keyOfExpense", "subirGasto", "expenseDeletedSet", "expensesFromRows", "isExpenseUuid", "expenseRenameKey", "expenseKnownIdentity", "obOrdinalOf", "readProof", "readOwner", "sessionRef", "readSession", m[0]);
+  // FIN-29/30 (4.26.191): el bloque lee la prueba de lectura y la cobertura por renombrado (renameCoverageKey); se le da una lectura válida del mismo titular, como en la app.
+  const readSession = { user: { id: "synthetic" } };
   const s = estado();
   const viva = { id: c.mcExpenseId(), date: ymd(-2) + "T10:00:00.000Z", merchant: "Movimiento", amount: 12, category: "otros", source: "ob", ent: "trade_republic" };
   const muerta = Object.assign({}, viva, { id: c.mcExpenseId(), amount: 29.9 });
-  s.expenses = [viva, muerta]; s.deleted = [c.keyOfExpense(muerta)];
+  s._historyOwner = "synthetic"; s.expenses = [viva, muerta]; s.deleted = [c.keyOfExpense(muerta)];
   const subidas = [];
-  pull({ current: s }, [], c.expenseFromRow, c.expenseIsTombstoned, c.keyOfExpense, (e, why) => subidas.push(why + ":" + e.amount), c.expenseDeletedSet, c.expensesFromRows);
+  pull({ current: s }, [], c.expenseFromRow, c.expenseIsTombstoned, c.keyOfExpense, (e, why) => subidas.push(why + ":" + e.amount), c.expenseDeletedSet, c.expensesFromRows, c.isExpenseUuid, c.expenseRenameKey, c.expenseKnownIdentity, c.obOrdinalOf, { valid: true, userId: "synthetic" }, "synthetic", { current: readSession }, readSession);
   same(subidas, ["backfill:12"], "solo la viva");
 });
 

@@ -425,7 +425,7 @@ t("los helpers de Inicio y el vínculo/representación de Recibos forman parte d
     ["inc-2909-02-inicio-natural","src/modules/08-motor-bank.js","function dashboardBudgetStats("],
     ["inc-3009-01-cargos","src/modules/08-motor-bank.js","function fixedPaymentIdentity("],
     ["inc-3009-01-cargos","src/modules/04-tab-gastos.js","  const setReceipt=function("],
-    ["inc-3009-01-cargos","src/modules/14-v4-screens.js","  const changedPaid=function("]
+    ["inc-3009-01-cargos","src/modules/14-v4-screens.js","  const hasChangedPaid=paid.some("]
   ];
   for(const [id,file,marker] of cases) {
     assert.equal(readSource(file).split(marker).length,2,"mutación única: "+marker);

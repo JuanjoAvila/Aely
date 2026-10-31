@@ -362,7 +362,8 @@ test("5 · borrar, «Deshacer», «es el mismo» y editar pasan por las lápidas
   const trasCuenta=lapidaMismo(eCuenta);
   assert.equal(j([trasCuenta.deleted,typeof trasCuenta.deletedAt[claveCuenta]]),j([[claveCuenta],"number"]));
   // Editar: retira la clave vieja y levanta la nueva si constaba. 10 → 12 → 10 escondía el gasto (gastado 0).
-  const edita=/set\(function\(s\)\{ return rekeyFixedPaymentExpense\(Object\.assign\(\{\},s,\{\s*expenses:s\.expenses\.map\(function\(x\)\{ return x\.id===orig\.id\?upd:x; \}\)\s*\},lapidasAlEditar\(s, soloNombreBanco\?keyOfExpense\(orig\):expenseDeletionKey\(orig\), soloNombreBanco\?keyOfExpense\(upd\):expenseDeletionKey\(upd\)\)\),orig,upd\); \}\);/.exec(bundle);
+  const edita=/set\(function\(s\)\{ return rekeyFixedPaymentExpense\(Object\.assign\(\{\},s,\{\s*expenses:s\.expenses\.map\(function\(x\)\{ return x\.id===orig\.id\?upd:x; \}\)\s*\},soloNombreBanco\?lapidasAlRenombrar\(s,orig,upd\):lapidasAlEditar\(s,expenseDeletionKey\(orig\),expenseDeletionKey\(upd\)\)\),orig,upd\); \}\);/.exec(bundle);
+  // FIN-29/30 (4.26.191): con solo el nombre del banco cambiado, saveEdit usa el alias de renombrado (lapidasAlRenombrar) y no la clave de borrado; aquí se edita un gasto manual, así que entra la rama de lapidasAlEditar con expenseDeletionKey.
   assert.ok(edita,"no se encuentra el guardado de `saveEdit`");
   // FIN-19 (4.26.160): saveEdit pone la lápida con la clave de borrado con ámbito (expenseDeletionKey) y, al cambiar solo el nombre del banco, con la clave sin ámbito de FIN04.
   // Aquí se edita un gasto manual (sin identidad bancaria): ambas claves son keyOfExpense, y la lápida sigue pasando por lapidasAlEditar (con hora).

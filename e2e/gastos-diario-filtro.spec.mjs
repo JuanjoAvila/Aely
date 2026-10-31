@@ -76,8 +76,11 @@ test("★ un ingreso de un banco que no es de gasto diario dice que no cuenta, c
   await expect(fila(page, "Bizum de Ana")).not.toHaveClass(/v4-mov-skip/);
   await expect(fila(page, "TRANSFERENCIA POL")).toHaveClass(/v4-mov-skip/);
   await expect(fila(page, "TRANSFERENCIA POL")).toContainText(/no es del día a día|not day-to-day|no és del dia a dia/i);
-  await expect(fila(page, "Movimiento traspaso")).toHaveClass(/v4-mov-skip/);
-  await expect(fila(page, "Movimiento traspaso")).toContainText(/no es un gasto|not spending|no és una despesa/i);
+  // El traspaso ya no va suelto: plegado en «Traspasos · no cuentan» (31/10/2026), y sigue sin sumar.
+  const traspasos = page.locator('.v4-gastos-list-body .gx-gris[data-gris="traspaso"]');
+  await expect(fila(page, "Movimiento traspaso")).toHaveCount(0);
+  await expect(traspasos.locator(".gx-gris-t")).toHaveText(/Traspasos · no cuentan|Transfers · don't count|Traspassos · no compten/);
+  await expect(traspasos.locator('.gx-gris-it[data-gris-id="i3"]')).toContainText("+291,25");
 });
 
 test("al entrar, Gastos NO cree que ya tiene un filtro puesto", async ({ page }) => {

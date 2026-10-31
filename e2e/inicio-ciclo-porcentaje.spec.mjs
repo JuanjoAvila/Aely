@@ -31,9 +31,13 @@ async function toggle(page){
 }
 async function snap(page,label){const d=page.locator('.v4-budget');const data=await page.evaluate(()=>{const s=mcLoadRaw('micartera_v3');return {stats:dashboardBudgetStats(s),cycleSetting:s.settings.budgetCycle,expenses:s.expenses,card:closedMonthCardOf(s)};});data.ring=(await d.locator('.v4-ring .num').textContent()).trim();data.amount=await d.locator('.v42-cycle-amount>.serif').innerText();data.aria=await d.getAttribute('aria-label');data.stroke=await d.locator('circle[pathLength="100"]').last().getAttribute('stroke-dasharray');await test.info().attach(label,{body:JSON.stringify(data,null,2),contentType:'application/json'});return data;}
 for(const c of profiles)test('G control toggle '+c.id,async({page})=>{
- await boot(page,profile(c));const a=await snap(page,'cycle');expect(cents(a.stats.remaining)).toBe(9999);expect(a.ring).toBe('100%');
- await toggle(page);const b=await snap(page,'month');expect(cents(b.stats.remaining)).toBe(c.remaining);expect(cents(b.stats.against)).toBe(10000-c.remaining);expect(b.ring).toBe(c.remaining>=50?'1%':c.remaining>0?'<1\u00a0%':'0%');
- const exact=c.remaining===0?'0 €':(c.remaining/100).toFixed(2).replace('.',',')+' €';expect(b.amount).toBe(exact);expect(b.expenses).toEqual(a.expenses);
+ await boot(page,profile(c));const a=await snap(page,'cycle');expect(cents(a.stats.remaining)).toBe(9999);expect(a.ring).toBe('<1\u00a0%');// el anillo cuenta lo USADO (26/10/2026): un céntimo usado no es 0 %
+ await toggle(page);const b=await snap(page,'month');expect(cents(b.stats.remaining)).toBe(c.remaining);expect(cents(b.stats.against)).toBe(10000-c.remaining);// Lo USADO, no lo que queda (26/10/2026): sin llegar al límite nunca dice 100 % aunque 99,99 redondee a 100, y al agotarlo marca 100 % sin saltos.
+ expect(b.ring).toBe(c.remaining>0?'99%':c.remaining<0?'>100%':'100%');
+ // El arco crece sin saltos: 99,99 % de 100 hasta llenarse en el límite y quedarse lleno pasado el límite.
+ expect(parseFloat(b.stroke)).toBeCloseTo(c.remaining>0?(10000-c.remaining)/100:100,1);
+ // Pasado del límite el importe es el exceso, en positivo (26/10/2026).
+ const exact=c.remaining===0?'0 €':(Math.abs(c.remaining)/100).toFixed(2).replace('.',',')+' €';expect(b.amount).toBe(exact);expect(b.expenses).toEqual(a.expenses);
  await page.locator('.botnav-tab[data-tour="gastos"]').click();await page.locator('.botnav-tab[data-tour="inicio"]').click();expect((await snap(page,'return-inicio')).amount).toBe(exact);
  await page.reload();await ready(page);const reload=await snap(page,'reload');expect(reload.amount).toBe(exact);expect(reload.ring).toBe(b.ring);expect(reload.cycleSetting).toBe(false);
  await toggle(page);const restored=await snap(page,'restored-cycle');expect(cents(restored.stats.remaining)).toBe(9999);expect(restored.expenses).toEqual(a.expenses);
@@ -41,11 +45,13 @@ for(const c of profiles)test('G control toggle '+c.id,async({page})=>{
 test('G control civil month closure',async({page})=>{
  await boot(page,closingProfile(),'2026-10-31T22:59:50Z');const a=await snap(page,'before-midnight');expect(cents(a.stats.remaining)).toBe(1);expect(a.amount).toBe('0,01 €');
  await page.clock.setSystemTime(new Date('2026-10-31T23:00:10Z'));await page.reload();await ready(page);const b=await snap(page,'after-midnight-cycle');expect(cents(b.stats.remaining)).toBe(1);expect(b.card.ym).toBe('2026-10');expect(cents(b.card.stats.spent)).toBe(9999);
- await toggle(page);const m=await snap(page,'after-midnight-month');expect(cents(m.stats.remaining)).toBe(10000);expect(m.ring).toBe('100%');expect(m.expenses).toEqual(a.expenses);
- await toggle(page);const back=await snap(page,'cycle-restored-after-closure');expect(back.amount).toBe('0,01 €');expect(back.ring).toBe('<1\u00a0%');
+ await toggle(page);const m=await snap(page,'after-midnight-month');expect(cents(m.stats.remaining)).toBe(10000);expect(m.ring).toBe('0%');expect(m.expenses).toEqual(a.expenses);
+ await toggle(page);const back=await snap(page,'cycle-restored-after-closure');expect(back.amount).toBe('0,01 €');expect(back.ring).toBe('99%');
 });
 for(const lang of ['es','en','ca'])test('G positive cent display '+lang,async({page})=>{
  await boot(page,profile(profiles[0],lang));await toggle(page);const b=await snap(page,'causal-rounded-zero');expect(cents(b.stats.remaining)).toBe(1);expect(b.amount).toBe('0,01 €');expect(parseFloat(b.stroke)).toBeGreaterThan(0);
- // Contrato aprobado: queda un céntimo, aunque el porcentaje redondeado sea cero.
- expect(b.ring).toBe(lang==='en'?'<1%':'<1\u00a0%');
+ // Queda un céntimo: se ha usado el 99,99 %, que no se redondea a 100 hasta llegar al límite.
+ expect(b.ring).toBe('99%');
+ // Y con un solo céntimo USADO (vista de ciclo) se lee «<1 %», no «0 %».
+ await toggle(page);const cy=await snap(page,'one-cent-used');expect(cents(cy.stats.remaining)).toBe(9999);expect(cy.ring).toBe(lang==='en'?'<1%':'<1\u00a0%');
 });

@@ -65,9 +65,10 @@ test("★ las aportaciones a brókers van a «Inversiones · no cuentan» con su
   await expect(await gastosGrisFila(page, "APORTACION MYINVESTOR")).toContainText("Inversión: MyInvestor");
   await expect(await gastosGrisFila(page, "Redondeo")).toContainText("Inversión: MSCI World");
 
-  // Un traspaso entre cuentas propias y una venta siguen como tarjeta, atenuadas y sin contar.
-  await expect(fila(page, "TRASPASO A SABADELL")).toHaveClass(/v4-mov-skip/);
-  await expect(fila(page, "TRASPASO A SABADELL")).toContainText("no es un gasto");
+  // Una venta sigue como tarjeta, atenuada y sin contar; el traspaso entre cuentas propias va a su
+  // propio bloque, «Traspasos · no cuentan» (31/10/2026), nunca al de Inversiones.
+  await expect(fila(page, "TRASPASO A SABADELL")).toHaveCount(0);
+  await expect(page.locator('.v4-gastos-list-body .gx-gris[data-gris="traspaso"] .gx-gris-it').filter({ hasText: "TRASPASO A SABADELL" })).toHaveCount(1);
   await expect(fila(page, "VENTA ETF")).toHaveClass(/v4-mov-skip/);
   await expect(grisInv(page).locator(".gx-gris-it").filter({ hasText: "TRASPASO" })).toHaveCount(0);
   await expect(grisInv(page).locator(".gx-gris-it").filter({ hasText: "VENTA" })).toHaveCount(0);

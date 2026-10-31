@@ -67,7 +67,7 @@ test('FIN19 R6 el UUID absorbido no obliga a indexar dos veces los 3500 cargos c
  assert.ok(calls<=3600,'one key per local row or missing notice, no second index of identical bank rows: '+calls);
 });
 test('FIN19 R6 aviso superviviente local y ambos UUID remotos conservan dinero y refresco',async()=>{
- const wire=wireRows(8),notices=wire.filter((_,i)=>i%2===0).map((r,i)=>({...r,id:uuid(9000+i),source:'macrodroid'}));
+ const wire=wireRows(8),notices=wire.filter((_,i)=>i%2===0).map((r,i)=>({...r,id:uuid(9000+i),fecha:new Date(Date.parse(r.fecha)+1).toISOString(),source:'macrodroid'}));
  const env=environment(html,[...wire,...notices]);
  const local=plain(env.c.expensesFromRows(wire,owner));
  for(let i=0;i<notices.length;i++)local[i*2]=plain(env.c.expenseFromRow(notices[i]));

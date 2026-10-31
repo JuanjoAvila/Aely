@@ -401,7 +401,8 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
     set(function(s){
       return Object.assign({},s,{accounts:(s.accounts||[]).map(function(x){
         if(x.id!==id) return x;
-        return Object.assign({},x,{value: valorDesdeTecleado(x, tecleado)});
+        // El saldo tecleado es el real de ahora: lo cobrado antes ya está dentro (`saldoLeidoDelBanco`).
+        return Object.assign({},x,{value: valorDesdeTecleado(x, tecleado), saldoLeidoAt:new Date().toISOString()});
       })});
     });
   };
@@ -718,8 +719,9 @@ const MONTHS_ES=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","No
    quedan "sin programar" hasta que el usuario elige el mes.
    ============================================================ */
 function chargeMonths(e){
-  if(e && e.schedule && e.schedule.length) return e.schedule.map(x=>x.m).slice().sort((a,b)=>a-b);
-  if(e && e.months && e.months.length) return e.months.slice().sort((a,b)=>a-b);
+  // El anual se reparte entre meses reales: un duplicado no puede reducir su cobro (FIN-25).
+  const months=e&&e.schedule&&e.schedule.length?e.schedule.map(x=>x.m):e&&e.months&&e.months.length?e.months:null;
+  if(months) return Array.from(new Set(months.filter(m=>Number.isInteger(m)&&m>=1&&m<=12))).sort((a,b)=>a-b);
   const f=e&&e.freq;
   if(f==="mes"||f==="mensual") return [1,2,3,4,5,6,7,8,9,10,11,12];
   if(f==="bimestral")  return [1,3,5,7,9,11];
@@ -729,6 +731,16 @@ function chargeMonths(e){
 }
 // ¿se cobra este gasto en el mes m (1-12)?
 const occursIn=(e,m)=> chargeMonths(e).indexOf(m)>=0;
+/* Pausa de un recibo (Plan › Recibos v6). `pausedFrom` y `pausedUntil` son año*12+mes, como
+   `paidYm`: desde `pausedFrom` incluido hasta `pausedUntil` sin incluir, que es el mes en que
+   vuelve («Hasta dic» = se cobra otra vez en diciembre, como en el prototipo aprobado). Son
+   opcionales: un cliente sin esto los ignora y el recibo le sigue saliendo como siempre. */
+function fixedPausedIn(e,y,m){
+  const u=Number(e&&e.pausedUntil);
+  if(!(u>0)) return false;
+  const ym=y*12+m;
+  return ym>=(Number(e.pausedFrom)||0)&&ym<u;
+}
 // importe del cobro EN EL MES m. Si hay `schedule` (importes a medida, p.ej. seguro 172,05 + 166,94)
 // usa ese importe; si es anual sin schedule reparte el total entre los meses marcados; si no, amount.
 function occAmountIn(e,m){
@@ -820,7 +832,7 @@ function monthNetForAccount(s, ent, y, m, t){
   const hit=function(d){ return closed ? true : (d!=null && d<=t); };
   const ym=y*12+m, bp=!closed&&(s.fixed||[]).some(function(e){ return e.wait===ym; })?reconcileBank(s,y,m,t).paidAt:null;
   let net=0;
-  (s.fixed||[]).forEach(function(e){ if((e.account||"sabadell")===ent && occursIn(e,m) && (closed||bp&&bp[e.id]||isPaidIn(e,m,t,y,s))) net -= occAmountIn(e,m); });
+  (s.fixed||[]).forEach(function(e){ if((e.account||"sabadell")===ent && occursIn(e,m) && !fixedEnPausa(s,e,y,m,closed?new Date(y,m,0).getDate():t) && (closed||bp&&bp[e.id]||isPaidIn(e,m,t,y,s))) net -= occAmountIn(e,m); });
   (s.debts||[]).forEach(function(d){ if(debtActive(d) && (d.account||"sabadell")===ent && hit(debtChargeDay(d))) net -= (d.monthly||0) + debtBalloonIn(d,y,m); });
   (s.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m) && (o.account||"sabadell")===ent && (o.amount||0)!==0 && hit(o.day!=null?o.day:null)) net -= o.amount; });
   (s.flows||[]).forEach(function(f){ if(flowOccursIn(f,m,y)){ const bd=f.kind==="income"?flowConfirmedDay(f,y,m):null, dd=bd!=null?bd:flowDay(f,y,m); if(hit(dd)){ if(f.kind==="income" && (f.to||"sabadell")===ent) net += (f.amount||0); else if(f.kind==="transfer" && (f.from||"sabadell")===ent) net -= (f.amount||0); } } });

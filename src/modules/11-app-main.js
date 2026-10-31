@@ -239,11 +239,17 @@ function App(){
     const sh=e.currentTarget.scrollHeight;
     const dy=y-lastScrollY.current;
     if(ultimoScrollH.current && sh!==ultimoScrollH.current){
+      const crecio=sh>ultimoScrollH.current;
       ultimoScrollH.current=sh;
       lastScrollY.current=y;
       // Al cambiar una regla puede variar el alto estando ya arriba: el tope debe recuperar
       // la navegación aunque el navegador no haya desplazado el contenido (DOM Metas, 4/10).
       if(Math.abs(dy)<6 && y>8) return;
+      /* Gastos pagina por scroll (tandas de GX_TANDA): al crecer la lista el motor recoloca
+         `scrollTop` hacia arriba (-96 px medidos) y eso parecía una subida suya: la barra
+         escondida reaparecía sola en pleno descenso. Un salto hacia arriba con el contenido recién
+         crecido solo cuenta como subida si hay un dedo subiendo contenido ahora mismo. */
+      if(crecio && dy<0 && y>8 && !(fingerScrollDir.current===-1 && (Date.now()-fingerScrollAt.current)<900)) return;
     } else {
       ultimoScrollH.current=sh;
       lastScrollY.current=y;
@@ -649,10 +655,27 @@ function App(){
       // Esto garantiza que la tabla sea la fuente de verdad COMPLETA antes de dejar de duplicar
       // los gastos en app_state (ver slimForCloud). Upsert idempotente (ignoreDuplicates).
       const tableKeys={}; incoming.forEach(function(e){ tableKeys[keyOfExpense(e)]=1; });
+      // Una versión retirada del nombre sigue siendo una fila remota real del mismo titular.
+      // La cobertura no presume banco/cuenta/referencia ni acepta importes no finitos.
+      const tableRenames=Object.create(null);
+      const renameCoverageKey=function(e){
+        if(!e||!isExpenseUuid(e.id)||typeof e.amount!=="number"||!Number.isFinite(e.amount)||e.amount===0||
+          !expenseKnownIdentity(e)||typeof e.obAcc!=="string"||!e.obAcc.trim()||typeof e.extId!=="string"||!e.extId.trim())return "";
+        const key=expenseRenameKey(e);
+        // Misma normalización canónica de ordinal que el lector, no identidad literal de un inválido.
+        return key?JSON.stringify([e.id,key.split("|")[1],String(e.date),e.amount,obOrdinalOf(e)]):"";
+      };
+      if(delSet&&readProof.valid&&readProof.userId===readOwner&&sessionRef.current===readSession&&stateRef.current._historyOwner===readOwner){
+        (Array.isArray(rows)?rows:[]).forEach(function(raw){
+          if(!raw||raw.user_id!==readOwner||!isExpenseUuid(raw.id))return;
+          const e=expenseFromRow(raw),key=expenseRenameKey(e),coverage=renameCoverageKey(e);
+          if(key&&delSet[key]&&coverage)tableRenames[coverage]=1;
+        });
+      }
       // Una fila local con lápida nunca vuelve en `incoming` (se filtra arriba), así que sin esta
       // comprobación se resubía en CADA pull como «huérfana» (revisión 12/10/2026): él ya dijo que
       // ese apunte no cuenta, y la tabla no tiene que volver a verlo.
-      (stateRef.current.expenses||[]).forEach(function(e){ if(e.amount!==0 && !tableKeys[keyOfExpense(e)] && !expenseIsTombstoned(e, delSet)) subirGasto(e, "backfill"); });
+      (stateRef.current.expenses||[]).forEach(function(e){ if(e.amount!==0 && !tableKeys[keyOfExpense(e)] && !tableRenames[renameCoverageKey(e)] && !expenseIsTombstoned(e, delSet)) subirGasto(e, "backfill"); });
       /* AQUÍ NO VA UN REPASO QUE RE-MARQUE LOS POSIBLES REPETIDOS VIEJOS (B09-D, 2026-09-08).
          Lo escribí y lo retiré: `addExpense` va con ignoreDuplicates y nunca cambia el `source` de
          una fila ya presente, así que los pendientes anteriores a esta versión siguen contando en
@@ -1298,10 +1321,10 @@ function App(){
           tried++; let request;
           try{ request=bridge.sync(); }catch(e){ soft.push("Trade Republic"); trLogFailure("broker_manual_sync","sync_rejected"); return Promise.resolve(); }
           return Promise.resolve(request).then(function(res){
-          if(res&&res.authExpired&&!res.softFail&&!res.wafBlocked){ expiredB.push("Trade Republic"); signalTrDead(); trLogFailure("broker_manual_sync","auth_expired"); return; }
+          if(res&&res.authExpired&&!res.softFail&&!res.wafBlocked){ expiredB.push("Trade Republic"); signalTrDead(); trLogFailure("broker_manual_sync","auth_expired",res.diag); return; }
           /* anti-bot/hipo: en automático silencio y se reintenta luego. Pero si lo has pedido TÚ, callarse
              es el «sale conectado pero no te avisa ni nada» (rechazo tr-reactivo, 8/9): se dice. */
-          if(!res||!res.ok||!Array.isArray(res.positions)){ soft.push("Trade Republic"); trLogFailure("broker_manual_sync",res&&(res.softFail||res.wafBlocked)?"soft_fail":"sync_invalid"); return; }
+          if(!res||!res.ok||!Array.isArray(res.positions)){ soft.push("Trade Republic"); trLogFailure("broker_manual_sync",res&&(res.softFail||res.wafBlocked)?"soft_fail":"sync_invalid",res&&res.diag); return; }
           signalTrAlive({manual:opts.manual});
           applyBrokerPositions(res.positions, "lastTrSync", res.cash); updatedB.push("Trade Republic");
         },function(){ soft.push("Trade Republic"); trLogFailure("broker_manual_sync","sync_rejected"); }).catch(function(){ soft.push("Trade Republic"); trLogFailure("broker_manual_sync","client_error"); }); };
@@ -2402,7 +2425,9 @@ function App(){
     const fijosMensual=fijosVar+cuotas;
     const ahorroMensual=state.aportaciones.reduce((a,x)=>a+x.amount,0);
     // --- MOTOR DINÁMICO: cargos de fijos que tocan ESTE mes, por banco ---
-    const fijosEsteMes=state.fixed.reduce((a,e)=> occursIn(e,curMonth) ? a+occAmountIn(e,curMonth) : a, 0);
+    // Un recibo en pausa (y sin cobrar) no se cobra este mes: ni suma ni baja el saldo previsto.
+    const fijoDelMes=e=> occursIn(e,curMonth) && !fixedEnPausa(state,e,curYear,curMonth,today);
+    const fijosEsteMes=state.fixed.reduce((a,e)=> fijoDelMes(e) ? a+occAmountIn(e,curMonth) : a, 0);
     const cargosMes=fijosEsteMes+cuotas;                 // fijos del mes + cuotas de deuda (todos los bancos)
     // saldo disponible por banco (la cuenta de gasto descuenta el gasto del mes)
     const bankBal={};
@@ -2414,7 +2439,7 @@ function App(){
     const acc=(amt,bank,paid)=>{ chargesByBank[bank]=(chargesByBank[bank]||0)+amt;
       if(paid){ paidThisMonth+=amt; }
       else { pendingThisMonth+=amt; pendingByBank[bank]=(pendingByBank[bank]||0)+amt; } };
-    state.fixed.forEach(e=>{ if(occursIn(e,curMonth)) acc(occAmountIn(e,curMonth),accOf(e),isPaidIn(e,curMonth,today,curYear,state)); });
+    state.fixed.forEach(e=>{ if(fijoDelMes(e)) acc(occAmountIn(e,curMonth),accOf(e),isPaidIn(e,curMonth,today,curYear,state)); });
     state.debts.forEach(d=>{ if(debtActive(d)) acc((d.monthly||0)+debtBalloonIn(d,curYear,curMonth),d.account||"sabadell",isDebtPaidThisMonth(d,today,state,curYear,curMonth)); });
     (state.oneoffs||[]).forEach(o=>{ if(oneoffOccurs(o,curYear,curMonth) && (o.amount||0)!==0) acc(o.amount,o.account||"sabadell",isPaidThisMonth(o,today)); });
     // --- CASH-FLOW: ingresos (nómina) y transferencias recurrentes PENDIENTES este mes ---
@@ -2435,14 +2460,14 @@ function App(){
     // Importa el ORDEN: si los fijos se cobran antes de que entre la nómina, puedes quedarte
     // en negativo a mitad de mes aunque a fin de mes cuadres. Sin día: cargos al principio
     // (día 0, peor caso) e ingresos al final (día 99). ---
+    // Los eventos salen de `pendingWalkEvents` (08), la misma lista que el simulador: lo de hoy o
+    // vencido sin cobro acreditado cuenta como cargo de HOY (decisión del dueño 28/10/2026).
     const evsByBank={};
-    const pushEv=(bank,day,amt)=>{ (evsByBank[bank]=evsByBank[bank]||[]).push({day:day,amt:amt}); };
-    state.fixed.forEach(e=>{ if(occursIn(e,curMonth)&&!isPaidIn(e,curMonth,today,curYear,state)) pushEv(accOf(e), dayIn(e,curMonth)||0, -occAmountIn(e,curMonth)); });
-    state.debts.forEach(d=>{ if(debtActive(d)&&!isDebtPaidThisMonth(d,today,state,curYear,curMonth)){ pushEv(d.account||"sabadell", debtChargeDay(d), -d.monthly); const bl=debtBalloonIn(d,curYear,curMonth); if(bl>0) pushEv(d.account||"sabadell", debtChargeDay(d), -bl); } });
-    (state.oneoffs||[]).forEach(o=>{ if(oneoffOccurs(o,curYear,curMonth)&&(o.amount||0)!==0&&!isPaidThisMonth(o,today)) pushEv(o.account||"sabadell", o.day||0, -o.amount); });
-    (state.flows||[]).forEach(f=>{ if(!flowOccursIn(f,curMonth,curYear)||flowPaidIn(state,f,curYear,curMonth,today))return; const dd=flowDay(f,curYear,curMonth); if(f.kind==="income") pushEv(f.to||"sabadell", dd||99, f.amount); else if(f.kind==="transfer") pushEv(f.from||"sabadell", dd||0, -f.amount); });
+    pendingWalkEvents(state,curYear,curMonth,today).forEach(ev=>{ (evsByBank[ev.bank]=evsByBank[ev.bank]||[]).push(ev); });
     const minByBank={}, minDayByBank={};
-    Object.keys(allBanks).forEach(b=>{ const evs=(evsByBank[b]||[]).slice().sort((x,y)=>x.day-y.day); let run=bankBal[b]||0, mn=run, md=0; evs.forEach(ev=>{ run+=ev.amt; if(run<mn-0.005){ mn=run; md=ev.day; } }); minByBank[b]=mn; minDayByBank[b]=md; });
+    // Un banco con solo recibos vencidos sin cobrar no está en `pendingByBank` (que va por fecha):
+    // también se recorre, o «¿Te llega?» lo pintaría como banco sin saldo.
+    Object.keys(Object.assign({},allBanks,evsByBank)).forEach(b=>{ const r=minWalk(bankBal[b]||0, evsByBank[b]); minByBank[b]=r.min; minDayByBank[b]=r.minDay; });
     // foco en el banco principal de gastos fijos (Sabadell)
     const mainBank="sabadell";
     const mainBal=bankBal[mainBank]||0;
@@ -2461,7 +2486,7 @@ function App(){
        `state.loQueSea` que se lea aquí dentro (incluidos los que leen las funciones auxiliares:
        monthNetForAccount → fixed/debts/oneoffs/flows; flowPaidIn → bankTx;
        toEurAmt/invValueEur → fx y fxRates). */
-    return {fxMissing:fxMissingOf(state),liquid,invested,investedCost,assetsTotal,debtTotal,activos,netWorth,thisMonthSpent,spentByBank,injTR,fijosMensual,ahorroMensual,cargosMes,fijosEsteMes,liquidTrasFijos,curMonth,curYear,today,sinProgramar,bankBal,chargesByBank,pendingByBank,paidThisMonth,pendingThisMonth,mainBank,mainBal,mainCharges,mainPending,bankAlerts,incomeInByBank,transferOutByBank,pendingIncome,pendingTransferOut,projectedByBank,mainIncome,mainTransferOut,mainProjected,minByBank,minDayByBank,mainMin,mainMinDay,roundupThisMonth,savebackThisMonth,monthlyInvestThisMonth,trRewardsTotal,paidNetByBank};
+    return {fxMissing:fxMissingOf(state),liquid,invested,investedCost,assetsTotal,debtTotal,activos,netWorth,thisMonthSpent,spentByBank,injTR,fijosMensual,ahorroMensual,cargosMes,fijosEsteMes,liquidTrasFijos,curMonth,curYear,today,sinProgramar,bankBal,chargesByBank,pendingByBank,paidThisMonth,pendingThisMonth,mainBank,mainBal,mainCharges,mainPending,bankAlerts,incomeInByBank,transferOutByBank,pendingIncome,pendingTransferOut,projectedByBank,mainIncome,mainTransferOut,mainProjected,minByBank,minDayByBank,mainMin,mainMinDay,evsByBank,roundupThisMonth,savebackThisMonth,monthlyInvestThisMonth,trRewardsTotal,paidNetByBank};
   // Antes esto dependía de `[state]` entero. Como `set()` sella `_savedAt` al editar, el
   // objeto de estado es nuevo siempre → el memo NUNCA acertaba y este cálculo (que recorre gastos,
   // fijos, deudas, flujos y simula el mes día a día) se rehacía al abrir una ficha, al escribir en
@@ -2606,9 +2631,11 @@ function App(){
   useEffect(function(){
     if(!wV2) return;
     // La nómina que abre el ciclo no cuenta en su neto; su identidad debe viajar con la ventana.
-    const kind=budW.cycle?"ciclo":"mes", start=budW.periodStart, anchor=wAnchor, w=state.widgetPeriod;
+    // En el mes natural viajan las nóminas y los ingresos grandes que no lo son (ver `widgetScopeOf`).
+    const w=state.widgetPeriod;
     if(w && w.v===2 && w.scope===wScope) return;
-    set(function(s){ return Object.assign({},s,{widgetPeriod:{v:2,kind:kind,start:start,anchor:anchor,scope:wScope}}); },false);
+    const next=widgetPeriodOf(budW,wAnchor,wScope);
+    set(function(s){ return Object.assign({},s,{widgetPeriod:next}); },false);
   },[wV2,wScope,state.widgetPeriod]);
   const widgetCash=trAccW ? Math.round((totals.bankBal[trAccW.ent]||0)*100)/100 : null;
   // El límite combina presupuesto global y liquidez del banco elegido. Se mandan las piezas
@@ -2643,8 +2670,11 @@ function App(){
       // consuman esta ventana. No se confirma por fecha, ni por una foto sin identidad.
       coveredEvents:widgetCoveredEvents(wC.current,budW.periodStart,Date.now(),!!wV2),
       deletedKeys:"|"+(state.deleted||[]).map(encodeURIComponent).join("|")+"|",
-      // En el ciclo, el neto con signo, como Inicio; `shown` sería |neto| (la cabecera de Gastos).
-      spent:Math.round(((budW.cycle?budW.against:budW.shown)||0)*100)/100,
+      // V2: lo que Inicio compara con el límite (neto en el ciclo, gasto menos ingresos sin la
+      // nómina en el mes), porque el nativo dibuja «quedan / de más» como límite − `spent`; con el
+      // bruto decía 422 € de más cuando Inicio decía 64 € por debajo (26/10/2026). La APK51
+      // (sin contrato) conserva su payload legado.
+      spent:Math.round(((wV2||budW.cycle?budW.against:budW.shown)||0)*100)/100,
       budget:budW.budget!=null?budW.budget:(state.budget||0)
     };
     if(wV2){ data.contract=2; data.periodKind=budW.cycle?"ciclo":"mes"; data.magnitude=budW.cycle?"neto":"gasto"; data.lang=CURLANG; data.scope=wScope; }
@@ -2742,7 +2772,8 @@ function App(){
     const ym=cy+"-"+String(cm).padStart(2,"0");
     const charges=[];
     (state.fixed||[]).forEach(function(e){
-      if(!occursIn(e,cm)) return;
+      // Pausado = este mes no se cobra: avisar la víspera de algo que no llega sería mentir.
+      if(!occursIn(e,cm)||fixedPausedIn(e,cy,cm)) return;
       const d=dayIn(e,cm); const amt=occAmountIn(e,cm)||0;
       if(d==null||!(amt>0)) return;
       charges.push({id:String(e.id),name:e.name||"Recibo",amount:+amt.toFixed(2),day:d});
@@ -2774,7 +2805,7 @@ function App(){
     };
     const run=function(){
       (state.fixed||[]).forEach(function(e){
-        if(!occursIn(e,cm)) return;
+        if(!occursIn(e,cm)||fixedPausedIn(e,cy,cm)) return;
         const d=dayIn(e,cm); if(d==null) return;
         if(isPaidIn(e,cm,today,cy,state)) return;
         const amt=occAmountIn(e,cm)||0;
@@ -3904,7 +3935,8 @@ function App(){
     // reconstruye el árbol entero encima del gesto (asimetría Deudas→Gastos vs →Cartera).
     if(id==="gastos") return React.createElement(Expenses,{state:state,set:set,showToast:showToast,stopSwipe:stopSwipe,cancelSwipe:cancelSwipe,focusExp:gotoExp,clearFocus:function(){ setGotoExp(null); },forceAllTs:gastosForceAll,
       // «Abrir en Plan · Deudas/Metas» de las filas grises (Gastos v5): mismo camino que Inicio.
-      onGoPlan:function(seg){ if(seg) setPlanGoto({id:seg,ts:Date.now()}); const i=tabIds.indexOf("plan"); if(i>=0) goTabTop(i); },
+      // `debtId`: si todas las cuotas del bloque son de una misma deuda, se aterriza en su tarjeta.
+      onGoPlan:function(seg,debtId){ if(seg) setPlanGoto({id:seg,ts:Date.now(),debtId:debtId}); const i=tabIds.indexOf("plan"); if(i>=0) goTabTop(i); },
       onGoInversiones:goInversiones});
     if(id==="plan") return React.createElement(PlanTab,{state:state,set:set,totals:totals,showToast:showToast,simple:simple,gotoSeg:planGoto,clearGoto:function(){ setPlanGoto(null); }});
     // El «Sincronizar» de Cartera actualiza TODO lo conectado: Open Banking + TR + MyInvestor

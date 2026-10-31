@@ -136,6 +136,19 @@ export function ordinalDeSource(source?: string | null): number {
   return 1;
 }
 
+// Espejo de expenseRenameKey: el alias solo retira el nombre anterior de esa fila.
+function claveRenombre(f: FilaGasto): string {
+  const source = String(f.source || "");
+  if (!source.startsWith("ob:") && !source.startsWith("ob-hist:")) return "";
+  // expenseFromRow reclasifica estas notificaciones como macrodroid: un alias OB previo no las borra.
+  if (source.startsWith("ob:") && f.ingest_event_id && (source.slice(3).split("#")[1] === "dup" || ordinalDeSource(source) > 1)) return "";
+  const bank = bancoDeSource(source) || "", account = cuentaDeSource(source), match = /#ref([^#]*)/.exec(source);
+  let ref = ""; try { ref = match ? decodeURIComponent(match[1]) : ""; } catch (_) { /* Sin referencia válida no se amplía el alias. */ }
+  const known = bank && account;
+  if (!known && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(f.id || "")) return "";
+  // expenseFromRow muestra Gasto cuando comercio falta; solo el alias nuevo replica ese lector.
+  return "expense-rename|" + encodeURIComponent(JSON.stringify([bank, account, ref, known ? "" : f.id])) + "|" + claveComoLaApp({ ...f, comercio: f.comercio || "Gasto" });
+}
 function claveLegacySinId(f: { fecha?: string | null; importe?: number | string; comercio?: string | null }): string {
   return String(f.fecha || "").slice(0, 10) + "|" + (Number(f.importe) || 0) + "|" + (f.comercio || "");
 }
@@ -231,7 +244,8 @@ export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefine
     // una fila confirmada no puede consumir la referencia antes de quedar oculta.
     if (!keepIds.has(String(f.id)) && !matches(f,kept,keptIndex) && matches(f,gone,goneIndex)) continue;
     const k = claveComoLaApp(f);
-    if (lap.has(k)) continue;
+    const rename = claveRenombre(f);
+    if (lap.has(k) || (rename && lap.has(rename))) continue;
     const oldNative = claveLegacySinId(f) + (ordinalDeSource(f.source) > 1 ? "|#" + ordinalDeSource(f.source) : "");
     if ((f.ingest_event_id || huellaNativaSource(f.source)) && lap.has(oldNative)) continue;
     if (porCuenta.size && !esSourceManual(f.source)) {
@@ -441,6 +455,18 @@ export function cuentaParaPresupuesto(fila: FilaGasto, ents: string[]): boolean 
   const ent = bancoDeSource(fila.source);
   if (!ent) return true;                                   // a mano, sin banco → cuenta
   return ents.indexOf(ent) >= 0;
+}
+
+/**
+ * ¿El comercio dice que es una nómina? Espejo de la parte por NOMBRE de `esNomina()` del cliente
+ * (la que abre Mi ciclo), con la normalización de `recNorm()`. El cliente mira además el concepto y
+ * los ingresos periódicos de Plan, que aquí no se tienen: por eso la app manda en `widgetPeriod`
+ * qué ingresos grandes ya decidió, y esto solo sirve para una nómina que llega con la app cerrada.
+ */
+export function comercioDeNomina(comercio?: string | null): boolean {
+  const n = String(comercio || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+  return /\b(nomina|salario|sueldo|salary|payroll|haberes)\b/.test(n);
 }
 
 /** Lo apartado para metas desde `desdeMs`. Espejo de `reservedSince()`: se resta del presupuesto. */

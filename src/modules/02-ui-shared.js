@@ -199,6 +199,8 @@ function shareMonthReport(state, tt, showToast, opt){
     g.fillStyle=muted; g.font="700 27px Manrope, sans-serif"; g.fillText(t("rp_spent").toUpperCase(), 116, 252);
     // Misma cifra que Resumen/Gastos (`monthBudgetStats`), no thisMonthSpent.
     const bs=monthBudgetStats(state, winStart+12*864e5, winEnd!=null?winEnd:undefined);
+    // La barra mide lo mismo que Inicio y la tarjeta del mes cerrado (`limiteDeStats`, 26/10/2026).
+    bs.against=limiteDeStats(bs,state).against;
     const spentShown=bs.shown!=null?bs.shown:Math.max(0,bs.against||0);
     g.fillStyle=text;  g.font="700 96px Manrope, sans-serif"; g.fillText(eur0(spentShown), 112, 300);
     const bud=bs.budget!=null?bs.budget:0;
@@ -875,6 +877,9 @@ function useTironSeccion(rootRef, o){
     const to=setTimeout(clear, 500);   // red de seguridad si el evento no llega
     return function(){ clearTimeout(to); };
   },[seg]);
+  // Se devuelve para que un salto desde la propia pantalla (tocar una deuda en Recibos) entre con
+  // ESTA misma animación en vez de una propia: un solo «así se cambia de sección» en la app.
+  return enterDirRef;
 }
 function mcBindEdgeHaptics(root, blocked){
   let g=null, states=new WeakMap(), lastAt=-Infinity;

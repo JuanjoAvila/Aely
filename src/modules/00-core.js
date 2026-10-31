@@ -187,10 +187,19 @@ function mcLogEvent(kind,message,detail){
   if(m==="tr_sync" || /^TR sync:/.test(m)){
     let p=null; try{ if(typeof detail==="string") p=JSON.parse(detail); }catch(e){}
     const field=function(k,allowed){ return p&&p.schema===1&&!Array.isArray(p)&&Object.prototype.hasOwnProperty.call(p,k)&&typeof p[k]==="string"&&allowed.indexOf(p[k])>=0?p[k]:"unknown"; };
-    return {message:"tr_sync",detail:JSON.stringify({schema:1,
-      code:field("code",["auth_expired","soft_fail","sync_invalid","sync_rejected","status_rejected","status_inactive","client_error","login_failed","verify_failed","unknown"]),
+    const out={schema:1,
+      code:field("code",["auth_expired","soft_fail","sync_invalid","sync_rejected","status_rejected","status_inactive","client_error","login_failed","verify_failed","login_pending","unknown"]),
       origin:field("origin",["tr_card_sync","broker_manual_sync","tr_card_login","tr_card_verify","status_check","unknown"]),
-      snapshotAge:field("snapshotAge",["unknown","no_snapshot","invalid_clock","lt_5m","m5_lt_60m","h1_lt_24h","ge_24h"])})};
+      snapshotAge:field("snapshotAge",["unknown","no_snapshot","invalid_clock","lt_5m","m5_lt_60m","h1_lt_24h","ge_24h"])};
+    // Login v2 de TR (31/10/2026): un «login HTTP 400» sin saber qué API ni qué código devolvió
+    // TR no deja distinguir «retiraron v1» de «cabecera que falta». Solo viajan si son enums (o
+    // un errorCode de TR: MAYÚSCULAS y «_», sin dígitos ni «@», así no cabe teléfono, PIN ni correo).
+    const opt=function(k,ok){ const v=field(k,[p&&p[k]]); if(v!=="unknown"&&ok(v)) out[k]=v; };
+    opt("api",function(v){ return v==="v1"||v==="v2"; });
+    opt("http",function(v){ return ["400","401","403","404","405","410","426","429","5xx","other"].indexOf(v)>=0; });
+    opt("trCode",function(v){ return /^[A-Z][A-Z_]{2,39}$/.test(v); });
+    opt("restore",function(v){ return ["not_yet","no_snapshot","hot_jar","yes"].indexOf(v)>=0; });
+    return {message:"tr_sync",detail:JSON.stringify(out)};
   }
   const routes=[[/^addExpense\b/,"addExpense"],[/^deleteExpense\b/,"deleteExpense"],[/^setExpenseDup\b/,"setExpenseDup"],[/^setExpenseDeuda\b/,"setExpenseDeuda"],[/^MI:/,"myinvestor"],[/^bankConnect\b/,"bank_connect"],[/^OB /,"ob_balance"],[/^bankSync sin pull/,"bank_sync_pull"],[/^CRASH:/,"render_crash"],[/^TOAST:/,"toast"],[/^Promise:/,"unhandled_promise"],[/^canal /,"channel_update"],[/^OTA /,"ota_update"],[/^APK /,"apk_update"],[/^import hoja:/,"import_sheet"]];
   let route="unhandled_error";
@@ -2162,6 +2171,14 @@ function expenseDeletionKey(e){
   const id=expenseKnownIdentity(e);
   return id?"expense-account|"+encodeURIComponent(id)+"|"+keyOfExpense(e):keyOfExpense(e);
 }
+// Renombrar retira una versión del nombre, no la compra. Con cuenta se conserva
+// también la referencia; sin ella solo un UUID acredita la fila, nunca la similitud.
+function expenseRenameKey(e){
+  if(!e||!esFilaDeBanco(e))return "";
+  const known=expenseKnownIdentity(e),bank=expenseBankOf(e)||"",acc=String(e.obAcc||""),ref=String(e.extId||"");
+  if(!known&&!isExpenseUuid(e.id))return "";
+  return "expense-rename|"+encodeURIComponent(JSON.stringify([bank,acc,ref,known?"":e.id]))+"|"+keyOfExpense(e);
+}
 function expenseUnknownDeletionMatches(e,delSet){
   if(expenseKnownIdentity(e)||isManualExpenseSource(e&&e.source))return false;
   const index=obAbsorptionIndex(delSet).scoped;
@@ -2228,7 +2245,8 @@ function expenseIsTombstoned(e, delSet){
   if(confirmed&&obConfirmedMatches(e,confirmed.list,confirmed.owner))return true;
   if(obAbsorptionMatches(e,delSet))return true;
   const k=keyOfExpense(e);
-  if(delSet[expenseDeletionKey(e)]||delSet[k]||expenseUnknownDeletionMatches(e,delSet)) return true;
+  const rename=expenseRenameKey(e);
+  if(delSet[expenseDeletionKey(e)]||delSet[k]||(rename&&delSet[rename])||expenseUnknownDeletionMatches(e,delSet)) return true;
   // Otro móvil pudo borrar antes del renombrado. Solo la lápida de cuenta distingue
   // ese borrado de la clave antigua que el propio renombrado deja al editar.
   if(e&&e.obName!=null&&e.obName!==e.merchant&&!isManualExpenseSource(e.source)){
@@ -2854,6 +2872,11 @@ function lapidasAlEditar(s, keyOrig, keyUpd, ahora){
   const pon=lapidaPon(s, keyOrig, ahora);
   return pon.deleted.indexOf(keyUpd)<0 ? pon : lapidaLevanta(Object.assign({}, s, pon), keyUpd, ahora);
 }
+function lapidasAlRenombrar(s,orig,upd){
+  if(!esFilaDeBanco(orig))return lapidasAlEditar(s,keyOfExpense(orig),keyOfExpense(upd));
+  const before=expenseRenameKey(orig),after=expenseRenameKey(upd);
+  return before&&after&&before!==after?lapidasAlEditar(s,before,after):{};
+}
 /* LA NUBE AL EDITAR UN GASTO: EL ALTA ESPERA AL BORRADO, Y CADA EDICIÓN A LA ANTERIOR
    (13/10/2026). La fila corregida conserva su id: lanzadas a la vez, si el alta llegaba antes
    que el borrado chocaba con la fila vieja por la clave primaria (el `23505` de `addExpense`
@@ -2931,7 +2954,7 @@ function expenseRenameAck(s,orig,intent,ack){
     if(!e.notePending&&(e.noteEditAt||0)===(orig.noteEditAt||0)&&e.note===orig.note&&ack.nota_edit){after.note=ack.nota||undefined;after.noteEdited=true;}
     return after;
   });
-  return before?rekeyFixedPaymentExpense(Object.assign({},s,{expenses:rows},lapidasAlEditar(s,keyOfExpense(before),keyOfExpense(after))),before,after):s;
+  return before?rekeyFixedPaymentExpense(Object.assign({},s,{expenses:rows},lapidasAlRenombrar(s,before,after)),before,after):s;
 }
 // → {deleted[, deletedAt]}. La lista local, tal cual, si la nube no aporta nada: la leen los `useMemo`.
 function lapidasUnion(local, nube){
@@ -3362,6 +3385,9 @@ function applyTrCash(state, cash, totals){
   if(!state || cash==null || !isFinite(Number(cash)) || !totals) return state;
   const shown=Number(cash);
   const accounts=state.accounts||[];
+  // Hora de esta lectura: «¿Te llega?» sabe así que lo cobrado antes ya está en el saldo
+  // (`saldoLeidoDelBanco`, revisión t3 R4: sin ella un recibo ya cobrado en TR se restaba otra vez).
+  const leido=new Date().toISOString();
   const hasTR=accounts.some(function(a){ return a.ent==="trade_republic"; });
   const next=hasTR ? accounts.map(function(a){
     if(a.ent!=="trade_republic") return a;
@@ -3370,8 +3396,8 @@ function applyTrCash(state, cash, totals){
     const stored=accDaily(a)
       ? valueDesdeSaldo({shown:shown,injTR:totals.injTR||0,spentOwn:spentOwn,roundup:totals.roundupThisMonth||0,monthlyInvest:totals.monthlyInvestThisMonth||0,ambos:accRole(a)==="ambos",paidNet:pn})
       : shown-pn;
-    return Object.assign({},a,{value:+stored.toFixed(2)});
-  }) : accounts.concat([{id:uid(),ent:"trade_republic",name:"Trade Republic",value:+shown.toFixed(2),note:""}]);
+    return Object.assign({},a,{value:+stored.toFixed(2),saldoLeidoAt:leido});
+  }) : accounts.concat([{id:uid(),ent:"trade_republic",name:"Trade Republic",value:+shown.toFixed(2),note:"",saldoLeidoAt:leido}]);
   return Object.assign({},state,{accounts:next});
 }
 
@@ -3737,7 +3763,8 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
   const manual=isManualExpenseSource(local.source);
   let out=local;
   const preserved=local.uuidPreserved||{};
-  const protects=function(k){return Object.prototype.hasOwnProperty.call(preserved,k)&&preserved[k]===local[k]&&incoming[k]!==local[k];};
+  const editPending=local.expenseEditPending||{};
+  const protects=function(k){return incoming[k]!==local[k]&&((Object.prototype.hasOwnProperty.call(preserved,k)&&preserved[k]===local[k])||(Object.prototype.hasOwnProperty.call(editPending,k)&&editPending[k]===local[k]));};
   const put=function(k,v){
     const a=local[k], b=v;
     if(a===b) return;
@@ -3808,6 +3835,15 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
     if(out===local)out=Object.assign({},local);
     const rest=Object.assign({},preserved);confirmed.forEach(function(k){delete rest[k];});
     if(Object.keys(rest).length)out.uuidPreserved=rest;else delete out.uuidPreserved;
+  }
+  // Una coincidencia semántica con otro UUID no es el recibo de esta escritura de ficha.
+  // keepCategoryChoices puede sintetizar categoría desde catStale o una regla aprendida:
+  // esa protección no es un eco remoto. Los otros campos se confirman por separado.
+  const editConfirmed=local.id&&local.id===incoming.id?Object.keys(editPending).filter(function(k){return editPending[k]===local[k]&&incoming[k]===editPending[k]&&(k!=="category"||(!local.catStale&&!incoming.catStale));}):[];
+  if(editConfirmed.length){
+    if(out===local)out=Object.assign({},local);
+    const rest=Object.assign({},editPending);editConfirmed.forEach(function(k){delete rest[k];});
+    if(Object.keys(rest).length)out.expenseEditPending=rest;else delete out.expenseEditPending;
   }
   /* NO realinear `id` aquí: settings.expenseOrder indexa por id local, y en OB el uuid de la
      nube suele diferir (ignoreDuplicates). Cambiarlo huérfana el orden a mano (4.19.74). Tanda
@@ -4314,6 +4350,8 @@ function mergePlanThreeWay(base,local,remote,kind,deleted,localNewer){
     for(const [id,row] of r)if(planSyncDebtDeletedHas(gone,row))r.delete(id);
   }
   const payment=kind==="fixed"?["paidYm","paidDay"]:[];
+  // La pausa viaja entera: «desde» de un móvil con «hasta» del otro sería una pausa que nadie pidió.
+  const pause=kind==="fixed"?["pausedFrom","pausedUntil"]:[];
   new Set([...r.keys(),...l.keys()]).forEach(function(id){
     const old=b&&b.get(id),left=l.get(id),right=r.get(id);
     if(!left || !right){rows.push(left||right);return;}
@@ -4326,7 +4364,8 @@ function mergePlanThreeWay(base,local,remote,kind,deleted,localNewer){
       keys.filter(function(k){return independent.indexOf(k)<0 && ["id","owner","user_id","type","debtLinkRevision"].indexOf(k)<0;});
     const groups=[financial];
     if(payment.length)groups.push(payment);
-    keys.forEach(function(k){if(financial.indexOf(k)<0 && payment.indexOf(k)<0)groups.push([k]);});
+    if(pause.length)groups.push(pause);
+    keys.forEach(function(k){if(financial.indexOf(k)<0 && payment.indexOf(k)<0 && pause.indexOf(k)<0)groups.push([k]);});
     const merged={},fields=[];let paidSource=right,waitSource=right;
     groups.forEach(function(group){
       const has=function(o,k){return !!o && Object.prototype.hasOwnProperty.call(o,k);};
@@ -4622,8 +4661,11 @@ function bankConnectOnce(aspsp_name, country){
 }
 
 /* ---------- Helpers ---------- */
-const NF  = new Intl.NumberFormat('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
-const NF0 = new Intl.NumberFormat('es-ES',{maximumFractionDigits:0});
+// Punto de miles también con cuatro cifras: el español de Intl no lo pone hasta las cinco, y la
+// app decía «1426,23 €» junto a «193.993,44 €» y al «1.912 €» del widget nativo (capturas del
+// dueño, 26/10/2026). Un motor sin `"always"` lo toma como `true`: vuelve a lo de antes, sin romper.
+const NF  = new Intl.NumberFormat('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:"always"});
+const NF0 = new Intl.NumberFormat('es-ES',{maximumFractionDigits:0,useGrouping:"always"});
 // Moneda de visualización. Todos los importes de la app están en € (base); DISP los convierte
 // a la moneda elegida (k = factor sobre €, sym = símbolo). Se fija en App según ajustes + fx.
 let DISP = { sym:"€", k:1 };

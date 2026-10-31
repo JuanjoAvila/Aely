@@ -151,7 +151,7 @@ for(const method of ["ui","browser","native"]){
     await start(page,"es");const url=page.url(),before=await financial(page);
     await page.locator('.botnav-tab[data-tour="plan"]').click();
     await expect(page.locator('.botnav-tab[data-tour="plan"]')).toHaveClass(/active/);
-    const manage=await page.evaluate(()=>t("v4_gestionar"));
+    const manage=await page.evaluate(()=>t("pr6_todos"));
     await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button",{name:manage,exact:true}).click();
     const hub=page.locator("[data-bills-manage]");await expect(hub).toBeVisible();
     const hubState=await page.evaluate(()=>history.state);
@@ -356,7 +356,7 @@ for(const method of ["browser","native"]) for(const keyboard of [true,false]){
 
 async function ux13Bills(page){
   await page.locator('.botnav-tab[data-tour="plan"]').click();
-  const manage=await page.evaluate(()=>t("v4_gestionar"));
+  const manage=await page.evaluate(()=>t("pr6_todos"));
   await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button",{name:manage,exact:true}).click();
   const hub=page.locator("[data-bills-manage]");await expect(hub).toBeVisible();
   await hub.locator('[data-act="bill-add"]').first().click();

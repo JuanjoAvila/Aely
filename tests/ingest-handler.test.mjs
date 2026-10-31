@@ -25,14 +25,17 @@ new Function('Deno','assertEquals','widgetSnapshot','widgetStart','readWidgetRow
   {test:(name,fn)=>denoCases.push([name,fn])},assert.deepEqual,widgetBudget.widgetSnapshot,widgetBudget.widgetStart,widgetBudget.readWidgetRows,...dePresupuesto.map(n=>budget[n]));
 for(const [name,fn] of denoCases) await t('Node ejecuta cuerpo Deno: '+name,fn);
 
-await t("respuesta dual: month legado intacto y widget v2 bruto para la misma compra", async () => {
+// Oráculo cambiado el 26/10/2026 (decisión del dueño): el widget v2 del mes natural ya no manda el
+// bruto (5,45) sino gasto menos ingresos sin la nómina, con tope en 0: el abono de 20 € cubre la
+// compra, lo usado sigue en 0 y quedan los 100 € enteros. El `month` legado (APK51) no cambia.
+await t("respuesta dual: month legado intacto y widget v2 neto sin nómina para la misma compra", async () => {
   const now=Date.now(), start=budget.inicioDeMesMs(now);
   const state={budget:100,accounts:[{ent:'trade_republic',role:'diario',spendFrom:true}],settings:{gTotalMode:'net'},
-    widgetPeriod:{v:2,kind:'mes',start,anchor:'',scope:JSON.stringify([2,start,'mes','gasto','',100,['trade_republic'],'trade_republic'])}};
+    widgetPeriod:{v:2,nominas:[],noNominas:[],kind:'mes',start,anchor:'',scope:JSON.stringify([2,start,'mes','gasto',[[],[]],100,['trade_republic'],'trade_republic'])}};
   const env=fakeDb({state,rows:[{id:'income',user_id:'user',fecha:new Date(now-1000).toISOString(),importe:-20,cat:'ingreso',source:'macrodroid',comercio:'Abono'}]});
   const r=await post(env,{fuente:'tr',titulo:'Trade Republic',texto:'Has gastado 5,45 € en Compra sintetica',fecha:String(now),evento:'dual'});
   assert.equal(r.data.month.spent,14.55); assert.equal(r.data.month.contract,undefined);
-  assert.equal(r.data.widget.spent,5.45); assert.equal(r.data.widget.shownDelta,5.45);
+  assert.equal(r.data.widget.spent,0); assert.equal(r.data.widget.shownDelta,0); assert.equal(r.data.widget.budgetLeft,100);
   assert.equal(r.data.widget.scope,state.widgetPeriod.scope); assert.equal(r.data.widget.contract,2);
 });
 
@@ -40,7 +43,7 @@ await t("servidor v2 no repite un scope si cambiaron las reservas", async () => 
   const now=Date.now(),start=budget.inicioDeMesMs(now);
   const state={budget:100,accounts:[{ent:'trade_republic',role:'diario',spendFrom:true}],settings:{},
     reservaLog:[{date:new Date(now).toISOString(),amount:10}],
-    widgetPeriod:{v:2,kind:'mes',start,anchor:'',scope:JSON.stringify([2,start,'mes','gasto','',100,['trade_republic'],'trade_republic'])}};
+    widgetPeriod:{v:2,nominas:[],noNominas:[],kind:'mes',start,anchor:'',scope:JSON.stringify([2,start,'mes','gasto',[[],[]],100,['trade_republic'],'trade_republic'])}};
   const r=await post(fakeDb({state}),{fuente:'tr',titulo:'Trade Republic',texto:'Has gastado 5,45 € en Compra sintetica',fecha:String(now),evento:'changed'});
   assert.equal(r.data.widget,null); assert.ok(r.data.month);
 });
@@ -48,7 +51,7 @@ await t("servidor v2 no repite un scope si cambiaron las reservas", async () => 
 await t("un error del widget opcional conserva el aviso y month para APK anteriores", async () => {
   const now=Date.now(),start=budget.inicioDeMesMs(now),state={budget:100,
     accounts:[{ent:'trade_republic',role:'diario',spendFrom:true}],settings:{},
-    widgetPeriod:{v:2,kind:'mes',start,anchor:'',scope:JSON.stringify([2,start,'mes','gasto','',100,['trade_republic'],'trade_republic'])}};
+    widgetPeriod:{v:2,nominas:[],noNominas:[],kind:'mes',start,anchor:'',scope:JSON.stringify([2,start,'mes','gasto',[[],[]],100,['trade_republic'],'trade_republic'])}};
   const r=await post(fakeDb({state,widgetThrows:true,rows:[{id:'before',user_id:'user',fecha:new Date(now-1000).toISOString(),
     importe:90,cat:'super',source:'macrodroid',comercio:'Compra anterior'}]}),
     {fuente:'tr',titulo:'Trade Republic',texto:'Has gastado 20,00 € en Compra sintética',fecha:String(now),evento:'widget-error'});
@@ -60,7 +63,7 @@ await t("un error del widget opcional conserva el aviso y month para APK anterio
 await t("v2 pagina más de mil filas; una lectura parcial o sin conteo no confirma cero", async () => {
   const now=Date.now(),start=budget.inicioDeMesMs(now),state={budget:3000,
     accounts:[{ent:'trade_republic',role:'diario',spendFrom:true}],settings:{},
-    widgetPeriod:{v:2,kind:'mes',start,anchor:'',scope:JSON.stringify([2,start,'mes','gasto','',3000,['trade_republic'],'trade_republic'])}};
+    widgetPeriod:{v:2,nominas:[],noNominas:[],kind:'mes',start,anchor:'',scope:JSON.stringify([2,start,'mes','gasto',[[],[]],3000,['trade_republic'],'trade_republic'])}};
   const rows=Array.from({length:1005},(_,i)=>({id:'synthetic-'+i,user_id:'user',fecha:new Date(now-1000).toISOString(),
     importe:1,cat:'super',source:'macrodroid',comercio:'Compra '+i}));
   const body={fuente:'tr',titulo:'Trade Republic',texto:'Has gastado 5,45 € en Compra actual',fecha:String(now),evento:'pagination'};
@@ -95,7 +98,7 @@ await t("mismas filas: servidor v2 y Inicio comparten Mes bruto / Mi ciclo neto"
     for(const cycle of [false,true]) {
       const state={budget:100,accounts:[{ent:'trade_republic',role:'diario',spendFrom:true},{ent:'sabadell',role:'fijos'}],settings:{budgetCycle:cycle},expenses:rows.map(cli.expenseFromRow)};
       const stats=cli.dashboardBudgetStats(state),anchor=cycle?cli.keyOfExpense(cli.budgetPaydayOf(state,now).inc):'';
-      state.widgetPeriod={v:2,kind:cycle?'ciclo':'mes',start:stats.periodStart,anchor,scope:cli.widgetScopeOf(state,stats,anchor,'trade_republic')};
+      state.widgetPeriod=cli.widgetPeriodOf(stats,anchor,cli.widgetScopeOf(state,stats,anchor,'trade_republic'));
       const server=widgetBudget.widgetSnapshot(state,rows,now,{id:'pay',event:'synthetic',key:'key'});
       assert.ok(server); assert.equal(server.spent,+(cycle?stats.against:stats.shown).toFixed(2));
       assert.equal(server.budget,stats.budget); assert.equal(server.budgetLeft,+Math.max(0,stats.remaining).toFixed(2));

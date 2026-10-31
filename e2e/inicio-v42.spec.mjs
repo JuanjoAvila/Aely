@@ -26,10 +26,10 @@ async function open(page,{spent=500,day=13,lang="es",historyDays=370,falling=fal
 for(const state of states) test("estado real "+state.id,async({page},testInfo)=>{
   await open(page,state);
   const card=page.locator(".v42-cycle");
-  await expect(card).toHaveAttribute("data-state",state.id); await expect(card).toHaveAttribute("aria-label",new RegExp("^"+state.text+"\\. Te quedan "));
+  await expect(card).toHaveAttribute("data-state",state.id); await expect(card).toHaveAttribute("aria-label",new RegExp("^"+state.text+"\\. "+(state.id==="over"?"1 € de más":"Te quedan ")));
   // El estado ya no se pinta como texto: lo dicen el color del anillo y de la línea «al día».
   await expect(card).not.toContainText(state.text); await expect(card).not.toContainText("Te quedan");
-  await expect(card.locator(".v42-cycle-amount>.serif")).toHaveText((state.id==="over"?"-1":String(1000-state.spent))+" €");
+  await expect(card.locator(".v42-cycle-amount>.serif")).toHaveText((state.id==="over"?"1":String(1000-state.spent))+" €");
   const color=await card.evaluate((el,tone)=>getComputedStyle(el).color===getComputedStyle(document.documentElement).getPropertyValue("--"+tone).trim() ||
     (()=>{const probe=document.createElement("span");probe.style.color="var(--"+tone+")";el.appendChild(probe);const result=getComputedStyle(probe).color===getComputedStyle(el).color;probe.remove();return result;})(),state.tone);
   expect(color).toBe(true);
@@ -49,9 +49,9 @@ for(const state of [{id:"tight",spent:800},{id:"over",spent:1001}]) test("tarjet
   await open(page,state);
   const card=page.locator(".v42-cycle");
   await expect(card).not.toContainText(/Te quedan|Vas |Toca frenar|Te has pasado/);
-  await expect(card.locator(".v42-cycle-amount>.serif")).toBeVisible(); await expect(card.locator(".v42-cycle-of")).toHaveText("de 1000 €");
+  await expect(card.locator(".v42-cycle-amount>.serif")).toBeVisible(); await expect(card.locator(".v42-cycle-of")).toHaveText(state.id==="over"?"de más · límite 1.000 €":"de 1.000 €");
   await expect(card.getByTestId("inicio-cycle-pace")).toHaveCount(state.id==="over"?0:1);
-  await expect(card).toHaveAttribute("aria-label",state.id==="tight"?"Vas justito. Te quedan 200 € de 1000 €. 11 € al día durante 18 días":"Te has pasado 1 €. Te quedan -1 € de 1000 €");
+  await expect(card).toHaveAttribute("aria-label",state.id==="tight"?"Vas justito. Te quedan 200 € de 1.000 €. 11 € al día durante 18 días":"Te has pasado 1 €. 1 € de más · límite 1.000 €");
   await page.waitForTimeout(1300); // el anillo se dibuja al entrar; con él quieto se mide el reposo
   const box=await card.evaluate(el=>{const c=n=>{const r=el.querySelector(n).getBoundingClientRect();return r.top+r.height/2;};
     return {ring:c(".v42-cycle-ring"),txt:c(".v4-budget-txt")};});
@@ -62,7 +62,7 @@ for(const zone of ["UTC","Europe/Madrid"]) test.describe("calendario de Madrid e
   test("casi agotado dice justo y conserva el margen sin inventar ritmo",async({page})=>{
     await open(page,{cycle:false,day:26,spent:950});
     await expect(page.locator(".v42-cycle")).toHaveAttribute("data-state","tight");
-    await expect(page.locator(".v42-cycle")).toHaveAttribute("aria-label",/^Vas justito\. Te quedan 50 € de 1000 €/);
+    await expect(page.locator(".v42-cycle")).toHaveAttribute("aria-label",/^Vas justito\. Te quedan 50 € de 1\.000 €/);
     await expect(page.locator(".v42-cycle-amount>.serif")).toHaveText("50 €");
     await expect(page.getByTestId("inicio-cycle-pace")).toHaveText("10 € al día durante 5 días");
   });
@@ -208,7 +208,7 @@ for(const lang of ["es","en","ca"]) test("NO-GO último día natural y etiqueta 
   await expect(page.locator(".v42-cycle")).not.toContainText(labels[1]);
   await expect(page.locator(".v42-cycle")).toHaveAttribute("aria-label",new RegExp(labels[1]+" 100 €"));
   await expect(page.getByTestId("inicio-cycle-pace")).toHaveText(labels[2]);
-  await expect(page.locator(".v42-cycle-percent")).toHaveText("10%");
+  await expect(page.locator(".v42-cycle-percent")).toHaveText("90%");
 });
 test("NO-GO presupuesto agotado no ofrece gasto diario",async({page})=>{
   await open(page,{cycle:false,spent:1000});await expect(page.getByTestId("inicio-cycle-pace")).toHaveCount(0);
@@ -251,7 +251,7 @@ for(const sandbox of [false,true]) test("historial partido migra 400 puntos y re
   const stored=await page.evaluate(key=>({main:JSON.parse(localStorage.getItem(key)),history:JSON.parse(localStorage.getItem(key+"_balhist"))}),key);
   expect(stored.main.accountBalanceHistory).toBeUndefined();expect(stored.history.history["acc:a"]).toEqual(history);
   await page.reload();await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
-  await expect(page.locator(".v42-cycle-of")).toContainText("1050");
+  await expect(page.locator(".v42-cycle-of")).toContainText("1.050");
   expect(await page.evaluate(key=>JSON.parse(localStorage.getItem(key+"_balhist")).history["acc:a"],key)).toEqual(history);
 });
 
@@ -356,7 +356,7 @@ test("RONDA3 banco a hucha con escalones mantiene el patrimonio plano",async({pa
 test("RONDA3 deuda sin día de cuota declara la convención mensual",async({page})=>{
   await openGoodsHistory(page,{assets:[],debts:[{id:"no-day",name:"Préstamo sintético",value:10000,monthly:500,amort:400,months:null,asOf:2026*12+7,asOfDate:"2026-08-01"}]});
   const hero=page.getByTestId("inicio-net-current");
-  await expect(hero.locator(".v4-hero-amt")).toContainText("-4600,00 €");
+  await expect(hero.locator(".v4-hero-amt")).toContainText("-4.600,00 €");
   await expect(hero.locator(".v42-net-line")).toHaveCount(1);
   await expect(hero.getByTestId("inicio-net-coverage")).toHaveCount(0);
   await hero.locator(".v42-net-info").click();

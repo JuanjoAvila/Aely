@@ -1,765 +1,204 @@
-## Pendiente separado · 26/10/2026 · cursor bancario y contrato partial/sealed
-
-PR315 documenta y protege el comportamiento existente: doce páginas exitosas más
-un único rechazo inicial de periodo, máximo trece intentos solo en ese caso. No
-resuelve que una ventana que tampoco cabe en esas doce páginas pueda acusarse como
-«ahora» y dejar movimientos sin volver a pedir. Sigue PENDIENTE; decisión de alcance
-separada, sin SQL ni cambios del cliente en PR315.
-
-El prototipo de continuación por fechas acreditó que dos pulsaciones podían sumar
-los prefijos sin pérdida, pero marcarlos como partial/sealed en el cliente real
-retuvo un BOOK antiguo de 1251 céntimos frente a su corrección a 1252 y dejó PDNG
-frente a BOOK con la misma referencia. Las cinco regresiones de céntimos, signo,
-comercio, PDNG→BOOK y retirada pasan con la base. La clave real usa banco/referencia/
-signo: un cambio de céntimos con igual signo se suprime; no es una nueva identidad.
-
-El trabajo futuro necesita un contrato explícito de cobertura y reconciliación que
-conserve prefijos, permita corregir filas anteriores y preserve clientes existentes,
-ACK perdido/replay/reconexión, multiplicidad sin referencia, multicuenta, fechas y
-horizonte. Debe tratar también el día indivisible que supera los límites sin fingir
-completitud. Ni ese contrato ni la reparación de huecos históricos están entregados.
-
-## Estado vivo · 18/10/2026
-
-**Fuente para empezar: esta lista.** Corte documental del lote de coordinación del 18/10 (`ee788a05`), sobre beta 4.26.141 en rama (`ff53b0e7`). Lo que hay debajo conserva el historial. «Cerrado» en esta ronda significa cierre del encargo técnico por Claude: un GO, una PR en borrador o un resultado `released` no acreditan por sí solos integración, despliegue, artefacto servido ni aceptación móvil. Claude anuncia la 141 servida; esta revisión no verifica sus hashes servidos ni declara ProductREADY.
-
-## Auditoría del backlog · 19/10/2026 (cierres con su evidencia)
-
-Fuente: veredictos del panel (`scripts/errores.mjs --kind=beta`), CHANGELOG, notas y git. Lo de abajo sustituye al estado antiguo de cada fila.
-
-**HECHO**
-
-- INC-2709-12 · línea Cyberpunk sobre el +: aprobada `4.26.77/inc-2709-12-cyber-fab` 1/10; confirmado por el dueño 19/10.
-- INC-2709-10 · casillas gigantes del perfil: aprobada `4.26.77/inc-2709-10-perfil` 1/10; confirmado por el dueño 19/10.
-- INC-2709-14 · botón Preguntar separado del borde: aprobada `4.26.77/inc-2709-14-preguntar` 1/10.
-- INC-2709-13 · círculo del + e indicador recortados: rechazada 97 (6/10), aprobadas `4.26.98/inc-2709-13-fab-contorno` 7/10 y `4.26.107/inc-0810-nav-indicator` 9/10.
-- INC-2709-07 · Bienes sin toque/edición: aprobadas `4.26.111/inc-2709-07-bienes-toque` y `4.26.113/bienes-completo` 10/10.
-- INC-2709-02 · Deudas terminadas, confirmar y archivar: aprobada `4.26.70/inc-2709-02-deudas-archivo` 29/9.
-- INC-2709-04 · crash al abrir Cuotas de deuda: cerrada en 4.26.59.
-- INC-2709-05 · cifras incompatibles Inicio/Gastos: superada por 4.26.66/73/61/62/78; aprobadas `inicio-solo-actual` 10/10, `inicio-solape-gastos` 11/10, `inicio-tarjeta-ciclo-limpia` 13/10.
-- INC-2709-01 · arranque con poca conexión: aprobada `4.26.69/inc-2709-01-arranque-red` 29/9 (lo demás del arranque vive en UX-03).
-- INC-0710-01 · salto de scroll en Plan: aprobada `4.26.124/plan-scroll-lento` 13/10.
-- INC-3009-01 · gas ya pagado como próximo cargo: aprobada `4.26.74/inc-3009-01-cargos` 1/10.
-- INC-3009-02 · nómina Sabadell anticipada: aprobada `4.26.78/inc-3009-nomina-anticipada` 1/10.
-- INC-2909-03 · retiradas del banco: aprobada `4.26.79/inc-2909-03-retirada` 1/10.
-- INC-2809-01 / INC-2809-02 · Inicio y Mi ciclo, ayuda de Mi ciclo: aprobadas `4.26.67/inc-2809-01-inicio-ciclo` y `4.26.68/inc-2809-02-ayuda-ciclo` 29/9.
-- INC-2909-01 / FIN-05 · widget (periodo, modo, pago con app cerrada): aprobadas `4.26.80/inc-2909-01-widget-periodo` 1/10, `widget-app-cerrada` 4/10 y `4.26.116/widget-ciclo-puente` 12/10.
-- INC-1810-02 · renombrar recibo: aprobada `4.26.144/recibo-renombrado-sigue-pagado` 18/10 (vínculos ya rotos se rehacen a mano).
-- FIN-16 · plazo y cuota a la vez: aprobada `4.26.139/deudas-plazo-cuota-encaja` 17/10.
-- FIN-15 · compra pendiente y contabilizada doble: aprobadas `4.26.138/compras-pendientes-otro-dia` 17/10 y `4.26.135/compras-identicas-ids` 15/10.
-- UX-15 · «Sincronizar» de Gastos: aprobada `4.26.138/gastos-actualizar-gastos` 17/10 (lo de leer bancos es PRO-09 round-up).
-- UX-12 · Deudas y Metas estilo v4: aprobadas `4.26.138/deudas-metas-hoja-edicion` 16/10 y `4.26.141/fichas-cierre-suave-atras` 18/10.
-- UX-13 · atrás con teclado: aprobada `4.26.141/fichas-cierre-suave-atras` 18/10.
-- UX-07 · temas: publicados; la línea de Cyberpunk quedó con INC-2709-12.
-- PRO-02 · proyección de fin de mes: aprobadas 125/126/134 (15/10).
-- INC-2709-06 · cargos de CaixaBank: sin quejas del dueño, su padre ni su pareja (19/10); vigilar.
-- INC-2709-11 · círculo de Inicio recortado: el rediseño v42 lo arregló (respuesta del dueño 19/10).
-
-**CERRADO (obsoleto)**
-
-- INC-2709-15 · botones de suscripciones recortados: esa zona ya no existe (respuesta del dueño 19/10; rechazada «No sale eso» en `4.26.138/gastos-suscripciones-botones`).
-
-**Respuestas del dueño (19/10 ~07:40)**
-
-- INC-1810-01 Guardar en Deudas: subir la cuota guarda bien; bajarla da el error «no encaja» (FIN-16, aprobada). Pendiente: al bajarla, ofrecer alargar el plazo → INC-1910-01.
-- INC-2709-08 reordenar brókers con pulsación larga como las cuentas: lo quiere; encargado a Codex tras UX-11.
-
-**CERRADO (no reproducible)**
-
-- UX-11 · saltito vertical al deslizar tras cerrar una hoja: NO_REPRO (Codex, 19/10; 48 casos sintéticos sin reproducirlo).
-
-**Parcial**
-
-- INC-2709-09 / UX-01 · lag sostenido: parcial en 4.26.146 (vuelta de segundo plano y arranque, tanda `vuelta-sin-tiron`); el síntoma humano completo sigue abierto.
-
-**Nuevas**
-
-- INC-1910-01 · Deudas: al bajar la cuota de una deuda, ofrecer alargar el plazo en vez de solo rechazar con «no encaja». En beta 4.26.147 (PR 282); tanda `deuda-bajar-cuota-alarga-plazo`, pendiente de su veredicto.
-- INC-2709-08 · Cartera: reordenar los bloques de brókers con pulsación mantenida, como las cuentas. Lo quiere el dueño. En beta 4.26.147 (PR 283); tanda `cartera-ordenar-brokers`, pendiente de su veredicto.
-
-
-**Cerrados técnicamente en esta ronda**
-
-| Encargo | Alcance y reserva de entrega |
-|---|---|
-| FIN-10 | Identidad y lápidas de Open Banking; port integrado en la rama beta 141. No cierra FIN-03 ni acredita entrega del lector servidor. |
-| FIN-11 | GO de PR266 (`fbff73ee`), congelada; sigue en borrador contra beta, pendiente de alineación con la 141 e integración para la 142. El registro de confirmadas debe coordinar su signo con la nueva tarea de devoluciones. |
-| SEC-01 / SEC-02 | Límites de entrada y frecuencia, respectivamente; cierre técnico del lote. La fuente incorporada en beta no prueba por sí sola que cada función Edge esté desplegada. `prices` conserva su alcance propio. |
-| SEC-03 | Consumo único del callback, port `fc2a7bf3` incorporado en beta 141. Distinto del SEC-03 histórico de privacidad de logs; la carrera frente a una autorización nueva sigue en SEC-04. |
-| OPS-08 | Guarda CAS de refresh entre keepalive y sync; cierre técnico del lote. No acredita por asociación la automatización de purga de `rate_limits` de la entrada histórica con el mismo rótulo. |
-| UX-13 | Prioridad del teclado al volver atrás; implementación incorporada en beta. La señal web sintética no sustituye aceptación del IME físico en Android. |
-| UX-16 | Ronda 6 (web) en beta 4.26.157, tanda `vibracion-r6`, aprobada. Ronda 5 (web) en beta 4.26.156: aprobada salvo tres cosas (el anillo era un solo toque, seguir tirando en Plan no vibraba, la gráfica no se podía regular), que cubre la ronda 6. Ronda 4 en beta 4.26.155 con APK 61, tanda `vibracion-r4`, rechazada en parte (dos vibraciones al cambiar de segmento, el anillo no vibra, la fuerza del borde no cambia nada). Ronda 3 (web) en beta 4.26.153, tanda `vibracion-r3`, pendiente de su veredicto. Hápticos de borde e Inicio, port `8a34391a` en beta 141; ajustador de vibración en Ajustes (solo beta) en beta 4.26.148 con APK 59, tanda `vibracion-ajustador`, pendiente de su veredicto. WebView, vibración del sistema y dispositivo real conservan su aceptación propia. |
-| UX-2909-04 | Revisión de ingresos manuales coincidentes. Antigüedad de datos y qué sincroniza cada botón siguen bajo UX-15. |
-| INC-0410 | Conflictos de escritura de Metas, port `600d5021` en beta 141. No equivale a una solución general de atomicidad del servidor. |
-| INC-1710 | Núcleo de separación de modos con GO de ronda 2 (`3f6410f2`). PR265 sigue en borrador: remate del aviso de recarga en curso, alineación con la 141 e integración para la 142 pendientes. |
-
-**Abiertos destacados y candidatas pendientes**
-
-- FIN-17 · PR267 (`5fb63762`) en borrador y **NO-GO** de revisión independiente: remates F1–F5 en curso. El resultado anterior `blocked/released` libera aquel encargo, no valida sus cifras ni cierra estos remates; no está listo para integrar.
-- FIN-19 · dos movimientos de bancos distintos con el mismo día, importe y comercio se funden en uno. Lo detectó la revisión de la PR 286; es anterior a ella y está sin asignar. En beta 4.26.160, tanda `gastos-dos-bancos` (PR 288, FIN-19 R8): la identidad lleva el banco y la cuenta cuando se conocen; limitaciones conocidas en FIN-29 y FIN-30.
-- FIN-18 · esquema/registro separado y cerco atómico de servidor: backlog reservado, requiere decisión del dueño; sin implementación admitida.
-- FIN-03 · identidad de gastos de extremo a extremo, incluidos dos bancos el mismo día: **aparcado**. La preferencia BOOK frente a PDNG no autoriza resolver el defecto de otro banco con el mismo contenido.
-- PRO-09 · round-up de TR desde «Round up Invertido»: **diseño** pendiente de emparejamiento con Open Banking; sin implementación ni aceptación por asociación con UX-15.
-- Saldo de cuenta · PR268 (`7fbcb9e0` sobre la 141), borrador en revisión independiente; resultado `blocked/released`, sin GO ni entrega acreditados en este corte.
-- PRO-20 · Colchón / fondo de emergencia (evolutivo pedido por el dueño 18/10; decisiones suyas del 18/10, falta solo el diseño visual con su OK): sección de ahorro TOTAL a la que el usuario elige qué cuentas, metas e inversiones suman (opt-in por elemento: hay inversiones que no quiere contar). Gasto para sobrevivir = los recibos obligatorios (Plan → Recibos). Muestra cuántos meses aguanta el colchón con esos recibos más un presupuesto de vida que el usuario elige (con más presupuesto salen menos meses), y una recomendación del tipo «con X € al mes aguantas N meses». Vive en Plan, como sección propia junto a Deudas, Metas y Recibos; en Inicio, como mucho, una línea con los meses que aguanta. Si falta dato, «—» y por qué; nunca inventar cifras.
-- PRO-21 · categorías y subcategorías (pedido del dueño 20/10, para PLANIFICAR después de Gastos v5): p. ej. Coche → taller, ITV, lavado; Comida → súper, bares. Afecta a Gastos v5 (Categorías y filtro), límites por categoría, palabras clave/IA y a lo ya categorizado; necesita diseño con su OK antes de código. La categoría base «Coche» (taller, ITV, ruedas, lavado, recambios; sin subcategorías) está en beta 4.26.162, tanda `categoria-coche` Aprobada el 21/10; hay que desplegar las Edge `categorize` e `ingest` al promocionar.
-
-**1 · Dinero · otros pendientes conservados**
-
-- INC-1810-02 · Recibos: cambiar el nombre de un recibo (p. ej. «Ibi» → «IBI») rompe el vínculo con el cargo ya cobrado y el recibo vuelve a salir pendiente. Pedido del dueño 18/10, sin reproducir; sospecha: el cargo se casa por nombre/texto y no por la identidad del recibo. Al arreglar, no reescribir sus vínculos viejos sin su OK. Estado 18/10: arreglo sin reproducción real del móvil en la beta 4.26.144 (PR 278, pruebas de recibo v2 solo hacia delante); un vínculo ya roto se rehace a mano (Gastos → cargo → Paga un recibo → Deshacer vínculo), pendiente de su OK.
-- INC-1810-03 · Deudas: una cuota de deuda de 197 € pagada por transferencia aparece en Plan como pagada, pero la ficha del cargo dice que no es una cuota, su categoría queda en Recibos y se muestra el aviso de retirada de efectivo. Pedido del dueño 18/10. Estado 19/10: en beta 4.26.145 (PR 281): Plan solo marca ✓ con un cargo real (si no, «Por confirmar»), la ficha lee las mismas pruebas y el aviso de retirada exige traspaso confirmado. Tanda `plan-por-confirmar-prestamo-youtube`, pendiente de su veredicto.
-- INC-1810-04 · Recibos: YouTube Premium aparece pagado en Plan pero su cargo no figura enlazado en la ficha. Pedido del dueño 18/10. Estado 19/10: la tanda de la 145 se rechazó («Sigue sin estar enlazado con YouTube premium y no deja enlazarlo»); en beta 4.26.148, tanda `youtube-enlazar-recibo`, pendiente de su veredicto. Antes, en la 145 (PR 281), junto a INC-1810-03 (mismo criterio: ✓ solo con cargo real enlazado; la ficha y Plan no pueden contradecirse). Arreglo de la ficha en beta 4.26.155 (`youtube-ficha-reconoce`), rechazado: la tanda sale del panel hasta tener un arreglo nuevo. Ronda 4 en beta 4.26.158 (`youtube-r4`): la ficha acepta la fila BOOK de la misma ref contabilizada de 0 a 7 días después del cargo (2/10 frente a 5/10); pendiente de su veredicto.
-- FIN-04 · decisiones y ediciones confirmadas — fase 1 (renombrar y notas con dos móviles) en beta 4.26.151 (PR 286, tanda `renombrar-y-notas-seguras`; lista con el renombrado pendiente en 4.26.153, tanda `renombrar-lista-al-momento`; diagnóstico de recibo YouTube en 4.26.153, tanda `youtube-diagnostico`); fase 2: **A + SAVEDAT en beta 4.26.170** (PR293 R5 `b512deb69` y PR296 R3 `ed1be46db`, tanda `sync-dos-moviles`, seis pasos): nada sube antes del primer pull válido, INSERT sin revisión en vez de upsert, CAS con relectura limitada, vuelo único de gastos con relectura pendiente, copia diaria tras el pull, y el mantenimiento de arranque y la adopción del remoto sin sellar `_savedAt`; **B en beta 4.26.173** (PR297 R2 `c9aa91fd2` + arnés `78e89c492`, tanda `plan-dos-moviles`, cinco pasos con dos móviles): fusión por grupos de recibos y deudas editados a la vez con base privada por ACK, importes nunca sumados, lápidas de deuda compactas y borrador privado con Recuperar/Descartar; pendiente de su veredicto · inicio-mes-futuro (PR298 R2) en beta 4.26.174: toca `ingest/widget.ts` e `ingest/index.ts`, que NO se despliegan en beta; desplegar con la próxima producción (OK del dueño).
-- FIN-04 · plazo también para la lectura del estado (**hecho en beta 4.26.176**, PR304 R2: plazo de 25 s, relevo por una lectura nueva y relanzado al renovar la sesión del mismo titular; sin paso en el panel porque no se puede provocar a mano). Lo que sigue es el contexto de entonces, apuntado en la 4.26.171: `cloud.pullState` de `syncFromCloud` sigue sin plazo, igual que lo estaba la lectura de gastos antes de la 171. Un GET del estado que ni responde ni falla retiene el vuelo único por titular (`cloudPullRef`) y, con él, la acreditación de la primera lectura: sin ella `pushAppState` no envía y reintenta la lectura. No pierde ni duplica datos (lo local queda guardado), pero hasta reiniciar la app no sube nada. Hacerlo con el mismo patrón que `EXP_READ_PLAZO` (relevo por una lectura nueva, la respuesta tardía no se mezcla) y su guardián en `pull-historico-entero`. · inicio-mes-futuro (PR298 R2) en beta 4.26.174: toca `ingest/widget.ts` e `ingest/index.ts`, que NO se despliegan en beta; desplegar con la próxima producción (OK del dueño).
-- FIN-20 · los meses marcados a mano en recibos trimestrales, bimestrales o semestrales dan una mensualidad que no cuadra con lo que se cobra (detectado en la revisión de 4.26.153; la mensualidad con calendario propio ya cuadra en 4.26.153, tanda `recibos-cifra-cuadra`). En beta 4.26.159, tanda `recibos-meses-a-mano`.
-- FIN-21 · la vista previa del alta de un recibo anual con varios meses contradice lo que se cobra (detectado en la revisión de 4.26.153). En beta 4.26.159, tanda `recibos-meses-a-mano`.
-- FIN-22 · con la moneda en USD, la fila de Trade Republic en Cartera sigue mostrándose en «€» (anterior a la 154). En beta 4.26.161, tanda `cartera-moneda`. Aprobada el 21/10.
-- FIN-23 · `linkFixedPayment` no bloquea enlazar a un segundo recibo un cargo cuya prueba BOOK es de otra fecha: con YouTube 29,99 acreditado por BOOK del 5/10 y Spotify 29,99 mismo banco sin prueba, la ficha ofrece Spotify y al enlazarlo Plan da los dos por pagados con un solo cargo (ya existía antes de 4.26.158; hallado en la revisión de youtube-r4, gravedad media para dinero; la identidad de la prueba lleva la fecha del BOOK, por eso no bloquea). En beta 4.26.159 (sin tanda: no se ve salvo con dos recibos del mismo importe y banco), `claude/fin23-24`: la ficha, el enlace a mano y la adopción comprueban que el BOOK de otro recibo (misma ref, banco, céntimos, 0 a 7 días después) no sea ya este cargo.
-- FIN-24 · menor: en `paymentEvidenceUI` la «fila única» de r4 se cuenta solo dentro de la ventana de 7 días; más estricto sería exigir una sola fila con esa ref en el mes (hoy nombra al dueño correcto y Plan no cambia). En beta 4.26.159 (sin tanda), `claude/fin23-24`: la fila de r4 tiene que ser la única del mes con esa ref y banco.
-- FIN-25 · menor: un recibo anual con meses repetidos o imposibles divide mal (600 € con [5,5] cobra 300 una sola vez), porque `occAmountIn` divide entre `chargeMonths().length` con los repetidos dentro (anterior a 4.26.159; hallado en la revisión de fin20-21).
-- FIN-26 · menor: `semana` no entra en el calendario mensual pero `fixedMonthlyOf` la cuenta ×4,345 (anterior a 4.26.159; hallado en la revisión de fin20-21; hoy la UI no ofrece `semana`).
-- FIN-27 · media: el BOOK de tarjeta paga el mes de su fecha y no el del cargo con su misma ref: cargo 30/9 y BOOK 2/10 paga octubre con el dinero de septiembre; desde 4.26.159 el primer mes de esa cadena sale pendiente en vez de doble (una vez por recibo, solo tarjeta de fin de mes). **Hecho en beta 4.26.177** (PR308 R2): el cargo de tarjeta de fin de mes paga el recibo del mes del cargo por la misma ref; la migración de marcas antiguas conserva el saldo mostrado; pendiente de su OK, sin tanda en el panel. Arreglo de fondo (hecho): que el BOOK pague el mes del cargo con la misma ref; también explica Netflix del 28 con dos BOOK en septiembre pendiente (hallado en la revisión de fin23-24).
-- FIN-28 · baja: un cargo sin `extId` (wallet/macrodroid) aún puede enlazarse a mano a otro recibo del mismo importe mientras el BOOK paga el suyo (hallado en la revisión de fin23-24; sin `extId` no hay ref que comparar).
-- FIN-29 · media: la lápida de un renombrado es la misma que la de un borrado (`día|importe|nombre` sin ámbito): con Sabadell A y CaixaBank C iguales el mismo día, renombrar A oculta C (640 → 320, igual que antes de FIN-19); pasa en la ficha y en FIN04 con nube. Hay que distinguir la lápida de renombrado de la de borrado (hallado en la revisión de la PR 288 R8).
-- FIN-30 · menor: un cliente viejo, sin 4.26.160, que borra con el nombre viejo una fila renombrada en otro móvil, con un DELETE fallido, deja 640 (igual que antes de FIN-19).
-- FIN-31 · media (dinero): sin tipo de cambio, la fila de Revolut en Cartera dice 0 € en vez de «—» y el total de Cartera da cifra mientras Inicio da «—» (hallado en la revisión de la PR 289). En beta 4.26.161.
-- FIN-32 · menor: «Tus inversiones» con GBP se queda en € y el selector no marca ninguna opción (hallado en la revisión de la PR 289). En beta 4.26.161.
-- FIN-33 · menor: la proyección de inversiones usa el eje «K €» y el aporte mensual con € fijo, aunque la moneda sea otra (hallado en la revisión de la PR 289). En beta 4.26.161.
-- FIN-34 · investigación cerrada sin fix funcional (25/10/2026): el widget recibe y pinta EUR implícitos; la moneda de Ajustes solo cambia la visualización de la app. Mejora pendiente de **baja prioridad**: paridad visual del widget con esa preferencia; requiere definir el contrato de moneda y conversión, cambios nativos y una APK nueva, conservando los cálculos en EUR. Sin implementación ni entrega de esa mejora.
-- FIN-35 · menor: con la moneda global en USD o GBP y sin tipo de cambio, Cartera cae a € pero «Tus inversiones» arranca en esa moneda y lo pinta todo «—»; la pantalla hija debería arrancar en EUR (hallado en la revisión de la PR 290).
-- UX-18 · reproducción causal del idioma recibido por nube: `settings.lang` cambia sin cargar su paquete, Cartera sigue en castellano y recargar lo corrige. Candidato local de carga y repintado, con guardián de paquetes, orden y pull antiguo; el caso remoto sí actualiza el orden. **Hecho en beta 4.26.178** (PR311): el idioma recibido de la nube carga su paquete y repinta sin recargar, y una elección local vieja no pisa la última; sin tanda (hacen falta dos móviles). Pendiente la aceptación móvil. [Causa y límites](briefs/ux18-preferencias-nube.md).
-- FIN-05 / INC-2909-01 · widget con app cerrada y periodo/modo (PR 212 y PR 225, widget día 45: una sola tarea)
-- FIN-08 · daños históricos previos
-- FIN-12 · financiaciones cuentan como deuda antes de existir en la gráfica de Inicio. El mes de alta (`startMonth`) está desde la 4.26.139; el día real (`startDay`) en beta 4.26.163, tanda `deuda-nueva-desde-su-dia` (PR 291, GO de la revisión de dinero), **aprobada por el dueño el 24/10**: sube con la próxima promoción.
-- FIN-36 · baja (anterior a la PR 291, hallado en su revisión): con el reloj del dispositivo en UTC, a las 00:30 de Madrid del día 1 `asOf`/`startMonth` salen de `ymNow()` en hora local (el mes anterior) mientras `startDay` ya es el día 1; desde ese día la deuda aparece con una cuota ya descontada. Pasa igual en `debtBalance`; no ocurre con el móvil en hora de Madrid. **En beta 4.26.174** (PR299 `4ba74b2ec`): las deudas usan el mes y el día de Madrid (`ymNow`, `debtPaidCount`, alta de Deudas); pendiente de producción tras el OK del dueño.
-- FIN-37 · baja (rendimiento, hallado en la revisión de la PR 291): `netWorthPointOk` valida `startDay` por deuda y por día dentro de `at()` (`Intl.format` + `Date.parse`): con 300 deudas × 420 días `at()` pasa de 53 a 130 ms; con las ~5 reales, <1 ms (5-8 ms a CPU×6). Mejora: validar `startDay` una vez por deuda fuera de `at()`. **En beta 4.26.174** (PR300 `a41513090`): el día de inicio se valida una vez por política.
-- FIN-15 · compra pendiente y contabilizada cuenta doble (reserva de PR 235)
-- FIN-14 · `obAcc` en la nube
-- FIN-13 · aviso de Trade Republic separa la pareja (DECISIÓN del dueño)
-- FIN-16 · editar plazo y cuota a la vez puede dejar cuotas fantasma o saldo sin cuota (en curso, Codex, apilado sobre PR 239; regla aprobada 16/10: rechazar al guardar si (N-1)·A < B ≤ N·A no se cumple)
-
-**2 · Cifras que engañan**
-
-- INC-2909-02 · 0 % al salir de Mi ciclo: investigación anterior sin reproducción; nuevo contraste del redondeo y del cierre de ciclo asignado en el lote nocturno, sin cierre del síntoma humano.
-
-**3 · Uso diario**
-
-- INC-1810-01 · Deudas: en la hoja de gestionar/editar una deuda, pulsar Guardar no responde y la hoja no se cierra (en Metas sí). Pedido del dueño 18/10. Estado 18/10: la beta 4.26.144 (PR 277) hace que el aviso del rechazo se vea entero; no acredita ser la causa del bloqueo total. Contraste DOM del 26/10 sobre base intacta `78c41edf`: los cinco casos de guardado válido, FIN16 insuficiente y campo mal formado pasan; no se reproduce un bloqueo nuevo y no se modifica producto. **NO_REPRO** (PR309, `0e9f326b3`, en beta 4.26.177 solo como guardián e2e y documentación; sin cambio de producto). Guardián y nota de contraste, sin aceptación móvil acreditada. FIN16 conserva el rechazo de una cuota insuficiente; alargar plazo es INC-1910-01. [Evidencia y límites](briefs/inc1810-deuda-guardar.md). Pendiente de su OK.
-- SES-01 · las sesiones de Trade Republic y MyInvestor duran horas (pedido suyo 15/10). La instrumentación y las guardas de keepalive/sync tienen entregas técnicas separadas; no acreditan resolver la duración de la sesión real.
-- INC-2709-09 (con UX-01) · lag sostenido: parcial en 4.26.146 (vuelta de segundo plano). **Gastos, tercera ronda (4.26.175, beta):** tanda `gastos-lag-ciclos-r3` (salto de mes y de ciclo; asa ⠿ que se tragaba el desliz a Plan); sin móvil no se reprodujo su caso exacto. **Abierto:** la tarjeta de Inicio pintada a medias (hace falta adb + CDP en su móvil mirando «Tile memory limits exceeded»)
-- INC-2709-03 (con UX-08) · objetivo confirmado: ola nativa en Gestionar plan y descendientes. PR285/base150 conserva geometría; nueva candidata web de ficha/alta y cancelación durante cierre, sin integrar. [Reproducción y límites](briefs/ux08-native-wave-close-jump.md). Aceptación Android pendiente. Ola nativa de vuelta en beta 4.26.152 (PR 287, tanda `gestionar-plan-ola`, rechazada), segundo intento con raíz única en beta 4.26.153 (tanda `gestionar-plan-ola-r2`), falta confirmar en el móvil.
-- UX-03 (con INC-2709-01) · splash y arranque; UX-09 · splash con el verde por defecto
-- UX-11 · salto vertical tras cerrar una hoja: informe sin parche aceptado; no reproducido en 48 casos sintéticos, sigue abierto para evidencia del dispositivo.
-- UX-12 · Deudas y Metas al estilo v4 (en curso, Codex)
-- UX-14 · deslizar entre pestañas a velocidad muy alta deja de ir fluido y hace un efecto raro: preparación estática; CPU6 pendiente de runner-libre expreso, sin medición ejecutada. Estado 19/10: en beta 4.26.149 (PR 284), tanda `pestanas-swipe-rapido`, pendiente de su veredicto.
-- INC-2709-15 · botones de suscripciones recortados: comprobar en móvil
-- INC-2709-06 · cargos CaixaBank ausentes: revisión con fixtures sintéticas asignada, sin cierre acreditado.
-- UX-15 · «Sincronizar» de Gastos no lee los bancos (solo baja lo de las notificaciones): renombrado/explicación con entrega técnica separada; no confundir con la lectura bancaria ni cerrar PRO-09 por asociación. Desde el 20/10 queda ligada a la tanda 5 de UX-17 (dónde vive «Actualizar gastos» en Gastos v5).
-- UX-17 · Gastos v5: rediseño de la pestaña (diseño cerrado 20/10, docs/design/gastos-v5/SPEC.md). Tandas en el orden del §12, cada una por beta con su guion:
-  - Tanda 1 · Estructura + Movimientos: cabecera, cifra viva, meses fijos al bajar, tarjetas con 6 px, filas grises desplegables; fuera la tarjeta resumen y los botones de periodo. **En beta 4.26.164** (`claude/gastos-v5-t1`, 5a09bfdfa), tanda `gastos-v5-movimientos` (diez pasos). Filas grises de Recibos y Deudas; Metas no tiene fila gris (ver la baja de abajo).
-  - Metas con fila gris en Gastos v5: no existe vínculo cargo del banco → meta (las reservas son asientos virtuales en `reservaLog`). Decisión del dueño 24/10: una marca «aportación a meta» en la ficha del gasto, que lo saque de lo que cuenta y lo agrupe en la fila gris de Metas. **En beta 4.26.172** (`claude/meta-aportacion`, be82acb49): marca `~meta.<id>` desde la ficha, fila gris «Metas · no cuentan», progreso al vuelo sin tocar `saved`, e2e `gastos-meta-aportacion`. ⚠ `_shared/presupuesto.ts` la excluye: desplegar `ingest` con la próxima producción (hasta entonces el widget la cuenta como gasto).
-  - Trocear la paginación de Gastos (+60 filas cada vez que entra el centinela): a CPU ×6 deja frames >32 ms en la base y en la v5 (A/B de la tanda 1); con la lista precargada desaparecen. Propuesta: añadir las filas en tramos pequeños en huecos libres.
-  - Bajas de `useCountUp` (revisión de la PR 295): con un objetivo no numérico la cifra queda en NaN; y al llegar a p=1 conviene fijar el objetivo exacto en vez de la última interpolación.
-  - Tanda 2 · Secciones + gesto: iconos de sección, tirón de Plan, vibración de un solo toque. **En beta 4.26.166** (`claude/gastos-v5-t2`, 67a91b309), tanda `gastos-v5-secciones` (once pasos; en la 167 pasa a diez, sin el del límite al tocar); `useTironSeccion` compartido con Plan, ayuda de Mi ciclo y Rango en Filtros → Periodo, «Actualizar gastos» al pie hasta la tanda 5. Pendiente de la tanda: el frame de ~60 ms a ×6 al cambiar de sección (enseñar la capa nueva un frame antes de esconder la vieja).
-  - Tanda 3 · Categorías → filtro. Decidido el 20/10: el límite de categoría tiene dos entradas (chip junto a la píldora del filtro y pulsación larga en Categorías) que abren la misma hoja; tocar una categoría filtra Movimientos. **En beta 4.26.167** (`claude/gastos-v5-t3`, 262d1e97d), tanda `gastos-v5-filtro` (diez pasos): píldora, cifra de la categoría con la regla del desglose, comparación con la misma categoría del mes anterior, fila de meses fija y meses cerrados sin límite. Opcional si el dueño lo pide: chip del límite más corto para que quepa en la línea de la píldora; pendientes técnicos: frame de ~60 ms a ×6 al cambiar de sección, trocear la paginación (+60 filas).
-  - Tanda 4 · Suscripciones como bandeja + fichas. **En beta 4.26.168** (`claude/gastos-v5-t4`, f7052d65c), tanda `gastos-v5-subs` (diez pasos): tarjeta por suscripción, «i» de la línea de estado, ficha con los últimos cobros y las tres decisiones; nuevo `state.subsBaja` para «Ya la he dado de baja» (vuelve con aviso si llega un cobro posterior). `gastos-v5-secciones` pasa a la 168 con su paso 4 reescrito. Opcional si el dueño lo pide: «Pasar a Recibos» marcando los cargos ya hechos (hoy no los marca, por eso la ficha no promete que dejen de contar) y un «deshacer» en el aviso; el importe editado de la ficha se conserva al cerrarla y volverla a abrir (no se reinicia hasta cambiar de suscripción).
-  - Tanda 5 · Hoja de filtros y destino de «Actualizar gastos». Decidido el 20/10: «Actualizar gastos» se QUITA en esta tanda (la app sincroniza sola al abrir y al volver), con auditoría de puertas de entrada antes; con eso se cierra UX-15. **En beta 4.26.169** (`claude/gastos-v5-t5`, faef5c428), tanda `gastos-v5-filtros-hoja` (diez pasos): hoja de Filtros con Periodo, Qué contar (sin chip «Todo»), Bancos y Categorías (cinco más usadas + «Las N»), «Restablecer» y «Ver N movimientos»; «Actualizar gastos» fuera (la nube ya se leía sola al abrir y al volver a la app; la hora de la última lectura y su explicación van al pie de Filtros). `gastos-v5-secciones` y `gastos-v5-movimientos` pasan a la 169 con sus pasos corregidos. Pendientes de UX-17: Metas con fila gris y «aportación a meta» (falta el vínculo cargo→Meta en el modelo y decidir cómo se marca un cargo como aportación); trocear la paginación (+60 filas por tanda: frames >32 ms a ×6 al bajar); el frame de ~60 ms a ×6 al cambiar de sección; botón de filtros con icono de deslizadores y globito (SPEC §4.1; hoy sigue el chip «🎛️ N», que muchas specs usan como selector). Opcional si el dueño echa de menos releer sin salir de la app: un toque sobre la línea de la hora en Filtros.
-  - Tanda 6 · los siete reportes del dueño del 25/10 (fin de lista sin hueco, fila de ciclos con su rango en Mi ciclo, tirón desde la mitad baja, cinco categorías de más gasto en Filtros, cifra y total del día de lo filtrado, filas en una línea, sin selección al mantener pulsada una categoría). **En beta 4.26.172** (`claude/gastos-v5-t6`, ed4185614), con la fila gris «Inversiones · no cuentan» (`claude/inversion-fila-gris`, f9c0f94d4; el enlace va a Cartera hasta que exista la pestaña de inversiones: cambiar solo `goInversiones`) y el lag al deslizar tras bajar (`claude/lag-gastos-scroll`, 8407f2fe9), en la tanda `gastos-v5-ciclos-metas-inversiones` (12 pasos). Las cinco tandas anteriores (167-169) ya las votó el dueño y salen del panel. Queda del lag: el recálculo de ~2.660 nodos en Plan al deslizar y lo proporcional a las filas montadas (virtualizar o recortar Movimientos).
-- UX-19 · Cartera v5 (pedido del dueño 20/10, para PLANIFICAR después de Gastos v5): mismo patrón que Gastos v5 — tres secciones Cuentas · Inversiones · Bienes con iconos en la cabecera, cifra viva por sección y el tirón de Plan para cambiar entre ellas; diseño con su OK (bocetos/Claude Design) antes de código, reutilizando los componentes que salgan de UX-17.
-
-**4 · Limpieza, servidor y seguridad**
-
-- OPS-01 · repo frente a servidor vivo; OPS-02 · recuperación compartida; OPS-05 · higiene de PR, inventario de solo lectura para decisión de Claude, sin cierres ni borrado de ramas.
-- OPS-06 · ronda de validación antes de Play Store; OPS-07 · guarda de `myinvestor-keepalive`
-- Purga de `rate_limits` · decisión histórica de automatización sin cierre acreditado aquí; distinta de la guarda de refresh cerrada como OPS-08.
-- SEC-04 · callback frente a una nueva autorización durante OAuth: propuesta con `connection_version` en investigación separada; no queda resuelta por el consumo único de SEC-03. [Alcance](briefs/sec03-callback-atomic-state.md).
-
-**5 · Funciones nuevas**
-
-- PRO-01, PRO-03, PRO-04, PRO-05, PRO-06, PRO-07, PRO-08; UX-10 · respiración del splash; BRAND-01 y DEC-01/02
-- BIZ-01 · precio con descuento por fidelidad (idea suya 16/10): precio de entrada algo más alto que baja por mes/año de permanencia hasta un tope. Va con [escalado y monetización](memoria/mi-cartera-escalado.md), al final (DEC-01: Play Store al final)
-
----
-
-Preparación de promoción completa117 (12/10/2026): rama reconciliada desde beta `c5f62d66` con main `b2dfd2c0`, inventario y tratamiento de109/115/servidor aceptados por el coordinador. Sin publicación todavía. CI exacta y revisión pendientes; APK estable52 anunciada, fuente nativa117/code55 pendiente de compilación y asset por el coordinador. Los cortes fechados de abajo conservan la historia, no son instrucciones de coordinación vigentes. [Contrato de esta reconciliación](briefs/prod-completa-117.md).
-
-## INC-2709-07 · acceso al editor por toque · APROBADA (111 y 113; cerrada en la auditoría del 15/10)
-
-Unidad concreta: Cartera → Bienes → fila abre el editor existente sin escribir al abrir. Seis RED y seis GREEN reales en el aislamiento local del coordinador (leases228/229); receta de integración sobre beta d6b3ddef, branch codex/local30-bienes-beta. Integración beta validada57/57 DOM sin fallos/skips/flaky/retries,16guardianes localesPASS y revisión final favorable; CI, publicación y aceptación móvil pendientes. Alta/quitar y rediseño general del editor permanecen abiertos.
-
 # Backlog operativo — Aely
 
-## INC-0810 · historial de Perfil a Ajustes · CLOSED · 8/10/2026 (cerrado 12/10/2026)
+**Limpieza del 26/10/2026, sobre beta 4.26.182 (`acae53b68`), aprobada y camino de producción.**
+Antes este fichero era una pila de cortes fechados (9/9, 25/9, 27/9, 30/9, 4/10, 7/10, 15/10,
+18/10, 19/10…) que repetían los mismos IDs hasta cinco veces con estados distintos: 449
+menciones de 126 IDs. Quien llegaba no sabía qué fila mandaba, y dos IDs se usaban para dos
+cosas distintas (PRO-09, OPS-08). Ahora hay **una lista de pendientes** y **un archivo de lo
+hecho**. Cada cierre se comprobó contra `CHANGELOG.md`, `git log origin/beta`, el código de
+`src/modules` y `supabase/functions` y los veredictos del panel que recoge el CHANGELOG.
 
-Cierre: ya estaba corregido en la base beta `f695a299`. `e2e/backclose-handover.spec.mjs` pasó 180 de 180
-(10 repeticiones) sobre esa base el 12/10/2026: Perfil → «Ir a Ajustes» → cerrar ya no saca de la app.
-No hay cambio de código ni nota de versión por este cierre. Texto original del hallazgo:
+- **Regla de lectura.** «En beta» ≤ 4.26.159 = en producción (promoción del 20/10, «adelante con
+  todo»). De la 160 a la 182 = aprobado por el dueño y pendiente solo de promocionar: el panel de
+  beta ya no enseña ninguna tanda vieja (las aprobadas salen del array; las rechazadas lo dicen
+  en el CHANGELOG y volvieron con arreglo nuevo).
+- **El detalle de antes no se ha perdido**: está en los briefs enlazados y en la historia de git
+  (`git show acae53b68:docs/BACKLOG.md`). El porqué de cada arreglo vive en el `CHANGELOG.md`.
+- **Prioridad:** P0 = va con la próxima producción o toca dinero ya; P1 = dinero o uso diario;
+  P2 = mejora o riesgo acotado; P3 = idea o decisión sin prisa. **Depende de:** dueño (decisión
+  o prueba suya), Codex/Claude (código), servidor (Edge/SQL/despliegue), APK (nativo, no viaja
+  por OTA).
+- Un punto marcado **(verificar)** no está demostrado ni hecho ni roto: se deja abierto a
+  propósito hasta que alguien lo mire en la app o en el servidor.
 
-Hallazgo sintético al verificar Indicador107: abrir Perfil → «Ir a Ajustes» → cerrar con «‹»
-sale de la app hacia `about:blank`. Reproducido también en la base beta `8dcc5ed3`; no lo
-introduce el CSS de la rayita. El cleanup de `useBackClose` consume la entrada del perfil
-mientras se crea la de Ajustes: al cerrar queda una vuelta fuera del origen. Reparación
-separada de Indicador107, pendiente de guardia de historial y comprobación móvil; no se
-declara corregido ni se fuerza el historial en las pruebas. [Evidencia](briefs/inc-0810-nav-indicator.md).
+## Pendiente
 
-Corte7/10: FAB98 integrada en beta por PR153/b7abebb6; GO independiente y CI37564577536 SUCCESS con12FAB/contrasteCSS97. Publicador y artefactos pendientes al escribir este corte, aceptación móvil98 pendiente. Beta97 rechazó desaparición tardía del círculo; se conserva ese rechazo. Producción96 aprobada exclusivamente e integrada por PR152/85b8b540, Pages/servido pendientes. Gastos Madrid de Claude2741 requiere reparar etiqueta local y DOM antes candidata99. No resuelve INC-2709-09 acumulativo.
+### P0 · con la próxima producción
 
-Promoción4/10: las once tandas de beta4.26.94.1 tienen aprobación vigente. Producción4.26.94/source8bb0398f servida y cotejada; APK52 estable y las tres funciones Edge entregadas. La limpieza conserva notas y decisiones; solo retira las once entregadas, sin producto nuevo. Prioridad permanente: producción de lo aprobado antes de otra implementación. [Acta](briefs/promocion-aprobadas-2026-10-04.md).
-
-Preparación8/10: candidata selectiva4.26.106 desde main56c7e328 para las aprobadas99/100/101/102/106. Producción comprobada4.26.98, beta4.26.106.1/source8dcc5ed3. Revisión independiente, CI exacta y entrega pendientes. Panel beta solo se retira después de entrega real; lag global abierto. [Acta](briefs/promocion-aprobadas-local26.md).
-
-Prioridad7/10: terminar promoción selectiva98 aprobada (barra y botón juntos); candidata local sobre main85b8, gates pendientes. Producción96 ya servida. Gastos99 y listeners100 siguen pendientes de CI y beta; lag global abierto.
-
-# Backlog operativo — Aely
-
-## Prioridades técnicas vigentes · 7 de octubre de 2026 · relevo21
-
-Diagnósticos recuperables: [auditoría transversal](https://github.com/JuanjoAvila/Aely/blob/codex/structural-audit-relay21/docs/briefs/inc-2709-09-structural-audit-20261007.md), [widget](https://github.com/JuanjoAvila/Aely/blob/codex/widget-production-diag-relay21/docs/briefs/inc-0710-widget-production-diagnosis.md) e [indicador/transición](https://github.com/JuanjoAvila/Aely/blob/codex/nav-hidden-diagnosis-relay21/docs/briefs/inc-0710-nav-hidden-marker-motion-diagnosis.md). Son evidencia acotada, no reparación ni aprobación de producto. La siguiente medición estructural debe completar React/DOM real, frecuencia de cálculos y A/B financiero; una caché virtual por sí sola no demuestra resolver el lag.
-
-Reconciliación7/10: PR89/91/93/137/138 cerradas sin merge tras delta exacto absorbido; CI ONLY165 cerrada sin merge. PR164 integrada sólo en beta102, publicador/artefacto servido pendientes. [Acta y residuos comprobados](briefs/ops-0710-pr-reconcile.md). PR134 sigue NO-GO y los encargos externos conservan sus reservas.
-
-Este corte fija criterios técnicos de trabajo. No acredita causas humanas, reparaciones,
-aprobaciones nuevas ni despliegues. Los snapshots anteriores permanecen como historia.
-
-| ID y prioridad | Alcance y siguiente prueba |
-|---|---|
-| **INC-2909-01 / FIN-05 · P1 · widget en producción** · **15/10: lo que queda va con la PR 225 (widget día 45; una sola tarea con la PR 212)** | Reabrir el flujo pago/notificación → ingest → snapshot → widget cuando persiste el placeholder de actualización. Correlacionar web, APK y fuente Edge realmente entregadas; separar asset publicado de APK instalado y fuente del repo de servidor activo. Reproducción sintética de foreground/background, offline, respuesta incompatible o tardía, ACK, caducidad y recuperación. Conservar la protección ante cifras desconocidas: no sustituirlas por cantidades ficticias ni reparar datos reales. APK/Edge/SQL mantienen gates propios. |
-| **INC-2709-09 / UX-01 / OPS-06 · P1 · saneamiento estructural** | Auditar flujo de estado/sincronización, frecuencia y coste de renders/cálculos, complejidad con históricos3000/5200, trabajo durante scroll/gestos, montaje/cleanup, timers/listeners, almacenamiento y memoria. Cada frontera necesita causa o hipótesis explícita, baseline, control discriminante, límite medible, dependencias y regresiones financieras. Implementar unidades coherentes con A/B; no reescritura indiscriminada ni cadena de listeners presentada como cura general.100/101/102 son parciales y una serie sintética verde no cierra el síntoma humano. |
-| **INC-2709-13 / UX-06 · barra inferior** · **CERRADA 15/10: hecha en 4.26.98 y 4.26.107 (`inc-0810-nav-indicator`, aprobada 9/10)** | Ocultar también el indicador de pestaña cuando la barra está oculta. Conservar el efecto Cyberpunk visible en ese estado. Aparición y ocultación fluidas y reversibles, sin salto ni pérdida de interacción; probar inversión del gesto, inercia, safe area y movimiento reducido. La aceptación anterior del contorno FAB no acredita estos criterios nuevos. |
-| **INC-0710-01-plan-scroll-top / UX-01 · Plan** · **CERRADA 15/10: hecha en 4.26.124 (tanda `plan-scroll-lento`, aprobada 13/10)** | Reproducir el salto al iniciar scroll lento desde el tope en Recibos/Deudas/Metas: gesto táctil real, primera pasada y uso prolongado, normal/reduced-motion y controles fuera del tope/otras pestañas. Relacionado con INC-2709-09 y el arbitraje de gestos; distinto de INC-2709-03 (ola nativa de Gestionar/categoría). No asignar causa antes de DOM y trazado discriminante. |
-| **PRO-02 / UX-02 · significado de la gráfica de Inicio** · **CERRADA 15/10: sustituida por las tandas 125, 126 y 134, aprobadas** | Documentar magnitud, origen de cada muestra, escritores/migraciones y temporalidad reales. Comprobar onboarding/demo y escala/eje antes de llamarla evolución histórica o rentabilidad. Explicación clara sin alterar dinero ni atribuir datos a una cuenta real. |
-| **OPS-05 · reconciliación de PR** | Inventario actual:34abiertas/30draft antes de este documento. Clasificar por delta: activa con próximo gate, absorbida/sustituida, rechazada o bloqueada. PR164 requiere CI exacta completa; PR165 es sólo CI y debe cerrarse sin merge tras reconciliar resultado. Revisar89/91/93 y137/138 contra lo entregado, sin cerrar por antigüedad ni borrar ramas/worktrees. Una PR no sustituye al backlog. |
-
-Referencias de trabajo: `inc-0710-widget-production-diagnosis-relay21`,
-`inc-2709-09-structural-audit-relay21` y `ops-0710-backlog-pr-reconcile-relay21`.
-WIP103 de cleanup de Plan está detenido y no acredita ensamblado, pruebas ni entrega;
-se conserva para decidir su papel dentro del saneamiento estructural.
-
-Promoción4/10: once tandas actuales aprobadas; candidata revisada en preparación. Producción aún86/APK48 hasta verificar entrega. Prioridad: publicar lo aprobado y retirar del panel solo lo entregado. [Acta](briefs/promocion-aprobadas-2026-10-04.md).
-
-## INC-0410 · P1 · alta de reglas de Metas · 4/10/2026
-
-**Estado 15/10:** el máximo de tres metas en Inicio (4.26.96) y editar una regla (4.26.108) están HECHOS; solo queda abierto escrituras simultáneas LWW. Texto histórico: Editar reglas existentes se prepara en la candidata propia4.26.108 del 8/10 sobre8dcc: conserva ID, contrato mensual/por ingreso, campos desconocidos y asientos ya aplicados; valida estado fresco y recupera el borrador ante rechazo. DOM local y guardianes afectados verificados; revisión, CI, integración y aceptación móvil pendientes. No cierra lag, escrituras simultáneas LWW ni máximo de tres metas en Inicio. [Estado y pruebas](briefs/inc-0810-metas-editar-regla.md).
-
-Snapshot16:02UTC, superado por el OK vigente de Metas94 a17:11:22UTC: rechazo histórico de la4.26.87 conservado. El contrato decidido el4/10 está implementado en la candidata94: guardar descuenta del presupuesto mensual y aporta a la meta, por regla y mes de Madrid; las reglas antiguas conservan el reparto por ingreso. Cierre local16:02UTC:162 casos DOM incluidos dos clientes en secuencia, Node completo sobre094a7d23 con único fallo local de memoria-espejo, revisión por lectura de Claude sin bloqueantes y sello1317221raw/358763gzip dentro de1287/351KiB/3. CI, Deno y publicación beta pendientes. **Sigue abierto:** lag no reproducido en el banco, escrituras simultáneas LWW, editar una regla ya creada y máximo de tres metas en Inicio. El aviso de reparto antiguo acepta cualquier ingreso grande reciente, sin acreditar que sea una nómina. Actas: [contrato mensual](briefs/inc-0410-metas-mensual.md) · [alta de reglas](briefs/inc-0410-metas-alta.md).
-## OPS-0410 · prioridad humana: cola beta y coste de tests
-
-Petición directa del4/10: retirar de las pruebas beta las funciones ya estrenadas y priorizar la entrega. **Implementación publicada en beta4.26.93.1**, fuente1d5dd782, CI37200314653SUCCESS; bundle servido, catálogo y cola cotejados a12:30UTC:40→24 puntos (11 de cambios nuevos y13 de APK/Edge aún pendientes de entrega estable). Sin añadir pasos por el cierre93: conserva la tanda92 y los veredictos. Dos mejoras del tooling reducen el Node local1487,9→354,4s manteniendo guardianes; no se atribuye esa mejora a móvil o CI. Snapshot12:30UTC: entonces faltaban prueba/aprobación humana y producción; hoy la consulta de las once acredita el OK de cola92 en93.2 a13:27:52UTC. No convierte rechazos históricos en aprobaciones. [Acta](briefs/ops-0410-panel-cola.md). **Metas mensual automática sigue abierta**, encargada a Claude para>=94: descuento y aporte al guardar, mes Madrid/idempotencia y vuelta tras estado fresco; no está en93.
-
-Lectura operativa del4/10: los snapshots83/84/85 y sus menciones «sin publicar» describen la preparación, no otra implementación pendiente. El recibo público de producción4.26.86, fuente `d366215ad4f49be5630d2380292391f6d191277d`, acredita la entrega web de `inc-0210-01-plan-cuota`, `inc-0210-03-gastos-periodo`, `feature-0210-01-gasolina-taxi` e `inc-0210-02-categoria-elegida`. Contraste de recibo/versiones el4/10; esto acredita publicación web, no elimina nuevos informes financieros ni acredita APK, Edge o reparación histórica. No reimplementar esas cuatro entregas por leer el snapshot antiguo. [Recibo público](https://juanjoavila.github.io/Aely/beta-delivery.json).
-
-Snapshot operativo 4/10, 02:35 UTC (prevalece sobre las menciones «candidata» de 89 y 90 de más abajo y de sus actas, que quedan como historia). Entregado en el canal beta: Brókers89 como 4.26.89.1 (merge `0f825c45`, [PR115](https://github.com/JuanjoAvila/Aely/pull/115)) y Gastos90 como 4.26.90.1 (merge `4a2e3c54`, [PR116](https://github.com/JuanjoAvila/Aely/pull/116)). Producción sigue en 4.26.86 (`d366215a`). El canal servía entonces 4.26.90.2 desde `7f3da23b`, que solo suma [PR117](https://github.com/JuanjoAvila/Aely/pull/117), una guardia de tests de nombres de categoría: nada nuevo que probar en el móvil respecto a 4.26.90.1. Sigue abierto para ambas entregas: prueba y aprobación en el móvil, y promoción a producción. Ninguna de las dos da por arreglados los pagos ausentes, el widget ni los daños históricos, que conservan sus incidencias. El hueco de cobertura que quedó anotado aquí (`cat_inversion`, `cat_traspaso` y `cat_deudas` sin vigilar) lo cierra la ampliación de `tests/i18n-categorias.test.mjs`, que ahora exige también el nombre de ingreso y de las categorías neutras. [Brókers](briefs/inc-0310-broker-resultados.md) · [Gastos](briefs/inc-0310-gastos-sin-limite.md) · [pruebas](TESTING.md).
-
-Snapshot de preparación FEATURE-0210-01 (2/10; web entregada en86): petición humana de distinguir carburante/taxi del transporte general; Taxi no existía en el catálogo. Propietario: Codex, rama aislada codex/feature-0210-01-gasolina-taxi, candidata85 sobre3467. Catálogo y clasificación solo de altas nuevas, histórico/límites previos intactos, DOM sintético es/en/ca y guardianes registrados. Sin publicar: revisión/CI/beta y veredicto móvil pendientes; Edge fuente preparada sin deploy. [Acta](briefs/feature-0210-01-gasolina-taxi.md).
-
-Snapshot de preparación INC-0210-01 (web entregada en86) · candidata83 separable sobre3467bbd4: la cuota contabilizada y vinculada antes del vencimiento deja de figurar pendiente en Plan/Inicio y eventos futuros, sin descontarla otra vez del saldo. Datos sintéticos; revisión/CI/integración/aceptación móvil pendientes. Sin publicación, APK, Edge, SQL o pagos reales. [Acta](briefs/inc-0210-01-plan-cuota.md).
-
-## Snapshot INC-0210-03 · categorías y cifras de Gastos por periodo · 2/10/2026
-
-Propietario: Codex, rama aislada codex/inc-0210-03-gastos-periodo desde3467bbd4. Síntoma comunicado: elegir mes/fechas deja las categorías del ciclo actual. Motor y DOM sintéticos cubren mes anterior, rango, meses acumulados y retorno a Mi ciclo. Estado: candidata84 con rojo/verde DOM y guardianes locales acreditados; CI y revisión exactas en el PR/relevo. Sin publicar ni aprobación móvil. [Pruebas y límites](briefs/inc-0210-03-gastos-periodo.md).
-
-## INC-0310-01 · P1 · borrar regla de Meta conserva descuento · 3/10/2026
-
-Síntoma humano vinculado a PRO-01 y al contrato de flujo/FIN-01, sin duplicar esos objetivos: tras aplicar el reparto de una nómina, borrar la regla dejaba el descuento en Gastos. La magnitud afectada es el presupuesto disponible, no el gasto bruto ni otro cobro. Corrección candidata aislada sobre `3467bbd4`: liberar solo el descuento comprobable de la regla confirmada, conservar aportación/historial, otras reglas y nómina única. `c88d9627` rechazado por doble liberación si reaparece la configuración; la corrección exige identidad única y sin liberación previa. Parciales/ambiguos conservan el pendiente. Motor y DOM sintético es/en/ca registrados; pruebas, revisión, PR draft y CI exactos en [el acta](briefs/inc-0310-01-meta-regla.md). Sin publicación ni aceptación móvil. **Pendiente separado:** identificar y proponer reparación verificable de reservas huérfanas de reglas borradas por la versión antigua; esta corrección prospectiva no resuelve esas capturas históricas. PRO-01 y FIN-01 mantienen sus alcances generales.
-
-Candidata Validaciones82 tras NO-GO450: conservar aprobación/progreso y la checklist actual junto a las rondas modernas si producción no responde. Sobre beta80/source955765a9;81 no publicada. APK80/52 intacta; DOM mixto70/70, contratos Node y A/B acreditados; revisión independiente y CI exacta pendientes. No integrar/publicar una solución parcial. [Acta](briefs/ops-0110-validaciones-persistentes.md).
-
-Snapshot previo de preparación80 (no estado de la candidata81): Widget80 sobre79/d45fb8b1; runtime821/ACK/guiones intactos. Prebuild52/name80 y descarga de assetbeta602841368 verificados; manifiesto52 local real. CI/build final/reemplazo APK/entrega80 pendientes; no main/Edge/SQL/install. [Acta](briefs/inc-2909-01-widget.md).
-
-## INC-2909-02 · implementación beta4.26.73.1 verificada · 30 de septiembre de2026
-
-Salir de Mi ciclo conserva el gasto bruto mensual de Inicio y sus lectores del presupuesto. PR82/mergea03a2a06; CI completa SUCCESS, ZIP/huella/HTML/SW/APK cotejados. Candidata separable PR80/3912aa11GOClaude yCIverde, pendiente de prueba y aprobación móvil específica; no se atribuye cierre del caso real ni promoción. [Acta](briefs/inc-2909-02-inicio-natural.md). El coordinador nocturno dirige el backlog autorizado; recibos y panel se mantienen en sus propios chats.
-
-## Rechazo de recibos y solicitudes separadas · 30 de septiembre de 2026
-
-**INC-3009-01 (CERRADA 15/10: gas en Próximos cargos corregido en 4.26.71/74; lo siguiente es la historia del 30/9) permanecía rechazada.** El dueño informa de cargos visibles en Gastos que siguen sin pago acreditado en Recibos, aunque el gas ya desaparece. Claude reprodujo con datos sintéticos nombres bancarios distintos, pérdida de bankTx entre dispositivos y pago desde otra entidad/notificación. La candidata original de PR76 no se promociona. Este chat prepara el vínculo explícito cargo→recibo y evidencia durable que no intervenga en saldos; no acredita identidad por importe solo ni modifica dinero real. Pruebas y publicación se registrarán en el brief de la incidencia; implementación y aceptación móvil son distintas.
-
-| ID / prioridad | Solicitud nueva y estado | Criterio de cierre |
+| ID | Qué falta y por qué | Depende de |
 |---|---|---|
-| **OPS-3009-03 · P2 · reconciliar panel después de producción** | Panel revisado483e8874 integrado localmente en75 sobre9ecd6a17. Tres OK idénticos se conservan; cuatro tandas de widget cambian en web por Inicio73 y conservan historia sin alias antiguo. Recibos74 conserva rechazo71 y requiere aceptación nueva. | CI/GO del SHA75, DOM es/en/ca y publicación beta pendientes; entrega exacta web/Android/Edge no demostrada por una versión mayor. Bootstrap main PR92/2f045a1e permanece retenido. [Evidencia](briefs/ops-3009-03-panel-beta.md). |
-| **FIN-3009-04 · P2 · reservar cuotas obligatorias para deudas** | Evolutivo solicitado, solo documentación. Reservar para deudas como para metas: calcular cuotas obligatorias del mes y descontarlas del dinero disponible para gastar. No se implementa con recibos. | Definir mes natural/ciclo, cuotas parciales o variables y datos faltantes; una cuota pagada no vuelve a descontarse. Todos los lectores de disponible comparten la misma magnitud. Sin importe fiable: — con motivo. Pruebas sintéticas motor/DOM es/en/ca; widget, Android y pago real conservan contratos y aceptación propios. |
+| Despliegues de la promoción 160-182 | Las betas posteriores a la producción 4.26.159 cambian Edge que **no se despliegan en beta**: `ingest` (inicio-mes-futuro de la 174, aportación a meta de la 172 —hasta desplegar, el widget la cuenta como gasto—, categoría Coche de la 162), `categorize` (Coche, 162) y `bank-callback` (SEC-02 F1, 180). Desplegar con Actions, una a una, tras ver Pages servido. Sin desplegar, la app está bien pero el servidor y el widget cuentan con la regla vieja. | dueño (OK) + servidor |
 
+### P1 · dinero y uso diario
 
-## INC-3009-01 · corrección separable preparada · 30 de septiembre de 2026
-
-Reproducido en DOM con un gas ficticio y cargo BOOK: Inicio ignoraba la evidencia bancaria si el fijo arrastraba `wait`. La candidata desde main `12884f48` distingue pago acreditado, próximo y vencido sin acreditación; Plan comparte esa lectura para los fijos. Tests de motor y DOM es/en/ca registrados. [Acta](briefs/inc-3009-01-cargos.md). **Sin publicación beta todavía en este corte**, sin aprobación móvil y sin cierre del caso real. No altera saldos guardados ni movimientos, APK, Edge o SQL. Widget y nómina siguen como objetivos independientes.
-
-
-## INC-3009-01 · beta 4.26.71.1 publicada · 30 de septiembre de 2026
-
-Reproducido en DOM con gas ficticio y cargo BOOK: Inicio ignoraba la evidencia bancaria si el fijo arrastraba `wait`. Corregido y publicado solo en **beta 4.26.71.1**, merge `79b981ad`, [PR77](https://github.com/JuanjoAvila/Aely/pull/77), [CI 36764259812](https://github.com/JuanjoAvila/Aely/actions/runs/36764259812) SUCCESS con 500 E2E, uno omitido y 7 de rendimiento. Manifiesto, huella `bba29bcbdd912837`, ZIP, HTML y SW cotejados; exactamente ocho tandas, las siete anteriores intactas. [Acta y hashes](briefs/inc-3009-01-cargos.md). **Pendiente de aprobación y comprobación real en móvil**, sin cierre financiero ni GO de Claude. Candidata separable `1e2395b9`, PR76 borrador, CI completa verde; no fusionar a main todavía. Producción permanece 4.26.67/APK48, beta conserva APK51. No altera cuentas guardadas, movimientos, Edge o SQL. El sucesor comprobará aprobaciones primero; sin nueva aprobación, INC-2909-02 (0 % al salir de Mi ciclo) es el siguiente objetivo independiente recomendado. Widget y nómina siguen separados.
-
-## INC-2709-02 · promoción selectiva web 4.26.67 publicada · 30 de septiembre de 2026
-
-El dueño aprobó en chat la tanda `inc-2709-02-deudas-archivo` de beta 4.26.70.1. [PR #71](https://github.com/JuanjoAvila/Aely/pull/71) la promovió exclusivamente a `main` como web 4.26.67 (`df30b76f`). La [Action de Pages 36754554318](https://github.com/JuanjoAvila/Aely/actions/runs/36754554318) terminó SUCCESS; manifiesto, ZIP, HTML y SW de producción concuerdan. [Acta selectiva](briefs/inc-2709-02-prod.md). La APK estable sigue en 4.26.32/code 48; no se desplegó Edge, SQL ni migración. Las otras siete tandas siguen visibles en beta sin atribuirles aprobación.
-
-## Pruebas beta · auditoría de acumulación · 30 de septiembre de 2026
-
-La beta anterior mostraba ocho tandas por encima de producción 4.26.66. La única aprobación nueva confirmada en chat era `inc-2709-02-deudas-archivo`. [PR #72](https://github.com/JuanjoAvila/Aely/pull/72) la retiró del panel y movió cinco guiones nativos de la nota 4.26.67 a 4.26.68 para que no desaparezcan al subir producción selectiva a 4.26.67. [PR #73](https://github.com/JuanjoAvila/Aely/pull/73) actualizó el E2E del panel. La [Action 36753826093](https://github.com/JuanjoAvila/Aely/actions/runs/36753826093) terminó SUCCESS y la release beta sirve 4.26.70.2, huella `03b9908ed0db121d`, ZIP SHA-256 `03f5a0c6a8ae9287b9b43753969251e8c2eb5d2212e9fea373021197048aa689`, HTML y SW cotejados. Quedan siete pruebas: `inc-2709-01-arranque-red`, `inc-2809-02-ayuda-ciclo` y cinco de widget/pagos nativos. Estas últimas siguen en la APK beta 51, mientras producción anuncia APK 48; no se deben borrar ni dar por aprobadas. No hay otra tanda visible que pueda quitarse solo por antigüedad.
-
-## Nuevos reportes · 30 de septiembre de 2026
-
-El dueño adjuntó una captura de Inicio: la tarjeta de Mi ciclo aparece, y «Próximos cargos» aún muestra un recibo de gas fechado el 25/9 al mirar la app el 30/9. Comunica además que la nómina aparece en Sabadell normal antes de haberla cobrado y que el widget solo enseña el modo Balance; esto último amplía **INC-2909-01** más abajo. Son observaciones del móvil, no una confirmación de cómo llegaron los datos; la captura no se incorpora al repo público. No editar movimientos reales ni tomar el pago previsto por cobro efectivo.
-
-| ID / prioridad provisional | Síntoma y comprobación pendiente | Criterio de cierre |
+| ID | Qué falta y por qué | Depende de |
 |---|---|---|
-| **INC-3009-01 · P1 · gas ya pagado en Próximos cargos** · **CERRADA 15/10: 4.26.71/74** | El 30/9 sigue apareciendo como próximo un cargo de gas con fecha 25/9 que el dueño declara pagado. Distinguir fecha planificada, movimiento bancario confirmado y posible conciliación fallida; comprobar además que un cargo vencido sin prueba de pago no se etiquete como futuro ni se marque pagado por suposición. | Con un pago bancario que corresponde al fijo, «Próximos cargos» deja de ofrecerlo como pendiente; sin pago acreditado, el estado y la fecha se muestran de forma veraz. Reproducir con datos ficticios y DOM real. |
-| **INC-3009-02 · P1 · nómina Sabadell anticipada** · **CERRADA 15/10: hecha en 4.26.78** | El dueño informa de una nómina añadida en Sabadell normal antes de recibirla. Aclarar si es previsión, movimiento pendiente o apunte confirmado y qué magnitud alteró (cuenta, ingresos, Mi ciclo). Guardia revisada5c2146c3: BOOK o estado ausente, fecha válida no futura en Madrid y rechazo antes de deduplicación. Nómina78 candidata sobre UI77 finalca7734fd: cuatro fixtures DOM4/4 y contratos afectados verdes; CI exacta, publicación y prueba móvil pendientes. PR96/número76 antiguos retenidos. [Acta](briefs/inc-3009-nomina-anticipada.md). | Ninguna previsión o movimiento pendiente se suma como nómina cobrada ni cambia el saldo efectivo; solo la entrada bancaria confirmada se cuenta una vez, sin inventar fecha o importe. Reproducción sintética en UI y motor, sin consultar ni corregir datos bancarios reales. |
+| Pata de Sabadell de un traspaso propio (propuesta, 31/10/2026) | En Gastos e Inicio ya no sale (4.26.198), pero NO se reconoce como traspaso: `esTraspasoPropio` solo mira ENTRADAS (≤ −200 €) sin nombre; la salida de Sabadell lleva su nombre como comercio y `categoryOfBankTx` la deja en «Otros». Hoy no cuenta solo porque Sabadell no es banco del gasto diario; si lo fuera, esos 1.550 € contarían como gasto. Propuesta: (1) la buena, que `bank-sync` pase el IBAN de la contraparte (`creditor_account`/`debtor_account` de Enable Banking) y compararlo con los `bankIban` propios → `traspaso` en las dos patas; (2) puente con confirmación, emparejar la salida con la entrada ya marcada traspaso (mismo importe al céntimo, ±2 días, banco distinto, ambas suyas) y preguntar UNA vez en la ficha; nunca automático por nombre (puede ser un bizum a otra persona). Mientras tanto: cambiar la categoría a «Traspaso» en la ficha lleva la fila al bloque nuevo. Dinero: revisión antes de tocar `expenseBucket`. | Codex/servidor + revisión de dinero |
+| Aportación mensual a inversión (`monthlyInvest`, propuesta de análisis, 31/10/2026) | Casi todo existe: la cuenta diaria tiene `monthlyInvest`/`monthlyInvestTo` (sembrado a 50 €); `mapTransaction` marca como `inversion` un cargo del banco diario con ese importe al céntimo y `reconcileTR` resta los 50 del efectivo. **Mirar con sus datos antes de proponer nada:** si su TR tiene `monthlyInvest=50` y destino el FTSE; si TR es la cuenta `accDaily` (la regla mira `dailyEnt`, no `expenseBanks`); y por qué vía entran sus movimientos (OB sí; `tr` nativo/`macrodroid`/`wallet` no pasan por la regla). Si hace falta ampliar: detector recurrente (mismo bróker, mismo importe, día 1-5, ≥2 meses) con UNA confirmación que rellene `monthlyInvest`. Riesgos: doble resta de 50 € si la fila además contara en `expenseCountsCash` (pasar por el banco de pruebas de saldo `valueDesdeSaldo`), un gasto real de 50 € colado como inversión, importe del plan que cambia y deja de casar en silencio. | Datos reales del dueño + revisión de dinero |
+| Nómina de cada miembro (revisión R3, 26/10/2026) · **antes de producción** | El mes natural aparta la nómina de lo que devuelve margen (`claude/neto-sin-nomina`). Si la nómina de alguien NO cumple `esNomina` (≥200 €, no Bizum ni neutra, y «nómina/salario/sueldo/salary/payroll/haberes» en comercio, nota o concepto, o un ingreso periódico de Plan que case), cuenta como ingreso y su mes dice «quedan 1.500» con todo gastado: el «0 %» de INC-2909-02 otra vez. Comprobar en SOLO LECTURA, con los datos de la nube de cada cuenta de la familia, la nómina de los últimos meses; a quien no la cumpla, darle de alta el ingreso en Plan o un paso en el panel de beta. Lo mismo para la paga extra (R7: doble importe sin la palabra). | Coordinador + dueño |
+| Despliegue de `ingest` del mes sin nómina | `ingest/widget.ts` acepta los dos alcances (web anterior: bruto; web nueva: neto sin nómina), así que puede desplegarse antes o después de promocionar la web sin dejar el widget sin foto. Sin SQL ni secretos. | Servidor |
+| Cursor bancario partial/sealed + SEC-02 (13 intentos) | La PR315 (4.26.181) solo documenta y protege el contrato actual de `bank-sync`: 12 páginas buenas + un rechazo inicial de periodo. **No resuelve** que una ventana que no cabe en 12 páginas se acuse como «ahora» y deje movimientos sin volver a pedir. El prototipo de continuación por fechas sumaba bien, pero marcarlo partial/sealed retenía un BOOK viejo de 1251 céntimos frente a su corrección a 1252 y dejaba PDNG frente a BOOK con la misma referencia (la clave real banco/ref/signo suprime un cambio de céntimos). Falta un contrato de cobertura y reconciliación: conservar prefijos, corregir filas anteriores, clientes viejos, ACK perdido/replay, multicuenta, horizonte y el día indivisible que supera los límites sin fingir completitud. | Codex + servidor |
+| FIN-29 + FIN-30 (fundidos: misma lápida) | **Entra en la 4.26.191 (PR319, revisión de dinero GO); falta el veredicto del dueño en el móvil.** Renombrar ya no escribe la lápida global: alias `expenseRenameKey` con banco/cuenta/referencia, pendientes category/noCard (`expenseEditPending`) y espejo TS con fallback Gasto. Queda R4 (fila siguiente). | Codex + coordinador |
+| FIN-29/30 · R4 (revisión de dinero PR319, 28/10/2026) | Las lápidas GLOBALES de renombrados YA hechos con la versión anterior (`keyOfExpense(orig)`) siguen escondiendo la otra cuenta: la 191 deja de escribirlas pero `expenseIsTombstoned` (`00-core.js`) y `filasComoLaApp` (`presupuesto.ts`) aún las honran (Sabadell + CaixaBank 3,20 € cada uno, renombrado con la versión vieja y leído con la nueva: 640 esperados, 320 vistos). Hace falta migración (clave legacy cuya fila viva tiene `obName` y `merchant≠obName` = alias, no borrado) o asumirlo por escrito; sin migrar todavía. | Codex + coordinador |
+| Filas ya convertidas en ingreso por renombrar un negativo sin conexión (28/10/2026) | **La prevención entra en la 4.26.192 (PR320, revisión de dinero GO); falta reparar lo ya hecho.** Las filas que ya pasaron a `ingreso` por renombrar un traspaso, inversión, deudas o bizum sin conexión (en local y, desde la 191, también en la nube) no se reparan: hay una propuesta en texto en la PR 320. | Codex + coordinador |
+| INC-2709-09 / UX-01 (fundidos el 15/10) · lag sostenido | Hechas la vuelta a primer plano (146), Gastos r3 (175) y el gesto entre pestañas (149). **Queda:** la tarjeta de Inicio pintada a medias (hace falta adb + CDP en su móvil buscando «Tile memory limits exceeded») y los restos de Gastos v5 medidos a CPU ×6: añadir filas en tramos pequeños en vez de +`PAGE_SIZE*5` de golpe (frames >32 ms, sigue así en `04-tab-gastos.js`), el frame de ~60 ms al cambiar de sección, el recálculo de ~2.660 nodos de Plan al deslizar y virtualizar o recortar Movimientos. Medir A/B como dice AGENTS §7 bis. | Claude + dueño (su móvil) |
+| TR-LOGIN · Conectar Trade Republic (400) | La 4.26.196 (APK 63) cae al login v2 de TR (aprobación en su app o código del autenticador) cuando v1 responde 400/404/405/410/426. La causa del 400 es HIPÓTESIS (retirada de v1 por cuenta, según pytr) hasta un login real: si falla, la fila `tr_sync` de app_events trae `api`, `http` y `trCode`. Riesgo sin verificar: que v2 deje las cookies en un path que el snapshot no lea (conecta bien y el primer sync en frío pide reconectar). | dueño (probar la APK 63) |
+| SES-01 + PRO-06 (fundidos: misma fiabilidad de brókers) | Las sesiones de Trade Republic y MyInvestor duran horas (pedido 15/10). Hay telemetría (139), guardas de keepalive (OPS-07/OPS-08 CAS) y contador (136), pero nada acredita que la sesión real dure. Medida 16/10: el refresh de 30 min deja de renovarse. | servidor |
+| SEC-02 F2 fase 2 · gemelas nativas | El cliente ya lee la marca (179); el escritor de `ingest` sigue detrás de `INGEST_NATIVE_TWINS` **apagado**. Encenderlo con un móvil sin ese lector funde gemelas y cuenta doble al sincronizar Trade Republic (9,95 → 19,90), y el doble sube a la nube y al widget. Condición: todos los móviles de la familia en 4.26.179 o posterior tras promocionar, confirmado por el dueño. Aparte, el debounce de 180 s de la APK puede tragarse la segunda compra igual. [Informe](briefs/sec02-edge-limits-replay-audit.md) | dueño + servidor (+ APK para el debounce) |
+| OPS-01 (+ validación de FIN-06) | Repo frente a servidor vivo: matriz función/migración/versión activa con pruebas de contrato. Sigue sin acreditarse con un pago real la parte Wallet-divisas de `ingest` (FIN-06, cliente cerrado en 4.26.51). | servidor + dueño (un pago real) |
+| Plan › Recibos t2 · R1 (revisión de dinero, 28/10/2026) | Pausar «Solo este mes» un recibo vencido sin cargo, en una cuenta MANUAL cuyo saldo se tecleó ANTES del día del cargo, deja el saldo mostrado por debajo en el importe del recibo (mismo criterio que los vínculos de pago, `conSaldoMostrado`). Arreglarlo exige guardar CUÁNDO se tecleó el saldo frente al día del cargo, dato que hoy no se guarda: no es un cambio pequeño ni seguro. | Dato nuevo en el saldo manual |
 
-La siguiente tarea autónoma tratará **un solo** fallo financiero y volverá a cotejar aprobaciones beta antes de escogerlo. Mantener el widget como objetivo nativo separado y la nómina coordinada con el diagnóstico de Claude.
+### P2 · mejoras y riesgos acotados
 
-## Dos reportes de producción · 29 de septiembre de 2026
-
-Fuente: relato directo del dueño sobre su widget y la cuenta de su pareja en producción. Son
-observaciones, no causas reproducidas; faltan versión web/APK, texto exacto del aviso y un caso
-sanitizado. No consultar ni copiar movimientos familiares al repo público. Registrar y ordenar
-estos seguimientos sin implementar ni cambiar datos reales en esta tanda.
-
-| ID / prioridad provisional | Síntoma y comprobación pendiente | Criterio de cierre |
+| ID | Qué falta y por qué | Depende de |
 |---|---|---|
-| **INC-2909-01 · P1 · widget y periodo/modo** · **15/10: lo que queda va con la PR 225** | Al activar «Mi ciclo», el widget sigue enseñando las cifras anteriores. El 30/9 el dueño precisó que solo ve el modo Balance, mientras Inicio sí muestra Mi ciclo. El cliente actual envía al widget el mes natural aunque Inicio y Gastos usen el ciclo; comprobar además la elección «Gastos e ingresos» frente a «Balance» y cada vía que actualiza el widget (app abierta, reentrada y app cerrada). Relacionado con FIN-05, pero es una aceptación distinta. | El widget indica qué periodo y magnitud enseña y coincide con la selección activa y las cifras de la app para ese mismo periodo, también al cambiar de modo o de mes. Verificar Android real y la ruta nativa/ingest antes de darlo por cerrado; si el contrato exige APK o servidor nuevos, tratarlos como entregas propias. |
-| **INC-2909-02 · P1 · 0 % al salir de Mi ciclo** | En la cuenta de la pareja, Mi ciclo parece correcto; al desactivarlo, el anillo/barra de Inicio cae a **0 %** pese a haber compras del mes. Es un caso nuevo tras INC-2809-01: revisar periodo natural, modo «Gastos e ingresos»/«Balance», presupuesto, filtros/bancos y gasto bruto frente a neto; no deducir la causa del relato. | Con gastos computables del mes, cambiar ciclo sí/no no presenta 0 % por error de estado o por compensación de ingresos. Si se agotó el presupuesto, comunicar el límite/exceso de forma coherente; si falta un dato necesario, mostrarlo como desconocido y explicarlo. Reproducción con dos perfiles sintéticos y DOM real, sin tocar la cuenta familiar. |
-| **INC-2909-03 · P1 · retirada CaixaBank sin salida clara** · **CERRADA 15/10: hecha en 4.26.79 (`canRecognizeWithdrawal`/`applyRecognizedWithdrawal`; `withdrawalConfirmedAt` en 4.26.134)** | Una retirada de efectivo importada de CaixaBank apareció como gasto y, al intentar corregirla, la pareja recibió un aviso relativo al banco y no logró cambiar su clasificación. La app prevé que un cajero sea traspaso neutro y ofrece pasar el efectivo a la cuenta Efectivo, pero hay que identificar la fila, el control pulsado y el texto exacto del aviso: no está demostrado que el selector de categoría fuera el que se bloqueó. | Poder reconocer o corregir explícitamente la retirada como movimiento neutro y, si procede, reflejar el efectivo una sola vez, conservando importe, origen bancario e identidad. Distinguir en la UI qué campo fija el banco y cuál puede corregir la persona. Probar importación, edición, sincronización posterior y dos dispositivos; sin recategorizar el histórico en masa. |
-| **UX-2909-04 · P1 · datos sin sincronizar y duplicado manual** | La pareja vio un resultado negativo sin saber qué hacer. Había apuntado la nómina manualmente; al sincronizar los bancos al día siguiente apareció el ingreso bancario y también gastos que faltaban antes de la sincronización. Borrar el apunte manual resolvió ese caso, pero la experiencia no explicó la antigüedad de los datos ni la posible duplicidad. La sincronización bancaria es deliberadamente a demanda. | Hacer visible cuándo se actualizó cada banco y cuándo una cifra depende de datos pendientes; dar una acción de sincronizar y una explicación contextual del negativo. Al llegar un ingreso bancario que pueda coincidir con uno manual, ofrecer revisión sin sumar dos veces ni borrar por parecido automáticamente. Validar el recorrido con una persona que no conozca la app, con datos sintéticos y sin introducir sincronización automática. |
+| Mes cerrado con el límite de HOY (INC-2909-02) | Desde `claude/neto-sin-nomina` (26/10/2026) la tarjeta de mes cerrado, la imagen del informe y las rachas comparan lo mismo que el mes en curso (gasto − ingresos sin nómina, `limiteDeStats`). Queda: la tarjeta (`03-tab-dash.js:398-399`) y la imagen (`02-ui-shared.js`) usan el límite ACTUAL en un mes pasado; las rachas ya usan el de cada mes (`budgetByMonth`). | Decisión de producto |
+| Traspasos propios con nombre, como ingreso (revisión R4, 26/10/2026) | Desde que el mes natural resta los ingresos (salvo nómina), una recarga a TR desde otra cuenta TUYA que el banco manda con tu nombre como comercio queda como «ingreso» y devuelve margen (con tope en el límite). `esTraspasoPropio` solo reconoce filas OB sin nombre que entran en una cuenta con traspaso modelado. No hay criterio seguro para ampliarlo: el cliente no recibe el IBAN de la contraparte (`mapTransaction` solo pasa nombres y concepto), no se guarda el titular de las cuentas, y «traspaso»/«transferencia» en el concepto también lo escribe un amigo. Arreglo propuesto: que `bank-sync` pase el IBAN de la contraparte y se compare con los `bankIban` de sus cuentas conectadas. **(verificar)** con sus datos reales si ocurre. | Codex/Claude + servidor |
+| FIN-03 + FIN-18 (fundidos; FIN-09 ya cerrado por FIN-19) | Identidad de gastos de extremo a extremo (UUID/origen/ACK, carreras, índice `expenses_dedup_idx` sin banco) y cerco atómico de servidor con esquema separado. **Aparcado**: FIN-19 (160) cubrió el caso visible de dos bancos el mismo día en el cliente. No migrar datos familiares ni tocar el índice sin decisión. [Arquitectura](briefs/arquitectura-identidad-gastos.md) | dueño + servidor |
+| FIN-08 + OPS-02 + INC-0310-01 (fundidos: reparar el pasado) | Daños históricos previos a la contención de 4.18.6, recuperación compartida desde copias y reservas huérfanas de reglas de Metas borradas con la versión antigua. Las tres piden inventario privado por fila, copia restaurable y propuesta revisable; nada automático al arrancar. Dependen de FIN-03. | dueño + servidor |
+| `reconcileGemelosAutomaticos` recalcula todo en cada importación (rendimiento, 31/10/2026) | Recalcula los 20.000 gastos en cada importación porque el array de partida nunca está en `gemeloCache`. Reutilizar el índice y recalcular solo los grupos de lo añadido, con comprobación byte a byte contra el cálculo completo y los tests de dinero de PR319. | Codex |
+| R6-2 (revisión de dinero Recibos t3, 28/10/2026) | Guardar en cada `bankTx` la hora de la sincronización que lo trajo, para que un BOOK llegado en la misma lectura del saldo cuente como ya incluido en él. Hoy `reciboEnElSaldo` solo acepta la lectura del DÍA SIGUIENTE al pago o posterior (la hora de `obBalAt` es del servidor, la de `lastBankSync` del móvil y `bankTx` no sabe en qué sincronización entró), así que lo cobrado hoy sale en «Pagado, aún sin restar del saldo» hasta una lectura de otro día, que con Open Banking a demanda puede tardar días. | Codex |
+| Traspaso entre cuentas que no suma en el destino (Recibos t3, 28/10/2026) | Un traspaso entre cuentas no suma en la cuenta de destino: regla anterior a la tanda 3 (`11-app-main.js`), que no se tocó. Revisar si debe sumar y qué cambia en «¿Te llega?» del banco que recibe. | Codex |
+| FIN-28 | Un cargo sin `extId` (Wallet/MacroDroid) se puede enlazar a mano a otro recibo del mismo importe mientras el BOOK paga el suyo: sin referencia no hay con qué comparar. Baja. | Codex |
+| SEC-02 (sesión huérfana) + SEC-04 (fundidos: carreras del callback OAuth) | El callback tardío que pierde la carrera (F1, 180) deja su sesión de Enable Banking huérfana en el proveedor, sin revocar; y el callback frente a una autorización nueva sigue en estudio con `connection_version`. [Alcance](briefs/sec03-callback-atomic-state.md) | servidor + dueño (si se revoca) |
+| SEC-03 · servidor | El cliente de privacidad de logs está cerrado (4.26.57); falta la privacidad Edge/gateway por función. La retirada de cifras viejas de la historia pública del repo (commits `6fcc3e0e`/`05a8fb4f`) exige reescribir historia: **solo con decisión expresa**, nunca force-push automático. | servidor + dueño |
+| UX-03 + UX-09 + UX-10 (fundidos: el splash; UX-03 absorbió INC-2709-01) | El splash nativo sale con el verde por defecto y luego cambia al tema; debería salir con el tema desde el primer frame (guardarlo en el lado nativo). La «respiración» del logo si tarda (UX-10) ya existe en el splash web desde la 4.26.117 (verificar si basta o la quería en el nativo). Rama aparcada `wip/splash-icono-nativo`. | APK |
+| UX-2909-04 · frescura por banco (verificar) | La revisión de ingresos manuales coincidentes está hecha (PR 251) y la hora de la última lectura sale al pie de Filtros (169). El diseño de «cuándo se actualizó cada banco» entró solo como documento (PR310, 177); no consta implementado. | Codex + dueño (diseño) |
+| UX-17 · restos de Gastos v5 | Botón de filtros con icono de deslizadores y globito (SPEC §4.1; hoy sigue el chip «🎛️ N», que muchas specs usan como selector). Opcionales si él lo pide: chip del límite más corto, «Pasar a Recibos» marcando los cargos ya hechos, «deshacer» en el aviso, toque sobre la hora de Filtros para releer. | Claude (+ dueño para los opcionales) |
+| PRO-09 (round-up) | Round-up de Trade Republic desde «Round up Invertido»: diseño pendiente de emparejarlo con Open Banking. Mismo ID que Pregúntame por error histórico; es otra cosa. | Codex + dueño (diseño) |
+| PRO-01 (verificar) | Meta financiada fuera del gasto corriente ([plan](briefs/plan-tanda-5-meta-gasto-mes.md)). La «aportación a meta» de la 172 saca lo aportado de lo que cuenta; falta ver si cubre también gastar desde la meta sin tocar el presupuesto. | dueño (alcance) |
+| PRO-03 (verificar) | Los recordatorios existen (víspera y 2-3 días antes); lo pedido y no hecho es que el aviso diga si el saldo previsto llega. | Codex |
+| INC-2909-02 (verificar) | 0 % al salir de Mi ciclo en la cuenta de su pareja. Hubo arreglo (4.26.73) y contraste posterior, pero nadie confirmó que el síntoma humano se fue. | dueño (que lo mire su pareja) |
+| OPS-06 + OPS-03 (fundidos: antes de la Play Store) | La «ronda de tortura» que pidió el 12/9 (rendimiento sostenido, aporrear botones, sin red, seguridad: `localStorage`, `app_events`, permisos, RLS, Edge sin autenticar; ⚠ el `applicationId` no se toca) y la beta con varios probadores sin hacerlos administradores. Va justo antes de DEC-01. | Claude/Codex + servidor |
+| OPS-05 | Higiene de PR, ramas y worktrees. Borrar ramas o worktrees siempre con permiso: puede haber trabajo sin subir. | dueño (permiso) |
 
-Orden provisional: primero la cifra engañosa del 0 % y la retirada que cuenta como gasto;
-después coherencia del widget y claridad de sincronización/duplicados. Reordenar por evidencia
-de reproducción e impacto real, sin dar por resuelto ningún punto por la corrección de otro.
+### P3 · ideas y decisiones sin prisa
 
-## INC-2809-01 · promoción selectiva publicada · 29 de septiembre de 2026
-
-El dueño aprobó expresamente la corrección de Inicio/Mi ciclo de la beta 4.26.67.1 (`383c0120`, [Action 36481177084](https://github.com/JuanjoAvila/Aely/actions/runs/36481177084) SUCCESS). La promoción web 4.26.66 se reconstruyó desde main 4.26.65 e incluyó solo `inc-2809-01-inicio-ciclo`; PR #61, CI completa, Claude GO, Pages y el ZIP servido confirman la publicación. [Brief y evidencia](briefs/inc-2809-01-inicio-ciclo.md). Las cinco tandas ligadas a APK51 conservan su entrega propia y el panel de beta. INC-2809-02, la explicación persistente de Mi ciclo, es el siguiente objetivo independiente.
-
-## Promoción selectiva aprobada · 28 de septiembre de 2026
-
-El dueño aprobó expresamente las tandas pendientes tras la prueba de pago y el ajuste de Inicio. La web 4.26.65 se publicó y verificó desde `main` con el alcance selectivo de Inicio/Gastos, nómina adelantada y «Mi ciclo»; conserva APK48 y el workflow manual de Supabase. Las cinco tandas que requieren APK51 o un receptor nativo permanecen en beta hasta una entrega propia. El alcance, las pruebas, las fuentes y los límites están en [el acta de promoción](briefs/promocion-aprobadas-2026-09-28.md). Cuotas de deuda ya se publicó como 4.26.59. El siguiente objetivo independiente es INC-2809-01, comunicado durante esta publicación; INC-2709-06, cargos CaixaBank ausentes, sigue abierto y prioritario.
-
-## Nueva incidencia comunicada · 28 de septiembre de 2026
-
-- **INC-2809-01 · cerrado en web 4.26.66.** Inicio muestra el mismo neto y margen que Gastos y reemplaza el falso «Tu primer mes empieza hoy» por «Mes en curso». Beta 4.26.67.1 fue aprobada expresamente; producción web 4.26.66 está publicada y cotejada. [Evidencia](briefs/inc-2809-01-inicio-ciclo.md). No se altera mes natural, widget ni APK.
-- **INC-2809-02 · P2 · aviso explicativo de Mi ciclo · CERRADA 15/10: hecha en 4.26.68.** La tarjeta explicativa debajo del selector de periodo en Gastos ocupa gran parte de la pantalla en cada visita. Permitir ocultarla después de leerla y recuperarla mediante una ayuda visible; conservar la preferencia al volver a entrar sin ocultar la selección activa ni los datos necesarios para entender el periodo. Probar apertura, cierre, reapertura y persistencia con DOM real y en los tres idiomas. Es una tarea de interfaz separada de la corrección financiera INC-2809-01.
-
-Inventario original actualizado el **16 de septiembre de 2026** a petición del dueño: dejar trabajo
-concreto para Claude y Cursor durante la tarde/noche. La reconciliación vigente está debajo.
-**El backlog completo NO está terminado.** El panel de
-beta solo enumera entregas para probar; no enumera todo lo que falta construir o verificar.
-
-Este es el índice operativo. Los briefs conservan el detalle y los espejos de `docs/memoria/`
-conservan historia; sus antiguos «todo cerrado» o «ninguna empezada» no son el estado actual.
-Actualizar esta tabla al entregar: commit, pruebas, versión publicada y siguiente paso.
-Una tarea implementada, una verificada por tests y una aprobada en móvil son estados distintos.
-
-Desde el 28/9, [el flujo continuo](PROMPT-FLUJO-CONTINUO.md) abre automáticamente un chat nuevo
-al cerrar cada objetivo. El chat entrante comprueba primero aprobaciones explícitas de beta para
-promover solo esas tandas; si no hay ninguna publicable, toma un objetivo pendiente de este índice.
-
-
-## Cierre del día · 27 de septiembre de 2026
-
-**Este corte prevalece sobre las fotos históricas del 9/9 y 25/9.** Se revisan documentos, PR y
-artefactos públicos; no se inspeccionan cuentas familiares, filas de dinero ni logs reales. Una
-incidencia comunicada hoy queda abierta aunque la funcionalidad tenga un arreglo antiguo publicado.
-No se implementa ninguna de las incidencias nuevas en este cierre: el encargo es registrarlas,
-priorizarlas y dejar el relevo. No se declara una sesión activa por tener una rama o PR abierta.
-
-### En curso y pendiente de aprobación real
-
-- **SEC-03 cliente:** aprobado expresamente en móvil tras beta 4.26.57.1/f2354a47. Entrega exclusiva
-  de producción en [PR49](https://github.com/JuanjoAvila/Aely/pull/49), SHA 1af182b3, Claude GO exacto;
-  [CI final36351403967](https://github.com/JuanjoAvila/Aely/actions/runs/36351403967) SUCCESS.
-  Merge exclusivo ece3a2d9 con árbol idéntico al SHA revisado; [manifiesto estable](https://juanjoavila.github.io/Aely/version.json)
-  y [Pages36352234935](https://github.com/JuanjoAvila/Aely/actions/runs/36352234935) muestran la entrega activa.
-  **Producción4.26.57 verificada por HTTP el27/9,21:47 UTC**, CI main36352234924 y Pages SUCCESS,
-  SW4.26.57-2026-09-27-ece3a2d; ZIP/HTML/SW/apk.json idénticos, APK48 intacta.
-  No desplegar Edge/SQL/RLS/APK. El servidor sigue pendiente por función.
-- **Continuidad beta:** 4.26.58/2a0e2d3a conserva runtime financiero y APK51 idénticos a f2354a47;
-  mueve íntegros cinco guiones pendientes para que producción57 no los oculte. Claude GO exacto;
-  [publicación36351420037](https://github.com/JuanjoAvila/Aely/actions/runs/36351420037) SUCCESS.
-  Beta **4.26.58.1 publicada**, HTTP/ZIP/sello comprobados: huella3d91ae84731dfffa, SW2a0e2d3;
-  index normalizado y apk.json idénticos a beta57.1/f235. Cinco tandas financieras, sin pedir SEC-03 de nuevo.
-  **FIN-05, selector del banco y TR siguen sin aprobación de pago.** No mezclar beta a main.
-- **OPS-01 A / Wallet-divisas:** activación técnica terminada: ingest49 ACTIVE desde1397fe28,
-  [despliegue36319915174](https://github.com/JuanjoAvila/Aely/actions/runs/36319915174) SUCCESS, siete módulos
-  activos cotejados y pruebas offline del JS descargado. Se conserva FIN-05. **Pago real de FIN-06/Wallet
-  pendiente**, no cerrado por el deploy. Evidencia en rama codex/ops01-wallet, brief ops01-wallet-2026-09-27.
-- **OPS-01 B:** [PR48](https://github.com/JuanjoAvila/Aely/pull/48) borrador; despliegue específico ya autorizado pero **bloqueado por HTTP403**,
-  al token le falta edge_functions_write. categorize16 conservó el paquete, ninguna función cambió;
-  falta resolver el permiso y repetir preflight, no una nueva autorización. FIN-04 [PR43](https://github.com/JuanjoAvila/Aely/pull/43) borrador y widget
-  [PR44](https://github.com/JuanjoAvila/Aely/pull/44) abierta: existencia de PR no equivale a trabajo activo
-  ni a funciones faltantes en la beta actual. Se conserva su contenido; no se fusionan por antigüedad.
-
-### Estado completo de los objetivos existentes
-
-La tabla resume todos los IDs del inventario anterior; OPS-06 tenía dos filas y aquí se consolida.
-Los nuevos casos INC-2709 se vinculan a esos objetivos y conservan su propia aceptación para no
-perderlos ni duplicar encargos. «Publicado» no certifica todos los criterios del objetivo amplio.
-
-| Objetivo | Estado al cierre / qué queda |
-|---|---|
-| FIN-01, FIN-02 | Correcciones publicadas según reconciliación25/9; cierre completo por cuenta/importación todavía sin acreditar. Mantener aceptación financiera y prueba real, no rehacer fixes históricos por defecto. |
-| FIN-03 (incluye FIN-09 como caso concreto) | Identidad de extremo a extremo pendiente: UUID/origen/ACK, carreras e índice real. Sin migración ni reparación automática. |
-| FIN-04 | Parcial; PR43 borrador. Verificar ACK/filas afectadas, edición/decisiones en dos clientes, sin buscar gemelos por parecido. |
-| FIN-05 | Implementado en beta/Android51 con guardianes; **pago con app cerrada y reentrada pendiente**, selector independiente pendiente. |
-| FIN-06 | Cliente aprobado/publicado4.26.51; Wallet-divisas de ingest activado y comprobado en revisión49 por OPS-01 A. **Validación por pago real sigue pendiente** según cierre de A; no se da por cerrado el objetivo completo. |
-| FIN-07 | Cerrado y publicado4.26.52: paginación cloud. No demuestra que el proveedor haya enviado todos los cargos CaixaBank. |
-| FIN-08 | Investigación/contrato de reparación histórica abiertos. El trabajo TR anterior no cerró este objetivo; sin reparar datos reales. |
-| OPS-01 | Auditoría y control manual C terminados/integrados; A ingest49 activado y comprobado, validación financiera móvil abierta. B categorize autorizado pero bloqueado403 por permiso del token, PR48 borrador. La igualdad completa repo/servidor sigue requiriendo pruebas por función. |
-| OPS-02 | Visor de copias cerrado/aprobado/publicado4.26.56. **Recuperación compartida financiera abierta**, dependiente FIN-03/08 y SQL/RLS/ACK. |
-| SEC-01 (15/10: ver su fila) | Inventario histórico parcial; aceptación por endpoint, cuerpos inválidos, tamaños/auth y evidencia servidor pendientes. Los recuentos9/9 no son un inventario vivo nuevo. |
-| SEC-02 (15/10: ver su fila) | Límites/replay pendientes de auditoría y contratos por coste/usuario, sin descartar pagos legítimos. |
-| SEC-03 | **Cliente cerrado/aprobado/publicado4.26.57**, main/ece3a2d9, CI/Pages y HTTP/ZIP/SW verificados; privacidad Edge/gateway y puesta en servicio por función pendientes. **Historia pública:** Claude comunica cifras financieras antiguas en commits6fcc3e0e/05a8fb4f, contenido vivo limpio; no se transcriben ni se reauditan datos aquí. Retirada mediante reescritura de historial requiere decisión expresa, no force-push automático. |
-| OPS-03 | Beta con varios probadores y permisos/veredictos independientes pendiente. |
-| OPS-04 | Métricas agregadas pendientes de confirmar; instrumentación ya existe. |
-| OPS-05 | Higiene de ramas/PR/restos pendiente; no borrar sin autorización. **memoria-espejo falla localmente por desfase preexistente**: notas/espejo aún sin integrar, señalado también por Claude. Resolver en objetivo propio sin incorporar cambios ajenos para ocultar el fallo. Foto PR actual arriba. |
-| OPS-06 | Validación intensiva antes de Play Store pendiente: rendimiento sostenido, botones/gestos/carreras/offline, seguridad y dispositivos reales. El lag actual requiere caso propio antes de esa ronda final. |
-| BRAND-01 | Identidad publicada parcialmente; aceptación completa web/nativa y nombre final verificable pendiente. No iniciar renombre. |
-| UX-01 → ver INC-2709-09 (fusionadas 15/10) | **Reabierto por feedback actual:** lag sostenido y gestos; INC-2709-03/09. Medir escenario y degradación en móvil. |
-| UX-02 | Diseño/perfil con aceptación amplia pendiente; casillas vacías gigantes INC-2709-10. |
-| UX-03 (absorbe INC-2709-01 el 15/10) | Síntoma nativo de arranque pendiente; distinguirlo de esqueletos Inicio/red lenta INC-2709-01. |
-| UX-04, UX-05 | Cerrados según reconciliación25/9; no reconstruir mensaje/acceso de bancos ni doble filtro sin caso nuevo. |
-| UX-06 | Pulido publicado; **regresiones actuales abiertas** INC-2709-01/07/08/10/11/13 y recortes de las fotos. |
-| UX-07 | Temas publicados; **Cyberpunk reabierto** por línea que atraviesa el botón +, INC-2709-12. |
-| PRO-01 | Meta financiada fuera del gasto corriente pendiente de alcance/aceptación. |
-| PRO-02 · **CERRADA 15/10** (sustituida por 125/126/134 aprobadas; INC-2709-05 superada) | Proyección existente; coherencia Inicio/Gastos/ciclo reabierta por INC-2709-05. |
-| PRO-03 | Recordatorios existentes; falta acreditar aviso con insuficiencia proyectada, no crear otro sistema. |
-| PRO-04 | Exportación informe PDF pendiente; importar PDF no equivale a exportarlo. |
-| PRO-05 | Push de nueva versión con app cerrada pendiente; watcher/notificación local no lo demuestra. |
-| PRO-06 | MyInvestor y fiabilidad de inversiones sincronizadas pendientes; no confundir con cambios UX de cartera INC-2709-08. |
-| PRO-07 | Pensiones/ahorro pendiente de alcance y soporte de proveedor. |
-| PRO-08 | Hogar implementado parcialmente; validación/diseño con dos usuarios pendiente. |
-| PRO-09 | Ayuda local publicada/aprobada según rondas25/9; Edge remota apagada y pendiente de coste/consentimiento. Distancia del botón Preguntar reabierta INC-2709-14. |
-| TEC-01 | Refactor financiero/adaptadores aplazado. |
-| TEC-02 | Limpieza i18n aparcada deliberadamente; preservar usos dinámicos. |
-| DEC-01 | Marca/monetización/Play Store pendientes de decisión; Play siempre después de correcciones y validación completa. |
-| DEC-02 | Ideas opcionales sin compromiso de implementación. |
-| REC-GUARDADO-01 y Atrás alta Recibos | Cerrados/publicados4.26.48 y4.26.47. La ola ausente en otras puertas de Plan es una regresión nueva, no invalida automáticamente la aceptación del alta de Recibos. |
-
-### Las 14 incidencias comunicadas hoy
-
-Fuente: relato directo del dueño del27/9 y tres capturas privadas adjuntas. No se copian capturas,
-identidades, empleador, importes familiares ni extractos al repo público. Evidencia visual significa
-que se ve el síntoma; **no que se haya reproducido su causa ni corregido**. Las prioridades son de
-triaje, no un orden de implementación autorizado.
-
-| Nº / ID | Prioridad y relación | Caso abierto y aceptación necesaria |
+| ID | Qué es | Depende de |
 |---|---|---|
-| 1 · INC-2709-01 → ver UX-03 (arranque/splash; fusionadas 15/10) | P1 · UX-01/03/06 | Con poca conexión la app se ralentiza y reaparecen dos barras grises al inicio de Inicio que tardan en desaparecer. Regresión de arreglo anterior, causa pendiente. Arranque/frente y uso con red lenta/sin red deben mostrar datos locales útiles sin bloqueo ni esqueletos persistentes. Medir tiempo/frames en móvil y CPU×6. |
-| 2 · INC-2709-02 | **P1 · beta aprobada, promoción selectiva en preparación** · Deudas/UX-06 | [Confirmación y archivo](briefs/inc-2709-02-prod.md) aprobados por el dueño el 29/9. Publicar solo esta tanda desde main, conservar `debtId` y las cuotas antiguas, verificar Pages y retirar únicamente su guion de «Pruebas». |
-| 3 · INC-2709-03 (entrada principal; absorbe UX-08 el 15/10) | P1 · UX-01 | En Plan→Gestionar y al entrar en una categoría falta la ola nativa Android. Auditar cada puerta, distinguir alta Recibos ya aprobada; APK/dispositivo real, seguir dedo, cancelación, volver un nivel sin perder campos ni cerrar de más. |
-| 4 · INC-2709-04 · **CERRADA 15/10: 4.26.59** | **P0 · crash/finanzas** | Abrir categoría «Cuotas de deuda» crashea siempre según el dueño. Reproducción roja de ruta real, stack sanitizado/código/versión y fixture mínimo; E2E DOM de abrir/cerrar/importes/histórico sin crash. No inferir causa desde el relato. |
-| 5 · INC-2709-05 · **CERRADA 15/10: superada** por INC-2809-01 (4.26.66), 4.26.73, nómina 4.26.61/62/78, inicio-solo-actual (aprobada 10/10), solape (11/10) y tarjeta-ciclo-limpia (126); los botones de suscripciones recortados pasan a INC-2709-15 | **P0 · FIN/PRO-02/UX-06** | Capturas Inicio/Gastos/ciclo de otro usuario muestran conceptos y cifras incompatibles: Inicio llama gastado a la cifra que Gastos etiqueta balance, porcentaje0 y mensaje de primer mes con actividad visible; nómina prevista aún futura mientras ciclo reconoce cobro bancario. Correlacionar periodo/cuenta/calendario/ciclo, sin asumir que falte la fila de ingreso. Reproducir es/en/ca con datos sintéticos, una base/ventana coherente y nómina real conciliada una sola vez. Además se observan botones de suscripciones recortados; clasificación de compras recurrentes como suscripción es un indicio por comprobar, no fallo financiero demostrado. |
-| 6 · INC-2709-06 | **P0 · FIN-03/07/OPS-01** | Cargos CaixaBank de otro usuario ausentes aun tras sincronizar a demanda. **Reabre el historial Caixa con un caso actual**, separado del Sabadell confirmado25/9 y de paginación cloud FIN-07 cerrada. Trazar proveedor→Edge→almacenamiento→pull→filtros privados, identidad y páginas, sin importar/reparar/borrar ni sincronizar automáticamente. Cierre con todos los cargos de referencia una vez en la vista correcta y correspondencia activa Edge probada. |
-| 7 · INC-2709-07 · **CERRADA 15/10: aprobada en 111 y 113** | P2 · UX-06 | Bienes parece bloque inicial: no permite añadir/quitar/tocar y el editor resulta insuficiente. Auditar entradas y acciones actuales, navegación y edición real; alta/edición/archivo o borrado según contrato explícito, sin modificar cartera real para probar. E2E de lista/acciones y móvil. |
-| 8 · INC-2709-08 | P2 · UX-06/PRO-06 | Cartera sigue mostrando edición manual y explicación larga: edición debe vivir en «Ver todas tus inversiones». Ordenar bloques con pulsación mantenida como cuentas; al pulsar, desplegar inversiones escalonadas y fluidas. Auditar puertas antes de retirar UI, persistir orden y accesibilidad/reducir movimiento; prueba de DOM y A/B de frames en móvil. |
-| 9 · INC-2709-09 (entrada principal del lag; absorbe UX-01 el 15/10) | P1 · UX-01/OPS-06 | Tras usar un rato reaparece lag muy fuerte. **Regresión actual, no cerrada por benchmarks cortos anteriores.** Guion prolongado real con scroll/cambio de pestañas/hojas, frames>32ms y pendiente de heap/listeners/timers/nodos; CPU×6 y A/B contra base. Acreditar mejora sin aumentar trabajo ni escrituras del histórico. |
-| 10 · INC-2709-10 · **CERRADA 15/10: 4.26.77** | P2 · UX-02/06 | Casillas vacías gigantes en Ajustes del perfil. Capturar qué campos/ruta/tamaño de letra; estado vacío compacto y útil, sin ocultar opciones ni valores. DOM en idiomas, móvil, teclado y letra grande. |
-| 11 · INC-2709-11 | P2 · UX-06 | Anillo de porcentaje de Inicio se recorta como cuadrado, aunque sutil. Captura1 aporta contorno a revisar; fixture0/parcial/completo, escalas/texto grande y temas. Ningún clip rectangular del círculo. |
-| 12 · INC-2709-12 · **CERRADA 15/10: 4.26.77** | P2 · UX-07 | Línea Cyberpunk atraviesa el botón +. Visible en capturas. Conservar identidad del tema sin cruzar el FAB, en todas las pestañas, safe area y tamaños. |
-| 13 · INC-2709-13 · **CERRADA 15/10: 4.26.98 y 4.26.107** | P2 · UX-01/06 | Durante la ocultación de la barra/botón + el círculo se recorta y el corte se nota. Reproducir scroll con inercia Android, capturas intermedias/frame a frame, cancelación y reaparición; contorno completo y animación fluida también con movimiento reducido. Una imagen fija no prueba la animación. |
-| 14 · INC-2709-14 · **CERRADA 15/10: 4.26.77** | P2 · PRO-09/UX-06 | En Pregúntame el botón Preguntar queda demasiado separado del borde inferior. Verificar Android con/sin teclado, safe area y tamaño de letra; espacio proporcionado y CTA alcanzable, sin tapar contenido ni enviar preguntas reales como test. |
-| 15 · INC-2709-15 | P2 · UX-06 · **NUEVA 15/10, sale de INC-2709-05** | Botones de suscripciones recortados (visto en una captura del 27/9). Comprobar en móvil si sigue pasando; si no, cerrar. |
+| Widget: magnitud «uso» en el mes (revisión R5, 26/10/2026) · próxima APK | Desde el mes sin nómina el widget v2 manda en `spent` lo comparado con el límite (gasto − ingresos sin nómina), porque el nativo pinta «quedan» como límite − `spent`. Pero el título sigue «ESTE MES · GASTO» (`WidgetPeriod.labels`; `MiCarteraWidget.java:209` solo acepta `gasto` en el mes) y puede enseñar 1.436 € con 1.922 gastados, o «0 €» si entró más de lo gastado. Propuesta: magnitud nueva `uso` con «ESTE MES · USADO DEL LÍMITE» / «THIS MONTH · LIMIT USED» / «AQUEST MES · ÚS DEL LÍMIT»; la app la manda solo si el nativo declara soportarla (contrato), y si no sigue con `gasto`. Alternativa: «te quedan» en grande y el gasto bruto en la línea pequeña. | APK |
+| FIN-13 | Editar importe o día del aviso de Trade Republic separa la pareja aviso/movimiento (a propósito desde 4.26.130). ¿Seguir así o conservar el vínculo? | dueño |
+| FIN-3009-04 | Reservar las cuotas obligatorias de deudas del mes y descontarlas del disponible, como las metas. Evolutivo sin diseño. | dueño (diseño) |
+| PRO-20 | Colchón / fondo de emergencia: decisiones suyas del 18/10 tomadas (opt-in por cuenta/meta/inversión, recibos obligatorios + presupuesto de vida, «aguantas N meses», vive en Plan); falta solo el diseño visual con su OK. | dueño (diseño) |
+| PRO-21 | Categorías con subcategorías (Coche → taller, ITV…). La base «Coche» ya está (162); lo demás toca filtro, límites, palabras clave e IA: diseño antes de código. | dueño (diseño) |
+| UX-19 | Cartera v5 (Cuentas · Inversiones · Bienes con el patrón de Gastos v5). Diseño con su OK antes de código. | dueño (diseño) |
+| «Traspasos previstos» y «Lo que aún entrará» en la portada de Recibos (Recibos t3, 28/10/2026) | Siguen en la portada junto a la nueva hoja «¿Te llega?», que ya enseña las entradas y traspasos anteriores al último recibo. Quitarlos es una decisión del dueño (`planRecibosFlowRow` está en `scripts/beta-sources.json` y su retirada exige tocar el registro). | dueño (diseño) |
+| FIN-34 | El widget pinta siempre en EUR aunque la app esté en otra moneda. Necesita contrato de moneda, nativo y APK nueva. | APK |
+| FIN-26 | `semana` cuenta ×4,345 en `FREQ_M` pero no entra en el calendario mensual. Hoy la UI no ofrece `semana`. | Codex |
+| UX-17 · `useCountUp` | Con un objetivo no numérico la cifra queda en NaN (`+(target\|\|0)` sin comprobar) y al llegar a p=1 conviene fijar el objetivo exacto. Técnico. | Codex |
+| PRO-04 | Exportar el informe en PDF (hoy solo imagen; el PDF que existe es de importación). Confirmar que lo quiere. | dueño |
+| PRO-05 | Aviso push de versión nueva con la app cerrada (FCM o equivalente sin dependencias nuevas). | dueño + servidor + APK |
+| PRO-07 | Pensiones y cuentas de ahorro: sin alcance ni proveedor. | dueño |
+| PRO-08 | Hogar existe ([HOGAR](HOGAR.md)); falta la validación con dos usuarios reales. | dueño |
+| PRO-09 (Pregúntame remoto) | La ayuda local está publicada; la remota sigue apagada hasta aprobar coste y que la pregunta salga del móvil. | dueño |
+| Purga de `rate_limits` | `prune_rate_limits()` existe y es manual a propósito (`0019_rate_limit.sql`); decidir si se automatiza, midiendo antes cuántas filas hay. Antes se llamaba OPS-08, ID que luego se dio a la guarda CAS. | dueño + servidor |
+| OPS-04 (verificar) | Métricas agregadas de uso: la instrumentación existe desde 4.13; falta confirmar si hay vista SQL. | servidor |
+| UX-02 / UX-06 (verificar) | Restos del pulido v4 de septiembre: perfil con menos contenido inicial, B4 (esqueletos) y B5 (repaso en tema claro). Rediseños posteriores pueden haberlos dejado sin objeto. | Claude |
+| TEC-01 / TEC-02 | Refactor financiero por dominios y claves i18n presuntamente huérfanas: aparcados a propósito. | — |
+| DEC-01 / DEC-02 / BIZ-01 | Marca, Play Store (siempre al final), monetización (precio que baja con la permanencia) e ideas opcionales. | dueño |
 
-**Primera atención al retomar:** crash de cuotas (4), coherencia dinero/nómina (5) y cargos Caixa (6).
-Después bloqueo por red/lag sostenido (1/9) y deuda/gestos (2/3); pulido restante separado. No se
-abre una implementación hoy ni se agrupan reparaciones financieras con animaciones. Falta para cada
-caso: versión/canal/APK afectados, reproducción propia, fix acotado, guardián apropiado, review,
-beta y veredicto móvil. Las capturas no muestran la versión, así que no se asigna un SHA por intuición.
+## Hecho (archivo)
 
-## Reconciliación vigente · 25 de septiembre de 2026
+Una línea por punto, con dónde se cerró. Si algo vuelve, se abre un ID nuevo con su caso; no se
+reabre uno de aquí por parecido.
 
-**La foto detallada que empieza en «Base y límites de la revisión» es del 9/9 y conserva su
-valor histórico; no es la cola de publicación de hoy.** El dueño confirmó el 25/9 que los
-cargos de Sabadell ya entran. No se abre un arreglo de «cargos ausentes» sin un caso nuevo.
+**Dinero**
 
-### Aprobado en beta y ya publicado
+- FIN-01 · efectivo al cerrar mes — 4.19.15 (`96b0fe4f`).
+- FIN-02 · el histórico perdía pagos mensuales — 4.19.16 (`f0fccc70`).
+- FIN-04 · decisiones y ediciones con dos móviles — fase 1 en 151/153, A+SAVEDAT en 170, B en 173, plazo de lectura en 176; aprobadas.
+- FIN-05 / INC-2909-01 (fundidos) · widget con app cerrada, periodo y modo — 4.26.80, `widget-app-cerrada` (4/10) y 4.26.116.
+- FIN-06 · divisa sin cambio en el cliente — 4.26.51 (validación con pago real en OPS-01).
+- FIN-07 · histórico de la nube completo — 4.26.52.
+- FIN-09 → FIN-19 · misma compra en dos bancos el mismo día — 4.26.160 (PR 288; restos en FIN-29/30).
+- FIN-10 · identidad y lápidas de Open Banking — 4.26.141.
+- FIN-11 · reintento de la lápida `ob-absorbed` — 4.26.142 (PR 266), claves v2/v3 reconciliadas después.
+- FIN-12 · financiaciones antes de existir en la gráfica — mes en 139, día en 163.
+- FIN-14 · `obAcc` en la nube — se reconstruye desde `source` al bajar (`bankRefDeSource(raw,"acc")`, `00-core.js`) desde FIN-19.
+- FIN-15 · pendiente y contabilizada contaban doble — 4.26.135 y 138.
+- FIN-16 · plazo y cuota a la vez — 4.26.139.
+- FIN-17 · registro de absorciones confirmadas — 4.26.142 (PR 267).
+- FIN-20 / FIN-21 · recibos con meses a mano y vista previa del anual — 4.26.159.
+- FIN-22 · Trade Republic en € con la moneda en USD — 4.26.161.
+- FIN-23 / FIN-24 · un cargo pagaba dos recibos del mismo importe — 4.26.159.
+- FIN-25 R1/R2 · pago ya marcado con meses repetidos y cifra mensual con importes por mes — 4.26.196 en beta (PR 325, revisión de dinero GO; cambio interno, sin tanda; pendiente de promover).
+- FIN-27 · el BOOK de tarjeta pagaba el mes siguiente — 4.26.177 (PR 308).
+- FIN-31 / FIN-32 / FIN-33 · Cartera sin tipo de cambio, GBP y eje de la proyección — 4.26.161.
+- FIN-36 / FIN-37 · deudas en hora de Madrid y validar `startDay` una vez — 4.26.174.
+- INC-0210-01 · cuota ya pagada pendiente en Plan — 4.26.86.
+- INC-0210-03 · categorías por periodo en Gastos — 4.26.86.
+- INC-0310-01 · borrar regla de Meta conservaba el descuento — corrección hacia delante (lo histórico sigue en FIN-08).
+- INC-0410 · Metas: máximo tres en Inicio (96), editar regla (108), conflictos de escritura (141) y plan con dos móviles (173).
+- INC-1810-02 · renombrar recibo rompía su pago — 4.26.144 (vínculos ya rotos se rehacen a mano).
+- INC-1810-03 / INC-1810-04 (fundidos: misma regla de ✓ solo con cargo real) · cuota y YouTube — 145, rechazos en 148 y 155, `youtube-r4` en 158.
+- INC-1910-01 · bajar la cuota ofrece alargar el plazo — 4.26.147.
+- INC-2709-04 · crash de Cuotas de deuda — 4.26.59.
+- INC-2709-05 · cifras incompatibles Inicio/Gastos — superada por 66, 73, 78 y 126.
+- INC-2709-06 · cargos de CaixaBank — sin quejas de nadie de la familia a 19/10; vigilar.
+- INC-2809-01 · Inicio y Mi ciclo — 4.26.66.
+- INC-2909-03 · retirada de CaixaBank sin salida — 4.26.79 (+`withdrawalConfirmedAt` en 134).
+- INC-3009-01 · gas pagado en Próximos cargos — 4.26.71/74.
+- INC-3009-02 · nómina Sabadell anticipada — 4.26.78.
+- FEATURE-0210-01 · Gasolina y Taxi — 4.26.86.
+- Saldo de cuenta (PR 268) — 4.26.142.
+- inicio-mes-futuro · un apunte del mes que viene cuenta en su mes — 4.26.174 (el `ingest` va en P0).
+- Aportación a meta desde la ficha del gasto — 4.26.172 (el `ingest` va en P0).
 
-Las rondas aprobadas de apariencia (4.25.7), Ajustes/candados (.8), beneficio de Inversiones
-(.9), Ahorro (.10), editor del presupuesto (.11), desbloqueo de hojas (.12), mínimo de Plan
-(.13), Asistente (.14), Bizum como forma de pago (.15), avisos sin duplicar (.16), histórico
-CaixaBank (.17), actualizar Inversiones (.18), ficha y gesto de Inversiones (.19) e Inicio
-honesto (.20) tienen commits de promoción en la primera línea de `main`. El recibo que cambia
-de día sin doble descuento quedó aprobado como beta 4.26.46.5 y publicado en 4.26.46.
-El alta de Recibos con Atrás nativo quedó aprobada como beta 4.26.47.1 y publicada en 4.26.47
-mediante el merge completo `54b21925`.
-La confirmación con tipo y nombre al añadir en Recibos quedó aprobada como beta 4.26.48.1 y
-publicada en 4.26.48 mediante el merge completo `490d402d`.
+**Uso diario y pantallas**
 
-Los commits `97289fe1`, `346323ba`, `3bcc5f57`, `398342ca`, `3b11ccb3`, `e23dd1fd`,
-`6a894d2e` y `d59c1ab0` retiraron **checklists del panel beta** después de publicar. Su diff
-no toca `src/modules/`, `src/shell.html`, `supabase/` ni `android/`: no retiró las funciones.
-En el corte anterior, `origin/beta` (`a187686d`) y `origin/main` (`3edde295`) tampoco tenían
-diferencias en `src/`, `supabase/`, `android/` ni `public/`. Por eso no queda una entrega de
-código de aquellas rondas que haya que rescatar o promocionar otra vez.
+- INC-0710-01 · salto de scroll en Plan — 4.26.124.
+- INC-0810 · Perfil → Ajustes → cerrar sacaba de la app — ya corregido en beta `f695a299` (12/10).
+- INC-0810 · Recientes de Inicio — 4.26.106.
+- INC-1710 · separación de modos — 4.26.142 (PR 265).
+- INC-1810-01 · Guardar de Deudas no respondía — NO_REPRO, guardián e2e en 4.26.177 (PR 309); lo de bajar la cuota era INC-1910-01.
+- INC-2709-01 → UX-03 · arranque con poca red — 4.26.69 (el splash sigue en P2).
+- INC-2709-02 · deudas terminadas: confirmar y archivar — 4.26.70.
+- INC-2709-03 / UX-08 (fundidos) · ola nativa en Gestionar plan — `gestionar-plan-ola-r2`, 4.26.153.
+- INC-2709-07 · Bienes con toque y edición — 4.26.111 y 113.
+- INC-2709-08 · ordenar brókers manteniendo pulsado — 4.26.147.
+- INC-2709-10 · casillas gigantes del perfil — 4.26.77.
+- INC-2709-11 · anillo de Inicio recortado — rediseño v42 (respuesta del dueño 19/10).
+- INC-2709-12 · línea Cyberpunk sobre el + — 4.26.77.
+- INC-2709-13 / UX-06 · círculo del + e indicador — 4.26.98 y 107.
+- INC-2709-14 · botón Preguntar — 4.26.77.
+- INC-2709-15 · botones de suscripciones — obsoleto: esa zona ya no existe.
+- INC-2809-02 · ayuda de Mi ciclo plegable — 4.26.68.
+- UX-04 · mensaje de bancos y acceso superior — 9/9.
+- UX-05 · un solo filtro en el histórico de bancos — 9/9 (`bancos-historico-filtro`).
+- UX-07 · temas Primavera, Otoño y Cyberpunk — publicados.
+- UX-11 · saltito vertical tras cerrar una hoja — NO_REPRO en 48 casos (19/10); con un vídeo suyo se abre de nuevo.
+- UX-12 · Deudas y Metas al estilo v4 — 4.26.138 y 141.
+- UX-13 · Atrás con teclado cierra solo el teclado — 4.26.141.
+- UX-14 · deslizar rápido entre pestañas — 4.26.149.
+- UX-15 · «Sincronizar» de Gastos — renombrado en 138 y retirado en 169 (decisión del 20/10).
+- UX-16 · vibración — ronda 6 aprobada en 4.26.157 (el ajustador sigue solo en beta).
+- UX-17 · Gastos v5, tandas 1 a 6 — 4.26.164 a 172, más el lag r3 en 175; restos en P1/P2/P3.
+- UX-18 · idioma recibido de otro móvil — 4.26.178.
+- PRO-02 · fin de mes en paz — sustituido por 125, 126 y 134.
+- REC-GUARDADO-01 y Atrás en el alta de Recibos — 4.26.48 y 47.
+- BRAND-01 · la app se llama Aely — web, `app_name` nativo, icono A-Dot y APK `Aely-*.apk`.
 
-Evidencia de publicación: `test.yml` [36162229852](https://github.com/JuanjoAvila/Aely/actions/runs/36162229852)
-ejecutó build, unitarios, Deno y E2E con éxito; `deploy.yml`
-[36162229834](https://github.com/JuanjoAvila/Aely/actions/runs/36162229834) terminó con éxito.
-Pages devuelve `version.json` 4.26.46 y SW `4.26.46-2026-09-25-3edde29`; `npm run salud`
-confirmó bundle y APK 4.26.32/48 disponibles. Esta evidencia acredita publicación del
-código, no una nueva prueba manual de cada pantalla en producción. `npm run listo` no pudo
-leer los veredictos de `app_events` en este entorno: falta `SUPABASE_SERVICE_ROLE_KEY`.
+**Servidor, seguridad y operación**
 
-Para 4.26.47, beta [36170019559](https://github.com/JuanjoAvila/Aely/actions/runs/36170019559)
-pasó 418 E2E y 7 Deno; la promoción
-[36172956860](https://github.com/JuanjoAvila/Aely/actions/runs/36172956860) pasó su suite y fusionó
-`60fb486f` a `main` como `54b21925`. El árbol del merge es idéntico al de beta y
-`npm run test:syntax` pasó sobre el merge real. El deploy
-[36174101720](https://github.com/JuanjoAvila/Aely/actions/runs/36174101720) terminó verde; Pages
-sirve `version.json` 4.26.47, bundle HTTP 200 y SW `4.26.47-2026-09-25-54b2192`.
-`npm run salud` confirmó además la APK vigente 4.26.32/48. No se declara una prueba manual
-adicional en producción: la aprobación móvil fue de la misma lógica en beta.
+- SEC-01 · validar entradas Edge — `delete-account` explícito en `config.toml` y once funciones leen el cuerpo por `_shared/request_body.ts` (tope de tamaño); `ingest` y `help-assistant` tienen tope propio (413) y `prices` corta a 25 símbolos validados.
+- SEC-02 F1 · el callback tardío ya no pisa una reconexión — 4.26.180 (despliegue en P0).
+- SEC-02 F3 · contrato 12+1 de `bank-sync` documentado y con guardianes — 4.26.181 (lo que no resuelve está en P1).
+- SEC-03 · privacidad de logs en el cliente — 4.26.57 (lo de servidor sigue en P2).
+- OPS-07 · `myinvestor-keepalive` sin guarda — ya guarda por `refresh_token` leído (`.eq("refresh_token", …)`, código `raced`).
+- OPS-08 · guarda CAS de refresh entre keepalive y sync — lote del 18/10.
+- OPS-0410 · cola del panel beta y coste de tests — 4.26.93.
+- OPS-3009-03 · reconciliar panel tras producción — superado: el panel se reconcilia en cada bump.
 
-El Action de promoción acabó rojo únicamente en su espera de Pages: consultó 40 veces durante
-diez minutos y agotó el plazo a las 18:42:43 UTC; el deploy, que repite toda la suite, terminó
-después con éxito. El arreglo aislado del circuito sigue el run de deploy del SHA promocionado,
-distingue un fallo real de una suite lenta y después coteja manifiesto y sello de Pages.
+### Cierre del día · 27 de septiembre de 2026
 
-### Estado de las entradas antiguas
-
-**REC-GUARDADO-01 · cerrado y publicado en 4.26.48.** El código en `9ad3121f`
-y su ajuste de tamaño `b883ea2b` hacen que el alta de recibo periódico, cargo puntual e ingreso
-presente tipo y nombre después de guardar. Los tres E2E nuevos pasaron en es/en/ca y la regresión
-local de Recibos pasó 35/35. La primera publicación beta
-[36183635059](https://github.com/JuanjoAvila/Aely/actions/runs/36183635059) pasó 421 E2E
-funcionales y 7 de rendimiento; sirvió 4.26.48.1 con bundle HTTP 200. El dueño la aprobó;
-la promoción [36185465579](https://github.com/JuanjoAvila/Aely/actions/runs/36185465579)
-pasó y fusionó la beta en `490d402d`, con el mismo árbol y sintaxis verificada. El deploy
-[36186511199](https://github.com/JuanjoAvila/Aely/actions/runs/36186511199) pasó; Pages sirve
-`version.json` 4.26.48, bundle HTTP 200 y SW `4.26.48-2026-09-25-490d402`.
-`npm run salud` confirmó la APK vigente 4.26.32/48 y beta alineada. La aprobación móvil fue
-de la beta; no se declara otra prueba manual sobre producción.
-
-**Objetivo único cerrado: alta de Recibos con Atrás nativo, v4.26.47.** El asistente rearma
-la ola en cada paso de recibo periódico, cargo puntual e ingreso; conserva lo escrito y no guarda
-al salir. El dueño aprobó expresamente beta 4.26.47.1 y el merge completo fue `54b21925`. No incluye
-el diseño del aviso «Guardado» ni cambios de importes, bancos o histórico.
-
-| Estado actual | Entradas | Qué falta para cerrarlas |
-|---|---|---|
-| **Cerradas; no reconstruir** | UX-04 (mensaje de bancos y acceso superior), UX-05 (un filtro de histórico), UX-07 (temas Otoño, Primavera y Cyberpunk). También están publicados los bloques aprobados enumerados arriba. | Reabrir solo con un fallo actual reproducible. |
-| **Código publicado, alcance mayor aún sin acreditar entero** | FIN-01 (cierre por cuenta), FIN-02 (pagos mensuales del histórico), BRAND-01 (identidad web/nativa), UX-01/02/06 (fluidez y rediseño), PRO-02/03 (proyección y avisos), PRO-09 (ayuda local), SEC-01/03 (endpoints y privacidad). | Confrontar el criterio completo de cada fila con prueba móvil, servidor o dispositivo; no confundir una versión publicada con cierre total. La ayuda remota de PRO-09 sigue apagada. |
-| **Abiertas o parciales** | FIN-03/04/05/06/07/08; OPS-01/02/03/04/05/06; SEC-02; UX-03; PRO-01/04/05/06/07/08; TEC-01/02; DEC-01/02. | Conservar el alcance y límites de las filas de abajo; elegir una sola tarea concreta cada vez. |
-
-OPS-05 ya no tiene las cinco PR que enumera su foto del 9/9: al consultar GitHub el 25/9
-solo permanecían abiertas [#43](https://github.com/JuanjoAvila/Aely/pull/43) (FIN-04) y
-[#44](https://github.com/JuanjoAvila/Aely/pull/44) (widget). El WIP anterior de Recibos se
-reimplementó desde la base actual en `codex/recibos-ola-25sep`; sus capas interiores ya estaban
-publicadas en 4.26.41. La presentación «Guardado» queda fuera de este objetivo.
-
-## Base y límites de la revisión
-
-- Base de código: `4b71f572` · versión fuente **4.19.14**. Beta publicada **4.19.14.1**,
-  producción **4.18.7**, APK **42 / 4.18.3**, contrastados con el canal y Actions.
-- [Auditoría y reproducciones](briefs/AUDITORIA-CODEX-2026-09-09.md): lógica, cuatro ficheros
-  Deno y **164/164 E2E Chromium**; últimos 26 casos del panel/histórico repetidos tras el ajuste.
-  [CI de la entrega](https://github.com/JuanjoAvila/Aely/actions/runs/34355741591).
-- Este inventario cruza ROADMAP, los dos backlogs antiguos, plan del crucero, relevo del 9/9,
-  auditorías/briefs, mensajes del equipo, sugerencias de la app, PR abiertas y Projects 1 y 3.
-- **No es una garantía de ausencia de bugs.** No se ha auditado cada ejecución posible ni
-  inspeccionado el código desplegado de todas las Edge Functions, índices/RLS reales o todas
-  las políticas del servidor. Tampoco se ha ejecutado en esta auditoría una compra real con la
-  app cerrada, una reinstalación real, restauración completa ni dos móviles reales simultáneos.
-  Los tests con puentes/servidores simulados no cubren esas garantías; abajo tienen encargos.
-- Antes de retomar: `git fetch origin`, `npm run salud`, `npm run listo`, `npm run sugerencias`
-  y último Actions. Esta foto envejece; una PR abierta o un documento viejo no prueba trabajo ausente.
-
-## Dónde está cada cosa — 10 de septiembre, madrugada
-
-| | |
-|---|---|
-| Canal beta | **4.19.22.1** · pulido v4 completo (P1–P14 + B2/B3/B4/B5), teclado nuevo, **modo inicial** y el bundle de 330 → 319 KB de gzip |
-| Producción | **4.18.7**, y con un parche listo: `claude/prod-aprobadas` @ `0f69c752` sube **4.18.8** con las DOS tandas que él aprobó y que sí son portables |
-| Pendiente de él | **21 tandas sin veredicto** en beta. Empezar por «🌱 Modo inicial», que deja probar las de estreno sin tocar su cartera |
-| Repo | 71 → **27 ramas**, 23 → **13 worktrees**, las 5 PR abiertas cerradas con su evidencia |
-
-## ⚠ REGLA DE TANDAS — la que rompimos el 9/9 y no se vuelve a romper
-
-Su pauta, con sus palabras: **«implementación por tanda; si la apruebo, sube a producción sin
-romper el resto»**. El 9/9 la incumplimos: se commiteó al tip de `beta` mezclando tandas, y sus
-**tres aprobadas quedaron atadas a 18 sin probar**. Peor: «límite por categoría» resultó estar
-construida **encima de «Mismo mes en todos sitios», que él había RECHAZADO** — llamaba a
-`inicioDeMesMs`, que llegó con esa tanda. Comprobado ejecutando, no deducido.
-
-A partir de ahora, sin excepciones:
-
-1. `git fetch && git switch -c tanda/<id> origin/main` — **desde `main`, no desde `beta`**.
-2. Código, `npm run build` y suite **en esa rama**.
-3. Merge a `beta` para que él la pruebe. **Nunca al revés**, y nunca escribiendo en el tip de `beta`.
-4. Al aprobarla: Actions → Promocionar → casilla `tandas: <id>`. Sube esa y solo esa.
-
-Si alguien commitea al tip de `beta` «porque iba rápido», esa tanda **ya no es promocionable sola**.
-Eso es exactamente lo que pasó, y el precio fue un porte a mano sobre producción.
-La maquinaria (`promote-beta.yml`, entrada `tandas:`) ya existía y hay ramas `tanda/*` de rondas
-viejas: la disciplina existía y la dejamos caer.
-
-## Orden de trabajo para la tarde/noche
-
-**Claude dirige e integra; Cursor implementa en su propio worktree.** Un encargo acotado por
-rama/PR desde `origin/beta`. Reservar archivos antes de tocar: FIN-01 y FIN-02 pueden acabar
-compartiendo UI, tests y notas de versión; serializar integración. Cada entrega de Cursor pasa
-por Claude; lo escrito por Claude lo revisa Cursor **ejecutando** las pruebas afectadas.
-Codex queda como apoyo de arquitectura. Este documento deja encargos; no acredita sesiones activas.
-
-1. **Cursor: FIN-01**, con reproducción roja, corrección y pruebas de cierre mensual.
-   **Claude: contrastar FIN-02** y preparar sus casos de aceptación mientras revisa FIN-01.
-2. **Cursor: FIN-02** después de integrar la primera corrección. Claude comprueba que no se
-   han eliminado las protecciones al crear Fijos ni se han cambiado movimientos históricos.
-3. **Claude: FIN-03/04/07**, adaptar el diseño recuperado a la base actual, por fases y con
-   pruebas aisladas. Cursor hace revisión adversarial: mismo importe no demuestra misma identidad.
-4. Siguiente trabajo independiente: **OPS-01 + SEC-01/02/03**, inventario de servidor y propuestas
-   verificables en pruebas. **OPS-02**, ensayo de restauración con datos sintéticos. Luego UX-01/02
-   si hay reproducción; si no, registrar lo que falta medir y pasar a otra tarea.
-5. Al cerrar: actualizar este archivo y el brief afectado; entregar SHA, resultado de tests,
-   límites, OTA/APK y guion móvil. Una versión visible sigue el circuito de beta de AGENTS.
-
-**No promover toda la ronda:** quedan fallos P1 y veredictos sin resolver. No aplicar migraciones,
-recuperaciones masivas, cambios de permisos, servidores compartidos ni producción sin aprobación
-explícita. Sí avanzar en diseños, fixtures, correcciones autorizadas y ensayos aislados.
-No borrar ramas/worktrees para «limpiar» sin permiso. No reabrir tandas aprobadas para probar otra cosa.
-
-## Dinero e integridad: prioridad antes de nuevas funciones
-
-| ID / prioridad | Estado y evidencia | Entrega y criterio de cierre |
-|---|---|---|
-| **FIN-01 · P1 · efectivo al cerrar mes** · **ARREGLADO, pendiente de review de Cursor** | Rama `claude/fin-01`, commit `96b0fe4f`, **4.19.15**. `tests/efectivo-cierre.test.mjs`: 6 rojos antes (EXIT 1), 11 verdes después (EXIT 0); e2e 164/164, exit 0. **Era más ancho de lo auditado**: no solo el efectivo — un recibo de CUALQUIER banco que no sea el de gasto diario también se descontaba de la cuenta diaria al cerrar (TR 1000 con un recibo de 40 de Sabadell → 960). Límite dejado a propósito: `roundupOf`/`savebackOf` siguen sobre todos los gastos del mes, aquí y en `11-app-main.js:1483`; separarlos exige mover los dos a la vez. Original: **Encargado a Cursor el 9/9 16:15** (`20260909T161500Z-claude-apertura-y-fin01`). **Contrastado también por Claude leyendo el código**, no solo por la auditoría: `01-i18n.js:2398` suma `spent` sin mirar `e.ent`, y `monthNetForAccount` (`07-tab-patri-fijos.js:492`) recorre fixed/debts/oneoffs/flows y **no toca `s.expenses`**, así que el sobre nunca arrastra sus compras. `reconcileTR` descuenta compras del sobre a TR y repone el saldo del sobre al cambiar de mes. Caso sintético: TR 1000, efectivo 100, compra anterior 20 → 980/100; debe ser 1000/80. | Corregir arrastre por cuenta en `01-i18n.js`. Cubrir con/sin cuenta diaria, varios meses, ingresos/devoluciones, retirada neutra y reanclaje/creación a mitad de mes. Saldos por cuenta y patrimonio, no solo suma global. No ajustar retrospectivamente saldos reales a ciegas. **Bloquea aprobar efectivo.** |
-| **FIN-02 · P1 · histórico pierde meses** · **ARREGLADO, pendiente de review de Cursor** | Rama `claude/fin-02`, commit `f0fccc70`, **4.19.16**. `tests/hist-pagos-mensuales.test.mjs`: 5 rojos antes, 8 verdes después; `npm test` entero **EXIT 0 con 164/164 e2e**. ⚠ **Corrección de mi propio brief**: el guardo SÍ protegía algo — la pantalla no usa `histBuildCommit`, `runImport` crea un Fijo por fila marcada. Quitarlo a secas habría creado tres Fijos idénticos cobrándose para siempre. Van dos cambios juntos: fuera el descarte por lote **y** `histFijosFromSelection` agrupa los «Recibo» equivalentes en UN Fijo. Original: **Contrastado por Claude el 9/9 y con aceptación escrita**: [plan FIN-02](briefs/plan-fin02-historico-pagos-mensuales.md). Dato nuevo del contraste: el guardo **ya no protege ningún Fijo**, porque `histBuildCommit` devuelve `fixAdds:[]` y descarta `defDest==="recibo"` (`08-motor-bank.js:926/944`) — hoy solo destruye pagos legítimos. `histClassifyCandidates` aplica `dedupeHistRecibos` sin fecha a cargos cuyo destino ahora es Gasto. Tres pagos mensuales iguales → uno seleccionado y dos `recibo-lote`. | Separar identidad del pago y creación de Fijo. Tres cargos de meses distintos deben importarse como tres gastos. Seleccionar varios Recibo equivalentes no debe crear varios Fijos. Añadir unitario y E2E de la previsualización real, reimportar y deshacer. Conservar avisos de deuda/ahorro y coincidencias ambiguas. **Bloquea dar por terminado el histórico.** |
-| **FIN-03 · P1 · identidad de gastos de extremo a extremo** | **Diseño pendiente** (incluye FIN-09, el caso concreto de dos bancos el mismo día), [arquitectura recuperada](briefs/arquitectura-identidad-gastos.md). UNIQUE por usuario/fecha/importe/comercio; claves débiles en import, merge, pull, lápidas e ingest. UUID del histórico no arregla todo el protocolo. | Ensayo aditivo, origen estable por proveedor/cuenta/transacción, UUID canónico y ACK; dos cargos legítimos parecidos sobreviven, reintento del mismo no duplica. Auditar cada lector/escritor actual. SQL real de pruebas, carreras, RLS y cliente antiguo. No quitar el índice ni migrar datos familiares por iniciativa propia. |
-| **FIN-04 · P1 · decisiones y ediciones confirmadas** | **Parcial.** `#dup` viaja para nuevas filas; el backfill que revertía decisiones de otro móvil fue retirado en `syncCloudExpenses`. No reintroducirlo. `setExpenseDup` aún no comprueba filas afectadas y puede resolver sin sesión. UUID local divergente permite UPDATE de cero filas sin error. | Cola/ACK con identidad fiable y revisión explícita. Dos clientes, decisión A → pull B, pérdida de conexión, sesión ausente, timeout tras commit y UPDATE sin fila. Auditar también categoría, nota, banco y borrado; un helper de serialización no basta. Acoplar con FIN-03, nunca resolver buscando un gemelo por parecido. |
-| **FIN-05 · P1 · widget con app cerrada** | **Parcial.** Resume nativo y categorías neutras corregidos; todavía falta arbitrar respuestas tardías de ingest frente a snapshot nuevo y demostrar `safeLiq`/`afford` coherentes. Pendientes anteriores sin marca remota pueden seguir contando en servidor. | Ensayo de dos escritores con orden de respuestas invertido; comparar presupuesto, disponible y saldo por banco con las mismas filas. Probar además mes/día nuevos, app cerrada y reentrada. Verificar servidor realmente desplegado (OPS-01). Si cambia contrato/Java, APK nueva. No declarar resuelto por un E2E de resume. |
-| **FIN-06 · P1 · divisa sin cambio** · **Beta OTA 4.26.51.1 publicada, aprobada por el usuario; publicada exclusivamente en producción 4.26.51; backend pendiente** | Reproducido sobre 9520bdaa y corregido en `codex/fin06-divisas`: originales/ISO visibles, aviso de total incompleto y exclusión de euros desconocidos; catálogo BCE 30 divisas, USD de respaldo guardado y céntimos alineados. Claude PASS f60df6f5; CI Action 36242414362 verde: unitarios + 4 ficheros Deno, 438 E2E y 7 rendimiento (1 omitido). Bundle HTTP 200, huella y sellos cotejados. [Relevo](briefs/fin06-divisas-2026-09-26.md). FIN-05 y selector conservan sus veredictos móviles pendientes. | Veredicto móvil aprobado el 26/9; Promoción exclusiva verificada: main 2ea992b2, Promote 36251080004 y Pages 36251710852 verdes; 430 E2E + 7 rendimiento, HTML/SW/bundle HTTP cotejados. FIN-05 y selector siguen en beta. Backend preparado en `_shared/wallet.ts`, sin desplegar: requiere autorización específica de ingest. Móvil sin compra, producción solo con aprobación. Sin migraciones ni cambios retroactivos de movimientos. |
-| **FIN-07 · P1 · histórico cloud completo · cerrado** | Aprobado y publicado exclusivamente en producción 4.26.52/main 8cd41f09. Claude PASS; Promote 36257644323 y Pages 36258292782 verdes, HTTP y bundle cotejados. | [Contrato y evidencia](briefs/fin07-historico-cloud-2026-09-26.md). Sin snapshot global; ausencia no borra. FIN-05 y selector siguen pendientes en beta. Siguiente conversación: FIN-08 investigación/propuesta, sin reparación real. |
-| **FIN-08 · P1 · daños históricos previos** | **Investigación pendiente**, no afirmación de pérdida adicional actual. La contención 4.18.6 evita DELETE/lápidas automáticas por similitud, pero no recupera lo que antes se colapsó, borró o recategorizó. | Inventario privado con evidencia por fila, copia restaurable y propuesta revisable. Conservar importes, UUID, bancos y notas; sumas iguales no demuestran mismas filas. Reparación de datos reales requiere aprobación; no migración automática al arrancar. Depende de FIN-03/07 y OPS-02. |
-| **FIN-09 → ver FIN-03 (caso concreto de la misma identidad débil; fusionada 15/10)** · P1 · la misma compra en dos bancos el mismo día se cuenta una vez** · **hallazgo de la revisión del 15/10, sin arreglar** | `expenses_dedup_idx` (`supabase/migrations/0001_init.sql`) es único por `(user_id, fecha, importe, comercio)` y la clave **no lleva banco**. Dos compras reales con mismo comercio, importe y fecha en bancos distintos (por ejemplo un café de 2,50 € pagado con dos tarjetas) chocan en el `ON CONFLICT DO NOTHING` de `ingest` y la segunda no se guarda: el gasto queda contado una sola vez. | Reproducir con dos movimientos de bancos distintos y comprobar qué se pierde; decidir si la clave gana el banco (migración + backfill sin pisar `#dup` ni lápidas, ver FIN-03) y medir el efecto sobre los datos vivos antes de tocar el índice. Cierre: test que siembra DOS bancos y exige las dos filas. |
-| **FIN-10 · P2 · la clave `ob-absorbed\|banco\|ref\|ordinal` no lleva cuenta ni fecha** · **hallazgo de la revisión del 15/10, sin arreglar** | La clave de absorción de Open Banking identifica por banco, referencia y ordinal, sin cuenta ni fecha. Con dos cuentas del mismo banco (o una referencia reutilizada) dos movimientos distintos podrían compartir clave y uno absorber al otro. El escritor de la clave es `obPendingAbsorbedState` en `src/modules/08-motor-bank.js` (beta 4.26.135, PR 235); el lector es `obAbsorptionKey`/`expenseIsTombstoned` en el cliente y `filasComoLaApp` en `_shared/presupuesto.ts`. | Localizar el escritor de la clave, comprobar si hay colisión real con los datos del dueño y, si la hay, añadir cuenta y fecha a la clave con migración que conserve las absorciones ya hechas. Cierre: test con dos cuentas del mismo banco y misma referencia. |
-| **FIN-11 · P2 · la lápida `ob-absorbed` no tiene reintento si falla el borrado en la nube** · **hallazgo de la integración del 15/10, sin arreglar** | Si `borrarGastoNube` falla al absorber el BOOK (`obPendingAbsorbedState`, `08-motor-bank.js`) no hay reintento: la fila absorbida queda viva en la nube. Si además caen más de 500 lápidas en `deleted`, la más antigua se recorta y el servidor (`filasComoLaApp`) volvería a contar doble esa compra. | Cola de borrados pendientes que reintente la nube (o lápida fuera del tope de 500 mientras la fila siga viva en la nube) y test con fallo intercalado. Depende de que `ingest` con el lector nuevo esté desplegado. |
-| **FIN-12 · P1 · las financiaciones (Roomba, gimnasio, suelo) cuentan como deuda en la gráfica de Inicio antes de existir** · **NUEVO 15/10; mes de alta en 4.26.139, día de alta en beta 4.26.163 (PR 291)** | `netWorthDebtPolicy` en `02-ui-shared.js`: una deuda con plazo hace `n=Math.max(0,n)` y mantiene el saldo antes del ancla, así que la deuda se resta del patrimonio en fechas anteriores a su alta. Desde la 139 solo un `startMonth` entero acredita el inicio (mes); desde la 163 las altas nuevas sellan `startDay` y la serie excluye la deuda antes de ese día. | Tanda `deuda-nueva-desde-su-dia` en el panel; test de motor (`inicio-deuda-futura`, con mutantes) y e2e de la gráfica real. Quedan FIN-36 (reloj en UTC a las 00:30 del día 1) y FIN-37 (validar `startDay` una vez por deuda). |
-| **FIN-13 · P2 · editar el importe o el día del aviso de Trade Republic separa la pareja** · **NUEVO 15/10, requiere DECISIÓN del dueño** | Desde 4.26.130 es a propósito (ver CHANGELOG): al editar importe o día del aviso, la pareja aviso/movimiento deja de estar vinculada. | Decidir si debe seguir así o conservar el vínculo; sin decisión no se toca. |
-| **FIN-14 · P2 · `obAcc` (cuenta del banco de cada movimiento) no sube a la nube** · **NUEVO 15/10, sin arreglar** | El mapeo gasto↔fila (`00-core.js` ~1182, 1243 y 2765) sube `ob_name` pero no `obAcc`. Mitigación parcial: `tagObAccountsFromBankTx`. | Subir `obAcc` (con migración si hace falta) o documentar que se reconstruye desde `bankTx`; test con dos dispositivos. |
-| **FIN-15 · P1 · compra pendiente un día y contabilizada al siguiente cuenta doble (640)** · **NUEVO 15/10, reserva de PR 235, fuera de la 4.26.135** | Una compra que llega como pendiente y al día siguiente como contabilizada se cuenta dos veces (caso de 640). | Entra con la PR 235, no con la 4.26.135. Test que siembra pendiente un día y contabilizada al siguiente y exige una sola fila. |
-
-## Operación, seguridad y cobertura pendiente
-
-Estas filas son **trabajo pendiente de auditoría o validación**, no vulnerabilidades demostradas.
-
-| ID / prioridad | Qué existe / qué falta | Encargo y aceptación |
-|---|---|---|
-| **OPS-01 · P1 · repo frente a servidor vivo** | Supabase compartido; cambios de cajero, categorías, ventana mensual y `#dup` en disco no prueban despliegue. | Claude inventaría funciones/migraciones y versiones activas con acceso de lectura, sin volcar secretos ni datos. Matriz repo/servidor/APK y pruebas de contrato; preparar diff y rollback antes de pedir despliegue. El ATM del cliente no completa el camino de notificaciones del servidor. |
-| **OPS-02 · P1 · restauración probada** | **Visor aislado aprobado por el dueño el 27/9 y publicado exclusivamente en producción 4.26.56; merge 42613195, Promote 36343752892, Pages 36344438830 y bundle cotejado.** Beta 4.26.56.1 y Claude GO 978420fc. Sustituye el reemplazo conectado que activaba push de app_state y backfill; ensayo sintético ejecutado. [Contrato y evidencia](briefs/ops02-restauracion-probada.md). | Visor: ambas claves intactas, cero escrituras atribuibles, UUID/campos/sumas, pull/reinicio/B, corrupción, transporte y es/en/ca probados. Recuperación financiera compartida abierta: depende de FIN-03/08, revisión/ACK y ensayo SQL/RLS. No aplicar copias reales como test. |
-| **SEC-01 · P1 · validar entradas Edge** · **inventario hecho el 9/9** | **Son 13 funciones**, no 10: `bank-aspsps`, `bank-callback`, `bank-connect`, `bank-disconnect`, `bank-sync`, `categorize`, `delete-account`, `ingest`, `myinvestor-connect/-disconnect/-keepalive/-sync`, `prices`. **Autenticación: mejor de lo que decía el hueco.** `config.toml` pone `verify_jwt = true` en 9. Las tres sin JWT tienen protección propia comprobada: `ingest` (INGEST_TOKEN), `bank-callback` (localiza al usuario por el `state` que emitió `bank-connect`) y `myinvestor-keepalive` (cabecera `x-cron-key` contra `cron_secrets`, que solo lee el service role). `prices` está mejor validada de lo que parecía: filtra los símbolos por regex y corta en 25 — se comprobó por si podía dispararse un fetch por símbolo, y no. | **Lo que SÍ falta, medido:** (1) **`delete-account` no aparece en `config.toml`** (sigue así el 15/10) — depende del valor por defecto. Su código sí exige sesión (`getUser`, 401 sin ella), así que no es un agujero, pero la función más destructiva no puede depender de un defecto implícito: ponerlo explícito. (2) **Estado 15/10: el tope de cuerpo existe solo en `ingest`, `prices` y `help-assistant` (3 de 14 funciones); el resto está en la PR 211 (borrador).** Texto del 9/9, hoy superado: «ninguno de 13». (3) Faltan las pruebas de cuerpos inválidos → 4xx controlado y sin efectos, por endpoint. Pendiente también ejecutar los tests Deno: aquí no está instalado y la suite los omite. | Inventariar todas las funciones actuales, autenticación, tipos, límites de tamaño/rango y errores. Pruebas de bodies inválidos → 4xx controlado, sin efectos. Casos por endpoint; no declarar cubierta una API por validar solo el cliente. |
-| **SEC-02 · P2 · límites de peticiones / replay** · **Auditoría local 26/10 sobre `74ea9c638`: 14 endpoints.** | La fuente incorpora cuotas en `bank-connect` 10/600, `bank-sync` 30/600 y callback IP 60/60 + usuario 10/600; sustituye el inventario del 15/10. Siete endpoints tienen cuota HTTP; `myinvestor-sync` usa un contador de fallos, no cuota de tráfico; propuesta `prices` 30/600 apagada. [Informe completo](briefs/sec02-edge-limits-replay-audit.md), con guardianes sintéticos de límites, owner y mes. | **F1 callback (PR314, resuelto en beta 4.26.180):** el guardado final de `bank-callback` exige id, dueño, `state` NULL y la emisión original, así que un callback tardío ya no pisa una reconexión; `bank-callback` NO se despliega con la beta: va con la próxima producción, con el OK del dueño. **Reserva, nuevo pendiente:** el callback tardío que pierde la carrera deja su sesión de Enable Banking huérfana en el proveedor, sin revocar (la PR lo declara fuera de alcance); decidir si F2 la revoca. **Abierto:** colisión de eventos nativos distintos en la clave legacy de ingest (F2, ver abajo) y 13 intentos de paginación con cap nominal 12. Informe/testguards no los arreglan (PR312, integrado en beta 4.26.178 sin cambios de backend). Decisiones de coste, cuotas/exenciones y despliegue conservan encargo separado; esquema/config viva no consultados. **F2 ingest nativo (PR313, fase 1 integrada en beta 4.26.179, interruptor `INGEST_NATIVE_TWINS` APAGADO):** el cliente ya lee la marca no bancaria de gemela nativa; el escritor sigue apagado y no se despliega ni enciende nada. **Riesgo de la fase 2:** encender el interruptor con un móvil sin este lector funde las gemelas y cuenta doble al sincronizar Open Banking de Trade Republic (9,95 → 19,90), y ese doble sube a la nube y al widget. **Condición para la fase 2:** todos los móviles de la familia en la 4.26.179 o posterior, una vez promocionada, confirmado por el dueño; desplegar `ingest` con el interruptor apagado es inocuo. Sigue abierto, fuera de alcance: el debounce de 180 s del APK puede tragarse la segunda compra igual. |
-| **SEC-03 · privacidad de logs** · **Cliente aprobado; entrega exclusiva 4.26.57, sin Edge** | Beta 4.26.57.1/f2354a47, Claude GO y CI/publicación 36349262562 SUCCESS. Candidata exclusiva PR49 con revisión Claude y CI completos previos. [Matriz](briefs/sec03-privacidad-logs.md). | [Entrega exclusiva PR49](https://github.com/JuanjoAvila/Aely/pull/49) y manifiesto público verificable; servidor pendiente por función. FIN-05/selector/TR no están aprobados: conservados en beta, pago pendiente. |
-| **OPS-03 · P2 · beta con varios probadores** | Un canal beta y panel existen; falta demostrar acceso/veredictos independientes de varios usuarios sin hacerlos administradores. **Medido el 9/9: 15 de las 18 tandas tienen sus puntos de `en` y `ca` en CASTELLANO copiado.** Hoy no se nota porque el único probador usa la app en castellano; en cuanto entre un segundo probador, sí. El guardián `novedades-idiomas` NO lo cazaba: miraba `rnItems` (Novedades, que ve la familia), no `tandas[].items` (el panel de beta). **Cobertura preventiva desde el 4/10:** ese mismo test lee ahora la estructura cruda de todas las tandas y exige título y puntos no vacíos en es/en/ca, con el mismo número de puntos; medido ese día, las 55 tandas lo cumplen y ninguna tiene los puntos de `en` o `ca` idénticos a los de `es`. Límite: no compara los textos entre idiomas ni juzga la traducción, así que un castellano copiado en una tanda nueva seguiría sin cazarse; y el panel sigue leyendo las tandas en castellano, que es su contrato actual. | Diseñar alta de probador y matriz de permisos; dos cuentas de pruebas, veredictos separados y cambio de canal fiable. Sin tercer canal Experimental. Flags solo si una necesidad concreta lo exige. |
-| **OPS-04 · P2 · métricas agregadas** | Uso/performance instrumentados desde 4.13 (`USO_OK`, `logPerf`); no reimplementar eventos. Vista SQL agregada pendiente de confirmar. | Buscar primero migración/vista existente. Si falta, propuesta por etiqueta/semana y tiempos, sin campos libres ni datos financieros. Usar panel de Supabase para consultas caras/Edge, no construir otro dashboard por defecto. |
-| **OPS-05 · P2 · higiene de repositorio y PR** | Matriz medida el 9/9, abajo. **#42 integrada** por fast-forward; **#35 y #36 cerradas** con su OK. **Rescatado a `beta` lo que quedaba vivo en #41, #31, #30 y #26**: dos briefs que no estaban (`b09-d-widget-inicio-desacuerdo`, `incidencias-integridad-2026-09-06`), el delta del brief de #31 con los dos defectos reproducidos que hoy son FIN-04, y el incidente de HEAD separado en `EMPIEZA-AQUI`. Las cinco quedan **listas para cerrar, pendientes de su OK**; las ramas NO se borran sin permiso. Comparar commits/diffs, rescatar solo contenido vigente y documentar equivalencia antes de cerrar PR. Retirar sondas/código muerto con evidencia. Ramas/worktrees requieren permiso para borrar. No refactorizar dinero dentro de esta limpieza. **Hallazgo aparte, arreglado y ya en beta con 4.19.17:** `scripts/run-tests.mjs` llamaba a `npx playwright`, que en esta máquina no existe (faltan los wrappers `.bin`); el runner marcaba `FAILED: playwright-e2e` **sin haber ejecutado un solo e2e**. Parecía un rojo de la suite y era el arranque. | Comparar commits/diffs, rescatar solo contenido vigente y documentar equivalencia antes de cerrar PR. Retirar sondas/código muerto con evidencia. Ramas/worktrees requieren permiso para borrar. No refactorizar dinero dentro de esta limpieza. |
-| **OPS-06 · P2 · validación real de la ronda** | 164 E2E pasan; quedan casos fuera de esa suite y veredictos antiguos rechazados. | Revalidar por versión exacta, sin datos destructivos: frío/offline/reentrada, cambio de mes, dos dispositivos, notificaciones nativas y restauración. Cada fallo nuevo necesita prueba que falle antes y pase después, registrada en runner/mapa. |
-| **OPS-07 · P2 · `myinvestor-keepalive` sin guarda de conexión** · **hallazgo de la revisión del 15/10, sin arreglar** | En `supabase/functions/myinvestor-keepalive/index.ts` (~líneas 47-52), la rama `ok` escribe `access_token`/`refresh_token` con `.eq("user_id", ...)` sin comprobar que el enlace siga siendo el que se leyó. Si el usuario reconecta MyInvestor mientras corre el cron, los tokens viejos pisan los nuevos y el enlace queda roto. La rama `rejected` sí protege con el refresco usado. | Añadir la misma guarda (solo actualizar si `refresh_token` sigue siendo el leído) y un test de Deno con reconexión intercalada. Función Edge: desplegar con Actions, una a una, tras su beta. |
-| **OPS-08 · P3 · decidir si se automatiza la purga de `rate_limits`** · **reformulada el 15/10** | La purga YA existe: `prune_rate_limits()` en `supabase/migrations/0019_rate_limit.sql`, manual a propósito. | Lo único pendiente es DECIDIR si se automatiza (por ejemplo con `pg_cron`) o se queda manual; medir antes cuántas filas hay en `public.rate_limits`. |
-
-## Funciones y experiencia que siguen en la cola
-
-| ID | Estado | Próximo paso / cuándo se termina |
-|---|---|---|
-| **BRAND-01 · P1 · la app se llama AELY** · **NUEVO 10/9, decisión suya** | Nombre OFICIAL: «renombre de mi app con nombre ya OFICIAL se llama Aely». Brief cerrado en [AELY_BRAND_BRIEF.md](design/aely/AELY_BRAND_BRIEF.md), que dice literalmente «no inventes otra identidad: aplica exactamente esto». Icono **A-Dot Badge** (A geométrica menta con el travesaño convertido en punto, dentro de un marco rounded-square), **lockup** badge+wordmark en el header del onboarding, **sin mascota** (lo dice dos veces), tokens dark mint (`accent #6CC688`, `bg #0B140F`, `surface #132119`). Su orden de ataque: «empieza por strings + header del onboarding + icono/splash». ⚠ **Faltan los dos PNG de referencia** en `docs/design/aely/`. | Trocear en tres, porque no todo viaja igual: **A (web, va por beta)** strings + lockup del onboarding + tokens; **B (nativa, pide APK y su OK)** icono, splash y `android:label`; **C** dominio, Pages y metadata de release. ⚠ **NO tocar `applicationId`**: sería una app NUEVA y su padre y su pareja perderían la suya con sus datos dentro. ⚠ Icono y splash **no viajan por OTA**. Repasar también los textos que lee la familia (notas de versión, popup de Novedades) y no dejar «Aely» a medias. |
-| **UX-01 → ver INC-2709-09 (lag; fusionada 15/10, aquí queda el detalle medido del gesto lento)** · scroll/gestos y Gastos a medio pintar · **REPRODUCIDO Y MEDIDO EL 10/9** | Su gesto es **entre pestañas**, no la lista, y **solo yendo despacio**. Dos causas medidas en su móvil, [brief](briefs/ux01-tironcillo-medido-2026-09-10.md): (1) el contenido saltaba **44 px** al entrar/salir de `page-scroll-host` — arreglado y verificado en caliente (7 saltos → 0); (2) el carrusel avanzaba **un frame sí y otro no** al arrastrar despacio, porque el `transform` se escribía en cada `touchmove` (~2,7 por frame). ⚠ Los deltas de `rAF` NO valen para medir esto: salían perfectos con el fallo puesto. Destello de tabs y antiguos tirones están arreglados; son síntomas diferentes del stopper residual. | Reproducir el gesto exacto, inercia tras soltar, splash fuera, CPU x6 y frames >32 ms. A/B, sin medir el sondeo de Playwright. Gastos: comprobar nodos/opacidad/paginación y versión/APK. Si no se reproduce, no publicar un «fix» especulativo. |
-| **UX-02 · apertura del perfil / diseño** | Pintado residual documentado; trucos CSS ensayados no demostraron mejora. Tanda 17, SPEC-v4 y [handoff de diseño](design/handoff/). | Propuesta de menos contenido inicial/jerarquía y mock revisable, con accesos a todas las funciones preservados. Medición y E2E de las puertas de entrada antes de implementar el rediseño. |
-| **UX-03 · splash e icono nativo/JS** (absorbe INC-2709-01, arranque con red lenta, 15/10) | Pendiente de verificar el síntoma restante. La franja bajo cámara y WEBDEBUG ya se corrigieron en 4.16.1; no confundir con dos pantallas de arranque. | Comparar arranque frío real con APK actual y rama `wip/splash-icono-nativo`, sin fusionarla a ciegas. Unificar solo lo que siga fallando; cualquier Java/tema nativo requiere APK. No dar por pendiente la antigua barra de carga sin comprobarla. |
-| **UX-04 · sugerencias sin cierre fiable** | Contrastado con `npm run sugerencias` el 9/9: quedan 7 eventos. **El mensaje al actualizar cuentas está atendido**: `bank_upd_one/n` = «✓ {banco} al día · {x}» / «✓ {n} bancos al día» en los tres idiomas (`01-i18n.js:1880/1899/1918`, usado en `11-app-main.js:501`). Es claro y conciso, que era la petición del 26/7. El acceso tocando la cartera superior (de su pareja, 16/7, v3.109): **preguntado y resuelto el 9/9**. Se refería al **avatar de Inicio**, y la petición quedó anticuada — tocarlo ya abre el perfil desde la v4. **Fila cerrada, las dos sugerencias atendidas.** | Registrar el cierre del mensaje salvo feedback nuevo. Para el acceso superior, localizar pantalla/intención antes de proponer cambio; si sigue ambiguo, aclaración puntual al dueño. La mera presencia de feedback viejo en la tabla no significa que siga sin atender. |
-| **UX-06 · pulido visual v4** · **P1–P14 HECHAS**, bonus en curso | El brief ya está en el repo (`docs/design/handoff/PULIDO-v4.md`, lo trajo él el 9/9). Rama `claude/pulido-v4`, **un commit por tarea** como pidió, versiones 4.19.18 (P1–P5), 4.19.19 (P6–P13) y 4.19.20 (P9, P10, P14, B3). **Dos tareas no se aplicaron como decía el brief, y por qué:** la mitad de **P3** (onboarding) ya no aplica —es un stepper con 700 preseleccionado, no un placeholder—, y **P14** se decidió por voto del equipo: mi medida en euros decía que no hacía falta (248 px de 324), pero Codex reprodujo el caso que faltaba —la moneda de visualización llega al hero, y con yenes y patrimonio negativo se parte en dos líneas—, así que se aplicó la opción C. **B2 NO se entrega**: la app premonta las pestañas, la cuenta se gasta escondida, y el segundo intento con `IntersectionObserver` tampoco vale porque los paneles desplazados se dan por visibles. Medido tres veces. | Pendiente: **B4** (esqueletos) y **B5** (repaso en tema claro), con Cursor; **B2** con Cursor para segunda opinión; **B1** lo dejó él con motivo (implicaría retrasar el borrado en la nube). Al cerrar: review completa de la rama ejecutando, y publicar. **Verificado en su móvil de verdad** (OnePlus 13, Android 16): P1–P5 en pantalla y P8 dentro de la APK, con y sin «Letra grande». |
-| **UX-07 · temas primavera, otoño y cyberpunk** · **NUEVO 16/9** | Su pareja quiere temas de **primavera** y **otoño**; otoño es el oportuno ahora. Él quiere uno **cyberpunk** con identidad propia: no reutilizar el efecto suave/típico de partículas estacionales. | Diseñar primero mocks navegables + spec + textos es/en/ca. Primavera/otoño pueden ampliar el sistema estacional; cyberpunk necesita lenguaje visual y microefecto propio, assets offline, `prefers-reduced-motion` y medición en móvil para no degradar scroll, pestañas ni arranque. Validar los tres antes de implementar/publicar. |
-| **UX-05 · doble filtro en Mis bancos** | **Leído el código el 9/9 (Claude): ya no hay dos filtros.** `histOpen` pasa a `BankHistoryImport` la lista ENTERA de bancos conectados (`10-app-components.js:3911`), no un banco elegido antes; dentro solo queda `bankFilter` (`:274`, chips en `:558`), y ese filtro sí acota la importación de verdad (`doImport` recorre `visible`, no `cands`). La puerta duplicada desde Mis bancos también se retiró: se entra por Ajustes → Importaciones. | **CERRADA el 9/9 con evidencia ejecutada**, no solo leída: `e2e/bancos-historico-filtro.spec.mjs` corrió hoy 5/5 en Chromium y comprueba en el DOM real que sin tocar nada salen los movimientos de TODOS los bancos conectados, que filtrar a uno esconde los del resto **y los saca del contador de importar**, y que «Todos los bancos» recupera la vista. Además comprueba que la puerta duplicada desde Mis bancos ya no existe. Una sola selección de banco, verificada en pantalla. |
-| **UX-08 → ver INC-2709-03 (misma ola nativa; fusionada 15/10)** · P2 · sin ola nativa al llegar al borde del scroll en «Gestionar plan» de Recibos (subcategorías y pantallas que cuelgan)** · **NUEVO 15/10, pedido por el dueño, sin arreglar** | Dentro de «Gestionar plan» en Recibos (Plan → Recibos → gestionar el plan), con sus subcategorías y las pantallas que cuelgan de ahí, al llegar al borde del scroll NO aparece la ola nativa de Android (overscroll glow/stretch). Fuera de ahí, en Plan como tal, sí funciona, igual que en el resto de la app desde la 4.26.133 (`.app` con `overflow:clip`, tanda `scroll-borde-barra`, `200e9a6e`). Fallo de uso diario: por debajo de lo de dinero y de las cifras que engañan. | Pista: esos contenedores probablemente tienen su propio scroll con `overscroll-behavior` o van dentro de una hoja que no deja propagar el gesto. Revisarlo junto al arreglo de `scroll-borde-barra`; medir el gesto de verdad (fling al borde, en móvil o con CDP) y añadir e2e/guardián con su línea en `E2E_MAP`. |
-| **UX-09 · P2 · el splash inicial sale con el verde por defecto y luego cambia al tema elegido** · **NUEVO 15/10, pedido por el dueño, sin arreglar** | Al abrir la app, el splash sale con el verde por defecto y después cambia al tema que el usuario tiene elegido; debe salir SIEMPRE con el color de su tema desde el primer frame. Fallo de uso diario, prioridad media-baja. | Probablemente es el splash NATIVO de Android: no viaja por OTA, necesita APK nuevo. Revisar la saga aparcada en la rama `wip/splash-icono-nativo` y `docs/SETUP-ANDROID.md`; el tema habría que guardarlo en el lado nativo (SharedPreferences) para pintarlo antes de que cargue la WebView. |
-| **UX-10 · P3 · animación de «respiración» en el logo del splash si la carga tarda** · **NUEVO 15/10, mejora de estilo pedida por el dueño, sin hacer** | Si la carga tarda, el icono del splash y su sombra/halo hacen una «respiración» suave. Prioridad baja: «nada nuevo hasta limpiar». | Debe respetar `prefers-reduced-motion`. Va junto a UX-09 (mismo splash) y, si toca el nativo, requiere APK. |
-| **UX-11 · P2 · salto vertical al deslizar entre pestañas tras cerrar una hoja** · **NUEVO 15/10, pedido por el dueño, sin arreglar** | El deslizamiento entre pestañas va recto (solo horizontal). Pero si antes abre una hoja o ficha (la «i» de la gráfica de Inicio, la hoja de Apuntar gasto u otra de ese tipo), la cierra y enseguida desliza a otra pestaña, el contenido da un saltito vertical hacia arriba en vez de ir recto. Fallo de uso diario. | Sospecha: la hoja deja tocado el scroll, el `overflow` o el `scrollTop` del documento o del host al cerrarse (bloqueo de scroll del cuerpo, `scroll-padding`, restauración de posición), o el `transform` del track hereda un desplazamiento. Mirar junto a `scroll-borde-barra` (`200e9a6e`) y [lag-gesto-cuatro-causas](memoria/lag-gesto-cuatro-causas.md). Medir el gesto con deltas de `requestAnimationFrame` y comprobar que aterriza (§7 bis de AGENTS.md); el dueño ofrece grabar un vídeo si hace falta. |
-| **UX-12 · P2 · Deudas y Metas al estilo v4 y edición** · **EN CURSO 15/10 (Codex)** | Rediseño de Deudas y Metas al lenguaje v4, con su edición. | Lo lleva Codex; cualquier cambio de lista necesita e2e (AGENTS §8). |
-| **UX-13 · P2 · atrás con el teclado abierto debería cerrar solo el teclado** · **EN COLA 15/10** | Con el teclado abierto, Atrás debe cerrar solo el teclado y no la hoja o pantalla. | Revisar `useBackClose` con el teclado; probar en móvil real. |
-| **UX-14 · P2 · deslizar entre pestañas a velocidad muy alta deja de ir fluido** · **NUEVO 15/10, contado por el dueño, sin diagnosticar** | Al hacer varios swipes rápidos seguidos entre pestañas, desde cualquier pestaña, el movimiento deja de ir fluido y hace un efecto raro. Fallo de uso diario. | No se sabe si es rendimiento o lógica del carrusel (gestos encadenados antes de que acabe la animación anterior). Relacionado con INC-2709-09 (lag) y con UX-11 (saltito vertical tras cerrar una hoja). Medir con frames >32 ms a CPU x6 (`Emulation.setCPUThrottlingRate`) y con gestos encadenados reales, no con un solo swipe; comprobar que cada gesto aterriza (`.botnav-tab.active` cambia) y no medir con el perfilador puesto (AGENTS §7 bis). |
-| **PRO-01 · meta financiada fuera de gasto corriente** | Diseñado, pendiente de prioridad/validación de alcance: [plan](briefs/plan-tanda-5-meta-gasto-mes.md). La foto antigua de metas vacías no prueba su estado de hoy. | Releer plan contra beta; saldo de meta, bancos asociados, agotamiento y retorno al presupuesto normal. Pasar por `expenseCountsBudget` y espejo servidor. El plan excluye cuenta diaria para evitar cambiar contrato nativo; ampliarlo exigiría APK/decisión. No reescribir todo `monthBudgetStats`. |
-| **PRO-02 · fin de mes en paz** · **CERRADA 15/10** (sustituida por 125/126/134 aprobadas) · **verificado en código el 9/9** | Leído `03-tab-dash.js:83-89`: `pace = gastado/días transcurridos`, `projected = gastado + pace × días que quedan`, `overTrack = projected > presupuesto`, y el titular del estado ya cambia con eso (bien / justo / te pasas). O sea que **la proyección de cierre existe y se pinta**. Lo único que NO consta es que él la haya visto y dicho si le vale. **Ya implementado en parte desde 3.110.** `03-tab-dash` calcula `pace/projected/overTrack`, pinta estado y disponible diario; cash-flow y alarmas por banco también existen. La petición literal de proyección de cierre debe contrastarse con esa UI. | Verificar aceptación de la experiencia existente con datos sintéticos, calendario personalizado y sin ingresos previstos. Solo proponer la diferencia concreta que falte. Explicar supuestos; no presentar previsión como saldo cierto ni duplicar alarmas. |
-| **PRO-03 · recordatorio de recibos grandes** · **verificado en código el 9/9; falta UNA cosa concreta** | Leído `11-app-main.js:1826-1846`: avisa **la víspera** de cada fijo no pagado, y **2–3 días antes** si pasa de un mínimo; las **cuotas de deuda** también avisan la víspera; hay dedupe por mes (`_rc1_<id>_<ym>`) y traspaso de sellos con el `AlertCheckWorker` nativo para no avisar dos veces. **La diferencia que falta es exactamente una:** el aviso dice nombre e importe, pero **no dice si el saldo previsto llega**. Eso es lo que él pidió y es lo único que queda por hacer aquí. **Recordatorios ya implementados.** `11-app-main` avisa la víspera y antes para cargos grandes; envía calendario al `AlertCheckWorker` nativo. Falta acreditar el caso pedido de insuficiencia proyectada en el aviso. | Verificar fecha, banco, saldo proyectado, repetición/cancelación y falta de datos. Reutilizar calendario/worker; no construir otro sistema de avisos ni hacerlo depender de FCM. Si el aviso actual satisface el caso, cerrar con evidencia; si no, acotar solo esa mejora. |
-| **PRO-04 · informe exportable PDF** · **confirmado que falta** | Comprobado el 9/9: no hay **ni una** referencia a `application/pdf`, `jsPDF` ni a generar un `.pdf` en todo `src/` — el importador de PDF que sí existe es de ENTRADA, no de salida. Lo que hay es imagen: `rp_btn` «📸 Informe del mes (imagen)» y `mr_share` «📸 Crear imagen del informe», con guardado en Descargas (`rp_saved`). Informe mensual + compartir PNG implementados en 4.19.12 y aprobados; no rehacerlos. PDF adicional no consta implementado. | Confirmar necesidad del formato y reutilizar datos/render del informe; pruebas de descarga/compartir, tres idiomas y mes sin datos. PDF de salida es distinto del importador PDF, que ya existe. |
-| **PRO-05 · avisos push de nueva versión** | Watcher OTA/notificaciones locales no equivalen por sí solos a push con app cerrada para otros usuarios. Tanda 12. | Auditar canal actual; diseñar FCM o solución compatible con cero dependencias nuevas sin permiso. Permisos, dedup, canal/versiones, baja y pruebas en dispositivo. Credenciales, backend y despliegue requieren aprobación. |
-| **PRO-06 · MyInvestor / inversiones sincronizadas** | Integración existente, reCAPTCHA/fiabilidad por confirmar. Fallback nativo aplazado; CSV/Excel disponible. | Ensayo acotado de la vía actual; si falla reCAPTCHA en móvil, propuesta de WebView en dominio propio del proveedor y APK. API no oficial requiere decisión de alcance; no pedir ni registrar credenciales en repo. No rehacer importadores existentes. |
-| **PRO-07 · pensiones y cuentas de ahorro** | Pedido, sin alcance final ni soporte de proveedor demostrado. Tanda 13. | Modelo y vista de posiciones, aportaciones y datos desconocidos; confirmar qué ofrece proveedor frente a manual/import. Conexión/permiso bancario nuevo se diseña antes de activar. |
-| **PRO-08 · Hogar** | Modelo de compartir y código ya existen ([HOGAR](HOGAR.md), módulo 13). Falta acreditar toda la aceptación con dos usuarios y cerrar diseño si procede. | Matriz cuentas/patrimonio/gastos/fijos, invitación, lectura mutua y descompartir; aislamiento y revocación en entorno de pruebas. Sin escritura cruzada de estado del otro. No presentar como función que hay que construir desde cero. |
-| **PRO-09 · Pregúntame** · **IMPLEMENTADO EN 4.26.3, pendiente de beta** | Ayuda local/offline para presupuesto, recibos, saldos y uso de la app; abre destinos reales sin guardar ni sincronizar. La interpretación remota tiene consentimiento revocable, doble filtro de secretos y respuesta cerrada; 14 E2E cubren privacidad, errores y CPU ×6. | Validar la ayuda local en móvil. La Edge sigue apagada: activar `OPENAI_API_KEY` + `AELY_HELP_AI_ENABLED=true` solo tras aprobar coste y transmisión de la pregunta escrita. No convertirla en asesor financiero ni enviar estado bancario. |
-| **TEC-01 · módulos financieros y adaptadores** | Refactor aplazado, no arreglo urgente. Hay extracción de lógica pura para tests. | Solo tras integridad: plan incremental por dominio y contrato común de bancos, sin dependencia nueva ni reescritura del monolito de una vez. Paridad de datos y cobertura existente. |
-| **TEC-02 · claves i18n presuntamente huérfanas** | [Aparcado deliberadamente](briefs/i18n-orphans-aparcado.md); hay claves dinámicas que el barrido simple no ve. | No borrar masivamente. Si se retoma, demostrar usos dinámicos y mejora real en gzip, tres idiomas y render. |
-| **OPS-06 · la ronda de tortura ANTES de la Play Store** · **NUEVO 12/9, encargo suyo** | Textual, al acabar de reportar que la app se ralentiza exprimiendo el scroll: *«cuando acabemos de implementarlo todo, que no parece ser que sea hoy ni mañana, te pediré que la **destroces**: pruebas de rendimiento a full, probando todo tipo de botones, intentando “hackearla” a ver si hay fallos de seguridad; eso va a ser una tarea intensa y guapa antes de publicarla en la Play Store»*. No es DEC-01 (aquello es marca, precio y condiciones): esto es el **encargo técnico concreto** que va justo antes. | Tres frentes, y el orden importa. **1 · Rendimiento:** el gesto que ya rompe (bajar/subir/scrollear en Gastos hasta que se degrada la app entera) más pestañas, listas largas y meses cargados; medir la PENDIENTE (listeners, nodos, heap, timers vivos), no el frame suelto. **2 · Aporrear:** cada botón, doble toque, gesto a medias, sin red, sesión caducada, banco caído, importar dos veces — que nada deje el estado a medias ni escriba dos veces en la nube. **3 · Seguridad, y ahí se mira lo que hoy nadie mira:** qué guarda `localStorage` y si sobrevive a desinstalar, qué viaja en `app_events`, permisos del `AndroidManifest`, el `applicationId` (⚠ **línea roja: no se toca**), la firma, las claves del cliente de Supabase y qué puede hacer un usuario con ellas, las políticas RLS de cada tabla, y las Edge Functions sin autenticar. ⚠ Con usuarios de fuera, un fallo de RLS deja de ser un susto en familia. |
-| **DEC-01 · marca / Play Store / monetización** | Decisiones futuras del dueño, **Play siempre al final**. Nombre vigente Aely; no renombrar a Alforja. | Antes de publicar/cobrar: elección de marca y comprobaciones actualizadas, condiciones/privacidad/fiscalidad y modelo comercial. No desplegar pagos ni iniciar publicación por este relevo. |
-| **DEC-02 · ideas opcionales** | Logos bancarios autohospedados, más modos sencillo/avanzado y dashboard operativo completo: no comprometidos para esta tarde. | Mantener como opciones; no añadir CDNs, dependencias ni pantallas sin necesidad acordada. |
-
-## Panel de beta: qué queda probar, no qué queda construir
-
-Foto de `npm run listo`, 9/9: **16 tandas: 3 aprobadas, 3 rechazadas y 10 sin veredicto**.
-Los rechazos pertenecen a compilaciones anteriores: hay correcciones posteriores, pero nadie
-puede convertirlas en aprobación por el dueño. La ronda entera sigue bloqueada.
-
-| Estado | Tandas |
-|---|---|
-| Aprobadas, conservar cerradas | `4.19.14/revision-plegable`, `4.19.13/presupuesto-categoria`, `4.19.12/informe-mes` |
-| **Rechazo anterior CON ARREGLO YA EN SU MÓVIL** (rastreado el 9/9) | `4.19.1/avisos-presupuesto` → `2a42e255` y `4.19.0/tr-reactivo` → `ca1f33f3`, las dos dentro de 4.19.14.1. **Puede volver a probarlas sin publicar nada.** |
-| Rechazo anterior, **NO re-ofrecer todavía** | `4.19.2/ventana-mes`: B09-D cerró una causa, pero FIN-05 sigue abierto (respuestas tardías de ingest contra snapshot nuevo). Pedirle que lo pruebe otra vez es hacerle repetir el fallo |
-| Sin veredicto; histórico/efectivo primero necesitan FIN-01/02 | `4.19.11/import-puertas`, `4.19.10/efectivo`, `4.19.9/import-deshacer`, `4.19.8/import-historico` |
-| Sin veredicto restante | `4.19.7/aprobadas-no-vuelven`, `4.19.6/repetido-widget`, `4.19.6/widget-al-volver`, `4.19.1/id-fila`, `4.19.0/categoria-ia`, `4.19.0/orden-gastos` |
-
-## Trabajo ya hecho y correspondencia con las listas antiguas
-
-El inventario de agosto numeraba **1–23**, además de higiene, saldo cruzado y doce puntos del
-crucero. Este cruce impide perder pedidos y también evita implementar dos veces lo terminado.
-
-| Entrada antigua | Destino actual |
-|---|---|
-| Agosto 1 Ajustes Dinero | Limpieza publicada desde 4.14; no volver a construirla. |
-| Agosto 2 doble filtro | UX-05, verificar si ya cerrado. |
-| Agosto 3/4 presupuesto y widget | Alineación y resume implementados; FIN-04/05 y OPS-01/06 pendientes. |
-| Agosto 5 todos los bancos | Selector `expenseBanks` y lista de bancos diarios implementados; no reabrir la decisión de contar todos los diarios salvo neutros. |
-| Agosto 6 histórico | Implementado parcialmente; FIN-02/03/07 y pruebas móviles pendientes. Undo concurrente corregido en 4.19.14. |
-| Agosto 7/8/9/10 | PRO-05 push, PRO-07 pensiones, PRO-06 MyInvestor, UX-03 splash. |
-| Agosto 11/12/13/14/15 | Tendencia y recordatorios **ya tienen implementación**: PRO-02/03 verifican la diferencia pendiente. Límites categoría e informe mensual **aprobados**; PNG **hecho**, PDF PRO-04. |
-| Agosto Hogar | PRO-08, código existente y validación/diseño restante. |
-| Agosto 16/17/18/19/20/21 | SEC-01/02/03; OPS-03; eventos hechos + OPS-04; TEC-01; import PDF/DOCX **hecho para formatos soportados**, backups/UI **hechos** + OPS-02. PDF escaneado no tiene OCR: límite, no feature prometida. |
-| Agosto 22/23 | DEC-01. |
-| Higiene / saldo cruzado adicionales | OPS-05; cierre diario previo corregido, interacción nueva con efectivo FIN-01. |
-| Crucero widget / Revolut negativo / saldo OB-TR | Widget FIN-05; negativo inventado y saldo cruzado tienen fixes publicados. Si reaparecen, reproducir con versión/datos de origen; no aplicar otra compensación automática. |
-| Crucero banco visible / qué cuenta / Movimiento / nuevas categorías / selector banco / calendario | Implementados. Conservar en pruebas de regresión; no nuevas tandas por esas funciones. |
-| Crucero mejor IA / meta / efectivo | Pregúntame implementado en PRO-09; categorías/orden siguen aplicándose solo a nuevos/importados, sin recategorizar pasado. Meta PRO-01 y efectivo FIN-01. |
-| Plan crucero 8 destello / 8 bis gestos nuevos / 9 Ajustes / 11 Hogar / 16 higiene / 17 diseño | Destello y arranque de gestos hechos; stopper distinto UX-01. Ajustes hecho; PRO-08, OPS-05, UX-02. |
-| Backlog julio: cuotas/deudas, onboarding, idiomas, widgets, amortización, ingresos y edición, inversiones, retos, cargos puntuales, cash-flow | Los Projects 1 y 3 figuran todos Done (18 elementos cada uno; se solapan). No hay issues abiertas al consultar. Es inventario histórico, no verificación financiera renovada de cada feature. Round-up (#19) también Done. |
-| Sugerencias app (7 existentes) | Mensaje actualización **corregido** (`bank_upd_one/n`); acceso superior UX-04. Histórico en tres idiomas y lag Deudas: implementados. Icono y retirada de barra de carga tienen fixes documentados; síntoma nativo restante UX-03, marca DEC-01. Ingreso Caixa **corregido** (`ob-ingresos.test.mjs`); diálogo amortización **corregido** (`askText/askConfirm`, 3.100). No reabrir sin evidencia nueva ni borrar el feedback histórico. |
-| Viejas ideas salud, ADR, observabilidad, rendimiento y analytics | Herramientas/instrumentación existentes; no reconstruir. Agregado OPS-04; seguridad y restauración siguen pendientes. Tercer canal Experimental descartado. |
-
-## PR abiertas: revisar el contenido, no fusionar por antigüedad
-
-Foto de GitHub el 9/9. No se han cerrado PR ni borrado ramas en este relevo.
-
-| PR | Tratamiento pendiente |
-|---|---|
-| ~~[#41](https://github.com/JuanjoAvila/Aely/pull/41)~~ · **rescatada, lista para cerrar** | **Medido el 9/9 (`git cherry` + diff por fichero): casi todo incorporado, y su rama va ATRÁS.** Su `EMPIEZA-AQUI.md` **borra** el puntero a este backlog (es anterior). Lo único suyo que no está en beta: la trampa 8 y el incidente «se fusionó en detached HEAD y `beta` no se movió» (8/9). Rescatar esas dos frases sueltas y cerrar. No fusionar la rama. |
-| ~~[#35](https://github.com/JuanjoAvila/Aely/pull/35), efectivo; [#36](https://github.com/JuanjoAvila/Aely/pull/36), edit-link~~ · **CERRADAS el 9/9** con el OK del dueño | **Los dos redundantes, comprobado antes de cerrar.** #36: `git cherry origin/beta` no devuelve NADA — cero commits fuera de beta. #35: su único commit `fb52ee94` sale con `-`, o sea que beta ya tiene su parche equivalente. **Cerrables sin rescatar nada**, con el OK del dueño. Ojo: no reabrirlos encima de FIN-01, que toca justo el efectivo. |
-| ~~[#31](https://github.com/JuanjoAvila/Aely/pull/31)~~ · **rescatada, lista para cerrar** | Código integrado; **fuera de beta queda solo un delta del brief `b09d-codex-resume-categorias.md`, y merece rescate**: el enlace a la ejecución de CI que sí pasó entera (`fc80bf39`) y la revisión de Codex sobre mi propuesta con los **dos defectos reproducidos** que hoy son FIN-04 (decisión de A deshecha por el pull de B; UPDATE que afecta a cero filas sin error). Es evidencia, no opinión: no dejarla morir en una PR cerrada. |
-| ~~[#30](https://github.com/JuanjoAvila/Aely/pull/30)~~ · **rescatada, lista para cerrar** | Medido: `arquitectura-identidad-gastos.md` está en beta pero **DIFIERE** de la versión de la PR — comparar las dos antes de cerrar, no dar por buena la de beta solo por estar. `RELEVO-CLAUDE-CURSOR-2026-09-08.md` y `b09-d-widget-inicio-desacuerdo.md` **no existen en beta**; el primero lo sustituye el relevo del 9/9, el segundo es el desacuerdo técnico del widget y conviene rescatarlo. |
-| ~~[#26](https://github.com/JuanjoAvila/Aely/pull/26)~~ · **rescatada, lista para cerrar** | Medido: sus **tres** briefs (`REANUDAR-CODEX.md`, `canal-equipo.md`, `incidencias-integridad-2026-09-06.md`) **no están en beta**, 308 líneas. El protocolo del canal describe roles ya derogados (Codex coordinando); el de incidencias es forense útil. Rescatar el forense, no el protocolo caduco. |
-| ~~[#24](https://github.com/JuanjoAvila/Aely/pull/24)~~ · **sin nada que rescatar** | Del 18/8, **tres semanas atrás**; sus cinco ficheros difieren de beta y apunta a `main`. Su contenido ya está cruzado en este backlog. Cerrar sin fusionar salvo que el diff enseñe algo que aquí falte. Su frase «directo main» NO autoriza desplegar backend compartido. |
+Este ancla la cita `docs/ROADMAP.md`. Aquel corte (las 14 incidencias INC-2709 y la tabla de
+estado de todos los objetivos) está entero en `git show acae53b68:docs/BACKLOG.md`; cada una de
+sus filas ya está arriba, en Pendiente o en este archivo.
 
 ## Cierre de cada encargo
 
 Registrar **ID, base, SHA/PR, prueba que reproducía el fallo, resultado después, revisión ajena,
-CI y versión realmente publicada**, o bloqueo concreto y trabajo que queda. Sin datos personales
-en el repo público. Implementado no significa probado en Android ni desplegado en Supabase.
-Antes de pedir aprobación móvil: versión exacta, pasos cortos, resultado esperado, límites y
-OTA frente a APK. Solo el dueño cambia el veredicto y decide producción.
-
-**Cerrada el 15/10 en 4.26.79** (ver su fila arriba). Histórico: INC-2909-03: candidata79 injertada sobre Nómina78 final eaf55e4a, sin publicación ni OK móvil; entrega conjunta prevista en beta80.
-Reproducción de puertas banco/Efectivo/tipo y categoría Traspaso, ACK por identidad exacta y no
-operación de efectivo importado explicada. FIN-04/RLS y suma compartida siguen limitados.
-[Contrato, pruebas y coordinación](briefs/inc-2909-03-retirada-caixa.md).
-
-
-Movilidad88 se integra en worktree propio sobre039d; no incorpora arreglos nuevos de los extras3/10 ni acredita aprobación móvil o producción.
-
-Corte4/10 · OPS-0410 panel: PR121 integrado solo beta, CI37198285128 pendiente; cierre93 de dos hallazgos independientes implementado y comprobado, sin añadir otra tanda. Metas mensual automática encargada a Claude en paralelo, versión>=94; no incluida ni declarada completada en este cambio.
-
-## INC-0810 · Recientes de Inicio · candidata106 · APROBADA (auditoría 15/10)
-
-Unidad fuente aislada: hook real conserva derivación al abrir/cerrar presupuesto y se invalida por expenses/deleted. Unidad106 nueva, sin compatibilidad heredada; todos los alcances e identidades anteriores, incluida Inicio96, se conservan. Node/budget preliminares verdes; React A/B3000/5200 CPU×6, CI exacta, revisión y publicación pendientes. INC-2709-09 sigue abierto; no cierre de lag general. [Acta](briefs/inc-0810-dashboard-recents-memo.md).; ronda 2 del ajustador (fuerza y borde con el dedo quieto) en beta 4.26.152 con APK 60, tanda `vibracion-ajustador-r2`, pendiente de su veredicto.
+CI y versión realmente publicada**, o el bloqueo concreto. Al cerrar, la línea pasa de Pendiente
+a «Hecho (archivo)» con su versión: no se escribe un corte fechado nuevo encima, que es lo que
+convirtió este fichero en una pila ilegible. Sin datos personales en el repo público.
+Implementado no significa probado en Android ni desplegado en Supabase.

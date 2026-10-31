@@ -110,7 +110,7 @@ test('FIN19 R3 failed remote delete: widget respects account tombstone and leave
 function mutate(source,from,to){assert.ok(source.includes(from),'mutation anchor');return source.replace(from,to);}
 test('FIN19 R3 cubierta mutations reimport through actual sync and upload',async()=>{
  for(const [mode,from,to] of [
-  ['scopedOnly','hasKey(row) || delSet[key] ||','hasKey(row) ||'],
+  ['scopedOnly','hasKey(row) || delSet[expenseRenameKey(row)] || delSet[key] ||','hasKey(row) || delSet[expenseRenameKey(row)] ||'],
   ['linkOnly','|| vinculado[key] || vinculado[g.scoped+suf]','|| vinculado[g.scoped+suf]']
  ]){
   const r=await noReferenceCase({mode,source:mutate(html,from,to)});

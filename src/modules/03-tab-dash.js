@@ -297,7 +297,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       const amount=occAmountIn(f,cm);
       if(!(amount>0) || !occursIn(f,cm)) return;
       const status=fixedPaymentState(state,f,tt.curYear,cm,today);
-      if(status.paid) return;
+      if(status.paid||fixedPausedIn(f,tt.curYear,cm)) return;
       const row={day:status.day, name:f.name||t("fj_fixed"), sub:(entOf(accOf(f)).label||""), amount:amount, pos:false};
       (status.overdue?overdue:rows).push(row);
     });
@@ -316,6 +316,22 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
     rows.sort(function(a,b){ return (a.day==null?99:a.day)-(b.day==null?99:b.day); });
     return rows.slice(0,3);
   })();
+  /* SIN NADA PENDIENTE ESTE MES (31/10/2026). El vacío «Aún no hay recibos · Conecta tu banco» es
+     para quien empieza; con bancos o recibos, a final de mes le salía a él con todo pagado. Ahora:
+     sin banco ni recibos, el vacío; con algo, los del mes que viene con la misma lectura que Plan
+     (`planChargesMonth`, hoy=0: nada de ese mes ha llegado aún); y si tampoco hay, nada. */
+  const nada=upcoming.length===0&&overdue.length===0;
+  const novato=!(state.obAccounts||[]).length&&!(state.fixed||[]).length&&!(state.oneoffs||[]).length
+    &&!(state.debts||[]).some(debtActive)&&!(state.flows||[]).some(function(f){ return f&&f.kind==="income"; });
+  const sigM=tt.curMonth===12?1:tt.curMonth+1, sigY=tt.curMonth===12?tt.curYear+1:tt.curYear;
+  const nextUp=useMemo(function(){
+    if(!nada||novato) return [];
+    const p=planChargesMonth(state,sigM,sigY,0);
+    return p.pendingBills.concat(p.incomePending).sort(function(a,b){ return (a.day==null?99:a.day)-(b.day==null?99:b.day); }).slice(0,3);
+  },[nada,novato,sigM,sigY,state.fixed,state.debts,state.oneoffs,state.flows,state.bankTx,state.accounts,state.expenses,state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner])
+    // Los textos fuera del memo: cambiar de idioma no toca sus dependencias.
+    .map(function(x){ return {day:x.day, name:x.name, sub:x.kind==="debt"||x.kind==="balloon"?t("fj_debt_tag"):(entOf(x.bank).label||""), amount:Math.abs(x.amount), pos:x.kind==="income"}; });
+  const sigName=monthLong(sigM-1);
 
   // 🎉 Deudas a las que les queda LA ÚLTIMA cuota: alegría en Inicio (petición 2026-07-18
   // «para alegrar un poco el mes»). debtLeft<=1 = la cuota de este mes (o la próxima) es la última.
@@ -339,13 +355,28 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
 
   // Inicio resume tres metas activas; Plan conserva todas sin cambiar su orden ni sus saldos.
   const goals=(state.goals||[]).filter(function(g){ return !g.done; }).slice(0,3);
-  // La fila del banco de una pareja automática (`autoGemelo`) queda oculta: la compra con comercio
-  // ya está en la lista y repetirla enseñaba «Movimiento · Otros» con el mismo importe. Misma regla
-  // que Gastos (visto por el dueño en la beta 4.26.131, 14/10/2026).
-  const recent=useMemo((s=state)=>(s.expenses||[]).filter(e=>!e.autoGemelo&&!expenseIsTombstoned(e,expenseDeletedSet(s))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
-  const ringPct=budAmt>0?Math.max(0,Math.min(1,rem/budAmt)):0;
-  // Un céntimo disponible no debe confundirse con un presupuesto agotado por el redondeo visual.
-  const ringLabel=Math.round(rem*100)>0&&Math.round(ringPct*100)===0?t("v42_cycle_under_one"):Math.round(ringPct*100)+"%";
+  // Lo mismo que abre Gastos, sin lo plegado en sus bloques (`gastosDePortada`): ni la pata de un
+  // traspaso ni la fila del banco de una pareja automática. Deps: lo que leen el filtro de bancos
+  // y el cajón (`expenseBucket` → cuentas, ajustes y recibos).
+  const recent=useMemo(function(){ return gastosDePortada(state,3); },[state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,
+    state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,state.reciboBorrado]);
+  /* El anillo cuenta SIEMPRE lo USADO del límite: de 0 % a 100 % según se gasta y, pasado el límite,
+     sigue subiendo (127 %) en coral. Entre 2798bfda9 y la 4.26.186 pintaba lo que QUEDA por debajo
+     del límite y saltaba de 0 % a 100 % al agotarlo; el dueño lo rechazó (26/10/2026: con 1.436,47
+     de 1.500 debe marcar 96 %). Hacia abajo en el exceso, para que 100,4 % no parezca justo el
+     límite; si redondea a 100 o el límite está todo reservado, «>100 %». Por debajo, nunca «100 %»
+     sin haber llegado al límite (99,6 se queda en 99). */
+  const over=paceState.id==="over";
+  // En céntimos enteros: 1150/1000*100 en coma flotante da 114,99… y saldría «114 %».
+  const usedC=Math.round(spentAgainst*100), limC=Math.round(budAmt*100);
+  const usedExact=limC>0?usedC*100/limC:0;
+  const usedPct=over?(limC>0?Math.floor(usedExact):0):limC>0?Math.min(usedC<limC?99:100,Math.round(usedExact)):0;
+  const ringPct=over?1:limC>0?Math.max(0,Math.min(1,usedC/limC)):0;
+  // Un céntimo usado no debe confundirse con un mes sin empezar por el redondeo visual.
+  const ringLabel=over?(usedPct>100?usedPct+"%":">100%")
+    :usedC>0&&usedPct===0?t("v42_cycle_under_one"):usedPct+"%";
+  const amountTxt=over?cycleMoney(paceState.excess):cycleMoney(rem);
+  const amountOf=tf(over?"v42_cycle_excess_of":"v42_cycle_of",{x:cycleMoney(budAmt)});
   /* P6 — el anillo usa una animación de montaje, con estado final directo si se reduce
      el movimiento. Pausarla hasta que salga el splash evita gastarla detrás de la cortina. */
   const monthName=monthLong(new Date().getMonth());
@@ -419,7 +450,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
          rato, feedback 2026-10-13— y lo dicen el color del anillo y el de la línea «al día». Sigue
          leyéndose entero para lectores de pantalla, con las mismas claves de texto de antes. */
       React.createElement("div",{className:"v4-card v4-budget v42-cycle",role:"button",tabIndex:0,"data-state":paceState.id,
-        "aria-label":tf("v42_cycle_"+paceState.id,{x:cycleMoney(paceState.excess)})+". "+t("v42_remaining")+" "+cycleMoney(rem)+" "+tf("v42_cycle_of",{x:cycleMoney(budAmt)})+
+        "aria-label":tf("v42_cycle_"+paceState.id,{x:cycleMoney(paceState.excess)})+". "+(over?"":t("v42_remaining")+" ")+amountTxt+" "+amountOf+
           (dailyMoney!=null?". "+tf("v42_cycle_daily",{x:dailyMoney})+" "+tf(timing.left===1?"v42_cycle_day":"v42_cycle_days",{n:timing.left}):""),
         style:{color:"var(--"+paceState.tone+")","--cycle-color":"var(--"+paceState.tone+")","--v42-play":splashGone?"running":"paused"},onClick:function(){ setBudgetOpen(true); },
         onKeyDown:function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); setBudgetOpen(true); } }},
@@ -432,8 +463,8 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
           React.createElement("div",{className:"v42-cycle-percent num"},ringLabel.slice(0,-1),React.createElement("span",null,"%"))),
         React.createElement("div",{className:"v4-budget-txt"},
           React.createElement("div",{className:"ph v42-cycle-amount"},
-            React.createElement("span",{className:"serif num",style:{color:paceState.id==="over"?"var(--coral)":"var(--text)"}},cycleMoney(rem)),
-            React.createElement("span",{className:"v42-cycle-of"},tf("v42_cycle_of",{x:cycleMoney(budAmt)}))),
+            React.createElement("span",{className:"serif num",style:{color:over?"var(--coral)":"var(--text)"}},amountTxt),
+            React.createElement("span",{className:"v42-cycle-of"},amountOf)),
           dailyMoney!=null&&React.createElement("div",{className:"v42-cycle-pace","data-testid":"inicio-cycle-pace"},
             React.createElement("b",null,tf("v42_cycle_daily",{x:dailyMoney})),
             " ",tf(timing.left===1?"v42_cycle_day":"v42_cycle_days",{n:timing.left}))
@@ -462,7 +493,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
 
     // Estado vacio en vez de esconder la seccion (P4, spec §27): un Inicio recien instalado se
     // quedaba en hero + «Ultimos movimientos» vacio y no se veia que la app hace mas cosas.
-    !showSkel && upcoming.length===0 && overdue.length===0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".15s"}},
+    !showSkel && nada && novato && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".15s"}},
       React.createElement("div",{className:"v4-section-h"}, React.createElement("span",null, t("v4_upcoming"))),
       React.createElement("div",{className:"v4-empty"},
         React.createElement("div",{className:"em"}, "🧾"),
@@ -474,19 +505,22 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       )
     ),
 
-    !showSkel && upcoming.length>0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".15s"}},
+    !showSkel && (upcoming.length>0||nextUp.length>0) && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".15s"},
+        "data-testid":"inicio-upcoming","data-mes":upcoming.length>0?"este":"siguiente"},
       React.createElement("div",{className:"v4-section-h"},
-        React.createElement("span",null, t("v4_upcoming")),
+        React.createElement("span",null, t("v4_upcoming"),
+          upcoming.length===0&&React.createElement("span",{className:"v4-upcoming-mes","data-testid":"inicio-upcoming-mes"},
+            tf(/^[aeiouàèéíòóú]/i.test(sigName)?"v4_upcoming_in_v":"v4_upcoming_in",{mes:sigName}))),
         // «Ver plan» fuerza el segmento Recibos: sin esto aterrizabas en el último subtab
         // usado (Deudas) — feedback 2026-07-18.
         React.createElement("button",{className:"link",onClick:function(){ if(onGoPlan) onGoPlan("recibos"); }}, t("v4_see_plan"))
       ),
       React.createElement("div",{className:"v4-card",style:{padding:"6px 16px"}},
-        upcoming.map(function(u,i){
+        (upcoming.length>0?upcoming:nextUp).map(function(u,i){
               return React.createElement("div",{key:i,className:"v4-charge"},
                 React.createElement("div",{className:"dt"},
                   React.createElement("div",{className:"d"}, u.day==null?"—":String(u.day).padStart(2,"0")),
-                  React.createElement("div",{className:"m"}, monthName.slice(0,3))
+                  React.createElement("div",{className:"m"}, (upcoming.length>0?monthName:sigName).slice(0,3))
                 ),
                 React.createElement("div",{style:{flex:1,minWidth:0}},
                   React.createElement("div",{className:"nm"}, u.name),
@@ -551,7 +585,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       )
     ),
 
-    !showSkel && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".25s"}},
+    !showSkel && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".25s"},"data-testid":"inicio-recent"},
       React.createElement("div",{className:"v4-section-h"},
         React.createElement("span",null, t("v4_recent")),
         React.createElement("button",{className:"link",onClick:function(){ if(onGoGastos) onGoGastos(); }}, t("v4_all"))

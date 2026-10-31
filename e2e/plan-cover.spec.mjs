@@ -153,7 +153,8 @@ test("marca sin prueba y pendiente se separan sin anillo ni mensaje diagnóstico
   });
   const recibos = page.locator(".v4-screen > [data-seg='recibos']");
   await expect(recibos.locator(".v4-card-hero")).toContainText(/999/);
-  await expect(recibos.getByTestId('plan-unconfirmed')).toContainText(/Por confirmar · 1.*Mini.*1,00/s);
+  // v6: sin cargo del banco detrás va a «Para revisar» y no suma en lo pendiente (antes «Por confirmar»).
+  await expect(recibos.getByTestId('plan-review').locator('[data-review="unconf"]')).toContainText(/Mini.*Sin cargo del banco.*1,00/s);
   await expect(recibos).toContainText(/Ya pagado.*0,00/i);
   await expect(recibos.locator('.v4-paid')).toHaveCount(0);
   await expect(recibos).not.toContainText(/%|sin contar compras del día a día/i);
@@ -168,7 +169,9 @@ test("deuda sin día queda pendiente con —", async ({ page }) => {
   const recibos = page.locator(".v4-screen > [data-seg='recibos']");
   await expect(recibos).toContainText("Sin día");
   await expect(recibos.locator(".v4-charge").filter({ hasText: "Sin día" })).toContainText("—");
-  await expect(recibos.locator(".v4-card-hero")).toContainText(/80.*420|420.*80/s);
+  // v6: la tarjeta suma 80 y la píldora dice si llega (500 − 80 = 420 ≥ 0); el mínimo exacto va a «¿Te llega?».
+  await expect(recibos.locator(".v4-card-hero .serif.num")).toContainText(/80/);
+  await expect(recibos.getByTestId("plan-llega")).toHaveText(/Te llega/);
   await expect(recibos).not.toContainText(/día ya|day already|dia ja/i);
 });
 
@@ -182,8 +185,10 @@ test("una devolución puntual antigua no se descuenta dos veces de la liquidez",
   await expect(hero).toContainText(/0/);
   // El mínimo desde hoy sigue siendo 800: la devolución futura sube a 850 después, pero no
   // puede reescribir hacia arriba el peor momento que ya existe antes de que llegue.
-  await expect(hero).toContainText(/800/);
-  await expect(hero).not.toContainText(/750|850/);
+  // En v6 la tarjeta no pinta ese mínimo (va a «¿Te llega?»): sin recibos pendientes no hay
+  // píldora, y ninguna cifra de la devolución puede colarse en la tarjeta.
+  await expect(hero.getByTestId("plan-llega")).toHaveCount(0);
+  await expect(hero).not.toContainText(/750|850|-50/);
 });
 
 test("la vista normal conserva el segmented compacto de una sola línea", async ({ page }) => {
@@ -204,8 +209,8 @@ test("la portada enseña el saldo más bajo y no el cierre que la nómina maquil
     flows: [{ id: "nom", kind: "income", name: "Nómina", amount: 2000, to: "sabadell", day: 25 }],
   });
   const hero = page.locator('.v4-screen > [data-seg="recibos"] .v4-card-hero');
-  await expect(hero).toContainText(/saldo más bajo de aquí a fin de mes/i);
-  await expect(hero).toContainText(/-200.*el día 15/i);
+  // v6: el día 15 el saldo baja a −200 aunque la nómina del 25 lo maquille a fin de mes: falta 200.
+  await expect(hero.getByTestId("plan-llega")).toHaveText("Falta 200 €");
   await expect(hero).not.toContainText(/1[.]?800/);
 });
 
@@ -221,7 +226,9 @@ for (const caso of [
         oneoffs: [{ id:"dev", name:"Devolución", amount:-50, year:2026, month:9, day:caso.day, account:"sabadell" }],
         settings: { autoPrices:false, theme:"green", lang:"es", simpleMode:simple },
       });
-      const hero=simple?page.locator(".v4-plan-cover-simple"):page.locator('.v4-screen > [data-seg="recibos"] .v4-card-hero');
+      // v6 normal: el mínimo exacto va a «¿Te llega?»; en la tarjeta queda la píldora.
+      if(!simple){ await expect(page.locator('.v4-screen > [data-seg="recibos"]').getByTestId("plan-llega")).toHaveText(/Te llega/); return; }
+      const hero=page.locator(".v4-plan-cover-simple");
       await expect(hero).toContainText(new RegExp(caso.expected));
       await expect(hero).not.toContainText(new RegExp(caso.expected==="750"?"700|650":"750|650"));
     });
@@ -242,7 +249,7 @@ test("marca sin prueba → 0 previsto y confirmación separada, sin NaN ni diagn
   const recibos = page.locator(".v4-screen > [data-seg='recibos']");
   await expect(recibos.locator(".v4-card-hero")).toContainText(/0/);
   await expect(recibos).toContainText(/Nada pendiente|ya no sale/i);
-  await expect(recibos.getByTestId('plan-unconfirmed')).toContainText(/Por confirmar · 1.*Luz.*40,00/s);
+  await expect(recibos.getByTestId('plan-review').locator('[data-review="unconf"]')).toContainText(/Luz.*Sin cargo del banco.*40,00/s);
   await expect(recibos).toContainText(/Ya pagado.*0,00/i);
   await expect(recibos.locator('.v4-paid')).toHaveCount(0);
   await expect(recibos).not.toContainText(/NaN|día ya|day already|dia ja/i);
@@ -350,7 +357,7 @@ test("marca sin prueba sigue visible para confirmar y no añade nómina a los re
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   const recibos = page.locator(".v4-screen > [data-seg='recibos']");
-  await expect(recibos.getByTestId('plan-unconfirmed')).toContainText(/Por confirmar · 1.*Luz.*40,00/s);
+  await expect(recibos.getByTestId('plan-review').locator('[data-review="unconf"]')).toContainText(/Luz.*Sin cargo del banco.*40,00/s);
   await expect(recibos).toContainText(/Ya pagado.*0,00/i);
   await expect(recibos.locator('.v4-paid')).toHaveCount(0);
   await expect(recibos).toContainText("Luz");
@@ -425,7 +432,7 @@ test("hojas BillsItem/BillsAdd son dialog con trap y restauran foco", async ({ p
   await openPlan(page, {
     fixed: [{ id: "luz", name: "Luz", amount: 40, freq: "mes", day: 28, account: "sabadell" }],
   });
-  await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button", { name: /Gestionar/i }).click();
+  await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button", { name: /^Todos$/ }).click();
   const hub = page.locator("[data-bills-manage]");
   await expect(hub).toBeVisible();
   await expect(hub).toHaveAttribute("role", "dialog");
