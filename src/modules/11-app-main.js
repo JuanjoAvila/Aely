@@ -1040,11 +1040,11 @@ function App(){
       /* El acuse de esta respuesta NO se guarda todavía: espera a que el estado que lleva sus
          filas esté escrito (efecto de `obAckPend`, abajo). `at` es la marca que une las dos
          cosas, y se fija aquí fuera porque el updater puede ejecutarse más de una vez. */
-      const at=Date.now(), ack={};
+      const at=Date.now(), ack={}, sync={at:at,id:mcRandomToken()};
       links.forEach(function(l){ if(l&&l.ack) ack[l.aspsp]=l.ack; });
       obAckPend.current={at:at,ack:ack};
       set(function(prev){
-        const txs=flattenBankTx(links, prev.bankTx);
+        const txs=flattenBankTx(links, prev.bankTx, sync);
         // ORDEN anti-doble-conteo: primero entran las compras de tarjeta como gastos, y DESPUÉS
         // se re-ancla con el saldo real del banco (que ya incluye esas compras).
         // `links` lleva el suelo del tramo recuperado (`syncFrom`): sin él, lo anterior al margen se tira.
@@ -1088,7 +1088,7 @@ function App(){
         const now=new Date(), withTx=Object.assign({},withExp,{bankTx:txs});
         const withProofs=reconcileFixedPaymentProofs(withTx,now.getFullYear(),now.getMonth()+1,now.getDate());
         const anchored=reconcileEarlyIncomeAnchors(withProofs,now.getFullYear(),now.getMonth()+1,now.getDate());
-        const r=applyBankBalances(anchored, links);
+        const r=applyBankBalances(anchored, links, sync);
         /* Cuándo se leyó el saldo de cada banco, dicho por el servidor. `last_sync` ya no vale
            para pintarlo: con el tramo antiguo a medias es un cursor que va por detrás. El banco
            que hoy no dio saldo conserva la hora del que sigue en pantalla. */
