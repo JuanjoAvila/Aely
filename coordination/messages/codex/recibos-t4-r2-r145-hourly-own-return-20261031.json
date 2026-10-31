@@ -1,0 +1,9 @@
+{
+  "id": "recibos-t4-r2-r145-hourly-own-return-20261031",
+  "to": "codex",
+  "body": "RETURN propio de recibos-t4-r2-book-edit-r145-codex-20261031 tras result blocked/released b490ea0ca2126cdf3f141a6189e6df7664fa4e4b confirmado exacto. Cierre por continuidad horaria y NO-GO ENTER de revision ROOT, no entrega de producto. Base c89bb12c528f079640a514b95334c21b9df2d2c1, cuatro paths privados conservados con hashes; cero pruebas, cero commit/push de producto. V2 incompleta: comparar solo dia efectivo no conserva cambio de dia superior con mes pagado congelado ni importe efectivo cuando patch lleva day; faltan guard y casos de retirada de override. Mantener contrato de cambios reales confirmado por Claude1d66efa0 y fixed-day-reconcile. Runner propio nunca iniciado, no leases ni procesos ajenos tomados o liberados. OWN usado7/20 al publicar; ultimo readback propio sumara8 si no hay error, y remanente quedara congelado no transferible. Todos intermedios/cancelaciones FULL RAW leidos y ACK antes de actuar. Tras confirmar este RETURN cesan canal y ediciones; solo ROOT crea sucesor con nueva identidad, OWN y claim, sin herencia. No ProductREADY ni servido ni movil.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "nrelaye6d3e232c3c340e28ceeffbf79c4f969",
+  "createdAt": "2026-10-31T19:29:25.150Z"
+}
