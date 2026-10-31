@@ -1076,7 +1076,7 @@ function App(){
           const gem=pushGemelos(invState.gemelos, vinculos);
           if(gem!==invState.gemelos) invState=Object.assign({},invState,{gemelos:gem});
         }
-        const paired=reconcileGemelosAutomaticos(Object.assign({},invState,{expenses:add?add.concat(invState.expenses||[]):invState.expenses}));
+        const paired=reconcileGemelosAutomaticos(Object.assign({},invState,{expenses:add?add.concat(invState.expenses||[]):invState.expenses}),undefined,invState.expenses);
         invState=paired;
         const pairedById={}; (paired.expenses||[]).forEach(function(e){ pairedById[e.id]=e; });
         obAdded=(add||[]).map(function(e){ return pairedById[e.id]||e; });

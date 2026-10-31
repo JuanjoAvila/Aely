@@ -355,6 +355,22 @@ Viaje: en `source` como último tramo `#n2` (`ob:trade_republic#dup#n2`), que un
 
 Un aviso (noti/Wallet) empareja UNA sola vez: `state.gemelos` ({avisoId, aviso, banco}, tope 500, viaja en `app_state` como `deleted`; entre móviles se UNE gane quien gane el estado —`fusionarGemelos` en `syncFromCloud`—, porque un vínculo es un hecho que vio un móvil y el otro no puede desmentir por no tenerlo; en esta rama `deleted` se une por hora mediante `lapidasUnion`, por la dependencia Recibos) se da de alta al marcar «posible repetido» (`gemelosDeImportacion` tras `importObExpenses` y tras el histórico), se conserva al resolver «es el mismo» y se suelta con «son distintos»; `gemeloOtraVia` e `histCandCercanos` saltan los avisos reclamados (`avisosEmparejados`). Borrar a mano un apunte OB o resolver sin gemelo localizable deja `{aviso:"", banco}`; una lápida de ranura 1 sin vínculo es, por tanto, un «es el mismo» de una versión anterior y el importador da por reclamado el primer aviso que casa. El emparejado automático por cuenta de filas decide sobre este mismo vínculo: añade `auto`, `ent`, `at` y `separado`. Agrupa por banco, fecha civil de Madrid e importe en céntimos con signo; cada fila sin id bancario consume como máximo un aviso no manual. Mantiene las dos filas internas, pero el banco lleva `possibleDup` (viaja como `#dup`) y `autoGemelo` local para ocultarlo en Gastos. El arranque y el updater central reconstruyen la marca desde los vínculos; separar levanta ambas marcas, conserva el vínculo y su hora, y gana a una copia antigua. Las uniones solo usan decisiones del mismo titular. `gemelosCambiosNube` compara las filas recibidas con la decisión local para reparar la marca mediante la API existente: es un intento sin acuse de fila, no una confirmación remota. El detalle y el límite de avisos idénticos se conservan en el acta de la candidata. Servidor: `presupuesto.ts` cambiado en la rama, SIN desplegar; un servidor sin él sigue fundiendo las k filas iguales en el widget. Límite que queda: dos AVISOS idénticos (mismo día, importe y comercio) siguen fundiéndose en la nube y al bajar (clave sin id).
 
+El índice incremental de `reconcileGemelosAutomaticos` distingue el array de partida del
+resultado reconciliado. El importador conserva por referencia el índice de aquella entrada y
+las respuestas de grupos intactos obtenidas en una ejecución real. Al repetir una importación
+solo vuelve a emparejar los grupos con altas; también construye la salida completa con las
+respuestas anteriores. Los snapshots superficiales de todas las claves, su orden y sus
+valores detectan también ediciones en sitio; la semilla lee las filas actuales del resultado.
+Nunca declara reconciliada la entrada cruda ni ejecuta por adelantado
+otra reconciliación. El sync pasa su array de partida como tercer argumento, sin introducir
+`prev`: así conserva la regla de avisos históricos de ese segundo recorrido. Sus altas se
+recalculan siempre, incluso si entre ambas llamadas reciben marcas de inversión o deuda.
+Cambios de decisiones, lápidas, absorciones pendientes/confirmadas o propietario invalidan
+las respuestas. Si cambia el array de partida, hay IDs repetidos, claves legacy ambiguas o
+vínculos entre grupos, se conserva el recorrido completo. La salida y los datos originales se
+contrastan en `gemelos-incremental`, con el updater real, 20.000 filas, altas sucesivas,
+mutantes y A/B intercalado; no cambia la regla financiera ni sus topes.
+
 ## Lápidas y contabilidad local (4.26.54)
 
 `expenseCountsBudget` excluye filas cubiertas por `deleted` mediante `expenseIsTombstoned`; presupuesto y categorías heredan el criterio del servidor antes de `statsDelMes`. Gastos y últimos movimientos de Inicio las ocultan sin podar arrays ni borrar por ausencia. Copias de seguridad conservan el histórico crudo. No cambia identidad ni decisiones de duplicados. UUID manual y claves antiguas siguen vigentes. WeakMap indexa cada array `deleted`; los escritores lo reemplazan por copia y los memos de presupuesto dependen de él.

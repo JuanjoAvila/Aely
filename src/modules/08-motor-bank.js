@@ -1554,7 +1554,7 @@ function flattenBankTx(links, previous){
 /* Un único reparto por banco e importe evita que el importador y la reconciliación gasten
    el mismo aviso dos veces. Las parejas automáticas viven en las filas, no en el registro
    acotado de decisiones: 501 parejas no deben expulsarse y recrearse en cada render. */
-const gemeloCache=new WeakMap(), gemeloDatosCache=new WeakMap(), gemeloDiasCache=new Map();
+const gemeloCache=new WeakMap(), gemeloEntradas=new WeakMap(), gemeloDatosCache=new WeakMap(), gemeloDiasCache=new Map();
 // Un comercio real no identifica un gemelo por importe: el extracto de recibos perdió
 // 750,50 al emparejar dos nombres distintos sin id (CI 13/10/2026). Sólo el genérico carece de identidad.
 // Una fila que él marcó como aportación a meta tampoco se esconde sola: su marca se perdería de vista.
@@ -1612,7 +1612,54 @@ function gemeloAsignar(bancos,avisos,ventana){
   });
   return result;
 }
-function reconcileGemelosAutomaticos(s,prev){
+/* El array de partida del importador no es el resultado reconciliado. Recordamos su
+   índice y SOLO respuestas de grupos intactos observadas en una ejecución real; nunca
+   lo marcamos como resuelto ni adelantamos una reconciliación cuyo resultado se pierda. */
+function gemeloEntrada(rows,knownIndex){
+  let entry=gemeloEntradas.get(rows);
+  if(entry&&entry.rows.length===rows.length&&rows.every(function(e,i){
+    if(e!==entry.rows[i])return false;const saved=entry.fields[i],keys=e&&Object.keys(e);
+    return !keys?!saved:!!saved&&keys.length===saved.keys.length&&keys.every(function(k,j){return k===saved.keys[j]&&Object.is(e[k],saved.values[j]);});
+  }))return entry;
+  const groups=new Map(),ids=new Map();let unique=true;
+  if(!knownIndex)rows.forEach(function(e){if(!e||!e.id||ids.has(e.id)){unique=false;return;}ids.set(e.id,e);const k=gemeloDatos(e).grupo;if(!groups.has(k))groups.set(k,[]);groups.get(k).push(e);});
+  else unique=knownIndex.ids.size===rows.length&&rows.every(function(e){return e&&e.id;});
+  const fields=rows.map(function(e){if(!e)return null;const keys=Object.keys(e);return {keys:keys,values:keys.map(function(k){return e[k];})};});
+  entry={rows:rows.slice(),fields:fields,index:knownIndex||{ids:ids,groups:groups},unique:unique,memos:[]};gemeloEntradas.set(rows,entry);return entry;
+}
+function gemeloContextoIgual(a,s){return a.gemelos===s.gemelos&&a.deleted===s.deleted&&a.pending===s.obAbsorbedPending&&a.confirmed===s.obAbsorbedConfirmed&&a.owner===s._historyOwner;}
+function gemeloContexto(s){return {gemelos:s.gemelos,deleted:s.deleted,pending:s.obAbsorbedPending,confirmed:s.obAbsorbedConfirmed,owner:s._historyOwner};}
+function gemeloTrabajo(s,prev,base){
+  const rows=s.expenses,anchor=prev&&prev.expenses||base;if(!Array.isArray(anchor)||!anchor.length||rows.length<anchor.length)return null;
+  const offset=rows.length-anchor.length;if(!anchor.every(function(e,i){return rows[offset+i]===e;}))return null;
+  const entry=gemeloEntrada(anchor);if(!entry.unique)return null;
+  const index={ids:new Map(entry.index.ids),groups:new Map()},added=new Map();let unique=true;
+  rows.slice(0,offset).forEach(function(e){if(!e||!e.id||index.ids.has(e.id)){unique=false;return;}index.ids.set(e.id,e);const k=gemeloDatos(e).grupo;if(!added.has(k))added.set(k,[]);added.get(k).push(e);});
+  if(!unique)return null;
+  added.forEach(function(group,k){index.groups.set(k,group.concat(entry.index.groups.get(k)||[]));});
+  entry.index.groups.forEach(function(group,k){if(!index.groups.has(k))index.groups.set(k,group);});
+  // Una clave legacy sin banco, o un vínculo entre grupos, comparte reservas. En esos
+  // casos se conserva el recorrido completo, incluido su ganador y su orden originales.
+  if((s.gemelos||[]).some(function(g){return g.aviso&&!g.avisoId;}))return null;
+  let independent=true;index.ids.forEach(function(e){
+    const a=index.ids.get(e.autoGemelo),b=index.ids.get(e.possibleDupOf),c=index.ids.get(e.gemeloSeparado),k=gemeloDatos(e).grupo;
+    if(a&&gemeloDatos(a).grupo!==k||b&&gemeloDatos(b).grupo!==k||c&&gemeloDatos(c).grupo!==k)independent=false;
+  });
+  if((s.gemelos||[]).length){
+    const banks=new Map(),deleted=expenseDeletedSet(s);index.groups.forEach(function(group){group.forEach(function(e){if(!expenseIsTombstoned(e,deleted)&&gemeloBancoAutomatico(e))banks.set(expenseBankOf(e)+"|"+keyOfExpense(e),e);});});
+    (s.gemelos||[]).forEach(function(g){const a=index.ids.get(g.avisoId),b=banks.get((g.ent||expenseBankOf(a)||"")+"|"+g.banco);if(a&&b&&gemeloDatos(a).grupo!==gemeloDatos(b).grupo)independent=false;});
+  }
+  if(!independent)return null;
+  const mode=!!prev,marker=gemeloCache.get(anchor),memo=entry.memos.find(function(m){return m.mode===mode&&gemeloContextoIgual(m,s);});
+  const settled=marker&&marker.entrada===entry&&gemeloContextoIgual(marker,s),reused=new Map(),dirty=new Set();
+  index.groups.forEach(function(group,k){const saved=memo&&memo.groups.get(k),original=entry.index.groups.get(k);
+    // Las altas pueden recibir deuda/inversión ENTRE las dos llamadas del sync. Sus
+    // grupos nunca se memorizan como intactos aunque el llamador mute la misma fila.
+    if(!added.has(k)&&original===group&&(saved||settled))reused.set(k,saved||group);else dirty.add(k);
+  });
+  return {entry:entry,index:index,added:added,reused:reused,dirty:dirty,mode:mode};
+}
+function reconcileGemelosAutomaticos(s,prev,baseExpenses){
   s=obPendingAbsorbedState(s,prev);
   const rows=(s&&s.expenses)||[];if(!rows.length)return s;
   const cached=gemeloCache.get(rows);
@@ -1623,11 +1670,14 @@ function reconcileGemelosAutomaticos(s,prev){
     gemeloCache.set(rows,{gemelos:s.gemelos,deleted:s.deleted,index:old.index});return s;
   }
   const prior=old&&prev.gemelos===s.gemelos&&prev.deleted===s.deleted&&old.index;
-  const dirty=new Set(),index={ids:new Map(),groups:prior?new Map(prior.groups):new Map()};
-  rows.forEach(function(e){if(!e)return;index.ids.set(e.id,e);if(!prior||!gemeloMismosCampos(e,prior.ids.get(e.id))){dirty.add(gemeloDatos(e).grupo);if(prior&&prior.ids.has(e.id))dirty.add(gemeloDatos(prior.ids.get(e.id)).grupo);}});
-  if(prior)prior.ids.forEach(function(e,id){if(!index.ids.has(id))dirty.add(gemeloDatos(e).grupo);});
-  dirty.forEach(function(k){index.groups.set(k,[]);});
-  rows.forEach(function(e){if(e&&dirty.has(gemeloDatos(e).grupo))index.groups.get(gemeloDatos(e).grupo).push(e);});
+  const incremental=!prior&&gemeloTrabajo(s,prev,baseExpenses);
+  const dirty=incremental?incremental.dirty:new Set(),index=incremental?incremental.index:{ids:new Map(),groups:prior?new Map(prior.groups):new Map()};
+  if(!incremental){
+    rows.forEach(function(e){if(!e)return;index.ids.set(e.id,e);if(!prior||!gemeloMismosCampos(e,prior.ids.get(e.id))){dirty.add(gemeloDatos(e).grupo);if(prior&&prior.ids.has(e.id))dirty.add(gemeloDatos(prior.ids.get(e.id)).grupo);}});
+    if(prior)prior.ids.forEach(function(e,id){if(!index.ids.has(id))dirty.add(gemeloDatos(e).grupo);});
+    dirty.forEach(function(k){index.groups.set(k,[]);});
+    rows.forEach(function(e){if(e&&dirty.has(gemeloDatos(e).grupo))index.groups.get(gemeloDatos(e).grupo).push(e);});
+  }
   if(prior){
     const split=new Map();let decisions=s.gemelos;
     prior.ids.forEach(function(b){
@@ -1704,10 +1754,21 @@ function reconcileGemelosAutomaticos(s,prev){
     else {delete n.possibleDup;delete n.possibleDupOf;delete n.autoGemelo;}
     if(expenses===rows)expenses=rows.slice();expenses[i]=n;
   });
+  if(incremental&&incremental.reused.size){
+    const answers=new Map();incremental.reused.forEach(function(group){group.forEach(function(e){answers.set(e.id,e);});});
+    rows.forEach(function(e,i){const n=e&&answers.get(e.id);if(n&&n!==e){if(expenses===rows)expenses=rows.slice();expenses[i]=n;}});
+  }
   const out=expenses===rows?s:Object.assign({},s,{expenses:expenses});
   if(expenses!==rows)expenses.forEach(function(e){if(e&&index.ids.get(e.id)!==e)index.ids.set(e.id,e);});
-  dirty.forEach(function(k){index.groups.set(k,index.groups.get(k).map(function(e){return index.ids.get(e.id);}));});
-  gemeloCache.set(out.expenses,{gemelos:out.gemelos,deleted:out.deleted,index:index});return out;
+  (incremental?index.groups:dirty).forEach(function(v,k){const key=incremental?k:v;index.groups.set(key,index.groups.get(key).map(function(e){return index.ids.get(e.id);}));});
+  if(incremental){
+    const memo=Object.assign(gemeloContexto(s),{mode:incremental.mode,groups:new Map()});
+    index.groups.forEach(function(group,k){if(!incremental.added.has(k))memo.groups.set(k,group);});
+    incremental.entry.memos=incremental.entry.memos.filter(function(m){return m.mode!==memo.mode;}).concat([memo]);
+  }
+  // El índice legado puede conservar objetos anteriores en grupos no recalculados
+  // tras una edición de nota/categoría. La nueva semilla siempre lee las filas actuales.
+  gemeloCache.set(out.expenses,Object.assign(gemeloContexto(out),{index:index,entrada:gemeloEntrada(out.expenses,prior?undefined:index)}));return out;
 }
 function gemeloAutomaticoDe(s,e){
   if(!e)return null;
