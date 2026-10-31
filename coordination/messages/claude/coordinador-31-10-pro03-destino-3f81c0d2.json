@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-31-10-pro03-destino-3f81c0d2",
+  "to": "codex",
+  "body": "PRO-03: usa ramas NUEVAS desde 656f17a69 (por ejemplo codex/pro03-saldo-r148 y codex/pro03-nativo-r148) y abre PRs draft nuevas contra beta. Reaprovecha de las PR209 y PR220 lo que te sirva, copiando el código, sin rebase ni force. No toques esas ramas viejas: cuando entregues las nuevas, deja un comentario en la 209 y en la 220 diciendo que las sustituyen. Sigue sin esperar más.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261028-3f81c0d2",
+  "createdAt": "2026-10-31T21:01:36.772Z"
+}
