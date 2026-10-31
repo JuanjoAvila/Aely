@@ -4693,13 +4693,16 @@ function fixedPausa(s, id, from, until){
   });
   if(!changed) return s;
   const next=Object.assign({},s,{fixed:fixed});
-  const e=(s.fixed||[]).find(function(f){return f.id===id;}),f=fixed.find(function(x){return x.id===id;});
+  const matches=(s.fixed||[]).filter(function(x){return x.id===id;}),e=matches[0],f=fixed.find(function(x){return x.id===id;});
+  // Reanudar un ID de recibo ambiguo no permite atribuir el cargo a una fila: tampoco
+  // se compensa otra cuenta por esa operación. Se conserva toda la base entrante (R4).
+  if(matches.length>1&&matches.some(function(x){return fixedPausedIn(x,y,m);})&&!fixedPausedIn(f,y,m)) return next;
   const out=conSaldoMostrado(s,next),origin=e&&e.manualPauseBalance;
   // Borrar la pausa o moverla fuera del mes deshace su vía, no la deduce de una prueba ausente.
   // La marca persiste con el recibo aunque una nota/cliente viejo invalide manualBalanceReads.
   if(e&&f&&(s.fixed||[]).filter(function(x){return x.id===id;}).length===1&&fixedPausedIn(e,y,m)&&!fixedPausedIn(f,y,m)&&origin&&origin.schema===1&&origin.origin==="manual-v1"&&Number.isSafeInteger(origin.ym)&&origin.ym>0&&origin.ym<=ym){
-    // Si otro cliente duplicó el ID ya no sabemos cuál era la fila original: ninguna copia
-    // de esa identidad recibe dinero. Las demás filas siguen la compensación de base.
+    // Si otro cliente duplicó el ID de cuenta, ninguna copia de esa identidad recibe
+    // dinero. Las demás cuentas siguen la compensación de base.
     const restored=Object.assign({},out,{accounts:(out.accounts||[]).map(function(x,i){const a=(s.accounts||[])[i];return a&&a.id===origin.accountId&&a.ent===origin.ent?Object.assign({},x,{value:a.value}):x;})});
     const a=manualBalanceAccount(s,origin.accountId),proof=a&&a.ent===origin.ent&&manualBalanceRead(s,a.id);
     return proof?manualBalanceStage(restored,s,"pause",[{before:manualBalanceModel(a),next:Object.assign({},proof)}]):restored;

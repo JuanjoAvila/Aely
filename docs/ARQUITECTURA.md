@@ -170,6 +170,16 @@ base. La marca se consume al reactivar, también moviendo el intervalo, y no se 
 ausencia de prueba. Conserva el origen mientras la pausa siga vigente al cambiar de mes;
 iniciar otra pausa desde un mes que ya no estaba pausado no lo hereda. Una lectura posterior
 no reclasifica una pausa legada.
+Si el ID del recibo se duplica mientras está pausado, reactivarlo (borrar el intervalo o
+moverlo al futuro o a un intervalo terminado) no compensa ninguna cuenta: conserva todas las
+cuentas entrantes y sus bases exactas, aunque se haya perdido la prueba de lectura. El ID ya no
+permite atribuir el cargo a una fila; por prudencia también se omite la compensación de base
+de otras cuentas en esa operación. No se confunde con duplicar el ID de una cuenta.
+**Límite de clientes antiguos:** un móvil sin actualizar que reanuda una pausa trazable ejecuta
+su propia compensación anterior. El cliente nuevo no puede impedir esa escritura ni garantizar
+que el móvil antiguo respete la marca de origen; conservar campos desconocidos no actualiza
+su lógica de reanudación. Esta protección exige reanudar desde un cliente actualizado y no
+repara datos que otro cliente ya haya escrito.
 TR manual sin puente sí puede
 ser elegible. El calendario compara días de Madrid; si el motor local está en otro día, falla
 prudente. `_savedAt` usa el reloj existente: no garantiza distinguir un cliente antiguo con

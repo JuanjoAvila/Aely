@@ -11,11 +11,12 @@ let core=read('src/modules/00-core.js'),bank=read('src/modules/08-motor-bank.js'
 const pauseSource=process.argv.find(x=>x.startsWith('--pause-source='));
 if(pauseSource){
  const sha=pauseSource.slice('--pause-source='.length);
- assert.equal(sha,'550a9cf47e72aa62d7e190aa2994858ca52c5b6d','única fuente roja rechazada');
+ assert.ok(['550a9cf47e72aa62d7e190aa2994858ca52c5b6d','380121e69b0352be290c7e2b2c7c23b08d966b29'].includes(sha),'fuente roja explícita rechazada');
  const source=execFileSync('git',['show',sha+':src/modules/08-motor-bank.js'],{cwd:new URL('..',import.meta.url),encoding:'utf8',windowsHide:true});
  bank=bank.replace(block(bank,'function fixedPausa('),()=>block(source,'function fixedPausa('));
 }
 const mutations={
+ duplicateReceiptResume:["if(matches.length>1&&matches.some(function(x){return fixedPausedIn(x,y,m);})&&!fixedPausedIn(f,y,m)) return next;",""],
  bareDate:["const a=accounts[0],proof=manualBalanceRead(s,a.id)","const a=accounts[0],proof=manualBalanceModel(a)"],
  sameDay:["read.d>=day","read.d>day"],
  uniqueBank:["if(accounts.length!==1||!Number.isInteger(day)","if(accounts.length<1||!Number.isInteger(day)"],
@@ -87,7 +88,26 @@ function harness(s=fixture(),baseline=false){
  return h;
 }
 function beforeDue(account={},receipt={}){clock('2026-10-01T12:00:00Z');const h=harness(fixture(account,receipt));h.read();clock('2026-10-18T12:00:00Z');return h;}
-async function check(name,fn){if(process.argv.includes('--roundtrip-only')&&!name.startsWith('roundtrip'))return;await fn();count++;console.log('PASS '+name);}
+async function check(name,fn){if(process.argv.includes('--roundtrip-only')&&!name.startsWith('roundtrip'))return;if(process.argv.includes('--r4-only')&&!name.startsWith('R4:'))return;if(process.argv.includes('--r4-guardians-only')&&!/^(roundtrip|reanudar restaura|B1:|origen nuevo conserva|pausa nueva continua|cuentas ambiguas|días Madrid)/.test(name))return;await fn();count++;console.log('PASS '+name);}
+await check('R4: reanudar ID de RECIBO duplicado conserva todas las cuentas entrantes exactas',()=>{
+ const cur=2026*12+10;
+ for(const target of [[0,0],[cur+1,cur+2],[cur-2,cur]])for(const proof of ['íntegra','perdida'])for(const extra of ['otro banco','mismo banco']){
+  const h=beforeDue();h.pause();assert.equal(h.shown(),100000);assert.ok(h.s.fixed[0].manualPauseBalance,'pausa manual trazable primero');
+  h.s=copy(h.s);h.s.fixed.push(copy(h.s.fixed[0]));
+  assert.equal(!!h.c.manualBalanceRead(h.s,'a'),true,'duplicar RECIBO conserva la prueba íntegra');
+  h.s.accounts.push({id:'b',ent:extra==='mismo banco'?'sabadell':'revolut',role:'fijos',value:432.17});
+  if(proof==='perdida'){tick();h.set(s=>Object.assign({},s,{note:'edición ajena'}));assert.equal(h.c.manualBalanceRead(h.s,'a'),null);}
+  else assert.ok(h.c.manualBalanceRead(h.s,'a'),'la cuenta original mantiene prueba');
+  const incoming=copy(h.s),values=incoming.accounts.map(a=>cents(a.value)),label=JSON.stringify({target,proof,extra});
+  assert.deepEqual(values,[100000,43217],'entrada exacta: '+label);
+  h.pause(...target);
+  assert.deepEqual(copy(h.s.accounts),incoming.accounts,'CERO compensación en cualquier cuenta: '+label);
+  assert.deepEqual(h.s.accounts.map(a=>cents(a.value)),values,'céntimos entrantes exactos: '+label);
+  assert.equal(h.shown(),extra==='mismo banco'?94804:97402,'proyección de los dos recibos sin sumar a la base: '+label);
+  assert.equal(h.s.fixed.length,2);assert.ok(h.s.fixed.every(f=>!h.c.fixedPausedIn(f,2026,10)&&!f.manualPauseBalance),'reactiva ambas filas y consume origen');
+  const resumed=h.s;h.pause(...target);assert.equal(h.s,resumed,'repetir no refecha ni compensa');
+ }
+});
 await check('writer + set + callback reales: RED corregido, pausa, persistencia y reanudar',()=>{
  const h=beforeDue(),{c}=h;assert.equal(h.shown(),98701);assert.ok(c.manualBalanceRead(h.s,'a'));
  const original=h.s;Object.assign(c,{f:h.s.fixed[0],pagado:false,cur:2026*12+10,pausaChips:[],t:x=>x,tf:x=>x,cerrarCon:()=>{},row:{name:'Cuota sintetica'},set:h.set});
