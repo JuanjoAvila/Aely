@@ -1,0 +1,62 @@
+{
+  "status": "done",
+  "summary": "PR332 R4/R5 remates: reanudar fixed.id duplicado conserva todas las cuentas entrantes sin compensacion. Limite de reanudacion desde cliente antiguo documentado en ARQUITECTURA. Un commit revisado y push normal fast-forward confirmados a la misma rama de PR332. Cinco corridas dirigidas coinciden con sus resultados esperados, sin retries ni suite entera.",
+  "productSHA": "f39494e0e11a2de0a354f5f432396b86af6ded00",
+  "productTree": "06517af87ac87cccced07fa5c066fb2d690f19a6",
+  "baseSHA": "380121e69b0352be290c7e2b2c7c23b08d966b29",
+  "PR": 332,
+  "targetBranch": "codex/recibos-manual-pausa-r145",
+  "tests": [
+    {
+      "command": "TZ=UTC node tests/recibos-manual-pausa.test.mjs --r4-only --pause-source=380121e69b0352be290c7e2b2c7c23b08d966b29",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "result": "RED causal esperado: deepEqual CERO compensacion, diferencia sintetica 2598 centimos en primera iteracion; no fallo de loader ni sintaxis"
+    },
+    {
+      "command": "TZ=UTC node tests/recibos-manual-pausa.test.mjs --r4-only",
+      "exitCode": 0,
+      "result": "GREEN: 1 grupo, 12 casos"
+    },
+    {
+      "command": "TZ=UTC node tests/recibos-manual-pausa.test.mjs duplicateReceiptResume --r4-only",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "result": "Mutante causal esperado: elimina solo nuevo guard; mismo deepEqual y diferencia sintetica 2598 centimos"
+    },
+    {
+      "command": "TZ=UTC node tests/recibos-manual-pausa.test.mjs --r4-guardians-only",
+      "exitCode": 0,
+      "result": "7 grupos afectados"
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/recibos-manual-pausa.test.mjs --r4-guardians-only",
+      "exitCode": 0,
+      "result": "7 grupos afectados"
+    }
+  ],
+  "normalFastForwardPushExitCode": 0,
+  "remoteReadbackExact": true,
+  "workingTreeClean": true,
+  "retries": 0,
+  "unexpectedOutcomes": 0,
+  "resourcesReturned": {
+    "ownRunnerFinished": true,
+    "foreignProcessesTouched": false,
+    "foreignLeasesClaimedOrReleased": false,
+    "R2HoldPreserved": true
+  },
+  "limitations": [
+    "Un cliente nuevo no puede impedir una escritura de reanudacion ejecutada por un movil sin actualizar; no hay reparacion de datos ya escritos.",
+    "Guard conservador de reanudacion duplicada omite compensacion de todas las cuentas de esa operacion, incluidas otras cuentas del mismo banco.",
+    "No suite completa, build, Chromium propio, backend, SQL, Edge, Gradle, deploy ni merge; no nuevas pruebas fuera de las cinco autorizadas.",
+    "Metadata PR gestionada por ROOT; no se acredita integracion, servido, CI posterior ni aceptacion movil. No ProductREADY.",
+    "Resultados anteriores conservados; no se repiten las 17 corridas anteriores ni se afirma nueva suite de 86."
+  ],
+  "schema": 1,
+  "taskId": "pr332-duplicate-fixed-id-r4r5-r145-codex-20261031",
+  "actor": "codex",
+  "sessionId": "nrelayba897d261ddbf4b61b3de9f07e0f5b94",
+  "createdAt": "2026-10-31T19:13:43.146Z",
+  "released": true
+}
