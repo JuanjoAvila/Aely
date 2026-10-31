@@ -294,7 +294,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
     const cm=tt.curMonth;
     const rows=[];
     (state.fixed||[]).forEach(function(f){
-      const amount=occAmountIn(f,cm);
+      const amount=occAmountIn(f,cm,tt.curYear);
       if(!(amount>0) || !occursIn(f,cm)) return;
       const status=fixedPaymentState(state,f,tt.curYear,cm,today);
       if(status.paid||fixedPausedIn(f,tt.curYear,cm)) return;

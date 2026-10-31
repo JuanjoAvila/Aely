@@ -2421,7 +2421,7 @@ function App(){
     // --- MOTOR DINÁMICO: cargos de fijos que tocan ESTE mes, por banco ---
     // Un recibo en pausa (y sin cobrar) no se cobra este mes: ni suma ni baja el saldo previsto.
     const fijoDelMes=e=> occursIn(e,curMonth) && !fixedEnPausa(state,e,curYear,curMonth,today);
-    const fijosEsteMes=state.fixed.reduce((a,e)=> fijoDelMes(e) ? a+occAmountIn(e,curMonth) : a, 0);
+    const fijosEsteMes=state.fixed.reduce((a,e)=> fijoDelMes(e) ? a+occAmountIn(e,curMonth,curYear) : a, 0);
     const cargosMes=fijosEsteMes+cuotas;                 // fijos del mes + cuotas de deuda (todos los bancos)
     // saldo disponible por banco (la cuenta de gasto descuenta el gasto del mes)
     const bankBal={};
@@ -2433,7 +2433,7 @@ function App(){
     const acc=(amt,bank,paid)=>{ chargesByBank[bank]=(chargesByBank[bank]||0)+amt;
       if(paid){ paidThisMonth+=amt; }
       else { pendingThisMonth+=amt; pendingByBank[bank]=(pendingByBank[bank]||0)+amt; } };
-    state.fixed.forEach(e=>{ if(fijoDelMes(e)) acc(occAmountIn(e,curMonth),accOf(e),isPaidIn(e,curMonth,today,curYear,state)); });
+    state.fixed.forEach(e=>{ if(fijoDelMes(e)) acc(occAmountIn(e,curMonth,curYear),accOf(e),isPaidIn(e,curMonth,today,curYear,state)); });
     state.debts.forEach(d=>{ if(debtActive(d)) acc((d.monthly||0)+debtBalloonIn(d,curYear,curMonth),d.account||"sabadell",isDebtPaidThisMonth(d,today,state,curYear,curMonth)); });
     (state.oneoffs||[]).forEach(o=>{ if(oneoffOccurs(o,curYear,curMonth) && (o.amount||0)!==0) acc(o.amount,o.account||"sabadell",isPaidThisMonth(o,today)); });
     // --- CASH-FLOW: ingresos (nómina) y transferencias recurrentes PENDIENTES este mes ---
@@ -2768,7 +2768,7 @@ function App(){
     (state.fixed||[]).forEach(function(e){
       // Pausado = este mes no se cobra: avisar la víspera de algo que no llega sería mentir.
       if(!occursIn(e,cm)||fixedPausedIn(e,cy,cm)) return;
-      const d=dayIn(e,cm); const amt=occAmountIn(e,cm)||0;
+      const d=dayIn(e,cm,cy); const amt=occAmountIn(e,cm,cy)||0;
       if(d==null||!(amt>0)) return;
       charges.push({id:String(e.id),name:e.name||"Recibo",amount:+amt.toFixed(2),day:d});
     });
@@ -2800,9 +2800,9 @@ function App(){
     const run=function(){
       (state.fixed||[]).forEach(function(e){
         if(!occursIn(e,cm)||fixedPausedIn(e,cy,cm)) return;
-        const d=dayIn(e,cm); if(d==null) return;
+        const d=dayIn(e,cm,cy); if(d==null) return;
         if(isPaidIn(e,cm,today,cy,state)) return;
-        const amt=occAmountIn(e,cm)||0;
+        const amt=occAmountIn(e,cm,cy)||0;
         if(!(amt>0)) return;
         const daysLeft=d-today;
         if(daysLeft===1){

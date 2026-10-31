@@ -1064,6 +1064,70 @@
   .pr6-pausa{flex-direction:row;flex-wrap:wrap;gap:6px;}
   .pr6-ficha .pr6-fold.open .pr6-pausa{padding:8px 0 2px;}
   .pr6-skip .pr6-nm,.pr6-skip .am{text-decoration:line-through;}
+  /* Añadir / editar por pasos (SPEC §7, tanda 4): el mismo carril de la ficha con cinco pasos;
+     el que no se ve se pliega en alto. El botón de abajo va pegado para que no lo tape el teclado. */
+  .v4-sheet.rp4{padding-bottom:0;}
+  .rp4-top{display:flex;align-items:center;gap:14px;padding:0 20px 10px;}
+  .rp4-prog{flex:1;display:flex;gap:6px;}
+  .rp4-prog i{flex:1;height:4px;border-radius:2px;background:var(--line);position:relative;overflow:hidden;}
+  .rp4-prog i::after{content:"";position:absolute;inset:0;background:var(--mint);transform:scaleX(0);transform-origin:left;transition:transform .36s var(--ease);}
+  .rp4-prog i.on::after{transform:scaleX(1);}
+  .rp4-h{margin:0;font-size:24px;font-weight:600;font-family:'Fraunces',Georgia,serif;outline:none;}
+  .rp4-step{padding-bottom:12px;}
+  .rp4-dim{color:var(--muted);font-weight:600;}
+  .rp4-dup{display:flex;align-items:center;gap:10px;width:100%;padding:12px 14px;border-radius:16px;border:1px solid var(--line-soft);background:var(--surface-2);color:inherit;font:inherit;text-align:left;cursor:pointer;}
+  .rp4-dup-t{flex:1;min-width:0;font-size:14px;font-weight:700;}
+  .rp4-dup-go{color:var(--mint-bright);font-size:14px;font-weight:800;}
+  .rp4-visto{display:flex;flex-direction:column;gap:8px;}
+  .pr6-dt.rp4-dt-s{width:42px;height:44px;border-radius:12px;background:var(--bg);}
+  .pr6-dt.rp4-dt-s .d{font-size:17px;}
+  .pr6-dt.rp4-dt-s .m{font-size:9px;}
+  .rp4-sugs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+  .rp4-sug{display:flex;align-items:center;gap:10px;height:48px;padding:0 12px;border-radius:16px;border:1px solid var(--line-soft);background:var(--surface);color:var(--text);
+    font:inherit;font-size:15px;font-weight:700;text-align:left;cursor:pointer;transition:border-color .2s ease,background .2s ease;}
+  .rp4-sug.on{border-color:var(--mint);background:var(--surface-2);}
+  .rp4-sug-i{font-size:18px;line-height:1;}
+  .rp4-amt{display:flex;flex-direction:column;align-items:center;gap:8px;padding:6px 0 4px;}
+  .rp4-amt-v{font-size:44px;font-weight:600;border-radius:12px;padding:0 8px;transition:background .2s ease;}
+  .rp4-amt-v.fresh{background:var(--surface-2);}
+  .rp4-var,.rp4-mode,.rp4-mes{border:1px solid var(--line-soft);background:var(--surface);color:var(--text);font:inherit;font-weight:700;cursor:pointer;
+    transition:background .2s ease,color .2s ease,border-color .2s ease;}
+  .rp4-var{height:36px;padding:0 14px;border-radius:18px;font-size:13px;color:var(--muted);}
+  .rp4-var.on{border-color:var(--mint);color:var(--mint-bright);background:var(--surface-2);}
+  .rp4-freqs,.rp4-modes,.rp4-scope{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+  .rp4-mode{min-height:50px;padding:0 10px;border-radius:16px;font-size:15px;}
+  .rp4-mode.on{border-color:var(--mint);background:var(--surface-2);color:var(--mint-bright);}
+  .rp4-mode:disabled{opacity:.4;cursor:default;}
+  .rp4-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;}
+  .rp4-day{height:42px;border-radius:12px;border:0;background:var(--surface);color:var(--text);font:inherit;font-size:15px;font-weight:700;cursor:pointer;
+    transition:background .2s ease,color .2s ease,transform .2s var(--ease);}
+  .rp4-day.on{background:var(--mint);color:var(--on-mint);transform:scale(1.08);}
+  .rp4-pagos{gap:10px;}
+  .rp4-pago{display:flex;flex-direction:column;gap:10px;padding:12px;border-radius:18px;background:var(--surface-2);}
+  .rp4-pago-h{display:flex;align-items:center;gap:10px;}
+  .rp4-pago-n{width:26px;height:26px;flex:none;border-radius:13px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--muted);}
+  .rp4-pago-f{flex:1;font-size:15px;font-weight:700;}
+  .rp4-pago-a{font-family:'Fraunces',Georgia,serif;font-size:18px;font-weight:600;padding:4px 10px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--text);cursor:pointer;}
+  span.rp4-pago-a{border-style:dashed;}
+  .rp4-pago-a.on{border-color:var(--mint);}
+  .rp4-x{width:32px;height:32px;flex:none;border-radius:16px;border:0;background:var(--bg);color:var(--muted);font-size:18px;cursor:pointer;}
+  .rp4-meses{display:flex;flex-wrap:wrap;gap:6px;}
+  .rp4-mes{height:32px;padding:0 10px;border-radius:16px;font-size:13px;text-transform:capitalize;}
+  .rp4-mes.on{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
+  .rp4-mes:disabled{opacity:.35;cursor:default;}
+  .rp4-dia-row{display:flex;align-items:center;justify-content:center;gap:18px;}
+  .rp4-step-btn{width:44px;height:44px;border-radius:22px;border:1px solid var(--line);background:var(--surface);color:var(--text);font-size:22px;font-weight:700;cursor:pointer;
+    touch-action:manipulation;-webkit-user-select:none;user-select:none;}
+  .rp4-dia-v{min-width:72px;text-align:center;font-size:16px;font-weight:700;}
+  .rp4-rows{display:flex;flex-direction:column;border-radius:18px;background:var(--surface-2);overflow:hidden;}
+  .rp4-row{display:flex;align-items:center;gap:10px;min-height:52px;padding:0 14px;border:0;border-top:1px solid var(--line-soft);background:transparent;color:var(--text);font:inherit;text-align:left;cursor:pointer;}
+  .rp4-row:first-child{border-top:0;}
+  .rp4-row:disabled{cursor:default;}
+  .rp4-row-k{flex:none;font-size:14px;color:var(--muted);font-weight:700;}
+  .rp4-row-v{flex:1;min-width:0;text-align:right;font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .rp4-foot{position:sticky;bottom:0;padding:10px 20px calc(14px + var(--safe-bottom));background:var(--bg-2);}
+  .rp4-cta{width:100%;height:52px;transition:opacity .2s ease;}
+  .rp4-cta:disabled{opacity:.35;cursor:default;}
   /* «¿Te llega?» (SPEC §4): la píldora abre la hoja; bloques por banco en surface-2 como el prototipo. */
   button.pr6-pill{border:0;font-family:inherit;text-align:left;cursor:pointer;}
   .pr6-pill-go{flex:none;margin-left:auto;color:var(--muted);}
@@ -1578,7 +1642,7 @@
   .v4-bills-push[data-covered]{overflow-y:hidden;}
   /* El contenido de estas hijas también entrega sus bordes al navegador. La promoción de
      capa solo hace falta durante el arrastre/salida; no mantener una textura en reposo. */
-  .v4-sheet[data-sheet="bill"],.v4-sheet[data-sheet="bill-add"]{will-change:auto;}
+  .v4-sheet[data-sheet="bill"],.v4-sheet[data-sheet="bill-add"],.v4-sheet[data-sheet="recibo-pasos"]{will-change:auto;}
   /* La subpantalla queda por encima del hub para que Atrás enseñe su destino mientras acompaña
      al dedo, igual que Inversiones. Ella es su propio scroller y no dibuja barra lateral. */
   /* Un píxel de recorrido conserva la ola también con una cartera vacía, sin alterar el aspecto. */

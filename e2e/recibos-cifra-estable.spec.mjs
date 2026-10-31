@@ -26,7 +26,8 @@ const debts = [{ id: "coche", name: "Préstamo coche", monthly: 100, value: 2400
 const A_MANO = 50 + 40 + 666.36 / 12 + (172.05 + 166.94) / 12 + 100;   // 273,78
 
 const hub = (page) => page.locator("[data-bills-manage]");
-const ficha = (page) => page.locator('.v4-sheet[data-sheet="bill"]');
+// Un recibo se abre en la hoja por pasos (Plan › Recibos v6, tanda 4): mirarlo tampoco escribe.
+const ficha = (page) => page.locator('.v4-sheet[data-sheet="recibo-pasos"]');
 const num = (s) => Number(String(s).replace(/[^\d,]/g, "").replace(",", "."));
 const cifra = async (page) => num(await hub(page).locator(".v4-bills-hero-amt").innerText());
 const grupo = async (page, id) => num(await hub(page).locator(`.v4-bills-group[data-group="${id}"] .v4-bills-group-amt`).innerText());
@@ -53,7 +54,7 @@ test("la cabecera cuadra con sus grupos y con la cuenta a mano, antes y después
   await hub(page).locator('.v4-bills-group[data-group="serv"]').click();
   await hub(page).locator(".v4-bills-row").filter({ hasText: "IBI" }).click();
   await expect(ficha(page)).toBeVisible();
-  await ficha(page).locator(".settings-push-h .back").evaluate((el) => el.click());
+  await ficha(page).locator('[data-act="back"]').evaluate((el) => el.click());
   await expect(ficha(page)).toHaveCount(0, { timeout: 3000 });
   await hub(page).locator(".settings-push-h .back").last().evaluate((el) => el.click());
   await expect(hub(page).locator('.settings-push [data-screen="bills-group"]')).toHaveCount(0, { timeout: 3000 });

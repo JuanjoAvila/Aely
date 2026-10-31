@@ -1,5 +1,7 @@
-/* UX08: cadena real de scroll y posición al volver. La ola dibujada por Android
-   se acepta en el dispositivo; estos oráculos solo establecen sus condiciones web. */
+/* UX08: cadena real de scroll y posición al volver. Las fichas que se miden son las de «lo que
+   entra» (la ficha de siempre); recibos y puntuales se editan en la hoja por pasos (tanda 4), que
+   comparte los mismos ganchos de gesto. El alta sí es la hoja por pasos. La ola dibujada por
+   Android se acepta en el dispositivo; estos oráculos solo establecen sus condiciones web. */
 import {test,expect} from '@playwright/test';
 import crypto from 'node:crypto';
 import {seedLoggedInDashboard,installFixtureClock,dismissNews,esperaNubeQuieta} from './fixtures.mjs';
@@ -7,7 +9,7 @@ const hub='[data-bills-manage]', child=hub+' > .settings-push', plan='.page.page
 const raw=page=>page.evaluate(()=>({main:localStorage.getItem('micartera_v3'),expenses:localStorage.getItem('micartera_v3_exp')}));
 async function snap(page){return page.evaluate(({hub,child,plan})=>{
   const metric=el=>{if(!el)return null;const c=getComputedStyle(el),r=el.getBoundingClientRect();return {tag:el.tagName,cls:el.className,top:r.top,left:r.left,width:r.width,height:r.height,scroll:el.scrollTop,max:el.scrollHeight-el.clientHeight,overflow:c.overflow,overscroll:c.overscrollBehaviorY,touch:c.touchAction,transform:c.transform,willChange:c.willChange};};
-  return {plan:metric(document.querySelector(plan)),anchor:metric(document.querySelector('.v4-screen > [data-seg="recibos"]')),hub:metric(document.querySelector(hub)),child:metric(document.querySelector(child)),sheet:metric(document.querySelector('[data-sheet="bill"],[data-sheet="bill-add"]')),root:metric(document.scrollingElement),body:metric(document.body),app:metric(document.querySelector('.app')),htmlClasses:document.documentElement.className};
+  return {plan:metric(document.querySelector(plan)),anchor:metric(document.querySelector('.v4-screen > [data-seg="recibos"]')),hub:metric(document.querySelector(hub)),child:metric(document.querySelector(child)),sheet:metric(document.querySelector('[data-sheet="bill"],[data-sheet="bill-add"],[data-sheet="recibo-pasos"]')),root:metric(document.scrollingElement),body:metric(document.body),app:metric(document.querySelector('.app')),htmlClasses:document.documentElement.className};
 },{hub,child,plan});}
 async function settle(page){await page.evaluate(()=>new Promise(resolve=>{let last='',same=0,n=0;function tick(){const els=[document.scrollingElement,...document.querySelectorAll('.page-scroll-host,[data-bills-manage],.v4-bills-push,.v4-sheet')];const now=els.map(e=>e.scrollTop+':'+e.getBoundingClientRect().y).join(',');same=now===last?same+1:0;last=now;if(same>=12||++n>180)resolve();else requestAnimationFrame(tick);}requestAnimationFrame(tick);}));}
 async function swipe(page,x,y,dx,dy,end='touchEnd'){
@@ -63,7 +65,7 @@ test('close jump: volver conserva scroll y anclas de Plan desde Gestionar despla
 });
 test('native wave: ficha permite el gesto vertical en el borde superior del contenido',async({page},info)=>{
   await begin(page,info);await record(page,info,async capture=>{
-    await manage(page);await page.locator(hub+' button[data-group="serv"]').tap();await expect(page.locator(child)).toBeVisible();await settle(page);
+    await manage(page);await page.locator(hub+' button[data-group="in"]').tap();await expect(page.locator(child)).toBeVisible();await settle(page);
     await page.locator(child+' .v4-bills-row').first().tap();await expect(page.locator('[data-sheet="bill"]')).toBeVisible();await settle(page);await capture('sheet-open');
     await swipe(page,300,400,0,100,'touchCancel');await capture('sheet-after-cancel');
     const c=await page.context().newCDPSession(page);await c.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:300,y:400}]});await c.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:300,y:450}]});await page.evaluate(()=>new Promise(r=>requestAnimationFrame(r)));
@@ -81,8 +83,8 @@ test('native wave: ficha permite el gesto vertical en el borde superior del cont
   });
 });
 test('close jump: ficha desplazada vuelve a la misma categoría y Plan',async({page},info)=>{
-  await begin(page,info);await record(page,info,async capture=>{
-    await manage(page);await swipe(page,220,580,0,-380);await page.locator(hub+' button[data-group="serv"]').tap();await expect(page.locator(child)).toBeVisible();await settle(page);
+  await begin(page,info,true);await record(page,info,async capture=>{
+    await manage(page);await swipe(page,220,580,0,-380);await page.locator(hub+' button[data-group="in"]').tap();await expect(page.locator(child)).toBeVisible();await settle(page);
     await swipe(page,220,600,0,-400);const before=await capture('category-before-detail');
     // Elegir una fila realmente visible sin desplazamiento de Playwright al enfocarla.
     const idx=await page.locator(child+' .v4-bills-row').evaluateAll(els=>els.findIndex(e=>{const r=e.getBoundingClientRect();return r.top>180&&r.bottom<600;}));expect(idx).toBeGreaterThanOrEqual(0);
@@ -94,7 +96,7 @@ test('close jump: ficha desplazada vuelve a la misma categoría y Plan',async({p
 });
 test('close jump: cancelar un segundo toque no devuelve la ficha que ya está saliendo',async({page},info)=>{
   await begin(page,info);await record(page,info,async capture=>{
-    await manage(page);await page.locator(hub+' button[data-group="serv"]').tap();await expect(page.locator(child)).toBeVisible();await settle(page);
+    await manage(page);await page.locator(hub+' button[data-group="in"]').tap();await expect(page.locator(child)).toBeVisible();await settle(page);
     await page.locator(child+' .v4-bills-row').first().tap();await expect(page.locator('[data-sheet="bill"]')).toBeVisible();await settle(page);
     await swipe(page,300,600,0,-350);const before=await capture('scrolled-before-close');expect(before.sheet.scroll).toBeGreaterThan(0);
     await page.evaluate(()=>{window.__exitFrames=[];function frame(){const s=document.querySelector('[data-sheet="bill"]'),p=document.querySelector('.page-scroll-host'),a=document.querySelector('.v4-screen > [data-seg="recibos"]');window.__exitFrames.push({t:performance.now(),y:s?.getBoundingClientRect().y,scroll:s?.scrollTop,transform:s?.style.transform,plan:p.scrollTop,anchor:a.getBoundingClientRect().y});if(s)requestAnimationFrame(frame);}requestAnimationFrame(frame);});
@@ -117,12 +119,12 @@ test('native wave: alta desplazable conserva el formulario, los bordes y el regr
   await page.setViewportSize({width:393,height:500});await begin(page,info);await record(page,info,async capture=>{
     await manage(page);await page.locator(hub+' button[data-group="serv"]').tap();await expect(page.locator(child)).toBeVisible();await settle(page);
     const before=await capture('category-before-add');await page.locator(child+' [data-act="bill-add"]').tap();
-    const add=page.locator('[data-sheet="bill-add"]');await expect(add).toBeVisible();await add.locator('input').fill('Borrador sintético');await add.locator('[data-act="next"]').tap();await expect(add).toHaveAttribute('data-step','amount');await settle(page);
+    const add=page.locator('[data-sheet="recibo-pasos"]');await expect(add).toBeVisible();await add.locator('input').fill('Borrador sintético');await add.locator('[data-act="next"]').tap();await expect(add).toHaveAttribute('data-paso','1');await settle(page);
     const opened=await capture('add-amount');expect(opened.sheet.max).toBeGreaterThan(0);
     await swipe(page,360,450,0,-250);await swipe(page,360,450,0,-250);const bottom=await capture('add-bottom');expect(bottom.sheet.scroll).toBe(bottom.sheet.max);
     await swipe(page,360,160,0,250);await swipe(page,360,160,0,250);const top=await capture('add-top');expect(top.sheet.scroll).toBe(0);expect(top.sheet.transform).toBe('none');expect(top.sheet.willChange).toBe('auto');
     const c=await page.context().newCDPSession(page);await c.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:360,y:200}]});await c.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:360,y:240}]});await page.evaluate(()=>new Promise(r=>requestAnimationFrame(r)));const edge=await capture('add-top-edge');await c.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]});await c.detach();expect(edge.sheet.transform).toBe('none');
-    await page.goBack();await expect(add).toHaveAttribute('data-step','what');await expect(add.locator('input')).toHaveValue('Borrador sintético');await page.goBack();await expect(add).toHaveCount(0);await settle(page);const returned=await capture('add-return');
+    await page.goBack();await expect(add).toHaveAttribute('data-paso','0');await expect(add.locator('input')).toHaveValue('Borrador sintético');await page.goBack();await expect(add).toHaveCount(0);await settle(page);const returned=await capture('add-return');
     expect(returned.child.scroll).toBe(before.child.scroll);expect(returned.plan.scroll).toBe(before.plan.scroll);
     await page.goBack();await expect(page.locator(child)).toHaveCount(0);await page.goBack();await expect(page.locator(hub)).toHaveCount(0);
   });
@@ -139,7 +141,7 @@ for(const group of ['debt','in','once'])test('native wave: inventario y regreso 
 });
 test('native wave: cancelar Atrás lateral de la ficha limpia la capa al reposar',async({page},info)=>{
   await begin(page,info);await record(page,info,async capture=>{
-    await manage(page);await page.locator(hub+' button[data-group="serv"]').tap();await expect(page.locator(child)).toBeVisible();await settle(page);await page.locator(child+' .v4-bills-row').first().tap();await expect(page.locator('[data-sheet="bill"]')).toBeVisible();await settle(page);
+    await manage(page);await page.locator(hub+' button[data-group="in"]').tap();await expect(page.locator(child)).toBeVisible();await settle(page);await page.locator(child+' .v4-bills-row').first().tap();await expect(page.locator('[data-sheet="bill"]')).toBeVisible();await settle(page);
     const back=page.locator('.v4-sheet-back').filter({has:page.locator('[data-sheet="bill"]')});
     await swipe(page,160,400,65,0,'touchCancel');
     await expect.poll(()=>back.evaluate(e=>getComputedStyle(e).transform)).toBe('none');await capture('lateral-cancel-rest');

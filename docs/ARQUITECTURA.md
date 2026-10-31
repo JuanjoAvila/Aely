@@ -166,6 +166,24 @@ traspasos y entradas con su id) para que la hoja enseñe justo los que ha recorr
 `obBalAt` (la hora de lectura que da el servidor; sin lectura no se dice nada). Editar la nómina
 desde la hoja es `patchFlowById`, lo mismo que Todos: no hay campos nuevos.
 
+«Solo este mes» (alta y edición por pasos, Plan › Recibos v6 tanda 4) vive en el recibo:
+`soloMes = {año*12+mes: {amt?, day?}}`. Lo leen `occAmountIn(e,m,y)` y `dayIn(e,m,y)` (07)
+SOLO cuando se les pasa el año; sin año (medias de `fixedMonthlyOf`, previsiones de otros años)
+sale el recibo de siempre. El contrato de las pruebas de pago (`fixedPaymentContract`) no lo
+mira: añadir o quitar un «solo este mes» no invalida ninguna prueba y un cliente viejo, que lo
+ignora, calcula el mismo contrato. «Desde ahora» (`fixedEditarRecibo`, 08) cambia el recibo y
+deja en `soloMes` el importe y el día con que se pagaron los meses ya pagados de los últimos doce
+(y este, si ya está pagado), así su cargo sigue casando igual y los avisos y «Este año» leen lo de
+siempre; las pruebas de esos meses se atan al contrato nuevo conservando su importe real, y la
+marca `paidYm` de un mes pagado no se borra. Si este mes ya está pagado o no toca, «Solo este
+mes» va como «Desde ahora». Como `patchFixedById`, no compensa el saldo mostrado: un día movido
+que el calendario daba por cobrado y el banco no trae vuelve al saldo. En la mezcla de
+tres vías `soloMes` va en el grupo financiero (con importe, día, cuenta…). Un cliente viejo ve el
+importe de siempre en el mes cambiado (real, no inventado) y, tras un «Desde ahora», el importe
+nuevo también en los meses pagados (sus pruebas siguen valiendo). «Solo una vez» es un cargo
+puntual (`oneoffs`) y «En varios pagos» es `schedule` (cada año, `freq:"año"`); «Cambia cada
+mes» es `variable:true`, solo para el «≈». No hay columnas ni servidor nuevos.
+
 Si la lápida alcanza una fila con un borrador privado pendiente, la fila sigue
 borrada y el borrador se ofrece en Plan → Deudas. Recuperar solo precarga el editor,
 con importes de solo lectura; Guardar valida y recupera el mismo ID mediante un

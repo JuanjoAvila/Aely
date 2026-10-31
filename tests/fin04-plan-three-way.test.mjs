@@ -60,7 +60,8 @@ test('fixed disjoint fields, exact signs, null/absent/unknown and references',()
 test('fixed finance is atomic, never summed; name/category merge independently',()=>{
  const c=logic(),base=fixed(),l=copy(base),r=copy(base);l[0].amount=45.67;l[0].cat='ocio';r[0].day=29;r[0].name='Remoto';
  const m=c.mergePlanThreeWay(base,l,r,'fixed');assert.equal(Math.round(m.rows[0].amount*100),4237);assert.equal(m.rows[0].day,29);assert.equal(m.rows[0].cat,'ocio');assert.equal(m.rows[0].name,'Remoto');assert.equal(m.conflicts.length,1);assert.equal(Math.round(m.conflicts[0].local.amount*100),4567);
- assert.deepEqual(copy(m.conflicts[0].fields),['amount','bankAmount','account','freq','months','schedule','day']);
+ // soloMes (Plan › Recibos v6, tanda 4) viaja en el mismo grupo: congela los meses pagados del importe que cambia.
+ assert.deepEqual(copy(m.conflicts[0].fields),['amount','bankAmount','account','freq','months','schedule','day','soloMes']);
 });
 test('debt financial fields stay together, independent name/note survive',()=>{
  const c=logic(),base=debts(),l=copy(base),r=copy(base);l[0].monthly=101.12;l[0].note='Local';r[0].value=1100.12;r[0].name='Remota';

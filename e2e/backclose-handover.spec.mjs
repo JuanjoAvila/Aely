@@ -156,15 +156,15 @@ for(const method of ["ui","browser","native"]){
     const hub=page.locator("[data-bills-manage]");await expect(hub).toBeVisible();
     const hubState=await page.evaluate(()=>history.state);
     await hub.locator('[data-act="bill-add"]').first().click();
-    const wizard=page.locator('[data-sheet="bill-add"]');await expect(wizard).toHaveAttribute("data-step","what");
-    await wizard.locator("input.v4-bills-search").fill("Recibo sintético");await wizard.locator('[data-act="next"]').click();
-    await wizard.getByRole("button",{name:"3",exact:true}).click();await wizard.locator('[data-act="next"]').click();
-    await expect(wizard).toHaveAttribute("data-step","freq");
-    for(const next of ["amount","what",null]){
+    const wizard=page.locator('[data-sheet="recibo-pasos"]');await expect(wizard).toHaveAttribute("data-paso","0");
+    await wizard.locator('[data-rp4="name"]').fill("Recibo sintético");await wizard.locator('[data-act="next"]').click();
+    await wizard.locator('[data-rp4-paso="1"] .v4-keys').getByRole("button",{name:"3",exact:true}).click();await wizard.locator('[data-act="next"]').click();
+    await expect(wizard).toHaveAttribute("data-paso","2");
+    for(const next of ["1","0",null]){
       if(method==="ui") await wizard.locator('[data-act="back"]').click();
       else if(method==="browser") await page.goBack();
       else await page.evaluate(()=>window.__backButton());
-      if(next) await expect(wizard).toHaveAttribute("data-step",next);
+      if(next) await expect(wizard).toHaveAttribute("data-paso",next);
       else await expect(wizard).toHaveCount(0);
     }
     await expect(hub).toBeVisible();
@@ -360,11 +360,11 @@ async function ux13Bills(page){
   await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button",{name:manage,exact:true}).click();
   const hub=page.locator("[data-bills-manage]");await expect(hub).toBeVisible();
   await hub.locator('[data-act="bill-add"]').first().click();
-  const wizard=page.locator('[data-sheet="bill-add"]');await expect(wizard).toHaveAttribute("data-step","what");
+  const wizard=page.locator('[data-sheet="recibo-pasos"]');await expect(wizard).toHaveAttribute("data-paso","0");
   // El foco inicial del título llega en rAF después de autoFocus. Escribir antes deja que
   // ese callback quite el foco al campo y el doble oculte el teclado antes del gesto.
-  await expect(wizard.locator("h1")).toBeFocused();
-  const input=wizard.locator("input.v4-bills-search");await input.fill("Recibo sintético UX13");
+  await expect(wizard.locator('[data-rp4-paso="0"] h2')).toBeFocused();
+  const input=wizard.locator('[data-rp4="name"]');await input.fill("Recibo sintético UX13");
   await page.evaluate(()=>window.__ux13SetKeyboard(300));
   await expect.poll(()=>input.evaluate(el=>({focused:document.activeElement===el,
     gap:window.__ux13Keyboard.gap,keyboard:_mcBackCloseNative("peek")===el})))
@@ -392,8 +392,8 @@ for(const hideBeforeInvoke of [false,true]){
     // Esperar el desenfoque real también descubre un cierre indebido diferido: al desmontar
     // ya no quedaría hoja para las aserciones siguientes. No depender de una pausa fija.
     await expect(input).not.toBeFocused();
-    await expect(wizard).toHaveAttribute("data-step","what");await expect(hub).toBeVisible();
-    await expect(wizard.locator("input.v4-bills-search")).toHaveValue("Recibo sintético UX13");
+    await expect(wizard).toHaveAttribute("data-paso","0");await expect(hub).toBeVisible();
+    await expect(wizard.locator('[data-rp4="name"]')).toHaveValue("Recibo sintético UX13");
     await expect.poll(()=>page.evaluate(()=>window.__ux13Keyboard.gap)).toBe(0);
     await expect(page).toHaveURL(url);expect(await financial(page)).toEqual(before);
     expect(await page.evaluate(()=>window.__backExitCalls)).toBe(0);
@@ -415,8 +415,8 @@ test("UX13: cancelar predictivo con teclado conserva hoja, valor y geometría",a
   expect(await wizard.evaluate(el=>el.parentElement.getBoundingClientRect().x)).toBeCloseTo(x,1);
   await ux13Edge(page,"cancel");
   await expect(input).toBeFocused();
-  await expect(wizard).toHaveAttribute("data-step","what");
-  await expect(wizard.locator("input.v4-bills-search")).toHaveValue("Recibo sintético UX13");
+  await expect(wizard).toHaveAttribute("data-paso","0");
+  await expect(wizard.locator('[data-rp4="name"]')).toHaveValue("Recibo sintético UX13");
   expect(await wizard.evaluate(el=>el.parentElement.getBoundingClientRect().x)).toBeCloseTo(x,1);
   expect(await page.evaluate(()=>window.__ux13Keyboard.gap)).toBe(300);
   expect(await financial(page)).toEqual(before);await expect(page).toHaveURL(url);
