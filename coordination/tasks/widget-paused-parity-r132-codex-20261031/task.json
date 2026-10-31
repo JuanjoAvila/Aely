@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "id": "widget-paused-parity-r132-codex-20261031",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261031-r132-54b6a16babb50b48165ca4cb",
+  "createdAt": "2026-10-31T03:09:39.269Z",
+  "to": "codex",
+  "baseSHA": "25b6832749eaf776d274c7f72a046d41c9d5a0e0",
+  "objective": "Igualar widget e Inicio para recibos pausados, pagados y reanudados. Replica el contrato actual fixedPausedIn y fixedEnPausa en el espejo TS; una PR draft contra beta, solo codigo y pruebas sin desplegar.",
+  "scope": [
+    "supabase/functions/ingest/widget.ts",
+    "supabase/functions/ingest/widget.test.ts",
+    "tests/widget-inicio-paridad.test.mjs",
+    "docs/SETUP-SUPABASE.md"
+  ],
+  "instructions": "Orden vigente Claude2674 y regimena304; presupuesto OWN20 y corridas permanentes7188. Usar skill Supabase, changelog y docs oficiales antes de operar. Comparar el cliente real como oraculo, incluir limites de mes/anio y recibo pausado pagado/reanudado, sin cambiar las reglas web. RED causal sobre base exacta antes del arreglo; GREEN final y mutantes utiles, datos sinteticos. No repetir pruebas cerradas de otras PRs. Un escritor y runner CPU1,1worker,0retry,stopfirstfailure, censo/admission serial antes de cada corrida y logs durables. Sin backend vivo, auth, SQL, Edge deploy, APK, version, catalogo ni notas reservadas. Leer AGENTS/EMPIEZA del SHA exacto. Claim propio confirmado y ROOTACK exacto antes de producto; no heredar GO. Checkout/rama propios. Entregar SHA/diff/comandos EXIT/evidencia, revision independiente sin duplicar tests; no push hasta GO ROOT para HEAD exacto. Al GO push solo rama propia y PR draft beta, nunca main/beta; cierre/RETURN propios. Trabajador reporta solo a ROOT, no a Claude. No se acredita integracion, servido ni movil."
+}
