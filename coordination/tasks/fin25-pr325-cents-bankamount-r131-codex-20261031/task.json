@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "id": "fin25-pr325-cents-bankamount-r131-codex-20261031",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261031-r131-99ed4feeb3a79a3b244984ae",
+  "createdAt": "2026-10-31T02:34:01.785Z",
+  "to": "codex",
+  "baseSHA": "d456dca7671254b59fcbe53dcc9af518845e6c9b",
+  "objective": "Remates FIN25 PR325 bajo orden Claude2eefca6a99d8677efd1869ee454ed83ffa47c1c9 y regla05f0ccc5c1c3df7c29bb1d4156de1c650dcb87b6. En fixedPaymentModelMatches de08: comparar p.amount y amount por centimos Math.round(x*100), no float; el recibo100/[5,5,6,9] cobrado33.33 debe seguir pagado. En compartidos comparar contra bankAmount cuando aplica, no contra occAmountIn. RED causal para ambos, GREEN exactHEAD y mutante significativo rechazado; preservar modelo completo y guardas de pruebas previas, identidad/eligibilidad y datos. R1/R2 anteriores de meses validos/repetidos permanecen, no migracion ni reparacion de datos. Nuevo titular/claim/OWN20 desde0, sin heredar GOd456. Tras nueva recepcion/admission, FULLRAW all deltas/cancelaciones, aviso/claim propios confirmados y ROOTACK especifico, checkout privado desde exactd456. MISMA PR325 draftbeta SIN rebase. Inicialmente sin push: candidato privado con dirigidos Node y DOM afectado nuevos, review independiente y ROOT exactHEAD antes de GO especifico de actualizacion. No repetir pruebas cerradas sin nuevo cambio/fallo. No tocar fuera scope3, FIN28, core/App, VERSION/notas, backend, dinero real, otros scopes ni main/beta/merge/deploy/movil.",
+  "scope": [
+    "src/modules/08-motor-bank.js",
+    "tests/fin25-charge-months.test.mjs",
+    "e2e/fin25-charge-months.spec.mjs"
+  ],
+  "upstreamGrant": "2eefca6a99d8677efd1869ee454ed83ffa47c1c9",
+  "standingOwnGrant": "7188f09dd641ffd90c5a2455196b1385c4bb084c",
+  "directedTestGrant": "027aeb19133c2129faef080bc70e27b2e0addce9",
+  "noRebaseGrant": "05f0ccc5c1c3df7c29bb1d4156de1c650dcb87b6",
+  "targetPR": 325,
+  "targetPRBase": "beta",
+  "expectedRemoteHEAD": "d456dca7671254b59fcbe53dcc9af518845e6c9b",
+  "targetRemoteBranch": "codex/fin25-r130-fda31257-aecc0a9e",
+  "dependency": "FIN28 TASK fin28-pr324-r2r4-remates-r130-codex-20261031 resultf7debecbf4eab76a79d151dc19ca78d86fbe837f released/RETURNbd769a4c confirmed and delivered93dcc9c9; worker DONE archived, scope08 no active editor.",
+  "acceptance": [
+    "Integer cents comparison keeps confirmed33.33 paid for100/[5,5,6,9]; preserve complete old model fingerprints and reject unrelated/partial invalid proofs.",
+    "Shared receipt uses bankAmount charged total where applicable; client paid/pending remains coherent with confirmed charged amount.",
+    "Both causal REDs before minimal product change, exactHEAD GREEN affected Node/DOM and mutation evidence that catches wrong cents/bank target or permissive guard. No weakening old financial oracle.",
+    "Scope3 existing registered files only; no new runner/browser/fullsuite permission by inference. CPU1 1worker0retry/stopfirstfailure with own census/admission/resources RETURN.",
+    "New independent plus ROOT review and exactHEAD GO before updating same draftPR325. No rebase/force/integration/deploy/served/mobile claim."
+  ]
+}
