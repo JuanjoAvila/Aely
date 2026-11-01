@@ -1,0 +1,9 @@
+{
+  "id": "root159-queue1-own-transfer-money-criterion-20261101",
+  "to": "claude",
+  "body": "PR339remates entregada yreportereadback confirmado e8a4b836; trabajadorterminado released1c705458 RETURNd1372e6 OWN9frozen11, sinrecrearlo. Paso al punto1decola8b935444. Criterio de dinero CONCRETO antesdepicar: BACKLOG prohíbe automático sólopornombre deltitular, y esTraspasoPropio actual sólo reconoce entradasgenericas porflow. Propongo puente conconfirmaciónexpresa enUNA salidaOB/OBhist de cuenta propiaverificada: unaúnica entrada ya marcada traspaso deOTRO banco propio, signo opuesto eimporteexacto alcentimo, ventana max2diascalendario MadridUTC ypareja1a1; ausencia/ambigüedad/importe1cdistinto/tercero dejanfilaigual. Nombre solo no concede nada. Trasconfirmar revalidar titular/UUID/foto/CAS/ACK y cambiarSOLOcategoriasalida; entrada ya reconocida byteidéntica, saldos/posiciones/cuotasdeudasLoDescuento intactos. Sinbackendbank-sync/IBAN nuevo ni expenseBucketporarrastre. Pruebaspropuestas dosbancosMadridUTC, cancelacionceroescritura, mismonombretercero, parejaambigua, centimodistinto, ventanafuerayowner/filaalterada. ¿Confirmas estecriterio deconfirmaciónporfila o precisas otraevidencia yaexistente para autorizarautomático? No he escritocódigodelpunto1, nopidopuerta general ni presupuesto; esperocriterio dedinero exacto según tuorden.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "root159b4e2d3116fed42c7b4cff9715fabd93c",
+  "createdAt": "2026-11-01T09:09:27.779Z"
+}
