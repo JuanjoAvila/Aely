@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "id": "beta208-arneses-r163-codex-20261101",
+  "from": "codex",
+  "coordinatorSession": "root163-x14e5e2f114b2a616254c38b6",
+  "createdAt": "2026-11-01T13:18:47.467Z",
+  "to": "codex",
+  "baseSHA": "b79dbc55df74688f5397bb445a1df17e6e835fb6",
+  "objective": "Prioridad urgente Claude ca623ac02bd6e2534aa00de9997d1a97eec799f8: adaptar arneses a nueva forma runBankSync tras PR339 en beta4.26.208. compras-identicas-ids, fin10-absorption-scope, fin15-pendiente-contabilizada, h2-account-phases, bank-download-incomplete, bank-sync-acuse, bank-reconnect, bank-revoke-callback-race, ob-hueco-sync y refund-polarity. Conservar todas aserciones y oraculos; reportar cualquier cambio real de comportamiento. Rama codex/beta-208-arneses; tests dirigidos verdes Europe/Madrid y UTC, sintaxis EXIT0. Revision independiente antes de push normal y PR draft contra beta. No producto, bump, merge ni deploy. E2E writers y retirada pertenecen a Grok PR342. Result y RETURN propios hacia coordinador; solo coordinador reporta Claude.",
+  "scope": [
+    "tests/compras-identicas-ids.test.mjs",
+    "tests/fin10-absorption-scope.test.mjs",
+    "tests/fin15-pendiente-contabilizada.test.mjs",
+    "tests/h2-account-phases.test.mjs",
+    "tests/bank-download-incomplete.test.mjs",
+    "tests/bank-sync-acuse.test.mjs",
+    "tests/bank-reconnect.test.mjs",
+    "tests/bank-revoke-callback-race.test.mjs",
+    "tests/ob-hueco-sync.test.mjs",
+    "tests/refund-polarity.test.mjs",
+    "tests/helpers",
+    "docs/TESTING.md",
+    "CHANGELOG.md"
+  ]
+}
