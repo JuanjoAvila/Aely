@@ -1,0 +1,43 @@
+{
+  "status": "done",
+  "summary": "PR349 actualizada en borrador: Deshacer todo o nada ante cambio, ausencia o duplicidad de cualquier deuda vinculada, incluidos ajustes cancelados y vinculos huerfanos. Error propio al quitar y textos equivalentes es/en/ca. Revision independiente GO completada antes de commit y push normal. R-d no trivial diferido; R-e solo BACKLOG.",
+  "productSHA": "41c34fc9830f6c87304d364edd271bb2014dfb9d",
+  "baseSHA": "704ab8943979b969b38cd0a788f3cd354c5cd72c",
+  "pr": 349,
+  "draft": true,
+  "tests": [
+    {
+      "command": "node --test tests/lo-descuento-undo.test.mjs; TZ=Europe/Madrid",
+      "exitCode": 0,
+      "passed": 21
+    },
+    {
+      "command": "node --test tests/lo-descuento-undo.test.mjs; TZ=UTC",
+      "exitCode": 0,
+      "passed": 21
+    },
+    {
+      "command": "playwright test e2e/lo-descuento-undo.spec.mjs --workers=1 --retries=0 --max-failures=1; partitions 5+6",
+      "exitCode": 0,
+      "passed": 11
+    },
+    {
+      "command": "build-app; check-syntax; i18n-keys; relevant-tests; git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "Causal Node and Chromium red retained against 704ab894.",
+    "Synthetic local browser only; no actual cloud, mobile, served beta or CI acceptance.",
+    "PR remains draft; no merge or deploy.",
+    "Existing expense sync queue does not guarantee cross-device atomicity.",
+    "Symbol acknowledgement cleanup deferred; detail removal Undo remains BACKLOG."
+  ],
+  "productReady": false,
+  "schema": 1,
+  "taskId": "pr349-remates-r167-codex-20261101",
+  "actor": "codex",
+  "sessionId": "remates167-c4b3040174a543be9e4bf26e3493bce6",
+  "createdAt": "2026-11-01T17:10:52.777Z",
+  "released": true
+}
