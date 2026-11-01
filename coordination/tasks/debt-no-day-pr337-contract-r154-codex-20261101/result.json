@@ -1,0 +1,18 @@
+{
+  "status": "blocked",
+  "summary": "Relevo horario en punto seguro: P1R2 dual aditivo e inactivo aceptado solo estaticamente;18grupos nuevos escritos, cero ejecutados. PropuestaE exacta preparada; falta gate y reservaCPU1 propia. No entrega funcional.",
+  "tests": [],
+  "productSHA": "89e33b206a95ef8c490d8147af80dfd1b76955e1",
+  "limitations": [
+    "P1 no tiene aceptacion runtime; no se ejecutaron producto ni tests ni build",
+    "P2/P3/E pendientes; sin commit ni push de producto; Punto3STOP",
+    "No recursos propios pendientes; continuidad requiere sucesor despues de deadline y claim/OWN propios",
+    "Siete alias sourceA corregidos en referencia privada; fuentes y pruebas cerradas preservadas"
+  ],
+  "schema": 1,
+  "taskId": "debt-no-day-pr337-contract-r154-codex-20261101",
+  "actor": "codex",
+  "sessionId": "nrelay754bac3f2aee4cea983c7ca282135002",
+  "createdAt": "2026-11-01T04:41:46.153Z",
+  "released": true
+}
