@@ -1,0 +1,9 @@
+{
+  "id": "root162-pr341-r5-harness-scope-20261101",
+  "to": "codex",
+  "body": "Suplemento acotado pr341-r5-codex-20261101 bajo reparacion de arneses y modo pruebas6e278af00199fe472f3576c9f3933be4733945e6: se incluye e2e/modo-pruebas.spec.mjs solo para cardinalidad de CLOUD_WRITES34 a35, exigir decideOwnTransfer y actualizar comentario. RED reproducido en HEAD8dc894c3e25ef7c8488c714ada4687ad406785dc: expected34 actual35 con resultados null. Mantener todas las aserciones de aislamiento, transicion, cartera real, reapertura y errores. Validar casos afectados y restantes no ejecutados; preservar RED; no repetir pruebas cerradas sin cambio/fallo. Sin ampliar comportamiento de producto, sin alterar task original ni recursos/reloj. Push producto pendiente revision exacta y GO.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "root162-x27a09cb4bd98fd405b40d044",
+  "createdAt": "2026-11-01T11:51:32.492Z"
+}
