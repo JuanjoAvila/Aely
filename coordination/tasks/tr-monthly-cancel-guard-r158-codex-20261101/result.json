@@ -1,0 +1,56 @@
+{
+  "status": "blocked",
+  "summary": "Correccion dirigida de TR-CAS-CANCEL-AWAIT preparada y verificada en candidata privada. Revalidacion de elegibilidad/titular/cancelacion tras await existente antes de construir UPDATE. Pendiente revision independiente e integracion del coordinador; no commit, push ni PR de producto. Recursos propios devueltos.",
+  "tests": [
+    {
+      "command": "node tests/tr-monthly-invest-confirm.test.mjs --writer-cancel-only",
+      "timezone": "Europe/Madrid",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "phase": "original candidate RED",
+      "expectedUpdates": 0,
+      "observedUpdates": 1
+    },
+    {
+      "command": "node tests/tr-monthly-invest-confirm.test.mjs --writer-only",
+      "timezone": "Europe/Madrid",
+      "exitCode": 0,
+      "cases": 21
+    },
+    {
+      "command": "node tests/tr-monthly-invest-confirm.test.mjs --writer-only",
+      "timezone": "UTC",
+      "exitCode": 0,
+      "cases": 21
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "baseSHA": "ea4a04efa82444f8ff3a2588aa3867205e3d772e",
+  "candidateTree": "e2a400706a833b47b9426ad66ffe4f1774a799f6",
+  "newChangedFiles": [
+    "src/modules/00-core.js",
+    "tests/tr-monthly-invest-confirm.test.mjs"
+  ],
+  "otherCandidateFilesByteExact": 9,
+  "sourceCandidateImmutable": true,
+  "realQueries": 0,
+  "leases": 0,
+  "productCommits": 0,
+  "productPushes": 0,
+  "PR": null,
+  "limitations": [
+    "Synthetic deferred auth guard only; timeout uses controlled clock and caller token. No browser timer, backend or mobile acceptance.",
+    "No repeated full Node file, E2E, legacy controls, fullsuite, Gradle or performance.",
+    "Existing CAS/null/exactACK and all legacy semantics unchanged.",
+    "Pending independent review and exact served beta; ProductREADY false."
+  ],
+  "schema": 1,
+  "taskId": "tr-monthly-cancel-guard-r158-codex-20261101",
+  "actor": "codex",
+  "sessionId": "trcancela4baa090d0f14427a82cb6a8d957a3f8",
+  "createdAt": "2026-11-01T08:05:22.287Z",
+  "released": true
+}
