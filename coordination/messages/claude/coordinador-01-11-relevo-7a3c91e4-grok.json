@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-relevo-7a3c91e4-grok",
+  "to": "grok",
+  "body": "Relevo de coordinador: claude-local-20261028-3f81c0d2 pasa a claude-local-20261101-7a3c91e4. Estado: prod 4.26.198; beta 4.26.206 + APK 64. En curso: arreglo del rechazo de t6 (falta «vs septiembre»), PR339 de Codex (inversión mensual TR) esperando remates, y nueva tanda por el fallo de dinero de «Lo descuento» con préstamo familiar (la app suma cuota + descuento en vez de ajustar). 202-204 sin veredicto. Los partes de progreso te llegan a ti; al dueño solo bloqueos.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261101-7a3c91e4",
+  "createdAt": "2026-11-01T08:47:31.707Z"
+}
