@@ -143,6 +143,10 @@ export const E2E_MAP = [
   // «Lo descuento» que no cuadra (pregunta) y «Baja la deuda al mes» en Editar deuda (1/11/2026).
   { file: "src/modules/08-motor-bank.js", specs: ["e2e/deudas-lo-descuento.spec.mjs"] },
   { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/deudas-lo-descuento.spec.mjs"] },
+  { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/deudas-tae-descuento.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/deudas-tae-descuento.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/deudas-tae-descuento.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/deudas-tae-descuento.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/deudas-lo-descuento.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/deudas-lo-descuento.spec.mjs"] },
   { file: "src/modules/05-dialogs-inv.js", specs: ["e2e/deudas-lo-descuento.spec.mjs"] },
