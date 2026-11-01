@@ -3138,16 +3138,29 @@ function closedMonthTopCat(state, startMs, endMs){
   const top=rows.find(function(r){ return r.spent>0; });
   return top?{id:top.id, amount:top.spent}:null;
 }
+function closedMonthBudgetStats(state, startMs, endMs){
+  const ym=budgetYmKey(startMs+12*864e5), map=state.budgetByMonth||{};
+  const raw=Object.prototype.hasOwnProperty.call(map,ym)?map[ym]:null;
+  // Una foto ausente no permite reconstruir el límite con el de hoy. El cero guardado es un
+  // dato distinto; solo se admiten decimales heredados, nunca coerciones de booleanos u objetos.
+  const decimal=typeof raw==="string" && /^(?:\d+(?:\.\d*)?|\.\d+)$/.test(raw);
+  const value=typeof raw==="number"||decimal?Number(raw):NaN;
+  const valid=Number.isFinite(value)&&value>=0;
+  const reason=raw==null?"mr_budget_missing":!valid?"mr_budget_invalid":value===0?"mr_budget_none":"";
+  const historic=Object.assign({},state,{budget:valid?value:0});
+  const stats=monthBudgetStats(historic,startMs+12*864e5,endMs);
+  const lim=limiteDeStats(stats,historic);
+  stats.against=lim.against; stats.budget=lim.budget; stats.remaining=lim.remaining;
+  stats.budgetReason=reason;
+  return stats;
+}
 function closedMonthCardOf(state, nowMs){
   const w=closedMonthWindow(nowMs);
   if(w.dayOfMonth>CLOSED_MONTH_CARD_DAYS) return null;
   const dismissed=(state.settings&&state.settings.closedMonthDismissed)||"";
   if(dismissed===w.closedYm) return null;
-  const stats=monthBudgetStats(state, w.startMs+12*864e5, w.endMs);
+  const stats=closedMonthBudgetStats(state, w.startMs, w.endMs);
   if(!(stats.spent>0) && !(stats.income>0)) return null;
-  // La cifra grande sigue la preferencia; el % del presupuesto, la regla del mes (`limiteDeStats`).
-  const lim=limiteDeStats(stats, state);
-  stats.against=lim.against; if(stats.budget!=null) stats.remaining=lim.remaining;
   return {
     ym:w.closedYm, startMs:w.startMs, endMs:w.endMs,
     month:w.closedMonth, year:w.closedYear,

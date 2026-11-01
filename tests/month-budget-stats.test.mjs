@@ -2,11 +2,27 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
-import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { createHash } from "node:crypto";
+import { spawnSync } from "node:child_process";
+import { loadPureLogic } from "../scripts/load-pure-logic.mjs";
 
-const ctx = loadPureLogicFromFile();
+const root=process.env.AELY_SOURCE_ROOT||path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..");
+function source(file){
+  if(!process.env.AELY_SOURCE_REF)return fs.readFileSync(path.join(root,file),"utf8");
+  const r=spawnSync("git",["-C",root,"show",process.env.AELY_SOURCE_REF+":"+file],{encoding:"utf8",maxBuffer:16*1024*1024});
+  assert.equal(r.status,0,"lectura de fuente inmutable: "+file);return r.stdout;
+}
+const order=JSON.parse(source("src/build-order.json"));
+const js=order.map(file=>source("src/modules/"+file).replace(/\n?$/,"\n")).join("");
+const parts=source("src/shell.html").split("<!--MC_APP_SCRIPT-->");
+assert.equal(parts.length,2,"marcador único de la fuente real");
+const html=parts[0]+js.trimEnd()+parts[1];
+console.log("month-budget-stats sourceHTML SHA256="+createHash("sha256").update(html).digest("hex"));
+const ctx = loadPureLogic(html);
 const helpCtx=vm.createContext({React:ctx.React,dashboardBudgetStats:s=>ctx.dashboardBudgetStats(s)});
-vm.runInContext(fs.readFileSync("src/modules/16-help-assistant.js","utf8"),helpCtx);
+vm.runInContext(source("src/modules/16-help-assistant.js"),helpCtx);
 
 function t(name, fn) {
   try {
@@ -474,7 +490,7 @@ t("bordes: nómina anticipada, dos nóminas, sin nómina, ingresos mayores, devo
   // presupuesto» de un octubre que se vio entero «64 € por debajo». Gastos no enseña margen en un
   // mes pasado (`budgetApplies`, e2e gastos-v5).
   aLas("2026-11-02T10:00:00Z",()=>{
-    const s={...OCT,settings:{...OCT.settings,gTotalMode:"split"},expenses:filasOct().concat([NOMINA])};
+    const s={...OCT,budgetByMonth:{"2026-10":1500},settings:{...OCT.settings,gTotalMode:"split"},expenses:filasOct().concat([NOMINA])};
     const card=ctx.closedMonthCardOf(s,Date.parse("2026-11-02T10:00:00Z"));
     assert.ok(card&&card.stats,"hay informe del mes cerrado");
     assert.equal(card.stats.mode,"split"); assert.equal(Math.round(card.stats.shown*100),192219);
