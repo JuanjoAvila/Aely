@@ -6304,7 +6304,7 @@ test("Catálogo203 añade la tanda de Plan › Recibos (QA de la 200 y cuota mar
     [G4,"if(!on||!exp.debtManual) setCuota(exp,d.id);","if(!on) setCuota(exp,d.id);"],
     [G4,"{ delete upd.debtId; delete upd.debtManual; }","{ delete upd.debtId; if(false) delete upd.debtManual; }"],
     [U2,"if(opts.soloPaso&&opts.soloPaso()){ reset(); cb.current&&cb.current(); return; }",""],
-    [I1,"v4_cuota_confirmada:\"Confirmada como cuota de {name}\"","v4_cuota_confirmada:\"Confirmada como la cuota de {name}\""]];
+    [I1,"pr6_deuda_importe:\"Se cobró {x} y la cuota es {y}.\"","pr6_deuda_importe:\"Se cobró {x}.\""]];
   for(const [file,a,b] of mutantes){
     assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
     const mutated=betaRevision(tandaQ,x=>x===file?source(x).replace(a,()=>b):source(x),undefined,scopes[tandaQ]);
