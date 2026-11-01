@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "id": "own-transfer-pr352-perf-r170-codex-20261101",
+  "from": "codex",
+  "coordinatorSession": "root170-xed82028f3d96b90adffe536e57e62544",
+  "createdAt": "2026-11-01T20:32:41.451Z",
+  "to": "codex",
+  "baseSHA": "2e4cfb5a0c6465afe9318a04c497863b4774d28e",
+  "objective": "Corregir NO-GO Claude83e8498b316102c0c76a5455731ac61a895b461a en PR352: rendimiento de pareja propia de entrada Y salida, guardian modo pruebas, hint en una frase. Dinero actual aceptado; conservar contrato A.",
+  "scope": [
+    "src/modules/00-core.js: Set lapidas una vez por llamada e indice/prefiltro por centimo banco dia, sin cambios de semantica de pares exactos ni ambiguedad.",
+    "src/modules/04-tab-gastos.js: memo por porciones de estado realmente leidas de incomeOwnTransferPeer y oferta salida; evitar reconstruir por render ajeno.",
+    "Prueba causal de rendimiento que mida y falle sin arreglo; preservar guardianes dinero; e2e/modo-pruebas.spec.mjs con writer setIncomeOwnTransfer toContain y cuenta correcta de rama, teniendo presente beta36 y merge37.",
+    "src/modules/01-i18n.js: f_incomeown_income_hint en una frase es/en/ca; documentacion coherente y mapa pruebas si corresponde."
+  ],
+  "constraints": [
+    "Nueva recepcion y admision nativa; OWN20 y claim propios confirmados antes de editar. Checkout aislado desde base exacta; no heredar claims grants leases counters.",
+    "Plan mapa impacto y runner serial CPU1 revisados antes de editar/correr; no backend version catalogo deploy merge ni rebase implicitos; sin datos reales.",
+    "No reabrir tarea anterior cerrada. Es nueva correccion concreta Claude sobre PR352; normal push de cambio final revisado al mismo branch PR solamente tras GO independiente.",
+    "Solo coordinador reporta Claude; avisar HEAD exacto con pruebas causa y limites. No trabajo de recibos delegado a otro proveedor."
+  ]
+}
