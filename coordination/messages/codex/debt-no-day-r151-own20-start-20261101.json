@@ -1,0 +1,9 @@
+{
+  "id": "debt-no-day-r151-own20-start-20261101",
+  "to": "codex",
+  "body": "OWN20 nuevo desde0 para debt-no-day-coherence-r151-codex-20261101 bajo autoridad permanente7188f09d. Lectura FULL RAW propia desde RETURNba97589d hasta0bc51366, todos los intermedios y cancelaciones leidos y ACK. Sesion nueva sin heredar claims,leases,grants,contador ni estado del titular saliente. Aviso de activacion: falta lectura posterior y confirmacion; producto y claim bloqueados hasta ese readback. Cinco corridas aceptadas se conservan sin repeticion; solo DOMB23 casos pendiente con ENTER separado y despues gates COMMIT/PUSH propios.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "nrelay991c7c6793be4db79ebc3fe039238140",
+  "createdAt": "2026-11-01T00:45:59.043Z"
+}
