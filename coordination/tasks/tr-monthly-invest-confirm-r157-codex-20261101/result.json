@@ -1,0 +1,59 @@
+{
+  "status": "blocked",
+  "summary": "RETURN propio por cierre horario seguro. Candidata privada de once archivos preservada y entregada al coordinador para revision independiente; ninguna aceptacion ni GO de commit, push o PR. Alcance7cd6 implementado y probado con datos sinteticos. Se libera este claim para continuidad por nuevo encargo si procede. Recursos propios devueltos; servidor cerrado y leases cero. OWN6 antes del readback de este cierre; saldo final se congela tras confirmacion, sin transferencia ni reset.",
+  "tests": [
+    {
+      "command": "TZ=Europe/Madrid node tests/tr-monthly-invest-confirm.test.mjs",
+      "exitCode": 0,
+      "checks": 41
+    },
+    {
+      "command": "TZ=UTC node tests/tr-monthly-invest-confirm.test.mjs",
+      "exitCode": 0,
+      "checks": 41
+    },
+    {
+      "command": "node tests/tr-monthly-invest-confirm.test.mjs --business-ab-base",
+      "exitCode": 1,
+      "expectedBusinessAssertionFailure": true
+    },
+    {
+      "command": "node tests/tr-monthly-invest-confirm.test.mjs --business-ab-candidate",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/bank-merchant-category.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/tr-open-banking.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/invest-category.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "playwright test e2e/tr-monthly-invest-confirm.spec.mjs --workers=1 --retries=0 --max-failures=1 (private config and synthetic server)",
+      "exitCode": 0,
+      "passed": 3
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": null,
+  "limitations": [
+    "Sin backend real, banco real, dispositivo, despliegue ni beta servida nueva.",
+    "Regla legacy monthlyInvest y pruebas existentes intactas; riesgo sin consentimiento por importe o MCC documentado para decision del responsable.",
+    "Fallos previos del arnes preservados; no equivalen al RED causal de negocio.",
+    "Revision independiente pendiente; cierre blocked y released no acredita aceptacion de producto."
+  ],
+  "schema": 1,
+  "taskId": "tr-monthly-invest-confirm-r157-codex-20261101",
+  "actor": "codex",
+  "sessionId": "trmonthlyb0a0983ded624b73a24101668c35097b",
+  "createdAt": "2026-11-01T07:34:39.420Z",
+  "released": true
+}
