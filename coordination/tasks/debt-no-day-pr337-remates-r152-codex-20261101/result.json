@@ -1,0 +1,18 @@
+{
+  "status": "blocked",
+  "summary": "Continuidad por relevo horario PR337. WIP B1/B2/B3 privado durable sobre89e33, sin commit/push ni ejecución. D402 contrato prospectivo aún sin implementar. FULL propio ha leído6d8e9448: Claude acepta que una reescritura vieja byte-idéntica conserveV2, límite conocido que el siguiente titular debe documentar e implementar con el resto del contrato. No es aceptación de producto ni cierre funcional.",
+  "tests": [],
+  "productSHA": "89e33b206a95ef8c490d8147af80dfd1b76955e1",
+  "limitations": [
+    "0tests/VM/Node producto/Chromium/servidor/build; preparación no cualifica ENTER.",
+    "Sin marca debe conservar fuenteA; marca y compatibilidad D402 aún no implementadas.",
+    "Límite aceptado6d8e9448: marcada fija100013, deuda sin día10001 pendiente, fuenteA useEditable teclea90012 y conserva cuenta/sello idénticos;V2 conserva100013. Documentación requerida en PR/ARQUITECTURA/informe.",
+    "Sin runner/puerto/lease activo. Claim y OWN no se transfieren; requiere nuevo trabajador/OWN/claim y gates. Misma PR337 sin rebase; Punto3 STOP."
+  ],
+  "schema": 1,
+  "taskId": "debt-no-day-pr337-remates-r152-codex-20261101",
+  "actor": "codex",
+  "sessionId": "nrelay26db60295f4441b8a6d3478d0e7b2dc8",
+  "createdAt": "2026-11-01T02:35:34.148Z",
+  "released": true
+}
