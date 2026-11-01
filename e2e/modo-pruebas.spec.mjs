@@ -145,8 +145,8 @@ for(const [lang,action] of [['es','activate'],['en','activate'],['ca','activate'
       return {results,writers:CLOUD_WRITES,pinned:mcSandbox(),flag:mcSandboxFlag(),transition:mcSandboxTransition(),marks:performance.getEntriesByName('mc_mode_change_reopen_required').map(e=>({name:e.name,detail:e.detail})),realBudget:mcLoadRaw('micartera_v3').budget};
     });
     expect(dialogs).toEqual(['beforeunload']);expect(guarded.transition).toBe(true);expect(guarded.pinned).toBe(action!=='activate');
-    // 35 con `decideOwnTransfer`: también se corta, igual que `setExpenseMeta`, al cambiar de modo.
-    expect(guarded.results).toHaveLength(35);expect(guarded.writers).toContain('renameExpense');expect(guarded.writers).toContain('setExpenseMeta');expect(guarded.writers).toContain('decideOwnTransfer');expect(new Set(guarded.writers).size).toBe(35);expect(guarded.results.every(r=>r===null)).toBe(true);
+    // 36 con `decideOwnTransfer`: también se corta, igual que `setExpenseMeta`, al cambiar de modo.
+    expect(guarded.results).toHaveLength(36);expect(guarded.writers).toContain('renameExpense');expect(guarded.writers).toContain('setExpenseMeta');expect(guarded.writers).toContain('decideOwnTransfer');expect(guarded.writers).toContain('setIncomeOwnTransfer');expect(new Set(guarded.writers).size).toBe(36);expect(guarded.results.every(r=>r===null)).toBe(true);
     expect(guarded.marks).toEqual([{name:'mc_mode_change_reopen_required',detail:null}]);expect(guarded.realBudget).toBe(500);
     // The same browser reload, now allowed, stands in for closing/reopening this document.
     await page.evaluate(()=>{window._incCancelReload=false;});await page.reload();
@@ -235,7 +235,7 @@ for(const action of ['activate','empty','deactivate']) test(`INC171001 window fe
     expect(interval.flag).toBe(action!=='activate');
     const probe=await page.evaluate(async()=>{const results=[];for(const name of CLOUD_WRITES)results.push({name,result:await cloud[name]()});return results;});
     probes[0].allWriters=probe;
-    expect(probe).toHaveLength(35);expect(probe.map(p=>p.name)).toContain('renameExpense');expect(probe.map(p=>p.name)).toContain('setExpenseMeta');expect(probe.map(p=>p.name)).toContain('decideOwnTransfer');expect(new Set(probe.map(p=>p.name)).size).toBe(35);
+    expect(probe).toHaveLength(36);expect(probe.map(p=>p.name)).toContain('renameExpense');expect(probe.map(p=>p.name)).toContain('setExpenseMeta');expect(probe.map(p=>p.name)).toContain('decideOwnTransfer');expect(probe.map(p=>p.name)).toContain('setIncomeOwnTransfer');expect(new Set(probe.map(p=>p.name)).size).toBe(36);
     expect(probe.every(p=>p.result===null)).toBe(true);
     await Promise.all([page.waitForEvent('load'),page.evaluate(()=>{window._incHoldAsk=false;window._incHeldBack();})]);
     await ready(2);

@@ -73,6 +73,54 @@ async function open(page,{lang='es',mode='ok',expenses=[out,incoming],remote=exp
   return page.getByTestId('exp',{exact:true});
 }
 const translations={es:['¿Lo enviaste a otra cuenta tuya?','Sí, es mi dinero','No, es un pago'],en:['Did you send this to another account of yours?','Yes, it is my money','No, it is a payment'],ca:['Ho vas enviar a un altre compte teu?','Sí, són els meus diners','No, és un pagament']};
+for(const direction of ['outgoing','incoming'])test(`PR352 memo real: ${direction}, porciones y día local`,async({page})=>{
+  const rows=direction==='incoming'?[{...incoming,category:'ingreso'},out]:[out,incoming];
+  const sheet=await open(page,{expenses:rows}),action=sheet.getByTestId(direction==='incoming'?'exp-income-own':'exp-own-transfer');
+  await expect(action).toBeEnabled();
+  if(direction==='incoming')await expect(sheet.getByTestId('exp-income-own-peer')).toBeVisible();
+  const before=await saved(page);
+  await page.evaluate(()=>{
+    window.__perfCalls={income:0,peer:0,outgoing:0};
+    const income=incomeOwnTransferPlan,peer=incomeOwnTransferPeer,outgoing=ownTransferPlan;
+    incomeOwnTransferPlan=function(...args){window.__perfCalls.income++;return income(...args);};
+    incomeOwnTransferPeer=function(...args){window.__perfCalls.peer++;return peer(...args);};
+    ownTransferPlan=function(...args){window.__perfCalls.outgoing++;return outgoing(...args);};
+  });
+  for(const kind of ['settings','savedAt'])await unrelatedTransferUpdate(page,kind);
+  expect(await page.evaluate(()=>window.__perfCalls)).toEqual({income:0,peer:0,outgoing:0});
+  const keys=['expenses','accounts','fixed','debts','oneoffs','bankTx','reciboNo','reciboBorrado','deleted','obAbsorbedPending','obAbsorbedConfirmed'];
+  if(direction==='incoming')keys.push('flows');
+  for(const key of keys){
+    await page.evaluate(key=>{
+      window.__perfCalls={income:0,peer:0,outgoing:0};
+      const el=document.querySelector('[data-testid="exp"]');let f=el[Object.keys(el).find(k=>k.startsWith('__reactFiber'))];
+      while(f&&!(f.memoizedProps&&f.memoizedProps.onRefreshExpenses))f=f.return;
+      if(!f)throw Error('Expenses controller missing');
+      f.memoizedProps.set(s=>({...s,[key]:Array.isArray(s[key])?[...s[key]]:s[key]&&typeof s[key]==='object'?{...s[key]}:[]}));
+    },key);
+    await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+    const calls=await page.evaluate(()=>window.__perfCalls);
+    expect(calls[direction==='incoming'?'peer':'outgoing'],key).toBeGreaterThan(0);
+    await expect(action).toBeEnabled();
+  }
+  // Mismas referencias, otro día local: el vínculo de recibos usa el calendario del dispositivo.
+  await page.evaluate(()=>{
+    window.__perfCalls={income:0,peer:0,outgoing:0};
+    const PreviousDate=Date,now=new PreviousDate(),next=new PreviousDate(now.getFullYear(),now.getMonth(),now.getDate()+1,12).getTime();
+    function NextDate(...args){return new.target?Reflect.construct(PreviousDate,args.length?args:[next],new.target):new PreviousDate(next).toString();}
+    Object.setPrototypeOf(NextDate,PreviousDate);NextDate.prototype=PreviousDate.prototype;NextDate.now=()=>next;window.Date=NextDate;
+  });
+  await unrelatedTransferUpdate(page,'savedAt');
+  expect((await page.evaluate(()=>window.__perfCalls))[direction==='incoming'?'peer':'outgoing']).toBeGreaterThan(0);
+  await expect(action).toBeEnabled();
+  await page.evaluate(id=>{
+    const el=document.querySelector('[data-testid="exp"]');let f=el[Object.keys(el).find(k=>k.startsWith('__reactFiber'))];
+    while(f&&!(f.memoizedProps&&f.memoizedProps.onRefreshExpenses))f=f.return;
+    f.memoizedProps.set(s=>({...s,deleted:[...(s.deleted||[]),keyOfExpense(s.expenses.find(e=>e.id===id))]}));
+  },rows[0].id);
+  await expect(action).toHaveCount(0);
+  const after=await saved(page);expect(after.writes).toEqual([]);expect(after.remote).toEqual(before.remote);expect(after.expenses).toEqual(before.expenses);
+});
 const incomeText={es:['Es un traspaso entre mis cuentas','Contar como ingreso','Entrada guardada; salida sin confirmar'],en:['This is a transfer between my accounts','Count as income','Incoming saved; outgoing unconfirmed'],ca:['És un traspàs entre els meus comptes','Comptar com a ingrés','Entrada desada; sortida sense confirmar']};
 const incomeRow={...incoming,category:'ingreso'};
 for(const lang of ['es','en','ca'])test(`ingreso propio manual: sin pareja (${lang})`,async({page})=>{
@@ -518,6 +566,7 @@ const transferChanges=['owner','accounts','obAcc','amount','date','category','so
 const stillEligible=['date','category','source','extId','merchant'];
 async function changeTransferSnapshot(page,kind){
   await page.evaluate(({kind,id})=>{
+    window.__own.expectedTransferSnapshot=null;
     const el=document.querySelector('[data-testid="exp"]');let f=el[Object.keys(el).find(k=>k.startsWith('__reactFiber'))];
     while(f&&!(f.memoizedProps&&f.memoizedProps.onRefreshExpenses))f=f.return;
     if(!f)throw new Error('Expenses controller missing');
@@ -543,10 +592,21 @@ async function changeTransferSnapshot(page,kind){
       }
       // La nueva foto remota acompaña al fixture; no se invoca un writer de producto.
       window.__own.rows=next.expenses.map(x=>({id:x.id,user_id:next._historyOwner,fecha:x.date,comercio:x.merchant,importe:x.amount,cat:x.category,source:expenseSourceForCloud(x)}));
+      window.__own.expectedTransferSnapshot=JSON.parse(JSON.stringify({owner:next._historyOwner,
+        accounts:next.accounts,expenses:next.expenses,fixed:next.fixed,deleted:next.deleted,
+        expenseOrder:(next.settings||{}).expenseOrder}));
       return next;
     });
   },{kind,id:out.id});
   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  // Dos frames no acreditan el guardado diferido: esperar el estado que este fixture pidió.
+  await expect.poll(()=>page.evaluate(()=>!!window.__own.expectedTransferSnapshot)).toBe(true);
+  const expected=await page.evaluate(()=>window.__own.expectedTransferSnapshot);
+  await expect.poll(async()=>{
+    const {state,expenses}=await saved(page);
+    return JSON.parse(JSON.stringify({owner:state._historyOwner,accounts:state.accounts,expenses,
+      fixed:state.fixed,deleted:state.deleted,expenseOrder:(state.settings||{}).expenseOrder}));
+  }).toEqual(expected);
 }
 for(const held of [false,true])for(const kind of transferChanges)test(`PR345 invalida: ${kind} (${held?'pendiente':'oferta'})`,async({page})=>{
   const sheet=await open(page,{mode:held?'preflightHold':'ok'}),action=sheet.getByTestId('exp-own-transfer');

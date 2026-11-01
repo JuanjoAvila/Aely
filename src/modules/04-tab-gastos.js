@@ -2842,9 +2842,14 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
      es para que ninguna otra vía que vacíe `editExp` pueda volver a dejar la app muerta. */
   const abierto=!!exp && !!editExp;
   const transferSandbox=mcSandbox();
-  const incomeSignature=JSON.stringify(abierto?incomeOwnTransferPlan(state,exp):null);
+  const paymentDay=new Date().toDateString();
+  // Las relaciones leen colecciones ajenas a la fila y el día civil local. _savedAt cambia
+  // todo el estado al escribir: memorizar por state recalcularía el histórico en cada render.
+  const incomeSignature=useMemo(function(){return JSON.stringify(abierto?incomeOwnTransferPlan(state,exp):null);},
+    [abierto,exp,paymentDay,state.expenses,state.accounts,state._historyOwner,state.flows,state.fixed,state.debts,state.oneoffs,state.bankTx,state.reciboNo,state.reciboBorrado,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed]);
   const incomePlan=useMemo(function(){return JSON.parse(incomeSignature);},[incomeSignature]);
-  const incomePeerSignature=JSON.stringify(incomePlan?incomeOwnTransferPeer(state,incomePlan):null);
+  const incomePeerSignature=useMemo(function(){return JSON.stringify(incomePlan?incomeOwnTransferPeer(state,incomePlan):null);},
+    [incomePlan,paymentDay,state.expenses,state.accounts,state._historyOwner,state.flows,state.fixed,state.debts,state.oneoffs,state.bankTx,state.reciboNo,state.reciboBorrado,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed]);
   const incomePeer=useMemo(function(){return JSON.parse(incomePeerSignature);},[incomePeerSignature]);
   const incomeLive=useRef(null);incomeLive.current={plan:incomePlan,peer:incomePeer,state:state,sandbox:transferSandbox};
   const [incomeOffer,setIncomeOffer]=useState(null),[incomePeerOffer,setIncomePeerOffer]=useState(null),[incomeWithPeer,setIncomeWithPeer]=useState(false);
@@ -2869,9 +2874,9 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     }catch(err){}finally{clearTimeout(timer);}})();
     return function(){active=false;clearTimeout(timer);};
   },[incomePlan,incomePeer,transferSandbox]);
-  // La elegibilidad se recalcula, pero un cambio ajeno no debe repetir las dos lecturas remotas.
-  // La foto completa conserva las invalidaciones del plan, incluidas relaciones fuera de la fila.
-  const transferSignature=JSON.stringify(abierto?ownTransferPlan(state,exp):null);
+  // Conservar también la firma: copiar arrays sin cambiar el plan no repite prelecturas remotas.
+  const transferSignature=useMemo(function(){return JSON.stringify(abierto?ownTransferPlan(state,exp):null);},
+    [abierto,exp,paymentDay,state.expenses,state.accounts,state._historyOwner,state.fixed,state.debts,state.oneoffs,state.bankTx,state.reciboNo,state.reciboBorrado,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed]);
   const transferPlan=useMemo(function(){return JSON.parse(transferSignature);},[transferSignature]);
   const transferLive=useRef(null);transferLive.current={plan:transferPlan,state:state,sandbox:transferSandbox};
   const [transferOffer,setTransferOffer]=useState(null);
@@ -2894,7 +2899,6 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     setTransferOffer(null);check();
     return function(){active=false;};
   },[transferPlan,transferSandbox]);
-  const paymentDay=new Date().toDateString();
   const paymentRelation=useMemo(function(){return abierto?expensePaymentRelationUI(state,exp):null;},
     [abierto,exp,paymentDay,state.fixed,state.debts,state.oneoffs,state.expenses,state.bankTx,state.accounts,state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
   const swipe=useSheetSwipe(abierto, onClose);

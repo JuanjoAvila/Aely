@@ -660,4 +660,52 @@ await check('ingreso propio manual: replay React tras finally conserva ambas dec
   const replay=ctx.__incomeCallerUpdates.reduce((state,updater)=>updater(state),s);
   assert.deepEqual(plain(replay),committed);assert.deepEqual(replay.expenses.map(e=>e.category),['traspaso','traspaso']);assert.equal(c.ops.length,2);
 });
+
+await check('PR352 rendimiento: emparejar entrada y salida con 2000 y 20000 filas',()=>{
+  const metrics=[];
+  const selected=process.env.AELY_OWN_TRANSFER_PERF_CASE;
+  assert.ok(!selected||/^(2000|20000):(outgoing|incoming)$/.test(selected),'caso de medida reconocido');
+  for(const size of [2000,20000])for(const direction of ['outgoing','incoming']){
+    if(selected&&selected!==size+':'+direction)continue;
+    const s=fixture();if(direction==='incoming')s.expenses[1].category='ingreso';
+    for(let i=2;i<size;i++)s.expenses.push({...s.expenses[i%2],id:uuid(i+10),amount:(i%2?-1:1)*(100+i/100),extId:'noise-'+i});
+    const before=JSON.stringify(s),p=direction==='incoming'?ctx.incomeOwnTransferPlan(s,s.expenses[1]):null;
+    const original={bank:ctx.ownTransferBankRow,day:ctx.ownTransferDay};let bank=0,day=0,irrelevantDays=0;
+    ctx.ownTransferBankRow=function(...args){bank++;return original.bank(...args);};
+    ctx.ownTransferDay=function(e){day++;if(e&&Math.abs(e.amount)!==80)irrelevantDays++;return original.day(e);};
+    const samples=[];
+    try{for(let n=0;n<3;n++){
+      const start=performance.now(),result=direction==='incoming'?ctx.incomeOwnTransferPeer(s,p):ctx.ownTransferPlan(s,s.expenses[0]);
+      samples.push(performance.now()-start);
+      assert.ok(result);assert.equal(result.outgoing.id,s.expenses[0].id);assert.equal(result.incoming.id,s.expenses[1].id);
+    }}finally{ctx.ownTransferBankRow=original.bank;ctx.ownTransferDay=original.day;}
+    let historyRowReads=0;
+    const track=rows=>new Proxy(rows,{get(target,key,receiver){
+      if(typeof key==='string'&&/^(0|[1-9]\d*)$/.test(key))historyRowReads++;
+      const value=Reflect.get(target,key,receiver);
+      if(['map','filter','slice','concat'].includes(key))return (...args)=>track(value.apply(receiver,args));
+      return value;
+    }});
+    const originalExpenses=s.expenses;s.expenses=track(originalExpenses);
+    try{
+      const measured=direction==='incoming'?ctx.incomeOwnTransferPeer(s,p):ctx.ownTransferPlan(s,s.expenses[0]);
+      assert.ok(measured);assert.equal(measured.outgoing.id,originalExpenses[0].id);assert.equal(measured.incoming.id,originalExpenses[1].id);
+    }finally{s.expenses=originalExpenses;}
+    assert.equal(JSON.stringify(s),before,'medir no modifica dinero ni filas');
+    metrics.push({size,direction,samplesMs:samples,medianMs:samples.slice().sort((a,b)=>a-b)[1],meanBankRows:bank/3,meanDays:day/3,irrelevantDays,historyRowReads,historyPassEquivalents:historyRowReads/size});
+  }
+  console.log('PR352_PERF '+JSON.stringify(metrics));
+  for(const m of metrics){
+    assert.ok(m.meanBankRows<=12,JSON.stringify(m)+' no recorre guardas caras de filas ajenas');
+    assert.equal(m.irrelevantDays,0,JSON.stringify(m)+' no convierte fechas de otros importes');
+    assert.ok(m.meanDays<=12,JSON.stringify(m)+' comparte fechas entre búsquedas de la misma pareja');
+  }
+});
+await check('PR352 índice: conserva UUID duplicado fuera del céntimo y salida ambigua corregida o rechazada',()=>{
+  for(const patch of [{amount:81},{category:'traspaso'},{ownTransferRejected:true}]){
+    const s=fixture();s.expenses.push({...s.expenses[0],...patch,id:patch.amount?s.expenses[0].id:uuid(99)});
+    assert.equal(plan(s),null);
+  }
+});
+
 console.log("own-transfer-confirm: "+count+" casos OK");
