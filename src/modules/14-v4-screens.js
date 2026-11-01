@@ -340,7 +340,7 @@ function PlanBills({state, set, totals, charges, evidence, manageOpen, setManage
       React.createElement("span",null, paidLabel),React.createElement("span",{"aria-hidden":true}, paidExpanded?"▾":"▸")),
     paidExpanded && React.createElement("div",{className:"v4-section",id:paidPanelId,role:"region","aria-labelledby":"v4-paid-fold-btn"}, paid.map(row)),
     // También en sencillo: la puerta vive en Ajustes → Dinero (NO-GO §5bis.2).
-    React.createElement(BillsManagePush,{open:manageOpen,onClose:function(){ setManageOpen(false); },state:state,set:set,totals:totals,simple:true})
+    React.createElement(BillsManagePush,{key:"manage-bills",open:manageOpen,onClose:function(){ setManageOpen(false); },state:state,set:set,totals:totals,simple:true})
   );
 }
 /* La factura variable acredita su bruto real, pero no permite inventar la parte propia de un
@@ -825,7 +825,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
           tf("pr6_te_deben",{x:eur(debenTotal)}),
           React.createElement("svg",{className:"pr6-pill-go",width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
             React.createElement("path",{d:"M9 6l6 6-6 6"}))))));
-  const manage=React.createElement(BillsManagePush,{open:manageOpen,onClose:function(){ setManageOpen(false); setManageEdit(null); setAddNow(0); },state:state,set:set,totals:totals,simple:false,editId:manageEdit,addNow:addNow});
+  const manage=React.createElement(BillsManagePush,{key:"manage-bills",open:manageOpen,onClose:function(){ setManageOpen(false); setManageEdit(null); setAddNow(0); },state:state,set:set,totals:totals,simple:false,editId:manageEdit,addNow:addNow});
   /* La hoja de importar vive fuera de la rama del primer uso: al añadir, el plan deja de estar
      vacío y, dentro de esa rama, la hoja se desmontaba de golpe; el segundo toque de un doble
      toque caía entonces en el «+» de abajo (revisión 31/10/2026). Ahora cierra con su animación y
@@ -1855,6 +1855,144 @@ function billGlyph(row){
 
 /* §2 variante A: `.settings-push` hub. Reconcile → BankPanel (Claude).
    Ajustes dispara `mc-open-bills` → PlanTab abre este push con state vivo (no snapshot). */
+// El acuse no viaja al JSON ni a la nube: solo identifica el resultado que React comprometió.
+const BILL_UNDO_COMMIT=Symbol("bill-undo-commit"), billUndoUploads=new Map();
+function billUndoCopy(x){
+  if(!x||typeof x!=="object") return x;
+  if(Array.isArray(x)) return x.map(billUndoCopy);
+  const out={}; Object.keys(x).forEach(function(k){ Object.defineProperty(out,k,{value:billUndoCopy(x[k]),enumerable:true,writable:true,configurable:true}); }); return out;
+}
+function billUndoPeriod(s){ return {day:madridYmdParts(Date.now()),month:startOfMonth().getTime(),start:budgetPeriodOf(s).startMs}; }
+function billUndoReview(s,id){
+  const rows=(s.fixed||[]).filter(function(x){ return x.id===id; });
+  if(rows.length!==1||(s.oneoffs||[]).some(function(x){ return x.id===id; })) return null;
+  const item=rows[0],ids=(item.reparto||[]).filter(function(x){ return x.via==="debt"; }).map(function(x){ return x.debtId; });
+  const debts=(s.debts||[]).filter(function(d){ return ids.indexOf(d.id)>=0; });
+  if(new Set(debts.map(function(d){ return d.id; })).size!==debts.length) return null;
+  return billUndoCopy({owner:s._historyOwner||null,simple:!!(s.settings&&s.settings.simpleMode),item:item,debts:debts,fixed:(s.fixed||[]).filter(function(f){ return f.id===id||(f.reparto||[]).some(function(x){ return ids.indexOf(x.debtId)>=0; }); }),period:billUndoPeriod(s)});
+}
+function billUndoExpense(e){
+  // Las etiquetas pueden cambiar sin que el cargo deje de ser el mismo; nunca se reponen.
+  const out=billUndoCopy(e); ["category","cat","note","tags","noteEdited","categoryEdited"].forEach(function(k){ delete out[k]; }); return out;
+}
+function billUndoRemove(s,review,fixes,now){
+  if(!review||!goalSyncEqual(review,billUndoReview(s,review.item.id))) return {state:s,error:true};
+  const r=sinCargoDelPlan(s,"fixed",review.item.id,now),next=conDescuentoFijado(fixes,deudasTrasReparto(s,r.state));
+  const preserve=!!r.subir.length||(s.expenses||[]).some(function(e){ return e.reciboId===review.item.id&&dateMs(e.date)>=startOfMonth().getTime()&&cargoDeRecibo(e,s); });
+  const debts=[];
+  (next.debts||[]).forEach(function(d){
+    const before=(s.debts||[]).find(function(x){ return x.id===d.id; });
+    if(!before||goalSyncEqual(before,d)) return;
+    const fields=[];
+    Array.from(new Set(Object.keys(before).concat(Object.keys(d)))).forEach(function(k){
+      const had=Object.prototype.hasOwnProperty.call(before,k),has=Object.prototype.hasOwnProperty.call(d,k);
+      if(had!==has||!goalSyncEqual(before[k],d[k])) fields.push({key:k,had:had,value:billUndoCopy(before[k])});
+    });
+    debts.push({id:d.id,after:billUndoCopy(d),fields:fields});
+  });
+  // SinCargo ya compensa las marcas; se evalúa de nuevo desde la cuenta ACTUAL con el delta
+  // completo, pues la cuota aceptada también entra en el saldo de una cuenta de fijos ya cobrada.
+  const balanced=preserve?conSaldoMostrado(s,Object.assign({},next,{accounts:s.accounts})):next;
+  return {state:balanced,subir:r.subir,undo:{owner:review.owner,item:billUndoCopy(review.item),debts:debts,expenses:r.subir.map(billUndoExpense),preserveBalance:preserve,period:billUndoPeriod(s),tomb:billUndoCopy(next.reciboBorrado[review.item.id]),at:next.reciboBorradoAt[review.item.id]}};
+}
+function billUndoRestore(s,undo,now){
+  const id=undo.item.id;
+  if((s._historyOwner||null)!==undo.owner||!goalSyncEqual(undo.period,billUndoPeriod(s))||(s.fixed||[]).concat(s.oneoffs||[]).some(function(f){ return f.id===id; })||
+    !goalSyncEqual(s.reciboBorrado&&s.reciboBorrado[id],undo.tomb)||!s.reciboBorradoAt||s.reciboBorradoAt[id]!==undo.at) return {state:s,error:true};
+  let skipped=false;
+  const safe=undo.expenses.filter(function(e){
+    const rows=(s.expenses||[]).filter(function(x){ return x.id===e.id; });
+    const ok=rows.length===1&&goalSyncEqual(billUndoExpense(rows[0]),e)&&admiteMarcaDe(rows[0],undo.item)&&
+      !expenseIsTombstoned(rows[0],expenseDeletedSet(s))&&!reciboVetado(s,id,reciboNoIdentidad(rows[0]),rows[0].id)&&
+      !(s.expenses||[]).some(function(x){ return x.id!==e.id&&x.ent===e.ent&&x.date===e.date&&x.amount===e.amount&&x.merchant===e.merchant; });
+    if(!ok) skipped=true; return ok;
+  }).map(function(e){ return e.id; });
+  const guarded=Object.assign({},s,{reciboBorrado:Object.assign({},s.reciboBorrado,{[id]:Object.assign({},undo.tomb,{x:safe})})});
+  const r=conReciboEnPlan(guarded,"fixed",billUndoCopy(undo.item),now);
+  let changed=false;
+  const debts=(s.debts||[]).map(function(d){
+    const delta=undo.debts.find(function(x){ return x.id===d.id; });
+    if(!delta) return d;
+    if((s.debts||[]).filter(function(x){ return x.id===d.id; }).length!==1||!goalSyncEqual(d,delta.after)){ skipped=true; return d; }
+    const restored=Object.assign({},d); delta.fields.forEach(function(f){ if(f.had) restored[f.key]=billUndoCopy(f.value); else delete restored[f.key]; });
+    changed=true; return restored;
+  });
+  if(undo.debts.some(function(d){ return !(s.debts||[]).some(function(x){ return x.id===d.id; }); })) skipped=true;
+  const next=changed?Object.assign({},r.state,{debts:debts}):r.state;
+  const balanced=undo.preserveBalance?conSaldoMostrado(s,Object.assign({},next,{accounts:s.accounts})):next;
+  return {state:balanced,subir:r.subir,skipped:skipped};
+}
+function billUndoSend(rows,owner){
+  if(!cloud.enabled()||!owner||mcSandbox()) return Promise.resolve();
+  return Promise.all((rows||[]).map(function(e){
+    // La puerta existente busca por estos campos, no por id: retirar y reponer van en ese orden.
+    const key=JSON.stringify([owner,e.ent,e.date,e.amount,e.merchant]);
+    const next=(billUndoUploads.get(key)||Promise.resolve()).catch(function(){}).then(function(){
+      return cloud.session().then(function(session){ if(!session||session.user.id!==owner) throw new Error("bill-undo-owner"); return cloud.setExpenseRecibo(e); });
+    });
+    billUndoUploads.set(key,next);
+    next.catch(function(){}).then(function(){ if(billUndoUploads.get(key)===next) billUndoUploads.delete(key); });
+    return next;
+  }));
+}
+function useBillUndo(state,set,open,onRemoved,onNotice){
+  const [pending,setPending]=React.useState(null);
+  const committed=React.useRef(state),life=React.useRef(false),visible=React.useRef(open),busy=React.useRef(null),token=React.useRef(null);
+  React.useLayoutEffect(function(){ life.current=true; return function(){
+    life.current=false; if(busy.current) busy.current.cancelled=true; busy.current=null; token.current=null;
+  }; },[]);
+  React.useLayoutEffect(function(){
+    committed.current=state; visible.current=open;
+    if(pending&&!pending.operation.done){
+      const operation=pending.operation;
+      if(operation.until!=null&&Date.now()>=operation.until) operation.cancelled=true;
+      if(!pending.submitted&&open&&life.current&&!operation.cancelled){
+        // Solo la intención viaja en transición. Escribir desde este layout impide que React
+        // reutilice un cálculo eager encolado después de que la hoja se haya cerrado.
+        setPending(Object.assign({},pending,{submitted:true}));
+        set(function(s){
+          if(operation.cancelled) return s;
+          const r=pending.calculate(s); if(r.state===s) return s;
+          return Object.assign({},r.state,{[BILL_UNDO_COMMIT]:{operation:operation,owner:s._historyOwner||null,undo:r.undo,subir:r.subir,skipped:r.skipped}});
+        });
+      } else {
+        const ack=state[BILL_UNDO_COMMIT]; operation.done=true;
+        if(busy.current===operation) busy.current=null;
+        setPending(null);
+        if(pending.submitted&&ack&&ack.operation===operation){
+          billUndoSend(ack.subir,ack.owner).catch(function(){ if(life.current&&visible.current) onNotice("gb_undo_sync_error"); });
+          if(open&&life.current){
+            if(operation.kind==="remove"){
+              const tkn={undo:ack.undo,until:Date.now()+5000}; token.current=tkn; onRemoved(tkn);
+            } else if(ack.skipped) onNotice();
+          }
+        } else if(open&&life.current&&!operation.cancelled) onNotice(null,operation.kind==="remove");
+      }
+    }
+    if(!open){ if(busy.current) busy.current.cancelled=true; busy.current=null; token.current=null; }
+  });
+  const submit=function(operation,calculate){
+    React.startTransition(function(){ setPending({operation:operation,calculate:calculate,submitted:false}); });
+  };
+  return {
+    remove:function(id){
+      if(busy.current||!life.current||!visible.current) return;
+      const operation={kind:"remove"},review=billUndoReview(committed.current,id); busy.current=operation;
+      if(!review){ busy.current=null; onNotice(null,true); return; }
+      descuentoPregunta(committed.current,function(s){ return deudasTrasReparto(s,Object.assign({},s,{fixed:(s.fixed||[]).filter(function(f){ return f.id!==id; })})); }).then(function(fixes){
+        if(!life.current||!visible.current||busy.current!==operation) return;
+        const now=Date.now(); submit(operation,function(s){ return billUndoRemove(s,review,fixes,now); });
+      }).catch(function(){ if(busy.current===operation){ busy.current=null; if(life.current&&visible.current) onNotice(null,true); } });
+    },
+    undo:function(tkn){
+      if(busy.current||!tkn||token.current!==tkn||!life.current||!visible.current) return false;
+      token.current=null; if(Date.now()>=tkn.until) return true;
+      const operation={kind:"undo",until:tkn.until},now=Date.now(); busy.current=operation;
+      submit(operation,function(s){ return billUndoRestore(s,tkn.undo,now); });
+      return true;
+    }
+  };
+}
 function BillsManagePush({open, onClose, state, set, totals, simple, editId, addNow}){
   const [stack,setStack]=React.useState(["hub"]);
   const [group,setGroup]=React.useState(null);
@@ -1871,6 +2009,15 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
   const [undoBill,setUndoBill]=React.useState(null);
   const undoTimer=React.useRef(null);
   const [savedBill,setSavedBill]=React.useState(null);
+  const fixedUndo=useBillUndo(state,set,open,function(token){
+    editOnly.current=false; setDetail(null); setPasos(null);
+    if(undoTimer.current) clearTimeout(undoTimer.current);
+    const snap={kind:"fixed",token:token}; setUndoBill(snap);
+    undoTimer.current=setTimeout(function(){ setUndoBill(function(current){ return current===snap?null:current; }); undoTimer.current=null; },5000);
+  },function(key,finish){
+    if(finish){ editOnly.current=false; setDetail(null); setPasos(null); }
+    setSavedBill({msg:t(key||"gb_undo_changed")});
+  });
   const rootRef=React.useRef(null);
   const subRef=React.useRef(null);
   const titleRef=React.useRef(null);
@@ -2054,9 +2201,9 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
   };
   const removeWithUndo=function(row){
     setSavedBill(null);
+    if(row.kind==="fixed"){ fixedUndo.remove(row.id); return; }
     const snap={kind:row.kind, item:Object.assign({},row.item)};
-    if(row.kind==="fixed") quitarReciboPreguntando(state,set,row.id);
-    else if(row.kind==="flow") removeFlowById(set,row.id);
+    if(row.kind==="flow") removeFlowById(set,row.id);
     else if(row.kind==="oneoff") removeOneoffById(set,row.id);
     else return;
     // Tras borrar se queda en Todos: ahí está el «Deshacer».
@@ -2068,9 +2215,9 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
   };
   const undoLastBill=function(){
     if(!undoBill) return;
+    if(undoBill.kind==="fixed"&&fixedUndo.undo(undoBill.token)===false) return;
     if(undoTimer.current){ clearTimeout(undoTimer.current); undoTimer.current=null; }
-    if(undoBill.kind==="fixed") addFixedItem(set,undoBill.item);
-    else if(undoBill.kind==="flow") addFlowItem(set,undoBill.item);
+    if(undoBill.kind==="flow") addFlowItem(set,undoBill.item);
     else if(undoBill.kind==="oneoff") addOneoffItem(set,undoBill.item);
     setUndoBill(null);
   };
