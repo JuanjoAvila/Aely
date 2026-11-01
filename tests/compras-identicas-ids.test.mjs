@@ -110,11 +110,17 @@ test("nube: truncada y completa dejan app y servidor en 320 c tras pull, repetir
  // La ventana se escribe como la app (`widgetPeriodOf`): desde el mes sin nómina (4.26.184) lleva
  // `nominas`/`noNominas` y el alcance las incluye. Montada a mano sin las listas, el alcance de 9
  // no casaba con ninguno de los dos que acepta ingest y el widget se quedaba sin foto.
- const stats=c.dashboardBudgetStats(s);s.widgetPeriod=c.widgetPeriodOf(stats,"",c.widgetScopeOf(s,stats,"","caixabank"));
+ // El reloj de la app se fija en el dia de la compra (igual que `fecha` del aviso): con el reloj real, el dia 1 de mes
+ // la compra de "ayer" es del mes anterior y la ventana del widget (mes en curso) no la veria (cayo el 1/11/2026).
+ const realDate=c.Date,fixedMs=Date.parse(date+"T10:00:00Z");let stats;
+ try{c.Date=class extends Date{constructor(...a){super(...(a.length?a:[fixedMs]));}static now(){return fixedMs;}};stats=c.dashboardBudgetStats(s);s.widgetPeriod=c.widgetPeriodOf(stats,"",c.widgetScopeOf(s,stats,"","caixabank"));}finally{c.Date=realDate;}
  await cloud.pushState("user",c.slimForCloud(s),(await cloud.pullState())?.updated_at);
  // Aviso de otro banco, fuera del gasto diario: dispara month/widget reales sin añadir
  // gasto de Caixa y acredita que ambos lectores respetan la lápida del BOOK absorbido.
- const result=await post(env,{fuente:"tr",titulo:"Trade Republic",texto:"Has gastado 0,01 € en Otra cuenta sintetica",fecha:String(Date.now()),evento:"absorbed-cloud-contract"});
+ // El handler lee el reloj global (readAt, mes de Madrid): se fija igual que el de la app, o el 1 de mes la compra de ayer no esta en su ventana.
+ const RealDate=globalThis.Date;let result;
+ try{globalThis.Date=class extends RealDate{constructor(...a){super(...(a.length?a:[fixedMs]));}static now(){return fixedMs;}};
+ result=await post(env,{fuente:"tr",titulo:"Trade Republic",texto:"Has gastado 0,01 € en Otra cuenta sintetica",fecha:String(fixedMs),evento:"absorbed-cloud-contract"});}finally{globalThis.Date=RealDate;}
  assert.equal(result.status,200);assert.equal(Math.round(result.data.month.spent*100),320);assert.ok(result.data.widget);assert.equal(Math.round(result.data.widget.spent*100),320);
  console.log(JSON.stringify({convergence:{afterPullCents:cents(s),otherMobileCents:cents(other),ingestCents:Math.round(result.data.month.spent*100),widgetCents:Math.round(result.data.widget.spent*100)}}));
 });

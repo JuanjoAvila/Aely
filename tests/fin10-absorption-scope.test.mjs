@@ -4,20 +4,20 @@ import {test} from "node:test";
 import {transformSync} from "esbuild";
 import {loadPureLogic} from "../scripts/load-pure-logic.mjs";
 import * as bank from "./helpers/bank-download-fixture.mjs";
-import {E,day} from "./helpers/banco-sintetico.mjs";
+import {E,diaMes} from "./helpers/banco-sintetico.mjs";
 import {widgetBudget} from "./helpers/ingest-handler-fixture.mjs";
 
 const html=fs.readFileSync(new URL("../public/index.html",import.meta.url),"utf8"),c=loadPureLogic(html);
 const source=fs.readFileSync(new URL("../supabase/functions/_shared/presupuesto.ts",import.meta.url),"utf8");
 const serverModule=src=>{const module={exports:{}};new Function("module","exports",transformSync(src,{loader:"ts",format:"cjs"}).code)(module,module.exports);return module.exports;};
 const server=serverModule(source),clone=x=>JSON.parse(JSON.stringify(x));
-const expense=(id,ref,extra={})=>({id,extId:ref,ent:"caixabank",source:"ob",obAcc:"synthetic-account-a",date:day(-2)+"T12:00:00.000Z",amount:3.20,merchant:"Compra sintetica",obName:"Compra sintetica",category:"otros",...extra});
+const expense=(id,ref,extra={})=>({id,extId:ref,ent:"caixabank",source:"ob",obAcc:"synthetic-account-a",date:diaMes(-2)+"T12:00:00.000Z",amount:3.20,merchant:"Compra sintetica",obName:"Compra sintetica",category:"otros",...extra});
 const pending=expense("pending-local","pending-ref",{obPending:true});
-const gone=expense("book-local","reused-ref",{obOrd:2,date:day(-2)+"T12:00:00.001Z"});
-const key="ob-absorbed2|caixabank|reused-ref|2|synthetic-account-a|"+day(-2);
+const gone=expense("book-local","reused-ref",{obOrd:2,date:diaMes(-2)+"T12:00:00.001Z"});
+const key="ob-absorbed2|caixabank|reused-ref|2|synthetic-account-a|"+diaMes(-2);
 function absorbed(ctx=c){
  const prev={expenses:clone([pending,gone]),bankTx:[],deleted:[],deletedAt:{}};
- const tx={id:gone.extId,ent:gone.ent,acc:gone.obAcc,date:day(-2),amount:3.20,merchant:gone.merchant,status:"BOOK"};
+ const tx={id:gone.extId,ent:gone.ent,acc:gone.obAcc,date:diaMes(-2),amount:3.20,merchant:gone.merchant,status:"BOOK"};
  const links=[{aspsp:"CaixaBank",syncFrom:"2026-01-01",transactions:[{ext_id:tx.id}]}];
  const next=ctx.obReconcilePending(prev.expenses,[tx],links),before=clone(prev);
  const out=ctx.obPendingAbsorbedState({...prev,expenses:next.expenses,lastBankSync:123456789},prev);
@@ -29,13 +29,13 @@ function visibility(ctx,srv,e,deleted,hidden){
  const rows=srv.filasComoLaApp([wire(e,ctx)],deleted);
  assert.equal(rows.reduce((n,r)=>n+Math.round(Number(r.importe)*100),0),hidden?0:Math.round(e.amount*100),"servidor: "+e.id);
 }
-const otherAccount={...gone,id:"other-account",obAcc:"synthetic-account-b"},otherDay={...gone,id:"other-day",date:day(-1)+"T12:00:00.001Z"};
+const otherAccount={...gone,id:"other-account",obAcc:"synthetic-account-b"},otherDay={...gone,id:"other-day",date:diaMes(-1)+"T12:00:00.001Z"};
 
 function rematesScenario(ctx,srv,keepAccount,bookAccount,ordinal){
  const p={...pending,obAcc:keepAccount?"synthetic-account-a":undefined};
- const b={...gone,obOrd:ordinal>1?ordinal:undefined,date:day(-2)+"T12:00:00.00"+(ordinal-1)+"Z",obAcc:bookAccount?"synthetic-account-a":undefined};
+ const b={...gone,obOrd:ordinal>1?ordinal:undefined,date:diaMes(-2)+"T12:00:00.00"+(ordinal-1)+"Z",obAcc:bookAccount?"synthetic-account-a":undefined};
  const prev={accounts:[{id:"cx",ent:"caixabank",role:"diario",spendFrom:true,value:1000}],settings:{expenseBanks:["caixabank"]},expenses:[p,b],gemelos:[],deleted:[],fixed:[],debts:[],oneoffs:[],flows:[],investments:[],goals:[],assets:[],budget:1000,bankTx:[]};
- const tx={entry_reference:b.extId,booking_date:day(-2),value_date:day(-2),status:"BOOK",transaction_amount:{amount:"3.20",currency:"EUR"},credit_debit_indicator:"DBIT",creditor:{name:b.merchant}};
+ const tx={entry_reference:b.extId,booking_date:diaMes(-2),value_date:diaMes(-2),status:"BOOK",transaction_amount:{amount:"3.20",currency:"EUR"},credit_debit_indicator:"DBIT",creditor:{name:b.merchant}};
  const links=[{aspsp:"CaixaBank",syncFrom:"2026-01-01",transactions:[E.mapTransaction(tx)]}];
  assert.equal(links[0].accounts,undefined,"enlace legacy real sin accounts[]");
  const before=clone(prev),after=bank.updater(html,links,prev,ctx,true).state;
@@ -62,7 +62,7 @@ function rematesScenario(ctx,srv,keepAccount,bookAccount,ordinal){
  return after;
 }
 function rematesCost(ctx,n=20000){
- const deleted=Array.from({length:500},(_,i)=>"ob-absorbed2|caixabank|gone-"+i+"|2|synthetic-account-a|"+day(-2));
+ const deleted=Array.from({length:500},(_,i)=>"ob-absorbed2|caixabank|gone-"+i+"|2|synthetic-account-a|"+diaMes(-2));
  const set=ctx.expenseDeletedSet({deleted});assert.equal(ctx.expenseDeletedSet({deleted}),set,"indice de la misma referencia de deleted");
  let enumerations=0,descriptors=0;
  const proxied=new Proxy(set,{ownKeys(target){enumerations++;return Reflect.ownKeys(target);},getOwnPropertyDescriptor(target,k){descriptors++;return Reflect.getOwnPropertyDescriptor(target,k);}});
@@ -85,7 +85,7 @@ test("FIN10 remates ROJO coste real20000filas500lapidas",()=>rematesCost(c));
 test("FIN10 remates indice se renueva al recibir otro conjunto de lapidas",()=>{
  const deleted=[key],before=c.expenseDeletedSet({deleted});
  assert.equal(c.expenseIsTombstoned({...gone,obAcc:undefined},before),true);
- const changed=c.expenseDeletedSet({deleted:["ob-absorbed2|caixabank|distinct-ref|2||"+day(-2)]});
+ const changed=c.expenseDeletedSet({deleted:["ob-absorbed2|caixabank|distinct-ref|2||"+diaMes(-2)]});
  assert.equal(c.expenseIsTombstoned({...gone,obAcc:undefined},changed),false);
  assert.equal(c.expenseIsTombstoned({...gone,extId:"distinct-ref",obAcc:"synthetic-account-b"},changed),true);
 });
@@ -160,13 +160,13 @@ test("FIN14 guarda UUID de retirada acepta source legacy y rechaza otra cuenta c
  assert.equal(c.withdrawalRowMatches(gone,{...row,source:row.source.replace(/#acc[^#]*/,"#acc%broken")}),false);
 });
 test("FIN10 dia literal almacenado, sin reinterpretar zona horaria",()=>{
- const e={...gone,date:day(-2)+"T23:59:00-03:00"};
+ const e={...gone,date:diaMes(-2)+"T23:59:00-03:00"};
  assert.equal(c.obAbsorptionKey(e),key.replace("ob-absorbed2|","ob-absorbed3|")+"|1");visibility(c,server,e,[key],true);
 });
 test("FIN15 importador real no duplica referencia estable cuando reaparece otro dia",()=>{
  const state={accounts:[{id:"cx",ent:"caixabank",role:"diario",spendFrom:true,value:1000}],settings:{expenseBanks:["caixabank"]},expenses:[],gemelos:[],deleted:[],fixed:[],debts:[],oneoffs:[],flows:[],investments:[],goals:[],assets:[],budget:1000,bankTx:[]};
  const tx=(status,date)=>({entry_reference:"stable-ref",booking_date:date,value_date:date,status,transaction_amount:{amount:"3.20",currency:"EUR"},credit_debit_indicator:"DBIT",creditor:{name:"Compra sintetica FIN15"}});
- for(const order of [[tx("PDNG",day(-2)),tx("BOOK",day(-1))],[tx("BOOK",day(-1)),tx("PDNG",day(-2))]]){
+ for(const order of [[tx("PDNG",diaMes(-2)),tx("BOOK",diaMes(-1))],[tx("BOOK",diaMes(-1)),tx("PDNG",diaMes(-2))]]){
   let s=clone(state);for(const t of order)s=bank.updater(html,[{aspsp:"CaixaBank",syncFrom:"2026-01-01",transactions:[E.mapTransaction(t)]}],s,c,true).state;
   assert.equal(s.expenses.length,1);assert.equal(s.expenses.reduce((n,e)=>n+Math.round(e.amount*100),0),320);
   assert.equal(server.filasComoLaApp(s.expenses.map(e=>wire(e)),s.deleted).reduce((n,r)=>n+Math.round(Number(r.importe)*100),0),320);
@@ -206,7 +206,7 @@ test("FIN10 mutantes del lector servidor mueren por cuenta y dia",()=>{
 for(const markerAccount of ["synthetic-account-a",""])for(const candidateAccount of ["synthetic-account-a","synthetic-account-b",""])for(const sameDay of [true,false]){
  test("FIN10 matriz12 lapida="+(markerAccount||"ausente")+" candidata="+(candidateAccount||"ausente")+" mismoDia="+sameDay,()=>{
   const e={...gone,obAcc:candidateAccount||undefined,date:sameDay?gone.date:otherDay.date};
-  const marker="ob-absorbed2|caixabank|reused-ref|2|"+markerAccount+"|"+day(-2);
+  const marker="ob-absorbed2|caixabank|reused-ref|2|"+markerAccount+"|"+diaMes(-2);
   const expectedHidden=sameDay&&(!markerAccount||!candidateAccount||markerAccount===candidateAccount);
   const actualClient=c.expenseIsTombstoned(e,c.expenseDeletedSet({deleted:[marker]}));
   const actualServer=server.filasComoLaApp([wire(e)],[marker]).length===0;
@@ -217,7 +217,7 @@ for(const markerAccount of ["synthetic-account-a",""])for(const candidateAccount
 }
 
 test("FIN10 punto3 ratificado: lapida sin cuenta oculta OTRA CUENTA solo el mismo dia",()=>{
- const marker="ob-absorbed2|caixabank|reused-ref|2||"+day(-2);
+ const marker="ob-absorbed2|caixabank|reused-ref|2||"+diaMes(-2);
  visibility(c,server,otherAccount,[marker],true);
  visibility(c,server,{...otherAccount,date:otherDay.date},[marker],false);
 });

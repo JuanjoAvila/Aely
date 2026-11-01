@@ -4,7 +4,9 @@ import {loadPureLogic,loadPureLogicFromFile} from "../scripts/load-pure-logic.mj
 
 const ref=process.argv[process.argv.indexOf("--source-ref")+1];
 const c=process.argv.includes("--source-ref")?loadPureLogic(execFileSync("git",["show",ref+":public/index.html"],{encoding:"utf8",maxBuffer:8e6})):loadPureLogicFromFile();
-const now=new Date(),y=now.getFullYear(),m=now.getMonth()+1;
+// Mes de Madrid, como `ymNow` del producto (07-tab-patri-fijos): con getMonth() local, TZ=UTC entre 22:00 y 24:00 del ultimo dia
+// del mes montaba el fixture en el mes anterior al que mira el codigo (cayo el 1/11/2026).
+const [y,m]=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Madrid"}).format(new Date()).split("-").map(Number);
 const date=(day,mo=m,yr=y)=>yr+"-"+String(mo).padStart(2,"0")+"-"+String(day).padStart(2,"0");
 const debt={id:"loan-a",name:"Préstamo sintético A",monthly:60,value:12000,account:"sabadell",day:3,asOf:y*12+m-1};
 const expense={id:"charge-a",merchant:"Prestamista sintético",obName:"Prestamista sintético",amount:60,date:date(2),ent:"sabadell",category:"deudas",source:"ob",debtId:"loan-a"};
