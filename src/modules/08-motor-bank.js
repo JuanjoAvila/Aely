@@ -1300,16 +1300,19 @@ function planRecibosMesFoto(s,y,m){
    - todos los cargos de ese mes salen pagados («p» con prueba o «s» con la marca guardada): una
      prueba guardada (`paymentProofs`, el gasto enlazado de Gastos, `paidYm`) no caduca con el
      extracto. Uno pendiente puede ser un cargo que casó por el extracto y ya no está (B2);
-   - no se ha borrado ningún recibo ni puntual desde el día 1 de ese mes (`reciboBorradoAt`): su
-     pago ya no está en ninguna lista y la cifra saldría más baja;
+   - no se ha borrado ningún recibo ni puntual desde el día 1 de ese mes (`reciboBorradoAt`) que
+     siga fuera de la lista: su pago ya no está en ninguna y la cifra saldría más baja;
    - ningún gasto de ese mes apunta a un recibo, puntual o cuota que hoy no sale en ese mes (borrado
      antes de existir `reciboBorrado`, o una deuda ya terminada).
    Si falla una, «sin datos». Nunca una cifra más baja que la real. */
 function pr6SinFotoAcreditado(s,y,m,items){
   if(!items.length) return false;
   if(!items.every(function(x){ return x.st==="p"||x.st==="s"; })) return false;
-  var desde=new Date(y,m-1,1).getTime(), at=s.reciboBorradoAt||{};
-  if(Object.keys(at).some(function(id){ return Number(at[id])>=desde; })) return false;
+  var desde=new Date(y,m-1,1).getTime(), at=s.reciboBorradoAt||{}, sigue={};
+  // «Deshacer» también sella la hora (`conReciboEnPlan`): un recibo que hoy sigue en la lista ya
+  // tiene su cargo en `items`, así que su sello no quita nada (revisión t6-vs, R1).
+  (s.fixed||[]).concat(s.oneoffs||[]).forEach(function(x){ if(x&&x.id!=null) sigue[x.id]=1; });
+  if(Object.keys(at).some(function(id){ return !sigue[id]&&Number(at[id])>=desde; })) return false;
   var ids={};
   items.forEach(function(x){ var k=/^(fixed|oneoff|debt|balloon)_(.*)$/.exec(x.id); if(k) ids[(k[1]==="balloon"?"debt":k[1])+"|"+k[2]]=1; });
   var ym=y+"-"+String(m).padStart(2,"0");

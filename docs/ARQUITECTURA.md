@@ -368,10 +368,11 @@ pagado con prueba, «s» pagado sin cargo del banco (marca a mano, calendario), 
 «q» que hoy sale pagado); una foto anterior al último movimiento del mes convierte sus «q» en «?».
 Sin foto, el mes se acredita con la lectura de hoy solo si no puede quedarse corta
 (`pr6SinFotoAcreditado`, rechazo de la beta 206): todos sus cargos pagados con prueba guardada o
-marca, ningún recibo o puntual borrado desde el día 1 de ese mes (`reciboBorradoAt`) y ningún gasto
-de ese mes enlazado a algo que hoy no sale. Si no, o con algún «?», la cifra es null («sin datos»),
-nunca más baja que la real; la tarjeta enseña la comparación siempre, con su porqué si no hay cifra; la comparación con
-el mes anterior sigue la misma regla. Los recibos nuevos llevan `createdYm` (`conMesDeAlta`: alta
+marca, ningún recibo o puntual borrado desde el día 1 de ese mes (`reciboBorradoAt`) que hoy siga
+fuera de la lista (un «Deshacer» también sella la hora y no cuenta) y ningún gasto de ese mes
+enlazado a algo que hoy no sale. Si no, o con algún «?», la cifra es null («sin datos»), nunca más
+baja que la real, y el mes anterior sigue la misma regla. La tarjeta enseña la comparación siempre,
+con su porqué si no hay cifra. Los recibos nuevos llevan `createdYm` (`conMesDeAlta`: alta
 por pasos, importación, Gastos «Pasar a Recibos», alta vieja y el motor) y no cuentan en meses
 anteriores; `createdYm` es un grupo propio en la mezcla de tres vías y no lo lee nada más.
 Mezcla entre móviles (revisión R2): cada móvil calcula su foto con SUS datos (el extracto no

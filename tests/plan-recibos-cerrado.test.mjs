@@ -130,6 +130,10 @@ assert.equal(r.cent - r.prev.cent, -4000, "40,00 menos que septiembre: el Gimnas
   assert.equal(c.planRecibosMesCerrado(borrado, 2026, 11).prev.cent, null, "borrado después del 1/9: sin datos");
   const antiguo = Object.assign({}, borrado, { reciboBorradoAt: { viejo: new Date("2026-08-12T10:00:00+02:00").getTime() } });
   assert.equal(c.planRecibosMesCerrado(antiguo, 2026, 11).prev.cent, A_SEP, "borrado antes de septiembre: no afecta");
+  // Revisión R1: borrado y devuelto con «Deshacer» el 15/10 (sigue en la lista, su cargo cuenta) → cifra.
+  const devuelto = Object.assign({}, s, { settings: { pr6Fotos: fotos }, reciboBorradoAt: { gym: new Date("2026-10-15T10:00:00+02:00").getTime() } });
+  assert.ok(devuelto.fixed.some((f) => f.id === "gym"), "el Gimnasio sigue en la lista");
+  assert.equal(c.planRecibosMesCerrado(devuelto, 2026, 11).prev.cent, A_SEP, "recibo devuelto con Deshacer: no corta la comparación");
   // Un gasto de septiembre que apunta a un recibo que ya no existe → sin datos.
   const huerfano = Object.assign({}, s, { settings: { pr6Fotos: fotos }, expenses: s.expenses.concat([gasto("s-x", "OTRO", "2026-09-20", 9, { reciboId: "nadie" })]) });
   assert.equal(c.planRecibosMesCerrado(huerfano, 2026, 11).prev.cent, null, "cargo de un recibo que ya no está: sin datos");

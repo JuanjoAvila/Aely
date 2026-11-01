@@ -130,6 +130,15 @@ test("mes cerrado (rechazo 206): sin foto y con un recibo de septiembre sin prue
   await expect(recibos.getByTestId("plan-cerrado-vs")).toHaveText("vs. sep: sin datos de septiembre");
 });
 
+test("mes cerrado (revisión t6-vs): todos dados de alta en octubre, la comparación dice que septiembre no tenía recibos", async ({ page }) => {
+  const nuevos = fixed.map((f) => Object.assign({}, f, { createdYm: OCT }));
+  await abrePlan(page, "2026-10-31T20:00:00+01:00", { accounts: cuenta, fixed: nuevos, bankTx });
+  await conFoto(page, OCT);
+  const recibos = await otroDia(page, "2026-11-03T12:00:00+01:00");
+  await expect(recibos.getByTestId("plan-cerrado-linea")).toHaveText(await eurDe(page, 62.99) + " en recibos");
+  await expect(recibos.getByTestId("plan-cerrado-vs")).toHaveText("vs. sep: sin recibos en septiembre");
+});
+
 test("mes cerrado (revisión): lo marcado a mano como pagado no es «no llegó»", async ({ page }) => {
   const marcado = fixed.map((f) => f.id === "gym" ? Object.assign({}, f, { paidYm: OCT, paidDay: 2 }) : f);
   const recibos = await mesesVistos(page, { fixed: marcado });

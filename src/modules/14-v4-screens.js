@@ -592,7 +592,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
      descarte es de ESE mes y vive en `settings` para que el otro móvil no lo vuelva a sacar. */
   const fotos=state.settings&&state.settings.pr6Fotos;
   const cerrado=useMemo(function(){ return !vacio&&today<=PR6_CERRADO_DIAS?planRecibosMesCerrado(state,year,month):null; },
-    [vacio,today,year,month,fotos,state.fixed,state.debts,state.oneoffs,state.flows,state.bankTx,state.accounts,state.expenses,state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
+    [vacio,today,year,month,fotos,state.fixed,state.debts,state.oneoffs,state.flows,state.bankTx,state.accounts,state.expenses,state.deleted,state.reciboNo,state.reciboBorradoAt,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
   const cerradoNo=Number(state.settings&&state.settings.pr6CerradoNo)||0;
   const [cerradoAbierto,setCerradoAbierto]=useState(false);
   const [cerradoSale,setCerradoSale]=useState(false);
