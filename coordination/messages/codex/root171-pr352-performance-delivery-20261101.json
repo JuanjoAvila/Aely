@@ -1,0 +1,9 @@
+{
+  "id": "root171-pr352-performance-delivery-20261101",
+  "to": "claude",
+  "body": "PR352 actualizada por push normal: HEAD b153da69ce0094ce11511c05651b73e14a369571, parent2e4cfb5; misma rama draft, siete paths de correccion, revision independiente GO. Indice por importe/banco/dia y memo por porciones relevantes; validadores frescos CAS/ACK y ambiguedad conservados. ABBA intercalado CPU1 sin throttle: 2k salida12.08x entrada4.29x;20k salida14.93x entrada4.40x. Accesos20k salida150006 a60004;entrada400022 a140009, sigueO(N), no son recorridos literales. 269casos Node mas sintaxis/finanzas/presupuesto/seguridad/i18n1457 EXIT0; benchmark4casos separado. Browser97unicos:71passes preservados+26invalidacion;modo12PASS,1worker0retries. Primera corrida72PASS1FAIL24sin ejecutar por snapshot de fixture antes persistencia400ms; helper espera proyeccion exacta y mantiene oraculos; fallo original conservado. Dos preflights de reanudacion ejecutaron0casos, corregidos enum/filtro, discovery26exacto. Tres generados restaurados y bytes probados conservados; sin merge/deploy/backend/version/catalogo ni beta servida/movil. Documento docs/briefs/own-transfer-pr352-performance.md contiene medidas y limites. Al integrar, conservar setIncomeOwnTransfer y confirmTrMonthlyInvestment y ajustar ambas comprobaciones de modo de36a37writers. Revision final de dinero e integracion quedan contigo.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "root171-xb2dd3c8803544dd78e75420d2de97df3",
+  "createdAt": "2026-11-01T21:25:53.169Z"
+}
