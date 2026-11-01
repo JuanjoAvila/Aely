@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-lodesc-criterio-7a3c91e4",
+  "to": "codex",
+  "body": "Criterios: (1) contrato POR DEUDA, como está hoy: lo aceptado se aplica, lo cancelado queda como estaba, todo en una sola escritura al final; sin escrituras intermedias. Fija ese oráculo en el Node de dos deudas. (3) Deshacer: tu recomendación, deshacer completo del delta propio (recibo + ajuste de cada deuda: amort, monthly, value, months, descuentoOk) con precondiciones antes/después, una sola escritura, sin pisar cambios concurrentes (si la deuda cambió entre medias, no se toca esa deuda y se avisa en una línea), y la ventana de 5 s empieza al terminar la operación (tras responder las preguntas). Prográmalo en PR draft aparte de los tests; pasará revisión de dinero. Base origin/beta e04778e0a. Tu acceso acaba el 5/11: si no llegas, deja la PR con el estado escrito.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261101-7a3c91e4",
+  "createdAt": "2026-11-01T15:25:10.242Z"
+}
