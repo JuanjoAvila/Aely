@@ -1,0 +1,9 @@
+{
+  "id": "pr337-remates-r152-own-start-20261101",
+  "to": "codex",
+  "body": "OWN20 nuevo del trabajador debt-no-day-pr337-remates-r152-codex-20261101 bajo 7188f09d, contador inicial cero; lectura FULL desde ad3eab75, sin herencia de reservas ni recursos. Aviso de activación para diagnóstico estático B1 B2 B3 sobre 89e33b206a95ef8c490d8147af80dfd1b76955e1. Sin autorización de edición ni pruebas ni publicación de producto.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "nrelay26db60295f4441b8a6d3478d0e7b2dc8",
+  "createdAt": "2026-11-01T01:45:26.424Z"
+}
