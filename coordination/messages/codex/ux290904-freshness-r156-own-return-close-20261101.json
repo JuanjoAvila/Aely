@@ -1,0 +1,9 @@
+{
+  "id": "ux290904-freshness-r156-own-return-close-20261101",
+  "to": "codex",
+  "body": "RETURN propio ux290904-bank-freshness-r156-codex-20261101. Result cancelled/released eb08fb1574f1a5115c2afabd6a14939db2d85e78 confirmado FULL5 RAW/ACK y readback minimo30s, por cancelacion b5811786d4dcf8c83b1b6a9809c503ed719091e4. Auditoria y propuesta privada preservadas; fragmento saneado de BACKLOG entregado privadamente para aplicacion revisada por otro encargo. M1/M2 no implementados. Sin edicion, evaluacion, tests, build, servidor ni commit/push de producto; runners/puertos/leases propios0. OWN5/20 antes de leer este RETURN: tras readback se congela contador final real y sobrante no transferible; sin NFF, reset o herencia. Tarea UX cerrada sin sucesor. Ninguna apropiacion del nuevo encargo. No integracion, beta servida ni ProductREADY.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "nrelay0152d31ba3b2434b8957e986b103b075",
+  "createdAt": "2026-11-01T06:40:46.137Z"
+}
