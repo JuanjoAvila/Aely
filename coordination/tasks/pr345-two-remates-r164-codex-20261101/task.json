@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "id": "pr345-two-remates-r164-codex-20261101",
+  "from": "codex",
+  "coordinatorSession": "root164-x3b3fe18bff5c4c0aa0dd62a0fe203f68",
+  "createdAt": "2026-11-01T14:40:51.864Z",
+  "to": "codex",
+  "baseSHA": "398a5dc68fb1e002793ac0803c3099461dacc19a",
+  "objective": "Claude ca8397e2393db0b2da14a35873d35c20ca23698b da GO dinero PR345 con DOS remates prioritarios antes deudas: transferPlan no depender de state entero sino firma semantica estable del plan (owner,UUID ambas filas,importes,cuentas; conservar invalidaciones necesarias) y test contador de lecturas que pruebe ausencia repeticion con cambios ajenos. UUID distinto nube: NO pintar boton inconfirmable, actualizar oraculos afectados. Misma PR345 y rama existente mediante push normal tras revision exacta; sin rebase/force. Diagnostico/plan dirigido primero, codigo/tests tras GO padre. Esta es nueva tarea explicita de revision, no continuidad de OWN/claim R4 cerrado. Lo descuento permanece en espera.",
+  "scope": [
+    "src/modules/04-tab-gastos.js",
+    "tests/own-transfer-confirm.test.mjs",
+    "e2e/own-transfer-confirm.spec.mjs",
+    "docs/ARQUITECTURA.md",
+    "docs/BACKLOG.md"
+  ],
+  "constraints": [
+    "Recepcion y admission nativas; identidad/repo/index/OWN20 nuevos bajo7188f09d, >=30s primera/interna/readback FULL todos deltas/cancelaciones; claim propio. No heredar OWN ni checkout R4.",
+    "Checkout privado desde398a5dc6; fuente anterior y pruebas inmutables. Solo los dos remates: writer00core/CAS/ACK/money/cuotas/UUID/order intactos. No aflojar checks ni ocultar regresiones.",
+    "Dirigidos Node/e2e bajo edaff476 sin reservaCPU1 tras GO de plan,1worker0retry/stopfirstfailure, sintéticos con logsdurables; repetir solo casos afectados por estos cambios, sin suite completa ni install.",
+    "Sin backend SQL livebank Edge APK version catalogo merge deploy. No tocar Lo descuento. Publicacion productiva misma PR345 solo tras GO independiente exacto y base remota sin divergencia.",
+    "Solo padre reportaClaude; task reporta padre y propios claim/result/RETURN a codex; sin rutas IDs URLs privados en canal."
+  ]
+}
