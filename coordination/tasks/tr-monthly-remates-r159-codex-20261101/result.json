@@ -1,0 +1,80 @@
+{
+  "status": "done",
+  "summary": "Remates TR entregados y revision tecnica independiente GO; coordinador publico misma PR339 HEAD424db56de59fc6e83461b1923af35b1761a083b8, padre6a0749c351916e2bc097094817b157beb6be8fe0, sin rebase, treea079f7a197c4e2722b9d99c2213655b342f0c9f8. Igualdad canonica durable y purpose, ISIN con control e importe confirmado exacto corregidos. Timeout existente converge por lectura real sin segundo UPDATE ni permiso acreditado. Legacy y MCC5411 intactos. Resultado tecnico released; dinero e integracion corresponden a Claude.",
+  "baseSHA": "6a0749c351916e2bc097094817b157beb6be8fe0",
+  "candidateTree": "a079f7a197c4e2722b9d99c2213655b342f0c9f8",
+  "PR": 339,
+  "tests": [
+    {
+      "command": "TZ=Europe/Madrid node tests/tr-monthly-invest-confirm.test.mjs --remates-only",
+      "exitCode": 0,
+      "executedChecks": 11
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/tr-monthly-invest-confirm.test.mjs --remates-only --remates-focus=timeout",
+      "exitCode": 0,
+      "executedChecks": 4,
+      "reason": "refinar contadores de respuesta generada y ACK aceptado"
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/tr-monthly-invest-confirm.test.mjs --remates-only --remates-focus=pipeline",
+      "exitCode": 0,
+      "executedChecks": 1
+    },
+    {
+      "command": "TZ=UTC node tests/tr-monthly-invest-confirm.test.mjs --remates-only",
+      "exitCode": 0,
+      "executedChecks": 11
+    },
+    {
+      "command": "TZ=UTC node tests/tr-monthly-invest-confirm.test.mjs --remates-only --remates-focus=timeout",
+      "exitCode": 0,
+      "executedChecks": 4,
+      "reason": "refinar contadores de respuesta generada y ACK aceptado"
+    },
+    {
+      "command": "TZ=UTC node tests/tr-monthly-invest-confirm.test.mjs --remates-only --remates-focus=pipeline",
+      "exitCode": 0,
+      "executedChecks": 1
+    },
+    {
+      "command": "node node_modules/@playwright/test/cli.js test e2e/tr-monthly-invest-confirm.spec.mjs --grep \"timeout tras UPDATE\" --workers=1 --retries=0 --max-failures=1",
+      "exitCode": 0,
+      "executedChecks": 1
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "evidence": [
+    "Tres RED causales contra HEAD anterior: orden jsonb, importe fijo y control ISIN",
+    "Fallos de harness Node y e2e preservados por separado; filtro lt del doble reparado",
+    "Observacion timeoutBASE conserva limitacion de secuencia FULLantesACK; deltas revisados despues sin cambio de alcance",
+    "Respuesta exacta generada por doble tras timeout no es ACK aceptado; acceptedAcks0",
+    "CAS0 por cambio remoto conserva importe y categoria frente a backfill existente con mismo UUID y conflicto PK sintetico"
+  ],
+  "limitations": [
+    "Sin backend o RLS vivos",
+    "Sin aceptacion humana movil",
+    "Sin fullsuite Gradle ni rendimiento",
+    "Dinero e integracion corresponden a Claude; sin merge deploy SQL Edge APK versiones catalogo",
+    "Sin ProductREADY"
+  ],
+  "productSHA": "424db56de59fc6e83461b1923af35b1761a083b8",
+  "distinctNodeCasesPerTimezone": 12,
+  "schema": 1,
+  "taskId": "tr-monthly-remates-r159-codex-20261101",
+  "actor": "codex",
+  "sessionId": "trremates1592ac1067ee182fabd135516706f10f378",
+  "createdAt": "2026-11-01T09:05:23.751Z",
+  "released": true
+}
