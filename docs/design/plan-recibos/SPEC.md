@@ -301,6 +301,12 @@ detectados en los bancos, todos marcados, «Quitar todos / Marcar todos», cada 
 3. **Frescura del saldo** por banco: guardar la hora de la última lectura buena para el
    «saldo de hace 2 h».
 
+Estado (31/10/2026, tanda 7): **pendiente de decisión del dueño**, sin código. El 1 choca con
+«Open Banking solo a demanda» (4.1.0, `docs/ARQUITECTURA.md`) y un cron de servidor no tiene
+dónde casar lo leído (`bankTx` es local). El 2 ya existe para todos los recibos (cliente +
+`AlertCheckWorker`) y «si llega» lo lleva PRO-03 (ramas `codex/pro03-*`); «solo si no llega» le
+quitaría el aviso a los demás, que pidió el 18/7. El 3 ya existe (`obBalAt`).
+
 ## 12. Descartado (no hacer)
 
 Hucha / meta de recibos grandes · aviso «Noviembre viene cargado» · sugerencias «Sube el paso a

@@ -1018,6 +1018,13 @@ caducaran «cada dos por tres» (feedback 2026-07-18). Syncs que siguen vivos, t
 | Recién autorizado (`?bank=ok` / goto `bank\|ok`) | `11-app-main.js` |
 | Noti del banco (evento real del usuario) | apagado por defecto; si se activa expresamente, presupuesto persistente de 1 cada 12 h |
 
+No hay lectura programada del banco: el único `pg_cron` es `myinvestor-keepalive`, que no lee
+Open Banking. La «lectura el día del recibo» de Recibos v6 (SPEC §11.1) sigue sin hacer y
+pendiente de decisión del dueño (31/10/2026): Enable Banking no recibe cabeceras de usuario
+presente, así que cualquier lectura cuenta como desatendida y gasta el cupo diario del banco, y
+el extracto (`bankTx`) solo vive en el móvil, de modo que lo que leyera un cron en el servidor no
+llegaría a casar ningún recibo sin subir movimientos a la nube.
+
 El sincronizador general también consulta el puente nativo de Trade Republic cuando existe. Su
 `availableCash` y la tarjeta específica de TR pasan por el mismo reanclaje (`applyTrCash`), para
 que dos botones equivalentes no dejen saldos distintos. En enlaces Open Banking multicuenta, los

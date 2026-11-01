@@ -50,6 +50,14 @@ no despliega ni acredita funciones vivas. El cambio de referencia entre días qu
 
 # Setup Supabase — Fase 1 (Aely)
 
+## Crons: solo el keepalive de MyInvestor (31/10/2026)
+
+El único `pg_cron` es `myinvestor-keepalive` (0011). No existe cron de Open Banking ni de avisos:
+la lectura del banco el día del recibo (Recibos v6, SPEC §11.1) está pendiente de decisión del
+dueño, y los avisos de la víspera los dan el cliente y el `AlertCheckWorker` de la APK. Antes de
+programar cualquier lectura de `bank-sync`, ver «Open Banking: sync SOLO a demanda» en
+`docs/ARQUITECTURA.md`.
+
 ## SEC01: límites del cuerpo por función · PR256 candidata, sin desplegar (17/10/2026)
 
 `_shared/request_body.ts` aplica estos límites de bytes del cuerpo mientras lee el
