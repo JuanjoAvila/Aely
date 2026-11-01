@@ -92,6 +92,7 @@ for(const mode of ['zero','error'])test(`respuesta sin confirmación no se aplic
   const sheet=await open(page,{mode});await sheet.getByTestId('exp-own-transfer').click();
   await page.locator('.askback').getByRole('button',{name:translations.es[1],exact:true}).click();
   await expect(sheet.getByTestId('exp-own-transfer-status')).toContainText('No se ha podido confirmar');
+  await expect(page.locator('.v4-exp-sheet .v4-ficha-saved')).toHaveText('Cambio sin confirmar');
   const result=await saved(page);expect(result.expenses.find(e=>e.id===out.id).category).toBe('otros');
   expect(result.remote[0].cat).toBe('otros');
 });
@@ -148,6 +149,7 @@ test('cuota reintenta sólo el NO concurrente y muestra éxito tras el acuse rea
 });
 for(const kind of ['category','debt','owner'])test(`acuse tardío de cuota no aplica otra intención (${kind})`,async({page})=>{
   const sheet=await open(page,{mode:'hold',debts:[quotaDebt]});await chooseQuota(sheet);
+  await expect(page.locator('.v4-exp-sheet .v4-ficha-saved')).toHaveText('Guardando cambio…');
   await expect.poll(()=>page.evaluate(()=>typeof window.__own.release)).toBe('function');
   await changeLiveState(page,kind);
   await expect.poll(async()=>{const result=await saved(page);return kind==='debt'?result.state.debts.length:kind==='owner'?result.state._historyOwner:result.expenses.find(e=>e.id===out.id).category;}).toBe(kind==='debt'?0:kind==='owner'?'different-fixture-owner':'salud');
@@ -182,6 +184,7 @@ test('cuota automática con ACK perdido retira error al recibir la marca remota'
 test('pull confirmado antes del ACK automático limpia el error tardío',async({page})=>{
   const sheet=await open(page,{mode:'zero',debts:[{...quotaDebt,monthly:80}]});
   await expect(sheet.getByTestId('exp-source-save-status')).toContainText('No se ha podido confirmar este cambio');
+  await expect(page.locator('.v4-exp-sheet .v4-ficha-saved')).toHaveText('Cambio sin confirmar');
   await page.screenshot({path:test.info().outputPath('source-save-recovery.png'),animations:'disabled'});
   await page.evaluate(()=>{window.__own.mode='holdAck';});await sheet.getByTestId('exp-source-refresh').click();
   await expect.poll(()=>page.evaluate(()=>typeof window.__own.release)).toBe('function');

@@ -2851,7 +2851,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
         onClick:function(){ setBank(exp,b); setBankOpen(false); }},"🏦 "+entOf(b).label); })),
     exp.renamePending&&React.createElement("div",{className:"hint",role:"status","data-testid":"expense-rename-pending"},t(exp.renamePending.quarantined?"g_rename_paused":"g_rename_pending")," ",React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){saveEdit(exp,{merchant:exp.renamePending.merchant,retryRename:true});}},t("g_note_retry"))),
     trace,duplicate,paired,reciboAviso,
-    sourceActionStatus&&sourceActionStatus.id===exp.id&&React.createElement("div",{role:"status","data-testid":"exp-source-save-status"},t(sourceActionStatus.status==="pending"?"f_owntransfer_pending":"f_source_save_error"),sourceActionStatus.status==="error"&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-source-refresh",onClick:function(){refreshSourceAction().catch(function(){});}},t("f_source_refresh"))),
+    sourceActionStatus&&sourceActionStatus.id===exp.id&&React.createElement("div",{role:"status","data-testid":"exp-source-save-status"},React.createElement("div",null,t(sourceActionStatus.status==="pending"?"f_source_pending":"f_source_save_error")),sourceActionStatus.status==="error"&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-source-refresh",onClick:function(){refreshSourceAction().catch(function(){});}},t("f_source_refresh"))),
     ownTransferPair(state,exp)&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-own-transfer",
       disabled:ownTransferStatus&&ownTransferStatus.id===exp.id&&ownTransferStatus.status==="pending",onClick:function(){recognizeOwnTransfer(exp);}},t("f_owntransfer_title")),
     ownTransferStatus&&ownTransferStatus.id===exp.id&&ownTransferStatus.status!=="done"&&React.createElement("div",{role:"status","data-testid":"exp-own-transfer-status"},t(ownTransferStatus.status==="pending"?"f_owntransfer_pending":"f_owntransfer_error")),
@@ -2956,9 +2956,11 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     // seguía bloqueando toda la pantalla, aunque el dato sí hubiera cambiado (feedback 18/9).
     swipe.close(function(){ onClose(true); });
   };
+  const pendingSourceStatus=sourceActionStatus&&sourceActionStatus.id===exp.id?sourceActionStatus:
+    ownTransferStatus&&ownTransferStatus.id===exp.id&&ownTransferStatus.status!=="done"?ownTransferStatus:null;
   const footer=React.createElement("div",{className:"v4-ficha-foot"},
     React.createElement("button",{type:"button",className:"v4-ficha-del",onClick:doDel},"🗑 "+t("f_del")),
-    React.createElement("span",{className:"v4-ficha-saved"},t(withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status!=="done"
+    React.createElement("span",{className:"v4-ficha-saved"},t(pendingSourceStatus?(pendingSourceStatus.status==="pending"?"f_source_pending":"f_source_unconfirmed"):withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status!=="done"
       ? (withdrawalStatus.status==="pending"?"f_withdraw_pending":"f_withdraw_unconfirmed") : "f_autosaved")),
     React.createElement("button",{type:"button",className:"v4-ficha-done",onClick:done},t("done")));
   const main=ReactDOM.createPortal(
