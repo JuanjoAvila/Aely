@@ -214,7 +214,12 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       const alto=card.offsetHeight, hueco=abajo-arriba;
       const quiero=hueco>alto?arriba+(hueco-alto)/2:arriba;
       const max=Math.max(0,pg.scrollHeight-pg.clientHeight);
-      const dest=Math.max(0,Math.min(max,Math.round(y+pr.top-quiero)));
+      let dest=Math.max(0,Math.min(max,Math.round(y+pr.top-quiero)));
+      // La primera tarjeta ya entra entera con el título y los botones quietos.
+      // Centrarla subía el scroll 41 px y el título se iba 15 px por arriba
+      // (Pixel 5, 1/11/2026; los botones seguían a +29). Con la barra de estado
+      // ese hueco se come la cabecera. Si cabe sin bajar, no se mueve.
+      if(dest>0 && pr.top+y>=0 && pr.top+y+alto<=abajo) dest=0;
       // Si la página aún entra por el carrusel (venías de Gastos), se coloca sin deslizar: llega ya
       // en su sitio y el movimiento es solo el del carrusel, no dos a la vez.
       const enSitio=Math.abs(pr.left)<2;

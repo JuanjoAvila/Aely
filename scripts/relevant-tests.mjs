@@ -63,7 +63,7 @@ export const E2E_MAP = [
   { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/fin04-plan-three-way.spec.mjs", "e2e/deudas-ir-suave.spec.mjs"] },
   { file: "src/modules/10-app-components.js", specs: ["e2e/fin04-plan-three-way.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/fin04-plan-three-way.spec.mjs", "e2e/pr297-r2-plan-sync.spec.mjs"] },
-  { file: "src/modules/14-v4-screens.js", specs: ["e2e/fin28-manual-link-warning.spec.mjs", "e2e/fin04-plan-three-way.spec.mjs", "e2e/deudas-ir-suave.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/fin28-manual-link-warning.spec.mjs", "e2e/fin04-plan-three-way.spec.mjs", "e2e/deudas-ir-suave.spec.mjs", "e2e/plan-seg-barra.spec.mjs"] },
   { file: "src/modules/06-sync-brokers.js", specs: ["e2e/fin22-cartera-divisa.spec.mjs"] },
   { file: "src/modules/10-app-components.js", specs: ["e2e/fin22-cartera-divisa.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/fin22-cartera-divisa.spec.mjs"] },
