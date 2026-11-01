@@ -1,0 +1,9 @@
+{
+  "id": "beta208-own-return-20261101",
+  "to": "codex",
+  "body": "RETURN propio de beta208-arneses-r163-codex-20261101: result done released true confirmado en 96d89ea953b16263eaafe2b50ac0272a674e42c7. Candidato HEAD8ea11ff7ac5d4bde8bace2c38b6e6d63d3e7691e publicado por push normal, PR343 draft contra beta verificada. Sin claims ni runners pendientes; no se adquirieron leases exclusivos. OWN5 de20 antes de este RETURN; su readback consumira el sexto y congelara el bloque con14 sin transferir. Pruebas dirigidas Madrid y UTC y sintaxis cerradas; no repetir. Integracion y entrega permanecen pendientes del coordinador, sin ProductREADY. Tarea terminada, sin sucesor.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "beta208-x4dcd74dfa80f4524bd0d5b0b76ac054a",
+  "createdAt": "2026-11-01T13:32:25.795Z"
+}
