@@ -1,0 +1,42 @@
+{
+  "status": "done",
+  "summary": "PR351 limpieza completada y revisada independientemente: retirados pr6_borrado_toast es/en/ca y wrapper removeFixedById sin callers de producto. Tests migrados a transiciones reales quitar/Deshacer y envio,344assert originales conservados+6. Misma rama sin rebase. Catalogo reservado intacto; reconciliar12descriptores al integrar.",
+  "tests": [
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 1,
+      "limitation": "BETA_SCOPE_ABSENT_removeFixedById;12catalog descriptors reserved for integration"
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "environment": "synthetic source assembly, not distribution build"
+    },
+    {
+      "command": "node tests/i18n-keys.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/recibo-domiciliado-sin-acreditar.test.mjs tests/recibos-bajas-y-union.test.mjs",
+      "exitCode": 0,
+      "passed": 73,
+      "failed": 0,
+      "skipped": 0,
+      "environment": "Europe/Madrid, synthetic source assembly, no retries"
+    }
+  ],
+  "productSHA": "75e5105b9fb3168464685897dcc8ea1afc5cb4e8",
+  "pr": 351,
+  "limitations": [
+    "Official build blocked until catalog reconciliation",
+    "No CI, deploy, merge, served or physical acceptance claimed",
+    "Historical catalog122/204 assertions unchanged",
+    "No DOM or previously closed suite reruns"
+  ],
+  "schema": 1,
+  "taskId": "pr351-cleanup-r169-codex-20261101",
+  "actor": "codex",
+  "sessionId": "pr351cleanup-r169-x03f6fb9c0de84aa3aaa7a51ccfe29986",
+  "createdAt": "2026-11-01T19:03:31.171Z",
+  "released": true
+}
