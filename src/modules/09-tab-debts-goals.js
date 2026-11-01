@@ -233,8 +233,26 @@ function PlanConflictSheet({record,current,onReview,onDiscard,onClose}){
       React.createElement("button",{type:"button",className:"btn btn-primary btn-block",onClick:onReview},t("plan_conflict_review")),
       React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",onClick:onDiscard},t("plan_conflict_discard"))));
 }
-function DebtEditSheet({debt,state,set,onClose,onDelete,showToast,review,recovery}){
-  const [form,setForm]=useState(function(){ return debtEditDraft(planReviewDraft(debt,review)); });
+function debtNeedsChargeDay(d){ return !!d&&debtActive(d)&&!d.settledAt&&!d.archivedAt&&cleanDay(dayOf(d))==null; }
+function DebtDayPrompt({debt,onOpen}){
+  if(!debtNeedsChargeDay(debt)) return null;
+  return React.createElement("button",{type:"button",className:"link","data-debt-day-id":debt.id,
+    "aria-label":debt.name+" · "+t("db_day_prompt"),style:{display:"block",minHeight:44,textAlign:"left",color:"var(--mint)",textDecoration:"underline",textUnderlineOffset:3},
+    onClick:function(){ onOpen(debt); }},t("db_day_prompt"));
+}
+function DebtEditSheet({debt,state,set,onClose,onDelete,showToast,review,recovery,initialFocus}){
+  const [form,setForm]=useState(function(){
+    const source=planReviewDraft(debt,review),draft=debtEditDraft(source);
+    // Revisar un conflicto conserva el día local aunque la copia remota aún no tenga uno.
+    if(initialFocus==="day"&&!recovery&&debtNeedsChargeDay(debt)&&cleanDay(dayOf(source))==null) draft.day="";
+    return draft;
+  });
+  const dayRef=useRef(null);
+  useEffect(function(){
+    if(initialFocus!=="day"||recovery) return;
+    const frame=requestAnimationFrame(function(){ if(dayRef.current){ dayRef.current.focus({preventScroll:true}); dayRef.current.scrollIntoView({block:"nearest"}); } });
+    return function(){ cancelAnimationFrame(frame); };
+  },[]);
   const [attempt,setAttempt]=useState(0),errorRef=useRef(null);
   const finished=debtEditFinished(debt);
   const closer=useRef(null);
@@ -248,25 +266,33 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,showToast,review,recover
   const [confirmPending,setConfirmPending]=useState(false),confirming=useRef(false),latest=useRef(null);
   useLayoutEffect(function(){ latest.current={state:state,form:form,save:save}; });
   useEffect(function(){ return function(){latest.current=null;}; },[]);
+  // El editor legado compara contra el día 1 de respaldo: elegirlo expresamente desde el
+  // aviso debe persistir ese campo, sin cambiar las validaciones ni los cálculos del editor.
+  const chosenDayResult=function(result,draft){
+    if(initialFocus==="day"&&!recovery&&debtNeedsChargeDay(debt)&&result.item&&!result.error&&
+      planEditNumber(draft.day)===1&&cleanDay(dayOf(result.item))==null)
+      return Object.assign({},result,{item:Object.assign({},result.item,{day:1})});
+    return result;
+  };
   const submit=function(){
     if(confirming.current||save.pending) return;
     setAttempt(function(n){return n+1;});
     const result=debtEditResult(debt,form);
     if(recovery&&result.item)result.item=Object.assign({},result.item,{restoredAt:new Date().toISOString()});
     const change=debtEditTermChange(debt,form,result);
-    if(!change){ save.save(result); return; }
+    if(!change){ save.save(chosenDayResult(result,form)); return; }
     confirming.current=true; setConfirmPending(true);
     askConfirm({title:t("db_edit_term_confirm"),sub:tf(change.after===1?"db_edit_term_summary_one":"db_edit_term_summary",change),ok:t("db_savechanges"),cancel:t("db_edit_term_cancel")}).then(function(yes){
       confirming.current=false; const current=latest.current;
       if(!current) return;
       setConfirmPending(false);
       if(!yes) return;
-      current.save.save(debtEditConfirmResult(current.state,debt,current.form,{item:result.item,change:change}));
+      current.save.save(chosenDayResult(debtEditConfirmResult(current.state,debt,current.form,{item:result.item,change:change}),current.form));
     });
   };
   const input=function(key,label,mode){ return React.createElement("label",{key:key},t(label),
     React.createElement("input",{className:"af-in"+(mode?" num":""),inputMode:mode||"text",value:form[key],"data-debt-field":key,
-      disabled:finished&&key!=="name"&&key!=="note",readOnly:!!recovery&&key!=="name"&&key!=="note",
+      ref:key==="day"?dayRef:undefined,disabled:finished&&key!=="name"&&key!=="note",readOnly:!!recovery&&key!=="name"&&key!=="note",
       onChange:function(e){ setForm(Object.assign({},form,{[key]:e.target.value})); }})); };
   return React.createElement(PlanEditSheet,{title:t("db_edit_title"),onClose:onClose,closer:closer},React.createElement("div",{className:"add-form"},
     input("name","plan_edit_name"),input("note","plan_conflict_note"),input("balance","db_pending","decimal"),
@@ -367,13 +393,20 @@ function AmortAdvisor({state, onEdit, onAmort}){
     React.createElement("div",{className:"hint",style:{marginTop:8,fontSize:11.5}}, t("da_est"))
   );
 }
-function Debts({state, set, showToast}){
+function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly}){
   // Una corrección de saldo desde otro dispositivo nunca debe dejar una obligación activa oculta.
   const visibleDebts=state.debts.filter(function(d){ return !d.archivedAt || debtBalance(d)>0.005; });
   const archivedDebts=state.debts.filter(function(d){ return !!d.archivedAt && debtBalance(d)<=0.005; });
   const [showArchive,setShowArchive]=useState(false);
   const [editingDebt,setEditingDebt]=useState(null);
   const [reviewDebt,setReviewDebt]=useState(null);
+  const [dayFocus,setDayFocus]=useState(false);
+  const openDay=function(d){ setReviewDebt(null);setDayFocus(true);setEditingDebt(d); };
+  useEffect(function(){
+    if(!editDayRequest) return;
+    const d=state.debts.find(function(x){return String(x.id)===String(editDayRequest.id);});
+    if(debtNeedsChargeDay(d)) openDay(d); else if(onEditDayClose) onEditDayClose();
+  },[editDayRequest&&editDayRequest.ts]);
   const conflict=editingDebt&&planSyncConflict(state,"debts",editingDebt.id);
   const orphaned=state._planSync&&state._planSync.owner===state._historyOwner?(state._planSync.conflicts||[]).filter(function(c){return c.kind==="debts"&&!state.debts.some(function(d){return d.id===c.id;});}):[];
   const recovering=!!(editingDebt&&reviewDebt&&!state.debts.some(function(d){return d.id===editingDebt.id;}));
@@ -514,6 +547,12 @@ function Debts({state, set, showToast}){
     const p=madridYmdParts(Date.now()), m=p.m-1+li.n;
     return tf("v4_debts_ends",{d:monthLong(m%12)+" "+(p.y+Math.floor(m/12))});
   };
+  const editor=editingDebt&&(conflict&&!reviewDebt?React.createElement(PlanConflictSheet,{record:conflict,current:state.debts.find(function(d){return d.id===editingDebt.id;})||editingDebt,
+    onClose:function(){setEditingDebt(null);setReviewDebt(null);if(onEditDayClose)onEditDayClose();},onDiscard:function(){set(function(s){return planSyncDiscard(s,conflict);});setEditingDebt(null);setReviewDebt(null);if(onEditDayClose)onEditDayClose();},
+    onReview:function(){setEditingDebt(state.debts.find(function(d){return d.id===editingDebt.id;})||editingDebt);setReviewDebt(conflict);}}):
+    React.createElement(DebtEditSheet,{key:editingDebt.id,debt:editingDebt,state:state,set:set,review:reviewDebt,recovery:recovering,initialFocus:dayFocus?"day":undefined,
+      onClose:function(){setEditingDebt(null);setReviewDebt(null);setDayFocus(false);if(onEditDayClose)onEditDayClose();},onDelete:delDebt,showToast:showToast}));
+  if(editorOnly) return editor;
   return React.createElement("div",null,
     React.createElement("div",{className:"v4-card v4-card-hero rise plan-summary"},
       React.createElement("div",{className:"v4-micro"},t("v4_debts_hero")),
@@ -533,9 +572,9 @@ function Debts({state, set, showToast}){
       const pct=Math.min(100,(paid/(d.original||1))*100);
       // «Quedan n/tot cuotas» en TODAS las deudas (feedback 2026-07-21): sin plazo va estimado.
       const li=leftInfo(d);
-      const day=debtChargeDay(d);
-      return React.createElement("div",{className:"v4-debt-card rise plan-item",key:d.id,"data-debt-id":d.id,onClick:function(e){if(!e.target.closest("button")){setReviewDebt(null);setEditingDebt(d);}}},
-        React.createElement("button",{type:"button",className:"v4-debt-top plan-item-open",onClick:function(){setReviewDebt(null);setEditingDebt(d);},"aria-label":tf("db_edit_named",{name:d.name})},
+      const day=cleanDay(dayOf(d));
+      return React.createElement("div",{className:"v4-debt-card rise plan-item",key:d.id,"data-debt-id":d.id,onClick:function(e){if(!e.target.closest("button")){setDayFocus(false);setReviewDebt(null);setEditingDebt(d);}}},
+        React.createElement("button",{type:"button",className:"v4-debt-top plan-item-open",onClick:function(){setDayFocus(false);setReviewDebt(null);setEditingDebt(d);},"aria-label":tf("db_edit_named",{name:d.name})},
           React.createElement("span",{className:"v4-debt-emoji"},debtEmoji(d)),
           React.createElement("div",{style:{flex:1,minWidth:0}},
             React.createElement("div",{className:"v4-debt-name"},d.name,React.createElement(PlanConflictDot,{record:planSyncConflict(state,"debts",d.id)}))
@@ -543,6 +582,7 @@ function Debts({state, set, showToast}){
           React.createElement("div",{className:"plan-item-value"},React.createElement("div",{className:"v4-debt-bal serif num"},eur(bal)),React.createElement("span",{className:"plan-item-edit"},t("fj_edit")))
         ),
         React.createElement("div",{className:"v4-debt-sub plan-debt-details"},[d.monthly?tf("db_quota",{x:eur0(d.monthly)}):null,day?tf("fj_day_n",{d:day}):null,li?tf("db_left_count",{n:li.n,tot:li.tot}):null].filter(Boolean).join(" · ")),
+        React.createElement(DebtDayPrompt,{debt:d,onOpen:openDay}),
         // Parte de un recibo compartido que se descuenta de esta deuda (Plan › Recibos v6, tanda 5).
         (function(){ const hoy=madridYmdParts(Date.now()), c=d.monthly>0?deudaDescuentoMes(state,d,hoy.y,hoy.m,hoy.d):null;
           return c&&c.amt>0?React.createElement("div",{className:"v4-debt-sub","data-testid":"debt-descuento"},tf("pr6_pagas_mas",{a:eur(d.monthly),b:eur(c.amt),from:c.from.join(", ")})):null; })(),
@@ -568,7 +608,7 @@ function Debts({state, set, showToast}){
       ); })
     ),
     React.createElement("div",{className:"v4-tip"},
-      React.createElement(AmortAdvisor,{state:state,onEdit:setEditingDebt,onAmort:doAmort})
+      React.createElement(AmortAdvisor,{state:state,onEdit:function(d){setDayFocus(false);setEditingDebt(d);},onAmort:doAmort})
     ),
     adding
       ? React.createElement("div",{className:"add-form",style:{marginTop:12}},
@@ -594,10 +634,7 @@ function Debts({state, set, showToast}){
         )
       : React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:10},onClick:function(){ setAdding(true); }},React.createElement(I.plus,{width:16,height:16}),t("db_add")),
     React.createElement("div",{className:"hint",style:{padding:"10px 4px 0"}},t("db_hint")),
-    editingDebt&&(conflict&&!reviewDebt?React.createElement(PlanConflictSheet,{record:conflict,current:state.debts.find(function(d){return d.id===editingDebt.id;})||editingDebt,
-      onClose:function(){setEditingDebt(null);setReviewDebt(null);},onDiscard:function(){set(function(s){return planSyncDiscard(s,conflict);});setEditingDebt(null);setReviewDebt(null);},
-      onReview:function(){setEditingDebt(state.debts.find(function(d){return d.id===editingDebt.id;})||editingDebt);setReviewDebt(conflict);}}):
-      React.createElement(DebtEditSheet,{key:editingDebt.id,debt:editingDebt,state:state,set:set,review:reviewDebt,recovery:recovering,onClose:function(){setEditingDebt(null);setReviewDebt(null);},onDelete:delDebt,showToast:showToast}))
+    editor
   );
 }
 
