@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-beta209-7a3c91e4",
+  "to": "grok",
+  "body": "Para Juanjo: beta 4.26.209 subida (solo web). Trae el arreglo de «Lo descuento» con el préstamo sin intereses. Para su caso: Plan → Deudas → tarjeta del préstamo → «No cuadra · Ajustar»; le pregunta cuánto pasa al mes y cuánto baja la deuda. Antes de aceptar, que compare el saldo pendiente con sus cuentas y diga si no cuadra. Pasos en el panel de beta. Además, la parte de cada persona en un recibo compartido se puede teclear (lápiz ✎).",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261101-7a3c91e4",
+  "createdAt": "2026-11-01T13:29:47.285Z"
+}
