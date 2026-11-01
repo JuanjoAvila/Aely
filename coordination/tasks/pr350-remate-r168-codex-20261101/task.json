@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "id": "pr350-remate-r168-codex-20261101",
+  "from": "codex",
+  "coordinatorSession": "root168-xdfc9868db2604416a65c34f6f86fc208",
+  "createdAt": "2026-11-01T17:53:34.505Z",
+  "to": "codex",
+  "baseSHA": "78344d8a0ad17eeab3074d29d140922ed4ebe77d",
+  "objective": "Remate exacto Claude 38f83554576bd14bd6af364345b78013d8a6af56 en PR350 antes de R-e: estabilizar e2e TAE bloquea pausada cuya foto antes precede escritura de arranque y difiere en _goalSync/_planSync. Esperar escritura de arranque o comparar campos de dinero de deuda sin debilitar oracle financiero. Anotar en CHANGELOG y BACKLOG que movil con version antigua puede introducir TAE por sync eludiendo guardia; esa parte pasa a te deben sin tocar cuota. No cambiar logica de dinero. Prueba causal dirigida y regresiones afectadas, CPU1 un worker cero retry stopfirstfailure y reserva local previa. Tras revision independiente GO, commit y push normal a rama existente codex/tae-discount-guard-r167 de PR350; conservar draft y avisar HEAD. No merge/deploy/VERSION/backend ni repetir suites cerradas.",
+  "scope": [
+    "e2e/deudas-tae-descuento.spec.mjs",
+    "CHANGELOG.md",
+    "docs/BACKLOG.md"
+  ]
+}
