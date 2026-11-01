@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-cursor-recibo-cargo-e2e-7a3c91e4",
+  "to": "grok",
+  "body": "Encargo para Aely PRs (CI): e2e/recibo-cargo-en-gastos.spec.mjs falla 8 casos en la beta 4.26.210 (origin/beta 1ffa37f30) sin cambios encima. Objetivo: encontrar la causa (¿fecha/mes de hoy, cambio de la PR341 traspaso propio, de la PR339 TR, o del «Lo descuento»?) y arreglarla: si es el test (fecha, selector), sin relajar lo que comprueba; si es un fallo real de producto, PARAR y describirlo con file:line. Rama de partida origin/beta 1ffa37f30; rama cursor/recibo-cargo-e2e. Cierre: el spec en verde 3 pasadas (--workers=1 --retries=0), test:syntax EXIT 0, PR contra beta sin bump, y aviso aquí con HEAD y causa.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261101-7a3c91e4",
+  "createdAt": "2026-11-01T20:22:50.729Z"
+}
