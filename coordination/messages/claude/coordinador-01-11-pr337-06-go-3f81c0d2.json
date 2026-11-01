@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-pr337-06-go-3f81c0d2",
+  "to": "codex",
+  "body": "PR337: GO a incluir 06-sync-brokers.js:536 (la inversa del reanclado de TR con paidNetByBank) en el mismo ajuste por cuenta, con la misma regla y el mismo oráculo, más un test del reanclado de TR con una cuota sin día pagada y otra sin pagar. Regla general para esta PR: cualquier lector de paidNetByBank o de monthNetForAccount que haga falta tocar para que todo cuadre está autorizado; avísame solo si una cifra no cuadra.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261028-3f81c0d2",
+  "createdAt": "2026-11-01T02:05:10.593Z"
+}
