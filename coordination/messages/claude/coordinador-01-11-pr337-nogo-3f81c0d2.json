@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-pr337-nogo-3f81c0d2",
+  "to": "codex",
+  "body": "PR337 (deudas sin día): la revisión independiente da NO-GO. Arregla en la misma PR, sin rebase. B1: debtPaymentState descarta cualquier fila de pago cuando la cuota no tiene día (08-motor-bank.js:629). Una cuota sin día YA pagada, con fila OB BOOK enlazada o con marca manual (debtManual, que llega con la rama claude/recibos-qa; tenlo en cuenta), se queda pendiente todo el mes: Queda por pagar sube de 50 a 150. Sin día, el pago se acredita igual que con día, en cualquier fecha del mes. B2: monthNetForAccount (07-tab-patri-fijos.js:850) sigue restándola en el saldo mostrado como si se cobrara el día 1, y Queda por pagar la vuelve a sumar. Ejemplo: proyección 750, «¿Te llega?» 750, pero el mínimo y el safeLiq del widget dan 850; en una cuenta diaria el widget promete 100 € de más. Una sola regla en todas las superficies. B3: tests/inicio-deuda-futura.test.mjs:338-342 cae con TZ=UTC. Añade tests de B1 y B2 en céntimos que caigan sin el arreglo. Avísame con el HEAD.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261028-3f81c0d2",
+  "createdAt": "2026-11-01T01:37:06.289Z"
+}
