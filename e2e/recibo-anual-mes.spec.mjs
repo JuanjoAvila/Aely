@@ -87,13 +87,46 @@ async function mesesVisiblesEnHoja(page) {
   });
 }
 
+const diasFold = (page) => paso(page, 2).locator(".pr6-fold").filter({ has: page.locator("[data-rp4-dia]") });
+
+async function abreEditPaso2DesdeReview(page, bill) {
+  await seedLoggedInDashboard(page, {
+    accounts,
+    fixed: [bill, ...fixedBase],
+    debts: [],
+    flows: [],
+    oneoffs: [],
+    budget: 1000,
+    settings,
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 30_000 });
+  await page.waitForFunction(() => !document.getElementById("mc-load"), null, { timeout: 30_000 });
+  await dismissNews(page);
+  await page.locator('.botnav-tab[data-tour="plan"]').click();
+  const recibos = page.locator('.v4-screen > [data-seg="recibos"]');
+  await recibos.getByTestId("plan-review").getByRole("button", { name: new RegExp(bill.name, "i") }).click();
+  await page.locator('.v4-sheet[data-sheet="recibo"] [data-act="editar"]').click();
+  await expect(hoja(page)).toHaveAttribute("data-modo", "edit");
+  await paso(page, 4).locator('[data-rp4-fila="2"]').click();
+  await expect(hoja(page)).toHaveAttribute("data-paso", "2");
+}
+
+async function abreEditPaso2DesdeTodosServ(page, bill) {
+  const hub = await abreTusRecibos(page, { fixed: [bill, ...fixedBase] });
+  await hub.locator('[data-group="serv"]').click();
+  await hub.locator('[data-bill-id="' + bill.id + '"]').click();
+  await expect(hoja(page)).toHaveAttribute("data-modo", "edit");
+  await paso(page, 4).locator('[data-rp4-fila="2"]').click();
+  await expect(hoja(page)).toHaveAttribute("data-paso", "2");
+}
+
 test("alta anual: meses visibles, día solo tras mes, scroll y guardado", async ({ page }) => {
   await abreAlta(page);
   await hastaCuando(page, "Seguro anual", ["6", "0", "0"]);
   await paso(page, 2).locator('[data-rp4-freq="año"]').click();
   await expect(paso(page, 2).locator(".month-picker .mchip")).toHaveCount(12);
-  const diasFold = paso(page, 2).locator(".pr6-fold").filter({ has: page.locator("[data-rp4-dia]") });
-  await expect(diasFold, "sin mes elegido el día no se despliega (en la base sí)").not.toHaveClass(/ open/);
+  await expect(diasFold(page), "sin mes elegido el día no se despliega (en la base sí)").not.toHaveClass(/ open/);
   let vis = await mesesVisiblesEnHoja(page);
   expect(vis.ok, "la cuadrícula de meses debe quedar a la vista tras «Una vez al año»").toBe(true);
   await paso(page, 2).locator(".month-picker button", { hasText: /^Oct$/i }).click();
@@ -112,30 +145,57 @@ test("alta anual: meses visibles, día solo tras mes, scroll y guardado", async 
 });
 
 test("editar anual: el mes guardado sale preseleccionado", async ({ page }) => {
-  await seedLoggedInDashboard(page, {
-    accounts,
-    fixed: [{ id: "seg", name: "Seguro hogar", amount: 400, freq: "año", months: [9], day: 20, account: "sabadell" }, ...fixedBase],
-    debts: [],
-    flows: [],
-    oneoffs: [],
-    budget: 1000,
-    settings,
+  await abreEditPaso2DesdeReview(page, {
+    id: "seg",
+    name: "Seguro hogar",
+    amount: 400,
+    freq: "año",
+    months: [9],
+    day: 20,
+    account: "sabadell",
   });
-  await page.goto("/");
-  await expect(page.locator(".botnav")).toBeVisible({ timeout: 30_000 });
-  await page.waitForFunction(() => !document.getElementById("mc-load"), null, { timeout: 30_000 });
-  await dismissNews(page);
-  await page.locator('.botnav-tab[data-tour="plan"]').click();
-  const recibos = page.locator('.v4-screen > [data-seg="recibos"]');
-  await recibos.getByTestId("plan-review").getByRole("button", { name: /Seguro hogar/i }).click();
-  await page.locator('.v4-sheet[data-sheet="recibo"] [data-act="editar"]').click();
-  await expect(hoja(page)).toHaveAttribute("data-modo", "edit");
-  await paso(page, 4).locator('[data-rp4-fila="2"]').click();
-  await expect(hoja(page)).toHaveAttribute("data-paso", "2");
   await expect(paso(page, 2).locator(".month-picker .mchip.on")).toHaveText(/^Sep$/i);
   const vis = await mesesVisiblesEnHoja(page);
   expect(vis.ok, "al editar anual la cuadrícula de meses debe verse sin buscar a mano").toBe(true);
   await expect(paso(page, 2).locator('[data-rp4-dia="20"]')).toHaveClass(/ on/);
+});
+
+test("editar anual: mes→año sin mes oculta días y deja el CTA en espera", async ({ page }) => {
+  await abreEditPaso2DesdeReview(page, {
+    id: "seg",
+    name: "Seguro hogar",
+    amount: 400,
+    freq: "año",
+    months: [9],
+    day: 20,
+    account: "sabadell",
+  });
+  await paso(page, 2).locator('[data-rp4-freq="mes"]').click();
+  await expect(diasFold(page)).toHaveClass(/ open/);
+  await paso(page, 2).locator('[data-rp4-freq="año"]').click();
+  await expect(paso(page, 2).locator(".month-picker .mchip.on")).toHaveCount(0);
+  await expect(diasFold(page), "sin mes en anual el pliegue de días debe cerrarse (base lo deja open)").not.toHaveClass(/ open/);
+  await expect(cta(page)).toHaveClass(/is-wait/);
+  await expect(cta(page)).toHaveAttribute("aria-disabled", "true");
+  await expect(cta(page)).not.toHaveAttribute("disabled");
+});
+
+test("editar anual de marzo desde Todos › Servicios", async ({ page }) => {
+  await abreEditPaso2DesdeTodosServ(page, {
+    id: "seg",
+    name: "Seguro hogar",
+    amount: 400,
+    freq: "año",
+    months: [3],
+    day: 14,
+    account: "sabadell",
+  });
+  await expect(paso(page, 2).locator(".month-picker .mchip.on")).toHaveCount(1);
+  await expect(paso(page, 2).locator(".month-picker .mchip.on")).toHaveText(/^Mar$/i);
+  await expect(paso(page, 2).locator('[data-rp4-dia="14"]')).toHaveClass(/ on/);
+  await expect(paso(page, 2).locator('[data-rp4-dia="14"]')).toBeVisible();
+  await expect(cta(page)).toHaveAttribute("aria-disabled", "false");
+  await expect(cta(page)).not.toHaveClass(/is-wait/);
 });
 
 test("Siguiente sin disabled nativo al avanzar y al volver", async ({ page }) => {
