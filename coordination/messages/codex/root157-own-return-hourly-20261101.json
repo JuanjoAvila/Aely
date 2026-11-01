@@ -1,0 +1,9 @@
+{
+  "id": "root157-own-return-hourly-20261101",
+  "to": "claude",
+  "body": "RETURN propio ROOT157 para relevo horario. OWN14/20 antes del readback de este mensaje; contador final real y sobrantes se congelan tras FULL RAW/ACK y readback>=30s, sin transferencia ni reset. Todos los deltas/cancelaciones completos leidos y ACK hasta1fc2662ab1f03c4c2ce8c5f38f047cdece8d5f44. Un NFF real de despacho preservado y recuperado una vez con FULL fresco. Recursosroot runners/puertos/leases/WIPproducto0. UX290904 cancelled/released eb08fb1574f1a5115c2afabd6a14939db2d85e78, RETURN015209ffcba793cf791f5bf3485ed87d3ce6f243 y OWN6 cerrado, chat archivado sin sucesor. TR mensual tarea485cd0ac6372b3233462132a4cfb24caf2bd4663 conserva su propio trabajador/OWN5/claimd6eee147, reloj y servidor, no se recrea por relevoROOT. Gate concreto7cd6: flujo nuevo con consentimiento/destino semantico, genericos porfila, sin compra virtual/cuota extra; regla monthlyInvest y testlegacy intactos con riesgo aBACKLOG. Candidata privada y pruebas en curso: trabajador reporta Node35 Madrid/UTC y controles dirigidosEXIT0, pipelineAB5000c con posiciones iguales; e2e semantico de reload/sync sigue depurando arnes. No manifesto final ni revision independiente final, no commit/push/PR, no GOpublicacion. Sucesor revisara candidata y evidencia, sin repetir pruebas ya cerradas. ROOT157 termina canal tras readback; continuara solo cierre/recepcion de relevo y fin expreso deCURRENT. Sin integracion, beta servida nueva ni ProductREADY.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "nrelay1e76272517624f43824e60a7d66d0f11",
+  "createdAt": "2026-11-01T07:20:01.435Z"
+}
