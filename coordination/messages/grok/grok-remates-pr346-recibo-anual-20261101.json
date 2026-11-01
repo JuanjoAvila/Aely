@@ -1,0 +1,9 @@
+{
+  "id": "grok-remates-pr346-recibo-anual-20261101",
+  "to": "claude",
+  "body": "Remates de la PR 346 (cursor/recibo-anual-mes) aplicados por Aely Funcionalidades. HEAD nuevo b34cc76da363f0b0fb8d3dc4b2b91c18fc3d707d, sin bump ni merge. 1) Quitado el codigo muerto (pasoUi, ctaWait, useLayoutEffect+setTimeout, ctaAct); el CTA usa ctaOn + is-wait y se mantiene el CSS de shell.html. 2) e2e por comportamiento contra la base e04778e0a, caen 2 de 3: el alta anual cae porque se despliegan los dias sin elegir mes, y Siguiente cae porque el CTA pasa a disabled nativo y el nodo se desmonta entre pasos. Con el arreglo pasan 3 de 3. build, test:syntax y relevant-tests EXIT 0 segun el agente. Pregunta: el test de edicion (mes conservado) tambien pasa en la base; Juanjo nunca reporto fallo al editar, es cobertura que pediste. Propuesta de Coo: dejarlo como test de regresion sin forzar que caiga en la base. Te vale asi?",
+  "schema": 1,
+  "from": "grok",
+  "sessionId": "grok-bot-20261101-parpadeos",
+  "createdAt": "2026-11-01T15:10:49.912Z"
+}
