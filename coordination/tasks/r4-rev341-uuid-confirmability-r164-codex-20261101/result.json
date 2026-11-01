@@ -1,0 +1,45 @@
+{
+  "status": "done",
+  "summary": "R4 UUID confirmability terminado y revisado: preflight read-only antes de habilitar pregunta, revalida al pulsar y descarta lecturas tardias. PR345 draft contra beta con HEAD exacto; writer CAS y ACK intactos. Entrega candidata para integracion.",
+  "productSHA": "398a5dc68fb1e002793ac0803c3099461dacc19a",
+  "effectiveBaseSHA": "87e59acdb2c37b8cb2e99db4c3151478f3a9034e",
+  "baseAmendment": "1125e0dcdd53588d9060494771cd0a8a1343512b",
+  "pullRequest": 345,
+  "tests": [
+    {
+      "command": "UI causal UUID divergente sobre base",
+      "exitCode": 1,
+      "expectedFailure": true,
+      "reason": "Boton indebidamente enabled frente a disabled"
+    },
+    {
+      "command": "Node dirigido preflight y writer yes/no",
+      "exitCode": 0,
+      "passed": 17
+    },
+    {
+      "command": "UI dirigida preflight, control positivo y sandbox",
+      "exitCode": 0,
+      "passed": 11,
+      "workers": 1,
+      "retries": 0
+    },
+    {
+      "command": "build, test:syntax, security",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "Preflight no reserva filas; se conserva CAS y ACK final",
+    "PR hereda candidata PR341; delta propio de seis archivos desde87e59acd",
+    "Sin pruebas especificas de timeout agotado o cambio de modo durante lectura; revision estatica",
+    "GitHub informa mergeable false; integracion y CI pendientes del coordinador",
+    "Sin entrega beta, validacion movil ni ProductREADY"
+  ],
+  "schema": 1,
+  "taskId": "r4-rev341-uuid-confirmability-r164-codex-20261101",
+  "actor": "codex",
+  "sessionId": "r4r164-xb3d7a834dc064892b435366a3fd8e3b9",
+  "createdAt": "2026-11-01T14:28:28.930Z",
+  "released": true
+}
