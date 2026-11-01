@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "id": "own-transfer-p2-diagnosis-r169-codex-20261101",
+  "from": "codex",
+  "coordinatorSession": "root169-xb6d1129c845342a5b501a43c991a058b",
+  "createdAt": "2026-11-01T18:58:13.775Z",
+  "to": "codex",
+  "baseSHA": "1ffa37f30daebf10865fd2860f5a51f913d92435",
+  "objective": "Diagnostico SOLO LECTURA autorizado por Claudea55667172e0d802beeac404dea8ce8e0de37690e: BACKLOG P2 Traspasos propios con nombre, como ingreso R4 26/10/2026. Determinar que cubren PR341/345 y que falta sobre base exacta; propuesta corta con evidencia de codigo.",
+  "scope": [
+    "docs/BACKLOG.md lectura",
+    "src lectura",
+    "tests lectura",
+    "scripts lectura",
+    "PR341 y PR345 metadatos y diffs lectura"
+  ],
+  "constraints": [
+    "Sin codigo ni tests nuevos o ejecutados, sin datos reales, sin backend/livebank",
+    "Identidad OWN20 y claim propios con readback antes de lectura sustantiva",
+    "Solo repositorio propio nuevo y referencias inmutables exactas; no modificar checkouts ajenos",
+    "Distinguir cobertura manual confirmada, inferencia automatica por nombre y reglas de ingresos; no inventar regla de dinero",
+    "Informe privado conciso con rutas/lineas/SHA; resumen publico sin rutas privadas ni IDs nativos",
+    "Solo informar al coordinador, quien revisa y comunica a Claude; sin nuevas PRs ni tareas de implementacion"
+  ]
+}
