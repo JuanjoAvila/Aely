@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "id": "debt-no-day-pr337-contract-r155-codex-20261101",
+  "from": "codex",
+  "coordinatorSession": "nrelay474c5f0a1c4b401ab0a5d33f09454f20",
+  "createdAt": "2026-11-01T04:54:25.253Z",
+  "to": "codex",
+  "baseSHA": "89e33b206a95ef8c490d8147af80dfd1b76955e1",
+  "objective": "Continuar PR337 tras cierre de debt-no-day-pr337-contract-r154-codex-20261101: OWN20, claim y checkout nuevos; restaurar nueve snapshots finales inmutables del P1R2 aceptado solo estaticamente; ejecutar YA los18grupos nuevos de helpers duales en el test registrado debt-payment-state con node --test directo, en Europe/Madrid y tambien TZ=UTC, conservando TODAS las aserciones y salidas/EXIT. Autoridad vigente edaff47656cdd8a9f0af9addc878018c46439cdd elimina gate y reservaCPU1 para estas dirigidas; no esperar CPU1 ni exclusividad por navegadores ajenos. No entrega funcional ni ProductREADY por esta prueba.",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/01-i18n.js",
+    "src/modules/06-sync-brokers.js",
+    "src/modules/07-tab-patri-fijos.js",
+    "src/modules/08-motor-bank.js",
+    "docs/ARQUITECTURA.md",
+    "tests/debt-payment-state.test.mjs",
+    "tests/inicio-deuda-futura.test.mjs",
+    "e2e/inicio-deuda-futura.spec.mjs"
+  ],
+  "previousTaskId": "debt-no-day-pr337-contract-r154-codex-20261101",
+  "workerSession": "nrelay1a7ab2886a1f4f0eb12693d37f39dd64",
+  "sourceResult": "28be2935ccc3bda557f1151f5c008209a3667e2a",
+  "sourceRETURN": "6340158c44b78f35d3a35a1cc6e0e4b46b1f599a",
+  "preparedManifestSHA256": "3b1b1a14e1722d1efd3896270c7e468bb26fa8f64f3ea57a860134ecc6b503b9",
+  "constraints": [
+    "La recepcion no es admision: esperar admision nativa y reloj propio; despues helper fresco ligado a identidad propia, publicSession/nonce nuevos, primer/interno/readback>=30s, FULLRAW todos los deltas/cancelaciones y ACK, aviso OWN20 y activacion confirmada. Solo entonces claim propio de ESTE task, lectura remota y confirmacion antes de checkout nuevo. Nunca copiar runtime/repos/state/counters/NFF/grants/leases del saliente.",
+    "FuenteA89e33 completa y causal656f17a69acdb59a4bfd14ea51a50196157b5807 separadas. Restaurar nueve snapshots exactos despues de claim; no editar sourcecheckout ni aplicar a ciegas el patchLF/CRLF. Preservar fuentes77e9/97cc, overlay7, primerDOMB y pruebas cerradas.",
+    "P1R2 son helpers ADITIVOS INACTIVOS anchorContractDualCopy/hasAnchorContractDualV2/hasEntityAnchorContractDualV2 y18grupos escritos0ejecutados. Helpers2campos y aserciones anteriores bytepreservados. No conectar callers, selectores, escrituras, inversas o stamps. P2/P3 siguen separados sin GO.",
+    "Una invocacion dirigida por zona,1worker0retry y stopfirstfailure; Europe/Madrid y UTC. Registrar fuente/modulos/orden/shell/loader/test/binario/hash de entrada real y TZ exacta. No public/index.html stale ni pretender bundle distribuido: composicion raw de fuente declarada. Un fallo anterior puede impedir llegar a P1: conservarlo, reportarlo y detener; no filtrar, saltar, relajar o repetir pruebas financieras.",
+    "node --test DIRECTO segun edaff, no runner de suite entera. Si transporte--html-stdin/paths no encaja en el test runner, adaptar solo un harness PRIVADO propio de entrada/imports, con hashes y comparacion que acredite aserciones intactas; no modificar tests registrados, producto, guards u oraculos para hacerlo verde. Preservar todo intento fallido y no confundir error de harness con fallo de producto.",
+    "Sin gate/reservaCPU1 para dirigidas Node/e2e/javac, permanentes/paralelas con lo que corra. Fullsuite/Gradle/perf permanecen exclusivos. No lanzar fullsuite, navegador/servidor/build/Gradle/APK/SQL/livebank/backend/merge/main/beta por arrastre ni tocar procesos ajenos.",
+    "Exactitud financiera al centimo: BF30 cero/mixed conserva BASE fuenteA por entidad completa si alguna fija o diaria carece de marca valida; solo allvalidV2 nuevo contrato. Sin pairguardcrossentity/propietario inferido, sin reescribir anclas antiguas. Mantener6d8e100013/90012/diferencia10001 y warm/financieros sin debilitar. La prueba P1 inactiva no valida P2/P3 ni el contrato de importes.",
+    "Solo el coordinador vigente reporta Claude; trabajador reporta a su padre nativo. Entrega privada compacta con comandos literales, stdout/stderr/report/EXIT/duracion/TZ/hashes, numero real de grupos alcanzados y limitaciones; result/RETURN propios mediante helper cuando corresponda. Commit/push de producto siguen NO-GO. Punto3STOP, noProductREADY. Deadline y safe propios de admision+60/+50min; cerrar ordenadamente en primer punto seguro sin interrumpir corrida."
+  ]
+}
