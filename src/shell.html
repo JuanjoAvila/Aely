@@ -1068,7 +1068,11 @@
   .pr6-skip .pr6-nm,.pr6-skip .am{text-decoration:line-through;}
   /* Añadir / editar por pasos (SPEC §7, tanda 4): el mismo carril de la ficha con cinco pasos;
      el que no se ve se pliega en alto. El botón de abajo va pegado para que no lo tape el teclado. */
-  .v4-sheet.rp4{padding-bottom:0;}
+  /* Alto fijo: cada paso mide distinto y la hoja subía y bajaba de golpe al pasar de uno a otro
+     (beta 4.26.200, «el botón de Siguiente hace cosas raras»). Ahora solo se mueve el carril. */
+  .v4-sheet.rp4{padding-bottom:0;height:88dvh;display:flex;flex-direction:column;}
+  .v4-sheet.rp4 > .rp4-track{flex:1 0 auto;}
+  .v4-sheet.rp4 > .rp4-foot{margin-top:auto;}
   .rp4-top{display:flex;align-items:center;gap:14px;padding:0 20px 10px;}
   .rp4-prog{flex:1;display:flex;gap:6px;}
   .rp4-prog i{flex:1;height:4px;border-radius:2px;background:var(--line);position:relative;overflow:hidden;}
@@ -1100,7 +1104,8 @@
   .rp4-mode{min-height:50px;padding:0 10px;border-radius:16px;font-size:15px;}
   .rp4-mode.on{border-color:var(--mint);background:var(--surface-2);color:var(--mint-bright);}
   .rp4-mode:disabled{opacity:.4;cursor:default;}
-  .rp4-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;}
+  .rp4-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;scroll-margin-bottom:96px;}
+  .rp4-pagos,.rp4-msel{scroll-margin-bottom:96px;}
   .rp4-day{height:42px;border-radius:12px;border:0;background:var(--surface);color:var(--text);font:inherit;font-size:15px;font-weight:700;cursor:pointer;
     transition:background .2s ease,color .2s ease,transform .2s var(--ease);}
   .rp4-day.on{background:var(--mint);color:var(--on-mint);transform:scale(1.08);}

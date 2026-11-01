@@ -869,6 +869,26 @@ recibo ya pagado no pregunta, su mes se queda con 30 y la prueba con su importe 
 `E2E_MAP` para `14-v4-screens`, `08-motor-bank`, `07-tab-patri-fijos`, `00-core`,
 `11-app-main`, `04-tab-gastos`, `03-tab-dash`, `01-i18n` y `shell.html`.
 
+QA de la beta 4.26.200: `e2e/plan-recibos-qa.spec.mjs` (reloj en el 31/10, último día del mes, con
+Sabadell, CaixaBank y Trade Republic) repite lo que el dueño encontró en su móvil. La hoja por pasos:
+Atrás (botón y arrastre con CDP) vuelve un paso con la hoja quieta en su sitio y solo en el primero
+cierra; el borde de arriba no se mueve entre pasos; «Visto en tu banco» de 2.050 € lleva al resumen,
+tocar «Importe» y «Listo» vuelve al resumen y Atrás vuelve a la lista; al elegir los meses, el día
+31 queda encima del botón fijo; «Solo una vez» arranca en noviembre y guarda el 1/11. Una cuota de
+deuda enlazada en Gastos (641,27 € sobre 640 €, o sin día de cobro) dice «Enlazado · …» en su fila
+y abre su ficha con el cargo y el motivo sin saltar a Deudas; «Queda por pagar» sigue en 240,00 €
+(igual que antes del cambio); con el cargo justo, la ficha la da por pagada. «¿Y si gasto…?» abre el
+teclado tocando la zona y lo deja dentro de la pantalla; «¿Me lo puedo permitir?» se abre desplegado.
+Remates de la revisión: el camino del dueño («Visto en tu banco» → resumen → «Nombre» → Atrás vuelve al
+resumen), «Cuenta»/«Cuándo»/«Importe» desde el resumen vuelven a él, un doble toque en «Siguiente» o «Listo»
+no guarda sin ver el resumen, y el chip de banco de «¿Y si gasto…?» no abre el teclado. La cuota marcada A MANO
+en Gastos («Es la cuota de…», por la ficha de verdad) con otro importe (203,40 sobre 200, el 18/10) sale pagada
+en Recibos con «Cargo 203,40 €», no sale en Inicio y «¿Te llega?» no la resta otra vez (656,60 €); la misma fila
+enlazada por el MOTOR por nombre («PRESTAMO COCHE») sigue pendiente, igual que la hipoteca enlazada por el motor
+con 641,27. Guardianes en `tests/debt-payment-state` (motor por nombre y por alias con 59 € no pagan; a mano sí;
+`~mano` ida y vuelta) y en `plan-cuota-contabilizada` (cargo59 del motor no paga; marcado a mano sí). Está en `E2E_MAP` para `14-v4-screens`, `02-ui-shared`,
+`08-motor-bank`, `01-i18n` y `shell.html`.
+
 Descarga incompleta (candidato13/10): `tests/bank-download-incomplete.test.mjs`, registrado en
 runner y `STEPS_SUPABASE`, ejecuta lector, handler y updater real de App. Compara el updater con
 el padre123: ambas lecturas de `bankTx` conservan el extracto; falla sin el adaptador mínimo.

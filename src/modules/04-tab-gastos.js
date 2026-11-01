@@ -603,7 +603,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
         if(stale && stale.length) upd.catStale=stale; else delete upd.catStale;
         delete upd.catAckAt;   // decisión nueva: aún nadie la ha confirmado
         // Sacarla de «Deudas» es decir «esto no es la cuota»: pierde la marca (4.21.0).
-        if(isTarget && upd.debtId && newCat!=="deudas") delete upd.debtId;
+        if(isTarget && upd.debtId && newCat!=="deudas"){ delete upd.debtId; delete upd.debtManual; }
         // El gemelo solo cambia de categoría: el dinero ya lo compra su pareja, comprarlo dos veces
         // duplicaría las participaciones del fondo.
         if(isTwin) return upd;
@@ -641,11 +641,16 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   };
   /* «Es la cuota de…» desde la ficha (4.22.2, su rechazo: «no la puedo cambiar manualmente?»).
      La fila va a «Deudas» con esa deuda y el comercio se aprende para el mes que viene. */
+  /* Tocar la deuda que ya está encendida porque la enlazó el MOTOR la confirma a mano (`debtManual`):
+     antes el chip salía marcado y no hacía nada (R3 de la revisión, su queja de «no deja enlazarlo»).
+     Así también valen, sin migración, las que él marcó antes de que existiera la marca. */
   const setCuota=function(ex,debtId){
+    const confirma=ex.category==="deudas"&&ex.debtId===debtId&&!ex.debtManual;
     let subir=null;
     set(function(s){ const r=marcarCuotaAMano(s, ex.id, debtId); if(!r) return s; subir=r.e; return r.state; });
     if(subir && cloud.enabled()) cloud.setExpenseDeuda(subir).catch(function(){});
-    if(showToast) showToast(tf("v4_moved_cat",{cat:DEUDA_CAT.icon+" "+catName("deudas")}));
+    const d=confirma&&(state.debts||[]).find(function(x){ return x.id===debtId; });
+    if(showToast) showToast(confirma?tf("v4_cuota_confirmada",{name:(d&&String(d.name||"").trim())||catName("deudas")}):tf("v4_moved_cat",{cat:DEUDA_CAT.icon+" "+catName("deudas")}));
   };
   /* «Es aportación a la meta X» desde la ficha (decisión suya del 24/10/2026). Toca dinero, así que
      PONERLA se confirma diciendo qué cambia («de 100 € a 350 €»), y si la meta ya tenía algo
@@ -2857,7 +2862,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
         React.createElement("span",null,t("f_debt_row")),React.createElement("span",{className:"value"},expensePaymentLabelUI(state,exp,"debt",paymentRelation)),React.createElement("span",{className:"chev"},"›")),
       adjustOpen==="debt" && React.createElement("div",{className:"v4-chips wrap v4-ficha-adjust-open","data-testid":"exp-cuota-de"},
         debtOptions.map(function(d){ const on=exp.category==="deudas"&&exp.debtId===d.id; return React.createElement("button",{key:d.id,type:"button",className:"v4-chip"+(on?" on":""),
-          onClick:function(){ if(!on) setCuota(exp,d.id); }},DEUDA_CAT.icon+" "+(String(d.name||"").trim()||catName("deudas"))); }))),
+          "data-manual":on&&exp.debtManual?"1":null,onClick:function(){ if(!on||!exp.debtManual) setCuota(exp,d.id); }},DEUDA_CAT.icon+" "+(String(d.name||"").trim()||catName("deudas"))); }))),
     /* «Es aportación a una meta» (24/10/2026). Sale en los cargos del banco que pueden llevarla y en
        los que ya la llevan (si no, quitarla no tendría camino). En una cuota o un recibo se ve, pero
        explica por qué no se puede: una marca por gasto. Un apunte a mano no la ofrece: para eso está

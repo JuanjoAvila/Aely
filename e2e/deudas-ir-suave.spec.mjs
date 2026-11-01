@@ -71,8 +71,10 @@ test("desde Plan › Recibos: la cuota lleva a su deuda deslizando, y queda ente
   await due.getByRole("button", { name: /Ver los/ }).click();
   const fila = due.locator(".v4-charge").filter({ hasText: "Deuda 6" });
   await fila.scrollIntoViewIfNeeded();
-  await grabaScroll(page, "d6");
+  // Desde la 4.26.200 la cuota abre su ficha (con el cargo enlazado en Gastos) y «Ver en Deudas» lleva a ella.
   await fila.click();
+  await page.locator('.v4-sheet[data-sheet="deuda"] [data-act="ver-deuda"]').click();
+  await grabaScroll(page, "d6");
   await expect(page.locator('.v4-seg-btn[data-seg="deudas"]')).toHaveAttribute("aria-selected", "true");
   await enVista(page, "d6");
   // Entra con la animación de las secciones y se resalta, sin inventar otra transición.
@@ -108,6 +110,7 @@ test("con movimiento reducido llega igual de exacto, sin deslizar ni resaltar", 
   const fila = due.locator(".v4-charge").filter({ hasText: "Deuda 6" });
   await fila.scrollIntoViewIfNeeded();
   await fila.click();
+  await page.locator('.v4-sheet[data-sheet="deuda"] [data-act="ver-deuda"]').click();
   await enVista(page, "d6");
   expect(await page.evaluate(() => window.__scrollPedidos.map((p) => p.behavior))).not.toContain("smooth");
 });

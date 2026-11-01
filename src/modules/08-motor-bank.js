@@ -636,9 +636,14 @@ function debtPaymentState(s,d,y,m,today){
     // amount ya está normalizado a EUR; origCur solo conserva el rastro bancario. Un
     // esquema externo que aún rotule amount con otra moneda no acredita euros.
     if(x&&(x.cur||x.currency)&&String(x.cur||x.currency).toUpperCase()!=="EUR") return false;
-    // La previsión muestra la cuota acordada: un cargo parecido no acredita ese importe.
-    // Se comparan céntimos EUR, sin heredar la tolerancia del clasificador de movimientos.
-    if(!x||x.debtId!==d.id||x.category!=="deudas"||x.possibleDup||!isFinite(Number(x.amount))||!(Number(x.amount)>0)||Math.round(target*100)!==Math.round(Number(x.amount)*100)) return false;
+    /* La previsión muestra la cuota acordada: un cargo parecido que enlazó el MOTOR (por nombre o
+       por el comercio aprendido) no la acredita; se comparan céntimos EUR. La excepción es la fila
+       que él marcó a mano como cuota de esta deuda (`debtManual`, «Es la cuota de…»): esa la paga
+       con lo que cobró el banco (decisión del dueño, beta 4.26.200: «si se enlaza en Gastos debería
+       estar enlazado en Recibos»). Antes una hipoteca de 640 enlazada a mano y cobrada a 641,27
+       seguía restando aunque el saldo del banco ya la llevara. */
+    if(!x||x.debtId!==d.id||x.category!=="deudas"||x.possibleDup||!isFinite(Number(x.amount))||!(Number(x.amount)>0)) return false;
+    if(!x.debtManual&&Math.round(target*100)!==Math.round(Number(x.amount)*100)) return false;
     if(x.status&&String(x.status).toUpperCase()!=="BOOK") return false;
     var ds=String(x.date||"").slice(0,10),ms=dateMs(ds),bank=expenseBankOf(x);
     if(!/^\d{4}-\d{2}-\d{2}$/.test(ds)||!isFinite(ms)||ms>end||!bank||expenseIsTombstoned(x,deleted)) return false;
@@ -654,7 +659,10 @@ function debtPaymentState(s,d,y,m,today){
       return fixedPaymentIdentity(expenseBankOf(other),other)===identity;
     }).length===1;
   });
-  var x=rows.length===1?rows[0]:null;
+  // Manda la que cobra la cuota exacta, como siempre: otra marcada a mano con otro importe en el mismo
+  // mes no puede deshacer un pago que ya estaba acreditado. Sin exacta, vale la única a mano.
+  var exactas=rows.filter(function(r){ return Math.round(target*100)===Math.round(Number(r.amount)*100); });
+  var x=exactas.length===1?exactas[0]:!exactas.length&&rows.length===1?rows[0]:null;
   // La fila de Plan rotula el mes de vencimiento: un cargo del mes anterior no puede
   // aparecer allí con una fecha futura ficticia (por ejemplo, «31 de octubre»).
   var sameMonth=x&&String(x.date).slice(0,7)===y+"-"+String(m).padStart(2,"0");
@@ -835,7 +843,9 @@ function planChargesMonth(s,m,y,today){
     // (ese fallback a día 1 marcaba la cuota como ya pagada desde el día 1 — NO-GO 17/9).
     var status=debtPaymentState(s,d,y,m,today),dy=status.day,p=status.paid;
     var a=Number(d.monthly)||0;
-    if(a>0) r.push({id:"debt_"+d.id,name:d.name,amount:a,day:dy,bank:b,paid:p,paidBank:status.paidBank,kind:"debt"});
+    // Lo cobrado de verdad frente a la cuota (y su pago final, si lo hay): la fila lo dice como un recibo.
+    var plan=a+debtBalloonIn(d,y,m);
+    if(a>0) r.push({id:"debt_"+d.id,name:d.name,amount:a,day:dy,bank:b,paid:p,paidBank:status.paidBank,paidAmount:status.paidAmount,plannedBankAmount:plan,kind:"debt"});
     var bl=debtBalloonIn(d,y,m);
     if(bl>0) r.push({id:"balloon_"+d.id,name:d.name+" "+t("db_balloon_tag"),amount:bl,day:dy,bank:b,paid:p,paidBank:status.paidBank,kind:"balloon"});
   });
@@ -2577,7 +2587,8 @@ function marcarCuotaAMano(s, expenseId, debtId){
   const d=((s&&s.debts)||[]).find(function(x){ return x && x.id===debtId; });
   const orig=((s&&s.expenses)||[]).find(function(x){ return x && x.id===expenseId; });
   if(!d || !orig || !(orig.amount>0)) return null;
-  const e=Object.assign({}, orig, { category:DEUDA_CAT.id, debtId:d.id });
+  // `debtManual`: la marcó él, no el motor; es la única que paga la cuota con otro importe.
+  const e=Object.assign({}, orig, { category:DEUDA_CAT.id, debtId:d.id, debtManual:true });
   // Lo que él marca a mano manda sobre la marca automática de recibo, aquí y en la nube.
   delete e.reciboId;
   // Y sobre la de meta: una marca por gasto, y la última que puso él es la que vale. En la nube la
@@ -4292,7 +4303,9 @@ function AffordSim({state, totals, set}){
     set(function(s){ return Object.assign({},s,{debts:(s.debts||[]).concat([it])}); });
     setFinDone(true);
   };
-  return React.createElement(CollapsibleCard,{title:t("af_title"),sub:t("af_sub"),dot:"#9BD0E0",defaultOpen:false,storageKey:"fj_afford",help:t("h_afford")},
+  /* Vive en su propia pantalla («¿Me lo puedo permitir?» de Recibos) y se ve ya abierto: era un
+     desplegable cerrado que repetía el título de la página y había que volver a tocar (beta 4.26.200). */
+  return React.createElement("div",{className:"card","data-testid":"afford-sim"},React.createElement("div",{className:"card-body"},
     React.createElement("div",{style:{display:"flex",gap:6,marginBottom:8}},
       [["cash","af_mode_cash"],["fin","af_mode_fin"]].map(function(mm){
         return React.createElement("button",{key:mm[0],className:"chip"+(mode===mm[0]?" on":""),style:mode===mm[0]?{background:"var(--mint)",color:"#06120C",borderColor:"var(--mint)"}:null,
@@ -4336,7 +4349,7 @@ function AffordSim({state, totals, set}){
           ),
       React.createElement("div",{className:"hint",style:{marginTop:8,fontSize:11.5}}, t("af_fin_hint"))
     )
-  );
+  ));
 }
 
 /* ============================================================

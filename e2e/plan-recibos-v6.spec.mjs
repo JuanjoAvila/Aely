@@ -66,8 +66,10 @@ test("para revisar: no ha llegado y cuotas sin cargo del banco, como mucho tres 
   await expect(recibos.getByTestId("plan-due").locator(".v4-charge").filter({ hasText: "Alarma" })).toContainText("tocaba ayer");
   await review.getByRole("button", { name: /Ver los 5/ }).click();
   await expect(review.locator(".v4-charge:not([inert] *)")).toHaveCount(5);
-  // La cuota lleva a Deudas en vez de a una ficha de recibo.
+  // La cuota abre su ficha de deuda (beta 4.26.200: antes saltaba a Deudas a ciegas) y desde ahí se va a Deudas.
   await review.locator('[data-review="unconf"]').click();
+  await expect(page.locator('.v4-seg-btn[data-seg="recibos"]')).toHaveAttribute("aria-selected", "true");
+  await page.locator('.v4-sheet[data-sheet="deuda"] [data-act="ver-deuda"]').click();
   await expect(page.locator('.v4-seg-btn[data-seg="deudas"]')).toHaveAttribute("aria-selected", "true");
 });
 
