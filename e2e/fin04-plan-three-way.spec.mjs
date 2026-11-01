@@ -122,11 +122,12 @@ test('FIN04 reconstruida Plan inválido avisa y reabre lectura válida',async({b
 
 for(const legacy of [false,true])for(const mark of ['paid','wait'])test('FIN04 reconstruida marca offline '+mark+(legacy?' legacy':'')+' sobrevive ACK y ambos clientes',async({browser,baseURL},info)=>{
  const h=await harness(browser,baseURL,info);try{const a=await h.client('A'),b=await h.client('B');await connection(h,b,'B',false);
-  await b.evaluate(({mark,legacy})=>{const state=loadState();if(legacy)delete state._planSync;const now=new Date(),ym=now.getFullYear()*12+now.getMonth()+1;state.fixed=state.fixed.map(f=>({...f,...(mark==='paid'?{paidYm:ym,paidDay:12}:{wait:ym})}));mcSaveRaw(mcStateKey(),state);},{mark,legacy});
+  await b.evaluate(({mark,legacy})=>{// paidDay = hoy (antes 12 fijo): el dia 1-11 la marca caia en el futuro y fixedPaymentState no la daba por pagada (cayo el 1/11/2026).
+  const state=loadState();if(legacy)delete state._planSync;const now=new Date(),ym=now.getFullYear()*12+now.getMonth()+1;state.fixed=state.fixed.map(f=>({...f,...(mark==='paid'?{paidYm:ym,paidDay:now.getDate()}:{wait:ym})}));mcSaveRaw(mcStateKey(),state);},{mark,legacy});
   await b.reload();await ready(b);await fixedEdit(a,'Nombre independiente');await expect.poll(()=>h.row.data.fixed[0].name).toBe('Nombre independiente');await connection(h,b,'B',true);
   const ym=await b.evaluate(()=>{const n=new Date();return n.getFullYear()*12+n.getMonth()+1;});
   await expect.poll(()=>h.row.data.fixed[0][mark==='paid'?'paidYm':'wait'],{timeout:10000}).toBe(ym);
-  for(const p of [a,b]){await p.reload();await ready(p);const f=await p.evaluate(()=>loadState().fixed[0]);expect(f.name).toBe('Nombre independiente');expect(Math.round(f.amount*100)).toBe(4237);if(mark==='paid'){expect(f.paidYm).toBe(ym);expect(f.paidDay).toBe(12);expect(await p.evaluate(()=>{const s=loadState(),d=new Date();return fixedPaymentState(s,s.fixed[0],d.getFullYear(),d.getMonth()+1,d.getDate()).paid;})).toBe(true);}else expect(f.wait).toBe(ym);expect(f.paymentProofs).toBeUndefined();}
+  for(const p of [a,b]){await p.reload();await ready(p);const f=await p.evaluate(()=>loadState().fixed[0]);expect(f.name).toBe('Nombre independiente');expect(Math.round(f.amount*100)).toBe(4237);if(mark==='paid'){expect(f.paidYm).toBe(ym);expect(f.paidDay).toBe(await p.evaluate(()=>new Date().getDate()));expect(await p.evaluate(()=>{const s=loadState(),d=new Date();return fixedPaymentState(s,s.fixed[0],d.getFullYear(),d.getMonth()+1,d.getDate()).paid;})).toBe(true);}else expect(f.wait).toBe(ym);expect(f.paymentProofs).toBeUndefined();}
   expect(h.errors).toEqual([]);
  }finally{await h.close();}
 });
