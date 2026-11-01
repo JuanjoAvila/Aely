@@ -1,0 +1,50 @@
+{
+  "status": "blocked",
+  "summary": "Cierre horario del titular: candidata privada preservada y cinco corridas aceptadas; pendiente DOM B y revision de commit/push. El preflight B llego despues de la ventana, no se ejecuto.",
+  "tests": [
+    {
+      "test": "tests/debt-payment-state.test.mjs",
+      "source": "A",
+      "exitCode": 1,
+      "observation": "40 original and2 legacy controls passed then expected unknown-day true versus false causal RED"
+    },
+    {
+      "test": "tests/debt-payment-state.test.mjs",
+      "source": "B",
+      "exitCode": 0,
+      "passed": 60
+    },
+    {
+      "test": "tests/inicio-deuda-futura.test.mjs",
+      "source": "A",
+      "exitCode": 1,
+      "observation": "33 original and1 known-payment control passed then expected paid6001c versus0 causal RED"
+    },
+    {
+      "test": "tests/inicio-deuda-futura.test.mjs",
+      "source": "B",
+      "exitCode": 0,
+      "passed": 51
+    },
+    {
+      "spec": "e2e/inicio-deuda-futura.spec.mjs",
+      "grep": "debt-no-day-r150:",
+      "source": "A",
+      "exitCode": 1,
+      "observation": "Expected current Inicio row1 actual0,correct source and no page errors;22 cases not run under maxFailures1"
+    }
+  ],
+  "baseSHA": "656f17a69acdb59a4bfd14ea51a50196157b5807",
+  "limitations": [
+    "No commit or push; candidate remains private WIP from exact base.",
+    "DOM B not started; expired owner grant does not transfer. Successor requires new exact task, own claim, OWN and fresh per-run admission.",
+    "No ProductREADY, served beta, human acceptance, backend, APK or deployment.",
+    "Prior closed runs are not to be repeated without new change/failure."
+  ],
+  "schema": 1,
+  "taskId": "debt-no-day-coherence-r150-codex-20261101",
+  "actor": "codex",
+  "sessionId": "nrelay10e92a26ab514a448e6af45b0fd4096d",
+  "createdAt": "2026-11-01T00:36:11.504Z",
+  "released": true
+}
