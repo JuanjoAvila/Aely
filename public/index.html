@@ -1085,6 +1085,7 @@
   .rp4-dup-t{flex:1;min-width:0;font-size:14px;font-weight:700;}
   .rp4-dup-go{color:var(--mint-bright);font-size:14px;font-weight:800;}
   .rp4-visto{display:flex;flex-direction:column;gap:8px;}
+  .rp4-visto-bank{white-space:normal;overflow:visible;text-overflow:unset;line-height:1.35;}
   .pr6-dt.rp4-dt-s{width:42px;height:44px;border-radius:12px;background:var(--bg);}
   .pr6-dt.rp4-dt-s .d{font-size:17px;}
   .pr6-dt.rp4-dt-s .m{font-size:9px;}
@@ -1101,6 +1102,7 @@
   .rp4-var{height:36px;padding:0 14px;border-radius:18px;font-size:13px;color:var(--muted);}
   .rp4-var.on{border-color:var(--mint);color:var(--mint-bright);background:var(--surface-2);}
   .rp4-freqs,.rp4-modes,.rp4-scope{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+  .rp4-freqs{grid-template-columns:repeat(3,minmax(0,1fr));}
   .rp4-mode{min-height:50px;padding:0 10px;border-radius:16px;font-size:15px;}
   .rp4-mode.on{border-color:var(--mint);background:var(--surface-2);color:var(--mint-bright);}
   .rp4-mode:disabled{opacity:.4;cursor:default;}
@@ -1133,13 +1135,18 @@
   .rp4-row-k{flex:none;font-size:14px;color:var(--muted);font-weight:700;}
   .rp4-row-v{flex:1;min-width:0;text-align:right;font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .rp4-foot{position:sticky;bottom:0;padding:10px 20px calc(14px + var(--safe-bottom));background:var(--bg-2);}
-  .rp4-cta{width:100%;height:52px;transition:opacity .2s ease;}
-  .rp4-cta:disabled{opacity:.35;cursor:default;}
+  .rp4-cta{width:100%;height:52px;transition:background .28s var(--ease),color .28s var(--ease);}
+  .rp4-cta.is-wait{background:color-mix(in srgb,var(--mint) 38%,var(--bg-2));pointer-events:none;}
   /* Personas y compartidos (tanda 5, SPEC §6-§7): rejilla de 5 columnas, no carrusel. */
   .pe-ava{width:38px;height:38px;flex:none;border-radius:19px;background:var(--surface);border:1px solid var(--line-soft);display:flex;align-items:center;justify-content:center;
     font-size:15px;font-weight:800;color:var(--text);transition:background .2s ease,color .2s ease,border-color .2s ease;}
   .pe-link{border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;padding:0;}
   .pe-deben.ok .pr6-ll-a{color:var(--muted);}
+  .pr6-ll-act{display:flex;justify-content:flex-end;margin-top:2px;}
+  /* «Ya me lo ha pagado»: compacto a la derecha, mismo mint, sin ancho completo (beta 4.26.209). */
+  .pe-deben-cta{width:auto;max-width:100%;height:36px;padding:0 14px;border-radius:12px;font-size:13px;font-weight:800;flex:none;}
+  .pe-deben-cta.pr6-cta{height:36px;}
+  .pe-deben-cta.pr6-btn{border-color:var(--line-soft);font-size:12px;font-weight:700;}
   .pe-recibos{display:flex;flex-direction:column;gap:8px;}
   .rp5-mas{display:flex;flex-direction:column;}
   .rp5-in{display:flex;flex-direction:column;gap:12px;padding-top:4px;}
@@ -28461,7 +28468,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="c1bc99d2bb9e02a68e9c2b341ead59fb7c4c22db7815dc62d9f7a1ea328f46b3";
+var _rnSha="e3108292f77d504f113ead36f4f59df61d64f9ab3441b2e1e3ab979de0de92ce";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -31100,9 +31107,10 @@ function TeDebenSheet({state, set, totals, deben, onClose}){
                   React.createElement("span",{className:"pr6-ll-n"}, p.n),
                   React.createElement("span",{className:"pr6-ficha-s"}, p.items.map(function(i){ return i.name+" "+eur(i.amt); }).join(" + "))),
                 React.createElement("span",{className:"serif num pr6-ll-a","data-testid":"deben-cifra"}, eur(p.amt))),
-              React.createElement("button",{type:"button",className:p.pagado?"pr6-btn pr6-btn-wide":"pr6-cta","data-act":"deben-pagado","aria-pressed":p.pagado?"true":"false",
-                onClick:function(){ marcar(p); }},
-                p.pagado?"✓ "+t("pr6_te_lo_ha_pagado")+" · "+t("f_undo"):t("pr6_ya_me_lo_ha_pagado")));
+              React.createElement("div",{className:"pr6-ll-act"},
+                React.createElement("button",{type:"button",className:(p.pagado?"pr6-btn ":"pr6-cta ")+"pe-deben-cta","data-act":"deben-pagado","aria-pressed":p.pagado?"true":"false",
+                  onClick:function(){ marcar(p); }},
+                  p.pagado?"✓ "+t("pr6_te_lo_ha_pagado")+" · "+t("f_undo"):t("pr6_ya_me_lo_ha_pagado"))));
           }))),
       persona!=null&&React.createElement(PersonaSheet,{key:persona,pid:persona,state:state,set:set,totals:totals,onClose:function(){ setPersona(null); }})),
     document.body);
@@ -32567,6 +32575,14 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
     const id=requestAnimationFrame(function(){ if(titleRef.current) titleRef.current.focus({preventScroll:true}); });
     return function(){ cancelAnimationFrame(id); };
   },[paso]);
+  const mesesElegir=f.mode==="rec"&&f.freq!=="mes";
+  const diasListos=f.mode==="rec"&&(f.freq==="mes"||f.months.length>0);
+  // Tras «Cada mes» solo había días visibles; al pasar a «Una vez al año» el plegable de meses
+  // aún se abría (350 ms) y parecía que solo quedaban los días 1–31 (beta 4.26.209).
+  useLayoutEffect(function(){
+    if(paso!==2||!mesesElegir) return;
+    mostrar(mesesRef);
+  },[paso,f.freq,f.mode,mesesElegir]);
   useEffect(function(){
     const onKey=function(e){
       if(document.documentElement.classList.contains("ask-open")||document.querySelector('[data-sheet="persona"]')) return;
@@ -32703,6 +32719,8 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
     if(paso===4){ if(e&&e.detail>1) return; guardar(); return; }
     ir(resumido?4:paso+1);
   };
+  const ctaLabel=paso===4?(edit?t("rp4_guardar"):t("rp4_add")):(resumido?t("rp4_listo"):t("rp4_next"));
+  const ctaOn=ok[paso]&&(paso<4||listo);
   const titulos=["rp4_t_name","rp4_t_amount","rp4_t_when","rp4_t_account",edit?"rp4_t_edit":"rp4_t_sum"];
   const bankLabel=function(b){ return b?entOf(b).label:"—"; };
   const freqTxt=function(fr){ const x=RP4_FREQS.find(function(q){ return q[0]===fr; }); return x?gbTxt(x[1]):""; };
@@ -32744,7 +32762,7 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
             React.createElement("span",{className:"m"}, t("rp4_dia"))),
           React.createElement("span",{className:"pr6-cand-t"},
             React.createElement("span",{className:"pr6-cand-n"}, d.name),
-            React.createElement("span",{className:"pr6-cand-s"}, (d.cat?catName(d.cat)+" · ":"")+bankLabel(d.bank))),
+            React.createElement("span",{className:"pr6-cand-s rp4-visto-bank"}, (d.cat?catName(d.cat)+" · ":"")+bankLabel(d.bank))),
           React.createElement("span",{className:"pr6-cand-a num"}, eur(d.amount)));
       })),
     sugs.length>0&&React.createElement("div",{key:"sg",className:"rp4-sugs"},
@@ -32849,8 +32867,8 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
           mostrar(diasRef);
         }})),
         f.freq!=="mes"&&amt>0&&React.createElement("div",{className:"hint"}, fixedAddPreview(borrador())))),
-    React.createElement("div",{key:"dd",className:"pr6-fold"+(f.mode==="rec"?" open":"")},
-      React.createElement("div",Object.assign({className:"pr6-fold-in"},f.mode==="rec"?null:{"aria-hidden":"true",inert:""}),
+    React.createElement("div",{key:"dd",className:"pr6-fold"+(diasListos?" open":"")},
+      React.createElement("div",Object.assign({className:"pr6-fold-in"},diasListos?null:{"aria-hidden":"true",inert:""}),
         dias(cleanDay(f.day),function(d){ upd({day:d}); }))),
     React.createElement("div",{key:"pl",className:"pr6-fold"+(f.mode!=="rec"?" open":"")},
       React.createElement("div",Object.assign({className:"pr6-fold-in rp4-pagos",ref:pagosRef},f.mode!=="rec"?null:{"aria-hidden":"true",inert:""}),
@@ -32978,7 +32996,6 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
     edit&&React.createElement("button",{type:"button",key:"x",className:"pr6-btn pr6-btn-wide"+(gone?" pr6-seguro":""),"data-act":"bill-remove",
       onClick:function(){ if(!gone){ setGone(true); return; } onRemove(row); }}, gone?t("pr6_seguro_borrar"):t("pr6_ya_no"))
   ]);
-  const cta=paso===4?(edit?t("rp4_guardar"):t("rp4_add")):(resumido?t("rp4_listo"):t("rp4_next"));
   // La ficha de persona va fuera de la hoja: sus gestos y toques no pueden subir hasta esta.
   return React.createElement(React.Fragment,null,React.createElement("div",{ref:sideRef,className:"v4-sheet-back",onClick:swipe.close},
     React.createElement("div",Object.assign({ref:sheetRef,className:"v4-sheet pr6-ficha rp4","data-sheet":"recibo-pasos","data-paso":paso,"data-modo":edit?"edit":"add",
@@ -32995,8 +33012,8 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
           [0,1,2,3].map(function(i){ return React.createElement("i",{key:i,className:paso>=i?"on":""}); }))),
       React.createElement("div",{className:"pr6-track rp4-track",style:{transform:"translateX("+(-paso*100)+"%)"}}, p0,p1,p2,p3,p4),
       React.createElement("div",{className:"rp4-foot"},
-        React.createElement("button",{type:"button",className:"pr6-cta rp4-cta","data-act":paso===4?"confirm":"next","aria-disabled":ok[paso]&&(paso<4||listo)?"false":"true",
-          disabled:!(ok[paso]&&(paso<4||listo)),onClick:siguiente}, cta)))),
+        React.createElement("button",{type:"button",className:"pr6-cta rp4-cta"+(ctaOn?"":" is-wait"),"data-act":paso===4?"confirm":"next","data-rp4-cta":"1",
+          "aria-disabled":ctaOn?"false":"true",tabIndex:ctaOn?0:-1,onClick:function(e){ if(!ctaOn) return; siguiente(e); }}, ctaLabel)))),
     persona&&React.createElement(PersonaSheet,{key:persona.pid||"nueva",pid:persona.pid,draft:!!persona.draft,mensual:mensual,sinBorrar:true,state:state,set:set,totals:totals,
       onClose:function(){ setPersona(null); },
       onCreate:function(q){
