@@ -60,7 +60,11 @@ const steps = [
   ["deudas-mes-madrid", ["node", "--test", "--test-concurrency=1", "tests/deudas-mes-madrid.test.mjs"]],
   ["deudas-alargar-plazo", ["node", "tests/deudas-alargar-plazo.test.mjs"]],
   ["deudas-lo-descuento", ["node", "tests/deudas-lo-descuento.test.mjs"]],
+<<<<<<< HEAD
   ["lo-descuento-undo", ["node", "--test", "tests/lo-descuento-undo.test.mjs"]],
+=======
+  ["deudas-tae-descuento", ["node", "tests/deudas-tae-descuento.test.mjs"]],
+>>>>>>> 78344d8a0 (fix: prevent positive APR with pending debt discounts)
   ["refund-polarity", ["node", "--test", "tests/refund-polarity.test.mjs"]],
   ["fin10-absorption-scope", ["node", "--test", "tests/fin10-absorption-scope.test.mjs"]],
   ["deudas-plazo-aviso", ["node", "tests/deudas-plazo-aviso.test.mjs"]],

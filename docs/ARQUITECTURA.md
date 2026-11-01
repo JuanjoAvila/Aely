@@ -435,6 +435,7 @@ perder su «Te deben» ni su descuento. En la mezcla de tres vías `reparto` va 
 financiero (con `amount` y `bankAmount`); `repartoCobrado` se une mes a mes e id a id (dos móviles
 que marcan a personas distintas suman las dos; quitar una marca la quita si el otro no la tocó).
 
+<<<<<<< HEAD
 Cuando un cambio afecta a varias deudas descuadradas, `descuentoPregunta` las pregunta en
 secuencia. «Dejarla como está» se refiere a esa deuda: conserva las respuestas aceptadas de
 las otras. En el guardado de `PersonaSheet`, `conDescuentoFijado` aplica esas respuestas y el
@@ -450,6 +451,18 @@ recargar. El recibo se quita o la persona sale del reparto según la acción ori
 acredita una escritura única en todas las rutas: quitar/añadir recibo y aplicar los ajustes
 siguen siendo llamadas separadas. Deshacer el ajuste aceptado al quitar un recibo requiere
 el cambio separado anotado en el backlog; estas pruebas no lo implementan.
+=======
+Editar deuda rechaza la transición de TAE desconocida/cero a positiva mientras haya una relación
+`via:"debt"` con su id en el reparto base, aunque esté pausada o sea futura. La guardia
+`debtEditRateError` también comprueba `soloMes.reparto` futuro o del mes actual pendiente;
+excluye los meses pasados y el actual ya pagado según `fixedPaymentState`, igual que el productor
+del histórico. Así, quitar el descuento permite poner TAE sin borrar repartos de pagos anteriores.
+Se comprueba antes de guardar y contra el estado fresco del updater, además de `planEditCommit`:
+el rechazo devuelve el mismo estado completo, conserva el borrador y muestra una línea que pide
+quitar primero el descuento del recibo compartido. No ajusta cuota, amortización ni plazo,
+ni repara registros con TAE positiva preexistente. Metas conserva su guardado habitual.
+
+>>>>>>> 78344d8a0 (fix: prevent positive APR with pending debt discounts)
 El previsto a fin de mes de `totals` (`pendingByBank`, `projectedByBank`: ficha de cuenta y
 asistente) usa la misma regla que el recorrido (`fixedCargoBanco`). Un cliente viejo ignora los
 campos nuevos (los conserva con `Object.assign`) y ve tu parte y lo que cobra el banco, que son
