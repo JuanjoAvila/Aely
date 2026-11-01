@@ -1,0 +1,38 @@
+{
+  "status": "done",
+  "summary": "Arneses adaptados a imported y trMonthlyImportPlan real tras PR339. Seis archivos de tests y documentacion; aserciones y producto intactos. Revision independiente GO; push normal y PR343 draft contra beta con HEAD exacto verificados.",
+  "productSHA": "8ea11ff7ac5d4bde8bace2c38b6e6d63d3e7691e",
+  "prNumber": 343,
+  "tests": [
+    {
+      "command": "node --test --test-concurrency=1 (diez grupos del encargo), TZ=Europe/Madrid",
+      "exitCode": 0,
+      "count": 283
+    },
+    {
+      "command": "node --test --test-concurrency=1 (diez grupos del encargo), TZ=UTC",
+      "exitCode": 0,
+      "count": 283
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "Base sin adaptar EXIT1 conservada; no se repitieron verdes",
+    "Pruebas sinteticas locales; no fullsuite, e2e, banco real ni movil",
+    "Sin merge, rebase, bump o deploy; integracion pendiente",
+    "No comportamiento real roto observado en los escenarios ejecutados"
+  ],
+  "schema": 1,
+  "taskId": "beta208-arneses-r163-codex-20261101",
+  "actor": "codex",
+  "sessionId": "beta208-x4dcd74dfa80f4524bd0d5b0b76ac054a",
+  "createdAt": "2026-11-01T13:31:27.769Z",
+  "released": true
+}
