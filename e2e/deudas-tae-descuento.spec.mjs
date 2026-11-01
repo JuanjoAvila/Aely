@@ -1,5 +1,5 @@
 import {test,expect} from "@playwright/test";
-import {seedLoggedInDashboard,dismissNews} from "./fixtures.mjs";
+import {seedLoggedInDashboard,dismissNews,esperaNubeQuieta} from "./fixtures.mjs";
 const YM=2026*12+10;
 const debt={id:"fam",name:"Préstamo sintético",monthly:260,amort:300,months:20,value:6000,account:"sabadell",day:20,asOf:YM-1};
 const share={id:"pe_fam",n:"Familia",via:"debt",debtId:"fam",amt:40};
@@ -18,7 +18,11 @@ async function open(page,{lang="es",fixed=[bill]}={}){
 const snapshot=page=>page.evaluate(()=>({state:mcLoadRaw(mcStateKey()),raw:localStorage.getItem(mcStateKey())}));
 for(const [name,options] of [["activa es",{}],["pausada en",{lang:"en",fixed:[{...bill,pausedFrom:YM,pausedUntil:YM+2}]}],["futura ca",{lang:"ca",fixed:[{...bill,freq:"anual",months:[12]}]}]]){
   test("TAE bloquea "+name+" sin guardar otros cambios",async({page})=>{
-    const sheet=await open(page,options),before=await snapshot(page);await sheet.locator('[data-debt-field="apr"]').fill("2.5");await sheet.locator('[data-debt-field="name"]').fill("Nombre cambiado");await sheet.locator("button.btn-primary.btn-block").click();
+    const sheet=await open(page,options);
+    // El ACK del arranque escribe metadatos: la foto debe tomarse cuando ya se asentó, para
+    // que la igualdad completa siga detectando cualquier guardado indebido del editor.
+    await esperaNubeQuieta(page);
+    const before=await snapshot(page);await sheet.locator('[data-debt-field="apr"]').fill("2.5");await sheet.locator('[data-debt-field="name"]').fill("Nombre cambiado");await sheet.locator("button.btn-primary.btn-block").click();
     await expect(sheet).toContainText(messages[options.lang||"es"]);await expect(sheet).toBeVisible();expect(await snapshot(page)).toEqual(before);
   });
 }
