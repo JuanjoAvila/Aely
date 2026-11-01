@@ -192,6 +192,7 @@ const steps = [
   ["widget-coherente", ["node", "tests/widget-coherente.test.mjs"]],
   ["widget-arbitraje", ["node", "tests/widget-arbitraje.test.mjs"]],
   ["native-event-debounce", ["node", "tests/native-event-debounce.test.mjs"]],
+  ["pro03-native-precomputed-alert", ["node", "tests/pro03-native-precomputed-alert.test.mjs"]],
   ["widget-offline", ["node", "tests/widget-offline.test.mjs"]],
   ["widget-unknown-loss", ["node", "tests/widget-unknown-loss.test.mjs"]],
   ["widget-unknown-journal", ["node", "tests/widget-unknown-journal.test.mjs"]],

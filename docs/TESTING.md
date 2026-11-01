@@ -1,3 +1,17 @@
+PRO03 · avisos precomputados del worker nativo:
+`node tests/pro03-native-precomputed-alert.test.mjs`, ya registrado en `steps`,
+compila y ejecuta el worker real en JVM con fronteras Android sintéticas.
+Busca java y javac juntos en `--jdk-home`, `JAVA_HOME` o `PATH`; si falta JDK,
+imprime `SKIP pro03-native-precomputed-alert` y termina con EXIT 0 antes de crear
+temporales. Con JDK presente, errores de compilación, ejecución o aserciones
+siguen fallando. Cada invocación recoge sus propias fuentes, clases y logs TEMP,
+tanto al pasar como al fallar, sin atravesar enlaces ni limpiar carpetas previas.
+Para conservar logs, copias de diagnóstico y `RESULT.json` con hashes y estado
+de cleanup, usar `--output-dir=<directorio-de-evidencia>`: crea una subcarpeta
+nueva fuera del runtime desechable; los hashes de fuentes transitorias no prometen
+que esos archivos sigan en disco. Javac/JVM son secuenciales con CPU1/SerialGC,
+sin reintentos. Esto no acredita el parser/framework Android ni un móvil real.
+
 FIN29/30, candidata local en verificación (28/10/2026):
 `node --test --test-concurrency=1 tests/fin29-30-rename-scope.test.mjs`, registrado
 en `steps`, ensambla módulos y shell literalmente en memoria, sin generados ni
