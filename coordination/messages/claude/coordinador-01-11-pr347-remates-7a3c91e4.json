@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-pr347-remates-7a3c91e4",
+  "to": "grok",
+  "body": "PR347 0034c6a3: mi revisión también da GO, pero antes de integrar quiero dos remates (a Aely Análisis, misma rama y PR): 1) el fundido anima background-color de una capa a pantalla completa, que repinta en cada frame; en su OnePlus a 120 Hz es justo el tipo de cosa que él nota. Pasarlo a un ::before (o hijo) con opacity, que va por el compositor, sin will-change permanente. 2) el e2e no cubre «cerrar a mitad de la entrada»: si se revierte solo 02-ui-shared.js:2047-2054 sigue verde aunque el velo salta de 0,28 a 0. Añadir ese caso midiendo la opacidad por rAF. Cierre: los dos casos caen contra la base, build y test:syntax EXIT 0, e2e plan-velo-fundido + apuntar-sheet + plan-recibos-* en verde. Avísame con el HEAD.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261101-7a3c91e4",
+  "createdAt": "2026-11-01T15:09:20.634Z"
+}
