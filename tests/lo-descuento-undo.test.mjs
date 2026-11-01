@@ -192,3 +192,12 @@ test('R167 controlador: fallo al quitar tiene aviso propio y no ofrece Deshacer'
   assert.equal(h.state(),before);assert.equal(h.removed.length,0);assert.deepEqual(h.notices,['gb_remove_changed']);
   const invalid=controller(fixture());invalid.api().remove('missing');assert.deepEqual(invalid.notices,['gb_remove_changed']);assert.equal(invalid.writes(),0);
 });
+
+test('R168 cierre explícito cancela pregunta y updater encolado sin desmontar el host',async()=>{
+  const pending=controller(fixture());pending.api().remove('b');pending.api().cancel();await pending.answer();
+  assert.equal(pending.writes(),0);assert.equal(pending.removed.length,0);
+  const queued=controller(fixture(),{defer:true});queued.api().remove('b');await queued.answer();queued.api().cancel();queued.flush();
+  assert.equal(queued.writes(),0);assert.equal(queued.removed.length,0);assert.equal(queued.notices.length,0);
+  const done=controller(fixture());done.api().remove('b');await done.answer();done.api().cancel();
+  assert.equal(done.api().undo(done.removed[0]),false);assert.equal(done.writes(),1);
+});
