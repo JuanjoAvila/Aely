@@ -304,7 +304,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
     (state.debts||[]).forEach(function(d){
       if(!debtActive(d) || !(d.monthly>0)) return;
       if(isDebtPaidThisMonth(d,today,state,tt.curYear,cm)) return;
-      rows.push({day:debtChargeDay(d), name:d.name, sub:t("fj_debt_tag"), amount:d.monthly, pos:false});
+      rows.push({day:cleanDay(dayOf(d))==null?null:debtChargeDay(d), name:d.name, sub:t("fj_debt_tag"), amount:d.monthly, pos:false});
     });
     (state.flows||[]).forEach(function(f){
       if(!(f.amount>0) || f.kind==="transfer") return;
