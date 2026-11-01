@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import fs from "node:fs";
 import { seedLoggedInDashboard, dismissNews, installFixtureClock, gastosCifra } from "./fixtures.mjs";
 
 /* EL CARGO DE UN RECIBO SALE EN GASTOS Y NO CUENTA DOS VECES (decisión del dueño, 12/10/2026).
@@ -32,6 +33,40 @@ const gastado = async (page) => (await gastosCifra(page).textContent()).trim();
    Al decir «No es este recibo» vuelve a ser una tarjeta normal. */
 const bloques = (page) => page.locator(".v4-gastos-list-body .gx-gris");
 
+const owner = "e2e-user";
+/* Desde c9495aed «No es este recibo» y «Paga un recibo» exigen ACK de `cloud.setExpenseRecibo`
+   antes de tocar el estado. El doble común no devuelve filas ni CAS en expenses: este hook tras
+   supabase.min.js (mismo patrón que tr-monthly-invest-confirm) ejecuta el método real. */
+async function installReciboSourceFixture(page) {
+  await page.route("**/vendor/supabase.min.js", async (route) => {
+    const source = fs.readFileSync(new URL("../public/vendor/supabase.min.js", import.meta.url), "utf8");
+    const hook = `;(()=>{window.__reciboFixture=window.__reciboFixture||{rows:[]};const library=window.supabase,create=library.createClient;library.createClient=function(){const client=create(),from=client.from;
+      client.from=function(table){if(table!=="expenses")return from(table);let patch=null,filters=[],columns="*";
+        const all=()=>{window.__reciboFixture=window.__reciboFixture||{rows:[]};return window.__reciboFixture.rows;};
+        const rows=()=>all().filter(r=>filters.every(([k,v,op])=>op==="lt"?r[k]<v:(v==null&&op!=="lt"?r[k]==null:(r[k]??null)===v)));
+        const selected=rows=>rows.map(r=>columns==="*"?{...r}:Object.fromEntries(columns.split(",").map(k=>[k,r[k]])));
+        const q={select(v="*"){columns=v;return q},eq(k,v){filters.push([k,v]);return q},is(k,v){filters.push([k,v,"is"]);return q},order(){return q},limit(){return q},lt(k,v){filters.push([k,v,"lt"]);return q},
+          update(v){patch=v;return q},upsert(...args){return from(table).upsert(...args)},
+          maybeSingle(){const found=rows();return Promise.resolve({data:found.length===1?selected(found)[0]:null,error:null})},
+          then(resolve){let found=rows();if(patch){found.forEach(r=>Object.assign(r,patch));}return resolve({data:selected(found),error:null});}};return q;};return client;};})();`;
+    await route.fulfill({ contentType: "application/javascript", body: source + hook });
+  });
+}
+async function espejaGastosEnNube(page) {
+  await page.evaluate((owner) => {
+    window.__reciboFixture = window.__reciboFixture || { rows: [] };
+    const list = mcLoadRaw(mcStateKey()).expenses || [];
+    window.__reciboFixture.rows = list.map((e, i) => {
+      const id = isExpenseUuid(e.id) ? e.id : `550e8400-e29b-41d4-a716-44665544${String(i + 1).padStart(4, "0")}`;
+      return {
+        id, user_id: owner, fecha: e.date, comercio: e.merchant, importe: e.amount,
+        cat: e.category || "otros", source: expenseSourceForCloud(e),
+      };
+    });
+    if (window.__e2eCloudRows) window.__e2eCloudRows.expenses = window.__reciboFixture.rows;
+  }, owner);
+}
+
 /** El resumen del sync tapa la barra inferior hasta que se cierra tocando fuera. */
 async function cierraInforme(page) {
   await expect(page.locator(".sync-report")).toBeVisible({ timeout: 15_000 });
@@ -40,8 +75,9 @@ async function cierraInforme(page) {
 }
 
 async function abre(page, lang, otro) {
+  await installReciboSourceFixture(page);
   await seedLoggedInDashboard(page, Object.assign({
-    __seedOnce: true, hasBankLink: true, budget: 1000,
+    __seedOnce: true, _historyOwner: owner, hasBankLink: true, budget: 1000,
     accounts: [{ id: "sb", ent: "sabadell", name: "Sabadell", role: "ambos", value: 2000 }],
     settings: { autoPrices: false, theme: "green", lang, expenseBanks: ["sabadell"] },
     fixed: [recibo, agua], debts: [], oneoffs: [], flows: [], bankTx: [],
@@ -53,6 +89,7 @@ async function abre(page, lang, otro) {
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await page.waitForFunction(() => !document.getElementById("mc-load"));
   await dismissNews(page);
+  await espejaGastosEnNube(page);
 }
 
 test.beforeEach(async ({ page }) => { await installFixtureClock(page); });
@@ -71,6 +108,7 @@ for (const lang of ["es", "en", "ca"]) {
     await page.getByRole("button", { name: textos.sync }).click();
     await expect.poll(() => page.evaluate(() => (mcLoadRaw(mcStateKey()).bankTx || []).length)).toBe(3);
     await cierraInforme(page);
+    await espejaGastosEnNube(page);
 
     // Inicio lo enseña igual que Gastos: atenuado y diciendo de qué recibo es.
     await page.locator('.botnav-tab[data-tour="inicio"]').click();
@@ -141,6 +179,7 @@ test("Plan: el recibo cobrado sale en «Ya pagado» tras actualizar", async ({ p
   await page.getByRole("button", { name: /Sincronizar bancos/i }).click();
   await expect.poll(() => page.evaluate(() => (mcLoadRaw(mcStateKey()).bankTx || []).length)).toBe(3);
   await cierraInforme(page);
+  await espejaGastosEnNube(page);
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({ hasText: "Comunidad" })).toHaveCount(1);
 });
@@ -157,6 +196,7 @@ for (const lang of ["es", "en", "ca"]) {
     await page.getByRole("button", { name: textos.sync }).click();
     await expect.poll(() => page.evaluate(() => (mcLoadRaw(mcStateKey()).bankTx || []).length)).toBe(3);
     await cierraInforme(page);
+    await espejaGastosEnNube(page);
     expect(await foto()).toEqual({ spent: 23.4, marcadas: "ag,com", vetos: 0, pagado: true, saldo: 1900 });
 
     await page.locator('.botnav-tab[data-tour="gastos"]').click();
