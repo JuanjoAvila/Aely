@@ -1,0 +1,64 @@
+{
+  "status": "done",
+  "summary": "Candidata R4 aprobada por revision independiente ROOT161 y publicada mediante push normal exacto. Nueva PR draft 341 contra beta; head, base, draft y 12 archivos verificados. Cerrados CAS sin acuse, intencion tardia, vinculo durable de salida, estados por movimiento y recuperacion de respuestas con ACK perdido. Entrega de implementacion terminada; revision de dinero e integracion siguen en Claude. Sin merge, despliegue ni ProductREADY.",
+  "productSHA": "48c269045710d04c7dc921d0a55391aa2c827893",
+  "tree": "6c80a34177f937dc08d34e56f71a189c0f6b05eb",
+  "baseSHA": "2fdecb18bbc9e8f73d6ae7089292645e19528597",
+  "pr": 341,
+  "prBaseSHA": "0ab557403798d0f4b6b262c4cee9da23c0bf1626",
+  "draft": true,
+  "candidateManifestSHA256": "5f4ff242f8bcf8e388302d79e78d0a4f67ed5ea8cf7051a8ff0f95ad47aebdd1",
+  "publicationProofSHA256": "e00fed141b2c817f07106a8d25458eab717e2cce07da94e82176de25e34b8151",
+  "independentGOSHA256": "74f202510da3ad62102d89105c81b0b8853dc07906f54be3181edec91a4e34fa",
+  "tests": [
+    {
+      "command": "Base R3 Node Madrid y UTC",
+      "exitCode": 0,
+      "casesPerZone": 180
+    },
+    {
+      "command": "Base R3 Chromium movil",
+      "exitCode": 0,
+      "cases": 21
+    },
+    {
+      "command": "R4 RED causal core sobre R3",
+      "exitCode": 1,
+      "expectedFailures": 2
+    },
+    {
+      "command": "R4 RED causal UI sobre R3",
+      "exitCode": 1,
+      "expectedFailures": 7
+    },
+    {
+      "command": "R4 Node focal y caller Madrid y UTC",
+      "exitCode": 0,
+      "focalCasesPerZone": 13,
+      "callerCasesPerZone": 9
+    },
+    {
+      "command": "R4 DOM dirigido y controles afectados",
+      "exitCode": 0,
+      "distinctCases": 12,
+      "lateToastReruns": 2
+    },
+    {
+      "command": "R4 build y sintaxis final",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "Pruebas sinteticas; backend real, beta servida y aceptacion humana no acreditados.",
+    "GitHub informa mergeable false contra beta actual; sin rebase ni resolucion de integracion por este worker.",
+    "Clientes antiguos pueden borrar rechazo y volver a ofrecer; contraparte tras UPDATE no provoca rollback.",
+    "Todos los fallos de fixture y evidencias anteriores se preservan; no se repitieron suites cerradas sin cambio relevante."
+  ],
+  "ProductREADY": false,
+  "schema": 1,
+  "taskId": "own-transfer-confirm-r160-codex-20261101",
+  "actor": "codex",
+  "sessionId": "owntransfer1604f54578a277de6dc4067a4047d13ea50",
+  "createdAt": "2026-11-01T11:08:28.938Z",
+  "released": true
+}
