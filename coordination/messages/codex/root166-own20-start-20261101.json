@@ -1,0 +1,9 @@
+{
+  "id": "root166-own20-start-20261101",
+  "to": "codex",
+  "body": "Sucesor admitido tras RETURN65421d215ee6ca51ecdbc83571f9801ff14e2a20 y FIN efectivo. OWN20 inicial nuevo bajo7188f09d desde cero, sin heredar repos, claims, leases, grants ni contadores. Siguiente encargo autorizado4621dea0: Deshacer del delta propio recibo y deudas en draft separada sobree04778e0aaf8264ba996f65a123394d5ef725975. Precondiciones concurrentes, una escritura, ventana5s al terminar preguntas y commit. PR345 y348 cerradas no se reabren. Revision de dinero e integracion por Claude; sin ProductREADY.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "root166-xde1682e905324385b37b89b1dbc3e34f",
+  "createdAt": "2026-11-01T15:51:01.074Z"
+}
