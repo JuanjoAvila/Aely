@@ -603,7 +603,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
         if(stale && stale.length) upd.catStale=stale; else delete upd.catStale;
         delete upd.catAckAt;   // decisión nueva: aún nadie la ha confirmado
         // Sacarla de «Deudas» es decir «esto no es la cuota»: pierde la marca (4.21.0).
-        if(isTarget && upd.debtId && newCat!=="deudas") delete upd.debtId;
+        if(isTarget && upd.debtId && newCat!=="deudas"){ delete upd.debtId; delete upd.debtManual; }
         // El gemelo solo cambia de categoría: el dinero ya lo compra su pareja, comprarlo dos veces
         // duplicaría las participaciones del fondo.
         if(isTwin) return upd;

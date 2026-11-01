@@ -630,13 +630,14 @@ function debtPaymentState(s,d,y,m,today){
     // amount ya está normalizado a EUR; origCur solo conserva el rastro bancario. Un
     // esquema externo que aún rotule amount con otra moneda no acredita euros.
     if(x&&(x.cur||x.currency)&&String(x.cur||x.currency).toUpperCase()!=="EUR") return false;
-    /* Una fila marcada como cuota de ESTA deuda la paga ese mes, cobre lo que cobre (decisión del
-       dueño, beta 4.26.200: «si se enlaza en Gastos debería estar enlazado en Recibos»). Antes se
-       exigía la cuota exacta al céntimo y una hipoteca de 640 cobrada a 641,27 seguía restando
-       aunque el saldo del banco ya la llevara. Quién marca la fila no cambia: el motor por banco +
-       céntimo + día ±4 (`cuotasDeDeudaPorMarcar`) o él a mano, y la ventana del mes es la de abajo.
-       La diferencia se enseña como en los recibos (`paidAmount` frente a la cuota). */
+    /* La previsión muestra la cuota acordada: un cargo parecido que enlazó el MOTOR (por nombre o
+       por el comercio aprendido) no la acredita; se comparan céntimos EUR. La excepción es la fila
+       que él marcó a mano como cuota de esta deuda (`debtManual`, «Es la cuota de…»): esa la paga
+       con lo que cobró el banco (decisión del dueño, beta 4.26.200: «si se enlaza en Gastos debería
+       estar enlazado en Recibos»). Antes una hipoteca de 640 enlazada a mano y cobrada a 641,27
+       seguía restando aunque el saldo del banco ya la llevara. */
     if(!x||x.debtId!==d.id||x.category!=="deudas"||x.possibleDup||!isFinite(Number(x.amount))||!(Number(x.amount)>0)) return false;
+    if(!x.debtManual&&Math.round(target*100)!==Math.round(Number(x.amount)*100)) return false;
     if(x.status&&String(x.status).toUpperCase()!=="BOOK") return false;
     var ds=String(x.date||"").slice(0,10),ms=dateMs(ds),bank=expenseBankOf(x);
     if(!/^\d{4}-\d{2}-\d{2}$/.test(ds)||!isFinite(ms)||ms>end||!bank||expenseIsTombstoned(x,deleted)) return false;
@@ -652,8 +653,8 @@ function debtPaymentState(s,d,y,m,today){
       return fixedPaymentIdentity(expenseBankOf(other),other)===identity;
     }).length===1;
   });
-  // Manda la que cobra la cuota exacta, como siempre: otra fila enlazada con otro importe en el mismo
-  // mes no puede deshacer un pago que ya estaba acreditado. Sin exacta, vale la única enlazada.
+  // Manda la que cobra la cuota exacta, como siempre: otra marcada a mano con otro importe en el mismo
+  // mes no puede deshacer un pago que ya estaba acreditado. Sin exacta, vale la única a mano.
   var exactas=rows.filter(function(r){ return Math.round(target*100)===Math.round(Number(r.amount)*100); });
   var x=exactas.length===1?exactas[0]:!exactas.length&&rows.length===1?rows[0]:null;
   // La fila de Plan rotula el mes de vencimiento: un cargo del mes anterior no puede
@@ -2580,7 +2581,8 @@ function marcarCuotaAMano(s, expenseId, debtId){
   const d=((s&&s.debts)||[]).find(function(x){ return x && x.id===debtId; });
   const orig=((s&&s.expenses)||[]).find(function(x){ return x && x.id===expenseId; });
   if(!d || !orig || !(orig.amount>0)) return null;
-  const e=Object.assign({}, orig, { category:DEUDA_CAT.id, debtId:d.id });
+  // `debtManual`: la marcó él, no el motor; es la única que paga la cuota con otro importe.
+  const e=Object.assign({}, orig, { category:DEUDA_CAT.id, debtId:d.id, debtManual:true });
   // Lo que él marca a mano manda sobre la marca automática de recibo, aquí y en la nube.
   delete e.reciboId;
   // Y sobre la de meta: una marca por gasto, y la última que puso él es la que vale. En la nube la

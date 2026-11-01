@@ -504,7 +504,8 @@ test("la marca que baja de la nube se adopta; la cuota de deuda manda sobre la d
   const fila=r.state.expenses.find(e=>e.reciboId==="mov");
   const m=c.marcarCuotaAMano(r.state,fila.id,"d1");
   assert.equal(j([m.e.debtId,m.e.reciboId]),j(["d1",undefined]));
-  assert.equal(c.expenseSourceForCloud(m.e),"ob:sabadell~deuda.d1#reft2#accsabadell");
+  // `~mano`: la marcó él a mano (4.26.200); solo esa paga la cuota con otro importe.
+  assert.equal(c.expenseSourceForCloud(m.e),"ob:sabadell~deuda.d1~mano#reft2#accsabadell");
   // Una fila que llega con las dos marcas (de un estado viejo) es cuota: no es cargo de recibo.
   const dosMarcas=Object.assign({},fila,{debtId:"d1",category:"deudas"});
   assert.equal(c.cargoDeRecibo(dosMarcas,r.state),null);

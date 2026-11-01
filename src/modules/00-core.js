@@ -2624,9 +2624,13 @@ const CLOUD_READS_QUE_LLENAN=[
    widget. Con `~` cualquier servidor sin esta regla —y cualquier app vieja de la familia— lee un
    banco raro («sabadell~deuda.x») que no está en la lista de gasto diario y la deja fuera: el
    lado seguro. Espejo en `_shared/presupuesto.ts` (`esCuotaDeDeuda`). */
-function deudaSufijo(debtId){
+/* `~mano` detrás = la marcó él a mano («Es la cuota de…»), no el motor. Solo esa paga la cuota
+   aunque el banco cobre otro importe (`debtPaymentState`, beta 4.26.200). Un lector viejo ignora el
+   tramo (`partirEntDeuda` solo mira los que conoce) y el servidor busca `~deuda.` en cualquier
+   sitio del banco: los dos leen la cuota igual que antes y no inventan nada. */
+function deudaSufijo(debtId, aMano){
   const id=String(debtId||"").replace(/[^A-Za-z0-9_-]/g,"");
-  return id ? "~deuda."+id : "";
+  return id ? "~deuda."+id+(aMano?"~mano":"") : "";
 }
 /* EL CARGO DE UN RECIBO VIAJA COMO `ob:<ent>~recibo.<id>` (decisión suya del 12/10/2026: «yo
    solo quiero que salga todo en gastos»). El adeudo que casa con un recibo del Plan ya no se
@@ -2656,14 +2660,15 @@ function metaSufijo(goalId){
    (`expenseSourceForCloud`) y en local (`marcarCuotaAMano`): es lo que la persona dijo a mano. */
 function partirEntDeuda(tramo){
   const partes=String(tramo||"").split("~");
-  let debtId=null, reciboId=null, goalId=null;
+  let debtId=null, reciboId=null, goalId=null, aMano=false;
   partes.slice(1).forEach(function(p){
-    if(p.indexOf("deuda.")===0) debtId=p.slice(6)||null;
+    if(p==="mano") aMano=true;
+    else if(p.indexOf("deuda.")===0) debtId=p.slice(6)||null;
     else if(p.indexOf("recibo.")===0) reciboId=p.slice(7)||null;
     else if(p.indexOf("meta.")===0) goalId=p.slice(5)||null;
   });
   // La meta solo vale sola: con cuota o recibo, la fila ya es de ellos (una marca por gasto).
-  return { ent:partes[0]||null, debtId:debtId, reciboId:debtId?null:reciboId, goalId:(debtId||reciboId)?null:goalId };
+  return { ent:partes[0]||null, debtId:debtId, debtManual:!!(debtId&&aMano), reciboId:debtId?null:reciboId, goalId:(debtId||reciboId)?null:goalId };
 }
 /* Tramos de un `source` OB tras el banco: «ob:tr#dup#n3» → ["dup","n3"]. El ordinal es el tramo
    `n<k>`; `dup` sigue siendo la marca de posible repetido. Espejo en `presupuesto.ts`. */
@@ -2718,10 +2723,10 @@ function expenseSourceForCloud(e){
   // final no le cambia nada: ve el banco limpio y la marca de repetido donde siempre. Con `~`
   // dentro del banco (como la cuota) ese móvil leería un banco raro y sacaría la fila del
   // presupuesto; con `#` detrás la lee como hoy. Ver `obOrdinalOf`.
-  // Orden: ob:<ent>[~deuda.<id> | ~recibo.<id> | ~meta.<id>][#dup][#ref<id>][#prevref<id>][#pdng][#acc<cuenta>][#n<k>].
+  // Orden: ob:<ent>[~deuda.<id>[~mano] | ~recibo.<id> | ~meta.<id>][#dup][#ref<id>][#prevref<id>][#pdng][#acc<cuenta>][#n<k>].
   // La cuenta debe sobrevivir al pull para no ensanchar la lápida al reinstalar u otro móvil.
   const acc=e&&e.obAcc?"#acc"+encodeURIComponent(String(e.obAcc)):"";
-  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+(deudaSufijo(e&&e.debtId)||reciboSufijo(e&&e.reciboId)||metaSufijo(e&&e.goalId))+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+acc+ordinalSufijoCloud(e);
+  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+(deudaSufijo(e&&e.debtId,e&&e.debtManual)||reciboSufijo(e&&e.reciboId)||metaSufijo(e&&e.goalId))+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+acc+ordinalSufijoCloud(e);
   if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent+(reciboSufijo(e&&e.reciboId)||metaSufijo(e&&e.goalId))+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+acc+ordinalSufijoCloud(e);
   // Un alias TR/Wallet pendiente usa temporalmente el encoding OB que entienden también las OTA
   // anteriores; al resolver «son distintos» vuelve a su origen real `macrodroid`.
@@ -3618,7 +3623,7 @@ function resolvePossibleDup(state, expenseId, same){
 /* Convierte una fila de la tabla `expenses` al formato interno de la app. */
 function expenseFromRow(r){
   const raw=String(r.source||"manual");
-  let ent=null, source=raw, dup=false, debtId=null, reciboId=null, goalId=null, ord=1;
+  let ent=null, source=raw, dup=false, debtId=null, debtManual=false, reciboId=null, goalId=null, ord=1;
   const nativeTwin=raw.indexOf("native:trade_republic#")===0, nativeTime=nativeTwin&&/#t(\d+)(?:#|$)/.exec(raw);
   if(nativeTwin){ ent="trade_republic"; source="macrodroid"; dup=raw.split("#").indexOf("dup")>=0; ord=ordinalDeTramos(raw.split("#").slice(1)); }
   else if(raw==="macrodroid"||raw==="tr"){ ent="trade_republic"; source="macrodroid"; }
@@ -3629,7 +3634,7 @@ function expenseFromRow(r){
   // hace que la clave de mezcla no lo funda con el primero. Siempre es el último tramo.
   // «ob:ent~recibo.id» = cargo de ese recibo del Plan: vuelve con su `reciboId` y no mueve cifras.
   // «ob:ent~meta.id» = aportación a esa meta (24/10/2026): vuelve con su `goalId`.
-  else if(raw.indexOf("ob:")===0){ const p=raw.slice(3).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; debtId=pe.debtId; reciboId=pe.reciboId; goalId=pe.goalId; source=(r.ingest_event_id&&(p[1]==="dup"||ordinalDeTramos(p.slice(1))>1))?"macrodroid":"ob"; dup=p[1]==="dup"; ord=ordinalDeTramos(p.slice(1)); }
+  else if(raw.indexOf("ob:")===0){ const p=raw.slice(3).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; debtId=pe.debtId; debtManual=pe.debtManual; reciboId=pe.reciboId; goalId=pe.goalId; source=(r.ingest_event_id&&(p[1]==="dup"||ordinalDeTramos(p.slice(1))>1))?"macrodroid":"ob"; dup=p[1]==="dup"; ord=ordinalDeTramos(p.slice(1)); }
   else if(raw.indexOf("ob-hist:")===0){ const p=raw.slice(8).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; reciboId=pe.reciboId; goalId=pe.goalId; source="ob-hist"; dup=p[1]==="dup"; ord=ordinalDeTramos(p.slice(1)); }
   else if(raw.indexOf("manual:")===0){ ent=raw.slice(7)||null; source="manual"; }   // manual con banco elegido
   else if(raw==="supabase"){ source="manual"; }   // legado: antes el pull marcaba todo como supabase
@@ -3658,6 +3663,7 @@ function expenseFromRow(r){
     obName: r.ob_name!=null ? String(r.ob_name) : undefined,
     possibleDup: dup ? true : undefined,
     debtId: debtId || undefined,
+    debtManual: debtId&&debtManual ? true : undefined,
     reciboId: reciboId || undefined,
     goalId: goalId || undefined,
     obOrd: ord>1 ? ord : undefined,
@@ -3813,7 +3819,13 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
   if(incoming.possibleDupOf!=null) put("possibleDupOf", incoming.possibleDupOf);
   /* Cuota de deuda (4.21.0): la marca que baja se adopta; una fila de la nube SIN marca no borra
      la local — el upsert con ignoreDuplicates puede dejar la fila vieja de la nube sin el sufijo. */
-  if(incoming.debtId&&!protects("debtId")) put("debtId", incoming.debtId);
+  if(incoming.debtId&&!protects("debtId")){
+    /* La marca «a mano» va con su deuda: baja con ella; una fila de la nube con la MISMA deuda y sin
+       la marca no la quita (subida pendiente o un móvil viejo que la reescribió sin `~mano`). */
+    if(incoming.debtManual) put("debtManual", true);
+    else if(incoming.debtId!==local.debtId) put("debtManual", undefined);
+    put("debtId", incoming.debtId);
+  }
   /* Cargo de recibo (12/10/2026): la marca que baja se adopta, como la de la cuota. Una fila de
      la nube sin marca tampoco borra la local; la RETIRADA viaja por `reciboNo` en el estado, y
      `cargoDeRecibo` la respeta aunque esta fila siga marcada aquí. */
@@ -3888,6 +3900,8 @@ function uniqueExpenseUuids(rows,delSet,index){
       const selected=has(e)?e:has(a)?a:null;
       if(selected)merged[k]=selected[k];
     });
+    // La marca «a mano» es de la fila que da la deuda, no de la otra copia.
+    { const de=e.debtId!==undefined?e:a.debtId!==undefined?a:null; if(de&&de.debtManual&&de.debtId===merged.debtId) merged.debtManual=true; else delete merged.debtManual; }
     if(merged.debtId)delete merged.reciboId;
     if(merged.debtId||merged.reciboId){ delete merged.goalId; delete merged.metaPend; }
     // Lo recuperado de otra copia no se pierde otra vez en un pull viejo.

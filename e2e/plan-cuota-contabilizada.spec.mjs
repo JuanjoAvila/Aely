@@ -40,20 +40,20 @@ for(const lang of ["es","en","ca"]){
     const balloon=await page.evaluate(()=>t("db_balloon_tag"));await expect(paid(page).filter({hasText:balloon})).toHaveCount(1);
     expect(await page.evaluate(()=>Math.round(planChargesMonth(mcLoadRaw(mcStateKey()),10,2026,2).paidBillsTotal*100))).toBe(30);
   });
-  // Decisión del dueño (beta 4.26.200): el cargo enlazado en Gastos paga la cuota aunque cobre otro
-  // importe; la fila enseña lo cobrado y lo previsto. Sin enlace (ni nombre que el motor case) sigue pendiente.
-  test(lang+": cargo59 EUR enlazado paga la cuota60 EUR y enseña lo cobrado",async({page})=>{
+  test(lang+": cargo59 EUR no acredita cuota60 EUR ni la pinta pagada",async({page})=>{
     await open(page,lang,{expenses:[{...cargo,amount:59}]});
+    await page.locator('.botnav-tab[data-tour="plan"]').click();
+    await expect(pending(page)).toHaveCount(1);await expect(paid(page)).toHaveCount(0);
+    await expect(bills(page).locator('.v4-card-hero .serif.num')).toHaveText(await page.evaluate(()=>eur(60)));
+  });
+  // Decisión del dueño (beta 4.26.200): la que ÉL marcó a mano («Es la cuota de…», `debtManual`) paga
+  // la cuota con lo que cobró el banco; la de arriba, enlazada por el motor con 59, sigue sin pagarla.
+  test(lang+": cargo59 EUR marcado a mano paga la cuota60 EUR y enseña lo cobrado",async({page})=>{
+    await open(page,lang,{expenses:[{...cargo,amount:59,debtManual:true}]});
     await page.locator('.botnav-tab[data-tour="plan"]').click();
     await expect(pending(page)).toHaveCount(0);await expect(paid(page)).toHaveCount(1);
     await expect(paid(page)).toContainText(await page.evaluate(()=>tf("v4_charge_actual",{x:eur(59)})));
     expect(await page.evaluate(()=>{const s=mcLoadRaw(mcStateKey());return minWalk(800,bankPendingEvents(s,"sabadell",2026,10,2)).end;})).toBe(800);
-  });
-  test(lang+": cargo59 EUR sin enlazar no paga la cuota60 EUR",async({page})=>{
-    await open(page,lang,{expenses:[{...cargo,amount:59,debtId:undefined,category:"otros",merchant:"Supermercado",obName:"Supermercado"}]});
-    await page.locator('.botnav-tab[data-tour="plan"]').click();
-    await expect(pending(page)).toHaveCount(1);await expect(paid(page)).toHaveCount(0);
-    await expect(bills(page).locator('.v4-card-hero .serif.num')).toHaveText(await page.evaluate(()=>eur(60)));
   });
   test(lang+": cuota vinculada desde otro banco muestra el banco del pago",async({page})=>{
     await open(page,lang,{expenses:[{...cargo,ent:"trade_republic"}]});

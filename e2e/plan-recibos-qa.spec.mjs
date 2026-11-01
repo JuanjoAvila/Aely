@@ -238,23 +238,21 @@ test("«Solo una vez» el último día del mes empieza el mes que viene", async 
   expect(s).toEqual([expect.objectContaining({ name: "ITV", amount: 45, month: 11, year: 2026, day: 1 })]);
 });
 
-test("cuota de deuda enlazada en Gastos: se abre su ficha con el cargo, sin saltar a Deudas", async ({ page }) => {
+test("cuota enlazada por el motor con otro importe: se abre su ficha con el cargo y el motivo, sin saltar a Deudas", async ({ page }) => {
   const recibos = await abre(page);
   const cifra = recibos.getByTestId("plan-summary").locator(".serif.num");
-  // Internet 40 + préstamo sin día 200 (ese caso sigue igual: es la propuesta pendiente).
+  // Internet 40 + préstamo sin día 200: lo enlazado por el motor no cambia ninguna cifra.
   await expect(cifra).toHaveText("240,00 €");
-  // Enlazada con 641,27 sobre una cuota de 640: pagada, en «Ya pagados», con lo cobrado y lo previsto.
-  await recibos.getByTestId("plan-paid").locator(".pr6-paid-h").click();
-  const hipo = recibos.getByTestId("plan-paid").locator('[data-recibo="debt_hipo"]');
-  await expect(hipo).toContainText("Cargo 641,27 €");
-  await expect(hipo).toContainText("640,00 €");
-  await expect(recibos.getByTestId("plan-review").locator('[data-recibo="debt_hipo"]')).toHaveCount(0);
+  const hipo = recibos.getByTestId("plan-review").locator('[data-recibo="debt_hipo"]');
+  await expect(hipo).toContainText("Enlazado · 641,27 €");
   await hipo.click();
   const ficha = page.locator('.v4-sheet[data-sheet="deuda"]');
   await expect(ficha).toBeVisible();
   await expect(ficha.getByTestId("deuda-cargo")).toContainText("641,27 €");
-  await expect(ficha.getByTestId("deuda-cargo")).toHaveAttribute("data-acredita", "1");
-  await expect(ficha.getByTestId("deuda-nota")).toHaveText("Esperabas 640,00 €");
+  await expect(ficha.getByTestId("deuda-cargo")).toHaveAttribute("data-acredita", "0");
+  await expect(ficha.getByTestId("deuda-nota")).toHaveText("Se cobró 641,27 € y la cuota es 640,00 €.");
+  // Sin pagar, el cargo no lleva un aro vacío que parezca algo que marcar.
+  await expect(ficha.getByTestId("deuda-cargo").locator(".pr6-ring")).toHaveCount(0);
   await expect(page.locator('.v4-seg-btn[data-seg="recibos"]')).toHaveAttribute("aria-selected", "true");
   await page.goBack();
   await expect(ficha).toHaveCount(0);
@@ -262,12 +260,22 @@ test("cuota de deuda enlazada en Gastos: se abre su ficha con el cargo, sin salt
   await expect(coche).toContainText("Enlazado · 200,00 €");
   await coche.click();
   await expect(ficha.getByTestId("deuda-nota")).toHaveText("La cuota no tiene día de cobro.");
-  // Sin pagar, el cargo no lleva un aro vacío que parezca algo que marcar.
-  await expect(ficha.getByTestId("deuda-cargo").locator(".pr6-ring")).toHaveCount(0);
   await ficha.locator('[data-act="ver-deuda"]').click();
   await expect(ficha).toHaveCount(0);
   await expect(page.locator('.v4-seg-btn[data-seg="deudas"]')).toHaveAttribute("aria-selected", "true");
   await expect(cifra).toHaveText("240,00 €");
+});
+
+test("hipoteca marcada a mano con 641,27: pagada, con lo cobrado y «Esperabas 640,00 €»", async ({ page }) => {
+  const recibos = await abre(page, { expenses: [g("hip10", "PRESTAMO HIPOTECARIO", "2026-10-01", 641.27, "sabadell", { category: "deudas", debtId: "hipo", debtManual: true })] });
+  await recibos.getByTestId("plan-paid").locator(".pr6-paid-h").click();
+  const hipo = recibos.getByTestId("plan-paid").locator('[data-recibo="debt_hipo"]');
+  await expect(hipo).toContainText("Cargo 641,27 €");
+  await expect(recibos.getByTestId("plan-review").locator('[data-recibo="debt_hipo"]')).toHaveCount(0);
+  await hipo.click();
+  const ficha = page.locator('.v4-sheet[data-sheet="deuda"]');
+  await expect(ficha.getByTestId("deuda-cargo")).toHaveAttribute("data-acredita", "1");
+  await expect(ficha.getByTestId("deuda-nota")).toHaveText("Esperabas 640,00 €");
 });
 
 test("cuota cobrada justa: su ficha la da por pagada con el cargo y sin nota", async ({ page }) => {
@@ -292,14 +300,26 @@ test("«¿Y si gasto…?»: tocar la zona abre el teclado y queda a la vista con
   await expect(page.getByTestId("llega-gasto-txt")).toBeVisible();
 });
 
-test("cuota enlazada con otro importe antes de su día: pagada en Recibos, Inicio y «¿Te llega?», sin restarse dos veces", async ({ page }) => {
-  // 18/10: préstamo de 200 que vence el 20 y ya cobró CaixaBank el 17 con 203,40, enlazado en Gastos.
-  const recibos = await abre(page, {
-    debts: [{ id: "coche", name: "Préstamo coche", value: 6000, original: 9000, monthly: 200, account: "caixabank", day: 20, asOf: 2026 * 12 + 9 }],
-    expenses: [g("coche10", "FINANC COCHE", "2026-10-17", 203.4, "caixabank", { category: "deudas", debtId: "coche" })],
-    fixed: [{ id: "net", name: "Internet", amount: 40, freq: "mes", day: 25, account: "caixabank" }],
-  }, "2026-10-18T12:00:00+02:00");
-  await expect(recibos.getByTestId("plan-summary").locator(".serif.num")).toHaveText("40,00 €");
+const filaGuardada = (page, id) => page.evaluate((id) => { const x = (mcLoadRaw(mcStateKey() + EXP_SUFFIX) || []).find((e) => e.id === id); return x ? String(x.debtId) + "|" + String(x.debtManual) : ""; }, id);
+const cocheConDia = [{ id: "coche", name: "Préstamo coche", value: 6000, original: 9000, monthly: 200, account: "caixabank", day: 20, asOf: 2026 * 12 + 9 }];
+const internet25 = [{ id: "net", name: "Internet", amount: 40, freq: "mes", day: 25, account: "caixabank" }];
+test("cuota marcada a mano en Gastos con otro importe antes de su día: pagada en Recibos, Inicio y «¿Te llega?», sin restarse dos veces", async ({ page }) => {
+  // 18/10: préstamo de 200 que vence el 20; CaixaBank ya cobró el 17 «FINANC XYZ» 203,40 (el motor no lo casa).
+  const recibos = await abre(page, { debts: cocheConDia, fixed: internet25,
+    expenses: [g("coche10", "FINANC XYZ", "2026-10-17", 203.4, "caixabank")] }, "2026-10-18T12:00:00+02:00");
+  const cifra = recibos.getByTestId("plan-summary").locator(".serif.num");
+  await expect(cifra).toHaveText("240,00 €");
+  // Él lo marca en Gastos: «Es la cuota de…» → Préstamo coche.
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await page.locator(".v4-gastos-list-body button.v4-mov").filter({ hasText: "FINANC XYZ" }).click();
+  await page.locator(".v4-ficha-adjust-row").filter({ hasText: "Es la cuota" }).click();
+  await page.locator('.v4-exp-sheet [data-testid="exp-cuota-de"] button.v4-chip').filter({ hasText: "Préstamo coche" }).click();
+  await page.locator(".v4-sheet-back").click({ position: { x: 5, y: 5 } });
+  await expect(page.locator(".v4-sheet-back")).toHaveCount(0);
+  // La fila queda marcada como «a mano»: es lo que la deja pagar la cuota con otro importe.
+  await expect.poll(() => filaGuardada(page, "coche10")).toBe("coche|true");
+  await page.locator('.botnav-tab[data-tour="plan"]').click();
+  await expect(cifra).toHaveText("40,00 €");
   await expect(recibos.getByTestId("plan-due").locator('[data-recibo="debt_coche"]')).toHaveCount(0);
   await recibos.getByTestId("plan-paid").locator(".pr6-paid-h").click();
   await expect(recibos.getByTestId("plan-paid").locator('[data-recibo="debt_coche"]')).toContainText("Cargo 203,40 €");
@@ -311,6 +331,15 @@ test("cuota enlazada con otro importe antes de su día: pagada en Recibos, Inici
   await page.locator('.botnav-tab[data-tour="inicio"]').click();
   await expect(page.locator(".page-scroll-host .v4-charge").filter({ hasText: "Internet" }).first()).toBeVisible();
   await expect(page.locator(".page-scroll-host .v4-charge").filter({ hasText: "Préstamo coche" })).toHaveCount(0);
+});
+
+test("el motor enlaza por nombre «PRESTAMO COCHE» 203,40: la cuota de 200 sigue pendiente", async ({ page }) => {
+  const recibos = await abre(page, { debts: cocheConDia, fixed: internet25,
+    expenses: [g("coche10", "PRESTAMO COCHE", "2026-10-17", 203.4, "caixabank")] }, "2026-10-18T12:00:00+02:00");
+  // La pasada del motor la marca como cuota (por nombre e importe parecido) sin decir «a mano».
+  await expect.poll(() => filaGuardada(page, "coche10"), { timeout: 5000 }).toBe("coche|undefined");
+  await expect(recibos.getByTestId("plan-summary").locator(".serif.num")).toHaveText("240,00 €");
+  await expect(recibos.getByTestId("plan-due").locator('[data-recibo="debt_coche"]')).toContainText("Enlazado · 203,40 €");
 });
 
 test("«¿Y si gasto…?»: elegir otro banco no abre el teclado", async ({ page }) => {
