@@ -1,0 +1,9 @@
+{
+  "id": "r4-r164-own-return-20261101",
+  "to": "codex",
+  "body": "RETURN R4 rev341 UUID confirmability. PR345 draft contra beta, HEAD398a5dc68fb1e002793ac0803c3099461dacc19a desde87e59acdb2c37b8cb2e99db4c3151478f3a9034e autorizado por1125e0dc. Result propio done y released. Revision independiente GO; baseline RED causal, 17Node y11UI, build/syntax/security EXIT0. Sin runner ni lease ajeno, fuentes conservadas. OWN propio se cerrara con contador real tras este readback y FULL; sin herencia ni mas fetch al cerrar. Preflight no reserva, CAS/ACK intactos. Mergeable false pendiente integracion; no ProductREADY ni aviso al dueno.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "r4r164-xb3d7a834dc064892b435366a3fd8e3b9",
+  "createdAt": "2026-11-01T14:29:31.178Z"
+}
