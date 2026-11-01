@@ -1,0 +1,19 @@
+{
+  "status": "blocked",
+  "summary": "Continuidad por relevo horario PR337. Preparacion privada durable sobre89e33:4helpers puros inactivos,6oraculos registrados no ejecutados y documentacion. Diseno dual BF30 y30estados/30tuplas literales respondieron revision154; sin aprobacion de envelope/callers ni implementacion completa del contrato. Resultado propio blocked/released permite continuidad sin transferir claim/OWN. No es entrega funcional ni aceptacion de producto.",
+  "tests": [],
+  "productSHA": "89e33b206a95ef8c490d8147af80dfd1b76955e1",
+  "limitations": [
+    "0ejecuciones producto/Node/VM/sintaxis/tests/browser/servidor/build; solo Git whitespace EXIT0.",
+    "BF30 entidadallvalid prevalece; dualpropuesta sin aplicar. Fuente656f yHEAD89e33 tienen pendientes distintos, descritos por separado.",
+    "Frontera mixedcrossentity documentada sin pairguard ni excepcion nueva; allinvolvedV2 sintetico130017, ninguna cifra ejecutada.",
+    "WIP no cualificado D402/BF30, sin commit/push. Fuentes y snapshots preservados privadamente; no modificar al cerrar.",
+    "Sin runner/puerto/lease. OWN/claim/reloj propios no se transfieren. Punto3STOP; noProductREADY."
+  ],
+  "schema": 1,
+  "taskId": "debt-no-day-pr337-contract-r153-codex-20261101",
+  "actor": "codex",
+  "sessionId": "nrelay1c909c3a2ece49288c2b75d6e63bd0fc",
+  "createdAt": "2026-11-01T03:34:52.069Z",
+  "released": true
+}
