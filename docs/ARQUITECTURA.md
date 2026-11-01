@@ -429,6 +429,17 @@ también con quién se repartió (`soloMes[ym].reparto`, validado contra `soloMe
 perder su «Te deben» ni su descuento. En la mezcla de tres vías `reparto` va en el grupo
 financiero (con `amount` y `bankAmount`); `repartoCobrado` se une mes a mes e id a id (dos móviles
 que marcan a personas distintas suman las dos; quitar una marca la quita si el otro no la tocó).
+
+Editar deuda rechaza la transición de TAE desconocida/cero a positiva mientras haya una relación
+`via:"debt"` con su id en el reparto base, aunque esté pausada o sea futura. La guardia
+`debtEditRateError` también comprueba `soloMes.reparto` futuro o del mes actual pendiente;
+excluye los meses pasados y el actual ya pagado según `fixedPaymentState`, igual que el productor
+del histórico. Así, quitar el descuento permite poner TAE sin borrar repartos de pagos anteriores.
+Se comprueba antes de guardar y contra el estado fresco del updater, además de `planEditCommit`:
+el rechazo devuelve el mismo estado completo, conserva el borrador y muestra una línea que pide
+quitar primero el descuento del recibo compartido. No ajusta cuota, amortización ni plazo,
+ni repara registros con TAE positiva preexistente. Metas conserva su guardado habitual.
+
 El previsto a fin de mes de `totals` (`pendingByBank`, `projectedByBank`: ficha de cuenta y
 asistente) usa la misma regla que el recorrido (`fixedCargoBanco`). Un cliente viejo ignora los
 campos nuevos (los conserva con `Object.assign`) y ve tu parte y lo que cobra el banco, que son
