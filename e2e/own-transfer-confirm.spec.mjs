@@ -5,7 +5,7 @@ const owner='e2e-user';
 const out={id:'550e8400-e29b-41d4-a716-446655440001',date:new Date(FIXTURE_NOW).toISOString(),merchant:'Envío sintético a otra cuenta',amount:80,category:'otros',source:'ob',ent:'caixabank',obAcc:'fixture-a',extId:'fixture-out'};
 const incoming={...out,id:'550e8400-e29b-41d4-a716-446655440002',merchant:'Entrada sintética en cuenta propia',amount:-80,category:'traspaso',ent:'revolut',obAcc:'fixture-b',extId:'fixture-in'};
 const accounts=[{id:'caixa',ent:'caixabank',name:'Cuenta A',value:920,bankUid:'fixture-a',role:'diario'},{id:'rev',ent:'revolut',name:'Cuenta B',value:1080,bankUid:'fixture-b',role:'diario'}];
-const toRow=e=>({id:e.id,user_id:owner,fecha:e.date,comercio:e.merchant,importe:e.amount,cat:e.category,source:e.source==='manual'?`manual:${e.ent}`:`ob:${e.ent}#ref${encodeURIComponent(e.extId)}#acc${encodeURIComponent(e.obAcc)}`});
+const toRow=e=>({id:e.id,user_id:owner,fecha:e.date,comercio:e.merchant,importe:e.amount,cat:e.category,nota:e.note||null,ob_name:e.obName||null,source:e.source==='manual'?`manual:${e.ent}`:`ob:${e.ent}#ref${encodeURIComponent(e.extId)}#acc${encodeURIComponent(e.obAcc)}`});
 const saved=page=>page.evaluate(()=>({expenses:JSON.parse(localStorage.getItem(mcStateKey()+'_exp')||'[]'),state:JSON.parse(localStorage.getItem(mcStateKey())||'{}'),remote:window.__own.rows,writes:window.__own.writes}));
 async function open(page,{lang='es',mode='ok',expenses=[out,incoming],remote=expenses.map(toRow),debts=[],sandbox=false}={}){
   await installFixtureClock(page);
@@ -48,11 +48,13 @@ async function open(page,{lang='es',mode='ok',expenses=[out,incoming],remote=exp
             if(f.mode==='casZero2'&&f.raced)return {data:[],error:null};
             if(f.mode==='zero')return {data:[],error:null};
             if(f.mode==='error')return {data:null,error:new Error('fixture denied')};
+            if(f.mode==='secondError'&&f.writes.length===2)return {data:null,error:new Error('fixture second row denied')};
             rows.forEach(r=>Object.assign(r,patch));
             if(f.mode==='partnerAfter')f.rows[1].cat='otros';
             localStorage.setItem('_ownFixtureRemote',JSON.stringify(f.rows));
             if(f.mode==='holdAck')await new Promise(resolve=>{f.release=resolve;});
             if(f.mode==='lostAck')return {data:[],error:null};
+            if(f.mode==='secondLostAck'&&f.writes.length===2)return {data:[],error:null};
           }
           if(!patch&&single&&f.mode==='rereadError'&&f.raced)return {data:null,error:new Error('fixture reread denied')};
           if(!patch&&f.mode==='empty'&&columns!=='*')rows=[];
@@ -71,6 +73,85 @@ async function open(page,{lang='es',mode='ok',expenses=[out,incoming],remote=exp
   return page.getByTestId('exp',{exact:true});
 }
 const translations={es:['¿Lo enviaste a otra cuenta tuya?','Sí, es mi dinero','No, es un pago'],en:['Did you send this to another account of yours?','Yes, it is my money','No, it is a payment'],ca:['Ho vas enviar a un altre compte teu?','Sí, són els meus diners','No, és un pagament']};
+const incomeText={es:['Es un traspaso entre mis cuentas','Contar como ingreso','Entrada guardada; salida sin confirmar'],en:['This is a transfer between my accounts','Count as income','Incoming saved; outgoing unconfirmed'],ca:['És un traspàs entre els meus comptes','Comptar com a ingrés','Entrada desada; sortida sense confirmar']};
+const incomeRow={...incoming,category:'ingreso'};
+for(const lang of ['es','en','ca'])test(`ingreso propio manual: sin pareja (${lang})`,async({page})=>{
+  const sheet=await open(page,{lang,expenses:[incomeRow]}),before=await saved(page),action=sheet.getByTestId('exp-income-own');
+  await expect(action).toHaveText(incomeText[lang][0]);await expect(sheet.getByTestId('exp-income-own-peer')).toHaveCount(0);
+  expect(await action.evaluate(el=>{const range=document.createRange();range.selectNodeContents(el);return range.getClientRects().length;})).toBe(1);
+  await action.click();await expect(action).toHaveText(incomeText[lang][1]);
+  await expect.poll(async()=>(await saved(page)).expenses[0]).toEqual({...before.expenses[0],category:'traspaso'});
+  const after=await saved(page);expect(after.writes).toHaveLength(1);expect(after.writes[0].patch).toEqual({cat:'traspaso'});expect(after.state.accounts).toEqual(before.state.accounts);
+  await page.reload();await dismissNews(page);await page.waitForFunction(()=>!document.getElementById('mc-load'));
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();await gastosAbreGasto(page,incomeRow.merchant);
+  await expect(page.getByTestId('exp-income-own')).toHaveText(incomeText[lang][1]);await page.getByTestId('exp-income-own').click();
+  await expect.poll(async()=>((await saved(page)).expenses.find(e=>e.id===incomeRow.id)||{}).category).toBe('ingreso');
+  expect((await saved(page)).state.accounts).toEqual(before.state.accounts);
+});
+test('ingreso propio manual: pareja sin seleccionar y contrato A tras marcar ambas',async({page})=>{
+  const sheet=await open(page,{expenses:[incomeRow,out]}),before=await saved(page),choice=sheet.getByTestId('exp-income-own-peer');
+  await expect(choice).toBeVisible();await expect(choice).not.toBeChecked();await choice.check();expect((await saved(page)).writes).toEqual([]);
+  await sheet.getByTestId('exp-income-own').click();await expect.poll(async()=>(await saved(page)).remote.map(r=>r.cat)).toEqual(['traspaso','traspaso']);
+  await expect(sheet.getByTestId('exp-income-own-status')).toHaveCount(0);await expect(sheet.getByTestId('exp-income-own-controls')).toContainText('Solo cambia esta entrada');
+  await expect.poll(async()=>(await saved(page)).expenses).toEqual(before.expenses.map(e=>({...e,category:'traspaso'})));
+  const both=await saved(page);expect(both.writes).toHaveLength(2);expect(both.state.accounts).toEqual(before.state.accounts);
+  expect(both.writes.map(w=>w.filters.find(([k])=>k==='id')[1])).toEqual([incomeRow.id,out.id]);
+  await sheet.getByTestId('exp-income-own').click();await expect.poll(async()=>(await saved(page)).remote.map(r=>r.cat)).toEqual(['ingreso','traspaso']);
+  await expect.poll(async()=>(await saved(page)).expenses).toEqual(before.expenses.map(e=>({...e,category:e.id===incomeRow.id?'ingreso':'traspaso'})));
+  const reversed=await saved(page);expect(reversed.writes).toHaveLength(3);expect(reversed.state.accounts).toEqual(before.state.accounts);
+});
+test('ingreso propio manual: ignorar pareja deja salida intacta',async({page})=>{
+  const sheet=await open(page,{expenses:[incomeRow,out]}),before=await saved(page);await expect(sheet.getByTestId('exp-income-own-peer')).toBeVisible();
+  await sheet.getByTestId('exp-income-own').click();await expect.poll(async()=>(await saved(page)).remote.map(r=>r.cat)).toEqual(['traspaso','otros']);expect((await saved(page)).writes).toHaveLength(1);
+  await expect.poll(async()=>(await saved(page)).expenses).toEqual(before.expenses.map(e=>e.id===incomeRow.id?{...e,category:'traspaso'}:e));expect((await saved(page)).state.accounts).toEqual(before.state.accounts);
+});
+for(const lang of ['es','en','ca'])test(`ingreso propio manual: resultado parcial (${lang})`,async({page})=>{
+  const sheet=await open(page,{lang,expenses:[incomeRow,out],mode:'secondError'}),before=await saved(page);
+  await sheet.getByTestId('exp-income-own-peer').check();await sheet.getByTestId('exp-income-own').click();
+  await expect(sheet.getByTestId('exp-income-own-status')).toContainText(incomeText[lang][2]);
+  await expect.poll(async()=>(await saved(page)).expenses.map(e=>e.category)).toEqual(['traspaso','otros']);
+  const after=await saved(page);expect(after.remote.map(r=>r.cat)).toEqual(['traspaso','otros']);expect(after.expenses.map(e=>e.category)).toEqual(['traspaso','otros']);
+  expect(after.writes).toHaveLength(2);expect(after.state.accounts).toEqual(before.state.accounts);await expect(sheet.getByTestId('exp-income-own-refresh')).toBeVisible();
+  await expect(page.locator('.v4-exp-sheet .v4-ficha-saved')).toHaveText({es:'Cambio sin confirmar',en:'Change unconfirmed',ca:'Canvi sense confirmar'}[lang]);
+});
+for(const mode of ['zero','error','lostAck'])test(`ingreso propio manual: primer ACK incompleto no envía salida (${mode})`,async({page})=>{
+  const sheet=await open(page,{expenses:[incomeRow,out],mode});await sheet.getByTestId('exp-income-own-peer').check();await sheet.getByTestId('exp-income-own').click();
+  await expect(sheet.getByTestId('exp-income-own-status')).toContainText('Sin confirmar');const after=await saved(page);
+  expect(after.writes).toHaveLength(1);expect(after.expenses.find(e=>e.id===out.id).category).toBe('otros');expect(after.remote.find(e=>e.id===out.id).cat).toBe('otros');
+});
+for(const patch of [{merchant:'Nómina sintética'},{note:'Bizum recibido'},{obName:'PAYROLL'},{category:'bizum'}])test(`ingreso propio manual: excluido ${JSON.stringify(patch)}`,async({page})=>{
+  const sheet=await open(page,{expenses:[{...incomeRow,...patch}]});await expect(sheet.getByTestId('exp-income-own')).toHaveCount(0);expect((await saved(page)).writes).toEqual([]);
+});
+test('ingreso propio manual: timeout de primera fila impide segunda incluso con ACK tardío',async({page})=>{
+  const sheet=await open(page,{expenses:[incomeRow,out],mode:'holdAck'});await sheet.getByTestId('exp-income-own-peer').check();await sheet.getByTestId('exp-income-own').click();
+  await expect(sheet.getByTestId('exp-income-own-status')).toContainText('Sin confirmar',{timeout:15000});
+  await page.evaluate(()=>{window.__own.mode='ok';window.__own.release();});
+  await page.evaluate(()=>new Promise(resolve=>setTimeout(resolve,100)));
+  const after=await saved(page);expect(after.writes).toHaveLength(1);expect(after.remote.find(e=>e.id===out.id).cat).toBe('otros');
+  await sheet.getByTestId('exp-income-own-refresh').click();await expect.poll(async()=>((await saved(page)).expenses.find(e=>e.id===incomeRow.id)||{}).category).toBe('traspaso');
+});
+test('ingreso propio manual: modo pruebas conserva nube y almacenamiento real',async({page})=>{
+  const sheet=await open(page,{expenses:[incomeRow],sandbox:true}),before=await saved(page);
+  const real=await page.evaluate(()=>localStorage.getItem('micartera_v3_exp'));await sheet.getByTestId('exp-income-own').click();
+  await expect.poll(async()=>(await saved(page)).expenses[0].category).toBe('traspaso');
+  expect((await saved(page)).writes).toEqual([]);expect((await saved(page)).remote).toEqual(before.remote);expect(await page.evaluate(()=>localStorage.getItem('micartera_v3_exp'))).toBe(real);
+});
+test('ingreso propio manual: segunda escritura con ACK perdido se concilia al refrescar',async({page})=>{
+  const sheet=await open(page,{expenses:[incomeRow,out],mode:'secondLostAck'}),before=await saved(page);await sheet.getByTestId('exp-income-own-peer').check();await sheet.getByTestId('exp-income-own').click();
+  await expect(sheet.getByTestId('exp-income-own-status')).toContainText(incomeText.es[2]);
+  await expect.poll(async()=>(await saved(page)).expenses).toEqual(before.expenses.map(e=>e.id===incomeRow.id?{...e,category:'traspaso'}:e));expect((await saved(page)).state.accounts).toEqual(before.state.accounts);
+  expect((await saved(page)).remote.map(e=>e.cat)).toEqual(['traspaso','traspaso']);expect((await saved(page)).expenses.find(e=>e.id===out.id).category).toBe('otros');
+  await sheet.getByTestId('exp-income-own-refresh').click();await expect.poll(async()=>(await saved(page)).expenses.find(e=>e.id===out.id).category).toBe('traspaso');
+  await expect.poll(async()=>(await saved(page)).expenses).toEqual(before.expenses.map(e=>({...e,category:'traspaso'})));expect((await saved(page)).state.accounts).toEqual(before.state.accounts);
+  await expect(sheet.getByTestId('exp-income-own-status')).toHaveCount(0);expect((await saved(page)).writes).toHaveLength(2);
+});
+test('ingreso propio manual: doble toque y owner cambiado no envían segunda fila',async({page})=>{
+  const sheet=await open(page,{expenses:[incomeRow,out],mode:'holdAck'});await sheet.getByTestId('exp-income-own-peer').check();
+  await sheet.getByTestId('exp-income-own').evaluate(el=>{el.click();el.click();});await expect.poll(()=>page.evaluate(()=>typeof window.__own.release)).toBe('function');
+  await changeLiveState(page,'owner');await expect.poll(async()=>(await saved(page)).state._historyOwner).toBe('different-fixture-owner');
+  await page.evaluate(()=>{window.__own.mode='ok';window.__own.release();});await page.evaluate(()=>new Promise(resolve=>setTimeout(resolve,100)));
+  const after=await saved(page);expect(after.writes).toHaveLength(1);expect(after.remote.find(e=>e.id===out.id).cat).toBe('otros');
+});
 for(const lang of ['es','en','ca'])test(`cancelar no decide; sí solo cambia categoría saliente (${lang})`,async({page})=>{
   const sheet=await open(page,{lang}),action=sheet.getByTestId('exp-own-transfer'),txt=translations[lang];
   await expect(action).toHaveText(txt[0]);const before=await saved(page);
