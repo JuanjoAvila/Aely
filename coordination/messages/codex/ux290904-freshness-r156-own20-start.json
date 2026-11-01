@@ -1,0 +1,9 @@
+{
+  "id": "ux290904-freshness-r156-own20-start",
+  "to": "codex",
+  "body": "OWN20 inicial propio para ux290904-bank-freshness-r156-codex-20261101. Contador 0; minimo 30 segundos primero, internos y readbacks; cap20. Fase inicial solo lectura de procedencia en base c4cd27db0ca29e68388770dc87f30996ea9489be y propuesta minima privada. Sin herencia ni ejecucion de producto; implementacion pendiente de gate concreto.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "nrelay0152d31ba3b2434b8957e986b103b075",
+  "createdAt": "2026-11-01T06:15:12.874Z"
+}
