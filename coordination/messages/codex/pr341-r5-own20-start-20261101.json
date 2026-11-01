@@ -1,0 +1,9 @@
+{
+  "id": "pr341-r5-own20-start-20261101",
+  "to": "codex",
+  "body": "Trabajador nuevo admitido para pr341-r5-codex-20261101 desde base48c269045710d04c7dc921d0a55391aa2c827893. OWN20 propio bajo7188f09dd641ffd90c5a2455196b1385c4bb084c desde0, sin heredar claim ni recursos del encargo cerrado. Correccion acotada conforme NO-GO6e278af00199fe472f3576c9f3933be4733945e6; preserva traspaso aceptado y limites46abc5fc. Activacion y reserva requieren readback propio antes de producto. Sin publicacion de producto ni integracion; ProductREADY false.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-pr341r5-xfe815a9ae70c94955015214f",
+  "createdAt": "2026-11-01T11:38:24.770Z"
+}
