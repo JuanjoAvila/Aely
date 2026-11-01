@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "id": "debt-no-day-coherence-r151-codex-20261101",
+  "from": "codex",
+  "coordinatorSession": "nrelaye85f3296e1844e3e9017028a067b365d",
+  "createdAt": "2026-11-01T00:39:34.985Z",
+  "to": "codex",
+  "baseSHA": "656f17a69acdb59a4bfd14ea51a50196157b5807",
+  "objective": "Continuidad horaria del punto2 de la cola255f650b: finalizar coherencia de cuotas de deuda sin dia desde la candidata privada ya revisada. El titular anterior publico blocked/released062a730b y RETURNba97589d. Conservar cinco corridas aceptadas e inmutables, sin repetirlas: payment A causal RED/B60PASS; totals A causal RED/B51PASS; DOM A causal RED fila0 frente1. Solo queda preparar con identidad/OWN/claim nuevos y ejecutar DOM B23 casos bajo ENTER separado; despues revision final de docs y gates separados de commit/push y PR draft contra beta desde esta base. No se heredan grants,claims,leases,counters ni estado.",
+  "scope": [
+    "docs/ARQUITECTURA.md",
+    "docs/BACKLOG.md",
+    "e2e/inicio-deuda-futura.spec.mjs",
+    "src/modules/03-tab-dash.js",
+    "src/modules/07-tab-patri-fijos.js",
+    "src/modules/08-motor-bank.js",
+    "tests/debt-payment-state.test.mjs",
+    "tests/inicio-deuda-futura.test.mjs"
+  ],
+  "previousTaskId": "debt-no-day-coherence-r150-codex-20261101",
+  "sourceResultCommit": "062a730b38109a1355553dd02e775083d693ed95",
+  "authorityCommits": [
+    "255f650b5d5734c0225c503ee4e1feb6d21e048f",
+    "7188f09dd641ffd90c5a2455196b1385c4bb084c"
+  ],
+  "constraints": [
+    "Inicio solo cambia cuotas sin dia con estado; mantener dias configurados y calendario sin estado",
+    "03 y07 solo runtime ya revisado;08 comentarios;11-app-main y motor-debt protegidos",
+    "Atribucion de pagos y meses y compensacion de Plan intactas",
+    "No nuevas corridas de los cinco casos cerrados; DOM B requiere censo propio,CPU1,worker1,retry0,puerto propio,FULL RAW ACK y grant exacto nuevo",
+    "No producto antes de admision,OWN activado y claim propio confirmado",
+    "No build,HTML generado,deps,backend,APK,SQL,banca,deploy ni merge",
+    "Commit y push false hasta decisiones separadas; no ProductREADY ni beta nueva servida acreditada"
+  ]
+}
