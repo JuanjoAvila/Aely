@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import {execFileSync} from "node:child_process";
 import {loadPureLogic,loadPureLogicFromFile} from "../scripts/load-pure-logic.mjs";
 
 const ref=process.argv[process.argv.indexOf("--source-ref")+1];
-const c=process.argv.includes("--source-ref")?loadPureLogic(execFileSync("git",["show",ref+":public/index.html"],{encoding:"utf8",maxBuffer:8e6})):loadPureLogicFromFile();
+const suppliedHTML=process.argv.includes("--html-stdin")?fs.readFileSync(0,"utf8"):null;
+const c=suppliedHTML!=null?loadPureLogic(suppliedHTML):process.argv.includes("--source-ref")?loadPureLogic(execFileSync("git",["show",ref+":public/index.html"],{encoding:"utf8",maxBuffer:8e6})):loadPureLogicFromFile();
 const now=new Date(),y=now.getFullYear(),m=now.getMonth()+1;
 const date=(day,mo=m,yr=y)=>yr+"-"+String(mo).padStart(2,"0")+"-"+String(day).padStart(2,"0");
 const debt={id:"loan-a",name:"Préstamo sintético A",monthly:60,value:12000,account:"sabadell",day:3,asOf:y*12+m-1};
@@ -89,4 +91,48 @@ for(const source of ["manual","manual:sabadell","macrodroid",undefined]){
     assert.equal(c.minWalk(800,c.bankPendingEvents(s,"sabadell",y,m,2)).end,800);
   });
 }
+// La llamada sin estado sigue siendo el calendario del motor de líquido: no acredita un pago de Plan.
+test("sin estado conserva día1 y con día conserva calendario y pago real",()=>{
+  for(const today of [0,1,15,31]){
+    assert.equal(c.debtChargeDay({monthly:60.01}),1);
+    assert.equal(c.isDebtPaidThisMonth({monthly:60.01},today),today>=1);
+    for(let day=1;day<=31;day++)for(const configured of [day,String(day)]){
+      const d={...debt,day:configured,monthly:60.01},s=state({debts:[d],expenses:[]});
+      assert.equal(c.isDebtPaidThisMonth(d,today,s,y,m),day<=today);
+      assert.equal(c.isDebtPaidThisMonth(d,today),day<=today);
+    }
+  }
+});
+test("el motor de líquido conserva cuota sin día en mes actual y cerrado",()=>{
+  const d={...debt,day:undefined,monthly:60.01},s=state({debts:[d],expenses:[]});
+  assert.equal(Math.round(c.monthNetForAccount(s,"sabadell",y,m,1)*100),-6001);
+  assert.equal(Math.round(c.monthNetForAccount(s,"sabadell",y,m,null)*100),-6001);
+});
+for(const day of [undefined,null,"",0,"inválido"])for(const today of [1,15,31]){
+  test("con estado y sin día conserva 6001 céntimos pendientes: "+String(day)+"/"+today,()=>{
+    const d={...debt,day,monthly:60.01},s=state({debts:[d],expenses:[]}),before=JSON.stringify(s);
+    const p=c.planChargesMonth(s,m,y,today);
+    assert.equal(Math.round(p.pendingBillsTotal*100),6001);assert.equal(p.paidBillsTotal,0);
+    assert.equal(p.pendingBills[0].day,null);
+    assert.equal(c.isDebtPaidThisMonth(d,today,s,y,m),false);
+    assert.equal(JSON.stringify(s),before);assert.equal(s.debts[0],d);
+  });
+}
+test("sin día ni un vínculo bancario inventa el mes de una cuota",()=>{
+  const d={...debt,day:undefined,monthly:60.01},x={...expense,amount:60.01},s=state({debts:[d],expenses:[x],bankTx:[{...x,status:"BOOK"}]});
+  const saved=JSON.stringify(s),p=c.debtPaymentState(s,d,y,m,15);
+  assert.equal(p.paid,false);assert.equal(p.expense,null);assert.equal(p.day,null);
+  assert.equal(c.isDebtPaidThisMonth(d,15,s,y,m),false);assert.equal(JSON.stringify(s),saved);
+});
+test("sin día mantiene cuota y balloon separados, sin pago ni evento fechado",()=>{
+  const d={...debt,day:null,value:100,monthly:10.01,amort:0,months:2,asOf:y*12+m-2,balloon:20.02},s=state({debts:[d],expenses:[]});
+  const p=c.planChargesMonth(s,m,y,15);
+  assert.equal(p.pendingBills.length,2);assert.equal(Math.round(p.pendingBillsTotal*100),3003);
+  assert.equal(p.paidBillsTotal,0);assert.equal(c.pendingWalkEvents(s,y,m,15).length,0);
+  assert.equal(c.isDebtPaidThisMonth(d,15,s,y,m),false);
+});
+test("deuda finalizada sin día no reaparece como cuota pendiente",()=>{
+  const d={...debt,day:null,value:0,months:1,settledAt:date(1),archivedAt:date(1)},s=state({debts:[d],expenses:[]});
+  assert.equal(c.debtActive(d),false);assert.equal(c.planChargesMonth(s,m,y,15).pendingBillsTotal,0);
+});
 console.log("debt-payment-state: "+total+" PASS");

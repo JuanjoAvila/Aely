@@ -775,7 +775,8 @@ const dayOf=(e)=> (e&&e.day)||null;
 // Deudas sin día explícito: día 1 (entran en el motor de líquido como los fijos; antes quedaban
 // fuera hasta cerrar mes — bug #2 «deuda no dinámica»).
 function debtChargeDay(d){ const dd=dayOf(d); return (dd!=null && dd>0) ? dd : 1; }
-function isDebtPaidThisMonth(d,today,s,y,m){ return s&&debtPaymentState(s,d,y,m,today).paid || debtChargeDay(d)<=today; }
+// Con estado, un día desconocido conserva el pendiente de Plan; el motor sin estado mantiene su calendario.
+function isDebtPaidThisMonth(d,today,s,y,m){ return s&&debtPaymentState(s,d,y,m,today).paid || (!s||cleanDay(dayOf(d))!=null)&&debtChargeDay(d)<=today; }
 // ¿ya se cobró en el mes m? (su día ya pasó o ES HOY). Solo tiene sentido para el mes actual.
 // `<=`: lo programado para HOY cuenta como hecho. Clave para no duplicar la nómina/cargos del día
 // con el saldo real del banco (que ya los refleja) → si no, fin de mes los sumaría por segunda vez.

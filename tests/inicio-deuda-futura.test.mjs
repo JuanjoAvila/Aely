@@ -5,7 +5,9 @@ import { test } from "node:test";
 import { codeMask } from "../scripts/beta-source-code.mjs";
 import { loadPureLogicFromFile, loadPureLogic } from "../scripts/load-pure-logic.mjs";
 
-const c=loadPureLogicFromFile(), cents=v=>Math.round(v*100);
+const suppliedHTML=process.argv.includes("--html-stdin")?fs.readFileSync(0,"utf8"):null;
+const html=(suppliedHTML!=null?suppliedHTML:fs.readFileSync(new URL("../public/index.html",import.meta.url),"utf8")).replace(/\r\n/g,"\n");
+const c=suppliedHTML!=null?loadPureLogic(html):loadPureLogicFromFile(), cents=v=>Math.round(v*100);
 const debts=[
   {id:"roomba",name:"Roomba sintética",value:600.03,monthly:50.01,months:12,day:16,asOf:2026*12+9,startMonth:2026*12+9},
   {id:"gym",name:"Gimnasio sintético",value:360.09,monthly:30.01,months:12,day:20,asOf:2026*12+10,startMonth:2026*12+10},
@@ -128,7 +130,7 @@ test("revision1: nube real proyecta, push/pull y merge conservan startMonth",asy
   await cloud.pushState("synthetic",c.slimForCloud({...pack.data,budget:1234}),pack.updated_at);
   pack=await cloud.pullState();assert.equal(writes.length,2);
   assert.deepEqual(pack.data.debts,plain(remote.debts),"el transporte JSON conserva todos los campos de la deuda");
-  const app=fs.readFileSync(new URL("../src/modules/11-app-main.js",import.meta.url),"utf8");
+  const app=suppliedHTML!=null?html:fs.readFileSync(new URL("../src/modules/11-app-main.js",import.meta.url),"utf8");
   const body=callbackBody(app.slice(app.indexOf("const syncFromCloud=function(")),"function(prev){");
   const factory=vm.runInContext("(function(sessionRef,cloudState,cloudPack,u,opts,freshLogin,mergeExpenses,fixMovInvasion,fixRevoDupes,fixInvAuto,fixInvSold,reconcileTR,seedFlows,reconcileEarlyIncomeAnchors){const readSession=sessionRef.current,obAbsorbedWriteBlocked={current:false},read={owner:u,ready:false},cloudReadRef={current:read},cloudPullRef={current:read},cloudMergeKey={current:Symbol('merge')};return function(prev){"+body+"};})",c);
   const identity=x=>x;
@@ -212,7 +214,6 @@ test("pago final y financiación archivada conservan su historia desde el inicio
 });
 
 const guard='if(d.months!=null&&Number.isInteger(d.startMonth)&&p[0]*12+p[1]-1<d.startMonth) return 0;';
-const html=fs.readFileSync(new URL("../public/index.html",import.meta.url),"utf8").replace(/\r\n/g,"\n");
 const money=(m,d,day,today="2026-10-28")=>cents(m.netWorthDebtPolicy({debts:[d]},today).at(day));
 const mutations=[
   ["sin guarda",guard,"",m=>assert.equal(money(m,debts[0],"2026-09-30"),0)],
@@ -277,4 +278,65 @@ test("FIN12 día mutación monetaria: cada origen conserva el día además del m
   for(const [line,writer,principal]of [["if(months>0&&paid===0) it.startDay=netWorthDay();",source=>manualDebt({value:"600,12"},source),60012],["    it.startDay=netWorthDay();",affordDebt,60003]]){
     assert.equal(html.split(line).length,2);const correct=writer(html),mutant=writer(html.replace(line,""));assert.equal(money(c,correct,"2026-10-09"),0);assert.equal(money(c,mutant,"2026-10-09"),principal);
   }
+}));
+
+
+function noDayTotalsState(debt,expenses=[]){
+  return {accounts:[{id:"synthetic-daily",ent:"sabadell",value:800.13,role:"diario",spendFrom:true,inject:0,roundup:0,monthlyInvest:0}],
+    debts:[debt],expenses,fixed:[],flows:[],oneoffs:[],investments:[],assets:[],aportaciones:[],obAccounts:[],bankTx:[],deleted:[],
+    settings:{lang:"es",autoPrices:false,expenseBanks:["sabadell"]}};
+}
+function noDayFreeze(value){
+  if(value&&typeof value==="object"){Object.values(value).forEach(noDayFreeze);Object.freeze(value);}return value;
+}
+function actualTotals(state){
+  // Es el callback completo que ejecuta App, del MISMO HTML que sus helpers: nunca una copia del acumulador.
+  const fn=vm.runInContext("(function(state){"+callbackBody(html,"const totals=useMemo(()=>{")+"})",c);
+  return fn(state);
+}
+test("debt-no-day-r150: controles con día, pago real y finalizada conservan céntimos",()=>{
+  for(const [day,today,amount,date,paid] of [[20,15,null,null,0],[15,15,null,null,6001],[3,15,null,null,6001],
+    [3,2,60.01,"2026-10-02",6001],[3,2,15,"2026-10-02",0],[3,2,60.01,"2026-10-04",0]]){
+    atFIN12Time("2026-10-"+String(today).padStart(2,"0")+"T12:00:00Z",()=>{
+      const d={id:"synthetic-loan",name:"Cuota sintética",value:12000.07,monthly:60.01,account:"sabadell",day,asOf:2026*12+9};
+      const expenses=amount==null?[]:[{id:"synthetic-charge",merchant:"Prestamista sintético",amount,date,ent:"sabadell",category:"deudas",source:"ob",debtId:d.id}];
+      const state=noDayFreeze(noDayTotalsState(d,expenses)),saved=JSON.stringify(state),tt=actualTotals(state),p=c.planChargesMonth(state,10,2026,today);
+      assert.equal(cents(tt.paidThisMonth),paid);assert.equal(cents(tt.pendingThisMonth),6001-paid);
+      assert.equal(cents(p.pendingBillsTotal),6001-paid);assert.equal(JSON.stringify(state),saved);
+    });
+  }
+  atFIN12Time("2026-10-15T12:00:00Z",()=>{
+    const d={id:"finished",value:0,monthly:60.01,day:null,months:1,asOf:2026*12+9,settledAt:"2026-10-01",archivedAt:"2026-10-01"};
+    const state=noDayFreeze(noDayTotalsState(d)),tt=actualTotals(state);
+    assert.equal(tt.pendingThisMonth,0);assert.equal(tt.paidThisMonth,0);
+  });
+});
+for(const day of [undefined,null,"",0,"inválido"])for(const today of [1,15,31]){
+  test("debt-no-day-r150: totals real pendiente6001/proyección74012, sin fecha "+String(day)+"/"+today,()=>atFIN12Time("2026-10-"+String(today).padStart(2,"0")+"T12:00:00Z",()=>{
+    const d={id:"synthetic-loan",name:"Cuota sintética",value:12000.07,monthly:60.01,account:"sabadell",asOf:2026*12+9,...(day===undefined?{}:{day})};
+    const state=noDayFreeze(noDayTotalsState(d)),saved=JSON.stringify(state),tt=actualTotals(state),p=c.planChargesMonth(state,10,2026,today);
+    const cover=c.planCoverState(tt,"sabadell",60.01,p.pendingBills);
+    console.log("DEBT_NO_DAY_TOTALS "+JSON.stringify({day:day??null,today,paid:cents(tt.paidThisMonth),pending:cents(tt.pendingThisMonth),bank:cents(tt.bankBal.sabadell),projected:cents(tt.mainProjected),min:cents(tt.mainMin),cover:cents(cover.min),coverDay:cover.minDay}));
+    assert.equal(cents(tt.bankBal.sabadell),80013);assert.equal(cents(tt.chargesByBank.sabadell),6001);
+    assert.equal(cents(p.pendingBillsTotal),6001);assert.equal(cents(p.paidBillsTotal),0);
+    assert.equal(cents(tt.mainMin),80013);assert.equal(cents(cover.min),74012);assert.equal(cover.minDay,null);
+    assert.equal((tt.evsByBank.sabadell||[]).length,0,"no inventa evento día1 o día0");
+    assert.equal(cents(tt.paidThisMonth),0);assert.equal(cents(tt.pendingThisMonth),6001);
+    assert.equal(cents(tt.pendingByBank.sabadell),6001);assert.equal(cents(tt.mainPending),6001);
+    assert.equal(cents(tt.projectedByBank.sabadell),74012);assert.equal(cents(tt.liquidTrasFijos),74012);
+    assert.equal(JSON.stringify(state),saved);assert.equal(state.debts[0],d);
+  }));
+}
+test("debt-no-day-r150: dos bancos distribuyen cuotas sin día sin duplicar",()=>atFIN12Time("2026-10-15T12:00:00Z",()=>{
+  const d={id:"first",value:12000.07,monthly:60.01,account:"sabadell",asOf:2026*12+9};
+  const state=noDayTotalsState(d);state.accounts.push({id:"other",ent:"revolut",value:200.02,role:"diario",inject:0});
+  state.debts.push({...d,id:"second",account:"revolut",monthly:10.01});noDayFreeze(state);
+  const tt=actualTotals(state);
+  assert.equal(cents(tt.pendingThisMonth),7002);assert.equal(cents(tt.pendingByBank.sabadell),6001);assert.equal(cents(tt.pendingByBank.revolut),1001);
+  assert.equal(cents(tt.projectedByBank.sabadell),74012);assert.equal(cents(tt.projectedByBank.revolut),19001);
+}));
+test("debt-no-day-r150: frontera civil de Madrid mantiene noviembre y estado",()=>atFIN12Time("2026-10-31T23:30:00Z",()=>{
+  const d={id:"boundary",value:12000.07,monthly:60.01,asOf:2026*12+10},state=noDayFreeze(noDayTotalsState(d)),tt=actualTotals(state);
+  assert.equal(tt.curYear,2026);assert.equal(tt.curMonth,11);assert.equal(tt.today,1);
+  assert.equal(cents(tt.pendingThisMonth),6001);assert.equal(cents(tt.mainProjected),74012);
 }));
