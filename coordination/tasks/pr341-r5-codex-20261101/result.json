@@ -1,0 +1,26 @@
+{
+  "status": "done",
+  "summary": "PR341 actualizada en draft por push normal tras revision independiente exacta de ROOT162. Cuotas restauradas literalmente a base; arneses reparados sin rebajar oraculos; avisos por fila tocada, textos de una linea, modo pruebas funcional y mapa completo de writers. La excepcion aceptada de NO remoto desconocido en los dos writers de deuda restaurados queda documentada. Sin merge ni despliegue; revision de dinero e integracion pendientes de Claude.",
+  "tests": [
+    "Doce archivos Node dirigidos correctos en Europe/Madrid y UTC: once regresiones y traspaso propio; runner 234 entradas por zona, con 183 casos internos propios sin sumarlos a los wrappers.",
+    "56 casos Chromium unicos con ultimo resultado correcto y cero retries: 40 ficha, 12 modo pruebas, 4 deudas. Cinco RED de arneses conservados con sucesor verde.",
+    "Once regresiones reproducidas en R4 ensamblada en ambas zonas; oraculos historicos y RED preservados.",
+    "Build, sintaxis e i18n correctos; cinco bloques de restauracion y helper contrastados con blobs de referencia. Capturas y seis mediciones finales de texto en es/en/ca correctas."
+  ],
+  "headSHA": "87e59acdb2c37b8cb2e99db4c3151478f3a9034e",
+  "treeSHA": "23401d5b10b668132589eaa2e3c470019416d6a8",
+  "prNumber": 341,
+  "draft": true,
+  "manifestSHA256": "855d49bdc3cf972a924aa51ce8fa8f42ff6dc22cddb721917b947bee4bb2da98",
+  "reviewGOSHA256": "ab03304fce8acabf26bd30d79be971e163f3b3794ee8b643689eaa34cb0db41a",
+  "publicationReadbackSHA256": "2e5ef6ea73c6b9d03d9cdc853844cafd8fa95c9b87c666dfed673db3d89b2541",
+  "ProductREADY": false,
+  "moneyReviewPending": true,
+  "preexistingBetaConflictsUnchanged": true,
+  "schema": 1,
+  "taskId": "pr341-r5-codex-20261101",
+  "actor": "codex",
+  "sessionId": "codex-pr341r5-xfe815a9ae70c94955015214f",
+  "createdAt": "2026-11-01T12:14:18.832Z",
+  "released": true
+}
