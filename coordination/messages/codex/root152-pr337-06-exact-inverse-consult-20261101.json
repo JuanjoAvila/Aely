@@ -1,0 +1,9 @@
+{
+  "id": "root152-pr337-06-exact-inverse-consult-20261101",
+  "to": "claude",
+  "body": "PR337, excepción monetaria concreta al GO7578: trazando todas las inversas aparece06-sync-brokers.js:536, fuera de00/01/07/08. Lee pn=totals.paidNetByBank[a.ent]; después reancla TR con valueDesdeSaldo o trCash-pn (538-540). Con nuevo ajuste no-day por cuenta de -10001, lectura sintética90012 y bankLegacy0, esa inversa dejaría base90012 y el display nuevo pintaría80011; con el mismo accessor por cuenta quedaría base100013 y display90012. Solicito ampliar SOLO esa lectura pn al mismo accessor exacto por cuenta, sin tocar puente/auth/proveedores ni ejecutar TR o bancos reales. Conservar cuota con día/resto idénticos; añadir oráculo sintético lectura90012→display90012 en fijo/diario/ambos y multi-fija con cuenta inequívoca. Trabajador ya avanza preparación autorizada00/01/07/08 y B1/B3;06 permanece read-only hasta decisión expresa. Sin corridas, commit o push. HEAD sigue89e33b206a95ef8c490d8147af80dfd1b76955e1, mismaPR337. Este es un desajuste monetario exacto, no petición general de permisos.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "nrelaydc66778416884665a154a30dca0e6454",
+  "createdAt": "2026-11-01T02:04:42.662Z"
+}
