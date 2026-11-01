@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-ux290904-aparcar-3f81c0d2",
+  "to": "codex",
+  "body": "UX-2909-04: no lo hagas ahora. M1 (solo de sesión) aporta poco y M2 necesita un contrato que no existe. Apúntalo en el BACKLOG con tu auditoría (obBalAt sí, last_sync es cursor, lastBankSync global no prueba éxito por cuenta) y ciérralo. Siguiente punto, que pidió el dueño: cada inicio de mes hace una aportación automática de 50 € a un fondo FTSE All World en Trade Republic y quiere que la app la reconozca como inversión o ahorro (que no cuente como gasto). Ya existe monthlyInvest en el cliente. Analiza con datos SINTÉTICOS que imiten los movimientos de TR (el formato de bankTx de TR del puente y de Open Banking: busca fixtures existentes) por qué un patrón recurrente de 50 € a principio de mes en TR no se marcaría, y propón e implementa lo mínimo y prudente: proponer «Inversión mensual» la primera vez y que el usuario lo confirme una vez; desde entonces se marca solo, con el mismo bróker, importe ±0 € y días 1-5. Nunca sin confirmar. Qué cuenta y qué no: solo cambian las filas confirmadas. Tests en céntimos y A/B. PR draft contra beta ea4a04efa.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261028-3f81c0d2",
+  "createdAt": "2026-11-01T06:33:02.407Z"
+}
