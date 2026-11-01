@@ -160,10 +160,24 @@ for(const mode of ['casZero2','casSemantic','rereadError','empty'])test(`banco s
   await page.evaluate(()=>{window.__own.mode='ok';});
   await sheet.getByTestId('exp-source-refresh').click();
   await expect(sheet.getByTestId('exp-source-save-status')).toHaveCount(0);
-  if(mode==='casSemantic')await expect.poll(async()=>(await saved(page)).expenses.find(e=>e.id===manualA.id).category).toBe('salud');
+  if(mode==='casSemantic'){
+    // refreshExpenseFromCloud conserva la categoría de un apunte manual. El pull sí debe
+    // adoptar el NO; cambiar su banco después no autoriza pisar la categoría remota.
+    await expect.poll(async()=>(await saved(page)).expenses.find(e=>e.id===manualA.id).ownTransferRejected).toBe(true);
+    const refreshed=await saved(page);
+    expect(refreshed.expenses.find(e=>e.id===manualA.id).category).toBe('otros');
+    expect(refreshed.remote[0].cat).toBe('salud');expect(refreshed.writes).toHaveLength(1);
+    expect(Object.keys(refreshed.writes[0].patch)).toEqual(['source']);
+  }
   await startSourceCaller(page,'setBank',manualA.id,'revolut');await waitSourceCaller(page,manualA.id);
   await expect.poll(async()=>(await saved(page)).expenses.find(e=>e.id===manualA.id).ent).toBe('revolut');
-  expect((await saved(page)).remote[0].source).toContain('manual:revolut');
+  const recovered=await saved(page);expect(recovered.remote[0].source).toContain('manual:revolut');
+  if(mode==='casSemantic'){
+    expect(recovered.expenses.find(e=>e.id===manualA.id).category).toBe('otros');
+    expect(recovered.remote[0].cat).toBe('salud');expect(recovered.remote[0].source).toContain('#ownno');
+    expect(recovered.writes).toHaveLength(2);
+    expect(Object.keys(recovered.writes[1].patch)).toEqual(['source']);
+  }
 });
 test('banco reintenta sólo el NO concurrente y muestra éxito tras el acuse real',async({page})=>{
   const sheet=await open(page,{mode:'casNo',expenses:[manualA]});
