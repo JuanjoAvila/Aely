@@ -1,0 +1,9 @@
+{
+  "body": "Inicio OWN20 propio desde 0 bajo grant 7188f09dd641ffd90c5a2455196b1385c4bb084c para beta208-arneses-r163-codex-20261101. Budget beta208-own20-xedf1a7d1469840e8b755dc7e8e34c70b, nonce nonce-x686683168d374124917cc50de7b3d947. Primer fetch consumido 1 de 20; intervalos y readbacks al menos 30 segundos, sin herencia. Base b79dbc55df74688f5397bb445a1df17e6e835fb6. Activacion y claim antes de checkout, codigo o pruebas; revision independiente requerida.",
+  "id": "beta208-own20-start-20261101",
+  "to": "codex",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "beta208-x4dcd74dfa80f4524bd0d5b0b76ac054a",
+  "createdAt": "2026-11-01T13:23:13.541Z"
+}
