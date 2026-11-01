@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "id": "own-transfer-confirm-r159-codex-20261101",
+  "from": "codex",
+  "coordinatorSession": "root159b4e2d3116fed42c7b4cff9715fabd93c",
+  "createdAt": "2026-11-01T09:17:22.971Z",
+  "to": "codex",
+  "baseSHA": "2fdecb18bbc9e8f73d6ae7089292645e19528597",
+  "objective": "Punto1 cola8b935444: ofrecer confirmar salida de traspaso propio por fila con pareja exacta ya reconocida, sin automatico, conforme criterio monetario explicito e167de8173d8bfcebd4a8cef422b7d0d47855834.",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/01-i18n.js",
+    "src/modules/04-tab-gastos.js",
+    "src/modules/08-motor-bank.js",
+    "src/modules/11-app-main.js",
+    "tests/own-transfer-confirm.test.mjs",
+    "e2e/own-transfer-confirm.spec.mjs",
+    "scripts/run-tests.mjs",
+    "scripts/relevant-tests.mjs",
+    "docs/ARQUITECTURA.md",
+    "docs/BACKLOG.md"
+  ],
+  "authority": "e167de8173d8bfcebd4a8cef422b7d0d47855834",
+  "requirements": [
+    "SINautomatico. Solo ofrecer UNA salida OB/OBhist de cuenta propia verificada si existe pareja1a1 unica de entrada YAtraspaso enOTRO banco propio, signo opuesto, centimo exacto y max2diasnaturales horaMadrid. Entrada ya reconocida debe quedar byteidentica.",
+    "Ausencia, ambiguedad,1centdistinto otercero mismonombre: no oferta ni cambio. Nunca usar nombre solo como evidencia. No inventar campos de titularidad/contraparte; si contratoactual impide distinguir caso requerido, reportar criterio concreto al ROOT antes de ampliar reglas.",
+    "Salida enlazada a recibo o cuota deuda no se ofrece; tampoco ampliar a deudas, Lo descuento u otros vinculos financieros. No alterar esTraspasoPropio de entradas ni legacyTR mensual/MCC5411.",
+    "ConfirmacionenUNAlineaes/en/ca, usando AskConfirm existente. Cancelar ceroescrituras. Revalidar pareja, titular,UUID,foto local/remota,CASyACKexacto antes de cambiar SOLOcategoria salida. No tocar importe, entrada, saldos, inversiones ni cuotas.",
+    "Candidata aislada propia desde baseexacta2fdecb18bbc9e8f73d6ae7089292645e19528597 leida fuenteAGENTS/EMPIEZA. No integrar PR339 ni rebase porarrastre; si betaavanza no mezclar cambios ajenos.",
+    "PruebascausalesRED/GREENNode dosbancos MadridUTC: valido1a1, cancelacion, ausencia/ambiguedad, tercero mismonombre,1centdistinto, bordesdiasnaturalesMadrid, recibo/deudaenlazados, cambioownerUUIDfila/pareja y ACKexacto. E2Edirigido de nuevaaccion realDOM yconfirmacion, escriturastrazadas ydatos sinteticos. Tests registrados enrun-tests/relevant-tests.",
+    "NuevoidentidadOWN20propio7188f09dd641ffd90c5a2455196b1385c4bb084c, min30sprimera/internas/readbacks,cap20,FULLRAWtodosdeltas/cancelaciones yACKANTESactuar. Claim propio confirmado y admisionnativa requeridos. No heredar reposruntimeclaimsleasesstatecountersNFF.",
+    "Grant edaff47656cdd8a9f0af9addc878018c46439cdd: dirigidosNode/e2e/javac sin gateCPU1 ni reserva; fullsuiteGradleperformanceexclusivos. LogsEXITdurables. No repetir pruebasTR cerradas ni otras ajenas.",
+    "Entrega privada patch/tree/manifest exactos para revisionindependienteROOT. TrasGOpublicacion commit/pushnormal PRdraftNUEVAcontraBeta bajo893c permanente, sinotravezpuertageneral. Dinero/integracionClaude. No pushproducto antesGO, merge deploy SQL Edge backend APK versiones catalogo ni ProductREADY."
+  ],
+  "modelSelection": "Configured default model; scoped financial confirmation with independent review."
+}
