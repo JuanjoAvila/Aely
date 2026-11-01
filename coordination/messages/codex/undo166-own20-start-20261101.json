@@ -1,0 +1,11 @@
+{
+  "id": "undo166-own20-start-20261101",
+  "to": "codex",
+  "body": "OWN20 inicial propio bajo7188f09d para lo-descuento-undo-r166-codex-20261101. Contador nuevo 0/20, primera lectura e internos/readbacks >=30s, filtro canonico intacto. Claim propia confirmada antes de implementar Deshacer en checkout aislado. Revision independiente antes de PR draft; sin integracion ni despliegue.",
+  "nonce": "undo166-nonce-b5951a4e61134d4592a08b3d83a0c8dc",
+  "budgetId": "undo166-own20-67ef161ed9e0420687fce2c8449ba2ec",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "undo166-521a6336fe2e48e5b5c53e1a17f665c3",
+  "createdAt": "2026-11-01T15:56:11.209Z"
+}
