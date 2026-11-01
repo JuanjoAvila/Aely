@@ -1,0 +1,11 @@
+{
+  "id": "recibo-detail-undo-r168-own20-start-20261101",
+  "to": "codex",
+  "body": "Trabajador propio admitido para recibo-detail-undo-r168-codex-20261101. Inicio OWN20 nuevo bajo 7188f09dd641ffd90c5a2455196b1385c4bb084c, contador real 0 al abrir, sin heredar reservas ni contadores; primer fetch y siguientes/readback >=30s. Base 41c34fc9830f6c87304d364edd271bb2014dfb9d. Solo R-e ficha del recibo, con revision de plan antes de editar y GO independiente antes de publicar. Sin producto ni pruebas iniciados.",
+  "budgetId": "detailundo168-own20-ffa5dac603c34ab49235e24b8229d4f9",
+  "allowance": 20,
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "detailundo168-90a400b266a443e7b761acd100dbbdbf",
+  "createdAt": "2026-11-01T18:19:11.484Z"
+}
