@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "id": "tr-monthly-remates-r159-codex-20261101",
+  "from": "codex",
+  "coordinatorSession": "root159b4e2d3116fed42c7b4cff9715fabd93c",
+  "createdAt": "2026-11-01T08:36:07.035Z",
+  "to": "codex",
+  "baseSHA": "6a0749c351916e2bc097094817b157beb6be8fe0",
+  "objective": "Resolver los cuatro remates obligatorios de Claude89fde en TR mensual antes de integrar, como candidata privada revisable para actualizar MISMA PR339 sin rebase.",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/01-i18n.js",
+    "src/modules/04-tab-gastos.js",
+    "src/modules/08-motor-bank.js",
+    "src/modules/11-app-main.js",
+    "tests/tr-monthly-invest-confirm.test.mjs",
+    "e2e/tr-monthly-invest-confirm.spec.mjs",
+    "scripts/run-tests.mjs",
+    "scripts/relevant-tests.mjs",
+    "docs/ARQUITECTURA.md",
+    "docs/BACKLOG.md"
+  ],
+  "authority": "89fdeec0736a61d0739c50ff95193f0a4f2ff47a",
+  "publicationAuthority": "893c4e888d93af7c031b38a131b89385b6fe3d35",
+  "requirements": [
+    "B1: trMonthlyInvalidatePull debe comparar consentimiento de forma canonica ante reordenacion de claves jsonb, con RED causal sobre base sin arreglo y GREEN usando las mismas claves reordenadas.",
+    "ISIN exige 2 letras, 9 alfanumericos y digito de control valido, sin aceptar texto mal formado ni digito incorrecto.",
+    "Importe exacto procede de lo confirmado por usuario; eliminar50 fijo y probar otro importe sintetico al centimo y rechazo del distinto.",
+    "Timeout10s nunca deja divergencia nube/movil sin reintentar reconciliacion en siguiente lectura; caso diferido con timers controlados y prueba negativa sin UPDATE indebido.",
+    "Mantener cancelacion despues de guardia asincrona, ACK exacto de una fila, titular/uuid/CAS/permiso durable, legacy monthlyInvest y controlMCC5411 intactos. No ampliar a otros flujos financieros.",
+    "No repetir casos ya cerrados sin cambio o fallo nuevo. Conservar41NodeMadridUTC,3E2E y21writerMadridUTC yREDcancelacion anteriores como evidencia base; elegir regresion dirigida por cambios reales.",
+    "Pruebas nuevas dirigidas Node tambienEuropeMadrid yUTC, e2e solo si cambiaUI o causa nueva; datos sinteticos, logs y EXIT durables. Grantedaff476 elimina gateCPU1 paraNode/e2e/javac dirigidos; fullsuiteGradleperformance siguen exclusivos.",
+    "Trabajador nuevo requiere identidad nativa verificada, OWN20 nuevo desde0 por7188, primera/internas/readbacks minimo30s y cap20, lecturaFULLRAW todascancelaciones y ACK antesactuar, claim propio confirmado y admision nativa. No heredarclaimsleasesruntimereposstatecountersNFF.",
+    "Checkout aislado nuevo desde baseSHA exacto, verificar HEADrealPR339 igual antes de iniciar y parar si cambia. No editar checkout compartido ni usar runtime de trabajadores cerrados.",
+    "Entrega privada patch/tree/manifest exactos y comandosEXIT para revision independiente del coordinador. No pushproducto hasta independentGO; luego coordinador actualiza MISMAPR339 con pushnormal sin rebase y avisaHEAD. No merge deploy SQL backend APK versiones catalogo ni ProductREADY."
+  ],
+  "modelSelection": "Configured default model; scoped implementation plus synthetic causal tests."
+}
