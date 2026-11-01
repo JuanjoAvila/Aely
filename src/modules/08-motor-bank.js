@@ -1015,6 +1015,21 @@ function descuentoDescuadre(antes,despues){
   });
   return out;
 }
+/* El descuadre que YA está guardado (el «Lo descuento» se puso antes de que se preguntara): sin
+   cambio de reparto no hay antes/después y nunca saldría la pregunta (rev. lo-descuento R1). Solo se
+   señala; ajustarlo lo decide él desde la tarjeta de la deuda. Sin interés, cada euro que pagas baja la
+   deuda: cuota + descuento ≠ lo que baja es dinero que se pierde o se inventa cada mes. `paga` es la
+   propuesta de lo que le pasas: si la cuota guardada aún es la de antes (baja menos que la cuota), la
+   cuota menos el descuento; si no, la cuota tal cual. */
+function descuentoDescuadreGuardado(s,d){
+  if(!deudaDescontable(d)) return null;
+  const D=Math.round(deudaDescuentoBase(s,d)*100);
+  if(!(D>0)) return null;
+  const cuota=Math.round((Number(d.monthly)||0)*100), amort=Math.round(debtAmort(d)*100);
+  if(amort===cuota+D) return null;
+  const paga=amort<cuota&&cuota-D>0?cuota-D:cuota;
+  return {id:d.id,name:d.name,paga:paga/100,baja:(paga+D)/100,descuento:D/100};
+}
 /* Lo que dijo al preguntarle: sale del banco `paga` y la deuda baja `baja`. Va por `debtEditResult`,
    la misma puerta que Editar deuda, para que el saldo de hoy no se mueva (re-ancla `value`) y el plazo
    salga de la bajada nueva; si esa puerta lo rechaza, no se toca nada. */
@@ -1022,7 +1037,7 @@ function deudaFijarDescuento(s,id,paga,baja){
   let cambia=false;
   const debts=(s.debts||[]).map(function(d){
     if(d.id!==id||!deudaDescontable(d)||!(paga>0)||!(baja>0)) return d;
-    const form=Object.assign(debtEditDraft(d),{monthly:String(Math.round(paga*100)/100),amort:String(Math.round(baja*100)/100)});
+    const form=Object.assign(debtEditDraft(d),{monthly:String(Math.round(paga*100)/100),amort:String(Math.round(baja*100)/100),amortSet:true});
     if(d.months!=null){
       const tmp=Object.assign({},d,{monthly:Number(form.monthly),amort:Number(form.amort)});
       const n=debtEditMonths(tmp,Number(form.balance),Number(form.amort),debtPaidCount(d));
@@ -5321,7 +5336,8 @@ function patchDebtFields(set, id, patch){
       const am=debtAmort(n),paid=debtPaidCount(n);
       if(Math.round(am*100)!==Math.round(debtAmort(d)*100)&&d.value!=null&&am>0){
         const bal=+debtBalance(d).toFixed(2);
-        if(n.months!=null){ const k=debtEditMonths(n,bal,am,paid); if(k!=null&&k>paid) n.months=k; }
+        // Con TAE el modelo lineal no sabe el plazo (como `db_extend_unknown` en Editar deuda): se deja.
+        if(n.months!=null&&debtEditAmortable(n)){ const k=debtEditMonths(n,bal,am,paid); if(k!=null&&k>paid) n.months=k; }
         n.value=+(bal+am*paid).toFixed(2);
       }
       return n;

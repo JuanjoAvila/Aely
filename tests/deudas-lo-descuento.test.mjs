@@ -106,4 +106,45 @@ caso("ficha sencilla: cambiar lo que baja no mueve el saldo de hoy",()=>{
   c.patchDebtFields(set,"dx",{account:"otro"});assert.equal(cents(c.debtBalance(one(s))),saldo);
 });
 
+caso("B1: ligada, cuota 260 y «baja 300» tecleada se guarda tal cual (no baja 260 en silencio)",()=>{
+  const d=debt();delete d.months;const saldo=cents(c.debtBalance(d));
+  const r=c.debtEditResult(d,{...c.debtEditDraft(d),monthly:"260",amort:"300",amortSet:true});
+  assert.equal(r.error,undefined);assert.equal(r.item.monthly,260);assert.equal(r.item.amort,300);
+  assert.equal(cents(c.debtBalance(r.item)),saldo);
+  // Sin tocar el campo (borrador de antes) la bajada sigue a la cuota, como siempre.
+  assert.equal(c.debtEditResult(d,{...c.debtEditDraft(d),monthly:"260"}).item.amort,undefined);
+  // Con plazo: 300 cuadra con el plazo de siempre → se guarda sin «no encajan».
+  const p=debt({amort:300}),rp=c.debtEditResult(p,{...c.debtEditDraft(p),monthly:"260",amort:"300",amortSet:true});
+  assert.equal(rp.error,undefined);assert.equal(rp.item.monthly,260);assert.equal(rp.item.amort,300);assert.equal(rp.item.months,40);
+  // Y si lo tecleado no encaja con el plazo tecleado, el aviso habla de lo que baja, sin rango de cuotas.
+  const mal=c.debtEditResult(p,{...c.debtEditDraft(p),months:"25",amort:"300",monthly:"260",amortSet:true});
+  assert.equal(mal.error,"db_err_term_amort");assert.equal(mal.range,undefined);
+});
+
+caso("R1: el descuadre ya guardado se detecta y propone lo que le pasas",()=>{
+  const s=st(debt({amort:271.43}),[recibo(40)]);
+  assert.deepEqual(plain(c.descuentoDescuadreGuardado(s,one(s))),{id:"dx",name:"Préstamo sintético",paga:260,baja:300,descuento:40});
+  const bien=st(debt({monthly:260,amort:300}),[recibo(40)]);assert.equal(c.descuentoDescuadreGuardado(bien,one(bien)),null);
+  const tae=st(debt({amort:271.43,apr:3}),[recibo(40)]);assert.equal(c.descuentoDescuadreGuardado(tae,one(tae)),null);
+  assert.equal(c.descuentoDescuadreGuardado(st(debt({amort:271.43})),debt({amort:271.43})),null,"Sin descuento no hay nada que señalar");
+  // Cuota ya bajada a mano (260) con una bajada rara: se propone la cuota tal cual.
+  const baja=st(debt({monthly:260,amort:310}),[recibo(40)]);assert.equal(c.descuentoDescuadreGuardado(baja,one(baja)).paga,260);
+  const fijo=c.deudaFijarDescuento(s,"dx",260,300);assert.equal(c.descuentoDescuadreGuardado(fijo,one(fijo)),null);
+});
+
+caso("R2: con otra bajada (310) y quitando el recibo, se pregunta y vuelve a cuadrar",()=>{
+  const d=debt({amort:271.43}),s=st(d,[recibo(40)]),fijo=c.deudaFijarDescuento(s,"dx",260,310);
+  const sin=c.deudasTrasReparto(fijo,Object.assign({},fijo,{fixed:[]}));
+  assert.equal(one(sin).monthly,260,"deudasTrasReparto solo no la arregla");
+  const q=c.descuentoDescuadre(fijo,sin);assert.deepEqual(plain(q),[{id:"dx",name:"Préstamo sintético",paga:300,baja:300,descuento:0}]);
+  const ok=one(c.deudaFijarDescuento(sin,"dx",q[0].paga,q[0].baja));
+  assert.equal(ok.monthly,300);assert.equal(ok.amort,undefined);assert.equal(cents(c.debtBalance(ok)),cents(c.debtBalance(d)));
+});
+
+caso("R3: ficha sencilla con TAE no acorta el plazo al bajar la cuota",()=>{
+  let s=st(debt({apr:7}));const set=fn=>{s=fn(s);},saldo=cents(c.debtBalance(one(s)));
+  c.patchDebtFields(set,"dx",{monthly:250});
+  assert.equal(one(s).months,40);assert.equal(one(s).monthly,250);assert.equal(cents(c.debtBalance(one(s))),saldo);
+});
+
 console.log("deudas-lo-descuento: "+n+" casos OK ("+(process.env.TZ||"TZ local")+")");

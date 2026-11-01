@@ -1165,20 +1165,21 @@ function PersonaSheet({pid, draft, mensual:draftMensual, sinBorrar, state, set, 
       const viejo=ids.find(function(id){ return esViejo(id); });
       const resto=ids.filter(function(id){ return id!==viejo; });
       const cambio=function(s){ return personaEnRecibos(s,persona,resto,y,m,today); };
-      if(resto.length&&!viejo){
-        descuentoPregunta(state,cambio).then(function(fix){ set(function(s){ return conDescuentoFijado(fix,cambio(s)); }); swipe.close(); });
-        return;
-      }
-      if(resto.length) set(cambio);
-      if(viejo&&onCompartidoViejo){ savedRef.current=true; onClose(); onCompartidoViejo(viejo,persona); return; }
+      // Con un compartido de antes también se pregunta por el resto antes de abrirlo (rev. R5).
+      descuentoPregunta(state,resto.length?cambio:function(s){ return s; }).then(function(fix){
+        if(resto.length) set(function(s){ return conDescuentoFijado(fix,cambio(s)); });
+        if(viejo&&onCompartidoViejo){ onClose(); onCompartidoViejo(viejo,persona); return; }
+        swipe.close();
+      });
+      return;
     }
     swipe.close();
   };
   const borrar=function(){
     if(!gone){ setGone(true); return; }
     savedRef.current=true;
-    set(function(s){ return personaEditar(s,pid,null,y,m,today); });
-    swipe.close();
+    const cambio=function(s){ return personaEditar(s,pid,null,y,m,today); };
+    descuentoPregunta(state,cambio).then(function(fix){ set(function(s){ return conDescuentoFijado(fix,cambio(s)); }); swipe.close(); });
   };
   const chip=function(key,label,on,go,dis){
     return React.createElement("button",{type:"button",key:key,className:"chip"+(on?" active":""),"aria-pressed":on?"true":"false",disabled:!!dis,onClick:go},label);
@@ -1716,7 +1717,7 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
   };
   const quitar=function(){
     if(!gone){ setGone(true); return; }
-    removeFixedById(set,f.id);
+    quitarReciboPreguntando(state,set,f.id);
     cerrarCon(tf("pr6_borrado_toast",{name:row.name}));
   };
   const par=[];
@@ -2041,7 +2042,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
   const removeWithUndo=function(row){
     setSavedBill(null);
     const snap={kind:row.kind, item:Object.assign({},row.item)};
-    if(row.kind==="fixed") removeFixedById(set,row.id);
+    if(row.kind==="fixed") quitarReciboPreguntando(state,set,row.id);
     else if(row.kind==="flow") removeFlowById(set,row.id);
     else if(row.kind==="oneoff") removeOneoffById(set,row.id);
     else return;
@@ -2377,16 +2378,42 @@ function rp4Cent(n){ return Math.round((Number(n)||0)*100); }
    guardar, pasada por el estado que se ve. Resuelve con lo que dijo, o null si no hay nada que
    preguntar o no quiere tocarla: el recibo se guarda igual y la deuda se queda como estaba.
    En euros como el campo, no con eur(), que pasa a la moneda de visualización (revisión d139d). */
-function descuentoPregunta(state,cambio){
-  const q=descuentoDescuadre(state,cambio(state))[0];
-  if(!q) return Promise.resolve(null);
+function descuentoBajaPregunta(q){
   return askText({title:tf("rp6_desc_q",{x:NF.format(q.paga)+" €"}),sub:q.name,value:rp4Raw(q.baja),ph:"0,00 €",
     ok:t("rp6_desc_ok"),cancel:t("rp6_desc_no")}).then(function(raw){
     const baja=raw==null?0:parseNumPadRaw(raw);
     return baja>0?{id:q.id,paga:q.paga,baja:baja}:null;
   });
 }
-function conDescuentoFijado(fix,s){ return fix?deudaFijarDescuento(s,fix.id,fix.paga,fix.baja):s; }
+// Una pregunta por deuda descuadrada, una detrás de otra (rev. lo-descuento R4: antes solo la primera).
+function descuentoPregunta(state,cambio){
+  const fixes=[];
+  return descuentoDescuadre(state,cambio(state)).reduce(function(p,q){
+    return p.then(function(){ return descuentoBajaPregunta(q).then(function(f){ if(f) fixes.push(f); }); });
+  },Promise.resolve()).then(function(){ return fixes; });
+}
+function conDescuentoFijado(fixes,s){ return (fixes||[]).reduce(function(o,f){ return deudaFijarDescuento(o,f.id,f.paga,f.baja); },s); }
+/* El descuadre ya guardado (R1): primero cuánto le pasa (puede que la cuota guardada ya sea esa),
+   luego la pregunta de siempre con lo que baja. Cancelar cualquiera de las dos no toca nada. */
+function descuentoAjustarGuardado(state,set,d){
+  const q=descuentoDescuadreGuardado(state,d);
+  if(!q) return;
+  askText({title:t("rp6_pasas_q"),sub:q.name,value:rp4Raw(q.paga),ph:"0,00 €",ok:t("ask_ok")}).then(function(raw){
+    const paga=raw==null?0:parseNumPadRaw(raw);
+    if(!(paga>0)) return;
+    descuentoBajaPregunta({id:q.id,name:q.name,paga:paga,baja:Math.round((paga+q.descuento)*100)/100}).then(function(f){
+      if(f) set(function(s){ return conDescuentoFijado([f],s); });
+    });
+  });
+}
+/* Quitar un recibo con una parte que se descuenta: si la deuda no queda cuadrada (la bajada tecleada
+   no era cuota + descuento), se pregunta igual que al ponerlo (rev. lo-descuento R2). */
+function quitarReciboPreguntando(state,set,id){
+  descuentoPregunta(state,function(s){ return deudasTrasReparto(s,Object.assign({},s,{fixed:(s.fixed||[]).filter(function(e){ return e.id!==id; })})); }).then(function(fixes){
+    removeFixedById(set,id);
+    if(fixes.length) set(function(s){ return conDescuentoFijado(fixes,s); });
+  });
+}
 function rp4DiasMes(ym){ const Y=Math.floor((ym-1)/12), M=ym-Y*12; return new Date(Y,M,0).getDate(); }
 /* Un cargo de una sola vez de hoy o de antes este mes ya «se habría cobrado» por calendario sin
    ningún cargo detrás: lo de hoy sin cobro es cargo de hoy (decisión del dueño, t3). Se apunta

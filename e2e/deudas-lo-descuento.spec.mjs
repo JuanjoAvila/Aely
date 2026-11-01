@@ -136,3 +136,46 @@ test("Editar deuda con interés: no ofrece «Baja la deuda al mes»", async ({ p
   await expect(hoja.locator('[data-debt-field="monthly"]')).toBeVisible();
   await expect(hoja.locator('[data-debt-field="amort"]')).toHaveCount(0);
 });
+
+test("descuadre ya guardado: la tarjeta lo señala y se ajusta preguntando, sin quitar a nadie", async ({ page }) => {
+  // El estado del dueño: «Lo descuento» de 53 puesto antes de que se preguntara, cuota 250 y bajada 196,68.
+  const fibraComp = Object.assign({}, fibra, { amount: 32, bankAmount: 85, reparto: [{ id: "pe_fam", n: "Familia", via: "debt", debtId: "fam", amt: 53 }] });
+  await abrePlan(page, { fixed: [fibraComp], debts: [prestamo] });
+  await page.locator(".v4-seg-btn").filter({ hasText: "Deudas" }).click();
+  const tarjeta = page.locator('[data-debt-id="fam"]');
+  await expect(tarjeta.getByTestId("debt-descuento")).toHaveText("pagas 250,00 € + 53,00 € de Fibra");
+  await tarjeta.locator('[data-act="debt-descuadre"]').click();
+  await expect(ask(page).locator("#ask-dialog-title")).toHaveText("¿Cuánto le pasas al mes?");
+  await expect(ask(page).locator(".ask-in")).toHaveValue("197");
+  await ask(page).locator(".btn-primary").click();
+  await expect(ask(page).locator("#ask-dialog-title")).toHaveText("¿Le pasas 197,00 € y la deuda baja esto?");
+  await expect(ask(page).locator(".ask-in")).toHaveValue("250");
+  await ask(page).getByRole("button", { name: "Ajustar la deuda" }).click();
+  await expect(ask(page)).toHaveCount(0);
+  const s = await guardado(page);
+  expect(s.debts[0]).toMatchObject({ monthly: 197, amort: 250, months: 24, value: 6000 });
+  await expect(tarjeta.getByTestId("debt-descuento")).toHaveText("pagas 197,00 € + 53,00 € de Fibra");
+  await expect(tarjeta.locator('[data-act="debt-descuadre"]')).toHaveCount(0);
+});
+
+test("descuadre ya guardado: cancelar no toca nada", async ({ page }) => {
+  const fibraComp = Object.assign({}, fibra, { amount: 32, bankAmount: 85, reparto: [{ id: "pe_fam", n: "Familia", via: "debt", debtId: "fam", amt: 53 }] });
+  await abrePlan(page, { fixed: [fibraComp], debts: [prestamo] });
+  await page.locator(".v4-seg-btn").filter({ hasText: "Deudas" }).click();
+  await page.locator('[data-debt-id="fam"] [data-act="debt-descuadre"]').click();
+  await ask(page).locator(".btn-primary").click();
+  await ask(page).getByRole("button", { name: "Dejarla como está" }).click();
+  expect((await guardado(page)).debts[0]).toEqual(prestamo);
+});
+
+test("Editar deuda ligada: cuota 197 y «Baja la deuda al mes» 250 se guardan las dos", async ({ page }) => {
+  const ligada = { id: "lig", name: "Préstamo ligado", monthly: 250, value: 6000, account: "sabadell", day: 20, asOf: YM - 1 };
+  const hoja = await editarDeuda(page, ligada);
+  await hoja.locator('[data-debt-field="monthly"]').fill("197");
+  // Sin tocarla, la bajada sigue a la cuota en pantalla: lo que se ve es lo que se guarda.
+  await expect(hoja.locator('[data-debt-field="amort"]')).toHaveValue("197");
+  await hoja.locator('[data-debt-field="amort"]').fill("250");
+  await hoja.getByRole("button", { name: "Guardar cambios", exact: true }).click();
+  await expect(hoja).toHaveCount(0);
+  expect((await guardado(page)).debts[0]).toMatchObject({ monthly: 197, amort: 250, value: 6000 });
+});

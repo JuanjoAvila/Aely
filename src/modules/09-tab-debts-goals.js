@@ -50,7 +50,12 @@ function debtEditResult(d,form){
   const next=Object.assign({},d),oldBalance=+debtBalance(d).toFixed(2);
   const amountChanged=balance!==oldBalance,quotaChanged=monthly!==(d.monthly||0),dayChanged=day!==debtChargeDay(d),
     termChanged=months!==(d.months==null?null:d.months),aprChanged=apr!==(d.apr==null?null:d.apr),
-    amortChanged=amortIn!=null&&Math.round(amortIn*100)!==Math.round(debtAmort(d)*100);
+    // Tecleada en la hoja (`amortSet`) también cuenta si es la de antes pero la cuota ligada se movió:
+    // si no, «cuota 197, baja 250» en una deuda que bajaba 250 se guardaba bajando 197 (rev. lo-descuento B1).
+    tiedMoves=quotaChanged&&(d.amort==null||Math.abs(d.amort-(d.monthly||0))<=0.005),
+    // Ligada y siguiendo a la cuota en pantalla (bajada = cuota nueva) sigue siendo la ligadura de siempre.
+    amortChanged=amortIn!=null&&(tiedMoves?Math.round(amortIn*100)!==Math.round(monthly*100)&&
+      (form.amortSet===true||Math.round(amortIn*100)!==Math.round(debtAmort(d)*100)):Math.round(amortIn*100)!==Math.round(debtAmort(d)*100));
   // Cambiar el calendario de una deuda terminada puede reabrirla o reescribir su historia.
   // La guardia también protege llamadas que no pasan por los campos bloqueados de la ficha.
   if(debtEditFinished(d)&&(amountChanged||quotaChanged||dayChanged||termChanged||aprChanged||amortChanged)) return {error:"db_finished_edit_hint"};
@@ -80,6 +85,8 @@ function debtEditResult(d,form){
     if((termChanged||quotaChanged&&quotaIsAmort)&&next.months!=null){
       const remaining=next.months-paid,perMonth=Math.round(am*100),principal=Math.round(balance*100)-Math.round((next.balloon||0)*100);
       if(remaining<=0||principal<=(remaining-1)*perMonth||principal>remaining*perMonth){
+        // Con la bajada tecleada, el rango de cuotas no dice nada: lo que no encaja es lo que baja.
+        if(amortChanged) return {error:"db_err_term_amort"};
         // Con solo la cuota tocada se dice qué cuota encaja: «no encajan» a secas dejaba a la
         // hipoteca heredada sin forma de saber qué valor aceptaba (revisión d139c).
         const lo=remaining>0?Math.ceil(principal/remaining):0,hi=remaining>1?Math.ceil(principal/(remaining-1))-1:null;
@@ -324,6 +331,9 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,showToast,review,recover
         const f=Object.assign({},form,{[key]:e.target.value});
         // Se ve antes de guardar: el plazo nuevo mueve lo que baja (si va por libre de la cuota).
         if(key==="months"){ const a=debtEditAmortDePlazo(debt,f); if(a!=null) f.amort=a; }
+        // Ligada y sin tocar, lo que baja sigue a la cuota en pantalla: lo que se ve es lo que se guarda.
+        if(key==="monthly"&&!form.amortSet&&form.amort!==undefined&&planEditNumber(form.amort,true)===planEditNumber(form.monthly)) f.amort=e.target.value;
+        if(key==="amort") f.amortSet=true;
         setForm(f); }})); };
   return React.createElement(PlanEditSheet,{title:t("db_edit_title"),onClose:onClose,closer:closer},React.createElement("div",{className:"add-form"},
     input("name","plan_edit_name"),input("note","plan_conflict_note"),input("balance","db_pending","decimal"),
@@ -619,6 +629,9 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
         // Parte de un recibo compartido que se descuenta de esta deuda (Plan › Recibos v6, tanda 5).
         (function(){ const hoy=madridYmdParts(Date.now()), c=d.monthly>0?deudaDescuentoMes(state,d,hoy.y,hoy.m,hoy.d):null;
           return c&&c.amt>0?React.createElement("div",{className:"v4-debt-sub","data-testid":"debt-descuento"},tf("pr6_pagas_mas",{a:eur(d.monthly),b:eur(c.amt),from:c.from.join(", ")})):null; })(),
+        // El descuadre ya guardado no se pregunta solo (rev. lo-descuento R1): se señala y se ajusta si quiere.
+        descuentoDescuadreGuardado(state,d)&&React.createElement("button",{type:"button",className:"chip","data-act":"debt-descuadre",style:{alignSelf:"flex-start",marginTop:6},
+          onClick:function(){ descuentoAjustarGuardado(state,set,d); }},t("rp6_no_cuadra")),
         React.createElement("div",{className:"v4-debt-bar"},React.createElement("i",{style:{width:pct+"%"}})),
         React.createElement("div",{className:"v4-debt-foot"},
           React.createElement("span",null,tf("db_paidoff",{x:eur0(paid),p:Math.round(pct)})),
