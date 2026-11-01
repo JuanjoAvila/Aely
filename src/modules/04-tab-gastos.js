@@ -2783,7 +2783,10 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
      es para que ninguna otra vía que vacíe `editExp` pueda volver a dejar la app muerta. */
   const abierto=!!exp && !!editExp;
   const transferSandbox=mcSandbox();
-  const transferPlan=useMemo(function(){return abierto?ownTransferPlan(state,exp):null;},[abierto,exp,state]);
+  // La elegibilidad se recalcula, pero un cambio ajeno no debe repetir las dos lecturas remotas.
+  // La foto completa conserva las invalidaciones del plan, incluidas relaciones fuera de la fila.
+  const transferSignature=JSON.stringify(abierto?ownTransferPlan(state,exp):null);
+  const transferPlan=useMemo(function(){return JSON.parse(transferSignature);},[transferSignature]);
   const transferLive=useRef(null);transferLive.current={plan:transferPlan,state:state,sandbox:transferSandbox};
   const [transferOffer,setTransferOffer]=useState(null);
   useEffect(function(){
@@ -2914,7 +2917,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     exp.renamePending&&React.createElement("div",{className:"hint",role:"status","data-testid":"expense-rename-pending"},t(exp.renamePending.quarantined?"g_rename_paused":"g_rename_pending")," ",React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){saveEdit(exp,{merchant:exp.renamePending.merchant,retryRename:true});}},t("g_note_retry"))),
     trace,duplicate,paired,reciboAviso,
     sourceActionStatus&&sourceActionStatus.id===exp.id&&React.createElement("div",{role:"status","data-testid":"exp-source-save-status"},React.createElement("div",null,t(sourceActionStatus.status==="pending"?"f_source_pending":"f_source_save_error")),sourceActionStatus.status==="error"&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-source-refresh",onClick:function(){refreshSourceAction().catch(function(){});}},t("f_source_refresh"))),
-    transferPlan&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-own-transfer",
+    transferPlan&&transferOffer&&transferOffer.plan===transferPlan&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-own-transfer",
       disabled:!transferOffer||transferOffer.plan!==transferPlan||ownTransferStatus&&ownTransferStatus.id===exp.id&&ownTransferStatus.status==="pending",onClick:function(){
         if(!transferOffer||transferOffer.plan!==transferPlan)return;
         // Revalidar también al pulsar: haber abierto la ficha no reserva esas filas remotas.

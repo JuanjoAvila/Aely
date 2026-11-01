@@ -355,23 +355,51 @@ test('R4 traspaso no limpia un conflicto semántico al actualizar',async({page})
 for(const leg of [0,1])test(`UUID preflight: no ofrece decisión con identidad remota divergente (${leg})`,async({page})=>{
   const remote=[out,incoming].map(toRow);remote[leg].id='550e8400-e29b-41d4-a716-446655440009';
   const sheet=await open(page,{remote}),action=sheet.getByTestId('exp-own-transfer'),before=await saved(page);
-  await expect(action).toBeDisabled();
   await expect.poll(()=>page.evaluate(()=>window.__own.singleReads||0)).toBeGreaterThanOrEqual(leg+1);
   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
-  await expect(action).toBeDisabled();await action.evaluate(el=>el.click());
+  await expect(action).toHaveCount(0);
   await expect(page.locator('.askback')).toHaveCount(0);
   const after=await saved(page);expect(after.expenses).toEqual(before.expenses);expect(after.remote).toEqual(before.remote);
   expect(after.state.accounts).toEqual(before.state.accounts);expect(after.state.settings.expenseOrder).toEqual(before.state.settings.expenseOrder);
   expect(after.writes).toEqual([]);
 });
 
+// El contador observa el SDK real del montaje; set() pasa por el controlador de Gastos.
+async function unrelatedTransferUpdate(page,kind){
+  await page.evaluate(kind=>{
+    const el=document.querySelector('[data-testid="exp"]');let f=el[Object.keys(el).find(k=>k.startsWith('__reactFiber'))];
+    while(f&&!(f.memoizedProps&&f.memoizedProps.onRefreshExpenses))f=f.return;
+    if(!f)throw new Error('Expenses controller missing');
+    f.memoizedProps.set(s=>kind==='copies'?{...s,expenses:s.expenses.map(e=>({...e}))}:
+      kind==='settings'?{...s,settings:{...s.settings,autoPrices:!s.settings.autoPrices}}:{...s,_savedAt:(s._savedAt||0)+1});
+  },kind);
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+}
+for(const held of [false,true])test(`PR345 firma: state ajeno no repite lecturas (${held?'pendiente':'oferta'})`,async({page})=>{
+  const sheet=await open(page,{mode:held?'preflightHold':'ok'}),action=sheet.getByTestId('exp-own-transfer');
+  if(held)await expect.poll(()=>page.evaluate(()=>typeof window.__own.releaseRead)).toBe('function');
+  else await expect(action).toBeEnabled();
+  expect(await page.evaluate(()=>window.__own.singleReads)).toBe(held?1:2);
+  const before=await saved(page);
+  for(const kind of ['settings','copies','savedAt']){
+    await unrelatedTransferUpdate(page,kind);
+    expect(await page.evaluate(()=>window.__own.singleReads),kind).toBe(held?1:2);
+    if(!held)await expect(action).toBeEnabled();
+  }
+  if(held){await page.evaluate(()=>{window.__own.mode='ok';window.__own.releaseRead();});await expect(action).toBeEnabled();}
+  expect(await page.evaluate(()=>window.__own.singleReads)).toBe(2);
+  const after=await saved(page);expect(after.writes).toEqual([]);expect(after.expenses).toEqual(before.expenses);
+  expect(after.remote).toEqual(before.remote);expect(after.state.accounts).toEqual(before.state.accounts);
+  expect(after.state.settings.expenseOrder).toEqual(before.state.settings.expenseOrder);
+});
+
 test('UUID preflight: pendiente y fallo no habilitan ni escriben',async({page})=>{
   const sheet=await open(page,{mode:'preflightHold'}),action=sheet.getByTestId('exp-own-transfer'),before=await saved(page);
   await expect.poll(()=>page.evaluate(()=>typeof window.__own.releaseRead)).toBe('function');
-  await expect(action).toBeDisabled();await action.evaluate(el=>el.click());await expect(page.locator('.askback')).toHaveCount(0);
+  await expect(action).toHaveCount(0);await expect(page.locator('.askback')).toHaveCount(0);
   await page.evaluate(()=>{window.__own.mode='preflightError';window.__own.releaseRead();});
   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
-  await expect(action).toBeDisabled();const after=await saved(page);
+  await expect(action).toHaveCount(0);const after=await saved(page);
   expect(after.writes).toEqual([]);expect(after.remote).toEqual(before.remote);expect(after.expenses).toEqual(before.expenses);
 });
 test('UUID preflight: comprueba de nuevo al pulsar sin abrir una decisión imposible',async({page})=>{
@@ -380,7 +408,7 @@ test('UUID preflight: comprueba de nuevo al pulsar sin abrir una decisión impos
   await page.evaluate(()=>{window.__own.rows[1].id='550e8400-e29b-41d4-a716-446655440009';});
   await action.click();await expect.poll(()=>page.evaluate(()=>window.__own.singleReads||0)).toBeGreaterThanOrEqual(4);
   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
-  await expect(action).toBeDisabled();await expect(page.locator('.askback')).toHaveCount(0);
+  await expect(action).toHaveCount(0);await expect(page.locator('.askback')).toHaveCount(0);
   const after=await saved(page);expect(after.writes).toEqual([]);expect(after.expenses).toEqual(before.expenses);expect(after.state.accounts).toEqual(before.state.accounts);
 });
 for(const kind of ['owner','accounts','amount'])test(`UUID preflight: descarta lectura tardía tras cambiar ${kind}`,async({page})=>{
@@ -400,7 +428,71 @@ test('UUID preflight: cerrar y reabrir no hereda lectura tardía de la misma fic
   await expect.poll(()=>page.evaluate(()=>window.__own.releaseRead!==window.__oldReadRelease)).toBe(true);
   await page.evaluate(()=>window.__oldReadRelease());
   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
-  await expect(sheet.getByTestId('exp-own-transfer')).toBeDisabled();await expect(page.locator('.askback')).toHaveCount(0);
+  await expect(sheet.getByTestId('exp-own-transfer')).toHaveCount(0);await expect(page.locator('.askback')).toHaveCount(0);
   await page.evaluate(()=>{window.__own.mode='ok';window.__own.releaseRead();});
   await expect(sheet.getByTestId('exp-own-transfer')).toBeEnabled();expect((await saved(page)).writes).toEqual([]);
+});
+
+const transferChanges=['owner','accounts','obAcc','amount','date','category','source','extId','merchant','uuid','ambiguous','tombstone','receipt'];
+const stillEligible=['date','category','source','extId','merchant'];
+async function changeTransferSnapshot(page,kind){
+  await page.evaluate(({kind,id})=>{
+    const el=document.querySelector('[data-testid="exp"]');let f=el[Object.keys(el).find(k=>k.startsWith('__reactFiber'))];
+    while(f&&!(f.memoizedProps&&f.memoizedProps.onRefreshExpenses))f=f.return;
+    if(!f)throw new Error('Expenses controller missing');
+    f.memoizedProps.set(s=>{
+      const e=s.expenses.find(e=>e.id===id),patch={};let next={...s};
+      if(kind==='owner')next._historyOwner='different-fixture-owner';
+      else if(kind==='accounts')next.accounts=s.accounts.map((a,i)=>i? a:{...a,bankUid:'unknown'});
+      else if(kind==='ambiguous')next.expenses=[...s.expenses,{...s.expenses[1],id:'550e8400-e29b-41d4-a716-446655440003',extId:'third'}];
+      else if(kind==='tombstone')next.deleted=[...(s.deleted||[]),keyOfExpense(e)];
+      else if(kind==='receipt'){
+        const d=new Date(e.date),ym=d.getFullYear()*12+d.getMonth()+1;
+        next.fixed=[{id:'fixture-proof',paymentProofs:{[ym]:{kind:'expense',expenseId:e.id}}}];
+      }else{
+        if(kind==='obAcc')patch.obAcc='unknown';
+        if(kind==='amount')patch.amount=81;
+        if(kind==='date')patch.date=new Date(Date.parse(e.date)+3600000).toISOString();
+        if(kind==='category')patch.category='salud';
+        if(kind==='source')patch.source='ob-hist';
+        if(kind==='extId')patch.extId='changed-ref';
+        if(kind==='merchant')patch.merchant='Concepto sintético corregido';
+        if(kind==='uuid')patch.id='550e8400-e29b-41d4-a716-446655440009';
+        next.expenses=s.expenses.map(x=>x.id===id?{...x,...patch}:x);
+      }
+      // La nueva foto remota acompaña al fixture; no se invoca un writer de producto.
+      window.__own.rows=next.expenses.map(x=>({id:x.id,user_id:next._historyOwner,fecha:x.date,comercio:x.merchant,importe:x.amount,cat:x.category,source:expenseSourceForCloud(x)}));
+      return next;
+    });
+  },{kind,id:out.id});
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+}
+for(const held of [false,true])for(const kind of transferChanges)test(`PR345 invalida: ${kind} (${held?'pendiente':'oferta'})`,async({page})=>{
+  const sheet=await open(page,{mode:held?'preflightHold':'ok'}),action=sheet.getByTestId('exp-own-transfer');
+  if(held)await expect.poll(()=>page.evaluate(()=>typeof window.__own.releaseRead)).toBe('function');
+  else await expect(action).toBeEnabled();
+  const initialReads=held?1:2;expect(await page.evaluate(()=>window.__own.singleReads)).toBe(initialReads);
+  await page.evaluate(()=>{window.__oldReadRelease=window.__own.releaseRead;window.__own.mode='preflightHold';});
+  await changeTransferSnapshot(page,kind);const changed=await saved(page);
+  await expect(action).toHaveCount(0);
+  if(stillEligible.includes(kind)){
+    await expect.poll(()=>page.evaluate(()=>window.__own.singleReads)).toBe(initialReads+1);
+    if(held){
+      await page.evaluate(()=>window.__oldReadRelease());
+      await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+      await expect(action).toHaveCount(0);
+    }
+    await page.evaluate(()=>{window.__own.mode='ok';window.__own.releaseRead();});
+    await expect(action).toBeEnabled();
+    expect(await page.evaluate(()=>window.__own.singleReads)).toBe(initialReads+2);
+  }else{
+    if(held)await page.evaluate(()=>{window.__own.mode='ok';window.__oldReadRelease();});
+    await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+    await expect(action).toHaveCount(0);
+    expect(await page.evaluate(()=>window.__own.singleReads)).toBe(initialReads);
+  }
+  const after=await saved(page);expect(after.writes).toEqual([]);expect(after.remote).toEqual(changed.remote);
+  expect(after.expenses).toEqual(changed.expenses);expect(after.state.accounts).toEqual(changed.state.accounts);
+  expect(after.state.settings.expenseOrder).toEqual(changed.state.settings.expenseOrder);
+  await expect(page.locator('.askback')).toHaveCount(0);
 });
