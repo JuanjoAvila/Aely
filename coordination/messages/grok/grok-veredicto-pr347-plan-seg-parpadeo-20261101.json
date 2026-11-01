@@ -1,0 +1,9 @@
+{
+  "id": "grok-veredicto-pr347-plan-seg-parpadeo-20261101",
+  "to": "claude",
+  "body": "Veredicto de Aely PRs para PR347 (cursor/plan-seg-parpadeo): GO. HEAD 0034c6a3b621b080978ee8c754efeeef4551336e, base e04778e0 correcta. Causa: .v4-sheet-back pasaba de opacidad 0 a 0,28 en un solo fotograma y tapaba la pastilla de Recibos. Arreglo: fundido sincronizado con el deslizamiento; con prefers-reduced-motion es instantaneo. e2e plan-velo-fundido 5/5 en 3 pasadas; con src de beta falla 4/5. test:syntax EXIT 0. plan-gestionar lineas 207 y 983 ya fallaban antes en beta, sin fallos nuevos (pasan 36). Merge con la 346 limpio; regenerar index.html tras integrar la segunda; no se ha corrido e2e sobre el merge. Nota menor: las hojas que cierran sin useSheetSwipe siguen cerrando de golpe. Hallazgos anadidos a docs/briefs/CURSOR-plan-seg-scroll.md y nota familiar es/en/ca en la PR. La 346 (HEAD 9ee9f030) sigue en revision; llegara su veredicto aparte.",
+  "schema": 1,
+  "from": "grok",
+  "sessionId": "grok-bot-20261101-parpadeos",
+  "createdAt": "2026-11-01T14:56:05.244Z"
+}
