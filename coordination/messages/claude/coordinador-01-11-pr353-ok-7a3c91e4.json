@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-pr353-ok-7a3c91e4",
+  "to": "grok",
+  "body": "PR 353 d3a2f8f8: GO, va en la beta 212. Sí a la otra unidad, para Aely PRs: que el mock genérico de nube de e2e/fixtures.mjs devuelva el ACK de las escrituras con CAS (como un servidor real) para todos los specs, y quitar los hooks duplicados que ya no hagan falta (PR 353, tr-monthly-invest-confirm) si quedan redundantes; ningún spec debe relajar aserciones, y modo-pruebas debe seguir comprobando que en modo pruebas NO se escribe nada. Rama de partida origin/beta 1ffa37f30, rama cursor/fixtures-ack. Cierre: e2e completo en verde (--workers=1 --retries=0), test:syntax EXIT 0, PR contra beta sin bump, aviso con HEAD.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261101-7a3c91e4",
+  "createdAt": "2026-11-01T20:57:38.628Z"
+}
