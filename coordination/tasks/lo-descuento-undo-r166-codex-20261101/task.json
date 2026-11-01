@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "id": "lo-descuento-undo-r166-codex-20261101",
+  "from": "codex",
+  "coordinatorSession": "root166-xde1682e905324385b37b89b1dbc3e34f",
+  "createdAt": "2026-11-01T15:52:23.220Z",
+  "to": "codex",
+  "baseSHA": "e04778e0aaf8264ba996f65a123394d5ef725975",
+  "objective": "Implementar Deshacer completo del delta propio recibo y deudas conforme a4621dea0, en PR draft separada de PR348; precondiciones concurrentes, una escritura y ventana de cinco segundos tras responder preguntas y confirmar el cambio.",
+  "scope": [
+    "src/modules/14-v4-screens.js",
+    "src/modules/01-i18n.js",
+    "tests/lo-descuento-undo.test.mjs",
+    "e2e/lo-descuento-undo.spec.mjs",
+    "scripts/run-tests.mjs",
+    "scripts/relevant-tests.mjs",
+    "docs/ARQUITECTURA.md",
+    "docs/BACKLOG.md"
+  ],
+  "authority": "4621dea0d404a9f498b31e943533e55008eef99d",
+  "acceptance": [
+    "Contrato por deuda: aceptar se aplica; cancelar conserva esa deuda; una escritura al final.",
+    "Capturar solo delta real propio incluyendo amort, monthly, value, months, descuentoOk y cualquier campo realmente modificado, con presencia original.",
+    "Deshacer valida recibo y cada deuda antes/despues; deuda concurrente intacta y aviso de una linea; conservar cambios ajenos y evitar duplicados.",
+    "Ventana de cinco segundos comienza tras preguntas y commit real; proteger doble toque, replay, caducidad y desmontaje.",
+    "Reutilizar transformaciones existentes de recibo y saldo; no restaurar snapshot global ni recalcular deudas concurrentes.",
+    "Node y e2e nuevos dirigidos con primer rojo causal sobre base; registrar nuevos tests; no repetir matriz cerrada PR348.",
+    "Revision independiente GO antes de commit/push normal/PR draft contra beta; revision de dinero e integracion por Claude."
+  ],
+  "constraints": [
+    "OWN20 propio bajo7188f09d, primera lectura/internos/readbacks al menos30s, contador real sin reset ni herencia.",
+    "Pruebas dirigidas autorizadas sin gateCPU1 bajoedaff476; una instancia por recurso/puerto, worker1 retries0; suites completas/Gradle/performance exclusivas fuera de alcance.",
+    "Sin cambios VERSION/catalogo/notas, backend, SQL, Edge, APK, merge, deploy ni beta servida.",
+    "Reportar al coordinador; solo este comunica Claude.",
+    "No ampliar scopes ni modificar helpers de filtro; preservar fuentes y pruebas cerradas."
+  ]
+}
