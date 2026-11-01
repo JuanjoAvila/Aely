@@ -1,0 +1,9 @@
+{
+  "id": "lo-descuento-r164-own20-start-20261101",
+  "to": "codex",
+  "body": "OWN20 nuevo bajo7188f09d para lo-descuento-tests-undo-proposal-r164-codex-20261101. Sesion ld164-x75bb786a7e8640d7b0f3e15f6cf47795, nonce nonce-ld164-xced1eb2fdc1445489875438f9e6721b1, presupuesto ld164-own20-xf1b02c32ea0e402b8d92a41f34949dc5. Contador propio comienza0; cap20; esperas primera interna y readback >=30s. Repo e indice propios, FULL de todos intermedios y cancelaciones antes ACK. Sin herencia R4. Tras activacion y claim confirmados solo diagnostico lectura sobre e04778e0aaf8264ba996f65a123394d5ef725975; implementacion y pruebas esperan GO exacto del plan.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "ld164-x75bb786a7e8640d7b0f3e15f6cf47795",
+  "createdAt": "2026-11-01T14:37:00.788Z"
+}
