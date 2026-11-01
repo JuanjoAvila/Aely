@@ -225,6 +225,7 @@ const steps = [
   ["hist-import-dup", ["node", "tests/hist-import-dup.test.mjs"]],
   ["plan-charges", ["node", "tests/plan-charges.test.mjs"]],
   ["plan-recibos-cerrado", ["node", "tests/plan-recibos-cerrado.test.mjs"]],
+  ["recibo-cargo-pendiente", ["node", "tests/recibo-cargo-pendiente.test.mjs"]],
   ["fixed-day-reconcile", ["node", "tests/fixed-day-reconcile.test.mjs"]],
   ["fixed-payment-state", ["node", "tests/fixed-payment-state.test.mjs"]],
   ["recibos-renombrar", ["node", "tests/recibos-renombrar.test.mjs"]],

@@ -1483,6 +1483,22 @@ function reciboCargosElegibles(s,f,y,m,today){
     return fixedExpenseEligible(s,x,f,y,m,today);
   });
 }
+/* Cargos del banco del recibo que hoy NO se pueden elegir solo porque el banco aún no los ha
+   confirmado (pendientes o con fecha posterior a hoy). Se enseñan sin poder tocarlos: la regla de
+   prueba de pago no cambia (un pendiente no demuestra el pago, NO-GO 3/10), pero «Sin cargos de
+   Sabadell este mes» con el cargo ya en Gastos era mentira (compra en domingo que el banco apunta
+   el lunes, beta 4.26.210, 1/11/2026). */
+function reciboCargosPorConfirmar(s,f,y,m,today,elegibles){
+  const ym=y+"-"+String(m).padStart(2,"0"), bank=accOf(f), deleted=expenseDeletedSet(s);
+  const ya=new Set((elegibles||[]).map(function(x){ return x.id; }));
+  return (s.expenses||[]).filter(function(x){
+    if(!x||ya.has(x.id)||!(Number(x.amount)>0)||String(x.date||"").slice(0,7)!==ym||x.debtId||x.possibleDup||metaDeGasto(x)) return false;
+    if(x.reciboId&&x.reciboId!==f.id) return false;
+    if(expenseBankOf(x)!==bank||CAT_NEUTRAS[x.category]||x.category==="ingreso"||expenseIsTombstoned(x,deleted)) return false;
+    const st=String(x.status||"").toUpperCase(), d=recDay(x.date);
+    return !!x.obPending||(!!st&&st!=="BOOK")||(d!=null&&d>today);
+  }).sort(function(a,b){ return dateMs(String(b.date).slice(0,10))-dateMs(String(a.date).slice(0,10)); });
+}
 function reciboCargoTexto(x){ return String((x&&(x.merchant||x.obName))||""); }
 /* La cuota de una deuda en Recibos (beta 4.26.200): «sale un cargo que YA está enlazado, no deja
    pulsarlo y te lleva a Deudas». Tocarla abre su ficha con el cargo que Gastos le ha marcado este
@@ -1618,6 +1634,9 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
     return (dayF==null||d==null||d>=dayF-7)&&Math.abs(Number(x.amount)-target)<=Math.max(2,target*0.15);
   }).sort(function(a,b){ return Math.abs(a.amount-target)-Math.abs(b.amount-target); });
   const recientes=delBanco.filter(function(x){ return cands.indexOf(x)<0; }).sort(function(a,b){ return dms(b)-dms(a); }).slice(0,4);
+  const porConfirmar=useMemo(function(){
+    return paso===1&&f?reciboCargosPorConfirmar(base,f,y,m,today,pool):[];
+  },[paso,base,f,y,m,today,pool]);
   const qq=q.trim().toLowerCase();
   const encontrados=qq?pool.filter(function(x){
     const a=Number(x.amount).toFixed(2), qn=qq.replace(",",".");
@@ -1691,6 +1710,16 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
         React.createElement("span",{className:"pr6-cand-s"}, (recDay(x.date)||"")+" "+monthShort(m-1)+" · "+entOf(b).label)),
       React.createElement("span",{className:"pr6-cand-a num"}, eur(Number(x.amount))),
       React.createElement("span",{className:"pr6-ring","aria-hidden":"true"},"✓"));
+  };
+  // Sin botón ni anillo: se ve que el cargo ha llegado, pero no se puede elegir hasta que el banco lo confirme.
+  const pendRow=function(x){
+    const b=expenseBankOf(x);
+    return React.createElement("div",{key:x.id,className:"pr6-cand pend","data-cargo-pend":x.id},
+      React.createElement(Mono,{ent:b,size:38}),
+      React.createElement("span",{className:"pr6-cand-t"},
+        React.createElement("span",{className:"pr6-cand-n"}, reciboCargoTexto(x)||entOf(b).label),
+        React.createElement("span",{className:"pr6-cand-s"}, t("pr6_pend_banco"))),
+      React.createElement("span",{className:"pr6-cand-a num"}, eur(Number(x.amount))));
   };
   // Cabecera y estado del pago.
   const sub=dayF!=null?tf("pr6_se_cobra",{d:dayF,bank:entOf(bank).label}):entOf(bank).label;
@@ -1831,7 +1860,8 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
       onChange:function(e){ setQ(e.target.value); }}),
     !qq&&!cands.length&&recientes.length>0&&React.createElement("div",{className:"pr6-lbl"}, tf("pr6_otros_cargos",{bank:entOf(bank).label})),
     React.createElement("div",{className:"pr6-cands","data-testid":"recibo-cargos"}, lista.map(cargoRow)),
-    !lista.length&&React.createElement("div",{className:"pr6-empty"}, qq?tf("pr6_sin_resultados",{q:q.trim()}):tf("pr6_sin_cargos",{bank:entOf(bank).label})),
+    !qq&&porConfirmar.length>0&&React.createElement("div",{className:"pr6-cands","data-testid":"recibo-cargos-pend"}, porConfirmar.map(pendRow)),
+    !lista.length&&!(!qq&&porConfirmar.length)&&React.createElement("div",{className:"pr6-empty"}, qq?tf("pr6_sin_resultados",{q:q.trim()}):tf("pr6_sin_cargos",{bank:entOf(bank).label})),
     !qq&&cands.length>0&&recientes.length>0&&React.createElement("button",{type:"button",className:"pr6-more",onClick:function(){ setOtros(function(o){ return !o; }); }},
       otros?t("pr6_menos_cargos"):tf("pr6_otros_cargos",{bank:entOf(bank).label})),
     rechazo&&React.createElement("button",{type:"button",className:"pr6-btn pr6-btn-wide","data-act":"aun-no",onClick:aunNo},t("pr6_aun_no")));
