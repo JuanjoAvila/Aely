@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "id": "pr351-cleanup-r169-codex-20261101",
+  "from": "codex",
+  "coordinatorSession": "root169-xb6d1129c845342a5b501a43c991a058b",
+  "createdAt": "2026-11-01T18:51:59.514Z",
+  "to": "codex",
+  "baseSHA": "bed08759b82013ebae8fd9dcd7cb9b1789842a31",
+  "objective": "Remate autorizado97d91bd1e073e59879cd20823ed7cee0b9a368d2 en PR351: eliminar pr6_borrado_toast de es/en/ca; comprobar usos de removeFixedById y retirarla si solo la usan tests, adaptando esos tests a la pieza sustituta sin relajar aserciones. Misma PR y rama, sin rebase.",
+  "scope": [
+    "src/modules/01-langs.js",
+    "src/modules/14-v4-screens.js",
+    "tests afectados por removeFixedById",
+    "documentacion tecnica minima si necesaria"
+  ],
+  "constraints": [
+    "Verificar alcance real y plan antes de editar; no alterar logica financiera ni aserciones",
+    "Checkout propio desde base exacta; no compartir ni modificar checkout anterior",
+    "OWN20 nuevo, claim y readback propios antes de producto",
+    "Pruebas dirigidas afectadas solamente; no repetir validaciones cerradas sin cambio que lo justifique",
+    "Revision independiente GO antes de commit/push normal misma rama codex/recibo-detail-undo-r168 y PR351",
+    "Sin version/catalogo/backend/deploy/merge; no avisar a Claude directamente; retornar al coordinador"
+  ]
+}
