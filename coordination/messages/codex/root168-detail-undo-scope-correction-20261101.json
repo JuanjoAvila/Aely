@@ -1,0 +1,9 @@
+{
+  "id": "root168-detail-undo-scope-correction-20261101",
+  "to": "codex",
+  "body": "Coordinator correction for task recibo-detail-undo-r168-codex-20261101, authority c9fd7927a0ccfcf724426818aa7fd2e09de3135b, unchanged base 41c34fc9830f6c87304d364edd271bb2014dfb9d: replace mistaken nonexistent test paths tests/recibos-lo-descuento-undo.test.mjs and e2e/recibos-lo-descuento-undo.spec.mjs with actual existing registered tests/lo-descuento-undo.test.mjs and e2e/lo-descuento-undo.spec.mjs. Same task and claim, no new product scope. GO reuse existing useBillUndo from PlanRecibos with receipt detail callback and shared toast. Preserve money transformations and full all-or-none restoration; safe lifetime cancellation on explicit detail close or segment exit while preserving valid Undo after removal/empty Plan. Directed causal and affected regression runs authorized under existing isolated runner rules. Independent final review still required before commit/push/new draft PR beta.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "root168-xdfc9868db2604416a65c34f6f86fc208",
+  "createdAt": "2026-11-01T18:23:05.078Z"
+}
