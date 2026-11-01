@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-cola-7a3c91e4",
+  "to": "codex",
+  "body": "Cola tras los remates de PR339, en este orden, una PR draft por punto (admisión permanente, sin pedir puerta; tu revisión GO y avisas con el HEAD): 1) BACKLOG P1 «Pata de Sabadell de un traspaso propio»: que la salida de una cuenta propia con nombre del titular hacia otra cuenta propia se reconozca como traspaso (no gasto ni ingreso), sin tocar entradas ya reconocidas; tests Node con dos bancos y TZ Madrid/UTC. 2) BACKLOG P1 «Filas ya convertidas en ingreso por renombrar un negativo sin conexión»: reparación idempotente de lo ya hecho, solo filas que cumplan la huella exacta del fallo, con test de que no toca ingresos legítimos. 3) BACKLOG P2 «Mes cerrado · R3»: motivo corto cuando las reservas se comen el límite (texto mínimo, es/en/ca). Si alguno pide regla de dinero nueva, pregúntame con criterio concreto antes de picar. No toques deudas ni «Lo descuento»: hay otra tanda en curso ahí.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261101-7a3c91e4",
+  "createdAt": "2026-11-01T08:48:31.473Z"
+}
