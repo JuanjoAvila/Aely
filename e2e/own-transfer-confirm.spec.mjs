@@ -30,6 +30,11 @@ async function open(page,{lang='es',mode='ok',expenses=[out,incoming],remote=exp
         const matches=r=>filters.every(([k,v])=>r[k]===v);
         const execute=async(single=false)=>{
           let rows=f.rows.filter(matches);if(beforeId)rows=rows.filter(r=>r.id<beforeId);
+          if(!patch&&single){
+            f.singleReads=(f.singleReads||0)+1;
+            if(f.mode==='preflightHold')await new Promise(resolve=>{f.releaseRead=resolve;});
+            if(f.mode==='preflightError')return {data:null,error:new Error('fixture read denied')};
+          }
           if(ordering)rows.sort((a,b)=>(a[ordering.k]<b[ordering.k]?-1:a[ordering.k]>b[ordering.k]?1:0)*(ordering.ascending?1:-1));
           if(patch){
             f.writes.push({patch:structuredClone(patch),filters:structuredClone(filters)});
@@ -166,6 +171,7 @@ async function changeLiveState(page,kind){
     while(fiber&&!(fiber.memoizedProps&&fiber.memoizedProps.onRefreshExpenses))fiber=fiber.return;
     if(!fiber)throw new Error('Expenses controller missing');
     fiber.memoizedProps.set(s=>kind==='debt'?{...s,debts:[]}:kind==='owner'?{...s,_historyOwner:'different-fixture-owner'}:
+      kind==='accounts'?{...s,accounts:[]}:kind==='amount'?{...s,expenses:s.expenses.map(e=>e.id===id?{...e,amount:81}:e)}:
       {...s,expenses:s.expenses.map(e=>e.id===id?{...e,category:'salud'}:e)});
   },{kind,id:out.id});
 }
@@ -344,4 +350,57 @@ test('R4 traspaso no limpia un conflicto semántico al actualizar',async({page})
   await expect.poll(async()=>(await saved(page)).expenses.find(e=>e.id===out.id).category).toBe('salud');
   await expect(sheet.getByTestId('exp-own-transfer-status')).toContainText('Sin confirmar');
   await expect(page.locator('.v4-exp-sheet .v4-ficha-saved')).toHaveText('Cambio sin confirmar');
+});
+
+for(const leg of [0,1])test(`UUID preflight: no ofrece decisión con identidad remota divergente (${leg})`,async({page})=>{
+  const remote=[out,incoming].map(toRow);remote[leg].id='550e8400-e29b-41d4-a716-446655440009';
+  const sheet=await open(page,{remote}),action=sheet.getByTestId('exp-own-transfer'),before=await saved(page);
+  await expect(action).toBeDisabled();
+  await expect.poll(()=>page.evaluate(()=>window.__own.singleReads||0)).toBeGreaterThanOrEqual(leg+1);
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  await expect(action).toBeDisabled();await action.evaluate(el=>el.click());
+  await expect(page.locator('.askback')).toHaveCount(0);
+  const after=await saved(page);expect(after.expenses).toEqual(before.expenses);expect(after.remote).toEqual(before.remote);
+  expect(after.state.accounts).toEqual(before.state.accounts);expect(after.state.settings.expenseOrder).toEqual(before.state.settings.expenseOrder);
+  expect(after.writes).toEqual([]);
+});
+
+test('UUID preflight: pendiente y fallo no habilitan ni escriben',async({page})=>{
+  const sheet=await open(page,{mode:'preflightHold'}),action=sheet.getByTestId('exp-own-transfer'),before=await saved(page);
+  await expect.poll(()=>page.evaluate(()=>typeof window.__own.releaseRead)).toBe('function');
+  await expect(action).toBeDisabled();await action.evaluate(el=>el.click());await expect(page.locator('.askback')).toHaveCount(0);
+  await page.evaluate(()=>{window.__own.mode='preflightError';window.__own.releaseRead();});
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  await expect(action).toBeDisabled();const after=await saved(page);
+  expect(after.writes).toEqual([]);expect(after.remote).toEqual(before.remote);expect(after.expenses).toEqual(before.expenses);
+});
+test('UUID preflight: comprueba de nuevo al pulsar sin abrir una decisión imposible',async({page})=>{
+  const sheet=await open(page),action=sheet.getByTestId('exp-own-transfer');await expect(action).toBeEnabled();
+  const before=await saved(page);
+  await page.evaluate(()=>{window.__own.rows[1].id='550e8400-e29b-41d4-a716-446655440009';});
+  await action.click();await expect.poll(()=>page.evaluate(()=>window.__own.singleReads||0)).toBeGreaterThanOrEqual(4);
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  await expect(action).toBeDisabled();await expect(page.locator('.askback')).toHaveCount(0);
+  const after=await saved(page);expect(after.writes).toEqual([]);expect(after.expenses).toEqual(before.expenses);expect(after.state.accounts).toEqual(before.state.accounts);
+});
+for(const kind of ['owner','accounts','amount'])test(`UUID preflight: descarta lectura tardía tras cambiar ${kind}`,async({page})=>{
+  const sheet=await open(page,{mode:'preflightHold'});await expect.poll(()=>page.evaluate(()=>typeof window.__own.releaseRead)).toBe('function');
+  await page.evaluate(()=>{window.__oldReadRelease=window.__own.releaseRead;});await changeLiveState(page,kind);
+  await expect.poll(async()=>{const r=await saved(page);return kind==='owner'?r.state._historyOwner:kind==='accounts'?r.state.accounts.length:r.expenses.find(e=>e.id===out.id).amount;}).toBe(kind==='owner'?'different-fixture-owner':kind==='accounts'?0:81);
+  const changed=await saved(page);await page.evaluate(()=>{window.__own.mode='ok';window.__oldReadRelease();});
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  await expect(sheet.locator('[data-testid="exp-own-transfer"]:enabled')).toHaveCount(0);await expect(page.locator('.askback')).toHaveCount(0);
+  const after=await saved(page);expect(after.writes).toEqual([]);expect(after.expenses).toEqual(changed.expenses);expect(after.state.accounts).toEqual(changed.state.accounts);
+});
+test('UUID preflight: cerrar y reabrir no hereda lectura tardía de la misma ficha',async({page})=>{
+  const sheet=await open(page,{mode:'preflightHold'});await expect.poll(()=>page.evaluate(()=>typeof window.__own.releaseRead)).toBe('function');
+  await page.evaluate(()=>{window.__oldReadRelease=window.__own.releaseRead;});
+  await page.locator('.v4-exp-sheet .v4-ficha-done').click();await sheet.waitFor({state:'hidden'});
+  await gastosAbreGasto(page,out.merchant);
+  await expect.poll(()=>page.evaluate(()=>window.__own.releaseRead!==window.__oldReadRelease)).toBe(true);
+  await page.evaluate(()=>window.__oldReadRelease());
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  await expect(sheet.getByTestId('exp-own-transfer')).toBeDisabled();await expect(page.locator('.askback')).toHaveCount(0);
+  await page.evaluate(()=>{window.__own.mode='ok';window.__own.releaseRead();});
+  await expect(sheet.getByTestId('exp-own-transfer')).toBeEnabled();expect((await saved(page)).writes).toEqual([]);
 });
