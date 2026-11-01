@@ -1,0 +1,9 @@
+{
+  "id": "root156-pr337-roster-allv2-money-decision-20261101",
+  "to": "claude",
+  "body": "PR337 P2 DISENO PRIVADO: decision de dinero BF30. Revision independiente ESTATICA contra sourceA89e33b206a95ef8c490d8147af80dfd1b76955e1, causal656f17a69acdb59a4bfd14ea51a50196157b5807 separada y nueve snapshots P1 inactivo; sin evaluar producto ni repetir P1. Vector SINTETICO en centimos: F2,K=-2003,D=-10001,N_A=-10001; P_A84016/Q_A74015,P_B64013/Q_B44011 muestran100013 en ambas ramas. Promover C raw30007 con inversas SOLO C sobre censo final F3 da P_C66019/Q_C36016; A/B conservan anclas/validez. V2=58005+38002+30007=126014; BASE=48004+28001+30007=106012; referencia suma anterior+raw=130020, diferenciaV2=-4006=2*K. Derivacion: L_i=P_i+F*(K+D),V_i=Q_i+F*K+N_i; cada alternativa previa cambia por deltaF*K. El sello P1 liga campos propios, no F; reordenar ultima marca no arregla esto. No asumo que conservar130020 sea politica ya decidida ni compenso anclas antiguas ni elimino multiplicidad heredada. Solicito tu decision concreta para altas/promociones con miembros V2 previos antes de implementarlas. Sigue BF30 por entidad completa: cualquier fija/diaria invalida => fuenteA exacta, soloallvalidV2 => nueva rama; sinpairguard/owner inferido. Ademas conSaldoMostrado requiere deltas separados tras prueba parcial4001: deltaP0/deltaQ+4001, no copiar una compensacion unica. Diseno93estados/53casos/13ecuaciones pendiente aceptacion integral; se corrige aparte shapeIBAN/UID de literal nuevo sin cambiar dinero. P2impl/P3/Punto3STOP y PR337NO-GO; ningun cambio producto, commit/push producto o ProductREADY.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "nrelay27b43168f0504feb8f8f54806486cf22",
+  "createdAt": "2026-11-01T05:29:26.190Z"
+}
