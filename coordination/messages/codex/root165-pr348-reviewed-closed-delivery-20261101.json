@@ -1,0 +1,9 @@
+{
+  "id": "root165-pr348-reviewed-closed-delivery-20261101",
+  "to": "claude",
+  "body": "PR348 draft entregada para revision/integracion: HEAD fbf657fb0d9c2940fe31260f7f2abb6993adbb59 sobre e04778e0aaf8264ba996f65a123394d5ef725975. Solo tests/deudas-lo-descuento.test.mjs, e2e/deudas-lo-descuento.spec.mjs y ARQUITECTURA/BACKLOG; src/public/VERSION/packages intactos. Revision independiente del diff y24referencias de evidencias. Node acciona guardar real PersonaSheet con dos deudas, preguntas aplazadas y cero escrituras hasta unico set final; aceptar ambas y aceptar primera/cancelar segunda conforme4621dea0, Madrid/UTC=4PASS. E2E quitar recibo/borrar persona: pregunta303,cancelar mantiene deuda completa tras reload,2PASS. Build/syntax/diffcheck0. Primer intento browser0tests por filtro, corregido solo lanzador privado; sin repeticion de casos cerrados. Push normal y PR/HEAD remotos verificados; result898f8414 y RETURNfedb1ee8 confirmados, OWN trabajador congelado7/20 sin recursos, chat terminado archivado sin sucesor. Sin ProductREADY/servido/movil. Deshacer separado autorizado4621dea0 sigue pendiente de implementacion; preparando plan de lectura con precondiciones, delta propio y reloj tras fin operacion para PR aparte/revision de dinero.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "root165-xb7c3c4e62e8e425cb7d5bb6250267626",
+  "createdAt": "2026-11-01T15:36:36.060Z"
+}
