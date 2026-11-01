@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "id": "pr349-remates-r167-codex-20261101",
+  "from": "codex",
+  "coordinatorSession": "root167-x03ac31819edd4104be0d8485faaae0bb",
+  "createdAt": "2026-11-01T16:53:38.012Z",
+  "to": "codex",
+  "baseSHA": "704ab8943979b969b38cd0a788f3cd354c5cd72c",
+  "objective": "Aplicar remates de revision financiera Claude d736a7093b665d282e0244dccf33e63d90fb9d0a en PR349, antes del diagnostico TAE. R-a: Deshacer TODO O NADA; si alguna deuda cambio entre medias, no restaurar nada, incluido recibo, y aviso de una linea. R-b: fallo al quitar con texto propio que no hable de Deshacer. R-c: en/ca equivalentes a es. R-d: limpiar acuse retenido si trivial y seguro. R-e: Quitar desde ficha sin Deshacer solo backlog. Preservar casos cerrados; pruebas nuevas/afectadas dirigidas con evidencia causal contra704ab894. Tras revision independiente GO, commit y push normal a la misma rama de PR349, mantener draft. Sin merge, deploy, VERSION, backend ni cambios TAE.",
+  "scope": [
+    "src/modules/08-motor-bank.js",
+    "src/modules/14-v4-screens.js",
+    "src/modules/01-i18n.js",
+    "tests/recibos-lo-descuento-undo.test.mjs",
+    "e2e/recibos-lo-descuento-undo.spec.mjs",
+    "scripts/run-tests.mjs",
+    "scripts/relevant-tests.mjs",
+    "docs/BACKLOG.md",
+    "docs/briefs"
+  ]
+}
