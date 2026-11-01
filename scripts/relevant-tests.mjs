@@ -140,6 +140,13 @@ export const E2E_MAP = [
   { file: "src/modules/11-app-main.js", specs: ["e2e/plan-recibos-t5.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/plan-recibos-t5.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/plan-recibos-t5.spec.mjs"] },
+  // «Lo descuento» que no cuadra (pregunta) y «Baja la deuda al mes» en Editar deuda (1/11/2026).
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/deudas-lo-descuento.spec.mjs"] },
+  { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/deudas-lo-descuento.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/deudas-lo-descuento.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/deudas-lo-descuento.spec.mjs"] },
+  { file: "src/modules/05-dialogs-inv.js", specs: ["e2e/deudas-lo-descuento.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/deudas-lo-descuento.spec.mjs"] },
   // Tanda 6: resumen del mes cerrado (`planRecibosMesCerrado`, 08, sobre `planChargesMonth` y
   // `paymentEvidenceUI`), vista del mes siguiente y primer uso (14, con `rp4VistoEnBanco` sobre
   // `detectSubscriptions` de 01 y el alta por pasos), textos (01) y su CSS en el shell.

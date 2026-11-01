@@ -993,6 +993,47 @@ function deudasTrasReparto(antes,despues){
   });
   return cambia?Object.assign({},despues,{debts:debts}):despues;
 }
+/* Y si NO cuadraba, callar no vale (feedback 1/11/2026): el préstamo familiar dado de alta con plazo
+   guardó `amort` = saldo/plazo (≈ 196,68 con cuota 250); al poner «Lo descuento» no se tocaba y la
+   cuota se pintaba «pagas 250 € + 53 €», 303 € al mes en silencio. Aquí salen las deudas que hay que
+   preguntar: `paga` es lo que saldría del banco con el cambio (cuota + lo que ya se descontaba − lo que
+   se descuenta ahora) y `baja` la propuesta de lo que amortiza, que es la cuota de antes (lo que se
+   pagaba en total). Sin nada que preguntar, lista vacía y todo sigue como antes. */
+function descuentoDescuadre(antes,despues){
+  const out=[];
+  (despues.debts||[]).forEach(function(d){
+    if(!deudaDescontable(d)) return;
+    const prev=(antes.debts||[]).find(function(o){ return o.id===d.id; })||d;
+    const dA=Math.round(deudaDescuentoBase(antes,prev)*100), dD=Math.round(deudaDescuentoBase(despues,d)*100);
+    if(dA===dD) return;
+    // Ya cuadra tal y como queda (lo ajustó `deudasTrasReparto` o casaba de por sí): nada que preguntar.
+    const cuota=Math.round((Number(d.monthly)||0)*100), amort=Math.round(debtAmort(d)*100);
+    if(amort===cuota+dD) return;
+    const antesC=Math.round((Number(prev.monthly)||0)*100), paga=antesC+dA-dD;
+    if(paga<=0) return;
+    out.push({id:d.id,name:d.name,paga:paga/100,baja:(antesC+dA)/100,descuento:dD/100});
+  });
+  return out;
+}
+/* Lo que dijo al preguntarle: sale del banco `paga` y la deuda baja `baja`. Va por `debtEditResult`,
+   la misma puerta que Editar deuda, para que el saldo de hoy no se mueva (re-ancla `value`) y el plazo
+   salga de la bajada nueva; si esa puerta lo rechaza, no se toca nada. */
+function deudaFijarDescuento(s,id,paga,baja){
+  let cambia=false;
+  const debts=(s.debts||[]).map(function(d){
+    if(d.id!==id||!deudaDescontable(d)||!(paga>0)||!(baja>0)) return d;
+    const form=Object.assign(debtEditDraft(d),{monthly:String(Math.round(paga*100)/100),amort:String(Math.round(baja*100)/100)});
+    if(d.months!=null){
+      const tmp=Object.assign({},d,{monthly:Number(form.monthly),amort:Number(form.amort)});
+      const n=debtEditMonths(tmp,Number(form.balance),Number(form.amort),debtPaidCount(d));
+      if(n!=null) form.months=String(n);
+    }
+    const r=debtEditResult(d,form);
+    if(!r.item||r.item===d) return d;
+    cambia=true; return r.item;
+  });
+  return cambia?Object.assign({},s,{debts:debts}):s;
+}
 /* Partes resueltas en céntimos: lo tecleado se queda; lo vacío se reparte a partes iguales entre
    esas personas y tú, redondeando hacia abajo para que el céntimo que sobra sea tuyo. */
 function repartoResolver(lista,total){
@@ -5275,6 +5316,14 @@ function patchDebtFields(set, id, patch){
       const n=Object.assign({},d,patch);
       if(!n.day) delete n.day;
       if(!(n.amort>0) || Math.abs((n.amort||0)-(n.monthly||0))<0.005) delete n.amort;
+      /* El saldo de hoy es value − bajada × pagadas: cambiar la bajada sin re-anclar movía el saldo
+         hacia atrás (la misma regla que Editar deuda, feedback 1/11/2026). El plazo sale de la nueva. */
+      const am=debtAmort(n),paid=debtPaidCount(n);
+      if(Math.round(am*100)!==Math.round(debtAmort(d)*100)&&d.value!=null&&am>0){
+        const bal=+debtBalance(d).toFixed(2);
+        if(n.months!=null){ const k=debtEditMonths(n,bal,am,paid); if(k!=null&&k>paid) n.months=k; }
+        n.value=+(bal+am*paid).toFixed(2);
+      }
       return n;
     })});
   });

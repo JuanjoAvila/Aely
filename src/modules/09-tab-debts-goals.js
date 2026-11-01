@@ -10,9 +10,27 @@ function planEditNumber(raw,optional){
   const n=Number(text.replace(",","."));
   return Number.isFinite(n)&&n>=0?n:NaN;
 }
+/* «Baja cada mes» (`amort`) solo se ofrece sin interés: con TAE la cuota lleva intereses y el modelo
+   lineal no sabe separarlos (`deudaDescontable`, rev. t5 R1). El préstamo familiar dado de alta con
+   plazo guardaba `amort` = saldo/plazo y no había forma de corregirlo (feedback 1/11/2026). */
+function debtEditAmortable(d){ return !(Number(d&&d.apr)>0); }
 function debtEditDraft(d){
-  return {name:d.name||"",note:d.note==null?"":String(d.note),balance:String(+debtBalance(d).toFixed(2)),monthly:String(d.monthly||0),
+  const o={name:d.name||"",note:d.note==null?"":String(d.note),balance:String(+debtBalance(d).toFixed(2)),monthly:String(d.monthly||0),
     day:String(debtChargeDay(d)),months:d.months==null?"":String(d.months),apr:d.apr==null?"":String(d.apr)};
+  if(debtEditAmortable(d)) o.amort=String(+debtAmort(d).toFixed(2));
+  return o;
+}
+/* Cambiar el plazo de una deuda cuya bajada NO es la cuota (préstamo familiar) se validaba contra la
+   bajada vieja y no había plazo que encajara: con el plazo nuevo, lo lineal es pendiente/meses que
+   quedan, como en el alta. La ligada a la cuota (financiación al 0 %) no se toca: ahí cuota y plazo
+   tienen que encajar y la hoja dice con qué cuota. null = no hay nada que proponer. */
+function debtEditAmortDePlazo(d,form){
+  if(!debtEditAmortable(d)||form.amort===undefined||planEditNumber(form.apr,true)>0) return null;
+  const amort=planEditNumber(form.amort,true),monthly=planEditNumber(form.monthly),months=planEditNumber(form.months,true),balance=planEditNumber(form.balance);
+  if(!(amort>0)||!(monthly>=0)||Math.round(amort*100)===Math.round(monthly*100)||months==null||!Number.isInteger(months)||!(balance>0)) return null;
+  const remaining=months-debtPaidCount(d),principal=Math.round(balance*100)-Math.round((d.balloon||0)*100);
+  if(!(remaining>0)||principal<=0) return null;
+  return String(Math.ceil(principal/remaining)/100);
 }
 // Un plazo agotado puede dejar céntimos de redondeo o saldo legado: aún debe poder corregirse.
 function debtEditFinished(d){ return d.months!=null&&debtPaidCount(d)>=d.months&&debtBalance(d)<=0.005; }
@@ -25,14 +43,17 @@ function debtEditMonths(d,balance,am,paid){
 function debtEditResult(d,form){
   const balance=planEditNumber(form.balance),monthly=planEditNumber(form.monthly),day=planEditNumber(form.day),
     months=planEditNumber(form.months,true),apr=planEditNumber(form.apr,true);
-  if(!form.name.trim() || [balance,monthly,day,months,apr].some(function(n){ return Number.isNaN(n); }) ||
+  // Vacío o sin el campo (deuda con TAE, borradores de antes) = no se toca lo que baja.
+  const amortIn=debtEditAmortable(d)&&!(apr>0)?planEditNumber(form.amort,true):null;
+  if(!form.name.trim() || [balance,monthly,day,months,apr,amortIn].some(function(n){ return Number.isNaN(n); }) ||
     !Number.isInteger(day)||day<1||day>31 || months!=null&&!Number.isInteger(months)) return {error:"plan_edit_invalid"};
   const next=Object.assign({},d),oldBalance=+debtBalance(d).toFixed(2);
   const amountChanged=balance!==oldBalance,quotaChanged=monthly!==(d.monthly||0),dayChanged=day!==debtChargeDay(d),
-    termChanged=months!==(d.months==null?null:d.months),aprChanged=apr!==(d.apr==null?null:d.apr);
+    termChanged=months!==(d.months==null?null:d.months),aprChanged=apr!==(d.apr==null?null:d.apr),
+    amortChanged=amortIn!=null&&Math.round(amortIn*100)!==Math.round(debtAmort(d)*100);
   // Cambiar el calendario de una deuda terminada puede reabrirla o reescribir su historia.
   // La guardia también protege llamadas que no pasan por los campos bloqueados de la ficha.
-  if(debtEditFinished(d)&&(amountChanged||quotaChanged||dayChanged||termChanged||aprChanged)) return {error:"db_finished_edit_hint"};
+  if(debtEditFinished(d)&&(amountChanged||quotaChanged||dayChanged||termChanged||aprChanged||amortChanged)) return {error:"db_finished_edit_hint"};
   if(form.name.trim()!==(d.name||"")) next.name=form.name.trim();
   if(form.note!==undefined&&form.note!==(d.note==null?"":String(d.note)))next.note=form.note;
   // El alta con plazo pone `amort` lineal (saldo/plazo), no la cuota tecleada: si coinciden (o no hay
@@ -40,13 +61,17 @@ function debtEditResult(d,form){
   // que paga 197 y amortiza 250), cambiar la cuota solo cambia lo que se paga, no el calendario (revisión d139).
   const quotaIsAmort=d.amort==null||Math.abs(d.amort-(d.monthly||0))<=0.005;
   if(quotaChanged){ next.monthly=+monthly.toFixed(2); if(quotaIsAmort&&d.amort!=null) next.amort=next.monthly; }
+  // Lo que baja, tecleado, manda sobre la ligadura con la cuota; igual a la cuota no hace falta guardarlo.
+  if(amortChanged){ next.amort=+amortIn.toFixed(2); if(Math.abs(next.amort-(next.monthly||0))<0.005) delete next.amort; }
+  if(amortChanged&&!(amortIn>0)&&balance>0.005) return {error:"db_edit_amort_zero"};
   if(dayChanged) next.day=day;
   if(termChanged){ if(months==null) delete next.months; else next.months=months; }
   if(aprChanged) next.apr=apr;
   // Cambiar nombre/TAE o guardar lo mismo nunca re-ancla ni redondea una deuda heredada.
   // Si cambia el saldo, se conserva el contrato anterior: ancla nueva sin plazo, cuotas pagadas
   // intactas con plazo. Mover día/cuota conserva el pendiente real antes de proyectarlo de nuevo.
-  if(amountChanged||quotaChanged||dayChanged||termChanged){
+  // Cambiar lo que baja re-ancla `value` (si no, el saldo de hoy cambiaría hacia atrás: value − amort×pagadas).
+  if(amountChanged||quotaChanged||dayChanged||termChanged||amortChanged){
     const am=debtAmort(next),paid=debtPaidCount(next);
     // Plazo y cuota deben cancelar el pendiente: ni cuotas a cero ni principal sin pagar.
     // La última fracción es válida; amort y pago final mantienen su contrato original.
@@ -76,7 +101,8 @@ function debtEditResult(d,form){
       // Si la cuota no amortiza (amort distinta), saldo+cuota a la vez sigue recalculando: si no,
       // nadie miraba el plazo y quedaba principal sin cuotas o cuotas fantasma (revisión d139).
       // Cuenta en céntimos para no añadir una cuota por el error binario de una división exacta.
-      if((amountChanged||dayChanged)&&!(quotaChanged&&quotaIsAmort)&&!termChanged&&next.months!=null&&am>0){
+      // Con otra bajada y el plazo intacto, el plazo sale de ella (y la hoja pide confirmarlo).
+      if((amountChanged||dayChanged||amortChanged)&&!(quotaChanged&&quotaIsAmort)&&!termChanged&&next.months!=null&&am>0){
         const calculated=debtEditMonths(next,balance,am,paid);
         if(calculated==null) return {error:"plan_edit_invalid"};
         next.months=calculated;
@@ -290,13 +316,20 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,showToast,review,recover
       current.save.save(chosenDayResult(debtEditConfirmResult(current.state,debt,current.form,{item:result.item,change:change}),current.form));
     });
   };
+  const amortOn=form.amort!==undefined&&!(planEditNumber(form.apr,true)>0);
   const input=function(key,label,mode){ return React.createElement("label",{key:key},t(label),
     React.createElement("input",{className:"af-in"+(mode?" num":""),inputMode:mode||"text",value:form[key],"data-debt-field":key,
       ref:key==="day"?dayRef:undefined,disabled:finished&&key!=="name"&&key!=="note",readOnly:!!recovery&&key!=="name"&&key!=="note",
-      onChange:function(e){ setForm(Object.assign({},form,{[key]:e.target.value})); }})); };
+      onChange:function(e){
+        const f=Object.assign({},form,{[key]:e.target.value});
+        // Se ve antes de guardar: el plazo nuevo mueve lo que baja (si va por libre de la cuota).
+        if(key==="months"){ const a=debtEditAmortDePlazo(debt,f); if(a!=null) f.amort=a; }
+        setForm(f); }})); };
   return React.createElement(PlanEditSheet,{title:t("db_edit_title"),onClose:onClose,closer:closer},React.createElement("div",{className:"add-form"},
     input("name","plan_edit_name"),input("note","plan_conflict_note"),input("balance","db_pending","decimal"),
     React.createElement("div",{className:"af-row"},input("monthly","plan_edit_quota","decimal"),input("day","db_day_ph","numeric")),
+    amortOn&&input("amort","db_amort_ph","decimal"),
+    amortOn&&React.createElement("div",{className:"hint"},t("db_amort_hint")),
     input("months","db_months_ph","numeric"),React.createElement("div",{className:"hint"},t("db_term_hint")),
     finished&&React.createElement("div",{className:"hint"},t("db_finished_edit_hint")),
     input("apr","da_rate","decimal"),React.createElement("div",{className:"hint"},t("db_rate_edit_hint")),

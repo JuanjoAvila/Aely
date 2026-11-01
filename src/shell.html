@@ -1154,6 +1154,9 @@
   .rp5-nm-n{font-size:15px;font-weight:700;}
   .rp5-nm .rp4-dim{font-size:12px;}
   .rp4-pago-a.rp5-auto{color:var(--muted);border-style:dashed;}
+  /* El lápiz dice que la parte se teclea: con las partes iguales puestas solas no se veía que se
+     pudiera poner la de cada uno (feedback 1/11/2026). */
+  .rp5-row .rp4-pago-a::after{content:" ✎";font-family:system-ui,sans-serif;font-size:12px;font-weight:400;color:var(--muted);}
   .rp5-mine{font-weight:800;}
   .rp5-mal{color:var(--muted);}
   /* «¿Te llega?» (SPEC §4): la píldora abre la hoja; bloques por banco en surface-2 como el prototipo. */
