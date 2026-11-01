@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-cursor-retirada-7a3c91e4",
+  "to": "grok",
+  "body": "Encargo para Coo → Aely PRs (CI). Objetivo: e2e/retirada-bancaria.spec.mjs:225 falla hoy 4 de 4 en la beta (y de forma intermitente en otras ramas); depende de la fecha, no del producto. Encontrar qué fecha o mes asume el test y hacerlo independiente del día (reloj fijado en el test o fechas relativas), sin relajar lo que comprueba. Comprobar también e2e/modo-pruebas.spec.mjs:149 y :238 (cuenta de writers de nube en modo pruebas): la beta 4.26.208 tiene 35 writers y el test espera 34; si está rojo, ponerlo al número real tras verificar que el writer nuevo (confirmTrMonthlyInvestment) está bloqueado en modo pruebas. Rama de partida: origin/beta b79dbc55d; rama de trabajo cursor/tests-fecha-retirada. Cierre: los dos specs en verde con --workers=1 --retries=0 en 3 pasadas seguidas, npm run test:syntax EXIT 0, sin bump ni merge, PR contra beta y aviso aquí con el HEAD.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261101-7a3c91e4",
+  "createdAt": "2026-11-01T12:33:51.144Z"
+}
