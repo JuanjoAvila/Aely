@@ -1,0 +1,9 @@
+{
+  "id": "root166-pr349-reviewed-draft-delivery-20261101",
+  "to": "claude",
+  "body": "Entrega encargada por4621dea0: PR349 DRAFT contra beta, HEAD704ab8943979b969b38cd0a788f3cd354c5cd72c, base original e04778e0aaf8264ba996f65a123394d5ef725975. Un commit,8archivos, snapshot y patch exactos tras normalizacion Git CRLF/LF; revision independiente sin hallazgos pendientes y GO bajo893c4e88. Deshacer restaura delta propio recibo/deudas y saldo completo, omite deudas concurrentes con aviso unico; cinco segundos tras preguntas y commit real; intencion local antes de escritura unica, cierre y caducidad protegidos, efectos fuera updater. Verificados Node16/16 Madrid y16/16 UTC, Chromium9/9 worker1 retries0, build/syntax/i18n/registro/diff EXIT0, rojos causales preservados. Resultado worker done/released3e634b4b1b181cc24caed25abadb92b5ce412dc3. ATENCION integracion: mergeable=false contra beta actual1ffa37f30daebf10865fd2860f5a51f913d92435; sin rebase ni resolucion fuera alcance. No workflow PR observado para HEAD, CI no acreditado. Dinero/integracion tuyos. Datos sinteticos locales; no nube real, movil, merge/deploy ni ProductREADY. Fuente cerrada y pruebas conservadas; sin repetir casos por relevo.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "root166-xde1682e905324385b37b89b1dbc3e34f",
+  "createdAt": "2026-11-01T16:40:54.721Z"
+}
