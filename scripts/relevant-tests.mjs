@@ -79,7 +79,7 @@ export const E2E_MAP = [
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/cifra-sin-cero.spec.mjs", "e2e/recibos-cifra-estable.spec.mjs"] },
   // Meses marcados a mano: la mensualidad de `fixedMonthlyOf` y la vista previa del alta (FIN-20/21).
   { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-meses-a-mano.spec.mjs"] },
-  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-meses-a-mano.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-meses-a-mano.spec.mjs", "e2e/recibo-anual-mes.spec.mjs"] },
   // Plan › Recibos v6: tarjeta, «Para revisar», «Por pagar», «Ya pagados» y «¿Cuál es el cargo?».
   // Las cifras y el enlace salen del motor (`planChargesMonth`, `linkFixedPayment`): también lo ata.
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-recibos-v6.spec.mjs"] },

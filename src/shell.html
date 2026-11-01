@@ -1085,6 +1085,7 @@
   .rp4-dup-t{flex:1;min-width:0;font-size:14px;font-weight:700;}
   .rp4-dup-go{color:var(--mint-bright);font-size:14px;font-weight:800;}
   .rp4-visto{display:flex;flex-direction:column;gap:8px;}
+  .rp4-visto-bank{white-space:normal;overflow:visible;text-overflow:unset;line-height:1.35;}
   .pr6-dt.rp4-dt-s{width:42px;height:44px;border-radius:12px;background:var(--bg);}
   .pr6-dt.rp4-dt-s .d{font-size:17px;}
   .pr6-dt.rp4-dt-s .m{font-size:9px;}
@@ -1101,6 +1102,7 @@
   .rp4-var{height:36px;padding:0 14px;border-radius:18px;font-size:13px;color:var(--muted);}
   .rp4-var.on{border-color:var(--mint);color:var(--mint-bright);background:var(--surface-2);}
   .rp4-freqs,.rp4-modes,.rp4-scope{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+  .rp4-freqs{grid-template-columns:repeat(3,minmax(0,1fr));}
   .rp4-mode{min-height:50px;padding:0 10px;border-radius:16px;font-size:15px;}
   .rp4-mode.on{border-color:var(--mint);background:var(--surface-2);color:var(--mint-bright);}
   .rp4-mode:disabled{opacity:.4;cursor:default;}
@@ -1133,13 +1135,18 @@
   .rp4-row-k{flex:none;font-size:14px;color:var(--muted);font-weight:700;}
   .rp4-row-v{flex:1;min-width:0;text-align:right;font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .rp4-foot{position:sticky;bottom:0;padding:10px 20px calc(14px + var(--safe-bottom));background:var(--bg-2);}
-  .rp4-cta{width:100%;height:52px;transition:opacity .2s ease;}
-  .rp4-cta:disabled{opacity:.35;cursor:default;}
+  .rp4-cta{width:100%;height:52px;transition:background .28s var(--ease),color .28s var(--ease);}
+  .rp4-cta.is-wait{background:color-mix(in srgb,var(--mint) 38%,var(--bg-2));pointer-events:none;}
   /* Personas y compartidos (tanda 5, SPEC §6-§7): rejilla de 5 columnas, no carrusel. */
   .pe-ava{width:38px;height:38px;flex:none;border-radius:19px;background:var(--surface);border:1px solid var(--line-soft);display:flex;align-items:center;justify-content:center;
     font-size:15px;font-weight:800;color:var(--text);transition:background .2s ease,color .2s ease,border-color .2s ease;}
   .pe-link{border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;padding:0;}
   .pe-deben.ok .pr6-ll-a{color:var(--muted);}
+  .pr6-ll-act{display:flex;justify-content:flex-end;margin-top:2px;}
+  /* «Ya me lo ha pagado»: compacto a la derecha, mismo mint, sin ancho completo (beta 4.26.209). */
+  .pe-deben-cta{width:auto;max-width:100%;height:36px;padding:0 14px;border-radius:12px;font-size:13px;font-weight:800;flex:none;}
+  .pe-deben-cta.pr6-cta{height:36px;}
+  .pe-deben-cta.pr6-btn{border-color:var(--line-soft);font-size:12px;font-weight:700;}
   .pe-recibos{display:flex;flex-direction:column;gap:8px;}
   .rp5-mas{display:flex;flex-direction:column;}
   .rp5-in{display:flex;flex-direction:column;gap:12px;padding-top:4px;}
