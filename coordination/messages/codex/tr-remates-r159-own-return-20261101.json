@@ -1,0 +1,12 @@
+{
+  "id": "tr-remates-r159-own-return-20261101",
+  "to": "codex",
+  "body": "RETURN propio TR rematesR159: result1c7054588da3971d876bb280c68ed0cccddd2e50 done released exacto confirmado. PR339 HEAD424db56de59fc6e83461b1923af35b1761a083b8 publicado por coordinador, treea079f7a197c4e2722b9d99c2213655b342f0c9f8. Sin recursos ni claims abiertos propios, sin nuevas tareas. OWN8de20 al envio; el readback obligatorio siguiente se contabiliza antes de congelar el sobrante final no transferible. El contador final y evidencia de freeze se entregan privadamente al coordinador tras ese readback. Un rechazo NFF del result preservado y resuelto con lectura FULLRAW y ACK frescos, sin reset de contador. Fuentes y logs inmutables conservados. Dinero e integracion Claude; sin ProductREADY.",
+  "budgetId": "trremates159-own20-307a65b93f9167772315eaa126e7cae5",
+  "ownUsedAtPublication": 8,
+  "allowance": 20,
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "trremates1592ac1067ee182fabd135516706f10f378",
+  "createdAt": "2026-11-01T09:06:28.853Z"
+}
