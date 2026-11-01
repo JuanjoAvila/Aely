@@ -4325,3 +4325,40 @@ Object.assign(LANG.ca, {
   gl_delete_q:"Vols eliminar «{name}»?",
   gl_delete_sub:"L’objectiu desapareixerà de la llista. Les regles i les aportacions anteriors es conserven."
 });
+// Plan › Recibos v6, tanda 5: personas, recibos compartidos, «Te deben» y «Lo descuento» (SPEC §5-§6).
+Object.assign(LANG.es,{
+  pr6_pagas_mas:"pagas {a} + {b} de {from}", pr6_te_han_pagado:"te han pagado {a} de {n}", pr6_tu_parte:"Tu parte {x}",
+  pr6_te_deben:"Te deben {x}", pr6_te_deben_t:"Te deben", pr6_te_han_pagado_todos:"Te han pagado todos",
+  pr6_ya_me_lo_ha_pagado:"Ya me lo ha pagado", pr6_te_lo_ha_pagado:"Te lo ha pagado",
+  pe_title:"Personas", pe_sub:"{n} personas", pe_sub_one:"{n} persona", pe_add:"Añadir una persona", pe_nueva:"Nueva persona", pe_nombre:"Nombre",
+  pe_como_paga:"¿Cómo te paga?", pe_bizum:"Bizum", pe_transfer:"Transferencia", pe_debt:"Lo descuento", pe_descuenta_de:"Su parte se descuenta de",
+  pe_recibos:"Sus recibos", pe_que_recibos:"¿Qué recibos comparte?", pe_sin_recibos:"Ningún recibo se puede compartir", pe_borrar:"Borrar", pe_seguro:"¿Seguro? Sale de todos sus recibos",
+  rp5_mas:"Más opciones", rp5_con_alguien:"¿Lo pagas con alguien?", rp5_no_admite:"Solo se comparte un recibo de cada mes o cada pocos meses",
+  rp5_otra:"Otra", rp5_importe_de:"Parte de {name}", rp5_quitar:"Quitar a {name}", rp5_tu_parte:"Tu parte",
+  rp5_supera:"Las partes pasan del importe: no te queda parte", rp5_descuento_mensual:"«Lo descuento» solo en recibos de cada mes",
+  rp5_rehacer:"Estas partes ya no cuadraban: revísalas y guarda", pe_viejo_ajustar:"En {name} ajustarás las partes antes de guardar"
+});
+Object.assign(LANG.en,{
+  pr6_pagas_mas:"you pay {a} + {b} from {from}", pr6_te_han_pagado:"{a} of {n} have paid you", pr6_tu_parte:"Your share {x}",
+  pr6_te_deben:"You're owed {x}", pr6_te_deben_t:"You're owed", pr6_te_han_pagado_todos:"Everyone has paid you",
+  pr6_ya_me_lo_ha_pagado:"They've paid me", pr6_te_lo_ha_pagado:"Paid you",
+  pe_title:"People", pe_sub:"{n} people", pe_sub_one:"{n} person", pe_add:"Add a person", pe_nueva:"New person", pe_nombre:"Name",
+  pe_como_paga:"How do they pay you?", pe_bizum:"Bizum", pe_transfer:"Bank transfer", pe_debt:"I deduct it", pe_descuenta_de:"Their share is deducted from",
+  pe_recibos:"Their bills", pe_que_recibos:"Which bills do they share?", pe_sin_recibos:"No bill can be shared", pe_borrar:"Delete", pe_seguro:"Sure? They leave all their bills",
+  rp5_mas:"More options", rp5_con_alguien:"Do you pay it with someone?", rp5_no_admite:"Only a monthly bill or one every few months can be shared",
+  rp5_otra:"Other", rp5_importe_de:"{name}'s share", rp5_quitar:"Remove {name}", rp5_tu_parte:"Your share",
+  rp5_supera:"The shares exceed the amount: nothing left for you", rp5_descuento_mensual:"“I deduct it” only works on monthly bills",
+  rp5_rehacer:"These shares no longer added up: check them and save", pe_viejo_ajustar:"You'll adjust the shares of {name} before saving"
+});
+Object.assign(LANG.ca,{
+  pr6_pagas_mas:"pagues {a} + {b} de {from}", pr6_te_han_pagado:"t'han pagat {a} de {n}", pr6_tu_parte:"La teva part {x}",
+  pr6_te_deben:"Et deuen {x}", pr6_te_deben_t:"Et deuen", pr6_te_han_pagado_todos:"T'han pagat tots",
+  pr6_ya_me_lo_ha_pagado:"Ja m'ho ha pagat", pr6_te_lo_ha_pagado:"T'ho ha pagat",
+  pe_title:"Persones", pe_sub:"{n} persones", pe_sub_one:"{n} persona", pe_add:"Afegir una persona", pe_nueva:"Persona nova", pe_nombre:"Nom",
+  pe_como_paga:"Com et paga?", pe_bizum:"Bizum", pe_transfer:"Transferència", pe_debt:"Ho descompto", pe_descuenta_de:"La seva part es descompta de",
+  pe_recibos:"Els seus rebuts", pe_que_recibos:"Quins rebuts comparteix?", pe_sin_recibos:"Cap rebut es pot compartir", pe_borrar:"Esborrar", pe_seguro:"Segur? Surt de tots els seus rebuts",
+  rp5_mas:"Més opcions", rp5_con_alguien:"El pagues amb algú?", rp5_no_admite:"Només es comparteix un rebut de cada mes o de cada pocs mesos",
+  rp5_otra:"Una altra", rp5_importe_de:"Part de {name}", rp5_quitar:"Treure {name}", rp5_tu_parte:"La teva part",
+  rp5_supera:"Les parts superen l'import: no et queda part", rp5_descuento_mensual:"«Ho descompto» només en rebuts de cada mes",
+  rp5_rehacer:"Aquestes parts ja no quadraven: revisa-les i desa", pe_viejo_ajustar:"A {name} ajustaràs les parts abans de desar"
+});

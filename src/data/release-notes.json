@@ -1,5 +1,58 @@
 [
   {
+    "v": "4.26.204",
+    "d": "2026-11-01",
+    "t": {
+      "es": "Recibos compartidos con personas",
+      "en": "Bills shared with people",
+      "ca": "Rebuts compartits amb persones"
+    },
+    "items": {
+      "es": [
+        "Recibos: ahora puedes decir con quién pagas un recibo. Verás solo tu parte, quién te debe la suya este mes y marcar cuando te la paguen.",
+        "Si alguien te paga descontándolo de una deuda, la cuota lo dice.",
+        "«¿Te llega?» reserva el importe entero que cobra el banco en los recibos compartidos."
+      ],
+      "en": [
+        "Bills: you can now say who you share a bill with. You'll see just your share, who owes you theirs this month, and mark it when they pay.",
+        "If someone pays you by deducting it from a debt, the instalment shows it.",
+        "«Will it cover?» sets aside the full amount the bank charges on shared bills."
+      ],
+      "ca": [
+        "Rebuts: ara pots dir amb qui pagues un rebut. Veuràs només la teva part, qui et deu la seva aquest mes i marcar quan te la paguin.",
+        "Si algú et paga descomptant-ho d'un deute, la quota ho diu.",
+        "«T'arriba?» reserva l'import sencer que cobra el banc als rebuts compartits."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "plan-recibos-t5",
+        "t": {
+          "es": "Plan: recibos compartidos y Te deben",
+          "en": "Plan: shared bills and Owed to you",
+          "ca": "Pla: rebuts compartits i Et deuen"
+        },
+        "items": {
+          "es": [
+            "1. Plan → Recibos → Todos → toca un recibo de cada mes que pagues a medias → «Más opciones» → «+ Otra» → nombre, Bizum → Guardar → Guardar. BIEN: sale con tu parte (la mitad); la ficha enseña arriba lo que cobra el banco y «Tu parte»; aparece «Te deben» con la otra mitad y «Queda por pagar» baja justo eso. MAL: la cifra de arriba no cuadra, sale el importe entero en Pendiente o no aparece «Te deben».",
+            "2. Toca «Te deben» → «Ya me lo ha pagado». BIEN: la persona queda marcada, la píldora baja esa cifra (o desaparece si era la única) y «Queda por pagar» no se mueve; «Deshacer» la devuelve. MAL: cambia lo que te queda por pagar, o vuelve a deber al cerrar y abrir.",
+            "3. «Lo descuento» con tu Pepephone: Todos → Personas → «Añadir una persona» → «Familia» → «Lo descuento» → Mamá → Pepephone → Guardar. Se abre la edición de Pepephone con Familia y su parte a la vista. Toca su parte → 53 → «+ Otra» → «Pareja» → Guardar → toca su parte → 10 → Guardar. BIEN: antes de guardar, «Tu parte» dice lo que pagas tú (22 €). Después, en Plan y en Deudas, Mamá sale «pagas 197 € + 53 € de Pepephone» y 250 €, y «Te deben» dice 10 € (la pareja; la familia no sale). MAL: se guarda sin enseñar las partes, Mamá sale con otra suma (por ejemplo 197 + 63 = 260), o la familia aparece en «Te deben». Aviso: si abriste la app en un móvil que no se había actualizado, un recibo compartido puede salir sin sus personas; ábrelo → Editar: salen otra vez con «Estas partes ya no cuadraban: revísalas y guarda»."
+          ],
+          "en": [
+            "1. Plan → Bills → All → tap a monthly bill you split → “More options” → “+ Other” → a name, Bizum → Save → Save. RIGHT: it shows your share (half); the card shows at the top what the bank charges and “Your share”; “You're owed” appears with the other half and “Still to pay” drops by exactly that. WRONG: the figure at the top does not add up, the full amount shows under Pending or “You're owed” does not appear.",
+            "2. Tap “You're owed” → “They've paid me”. RIGHT: the person is marked, the pill drops that figure (or disappears if it was the only one) and “Still to pay” does not move; “Undo” brings it back. WRONG: what you still have to pay changes, or they owe you again after closing and reopening.",
+            "3. “I deduct it” with your Pepephone: All → People → “Add a person” → “Familia” → “I deduct it” → Mamá → Pepephone → Save. Pepephone's edit opens with Familia and their share in view. Tap their share → 53 → “+ Other” → “Pareja” → Save → tap their share → 10 → Save. RIGHT: before saving, “Your share” shows what you pay (22 €). Afterwards, in Plan and in Debts, Mamá shows “you pay 197 € + 53 € from Pepephone” and 250 €, and “You're owed” says 10 € (your partner; the family does not show). WRONG: it saves without showing the shares, Mamá shows another sum (for example 197 + 63 = 260), or the family appears under “You're owed”. Note: if you opened the app on a phone that had not updated, a shared bill may show up without its people; open it → Edit: they come back with “These shares no longer added up: check them and save”."
+          ],
+          "ca": [
+            "1. Pla → Rebuts → Tots → toca un rebut de cada mes que pagues a mitges → «Més opcions» → «+ Una altra» → nom, Bizum → Desa → Desa. BÉ: surt amb la teva part (la meitat); la fitxa ensenya a dalt el que cobra el banc i «La teva part»; apareix «Et deuen» amb l'altra meitat i «Queda per pagar» baixa just això. MALAMENT: la xifra de dalt no quadra, surt l'import sencer a Pendent o no apareix «Et deuen».",
+            "2. Toca «Et deuen» → «Ja m'ho ha pagat». BÉ: la persona queda marcada, la píndola baixa aquesta xifra (o desapareix si era l'única) i «Queda per pagar» no es mou; «Desfer» la torna. MALAMENT: canvia el que et queda per pagar, o torna a deure en tancar i obrir.",
+            "3. «Ho descompto» amb el teu Pepephone: Tots → Persones → «Afegir una persona» → «Familia» → «Ho descompto» → Mamá → Pepephone → Desa. S'obre l'edició de Pepephone amb Familia i la seva part a la vista. Toca la seva part → 53 → «+ Una altra» → «Pareja» → Desa → toca la seva part → 10 → Desa. BÉ: abans de desar, «La teva part» diu el que pagues tu (22 €). Després, a Pla i a Deutes, Mamá surt «pagues 197 € + 53 € de Pepephone» i 250 €, i «Et deuen» diu 10 € (la parella; la família no hi surt). MALAMENT: es desa sense ensenyar les parts, Mamá surt amb una altra suma (per exemple 197 + 63 = 260), o la família apareix a «Et deuen». Avís: si vas obrir l'app en un mòbil que no s'havia actualitzat, un rebut compartit pot sortir sense les seves persones; obre'l → Editar: surten un altre cop amb «Aquestes parts ja no quadraven: revisa-les i desa»."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.203",
     "d": "2026-11-01",
     "t": {

@@ -543,6 +543,9 @@ function Debts({state, set, showToast}){
           React.createElement("div",{className:"plan-item-value"},React.createElement("div",{className:"v4-debt-bal serif num"},eur(bal)),React.createElement("span",{className:"plan-item-edit"},t("fj_edit")))
         ),
         React.createElement("div",{className:"v4-debt-sub plan-debt-details"},[d.monthly?tf("db_quota",{x:eur0(d.monthly)}):null,day?tf("fj_day_n",{d:day}):null,li?tf("db_left_count",{n:li.n,tot:li.tot}):null].filter(Boolean).join(" · ")),
+        // Parte de un recibo compartido que se descuenta de esta deuda (Plan › Recibos v6, tanda 5).
+        (function(){ const hoy=madridYmdParts(Date.now()), c=d.monthly>0?deudaDescuentoMes(state,d,hoy.y,hoy.m,hoy.d):null;
+          return c&&c.amt>0?React.createElement("div",{className:"v4-debt-sub","data-testid":"debt-descuento"},tf("pr6_pagas_mas",{a:eur(d.monthly),b:eur(c.amt),from:c.from.join(", ")})):null; })(),
         React.createElement("div",{className:"v4-debt-bar"},React.createElement("i",{style:{width:pct+"%"}})),
         React.createElement("div",{className:"v4-debt-foot"},
           React.createElement("span",null,tf("db_paidoff",{x:eur0(paid),p:Math.round(pct)})),

@@ -2440,6 +2440,16 @@ function App(){
       if(paid){ paidThisMonth+=amt; }
       else { pendingThisMonth+=amt; pendingByBank[bank]=(pendingByBank[bank]||0)+amt; } };
     state.fixed.forEach(e=>{ if(fijoDelMes(e)) acc(occAmountIn(e,curMonth,curYear),accOf(e),isPaidIn(e,curMonth,today,curYear,state)); });
+    // Por banco cuenta lo que sale del banco: en un compartido, el importe entero (`fixedCargoBanco`,
+    // la regla del recorrido de «¿Te llega?»). Los totales del mes siguen con tu parte. Sin esto el
+    // previsto a fin de mes de la ficha de cuenta y del asistente salía 88 € por encima (rev. t5, R2).
+    state.fixed.forEach(e=>{
+      if(!fijoDelMes(e)) return;
+      const b=accOf(e), extra=fixedCargoBanco(e,curMonth,curYear)-occAmountIn(e,curMonth,curYear);
+      if(!(Math.abs(extra)>0.0001)) return;
+      chargesByBank[b]=(chargesByBank[b]||0)+extra;
+      if(!isPaidIn(e,curMonth,today,curYear,state)) pendingByBank[b]=(pendingByBank[b]||0)+extra;
+    });
     state.debts.forEach(d=>{ if(debtActive(d)) acc((d.monthly||0)+debtBalloonIn(d,curYear,curMonth),d.account||"sabadell",isDebtPaidThisMonth(d,today,state,curYear,curMonth)); });
     (state.oneoffs||[]).forEach(o=>{ if(oneoffOccurs(o,curYear,curMonth) && (o.amount||0)!==0) acc(o.amount,o.account||"sabadell",isPaidThisMonth(o,today)); });
     // --- CASH-FLOW: ingresos (nómina) y transferencias recurrentes PENDIENTES este mes ---

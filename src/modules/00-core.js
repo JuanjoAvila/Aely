@@ -4447,7 +4447,9 @@ function mergePlanThreeWay(base,local,remote,kind,deleted,localNewer){
     const independent=kind==="fixed"?["name","cat","category"]:["name","note"];
     // `soloMes` va con lo que se cobra: «Desde ahora» cambia el importe Y congela los meses pagados
     // en la misma edición; mezclar el importe de un móvil con los meses del otro no lo pidió nadie.
-    const financial=kind==="fixed"?["amount","bankAmount","account","freq","months","schedule","day","soloMes"]:
+    // `reparto` (tanda 5) también: tu parte + las partes = lo que cobra el banco, y media suma de
+    // cada móvil no cuadraría (el cliente nuevo la descartaría, pero no hace falta llegar ahí).
+    const financial=kind==="fixed"?["amount","bankAmount","account","freq","months","schedule","day","soloMes","reparto"]:
       keys.filter(function(k){return independent.indexOf(k)<0 && ["id","owner","user_id","type","debtLinkRevision"].indexOf(k)<0;});
     const groups=[financial];
     if(payment.length)groups.push(payment);
@@ -4473,6 +4475,23 @@ function mergePlanThreeWay(base,local,remote,kind,deleted,localNewer){
           if(has(source,month))Object.defineProperty(proofs,month,{value:source[month],enumerable:true,writable:true,configurable:true});
         });
         if(has(left,"paymentProofs")||has(right,"paymentProofs"))merged.paymentProofs=has(left,"paymentProofs")&&goalSyncEqual(proofs,a)?left.paymentProofs:has(right,"paymentProofs")&&goalSyncEqual(proofs,c)?right.paymentProofs:proofs;
+        return;
+      }
+      /* «Ya me lo ha pagado» (tanda 5): dos móviles que marcan a personas distintas suman las dos
+         marcas; quitarla en uno la quita si el otro no la tocó (rev. t5, R3). Mes a mes, id a id. */
+      if(kind==="fixed"&&group[0]==="repartoCobrado"&&[old,left,right].every(function(o){return !has(o,"repartoCobrado")||o.repartoCobrado&&typeof o.repartoCobrado==="object"&&!Array.isArray(o.repartoCobrado);})){
+        const b0=old&&old.repartoCobrado||{},a=left.repartoCobrado||{},c=right.repartoCobrado||{},out={};
+        new Set([...Object.keys(b0),...Object.keys(a),...Object.keys(c)]).forEach(function(month){
+          const lista=function(o){return Array.isArray(o[month])?o[month]:[];};
+          const la=lista(a),lc=lista(c),lb=lista(b0),ids=[];
+          la.concat(lc).forEach(function(id){
+            if(ids.indexOf(id)>=0)return;
+            const enA=la.indexOf(id)>=0,enC=lc.indexOf(id)>=0,enB=lb.indexOf(id)>=0;
+            if(enA&&enC||enA&&!enB||enC&&!enB)ids.push(id);
+          });
+          if(ids.length)Object.defineProperty(out,month,{value:ids,enumerable:true,writable:true,configurable:true});
+        });
+        if(Object.keys(out).length)merged.repartoCobrado=goalSyncEqual(out,a)?left.repartoCobrado:goalSyncEqual(out,c)?right.repartoCobrado:out;
         return;
       }
       let source=right;
