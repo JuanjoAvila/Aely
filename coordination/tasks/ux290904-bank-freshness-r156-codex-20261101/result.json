@@ -1,0 +1,18 @@
+{
+  "status": "cancelled",
+  "summary": "UX290904 aparcada por autoridad b5811786d4dcf8c83b1b6a9809c503ed719091e4. Auditoria estatica de procedencia concluida; propuesta M1 no implementada y M2 sin contrato aprobado. Fragmento documental minimo de BACKLOG entregado privadamente al coordinador para aplicacion posterior revisada. Sin cambios ni pruebas de producto.",
+  "tests": [],
+  "productSHA": "c4cd27db0ca29e68388770dc87f30996ea9489be",
+  "limitations": [
+    "obBalAt participa en saldoLeidoDelBanco y recibos; no se modifica ni acredita cada cuenta.",
+    "last_sync es cursor; lastBankSync global no acredita exito por cuenta o fase.",
+    "No metadatos nuevos, M1/M2, backend, consultas bancarias, builds o tests de runtime.",
+    "Nota de BACKLOG preparada privadamente; aplicacion e integracion quedan a otro encargo autorizado."
+  ],
+  "schema": 1,
+  "taskId": "ux290904-bank-freshness-r156-codex-20261101",
+  "actor": "codex",
+  "sessionId": "nrelay0152d31ba3b2434b8957e986b103b075",
+  "createdAt": "2026-11-01T06:39:46.551Z",
+  "released": true
+}
