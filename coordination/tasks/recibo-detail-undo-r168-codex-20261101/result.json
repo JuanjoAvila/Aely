@@ -1,0 +1,45 @@
+{
+  "status": "done",
+  "summary": "PR351 draft contra beta: ficha Quitar reutiliza useBillUndo y toast de Todos, cancelacion explicita y restauracion todo-o-nada conservada. GO independiente sobre candidato congelado; commit propio de cuatro archivos desde base exacta.",
+  "productSHA": "bed08759b82013ebae8fd9dcd7cb9b1789842a31",
+  "pullRequest": 351,
+  "tests": [
+    {
+      "command": "Node dirigido: controlador, cancelacion, caducidad y saldo",
+      "exitCode": 0,
+      "passed": 8
+    },
+    {
+      "command": "Chromium dirigido: ocho casos ficha y tres regresiones Todos, once unicos",
+      "exitCode": 0,
+      "passed": 11,
+      "workers": 1,
+      "retries": 0
+    },
+    {
+      "command": "Causal misma ruta/spec final: base sin boton Deshacer; candidato restaura exacto",
+      "baselineExitCode": 1,
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "Once casos E2E unicos acumulados en corridas dirigidas; fallo de sincronizacion del guardado corregido y verificado.",
+    "Cierre por callback React real; gesto fisico y aceptacion movil no probados.",
+    "PR total contiene commits de la base autorizada respecto a beta; API mergeable false. Integracion a cargo del coordinador.",
+    "CI, merge, deploy, beta servida y ProductREADY no acreditados."
+  ],
+  "schema": 1,
+  "taskId": "recibo-detail-undo-r168-codex-20261101",
+  "actor": "codex",
+  "sessionId": "detailundo168-90a400b266a443e7b761acd100dbbdbf",
+  "createdAt": "2026-11-01T18:43:36.485Z",
+  "released": true
+}
