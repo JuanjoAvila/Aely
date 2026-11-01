@@ -7,6 +7,7 @@ let CURLANG = "es";
 const LANGS = [["es","Español"],["en","English"],["ca","Català"]];
 const LANG = {
   es:{
+    f_owntransfer_title:"¿Lo enviaste a otra cuenta tuya?", f_owntransfer_sub:"Hay una entrada de {amount} en {bank}. Confirma solo si es tu mismo dinero. La salida dejará de contar como gasto.", f_owntransfer_yes:"Sí, es mi dinero", f_owntransfer_no:"No, es un pago", f_owntransfer_pending:"Guardando tu respuesta…", f_owntransfer_done:"Traspaso confirmado. Ya no cuenta como gasto.", f_owntransfer_rejected:"Guardado. No volveremos a preguntarte por esta salida.", f_owntransfer_error:"No se ha podido confirmar tu respuesta. Actualiza los movimientos antes de intentarlo otra vez.",
     mode_change_reopen:"Cierra y vuelve a abrir la app para terminar el cambio de modo.",
     beta_review_intro:"Revisa lo nuevo. Aprobar una tanda no la publica; su entrega se comprueba aparte.",
     notes_unavailable:"No se han podido comprobar las novedades. Conecta y vuelve a intentarlo.",
@@ -342,6 +343,7 @@ const LANG = {
     cur_jpy:"¥ Yen", cur_cad:"C$ Dólar canadiense", cur_aud:"A$ Dólar australiano", cur_cny:"¥ Yuan", cur_mxn:"$ Peso mexicano", cur_sek:"kr Corona sueca", cur_nok:"kr Corona noruega", cur_dkk:"kr Corona danesa", cur_pln:"zł Złoty", cur_brl:"R$ Real", cur_inr:"₹ Rupia", cur_try:"₺ Lira turca",
   },
   en:{
+    f_owntransfer_title:"Did you send this to another account of yours?", f_owntransfer_sub:"There is an incoming {amount} at {bank}. Confirm only if it is the same money. The outgoing payment will no longer count as spending.", f_owntransfer_yes:"Yes, it is my money", f_owntransfer_no:"No, it is a payment", f_owntransfer_pending:"Saving your answer…", f_owntransfer_done:"Transfer confirmed. It no longer counts as spending.", f_owntransfer_rejected:"Saved. We will not ask about this outgoing payment again.", f_owntransfer_error:"Your answer could not be confirmed. Refresh your transactions before trying again.",
     mode_change_reopen:"Close and reopen the app to finish changing mode.",
     beta_review_intro:"Review new changes. Approving a batch does not publish it; delivery is checked separately.",
     notes_unavailable:"The updates could not be verified. Connect and try again.",
@@ -664,6 +666,7 @@ const LANG = {
     cur_jpy:"¥ Yen", cur_cad:"C$ Canadian dollar", cur_aud:"A$ Australian dollar", cur_cny:"¥ Yuan", cur_mxn:"$ Mexican peso", cur_sek:"kr Swedish krona", cur_nok:"kr Norwegian krone", cur_dkk:"kr Danish krone", cur_pln:"zł Złoty", cur_brl:"R$ Real", cur_inr:"₹ Rupee", cur_try:"₺ Turkish lira",
   },
   ca:{
+    f_owntransfer_title:"Ho vas enviar a un altre compte teu?", f_owntransfer_sub:"Hi ha una entrada de {amount} a {bank}. Confirma només si són els mateixos diners. La sortida deixarà de comptar com a despesa.", f_owntransfer_yes:"Sí, són els meus diners", f_owntransfer_no:"No, és un pagament", f_owntransfer_pending:"Desant la teva resposta…", f_owntransfer_done:"Traspàs confirmat. Ja no compta com a despesa.", f_owntransfer_rejected:"Desat. No tornarem a preguntar-te per aquesta sortida.", f_owntransfer_error:"No s'ha pogut confirmar la resposta. Actualitza els moviments abans de tornar-ho a provar.",
     mode_change_reopen:"Tanca i torna a obrir l’app per acabar el canvi de mode.",
     beta_review_intro:"Revisa els canvis nous. Aprovar una tanda no la publica; l’entrega es comprova a part.",
     notes_unavailable:"No s’han pogut comprovar les novetats. Connecta i torna-ho a provar.",

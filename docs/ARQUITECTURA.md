@@ -1,3 +1,13 @@
+## Confirmación de traspaso propio (candidata, 01/11/2026)
+
+`ownTransferPlan` congela owner, ambas filas y cuentas conocidas. La coincidencia es solo una oferta: UUID únicos, fuentes OB, signos opuestos y céntimos exactos, bancos distintos, entrada categorizada como traspaso, como máximo dos días civiles `Europe/Madrid`, unicidad en ambos sentidos y salida sin recibo/cuota/meta. No usa el nombre como prueba ni aprende reglas sobre otros movimientos.
+
+La ficha usa `askChoice` del host de confirmaciones existente: valores `yes`/`no`; Escape, Atrás, fondo y Cancelar devuelven `null`. `cloud.decideOwnTransfer` pertenece a `CLOUD_WRITES`, exige owner y fotos remotas por UUID, revalida estado antes de enviar, hace CAS de todos los campos leídos de la salida y exige un único ACK exacto. SÍ escribe solo `cat`; NO solo `source`. Un ACK de salida sigue siendo válido si cambia después la contraparte: la relectura detecta el límite, no deshace dinero ni escribe en la entrada. Un cambio de sesión o de la salida local impide aplicar el acuse a otro contexto.
+
+El rechazo viaja en `#ownno` antes del ordinal final, se deserializa y se conserva de forma monótona al refrescar o consolidar el mismo UUID. No se propaga por semejanza a otro UUID. `expenseSourcePatch` conserva el rechazo remoto cuando `setExpenseBank`, `setExpenseDup`, `setExpenseCat` al quitar vínculo de deuda, o `setExpenseDeuda` reconstruyen `source`; un CAS de source evita borrar un NO concurrente. `setExpenseRecibo` también compara el source que acaba de leer; `setExpenseMeta` ya lo hacía. No cambia sus reglas financieras. Una app anterior a este contrato aún puede borrar la marca; una nueva instalación podría volver a preguntar, nunca confirmar sola.
+
+La protección contra un pull iniciado antes del ACK de SÍ vive en un `WeakMap`, sin añadir campos persistidos a la salida. No impide una corrección posterior. No hay garantía atómica entre salida y entrada ni frente a clientes antiguos; ambos límites están aceptados y constan en CHANGELOG. Cobertura dirigida: `tests/own-transfer-confirm.test.mjs` y `e2e/own-transfer-confirm.spec.mjs`.
+
 ## FIN29/30: alias de nombre separados del borrado (candidata local, 28/10/2026)
 
 Un renombrado bancario nuevo guarda `expense-rename|identidad|clave` en la partición

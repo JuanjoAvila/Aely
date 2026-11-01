@@ -521,6 +521,27 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   const withdrawalPending=useRef({});
   const withdrawalState=useRef(state); withdrawalState.current=state;
   const [withdrawalStatus,setWithdrawalStatus]=useState(null);
+  const [ownTransferStatus,setOwnTransferStatus]=useState(null);
+  const recognizeOwnTransfer=function(ex){
+    const plan=ownTransferPlan(withdrawalState.current,ex);
+    if(!plan||withdrawalPending.current[ex.id])return;
+    withdrawalPending.current[ex.id]=true;
+    askChoice({title:t("f_owntransfer_title"),sub:tf("f_owntransfer_sub",{amount:eur(ex.amount),bank:entOf(plan.incoming.ent).label}),
+      options:[{v:"yes",label:t("f_owntransfer_yes")},{v:"no",label:t("f_owntransfer_no")}]}).then(async function(decision){
+      if(decision!=="yes"&&decision!=="no")return;
+      setOwnTransferStatus({id:ex.id,status:"pending"});
+      let timer;
+      try{
+        const ack=await Promise.race([cloud.decideOwnTransfer(plan,decision,function(){return withdrawalState.current;}),new Promise(function(_,reject){timer=setTimeout(function(){reject(new Error("transfer timeout"));},10000);})]);
+        if(!ack)throw new Error("transfer unconfirmed");
+        let applied=false;
+        ReactDOM.flushSync(function(){set(function(s){const next=applyOwnTransferDecision(s,plan,decision,Date.now(),ack);applied=next!==s;return next;});});
+        if(!applied)throw new Error("transfer changed");
+        setOwnTransferStatus({id:ex.id,status:"done"});showToast(t(decision==="yes"?"f_owntransfer_done":"f_owntransfer_rejected"));
+      }catch(err){setOwnTransferStatus({id:ex.id,status:"error"});showToast(t("f_owntransfer_error"));}
+      finally{clearTimeout(timer);}
+    }).finally(function(){delete withdrawalPending.current[ex.id];});
+  };
   const recognizeWithdrawal=function(ex){
     if(!canRecognizeWithdrawal(ex) || ex.category==="traspaso" || withdrawalPending.current[ex.id]) return;
     if(!canRecognizeWithdrawal(ex,withdrawalState.current)){
@@ -1973,6 +1994,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       },
       setCat:setCat, setCuota:setCuota, setMeta:setMeta, setReceipt:setReceipt, quitarRecibo:quitarRecibo, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
       resolveDup:resolveDup, separarGemelo:separarGemelo, recognizeWithdrawal:recognizeWithdrawal, withdrawalStatus:withdrawalStatus,
+      recognizeOwnTransfer:recognizeOwnTransfer,ownTransferStatus:ownTransferStatus,
       showToast:showToast, aiBusy:aiBusy, suggestAi:suggestAi, state:state
     }),
     undoDelete && ReactDOM.createPortal(
@@ -2681,7 +2703,7 @@ function expensePaymentLabelUI(state,e,kind,relation){
   var rows=(kind==="debt"?state.debts||[]:(state.fixed||[]).concat(state.oneoffs||[])).filter(function(x){return x&&x.id===id;});
   return rows.length===1&&String(rows[0].name||"").trim()?tf("f_link_unconfirmed",{name:rows[0].name}):"—";
 }
-function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setMeta, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus}){
+function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setMeta, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus, recognizeOwnTransfer, ownTransferStatus}){
   /* UNA SOLA CONDICIÓN para pintarse y para los candados. Iban por separado (`!!exp` en los hooks,
      `!exp || !editExp` para pintar) y en cuanto se separaban el sheet desaparecía dejando el
      `overflow:hidden` y el bloqueo de `touchmove` puestos sobre una pantalla vacía: nada respondía
@@ -2796,6 +2818,9 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
         onClick:function(){ setBank(exp,b); setBankOpen(false); }},"🏦 "+entOf(b).label); })),
     exp.renamePending&&React.createElement("div",{className:"hint",role:"status","data-testid":"expense-rename-pending"},t(exp.renamePending.quarantined?"g_rename_paused":"g_rename_pending")," ",React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){saveEdit(exp,{merchant:exp.renamePending.merchant,retryRename:true});}},t("g_note_retry"))),
     trace,duplicate,paired,reciboAviso,
+    ownTransferPair(state,exp)&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-own-transfer",
+      disabled:ownTransferStatus&&ownTransferStatus.id===exp.id&&ownTransferStatus.status==="pending",onClick:function(){recognizeOwnTransfer(exp);}},t("f_owntransfer_title")),
+    ownTransferStatus&&ownTransferStatus.id===exp.id&&ownTransferStatus.status!=="done"&&React.createElement("div",{role:"status","data-testid":"exp-own-transfer-status"},t(ownTransferStatus.status==="pending"?"f_owntransfer_pending":"f_owntransfer_error")),
     canRecognizeWithdrawal(exp) && React.createElement("div",{className:"hint","data-testid":"exp-withdrawal-info"},
       React.createElement("div",null,t("f_withdraw_fields")),
       exp.category!=="traspaso" && React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-withdrawal",
