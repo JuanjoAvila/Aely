@@ -270,7 +270,9 @@ export const K1 = "L1.0";
 // funciones reales de 00-core. Si alguna deja de mandar o de guardar, estos tests lo ven; no
 // hay una copia aquí que pueda quedarse atrás.
 const mBody = main.match(/cloud\.bankSync\((\{recoverGaps:true[^;]*?\})\), pDb\]/);
-const mImport = main.match(/const txs=flattenBankTx\(links(?:, prev\.bankTx)?\);[\s\S]*?const add=importObExpenses\([^;]*\);/);
+// La importación ahora se llama `imported`: el plan mensual transforma después esas filas.
+// Este tramo sigue probando el importador real y el suelo recibido, antes de ese plan.
+const mImport = main.match(/const txs=flattenBankTx\(links(?:, prev\.bankTx)?\);[\s\S]*?const imported=importObExpenses\([^;]*\);/);
 const mAck = main.match(/const at=Date\.now\(\), ack=\{\};\s*links\.forEach\(function\(l\)\{[^}]*\}\);/);
 // El efecto que guarda el acuse cuando el estado con sus filas ya está comprometido.
 const mEfecto = main.match(/useEffect\(function\(\)\{\s*(const p=obAckPend\.current;[\s\S]*?)\},\[state\.lastBankSync\]\);/);
@@ -278,7 +280,7 @@ assert.ok(mBody && mImport && mAck && mEfecto, "no se encuentran las piezas del 
 // Pasado por JSON, que es como viaja: el objeto nace en el contexto de la lógica.
 const cuerpo = new Function("obAckLoad", "return " + mBody[1] + ";");
 export const cuerpoNuevo = (obAckLoad) => JSON.parse(JSON.stringify(cuerpo(obAckLoad)));
-export const importa = new Function("flattenBankTx", "importObExpenses", "prev", "links", mImport[0] + " return add;");
+export const importa = new Function("flattenBankTx", "importObExpenses", "prev", "links", mImport[0] + " return imported;");
 // `Date.now()` es la marca que une el acuse con sus filas. Aquí cada respuesta recibe una
 // distinta aunque el test vaya más rápido que el reloj: en un móvil hay una red en medio.
 let marca = MS;
