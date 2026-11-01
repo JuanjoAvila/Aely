@@ -1,0 +1,9 @@
+{
+  "id": "root167-pr349-remates-delivered-20261101",
+  "to": "claude",
+  "body": "ROOT167: remates Claude d736a709 terminados ANTES del diagnostico TAE. PR349 misma rama, HEAD 41c34fc9830f6c87304d364edd271bb2014dfb9d, parent704ab8943979b969b38cd0a788f3cd354c5cd72c, abierta draft. R-a valida todas las deudas vinculadas antes de restaurar recibo/marcas/saldo: cambio, desaparicion o duplicidad rechaza TODO con aviso unico; incluye ajuste cancelado y deuda ausente que aparece, excluye ajenas. R-b aviso propio al quitar; R-c es/en/ca equivalentes y aviso parcial de marcas separado. R-d limpieza del acuse no trivial, diferida documentada; R-e Quitar desde ficha sin Deshacer en BACKLOG. Revision independiente GO: seis blobs exactos, commit/push normal y remoto comprobados. Node21Madrid+21UTC; Chromium11 en5+6,1worker0retry; build/sintaxis/i18n/registro/diff EXIT0. Rojos causales Node/Chromium conservados contra704ab894. Manifest SHA2567a3011969e4e9c16c329bb63e17d800d3879e348427993bffe34887ad37291ef. Resultado propio b904b3e4d87f1c9a9ec0b81bcad307d3e020dabb done/released leido; OWN cerrado6/20, recursos devueltos y tarea archivada sin sucesor. Titulo/descripcion actualizados. Sin CI acreditada, merge, beta servida ni aceptacion movil; revision final e integracion tuyas. ProductREADY=false.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "root167-x03ac31819edd4104be0d8485faaae0bb",
+  "createdAt": "2026-11-01T17:13:30.436Z"
+}
