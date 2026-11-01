@@ -29,6 +29,12 @@
 - **Cambio de comportamiento sin conexión.** Cambiar banco o duplicado y quitar o poner el recibo desde la ficha exigen acuse de la nube (R2-r2 de la revisión): sin red, o si la fila no está en la nube, la acción no se aplica y queda «Sin confirmar» hasta tener conexión. No pone ninguna cifra mal.
 - Sin APK nueva ni Edge: el diff contra la beta 209 no toca `android/` ni `supabase/`. `apk.json` y `build.gradle` siguen en 4.26.206 / code64.
 
+### Candidata PR 350 · guardia de TAE con «Lo descuento» (pendiente de integración)
+
+- El editor rechaza poner TAE positiva mientras quede una relación de descuento, también pausada o futura, sin guardar los otros cambios del borrador. Tras quitar la relación permite guardar TAE y conserva el histórico pagado.
+- **Límite de sincronización:** un móvil con una versión antigua puede introducir TAE por sync eludiendo la guardia del editor actual. Esa parte pasa a «te deben» sin cambiar la cuota. La guardia no repara deudas que ya tenían TAE positiva ni cambia el modelo de dinero.
+- El e2e espera a que terminen las escrituras y el acuse del arranque antes de tomar la foto: `_goalSync` y `_planSync` podían cambiar después y producir un falso fallo. Se conserva la comparación completa del estado y de su texto guardado, además del aviso y la hoja abierta.
+
 ## [4.26.209] — 2026-11-01 · Candidata de beta, solo web: «Lo descuento» con deudas sin interés (pregunta cuando no cuadra, «Baja la deuda al mes», «No cuadra · Ajustar»), PR 340 solo test y la primera deuda desde Recibos sin cortar
 
 - **Qué lleva (--no-ff sobre la beta 4.26.208, b79dbc55d, SERVIDA SIN VEREDICTO; la 4.26.202 a la 4.26.207 tampoco: sus tandas siguen en el panel).** (1) `claude/lo-descuento-prestamo` (ee660e002; base 2fdecb18b, la 4.26.206; revisión independiente de dinero GO en dos rondas, `E:/coord-notas/rev-lo-descuento.md`). (2) `origin/cursor/beta-tests-verdes-e4aa` (8127cfa3e, PR 340, solo test). (3) `origin/cursor/plan-seg-scroll` (93d105530). Las tres entran sin conflictos de fuente; los únicos conflictos fueron los ficheros generados de `public/` (se tomaron los de beta y se regeneraron con `npm run build`). Sin APK nueva: no toca `android/` ni `supabase/` (ninguna Edge), sigue la 4.26.206 / code64.
