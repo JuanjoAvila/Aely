@@ -1552,8 +1552,8 @@ const cloud = (function(){
       if(e&&e.debtId&&cat!=="deudas") upd.source=expenseSourceForCloud(Object.assign({},e,{debtId:undefined}));
       // Devuelve cuántas filas cambió: un UPDATE por id que no casa no da error, y sin ese número
       // la app daba por subida una categoría que la tabla nunca recibió (2026-10-02).
-      const q=upd.source?null:expenseCloudEq(sb.from('expenses').update(upd), session.user.id, e);
-      const {data,error}=upd.source?await expenseSourcePatch(sb,session.user.id,e,upd):await (typeof q.select==="function" ? q.select("id") : q);
+      const q=expenseCloudEq(sb.from('expenses').update(upd), session.user.id, e);
+      const {data,error}=await (typeof q.select==="function" ? q.select("id") : q);
       if(error) throw error;
       return Array.isArray(data) ? data.length : 0;
     },
@@ -1615,13 +1615,12 @@ const cloud = (function(){
     // Banking, la marca en `source`. La de la noti (`macrodroid`) conserva su source: un
     // `macrodroid~…` lo leería el servidor como «a mano» y lo SUMARÍA; ahí basta `cat:deudas`.
     async setExpenseDeuda(e){
-      if(!sb || !e) throw new Error("expense unavailable");
+      if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
-      if(!session) throw new Error("session unavailable");
-      if(!await obConfirmedCanUpload(e,session.user.id,sb))throw new Error("expense upload denied");
-      const {data,error}=await expenseSourcePatch(sb,session.user.id,e,{cat:"deudas",source:expenseSourceForCloud(e)});
+      if(!session) return;
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))return;
+      const {error}=await expenseCloudEq(sb.from('expenses').update({ cat:"deudas", source:expenseSourceForCloud(e) }), session.user.id, e);
       if(error) throw error;
-      return {acknowledged:true,rows:data,alreadyApplied:false};
     },
     async deleteExpense(e){
       if(!sb) return;
