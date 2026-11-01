@@ -29,9 +29,15 @@ function logic(source=process.env.AELY_T4_SOURCE){
     constructor(...args){super(...(args.length?args:["2026-10-18T12:00:00+02:00"]));}
     static now(){return Date.parse("2026-10-18T12:00:00+02:00");}
   };
-  // La base lleva SU callback de totals: el actual usa `fixedCargoBanco` (t5), que el motor de la base no tiene
-  // (CI de beta rojo en la 204: ReferenceError al mezclar motor viejo con totals nuevo).
-  const main=(source==="base"?execFileSync("git",["show",base+":src/modules/11-app-main.js"],{cwd:root,encoding:"utf8"}):read("src/modules/11-app-main.js")).replaceAll("\r\n","\n");
+  // El callback de totals que se compara es el de ahora, y llama a `fixedCargoBanco` (t5).
+  // El motor de la base no declara esa función: el importe que sale del banco ahí es `occAmountIn`.
+  // Sin el enlace, el baseline revienta con ReferenceError y la comparación no llega a correr
+  // (CI de beta, 204 y 205). No se sustituye el callback: el extra sale 0 y se sigue comprobando.
+  if(typeof c.fixedCargoBanco!=="function"){
+    assert.equal(typeof c.occAmountIn,"function","la base cuenta el cargo con occAmountIn");
+    c.fixedCargoBanco=c.occAmountIn;
+  }
+  const main=read("src/modules/11-app-main.js").replaceAll("\r\n","\n");
   const start=main.indexOf("const totals=useMemo(()=>{"),end=main.indexOf("\n\n  const budgetMonth=",start);
   assert.ok(start>=0&&end>start,"cargar callback real de totals y minByBank");
   c.realTotals=vm.runInNewContext("(function(state,calendarDay){"+main.slice(start,end)+";return totals;})",c);
