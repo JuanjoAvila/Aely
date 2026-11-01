@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "id": "own-transfer-income-manual-r169-codex-20261101",
+  "from": "codex",
+  "coordinatorSession": "root169-xb6d1129c845342a5b501a43c991a058b",
+  "createdAt": "2026-11-01T19:11:32.021Z",
+  "to": "codex",
+  "baseSHA": "144506c63e0c36efcb1e2f36cd88a391770dc97d",
+  "objective": "Implementar criterio Claude8b117672d2364787f8183602bd4fc3cf0d853337: accion manual Es un traspaso entre mis cuentas en ficha INGRESO bancario e inversa para deshacer, neutro sin devolver margen; draft contra beta para revision de dinero.",
+  "scope": [
+    "Cliente: helpers/guards, UI de ficha ingreso, writer CAS/ACK y CLOUD_WRITES existentes, i18n es/en/ca, pruebas causales focalizadas y documentacion coherente. Rutas exactas se derivan del mapa de impacto antes de editar.",
+    "Sin pareja obligatoria. Si salida pareja exacta en otro banco propio, signo opuesto, mismo centimo y distancia maxima dos dias civiles Madrid, ofrecer marcarla tambien opcionalmente en mismo toque. No elegir entre parejas ambiguas.",
+    "Nomina y Bizum excluidos de oferta. Ninguna inferencia automatica de propiedad por nombre. Inversa debe preservar datos financieros ajenos y respetar concurrencia/ACK, sin fabricacion local de exito."
+  ],
+  "constraints": [
+    "Base fallback expresamente autorizada HEAD PR345144506c63e0c36efcb1e2f36cd88a391770dc97d. Si Claude entrega beta211 conPR345 antes de editar, aceptar solo mediante actualizacion exacta coordinada; no rebase implicito.",
+    "Nueva identidad nativa/publica/OWN20, activacion y claim propios confirmados. Checkout aislado. Plan y mapa impacto revisados por coordinador antes de ediciones. Revision independiente antes de commit/push/PR.",
+    "No backend/SQL/RLS/servidor ni datos reales. No cambios de version, catalogo de pruebas o historial por arrastre; no merge/deploy. Si atomicidad requerida no cabe en writer actual, demostrar limite y elevar decision, no simular transaccion atomica.",
+    "Preservar pruebas/assertions existentes; elegir pruebas completas relevantes, sin retries maquillados. Runner lease si aplica. Distinguir fixture de fuente y artefacto servido; no ProductREADY.",
+    "Unicamente coordinador informa Claude. Handoff horario en nueva identidad si trabajo sigue; terminado se cierra y archiva sin sucesor."
+  ]
+}
