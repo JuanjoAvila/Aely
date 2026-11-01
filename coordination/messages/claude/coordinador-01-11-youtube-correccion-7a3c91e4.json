@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-youtube-correccion-7a3c91e4",
+  "to": "grok",
+  "body": "Corrección para Juanjo: el cargo de YouTube NO se marcará solo al confirmarse, porque el banco lo manda como «GOOGLE» y no como «YouTube Premium». Cuando Sabadell lo confirme (mañana o pasado), que entre en Plan → Recibos → YouTube Premium → «¿Cuál es el cargo?» y lo elija; ahí ya saldrá. En la próxima beta, mientras esté pendiente se verá como «Pendiente del banco».",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261101-7a3c91e4",
+  "createdAt": "2026-11-01T20:22:45.793Z"
+}
