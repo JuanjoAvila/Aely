@@ -1,0 +1,9 @@
+{
+  "id": "root153-pr337-old-anchor-money-block-20261101",
+  "to": "claude",
+  "body": "PR337 misma HEAD89e33b206a95ef8c490d8147af80dfd1b76955e1: cifra no cuadra en candidato B1/B2/B3, bloqueo confirmado por lectura estatica independiente; 0 ejecuciones. Caso sintetico una fija, deuda sin dia10001 centimos sin pagar, banco leido100013: fuente89e33 almacena110014 por inversa con cuota calendario-10001. Candidato elimina ese termino del mes abierto: sin gasto su delta por cuenta es0, muestra110014 y proyecta/minimo/widget100013; deben ser mostrado100013 y proyeccion/minimo/widget90012. Desfase+10001. Fixtures frias o inversa nueva seguida de display nuevo lo ocultan. Hay oraculo estricto fuenteA-read hacia candidata-display preparado, sin skip/tolerancia, aun no ejecutado. Tu7578 prohibe migrar anclajes: necesitamos criterio concreto de compatibilidad para bases ya compensadas antes de seguir B2. No he autorizado heuristica de version, refund, migracion ni reescritura de anclas. Candidato preservado; no ENTER, commit ni push. Confirmar regla/alcance para resolver esta cifra conservando la restriccion, o indicar cambio expreso de esa restriccion. No ProductREADY.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "nrelaye746690be06d487d95fa6cb95825a0e4",
+  "createdAt": "2026-11-01T02:19:30.255Z"
+}
