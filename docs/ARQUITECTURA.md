@@ -201,7 +201,38 @@ reloj de clientes antiguos descrito arriba; no se declara resuelto todo saldo ma
 `revisado` (`{distinto, fantasma}` con el
 año*12+mes) guarda los avisos de «Para revisar» ya contestados; posponer es solo de ese móvil
 (almacén local, hasta el día siguiente).
-«¿Te llega?» no tiene cálculo propio: lee el recorrido día a día de `totals` (11), que pasa por
+Los avisos de la víspera usan el mismo cálculo que «¿Te llega?».
+`receiptEveProducer` comparte la cifra de cada banco con el aviso de la víspera: usa
+`planCoverState(totals, banco, 0, planChargesMonth(...).pendingBills)`, incluida la corrección
+existente de cuotas sin día. No vuelve a recorrer el dinero ni descuenta de nuevo el recibo.
+Solo afirma suficiencia con banco explícito, saldo finito, lectura acreditada por
+`saldoLeidoDelBanco`, desde la medianoche local del día anterior a la víspera y nunca posterior
+al instante del cálculo, y sin incidencias/saldos rancios actuales. Una fuente de lectura
+aplicable con hora futura deja el aviso neutro aunque otra cuenta o conexión oculte esa hora
+en el mínimo del banco. El texto expresa el mínimo previsto del mes en ese banco, conservando
+su cifra y signo; no afirma que el recibo de mañana sea impagable. Sin esa evidencia conserva
+el aviso genérico. Las dos llamadas a `setAlertData` y la notificación web comparten el calendario
+memorizado y su texto localizado en es/en/ca; los cambios de saldo, lectura, pagos, flujos,
+idioma y fecha invalidan ese calendario. El banco de pruebas no envía estos avisos ni calendarios.
+
+Cada cargo puede llevar `eve:{v:1,title,body,coverage,calculatedOn,dueOn}`. Es un mensaje
+precalculado, no una orden de consultar el banco. `coverage` es `enough`, `short` o `unknown`;
+este último nunca afirma nada del saldo. `calculatedOn` corresponde al día local real del
+cálculo y debe coincidir con el año/mes/día de `totals`; `dueOn` es la fecha exacta del cargo.
+Solo se añade suficiencia para mañana. El consumidor nativo debe validar tipos, versión,
+fecha real actual/mañana y correspondencia con `ym`/`day` antes de usar el texto completo.
+Un objeto ausente, inválido o de otro día conserva el aviso anterior por cargo. El plugin
+actual conserva los campos adicionales de `charges`; una APK anterior los ignora. El cambio
+WEB por sí solo no implementa ni valida ese consumidor nativo, su APK o una notificación física.
+
+El calendario omite pagados con los mismos predicados del aviso web, sin escribir `paidYm`.
+Los identificadores, sellos mensuales y el intercambio `fired` antes del aviso web se conservan.
+Con la app cerrada el dato sigue siendo el cálculo guardado; si no se recalculó en el día de
+la notificación no se afirma suficiencia. No hay TTL financiero por horas, temporizador nuevo
+ni lectura bancaria programada. Se conserva el límite del calendario de mes actual: el worker
+no inventa previsión del siguiente mes ni corrige aquí el hueco del primer día de mes.
+
+«¿Te llega?» lee el recorrido día a día de `totals` (11), que pasa por
 `minWalk` (08), la misma función del simulador «¿Me lo puedo permitir?». A igualdad de día primero
 salen los cargos y luego entran las entradas. Los eventos salen de `pendingWalkEvents` (08), la
 única lista: la usan `totals` (píldora, hoja, mínimo diario, `safeLiq` del widget) y el simulador
