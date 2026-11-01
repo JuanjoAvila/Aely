@@ -1,5 +1,35 @@
 ## FIN29/30: alias de nombre separados del borrado (candidata local, 28/10/2026)
 
+## Aportación mensual TR: flujo de confirmación separado (candidata 01/11/2026)
+
+La nueva acción de la ficha confirma solo una fila por UUID y titular. El cliente lee la fila
+remota, condiciona el UPDATE de `cat` a su foto completa y exige exactamente una fila de ACK,
+incluidos origen, fecha, importe, comercio, nota y nombre original. Los campos NULL se filtran
+con `is(null)`. Cero filas, error, cambio de sesión o de la fila local no acreditan confirmación.
+El writer está en `CLOUD_WRITES`: sandbox impide la consulta. No cambia esquema ni backend.
+
+No pasa por el selector genérico de categoría: conserva efectivo, participaciones, valor,
+coste, recompensas, fijos y cuotas. La pregunta para una fila opaca es «¿Es tu aportación
+mensual?». Aceptarla no aprende un patrón por «Movimiento» o por importe. Si el banco aporta
+un destino semántico inequívoco en concepto/nota (ISIN, nombre del fondo o plan), la aceptación
+explícita guarda una autorización versionada independiente de `monthlyInvest` después del ACK
+y del guardado partido con lectura de disco. Un fallo de persistencia no habilita el automatismo.
+
+La recurrencia nueva compara el campo y valor original completos (solo normaliza espacios/caso),
+misma cuenta/bróker, débito exacto de 5000 céntimos, BOOK y días 1-5 no futuros. No usa notas
+editadas, tarjetas/MCC de compra, filas ambiguas o fecha anterior al consentimiento; confirmar
+una fila de noviembre en diciembre no autoriza un 3 de diciembre ya pasado. Los pulls que
+cambian el permiso lo invalidan, sin mezclar datos financieros ni habilitarlo desde configuración.
+Solo los IDs cuya categoría cambia por este plan omiten la compra virtual del sync; la ruta
+legacy conserva sus efectos. El puente sigue aportando posiciones/cash; OB, los movimientos.
+
+**Límite expreso:** el reconocedor legacy por `monthlyInvest` y su prueba MCC 5411 se conservan.
+Por eso esta candidata no demuestra ausencia global de clasificación sin consentimiento ni
+corrige la simulación de cierre. El riesgo y la decisión pendiente del dueño están en BACKLOG.
+Las pruebas usan sobres sintéticos; no acreditan que TR real entregue notas de destino ni una
+aceptación móvil. Estado: candidata privada, sin integración/publicación en este corte.
+
+
 Un renombrado bancario nuevo guarda `expense-rename|identidad|clave` en la partición
 existente de lápidas. La identidad codifica banco, cuenta y referencia; si falta la
 cuenta, exige el UUID. La clave conserva día, importe con signo y ordinal. El lector

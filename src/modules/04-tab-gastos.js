@@ -518,6 +518,28 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     });
     showToast(t(unir?"g_auto_paired":"g_auto_separated"));
   };
+  const monthlyPending=useRef({}), monthlyState=useRef(state); monthlyState.current=state;
+  const [monthlyStatus,setMonthlyStatus]=useState(null);
+  const confirmMonthlyInvestment=function(row){
+    const ex=Object.assign({},row), proposal=trMonthlyProposal(monthlyState.current,ex,Date.now());
+    if(!proposal||monthlyPending.current[ex.id]) return;
+    const token={active:true}; monthlyPending.current[ex.id]=token;
+    askConfirm({title:t("tr_monthly_title"),sub:t(proposal.purpose?"tr_monthly_semantic":"tr_monthly_question"),ok:t("tr_monthly_confirm")}).then(async function(yes){
+      if(!yes) return;
+      let timer;
+      try{
+        setMonthlyStatus({id:ex.id,status:"pending"});
+        const read=function(){return token.active?monthlyState.current:null;};
+        const ack=await Promise.race([cloud.confirmTrMonthlyInvestment(ex,read),new Promise(function(_,reject){timer=setTimeout(function(){token.active=false;reject(new Error("monthly investment timeout"));},10000);})]);
+        const fresh=read(), next=trMonthlyConfirmed(fresh,ex,ack,Date.now());
+        if(next===fresh||!trMonthlySaveConfirmed(next,ex.id)) throw new Error("monthly investment not saved");
+        // El permiso llega a React solo después de confirmar la fila y leer el guardado durable.
+        ReactDOM.flushSync(function(){set(function(s){return s===fresh?next:s;});});
+        setMonthlyStatus({id:ex.id,status:"done"}); showToast(t("tr_monthly_done"));
+      }catch(err){setMonthlyStatus({id:ex.id,status:"error"});showToast(t("tr_monthly_error"));}
+      finally{clearTimeout(timer);}
+    }).finally(function(){token.active=false;delete monthlyPending.current[ex.id];});
+  };
   const withdrawalPending=useRef({});
   const withdrawalState=useRef(state); withdrawalState.current=state;
   const [withdrawalStatus,setWithdrawalStatus]=useState(null);
@@ -1972,7 +1994,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
         setDetailId(null); setEditExp(null);
       },
       setCat:setCat, setCuota:setCuota, setMeta:setMeta, setReceipt:setReceipt, quitarRecibo:quitarRecibo, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
-      resolveDup:resolveDup, separarGemelo:separarGemelo, recognizeWithdrawal:recognizeWithdrawal, withdrawalStatus:withdrawalStatus,
+      resolveDup:resolveDup, separarGemelo:separarGemelo, recognizeWithdrawal:recognizeWithdrawal, withdrawalStatus:withdrawalStatus,confirmMonthlyInvestment:confirmMonthlyInvestment,monthlyStatus:monthlyStatus,
       showToast:showToast, aiBusy:aiBusy, suggestAi:suggestAi, state:state
     }),
     undoDelete && ReactDOM.createPortal(
@@ -2681,7 +2703,7 @@ function expensePaymentLabelUI(state,e,kind,relation){
   var rows=(kind==="debt"?state.debts||[]:(state.fixed||[]).concat(state.oneoffs||[])).filter(function(x){return x&&x.id===id;});
   return rows.length===1&&String(rows[0].name||"").trim()?tf("f_link_unconfirmed",{name:rows[0].name}):"—";
 }
-function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setMeta, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus}){
+function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setMeta, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus,confirmMonthlyInvestment,monthlyStatus}){
   /* UNA SOLA CONDICIÓN para pintarse y para los candados. Iban por separado (`!!exp` en los hooks,
      `!exp || !editExp` para pintar) y en cuanto se separaban el sheet desaparecía dejando el
      `overflow:hidden` y el bloqueo de `touchmove` puestos sobre una pantalla vacía: nada respondía
@@ -2906,6 +2928,9 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
       React.createElement("div",Object.assign({className:"v4-sheet v4-exp-sheet",style:{maxHeight:"90dvh"},ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
+        trMonthlyProposal(state,exp,Date.now())&&React.createElement("div",{className:"hint",style:{padding:"8px 16px"},"data-testid":"tr-monthly-proposal"},
+          React.createElement("span",null,t("tr_monthly_question")),
+          React.createElement("button",{type:"button",className:"btn btn-ghost",disabled:!!(monthlyStatus&&monthlyStatus.id===exp.id&&monthlyStatus.status==="pending"),onClick:function(){confirmMonthlyInvestment(exp);},"data-testid":"tr-monthly-confirm"},t("tr_monthly_title"))),
         React.createElement(ExpenseFichaLayout,{kind:editExp.income?"ingreso":"gasto",onKind:function(k){
             if(auto){ lockedToast(); return; }
             const income=k==="ingreso"; setEditExp(function(p){ return Object.assign({},p,{income:income}); }); saveEdit(exp,{income:income});

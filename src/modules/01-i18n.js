@@ -7,6 +7,7 @@ let CURLANG = "es";
 const LANGS = [["es","Español"],["en","English"],["ca","Català"]];
 const LANG = {
   es:{
+    tr_monthly_title:"Inversión mensual", tr_monthly_question:"¿Es tu aportación mensual?", tr_monthly_semantic:"Confirma esta aportación y reconoce las siguientes del mismo plan, cuenta e importe al empezar el mes.", tr_monthly_confirm:"Confirmar inversión", tr_monthly_done:"Aportación confirmada.", tr_monthly_error:"No se ha podido confirmar y guardar la aportación. Vuelve a intentarlo.",
     mode_change_reopen:"Cierra y vuelve a abrir la app para terminar el cambio de modo.",
     beta_review_intro:"Revisa lo nuevo. Aprobar una tanda no la publica; su entrega se comprueba aparte.",
     notes_unavailable:"No se han podido comprobar las novedades. Conecta y vuelve a intentarlo.",
@@ -342,6 +343,7 @@ const LANG = {
     cur_jpy:"¥ Yen", cur_cad:"C$ Dólar canadiense", cur_aud:"A$ Dólar australiano", cur_cny:"¥ Yuan", cur_mxn:"$ Peso mexicano", cur_sek:"kr Corona sueca", cur_nok:"kr Corona noruega", cur_dkk:"kr Corona danesa", cur_pln:"zł Złoty", cur_brl:"R$ Real", cur_inr:"₹ Rupia", cur_try:"₺ Lira turca",
   },
   en:{
+    tr_monthly_title:"Monthly investment", tr_monthly_question:"Is this your monthly contribution?", tr_monthly_semantic:"Confirm this contribution and recognize future payments for this exact plan, account and amount at the start of the month.", tr_monthly_confirm:"Confirm investment", tr_monthly_done:"Contribution confirmed.", tr_monthly_error:"The contribution could not be confirmed and saved. Try again.",
     mode_change_reopen:"Close and reopen the app to finish changing mode.",
     beta_review_intro:"Review new changes. Approving a batch does not publish it; delivery is checked separately.",
     notes_unavailable:"The updates could not be verified. Connect and try again.",
@@ -664,6 +666,7 @@ const LANG = {
     cur_jpy:"¥ Yen", cur_cad:"C$ Canadian dollar", cur_aud:"A$ Australian dollar", cur_cny:"¥ Yuan", cur_mxn:"$ Mexican peso", cur_sek:"kr Swedish krona", cur_nok:"kr Norwegian krone", cur_dkk:"kr Danish krone", cur_pln:"zł Złoty", cur_brl:"R$ Real", cur_inr:"₹ Rupee", cur_try:"₺ Turkish lira",
   },
   ca:{
+    tr_monthly_title:"Inversió mensual", tr_monthly_question:"És la teva aportació mensual?", tr_monthly_semantic:"Confirma aquesta aportació i reconeix les següents del mateix pla, compte i import a principi de mes.", tr_monthly_confirm:"Confirmar inversió", tr_monthly_done:"Aportació confirmada.", tr_monthly_error:"No s’ha pogut confirmar i desar l’aportació. Torna-ho a provar.",
     mode_change_reopen:"Tanca i torna a obrir l’app per acabar el canvi de mode.",
     beta_review_intro:"Revisa els canvis nous. Aprovar una tanda no la publica; l’entrega es comprova a part.",
     notes_unavailable:"No s’han pogut comprovar les novetats. Connecta i torna-ho a provar.",

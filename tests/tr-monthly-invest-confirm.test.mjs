@@ -1,0 +1,84 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import vm from "node:vm";
+import { execFileSync } from "node:child_process";
+import { createLogicSandbox } from "../scripts/load-pure-logic.mjs";
+
+const root=new URL("../",import.meta.url), order=JSON.parse(fs.readFileSync(new URL("src/build-order.json",root)));
+const base="ea4a04efa82444f8ff3a2588aa3867205e3d772e";
+let now=Date.parse("2026-11-04T12:00:00Z"), count=0;
+function context(original=false){
+  const disk=new Map(), storage={getItem:k=>disk.get(k)??null,setItem:(k,v)=>disk.set(k,String(v)),removeItem:k=>disk.delete(k)};
+  const source=order.map(f=>original?execFileSync("git",["show",base+":src/modules/"+f],{cwd:new URL(".",root),maxBuffer:8e6}).toString():fs.readFileSync(new URL("src/modules/"+f,root),"utf8")).join("\n");
+  const c=createLogicSandbox({localStorage:storage,Date:class extends Date{constructor(...args){super(...(args.length?args:[now]));}static now(){return now;}}});
+  c.window.localStorage=storage; vm.createContext(c);const end=source.indexOf("\nclass ErrorBoundary");assert.ok(end>0);
+  vm.runInContext(source.slice(0,end),c);return {c,disk,storage};
+}
+const {c,disk,storage}=context();
+const id="550e8400-e29b-41d4-a716-446655440000", owner="monthly-synthetic-owner";
+const tx=(extra={})=>({ent:"trade_republic",acc:"tr-synthetic",id:"monthly-ref",date:"2026-11-03",amount:50,merchant:"Movimiento",note:"Plan de inversión Vanguard FTSE All-World",card:false,status:"BOOK",...extra});
+const expense=(extra={})=>({id,date:"2026-11-03T12:00:00.000Z",amount:50,merchant:"Movimiento",obName:"Movimiento",note:tx().note,category:"otros",source:"ob",ent:"trade_republic",obAcc:"tr-synthetic",extId:"monthly-ref",...extra});
+const state=(extra={})=>({user:{id:owner},_historyOwner:owner,accounts:[{id:"tr",ent:"trade_republic",role:"diario",spendFrom:true,value:950}],settings:{expenseBanks:["trade_republic"]},expenses:[expense()],bankTx:[tx()],investments:[{id:"fund",ent:"trade_republic",name:"Vanguard FTSE All-World",shares:10.5,value:1050,cost:950,cur:"EUR"}],trRewardsTotal:0,fixed:[],debts:[],oneoffs:[],flows:[],deleted:[],...extra});
+const remote=(e=expense())=>({id:e.id,user_id:owner,fecha:e.date,importe:e.amount,comercio:e.merchant,source:c.expenseSourceForCloud(e),cat:e.category,nota:e.note??null,ob_name:e.obName??null});
+const plain=v=>JSON.parse(JSON.stringify(v));
+async function check(name,fn){if(process.argv.includes("--writer-cancel-only")&&!name.startsWith("writer guardia diferida:"))return;if(process.argv.includes("--writer-only")&&!name.startsWith("writer "))return;await fn();count++;console.log("PASS "+name);}
+if(process.argv.some(x=>x.startsWith("--business-ab-"))){
+  const original=process.argv.includes("--business-ab-base"),loaded=original?context(true):{c,disk,storage};
+  now=Date.parse("2026-12-04T12:00:00Z");
+  const s=state({expenses:[expense({category:"inversion"})],bankTx:[]});
+  s.settings.trMonthlyInvestRecognition={schema:1,owner,ent:"trade_republic",acc:"tr-synthetic",cents:5000,purpose:{field:"note",value:"plan de inversión vanguard ftse all-world"},confirmedAt:Date.parse("2026-11-04T12:00:00Z"),confirmedRowId:id,enabled:true};s.settings.brokersOn=["trade_republic"];
+  loaded.storage.setItem("micartera_v3",JSON.stringify(s));loaded.storage.setItem("micartera_v3_exp",JSON.stringify(s.expenses));
+  const t=tx({id:"dec-ref",date:"2026-12-03"});
+  const links=[{aspsp:"Trade Republic",ok:true,accounts:[{uid:"tr-synthetic",ok:true,balances:[],transactions:[{...t,ext_id:t.id}]}]}];
+  const n=pipeline(loaded.c,original)(plain(s),links,now,[]),e=n.expenses.find(x=>x.extId==="dec-ref");
+  console.log(JSON.stringify({source:original?base:"private candidate",observed:{category:e.category,budgetCents:loaded.c.expenseCountsBudget(e,n)?5000:0,investmentValueCents:Math.round(n.investments[0].value*100)},required:{category:"inversion",budgetCents:0,investmentValueCents:105000}}));
+  assert.equal(e.category,"inversion","business oracle: accepted semantic monthly contribution is an investment");assert.equal(loaded.c.expenseCountsBudget(e,n),false);assert.deepEqual(plain(n.investments),plain(s.investments));process.exit(0);
+}
+await check("propuesta no cambia dinero ni configura monthlyInvest",()=>{const s=state(),before=JSON.stringify(s);assert.ok(c.trMonthlyProposal(s,s.expenses[0],now));assert.equal(JSON.stringify(s),before);});
+await check("céntimos exactos sin tolerancia ni abs",()=>{for(const [n,v]of [[50,5000],[49.99,4999],[50.01,5001],[49.999,null],[-50,null],[Infinity,null]])assert.equal(c.trMonthlyCents(n),v);});
+for(const [label,patch]of [["importe4999",{amount:49.99}],["importe5001",{amount:50.01}],["refund",{amount:-50}],["pendiente",{status:"PDNG"}],["unknown",{status:""}],["tarjeta",{card:true}],["MCC5411",{mcc:"5411"}],["día6",{date:"2026-11-06"}],["futuro",{date:"2026-12-03"}]])await check("no propuesta: "+label,()=>{const t=tx(patch),e=expense({amount:t.amount,date:t.date+"T12:00:00.000Z"});assert.equal(c.trMonthlyProposal(state({expenses:[e],bankTx:[t]}),e,now),null);});
+await check("ambiguos y propósito editado se rechazan",()=>{const s=state();s.bankTx.push(tx());assert.equal(c.trMonthlyProposal(s,s.expenses[0],now),null);assert.equal(c.trMonthlyProposal(state(),expense({noteEdited:true}),now),null);});
+await check("confirmar solo cambia una categoría, nunca participaciones/cuota/caja",()=>{const s=state(),other=expense({id:"550e8400-e29b-41d4-a716-446655440001",amount:12});s.expenses.push(other);const n=c.trMonthlyConfirmed(s,s.expenses[0],{...remote(),cat:"inversion"},now);assert.equal(n.expenses[0].category,"inversion");assert.equal(n.expenses[1],other);for(const k of ["accounts","investments","fixed","debts","flows","trRewardsTotal"])assert.equal(n[k],s[k]);assert.equal(c.expenseCountsCash(n.expenses[0],n),c.expenseCountsCash(s.expenses[0],s));assert.equal(c.expenseCountsBudget(n.expenses[0],n),false);assert.equal(c.trMonthlyConfirmed(n,s.expenses[0],{...remote(),cat:"inversion"},now),n);assert.equal(n.settings.trMonthlyInvestRecognition.confirmedAt,now);});
+await check("genérico acepta una fila pero no aprende regla",()=>{const e=expense({note:""}),s=state({expenses:[e],bankTx:[tx({note:""})]});const n=c.trMonthlyConfirmed(s,e,{...remote(e),cat:"inversion"},now);assert.equal(n.expenses[0].category,"inversion");assert.equal(n.settings.trMonthlyInvestRecognition,undefined);});
+let confirmed;
+await check("ACK y guardado partido durable antes del automatismo",()=>{const s=state();confirmed=c.trMonthlyConfirmed(s,s.expenses[0],{...remote(),cat:"inversion"},now);assert.equal(c.trMonthlySaveConfirmed(confirmed),true);assert.equal(JSON.parse(storage.getItem("micartera_v3_exp"))[0].category,"inversion");assert.equal(JSON.parse(storage.getItem("micartera_v3")).settings.trMonthlyInvestRecognition.confirmedAt,now);});
+function pipeline(ctx,original=false){const text=original?execFileSync("git",["show",base+":src/modules/11-app-main.js"],{cwd:new URL(".",root)}).toString():fs.readFileSync(new URL("src/modules/11-app-main.js",root),"utf8");const normalized=text.replace(/\r\n/g,"\n");const start=normalized.indexOf("        const txs=flattenBankTx(links, prev.bankTx);"),end=normalized.indexOf("      });\n      // sube las importadas",start);assert.ok(start>0&&end>start);return vm.runInContext("(function(prev,links,at,dbLinks){"+normalized.slice(start,end)+"})",ctx);}
+const link=t=>[{aspsp:"Trade Republic",ok:true,accounts:[{uid:"tr-synthetic",ok:true,balances:[],transactions:[{ext_id:t.id,...t}]}]}];
+await check("A/B negocio: consentimientoNov4, BOOKsemánticoDec3 recibidoDec4",()=>{now=Date.parse("2026-12-04T12:00:00Z");const old=context(true),s=plain(confirmed),t=tx({id:"dec-ref",date:"2026-12-03"});s.bankTx=[];s.expenses=[];s.settings.brokersOn=["trade_republic"];const a=pipeline(old.c,true)(plain(s),link(t),now,[]);const b=pipeline(c)(plain(s),link(t),now,[]);const observed=n=>({category:n.expenses[0].category,budgetCents:c.expenseCountsBudget(n.expenses[0],n)?5000:0,investmentValueCents:Math.round(n.investments[0].value*100)});console.log("AB_BASE_BUSINESS_RED "+JSON.stringify(observed(a)));console.log("AB_CANDIDATE_BUSINESS_GREEN "+JSON.stringify(observed(b)));assert.equal(a.expenses[0].category,"otros");assert.equal(b.expenses[0].category,"inversion");assert.deepEqual(plain(b.investments),plain(s.investments));assert.equal(b.trRewardsTotal,s.trRewardsTotal);});
+await check("confirmarNovantiguo enDic4 NO autorizaDic3 recuperado",()=>{const e=expense(),s=state();const late=c.trMonthlyConfirmed(s,e,{...remote(),cat:"inversion"},now);assert.ok(c.trMonthlySaveConfirmed(late));const t=tx({id:"late",date:"2026-12-03"}),n=expense({id:"550e8400-e29b-41d4-a716-446655440002",extId:"late",date:"2026-12-03T12:00:00Z"});assert.equal(c.trMonthlyImportPlan(late,[n],[t],now).changed.size,0);assert.ok(c.trMonthlySaveConfirmed(confirmed));});
+await check("genérico igual nunca auto; cuenta/nota editadas tampoco",()=>{for(const patch of [{note:""},{acc:"other"},{note:"Plan de inversión Otro Fondo"},{card:true},{mcc:"5411"}]){const t=tx({id:"future",date:"2026-12-03",...patch}),n=expense({id:"550e8400-e29b-41d4-a716-446655440003",extId:t.id,date:t.date+"T12:00:00Z",note:t.note,obAcc:t.acc});assert.equal(c.trMonthlyImportPlan(confirmed,[n],[t],now).changed.size,0);}});
+await check("pull distinto invalida, no mezcla finanzas ni reactiva permiso",()=>{const incoming=plain(confirmed);incoming.settings.trMonthlyInvestRecognition.confirmedAt--;const n=c.trMonthlyInvalidatePull(confirmed,incoming);assert.equal(n.settings.trMonthlyInvestRecognition.enabled,false);assert.equal(n.accounts,incoming.accounts);const again=c.trMonthlyInvalidatePull(n,incoming);assert.equal(again.settings.trMonthlyInvestRecognition.enabled,false);});
+await check("días1y5 dentro,6 fuera sin cambiar ventana",()=>{now=Date.parse("2026-12-07T12:00:00Z");assert.ok(c.trMonthlySaveConfirmed(confirmed));for(const [day,allowed]of [["01",true],["05",true],["06",false]]){const t=tx({id:"day"+day,date:"2026-12-"+day}),e=expense({id:"550e8400-e29b-41d4-a716-446655440005",extId:t.id,date:t.date+"T12:00:00Z"});assert.equal(c.trMonthlyImportPlan(confirmed,[e],[t],now).changed.size,allowed?1:0);}});
+await check("A=B legacyMCC5411 porimporte: deuda conservada, sin override",()=>{const old=context(true),s=state({expenses:[],bankTx:[]});s.accounts[0].monthlyInvest=50;s.accounts[0].rewardInv="fund";s.settings.brokersOn=["trade_republic"];const t=tx({id:"legacy",date:"2026-12-03",mcc:"5411",card:true,merchant:"Tienda Sintetica"}),a=pipeline(old.c,true)(plain(s),link(t),now,[]),b=pipeline(c)(plain(s),link(t),now,[]);assert.equal(a.expenses[0].category,"inversion");assert.equal(b.expenses[0].category,a.expenses[0].category);assert.deepEqual(plain(b.investments),plain(a.investments));console.log("AB_LEGACY_PRESERVED inversion/inversion; virtual purchase unchanged");});
+await check("fallo de disco no acredita guardar",()=>{const save=storage.setItem;storage.setItem=()=>{throw Error("quota");};disk.clear();assert.equal(c.trMonthlySaveConfirmed(confirmed),false);storage.setItem=save;});
+
+const core=fs.readFileSync(new URL("src/modules/00-core.js",root),"utf8"), body=core.match(/async confirmTrMonthlyInvestment\(e, readState\)\{([\s\S]*?)\n    \},/)[1];
+const AsyncFunction=Object.getPrototypeOf(async function(){}).constructor;
+const method=new AsyncFunction("Date","sb","isExpenseUuid","trMonthlyProposal","trMonthlyRowMatches","obConfirmedCanUpload","e","readState",body);
+function client(opts={}){const data=plain(opts.row||remote()),ops=[];let sessions=0;return {ops,sb:{auth:{getSession:async()=>{sessions++;if(opts.onSession)await opts.onSession(sessions);return {data:{session:opts.noSession?null:{user:{id:opts.switchSession&&sessions>1?"other":owner}}}};}},from(table){let patch=null;const filters=[];const q={select(v){ops.push(["select",v]);return q;},eq(k,v){assert.notEqual(v,null,"eq null forbidden");filters.push(["eq",k,v]);return q;},is(k,v){filters.push(["is",k,v]);return q;},update(v){ops.push(["update-call",table,v]);patch=v;return q;},async maybeSingle(){return {data:opts.missing?null:plain(data),error:opts.readError?Error("read"):null};},then(resolve){ops.push(["update",table,patch,filters]);return resolve({data:opts.zero?[]:opts.multi?[{...data,...patch},{...data,...patch}]:opts.ack||[{...data,...patch}],error:opts.error?Error("write"):null});}};return q;}}};}
+const run=(cl,e=expense(),read=()=>state(),canUpload=async()=>true)=>method(c.Date,cl.sb,c.isExpenseUuid,c.trMonthlyProposal,c.trMonthlyRowMatches,canUpload,e,read);
+now=Date.parse("2026-11-04T12:00:00Z");
+await check("writer UUID+titular y CAS completo; solo cat",async()=>{const cl=client(),ack=await run(cl);assert.equal(ack.cat,"inversion");const op=cl.ops.find(x=>x[0]==="update");assert.deepEqual(op[2],{cat:"inversion"});for(const k of ["user_id","id","fecha","importe","comercio","source","cat","nota","ob_name","no_card","nota_edit","ingest_event_id"])assert.ok(op[3].some(x=>x[1]===k),k);});
+await check("writer usa is(null)",async()=>{const e=expense({note:undefined,obName:undefined}),s=state({expenses:[e],bankTx:[tx({note:""})]}),cl=client({row:remote(e)});await run(cl,e,()=>s);const op=cl.ops.find(x=>x[0]==="update");assert.ok(op[3].some(x=>x[0]==="is"&&x[1]==="nota"));});
+for(const [name,opts]of [["zero",{zero:true}],["multi",{multi:true}],["write error",{error:true}],["read error",{readError:true}],["missing",{missing:true}],["logout",{noSession:true}],["session changed",{switchSession:true}],["amount stale",{row:{...remote(),importe:51}}],["purpose stale",{row:{...remote(),nota:"Otro"}}],["other owner",{row:{...remote(),user_id:"other"}}],["card flag stale",{row:{...remote(),no_card:true}}],["note flag stale",{row:{...remote(),nota_edit:true}}],["native identity stale",{row:{...remote(),ingest_event_id:"other"}}],["other ACK",{ack:[{...remote(),id:"other",cat:"inversion"}]}]])await check("writer failclosed: "+name,async()=>{await assert.rejects(()=>run(client(opts)));});
+await check("writer cancela antes de UPDATE al cambiar fila",async()=>{let n=0;const cl=client();await assert.rejects(()=>run(cl,expense(),()=>++n>1?state({expenses:[]}):state()));assert.ok(!cl.ops.some(x=>x[0]==="update"));});
+function deferred(){let resolve;const promise=new Promise(function(done){resolve=done;});return {promise,resolve};}
+for(const scenario of ["timeout10s","fila cambiada","titular cambiado","vigente"])await check("writer guardia diferida: "+scenario,async()=>{
+  const entered=deferred(),gate=deferred(),token={active:true};let current=state();
+  // Se detiene el getSession real de obConfirmedCanUpload, después de las dos lecturas del writer.
+  const cl=client({onSession:async function(n){if(n===3){entered.resolve();await gate.promise;}}});
+  const pending=run(cl,expense(),function(){return token.active?current:null;},c.obConfirmedCanUpload);
+  await entered.promise;
+  assert.equal(cl.ops.filter(x=>x[0]==="update-call").length,0,"no construir UPDATE con la guardia pendiente");
+  if(scenario==="timeout10s"){now+=10000;token.active=false;}
+  if(scenario==="fila cambiada")current=state({expenses:[expense({amount:51})]});
+  if(scenario==="titular cambiado")current=state({user:{id:"other"}});
+  gate.resolve();
+  if(scenario==="vigente")assert.equal((await pending).cat,"inversion");else await assert.rejects(()=>pending);
+  const constructed=cl.ops.filter(x=>x[0]==="update-call").length,sent=cl.ops.filter(x=>x[0]==="update").length,expected=scenario==="vigente"?1:0;
+  console.log("DEFERRED_GUARD "+JSON.stringify({scenario,expectedUpdates:expected,constructed,sent,realQueries:0}));
+  assert.equal(constructed,expected,"la confirmación invalidada durante la guardia no construye UPDATE");assert.equal(sent,expected);
+});
+await check("sandbox corta el writer nuevo antes de consultas",async()=>{const list=vm.runInContext("CLOUD_WRITES",c);assert.ok(list.includes("confirmTrMonthlyInvestment"));vm.runInContext("mcSandbox=function(){return true;}",c);assert.equal(await vm.runInContext("cloud.confirmTrMonthlyInvestment(null,function(){throw Error('must not call');})",c),null);});
+await check("test y predicados legacy permanecen exactos",()=>{const old=execFileSync("git",["show",base+":tests/bank-merchant-category.test.mjs"],{cwd:new URL(".",root)});assert.equal(fs.readFileSync(new URL("tests/bank-merchant-category.test.mjs",root),"utf8").replace(/\r\n/g,"\n"),old.toString());const text=fs.readFileSync(new URL("src/modules/08-motor-bank.js",root),"utf8"),prior=execFileSync("git",["show",base+":src/modules/08-motor-bank.js"],{cwd:new URL(".",root)}).toString();for(const token of ["const esAporteInv =","const esAporte=!!(daily"]){const line=s=>s.split("\n").find(x=>x.includes(token)).trim();assert.equal(line(text),line(prior));}});
+console.log("TOTAL "+count+" targeted checks; no real database queries");

@@ -922,6 +922,7 @@ function App(){
           if(freshLogin && (cloudState.accounts||[]).length) baseObj.onboarded=true;
           if(freshLogin && ((cloudState.accounts||[]).length || (cloudState.monthStartNet||0)>0)) baseObj.setupHint=false;
           // Call site 2/3 de fixMovInvasion (syncFromCloud). Contención dentro de la fn, no aquí.
+          baseObj=trMonthlyInvalidatePull(prev,baseObj);
           const seeded=seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR(baseObj))))));
           const now=new Date();
           // Lo de la nube también: el otro móvil puede traer una regla borrada que aún resta.
@@ -1061,13 +1062,14 @@ function App(){
         // ORDEN anti-doble-conteo: primero entran las compras de tarjeta como gastos, y DESPUÉS
         // se re-ancla con el saldo real del banco (que ya incluye esas compras).
         // `links` lleva el suelo del tramo recuperado (`syncFrom`): sin él, lo anterior al margen se tira.
-        const add=importObExpenses(prev, txs, links);
+        const imported=importObExpenses(prev, txs, links);
+        const monthlyPlan=trMonthlyImportPlan(prev,imported,txs,at), add=monthlyPlan.rows;
         // Aporte automático reconocido (categoría "inversion", ver importObExpenses): compra ya
         // mismo participaciones en el fondo enlazado, con el importe REAL del banco — mismo cálculo
         // que `reconcileTR` usaba a ciegas, ahora disparado por el dato de verdad (2026-08-03).
         let invState=prev;
         (add||[]).forEach(function(e){
-          if(e.category!=="inversion") return;
+          if(e.category!=="inversion"||monthlyPlan.changed.has(e.id)) return;
           const ib=applyInvestBuy(invState, e.ent, e.amount);
           if(!ib) return;
           invState=ib.state;
