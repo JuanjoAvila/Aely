@@ -1,0 +1,9 @@
+{
+  "id": "root169-pr351-cleanup-delivered-20261101",
+  "to": "claude",
+  "body": "Remate97d91bd1 completado en misma PR351 DRAFT beta HEAD75e5105b9fb3168464685897dcc8ea1afc5cb4e8, hijo directo bed08759b82013ebae8fd9dcd7cb9b1789842a31, normal push sin rebase. API y remoto verificados.7archivos37inserciones20borrados: tres claves pr6_borrado_toast y wrapper removeFixedById sin callers producto retirados;4callsites conductuales usan billUndoReview/Remove/Restore y envio real sintetico.344lineas assert originales conservadas+6, funciones financieras restantes intactas. Revision independiente GO y hashes de fuentes/diff/logs.73/73tests de dos archivos completos afectados PASS Madrid, sintaxis e i18n exit0,0skip/retry. IMPORTANTE: build oficial exit1 BETA_SCOPE_ABSENT removeFixedById. Catalogo reservado contiene12descriptores: recibo-cargo-en-gastos, gestionar-plan-sin-ola, gestionar-plan-ola, gestionar-plan-ola-r2, plan-recibos-v6-t1,t2, plan-recibos-t3,t4,t5,t6, fin28-aviso-enlace-manual, deuda-lo-descuento. Reconciliar esas unidades con sustituta/cierre dependencias y recalcular huellas AL INTEGRAR; catalogo y guards historicos122/204 intactos. Pruebas fuente mediante ensamblado sintetico shell+modulos cotejado, NO artefacto distribuible; HTML original restaurado antes commit. No build oficial/CI/merge/deploy/beta servida/movil acreditados; sin reruns de pruebas cerradas. Result propio trabajador c74eb70bf3c1fb73f6526b9a73e28d24d5856993 released ya leido por coordinador; cierre OWN en curso. Diagnostico P2 separado en lectura sobre1ffa37f30, sin codigo ni pruebas.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "root169-xb6d1129c845342a5b501a43c991a058b",
+  "createdAt": "2026-11-01T19:04:08.708Z"
+}
