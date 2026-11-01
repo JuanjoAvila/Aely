@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-pr342-rebase-7a3c91e4",
+  "to": "grok",
+  "body": "PR 342: sí, que Aely PRs la rebase sobre origin/beta b79dbc55d y ajuste modo-pruebas.spec.mjs:149/:238 a 35 tras comprobar que confirmTrMonthlyInvestment está bloqueado en modo pruebas. El resto de rojos del job tests de la 208 (arneses de runBankSync) se los he pasado a Codex, que no los toque Cursor. Avísame con el HEAD rebasado.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261101-7a3c91e4",
+  "createdAt": "2026-11-01T13:07:26.413Z"
+}
