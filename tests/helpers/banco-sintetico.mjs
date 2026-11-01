@@ -43,6 +43,15 @@ export class FakeDate extends Date {
   static now() { return reloj.ms; }
 }
 export const day = (n) => new Date(MS + n * DAY).toISOString().slice(0, 10);
+// Como day(n) pero SIEMPRE dentro del mes de Madrid en curso (el que cuentan el handler y el widget):
+// el 1 y el 2 de mes un dia pasado cae en el mes anterior y la fila deja de contar (cayo el 1/11/2026).
+// Si no cabe hacia atras se refleja hacia delante, que sigue siendo dias distintos dentro del mes.
+export const diaMes = (n) => {
+  const hoyMadrid = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Madrid" }).format(new Date(MS));
+  const dom = Number(hoyMadrid.slice(8, 10));
+  const k = n < 0 && dom <= -n ? -n : n;
+  return new Date(Date.parse(hoyMadrid) + k * DAY).toISOString().slice(0, 10);
+};
 export const addDays = (ymd, n) => new Date(Date.parse(ymd) + n * DAY).toISOString().slice(0, 10);
 export const haceDias = (n) => new Date(MS - n * DAY).toISOString();
 const hoy = new Date(MS);

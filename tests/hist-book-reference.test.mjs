@@ -7,7 +7,11 @@ import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
 const c=loadPureLogicFromFile(), root=new URL("../",import.meta.url);
 const ui=fs.readFileSync(new URL("src/modules/10-app-components.js",root),"utf8");
 const core=fs.readFileSync(new URL("src/modules/00-core.js",root),"utf8");
-const tx=(id,extra={})=>({ext_id:id,status:"BOOK",date:"2026-10-17",amount:12.5,merchant:"Tienda sintética H",...extra});
+// Las fechas cuelgan del 1 del mes en curso (antes 2026-10-17 fijo): el importador diario descarta
+// lo anterior a inicio de mes - 8 dias, asi que un dia fijo caducaba solo (cayo el 1/11/2026).
+const dia=n=>{const ym=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Madrid"}).format(new Date()).slice(0,8)+"01";return new Date(Date.parse(ym)+n*864e5).toISOString().slice(0,10);}; // mes de Madrid, como startOfMonth
+const D16=dia(-1),D17=dia(0),D18=dia(1),D01=dia(-5);
+const tx=(id,extra={})=>({ext_id:id,status:"BOOK",date:D17,amount:12.5,merchant:"Tienda sintética H",...extra});
 const payload=(rows,other=[])=>({links:[{aspsp:"CaixaBank",accounts:[{uid:"h-account-1",transactions:rows},...other]}]});
 const state=(expenses=[])=>({expenses,accounts:[{id:"cx",ent:"caixabank",role:"diario"}],fixed:[],debts:[],oneoffs:[],flows:[],settings:{},deleted:[],gemelos:[]});
 const flat=(p,s=state())=>c.histFlattenHistoryLinks(p,s.expenses,{caixabank:1}).out;
@@ -83,8 +87,8 @@ test("accounts-and-legacy-cloud-dates",()=>{
  const p=payload([tx("A"),tx("B")],[{uid:"h-account-2",transactions:[tx("C")]}]);
  const out=flat(p);assert.equal(out.length,3);assert.equal(cents(out),3750);assert.equal(new Set(out.map(x=>x.stamp)).size,3);
  const legacy=flat(payload([tx(null,{status:""})],[{uid:"h-account-2",transactions:[tx(null,{status:""})]}]));
- assert.equal(legacy[0].stamp,c.histDate("2026-10-17"));
- assert.equal(legacy[1].stamp,c.histDate("2026-10-17","ob-slot|caixabank|2026-10-17|12.5|Tienda sintética H|1"));
+ assert.equal(legacy[0].stamp,c.histDate(D17));
+ assert.equal(legacy[1].stamp,c.histDate(D17,"ob-slot|caixabank|"+D17+"|12.5|Tienda sintética H|1"));
 });
 test("tombstone-and-legacy-decision",()=>{
  const out=flat(payload([tx("A"),tx("B")]));
@@ -96,7 +100,7 @@ test("tombstone-and-legacy-decision",()=>{
  assert.ok(c.histClassifyCandidates(out,old).rows.every(r=>r.status==="dup"));
 });
 test("existing-legacy-without-reference",()=>{
- const e={id:"old",date:"2026-10-17T12:00:00Z",amount:12.5,merchant:"Tienda sintética H",ent:"caixabank",source:"ob-hist"};
+ const e={id:"old",date:D17+"T12:00:00Z",amount:12.5,merchant:"Tienda sintética H",ent:"caixabank",source:"ob-hist"};
  const s=state([e]),out=flat(payload([tx("A"),tx("B")]),s),r=c.histClassifyCandidates(out,s).rows;
  assert.equal(r.filter(x=>x.status==="dup").length,1);assert.equal(r.filter(x=>x.status==="new").length,1);
 });
@@ -136,10 +140,10 @@ test("income-reference-cloud-roundtrip",async()=>{
  assert.equal(cents(again.next.expenses),-3750);assert.equal(db.rows.length,3);
 });
 test("pending-and-absorption-guards",()=>{
- const pending={id:"p",extId:"P",source:"ob",ent:"caixabank",date:c.histDate("2026-10-17"),amount:12.5,merchant:"Movimiento",obPending:true};
+ const pending={id:"p",extId:"P",source:"ob",ent:"caixabank",date:c.histDate(D17),amount:12.5,merchant:"Movimiento",obPending:true};
  const s=state([pending]);
  assert.equal(c.histClassifyCandidates(flat(payload([tx("A",{merchant:"Movimiento"})]),s),s).rows[0].status,"maybe");
- pending.date=c.histDate("2026-10-16");
+ pending.date=c.histDate(D16);
  assert.equal(c.histClassifyCandidates(flat(payload([tx("A",{merchant:"Movimiento"})]),s),s).rows[0].status,"maybe");
  const out=flat(payload([tx("A"),tx("B")])),built=c.histBuildCommit(out,c.histClassifyCandidates(out,state()).rows,state()).expAdds;
  const absorbed=state();absorbed.deleted=[c.obAbsorptionKey(built[1])];
@@ -218,10 +222,10 @@ test("r2-account-own-part",async()=>{
  const joint={id:"joint",ent:"caixabank",name:"Conjunta",role:"fijos",bankIban:IBAN,value:1000};
  const mine={key:"mine",ent:"caixabank",iban:"ES00SYNTH000000000000001",value:1000,name:"Personal"};
  const s={...state(),accounts:[joint],obAccounts:[mine],investments:[],assets:[],aportaciones:[],accountBalanceHistory:{},
-  expenses:[{id:"start",date:"2026-10-01T12:00:00Z",amount:0,source:"wallet",ent:"caixabank"},...r.next.expenses]};
- const series=c.netWorthSeries(c.setAccountShare(s,joint,"account",50),{today:"2026-10-18"});
- assert.equal(Math.round(series.find(x=>x.day==="2026-10-16").value*100),150625);
- assert.equal(Math.round(series.find(x=>x.day==="2026-10-18").value*100),150000);
+  expenses:[{id:"start",date:D01+"T12:00:00Z",amount:0,source:"wallet",ent:"caixabank"},...r.next.expenses]};
+ const series=c.netWorthSeries(c.setAccountShare(s,joint,"account",50),{today:D18});
+ assert.equal(Math.round(series.find(x=>x.day===D16).value*100),150625);
+ assert.equal(Math.round(series.find(x=>x.day===D18).value*100),150000);
  assert.equal(cents(r.next.expenses),1250,"el gasto conserva su importe entero");
 });
 test("r2-account-fallback-and-no-position",async()=>{
@@ -235,7 +239,7 @@ test("r2-account-fallback-and-no-position",async()=>{
 test("r2-ya-importada-por-signo",async()=>{
  // PR 272 + PR 275: la referencia ya importada se filtra DESPUÉS de numerar (amount ya es absoluto),
  // así que el signo se reconstruye con `kind`. Una devolución con la referencia de su compra NO es «ya importada».
- const e={id:"x",extId:"R1",ent:"caixabank",amount:12.5,date:"2026-10-17T12:00:00Z",source:"ob",merchant:"Tienda sintética H"};
+ const e={id:"x",extId:"R1",ent:"caixabank",amount:12.5,date:D17+"T12:00:00Z",source:"ob",merchant:"Tienda sintética H"};
  const got=flat(payload([tx("R1"),tx("R1",{amount:-12.5,merchant:"Devolución sintética"})]),state([e]));
  assert.deepEqual(Array.from(got,x=>x.kind),["in"],"la compra ya importada sale; la devolución con la misma referencia se queda");
 });
@@ -254,7 +258,7 @@ test("r2-devolucion-tras-compra-borrada",async()=>{
  assert.ok(c.histClassifyCandidates(o2,old).rows.every(r=>r.status==="dup"),"una lápida antigua sin v2 vale para cualquier signo");
 });
 test("r2-devolucion-book-no-prueba-la-compra",async()=>{
- const e={id:"e",extId:"R1",ent:"caixabank",amount:12.5,date:"2026-10-17T12:00:00Z",source:"ob",merchant:"Tienda sintética H"};
+ const e={id:"e",extId:"R1",ent:"caixabank",amount:12.5,date:D17+"T12:00:00Z",source:"ob",merchant:"Tienda sintética H"};
  const solo=flat(payload([tx("R2"),tx("R1",{amount:-12.5})]),state()).find(x=>x.id==="R2");
  const con=flat(payload([tx("R2"),tx("R1")]),state()).find(x=>x.id==="R2");
  assert.equal(c.histDistinctBookRef(solo,e),false,"una devolución BOOK R1 no prueba la compra R1");
