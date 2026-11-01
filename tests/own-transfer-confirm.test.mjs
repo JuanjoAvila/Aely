@@ -151,7 +151,7 @@ assert.ok(match,"writer own-transfer presente");
 // caso. Solo ese guard se sustituye; auth, owner, snapshots, filtros y ACK ejecutan código real.
 const method=vm.runInContext("(async function(plan,decision,readState){const sb=globalThis.__ownTransferSb;const obConfirmedCanUpload=async()=>true;"+match[1]+"\n})",ctx);
 function client(s,opts={}){
-  const rows=s.expenses.map(row),ops=[];let authCalls=0,reads=0;
+  const rows=s.expenses.map(row),ops=[],readOps=[];let authCalls=0,reads=0;
   const sb={auth:{getSession:async()=>{
     authCalls++;if(opts.onAuth)opts.onAuth(authCalls,s);
     const uid=opts.ownerAt?opts.ownerAt(authCalls):owner;
@@ -169,6 +169,7 @@ function client(s,opts={}){
         if(opts.afterUpdate)await opts.afterUpdate(rows,s);
         return {data:opts.ack===undefined?project(selected):opts.ack,error:null};
       }
+      readOps.push({table,columns,filters:plain(filters)});
       reads++;if(opts.beforeRead)opts.beforeRead(reads,rows,s);
       if(opts.readError||opts.readErrorAt===reads)return {data:null,error:new Error("read denied")};
       const selected=rows.filter(r=>filters.every(([k,v])=>Array.isArray(v)?v.includes(r[k]):r[k]===v));
@@ -180,7 +181,7 @@ function client(s,opts={}){
       then(ok,bad){return execute().then(ok,bad);}};
     return q;
   }};
-  return {sb,rows,ops};
+  return {sb,rows,ops,readOps};
 }
 async function run(c,s,p=plan(s),decision="yes"){
   ctx.__ownTransferSb=c.sb;return method(p,decision,()=>s);
@@ -509,5 +510,37 @@ for(const decision of ["yes","no"])await check("eco de nube adelanta ACK "+decis
   const reconciled=ctx.applyOwnTransferDecision(s,p,decision,100,ack);
   assert.equal(reconciled.expenses[0].category,decision==="yes"?"traspaso":"otros");
   assert.equal(!!reconciled.expenses[0].ownTransferRejected,decision==="no");assert.equal(plan(reconciled),null);
+});
+const preflightMatch=core.match(/async canConfirmOwnTransfer\(plan,\s*readState\)\s*\{([\s\S]*?)\n    \},/);
+assert.ok(preflightMatch,'preflight read-only presente');
+const preflight=vm.runInContext('(async function(plan,readState){const sb=globalThis.__ownTransferSb;const mcSandbox=()=>!!globalThis.__preflightSandbox;const mcSandboxTransition=()=>!!globalThis.__preflightTransition;const obConfirmedCanUpload=()=>{throw new Error("preflight must not invoke upload guards");};'+preflightMatch[1]+'\n})',ctx);
+async function probe(c,s,p=plan(s)){ctx.__ownTransferSb=c.sb;return preflight(p,()=>s);}
+await check('UUID preflight: pareja exacta solo lee ambas identidades',async()=>{
+  const s=fixture(),before=plain(s),c=client(s),remote=plain(c.rows);
+  assert.equal(await probe(c,s),true);assert.deepEqual(c.ops,[]);assert.deepEqual(c.rows,remote);assert.deepEqual(s,before);
+  assert.deepEqual(c.readOps.map(r=>r.filters),s.expenses.map(e=>[['user_id',owner],['id',e.id]]));
+  assert.ok(c.readOps.every(r=>r.table==='expenses'&&r.columns==='id,user_id,source,cat,fecha,importe,comercio'));
+});
+for(const leg of [0,1])await check('UUID preflight: UUID remoto divergente '+leg,async()=>{
+  const s=fixture(),c=client(s);c.rows[leg].id=uuid(9);const remote=plain(c.rows),before=plain(s);
+  assert.equal(await probe(c,s),false);assert.deepEqual(c.ops,[]);assert.deepEqual(c.rows,remote);assert.deepEqual(s,before);
+});
+for(const [name,opts] of [
+  ['lectura fallida',{readError:true}],['sin sesión',{ownerAt:()=>null}],['sesión caducada',{expired:true}],
+  ['error sesión residual',{authError:true}],['sesión cambia al terminar',{ownerAt:n=>n===1?owner:'other'}],
+  ['cuentas cambian',{afterRead:(_n,_r,s)=>{s.accounts[0].bankUid='different';}}],
+  ['owner cambia',{afterRead:(_n,_r,s)=>{s._historyOwner='other';}}],
+  ['fila cambia',{afterRead:(_n,_r,s)=>{s.expenses[0].amount=81;}}],
+  ['snapshot remoto distinto',{beforeRead:(_n,r)=>{r[1].source='ob:other';}}]
+])await check('UUID preflight: '+name,async()=>{
+  const s=fixture(),c=client(s,opts);assert.equal(await probe(c,s),false);assert.deepEqual(c.ops,[]);
+});
+for(const flag of ['__preflightSandbox','__preflightTransition'])await check('UUID preflight: aislamiento '+flag,async()=>{
+  const s=fixture(),c=client(s);ctx[flag]=true;
+  try{assert.equal(await probe(c,s),false);assert.deepEqual(c.ops,[]);assert.deepEqual(c.readOps,[]);}finally{ctx[flag]=false;}
+});
+await check('UUID preflight: oferta válida no sustituye CAS final',async()=>{
+  const s=fixture(),p=plan(s),c=client(s);assert.equal(await probe(c,s,p),true);
+  c.rows[0].cat='salud';await assert.rejects(()=>run(c,s,p),/transfer row changed/);assert.deepEqual(c.ops,[]);
 });
 console.log("own-transfer-confirm: "+count+" casos OK");

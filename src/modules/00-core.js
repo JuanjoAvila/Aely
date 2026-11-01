@@ -1562,6 +1562,22 @@ const cloud = (function(){
       if(error) throw error;
       return Array.isArray(data) ? data.length : 0;
     },
+    // Una pareja local puede conservar UUID distintos de nube: no ofrecer una decisión imposible.
+    // Este sondeo no reutiliza guards de subida, que pueden liquidar absorciones escribiendo.
+    async canConfirmOwnTransfer(plan, readState){
+      const ready=function(){return !mcSandbox()&&!mcSandboxTransition()&&ownTransferPlanValid(readState(),plan);};
+      if(!sb||!ready())return false;
+      const owner=plan.owner,cols="id,user_id,source,cat,fecha,importe,comercio";
+      const sessionOK=async function(){const r=await sb.auth.getSession(),s=!r.error&&r.data&&r.data.session;return !!s&&s.user&&s.user.id===owner&&(s.expires_at==null||Number.isFinite(Number(s.expires_at))&&Number(s.expires_at)*1000>Date.now());};
+      try{
+        if(!await sessionOK()||!ready())return false;
+        for(const e of [plan.outgoing,plan.incoming]){
+          const r=await sb.from('expenses').select(cols).eq('user_id',owner).eq('id',e.id).maybeSingle();
+          if(r.error||!ownTransferRowMatches(e,r.data,owner)||!ready())return false;
+        }
+        return await sessionOK()&&ready();
+      }catch(err){return false;}
+    },
     // Un UPDATE sin filas no confirma una retirada: FIN-04 permite UUID locales divergentes.
     // No buscar gemelos por parecido ni tocar importe, origen o saldo para salvar esa identidad.
     async confirmTrMonthlyInvestment(e, readState){

@@ -2804,6 +2804,32 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
      hasta darle a atrás (bug 2026-08-17). La causa concreta ya está arreglada en `saveEdit`; esto
      es para que ninguna otra vía que vacíe `editExp` pueda volver a dejar la app muerta. */
   const abierto=!!exp && !!editExp;
+  const transferSandbox=mcSandbox();
+  // La elegibilidad se recalcula, pero un cambio ajeno no debe repetir las dos lecturas remotas.
+  // La foto completa conserva las invalidaciones del plan, incluidas relaciones fuera de la fila.
+  const transferSignature=JSON.stringify(abierto?ownTransferPlan(state,exp):null);
+  const transferPlan=useMemo(function(){return JSON.parse(transferSignature);},[transferSignature]);
+  const transferLive=useRef(null);transferLive.current={plan:transferPlan,state:state,sandbox:transferSandbox};
+  const [transferOffer,setTransferOffer]=useState(null);
+  useEffect(function(){
+    let active=true;
+    const current=function(){return active&&transferLive.current.plan===transferPlan&&transferLive.current.sandbox===transferSandbox&&mcSandbox()===transferSandbox&&!mcSandboxTransition();};
+    // La ficha permanece montada al cerrarse. Cada plan tiene su propia cancelación y nunca
+    // habilita la siguiente ficha con la respuesta atrasada de una lectura anterior.
+    const check=async function(){
+      if(!transferPlan||!current())return false;
+      setTransferOffer(null);let timer,ready=false;
+      try{
+        ready=transferSandbox?ownTransferPlanValid(transferLive.current.state,transferPlan):await Promise.race([
+          cloud.canConfirmOwnTransfer(transferPlan,function(){return current()?transferLive.current.state:null;}),
+          new Promise(function(resolve){timer=setTimeout(function(){resolve(false);},10000);})]);
+      }catch(err){}finally{clearTimeout(timer);}
+      if(!current())return false;
+      setTransferOffer(ready?{plan:transferPlan,check:check}:null);return ready;
+    };
+    setTransferOffer(null);check();
+    return function(){active=false;};
+  },[transferPlan,transferSandbox]);
   const paymentDay=new Date().toDateString();
   const paymentRelation=useMemo(function(){return abierto?expensePaymentRelationUI(state,exp):null;},
     [abierto,exp,paymentDay,state.fixed,state.debts,state.oneoffs,state.expenses,state.bankTx,state.accounts,state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
@@ -2913,8 +2939,12 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     exp.renamePending&&React.createElement("div",{className:"hint",role:"status","data-testid":"expense-rename-pending"},t(exp.renamePending.quarantined?"g_rename_paused":"g_rename_pending")," ",React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){saveEdit(exp,{merchant:exp.renamePending.merchant,retryRename:true});}},t("g_note_retry"))),
     trace,duplicate,paired,reciboAviso,
     sourceActionStatus&&sourceActionStatus.id===exp.id&&React.createElement("div",{role:"status","data-testid":"exp-source-save-status"},React.createElement("div",null,t(sourceActionStatus.status==="pending"?"f_source_pending":"f_source_save_error")),sourceActionStatus.status==="error"&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-source-refresh",onClick:function(){refreshSourceAction().catch(function(){});}},t("f_source_refresh"))),
-    ownTransferPair(state,exp)&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-own-transfer",
-      disabled:ownTransferStatus&&ownTransferStatus.id===exp.id&&ownTransferStatus.status==="pending",onClick:function(){recognizeOwnTransfer(exp);}},t("f_owntransfer_title")),
+    transferPlan&&transferOffer&&transferOffer.plan===transferPlan&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-own-transfer",
+      disabled:!transferOffer||transferOffer.plan!==transferPlan||ownTransferStatus&&ownTransferStatus.id===exp.id&&ownTransferStatus.status==="pending",onClick:function(){
+        if(!transferOffer||transferOffer.plan!==transferPlan)return;
+        // Revalidar también al pulsar: haber abierto la ficha no reserva esas filas remotas.
+        transferOffer.check().then(function(ready){if(ready&&transferLive.current.plan===transferPlan)recognizeOwnTransfer(exp);});
+      }},t("f_owntransfer_title")),
     ownTransferStatus&&ownTransferStatus.id===exp.id&&ownTransferStatus.status!=="done"&&React.createElement("div",{role:"status","data-testid":"exp-own-transfer-status"},React.createElement("div",null,t(ownTransferStatus.status==="pending"?"f_owntransfer_pending":"f_owntransfer_error")),ownTransferStatus.status==="error"&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-own-transfer-refresh",onClick:function(){refreshSourceAction().catch(function(){});}},t("f_source_refresh"))),
     canRecognizeWithdrawal(exp) && React.createElement("div",{className:"hint","data-testid":"exp-withdrawal-info"},
       React.createElement("div",null,t("f_withdraw_fields")),
