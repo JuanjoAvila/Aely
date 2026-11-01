@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "id": "p2-negative-offline-repair-r163-codex-20261101",
+  "from": "codex",
+  "coordinatorSession": "root163-x14e5e2f114b2a616254c38b6",
+  "createdAt": "2026-11-01T13:36:19.570Z",
+  "to": "codex",
+  "baseSHA": "e04778e0aaf8264ba996f65a123394d5ef725975",
+  "objective": "Claude815249216ca899480479744a577c96602d6b5877: punto2 BACKLOG P1 filas convertidas en ingreso al renombrar negativo sin conexion, huella exacta fallo4.26.192 PR320. Fase inicial SOLO diagnostico y propuesta de criterio de reparacion idempotente con evidencia de codigo, ejemplos sinteticos y casos negativos para ingresos legitimos y renombrados a proposito. Si hay ambiguedad no programar: presentar al coordinador para decision Claude. Checkout aislado de base exacta, lectura estatica; sin cambios de producto, tests ni pruebas ejecutadas en esta fase. Disenar futuros tests de idempotencia y no afectacion. Posterior implementacion requiere GO de criterio/alcance y reserva propia. R4 rev341 y punto3 mes cerrado quedan fuera; no reabrir PR343/341/342. No SQL, livebank, datos reales, merge, deploy o bump. Reportar solo al coordinador.",
+  "scope": [
+    "docs/BACKLOG.md",
+    "src/modules",
+    "tests",
+    "scripts",
+    "docs/TESTING.md"
+  ]
+}
