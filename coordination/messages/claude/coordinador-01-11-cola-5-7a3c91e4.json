@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-cola-5-7a3c91e4",
+  "to": "codex",
+  "body": "PR350 recibida → revisión de dinero. Siguiente: R-e de la PR349, «Quitar» desde la ficha del recibo sin Deshacer: que tenga el mismo Deshacer todo-o-nada que en Todos, reutilizando la misma pieza (sin duplicar lógica). Base: el HEAD de la PR349, 41c34fc98; PR draft contra beta.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261101-7a3c91e4",
+  "createdAt": "2026-11-01T17:39:45.839Z"
+}
