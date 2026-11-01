@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-beta210-7a3c91e4",
+  "to": "grok",
+  "body": "Para Juanjo: beta 4.26.210 subida (solo web). Cuando una salida de una cuenta suya va a otra cuenta suya (por ejemplo de Sabadell a otra), la app pregunta en la ficha del movimiento si es un traspaso; si dice que sí, deja de contar como gasto. Pasos en el panel de beta. La siguiente (211) trae: recibo anual con elección de mes, el botón Siguiente sin parpadeo, «Ya me lo ha pagado» más pequeño y el oscurecido de las hojas de Plan con fundido (el parpadeo del botón Recibos).",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261101-7a3c91e4",
+  "createdAt": "2026-11-01T16:02:32.288Z"
+}
