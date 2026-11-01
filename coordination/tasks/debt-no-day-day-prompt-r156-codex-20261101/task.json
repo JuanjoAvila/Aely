@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "id": "debt-no-day-day-prompt-r156-codex-20261101",
+  "from": "codex",
+  "coordinatorSession": "nrelay27b43168f0504feb8f8f54806486cf22",
+  "createdAt": "2026-11-01T05:34:00.107Z",
+  "to": "codex",
+  "baseSHA": "c4cd27db0ca29e68388770dc87f30996ea9489be",
+  "objective": "PR nueva SOLO UI para deuda sin dia: Plan y Deudas muestran Sin dia de cobro - ponle dia, abre editor existente con foco en dia; conservar dinero BASE al centimo. Registrar diagnostico PR337 aparcado en BACKLOG como item separado.",
+  "scope": [
+    "src/modules/01-i18n.js",
+    "src/modules/09-tab-debts-goals.js",
+    "src/modules/14-v4-screens.js",
+    "docs/BACKLOG.md",
+    "docs/ARQUITECTURA.md",
+    "tests",
+    "e2e",
+    "scripts/relevant-tests.mjs",
+    "scripts/run-tests.mjs"
+  ],
+  "authority": "aaa245ae60eeabfdeb17eaf6145cfde934b4788e",
+  "acceptance": [
+    "Copy es/en/ca, exact Spanish Sin día de cobro · ponle día, discoverable accessible action in both Plan and Debts",
+    "Open existing debt editor by exact debt id with day field focused; no saving or money mutation until explicit user save; cancel preserves exact state",
+    "Date/amount/principal/amortization/balloon and all money algorithms stay byte-identical BASE; no dual helpers or PR337 restoration",
+    "Directed synthetic UI coverage includes entry points, focus, cancel, saved existing day behavior, dated and completed exclusions, amount/total BASE invariance",
+    "Fresh source c4cd27db beta; never apply source89e33 or nine old dual snapshots",
+    "BACKLOG own parked financial item includes sourceA/causal distinction, inherited F-squared multiplicity, P/Q dual contract, whole-entity BF30 mixed, synthetic F2toF3 vector and NO-GO",
+    "Private reviewed diff and durable manifest with exact source/test logs/EXIT required before any product commit or push"
+  ],
+  "constraints": [
+    "Fresh identity/OWN20 under7188, no claims leases grants counters NFF runtime repos inherited; claim/readback before checkout/edits",
+    "Only this task; UX290904 queued after delivery, not part of current scope",
+    "No edits core00, motor07/08, totals11, any financial function, P1/P2/P3 dual design, shared checkout, versions, release notes, catalogue, dependencies, backend or Android",
+    "Directed Node/e2e permitted by edaff47656cdd8a9f0af9addc878018c46439cdd without CPU1 gate/reservation; per-spec1worker0retry, stopfirstfailure, own isolated port and runner evidence, no fullsuite Gradle performance",
+    "Test-only synthetic assembly and own local static server allowed only for directed UI checks; generated build output never deliver/commit, no deploy",
+    "Do not repeat closed old PR337 tests; run only meaningful checks of this UI change and baseline equality",
+    "No product commit/push/newPR creation until parent private review; no merge/main/beta, ProductREADY or human notification"
+  ]
+}
