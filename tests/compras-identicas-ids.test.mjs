@@ -67,6 +67,15 @@ function cloudOn(env,ctx=c,source=html){
  const a=source.indexOf('const cloud = (function(){'),b=source.indexOf('\n})();',a),start=source.indexOf('  return {',a);
  assert.ok(a>=0&&b>start&&start>a);
  const db={...env.db,auth:{getSession:async()=>({data:{session:{user:{id:"user"}}}})}};
+ // El doble de ingest no devuelve filas de UPDATE; este transporte de cliente sí
+ // necesita el contrato PostgREST de update().select(), con los filtros CAS reales.
+ db.from=table=>{
+  const query=env.db.from(table);if(table!=="expenses")return query;
+  query.update=patch=>{const filters=[];let columns=null;const q={
+   eq(k,v){filters.push([k,v]);return q;},is(k,v){filters.push([k,v]);return q;},select(cols){columns=cols.split(',');return q;},
+   then(resolve,reject){return Promise.resolve().then(()=>{const rows=env.rows.filter(r=>filters.every(([k,v])=>r[k]===v));rows.forEach(r=>Object.assign(r,patch));return {data:columns?rows.map(r=>Object.fromEntries(columns.map(k=>[k,r[k]]))):null,error:null};}).then(resolve,reject);}
+  };return q;};return query;
+ };
  return vm.runInContext('(function(sb){const statePushCache=new Map();'+source.slice(start,b)+'})',ctx)(db);
 }
 const committed=(s,feed,ctx=c,source=html)=>bank.updater(source,feed,s,ctx,true).state;

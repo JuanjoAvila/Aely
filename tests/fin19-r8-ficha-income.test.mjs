@@ -7,6 +7,12 @@ import {environment,section,plain,owner,uuid,cents,now} from './helpers/fin19-r4
 
 const html=fs.readFileSync(process.env.FIN19_R8_HTML||new URL('../public/index.html',import.meta.url),'utf8');
 const callback=section(html,'  const saveEdit=function(orig, extra){','  const todayKey='),evidence=[];
+function categoryHandler(env){
+ const source=section(html,'  const setCat=function(ex,newCat){','  const setCuota=');
+ const busy=section(html,'  const sourceActionBusy=function(id){','  const sourceActionMounted=');
+ // La categoría comparte el guard real de source, con su ref al estado fresco.
+ return vm.runInContext('(function(api){const set=api.set,cloud=api.cloud,showToast=null,withdrawalPending={current:{}},sourceActionPending={current:{}},withdrawalState=api.stateRef;'+busy+source+'return setCat;})',env.c)(env);
+}
 const fixtures=[
  {name:'salary',amount:-1500,merchant:'NOMINA SINTETICA',category:'ingreso',signedCents:-150000,beforeIncome:150000},
  {name:'incoming-transfer',amount:-200,merchant:'TRASPASO SINTETICO',category:'traspaso',signedCents:-20000,beforeIncome:0},
@@ -168,8 +174,7 @@ test('FIN19 R8 an older writer echo cannot clear a later real metadata decision'
  const f={...fixtures[1],category:'ingreso'},env=setup('sandbox',f),original=plain(env.stateRef.current.expenses[0]);
  env.decide('Nombre elegido');await writeRealQueue(env);
  // The first write has committed but its pull has not arrived; the user makes a new real choice.
- const setCatSource=section(html,'  const setCat=function(ex,newCat){','  const setCuota=');
- const choose=vm.runInContext('(function(api){const set=api.set,cloud=api.cloud,showToast=null,withdrawalPending={current:{}};'+setCatSource+'return setCat;})',env.c)(env);
+ const choose=categoryHandler(env);
  env.cloud.setExpenseCat=async()=>0;choose(env.stateRef.current.expenses[0],'ingreso');await Promise.resolve();
  env.save('Compra elegida',{income:false});
  const chosen={...original,merchant:'Compra elegida',category:'otros',noCard:true,catStale:['bares'],
@@ -188,8 +193,7 @@ test('FIN19 R8 composition setCat rename pull cannot acknowledge a synthetic cat
   const jobs=[],categoryWrites=[];
   env.c.setTimeout=(fn,ms)=>{jobs.push({fn,ms});return jobs.length;};env.c.clearTimeout=()=>{};
   env.cloud.setExpenseCat=async(e,cat)=>{categoryWrites.push({id:e.id,cat,outcome});if(outcome==='reject')throw Error('synthetic category rejection');return 0;};
-  const setCatSource=section(html,'  const setCat=function(ex,newCat){','  const setCuota=');
-  const choose=vm.runInContext('(function(api){const set=api.set,cloud=api.cloud,showToast=null,withdrawalPending={current:{}};'+setCatSource+'return setCat;})',env.c)(env);
+  const choose=categoryHandler(env);
   choose(env.stateRef.current.expenses[0],'ingreso');await Promise.resolve();
   assert.deepEqual(plain(env.stateRef.current.expenses),[{...original,category:'ingreso',catStale:['traspaso']}],'setCat real crea catStale sin presembrarlo');
   env.decide('Nombre elegido');env.save(f.merchant,{income:false});
@@ -224,8 +228,7 @@ test('FIN19 R8 learned rule cannot acknowledge category without a raw writer ech
  env.remote.push(teacherRaw);const teacher=plain(env.c.expenseFromRow(teacherRaw));
  env.set(s=>({...s,expenses:s.expenses.concat([env.c.expenseFromRow(teacherRaw)])}));
  env.cloud.setExpenseCat=async()=>0;
- const chooseSource=section(html,'  const setCat=function(ex,newCat){','  const setCuota=');
- const choose=vm.runInContext('(function(api){const set=api.set,cloud=api.cloud,showToast=null,withdrawalPending={current:{}};'+chooseSource+'return setCat;})',env.c)(env);
+ const choose=categoryHandler(env);
  choose(env.stateRef.current.expenses[1],'bares');await Promise.resolve();
  assert.equal(Object.keys(env.stateRef.current.catRules).length,1,'regla aprendida por callback real');
  env.save('BAR NUEVO',{income:false});

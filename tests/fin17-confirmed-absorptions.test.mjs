@@ -258,7 +258,10 @@ test('FIN17 H1 conserva320c tras ACK,poda500 y backfill de otro cliente que cono
 test('FIN17 upserts simple/batch y metadatos no resuben el confirmado; DELETE sigue útil',async()=>{
  const {a,db}=make(),r=record(a);assert.equal(a.c.obConfirmedPersist(uid,[r]),true);
  assert.equal(await a.cloud.addExpense(booked),null);await a.c.subirGasto({...booked,reciboId:'synthetic-recibo'},'backfill');
- for(const [method,arg] of [['setExpenseDup',false],['setExpenseBank','caixabank'],['setExpenseNoCard',true],['setExpenseCat','otros'],['setExpenseDeuda'],['setExpenseRecibo']])await a.cloud[method](booked,arg);
+ for(const [method,arg] of [['setExpenseNoCard',true],['setExpenseCat','otros'],['setExpenseDeuda']])await a.cloud[method](booked,arg);
+ // Los writers de source con acuse explícito rechazan una fila protegida: además
+ // de cero consultas, deben impedir que el caller confunda ese veto con un ACK.
+ for(const [method,arg] of [['setExpenseDup',false],['setExpenseBank','caixabank'],['setExpenseRecibo']])await assert.rejects(a.cloud[method](booked,arg),/expense upload denied/,method);
  // FIN04: bloquear una nota/renombrado no puede aparentar un ACK. La guarda sigue
  // exigiendo cero consultas, además de rechazar explícitamente la confirmación.
  await assert.rejects(a.cloud.setExpenseNote(booked,'synthetic'),/expense unavailable/);
