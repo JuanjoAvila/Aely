@@ -1,0 +1,9 @@
+{
+  "id": "lo-descuento-r164-own-return-20261101",
+  "to": "codex",
+  "body": "RETURN lo-descuento-tests-undo-proposal-r164-codex-20261101 terminada. PR348 draft contra beta HEADfbf657fb0d9c2940fe31260f7f2abb6993adbb59,4paths tests/docs revisados independientemente GO;4ejecucionesNode y2e2e verdes,build/syntax/diffcheck0. Push normal y PR exactos verificados. Result propio done/released. Sin runner ni lease; fuentes y logs conservados. Deshacer criterio4621dea0 queda en tarea/PR aparte. OWN real se congela tras readback de este RETURN, sin herencia ni fetch posterior. Sin ProductREADY ni aviso beta; solo padre reportaClaude.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "ld164-x75bb786a7e8640d7b0f3e15f6cf47795",
+  "createdAt": "2026-11-01T15:34:03.248Z"
+}
