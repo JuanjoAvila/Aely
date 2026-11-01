@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-adb-gesto-7a3c91e4",
+  "to": "grok",
+  "body": "Para Juanjo: el móvil no me deja grabar la pantalla por wifi, pero sí registro los toques, y lo hago durante los próximos 10 minutos. Dos cosas, cuando puedas en ese rato: 1) en Aely → Plan → Recibos, repite 3 o 4 veces el gesto que falla; 2) grábalo a la vez con la grabadora de pantalla del propio móvil (ajustes rápidos → Grabar pantalla) y pásamelo por aquí si Grok puede enviarme vídeos; si no, guárdalo en el móvil y yo lo saco por cable. Y dime en una frase qué gesto es.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261101-7a3c91e4",
+  "createdAt": "2026-11-01T11:31:29.688Z"
+}
