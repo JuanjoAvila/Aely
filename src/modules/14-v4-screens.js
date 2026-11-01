@@ -1159,7 +1159,11 @@ function PersonaSheet({pid, draft, mensual:draftMensual, sinBorrar, state, set, 
     const datos={n:n.trim(),via:via};
     if(via==="debt") datos.debtId=debtId;
     if(draft) onCreate(Object.assign({id:"pe_"+uid()},datos));
-    else if(edit) set(function(s){ return personaEditar(s,pid,datos,y,m,today); });
+    else if(edit){
+      const cambio=function(s){ return personaEditar(s,pid,datos,y,m,today); };
+      descuentoPregunta(state,cambio).then(function(fix){ set(function(s){ return conDescuentoFijado(fix,cambio(s)); }); swipe.close(); });
+      return;
+    }
     else {
       /* Un compartido de antes no dice de quién es el resto: darle todo a esta persona sin
          enseñarlo ponía «Lo descuento» de 63 donde eran 53 (rev. t5 R2-1). Ese recibo se abre en
@@ -1167,16 +1171,22 @@ function PersonaSheet({pid, draft, mensual:draftMensual, sinBorrar, state, set, 
       const persona=Object.assign({id:"pe_"+uid()},datos);
       const viejo=ids.find(function(id){ return esViejo(id); });
       const resto=ids.filter(function(id){ return id!==viejo; });
-      if(resto.length) set(function(s){ return personaEnRecibos(s,persona,resto,y,m,today); });
-      if(viejo&&onCompartidoViejo){ savedRef.current=true; onClose(); onCompartidoViejo(viejo,persona); return; }
+      const cambio=function(s){ return personaEnRecibos(s,persona,resto,y,m,today); };
+      // Con un compartido de antes también se pregunta por el resto antes de abrirlo (rev. R5).
+      descuentoPregunta(state,resto.length?cambio:function(s){ return s; }).then(function(fix){
+        if(resto.length) set(function(s){ return conDescuentoFijado(fix,cambio(s)); });
+        if(viejo&&onCompartidoViejo){ onClose(); onCompartidoViejo(viejo,persona); return; }
+        swipe.close();
+      });
+      return;
     }
     swipe.close();
   };
   const borrar=function(){
     if(!gone){ setGone(true); return; }
     savedRef.current=true;
-    set(function(s){ return personaEditar(s,pid,null,y,m,today); });
-    swipe.close();
+    const cambio=function(s){ return personaEditar(s,pid,null,y,m,today); };
+    descuentoPregunta(state,cambio).then(function(fix){ set(function(s){ return conDescuentoFijado(fix,cambio(s)); }); swipe.close(); });
   };
   const chip=function(key,label,on,go,dis){
     return React.createElement("button",{type:"button",key:key,className:"chip"+(on?" active":""),"aria-pressed":on?"true":"false",disabled:!!dis,onClick:go},label);
@@ -1714,7 +1724,7 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
   };
   const quitar=function(){
     if(!gone){ setGone(true); return; }
-    removeFixedById(set,f.id);
+    quitarReciboPreguntando(state,set,f.id);
     cerrarCon(tf("pr6_borrado_toast",{name:row.name}));
   };
   const par=[];
@@ -2039,7 +2049,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
   const removeWithUndo=function(row){
     setSavedBill(null);
     const snap={kind:row.kind, item:Object.assign({},row.item)};
-    if(row.kind==="fixed") removeFixedById(set,row.id);
+    if(row.kind==="fixed") quitarReciboPreguntando(state,set,row.id);
     else if(row.kind==="flow") removeFlowById(set,row.id);
     else if(row.kind==="oneoff") removeOneoffById(set,row.id);
     else return;
@@ -2370,6 +2380,47 @@ function rp4Raw(n){
   return (Math.round(Number(n)*100)/100).toFixed(2).replace(/\.00$/,"").replace(".",numPadDecSep());
 }
 function rp4Cent(n){ return Math.round((Number(n)||0)*100); }
+/* Un «Lo descuento» que no cuadra con su deuda se pregunta antes de guardar (feedback 1/11/2026: se
+   pintaba «pagas 250 € + 53 €» sin decir nada). `cambio` es la misma transformación que se va a
+   guardar, pasada por el estado que se ve. Resuelve con lo que dijo, o null si no hay nada que
+   preguntar o no quiere tocarla: el recibo se guarda igual y la deuda se queda como estaba.
+   En euros como el campo, no con eur(), que pasa a la moneda de visualización (revisión d139d). */
+function descuentoBajaPregunta(q){
+  return askText({title:tf("rp6_desc_q",{x:NF.format(q.paga)+" €"}),sub:q.name,value:rp4Raw(q.baja),ph:"0,00 €",
+    ok:t("rp6_desc_ok"),cancel:t("rp6_desc_no")}).then(function(raw){
+    const baja=raw==null?0:parseNumPadRaw(raw);
+    return baja>0?{id:q.id,paga:q.paga,baja:baja}:null;
+  });
+}
+// Una pregunta por deuda descuadrada, una detrás de otra (rev. lo-descuento R4: antes solo la primera).
+function descuentoPregunta(state,cambio){
+  const fixes=[];
+  return descuentoDescuadre(state,cambio(state)).reduce(function(p,q){
+    return p.then(function(){ return descuentoBajaPregunta(q).then(function(f){ if(f) fixes.push(f); }); });
+  },Promise.resolve()).then(function(){ return fixes; });
+}
+function conDescuentoFijado(fixes,s){ return (fixes||[]).reduce(function(o,f){ return deudaFijarDescuento(o,f.id,f.paga,f.baja); },s); }
+/* El descuadre ya guardado (R1): primero cuánto le pasa (puede que la cuota guardada ya sea esa),
+   luego la pregunta de siempre con lo que baja. Cancelar cualquiera de las dos no toca nada. */
+function descuentoAjustarGuardado(state,set,d){
+  const q=descuentoDescuadreGuardado(state,d);
+  if(!q) return;
+  askText({title:t("rp6_pasas_q"),sub:q.name,value:rp4Raw(q.paga),ph:"0,00 €",ok:t("ask_ok")}).then(function(raw){
+    const paga=raw==null?0:parseNumPadRaw(raw);
+    if(!(paga>0)) return;
+    descuentoBajaPregunta({id:q.id,name:q.name,paga:paga,baja:Math.round((paga+q.descuento)*100)/100}).then(function(f){
+      if(f) set(function(s){ return conDescuentoFijado([f],s); });
+    });
+  });
+}
+/* Quitar un recibo con una parte que se descuenta: si la deuda no queda cuadrada (la bajada tecleada
+   no era cuota + descuento), se pregunta igual que al ponerlo (rev. lo-descuento R2). */
+function quitarReciboPreguntando(state,set,id){
+  descuentoPregunta(state,function(s){ return deudasTrasReparto(s,Object.assign({},s,{fixed:(s.fixed||[]).filter(function(e){ return e.id!==id; })})); }).then(function(fixes){
+    removeFixedById(set,id);
+    if(fixes.length) set(function(s){ return conDescuentoFijado(fixes,s); });
+  });
+}
 function rp4DiasMes(ym){ const Y=Math.floor((ym-1)/12), M=ym-Y*12; return new Date(Y,M,0).getDate(); }
 /* Un cargo de una sola vez de hoy o de antes este mes ya «se habría cobrado» por calendario sin
    ningún cargo detrás: lo de hoy sin cobro es cargo de hoy (decisión del dueño, t3). Se apunta
@@ -2627,8 +2678,14 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
         addOneoffItem(set,{id:uid(),name:nombre,amount:Math.round(amt*100)/100,month:M,year:Y,day:f.once.day,account:f.account});
         onSaved("oneoff",nombre);
       } else {
-        addFixedItem(set,conMesDeAlta(Object.assign({id:uid()},borrador())));
-        onSaved("fixed",nombre);
+        const nuevo=conMesDeAlta(Object.assign({id:uid()},borrador()));
+        descuentoPregunta(state,function(s){ return deudasTrasReparto(s,Object.assign({},s,{fixed:(s.fixed||[]).concat([nuevo])})); }).then(function(fix){
+          addFixedItem(set,nuevo);
+          if(fix) set(function(s){ return conDescuentoFijado(fix,s); });
+          onSaved("fixed",nombre);
+          swipe.close();
+        });
+        return;
       }
     } else if(kind==="oneoff"){
       const Y=Math.floor((f.once.ym-1)/12), M=f.once.ym-Y*12;
@@ -2643,7 +2700,15 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
     } else {
       const sc=conScope?scope:"desde";
       // Un «Lo descuento» que entra, cambia o sale mueve también la cuota de esa deuda.
-      if(Object.keys(cambios).length) set(function(s){ return deudasTrasReparto(s,fixedEditarRecibo(s,row.id,cambios,sc,y,m,today)); });
+      const cambio=function(s){ return deudasTrasReparto(s,fixedEditarRecibo(s,row.id,cambios,sc,y,m,today)); };
+      if(Object.keys(cambios).length){
+        descuentoPregunta(state,cambio).then(function(fix){
+          set(function(s){ return conDescuentoFijado(fix,cambio(s)); });
+          onSaved("fixed",nombre,tf(sc==="mes"?"rp4_saved_mes":"rp4_saved",{name:nombre}));
+          swipe.close();
+        });
+        return;
+      }
       onSaved("fixed",nombre,tf(sc==="mes"?"rp4_saved_mes":"rp4_saved",{name:nombre}));
     }
     swipe.close();

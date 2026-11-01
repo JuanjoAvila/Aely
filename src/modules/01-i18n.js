@@ -4392,3 +4392,22 @@ Object.assign(LANG.ca,{
   rp5_supera:"Les parts superen l'import: no et queda part", rp5_descuento_mensual:"«Ho descompto» només en rebuts de cada mes",
   rp5_rehacer:"Aquestes parts ja no quadraven: revisa-les i desa", pe_viejo_ajustar:"A {name} ajustaràs les parts abans de desar"
 });
+// «Lo descuento» que no cuadra con su deuda y lo que baja una deuda sin interés (feedback 1/11/2026).
+Object.assign(LANG.es,{
+  rp6_pasas_q:"¿Cuánto le pasas al mes?", rp6_no_cuadra:"No cuadra · Ajustar", db_err_term_amort:"El plazo y lo que baja la deuda no encajan con el pendiente.",
+  rp6_desc_q:"¿Le pasas {x} y la deuda baja esto?", rp6_desc_ok:"Ajustar la deuda", rp6_desc_no:"Dejarla como está",
+  db_amort_ph:"Baja la deuda al mes (€)", db_amort_hint:"Puede no ser lo que sale del banco.",
+  db_edit_amort_zero:"Queda saldo pendiente: tiene que bajar algo cada mes."
+});
+Object.assign(LANG.en,{
+  rp6_pasas_q:"How much do you send each month?", rp6_no_cuadra:"Doesn’t add up · Adjust", db_err_term_amort:"The term and how much the debt goes down do not match the balance.",
+  rp6_desc_q:"You send {x} and the debt goes down by this?", rp6_desc_ok:"Adjust the debt", rp6_desc_no:"Leave it as is",
+  db_amort_ph:"Debt goes down per month (€)", db_amort_hint:"It may differ from what leaves the bank.",
+  db_edit_amort_zero:"There is still a balance left: it has to go down every month."
+});
+Object.assign(LANG.ca,{
+  rp6_pasas_q:"Quant li passes cada mes?", rp6_no_cuadra:"No quadra · Ajustar", db_err_term_amort:"El termini i el que baixa el deute no encaixen amb el pendent.",
+  rp6_desc_q:"Li passes {x} i el deute baixa això?", rp6_desc_ok:"Ajustar el deute", rp6_desc_no:"Deixar-lo com està",
+  db_amort_ph:"Baixa el deute al mes (€)", db_amort_hint:"Pot no ser el que surt del banc.",
+  db_edit_amort_zero:"Queda saldo pendent: ha de baixar alguna cosa cada mes."
+});
