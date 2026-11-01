@@ -293,7 +293,7 @@ function GxSubInfo({open, onClose}){
         React.createElement("button",{type:"button",className:"btn btn-primary btn-block",onClick:swipe.close},t("gv5_sub_i_ok"))
       )), document.body);
 }
-function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clearFocus, forceAllTs, onGoPlan, onGoInversiones, onRefreshExpenses, sourceWriteErrors}){
+function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clearFocus, forceAllTs, onGoPlan, onGoInversiones, onRefreshExpenses}){
   /* «Ver todo» desde una ficha puede llegar antes de que Gastos termine de montar. Conservamos
      ese destino solo durante la navegación: el estado inicial lo consume y el evento cubre el
      caso en que la pestaña ya estaba viva. No se guarda en preferencias. */
@@ -587,8 +587,11 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       status("pending");
       let timer;
       try{
-        const ack=await Promise.race([cloud.decideOwnTransfer(plan,decision,function(){return withdrawalState.current;}),new Promise(function(_,reject){timer=setTimeout(function(){reject(new Error("transfer timeout"));},10000);})]);
-        if(!ack)throw new Error("transfer unconfirmed");
+        let ack;const sandbox=mcSandbox();
+        if(!sandbox){
+          ack=await Promise.race([cloud.decideOwnTransfer(plan,decision,function(){return withdrawalState.current;}),new Promise(function(_,reject){timer=setTimeout(function(){reject(new Error("transfer timeout"));},10000);})]);
+          if(!ack)throw new Error("transfer unconfirmed");
+        }
         let applied=false;
         ReactDOM.flushSync(function(){set(function(s){const next=applyOwnTransferDecision(s,plan,decision,Date.now(),ack);applied=next!==s;return next;});});
         if(!applied)throw new Error("transfer changed");
@@ -727,9 +730,11 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
      Así también valen, sin migración, las que él marcó antes de que existiera la marca. */
   const setCuota=function(ex,debtId){
     const confirma=ex.category==="deudas"&&ex.debtId===debtId&&!ex.debtManual;
-    const intended=marcarCuotaAMano(withdrawalState.current,ex.id,debtId);if(!intended)return;
+    let subir=null;
+    set(function(s){ const r=marcarCuotaAMano(s, ex.id, debtId); if(!r) return s; subir=r.e; return r.state; });
+    if(subir && cloud.enabled()) cloud.setExpenseDeuda(subir).catch(function(){});
     const d=confirma&&(state.debts||[]).find(function(x){ return x.id===debtId; });
-    return runSourceAction(ex,function(){return cloud.setExpenseDeuda(intended.e);},function(s){const r=marcarCuotaAMano(s,ex.id,debtId);return r&&r.state;},confirma?tf("v4_cuota_confirmada",{name:(d&&String(d.name||"").trim())||catName("deudas")}):tf("v4_moved_cat",{cat:DEUDA_CAT.icon+" "+catName("deudas")}));
+    if(showToast) showToast(confirma?tf("v4_cuota_confirmada",{name:(d&&String(d.name||"").trim())||catName("deudas")}):tf("v4_moved_cat",{cat:DEUDA_CAT.icon+" "+catName("deudas")}));
   };
   /* «Es aportación a la meta X» desde la ficha (decisión suya del 24/10/2026). Toca dinero, así que
      PONERLA se confirma diciendo qué cambia («de 100 € a 350 €»), y si la meta ya tenía algo
@@ -2054,7 +2059,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       setCat:setCat, setCuota:setCuota, setMeta:setMeta, setReceipt:setReceipt, quitarRecibo:quitarRecibo, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
       resolveDup:resolveDup, separarGemelo:separarGemelo, recognizeWithdrawal:recognizeWithdrawal, withdrawalStatus:withdrawalStatus,
       recognizeOwnTransfer:recognizeOwnTransfer,ownTransferStatus:ownTransferStatus[state._historyOwner+"|"+detailId]||null,
-      sourceActionStatus:sourceActionStatus[state._historyOwner+"|"+detailId]||(detailId&&sourceWriteErrors&&sourceWriteErrors[state._historyOwner+"|"+detailId]?{id:detailId,status:"error"}:null),refreshSourceAction:function(){
+      sourceActionStatus:sourceActionStatus[state._historyOwner+"|"+detailId],refreshSourceAction:function(){
         if(!onRefreshExpenses)return Promise.reject(new Error("refresh unavailable"));
         const owner=withdrawalState.current._historyOwner,key=owner+"|"+detailId,attempt=sourceActionStatus[key];
         return onRefreshExpenses().then(function(){if(sourceActionMounted.current&&withdrawalState.current._historyOwner===owner)setSourceActionStatus(function(current){
