@@ -290,25 +290,63 @@ function sourceWriter(name){
 }
 const bankSource=fs.readFileSync("src/modules/08-motor-bank.js","utf8");
 vm.runInContext(bankSource.match(/function expenseSourceActionSnapshot\(s,id\)\{[\s\S]*?\n\}/)[0],ctx);
-function quotaCaller(s,c){
-  ctx.__ownTransferSb=c.sb;ctx.__realDebtWriter=sourceWriter("setExpenseDeuda");ctx.__callerState=s;ctx.__callerToasts=[];ctx.__callerStatus=null;ctx.__callerStatuses={};
-  const ui=fs.readFileSync("src/modules/04-tab-gastos.js","utf8"),body=ui.match(/const setCuota=function\(ex,debtId\)\{[\s\S]*?\n  \};/)[0];
+function duplicateCaller(s,c){
+  ctx.__ownTransferSb=c.sb;ctx.__realDupWriter=sourceWriter("setExpenseDup");ctx.__callerState=s;ctx.__callerToasts=[];ctx.__callerStatus=null;ctx.__callerStatuses={};
+  const ui=fs.readFileSync("src/modules/04-tab-gastos.js","utf8"),body=ui.match(/const resolveDup=function\(e, same\)\{[\s\S]*?\n  \};/)[0];
   const action=ui.match(/const runSourceAction=async function\(ex,write,apply,success\)\{[\s\S]*?\n  \};/)[0];
-  return vm.runInContext('(function(){const state=globalThis.__callerState,withdrawalState={current:state},sourceActionPending={current:{}},withdrawalPending={current:{}},sourceActionMounted={current:true};const mcSandbox=()=>false;const ReactDOM={flushSync:f=>f()};const setSourceActionStatus=s=>{if(typeof s==="function"){globalThis.__callerStatuses=s(globalThis.__callerStatuses);globalThis.__callerStatus=globalThis.__callerStatuses[state._historyOwner+"|"+state.expenses[0].id]||null;}else globalThis.__callerStatus=s;};const set=f=>{globalThis.__callerState=f(globalThis.__callerState);withdrawalState.current=globalThis.__callerState;};const showToast=x=>globalThis.__callerToasts.push(x);const cloud={enabled:()=>true,session:async()=>{const r=await globalThis.__ownTransferSb.auth.getSession();return !r.error&&r.data.session;},setExpenseDeuda:e=>globalThis.__realDebtWriter(e)};'+action+body+'return setCuota;})()',ctx);
+  return vm.runInContext('(function(){const state=globalThis.__callerState,withdrawalState={current:state},sourceActionPending={current:{}},withdrawalPending={current:{}},sourceActionMounted={current:true};const sourceActionBusy=()=>false;const mcSandbox=()=>false;const ReactDOM={flushSync:f=>f()};const setSourceActionStatus=s=>{if(typeof s==="function"){globalThis.__callerStatuses=s(globalThis.__callerStatuses);globalThis.__callerStatus=globalThis.__callerStatuses[state._historyOwner+"|"+state.expenses[0].id]||null;}else globalThis.__callerStatus=s;};const set=f=>{globalThis.__callerState=f(globalThis.__callerState);withdrawalState.current=globalThis.__callerState;};const showToast=x=>globalThis.__callerToasts.push(x);const cloud={enabled:()=>true,session:async()=>{const r=await globalThis.__ownTransferSb.auth.getSession();return !r.error&&r.data.session;},setExpenseDup:(e,same)=>globalThis.__realDupWriter(e,same)};'+action+body+'return resolveDup;})()',ctx);
 }
-await check("caller real setCuota recupera NO concurrente y confirma vínculo remoto/local",async()=>{
-  const s=fixture();s.debts=[{id:"fixture-debt",name:"Préstamo sintético",monthly:80}];
+await check("caller real resolveDup recupera NO concurrente y confirma decisión remota/local",async()=>{
+  const s=fixture();s.expenses[0].possibleDup=true;
   let first=true;const c=client(s,{beforeUpdate:rows=>{if(first){first=false;rows[0].source=ctx.expenseSourceForCloud({...s.expenses[0],ownTransferRejected:true});}}});
-  assert.equal(await quotaCaller(s,c)(s.expenses[0],"fixture-debt"),true);
+  assert.equal(await duplicateCaller(s,c)(s.expenses[0],false),true);
   const remote=ctx.expenseFromRow(c.rows[0]),local=ctx.__callerState.expenses[0];
-  assert.equal(remote.debtId,"fixture-debt");assert.equal(remote.category,local.category);assert.equal(remote.debtManual,local.debtManual);
-  assert.equal(remote.ownTransferRejected,true);assert.equal(c.ops.length,2);assert.equal(ctx.__callerToasts.length,1);
+  assert.equal(!!remote.possibleDup,false);assert.equal(!!local.possibleDup,false);
+  assert.equal(remote.category,local.category);assert.equal(remote.ownTransferRejected,true);
+  assert.equal(c.ops.length,2);assert.equal(ctx.__callerToasts.length,1);
+});
+// B1 restaura estos dos writers: el NO ya conocido viaja, pero uno remoto desconocido
+// puede perderse. Es el límite aceptado de persistencia, no un acuse de cuota pendiente.
+for(const [name,arg,patch,category] of [
+  ["setExpenseCat","otros",{debtId:"fixture-debt",category:"deudas"},"otros"],
+  ["setExpenseDeuda",undefined,{debtId:"fixture-debt"},"deudas"]
+])for(const known of [false,true])await check(name+": contrato base de NO "+(known?"conocido":"remoto desconocido"),async()=>{
+  const s=fixture(),e={...s.expenses[0],...patch,...(known?{ownTransferRejected:true}:{})},c=client(s);
+  c.rows[0].source=ctx.expenseSourceForCloud({...e,ownTransferRejected:true});
+  const before=plain(c.rows),accounts=plain(s.accounts);ctx.__ownTransferSb=c.sb;
+  const result=await sourceWriter(name)(e,arg);
+  assert.equal(result,name==="setExpenseCat"?1:undefined);
+  assert.equal(c.ops.length,1);assert.equal(c.rows[0].cat,category);
+  assert.equal(!!ctx.expenseFromRow(c.rows[0]).ownTransferRejected,known);
+  assert.deepEqual(c.ops[0].filters,[["user_id",owner],["id",e.id]],"filtro base, sin CAS source");
+  for(const key of ["user_id","id","fecha","importe","comercio"])assert.equal(c.rows[0][key],before[0][key]);
+  assert.deepEqual(c.rows[1],before[1]);assert.deepEqual(s.accounts,accounts);
+  if(name==="setExpenseCat")assert.equal(!!plan({...s,expenses:c.rows.map(r=>ctx.expenseFromRow(r))}),!known,"el NO desconocido solo permite reofrecer");
+});
+for(const [name,arg,patch] of [
+  ["setExpenseCat","otros",{debtId:"fixture-debt",category:"deudas"}],
+  ["setExpenseDeuda",undefined,{debtId:"fixture-debt"}]
+])await check(name+": UUID local divergente conserva retorno base sin ACK",async()=>{
+  const s=fixture(),e={...s.expenses[0],...patch,id:uuid(9)},c=client(s),before=plain(c.rows);ctx.__ownTransferSb=c.sb;
+  assert.equal(await sourceWriter(name)(e,arg),name==="setExpenseCat"?0:undefined);
+  assert.deepEqual(c.rows,before);assert.equal(c.ops.length,1);
+});
+await check("setExpenseDeuda: sesión o SDK ausente y absorción denegada retornan sin escribir",async()=>{
+  const s=fixture(),e={...s.expenses[0],debtId:"fixture-debt"},c=client(s,{ownerAt:()=>null});ctx.__ownTransferSb=c.sb;
+  assert.equal(await sourceWriter("setExpenseDeuda")(e),undefined);assert.equal(c.ops.length,0);
+  const active=client(s);ctx.__ownTransferSb=active.sb;ctx.__denySourceUpload=true;
+  try{assert.equal(await sourceWriter("setExpenseDeuda")(e),undefined);}finally{ctx.__denySourceUpload=false;}
+  assert.equal(active.ops.length,0);ctx.__ownTransferSb=null;
+  assert.equal(await sourceWriter("setExpenseDeuda")(e),undefined);
+});
+await check("setExpenseDeuda: error explícito de UPDATE se propaga",async()=>{
+  const s=fixture(),c=client(s,{writeError:true});ctx.__ownTransferSb=c.sb;
+  await assert.rejects(()=>sourceWriter("setExpenseDeuda")({...s.expenses[0],debtId:"fixture-debt"}),/denied/);
+  assert.equal(c.ops.length,1);
 });
 for(const [name,arg,localPatch,expected] of [
   ["setExpenseBank","caixabank",{}, {ent:"caixabank"}],
   ["setExpenseDup",true,{}, {possibleDup:true}],
-  ["setExpenseCat","super",{debtId:"fixture-debt",category:"deudas"}, {category:"super",debtId:undefined}],
-  ["setExpenseDeuda",undefined,{debtId:"fixture-debt"}, {category:"deudas",debtId:"fixture-debt"}],
   ["setExpenseRecibo",undefined,{reciboId:"fixture-receipt"}, {reciboId:"fixture-receipt"}]
 ])await check(name+": writer real conserva NO remoto aunque local aún no lo conoce",async()=>{
   const s=fixture();Object.assign(s.expenses[0],localPatch,{obOrd:2});const e=s.expenses[0],c=client(s);
@@ -364,7 +402,6 @@ await check("doble select devuelve únicamente la proyección solicitada",async(
 });
 const sourceWriters=[
   ['setExpenseBank','caixabank',{}],['setExpenseDup',true,{}],
-  ['setExpenseDeuda',undefined,{debtId:'fixture-debt'}],
   ['setExpenseRecibo',undefined,{reciboId:'fixture-receipt'}]
 ];
 for(const [name,arg,patch] of sourceWriters){
@@ -428,17 +465,17 @@ for(const change of [{fecha:'2026-10-22T12:00:00.000Z'},{importe:81},{comercio:'
     assert.equal(ctx.expenseFromRow(c.rows[0]).reciboId,undefined);
   });
 for(const [label,opts,writes,denied] of [
-  ['segundo CAS cero',{zeroAt:2,beforeUpdate:rows=>{rows[0].source=ctx.expenseSourceForCloud({...fixture().expenses[0],ownTransferRejected:true});}},2],
+  ['segundo CAS cero',{zeroAt:2,beforeUpdate:rows=>{rows[0].source=ctx.expenseSourceForCloud({...fixture().expenses[0],possibleDup:true,ownTransferRejected:true});}},2],
   ['cambio semántico',{beforeUpdate:rows=>{rows[0].cat='super';}},1],
-  ['categoría y NO',{beforeUpdate:rows=>{rows[0].cat='super';rows[0].source=ctx.expenseSourceForCloud({...fixture().expenses[0],ownTransferRejected:true});}},1],
-  ['fallo relectura',{readErrorAt:2,beforeUpdate:rows=>{rows[0].source=ctx.expenseSourceForCloud({...fixture().expenses[0],ownTransferRejected:true});}},1],
+  ['categoría y NO',{beforeUpdate:rows=>{rows[0].cat='super';rows[0].source=ctx.expenseSourceForCloud({...fixture().expenses[0],possibleDup:true,ownTransferRejected:true});}},1],
+  ['fallo relectura',{readErrorAt:2,beforeUpdate:rows=>{rows[0].source=ctx.expenseSourceForCloud({...fixture().expenses[0],possibleDup:true,ownTransferRejected:true});}},1],
   ['sin filas',{beforeRead:(_n,rows)=>rows.splice(0)},0],
   ['sin sesión',{ownerAt:()=>null},0],['owner distinto',{ownerAt:n=>n===1?owner:'other'},0],
   ['upload denegado',{},0,true]
-])await check('caller real setCuota '+label+': no cambia vínculo ni anuncia éxito',async()=>{
-  const s=fixture();s.debts=[{id:'fixture-debt',name:'Préstamo sintético',monthly:80}];
+])await check('caller real resolveDup '+label+': no resuelve duplicado ni anuncia éxito',async()=>{
+  const s=fixture();s.expenses[0].possibleDup=true;
   const initial=plain(s),c=client(s,opts);ctx.__denySourceUpload=!!denied;
-  try{assert.equal(await quotaCaller(s,c)(s.expenses[0],'fixture-debt'),false);}finally{ctx.__denySourceUpload=false;}
+  try{assert.equal(await duplicateCaller(s,c)(s.expenses[0],false),false);}finally{ctx.__denySourceUpload=false;}
   assert.equal(c.ops.length,writes);assert.deepEqual(plain(ctx.__callerState),initial);
   assert.equal(ctx.__callerStatus.status,'error');assert.equal(ctx.__callerToasts.length,1);
   assert.equal(ctx.__callerToasts[0],vm.runInContext('t("f_source_save_error")',ctx));
