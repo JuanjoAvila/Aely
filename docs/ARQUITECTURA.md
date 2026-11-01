@@ -304,6 +304,33 @@ borrador con un aviso para revisarlas, y al guardar el reparto cuadra otra vez. 
 antes (solo `bankAmount`) al que se le añade una persona le da todo el resto (tu parte no cambia), y
 desde Todos › Personas se abre su edición con esa parte a la vista para ajustarla antes de guardar.
 Sin servidor ni columnas nuevas; el resumen del Hogar (13) no cambia.
+El resumen del mes cerrado (Plan › Recibos v6 tanda 6, del día 1 al 7) NO relee el mes con el
+estado de hoy (revisión NO-GO 31/10/2026: altas y bajas posteriores y el extracto caducado lo
+cambiaban). Mientras un mes está en curso, cada cálculo de Plan guarda su foto en
+`settings.pr6Fotos[año*12+mes] = {d: día, it: [{id, n, a (céntimos de tu parte), st, pa?, pb?, v?, d?}]}`
+(`planRecibosConFoto`, 08; solo si cambió, sin sello de edición, últimos tres meses). `st`: «p»
+pagado con prueba, «s» pagado sin cargo del banco (marca a mano, calendario), «q» no llegó
+(tocaba con dos días de margen y el banco tiene movimientos de ese mes después) y «?» no se sabe.
+`planRecibosMesCerrado` parte de la foto y solo la mejora con lo que hoy se acredita (un «?» o
+«q» que hoy sale pagado); una foto anterior al último movimiento del mes convierte sus «q» en «?».
+Sin foto, o con algún «?», la cifra es «—» (null), nunca más baja que la real; la comparación con
+el mes anterior sigue la misma regla. Los recibos nuevos llevan `createdYm` (`conMesDeAlta`: alta
+por pasos, importación, Gastos «Pasar a Recibos», alta vieja y el motor) y no cuentan en meses
+anteriores; `createdYm` es un grupo propio en la mezcla de tres vías y no lo lee nada más.
+Mezcla entre móviles (revisión R2): cada móvil calcula su foto con SUS datos (el extracto no
+viaja), así que no gana «la última»: al bajar de la nube (`syncFromCloud`, 11) `pr6FotosUnion` (08)
+mezcla mes a mes cargo a cargo quedándose con lo que más sabe (p > s > q > ?, luego la marca `x`,
+luego el texto) y el día mayor. Es conmutativa e idempotente: los dos móviles convergen y desde
+ahí ninguno escribe. El escritor tampoco baja nunca un estado, solo guarda si cambia el contenido
+(un día nuevo sin movimientos del banco posteriores no cuenta) y devuelve el MISMO estado si no
+(AGENTS §7 bis). Un cargo sin pagar que Plan deja de enseñar dentro del mes (borrado o pausado)
+se marca `x` y no cuenta al leer. Al leer, lo de hoy solo sube un cargo a pagado: nunca baja un
+«no se sabe» a «no llegó». Un cliente viejo no escribe ni lee fotos ni `createdYm`; sus
+escritores copian `settings` y el recibo con `Object.assign`, así que los conserva. El descarte de
+la tarjeta es `settings.pr6CerradoNo = año*12+mes`. La vista «Dic ›» es la misma lectura que los
+cargos del mes que viene de Inicio (`planChargesMonth` con hoy = 0). El primer uso importa con
+`addFixedItem` los cargos de `rp4VistoEnBanco` cobrados todos los meses seguidos, como recibos
+mensuales con su día, su banco y el importe del último cargo.
 
 Si la lápida alcanza una fila con un borrador privado pendiente, la fila sigue
 borrada y el borrador se ofrece en Plan → Deudas. Recuperar solo precarga el editor,

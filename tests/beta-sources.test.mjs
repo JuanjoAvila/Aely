@@ -218,6 +218,8 @@ const sourceBeta201=sourceAt("18ca9a901332457bba5c93c193eedbb0986db745");
 const sourceBeta202=sourceAt("6f852ea6a6710f8721be827ae86c84cfad9138b7");
 // Catálogo203 pasa a histórico con la 204: se lee de la 4.26.203 servida en beta (1d8760dff, sin APK nueva, APK 63); SIN veredicto: sus tres tandas (la suya y las dos de la 202) siguen en el panel de la 204.
 const sourceBeta203=sourceAt("1d8760dffd0e3b6b353ff0a64d3bc241973c0a0b");
+// Catálogo204 pasa a histórico con la 205: se lee de la 4.26.204 servida en beta (c4cd27db0, sin APK nueva, APK 63); SIN veredicto: sus cuatro tandas (la suya, la de la 203 y las dos de la 202) siguen en el panel de la 205.
+const sourceBeta204=sourceAt("c4cd27db0ca29e68388770dc87f30996ea9489be");
 // Producción 4.26.182 servida (main, 496a8a83d): el historial que la promoción 198 conserva debajo de su nota única y el árbol que lee Promoción182 histórico.
 const sourceProd182=sourceAt("496a8a83d6785563d93d8bbb6e67ba7e9ffce582");
 // Producción 4.26.159 servida (main, merge del PR 292, a6bc05df4): el historial que la promoción 182 conservó debajo de su nota única y el árbol que lee Promoción159 histórico.
@@ -6208,14 +6210,140 @@ test("Catálogo176 añade la tanda del vínculo de recibo (solo web) sobre la 17
   assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
 });
 
+const expected205={"v":"4.26.205","d":"2026-11-01","t":{"es":"Recibos: el mes cerrado y el que viene","en":"Bills: last month closed and next month","ca":"Rebuts: el mes tancat i el que ve"},"items":{"es":["Recibos: los primeros días del mes verás cómo cerró el anterior: lo pagado, si fue más o menos que el mes de antes y qué recibo subió.","Con «Dic ›» ves lo que se te va el mes que viene.","Y si aún no tienes recibos, «Empezar» te propone los cargos que se repiten en tu banco."],"en":["Bills: during the first days of the month you'll see how the last one closed: what you paid, whether it was more or less than the month before and which bill went up.","With “Dec ›” you see what goes out next month.","And if you have no bills yet, “Get started” suggests the charges that repeat in your bank."],"ca":["Rebuts: els primers dies del mes veuràs com va tancar l'anterior: el que has pagat, si va ser més o menys que el mes d'abans i quin rebut va pujar.","Amb «Des ›» veus el que surt el mes que ve.","I si encara no tens rebuts, «Comença» et proposa els càrrecs que es repeteixen al teu banc."]},"tandas":[{"id":"plan-recibos-t6","t":{"es":"Plan: resumen del mes cerrado y mes siguiente","en":"Plan: closed-month summary and next month","ca":"Pla: resum del mes tancat i mes següent"},"items":{"es":["1. Plan → Recibos, del 1 al 7 del mes (hoy vale). Arriba sale «Octubre cerrado» con «X € · ±Y € vs. sep». Toca la tarjeta para ver sus líneas y la × para quitarla. Ojo: la cifra solo existe si Plan se abrió con esta versión durante octubre; si no, saldrá «—» (y septiembre «— vs. sep»), y eso es BIEN: no se inventa. BIEN: X es lo que viste en «Ya pagados» el 31/10 más lo que cobró distinto (o «—»), las líneas son recibos tuyos de verdad y la × la quita sin que vuelva al reabrir la app. MAL: una cifra que no cuadra con lo que viste el 31/10, un «no llegaron» de algo que pagaste, o la tarjeta vuelve tras la ×.","2. Plan → Recibos → toca «Dic ›» en la tarjeta. BIEN: «Se te van en diciembre» con los recibos y cuotas de diciembre, «≈» en los que cambian cada mes, sin «Para revisar», «Ya pagados» ni «¿Te llega?»; tocar un recibo abre su edición; «‹ Nov» o el botón atrás de Android vuelven a noviembre sin salir de Plan, con transición suave; la cifra es la de Inicio → Próximos cargos «En diciembre». MAL: falta un recibo que sí toca en diciembre, sale uno pausado, la cifra no coincide con Inicio, o el atrás te saca de Plan."],"en":["1. Plan → Bills, from the 1st to the 7th of the month (today counts). At the top you see “October closed” with “X € · ±Y € vs. Sep”. Tap the card for its lines and the × to dismiss it. Note: the figure only exists if Plan was opened with this version during October; otherwise it shows “—” (and September “— vs. Sep”), which is RIGHT: nothing is made up. RIGHT: X is what you saw under “Already paid” on 31/10 plus what was charged differently (or “—”), the lines are real bills of yours and the × removes it without it coming back when you reopen the app. WRONG: a figure that does not match what you saw on 31/10, a “didn't arrive” for something you paid, or the card returns after the ×.","2. Plan → Bills → tap “Dec ›” on the card. RIGHT: “Going out in December” with December's bills and instalments, “≈” on those that change every month, no “To review”, “Already paid” or “Will it cover?”; tapping a bill opens its edit; “‹ Nov” or Android's back button return to November without leaving Plan, with a smooth transition; the figure is the one in Home → Upcoming charges “In December”. WRONG: a bill that is due in December is missing, a paused one shows, the figure does not match Home, or back takes you out of Plan."],"ca":["1. Pla → Rebuts, de l'1 al 7 del mes (avui val). A dalt surt «Octubre tancat» amb «X € · ±Y € vs. set.». Toca la targeta per veure'n les línies i la × per treure-la. Compte: la xifra només existeix si Pla es va obrir amb aquesta versió durant l'octubre; si no, sortirà «—» (i el setembre «— vs. set.»), i això és BÉ: no s'inventa res. BÉ: X és el que vas veure a «Ja pagats» el 31/10 més el que va cobrar diferent (o «—»), les línies són rebuts teus de debò i la × la treu sense que torni en reobrir l'app. MALAMENT: una xifra que no quadra amb el que vas veure el 31/10, un «no han arribat» d'alguna cosa que has pagat, o la targeta torna després de la ×.","2. Pla → Rebuts → toca «Des ›» a la targeta. BÉ: «Previst · desembre» amb els rebuts i quotes de desembre, «≈» als que canvien cada mes, sense «Per revisar», «Ja pagats» ni «T'arriba?»; tocar un rebut n'obre l'edició; «‹ Nov» o el botó enrere d'Android tornen a novembre sense sortir de Pla, amb transició suau; la xifra és la d'Inici → Pròxims càrrecs «Al desembre». MALAMENT: falta un rebut que sí toca al desembre, en surt un de pausat, la xifra no coincideix amb Inici, o l'enrere et treu de Pla."]}}]};
+// 4.26.205 (01/11/2026): una pieza sobre la beta 4.26.204 servida SIN veredicto (c4cd27db0, sin APK nueva: sigue la 63), solo web: claude/plan-recibos-t6 (fa1500844, base 656f17a69 = 4.26.200; revisión independiente de dinero y uso: NO-GO en la primera ronda —releer el mes con el estado de hoy y cifras más bajas que las reales— y GO con remates en la segunda, R2-1 y R2-2 cerrados en fa1500844) —resumen del mes cerrado con foto del mes (settings.pr6Fotos, mezclada entre móviles con pr6FotosUnion), «Dic ›» y primer uso—.
+// UNA tanda NUEVA (plan-recibos-t6, dos pasos; sin APK) y las cuatro de la 204, la 203 y la 202 (plan-recibos-t5, plan-recibos-qa, plan-recibos-guardar-pagado e informe-mes-limite-del-mes) SIGUEN en el panel, sin vaciar: no tienen veredicto. plan-recibos-t5 y plan-recibos-qa reciben huella nueva porque su cierre de lectores lee unidades que la rama toca (lista cerrada abajo).
+// Registro: UN descriptor nuevo, el último (plan-recibos-t6). Los anteriores solo crecen por el final con las unidades nuevas que ahora leen (cierre calculado, exacto); ninguno se reordena ni pierde unidades.
+test("Catálogo205 añade la tanda de Plan › Recibos v6 t6 (mes cerrado con foto del mes, Dic › y primer uso), conserva las cuatro de la 204, la 203 y la 202 sin veredicto, hace crecer solo el cierre de lectores y declara las huellas que mueve",()=>{
+  const tandaT="plan-recibos-t6",tandaP="plan-recibos-t5",tandaQ="plan-recibos-qa",tandaA="plan-recibos-guardar-pagado",tandaB="informe-mes-limite-del-mes",M8="src/modules/08-motor-bank.js",G4="src/modules/04-tab-gastos.js",A11="src/modules/11-app-main.js",I1="src/modules/01-i18n.js",V14="src/modules/14-v4-screens.js";
+  const integrated=JSON.parse(sourceBeta204("scripts/beta-sources.json")),before=JSON.parse(sourceBeta204("src/data/release-notes.json"));
+  const source=f=>nl(read(f)),old=f=>nl(sourceBeta204(f));
+  assert.equal(before[0].v,"4.26.204");
+  assert.deepEqual(before.flatMap(n=>(n.tandas||[]).map(g=>g.id)),[tandaP,tandaQ,tandaA,tandaB],"la 204 servida lleva sus cuatro tandas, sin veredicto");
+  const expectedNotes=[expected205,...before];
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.deepEqual(notes,expectedNotes,"la nota 205 literal delante y todo lo demás intacto (las cuatro tandas anteriores siguen)");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.205",tandaT,0],["4.26.204",tandaP,0],["4.26.203",tandaQ,0],["4.26.202",tandaA,0],["4.26.202",tandaB,0]],"el panel enseña cinco, sin APK nueva");
+  assert.equal(notes.length,302);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
+  for(const n of notes.slice(4))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] (la propiedad se conserva, vacía)");
+  for(const g of notes[0].tandas)assert.deepEqual(Object.keys(g),["id","t","items"],"la tanda nueva no pide APK");
+  const jerga=/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|FIN-|SES-|UX-|SEC-|zoom|\d+\.\d+\.\d+/i;
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,3,lang+": tres puntos familiares");
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
+    const steps=notes[0].tandas[0].items[lang];
+    assert.equal(steps.length,2,lang+": dos pasos (el de primer uso no se puede probar con una cartera con recibos y vive en el e2e)");
+    steps.forEach((s,i)=>{
+      assert.ok(s.startsWith((i+1)+". "),lang+": paso numerado "+(i+1));
+      assert.ok(/MAL|WRONG|MALAMENT/.test(s)&&/BIEN|RIGHT|BÉ/.test(s),lang+": el paso "+(i+1)+" dice qué es MAL y qué es BIEN");
+    });
+  }
+  assert.ok(/«—»/.test(notes[0].tandas[0].items.es[0])&&/“—”/.test(notes[0].tandas[0].items.en[0])&&/«—»/.test(notes[0].tandas[0].items.ca[0]),"el paso 1 avisa de que sin foto de octubre la tarjeta dice «—»");
+  // Los rótulos que cita el guion existen en 01-i18n.js.
+  const i18n=source(I1);
+  for(const x of ["Ya pagados","Para revisar","¿Te llega?","Se te van en {month}","{mes} cerrado","{d} vs. {mes}",
+    "Already paid","To review","Will it cover?","Going out in {month}","{mes} closed","{d} vs {mes}",
+    "Ja pagats","Per revisar","T'arriba?","Previst · {month}","{mes} tancat"])assert.ok(i18n.includes(x),"el rótulo «"+x+"» existe en 01-i18n.js");
+  const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
+  {const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verifyNotes(twice),assert.AssertionError,"no duplicar una tanda");}
+  {const sin=structuredClone(notes);sin[1].tandas=[];assert.throws(()=>verifyNotes(sin),assert.AssertionError,"las tandas de la 204, la 203 y la 202 sin veredicto no se vacían");}
+  {const sin=structuredClone(notes);sin[0].tandas=[];assert.throws(()=>verifyNotes(sin),assert.AssertionError,"la tanda nueva no se vacía");}
+  // Registro: el descriptor nuevo, el último; los anteriores solo crecen por el final con el cierre de lectores exacto.
+  const scopes=JSON.parse(source("scripts/beta-sources.json"));
+  assert.deepEqual(Object.keys(scopes),[...Object.keys(integrated),tandaT],"el descriptor nuevo, el último");
+  const fns=logicFunctions(source),dat=logicData(source);
+  const cierre=(web0)=>{
+    let web=web0.slice();
+    for(let ronda=0;ronda<30;ronda++){
+      const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];
+      for(const f of scopeDependencies({web},source,fns))if(!tiene(f.file,f.name,"function"))extra.push({file:f.file,function:f.name});
+      for(const d of scopeDataDependencies({web},source,fns,dat))if(!tiene(d.file,d.name,"data"))extra.push({file:d.file,data:d.name});
+      if(!extra.length)break;web=web.concat(extra);
+    }
+    return web;
+  };
+  let crecen=0;
+  for(const [key,scope] of Object.entries(integrated)){
+    const ahora=scopes[key];
+    assert.deepEqual(Object.keys(ahora),Object.keys(scope),key+": mismas claves");
+    for(const k of Object.keys(scope))if(k!=="web")assert.deepEqual(ahora[k],scope[k],key+": "+k+" intacto");
+    assert.deepEqual(ahora.web.slice(0,scope.web.length),scope.web,key+": lo anterior intacto");
+    if(key===archiveId){assert.equal(ahora.web.length,scope.web.length,key+": referencia fija, no crece");continue;}
+    assert.deepEqual(ahora.web,cierre(scope.web),key+": solo crece lo que el cierre de lectores exige, en su orden");
+    if(ahora.web.length>scope.web.length)crecen++;
+  }
+  assert.equal(crecen,37,"crecen los descriptores que ahora leen las unidades nuevas de la foto del mes");
+  const fn=(file,names)=>names.map(function_=>({file,function:function_}));
+  const dd=(file,names)=>names.map(data=>({file,data}));
+  const propias=[
+    ...fn(M8,["pr6Cent","pr6MovMes","planRecibosItems","pr6ItemMas","pr6PorId","pr6FotoUnion","pr6FotosUnion","planRecibosConFoto","planRecibosMesFoto","planRecibosMesCerrado","conMesDeAlta"]),
+    ...dd(M8,["PR6_DIF_CENT","PR6_FOTO_MESES","PR6_FOTO_MARGEN","PR6_RANGO"]),
+    {file:M8,from:"set(function(s){ const it=conMesDeAlta({id:uid(),name:nc.merchant||\"Gasto fijo\"",to:"freq:\"mes\",account:nc.ent});",includeTo:true},
+    {file:G4,from:"    // Con su mes de alta: el resumen del mes cerrado de Plan no lo cuenta en meses de antes.",to:"account:(acc&&acc.ent)||\"sabadell\" });",includeTo:true},
+    {file:A11,from:"          // Las fotos del mes de Plan › Recibos se mezclan mes a mes con lo que más sabe cada una",to:"baseObj.settings=Object.assign({},baseObj.settings,{pr6Fotos:fotos});",includeTo:true},
+    ...fn(V14,["PlanTab","PlanRecibos","pr6Cap","pr6MesCon","pr6TituloCerrado","pr6LineaCerrado","pr6EnMes","pr6LineasCerrado","pr6Lista","pr6Importables","RecibosImportSheet","BillsManagePush","rp4VistoEnBanco","ReciboPasos","BillsAddWizard"]),
+    ...dd(V14,["PR6_FANTASMA_MIN","PR6_MESES_ATRAS","PR6_FANTASMA_CALLA","PR6_CERRADO_DIAS"]),
+    {file:I1,from:"    pr6c_titulo:\"{mes} cerrado\"",to:"pr6_imp_toast:\"{n} recibos añadidos\", pr6_imp_toast1:\"1 recibo añadido\"",includeTo:true},
+    {file:I1,from:"    pr6c_titulo:\"{mes} closed\"",to:"pr6_imp_toast:\"{n} bills added\", pr6_imp_toast1:\"1 bill added\"",includeTo:true},
+    {file:I1,from:"    pr6c_titulo:\"{mes} tancat\"",to:"pr6_imp_toast:\"{n} rebuts afegits\", pr6_imp_toast1:\"1 rebut afegit\"",includeTo:true}];
+  {
+    const ahora=scopes[tandaT];
+    assert.deepEqual(Object.keys(ahora),["web","unidades"],tandaT+": solo web");assert.equal(ahora.unidades,true);
+    assert.deepEqual(ahora.web.slice(0,propias.length),propias,tandaT+": las unidades propias");
+    const web=cierre(propias),clave=u=>JSON.stringify(u);
+    assert.equal(ahora.web.length,web.length,tandaT+": el cierre de lectores es exactamente el calculado");
+    assert.deepEqual(new Set(ahora.web.map(clave)),new Set(web.map(clave)),tandaT+": el cierre de lectores es exactamente el calculado");
+    for(const u of ahora.web)assert.ok(scopeText(u,source).length>0,tandaT+": la unidad existe en la fuente: "+JSON.stringify(u));
+  }
+  // Del árbol de la 204 cambian el motor, los textos, Plan, Gastos (el alta con su mes) y la App (la mezcla de fotos); el resto sigue idéntico.
+  for(const file of [I1,M8,V14,G4,A11,"src/shell.html"])assert.notEqual(source(file),old(file),"cambia de verdad: "+file);
+  for(const file of ["src/modules/00-core.js","src/modules/02-ui-shared.js","src/modules/03-tab-dash.js","src/modules/06-sync-brokers.js","src/modules/09-tab-debts-goals.js","supabase/functions/_shared/presupuesto.ts","supabase/functions/ingest/index.ts","supabase/functions/ingest/widget.ts"])assert.equal(source(file),old(file),"idéntico a la 204: "+file);
+  // Huellas que se mueven (lista cerrada): las de los descriptores que leen las unidades que toca la rama.
+  const expectedMoves={"inc-3009-nomina-anticipada":["web"],"inc-0210-03-gastos-periodo":["web"],"feature-0310-01-movilidad":["web"],"inc-0310-gastos-sin-limite":["web"],"inc-0710-gastos-mes-madrid":["web"],"tr-iguales-ordinal":["web"],"recibo-cargo-en-gastos":["web"],"tr-empareja-sin-preguntar":["web"],"compras-identicas-ids":["web"],"gastos-suscripciones-botones":["web"],"plan-por-confirmar-prestamo-youtube":["web"],"vuelta-sin-tiron":["web"],"youtube-enlazar-recibo":["web"],"gestionar-plan-sin-ola":["web"],"renombrar-y-notas-seguras":["web"],"gestionar-plan-ola":["web"],"gestionar-plan-ola-r2":["web"],"vibracion-r3":["web"],"recibos-cifra-cuadra":["web"],"cartera-sin-lagazo":["web"],"renombrar-sin-cobertura":["web"],"recibos-meses-a-mano":["web"],"gastos-dos-bancos":["web"],"gastos-v5-movimientos":["web"],"gastos-v5-secciones":["web"],"gastos-v5-filtro":["web"],"gastos-v5-subs":["web"],"gastos-v5-filtros-hoja":["web"],"sync-dos-moviles":["web"],"gastos-v5-ciclos-metas-inversiones":["web"],"plan-dos-moviles":["web"],"gastos-lag-ciclos":["web"],"gastos-lag-ciclos-r3":["web"],"gastos-scroll-fluido-cifras":["web"],"gastos-margen-sin-nomina":["web"],"plan-recibos-v6-t1":["web"],"deuda-ir-suave":["web"],"plan-recibos-v6-t2":["web"],"plan-recibos-t3":["web"],"plan-recibos-t4":["web"],"plan-recibos-qa":["web"],"plan-recibos-t5":["web"]};
+  const moved={};
+  for(const [key,scope] of Object.entries(integrated)){
+    if(key===archiveId)continue;
+    const a=betaRevision(key,old,undefined,scope),b=betaRevision(key,source,undefined,scopes[key]);
+    const surfaces=["web","native","edge"].filter(x=>a[x]!==b[x]);
+    if(surfaces.length)moved[key]=surfaces;
+  }
+  assert.deepEqual(moved,expectedMoves,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  const vivas=notes.flatMap(n=>(n.tandas||[]).map(g=>g.id));
+  assert.deepEqual(vivas,[tandaT,tandaP,tandaQ,tandaA,tandaB]);
+  assert.equal(expectedMoves[tandaT],undefined,"la nueva no tiene huella anterior");
+  assert.deepEqual(vivas.filter(id=>expectedMoves[id]),[tandaP,tandaQ],"la de la 204 y la de la 203 (sin veredicto) cambian de huella; las dos de la 202 y la nueva no");
+  const currentT=betaRevision(tandaT,source,undefined,scopes[tandaT]);
+  assert.ok(currentT.web);assert.equal(currentT.native,undefined,"sin huella nativa");assert.equal(currentT.edge,undefined,"sin huella de servidor");
+  // Mutantes sobre la fuente real: una foto que baja un «?» a «no llegó», un margen de «no llegó» distinto, un alta que cuenta antes de existir, la mezcla de fotos sin su guarda, la píldora «Te deben» en el mes siguiente o el texto de la tarjeta reabren la tanda.
+  const mutantes=[
+    [M8,"if(h&&(h.st===\"p\"||h.st===\"s\")) return h;","if(h) return h;"],
+    [M8,"const PR6_FOTO_MARGEN=2;","const PR6_FOTO_MARGEN=0;"],
+    [M8,"if(f&&Number(f.createdYm)>ym) return;","if(false) return;"],
+    [A11,"if(fotos!==(baseObj.settings||{}).pr6Fotos) baseObj.settings=","if(true) baseObj.settings="],
+    [V14,"!sig&&(llega&&nPend>0||debenTotal>0.005)&&","(llega&&nPend>0||debenTotal>0.005)&&"],
+    [I1,"pr6c_vs:\"{d} vs {mes}\"","pr6c_vs:\"{d} contra {mes}\""]];
+  for(const [file,a,b] of mutantes){
+    assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
+    const mutated=betaRevision(tandaT,x=>x===file?source(x).replace(a,()=>b):source(x),undefined,scopes[tandaT]);
+    assert.notEqual(mutated.web,currentT.web,tandaT+" reabre la tanda web: "+a);}
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes);
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),vivas,"lo que el build entrega al panel");
+  const gT=built[0].tandas[0];
+  assert.equal(gT.web,currentT.web);assert.equal(gT.native,undefined);assert.equal(gT.edge,undefined);assert.equal(gT.apk,undefined);
+  for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(gT[key],undefined,"identidad nueva sin "+key);
+  assert.equal(receipt.web[tandaT],currentT.web);
+  for(const id of [tandaP,tandaQ,tandaA,tandaB])assert.equal(receipt.web[id],betaRevision(id,source,undefined,scopes[id]).web,id+": su huella llega al panel");
+  assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
+});
+
 const expected204={"v":"4.26.204","d":"2026-11-01","t":{"es":"Recibos compartidos con personas","en":"Bills shared with people","ca":"Rebuts compartits amb persones"},"items":{"es":["Recibos: ahora puedes decir con quién pagas un recibo. Verás solo tu parte, quién te debe la suya este mes y marcar cuando te la paguen.","Si alguien te paga descontándolo de una deuda, la cuota lo dice.","«¿Te llega?» reserva el importe entero que cobra el banco en los recibos compartidos."],"en":["Bills: you can now say who you share a bill with. You'll see just your share, who owes you theirs this month, and mark it when they pay.","If someone pays you by deducting it from a debt, the instalment shows it.","«Will it cover?» sets aside the full amount the bank charges on shared bills."],"ca":["Rebuts: ara pots dir amb qui pagues un rebut. Veuràs només la teva part, qui et deu la seva aquest mes i marcar quan te la paguin.","Si algú et paga descomptant-ho d'un deute, la quota ho diu.","«T'arriba?» reserva l'import sencer que cobra el banc als rebuts compartits."]},"tandas":[{"id":"plan-recibos-t5","t":{"es":"Plan: recibos compartidos y Te deben","en":"Plan: shared bills and Owed to you","ca":"Pla: rebuts compartits i Et deuen"},"items":{"es":["1. Plan → Recibos → Todos → toca un recibo de cada mes que pagues a medias → «Más opciones» → «+ Otra» → nombre, Bizum → Guardar → Guardar. BIEN: sale con tu parte (la mitad); la ficha enseña arriba lo que cobra el banco y «Tu parte»; aparece «Te deben» con la otra mitad y «Queda por pagar» baja justo eso. MAL: la cifra de arriba no cuadra, sale el importe entero en Pendiente o no aparece «Te deben».","2. Toca «Te deben» → «Ya me lo ha pagado». BIEN: la persona queda marcada, la píldora baja esa cifra (o desaparece si era la única) y «Queda por pagar» no se mueve; «Deshacer» la devuelve. MAL: cambia lo que te queda por pagar, o vuelve a deber al cerrar y abrir.","3. «Lo descuento» con tu Pepephone: Todos → Personas → «Añadir una persona» → «Familia» → «Lo descuento» → Mamá → Pepephone → Guardar. Se abre la edición de Pepephone con Familia y su parte a la vista. Toca su parte → 53 → «+ Otra» → «Pareja» → Guardar → toca su parte → 10 → Guardar. BIEN: antes de guardar, «Tu parte» dice lo que pagas tú (22 €). Después, en Plan y en Deudas, Mamá sale «pagas 197 € + 53 € de Pepephone» y 250 €, y «Te deben» dice 10 € (la pareja; la familia no sale). MAL: se guarda sin enseñar las partes, Mamá sale con otra suma (por ejemplo 197 + 63 = 260), o la familia aparece en «Te deben». Aviso: si abriste la app en un móvil que no se había actualizado, un recibo compartido puede salir sin sus personas; ábrelo → Editar: salen otra vez con «Estas partes ya no cuadraban: revísalas y guarda»."],"en":["1. Plan → Bills → All → tap a monthly bill you split → “More options” → “+ Other” → a name, Bizum → Save → Save. RIGHT: it shows your share (half); the card shows at the top what the bank charges and “Your share”; “You're owed” appears with the other half and “Still to pay” drops by exactly that. WRONG: the figure at the top does not add up, the full amount shows under Pending or “You're owed” does not appear.","2. Tap “You're owed” → “They've paid me”. RIGHT: the person is marked, the pill drops that figure (or disappears if it was the only one) and “Still to pay” does not move; “Undo” brings it back. WRONG: what you still have to pay changes, or they owe you again after closing and reopening.","3. “I deduct it” with your Pepephone: All → People → “Add a person” → “Familia” → “I deduct it” → Mamá → Pepephone → Save. Pepephone's edit opens with Familia and their share in view. Tap their share → 53 → “+ Other” → “Pareja” → Save → tap their share → 10 → Save. RIGHT: before saving, “Your share” shows what you pay (22 €). Afterwards, in Plan and in Debts, Mamá shows “you pay 197 € + 53 € from Pepephone” and 250 €, and “You're owed” says 10 € (your partner; the family does not show). WRONG: it saves without showing the shares, Mamá shows another sum (for example 197 + 63 = 260), or the family appears under “You're owed”. Note: if you opened the app on a phone that had not updated, a shared bill may show up without its people; open it → Edit: they come back with “These shares no longer added up: check them and save”."],"ca":["1. Pla → Rebuts → Tots → toca un rebut de cada mes que pagues a mitges → «Més opcions» → «+ Una altra» → nom, Bizum → Desa → Desa. BÉ: surt amb la teva part (la meitat); la fitxa ensenya a dalt el que cobra el banc i «La teva part»; apareix «Et deuen» amb l'altra meitat i «Queda per pagar» baixa just això. MALAMENT: la xifra de dalt no quadra, surt l'import sencer a Pendent o no apareix «Et deuen».","2. Toca «Et deuen» → «Ja m'ho ha pagat». BÉ: la persona queda marcada, la píndola baixa aquesta xifra (o desapareix si era l'única) i «Queda per pagar» no es mou; «Desfer» la torna. MALAMENT: canvia el que et queda per pagar, o torna a deure en tancar i obrir.","3. «Ho descompto» amb el teu Pepephone: Tots → Persones → «Afegir una persona» → «Familia» → «Ho descompto» → Mamá → Pepephone → Desa. S'obre l'edició de Pepephone amb Familia i la seva part a la vista. Toca la seva part → 53 → «+ Una altra» → «Pareja» → Desa → toca la seva part → 10 → Desa. BÉ: abans de desar, «La teva part» diu el que pagues tu (22 €). Després, a Pla i a Deutes, Mamá surt «pagues 197 € + 53 € de Pepephone» i 250 €, i «Et deuen» diu 10 € (la parella; la família no hi surt). MALAMENT: es desa sense ensenyar les parts, Mamá surt amb una altra suma (per exemple 197 + 63 = 260), o la família apareix a «Et deuen». Avís: si vas obrir l'app en un mòbil que no s'havia actualitzat, un rebut compartit pot sortir sense les seves persones; obre'l → Editar: surten un altre cop amb «Aquestes parts ja no quadraven: revisa-les i desa»."]}}]};
 // 4.26.204 (01/11/2026): una pieza sobre la beta 4.26.203 servida SIN veredicto (1d8760dff, sin APK nueva: sigue la 63), solo web: claude/plan-recibos-t5 (8eaee7b34, base 656f17a69 = 4.26.200; revisión independiente de dinero y uso: NO-GO en B1 y GO con remates en la segunda ronda, cerrados en 8eaee7b34) —personas, recibos compartidos, «Te deben», «Ya me lo ha pagado» y «Lo descuento» de una deuda—.
 // UNA tanda NUEVA (plan-recibos-t5, tres pasos; sin APK) y las tres de la 203 y la 202 (plan-recibos-qa, plan-recibos-guardar-pagado e informe-mes-limite-del-mes) SIGUEN en el panel, sin vaciar: no tienen veredicto. Dos de ellas (plan-recibos-qa y plan-recibos-guardar-pagado) reciben huella nueva porque su cierre de lectores lee unidades que la rama toca (lista cerrada abajo); informe-mes-limite-del-mes conserva la suya.
 // Registro: UN descriptor nuevo, el último (plan-recibos-t5). Los anteriores solo crecen por el final con las unidades nuevas que ahora leen (cierre calculado, exacto); ninguno se reordena ni pierde unidades.
-test("Catálogo204 añade la tanda de Plan › Recibos v6 t5 (personas, compartidos, Te deben y Lo descuento), conserva las tres de la 203 y la 202 sin veredicto, hace crecer solo el cierre de lectores y declara las huellas que mueve",()=>{
+test("Catálogo204 histórico añade la tanda de Plan › Recibos v6 t5 (personas, compartidos, Te deben y Lo descuento), conserva las tres de la 203 y la 202 sin veredicto, hace crecer solo el cierre de lectores y declara las huellas que mueve",()=>{
   const tandaT="plan-recibos-t5",tandaQ="plan-recibos-qa",tandaA="plan-recibos-guardar-pagado",tandaB="informe-mes-limite-del-mes",M8="src/modules/08-motor-bank.js",C0="src/modules/00-core.js",A11="src/modules/11-app-main.js",D3="src/modules/03-tab-dash.js",G9="src/modules/09-tab-debts-goals.js",I1="src/modules/01-i18n.js",V14="src/modules/14-v4-screens.js",java="android/app/src/main/java/com/micartera/app/";
   const integrated=JSON.parse(sourceBeta203("scripts/beta-sources.json")),before=JSON.parse(sourceBeta203("src/data/release-notes.json"));
-  const source=f=>nl(read(f)),old=f=>nl(sourceBeta203(f));
+  const source=f=>nl(sourceBeta204(f)),old=f=>nl(sourceBeta203(f));
   assert.equal(before[0].v,"4.26.203");
   assert.deepEqual(before.flatMap(n=>(n.tandas||[]).map(g=>g.id)),[tandaQ,tandaA,tandaB],"la 203 servida lleva sus tres tandas, sin veredicto");
   const expectedNotes=[expected204,...before];

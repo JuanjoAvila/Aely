@@ -1110,6 +1110,227 @@ function personaEnRecibos(s,persona,ids,y,m,today){
   });
   return deudasTrasReparto(s,out);
 }
+/* Diferencia mínima, en céntimos, para decir que un cargo «cobró distinto» o «subió» (SPEC §2.3).
+   La comparten «Para revisar» y el resumen del mes cerrado: con dos umbrales, un recibo saldría
+   como subida en uno y no en el otro. */
+const PR6_DIF_CENT=50;
+/* RESUMEN DEL MES CERRADO de Plan › Recibos (SPEC §2.1, tanda 6).
+
+   ⚠ NO SE PUEDE RELEER EL MES CON EL ESTADO DE HOY (revisión NO-GO 31/10/2026). La primera
+   versión volvía a pasar `planChargesMonth` por octubre el 1 de noviembre y salía otro octubre:
+   un recibo dado de alta el 2/11 (o con «Empezar») contaba como «no llegó» en octubre, borrar en
+   octubre un recibo pagado en septiembre le bajaba la cifra a septiembre, y un cargo de finales de
+   septiembre que el extracto ya no trae (el banco solo devuelve desde el día 1 − 8 días) hacía
+   septiembre más barato de lo que fue. Por eso:
+   - FOTO DEL MES: mientras el mes está en curso, cada vez que Plan calcula se guarda en
+     `settings.pr6Fotos[año*12+mes]` lo que enseña (cada cargo con su importe y estado, y el día).
+     Viaja en `app_state` como el resto de `settings`; cuenta el último que guarda, y como cada
+     foto es la lectura completa del mes en ese momento, la que gane vale entera (la de un día
+     anterior no pisa a una posterior en este móvil). Un cliente viejo no la escribe ni la lee y,
+     como sus escritores de `settings` copian lo que hay, la conserva.
+   - El resumen sale de la foto. Lo que hoy acredita más (un cargo que llegó después de la foto y
+     el extracto aún trae) la mejora; nunca la empeora.
+   - ALTA: los recibos nuevos llevan `createdYm` y no existen en meses anteriores a su alta.
+   - Lo que no se puede acreditar es «—», nunca una cifra más baja que la real: sin foto, o con
+     algún cargo cuyo estado no se sabe (no tocaba aún cuando se hizo la foto y hoy no hay ni
+     prueba ni movimientos del banco que lo descarten).
+
+   Estados de cada cargo: «p» pagado con prueba (cuenta), «s» pagado sin cargo del banco (marca a
+   mano, calendario: ni cuenta ni es «no llegó»), «q» no llegó (tocaba, con margen, y el banco trae
+   movimientos de ese mes después) y «?» no se sabe. Importes en céntimos enteros: 0,1 + 0,2 en
+   flotante comparado entre dos meses daba «0 € más». */
+const PR6_FOTO_MESES=3;
+// Mismo margen que «No ha llegado» de Plan (`PR6_MARGEN_DIAS`): el banco tarda en contabilizar.
+const PR6_FOTO_MARGEN=2;
+function pr6Cent(n){ return Math.round(Math.abs(Number(n)||0)*100); }
+/* Último día de cada banco con movimiento en un mes (filas del banco en Gastos y extracto). Se
+   rehace una vez por array: con veinte mil gastos, recorrerlos por recibo se notaría. */
+function pr6MovMes(s,y,m){
+  var ym=y+"-"+String(m).padStart(2,"0"),out={};
+  var cache=pr6MovMes.cache||(pr6MovMes.cache=new WeakMap());
+  [[s.expenses,function(x){ return esFilaDeBanco(x)?expenseBankOf(x):null; }],[s.bankTx,function(x){ return x.ent||null; }]].forEach(function(par){
+    var arr=par[0];
+    if(!Array.isArray(arr)) return;
+    var idx=cache.get(arr);
+    if(!idx){
+      idx={};
+      arr.forEach(function(x){
+        var b=x&&par[1](x),ds=x&&String(x.date||"").slice(0,10);
+        if(!b||!/^\d{4}-\d{2}-\d{2}$/.test(ds)) return;
+        var k=ds.slice(0,7),d=Number(ds.slice(8,10)),o=idx[k]||(idx[k]={});
+        if(!(o[b]>=d)) o[b]=d;
+      });
+      cache.set(arr,idx);
+    }
+    var o=idx[ym]||{};
+    Object.keys(o).forEach(function(b){ if(!(out[b]>=o[b])) out[b]=o[b]; });
+  });
+  return out;
+}
+/* Los cargos de un mes tal y como los ve Plan con hoy = `dia`. `pack` y `proof` se pueden pasar
+   ya hechos (Plan los tiene): así guardar la foto no repite el cálculo. */
+function planRecibosItems(s,y,m,dia,pack,proof){
+  pack=pack||planChargesMonth(s,m,y,dia);
+  proof=proof||paymentEvidenceUI(s,y,m,dia);
+  var ym=y*12+m,mov=pr6MovMes(s,y,m),out=[];
+  var reciboDe=function(x){ var k=/^fixed_(.*)$/.exec(String(x.id)); return k?(s.fixed||[]).find(function(f){ return String(f.id)===k[1]; })||null:null; };
+  var add=function(x,st){
+    var f=reciboDe(x);
+    if(f&&Number(f.createdYm)>ym) return;   // dado de alta después: ese mes no existía
+    var it={id:String(x.id),n:String(x.name||""),a:pr6Cent(x.amount),st:st};
+    if(st==="p"&&x.paidAmount>0) it.pa=pr6Cent(x.paidAmount);
+    if(x.plannedBankAmount>0) it.pb=pr6Cent(x.plannedBankAmount);
+    if(f&&f.variable) it.v=1;
+    if(x.day!=null) it.d=Number(x.day);
+    out.push(it);
+  };
+  pack.paidBills.forEach(function(x){ add(x,proof.confirmed[x.id]===false?"s":"p"); });
+  pack.pendingBills.forEach(function(x){
+    var b=mov[x.bank||"sabadell"];
+    add(x,x.day!=null&&x.day<=dia&&b!=null&&b-x.day>PR6_FOTO_MARGEN?"q":"?");
+  });
+  return out;
+}
+/* LA FOTO SOLO SABE MÁS, NUNCA MENOS (revisión R2, 31/10/2026). Cada móvil calcula su foto con
+   SUS datos (el extracto `bankTx` no viaja), así que dos fotos del mismo mes pueden diferir. Si
+   ganara «la última», los dos móviles se la irían pisando en cada vuelta a primer plano. Por eso
+   se mezclan cargo a cargo quedándose con lo que más sabe (pagado con prueba > pagado sin cargo >
+   no llegó > no se sabe) y el día mayor: es conmutativo e idempotente, así que los dos móviles
+   acaban con la misma foto y, desde ahí, ninguno vuelve a escribir. A igual estado decide el texto
+   del cargo (orden fijo), para que no dependa de quién baja primero. Los cargos van ordenados por
+   id: así «el mismo contenido» es el mismo objeto también al compararlo. */
+const PR6_RANGO={"?":0,q:1,s:2,p:3};
+function pr6ItemMas(a,b){
+  var ra=PR6_RANGO[a.st]||0, rb=PR6_RANGO[b.st]||0;
+  if(ra!==rb) return ra>rb?a:b;
+  // «Ya no estaba en Plan» (`x`) también es saber más: lo vio un móvil después del borrado.
+  if(!a.x!==!b.x) return a.x?a:b;
+  return JSON.stringify(a)>=JSON.stringify(b)?a:b;
+}
+function pr6PorId(xs){ return xs.slice().sort(function(a,b){ return a.id<b.id?-1:a.id>b.id?1:0; }); }
+function pr6FotoUnion(fa,fb){
+  if(!fa||!Array.isArray(fa.it)) return fb;
+  if(!fb||!Array.isArray(fb.it)) return fa;
+  var m={};
+  fa.it.concat(fb.it).forEach(function(x){ m[x.id]=m[x.id]?pr6ItemMas(m[x.id],x):x; });
+  var foto={d:Math.max(Number(fa.d)||0,Number(fb.d)||0),it:pr6PorId(Object.keys(m).map(function(k){ return m[k]; }))};
+  // Sin cambios se devuelve el MISMO objeto: un objeto nuevo igual sería otra escritura (AGENTS §7 bis).
+  if(goalSyncEqual(foto,fa)) return fa;
+  if(goalSyncEqual(foto,fb)) return fb;
+  return foto;
+}
+/* Al bajar de la nube: mes a mes, la mezcla de arriba. Devuelve `a` si no cambia nada. */
+function pr6FotosUnion(a,b){
+  a=a||{}; b=b||{};
+  var out={},cambia=false,max=0;
+  Object.keys(a).concat(Object.keys(b)).forEach(function(k){ max=Math.max(max,Number(k)||0); });
+  Object.keys(a).concat(Object.keys(b)).forEach(function(k){
+    if(Object.prototype.hasOwnProperty.call(out,k)||!(Number(k)>max-PR6_FOTO_MESES)) return;
+    out[k]=pr6FotoUnion(a[k],b[k]);
+    if(out[k]!==a[k]) cambia=true;
+  });
+  if(Object.keys(a).some(function(k){ return !Object.prototype.hasOwnProperty.call(out,k); })) cambia=true;
+  return cambia?out:a;
+}
+/* Guarda la foto del mes en curso solo si cambia lo que dice: un cargo que sabe más o uno nuevo.
+   No quita ninguno: si quitara el de un recibo borrado, la mezcla con la foto del otro móvil lo
+   volvería a traer y se reescribirían en bucle. Uno sin pagar que Plan ya no enseña (borrado en
+   el mes o pausado) se marca con `x` y al leer no cuenta. Si vuelve sin pagar, la `x` se queda:
+   quitarla haría que la mezcla con el otro móvil la volviera a poner en bucle. El
+   día solo se renueva si hay movimientos del banco posteriores a la foto: sin ellos la foto vieja
+   sigue viendo el mes entero y reescribirla cada día sería subirla sin motivo. Sin cambios devuelve
+   el MISMO estado (ni escritura local ni subida). Se queda con los últimos `PR6_FOTO_MESES` meses. */
+function planRecibosConFoto(s,y,m,dia,pack,proof){
+  var ym=y*12+m,st=s.settings||{},fotos=st.pr6Fotos||{},prev=fotos[ym];
+  var hoy=planRecibosItems(s,y,m,dia,pack,proof),foto;
+  if(prev&&Array.isArray(prev.it)){
+    var m2={};
+    hoy.forEach(function(x){ m2[x.id]=x; });
+    prev.it.forEach(function(x){
+      var h=m2[x.id];
+      var rh=h?PR6_RANGO[h.st]||0:-1, rx=PR6_RANGO[x.st]||0;
+      if(rh>rx||rh===rx&&!x.x) m2[x.id]=h;
+      else if(!h&&rx<2&&!x.x) m2[x.id]=Object.assign({},x,{x:1});
+      else m2[x.id]=x;
+    });
+    var mov=pr6MovMes(s,y,m),ult=Object.keys(mov).reduce(function(a,b){ return Math.max(a,mov[b]); },0);
+    var d=Number(prev.d)||0;
+    if(ult>d) d=Math.max(d,dia);
+    foto={d:d,it:pr6PorId(Object.keys(m2).map(function(k){ return m2[k]; }))};
+    if(goalSyncEqual(prev,foto)) return s;
+  } else foto={d:dia,it:pr6PorId(hoy)};
+  var next={};
+  Object.keys(fotos).forEach(function(k){ if(Number(k)>ym-PR6_FOTO_MESES&&Number(k)!==ym) next[k]=fotos[k]; });
+  next[ym]=foto;
+  return Object.assign({},s,{settings:Object.assign({},st,{pr6Fotos:next})});
+}
+/* Un mes cerrado: la foto mejorada con lo que hoy se acredita. → {items, fiable, foto}. */
+function planRecibosMesFoto(s,y,m){
+  var ym=y*12+m,fin=new Date(y,m,0).getDate();
+  var foto=((s.settings||{}).pr6Fotos||{})[ym];
+  var hoy=planRecibosItems(s,y,m,fin);
+  if(!foto||!Array.isArray(foto.it)) return {items:hoy,fiable:false,foto:false};
+  var mov=pr6MovMes(s,y,m),ult=Object.keys(mov).reduce(function(a,b){ return Math.max(a,mov[b]); },0);
+  // Una foto de antes del último movimiento no vio todo el mes: su «no llegó» deja de valer.
+  var vieja=ult>Number(foto.d);
+  var porId={};
+  hoy.forEach(function(x){ porId[x.id]=x; });
+  // Un cargo sin pagar que Plan dejó de enseñar DENTRO del mes (`x`: borrado o pausado) no cuenta:
+  // el último día ya no salía. Lo pagado se queda (el dinero salió) y lo borrado después del mes
+  // no lleva `x` (la foto ya no se escribe). Si volvió (deshacer) y se pagó, la prueba lo sube.
+  var items=foto.it.filter(function(x){ return x.st==="p"||x.st==="s"||!x.x; }).map(function(x){
+    var h=porId[x.id];
+    if(x.st==="p") return x;
+    // Lo de hoy solo SUBE a pagado. Bajar un «no se sabe» a «no llegó» con el extracto de hoy
+    // sería afirmar algo que la foto no vio (revisión R2-1: el cargo pudo llegar y caducar).
+    if(h&&(h.st==="p"||h.st==="s")) return h;
+    if(x.st==="q"&&vieja) return Object.assign({},x,{st:"?"});
+    return x;
+  });
+  // Lo que la foto no tenía (alta de ese mes después de la foto): solo lo que hoy se sabe.
+  var enFoto={};
+  foto.it.forEach(function(x){ enFoto[x.id]=1; });
+  hoy.forEach(function(x){ if(!enFoto[x.id]) items.push(x.st==="q"?Object.assign({},x,{st:"?"}):x); });
+  return {items:items,fiable:items.every(function(x){ return x.st!=="?"; }),foto:true};
+}
+/* El mes cerrado respecto a (y, m) y sus líneas, solo con dato acreditado (SPEC §2.1):
+   - `cent` / `noLlegaron`: null si no se puede acreditar («—»).
+   - `prev`: null si el mes anterior no tenía recibos; `prev.cent` null si no se puede acreditar.
+   - «más subió»: el cargo del banco que más creció contra el mes anterior (los dos con cargo).
+   - «subió / bajó»: un recibo de precio fijo que cobró distinto de lo previsto. Los «Cambia cada
+     mes» no: su previsión es una estimación y salir distinto es lo normal.
+   «Te devolvieron» no sale: hoy ninguna devolución queda atada a un recibo y casarla por nombre
+   sería inventarla. Sin ningún recibo ese mes, no hay resumen. */
+function planRecibosMesCerrado(s,y,m){
+  s=s||{};
+  var cy=m===1?y-1:y, cm=m===1?12:m-1, py=cm===1?cy-1:cy, pm=cm===1?12:cm-1;
+  var c=planRecibosMesFoto(s,cy,cm);
+  if(!c.items.length) return null;
+  var p=planRecibosMesFoto(s,py,pm);
+  var suma=function(r){ return r.items.reduce(function(t,x){ return x.st==="p"?t+x.a:t; },0); };
+  var antes={};
+  p.items.forEach(function(x){ if(x.st==="p"&&x.pa>0) antes[x.id]=x.pa; });
+  var sube=null, cambia=null;
+  c.items.forEach(function(x){
+    if(!/^fixed_/.test(x.id)||x.st!=="p"||!(x.pa>0)||antes[x.id]==null) return;
+    var d=x.pa-antes[x.id];
+    if(d>=PR6_DIF_CENT&&(!sube||d>sube.cent)) sube={id:x.id,name:x.n,cent:d};
+  });
+  c.items.forEach(function(x){
+    if(!/^fixed_/.test(x.id)||x.st!=="p"||!(x.pa>0)||x.v||!(x.pb>0)||(sube&&sube.id===x.id)) return;
+    var d=x.pa-x.pb;
+    if(Math.abs(d)>=PR6_DIF_CENT&&(!cambia||Math.abs(d)>Math.abs(cambia.cent))) cambia={id:x.id,name:x.n,cent:d};
+  });
+  return {y:cy, m:cm, ym:cy*12+cm, cent:c.fiable?suma(c):null,
+    prev:p.items.length?{y:py,m:pm,cent:p.fiable?suma(p):null}:null,
+    sube:sube, cambia:cambia,
+    noLlegaron:c.fiable?c.items.filter(function(x){ return x.st==="q"; }).length:null};
+}
+/* Mes de alta de un recibo nuevo (año*12+mes): el resumen del mes cerrado no lo cuenta antes. */
+function conMesDeAlta(it){
+  if(it&&it.createdYm==null){ var d=new Date(); it.createdYm=d.getFullYear()*12+d.getMonth()+1; }
+  return it;
+}
 /* Pregúntame = misma regla que Plan: solo recibos, sin ingresos ni traspasos. */
 function pendingBillsSummary(state,month,year,today){
   var p=planChargesMonth(state,month,year,today);
@@ -4609,7 +4830,7 @@ function Reconcile({state, set}){
   const entList=Array.from(new Set((state.accounts||[]).map(function(a){ return a.ent; })));
   const addAsFixed=function(nc){
     const k=keyOf(nc);
-    set(function(s){ const it={id:uid(),name:nc.merchant||"Gasto fijo",amount:+Number(nc.amount).toFixed(2),freq:"mes",account:nc.ent}; const dd=recDay(nc.date); if(dd) it.day=dd; return Object.assign({},s,{fixed:(s.fixed||[]).concat([it])}); });
+    set(function(s){ const it=conMesDeAlta({id:uid(),name:nc.merchant||"Gasto fijo",amount:+Number(nc.amount).toFixed(2),freq:"mes",account:nc.ent}); const dd=recDay(nc.date); if(dd) it.day=dd; return Object.assign({},s,{fixed:(s.fixed||[]).concat([it])}); });
     setAdded(function(a){ return Object.assign({},a,{[k]:true}); });
   };
   // "Ignorar": oculta un movimiento del banco (doble cobro, comisión que te devuelven…). Persistente.

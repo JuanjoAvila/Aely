@@ -158,6 +158,13 @@ const LANG = {
     pr6_si_gasto:"¿Y si gasto…?", pr6_importe:"Importe", pr6_si_llega:"Llega · te quedan {x}", pr6_no_llega:"No llega · faltan {x}",
     pr6_entra_en:"entra en {bank}", pr6_dia:"día {d}", pr6_dia_menos:"Un día antes", pr6_dia_mas:"Un día después",
     pr6_sin_restar:"Pagado, aún sin restar del saldo", pr6_fresh_now:"saldo de ahora", pr6_fresh_min:"saldo de hace {n} min", pr6_fresh_h:"saldo de hace {n} h", pr6_fresh_ayer:"saldo de ayer", pr6_fresh_d:"saldo de hace {n} días", pr6_fresh_fecha:"saldo del {x}",
+    // Plan › Recibos v6, tanda 6: resumen del mes cerrado, vista del mes siguiente y primer uso.
+    pr6c_titulo:"{mes} cerrado", pr6c_vs:"{d} vs. {mes}", pr6c_igual:"igual que {mes}",
+    pr6c_sube:"{name}, más que {mes}", pr6c_subio:"{name} subió", pr6c_bajo:"{name} bajó", pr6c_no_llegaron:"Recibos que no llegaron", pr6c_cerrar:"Cerrar el resumen",
+    pr6_se_van:"Se te van en {month}", pr6_nada_sig:"Nada previsto en {month}",
+    pr6_onb_n:"{n} cargos que se repiten", pr6_onb_1:"1 cargo que se repite", pr6_onb_en:"en {x}", pr6_onb_vacio:"Aún no tienes recibos", pr6_empezar:"Empezar",
+    pr6_imp_t:"{n} de {m} son recibos", pr6_imp_quitar:"Quitar todos", pr6_imp_marcar:"Marcar todos", pr6_imp_add:"Añadir {n} recibos", pr6_imp_add1:"Añadir 1 recibo", pr6_imp_ninguno:"Ninguno",
+    pr6_imp_toast:"{n} recibos añadidos", pr6_imp_toast1:"1 recibo añadido",
     // Plan › Recibos v6, tanda 4: añadir y editar por pasos (SPEC §7).
     rp4_t_name:"¿Qué recibo es?", rp4_name_ph:"Netflix, luz, alquiler…", rp4_visto:"Visto en tu banco", rp4_dia:"día", rp4_dup:"Ya tienes {name}",
     rp4_t_amount:"¿Cuánto es?", rp4_variable:"Cambia cada mes", rp4_t_when:"¿Cuándo se cobra?", rp4_once:"Solo una vez", rp4_split:"En varios pagos",
@@ -486,6 +493,13 @@ const LANG = {
     pr6_si_gasto:"What if I spend…?", pr6_importe:"Amount", pr6_si_llega:"Covered · {x} left", pr6_no_llega:"Not covered · short {x}",
     pr6_entra_en:"goes into {bank}", pr6_dia:"day {d}", pr6_dia_menos:"One day earlier", pr6_dia_mas:"One day later",
     pr6_sin_restar:"Paid, not yet in the balance", pr6_fresh_now:"balance from just now", pr6_fresh_min:"balance from {n} min ago", pr6_fresh_h:"balance from {n} h ago", pr6_fresh_ayer:"balance from yesterday", pr6_fresh_d:"balance from {n} days ago", pr6_fresh_fecha:"balance from {x}",
+    // Plan › Bills v6, batch 6: closed-month summary, next-month view and first use.
+    pr6c_titulo:"{mes} closed", pr6c_vs:"{d} vs {mes}", pr6c_igual:"same as {mes}",
+    pr6c_sube:"{name}, more than {mes}", pr6c_subio:"{name} went up", pr6c_bajo:"{name} went down", pr6c_no_llegaron:"Bills that didn't arrive", pr6c_cerrar:"Close the summary",
+    pr6_se_van:"Going out in {month}", pr6_nada_sig:"Nothing due in {month}",
+    pr6_onb_n:"{n} repeating charges", pr6_onb_1:"1 repeating charge", pr6_onb_en:"in {x}", pr6_onb_vacio:"No bills yet", pr6_empezar:"Get started",
+    pr6_imp_t:"{n} of {m} are bills", pr6_imp_quitar:"Clear all", pr6_imp_marcar:"Select all", pr6_imp_add:"Add {n} bills", pr6_imp_add1:"Add 1 bill", pr6_imp_ninguno:"None",
+    pr6_imp_toast:"{n} bills added", pr6_imp_toast1:"1 bill added",
     // Plan › Bills v6, batch 4: add and edit step by step (SPEC §7).
     rp4_t_name:"Which bill is it?", rp4_name_ph:"Netflix, electricity, rent…", rp4_visto:"Seen in your bank", rp4_dia:"day", rp4_dup:"You already have {name}",
     rp4_t_amount:"How much is it?", rp4_variable:"Changes every month", rp4_t_when:"When is it charged?", rp4_once:"Just once", rp4_split:"In several payments",
@@ -801,6 +815,13 @@ const LANG = {
     pr6_si_gasto:"I si gasto…?", pr6_importe:"Import", pr6_si_llega:"Arriba · et queden {x}", pr6_no_llega:"No arriba · falten {x}",
     pr6_entra_en:"entra a {bank}", pr6_dia:"dia {d}", pr6_dia_menos:"Un dia abans", pr6_dia_mas:"Un dia després",
     pr6_sin_restar:"Pagat, encara sense restar del saldo", pr6_fresh_now:"saldo d'ara", pr6_fresh_min:"saldo de fa {n} min", pr6_fresh_h:"saldo de fa {n} h", pr6_fresh_ayer:"saldo d'ahir", pr6_fresh_d:"saldo de fa {n} dies", pr6_fresh_fecha:"saldo del {x}",
+    // Pla › Rebuts v6, tanda 6: resum del mes tancat, vista del mes següent i primer ús.
+    pr6c_titulo:"{mes} tancat", pr6c_vs:"{d} vs. {mes}", pr6c_igual:"igual que {mes}",
+    pr6c_sube:"{name}, més que {mes}", pr6c_subio:"{name} ha pujat", pr6c_bajo:"{name} ha baixat", pr6c_no_llegaron:"Rebuts que no han arribat", pr6c_cerrar:"Tanca el resum",
+    pr6_se_van:"Previst · {month}", pr6_nada_sig:"Res previst per a {month}",
+    pr6_onb_n:"{n} càrrecs que es repeteixen", pr6_onb_1:"1 càrrec que es repeteix", pr6_onb_en:"a {x}", pr6_onb_vacio:"Encara no tens rebuts", pr6_empezar:"Comença",
+    pr6_imp_t:"{n} de {m} són rebuts", pr6_imp_quitar:"Treu-los tots", pr6_imp_marcar:"Marca'ls tots", pr6_imp_add:"Afegeix {n} rebuts", pr6_imp_add1:"Afegeix 1 rebut", pr6_imp_ninguno:"Cap",
+    pr6_imp_toast:"{n} rebuts afegits", pr6_imp_toast1:"1 rebut afegit",
     // Pla › Rebuts v6, tanda 4: afegir i editar per passos (SPEC §7).
     rp4_t_name:"Quin rebut és?", rp4_name_ph:"Netflix, llum, lloguer…", rp4_visto:"Vist al teu banc", rp4_dia:"dia", rp4_dup:"Ja tens {name}",
     rp4_t_amount:"Quant és?", rp4_variable:"Canvia cada mes", rp4_t_when:"Quan es cobra?", rp4_once:"Només una vegada", rp4_split:"En diversos pagaments",

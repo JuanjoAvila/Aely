@@ -1195,6 +1195,57 @@
   .pr6-nd-d .num{flex:1;text-align:center;font-size:15px;font-weight:700;}
   .pr6-nd-b{width:44px;height:40px;border-radius:12px;border:0;background:var(--surface-2);color:var(--text);font-size:20px;font-weight:700;cursor:pointer;touch-action:none;user-select:none;}
   .pr6-nd .pr6-cta:disabled{opacity:.5;}
+  /* Tanda 6 (SPEC §2.1, §2.2, §9): resumen del mes cerrado, «Nov ›» y primer uso. */
+  .pr6-vista{display:flex;flex-direction:column;gap:12px;}
+  /* Al cambiar de mes entra de lado TODA la vista (tarjeta y secciones), hacia donde se va. */
+  .pr6-vistas.anim{animation:pr6VistaAtras .32s var(--ease) both;}
+  .pr6-vistas.anim.sig{animation-name:pr6VistaSig;}
+  @keyframes pr6VistaSig{from{opacity:0;transform:translateX(16px);}to{opacity:1;transform:none;}}
+  @keyframes pr6VistaAtras{from{opacity:0;transform:translateX(-16px);}to{opacity:1;transform:none;}}
+  .pr6-sum-h{display:flex;align-items:center;gap:2px;}
+  .pr6-sum-h .v4-micro{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .pr6-mes-nav{flex:none;min-width:44px;min-height:44px;margin:-12px -10px -12px 0;padding:0 10px;border:0;background:transparent;color:var(--mint-bright);
+    font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;}
+  .pr6-cz{display:grid;grid-template-rows:1fr;transition:grid-template-rows .38s var(--ease),opacity .25s ease;}
+  .pr6-cz.fuera{grid-template-rows:0fr;opacity:0;}
+  .pr6-cz-in{overflow:hidden;min-height:0;}
+  .pr6-cerr{margin-bottom:14px;padding:14px 8px 14px 16px;border-radius:20px;background:var(--surface-2);display:flex;flex-direction:column;gap:10px;}
+  .pr6-cerr-h{display:flex;align-items:center;gap:10px;}
+  .pr6-cerr-ico{width:34px;height:34px;flex:none;border-radius:17px;background:var(--bg);color:var(--mint-bright);display:flex;align-items:center;justify-content:center;}
+  .pr6-cerr-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;}
+  button.pr6-cerr-t{cursor:pointer;}
+  .pr6-cerr-n{font-size:15px;font-weight:800;}
+  .pr6-cerr-l{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .pr6-cerr-x{width:44px;height:44px;margin:-4px -4px -4px 0;flex:none;border:0;background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .pr6-cerr .pr6-fold{margin-top:-10px;}
+  .pr6-cerr-det{gap:6px;padding:0 8px 0 44px;}
+  .pr6-cerr .pr6-fold.open .pr6-cerr-det{padding-top:10px;}
+  .pr6-cerr-row{display:flex;justify-content:space-between;gap:8px;font-size:14px;}
+  .pr6-cerr-row>span:first-child{min-width:0;color:var(--muted);}
+  .pr6-cerr-row .num{font-weight:700;white-space:nowrap;}
+  .pr6-onb{display:flex;flex-direction:column;gap:14px;padding:20px;border-color:var(--mint);}
+  .pr6-onb-ico{width:48px;height:48px;border-radius:24px;background:var(--surface-2);color:var(--mint-bright);display:flex;align-items:center;justify-content:center;}
+  .pr6-onb-t{display:flex;flex-direction:column;gap:4px;}
+  .pr6-onb-n{font-size:24px;font-weight:600;}
+  .pr6-onb-s{font-size:14px;color:var(--muted);}
+  .pr6-onb .pr6-cta{height:52px;font-size:16px;}
+  .v4-sheet.pr6-imp{display:flex;flex-direction:column;gap:14px;}
+  .pr6-imp-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
+  .pr6-imp-h .link{flex:none;}
+  .pr6-imp-l{display:flex;flex-direction:column;border-radius:18px;background:var(--surface-2);overflow:hidden;}
+  .pr6-imp-row{display:flex;align-items:center;gap:12px;min-height:60px;padding:10px 14px;border:0;border-top:1px solid var(--line-soft);
+    background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;transition:opacity .2s ease;}
+  .pr6-imp-row:first-child{border-top:0;}
+  .pr6-imp-row.off{opacity:.45;}
+  .pr6-imp-row .nm{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;font-size:15px;font-weight:600;}
+  .pr6-imp-row .sub{font-size:12.5px;font-weight:500;color:var(--muted);}
+  .pr6-imp-row .am{font-family:'Fraunces',Georgia,serif;font-size:16px;font-weight:600;white-space:nowrap;}
+  .pr6-imp-dot{width:22px;height:22px;flex:none;border-radius:11px;border:2px solid var(--mint);background:radial-gradient(circle,var(--mint) 0 5px,transparent 6px);
+    transition:border-color .2s ease,background .2s ease;}
+  .pr6-imp-row.off .pr6-imp-dot{border-color:var(--line);background:transparent;}
+  .pr6-imp .pr6-cta:disabled{opacity:.5;cursor:default;}
+  @media (prefers-reduced-motion:reduce){ .pr6-cz,.pr6-imp-row,.pr6-imp-dot{transition:none;} .pr6-vistas.anim{animation:none;} }
+  html.reduce-motion .pr6-cz,html.reduce-motion .pr6-imp-row{transition:none;} html.reduce-motion .pr6-vistas.anim{animation:none;}
   @media (prefers-reduced-motion:reduce){ .pr6-fold,.pr6-chev,.pr6-track,.pr6-step,.pr6-cand,.pr6-ring{transition:none;} }
   html.reduce-motion .pr6-fold,html.reduce-motion .pr6-chev,html.reduce-motion .pr6-track,html.reduce-motion .pr6-step{transition:none;}
   .v4-paid{opacity:.55;}
@@ -7704,6 +7755,13 @@ const LANG = {
     pr6_si_gasto:"¿Y si gasto…?", pr6_importe:"Importe", pr6_si_llega:"Llega · te quedan {x}", pr6_no_llega:"No llega · faltan {x}",
     pr6_entra_en:"entra en {bank}", pr6_dia:"día {d}", pr6_dia_menos:"Un día antes", pr6_dia_mas:"Un día después",
     pr6_sin_restar:"Pagado, aún sin restar del saldo", pr6_fresh_now:"saldo de ahora", pr6_fresh_min:"saldo de hace {n} min", pr6_fresh_h:"saldo de hace {n} h", pr6_fresh_ayer:"saldo de ayer", pr6_fresh_d:"saldo de hace {n} días", pr6_fresh_fecha:"saldo del {x}",
+    // Plan › Recibos v6, tanda 6: resumen del mes cerrado, vista del mes siguiente y primer uso.
+    pr6c_titulo:"{mes} cerrado", pr6c_vs:"{d} vs. {mes}", pr6c_igual:"igual que {mes}",
+    pr6c_sube:"{name}, más que {mes}", pr6c_subio:"{name} subió", pr6c_bajo:"{name} bajó", pr6c_no_llegaron:"Recibos que no llegaron", pr6c_cerrar:"Cerrar el resumen",
+    pr6_se_van:"Se te van en {month}", pr6_nada_sig:"Nada previsto en {month}",
+    pr6_onb_n:"{n} cargos que se repiten", pr6_onb_1:"1 cargo que se repite", pr6_onb_en:"en {x}", pr6_onb_vacio:"Aún no tienes recibos", pr6_empezar:"Empezar",
+    pr6_imp_t:"{n} de {m} son recibos", pr6_imp_quitar:"Quitar todos", pr6_imp_marcar:"Marcar todos", pr6_imp_add:"Añadir {n} recibos", pr6_imp_add1:"Añadir 1 recibo", pr6_imp_ninguno:"Ninguno",
+    pr6_imp_toast:"{n} recibos añadidos", pr6_imp_toast1:"1 recibo añadido",
     // Plan › Recibos v6, tanda 4: añadir y editar por pasos (SPEC §7).
     rp4_t_name:"¿Qué recibo es?", rp4_name_ph:"Netflix, luz, alquiler…", rp4_visto:"Visto en tu banco", rp4_dia:"día", rp4_dup:"Ya tienes {name}",
     rp4_t_amount:"¿Cuánto es?", rp4_variable:"Cambia cada mes", rp4_t_when:"¿Cuándo se cobra?", rp4_once:"Solo una vez", rp4_split:"En varios pagos",
@@ -14336,7 +14394,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   const subARecibos=function(sp, amtTxt){
     const useAmt=parseFloat(String(amtTxt).replace(",","."))||sp.amount;
     const acc=(state.accounts||[]).find(function(a){ return accRole(a)==="fijos"; })||(state.accounts||[]).find(function(a){ return accRole(a)==="ambos"; });
-    const it={ id:uid(), name:sp.name, amount:useAmt, freq:"mes", account:(acc&&acc.ent)||"sabadell" };
+    // Con su mes de alta: el resumen del mes cerrado de Plan no lo cuenta en meses de antes.
+    const it=conMesDeAlta({ id:uid(), name:sp.name, amount:useAmt, freq:"mes", account:(acc&&acc.ent)||"sabadell" });
     const dd=parseDate(sp.ult[0].e.date).getDate(); if(dd>=1&&dd<=31) it.day=dd;
     set(function(s){ return Object.assign({},s,{fixed:(s.fixed||[]).concat([it])}); });
     showToast(tf("gv5_sub_recibos_ok",{n:sp.name,b:entOf((acc&&acc.ent)||"sabadell").label}));
@@ -19855,6 +19914,227 @@ function personaEnRecibos(s,persona,ids,y,m,today){
   });
   return deudasTrasReparto(s,out);
 }
+/* Diferencia mínima, en céntimos, para decir que un cargo «cobró distinto» o «subió» (SPEC §2.3).
+   La comparten «Para revisar» y el resumen del mes cerrado: con dos umbrales, un recibo saldría
+   como subida en uno y no en el otro. */
+const PR6_DIF_CENT=50;
+/* RESUMEN DEL MES CERRADO de Plan › Recibos (SPEC §2.1, tanda 6).
+
+   ⚠ NO SE PUEDE RELEER EL MES CON EL ESTADO DE HOY (revisión NO-GO 31/10/2026). La primera
+   versión volvía a pasar `planChargesMonth` por octubre el 1 de noviembre y salía otro octubre:
+   un recibo dado de alta el 2/11 (o con «Empezar») contaba como «no llegó» en octubre, borrar en
+   octubre un recibo pagado en septiembre le bajaba la cifra a septiembre, y un cargo de finales de
+   septiembre que el extracto ya no trae (el banco solo devuelve desde el día 1 − 8 días) hacía
+   septiembre más barato de lo que fue. Por eso:
+   - FOTO DEL MES: mientras el mes está en curso, cada vez que Plan calcula se guarda en
+     `settings.pr6Fotos[año*12+mes]` lo que enseña (cada cargo con su importe y estado, y el día).
+     Viaja en `app_state` como el resto de `settings`; cuenta el último que guarda, y como cada
+     foto es la lectura completa del mes en ese momento, la que gane vale entera (la de un día
+     anterior no pisa a una posterior en este móvil). Un cliente viejo no la escribe ni la lee y,
+     como sus escritores de `settings` copian lo que hay, la conserva.
+   - El resumen sale de la foto. Lo que hoy acredita más (un cargo que llegó después de la foto y
+     el extracto aún trae) la mejora; nunca la empeora.
+   - ALTA: los recibos nuevos llevan `createdYm` y no existen en meses anteriores a su alta.
+   - Lo que no se puede acreditar es «—», nunca una cifra más baja que la real: sin foto, o con
+     algún cargo cuyo estado no se sabe (no tocaba aún cuando se hizo la foto y hoy no hay ni
+     prueba ni movimientos del banco que lo descarten).
+
+   Estados de cada cargo: «p» pagado con prueba (cuenta), «s» pagado sin cargo del banco (marca a
+   mano, calendario: ni cuenta ni es «no llegó»), «q» no llegó (tocaba, con margen, y el banco trae
+   movimientos de ese mes después) y «?» no se sabe. Importes en céntimos enteros: 0,1 + 0,2 en
+   flotante comparado entre dos meses daba «0 € más». */
+const PR6_FOTO_MESES=3;
+// Mismo margen que «No ha llegado» de Plan (`PR6_MARGEN_DIAS`): el banco tarda en contabilizar.
+const PR6_FOTO_MARGEN=2;
+function pr6Cent(n){ return Math.round(Math.abs(Number(n)||0)*100); }
+/* Último día de cada banco con movimiento en un mes (filas del banco en Gastos y extracto). Se
+   rehace una vez por array: con veinte mil gastos, recorrerlos por recibo se notaría. */
+function pr6MovMes(s,y,m){
+  var ym=y+"-"+String(m).padStart(2,"0"),out={};
+  var cache=pr6MovMes.cache||(pr6MovMes.cache=new WeakMap());
+  [[s.expenses,function(x){ return esFilaDeBanco(x)?expenseBankOf(x):null; }],[s.bankTx,function(x){ return x.ent||null; }]].forEach(function(par){
+    var arr=par[0];
+    if(!Array.isArray(arr)) return;
+    var idx=cache.get(arr);
+    if(!idx){
+      idx={};
+      arr.forEach(function(x){
+        var b=x&&par[1](x),ds=x&&String(x.date||"").slice(0,10);
+        if(!b||!/^\d{4}-\d{2}-\d{2}$/.test(ds)) return;
+        var k=ds.slice(0,7),d=Number(ds.slice(8,10)),o=idx[k]||(idx[k]={});
+        if(!(o[b]>=d)) o[b]=d;
+      });
+      cache.set(arr,idx);
+    }
+    var o=idx[ym]||{};
+    Object.keys(o).forEach(function(b){ if(!(out[b]>=o[b])) out[b]=o[b]; });
+  });
+  return out;
+}
+/* Los cargos de un mes tal y como los ve Plan con hoy = `dia`. `pack` y `proof` se pueden pasar
+   ya hechos (Plan los tiene): así guardar la foto no repite el cálculo. */
+function planRecibosItems(s,y,m,dia,pack,proof){
+  pack=pack||planChargesMonth(s,m,y,dia);
+  proof=proof||paymentEvidenceUI(s,y,m,dia);
+  var ym=y*12+m,mov=pr6MovMes(s,y,m),out=[];
+  var reciboDe=function(x){ var k=/^fixed_(.*)$/.exec(String(x.id)); return k?(s.fixed||[]).find(function(f){ return String(f.id)===k[1]; })||null:null; };
+  var add=function(x,st){
+    var f=reciboDe(x);
+    if(f&&Number(f.createdYm)>ym) return;   // dado de alta después: ese mes no existía
+    var it={id:String(x.id),n:String(x.name||""),a:pr6Cent(x.amount),st:st};
+    if(st==="p"&&x.paidAmount>0) it.pa=pr6Cent(x.paidAmount);
+    if(x.plannedBankAmount>0) it.pb=pr6Cent(x.plannedBankAmount);
+    if(f&&f.variable) it.v=1;
+    if(x.day!=null) it.d=Number(x.day);
+    out.push(it);
+  };
+  pack.paidBills.forEach(function(x){ add(x,proof.confirmed[x.id]===false?"s":"p"); });
+  pack.pendingBills.forEach(function(x){
+    var b=mov[x.bank||"sabadell"];
+    add(x,x.day!=null&&x.day<=dia&&b!=null&&b-x.day>PR6_FOTO_MARGEN?"q":"?");
+  });
+  return out;
+}
+/* LA FOTO SOLO SABE MÁS, NUNCA MENOS (revisión R2, 31/10/2026). Cada móvil calcula su foto con
+   SUS datos (el extracto `bankTx` no viaja), así que dos fotos del mismo mes pueden diferir. Si
+   ganara «la última», los dos móviles se la irían pisando en cada vuelta a primer plano. Por eso
+   se mezclan cargo a cargo quedándose con lo que más sabe (pagado con prueba > pagado sin cargo >
+   no llegó > no se sabe) y el día mayor: es conmutativo e idempotente, así que los dos móviles
+   acaban con la misma foto y, desde ahí, ninguno vuelve a escribir. A igual estado decide el texto
+   del cargo (orden fijo), para que no dependa de quién baja primero. Los cargos van ordenados por
+   id: así «el mismo contenido» es el mismo objeto también al compararlo. */
+const PR6_RANGO={"?":0,q:1,s:2,p:3};
+function pr6ItemMas(a,b){
+  var ra=PR6_RANGO[a.st]||0, rb=PR6_RANGO[b.st]||0;
+  if(ra!==rb) return ra>rb?a:b;
+  // «Ya no estaba en Plan» (`x`) también es saber más: lo vio un móvil después del borrado.
+  if(!a.x!==!b.x) return a.x?a:b;
+  return JSON.stringify(a)>=JSON.stringify(b)?a:b;
+}
+function pr6PorId(xs){ return xs.slice().sort(function(a,b){ return a.id<b.id?-1:a.id>b.id?1:0; }); }
+function pr6FotoUnion(fa,fb){
+  if(!fa||!Array.isArray(fa.it)) return fb;
+  if(!fb||!Array.isArray(fb.it)) return fa;
+  var m={};
+  fa.it.concat(fb.it).forEach(function(x){ m[x.id]=m[x.id]?pr6ItemMas(m[x.id],x):x; });
+  var foto={d:Math.max(Number(fa.d)||0,Number(fb.d)||0),it:pr6PorId(Object.keys(m).map(function(k){ return m[k]; }))};
+  // Sin cambios se devuelve el MISMO objeto: un objeto nuevo igual sería otra escritura (AGENTS §7 bis).
+  if(goalSyncEqual(foto,fa)) return fa;
+  if(goalSyncEqual(foto,fb)) return fb;
+  return foto;
+}
+/* Al bajar de la nube: mes a mes, la mezcla de arriba. Devuelve `a` si no cambia nada. */
+function pr6FotosUnion(a,b){
+  a=a||{}; b=b||{};
+  var out={},cambia=false,max=0;
+  Object.keys(a).concat(Object.keys(b)).forEach(function(k){ max=Math.max(max,Number(k)||0); });
+  Object.keys(a).concat(Object.keys(b)).forEach(function(k){
+    if(Object.prototype.hasOwnProperty.call(out,k)||!(Number(k)>max-PR6_FOTO_MESES)) return;
+    out[k]=pr6FotoUnion(a[k],b[k]);
+    if(out[k]!==a[k]) cambia=true;
+  });
+  if(Object.keys(a).some(function(k){ return !Object.prototype.hasOwnProperty.call(out,k); })) cambia=true;
+  return cambia?out:a;
+}
+/* Guarda la foto del mes en curso solo si cambia lo que dice: un cargo que sabe más o uno nuevo.
+   No quita ninguno: si quitara el de un recibo borrado, la mezcla con la foto del otro móvil lo
+   volvería a traer y se reescribirían en bucle. Uno sin pagar que Plan ya no enseña (borrado en
+   el mes o pausado) se marca con `x` y al leer no cuenta. Si vuelve sin pagar, la `x` se queda:
+   quitarla haría que la mezcla con el otro móvil la volviera a poner en bucle. El
+   día solo se renueva si hay movimientos del banco posteriores a la foto: sin ellos la foto vieja
+   sigue viendo el mes entero y reescribirla cada día sería subirla sin motivo. Sin cambios devuelve
+   el MISMO estado (ni escritura local ni subida). Se queda con los últimos `PR6_FOTO_MESES` meses. */
+function planRecibosConFoto(s,y,m,dia,pack,proof){
+  var ym=y*12+m,st=s.settings||{},fotos=st.pr6Fotos||{},prev=fotos[ym];
+  var hoy=planRecibosItems(s,y,m,dia,pack,proof),foto;
+  if(prev&&Array.isArray(prev.it)){
+    var m2={};
+    hoy.forEach(function(x){ m2[x.id]=x; });
+    prev.it.forEach(function(x){
+      var h=m2[x.id];
+      var rh=h?PR6_RANGO[h.st]||0:-1, rx=PR6_RANGO[x.st]||0;
+      if(rh>rx||rh===rx&&!x.x) m2[x.id]=h;
+      else if(!h&&rx<2&&!x.x) m2[x.id]=Object.assign({},x,{x:1});
+      else m2[x.id]=x;
+    });
+    var mov=pr6MovMes(s,y,m),ult=Object.keys(mov).reduce(function(a,b){ return Math.max(a,mov[b]); },0);
+    var d=Number(prev.d)||0;
+    if(ult>d) d=Math.max(d,dia);
+    foto={d:d,it:pr6PorId(Object.keys(m2).map(function(k){ return m2[k]; }))};
+    if(goalSyncEqual(prev,foto)) return s;
+  } else foto={d:dia,it:pr6PorId(hoy)};
+  var next={};
+  Object.keys(fotos).forEach(function(k){ if(Number(k)>ym-PR6_FOTO_MESES&&Number(k)!==ym) next[k]=fotos[k]; });
+  next[ym]=foto;
+  return Object.assign({},s,{settings:Object.assign({},st,{pr6Fotos:next})});
+}
+/* Un mes cerrado: la foto mejorada con lo que hoy se acredita. → {items, fiable, foto}. */
+function planRecibosMesFoto(s,y,m){
+  var ym=y*12+m,fin=new Date(y,m,0).getDate();
+  var foto=((s.settings||{}).pr6Fotos||{})[ym];
+  var hoy=planRecibosItems(s,y,m,fin);
+  if(!foto||!Array.isArray(foto.it)) return {items:hoy,fiable:false,foto:false};
+  var mov=pr6MovMes(s,y,m),ult=Object.keys(mov).reduce(function(a,b){ return Math.max(a,mov[b]); },0);
+  // Una foto de antes del último movimiento no vio todo el mes: su «no llegó» deja de valer.
+  var vieja=ult>Number(foto.d);
+  var porId={};
+  hoy.forEach(function(x){ porId[x.id]=x; });
+  // Un cargo sin pagar que Plan dejó de enseñar DENTRO del mes (`x`: borrado o pausado) no cuenta:
+  // el último día ya no salía. Lo pagado se queda (el dinero salió) y lo borrado después del mes
+  // no lleva `x` (la foto ya no se escribe). Si volvió (deshacer) y se pagó, la prueba lo sube.
+  var items=foto.it.filter(function(x){ return x.st==="p"||x.st==="s"||!x.x; }).map(function(x){
+    var h=porId[x.id];
+    if(x.st==="p") return x;
+    // Lo de hoy solo SUBE a pagado. Bajar un «no se sabe» a «no llegó» con el extracto de hoy
+    // sería afirmar algo que la foto no vio (revisión R2-1: el cargo pudo llegar y caducar).
+    if(h&&(h.st==="p"||h.st==="s")) return h;
+    if(x.st==="q"&&vieja) return Object.assign({},x,{st:"?"});
+    return x;
+  });
+  // Lo que la foto no tenía (alta de ese mes después de la foto): solo lo que hoy se sabe.
+  var enFoto={};
+  foto.it.forEach(function(x){ enFoto[x.id]=1; });
+  hoy.forEach(function(x){ if(!enFoto[x.id]) items.push(x.st==="q"?Object.assign({},x,{st:"?"}):x); });
+  return {items:items,fiable:items.every(function(x){ return x.st!=="?"; }),foto:true};
+}
+/* El mes cerrado respecto a (y, m) y sus líneas, solo con dato acreditado (SPEC §2.1):
+   - `cent` / `noLlegaron`: null si no se puede acreditar («—»).
+   - `prev`: null si el mes anterior no tenía recibos; `prev.cent` null si no se puede acreditar.
+   - «más subió»: el cargo del banco que más creció contra el mes anterior (los dos con cargo).
+   - «subió / bajó»: un recibo de precio fijo que cobró distinto de lo previsto. Los «Cambia cada
+     mes» no: su previsión es una estimación y salir distinto es lo normal.
+   «Te devolvieron» no sale: hoy ninguna devolución queda atada a un recibo y casarla por nombre
+   sería inventarla. Sin ningún recibo ese mes, no hay resumen. */
+function planRecibosMesCerrado(s,y,m){
+  s=s||{};
+  var cy=m===1?y-1:y, cm=m===1?12:m-1, py=cm===1?cy-1:cy, pm=cm===1?12:cm-1;
+  var c=planRecibosMesFoto(s,cy,cm);
+  if(!c.items.length) return null;
+  var p=planRecibosMesFoto(s,py,pm);
+  var suma=function(r){ return r.items.reduce(function(t,x){ return x.st==="p"?t+x.a:t; },0); };
+  var antes={};
+  p.items.forEach(function(x){ if(x.st==="p"&&x.pa>0) antes[x.id]=x.pa; });
+  var sube=null, cambia=null;
+  c.items.forEach(function(x){
+    if(!/^fixed_/.test(x.id)||x.st!=="p"||!(x.pa>0)||antes[x.id]==null) return;
+    var d=x.pa-antes[x.id];
+    if(d>=PR6_DIF_CENT&&(!sube||d>sube.cent)) sube={id:x.id,name:x.n,cent:d};
+  });
+  c.items.forEach(function(x){
+    if(!/^fixed_/.test(x.id)||x.st!=="p"||!(x.pa>0)||x.v||!(x.pb>0)||(sube&&sube.id===x.id)) return;
+    var d=x.pa-x.pb;
+    if(Math.abs(d)>=PR6_DIF_CENT&&(!cambia||Math.abs(d)>Math.abs(cambia.cent))) cambia={id:x.id,name:x.n,cent:d};
+  });
+  return {y:cy, m:cm, ym:cy*12+cm, cent:c.fiable?suma(c):null,
+    prev:p.items.length?{y:py,m:pm,cent:p.fiable?suma(p):null}:null,
+    sube:sube, cambia:cambia,
+    noLlegaron:c.fiable?c.items.filter(function(x){ return x.st==="q"; }).length:null};
+}
+/* Mes de alta de un recibo nuevo (año*12+mes): el resumen del mes cerrado no lo cuenta antes. */
+function conMesDeAlta(it){
+  if(it&&it.createdYm==null){ var d=new Date(); it.createdYm=d.getFullYear()*12+d.getMonth()+1; }
+  return it;
+}
 /* Pregúntame = misma regla que Plan: solo recibos, sin ingresos ni traspasos. */
 function pendingBillsSummary(state,month,year,today){
   var p=planChargesMonth(state,month,year,today);
@@ -23354,7 +23634,7 @@ function Reconcile({state, set}){
   const entList=Array.from(new Set((state.accounts||[]).map(function(a){ return a.ent; })));
   const addAsFixed=function(nc){
     const k=keyOf(nc);
-    set(function(s){ const it={id:uid(),name:nc.merchant||"Gasto fijo",amount:+Number(nc.amount).toFixed(2),freq:"mes",account:nc.ent}; const dd=recDay(nc.date); if(dd) it.day=dd; return Object.assign({},s,{fixed:(s.fixed||[]).concat([it])}); });
+    set(function(s){ const it=conMesDeAlta({id:uid(),name:nc.merchant||"Gasto fijo",amount:+Number(nc.amount).toFixed(2),freq:"mes",account:nc.ent}); const dd=recDay(nc.date); if(dd) it.day=dd; return Object.assign({},s,{fixed:(s.fixed||[]).concat([it])}); });
     setAdded(function(a){ return Object.assign({},a,{[k]:true}); });
   };
   // "Ignorar": oculta un movimiento del banco (doble cobro, comisión que te devuelven…). Persistente.
@@ -27828,7 +28108,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="7a9bf2b6ac2017fe22aa16e7ff267e67317b66d177a61cd99188ba0b52c2d02d";
+var _rnSha="89b89f616361a39021f37f55affc0969eb797d3e0e8e81a834c0265cb9cd84cc";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -29590,7 +29870,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     ),
     capa("recibos", simple
       ? React.createElement(PlanBills,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen})
-      : React.createElement(PlanRecibos,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen,
+      : React.createElement(PlanRecibos,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen,activo:seg==="recibos",
           manageEdit:manageEdit,setManageEdit:setManageEdit,showToast:showToast,onGoDebts:irADeuda})),
     !simple && capa("deudas", React.createElement(Debts,{state:state,set:set,showToast:showToast})),
     !simple && capa("metas", React.createElement(Goals,{state:state,set:set,totals:totals,showToast:showToast}))
@@ -29708,7 +29988,8 @@ const PR6_MARGEN_DIAS=2;
      no se afirma nada (recibo nuevo, banco sin conectar o pagado por otro lado).
    Prueba gratis y permanencia no salen: hoy ningún recibo guarda esas fechas (llegan con el alta
    por pasos, tanda 4) y un aviso sin dato sería inventado. */
-const PR6_DIF_CENT=50, PR6_FANTASMA_MIN=2, PR6_MESES_ATRAS=12, PR6_FANTASMA_CALLA=3;
+// `PR6_DIF_CENT` vive en el motor (08): lo comparte con el resumen del mes cerrado.
+const PR6_FANTASMA_MIN=2, PR6_MESES_ATRAS=12, PR6_FANTASMA_CALLA=3;
 function pr6MesesConBanco(s){
   const ex=s.expenses;
   if(!Array.isArray(ex)) return new Set();
@@ -29900,7 +30181,7 @@ function pr6FrescuraTxt(ms, now){
   if(d<7) return tf("pr6_fresh_d",{n:d});
   return tf("pr6_fresh_fecha",{x:a.toLocaleDateString(loc(),{day:"numeric",month:"short"})});
 }
-function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setManageOpen, manageEdit, setManageEdit, showToast, onGoDebts}){
+function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setManageOpen, manageEdit, setManageEdit, showToast, onGoDebts, activo}){
   const [revOpen,setRevOpen]=useState(false);
   const [dueOpen,setDueOpen]=useState(false);
   const [paidOpen,setPaidOpen]=useState(false);
@@ -29917,6 +30198,46 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   const proof=evidence||paymentEvidenceUI(state,totals.curYear,totals.curMonth,today);
   // `pack` y `proof` ya dependen de recibos, gastos y extracto; `revisado` vive en el recibo.
   const avisos=useMemo(function(){ return planRecibosAvisos(state,pack,proof,year,month,today); },[pack,proof,state.fixed,year,month,today]);
+  /* Vista del mes siguiente «Nov ›» (SPEC §2.2). Misma lectura que los cargos del mes que viene de
+     Inicio (`planChargesMonth` con hoy = 0: de ese mes aún no ha llegado nada), así las dos
+     pantallas no pueden decir cosas distintas. Solo se calcula mientras se mira. */
+  const [vista,setVista]=useState("mes");
+  const sig=vista==="sig";
+  const sigM=month===12?1:month+1, sigY=month===12?year+1:year;
+  const sigPack=useMemo(function(){ return sig?planChargesMonth(state,sigM,sigY,0):null; },
+    [sig,sigM,sigY,state.fixed,state.debts,state.oneoffs,state.flows,state.bankTx,state.accounts,state.expenses,state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
+  /* Primer uso (SPEC §9): sin recibos, puntuales, cuotas ni entradas no hay nada que enseñar y la
+     tarjeta en 0 no dice nada. Se mira el plan entero, no solo este mes, para no esconder nada. */
+  const vacio=!(state.fixed||[]).length&&!(state.oneoffs||[]).length&&!(state.debts||[]).some(debtActive)&&!(state.flows||[]).length;
+  /* Resumen del mes cerrado (SPEC §2.1): los primeros días del mes, hasta que se cierre. El
+     descarte es de ESE mes y vive en `settings` para que el otro móvil no lo vuelva a sacar. */
+  const fotos=state.settings&&state.settings.pr6Fotos;
+  const cerrado=useMemo(function(){ return !vacio&&today<=PR6_CERRADO_DIAS?planRecibosMesCerrado(state,year,month):null; },
+    [vacio,today,year,month,fotos,state.fixed,state.debts,state.oneoffs,state.flows,state.bankTx,state.accounts,state.expenses,state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
+  const cerradoNo=Number(state.settings&&state.settings.pr6CerradoNo)||0;
+  const [cerradoAbierto,setCerradoAbierto]=useState(false);
+  const [cerradoSale,setCerradoSale]=useState(false);
+  const cerradoT=useRef(0);
+  useEffect(function(){ return function(){ clearTimeout(cerradoT.current); }; },[]);
+  const descartarCerrado=function(){
+    if(!cerrado) return;
+    const ym=cerrado.ym;
+    // Primero se pliega y luego se guarda: si se guardara antes, desaparecería de golpe.
+    setCerradoSale(true);
+    clearTimeout(cerradoT.current);
+    cerradoT.current=setTimeout(function(){
+      set(function(s){ return Object.assign({},s,{settings:Object.assign({},s.settings||{},{pr6CerradoNo:ym})}); });
+    },mcReduced()?0:400);
+  };
+  /* Foto del mes en curso (ver `planRecibosConFoto`, 08): lo que Plan enseña hoy, para que el
+     resumen del mes que viene no tenga que releer este mes con datos que ya habrán cambiado. Sin
+     sello de edición (`set(…, false)`): es lectura, no algo que él haya cambiado. */
+  useEffect(function(){
+    set(function(s){ return planRecibosConFoto(s,year,month,today,pack,proof); },false);
+  },[pack,proof,year,month,today]);
+  const [impOpen,setImpOpen]=useState(false);
+  const [addNow,setAddNow]=useState(0);
+  const importables=useMemo(function(){ return vacio?pr6Importables(state):[]; },[vacio,state.expenses,state.fixed]);
   const v=useMemo(function(){ return planRecibosVista(pack,proof,today,avisos,pospuesto); },[pack,proof,today,avisos,pospuesto]);
   // Pausados este mes: no suman ni salen como pendientes, pero se ven tachados en «Ya pagados»
   // para poder devolverlos al mes con un toque (SPEC §2.5).
@@ -29977,9 +30298,15 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     return (f&&f.category&&CAT[f.category]?catName(f.category)+" · ":"")+entOf(x.bank).label
       +(x.teDeben?" · "+tf("pr6_te_han_pagado",{a:x.teDeben.pagados,n:x.teDeben.n}):"");
   };
+  // Días que faltan; en la vista del mes siguiente, contados de calendario hasta ese día.
+  const diasHasta=function(x){
+    if(x.day==null) return null;
+    if(!sig) return x.day-today;
+    return Math.round((new Date(sigY,sigM-1,x.day)-new Date(year,month-1,today))/864e5);
+  };
   const cuando=function(x){
-    if(x.day==null) return "";
-    const n=x.day-today;
+    const n=diasHasta(x);
+    if(n==null) return "";
     if(n===0) return t("pr6_hoy");
     if(n===1) return t("pr6_manana");
     if(n>1) return tf("pr6_en_dias",{n:n});
@@ -29988,12 +30315,19 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   const esVariable=function(x){ const f=/^fixed_/.test(String(x.id))&&(state.fixed||[]).find(function(e){ return "fixed_"+e.id===x.id; }); return !!(f&&f.variable); };
   // Las filas plegadas siguen en el DOM (se despliegan con transición), pero fuera del foco.
   const plegado=function(open){ return open?null:{"aria-hidden":"true",inert:""}; };
+  /* En la vista del mes siguiente la ficha no vale: enseña el estado de ESTE mes (pagado, cargo…).
+     Un recibo o puntual abre su edición; una cuota, Deudas, como siempre. */
+  const abrirSig=function(x){
+    if(x.kind==="debt"||x.kind==="balloon"){ abrir(x); return; }
+    const k=/^(fixed|oneoff)_(.*)$/.exec(String(x.id));
+    if(k){ setManageEdit(k[2]); setManageOpen(true); }
+  };
   const dueRow=function(x){
-    const n=x.day==null?null:x.day-today;
-    return React.createElement("button",{type:"button",className:"v4-charge pr6-row",key:x.id,"data-recibo":x.id,onClick:function(){ abrir(x); }},
+    const n=diasHasta(x);
+    return React.createElement("button",{type:"button",className:"v4-charge pr6-row",key:x.id,"data-recibo":x.id,onClick:function(){ if(sig) abrirSig(x); else abrir(x); }},
       React.createElement("span",{className:"dt","aria-hidden":"true"},
         React.createElement("span",{className:"d"}, x.day||"—"),
-        React.createElement("span",{className:"m"}, monthShort(month-1))),
+        React.createElement("span",{className:"m"}, monthShort((sig?sigM:month)-1))),
       React.createElement("span",{className:"nm"},
         React.createElement("span",{className:"pr6-nm"}, x.name,React.createElement(PlanConflictDot,{record:conflictOf(x)})),
         React.createElement("span",{className:"sub"}, subOf(x)),
@@ -30056,12 +30390,41 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   // Pausar o borrar desde la ficha saca el recibo del mes antes de que la hoja termine de irse:
   // sin olvidarla, reaparecía abierta en cuanto el recibo volvía al mes.
   useEffect(function(){ if(ficha&&!fichaRow) setFicha(null); },[ficha,fichaRow]);
-  return React.createElement(React.Fragment,null,
-    React.createElement("div",{className:"v4-card v4-card-hero rise pr6-sum","data-testid":"plan-summary"},
-      React.createElement("div",{className:"v4-micro"}, tf("v4_plan_left",{month:monthLong(month-1)})),
-      React.createElement("div",{className:"serif num pr6-big"}, eur(pack.pendingBillsTotal)),
-      countLine&&React.createElement("div",{className:"pr6-count","data-testid":"plan-count"}, countLine),
-      (llega&&nPend>0||debenTotal>0.005)&&React.createElement("div",{className:"pr6-pills"},
+  // Al cambiar de mes la lista vuelve a sus tres primeras: lo desplegado era del otro mes.
+  // La entrada lateral solo al cambiar: al abrir Plan la tarjeta ya sube con `rise`.
+  const [vistaAnim,setVistaAnim]=useState(false);
+  const irVista=function(v){ setDueOpen(false); setVistaAnim(true); setVista(v); };
+  const cambiarVista=function(){ irVista(sig?"mes":"sig"); };
+  /* El mes siguiente es una capa más: el atrás (también el de la APK) vuelve primero al mes en
+     curso. Y al salir de Recibos (otro segmento u otra pestaña) se vuelve al mes en curso: Plan
+     está premontado y, si no, al volver seguía en diciembre (revisión 31/10/2026). La pestaña
+     activa no llega como prop a propósito (11-app-main.js: cambiar de pestaña no re-renderiza las
+     páginas), así que se mira la pestaña de Plan de la barra (`active`) solo mientras dura la vista.
+     La clase de la página no sirve: `page-live` la llevan también las vecinas premontadas. */
+  useBackClose(sig,function(){ irVista("mes"); });
+  useEffect(function(){ if(sig&&activo===false) setVista("mes"); },[sig,activo]);
+  useEffect(function(){
+    if(!sig) return undefined;
+    const tab=document.querySelector('.botnav-tab[data-tour="plan"]');
+    if(!tab||typeof MutationObserver==="undefined") return undefined;
+    const mo=new MutationObserver(function(){ if(!tab.classList.contains("active")) setVista("mes"); });
+    mo.observe(tab,{attributes:true,attributeFilter:["class"]});
+    return function(){ mo.disconnect(); };
+  },[sig]);
+  const sigN=sigPack?sigPack.pendingBills.length:0;
+  // Al cambiar de mes la tarjeta no repite su `rise`: entra de lado con el resto de la vista.
+  const tarjeta=React.createElement("div",{className:"v4-card v4-card-hero pr6-sum"+(vistaAnim?"":" rise"),"data-testid":"plan-summary","data-vista":vista},
+    React.createElement("div",{className:"pr6-vista"},
+      React.createElement("div",{className:"pr6-sum-h"},
+        React.createElement("div",{className:"v4-micro"}, sig?tf("pr6_se_van",{month:monthLong(sigM-1)}):tf("v4_plan_left",{month:monthLong(month-1)})),
+        React.createElement("button",{type:"button",className:"pr6-mes-nav","data-testid":"plan-mes-nav",onClick:cambiarVista,
+          "aria-label":sig?monthLong(month-1):monthLong(sigM-1)}, sig?"‹ "+monthShort(month-1):monthShort(sigM-1)+" ›")),
+      React.createElement("div",{className:"serif num pr6-big"}, eur(sig?sigPack.pendingBillsTotal:pack.pendingBillsTotal)),
+      sig
+        ? sigN>0&&React.createElement("div",{className:"pr6-count","data-testid":"plan-count"}, tf(sigN===1?"pr6_count_one":"pr6_count",{n:sigN}))
+        : countLine&&React.createElement("div",{className:"pr6-count","data-testid":"plan-count"}, countLine),
+      // «¿Te llega?» recorre el saldo de ESTE mes: en el siguiente no hay recorrido que enseñar.
+      !sig&&(llega&&nPend>0||debenTotal>0.005)&&React.createElement("div",{className:"pr6-pills"},
         llega&&nPend>0&&React.createElement("button",{type:"button",className:"pr6-pill"+(llega.ok?" ok":""),"data-testid":"plan-llega","aria-haspopup":"dialog",
           onClick:function(){ setLlegaOpen(true); }},
           llega.ok&&React.createElement("span",{className:"pr6-pill-ok","aria-hidden":"true"},"✓"),
@@ -30073,21 +30436,77 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
           onClick:function(){ setDebenOpen(true); }},
           tf("pr6_te_deben",{x:eur(debenTotal)}),
           React.createElement("svg",{className:"pr6-pill-go",width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
-            React.createElement("path",{d:"M9 6l6 6-6 6"}))))),
-    v.review.length>0&&React.createElement("section",{className:"pr6-sec","data-testid":"plan-review","aria-label":t("pr6_revisar")},
+            React.createElement("path",{d:"M9 6l6 6-6 6"}))))));
+  const manage=React.createElement(BillsManagePush,{open:manageOpen,onClose:function(){ setManageOpen(false); setManageEdit(null); setAddNow(0); },state:state,set:set,totals:totals,simple:false,editId:manageEdit,addNow:addNow});
+  /* La hoja de importar vive fuera de la rama del primer uso: al añadir, el plan deja de estar
+     vacío y, dentro de esa rama, la hoja se desmontaba de golpe; el segundo toque de un doble
+     toque caía entonces en el «+» de abajo (revisión 31/10/2026). Ahora cierra con su animación y
+     añade al terminar, con el velo aún encima. */
+  const importar=impOpen&&React.createElement(RecibosImportSheet,{items:importables,set:set,showToast:showToast,onClose:function(){ setImpOpen(false); }});
+  if(vacio){
+    // Con cargos repetidos en el banco, la importación; sin ellos, directo al alta por pasos.
+    const empezar=function(){
+      if(importables.length){ setImpOpen(true); return; }
+      setManageEdit(null); setAddNow(Date.now()); setManageOpen(true);
+    };
+    const bancos=Array.from(new Set(importables.map(function(d){ return entOf(d.bank).label; })));
+    return React.createElement(React.Fragment,null,
+      React.createElement("section",{className:"v4-card rise pr6-onb","data-testid":"plan-onb"},
+        React.createElement("span",{className:"pr6-onb-ico","aria-hidden":"true"},
+          React.createElement("svg",{width:22,height:22,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.2,strokeLinecap:"round",strokeLinejoin:"round"},
+            React.createElement("path",{d:"M21 12a9 9 0 11-3-6.7L21 8M21 3v5h-5"}))),
+        React.createElement("span",{className:"pr6-onb-t"},
+          React.createElement("span",{className:"serif pr6-onb-n"}, importables.length?tf(importables.length===1?"pr6_onb_1":"pr6_onb_n",{n:importables.length}):t("pr6_onb_vacio")),
+          bancos.length>0&&React.createElement("span",{className:"pr6-onb-s"}, tf("pr6_onb_en",{x:pr6Lista(bancos)}))),
+        React.createElement("button",{type:"button",className:"pr6-cta","data-testid":"plan-empezar",onClick:empezar}, t("pr6_empezar"))),
+      importar,
+      manage);
+  }
+  const verCerrado=!!cerrado&&cerrado.ym!==cerradoNo;
+  const lineasCerrado=cerrado?pr6LineasCerrado(cerrado):[];
+  return React.createElement(React.Fragment,null,
+    // Se pliega (no desaparece) al descartarlo y al pasar al mes siguiente, donde no sale (SPEC §2.1).
+    verCerrado&&React.createElement("div",Object.assign({className:"pr6-cz"+(sig||cerradoSale?" fuera":"")},sig||cerradoSale?{"aria-hidden":"true",inert:""}:null),
+      React.createElement("div",{className:"pr6-cz-in"},
+        React.createElement("section",{className:"pr6-cerr","data-testid":"plan-cerrado","aria-label":pr6TituloCerrado(cerrado)},
+          React.createElement("div",{className:"pr6-cerr-h"},
+            React.createElement("span",{className:"pr6-cerr-ico","aria-hidden":"true"},
+              React.createElement("svg",{width:17,height:17,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round",strokeLinejoin:"round"},
+                React.createElement("path",{d:"M5 12.5l4.5 4.5L19 7.5"}))),
+            React.createElement(lineasCerrado.length?"button":"div",Object.assign({className:"pr6-cerr-t"},lineasCerrado.length?{type:"button","aria-expanded":cerradoAbierto?"true":"false","aria-controls":"pr6-cerr-det",
+              onClick:function(){ setCerradoAbierto(function(o){ return !o; }); }}:null),
+              React.createElement("span",{className:"pr6-cerr-n"}, pr6TituloCerrado(cerrado)),
+              React.createElement("span",{className:"num pr6-cerr-l","data-testid":"plan-cerrado-linea"}, pr6LineaCerrado(cerrado))),
+            React.createElement("button",{type:"button",className:"pr6-cerr-x","aria-label":t("pr6c_cerrar"),"data-testid":"plan-cerrado-x",onClick:descartarCerrado},
+              React.createElement("svg",{width:15,height:15,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
+                React.createElement("path",{d:"M6 6l12 12M18 6L6 18"})))),
+          lineasCerrado.length>0&&React.createElement("div",{className:"pr6-fold"+(cerradoAbierto?" open":""),id:"pr6-cerr-det"},
+            React.createElement("div",Object.assign({className:"pr6-fold-in pr6-cerr-det"},plegado(cerradoAbierto)),
+              lineasCerrado.map(function(l){
+                return React.createElement("div",{className:"pr6-cerr-row",key:l.k,"data-linea":l.k},
+                  React.createElement("span",null,l.l),React.createElement("span",{className:"num"},l.v));
+              })))))),
+    // Toda la vista entra de lado al cambiar de mes, no solo la tarjeta (feedback 28/10).
+    React.createElement("div",{className:"pr6-vistas"+(vistaAnim?" anim":"")+(sig?" sig":""),key:vista},
+    tarjeta,
+    !sig&&v.review.length>0&&React.createElement("section",{className:"pr6-sec","data-testid":"plan-review","aria-label":t("pr6_revisar")},
       React.createElement("div",{className:"pr6-sec-h"},
         React.createElement("span",null, t("pr6_revisar"),React.createElement("span",{className:"pr6-n"}, v.review.length))),
       lista(v.review,revRow,revOpen,setRevOpen,"pr6-rev-more")),
-    React.createElement("section",{className:"pr6-sec","data-testid":"plan-due","aria-label":t("v4_pendiente")},
+    React.createElement("section",{className:"pr6-sec","data-testid":"plan-due","data-vista":vista,"aria-label":sig?pr6EnMes(sigM):t("v4_pendiente")},
       React.createElement("div",{className:"pr6-sec-h v4-section-h"},
         // «Pendiente» y no «Por pagar»: la petición del dueño del 26/10/2026 (la otra palabra
         // necesitaba una línea de ayuda debajo para entenderse) sigue en pie con el rediseño.
-        React.createElement("span",null, t("v4_pendiente")),
+        React.createElement("span",null, sig?pr6Cap(pr6EnMes(sigM)):t("v4_pendiente")),
         React.createElement("button",{type:"button",className:"link",onClick:openManage}, t("pr6_todos"))),
-      v.due.length===0
-        ? React.createElement("div",{className:"pr6-empty"}, t("pr6_nada"))
-        : lista(v.due,dueRow,dueOpen,setDueOpen,"pr6-due-more")),
-    nBills>0&&React.createElement("section",{className:"pr6-paid"+(paidOpen?" open":""),ref:paidRef,"data-testid":"plan-paid","aria-label":t("pr6_ya_pagados")},
+      sig
+        ? (sigN===0
+          ? React.createElement("div",{className:"pr6-empty"}, tf("pr6_nada_sig",{month:monthLong(sigM-1)}))
+          : lista(sigPack.pendingBills,dueRow,dueOpen,setDueOpen,"pr6-due-more"))
+        : (v.due.length===0
+          ? React.createElement("div",{className:"pr6-empty"}, t("pr6_nada"))
+          : lista(v.due,dueRow,dueOpen,setDueOpen,"pr6-due-more"))),
+    !sig&&nBills>0&&React.createElement("section",{className:"pr6-paid"+(paidOpen?" open":""),ref:paidRef,"data-testid":"plan-paid","aria-label":t("pr6_ya_pagados")},
       React.createElement("button",{type:"button",className:"pr6-paid-h","aria-expanded":paidOpen?"true":"false","aria-controls":"pr6-paid-list",
         onClick:function(){ setPaidOpen(function(o){ if(!o) verPlegado(paidRef.current); return !o; }); }},
         React.createElement("span",{className:"pr6-tick","aria-hidden":"true"},"✓"),
@@ -30098,12 +30517,14 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
         React.createElement("div",Object.assign({className:"pr6-fold-in"},plegado(paidOpen)), v.paid.map(paidRow), pausados.map(pausadoRow)))),
     /* Traspasos y entradas siguen también aquí: los que mueven el mínimo ya salen (y se editan) en
        «¿Te llega?», pero quitarlos de la portada deja sin verlos de un vistazo a quien los miraba
-       aquí; la SPEC no los pinta ni los descarta, así que eso lo decide el dueño. */
-    pack.transfersPending.length>0&&React.createElement("div",{className:"v4-section","data-testid":"plan-transfers"},
+       aquí; la SPEC no los pinta ni los descarta, así que eso lo decide el dueño. Son de ESTE mes:
+       en la vista del siguiente no salen. */
+    !sig&&pack.transfersPending.length>0&&React.createElement("div",{className:"v4-section","data-testid":"plan-transfers"},
       React.createElement("div",{className:"v4-section-h"},t("v4_plan_transfers")),pack.transfersPending.map(function(x){ return planRecibosFlowRow(x,month); })),
-    (pack.incomePending||[]).length>0&&React.createElement("div",{className:"v4-section"},
+    !sig&&(pack.incomePending||[]).length>0&&React.createElement("div",{className:"v4-section"},
       React.createElement("div",{className:"v4-section-h"},React.createElement("span",null,t("v4_aun_entrara"))),
-      pack.incomePending.map(function(x){ return planRecibosFlowRow(x,month); })),
+      pack.incomePending.map(function(x){ return planRecibosFlowRow(x,month); }))),
+    importar,
     llegaOpen&&React.createElement(LlegaSheet,{state:state,set:set,totals:totals,pack:pack,onClose:function(){ setLlegaOpen(false); }}),
     debenOpen&&React.createElement(TeDebenSheet,{state:state,set:set,totals:totals,deben:deben,onClose:function(){ setDebenOpen(false); }}),
     deshacer&&React.createElement("div",{className:"v4-undo-toast",role:"status","data-testid":"plan-deshacer"},
@@ -30116,8 +30537,117 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
       onPosponer:posponer,
       onClose:function(){ setFicha(null); },
       onEdit:function(id){ setFicha(null); setManageEdit(id); setManageOpen(true); }}),
-    React.createElement(BillsManagePush,{open:manageOpen,onClose:function(){ setManageOpen(false); setManageEdit(null); },state:state,set:set,totals:totals,simple:false,editId:manageEdit})
+    manage
   );
+}
+/* Textos del resumen del mes cerrado. El mes con mayúscula al principio («Septiembre cerrado»);
+   en catalán, con su artículo («més que l'agost», «més que el setembre»). */
+const PR6_CERRADO_DIAS=7;
+function pr6Cap(s){ s=String(s||""); return s.charAt(0).toUpperCase()+s.slice(1); }
+function pr6MesCon(m){
+  const n=monthLong(m-1);
+  if(CURLANG!=="ca") return n;
+  return /^[aeiouàèéíòóú]/i.test(n)?"l'"+n:"el "+n;
+}
+function pr6TituloCerrado(c){ return tf("pr6c_titulo",{mes:pr6Cap(monthLong(c.m-1))}); }
+/* Una sola línea a 393 px (revisión 31/10/2026): «62,99 € · −40,00 € vs. sep». Lo que no se
+   puede acreditar es «—», nunca una cifra más baja que la real. */
+function pr6LineaCerrado(c){
+  // Sin la cifra del mes no hay nada que comparar: «—» a secas.
+  if(c.cent==null) return "—";
+  const x=eur(c.cent/100);
+  if(!c.prev) return x;
+  const mes=pr6Mes(c.prev.y*12+c.prev.m);
+  if(c.prev.cent==null) return x+" · "+tf("pr6c_vs",{d:"—",mes:mes});
+  const d=c.cent-c.prev.cent;
+  return x+" · "+(d===0?tf("pr6c_igual",{mes:mes}):tf("pr6c_vs",{d:(d>0?"+":"−")+eur(Math.abs(d)/100),mes:mes}));
+}
+// «En diciembre», y en catalán «A l'abril» con los meses que empiezan por vocal, como Inicio.
+function pr6EnMes(m){
+  const n=monthLong(m-1);
+  return tf(/^[aeiouàèéíòóú]/i.test(n)?"v4_upcoming_in_v":"v4_upcoming_in",{mes:n});
+}
+// Como mucho cuatro líneas y solo las que tienen dato (SPEC §2.1); sin ninguna no se despliega.
+function pr6LineasCerrado(c){
+  const out=[];
+  if(c.sube) out.push({k:"sube",l:tf("pr6c_sube",{name:c.sube.name,mes:c.prev?pr6MesCon(c.prev.m):""}),v:"+"+eur(c.sube.cent/100)});
+  if(c.cambia) out.push({k:"cambia",l:tf(c.cambia.cent>0?"pr6c_subio":"pr6c_bajo",{name:c.cambia.name}),v:(c.cambia.cent>0?"+":"−")+eur(Math.abs(c.cambia.cent)/100)});
+  if(c.noLlegaron>0) out.push({k:"no",l:t("pr6c_no_llegaron"),v:String(c.noLlegaron)});
+  return out.slice(0,4);
+}
+// «Sabadell y Revolut» con la conjunción del idioma.
+function pr6Lista(xs){
+  try{ return new Intl.ListFormat(loc(),{type:"conjunction"}).format(xs); }catch(e){ return xs.join(", "); }
+}
+/* Primer uso (SPEC §9): cargos que se repiten en el banco y aún no son recibo. Mismo detector que
+   «Visto en tu banco» del alta por pasos, pero aquí se añaden sin pasar por el resumen de cada uno,
+   así que solo entran los que se han cobrado TODOS los meses seguidos: un cargo con huecos puede
+   ser bimestral y darlo de alta como mensual inventaría cobros que no existen. */
+function pr6Importables(state){
+  // Con el importe del ÚLTIMO cargo, no la mediana: si subió, el recibo nuevo tiene que casar ya
+  // con el cobro de este mes (revisión 31/10/2026: Netflix 12,99 → 13,99).
+  return rp4VistoEnBanco(state,0).filter(function(d){ return d.seguido&&d.day!=null&&d.bank; })
+    .map(function(d){ return d.ultimo>0?Object.assign({},d,{amount:d.ultimo}):d; });
+}
+function RecibosImportSheet({items, set, showToast, onClose}){
+  const elegidos=useRef(null);
+  const alCerrar=function(){
+    const xs=elegidos.current;
+    elegidos.current=null;
+    if(xs&&xs.length){
+      xs.forEach(function(d){
+        const it=conMesDeAlta({id:uid(),name:d.name,amount:Math.round(d.amount*100)/100,freq:"mes",day:d.day,account:d.bank});
+        if(d.cat) it.category=d.cat;
+        addFixedItem(set,it);
+      });
+      if(showToast) showToast(xs.length===1?t("pr6_imp_toast1"):tf("pr6_imp_toast",{n:xs.length}));
+    }
+    onClose();
+  };
+  const swipe=useSheetSwipe(true,alCerrar);
+  useBackClose(true,swipe.close);
+  const titleRef=useRef(null), titleId=React.useId();
+  useEffect(function(){ if(titleRef.current) titleRef.current.focus({preventScroll:true}); },[]);
+  const lista=useMemo(function(){ return items.slice().sort(function(a,b){ return a.day-b.day; }); },[items]);
+  const [off,setOff]=useState({});
+  const n=lista.filter(function(d,i){ return !off[i]; }).length;
+  const alguno=lista.some(function(d,i){ return off[i]; });
+  const todos=function(){
+    if(alguno){ setOff({}); return; }
+    const o={}; lista.forEach(function(d,i){ o[i]=true; }); setOff(o);
+  };
+  const hecho=useRef(false);
+  const anadir=function(){
+    if(hecho.current||!n) return;
+    hecho.current=true;
+    // Se añade al terminar de bajar la hoja (`alCerrar`): mientras baja, el velo sigue encima y
+    // un segundo toque no llega a lo de debajo.
+    elegidos.current=lista.filter(function(d,i){ return !off[i]; });
+    mcTickHaptic();
+    swipe.close();
+  };
+  return ReactDOM.createPortal(
+    React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
+      React.createElement("div",Object.assign({className:"v4-sheet pr6-imp","data-testid":"plan-import",role:"dialog","aria-modal":"true","aria-labelledby":titleId,
+        ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }},swipe.sheetTouch),
+        React.createElement("div",{className:"v4-sheet-handle"}),
+        React.createElement("div",{className:"pr6-imp-h"},
+          React.createElement("h2",{className:"serif pr6-ll-t",id:titleId,ref:titleRef,tabIndex:-1}, tf("pr6_imp_t",{n:n,m:lista.length})),
+          React.createElement("button",{type:"button",className:"link","data-testid":"plan-import-todos",onClick:todos}, alguno?t("pr6_imp_marcar"):t("pr6_imp_quitar"))),
+        React.createElement("div",{className:"pr6-imp-l"},
+          lista.map(function(d,i){
+            const on=!off[i];
+            return React.createElement("button",{type:"button",key:i,role:"switch","aria-checked":on?"true":"false",className:"pr6-imp-row"+(on?"":" off"),"data-testid":"plan-import-row",
+              onClick:function(){ setOff(function(o){ const x=Object.assign({},o); x[i]=!x[i]; return x; }); }},
+              React.createElement("span",{className:"nm"},
+                React.createElement("span",{className:"pr6-nm"}, d.name),
+                React.createElement("span",{className:"sub"}, (d.cat&&CAT[d.cat]?catName(d.cat)+" · ":"")+entOf(d.bank).label+" · "+tf("pr6_dia",{d:d.day}))),
+              React.createElement("span",{className:"am num"}, eur(d.amount)),
+              React.createElement("span",{className:"pr6-imp-dot","aria-hidden":"true"}));
+          })),
+        React.createElement("button",{type:"button",className:"pr6-cta","data-testid":"plan-import-ok",disabled:!n,onClick:anadir},
+          n===0?t("pr6_imp_ninguno"):n===1?t("pr6_imp_add1"):tf("pr6_imp_add",{n:n})))),
+    document.body);
 }
 // Icono gris por tipo de aviso (SPEC §2.3): reloj, ojo tachado, subida, flechas y duda.
 const PR6_ICO={
@@ -30919,7 +31449,7 @@ function billGlyph(row){
 
 /* §2 variante A: `.settings-push` hub. Reconcile → BankPanel (Claude).
    Ajustes dispara `mc-open-bills` → PlanTab abre este push con state vivo (no snapshot). */
-function BillsManagePush({open, onClose, state, set, totals, simple, editId}){
+function BillsManagePush({open, onClose, state, set, totals, simple, editId, addNow}){
   const [stack,setStack]=React.useState(["hub"]);
   const [group,setGroup]=React.useState(null);
   const [q,setQ]=React.useState("");
@@ -30995,6 +31525,13 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId}){
       .find(function(x){ return String(x.id)===String(editId); });
     if(r){ editOnly.current=true; abrirFila(r); }
   },[open,editId]);
+  /* «Empezar» del primer uso sin cargos en el banco (SPEC §9): directo al alta por pasos y, al
+     cerrarla, de vuelta a Recibos, igual que «Editar» desde la ficha. */
+  React.useEffect(function(){
+    if(!open||!addNow||simple) return;
+    editOnly.current=true;
+    setPasos({mode:"add",once:false,n:addNow});
+  },[open,addNow]);
   const closeDetail=React.useCallback(function(){
     setDetail(null);setReviewBill(null);
     if(editOnly.current){ editOnly.current=false; onCloseRef.current(); }
@@ -31472,7 +32009,7 @@ function rp4PlanInicial(total, name, cm){
 /* «Visto en tu banco»: cargos que se repiten en el extracto (`detectSubscriptions`, el mismo
    detector de Gastos) y que aún no son un recibo. Solo filas del banco: lo apuntado a mano no se
    ha «visto» en ningún banco. */
-function rp4VistoEnBanco(state){
+function rp4VistoEnBanco(state, max){
   const fx=state.fixed||[];
   const ex=(state.expenses||[]).filter(function(x){
     return x&&esFilaDeBanco(x)&&!x.debtId&&!x.possibleDup&&!CAT_NEUTRAS[x.category]&&x.category!=="ingreso";
@@ -31480,9 +32017,10 @@ function rp4VistoEnBanco(state){
   return detectSubscriptions(ex).filter(function(g){
     if(!g.active||!(g.amount>0)||!g.ult.length) return false;
     return !fx.some(function(f){ return recNameMatch(f.name,g.name)||recNameMatch(g.name,f.name); });
-  }).slice(0,3).map(function(g){
+  }).slice(0,max===0?Infinity:(max||3)).map(function(g){
     const e=g.ult[0].e;
-    return {name:String(g.name||"").trim(), amount:g.amount, day:recDay(e.date), bank:expenseBankOf(e), cat:g.cat&&CAT[g.cat]&&!CAT_NEUTRAS[g.cat]?g.cat:""};
+    // `seguido`: cobrado todos los meses de su primer a su último cobro (`span`), sin huecos.
+    return {name:String(g.name||"").trim(), amount:g.amount, day:recDay(e.date), bank:expenseBankOf(e), cat:g.cat&&CAT[g.cat]&&!CAT_NEUTRAS[g.cat]?g.cat:"", seguido:g.span===g.months, ultimo:Number(g.ult[0].amount)||0};
   }).filter(function(d){ return d.name; });
 }
 /* − / + que acelera al mantener pulsado (SPEC §7.3). El teclado (detail 0) da un paso por toque. */
@@ -31699,7 +32237,7 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
         addOneoffItem(set,{id:uid(),name:nombre,amount:Math.round(amt*100)/100,month:M,year:Y,day:f.once.day,account:f.account});
         onSaved("oneoff",nombre);
       } else {
-        addFixedItem(set,Object.assign({id:uid()},borrador()));
+        addFixedItem(set,conMesDeAlta(Object.assign({id:uid()},borrador())));
         onSaved("fixed",nombre);
       }
     } else if(kind==="oneoff"){
@@ -32120,7 +32658,7 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, onSa
       const d=cleanDay(form.day); if(d) it.day=d;
       addOneoffItem(set,it);
     } else {
-      const it=Object.assign({id:uid()},fixedDraft(amt));
+      const it=conMesDeAlta(Object.assign({id:uid()},fixedDraft(amt)));
       const d=cleanDay(form.day); if(d) it.day=d;
       addFixedItem(set,it);
     }
@@ -34223,6 +34761,13 @@ function App(){
           // Los «no es este recibo» no se pisan con la lista de quien llegó el último: clave a
           // clave gana lo más reciente que se dijo, sea ponerlo o levantarlo (`reciboNoUnion`).
           if(prev.reciboNo||cloudState.reciboNo) Object.assign(baseObj, reciboNoUnion(prev, cloudState));
+          // Las fotos del mes de Plan › Recibos se mezclan mes a mes con lo que más sabe cada una
+          // (`pr6FotosUnion`, 08): gane quien gane el estado, los dos móviles acaban con la misma.
+          const fotosL=sameOwner&&(prev.settings||{}).pr6Fotos, fotosN=(cloudState.settings||{}).pr6Fotos;
+          if(fotosL||fotosN){
+            const fotos=pr6FotosUnion((baseObj.settings||{}).pr6Fotos, fotosL===(baseObj.settings||{}).pr6Fotos?fotosN:fotosL);
+            if(fotos!==(baseObj.settings||{}).pr6Fotos) baseObj.settings=Object.assign({},baseObj.settings,{pr6Fotos:fotos});
+          }
           // Usuario que ya tenía cartera en la nube: no repetir onboarding en otro dispositivo.
           if(freshLogin && (cloudState.accounts||[]).length) baseObj.onboarded=true;
           if(freshLogin && ((cloudState.accounts||[]).length || (cloudState.monthStartNet||0)>0)) baseObj.setupHint=false;
