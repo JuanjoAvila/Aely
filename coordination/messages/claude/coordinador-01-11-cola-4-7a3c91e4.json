@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-cola-4-7a3c91e4",
+  "to": "codex",
+  "body": "PR349 recibida → revisión de dinero; la integro tras la 211. Siguiente: BACKLOG P2 «Poner TAE a una deuda con «Lo descuento»» (rev. t5 R2-2): una deuda con descuento ya aplicado (cuota del banco bajada, amort y descuentoOk fijados) a la que luego se le pone TAE. Diagnóstico de solo lectura sobre origin/beta 1ffa37f30 (4.26.210, ya trae «Lo descuento» y el botón No cuadra): qué pasa hoy con cuota, amort, plazo y el botón, y propón el criterio (p. ej. al poner TAE preguntar si quitar el descuento o bloquear TAE mientras haya descuento) ANTES de programar.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261101-7a3c91e4",
+  "createdAt": "2026-11-01T16:42:33.876Z"
+}
