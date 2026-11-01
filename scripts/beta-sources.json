@@ -17297,7 +17297,8 @@
           "suggestCategory",
           "setExpenseRecibo",
           "renameExpense",
-          "setExpenseMeta"
+          "setExpenseMeta",
+          "confirmTrMonthlyInvestment"
         ]
       },
       {
@@ -21055,7 +21056,8 @@
           "setExpenseRecibo",
           "pullState",
           "renameExpense",
-          "setExpenseMeta"
+          "setExpenseMeta",
+          "confirmTrMonthlyInvestment"
         ]
       },
       {
@@ -23559,7 +23561,8 @@
           "suggestCategory",
           "setExpenseRecibo",
           "renameExpense",
-          "setExpenseMeta"
+          "setExpenseMeta",
+          "confirmTrMonthlyInvestment"
         ]
       },
       {
@@ -25225,7 +25228,8 @@
           "suggestCategory",
           "setExpenseRecibo",
           "renameExpense",
-          "setExpenseMeta"
+          "setExpenseMeta",
+          "confirmTrMonthlyInvestment"
         ]
       },
       {
@@ -96737,7 +96741,8 @@
           "setExpenseDeuda",
           "setExpenseNoCard",
           "setExpenseNote",
-          "suggestCategory"
+          "suggestCategory",
+          "confirmTrMonthlyInvestment"
         ]
       },
       {
@@ -124978,7 +124983,9 @@
         "file": "src/modules/00-core.js",
         "data": "cloud",
         "members": [
-          "confirmTrMonthlyInvestment"
+          "confirmTrMonthlyInvestment",
+          "enabled",
+          "logEvent"
         ]
       },
       {
@@ -125085,6 +125092,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "obConfirmedCanUpload"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLogEvent"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -125765,6 +125776,14 @@
       {
         "file": "src/modules/00-core.js",
         "data": "obConfirmedBlocked"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USO_OK"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "GASTO_ORIGENES"
       },
       {
         "file": "src/modules/08-motor-bank.js",

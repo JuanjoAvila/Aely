@@ -6373,14 +6373,19 @@ test("Catálogo208 añade la tanda de la inversión mensual de Trade Republic so
     }
     return web;
   };
+  // El método nuevo del cloud lo lee Expenses: los descriptores que llevan Expenses con su lista de métodos vigilados lo añaden al final de ella (el test de métodos leídos lo exige); se compara sin él.
+  const metodo="confirmTrMonthlyInvestment",conMetodo=["inc-0210-03-gastos-periodo","feature-0310-01-movilidad","inc-0310-gastos-sin-limite","inc-0710-gastos-mes-madrid","gastos-v5-ciclos-metas-inversiones"];
+  const sinMetodo=web=>web.map(u=>u.members?{...u,members:u.members.filter(m=>m!==metodo)}:u);
+  assert.deepEqual(Object.keys(scopes).filter(k=>k!==tandaM&&scopes[k].web.some(u=>u.members&&u.members.includes(metodo))),conMetodo,"solo esos cinco vigilan el método nuevo");
+  for(const k of conMetodo)assert.equal(scopes[k].web.find(u=>u.data==="cloud"&&u.members).members.at(-1),metodo,k+": lo añade al final");
   const crecen=[];
   for(const [key,scope] of Object.entries(integrated)){
     const ahora=scopes[key];
     assert.deepEqual(Object.keys(ahora),Object.keys(scope),key+": mismas claves");
     for(const k of Object.keys(scope))if(k!=="web")assert.deepEqual(ahora[k],scope[k],key+": "+k+" intacto");
-    assert.deepEqual(ahora.web.slice(0,scope.web.length),scope.web,key+": lo anterior intacto");
+    assert.deepEqual(sinMetodo(ahora.web).slice(0,scope.web.length),scope.web,key+": lo anterior intacto");
     if(key===archiveId){assert.equal(ahora.web.length,scope.web.length,key+": referencia fija, no crece");continue;}
-    assert.deepEqual(ahora.web,cierre(scope.web),key+": solo crece lo que el cierre de lectores exige, en su orden");
+    assert.deepEqual(sinMetodo(ahora.web),cierre(scope.web),key+": solo crece lo que el cierre de lectores exige, en su orden");
     if(ahora.web.length>scope.web.length)crecen.push(key);
   }
   assert.deepEqual(crecen,["inc-3009-nomina-anticipada","inc-0210-03-gastos-periodo","feature-0310-01-movilidad","inc-0310-gastos-sin-limite","inc-0710-gastos-mes-madrid","inc-0810-metas-editar-regla","inicio-grafica-vuelve","bancos-sin-hueco","bancos-acuse-reconexion","tr-iguales-ordinal","recibo-cargo-en-gastos","limpieza-ajustes-perfil","tr-empareja-sin-preguntar","compras-identicas-ids","deudas-metas-hoja-edicion","gastos-suscripciones-botones","deudas-plazo-cuota-encaja","deudas-metas-hoja-cierre-suave","fichas-cierre-suave-atras","cuenta-saldo-cierre-atras","banco-pruebas-sin-aviso","recibo-renombrado-sigue-pagado","plan-por-confirmar-prestamo-youtube","vuelta-sin-tiron","deuda-bajar-cuota-alarga-plazo","cartera-ordenar-brokers","youtube-enlazar-recibo","vibracion-ajustador","gestionar-plan-sin-ola","renombrar-y-notas-seguras","gestionar-plan-ola","vibracion-ajustador-r2","gestionar-plan-ola-r2","youtube-diagnostico","recibos-cifra-cuadra","cartera-sin-lagazo","renombrar-sin-cobertura","vibracion-r4","youtube-ficha-reconoce","youtube-r4","recibos-meses-a-mano","gastos-dos-bancos","cartera-moneda","categoria-coche","deuda-nueva-desde-su-dia","gastos-v5-movimientos","gastos-v5-secciones","gastos-v5-filtro","gastos-v5-subs","gastos-v5-filtros-hoja","sync-dos-moviles","gastos-v5-ciclos-metas-inversiones","plan-dos-moviles","gastos-lag-ciclos","gastos-lag-ciclos-r3","gastos-scroll-fluido-cifras","gastos-margen-sin-nomina","plan-recibos-v6-t1","deuda-ir-suave","plan-recibos-v6-t2","gastos-renombrar-otro-banco","plan-recibos-t3","fin28-aviso-enlace-manual","tr-login-v2","plan-recibos-t4","plan-recibos-guardar-pagado","plan-recibos-qa","plan-recibos-t5","plan-recibos-t6","deuda-ponle-dia"],"crecen los descriptores cuyo cierre de lectores alcanza el código nuevo");
@@ -6388,7 +6393,7 @@ test("Catálogo208 añade la tanda de la inversión mensual de Trade Republic so
   const propias=[...fn(M8,["trMonthlyCents","trMonthlyText","trMonthlySame","trMonthlyIsin","trMonthlyPurpose","trMonthlyProposal","trMonthlyFingerprint","trMonthlyRowMatches","trMonthlyConfirmed","trMonthlySaveConfirmed","trMonthlyInvalidatePull","trMonthlyImportPlan"]),
     {file:C0,from:"    async confirmTrMonthlyInvestment(",to:"    async confirmExpenseWithdrawal("},
     {file:C0,from:"\"confirmTrMonthlyInvestment\"",to:"\"setExpenseDeuda\""},
-    {file:C0,data:"cloud",members:["confirmTrMonthlyInvestment"]},
+    {file:C0,data:"cloud",members:["confirmTrMonthlyInvestment","enabled","logEvent"]},
     {file:G4,from:"  const monthlyPending=useRef({}), monthlyState=useRef(state);",to:"  const withdrawalPending=useRef({});"},
     {file:G4,from:"withdrawalStatus:withdrawalStatus,confirmMonthlyInvestment:confirmMonthlyInvestment",to:"      showToast:showToast, aiBusy:aiBusy"},
     {file:G4,from:"function ExpenseDetailSheet({exp, editExp, setEditExp,",to:"  /* UNA SOLA CONDICIÓN"},
