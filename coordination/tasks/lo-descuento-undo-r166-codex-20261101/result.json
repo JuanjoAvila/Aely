@@ -1,0 +1,71 @@
+{
+  "status": "done",
+  "summary": "Deshacer de recibo y ajustes de Lo descuento implementado, revisado de forma independiente y entregado en PR 349 draft contra beta. Restaura delta propio y saldo mostrado, conserva ediciones concurrentes, espera commit real, protege caducidad y cierre antes de escribir. Revision financiera e integracion pendientes.",
+  "productSHA": "704ab8943979b969b38cd0a788f3cd354c5cd72c",
+  "baseSHA": "e04778e0aaf8264ba996f65a123394d5ef725975",
+  "branch": "codex/lo-descuento-undo-r166",
+  "pr": 349,
+  "draft": true,
+  "scope": [
+    "src/modules/14-v4-screens.js",
+    "src/modules/01-i18n.js",
+    "tests/lo-descuento-undo.test.mjs",
+    "e2e/lo-descuento-undo.spec.mjs",
+    "scripts/run-tests.mjs",
+    "scripts/relevant-tests.mjs",
+    "docs/ARQUITECTURA.md",
+    "docs/BACKLOG.md"
+  ],
+  "tests": [
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/lo-descuento-undo.test.mjs",
+      "environment": "Europe/Madrid",
+      "exitCode": 0,
+      "passed": 16
+    },
+    {
+      "command": "node tests/lo-descuento-undo.test.mjs",
+      "environment": "UTC",
+      "exitCode": 0,
+      "passed": 16
+    },
+    {
+      "command": "playwright test e2e/lo-descuento-undo.spec.mjs --project chromium --workers=1 --retries=0 --max-failures=1",
+      "exitCode": 0,
+      "passed": 9
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/i18n-keys.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "Datos sinteticos y Chromium local aislado. No acredita nube real, movil ni beta servida.",
+    "Sin merge, rebase, despliegue ni cambios de version. Revision de dinero e integracion corresponden al coordinador y Claude.",
+    "Readback de PR draft: mergeable false con beta actual; no se resolvieron conflictos fuera del grant.",
+    "CI no acreditado: consulta de workflows para HEAD sin runs observados.",
+    "Cola local de marcas mediante API existente; no atomicidad entre dispositivos."
+  ],
+  "schema": 1,
+  "taskId": "lo-descuento-undo-r166-codex-20261101",
+  "actor": "codex",
+  "sessionId": "undo166-521a6336fe2e48e5b5c53e1a17f665c3",
+  "createdAt": "2026-11-01T16:39:41.161Z",
+  "released": true
+}
