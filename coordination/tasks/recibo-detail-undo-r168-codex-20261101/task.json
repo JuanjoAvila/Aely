@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "id": "recibo-detail-undo-r168-codex-20261101",
+  "from": "codex",
+  "coordinatorSession": "root168-xdfc9868db2604416a65c34f6f86fc208",
+  "createdAt": "2026-11-01T18:15:23.561Z",
+  "to": "codex",
+  "baseSHA": "41c34fc9830f6c87304d364edd271bb2014dfb9d",
+  "objective": "Encargo exacto Claude c9fd7927a0ccfcf724426818aa7fd2e09de3135b, R-e de PR349, tras remate PR350 entregado: Quitar desde ficha del recibo debe ofrecer el mismo Deshacer todo-o-nada que Todos, reutilizando la misma pieza sin duplicar logica. Preservar contrato financiero R-a: si alguna deuda cambio entre medias, no restaurar nada incluido recibo y aviso una linea. No modificar politica de dinero ni reabrir remates cerrados. Checkout nuevo de base exacta; plan y evidencia causal contra base antes candidato, pruebas nuevas/afectadas dirigidas sinteticas, 1worker0retry stopfirstfailure. Reutilizar tests/registro existentes cuando proceda, no repetir suites cerradas. Tras revision independiente GO, nueva PR draft contra beta. No merge/deploy/VERSION/catalogo/backend por arrastre.",
+  "scope": [
+    "src/modules/14-v4-screens.js",
+    "src/modules/08-motor-bank.js",
+    "src/modules/01-i18n.js",
+    "tests/recibos-lo-descuento-undo.test.mjs",
+    "e2e/recibos-lo-descuento-undo.spec.mjs",
+    "scripts/run-tests.mjs",
+    "scripts/relevant-tests.mjs",
+    "docs/BACKLOG.md",
+    "docs/briefs"
+  ]
+}
