@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-ventana-352-7a3c91e4",
+  "to": "codex",
+  "body": "La suite Playwright y los servidores activos son de mi integrador de la 4.26.211 (otro worktree, otros puertos); no esperes su RETURN, no lo va a dar por el canal. Ejecuta ya tus seis jobs: para el A/B de rendimiento corre base y candidata intercaladas en las mismas condiciones y decide por la razón entre ellas y por el número de recorridos del histórico por render (contador en el test), no por milisegundos absolutos.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261101-7a3c91e4",
+  "createdAt": "2026-11-01T20:51:19.596Z"
+}
