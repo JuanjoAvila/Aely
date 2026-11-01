@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "id": "tr-monthly-invest-confirm-r157-codex-20261101",
+  "from": "codex",
+  "coordinatorSession": "nrelay1e76272517624f43824e60a7d66d0f11",
+  "createdAt": "2026-11-01T06:41:32.221Z",
+  "to": "codex",
+  "baseSHA": "ea4a04efa82444f8ff3a2588aa3867205e3d772e",
+  "objective": "Aportacion mensual TR: auditar fixtures sinteticos de puente y Open Banking y luego implementar minimo prudente: propuesta Inversion mensual y confirmacion expresa una vez; solo despues recurrencia mismo broker, importe exacto5000centimos y dias1-5. Primera fase read-only y contrato privado antes de gate concreto del padre.",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/01-i18n.js",
+    "src/modules/04-tab-gastos.js",
+    "src/modules/06-sync-brokers.js",
+    "src/modules/08-motor-bank.js",
+    "src/modules/10-app-components.js",
+    "src/modules/11-app-main.js",
+    "tests",
+    "e2e",
+    "scripts/run-tests.mjs",
+    "scripts/relevant-tests.mjs",
+    "docs/BACKLOG.md",
+    "docs/ARQUITECTURA.md"
+  ],
+  "authority": "b5811786d4dcf8c83b1b6a9809c503ed719091e4",
+  "acceptance": [
+    "Primero mapear monthlyInvest, importacion puente/OB, fixtures y clasificacion vigente en base exacta. Entregar causas, contrato minimo, archivos exactos y plan de pruebas privado; sin editar/evaluar/testear en primera fase.",
+    "Proponer Inversion mensual la primera vez; solo tras confirmacion expresa UNA vez se permite recurrencia del mismo broker/identidad inequivoca, importe exacto en centimos sin tolerancia y dias1-5. monthlyInvest existente o sembrado no acredita consentimiento.",
+    "Solo cambian filas confirmadas: no reclasificacion masiva o retroactiva, compras legitimas del mismo importe intactas, no doble inversion ni cuota mensual. Resolver pendientes/BOOK/signo/ambiguedad con contrato y oraculo independiente.",
+    "Pruebas sinteticas en centimos y A/B base/candidata tras gate concreto; reusar fixtures TR puente y OB existentes. Cero datos reales o consultas bancarias.",
+    "Subconjunto minimo de scope aprobado por padre; ampliar dinero/persistencia solo tras revision y consultaClaude cuando autoridad no lo resuelva.",
+    "Aplicar nota minima UX290904 aparcada a BACKLOG cuando padre aporte fragmento revisado: obBalAt financiero, last_sync cursor y lastBankSync global sin exito por cuenta. No M1/M2.",
+    "Candidata privada con manifest/hash/EXIT y limites; commit/push/PR solo tras gate propio. Nueva PR DRAFT contra beta baseea4a04efa, sin merge/deploy/versiones/catalogos."
+  ],
+  "constraints": [
+    "Recepcion primero: identidad nativa env/cwd/ancestros y API proyecto Aely, publicSession/nonce nuevos, ACK exclusivo fsync/readback OWN0. No init/fetch/codigo/tests antes admision nativa.",
+    "Leer fresca autoridad7188f09dd641ffd90c5a2455196b1385c4bb084c: OWN20 propio min30s primera/internas/readbacks cap20; FULL RAW todos deltas/cancelaciones y ACK antes de watermark/accion. No herencia runtime/repos/state/claims/leases/grants/counters/NFF.",
+    "Tras admision activar OWN y claim propio con readback confirmado antes de auditoria. Este es encargo distinto, sin sucesion runtime de UI/P2/UX.",
+    "No reabrir PR251/PR310/PR337/PR338 ni repetir pruebas cerradas; UX290904 cancelada salvo nota de backlog.",
+    "Sin backend SQL Edge Android APK banco real feed live timers autosync o dependencias nuevas. No reglas de dinero ajenas.",
+    "edaff476 permite Node/e2e/javac dirigidos sin gate/reserva CPU1, datos sinteticos1worker0retry stopfirstfailure logs/puerto propios. Fullsuite/Gradle/performance exclusivos.",
+    "Solo padre reportaClaude; noProductREADY y sin aviso humano hasta integracion/beta servida exacta."
+  ]
+}
