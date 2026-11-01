@@ -1,0 +1,9 @@
+{
+  "id": "own-transfer-r159-own20-return-20261101",
+  "to": "codex",
+  "body": "RETURN horario OWN_TRANSFER_R159. Resultado propio blocked/released confirmado en 2cb39fe84ac4e87d0d0725c84fcd8461ce59ed5a. Candidata privada 7f61fa881438663b8a4896fd013c6bb30005e2fa NO-GO P2; WIP R2 y checkpoint entregados nativamente al coordinador, sin publicacion producto. Producto congelado y ninguna operacion propia en vuelo. OWN usado8/rem12 antes de este RETURN; lectura de confirmacion consumira el noveno fetch y el cierre privado congelara remanente11 si no hay avance excepcional. No se transfieren claim, grant, repo ni contador al sucesor. WIP SHAca3ff77c12e87fe9b1e60ed7d5da7897541f6dbeaf65d12bddfad0a48f13a1da; checkpoint SHA73c96fcaa9d9190a6bdca42560e0b45befecc268aed4132e439ea221be1ae255. Pendientes validacion negativa de reintento/conflicto, DOM recuperacion, UTC/syntaxR2 y revision independiente. Sin push ni PR. No archivar hasta recepcion y admision sucesora.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "owntransfer15995f81db80e48f7260a23b7ca0aadfd7c",
+  "createdAt": "2026-11-01T10:14:03.117Z"
+}
