@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.26.208",
+    "d": "2026-11-01",
+    "t": {
+      "es": "Trade Republic: tu aporte mensual, reconocido",
+      "en": "Trade Republic: your monthly investment, recognised",
+      "ca": "Trade Republic: la teva inversió mensual, reconeguda"
+    },
+    "items": {
+      "es": [
+        "Trade Republic: si tu aportación mensual para invertir llega como una transferencia, la confirmas una vez desde su ficha y la app reconoce las siguientes del mismo plan, sin comprar participaciones de más."
+      ],
+      "en": [
+        "Trade Republic: if your monthly investment contribution arrives as a transfer, you confirm it once from its details and the app recognises the next ones from the same plan, without buying extra shares."
+      ],
+      "ca": [
+        "Trade Republic: si la teva aportació mensual a la inversió arriba com a transferència, la confirmes un cop des de la seva fitxa i l’app reconeix les següents del mateix pla, sense comprar participacions de més."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "tr-inversion-mensual",
+        "t": {
+          "es": "Gastos: confirmar la inversión mensual de Trade Republic",
+          "en": "Spending: confirm the Trade Republic monthly investment",
+          "ca": "Despeses: confirmar la inversió mensual de Trade Republic"
+        },
+        "items": {
+          "es": [
+            "1. Gastos → abre una transferencia de Trade Republic de los días 1 al 5 del mes (si ninguna enseña «¿Es tu aportación mensual?», no hay nada que probar). BIEN: arriba de la ficha sale «¿Es tu aportación mensual?» con el botón «Inversión mensual»; al tocarlo pregunta y, al pulsar «Confirmar inversión», avisa «Aportación confirmada.», el movimiento pasa a Inversión y la posición de ese fondo en Cartera no cambia. MAL: sale en algo que no es tu aportación, el movimiento cambia sin que lo confirmes, o la posición del fondo sube de más.",
+            "2. Mismo sitio: abre una transferencia de Trade Republic de los días 1 al 5 que NO sea tu aportación (por ejemplo, un envío a otra persona). BIEN: si sale «¿Es tu aportación mensual?», no cambia nada hasta que tú confirmes, y al cancelar el movimiento sigue como estaba. MAL: pasa a Inversión sin que lo confirmes. Apunta cuántas transferencias que no eran aportaciones te han preguntado."
+          ],
+          "en": [
+            "1. Spending → open a Trade Republic transfer from the 1st to the 5th of the month (if none shows “Is this your monthly contribution?”, there is nothing to test). RIGHT: at the top of the details, “Is this your monthly contribution?” appears with the “Monthly investment” button; tapping it asks, and when you press “Confirm investment” it says “Contribution confirmed.”, the entry becomes Investment and that fund’s position in Portfolio does not change. WRONG: it shows on something that is not your contribution, the entry changes without you confirming, or the fund position goes up by extra.",
+            "2. Same place: open a Trade Republic transfer from the 1st to the 5th that is NOT your contribution (for example, a payment to another person). RIGHT: if “Is this your monthly contribution?” shows, nothing changes until you confirm, and if you cancel the entry stays as it was. WRONG: it becomes Investment without you confirming. Note how many transfers that were not contributions asked you."
+          ],
+          "ca": [
+            "1. Despeses → obre una transferència de Trade Republic dels dies 1 al 5 del mes (si cap mostra «És la teva aportació mensual?», no hi ha res a provar). BÉ: a dalt de la fitxa surt «És la teva aportació mensual?» amb el botó «Inversió mensual»; en tocar-lo pregunta i, en prémer «Confirmar inversió», avisa «Aportació confirmada.», el moviment passa a Inversió i la posició d’aquest fons a Cartera no canvia. MALAMENT: surt en alguna cosa que no és la teva aportació, el moviment canvia sense que ho confirmis, o la posició del fons puja de més.",
+            "2. El mateix lloc: obre una transferència de Trade Republic dels dies 1 al 5 que NO sigui la teva aportació (per exemple, un enviament a una altra persona). BÉ: si surt «És la teva aportació mensual?», no canvia res fins que tu confirmis, i en cancel·lar el moviment queda com estava. MALAMENT: passa a Inversió sense que ho confirmis. Apunta quantes transferències que no eren aportacions t’han preguntat."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.207",
     "d": "2026-11-01",
     "t": {
