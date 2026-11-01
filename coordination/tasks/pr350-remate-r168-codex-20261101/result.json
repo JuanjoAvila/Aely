@@ -1,0 +1,44 @@
+{
+  "status": "done",
+  "summary": "PR350 rematada: el e2e espera persistencia de arranque manteniendo oracle completo state/raw; CHANGELOG/BACKLOG documentan sync antiguo que elude guardia TAE y pasa la parte a te deben sin cambiar cuota. Revision independiente GO y push normal a rama existente; draft conservada.",
+  "productSHA": "b83c34675a0f4501e790430894a4a509a0ac650f",
+  "pr": 350,
+  "tests": [
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "causal baseline paused with delayed startup ACK; expected assertion RED",
+      "exitCode": 1
+    },
+    {
+      "command": "causal candidate paused with identical delay and startup barrier; 1 passed",
+      "exitCode": 0
+    },
+    {
+      "command": "playwright deudas-tae-descuento final 5 passed workers1 retries0 maxFailures1",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check e2e/deudas-tae-descuento.spec.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "Synthetic Chromium only. No new mobile acceptance or integration/served beta/CI claim.",
+    "Baseline startup race changes lastSync, accountBalanceHistory, _goalSync and _planSync; debt and fixed unchanged. Candidate before/after state and raw identical.",
+    "No product/shared-fixture changes or version bump. Prior closed suites preserved without repetition.",
+    "Old-client sync may introduce positive APR past editor guard; share becomes te deben without changing monthly payment."
+  ],
+  "schema": 1,
+  "taskId": "pr350-remate-r168-codex-20261101",
+  "actor": "codex",
+  "sessionId": "pr350remate-07bb3a722d354210ad7163a55e6a2a2b",
+  "createdAt": "2026-11-01T18:12:43.668Z",
+  "released": true
+}
