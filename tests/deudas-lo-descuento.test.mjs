@@ -16,7 +16,9 @@ const recibo=(parte,extra)=>({id:"rx",name:"Fibra sintética",amount:+(90-parte)
   reparto:[{id:"pe_x",n:"Persona X",via:"debt",debtId:"dx",amt:parte}],...extra});
 const st=(d,fixed)=>({debts:[d],fixed:fixed||[],accounts:[],flows:[],oneoffs:[]});
 const one=s=>s.debts[0];
-let n=0;const caso=(name,fn)=>{fn();n++;};
+const soloNuevos=process.env.AELY_LO_DESCUENTO_CASES==="r164";
+assert.ok(!process.env.AELY_LO_DESCUENTO_CASES||soloNuevos,"Filtro de casos desconocido");
+let n=0;const caso=(name,fn)=>{if(!soloNuevos){fn();n++;}};
 
 caso("casa: la cuota baja sola y no se pregunta",()=>{
   const antes=st(debt()),bruto=st(debt(),[recibo(40)]),despues=c.deudasTrasReparto(antes,bruto);
@@ -156,4 +158,62 @@ caso("R2b: una bajada distinta confirmada deja de señalarse hasta que cambie al
   const otra=Object.assign({},fijo,{fixed:[recibo(45)]});assert.ok(c.descuentoDescuadreGuardado(otra,one(otra)));
 });
 
+// El loader corta antes de las pantallas v4. Se carga su función real: copiar aquí el .then
+// daría verde aunque guardar empezara a escribir entre las dos preguntas.
+const pantalla=fs.readFileSync("src/modules/14-v4-screens.js","utf8").replace(/\r\n/g,"\n");
+function tramo(inicio,fin){
+  const a=pantalla.indexOf(inicio),b=pantalla.indexOf(fin,a+inicio.length);
+  assert.ok(a>=0&&b>a&&pantalla.lastIndexOf(inicio)===a&&pantalla.lastIndexOf(fin)===b,"Anclas únicas: "+inicio);
+  return pantalla.slice(a,b);
+}
+function nodos(x){return !x?[]:Array.isArray(x)?x.flatMap(nodos):typeof x==="object"?[x,...nodos(x.children)]:[];}
+async function dosDeudasJuntas(cancelarSegunda){
+  const h=createLogicSandbox({Date:Clock}),valores=[];let cursor=0;
+  h.React.useState=function(init){const i=cursor++;if(!(i in valores))valores[i]=typeof init==="function"?init():init;return [valores[i],v=>{valores[i]=typeof v==="function"?v(valores[i]):v;}];};
+  h.React.createElement=(type,props,...children)=>({type,props:props||{},children});
+  h.React.useId=()=>"persona-test";h.ReactDOM.createPortal=x=>x;
+  vm.createContext(h);vm.runInContext(source,h);
+  vm.runInContext(tramo('\nconst PE_VIAS=','\nfunction peViaTxt(')+tramo('\nfunction PersonaSheet(','\n/* Hoja «¿Te llega?»')+tramo('\nfunction rp4Raw(','\nfunction rp4DiasMes('),h);
+  let cerrar;const cerrado=new Promise(resolve=>{cerrar=resolve;});
+  h.useSheetSwipe=()=>({close:cerrar,sheetRef:{current:null},sheetTouch:{}});h.useBackClose=()=>{};
+  const preguntas=[],esperas=[];
+  h.askText=opciones=>new Promise(resolve=>{const q={opciones,responder:resolve};preguntas.push(q);if(esperas.length)esperas.shift()(q);});
+  let vistas=0;
+  const siguiente=()=>preguntas.length>vistas?Promise.resolve(preguntas[vistas++]):new Promise(resolve=>esperas.push(q=>{vistas++;resolve(q);}));
+  const dx=debt({amort:271.43}),dy=debt({id:"dy",name:"Segundo préstamo",monthly:200,amort:177.77});
+  const original={...st(dx,[recibo(40)]),debts:[dx,dy]},foto=plain(original);
+  let estado=original;const escrituras=[];
+  const set=fn=>{estado=fn(estado);escrituras.push(plain(estado));};
+  const render=()=>{cursor=0;return h.PersonaSheet({pid:"pe_x",state:estado,set,totals:{curYear:2026,curMonth:10,today:14},onClose:cerrar});};
+  const deudas=nodos(render()).find(x=>x.props["data-pe"]==="deuda");
+  const elegir=nodos(deudas).find(x=>x.type==="button"&&x.props.key==="dy");assert.ok(elegir);
+  elegir.props.onClick();
+  const guardar=nodos(render()).find(x=>x.props["data-act"]==="persona-guardar");assert.equal(guardar.props.disabled,false);
+  const sinEscribir=()=>{assert.equal(escrituras.length,0);assert.equal(estado,original);assert.deepEqual(plain(original),foto);};
+  let alarma;
+  try{
+    await Promise.race([(async()=>{
+      guardar.props.onClick();
+      const primera=await siguiente();assert.equal(preguntas.length,1);assert.equal(primera.opciones.sub,dx.name);
+      assert.equal(primera.opciones.value,"340");assert.match(primera.opciones.title,/340,00/);sinEscribir();
+      primera.responder("340");
+      const segunda=await siguiente();assert.equal(preguntas.length,2);assert.equal(segunda.opciones.sub,dy.name);
+      assert.equal(segunda.opciones.value,"200");assert.match(segunda.opciones.title,/160,00/);sinEscribir();
+      segunda.responder(cancelarSegunda?null:"200");await cerrado;
+    })(),new Promise((_,reject)=>{alarma=setTimeout(()=>reject(new Error("No terminó el guardado de dos deudas")),3000);})]);
+  }finally{clearTimeout(alarma);}
+  assert.equal(escrituras.length,1);assert.equal(preguntas.length,2);assert.deepEqual(plain(original),foto);
+  const [a,b]=estado.debts;assert.equal(a.monthly,340);assert.equal(a.amort,undefined);
+  if(cancelarSegunda) assert.deepEqual(plain(b),plain(dy),"La cancelada queda entera como estaba");
+  else {assert.equal(b.monthly,160);assert.equal(b.amort,200);}
+  assert.equal(estado.fixed[0].reparto[0].debtId,"dy");
+  for(const [antes,despues,baja] of cancelarSegunda?[[dx,a,340]]:[[dx,a,340],[dy,b,200]]){
+    assert.equal(cents(h.debtBalance(despues)),cents(h.debtBalance(antes)),"Saldo al céntimo intacto");
+    assert.equal(despues.months,h.debtPaidCount(antes)+Math.ceil(cents(h.debtBalance(antes))/cents(baja)));
+  }
+  n++;console.log("R164 dos deudas: "+(cancelarSegunda?"cancelar segunda conserva primera aceptada":"aceptar ambas")+", una escritura final OK");
+}
+await dosDeudasJuntas(false);
+await dosDeudasJuntas(true);
+assert.ok(n>0,"No se ejecutó ningún caso");
 console.log("deudas-lo-descuento: "+n+" casos OK ("+(process.env.TZ||"TZ local")+")");
