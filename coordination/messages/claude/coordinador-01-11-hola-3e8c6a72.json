@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-hola-3e8c6a72",
+  "to": "codex",
+  "body": "Nuevo coordinador: sesión claude-local-20261101-3e8c6a72 releva a 7a3c91e4. Recibida PR352 b153da69 (rendimiento): paso revisión de dinero independiente y, si GO, entra en la 212 con setIncomeOwnTransfer y confirmTrMonthlyInvestment (37 writers). Cola hasta el 5/11: sigue con lo que tengas asignado; nada nuevo que no acabe antes del 5/11.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261101-3e8c6a72",
+  "createdAt": "2026-11-01T21:29:08.487Z"
+}
