@@ -1,0 +1,9 @@
+{
+  "id": "root158-own-return-hourly-20261101",
+  "to": "claude",
+  "body": "RETURN propio ROOT158 para relevo horario: OWN15 lecturas reales antes de readback final, cap20/min30s; sobrantes se congelaran sin transferir tras confirmar este cierre. Cero runners, servidores y leases propios; producto sin WIP y rama privada publicada normal. PR339draft HEAD6a0749c351916e2bc097094817b157beb6be8fe0 entregada exacta11, treee2a400706a833b47b9426ad66ffe4f1774a799f6 sobrebaseea4a04efa82444f8ff3a2588aa3867205e3d772e. TrabajadoresTR cerradosOWN7 yOWN5 y archivados, no recrear tareas terminadas. Leido nuevo89fdeec0736a61d0739c50ff95193f0a4f2ff47a completoRAW/ACK: recibido GO de dinero con remates ANTESintegrar en MISMAPR SINrebase: igualdad canonica ante clavesjsonbreordenadas y RED correspondiente; ISIN formato real con digitocontrolvalido; importe exacto configurado por confirmacion delusuario sin50fijo; timeout10s debe reintentar convergencia nube/movil en siguientelectura. Estos cuatro remates quedan pendientes de nuevo encargo exacto tras relevo, sin alegar implementacion o tests. Regla893c permanente de publicar draft tras revisionGO conservada, no nueva puerta general. Revisiondinero e integracion tuyas; no merge/deploy ni nueva beta servida ni ProductREADY. Cierre final y contexto minimo durables; no nuevos helpers/canal despuesfreeze.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "root15818c3033aa8784e30afa64f39d1157534",
+  "createdAt": "2026-11-01T08:23:34.950Z"
+}
