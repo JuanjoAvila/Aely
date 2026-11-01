@@ -15,6 +15,8 @@ ficheros con su propio contador); también pasa `npm run test:syntax`. La base
 sin adaptar falla en extracción y por `trMonthlyImportPlan` sin inyectar.
 Son pruebas sintéticas locales, no una sincronización bancaria ni una entrega.
 
+Candidata de entrada propia: casos añadidos a tests/own-transfer-confirm.test.mjs y e2e/own-transfer-confirm.spec.mjs, conservando registro y assertions previas. Validados en fixture aislada: 268 casos de transferencias, persistencia y siete suites complementarias; Playwright 95/95 con un trabajador y sin reintentos. Cubre sin pareja, inversa individual, opt-in, ACK parcial, replay de updater y fuente intacta. Causal en la base 144506c: mismo caso sin pareja falla por ausencia de la acción. Las comprobaciones esperan la persistencia local de 400 ms y reproducen la reevaluación de updaters tras terminar una operación. Build oficial, CI y móvil real siguen pendientes. [Contrato](briefs/own-transfer-income-manual.md).
+
 PRO03 · avisos precomputados del worker nativo:
 `node tests/pro03-native-precomputed-alert.test.mjs`, ya registrado en `steps`,
 compila y ejecuta el worker real en JVM con fronteras Android sintéticas.

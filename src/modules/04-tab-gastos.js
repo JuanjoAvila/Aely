@@ -580,6 +580,64 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     catch(err){if(sourceActionMounted.current&&withdrawalState.current._historyOwner===owner){status("error");showToast(t("f_source_save_error"));}return false;}
     finally{clearTimeout(timer);if(sourceActionPending.current[key]===operation)delete sourceActionPending.current[key];}
   };
+  const [incomeTransferStatus,setIncomeTransferStatus]=useState({});
+  useEffect(function(){
+    setIncomeTransferStatus(function(current){let next=current;
+      Object.keys(current).forEach(function(key){const a=current[key];
+        if(!["error","partial"].includes(a.status)||a.owner!==state._historyOwner||!incomeOwnTransferPlanValid(state,a.plan,true))return;
+        const e=(state.expenses||[]).find(function(x){return x.id===a.id;});
+        const peer=a.peer&&(state.expenses||[]).find(function(x){return x.id===a.peer.outgoing.id;});
+        if(!e||e.category!==a.plan.category||a.peer&&(!peer||peer.category!=="traspaso"||!ownTransferOutgoingValid(state,a.peer,"yes")))return;
+        if(next===current)next=Object.assign({},current);delete next[key];
+      });return next;
+    });
+  },[state,incomeTransferStatus]);
+  const setIncomeTransfer=async function(plan,peer){
+    const initial=withdrawalState.current;
+    if(!incomeOwnTransferPlanValid(initial,plan)||peer&&JSON.stringify(incomeOwnTransferPeer(initial,plan))!==JSON.stringify(peer))return;
+    const owner=plan.owner,key=owner+"|"+plan.incoming.id,ids=[plan.incoming.id].concat(peer?[peer.outgoing.id]:[]),operation={active:true};
+    if(ids.some(function(id){return sourceActionBusy(id)||withdrawalPending.current[id];}))return;
+    const sandbox=mcSandbox();
+    if(mcSandboxTransition()||!sandbox&&!cloud.enabled())return;
+    ids.forEach(function(id){sourceActionPending.current[owner+"|"+id]=operation;withdrawalPending.current[id]=operation;});
+    const live=function(){return operation.active&&sourceActionMounted.current&&withdrawalState.current._historyOwner===owner&&mcSandbox()===sandbox&&!mcSandboxTransition()?withdrawalState.current:null;};
+    const status=function(value){if(!sourceActionMounted.current||withdrawalState.current._historyOwner!==owner)return;
+      setIncomeTransferStatus(function(current){if(value!=="pending"&&current[key]&&current[key].operation!==operation)return current;
+        return Object.assign({},current,{[key]:{id:plan.incoming.id,owner:owner,plan:plan,peer:peer,operation:operation,status:value}});
+      });
+    };
+    status("pending");let timer,incomingConfirmed=false;
+    try{
+      await Promise.race([(async function(){
+        if(!sandbox&&!await cloud.canSetIncomeOwnTransfer(plan,live,peer))throw new Error("income transfer unavailable");
+        if(!live())throw new Error("income transfer cancelled");
+        const ack=sandbox?null:await cloud.setIncomeOwnTransfer(plan,live);
+        if(!live()||!sandbox&&!ack)throw new Error("income transfer unconfirmed");
+        let applied=false;const incomingAt=Date.now();
+        // React puede reproducir el updater después del finally: la decisión con ACK es pura.
+        ReactDOM.flushSync(function(){set(function(s){const next=applyIncomeOwnTransfer(s,plan,incomingAt,ack);applied=next!==s;return next;});});
+        const committedIncoming=(withdrawalState.current.expenses||[]).find(function(e){return e.id===plan.incoming.id;});
+        if(!applied||!incomeOwnTransferPlanValid(withdrawalState.current,plan,true)||!committedIncoming||committedIncoming.category!==plan.category)throw new Error("income transfer changed");incomingConfirmed=true;
+        if(peer){
+          // El primer ACK no reserva la otra fila: se valida la pareja elegida, nunca otra parecida.
+          if(!live()||!incomeOwnTransferWriteValid(live(),plan,peer,false))throw new Error("income transfer peer changed");
+          const peerAck=sandbox?null:await cloud.setIncomeOwnTransfer(plan,live,peer);
+          if(!live()||!sandbox&&!peerAck)throw new Error("income transfer peer unconfirmed");
+          applied=false;const outgoingAt=Date.now();
+          ReactDOM.flushSync(function(){set(function(s){const next=applyOwnTransferDecision(s,peer,"yes",outgoingAt,peerAck);applied=next!==s;return next;});});
+          const committedOutgoing=(withdrawalState.current.expenses||[]).find(function(e){return e.id===peer.outgoing.id;});
+          if(!applied||!ownTransferOutgoingValid(withdrawalState.current,peer,"yes")||!committedOutgoing||committedOutgoing.category!=="traspaso")throw new Error("income transfer peer changed");
+        }
+      })(),new Promise(function(_,reject){timer=setTimeout(function(){operation.active=false;reject(new Error("income transfer timeout"));},10000);})]);
+      status("done");if(live())showToast(t(plan.category==="ingreso"?"f_incomeown_income_done":"f_incomeown_done"));
+    }catch(err){
+      status(incomingConfirmed&&peer?"partial":"error");
+      if(sourceActionMounted.current&&withdrawalState.current._historyOwner===owner)showToast(t(incomingConfirmed&&peer?"f_incomeown_partial":"f_source_save_error"));
+    }finally{
+      operation.active=false;clearTimeout(timer);
+      ids.forEach(function(id){if(sourceActionPending.current[owner+"|"+id]===operation)delete sourceActionPending.current[owner+"|"+id];if(withdrawalPending.current[id]===operation)delete withdrawalPending.current[id];});
+    }
+  };
   const [ownTransferStatus,setOwnTransferStatus]=useState({});
   useEffect(function(){
     setOwnTransferStatus(function(current){
@@ -2081,6 +2139,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       setCat:setCat, setCuota:setCuota, setMeta:setMeta, setReceipt:setReceipt, quitarRecibo:quitarRecibo, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
       resolveDup:resolveDup, separarGemelo:separarGemelo, recognizeWithdrawal:recognizeWithdrawal, withdrawalStatus:withdrawalStatus,confirmMonthlyInvestment:confirmMonthlyInvestment,monthlyStatus:monthlyStatus,
       recognizeOwnTransfer:recognizeOwnTransfer,ownTransferStatus:ownTransferStatus[state._historyOwner+"|"+detailId]||null,
+      setIncomeTransfer:setIncomeTransfer,incomeTransferStatus:incomeTransferStatus[state._historyOwner+"|"+detailId]||null,
       sourceActionStatus:sourceActionStatus[state._historyOwner+"|"+detailId],refreshSourceAction:function(){
         if(!onRefreshExpenses)return Promise.reject(new Error("refresh unavailable"));
         const owner=withdrawalState.current._historyOwner,key=owner+"|"+detailId,attempt=sourceActionStatus[key];
@@ -2797,7 +2856,7 @@ function expensePaymentLabelUI(state,e,kind,relation){
   var rows=(kind==="debt"?state.debts||[]:(state.fixed||[]).concat(state.oneoffs||[])).filter(function(x){return x&&x.id===id;});
   return rows.length===1&&String(rows[0].name||"").trim()?tf("f_link_unconfirmed",{name:rows[0].name}):"—";
 }
-function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setMeta, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus,confirmMonthlyInvestment,monthlyStatus, recognizeOwnTransfer, ownTransferStatus, sourceActionStatus, refreshSourceAction}){
+function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setMeta, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus,confirmMonthlyInvestment,monthlyStatus, recognizeOwnTransfer, ownTransferStatus, setIncomeTransfer, incomeTransferStatus, sourceActionStatus, refreshSourceAction}){
   /* UNA SOLA CONDICIÓN para pintarse y para los candados. Iban por separado (`!!exp` en los hooks,
      `!exp || !editExp` para pintar) y en cuanto se separaban el sheet desaparecía dejando el
      `overflow:hidden` y el bloqueo de `touchmove` puestos sobre una pantalla vacía: nada respondía
@@ -2805,6 +2864,33 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
      es para que ninguna otra vía que vacíe `editExp` pueda volver a dejar la app muerta. */
   const abierto=!!exp && !!editExp;
   const transferSandbox=mcSandbox();
+  const incomeSignature=JSON.stringify(abierto?incomeOwnTransferPlan(state,exp):null);
+  const incomePlan=useMemo(function(){return JSON.parse(incomeSignature);},[incomeSignature]);
+  const incomePeerSignature=JSON.stringify(incomePlan?incomeOwnTransferPeer(state,incomePlan):null);
+  const incomePeer=useMemo(function(){return JSON.parse(incomePeerSignature);},[incomePeerSignature]);
+  const incomeLive=useRef(null);incomeLive.current={plan:incomePlan,peer:incomePeer,state:state,sandbox:transferSandbox};
+  const [incomeOffer,setIncomeOffer]=useState(null),[incomePeerOffer,setIncomePeerOffer]=useState(null),[incomeWithPeer,setIncomeWithPeer]=useState(false);
+  useEffect(function(){
+    let active=true;setIncomeOffer(null);setIncomeWithPeer(false);
+    const current=function(){return active&&incomeLive.current.plan===incomePlan&&incomeLive.current.sandbox===transferSandbox&&mcSandbox()===transferSandbox&&!mcSandboxTransition();};
+    let timer;
+    (async function(){try{
+      if(!incomePlan||!current())return;
+      const ready=transferSandbox?incomeOwnTransferPlanValid(incomeLive.current.state,incomePlan):await Promise.race([cloud.canSetIncomeOwnTransfer(incomePlan,function(){return current()?incomeLive.current.state:null;}),new Promise(function(resolve){timer=setTimeout(function(){resolve(false);},10000);})]);
+      if(current()&&ready)setIncomeOffer(incomePlan);
+    }catch(err){}finally{clearTimeout(timer);}})();
+    return function(){active=false;clearTimeout(timer);};
+  },[incomePlan,transferSandbox]);
+  useEffect(function(){
+    let active=true;setIncomePeerOffer(null);setIncomeWithPeer(false);let timer;
+    const current=function(){return active&&incomeLive.current.plan===incomePlan&&incomeLive.current.peer===incomePeer&&incomeLive.current.sandbox===transferSandbox&&mcSandbox()===transferSandbox&&!mcSandboxTransition();};
+    (async function(){try{
+      if(!incomePlan||!incomePeer||!current())return;
+      const ready=transferSandbox?true:await Promise.race([cloud.canSetIncomeOwnTransfer(incomePlan,function(){return current()?incomeLive.current.state:null;},incomePeer),new Promise(function(resolve){timer=setTimeout(function(){resolve(false);},10000);})]);
+      if(current()&&ready)setIncomePeerOffer(incomePeer);
+    }catch(err){}finally{clearTimeout(timer);}})();
+    return function(){active=false;clearTimeout(timer);};
+  },[incomePlan,incomePeer,transferSandbox]);
   // La elegibilidad se recalcula, pero un cambio ajeno no debe repetir las dos lecturas remotas.
   // La foto completa conserva las invalidaciones del plan, incluidas relaciones fuera de la fila.
   const transferSignature=JSON.stringify(abierto?ownTransferPlan(state,exp):null);
@@ -2939,6 +3025,11 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     exp.renamePending&&React.createElement("div",{className:"hint",role:"status","data-testid":"expense-rename-pending"},t(exp.renamePending.quarantined?"g_rename_paused":"g_rename_pending")," ",React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){saveEdit(exp,{merchant:exp.renamePending.merchant,retryRename:true});}},t("g_note_retry"))),
     trace,duplicate,paired,reciboAviso,
     sourceActionStatus&&sourceActionStatus.id===exp.id&&React.createElement("div",{role:"status","data-testid":"exp-source-save-status"},React.createElement("div",null,t(sourceActionStatus.status==="pending"?"f_source_pending":"f_source_save_error")),sourceActionStatus.status==="error"&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-source-refresh",onClick:function(){refreshSourceAction().catch(function(){});}},t("f_source_refresh"))),
+    incomePlan&&incomeOffer===incomePlan&&React.createElement("div",{"data-testid":"exp-income-own-controls"},
+      incomePlan.category==="ingreso"&&React.createElement("div",{className:"hint"},t("f_incomeown_income_hint")),
+      incomePeer&&incomePeerOffer===incomePeer&&React.createElement("label",{className:"hint"},React.createElement("input",{type:"checkbox","data-testid":"exp-income-own-peer",checked:incomeWithPeer,disabled:incomeTransferStatus&&incomeTransferStatus.status==="pending",onChange:function(e){setIncomeWithPeer(e.target.checked);}}),tf("f_incomeown_peer",{bank:entOf(incomePeer.outgoing.ent).label,amount:eur(incomePeer.outgoing.amount)})),
+      React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-income-own",disabled:incomeTransferStatus&&incomeTransferStatus.status==="pending",onClick:function(){setIncomeTransfer(incomePlan,incomeWithPeer&&incomePeerOffer===incomePeer?incomePeer:null);}},t(incomePlan.category==="ingreso"?"f_incomeown_income":"f_incomeown_action"))),
+    incomeTransferStatus&&incomeTransferStatus.status!=="done"&&React.createElement("div",{role:"status","data-testid":"exp-income-own-status"},React.createElement("div",null,t(incomeTransferStatus.status==="pending"?"f_source_pending":incomeTransferStatus.status==="partial"?"f_incomeown_partial":"f_source_save_error")),incomeTransferStatus.status!=="pending"&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-income-own-refresh",onClick:function(){refreshSourceAction().catch(function(){});}},t("f_source_refresh"))),
     transferPlan&&transferOffer&&transferOffer.plan===transferPlan&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-own-transfer",
       disabled:!transferOffer||transferOffer.plan!==transferPlan||ownTransferStatus&&ownTransferStatus.id===exp.id&&ownTransferStatus.status==="pending",onClick:function(){
         if(!transferOffer||transferOffer.plan!==transferPlan)return;
@@ -3048,7 +3139,8 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     swipe.close(function(){ onClose(true); });
   };
   const pendingSourceStatus=sourceActionStatus&&sourceActionStatus.id===exp.id?sourceActionStatus:
-    ownTransferStatus&&ownTransferStatus.id===exp.id&&ownTransferStatus.status!=="done"?ownTransferStatus:null;
+    ownTransferStatus&&ownTransferStatus.id===exp.id&&ownTransferStatus.status!=="done"?ownTransferStatus:
+    incomeTransferStatus&&incomeTransferStatus.status!=="done"?incomeTransferStatus:null;
   const footer=React.createElement("div",{className:"v4-ficha-foot"},
     React.createElement("button",{type:"button",className:"v4-ficha-del",onClick:doDel},"🗑 "+t("f_del")),
     React.createElement("span",{className:"v4-ficha-saved"},t(pendingSourceStatus?(pendingSourceStatus.status==="pending"?"f_source_pending":"f_source_unconfirmed"):withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status!=="done"
