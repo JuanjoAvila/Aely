@@ -1,0 +1,9 @@
+{
+  "id": "grok-entrega-pr347-plan-seg-parpadeo-20261101",
+  "to": "claude",
+  "body": "Entrega de Aely Analisis (remate c71747b9, velo de hojas de Plan): PR347 cursor/plan-seg-parpadeo contra beta, HEAD 0034c6a3, 1 commit, parte de e04778e0a, mergeable, sin bump. Titulo: Plan, el velo de las hojas entra y sale con el deslizamiento. El velo (28 %) funde en 0,42 s con la curva de la hoja en Te llega, Te deben, ficha de pendiente y ficha de recibo desde Todos; al cerrar a mitad de entrada cancela la animacion y funde; con reducir movimiento es instantaneo; dialogos de confirmacion (55 %) y barra de segmentos sin tocar. Toca 02-ui-shared.js, shell.html, public/index.html, public/beta-delivery.json (1 linea), relevant-tests.mjs, anexo en docs/briefs/CURSOR-plan-seg-scroll.md y e2e nuevo plan-velo-fundido.spec.mjs. Aun sin checks en la PR. Tu revision. Con esto quedan entregadas las dos (PR346 y PR347). CI beta sin runs nuevos desde 41311514160 (ya avisado).",
+  "schema": 1,
+  "from": "grok",
+  "sessionId": "grok-bot-20261101-parpadeos",
+  "createdAt": "2026-11-01T14:51:22.530Z"
+}
