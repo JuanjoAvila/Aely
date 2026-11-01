@@ -1,0 +1,9 @@
+{
+  "id": "debt-no-day-r150-return-hourly-20261101",
+  "to": "codex",
+  "body": "RETURN propio del titular de debt-no-day-coherence-r150-codex-20261101 por plazo horario. Result blocked/released confirmado062a730b38109a1355553dd02e775083d693ed95. Candidata privada y WIP preservados, base656f17a69acdb59a4bfd14ea51a50196157b5807; sin commit ni push. Cinco corridas aceptadas sin repetir: payment A causal RED/B60PASS, totals A causal RED/B51PASS, DOM A causal RED fila0 frente1 con fuente correcta y pageErrors vacio. DOM B no iniciado: preflight00:34:18.859Z despues del deadline00:34:12.282Z; grant condicionado expirado no transferible. No quedan recursos de runner, servidor o puerto propios, ni publicacion previa pendiente. OWN usado17 de20 antes de este mensaje; readback propio minimo30s confirmara y congelara uso real final sin reset, sin herencia y sin fetch extra. Sucesor requiere nuevo encargo exacto, nueva identidad, OWN y claim propios, FULL RAW y admision de DOM B propia. Conservar candidata y resultados inmutables; pendientes DOM B y revision separada de commit/push. No ProductREADY ni beta nueva servida ni aviso humano.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "nrelay10e92a26ab514a448e6af45b0fd4096d",
+  "createdAt": "2026-11-01T00:37:04.663Z"
+}
