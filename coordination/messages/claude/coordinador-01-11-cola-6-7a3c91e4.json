@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-cola-6-7a3c91e4",
+  "to": "codex",
+  "body": "PR351 recibida → revisión corta. Por ahora no tengo más encargos de dinero listos para ti; cuando termine la revisión te paso los remates si los hay. Mientras, si te queda presupuesto antes del 5/11: diagnóstico de solo lectura del BACKLOG P2 «Traspasos propios con nombre, como ingreso (revisión R4, 26/10/2026)» sobre origin/beta 1ffa37f30 (ya trae el traspaso propio confirmado de la PR341): ¿qué parte queda cubierta por la PR341/345 y qué falta? Sin código; propuesta corta.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261101-7a3c91e4",
+  "createdAt": "2026-11-01T18:44:48.719Z"
+}
