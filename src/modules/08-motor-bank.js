@@ -1027,6 +1027,10 @@ function descuentoDescuadreGuardado(s,d){
   if(!(D>0)) return null;
   const cuota=Math.round((Number(d.monthly)||0)*100), amort=Math.round(debtAmort(d)*100);
   if(amort===cuota+D) return null;
+  // Lo que él ya confirmó (otra bajada que la propuesta) no vuelve a señalarse mientras cuota, bajada y
+  // descuento sigan siendo esos (rev. lo-descuento R2b: si no, el botón se quedaba para siempre).
+  const ok=d.descuentoOk;
+  if(ok&&ok.m===cuota&&ok.a===amort&&ok.d===D) return null;
   const paga=amort<cuota&&cuota-D>0?cuota-D:cuota;
   return {id:d.id,name:d.name,paga:paga/100,baja:(paga+D)/100,descuento:D/100};
 }
@@ -1044,8 +1048,11 @@ function deudaFijarDescuento(s,id,paga,baja){
       if(n!=null) form.months=String(n);
     }
     const r=debtEditResult(d,form);
-    if(!r.item||r.item===d) return d;
-    cambia=true; return r.item;
+    if(!r.item) return d;
+    // Su respuesta queda como la referencia de «cuadrado» (ver `descuentoDescuadreGuardado`).
+    const n=Object.assign({},r.item,{descuentoOk:{m:Math.round((Number(r.item.monthly)||0)*100),a:Math.round(debtAmort(r.item)*100),d:Math.round(deudaDescuentoBase(s,d)*100)}});
+    if(JSON.stringify(n)===JSON.stringify(d)) return d;
+    cambia=true; return n;
   });
   return cambia?Object.assign({},s,{debts:debts}):s;
 }

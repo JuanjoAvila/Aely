@@ -147,4 +147,13 @@ caso("R3: ficha sencilla con TAE no acorta el plazo al bajar la cuota",()=>{
   assert.equal(one(s).months,40);assert.equal(one(s).monthly,250);assert.equal(cents(c.debtBalance(one(s))),saldo);
 });
 
+caso("R2b: una bajada distinta confirmada deja de señalarse hasta que cambie algo",()=>{
+  const s=st(debt({amort:271.43}),[recibo(40)]),fijo=c.deudaFijarDescuento(s,"dx",260,310),x=one(fijo);
+  assert.equal(x.monthly,260);assert.equal(x.amort,310);
+  assert.equal(c.descuentoDescuadreGuardado(fijo,x),null,"Lo que confirmó ya es lo cuadrado");
+  // Si cambia la cuota, el descuento o el recibo, vuelve a señalarse.
+  assert.ok(c.descuentoDescuadreGuardado(fijo,{...x,monthly:255}));
+  const otra=Object.assign({},fijo,{fixed:[recibo(45)]});assert.ok(c.descuentoDescuadreGuardado(otra,one(otra)));
+});
+
 console.log("deudas-lo-descuento: "+n+" casos OK ("+(process.env.TZ||"TZ local")+")");
