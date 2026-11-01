@@ -12,6 +12,8 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
   const [manageOpen,setManageOpen]=useState(false);
   // «Editar» desde la ficha de un recibo abre Todos directamente en su edición.
   const [manageEdit,setManageEdit]=useState(null);
+  const [debtDayRequest,setDebtDayRequest]=useState(null);
+  const editDebtDay=function(d){ setDebtDayRequest({id:d.id,ts:Date.now()}); };
   // Modo sencillo: solo Recibos (spec §2).
   const segs=simple
     ? [{id:"recibos",lab:t("v4_plan_recibos")}]
@@ -244,18 +246,19 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       })
     ),
     capa("recibos", simple
-      ? React.createElement(PlanBills,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen})
+      ? React.createElement(PlanBills,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen,onEditDebtDay:editDebtDay})
       : React.createElement(PlanRecibos,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen,
-          manageEdit:manageEdit,setManageEdit:setManageEdit,showToast:showToast,onGoDebts:irADeuda})),
+          manageEdit:manageEdit,setManageEdit:setManageEdit,showToast:showToast,onGoDebts:irADeuda,onEditDebtDay:editDebtDay})),
     !simple && capa("deudas", React.createElement(Debts,{state:state,set:set,showToast:showToast})),
-    !simple && capa("metas", React.createElement(Goals,{state:state,set:set,totals:totals,showToast:showToast}))
+    !simple && capa("metas", React.createElement(Goals,{state:state,set:set,totals:totals,showToast:showToast})),
+    debtDayRequest&&React.createElement(Debts,{state:state,set:set,showToast:showToast,editorOnly:true,editDayRequest:debtDayRequest,onEditDayClose:function(){setDebtDayRequest(null);}})
   );
 }
 
 /* Recibos en modo SENCILLO: la portada compacta que ya funcionaba. El rediseño v6 (`PlanRecibos`)
    es para el modo normal y el sencillo sigue como estaba (SPEC Plan Recibos §0). Aquí no hay
    «Gestionar»: la puerta vive en Ajustes → Cambiar mis recibos (NO-GO §5bis.2). */
-function PlanBills({state, set, totals, charges, evidence, manageOpen, setManageOpen}){
+function PlanBills({state, set, totals, charges, evidence, manageOpen, setManageOpen,onEditDebtDay}){
   const [paidExpanded,setPaidExpanded]=useState(false);
   const [pendExpanded,setPendExpanded]=useState(false);
   const paidPanelId="v4-paid-panel";
@@ -294,7 +297,8 @@ function PlanBills({state, set, totals, charges, evidence, manageOpen, setManage
       React.createElement("div",{className:"tile","aria-hidden":true}, x.day||"—"),
       React.createElement("div",{className:"nm"},
         React.createElement("div",{className:"nm-title"}, x.paid?"✓ "+x.name:x.name,React.createElement(PlanConflictDot,{record:conflict})),
-        React.createElement("div",{className:"meta"}, rowSub(x))
+        React.createElement("div",{className:"meta"}, rowSub(x)),
+        x.kind==="debt"&&React.createElement(DebtDayPrompt,{debt:item,onOpen:onEditDebtDay})
       ),
       React.createElement("div",{className:"am"+(income?" pos":"")}, income?"+":"",planChargeAmount(x))
     );
@@ -555,7 +559,7 @@ function pr6FrescuraTxt(ms, now){
   if(d<7) return tf("pr6_fresh_d",{n:d});
   return tf("pr6_fresh_fecha",{x:a.toLocaleDateString(loc(),{day:"numeric",month:"short"})});
 }
-function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setManageOpen, manageEdit, setManageEdit, showToast, onGoDebts}){
+function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setManageOpen, manageEdit, setManageEdit, showToast, onGoDebts,onEditDebtDay}){
   const [revOpen,setRevOpen]=useState(false);
   const [dueOpen,setDueOpen]=useState(false);
   const [paidOpen,setPaidOpen]=useState(false);
@@ -643,9 +647,13 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   const esVariable=function(x){ const f=/^fixed_/.test(String(x.id))&&(state.fixed||[]).find(function(e){ return "fixed_"+e.id===x.id; }); return !!(f&&f.variable); };
   // Las filas plegadas siguen en el DOM (se despliegan con transición), pero fuera del foco.
   const plegado=function(open){ return open?null:{"aria-hidden":"true",inert:""}; };
+  const withDayPrompt=function(x,row){
+    const d=x.kind==="debt"&&(state.debts||[]).find(function(d){return "debt_"+d.id===x.id;});
+    return React.createElement(React.Fragment,{key:x.id},row,React.createElement(DebtDayPrompt,{debt:d,onOpen:onEditDebtDay}));
+  };
   const dueRow=function(x){
     const n=x.day==null?null:x.day-today;
-    return React.createElement("button",{type:"button",className:"v4-charge pr6-row",key:x.id,"data-recibo":x.id,onClick:function(){ abrir(x); }},
+    return withDayPrompt(x,React.createElement("button",{type:"button",className:"v4-charge pr6-row",key:x.id,"data-recibo":x.id,onClick:function(){ abrir(x); }},
       React.createElement("span",{className:"dt","aria-hidden":"true"},
         React.createElement("span",{className:"d"}, x.day||"—"),
         React.createElement("span",{className:"m"}, monthShort(month-1))),
@@ -654,11 +662,11 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
         React.createElement("span",{className:"sub"}, subOf(x)),
         x.day!=null&&React.createElement("span",{className:"pr6-when"+(n!=null&&n<=1?" soon":"")}, cuando(x))),
       // «Cambia cada mes» (alta por pasos): la cifra es una previsión, se marca con «≈».
-      React.createElement("span",{className:"am num"}, (esVariable(x)?"≈ ":"")+eur(Math.abs(x.amount))));
+      React.createElement("span",{className:"am num"}, (esVariable(x)?"≈ ":"")+eur(Math.abs(x.amount)))));
   };
   const revRow=function(x){
     const cobro=x.rv==="diff"||x.rv==="up";
-    return React.createElement("button",{type:"button",className:"v4-charge pr6-rev",key:x.id,"data-recibo":x.id,"data-review":x.rv,onClick:function(){ abrir(x); }},
+    return withDayPrompt(x,React.createElement("button",{type:"button",className:"v4-charge pr6-rev",key:x.id,"data-recibo":x.id,"data-review":x.rv,onClick:function(){ abrir(x); }},
       React.createElement("span",{className:"pr6-ico","aria-hidden":"true"},
         React.createElement("svg",{width:19,height:19,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.2,strokeLinecap:"round",strokeLinejoin:"round"},
           React.createElement("path",{d:PR6_ICO[x.rv]||PR6_ICO.unconf}))),
@@ -666,7 +674,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
         React.createElement("span",{className:"pr6-nm"}, x.name,React.createElement(PlanConflictDot,{record:conflictOf(x)})),
         React.createElement("span",{className:"sub pr6-why"}, enlaces[x.id]?tf("pr6_enlazado_x",{x:eur(Number(enlaces[x.id].x.amount))}):pr6Motivo(x))),
       // Lo cobrado de más o de menos se enseña tal cual lo cobró el banco.
-      React.createElement("span",{className:"am num"}, eur(cobro?x.cobrado:Math.abs(x.amount))));
+      React.createElement("span",{className:"am num"}, eur(cobro?x.cobrado:Math.abs(x.amount)))));
   };
   const pausadoRow=function(f){
     return React.createElement("button",{type:"button",className:"v4-charge v4-paid pr6-prow pr6-skip",key:"p_"+f.id,"data-recibo":"fixed_"+f.id,"data-pausado":"1",
@@ -681,14 +689,14 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     // Si el cargo no fue lo previsto, se dice cuánto fue (la cifra de la fila sigue siendo la previsión).
     const how=[x.paidBank?tf("pr6_cargo_de",{bank:entOf(x.paidBank).label}):"",planChargeChanged(x)?tf("v4_charge_actual",{x:eur(x.paidAmount)}):"",
       x.descuento?pr6PagasMas(x):""].filter(Boolean).join(" · ");
-    return React.createElement("button",{type:"button",className:"v4-charge v4-paid pr6-prow",key:x.id,"data-recibo":x.id,onClick:function(){ abrir(x); }},
+    return withDayPrompt(x,React.createElement("button",{type:"button",className:"v4-charge v4-paid pr6-prow",key:x.id,"data-recibo":x.id,onClick:function(){ abrir(x); }},
       React.createElement("span",{className:"pr6-tick","aria-hidden":"true"},"✓"),
       React.createElement("span",{className:"nm"},
         React.createElement("span",{className:"pr6-nm"}, x.name,React.createElement(PlanConflictDot,{record:conflictOf(x)})),
         React.createElement("span",{className:"sub"},
           x.day!=null&&React.createElement(React.Fragment,null,React.createElement("span",{className:"d"},x.day)," ",React.createElement("span",{className:"m"},monthShort(month-1)),how?" · ":""),
           how)),
-      React.createElement("span",{className:"am num"}, planChargeAmount(x)));
+      React.createElement("span",{className:"am num"}, planChargeAmount(x))));
   };
   // Como mucho tres a la vista; el resto se despliega debajo con «Ver los N» (SPEC §2.3–2.4).
   const lista=function(items,render,open,setOpen,id){

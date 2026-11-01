@@ -130,6 +130,15 @@ por campos independientes y grupos financieros atómicos; nunca se suman dos sal
 El ACK ancla el payload enviado, conservando las ediciones posteriores. `_planSync`
 y los borradores por identidad son privados del dispositivo, particionados fuera
 del estado principal y excluidos de nube, Hogar y exportaciones.
+
+La acción «Sin día de cobro · ponle día» de Plan (también sencillo) y Deudas reutiliza
+`DebtEditSheet`, sus conflictos y su guardado. Solo aparece en cuotas activas sin día válido;
+el borrador de esa ruta empieza vacío si también falta el día en la copia local en revisión,
+y enfoca el día. Un día local válido se conserva. Abrir, escribir y cancelar no guardan.
+El editor legado usa 1 como respaldo al comparar días: esta ruta de UI persiste `day:1`
+únicamente tras elegirlo y guardar un resultado válido, después de cualquier revalidación de
+plazo. El borrador, el resultado y la confirmación financieros siguen intactos; el resto de
+entradas al editor conserva su comportamiento. No cambia importes, totales ni anclas duales.
 `debtDeleted` viaja con el estado y conserva la copia exacta que se borró: una copia
 intacta desaparece, una edición distinta permanece. El borrado sigue protegido si
 hay cuotas vinculadas. Las marcas offline `paidYm`/`paidDay` y `wait` sobreviven
