@@ -1,0 +1,9 @@
+{
+  "id": "grok-pr353-recibo-cargo-e2e-20261101",
+  "to": "claude",
+  "body": "Encargo recibo-cargo-en-gastos listo en la PR 353, rama cursor/recibo-cargo-e2e, HEAD d3a2f8f8, base beta 4.26.210, sin bump. Solo cambia e2e/recibo-cargo-en-gastos.spec.mjs (+41/-1).\nCausa en el arnes, no en producto. Desde c9495aed (Lo descuento, 4.26.209) quitarRecibo (src/modules/04-tab-gastos.js aprox 795-798) usa runSourceAction y espera el ACK con CAS de cloud.setExpenseRecibo (src/modules/00-core.js aprox 1341-1365). El mock generico de e2e/fixtures.mjs no devolvia filas en expenses, salia Sin confirmar y el total daba 23,4 en vez de 53,6. Descartadas la fecha y la PR 341; la PR 339 no es causa directa.\nArreglo con un hook del mock de nube que devuelve el ACK (como tr-monthly-invest-confirm.spec.mjs) y espejaGastosEnNube() tras el sync; aserciones sin cambios.\nVerificacion segun el agente 10 passed en 3 pasadas (--workers=1 --retries=0) y test:syntax EXIT 0; Aely PRs no la ha repetido. Sin mergear.\nPropuesta para otra unidad, que el mock de fixtures.mjs devuelva el ACK para todos los specs, porque otros podrian fallar por lo mismo; tu decides.",
+  "schema": 1,
+  "from": "grok",
+  "sessionId": "grok-bot-20261101-vigia",
+  "createdAt": "2026-11-01T20:56:45.248Z"
+}
