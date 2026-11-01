@@ -1581,9 +1581,22 @@
   .v4-gastos-list-body{padding:0;}
 
   .v4-sheet-back{position:fixed;inset:0;z-index:80;display:flex;align-items:flex-end;justify-content:center;
-    /* Velo verdoso suave: se ve la app, sin el negro seco ni el scale (feedback 2026-07-17). */
-    background:rgba(8,28,20,.28);
-    pointer-events:auto;}
+    /* Velo verdoso suave: se ve la app, sin el negro seco ni el scale (feedback 2026-07-17).
+       El tinte vive en el ::before y solo se anima su opacity: animar background-color de
+       esta capa (pantalla completa) repintaba cada fotograma y en un OnePlus a 120 Hz se
+       notaba (1/11/2026). El padre no pinta; el ::before queda detrás de la hoja porque
+       este fixed ya es contexto de apilamiento (z-index:80) y el -1 no se sale. Sin
+       will-change en reposo: la animación de opacity promociona la capa sola, y el cierre
+       lo pide solo mientras sale. */
+    background:transparent;pointer-events:auto;}
+  .v4-sheet-back::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+    background:rgba(8,28,20,.28);opacity:var(--sheet-veil,1);
+    animation:sheetveil .42s cubic-bezier(.22,.61,.36,1);}
+  /* Congela la opacidad que se ve (la animación de entrada si no, gana a la transición)
+     y al frame siguiente .v4-sheet-out la lleva a 0. */
+  .v4-sheet-back.v4-sheet-hold::before{animation:none;transition:none;opacity:var(--sheet-veil,1);}
+  .v4-sheet-back.v4-sheet-out::before{will-change:opacity;
+    transition:opacity var(--veil-ms,420ms) var(--veil-ease,cubic-bezier(.3,0,.2,1));opacity:0;}
   .v4-sheet{width:100%;max-width:520px;max-height:88dvh;background:var(--bg-2);border:1px solid var(--line);border-bottom:none;
     border-radius:26px 26px 0 0;
     /* Por defecto la hoja ENTERA scrollea (filtro de Gastos, Más…, fijos…). */
@@ -1932,6 +1945,10 @@
   .v4-banks .bk-actions .btn{flex:1 1 auto;min-width:0;padding:10px 12px;font-size:13px;}
 
   @keyframes sheetup{from{transform:translateY(100%);}to{transform:translateY(0);}}
+  /* Fundido del velo, en paralelo con `sheetup` (misma curva y 0,42 s). Solo opacity, que
+     lo compone la GPU. Sin `forwards`: el reposo ya es 1 y un fill se comería la transición
+     del cierre. */
+  @keyframes sheetveil{from{opacity:0;}to{opacity:1;}}
   /* `to` con transform:none (no translateY(0)): si deja matrix(1,0,0,1,0,0) el hijo sigue
      creando capa con transform y en Cartera (muchas cards .rise) el overscroll nativo se
      cortaba arriba/abajo — Ajustes no tiene hijos así. */
@@ -1941,7 +1958,7 @@
   @keyframes v4growup{from{transform:scaleY(0);}to{transform:scaleY(1);}}
   .rise{animation:rise .32s var(--ease) both;}
   @media (prefers-reduced-motion:reduce){
-    .rise,.v4-sheet,.v4-sheet-back,.botnav,.botnav-ind,.botnav-ind span,.botnav-tab svg,.v4-stackbar i,.v4-goal .bar i,.v4-account-spark i,.settings-push,.settings-slide,.app-shell.settings-dim,.profile-pull,.app-shell.profile-dim,.v4-avatar.pulling,.set-exp,.v4-inv-drop,.v4-seg-enter-down,.v4-seg-enter-up,.v4-ficha-focus,.v4-undo-toast,.v4-debt-card.v4-foco::after{animation:none !important;transition:none !important;}
+    .rise,.v4-sheet,.v4-sheet-back,.v4-sheet-back::before,.botnav,.botnav-ind,.botnav-ind span,.botnav-tab svg,.v4-stackbar i,.v4-goal .bar i,.v4-account-spark i,.settings-push,.settings-slide,.app-shell.settings-dim,.profile-pull,.app-shell.profile-dim,.v4-avatar.pulling,.set-exp,.v4-inv-drop,.v4-seg-enter-down,.v4-seg-enter-up,.v4-ficha-focus,.v4-undo-toast,.v4-debt-card.v4-foco::after{animation:none !important;transition:none !important;}
   }
 
   .card{background:linear-gradient(180deg,var(--surface),var(--bg-2));border:1px solid var(--line-soft);border-radius:var(--radius);margin-bottom:14px;box-shadow:var(--shadow);overflow:hidden;}
@@ -12245,6 +12262,12 @@ function useSheetSwipe(open, onClose, opts){
     // recupera el tirón que ya se había eliminado (revisión independiente 2026-09-24).
     if(lockHeld.current){ lockHeld.current=false; mcSheetUnlock(); }
     const ease=fromDrag?(opts.closeEase||"cubic-bezier(.32,.72,0,1)"):"cubic-bezier(.3,0,.2,1)";
+    // `sheetup` sigue mandando sobre el transform inline mientras la entrada no ha terminado:
+    // cerrar a medias devolvía la hoja hacia arriba y luego saltaba abajo (1/11/2026).
+    const sheetNow=getComputedStyle(el).transform;
+    el.style.animation="none";
+    el.style.transform=sheetNow;
+    void el.offsetWidth;
     el.style.transition="transform "+ms+"ms "+ease;
     el.style.transform="translate3d(0,110%,0)";
     // El velo se va con la hoja, mismo tiempo y curva. Antes solo bajaba la hoja y el velo se
@@ -12252,8 +12275,18 @@ function useSheetSwipe(open, onClose, opts){
     // fotograma, medido en Deudas, Metas y también Apuntar (beta 4.26.139.1, 2026-10-17).
     const back=el.parentElement;
     if(back&&back.classList.contains("v4-sheet-back")){
-      back.style.transition="background-color "+ms+"ms "+ease;
-      back.style.backgroundColor="rgba(8,28,20,0)";
+      // El velo es el ::before y su entrada anima opacity (`sheetveil`). Mientras dura, esa
+      // animación gana a la transición: sin congelarla, el opacity:0 de .v4-sheet-out no se
+      // ve hasta que la entrada termina y el velo salta (1/11/2026). Se deja la opacidad que
+      // se ve ahora y, al frame siguiente, se funde con la bajada. will-change solo lo pone
+      // esa clase, no el reposo.
+      const cur=getComputedStyle(back,"::before").opacity;
+      back.style.setProperty("--sheet-veil",cur);
+      back.classList.add("v4-sheet-hold");
+      void back.offsetWidth;
+      back.style.setProperty("--veil-ms",ms+"ms");
+      back.style.setProperty("--veil-ease",ease);
+      back.classList.add("v4-sheet-out");
     }
     closeTimer.current=setTimeout(function(){
       closeTimer.current=null;
