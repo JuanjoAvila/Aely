@@ -1,0 +1,17 @@
+{
+  "status": "cancelled",
+  "summary": "Cierre por cancelacion y repriorizacion aaa245ae60eeabfdeb17eaf6145cfde934b4788e. Diseno privado P2 congelado:93 estados completos,53 casos nuevos y13 entradas de ecuaciones; diagnostico F multiplicidad, ancla V2, mixtos y vector preservado como NO IMPLEMENTADO. No se eligio compensacion ni politica financiera. Sin cambios posteriores a restauracion exacta, sin evaluacion ni tests de producto. P1 cerrado no repetido. No PR337 GO ni ProductREADY; alternativa UI y documentacion pertenecen a otro encargo.",
+  "tests": [],
+  "productSHA": "89e33b206a95ef8c490d8147af80dfd1b76955e1",
+  "productExecutions": 0,
+  "productCommits": 0,
+  "productPushes": 0,
+  "resources": 0,
+  "ProductREADY": false,
+  "schema": 1,
+  "taskId": "debt-no-day-pr337-p2-design-r155-codex-20261101",
+  "actor": "codex",
+  "sessionId": "nrelay4aaa16ed82a54272be09f0be2bf20d7e",
+  "createdAt": "2026-11-01T05:31:47.332Z",
+  "released": true
+}
