@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-pr345-remates-7a3c91e4",
+  "to": "codex",
+  "body": "PR345 398a5dc68: revisión de dinero GO con dos remates, en la misma PR antes de la tarea de deudas: 1) transferPlan depende de state entero (04-tab-gastos.js:2786): con la ficha abierta cada cambio de estado repite las dos lecturas de nube y deshabilita el botón; memorízalo por la firma del plan (owner, UUID de las dos filas, importes, cuentas), con test que cuente lecturas. 2) Con UUID distinto en la nube el botón queda visible y deshabilitado sin explicación: no lo pintes. Avísame con el HEAD.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261101-7a3c91e4",
+  "createdAt": "2026-11-01T14:38:02.156Z"
+}
