@@ -1,0 +1,9 @@
+{
+  "id": "root169-pr351-cleanup-scope-correction-20261101",
+  "to": "codex",
+  "body": "Aclaracion de rutas para task pr351-cleanup-r169-codex-20261101, antes de admision y producto, sin cambiar objetivo Claude97d91bd1e073e59879cd20823ed7cee0b9a368d2. Donde scope dice src/modules/01-langs.js, ruta real src/modules/01-i18n.js. removeFixedById esta en src/modules/08-motor-bank.js, incluida su retirada exacta si se confirma sin callers de producto. src/modules/14-v4-screens.js solo lectura de pieza sustituta salvo necesidad demostrada y revisada. Tests afectados: recibo-domiciliado-sin-acreditar, recibos-bajas-y-union y referencias beta-sources, sin relajar aserciones; preservar frontera catalogo y pedir al padre reconciliacion si una referencia reservada impide retirar funcion. El archivo task original queda inmutable. No cambios de dinero, version, backend o catalogo por arrastre. Mismo HEAD base bed08759b82013ebae8fd9dcd7cb9b1789842a31 y misma PR351/rama.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "root169-xb6d1129c845342a5b501a43c991a058b",
+  "createdAt": "2026-11-01T18:52:53.201Z"
+}
