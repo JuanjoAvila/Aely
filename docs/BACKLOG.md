@@ -1,6 +1,6 @@
 # Backlog operativo — Aely
 
-**Candidata sin publicar (01/11/2026): traspaso propio con confirmación.** Pareja exacta 1 a 1 entre bancos propios, pregunta explícita en ficha, NO persistente por UUID y SÍ limitado a categoría saliente. Implementación y pruebas dirigidas preparadas; revisión independiente y publicación pendientes. Límites aceptados: no hay transacción con la contraparte y clientes antiguos pueden borrar el rechazo (solo reofrece). Véanse arquitectura y CHANGELOG; no modifica las tareas de recibos/deudas ni da por cerradas otras tandas.
+**Candidata sin publicar (01/11/2026): traspaso propio con confirmación.** Pareja exacta 1 a 1 entre bancos propios, pregunta explícita en ficha, NO persistente por UUID y SÍ limitado a categoría saliente. Corrección del CAS sin acuse: escritores con confirmación explícita, reintento único sólo por NO concurrente y recuperación visible de acciones manuales y cuota automática; validación dirigida con dobles sintéticos, revisión independiente y publicación pendientes. Límites aceptados: no hay transacción con la contraparte y clientes antiguos pueden borrar el rechazo (solo reofrece). Véanse arquitectura y CHANGELOG; no modifica las reglas financieras de recibos/deudas ni da por cerradas otras tandas.
 
 **Limpieza del 26/10/2026, sobre beta 4.26.182 (`acae53b68`), aprobada y camino de producción.**
 Antes este fichero era una pila de cortes fechados (9/9, 25/9, 27/9, 30/9, 4/10, 7/10, 15/10,

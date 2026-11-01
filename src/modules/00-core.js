@@ -1339,22 +1339,25 @@ const cloud = (function(){
        la cuota de una deuda, un aviso del móvil o un gasto a mano que coincidan se quedan como
        están, y a un «posible repetido» no se le pone marca. Prefijo, `#dup` y `#n<k>` se conservan. */
     async setExpenseRecibo(e){
-      if(!sb || !e.ent) return;
+      if(!sb || !e || !e.ent) throw new Error("expense unavailable");
       const {data:{session}}=await sb.auth.getSession();
-      if(!session) return;
-      if(!await obConfirmedCanUpload(e,session.user.id,sb))return;
-      const {data,error}=await sb.from('expenses').select('id,source,fecha,importe,comercio')
+      if(!session) throw new Error("session unavailable");
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))throw new Error("expense upload denied");
+      const {data,error}=await sb.from('expenses').select('user_id,id,source,fecha,importe,comercio,cat')
         .eq('user_id',session.user.id).eq('fecha',e.date).eq('importe',e.amount).eq('comercio',e.merchant);
       if(error) throw error;
+      const rows=[];
       for(const r of data||[]){
         const m=/^(ob|ob-hist):([^~#]+)(~recibo\.[^~#]*)?((?:#.*)?)$/.exec(String(r.source||""));
         if(!m || m[2]!==e.ent || (e.reciboId && m[4].indexOf("#dup")>=0)) continue;
         const src=m[1]+":"+m[2]+reciboSufijo(e.reciboId)+m[4];
-        if(src===r.source) continue;
-        if(!await obConfirmedCanUpload(expenseFromRow(r),session.user.id,sb))continue;
+        if(!await obConfirmedCanUpload(expenseFromRow(r),session.user.id,sb))throw new Error("expense upload denied");
         const w=await expenseSourcePatch(sb,session.user.id,e,{source:src},r);
         if(w.error) throw w.error;
+        rows.push.apply(rows,w.data);
       }
+      if(!rows.length)throw new Error("expense source unavailable");
+      return {acknowledged:true,rows:rows,alreadyApplied:false};
     },
     /* LA MARCA DE APORTACIÓN A META (24/10/2026), con la misma búsqueda que la del recibo y por lo
        mismo: el id local puede no ser el de la fila de la nube. Solo toca filas `ob:<ent>` u
@@ -1447,26 +1450,28 @@ const cloud = (function(){
     // Persiste el BANCO elegido de un gasto (va embebido en source: manual:caixabank…) para
     // que sobreviva a reinstalaciones — mismo truco que ob: (2026-07-18).
     async setExpenseBank(e, ent){
-      if(!sb) return;
+      if(!sb || !e) throw new Error("expense unavailable");
       const {data:{session}}=await sb.auth.getSession();
-      if(!session) return;
-      if(!await obConfirmedCanUpload(e,session.user.id,sb)||!await obConfirmedCanUpload(Object.assign({},e,{ent:ent||undefined}),session.user.id,sb))return;
+      if(!session) throw new Error("session unavailable");
+      if(!await obConfirmedCanUpload(e,session.user.id,sb)||!await obConfirmedCanUpload(Object.assign({},e,{ent:ent||undefined}),session.user.id,sb))throw new Error("expense upload denied");
       const src=expenseSourceForCloud(Object.assign({},e,{ent:ent||undefined}));
-      const {error}=await expenseSourcePatch(sb,session.user.id,e,{source:src});
+      const {data,error}=await expenseSourcePatch(sb,session.user.id,e,{source:src});
       if(error) throw error;
+      return {acknowledged:true,rows:data,alreadyApplied:false};
     },
     // Persiste la DECISIÓN sobre un posible repetido (B09-D, 2026-09-08). Sin esto, «son
     // distintos» solo quitaba la marca en el móvil: la fila seguía siendo `ob:ent#dup` en la nube,
     // el servidor la seguía descontando del presupuesto y el siguiente pull volvía a apagarla.
     // Tocar solo el estado local no arregla nada; la fila vuelve de la nube.
     async setExpenseDup(e, isDup){
-      if(!sb) return;
+      if(!sb || !e) throw new Error("expense unavailable");
       const {data:{session}}=await sb.auth.getSession();
-      if(!session) return;
-      if(!await obConfirmedCanUpload(e,session.user.id,sb))return;
+      if(!session) throw new Error("session unavailable");
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))throw new Error("expense upload denied");
       const src=expenseSourceForCloud(Object.assign({},e,{possibleDup:!!isDup}));
-      const {error}=await expenseSourcePatch(sb,session.user.id,e,{source:src});
+      const {data,error}=await expenseSourcePatch(sb,session.user.id,e,{source:src});
       if(error) throw error;
+      return {acknowledged:true,rows:data,alreadyApplied:false};
     },
     // Persiste el flag 💳/🔄 en la tabla (si no, el siguiente pull lo pisaría en gastos de la nube).
     async setExpenseNoCard(e, noCard){
@@ -1610,12 +1615,13 @@ const cloud = (function(){
     // Banking, la marca en `source`. La de la noti (`macrodroid`) conserva su source: un
     // `macrodroid~…` lo leería el servidor como «a mano» y lo SUMARÍA; ahí basta `cat:deudas`.
     async setExpenseDeuda(e){
-      if(!sb) return;
+      if(!sb || !e) throw new Error("expense unavailable");
       const {data:{session}}=await sb.auth.getSession();
-      if(!session) return;
-      if(!await obConfirmedCanUpload(e,session.user.id,sb))return;
-      const {error}=await expenseSourcePatch(sb,session.user.id,e,{cat:"deudas",source:expenseSourceForCloud(e)});
+      if(!session) throw new Error("session unavailable");
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))throw new Error("expense upload denied");
+      const {data,error}=await expenseSourcePatch(sb,session.user.id,e,{cat:"deudas",source:expenseSourceForCloud(e)});
       if(error) throw error;
+      return {acknowledged:true,rows:data,alreadyApplied:false};
     },
     async deleteExpense(e){
       if(!sb) return;
@@ -3339,27 +3345,32 @@ function applyEntradaEfectivo(state, amount){
 // La pareja solo ofrece una pregunta. La decisión pertenece a la persona, nunca al nombre del comercio.
 const ownTransferRecent=new WeakMap();
 async function expenseSourcePatch(sdk,owner,e,patch,snapshot){
-  const cols='id,source,fecha,importe,comercio,cat';
+  const cols='user_id,id,source,fecha,importe,comercio,cat',keys=cols.split(',');
   const read=snapshot?{data:[snapshot]}:await expenseCloudEq(sdk.from('expenses').select(cols),owner,e);
   if(read.error)return read;
   const data=[];
   for(let row of read.data||[]){
-    if(!isExpenseUuid(row.id))continue;
+    if(!isExpenseUuid(row.id)||row.user_id!==owner||!keys.every(function(k){return Object.prototype.hasOwnProperty.call(row,k);}))return {data:[],error:new Error("expense snapshot unavailable")};
     for(let attempt=0;attempt<2;attempt++){
     let source=patch.source;
     if(/#ownno(?:#|$)/.test(row.source)&&!/#ownno(?:#|$)/.test(source))source=source.replace(/(#n\d+)$/,"#ownno$1");
     if(/#ownno(?:#|$)/.test(row.source)&&!/#ownno(?:#|$)/.test(source))source+="#ownno";
     if(!await obConfirmedCanUpload(e,owner,sdk))return {data:[],error:new Error("expense owner changed")};
-    let q=sdk.from('expenses').update(Object.assign({},patch,{source:source})).eq('user_id',owner).eq('id',row.id).eq('source',row.source);
-    if(attempt)Object.keys(row).filter(function(k){return k!=='source'&&row[k]!=null;}).forEach(function(k){q=q.eq(k,row[k]);});
+    // La categoría también pertenece a la foto: un NO concurrente nunca autoriza pisar otra decisión.
+    let q=sdk.from('expenses').update(Object.assign({},patch,{source:source}));
+    keys.forEach(function(k){q=row[k]===null?q.is(k,null):q.eq(k,row[k]);});
     const result=await q.select('id');
     if(result.error)return result;
-    if(Array.isArray(result.data)&&result.data.length===1){data.push(result.data[0]);break;}
+    if(Array.isArray(result.data)&&result.data.length===1&&result.data[0].id===row.id){
+      if(!await obConfirmedCanUpload(e,owner,sdk))return {data:[],error:new Error("expense owner changed")};
+      data.push(result.data[0]);break;
+    }
+    if(!Array.isArray(result.data)||result.data.length)return {data:[],error:new Error("expense source unconfirmed")};
     if(attempt)return {data:[],error:new Error("expense source conflict")};
     const fresh=await sdk.from('expenses').select(cols).eq('user_id',owner).eq('id',row.id).maybeSingle(),next=fresh.data;
-    if(fresh.error||!next||/#ownno(?:#|$)/.test(row.source)||!/#ownno(?:#|$)/.test(next.source)
+    if(fresh.error||!next||/#ownno(?:#|$)/.test(row.source)||(String(next.source).match(/#ownno(?=#|$)/g)||[]).length!==1
       ||next.source.replace(/#ownno(?=#|$)/g,'')!==row.source
-      ||!Object.keys(row).filter(function(k){return k!=='source';}).every(function(k){return row[k]===next[k];}))return {data:[],error:fresh.error||new Error("expense source conflict")};
+      ||!keys.filter(function(k){return k!=='source';}).every(function(k){return Object.prototype.hasOwnProperty.call(next,k)&&row[k]===next[k];}))return {data:[],error:fresh.error||new Error("expense source conflict")};
     row=next;
     }
   }

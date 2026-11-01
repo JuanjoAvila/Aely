@@ -157,24 +157,25 @@ function client(s,opts={}){
     const uid=opts.ownerAt?opts.ownerAt(authCalls):owner;
     return {data:{session:uid?{user:{id:uid},...(opts.expired?{expires_at:1}:{})}:null},error:opts.authError?new Error("session error"):null};
   }},from(table){
-    const filters=[];let patch=null,single=false;
+    const filters=[];let patch=null,single=false,columns='*';
+    const project=rows=>plain(rows.map(r=>columns==='*'?r:Object.fromEntries(columns.split(',').filter(k=>Object.hasOwn(r,k)).map(k=>[k,r[k]]))));
     const execute=async()=>{
       if(patch){
         ops.push({table,patch:plain(patch),filters:plain(filters)});
-        if(opts.beforeUpdate)opts.beforeUpdate(rows,s);
+        if(opts.beforeUpdate)opts.beforeUpdate(rows,s,ops.length);
         if(opts.writeError)return {data:null,error:new Error("denied")};
-        const selected=opts.zero?[]:rows.filter(r=>filters.every(([k,v])=>r[k]===v));
+        const selected=opts.zero||opts.zeroAt===ops.length?[]:rows.filter(r=>filters.every(([k,v])=>r[k]===v));
         selected.forEach(r=>Object.assign(r,patch));
         if(opts.afterUpdate)opts.afterUpdate(rows,s);
-        return {data:opts.ack===undefined?plain(selected):opts.ack,error:null};
+        return {data:opts.ack===undefined?project(selected):opts.ack,error:null};
       }
       reads++;if(opts.beforeRead)opts.beforeRead(reads,rows,s);
-      if(opts.readError)return {data:null,error:new Error("read denied")};
+      if(opts.readError||opts.readErrorAt===reads)return {data:null,error:new Error("read denied")};
       const selected=rows.filter(r=>filters.every(([k,v])=>Array.isArray(v)?v.includes(r[k]):r[k]===v));
-      const data=plain(selected);if(opts.afterRead)opts.afterRead(reads,rows,s);
+      const data=project(selected);if(opts.afterRead)opts.afterRead(reads,rows,s);
       return {data:single?(data[0]||null):data,error:null};
     };
-    const q={select(){return q;},eq(k,v){filters.push([k,v]);return q;},in(k,v){filters.push([k,v]);return q;},
+    const q={select(cols='*'){columns=cols;return q;},eq(k,v){filters.push([k,v]);return q;},is(k,v){filters.push([k,v]);return q;},in(k,v){filters.push([k,v]);return q;},
       update(p){patch=p;return q;},maybeSingle(){single=true;return execute();},single(){single=true;return execute();},
       then(ok,bad){return execute().then(ok,bad);}};
     return q;
@@ -243,21 +244,28 @@ await check("ACK confirmado permite conciliar pese al partner cambiado, nunca ot
 
 const sourcePatchMatch=core.match(/async function expenseSourcePatch\(sdk,owner,e,patch,snapshot\)\{([\s\S]*?)\n\}/);
 assert.ok(sourcePatchMatch,"helper de source presente");
-const sourcePatch=vm.runInContext("(function(){const obConfirmedCanUpload=async()=>true;return "+sourcePatchMatch[0]+";})()",ctx);
+// Auth/owner/caducidad ejecutan su guard real; solo se sustituye el almacén de absorciones.
+const uploadGuard=core.match(/async function obConfirmedCanUpload\(e,owner,sdk\)\{[\s\S]*?\n\}/)[0];
+ctx.__sourceUploadGuard=vm.runInContext("(function(){const obConfirmedRead=()=>[],obConfirmedBlocked=new Set(),obAbsorbedWarn=()=>{},obConfirmedMatches=()=>globalThis.__denySourceUpload===true;return "+uploadGuard+";})()",ctx);
+const sourcePatch=vm.runInContext("(function(){const obConfirmedCanUpload=globalThis.__sourceUploadGuard;return "+sourcePatchMatch[0]+";})()",ctx);
 ctx.__ownTransferSourcePatch=sourcePatch;
 function sourceWriter(name){
   const found=core.match(new RegExp("async "+name+"\\(([^)]*)\\)\\s*\\{([\\s\\S]*?)\\n    \\},"));
   assert.ok(found,"writer real "+name);
-  return vm.runInContext("(async function("+found[1]+") {const sb=globalThis.__ownTransferSb;const obConfirmedCanUpload=async()=>true;const expenseSourcePatch=globalThis.__ownTransferSourcePatch;"+found[2]+"\n})",ctx);
+  return vm.runInContext("(async function("+found[1]+") {const sb=globalThis.__ownTransferSb;const obConfirmedCanUpload=globalThis.__sourceUploadGuard;const expenseSourcePatch=globalThis.__ownTransferSourcePatch;"+found[2]+"\n})",ctx);
+}
+const bankSource=fs.readFileSync("src/modules/08-motor-bank.js","utf8");
+vm.runInContext(bankSource.match(/function expenseSourceActionSnapshot\(s,id\)\{[\s\S]*?\n\}/)[0],ctx);
+function quotaCaller(s,c){
+  ctx.__ownTransferSb=c.sb;ctx.__realDebtWriter=sourceWriter("setExpenseDeuda");ctx.__callerState=s;ctx.__callerToasts=[];ctx.__callerStatus=null;
+  const ui=fs.readFileSync("src/modules/04-tab-gastos.js","utf8"),body=ui.match(/const setCuota=function\(ex,debtId\)\{[\s\S]*?\n  \};/)[0];
+  const action=ui.match(/const runSourceAction=async function\(ex,write,apply,success\)\{[\s\S]*?\n  \};/)[0];
+  return vm.runInContext('(function(){const state=globalThis.__callerState,withdrawalState={current:state},sourceActionPending={current:{}},withdrawalPending={current:{}},sourceActionMounted={current:true};const mcSandbox=()=>false;const ReactDOM={flushSync:f=>f()};const setSourceActionStatus=s=>{globalThis.__callerStatus=s;};const set=f=>{globalThis.__callerState=f(globalThis.__callerState);withdrawalState.current=globalThis.__callerState;};const showToast=x=>globalThis.__callerToasts.push(x);const cloud={enabled:()=>true,session:async()=>{const r=await globalThis.__ownTransferSb.auth.getSession();return !r.error&&r.data.session;},setExpenseDeuda:e=>globalThis.__realDebtWriter(e)};'+action+body+'return setCuota;})()',ctx);
 }
 await check("caller real setCuota recupera NO concurrente y confirma vínculo remoto/local",async()=>{
   const s=fixture();s.debts=[{id:"fixture-debt",name:"Préstamo sintético",monthly:80}];
   let first=true;const c=client(s,{beforeUpdate:rows=>{if(first){first=false;rows[0].source=ctx.expenseSourceForCloud({...s.expenses[0],ownTransferRejected:true});}}});
-  ctx.__ownTransferSb=c.sb;ctx.__realDebtWriter=sourceWriter("setExpenseDeuda");ctx.__callerState=s;ctx.__callerPromises=[];ctx.__callerToasts=[];
-  const ui=fs.readFileSync("src/modules/04-tab-gastos.js","utf8"),body=ui.match(/const setCuota=function\(ex,debtId\)\{[\s\S]*?\n  \};/)[0];
-  const action=ui.match(/const runSourceAction=async function\(ex,write,apply,success\)\{[\s\S]*?\n  \};/)[0];
-  const caller=vm.runInContext('(function(){const state=globalThis.__callerState,withdrawalState={current:state},sourceActionPending={current:{}};const setSourceActionStatus=s=>{globalThis.__callerStatus=s;};const set=f=>{globalThis.__callerState=f(globalThis.__callerState);};const showToast=x=>globalThis.__callerToasts.push(x);const cloud={enabled:()=>true,setExpenseDeuda:e=>{const p=globalThis.__realDebtWriter(e);globalThis.__callerPromises.push(p);return p;}};'+action+body+'return setCuota;})()',ctx);
-  await caller(s.expenses[0],"fixture-debt");await Promise.all(ctx.__callerPromises);
+  assert.equal(await quotaCaller(s,c)(s.expenses[0],"fixture-debt"),true);
   const remote=ctx.expenseFromRow(c.rows[0]),local=ctx.__callerState.expenses[0];
   assert.equal(remote.debtId,"fixture-debt");assert.equal(remote.category,local.category);assert.equal(remote.debtManual,local.debtManual);
   assert.equal(remote.ownTransferRejected,true);assert.equal(c.ops.length,2);assert.equal(ctx.__callerToasts.length,1);
@@ -315,6 +323,91 @@ await check("recibo conserva NO concurrente: su CAS no escribe el source antiguo
   ctx.__ownTransferSb=c.sb;await sourceWriter("setExpenseRecibo")(e);
   assert.equal(c.ops.length,2);assert.match(c.rows[0].source,/#ownno(?:#|$)/);
   assert.equal(ctx.expenseFromRow(c.rows[0]).reciboId,"fixture-receipt");
+});
+await check("doble select devuelve únicamente la proyección solicitada",async()=>{
+  const c=client(fixture()),r=await c.sb.from('expenses').select('id,cat');
+  assert.deepEqual(Object.keys(r.data[0]).sort(),['cat','id']);
+});
+const sourceWriters=[
+  ['setExpenseBank','caixabank',{}],['setExpenseDup',true,{}],
+  ['setExpenseDeuda',undefined,{debtId:'fixture-debt'}],
+  ['setExpenseRecibo',undefined,{reciboId:'fixture-receipt'}]
+];
+for(const [name,arg,patch] of sourceWriters){
+  await check(name+": ACK explícito pertenece a la fila escrita",async()=>{
+    const s=fixture(),e={...s.expenses[0],...patch},c=client(s);ctx.__ownTransferSb=c.sb;
+    const ack=await sourceWriter(name)(e,arg);
+    assert.equal(ack.acknowledged,true);assert.equal(ack.alreadyApplied,false);
+    assert.deepEqual(plain(ack.rows),[{id:e.id}]);assert.equal(c.ops.length,1);
+    for(const k of ['user_id','id','source','fecha','importe','comercio','cat'])assert.ok(c.ops[0].filters.some(([key])=>key===k),'CAS completo '+k);
+  });
+  for(const [label,opts,writes] of [
+    ['sin sesión',{ownerAt:()=>null},0],['sesión cambia antes de escribir',{ownerAt:n=>n===1?owner:'other'},0],
+    ['sesión caducada',{expired:true},0],['error auth residual',{authError:true},0],
+    ['ninguna fila',{beforeRead:(_n,rows)=>rows.splice(0)},0],['lectura falla',{readError:true},0],
+    ['ACK cero filas',{zero:true},1],['ACK null',{ack:null},1],['ACK otro UUID',{ack:[{id:uuid(9)}]},1],
+    ['cambio categoría sin NO',{beforeUpdate:rows=>{rows[0].cat='super';}},1],
+    ['categoría y NO concurrentes',{beforeUpdate:rows=>{rows[0].cat='super';rows[0].source=ctx.expenseSourceForCloud({...fixture().expenses[0],ownTransferRejected:true});}},1],
+    ['relectura falla',{readErrorAt:2,beforeUpdate:rows=>{rows[0].source=ctx.expenseSourceForCloud({...fixture().expenses[0],ownTransferRejected:true});}},1],
+    ['segundo CAS cero',{zeroAt:2,beforeUpdate:rows=>{rows[0].source=ctx.expenseSourceForCloud({...fixture().expenses[0],ownTransferRejected:true});}},2]
+  ])await check(name+": "+label+" rechaza sin acreditar éxito",async()=>{
+    const s=fixture(),e={...s.expenses[0],...patch},c=client(s,opts);ctx.__ownTransferSb=c.sb;
+    await assert.rejects(()=>sourceWriter(name)(e,arg));assert.equal(c.ops.length,writes);
+    if(!Object.hasOwn(opts,'ack')&&c.rows.length){
+      assert.equal(ctx.expenseFromRow(c.rows[0]).reciboId,undefined);
+      assert.equal(c.rows[0].cat,opts.beforeUpdate&&label.includes('categoría')?'super':'otros');
+    }
+  });
+  await check(name+": absorción denegada y SDK ausente rechazan sin escribir",async()=>{
+    const s=fixture(),e={...s.expenses[0],...patch},c=client(s);ctx.__ownTransferSb=c.sb;ctx.__denySourceUpload=true;
+    try{await assert.rejects(()=>sourceWriter(name)(e,arg));}finally{ctx.__denySourceUpload=false;}
+    assert.equal(c.ops.length,0);ctx.__ownTransferSb=null;
+    await assert.rejects(()=>sourceWriter(name)(e,arg));
+  });
+  await check(name+": owner cambia tras UPDATE, ACK no acredita la sesión nueva",async()=>{
+    let sent=false;const s=fixture(),e={...s.expenses[0],...patch},c=client(s,{ownerAt:()=>sent?'other':owner,afterUpdate:()=>{sent=true;}});ctx.__ownTransferSb=c.sb;
+    await assert.rejects(()=>sourceWriter(name)(e,arg));assert.equal(c.ops.length,1);
+  });
+}
+await check("recibo ya aplicado exige ACK real; fila no elegible rechaza",async()=>{
+  const s=fixture();s.expenses[0].reciboId='fixture-receipt';const c=client(s);ctx.__ownTransferSb=c.sb;
+  const ack=await sourceWriter('setExpenseRecibo')(s.expenses[0]);
+  assert.equal(ack.acknowledged,true);assert.equal(c.ops.length,1);
+  c.rows[0].source=ctx.expenseSourceForCloud({...s.expenses[0],reciboId:undefined,debtId:'fixture-debt'});
+  await assert.rejects(()=>sourceWriter('setExpenseRecibo')(s.expenses[0]));assert.equal(c.ops.length,1);
+});
+await check("CAS protege categoría null y rechaza snapshot sin columna",async()=>{
+  const s=fixture(),c=client(s),e=s.expenses[0];c.rows[0].cat=null;
+  let result=await sourcePatch(c.sb,owner,e,{source:ctx.expenseSourceForCloud({...e,possibleDup:true})});
+  assert.equal(result.error,null);assert.ok(c.ops[0].filters.some(([k,v])=>k==='cat'&&v===null));
+  const incomplete={...c.rows[0]};delete incomplete.cat;
+  result=await sourcePatch(c.sb,owner,e,{source:incomplete.source},incomplete);
+  assert.ok(result.error);assert.equal(c.ops.length,1);
+});
+for(const change of [{fecha:'2026-10-22T12:00:00.000Z'},{importe:81},{comercio:'Otro'},{user_id:'other'},{id:uuid(9)},
+  {source:'ob:sabadell#refotra#ownno'},{source:ctx.expenseSourceForCloud({...fixture().expenses[0],ownTransferRejected:true})+'#ownno'}])
+  await check('writer real Recibo rechaza NO con otro cambio: '+JSON.stringify(change),async()=>{
+    const s=fixture(),e={...s.expenses[0],reciboId:'fixture-receipt'},c=client(s,{beforeUpdate:rows=>{
+      rows[0].source=ctx.expenseSourceForCloud({...s.expenses[0],ownTransferRejected:true});Object.assign(rows[0],change);
+    }});ctx.__ownTransferSb=c.sb;
+    await assert.rejects(()=>sourceWriter('setExpenseRecibo')(e));assert.equal(c.ops.length,1);
+    assert.equal(ctx.expenseFromRow(c.rows[0]).reciboId,undefined);
+  });
+for(const [label,opts,writes,denied] of [
+  ['segundo CAS cero',{zeroAt:2,beforeUpdate:rows=>{rows[0].source=ctx.expenseSourceForCloud({...fixture().expenses[0],ownTransferRejected:true});}},2],
+  ['cambio semántico',{beforeUpdate:rows=>{rows[0].cat='super';}},1],
+  ['categoría y NO',{beforeUpdate:rows=>{rows[0].cat='super';rows[0].source=ctx.expenseSourceForCloud({...fixture().expenses[0],ownTransferRejected:true});}},1],
+  ['fallo relectura',{readErrorAt:2,beforeUpdate:rows=>{rows[0].source=ctx.expenseSourceForCloud({...fixture().expenses[0],ownTransferRejected:true});}},1],
+  ['sin filas',{beforeRead:(_n,rows)=>rows.splice(0)},0],
+  ['sin sesión',{ownerAt:()=>null},0],['owner distinto',{ownerAt:n=>n===1?owner:'other'},0],
+  ['upload denegado',{},0,true]
+])await check('caller real setCuota '+label+': no cambia vínculo ni anuncia éxito',async()=>{
+  const s=fixture();s.debts=[{id:'fixture-debt',name:'Préstamo sintético',monthly:80}];
+  const initial=plain(s),c=client(s,opts);ctx.__denySourceUpload=!!denied;
+  try{assert.equal(await quotaCaller(s,c)(s.expenses[0],'fixture-debt'),false);}finally{ctx.__denySourceUpload=false;}
+  assert.equal(c.ops.length,writes);assert.deepEqual(plain(ctx.__callerState),initial);
+  assert.equal(ctx.__callerStatus.status,'error');assert.equal(ctx.__callerToasts.length,1);
+  assert.equal(ctx.__callerToasts[0],vm.runInContext('t("f_source_save_error")',ctx));
 });
 for(const decision of ["yes","no"])await check("eco de nube adelanta ACK "+decision+" sin producir falso error",async()=>{
   const s=fixture(),p=plan(s),c=client(s,{afterUpdate:(_rows,current)=>Object.assign(current.expenses[0],decision==="yes"?{category:"traspaso"}:{ownTransferRejected:true})});

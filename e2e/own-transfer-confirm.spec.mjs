@@ -7,9 +7,9 @@ const incoming={...out,id:'550e8400-e29b-41d4-a716-446655440002',merchant:'Entra
 const accounts=[{id:'caixa',ent:'caixabank',name:'Cuenta A',value:920,bankUid:'fixture-a',role:'diario'},{id:'rev',ent:'revolut',name:'Cuenta B',value:1080,bankUid:'fixture-b',role:'diario'}];
 const toRow=e=>({id:e.id,user_id:owner,fecha:e.date,comercio:e.merchant,importe:e.amount,cat:e.category,source:`ob:${e.ent}#ref${encodeURIComponent(e.extId)}#acc${encodeURIComponent(e.obAcc)}`});
 const saved=page=>page.evaluate(()=>({expenses:JSON.parse(localStorage.getItem('micartera_v3_exp')||'[]'),state:JSON.parse(localStorage.getItem('micartera_v3')||'{}'),remote:window.__own.rows,writes:window.__own.writes}));
-async function open(page,{lang='es',mode='ok',expenses=[out,incoming],remote=expenses.map(toRow)}={}){
+async function open(page,{lang='es',mode='ok',expenses=[out,incoming],remote=expenses.map(toRow),debts=[]}={}){
   await installFixtureClock(page);
-  await seedLoggedInDashboard(page,{__seedOnce:true,_historyOwner:owner,expenses,__cloudRows:{expenses:remote},accounts,bankTx:[],fixed:[],debts:[],oneoffs:[],flows:[],
+  await seedLoggedInDashboard(page,{__seedOnce:true,_historyOwner:owner,expenses,__cloudRows:{expenses:remote},accounts,bankTx:[],fixed:[],debts,oneoffs:[],flows:[],
     settings:{lang,autoPrices:false,expenseBanks:['caixabank','revolut'],budgetCycle:false}});
   await page.addInitScript(({remote,mode})=>{
     const desc=Object.getOwnPropertyDescriptor(window,'supabase');
@@ -17,22 +17,32 @@ async function open(page,{lang='es',mode='ok',expenses=[out,incoming],remote=exp
     Object.defineProperty(window,'supabase',{configurable:true,get(){const lib=desc.get();if(!lib)return lib;
       return {createClient(){const base=lib.createClient();return {...base,from(table){
         if(table!=='expenses')return base.from(table);
-        const f=window.__own,filters=[];let patch=null,beforeId=null,ordering=null;
+        const f=window.__own,filters=[];let patch=null,beforeId=null,ordering=null,columns='*';
         const matches=r=>filters.every(([k,v])=>r[k]===v);
         const execute=async(single=false)=>{
           let rows=f.rows.filter(matches);if(beforeId)rows=rows.filter(r=>r.id<beforeId);
           if(ordering)rows.sort((a,b)=>(a[ordering.k]<b[ordering.k]?-1:a[ordering.k]>b[ordering.k]?1:0)*(ordering.ascending?1:-1));
           if(patch){
             f.writes.push({patch:structuredClone(patch),filters:structuredClone(filters)});
+            if(f.mode==='hold')await new Promise(resolve=>{f.release=resolve;});
+            rows=f.rows.filter(matches);
+            if(['casNo','casSemantic','casZero2','rereadError'].includes(f.mode)&&!f.raced){
+              f.raced=true;f.rows[0].source+='#ownno';if(f.mode==='casSemantic')f.rows[0].cat='salud';return {data:[],error:null};
+            }
+            if(f.mode==='casZero2'&&f.raced)return {data:[],error:null};
             if(f.mode==='zero')return {data:[],error:null};
             if(f.mode==='error')return {data:null,error:new Error('fixture denied')};
             rows.forEach(r=>Object.assign(r,patch));
             if(f.mode==='partnerAfter')f.rows[1].cat='otros';
             localStorage.setItem('_ownFixtureRemote',JSON.stringify(f.rows));
+            if(f.mode==='holdAck')await new Promise(resolve=>{f.release=resolve;});
+            if(f.mode==='lostAck')return {data:[],error:null};
           }
-          const data=structuredClone(rows);return {data:single?(data[0]||null):data,error:null};
+          if(!patch&&single&&f.mode==='rereadError'&&f.raced)return {data:null,error:new Error('fixture reread denied')};
+          if(!patch&&f.mode==='empty'&&columns!=='*')rows=[];
+          const data=structuredClone(rows.map(r=>columns==='*'?r:Object.fromEntries(columns.split(',').map(k=>[k,r[k]]))));return {data:single?(data[0]||null):data,error:null};
         };
-        const q={select(){return q;},eq(k,v){filters.push([k,v]);return q;},order(k,opts){ordering={k,ascending:opts&&opts.ascending};return q;},limit(){return q;},lt(k,v){if(k==='id')beforeId=v;return q;},
+        const q={select(value='*'){columns=value;return q;},eq(k,v){filters.push([k,v]);return q;},is(k,v){filters.push([k,v]);return q;},order(k,opts){ordering={k,ascending:opts&&opts.ascending};return q;},limit(){return q;},lt(k,v){if(k==='id')beforeId=v;return q;},
           update(p){patch=p;return q;},upsert(...args){return base.from(table).upsert(...args);},maybeSingle(){return execute(true);},then(resolve,reject){return execute().then(resolve,reject);}};return q;
       }};}};
     },set(v){desc.set(v);}});
@@ -99,4 +109,87 @@ for(const condition of ['amount','account','ambiguous'])test(`sin oferta cuando 
   if(condition==='account')rows[1].obAcc='unknown';
   if(condition==='ambiguous')rows.push({...rows[1],id:'550e8400-e29b-41d4-a716-446655440003',extId:'third'});
   const sheet=await open(page,{expenses:rows});await expect(sheet.getByTestId('exp-own-transfer')).toHaveCount(0);expect((await saved(page)).writes).toEqual([]);
+});
+
+const quotaDebt={id:'fixture-loan',name:'Préstamo sintético',value:1200,original:1200,monthly:75,account:'caixabank',day:26,asOf:2026*12+8};
+async function chooseQuota(sheet){
+  await sheet.getByRole('button',{name:/Es la cuota de una deuda/}).click();
+  await sheet.getByTestId('exp-cuota-de').getByRole('button',{name:/Préstamo sintético/}).click();
+}
+async function changeLiveState(page,kind){
+  await page.evaluate(({kind,id})=>{
+    const el=document.querySelector('[data-testid="exp"]');
+    let fiber=el[Object.keys(el).find(k=>k.startsWith('__reactFiber'))];
+    while(fiber&&!(fiber.memoizedProps&&fiber.memoizedProps.onRefreshExpenses))fiber=fiber.return;
+    if(!fiber)throw new Error('Expenses controller missing');
+    fiber.memoizedProps.set(s=>kind==='debt'?{...s,debts:[]}:kind==='owner'?{...s,_historyOwner:'different-fixture-owner'}:
+      {...s,expenses:s.expenses.map(e=>e.id===id?{...e,category:'salud'}:e)});
+  },{kind,id:out.id});
+}
+for(const mode of ['casZero2','casSemantic','rereadError','empty'])test(`cuota sin acuse: conserva estado y recupera desde Actualizar (${mode})`,async({page})=>{
+  const sheet=await open(page,{mode,debts:[quotaDebt]});await chooseQuota(sheet);
+  await expect(sheet.getByTestId('exp-source-save-status')).toContainText('No se ha podido confirmar este cambio');
+  const failed=await saved(page);expect(failed.expenses.find(e=>e.id===out.id).debtId).toBeUndefined();
+  expect(failed.expenses.find(e=>e.id===out.id).category).toBe('otros');
+  expect(failed.state.cuotaAlias||{}).toEqual({});
+  await page.evaluate(()=>{window.__own.mode='ok';});
+  await sheet.getByTestId('exp-source-refresh').click();
+  await expect(sheet.getByTestId('exp-source-save-status')).toHaveCount(0);
+  if(mode==='casSemantic')await expect.poll(async()=>(await saved(page)).expenses.find(e=>e.id===out.id).category).toBe('salud');
+  await sheet.getByTestId('exp-cuota-de').getByRole('button',{name:/Préstamo sintético/}).click();
+  await expect.poll(async()=>(await saved(page)).expenses.find(e=>e.id===out.id).debtId).toBe(quotaDebt.id);
+  expect((await saved(page)).remote[0].source).toContain('~deuda.');
+});
+test('cuota reintenta sólo el NO concurrente y muestra éxito tras el acuse real',async({page})=>{
+  const sheet=await open(page,{mode:'casNo',debts:[quotaDebt]});await chooseQuota(sheet);
+  await expect.poll(async()=>(await saved(page)).expenses.find(e=>e.id===out.id).debtManual).toBe(true);
+  const result=await saved(page);expect(result.writes).toHaveLength(2);expect(result.remote[0].source).toContain('#ownno');
+  expect(result.remote[0].source).toContain('~deuda.');await expect(sheet.getByTestId('exp-source-save-status')).toHaveCount(0);
+});
+for(const kind of ['category','debt','owner'])test(`acuse tardío de cuota no aplica otra intención (${kind})`,async({page})=>{
+  const sheet=await open(page,{mode:'hold',debts:[quotaDebt]});await chooseQuota(sheet);
+  await expect.poll(()=>page.evaluate(()=>typeof window.__own.release)).toBe('function');
+  await changeLiveState(page,kind);
+  await expect.poll(async()=>{const result=await saved(page);return kind==='debt'?result.state.debts.length:kind==='owner'?result.state._historyOwner:result.expenses.find(e=>e.id===out.id).category;}).toBe(kind==='debt'?0:kind==='owner'?'different-fixture-owner':'salud');
+  await page.evaluate(()=>{window.__own.mode='ok';window.__own.release();});
+  if(kind!=='owner')await expect(sheet.getByTestId('exp-source-save-status')).toContainText('No se ha podido confirmar este cambio');
+  else await expect.poll(async()=>(await saved(page)).state._historyOwner).toBe('different-fixture-owner');
+  const result=await saved(page);expect(result.expenses.find(e=>e.id===out.id)?.debtManual).not.toBe(true);
+  if(kind==='category')expect(result.expenses.find(e=>e.id===out.id).category).toBe('salud');
+  if(kind==='debt')expect(result.state.debts).toEqual([]);
+  expect(result.state.cuotaAlias||{}).toEqual({});
+});
+test('cuota automática fallida sigue recuperable sin marca optimista',async({page})=>{
+  const sheet=await open(page,{mode:'zero',debts:[{...quotaDebt,monthly:80}]});
+  await expect(sheet.getByTestId('exp-source-save-status')).toContainText('No se ha podido confirmar este cambio');
+  const failed=await saved(page);expect(failed.expenses.find(e=>e.id===out.id).debtId).toBeUndefined();
+  await page.evaluate(()=>{window.__own.mode='ok';});await sheet.getByTestId('exp-source-refresh').click();
+  await expect.poll(async()=>(await saved(page)).expenses.find(e=>e.id===out.id).debtId).toBe(quotaDebt.id);
+  await expect(sheet.getByTestId('exp-source-save-status')).toHaveCount(0);
+  expect((await saved(page)).remote[0].source).toContain('~deuda.');
+});
+test('cuota automática con ACK perdido retira error al recibir la marca remota',async({page})=>{
+  const sheet=await open(page,{mode:'hold',debts:[{...quotaDebt,monthly:80}]});
+  await expect.poll(()=>page.evaluate(()=>typeof window.__own.release)).toBe('function');
+  await page.evaluate(()=>{window.__own.mode='lostAck';window.__own.release();});
+  await expect(sheet.getByTestId('exp-source-save-status')).toContainText('No se ha podido confirmar este cambio');
+  const failed=await saved(page);expect(failed.remote[0].source).toContain('~deuda.');
+  expect(failed.expenses.find(e=>e.id===out.id).debtId).toBeUndefined();
+  await page.evaluate(()=>{window.__own.mode='ok';});await sheet.getByTestId('exp-source-refresh').click();
+  await expect.poll(async()=>(await saved(page)).expenses.find(e=>e.id===out.id).debtId).toBe(quotaDebt.id);
+  await expect(sheet.getByTestId('exp-source-save-status')).toHaveCount(0);
+});
+test('pull confirmado antes del ACK automático limpia el error tardío',async({page})=>{
+  const sheet=await open(page,{mode:'zero',debts:[{...quotaDebt,monthly:80}]});
+  await expect(sheet.getByTestId('exp-source-save-status')).toContainText('No se ha podido confirmar este cambio');
+  await page.screenshot({path:test.info().outputPath('source-save-recovery.png'),animations:'disabled'});
+  await page.evaluate(()=>{window.__own.mode='holdAck';});await sheet.getByTestId('exp-source-refresh').click();
+  await expect.poll(()=>page.evaluate(()=>typeof window.__own.release)).toBe('function');
+  expect((await saved(page)).expenses.find(e=>e.id===out.id).debtId).toBeUndefined();
+  await sheet.getByTestId('exp-source-refresh').click();
+  await expect.poll(async()=>(await saved(page)).expenses.find(e=>e.id===out.id).debtId).toBe(quotaDebt.id);
+  await page.evaluate(()=>{window.__own.mode='ok';window.__own.release();});
+  // Deja terminar el catch y la conciliación antes de afirmar que no reaparece el aviso.
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  await expect(sheet.getByTestId('exp-source-save-status')).toHaveCount(0);
 });

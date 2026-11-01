@@ -638,6 +638,9 @@ function App(){
   const bankJustConnected=useRef(false);    // marca la vuelta de ?bank=ok para sincronizar en cuanto haya sesión
 
   // Trae los gastos de la tabla y los mezcla en el estado (dedup).
+  const [quotaSourceRetry,setQuotaSourceRetry]=useState(0);
+  const [quotaSourceErrors,setQuotaSourceErrors]=useState({});
+  const quotaSourcePending=useRef({});
   const syncCloudExpenses=function(){
     const EXP_READ_PLAZO=25000;   // ms que una lectura de gastos puede retener a la siguiente
     const readStartedAt=Date.now();
@@ -839,6 +842,7 @@ function App(){
         if(flight.again&&sessionRef.current===readSession&&readSession&&readSession.user&&readSession.user.id===readOwner)return syncCloudExpenses();
       }
       if(failed)throw result;
+      if(sessionRef.current===readSession&&readOwner)setQuotaSourceRetry(function(n){return n+1;});
       return result;
     };
     const completed=Promise.race([pull,relevada]).then(function(result){
@@ -1822,11 +1826,50 @@ function App(){
   useEffect(function(){
     const r=marcarCuotasDeDeuda(stateRef.current);
     if(!r) return;
-    set(function(prev){ const r2=marcarCuotasDeDeuda(prev); return r2 ? r2.state : prev; },false);
-    if(cloud.enabled()) r.marcadas.forEach(function(e){
-      cloud.setExpenseDeuda(e).catch(function(err){ cloud.logEvent("error","setExpenseDeuda: "+keyOfExpense(e), _errCloudMsg(err)); });
+    if(!cloud.enabled()||mcSandbox()){set(function(prev){const r2=marcarCuotasDeDeuda(prev);return r2?r2.state:prev;},false);return;}
+    const owner=stateRef.current._historyOwner,session=sessionRef.current;
+    if(!session||!session.user||session.user.id!==owner)return;
+    r.marcadas.forEach(function(e){
+      const key=owner+"|"+e.id;
+      if(quotaSourcePending.current[key])return;
+      const snapshot=expenseSourceActionSnapshot(stateRef.current,e.id);
+      let timer;
+      quotaSourcePending.current[key]=true;
+      // Una cuota sin acuse sigue siendo candidata. El siguiente pull explícito puede recuperarla,
+      // sin dejar una marca optimista que la excluya para siempre de «marcadas».
+      Promise.race([cloud.setExpenseDeuda(e),new Promise(function(_,reject){timer=setTimeout(function(){reject(new Error("quota timeout"));},10000);})]).then(function(ack){
+        if(!ack||ack.acknowledged!==true||!Array.isArray(ack.rows)||!ack.rows.length)throw new Error("quota unconfirmed");
+        if(sessionRef.current!==session)return;
+        let applied=false;
+        ReactDOM.flushSync(function(){set(function(prev){
+          applied=false;
+          if(expenseSourceActionSnapshot(prev,e.id)!==snapshot)return prev;
+          const fresh=marcarCuotasDeDeuda(prev),next=fresh&&fresh.marcadas.find(function(x){return x.id===e.id&&x.debtId===e.debtId;});
+          if(!next)return prev;
+          applied=true;
+          return Object.assign({},prev,{expenses:prev.expenses.map(function(x){return x.id===e.id?next:x;}),
+            debts:prev.debts.map(function(d){return d.id===e.debtId?Object.assign({},d,{debtLinkRevision:(Number(d.debtLinkRevision)||0)+1}):d;})});
+        },false);});
+        if(!applied)throw new Error("quota intention changed");
+        setQuotaSourceErrors(function(errors){const next=Object.assign({},errors);delete next[key];return next;});
+      }).catch(function(err){
+        if(sessionRef.current!==session)return;
+        setQuotaSourceErrors(function(errors){return Object.assign({},errors,{[key]:{debtId:e.debtId}});});
+        cloud.logEvent("error","setExpenseDeuda: "+keyOfExpense(e),_errCloudMsg(err));
+      }).finally(function(){clearTimeout(timer);delete quotaSourcePending.current[key];});
     });
-  },[state.expenses, state.debts, state.cuotaNo, state.cuotaAlias]);
+  },[state.expenses, state.debts, state.cuotaNo, state.cuotaAlias, quotaSourceRetry, uid]);
+  useEffect(function(){
+    setQuotaSourceErrors(function(errors){
+      let next=errors;const owner=state._historyOwner;
+      (state.expenses||[]).forEach(function(e){const key=owner+"|"+e.id,failed=errors[key];
+        // El pull o una elección manual confirmada pueden acreditar la escritura cuyo acuse se perdió.
+        if(failed&&e.category==="deudas"&&e.debtId&&(e.debtId===failed.debtId||e.debtManual)){
+          if(next===errors)next=Object.assign({},errors);delete next[key];
+        }
+      });return next;
+    });
+  },[state.expenses,state._historyOwner,quotaSourceErrors]);
 
   const [showAuth,setShowAuth]=useState(false);
   const [recovery,setRecovery]=useState(false);
@@ -4021,7 +4064,7 @@ function App(){
       onGoPlan:function(seg){ if(seg) setPlanGoto({id:seg,ts:Date.now()}); const i=tabIds.indexOf("plan"); if(i>=0) goTabTop(i); }});
     // Sin prop `active`: ver `mcOnGastosActive` — si viaja por props, entrar en Gastos
     // reconstruye el árbol entero encima del gesto (asimetría Deudas→Gastos vs →Cartera).
-    if(id==="gastos") return React.createElement(Expenses,{state:state,set:set,showToast:showToast,stopSwipe:stopSwipe,cancelSwipe:cancelSwipe,focusExp:gotoExp,clearFocus:function(){ setGotoExp(null); },forceAllTs:gastosForceAll,onRefreshExpenses:syncCloudExpenses,
+    if(id==="gastos") return React.createElement(Expenses,{state:state,set:set,showToast:showToast,stopSwipe:stopSwipe,cancelSwipe:cancelSwipe,focusExp:gotoExp,clearFocus:function(){ setGotoExp(null); },forceAllTs:gastosForceAll,onRefreshExpenses:syncCloudExpenses,sourceWriteErrors:quotaSourceErrors,
       // «Abrir en Plan · Deudas/Metas» de las filas grises (Gastos v5): mismo camino que Inicio.
       // `debtId`: si todas las cuotas del bloque son de una misma deuda, se aterriza en su tarjeta.
       onGoPlan:function(seg,debtId){ if(seg) setPlanGoto({id:seg,ts:Date.now(),debtId:debtId}); const i=tabIds.indexOf("plan"); if(i>=0) goTabTop(i); },
@@ -4077,7 +4120,7 @@ function App(){
   const contenidoGastos=useMemo(function(){
     return tabIds.indexOf("gastos")>=0 ? pageFor("gastos") : null;
     // eslint-disable-next-line
-  },[state, totals, tabIds.join("|"), gotoExp, planGoto, pricing, uid, locked, gastosForceAll, langLoaded]);
+  },[state, totals, tabIds.join("|"), gotoExp, planGoto, pricing, uid, locked, gastosForceAll, langLoaded, quotaSourceErrors]);
   // Aviso barato a Expenses: sin setState en App que no haga falta, y sin re-render de Gastos.
   useEffect(function(){ mcSetGastosActive(tabIds[tab]==="gastos"); },[tab, tabIds]);
   useEffect(function(){ mcSetCarteraActive(tabIds[tab]==="cartera"); },[tab, tabIds]);

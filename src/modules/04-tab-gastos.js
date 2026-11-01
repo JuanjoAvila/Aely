@@ -293,7 +293,7 @@ function GxSubInfo({open, onClose}){
         React.createElement("button",{type:"button",className:"btn btn-primary btn-block",onClick:swipe.close},t("gv5_sub_i_ok"))
       )), document.body);
 }
-function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clearFocus, forceAllTs, onGoPlan, onGoInversiones, onRefreshExpenses}){
+function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clearFocus, forceAllTs, onGoPlan, onGoInversiones, onRefreshExpenses, sourceWriteErrors}){
   /* «Ver todo» desde una ficha puede llegar antes de que Gastos termine de montar. Conservamos
      ese destino solo durante la navegación: el estado inicial lo consume y el evento cubre el
      caso en que la pestaña ya estaba viva. No se guarda en preferencias. */
@@ -493,7 +493,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
      quita la marca y la fila ya cuenta. La lápida solo al borrar (mismo camino que delExpense). */
   const resolveDup=function(e, same){
     if(!e || !e.possibleDup) return;
-    if(!same)return runSourceAction(e,function(){return cloud.setExpenseDup(e,false);},function(){set(function(s){return resolvePossibleDup(s,e.id,false);});},t("g_dup_diff"));
+    if(sourceActionPending.current[e.id])return;
+    if(!same)return runSourceAction(e,function(){return cloud.setExpenseDup(e,false);},function(s){return resolvePossibleDup(s,e.id,false);},t("g_dup_diff"));
     set(function(s){
       let next=resolvePossibleDup(s, e.id, same);
       if(same){
@@ -510,6 +511,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     else showToast(t("g_dup_diff"));
   };
   const separarGemelo=function(e,unir){
+    if(sourceActionPending.current[e.id])return;
     set(function(s){
       const next=unir?unirGemeloAutomatico(s,e.id):separarGemeloAutomatico(s,e.id);
       if(next===s) return s;
@@ -524,15 +526,35 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   const [withdrawalStatus,setWithdrawalStatus]=useState(null);
   const [sourceActionStatus,setSourceActionStatus]=useState(null);
   const sourceActionPending=useRef({});
+  const sourceActionMounted=useRef(true);
+  useEffect(function(){sourceActionMounted.current=true;return function(){sourceActionMounted.current=false;};},[]);
   const runSourceAction=async function(ex,write,apply,success){
-    if(sourceActionPending.current[ex.id])return false;
+    if(sourceActionPending.current[ex.id]||withdrawalPending.current[ex.id])return false;
+    const before=withdrawalState.current,owner=before._historyOwner,snapshot=expenseSourceActionSnapshot(before,ex.id);
+    if(!snapshot)return false;
+    const remote=cloud.enabled()&&!mcSandbox();let timer;
     sourceActionPending.current[ex.id]=true;setSourceActionStatus({id:ex.id,status:"pending"});
-    try{if(cloud.enabled())await write();apply();setSourceActionStatus(null);if(success)showToast(success);return true;}
-    catch(err){setSourceActionStatus({id:ex.id,status:"error"});showToast(t("f_source_save_error"));return false;}
-    finally{delete sourceActionPending.current[ex.id];}
+    try{
+      if(remote){
+        const ack=await Promise.race([(async function(){const result=await write();const session=await cloud.session();if(!session||session.user.id!==owner)throw new Error("source owner changed");return result;})(),new Promise(function(_,reject){timer=setTimeout(function(){reject(new Error("source timeout"));},10000);})]);
+        if(!ack||ack.acknowledged!==true||!Array.isArray(ack.rows)||!ack.rows.length)throw new Error("source unconfirmed");
+      }
+      if(!sourceActionMounted.current)throw new Error("source unmounted");
+      let applied=false,appliedSnapshot=null;
+      ReactDOM.flushSync(function(){set(function(s){
+        applied=false;appliedSnapshot=null;
+        if(expenseSourceActionSnapshot(s,ex.id)!==snapshot)return s;
+        const next=apply(s);if(!next||next===s)return s;applied=true;appliedSnapshot=expenseSourceActionSnapshot(next,ex.id);return next;
+      });});
+      if(!applied||expenseSourceActionSnapshot(withdrawalState.current,ex.id)!==appliedSnapshot)throw new Error("source intention changed");
+      setSourceActionStatus(null);if(success)showToast(success);return true;
+    }
+    catch(err){if(sourceActionMounted.current&&withdrawalState.current._historyOwner===owner){setSourceActionStatus({id:ex.id,status:"error"});showToast(t("f_source_save_error"));}return false;}
+    finally{clearTimeout(timer);delete sourceActionPending.current[ex.id];}
   };
   const [ownTransferStatus,setOwnTransferStatus]=useState(null);
   const recognizeOwnTransfer=function(ex){
+    if(sourceActionPending.current[ex.id])return;
     const plan=ownTransferPlan(withdrawalState.current,ex);
     if(!plan||withdrawalPending.current[ex.id])return;
     withdrawalPending.current[ex.id]=true;
@@ -553,6 +575,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     }).finally(function(){delete withdrawalPending.current[ex.id];});
   };
   const recognizeWithdrawal=function(ex){
+    if(sourceActionPending.current[ex.id])return;
     if(!canRecognizeWithdrawal(ex) || ex.category==="traspaso" || withdrawalPending.current[ex.id]) return;
     if(!canRecognizeWithdrawal(ex,withdrawalState.current)){
       showToast(t(withdrawalReceiptLink(withdrawalState.current,ex)||cargoDeRecibo(ex,withdrawalState.current)?"f_withdraw_receipt_blocked":"f_withdraw_error")); return;
@@ -586,7 +609,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   // Recategorizar un gasto a mano: actualiza ESTE, recuerda el comercio (catOverrides) para los
   // futuros y arregla otros gastos del mismo comercio que estuvieran en "Otros".
   const setCat=function(ex,newCat){
-    if(withdrawalPending.current[ex.id]) return;
+    if(withdrawalPending.current[ex.id]||sourceActionPending.current[ex.id]) return;
     if(newCat==="traspaso" && canRecognizeWithdrawal(ex)){ recognizeWithdrawal(ex); return; }
     const mkey=catKey(ex.merchant);
     // "Movimiento" es el hueco que deja un banco que no manda NINGÚN dato (Trade Republic por
@@ -679,7 +702,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     const confirma=ex.category==="deudas"&&ex.debtId===debtId&&!ex.debtManual;
     const intended=marcarCuotaAMano(withdrawalState.current,ex.id,debtId);if(!intended)return;
     const d=confirma&&(state.debts||[]).find(function(x){ return x.id===debtId; });
-    return runSourceAction(ex,function(){return cloud.setExpenseDeuda(intended.e);},function(){set(function(s){const r=marcarCuotaAMano(s,ex.id,debtId);return r?r.state:s;});},confirma?tf("v4_cuota_confirmada",{name:(d&&String(d.name||"").trim())||catName("deudas")}):tf("v4_moved_cat",{cat:DEUDA_CAT.icon+" "+catName("deudas")}));
+    return runSourceAction(ex,function(){return cloud.setExpenseDeuda(intended.e);},function(s){const r=marcarCuotaAMano(s,ex.id,debtId);return r&&r.state;},confirma?tf("v4_cuota_confirmada",{name:(d&&String(d.name||"").trim())||catName("deudas")}):tf("v4_moved_cat",{cat:DEUDA_CAT.icon+" "+catName("deudas")}));
   };
   /* «Es aportación a la meta X» desde la ficha (decisión suya del 24/10/2026). Toca dinero, así que
      PONERLA se confirma diciendo qué cambia («de 100 € a 350 €»), y si la meta ya tenía algo
@@ -697,6 +720,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     }).catch(function(){}).then(function(){ delete metaEnVuelo.current[k]; });
   };
   const setMeta=function(ex,goalId){
+    if(sourceActionPending.current[ex.id])return;
     const subirMeta=function(){
       let subir=null;
       set(function(s){ const r=marcarAportacionMeta(s, ex.id, goalId); if(!r) return s; subir=r.e; return r.state; });
@@ -717,9 +741,10 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   const quitarRecibo=function(ex){
     const intended=quitarCargoDeRecibo(withdrawalState.current,ex.id);if(!intended)return;
     // La marca viaja en `source`, y se busca la fila por lo que es: su id aquí puede no ser el de la nube.
-    return runSourceAction(ex,function(){return cloud.setExpenseRecibo(intended.e);},function(){set(function(s){const r=quitarCargoDeRecibo(s,ex.id);return r?r.state:s;});});
+    return runSourceAction(ex,function(){return cloud.setExpenseRecibo(intended.e);},function(s){const r=quitarCargoDeRecibo(s,ex.id);return r&&r.state;});
   };
   const setReceipt=function(ex,fixedId){
+    if(sourceActionPending.current[ex.id])return;
     if(withdrawalPending.current[ex.id]){ showToast(t("f_withdraw_receipt_pending")); return; }
     const ds=String(ex.date||"").slice(0,10),y=Number(ds.slice(0,4)),m=Number(ds.slice(5,7)),now=new Date();
     const today=y===now.getFullYear()&&m===now.getMonth()+1?now.getDate():new Date(y,m,0).getDate();
@@ -739,14 +764,14 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       }
       const intended=fixedId!=null&&reponerCargoDeRecibo(withdrawalState.current,ex.id,fixedId,y,m,today,expected);
       // El diálogo es asíncrono: otra sincronización puede sustituir el cargo o editar el recibo.
-      const apply=function(){set(function(s){
+      const apply=function(s){
         // Solo si de ESTE cargo se dijo «no es este recibo»: confirmar lo deshace y repone la marca.
         const r=fixedId!=null&&reponerCargoDeRecibo(s,ex.id,fixedId,y,m,today,expected);
         if(r)return r.state;
         return linkFixedPayment(s,ex.id,fixedId,y,m,today,expected);
-      });};
+      };
       if(intended)return runSourceAction(ex,function(){return cloud.setExpenseRecibo(intended.e);},apply);
-      apply();
+      set(apply);
     };
     // Deshacer el vínculo de un cargo marcado es decir «no es este recibo»: una sola salida.
     if(fixedId==null && cargoDeRecibo(ex,state)){ quitarRecibo(ex); return; }
@@ -774,7 +799,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   // vienen con su banco real y cambiárselo sería mentirse.
   const setBank=function(ex,b){
     if(ex && ex.source && ex.source!=="manual") return;
-    return runSourceAction(ex,function(){return cloud.setExpenseBank(ex,b);},function(){set(function(s){ return Object.assign({},s,{expenses:s.expenses.map(function(e){ return e.id===ex.id?Object.assign({},e,{ent:b||undefined}):e; })}); });});
+    return runSourceAction(ex,function(){return cloud.setExpenseBank(ex,b);},function(s){ return Object.assign({},s,{expenses:s.expenses.map(function(e){ return e.id===ex.id?Object.assign({},e,{ent:b||undefined}):e; })}); });
   };
   // Guarda el CONCEPTO escrito a mano (2026-07-24). `noteEdited` blinda el texto: el siguiente
   // sync del banco rellena conceptos vacíos, pero nunca pisa lo que ha escrito el usuario.
@@ -2002,7 +2027,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       setCat:setCat, setCuota:setCuota, setMeta:setMeta, setReceipt:setReceipt, quitarRecibo:quitarRecibo, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
       resolveDup:resolveDup, separarGemelo:separarGemelo, recognizeWithdrawal:recognizeWithdrawal, withdrawalStatus:withdrawalStatus,
       recognizeOwnTransfer:recognizeOwnTransfer,ownTransferStatus:ownTransferStatus,
-      sourceActionStatus:sourceActionStatus,refreshSourceAction:function(){return Promise.resolve(onRefreshExpenses&&onRefreshExpenses()).then(function(){setSourceActionStatus(null);});},
+      sourceActionStatus:sourceActionStatus||(detailId&&sourceWriteErrors&&sourceWriteErrors[state._historyOwner+"|"+detailId]?{id:detailId,status:"error"}:null),refreshSourceAction:function(){if(!onRefreshExpenses)return Promise.reject(new Error("refresh unavailable"));const owner=withdrawalState.current._historyOwner;return onRefreshExpenses().then(function(){if(sourceActionMounted.current&&withdrawalState.current._historyOwner===owner)setSourceActionStatus(null);});},
       showToast:showToast, aiBusy:aiBusy, suggestAi:suggestAi, state:state
     }),
     undoDelete && ReactDOM.createPortal(

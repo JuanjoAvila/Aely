@@ -8,6 +8,10 @@ El rechazo viaja en `#ownno` antes del ordinal final, se deserializa y se conser
 
 La protección contra un pull iniciado antes del ACK de SÍ vive en un `WeakMap`, sin añadir campos persistidos a la salida. No impide una corrección posterior. No hay garantía atómica entre salida y entrada ni frente a clientes antiguos; ambos límites están aceptados y constan en CHANGELOG. Cobertura dirigida: `tests/own-transfer-confirm.test.mjs` y `e2e/own-transfer-confirm.spec.mjs`.
 
+Los writers de banco, duplicado, cuota y recibo sólo resuelven con `{acknowledged:true,rows:[{id}],alreadyApplied:false}` tras un UPDATE protegido y acuse exacto. Recibo lee también categoría y propietario; el doble de pruebas respeta la proyección de `select`. `expenseSourcePatch` compara la foto semántica completa desde el primer intento y permite un único reintento si se añadió exactamente un `#ownno` sin otro cambio. El cero posterior, la relectura fallida y el conflicto semántico se propagan como error.
+
+En la ficha, `runSourceAction` espera el acuse y la sesión dentro de un plazo de diez segundos, revalida la foto del movimiento y sus vínculos y sólo informa éxito si el reducer se aplicó. Las acciones incompatibles de la misma fila se serializan. `Actualizar movimientos` llama al pull real de gastos; no borra el aviso si falla. La asignación automática de cuota también espera acuse antes de marcar localmente: un fallo no excluye la fila de futuras candidatas. Sus errores son transitorios, se reintentan tras actualizar y se concilian si una lectura posterior trae la cuota esperada o una elección manual confirmada. La recategorización que quita deuda conserva su reparación `catStale`/`recat`, y la separación de gemelos conserva la reparación del pull; no se declaran pérdidas definitivas por un único fallo de esas rutas.
+
 ## FIN29/30: alias de nombre separados del borrado (candidata local, 28/10/2026)
 
 Un renombrado bancario nuevo guarda `expense-rename|identidad|clave` en la partición

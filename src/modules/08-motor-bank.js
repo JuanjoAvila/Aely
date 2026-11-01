@@ -3011,6 +3011,14 @@ function cuotasDeDeudaPorMarcar(s){
   });
   return out;
 }
+function expenseSourceActionSnapshot(s,id){
+  const e=(s.expenses||[]).find(function(x){return x.id===id;});
+  if(!e)return null;
+  // Un NO remoto sólo añade protección; el resto del movimiento y sus vínculos sí invalidan el acuse tardío.
+  const row=Object.assign({},e);delete row.ownTransferRejected;
+  const debts=(s.debts||[]).map(function(d){const x=Object.assign({},d);delete x.debtLinkRevision;return x;});
+  return JSON.stringify([s._historyOwner||null,row,debts,s.fixed,s.oneoffs,s.cuotaNo,s.cuotaAlias]);
+}
 /* Aplica la pasada. Puro: devuelve `{state, marcadas}` (las filas YA marcadas, para subirlas) o
    null si no hay nada que marcar — así el efecto que la llama no entra en bucle. */
 function marcarCuotasDeDeuda(s){
