@@ -1,5 +1,73 @@
 [
   {
+    "v": "4.26.203",
+    "d": "2026-11-01",
+    "t": {
+      "es": "Recibos más finos y cuotas de deuda marcadas por ti",
+      "en": "Smoother bills and loan payments you mark yourself",
+      "ca": "Rebuts més fins i quotes de deute marcades per tu"
+    },
+    "items": {
+      "es": [
+        "Recibos: añadir o editar un recibo va más fino: volver atrás no hace saltar la hoja, elegir los meses deja ver los días y los cargos de tu banco te devuelven al resumen.",
+        "Las cuotas que ya enlazaste en Gastos se ven enlazadas y se abren en su ficha, y «¿Y si gasto…?» y «¿Me lo puedo permitir?» responden al primer toque.",
+        "Las cuotas de deuda que marcas tú en Gastos («Es la cuota de…») cuentan como pagadas aunque el banco cobre un poco distinto, y se ve lo que cobró.",
+        "Si la app ya había enlazado una cuota sola, tocar su deuda en «Es la cuota de…» la confirma."
+      ],
+      "en": [
+        "Bills: adding or editing a bill is smoother: going back no longer makes the sheet jump, picking months keeps the days in view and charges from your bank take you back to the summary.",
+        "Loan payments you already linked in Expenses show as linked and open in their own card, and «What if I spend…?» and «Can I afford it?» respond on the first tap.",
+        "Loan payments you mark yourself in Expenses («It’s the payment for…») count as paid even if the bank charged a slightly different amount, and you can see what it charged.",
+        "If the app had already linked a payment on its own, tapping its debt in «It’s the payment for…» confirms it."
+      ],
+      "ca": [
+        "Rebuts: afegir o editar un rebut va més fi: tornar enrere ja no fa saltar el full, triar els mesos deixa veure els dies i els càrrecs del teu banc et tornen al resum.",
+        "Les quotes que ja vas enllaçar a Despeses es veuen enllaçades i s'obren a la seva fitxa, i «I si gasto…?» i «M'ho puc permetre?» responen al primer toc.",
+        "Les quotes de deute que marques tu a Despeses («És la quota de…») compten com a pagades encara que el banc cobri una mica diferent, i es veu què va cobrar.",
+        "Si l'app ja havia enllaçat una quota sola, tocar el seu deute a «És la quota de…» la confirma."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "plan-recibos-qa",
+        "t": {
+          "es": "Plan › Recibos: añadir o editar, cuotas enlazadas y simuladores",
+          "en": "Plan › Bills: add or edit, linked payments and simulators",
+          "ca": "Pla › Rebuts: afegir o editar, quotes enllaçades i simuladors"
+        },
+        "items": {
+          "es": [
+            "1. Plan → Recibos → Todos → «+» → escribe un nombre → Siguiente → «‹» (o desliza a la derecha, o atrás del móvil). BIEN: vuelves al paso anterior con la hoja quieta en su sitio, sin subir ni bajar; en el primer paso, atrás cierra. MAL: la hoja se va hacia un lado y reaparece, o cambia de alto de golpe.",
+            "2. Todos → «+» → toca un cargo de «Visto en tu banco» (p. ej. el de 2.050 €) → toca «Nombre» → «‹». BIEN: vuelves al resumen con todo lo que habías elegido. MAL: se cierra la hoja o se pierde lo elegido. Repite con «Importe» → «Listo» → «‹».",
+            "3. Todos → «+» → nombre e importe → «Una vez al año» → elige un mes. BIEN: los días bajan a la vista solos y puedes elegir uno. MAL: los días quedan tapados por el botón.",
+            "4. Recibos → una cuota de deuda que tengas enlazada en Gastos (p. ej. la hipoteca) → tócala. BIEN: la fila dice «Enlazado · X €» y se abre su ficha con el cargo y, si no cuenta como pagada, una línea con el motivo; «Ver en Deudas» te lleva a la deuda. MAL: salta directo a Deudas o la fila no dice que está enlazada.",
+            "5. Recibos → «¿Te llega?» → toca en «¿Y si gasto…?»; luego Todos → «¿Me lo puedo permitir?». BIEN: el teclado sale y se ve entero, y el simulador de Todos aparece abierto. MAL: no pasa nada al tocar o el teclado queda fuera de la pantalla.",
+            "6. Gastos → abre el cargo de una cuota que el banco cobró con otro importe → «Es la cuota de…» → elige la deuda → Plan → Recibos. BIEN: sale en «Ya pagados» con «Cargo X», no suma en «Queda por pagar» y en su ficha pone «Esperabas Y». MAL: sigue en Pendiente o en Para revisar.",
+            "7. Gastos → una cuota que la app enlazó sola (fila gris, en Deudas) → ficha → «Es la cuota de…» → toca la deuda ya encendida. BIEN: aparece «Confirmada como cuota de X» y en Recibos pasa a «Ya pagados». MAL: el toque no hace nada."
+          ],
+          "en": [
+            "1. Plan → Bills → All → «+» → type a name → Next → «‹» (or swipe right, or the phone's back). RIGHT: you go back one step with the sheet still in place, not moving up or down; on the first step, back closes it. WRONG: the sheet slides sideways and reappears, or its height changes suddenly.",
+            "2. All → «+» → tap a charge under “Seen in your bank” (e.g. the 2,050 € one) → tap “Name” → «‹». RIGHT: you return to the summary with everything you had chosen. WRONG: the sheet closes or what you chose is lost. Repeat with “Amount” → “Done” → «‹».",
+            "3. All → «+» → name and amount → “Once a year” → pick a month. RIGHT: the days come into view on their own and you can pick one. WRONG: the days stay hidden behind the button.",
+            "4. Bills → a loan payment you have linked in Expenses (e.g. the mortgage) → tap it. RIGHT: the row says “Linked · X €” and its card opens with the charge and, if it does not count as paid, a line with the reason; “See in Debts” takes you to the debt. WRONG: it jumps straight to Debts or the row does not say it is linked.",
+            "5. Bills → “Will it cover?” → tap “What if I spend…?”; then All → “Can I afford it?”. RIGHT: the keyboard opens and is fully visible, and the All simulator appears open. WRONG: nothing happens on tap or the keyboard ends up off screen.",
+            "6. Expenses → open the charge of a loan payment the bank took with a different amount → “It’s the payment for…” → pick the debt → Plan → Bills. RIGHT: it shows under “Already paid” with “Charge X”, does not add to “Still to pay” and its card says “You expected Y”. WRONG: it stays under Pending or To review.",
+            "7. Expenses → a payment the app linked on its own (grey row, under Debts) → card → “It’s the payment for…” → tap the debt that is already on. RIGHT: “Confirmed as the X payment” appears and in Bills it moves to “Already paid”. WRONG: the tap does nothing."
+          ],
+          "ca": [
+            "1. Pla → Rebuts → Tots → «+» → escriu un nom → Següent → «‹» (o llisca cap a la dreta, o enrere del mòbil). BÉ: tornes al pas anterior amb el full quiet al seu lloc, sense pujar ni baixar; al primer pas, enrere tanca. MALAMENT: el full se'n va cap a un costat i reapareix, o canvia d'alçada de cop.",
+            "2. Tots → «+» → toca un càrrec de «Vist al teu banc» (p. ex. el de 2.050 €) → toca «Nom» → «‹». BÉ: tornes al resum amb tot el que havies triat. MALAMENT: es tanca el full o es perd el que has triat. Repeteix amb «Import» → «Fet» → «‹».",
+            "3. Tots → «+» → nom i import → «Un cop l'any» → tria un mes. BÉ: els dies baixen a la vista sols i en pots triar un. MALAMENT: els dies queden tapats pel botó.",
+            "4. Rebuts → una quota de deute que tinguis enllaçada a Despeses (p. ex. la hipoteca) → toca-la. BÉ: la fila diu «Enllaçat · X €» i s'obre la seva fitxa amb el càrrec i, si no compta com a pagada, una línia amb el motiu; «Veure a Deutes» et porta al deute. MALAMENT: salta directe a Deutes o la fila no diu que està enllaçada.",
+            "5. Rebuts → «T'arriba?» → toca a «I si gasto…?»; després Tots → «M'ho puc permetre?». BÉ: el teclat surt i es veu sencer, i el simulador de Tots apareix obert. MALAMENT: no passa res en tocar o el teclat queda fora de la pantalla.",
+            "6. Despeses → obre el càrrec d'una quota que el banc va cobrar amb un altre import → «És la quota de…» → tria el deute → Pla → Rebuts. BÉ: surt a «Ja pagats» amb «Càrrec X», no suma a «Queda per pagar» i a la seva fitxa posa «Esperaves Y». MALAMENT: continua a Pendent o a Per revisar.",
+            "7. Despeses → una quota que l'app va enllaçar sola (fila grisa, a Deutes) → fitxa → «És la quota de…» → toca el deute ja encès. BÉ: apareix «Confirmada com a quota de X» i a Rebuts passa a «Ja pagats». MALAMENT: el toc no fa res."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.202",
     "d": "2026-11-01",
     "t": {
