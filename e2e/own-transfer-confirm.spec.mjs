@@ -22,7 +22,7 @@ async function open(page,{lang='es',mode='ok',expenses=[out,incoming],remote=exp
   });
   await page.addInitScript(({remote,mode})=>{
     const desc=Object.getOwnPropertyDescriptor(window,'supabase');
-    window.__own={rows:JSON.parse(localStorage.getItem('_ownFixtureRemote')||'null')||remote,writes:[],mode,gates:{},settled:{}};
+    window.__own={rows:JSON.parse(localStorage.getItem('_ownFixtureRemote')||'null')||remote,writes:[],reads:[],mode,gates:{},settled:{}};
     Object.defineProperty(window,'supabase',{configurable:true,get(){const lib=desc.get();if(!lib)return lib;
       return {createClient(){const base=lib.createClient();return {...base,from(table){
         if(table!=='expenses')return base.from(table);
@@ -51,7 +51,9 @@ async function open(page,{lang='es',mode='ok',expenses=[out,incoming],remote=exp
           }
           if(!patch&&single&&f.mode==='rereadError'&&f.raced)return {data:null,error:new Error('fixture reread denied')};
           if(!patch&&f.mode==='empty'&&columns!=='*')rows=[];
-          const data=structuredClone(rows.map(r=>columns==='*'?r:Object.fromEntries(columns.split(',').map(k=>[k,r[k]]))));return {data:single?(data[0]||null):data,error:null};
+          const data=structuredClone(rows.map(r=>columns==='*'?r:Object.fromEntries(columns.split(',').map(k=>[k,r[k]]))));
+          if(!patch)f.reads.push({columns,filters:structuredClone(filters),rows:structuredClone(data)});
+          return {data:single?(data[0]||null):data,error:null};
         };
         const q={select(value='*'){columns=value;return q;},eq(k,v){filters.push([k,v]);return q;},is(k,v){filters.push([k,v]);return q;},order(k,opts){ordering={k,ascending:opts&&opts.ascending};return q;},limit(){return q;},lt(k,v){if(k==='id')beforeId=v;return q;},
           update(p){patch=p;return q;},upsert(...args){return base.from(table).upsert(...args);},maybeSingle(){return execute(true);},then(resolve,reject){return execute().then(resolve,reject);}};return q;
@@ -157,15 +159,16 @@ for(const mode of ['casZero2','casSemantic','rereadError','empty'])test(`banco s
   await expect(sheet.getByTestId('exp-source-save-status')).toContainText('Cambio sin confirmar. Actualiza.');
   const failed=await saved(page);expect(failed.expenses.find(e=>e.id===manualA.id).ent).toBe('caixabank');
   expect(failed.expenses.find(e=>e.id===manualA.id).category).toBe('otros');
-  await page.evaluate(()=>{window.__own.mode='ok';});
+  const readsBeforeRefresh=await page.evaluate(()=>{window.__own.mode='ok';return window.__own.reads.length;});
   await sheet.getByTestId('exp-source-refresh').click();
   await expect(sheet.getByTestId('exp-source-save-status')).toHaveCount(0);
   if(mode==='casSemantic'){
-    // refreshExpenseFromCloud conserva la categoría de un apunte manual. El pull sí debe
-    // adoptar el NO; cambiar su banco después no autoriza pisar la categoría remota.
-    await expect.poll(async()=>(await saved(page)).expenses.find(e=>e.id===manualA.id).ownTransferRejected).toBe(true);
-    const refreshed=await saved(page);
-    expect(refreshed.expenses.find(e=>e.id===manualA.id).category).toBe('otros');
+    // El pull conserva la categoría manual y el decoder reserva el NO para filas bancarias.
+    // La lectura real acredita la recuperación sin exigirle a un manual metadatos de OB.
+    const reads=await page.evaluate(from=>window.__own.reads.slice(from),readsBeforeRefresh);
+    expect(reads.some(read=>read.columns==='*'&&read.rows.some(row=>row.id===manualA.id&&row.cat==='salud'&&row.source.includes('#ownno')))).toBe(true);
+    const refreshed=await saved(page),local=refreshed.expenses.find(e=>e.id===manualA.id);
+    expect(local.category).toBe('otros');expect(local.ownTransferRejected).toBeUndefined();
     expect(refreshed.remote[0].cat).toBe('salud');expect(refreshed.writes).toHaveLength(1);
     expect(Object.keys(refreshed.writes[0].patch)).toEqual(['source']);
   }
