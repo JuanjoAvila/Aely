@@ -114,7 +114,76 @@ assert.equal(r.cent - r.prev.cent, -4000, "40,00 menos que septiembre: el Gimnas
   const fotos = Object.assign({}, s.settings.pr6Fotos); delete fotos[2026 * 12 + 9];
   const e = c.planRecibosMesCerrado(Object.assign({}, s, { settings: { pr6Fotos: fotos } }), 2026, 11);
   assert.equal(e.cent, A_OCT);
-  assert.equal(e.prev.cent, null, "septiembre sin foto: «—»");
+  // Rechazo 206: sin foto, septiembre SÍ se acredita si todo lo que tocaba tiene su prueba guardada.
+  assert.equal(e.prev.cent, A_SEP, "septiembre sin foto pero todo pagado con prueba guardada");
+  // La prueba guardada vale aunque la fila de Gastos ya no esté (viaja en el recibo).
+  const sinFila = Object.assign({}, s, { settings: { pr6Fotos: fotos }, expenses: s.expenses.filter((x) => x.id !== "s-gym") });
+  assert.equal(c.planRecibosMesCerrado(sinFila, 2026, 11).prev.cent, A_SEP, "prueba guardada sin la fila");
+  // Uno sin prueba guardada ni fila (el Gimnasio) → «sin datos», no una cifra más baja.
+  const sinGymSep = Object.assign({}, sinFila, { fixed: s.fixed.map((f) => {
+    if (f.id !== "gym") return f;
+    const pp = Object.assign({}, f.paymentProofs); delete pp[2026 * 12 + 9];
+    const n = Object.assign({}, f, { paymentProofs: pp }); delete n.paidYm; delete n.paidDay; return n; }) });
+  assert.equal(c.planRecibosMesCerrado(sinGymSep, 2026, 11).prev.cent, null, "falta una prueba: sin datos");
+  // Un recibo borrado desde el 1 de septiembre: su pago ya no está en ninguna lista → sin datos.
+  const borrado = Object.assign({}, s, { settings: { pr6Fotos: fotos }, reciboBorrado: { viejo: { d: 0, n: "Viejo" } }, reciboBorradoAt: { viejo: new Date("2026-10-12T10:00:00+02:00").getTime() } });
+  assert.equal(c.planRecibosMesCerrado(borrado, 2026, 11).prev.cent, null, "borrado después del 1/9: sin datos");
+  const antiguo = Object.assign({}, borrado, { reciboBorradoAt: { viejo: new Date("2026-08-12T10:00:00+02:00").getTime() } });
+  assert.equal(c.planRecibosMesCerrado(antiguo, 2026, 11).prev.cent, A_SEP, "borrado antes de septiembre: no afecta");
+  // Revisión R1: borrado y devuelto con «Deshacer» el 15/10 (sigue en la lista, su cargo cuenta) → cifra.
+  const devuelto = Object.assign({}, s, { settings: { pr6Fotos: fotos }, reciboBorradoAt: { gym: new Date("2026-10-15T10:00:00+02:00").getTime() } });
+  assert.ok(devuelto.fixed.some((f) => f.id === "gym"), "el Gimnasio sigue en la lista");
+  assert.equal(c.planRecibosMesCerrado(devuelto, 2026, 11).prev.cent, A_SEP, "recibo devuelto con Deshacer: no corta la comparación");
+  // Un gasto de septiembre que apunta a un recibo que ya no existe → sin datos.
+  const huerfano = Object.assign({}, s, { settings: { pr6Fotos: fotos }, expenses: s.expenses.concat([gasto("s-x", "OTRO", "2026-09-20", 9, { reciboId: "nadie" })]) });
+  assert.equal(c.planRecibosMesCerrado(huerfano, 2026, 11).prev.cent, null, "cargo de un recibo que ya no está: sin datos");
+}
+/* Rechazo 206 · Estado realista: septiembre pagado por BOOK casado con tolerancia y guardado en el
+   recibo (`paymentProofs` + `paidYm` de `planSyncDerived`), sin foto de septiembre y con el
+   extracto ya caducado el 3/11. La comparación sale y cuadra al céntimo con la cuenta a mano. */
+{
+  const recs = [
+    { id: "hip", name: "Seguro hogar", amount: 31.5, freq: "mes", day: 4, account: "sabadell" },
+    { id: "tel", name: "Movistar", amount: 45.9, freq: "mes", day: 12, account: "sabadell" },
+    { id: "gas", name: "Naturgy", amount: 38, freq: "mes", day: 20, account: "sabadell", variable: true },
+  ];
+  const sepTx = [
+    { id: "b1", ent: "sabadell", date: "2026-09-04", amount: 31.5, merchant: "Seguro hogar", status: "BOOK" },
+    { id: "b2", ent: "sabadell", date: "2026-09-12", amount: 45.9, merchant: "Movistar", status: "BOOK" },
+    { id: "b3", ent: "sabadell", date: "2026-09-21", amount: 38.4, merchant: "Naturgy", status: "BOOK" },
+  ];
+  const octTx = [
+    { id: "c1", ent: "sabadell", date: "2026-10-04", amount: 31.5, merchant: "Seguro hogar", status: "BOOK" },
+    { id: "c2", ent: "sabadell", date: "2026-10-12", amount: 45.9, merchant: "Movistar", status: "BOOK" },
+    { id: "c3", ent: "sabadell", date: "2026-10-20", amount: 37.7, merchant: "Naturgy", status: "BOOK" },
+    { id: "c4", ent: "sabadell", date: "2026-10-29", amount: 12, merchant: "Panaderia", status: "BOOK" },
+  ];
+  let u = { accounts: [{ id: "sb", ent: "sabadell", role: "fijos", value: 2000 }], fixed: recs, debts: [], oneoffs: [], flows: [], expenses: [], settings: {}, bankTx: sepTx };
+  // 30/9: el sync guarda la prueba BOOK en el recibo y Plan escribe `paidYm`.
+  pon("2026-09-30T21:00:00+02:00");
+  let v = c.reconcileFixedPaymentProofs(u, 2026, 9, 30);
+  v = c.planSyncDerived(v, u);
+  assert.ok(v.fixed.every((f) => f.paymentProofs && f.paymentProofs[2026 * 12 + 9] && f.paymentProofs[2026 * 12 + 9].kind === "book"), "prueba BOOK guardada");
+  assert.ok(v.fixed.every((f) => f.paidYm === 2026 * 12 + 9), "y la marca paidYm de septiembre");
+  // Octubre: otro extracto (el de septiembre ya no viene) y foto del 31.
+  pon("2026-10-31T21:00:00+01:00");
+  v = Object.assign({}, v, { bankTx: octTx });
+  v = c.reconcileFixedPaymentProofs(v, 2026, 10, 31);
+  const vo = vistoEl(v, "2026-10-31T21:00:00+01:00", 2026, 10, 31); v = vo.foto;
+  assert.ok(!v.settings.pr6Fotos[2026 * 12 + 9], "septiembre no tiene foto");
+  // 3/11: el extracto ya no trae nada de septiembre.
+  pon("2026-11-03T12:00:00+01:00");
+  v = Object.assign({}, v, { bankTx: octTx.filter((x) => x.date >= "2026-10-24") });
+  const e = c.planRecibosMesCerrado(v, 2026, 11);
+  const MANO = 3150 + 4590 + 3800;   // tu parte prevista, igual en los dos meses
+  assert.equal(e.cent, MANO, "octubre");
+  assert.equal(vo.cent, MANO, "octubre = lo que Plan enseñaba el 31/10");
+  same(e.prev, { y: 2026, m: 9, cent: MANO }, "septiembre reconstruido con las pruebas guardadas");
+  assert.equal(e.cent - e.prev.cent, 0, "igual que septiembre");
+  // Si a uno le falta la prueba guardada (casó solo por el extracto, ya caducado) → sin datos.
+  const sinPrueba = Object.assign({}, v, { fixed: v.fixed.map((f) => f.id === "tel" ? Object.assign({}, f, { paymentProofs: Object.assign({}, f.paymentProofs, { [2026 * 12 + 9]: undefined }), paidYm: undefined, paidDay: undefined }) : f) });
+  sinPrueba.fixed.forEach((f) => { if (f.paymentProofs) Object.keys(f.paymentProofs).forEach((k) => { if (f.paymentProofs[k] === undefined) delete f.paymentProofs[k]; }); });
+  assert.equal(c.planRecibosMesCerrado(sinPrueba, 2026, 11).prev.cent, null, "sin la prueba de Movistar: sin datos");
 }
 // B2 · Foto de septiembre del día 20 y el extracto ya sin el cargo del 29: «—», no una cifra baja.
 {

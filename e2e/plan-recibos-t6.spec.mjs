@@ -64,11 +64,14 @@ test("mes cerrado: cifra, comparación y detalle en una línea; la × lo pliega 
   const recibos = await mesesVistos(page, {});
   const card = recibos.getByTestId("plan-cerrado");
   await expect(card).toContainText("Octubre cerrado");
-  const linea = card.getByTestId("plan-cerrado-linea");
-  await expect(linea).toHaveText(await eurDe(page, 62.99) + " · −" + await eurDe(page, 40) + " vs. sep");
-  // (revisión) Un solo renglón a 393 px.
-  const alto = await linea.evaluate((el) => el.getBoundingClientRect().height / parseFloat(getComputedStyle(el).lineHeight || "18"));
-  expect(alto).toBeLessThan(1.5);
+  const linea = card.getByTestId("plan-cerrado-linea"), vs = card.getByTestId("plan-cerrado-vs");
+  await expect(linea).toHaveText(await eurDe(page, 62.99) + " en recibos");
+  await expect(vs).toHaveText("−" + await eurDe(page, 40) + " vs. sep");
+  // (revisión) Cada renglón en una sola línea a 393 px.
+  for (const l of [linea, vs]) {
+    const alto = await l.evaluate((el) => el.getBoundingClientRect().height / parseFloat(getComputedStyle(el).lineHeight || "18"));
+    expect(alto).toBeLessThan(1.5);
+  }
   // (revisión) Dianas de 44 px como mínimo.
   for (const b of [card.getByTestId("plan-cerrado-x"), recibos.getByTestId("plan-mes-nav")]) {
     const box = await b.boundingBox();
@@ -103,14 +106,37 @@ test("mes cerrado (revisión): un recibo borrado en octubre no le cambia la cifr
     localStorage.setItem("micartera_v3", JSON.stringify(s));
   });
   // Octubre sin el Gimnasio (ya no estaba): 62,99. Septiembre, como fue: 102,99 → −40,00.
-  await expect(recibos.getByTestId("plan-cerrado-linea")).toHaveText(await eurDe(page, 62.99) + " · −" + await eurDe(page, 40) + " vs. sep");
+  await expect(recibos.getByTestId("plan-cerrado-linea")).toHaveText(await eurDe(page, 62.99) + " en recibos");
+  await expect(recibos.getByTestId("plan-cerrado-vs")).toHaveText("−" + await eurDe(page, 40) + " vs. sep");
 });
 
-test("mes cerrado (revisión): sin foto de septiembre la comparación es «—»", async ({ page }) => {
+/* Rechazo de la beta 206 (1/11/2026): «salía pero no salía el vs». Septiembre no tiene foto (la
+   foto llegó con la 205). Si todo lo de septiembre está pagado con prueba, la comparación sale con
+   su cifra; si a uno le falta la prueba, sale el porqué en una línea. Nunca desaparece. */
+test("mes cerrado (rechazo 206): sin foto de septiembre pero todo pagado, la comparación sale", async ({ page }) => {
   await abrePlan(page, "2026-10-31T20:00:00+01:00", { accounts: cuenta, fixed, bankTx });
   await conFoto(page, OCT);
   const recibos = await otroDia(page, "2026-11-03T12:00:00+01:00");
-  await expect(recibos.getByTestId("plan-cerrado-linea")).toHaveText(await eurDe(page, 62.99) + " · — vs. sep");
+  await expect(recibos.getByTestId("plan-cerrado-linea")).toHaveText(await eurDe(page, 62.99) + " en recibos");
+  await expect(recibos.getByTestId("plan-cerrado-vs")).toHaveText("−" + await eurDe(page, 40) + " vs. sep");
+});
+
+test("mes cerrado (rechazo 206): sin foto y con un recibo de septiembre sin prueba, dice por qué", async ({ page }) => {
+  // El cargo de Netflix de septiembre ya no está en el extracto y no quedó prueba guardada.
+  await abrePlan(page, "2026-10-31T20:00:00+01:00", { accounts: cuenta, fixed, bankTx: bankTx.filter((x) => x.id !== "s2") });
+  await conFoto(page, OCT);
+  const recibos = await otroDia(page, "2026-11-03T12:00:00+01:00");
+  await expect(recibos.getByTestId("plan-cerrado-linea")).toHaveText(await eurDe(page, 62.99) + " en recibos");
+  await expect(recibos.getByTestId("plan-cerrado-vs")).toHaveText("vs. sep: sin datos de septiembre");
+});
+
+test("mes cerrado (revisión t6-vs): todos dados de alta en octubre, la comparación dice que septiembre no tenía recibos", async ({ page }) => {
+  const nuevos = fixed.map((f) => Object.assign({}, f, { createdYm: OCT }));
+  await abrePlan(page, "2026-10-31T20:00:00+01:00", { accounts: cuenta, fixed: nuevos, bankTx });
+  await conFoto(page, OCT);
+  const recibos = await otroDia(page, "2026-11-03T12:00:00+01:00");
+  await expect(recibos.getByTestId("plan-cerrado-linea")).toHaveText(await eurDe(page, 62.99) + " en recibos");
+  await expect(recibos.getByTestId("plan-cerrado-vs")).toHaveText("vs. sep: sin recibos en septiembre");
 });
 
 test("mes cerrado (revisión): lo marcado a mano como pagado no es «no llegó»", async ({ page }) => {

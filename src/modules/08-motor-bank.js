@@ -1269,7 +1269,7 @@ function planRecibosMesFoto(s,y,m){
   var ym=y*12+m,fin=new Date(y,m,0).getDate();
   var foto=((s.settings||{}).pr6Fotos||{})[ym];
   var hoy=planRecibosItems(s,y,m,fin);
-  if(!foto||!Array.isArray(foto.it)) return {items:hoy,fiable:false,foto:false};
+  if(!foto||!Array.isArray(foto.it)) return {items:hoy,fiable:pr6SinFotoAcreditado(s,y,m,hoy),foto:false};
   var mov=pr6MovMes(s,y,m),ult=Object.keys(mov).reduce(function(a,b){ return Math.max(a,mov[b]); },0);
   // Una foto de antes del último movimiento no vio todo el mes: su «no llegó» deja de valer.
   var vieja=ult>Number(foto.d);
@@ -1292,6 +1292,36 @@ function planRecibosMesFoto(s,y,m){
   foto.it.forEach(function(x){ enFoto[x.id]=1; });
   hoy.forEach(function(x){ if(!enFoto[x.id]) items.push(x.st==="q"?Object.assign({},x,{st:"?"}):x); });
   return {items:items,fiable:items.every(function(x){ return x.st!=="?"; }),foto:true};
+}
+/* UN MES SIN FOTO TAMBIÉN SE PUEDE ACREDITAR (rechazo de la beta 206, 1/11/2026: «salía pero no
+   salía el vs»). Septiembre no tiene foto (la foto llegó con la 205) y la comparación salía «—»,
+   aunque sus recibos estaban pagados con prueba guardada en el propio recibo. Sin foto, la lectura
+   de hoy vale entera SOLO si no puede quedarse corta:
+   - todos los cargos de ese mes salen pagados («p» con prueba o «s» con la marca guardada): una
+     prueba guardada (`paymentProofs`, el gasto enlazado de Gastos, `paidYm`) no caduca con el
+     extracto. Uno pendiente puede ser un cargo que casó por el extracto y ya no está (B2);
+   - no se ha borrado ningún recibo ni puntual desde el día 1 de ese mes (`reciboBorradoAt`) que
+     siga fuera de la lista: su pago ya no está en ninguna y la cifra saldría más baja;
+   - ningún gasto de ese mes apunta a un recibo, puntual o cuota que hoy no sale en ese mes (borrado
+     antes de existir `reciboBorrado`, o una deuda ya terminada).
+   Si falla una, «sin datos». Nunca una cifra más baja que la real. */
+function pr6SinFotoAcreditado(s,y,m,items){
+  if(!items.length) return false;
+  if(!items.every(function(x){ return x.st==="p"||x.st==="s"; })) return false;
+  var desde=new Date(y,m-1,1).getTime(), at=s.reciboBorradoAt||{}, sigue={};
+  // «Deshacer» también sella la hora (`conReciboEnPlan`): un recibo que hoy sigue en la lista ya
+  // tiene su cargo en `items`, así que su sello no quita nada (revisión t6-vs, R1).
+  (s.fixed||[]).concat(s.oneoffs||[]).forEach(function(x){ if(x&&x.id!=null) sigue[x.id]=1; });
+  if(Object.keys(at).some(function(id){ return !sigue[id]&&Number(at[id])>=desde; })) return false;
+  var ids={};
+  items.forEach(function(x){ var k=/^(fixed|oneoff|debt|balloon)_(.*)$/.exec(x.id); if(k) ids[(k[1]==="balloon"?"debt":k[1])+"|"+k[2]]=1; });
+  var ym=y+"-"+String(m).padStart(2,"0");
+  return !(s.expenses||[]).some(function(e){
+    if(!e||String(e.date||"").slice(0,7)!==ym) return false;
+    if(e.debtId!=null&&!ids["debt|"+e.debtId]) return true;
+    if(e.reciboId!=null&&!ids["fixed|"+e.reciboId]&&!ids["oneoff|"+e.reciboId]) return true;
+    return false;
+  });
 }
 /* El mes cerrado respecto a (y, m) y sus líneas, solo con dato acreditado (SPEC §2.1):
    - `cent` / `noLlegaron`: null si no se puede acreditar («—»).

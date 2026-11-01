@@ -592,7 +592,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
      descarte es de ESE mes y vive en `settings` para que el otro móvil no lo vuelva a sacar. */
   const fotos=state.settings&&state.settings.pr6Fotos;
   const cerrado=useMemo(function(){ return !vacio&&today<=PR6_CERRADO_DIAS?planRecibosMesCerrado(state,year,month):null; },
-    [vacio,today,year,month,fotos,state.fixed,state.debts,state.oneoffs,state.flows,state.bankTx,state.accounts,state.expenses,state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
+    [vacio,today,year,month,fotos,state.fixed,state.debts,state.oneoffs,state.flows,state.bankTx,state.accounts,state.expenses,state.deleted,state.reciboNo,state.reciboBorradoAt,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
   const cerradoNo=Number(state.settings&&state.settings.pr6CerradoNo)||0;
   const [cerradoAbierto,setCerradoAbierto]=useState(false);
   const [cerradoSale,setCerradoSale]=useState(false);
@@ -859,7 +859,8 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
             React.createElement(lineasCerrado.length?"button":"div",Object.assign({className:"pr6-cerr-t"},lineasCerrado.length?{type:"button","aria-expanded":cerradoAbierto?"true":"false","aria-controls":"pr6-cerr-det",
               onClick:function(){ setCerradoAbierto(function(o){ return !o; }); }}:null),
               React.createElement("span",{className:"pr6-cerr-n"}, pr6TituloCerrado(cerrado)),
-              React.createElement("span",{className:"num pr6-cerr-l","data-testid":"plan-cerrado-linea"}, pr6LineaCerrado(cerrado))),
+              React.createElement("span",{className:"num pr6-cerr-l","data-testid":"plan-cerrado-linea"}, pr6LineaCerrado(cerrado)),
+              React.createElement("span",{className:"num pr6-cerr-l","data-testid":"plan-cerrado-vs"}, pr6VsCerrado(cerrado))),
             React.createElement("button",{type:"button",className:"pr6-cerr-x","aria-label":t("pr6c_cerrar"),"data-testid":"plan-cerrado-x",onClick:descartarCerrado},
               React.createElement("svg",{width:15,height:15,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
                 React.createElement("path",{d:"M6 6l12 12M18 6L6 18"})))),
@@ -933,17 +934,23 @@ function pr6MesCon(m){
   return /^[aeiouàèéíòóú]/i.test(n)?"l'"+n:"el "+n;
 }
 function pr6TituloCerrado(c){ return tf("pr6c_titulo",{mes:pr6Cap(monthLong(c.m-1))}); }
-/* Una sola línea a 393 px (revisión 31/10/2026): «62,99 € · −40,00 € vs. sep». Lo que no se
-   puede acreditar es «—», nunca una cifra más baja que la real. */
+/* La cifra y la comparación van en DOS renglones, cada uno de una línea a 393 px. La comparación
+   SIEMPRE sale (rechazo de la beta 206, 1/11/2026: «salía pero no salía el vs»): con la diferencia
+   o, si no se puede comparar, con el porqué en una línea. Lo que no se acredita no lleva cifra:
+   nunca una más baja que la real. */
 function pr6LineaCerrado(c){
-  // Sin la cifra del mes no hay nada que comparar: «—» a secas.
-  if(c.cent==null) return "—";
-  const x=eur(c.cent/100);
-  if(!c.prev) return x;
-  const mes=pr6Mes(c.prev.y*12+c.prev.m);
-  if(c.prev.cent==null) return x+" · "+tf("pr6c_vs",{d:"—",mes:mes});
-  const d=c.cent-c.prev.cent;
-  return x+" · "+(d===0?tf("pr6c_igual",{mes:mes}):tf("pr6c_vs",{d:(d>0?"+":"−")+eur(Math.abs(d)/100),mes:mes}));
+  return c.cent==null?tf("pr6c_total",{x:"—"}):tf("pr6c_total",{x:eur(c.cent/100)});
+}
+function pr6VsCerrado(c){
+  const p=c.prev||{y:c.m===1?c.y-1:c.y,m:c.m===1?12:c.m-1,cent:null};
+  const mes=pr6Mes(p.y*12+p.m);
+  // En catalán la preposición va pegada al mes: «d'agost», «de setembre», «a l'agost», «al setembre».
+  const ca=function(m,de){ const n=monthLong(m-1), v=/^[aeiouàèéíòóú]/i.test(n); return CURLANG!=="ca"?n:de?(v?"d'":"de ")+n:(v?"a l'":"al ")+n; };
+  if(!c.prev) return tf("pr6c_vs_sin_recibos",{mes:mes,largo:ca(p.m,false)});
+  if(c.cent==null) return tf("pr6c_vs_sin_datos",{mes:mes,largo:ca(c.m,true)});
+  if(p.cent==null) return tf("pr6c_vs_sin_datos",{mes:mes,largo:ca(p.m,true)});
+  const d=c.cent-p.cent;
+  return d===0?tf("pr6c_igual",{mes:mes}):tf("pr6c_vs",{d:(d>0?"+":"−")+eur(Math.abs(d)/100),mes:mes});
 }
 // «En diciembre», y en catalán «A l'abril» con los meses que empiezan por vocal, como Inicio.
 function pr6EnMes(m){

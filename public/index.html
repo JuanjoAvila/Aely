@@ -7756,7 +7756,7 @@ const LANG = {
     pr6_entra_en:"entra en {bank}", pr6_dia:"día {d}", pr6_dia_menos:"Un día antes", pr6_dia_mas:"Un día después",
     pr6_sin_restar:"Pagado, aún sin restar del saldo", pr6_fresh_now:"saldo de ahora", pr6_fresh_min:"saldo de hace {n} min", pr6_fresh_h:"saldo de hace {n} h", pr6_fresh_ayer:"saldo de ayer", pr6_fresh_d:"saldo de hace {n} días", pr6_fresh_fecha:"saldo del {x}",
     // Plan › Recibos v6, tanda 6: resumen del mes cerrado, vista del mes siguiente y primer uso.
-    pr6c_titulo:"{mes} cerrado", pr6c_vs:"{d} vs. {mes}", pr6c_igual:"igual que {mes}",
+    pr6c_titulo:"{mes} cerrado", pr6c_total:"{x} en recibos", pr6c_vs:"{d} vs. {mes}", pr6c_vs_sin_datos:"vs. {mes}: sin datos de {largo}", pr6c_vs_sin_recibos:"vs. {mes}: sin recibos en {largo}", pr6c_igual:"igual que {mes}",
     pr6c_sube:"{name}, más que {mes}", pr6c_subio:"{name} subió", pr6c_bajo:"{name} bajó", pr6c_no_llegaron:"Recibos que no llegaron", pr6c_cerrar:"Cerrar el resumen",
     pr6_se_van:"Se te van en {month}", pr6_nada_sig:"Nada previsto en {month}",
     pr6_onb_n:"{n} cargos que se repiten", pr6_onb_1:"1 cargo que se repite", pr6_onb_en:"en {x}", pr6_onb_vacio:"Aún no tienes recibos", pr6_empezar:"Empezar",
@@ -20075,7 +20075,7 @@ function planRecibosMesFoto(s,y,m){
   var ym=y*12+m,fin=new Date(y,m,0).getDate();
   var foto=((s.settings||{}).pr6Fotos||{})[ym];
   var hoy=planRecibosItems(s,y,m,fin);
-  if(!foto||!Array.isArray(foto.it)) return {items:hoy,fiable:false,foto:false};
+  if(!foto||!Array.isArray(foto.it)) return {items:hoy,fiable:pr6SinFotoAcreditado(s,y,m,hoy),foto:false};
   var mov=pr6MovMes(s,y,m),ult=Object.keys(mov).reduce(function(a,b){ return Math.max(a,mov[b]); },0);
   // Una foto de antes del último movimiento no vio todo el mes: su «no llegó» deja de valer.
   var vieja=ult>Number(foto.d);
@@ -20098,6 +20098,36 @@ function planRecibosMesFoto(s,y,m){
   foto.it.forEach(function(x){ enFoto[x.id]=1; });
   hoy.forEach(function(x){ if(!enFoto[x.id]) items.push(x.st==="q"?Object.assign({},x,{st:"?"}):x); });
   return {items:items,fiable:items.every(function(x){ return x.st!=="?"; }),foto:true};
+}
+/* UN MES SIN FOTO TAMBIÉN SE PUEDE ACREDITAR (rechazo de la beta 206, 1/11/2026: «salía pero no
+   salía el vs»). Septiembre no tiene foto (la foto llegó con la 205) y la comparación salía «—»,
+   aunque sus recibos estaban pagados con prueba guardada en el propio recibo. Sin foto, la lectura
+   de hoy vale entera SOLO si no puede quedarse corta:
+   - todos los cargos de ese mes salen pagados («p» con prueba o «s» con la marca guardada): una
+     prueba guardada (`paymentProofs`, el gasto enlazado de Gastos, `paidYm`) no caduca con el
+     extracto. Uno pendiente puede ser un cargo que casó por el extracto y ya no está (B2);
+   - no se ha borrado ningún recibo ni puntual desde el día 1 de ese mes (`reciboBorradoAt`) que
+     siga fuera de la lista: su pago ya no está en ninguna y la cifra saldría más baja;
+   - ningún gasto de ese mes apunta a un recibo, puntual o cuota que hoy no sale en ese mes (borrado
+     antes de existir `reciboBorrado`, o una deuda ya terminada).
+   Si falla una, «sin datos». Nunca una cifra más baja que la real. */
+function pr6SinFotoAcreditado(s,y,m,items){
+  if(!items.length) return false;
+  if(!items.every(function(x){ return x.st==="p"||x.st==="s"; })) return false;
+  var desde=new Date(y,m-1,1).getTime(), at=s.reciboBorradoAt||{}, sigue={};
+  // «Deshacer» también sella la hora (`conReciboEnPlan`): un recibo que hoy sigue en la lista ya
+  // tiene su cargo en `items`, así que su sello no quita nada (revisión t6-vs, R1).
+  (s.fixed||[]).concat(s.oneoffs||[]).forEach(function(x){ if(x&&x.id!=null) sigue[x.id]=1; });
+  if(Object.keys(at).some(function(id){ return !sigue[id]&&Number(at[id])>=desde; })) return false;
+  var ids={};
+  items.forEach(function(x){ var k=/^(fixed|oneoff|debt|balloon)_(.*)$/.exec(x.id); if(k) ids[(k[1]==="balloon"?"debt":k[1])+"|"+k[2]]=1; });
+  var ym=y+"-"+String(m).padStart(2,"0");
+  return !(s.expenses||[]).some(function(e){
+    if(!e||String(e.date||"").slice(0,7)!==ym) return false;
+    if(e.debtId!=null&&!ids["debt|"+e.debtId]) return true;
+    if(e.reciboId!=null&&!ids["fixed|"+e.reciboId]&&!ids["oneoff|"+e.reciboId]) return true;
+    return false;
+  });
 }
 /* El mes cerrado respecto a (y, m) y sus líneas, solo con dato acreditado (SPEC §2.1):
    - `cent` / `noLlegaron`: null si no se puede acreditar («—»).
@@ -28147,7 +28177,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="4f742b4bd56be40366784cf79355fd644105a7317c90c29869e19133612c2c9b";
+var _rnSha="43f920c1bc20f0f875e37e03844dd52b9aa9ebe0582cc0bb05a53a0b12561772";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -30256,7 +30286,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
      descarte es de ESE mes y vive en `settings` para que el otro móvil no lo vuelva a sacar. */
   const fotos=state.settings&&state.settings.pr6Fotos;
   const cerrado=useMemo(function(){ return !vacio&&today<=PR6_CERRADO_DIAS?planRecibosMesCerrado(state,year,month):null; },
-    [vacio,today,year,month,fotos,state.fixed,state.debts,state.oneoffs,state.flows,state.bankTx,state.accounts,state.expenses,state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
+    [vacio,today,year,month,fotos,state.fixed,state.debts,state.oneoffs,state.flows,state.bankTx,state.accounts,state.expenses,state.deleted,state.reciboNo,state.reciboBorradoAt,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
   const cerradoNo=Number(state.settings&&state.settings.pr6CerradoNo)||0;
   const [cerradoAbierto,setCerradoAbierto]=useState(false);
   const [cerradoSale,setCerradoSale]=useState(false);
@@ -30523,7 +30553,8 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
             React.createElement(lineasCerrado.length?"button":"div",Object.assign({className:"pr6-cerr-t"},lineasCerrado.length?{type:"button","aria-expanded":cerradoAbierto?"true":"false","aria-controls":"pr6-cerr-det",
               onClick:function(){ setCerradoAbierto(function(o){ return !o; }); }}:null),
               React.createElement("span",{className:"pr6-cerr-n"}, pr6TituloCerrado(cerrado)),
-              React.createElement("span",{className:"num pr6-cerr-l","data-testid":"plan-cerrado-linea"}, pr6LineaCerrado(cerrado))),
+              React.createElement("span",{className:"num pr6-cerr-l","data-testid":"plan-cerrado-linea"}, pr6LineaCerrado(cerrado)),
+              React.createElement("span",{className:"num pr6-cerr-l","data-testid":"plan-cerrado-vs"}, pr6VsCerrado(cerrado))),
             React.createElement("button",{type:"button",className:"pr6-cerr-x","aria-label":t("pr6c_cerrar"),"data-testid":"plan-cerrado-x",onClick:descartarCerrado},
               React.createElement("svg",{width:15,height:15,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
                 React.createElement("path",{d:"M6 6l12 12M18 6L6 18"})))),
@@ -30597,17 +30628,23 @@ function pr6MesCon(m){
   return /^[aeiouàèéíòóú]/i.test(n)?"l'"+n:"el "+n;
 }
 function pr6TituloCerrado(c){ return tf("pr6c_titulo",{mes:pr6Cap(monthLong(c.m-1))}); }
-/* Una sola línea a 393 px (revisión 31/10/2026): «62,99 € · −40,00 € vs. sep». Lo que no se
-   puede acreditar es «—», nunca una cifra más baja que la real. */
+/* La cifra y la comparación van en DOS renglones, cada uno de una línea a 393 px. La comparación
+   SIEMPRE sale (rechazo de la beta 206, 1/11/2026: «salía pero no salía el vs»): con la diferencia
+   o, si no se puede comparar, con el porqué en una línea. Lo que no se acredita no lleva cifra:
+   nunca una más baja que la real. */
 function pr6LineaCerrado(c){
-  // Sin la cifra del mes no hay nada que comparar: «—» a secas.
-  if(c.cent==null) return "—";
-  const x=eur(c.cent/100);
-  if(!c.prev) return x;
-  const mes=pr6Mes(c.prev.y*12+c.prev.m);
-  if(c.prev.cent==null) return x+" · "+tf("pr6c_vs",{d:"—",mes:mes});
-  const d=c.cent-c.prev.cent;
-  return x+" · "+(d===0?tf("pr6c_igual",{mes:mes}):tf("pr6c_vs",{d:(d>0?"+":"−")+eur(Math.abs(d)/100),mes:mes}));
+  return c.cent==null?tf("pr6c_total",{x:"—"}):tf("pr6c_total",{x:eur(c.cent/100)});
+}
+function pr6VsCerrado(c){
+  const p=c.prev||{y:c.m===1?c.y-1:c.y,m:c.m===1?12:c.m-1,cent:null};
+  const mes=pr6Mes(p.y*12+p.m);
+  // En catalán la preposición va pegada al mes: «d'agost», «de setembre», «a l'agost», «al setembre».
+  const ca=function(m,de){ const n=monthLong(m-1), v=/^[aeiouàèéíòóú]/i.test(n); return CURLANG!=="ca"?n:de?(v?"d'":"de ")+n:(v?"a l'":"al ")+n; };
+  if(!c.prev) return tf("pr6c_vs_sin_recibos",{mes:mes,largo:ca(p.m,false)});
+  if(c.cent==null) return tf("pr6c_vs_sin_datos",{mes:mes,largo:ca(c.m,true)});
+  if(p.cent==null) return tf("pr6c_vs_sin_datos",{mes:mes,largo:ca(p.m,true)});
+  const d=c.cent-p.cent;
+  return d===0?tf("pr6c_igual",{mes:mes}):tf("pr6c_vs",{d:(d>0?"+":"−")+eur(Math.abs(d)/100),mes:mes});
 }
 // «En diciembre», y en catalán «A l'abril» con los meses que empiezan por vocal, como Inicio.
 function pr6EnMes(m){
