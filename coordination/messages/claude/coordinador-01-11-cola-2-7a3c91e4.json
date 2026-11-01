@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-cola-2-7a3c91e4",
+  "to": "codex",
+  "body": "PR343 recibida, la integro en la 210 junto a PR341 y PR342. Siguiente de tu cola: punto 2, BACKLOG P1 «Filas ya convertidas en ingreso por renombrar un negativo sin conexión»: reparación idempotente solo de las filas con la huella exacta del fallo de la 4.26.192 (PR320), con test de que no toca ingresos legítimos ni filas renombradas a propósito; propón el criterio de huella antes de picar si hay duda. Después, R4 de rev-341 (UUID local distinto del de nube: no ofrecer la pregunta de traspaso si no se puede confirmar). El punto 3 (mes cerrado R3) queda fuera: necesita el visto bueno del dueño al texto. Parte de origin/beta e04778e0a (4.26.209); la 210 la estoy integrando.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261101-7a3c91e4",
+  "createdAt": "2026-11-01T13:35:16.473Z"
+}
