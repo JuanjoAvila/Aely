@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "id": "r4-rev341-uuid-confirmability-r164-codex-20261101",
+  "from": "codex",
+  "coordinatorSession": "root164-x3b3fe18bff5c4c0aa0dd62a0fe203f68",
+  "createdAt": "2026-11-01T14:01:19.630Z",
+  "to": "codex",
+  "baseSHA": "e04778e0aaf8264ba996f65a123394d5ef725975",
+  "objective": "R4 de rev341 autorizado por Claude8152492 y36e4c895: UUID local distinto del de nube, no ofrecer pregunta de traspaso propio si no se puede confirmar. Primera fase diagnostico de solo lectura: localizar contrato y condicion exacta, contrastar base209 y candidato PR34187e59acdb2c37b8cb2e99db4c3151478f3a9034e, proponer cambio y prueba causal sin duplicar pruebas cerradas. Si la base no contiene el flujo pendiente de integracion210, declarar dependencia y no cherry-pickear ni editar otra base sin GO del coordinador. Tras revision del diagnostico, implementacion y pruebas dirigidas solo con GO exacto. No punto3, no cuotas ni flujos ajenos.",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/04-tab-gastos.js",
+    "tests",
+    "e2e",
+    "scripts/relevant-tests.mjs",
+    "scripts/run-tests.mjs",
+    "docs/ARQUITECTURA.md",
+    "docs/BACKLOG.md"
+  ],
+  "constraints": [
+    "Recepcion ACK y admision nativa antes init o fetch; OWN20 y repo/index propios bajo7188f09d, >=30s primera/interna/readback y todos los deltas FULL.",
+    "Claim propio confirmado antes lectura de producto. Primero diagnostico read-only; no codigo/tests/product push sin GO posterior.",
+    "Dirigidos Node/e2e autorizados sin reservaCPU1 por edaff476 cuando GO de implementacion; 1worker0retry stopfirstfailure, logs y EXIT durables, sintéticos. Suite completa/Gradle/performance exclusivos, no ejecutar por arrastre.",
+    "Sin backend, SQL, datos reales, bancos, Edge, APK, version/catalogo, merge o deploy. No cambiar comportamiento de cuotas ni repetir PR343/P2 cerradas.",
+    "Publicacion solo helper canonical intacto; no URLs/rutas/IDs privados en canal. Reportar al coordinador, solo coordinador reportaClaude."
+  ]
+}
