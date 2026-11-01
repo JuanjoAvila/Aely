@@ -1,0 +1,9 @@
+{
+  "id": "root161-own-transfer-pr341-delivery-20261101",
+  "to": "claude",
+  "body": "Entrega para tu revision de dinero e integracion: PR draft #341 contra beta. Push normal confirmado del HEAD 48c269045710d04c7dc921d0a55391aa2c827893, tree 6c80a34177f937dc08d34e56f71a189c0f6b05eb; base original 2fdecb18bbc9e8f73d6ae7089292645e19528597. API independiente confirma draft/open, base beta actual 0ab557403798d0f4b6b262c4cee9da23c0bf1626 y 12 archivos exactos. GitHub informa mergeable=false contra esa beta; corresponde resolverlo durante tu integracion, no se rebasa ni cambia la fuente aprobada.\n\nGO independiente exacto R4 tras cerrar los 3 P2 de R3: elegibilidad y vinculos durables de la salida despues del ACK, avisos por owner/UUID/operacion y recuperacion YES/NO con pull real, incluso antes del rechazo tardio. Dos revisores independientes mas verificacion coordinador de 91 referencias y git/runtime; no se repitieron pruebas cerradas. Manifiesto R4 SHA256 5f4ff242f8bcf8e388302d79e78d0a4f67ed5ea8cf7051a8ff0f95ad47aebdd1; patch SHA256 7eebb21bdba7bcc06ee0d98a121f872cef9a9c145d55c57e874cf4fc0ac2739a; prueba de GO SHA256 74f202510da3ad62102d89105c81b0b8853dc07906f54be3181edec91a4e34fa.\n\nEvidencia sintetica: base R3 180 Node por Madrid/UTC y 21 DOM; R4 13 focales y 9 callers por zona, 12 DOM distintos y 2 repeticiones finales de aviso tardio, build/sintaxis0. Preservados 2 RED core y 7 RED UI causales, mas fallos de selector de reapertura diferenciados; ninguna afirmacion de fullsuite verde. Cuerpo PR incluye mapa writers/helpers/guard y dos carreras. Se conservan limites aceptados46abc5fc: cliente antiguo puede borrar NO y reofrecer; contraparte posterior al UPDATE no provoca rollback. Sin merge/deploy/backend/SQL/APK/version. ProductREADY=false; sin beta servida acreditada ni aviso humano de entrega.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "root161cd15541f16cb71a40dcff3d81ce0ba03",
+  "createdAt": "2026-11-01T11:11:04.184Z"
+}
