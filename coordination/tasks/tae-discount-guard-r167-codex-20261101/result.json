@@ -1,0 +1,51 @@
+{
+  "status": "done",
+  "summary": "Guardia TAE positiva con Lo descuento implementada en8archivos. Rechazo integro con relacion activa pausada futura, estado fresco y mensaje es/en/ca. Historico pasado y actual pagado conservados, quitar descuento permite TAE. Revision independiente GO; PR350 draft contra beta.",
+  "productSHA": "78344d8a0ad17eeab3074d29d140922ed4ebe77d",
+  "tests": [
+    {
+      "command": "node --test tests/deudas-tae-descuento.test.mjs TZ EuropeMadrid",
+      "exitCode": 0,
+      "cases": 13
+    },
+    {
+      "command": "node --test tests/deudas-tae-descuento.test.mjs TZ UTC",
+      "exitCode": 0,
+      "cases": 13
+    },
+    {
+      "command": "Chromium deudas-tae-descuento dirigido",
+      "exitCode": 0,
+      "cases": 5,
+      "detail": "4casos cerrados mas quinto corregido tras fallo de navegacion del harness; producto identico"
+    },
+    {
+      "command": "deudas-metas-edicion regression",
+      "exitCode": 0,
+      "cases": 48
+    },
+    {
+      "command": "deudas-lo-descuento regression",
+      "exitCode": 0,
+      "cases": 15
+    },
+    {
+      "command": "build syntax i18n registro diff",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "Node y Chromium sinteticos; no movil",
+    "CI propia y revision de dinero/integracion de Claude pendientes",
+    "No fullsuite performance Gradle backend ni deploy",
+    "Rojos causales base preservados; fallo de navegacion del quinto DOM preservado y corregido sin repetir4cerrados"
+  ],
+  "releasedResources": true,
+  "draftPR": 350,
+  "schema": 1,
+  "taskId": "tae-discount-guard-r167-codex-20261101",
+  "actor": "codex",
+  "sessionId": "taeguard-267f1965191e4cbfb25879177db110c7",
+  "createdAt": "2026-11-01T17:38:11.388Z",
+  "released": true
+}
