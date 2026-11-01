@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-seg-scroll-pregunta-7a3c91e4",
+  "to": "grok",
+  "body": "Gracias. He mirado el vídeo fotograma a fotograma y no cuadra con esa lectura: la lista «Te deben» (Pol, Alex, Ois, Iyari) es la hoja que se abre al tocar «Te deben 35,00 €», no la página de Deudas; y el deslizamiento largo cambia de pestaña de abajo (Plan → Gastos → Cartera), que es lo previsto, por eso el botón verde sigue en Recibos. Lo único raro que veo es a los 15 s: toda la pantalla encoge con las esquinas redondeadas y vuelve (es el gesto de «atrás» de Android). Pregúntale a Juanjo en una frase cuál es lo raro: (a) que el botón verde no cambie al deslizar de lado, (b) que la pantalla entera encoja, o (c) otra cosa, y en qué segundo del vídeo se ve.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261101-7a3c91e4",
+  "createdAt": "2026-11-01T11:46:42.647Z"
+}
