@@ -1,5 +1,70 @@
 [
   {
+    "v": "4.26.209",
+    "d": "2026-11-01",
+    "t": {
+      "es": "Deudas: cuentas claras al descontar de un recibo",
+      "en": "Debts: clear numbers when you deduct from a bill",
+      "ca": "Deutes: comptes clars en descomptar d’un rebut"
+    },
+    "items": {
+      "es": [
+        "Deudas: si una parte de un recibo se descuenta de una deuda y las cuentas no salen, la app pregunta cuánto le pasas y cuánto baja la deuda, en vez de sumarlo sin avisar. En Editar deuda ya se ve y se cambia cuánto baja cada mes.",
+        "Al ir a una deuda desde Recibos, la primera ya no queda cortada arriba."
+      ],
+      "en": [
+        "Debts: if part of a bill is deducted from a debt and the numbers don’t add up, the app now asks how much you send and how much the debt goes down, instead of adding it silently. Edit debt now shows and lets you change how much it goes down each month.",
+        "When going to a debt from Bills, the first one is no longer cut off at the top."
+      ],
+      "ca": [
+        "Deutes: si una part d’un rebut es descompta d’un deute i els comptes no surten, l’app pregunta quant li passes i quant baixa el deute, en lloc de sumar-ho sense avisar. A Edita el deute ja es veu i es canvia quant baixa cada mes.",
+        "En anar a un deute des de Rebuts, el primer ja no queda tallat a dalt."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "deuda-lo-descuento",
+        "t": {
+          "es": "Deudas: «Lo descuento» y lo que baja la deuda cada mes",
+          "en": "Debts: “I deduct it” and how much the debt goes down each month",
+          "ca": "Deutes: «Ho descompto» i el que baixa el deute cada mes"
+        },
+        "items": {
+          "es": [
+            "1. Plan → Deudas → toca tu préstamo sin interés → Editar deuda. Mira el campo «Baja la deuda al mes (€)». BIEN: aparece en las deudas sin interés. MAL: no aparece, o aparece en una deuda con interés.",
+            "2. Mismo sitio: escribe en «Baja la deuda al mes (€)» lo que baja de verdad (por ejemplo 250) y pulsa Guardar cambios. BIEN: pide confirmar el plazo nuevo y, al aceptar, el pendiente de la tarjeta queda igual. MAL: el pendiente cambia o no pide confirmar.",
+            "3. Plan → Deudas → la misma deuda → Editar deuda: cambia solo el plazo. BIEN: «Baja la deuda al mes (€)» se recalcula al teclear y se guarda sin avisos. MAL: dice que el plazo y la cuota no encajan.",
+            "4. Tu caso (el descuento ya estaba puesto): Plan → Deudas → tarjeta del préstamo de tu madre. Bajo «pagas 250 € + 53 € de …» sale «No cuadra · Ajustar». Tócalo: «¿Cuánto le pasas al mes?» con 197 → Aceptar; después «¿Le pasas 197 € y la deuda baja esto?» con 250 → «Ajustar la deuda». BIEN: queda «pagas 197 € + 53 €», el pendiente igual que antes y el botón desaparece. MAL: no sale el botón, cambia el pendiente o sigue «250 € + 53 €».",
+            "5. (Sin tocar tus datos reales si no quieres) Otra deuda sin interés: Plan → Recibos → Todos → Personas → Añadir, «Lo descuento» de esa deuda en un recibo mensual → Guardar. BIEN: si la cuota no cuadra, sale la misma pregunta. MAL: se guarda sin preguntar y la tarjeta suma de más.",
+            "6. Repite el paso 5 y elige «Dejarla como está». BIEN: el recibo queda compartido y la deuda igual que antes. MAL: la deuda cambia.",
+            "7. Plan → Deudas → una deuda sin bajada aparte → Editar deuda: cambia la cuota a 197. BIEN: «Baja la deuda al mes (€)» pasa a 197 sola; escribe 250 y guarda: queda cuota 197 y la deuda baja 250. MAL: se guarda bajando 197.",
+            "8. Plan → Recibos → abre un recibo compartido → Editar → Más opciones. BIEN: la parte de cada persona lleva un lápiz ✎ y al tocarla se puede teclear. MAL: sin lápiz o no se puede teclear."
+          ],
+          "en": [
+            "1. Plan → Debts → tap your interest-free loan → Edit debt. Look at the “Debt goes down per month (€)” field. RIGHT: it shows on interest-free debts. WRONG: it is missing, or it shows on a debt with interest.",
+            "2. Same place: type in “Debt goes down per month (€)” what really goes down (for example 250) and press Save changes. RIGHT: it asks you to confirm the new term and, once accepted, the card’s balance stays the same. WRONG: the balance changes or it does not ask to confirm.",
+            "3. Plan → Debts → the same debt → Edit debt: change only the term. RIGHT: “Debt goes down per month (€)” recalculates as you type and it saves with no warnings. WRONG: it says the term and the instalment do not match.",
+            "4. Your case (the deduction was already set): Plan → Debts → your mother’s loan card. Under “you pay 250 € + 53 € of …” it shows “Doesn’t add up · Adjust”. Tap it: “How much do you send each month?” with 197 → Accept; then “You send 197 € and the debt goes down by this?” with 250 → “Adjust the debt”. RIGHT: it ends up “you pay 197 € + 53 €”, the balance as before and the button disappears. WRONG: the button does not show, the balance changes or it still says “250 € + 53 €”.",
+            "5. (Without touching your real data if you prefer) Another interest-free debt: Plan → Bills → All → People → Add, “I deduct it” from that debt in a monthly bill → Save. RIGHT: if the instalment does not add up, the same question shows. WRONG: it saves without asking and the card adds up too much.",
+            "6. Repeat step 5 and choose “Leave it as is”. RIGHT: the bill stays shared and the debt as before. WRONG: the debt changes.",
+            "7. Plan → Debts → a debt with no separate decrease → Edit debt: change the instalment to 197. RIGHT: “Debt goes down per month (€)” becomes 197 by itself; type 250 and save: the instalment stays 197 and the debt goes down 250. WRONG: it saves going down 197.",
+            "8. Plan → Bills → open a shared bill → Edit → More options. RIGHT: each person’s share has a pencil ✎ and tapping it lets you type. WRONG: no pencil or you cannot type."
+          ],
+          "ca": [
+            "1. Pla → Deutes → toca el teu préstec sense interès → Edita el deute. Mira el camp «Baixa el deute al mes (€)». BÉ: apareix en els deutes sense interès. MALAMENT: no apareix, o apareix en un deute amb interès.",
+            "2. Mateix lloc: escriu a «Baixa el deute al mes (€)» el que baixa de debò (per exemple 250) i prem Desa els canvis. BÉ: demana confirmar el termini nou i, en acceptar, el pendent de la targeta queda igual. MALAMENT: el pendent canvia o no demana confirmar.",
+            "3. Pla → Deutes → el mateix deute → Edita el deute: canvia només el termini. BÉ: «Baixa el deute al mes (€)» es recalcula en teclejar i es desa sense avisos. MALAMENT: diu que el termini i la quota no encaixen.",
+            "4. El teu cas (el descompte ja estava posat): Pla → Deutes → targeta del préstec de la teva mare. Sota «pagues 250 € + 53 € de …» surt «No quadra · Ajustar». Toca-ho: «Quant li passes cada mes?» amb 197 → Accepta; després «Li passes 197 € i el deute baixa això?» amb 250 → «Ajustar el deute». BÉ: queda «pagues 197 € + 53 €», el pendent igual que abans i el botó desapareix. MALAMENT: no surt el botó, canvia el pendent o continua «250 € + 53 €».",
+            "5. (Sense tocar les teves dades reals si no vols) Un altre deute sense interès: Pla → Rebuts → Tots → Persones → Afegeix, «Ho descompto» d’aquest deute en un rebut mensual → Desa. BÉ: si la quota no quadra, surt la mateixa pregunta. MALAMENT: es desa sense preguntar i la targeta suma de més.",
+            "6. Repeteix el pas 5 i tria «Deixar-lo com està». BÉ: el rebut queda compartit i el deute igual que abans. MALAMENT: el deute canvia.",
+            "7. Pla → Deutes → un deute sense baixada a part → Edita el deute: canvia la quota a 197. BÉ: «Baixa el deute al mes (€)» passa a 197 sol; escriu 250 i desa: queda quota 197 i el deute baixa 250. MALAMENT: es desa baixant 197.",
+            "8. Pla → Rebuts → obre un rebut compartit → Edita → Més opcions. BÉ: la part de cada persona porta un llapis ✎ i en tocar-la es pot teclejar. MALAMENT: sense llapis o no es pot teclejar."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.208",
     "d": "2026-11-01",
     "t": {
