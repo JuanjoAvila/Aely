@@ -2037,6 +2037,12 @@ function useSheetSwipe(open, onClose, opts){
     // recupera el tirón que ya se había eliminado (revisión independiente 2026-09-24).
     if(lockHeld.current){ lockHeld.current=false; mcSheetUnlock(); }
     const ease=fromDrag?(opts.closeEase||"cubic-bezier(.32,.72,0,1)"):"cubic-bezier(.3,0,.2,1)";
+    // `sheetup` sigue mandando sobre el transform inline mientras la entrada no ha terminado:
+    // cerrar a medias devolvía la hoja hacia arriba y luego saltaba abajo (1/11/2026).
+    const sheetNow=getComputedStyle(el).transform;
+    el.style.animation="none";
+    el.style.transform=sheetNow;
+    void el.offsetWidth;
     el.style.transition="transform "+ms+"ms "+ease;
     el.style.transform="translate3d(0,110%,0)";
     // El velo se va con la hoja, mismo tiempo y curva. Antes solo bajaba la hoja y el velo se
@@ -2044,8 +2050,18 @@ function useSheetSwipe(open, onClose, opts){
     // fotograma, medido en Deudas, Metas y también Apuntar (beta 4.26.139.1, 2026-10-17).
     const back=el.parentElement;
     if(back&&back.classList.contains("v4-sheet-back")){
-      back.style.transition="background-color "+ms+"ms "+ease;
-      back.style.backgroundColor="rgba(8,28,20,0)";
+      // El velo es el ::before y su entrada anima opacity (`sheetveil`). Mientras dura, esa
+      // animación gana a la transición: sin congelarla, el opacity:0 de .v4-sheet-out no se
+      // ve hasta que la entrada termina y el velo salta (1/11/2026). Se deja la opacidad que
+      // se ve ahora y, al frame siguiente, se funde con la bajada. will-change solo lo pone
+      // esa clase, no el reposo.
+      const cur=getComputedStyle(back,"::before").opacity;
+      back.style.setProperty("--sheet-veil",cur);
+      back.classList.add("v4-sheet-hold");
+      void back.offsetWidth;
+      back.style.setProperty("--veil-ms",ms+"ms");
+      back.style.setProperty("--veil-ease",ease);
+      back.classList.add("v4-sheet-out");
     }
     closeTimer.current=setTimeout(function(){
       closeTimer.current=null;
