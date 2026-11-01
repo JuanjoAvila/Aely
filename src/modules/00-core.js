@@ -1346,18 +1346,23 @@ const cloud = (function(){
       const {data,error}=await sb.from('expenses').select('user_id,id,source,fecha,importe,comercio,cat')
         .eq('user_id',session.user.id).eq('fecha',e.date).eq('importe',e.amount).eq('comercio',e.merchant);
       if(error) throw error;
-      const rows=[];
+      const rows=[],keys=["user_id","id","source","fecha","importe","comercio","cat"];
+      let alreadyApplied=true;
       for(const r of data||[]){
         const m=/^(ob|ob-hist):([^~#]+)(~recibo\.[^~#]*)?((?:#.*)?)$/.exec(String(r.source||""));
         if(!m || m[2]!==e.ent || (e.reciboId && m[4].indexOf("#dup")>=0)) continue;
         const src=m[1]+":"+m[2]+reciboSufijo(e.reciboId)+m[4];
+        if(!isExpenseUuid(r.id)||r.user_id!==session.user.id||!keys.every(function(k){return Object.prototype.hasOwnProperty.call(r,k);}))throw new Error("expense snapshot unavailable");
         if(!await obConfirmedCanUpload(expenseFromRow(r),session.user.id,sb))throw new Error("expense upload denied");
+        // Una marca ya leída y validada no necesita otra escritura para acreditar el mismo estado.
+        if(src===r.source){rows.push({id:r.id});continue;}
         const w=await expenseSourcePatch(sb,session.user.id,e,{source:src},r);
         if(w.error) throw w.error;
-        rows.push.apply(rows,w.data);
+        rows.push.apply(rows,w.data);alreadyApplied=false;
       }
       if(!rows.length)throw new Error("expense source unavailable");
-      return {acknowledged:true,rows:rows,alreadyApplied:false};
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))throw new Error("expense owner changed");
+      return {acknowledged:true,rows:rows,alreadyApplied:alreadyApplied};
     },
     /* LA MARCA DE APORTACIÓN A META (24/10/2026), con la misma búsqueda que la del recibo y por lo
        mismo: el id local puede no ser el de la fila de la nube. Solo toca filas `ob:<ent>` u

@@ -440,12 +440,35 @@ for(const [name,arg,patch] of sourceWriters){
     await assert.rejects(()=>sourceWriter(name)(e,arg));assert.equal(c.ops.length,1);
   });
 }
-await check("recibo ya aplicado exige ACK real; fila no elegible rechaza",async()=>{
-  const s=fixture();s.expenses[0].reciboId='fixture-receipt';const c=client(s);ctx.__ownTransferSb=c.sb;
+await check("recibo ya aplicado acredita lectura real sin UPDATE; fila no elegible rechaza",async()=>{
+  const s=fixture();s.expenses[0].reciboId='fixture-receipt';const c=client(s),before=plain(c.rows);ctx.__ownTransferSb=c.sb;
   const ack=await sourceWriter('setExpenseRecibo')(s.expenses[0]);
-  assert.equal(ack.acknowledged,true);assert.equal(c.ops.length,1);
+  assert.equal(ack.acknowledged,true);assert.equal(ack.alreadyApplied,true);
+  assert.deepEqual(plain(ack.rows),[{id:s.expenses[0].id}]);assert.equal(c.ops.length,0);assert.deepEqual(c.rows,before);
   c.rows[0].source=ctx.expenseSourceForCloud({...s.expenses[0],reciboId:undefined,debtId:'fixture-debt'});
-  await assert.rejects(()=>sourceWriter('setExpenseRecibo')(s.expenses[0]));assert.equal(c.ops.length,1);
+  await assert.rejects(()=>sourceWriter('setExpenseRecibo')(s.expenses[0]));assert.equal(c.ops.length,0);
+});
+for(const [label,mutate] of [
+  ['UUID inválido',r=>{r.id='short';}],['sin UUID',r=>{delete r.id;}],
+  ['owner ajeno',r=>{r.user_id='other';}],['sin owner',r=>{delete r.user_id;}],
+  ['foto sin categoría',r=>{delete r.cat;}]
+])await check('recibo ya aplicado rechaza '+label+' sin UPDATE',async()=>{
+  const s=fixture();s.expenses[0].reciboId='fixture-receipt';const c=client(s,{beforeRead:(_n,rows)=>mutate(rows[0])});ctx.__ownTransferSb=c.sb;
+  await assert.rejects(()=>sourceWriter('setExpenseRecibo')(s.expenses[0]));assert.equal(c.ops.length,0);
+});
+await check('recibo ya aplicado rechaza sesión cambiada tras lectura sin UPDATE',async()=>{
+  let read=false;const s=fixture();s.expenses[0].reciboId='fixture-receipt';
+  const c=client(s,{ownerAt:()=>read?'other':owner,afterRead:()=>{read=true;}});ctx.__ownTransferSb=c.sb;
+  await assert.rejects(()=>sourceWriter('setExpenseRecibo')(s.expenses[0]));assert.equal(c.ops.length,0);
+});
+await check('recibo ya aplicado con otra fila pendiente acredita solo un UPDATE',async()=>{
+  const s=fixture();s.expenses[0].reciboId='fixture-receipt';s.expenses.push({...s.expenses[0],id:uuid(3),reciboId:undefined,extId:'other-ref'});
+  const c=client(s);ctx.__ownTransferSb=c.sb;
+  const ack=await sourceWriter('setExpenseRecibo')(s.expenses[0]);
+  assert.equal(ack.acknowledged,true);assert.equal(ack.alreadyApplied,false);
+  assert.deepEqual(plain(ack.rows),[{id:s.expenses[0].id},{id:uuid(3)}]);assert.equal(c.ops.length,1);
+  assert.ok(c.ops[0].filters.some(([key,value])=>key==='id'&&value===uuid(3)));
+  assert.equal(ctx.expenseFromRow(c.rows[2]).reciboId,'fixture-receipt');
 });
 await check("CAS protege categoría null y rechaza snapshot sin columna",async()=>{
   const s=fixture(),c=client(s),e=s.expenses[0];c.rows[0].cat=null;
