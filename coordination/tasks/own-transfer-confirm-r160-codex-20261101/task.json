@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "id": "own-transfer-confirm-r160-codex-20261101",
+  "from": "codex",
+  "coordinatorSession": "root160188e62cb8bd444f8b524c7b6d20529b1",
+  "createdAt": "2026-11-01T10:15:42.822Z",
+  "to": "codex",
+  "baseSHA": "2fdecb18bbc9e8f73d6ae7089292645e19528597",
+  "objective": "Continuidad punto1 cola8b935444: terminar correccion P2 del CAS source y confirmar traspaso propio por fila conforme e5957a2b y46abc5fc; no publicar hasta revision independiente.",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/01-i18n.js",
+    "src/modules/04-tab-gastos.js",
+    "src/modules/08-motor-bank.js",
+    "src/modules/11-app-main.js",
+    "tests/own-transfer-confirm.test.mjs",
+    "e2e/own-transfer-confirm.spec.mjs",
+    "scripts/run-tests.mjs",
+    "scripts/relevant-tests.mjs",
+    "docs/ARQUITECTURA.md",
+    "docs/BACKLOG.md",
+    "CHANGELOG.md"
+  ],
+  "authority": "46abc5fc6bb65e2349993c4b17d042e94c32215f",
+  "requirements": [
+    "Continua solo tras resultblocked released y RETURN propios del anterior verificados. Identidad, OWN20, claim, checkout, runner y admission nuevos; no heredar ni modificar estado o evidencia anterior.",
+    "Base original2fdecb18bbc9e8f73d6ae7089292645e19528597. Reconstruir en checkout propio candidata privada7f61fa881438663b8a4896fd013c6bb30005e2fa tree260cc5cddb2ea0f80d08000b4cc2e8f586c0fdd4 y WIP privado R2 verificado; no publicarlos antes GO. WIP patch SHA256ca3ff77c12e87fe9b1e60ed7d5da7897541f6dbeaf65d12bddfad0a48f13a1da. No integrar PR339 ni otras ramas.",
+    "Contrato e5957a2bde56f07244bc651670b22e933689843b sustituye requisito imposible de nooferta a tercero mismo nombre: pareja1a1 unica entrada YAtraspaso otro banco propio, signoopuesto centimoexacto max2diasnaturalesMadrid habilita SOLO pregunta, nunca automatico. Toque humano confirma. NO persistente sincronizado porfila evita reoferta; cerrar/cancelar null no escribe. YES cambia solo categoria saliente; entrada intacta. Sin recibo/deuda enlazados. No ampliar reglas de deuda o Lo descuento.",
+    "46abc5fc acepta limite clientes antiguos que borran tokenNO y carrera contraparte tras UPDATE. Documentar antiguo enCHANGELOG sinversion; tras contraparte cambiada preservar categoria y no reofertar. Mapa4writers fileline y dos carreras con evidencia. No confundir limites aceptados con perdida silenciosa de accion original.",
+    "P2 nuevo: CAS0 tras NO concurrente perdia vinculo de cuota mientras UI anunciaba exito. R2 retryunico solo si source ganaNO sin otros cambios; CASfresco, conflicto noexito y recuperacionvisible. Revisar callers cuotas/banco/duplicado/recibo, setExpenseCat al quitar deuda y reparaciones automaticas. Nunca pisar cambiosemantico ajeno ni retryciego.",
+    "R2 pendientes: negativos reales caller por segundoCAS0/cambiosemantico/fallorelectura, DOM real conflicto y Actualizar con syncCloudExpenses, UTC/syntax afectados, docs y manifest exacto nuevo. Preservar causalRED caller y98Node/buildR2; verdes97NodeTZ y10DOMR1 no prueban UIR2. No repetir pruebas cerradas salvo cambio relevante.",
+    "Grant7188f09dd641ffd90c5a2455196b1385c4bb084c OWN20nuevo0 min30s primera/internas/readback cap20; FULLRAW todosdeltas/cancelaciones yACK antesactuar. Claim propio y activation confirmados, admisionnativa yROOTGO producto anteseditar. Grant edaff47656cdd8a9f0af9addc878018c46439cdd dirigidosNode/e2e sin gateCPU1/reserva; fullsuiteperformanceGradle exclusivos, logsEXITdurables, sin operaciones ajenas.",
+    "Entrega privada patch/commit/tree/manifest exactos para revision independiente ROOT. TrasGO pushnormal y PRdraftNUEVA beta bajo893c; sin merge/deploy/backendSQL/Edge/APK/version/catalogo. Dinero e integracion Claude. No ProductREADY ni aviso humano hasta beta exacta servida y revisionClaude."
+  ],
+  "modelSelection": "Astra solicitado expresamente por el humano para todos los chats; correccion financiera acotada con revision independiente.",
+  "previousTaskId": "own-transfer-confirm-r159-codex-20261101"
+}
