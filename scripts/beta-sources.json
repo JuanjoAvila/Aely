@@ -103161,6 +103161,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "PR6_FOTO_MARGEN"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "pr6SinFotoAcreditado"
       }
     ],
     "unidades": true
@@ -104338,6 +104342,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "PR6_FOTO_MARGEN"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "pr6SinFotoAcreditado"
       }
     ],
     "unidades": true
@@ -105629,6 +105637,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "PR6_FOTO_MARGEN"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "pr6SinFotoAcreditado"
       }
     ],
     "unidades": true
@@ -108196,6 +108208,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "PR6_FOTO_MARGEN"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "pr6SinFotoAcreditado"
       }
     ],
     "unidades": true
@@ -114430,6 +114446,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "PR6_FOTO_MARGEN"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "pr6SinFotoAcreditado"
       }
     ],
     "unidades": true
@@ -115872,6 +115892,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "PR6_FOTO_MARGEN"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "pr6SinFotoAcreditado"
       }
     ],
     "unidades": true
@@ -117302,6 +117326,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "autoCategoryKw"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "pr6SinFotoAcreditado"
       }
     ],
     "unidades": true
@@ -118942,6 +118970,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "autoCategoryKw"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "pr6SinFotoAcreditado"
       }
     ],
     "unidades": true

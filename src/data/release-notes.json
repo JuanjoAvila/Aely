@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.26.207",
+    "d": "2026-11-01",
+    "t": {
+      "es": "Recibos: el mes cerrado siempre compara",
+      "en": "Bills: the closed month always compares",
+      "ca": "Rebuts: el mes tancat sempre compara"
+    },
+    "items": {
+      "es": [
+        "Recibos: el resumen del mes cerrado enseña siempre cómo fue frente al mes anterior, o por qué no se puede comparar."
+      ],
+      "en": [
+        "Bills: the closed-month summary always shows how it went compared with the month before, or why it can't be compared."
+      ],
+      "ca": [
+        "Rebuts: el resum del mes tancat mostra sempre com ha anat respecte al mes anterior, o per què no es pot comparar."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "plan-recibos-t6",
+        "t": {
+          "es": "Plan: resumen del mes cerrado y mes siguiente",
+          "en": "Plan: closed-month summary and next month",
+          "ca": "Pla: resum del mes tancat i mes següent"
+        },
+        "items": {
+          "es": [
+            "1. Plan → Recibos, del 1 al 7 del mes (hoy vale). Tu frase: «Salía pero no salía el vs». BIEN: arriba, «Octubre cerrado» con «X € en recibos» y, debajo, SIEMPRE una línea de comparación: «±Y € vs. sep», «igual que sep» o, si de septiembre falta alguna prueba de pago, «vs. sep: sin datos de septiembre» (también sale así si desde el 1/9 borraste un recibo o un puntual sin devolverlo con Deshacer: es a propósito). Toca la tarjeta para ver sus líneas y la × para quitarla; la × la quita sin que vuelva al reabrir la app. MAL: sin línea de comparación, una diferencia que no cuadra con lo que pagaste en septiembre y octubre, o «sin datos» cuando todos los recibos de septiembre estaban pagados y enlazados.",
+            "2. Plan → Recibos → toca «Dic ›» en la tarjeta. BIEN: «Se te van en diciembre» con los recibos y cuotas de diciembre, «≈» en los que cambian cada mes, sin «Para revisar», «Ya pagados» ni «¿Te llega?»; tocar un recibo abre su edición; «‹ Nov» o el botón atrás de Android vuelven a noviembre sin salir de Plan, con transición suave; la cifra es la de Inicio → Próximos cargos «En diciembre». MAL: falta un recibo que sí toca en diciembre, sale uno pausado, la cifra no coincide con Inicio, o el atrás te saca de Plan."
+          ],
+          "en": [
+            "1. Plan → Bills, from the 1st to the 7th of the month (today counts). Your words: “It showed up but the vs didn't”. RIGHT: at the top, “October closed” with “X € in bills” and, below it, ALWAYS a comparison line: “±Y € vs Sep”, “same as Sep” or, if any September bill lacks a payment proof, “vs Sep: no data for September” (it also shows like that if since the 1st of September you deleted a bill or a one-off without bringing it back with Undo: that is on purpose). Tap the card for its lines and the × to dismiss it; the × removes it without it coming back when you reopen the app. WRONG: no comparison line, a difference that does not match what you paid in September and October, or “no data” when all the September bills were paid and linked.",
+            "2. Plan → Bills → tap “Dec ›” on the card. RIGHT: “Going out in December” with December's bills and instalments, “≈” on those that change every month, no “To review”, “Already paid” or “Will it cover?”; tapping a bill opens its edit; “‹ Nov” or Android's back button return to November without leaving Plan, with a smooth transition; the figure is the one in Home → Upcoming charges “In December”. WRONG: a bill that is due in December is missing, a paused one shows, the figure does not match Home, or back takes you out of Plan."
+          ],
+          "ca": [
+            "1. Pla → Rebuts, de l'1 al 7 del mes (avui val). La teva frase: «Sortia però no sortia el vs». BÉ: a dalt, «Octubre tancat» amb «X € en rebuts» i, a sota, SEMPRE una línia de comparació: «±Y € vs. set.», «igual que set.» o, si del setembre falta alguna prova de pagament, «vs. set.: sense dades del setembre» (també surt així si des de l'1/9 has esborrat un rebut o un puntual sense tornar-lo amb Desfés: és a propòsit). Toca la targeta per veure'n les línies i la × per treure-la; la × la treu sense que torni en reobrir l'app. MALAMENT: sense línia de comparació, una diferència que no quadra amb el que vas pagar al setembre i a l'octubre, o «sense dades» quan tots els rebuts del setembre estaven pagats i enllaçats.",
+            "2. Pla → Rebuts → toca «Des ›» a la targeta. BÉ: «Previst · desembre» amb els rebuts i quotes de desembre, «≈» als que canvien cada mes, sense «Per revisar», «Ja pagats» ni «T'arriba?»; tocar un rebut n'obre l'edició; «‹ Nov» o el botó enrere d'Android tornen a novembre sense sortir de Pla, amb transició suau; la xifra és la d'Inici → Pròxims càrrecs «Al desembre». MALAMENT: falta un rebut que sí toca al desembre, en surt un de pausat, la xifra no coincideix amb Inici, o l'enrere et treu de Pla."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.206",
     "d": "2026-11-01",
     "t": {
@@ -88,30 +132,7 @@
         "I si encara no tens rebuts, «Comença» et proposa els càrrecs que es repeteixen al teu banc."
       ]
     },
-    "tandas": [
-      {
-        "id": "plan-recibos-t6",
-        "t": {
-          "es": "Plan: resumen del mes cerrado y mes siguiente",
-          "en": "Plan: closed-month summary and next month",
-          "ca": "Pla: resum del mes tancat i mes següent"
-        },
-        "items": {
-          "es": [
-            "1. Plan → Recibos, del 1 al 7 del mes (hoy vale). Arriba sale «Octubre cerrado» con «X € · ±Y € vs. sep». Toca la tarjeta para ver sus líneas y la × para quitarla. Ojo: la cifra solo existe si Plan se abrió con esta versión durante octubre; si no, saldrá «—» (y septiembre «— vs. sep»), y eso es BIEN: no se inventa. BIEN: X es lo que viste en «Ya pagados» el 31/10 más lo que cobró distinto (o «—»), las líneas son recibos tuyos de verdad y la × la quita sin que vuelva al reabrir la app. MAL: una cifra que no cuadra con lo que viste el 31/10, un «no llegaron» de algo que pagaste, o la tarjeta vuelve tras la ×.",
-            "2. Plan → Recibos → toca «Dic ›» en la tarjeta. BIEN: «Se te van en diciembre» con los recibos y cuotas de diciembre, «≈» en los que cambian cada mes, sin «Para revisar», «Ya pagados» ni «¿Te llega?»; tocar un recibo abre su edición; «‹ Nov» o el botón atrás de Android vuelven a noviembre sin salir de Plan, con transición suave; la cifra es la de Inicio → Próximos cargos «En diciembre». MAL: falta un recibo que sí toca en diciembre, sale uno pausado, la cifra no coincide con Inicio, o el atrás te saca de Plan."
-          ],
-          "en": [
-            "1. Plan → Bills, from the 1st to the 7th of the month (today counts). At the top you see “October closed” with “X € · ±Y € vs. Sep”. Tap the card for its lines and the × to dismiss it. Note: the figure only exists if Plan was opened with this version during October; otherwise it shows “—” (and September “— vs. Sep”), which is RIGHT: nothing is made up. RIGHT: X is what you saw under “Already paid” on 31/10 plus what was charged differently (or “—”), the lines are real bills of yours and the × removes it without it coming back when you reopen the app. WRONG: a figure that does not match what you saw on 31/10, a “didn't arrive” for something you paid, or the card returns after the ×.",
-            "2. Plan → Bills → tap “Dec ›” on the card. RIGHT: “Going out in December” with December's bills and instalments, “≈” on those that change every month, no “To review”, “Already paid” or “Will it cover?”; tapping a bill opens its edit; “‹ Nov” or Android's back button return to November without leaving Plan, with a smooth transition; the figure is the one in Home → Upcoming charges “In December”. WRONG: a bill that is due in December is missing, a paused one shows, the figure does not match Home, or back takes you out of Plan."
-          ],
-          "ca": [
-            "1. Pla → Rebuts, de l'1 al 7 del mes (avui val). A dalt surt «Octubre tancat» amb «X € · ±Y € vs. set.». Toca la targeta per veure'n les línies i la × per treure-la. Compte: la xifra només existeix si Pla es va obrir amb aquesta versió durant l'octubre; si no, sortirà «—» (i el setembre «— vs. set.»), i això és BÉ: no s'inventa res. BÉ: X és el que vas veure a «Ja pagats» el 31/10 més el que va cobrar diferent (o «—»), les línies són rebuts teus de debò i la × la treu sense que torni en reobrir l'app. MALAMENT: una xifra que no quadra amb el que vas veure el 31/10, un «no han arribat» d'alguna cosa que has pagat, o la targeta torna després de la ×.",
-            "2. Pla → Rebuts → toca «Des ›» a la targeta. BÉ: «Previst · desembre» amb els rebuts i quotes de desembre, «≈» als que canvien cada mes, sense «Per revisar», «Ja pagats» ni «T'arriba?»; tocar un rebut n'obre l'edició; «‹ Nov» o el botó enrere d'Android tornen a novembre sense sortir de Pla, amb transició suau; la xifra és la d'Inici → Pròxims càrrecs «Al desembre». MALAMENT: falta un rebut que sí toca al desembre, en surt un de pausat, la xifra no coincideix amb Inici, o l'enrere et treu de Pla."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.204",
