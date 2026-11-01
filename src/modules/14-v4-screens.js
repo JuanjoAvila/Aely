@@ -1881,13 +1881,18 @@ function billUndoRemove(s,review,fixes,now){
   const debts=[];
   (next.debts||[]).forEach(function(d){
     const before=(s.debts||[]).find(function(x){ return x.id===d.id; });
-    if(!before||goalSyncEqual(before,d)) return;
+    // Cancelar el ajuste deja delta vacío, pero esa deuda sigue vinculada al recibo.
+    if(!before||(goalSyncEqual(before,d)&&!review.debts.some(function(x){ return x.id===d.id; }))) return;
     const fields=[];
     Array.from(new Set(Object.keys(before).concat(Object.keys(d)))).forEach(function(k){
       const had=Object.prototype.hasOwnProperty.call(before,k),has=Object.prototype.hasOwnProperty.call(d,k);
       if(had!==has||!goalSyncEqual(before[k],d[k])) fields.push({key:k,had:had,value:billUndoCopy(before[k])});
     });
     debts.push({id:d.id,after:billUndoCopy(d),fields:fields});
+  });
+  // Un vínculo huérfano también cuenta: reponerlo no debe descontar sobre una deuda nueva.
+  Array.from(new Set((review.item.reparto||[]).filter(function(x){ return x.via==="debt"; }).map(function(x){ return x.debtId; }))).forEach(function(id){
+    if(!debts.some(function(d){ return d.id===id; })) debts.push({id:id,after:null,fields:[]});
   });
   // SinCargo ya compensa las marcas; se evalúa de nuevo desde la cuenta ACTUAL con el delta
   // completo, pues la cuota aceptada también entra en el saldo de una cuenta de fijos ya cobrada.
@@ -1898,6 +1903,11 @@ function billUndoRestore(s,undo,now){
   const id=undo.item.id;
   if((s._historyOwner||null)!==undo.owner||!goalSyncEqual(undo.period,billUndoPeriod(s))||(s.fixed||[]).concat(s.oneoffs||[]).some(function(f){ return f.id===id; })||
     !goalSyncEqual(s.reciboBorrado&&s.reciboBorrado[id],undo.tomb)||!s.reciboBorradoAt||s.reciboBorradoAt[id]!==undo.at) return {state:s,error:true};
+  // Todo o nada: validar antes de reponer el recibo, marcas o compensaciones de saldo.
+  if(undo.debts.some(function(d){
+    const rows=(s.debts||[]).filter(function(x){ return x.id===d.id; });
+    return d.after===null?rows.length!==0:rows.length!==1||!goalSyncEqual(rows[0],d.after);
+  })) return {state:s,error:true};
   let skipped=false;
   const safe=undo.expenses.filter(function(e){
     const rows=(s.expenses||[]).filter(function(x){ return x.id===e.id; });
@@ -1911,12 +1921,10 @@ function billUndoRestore(s,undo,now){
   let changed=false;
   const debts=(s.debts||[]).map(function(d){
     const delta=undo.debts.find(function(x){ return x.id===d.id; });
-    if(!delta) return d;
-    if((s.debts||[]).filter(function(x){ return x.id===d.id; }).length!==1||!goalSyncEqual(d,delta.after)){ skipped=true; return d; }
+    if(!delta||!delta.fields.length) return d;
     const restored=Object.assign({},d); delta.fields.forEach(function(f){ if(f.had) restored[f.key]=billUndoCopy(f.value); else delete restored[f.key]; });
     changed=true; return restored;
   });
-  if(undo.debts.some(function(d){ return !(s.debts||[]).some(function(x){ return x.id===d.id; }); })) skipped=true;
   const next=changed?Object.assign({},r.state,{debts:debts}):r.state;
   const balanced=undo.preserveBalance?conSaldoMostrado(s,Object.assign({},next,{accounts:s.accounts})):next;
   return {state:balanced,subir:r.subir,skipped:skipped};
@@ -1963,9 +1971,9 @@ function useBillUndo(state,set,open,onRemoved,onNotice){
           if(open&&life.current){
             if(operation.kind==="remove"){
               const tkn={undo:ack.undo,until:Date.now()+5000}; token.current=tkn; onRemoved(tkn);
-            } else if(ack.skipped) onNotice();
+            } else if(ack.skipped) onNotice("gb_undo_partial");
           }
-        } else if(open&&life.current&&!operation.cancelled) onNotice(null,operation.kind==="remove");
+        } else if(open&&life.current&&!operation.cancelled) onNotice(operation.kind==="remove"?"gb_remove_changed":null,operation.kind==="remove");
       }
     }
     if(!open){ if(busy.current) busy.current.cancelled=true; busy.current=null; token.current=null; }
@@ -1977,11 +1985,11 @@ function useBillUndo(state,set,open,onRemoved,onNotice){
     remove:function(id){
       if(busy.current||!life.current||!visible.current) return;
       const operation={kind:"remove"},review=billUndoReview(committed.current,id); busy.current=operation;
-      if(!review){ busy.current=null; onNotice(null,true); return; }
+      if(!review){ busy.current=null; onNotice("gb_remove_changed",true); return; }
       descuentoPregunta(committed.current,function(s){ return deudasTrasReparto(s,Object.assign({},s,{fixed:(s.fixed||[]).filter(function(f){ return f.id!==id; })})); }).then(function(fixes){
         if(!life.current||!visible.current||busy.current!==operation) return;
         const now=Date.now(); submit(operation,function(s){ return billUndoRemove(s,review,fixes,now); });
-      }).catch(function(){ if(busy.current===operation){ busy.current=null; if(life.current&&visible.current) onNotice(null,true); } });
+      }).catch(function(){ if(busy.current===operation){ busy.current=null; if(life.current&&visible.current) onNotice("gb_remove_changed",true); } });
     },
     undo:function(tkn){
       if(busy.current||!tkn||token.current!==tkn||!life.current||!visible.current) return false;

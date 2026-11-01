@@ -43,7 +43,7 @@ test('Deshacer espera las preguntas y restaura el delta completo tras el commit'
   expect(await saved(page)).toEqual({fixed:[bill],debts:[debt]});
 });
 
-test('Deshacer mantiene una deuda concurrente, restaura la otra y avisa una vez',async({page})=>{
+test('R167 Deshacer todo o nada mantiene recibo quitado y ambas deudas si una cambia',async({page})=>{
   const other={...debt,id:'other',name:'Otra deuda sintética',monthly:190,amort:210};
   const shared={...bill,amount:20,reparto:[...bill.reparto,{id:'other-person',n:'Otra persona',via:'debt',debtId:'other',amt:20}]};
   await open(page,{debts:[debt,other],fixed:[shared]});
@@ -55,9 +55,11 @@ test('Deshacer mantiene una deuda concurrente, restaura la otra y avisa una vez'
     ReactDOM.flushSync(()=>f.memoizedProps.set(s=>({...s,debts:s.debts.map(d=>d.id==='undo-debt'?(copy={...d,monthly:271,note:'Edición posterior'}):d)})));
     return copy;
   });
-  await undo(page).click();await expect(page.locator('[data-bills-manage] [data-bill-id="undo-bill"]')).toBeVisible();await page.clock.runFor(500);
-  expect(await saved(page)).toEqual({fixed:[shared],debts:[changed,other]});
-  await expect(page.getByTestId('bills-saved')).toHaveText('Hay cambios posteriores que no se han deshecho.');
+  await page.clock.runFor(500);const before=await saved(page);expect(before.fixed).toEqual([]);expect(before.debts[0]).toEqual(changed);
+  await undo(page).click();await page.clock.runFor(500);
+  expect(await saved(page)).toEqual(before);
+  await expect(page.locator('[data-bills-manage] [data-bill-id="undo-bill"]')).toHaveCount(0);
+  await expect(page.getByTestId('bills-saved')).toHaveText('No se ha deshecho nada porque hay cambios posteriores.');
   await expect(page.getByTestId('bills-saved')).toHaveCount(1);
 });
 
@@ -91,7 +93,7 @@ test('Deshacer no revive al cerrar Gestionar con una pregunta pendiente',async({
   expect(await saved(page)).toEqual({fixed:[bill],debts:[debt]});await expect(undo(page)).toHaveCount(0);
 });
 
-test('Deshacer rechaza respuestas si cambia una entrada financiera durante la pregunta',async({page})=>{
+test('R167 Quitar rechaza respuestas obsoletas con aviso propio',async({page})=>{
   await open(page);await expect(ask(page).locator('.ask-in')).toBeVisible();
   await page.evaluate(()=>{
     const el=document.querySelector('[data-bills-manage]');let f=el[Object.keys(el).find(k=>k.startsWith('__reactFiber$'))];
@@ -100,6 +102,33 @@ test('Deshacer rechaza respuestas si cambia una entrada financiera durante la pr
   });
   await ask(page).getByRole('button',{name:'Ajustar la deuda'}).click();await page.clock.runFor(500);
   expect(await saved(page)).toEqual({fixed:[bill],debts:[{...debt,note:'Llegó otro cambio'}]});await expect(undo(page)).toHaveCount(0);
+  await expect(page.getByTestId('bills-saved')).toHaveText('No se ha podido quitar el recibo. Revisa los cambios e inténtalo de nuevo.');
+  await expect(page.getByTestId('bills-saved')).toHaveCount(1);
+});
+
+test('R167 Deshacer vigila la deuda aunque se cancele su ajuste',async({page})=>{
+  await open(page);await ask(page).getByRole('button',{name:'Dejarla como está'}).click();await expect(undo(page)).toBeVisible();
+  await page.evaluate(()=>{
+    const el=document.querySelector('[data-bills-manage]');let f=el[Object.keys(el).find(k=>k.startsWith('__reactFiber$'))];
+    while(f&&!(f.memoizedProps?.state&&f.memoizedProps?.set))f=f.return;
+    if(!f)throw Error('Falta set real');ReactDOM.flushSync(()=>f.memoizedProps.set(s=>({...s,debts:s.debts.map(d=>({...d,extra:{nested:['Cambio posterior']}}))})));
+  });
+  await page.clock.runFor(500);const before=await saved(page);expect(before.fixed).toEqual([]);expect(before.debts[0].monthly).toBe(debt.monthly);
+  await undo(page).click();await page.clock.runFor(500);expect(await saved(page)).toEqual(before);
+  await expect(page.getByTestId('bills-saved')).toHaveText('No se ha deshecho nada porque hay cambios posteriores.');await expect(page.getByTestId('bills-saved')).toHaveCount(1);
+  await page.reload();await page.waitForFunction(()=>!document.getElementById('mc-load'));expect(await saved(page)).toEqual(before);
+});
+
+test('R167 Deshacer rechaza la deuda que aparece tras quitar un vínculo huérfano',async({page})=>{
+  await open(page,{debts:[]});await expect(undo(page)).toBeVisible();
+  await page.evaluate(newDebt=>{
+    const el=document.querySelector('[data-bills-manage]');let f=el[Object.keys(el).find(k=>k.startsWith('__reactFiber$'))];
+    while(f&&!(f.memoizedProps?.state&&f.memoizedProps?.set))f=f.return;
+    if(!f)throw Error('Falta set real');ReactDOM.flushSync(()=>f.memoizedProps.set(s=>({...s,debts:[newDebt]})));
+  },debt);
+  await page.clock.runFor(500);const before=await saved(page);expect(before).toEqual({fixed:[],debts:[debt]});
+  await undo(page).click();await page.clock.runFor(500);expect(await saved(page)).toEqual(before);
+  await expect(page.getByTestId('bills-saved')).toHaveText('No se ha deshecho nada porque hay cambios posteriores.');await expect(page.getByTestId('bills-saved')).toHaveCount(1);
 });
 
 test('Deshacer no escribe al desmontar Plan durante una pregunta',async({page})=>{
