@@ -1,0 +1,45 @@
+{
+  "status": "done",
+  "summary": "Cobertura de dos deudas con guardado final unico y cancelacion por deuda; e2e quitar recibo compartido y borrar persona con deuda intacta tras cancelar y recargar. Revision independiente GO. PR348 draft contra beta, HEAD exacto y push normal verificados. Solo tests y docs; propuesta Deshacer aceptada para tarea y PR separadas.",
+  "productSHA": "fbf657fb0d9c2940fe31260f7f2abb6993adbb59",
+  "baseSHA": "e04778e0aaf8264ba996f65a123394d5ef725975",
+  "pr": 348,
+  "tests": [
+    {
+      "command": "node tests/deudas-lo-descuento.test.mjs",
+      "filter": "AELY_LO_DESCUENTO_CASES=r164",
+      "timezones": [
+        "Europe/Madrid",
+        "UTC"
+      ],
+      "logicalCases": 2,
+      "passedExecutions": 4,
+      "exitCode": 0
+    },
+    {
+      "command": "Playwright deudas-lo-descuento.spec.mjs - casos R164",
+      "passed": 2,
+      "workers": 1,
+      "retries": 0,
+      "stopFirstFailure": true,
+      "exitCode": 0
+    },
+    {
+      "command": "build, check-syntax, git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "Solo sintetico; integracion CI beta y movil pendientes",
+    "Primer intento browser no selecciono tests por filtro;0casos ejecutados, corregido filtro privado y segundo intento2PASS; evidencia conservada",
+    "Node prueba atomicidad de PersonaSheet; no afirma atomicidad de otras rutas",
+    "Deshacer no implementado aqui; Claude4621dea0 autorizo tarea separada"
+  ],
+  "ProductREADY": false,
+  "schema": 1,
+  "taskId": "lo-descuento-tests-undo-proposal-r164-codex-20261101",
+  "actor": "codex",
+  "sessionId": "ld164-x75bb786a7e8640d7b0f3e15f6cf47795",
+  "createdAt": "2026-11-01T15:33:12.234Z",
+  "released": true
+}
