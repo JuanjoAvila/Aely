@@ -1154,6 +1154,9 @@
   .rp5-nm-n{font-size:15px;font-weight:700;}
   .rp5-nm .rp4-dim{font-size:12px;}
   .rp4-pago-a.rp5-auto{color:var(--muted);border-style:dashed;}
+  /* El lápiz dice que la parte se teclea: con las partes iguales puestas solas no se veía que se
+     pudiera poner la de cada uno (feedback 1/11/2026). */
+  .rp5-row .rp4-pago-a::after{content:" ✎";font-family:system-ui,sans-serif;font-size:12px;font-weight:400;color:var(--muted);}
   .rp5-mine{font-weight:800;}
   .rp5-mal{color:var(--muted);}
   /* «¿Te llega?» (SPEC §4): la píldora abre la hoja; bloques por banco en surface-2 como el prototipo. */
@@ -10046,6 +10049,15 @@ Object.assign(LANG.es,{
   rp5_otra:"Otra", rp5_importe_de:"Parte de {name}", rp5_quitar:"Quitar a {name}", rp5_tu_parte:"Tu parte",
   rp5_supera:"Las partes pasan del importe: no te queda parte", rp5_descuento_mensual:"«Lo descuento» solo en recibos de cada mes",
   rp5_rehacer:"Estas partes ya no cuadraban: revísalas y guarda", pe_viejo_ajustar:"En {name} ajustarás las partes antes de guardar"
+});
+
+
+// «Lo descuento» que no cuadra con su deuda y lo que baja una deuda sin interés (feedback 1/11/2026).
+Object.assign(LANG.es,{
+  rp6_pasas_q:"¿Cuánto le pasas al mes?", rp6_no_cuadra:"No cuadra · Ajustar", db_err_term_amort:"El plazo y lo que baja la deuda no encajan con el pendiente.",
+  rp6_desc_q:"¿Le pasas {x} y la deuda baja esto?", rp6_desc_ok:"Ajustar la deuda", rp6_desc_no:"Dejarla como está",
+  db_amort_ph:"Baja la deuda al mes (€)", db_amort_hint:"Puede no ser lo que sale del banco.",
+  db_edit_amort_zero:"Queda saldo pendiente: tiene que bajar algo cada mes."
 });
 
 
@@ -19850,6 +19862,69 @@ function deudasTrasReparto(antes,despues){
   });
   return cambia?Object.assign({},despues,{debts:debts}):despues;
 }
+/* Y si NO cuadraba, callar no vale (feedback 1/11/2026): el préstamo familiar dado de alta con plazo
+   guardó `amort` = saldo/plazo (≈ 196,68 con cuota 250); al poner «Lo descuento» no se tocaba y la
+   cuota se pintaba «pagas 250 € + 53 €», 303 € al mes en silencio. Aquí salen las deudas que hay que
+   preguntar: `paga` es lo que saldría del banco con el cambio (cuota + lo que ya se descontaba − lo que
+   se descuenta ahora) y `baja` la propuesta de lo que amortiza, que es la cuota de antes (lo que se
+   pagaba en total). Sin nada que preguntar, lista vacía y todo sigue como antes. */
+function descuentoDescuadre(antes,despues){
+  const out=[];
+  (despues.debts||[]).forEach(function(d){
+    if(!deudaDescontable(d)) return;
+    const prev=(antes.debts||[]).find(function(o){ return o.id===d.id; })||d;
+    const dA=Math.round(deudaDescuentoBase(antes,prev)*100), dD=Math.round(deudaDescuentoBase(despues,d)*100);
+    if(dA===dD) return;
+    // Ya cuadra tal y como queda (lo ajustó `deudasTrasReparto` o casaba de por sí): nada que preguntar.
+    const cuota=Math.round((Number(d.monthly)||0)*100), amort=Math.round(debtAmort(d)*100);
+    if(amort===cuota+dD) return;
+    const antesC=Math.round((Number(prev.monthly)||0)*100), paga=antesC+dA-dD;
+    if(paga<=0) return;
+    out.push({id:d.id,name:d.name,paga:paga/100,baja:(antesC+dA)/100,descuento:dD/100});
+  });
+  return out;
+}
+/* El descuadre que YA está guardado (el «Lo descuento» se puso antes de que se preguntara): sin
+   cambio de reparto no hay antes/después y nunca saldría la pregunta (rev. lo-descuento R1). Solo se
+   señala; ajustarlo lo decide él desde la tarjeta de la deuda. Sin interés, cada euro que pagas baja la
+   deuda: cuota + descuento ≠ lo que baja es dinero que se pierde o se inventa cada mes. `paga` es la
+   propuesta de lo que le pasas: si la cuota guardada aún es la de antes (baja menos que la cuota), la
+   cuota menos el descuento; si no, la cuota tal cual. */
+function descuentoDescuadreGuardado(s,d){
+  if(!deudaDescontable(d)) return null;
+  const D=Math.round(deudaDescuentoBase(s,d)*100);
+  if(!(D>0)) return null;
+  const cuota=Math.round((Number(d.monthly)||0)*100), amort=Math.round(debtAmort(d)*100);
+  if(amort===cuota+D) return null;
+  // Lo que él ya confirmó (otra bajada que la propuesta) no vuelve a señalarse mientras cuota, bajada y
+  // descuento sigan siendo esos (rev. lo-descuento R2b: si no, el botón se quedaba para siempre).
+  const ok=d.descuentoOk;
+  if(ok&&ok.m===cuota&&ok.a===amort&&ok.d===D) return null;
+  const paga=amort<cuota&&cuota-D>0?cuota-D:cuota;
+  return {id:d.id,name:d.name,paga:paga/100,baja:(paga+D)/100,descuento:D/100};
+}
+/* Lo que dijo al preguntarle: sale del banco `paga` y la deuda baja `baja`. Va por `debtEditResult`,
+   la misma puerta que Editar deuda, para que el saldo de hoy no se mueva (re-ancla `value`) y el plazo
+   salga de la bajada nueva; si esa puerta lo rechaza, no se toca nada. */
+function deudaFijarDescuento(s,id,paga,baja){
+  let cambia=false;
+  const debts=(s.debts||[]).map(function(d){
+    if(d.id!==id||!deudaDescontable(d)||!(paga>0)||!(baja>0)) return d;
+    const form=Object.assign(debtEditDraft(d),{monthly:String(Math.round(paga*100)/100),amort:String(Math.round(baja*100)/100),amortSet:true});
+    if(d.months!=null){
+      const tmp=Object.assign({},d,{monthly:Number(form.monthly),amort:Number(form.amort)});
+      const n=debtEditMonths(tmp,Number(form.balance),Number(form.amort),debtPaidCount(d));
+      if(n!=null) form.months=String(n);
+    }
+    const r=debtEditResult(d,form);
+    if(!r.item) return d;
+    // Su respuesta queda como la referencia de «cuadrado» (ver `descuentoDescuadreGuardado`).
+    const n=Object.assign({},r.item,{descuentoOk:{m:Math.round((Number(r.item.monthly)||0)*100),a:Math.round(debtAmort(r.item)*100),d:Math.round(deudaDescuentoBase(s,d)*100)}});
+    if(JSON.stringify(n)===JSON.stringify(d)) return d;
+    cambia=true; return n;
+  });
+  return cambia?Object.assign({},s,{debts:debts}):s;
+}
 /* Partes resueltas en céntimos: lo tecleado se queda; lo vacío se reparte a partes iguales entre
    esas personas y tú, redondeando hacia abajo para que el céntimo que sobra sea tuyo. */
 function repartoResolver(lista,total){
@@ -24265,6 +24340,15 @@ function patchDebtFields(set, id, patch){
       const n=Object.assign({},d,patch);
       if(!n.day) delete n.day;
       if(!(n.amort>0) || Math.abs((n.amort||0)-(n.monthly||0))<0.005) delete n.amort;
+      /* El saldo de hoy es value − bajada × pagadas: cambiar la bajada sin re-anclar movía el saldo
+         hacia atrás (la misma regla que Editar deuda, feedback 1/11/2026). El plazo sale de la nueva. */
+      const am=debtAmort(n),paid=debtPaidCount(n);
+      if(Math.round(am*100)!==Math.round(debtAmort(d)*100)&&d.value!=null&&am>0){
+        const bal=+debtBalance(d).toFixed(2);
+        // Con TAE el modelo lineal no sabe el plazo (como `db_extend_unknown` en Editar deuda): se deja.
+        if(n.months!=null&&debtEditAmortable(n)){ const k=debtEditMonths(n,bal,am,paid); if(k!=null&&k>paid) n.months=k; }
+        n.value=+(bal+am*paid).toFixed(2);
+      }
       return n;
     })});
   });
@@ -24281,9 +24365,27 @@ function planEditNumber(raw,optional){
   const n=Number(text.replace(",","."));
   return Number.isFinite(n)&&n>=0?n:NaN;
 }
+/* «Baja cada mes» (`amort`) solo se ofrece sin interés: con TAE la cuota lleva intereses y el modelo
+   lineal no sabe separarlos (`deudaDescontable`, rev. t5 R1). El préstamo familiar dado de alta con
+   plazo guardaba `amort` = saldo/plazo y no había forma de corregirlo (feedback 1/11/2026). */
+function debtEditAmortable(d){ return !(Number(d&&d.apr)>0); }
 function debtEditDraft(d){
-  return {name:d.name||"",note:d.note==null?"":String(d.note),balance:String(+debtBalance(d).toFixed(2)),monthly:String(d.monthly||0),
+  const o={name:d.name||"",note:d.note==null?"":String(d.note),balance:String(+debtBalance(d).toFixed(2)),monthly:String(d.monthly||0),
     day:String(debtChargeDay(d)),months:d.months==null?"":String(d.months),apr:d.apr==null?"":String(d.apr)};
+  if(debtEditAmortable(d)) o.amort=String(+debtAmort(d).toFixed(2));
+  return o;
+}
+/* Cambiar el plazo de una deuda cuya bajada NO es la cuota (préstamo familiar) se validaba contra la
+   bajada vieja y no había plazo que encajara: con el plazo nuevo, lo lineal es pendiente/meses que
+   quedan, como en el alta. La ligada a la cuota (financiación al 0 %) no se toca: ahí cuota y plazo
+   tienen que encajar y la hoja dice con qué cuota. null = no hay nada que proponer. */
+function debtEditAmortDePlazo(d,form){
+  if(!debtEditAmortable(d)||form.amort===undefined||planEditNumber(form.apr,true)>0) return null;
+  const amort=planEditNumber(form.amort,true),monthly=planEditNumber(form.monthly),months=planEditNumber(form.months,true),balance=planEditNumber(form.balance);
+  if(!(amort>0)||!(monthly>=0)||Math.round(amort*100)===Math.round(monthly*100)||months==null||!Number.isInteger(months)||!(balance>0)) return null;
+  const remaining=months-debtPaidCount(d),principal=Math.round(balance*100)-Math.round((d.balloon||0)*100);
+  if(!(remaining>0)||principal<=0) return null;
+  return String(Math.ceil(principal/remaining)/100);
 }
 // Un plazo agotado puede dejar céntimos de redondeo o saldo legado: aún debe poder corregirse.
 function debtEditFinished(d){ return d.months!=null&&debtPaidCount(d)>=d.months&&debtBalance(d)<=0.005; }
@@ -24296,14 +24398,22 @@ function debtEditMonths(d,balance,am,paid){
 function debtEditResult(d,form){
   const balance=planEditNumber(form.balance),monthly=planEditNumber(form.monthly),day=planEditNumber(form.day),
     months=planEditNumber(form.months,true),apr=planEditNumber(form.apr,true);
-  if(!form.name.trim() || [balance,monthly,day,months,apr].some(function(n){ return Number.isNaN(n); }) ||
+  // Vacío o sin el campo (deuda con TAE, borradores de antes) = no se toca lo que baja.
+  const amortIn=debtEditAmortable(d)&&!(apr>0)?planEditNumber(form.amort,true):null;
+  if(!form.name.trim() || [balance,monthly,day,months,apr,amortIn].some(function(n){ return Number.isNaN(n); }) ||
     !Number.isInteger(day)||day<1||day>31 || months!=null&&!Number.isInteger(months)) return {error:"plan_edit_invalid"};
   const next=Object.assign({},d),oldBalance=+debtBalance(d).toFixed(2);
   const amountChanged=balance!==oldBalance,quotaChanged=monthly!==(d.monthly||0),dayChanged=day!==debtChargeDay(d),
-    termChanged=months!==(d.months==null?null:d.months),aprChanged=apr!==(d.apr==null?null:d.apr);
+    termChanged=months!==(d.months==null?null:d.months),aprChanged=apr!==(d.apr==null?null:d.apr),
+    // Tecleada en la hoja (`amortSet`) también cuenta si es la de antes pero la cuota ligada se movió:
+    // si no, «cuota 197, baja 250» en una deuda que bajaba 250 se guardaba bajando 197 (rev. lo-descuento B1).
+    tiedMoves=quotaChanged&&(d.amort==null||Math.abs(d.amort-(d.monthly||0))<=0.005),
+    // Ligada y siguiendo a la cuota en pantalla (bajada = cuota nueva) sigue siendo la ligadura de siempre.
+    amortChanged=amortIn!=null&&(tiedMoves?Math.round(amortIn*100)!==Math.round(monthly*100)&&
+      (form.amortSet===true||Math.round(amortIn*100)!==Math.round(debtAmort(d)*100)):Math.round(amortIn*100)!==Math.round(debtAmort(d)*100));
   // Cambiar el calendario de una deuda terminada puede reabrirla o reescribir su historia.
   // La guardia también protege llamadas que no pasan por los campos bloqueados de la ficha.
-  if(debtEditFinished(d)&&(amountChanged||quotaChanged||dayChanged||termChanged||aprChanged)) return {error:"db_finished_edit_hint"};
+  if(debtEditFinished(d)&&(amountChanged||quotaChanged||dayChanged||termChanged||aprChanged||amortChanged)) return {error:"db_finished_edit_hint"};
   if(form.name.trim()!==(d.name||"")) next.name=form.name.trim();
   if(form.note!==undefined&&form.note!==(d.note==null?"":String(d.note)))next.note=form.note;
   // El alta con plazo pone `amort` lineal (saldo/plazo), no la cuota tecleada: si coinciden (o no hay
@@ -24311,13 +24421,17 @@ function debtEditResult(d,form){
   // que paga 197 y amortiza 250), cambiar la cuota solo cambia lo que se paga, no el calendario (revisión d139).
   const quotaIsAmort=d.amort==null||Math.abs(d.amort-(d.monthly||0))<=0.005;
   if(quotaChanged){ next.monthly=+monthly.toFixed(2); if(quotaIsAmort&&d.amort!=null) next.amort=next.monthly; }
+  // Lo que baja, tecleado, manda sobre la ligadura con la cuota; igual a la cuota no hace falta guardarlo.
+  if(amortChanged){ next.amort=+amortIn.toFixed(2); if(Math.abs(next.amort-(next.monthly||0))<0.005) delete next.amort; }
+  if(amortChanged&&!(amortIn>0)&&balance>0.005) return {error:"db_edit_amort_zero"};
   if(dayChanged) next.day=day;
   if(termChanged){ if(months==null) delete next.months; else next.months=months; }
   if(aprChanged) next.apr=apr;
   // Cambiar nombre/TAE o guardar lo mismo nunca re-ancla ni redondea una deuda heredada.
   // Si cambia el saldo, se conserva el contrato anterior: ancla nueva sin plazo, cuotas pagadas
   // intactas con plazo. Mover día/cuota conserva el pendiente real antes de proyectarlo de nuevo.
-  if(amountChanged||quotaChanged||dayChanged||termChanged){
+  // Cambiar lo que baja re-ancla `value` (si no, el saldo de hoy cambiaría hacia atrás: value − amort×pagadas).
+  if(amountChanged||quotaChanged||dayChanged||termChanged||amortChanged){
     const am=debtAmort(next),paid=debtPaidCount(next);
     // Plazo y cuota deben cancelar el pendiente: ni cuotas a cero ni principal sin pagar.
     // La última fracción es válida; amort y pago final mantienen su contrato original.
@@ -24326,6 +24440,8 @@ function debtEditResult(d,form){
     if((termChanged||quotaChanged&&quotaIsAmort)&&next.months!=null){
       const remaining=next.months-paid,perMonth=Math.round(am*100),principal=Math.round(balance*100)-Math.round((next.balloon||0)*100);
       if(remaining<=0||principal<=(remaining-1)*perMonth||principal>remaining*perMonth){
+        // Con la bajada tecleada, el rango de cuotas no dice nada: lo que no encaja es lo que baja.
+        if(amortChanged) return {error:"db_err_term_amort"};
         // Con solo la cuota tocada se dice qué cuota encaja: «no encajan» a secas dejaba a la
         // hipoteca heredada sin forma de saber qué valor aceptaba (revisión d139c).
         const lo=remaining>0?Math.ceil(principal/remaining):0,hi=remaining>1?Math.ceil(principal/(remaining-1))-1:null;
@@ -24347,7 +24463,8 @@ function debtEditResult(d,form){
       // Si la cuota no amortiza (amort distinta), saldo+cuota a la vez sigue recalculando: si no,
       // nadie miraba el plazo y quedaba principal sin cuotas o cuotas fantasma (revisión d139).
       // Cuenta en céntimos para no añadir una cuota por el error binario de una división exacta.
-      if((amountChanged||dayChanged)&&!(quotaChanged&&quotaIsAmort)&&!termChanged&&next.months!=null&&am>0){
+      // Con otra bajada y el plazo intacto, el plazo sale de ella (y la hoja pide confirmarlo).
+      if((amountChanged||dayChanged||amortChanged)&&!(quotaChanged&&quotaIsAmort)&&!termChanged&&next.months!=null&&am>0){
         const calculated=debtEditMonths(next,balance,am,paid);
         if(calculated==null) return {error:"plan_edit_invalid"};
         next.months=calculated;
@@ -24561,13 +24678,23 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,showToast,review,recover
       current.save.save(chosenDayResult(debtEditConfirmResult(current.state,debt,current.form,{item:result.item,change:change}),current.form));
     });
   };
+  const amortOn=form.amort!==undefined&&!(planEditNumber(form.apr,true)>0);
   const input=function(key,label,mode){ return React.createElement("label",{key:key},t(label),
     React.createElement("input",{className:"af-in"+(mode?" num":""),inputMode:mode||"text",value:form[key],"data-debt-field":key,
       ref:key==="day"?dayRef:undefined,disabled:finished&&key!=="name"&&key!=="note",readOnly:!!recovery&&key!=="name"&&key!=="note",
-      onChange:function(e){ setForm(Object.assign({},form,{[key]:e.target.value})); }})); };
+      onChange:function(e){
+        const f=Object.assign({},form,{[key]:e.target.value});
+        // Se ve antes de guardar: el plazo nuevo mueve lo que baja (si va por libre de la cuota).
+        if(key==="months"){ const a=debtEditAmortDePlazo(debt,f); if(a!=null) f.amort=a; }
+        // Ligada y sin tocar, lo que baja sigue a la cuota en pantalla: lo que se ve es lo que se guarda.
+        if(key==="monthly"&&!form.amortSet&&form.amort!==undefined&&planEditNumber(form.amort,true)===planEditNumber(form.monthly)) f.amort=e.target.value;
+        if(key==="amort") f.amortSet=true;
+        setForm(f); }})); };
   return React.createElement(PlanEditSheet,{title:t("db_edit_title"),onClose:onClose,closer:closer},React.createElement("div",{className:"add-form"},
     input("name","plan_edit_name"),input("note","plan_conflict_note"),input("balance","db_pending","decimal"),
     React.createElement("div",{className:"af-row"},input("monthly","plan_edit_quota","decimal"),input("day","db_day_ph","numeric")),
+    amortOn&&input("amort","db_amort_ph","decimal"),
+    amortOn&&React.createElement("div",{className:"hint"},t("db_amort_hint")),
     input("months","db_months_ph","numeric"),React.createElement("div",{className:"hint"},t("db_term_hint")),
     finished&&React.createElement("div",{className:"hint"},t("db_finished_edit_hint")),
     input("apr","da_rate","decimal"),React.createElement("div",{className:"hint"},t("db_rate_edit_hint")),
@@ -24857,6 +24984,9 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
         // Parte de un recibo compartido que se descuenta de esta deuda (Plan › Recibos v6, tanda 5).
         (function(){ const hoy=madridYmdParts(Date.now()), c=d.monthly>0?deudaDescuentoMes(state,d,hoy.y,hoy.m,hoy.d):null;
           return c&&c.amt>0?React.createElement("div",{className:"v4-debt-sub","data-testid":"debt-descuento"},tf("pr6_pagas_mas",{a:eur(d.monthly),b:eur(c.amt),from:c.from.join(", ")})):null; })(),
+        // El descuadre ya guardado no se pregunta solo (rev. lo-descuento R1): se señala y se ajusta si quiere.
+        descuentoDescuadreGuardado(state,d)&&React.createElement("button",{type:"button",className:"chip","data-act":"debt-descuadre",style:{alignSelf:"flex-start",marginTop:6},
+          onClick:function(){ descuentoAjustarGuardado(state,set,d); }},t("rp6_no_cuadra")),
         React.createElement("div",{className:"v4-debt-bar"},React.createElement("i",{style:{width:pct+"%"}})),
         React.createElement("div",{className:"v4-debt-foot"},
           React.createElement("span",null,tf("db_paidoff",{x:eur0(paid),p:Math.round(pct)})),
@@ -28331,7 +28461,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="72c592aebd3c35ce2dc718ff2dc760fe6e633a1f0004e3bcf181b4b1ac908746";
+var _rnSha="4a8acf3df7e97fd4ac50f8f7debb3444db0ebbe8d56b64b7e8a2b9b65aa2b8a9";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -31007,7 +31137,11 @@ function PersonaSheet({pid, draft, mensual:draftMensual, sinBorrar, state, set, 
     const datos={n:n.trim(),via:via};
     if(via==="debt") datos.debtId=debtId;
     if(draft) onCreate(Object.assign({id:"pe_"+uid()},datos));
-    else if(edit) set(function(s){ return personaEditar(s,pid,datos,y,m,today); });
+    else if(edit){
+      const cambio=function(s){ return personaEditar(s,pid,datos,y,m,today); };
+      descuentoPregunta(state,cambio).then(function(fix){ set(function(s){ return conDescuentoFijado(fix,cambio(s)); }); swipe.close(); });
+      return;
+    }
     else {
       /* Un compartido de antes no dice de quién es el resto: darle todo a esta persona sin
          enseñarlo ponía «Lo descuento» de 63 donde eran 53 (rev. t5 R2-1). Ese recibo se abre en
@@ -31015,16 +31149,22 @@ function PersonaSheet({pid, draft, mensual:draftMensual, sinBorrar, state, set, 
       const persona=Object.assign({id:"pe_"+uid()},datos);
       const viejo=ids.find(function(id){ return esViejo(id); });
       const resto=ids.filter(function(id){ return id!==viejo; });
-      if(resto.length) set(function(s){ return personaEnRecibos(s,persona,resto,y,m,today); });
-      if(viejo&&onCompartidoViejo){ savedRef.current=true; onClose(); onCompartidoViejo(viejo,persona); return; }
+      const cambio=function(s){ return personaEnRecibos(s,persona,resto,y,m,today); };
+      // Con un compartido de antes también se pregunta por el resto antes de abrirlo (rev. R5).
+      descuentoPregunta(state,resto.length?cambio:function(s){ return s; }).then(function(fix){
+        if(resto.length) set(function(s){ return conDescuentoFijado(fix,cambio(s)); });
+        if(viejo&&onCompartidoViejo){ onClose(); onCompartidoViejo(viejo,persona); return; }
+        swipe.close();
+      });
+      return;
     }
     swipe.close();
   };
   const borrar=function(){
     if(!gone){ setGone(true); return; }
     savedRef.current=true;
-    set(function(s){ return personaEditar(s,pid,null,y,m,today); });
-    swipe.close();
+    const cambio=function(s){ return personaEditar(s,pid,null,y,m,today); };
+    descuentoPregunta(state,cambio).then(function(fix){ set(function(s){ return conDescuentoFijado(fix,cambio(s)); }); swipe.close(); });
   };
   const chip=function(key,label,on,go,dis){
     return React.createElement("button",{type:"button",key:key,className:"chip"+(on?" active":""),"aria-pressed":on?"true":"false",disabled:!!dis,onClick:go},label);
@@ -31562,7 +31702,7 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
   };
   const quitar=function(){
     if(!gone){ setGone(true); return; }
-    removeFixedById(set,f.id);
+    quitarReciboPreguntando(state,set,f.id);
     cerrarCon(tf("pr6_borrado_toast",{name:row.name}));
   };
   const par=[];
@@ -31887,7 +32027,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
   const removeWithUndo=function(row){
     setSavedBill(null);
     const snap={kind:row.kind, item:Object.assign({},row.item)};
-    if(row.kind==="fixed") removeFixedById(set,row.id);
+    if(row.kind==="fixed") quitarReciboPreguntando(state,set,row.id);
     else if(row.kind==="flow") removeFlowById(set,row.id);
     else if(row.kind==="oneoff") removeOneoffById(set,row.id);
     else return;
@@ -32218,6 +32358,47 @@ function rp4Raw(n){
   return (Math.round(Number(n)*100)/100).toFixed(2).replace(/\.00$/,"").replace(".",numPadDecSep());
 }
 function rp4Cent(n){ return Math.round((Number(n)||0)*100); }
+/* Un «Lo descuento» que no cuadra con su deuda se pregunta antes de guardar (feedback 1/11/2026: se
+   pintaba «pagas 250 € + 53 €» sin decir nada). `cambio` es la misma transformación que se va a
+   guardar, pasada por el estado que se ve. Resuelve con lo que dijo, o null si no hay nada que
+   preguntar o no quiere tocarla: el recibo se guarda igual y la deuda se queda como estaba.
+   En euros como el campo, no con eur(), que pasa a la moneda de visualización (revisión d139d). */
+function descuentoBajaPregunta(q){
+  return askText({title:tf("rp6_desc_q",{x:NF.format(q.paga)+" €"}),sub:q.name,value:rp4Raw(q.baja),ph:"0,00 €",
+    ok:t("rp6_desc_ok"),cancel:t("rp6_desc_no")}).then(function(raw){
+    const baja=raw==null?0:parseNumPadRaw(raw);
+    return baja>0?{id:q.id,paga:q.paga,baja:baja}:null;
+  });
+}
+// Una pregunta por deuda descuadrada, una detrás de otra (rev. lo-descuento R4: antes solo la primera).
+function descuentoPregunta(state,cambio){
+  const fixes=[];
+  return descuentoDescuadre(state,cambio(state)).reduce(function(p,q){
+    return p.then(function(){ return descuentoBajaPregunta(q).then(function(f){ if(f) fixes.push(f); }); });
+  },Promise.resolve()).then(function(){ return fixes; });
+}
+function conDescuentoFijado(fixes,s){ return (fixes||[]).reduce(function(o,f){ return deudaFijarDescuento(o,f.id,f.paga,f.baja); },s); }
+/* El descuadre ya guardado (R1): primero cuánto le pasa (puede que la cuota guardada ya sea esa),
+   luego la pregunta de siempre con lo que baja. Cancelar cualquiera de las dos no toca nada. */
+function descuentoAjustarGuardado(state,set,d){
+  const q=descuentoDescuadreGuardado(state,d);
+  if(!q) return;
+  askText({title:t("rp6_pasas_q"),sub:q.name,value:rp4Raw(q.paga),ph:"0,00 €",ok:t("ask_ok")}).then(function(raw){
+    const paga=raw==null?0:parseNumPadRaw(raw);
+    if(!(paga>0)) return;
+    descuentoBajaPregunta({id:q.id,name:q.name,paga:paga,baja:Math.round((paga+q.descuento)*100)/100}).then(function(f){
+      if(f) set(function(s){ return conDescuentoFijado([f],s); });
+    });
+  });
+}
+/* Quitar un recibo con una parte que se descuenta: si la deuda no queda cuadrada (la bajada tecleada
+   no era cuota + descuento), se pregunta igual que al ponerlo (rev. lo-descuento R2). */
+function quitarReciboPreguntando(state,set,id){
+  descuentoPregunta(state,function(s){ return deudasTrasReparto(s,Object.assign({},s,{fixed:(s.fixed||[]).filter(function(e){ return e.id!==id; })})); }).then(function(fixes){
+    removeFixedById(set,id);
+    if(fixes.length) set(function(s){ return conDescuentoFijado(fixes,s); });
+  });
+}
 function rp4DiasMes(ym){ const Y=Math.floor((ym-1)/12), M=ym-Y*12; return new Date(Y,M,0).getDate(); }
 /* Un cargo de una sola vez de hoy o de antes este mes ya «se habría cobrado» por calendario sin
    ningún cargo detrás: lo de hoy sin cobro es cargo de hoy (decisión del dueño, t3). Se apunta
@@ -32475,8 +32656,14 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
         addOneoffItem(set,{id:uid(),name:nombre,amount:Math.round(amt*100)/100,month:M,year:Y,day:f.once.day,account:f.account});
         onSaved("oneoff",nombre);
       } else {
-        addFixedItem(set,conMesDeAlta(Object.assign({id:uid()},borrador())));
-        onSaved("fixed",nombre);
+        const nuevo=conMesDeAlta(Object.assign({id:uid()},borrador()));
+        descuentoPregunta(state,function(s){ return deudasTrasReparto(s,Object.assign({},s,{fixed:(s.fixed||[]).concat([nuevo])})); }).then(function(fix){
+          addFixedItem(set,nuevo);
+          if(fix) set(function(s){ return conDescuentoFijado(fix,s); });
+          onSaved("fixed",nombre);
+          swipe.close();
+        });
+        return;
       }
     } else if(kind==="oneoff"){
       const Y=Math.floor((f.once.ym-1)/12), M=f.once.ym-Y*12;
@@ -32491,7 +32678,15 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
     } else {
       const sc=conScope?scope:"desde";
       // Un «Lo descuento» que entra, cambia o sale mueve también la cuota de esa deuda.
-      if(Object.keys(cambios).length) set(function(s){ return deudasTrasReparto(s,fixedEditarRecibo(s,row.id,cambios,sc,y,m,today)); });
+      const cambio=function(s){ return deudasTrasReparto(s,fixedEditarRecibo(s,row.id,cambios,sc,y,m,today)); };
+      if(Object.keys(cambios).length){
+        descuentoPregunta(state,cambio).then(function(fix){
+          set(function(s){ return conDescuentoFijado(fix,cambio(s)); });
+          onSaved("fixed",nombre,tf(sc==="mes"?"rp4_saved_mes":"rp4_saved",{name:nombre}));
+          swipe.close();
+        });
+        return;
+      }
       onSaved("fixed",nombre,tf(sc==="mes"?"rp4_saved_mes":"rp4_saved",{name:nombre}));
     }
     swipe.close();
