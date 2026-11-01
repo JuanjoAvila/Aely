@@ -14127,7 +14127,9 @@
           "setExpenseRecibo",
           "pullState",
           "setExpenseDup",
-          "deleteExpense"
+          "deleteExpense",
+          "session",
+          "decideOwnTransfer"
         ]
       },
       {
@@ -14945,6 +14947,14 @@
       },
       {
         "file": "src/modules/00-core.js",
+        "function": "ownTransferPlanValid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ownTransferRowMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
         "function": "expenseSourcePatch"
       },
       {
@@ -14958,14 +14968,6 @@
       {
         "file": "src/modules/00-core.js",
         "function": "ownTransferPair"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "ownTransferRowMatches"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "ownTransferPlanValid"
       },
       {
         "file": "src/modules/00-core.js",
@@ -17438,7 +17440,9 @@
           "setExpenseRecibo",
           "renameExpense",
           "setExpenseMeta",
-          "confirmTrMonthlyInvestment"
+          "confirmTrMonthlyInvestment",
+          "session",
+          "decideOwnTransfer"
         ]
       },
       {
@@ -18487,6 +18491,14 @@
       },
       {
         "file": "src/modules/00-core.js",
+        "function": "ownTransferPlanValid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ownTransferRowMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
         "function": "expenseSourcePatch"
       },
       {
@@ -18500,14 +18512,6 @@
       {
         "file": "src/modules/00-core.js",
         "function": "ownTransferPair"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "ownTransferRowMatches"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "ownTransferPlanValid"
       },
       {
         "file": "src/modules/00-core.js",
@@ -21277,7 +21281,9 @@
           "pullState",
           "renameExpense",
           "setExpenseMeta",
-          "confirmTrMonthlyInvestment"
+          "confirmTrMonthlyInvestment",
+          "session",
+          "decideOwnTransfer"
         ]
       },
       {
@@ -22655,15 +22661,23 @@
       },
       {
         "file": "src/modules/00-core.js",
+        "function": "ownTransferPlanValid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ownTransferRowMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ownTransferOutgoingValid"
+      },
+      {
+        "file": "src/modules/00-core.js",
         "function": "expenseSourcePatch"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "expenseSourceActionSnapshot"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "ownTransferOutgoingValid"
       },
       {
         "file": "src/modules/00-core.js",
@@ -22680,14 +22694,6 @@
       {
         "file": "src/modules/00-core.js",
         "function": "ownTransferBankRow"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "ownTransferRowMatches"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "ownTransferPlanValid"
       },
       {
         "file": "src/modules/00-core.js",
@@ -23834,7 +23840,9 @@
           "setExpenseRecibo",
           "renameExpense",
           "setExpenseMeta",
-          "confirmTrMonthlyInvestment"
+          "confirmTrMonthlyInvestment",
+          "session",
+          "decideOwnTransfer"
         ]
       },
       {
@@ -24888,6 +24896,14 @@
       },
       {
         "file": "src/modules/00-core.js",
+        "function": "ownTransferPlanValid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ownTransferRowMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
         "function": "expenseSourcePatch"
       },
       {
@@ -24901,14 +24917,6 @@
       {
         "file": "src/modules/00-core.js",
         "function": "ownTransferPair"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "ownTransferRowMatches"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "ownTransferPlanValid"
       },
       {
         "file": "src/modules/00-core.js",
@@ -25569,7 +25577,9 @@
           "setExpenseRecibo",
           "renameExpense",
           "setExpenseMeta",
-          "confirmTrMonthlyInvestment"
+          "confirmTrMonthlyInvestment",
+          "session",
+          "decideOwnTransfer"
         ]
       },
       {
@@ -26623,6 +26633,14 @@
       },
       {
         "file": "src/modules/00-core.js",
+        "function": "ownTransferPlanValid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ownTransferRowMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
         "function": "expenseSourcePatch"
       },
       {
@@ -26636,14 +26654,6 @@
       {
         "file": "src/modules/00-core.js",
         "function": "ownTransferPair"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "ownTransferRowMatches"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "ownTransferPlanValid"
       },
       {
         "file": "src/modules/00-core.js",
@@ -101378,7 +101388,9 @@
           "setExpenseNoCard",
           "setExpenseNote",
           "suggestCategory",
-          "confirmTrMonthlyInvestment"
+          "confirmTrMonthlyInvestment",
+          "session",
+          "decideOwnTransfer"
         ]
       },
       {
@@ -102859,11 +102871,7 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "expenseSourcePatch"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "ownTransferBankRow"
+        "function": "ownTransferPlanValid"
       },
       {
         "file": "src/modules/00-core.js",
@@ -102871,7 +102879,11 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "ownTransferPlanValid"
+        "function": "expenseSourcePatch"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ownTransferBankRow"
       },
       {
         "file": "src/modules/00-core.js",
@@ -133354,7 +133366,19 @@
           "setExpenseBank",
           "setExpenseDup",
           "enabled",
-          "logEvent"
+          "logEvent",
+          "confirmTrMonthlyInvestment",
+          "session",
+          "confirmExpenseWithdrawal",
+          "setExpenseCat",
+          "setExpenseDeuda",
+          "setExpenseMeta",
+          "setExpenseNoCard",
+          "setExpenseNote",
+          "suggestCategory",
+          "deleteExpense",
+          "addExpense",
+          "renameExpense"
         ]
       },
       {
@@ -133499,7 +133523,35 @@
       },
       {
         "file": "src/modules/00-core.js",
+        "function": "withNotaFallback"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "canRecognizeWithdrawal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withdrawalRowMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "trMonthlyProposal"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "trMonthlyRowMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
         "function": "mcLogEvent"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_isMissingNotaCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseCloudKeys"
       },
       {
         "file": "src/modules/00-core.js",
@@ -133567,10 +133619,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "trMonthlyProposal"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "trMonthlyConfirmed"
       },
       {
@@ -133591,19 +133639,11 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "canRecognizeWithdrawal"
-      },
-      {
-        "file": "src/modules/00-core.js",
         "function": "applyRecognizedWithdrawal"
       },
       {
         "file": "src/modules/00-core.js",
         "function": "reconcileConfirmedWithdrawal"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "withdrawalRowMatches"
       },
       {
         "file": "src/modules/00-core.js",
@@ -133915,10 +133955,6 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "expenseCloudKeys"
-      },
-      {
-        "file": "src/modules/00-core.js",
         "function": "obConfirmedRead"
       },
       {
@@ -133928,6 +133964,42 @@
       {
         "file": "src/modules/00-core.js",
         "function": "obReferenceKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_isMissingDivisaCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_isMissingObNameCol"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "trMonthlyCents"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "metaDeGasto"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotasDeDeudaPorMarcar"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "trMonthlyFingerprint"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "dayKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "categoryOfBankTx"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "trMonthlyPurpose"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -133968,38 +134040,6 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "gemeloCompatible"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "trMonthlyCents"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "function": "metaDeGasto"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "cuotasDeDeudaPorMarcar"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "trMonthlyFingerprint"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "dayKey"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "categoryOfBankTx"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "trMonthlyPurpose"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "trMonthlyRowMatches"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -134495,6 +134535,10 @@
       },
       {
         "file": "src/modules/00-core.js",
+        "data": "_mcNotaCols"
+      },
+      {
+        "file": "src/modules/00-core.js",
         "data": "CAT_NEUTRAS"
       },
       {
@@ -134556,6 +134600,14 @@
       {
         "file": "src/modules/00-core.js",
         "data": "obConfirmedBlocked"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcDivisaCols"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcObNameCol"
       },
       {
         "file": "src/modules/00-core.js",
@@ -134690,16 +134742,16 @@
         "data": "OB_CONFIRMED_AGE"
       },
       {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_ALIAS_DIAS"
+      },
+      {
         "file": "src/modules/00-core.js",
         "data": "DELETED_AT_MAX"
       },
       {
         "file": "src/modules/00-core.js",
         "data": "DELETED_MAX"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "data": "CUOTA_ALIAS_DIAS"
       },
       {
         "file": "src/modules/01-i18n.js",
