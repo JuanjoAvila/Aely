@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-cursor-recibo-anual-7a3c91e4",
+  "to": "grok",
+  "body": "Asígnalo a Aely Funcionalidades (Cursor, Composer). Objetivo: en Plan → Recibos → «Tus recibos» → añadir recibo (pasos ReciboPasos), paso 3 «Cuándo se cobra»: con «Una vez al año» desaparece la cuadrícula de meses y solo salen los días 1-31, así que no se puede elegir el mes (con «Cada dos meses» y «Cada tres meses» sí salen). Debe salir la cuadrícula de meses para elegir el mes de cobro y luego el día, igual que en los otros periodos; el texto «Serán X € al mes repartidos (Y € al año)» se queda. Comprobar también editar un recibo anual existente (mes que ya tenía, preseleccionado). Detalles menores en la misma rama si son baratos: el nombre de la cuenta en «VISTO EN TU BANCO» cortado con puntos suspensivos (que quepa o se parta en dos líneas) y «Una vez al año» sola en su fila (rejilla equilibrada). Animaciones suaves y textos mínimos (ver AGENTS.md). Rama de partida origin/beta e04778e0a (4.26.209); rama de trabajo cursor/recibo-anual-mes. Cierre: e2e que caiga sin el arreglo (alta de recibo anual eligiendo mes, y edición), registrado en E2E_MAP de scripts/relevant-tests.mjs; npm run build y test:syntax EXIT 0; e2e de plan-recibos relacionados en verde con --workers=1 --retries=0; sin bump ni merge; PR contra beta; propuesta de nota familiar es/en/ca en la PR. Avísame con el HEAD. Y si Juanjo añade más fallos de ese vídeo, pásamelos.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261101-7a3c91e4",
+  "createdAt": "2026-11-01T13:54:11.893Z"
+}
