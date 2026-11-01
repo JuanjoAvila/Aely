@@ -1,0 +1,47 @@
+{
+  "status": "blocked",
+  "summary": "Candidata privada entregada y revision independiente NO-GO P2: conflicto CAS de source podia perder la accion optimista. Correccion R2 en WIP durable entregado al coordinador para relevo horario; producto congelado, sin push ni PR. No se declara entrega terminada ni ProductREADY.",
+  "tests": [
+    {
+      "command": "R1 tests/own-transfer-confirm.test.mjs TZ Europe/Madrid y UTC",
+      "exitCode": 0,
+      "casesPerZone": 97
+    },
+    {
+      "command": "R1 e2e/own-transfer-confirm.spec.mjs Chromium movil",
+      "exitCode": 0,
+      "cases": 10
+    },
+    {
+      "command": "R1 build, syntax y registro",
+      "exitCode": 0
+    },
+    {
+      "command": "R2 regresion causal caller real setCuota sobre R1",
+      "exitCode": 1,
+      "expectedFailure": "debtId remoto ausente tras NO concurrente"
+    },
+    {
+      "command": "R2 WIP build y Node Europe/Madrid",
+      "exitCode": 0,
+      "cases": 98,
+      "acceptance": false
+    }
+  ],
+  "productSHA": "7f61fa881438663b8a4896fd013c6bb30005e2fa",
+  "checkpointSHA256": "73c96fcaa9d9190a6bdca42560e0b45befecc268aed4132e439ea221be1ae255",
+  "wipPatchSHA256": "ca3ff77c12e87fe9b1e60ed7d5da7897541f6dbeaf65d12bddfad0a48f13a1da",
+  "wipManifestSHA256": "837fc428ef794fe7e14b62332dd4f350245a09392682b14e3224675a2f98a00c",
+  "limitations": [
+    "R2 sin DOM ni negativos de reintento/conflicto completados; falta UTC, sintaxis, documentacion actualizada y revision independiente",
+    "R1 no aceptada por P2; sus verdes no acreditan UI R2",
+    "Sin despliegue, merge, backend, APK, bump ni publicacion de catalogo",
+    "Marcas de rechazo frente a clientes antiguos y ausencia de transaccion entre filas son limites aceptados por criterio46abc5fc"
+  ],
+  "schema": 1,
+  "taskId": "own-transfer-confirm-r159-codex-20261101",
+  "actor": "codex",
+  "sessionId": "owntransfer15995f81db80e48f7260a23b7ca0aadfd7c",
+  "createdAt": "2026-11-01T10:12:48.864Z",
+  "released": true
+}
