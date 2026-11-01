@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "id": "debt-no-day-pr337-p2-design-r155-codex-20261101",
+  "from": "codex",
+  "coordinatorSession": "nrelay474c5f0a1c4b401ab0a5d33f09454f20",
+  "createdAt": "2026-11-01T05:09:51.944Z",
+  "to": "codex",
+  "baseSHA": "89e33b206a95ef8c490d8147af80dfd1b76955e1",
+  "objective": "Preparación PRIVADA y ESTÁTICA de los literales/equaciones faltantes P2 writers/inversas de PR337. Es un encargo nuevo distinto; debt-no-day-pr337-contract-r155-codex-20261101 terminó con18NodeMadridUTC y NO se recrea. Reutilizar mapa revisado/30filas/overlay7, completar solo gaps concretos antes de proponer un gate futuro de implementación. Ningún cambio de producto ni ejecución de tests está incluido.",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/01-i18n.js",
+    "src/modules/02-ui-shared.js",
+    "src/modules/06-sync-brokers.js",
+    "src/modules/07-tab-patri-fijos.js",
+    "src/modules/08-motor-bank.js",
+    "src/modules/11-app-main.js",
+    "docs/ARQUITECTURA.md",
+    "tests/debt-payment-state.test.mjs",
+    "tests/inicio-deuda-futura.test.mjs"
+  ],
+  "workerSession": "nrelay4aaa16ed82a54272be09f0be2bf20d7e",
+  "dependsOnCompletedTask": "debt-no-day-pr337-contract-r155-codex-20261101",
+  "sourceResult": "f00e4e78cd0d59cb7e9120c6f6e92e6b0c37d3ee",
+  "sourceRETURN": "495cafd084d44464ea5464321538bad2e639ae9a",
+  "constraints": [
+    "Esperar admisión nativa/reloj propio. OWN20 fresco ligado a identidad propia, primera/interna/readback>=30, FULLRAW de todos los nuevos deltas/cancelaciones y ACK, aviso y activación confirmados; claim propio de ESTE task con lectura remota/confirmación antes de checkout propio. Nunca copiar estado/runtime/repos/counters/NFF/grants/claims/leases del trabajo cerrado.",
+    "Checkout nuevo desde fuenteA89e33 y restauración exacta de nueve snapshots finales inmutables después del claim. Leer AGENTS y EMPIEZA-AQUI propietarios completos. Solo lectura de producto tras restauración, y escrituras de artefactos privados de diseño. Sin edición de módulos, tests registrados o documentación de producto.",
+    "Separar SIEMPRE fuenteA89e33 original (blobs git show) de causal656f17a69acdb59a4bfd14ea51a50196157b5807, WIP de los nueve snapshots y contrato prospectivo. Cada literal/oráculo lleva fuente/hash explícito, no alias de HEAD a WIP. Preservar30filas/overlay7 y77e9/97cc inmutables; no repetir el mapa ya terminado.",
+    "Completar únicamente casos faltantes: debtManual parcial y dueño ambiguo; BOOK conflictivo/pendiente/tombstone; alta de cuenta y cambio de rosterF después del pago; OB parcialmente fallido; roles ambos con insumos no nulos y hermana automática inválida; efectivo de nueva creación con todas las filas realmente afectadas sinIBAN; persistencia/invalidación/copias y BOOK Nov1 con timestamp UTC Oct31T23:30Z y tabla UTC/Madrid. No ejecutar ninguno.",
+    "Por cada writer afectado, literales completos antes/después con censo FINAL entero, principalBASE y alternativaV2, fórmulas/inversas por rama, dos órdenes de última marca, F2/K=-2003 y términos conocidos/balloon preservados. No corregir multiplicaciones heredadas ni usar un monthNet individual donde fuente acumula por accFixed. No inventar UIDmatching o stamps por fila OB.",
+    "Capturar validez antes del primer protegido, conservar marcas solo en ramas previamente válidas y sello después de la última mutación protegida de una acción futura autorizada. Transporte/load/migración no son escritura deliberada ni permiso para reparar/sellar. Reescritura vieja idéntica conserva contrato; toda mutación protegida invalida sin auto-renovar. No implementar estos writers aquí.",
+    "BF30 entidad completa: alguna fija/diaria inválida implica fuenteA exacta para toda la entidad; solo allvalidV2 nueva rama. Sin pairguard crossentity ni inferir dueño. Separar prevista/real y documentar fronteraSbase/Tv2 balance120016/proyección110015 frente allinvolvedV2objetivo130017, sin excepción nueva. Límite6d8e100013/90012/diferencia10001 en referencias PR/arquitectura/CHANGELOG del informe, sin excluir clientes. Si surge discrepancia allinvolvedV2 de dinero, entregar evidencia al padre, no elegir política.",
+    "Entregar JSON privado de nuevos literales con enteros céntimos/fechas/identidad completa, tabla de ecuaciones y mapa de writers por referencias exactas, huecos resueltos/pendientes, propuesta de gate P2 estrecho y manifest/hash. No oráculos registrados modificados ni pruebas corridas. P1helpers+18NodeMadridUTC están cerrados y no se repiten; primerDOMB permanece cerrado.",
+    "Sin Nodeproducto/VM/syntax/tests/build/browser/server/fullsuite/Gradle. El permiso permanente edaff de dirigidas no exige CPU1 pero este encargo es solo diseño y no pide ninguna corrida. P2 implementación, P3/lectores/selectores/stamps/inversas ejecutables/commit/push no concedidos. Punto3STOP, PR337NO-GO, noProductREADY. Solo coordinador reporta Claude; trabajador reporta al padre vigente. Deadline propio+60min y safe+50min, recursos/counters no se transfieren con relevo del padre."
+  ]
+}
