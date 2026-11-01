@@ -16,12 +16,26 @@ explícita guarda una autorización versionada independiente de `monthlyInvest` 
 y del guardado partido con lectura de disco. Un fallo de persistencia no habilita el automatismo.
 
 La recurrencia nueva compara el campo y valor original completos (solo normaliza espacios/caso),
-misma cuenta/bróker, débito exacto de 5000 céntimos, BOOK y días 1-5 no futuros. No usa notas
+misma cuenta/bróker, débito en céntimos exactos del importe confirmado por la persona, BOOK y
+días 1-5 no futuros. La fila y la transacción deben coincidir entre sí y, en cada recurrencia,
+con ese importe consentido; no hay un importe fijo ni tolerancia de un céntimo. No usa notas
 editadas, tarjetas/MCC de compra, filas ambiguas o fecha anterior al consentimiento; confirmar
 una fila de noviembre en diciembre no autoriza un 3 de diciembre ya pasado. Los pulls que
 cambian el permiso lo invalidan, sin mezclar datos financieros ni habilitarlo desde configuración.
+Las comparaciones de permiso durable y propósito son canónicas, también en claves anidadas:
+el orden devuelto por jsonb no cambia el consentimiento. La evidencia por ISIN exige dos letras,
+nueve alfanuméricos y un dígito de control ISO 6166 válido; un código mal formado o con control
+incorrecto aislado no acredita destino semántico.
 Solo los IDs cuya categoría cambia por este plan omiten la compra virtual del sync; la ruta
 legacy conserva sus efectos. El puente sigue aportando posiciones/cash; OB, los movimientos.
+
+El plazo de 10 s en Gastos retira la confirmación local, pero no puede deshacer un UPDATE ya
+enviado. Si termina tarde, la siguiente lectura de gastos vuelve a leer la nube y converge,
+también tras una lectura fallida; no reenvía la confirmación ni aprende permiso sin ACK y
+guardado durable. Las pruebas ejecutan la carrera real de Gastos, el writer y `syncCloudExpenses`
+con transporte y relojes sintéticos. En el caso preexistente de CAS perdido por importe remoto
+cambiado, el sync intenta un backfill con el mismo UUID: `addExpense` usa ignoreDuplicates y
+el conflicto de clave primaria no sobrescribe la fila. No se modifica ese flujo en esta tanda.
 
 **Límite expreso:** el reconocedor legacy por `monthlyInvest` y su prueba MCC 5411 se conservan.
 Por eso esta candidata no demuestra ausencia global de clasificación sin consentimiento ni
