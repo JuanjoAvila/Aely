@@ -1085,6 +1085,7 @@
   .rp4-dup-t{flex:1;min-width:0;font-size:14px;font-weight:700;}
   .rp4-dup-go{color:var(--mint-bright);font-size:14px;font-weight:800;}
   .rp4-visto{display:flex;flex-direction:column;gap:8px;}
+  .rp4-visto-bank{white-space:normal;overflow:visible;text-overflow:unset;line-height:1.35;}
   .pr6-dt.rp4-dt-s{width:42px;height:44px;border-radius:12px;background:var(--bg);}
   .pr6-dt.rp4-dt-s .d{font-size:17px;}
   .pr6-dt.rp4-dt-s .m{font-size:9px;}
@@ -1101,6 +1102,7 @@
   .rp4-var{height:36px;padding:0 14px;border-radius:18px;font-size:13px;color:var(--muted);}
   .rp4-var.on{border-color:var(--mint);color:var(--mint-bright);background:var(--surface-2);}
   .rp4-freqs,.rp4-modes,.rp4-scope{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+  .rp4-freqs{grid-template-columns:repeat(3,minmax(0,1fr));}
   .rp4-mode{min-height:50px;padding:0 10px;border-radius:16px;font-size:15px;}
   .rp4-mode.on{border-color:var(--mint);background:var(--surface-2);color:var(--mint-bright);}
   .rp4-mode:disabled{opacity:.4;cursor:default;}
@@ -1133,13 +1135,18 @@
   .rp4-row-k{flex:none;font-size:14px;color:var(--muted);font-weight:700;}
   .rp4-row-v{flex:1;min-width:0;text-align:right;font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .rp4-foot{position:sticky;bottom:0;padding:10px 20px calc(14px + var(--safe-bottom));background:var(--bg-2);}
-  .rp4-cta{width:100%;height:52px;transition:opacity .2s ease;}
-  .rp4-cta:disabled{opacity:.35;cursor:default;}
+  .rp4-cta{width:100%;height:52px;transition:background .28s var(--ease),color .28s var(--ease);}
+  .rp4-cta.is-wait{background:color-mix(in srgb,var(--mint) 38%,var(--bg-2));pointer-events:none;}
   /* Personas y compartidos (tanda 5, SPEC §6-§7): rejilla de 5 columnas, no carrusel. */
   .pe-ava{width:38px;height:38px;flex:none;border-radius:19px;background:var(--surface);border:1px solid var(--line-soft);display:flex;align-items:center;justify-content:center;
     font-size:15px;font-weight:800;color:var(--text);transition:background .2s ease,color .2s ease,border-color .2s ease;}
   .pe-link{border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;padding:0;}
   .pe-deben.ok .pr6-ll-a{color:var(--muted);}
+  .pr6-ll-act{display:flex;justify-content:flex-end;margin-top:2px;}
+  /* «Ya me lo ha pagado»: compacto a la derecha, mismo mint, sin ancho completo (beta 4.26.209). */
+  .pe-deben-cta{width:auto;max-width:100%;height:36px;padding:0 14px;border-radius:12px;font-size:13px;font-weight:800;flex:none;}
+  .pe-deben-cta.pr6-cta{height:36px;}
+  .pe-deben-cta.pr6-btn{border-color:var(--line-soft);font-size:12px;font-weight:700;}
   .pe-recibos{display:flex;flex-direction:column;gap:8px;}
   .rp5-mas{display:flex;flex-direction:column;}
   .rp5-in{display:flex;flex-direction:column;gap:12px;padding-top:4px;}
@@ -4393,6 +4400,22 @@ const cloud = (function(){
       const {data,error}=await (typeof q.select==="function" ? q.select("id") : q);
       if(error) throw error;
       return Array.isArray(data) ? data.length : 0;
+    },
+    // Una pareja local puede conservar UUID distintos de nube: no ofrecer una decisión imposible.
+    // Este sondeo no reutiliza guards de subida, que pueden liquidar absorciones escribiendo.
+    async canConfirmOwnTransfer(plan, readState){
+      const ready=function(){return !mcSandbox()&&!mcSandboxTransition()&&ownTransferPlanValid(readState(),plan);};
+      if(!sb||!ready())return false;
+      const owner=plan.owner,cols="id,user_id,source,cat,fecha,importe,comercio";
+      const sessionOK=async function(){const r=await sb.auth.getSession(),s=!r.error&&r.data&&r.data.session;return !!s&&s.user&&s.user.id===owner&&(s.expires_at==null||Number.isFinite(Number(s.expires_at))&&Number(s.expires_at)*1000>Date.now());};
+      try{
+        if(!await sessionOK()||!ready())return false;
+        for(const e of [plan.outgoing,plan.incoming]){
+          const r=await sb.from('expenses').select(cols).eq('user_id',owner).eq('id',e.id).maybeSingle();
+          if(r.error||!ownTransferRowMatches(e,r.data,owner)||!ready())return false;
+        }
+        return await sessionOK()&&ready();
+      }catch(err){return false;}
     },
     // Un UPDATE sin filas no confirma una retirada: FIN-04 permite UUID locales divergentes.
     // No buscar gemelos por parecido ni tocar importe, origen o saldo para salvar esa identidad.
@@ -16155,6 +16178,32 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
      hasta darle a atrás (bug 2026-08-17). La causa concreta ya está arreglada en `saveEdit`; esto
      es para que ninguna otra vía que vacíe `editExp` pueda volver a dejar la app muerta. */
   const abierto=!!exp && !!editExp;
+  const transferSandbox=mcSandbox();
+  // La elegibilidad se recalcula, pero un cambio ajeno no debe repetir las dos lecturas remotas.
+  // La foto completa conserva las invalidaciones del plan, incluidas relaciones fuera de la fila.
+  const transferSignature=JSON.stringify(abierto?ownTransferPlan(state,exp):null);
+  const transferPlan=useMemo(function(){return JSON.parse(transferSignature);},[transferSignature]);
+  const transferLive=useRef(null);transferLive.current={plan:transferPlan,state:state,sandbox:transferSandbox};
+  const [transferOffer,setTransferOffer]=useState(null);
+  useEffect(function(){
+    let active=true;
+    const current=function(){return active&&transferLive.current.plan===transferPlan&&transferLive.current.sandbox===transferSandbox&&mcSandbox()===transferSandbox&&!mcSandboxTransition();};
+    // La ficha permanece montada al cerrarse. Cada plan tiene su propia cancelación y nunca
+    // habilita la siguiente ficha con la respuesta atrasada de una lectura anterior.
+    const check=async function(){
+      if(!transferPlan||!current())return false;
+      setTransferOffer(null);let timer,ready=false;
+      try{
+        ready=transferSandbox?ownTransferPlanValid(transferLive.current.state,transferPlan):await Promise.race([
+          cloud.canConfirmOwnTransfer(transferPlan,function(){return current()?transferLive.current.state:null;}),
+          new Promise(function(resolve){timer=setTimeout(function(){resolve(false);},10000);})]);
+      }catch(err){}finally{clearTimeout(timer);}
+      if(!current())return false;
+      setTransferOffer(ready?{plan:transferPlan,check:check}:null);return ready;
+    };
+    setTransferOffer(null);check();
+    return function(){active=false;};
+  },[transferPlan,transferSandbox]);
   const paymentDay=new Date().toDateString();
   const paymentRelation=useMemo(function(){return abierto?expensePaymentRelationUI(state,exp):null;},
     [abierto,exp,paymentDay,state.fixed,state.debts,state.oneoffs,state.expenses,state.bankTx,state.accounts,state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
@@ -16264,8 +16313,12 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     exp.renamePending&&React.createElement("div",{className:"hint",role:"status","data-testid":"expense-rename-pending"},t(exp.renamePending.quarantined?"g_rename_paused":"g_rename_pending")," ",React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){saveEdit(exp,{merchant:exp.renamePending.merchant,retryRename:true});}},t("g_note_retry"))),
     trace,duplicate,paired,reciboAviso,
     sourceActionStatus&&sourceActionStatus.id===exp.id&&React.createElement("div",{role:"status","data-testid":"exp-source-save-status"},React.createElement("div",null,t(sourceActionStatus.status==="pending"?"f_source_pending":"f_source_save_error")),sourceActionStatus.status==="error"&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-source-refresh",onClick:function(){refreshSourceAction().catch(function(){});}},t("f_source_refresh"))),
-    ownTransferPair(state,exp)&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-own-transfer",
-      disabled:ownTransferStatus&&ownTransferStatus.id===exp.id&&ownTransferStatus.status==="pending",onClick:function(){recognizeOwnTransfer(exp);}},t("f_owntransfer_title")),
+    transferPlan&&transferOffer&&transferOffer.plan===transferPlan&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-own-transfer",
+      disabled:!transferOffer||transferOffer.plan!==transferPlan||ownTransferStatus&&ownTransferStatus.id===exp.id&&ownTransferStatus.status==="pending",onClick:function(){
+        if(!transferOffer||transferOffer.plan!==transferPlan)return;
+        // Revalidar también al pulsar: haber abierto la ficha no reserva esas filas remotas.
+        transferOffer.check().then(function(ready){if(ready&&transferLive.current.plan===transferPlan)recognizeOwnTransfer(exp);});
+      }},t("f_owntransfer_title")),
     ownTransferStatus&&ownTransferStatus.id===exp.id&&ownTransferStatus.status!=="done"&&React.createElement("div",{role:"status","data-testid":"exp-own-transfer-status"},React.createElement("div",null,t(ownTransferStatus.status==="pending"?"f_owntransfer_pending":"f_owntransfer_error")),ownTransferStatus.status==="error"&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-own-transfer-refresh",onClick:function(){refreshSourceAction().catch(function(){});}},t("f_source_refresh"))),
     canRecognizeWithdrawal(exp) && React.createElement("div",{className:"hint","data-testid":"exp-withdrawal-info"},
       React.createElement("div",null,t("f_withdraw_fields")),
@@ -28747,7 +28800,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="b3131e59e5e2cf1fe3f1b89a6dd6024d4e67779cc18861bafd8493e053f56b4d";
+var _rnSha="5e1e653379ef789b85716d9f40cec8f49083ab2b8be4d277eb147e9f89ff097f";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -31386,9 +31439,10 @@ function TeDebenSheet({state, set, totals, deben, onClose}){
                   React.createElement("span",{className:"pr6-ll-n"}, p.n),
                   React.createElement("span",{className:"pr6-ficha-s"}, p.items.map(function(i){ return i.name+" "+eur(i.amt); }).join(" + "))),
                 React.createElement("span",{className:"serif num pr6-ll-a","data-testid":"deben-cifra"}, eur(p.amt))),
-              React.createElement("button",{type:"button",className:p.pagado?"pr6-btn pr6-btn-wide":"pr6-cta","data-act":"deben-pagado","aria-pressed":p.pagado?"true":"false",
-                onClick:function(){ marcar(p); }},
-                p.pagado?"✓ "+t("pr6_te_lo_ha_pagado")+" · "+t("f_undo"):t("pr6_ya_me_lo_ha_pagado")));
+              React.createElement("div",{className:"pr6-ll-act"},
+                React.createElement("button",{type:"button",className:(p.pagado?"pr6-btn ":"pr6-cta ")+"pe-deben-cta","data-act":"deben-pagado","aria-pressed":p.pagado?"true":"false",
+                  onClick:function(){ marcar(p); }},
+                  p.pagado?"✓ "+t("pr6_te_lo_ha_pagado")+" · "+t("f_undo"):t("pr6_ya_me_lo_ha_pagado"))));
           }))),
       persona!=null&&React.createElement(PersonaSheet,{key:persona,pid:persona,state:state,set:set,totals:totals,onClose:function(){ setPersona(null); }})),
     document.body);
@@ -32853,6 +32907,14 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
     const id=requestAnimationFrame(function(){ if(titleRef.current) titleRef.current.focus({preventScroll:true}); });
     return function(){ cancelAnimationFrame(id); };
   },[paso]);
+  const mesesElegir=f.mode==="rec"&&f.freq!=="mes";
+  const diasListos=f.mode==="rec"&&(f.freq==="mes"||f.months.length>0);
+  // Tras «Cada mes» solo había días visibles; al pasar a «Una vez al año» el plegable de meses
+  // aún se abría (350 ms) y parecía que solo quedaban los días 1–31 (beta 4.26.209).
+  useLayoutEffect(function(){
+    if(paso!==2||!mesesElegir) return;
+    mostrar(mesesRef);
+  },[paso,f.freq,f.mode,mesesElegir]);
   useEffect(function(){
     const onKey=function(e){
       if(document.documentElement.classList.contains("ask-open")||document.querySelector('[data-sheet="persona"]')) return;
@@ -32989,6 +33051,8 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
     if(paso===4){ if(e&&e.detail>1) return; guardar(); return; }
     ir(resumido?4:paso+1);
   };
+  const ctaLabel=paso===4?(edit?t("rp4_guardar"):t("rp4_add")):(resumido?t("rp4_listo"):t("rp4_next"));
+  const ctaOn=ok[paso]&&(paso<4||listo);
   const titulos=["rp4_t_name","rp4_t_amount","rp4_t_when","rp4_t_account",edit?"rp4_t_edit":"rp4_t_sum"];
   const bankLabel=function(b){ return b?entOf(b).label:"—"; };
   const freqTxt=function(fr){ const x=RP4_FREQS.find(function(q){ return q[0]===fr; }); return x?gbTxt(x[1]):""; };
@@ -33030,7 +33094,7 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
             React.createElement("span",{className:"m"}, t("rp4_dia"))),
           React.createElement("span",{className:"pr6-cand-t"},
             React.createElement("span",{className:"pr6-cand-n"}, d.name),
-            React.createElement("span",{className:"pr6-cand-s"}, (d.cat?catName(d.cat)+" · ":"")+bankLabel(d.bank))),
+            React.createElement("span",{className:"pr6-cand-s rp4-visto-bank"}, (d.cat?catName(d.cat)+" · ":"")+bankLabel(d.bank))),
           React.createElement("span",{className:"pr6-cand-a num"}, eur(d.amount)));
       })),
     sugs.length>0&&React.createElement("div",{key:"sg",className:"rp4-sugs"},
@@ -33135,8 +33199,8 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
           mostrar(diasRef);
         }})),
         f.freq!=="mes"&&amt>0&&React.createElement("div",{className:"hint"}, fixedAddPreview(borrador())))),
-    React.createElement("div",{key:"dd",className:"pr6-fold"+(f.mode==="rec"?" open":"")},
-      React.createElement("div",Object.assign({className:"pr6-fold-in"},f.mode==="rec"?null:{"aria-hidden":"true",inert:""}),
+    React.createElement("div",{key:"dd",className:"pr6-fold"+(diasListos?" open":"")},
+      React.createElement("div",Object.assign({className:"pr6-fold-in"},diasListos?null:{"aria-hidden":"true",inert:""}),
         dias(cleanDay(f.day),function(d){ upd({day:d}); }))),
     React.createElement("div",{key:"pl",className:"pr6-fold"+(f.mode!=="rec"?" open":"")},
       React.createElement("div",Object.assign({className:"pr6-fold-in rp4-pagos",ref:pagosRef},f.mode!=="rec"?null:{"aria-hidden":"true",inert:""}),
@@ -33264,7 +33328,6 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
     edit&&React.createElement("button",{type:"button",key:"x",className:"pr6-btn pr6-btn-wide"+(gone?" pr6-seguro":""),"data-act":"bill-remove",
       onClick:function(){ if(!gone){ setGone(true); return; } onRemove(row); }}, gone?t("pr6_seguro_borrar"):t("pr6_ya_no"))
   ]);
-  const cta=paso===4?(edit?t("rp4_guardar"):t("rp4_add")):(resumido?t("rp4_listo"):t("rp4_next"));
   // La ficha de persona va fuera de la hoja: sus gestos y toques no pueden subir hasta esta.
   return React.createElement(React.Fragment,null,React.createElement("div",{ref:sideRef,className:"v4-sheet-back",onClick:swipe.close},
     React.createElement("div",Object.assign({ref:sheetRef,className:"v4-sheet pr6-ficha rp4","data-sheet":"recibo-pasos","data-paso":paso,"data-modo":edit?"edit":"add",
@@ -33281,8 +33344,8 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
           [0,1,2,3].map(function(i){ return React.createElement("i",{key:i,className:paso>=i?"on":""}); }))),
       React.createElement("div",{className:"pr6-track rp4-track",style:{transform:"translateX("+(-paso*100)+"%)"}}, p0,p1,p2,p3,p4),
       React.createElement("div",{className:"rp4-foot"},
-        React.createElement("button",{type:"button",className:"pr6-cta rp4-cta","data-act":paso===4?"confirm":"next","aria-disabled":ok[paso]&&(paso<4||listo)?"false":"true",
-          disabled:!(ok[paso]&&(paso<4||listo)),onClick:siguiente}, cta)))),
+        React.createElement("button",{type:"button",className:"pr6-cta rp4-cta"+(ctaOn?"":" is-wait"),"data-act":paso===4?"confirm":"next","data-rp4-cta":"1",
+          "aria-disabled":ctaOn?"false":"true",tabIndex:ctaOn?0:-1,onClick:function(e){ if(!ctaOn) return; siguiente(e); }}, ctaLabel)))),
     persona&&React.createElement(PersonaSheet,{key:persona.pid||"nueva",pid:persona.pid,draft:!!persona.draft,mensual:mensual,sinBorrar:true,state:state,set:set,totals:totals,
       onClose:function(){ setPersona(null); },
       onCreate:function(q){

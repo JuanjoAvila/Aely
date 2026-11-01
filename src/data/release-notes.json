@@ -1,5 +1,89 @@
 [
   {
+    "v": "4.26.211",
+    "d": "2026-11-01",
+    "t": {
+      "es": "Recibos más claros y hojas más suaves",
+      "en": "Clearer bills and smoother sheets",
+      "ca": "Rebuts més clars i fulls més suaus"
+    },
+    "items": {
+      "es": [
+        "Recibos: un recibo anual te deja elegir el mes en una cuadrícula antes de pedir el día, el botón Siguiente ya no parpadea y «Ya me lo ha pagado» es un botón más discreto.",
+        "Al abrir las hojas de Plan el fondo se oscurece con suavidad y los botones de arriba ya no parpadean.",
+        "Gastos: la pregunta de traspaso entre cuentas propias solo sale cuando se puede confirmar."
+      ],
+      "en": [
+        "Bills: a yearly bill lets you pick the month on a grid before asking for the day, the Next button no longer flickers and “They’ve paid me” is a more discreet button.",
+        "When you open the sheets in Plan the background darkens smoothly and the buttons above no longer flicker.",
+        "Spending: the question about transfers between your own accounts only shows up when it can be confirmed."
+      ],
+      "ca": [
+        "Rebuts: un rebut anual et deixa triar el mes en una quadrícula abans de demanar el dia, el botó Següent ja no parpelleja i «Ja m’ho ha pagat» és un botó més discret.",
+        "En obrir els fulls de Pla el fons s’enfosqueix amb suavitat i els botons de dalt ja no parpellegen.",
+        "Despeses: la pregunta de traspàs entre comptes propis només surt quan es pot confirmar."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "recibo-anual-mes",
+        "t": {
+          "es": "Plan › Recibos: recibo anual con su mes",
+          "en": "Plan › Bills: yearly bill with its month",
+          "ca": "Pla › Rebuts: rebut anual amb el seu mes"
+        },
+        "items": {
+          "es": [
+            "1. Plan → Recibos → Todos → botón de añadir recibo; pon un nombre, toca Siguiente, escribe un importe y toca Siguiente. En «Cuándo» toca «Una vez al año». BIEN: aparece la cuadrícula de los doce meses y los días 1–31 siguen escondidos hasta que eliges mes. MAL: solo se ven los días, o se ven los días antes de elegir mes.",
+            "2. Elige un mes, luego un día y avanza hasta el resumen. BIEN: el botón Siguiente pasa de apagado a encendido con un fundido suave, sin parpadear ni desaparecer, y el resumen dice el mes y el día que elegiste. MAL: el botón parpadea, o el resumen no coincide con lo elegido.",
+            "3. Guarda el recibo y ábrelo para editarlo. BIEN: el mes guardado sale ya marcado en la cuadrícula y el día es el de antes. MAL: el mes sale sin marcar o cambia.",
+            "4. Plan → Te deben, con una persona que te deba algo. BIEN: «Ya me lo ha pagado» es un botón pequeño a la derecha, no de ancho completo; al tocarlo pasa a «Te lo ha pagado · Deshacer». MAL: ocupa todo el ancho, o al tocarlo no cambia."
+          ],
+          "en": [
+            "1. Plan → Bills → All → add bill button; type a name, tap Next, enter an amount and tap Next. At “When” tap “Once a year”. RIGHT: the grid with the twelve months appears and days 1–31 stay hidden until you pick a month. WRONG: only the days show, or the days show before you pick a month.",
+            "2. Pick a month, then a day, and go on to the summary. RIGHT: the Next button goes from dim to bright with a soft fade, without flickering or disappearing, and the summary shows the month and day you picked. WRONG: the button flickers, or the summary does not match what you picked.",
+            "3. Save the bill and open it to edit it. RIGHT: the saved month is already marked on the grid and the day is the same as before. WRONG: the month shows unmarked or changes.",
+            "4. Plan → You’re owed, with a person who owes you something. RIGHT: “They’ve paid me” is a small button on the right, not full width; once tapped it becomes “Paid you · Undo”. WRONG: it takes the full width, or tapping it changes nothing."
+          ],
+          "ca": [
+            "1. Pla → Rebuts → Tots → botó d’afegir rebut; posa un nom, toca Següent, escriu un import i toca Següent. A «Quan» toca «Un cop l’any». BÉ: apareix la quadrícula dels dotze mesos i els dies 1–31 continuen amagats fins que triïs mes. MALAMENT: només es veuen els dies, o es veuen els dies abans de triar mes.",
+            "2. Tria un mes, després un dia i avança fins al resum. BÉ: el botó Següent passa d’apagat a encès amb un fos suau, sense parpellejar ni desaparèixer, i el resum diu el mes i el dia que has triat. MALAMENT: el botó parpelleja, o el resum no coincideix amb el que has triat.",
+            "3. Desa el rebut i obre’l per editar-lo. BÉ: el mes desat surt ja marcat a la quadrícula i el dia és el d’abans. MALAMENT: el mes surt sense marcar o canvia.",
+            "4. Pla → Et deuen, amb una persona que et deu alguna cosa. BÉ: «Ja m’ho ha pagat» és un botó petit a la dreta, no d’amplada completa; en tocar-lo passa a «T’ho ha pagat · Desfés». MALAMENT: ocupa tota l’amplada, o en tocar-lo no canvia."
+          ]
+        }
+      },
+      {
+        "id": "plan-velo-fundido",
+        "t": {
+          "es": "Hojas de Plan: el fondo se oscurece suave",
+          "en": "Plan sheets: the background darkens smoothly",
+          "ca": "Fulls de Pla: el fons s’enfosqueix suau"
+        },
+        "items": {
+          "es": [
+            "1. Plan → Recibos y abre cualquier hoja (por ejemplo, el botón de añadir recibo). Tu frase: «se ve raro el botón de Recibos cuando abres esos botones». BIEN: el fondo se oscurece con suavidad mientras la hoja sube y los botones de arriba (Recibos, Deudas, Metas) no parpadean. MAL: el fondo salta de golpe o los botones de arriba parpadean.",
+            "2. Cierra esa hoja deslizándola hacia abajo o con Atrás. BIEN: el fondo se aclara con suavidad a la vez que la hoja baja y no queda ningún velo ni toque bloqueado. MAL: el fondo desaparece de golpe al final, o queda oscuro sin hoja.",
+            "3. Abre una hoja y ciérrala a medias, antes de que termine de subir; repítelo dos veces seguidas. BIEN: el fondo baja sin saltos y la pantalla responde al toque enseguida. MAL: el fondo da un salto, o hay que tocar dos veces.",
+            "4. Fuera de Plan, toca el botón de Apuntar, y también abre la ficha de un gasto. BIEN: en las dos el fondo se oscurece y se aclara con suavidad, igual que en Plan. MAL: parpadea, salta o se queda oscuro."
+          ],
+          "en": [
+            "1. Plan → Bills and open any sheet (for example, the add bill button). Your words: “the Bills button looks odd when you open those buttons”. RIGHT: the background darkens smoothly while the sheet rises and the buttons above (Bills, Debts, Goals) do not flicker. WRONG: the background jumps or the buttons above flicker.",
+            "2. Close that sheet by sliding it down or with Back. RIGHT: the background lightens smoothly as the sheet goes down and no veil or blocked touch is left behind. WRONG: the background vanishes suddenly at the end, or stays dark with no sheet.",
+            "3. Open a sheet and close it halfway, before it finishes rising; do it twice in a row. RIGHT: the background goes down without jumps and the screen answers to the next touch at once. WRONG: the background jumps, or you have to tap twice.",
+            "4. Outside Plan, tap the Add button, and also open an expense’s details. RIGHT: in both the background darkens and lightens smoothly, just as in Plan. WRONG: it flickers, jumps or stays dark."
+          ],
+          "ca": [
+            "1. Pla → Rebuts i obre qualsevol full (per exemple, el botó d’afegir rebut). La teva frase: «es veu estrany el botó de Rebuts quan obres aquests botons». BÉ: el fons s’enfosqueix amb suavitat mentre el full puja i els botons de dalt (Rebuts, Deutes, Metes) no parpellegen. MALAMENT: el fons salta de cop o els botons de dalt parpellegen.",
+            "2. Tanca aquest full lliscant-lo cap avall o amb Enrere. BÉ: el fons s’aclareix amb suavitat a la vegada que el full baixa i no queda cap vel ni toc bloquejat. MALAMENT: el fons desapareix de cop al final, o es queda fosc sense full.",
+            "3. Obre un full i tanca’l a mitges, abans que acabi de pujar; repeteix-ho dues vegades seguides. BÉ: el fons baixa sense salts i la pantalla respon al toc d’hora. MALAMENT: el fons fa un salt, o cal tocar dues vegades.",
+            "4. Fora de Pla, toca el botó d’Apuntar, i també obre la fitxa d’una despesa. BÉ: en les dues el fons s’enfosqueix i s’aclareix amb suavitat, igual que a Pla. MALAMENT: parpelleja, salta o es queda fosc."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.210",
     "d": "2026-11-01",
     "t": {
