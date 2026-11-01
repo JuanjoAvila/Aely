@@ -60,6 +60,7 @@ const steps = [
   ["deudas-mes-madrid", ["node", "--test", "--test-concurrency=1", "tests/deudas-mes-madrid.test.mjs"]],
   ["deudas-alargar-plazo", ["node", "tests/deudas-alargar-plazo.test.mjs"]],
   ["deudas-lo-descuento", ["node", "tests/deudas-lo-descuento.test.mjs"]],
+  ["lo-descuento-undo", ["node", "--test", "tests/lo-descuento-undo.test.mjs"]],
   ["refund-polarity", ["node", "--test", "tests/refund-polarity.test.mjs"]],
   ["fin10-absorption-scope", ["node", "--test", "tests/fin10-absorption-scope.test.mjs"]],
   ["deudas-plazo-aviso", ["node", "tests/deudas-plazo-aviso.test.mjs"]],
