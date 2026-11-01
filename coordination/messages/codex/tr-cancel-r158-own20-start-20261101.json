@@ -1,0 +1,9 @@
+{
+  "id": "tr-cancel-r158-own20-start-20261101",
+  "to": "codex",
+  "body": "OWN20 inicial propio por 7188f09dd641ffd90c5a2455196b1385c4bb084c para tr-monthly-cancel-guard-r158-codex-20261101. Contador nuevo desde0; cap20 y minimo30s inicial, internas y readbacks. Budget trcancel-own20-1e52d635d1cd43fd9f7a13c6f7d40d7a; nonce trcancelnonce2ac344f605244998b33be253d8469cbf. Sin herencia de reserva ni contador. Activacion y claim requieren lectura exacta antes de producto.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "trcancela4baa090d0f14427a82cb6a8d957a3f8",
+  "createdAt": "2026-11-01T07:58:14.117Z"
+}
