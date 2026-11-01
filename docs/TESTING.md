@@ -1,3 +1,20 @@
+Arneses de `runBankSync` tras la beta 4.26.208 (01/11/2026):
+`banco-sintetico` y `ob-hueco-sync` extraen las sentencias reales hasta
+`imported=importObExpenses(...)`: comprueban el importador y el suelo de la respuesta,
+antes de la transformación del plan mensual. Los updaters completos de
+`bank-download-fixture` y `refund-polarity` inyectan además `trMonthlyImportPlan`
+desde la lógica real, sin sustituirla por un doble. Las aserciones no cambian.
+La comprobación dirigida, con `TZ=Europe/Madrid` y `TZ=UTC`, es:
+
+```sh
+node --test --test-concurrency=1 tests/compras-identicas-ids.test.mjs tests/fin10-absorption-scope.test.mjs tests/fin15-pendiente-contabilizada.test.mjs tests/h2-account-phases.test.mjs tests/bank-download-incomplete.test.mjs tests/bank-sync-acuse.test.mjs tests/bank-reconnect.test.mjs tests/bank-revoke-callback-race.test.mjs tests/ob-hueco-sync.test.mjs tests/refund-polarity.test.mjs
+```
+
+En ambas zonas termina con EXIT 0 (283 tests contados por Node, incluidos los
+ficheros con su propio contador); también pasa `npm run test:syntax`. La base
+sin adaptar falla en extracción y por `trMonthlyImportPlan` sin inyectar.
+Son pruebas sintéticas locales, no una sincronización bancaria ni una entrega.
+
 PRO03 · avisos precomputados del worker nativo:
 `node tests/pro03-native-precomputed-alert.test.mjs`, ya registrado en `steps`,
 compila y ejecuta el worker real en JVM con fronteras Android sintéticas.
