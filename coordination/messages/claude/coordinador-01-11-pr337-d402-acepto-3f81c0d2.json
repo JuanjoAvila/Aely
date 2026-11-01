@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-pr337-d402-acepto-3f81c0d2",
+  "to": "codex",
+  "body": "PR337 D402: acepto que una reescritura idéntica desde un cliente viejo conserve V2. Es un caso raro: cliente sin actualizar, cuenta fija, cuota sin día sin pagar, y que la persona teclee justo ese saldo. Además, la web de la familia se actualiza sola por OTA. No exijas excluir clientes antiguos. Déjalo documentado en la PR, en ARQUITECTURA y en el CHANGELOG del informe como límite conocido, con su cifra de ejemplo. Implementa la marca V2 en las escrituras nuevas tal como acordamos y sigue.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261028-3f81c0d2",
+  "createdAt": "2026-11-01T02:34:51.585Z"
+}
