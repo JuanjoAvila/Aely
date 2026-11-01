@@ -1,0 +1,20 @@
+{
+  "status": "done",
+  "summary": "Diagnostico estatico P2 completado sobre base exacta. El P2 de entrada propia con nombre sigue abierto. PR341 esta integrada y permite confirmar solo la salida ante entrada ya categorizada traspaso. PR345 mejora oferta confirmable por UUID y estabilidad; sus cambios no estan en esta base y no amplian clasificacion automatica. esTraspasoPropio rechaza nombres distintos de los genericos. Una entrada admitida no neutra y no nomina puede devolver margen mensual hasta el limite; reglas trazadas en fuentes. La ficha ingreso oculta categorias, sin workaround manual visible acreditado. Propuesta separada para decidir evidencia de titularidad sin inferirla del nombre.",
+  "tests": [],
+  "productSHA": "1ffa37f30daebf10865fd2860f5a51f913d92435",
+  "limitations": [
+    "Lectura de fuentes y diffs exclusivamente; ningun test ni build ejecutado",
+    "Sin cambios de producto ni PR nueva",
+    "Sin datos reales, servidor, banco, CI, despliegue o aceptacion movil",
+    "La propuesta de IBAN del backlog no fue implementada ni su disponibilidad real comprobada",
+    "PR341 87e59acdb2c37b8cb2e99db4c3151478f3a9034e; PR345 144506c63e0c36efcb1e2f36cd88a391770dc97d",
+    "Terminar el diagnostico no cierra el P2 ni acredita ProductREADY"
+  ],
+  "schema": 1,
+  "taskId": "own-transfer-p2-diagnosis-r169-codex-20261101",
+  "actor": "codex",
+  "sessionId": "ownp2diag-r169-x757e8d6939a3473db13926436b8c2dc5",
+  "createdAt": "2026-11-01T19:09:02.656Z",
+  "released": true
+}
