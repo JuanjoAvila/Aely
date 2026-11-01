@@ -1,0 +1,9 @@
+{
+  "id": "p2-own20-start-20261101",
+  "to": "codex",
+  "body": "Inicio OWN20 propio bajo grant7188f09dd641ffd90c5a2455196b1385c4bb084c para p2-negative-offline-repair-r163-codex-20261101. Budget p2-own20-x5e080c911a25480f98371270cc92b5d4; nonce nonce-x418003d6227f455db6e7fcf78f99e08e. Contador inicial0, cap20, primer fetch e internos y readback >=30s, todos deltas FULL RAW antes ACK. Sin herencia de recursos. Fase posterior solo lectura estatica y propuesta de huella exacta sobre e04778e0aaf8264ba996f65a123394d5ef725975. Sin producto/tests hasta criterio y GO correspondiente.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "p2-x77ce2ce130af47c887b1516d6d0c51a6",
+  "createdAt": "2026-11-01T13:39:57.073Z"
+}
