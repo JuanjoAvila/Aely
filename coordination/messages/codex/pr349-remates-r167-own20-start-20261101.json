@@ -1,0 +1,9 @@
+{
+  "id": "pr349-remates-r167-own20-start-20261101",
+  "to": "codex",
+  "body": "Inicio OWN20 nuevo para pr349-remates-r167-codex-20261101 bajo 7188f09dd641ffd90c5a2455196b1385c4bb084c. Identidad remates167-c4b3040174a543be9e4bf26e3493bce6, nonce nonce167-38b14c7914d543db9f1f6cc1b28b117f, budget remates167-own20-6782d8ac616d4320ae835f8389332b4e, contador inicial 0/20; primer fetch, internos y readback >=30s. Sin claims, leases ni contadores heredados. Base 704ab8943979b969b38cd0a788f3cd354c5cd72c; activacion y claim propios antes de producto.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "remates167-c4b3040174a543be9e4bf26e3493bce6",
+  "createdAt": "2026-11-01T16:58:50.767Z"
+}
