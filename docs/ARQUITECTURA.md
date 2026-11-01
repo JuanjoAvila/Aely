@@ -391,6 +391,22 @@ también con quién se repartió (`soloMes[ym].reparto`, validado contra `soloMe
 perder su «Te deben» ni su descuento. En la mezcla de tres vías `reparto` va en el grupo
 financiero (con `amount` y `bankAmount`); `repartoCobrado` se une mes a mes e id a id (dos móviles
 que marcan a personas distintas suman las dos; quitar una marca la quita si el otro no la tocó).
+
+Cuando un cambio afecta a varias deudas descuadradas, `descuentoPregunta` las pregunta en
+secuencia. «Dejarla como está» se refiere a esa deuda: conserva las respuestas aceptadas de
+las otras. En el guardado de `PersonaSheet`, `conDescuentoFijado` aplica esas respuestas y el
+cambio de reparto en un único `set` final, sin escrituras entre preguntas. El Node
+`deudas-lo-descuento` acciona ese guardado real con dos deudas y respuestas aplazadas, tanto
+aceptando ambas como cancelando la segunda; comprueba saldo al céntimo, plazo, entrada
+inmutable y número de escrituras. Su filtro opcional `AELY_LO_DESCUENTO_CASES=r164` ejecuta
+solo esos dos casos; sin filtro conserva también los anteriores.
+
+El e2e del mismo nombre cubre quitar un recibo compartido y borrar a una persona: la pregunta
+de ajuste aparece antes del cambio y cancelarla conserva la deuda completa, también tras
+recargar. El recibo se quita o la persona sale del reparto según la acción original. Esto no
+acredita una escritura única en todas las rutas: quitar/añadir recibo y aplicar los ajustes
+siguen siendo llamadas separadas. Deshacer el ajuste aceptado al quitar un recibo requiere
+el cambio separado anotado en el backlog; estas pruebas no lo implementan.
 El previsto a fin de mes de `totals` (`pendingByBank`, `projectedByBank`: ficha de cuenta y
 asistente) usa la misma regla que el recorrido (`fixedCargoBanco`). Un cliente viejo ignora los
 campos nuevos (los conserva con `Object.assign`) y ve tu parte y lo que cobra el banco, que son
