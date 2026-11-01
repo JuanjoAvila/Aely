@@ -1,0 +1,16 @@
+{
+  "status": "done",
+  "tests": [
+    "own-transfer-confirm 268 PASS",
+    "persist-commit PASS; siete suites complementarias PASS",
+    "Playwright 95 PASS, un worker sin reintentos ni omitidos",
+    "Base144506c mismo caso sin pareja rojo esperado por accion ausente"
+  ],
+  "summary": "Entrega para coordinador: draft PR352 a beta, HEAD 2e4cfb5a0c6465afe9318a04c497863b4774d28e remoto exacto. Contrato A: inversa solo entrada; salida opt-in con CAS y ACK por fila, parcial visible. Replay React corregido y verificado. Artefactos de fixture restaurados, sin cambios de catalogo ni versiones. Revision estatica independiente aprobada; revision final de dinero e integracion quedan al integrador. PR declara mergeable false y tres commits por base previa, sin resolver ni afirmar integrabilidad. CI, build oficial, beta servida y movil real pendientes. Sin merge ni deploy ni ProductREADY. Runner y servidor devueltos, tarea propia liberada.",
+  "schema": 1,
+  "taskId": "own-transfer-income-manual-r169-codex-20261101",
+  "actor": "codex",
+  "sessionId": "incomeown-r169-c778e5fac255426cb5d662a701aa3fec",
+  "createdAt": "2026-11-01T20:12:36.374Z",
+  "released": true
+}
