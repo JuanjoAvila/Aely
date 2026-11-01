@@ -2542,8 +2542,6 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
   const [mas,setMas]=useState(!!vigente||viejo);
   const [persona,setPersona]=useState(null);   // {pid} o {draft:true}: ficha de persona encima
   const [nuevas,setNuevas]=useState(conPersona?[conPersona]:[]);       // personas creadas en este alta, aún sin recibo
-  const pasoUi=useRef(paso);
-  const [ctaWait,setCtaWait]=useState(false);
   // Lo que se ha tocado al editar: solo eso va al recibo. Releer y volver a escribir lo demás
   // (unos pagos sin día, unos meses por defecto) lo cambiaría sin que nadie lo pidiera.
   const [tocado,setTocado]=useState(roto.length||conPersona&&viejo?{reparto:true}:{});
@@ -2738,15 +2736,6 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
   };
   const ctaLabel=paso===4?(edit?t("rp4_guardar"):t("rp4_add")):(resumido?t("rp4_listo"):t("rp4_next"));
   const ctaOn=ok[paso]&&(paso<4||listo);
-  // El `:disabled` con opacity .35 parpadeaba al cambiar de paso (ida y vuelta, beta 4.26.209).
-  useLayoutEffect(function(){
-    if(pasoUi.current===paso){ setCtaWait(!ctaOn); return; }
-    pasoUi.current=paso;
-    setCtaWait(false);
-    const id=setTimeout(function(){ setCtaWait(!ctaOn); },360);
-    return function(){ clearTimeout(id); };
-  },[paso,ctaOn]);
-  const ctaAct=ctaOn&&!ctaWait;
   const titulos=["rp4_t_name","rp4_t_amount","rp4_t_when","rp4_t_account",edit?"rp4_t_edit":"rp4_t_sum"];
   const bankLabel=function(b){ return b?entOf(b).label:"—"; };
   const freqTxt=function(fr){ const x=RP4_FREQS.find(function(q){ return q[0]===fr; }); return x?gbTxt(x[1]):""; };
@@ -3038,8 +3027,8 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
           [0,1,2,3].map(function(i){ return React.createElement("i",{key:i,className:paso>=i?"on":""}); }))),
       React.createElement("div",{className:"pr6-track rp4-track",style:{transform:"translateX("+(-paso*100)+"%)"}}, p0,p1,p2,p3,p4),
       React.createElement("div",{className:"rp4-foot"},
-        React.createElement("button",{type:"button",className:"pr6-cta rp4-cta"+(ctaAct?"":" is-wait"),"data-act":paso===4?"confirm":"next","data-rp4-cta":"1",
-          "aria-disabled":ctaAct?"false":"true",tabIndex:ctaAct?0:-1,onClick:function(e){ if(!ctaAct) return; siguiente(e); }}, ctaLabel)))),
+        React.createElement("button",{type:"button",className:"pr6-cta rp4-cta"+(ctaOn?"":" is-wait"),"data-act":paso===4?"confirm":"next","data-rp4-cta":"1",
+          "aria-disabled":ctaOn?"false":"true",tabIndex:ctaOn?0:-1,onClick:function(e){ if(!ctaOn) return; siguiente(e); }}, ctaLabel)))),
     persona&&React.createElement(PersonaSheet,{key:persona.pid||"nueva",pid:persona.pid,draft:!!persona.draft,mensual:mensual,sinBorrar:true,state:state,set:set,totals:totals,
       onClose:function(){ setPersona(null); },
       onCreate:function(q){

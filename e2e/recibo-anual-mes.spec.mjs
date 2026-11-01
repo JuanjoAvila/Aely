@@ -1,5 +1,4 @@
-/* Recibo anual en ReciboPasos: hay que poder elegir mes(es) y día; el botón Siguiente no parpadea al
- * cambiar de paso ni al volver atrás. Sin el arreglo del mes, el alta anual no llega a guardarse. */
+/* Recibo anual y CTA de ReciboPasos: regresiones que sí existían en e04778e0a (bundle base). */
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews, installFixtureClock } from "./fixtures.mjs";
 
@@ -13,7 +12,7 @@ const fixedBase = [{ id: "luz", name: "Luz", amount: 50, freq: "mes", account: "
 
 const hoja = (page) => page.locator('.v4-sheet[data-sheet="recibo-pasos"]');
 const paso = (page, n) => hoja(page).locator('[data-rp4-paso="' + n + '"]');
-const cta = (page) => hoja(page).locator('[data-rp4-cta="1"]');
+const cta = (page) => hoja(page).locator(".rp4-foot button.rp4-cta");
 
 async function abreTusRecibos(page, overrides) {
   await seedLoggedInDashboard(page, Object.assign({ accounts, fixed: fixedBase, debts: [], flows: [], oneoffs: [], budget: 1000, settings }, overrides || {}));
@@ -42,19 +41,30 @@ async function hastaCuando(page, name, amountDigits) {
   await expect(hoja(page)).toHaveAttribute("data-paso", "2");
 }
 
-async function expectCtaEstable(page, accion) {
+/** En la base el CTA llevaba `disabled` nativo (opacity .35). Aquí vigila disabled, is-wait y fondo. */
+async function expectCtaSinDisabledNativo(page, accion) {
   await page.evaluate(() => {
-    window.__rp4Cta = { unmounts: 0, ops: [] };
-    const btn = document.querySelector('[data-sheet="recibo-pasos"] [data-rp4-cta="1"]');
+    window.__rp4Cta = { disabled: [], wait: [], bg: [], unmounts: 0 };
+    const sel = '[data-sheet="recibo-pasos"] .rp4-foot button.rp4-cta';
+    const btn = document.querySelector(sel);
     if (!btn) return;
-    window.__rp4Cta.ops.push(+getComputedStyle(btn).opacity);
+    const snap = () => {
+      const b = document.querySelector(sel);
+      if (!b) return;
+      window.__rp4Cta.disabled.push(!!b.disabled);
+      window.__rp4Cta.wait.push(b.classList.contains("is-wait"));
+      window.__rp4Cta.bg.push(getComputedStyle(b).backgroundColor);
+    };
+    snap();
     new MutationObserver((ms) => {
-      for (const m of ms) for (const n of m.removedNodes) if (n === btn || (n.contains && n.contains(btn))) window.__rp4Cta.unmounts++;
-    }).observe(btn.parentElement, { childList: true });
+      for (const m of ms) {
+        for (const n of m.removedNodes) if (n === btn || (n.contains && n.contains(btn))) window.__rp4Cta.unmounts++;
+        if (m.type === "attributes" && (m.attributeName === "disabled" || m.attributeName === "class")) snap();
+      }
+    }).observe(btn, { attributes: true, attributeFilter: ["disabled", "class"] });
     const t0 = performance.now();
     (function f() {
-      const b = document.querySelector('[data-sheet="recibo-pasos"] [data-rp4-cta="1"]');
-      if (b) window.__rp4Cta.ops.push(+getComputedStyle(b).opacity);
+      snap();
       if (performance.now() - t0 < 450) requestAnimationFrame(f);
     })();
   });
@@ -62,23 +72,36 @@ async function expectCtaEstable(page, accion) {
   await page.waitForTimeout(460);
   const rec = await page.evaluate(() => window.__rp4Cta);
   expect(rec.unmounts, "el botón Siguiente no debe desmontarse").toBe(0);
-  expect(rec.ops.length).toBeGreaterThan(3);
-  expect(Math.max(...rec.ops) - Math.min(...rec.ops)).toBeLessThan(0.08);
+  expect(rec.disabled.some(Boolean), "sin atributo disabled nativo (parpadeo en la base)").toBe(false);
 }
 
-test("alta anual: cuadrícula de meses, vista previa y guardado", async ({ page }) => {
+async function mesesVisiblesEnHoja(page) {
+  return page.evaluate(() => {
+    const sheet = document.querySelector('[data-sheet="recibo-pasos"]');
+    const mp = sheet && sheet.querySelector(".month-picker");
+    if (!sheet || !mp) return { ok: false, reason: "sin cuadrícula" };
+    const sr = sheet.getBoundingClientRect();
+    const mr = mp.getBoundingClientRect();
+    const visible = mr.top < sr.bottom - 8 && mr.bottom > sr.top + 8;
+    return { ok: visible, top: mr.top, sheetBottom: sr.bottom };
+  });
+}
+
+test("alta anual: meses visibles, día solo tras mes, scroll y guardado", async ({ page }) => {
   await abreAlta(page);
   await hastaCuando(page, "Seguro anual", ["6", "0", "0"]);
   await paso(page, 2).locator('[data-rp4-freq="año"]').click();
   await expect(paso(page, 2).locator(".month-picker .mchip")).toHaveCount(12);
-  await expect(cta(page)).toHaveAttribute("aria-disabled", "true");
+  const diasFold = paso(page, 2).locator(".pr6-fold").filter({ has: page.locator("[data-rp4-dia]") });
+  await expect(diasFold, "sin mes elegido el día no se despliega (en la base sí)").not.toHaveClass(/ open/);
+  let vis = await mesesVisiblesEnHoja(page);
+  expect(vis.ok, "la cuadrícula de meses debe quedar a la vista tras «Una vez al año»").toBe(true);
   await paso(page, 2).locator(".month-picker button", { hasText: /^Oct$/i }).click();
   await expect(paso(page, 2).locator('[data-rp4-dia="10"]')).toBeVisible();
   const aviso = paso(page, 2).locator(".hint");
   await expect(aviso).toContainText("50,00 € al mes repartidos");
   await expect(aviso).toContainText("600,00 € al año");
   await paso(page, 2).locator('[data-rp4-dia="10"]').click();
-  await expect(cta(page)).toHaveAttribute("aria-disabled", "false");
   await cta(page).click();
   await paso(page, 3).locator('[data-rp4-banco="sabadell"]').click();
   await expect(hoja(page)).toHaveAttribute("data-paso", "4");
@@ -110,26 +133,28 @@ test("editar anual: el mes guardado sale preseleccionado", async ({ page }) => {
   await paso(page, 4).locator('[data-rp4-fila="2"]').click();
   await expect(hoja(page)).toHaveAttribute("data-paso", "2");
   await expect(paso(page, 2).locator(".month-picker .mchip.on")).toHaveText(/^Sep$/i);
+  const vis = await mesesVisiblesEnHoja(page);
+  expect(vis.ok, "al editar anual la cuadrícula de meses debe verse sin buscar a mano").toBe(true);
   await expect(paso(page, 2).locator('[data-rp4-dia="20"]')).toHaveClass(/ on/);
 });
 
-test("Siguiente estable al avanzar y al volver atrás", async ({ page }) => {
+test("Siguiente sin disabled nativo al avanzar y al volver", async ({ page }) => {
   await abreAlta(page);
   await paso(page, 0).locator('[data-rp4="name"]').fill("Prueba CTA");
-  await expectCtaEstable(page, async () => {
+  await expectCtaSinDisabledNativo(page, async () => {
     await cta(page).click();
     await expect(hoja(page)).toHaveAttribute("data-paso", "1");
   });
   await paso(page, 1).locator(".v4-keys").getByRole("button", { name: "5", exact: true }).click();
-  await expectCtaEstable(page, async () => {
+  await expectCtaSinDisabledNativo(page, async () => {
     await cta(page).click();
     await expect(hoja(page)).toHaveAttribute("data-paso", "2");
   });
-  await expectCtaEstable(page, async () => {
+  await expectCtaSinDisabledNativo(page, async () => {
     await hoja(page).locator('[data-act="back"]').click();
     await expect(hoja(page)).toHaveAttribute("data-paso", "1");
   });
-  await expectCtaEstable(page, async () => {
+  await expectCtaSinDisabledNativo(page, async () => {
     await hoja(page).locator('[data-act="back"]').click();
     await expect(hoja(page)).toHaveAttribute("data-paso", "0");
   });
