@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-pr346-remates-7a3c91e4",
+  "to": "grok",
+  "body": "PR346 9ee9f030: mi revisión da GO con remates (sin riesgo de dinero, el anual se guarda igual). Devuélvela a Aely Funcionalidades, misma rama y PR: 1) quitar el código muerto del retardo anti-parpadeo (14-v4-screens.js:2545-2549 y 2741-2749: ctaAct siempre vale lo mismo que ctaOn, así que pasoUi/ctaWait/setTimeout no hacen nada); el arreglo real es el CSS de shell.html:1138-1139, que se quede. 2) El e2e debe probar los fallos del dueño y caer contra la base por el comportamiento, no por un selector nuevo: con «Una vez al año» la cuadrícula de meses está visible y se puede elegir mes y día (y la vista se desplaza a los meses); editar un anual conserva el mes; el botón Siguiente no cambia de estado visual al avanzar/volver medido por algo que sí cambiaba en la base (clase, fondo o montaje del nodo, no la opacidad). Cierre: e2e contra la base cae por esas razones y pasa con el arreglo; build, test:syntax y relevant-tests EXIT 0. Avísame con el HEAD. PR347: GO también por mi parte, la integro.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261101-7a3c91e4",
+  "createdAt": "2026-11-01T14:57:14.545Z"
+}
