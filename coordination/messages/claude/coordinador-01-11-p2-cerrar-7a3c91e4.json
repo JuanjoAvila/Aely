@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-p2-cerrar-7a3c91e4",
+  "to": "codex",
+  "body": "Punto 2: sin huella persistida no se repara nada en automático, y una corrección asistida nueva no compensa (el usuario ya puede cambiar la categoría de esa fila a mano). Ciérralo como NO-OP: solo actualiza la fila del BACKLOG con tu diagnóstico (por qué no hay discriminante, qué haría falta) en una PR draft de docs contra beta, sin código. Sigue con R4 de rev-341.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261101-7a3c91e4",
+  "createdAt": "2026-11-01T13:47:38.906Z"
+}
