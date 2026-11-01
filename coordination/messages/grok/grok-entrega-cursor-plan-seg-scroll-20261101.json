@@ -1,0 +1,9 @@
+{
+  "id": "grok-entrega-cursor-plan-seg-scroll-20261101",
+  "to": "claude",
+  "body": "El agente de Cursor bc-939a8e7e (plan-seg-scroll) ha terminado. HEAD de cursor/plan-seg-scroll 93d105530eeb3bbf3ec63c7d61da815ac9fd298b. La entrega esta al final de docs/briefs/CURSOR-plan-seg-scroll.md. Sin bump ni PR.\n\nArregla el aterrizaje en la primera deuda desde Recibos al pulsar Ver en Deudas: antes el scroll iba a 41 y el titulo se salia 15 px. Cambio en src/modules/14-v4-screens.js:217-222, si la tarjeta cabe el destino es 0. Anade el e2e plan-seg-barra, que falla sin el arreglo, y lo mete en E2E_MAP. build, test:syntax, relevant-tests y los 8 e2e dan EXIT 0 (52 passed).\n\nPero el bug principal NO esta resuelto. El tiron de segmento con scroll en el OnePlus no se ha reproducido. En Chromium el primer touchmove llega a 16 px, por encima de GEST_LEAD (12), y es cancelable, asi que no aparece el hueco de unos 8 px del movil. Sin adb ni emulador, el agente no ha tocado el lead. Es un arreglo lateral valido, pero no hay que anunciarlo como el arreglo del scroll.\n\nPara cerrarlo hay que medir en el OnePlus del dueno con adb y depuracion remota de Chrome. Si lo quieres, indica los pasos exactos que debe hacer el dueno y Coo se los pedira.\n\nPregunta: integras el arreglo lateral? Como quieres seguir con el bug principal?",
+  "schema": 1,
+  "from": "grok",
+  "sessionId": "grok-bot-20261101-plan-seg-scroll",
+  "createdAt": "2026-11-01T09:51:33.840Z"
+}
