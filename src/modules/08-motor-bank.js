@@ -555,6 +555,15 @@ function rekeyFixedPaymentExpense(s,old,next){
   // prueba debe seguir al cargo vivo sin confundir esa lápida con borrar el pago.
   return changed?Object.assign({},s,{fixed:fixed}):s;
 }
+// La edición comparte la validación de la marca con el estado: ver un BOOK nuevo no prueba
+// que paidYm fuese válido antes de guardar, y una prueba movida de mes tampoco lo acredita.
+function fixedPaymentPersistedDay(s,e,y,m,today){
+  var ym=y+"-"+String(m).padStart(2,"0"),paidDay=e.paidYm===y*12+m&&Number(e.paidDay);
+  var persisted=paidDay>=1&&paidDay<=today&&paidDay<=new Date(y,m,0).getDate();
+  var posted=e.paymentProofs&&e.paymentProofs[y*12+m];
+  if(posted&&posted.kind==="book"&&paidDay===recDay(posted.date)&&fixedPaymentBookDate(s,posted).slice(0,7)!==ym) persisted=false;
+  return persisted?paidDay:null;
+}
 function fixedPaymentState(s,e,y,m,today){
   var day=dayIn(e,m,y),ym=y+"-"+String(m).padStart(2,"0");
   var target=typeof e.bankAmount==="number"&&e.bankAmount>0?e.bankAmount:occAmountIn(e,m,y);
@@ -564,10 +573,7 @@ function fixedPaymentState(s,e,y,m,today){
     if(!/^\d{4}-\d{2}-\d{2}$/.test(ds)||ds.slice(0,7)!==ym||d==null||d>today||d>new Date(y,m,0).getDate()) return false;
     return Number(tx.amount)>0&&recNameMatch(e.name,tx.merchant)&&recAmtClose(target,Number(tx.amount))&&!reciboVetado(s,e.id,fixedPaymentIdentity(tx.ent,tx));
   });
-  var paidDay=e.paidYm===y*12+m&&Number(e.paidDay);
-  var persisted=paidDay>=1&&paidDay<=today&&paidDay<=new Date(y,m,0).getDate();
-  var posted=e.paymentProofs&&e.paymentProofs[y*12+m];
-  if(posted&&posted.kind==="book"&&paidDay===recDay(posted.date)&&fixedPaymentBookDate(s,posted).slice(0,7)!==ym) persisted=false;
+  var paidDay=fixedPaymentPersistedDay(s,e,y,m,today),persisted=paidDay!=null;
   var tx=matches.length===1?matches[0]:null;
   if(tx){
     if((s.fixed||[]).some(function(f){
@@ -4523,12 +4529,17 @@ function planSyncDerived(s,prev){
 }
 function patchFixedById(set, id, p){
   set(function(s){
-    let it=null,previous=null;
+    const d=new Date(),y=d.getFullYear(),m=d.getMonth()+1,today=d.getDate();
+    let it=null,previous=null,pagadoPersistido=false;
     const fx=(s.fixed||[]).map(function(e){
       if(e.id!==id) return e;
+      pagadoPersistido=!!fixedPaymentProof(s,e,y,m,today)||fixedPaymentPersistedDay(s,e,y,m,today)!=null;
       previous=Object.assign({},e);if(previous.freq==="mes"){delete previous.months;delete previous.schedule;}
       const n=Object.assign({},e,p);
       if(("day" in p)&&!p.day) delete n.day;
+      // Un céntimo y un día son valores, no la representación que mande el formulario.
+      if(pagadoPersistido&&Number(e.amount)>0&&Number(n.amount)>0&&isFinite(n.amount)&&Math.round(e.amount*100)===Math.round(n.amount*100)) n.amount=e.amount;
+      if(pagadoPersistido&&cleanDay(e.day)&&cleanDay(e.day)===cleanDay(n.day)) n.day=e.day;
       if(n.freq==="mes"){ delete n.months; delete n.schedule; }
       // Convertir sólo la prueba válida ANTES del renombrado, en esta misma escritura.
       // Ni el arranque ni el sync rescatan vínculos ya rotos; tampoco cambia el cargo.
@@ -4548,9 +4559,12 @@ function patchFixedById(set, id, p){
     });
     const n=Object.assign({},s,{fixed:fx});
     const contractChanged=["amount","bankAmount","account","freq","months","schedule"].some(function(k){return previous&&it&&!goalSyncEqual(previous[k],it[k]);});
-    if(it&&(("day" in p)||contractChanged)){
+    const cambio=previous&&it&&(cleanDay(previous.day)!==cleanDay(it.day)||cleanDay(dayIn(previous,m,y))!==cleanDay(dayIn(it,m,y))||Math.round(occAmountIn(previous,m,y)*100)!==Math.round(occAmountIn(it,m,y)*100));
+    // El BOOK recién llegado conserva su confirmación previa; solo una prueba ya persistida
+    // permite guardar lo mismo sin convertirla en una marca manual de saldo.
+    if(it&&(("day" in p)||contractChanged)&&(!pagadoPersistido||contractChanged||cambio)){
       if(contractChanged){ delete it.paidYm; delete it.paidDay; }
-      fixedMarcaTrasCambio(n,it,id,new Date());
+      fixedMarcaTrasCambio(n,it,id,d);
     }
     return n;
   });
@@ -4589,6 +4603,7 @@ function fixedEditarRecibo(s, id, patch, scope, y, m, today){
   const old=(s.fixed||[]).find(function(e){ return e.id===id; });
   if(!old) return s;
   const cur=y*12+m, antes=fixedPaymentState(s,old,y,m,today);
+  const pagadoPersistido=!!antes.proof||fixedPaymentPersistedDay(s,old,y,m,today)!=null;
   const mes=scope==="mes"&&!antes.paid&&occursIn(old,m);
   const p=Object.assign({},patch);
   const solo={};
@@ -4606,6 +4621,9 @@ function fixedEditarRecibo(s, id, patch, scope, y, m, today){
   // `null` en el parche = quitar el campo (meses a mano, pagos, categoría, «cambia cada mes»).
   Object.keys(p).forEach(function(k){ if(p[k]==null) delete n[k]; });
   if("day" in p){ if(cleanDay(p.day)) n.day=cleanDay(p.day); else delete n.day; }
+  // Conservar el valor anterior evita invalidar su prueba por una representación equivalente.
+  if(pagadoPersistido&&Number(old.amount)>0&&Number(n.amount)>0&&isFinite(n.amount)&&Math.round(old.amount*100)===Math.round(n.amount*100)) n.amount=old.amount;
+  if(pagadoPersistido&&cleanDay(old.day)&&cleanDay(old.day)===cleanDay(n.day)) n.day=old.day;
   if(n.freq==="mes"){ delete n.months; delete n.schedule; }
   if(mes){
     // Lo que coincide con el recibo no se guarda: «solo este mes» con la cifra de siempre es nada.
@@ -4667,9 +4685,10 @@ function fixedEditarRecibo(s, id, patch, scope, y, m, today){
     const vale=[K,K-1].some(function(ym){ if(!(ym<=cur)) return false; const f=fin(ym); return fixedPaymentProof(out,n,f.Y,f.M,f.T)===nuevas[k]; });
     if(!vale) n.paymentProofs[k]=proofs[k];
   });
-  // La marca del mes se recalcula como en cualquier edición (una prueba BOOK o un cargo enlazado
-  // protegen su día); y un mes que estaba pagado no deja de estarlo por editar.
-  if(contrato||"day" in patch) fixedMarcaTrasCambio(out,n,id,new Date());
+  // Solo un guardado equivalente evita recalcular: el mes congelado puede ocultar un cambio
+  // del día global, y retirar «solo este mes» puede cambiar el cargo sin tocar el recibo base.
+  const cambio=cleanDay(old.day)!==cleanDay(n.day)||cleanDay(dayIn(old,m,y))!==cleanDay(dayIn(n,m,y))||Math.round(occAmountIn(old,m,y)*100)!==Math.round(occAmountIn(n,m,y)*100);
+  if((contrato||"day" in patch)&&(!pagadoPersistido||contrato||cambio)) fixedMarcaTrasCambio(out,n,id,new Date());
   if(antes.paid&&old.paidYm!=null&&!fixedPaymentState(out,n,y,m,today).paid){ n.paidYm=old.paidYm; n.paidDay=old.paidDay; delete n.wait; }
   // Sin `conSaldoMostrado`, como `patchFixedById`: mover el día de un recibo que el calendario daba
   // por cobrado y el banco no trae devuelve ese importe al saldo, que es lo cierto (lo fija

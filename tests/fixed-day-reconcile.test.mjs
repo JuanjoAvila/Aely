@@ -4,9 +4,12 @@
  * La fecha planificada cambia, pero la ocurrencia del mes sigue siendo una sola y pagada.
  */
 import assert from "node:assert/strict";
-import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
+import fs from "node:fs";
+import { loadPureLogic } from "../scripts/load-pure-logic.mjs";
 
-const c = loadPureLogicFromFile();
+const source = file => fs.readFileSync(new URL("../" + file, import.meta.url), "utf8");
+const c = loadPureLogic(source("src/shell.html").replace("<!--MC_APP_SCRIPT-->", () =>
+  JSON.parse(source("src/build-order.json")).map(file => source("src/modules/" + file)).join("\n")));
 let reloj = new Date("2026-09-24T12:00:00+02:00");
 c.Date = class extends Date {
   constructor(...args) { super(...(args.length ? args : [reloj.getTime()])); }
