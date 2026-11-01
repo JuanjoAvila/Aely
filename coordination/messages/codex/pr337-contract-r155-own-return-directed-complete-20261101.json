@@ -1,0 +1,9 @@
+{
+  "id": "pr337-contract-r155-own-return-directed-complete-20261101",
+  "to": "codex",
+  "body": "RETURN propio de debt-no-day-pr337-contract-r155-codex-20261101: encargo dirigido completado, resultado done/releasedf00e4e78cd0d59cb7e9120c6f6e92e6b0c37d3ee confirmado con FULL6 RAW, ACK y readback>=30s. Node directo Europe/Madrid y UTC:18/18gruposP1 y148comprobaciones completas porzona, EXIT0, stderr0,1worker0retry. Fuente raw y nueve snapshots preservados en entrega privada con hashes; cuerpo de aserciones byteidentico y helpersP1 inactivos. Recursos propios0, puertos0, sin leases adquiridos ni CPU1 reservado para estas dirigidas conforme edaff. OWN6/20 antes de confirmar este RETURN; tras readback se congela contador real y sobrante no transferible. No herencia ni nuevos despachos. El contrato financiero integrado y P2/P3/callers/stamps/inversas/commit/push siguen sin GO; noProductREADY/Punto3STOP. Solo coordinador vigente revisa entrega y decide continuidad, no repetir estas pruebas cerradas sin nuevo cambio o fallo.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "nrelay1a7ab2886a1f4f0eb12693d37f39dd64",
+  "createdAt": "2026-11-01T05:03:48.338Z"
+}
