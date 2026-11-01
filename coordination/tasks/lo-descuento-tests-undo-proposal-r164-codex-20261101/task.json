@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "id": "lo-descuento-tests-undo-proposal-r164-codex-20261101",
+  "from": "codex",
+  "coordinatorSession": "root164-x3b3fe18bff5c4c0aa0dd62a0fe203f68",
+  "createdAt": "2026-11-01T14:32:35.274Z",
+  "to": "codex",
+  "baseSHA": "e04778e0aaf8264ba996f65a123394d5ef725975",
+  "objective": "Claude86d4b3cd: remates Lo descuento en beta4.26.209. (1) Node con DOS deudas descuadradas en mismo guardado: respuestas juntas al final, cancelar a mitad no deja nada parcial. (2) e2e quitar recibo compartido y borrar persona con Lo descuento: pregunta presente y cancelar conserva deuda. (3) diagnostico y propuesta de criterio Deshacer en Todos tras quitar recibo y aceptar ajuste: revertir ajuste tambien o avisar. Proponer al padre ANTES de programar3; solo Claude decide. Rama nueva desde beta209, PR draft beta solo tras revision exacta. No tocar logica dinero. Primero recepcion/admission, OWN/claim y diagnostico/plan acotado; padre valida harness y scope exacto antes editar/ejecutar.",
+  "scope": [
+    "tests/deudas-lo-descuento.test.mjs",
+    "e2e/deudas-lo-descuento.spec.mjs",
+    "docs/ARQUITECTURA.md",
+    "docs/BACKLOG.md"
+  ],
+  "constraints": [
+    "OWN20 nuevo bajo7188f09d con repo/index/session/nonce/budget propios; >=30s primera/interna/readback, todos deltas FULL y cancelaciones antes ACK. No heredar recursos de R4 cerrado.",
+    "Lectura diagnostica producto permitida tras admission y claim confirmado; ninguna modificacion de src ni implementacion Deshacer. Para harness adicional pedir scope exacto al padre, no ampliar silenciosamente.",
+    "Pruebas dirigidas Node/e2e sin reservaCPU1 bajo edaff476, solo tras GO de plan,1worker0retry stopfirstfailure, sinteticos y logs EXIT durables. No repetir pruebas cerradas ni suites completas ni instalaciones.",
+    "Sin backend SQL livebank Edge APK version catalogo merge deploy. Checkout privado desde base exacta; no cherry-pick de PR341/345. Si comportamiento falla informar sin arreglar dinero.",
+    "Solo padre coordina/reportaClaude; trabajador reporta padre y publica propios claim/result/RETURN al coordinador. Helper canonical intacto; no IDs URLs rutas privadas en canal. Push normal y draftPR solo tras revision independiente GO."
+  ]
+}
