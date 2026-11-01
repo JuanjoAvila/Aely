@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "id": "tae-discount-guard-r167-codex-20261101",
+  "from": "codex",
+  "coordinatorSession": "root167-x03ac31819edd4104be0d8485faaae0bb",
+  "createdAt": "2026-11-01T17:18:59.902Z",
+  "to": "codex",
+  "baseSHA": "1ffa37f30daebf10865fd2860f5a51f913d92435",
+  "objective": "Claude b30c601e0c26eef0c53787bc72d84f30394c5e79 aprueba impedir pasar a TAE positiva mientras una deuda conserve relaciones Lo descuento, incluidas pausadas y futuras. Al intentar guardar, una linea pide quitar primero el descuento del recibo compartido; no guardar NADA. No cambiar otro modelo de dinero ni reparar registros existentes. Casos obligatorios: relacion activa y pausada bloquean; sin relaciones acepta TAE; quitar descuento y luego poner TAE funciona. Comprobar tambien relacion futura y preservacion completa ante rechazo. Texto es/en/ca. Base exacta1ffa37f30, nueva PR draft contra beta tras revision independiente GO. Reusar editor y frontera de guardado real, datos sinteticos, evidencia causal y pruebas dirigidas; sin merge, deploy, VERSION, backend ni ampliacion TAE financiera.",
+  "scope": [
+    "src/modules/09-tab-debts-goals.js",
+    "src/modules/01-i18n.js",
+    "tests/deudas-tae-descuento.test.mjs",
+    "e2e/deudas-tae-descuento.spec.mjs",
+    "tests/deudas-metas-edicion.test.mjs",
+    "tests/deudas-lo-descuento.test.mjs",
+    "scripts/run-tests.mjs",
+    "scripts/relevant-tests.mjs",
+    "docs/ARQUITECTURA.md",
+    "docs/BACKLOG.md"
+  ]
+}
