@@ -43,3 +43,59 @@ ha reproducido.**
    tabla de comandos con EXIT real, nota para la familia en es/en/ca y línea de CHANGELOG. Claude integra en beta.
 
 Si no lo reproduces ni en Android, escribe lo medido y lo descartado CON CIFRAS en «## Entrega» y para.
+
+## Entrega
+
+Rama `cursor/plan-seg-scroll`. Sin bump de versión. Sin push a `beta` ni a `main`.
+
+### Causa medida
+
+No hay `adb` ni emulador Android en este entorno. Medido en Chromium con viewport Pixel 5 (el mismo banco que ya había descartado el tirón a ojo). Toques por CDP, un gesto por distancia, listener en captura y en burbuja:
+
+| dy desde el `touchstart` | `touchmove` que llegan al documento |
+|---|---|
+| 8, 10, 12, 14 y 15 px | 0 |
+| 16 px | 1, `cancelable=true`, y en burbuja `defaultPrevented=true` |
+
+El slop de este Chromium está entre 15 y 16 px. El primer evento que la página ve ya supera `GEST_LEAD` (12) y `useTironSeccion` llama a `preventDefault` en ese mismo evento. En un tirón continuo (10, 11, 20, 40, 80, 140 px) la barra se quedó en `top=70` px, el `scrollTop` de la página en 0 y el de `html`/`body` en 0; la capa del segmento sí bajaba (`translateY` 10 px a los 20 px de dedo, 42 px a los 140). No apareció ningún `touchmove` con `cancelable=false`.
+
+Por eso no se toca el lead del tirón. En el móvil el primer `touchmove` llega a ~8 px (comentario de la ronda 9 en `mcBindEdgeHaptics`) y ahí `gestureAxis(0, 8)` sigue devolviendo null; ese hueco no se puede abrir aquí. Bajar el lead sin ver el estirón repetiría el `touch-action` del 5/8, que bloqueó bajar.
+
+Hipótesis 2 (el flick siguiente cambia de sección): los toques CDP no generan inercia. No medido, no cambiado. Tirar abajo del todo hacia arriba sigue sin cambiar de sección (e2e ya existente, en verde).
+
+Hipótesis 3, la que sí sale en este banco. Misma ruta que `deudas-ir-suave` (Recibos → cuota → Ver en Deudas), deuda **primera** (`d0`), Pixel 5, `safe-top` 0:
+
+| | scrollTop | título `top` | botones `top` | tarjeta |
+|---|---|---|---|---|
+| antes | 41 | −15 px | +29 px | 262–462 |
+| después | 0 | entero (≥ 20 px) | debajo del título | entera, por encima de la barra inferior |
+
+Los botones no quedaban cortados 7 px: quedaban 29 px dentro. Lo que se salía era el título, 15 px. Centrar la tarjeta pedía esos 41 px aunque ya cabía con la cabecera quieta. En un móvil con barra de estado, esos 41 px se comen el padding de arriba y el recorte cae sobre la cabecera.
+
+### Qué cambió
+
+- `src/modules/14-v4-screens.js:217-222` — si el destino de centrar es > 0 pero la tarjeta entra entera entre el borde de arriba y la barra inferior con `scrollTop` 0, el destino pasa a 0. Una deuda que no cabe (la última del e2e, `d6`) sigue centrada y deslizando.
+- `e2e/plan-seg-barra.spec.mjs` — cae sin el arreglo (`scroll 41 título -15 barra 29`). Registrado en `E2E_MAP` (`scripts/relevant-tests.mjs`, entrada de `14-v4-screens.js`).
+- Bundle regenerado con `npm run build` (`public/index.html` y los hashes de `public/release-notes.json` y `public/beta-delivery.json`).
+
+`prefers-reduced-motion` no cambia: el destino es el mismo y el `behavior` sigue en `auto` cuando el movimiento está reducido. Nada por frame.
+
+### Comandos (EXIT real)
+
+| Comando | EXIT |
+|---|---|
+| `npx playwright test e2e/plan-seg-barra.spec.mjs --workers=1 --retries=0` contra el bundle anterior | 1 (scroll 41, título −15, barra 29) |
+| `npm run build` | 0 |
+| `npm run test:syntax` | 0 |
+| `node tests/relevant-tests.test.mjs` | 0 |
+| `npx playwright test e2e/plan-swipe-segmento.spec.mjs e2e/plan-scroll-lento.spec.mjs e2e/deudas-ir-suave.spec.mjs e2e/swipe-pestanas.spec.mjs e2e/rebote-barra-inferior.spec.mjs e2e/botnav-esconder.spec.mjs e2e/botnav-indicador.spec.mjs e2e/plan-seg-barra.spec.mjs --workers=1 --retries=0` | 0 (52 passed) |
+
+### Nota para la familia
+
+- es: Al abrir la primera deuda desde Recibos, el título y los botones de Recibos, Deudas y Metas se quedan enteros.
+- en: Opening the first debt from Bills keeps the title and the Bills, Debts and Goals buttons fully on screen.
+- ca: En obrir el primer deute des de Rebuts, el títol i els botons de Rebuts, Deutes i Metes es queden sencers.
+
+### Línea de CHANGELOG
+
+Plan › ir a la primera deuda ya no sube el scroll si la tarjeta cabe con la cabecera a la vista. Antes el centrado dejaba el título 15 px fuera (Pixel 5, safe-top 0, scrollTop 41; los botones seguían a +29). El tirón de segmento no se modifica: en este Chromium el primer touchmove llega a 16 px, por encima de GEST_LEAD, cancelable y con preventDefault; el hueco de 8 px del móvil no se reproduce aquí.

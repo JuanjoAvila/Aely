@@ -28147,7 +28147,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="4f742b4bd56be40366784cf79355fd644105a7317c90c29869e19133612c2c9b";
+var _rnSha="7940ae8ba0b062446fa4989ad1a273a73a9a4d36e0d32dd5e25de22e44d9d68f";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -29878,7 +29878,12 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       const alto=card.offsetHeight, hueco=abajo-arriba;
       const quiero=hueco>alto?arriba+(hueco-alto)/2:arriba;
       const max=Math.max(0,pg.scrollHeight-pg.clientHeight);
-      const dest=Math.max(0,Math.min(max,Math.round(y+pr.top-quiero)));
+      let dest=Math.max(0,Math.min(max,Math.round(y+pr.top-quiero)));
+      // La primera tarjeta ya entra entera con el título y los botones quietos.
+      // Centrarla subía el scroll 41 px y el título se iba 15 px por arriba
+      // (Pixel 5, 1/11/2026; los botones seguían a +29). Con la barra de estado
+      // ese hueco se come la cabecera. Si cabe sin bajar, no se mueve.
+      if(dest>0 && pr.top+y>=0 && pr.top+y+alto<=abajo) dest=0;
       // Si la página aún entra por el carrusel (venías de Gastos), se coloca sin deslizar: llega ya
       // en su sitio y el movimiento es solo el del carrusel, no dos a la vez.
       const enSitio=Math.abs(pr.left)<2;
