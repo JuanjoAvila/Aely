@@ -1,0 +1,81 @@
+{
+  "status": "done",
+  "summary": "Candidata de coherencia de cuotas sin dia terminada y revisada, entregada en PR337 DRAFT contra beta. Inicio/totals conservan el pendiente de Plan y muestran dia desconocido; se preservan calendario sin estado,dias configurados,atribucion de pagos/meses y compensacion de Plan. Integracion Claude y entrega en beta pendientes.",
+  "tests": [
+    {
+      "suite": "payment A/base",
+      "classification": "expected causal RED",
+      "originalCasesPassed": 40,
+      "additionalControlsPassed": 2,
+      "exitCode": 1
+    },
+    {
+      "suite": "payment B/candidate",
+      "passed": 60,
+      "exitCode": 0
+    },
+    {
+      "suite": "totals A/base",
+      "classification": "expected causal RED",
+      "originalCasesPassed": 33,
+      "additionalControlsPassed": 1,
+      "exitCode": 1
+    },
+    {
+      "suite": "totals B/candidate",
+      "passed": 51,
+      "exitCode": 0
+    },
+    {
+      "suite": "DOM A/base",
+      "classification": "expected causal RED",
+      "expectedInicioRows": 1,
+      "actualInicioRows": 0,
+      "exitCode": 1,
+      "notRunAfterMaxFailure": 22
+    },
+    {
+      "suite": "first DOM B qualification",
+      "classification": "qualification failure cloud quiet after reload;not causal financial evidence",
+      "failed": 1,
+      "notRun": 22,
+      "exitCode": 1,
+      "preserved": true,
+      "uniqueRootCauseNotProven": true
+    },
+    {
+      "suite": "DOM B approved mock persistence",
+      "passed": 23,
+      "failed": 0,
+      "skipped": 0,
+      "flaky": 0,
+      "retries": 0,
+      "exitCode": 0,
+      "sameSourceBAll23Attachments": true,
+      "reloadStateRowsAndPageErrorsAssertionsPassed": true,
+      "independentReviewAccepted": true
+    },
+    {
+      "suite": "exact committed diff check",
+      "exitCode": 0
+    }
+  ],
+  "baseSHA": "656f17a69acdb59a4bfd14ea51a50196157b5807",
+  "productSHA": "89e33b206a95ef8c490d8147af80dfd1b76955e1",
+  "tree": "f692f6b43e5ced4b7d6390e946f18a686e60c1cb",
+  "pullRequest": 337,
+  "draft": true,
+  "changedFiles": 8,
+  "limitations": [
+    "Validacion sintetica sobre la base congelada y candidata;no prueba beta remota posterior.",
+    "Primera DOM B fallida conservada sin reinterpretar ni atribuir causa unica demostrada.",
+    "Integracion y su validacion corresponden a Claude;publicacion beta y aceptacion movil pendientes."
+  ],
+  "ProductREADY": false,
+  "schema": 1,
+  "taskId": "debt-no-day-coherence-r151-codex-20261101",
+  "actor": "codex",
+  "sessionId": "nrelay991c7c6793be4db79ebc3fe039238140",
+  "createdAt": "2026-11-01T01:27:12.225Z",
+  "released": true
+}
