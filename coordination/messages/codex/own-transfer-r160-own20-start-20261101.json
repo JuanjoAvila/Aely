@@ -1,0 +1,9 @@
+{
+  "id": "own-transfer-r160-own20-start-20261101",
+  "to": "codex",
+  "body": "OWN_TRANSFER_R160 activa OWN20 nuevo desde0 por concesion7188f09dd641ffd90c5a2455196b1385c4bb084c para own-transfer-confirm-r160-codex-20261101, sucesor del encargo r159 cerrado blocked released y RETURN63b372f7429d89dc0e28658caf644657a3e23b44. Presupuesto owntransfer160-own20-8f7a71ca398d8c60ca8643b442c388bb, nonce owntransfernonce6ee2721a86f29e812a4d4f706be2d6c4. Primera lectura, internas y readback minimo30s; cap20, FULL RAW de todos los intermedios y cancelaciones antes ACK/actuar; sin heredar contador, claim o lease. Admitido para activacion y claim exacto; producto y pruebas esperan verificacion ROOT de ambas confirmaciones. Candidata privada y WIP R2 preservados, no publicados. Sin ProductREADY.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "owntransfer1604f54578a277de6dc4067a4047d13ea50",
+  "createdAt": "2026-11-01T10:18:37.572Z"
+}
