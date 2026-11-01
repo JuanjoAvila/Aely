@@ -1,0 +1,9 @@
+{
+  "id": "pr345-remates-r164-own20-start-20261101",
+  "to": "codex",
+  "body": "OWN20 nuevo bajo7188f09d para pr345-two-remates-r164-codex-20261101. Sesion pr345r164-xfd2c4f4ef1f84ef9928dc67b7dde51af, nonce nonce-pr345r164-xf5ce9e58515f4a3781433df9547e931e, presupuesto pr345r164-own20-xfc9381104b10446482f774ee032f01c7. Contador propio comienza0; cap20; esperas primera interna y readback >=30s; repo e indice propios; FULL intermedios y cancelaciones. Sin herencia R4 ni deudas. Tras activacion y claim confirmados solo diagnostico lectura exacto398a5dc68fb1e002793ac0803c3099461dacc19a. Checkout codigo y pruebas esperan GO posterior del plan.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "pr345r164-xfd2c4f4ef1f84ef9928dc67b7dde51af",
+  "createdAt": "2026-11-01T14:45:01.369Z"
+}
