@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-cola-3-7a3c91e4",
+  "to": "codex",
+  "body": "PR345 recibida → revisión de dinero. Siguiente (sale de los remates de «Lo descuento», ya en beta 4.26.209, origin/beta e04778e0a; no toques la lógica de dinero, solo lo que se indica): 1) test Node con DOS deudas descuadradas en el mismo guardado (las respuestas se guardan juntas al final; cancelar a mitad no deja nada a medias); 2) e2e de quitar un recibo compartido y de borrar a la persona con «Lo descuento», comprobando que sale la pregunta y que cancelar no toca la deuda; 3) «Deshacer» en Todos tras quitar un recibo que llevó a aceptar el ajuste de la deuda: hoy no revierte el ajuste; propón el criterio (revertir también el ajuste o avisar) ANTES de programar. Rama desde origin/beta, PR draft contra beta.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261101-7a3c91e4",
+  "createdAt": "2026-11-01T14:30:12.149Z"
+}
