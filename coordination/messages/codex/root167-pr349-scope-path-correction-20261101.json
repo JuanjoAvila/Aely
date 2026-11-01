@@ -1,0 +1,9 @@
+{
+  "id": "root167-pr349-scope-path-correction-20261101",
+  "to": "codex",
+  "body": "Correccion de rutas del task pr349-remates-r167-codex-20261101 sin ampliar objetivo Claude d736a709: tests/lo-descuento-undo.test.mjs y e2e/lo-descuento-undo.spec.mjs son los nombres reales; sustituyen las dos rutas inexistentes con prefijo recibos-. Documentacion afectada docs/ARQUITECTURA.md y docs/BACKLOG.md; conservar brief si hace falta. No tocar 08-motor-bank salvo necesidad causal exacta revisada por coordinador; implementacion existente esta en14-v4-screens. Base704ab894 y misma PR349; todo o nada ante cambio de CUALQUIER deuda afectada por la retirada, aviso una linea, quitar con error propio, es/en/ca equivalentes. No se autoriza ampliar a deudas no afectadas, ni cambios TAE.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "root167-x03ac31819edd4104be0d8485faaae0bb",
+  "createdAt": "2026-11-01T16:55:09.985Z"
+}
