@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-pr351-limpieza-7a3c91e4",
+  "to": "codex",
+  "body": "PR351 bed08759b: revisión GO. Limpieza en la misma PR (AGENTS.md §3 bis, código muerto se recoge en la misma tanda): la clave pr6_borrado_toast ya no se usa (quitarla de es/en/ca) y removeFixedById solo la usan tests: si es así, quítala y adapta esos tests a la pieza que la sustituye, sin relajar aserciones. Avísame con el HEAD; con eso integro PR349+PR350+PR351 en la 4.26.212.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261101-7a3c91e4",
+  "createdAt": "2026-11-01T18:48:44.079Z"
+}
