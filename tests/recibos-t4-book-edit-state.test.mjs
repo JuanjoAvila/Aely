@@ -9,8 +9,15 @@ const base="c89bb12c528f079640a514b95334c21b9df2d2c1";
 const root=new URL("../",import.meta.url),read=p=>fs.readFileSync(new URL(p,root),"utf8");
 const copy=x=>JSON.parse(JSON.stringify(x)),cents=x=>Math.round(Number(x)*100);
 const y=2026,m=10,today=18,ym=y*12+m;
+// Cada lado carga SU motor y SU callback de totals, enteros. El de ahora llama a
+  // `fixedCargoBanco`; el de c89bb12c no la declara y el cargo es `occAmountIn`. Mezclarlos
+  // (o aliasar uno al otro) o revienta o pone el extra del compartido a 0 y la comparación miente.
+function moduleText(source,file){
+  const path="src/modules/"+file;
+  return source==="base"?execFileSync("git",["show",base+":"+path],{cwd:root,encoding:"utf8"}):read(path);
+}
 function logic(source=process.env.AELY_T4_SOURCE){
-  let motor=source==="base"?execFileSync("git",["show",base+":src/modules/08-motor-bank.js"],{cwd:root,encoding:"utf8"}):read("src/modules/08-motor-bank.js");
+  let motor=moduleText(source,"08-motor-bank.js");
   const mutant=process.env.AELY_T4_MUTANT;
   if(mutant&&source!=="base"){
     const replacement={patch:["!pagadoPersistido||contractChanged||cambio","true"],
@@ -29,15 +36,7 @@ function logic(source=process.env.AELY_T4_SOURCE){
     constructor(...args){super(...(args.length?args:["2026-10-18T12:00:00+02:00"]));}
     static now(){return Date.parse("2026-10-18T12:00:00+02:00");}
   };
-  // El callback de totals que se compara es el de ahora, y llama a `fixedCargoBanco` (t5).
-  // El motor de la base no declara esa función: el importe que sale del banco ahí es `occAmountIn`.
-  // Sin el enlace, el baseline revienta con ReferenceError y la comparación no llega a correr
-  // (CI de beta, 204 y 205). No se sustituye el callback: el extra sale 0 y se sigue comprobando.
-  if(typeof c.fixedCargoBanco!=="function"){
-    assert.equal(typeof c.occAmountIn,"function","la base cuenta el cargo con occAmountIn");
-    c.fixedCargoBanco=c.occAmountIn;
-  }
-  const main=read("src/modules/11-app-main.js").replaceAll("\r\n","\n");
+  const main=moduleText(source,"11-app-main.js").replaceAll("\r\n","\n");
   const start=main.indexOf("const totals=useMemo(()=>{"),end=main.indexOf("\n\n  const budgetMonth=",start);
   assert.ok(start>=0&&end>start,"cargar callback real de totals y minByBank");
   c.realTotals=vm.runInNewContext("(function(state,calendarDay){"+main.slice(start,end)+";return totals;})",c);
@@ -255,4 +254,29 @@ test("Solo este mes cruza vencimiento con sync fresca: conserva wait y céntimos
   const repeated=edit(c,n,"steps",{day:"017"},"mes"),repeatBase=edit(baseline,b,"steps",{day:"017"},"mes");
   assert.deepEqual(snapshot(c,repeated),snapshot(c,n),"repetir el día efectivo de soloMes conserva wait");
   assert.deepEqual(snapshot(c,repeated),snapshot(baseline,repeatBase));
+});
+test("compartido con céntimos: recorrido y previsto no divergen si el banco cobra más que tu parte",()=>{
+  const s=fixture(c,"pending"),f=s.fixed[0];
+  // 12,34 (tu parte) + 8,52 (la otra) = 20,86 que cobra el banco. El extra no es 0 ni un euro cerrado:
+  // si alguien aliasa fixedCargoBanco a occAmountIn, el extra sale 0 y esta cuenta no cuadra.
+  f.amount=12.34;f.bankAmount=20.86;f.reparto=[{id:"persona-sintetica",n:"Ana",via:"bizum",amt:8.52}];
+  const parte=cents(c.occAmountIn(f,m,y)),banco=cents(c.fixedCargoBanco(f,m,y)),extra=banco-parte;
+  assert.equal(parte,1234);assert.equal(banco,2086);
+  assert.notEqual(extra,0,"compartido: el banco cobra distinto de tu parte");
+  assert.notEqual(extra%100,0,"el extra tiene céntimos");
+  const st=snapshot(c,s),tot=c.realTotals(s,"2026-10-18");
+  assert.deepEqual(st.events,[{bank:"sabadell",day:28,amt:-banco}]);
+  assert.equal(st.shown,10000);
+  assert.equal(st.minByBank,10000-banco);
+  assert.equal(st.projected,10000-banco);
+  assert.equal(st.minByBank,st.projected,"si el recorrido usa fixedCargoBanco y el previsto solo occAmountIn, las cifras divergen");
+  assert.equal(cents(tot.pendingThisMonth),parte,"el total del mes sigue con tu parte");
+  assert.equal(cents(tot.pendingByBank.sabadell),banco,"por banco sale el cargo entero");
+  assert.notEqual(st.minByBank,10000-parte);
+  // La base no tiene fixedCargoBanco: motor y totals de c89bb12c cuentan tu parte, y no se les inventa el alias.
+  assert.equal(typeof baseline.fixedCargoBanco,"undefined");
+  const b=snapshot(baseline,copy(s));
+  assert.deepEqual(b.events,[{bank:"sabadell",day:28,amt:-parte}]);
+  assert.equal(b.minByBank,10000-parte);assert.equal(b.projected,b.minByBank);
+  assert.notEqual(b.minByBank,st.minByBank,"el extra existe en el código de ahora y no en la base");
 });
