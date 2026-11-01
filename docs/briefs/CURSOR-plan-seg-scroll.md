@@ -152,3 +152,39 @@ En el WebView del móvil, interpolar `background-color` puede ir peor que en est
 ### Línea de CHANGELOG (no commiteada: no hay bump)
 
 Plan: el velo de ¿Te llega?, Te deben, la ficha de un pendiente y la ficha abierta desde Todos entra y sale con el deslizamiento (0,42 s, la misma curva que la hoja). Antes el 28 % llegaba en el primer fotograma, con la hoja abajo, y la pastilla verde de Recibos se apagaba de golpe. En este Chromium el cierre ya fundía; si se cierra mientras la entrada sigue, se cancela esa animación para que no se quede el 28 % hasta desmontar. La barra de segmentos no cambia de `filter` ni de `z-index`. Todos sigue siendo un push opaco. Con reducir movimiento el velo aparece y se va en el acto.
+
+## Remate: opacity en el compositor (1/11/2026, misma rama)
+
+Animar `background-color` de `.v4-sheet-back` repinta la pantalla en cada fotograma y en un OnePlus a 120 Hz se nota. El tinte pasa al `::before` (`background` fijo al 28 %, `z-index:-1`, `pointer-events:none`) y `sheetveil` anima solo `opacity` de 0 a 1, misma curva y 0,42 s que `sheetup`. Sin `will-change` en reposo. Al cerrar, `.v4-sheet-out::before` pone `will-change:opacity` solo mientras sale.
+
+Cerrar a mitad de la entrada: se lee la opacity computada del `::before`, se congela con `.v4-sheet-hold` (animación fuera, sin transición) y al frame siguiente `.v4-sheet-out` la lleva a 0. Sin esa congelación la animación de entrada sigue mandando y la opacity sube. La misma congelación, sobre el transform de la hoja: `sheetup` si no, devolvía la hoja hacia arriba y luego saltaba abajo.
+
+`prefers-reduced-motion` anula animación y transición también de `.v4-sheet-back::before`. `mcReduced()` sigue desmontando el cierre en el acto. El e2e mide la opacity del `::before` (en el bundle de `e04778e0`, que no lo tiene, cae al alfa del `background` del padre).
+
+### Que cae sin el arreglo (EXIT 1, mensajes reales)
+
+Contra `public/index.html` de `e04778e0`, con el e2e nuevo:
+
+`npx playwright test e2e/plan-velo-fundido.spec.mjs --workers=1 --retries=0 -g "Te llega|mitad"`
+
+- ¿Te llega?: `Te llega el primer fotograma ya está oscuro` — Expected `< 0.21000000000000002`, Received `0.28`.
+- Cerrar a mitad: `A mitad se cerró con la entrada a medias` — Expected `> 0`, Received `-1` (el alfa no se mueve de 0,28, así que nunca hay una entrada a medias que cerrar).
+
+Quitando solo la congelación del `::before` en `src/modules/02-ui-shared.js` (las cuatro líneas `getComputedStyle(back,"::before")`, `--sheet-veil`, `v4-sheet-hold` y el `offsetWidth`; se deja `.v4-sheet-out`) y regenerando el bundle:
+
+`npx playwright test e2e/plan-velo-fundido.spec.mjs --workers=1 --retries=0 -g "mitad"`
+
+- `A mitad al cerrar la opacidad sube del tirón` — Expected `< 0.296892`, Received `0.318724`.
+
+### Comandos con el arreglo (EXIT 0)
+
+| Comando | EXIT |
+|---|---|
+| `npm run build` | 0 |
+| `npm run test:syntax` | 0 |
+| `npx playwright test e2e/plan-velo-fundido.spec.mjs e2e/apuntar-sheet.spec.mjs e2e/plan-recibos-qa.spec.mjs e2e/plan-recibos-t2.spec.mjs e2e/plan-recibos-t3.spec.mjs e2e/plan-recibos-t4.spec.mjs e2e/plan-recibos-t5.spec.mjs e2e/plan-recibos-t6.spec.mjs e2e/plan-recibos-v6.spec.mjs --workers=1 --retries=0` | 0 (100 passed) |
+| `npx playwright test e2e/deudas-metas-edicion-v4.spec.mjs --workers=1 --retries=0 -g "cierre de la hoja\|cierre sin dedo\|apertura de la hoja"` | 0 (13 passed). El guardián de Deudas lee la opacity del `::before` |
+
+### Línea de CHANGELOG (sigue sin commitear: no hay bump)
+
+Plan: el velo de las hojas entra y sale con la hoja. El oscurecido es una capa que solo cambia de opacidad, al mismo ritmo que el deslizamiento, también si se cierra antes de que la hoja termine de subir. Con reducir movimiento aparece y se va en el acto.
