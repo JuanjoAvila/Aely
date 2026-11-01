@@ -179,3 +179,61 @@ test("Editar deuda ligada: cuota 197 y «Baja la deuda al mes» 250 se guardan l
   await expect(hoja).toHaveCount(0);
   expect((await guardado(page)).debts[0]).toMatchObject({ monthly: 197, amort: 250, value: 6000 });
 });
+
+const compartidoDescuadrado = () => Object.assign({}, fibra, { amount: 32, bankAmount: 85,
+  reparto: [{ id: "pe_fam", n: "Familia", via: "debt", debtId: "fam", amt: 53 }] });
+const fotoSalida = (page) => page.evaluate(() => {
+  const s = mcLoadRaw(mcStateKey());
+  return { fixed: s.fixed || [], debts: s.debts || [], accounts: s.accounts || [] };
+});
+async function preguntaSalida(page, antes) {
+  await expect(ask(page).locator("#ask-dialog-title")).toHaveText("¿Le pasas 303,00 € y la deuda baja esto?");
+  await expect(ask(page).locator(".ts-hint")).toHaveText("Préstamo familiar");
+  await expect(ask(page).locator(".ask-in")).toHaveValue("303");
+  expect(await fotoSalida(page)).toEqual(antes);
+  await ask(page).getByRole("button", { name: "Dejarla como está" }).click();
+  await expect(ask(page)).toHaveCount(0);
+}
+async function deudaIntactaTrasRecarga(page, antes) {
+  await page.reload();
+  await expect(page.locator(".botnav")).toBeVisible();
+  await page.waitForFunction(() => !document.getElementById("mc-load"));
+  const s = await fotoSalida(page);
+  expect(s.debts).toEqual(antes.debts);expect(s.accounts).toEqual(antes.accounts);
+  return s;
+}
+
+test("R164 quitar recibo compartido: pregunta y cancelar conserva deuda", async ({ page }) => {
+  const recibos = await abrePlan(page, { fixed: [compartidoDescuadrado()], debts: [prestamo] });
+  await expect.poll(async () => (await fotoSalida(page)).debts).toEqual([prestamo]);
+  const antes = await fotoSalida(page);
+  await recibos.getByTestId("plan-due").getByRole("button", { name: "Todos" }).click();
+  await page.locator('[data-bills-manage] [data-group="serv"]').click();
+  await page.locator('[data-bill-id="fibra"]').click();
+  const quitar = page.locator('.v4-sheet[data-sheet="recibo-pasos"] [data-act="bill-remove"]');
+  await quitar.click();expect(await fotoSalida(page)).toEqual(antes);
+  await quitar.click();await preguntaSalida(page, antes);
+  await expect.poll(async () => (await fotoSalida(page)).fixed).toEqual([]);
+  expect((await fotoSalida(page)).debts).toEqual(antes.debts);
+  expect((await deudaIntactaTrasRecarga(page, antes)).fixed).toEqual([]);
+});
+
+test("R164 borrar persona: pregunta y cancelar conserva deuda", async ({ page }) => {
+  const recibos = await abrePlan(page, { fixed: [compartidoDescuadrado()], debts: [prestamo] });
+  await expect.poll(async () => (await fotoSalida(page)).debts).toEqual([prestamo]);
+  const antes = await fotoSalida(page);
+  await recibos.getByTestId("plan-due").getByRole("button", { name: "Todos" }).click();
+  await page.locator('[data-bills-manage] [data-group="people"]').click();
+  await page.getByTestId("pe-lista").locator('[data-persona="pe_fam"]').click();
+  const borrar = persona(page).locator('[data-act="persona-borrar"]');
+  await borrar.click();await expect(borrar).toHaveText("¿Seguro? Sale de todos sus recibos");
+  await persona(page).locator("h2").click();await expect(borrar).toHaveText("Borrar");
+  expect(await fotoSalida(page)).toEqual(antes);
+  await borrar.click();await borrar.click();await preguntaSalida(page, antes);
+  await expect(persona(page)).toHaveCount(0);
+  await expect.poll(async () => (await fotoSalida(page)).fixed[0].amount).toBe(85);
+  const despues = await deudaIntactaTrasRecarga(page, antes);
+  expect(despues.fixed).toHaveLength(1);expect(despues.fixed[0].id).toBe("fibra");
+  expect(despues.fixed[0].amount).toBe(85);expect(despues.fixed[0].reparto).toBeUndefined();
+  expect(despues.fixed[0].bankAmount).toBeUndefined();
+});
