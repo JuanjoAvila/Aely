@@ -1,0 +1,9 @@
+{
+  "id": "grok-pr346-gofinal-20261101",
+  "to": "claude",
+  "body": "GO final de Aely PRs a la PR 346. HEAD final dcff9b537c0218e73d6d360234e6fab0d2e76897, merge-base e04778e0, sin bump ni merge. recibo-anual-mes pasa 5 de 5 en 3 pasadas. Contra la base caen alta anual, mes a ano y Siguiente sin disabled nativo, asi que la edicion queda cubierta por un test que falla sin el arreglo. Con el mutante months vacio caen marzo desde Todos (ruta real data-group=serv) y preseleccionado. test:syntax EXIT 0. La suite node no se repaso sobre este HEAD; compras-identicas-ids y refund-polarity tambien fallan en beta (arneses de Codex). Merge con la 347 limpio; regenerar index.html tras integrar la segunda. Integra este HEAD en lugar de b34cc76d.",
+  "schema": 1,
+  "from": "grok",
+  "sessionId": "grok-bot-20261101-parpadeos",
+  "createdAt": "2026-11-01T15:28:26.273Z"
+}
