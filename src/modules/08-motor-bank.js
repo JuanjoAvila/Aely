@@ -2368,6 +2368,109 @@ function obPendingAbsorbedState(s,prev){
   });
   return out;
 }
+/* Reconocer una aportación no compra participaciones: el puente ya trae su posición real.
+   Esta vía es independiente del reconocimiento legacy por monthlyInvest, que conserva contrato. */
+function trMonthlyCents(value){
+  const m=String(value).match(/^(\d+)(?:\.(\d{1,2}))?$/);
+  if(!m) return null;
+  const n=Number(m[1])*100+Number(((m[2]||"")+"00").slice(0,2));
+  return Number.isSafeInteger(n)?n:null;
+}
+function trMonthlyText(value){ return String(value||"").trim().replace(/\s+/g," ").toLowerCase(); }
+function trMonthlySame(a,b){
+  // jsonb no conserva el orden de claves, tampoco dentro de purpose.
+  const sorted=function(k,v){return v&&typeof v==="object"&&!Array.isArray(v)?Object.keys(v).sort().reduce(function(o,key){o[key]=v[key];return o;},{}):v;};
+  return JSON.stringify(a,sorted)===JSON.stringify(b,sorted);
+}
+function trMonthlyIsin(value){
+  const isin=String(value||"").toUpperCase();
+  if(!/^[A-Z]{2}[A-Z0-9]{9}\d$/.test(isin)) return false;
+  // ISO 6166: expandir A=10…Z=35 y aplicar módulo 10 Double-Add-Double.
+  const digits=isin.replace(/[A-Z]/g,function(c){return String(c.charCodeAt(0)-55);});
+  let sum=0,doubled=false;
+  for(let i=digits.length-1;i>=0;i--){let n=Number(digits[i]);if(doubled){n*=2;if(n>9)n-=9;}sum+=n;doubled=!doubled;}
+  return sum%10===0;
+}
+function trMonthlyPurpose(s,tx){
+  const values=["concept","note"].map(function(k){return {field:k,value:trMonthlyText(tx[k])};}).filter(function(x){return !!x.value;});
+  const evidence=values.filter(function(x){
+    return /\b(?:sparplan|plan de inversi[oó]n)\b/.test(x.value)||(x.value.match(/\b[a-z]{2}[a-z0-9]{9}\d\b/g)||[]).some(trMonthlyIsin)||
+      (s.investments||[]).some(function(i){const name=trMonthlyText(i.name);return i.ent==="trade_republic"&&name.length>=10&&x.value.indexOf(name)>=0;});
+  });
+  // Dos destinos distintos no se resuelven eligiendo el primer campo del banco.
+  if(!evidence.length||evidence.some(function(x){return x.value!==evidence[0].value;})) return null;
+  return evidence[0];
+}
+function trMonthlyProposal(s,e,now){
+  const cents=e&&trMonthlyCents(e.amount);
+  if(!s||!e||!isExpenseUuid(e.id)||e.category==="inversion"||e.ent!=="trade_republic"||!cents||
+    e.noteEdited||e.possibleDup||e.autoGemelo||e.obPending||e.debtId||e.reciboId||metaDeGasto(e)||expenseIsTombstoned(e,expenseDeletedSet(s))) return null;
+  if(["ob","ob-hist"].indexOf(e.source)<0||!e.obAcc) return null;
+  if((s.accounts||[]).filter(function(a){return a.ent===e.ent;}).length!==1||cuotasDeDeudaPorMarcar(s).some(function(x){return x.e.id===e.id;})) return null;
+  const rows=(s.expenses||[]).filter(function(x){return x.id===e.id;});
+  if(rows.length!==1||trMonthlyFingerprint(rows[0])!==trMonthlyFingerprint(e)) return null;
+  const date=String(e.date||"").slice(0,10), parts=date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const today=madridYmdParts(now), limit=today.ym+"-"+String(today.d).padStart(2,"0");
+  if(!parts||Number(parts[3])<1||Number(parts[3])>5||date>limit||dayKey(new Date(Number(parts[1]),Number(parts[2])-1,Number(parts[3]),12))!==date) return null;
+  const txs=(s.bankTx||[]).filter(function(tx){
+    return tx.ent===e.ent&&String(tx.acc||"")===String(e.obAcc)&&String(tx.date||"").slice(0,10)===date&&trMonthlyCents(tx.amount)===cents&&
+      (e.extId?String(tx.id||"")===String(e.extId):!tx.id&&String(tx.merchant||"")===String(e.obName||e.merchant||""));
+  });
+  if(txs.length!==1) return null;
+  const tx=txs[0];
+  if(String(tx.status||"").trim().toUpperCase()!=="BOOK"||tx.card||tx.mcc||tx.possibleDup||categoryOfBankTx(tx)!=="otros") return null;
+  return {date:date,acc:String(tx.acc),cents:cents,purpose:trMonthlyPurpose(s,tx)};
+}
+function trMonthlyFingerprint(e){
+  return JSON.stringify([e.id,e.date,e.amount,e.merchant,e.source,e.ent,e.obAcc,e.extId,e.obOrd,e.obName,e.note,e.noteEdited,e.noCard,e.ingestEventId,e.category,e.reciboId,e.debtId,e.goalId,e.possibleDup,e.autoGemelo,e.obPending]);
+}
+function trMonthlyRowMatches(e,row,ack){
+  return !!row&&row.id===e.id&&Date.parse(row.fecha)===Date.parse(e.date)&&Number(row.importe)===Number(e.amount)&&row.comercio===e.merchant&&
+    row.source===expenseSourceForCloud(e)&&(row.nota||null)===(e.note||null)&&(row.ob_name||null)===(e.obName||null)&&
+    !!row.no_card===!!e.noCard&&!!row.nota_edit===!!e.noteEdited&&(row.ingest_event_id||null)===(e.ingestEventId||null)&&
+    (ack?row.cat==="inversion":row.cat===e.category);
+}
+function trMonthlyConfirmed(s,e,ack,now){
+  const proposal=trMonthlyProposal(s,e,now);
+  if(!proposal||!s.user||!s.user.id||!ack||ack.user_id!==s.user.id||!trMonthlyRowMatches(e,ack,true)) return s;
+  const changed=Object.assign({},e,{category:"inversion",catStale:catStaleAfter(e,"inversion"),catAckAt:now});
+  let next=Object.assign({},s,{expenses:s.expenses.map(function(x){return x.id===e.id?changed:x;})});
+  if(proposal.purpose){
+    const rule={schema:1,owner:s.user.id,ent:e.ent,acc:proposal.acc,cents:proposal.cents,purpose:proposal.purpose,confirmedAt:now,confirmedRowId:e.id,enabled:true};
+    next=Object.assign({},next,{settings:Object.assign({},s.settings,{trMonthlyInvestRecognition:rule})});
+  }
+  return next;
+}
+function trMonthlySaveConfirmed(s,rowId){
+  // mcSaveRaw conserva el guardado partido; leer el disco evita aceptar su fallback en memoria.
+  try{
+    mcSaveRaw(mcStateKey(),s);
+    const main=JSON.parse(localStorage.getItem(mcStateKey())), expenses=JSON.parse(localStorage.getItem(mcStateKey()+EXP_SUFFIX));
+    const rule=s.settings&&s.settings.trMonthlyInvestRecognition;
+    const target=rowId||(rule&&rule.confirmedRowId), wanted=(s.expenses||[]).find(function(e){return e.id===target;});
+    return !!main&&trMonthlySame(main.settings&&main.settings.trMonthlyInvestRecognition,rule)&&
+      !!wanted&&expenses.some(function(e){return e.id===target&&e.category==="inversion"&&trMonthlyFingerprint(e)===trMonthlyFingerprint(wanted);});
+  }catch(err){ return false; }
+}
+function trMonthlyInvalidatePull(prev,next){
+  const before=prev.settings&&prev.settings.trMonthlyInvestRecognition, after=next.settings&&next.settings.trMonthlyInvestRecognition;
+  if(!after||trMonthlySame(before,after)) return next;
+  // Una foto antigua o ajena nunca reactiva este permiso: no se mezclan datos financieros.
+  return Object.assign({},next,{settings:Object.assign({},next.settings,{trMonthlyInvestRecognition:Object.assign({},after,{enabled:false})})});
+}
+function trMonthlyImportPlan(s,add,txs,now){
+  const rule=s.settings&&s.settings.trMonthlyInvestRecognition, changed=new Set();
+  if(!rule||rule.schema!==1||!rule.enabled||!s.user||rule.owner!==s.user.id||rule.ent!=="trade_republic"||!Number.isSafeInteger(rule.cents)||rule.cents<=0||!Number.isFinite(rule.confirmedAt)||rule.confirmedAt>=now||!rule.purpose) return {rows:add,changed:changed};
+  try{const stored=JSON.parse(localStorage.getItem(mcStateKey())),exp=JSON.parse(localStorage.getItem(mcStateKey()+EXP_SUFFIX));if(!trMonthlySame(stored.settings&&stored.settings.trMonthlyInvestRecognition,rule)||!exp.some(function(e){return e.id===rule.confirmedRowId&&e.category==="inversion";}))return {rows:add,changed:changed};}catch(err){return {rows:add,changed:changed};}
+  const at=madridYmdParts(rule.confirmedAt), after=at.ym+"-"+String(at.d).padStart(2,"0");
+  const view=Object.assign({},s,{bankTx:txs,expenses:(add||[]).concat(s.expenses||[])});
+  const rows=(add||[]).map(function(e){
+    const p=trMonthlyProposal(view,e,now);
+    if(!p||p.date<=after||p.acc!==rule.acc||p.cents!==rule.cents||!p.purpose||!trMonthlySame(p.purpose,rule.purpose))return e;
+    changed.add(e.id);return Object.assign({},e,{category:"inversion"});
+  });
+  return {rows:changed.size?rows:add,changed:changed};
+}
 function importObExpenses(s, txs, links){
   if(!txs || !txs.length) return null;
   // El enriquecido de después no puede gastar otra vez el BOOK que ya cubrió un PDNG

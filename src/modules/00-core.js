@@ -1554,6 +1554,31 @@ const cloud = (function(){
     },
     // Un UPDATE sin filas no confirma una retirada: FIN-04 permite UUID locales divergentes.
     // No buscar gemelos por parecido ni tocar importe, origen o saldo para salvar esa identidad.
+    async confirmTrMonthlyInvestment(e, readState){
+      let expectedOwner=null;
+      const ready=function(){ const s=readState(); return s&&s.user&&(!expectedOwner||s.user.id===expectedOwner)&&trMonthlyProposal(s,e,Date.now()); };
+      if(!sb || !ready() || !isExpenseUuid(e&&e.id)) throw new Error("monthly investment unavailable");
+      const owner=await sb.auth.getSession(), session=owner.data&&owner.data.session;
+      if(owner.error||!session) throw new Error("session unavailable");
+      expectedOwner=session.user.id;
+      if(!ready()) throw new Error("session unavailable");
+      const cols="id,user_id,fecha,importe,comercio,source,cat,nota,ob_name,no_card,nota_edit,ingest_event_id";
+      const read=await sb.from('expenses').select(cols).eq('user_id',session.user.id).eq('id',e.id).maybeSingle();
+      if(read.error||!read.data||read.data.user_id!==expectedOwner||!trMonthlyRowMatches(e,read.data)) throw new Error("monthly investment changed");
+      const row=read.data;
+      const active=await sb.auth.getSession();
+      if(active.error||!active.data.session||active.data.session.user.id!==session.user.id||!ready()) throw new Error("session unavailable");
+      if(!await obConfirmedCanUpload(e,session.user.id,sb)) throw new Error("monthly investment unavailable");
+      // El timeout o un cambio de fila/titular durante la guardia retira el permiso antes del envío.
+      if(!ready()) throw new Error("monthly investment unavailable");
+      let q=sb.from('expenses').update({cat:"inversion"}).eq('user_id',session.user.id).eq('id',e.id);
+      // El NULL del extracto también forma parte de la foto que la persona confirmó.
+      ["fecha","importe","comercio","source","cat","nota","ob_name","no_card","nota_edit","ingest_event_id"].forEach(function(k){ q=row[k]==null?q.is(k,null):q.eq(k,row[k]); });
+      const result=await q.select(cols), after=await sb.auth.getSession();
+      const ack=Array.isArray(result.data)&&result.data.length===1&&result.data[0];
+      if(result.error||after.error||!after.data.session||after.data.session.user.id!==session.user.id||!ready()||!ack||ack.user_id!==session.user.id||ack.cat!=="inversion"||!trMonthlyRowMatches(e,ack,true)||["fecha","importe","comercio","source","nota","ob_name","no_card","nota_edit","ingest_event_id"].some(function(k){return ack[k]!==row[k];})) throw new Error("monthly investment unconfirmed");
+      return ack;
+    },
     async confirmExpenseWithdrawal(e, readState){
       const ready=function(){ const s=typeof readState==="function"&&readState(); return !!s&&canRecognizeWithdrawal(e,s); };
       if(!sb || !isExpenseUuid(e&&e.id) || !ready()) throw new Error("withdrawal unavailable");
@@ -2584,7 +2609,7 @@ function borrarGastoNube(e, donde){
 
    Si añades un método a `cloud` que ESCRIBA algo, añádelo a esta lista. */
 const CLOUD_WRITES=[
-  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","renameExpense","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","setExpenseRecibo","setExpenseMeta","deleteExpense","deleteExpensesByIds","settleObAbsorbed",
+  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","renameExpense","setExpenseCat","confirmExpenseWithdrawal","confirmTrMonthlyInvestment","setExpenseDeuda","setExpenseRecibo","setExpenseMeta","deleteExpense","deleteExpensesByIds","settleObAbsorbed",
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
   "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",

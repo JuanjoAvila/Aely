@@ -1,5 +1,49 @@
 ## FIN29/30: alias de nombre separados del borrado (candidata local, 28/10/2026)
 
+## Aportación mensual TR: flujo de confirmación separado (candidata 01/11/2026)
+
+La nueva acción de la ficha confirma solo una fila por UUID y titular. El cliente lee la fila
+remota, condiciona el UPDATE de `cat` a su foto completa y exige exactamente una fila de ACK,
+incluidos origen, fecha, importe, comercio, nota y nombre original. Los campos NULL se filtran
+con `is(null)`. Cero filas, error, cambio de sesión o de la fila local no acreditan confirmación.
+El writer está en `CLOUD_WRITES`: sandbox impide la consulta. No cambia esquema ni backend.
+
+No pasa por el selector genérico de categoría: conserva efectivo, participaciones, valor,
+coste, recompensas, fijos y cuotas. La pregunta para una fila opaca es «¿Es tu aportación
+mensual?». Aceptarla no aprende un patrón por «Movimiento» o por importe. Si el banco aporta
+un destino semántico inequívoco en concepto/nota (ISIN, nombre del fondo o plan), la aceptación
+explícita guarda una autorización versionada independiente de `monthlyInvest` después del ACK
+y del guardado partido con lectura de disco. Un fallo de persistencia no habilita el automatismo.
+
+La recurrencia nueva compara el campo y valor original completos (solo normaliza espacios/caso),
+misma cuenta/bróker, débito en céntimos exactos del importe confirmado por la persona, BOOK y
+días 1-5 no futuros. La fila y la transacción deben coincidir entre sí y, en cada recurrencia,
+con ese importe consentido; no hay un importe fijo ni tolerancia de un céntimo. No usa notas
+editadas, tarjetas/MCC de compra, filas ambiguas o fecha anterior al consentimiento; confirmar
+una fila de noviembre en diciembre no autoriza un 3 de diciembre ya pasado. Los pulls que
+cambian el permiso lo invalidan, sin mezclar datos financieros ni habilitarlo desde configuración.
+Las comparaciones de permiso durable y propósito son canónicas, también en claves anidadas:
+el orden devuelto por jsonb no cambia el consentimiento. La evidencia por ISIN exige dos letras,
+nueve alfanuméricos y un dígito de control ISO 6166 válido; un código mal formado o con control
+incorrecto aislado no acredita destino semántico.
+Solo los IDs cuya categoría cambia por este plan omiten la compra virtual del sync; la ruta
+legacy conserva sus efectos. El puente sigue aportando posiciones/cash; OB, los movimientos.
+
+El plazo de 10 s en Gastos retira la confirmación local, pero no puede deshacer un UPDATE ya
+enviado. Si termina tarde, la siguiente lectura de gastos vuelve a leer la nube y converge,
+también tras una lectura fallida; no reenvía la confirmación ni aprende permiso sin ACK y
+guardado durable. Las pruebas ejecutan la carrera real de Gastos, el writer y `syncCloudExpenses`
+con transporte y relojes sintéticos. En el caso preexistente de CAS perdido por importe remoto
+cambiado, el sync intenta un backfill con el mismo UUID: `addExpense` usa ignoreDuplicates y
+el conflicto de clave primaria no sobrescribe la fila. No se modifica ese flujo en esta tanda.
+
+**Límite expreso:** el reconocedor legacy por `monthlyInvest` y su prueba MCC 5411 se conservan.
+Por eso esta candidata no demuestra ausencia global de clasificación sin consentimiento ni
+corrige la simulación de cierre. El riesgo y la decisión pendiente del dueño están en BACKLOG.
+Las pruebas usan sobres sintéticos; no acreditan que TR real entregue notas de destino ni una
+aceptación móvil. Estado: candidata privada, sin integración/publicación en este corte.
+
+
 Un renombrado bancario nuevo guarda `expense-rename|identidad|clave` en la partición
 existente de lápidas. La identidad codifica banco, cuenta y referencia; si falta la
 cuenta, exige el UUID. La clave conserva día, importe con signo y ordinal. El lector
