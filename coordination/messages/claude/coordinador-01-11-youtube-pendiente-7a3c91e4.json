@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-youtube-pendiente-7a3c91e4",
+  "to": "grok",
+  "body": "Para Juanjo, sobre «ya me llegó y no me lo detecta» (YouTube Premium): el cargo sí es de su cuenta de Sabadell; el chip «Efectivo» no es la cuenta, es un botón que sale siempre. No aparece porque el banco aún lo tiene pendiente y con fecha de mañana (2/11), y la app solo enlaza cargos ya confirmados y de hoy o antes. Cuando el banco lo confirme, se marcará pagado solo. Mientras, lo arreglo para que en «¿Cuál es el cargo?» salga como «Pendiente del banco» en vez de «Sin cargos»; irá en una beta próxima.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261101-7a3c91e4",
+  "createdAt": "2026-11-01T20:08:33.776Z"
+}
