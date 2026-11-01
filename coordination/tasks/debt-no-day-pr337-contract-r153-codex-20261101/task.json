@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "id": "debt-no-day-pr337-contract-r153-codex-20261101",
+  "from": "codex",
+  "coordinatorSession": "nrelaye746690be06d487d95fa6cb95825a0e4",
+  "createdAt": "2026-11-01T02:47:35.534Z",
+  "to": "codex",
+  "baseSHA": "89e33b206a95ef8c490d8147af80dfd1b76955e1",
+  "objective": "Continuar misma PR337 sin rebase: preparar contrato prospectivo de anclas V2 segunD402 y6d8e sobre candidato B1/B2/B3 preservado. Ausencia o sello invalido conserva fuenteA cifra por cifra; solo futuras altas/escrituras deliberadas activanV2, sin migrar ni reescribir anclas antiguas. Auditar creadores/lectores/inversas, mixed marked/unmarked por cuenta y dos fijas de misma entidad; conocido dia/resto identicos. Preparacion solo hasta revision independiente y gateENTER exacto.",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/01-i18n.js",
+    "src/modules/02-ui-shared.js",
+    "src/modules/06-sync-brokers.js",
+    "src/modules/07-tab-patri-fijos.js",
+    "src/modules/08-motor-bank.js",
+    "src/modules/11-app-main.js",
+    "src/modules/13-hogar.js",
+    "src/modules/16-help-assistant.js",
+    "tests/debt-payment-state.test.mjs",
+    "tests/inicio-deuda-futura.test.mjs",
+    "e2e/inicio-deuda-futura.spec.mjs",
+    "docs/ARQUITECTURA.md",
+    "docs/BACKLOG.md",
+    "scripts/run-tests.mjs",
+    "scripts/relevant-tests.mjs"
+  ],
+  "predecessorTaskId": "debt-no-day-pr337-remates-r152-codex-20261101",
+  "predecessorResult": "aaa7ec21039279645d03104f12aee2aade115b80",
+  "predecessorReturn": "13330f599155abf3401b4208121cecf538e928b6",
+  "authorities": [
+    "7188f09dd641ffd90c5a2455196b1385c4bb084c",
+    "7578c5145dc0774e98e47059410fc5084e7b3b52",
+    "ea67f0a13cb63d7f43299d4c377a7be652f1474a",
+    "d4021f987f911e98934522c1ac7fbd0555e0872b",
+    "6d8e9448bc2db55157729d3c461d9e56c8ea1c11"
+  ],
+  "acceptedLimit": "Una reescritura vieja byte-identica puede conservarV2. Ejemplo sintetico fija marcada value100013, cuotaNOday10001 pendiente, editorviejo typed90012 guarda100013 sin cambiar cuenta/sello. Documentar PR, ARQUITECTURA y CHANGELOG del informe; no excluirclientes. No prometer que codigo viejo borra campos desconocidos.",
+  "oracles": [
+    "Sin marca exactA cifras y rama conocida",
+    "MarcaV2 saldo100013, pendiente10001, proyeccion/min/widget90012",
+    "Transicion unmarked a reanclado marked sin falso salto",
+    "Dos fijas y mixed marcada/no marcada por banco/cuenta, banco actual del pago, ambiguedad prudente",
+    "TR pagada/sin pagar y replay/inversas/role/deltas/rollover sin doble conteo",
+    "UTC/Madrid tabla literal yBOOKNov1 aOct31T23:30Z",
+    "ClienteA real reescribe cambiando contenido invalida sello; identico conservaV2 conforme6d8e"
+  ],
+  "constraints": [
+    "NuevoOWN20 desde0 aviso/FULLRAW/ACK/readback30s activacion y claim propio confirmado antes checkout/producto",
+    "Preparar auditoria y diseno de sello campo por campo para revision antes de aplicarlo; no ligar estado global ni gastos/nota a sello",
+    "No edicion de fuente cerrada, no copiar runtime/estado/repo/counters/nffRetries",
+    "No ejecucion Nodeproducto/VM/sintaxis/tests/browser/servidor/build sin gate exacto de censo/admissionCPU1worker1-0retry-stopfirstfailure y RETURN propio",
+    "No commit/push hasta revision y gate expresos, no force/rebase/newPR",
+    "No VERSION/RELEASE_NOTES/main/beta/backend/SQL/Edge/Android/livebank; CHANGELOG solo informeprivado salvo nueva autoridad",
+    "No repetir pruebas cerradas por relevo; preserve primer falloDOMB",
+    "Punto3STOP; solo coordinador reportaClaude; noProductREADY"
+  ],
+  "executionGate": false,
+  "commitGO": false,
+  "pushGO": false
+}
