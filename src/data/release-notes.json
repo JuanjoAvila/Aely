@@ -1,5 +1,69 @@
 [
   {
+    "v": "4.26.206",
+    "d": "2026-11-01",
+    "t": {
+      "es": "Avisos de recibos que dicen si te llega",
+      "en": "Bill reminders that tell you if it covers",
+      "ca": "Avisos de rebuts que diuen si t’arriba"
+    },
+    "items": {
+      "es": [
+        "El aviso de la víspera de cada recibo ahora dice cuánto se cobra y el mínimo que te queda este mes en ese banco, para que sepas si llega. Hace falta actualizar la app.",
+        "Las cuotas de deuda sin día de cobro enseñan «Sin día de cobro · ponle día», en Plan y en Deudas."
+      ],
+      "en": [
+        "The reminder the day before each bill now says how much is charged and the lowest balance you will have this month at that bank, so you know if it covers. You need to update the app.",
+        "Loan payments with no payment day show “No payment day · set a day”, in Plan and in Debts."
+      ],
+      "ca": [
+        "L’avís de la vigília de cada rebut ara diu quant es cobra i el mínim que et queda aquest mes en aquest banc, perquè sàpigues si arriba. Cal actualitzar l’app.",
+        "Les quotes de deute sense dia de cobrament mostren «Sense dia de cobrament · posa-hi dia», a Pla i a Deutes."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "pro03-aviso-te-llega",
+        "t": {
+          "es": "Avisos: ¿te llega para el recibo de mañana?",
+          "en": "Reminders: will it cover tomorrow’s bill?",
+          "ca": "Avisos: t’arriba per al rebut de demà?"
+        },
+        "items": {
+          "es": [
+            "1. Instala la app nueva cuando te lo pida. Mañana, con un recibo o una cuota que se cobre, mira la notificación de la víspera (también sale con la app cerrada). BIEN: dice cuánto se cobra y «Mínimo previsto este mes en tu banco: X», con la misma cifra que Plan › Recibos › «¿Te llega?» (si es negativa, es lo que falta); si el banco no tiene una lectura reciente, sale el aviso de siempre, sin cifra. MAL: una cifra que no cuadra con «¿Te llega?», un aviso de algo que ya pagaste o ningún aviso."
+          ],
+          "en": [
+            "1. Install the new app when it asks you to. Tomorrow, with a bill or loan payment being charged, look at the notification the day before (it also shows with the app closed). RIGHT: it says how much is charged and “Lowest projected balance this month at your bank: X”, the same figure as Plan › Bills › “Will it cover?” (if negative, that is what is missing); if the bank has no recent reading, you get the usual reminder, with no figure. WRONG: a figure that does not match “Will it cover?”, a reminder for something you already paid, or no reminder."
+          ],
+          "ca": [
+            "1. Instal·la l’app nova quan t’ho demani. Demà, amb un rebut o una quota que es cobri, mira la notificació de la vigília (també surt amb l’app tancada). BÉ: diu quant es cobra i «Saldo mínim previst aquest mes al teu banc: X», amb la mateixa xifra que Pla › Rebuts › «T'arriba?» (si és negativa, és el que falta); si el banc no té una lectura recent, surt l’avís de sempre, sense xifra. MALAMENT: una xifra que no quadra amb «T'arriba?», un avís d’alguna cosa que ja has pagat o cap avís."
+          ]
+        },
+        "apk": 64
+      },
+      {
+        "id": "deuda-ponle-dia",
+        "t": {
+          "es": "Plan y Deudas: poner día a una cuota",
+          "en": "Plan and Debts: set a day on a loan payment",
+          "ca": "Pla i Deutes: posar dia a una quota"
+        },
+        "items": {
+          "es": [
+            "1. Plan › Recibos o Plan › Deudas: busca una cuota de deuda que diga «Sin día de cobro · ponle día» (si ninguna lo dice, no hay nada que probar). Tócalo, elige un día y guarda. BIEN: se abre la edición con el día listo para escribir, al guardar el aviso desaparece y la cuota sale en su día en Plan. MAL: el aviso sale en una cuota que ya tiene día, no abre la edición o guardar no deja el día puesto."
+          ],
+          "en": [
+            "1. Plan › Bills or Plan › Debts: look for a loan payment that says “No payment day · set a day” (if none does, there is nothing to test). Tap it, pick a day and save. RIGHT: the editor opens with the day ready to type, the notice goes away once saved and the payment shows on its day in Plan. WRONG: the notice shows on a payment that already has a day, it does not open the editor, or saving does not set the day."
+          ],
+          "ca": [
+            "1. Pla › Rebuts o Pla › Deutes: busca una quota de deute que digui «Sense dia de cobrament · posa-hi dia» (si cap ho diu, no hi ha res a provar). Toca-ho, tria un dia i desa. BÉ: s’obre l’edició amb el dia a punt per escriure, en desar l’avís desapareix i la quota surt al seu dia a Pla. MALAMENT: l’avís surt en una quota que ja té dia, no obre l’edició o desar no deixa el dia posat."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.205",
     "d": "2026-11-01",
     "t": {

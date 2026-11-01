@@ -1,8 +1,8 @@
 {
-  "versionCode": 63,
-  "versionName": "4.26.196",
-  "url": "https://github.com/JuanjoAvila/Aely/releases/download/beta/Aely-4.26.196-beta-63.apk",
-  "notes": "Conectar Trade Republic vuelve a funcionar con su nuevo inicio de sesión: se aprueba desde la app de Trade Republic. Se instala encima sin perder datos.",
+  "versionCode": 64,
+  "versionName": "4.26.206",
+  "url": "https://github.com/JuanjoAvila/Aely/releases/download/beta/Aely-4.26.206-beta-64.apk",
+  "notes": "El aviso de la víspera de cada recibo dice cuánto se cobra y el mínimo que te queda ese mes en el banco. Se instala encima sin perder datos.",
   "revisiones": {
     "fin05-widget-reentrada": "78ff9b2c46f59b55936bb1390580044fdb1715a4c5583189259eeece4db230e4",
     "fin05-pago-cerrada": "8a6f5aefbe66677ca3685ba430208766d5adc791e2fb50d1013a3d54d8397e50",
@@ -18,7 +18,8 @@
     "vibracion-ajustador-r2": "dc4468fdf99b83a27c95efbe84e939b573d15a9ca1fa47c7a879abef1e7ee588",
     "vibracion-r4": "5ca1c5200af322a92e29c4d2743b9d0481bb656414e4558c5a8ac348cee03f69",
     "widget-pasado-del-limite": "44e6f6d430874f3497ee9fd20e0b11faaf429b45ec3ae5c210e5a2a4308b7ee2",
-    "tr-login-v2": "49bc21e453584c64c0262c986e1f97176dfd751b85ed501b5835e124e60172d6"
+    "tr-login-v2": "49bc21e453584c64c0262c986e1f97176dfd751b85ed501b5835e124e60172d6",
+    "pro03-aviso-te-llega": "be1f6af8dfc0db8869ab6bd0c0c90d0d8300a680b6d92976fae9015ac7425466"
   },
   "sha256": "b31cf65328c037359e0bf0218f656b622d6a5403a7f4fdbfc8c04f36ceaa35db",
   "sourceSha": "64a1f3ed7c83b1be7329ccd5cdfb1f7f1ff82b95"

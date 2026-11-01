@@ -8058,6 +8058,8 @@ Object.assign(LANG.es,{
   hh_fixed_top:"Sus fijos principales",
   rc_title:"Recibo gordo cerca", rc_body:"{name}: {x} el día {d}",
   rc_title_tmrw:"Mañana toca recibo", rc_body_tmrw:"{name}: mañana se cobran {x}. Si algo no cuadra, aún estás a tiempo.",
+  rc_body_tmrw_enough:"{name}: mañana se cobran {x}. Mínimo previsto este mes en {bank}: {saldo}.",
+  rc_body_tmrw_short:"{name}: mañana se cobran {x}. Mínimo previsto este mes en {bank}: {saldo}.",
   bn_50:"🟢 Mitad del presupuesto del mes: llevas {x} de {b}",
   bn_80:"⚠️ 80% del presupuesto usado: {x} de {b}",
   bn_95:"🔶 ¡95%! Casi agotado el presupuesto: {x} de {b}",
@@ -9989,7 +9991,7 @@ Object.assign(LANG.es, {
   plan_edit_changed:"Este dato cambió o se borró. Cierra y vuelve a abrir la edición para ver la versión actual.",
   plan_edit_saved:"Cambios guardados",
   db_edit_title:"Editar deuda",
-  db_edit_named:"Editar {name}",
+  db_edit_named:"Editar {name}", db_day_prompt:"Sin día de cobro · ponle día",
   db_left_count:"Quedan {n}/{tot} cuotas",
   db_term_hint:"Plazo total, incluidas las cuotas ya pagadas. Déjalo vacío si no lo conoces.",
   db_edit_term_confirm:"¿Guardar con el nuevo plazo?",
@@ -24318,8 +24320,26 @@ function PlanConflictSheet({record,current,onReview,onDiscard,onClose}){
       React.createElement("button",{type:"button",className:"btn btn-primary btn-block",onClick:onReview},t("plan_conflict_review")),
       React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",onClick:onDiscard},t("plan_conflict_discard"))));
 }
-function DebtEditSheet({debt,state,set,onClose,onDelete,showToast,review,recovery}){
-  const [form,setForm]=useState(function(){ return debtEditDraft(planReviewDraft(debt,review)); });
+function debtNeedsChargeDay(d){ return !!d&&debtActive(d)&&!d.settledAt&&!d.archivedAt&&cleanDay(dayOf(d))==null; }
+function DebtDayPrompt({debt,onOpen}){
+  if(!debtNeedsChargeDay(debt)) return null;
+  return React.createElement("button",{type:"button",className:"link","data-debt-day-id":debt.id,
+    "aria-label":debt.name+" · "+t("db_day_prompt"),style:{display:"block",minHeight:44,textAlign:"left",color:"var(--mint)",textDecoration:"underline",textUnderlineOffset:3},
+    onClick:function(){ onOpen(debt); }},t("db_day_prompt"));
+}
+function DebtEditSheet({debt,state,set,onClose,onDelete,showToast,review,recovery,initialFocus}){
+  const [form,setForm]=useState(function(){
+    const source=planReviewDraft(debt,review),draft=debtEditDraft(source);
+    // Revisar un conflicto conserva el día local aunque la copia remota aún no tenga uno.
+    if(initialFocus==="day"&&!recovery&&debtNeedsChargeDay(debt)&&cleanDay(dayOf(source))==null) draft.day="";
+    return draft;
+  });
+  const dayRef=useRef(null);
+  useEffect(function(){
+    if(initialFocus!=="day"||recovery) return;
+    const frame=requestAnimationFrame(function(){ if(dayRef.current){ dayRef.current.focus({preventScroll:true}); dayRef.current.scrollIntoView({block:"nearest"}); } });
+    return function(){ cancelAnimationFrame(frame); };
+  },[]);
   const [attempt,setAttempt]=useState(0),errorRef=useRef(null);
   const finished=debtEditFinished(debt);
   const closer=useRef(null);
@@ -24333,25 +24353,33 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,showToast,review,recover
   const [confirmPending,setConfirmPending]=useState(false),confirming=useRef(false),latest=useRef(null);
   useLayoutEffect(function(){ latest.current={state:state,form:form,save:save}; });
   useEffect(function(){ return function(){latest.current=null;}; },[]);
+  // El editor legado compara contra el día 1 de respaldo: elegirlo expresamente desde el
+  // aviso debe persistir ese campo, sin cambiar las validaciones ni los cálculos del editor.
+  const chosenDayResult=function(result,draft){
+    if(initialFocus==="day"&&!recovery&&debtNeedsChargeDay(debt)&&result.item&&!result.error&&
+      planEditNumber(draft.day)===1&&cleanDay(dayOf(result.item))==null)
+      return Object.assign({},result,{item:Object.assign({},result.item,{day:1})});
+    return result;
+  };
   const submit=function(){
     if(confirming.current||save.pending) return;
     setAttempt(function(n){return n+1;});
     const result=debtEditResult(debt,form);
     if(recovery&&result.item)result.item=Object.assign({},result.item,{restoredAt:new Date().toISOString()});
     const change=debtEditTermChange(debt,form,result);
-    if(!change){ save.save(result); return; }
+    if(!change){ save.save(chosenDayResult(result,form)); return; }
     confirming.current=true; setConfirmPending(true);
     askConfirm({title:t("db_edit_term_confirm"),sub:tf(change.after===1?"db_edit_term_summary_one":"db_edit_term_summary",change),ok:t("db_savechanges"),cancel:t("db_edit_term_cancel")}).then(function(yes){
       confirming.current=false; const current=latest.current;
       if(!current) return;
       setConfirmPending(false);
       if(!yes) return;
-      current.save.save(debtEditConfirmResult(current.state,debt,current.form,{item:result.item,change:change}));
+      current.save.save(chosenDayResult(debtEditConfirmResult(current.state,debt,current.form,{item:result.item,change:change}),current.form));
     });
   };
   const input=function(key,label,mode){ return React.createElement("label",{key:key},t(label),
     React.createElement("input",{className:"af-in"+(mode?" num":""),inputMode:mode||"text",value:form[key],"data-debt-field":key,
-      disabled:finished&&key!=="name"&&key!=="note",readOnly:!!recovery&&key!=="name"&&key!=="note",
+      ref:key==="day"?dayRef:undefined,disabled:finished&&key!=="name"&&key!=="note",readOnly:!!recovery&&key!=="name"&&key!=="note",
       onChange:function(e){ setForm(Object.assign({},form,{[key]:e.target.value})); }})); };
   return React.createElement(PlanEditSheet,{title:t("db_edit_title"),onClose:onClose,closer:closer},React.createElement("div",{className:"add-form"},
     input("name","plan_edit_name"),input("note","plan_conflict_note"),input("balance","db_pending","decimal"),
@@ -24452,13 +24480,20 @@ function AmortAdvisor({state, onEdit, onAmort}){
     React.createElement("div",{className:"hint",style:{marginTop:8,fontSize:11.5}}, t("da_est"))
   );
 }
-function Debts({state, set, showToast}){
+function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly}){
   // Una corrección de saldo desde otro dispositivo nunca debe dejar una obligación activa oculta.
   const visibleDebts=state.debts.filter(function(d){ return !d.archivedAt || debtBalance(d)>0.005; });
   const archivedDebts=state.debts.filter(function(d){ return !!d.archivedAt && debtBalance(d)<=0.005; });
   const [showArchive,setShowArchive]=useState(false);
   const [editingDebt,setEditingDebt]=useState(null);
   const [reviewDebt,setReviewDebt]=useState(null);
+  const [dayFocus,setDayFocus]=useState(false);
+  const openDay=function(d){ setReviewDebt(null);setDayFocus(true);setEditingDebt(d); };
+  useEffect(function(){
+    if(!editDayRequest) return;
+    const d=state.debts.find(function(x){return String(x.id)===String(editDayRequest.id);});
+    if(debtNeedsChargeDay(d)) openDay(d); else if(onEditDayClose) onEditDayClose();
+  },[editDayRequest&&editDayRequest.ts]);
   const conflict=editingDebt&&planSyncConflict(state,"debts",editingDebt.id);
   const orphaned=state._planSync&&state._planSync.owner===state._historyOwner?(state._planSync.conflicts||[]).filter(function(c){return c.kind==="debts"&&!state.debts.some(function(d){return d.id===c.id;});}):[];
   const recovering=!!(editingDebt&&reviewDebt&&!state.debts.some(function(d){return d.id===editingDebt.id;}));
@@ -24599,6 +24634,12 @@ function Debts({state, set, showToast}){
     const p=madridYmdParts(Date.now()), m=p.m-1+li.n;
     return tf("v4_debts_ends",{d:monthLong(m%12)+" "+(p.y+Math.floor(m/12))});
   };
+  const editor=editingDebt&&(conflict&&!reviewDebt?React.createElement(PlanConflictSheet,{record:conflict,current:state.debts.find(function(d){return d.id===editingDebt.id;})||editingDebt,
+    onClose:function(){setEditingDebt(null);setReviewDebt(null);if(onEditDayClose)onEditDayClose();},onDiscard:function(){set(function(s){return planSyncDiscard(s,conflict);});setEditingDebt(null);setReviewDebt(null);if(onEditDayClose)onEditDayClose();},
+    onReview:function(){setEditingDebt(state.debts.find(function(d){return d.id===editingDebt.id;})||editingDebt);setReviewDebt(conflict);}}):
+    React.createElement(DebtEditSheet,{key:editingDebt.id,debt:editingDebt,state:state,set:set,review:reviewDebt,recovery:recovering,initialFocus:dayFocus?"day":undefined,
+      onClose:function(){setEditingDebt(null);setReviewDebt(null);setDayFocus(false);if(onEditDayClose)onEditDayClose();},onDelete:delDebt,showToast:showToast}));
+  if(editorOnly) return editor;
   return React.createElement("div",null,
     React.createElement("div",{className:"v4-card v4-card-hero rise plan-summary"},
       React.createElement("div",{className:"v4-micro"},t("v4_debts_hero")),
@@ -24618,9 +24659,9 @@ function Debts({state, set, showToast}){
       const pct=Math.min(100,(paid/(d.original||1))*100);
       // «Quedan n/tot cuotas» en TODAS las deudas (feedback 2026-07-21): sin plazo va estimado.
       const li=leftInfo(d);
-      const day=debtChargeDay(d);
-      return React.createElement("div",{className:"v4-debt-card rise plan-item",key:d.id,"data-debt-id":d.id,onClick:function(e){if(!e.target.closest("button")){setReviewDebt(null);setEditingDebt(d);}}},
-        React.createElement("button",{type:"button",className:"v4-debt-top plan-item-open",onClick:function(){setReviewDebt(null);setEditingDebt(d);},"aria-label":tf("db_edit_named",{name:d.name})},
+      const day=cleanDay(dayOf(d));
+      return React.createElement("div",{className:"v4-debt-card rise plan-item",key:d.id,"data-debt-id":d.id,onClick:function(e){if(!e.target.closest("button")){setDayFocus(false);setReviewDebt(null);setEditingDebt(d);}}},
+        React.createElement("button",{type:"button",className:"v4-debt-top plan-item-open",onClick:function(){setDayFocus(false);setReviewDebt(null);setEditingDebt(d);},"aria-label":tf("db_edit_named",{name:d.name})},
           React.createElement("span",{className:"v4-debt-emoji"},debtEmoji(d)),
           React.createElement("div",{style:{flex:1,minWidth:0}},
             React.createElement("div",{className:"v4-debt-name"},d.name,React.createElement(PlanConflictDot,{record:planSyncConflict(state,"debts",d.id)}))
@@ -24628,6 +24669,7 @@ function Debts({state, set, showToast}){
           React.createElement("div",{className:"plan-item-value"},React.createElement("div",{className:"v4-debt-bal serif num"},eur(bal)),React.createElement("span",{className:"plan-item-edit"},t("fj_edit")))
         ),
         React.createElement("div",{className:"v4-debt-sub plan-debt-details"},[d.monthly?tf("db_quota",{x:eur0(d.monthly)}):null,day?tf("fj_day_n",{d:day}):null,li?tf("db_left_count",{n:li.n,tot:li.tot}):null].filter(Boolean).join(" · ")),
+        React.createElement(DebtDayPrompt,{debt:d,onOpen:openDay}),
         // Parte de un recibo compartido que se descuenta de esta deuda (Plan › Recibos v6, tanda 5).
         (function(){ const hoy=madridYmdParts(Date.now()), c=d.monthly>0?deudaDescuentoMes(state,d,hoy.y,hoy.m,hoy.d):null;
           return c&&c.amt>0?React.createElement("div",{className:"v4-debt-sub","data-testid":"debt-descuento"},tf("pr6_pagas_mas",{a:eur(d.monthly),b:eur(c.amt),from:c.from.join(", ")})):null; })(),
@@ -24653,7 +24695,7 @@ function Debts({state, set, showToast}){
       ); })
     ),
     React.createElement("div",{className:"v4-tip"},
-      React.createElement(AmortAdvisor,{state:state,onEdit:setEditingDebt,onAmort:doAmort})
+      React.createElement(AmortAdvisor,{state:state,onEdit:function(d){setDayFocus(false);setEditingDebt(d);},onAmort:doAmort})
     ),
     adding
       ? React.createElement("div",{className:"add-form",style:{marginTop:12}},
@@ -24679,10 +24721,7 @@ function Debts({state, set, showToast}){
         )
       : React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:10},onClick:function(){ setAdding(true); }},React.createElement(I.plus,{width:16,height:16}),t("db_add")),
     React.createElement("div",{className:"hint",style:{padding:"10px 4px 0"}},t("db_hint")),
-    editingDebt&&(conflict&&!reviewDebt?React.createElement(PlanConflictSheet,{record:conflict,current:state.debts.find(function(d){return d.id===editingDebt.id;})||editingDebt,
-      onClose:function(){setEditingDebt(null);setReviewDebt(null);},onDiscard:function(){set(function(s){return planSyncDiscard(s,conflict);});setEditingDebt(null);setReviewDebt(null);},
-      onReview:function(){setEditingDebt(state.debts.find(function(d){return d.id===editingDebt.id;})||editingDebt);setReviewDebt(conflict);}}):
-      React.createElement(DebtEditSheet,{key:editingDebt.id,debt:editingDebt,state:state,set:set,review:reviewDebt,recovery:recovering,onClose:function(){setEditingDebt(null);setReviewDebt(null);},onDelete:delDebt,showToast:showToast}))
+    editor
   );
 }
 
@@ -28108,7 +28147,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="ccc2feb7602daacd8610638abcdb334b7f2898ddbfc9937b20d80011acf11053";
+var _rnSha="8f4b42121f9263998f7ce8281ad91bddcdc410d246fadc42e35119013649812c";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -29637,6 +29676,8 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
   const [manageOpen,setManageOpen]=useState(false);
   // «Editar» desde la ficha de un recibo abre Todos directamente en su edición.
   const [manageEdit,setManageEdit]=useState(null);
+  const [debtDayRequest,setDebtDayRequest]=useState(null);
+  const editDebtDay=function(d){ setDebtDayRequest({id:d.id,ts:Date.now()}); };
   // Modo sencillo: solo Recibos (spec §2).
   const segs=simple
     ? [{id:"recibos",lab:t("v4_plan_recibos")}]
@@ -29869,18 +29910,19 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       })
     ),
     capa("recibos", simple
-      ? React.createElement(PlanBills,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen})
+      ? React.createElement(PlanBills,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen,onEditDebtDay:editDebtDay})
       : React.createElement(PlanRecibos,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen,activo:seg==="recibos",
-          manageEdit:manageEdit,setManageEdit:setManageEdit,showToast:showToast,onGoDebts:irADeuda})),
+          manageEdit:manageEdit,setManageEdit:setManageEdit,showToast:showToast,onGoDebts:irADeuda,onEditDebtDay:editDebtDay})),
     !simple && capa("deudas", React.createElement(Debts,{state:state,set:set,showToast:showToast})),
-    !simple && capa("metas", React.createElement(Goals,{state:state,set:set,totals:totals,showToast:showToast}))
+    !simple && capa("metas", React.createElement(Goals,{state:state,set:set,totals:totals,showToast:showToast})),
+    debtDayRequest&&React.createElement(Debts,{state:state,set:set,showToast:showToast,editorOnly:true,editDayRequest:debtDayRequest,onEditDayClose:function(){setDebtDayRequest(null);}})
   );
 }
 
 /* Recibos en modo SENCILLO: la portada compacta que ya funcionaba. El rediseño v6 (`PlanRecibos`)
    es para el modo normal y el sencillo sigue como estaba (SPEC Plan Recibos §0). Aquí no hay
    «Gestionar»: la puerta vive en Ajustes → Cambiar mis recibos (NO-GO §5bis.2). */
-function PlanBills({state, set, totals, charges, evidence, manageOpen, setManageOpen}){
+function PlanBills({state, set, totals, charges, evidence, manageOpen, setManageOpen,onEditDebtDay}){
   const [paidExpanded,setPaidExpanded]=useState(false);
   const [pendExpanded,setPendExpanded]=useState(false);
   const paidPanelId="v4-paid-panel";
@@ -29919,7 +29961,8 @@ function PlanBills({state, set, totals, charges, evidence, manageOpen, setManage
       React.createElement("div",{className:"tile","aria-hidden":true}, x.day||"—"),
       React.createElement("div",{className:"nm"},
         React.createElement("div",{className:"nm-title"}, x.paid?"✓ "+x.name:x.name,React.createElement(PlanConflictDot,{record:conflict})),
-        React.createElement("div",{className:"meta"}, rowSub(x))
+        React.createElement("div",{className:"meta"}, rowSub(x)),
+        x.kind==="debt"&&React.createElement(DebtDayPrompt,{debt:item,onOpen:onEditDebtDay})
       ),
       React.createElement("div",{className:"am"+(income?" pos":"")}, income?"+":"",planChargeAmount(x))
     );
@@ -30181,7 +30224,7 @@ function pr6FrescuraTxt(ms, now){
   if(d<7) return tf("pr6_fresh_d",{n:d});
   return tf("pr6_fresh_fecha",{x:a.toLocaleDateString(loc(),{day:"numeric",month:"short"})});
 }
-function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setManageOpen, manageEdit, setManageEdit, showToast, onGoDebts, activo}){
+function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setManageOpen, manageEdit, setManageEdit, showToast, onGoDebts, activo, onEditDebtDay}){
   const [revOpen,setRevOpen]=useState(false);
   const [dueOpen,setDueOpen]=useState(false);
   const [paidOpen,setPaidOpen]=useState(false);
@@ -30322,9 +30365,13 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     const k=/^(fixed|oneoff)_(.*)$/.exec(String(x.id));
     if(k){ setManageEdit(k[2]); setManageOpen(true); }
   };
+  const withDayPrompt=function(x,row){
+    const d=x.kind==="debt"&&(state.debts||[]).find(function(d){return "debt_"+d.id===x.id;});
+    return React.createElement(React.Fragment,{key:x.id},row,React.createElement(DebtDayPrompt,{debt:d,onOpen:onEditDebtDay}));
+  };
   const dueRow=function(x){
     const n=diasHasta(x);
-    return React.createElement("button",{type:"button",className:"v4-charge pr6-row",key:x.id,"data-recibo":x.id,onClick:function(){ if(sig) abrirSig(x); else abrir(x); }},
+    return withDayPrompt(x,React.createElement("button",{type:"button",className:"v4-charge pr6-row",key:x.id,"data-recibo":x.id,onClick:function(){ if(sig) abrirSig(x); else abrir(x); }},
       React.createElement("span",{className:"dt","aria-hidden":"true"},
         React.createElement("span",{className:"d"}, x.day||"—"),
         React.createElement("span",{className:"m"}, monthShort((sig?sigM:month)-1))),
@@ -30333,11 +30380,11 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
         React.createElement("span",{className:"sub"}, subOf(x)),
         x.day!=null&&React.createElement("span",{className:"pr6-when"+(n!=null&&n<=1?" soon":"")}, cuando(x))),
       // «Cambia cada mes» (alta por pasos): la cifra es una previsión, se marca con «≈».
-      React.createElement("span",{className:"am num"}, (esVariable(x)?"≈ ":"")+eur(Math.abs(x.amount))));
+      React.createElement("span",{className:"am num"}, (esVariable(x)?"≈ ":"")+eur(Math.abs(x.amount)))));
   };
   const revRow=function(x){
     const cobro=x.rv==="diff"||x.rv==="up";
-    return React.createElement("button",{type:"button",className:"v4-charge pr6-rev",key:x.id,"data-recibo":x.id,"data-review":x.rv,onClick:function(){ abrir(x); }},
+    return withDayPrompt(x,React.createElement("button",{type:"button",className:"v4-charge pr6-rev",key:x.id,"data-recibo":x.id,"data-review":x.rv,onClick:function(){ abrir(x); }},
       React.createElement("span",{className:"pr6-ico","aria-hidden":"true"},
         React.createElement("svg",{width:19,height:19,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.2,strokeLinecap:"round",strokeLinejoin:"round"},
           React.createElement("path",{d:PR6_ICO[x.rv]||PR6_ICO.unconf}))),
@@ -30345,7 +30392,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
         React.createElement("span",{className:"pr6-nm"}, x.name,React.createElement(PlanConflictDot,{record:conflictOf(x)})),
         React.createElement("span",{className:"sub pr6-why"}, enlaces[x.id]?tf("pr6_enlazado_x",{x:eur(Number(enlaces[x.id].x.amount))}):pr6Motivo(x))),
       // Lo cobrado de más o de menos se enseña tal cual lo cobró el banco.
-      React.createElement("span",{className:"am num"}, eur(cobro?x.cobrado:Math.abs(x.amount))));
+      React.createElement("span",{className:"am num"}, eur(cobro?x.cobrado:Math.abs(x.amount)))));
   };
   const pausadoRow=function(f){
     return React.createElement("button",{type:"button",className:"v4-charge v4-paid pr6-prow pr6-skip",key:"p_"+f.id,"data-recibo":"fixed_"+f.id,"data-pausado":"1",
@@ -30360,14 +30407,14 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     // Si el cargo no fue lo previsto, se dice cuánto fue (la cifra de la fila sigue siendo la previsión).
     const how=[x.paidBank?tf("pr6_cargo_de",{bank:entOf(x.paidBank).label}):"",planChargeChanged(x)?tf("v4_charge_actual",{x:eur(x.paidAmount)}):"",
       x.descuento?pr6PagasMas(x):""].filter(Boolean).join(" · ");
-    return React.createElement("button",{type:"button",className:"v4-charge v4-paid pr6-prow",key:x.id,"data-recibo":x.id,onClick:function(){ abrir(x); }},
+    return withDayPrompt(x,React.createElement("button",{type:"button",className:"v4-charge v4-paid pr6-prow",key:x.id,"data-recibo":x.id,onClick:function(){ abrir(x); }},
       React.createElement("span",{className:"pr6-tick","aria-hidden":"true"},"✓"),
       React.createElement("span",{className:"nm"},
         React.createElement("span",{className:"pr6-nm"}, x.name,React.createElement(PlanConflictDot,{record:conflictOf(x)})),
         React.createElement("span",{className:"sub"},
           x.day!=null&&React.createElement(React.Fragment,null,React.createElement("span",{className:"d"},x.day)," ",React.createElement("span",{className:"m"},monthShort(month-1)),how?" · ":""),
           how)),
-      React.createElement("span",{className:"am num"}, planChargeAmount(x)));
+      React.createElement("span",{className:"am num"}, planChargeAmount(x))));
   };
   // Como mucho tres a la vista; el resto se despliega debajo con «Ver los N» (SPEC §2.3–2.4).
   const lista=function(items,render,open,setOpen,id){
@@ -33850,6 +33897,55 @@ function HelpHost(){
 }
 // Motivo con identidad: `runBankSync` no llamó al banco porque no había pull de la nube (15/9).
 const SYNC_SIN_NUBE={motivo:"sync-sin-nube"};
+// El worker no vuelve a leer el banco: solo puede enseñar el cálculo de ESTA víspera.
+// La cifra es la de «¿Te llega?», incluidas las cuotas sin día de planCoverState.
+function receiptEveProducer(state,totals,now){
+  now=now||new Date();
+  const dateKey=function(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+  const calculatedOn=dateKey(now), tomorrow=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,12);
+  const current=totals.curYear===now.getFullYear()&&totals.curMonth===now.getMonth()+1&&totals.today===now.getDate();
+  const readSince=new Date(now.getFullYear(),now.getMonth(),now.getDate()-1).getTime(), readNow=now.getTime();
+  const futureRead=function(v){ const at=Date.parse(v); return isFinite(at)&&at>readNow; };
+  const byBank=Object.create(null);
+  let pending=null;
+  return function(charge,bank){
+    const due=new Date(totals.curYear,totals.curMonth-1,charge.day,12);
+    const validDay=typeof charge.day==="number"&&Number.isInteger(charge.day)&&due.getFullYear()===totals.curYear&&due.getMonth()+1===totals.curMonth&&due.getDate()===charge.day;
+    const dueOn=validDay?dateKey(due):"";
+    const name=String(charge.name||"?").replace(/[\r\n\u2028\u2029]+/g," ");
+    const vals={name:name,x:eur(charge.amount)};
+    const eve={v:1,title:t("rc_title_tmrw"),body:tf("rc_body_tmrw",vals),coverage:"unknown",calculatedOn:calculatedOn,dueOn:dueOn};
+    if(!current||dueOn!==dateKey(tomorrow)||typeof bank!=="string"||!bank) return eve;
+    if(!Object.prototype.hasOwnProperty.call(byBank,bank)){
+      const bal=totals.bankBal&&Object.prototype.hasOwnProperty.call(totals.bankBal,bank)?totals.bankBal[bank]:null;
+      let bankOB=false, future=false;
+      const stale=(state.bankIssues||[]).some(function(i){ return i&&i.ent===bank; })
+        ||(state.accounts||[]).some(function(a){
+          if(!a||a.ent!==bank) return false;
+          if(a.bankIban||a.bankUid||a.balSaldo!=null) bankOB=true;
+          if(futureRead(a.saldoLeidoAt)||futureRead(a.balanceAt)) future=true;
+          return a.balanceStale;
+        })
+        ||(state.obAccounts||[]).some(function(a){ return a&&a.ent===bank&&a.stale; });
+      // Una lectura futura no se vuelve fiable porque otra cuenta o conexion tenga un sello anterior.
+      if(bankOB&&!future) future=Object.keys(state.obBalAt||{}).some(function(asp){ return entFromAspsp(asp)===bank&&futureRead(state.obBalAt[asp]); });
+      if(!future&&bank==="trade_republic"&&saldoLoMandaPuenteNativo(state,bank)) future=futureRead(state.lastTrSync);
+      const readAt=saldoLeidoDelBanco(state,bank);
+      let min=null;
+      if(typeof bal==="number"&&isFinite(bal)&&!stale&&readAt>0&&readAt>=readSince&&readAt<=readNow&&!future){
+        if(pending===null) pending=planChargesMonth(state,totals.curMonth,totals.curYear,totals.today).pendingBills;
+        const cover=planCoverState(totals,bank,0,pending);
+        if(cover&&typeof cover.min==="number"&&isFinite(cover.min)) min=cover.min;
+      }
+      byBank[bank]=min;
+    }
+    const min=byBank[bank];
+    if(min===null) return eve;
+    eve.coverage=min<-0.005?"short":"enough";
+    eve.body=tf(eve.coverage==="short"?"rc_body_tmrw_short":"rc_body_tmrw_enough",Object.assign({},vals,{saldo:eur(min),bank:String(entOf(bank).label).replace(/[\r\n\u2028\u2029]+/g," ")}));
+    return eve;
+  };
+}
 function App(){
   const [state,setStateRaw]=useState(loadState);
   const [modeChangePending,setModeChangePending]=useState(false);
@@ -36634,31 +36730,40 @@ function App(){
   },[state.onboarded,locked,showAuth,tourOpen]);
   // Calendario de cargos del mes (fijos + cuotas) para el intercambio con el nativo: lo usan
   // el efecto de avisos de la víspera Y el push al AlertCheckWorker — misma lista en ambos.
-  const alertCalendarOf=function(){
+  const alertCalendar=useMemo(function(){
     const cm=totals.curMonth, cy=totals.curYear;
     const ym=cy+"-"+String(cm).padStart(2,"0");
     const charges=[];
+    const eveOf=receiptEveProducer(state,totals);
     (state.fixed||[]).forEach(function(e){
       // Pausado = este mes no se cobra: avisar la víspera de algo que no llega sería mentir.
       if(!occursIn(e,cm,cy)||fixedPausedIn(e,cy,cm)) return;
+      if(isPaidIn(e,cm,totals.today,cy,state)) return;
       const d=dayIn(e,cm,cy); const amt=occAmountIn(e,cm,cy)||0;
       if(d==null||!(amt>0)) return;
-      charges.push({id:String(e.id),name:e.name||"Recibo",amount:+amt.toFixed(2),day:d});
+      const c={id:String(e.id),name:e.name||"Recibo",amount:+amt.toFixed(2),day:d};
+      c.eve=eveOf(c,e.account); charges.push(c);
     });
     (state.debts||[]).forEach(function(d){
       if(!debtActive(d)||!(d.monthly>0)) return;
-      charges.push({id:"debt_"+d.id,name:d.name||"Cuota",amount:+d.monthly.toFixed(2),day:debtChargeDay(d)});
+      if(isDebtPaidThisMonth(d,totals.today,state,cy,cm)) return;
+      const c={id:"debt_"+d.id,name:d.name||"Cuota",amount:+d.monthly.toFixed(2),day:debtChargeDay(d)};
+      c.eve=eveOf(c,d.account); charges.push(c);
     });
     const fired=[];
     charges.forEach(function(c){ try{ if(localStorage.getItem("_rc1_"+c.id+"_"+ym)==="1") fired.push(c.id); }catch(e){} });
     return {ym:ym,charges:charges,fired:fired};
-  };
+  },[state.fixed,state.debts,state.oneoffs,state.flows,state.accounts,state.obAccounts,state.expenses,state.bankTx,
+     state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,
+     state.obBalAt,state.lastTrSync,state.bankIssues,state.settings,totals,calendarDay,CURLANG,DISP.k,DISP.sym]);
+  const alertCalendarOf=function(){ return alertCalendar; };
   // Recordatorio de recibos: TODOS avisan LA VÍSPERA (petición 2026-07-18: «el banco no te
   // avisa, la app podría»); los gordos además con 2–3 días de antelación como hasta ahora.
   // Incluye también las cuotas de deuda. Una noti por cargo y mes. Importes con eur() EXACTO:
   // redondear aquí hizo que «la luz» saliera como 90 € cuando el cargo real era 89,54 (2026-07-21).
   useEffect(function(){
     if(state.onboarded===false||locked||showAuth) return;
+    if(mcSandbox()) return;
     const nat=natPlugin();
     if(!nat||!nat.showNotification) return;
     const today=totals.today||new Date().getDate();
@@ -36666,11 +36771,20 @@ function App(){
     const minAmt=Math.max(80, (totals.fijosMensual||0)*0.12);
     const cal=alertCalendarOf();
     const ym=cal.ym;
+    let cancelled=false;
+    const messageOf=function(id,name,amt){
+      const c=cal.charges.find(function(c){ return c.id===id; });
+      return c&&c.eve||{title:t("rc_title_tmrw"),body:tf("rc_body_tmrw",{name:name||"?",x:eur(amt)})};
+    };
     const notify=function(key,title,body){
       try{ if(localStorage.getItem(key)==="1") return; localStorage.setItem(key,"1"); }catch(err){}
       try{ nat.showNotification({title:title,body:body}).catch(function(){}); }catch(err){}
     };
     const run=function(){
+      if(cancelled) return;
+      // El intercambio de sellos puede resolver tras medianoche: ese cálculo ya no es de hoy.
+      const now=new Date();
+      if(totals.curYear!==now.getFullYear()||totals.curMonth!==now.getMonth()+1||totals.today!==now.getDate()) return;
       (state.fixed||[]).forEach(function(e){
         if(!occursIn(e,cm,cy)||fixedPausedIn(e,cy,cm)) return;
         const d=dayIn(e,cm,cy); if(d==null) return;
@@ -36679,7 +36793,8 @@ function App(){
         if(!(amt>0)) return;
         const daysLeft=d-today;
         if(daysLeft===1){
-          notify("_rc1_"+e.id+"_"+ym, t("rc_title_tmrw"), tf("rc_body_tmrw",{name:e.name||"?",x:eur(amt)}));
+          const msg=messageOf(String(e.id),e.name,amt);
+          notify("_rc1_"+e.id+"_"+ym, msg.title, msg.body);
         } else if(amt>=minAmt && daysLeft>=2 && daysLeft<=3){
           notify("_rc_"+e.id+"_"+ym+"_"+d, t("rc_title"), tf("rc_body",{name:e.name||"?",x:eur(amt),d:String(d)}));
         }
@@ -36689,7 +36804,8 @@ function App(){
         if(!debtActive(d) || !(d.monthly>0)) return;
         if(isDebtPaidThisMonth(d,today,state,cy,cm)) return;
         if(debtChargeDay(d)-today!==1) return;
-        notify("_rc1_debt_"+d.id+"_"+ym, t("rc_title_tmrw"), tf("rc_body_tmrw",{name:d.name||"?",x:eur(d.monthly)}));
+        const msg=messageOf("debt_"+d.id,d.name,d.monthly);
+        notify("_rc1_debt_"+d.id+"_"+ym, msg.title, msg.body);
       });
     };
     // ANTES de avisar, sella lo que el NATIVO ya avisó. Este efecto corría en paralelo al
@@ -36703,7 +36819,8 @@ function App(){
         }).catch(run);
       }catch(e){ run(); }
     } else run();
-  },[state.onboarded,locked,showAuth,state.fixed,state.debts,state.oneoffs,state.accounts,state.expenses,state.bankTx,state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,totals.today,totals.curMonth,totals.curYear]);
+    return function(){ cancelled=true; };
+  },[state.onboarded,locked,showAuth,alertCalendar]);
 
   // Empuja el calendario de recibos del mes al NATIVO (APK ≥29): AlertCheckWorker avisa la
   // víspera aunque la app esté CERRADA. Intercambio de sellos para no avisar dos veces:
@@ -36711,6 +36828,7 @@ function App(){
   // aparte del efecto de arriba para que el calendario llegue al worker TAMBIÉN con la app
   // bloqueada o a medio onboarding (el de arriba sale temprano en esos casos).
   useEffect(function(){
+    if(mcSandbox()) return;
     const nat=natPlugin();
     if(!nat||!nat.setAlertData) return;
     const cal=alertCalendarOf();
@@ -36719,7 +36837,7 @@ function App(){
         ((r&&r.fired)||[]).forEach(function(id){ try{ localStorage.setItem("_rc1_"+id+"_"+cal.ym,"1"); }catch(e){} });
       }).catch(function(){});
     }catch(e){}
-  },[state.fixed,state.debts,totals.curMonth]);
+  },[alertCalendar]);
 
   // Avisos de presupuesto al cruzar 50/80/95/100% (petición 2026-07-18). Una noti por umbral
   // y mes; si al abrir ya vas por el 97%, solo suena el umbral MÁS ALTO (los demás se sellan
