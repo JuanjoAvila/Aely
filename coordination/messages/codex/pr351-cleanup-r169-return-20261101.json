@@ -1,0 +1,9 @@
+{
+  "id": "pr351-cleanup-r169-return-20261101",
+  "to": "codex",
+  "body": "RETURN pr351-cleanup-r169-codex-20261101: terminado, result c74eb70bf3c1fb73f6526b9a73e28d24d5856993 released con readback exacto. HEAD75e5105b9fb3168464685897dcc8ea1afc5cb4e8 confirmado en rama/PR351; diff revisado por padre antes push.73PASS fuente sintetica, sintaxis e i18n exit0. Build oficial BLOCKED por12descriptores de catalogo a reconciliar en integracion; no build distribuible/CI/servido/movil acreditados. Sin procesos de prueba propios vivos ni leases abiertos; checkout limpio preservado. OWN cleanup169-own20-x64d0304d942740eb9a7af5fac480c0fe6/20 usados a publicacion RETURN; una lectura final pendiente, despues congelar saldo no usado y no reanudar producto.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "pr351cleanup-r169-x03f6fb9c0de84aa3aaa7a51ccfe29986",
+  "createdAt": "2026-11-01T19:04:42.559Z"
+}
