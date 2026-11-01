@@ -7923,6 +7923,7 @@ Object.assign(LANG.es,{
   rp_btn:"📸 Informe del mes (imagen)", rp_spent:"Gastado este mes", rp_of_budget:"de {b} de presupuesto ({p}%)",
   rp_top:"Top categorías", rp_networth:"Patrimonio", rp_footer:"hecho con Aely",
   mr_title:"Así acabó {mes}",
+  mr_budget_missing:"Límite de este mes no guardado", mr_budget_none:"Este mes no tenía límite configurado", mr_budget_invalid:"Límite de este mes no disponible",
   mr_share:"📸 Crear imagen del informe", mr_later:"Descartar", mr_shared:"✓ Informe listo para compartir",
   mr_top:"Más gasto: {cat} ({x})", mr_saved:"Ahorraste {x}", mr_over:"Gastaste {x} más de lo que entró",
   hh_title:"Hogar compartido", hh_intro:"Cada uno ve el patrimonio conjunto, sin mezclar datos privados.",
@@ -10088,9 +10089,10 @@ function shareMonthReport(state, tt, showToast, opt){
     g.fillStyle=surface; round(72,210,W-144,330,28); g.fill(); g.strokeStyle=line; g.lineWidth=2; round(72,210,W-144,330,28); g.stroke();
     g.fillStyle=muted; g.font="700 27px Manrope, sans-serif"; g.fillText(t("rp_spent").toUpperCase(), 116, 252);
     // Misma cifra que Resumen/Gastos (`monthBudgetStats`), no thisMonthSpent.
-    const bs=monthBudgetStats(state, winStart+12*864e5, winEnd!=null?winEnd:undefined);
+    const bs=winEnd!=null?closedMonthBudgetStats(state,winStart,winEnd)
+      :monthBudgetStats(state,winStart+12*864e5);
     // La barra mide lo mismo que Inicio y la tarjeta del mes cerrado (`limiteDeStats`, 26/10/2026).
-    bs.against=limiteDeStats(bs,state).against;
+    if(winEnd==null) bs.against=limiteDeStats(bs,state).against;
     const spentShown=bs.shown!=null?bs.shown:Math.max(0,bs.against||0);
     g.fillStyle=text;  g.font="700 96px Manrope, sans-serif"; g.fillText(eur0(spentShown), 112, 300);
     const bud=bs.budget!=null?bs.budget:0;
@@ -10099,6 +10101,8 @@ function shareMonthReport(state, tt, showToast, opt){
       g.fillStyle="rgba(128,128,128,.18)"; round(116,432,W-232,26,13); g.fill();
       g.fillStyle=ratio<1?mint:coral; round(116,432,Math.max(20,(W-232)*ratio),26,13); g.fill();
       g.fillStyle=muted; g.font="600 28px Manrope, sans-serif"; g.fillText(tf("rp_of_budget",{b:eur0(bud),p:Math.round(ratio*100)}), 116, 480);
+    } else if(bs.budgetReason){
+      g.fillStyle=muted; g.font="600 28px Manrope, sans-serif"; g.fillText(t(bs.budgetReason),116,480);
     }
     // top 3 categorías del mes (misma ventana que bs)
     const byCat={};
@@ -12796,6 +12800,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       React.createElement("div",{style:{fontSize:12,color:"var(--muted)"}}, t("rp_spent")),
       closedCard.stats.budget!=null && closedCard.stats.budget>0 && React.createElement("div",{style:{fontSize:12.5,marginTop:6}},
         tf("rp_of_budget",{b:eur0(closedCard.stats.budget),p:Math.round(Math.min(100,(closedCard.stats.against/(closedCard.stats.budget||1))*100))})),
+      closedCard.stats.budgetReason && React.createElement("div",{style:{fontSize:12.5,marginTop:6}},t(closedCard.stats.budgetReason)),
       closedCard.topCat && React.createElement("div",{style:{fontSize:12.5,marginTop:6}},
         tf("mr_top",{cat:catName(closedCard.topCat.id), x:eur0(closedCard.topCat.amount)})),
       React.createElement("div",{style:{fontSize:12.5,marginTop:6}},
@@ -19210,6 +19215,15 @@ function rekeyFixedPaymentExpense(s,old,next){
   // prueba debe seguir al cargo vivo sin confundir esa lápida con borrar el pago.
   return changed?Object.assign({},s,{fixed:fixed}):s;
 }
+// La edición comparte la validación de la marca con el estado: ver un BOOK nuevo no prueba
+// que paidYm fuese válido antes de guardar, y una prueba movida de mes tampoco lo acredita.
+function fixedPaymentPersistedDay(s,e,y,m,today){
+  var ym=y+"-"+String(m).padStart(2,"0"),paidDay=e.paidYm===y*12+m&&Number(e.paidDay);
+  var persisted=paidDay>=1&&paidDay<=today&&paidDay<=new Date(y,m,0).getDate();
+  var posted=e.paymentProofs&&e.paymentProofs[y*12+m];
+  if(posted&&posted.kind==="book"&&paidDay===recDay(posted.date)&&fixedPaymentBookDate(s,posted).slice(0,7)!==ym) persisted=false;
+  return persisted?paidDay:null;
+}
 function fixedPaymentState(s,e,y,m,today){
   var day=dayIn(e,m,y),ym=y+"-"+String(m).padStart(2,"0");
   var target=typeof e.bankAmount==="number"&&e.bankAmount>0?e.bankAmount:occAmountIn(e,m,y);
@@ -19219,10 +19233,7 @@ function fixedPaymentState(s,e,y,m,today){
     if(!/^\d{4}-\d{2}-\d{2}$/.test(ds)||ds.slice(0,7)!==ym||d==null||d>today||d>new Date(y,m,0).getDate()) return false;
     return Number(tx.amount)>0&&recNameMatch(e.name,tx.merchant)&&recAmtClose(target,Number(tx.amount))&&!reciboVetado(s,e.id,fixedPaymentIdentity(tx.ent,tx));
   });
-  var paidDay=e.paidYm===y*12+m&&Number(e.paidDay);
-  var persisted=paidDay>=1&&paidDay<=today&&paidDay<=new Date(y,m,0).getDate();
-  var posted=e.paymentProofs&&e.paymentProofs[y*12+m];
-  if(posted&&posted.kind==="book"&&paidDay===recDay(posted.date)&&fixedPaymentBookDate(s,posted).slice(0,7)!==ym) persisted=false;
+  var paidDay=fixedPaymentPersistedDay(s,e,y,m,today),persisted=paidDay!=null;
   var tx=matches.length===1?matches[0]:null;
   if(tx){
     if((s.fixed||[]).some(function(f){
@@ -21787,16 +21798,29 @@ function closedMonthTopCat(state, startMs, endMs){
   const top=rows.find(function(r){ return r.spent>0; });
   return top?{id:top.id, amount:top.spent}:null;
 }
+function closedMonthBudgetStats(state, startMs, endMs){
+  const ym=budgetYmKey(startMs+12*864e5), map=state.budgetByMonth||{};
+  const raw=Object.prototype.hasOwnProperty.call(map,ym)?map[ym]:null;
+  // Una foto ausente no permite reconstruir el límite con el de hoy. El cero guardado es un
+  // dato distinto; solo se admiten decimales heredados, nunca coerciones de booleanos u objetos.
+  const decimal=typeof raw==="string" && /^(?:\d+(?:\.\d*)?|\.\d+)$/.test(raw);
+  const value=typeof raw==="number"||decimal?Number(raw):NaN;
+  const valid=Number.isFinite(value)&&value>=0;
+  const reason=raw==null?"mr_budget_missing":!valid?"mr_budget_invalid":value===0?"mr_budget_none":"";
+  const historic=Object.assign({},state,{budget:valid?value:0});
+  const stats=monthBudgetStats(historic,startMs+12*864e5,endMs);
+  const lim=limiteDeStats(stats,historic);
+  stats.against=lim.against; stats.budget=lim.budget; stats.remaining=lim.remaining;
+  stats.budgetReason=reason;
+  return stats;
+}
 function closedMonthCardOf(state, nowMs){
   const w=closedMonthWindow(nowMs);
   if(w.dayOfMonth>CLOSED_MONTH_CARD_DAYS) return null;
   const dismissed=(state.settings&&state.settings.closedMonthDismissed)||"";
   if(dismissed===w.closedYm) return null;
-  const stats=monthBudgetStats(state, w.startMs+12*864e5, w.endMs);
+  const stats=closedMonthBudgetStats(state, w.startMs, w.endMs);
   if(!(stats.spent>0) && !(stats.income>0)) return null;
-  // La cifra grande sigue la preferencia; el % del presupuesto, la regla del mes (`limiteDeStats`).
-  const lim=limiteDeStats(stats, state);
-  stats.against=lim.against; if(stats.budget!=null) stats.remaining=lim.remaining;
   return {
     ym:w.closedYm, startMs:w.startMs, endMs:w.endMs,
     month:w.closedMonth, year:w.closedYear,
@@ -23178,12 +23202,17 @@ function planSyncDerived(s,prev){
 }
 function patchFixedById(set, id, p){
   set(function(s){
-    let it=null,previous=null;
+    const d=new Date(),y=d.getFullYear(),m=d.getMonth()+1,today=d.getDate();
+    let it=null,previous=null,pagadoPersistido=false;
     const fx=(s.fixed||[]).map(function(e){
       if(e.id!==id) return e;
+      pagadoPersistido=!!fixedPaymentProof(s,e,y,m,today)||fixedPaymentPersistedDay(s,e,y,m,today)!=null;
       previous=Object.assign({},e);if(previous.freq==="mes"){delete previous.months;delete previous.schedule;}
       const n=Object.assign({},e,p);
       if(("day" in p)&&!p.day) delete n.day;
+      // Un céntimo y un día son valores, no la representación que mande el formulario.
+      if(pagadoPersistido&&Number(e.amount)>0&&Number(n.amount)>0&&isFinite(n.amount)&&Math.round(e.amount*100)===Math.round(n.amount*100)) n.amount=e.amount;
+      if(pagadoPersistido&&cleanDay(e.day)&&cleanDay(e.day)===cleanDay(n.day)) n.day=e.day;
       if(n.freq==="mes"){ delete n.months; delete n.schedule; }
       // Convertir sólo la prueba válida ANTES del renombrado, en esta misma escritura.
       // Ni el arranque ni el sync rescatan vínculos ya rotos; tampoco cambia el cargo.
@@ -23203,9 +23232,12 @@ function patchFixedById(set, id, p){
     });
     const n=Object.assign({},s,{fixed:fx});
     const contractChanged=["amount","bankAmount","account","freq","months","schedule"].some(function(k){return previous&&it&&!goalSyncEqual(previous[k],it[k]);});
-    if(it&&(("day" in p)||contractChanged)){
+    const cambio=previous&&it&&(cleanDay(previous.day)!==cleanDay(it.day)||cleanDay(dayIn(previous,m,y))!==cleanDay(dayIn(it,m,y))||Math.round(occAmountIn(previous,m,y)*100)!==Math.round(occAmountIn(it,m,y)*100));
+    // El BOOK recién llegado conserva su confirmación previa; solo una prueba ya persistida
+    // permite guardar lo mismo sin convertirla en una marca manual de saldo.
+    if(it&&(("day" in p)||contractChanged)&&(!pagadoPersistido||contractChanged||cambio)){
       if(contractChanged){ delete it.paidYm; delete it.paidDay; }
-      fixedMarcaTrasCambio(n,it,id,new Date());
+      fixedMarcaTrasCambio(n,it,id,d);
     }
     return n;
   });
@@ -23244,6 +23276,7 @@ function fixedEditarRecibo(s, id, patch, scope, y, m, today){
   const old=(s.fixed||[]).find(function(e){ return e.id===id; });
   if(!old) return s;
   const cur=y*12+m, antes=fixedPaymentState(s,old,y,m,today);
+  const pagadoPersistido=!!antes.proof||fixedPaymentPersistedDay(s,old,y,m,today)!=null;
   const mes=scope==="mes"&&!antes.paid&&occursIn(old,m);
   const p=Object.assign({},patch);
   const solo={};
@@ -23261,6 +23294,9 @@ function fixedEditarRecibo(s, id, patch, scope, y, m, today){
   // `null` en el parche = quitar el campo (meses a mano, pagos, categoría, «cambia cada mes»).
   Object.keys(p).forEach(function(k){ if(p[k]==null) delete n[k]; });
   if("day" in p){ if(cleanDay(p.day)) n.day=cleanDay(p.day); else delete n.day; }
+  // Conservar el valor anterior evita invalidar su prueba por una representación equivalente.
+  if(pagadoPersistido&&Number(old.amount)>0&&Number(n.amount)>0&&isFinite(n.amount)&&Math.round(old.amount*100)===Math.round(n.amount*100)) n.amount=old.amount;
+  if(pagadoPersistido&&cleanDay(old.day)&&cleanDay(old.day)===cleanDay(n.day)) n.day=old.day;
   if(n.freq==="mes"){ delete n.months; delete n.schedule; }
   if(mes){
     // Lo que coincide con el recibo no se guarda: «solo este mes» con la cifra de siempre es nada.
@@ -23322,9 +23358,10 @@ function fixedEditarRecibo(s, id, patch, scope, y, m, today){
     const vale=[K,K-1].some(function(ym){ if(!(ym<=cur)) return false; const f=fin(ym); return fixedPaymentProof(out,n,f.Y,f.M,f.T)===nuevas[k]; });
     if(!vale) n.paymentProofs[k]=proofs[k];
   });
-  // La marca del mes se recalcula como en cualquier edición (una prueba BOOK o un cargo enlazado
-  // protegen su día); y un mes que estaba pagado no deja de estarlo por editar.
-  if(contrato||"day" in patch) fixedMarcaTrasCambio(out,n,id,new Date());
+  // Solo un guardado equivalente evita recalcular: el mes congelado puede ocultar un cambio
+  // del día global, y retirar «solo este mes» puede cambiar el cargo sin tocar el recibo base.
+  const cambio=cleanDay(old.day)!==cleanDay(n.day)||cleanDay(dayIn(old,m,y))!==cleanDay(dayIn(n,m,y))||Math.round(occAmountIn(old,m,y)*100)!==Math.round(occAmountIn(n,m,y)*100);
+  if((contrato||"day" in patch)&&(!pagadoPersistido||contrato||cambio)) fixedMarcaTrasCambio(out,n,id,new Date());
   if(antes.paid&&old.paidYm!=null&&!fixedPaymentState(out,n,y,m,today).paid){ n.paidYm=old.paidYm; n.paidDay=old.paidDay; delete n.wait; }
   // Sin `conSaldoMostrado`, como `patchFixedById`: mover el día de un recibo que el calendario daba
   // por cobrado y el banco no trae devuelve ese importe al saldo, que es lo cierto (lo fija
@@ -27450,7 +27487,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="7466949cd6529cc9ed28e2ab621517a44cafa3270b32c8aa60be8c210b4c2fc9";
+var _rnSha="7b67c034bf2c9f68d6a401c6038022103a02dcd3f789e76b517e6f73d8506eed";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

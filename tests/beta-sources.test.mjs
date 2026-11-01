@@ -212,6 +212,8 @@ const sourceBeta198=sourceAt("52a1ee1d9a2a9a78dcb982e310ac74ca3038df2e");
 const sourceBeta199=sourceAt("c89bb12c528f079640a514b95334c21b9df2d2c1");
 // Catálogo200 pasa a histórico con la 201: se lee de la 4.26.200 servida en beta (656f17a69, sin APK nueva, APK 63); su tanda (gastos-filtros-icono) NO tiene veredicto y la 201 la conserva en el panel.
 const sourceBeta200=sourceAt("656f17a69acdb59a4bfd14ea51a50196157b5807");
+// Catálogo201 pasa a histórico con la 202: se lee de la 4.26.201 servida en beta (18ca9a901, sin APK nueva, APK 63); sin tandas.
+const sourceBeta201=sourceAt("18ca9a901332457bba5c93c193eedbb0986db745");
 // Producción 4.26.182 servida (main, 496a8a83d): el historial que la promoción 198 conserva debajo de su nota única y el árbol que lee Promoción182 histórico.
 const sourceProd182=sourceAt("496a8a83d6785563d93d8bbb6e67ba7e9ffce582");
 // Producción 4.26.159 servida (main, merge del PR 292, a6bc05df4): el historial que la promoción 182 conservó debajo de su nota única y el árbol que lee Promoción159 histórico.
@@ -6202,14 +6204,132 @@ test("Catálogo176 añade la tanda del vínculo de recibo (solo web) sobre la 17
   assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
 });
 
+const expected202={"v":"4.26.202","d":"2026-11-01","t":{"es":"Recibos pagados y mes cerrado, con sus datos","en":"Paid bills and closed month, with their own figures","ca":"Rebuts pagats i mes tancat, amb les seves dades"},"items":{"es":["Guardar un recibo ya pagado sin cambiar nada de lo que importa ya no lo devuelve a pendiente.","La tarjeta del mes cerrado y su imagen usan el límite que tenías aquel mes, y si no se guardó lo dicen."],"en":["Saving a bill that is already paid without changing anything that matters no longer sends it back to pending.","The closed-month card and its image use the limit you had that month, and say so when it was not saved."],"ca":["Desar un rebut ja pagat sense canviar res del que importa ja no el torna a pendent.","La targeta del mes tancat i la seva imatge fan servir el límit que tenies aquell mes, i ho diuen si no es va desar."]},"tandas":[{"id":"plan-recibos-guardar-pagado","t":{"es":"Plan: guardar un recibo pagado sin cambios","en":"Plan: save a paid bill with no changes","ca":"Pla: desar un rebut pagat sense canvis"},"items":{"es":["1. Plan → Recibos → «Ya pagados» → toca un recibo pagado → Editar → cambia solo el nombre → Guardar. BIEN: sigue en «Ya pagados» con el mismo importe y el mismo día de pago, y «Queda por pagar» no se mueve. MAL: vuelve a pendiente, cambia lo pagado o «Queda por pagar» sube."],"en":["1. Plan → Bills → “Already paid” → tap a paid bill → Edit → change only the name → Save. RIGHT: it stays under “Already paid” with the same amount and the same payment day, and “Left to pay” does not move. WRONG: it goes back to pending, what was paid changes or “Left to pay” rises."],"ca":["1. Pla → Rebuts → «Ja pagats» → toca un rebut pagat → Editar → canvia només el nom → Desa. BÉ: continua a «Ja pagats» amb el mateix import i el mateix dia de pagament, i «Queda per pagar» no es mou. MALAMENT: torna a pendent, canvia el pagat o «Queda per pagar» puja."]}},{"id":"informe-mes-limite-del-mes","t":{"es":"Inicio: tarjeta del mes cerrado con su límite","en":"Home: closed-month card with its limit","ca":"Inici: targeta del mes tancat amb el seu límit"},"items":{"es":["1. Inicio → tarjeta «Así acabó octubre» (primeros días del mes). BIEN: debajo del gasto pone «de X € de presupuesto» con el límite que tenías en octubre, o «Límite de este mes no guardado» si no se guardó; nunca el de ahora. MAL: sale el límite actual o un porcentaje sin límite de octubre.","2. En esa tarjeta → «Crear imagen del informe». BIEN: la imagen dice lo mismo que la tarjeta. MAL: la imagen enseña otro límite u otro porcentaje."],"en":["1. Home → “How October ended” card (first days of the month). RIGHT: under the spending it says “of X € budget” with the limit you had in October, or “This month's limit was not saved” if it was not saved; never today's. WRONG: today's limit shows or a percentage appears without an October limit.","2. On that card → “Create report image”. RIGHT: the image says the same as the card. WRONG: the image shows another limit or another percentage."],"ca":["1. Inici → targeta «Així va acabar octubre» (primers dies del mes). BÉ: sota la despesa diu «de X € de pressupost» amb el límit que tenies a l'octubre, o «Límit d'aquest mes no desat» si no es va desar; mai el d'ara. MALAMENT: surt el límit actual o un percentatge sense límit d'octubre.","2. En aquesta targeta → «Crear imatge de l'informe». BÉ: la imatge diu el mateix que la targeta. MALAMENT: la imatge ensenya un altre límit o un altre percentatge."]}}]};
+// 4.26.202 (01/11/2026): cuatro piezas sobre la beta 4.26.201 servida (18ca9a901, sin APK nueva: sigue la 63), solo web: la PR 333 de Codex (90e75782c, remate R2 de Recibos t4: guardar sin cambiar nada un recibo ya pagado no toca su pago), la PR 336 de Codex (a52ad41cf, INC-2909-02: la tarjeta del mes cerrado y su imagen usan el límite de aquel mes), claude/plan-recibos-t7 (solo documentación) y claude/fix-fin17-fecha (solo tests). Revisión de dinero independiente: GO con remates en las dos PR.
+// Dos tandas NUEVAS (plan-recibos-guardar-pagado, un paso; informe-mes-limite-del-mes, dos pasos; sin APK). La 201 no llevaba ninguna: el panel enseña dos.
+// Registro: entran dos descriptores nuevos, los últimos. Los que llaman a fixedPaymentPersistedDay o a closedMonthBudgetStats ganan esa unidad al final (cierre de lectores); ningún descriptor anterior se reordena ni pierde unidades. Las huellas que se mueven (lista cerrada) son las de esos descriptores; ninguna es de una tanda viva.
+test("Catálogo202 añade las tandas de guardar un recibo pagado sin cambios y del límite del mes cerrado (solo web) sobre la 201 y declara las huellas que mueve",()=>{
+  const tandaA="plan-recibos-guardar-pagado",tandaB="informe-mes-limite-del-mes",M8="src/modules/08-motor-bank.js",U2="src/modules/02-ui-shared.js",D3="src/modules/03-tab-dash.js",I1="src/modules/01-i18n.js",java="android/app/src/main/java/com/micartera/app/";
+  const integrated=JSON.parse(sourceBeta201("scripts/beta-sources.json")),before=JSON.parse(sourceBeta201("src/data/release-notes.json"));
+  const source=f=>nl(read(f)),old=f=>nl(sourceBeta201(f));
+  assert.equal(before[0].v,"4.26.201");
+  assert.deepEqual(before.flatMap(n=>(n.tandas||[]).map(g=>g.id)),[],"la 201 servida no lleva tandas");
+  const expectedNotes=[expected202,...before];
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.deepEqual(notes,expectedNotes,"la nota 202 literal delante y todo lo demás intacto");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.202",tandaA,0],["4.26.202",tandaB,0]],"el panel enseña dos, sin APK nueva");
+  assert.equal(notes.length,299);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
+  for(const n of notes.slice(1))assert.ok(Array.isArray(n.tandas)&&n.tandas.length===0,n.v+": tandas:[] (la propiedad se conserva, vacía)");
+  for(const g of notes[0].tandas)assert.deepEqual(Object.keys(g),["id","t","items"],"las tandas nuevas no piden APK");
+  const jerga=/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|FIN-|SES-|UX-|SEC-|zoom|\d+\.\d+\.\d+/i;
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,2,lang+": dos puntos familiares");
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
+    notes[0].tandas.forEach((g,gi)=>{
+      const steps=g.items[lang];
+      assert.equal(steps.length,[1,2][gi],lang+": pasos de "+g.id);
+      steps.forEach((s,i)=>{
+        assert.ok(s.startsWith((i+1)+". "),lang+": paso numerado "+(i+1)+" de "+g.id);
+        assert.ok(/MAL|WRONG|MALAMENT/.test(s)&&/BIEN|RIGHT|BÉ/.test(s),lang+": el paso "+(i+1)+" de "+g.id+" dice qué es MAL y qué es BIEN");
+      });
+    });
+  }
+  // Los rótulos que cita el guion existen en 01-i18n.js.
+  const i18n=nl(read(I1));
+  for(const x of ["Ya pagados","Editar","Guardar","Límite de este mes no guardado","Crear imagen del informe","Así acabó","Already paid","Save","This month's limit was not saved","Create report image","How {mes} ended","Ja pagats","Desa","Límit d'aquest mes no desat","Crear imatge de l'informe","Així va acabar"])assert.ok(i18n.includes(x),"el rótulo «"+x+"» existe en 01-i18n.js");
+  const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
+  {const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verifyNotes(twice),assert.AssertionError,"no duplicar una tanda");}
+  {const sin=structuredClone(notes);sin[0].tandas=[];assert.throws(()=>verifyNotes(sin),assert.AssertionError,"las tandas nuevas no se vacían");}
+  // Registro: los anteriores intactos (solo crecen por el final con las dos unidades nuevas); los descriptores nuevos, detrás.
+  const scopes=JSON.parse(source("scripts/beta-sources.json"));
+  assert.deepEqual(Object.keys(scopes),[...Object.keys(integrated),tandaA,tandaB],"los descriptores nuevos, los últimos");
+  const nuevas=[{file:M8,function:"fixedPaymentPersistedDay"},{file:M8,function:"closedMonthBudgetStats"}];
+  let crecen=0;
+  for(const [key,scope] of Object.entries(integrated)){
+    const ahora=scopes[key];
+    assert.deepEqual(Object.keys(ahora),Object.keys(scope),key+": mismas claves");
+    for(const k of Object.keys(scope))if(k!=="web")assert.deepEqual(ahora[k],scope[k],key+": "+k+" intacto");
+    assert.deepEqual(ahora.web.slice(0,scope.web.length),scope.web,key+": lo anterior intacto");
+    const cola=ahora.web.slice(scope.web.length);
+    for(const u of cola)assert.ok(nuevas.some(c=>JSON.stringify(c)===JSON.stringify(u)),key+": solo las dos unidades nuevas al final: "+JSON.stringify(u));
+    assert.equal(new Set(cola.map(u=>JSON.stringify(u))).size,cola.length,key+": sin repetir");
+    if(cola.length)crecen++;
+  }
+  assert.equal(crecen,67,"crecen los 67 descriptores que llaman a fixedPaymentPersistedDay o a closedMonthBudgetStats y aún no las vigilaban");
+  const propiasA=[...["fixedPaymentPersistedDay","fixedPaymentState","patchFixedById","fixedEditarRecibo"].map(function_=>({file:M8,function:function_})),(({file,from,to})=>({file,from,to}))(integrated["plan-recibos-t3"].web.find(u=>u.from&&u.from.includes("INC-0410 guardado: de aquí")))];
+  const propiasB=[{file:M8,function:"closedMonthBudgetStats"},{file:M8,function:"closedMonthCardOf"},{file:U2,function:"shareMonthReport"},
+    {file:D3,from:"      closedCard.stats.budget!=null && closedCard.stats.budget>0 && React.createElement(\"div\"",to:"t(closedCard.stats.budgetReason)),",includeTo:true},
+    {file:I1,from:"  mr_budget_missing:\"Límite de este mes no guardado\"",to:"mr_budget_invalid:\"Límite de este mes no disponible\",",includeTo:true},
+    {file:I1,from:"  mr_budget_missing:\"This month's limit was not saved\"",to:"mr_budget_invalid:\"This month's limit is unavailable\",",includeTo:true},
+    {file:I1,from:"  mr_budget_missing:\"Límit d'aquest mes no desat\"",to:"mr_budget_invalid:\"Límit d'aquest mes no disponible\",",includeTo:true}];
+  for(const [tanda,propias] of [[tandaA,propiasA],[tandaB,propiasB]]){
+    const ahora=scopes[tanda];
+    assert.deepEqual(Object.keys(ahora),["web","unidades"],tanda+": solo web");assert.equal(ahora.unidades,true);
+    assert.deepEqual(ahora.web.slice(0,propias.length),propias,tanda+": las unidades propias");
+    const fns=logicFunctions(source),dat=logicData(source);let web=propias.slice();
+    for(let ronda=0;ronda<12;ronda++){
+      const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];
+      for(const f of scopeDependencies({web},source,fns))if(!tiene(f.file,f.name,"function"))extra.push({file:f.file,function:f.name});
+      for(const d of scopeDataDependencies({web},source,fns,dat))if(!tiene(d.file,d.name,"data"))extra.push({file:d.file,data:d.name});
+      if(!extra.length)break;web=web.concat(extra);
+    }
+    const clave=u=>JSON.stringify(u);
+    assert.equal(ahora.web.length,web.length,tanda+": el cierre de lectores es exactamente el calculado");
+    assert.deepEqual(new Set(ahora.web.map(clave)),new Set(web.map(clave)),tanda+": el cierre de lectores es exactamente el calculado");
+    for(const u of ahora.web)assert.ok(scopeText(u,source).length>0,tanda+": la unidad existe en la fuente: "+JSON.stringify(u));
+  }
+  // Del árbol de la 201 cambian los textos, el informe, la tarjeta y el motor; el núcleo, Plan, Gastos, el servidor y la APK siguen idénticos.
+  for(const file of [I1,U2,D3,M8])assert.notEqual(source(file),old(file),"cambia de verdad: "+file);
+  for(const file of ["src/modules/00-core.js","src/modules/04-tab-gastos.js","src/modules/06-sync-brokers.js","src/modules/07-tab-patri-fijos.js","src/modules/14-v4-screens.js","src/shell.html","supabase/functions/_shared/presupuesto.ts","supabase/functions/ingest/index.ts","supabase/functions/ingest/widget.ts",java+"MiCarteraWidget.java",java+"MiCarteraPlugin.java","android/app/build.gradle","public/apk.json"])assert.equal(source(file),old(file),"sin cambios: "+file);
+  // Huellas que se mueven (lista cerrada): las de los descriptores que leen las funciones o los textos que tocan las dos PR.
+  const expectedMoves={"bancos-acuse-reconexion":["web"],"bancos-sin-hueco":["web"],"cartera-sin-lagazo":["web"],"compras-identicas-ids":["web"],"cuenta-parte-mia":["web"],"deuda-ir-suave":["web"],"deuda-nueva-desde-su-dia":["web"],"feature-0310-01-movilidad":["web"],"fin05-pago-cerrada":["web"],"fin05-widget-reentrada":["web"],"fin28-aviso-enlace-manual":["web"],"gastos-dos-bancos":["web"],"gastos-lag-ciclos":["web"],"gastos-lag-ciclos-r3":["web"],"gastos-margen-sin-nomina":["web"],"gastos-recibo-fila-textos-cortos":["web"],"gastos-renombrar-otro-banco":["web"],"gastos-scroll-fluido-cifras":["web"],"gastos-suscripciones-botones":["web"],"gastos-v5-ciclos-metas-inversiones":["web"],"gastos-v5-filtro":["web"],"gastos-v5-filtros-hoja":["web"],"gastos-v5-movimientos":["web"],"gastos-v5-secciones":["web"],"gastos-v5-subs":["web"],"gestionar-plan-ola":["web"],"inc-0210-01-plan-cuota":["web"],"inc-0210-03-gastos-periodo":["web"],"inc-0310-gastos-sin-limite":["web"],"inc-0710-gastos-mes-madrid":["web"],"inc-0810-dashboard-recents-memo":["web"],"inc-2909-01-widget-periodo":["web"],"inc-2909-02-inicio-natural":["web"],"inc-2909-03-retirada":["web"],"inc-3009-01-cargos":["web"],"inc-3009-nomina-anticipada":["web"],"inicio-grafica-vuelve":["web"],"inicio-mes-pasado-mismo-dia":["web"],"inicio-patrimonio-flujos":["web"],"inicio-traspasos":["web"],"plan-dos-moviles":["web"],"plan-por-confirmar-prestamo-youtube":["web"],"plan-recibos-t3":["web"],"plan-recibos-t4":["web"],"plan-recibos-v6-t1":["web"],"plan-recibos-v6-t2":["web"],"recibo-cargo-en-gastos":["web"],"recibo-renombrado-sigue-pagado":["web"],"recibo-vinculo-saldo":["web"],"recibos-cargo-unico":["web"],"recibos-cifra-cuadra":["web"],"renombrar-sin-cobertura":["web"],"renombrar-y-notas-seguras":["web"],"sync-dos-moviles":["web"],"tr-descripcion-clasificacion":["web"],"tr-empareja-sin-preguntar":["web"],"tr-iguales-ordinal":["web"],"vibracion-r3":["web"],"vuelta-sin-tiron":["web"],"widget-app-cerrada":["web"],"widget-banco":["web"],"widget-ciclo-puente":["web"],"widget-pago-app-cerrada":["web"],"youtube-diagnostico":["web"],"youtube-enlazar-recibo":["web"],"youtube-ficha-reconoce":["web"],"youtube-r4":["web"]};
+  const moved={};
+  for(const [key,scope] of Object.entries(integrated)){
+    if(key===archiveId)continue;
+    const a=betaRevision(key,old,undefined,scope),b=betaRevision(key,source,undefined,scopes[key]);
+    const surfaces=["web","native","edge"].filter(x=>a[x]!==b[x]);
+    if(surfaces.length)moved[key]=surfaces;
+  }
+  assert.deepEqual(moved,expectedMoves,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  const vivas=notes.flatMap(n=>(n.tandas||[]).map(g=>g.id));
+  assert.deepEqual(vivas,[tandaA,tandaB]);
+  assert.deepEqual(vivas.filter(id=>expectedMoves[id]),[],"las nuevas no tienen huella anterior");
+  const currentA=betaRevision(tandaA,source,undefined,scopes[tandaA]),currentB=betaRevision(tandaB,source,undefined,scopes[tandaB]);
+  for(const c of [currentA,currentB]){assert.ok(c.web);assert.equal(c.native,undefined,"sin huella nativa");assert.equal(c.edge,undefined,"sin huella de servidor");}
+  assert.notEqual(currentA.web,currentB.web,"dos huellas distintas");
+  // Mutantes sobre la fuente real: quitar la conservación del céntimo o del día, o relajar la validez de la marca, reabre la tanda A; ignorar la foto del mes, ocultar el motivo o cambiar su texto, reabre la B.
+  const mutantes=[
+    [tandaA,currentA,M8,"if(pagadoPersistido&&Number(e.amount)>0&&Number(n.amount)>0&&isFinite(n.amount)&&Math.round(e.amount*100)===Math.round(n.amount*100)) n.amount=e.amount;",""],
+    [tandaA,currentA,M8,"if(pagadoPersistido&&cleanDay(e.day)&&cleanDay(e.day)===cleanDay(n.day)) n.day=e.day;",""],
+    [tandaA,currentA,M8,"if((contrato||\"day\" in patch)&&(!pagadoPersistido||contrato||cambio)) fixedMarcaTrasCambio(out,n,id,new Date());","if(contrato||\"day\" in patch) fixedMarcaTrasCambio(out,n,id,new Date());"],
+    [tandaA,currentA,M8,"var persisted=paidDay>=1&&paidDay<=today&&paidDay<=new Date(y,m,0).getDate();","var persisted=paidDay>=1&&paidDay<=new Date(y,m,0).getDate();"],
+    [tandaB,currentB,M8,"const valid=Number.isFinite(value)&&value>=0;","const valid=Number.isFinite(value);"],
+    [tandaB,currentB,M8,"const historic=Object.assign({},state,{budget:valid?value:0});","const historic=Object.assign({},state,{budget:state.budget});"],
+    [tandaB,currentB,D3,"closedCard.stats.budgetReason && React.createElement","false && React.createElement"],
+    [tandaB,currentB,U2,"} else if(bs.budgetReason){","} else if(false){"],
+    [tandaB,currentB,I1,"mr_budget_none:\"Este mes no tenía límite configurado\"","mr_budget_none:\"Este mes no tenía límite\""]];
+  for(const [tanda,current,file,a,b] of mutantes){
+    assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
+    const mutated=betaRevision(tanda,x=>x===file?source(x).replace(a,()=>b):source(x),undefined,scopes[tanda]);
+    assert.notEqual(mutated.web,current.web,tanda+" reabre la tanda web: "+a);}
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes);
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),vivas,"lo que el build entrega al panel");
+  const [gA,gB]=built[0].tandas;
+  assert.equal(gA.web,currentA.web);assert.equal(gB.web,currentB.web);
+  for(const g of [gA,gB]){assert.equal(g.native,undefined);assert.equal(g.edge,undefined);assert.equal(g.apk,undefined);
+    for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g[key],undefined,"identidad nueva sin "+key);}
+  assert.equal(receipt.web[tandaA],currentA.web);assert.equal(receipt.web[tandaB],currentB.web);
+  assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
+});
+
 const expected201={"v":"4.26.201","d":"2026-10-31","t":{"es":"Recibos vencidos, mejor pausados","en":"Overdue bills, paused properly","ca":"Rebuts vençuts, ben pausats"},"items":{"es":["Pausar un recibo ya vencido en una cuenta que llevas a mano ya no deja el saldo por debajo de lo que tecleaste, y al reanudarlo todo vuelve a como estaba."],"en":["Pausing an overdue bill on an account you keep by hand no longer leaves the balance below what you typed, and resuming it puts everything back as it was."],"ca":["Pausar un rebut ja vençut en un compte que portes a mà ja no deixa el saldo per sota del que vas teclejar, i en reprendre'l tot torna a com estava."]},"tandas":[]};
 // 4.26.201 (31/10/2026): una pieza sobre la beta 4.26.200 servida (656f17a69, sin APK nueva: sigue la 63), solo web: la PR 332 de Codex (f39494e0e, sobre c89bb12c5): pausar «Solo este mes» un recibo vencido en una cuenta a mano, con el saldo tecleado antes del día del cargo, compensa con una lectura manual trazable (manualBalanceReads) y reanudar la deshace exactamente (manualPauseBalance en el recibo). Revisión de dinero independiente: GO con remates (R4 cerrado; R1 residual y R5 apuntados).
 // SIN tanda nueva: el caso exige un saldo tecleado antes del día de un cargo ya vencido y hoy no se puede montar en el móvil. El dueño aprobó la 199 (plan-recibos-t4) el 31/10 a las 21:13 y la 200 (gastos-filtros-icono) a las 21:37: la 201 pone tandas:[] en las dos y el panel queda sin tandas.
 // Registro: ningún descriptor nuevo. planSyncEditState llama ahora a manualBalanceCommit (y esta a Account, Same, Model, IsManual, Read, accRole y saldoLoMandaPuenteNativo) y lee MANUAL_BALANCE_INTENT: el test «cada llamada de lógica» exige que todo descriptor que lleva planSyncEditState vigile sus dependencias: se suman al final las que le faltan a cada uno (81 descriptores). Se mueven las huellas históricas que leen planSyncEditState; ninguna es de una tanda viva.
-test("Catálogo201 retira las dos tandas aprobadas (199 y 200), deja el panel sin tandas, no crea descriptor y declara las huellas que mueve",()=>{
+test("Catálogo201 histórico retira las dos tandas aprobadas (199 y 200), deja el panel sin tandas, no crea descriptor y declara las huellas que mueve",()=>{
   const viva200="gastos-filtros-icono",retirada="plan-recibos-t4",C0="src/modules/00-core.js";
   const integrated=JSON.parse(sourceBeta200("scripts/beta-sources.json")),before=JSON.parse(sourceBeta200("src/data/release-notes.json"));
-  const source=f=>nl(read(f)),old=f=>nl(sourceBeta200(f));
+  const source=f=>nl(sourceBeta201(f)),old=f=>nl(sourceBeta200(f));
   assert.equal(before[0].v,"4.26.200");
   assert.deepEqual(before.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id])),[["4.26.200",viva200],["4.26.199",retirada]],"la 200 servida lleva dos tandas: la suya y la de la 199");
   const expectedNotes=[expected201,...before.map(n=>["4.26.199","4.26.200"].includes(n.v)?{...n,tandas:[]}:n)];
@@ -11266,7 +11386,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   const marca="INC-0410 guardado: de aquí al límite";
   const dependientes=Object.keys(registro).filter(id=>registro[id].web.some(x=>x.from&&x.from.includes(marca)));
   const ajenas=Object.keys(registro).filter(id=>!dependientes.includes(id));
-  assert.equal(dependientes.length,81);assert.ok(dependientes.includes("plan-recibos-t4"),"añadir y editar recibos por pasos escribe con el set real (BillsManagePush): lleva el bloque del guardado");assert.ok(dependientes.includes("plan-recibos-t3"),"la nómina editable (patchFlowById), corregir saldo y la importación de TR escriben con el set real: «¿Te llega?» lleva el bloque del guardado");
+  assert.equal(dependientes.length,82);assert.ok(dependientes.includes("plan-recibos-guardar-pagado"),"guardar un recibo pagado sin cambios escribe con el set real (patchFixedById): lleva el bloque del guardado");assert.ok(dependientes.includes("plan-recibos-t4"),"añadir y editar recibos por pasos escribe con el set real (BillsManagePush): lleva el bloque del guardado");assert.ok(dependientes.includes("plan-recibos-t3"),"la nómina editable (patchFlowById), corregir saldo y la importación de TR escriben con el set real: «¿Te llega?» lleva el bloque del guardado");
   for(const id of ["deudas-metas-hoja-edicion","deudas-plazo-cuota-encaja","deudas-metas-hoja-cierre-suave","fichas-cierre-suave-atras","gastos-suscripciones-botones"])assert.ok(dependientes.includes(id),id+": las hojas de Deudas y Metas y SubRow escriben estado con el set real y llevan el bloque del guardado");
   assert.ok(dependientes.includes("myinvestor-contador-a-cero"),"la sincronización de brókers de App escribe posiciones con el set real y lleva el bloque del guardado");
   assert.ok(dependientes.includes("compras-identicas-ids"),"las compras idénticas fusionan filas y guardan lápidas con el set real y llevan el bloque del guardado");
@@ -11310,7 +11430,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   assert.ok(dependientes.includes("gastos-renombrar-otro-banco"),"renombrar en la ficha (Expenses) y el backfill de App escriben gastos y lápidas con el set real: lleva el bloque del guardado");
   assert.ok(dependientes.includes("inc-0810-metas-editar-regla"),"editar una regla escribe con el set real y conserva el cierre de persistencia");
   assert.ok(dependientes.includes("inc-0710-gastos-mes-madrid"),"Gastos99 conserva la dependencia real de guardado de Expenses");
-  assert.deepEqual(ajenas.slice().sort(),["banco-pruebas-sin-aviso","bancos-reconexion-revoca","barra-gastos-carga","beta-panel-veredictos","compras-pendientes-otro-dia","deudas-aviso-plazo","deudas-guardar-motivo","deudas-metas-hoja-sin-parpadeo","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","gastos-filtros-icono","gastos-meses-letra-nombres","gastos-recibo-fila-textos-cortos","gastos-renombrar-traspaso","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-backclose-handover","inc-0810-dashboard-recents-memo","inc-0810-inicio-grafica-significado","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","inicio-anillo-usado","inicio-grafica-reservas","inicio-grafica-vuelve","inicio-mes-futuro","inicio-recientes-sin-repetidos","inicio-solape-gastos","inicio-tarjeta-ciclo-limpia","inicio-traspasos","ops-0410-panel-cola","pestanas-swipe-rapido","plan-por-confirmar-prestamo-youtube","plan-scroll-lento","recibo-vinculo-saldo","recibos-anual-inversiones-eur","renombrar-lista-al-momento","scroll-borde-barra","splash-animado","teclado-atras-conserva","tr-descripcion-clasificacion","vibracion-borde-y-mi-ciclo","vibracion-r3","vibracion-r5","vibracion-r6","vibracion-suave-ronda-2","vibracion-suave-ronda-3","widget-pasado-del-limite","widget-se-actualiza-solo","youtube-diagnostico","youtube-enlazar-recibo","youtube-ficha-reconoce","youtube-r4"]);
+  assert.deepEqual(ajenas.slice().sort(),["banco-pruebas-sin-aviso","bancos-reconexion-revoca","barra-gastos-carga","beta-panel-veredictos","compras-pendientes-otro-dia","deudas-aviso-plazo","deudas-guardar-motivo","deudas-metas-hoja-sin-parpadeo","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","gastos-filtros-icono","gastos-meses-letra-nombres","gastos-recibo-fila-textos-cortos","gastos-renombrar-traspaso","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-backclose-handover","inc-0810-dashboard-recents-memo","inc-0810-inicio-grafica-significado","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","informe-mes-limite-del-mes","inicio-anillo-usado","inicio-grafica-reservas","inicio-grafica-vuelve","inicio-mes-futuro","inicio-recientes-sin-repetidos","inicio-solape-gastos","inicio-tarjeta-ciclo-limpia","inicio-traspasos","ops-0410-panel-cola","pestanas-swipe-rapido","plan-por-confirmar-prestamo-youtube","plan-scroll-lento","recibo-vinculo-saldo","recibos-anual-inversiones-eur","renombrar-lista-al-momento","scroll-borde-barra","splash-animado","teclado-atras-conserva","tr-descripcion-clasificacion","vibracion-borde-y-mi-ciclo","vibracion-r3","vibracion-r5","vibracion-r6","vibracion-suave-ronda-2","vibracion-suave-ronda-3","widget-pasado-del-limite","widget-se-actualiza-solo","youtube-diagnostico","youtube-enlazar-recibo","youtube-ficha-reconoce","youtube-r4"]);
   /* Quién depende del guardado lo decide el CÓDIGO, no la marca del registro (auditoría del
      coordinador, 4/10): se quita de cada alcance el bloque del guardado y se mira si lo que queda
      llama a `set` de App —las dependencias transitivas ya son unidades del alcance—. Tiene que

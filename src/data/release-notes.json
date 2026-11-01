@@ -1,5 +1,71 @@
 [
   {
+    "v": "4.26.202",
+    "d": "2026-11-01",
+    "t": {
+      "es": "Recibos pagados y mes cerrado, con sus datos",
+      "en": "Paid bills and closed month, with their own figures",
+      "ca": "Rebuts pagats i mes tancat, amb les seves dades"
+    },
+    "items": {
+      "es": [
+        "Guardar un recibo ya pagado sin cambiar nada de lo que importa ya no lo devuelve a pendiente.",
+        "La tarjeta del mes cerrado y su imagen usan el límite que tenías aquel mes, y si no se guardó lo dicen."
+      ],
+      "en": [
+        "Saving a bill that is already paid without changing anything that matters no longer sends it back to pending.",
+        "The closed-month card and its image use the limit you had that month, and say so when it was not saved."
+      ],
+      "ca": [
+        "Desar un rebut ja pagat sense canviar res del que importa ja no el torna a pendent.",
+        "La targeta del mes tancat i la seva imatge fan servir el límit que tenies aquell mes, i ho diuen si no es va desar."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "plan-recibos-guardar-pagado",
+        "t": {
+          "es": "Plan: guardar un recibo pagado sin cambios",
+          "en": "Plan: save a paid bill with no changes",
+          "ca": "Pla: desar un rebut pagat sense canvis"
+        },
+        "items": {
+          "es": [
+            "1. Plan → Recibos → «Ya pagados» → toca un recibo pagado → Editar → cambia solo el nombre → Guardar. BIEN: sigue en «Ya pagados» con el mismo importe y el mismo día de pago, y «Queda por pagar» no se mueve. MAL: vuelve a pendiente, cambia lo pagado o «Queda por pagar» sube."
+          ],
+          "en": [
+            "1. Plan → Bills → “Already paid” → tap a paid bill → Edit → change only the name → Save. RIGHT: it stays under “Already paid” with the same amount and the same payment day, and “Left to pay” does not move. WRONG: it goes back to pending, what was paid changes or “Left to pay” rises."
+          ],
+          "ca": [
+            "1. Pla → Rebuts → «Ja pagats» → toca un rebut pagat → Editar → canvia només el nom → Desa. BÉ: continua a «Ja pagats» amb el mateix import i el mateix dia de pagament, i «Queda per pagar» no es mou. MALAMENT: torna a pendent, canvia el pagat o «Queda per pagar» puja."
+          ]
+        }
+      },
+      {
+        "id": "informe-mes-limite-del-mes",
+        "t": {
+          "es": "Inicio: tarjeta del mes cerrado con su límite",
+          "en": "Home: closed-month card with its limit",
+          "ca": "Inici: targeta del mes tancat amb el seu límit"
+        },
+        "items": {
+          "es": [
+            "1. Inicio → tarjeta «Así acabó octubre» (primeros días del mes). BIEN: debajo del gasto pone «de X € de presupuesto» con el límite que tenías en octubre, o «Límite de este mes no guardado» si no se guardó; nunca el de ahora. MAL: sale el límite actual o un porcentaje sin límite de octubre.",
+            "2. En esa tarjeta → «Crear imagen del informe». BIEN: la imagen dice lo mismo que la tarjeta. MAL: la imagen enseña otro límite u otro porcentaje."
+          ],
+          "en": [
+            "1. Home → “How October ended” card (first days of the month). RIGHT: under the spending it says “of X € budget” with the limit you had in October, or “This month's limit was not saved” if it was not saved; never today's. WRONG: today's limit shows or a percentage appears without an October limit.",
+            "2. On that card → “Create report image”. RIGHT: the image says the same as the card. WRONG: the image shows another limit or another percentage."
+          ],
+          "ca": [
+            "1. Inici → targeta «Així va acabar octubre» (primers dies del mes). BÉ: sota la despesa diu «de X € de pressupost» amb el límit que tenies a l'octubre, o «Límit d'aquest mes no desat» si no es va desar; mai el d'ara. MALAMENT: surt el límit actual o un percentatge sense límit d'octubre.",
+            "2. En aquesta targeta → «Crear imatge de l'informe». BÉ: la imatge diu el mateix que la targeta. MALAMENT: la imatge ensenya un altre límit o un altre percentatge."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.201",
     "d": "2026-10-31",
     "t": {
