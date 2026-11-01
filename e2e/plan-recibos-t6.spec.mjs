@@ -169,6 +169,8 @@ test("«Dic ›»: tarjeta y lista del mes siguiente, sin revisar ni pagados; «
   // Tocar un recibo del mes siguiente abre su edición, no la ficha de este mes.
   await filas.filter({ hasText: "Netflix" }).click();
   await expect(page.locator('.v4-sheet[data-sheet="recibo-pasos"]')).toHaveAttribute("data-modo", "edit");
+  // La hoja no atiende Escape en sus primeros fotogramas: con el toque y la tecla juntos la primera se perdía (arnés; a mano no se da).
+  await page.waitForTimeout(500);
   await page.keyboard.press("Escape");
   await expect(page.locator('.v4-sheet[data-sheet="recibo-pasos"]')).toHaveCount(0, { timeout: 5000 });
 
