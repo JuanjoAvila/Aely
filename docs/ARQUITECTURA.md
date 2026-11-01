@@ -366,7 +366,11 @@ pagado con prueba, «s» pagado sin cargo del banco (marca a mano, calendario), 
 (tocaba con dos días de margen y el banco tiene movimientos de ese mes después) y «?» no se sabe.
 `planRecibosMesCerrado` parte de la foto y solo la mejora con lo que hoy se acredita (un «?» o
 «q» que hoy sale pagado); una foto anterior al último movimiento del mes convierte sus «q» en «?».
-Sin foto, o con algún «?», la cifra es «—» (null), nunca más baja que la real; la comparación con
+Sin foto, el mes se acredita con la lectura de hoy solo si no puede quedarse corta
+(`pr6SinFotoAcreditado`, rechazo de la beta 206): todos sus cargos pagados con prueba guardada o
+marca, ningún recibo o puntual borrado desde el día 1 de ese mes (`reciboBorradoAt`) y ningún gasto
+de ese mes enlazado a algo que hoy no sale. Si no, o con algún «?», la cifra es null («sin datos»),
+nunca más baja que la real; la tarjeta enseña la comparación siempre, con su porqué si no hay cifra; la comparación con
 el mes anterior sigue la misma regla. Los recibos nuevos llevan `createdYm` (`conMesDeAlta`: alta
 por pasos, importación, Gastos «Pasar a Recibos», alta vieja y el motor) y no cuentan en meses
 anteriores; `createdYm` es un grupo propio en la mezcla de tres vías y no lo lee nada más.

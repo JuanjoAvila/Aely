@@ -921,7 +921,12 @@ no abre Apuntar. Los casos «(revisión)» fallan con el bundle de 799859495. Re
 Node fija que lo de hoy solo sube un cargo a pagado (nunca «no se sabe» → «no llegó»), que sin
 cambios `planRecibosConFoto` devuelve el mismo estado (también otro día sin movimientos nuevos) y
 que dos móviles con extractos distintos convergen con `pr6FotosUnion` sin volver a escribir; el e2e
-cuenta cero escrituras en tres vueltas a primer plano. Está en `E2E_MAP` para `14-v4-screens`,
+cuenta cero escrituras en tres vueltas a primer plano. Rechazo de la beta 206 («no salía el vs»): el banco Node
+reconstruye septiembre sin foto con las pruebas BOOK guardadas y `paidYm` (Seguro, Movistar,
+Naturgy 115,40 = 115,40 a mano y = lo que Plan enseñaba el 31/10) y da «sin datos» si falta una
+prueba, si se borró un recibo desde el 1/9 o si un gasto de septiembre apunta a un recibo que ya
+no está; el e2e enseña «−40,00 € vs. sep» sin foto y «vs. sep: sin datos de septiembre» con un
+cargo sin prueba (los dos fallan con el bundle de 2fdecb18b). Está en `E2E_MAP` para `14-v4-screens`,
 `08-motor-bank`, `07-tab-patri-fijos`, `04-tab-gastos`, `11-app-main`, `01-i18n` y `shell.html`.
 
 Descarga incompleta (candidato13/10): `tests/bank-download-incomplete.test.mjs`, registrado en
