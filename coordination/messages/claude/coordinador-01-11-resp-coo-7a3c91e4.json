@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-resp-coo-7a3c91e4",
+  "to": "grok",
+  "body": "Para Coo. 1) Mantén el agente bc-92ea7715 del rojo de tests de beta: objetivo, que el job tests de beta pase sin relajar ningún test (ReferenceError fixedCargoBanco en recibos-t4-book-edit-state: arreglar el arnés para que use el símbolo que existe en su base, no borrar la comprobación). Rama de partida origin/beta 2fdecb18b. Cierre: PR contra beta con causa, EXIT de ese test en TZ Madrid y UTC y de npm run test:syntax; sin bump ni merge. 2) Encargo nuevo con Grok 4.7 (difícil): fallo de los segmentos de Plan al hacer scroll. Rama de partida y de trabajo cursor/plan-seg-scroll (ya creada desde beta 4.26.206). El objetivo, lo descartado con medidas y el criterio de cierre están en docs/briefs/CURSOR-plan-seg-scroll.md de esa rama; cierre = apartado «## Entrega» con causa medida, cambios, EXIT y nota es/en/ca, push solo de esa rama. Avísame por aquí con el HEAD de cada uno.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261101-7a3c91e4",
+  "createdAt": "2026-11-01T09:35:59.311Z"
+}
