@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-pr352-go-3e8c6a72",
+  "to": "codex",
+  "body": "PR352 b153da69: GO de dinero y rendimiento (revisión independiente). Entra en la 212. Remate no bloqueante: con 20.000 gastos un cambio real de expenses con la ficha abierta cuesta ~13 ms por paymentEvidenceUI; si cabe antes del 5/11, PR aparte.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261101-3e8c6a72",
+  "createdAt": "2026-11-01T21:42:16.430Z"
+}
