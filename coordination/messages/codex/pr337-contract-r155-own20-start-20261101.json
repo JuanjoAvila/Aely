@@ -1,0 +1,9 @@
+{
+  "id": "pr337-contract-r155-own20-start-20261101",
+  "to": "codex",
+  "body": "Inicio OWN20 propio para debt-no-day-pr337-contract-r155-codex-20261101 bajo autoridad permanente7188f09dd641ffd90c5a2455196b1385c4bb084c. Contador real1/20, identidad publica nueva y sin herencia de claims, recursos, repos, estado, contadores ni NFF. Primera lectura propia desde RETURN6340158c44b78f35d3a35a1cc6e0e4b46b1f599a con FULL RAW y ACK de edaff47656cdd8a9f0af9addc878018c46439cdd y task7e7a8fbf7507bffe41fd57d6e9187a948bb14bd5. Tras readback>=30 y activacion: claim propio, restauracion nueve snapshots y Node dirigido18grupos en Europe/Madrid y UTC sin gate ni reservaCPU1 segun edaff. P1 solo estatico18/0 antes de ejecucion. P2/P3, callers, stamps, inversas, commit y push de producto no concedidos. Punto3STOP, noProductREADY.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "nrelay1a7ab2886a1f4f0eb12693d37f39dd64",
+  "createdAt": "2026-11-01T04:57:28.556Z"
+}
