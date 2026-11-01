@@ -3470,8 +3470,8 @@ function incomeOwnTransferExcluded(s,e){
     ||esNomina(Object.assign({},e,{category:"ingreso",concept:[e.concept,e.obName].join(" ")}),nominaFlowsOf(s));
 }
 function incomeOwnTransferPending(e){return !!e&&(!!e.notePending||!!(e.catStale&&e.catStale.length)||!!(e.uuidPreserved&&Object.prototype.hasOwnProperty.call(e.uuidPreserved,"category")));}
-function incomeOwnTransferEligible(s,e){
-  if(!s||!s._historyOwner||!ownTransferBankRow(s,e)||!(ownTransferCents(e)<0)||!["ingreso","traspaso"].includes(e.category)
+function incomeOwnTransferEligible(s,e,context){
+  if(!s||!s._historyOwner||!ownTransferBankRow(s,e,context)||!(ownTransferCents(e)<0)||!["ingreso","traspaso"].includes(e.category)
     ||e.reciboId||e.debtId||e.goalId||e.metaPend||incomeOwnTransferPending(e)
     ||incomeOwnTransferExcluded(s,e)||withdrawalReceiptLink(s,e)||cargoDeRecibo(e,s)||expensePaymentRelationUI(s,e))return false;
   const rows=(s.expenses||[]).filter(function(x){return x&&x.id===e.id;});
@@ -3481,26 +3481,26 @@ function incomeOwnTransferPlan(s,e){
   if(!incomeOwnTransferEligible(s,e))return null;
   return {owner:s._historyOwner,incoming:JSON.parse(JSON.stringify(e)),category:e.category==="ingreso"?"traspaso":"ingreso",accounts:JSON.stringify(s.accounts||[]),flows:JSON.stringify(s.flows||[])};
 }
-function incomeOwnTransferPlanValid(s,p,after){
+function incomeOwnTransferPlanValid(s,p,after,context){
   if(!s||!p||!p.incoming||s._historyOwner!==p.owner||JSON.stringify(s.accounts||[])!==p.accounts||JSON.stringify(s.flows||[])!==p.flows
     ||p.category!==(p.incoming.category==="ingreso"?"traspaso":"ingreso"))return false;
   const e=(s.expenses||[]).find(function(x){return x&&x.id===p.incoming.id;});
-  if(!incomeOwnTransferEligible(s,e))return false;
+  if(!incomeOwnTransferEligible(s,e,context))return false;
   const snapshot=JSON.stringify(e);
   return snapshot===JSON.stringify(p.incoming)||!!after&&snapshot===JSON.stringify(Object.assign({},p.incoming,{category:p.category}));
 }
 function incomeOwnTransferPeer(s,p,after){
-  if(!incomeOwnTransferPlanValid(s,p,after)||p.category!=="traspaso")return null;
+  const deleted=expenseDeletedSet(s);
+  if(!incomeOwnTransferPlanValid(s,p,after,{deleted:deleted})||p.category!=="traspaso")return null;
   const view=Object.assign({},s,{expenses:s.expenses.map(function(e){return e.id===p.incoming.id?Object.assign({},e,{category:"traspaso"}):e;})});
-  // Acotar primero por céntimo/fecha evita buscar pareja para cada salida del histórico.
-  const cents=ownTransferCents(p.incoming),day=ownTransferDay(p.incoming);
-  const candidates=view.expenses.filter(function(e){return ownTransferCents(e)===-cents&&e.ent!==p.incoming.ent&&Math.abs(ownTransferDay(e)-day)<=2&&ownTransferBankRow(view,e);});
+  const context=ownTransferIndex(view,p.incoming,deleted);
+  const candidates=ownTransferNear(context,p.incoming).filter(function(e){return ownTransferBankRow(view,e,context);});
   if(candidates.length!==1||incomeOwnTransferPending(candidates[0])||incomeOwnTransferExcluded(s,candidates[0]))return null;
   const outgoing=candidates[0];
-  const incomingCandidates=view.expenses.filter(function(e){return ownTransferCents(e)===cents&&e.ent!==outgoing.ent&&Math.abs(ownTransferDay(e)-ownTransferDay(outgoing))<=2&&ownTransferBankRow(view,e);});
+  const incomingCandidates=ownTransferNear(context,outgoing).filter(function(e){return ownTransferBankRow(view,e,context);});
   if(incomingCandidates.length!==1||incomingCandidates[0].id!==p.incoming.id)return null;
-  const peer=ownTransferPair(view,candidates[0]);
-  return peer&&peer.id===p.incoming.id?ownTransferPlan(view,candidates[0]):null;
+  const plan=ownTransferPlan(view,outgoing,context);
+  return plan&&plan.incoming.id===p.incoming.id?plan:null;
 }
 function incomeOwnTransferRowMatches(e,r,owner){
   return !!r&&INCOME_OWN_TRANSFER_COLS.split(',').every(function(k){return Object.prototype.hasOwnProperty.call(r,k);})
@@ -3529,25 +3529,50 @@ function ownTransferAccount(s,e){
   const a=(s.accounts||[]).filter(function(x){return x&&x.ent===e.ent&&[x.bankIban,x.bankUid].filter(Boolean).map(String).includes(String(e.obAcc));});
   return a.length===1?a[0]:null;
 }
-function ownTransferBankRow(s,e){
-  return !!e&&isExpenseUuid(e.id)&&["ob","ob-hist"].includes(e.source)&&!e.possibleDup&&!e.obPending&&!e.renamePending&&!e.expenseEditPending
-    &&!!ownTransferAccount(s,e)&&Number.isFinite(ownTransferDay(e))&&!expenseIsTombstoned(e,expenseDeletedSet(s));
+// El índice vive solo durante esta consulta: un guardado vuelve a comprobar el estado fresco.
+// Los UUID se cuentan en TODO el histórico, incluso cuando su otra copia tiene otro importe.
+function ownTransferIndex(s,e,deleted){
+  const ids=new Map(),buckets=new Map(),days=new Map(),amount=Math.abs(ownTransferCents(e));
+  (s.expenses||[]).forEach(function(x){
+    if(!x)return;
+    const previous=ids.get(x.id);ids.set(x.id,{row:x,count:previous?previous.count+1:1});
+    const cents=ownTransferCents(x);if(cents===null||!amount||Math.abs(cents)!==amount)return;
+    const day=ownTransferDay(x);days.set(x,day);if(!Number.isFinite(day))return;
+    let banks=buckets.get(cents);if(!banks){banks=new Map();buckets.set(cents,banks);}
+    let dates=banks.get(x.ent);if(!dates){dates=new Map();banks.set(x.ent,dates);}
+    const rows=dates.get(day)||[];rows.push(x);dates.set(day,rows);
+  });
+  return {ids:ids,buckets:buckets,days:days,deleted:deleted===undefined?expenseDeletedSet(s):deleted};
 }
-function ownTransferPair(s,e){
-  if(!s||!s._historyOwner||!ownTransferBankRow(s,e)||!(ownTransferCents(e)>0)||e.ownTransferRejected
+function ownTransferNear(context,e){
+  const banks=context.buckets.get(-ownTransferCents(e)),day=context.days.has(e)?context.days.get(e):ownTransferDay(e),rows=[];
+  if(!banks||!Number.isFinite(day))return rows;
+  banks.forEach(function(dates,bank){if(bank!==e.ent)for(let d=day-2;d<=day+2;d++){
+    const found=dates.get(d);if(found)found.forEach(function(x){rows.push(x);});
+  }});
+  return rows;
+}
+function ownTransferBankRow(s,e,context){
+  return !!e&&isExpenseUuid(e.id)&&["ob","ob-hist"].includes(e.source)&&!e.possibleDup&&!e.obPending&&!e.renamePending&&!e.expenseEditPending
+    &&!!ownTransferAccount(s,e)&&Number.isFinite(context&&context.days&&context.days.has(e)?context.days.get(e):ownTransferDay(e))
+    &&!expenseIsTombstoned(e,context?context.deleted:expenseDeletedSet(s));
+}
+function ownTransferPair(s,e,context){
+  if(!s||!s._historyOwner||!e||!(ownTransferCents(e)>0))return null;
+  context=context||ownTransferIndex(s,e);
+  if(!ownTransferBankRow(s,e,context)||e.ownTransferRejected
     ||["traspaso","ingreso","deudas","inversion"].includes(e.category)||e.reciboId||e.debtId||e.goalId||e.metaPend
     ||withdrawalReceiptLink(s,e)||cargoDeRecibo(e,s)||expensePaymentRelationUI(s,e))return null;
-  const rows=s.expenses||[],same=rows.filter(function(x){return x&&x.id===e.id;});
-  if(same.length!==1||JSON.stringify(same[0])!==JSON.stringify(e))return null;
-  const near=function(a,b){return a.ent!==b.ent&&ownTransferCents(a)===-ownTransferCents(b)&&Math.abs(ownTransferDay(a)-ownTransferDay(b))<=2;};
-  const peers=rows.filter(function(x){return ownTransferBankRow(s,x)&&x.category==="traspaso"&&ownTransferCents(x)<0&&!x.reciboId&&!x.debtId&&!x.goalId&&near(e,x);});
-  if(peers.length!==1||rows.filter(function(x){return x&&x.id===peers[0].id;}).length!==1)return null;
+  const same=context.ids.get(e.id);
+  if(!same||same.count!==1||JSON.stringify(same.row)!==JSON.stringify(e))return null;
+  const peers=ownTransferNear(context,e).filter(function(x){return x.category==="traspaso"&&!x.reciboId&&!x.debtId&&!x.goalId&&ownTransferBankRow(s,x,context);});
+  if(peers.length!==1||context.ids.get(peers[0].id).count!==1)return null;
   // Una entrada tampoco se puede prestar a dos salidas, aunque una ya esté corregida o rechazada.
-  if(rows.filter(function(x){return ownTransferBankRow(s,x)&&ownTransferCents(x)>0&&near(x,peers[0]);}).length!==1)return null;
+  if(ownTransferNear(context,peers[0]).filter(function(x){return ownTransferBankRow(s,x,context);}).length!==1)return null;
   return peers[0];
 }
-function ownTransferPlan(s,e){
-  const peer=ownTransferPair(s,e);if(!peer)return null;
+function ownTransferPlan(s,e,context){
+  const peer=ownTransferPair(s,e,context);if(!peer)return null;
   return {owner:s._historyOwner,outgoing:JSON.parse(JSON.stringify(e)),incoming:JSON.parse(JSON.stringify(peer)),accounts:JSON.stringify(s.accounts||[])};
 }
 function ownTransferPlanValid(s,p){
