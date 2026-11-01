@@ -1,0 +1,28 @@
+{
+  "status": "done",
+  "summary": "Completado el encargo dirigido: checkout propio desde89e33 y nueve snapshots exactos; Node --test en Europe/Madrid y UTC con18/18gruposP1 y148 comprobaciones completas por zona, ambos EXIT0. HelpersP1 siguen inactivos; sin integracion financiera.",
+  "tests": [
+    {
+      "command": "TZ=Europe/Madrid node --test --test-concurrency=1 --test-reporter=tap debt-payment-state.private.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "TZ=UTC node --test --test-concurrency=1 --test-reporter=tap debt-payment-state.private.test.mjs",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "89e33b206a95ef8c490d8147af80dfd1b76955e1",
+  "limitations": [
+    "Adaptador privado cambia solo import absoluto del loader original y entrada HTML por archivo; cuerpo completo de aserciones byteidentico al test registrado. Comandos literales y hashes en evidencia privada revisable.",
+    "Fuente raw17modulos mas shell/orden pinados; entrada2953335bytes SHA2567e1721085f89af8fe91d23f035c221d88e62930aff4625ac1bada11789a47431. No bundle distribuido ni build.",
+    "Una invocacion por zona,1worker0retry, stderr vacio y cero skips. Dos fallos previos de preparacion privada sin evaluar producto preservados y resueltos sin cambios semanticos.",
+    "P1 helpers permanecen aditivos inactivos. No valida callers financieros, BF30 integrado, P2/P3, stamps ni inversas; sin commit/push de producto. Punto3STOP y noProductREADY.",
+    "Resultado limitado al encargo dirigido de ejecucion18Node y UTC. Revision independiente e integracion corresponden al coordinador. Recursos propios0."
+  ],
+  "schema": 1,
+  "taskId": "debt-no-day-pr337-contract-r155-codex-20261101",
+  "actor": "codex",
+  "sessionId": "nrelay1a7ab2886a1f4f0eb12693d37f39dd64",
+  "createdAt": "2026-11-01T05:02:49.218Z",
+  "released": true
+}
