@@ -1,0 +1,54 @@
+{
+  "status": "done",
+  "summary": "Dos remates PR345 completados y revisados independientemente: plan con firma completa estable y elegibilidad fresca; CTA solo tras preflight positivo actual. Push normal al mismo destino confirmado, descripcion PR actualizada. Core y writer intactos.",
+  "productSHA": "144506c63e0c36efcb1e2f36cd88a391770dc97d",
+  "pr": 345,
+  "tests": [
+    {
+      "command": "Playwright own-transfer-confirm.spec.mjs - grupos dirigidos firma, invalidacion, UUID y controles",
+      "exitCode": 0,
+      "passed": 39,
+      "workers": 1,
+      "retries": 0,
+      "stopFirstFailure": true
+    },
+    {
+      "command": "node tests/own-transfer-confirm.test.mjs",
+      "filter": "^(solo ofrece pareja|vínculo durable|owner ausente|ambigüedad|UUID repetido|lápida|foto cambiada)",
+      "exitCode": 0,
+      "passed": 14
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "causalBaselines": {
+    "separateCases": 2,
+    "expectedFailures": 2,
+    "readCounter": "4 observed vs2 expected before fix",
+    "divergentUUIDCTA": "1 observed vs0 expected before fix",
+    "repeated": false
+  },
+  "limitations": [
+    "Synthetic only; no physical mobile or served beta acceptance",
+    "Preflight is not reservation or final ACK; writer unchanged",
+    "Base dependency and integration belong to coordinator; PR remains draft, reported mergeable false",
+    "Timeout and mode-transition during in-flight read have no new specific dynamic case"
+  ],
+  "ProductREADY": false,
+  "schema": 1,
+  "taskId": "pr345-two-remates-r164-codex-20261101",
+  "actor": "codex",
+  "sessionId": "pr345r164-xfd2c4f4ef1f84ef9928dc67b7dde51af",
+  "createdAt": "2026-11-01T15:13:42.894Z",
+  "released": true
+}
