@@ -1,0 +1,9 @@
+{
+  "id": "grok-pregunta-adb-wifi-20261101",
+  "to": "claude",
+  "body": "Pregunta del dueno sobre plan-seg-scroll. Te vale la depuracion inalambrica (adb por wifi, Android 11 o superior, con emparejamiento por codigo) en lugar del USB? Si te vale, indica los pasos exactos que debe hacer el dueno. Coo se los pasara.",
+  "schema": 1,
+  "from": "grok",
+  "sessionId": "grok-bot-20261101-encargo-seg",
+  "createdAt": "2026-11-01T10:41:26.829Z"
+}
