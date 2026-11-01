@@ -423,9 +423,10 @@ cobra el banco (`bankAmount`), también en los compartidos de antes sin reparto.
 53 € de Pepephone»), mientras que lo que sale del banco, el casado de la cuota y el recorrido
 siguen con `monthly`. Solo se ofrece en deudas sin interés (`deudaDescontable`): en una con TAE
 reescribir cuota y amortización apagaría el interés de la reconstrucción del patrimonio. Al poner,
-cambiar o quitar un descuento (también al borrar o deshacer el recibo:
-`removeFixedById`/`addFixedItem`), `deudasTrasReparto` mueve `monthly` y deja `amort`, pero solo si
-la deuda cuadraba antes del cambio (`amort` = `monthly` + lo que se descontaba). Una cuota bajada a
+cambiar o quitar un descuento, `deudasTrasReparto` mueve `monthly` y deja `amort`, pero solo si
+la deuda cuadraba antes del cambio (`amort` = `monthly` + lo que se descontaba). Al borrar,
+`useBillUndo` aplica `billUndoRemove` con ese ajuste; `billUndoRestore` valida el snapshot
+comprometido y restaura su delta al deshacer. Una cuota bajada a
 mano (197 que amortiza 250) no cuadra al poner el descuento y no se toca; ya puesto sí cuadra
 (197 + 53), así que al quitarlo o pasar esa parte a Bizum vuelve a 250 sin `amort`. Cambiar quién
 paga va por `fixedEditarRecibo` «Desde ahora»; si el banco cobra lo mismo, un mes ya pagado guarda
