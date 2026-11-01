@@ -1,5 +1,64 @@
 [
   {
+    "v": "4.26.210",
+    "d": "2026-11-01",
+    "t": {
+      "es": "Gastos: confirma tus traspasos entre cuentas",
+      "en": "Spending: confirm your transfers between accounts",
+      "ca": "Despeses: confirma els teus traspassos entre comptes"
+    },
+    "items": {
+      "es": [
+        "Gastos: si pasas dinero a otra cuenta tuya, la ficha de la salida te pregunta si es tu mismo dinero; si lo confirmas, deja de contar como gasto.",
+        "Cambiar el banco, marcar un duplicado o quitar un recibo desde la ficha de un gasto espera ahora a que se guarde de verdad: sin conexión se queda en «Sin confirmar» hasta que vuelva la red."
+      ],
+      "en": [
+        "Spending: if you move money to another account of yours, the outgoing payment’s details ask whether it is the same money; if you confirm, it stops counting as spending.",
+        "Changing the bank, marking a duplicate or removing a bill from a transaction’s details now waits until it is really saved: with no connection it stays “Unconfirmed” until the network is back."
+      ],
+      "ca": [
+        "Despeses: si passes diners a un altre compte teu, la fitxa de la sortida et pregunta si són els mateixos diners; si ho confirmes, deixa de comptar com a despesa.",
+        "Canviar el banc, marcar un duplicat o treure un rebut des de la fitxa d’una despesa ara espera que es desi de debò: sense connexió es queda en «Sense confirmar» fins que torni la xarxa."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "traspaso-propio-confirmado",
+        "t": {
+          "es": "Gastos: «¿Lo enviaste a otra cuenta tuya?»",
+          "en": "Spending: “Did you send this to another account of yours?”",
+          "ca": "Despeses: «Ho vas enviar a un altre compte teu?»"
+        },
+        "items": {
+          "es": [
+            "1. Gastos → abre una salida de un banco que tenga una entrada del mismo importe en otro banco tuyo, dentro de dos días (si ninguna enseña «¿Lo enviaste a otra cuenta tuya?», no hay nada que probar). BIEN: arriba de la ficha sale la pregunta con «Sí, es mi dinero» y «No, es un pago». MAL: no sale en una salida que tiene su entrada, o sale en un gasto cualquiera.",
+            "2. Con esa ficha abierta, ciérrala sin contestar (Atrás o fuera de la ficha). BIEN: el gasto sigue igual y al reabrirla vuelve a preguntar. MAL: se decide solo.",
+            "3. En una salida así, toca «No, es un pago». BIEN: avisa «Guardado. No volveremos a preguntarte por esta salida.», el gasto sigue contando y la pregunta no vuelve a salir. MAL: cambia de categoría o vuelve a preguntar.",
+            "4. En otra salida con su entrada, toca «Sí, es mi dinero». BIEN: avisa «Traspaso confirmado. Ya no cuenta como gasto.», sale de los gastos del mes y ni los saldos ni la entrada cambian. MAL: sigue sumando como gasto o cambia algún saldo.",
+            "5. Sin conexión (modo avión), abre otra salida con su entrada y contesta. BIEN: queda «Sin confirmar», nada cambia y, con red, puedes volver a contestar. MAL: dice que está confirmado sin haber red.",
+            "6. Sin conexión, en la ficha de un gasto de banco cambia el banco, marca duplicado o quita el recibo. BIEN: queda «Sin confirmar» y no se aplica hasta tener red. MAL: se aplica sin avisar."
+          ],
+          "en": [
+            "1. Spending → open an outgoing payment from a bank that has an incoming amount of the same size at another bank of yours, within two days (if none shows “Did you send this to another account of yours?”, there is nothing to test). RIGHT: the question shows at the top of the details with “Yes, it is my money” and “No, it is a payment”. WRONG: it does not show on a payment that has its incoming one, or it shows on any random expense.",
+            "2. With that detail open, close it without answering (Back or outside the sheet). RIGHT: the expense stays as it was and the question comes back when you reopen it. WRONG: it decides by itself.",
+            "3. On such a payment, tap “No, it is a payment”. RIGHT: it says “Saved. We will not ask about this outgoing payment again.”, the expense keeps counting and the question does not come back. WRONG: it changes category or asks again.",
+            "4. On another payment with its incoming one, tap “Yes, it is my money”. RIGHT: it says “Transfer confirmed. It no longer counts as spending.”, it leaves the month’s spending and neither the balances nor the incoming one change. WRONG: it still counts as spending or a balance changes.",
+            "5. With no connection (airplane mode), open another payment with its incoming one and answer. RIGHT: it stays “Unconfirmed”, nothing changes and, once online, you can answer again. WRONG: it says confirmed while offline.",
+            "6. With no connection, on a bank expense’s details change the bank, mark it as a duplicate or remove the bill. RIGHT: it stays “Unconfirmed” and is not applied until you are online. WRONG: it is applied without warning."
+          ],
+          "ca": [
+            "1. Despeses → obre una sortida d’un banc que tingui una entrada del mateix import en un altre banc teu, dins de dos dies (si cap ensenya «Ho vas enviar a un altre compte teu?», no hi ha res a provar). BÉ: a dalt de la fitxa surt la pregunta amb «Sí, són els meus diners» i «No, és un pagament». MALAMENT: no surt en una sortida que té la seva entrada, o surt en una despesa qualsevol.",
+            "2. Amb aquesta fitxa oberta, tanca-la sense contestar (Enrere o fora de la fitxa). BÉ: la despesa continua igual i en reobrir-la torna a preguntar. MALAMENT: es decideix sola.",
+            "3. En una sortida així, toca «No, és un pagament». BÉ: avisa «Desat. No tornarem a preguntar-te per aquesta sortida.», la despesa continua comptant i la pregunta no torna a sortir. MALAMENT: canvia de categoria o torna a preguntar.",
+            "4. En una altra sortida amb la seva entrada, toca «Sí, són els meus diners». BÉ: avisa «Traspàs confirmat. Ja no compta com a despesa.», surt de les despeses del mes i ni els saldos ni l’entrada canvien. MALAMENT: continua sumant com a despesa o canvia algun saldo.",
+            "5. Sense connexió (mode avió), obre una altra sortida amb la seva entrada i contesta. BÉ: queda «Sense confirmar», no canvia res i, amb xarxa, pots tornar a contestar. MALAMENT: diu que està confirmat sense xarxa.",
+            "6. Sense connexió, a la fitxa d’una despesa de banc canvia el banc, marca duplicat o treu el rebut. BÉ: queda «Sense confirmar» i no s’aplica fins que hi hagi xarxa. MALAMENT: s’aplica sense avisar."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.209",
     "d": "2026-11-01",
     "t": {
