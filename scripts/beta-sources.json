@@ -1574,6 +1574,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -3176,6 +3180,38 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "native": [
@@ -4608,6 +4644,38 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "native": [
@@ -7029,6 +7097,38 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "native": [
@@ -8461,6 +8561,38 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "native": [
@@ -9069,6 +9201,46 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accRole"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "auditoria": {
@@ -10486,6 +10658,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -11097,6 +11273,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ]
   },
@@ -13237,6 +13417,22 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceWrite"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceTarget"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceStage"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -14466,6 +14662,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -15911,6 +16111,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "native": [
@@ -17751,6 +17955,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -18612,6 +18820,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -19421,6 +19633,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -20245,6 +20461,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -21770,6 +21990,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "edge": [
@@ -22475,6 +22699,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -23834,6 +24062,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -25404,6 +25636,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -25996,6 +26232,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -27184,6 +27424,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -27846,6 +28090,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ]
   },
@@ -30583,6 +30831,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "native": [
@@ -31817,6 +32069,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -33262,6 +33518,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "native": [
@@ -34646,6 +34906,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -35873,6 +36137,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "edge": [
@@ -37535,6 +37803,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "edge": [
@@ -38990,6 +39262,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -41030,6 +41306,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "edge": [
@@ -42626,6 +42906,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -43764,6 +44048,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -45571,6 +45859,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -46728,6 +47020,22 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceWrite"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceTarget"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceStage"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -48819,6 +49127,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "edge": [
@@ -49378,6 +49690,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "edge": [
@@ -50285,6 +50601,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -51677,6 +51997,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -52699,6 +53023,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -53638,6 +53966,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -54489,6 +54821,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -55441,6 +55777,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -56955,6 +57295,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -59244,6 +59588,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -59966,6 +60314,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -60900,6 +61252,22 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceWrite"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceTarget"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceStage"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -62633,6 +63001,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "native": [
@@ -63578,6 +63950,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -65092,6 +65468,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -66175,6 +66555,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceStage"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedEnPausa"
       }
     ],
     "unidades": true
@@ -67087,6 +67479,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "native": [
@@ -67996,6 +68392,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -71137,6 +71537,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -73143,6 +73547,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -74461,6 +74869,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -75381,6 +75793,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "native": [
@@ -77951,6 +78367,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -79406,6 +79826,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "edge": [
@@ -80175,6 +80599,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -81021,6 +81449,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "edge": [
@@ -81971,6 +82403,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -83369,6 +83805,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -84808,6 +85248,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -86155,6 +86599,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -87497,6 +87945,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -88835,6 +89287,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -90145,6 +90601,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -91659,6 +92119,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -92985,6 +93449,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -94342,6 +94810,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -95759,6 +96231,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -98105,6 +98581,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -99531,6 +100011,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -100777,6 +101261,14 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceStage"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -101858,6 +102350,14 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceStage"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -103037,6 +103537,14 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceStage"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -104069,6 +104577,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "edge": [
@@ -105476,6 +105988,22 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceWrite"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceTarget"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceStage"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
@@ -106500,6 +107028,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceStage"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedEnPausa"
       }
     ],
     "unidades": true
@@ -107247,6 +107787,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "native": [
@@ -108932,6 +109476,14 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceStage"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
       }
     ],
     "unidades": true
