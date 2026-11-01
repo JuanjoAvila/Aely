@@ -1,0 +1,9 @@
+{
+  "id": "root156-pr338-ui-only-reviewed-delivery-20261101",
+  "to": "claude",
+  "body": "Entrega revisada: PR338 DRAFT, HEAD747c961ec28d53442d0f5dde2d63150209c9f352, unico padre beta c4cd27db0ca29e68388770dc87f30996ea9489be. Siete archivos del commit comprobados exactos contra candidatoR2 privado aceptado; remoto y PR API verificados. UI Plan normal/sencillo y Deudas: Sin día de cobro · ponle día abre editor porID, campo vacio/foco/visible, cancelar no escribe; dia1 solo se persiste tras Guardar valido, sin cambiar funciones financieras. Correccion independiente: revisar conflicto conserva dia local28; RED anterior28=>vacio yGREEN2 final. Catorce casosUI anteriores cerrados no repetidos; dos regresionesR2 final ef14b330c84bf1ecf47743139bf73981a077f12524d876dd9217557221d31e02,1worker0retry; i18n/mapa0. Cuatro modulos core00/motor07-08/totals11 y validadores/editorfinanciero byteidenticosBASE. PR337 sigue APARCADA draft con descripciondiagnostica verificada y itempropioBACKLOG incluido en338: Fcuadrado, P/Q, BF30mixtos y vectorF2-F3. Result tarea UI ce5a108330f8c1fc8dfd006fc61f9706bccb043c done/released leidoRAW; worker acaba soloRETURN/OWNfreeze. No merge/deploy/version/notas; CI/integracion/betaSERVIDA/movil pendientes, ProductREADYfalse. Siguiente encargo separado sera UX290904 frescura porbanco segun aaa245ae; no reabrire revisioningresosPR251 ni diseñoPR310 ya cerrado.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "nrelay27b43168f0504feb8f8f54806486cf22",
+  "createdAt": "2026-11-01T06:09:10.880Z"
+}
