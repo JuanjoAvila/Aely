@@ -570,6 +570,31 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   const [dueOpen,setDueOpen]=useState(false);
   const [paidOpen,setPaidOpen]=useState(false);
   const [ficha,setFicha]=useState(null);
+  const [undoFicha,setUndoFicha]=useState(null), [avisoFicha,setAvisoFicha]=useState(null);
+  // La ficha desaparece al quitar el último recibo; el controlador vive en Plan para poder reponerlo.
+  const fichaUndo=useBillUndo(state,set,activo!==false&&!manageOpen,function(token){
+    setFicha(null); setUndoFicha(token); setAvisoFicha(null);
+  },function(key,finish){
+    if(finish) setFicha(null);
+    setAvisoFicha(t(key||"gb_undo_changed"));
+  });
+  const cerrarFicha=function(){ fichaUndo.cancel(); setFicha(null); setUndoFicha(null); };
+  useEffect(function(){
+    if(!undoFicha) return undefined;
+    const id=setTimeout(function(){ setUndoFicha(null); },Math.max(0,undoFicha.until-Date.now()));
+    return function(){ clearTimeout(id); };
+  },[undoFicha]);
+  useEffect(function(){
+    if(!avisoFicha) return undefined;
+    const id=setTimeout(function(){ setAvisoFicha(null); },4500);
+    return function(){ clearTimeout(id); };
+  },[avisoFicha]);
+  useEffect(function(){
+    if(activo===false||manageOpen){ setFicha(null); setUndoFicha(null); setAvisoFicha(null); }
+  },[activo,manageOpen]);
+  const avisoQuitar=React.createElement(React.Fragment,null,
+    undoFicha&&React.createElement(BillUndoToast,{onUndo:function(){ if(fichaUndo.undo(undoFicha)!==false) setUndoFicha(null); }}),
+    avisoFicha&&React.createElement(BillUndoToast,{notice:avisoFicha}));
   const [llegaOpen,setLlegaOpen]=useState(false);
   const [debenOpen,setDebenOpen]=useState(false);
   const paidRef=useRef(null);
@@ -848,7 +873,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
           bancos.length>0&&React.createElement("span",{className:"pr6-onb-s"}, tf("pr6_onb_en",{x:pr6Lista(bancos)}))),
         React.createElement("button",{type:"button",className:"pr6-cta","data-testid":"plan-empezar",onClick:empezar}, t("pr6_empezar"))),
       importar,
-      manage);
+       manage,avisoQuitar);
   }
   const verCerrado=!!cerrado&&cerrado.ym!==cerradoNo;
   const lineasCerrado=cerrado?pr6LineasCerrado(cerrado):[];
@@ -924,9 +949,10 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     ficha&&fichaRow&&fichaRow.kind!=="debt"&&fichaRow.kind!=="balloon"&&React.createElement(ReciboFicha,{key:ficha.id,row:fichaRow,state:state,set:set,totals:totals,evidence:proof,showToast:showToast,
       aviso:v.review.find(function(x){ return x.id===ficha.id; })||null,
       onPosponer:posponer,
-      onClose:function(){ setFicha(null); },
-      onEdit:function(id){ setFicha(null); setManageEdit(id); setManageOpen(true); }}),
-    manage
+      onClose:cerrarFicha,
+      onRemove:function(id){ setAvisoFicha(null); quitarReciboPreguntando(fichaUndo,id); },
+      onEdit:function(id){ cerrarFicha(); setManageEdit(id); setManageOpen(true); }}),
+    manage,avisoQuitar
   );
 }
 /* Textos del resumen del mes cerrado. El mes con mayúscula al principio («Septiembre cerrado»);
@@ -1522,7 +1548,7 @@ function DeudaFicha({row, state, totals, onClose, onGoDebts}){
             React.createElement("button",{type:"button",className:"pr6-btn","data-act":"ver-deuda",onClick:verDeuda}, t("pr6_ver_deuda")))))),
     document.body);
 }
-function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onEdit, aviso, onPosponer}){
+function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onEdit, onRemove, aviso, onPosponer}){
   const swipe=useSheetSwipe(true,onClose);
   useBackClose(true,swipe.close);
   const [paso,setPaso]=useState(0);           // 0 ficha · 1 «¿Cuál es el cargo?»
@@ -1729,8 +1755,7 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
   };
   const quitar=function(){
     if(!gone){ setGone(true); return; }
-    quitarReciboPreguntando(state,set,f.id);
-    cerrarCon(tf("pr6_borrado_toast",{name:row.name}));
+    onRemove(f.id);
   };
   const par=[];
   const parBtn=function(key,label,go,main){ return React.createElement("button",{type:"button",key:key,className:main?"pr6-cta pr6-par":"pr6-btn pr6-par","data-act":key,onClick:go},label); };
@@ -1982,6 +2007,8 @@ function useBillUndo(state,set,open,onRemoved,onNotice){
     React.startTransition(function(){ setPending({operation:operation,calculate:calculate,submitted:false}); });
   };
   return {
+    // El host de Plan sigue montado después de quitar: solo un cierre explícito cancela su intención.
+    cancel:function(){ if(busy.current) busy.current.cancelled=true; busy.current=null; token.current=null; },
     remove:function(id){
       if(busy.current||!life.current||!visible.current) return;
       const operation={kind:"remove"},review=billUndoReview(committed.current,id); busy.current=operation;
@@ -1999,6 +2026,11 @@ function useBillUndo(state,set,open,onRemoved,onNotice){
       return true;
     }
   };
+}
+function BillUndoToast({onUndo,notice}){
+  return React.createElement("div",{className:"v4-undo-toast"+(notice?" v4-bills-saved":""),role:"status","data-testid":notice?"bills-saved":undefined},
+    React.createElement("span",null,notice||gbTxt("gb_removed")),
+    onUndo&&React.createElement("button",{type:"button",onClick:onUndo},t("f_undo")||"Deshacer"));
 }
 function BillsManagePush({open, onClose, state, set, totals, simple, editId, addNow}){
   const [stack,setStack]=React.useState(["hub"]);
@@ -2368,9 +2400,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
         React.createElement("span",null,
           React.createElement("strong",null,savedBill.msg||gbTxt("gb_saved_"+savedBill.kind)),
           !savedBill.msg&&React.createElement("small",null,savedBill.name))),
-      undoBill && React.createElement("div",{className:"v4-undo-toast",role:"status"},
-        React.createElement("span",null, gbTxt("gb_removed")),
-        React.createElement("button",{type:"button",onClick:undoLastBill}, t("f_undo")||"Deshacer"))
+      undoBill && React.createElement(BillUndoToast,{onUndo:undoLastBill})
     ),
     document.body);
 }
@@ -2573,14 +2603,8 @@ function descuentoAjustarGuardado(state,set,d){
     });
   });
 }
-/* Quitar un recibo con una parte que se descuenta: si la deuda no queda cuadrada (la bajada tecleada
-   no era cuota + descuento), se pregunta igual que al ponerlo (rev. lo-descuento R2). */
-function quitarReciboPreguntando(state,set,id){
-  descuentoPregunta(state,function(s){ return deudasTrasReparto(s,Object.assign({},s,{fixed:(s.fixed||[]).filter(function(e){ return e.id!==id; })})); }).then(function(fixes){
-    removeFixedById(set,id);
-    if(fixes.length) set(function(s){ return conDescuentoFijado(fixes,s); });
-  });
-}
+// Esta puerta también identifica el alcance beta: delega en el mismo controlador de Todos.
+function quitarReciboPreguntando(undo,id){ return undo.remove(id); }
 function rp4DiasMes(ym){ const Y=Math.floor((ym-1)/12), M=ym-Y*12; return new Date(Y,M,0).getDate(); }
 /* Un cargo de una sola vez de hoy o de antes este mes ya «se habría cobrado» por calendario sin
    ningún cargo detrás: lo de hoy sin cobro es cargo de hoy (decisión del dueño, t3). Se apunta
