@@ -451,7 +451,12 @@ for(const [rol,accounts,settings] of ROLES){
       assert.equal(j(mostrado(sin)),j(mostrado(r.state)),lista+": el saldo pintado sigue siendo el del banco");
       assert.equal(+(gastado(sin)-gastado(r.state)).toFixed(2),rol==="solo recibos"?0:importe,lista+": el cargo pasa a contar como un gasto");
       // Lo que entra por la puerta de la pantalla es esto mismo.
-      let porPantalla=r.state; (lista==="fixed"?c.removeFixedById:c.removeOneoffById)(f=>{ porPantalla=f(porPantalla); },id);
+      let porPantalla=r.state;
+      if(lista==="fixed"){
+        const quitado=c.billUndoRemove(porPantalla,c.billUndoReview(porPantalla,id),[],ahora);
+        assert.equal(quitado.error,undefined,"la retirada real admite el recibo revisado");
+        porPantalla=quitado.state;
+      } else c.removeOneoffById(f=>{ porPantalla=f(porPantalla); },id);
       assert.equal(j(porPantalla),j(sin));
     }
     // Sin ningún cargo suyo en Gastos, borrar hace lo de siempre y deja constancia del borrado
@@ -561,6 +566,7 @@ function nubeFalsa(previas){
 function appConNube(n){
   const sb=createLogicSandbox(); sb.window.supabase={createClient:()=>n.client};
   vm.runInNewContext(extractPureLogicSource(source("src/shell.html").replace("<!--MC_APP_SCRIPT-->",()=>js)),sb);
+  vm.runInNewContext(source("src/modules/14-v4-screens.js"),sb);
   assert.equal(vm.runInContext("cloud.enabled()",sb),true,"la nube falsa está enganchada");
   return sb;
 }
@@ -623,8 +629,13 @@ for(const [lista,id] of [["fixed","com"],["oneoffs","o1"]]){
     const octubre=new Date("2026-10-01T00:00:00+02:00").getTime();
     const servidor=s=>+statsDelMes(n.tabla,s,octubre).spent.toFixed(2);
     assert.equal(servidor(r.state),+gastado(r.state).toFixed(2),"antes de borrar ya cuadran");
-    let s=r.state;
-    (lista==="fixed"?app.removeFixedById:app.removeOneoffById)(f=>{ s=f(s); },id);
+    let s=Object.assign({},r.state,{_historyOwner:"u1"});
+    if(lista==="fixed"){
+      const quitado=app.billUndoRemove(s,app.billUndoReview(s,id),[],ahora);
+      assert.equal(quitado.error,undefined,"la retirada real admite el recibo revisado");
+      s=quitado.state;
+      await app.billUndoSend(quitado.subir,s._historyOwner);
+    } else app.removeOneoffById(f=>{ s=f(s); },id);
     await new Promise(setImmediate);
     const importe=lista==="fixed"?50:45;
     assert.equal(+(gastado(s)-gastado(r.state)).toFixed(2),importe,"la app pasa a contar el cargo");
@@ -688,8 +699,11 @@ test("borrar un recibo solo suelta sus cargos del periodo en curso: los meses ce
   const n=nubeFalsa([]), app=appConNube(n);
   app.Date=c.Date;
   for(const e of antes.expenses) await app.subirGasto(e,"test");
-  let s=antes;
-  app.removeFixedById(f=>{ s=f(s); },"com");
+  let s=Object.assign({},antes,{_historyOwner:"u1"});
+  const quitado=app.billUndoRemove(s,app.billUndoReview(s,"com"),[],ahora);
+  assert.equal(quitado.error,undefined,"la retirada real admite el recibo revisado");
+  s=quitado.state;
+  await app.billUndoSend(quitado.subir,s._historyOwner);
   await new Promise(setImmediate);
   // Agosto y septiembre, como estaban; octubre pasa a contar su cargo. En la app y en el servidor.
   assert.equal(j(["2026-08","2026-09","2026-10"].map(m=>gastadoMes(s,m))),j([30,35,53.4]));

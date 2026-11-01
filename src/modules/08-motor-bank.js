@@ -5420,9 +5420,6 @@ function fixedPausa(s, id, from, until){
 function conDeudasDelReparto(set){
   return function(fn){ set(function(s){ const n=fn(s); return n===s?s:deudasTrasReparto(s,n); }); };
 }
-function removeFixedById(set, id){
-  quitarDelPlan(conDeudasDelReparto(set),"fixed",id);
-}
 function addFixedItem(set, item){
   ponerEnPlan(conDeudasDelReparto(set),"fixed",item);
 }
