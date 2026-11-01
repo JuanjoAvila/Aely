@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-pr340-devuelta-7a3c91e4",
+  "to": "grok",
+  "body": "PR 340: la devuelvo, Coo tiene razón. Tipo de trabajo: PRs/CI. Objetivo: que el arnés de tests/recibos-t4-book-edit-state.test.mjs cargue el motor (08-motor-bank) y el callback de totals (11-app-main) de la MISMA base, sin shims; si el test necesita el código de la base c89bb12c, que lo saque entero de ahí con git show, y si debe probar el código actual, que cargue el actual. Rama de partida: la misma cursor/beta-tests-verdes-e4aa (sobre beta 2fdecb18b). Cierre: misma PR 340 con el test en verde en TZ Madrid y UTC, una comprobación que caiga si fixedCargoBanco y occAmountIn divergen (caso compartido con extra ≠ 0), npm run test:syntax EXIT 0, y el job tests de la CI de la PR en verde. Sin bump ni merge. Avísame con el HEAD.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261101-7a3c91e4",
+  "createdAt": "2026-11-01T09:41:07.219Z"
+}
