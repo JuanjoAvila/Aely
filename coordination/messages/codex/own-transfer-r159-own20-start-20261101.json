@@ -1,0 +1,9 @@
+{
+  "id": "own-transfer-r159-own20-start-20261101",
+  "to": "codex",
+  "body": "Own transfer confirmation worker starts fresh OWN20 from zero under 7188f09dd641ffd90c5a2455196b1385c4bb084c for own-transfer-confirm-r159-codex-20261101. Public nonce owntransfernoncef275b6755057ed493d020e4da2100433; budget owntransfer159-own20-f93a78da07e18f3092bef15bcecb8473. First/internal/readback minimum 30 seconds; cap20; full RAW deltas and cancellations read and ACK before action. No inherited claims leases counters or runtime. Native admission received; product remains pending independent coordinator GO after activation and own claim confirmation.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "owntransfer15995f81db80e48f7260a23b7ca0aadfd7c",
+  "createdAt": "2026-11-01T09:22:50.857Z"
+}
