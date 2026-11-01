@@ -7659,7 +7659,7 @@ const LANG = {
     v4_set_money:"Dinero", v4_set_app:"App",
     v4_set_tour:"Ver el tutorial", v4_set_adv:"Avanzado",
    hv_title:"Vibración", hv_usage:"Tipo de vibración", hv_usage_hint:"Si al probar todas las fuerzas se notan igual, prueba otro tipo.", hv_u_touch:"Toque", hv_u_hardware:"Botones", hv_u_media:"Multimedia", hv_u_unknown:"Genérica", hv_motor_amp:"Tu móvil ajusta la fuerza y el ritmo de la vibración.", hv_motor_onoff:"Tu móvil no ajusta la fuerza: se nota como toques más largos o más cortos.", hv_intro:"Busca la vibración que te guste. Se guarda solo en este móvil.", hv_cycle:"Mi ciclo (el anillo de Inicio)", hv_cycle_hint:"Más toques cuanto más lleno esté el anillo.", hv_edge:"Al llegar arriba o abajo", hv_seg:"Al cambiar entre Recibos, Deudas y Metas", hv_tick:"Cursor de la gráfica de Inicio", hv_strength:"Fuerza", hv_length:"Duración", hv_every:"Repite cada (si sigues tirando)", hv_try:"Probar", hv_copy:"Copiar valores", hv_copied:"Valores copiados", hv_copy_fail:"No se pudieron copiar", hv_reset:"Volver a los de serie", hv_need_apk:"Para notar estos valores hay que instalar la última versión de la app.", hv_no_native:"La vibración solo funciona en la app de Android.",
-    v4_moved_cat:"Movido a {cat}", 
+    v4_moved_cat:"Movido a {cat}", v4_cuota_confirmada:"Confirmada como cuota de {name}", 
     v4_exp_del:"Borrar", v4_exp_del_q:"¿Borrar «{name}»?", v4_exp_del_sub:"Podrás recuperarlo durante 5 segundos.",
     f_amount_aria:"Importe", f_concept_ph:"Toca para escribir el concepto", f_cat:"Categoría",
     f_cat_all:"Las {n} ›", f_cat_all_title:"Todas las categorías", f_meta_cash:"Efectivo", 
@@ -13583,11 +13583,16 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   };
   /* «Es la cuota de…» desde la ficha (4.22.2, su rechazo: «no la puedo cambiar manualmente?»).
      La fila va a «Deudas» con esa deuda y el comercio se aprende para el mes que viene. */
+  /* Tocar la deuda que ya está encendida porque la enlazó el MOTOR la confirma a mano (`debtManual`):
+     antes el chip salía marcado y no hacía nada (R3 de la revisión, su queja de «no deja enlazarlo»).
+     Así también valen, sin migración, las que él marcó antes de que existiera la marca. */
   const setCuota=function(ex,debtId){
+    const confirma=ex.category==="deudas"&&ex.debtId===debtId&&!ex.debtManual;
     let subir=null;
     set(function(s){ const r=marcarCuotaAMano(s, ex.id, debtId); if(!r) return s; subir=r.e; return r.state; });
     if(subir && cloud.enabled()) cloud.setExpenseDeuda(subir).catch(function(){});
-    if(showToast) showToast(tf("v4_moved_cat",{cat:DEUDA_CAT.icon+" "+catName("deudas")}));
+    const d=confirma&&(state.debts||[]).find(function(x){ return x.id===debtId; });
+    if(showToast) showToast(confirma?tf("v4_cuota_confirmada",{name:(d&&String(d.name||"").trim())||catName("deudas")}):tf("v4_moved_cat",{cat:DEUDA_CAT.icon+" "+catName("deudas")}));
   };
   /* «Es aportación a la meta X» desde la ficha (decisión suya del 24/10/2026). Toca dinero, así que
      PONERLA se confirma diciendo qué cambia («de 100 € a 350 €»), y si la meta ya tenía algo
@@ -15799,7 +15804,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
         React.createElement("span",null,t("f_debt_row")),React.createElement("span",{className:"value"},expensePaymentLabelUI(state,exp,"debt",paymentRelation)),React.createElement("span",{className:"chev"},"›")),
       adjustOpen==="debt" && React.createElement("div",{className:"v4-chips wrap v4-ficha-adjust-open","data-testid":"exp-cuota-de"},
         debtOptions.map(function(d){ const on=exp.category==="deudas"&&exp.debtId===d.id; return React.createElement("button",{key:d.id,type:"button",className:"v4-chip"+(on?" on":""),
-          onClick:function(){ if(!on) setCuota(exp,d.id); }},DEUDA_CAT.icon+" "+(String(d.name||"").trim()||catName("deudas"))); }))),
+          "data-manual":on&&exp.debtManual?"1":null,onClick:function(){ if(!on||!exp.debtManual) setCuota(exp,d.id); }},DEUDA_CAT.icon+" "+(String(d.name||"").trim()||catName("deudas"))); }))),
     /* «Es aportación a una meta» (24/10/2026). Sale en los cargos del banco que pueden llevarla y en
        los que ya la llevan (si no, quitarla no tendría camino). En una cuota o un recibo se ve, pero
        explica por qué no se puede: una marca por gasto. Un apunte a mano no la ofrece: para eso está

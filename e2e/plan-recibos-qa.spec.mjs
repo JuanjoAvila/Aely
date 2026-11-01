@@ -342,6 +342,32 @@ test("el motor enlaza por nombre «PRESTAMO COCHE» 203,40: la cuota de 200 sigu
   await expect(recibos.getByTestId("plan-due").locator('[data-recibo="debt_coche"]')).toContainText("Enlazado · 203,40 €");
 });
 
+test("enlazada por el motor con otro importe: tocar su chip encendido la confirma a mano y pasa a pagada", async ({ page }) => {
+  // R3: el chip «Es la cuota de…» salía encendido y tocarlo no hacía nada.
+  const recibos = await abre(page, { debts: cocheConDia, fixed: internet25,
+    expenses: [g("coche10", "PRESTAMO COCHE", "2026-10-17", 203.4, "caixabank")] }, "2026-10-18T12:00:00+02:00");
+  const cifra = recibos.getByTestId("plan-summary").locator(".serif.num");
+  await expect.poll(() => filaGuardada(page, "coche10"), { timeout: 5000 }).toBe("coche|undefined");
+  await expect(cifra).toHaveText("240,00 €");
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await page.locator(".page-scroll-host .gx-root .gx-gris[data-gris=\"deuda\"] .gx-gris-h").first().click();
+  await page.locator(".page-scroll-host .gx-root .gx-gris[data-gris=\"deuda\"] button").filter({ hasText: "PRESTAMO COCHE" }).first().click();
+  await page.locator(".v4-ficha-adjust-row").filter({ hasText: "Es la cuota" }).click();
+  const chip = page.locator('.v4-exp-sheet [data-testid="exp-cuota-de"] button.v4-chip').filter({ hasText: "Préstamo coche" });
+  await expect(chip).toHaveClass(/on/);
+  await expect(chip).not.toHaveAttribute("data-manual", "1");
+  await chip.click();
+  await expect(page.getByText("Confirmada como cuota de Préstamo coche")).toBeVisible();
+  await expect.poll(() => filaGuardada(page, "coche10")).toBe("coche|true");
+  await expect(chip).toHaveAttribute("data-manual", "1");
+  await page.locator(".v4-sheet-back").click({ position: { x: 5, y: 5 } });
+  await expect(page.locator(".v4-sheet-back")).toHaveCount(0);
+  await page.locator('.botnav-tab[data-tour="plan"]').click();
+  await expect(cifra).toHaveText("40,00 €");
+  await recibos.getByTestId("plan-paid").locator(".pr6-paid-h").click();
+  await expect(recibos.getByTestId("plan-paid").locator('[data-recibo="debt_coche"]')).toContainText("Cargo 203,40 €");
+});
+
 test("«¿Y si gasto…?»: elegir otro banco no abre el teclado", async ({ page }) => {
   const recibos = await abre(page, { fixed: fixed.concat([{ id: "gym", name: "Gimnasio", amount: 30, freq: "mes", day: 31, account: "trade_republic" }]) });
   await recibos.getByTestId("plan-llega").click();
