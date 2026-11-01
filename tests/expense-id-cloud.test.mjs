@@ -89,7 +89,18 @@ t("fuente: las cinco escrituras van por expenseCloudEq (rama id/attrs)", () => {
   for (const n of names) {
     const i = core.indexOf("async " + n + "(");
     assert.ok(i >= 0, "falta " + n);
-    const chunk = method(n);
+    let chunk = method(n);
+    // El writer comparte ahora el CAS de source: vigilar también su filtro real,
+    // sin exigir que la llamada siga inline ni permitir que se pierda la identidad.
+    if (/expenseSourcePatch\(/.test(chunk)) {
+      assert.match(chunk, /expenseSourcePatch\(sb,session\.user\.id,e,/, n + " debe pasar dueño y fila al helper");
+      const start=core.indexOf("async function expenseSourcePatch("),mask=codeMask(core);
+      assert.ok(start>=0,"falta expenseSourcePatch");
+      let end=mask.indexOf("{",start)+1,depth=1;
+      for(;depth&&end<mask.length;end++){if(mask[end]==="{")depth++;if(mask[end]==="}")depth--;}
+      assert.equal(depth,0);
+      chunk += core.slice(start,end);
+    }
     assert.match(chunk, /expenseCloudEq\(/, n + " debe filtrar con expenseCloudEq");
     assert.doesNotMatch(
       chunk,

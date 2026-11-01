@@ -293,7 +293,7 @@ function GxSubInfo({open, onClose}){
         React.createElement("button",{type:"button",className:"btn btn-primary btn-block",onClick:swipe.close},t("gv5_sub_i_ok"))
       )), document.body);
 }
-function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clearFocus, forceAllTs, onGoPlan, onGoInversiones}){
+function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clearFocus, forceAllTs, onGoPlan, onGoInversiones, onRefreshExpenses}){
   /* «Ver todo» desde una ficha puede llegar antes de que Gastos termine de montar. Conservamos
      ese destino solo durante la navegación: el estado inicial lo consume y el evento cubre el
      caso en que la pestaña ya estaba viva. No se guarda en preferencias. */
@@ -493,6 +493,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
      quita la marca y la fila ya cuenta. La lápida solo al borrar (mismo camino que delExpense). */
   const resolveDup=function(e, same){
     if(!e || !e.possibleDup) return;
+    if(sourceActionBusy(e.id))return;
+    if(!same)return runSourceAction(e,function(){return cloud.setExpenseDup(e,false);},function(s){return resolvePossibleDup(s,e.id,false);},t("g_dup_diff"));
     set(function(s){
       let next=resolvePossibleDup(s, e.id, same);
       if(same){
@@ -509,6 +511,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     else showToast(t("g_dup_diff"));
   };
   const separarGemelo=function(e,unir){
+    if(sourceActionBusy(e.id))return;
     set(function(s){
       const next=unir?unirGemeloAutomatico(s,e.id):separarGemeloAutomatico(s,e.id);
       if(next===s) return s;
@@ -543,7 +546,88 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   const withdrawalPending=useRef({});
   const withdrawalState=useRef(state); withdrawalState.current=state;
   const [withdrawalStatus,setWithdrawalStatus]=useState(null);
+  const [sourceActionStatus,setSourceActionStatus]=useState({});
+  const sourceActionPending=useRef({});
+  const sourceActionBusy=function(id){return !!sourceActionPending.current[withdrawalState.current._historyOwner+"|"+id];};
+  const sourceActionMounted=useRef(true);
+  useEffect(function(){sourceActionMounted.current=true;return function(){sourceActionMounted.current=false;};},[]);
+  const runSourceAction=async function(ex,write,apply,success){
+    const before=withdrawalState.current,owner=before._historyOwner,snapshot=expenseSourceActionSnapshot(before,ex.id);
+    const key=owner+"|"+ex.id,operation={};
+    if(sourceActionPending.current[key]||withdrawalPending.current[ex.id])return false;
+    if(!snapshot)return false;
+    const remote=cloud.enabled()&&!mcSandbox();let timer;
+    const status=function(value){setSourceActionStatus(function(current){
+      if(value!=="pending"&&(!current[key]||current[key].operation!==operation))return current;
+      const next=Object.assign({},current);if(value)next[key]={id:ex.id,owner:owner,operation:operation,status:value};else delete next[key];return next;
+    });};
+    sourceActionPending.current[key]=operation;status("pending");
+    try{
+      if(remote){
+        const ack=await Promise.race([(async function(){const result=await write();const session=await cloud.session();if(!session||session.user.id!==owner)throw new Error("source owner changed");return result;})(),new Promise(function(_,reject){timer=setTimeout(function(){reject(new Error("source timeout"));},10000);})]);
+        if(!ack||ack.acknowledged!==true||!Array.isArray(ack.rows)||!ack.rows.length)throw new Error("source unconfirmed");
+      }
+      if(!sourceActionMounted.current)throw new Error("source unmounted");
+      let applied=false,appliedSnapshot=null;
+      ReactDOM.flushSync(function(){set(function(s){
+        applied=false;appliedSnapshot=null;
+        if(expenseSourceActionSnapshot(s,ex.id)!==snapshot)return s;
+        const next=apply(s);if(!next||next===s)return s;applied=true;appliedSnapshot=expenseSourceActionSnapshot(next,ex.id);return next;
+      });});
+      if(!applied||expenseSourceActionSnapshot(withdrawalState.current,ex.id)!==appliedSnapshot)throw new Error("source intention changed");
+      status(null);if(success)showToast(success);return true;
+    }
+    catch(err){if(sourceActionMounted.current&&withdrawalState.current._historyOwner===owner){status("error");showToast(t("f_source_save_error"));}return false;}
+    finally{clearTimeout(timer);if(sourceActionPending.current[key]===operation)delete sourceActionPending.current[key];}
+  };
+  const [ownTransferStatus,setOwnTransferStatus]=useState({});
+  useEffect(function(){
+    setOwnTransferStatus(function(current){
+      let next=current;
+      Object.keys(current).forEach(function(key){const attempt=current[key];
+        if(attempt.status!=="error"||attempt.owner!==state._historyOwner)return;
+        const e=(state.expenses||[]).find(function(x){return x.id===attempt.id;});
+        if(!e||!ownTransferOutgoingValid(state,attempt.plan,attempt.decision))return;
+        if(attempt.decision==="yes"?e.category!=="traspaso":e.ownTransferRejected!==true)return;
+        if(next===current)next=Object.assign({},current);delete next[key];
+      });return next;
+    });
+  },[state.expenses,state.fixed,state.deleted,state._historyOwner,ownTransferStatus]);
+  const recognizeOwnTransfer=function(ex){
+    if(sourceActionBusy(ex.id))return;
+    const plan=ownTransferPlan(withdrawalState.current,ex);
+    if(!plan||withdrawalPending.current[ex.id])return;
+    withdrawalPending.current[ex.id]=true;
+    askChoice({title:t("f_owntransfer_title"),sub:tf("f_owntransfer_sub",{amount:eur(ex.amount),bank:entOf(plan.incoming.ent).label}),
+      options:[{v:"yes",label:t("f_owntransfer_yes")},{v:"no",label:t("f_owntransfer_no")}]}).then(async function(decision){
+      if(decision!=="yes"&&decision!=="no")return;
+      const key=plan.owner+"|"+ex.id,operation={};
+      const status=function(value){setOwnTransferStatus(function(current){
+        if(value!=="pending"&&(!current[key]||current[key].operation!==operation))return current;
+        return Object.assign({},current,{[key]:{id:ex.id,owner:plan.owner,plan:plan,decision:decision,operation:operation,status:value}});
+      });};
+      status("pending");
+      let timer;
+      try{
+        let ack;const sandbox=mcSandbox();
+        if(!sandbox){
+          ack=await Promise.race([cloud.decideOwnTransfer(plan,decision,function(){return withdrawalState.current;}),new Promise(function(_,reject){timer=setTimeout(function(){reject(new Error("transfer timeout"));},10000);})]);
+          if(!ack)throw new Error("transfer unconfirmed");
+        }
+        let applied=false;
+        ReactDOM.flushSync(function(){set(function(s){const next=applyOwnTransferDecision(s,plan,decision,Date.now(),ack);applied=next!==s;return next;});});
+        if(!applied)throw new Error("transfer changed");
+        status("done");if(withdrawalState.current._historyOwner===plan.owner)showToast(t(decision==="yes"?"f_owntransfer_done":"f_owntransfer_rejected"));
+      }catch(err){
+        const current=withdrawalState.current,e=(current.expenses||[]).find(function(x){return x.id===ex.id;});
+        const confirmed=e&&ownTransferOutgoingValid(current,plan,decision)&&(decision==="yes"?e.category==="traspaso":e.ownTransferRejected===true);
+        status(confirmed?"done":"error");if(!confirmed&&current._historyOwner===plan.owner)showToast(t("f_owntransfer_error"));
+      }
+      finally{clearTimeout(timer);}
+    }).finally(function(){delete withdrawalPending.current[ex.id];});
+  };
   const recognizeWithdrawal=function(ex){
+    if(sourceActionBusy(ex.id))return;
     if(!canRecognizeWithdrawal(ex) || ex.category==="traspaso" || withdrawalPending.current[ex.id]) return;
     if(!canRecognizeWithdrawal(ex,withdrawalState.current)){
       showToast(t(withdrawalReceiptLink(withdrawalState.current,ex)||cargoDeRecibo(ex,withdrawalState.current)?"f_withdraw_receipt_blocked":"f_withdraw_error")); return;
@@ -577,7 +661,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   // Recategorizar un gasto a mano: actualiza ESTE, recuerda el comercio (catOverrides) para los
   // futuros y arregla otros gastos del mismo comercio que estuvieran en "Otros".
   const setCat=function(ex,newCat){
-    if(withdrawalPending.current[ex.id]) return;
+    if(withdrawalPending.current[ex.id]||sourceActionBusy(ex.id)) return;
     if(newCat==="traspaso" && canRecognizeWithdrawal(ex)){ recognizeWithdrawal(ex); return; }
     const mkey=catKey(ex.merchant);
     // "Movimiento" es el hueco que deja un banco que no manda NINGÚN dato (Trade Republic por
@@ -690,6 +774,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     }).catch(function(){}).then(function(){ delete metaEnVuelo.current[k]; });
   };
   const setMeta=function(ex,goalId){
+    if(sourceActionBusy(ex.id))return;
     const subirMeta=function(){
       let subir=null;
       set(function(s){ const r=marcarAportacionMeta(s, ex.id, goalId); if(!r) return s; subir=r.e; return r.state; });
@@ -708,12 +793,12 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   /* «No es este recibo» (12/10/2026): el sync casa por nombre e importe parecidos y puede
      equivocarse. Sin la marca, la fila vuelve a contar como un gasto cualquiera. */
   const quitarRecibo=function(ex){
-    let subir=null;
-    set(function(s){ const r=quitarCargoDeRecibo(s, ex.id); if(!r) return s; subir=r.e; return r.state; });
+    const intended=quitarCargoDeRecibo(withdrawalState.current,ex.id);if(!intended)return;
     // La marca viaja en `source`, y se busca la fila por lo que es: su id aquí puede no ser el de la nube.
-    if(subir && cloud.enabled()) cloud.setExpenseRecibo(subir).catch(function(){});
+    return runSourceAction(ex,function(){return cloud.setExpenseRecibo(intended.e);},function(s){const r=quitarCargoDeRecibo(s,ex.id);return r&&r.state;});
   };
   const setReceipt=function(ex,fixedId){
+    if(sourceActionBusy(ex.id))return;
     if(withdrawalPending.current[ex.id]){ showToast(t("f_withdraw_receipt_pending")); return; }
     const ds=String(ex.date||"").slice(0,10),y=Number(ds.slice(0,4)),m=Number(ds.slice(5,7)),now=new Date();
     const today=y===now.getFullYear()&&m===now.getMonth()+1?now.getDate():new Date(y,m,0).getDate();
@@ -731,15 +816,16 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
             ok:t("f_receipt_other_payment")}).then(function(yes){if(yes) save(signature);});return;
         }
       }
-      let subir=null;
+      const intended=fixedId!=null&&reponerCargoDeRecibo(withdrawalState.current,ex.id,fixedId,y,m,today,expected);
       // El diálogo es asíncrono: otra sincronización puede sustituir el cargo o editar el recibo.
-      set(function(s){
+      const apply=function(s){
         // Solo si de ESTE cargo se dijo «no es este recibo»: confirmar lo deshace y repone la marca.
         const r=fixedId!=null&&reponerCargoDeRecibo(s,ex.id,fixedId,y,m,today,expected);
-        if(r){ subir=r.e; return r.state; }
+        if(r)return r.state;
         return linkFixedPayment(s,ex.id,fixedId,y,m,today,expected);
-      });
-      if(subir && cloud.enabled()) cloud.setExpenseRecibo(subir).catch(function(){});
+      };
+      if(intended)return runSourceAction(ex,function(){return cloud.setExpenseRecibo(intended.e);},apply);
+      set(apply);
     };
     // Deshacer el vínculo de un cargo marcado es decir «no es este recibo»: una sola salida.
     if(fixedId==null && cargoDeRecibo(ex,state)){ quitarRecibo(ex); return; }
@@ -767,8 +853,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   // vienen con su banco real y cambiárselo sería mentirse.
   const setBank=function(ex,b){
     if(ex && ex.source && ex.source!=="manual") return;
-    set(function(s){ return Object.assign({},s,{expenses:s.expenses.map(function(e){ return e.id===ex.id?Object.assign({},e,{ent:b||undefined}):e; })}); });
-    if(cloud.enabled()) cloud.setExpenseBank(ex,b).catch(function(){});   // durable (source manual:banco)
+    return runSourceAction(ex,function(){return cloud.setExpenseBank(ex,b);},function(s){ return Object.assign({},s,{expenses:s.expenses.map(function(e){ return e.id===ex.id?Object.assign({},e,{ent:b||undefined}):e; })}); });
   };
   // Guarda el CONCEPTO escrito a mano (2026-07-24). `noteEdited` blinda el texto: el siguiente
   // sync del banco rellena conceptos vacíos, pero nunca pisa lo que ha escrito el usuario.
@@ -1995,6 +2080,15 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       },
       setCat:setCat, setCuota:setCuota, setMeta:setMeta, setReceipt:setReceipt, quitarRecibo:quitarRecibo, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
       resolveDup:resolveDup, separarGemelo:separarGemelo, recognizeWithdrawal:recognizeWithdrawal, withdrawalStatus:withdrawalStatus,confirmMonthlyInvestment:confirmMonthlyInvestment,monthlyStatus:monthlyStatus,
+      recognizeOwnTransfer:recognizeOwnTransfer,ownTransferStatus:ownTransferStatus[state._historyOwner+"|"+detailId]||null,
+      sourceActionStatus:sourceActionStatus[state._historyOwner+"|"+detailId],refreshSourceAction:function(){
+        if(!onRefreshExpenses)return Promise.reject(new Error("refresh unavailable"));
+        const owner=withdrawalState.current._historyOwner,key=owner+"|"+detailId,attempt=sourceActionStatus[key];
+        return onRefreshExpenses().then(function(){if(sourceActionMounted.current&&withdrawalState.current._historyOwner===owner)setSourceActionStatus(function(current){
+          if(!attempt||current[key]!==attempt||attempt.status==="pending")return current;
+          const next=Object.assign({},current);delete next[key];return next;
+        });});
+      },
       showToast:showToast, aiBusy:aiBusy, suggestAi:suggestAi, state:state
     }),
     undoDelete && ReactDOM.createPortal(
@@ -2703,7 +2797,7 @@ function expensePaymentLabelUI(state,e,kind,relation){
   var rows=(kind==="debt"?state.debts||[]:(state.fixed||[]).concat(state.oneoffs||[])).filter(function(x){return x&&x.id===id;});
   return rows.length===1&&String(rows[0].name||"").trim()?tf("f_link_unconfirmed",{name:rows[0].name}):"—";
 }
-function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setMeta, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus,confirmMonthlyInvestment,monthlyStatus}){
+function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setMeta, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus,confirmMonthlyInvestment,monthlyStatus, recognizeOwnTransfer, ownTransferStatus, sourceActionStatus, refreshSourceAction}){
   /* UNA SOLA CONDICIÓN para pintarse y para los candados. Iban por separado (`!!exp` en los hooks,
      `!exp || !editExp` para pintar) y en cuanto se separaban el sheet desaparecía dejando el
      `overflow:hidden` y el bloqueo de `touchmove` puestos sobre una pantalla vacía: nada respondía
@@ -2818,6 +2912,10 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
         onClick:function(){ setBank(exp,b); setBankOpen(false); }},"🏦 "+entOf(b).label); })),
     exp.renamePending&&React.createElement("div",{className:"hint",role:"status","data-testid":"expense-rename-pending"},t(exp.renamePending.quarantined?"g_rename_paused":"g_rename_pending")," ",React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){saveEdit(exp,{merchant:exp.renamePending.merchant,retryRename:true});}},t("g_note_retry"))),
     trace,duplicate,paired,reciboAviso,
+    sourceActionStatus&&sourceActionStatus.id===exp.id&&React.createElement("div",{role:"status","data-testid":"exp-source-save-status"},React.createElement("div",null,t(sourceActionStatus.status==="pending"?"f_source_pending":"f_source_save_error")),sourceActionStatus.status==="error"&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-source-refresh",onClick:function(){refreshSourceAction().catch(function(){});}},t("f_source_refresh"))),
+    ownTransferPair(state,exp)&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-own-transfer",
+      disabled:ownTransferStatus&&ownTransferStatus.id===exp.id&&ownTransferStatus.status==="pending",onClick:function(){recognizeOwnTransfer(exp);}},t("f_owntransfer_title")),
+    ownTransferStatus&&ownTransferStatus.id===exp.id&&ownTransferStatus.status!=="done"&&React.createElement("div",{role:"status","data-testid":"exp-own-transfer-status"},React.createElement("div",null,t(ownTransferStatus.status==="pending"?"f_owntransfer_pending":"f_owntransfer_error")),ownTransferStatus.status==="error"&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-own-transfer-refresh",onClick:function(){refreshSourceAction().catch(function(){});}},t("f_source_refresh"))),
     canRecognizeWithdrawal(exp) && React.createElement("div",{className:"hint","data-testid":"exp-withdrawal-info"},
       React.createElement("div",null,t("f_withdraw_fields")),
       exp.category!=="traspaso" && React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-withdrawal",
@@ -2919,9 +3017,11 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     // seguía bloqueando toda la pantalla, aunque el dato sí hubiera cambiado (feedback 18/9).
     swipe.close(function(){ onClose(true); });
   };
+  const pendingSourceStatus=sourceActionStatus&&sourceActionStatus.id===exp.id?sourceActionStatus:
+    ownTransferStatus&&ownTransferStatus.id===exp.id&&ownTransferStatus.status!=="done"?ownTransferStatus:null;
   const footer=React.createElement("div",{className:"v4-ficha-foot"},
     React.createElement("button",{type:"button",className:"v4-ficha-del",onClick:doDel},"🗑 "+t("f_del")),
-    React.createElement("span",{className:"v4-ficha-saved"},t(withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status!=="done"
+    React.createElement("span",{className:"v4-ficha-saved"},t(pendingSourceStatus?(pendingSourceStatus.status==="pending"?"f_source_pending":"f_source_unconfirmed"):withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status!=="done"
       ? (withdrawalStatus.status==="pending"?"f_withdraw_pending":"f_withdraw_unconfirmed") : "f_autosaved")),
     React.createElement("button",{type:"button",className:"v4-ficha-done",onClick:done},t("done")));
   const main=ReactDOM.createPortal(

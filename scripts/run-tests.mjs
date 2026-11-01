@@ -82,6 +82,7 @@ const steps = [
   ["gastos-periodo", ["node", "tests/gastos-periodo.test.mjs"]],
   ["gastos-v5-cifra", ["node", "tests/gastos-v5-cifra.test.mjs"]],
   ["retirada-bancaria", ["node", "tests/retirada-bancaria.test.mjs"]],
+  ["own-transfer-confirm", ["node", "tests/own-transfer-confirm.test.mjs"]],
   ["backup-snapshot", ["node", "tests/backup-snapshot.test.mjs"]],
   ["backup-sin-datos-banco", ["node", "tests/backup-sin-datos-banco.test.mjs"]],
   ["bank-merchant-category", ["node", "tests/bank-merchant-category.test.mjs"]],

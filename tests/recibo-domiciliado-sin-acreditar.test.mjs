@@ -541,7 +541,8 @@ test("el lector de `source` no se rompe con un sufijo `#n<k>` detrás de la marc
 // tabla falsa en memoria con el índice único (user_id, fecha, importe, comercio) y el alta que
 // ignora duplicados, como la de verdad. Sin red.
 function nubeFalsa(previas){
-  const tabla=previas.map((p,i)=>Object.assign({id:"old"+i,user_id:"u1"},p)), log=[];
+  // La tabla real tiene UUID incluso cuando otro móvil conserva un id local distinto.
+  const tabla=previas.map((p,i)=>Object.assign({id:"00000000-0000-4000-8000-"+String(i+1).padStart(12,"0"),user_id:"u1"},p)), log=[];
   const clave=r=>[r.user_id,Date.parse(r.fecha),Number(r.importe),r.comercio].join("|");
   const from=()=>({
     upsert(fila){
@@ -553,9 +554,10 @@ function nubeFalsa(previas){
     select(columns){ return consulta(hit=>{ log.push("lee "+hit.length); return hit.map(r=>Object.fromEntries(columns.split(",").map(k=>[k,r[k]]))); }); },
     update(patch){ return consulta(hit=>{ log.push("cambia "+hit.length); hit.forEach(r=>Object.assign(r,patch)); return null; }); },
   });
-  const consulta=hace=>{ const conds=[]; const q={ eq(col,val){ conds.push([col,val]); return q; },
+  const consulta=hace=>{ const conds=[]; let selected=null; const q={ eq(col,val){ conds.push([col,val]); return q; },
+    is(col,val){ conds.push([col,val]); return q; },select(columns){ selected=columns.split(","); return q; },
     then(ok,ko){ const hit=tabla.filter(r=>conds.every(([col,v])=>col==="fecha"?Date.parse(r[col])===Date.parse(v):col==="importe"?Number(r[col])===Number(v):r[col]===v));
-      return Promise.resolve({data:hace(hit),error:null}).then(ok,ko); } }; return q; };
+      const data=hace(hit); return Promise.resolve({data:selected?hit.map(r=>Object.fromEntries(selected.map(k=>[k,r[k]]))):data,error:null}).then(ok,ko); } }; return q; };
   return {tabla,log,client:{auth:{getSession:async()=>({data:{session:{user:{id:"u1"},expires_at:9e9}},error:null}),onAuthStateChange(){ return {data:{subscription:{unsubscribe(){}}}}; }},from}};
 }
 function appConNube(n){
@@ -602,9 +604,13 @@ test("subir una fila normal sigue siendo una sola escritura, y el modo pruebas n
 test("quitar la marca en la nube encuentra la fila aunque su id aquí sea otro, y conserva `#dup` y `#n<k>`", async ()=>{
   const sinMarca=Object.assign({},MARCADA,{reciboId:undefined});
   for(const [antes,despues] of [["ob:sabadell~recibo.mov","ob:sabadell"],["ob-hist:sabadell~recibo.mov#n2","ob-hist:sabadell#n2"],["ob:sabadell~recibo.mov#dup#n3","ob:sabadell#dup#n3"],["ob:sabadell~deuda.d1","ob:sabadell~deuda.d1"],["macrodroid","macrodroid"]]){
-    // El id de la fila en la nube («old0») no es el del móvil: un UPDATE por id no tocaría nada.
+    // El UUID de la fila en la nube no es el del móvil: un UPDATE por su id local no tocaría nada.
     const n=nubeFalsa([Object.assign({},YA,{source:antes})]), app=appConNube(n);
-    await vm.runInContext("cloud",app).setExpenseRecibo(sinMarca);
+    const write=vm.runInContext("cloud",app).setExpenseRecibo(sinMarca);
+    // Una fila excluida sigue intacta y ahora tampoco puede acreditar una marca
+    // de recibo que no le corresponde; conservar la comprobación de su source.
+    if(antes.indexOf("~deuda.")>=0||antes==="macrodroid")await assert.rejects(write,/expense source unavailable/);
+    else await write;
     assert.equal(n.tabla[0].source,despues,antes);
   }
 });

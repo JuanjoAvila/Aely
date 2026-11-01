@@ -1,5 +1,7 @@
 # Backlog operativo — Aely
 
+**Candidata R5 de PR341 draft (01/11/2026): traspaso propio con confirmación.** Pareja exacta 1 a 1 entre bancos propios, pregunta explícita en ficha, NO por UUID y SÍ limitado a categoría saliente. Tras el NO-GO de revisión, las cuotas recuperan literalmente el comportamiento base sin esperar ACK; se reparan arneses y remates de ficha. Banco, duplicado y recibo conservan el CAS con reintento único sólo por NO concurrente. Límites aceptados: no hay transacción con la contraparte; clientes antiguos y los dos writers de deuda restaurados pueden borrar un rechazo remoto desconocido y reofrecer la pregunta, nunca decidir por la persona. Véanse mapa de writers en arquitectura y CHANGELOG. Validación dirigida sintética completada; nueva revisión independiente del HEAD exacto y actualización de PR pendientes. No se hereda el GO R4 ni se acredita entrega en beta o ProductREADY.
+
 **Limpieza del 26/10/2026, sobre beta 4.26.182 (`acae53b68`), aprobada y camino de producción.**
 Antes este fichero era una pila de cortes fechados (9/9, 25/9, 27/9, 30/9, 4/10, 7/10, 15/10,
 18/10, 19/10…) que repetían los mismos IDs hasta cinco veces con estados distintos: 449

@@ -1339,22 +1339,30 @@ const cloud = (function(){
        la cuota de una deuda, un aviso del móvil o un gasto a mano que coincidan se quedan como
        están, y a un «posible repetido» no se le pone marca. Prefijo, `#dup` y `#n<k>` se conservan. */
     async setExpenseRecibo(e){
-      if(!sb || !e.ent) return;
+      if(!sb || !e || !e.ent) throw new Error("expense unavailable");
       const {data:{session}}=await sb.auth.getSession();
-      if(!session) return;
-      if(!await obConfirmedCanUpload(e,session.user.id,sb))return;
-      const {data,error}=await sb.from('expenses').select('id,source,fecha,importe,comercio')
+      if(!session) throw new Error("session unavailable");
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))throw new Error("expense upload denied");
+      const {data,error}=await sb.from('expenses').select('user_id,id,source,fecha,importe,comercio,cat')
         .eq('user_id',session.user.id).eq('fecha',e.date).eq('importe',e.amount).eq('comercio',e.merchant);
       if(error) throw error;
+      const rows=[],keys=["user_id","id","source","fecha","importe","comercio","cat"];
+      let alreadyApplied=true;
       for(const r of data||[]){
         const m=/^(ob|ob-hist):([^~#]+)(~recibo\.[^~#]*)?((?:#.*)?)$/.exec(String(r.source||""));
         if(!m || m[2]!==e.ent || (e.reciboId && m[4].indexOf("#dup")>=0)) continue;
         const src=m[1]+":"+m[2]+reciboSufijo(e.reciboId)+m[4];
-        if(src===r.source) continue;
-        if(!await obConfirmedCanUpload(expenseFromRow(r),session.user.id,sb))continue;
-        const w=await sb.from('expenses').update({ source:src }).eq('user_id',session.user.id).eq('id',r.id);
+        if(!isExpenseUuid(r.id)||r.user_id!==session.user.id||!keys.every(function(k){return Object.prototype.hasOwnProperty.call(r,k);}))throw new Error("expense snapshot unavailable");
+        if(!await obConfirmedCanUpload(expenseFromRow(r),session.user.id,sb))throw new Error("expense upload denied");
+        // Una marca ya leída y validada no necesita otra escritura para acreditar el mismo estado.
+        if(src===r.source){rows.push({id:r.id});continue;}
+        const w=await expenseSourcePatch(sb,session.user.id,e,{source:src},r);
         if(w.error) throw w.error;
+        rows.push.apply(rows,w.data);alreadyApplied=false;
       }
+      if(!rows.length)throw new Error("expense source unavailable");
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))throw new Error("expense owner changed");
+      return {acknowledged:true,rows:rows,alreadyApplied:alreadyApplied};
     },
     /* LA MARCA DE APORTACIÓN A META (24/10/2026), con la misma búsqueda que la del recibo y por lo
        mismo: el id local puede no ser el de la fila de la nube. Solo toca filas `ob:<ent>` u
@@ -1447,26 +1455,28 @@ const cloud = (function(){
     // Persiste el BANCO elegido de un gasto (va embebido en source: manual:caixabank…) para
     // que sobreviva a reinstalaciones — mismo truco que ob: (2026-07-18).
     async setExpenseBank(e, ent){
-      if(!sb) return;
+      if(!sb || !e) throw new Error("expense unavailable");
       const {data:{session}}=await sb.auth.getSession();
-      if(!session) return;
-      if(!await obConfirmedCanUpload(e,session.user.id,sb)||!await obConfirmedCanUpload(Object.assign({},e,{ent:ent||undefined}),session.user.id,sb))return;
+      if(!session) throw new Error("session unavailable");
+      if(!await obConfirmedCanUpload(e,session.user.id,sb)||!await obConfirmedCanUpload(Object.assign({},e,{ent:ent||undefined}),session.user.id,sb))throw new Error("expense upload denied");
       const src=expenseSourceForCloud(Object.assign({},e,{ent:ent||undefined}));
-      const {error}=await expenseCloudEq(sb.from('expenses').update({ source:src }), session.user.id, e);
+      const {data,error}=await expenseSourcePatch(sb,session.user.id,e,{source:src});
       if(error) throw error;
+      return {acknowledged:true,rows:data,alreadyApplied:false};
     },
     // Persiste la DECISIÓN sobre un posible repetido (B09-D, 2026-09-08). Sin esto, «son
     // distintos» solo quitaba la marca en el móvil: la fila seguía siendo `ob:ent#dup` en la nube,
     // el servidor la seguía descontando del presupuesto y el siguiente pull volvía a apagarla.
     // Tocar solo el estado local no arregla nada; la fila vuelve de la nube.
     async setExpenseDup(e, isDup){
-      if(!sb) return;
+      if(!sb || !e) throw new Error("expense unavailable");
       const {data:{session}}=await sb.auth.getSession();
-      if(!session) return;
-      if(!await obConfirmedCanUpload(e,session.user.id,sb))return;
+      if(!session) throw new Error("session unavailable");
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))throw new Error("expense upload denied");
       const src=expenseSourceForCloud(Object.assign({},e,{possibleDup:!!isDup}));
-      const {error}=await expenseCloudEq(sb.from('expenses').update({ source:src }), session.user.id, e);
+      const {data,error}=await expenseSourcePatch(sb,session.user.id,e,{source:src});
       if(error) throw error;
+      return {acknowledged:true,rows:data,alreadyApplied:false};
     },
     // Persiste el flag 💳/🔄 en la tabla (si no, el siguiente pull lo pisaría en gastos de la nube).
     async setExpenseNoCard(e, noCard){
@@ -1578,6 +1588,32 @@ const cloud = (function(){
       const ack=Array.isArray(result.data)&&result.data.length===1&&result.data[0];
       if(result.error||after.error||!after.data.session||after.data.session.user.id!==session.user.id||!ready()||!ack||ack.user_id!==session.user.id||ack.cat!=="inversion"||!trMonthlyRowMatches(e,ack,true)||["fecha","importe","comercio","source","nota","ob_name","no_card","nota_edit","ingest_event_id"].some(function(k){return ack[k]!==row[k];})) throw new Error("monthly investment unconfirmed");
       return ack;
+    },
+    async decideOwnTransfer(plan, decision, readState){
+      const ready=function(){return ownTransferPlanValid(readState(),plan);};
+      if(!sb||!["yes","no"].includes(decision)||!ready())throw new Error("transfer unavailable");
+      const owner=plan.owner, cols="id,user_id,source,cat,fecha,importe,comercio";
+      const sessionOK=async function(){const r=await sb.auth.getSession(),s=!r.error&&r.data&&r.data.session;return !!s&&s.user&&s.user.id===owner&&(s.expires_at==null||Number.isFinite(Number(s.expires_at))&&Number(s.expires_at)*1000>Date.now());};
+      if(!await sessionOK())throw new Error("transfer owner changed");
+      const read=async function(e){
+        const r=await sb.from('expenses').select(cols).eq('user_id',owner).eq('id',e.id).maybeSingle();
+        if(r.error||!ownTransferRowMatches(e,r.data,owner))throw new Error("transfer row changed");
+        return r.data;
+      };
+      const row=await read(plan.outgoing);await read(plan.incoming);
+      if(!await obConfirmedCanUpload(plan.outgoing,owner,sb)||!await sessionOK()||!ready())throw new Error("transfer unavailable");
+      const patch=decision==="yes"?{cat:"traspaso"}:{source:expenseSourceForCloud(Object.assign({},plan.outgoing,{ownTransferRejected:true}))};
+      let q=sb.from('expenses').update(patch);
+      Object.keys(row).forEach(function(k){q=q.eq(k,row[k]);});
+      const result=await q.select(cols), rows=result.data;
+      if(result.error||!Array.isArray(rows)||rows.length!==1||!Object.keys(row).every(function(k){return rows[0][k]===(Object.prototype.hasOwnProperty.call(patch,k)?patch[k]:row[k]);}))throw new Error("transfer unconfirmed");
+      if(!await sessionOK()||!ownTransferOutgoingValid(readState(),plan,decision))throw new Error("transfer changed after send");
+      // La contraparte se relee, pero esto no es una transacción de dos filas: jamás se escribe en ella.
+      let peerChanged=!ready();
+      try{await read(plan.incoming);}catch(err){peerChanged=true;}
+      if(!await sessionOK()||!ownTransferOutgoingValid(readState(),plan,decision))throw new Error("transfer owner changed after ack");
+      // El ACK de la salida ya acredita el cambio: una contraparte distinta no lo revierte.
+      return Object.assign({},rows[0],{ownTransferPeerChanged:peerChanged});
     },
     async confirmExpenseWithdrawal(e, readState){
       const ready=function(){ const s=typeof readState==="function"&&readState(); return !!s&&canRecognizeWithdrawal(e,s); };
@@ -2609,6 +2645,7 @@ function borrarGastoNube(e, donde){
 
    Si añades un método a `cloud` que ESCRIBA algo, añádelo a esta lista. */
 const CLOUD_WRITES=[
+  "decideOwnTransfer",
   "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","renameExpense","setExpenseCat","confirmExpenseWithdrawal","confirmTrMonthlyInvestment","setExpenseDeuda","setExpenseRecibo","setExpenseMeta","deleteExpense","deleteExpensesByIds","settleObAbsorbed",
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
   "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
@@ -2748,9 +2785,9 @@ function expenseSourceForCloud(e){
   // final no le cambia nada: ve el banco limpio y la marca de repetido donde siempre. Con `~`
   // dentro del banco (como la cuota) ese móvil leería un banco raro y sacaría la fila del
   // presupuesto; con `#` detrás la lee como hoy. Ver `obOrdinalOf`.
-  // Orden: ob:<ent>[~deuda.<id>[~mano] | ~recibo.<id> | ~meta.<id>][#dup][#ref<id>][#prevref<id>][#pdng][#acc<cuenta>][#n<k>].
+  // Orden: ob:<ent>[~deuda.<id>[~mano] | ~recibo.<id> | ~meta.<id>][#dup][#ref<id>][#prevref<id>][#pdng][#acc<cuenta>][#ownno][#n<k>].
   // La cuenta debe sobrevivir al pull para no ensanchar la lápida al reinstalar u otro móvil.
-  const acc=e&&e.obAcc?"#acc"+encodeURIComponent(String(e.obAcc)):"";
+  const acc=(e&&e.obAcc?"#acc"+encodeURIComponent(String(e.obAcc)):"")+(e&&e.ownTransferRejected?"#ownno":"");
   if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+(deudaSufijo(e&&e.debtId,e&&e.debtManual)||reciboSufijo(e&&e.reciboId)||metaSufijo(e&&e.goalId))+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+acc+ordinalSufijoCloud(e);
   if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent+(reciboSufijo(e&&e.reciboId)||metaSufijo(e&&e.goalId))+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+acc+ordinalSufijoCloud(e);
   // Un alias TR/Wallet pendiente usa temporalmente el encoding OB que entienden también las OTA
@@ -3334,6 +3371,103 @@ function applyEntradaEfectivo(state, amount){
   });
   return Object.assign({}, st, { accounts:accounts });
 }
+// La pareja solo ofrece una pregunta. La decisión pertenece a la persona, nunca al nombre del comercio.
+const ownTransferRecent=new WeakMap();
+async function expenseSourcePatch(sdk,owner,e,patch,snapshot){
+  const cols='user_id,id,source,fecha,importe,comercio,cat',keys=cols.split(',');
+  const read=snapshot?{data:[snapshot]}:await expenseCloudEq(sdk.from('expenses').select(cols),owner,e);
+  if(read.error)return read;
+  const data=[];
+  for(let row of read.data||[]){
+    if(!isExpenseUuid(row.id)||row.user_id!==owner||!keys.every(function(k){return Object.prototype.hasOwnProperty.call(row,k);}))return {data:[],error:new Error("expense snapshot unavailable")};
+    for(let attempt=0;attempt<2;attempt++){
+    let source=patch.source;
+    if(/#ownno(?:#|$)/.test(row.source)&&!/#ownno(?:#|$)/.test(source))source=source.replace(/(#n\d+)$/,"#ownno$1");
+    if(/#ownno(?:#|$)/.test(row.source)&&!/#ownno(?:#|$)/.test(source))source+="#ownno";
+    if(!await obConfirmedCanUpload(e,owner,sdk))return {data:[],error:new Error("expense owner changed")};
+    // La categoría también pertenece a la foto: un NO concurrente nunca autoriza pisar otra decisión.
+    let q=sdk.from('expenses').update(Object.assign({},patch,{source:source}));
+    keys.forEach(function(k){q=row[k]===null?q.is(k,null):q.eq(k,row[k]);});
+    const result=await q.select('id');
+    if(result.error)return result;
+    if(Array.isArray(result.data)&&result.data.length===1&&result.data[0].id===row.id){
+      if(!await obConfirmedCanUpload(e,owner,sdk))return {data:[],error:new Error("expense owner changed")};
+      data.push(result.data[0]);break;
+    }
+    if(!Array.isArray(result.data)||result.data.length)return {data:[],error:new Error("expense source unconfirmed")};
+    if(attempt)return {data:[],error:new Error("expense source conflict")};
+    const fresh=await sdk.from('expenses').select(cols).eq('user_id',owner).eq('id',row.id).maybeSingle(),next=fresh.data;
+    if(fresh.error||!next||/#ownno(?:#|$)/.test(row.source)||(String(next.source).match(/#ownno(?=#|$)/g)||[]).length!==1
+      ||next.source.replace(/#ownno(?=#|$)/g,'')!==row.source
+      ||!keys.filter(function(k){return k!=='source';}).every(function(k){return Object.prototype.hasOwnProperty.call(next,k)&&row[k]===next[k];}))return {data:[],error:fresh.error||new Error("expense source conflict")};
+    row=next;
+    }
+  }
+  return {data:data,error:data.length?null:new Error("expense source unavailable")};
+}
+function ownTransferCents(e){
+  const n=e&&e.amount,c=Math.round(n*100);
+  return typeof n==="number"&&Number.isFinite(n)&&Number.isSafeInteger(c)&&Math.abs(n*100-c)<0.000001?c:null;
+}
+function ownTransferDay(e){
+  const ms=Date.parse(e&&e.date);if(!Number.isFinite(ms))return NaN;
+  const p=madridYmdParts(ms);return Date.UTC(p.y,p.m-1,p.d)/86400000;
+}
+function ownTransferAccount(s,e){
+  if(!e||!e.obAcc||!e.ent)return null;
+  const a=(s.accounts||[]).filter(function(x){return x&&x.ent===e.ent&&[x.bankIban,x.bankUid].filter(Boolean).map(String).includes(String(e.obAcc));});
+  return a.length===1?a[0]:null;
+}
+function ownTransferBankRow(s,e){
+  return !!e&&isExpenseUuid(e.id)&&["ob","ob-hist"].includes(e.source)&&!e.possibleDup&&!e.obPending&&!e.renamePending&&!e.expenseEditPending
+    &&!!ownTransferAccount(s,e)&&Number.isFinite(ownTransferDay(e))&&!expenseIsTombstoned(e,expenseDeletedSet(s));
+}
+function ownTransferPair(s,e){
+  if(!s||!s._historyOwner||!ownTransferBankRow(s,e)||!(ownTransferCents(e)>0)||e.ownTransferRejected
+    ||["traspaso","ingreso","deudas","inversion"].includes(e.category)||e.reciboId||e.debtId||e.goalId||e.metaPend
+    ||withdrawalReceiptLink(s,e)||cargoDeRecibo(e,s)||expensePaymentRelationUI(s,e))return null;
+  const rows=s.expenses||[],same=rows.filter(function(x){return x&&x.id===e.id;});
+  if(same.length!==1||JSON.stringify(same[0])!==JSON.stringify(e))return null;
+  const near=function(a,b){return a.ent!==b.ent&&ownTransferCents(a)===-ownTransferCents(b)&&Math.abs(ownTransferDay(a)-ownTransferDay(b))<=2;};
+  const peers=rows.filter(function(x){return ownTransferBankRow(s,x)&&x.category==="traspaso"&&ownTransferCents(x)<0&&!x.reciboId&&!x.debtId&&!x.goalId&&near(e,x);});
+  if(peers.length!==1||rows.filter(function(x){return x&&x.id===peers[0].id;}).length!==1)return null;
+  // Una entrada tampoco se puede prestar a dos salidas, aunque una ya esté corregida o rechazada.
+  if(rows.filter(function(x){return ownTransferBankRow(s,x)&&ownTransferCents(x)>0&&near(x,peers[0]);}).length!==1)return null;
+  return peers[0];
+}
+function ownTransferPlan(s,e){
+  const peer=ownTransferPair(s,e);if(!peer)return null;
+  return {owner:s._historyOwner,outgoing:JSON.parse(JSON.stringify(e)),incoming:JSON.parse(JSON.stringify(peer)),accounts:JSON.stringify(s.accounts||[])};
+}
+function ownTransferPlanValid(s,p){
+  if(!s||!p||s._historyOwner!==p.owner||JSON.stringify(s.accounts||[])!==p.accounts)return false;
+  const peer=ownTransferPair(s,p.outgoing);
+  return !!peer&&JSON.stringify(peer)===JSON.stringify(p.incoming);
+}
+function ownTransferOutgoingValid(s,p,decision){
+  if(!s||!p||s._historyOwner!==p.owner)return false;
+  const rows=(s.expenses||[]).filter(function(e){return e.id===p.outgoing.id;});
+  if(rows.length!==1)return false;
+  // El ACK no autoriza una salida vinculada después del envío: el recibo vive fuera de expenses.
+  if(!ownTransferBankRow(s,rows[0])||withdrawalReceiptLink(s,rows[0])||cargoDeRecibo(rows[0],s)||expensePaymentRelationUI(s,rows[0]))return false;
+  const snapshot=JSON.stringify(rows[0]);
+  return snapshot===JSON.stringify(p.outgoing)||["yes","no"].includes(decision)&&snapshot===JSON.stringify(Object.assign({},p.outgoing,decision==="yes"?{category:"traspaso"}:{ownTransferRejected:true}));
+}
+function ownTransferRowMatches(e,r,owner){
+  return !!r&&r.user_id===owner&&r.id===e.id&&isExpenseUuid(r.id)&&r.source===expenseSourceForCloud(e)
+    &&r.cat===e.category&&Date.parse(r.fecha)===Date.parse(e.date)&&Number(r.importe)===e.amount&&r.comercio===e.merchant;
+}
+function applyOwnTransferDecision(s,p,decision,at,ack){
+  if(!["yes","no"].includes(decision))return s;
+  const expected=p&&Object.assign({},p.outgoing,decision==="yes"?{category:"traspaso"}:{ownTransferRejected:true});
+  if(ack?(!ownTransferOutgoingValid(s,p,decision)||!ownTransferRowMatches(expected,ack,p.owner)):!ownTransferPlanValid(s,p))return s;
+  return Object.assign({},s,{expenses:s.expenses.map(function(e){
+    if(e.id!==p.outgoing.id)return e;
+    const next=Object.assign({},e,decision==="yes"?{category:"traspaso"}:{ownTransferRejected:true});
+    if(decision==="yes")ownTransferRecent.set(next,at);
+    return next;
+  })});
+}
 // La persona reconoce esta salida concreta; no inferirlo del nombre ni recategorizar historia.
 function withdrawalReceiptLink(state,e){
   if(!state||!e) return null;
@@ -3696,6 +3830,7 @@ function expenseFromRow(r){
     obPending: (source==="ob"||source==="ob-hist")&&/#pdng(?:#|$)/.test(raw) ? true : undefined,
     obPendingRef: source==="ob"||source==="ob-hist" ? bankRefDeSource(raw,"prevref") : undefined,
     obAcc: source==="ob"||source==="ob-hist" ? bankRefDeSource(raw,"acc") : undefined,
+    ownTransferRejected: (source==="ob"||source==="ob-hist")&&/#ownno(?:#|$)/.test(raw) ? true : undefined,
   };
 }
 /* LA FILA QUE NO HA CAMBIADO NO SE VUELVE A CONVERTIR (diagnóstico de lag, 19/10/2026).
@@ -3807,7 +3942,8 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
   // Una cuota ya marcada no vuelve a «otros» porque la nube aún no se haya enterado (4.21.0): la
   // subida puede ir por detrás del pull, y la fila de la noti ni siquiera lleva la marca en `source`.
   const cuotaLocal=local.debtId && local.category==="deudas";
-  const withdrawalRecent=readStartedAt!=null && local.withdrawalConfirmedAt>=readStartedAt;
+  const withdrawalRecent=readStartedAt!=null && (local.withdrawalConfirmedAt>=readStartedAt||ownTransferRecent.get(local)>=readStartedAt);
+  if(local.id===incoming.id&&incoming.ownTransferRejected)put("ownTransferRejected",true);
   if(!manual && !cuotaLocal && !withdrawalRecent && !protects("category") && incoming.category!=null && incoming.category!=="") put("category", incoming.category);
   if(incoming.amount!=null && isFinite(incoming.amount)) put("amount", incoming.amount);
   if(incoming.merchant!=null && incoming.merchant!=="") put("merchant", incoming.merchant);
@@ -3885,6 +4021,7 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
   /* NO realinear `id` aquí: settings.expenseOrder indexa por id local, y en OB el uuid de la
      nube suele diferir (ignoreDuplicates). Cambiarlo huérfana el orden a mano (4.19.74). Tanda
      propia con remap de expenseOrder + possibleDupOf si hace falta para los PATCH. */
+  if(out!==local&&ownTransferRecent.has(local))ownTransferRecent.set(out,ownTransferRecent.get(local));
   return out;
 }
 /* Mezcla el pull con lo local: refresca campos de claves ya vistas y solo AÑADE las nuevas.
@@ -3916,9 +4053,13 @@ function uniqueExpenseUuids(rows,delSet,index){
     const winner=ad!==ed?(ad?e:a):((e.expenseEditAt||0)>=(a.expenseEditAt||0)?e:a);
     const note=(e.noteEditAt||0)!==(a.noteEditAt||0)?((e.noteEditAt||0)>(a.noteEditAt||0)?e:a):(e.noteEdited?e:a.noteEdited?a:winner);
     const merged=Object.assign({},winner,{note:note.note,noteEdited:note.noteEdited,noteEditAt:note.noteEditAt,notePending:note.notePending});
+    if(a.ownTransferRejected||e.ownTransferRejected)merged.ownTransferRejected=true;
     const guarded=Object.assign({},a.uuidPreserved,e.uuidPreserved);
     const edited=function(x){return !!(x.catStale&&x.catStale.length)||x.catAckAt!=null;};
-    const cat=edited(e)?e:edited(a)?a:winner;
+    const recentA=ownTransferRecent.get(a)||0,recentE=ownTransferRecent.get(e)||0;
+    const newest=Math.max(a.catAckAt||0,e.catAckAt||0,a.expenseEditAt||0,e.expenseEditAt||0);
+    const cat=Math.max(recentA,recentE)>newest?(recentE>=recentA?e:a):(edited(e)?e:edited(a)?a:winner);
+    if(ownTransferRecent.has(cat))ownTransferRecent.set(merged,ownTransferRecent.get(cat));
     if(cat.category!=null){merged.category=cat.category;if(cat.catStale)merged.catStale=cat.catStale;if(cat.catAckAt!=null)merged.catAckAt=cat.catAckAt;}
     ['debtId','reciboId','noCard','goalId','metaPend'].forEach(function(k){
       const has=function(x){return Object.prototype.hasOwnProperty.call(x,k)&&x[k]!==undefined;};
@@ -4066,6 +4207,7 @@ function keepCategoryChoices(prevList, incoming, readStartedAt,identityScope){
   const soltar=function(at, loc){
     if(out.prev===prevList) out.prev=prevList.slice();
     const libre=Object.assign({},loc); delete libre.catStale; delete libre.catAckAt;
+    if(ownTransferRecent.has(loc))ownTransferRecent.set(libre,ownTransferRecent.get(loc));
     out.prev[at]=libre;
   };
   (incoming||[]).forEach(function(inc, i){
