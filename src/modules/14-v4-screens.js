@@ -1122,9 +1122,10 @@ function TeDebenSheet({state, set, totals, deben, onClose}){
                   React.createElement("span",{className:"pr6-ll-n"}, p.n),
                   React.createElement("span",{className:"pr6-ficha-s"}, p.items.map(function(i){ return i.name+" "+eur(i.amt); }).join(" + "))),
                 React.createElement("span",{className:"serif num pr6-ll-a","data-testid":"deben-cifra"}, eur(p.amt))),
-              React.createElement("button",{type:"button",className:p.pagado?"pr6-btn pr6-btn-wide":"pr6-cta","data-act":"deben-pagado","aria-pressed":p.pagado?"true":"false",
-                onClick:function(){ marcar(p); }},
-                p.pagado?"✓ "+t("pr6_te_lo_ha_pagado")+" · "+t("f_undo"):t("pr6_ya_me_lo_ha_pagado")));
+              React.createElement("div",{className:"pr6-ll-act"},
+                React.createElement("button",{type:"button",className:(p.pagado?"pr6-btn ":"pr6-cta ")+"pe-deben-cta","data-act":"deben-pagado","aria-pressed":p.pagado?"true":"false",
+                  onClick:function(){ marcar(p); }},
+                  p.pagado?"✓ "+t("pr6_te_lo_ha_pagado")+" · "+t("f_undo"):t("pr6_ya_me_lo_ha_pagado"))));
           }))),
       persona!=null&&React.createElement(PersonaSheet,{key:persona,pid:persona,state:state,set:set,totals:totals,onClose:function(){ setPersona(null); }})),
     document.body);
@@ -2541,6 +2542,8 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
   const [mas,setMas]=useState(!!vigente||viejo);
   const [persona,setPersona]=useState(null);   // {pid} o {draft:true}: ficha de persona encima
   const [nuevas,setNuevas]=useState(conPersona?[conPersona]:[]);       // personas creadas en este alta, aún sin recibo
+  const pasoUi=useRef(paso);
+  const [ctaWait,setCtaWait]=useState(false);
   // Lo que se ha tocado al editar: solo eso va al recibo. Releer y volver a escribir lo demás
   // (unos pagos sin día, unos meses por defecto) lo cambiaría sin que nadie lo pidiera.
   const [tocado,setTocado]=useState(roto.length||conPersona&&viejo?{reparto:true}:{});
@@ -2589,6 +2592,14 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
     const id=requestAnimationFrame(function(){ if(titleRef.current) titleRef.current.focus({preventScroll:true}); });
     return function(){ cancelAnimationFrame(id); };
   },[paso]);
+  const mesesElegir=f.mode==="rec"&&f.freq!=="mes";
+  const diasListos=f.mode==="rec"&&(f.freq==="mes"||f.months.length>0);
+  // Tras «Cada mes» solo había días visibles; al pasar a «Una vez al año» el plegable de meses
+  // aún se abría (350 ms) y parecía que solo quedaban los días 1–31 (beta 4.26.209).
+  useLayoutEffect(function(){
+    if(paso!==2||!mesesElegir) return;
+    mostrar(mesesRef);
+  },[paso,f.freq,f.mode,mesesElegir]);
   useEffect(function(){
     const onKey=function(e){
       if(document.documentElement.classList.contains("ask-open")||document.querySelector('[data-sheet="persona"]')) return;
@@ -2725,6 +2736,17 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
     if(paso===4){ if(e&&e.detail>1) return; guardar(); return; }
     ir(resumido?4:paso+1);
   };
+  const ctaLabel=paso===4?(edit?t("rp4_guardar"):t("rp4_add")):(resumido?t("rp4_listo"):t("rp4_next"));
+  const ctaOn=ok[paso]&&(paso<4||listo);
+  // El `:disabled` con opacity .35 parpadeaba al cambiar de paso (ida y vuelta, beta 4.26.209).
+  useLayoutEffect(function(){
+    if(pasoUi.current===paso){ setCtaWait(!ctaOn); return; }
+    pasoUi.current=paso;
+    setCtaWait(false);
+    const id=setTimeout(function(){ setCtaWait(!ctaOn); },360);
+    return function(){ clearTimeout(id); };
+  },[paso,ctaOn]);
+  const ctaAct=ctaOn&&!ctaWait;
   const titulos=["rp4_t_name","rp4_t_amount","rp4_t_when","rp4_t_account",edit?"rp4_t_edit":"rp4_t_sum"];
   const bankLabel=function(b){ return b?entOf(b).label:"—"; };
   const freqTxt=function(fr){ const x=RP4_FREQS.find(function(q){ return q[0]===fr; }); return x?gbTxt(x[1]):""; };
@@ -2766,7 +2788,7 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
             React.createElement("span",{className:"m"}, t("rp4_dia"))),
           React.createElement("span",{className:"pr6-cand-t"},
             React.createElement("span",{className:"pr6-cand-n"}, d.name),
-            React.createElement("span",{className:"pr6-cand-s"}, (d.cat?catName(d.cat)+" · ":"")+bankLabel(d.bank))),
+            React.createElement("span",{className:"pr6-cand-s rp4-visto-bank"}, (d.cat?catName(d.cat)+" · ":"")+bankLabel(d.bank))),
           React.createElement("span",{className:"pr6-cand-a num"}, eur(d.amount)));
       })),
     sugs.length>0&&React.createElement("div",{key:"sg",className:"rp4-sugs"},
@@ -2871,8 +2893,8 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
           mostrar(diasRef);
         }})),
         f.freq!=="mes"&&amt>0&&React.createElement("div",{className:"hint"}, fixedAddPreview(borrador())))),
-    React.createElement("div",{key:"dd",className:"pr6-fold"+(f.mode==="rec"?" open":"")},
-      React.createElement("div",Object.assign({className:"pr6-fold-in"},f.mode==="rec"?null:{"aria-hidden":"true",inert:""}),
+    React.createElement("div",{key:"dd",className:"pr6-fold"+(diasListos?" open":"")},
+      React.createElement("div",Object.assign({className:"pr6-fold-in"},diasListos?null:{"aria-hidden":"true",inert:""}),
         dias(cleanDay(f.day),function(d){ upd({day:d}); }))),
     React.createElement("div",{key:"pl",className:"pr6-fold"+(f.mode!=="rec"?" open":"")},
       React.createElement("div",Object.assign({className:"pr6-fold-in rp4-pagos",ref:pagosRef},f.mode!=="rec"?null:{"aria-hidden":"true",inert:""}),
@@ -3000,7 +3022,6 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
     edit&&React.createElement("button",{type:"button",key:"x",className:"pr6-btn pr6-btn-wide"+(gone?" pr6-seguro":""),"data-act":"bill-remove",
       onClick:function(){ if(!gone){ setGone(true); return; } onRemove(row); }}, gone?t("pr6_seguro_borrar"):t("pr6_ya_no"))
   ]);
-  const cta=paso===4?(edit?t("rp4_guardar"):t("rp4_add")):(resumido?t("rp4_listo"):t("rp4_next"));
   // La ficha de persona va fuera de la hoja: sus gestos y toques no pueden subir hasta esta.
   return React.createElement(React.Fragment,null,React.createElement("div",{ref:sideRef,className:"v4-sheet-back",onClick:swipe.close},
     React.createElement("div",Object.assign({ref:sheetRef,className:"v4-sheet pr6-ficha rp4","data-sheet":"recibo-pasos","data-paso":paso,"data-modo":edit?"edit":"add",
@@ -3017,8 +3038,8 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
           [0,1,2,3].map(function(i){ return React.createElement("i",{key:i,className:paso>=i?"on":""}); }))),
       React.createElement("div",{className:"pr6-track rp4-track",style:{transform:"translateX("+(-paso*100)+"%)"}}, p0,p1,p2,p3,p4),
       React.createElement("div",{className:"rp4-foot"},
-        React.createElement("button",{type:"button",className:"pr6-cta rp4-cta","data-act":paso===4?"confirm":"next","aria-disabled":ok[paso]&&(paso<4||listo)?"false":"true",
-          disabled:!(ok[paso]&&(paso<4||listo)),onClick:siguiente}, cta)))),
+        React.createElement("button",{type:"button",className:"pr6-cta rp4-cta"+(ctaAct?"":" is-wait"),"data-act":paso===4?"confirm":"next","data-rp4-cta":"1",
+          "aria-disabled":ctaAct?"false":"true",tabIndex:ctaAct?0:-1,onClick:function(e){ if(!ctaAct) return; siguiente(e); }}, ctaLabel)))),
     persona&&React.createElement(PersonaSheet,{key:persona.pid||"nueva",pid:persona.pid,draft:!!persona.draft,mensual:mensual,sinBorrar:true,state:state,set:set,totals:totals,
       onClose:function(){ setPersona(null); },
       onCreate:function(q){
