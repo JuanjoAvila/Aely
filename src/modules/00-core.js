@@ -3419,6 +3419,8 @@ function ownTransferOutgoingValid(s,p,decision){
   if(!s||!p||s._historyOwner!==p.owner)return false;
   const rows=(s.expenses||[]).filter(function(e){return e.id===p.outgoing.id;});
   if(rows.length!==1)return false;
+  // El ACK no autoriza una salida vinculada después del envío: el recibo vive fuera de expenses.
+  if(!ownTransferBankRow(s,rows[0])||withdrawalReceiptLink(s,rows[0])||cargoDeRecibo(rows[0],s)||expensePaymentRelationUI(s,rows[0]))return false;
   const snapshot=JSON.stringify(rows[0]);
   return snapshot===JSON.stringify(p.outgoing)||["yes","no"].includes(decision)&&snapshot===JSON.stringify(Object.assign({},p.outgoing,decision==="yes"?{category:"traspaso"}:{ownTransferRejected:true}));
 }

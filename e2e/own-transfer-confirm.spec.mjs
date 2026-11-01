@@ -5,7 +5,7 @@ const owner='e2e-user';
 const out={id:'550e8400-e29b-41d4-a716-446655440001',date:new Date(FIXTURE_NOW).toISOString(),merchant:'Envío sintético a otra cuenta',amount:80,category:'otros',source:'ob',ent:'caixabank',obAcc:'fixture-a',extId:'fixture-out'};
 const incoming={...out,id:'550e8400-e29b-41d4-a716-446655440002',merchant:'Entrada sintética en cuenta propia',amount:-80,category:'traspaso',ent:'revolut',obAcc:'fixture-b',extId:'fixture-in'};
 const accounts=[{id:'caixa',ent:'caixabank',name:'Cuenta A',value:920,bankUid:'fixture-a',role:'diario'},{id:'rev',ent:'revolut',name:'Cuenta B',value:1080,bankUid:'fixture-b',role:'diario'}];
-const toRow=e=>({id:e.id,user_id:owner,fecha:e.date,comercio:e.merchant,importe:e.amount,cat:e.category,source:`ob:${e.ent}#ref${encodeURIComponent(e.extId)}#acc${encodeURIComponent(e.obAcc)}`});
+const toRow=e=>({id:e.id,user_id:owner,fecha:e.date,comercio:e.merchant,importe:e.amount,cat:e.category,source:e.source==='manual'?`manual:${e.ent}`:`ob:${e.ent}#ref${encodeURIComponent(e.extId)}#acc${encodeURIComponent(e.obAcc)}`});
 const saved=page=>page.evaluate(()=>({expenses:JSON.parse(localStorage.getItem('micartera_v3_exp')||'[]'),state:JSON.parse(localStorage.getItem('micartera_v3')||'{}'),remote:window.__own.rows,writes:window.__own.writes}));
 async function open(page,{lang='es',mode='ok',expenses=[out,incoming],remote=expenses.map(toRow),debts=[]}={}){
   await installFixtureClock(page);
@@ -13,7 +13,7 @@ async function open(page,{lang='es',mode='ok',expenses=[out,incoming],remote=exp
     settings:{lang,autoPrices:false,expenseBanks:['caixabank','revolut'],budgetCycle:false}});
   await page.addInitScript(({remote,mode})=>{
     const desc=Object.getOwnPropertyDescriptor(window,'supabase');
-    window.__own={rows:JSON.parse(localStorage.getItem('_ownFixtureRemote')||'null')||remote,writes:[],mode};
+    window.__own={rows:JSON.parse(localStorage.getItem('_ownFixtureRemote')||'null')||remote,writes:[],mode,gates:{},settled:{}};
     Object.defineProperty(window,'supabase',{configurable:true,get(){const lib=desc.get();if(!lib)return lib;
       return {createClient(){const base=lib.createClient();return {...base,from(table){
         if(table!=='expenses')return base.from(table);
@@ -24,6 +24,8 @@ async function open(page,{lang='es',mode='ok',expenses=[out,incoming],remote=exp
           if(ordering)rows.sort((a,b)=>(a[ordering.k]<b[ordering.k]?-1:a[ordering.k]>b[ordering.k]?1:0)*(ordering.ascending?1:-1));
           if(patch){
             f.writes.push({patch:structuredClone(patch),filters:structuredClone(filters)});
+            const gate=rows[0]&&f.gates[rows[0].id];
+            if(gate){const answer=await new Promise(resolve=>{gate.release=resolve;});if(answer==='error')return {data:null,error:new Error('fixture per-row denied')};}
             if(f.mode==='hold')await new Promise(resolve=>{f.release=resolve;});
             rows=f.rows.filter(matches);
             if(['casNo','casSemantic','casZero2','rereadError'].includes(f.mode)&&!f.raced){
@@ -49,7 +51,7 @@ async function open(page,{lang='es',mode='ok',expenses=[out,incoming],remote=exp
   },{remote,mode});
   await page.goto('/');await dismissNews(page);await page.waitForFunction(()=>!document.getElementById('mc-load'));
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:out.merchant}).click();
+  await page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:expenses[0].merchant}).click();
   return page.getByTestId('exp',{exact:true});
 }
 const translations={es:['¿Lo enviaste a otra cuenta tuya?','Sí, es mi dinero','No, es un pago'],en:['Did you send this to another account of yours?','Yes, it is my money','No, it is a payment'],ca:['Ho vas enviar a un altre compte teu?','Sí, són els meus diners','No, és un pagament']};
@@ -148,12 +150,13 @@ test('cuota reintenta sólo el NO concurrente y muestra éxito tras el acuse rea
   expect(result.remote[0].source).toContain('~deuda.');await expect(sheet.getByTestId('exp-source-save-status')).toHaveCount(0);
 });
 for(const kind of ['category','debt','owner'])test(`acuse tardío de cuota no aplica otra intención (${kind})`,async({page})=>{
-  const sheet=await open(page,{mode:'hold',debts:[quotaDebt]});await chooseQuota(sheet);
+  const sheet=await open(page,{mode:'hold',debts:[quotaDebt]});await startSourceCaller(page,'setCuota',out.id,quotaDebt.id);
   await expect(page.locator('.v4-exp-sheet .v4-ficha-saved')).toHaveText('Guardando cambio…');
   await expect.poll(()=>page.evaluate(()=>typeof window.__own.release)).toBe('function');
   await changeLiveState(page,kind);
   await expect.poll(async()=>{const result=await saved(page);return kind==='debt'?result.state.debts.length:kind==='owner'?result.state._historyOwner:result.expenses.find(e=>e.id===out.id).category;}).toBe(kind==='debt'?0:kind==='owner'?'different-fixture-owner':'salud');
   await page.evaluate(()=>{window.__own.mode='ok';window.__own.release();});
+  await waitSourceCaller(page,out.id);
   if(kind!=='owner')await expect(sheet.getByTestId('exp-source-save-status')).toContainText('No se ha podido confirmar este cambio');
   else await expect.poll(async()=>(await saved(page)).state._historyOwner).toBe('different-fixture-owner');
   const result=await saved(page);expect(result.expenses.find(e=>e.id===out.id)?.debtManual).not.toBe(true);
@@ -195,4 +198,98 @@ test('pull confirmado antes del ACK automático limpia el error tardío',async({
   // Deja terminar el catch y la conciliación antes de afirmar que no reaparece el aviso.
   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
   await expect(sheet.getByTestId('exp-source-save-status')).toHaveCount(0);
+});
+
+
+// Se invoca el callback REAL de la ficha para controlar el orden de dos escrituras;
+// no se sustituye el reducer ni el writer. Su promesa acredita que el caller acabó.
+async function startSourceCaller(page,name,id,value){
+  await page.evaluate(({name,id,value})=>{
+    const el=document.querySelector('[data-testid="exp"]');let f=el[Object.keys(el).find(k=>k.startsWith('__reactFiber'))];
+    while(f&&!(f.memoizedProps&&typeof f.memoizedProps[name]==='function'))f=f.return;
+    if(!f)throw new Error('Detail caller missing: '+name);
+    const props=f.memoizedProps,e=props.state.expenses.find(x=>x.id===id);
+    window.__own.settled[id]=false;
+    Promise.resolve(props[name](e,value)).finally(()=>{window.__own.settled[id]=true;});
+  },{name,id,value});
+}
+async function waitSourceCaller(page,id){
+  await expect.poll(()=>page.evaluate(id=>window.__own.settled[id],id)).toBe(true);
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+}
+async function showRow(page,merchant){
+  await page.locator('.v4-exp-sheet .v4-ficha-done').click();
+  await page.getByTestId('exp',{exact:true}).waitFor({state:'hidden'});
+  const row=page.getByRole('button').filter({hasText:merchant});
+  if(!await row.count()&&await page.getByRole('button',{name:/^Traspasos · no cuentan/}).count())await page.getByRole('button',{name:/^Traspasos · no cuentan/}).click();
+  await row.click();
+  return page.getByTestId('exp',{exact:true});
+}
+async function realPull(page){
+  await page.evaluate(async()=>{
+    const el=document.querySelector('[data-testid="exp"]');let f=el[Object.keys(el).find(k=>k.startsWith('__reactFiber'))];
+    while(f&&!(f.memoizedProps&&f.memoizedProps.onRefreshExpenses))f=f.return;
+    await f.memoizedProps.onRefreshExpenses();
+  });
+}
+const manualA={...out,merchant:'Manual sintético A',source:'manual',extId:undefined,obAcc:undefined};
+const manualB={...manualA,id:incoming.id,merchant:'Manual sintético B',amount:37};
+for(const order of ['Aok-Bpending','Berror-Aok'])test(`R4 estados por fila: ${order}`,async({page})=>{
+  await open(page,{expenses:[manualA,manualB]});
+  await page.evaluate(ids=>ids.forEach(id=>{window.__own.gates[id]={};}),[manualA.id,manualB.id]);
+  await startSourceCaller(page,'setBank',manualA.id,'revolut');
+  await expect.poll(()=>page.evaluate(id=>typeof window.__own.gates[id].release,manualA.id)).toBe('function');
+  const sheet=await showRow(page,manualB.merchant);
+  await startSourceCaller(page,'setBank',manualB.id,'revolut');
+  await expect.poll(()=>page.evaluate(id=>typeof window.__own.gates[id].release,manualB.id)).toBe('function');
+  if(order==='Berror-Aok'){
+    await page.evaluate(id=>window.__own.gates[id].release('error'),manualB.id);await waitSourceCaller(page,manualB.id);
+    await expect(sheet.getByTestId('exp-source-refresh')).toBeVisible();
+  }
+  await page.evaluate(id=>window.__own.gates[id].release('ok'),manualA.id);await waitSourceCaller(page,manualA.id);
+  await expect(page.locator('.v4-exp-sheet .v4-ficha-saved')).toHaveText(order==='Aok-Bpending'?'Guardando cambio…':'Cambio sin confirmar');
+  if(order==='Berror-Aok')await expect(sheet.getByTestId('exp-source-refresh')).toBeVisible();
+});
+test('R4 error manual A no tapa error automático B',async({page})=>{
+  const autoB={...out,id:incoming.id,merchant:'Cuota automática sintética B'};
+  await open(page,{mode:'zero',expenses:[manualA,autoB],debts:[{...quotaDebt,monthly:80}]});
+  await startSourceCaller(page,'setBank',manualA.id,'revolut');await waitSourceCaller(page,manualA.id);
+  const sheet=await showRow(page,autoB.merchant);
+  await expect(sheet.getByTestId('exp-source-refresh')).toBeVisible();
+  await expect(page.locator('.v4-exp-sheet .v4-ficha-saved')).toHaveText('Cambio sin confirmar');
+});
+for(const decision of ['yes','no'])test(`R4 traspaso ${decision} ACK perdido recupera con pull y reapertura`,async({page})=>{
+  const sheet=await open(page,{mode:'lostAck'});await sheet.getByTestId('exp-own-transfer').click();
+  await page.locator('.askback').getByRole('button',{name:translations.es[decision==='yes'?1:2],exact:true}).click();
+  await expect(sheet.getByTestId('exp-own-transfer-status')).toContainText('No se ha podido confirmar');
+  const before=await saved(page);expect(decision==='yes'?before.remote[0].cat:before.remote[0].source.includes('#ownno')).toBe(decision==='yes'?'traspaso':true);
+  await page.evaluate(()=>{window.__own.mode='ok';});
+  await sheet.getByTestId('exp-own-transfer-refresh').click();
+  await expect(sheet.getByTestId('exp-own-transfer-status')).toHaveCount(0);
+  await expect(sheet.getByTestId('exp-own-transfer')).toHaveCount(0);
+  await showRow(page,out.merchant);
+  await expect(page.getByTestId('exp-own-transfer-status')).toHaveCount(0);
+  await expect(page.getByTestId('exp-own-transfer')).toHaveCount(0);
+});
+for(const decision of ['yes','no'])test(`R4 traspaso ${decision} pull antes del rechazo tardío`,async({page})=>{
+  const sheet=await open(page,{mode:'holdAck'});await sheet.getByTestId('exp-own-transfer').click();
+  await page.locator('.askback').getByRole('button',{name:translations.es[decision==='yes'?1:2],exact:true}).click();
+  await expect.poll(()=>page.evaluate(()=>typeof window.__own.release)).toBe('function');
+  await realPull(page);
+  await expect.poll(async()=>{const e=(await saved(page)).expenses.find(e=>e.id===out.id);return decision==='yes'?e.category:e.ownTransferRejected;}).toBe(decision==='yes'?'traspaso':true);
+  await page.evaluate(()=>{window.__own.mode='lostAck';window.__own.release();});
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  await expect(sheet.getByTestId('exp-own-transfer-status')).toHaveCount(0);
+  await expect(page.locator('.v4-exp-sheet .v4-ficha-saved')).toHaveText('Se guarda al momento ✓');
+  await expect(page.getByText('No se ha podido confirmar tu respuesta. Actualiza los movimientos antes de intentarlo otra vez.',{exact:true})).toHaveCount(0);
+});
+test('R4 traspaso no limpia un conflicto semántico al actualizar',async({page})=>{
+  const sheet=await open(page,{mode:'lostAck'});await sheet.getByTestId('exp-own-transfer').click();
+  await page.locator('.askback').getByRole('button',{name:translations.es[1],exact:true}).click();
+  await expect(sheet.getByTestId('exp-own-transfer-status')).toContainText('No se ha podido confirmar');
+  await page.evaluate(()=>{window.__own.mode='ok';window.__own.rows[0].cat='salud';});
+  await sheet.getByTestId('exp-own-transfer-refresh').click();
+  await expect.poll(async()=>(await saved(page)).expenses.find(e=>e.id===out.id).category).toBe('salud');
+  await expect(sheet.getByTestId('exp-own-transfer-status')).toContainText('No se ha podido confirmar');
+  await expect(page.locator('.v4-exp-sheet .v4-ficha-saved')).toHaveText('Cambio sin confirmar');
 });

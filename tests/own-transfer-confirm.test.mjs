@@ -15,7 +15,7 @@ function fixture(){
 const plan=s=>ctx.ownTransferPlan(s,s.expenses[0]);
 const row=e=>({user_id:owner,id:e.id,fecha:e.date,comercio:e.merchant,importe:e.amount,cat:e.category,source:ctx.expenseSourceForCloud(e)});
 let count=0;
-async function check(name,fn){await fn();count++;console.log("✓ "+name);}
+async function check(name,fn){if(process.env.AELY_OWN_TRANSFER_TEST_FILTER&&!new RegExp(process.env.AELY_OWN_TRANSFER_TEST_FILTER).test(name))return;await fn();count++;console.log("✓ "+name);}
 
 await check("solo ofrece pareja única entre cuentas propias conocidas de bancos distintos",()=>{
   const s=fixture(),before=plain(s),p=plan(s);
@@ -166,7 +166,7 @@ function client(s,opts={}){
         if(opts.writeError)return {data:null,error:new Error("denied")};
         const selected=opts.zero||opts.zeroAt===ops.length?[]:rows.filter(r=>filters.every(([k,v])=>r[k]===v));
         selected.forEach(r=>Object.assign(r,patch));
-        if(opts.afterUpdate)opts.afterUpdate(rows,s);
+        if(opts.afterUpdate)await opts.afterUpdate(rows,s);
         return {data:opts.ack===undefined?project(selected):opts.ack,error:null};
       }
       reads++;if(opts.beforeRead)opts.beforeRead(reads,rows,s);
@@ -185,6 +185,40 @@ function client(s,opts={}){
 async function run(c,s,p=plan(s),decision="yes"){
   ctx.__ownTransferSb=c.sb;return method(p,decision,()=>s);
 }
+function receiptRaceFixture(){
+  const s=fixture();s.fixed=[{id:'late-receipt',name:'Recibo sintético distinto',amount:80,freq:'mes',day:20,account:'sabadell'}];
+  assert.ok(plan(s),'la prueba empieza con una pareja elegible');return s;
+}
+function addLateReceipt(s){
+  const next=ctx.linkFixedPayment(s,s.expenses[0].id,'late-receipt',2026,10,31);
+  assert.notEqual(next,s,'el enlace real debe crear la prueba durable');
+  assert.equal(next.expenses,s.expenses,'el enlace no altera la fila de gasto');
+  assert.ok(ctx.withdrawalReceiptLink(next,next.expenses[0]),'la prueba durable debe ser visible al guard');
+  Object.assign(s,next);return s;
+}
+for(const decision of ['yes','no'])await check('vínculo tardío con ACK suspendido '+decision+': no se confunde con contraparte',async()=>{
+  const s=receiptRaceFixture(),p=plan(s);let sent,release;
+  const entered=new Promise(r=>{sent=r;}),gate=new Promise(r=>{release=r;});
+  const c=client(s,{afterUpdate:async()=>{sent();await gate;}});
+  const pending=run(c,s,p,decision);await entered;addLateReceipt(s);const linked=plain(s);
+  release();await assert.rejects(()=>pending,/transfer.*after/);
+  assert.deepEqual(plain(s),linked,'no cambia la categoría ni borra el vínculo local');
+  assert.equal(c.ops.length,1,'sin rollback ni compensación remota');
+  assert.equal(c.rows[0].cat,decision==='yes'?'traspaso':'otros');
+});
+for(const decision of ['yes','no'])await check('vínculo tardío al aplicar ACK '+decision+': conserva estado y vínculo',async()=>{
+  const s=receiptRaceFixture(),p=plan(s),c=client(s),ack=await run(c,s,p,decision);
+  addLateReceipt(s);const linked=plain(s);
+  assert.equal(ctx.applyOwnTransferDecision(s,p,decision,100,ack),s,'ACK viejo no autoriza cambiar una salida vinculada');
+  assert.deepEqual(plain(s),linked);assert.equal(c.ops.length,1);
+});
+for(const decision of ['yes','no'])await check('elegibilidad tardía al aplicar ACK '+decision+': lápida externa impide éxito',async()=>{
+  const s=fixture(),p=plan(s),c=client(s),ack=await run(c,s,p,decision);
+  s.deleted=ctx.pushDeleted(s.deleted,ctx.keyOfExpense(s.expenses[0]));
+  assert.equal(ctx.expenseIsTombstoned(s.expenses[0],ctx.expenseDeletedSet(s)),true);
+  assert.equal(ctx.applyOwnTransferDecision(s,p,decision,100,ack),s);
+  assert.equal(c.ops.length,1);
+});
 for(const decision of ["yes","no"])await check("writer "+decision+": patch único, filtros CAS y ACK exacto",async()=>{
   const s=fixture(),p=plan(s),c=client(s),before=plain(c.rows),ack=await run(c,s,p,decision);
   assert.ok(ack);assert.equal(c.ops.length,1);const op=c.ops[0];assert.equal(op.table,"expenses");
@@ -257,10 +291,10 @@ function sourceWriter(name){
 const bankSource=fs.readFileSync("src/modules/08-motor-bank.js","utf8");
 vm.runInContext(bankSource.match(/function expenseSourceActionSnapshot\(s,id\)\{[\s\S]*?\n\}/)[0],ctx);
 function quotaCaller(s,c){
-  ctx.__ownTransferSb=c.sb;ctx.__realDebtWriter=sourceWriter("setExpenseDeuda");ctx.__callerState=s;ctx.__callerToasts=[];ctx.__callerStatus=null;
+  ctx.__ownTransferSb=c.sb;ctx.__realDebtWriter=sourceWriter("setExpenseDeuda");ctx.__callerState=s;ctx.__callerToasts=[];ctx.__callerStatus=null;ctx.__callerStatuses={};
   const ui=fs.readFileSync("src/modules/04-tab-gastos.js","utf8"),body=ui.match(/const setCuota=function\(ex,debtId\)\{[\s\S]*?\n  \};/)[0];
   const action=ui.match(/const runSourceAction=async function\(ex,write,apply,success\)\{[\s\S]*?\n  \};/)[0];
-  return vm.runInContext('(function(){const state=globalThis.__callerState,withdrawalState={current:state},sourceActionPending={current:{}},withdrawalPending={current:{}},sourceActionMounted={current:true};const mcSandbox=()=>false;const ReactDOM={flushSync:f=>f()};const setSourceActionStatus=s=>{globalThis.__callerStatus=s;};const set=f=>{globalThis.__callerState=f(globalThis.__callerState);withdrawalState.current=globalThis.__callerState;};const showToast=x=>globalThis.__callerToasts.push(x);const cloud={enabled:()=>true,session:async()=>{const r=await globalThis.__ownTransferSb.auth.getSession();return !r.error&&r.data.session;},setExpenseDeuda:e=>globalThis.__realDebtWriter(e)};'+action+body+'return setCuota;})()',ctx);
+  return vm.runInContext('(function(){const state=globalThis.__callerState,withdrawalState={current:state},sourceActionPending={current:{}},withdrawalPending={current:{}},sourceActionMounted={current:true};const mcSandbox=()=>false;const ReactDOM={flushSync:f=>f()};const setSourceActionStatus=s=>{if(typeof s==="function"){globalThis.__callerStatuses=s(globalThis.__callerStatuses);globalThis.__callerStatus=globalThis.__callerStatuses[state._historyOwner+"|"+state.expenses[0].id]||null;}else globalThis.__callerStatus=s;};const set=f=>{globalThis.__callerState=f(globalThis.__callerState);withdrawalState.current=globalThis.__callerState;};const showToast=x=>globalThis.__callerToasts.push(x);const cloud={enabled:()=>true,session:async()=>{const r=await globalThis.__ownTransferSb.auth.getSession();return !r.error&&r.data.session;},setExpenseDeuda:e=>globalThis.__realDebtWriter(e)};'+action+body+'return setCuota;})()',ctx);
 }
 await check("caller real setCuota recupera NO concurrente y confirma vínculo remoto/local",async()=>{
   const s=fixture();s.debts=[{id:"fixture-debt",name:"Préstamo sintético",monthly:80}];

@@ -493,7 +493,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
      quita la marca y la fila ya cuenta. La lápida solo al borrar (mismo camino que delExpense). */
   const resolveDup=function(e, same){
     if(!e || !e.possibleDup) return;
-    if(sourceActionPending.current[e.id])return;
+    if(sourceActionBusy(e.id))return;
     if(!same)return runSourceAction(e,function(){return cloud.setExpenseDup(e,false);},function(s){return resolvePossibleDup(s,e.id,false);},t("g_dup_diff"));
     set(function(s){
       let next=resolvePossibleDup(s, e.id, same);
@@ -511,7 +511,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     else showToast(t("g_dup_diff"));
   };
   const separarGemelo=function(e,unir){
-    if(sourceActionPending.current[e.id])return;
+    if(sourceActionBusy(e.id))return;
     set(function(s){
       const next=unir?unirGemeloAutomatico(s,e.id):separarGemeloAutomatico(s,e.id);
       if(next===s) return s;
@@ -524,16 +524,22 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   const withdrawalPending=useRef({});
   const withdrawalState=useRef(state); withdrawalState.current=state;
   const [withdrawalStatus,setWithdrawalStatus]=useState(null);
-  const [sourceActionStatus,setSourceActionStatus]=useState(null);
+  const [sourceActionStatus,setSourceActionStatus]=useState({});
   const sourceActionPending=useRef({});
+  const sourceActionBusy=function(id){return !!sourceActionPending.current[withdrawalState.current._historyOwner+"|"+id];};
   const sourceActionMounted=useRef(true);
   useEffect(function(){sourceActionMounted.current=true;return function(){sourceActionMounted.current=false;};},[]);
   const runSourceAction=async function(ex,write,apply,success){
-    if(sourceActionPending.current[ex.id]||withdrawalPending.current[ex.id])return false;
     const before=withdrawalState.current,owner=before._historyOwner,snapshot=expenseSourceActionSnapshot(before,ex.id);
+    const key=owner+"|"+ex.id,operation={};
+    if(sourceActionPending.current[key]||withdrawalPending.current[ex.id])return false;
     if(!snapshot)return false;
     const remote=cloud.enabled()&&!mcSandbox();let timer;
-    sourceActionPending.current[ex.id]=true;setSourceActionStatus({id:ex.id,status:"pending"});
+    const status=function(value){setSourceActionStatus(function(current){
+      if(value!=="pending"&&(!current[key]||current[key].operation!==operation))return current;
+      const next=Object.assign({},current);if(value)next[key]={id:ex.id,owner:owner,operation:operation,status:value};else delete next[key];return next;
+    });};
+    sourceActionPending.current[key]=operation;status("pending");
     try{
       if(remote){
         const ack=await Promise.race([(async function(){const result=await write();const session=await cloud.session();if(!session||session.user.id!==owner)throw new Error("source owner changed");return result;})(),new Promise(function(_,reject){timer=setTimeout(function(){reject(new Error("source timeout"));},10000);})]);
@@ -547,21 +553,38 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
         const next=apply(s);if(!next||next===s)return s;applied=true;appliedSnapshot=expenseSourceActionSnapshot(next,ex.id);return next;
       });});
       if(!applied||expenseSourceActionSnapshot(withdrawalState.current,ex.id)!==appliedSnapshot)throw new Error("source intention changed");
-      setSourceActionStatus(null);if(success)showToast(success);return true;
+      status(null);if(success)showToast(success);return true;
     }
-    catch(err){if(sourceActionMounted.current&&withdrawalState.current._historyOwner===owner){setSourceActionStatus({id:ex.id,status:"error"});showToast(t("f_source_save_error"));}return false;}
-    finally{clearTimeout(timer);delete sourceActionPending.current[ex.id];}
+    catch(err){if(sourceActionMounted.current&&withdrawalState.current._historyOwner===owner){status("error");showToast(t("f_source_save_error"));}return false;}
+    finally{clearTimeout(timer);if(sourceActionPending.current[key]===operation)delete sourceActionPending.current[key];}
   };
-  const [ownTransferStatus,setOwnTransferStatus]=useState(null);
+  const [ownTransferStatus,setOwnTransferStatus]=useState({});
+  useEffect(function(){
+    setOwnTransferStatus(function(current){
+      let next=current;
+      Object.keys(current).forEach(function(key){const attempt=current[key];
+        if(attempt.status!=="error"||attempt.owner!==state._historyOwner)return;
+        const e=(state.expenses||[]).find(function(x){return x.id===attempt.id;});
+        if(!e||!ownTransferOutgoingValid(state,attempt.plan,attempt.decision))return;
+        if(attempt.decision==="yes"?e.category!=="traspaso":e.ownTransferRejected!==true)return;
+        if(next===current)next=Object.assign({},current);delete next[key];
+      });return next;
+    });
+  },[state.expenses,state.fixed,state.deleted,state._historyOwner,ownTransferStatus]);
   const recognizeOwnTransfer=function(ex){
-    if(sourceActionPending.current[ex.id])return;
+    if(sourceActionBusy(ex.id))return;
     const plan=ownTransferPlan(withdrawalState.current,ex);
     if(!plan||withdrawalPending.current[ex.id])return;
     withdrawalPending.current[ex.id]=true;
     askChoice({title:t("f_owntransfer_title"),sub:tf("f_owntransfer_sub",{amount:eur(ex.amount),bank:entOf(plan.incoming.ent).label}),
       options:[{v:"yes",label:t("f_owntransfer_yes")},{v:"no",label:t("f_owntransfer_no")}]}).then(async function(decision){
       if(decision!=="yes"&&decision!=="no")return;
-      setOwnTransferStatus({id:ex.id,status:"pending"});
+      const key=plan.owner+"|"+ex.id,operation={};
+      const status=function(value){setOwnTransferStatus(function(current){
+        if(value!=="pending"&&(!current[key]||current[key].operation!==operation))return current;
+        return Object.assign({},current,{[key]:{id:ex.id,owner:plan.owner,plan:plan,decision:decision,operation:operation,status:value}});
+      });};
+      status("pending");
       let timer;
       try{
         const ack=await Promise.race([cloud.decideOwnTransfer(plan,decision,function(){return withdrawalState.current;}),new Promise(function(_,reject){timer=setTimeout(function(){reject(new Error("transfer timeout"));},10000);})]);
@@ -569,13 +592,17 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
         let applied=false;
         ReactDOM.flushSync(function(){set(function(s){const next=applyOwnTransferDecision(s,plan,decision,Date.now(),ack);applied=next!==s;return next;});});
         if(!applied)throw new Error("transfer changed");
-        setOwnTransferStatus({id:ex.id,status:"done"});showToast(t(decision==="yes"?"f_owntransfer_done":"f_owntransfer_rejected"));
-      }catch(err){setOwnTransferStatus({id:ex.id,status:"error"});showToast(t("f_owntransfer_error"));}
+        status("done");if(withdrawalState.current._historyOwner===plan.owner)showToast(t(decision==="yes"?"f_owntransfer_done":"f_owntransfer_rejected"));
+      }catch(err){
+        const current=withdrawalState.current,e=(current.expenses||[]).find(function(x){return x.id===ex.id;});
+        const confirmed=e&&ownTransferOutgoingValid(current,plan,decision)&&(decision==="yes"?e.category==="traspaso":e.ownTransferRejected===true);
+        status(confirmed?"done":"error");if(!confirmed&&current._historyOwner===plan.owner)showToast(t("f_owntransfer_error"));
+      }
       finally{clearTimeout(timer);}
     }).finally(function(){delete withdrawalPending.current[ex.id];});
   };
   const recognizeWithdrawal=function(ex){
-    if(sourceActionPending.current[ex.id])return;
+    if(sourceActionBusy(ex.id))return;
     if(!canRecognizeWithdrawal(ex) || ex.category==="traspaso" || withdrawalPending.current[ex.id]) return;
     if(!canRecognizeWithdrawal(ex,withdrawalState.current)){
       showToast(t(withdrawalReceiptLink(withdrawalState.current,ex)||cargoDeRecibo(ex,withdrawalState.current)?"f_withdraw_receipt_blocked":"f_withdraw_error")); return;
@@ -609,7 +636,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   // Recategorizar un gasto a mano: actualiza ESTE, recuerda el comercio (catOverrides) para los
   // futuros y arregla otros gastos del mismo comercio que estuvieran en "Otros".
   const setCat=function(ex,newCat){
-    if(withdrawalPending.current[ex.id]||sourceActionPending.current[ex.id]) return;
+    if(withdrawalPending.current[ex.id]||sourceActionBusy(ex.id)) return;
     if(newCat==="traspaso" && canRecognizeWithdrawal(ex)){ recognizeWithdrawal(ex); return; }
     const mkey=catKey(ex.merchant);
     // "Movimiento" es el hueco que deja un banco que no manda NINGÚN dato (Trade Republic por
@@ -720,7 +747,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     }).catch(function(){}).then(function(){ delete metaEnVuelo.current[k]; });
   };
   const setMeta=function(ex,goalId){
-    if(sourceActionPending.current[ex.id])return;
+    if(sourceActionBusy(ex.id))return;
     const subirMeta=function(){
       let subir=null;
       set(function(s){ const r=marcarAportacionMeta(s, ex.id, goalId); if(!r) return s; subir=r.e; return r.state; });
@@ -744,7 +771,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     return runSourceAction(ex,function(){return cloud.setExpenseRecibo(intended.e);},function(s){const r=quitarCargoDeRecibo(s,ex.id);return r&&r.state;});
   };
   const setReceipt=function(ex,fixedId){
-    if(sourceActionPending.current[ex.id])return;
+    if(sourceActionBusy(ex.id))return;
     if(withdrawalPending.current[ex.id]){ showToast(t("f_withdraw_receipt_pending")); return; }
     const ds=String(ex.date||"").slice(0,10),y=Number(ds.slice(0,4)),m=Number(ds.slice(5,7)),now=new Date();
     const today=y===now.getFullYear()&&m===now.getMonth()+1?now.getDate():new Date(y,m,0).getDate();
@@ -2026,8 +2053,15 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       },
       setCat:setCat, setCuota:setCuota, setMeta:setMeta, setReceipt:setReceipt, quitarRecibo:quitarRecibo, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
       resolveDup:resolveDup, separarGemelo:separarGemelo, recognizeWithdrawal:recognizeWithdrawal, withdrawalStatus:withdrawalStatus,
-      recognizeOwnTransfer:recognizeOwnTransfer,ownTransferStatus:ownTransferStatus,
-      sourceActionStatus:sourceActionStatus||(detailId&&sourceWriteErrors&&sourceWriteErrors[state._historyOwner+"|"+detailId]?{id:detailId,status:"error"}:null),refreshSourceAction:function(){if(!onRefreshExpenses)return Promise.reject(new Error("refresh unavailable"));const owner=withdrawalState.current._historyOwner;return onRefreshExpenses().then(function(){if(sourceActionMounted.current&&withdrawalState.current._historyOwner===owner)setSourceActionStatus(null);});},
+      recognizeOwnTransfer:recognizeOwnTransfer,ownTransferStatus:ownTransferStatus[state._historyOwner+"|"+detailId]||null,
+      sourceActionStatus:sourceActionStatus[state._historyOwner+"|"+detailId]||(detailId&&sourceWriteErrors&&sourceWriteErrors[state._historyOwner+"|"+detailId]?{id:detailId,status:"error"}:null),refreshSourceAction:function(){
+        if(!onRefreshExpenses)return Promise.reject(new Error("refresh unavailable"));
+        const owner=withdrawalState.current._historyOwner,key=owner+"|"+detailId,attempt=sourceActionStatus[key];
+        return onRefreshExpenses().then(function(){if(sourceActionMounted.current&&withdrawalState.current._historyOwner===owner)setSourceActionStatus(function(current){
+          if(!attempt||current[key]!==attempt||attempt.status==="pending")return current;
+          const next=Object.assign({},current);delete next[key];return next;
+        });});
+      },
       showToast:showToast, aiBusy:aiBusy, suggestAi:suggestAi, state:state
     }),
     undoDelete && ReactDOM.createPortal(
@@ -2854,7 +2888,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     sourceActionStatus&&sourceActionStatus.id===exp.id&&React.createElement("div",{role:"status","data-testid":"exp-source-save-status"},React.createElement("div",null,t(sourceActionStatus.status==="pending"?"f_source_pending":"f_source_save_error")),sourceActionStatus.status==="error"&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-source-refresh",onClick:function(){refreshSourceAction().catch(function(){});}},t("f_source_refresh"))),
     ownTransferPair(state,exp)&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-own-transfer",
       disabled:ownTransferStatus&&ownTransferStatus.id===exp.id&&ownTransferStatus.status==="pending",onClick:function(){recognizeOwnTransfer(exp);}},t("f_owntransfer_title")),
-    ownTransferStatus&&ownTransferStatus.id===exp.id&&ownTransferStatus.status!=="done"&&React.createElement("div",{role:"status","data-testid":"exp-own-transfer-status"},t(ownTransferStatus.status==="pending"?"f_owntransfer_pending":"f_owntransfer_error")),
+    ownTransferStatus&&ownTransferStatus.id===exp.id&&ownTransferStatus.status!=="done"&&React.createElement("div",{role:"status","data-testid":"exp-own-transfer-status"},React.createElement("div",null,t(ownTransferStatus.status==="pending"?"f_owntransfer_pending":"f_owntransfer_error")),ownTransferStatus.status==="error"&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-own-transfer-refresh",onClick:function(){refreshSourceAction().catch(function(){});}},t("f_source_refresh"))),
     canRecognizeWithdrawal(exp) && React.createElement("div",{className:"hint","data-testid":"exp-withdrawal-info"},
       React.createElement("div",null,t("f_withdraw_fields")),
       exp.category!=="traspaso" && React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-withdrawal",
