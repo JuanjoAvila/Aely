@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "id": "tr-monthly-cancel-guard-r158-codex-20261101",
+  "from": "codex",
+  "coordinatorSession": "root15818c3033aa8784e30afa64f39d1157534",
+  "createdAt": "2026-11-01T07:54:13.742Z",
+  "to": "codex",
+  "baseSHA": "ea4a04efa82444f8ff3a2588aa3867205e3d772e",
+  "previousTaskId": "tr-monthly-invest-confirm-r157-codex-20261101",
+  "objective": "Continuar candidata mensual TR7cd6 tras RETURN bc3c77b1858fefe0009b4f90d41c88de77806d8a. Cerrar exclusivamente TR-CAS-CANCEL-AWAIT: revalidar propuesta, titular y cancelacion al volver de await obConfirmedCanUpload e inmediatamente antes de emitir UPDATE; caso diferido timeout o fila cambiada debe producir cero UPDATE. Estado anterior privado preservado, sin herencia de identidad, reserva ni presupuesto.",
+  "scope": [
+    "src/modules/00-core.js",
+    "tests/tr-monthly-invest-confirm.test.mjs"
+  ],
+  "requirements": [
+    "Partir de candidata privada exacta de once archivos ya revisada bajo contrato7cd6, copiarla a aislamiento propio y preservar originales inmutables. Solo dos archivos admiten nueva correccion; los otros nueve se conservan exactos.",
+    "Mantener writerCAS UUID y titular, foto remota completa, is null y ACK exacto1; no modificar helpers genericos, guardias existentes, esquema, backend ni legacy monthlyInvest o su controlMCC5411.",
+    "Nuevo OWN20 inicial propio por7188f09dd641ffd90c5a2455196b1385c4bb084c, contador desde0, minimo30s inicial/internas/readback y cap20. Leer todos deltas y cancelaciones FULLRAW antesACK o actuar; claim propio confirmado antes producto.",
+    "Nuevo contraejemplo dirigido: token/readState invalido durante await guardia, no UPDATE; conservar RED y GREEN reales. Casos writer completos afectados pueden repetirse justificadamente tras cambio; no repetir e2e/controles ya cerrados sin causa nueva.",
+    "No compra virtual ni cuota extra, posiciones/caja/rewards/fijos/deudas invariantes salvo presupuesto de filas confirmadas. No ampliar consentimiento ni automatismos, ni alterar ventanas dias1a5 BOOK o importe exacto.",
+    "Commit, push producto, PR, merge, despliegue, backend, datos reales y nuevas dependencias NO autorizados. Entrega candidata privada actualizada con manifest/hash/logs/diff para revision independiente.",
+    "Trabajador reporta solo al coordinador admitido. El encargo no equivale a admision nativa ni reserva; esperar ambas antes de ejecutar."
+  ]
+}
