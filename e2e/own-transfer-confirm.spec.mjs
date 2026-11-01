@@ -205,6 +205,7 @@ for(const kind of ['category','debt','owner'])test(`acuse tardío de banco no ap
 for(const mode of ['zero','error','hold'])test(`cuota manual conserva aplicación local de la base sin acuse (${mode})`,async({page})=>{
   const sheet=await open(page,{mode,debts:[quotaDebt]});await chooseQuota(sheet);
   await expect(sheet.getByTestId('exp-cuota-de').getByRole('button',{name:/Préstamo sintético/})).toHaveClass(/on/);
+  await expect.poll(async()=>(await saved(page)).expenses.find(e=>e.id===out.id).debtId).toBe(quotaDebt.id);
   const result=await saved(page),row=result.expenses.find(e=>e.id===out.id);
   expect(row.debtId).toBe(quotaDebt.id);expect(row.debtManual).toBe(true);expect(row.category).toBe('deudas');
   expect(Object.values(result.state.cuotaAlias||{})).toContain(quotaDebt.id);
