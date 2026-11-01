@@ -1581,8 +1581,13 @@
   .v4-gastos-list-body{padding:0;}
 
   .v4-sheet-back{position:fixed;inset:0;z-index:80;display:flex;align-items:flex-end;justify-content:center;
-    /* Velo verdoso suave: se ve la app, sin el negro seco ni el scale (feedback 2026-07-17). */
+    /* Velo verdoso suave: se ve la app, sin el negro seco ni el scale (feedback 2026-07-17).
+       El color de reposo es el del FINAL del fundido y la animación no lleva `forwards`: al
+       terminar no hay salto, y el cierre puede transicionar este mismo `background-color`.
+       Antes el 28 % llegaba en el primer fotograma, con la hoja todavía abajo, y la pastilla
+       verde de Recibos se apagaba de golpe (1/11/2026). Misma duración y curva que `sheetup`. */
     background:rgba(8,28,20,.28);
+    animation:sheetveil .42s cubic-bezier(.22,.61,.36,1);
     pointer-events:auto;}
   .v4-sheet{width:100%;max-width:520px;max-height:88dvh;background:var(--bg-2);border:1px solid var(--line);border-bottom:none;
     border-radius:26px 26px 0 0;
@@ -1932,6 +1937,9 @@
   .v4-banks .bk-actions .btn{flex:1 1 auto;min-width:0;padding:10px 12px;font-size:13px;}
 
   @keyframes sheetup{from{transform:translateY(100%);}to{transform:translateY(0);}}
+  /* Fundido del velo, en paralelo con `sheetup` (misma curva y 0,42 s). Sin `forwards`: el
+     reposo ya es el 28 % y un fill se comería la transición del cierre. */
+  @keyframes sheetveil{from{background-color:rgba(8,28,20,0);}to{background-color:rgba(8,28,20,.28);}}
   /* `to` con transform:none (no translateY(0)): si deja matrix(1,0,0,1,0,0) el hijo sigue
      creando capa con transform y en Cartera (muchas cards .rise) el overscroll nativo se
      cortaba arriba/abajo — Ajustes no tiene hijos así. */

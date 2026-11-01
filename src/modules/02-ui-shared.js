@@ -2044,6 +2044,14 @@ function useSheetSwipe(open, onClose, opts){
     // fotograma, medido en Deudas, Metas y también Apuntar (beta 4.26.139.1, 2026-10-17).
     const back=el.parentElement;
     if(back&&back.classList.contains("v4-sheet-back")){
+      // La entrada anima el mismo background-color (`sheetveil`). Mientras dura, la animación
+      // gana a cualquier transición y el velo se quedaría al 28 % hasta desmontarse: cerrar
+      // antes de que la hoja termine de subir lo quitaba de golpe (1/11/2026). Se congela el
+      // color que se ve ahora y, al frame siguiente, se funde con la bajada.
+      const cur=getComputedStyle(back).backgroundColor;
+      back.style.animation="none";
+      back.style.backgroundColor=cur;
+      void back.offsetWidth;
       back.style.transition="background-color "+ms+"ms "+ease;
       back.style.backgroundColor="rgba(8,28,20,0)";
     }
