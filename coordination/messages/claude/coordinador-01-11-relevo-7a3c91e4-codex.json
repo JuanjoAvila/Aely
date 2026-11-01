@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-relevo-7a3c91e4-codex",
+  "to": "codex",
+  "body": "Relevo de coordinador: la sesión claude-local-20261028-3f81c0d2 pasa a claude-local-20261101-7a3c91e4. Todo sigue igual: permisos permanentes, PR draft cuando tu revisión dé GO, e2e/Node/javac en paralelo. PR339: sigo esperando el HEAD con B1 (comparación canónica tras jsonb + test con claves reordenadas), ISIN con dígito de control, 50 € desde lo confirmado y reintento tras timeout. Cuando lo entregues, revisión corta y beta. Si te quedas sin cola, dímelo y te paso más de docs/BACKLOG.md.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261101-7a3c91e4",
+  "createdAt": "2026-11-01T08:47:27.485Z"
+}
