@@ -30,10 +30,10 @@ test('deshacer devuelve todos los campos reales y su presencia, saldo y plazo',(
   assert.equal(c.debtLeft(u.state.debts[0]),c.debtLeft(d));
   assert.ok(!Object.hasOwn(u.state.debts[0],'descuentoOk'));assert.ok(u.state.reciboBorradoAt.b>r.state.reciboBorradoAt.b);
 });
-test('aceptar y cancelar por deuda captura únicamente el delta real',()=>{
+test('aceptar y cancelar por deuda captura el delta real y vigila ambas deudas',()=>{
   const {c,s,d,b,remove,time}=fixture();s.debts.push({...d,id:'e',name:'Otra deuda'});b.amount=30;b.reparto.push({id:'q',n:'Otra persona',via:'debt',debtId:'e',amt:10});
   const preview=c.deudasTrasReparto(s,{...s,fixed:[]});assert.deepEqual(plain(c.descuentoDescuadre(s,preview).map(q=>q.id)),['d','e']);
-  const r=remove();assert.equal(r.state.debts[1],s.debts[1]);assert.deepEqual(plain(r.undo.debts.map(x=>x.id)),['d']);
+  const r=remove();assert.equal(r.state.debts[1],s.debts[1]);assert.deepEqual(plain(r.undo.debts.map(x=>x.id)),['d','e']);assert.deepEqual(plain(r.undo.debts[1].fields),[]);
   assert.deepEqual(plain(c.billUndoRestore(r.state,r.undo,time()+1).state.debts),s.debts);
 });
 test('el ajuste automático también se revierte y se conserva null y metadatos anidados',()=>{
@@ -43,19 +43,20 @@ test('el ajuste automático también se revierte y se conserva null y metadatos 
   const nested={a:undefined,b:null,c:[{d:undefined}]},copy=c.billUndoCopy(nested);
   assert.ok(Object.hasOwn(copy,'a'));assert.ok(Object.hasOwn(copy.c[0],'d'));assert.equal(copy.b,null);
 });
-test('deuda concurrente intacta, otra elegible restaurada y un único indicador de aviso',()=>{
+test('R167 todo o nada: una deuda concurrente impide restaurar recibo y segunda deuda',()=>{
   const {c,s,d,b,remove,time}=fixture();s.debts.push({...d,id:'e'});b.amount=30;b.reparto.push({id:'q',n:'Otra persona',via:'debt',debtId:'e',amt:10});
   assert.deepEqual(plain(c.descuentoDescuadre(s,c.deudasTrasReparto(s,{...s,fixed:[]})).map(q=>q.id)),['d','e']);
   const r=remove(s,[{id:'d',paga:250,baja:290},{id:'e',paga:220,baja:300}]);
   const edited={...r.state.debts[0],note:'Edición posterior',amort:333};
   const current={...r.state,debts:[edited,r.state.debts[1]],accounts:[{id:'new',value:123.45}]};
-  const u=c.billUndoRestore(current,r.undo,time()+1);assert.equal(u.skipped,true);assert.equal(u.state.debts[0],edited);
-  assert.deepEqual(plain(u.state.debts[1]),s.debts[1]);assert.equal(u.state.accounts,current.accounts);
+  c.conReciboEnPlan=()=>{throw Error('No debe reponer nada');};c.conSaldoMostrado=()=>{throw Error('No debe compensar nada');};
+  const u=c.billUndoRestore(current,r.undo,time()+1);assert.equal(u.state,current);assert.equal(u.error,true);assert.equal(u.subir,undefined);
+  assert.equal(u.state.fixed.length,0);assert.equal(u.state.debts[1],r.state.debts[1]);assert.equal(u.state.accounts,current.accounts);
 });
 test('deudas borradas o duplicadas no se recrean ni se pisan',()=>{
   const {c,remove,time}=fixture();const r=remove();
   for(const debts of [[],[r.state.debts[0],{...r.state.debts[0]}]]){
-    const s={...r.state,debts},u=c.billUndoRestore(s,r.undo,time()+1);assert.equal(u.skipped,true);assert.equal(u.state.debts,debts);
+    const s={...r.state,debts},u=c.billUndoRestore(s,r.undo,time()+1);assert.equal(u.state,s);assert.equal(u.error,true);assert.equal(u.subir,undefined);
   }
 });
 test('recibo recreado, duplicado, puntual homónimo y lápida posterior bloquean toda reposición',()=>{
@@ -110,8 +111,33 @@ test('deuda ya cobrada: retirar y deshacer no mueven el saldo mostrado con cargo
   assert.deepEqual(plain(u.state.debts),s.debts);
   const debtLater={...r.state.debts[0],monthly:333,note:'Posterior'},accountLater={...r.state.accounts[0],value:2222};
   const current={...r.state,debts:[debtLater],accounts:[accountLater]},partial=c.billUndoRestore(current,r.undo,time()+1);
-  assert.equal(partial.skipped,true);assert.equal(partial.state.debts[0],debtLater);
+  assert.equal(partial.state,current);assert.equal(partial.error,true);assert.equal(partial.subir,undefined);
   assert.equal(shown(partial.state),shown(current),'Compensa desde la cuenta vigente, sin pisar la deuda concurrente');
+});
+test('R167 deuda vinculada sin delta: cancelar ajuste no permite ignorar cambios posteriores',()=>{
+  const {c,s,d,b,remove,time}=fixture();s.debts.push({...d,id:'e',extra:{nested:[1,2]}});b.amount=30;b.reparto.push({id:'q',n:'Otra persona',via:'debt',debtId:'e',amt:10});
+  const r=remove();assert.equal(r.state.debts[1],s.debts[1]);
+  for(const changed of [{...r.state.debts[1],note:'Nueva etiqueta'},{...r.state.debts[1],extra:{nested:[1,3]}}]){
+    const current={...r.state,debts:[r.state.debts[0],changed]},u=c.billUndoRestore(current,r.undo,time()+1);
+    assert.equal(u.state,current);assert.equal(u.error,true);assert.equal(u.subir,undefined);
+  }
+  for(const debts of [[r.state.debts[0]],[...r.state.debts,r.state.debts[1]]]){
+    const current={...r.state,debts},u=c.billUndoRestore(current,r.undo,time()+1);assert.equal(u.state,current);assert.equal(u.error,true);assert.equal(u.subir,undefined);
+  }
+});
+test('R167 deuda ajena cambiada o duplicada no bloquea la reposición',()=>{
+  const {c,s,d,remove,time}=fixture();s.debts.push({...d,id:'foreign'});const r=remove();
+  const other={...s.debts[1],note:'Nueva',extra:{x:7}},current={...r.state,debts:[r.state.debts[0],other,{...other}]};
+  const u=c.billUndoRestore(current,r.undo,time()+1);assert.equal(u.error,undefined);assert.deepEqual(plain(u.state.fixed),s.fixed);
+  assert.deepEqual(plain(u.state.debts[0]),d);assert.equal(u.state.debts[1],other);assert.equal(u.state.debts[2],current.debts[2]);
+});
+test('R167 vínculo huérfano: aparición de su deuda bloquea todo; ausencia estable permite reponer',()=>{
+  const {c,s,d,remove,time}=fixture();s.debts=[];const r=remove(s,[]);
+  assert.equal(r.state.fixed.length,0);assert.deepEqual(plain(r.undo.debts),[{id:'d',after:null,fields:[]}]);
+  for(const debts of [[d],[d,{...d}]]){
+    const current={...r.state,debts},u=c.billUndoRestore(current,r.undo,time()+1);assert.equal(u.state,current);assert.equal(u.error,true);assert.equal(u.subir,undefined);
+  }
+  const absent=c.billUndoRestore(r.state,r.undo,time()+1);assert.deepEqual(plain(absent.state.fixed),s.fixed);assert.deepEqual(plain(absent.state.debts),[]);
 });
 test('la cola mantiene retirar→reponer, separa titulares y propaga fallos',async()=>{
   const {c}=fixture(),cloud=vm.runInNewContext('cloud',c),events=[];let release,owner='owner-a';
@@ -133,7 +159,7 @@ function controller(f,{replay=false,discard=false,defer=false}={}){
   c.askText=()=>new Promise(r=>{answer=r;});
   const set=fn=>{writes++;if(replay)fn(state);const next=fn(state);if(!discard)state=next;dirty=true;if(!batch&&!rendering)render();};
   function render(){rendering=true;let n=0;do{if(++n>20)throw Error('hook render loop');dirty=false;cursor=0;effects=[];api=c.useBillUndo(state,set,open,x=>removed.push(x),x=>notices.push(x));effects.forEach(fn=>fn());}while(dirty);rendering=false;}
-  render();return {flush:()=>{while(transitions.length)transition(transitions.shift());},api:()=>api,state:()=>state,writes:()=>writes,removed,notices,answer:async()=>{await ticks();answer('290');await ticks();},close:()=>{open=false;render();}};
+  render();return {edit:set,flush:()=>{while(transitions.length)transition(transitions.shift());},api:()=>api,state:()=>state,writes:()=>writes,removed,notices,answer:async()=>{await ticks();answer('290');await ticks();},close:()=>{open=false;render();}};
 }
 
 test('controlador: un commit por acción, replay del updater y doble toque sin duplicar',async()=>{
@@ -152,4 +178,17 @@ test('sin commit real no se ofrece Deshacer; caducidad y cierre invalidan el tok
 test('la caducidad se comprueba de nuevo antes de escribir una intención encolada',async()=>{
   const f=fixture(),h=controller(f,{defer:true});h.api().remove('b');await h.answer();assert.equal(h.writes(),0);h.flush();assert.equal(h.writes(),1);
   f.advance(4999);h.api().undo(h.removed[0]);f.advance(1);h.flush();assert.equal(h.writes(),1);assert.equal(h.state().fixed.length,0);assert.equal(h.notices.length,0);
+});
+
+test('R167 controlador: rechazo todo o nada avisa una vez sin envío ni efectos financieros',async()=>{
+  const f=fixture();f.s._historyOwner='owner-a';f.s.expenses=[{id:'x',date:'2026-10-12',amount:80,merchant:'Fibra',ent:'sabadell',source:'ob',reciboId:'b'}];
+  const cloud=vm.runInNewContext('cloud',f.c),sent=[];cloud.enabled=()=>true;cloud.session=async()=>({user:{id:'owner-a'}});f.c.mcSandbox=()=>false;cloud.setExpenseRecibo=async e=>sent.push(plain(e));
+  const h=controller(f,{replay:true});h.api().remove('b');await h.answer();await ticks();assert.equal(sent.length,1);
+  h.edit(s=>({...s,debts:s.debts.map(d=>({...d,extra:{nested:['posterior']}}))}));const before=h.state();
+  h.api().undo(h.removed[0]);h.api().undo(h.removed[0]);await ticks();assert.equal(h.state(),before);assert.equal(sent.length,1);assert.deepEqual(h.notices,[null]);
+});
+test('R167 controlador: fallo al quitar tiene aviso propio y no ofrece Deshacer',async()=>{
+  const h=controller(fixture());h.api().remove('b');h.edit(s=>({...s,debts:s.debts.map(d=>({...d,note:'Posterior'}))}));const before=h.state();await h.answer();
+  assert.equal(h.state(),before);assert.equal(h.removed.length,0);assert.deepEqual(h.notices,['gb_remove_changed']);
+  const invalid=controller(fixture());invalid.api().remove('missing');assert.deepEqual(invalid.notices,['gb_remove_changed']);assert.equal(invalid.writes(),0);
 });
