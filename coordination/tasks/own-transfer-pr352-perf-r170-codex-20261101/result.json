@@ -1,0 +1,20 @@
+{
+  "status": "done",
+  "tests": [
+    "Node dirigido: seis comandos EXIT0;269 casos propios y finanzas,presupuesto,seguridad,idiomas; benchmark aparte.",
+    "ABBA: cuatro casos 2000/20000 filas y entrada/salida;16 bloques,8 base fallan causa exacta y8 candidata pasan. Ratios salida12.08/14.93 e ingreso4.29/4.40; lecturas historico reducidas2.50/2.86.",
+    "React:97 titulos distintos acreditados por71 verdes preservados mas26 invalidaciones con espera exacta de persistencia;12 modo pruebas verdes;1worker0retry.",
+    "Primer browser72pass1fail24noejecutados por snapshot anterior a guardado400ms; helper corregido sin relajar oraculos. Dos preflights0tests preservados separados.",
+    "Revision independiente final sin hallazgos; diffcheck0; tres generados restaurados y fixture preservada."
+  ],
+  "summary": "PR352 draft actualizado mediante push normal a b153da69ce0094ce11511c05651b73e14a369571 desde2e4cfb5a0c6465afe9318a04c497863b4774d28e; siete paths propios. Indice por consulta, memo por porciones/dia,36writers incluido setIncomeOwnTransfer y fraseunica es/en/ca. Integrador debe mantener amboswriters y37 al integrar confirmTrMonthlyInvestment. No merge,rebase,deploy,backend,version,catalogo ni aceptacion movil; PR permanece draft. La tarea propia queda completada y liberada sin ceder claims o leases.",
+  "commit": "b153da69ce0094ce11511c05651b73e14a369571",
+  "branch": "codex/own-transfer-income-r169",
+  "pr": 352,
+  "schema": 1,
+  "taskId": "own-transfer-pr352-perf-r170-codex-20261101",
+  "actor": "codex",
+  "sessionId": "perf170-xbdcc3fd3ac4161520687f02ffa6c84dc",
+  "createdAt": "2026-11-01T21:25:17.218Z",
+  "released": true
+}
