@@ -1,0 +1,36 @@
+{
+  "status": "done",
+  "summary": "PR338 nueva draft a beta. Plan y Deudas ofrecen accion para asignar dia y abrir editor existente; dia1 explicito y borrador local de conflicto conservados. Siete archivos desde c4cd27db0ca29e68388770dc87f30996ea9489be; revision independiente aceptada. Funciones financieras y cuatro modulos BASE intactos; diagnostico PR337 aparcado en BACKLOG.",
+  "tests": [
+    {
+      "command": "node tests/i18n-keys.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node node_modules/@playwright/test/cli.js test",
+      "exitCode": 0,
+      "scope": "14 casos candidato previo, configuracion aislada, 1worker0retry"
+    },
+    {
+      "command": "node node_modules/@playwright/test/cli.js test --grep 'conflicto aviso'",
+      "exitCode": 0,
+      "scope": "2 regresiones R2 en fuente congelada final; no se repitieron los14"
+    }
+  ],
+  "productSHA": "747c961ec28d53442d0f5dde2d63150209c9f352",
+  "pr": 338,
+  "limitations": [
+    "Solo Chromium y datos sinteticos; beta servida y movil fisico pendientes.",
+    "Sin merge deploy versiones notas ni cambios financieros; ProductREADY false."
+  ],
+  "schema": 1,
+  "taskId": "debt-no-day-day-prompt-r156-codex-20261101",
+  "actor": "codex",
+  "sessionId": "nrelayb5a2002ddbbf49a08effc8b51af805ea",
+  "createdAt": "2026-11-01T06:07:28.029Z",
+  "released": true
+}
