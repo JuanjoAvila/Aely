@@ -1352,7 +1352,7 @@ const cloud = (function(){
         const src=m[1]+":"+m[2]+reciboSufijo(e.reciboId)+m[4];
         if(src===r.source) continue;
         if(!await obConfirmedCanUpload(expenseFromRow(r),session.user.id,sb))continue;
-        const w=await sb.from('expenses').update({ source:src }).eq('user_id',session.user.id).eq('id',r.id).eq('source',r.source);
+        const w=await expenseSourcePatch(sb,session.user.id,e,{source:src},r);
         if(w.error) throw w.error;
       }
     },
@@ -3338,21 +3338,32 @@ function applyEntradaEfectivo(state, amount){
 }
 // La pareja solo ofrece una pregunta. La decisión pertenece a la persona, nunca al nombre del comercio.
 const ownTransferRecent=new WeakMap();
-async function expenseSourcePatch(sdk,owner,e,patch){
-  const read=await expenseCloudEq(sdk.from('expenses').select('id,source'),owner,e);
+async function expenseSourcePatch(sdk,owner,e,patch,snapshot){
+  const cols='id,source,fecha,importe,comercio,cat';
+  const read=snapshot?{data:[snapshot]}:await expenseCloudEq(sdk.from('expenses').select(cols),owner,e);
   if(read.error)return read;
   const data=[];
-  for(const row of read.data||[]){
+  for(let row of read.data||[]){
     if(!isExpenseUuid(row.id))continue;
+    for(let attempt=0;attempt<2;attempt++){
     let source=patch.source;
     if(/#ownno(?:#|$)/.test(row.source)&&!/#ownno(?:#|$)/.test(source))source=source.replace(/(#n\d+)$/,"#ownno$1");
     if(/#ownno(?:#|$)/.test(row.source)&&!/#ownno(?:#|$)/.test(source))source+="#ownno";
     if(!await obConfirmedCanUpload(e,owner,sdk))return {data:[],error:new Error("expense owner changed")};
-    const result=await sdk.from('expenses').update(Object.assign({},patch,{source:source})).eq('user_id',owner).eq('id',row.id).eq('source',row.source).select('id');
+    let q=sdk.from('expenses').update(Object.assign({},patch,{source:source})).eq('user_id',owner).eq('id',row.id).eq('source',row.source);
+    if(attempt)Object.keys(row).filter(function(k){return k!=='source'&&row[k]!=null;}).forEach(function(k){q=q.eq(k,row[k]);});
+    const result=await q.select('id');
     if(result.error)return result;
-    if(Array.isArray(result.data))data.push.apply(data,result.data);
+    if(Array.isArray(result.data)&&result.data.length===1){data.push(result.data[0]);break;}
+    if(attempt)return {data:[],error:new Error("expense source conflict")};
+    const fresh=await sdk.from('expenses').select(cols).eq('user_id',owner).eq('id',row.id).maybeSingle(),next=fresh.data;
+    if(fresh.error||!next||/#ownno(?:#|$)/.test(row.source)||!/#ownno(?:#|$)/.test(next.source)
+      ||next.source.replace(/#ownno(?=#|$)/g,'')!==row.source
+      ||!Object.keys(row).filter(function(k){return k!=='source';}).every(function(k){return row[k]===next[k];}))return {data:[],error:fresh.error||new Error("expense source conflict")};
+    row=next;
+    }
   }
-  return {data:data,error:null};
+  return {data:data,error:data.length?null:new Error("expense source unavailable")};
 }
 function ownTransferCents(e){
   const n=e&&e.amount,c=Math.round(n*100);

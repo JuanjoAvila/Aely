@@ -293,7 +293,7 @@ function GxSubInfo({open, onClose}){
         React.createElement("button",{type:"button",className:"btn btn-primary btn-block",onClick:swipe.close},t("gv5_sub_i_ok"))
       )), document.body);
 }
-function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clearFocus, forceAllTs, onGoPlan, onGoInversiones}){
+function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clearFocus, forceAllTs, onGoPlan, onGoInversiones, onRefreshExpenses}){
   /* «Ver todo» desde una ficha puede llegar antes de que Gastos termine de montar. Conservamos
      ese destino solo durante la navegación: el estado inicial lo consume y el evento cubre el
      caso en que la pestaña ya estaba viva. No se guarda en preferencias. */
@@ -493,6 +493,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
      quita la marca y la fila ya cuenta. La lápida solo al borrar (mismo camino que delExpense). */
   const resolveDup=function(e, same){
     if(!e || !e.possibleDup) return;
+    if(!same)return runSourceAction(e,function(){return cloud.setExpenseDup(e,false);},function(){set(function(s){return resolvePossibleDup(s,e.id,false);});},t("g_dup_diff"));
     set(function(s){
       let next=resolvePossibleDup(s, e.id, same);
       if(same){
@@ -521,6 +522,15 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   const withdrawalPending=useRef({});
   const withdrawalState=useRef(state); withdrawalState.current=state;
   const [withdrawalStatus,setWithdrawalStatus]=useState(null);
+  const [sourceActionStatus,setSourceActionStatus]=useState(null);
+  const sourceActionPending=useRef({});
+  const runSourceAction=async function(ex,write,apply,success){
+    if(sourceActionPending.current[ex.id])return false;
+    sourceActionPending.current[ex.id]=true;setSourceActionStatus({id:ex.id,status:"pending"});
+    try{if(cloud.enabled())await write();apply();setSourceActionStatus(null);if(success)showToast(success);return true;}
+    catch(err){setSourceActionStatus({id:ex.id,status:"error"});showToast(t("f_source_save_error"));return false;}
+    finally{delete sourceActionPending.current[ex.id];}
+  };
   const [ownTransferStatus,setOwnTransferStatus]=useState(null);
   const recognizeOwnTransfer=function(ex){
     const plan=ownTransferPlan(withdrawalState.current,ex);
@@ -667,11 +677,9 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
      Así también valen, sin migración, las que él marcó antes de que existiera la marca. */
   const setCuota=function(ex,debtId){
     const confirma=ex.category==="deudas"&&ex.debtId===debtId&&!ex.debtManual;
-    let subir=null;
-    set(function(s){ const r=marcarCuotaAMano(s, ex.id, debtId); if(!r) return s; subir=r.e; return r.state; });
-    if(subir && cloud.enabled()) cloud.setExpenseDeuda(subir).catch(function(){});
+    const intended=marcarCuotaAMano(withdrawalState.current,ex.id,debtId);if(!intended)return;
     const d=confirma&&(state.debts||[]).find(function(x){ return x.id===debtId; });
-    if(showToast) showToast(confirma?tf("v4_cuota_confirmada",{name:(d&&String(d.name||"").trim())||catName("deudas")}):tf("v4_moved_cat",{cat:DEUDA_CAT.icon+" "+catName("deudas")}));
+    return runSourceAction(ex,function(){return cloud.setExpenseDeuda(intended.e);},function(){set(function(s){const r=marcarCuotaAMano(s,ex.id,debtId);return r?r.state:s;});},confirma?tf("v4_cuota_confirmada",{name:(d&&String(d.name||"").trim())||catName("deudas")}):tf("v4_moved_cat",{cat:DEUDA_CAT.icon+" "+catName("deudas")}));
   };
   /* «Es aportación a la meta X» desde la ficha (decisión suya del 24/10/2026). Toca dinero, así que
      PONERLA se confirma diciendo qué cambia («de 100 € a 350 €»), y si la meta ya tenía algo
@@ -707,10 +715,9 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   /* «No es este recibo» (12/10/2026): el sync casa por nombre e importe parecidos y puede
      equivocarse. Sin la marca, la fila vuelve a contar como un gasto cualquiera. */
   const quitarRecibo=function(ex){
-    let subir=null;
-    set(function(s){ const r=quitarCargoDeRecibo(s, ex.id); if(!r) return s; subir=r.e; return r.state; });
+    const intended=quitarCargoDeRecibo(withdrawalState.current,ex.id);if(!intended)return;
     // La marca viaja en `source`, y se busca la fila por lo que es: su id aquí puede no ser el de la nube.
-    if(subir && cloud.enabled()) cloud.setExpenseRecibo(subir).catch(function(){});
+    return runSourceAction(ex,function(){return cloud.setExpenseRecibo(intended.e);},function(){set(function(s){const r=quitarCargoDeRecibo(s,ex.id);return r?r.state:s;});});
   };
   const setReceipt=function(ex,fixedId){
     if(withdrawalPending.current[ex.id]){ showToast(t("f_withdraw_receipt_pending")); return; }
@@ -730,15 +737,16 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
             ok:t("f_receipt_other_payment")}).then(function(yes){if(yes) save(signature);});return;
         }
       }
-      let subir=null;
+      const intended=fixedId!=null&&reponerCargoDeRecibo(withdrawalState.current,ex.id,fixedId,y,m,today,expected);
       // El diálogo es asíncrono: otra sincronización puede sustituir el cargo o editar el recibo.
-      set(function(s){
+      const apply=function(){set(function(s){
         // Solo si de ESTE cargo se dijo «no es este recibo»: confirmar lo deshace y repone la marca.
         const r=fixedId!=null&&reponerCargoDeRecibo(s,ex.id,fixedId,y,m,today,expected);
-        if(r){ subir=r.e; return r.state; }
+        if(r)return r.state;
         return linkFixedPayment(s,ex.id,fixedId,y,m,today,expected);
-      });
-      if(subir && cloud.enabled()) cloud.setExpenseRecibo(subir).catch(function(){});
+      });};
+      if(intended)return runSourceAction(ex,function(){return cloud.setExpenseRecibo(intended.e);},apply);
+      apply();
     };
     // Deshacer el vínculo de un cargo marcado es decir «no es este recibo»: una sola salida.
     if(fixedId==null && cargoDeRecibo(ex,state)){ quitarRecibo(ex); return; }
@@ -766,8 +774,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   // vienen con su banco real y cambiárselo sería mentirse.
   const setBank=function(ex,b){
     if(ex && ex.source && ex.source!=="manual") return;
-    set(function(s){ return Object.assign({},s,{expenses:s.expenses.map(function(e){ return e.id===ex.id?Object.assign({},e,{ent:b||undefined}):e; })}); });
-    if(cloud.enabled()) cloud.setExpenseBank(ex,b).catch(function(){});   // durable (source manual:banco)
+    return runSourceAction(ex,function(){return cloud.setExpenseBank(ex,b);},function(){set(function(s){ return Object.assign({},s,{expenses:s.expenses.map(function(e){ return e.id===ex.id?Object.assign({},e,{ent:b||undefined}):e; })}); });});
   };
   // Guarda el CONCEPTO escrito a mano (2026-07-24). `noteEdited` blinda el texto: el siguiente
   // sync del banco rellena conceptos vacíos, pero nunca pisa lo que ha escrito el usuario.
@@ -1995,6 +2002,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       setCat:setCat, setCuota:setCuota, setMeta:setMeta, setReceipt:setReceipt, quitarRecibo:quitarRecibo, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
       resolveDup:resolveDup, separarGemelo:separarGemelo, recognizeWithdrawal:recognizeWithdrawal, withdrawalStatus:withdrawalStatus,
       recognizeOwnTransfer:recognizeOwnTransfer,ownTransferStatus:ownTransferStatus,
+      sourceActionStatus:sourceActionStatus,refreshSourceAction:function(){return Promise.resolve(onRefreshExpenses&&onRefreshExpenses()).then(function(){setSourceActionStatus(null);});},
       showToast:showToast, aiBusy:aiBusy, suggestAi:suggestAi, state:state
     }),
     undoDelete && ReactDOM.createPortal(
@@ -2703,7 +2711,7 @@ function expensePaymentLabelUI(state,e,kind,relation){
   var rows=(kind==="debt"?state.debts||[]:(state.fixed||[]).concat(state.oneoffs||[])).filter(function(x){return x&&x.id===id;});
   return rows.length===1&&String(rows[0].name||"").trim()?tf("f_link_unconfirmed",{name:rows[0].name}):"—";
 }
-function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setMeta, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus, recognizeOwnTransfer, ownTransferStatus}){
+function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setMeta, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus, recognizeOwnTransfer, ownTransferStatus, sourceActionStatus, refreshSourceAction}){
   /* UNA SOLA CONDICIÓN para pintarse y para los candados. Iban por separado (`!!exp` en los hooks,
      `!exp || !editExp` para pintar) y en cuanto se separaban el sheet desaparecía dejando el
      `overflow:hidden` y el bloqueo de `touchmove` puestos sobre una pantalla vacía: nada respondía
@@ -2818,6 +2826,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
         onClick:function(){ setBank(exp,b); setBankOpen(false); }},"🏦 "+entOf(b).label); })),
     exp.renamePending&&React.createElement("div",{className:"hint",role:"status","data-testid":"expense-rename-pending"},t(exp.renamePending.quarantined?"g_rename_paused":"g_rename_pending")," ",React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){saveEdit(exp,{merchant:exp.renamePending.merchant,retryRename:true});}},t("g_note_retry"))),
     trace,duplicate,paired,reciboAviso,
+    sourceActionStatus&&sourceActionStatus.id===exp.id&&React.createElement("div",{role:"status","data-testid":"exp-source-save-status"},t(sourceActionStatus.status==="pending"?"f_owntransfer_pending":"f_source_save_error"),sourceActionStatus.status==="error"&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-source-refresh",onClick:function(){refreshSourceAction().catch(function(){});}},t("f_source_refresh"))),
     ownTransferPair(state,exp)&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-own-transfer",
       disabled:ownTransferStatus&&ownTransferStatus.id===exp.id&&ownTransferStatus.status==="pending",onClick:function(){recognizeOwnTransfer(exp);}},t("f_owntransfer_title")),
     ownTransferStatus&&ownTransferStatus.id===exp.id&&ownTransferStatus.status!=="done"&&React.createElement("div",{role:"status","data-testid":"exp-own-transfer-status"},t(ownTransferStatus.status==="pending"?"f_owntransfer_pending":"f_owntransfer_error")),

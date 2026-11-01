@@ -241,7 +241,7 @@ await check("ACK confirmado permite conciliar pese al partner cambiado, nunca ot
   s.expenses[0].amount=81;assert.equal(ctx.applyOwnTransferDecision(s,p,"yes",100,ack),s);
 });
 
-const sourcePatchMatch=core.match(/async function expenseSourcePatch\(sdk,owner,e,patch\)\{([\s\S]*?)\n\}/);
+const sourcePatchMatch=core.match(/async function expenseSourcePatch\(sdk,owner,e,patch,snapshot\)\{([\s\S]*?)\n\}/);
 assert.ok(sourcePatchMatch,"helper de source presente");
 const sourcePatch=vm.runInContext("(function(){const obConfirmedCanUpload=async()=>true;return "+sourcePatchMatch[0]+";})()",ctx);
 ctx.__ownTransferSourcePatch=sourcePatch;
@@ -250,6 +250,18 @@ function sourceWriter(name){
   assert.ok(found,"writer real "+name);
   return vm.runInContext("(async function("+found[1]+") {const sb=globalThis.__ownTransferSb;const obConfirmedCanUpload=async()=>true;const expenseSourcePatch=globalThis.__ownTransferSourcePatch;"+found[2]+"\n})",ctx);
 }
+await check("caller real setCuota recupera NO concurrente y confirma vínculo remoto/local",async()=>{
+  const s=fixture();s.debts=[{id:"fixture-debt",name:"Préstamo sintético",monthly:80}];
+  let first=true;const c=client(s,{beforeUpdate:rows=>{if(first){first=false;rows[0].source=ctx.expenseSourceForCloud({...s.expenses[0],ownTransferRejected:true});}}});
+  ctx.__ownTransferSb=c.sb;ctx.__realDebtWriter=sourceWriter("setExpenseDeuda");ctx.__callerState=s;ctx.__callerPromises=[];ctx.__callerToasts=[];
+  const ui=fs.readFileSync("src/modules/04-tab-gastos.js","utf8"),body=ui.match(/const setCuota=function\(ex,debtId\)\{[\s\S]*?\n  \};/)[0];
+  const action=ui.match(/const runSourceAction=async function\(ex,write,apply,success\)\{[\s\S]*?\n  \};/)[0];
+  const caller=vm.runInContext('(function(){const state=globalThis.__callerState,withdrawalState={current:state},sourceActionPending={current:{}};const setSourceActionStatus=s=>{globalThis.__callerStatus=s;};const set=f=>{globalThis.__callerState=f(globalThis.__callerState);};const showToast=x=>globalThis.__callerToasts.push(x);const cloud={enabled:()=>true,setExpenseDeuda:e=>{const p=globalThis.__realDebtWriter(e);globalThis.__callerPromises.push(p);return p;}};'+action+body+'return setCuota;})()',ctx);
+  await caller(s.expenses[0],"fixture-debt");await Promise.all(ctx.__callerPromises);
+  const remote=ctx.expenseFromRow(c.rows[0]),local=ctx.__callerState.expenses[0];
+  assert.equal(remote.debtId,"fixture-debt");assert.equal(remote.category,local.category);assert.equal(remote.debtManual,local.debtManual);
+  assert.equal(remote.ownTransferRejected,true);assert.equal(c.ops.length,2);assert.equal(ctx.__callerToasts.length,1);
+});
 for(const [name,arg,localPatch,expected] of [
   ["setExpenseBank","caixabank",{}, {ent:"caixabank"}],
   ["setExpenseDup",true,{}, {possibleDup:true}],
@@ -280,13 +292,13 @@ await check("source helper conserva patch ajeno y marca antes del ordinal sin du
   assert.equal(c.rows[0].cat,"super");assert.equal(c.rows[0].no_card,true);
   assert.match(c.rows[0].source,/#ownno#n3$/);assert.equal((c.rows[0].source.match(/#ownno/g)||[]).length,1);
 });
-await check("NO concurrente antes del CAS de source: cero filas y ninguna marca perdida",async()=>{
+await check("NO concurrente antes del CAS: relectura y único retry conserva marca y acción",async()=>{
   const s=fixture(),e=s.expenses[0];
   const c=client(s,{beforeUpdate:rows=>{rows[0].source=ctx.expenseSourceForCloud({...e,ownTransferRejected:true});}});
   const result=await sourcePatch(c.sb,owner,e,{source:ctx.expenseSourceForCloud({...e,possibleDup:true})});
-  assert.equal(result.error,null);assert.equal(result.data.length,0);assert.equal(c.ops.length,1);
-  assert.equal(c.rows[0].source,ctx.expenseSourceForCloud({...e,ownTransferRejected:true}));
-  assert.equal(ctx.expenseFromRow(c.rows[0]).possibleDup,undefined);
+  assert.equal(result.error,null);assert.equal(result.data.length,1);assert.equal(c.ops.length,2);
+  assert.equal(c.rows[0].source,ctx.expenseSourceForCloud({...e,possibleDup:true,ownTransferRejected:true}));
+  assert.equal(ctx.expenseFromRow(c.rows[0]).possibleDup,true);
 });
 await check("límite cliente antiguo: escritura sin CAS borra NO y un dispositivo limpio vuelve a ofrecer",async()=>{
   const s=fixture(),e=s.expenses[0],c=client(s);
@@ -301,8 +313,8 @@ await check("recibo conserva NO concurrente: su CAS no escribe el source antiguo
   const s=fixture(),e={...s.expenses[0],reciboId:"fixture-receipt"};
   const c=client(s,{beforeUpdate:rows=>{rows[0].source=ctx.expenseSourceForCloud({...s.expenses[0],ownTransferRejected:true});}});
   ctx.__ownTransferSb=c.sb;await sourceWriter("setExpenseRecibo")(e);
-  assert.equal(c.ops.length,1);assert.match(c.rows[0].source,/#ownno(?:#|$)/);
-  assert.equal(ctx.expenseFromRow(c.rows[0]).reciboId,undefined);
+  assert.equal(c.ops.length,2);assert.match(c.rows[0].source,/#ownno(?:#|$)/);
+  assert.equal(ctx.expenseFromRow(c.rows[0]).reciboId,"fixture-receipt");
 });
 for(const decision of ["yes","no"])await check("eco de nube adelanta ACK "+decision+" sin producir falso error",async()=>{
   const s=fixture(),p=plan(s),c=client(s,{afterUpdate:(_rows,current)=>Object.assign(current.expenses[0],decision==="yes"?{category:"traspaso"}:{ownTransferRejected:true})});
