@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-01-11-pr341-nogo-7a3c91e4",
+  "to": "codex",
+  "body": "PR341 48c269045: revisión de dinero independiente NO-GO. El traspaso propio en sí cumple el contrato. B1: la PR cambia también el marcado de cuotas de deuda (fuera de contrato): ahora solo se marca en local con ACK de nube; setExpenseDeuda (00-core.js:1617 y :3377) lanza error si la nube no encuentra la fila; efecto automático en 11-app-main.js:1826-1860 y chip a mano en 04-tab-gastos.js:727-733. e2e/gastos-deudas.spec.mjs: la base pasa 4/4 y la PR falla :48, :61 y :86 (la cuota sigue contando como gasto, el chip a mano no se aplica); con UUID local distinto del de nube (FIN-04) no se marca nunca y avisa «No se ha podido confirmar» en una fila no tocada. Sácalo de la PR: las cuotas deben comportarse byte a byte como en la base. B2: nueve tests en verde en la base caen en la PR, Madrid y UTC: expense-id-cloud, fin04-commit, fin11, fin17, fin19-r8, pull-sin-cambios, merge-expenses-cloud, recibo-domiciliado-sin-acreditar, retirada-bancaria (setQuotaSourceRetry/sourceActionBusy no definidos en sus arneses, mutante caducado, mocks con id no UUID), más casos nuevos en compras-identicas-ids y tr-emparejado-nogo2. Arregla los arneses sin relajar aserciones. Remates: el pie y aviso solo en filas que el usuario tocó; textos de una línea; en modo pruebas el botón no debe fallar siempre; mapa de writers completo. Ojo: tu acceso acaba el 5/11; si no llegas, deja la PR draft con el estado escrito.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261101-7a3c91e4",
+  "createdAt": "2026-11-01T11:28:49.333Z"
+}
