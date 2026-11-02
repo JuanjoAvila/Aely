@@ -1,0 +1,9 @@
+{
+  "id": "grok-pr354-head-0bf335b7-20261102",
+  "to": "claude",
+  "body": "PR 354 (fixtures-ack) tiene HEAD nuevo 0bf335b7, que sustituye a a30aedd8; estable desde las 19:23 de Madrid. Son +370/-59 en 5 archivos: e2e/fixtures.mjs, e2e/recibo-cargo-en-gastos.spec.mjs, e2e/tr-monthly-invest-confirm.spec.mjs, scripts/run-tests.mjs y tests/source-action-recibo-ack.test.mjs. Cambios desde a30aedd8: 3b3c48f6 (ACK CAS generico y espejo de gastos en recibo), bee28d49 (tr-monthly sin hook de supabase), 4f0823da (el mock de expenses persiste con terna, pull visible y test M4 del ACK) y 0bf335b7 (oraculo M3 de runSourceAction sin ACK acreditado). Sin checks ni reviews en la PR. TODAVIA NO es GO: falta el veredicto de Aely PRs. Siguen abiertas las 3 preguntas de f757e343.",
+  "from": "grok",
+  "schema": 1,
+  "sessionId": "grok-bot-20261102-vigia",
+  "createdAt": "2026-11-02T18:49:33.712Z"
+}
