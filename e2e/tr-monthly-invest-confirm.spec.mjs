@@ -1,5 +1,4 @@
 import {test,expect} from "@playwright/test";
-import fs from "node:fs";
 import {seedLoggedInDashboard,dismissNews} from "./fixtures.mjs";
 
 const id="550e8400-e29b-41d4-a716-446655440000", now=Date.parse("2026-11-04T12:00:00Z");
@@ -9,34 +8,12 @@ async function open(page,note="",amount=50){
   test.info().annotations.push({type:"own-clock",description:"November confirmation followed by December bank row"});
   await page.addInitScript(epoch=>{const Native=Date,offset=epoch-Native.now();class MonthlyDate extends Native{constructor(...args){super(...(args.length?args:[Native.now()+offset]))}static now(){return Native.now()+offset}};window.Date=MonthlyDate;},now);
   const e={...row(note),amount};
-  await seedLoggedInDashboard(page,{__seedOnce:true,user:{id:"e2e-user",email:"e2e@test.local"},_historyOwner:"e2e-user",_fixMovInvasion2:true,
+  await seedLoggedInDashboard(page,{__seedOnce:true,__cloudPersist:true,user:{id:"e2e-user",email:"e2e@test.local"},_historyOwner:"e2e-user",_fixMovInvasion2:true,
     accounts:[{id:"tr",ent:"trade_republic",role:"diario",spendFrom:true,value:950}],expenses:[e],
     bankTx:[{id:"monthly-ref",ent:e.ent,acc:e.obAcc,date:"2026-11-03",amount,merchant:"Movimiento",note,card:false,status:"BOOK"}],
     settings:{autoPrices:false,theme:"green",expenseBanks:["trade_republic"],brokersOn:["trade_republic"]},hasBankLink:true,
     investments:[{id:"fund",ent:"trade_republic",name:"Vanguard FTSE All-World",shares:10.5,value:1050,cost:950,cur:"EUR"}],trAnchor:"2026-11",
     __cloudRows:{expenses:[remote(e)],bank_links:[{aspsp_name:"Trade Republic",aspsp_country:"DE",status:"active",valid_until:"2027-01-01T00:00:00Z",accounts:[{uid:"tr-synthetic"}]}]}});
-  // El fixture común no ejecuta CAS de expenses: este doble acotado sí devuelve la fila escrita.
-  await page.route("**/vendor/supabase.min.js",async route=>{
-    const source=fs.readFileSync(new URL("../public/vendor/supabase.min.js",import.meta.url),"utf8");
-    const hook=`;(()=>{const saved=sessionStorage.getItem("monthly-synthetic-server");if(saved)Object.assign(window.__e2eCloudRows,JSON.parse(saved));const persist=()=>sessionStorage.setItem("monthly-synthetic-server",JSON.stringify(window.__e2eCloudRows));const library=window.supabase,create=library.createClient;library.createClient=function(){const client=create(),from=client.from;(window.__monthlyClients||(window.__monthlyClients=[])).push(client);
-      client.from=function(table){
-        if(table!=="expenses"&&table!=="app_state")return from(table);
-        let patch=null,insert=null,filters=[],columns="*";
-        const all=()=>window.__e2eCloudRows[table]||(window.__e2eCloudRows[table]=[]);
-        const rows=()=>all().filter(r=>filters.every(([k,v,op])=>op==="lt"?r[k]<v:(r[k]??null)===v));
-        const selected=rows=>rows.map(r=>columns==="*"?{...r}:Object.fromEntries(columns.split(",").map(k=>[k,r[k]])));
-        const q={select(v="*"){columns=v;return q},eq(k,v){filters.push([k,v]);return q},is(k,v){filters.push([k,v]);return q},order(){return q},limit(){return q},lt(k,v){filters.push([k,v,"lt"]);return q},
-          insert(v){insert=v;return q},update(v){patch=v;return q},async maybeSingle(){return {data:rows().length===1?selected(rows())[0]:null,error:null}},
-          then(resolve){let found=rows();if(table==="expenses"&&!patch)(window.__monthlyReads||(window.__monthlyReads=[])).push(JSON.parse(JSON.stringify(found)));
-            if(insert){if(all().some(r=>r.user_id===insert.user_id))return resolve({data:null,error:{code:"23505"}});const row=JSON.parse(JSON.stringify(insert));all().push(row);found=[row];}
-            if(patch){if(table==="expenses")(window.__monthlyUpdates||(window.__monthlyUpdates=[])).push({patch,filters});
-              if(table==="expenses"&&window.__monthlyDefer){window.__monthlyCompleteUpdate=()=>{found.forEach(r=>Object.assign(r,JSON.parse(JSON.stringify(patch))));persist();resolve({data:selected(found),error:null});};return;}
-              if(table==="expenses"&&window.__monthlyReject)found=[];else found.forEach(r=>Object.assign(r,JSON.parse(JSON.stringify(patch))));}
-            if(table==="app_state"&&(insert||patch&&found.length))window.__e2eStateWrites=(window.__e2eStateWrites||0)+1;
-            persist();return resolve({data:selected(found),error:null});}};return q};
-      const invoke=client.functions.invoke;client.functions.invoke=(name,opts)=>name==="bank-sync"&&window.__monthlyFeed?Promise.resolve(window.__monthlyFeed):invoke(name,opts);return client};})();`;
-    await route.fulfill({contentType:"application/javascript",body:source+hook});
-  });
   await page.route("https://**",route=>route.abort());
   await page.goto("/");await expect(page.locator(".botnav")).toBeVisible();await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
