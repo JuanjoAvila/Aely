@@ -136,4 +136,35 @@ const runEmptyAck = vm.runInContext(
 ctx.__ackState = fixture();
 assert.equal(await runEmptyAck(), false, "runSourceAction rechaza ACK sin filas");
 
-console.log("source-action-recibo-ack: M4 oráculo OK");
+const runFakeAck = vm.runInContext(
+  "(async function(){let state=globalThis.__ackState,withdrawalState={current:state},sourceActionPending={current:{}},"
+  + "sourceActionMounted={current:true},withdrawalPending={current:{}};const sourceActionBusy=()=>false;"
+  + "const mcSandbox=()=>false;const ReactDOM={flushSync:f=>f()};const setSourceActionStatus=()=>{};"
+  + "const showToast=()=>{};const t=k=>k;const set=f=>{state=globalThis.__ackState=f(state);withdrawalState.current=state;};"
+  + "const cloud={enabled:()=>true,session:async()=>({user:{id:state._historyOwner}})};" + action
+  + "const ex=state.expenses[0];const before=ex.reciboId;return runSourceAction(ex,async()=>undefined,"
+  + "s=>Object.assign({},s,{expenses:s.expenses.map(e=>e.id===ex.id?Object.assign({},e,{reciboId:null}):e)})).then(r=>({r,before,after:state.expenses[0].reciboId}));})",
+  ctx,
+);
+ctx.__ackState = fixture();
+const fake = await runFakeAck();
+assert.equal(fake.r, false, "M3: runSourceAction no aplica con ACK inventado");
+assert.equal(fake.after, fake.before, "marca local intacta");
+
+const m3Needle = 'if(!ack||ack.acknowledged!==true||!Array.isArray(ack.rows)||!ack.rows.length)throw new Error("source unconfirmed");';
+assert.ok(action.includes(m3Needle), "ancla M3");
+const actionM3 = action.replace(m3Needle, "/* M3 */");
+const runFakeAckMutant = vm.runInContext(
+  "(async function(){let state=globalThis.__ackState,withdrawalState={current:state},sourceActionPending={current:{}},"
+  + "sourceActionMounted={current:true},withdrawalPending={current:{}};const sourceActionBusy=()=>false;"
+  + "const mcSandbox=()=>false;const ReactDOM={flushSync:f=>f()};const setSourceActionStatus=()=>{};"
+  + "const showToast=()=>{};const t=k=>k;const set=f=>{state=globalThis.__ackState=f(state);withdrawalState.current=state;};"
+  + "const cloud={enabled:()=>true,session:async()=>({user:{id:state._historyOwner}})};" + actionM3
+  + "const ex=state.expenses[0];return runSourceAction(ex,async()=>undefined,"
+  + "s=>Object.assign({},s,{expenses:s.expenses.map(e=>e.id===ex.id?Object.assign({},e,{reciboId:null}):e)}));})",
+  ctx,
+);
+ctx.__ackState = fixture();
+assert.equal(await runFakeAckMutant(), true, "sanity: mutante M3 sí aplicaría");
+
+console.log("source-action-recibo-ack: M3/M4 oráculo OK");
