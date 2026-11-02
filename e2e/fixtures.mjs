@@ -71,8 +71,17 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
     // y se saca antes de mezclarlo para no sembrarlo como si fuera un campo de la cartera.
     const cloudRows = overrides.__cloudRows || {};
     delete overrides.__cloudRows;
+    const cloudPersist = !!overrides.__cloudPersist;
+    delete overrides.__cloudPersist;
     // Permite que una prueba simule una notificación recibida mientras la app está cerrada.
     window.__e2eCloudRows = cloudRows;
+    try {
+      const saved = sessionStorage.getItem("_e2eCloudSnapshot");
+      if (saved) Object.assign(cloudRows, JSON.parse(saved));
+    } catch (e) {}
+    window.__e2ePersistCloud = cloudPersist ? function () {
+      try { sessionStorage.setItem("_e2eCloudSnapshot", JSON.stringify(cloudRows)); } catch (e) {}
+    } : null;
     // Respuestas de `supabase.functions.invoke(nombre, …)` por nombre de función Edge (p.ej.
     // "bank-sync", que sirve tanto el sync diario como el histórico). Solo datos JSON —nada de
     // funciones— porque `overrides` viaja serializado a `page.addInitScript`. Sin entrada para
@@ -99,12 +108,46 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
       /* Una cadena POR consulta (15/9): con una sola compartida, un `from("bank_links")` que
          arrancaba entre el `from("expenses")` y su `await` le cambiaba la tabla a la otra. */
       const makeChain = (tabla) => {
-      let rowLimit=Infinity, beforeId=null, rowOrders=[], read=true, operation=null, payload=null, filters=[], columns=null;
-      const matches = row => filters.every(([key,value]) => (key==='user_id' ? row[key]??session.user.id : row[key])===value);
+      let rowLimit=Infinity, beforeId=null, rowOrders=[], read=true, operation=null, payload=null, upsertOpts=null, filters=[], columns=null;
+      const cell = (row, key) => (key === "user_id" ? row[key] ?? session.user.id : row[key]);
+      const rowMatches = (row) => filters.every(([key, value, op]) => {
+        if (op === "lt") return cell(row, key) < value;
+        if (op === "is") return value == null ? cell(row, key) == null : cell(row, key) === value;
+        if (op === "in") return Array.isArray(value) && value.includes(cell(row, key));
+        const left = cell(row, key);
+        if (key === "fecha" && left != null && value != null) {
+          const pl = Date.parse(left), pv = Date.parse(value);
+          if (Number.isFinite(pl) && Number.isFinite(pv) && pl === pv) return true;
+        }
+        if (key === "importe" && left != null && value != null) return Number(left) === Number(value);
+        return left === value;
+      });
+      // Postgres asigna UUID al INSERT; filas sin id rompen mcPullExpensesPaged (FIN-07).
+      const ensureExpenseId = (row) => {
+        if (tabla !== "expenses" || (typeof row.id === "string" && row.id)) return row;
+        const n = (window.__e2eExpenseIdSeq = (window.__e2eExpenseIdSeq || 0) + 1);
+        row.id = `550e8400-e29b-41d4-a716-44665544${String(n).padStart(4, "0")}`;
+        return row;
+      };
+      const tableRows = () => {
+        if (!Array.isArray(cloudRows[tabla])) cloudRows[tabla] = [];
+        return cloudRows[tabla];
+      };
+      const selectRows = (rows) => {
+        if (!columns) return null;
+        return rows.map((row) => columns === "*"
+          ? JSON.parse(JSON.stringify(row))
+          : Object.fromEntries(columns.split(",").map((k) => [k.trim(), row[k.trim()]])));
+      };
+      const expenseTerna = (r) => `${cell(r, "user_id")}|${r.fecha}|${r.importe}|${r.comercio}`;
+      const finish = (resolve, out, delay) => {
+        if (delay) setTimeout(() => resolve(out), delay);
+        else resolve(out);
+      };
       // app_state necesita INSERT único y UPDATE con CAS: un doble que los omite oculta
       // fallos de la primera lectura o inventa conflictos que el servidor no devolvería.
       const stateResult = () => {
-        const rows=cloudRows.app_state||(cloudRows.app_state=[]);let result=rows.filter(matches);
+        const rows=cloudRows.app_state||(cloudRows.app_state=[]);let result=rows.filter(rowMatches);
         if(operation==='insert'){
           const values=Array.isArray(payload)?payload:[payload];
           if(values.some((v,i)=>rows.some(r=>(r.user_id??session.user.id)===v.user_id)||values.slice(0,i).some(r=>r.user_id===v.user_id)))return {data:null,error:{code:'23505',message:'Synthetic unique app_state user_id'}};
@@ -112,52 +155,117 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
         }else if(operation==='update'){
           result=result.map(row=>{Object.assign(row,JSON.parse(JSON.stringify(payload)));return row;});
         }
-        // Cuenta las escrituras aceptadas: `esperaNubeQuieta` sabe así cuándo dejó de subir el arranque.
         if(operation==='insert'||operation==='update'&&result.length)window.__e2eStateWrites=(window.__e2eStateWrites||0)+1;
-        const selected=columns?result.map(row=>columns==='*'?row:Object.fromEntries(columns.split(',').map(k=>[k,row[k]]))):null;
-        return {data:selected,error:null};
+        if(window.__e2ePersistCloud)window.__e2ePersistCloud();
+        return {data:selectRows(result),error:null};
+      };
+      const expensesRead = (rows) => {
+        let data = rows.filter(rowMatches);
+        rowOrders.slice().reverse().forEach(([key, opts]) => data.sort((a, b) =>
+          (a[key] < b[key] ? -1 : a[key] > b[key] ? 1 : 0) * (opts?.ascending === false ? -1 : 1)));
+        if (beforeId) data = data.filter((r) => r.id < beforeId);
+        return data.slice(0, rowLimit);
+      };
+      const tableResult = (resolve, delay) => {
+        if (cloudErrors[tabla]) return finish(resolve, { data: null, error: { message: cloudErrors[tabla] } }, delay);
+        const rows = tableRows();
+        if (read) {
+          const data = tabla === "expenses" ? expensesRead(rows) : rows.filter(rowMatches);
+          if (tabla === "expenses" && !operation) {
+            (window.__monthlyReads || (window.__monthlyReads = [])).push(JSON.parse(JSON.stringify(data)));
+          }
+          return finish(resolve, { data: selectRows(data) ?? data, error: null }, delay);
+        }
+        if (operation === "insert") {
+          const values = Array.isArray(payload) ? payload : [payload];
+          const inserted = values.map((v) => ensureExpenseId(JSON.parse(JSON.stringify(v))));
+          // ACK como Postgres, pero sin acumular filas: un INSERT suelto no debe duplicar el pull
+          // frente al id local (p. ej. «purchase») con un UUID sintético distinto. Las filas que
+          // deban existir en lectura se siembran con __cloudRows o `mirrorExpensesToCloud`.
+          if (tabla !== "expenses") rows.push(...inserted);
+          if (window.__e2ePersistCloud) window.__e2ePersistCloud();
+          return finish(resolve, { data: selectRows(inserted), error: null }, delay);
+        }
+        if (operation === "upsert") {
+          const values = Array.isArray(payload) ? payload : [payload];
+          const ack = [];
+          values.forEach((fila) => {
+            const copy = ensureExpenseId(JSON.parse(JSON.stringify(fila)));
+            const dup = upsertOpts?.ignoreDuplicates && rows.some((r) => expenseTerna(r) === expenseTerna(copy));
+            if (!dup) {
+              if (tabla !== "expenses") rows.push(copy);
+              ack.push(copy);
+            }
+          });
+          if (window.__e2ePersistCloud) window.__e2ePersistCloud();
+          return finish(resolve, { data: selectRows(ack) ?? ack.map((r) => ({ id: r.id })), error: null }, delay);
+        }
+        if (operation === "delete") {
+          const removed = rows.filter(rowMatches);
+          cloudRows[tabla] = rows.filter((r) => !rowMatches(r));
+          if (window.__e2ePersistCloud) window.__e2ePersistCloud();
+          return finish(resolve, { data: selectRows(removed), error: null }, delay);
+        }
+        if (operation === "update") {
+          const patch = JSON.parse(JSON.stringify(payload));
+          (window.__e2eUpdates || (window.__e2eUpdates = [])).push({ tabla, value: patch, filters: filters.slice() });
+          if (tabla === "expenses") {
+            (window.__monthlyUpdates || (window.__monthlyUpdates = [])).push({ patch, filters: filters.slice() });
+          }
+          const reject = window.__e2eExpenseRejectUpdate || window.__monthlyReject;
+          let matched = reject ? [] : rows.filter(rowMatches);
+          const apply = () => {
+            matched.forEach((r) => Object.assign(r, patch));
+            if (window.__e2ePersistCloud) window.__e2ePersistCloud();
+            finish(resolve, { data: selectRows(matched), error: null }, delay);
+          };
+          const defer = tabla === "expenses" && (window.__e2eExpenseDeferUpdate || window.__monthlyDefer);
+          if (defer) {
+            const complete = () => apply();
+            window.__e2eCompleteExpenseUpdate = complete;
+            window.__monthlyCompleteUpdate = complete;
+            return;
+          }
+          return apply();
+        }
+        return finish(resolve, { data: null, error: null }, delay);
       };
       const chain = {
         select: (value='*') => { columns=value; return chain; },
         order: (key,opts) => { rowOrders.push([key,opts]); return chain; },
         limit: (n) => { rowLimit=n; return chain; },
         eq: (key,value) => { filters.push([key,value]); return chain; },
-        lt: (key,value) => { if(key==="id") beforeId=value; return chain; },
+        is: (key,value) => { filters.push([key,value,"is"]); return chain; },
+        in: (key,values) => { filters.push([key,values,"in"]); return chain; },
+        lt: (key,value) => { filters.push([key,value,"lt"]); if(key==="id") beforeId=value; return chain; },
         insert: (value) => { read=false; operation='insert'; payload=value; return chain; },
-        // Lo que la app ESCRIBE por fila (la marca de meta, por ejemplo) solo se ve aquí: el doble
-        // no lo guarda en las filas de la nube, así que el test mira la petición.
-        update: (value) => { read=false; operation='update'; payload=value; (window.__e2eUpdates || (window.__e2eUpdates = [])).push({ tabla, value: JSON.parse(JSON.stringify(value)) }); return chain; },
-        upsert: () => { read=false; return chain; },
-        delete: () => { read=false; return chain; },
-        /* Antes devolvía SIEMPRE null, así que `cloud.pullState()` nunca traía nada y NINGÚN test
-           podía ver lo que pasa cuando la nube SÍ tiene cartera. Ese agujero escondió el fallo del
-           modo inicial: en el navegador la cartera vacía se quedaba vacía porque no había nube que
-           la rellenara, y en su móvil —con sesión de verdad— se rellenaba sola. Ahora el doble
-           puede traer estado, poniéndolo en `__cloudRows.app_state`. */
+        update: (value) => { read=false; operation='update'; payload=value; return chain; },
+        upsert: (value, opts) => { read=false; operation='upsert'; payload=value; upsertOpts=opts||null; return chain; },
+        delete: () => { read=false; operation='delete'; return chain; },
         maybeSingle: async () => {
           if (cloudDelays[tabla]) await new Promise((r) => setTimeout(r, cloudDelays[tabla]));
           if (cloudErrors[tabla]) return { data: null, error: { message: cloudErrors[tabla] } };
-          if(tabla==='app_state'){const result=stateResult();return {...result,data:result.data?.[0]||null};}
-          return { data: (cloudRows[tabla] || [])[0] || null, error: null };
+          if (tabla === "app_state") {
+            const result = stateResult();
+            return { ...result, data: result.data?.[0] || null };
+          }
+          const rows = tabla === "expenses" ? expensesRead(tableRows()) : tableRows().filter(rowMatches);
+          return { data: rows.length === 1 ? (selectRows([rows[0]])?.[0] ?? rows[0]) : null, error: null };
         },
         single: async () => ({ data: null, error: null }),
       };
       chain.then = (resolve) => {
-        const t = tabla;
-        const delay = Array.isArray(cloudDelays[t]) ? cloudDelays[t].shift() : cloudDelays[t];
-        let data=Array.isArray(cloudRows[t]) ? cloudRows[t].slice() : [];
-        if(t==="expenses" && read){
-          // FIN-07: el doble debe respetar la consulta o repetiría la primera página sin fin.
-          rowOrders.slice().reverse().forEach(([key,opts]) => data.sort((a,b) =>
-            (a[key]<b[key]?-1:a[key]>b[key]?1:0)*(opts?.ascending===false?-1:1)));
-          if(beforeId) data=data.filter(r => r.id<beforeId);
-          data=data.slice(0,rowLimit);
+        const delay = Array.isArray(cloudDelays[tabla]) ? cloudDelays[tabla].shift() : cloudDelays[tabla];
+        if (tabla === "app_state" && !read) {
+          const out = stateResult();
+          return finish(resolve, out, delay);
         }
-        const out = cloudErrors[t]
-          ? { data: null, error: { message: cloudErrors[t] } }
-          : t==='app_state'?stateResult():{ data, error: null };
-        if (delay) setTimeout(() => resolve(out), delay);
-        else resolve(out);
+        if (tabla === "expenses" || operation === "insert" || operation === "update" || operation === "delete" || operation === "upsert") {
+          return tableResult(resolve, delay);
+        }
+        let data = Array.isArray(cloudRows[tabla]) ? cloudRows[tabla].slice() : [];
+        const out = cloudErrors[tabla] ? { data: null, error: { message: cloudErrors[tabla] } } : { data, error: null };
+        finish(resolve, out, delay);
       };
       return chain;
       };
@@ -178,6 +286,7 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
         functions: { invoke: async (nombre, opts) => {
           const rec = window.__e2eInvokes || (window.__e2eInvokes = []);
           rec.push({ name: nombre, body: (opts && opts.body) || null });
+          if (window.__monthlyFeed && nombre === "bank-sync") return window.__monthlyFeed;
           return cloudFns[nombre] || { data: {}, error: null };
         } },
       };
@@ -258,6 +367,24 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
       );
     } catch (e) {}
   }, overrides);
+}
+
+/** Copia los gastos locales a `__e2eCloudRows.expenses` con la forma de la tabla. El sync de
+ *  banco crea filas en el móvil antes de que `addExpense` las suba (y `obConfirmed` puede
+ *  bloquear la subida en e2e); `setExpenseRecibo` lee la tabla antes del ACK, así que sin este
+ *  espejo el doble devuelve cero filas aunque el mock ya haga CAS. */
+export async function mirrorExpensesToCloud(page, owner = "e2e-user") {
+  await page.evaluate((owner) => {
+    const list = mcLoadRaw(mcStateKey()).expenses || [];
+    window.__e2eCloudRows.expenses = list.map((e, i) => {
+      const id = isExpenseUuid(e.id) ? e.id : `550e8400-e29b-41d4-a716-44665544${String(i + 1).padStart(4, "0")}`;
+      return {
+        id, user_id: owner, fecha: e.date, comercio: e.merchant, importe: e.amount,
+        cat: e.category || "otros", source: expenseSourceForCloud(e),
+      };
+    });
+    if (window.__e2ePersistCloud) window.__e2ePersistCloud();
+  }, owner);
 }
 
 /** Espera a que el arranque deje de subir `app_state` y su ACK esté guardado en local.
