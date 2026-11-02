@@ -140,6 +140,26 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
           : Object.fromEntries(columns.split(",").map((k) => [k.trim(), row[k.trim()]])));
       };
       const expenseTerna = (r) => `${cell(r, "user_id")}|${r.fecha}|${r.importe}|${r.comercio}`;
+      /** Una fila por terna en lecturas de pull: imita ignoreDuplicates y evita un UUID sintético
+       *  distinto al id local que duplicaría el histórico si fallara el dedupe del cliente (M6). */
+      const storeExpenseRow = (rows, fila, { ignoreDuplicates } = {}) => {
+        const copy = ensureExpenseId(JSON.parse(JSON.stringify(fila)));
+        const t = expenseTerna(copy);
+        const idx = rows.findIndex((r) => expenseTerna(r) === t);
+        if (idx >= 0) {
+          if (ignoreDuplicates) return null;
+          const keepId = rows[idx].id;
+          Object.assign(rows[idx], copy);
+          rows[idx].id = keepId;
+          if (typeof isExpenseUuid === "function" && isExpenseUuid(copy.id) && !isExpenseUuid(keepId)) {
+            rows[idx].id = copy.id;
+          }
+          return rows[idx];
+        }
+        copy._e2ePullVisible = false;
+        rows.push(copy);
+        return copy;
+      };
       const finish = (resolve, out, delay) => {
         if (delay) setTimeout(() => resolve(out), delay);
         else resolve(out);
@@ -161,6 +181,8 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
       };
       const expensesRead = (rows) => {
         let data = rows.filter(rowMatches);
+        const paginated = rowOrders.length > 0 || beforeId != null || rowLimit < Infinity;
+        if (paginated) data = data.filter((r) => r._e2ePullVisible !== false);
         rowOrders.slice().reverse().forEach(([key, opts]) => data.sort((a, b) =>
           (a[key] < b[key] ? -1 : a[key] > b[key] ? 1 : 0) * (opts?.ascending === false ? -1 : 1)));
         if (beforeId) data = data.filter((r) => r.id < beforeId);
@@ -178,22 +200,31 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
         }
         if (operation === "insert") {
           const values = Array.isArray(payload) ? payload : [payload];
-          const inserted = values.map((v) => ensureExpenseId(JSON.parse(JSON.stringify(v))));
-          // ACK como Postgres, pero sin acumular filas: un INSERT suelto no debe duplicar el pull
-          // frente al id local (p. ej. «purchase») con un UUID sintético distinto. Las filas que
-          // deban existir en lectura se siembran con __cloudRows o `mirrorExpensesToCloud`.
-          if (tabla !== "expenses") rows.push(...inserted);
+          const inserted = [];
+          values.forEach((v) => {
+            if (tabla === "expenses") {
+              const stored = storeExpenseRow(rows, v, { ignoreDuplicates: false });
+              if (stored) inserted.push(stored);
+            } else {
+              const copy = ensureExpenseId(JSON.parse(JSON.stringify(v)));
+              rows.push(copy);
+              inserted.push(copy);
+            }
+          });
           if (window.__e2ePersistCloud) window.__e2ePersistCloud();
           return finish(resolve, { data: selectRows(inserted), error: null }, delay);
         }
         if (operation === "upsert") {
           const values = Array.isArray(payload) ? payload : [payload];
           const ack = [];
+          const ignoreDuplicates = !!upsertOpts?.ignoreDuplicates;
           values.forEach((fila) => {
-            const copy = ensureExpenseId(JSON.parse(JSON.stringify(fila)));
-            const dup = upsertOpts?.ignoreDuplicates && rows.some((r) => expenseTerna(r) === expenseTerna(copy));
-            if (!dup) {
-              if (tabla !== "expenses") rows.push(copy);
+            if (tabla === "expenses") {
+              const stored = storeExpenseRow(rows, fila, { ignoreDuplicates });
+              if (stored) ack.push(stored);
+            } else {
+              const copy = ensureExpenseId(JSON.parse(JSON.stringify(fila)));
+              rows.push(copy);
               ack.push(copy);
             }
           });
@@ -380,7 +411,7 @@ export async function mirrorExpensesToCloud(page, owner = "e2e-user") {
       const id = isExpenseUuid(e.id) ? e.id : `550e8400-e29b-41d4-a716-44665544${String(i + 1).padStart(4, "0")}`;
       return {
         id, user_id: owner, fecha: e.date, comercio: e.merchant, importe: e.amount,
-        cat: e.category || "otros", source: expenseSourceForCloud(e),
+        cat: e.category || "otros", source: expenseSourceForCloud(e), _e2ePullVisible: true,
       };
     });
     if (window.__e2ePersistCloud) window.__e2ePersistCloud();
