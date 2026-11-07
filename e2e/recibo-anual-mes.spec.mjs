@@ -105,6 +105,10 @@ async function abreEditPaso2DesdeReview(page, bill) {
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   const recibos = page.locator('.v4-screen > [data-seg="recibos"]');
+  // «Para revisar» enseña uno y pliega el resto (auditoría de Recibos, parte b): se despliega antes.
+  await expect(recibos.getByTestId("plan-review").locator(".v4-charge").first()).toBeVisible();
+  const ver = recibos.getByTestId("plan-review").getByRole("button", { name: /Ver los/ });
+  if (await ver.count()) await ver.click();
   await recibos.getByTestId("plan-review").getByRole("button", { name: new RegExp(bill.name, "i") }).click();
   await page.locator('.v4-sheet[data-sheet="recibo"] [data-act="editar"]').click();
   await expect(hoja(page)).toHaveAttribute("data-modo", "edit");

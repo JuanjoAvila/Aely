@@ -233,7 +233,10 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     return function(){ cancel=true; if(raf) cancelAnimationFrame(raf); };
   },[focoDeuda&&focoDeuda.ts, seg, segMounted.deudas]);
 
-  return React.createElement("div",{className:"v4-screen",ref:planScreenRef,"data-edge-capture":simple?null:"1"},
+  return React.createElement("div",{className:"v4-screen v4-plan",ref:planScreenRef,"data-edge-capture":simple?null:"1"},
+    // Fondo bajo la barra de estado: al bajar, el título, los botones y la tarjeta pasaban por
+    // debajo de la hora y los iconos (vídeo del dueño, 7/11). El mismo que la cabecera de Gastos.
+    React.createElement("div",{className:"v4-plan-techo","aria-hidden":"true"}),
     React.createElement("h1",{className:"v4-title serif"}, simple?t("v4s_plan_left_title"):t("v4_plan_title")),
     simple && React.createElement("div",{className:"v4-card v4-card-hero rise v4-plan-cover v4-plan-cover-simple","data-plan-state":coverTone,role:"group","aria-label":coverAria},
       React.createElement("div",{className:"v4-plan-simple-hero"},
@@ -737,26 +740,37 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   };
   const dueRow=function(x){
     const n=diasHasta(x);
-    return withDayPrompt(x,React.createElement("button",{type:"button",className:"v4-charge pr6-row",key:x.id,"data-recibo":x.id,onClick:function(){ if(sig) abrirSig(x); else abrir(x); }},
+    // El nombre se corta con elipsis en la fila; el lector de pantalla lee la frase entera
+    // (nombre · banco · cuándo · importe) en vez de los trozos sueltos (auditoría 2026-11-07).
+    const lbl=[x.name,subOf(x),x.day!=null?cuando(x):"",(esVariable(x)?"≈ ":"")+eur(Math.abs(x.amount))].filter(Boolean).join(" · ");
+    return withDayPrompt(x,React.createElement("button",{type:"button",className:"v4-charge pr6-row",key:x.id,"data-recibo":x.id,"aria-label":lbl,onClick:function(){ if(sig) abrirSig(x); else abrir(x); }},
       React.createElement("span",{className:"dt","aria-hidden":"true"},
         React.createElement("span",{className:"d"}, x.day||"—"),
         React.createElement("span",{className:"m"}, monthShort((sig?sigM:month)-1))),
       React.createElement("span",{className:"nm"},
         React.createElement("span",{className:"pr6-nm"}, x.name,React.createElement(PlanConflictDot,{record:conflictOf(x)})),
-        React.createElement("span",{className:"sub"}, subOf(x)),
-        x.day!=null&&React.createElement("span",{className:"pr6-when"+(n!=null&&n<=1?" soon":"")}, cuando(x))),
+        // Banco y cuándo en una sola línea: la fila de tres líneas (93 px) llenaba la pantalla con cinco recibos.
+        React.createElement("span",{className:"sub pr6-sub1"}, subOf(x),
+          x.day!=null&&React.createElement(React.Fragment,null," · ",React.createElement("span",{className:"pr6-when"+(n!=null&&n<=1?" soon":"")}, cuando(x))))),
       // «Cambia cada mes» (alta por pasos): la cifra es una previsión, se marca con «≈».
       React.createElement("span",{className:"am num"}, (esVariable(x)?"≈ ":"")+eur(Math.abs(x.amount)))));
   };
+  // «No ha llegado» se repetía en cada fila y la sección ya dice que hay que revisarlo: en la fila
+  // solo va lo que la distingue (cuándo tocaba). El lector de pantalla sí oye el motivo entero.
+  const motivoFila=function(x){
+    if(enlaces[x.id]) return tf("pr6_enlazado_x",{x:eur(Number(enlaces[x.id].x.amount))});
+    return (x.rv==="late"&&cuando(x))||pr6Motivo(x);
+  };
   const revRow=function(x){
     const cobro=x.rv==="diff"||x.rv==="up";
-    return withDayPrompt(x,React.createElement("button",{type:"button",className:"v4-charge pr6-rev",key:x.id,"data-recibo":x.id,"data-review":x.rv,onClick:function(){ abrir(x); }},
+    const lbl=[x.name,enlaces[x.id]?tf("pr6_enlazado_x",{x:eur(Number(enlaces[x.id].x.amount))}):pr6Motivo(x),eur(cobro?x.cobrado:Math.abs(x.amount))].filter(Boolean).join(" · ");
+    return withDayPrompt(x,React.createElement("button",{type:"button",className:"v4-charge pr6-rev",key:x.id,"data-recibo":x.id,"data-review":x.rv,"aria-label":lbl,onClick:function(){ abrir(x); }},
       React.createElement("span",{className:"pr6-ico","aria-hidden":"true"},
         React.createElement("svg",{width:19,height:19,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.2,strokeLinecap:"round",strokeLinejoin:"round"},
           React.createElement("path",{d:PR6_ICO[x.rv]||PR6_ICO.unconf}))),
       React.createElement("span",{className:"nm"},
         React.createElement("span",{className:"pr6-nm"}, x.name,React.createElement(PlanConflictDot,{record:conflictOf(x)})),
-        React.createElement("span",{className:"sub pr6-why"}, enlaces[x.id]?tf("pr6_enlazado_x",{x:eur(Number(enlaces[x.id].x.amount))}):pr6Motivo(x))),
+        React.createElement("span",{className:"sub pr6-why"}, motivoFila(x))),
       // Lo cobrado de más o de menos se enseña tal cual lo cobró el banco.
       React.createElement("span",{className:"am num"}, eur(cobro?x.cobrado:Math.abs(x.amount)))));
   };
@@ -782,11 +796,12 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
           how)),
       React.createElement("span",{className:"am num"}, planChargeAmount(x))));
   };
-  // Como mucho tres a la vista; el resto se despliega debajo con «Ver los N» (SPEC §2.3–2.4).
-  const lista=function(items,render,open,setOpen,id){
-    const rest=items.slice(3);
+  // Como mucho tres a la vista (uno en «Para revisar», para que Pendiente asome en la primera pantalla); el resto se despliega debajo con «Ver los N» (SPEC §2.3–2.4).
+  const lista=function(items,render,open,setOpen,id,visibles){
+    const nVis=visibles||3;
+    const rest=items.slice(nVis);
     return React.createElement(React.Fragment,null,
-      items.slice(0,3).map(render),
+      items.slice(0,nVis).map(render),
       rest.length>0&&React.createElement("div",{className:"pr6-fold"+(open?" open":""),id:id},
         React.createElement("div",Object.assign({className:"pr6-fold-in"},plegado(open)), rest.map(render))),
       rest.length>0&&React.createElement("button",{type:"button",className:"pr6-more","aria-expanded":open?"true":"false","aria-controls":id,
@@ -807,6 +822,17 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   // La entrada lateral solo al cambiar: al abrir Plan la tarjeta ya sube con `rise`.
   const [vistaAnim,setVistaAnim]=useState(false);
   const irVista=function(v){ setDueOpen(false); setVistaAnim(true); setVista(v); };
+  /* La vista entra de lado animando SIEMPRE el mismo nodo (capa fija). Antes se remontaba con
+     `key` y una animación CSS: la capa nacía con la vista nueva y en su móvil la lista salía en
+     blanco el primer fotograma (barrido del 7/11). */
+  const vistasRef=useRef(null);
+  React.useLayoutEffect(function(){
+    const el=vistasRef.current;
+    if(!vistaAnim||!el||!el.animate||mcReduced()) return;
+    const a=el.animate([{opacity:.4,transform:"translateX("+(vista==="sig"?16:-16)+"px)"},{opacity:1,transform:"none"}],
+      {duration:320,easing:"cubic-bezier(.22,.61,.36,1)"});
+    return function(){ a.cancel(); };
+  },[vista]);
   const cambiarVista=function(){ irVista(sig?"mes":"sig"); };
   /* El mes siguiente es una capa más: el atrás (también el de la APK) vuelve primero al mes en
      curso. Y al salir de Recibos (otro segmento u otra pestaña) se vuelve al mes en curso: Plan
@@ -838,7 +864,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
         : countLine&&React.createElement("div",{className:"pr6-count","data-testid":"plan-count"}, countLine),
       // «¿Te llega?» recorre el saldo de ESTE mes: en el siguiente no hay recorrido que enseñar.
       !sig&&(llega&&nPend>0||debenTotal>0.005)&&React.createElement("div",{className:"pr6-pills"},
-        llega&&nPend>0&&React.createElement("button",{type:"button",className:"pr6-pill"+(llega.ok?" ok":""),"data-testid":"plan-llega","aria-haspopup":"dialog",
+        llega&&nPend>0&&React.createElement("button",{type:"button",className:"pr6-pill "+(llega.ok?"ok":"falta"),"data-testid":"plan-llega","aria-haspopup":"dialog",
           onClick:function(){ setLlegaOpen(true); }},
           llega.ok&&React.createElement("span",{className:"pr6-pill-ok","aria-hidden":"true"},"✓"),
           llega.ok?t("pr6_llega"):tf("pr6_falta",{x:eur0(llega.falta)}),
@@ -901,12 +927,12 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
                   React.createElement("span",null,l.l),React.createElement("span",{className:"num"},l.v));
               })))))),
     // Toda la vista entra de lado al cambiar de mes, no solo la tarjeta (feedback 28/10).
-    React.createElement("div",{className:"pr6-vistas"+(vistaAnim?" anim":"")+(sig?" sig":""),key:vista},
+    React.createElement("div",{className:"pr6-vistas",ref:vistasRef},
     tarjeta,
     !sig&&v.review.length>0&&React.createElement("section",{className:"pr6-sec","data-testid":"plan-review","aria-label":t("pr6_revisar")},
       React.createElement("div",{className:"pr6-sec-h"},
         React.createElement("span",null, t("pr6_revisar"),React.createElement("span",{className:"pr6-n"}, v.review.length))),
-      lista(v.review,revRow,revOpen,setRevOpen,"pr6-rev-more")),
+      lista(v.review,revRow,revOpen,setRevOpen,"pr6-rev-more",1)),
     React.createElement("section",{className:"pr6-sec","data-testid":"plan-due","data-vista":vista,"aria-label":sig?pr6EnMes(sigM):t("v4_pendiente")},
       React.createElement("div",{className:"pr6-sec-h v4-section-h"},
         // «Pendiente» y no «Por pagar»: la petición del dueño del 26/10/2026 (la otra palabra
@@ -920,7 +946,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
         : (v.due.length===0
           ? React.createElement("div",{className:"pr6-empty"}, t("pr6_nada"))
           : lista(v.due,dueRow,dueOpen,setDueOpen,"pr6-due-more"))),
-    !sig&&nBills>0&&React.createElement("section",{className:"pr6-paid"+(paidOpen?" open":""),ref:paidRef,"data-testid":"plan-paid","aria-label":t("pr6_ya_pagados")},
+    !sig&&(v.paid.length>0||pausados.length>0)&&React.createElement("section",{className:"pr6-paid pr6-paid-in"+(paidOpen?" open":""),ref:paidRef,"data-testid":"plan-paid","aria-label":t("pr6_ya_pagados")},
       React.createElement("button",{type:"button",className:"pr6-paid-h","aria-expanded":paidOpen?"true":"false","aria-controls":"pr6-paid-list",
         onClick:function(){ setPaidOpen(function(o){ if(!o) verPlegado(paidRef.current); return !o; }); }},
         React.createElement("span",{className:"pr6-tick","aria-hidden":"true"},"✓"),
@@ -1569,6 +1595,8 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
   const swipe=useSheetSwipe(true,onClose);
   useBackClose(true,swipe.close);
   const [paso,setPaso]=useState(0);           // 0 ficha · 1 «¿Cuál es el cargo?»
+  const trackRef=useRef(null);
+  usePasosCarril(trackRef,swipe.sheetRef,paso);
   const [pausa,setPausa]=useState(false);
   const [gone,setGone]=useState(false);       // «Ya no lo tengo» pide un segundo toque
   const [rechazo,setRechazo]=useState(false); // vino de «No es este recibo»
@@ -1874,7 +1902,7 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
           if(gone&&!(e.target.closest&&e.target.closest('[data-act="quitar"]'))) setGone(false);
         }},swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
-        React.createElement("div",{className:"pr6-track"+(paso===1?" pick":"")}, fichaPanel, elegirPanel))),
+        React.createElement("div",{ref:trackRef,className:"pr6-track"+(paso===1?" pick":"")}, fichaPanel, elegirPanel))),
     document.body);
 }
 
@@ -2522,7 +2550,7 @@ function BillsItemSheet({row, state, set, banks, simple, onClose, onRemove,revie
     reviewCommit.save(planFixedReviewResult(state,row.item,review,patch));
   };
   const freqs=[["mes","gb_freq_m"],["bimestral","gb_freq_2m"],["trimestral","gb_freq_3m"],["semestral","gb_freq_6m"],["año","gb_freq_y"]];
-  return React.createElement("div",{ref:sideRef,className:"v4-sheet-back",onClick:swipe.close},
+  return React.createElement("div",{ref:sideRef,className:"v4-sheet-back mc-edge-back",onClick:swipe.close},
     React.createElement("div",Object.assign({ref:sheetRef,className:"v4-sheet","data-sheet":"bill",role:"dialog","aria-modal":"true","aria-labelledby":titleId,
       onClick:function(e){ e.stopPropagation(); }},swipe.sheetTouch),
       React.createElement("div",{className:"v4-sheet-handle"}),
@@ -2694,6 +2722,45 @@ function RpPaso({label, onStep, dir}){
     onPointerDown:down,onPointerUp:stop,onPointerLeave:stop,onPointerCancel:stop,
     onClick:function(e){ if(e.detail===0) onStep(dir); }}, dir<0?"−":"+");
 }
+/* Al cambiar de paso, el que se va sigue a la vista mientras desliza y los dos pasan de un alto al
+   otro. Antes el que se iba se plegaba de golpe (alto 0) y el que llegaba entraba desde opacidad 0:
+   durante el deslizamiento la hoja se veía vacía (vídeo del dueño, 7/11, «Editar recibo» → «¿Qué
+   recibo es?»). Si se había bajado, el que se va se queda donde estaba en vez de saltar arriba.
+   `scrollRef` es lo que scrollea (null en una hoja que crece con su contenido). */
+function usePasosCarril(trackRef, scrollRef, paso){
+  const prev=useRef(paso);
+  React.useLayoutEffect(function(){
+    const p=prev.current; prev.current=paso;
+    const sc=scrollRef&&scrollRef.current, s=sc?sc.scrollTop:0;
+    if(sc) sc.scrollTop=0;
+    const tr=trackRef.current;
+    if(!tr||p===paso||mcReduced()) return;
+    const viejo=tr.children[p], nuevo=tr.children[paso];
+    if(!viejo||!nuevo) return;
+    const fin=function(){ [viejo,nuevo].forEach(function(el){ el.style.maxHeight=""; el.style.overflow=""; el.style.transform=""; el.style.transition=""; }); };
+    // Punto de partida sin transición del alto (medir ya recalcula estilos y, con ella puesta, el que
+    // se va arrancaba desde 0): los dos con el alto del que se va.
+    viejo.style.transition=nuevo.style.transition="opacity .28s ease";
+    // Plegado, el paso encoge sus filas (columna flex): se mide con el alto suelto.
+    viejo.style.maxHeight="none";
+    const hv=viejo.offsetHeight, hn=nuevo.offsetHeight;
+    viejo.style.maxHeight=nuevo.style.maxHeight=hv+"px";
+    viejo.style.overflow=nuevo.style.overflow="hidden";
+    /* Un salto de varios pasos (del resumen a «Nombre») cruzaba los intermedios, que están vacíos:
+       se desliza solo un ancho, con el que se va puesto al lado del que llega. */
+    const lado=paso<p?paso+1:paso-1, objetivo=tr.style.transform;
+    viejo.style.transform="translate("+((lado-p)*100)+"%,"+(-s)+"px)";
+    tr.style.transition="none"; tr.style.transform="translateX("+(-lado*100)+"%)";
+    void tr.offsetHeight;
+    tr.style.transition=""; tr.style.transform=objetivo;
+    viejo.style.transition=nuevo.style.transition="";
+    // Los dos van al alto del que llega: el carril (y una hoja que mide lo que enseña) crece o encoge
+    // seguido, y el que se va solo se recorta si el nuevo es más bajo. Al final se pliega ya invisible.
+    viejo.style.maxHeight=nuevo.style.maxHeight=hn+"px";
+    const t=setTimeout(fin,420);
+    return function(){ clearTimeout(t); fin(); };
+  },[paso]);
+}
 function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, onClose, onSaved, onEditOther, onRemove}){
   const edit=mode==="edit";
   const y=totals.curYear, m=totals.curMonth, today=totals.today, cur=y*12+m;
@@ -2794,7 +2861,8 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
   // Tercer argumento verdadero y distinto en cada paso: con el paso 0 a secas el gesto quedaba apagado.
   const side=useEdgePageClose(true,atras,"p"+paso,sideRef,{plainScroll:true,soloPaso:function(){ return rastro.current.length>0; }});
   // El paso de llegada se ve desde arriba: el carril cambia de contenido, no de sitio.
-  React.useLayoutEffect(function(){ const el=sheetRef.current; if(el) el.scrollTop=0; },[paso]);
+  const bodyRef=useRef(null), trackRef=useRef(null);
+  usePasosCarril(trackRef,bodyRef,paso);
   useEffect(function(){
     const id=requestAnimationFrame(function(){ if(titleRef.current) titleRef.current.focus({preventScroll:true}); });
     return function(){ cancelAnimationFrame(id); };
@@ -3221,7 +3289,7 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
       onClick:function(){ if(!gone){ setGone(true); return; } onRemove(row); }}, gone?t("pr6_seguro_borrar"):t("pr6_ya_no"))
   ]);
   // La ficha de persona va fuera de la hoja: sus gestos y toques no pueden subir hasta esta.
-  return React.createElement(React.Fragment,null,React.createElement("div",{ref:sideRef,className:"v4-sheet-back",onClick:swipe.close},
+  return React.createElement(React.Fragment,null,React.createElement("div",{ref:sideRef,className:"v4-sheet-back mc-edge-back",onClick:swipe.close},
     React.createElement("div",Object.assign({ref:sheetRef,className:"v4-sheet pr6-ficha rp4","data-sheet":"recibo-pasos","data-paso":paso,"data-modo":edit?"edit":"add",
       role:"dialog","aria-modal":"true","aria-labelledby":"rp4-title",
       onClick:function(e){
@@ -3234,7 +3302,8 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
         React.createElement("button",{type:"button",className:"pr6-back","data-act":"back","aria-label":paso===(edit?4:0)?t("rp4_cerrar"):t("v4_back"),onClick:side.close},"‹"),
         !edit&&React.createElement("div",{className:"rp4-prog","aria-hidden":"true"},
           [0,1,2,3].map(function(i){ return React.createElement("i",{key:i,className:paso>=i?"on":""}); }))),
-      React.createElement("div",{className:"pr6-track rp4-track",style:{transform:"translateX("+(-paso*100)+"%)"}}, p0,p1,p2,p3,p4),
+      React.createElement("div",{ref:bodyRef,className:"rp4-body"},
+        React.createElement("div",{ref:trackRef,className:"pr6-track rp4-track",style:{transform:"translateX("+(-paso*100)+"%)"}}, p0,p1,p2,p3,p4)),
       React.createElement("div",{className:"rp4-foot"},
         React.createElement("button",{type:"button",className:"pr6-cta rp4-cta"+(ctaOn?"":" is-wait"),"data-act":paso===4?"confirm":"next","data-rp4-cta":"1",
           "aria-disabled":ctaOn?"false":"true",tabIndex:ctaOn?0:-1,onClick:function(e){ if(!ctaOn) return; siguiente(e); }}, ctaLabel)))),
@@ -3353,7 +3422,7 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, onSa
   const title=step==="what"?gbTxt("gb_step_what"):step==="amount"?gbTxt("gb_step_how_much"):
     step==="freq"?gbTxt("gb_step_how_often"):step==="months"?gbTxt("gb_months_q"):
     step==="monthyear"?gbTxt("gb_step_monthyear"):gbTxt("gb_step_when");
-  return React.createElement("div",{ref:sideRef,className:"v4-sheet-back",onClick:swipe.close},
+  return React.createElement("div",{ref:sideRef,className:"v4-sheet-back mc-edge-back",onClick:swipe.close},
     React.createElement("div",Object.assign({ref:sheetRef,className:"v4-sheet","data-sheet":"bill-add","data-step":step,role:"dialog","aria-modal":"true","aria-labelledby":titleId,
       onClick:function(e){ e.stopPropagation(); }},swipe.sheetTouch),
       React.createElement("div",{className:"v4-sheet-handle"}),

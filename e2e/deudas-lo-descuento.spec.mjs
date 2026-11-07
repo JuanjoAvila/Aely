@@ -30,7 +30,7 @@ const ask = (page) => page.locator(".askback .tabsheet");
 
 async function familiaLoDescuenta(page) {
   const recibos = await abrePlan(page, { fixed: [fibra], debts: [prestamo] });
-  await recibos.getByTestId("plan-due").getByRole("button", { name: "Todos" }).click();
+  await recibos.getByTestId("plan-due").getByRole("button", { name: "Gestionar" }).click();
   await page.locator('[data-bills-manage] [data-group="people"]').click();
   await page.locator('[data-act="persona-add"]').click();
   await persona(page).locator('[data-pe="name"]').fill("Familia");
@@ -75,7 +75,7 @@ test("en el recibo compartido: la parte se ve tecleable y al guardar se pregunta
   const movil = { id: "movil", name: "Móvil", amount: 50, bankAmount: 60, freq: "mes", day: 20, account: "sabadell",
     reparto: [{ id: "pe_fam", n: "Familia", via: "debt", debtId: "fam", amt: 10 }] };
   const recibos = await abrePlan(page, { fixed: [fibra, movil], debts: [prestamo] });
-  await recibos.getByTestId("plan-due").getByRole("button", { name: "Todos" }).click();
+  await recibos.getByTestId("plan-due").getByRole("button", { name: "Gestionar" }).click();
   await page.locator('[data-bills-manage] [data-group="serv"]').click();
   await page.locator('[data-bill-id="fibra"]').click();
   const hoja = page.locator('.v4-sheet[data-sheet="recibo-pasos"]'), p4 = hoja.locator('[data-rp4-paso="4"]');
@@ -207,7 +207,7 @@ test("R164 quitar recibo compartido: pregunta y cancelar conserva deuda", async 
   const recibos = await abrePlan(page, { fixed: [compartidoDescuadrado()], debts: [prestamo] });
   await expect.poll(async () => (await fotoSalida(page)).debts).toEqual([prestamo]);
   const antes = await fotoSalida(page);
-  await recibos.getByTestId("plan-due").getByRole("button", { name: "Todos" }).click();
+  await recibos.getByTestId("plan-due").getByRole("button", { name: "Gestionar" }).click();
   await page.locator('[data-bills-manage] [data-group="serv"]').click();
   await page.locator('[data-bill-id="fibra"]').click();
   const quitar = page.locator('.v4-sheet[data-sheet="recibo-pasos"] [data-act="bill-remove"]');
@@ -222,7 +222,7 @@ test("R164 borrar persona: pregunta y cancelar conserva deuda", async ({ page })
   const recibos = await abrePlan(page, { fixed: [compartidoDescuadrado()], debts: [prestamo] });
   await expect.poll(async () => (await fotoSalida(page)).debts).toEqual([prestamo]);
   const antes = await fotoSalida(page);
-  await recibos.getByTestId("plan-due").getByRole("button", { name: "Todos" }).click();
+  await recibos.getByTestId("plan-due").getByRole("button", { name: "Gestionar" }).click();
   await page.locator('[data-bills-manage] [data-group="people"]').click();
   await page.getByTestId("pe-lista").locator('[data-persona="pe_fam"]').click();
   const borrar = persona(page).locator('[data-act="persona-borrar"]');
