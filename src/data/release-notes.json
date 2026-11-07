@@ -12,19 +12,22 @@
         "Recibos: un recibo anual te deja elegir el mes en una cuadrícula antes de pedir el día, el botón Siguiente ya no parpadea y «Ya me lo ha pagado» es un botón más discreto.",
         "Al abrir las hojas de Plan el fondo se oscurece con suavidad y los botones de arriba ya no parpadean.",
         "Gastos: la pregunta de traspaso entre cuentas propias solo sale cuando se puede confirmar.",
-        "Al sincronizar el banco, un histórico largo ya no se repasa entero: lo que ya estaba emparejado se queda y solo se revisan los movimientos nuevos."
+        "Al sincronizar el banco, un histórico largo ya no se repasa entero: lo que ya estaba emparejado se queda y solo se revisan los movimientos nuevos.",
+        "Si un apunte a mano no era el mismo cargo, el total ya no lo esconde cuando llega el aviso del banco."
       ],
       "en": [
         "Bills: a yearly bill lets you pick the month on a grid before asking for the day, the Next button no longer flickers and “They’ve paid me” is a more discreet button.",
         "When you open the sheets in Plan the background darkens smoothly and the buttons above no longer flicker.",
         "Spending: the question about transfers between your own accounts only shows up when it can be confirmed.",
-        "When the bank syncs, a long history is no longer gone through from the start: what was already matched stays, and only the new transactions are checked."
+        "When the bank syncs, a long history is no longer gone through from the start: what was already matched stays, and only the new transactions are checked.",
+        "If a manual entry was not the same charge, the total no longer hides it when the bank notice arrives."
       ],
       "ca": [
         "Rebuts: un rebut anual et deixa triar el mes en una quadrícula abans de demanar el dia, el botó Següent ja no parpelleja i «Ja m’ho ha pagat» és un botó més discret.",
         "En obrir els fulls de Pla el fons s’enfosqueix amb suavitat i els botons de dalt ja no parpellegen.",
         "Despeses: la pregunta de traspàs entre comptes propis només surt quan es pot confirmar.",
-        "En sincronitzar el banc, un historial llarg ja no es repassa sencer: el que ja estava emparellat es queda i només es revisen els moviments nous."
+        "En sincronitzar el banc, un historial llarg ja no es repassa sencer: el que ja estava emparellat es queda i només es revisen els moviments nous.",
+        "Si un apunt a mà no era el mateix càrrec, el total ja no l’amaga quan arriba l’avís del banc."
       ]
     },
     "tandas": [

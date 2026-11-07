@@ -2276,8 +2276,11 @@ function reconcileGemelosAutomaticos(s,prev){
      seguiría oculto contra una fila ya borrada (07/11/2026). Se recalienta ese grupo,
      y el otro lado de una decisión que toque un grupo ya sucio. Si una decisión no se
      localiza en las filas, se recalienta todo — el mismo resultado de hoy, no otro.
-     La separación de un par roto no entra por aquí: sin la misma referencia de gemelos
-     el cálculo completo tampoco separaba. */
+     Si la firma no cambia (una copia con el mismo contenido), no hace falta recalentar
+     todo: el aviso de cada decisión cuyo cargo sí se reparte entra en el mapa, aunque
+     el manual no tenga grupo. Sin eso, un aviso nuevo del mismo importe esconde el cargo
+     que el cálculo completo deja contando. La separación de un par roto no entra por
+     aquí: sin la misma referencia de gemelos el cálculo completo tampoco separaba. */
   function gemeloIdsDeClave(key,list){
     const solo=Object.create(null); solo[String(key)]=1; const out=[];
     (list||[]).forEach(function(e){
@@ -2414,6 +2417,10 @@ function reconcileGemelosAutomaticos(s,prev){
   const workRows=[];dirty.forEach(function(k){const g=index.groups.get(k);if(g)workRows.push.apply(workRows,g);});
   // El manual sin banco no entra en ningún grupo. Si el banco sucio le apunta, tiene
   // que estar en el mapa o el reparto parcial lo sustituye por el aviso del grupo.
+  // Y si ya no le apunta —se quitó el #dup, «no es el mismo», y la decisión se copió
+  // con el mismo contenido— el aviso sigue fuera. El parcial no ve la decisión, empareja
+  // el cargo con el aviso nuevo y el total baja ese importe. El cálculo completo, que sí
+  // tiene el manual, lo deja contando (07/11/2026).
   const visto=new Set(); workRows.forEach(function(e){ if(e&&e.id!=null) visto.add(e.id); });
   const extras=[];
   workRows.forEach(function(e){
@@ -2424,6 +2431,25 @@ function reconcileGemelosAutomaticos(s,prev){
       visto.add(t.id); extras.push(t);
     });
   });
+  // Sin decisiones no hay nada que rescatar: montar el mapa recorrería el histórico
+  // en cada importación (el umbral de ob-iguales-ordinal, 07/11/2026).
+  if((s.gemelos||[]).length){
+    const bancosEnJuego=new Map();
+    const anotarBanco=function(e){ if(gemeloBancoAutomatico(e)) bancosEnJuego.set((expenseBankOf(e)||"")+"|"+keyOfExpense(e),e); };
+    workRows.forEach(anotarBanco); extras.forEach(anotarBanco);
+    let porAviso=null;
+    const avisoDeDecision=function(g){
+      if(g.avisoId!=null&&g.avisoId!==""){ const hit=index.ids.get(String(g.avisoId)); if(hit) return hit; }
+      if(!porAviso){ porAviso=new Map(); rows.forEach(function(e){ if(!e) return; const k=gemeloAvisoKey(e); if(k&&!porAviso.has(k)) porAviso.set(k,e); }); }
+      return porAviso.get(g.aviso)||null;
+    };
+    s.gemelos.forEach(function(g){
+      if(!g||typeof g.aviso!=="string"||typeof g.banco!=="string") return;
+      const a=avisoDeDecision(g); if(!a||a.id==null||visto.has(a.id)) return;
+      if(!bancosEnJuego.get((g.ent||expenseBankOf(a)||"")+"|"+g.banco)) return;
+      visto.add(a.id); extras.push(a);
+    });
+  }
   const ids={},porClave={},bancos={},groups=new Map(),used=new Set(),occupied=new Set(),destinos=new Map();
   const deleted=expenseDeletedSet(s),prevIds=new Set((prev&&prev.expenses||[]).map(function(e){return e.id;}));
   workRows.concat(extras).forEach(function(e){

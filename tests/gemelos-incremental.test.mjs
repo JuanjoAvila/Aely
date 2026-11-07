@@ -383,6 +383,89 @@ test("borrar un manual enlazado y un vínculo de otro grupo coinciden con el cá
   igual(ctx.reconcileGemelosAutomaticos(stConf, conDueno), completo(stConf, conDueno), "obAbsorbedConfirmed");
 });
 
+test("un manual sin banco marcado como distinto sigue contando cuando llega un aviso y las decisiones se copian igual", () => {
+  // «No es el mismo» quita el #dup y la decisión se queda (hora 0 o 1: no es un
+  // emparejado automático con hora propia). El manual no tiene grupo. Al llegar un
+  // aviso del mismo banco e importe, con gemelos copiados del mismo contenido, el
+  // parcial de db9e109fd escondía el cargo y el total bajaba sus 14,50 €. El cálculo
+  // completo lo deja contando.
+  const day = "2026-06-01T12:00:00.000Z";
+  const manual = { id: "m1", date: day, amount: 14.5, merchant: "Apunte", category: "otros", source: "manual" };
+  const cargo = { id: "b14", date: day, amount: 14.5, merchant: "Movimiento", category: "otros", source: "ob", ent: "trade_republic" };
+  [0, 1].forEach(function(hora){
+    const bootM = ctx.reconcileGemelosAutomaticos(estado([manual, cargo]));
+    const decision = Object.assign(ctx.gemeloDe(bootM.expenses[0], bootM.expenses[1]), { auto: true, ent: "trade_republic", at: hora });
+    const gem = ctx.pushGemelos([], [decision]);
+    assert.equal(gem[0].at, hora);
+    assert.equal(gem[0].ent, "trade_republic");
+    const unidoRows = bootM.expenses.map(function(e){ return e.id === "b14" ? Object.assign({}, e, { possibleDup: true, possibleDupOf: "m1" }) : e; });
+    const unido = ctx.reconcileGemelosAutomaticos(estado(unidoRows, { gemelos: gem }), bootM);
+    assert.equal(unido.expenses.find(function(e){ return e.id === "b14"; }).possibleDupOf, "m1", "hora " + hora + ": el manual queda unido al cargo");
+    const limpio = unido.expenses.map(function(e){
+      if(e.id !== "b14") return e;
+      const n = Object.assign({}, e);
+      delete n.possibleDup; delete n.possibleDupOf; delete n.autoGemelo; delete n.gemeloSeparado;
+      return n;
+    });
+    const distintoSt = Object.assign({}, unido, { expenses: limpio, gemelos: unido.gemelos.map(function(g){ return Object.assign({}, g); }) });
+    const distinto = ctx.reconcileGemelosAutomaticos(distintoSt, unido);
+    igual(distinto, completo(distintoSt, unido), "hora " + hora + ": quitar el #dup");
+    assert.ok(!distinto.expenses.find(function(e){ return e.id === "b14"; }).possibleDup, "hora " + hora + ": el cargo cuenta antes del aviso");
+    const avisoNuevo = { id: "aN", date: "2026-06-02T08:00:00.000Z", amount: 14.5, merchant: "Café nuevo", category: "otros", source: "macrodroid", ent: "trade_republic" };
+    const llega = Object.assign({}, distinto, { expenses: [avisoNuevo].concat(distinto.expenses), gemelos: distinto.gemelos.map(function(g){ return Object.assign({}, g); }) });
+    reset();
+    const inc = ctx.reconcileGemelosAutomaticos(llega, distinto);
+    const full = completo(llega, distinto);
+    const trabajo = shot();
+    igual(inc, full, "hora " + hora + ": aviso nuevo con decisiones copiadas");
+    assert.equal(presupuesto(inc), presupuesto(full), "hora " + hora + ": el total");
+    const cargoInc = inc.expenses.find(function(e){ return e.id === "b14"; });
+    const cargoFull = full.expenses.find(function(e){ return e.id === "b14"; });
+    assert.equal(!!cargoFull.possibleDup, false, "hora " + hora + ": el cálculo completo deja el cargo contando");
+    assert.ok(ctx.expenseCountsBudget(cargoInc, inc) && ctx.expenseCountsBudget(cargoFull, full), "hora " + hora + ": el cargo entra en el presupuesto");
+    assert.equal(presupuesto(inc) - presupuesto(estado(distinto.expenses)), Math.round(avisoNuevo.amount * 100), "hora " + hora + ": el aviso suma y el cargo no sale");
+    assert.ok(trabajo.banks * 10 < bootWork.banks, "hora " + hora + ": reparte " + trabajo.banks);
+    if(hora !== 1) return;
+    // La sync real no copia gemelos si el alta no trae vínculos: misma referencia.
+    const avisoSync = Object.assign({}, avisoNuevo, { id: "aS", merchant: "Café sync" });
+    reset();
+    const out = correr([avisoSync], distinto, ctx.gemelosDeImportacion, ctx.pushGemelos, ctx.reconcileGemelosAutomaticos);
+    const trabajoSync = shot();
+    assert.equal(out.invState.gemelos, distinto.gemelos, "la sync no cambia la referencia si no hay vínculo nuevo");
+    const estadoLlamada = Object.assign({}, out.invState, { expenses: [avisoSync].concat(distinto.expenses) });
+    igual(out.paired, completo(estadoLlamada, out.invState), "la sync real con la misma referencia de gemelos");
+    assert.equal(presupuesto(out.paired), presupuesto(completo(estadoLlamada, out.invState)));
+    assert.ok(ctx.expenseCountsBudget(out.paired.expenses.find(function(e){ return e.id === "b14"; }), out.paired));
+    assert.ok(trabajoSync.banks * 10 < bootWork.banks, "la sync reparte " + trabajoSync.banks);
+  });
+  // El mismo caso encima del histórico de 20.000: el grupo nuevo se reparte y el resto no.
+  const amount = 987.65;
+  const suelto = { id: "mR", date: day, amount: amount, merchant: "Apunte suelto", category: "otros", source: "manual" };
+  const bancoR = { id: "bR", date: day, amount: amount, merchant: "Movimiento", category: "otros", source: "ob", ent: "trade_republic" };
+  const conFilas = ctx.reconcileGemelosAutomaticos(Object.assign({}, boot, { expenses: [suelto, bancoR].concat(boot.expenses) }), boot);
+  const decisionR = Object.assign(ctx.gemeloDe(conFilas.expenses[0], conFilas.expenses[1]), { auto: true, ent: "trade_republic", at: 1 });
+  const gemR = ctx.pushGemelos(conFilas.gemelos, [decisionR]);
+  const unidoR = conFilas.expenses.map(function(e){ return e.id === "bR" ? Object.assign({}, e, { possibleDup: true, possibleDupOf: "mR" }) : e; });
+  const stUR = Object.assign({}, conFilas, { expenses: unidoR, gemelos: gemR });
+  const recUR = ctx.reconcileGemelosAutomaticos(stUR, conFilas);
+  const limpioR = recUR.expenses.map(function(e){
+    if(e.id !== "bR") return e;
+    const n = Object.assign({}, e);
+    delete n.possibleDup; delete n.possibleDupOf; delete n.autoGemelo; delete n.gemeloSeparado;
+    return n;
+  });
+  const distintoR = ctx.reconcileGemelosAutomaticos(Object.assign({}, recUR, { expenses: limpioR, gemelos: recUR.gemelos.map(function(g){ return Object.assign({}, g); }) }), recUR);
+  const avisoR = { id: "aR", date: "2026-06-02T08:00:00.000Z", amount: amount, merchant: "Café suelto", category: "otros", source: "macrodroid", ent: "trade_republic" };
+  const llegaR = Object.assign({}, distintoR, { expenses: [avisoR].concat(distintoR.expenses), gemelos: distintoR.gemelos.map(function(g){ return Object.assign({}, g); }) });
+  reset();
+  const incR = ctx.reconcileGemelosAutomaticos(llegaR, distintoR);
+  const trabajoR = shot();
+  igual(incR, completo(llegaR, distintoR), "histórico largo");
+  assert.equal(presupuesto(incR), presupuesto(completo(llegaR, distintoR)));
+  assert.ok(ctx.expenseCountsBudget(incR.expenses.find(function(e){ return e.id === "bR"; }), incR));
+  assert.ok(trabajoR.banks * 10 < bootWork.banks, "el histórico largo reparte " + trabajoR.banks + " bancos, no " + bootWork.banks);
+});
+
 function mulberry32(seed){
   let a = seed >>> 0;
   return function(){
