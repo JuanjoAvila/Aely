@@ -1,5 +1,136 @@
 [
   {
+    "v": "4.26.212",
+    "d": "2026-11-07",
+    "t": {
+      "es": "Quitar recibos con Deshacer y traspasos entre tus cuentas",
+      "en": "Remove bills with Undo and transfers between your accounts",
+      "ca": "Treure rebuts amb Desfer i traspassos entre els teus comptes"
+    },
+    "items": {
+      "es": [
+        "Recibos: al quitar un recibo, también desde su ficha, puedes deshacerlo y todo vuelve como estaba; si algo cambió entretanto, no se pisa y te avisa.",
+        "Recibos: «¿Cuál es el cargo?» enseña aparte los cargos que el banco aún no ha confirmado, para que veas que ya han llegado.",
+        "Deudas: ya no se puede poner un interés a una deuda cuyo recibo compartido te descuentas; primero quita el descuento.",
+        "Gastos: en un ingreso del banco puedes marcar «Es un traspaso entre mis cuentas», y la búsqueda de la pareja va más rápida."
+      ],
+      "en": [
+        "Bills: when you remove a bill, also from its details, you can undo it and everything goes back as it was; if something changed in between, it is not overwritten and you are told.",
+        "Bills: “Which charge is it?” now lists separately the charges the bank has not confirmed yet, so you can see they have arrived.",
+        "Debts: you can no longer set an interest rate on a debt whose shared bill you deduct; remove the deduction first.",
+        "Spending: on a bank income you can mark “This is a transfer between my accounts”, and finding the matching pair is faster."
+      ],
+      "ca": [
+        "Rebuts: en treure un rebut, també des de la seva fitxa, el pots desfer i tot torna a com estava; si alguna cosa ha canviat entremig, no es trepitja i t’avisa.",
+        "Rebuts: «Quin és el càrrec?» ensenya a part els càrrecs que el banc encara no ha confirmat, perquè vegis que ja han arribat.",
+        "Deutes: ja no es pot posar un interès a un deute el rebut compartit del qual descomptes; primer treu el descompte.",
+        "Despeses: en un ingrés del banc pots marcar «És un traspàs entre els meus comptes», i la cerca de la parella va més ràpida."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "recibo-quitar-deshacer",
+        "t": {
+          "es": "Plan › Recibos: quitar un recibo y deshacer",
+          "en": "Plan › Bills: remove a bill and undo",
+          "ca": "Pla › Rebuts: treure un rebut i desfer"
+        },
+        "items": {
+          "es": [
+            "1. Plan → Recibos, con un recibo compartido que te descuentas de una deuda («Lo descuento»). Tócalo y pulsa «Quitar este recibo»; si pregunta por el ajuste de la deuda, responde. BIEN: sale «Recibo quitado» con «Deshacer» durante unos segundos. MAL: no sale el aviso, o no hay «Deshacer».",
+            "2. Pulsa «Deshacer». BIEN: el recibo vuelve y la cuota y el saldo de la deuda quedan exactamente como antes de quitarlo. MAL: el recibo vuelve pero la deuda se queda cambiada.",
+            "3. Quita otro recibo cualquiera, esta vez desde su ficha (el botón de quitar de la propia ficha). BIEN: sale igual «Recibo quitado» con «Deshacer», y al deshacer vuelve el recibo. MAL: se quita sin avisar o no vuelve.",
+            "4. Quita un recibo con «Lo descuento», cambia a mano la cuota de esa deuda en Deudas antes de que acabe el aviso y pulsa «Deshacer». BIEN: sale «No se ha deshecho nada porque hay cambios posteriores» y tu cambio se queda. MAL: la deuda vuelve al valor antiguo pisando tu cambio."
+          ],
+          "en": [
+            "1. Plan → Bills, with a shared bill you deduct from a debt (“I deduct it”). Tap it and press “Remove this bill”; if it asks about the debt adjustment, answer. RIGHT: “Bill removed” appears with “Undo” for a few seconds. WRONG: no notice, or no “Undo”.",
+            "2. Press “Undo”. RIGHT: the bill comes back and the debt’s instalment and balance are exactly as before you removed it. WRONG: the bill comes back but the debt stays changed.",
+            "3. Remove any other bill, this time from its details (the remove button on the sheet itself). RIGHT: the same “Bill removed” with “Undo” appears, and undoing brings the bill back. WRONG: it is removed without notice or does not come back.",
+            "4. Remove a bill with “I deduct it”, change that debt’s instalment by hand in Debts before the notice ends and press “Undo”. RIGHT: “Nothing was undone because there are later changes” appears and your change stays. WRONG: the debt goes back to the old value, overwriting your change."
+          ],
+          "ca": [
+            "1. Pla → Rebuts, amb un rebut compartit que et descomptes d’un deute («Ho descompto»). Toca’l i prem «Treu aquest rebut»; si pregunta per l’ajust del deute, respon. BÉ: surt «Rebut tret» amb «Desfer» uns segons. MALAMENT: no surt l’avís, o no hi ha «Desfer».",
+            "2. Prem «Desfer». BÉ: el rebut torna i la quota i el saldo del deute queden exactament com abans de treure’l. MALAMENT: el rebut torna però el deute es queda canviat.",
+            "3. Treu qualsevol altre rebut, aquesta vegada des de la seva fitxa (el botó de treure de la mateixa fitxa). BÉ: surt igual «Rebut tret» amb «Desfer», i en desfer torna el rebut. MALAMENT: es treu sense avisar o no torna.",
+            "4. Treu un rebut amb «Ho descompto», canvia a mà la quota d’aquest deute a Deutes abans que acabi l’avís i prem «Desfer». BÉ: surt «No s’ha desfet res perquè hi ha canvis posteriors» i el teu canvi es queda. MALAMENT: el deute torna al valor antic trepitjant el teu canvi."
+          ]
+        }
+      },
+      {
+        "id": "deuda-tae-con-descuento",
+        "t": {
+          "es": "Deudas: interés en una deuda con descuento",
+          "en": "Debts: interest on a debt with a deduction",
+          "ca": "Deutes: interès en un deute amb descompte"
+        },
+        "items": {
+          "es": [
+            "1. Con una deuda sin intereses cuyo recibo compartido te descuentas («Lo descuento»), ve a Deudas, ábrela para editarla, escribe una TAE mayor que 0 y toca Guardar cambios. BIEN: no se guarda y sale «Primero quita el descuento del recibo compartido para poner una TAE positiva», con lo que escribiste aún en pantalla. MAL: se guarda la TAE y la cuota queda rara.",
+            "2. En Plan → Recibos quita el descuento de ese recibo y vuelve a poner la TAE en la deuda. BIEN: ahora se guarda. MAL: sigue rechazándola."
+          ],
+          "en": [
+            "1. With a debt that has no interest and whose shared bill you deduct (“I deduct it”), go to Debts, open it to edit, type an APR above 0 and tap Save changes. RIGHT: it is not saved and “First remove the discount from the shared bill to set a positive APR” appears, with what you typed still on screen. WRONG: the APR is saved and the instalment looks odd.",
+            "2. In Plan → Bills remove the deduction from that bill and set the APR on the debt again. RIGHT: now it saves. WRONG: it is still refused."
+          ],
+          "ca": [
+            "1. Amb un deute sense interessos el rebut compartit del qual descomptes («Ho descompto»), ves a Deutes, obre’l per editar-lo, escriu una TAE superior a 0 i toca Desar canvis. BÉ: no es desa i surt «Primer treu el descompte del rebut compartit per posar una TAE positiva», amb el que has escrit encara a la pantalla. MALAMENT: es desa la TAE i la quota queda estranya.",
+            "2. A Pla → Rebuts treu el descompte d’aquest rebut i torna a posar la TAE al deute. BÉ: ara es desa. MALAMENT: continua rebutjant-la."
+          ]
+        }
+      },
+      {
+        "id": "recibo-cargo-pendiente",
+        "t": {
+          "es": "Plan › Recibos: cargo aún sin confirmar",
+          "en": "Plan › Bills: charge not yet confirmed",
+          "ca": "Pla › Rebuts: càrrec encara sense confirmar"
+        },
+        "items": {
+          "es": [
+            "1. Plan → Recibos, abre un recibo del banco cuyo cargo acaba de llegar a Gastos como pendiente (compra con tarjeta que el banco aún no ha confirmado) y toca «¿Cuál es el cargo?». BIEN: ese cargo sale en una lista aparte con «Pendiente del banco · podrás elegirlo al confirmarse», sin botón para elegirlo. MAL: dice que no hay cargos del banco este mes, o te deja elegirlo ya.",
+            "2. Cuando el banco lo confirme (al día siguiente o más), vuelve a abrir «¿Cuál es el cargo?». BIEN: ya se puede elegir como cualquier otro. MAL: sigue sin poder elegirse."
+          ],
+          "en": [
+            "1. Plan → Bills, open a bank bill whose charge has just reached Spending as pending (a card purchase the bank has not confirmed yet) and tap “Which charge is it?”. RIGHT: that charge shows in a separate list with “Pending at the bank · you can pick it once confirmed”, with no button to pick it. WRONG: it says there are no charges from the bank this month, or lets you pick it already.",
+            "2. Once the bank confirms it (next day or later), open “Which charge is it?” again. RIGHT: it can be picked like any other. WRONG: it still cannot be picked."
+          ],
+          "ca": [
+            "1. Pla → Rebuts, obre un rebut del banc el càrrec del qual acaba d’arribar a Despeses com a pendent (compra amb targeta que el banc encara no ha confirmat) i toca «Quin és el càrrec?». BÉ: aquest càrrec surt en una llista a part amb «Pendent del banc · el podràs triar quan es confirmi», sense botó per triar-lo. MALAMENT: diu que no hi ha càrrecs del banc aquest mes, o et deixa triar-lo ja.",
+            "2. Quan el banc el confirmi (l’endemà o més tard), torna a obrir «Quin és el càrrec?». BÉ: ja es pot triar com qualsevol altre. MALAMENT: continua sense poder-se triar."
+          ]
+        }
+      },
+      {
+        "id": "traspaso-ingreso-manual",
+        "t": {
+          "es": "Gastos: marcar un ingreso como traspaso",
+          "en": "Spending: mark an income as a transfer",
+          "ca": "Despeses: marcar un ingrés com a traspàs"
+        },
+        "items": {
+          "es": [
+            "1. Gastos, abre la ficha de un ingreso del banco que en realidad es dinero tuyo de otra cuenta. BIEN: hay un botón «Es un traspaso entre mis cuentas». MAL: no aparece.",
+            "2. Tócalo. Si hay una salida igual en otro banco tuyo, sale la opción «Marcar también la salida de …» sin marcar; márcala o no. BIEN: sale «Entrada marcada como traspaso», la entrada deja de contar como ingreso y, si marcaste la salida, deja de contar como gasto. MAL: no cambia nada o cambian más movimientos de los que elegiste.",
+            "3. Vuelve a abrir esa ficha y toca «Contar como ingreso». BIEN: solo esa entrada vuelve a contar como ingreso; la salida no cambia. MAL: cambia también la salida.",
+            "4. Cierra y abre la app y mira Gastos. BIEN: las decisiones siguen igual y la pantalla no se queda lenta al abrir fichas. MAL: se pierde lo que marcaste o va lenta."
+          ],
+          "en": [
+            "1. Spending, open the details of a bank income that is really your own money from another account. RIGHT: there is a “This is a transfer between my accounts” button. WRONG: it does not appear.",
+            "2. Tap it. If there is a matching outgoing payment at another bank of yours, the option “Also mark the outgoing …” appears unticked; tick it or not. RIGHT: “Incoming transaction marked as a transfer” appears, the incoming stops counting as income and, if you ticked the outgoing, it stops counting as spending. WRONG: nothing changes or more transactions change than you chose.",
+            "3. Open that sheet again and tap “Count as income”. RIGHT: only that incoming transaction counts as income again; the outgoing one does not change. WRONG: the outgoing one changes too.",
+            "4. Close and reopen the app and look at Spending. RIGHT: the decisions are the same and the screen does not get slow when opening sheets. WRONG: what you marked is lost or it is slow."
+          ],
+          "ca": [
+            "1. Despeses, obre la fitxa d’un ingrés del banc que en realitat són diners teus d’un altre compte. BÉ: hi ha un botó «És un traspàs entre els meus comptes». MALAMENT: no apareix.",
+            "2. Toca’l. Si hi ha una sortida igual en un altre banc teu, surt l’opció «Marcar també la sortida de …» sense marcar; marca-la o no. BÉ: surt «Entrada marcada com a traspàs», l’entrada deixa de comptar com a ingrés i, si has marcat la sortida, deixa de comptar com a despesa. MALAMENT: no canvia res o canvien més moviments dels que has triat.",
+            "3. Torna a obrir aquesta fitxa i toca «Comptar com a ingrés». BÉ: només aquesta entrada torna a comptar com a ingrés; la sortida no canvia. MALAMENT: canvia també la sortida.",
+            "4. Tanca i obre l’app i mira Despeses. BÉ: les decisions continuen igual i la pantalla no es queda lenta en obrir fitxes. MALAMENT: es perd el que has marcat o va lenta."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.211",
     "d": "2026-11-01",
     "t": {
