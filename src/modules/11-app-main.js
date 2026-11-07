@@ -1140,7 +1140,11 @@ function App(){
           const gem=pushGemelos(invState.gemelos, vinculos);
           if(gem!==invState.gemelos) invState=Object.assign({},invState,{gemelos:gem});
         }
-        const paired=reconcileGemelosAutomaticos(Object.assign({},invState,{expenses:add?add.concat(invState.expenses||[]):invState.expenses}));
+        // El índice vive en el array anterior. Sin este segundo argumento cada
+        // sincronización repartía otra vez todo el histórico, aunque el arranque ya
+        // lo hubiera indexado (31/10/2026). Va después de los vínculos: los dos
+        // lados comparten gemelos y solo se recalientan los grupos del alta.
+        const paired=reconcileGemelosAutomaticos(Object.assign({},invState,{expenses:add?add.concat(invState.expenses||[]):invState.expenses}),invState);
         invState=paired;
         const pairedById={}; (paired.expenses||[]).forEach(function(e){ pairedById[e.id]=e; });
         obAdded=(add||[]).map(function(e){ return pairedById[e.id]||e; });

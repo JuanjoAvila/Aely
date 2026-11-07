@@ -21382,17 +21382,126 @@ function reconcileGemelosAutomaticos(s,prev){
   const cached=gemeloCache.get(rows);
   if(cached&&cached.gemelos===s.gemelos&&cached.deleted===s.deleted)return s;
   const old=prev&&gemeloCache.get(prev.expenses);
+  const sameMeta=!!(old&&prev.gemelos===s.gemelos&&prev.deleted===s.deleted);
   // Cambiar categoría, nota o tarjeta no invalida ningún emparejado ni calcula fechas.
-  if(old&&prev.gemelos===s.gemelos&&prev.deleted===s.deleted&&rows.length===prev.expenses.length&&rows.every(function(e,i){return gemeloMismosCampos(e,prev.expenses[i]);})){
+  if(sameMeta&&rows.length===prev.expenses.length&&rows.every(function(e,i){return gemeloMismosCampos(e,prev.expenses[i]);})){
     gemeloCache.set(rows,{gemelos:s.gemelos,deleted:s.deleted,index:old.index});return s;
   }
-  const prior=old&&prev.gemelos===s.gemelos&&prev.deleted===s.deleted&&old.index;
+  const prior=old&&old.index;
   const dirty=new Set(),index={ids:new Map(),groups:prior?new Map(prior.groups):new Map()};
   rows.forEach(function(e){if(!e)return;index.ids.set(e.id,e);if(!prior||!gemeloMismosCampos(e,prior.ids.get(e.id))){dirty.add(gemeloDatos(e).grupo);if(prior&&prior.ids.has(e.id))dirty.add(gemeloDatos(prior.ids.get(e.id)).grupo);}});
   if(prior)prior.ids.forEach(function(e,id){if(!index.ids.has(id))dirty.add(gemeloDatos(e).grupo);});
+  function gemeloFirmaDecision(g){
+    if(!g||typeof g!=="object") return "\u0000";
+    return [g.avisoId||"",typeof g.aviso==="string"?g.aviso:"\u0000",typeof g.banco==="string"?g.banco:"\u0000",g.separado?1:0,g.auto?1:0,g.at||0,g.ent||"",g.bankRef||"",g.bankRefV||"",g.bankRefSign||""].join("\u0001");
+  }
+  function gemeloCuenta(list,firma){
+    const m=new Map();
+    (list||[]).forEach(function(x){ const f=firma(x); m.set(f,(m.get(f)||0)+1); });
+    return m;
+  }
+  function gemeloCuentasIguales(a,b){
+    if(a.size!==b.size) return false;
+    let ok=true;
+    a.forEach(function(v,k){ if(b.get(k)!==v) ok=false; });
+    return ok;
+  }
+  function gemeloIndiceVivo(rows){
+    const byId=new Map(),byAviso=new Map(),byBank=new Map();
+    rows.forEach(function(e){
+      if(!e) return;
+      if(e.id!=null&&!byId.has(String(e.id))) byId.set(String(e.id),e);
+      const ak=gemeloAvisoKey(e);
+      if(ak) byAviso.set(ak,e);
+      if(gemeloBancoAutomatico(e)) byBank.set((expenseBankOf(e)||"")+"|"+keyOfExpense(e),e);
+    });
+    return {byId:byId,byAviso:byAviso,byBank:byBank};
+  }
+  // null = no se puede acotar: hay que repartir todos los grupos. Un banco con nombre
+  // no entra en el mapa automático; la decisión solo aparta el aviso, y basta su grupo.
+  function gemeloGruposDeDecision(g,live){
+    if(!g||typeof g.aviso!=="string"||typeof g.banco!=="string") return null;
+    const a=g.avisoId?live.byId.get(String(g.avisoId)):live.byAviso.get(g.aviso);
+    if(!a) return null;
+    const ga=gemeloDatos(a).grupo;
+    if(!ga) return null;
+    const b=live.byBank.get((g.ent||expenseBankOf(a)||"")+"|"+g.banco);
+    if(!b) return [ga];
+    const gb=gemeloDatos(b).grupo;
+    if(!gb) return null;
+    return ga===gb?[ga]:[ga,gb];
+  }
+  function gemeloGruposDeLapida(key,rows){
+    const s=String(key),seen=new Set(),out=[];
+    const add=function(g){ if(g&&!seen.has(g)){ seen.add(g); out.push(g); } };
+    const solo=Object.create(null); solo[s]=1;
+    rows.forEach(function(e){
+      if(!e||(e.amount===0&&esFilaDeBanco(e))) return;
+      if(expenseIsTombstoned(e,solo)) add(gemeloDatos(e).grupo);
+    });
+    if(!/\|#\d+$/.test(s)){
+      const m=s.match(/^(?:([^|]+)\|)?(\d{4}-\d{2}-\d{2})\|(-?[\d.]+)\|(.+)$/);
+      if(m&&sinComercioReal(m[4])){
+        const cents=Math.round(Number(m[3])*100),ent=m[1]||"";
+        if(Number.isFinite(cents)){
+          const tail="|"+cents;
+          rows.forEach(function(e){
+            const g=e&&gemeloDatos(e).grupo;
+            if(!g||g.slice(-tail.length)!==tail) return;
+            if(ent&&g.slice(0,ent.length+1)!==ent+"|") return;
+            add(g);
+          });
+        }
+      }
+    }
+    return out;
+  }
+  /* El `set` de la sync compara con el estado de ANTES de anotar los vínculos. Si además
+     las notas rehacen el array, gemelos y lápidas ya no son la misma referencia y el
+     índice se tiraba: otra pasada por todo el histórico (31/10/2026). El índice sigue
+     valiendo. Solo se recalientan los grupos del vínculo o la lápida que cambió; si una
+     decisión no se localiza en las filas, se recalienta todo — el mismo resultado de
+     hoy, no otro. La separación de un par roto no entra por aquí: sin la misma
+     referencia de gemelos el cálculo completo tampoco separaba. */
+  function gemeloSuciasPorDecision(dirty,rows,prev,s){
+    const firmaClave=function(k){ return String(k); };
+    const ga=gemeloCuenta(prev&&prev.gemelos,gemeloFirmaDecision),gb=gemeloCuenta(s&&s.gemelos,gemeloFirmaDecision);
+    const da=gemeloCuenta(prev&&prev.deleted,firmaClave),db=gemeloCuenta(s&&s.deleted,firmaClave);
+    if(gemeloCuentasIguales(ga,gb)&&gemeloCuentasIguales(da,db)) return true;
+    const live=gemeloIndiceVivo(rows);
+    let ok=true;
+    const vistas=new Set();
+    const tocar=function(list){
+      (list||[]).forEach(function(g){
+        const f=gemeloFirmaDecision(g);
+        if((ga.get(f)||0)===(gb.get(f)||0)||vistas.has(f)) return;
+        vistas.add(f);
+        const grupos=gemeloGruposDeDecision(g,live);
+        if(!grupos){ ok=false; return; }
+        grupos.forEach(function(k){ dirty.add(k); });
+      });
+    };
+    tocar(prev&&prev.gemelos); tocar(s&&s.gemelos);
+    if(!ok) return false;
+    const vistasL=new Set();
+    const tocarL=function(list){
+      (list||[]).forEach(function(k){
+        const f=String(k);
+        if((da.get(f)||0)===(db.get(f)||0)||vistasL.has(f)) return;
+        vistasL.add(f);
+        gemeloGruposDeLapida(f,rows).forEach(function(g){ dirty.add(g); });
+      });
+    };
+    tocarL(prev&&prev.deleted); tocarL(s&&s.deleted);
+    return true;
+  }
+
+  if(prior&&!sameMeta&&!gemeloSuciasPorDecision(dirty,rows,prev,s)){
+    rows.forEach(function(e){ if(e) dirty.add(gemeloDatos(e).grupo); });
+  }
   dirty.forEach(function(k){index.groups.set(k,[]);});
   rows.forEach(function(e){if(e&&dirty.has(gemeloDatos(e).grupo))index.groups.get(gemeloDatos(e).grupo).push(e);});
-  if(prior){
+  if(prior&&sameMeta){
     const split=new Map();let decisions=s.gemelos;
     prior.ids.forEach(function(b){
       if(!b.autoGemelo)return;
@@ -28800,7 +28909,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="5e1e653379ef789b85716d9f40cec8f49083ab2b8be4d277eb147e9f89ff097f";
+var _rnSha="57a13c3a7460786ddd3e23551b10b91a2fe45900883e2a0818aa8c5607547cf3";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -35777,7 +35886,11 @@ function App(){
           const gem=pushGemelos(invState.gemelos, vinculos);
           if(gem!==invState.gemelos) invState=Object.assign({},invState,{gemelos:gem});
         }
-        const paired=reconcileGemelosAutomaticos(Object.assign({},invState,{expenses:add?add.concat(invState.expenses||[]):invState.expenses}));
+        // El índice vive en el array anterior. Sin este segundo argumento cada
+        // sincronización repartía otra vez todo el histórico, aunque el arranque ya
+        // lo hubiera indexado (31/10/2026). Va después de los vínculos: los dos
+        // lados comparten gemelos y solo se recalientan los grupos del alta.
+        const paired=reconcileGemelosAutomaticos(Object.assign({},invState,{expenses:add?add.concat(invState.expenses||[]):invState.expenses}),invState);
         invState=paired;
         const pairedById={}; (paired.expenses||[]).forEach(function(e){ pairedById[e.id]=e; });
         obAdded=(add||[]).map(function(e){ return pairedById[e.id]||e; });
