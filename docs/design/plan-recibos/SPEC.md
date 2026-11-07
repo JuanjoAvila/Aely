@@ -22,7 +22,7 @@ Para no reinventar: lo que el diseño llama X, en la app es esto. Líneas orient
 | Diseño | Hoy en el código |
 |---|---|
 | Plan › Recibos | `PlanTab` y `PlanBills` en `14-v4-screens.js` (segmentos `PLAN_SEG_ORDEN`). Tirón: `useTironSeccion` en `02-ui-shared.js` (compartido con Gastos v5). |
-| Recibo | `state.fixed[]` (`addFixedItem`, `patchFixedById`, `removeFixedById` en `08-motor-bank.js`); campos `amount`, `bankAmount`, `freq`, `months`, `schedule`, `day`, `account`, `category`, `paidYm/paidDay`, `paymentProofs`. |
+| Recibo | `state.fixed[]` (`addFixedItem`, `patchFixedById` en `08-motor-bank.js`; quitar/Deshacer mediante `useBillUndo`, `billUndoRemove` y `billUndoRestore` en `14-v4-screens.js`); campos `amount`, `bankAmount`, `freq`, `months`, `schedule`, `day`, `account`, `category`, `paidYm/paidDay`, `paymentProofs`. |
 | Pendiente / pagado | `planChargesMonth`, `fixedPaymentState`, `paymentEvidenceUI` (confirmado vs «por confirmar»), `isPaidIn` para totales. |
 | «¿Cuál es el cargo?» | `linkFixedPayment` (enlazar; `null` desenlaza), `quitarCargoDeRecibo` / `reponerCargoDeRecibo`, `fixedPaymentIdentity`. Tolerancias reales: `recAmtClose`, `recNameMatch`, `fixedPaymentBookSameRef`. **Usar las de la app**, no las del prototipo (±15 %). |
 | Gestionar / Todos | `BillsManagePush` + `billsGroupRows`. |

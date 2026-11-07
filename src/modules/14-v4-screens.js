@@ -340,7 +340,7 @@ function PlanBills({state, set, totals, charges, evidence, manageOpen, setManage
       React.createElement("span",null, paidLabel),React.createElement("span",{"aria-hidden":true}, paidExpanded?"▾":"▸")),
     paidExpanded && React.createElement("div",{className:"v4-section",id:paidPanelId,role:"region","aria-labelledby":"v4-paid-fold-btn"}, paid.map(row)),
     // También en sencillo: la puerta vive en Ajustes → Dinero (NO-GO §5bis.2).
-    React.createElement(BillsManagePush,{open:manageOpen,onClose:function(){ setManageOpen(false); },state:state,set:set,totals:totals,simple:true})
+    React.createElement(BillsManagePush,{key:"manage-bills",open:manageOpen,onClose:function(){ setManageOpen(false); },state:state,set:set,totals:totals,simple:true})
   );
 }
 /* La factura variable acredita su bruto real, pero no permite inventar la parte propia de un
@@ -570,6 +570,31 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   const [dueOpen,setDueOpen]=useState(false);
   const [paidOpen,setPaidOpen]=useState(false);
   const [ficha,setFicha]=useState(null);
+  const [undoFicha,setUndoFicha]=useState(null), [avisoFicha,setAvisoFicha]=useState(null);
+  // La ficha desaparece al quitar el último recibo; el controlador vive en Plan para poder reponerlo.
+  const fichaUndo=useBillUndo(state,set,activo!==false&&!manageOpen,function(token){
+    setFicha(null); setUndoFicha(token); setAvisoFicha(null);
+  },function(key,finish){
+    if(finish) setFicha(null);
+    setAvisoFicha(t(key||"gb_undo_changed"));
+  });
+  const cerrarFicha=function(){ fichaUndo.cancel(); setFicha(null); setUndoFicha(null); };
+  useEffect(function(){
+    if(!undoFicha) return undefined;
+    const id=setTimeout(function(){ setUndoFicha(null); },Math.max(0,undoFicha.until-Date.now()));
+    return function(){ clearTimeout(id); };
+  },[undoFicha]);
+  useEffect(function(){
+    if(!avisoFicha) return undefined;
+    const id=setTimeout(function(){ setAvisoFicha(null); },4500);
+    return function(){ clearTimeout(id); };
+  },[avisoFicha]);
+  useEffect(function(){
+    if(activo===false||manageOpen){ setFicha(null); setUndoFicha(null); setAvisoFicha(null); }
+  },[activo,manageOpen]);
+  const avisoQuitar=React.createElement(React.Fragment,null,
+    undoFicha&&React.createElement(BillUndoToast,{onUndo:function(){ if(fichaUndo.undo(undoFicha)!==false) setUndoFicha(null); }}),
+    avisoFicha&&React.createElement(BillUndoToast,{notice:avisoFicha}));
   const [llegaOpen,setLlegaOpen]=useState(false);
   const [debenOpen,setDebenOpen]=useState(false);
   const paidRef=useRef(null);
@@ -825,7 +850,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
           tf("pr6_te_deben",{x:eur(debenTotal)}),
           React.createElement("svg",{className:"pr6-pill-go",width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
             React.createElement("path",{d:"M9 6l6 6-6 6"}))))));
-  const manage=React.createElement(BillsManagePush,{open:manageOpen,onClose:function(){ setManageOpen(false); setManageEdit(null); setAddNow(0); },state:state,set:set,totals:totals,simple:false,editId:manageEdit,addNow:addNow});
+  const manage=React.createElement(BillsManagePush,{key:"manage-bills",open:manageOpen,onClose:function(){ setManageOpen(false); setManageEdit(null); setAddNow(0); },state:state,set:set,totals:totals,simple:false,editId:manageEdit,addNow:addNow});
   /* La hoja de importar vive fuera de la rama del primer uso: al añadir, el plan deja de estar
      vacío y, dentro de esa rama, la hoja se desmontaba de golpe; el segundo toque de un doble
      toque caía entonces en el «+» de abajo (revisión 31/10/2026). Ahora cierra con su animación y
@@ -848,7 +873,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
           bancos.length>0&&React.createElement("span",{className:"pr6-onb-s"}, tf("pr6_onb_en",{x:pr6Lista(bancos)}))),
         React.createElement("button",{type:"button",className:"pr6-cta","data-testid":"plan-empezar",onClick:empezar}, t("pr6_empezar"))),
       importar,
-      manage);
+       manage,avisoQuitar);
   }
   const verCerrado=!!cerrado&&cerrado.ym!==cerradoNo;
   const lineasCerrado=cerrado?pr6LineasCerrado(cerrado):[];
@@ -924,9 +949,10 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     ficha&&fichaRow&&fichaRow.kind!=="debt"&&fichaRow.kind!=="balloon"&&React.createElement(ReciboFicha,{key:ficha.id,row:fichaRow,state:state,set:set,totals:totals,evidence:proof,showToast:showToast,
       aviso:v.review.find(function(x){ return x.id===ficha.id; })||null,
       onPosponer:posponer,
-      onClose:function(){ setFicha(null); },
-      onEdit:function(id){ setFicha(null); setManageEdit(id); setManageOpen(true); }}),
-    manage
+      onClose:cerrarFicha,
+      onRemove:function(id){ setAvisoFicha(null); quitarReciboPreguntando(fichaUndo,id); },
+      onEdit:function(id){ cerrarFicha(); setManageEdit(id); setManageOpen(true); }}),
+    manage,avisoQuitar
   );
 }
 /* Textos del resumen del mes cerrado. El mes con mayúscula al principio («Septiembre cerrado»);
@@ -1457,6 +1483,22 @@ function reciboCargosElegibles(s,f,y,m,today){
     return fixedExpenseEligible(s,x,f,y,m,today);
   });
 }
+/* Cargos del banco del recibo que hoy NO se pueden elegir solo porque el banco aún no los ha
+   confirmado (pendientes o con fecha posterior a hoy). Se enseñan sin poder tocarlos: la regla de
+   prueba de pago no cambia (un pendiente no demuestra el pago, NO-GO 3/10), pero «Sin cargos de
+   Sabadell este mes» con el cargo ya en Gastos era mentira (compra en domingo que el banco apunta
+   el lunes, beta 4.26.210, 1/11/2026). */
+function reciboCargosPorConfirmar(s,f,y,m,today,elegibles){
+  const ym=y+"-"+String(m).padStart(2,"0"), bank=accOf(f), deleted=expenseDeletedSet(s);
+  const ya=new Set((elegibles||[]).map(function(x){ return x.id; }));
+  return (s.expenses||[]).filter(function(x){
+    if(!x||ya.has(x.id)||!(Number(x.amount)>0)||String(x.date||"").slice(0,7)!==ym||x.debtId||x.possibleDup||metaDeGasto(x)) return false;
+    if(x.reciboId&&x.reciboId!==f.id) return false;
+    if(expenseBankOf(x)!==bank||CAT_NEUTRAS[x.category]||x.category==="ingreso"||expenseIsTombstoned(x,deleted)) return false;
+    const st=String(x.status||"").toUpperCase(), d=recDay(x.date);
+    return !!x.obPending||(!!st&&st!=="BOOK")||(d!=null&&d>today);
+  }).sort(function(a,b){ return dateMs(String(b.date).slice(0,10))-dateMs(String(a.date).slice(0,10)); });
+}
 function reciboCargoTexto(x){ return String((x&&(x.merchant||x.obName))||""); }
 /* La cuota de una deuda en Recibos (beta 4.26.200): «sale un cargo que YA está enlazado, no deja
    pulsarlo y te lleva a Deudas». Tocarla abre su ficha con el cargo que Gastos le ha marcado este
@@ -1523,7 +1565,7 @@ function DeudaFicha({row, state, totals, onClose, onGoDebts}){
             React.createElement("button",{type:"button",className:"pr6-btn","data-act":"ver-deuda",onClick:verDeuda}, t("pr6_ver_deuda")))))),
     document.body);
 }
-function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onEdit, aviso, onPosponer}){
+function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onEdit, onRemove, aviso, onPosponer}){
   const swipe=useSheetSwipe(true,onClose);
   useBackClose(true,swipe.close);
   const [paso,setPaso]=useState(0);           // 0 ficha · 1 «¿Cuál es el cargo?»
@@ -1592,6 +1634,9 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
     return (dayF==null||d==null||d>=dayF-7)&&Math.abs(Number(x.amount)-target)<=Math.max(2,target*0.15);
   }).sort(function(a,b){ return Math.abs(a.amount-target)-Math.abs(b.amount-target); });
   const recientes=delBanco.filter(function(x){ return cands.indexOf(x)<0; }).sort(function(a,b){ return dms(b)-dms(a); }).slice(0,4);
+  const porConfirmar=useMemo(function(){
+    return paso===1&&f?reciboCargosPorConfirmar(base,f,y,m,today,pool):[];
+  },[paso,base,f,y,m,today,pool]);
   const qq=q.trim().toLowerCase();
   const encontrados=qq?pool.filter(function(x){
     const a=Number(x.amount).toFixed(2), qn=qq.replace(",",".");
@@ -1666,6 +1711,16 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
       React.createElement("span",{className:"pr6-cand-a num"}, eur(Number(x.amount))),
       React.createElement("span",{className:"pr6-ring","aria-hidden":"true"},"✓"));
   };
+  // Sin botón ni anillo: se ve que el cargo ha llegado, pero no se puede elegir hasta que el banco lo confirme.
+  const pendRow=function(x){
+    const b=expenseBankOf(x);
+    return React.createElement("div",{key:x.id,className:"pr6-cand pend","data-cargo-pend":x.id},
+      React.createElement(Mono,{ent:b,size:38}),
+      React.createElement("span",{className:"pr6-cand-t"},
+        React.createElement("span",{className:"pr6-cand-n"}, reciboCargoTexto(x)||entOf(b).label),
+        React.createElement("span",{className:"pr6-cand-s"}, t("pr6_pend_banco"))),
+      React.createElement("span",{className:"pr6-cand-a num"}, eur(Number(x.amount))));
+  };
   // Cabecera y estado del pago.
   const sub=dayF!=null?tf("pr6_se_cobra",{d:dayF,bank:entOf(bank).label}):entOf(bank).label;
   const pagoBanco=confirmado&&st?st.paidBank||bank:null;
@@ -1730,8 +1785,7 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
   };
   const quitar=function(){
     if(!gone){ setGone(true); return; }
-    quitarReciboPreguntando(state,set,f.id);
-    cerrarCon(tf("pr6_borrado_toast",{name:row.name}));
+    onRemove(f.id);
   };
   const par=[];
   const parBtn=function(key,label,go,main){ return React.createElement("button",{type:"button",key:key,className:main?"pr6-cta pr6-par":"pr6-btn pr6-par","data-act":key,onClick:go},label); };
@@ -1806,7 +1860,8 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
       onChange:function(e){ setQ(e.target.value); }}),
     !qq&&!cands.length&&recientes.length>0&&React.createElement("div",{className:"pr6-lbl"}, tf("pr6_otros_cargos",{bank:entOf(bank).label})),
     React.createElement("div",{className:"pr6-cands","data-testid":"recibo-cargos"}, lista.map(cargoRow)),
-    !lista.length&&React.createElement("div",{className:"pr6-empty"}, qq?tf("pr6_sin_resultados",{q:q.trim()}):tf("pr6_sin_cargos",{bank:entOf(bank).label})),
+    !qq&&porConfirmar.length>0&&React.createElement("div",{className:"pr6-cands","data-testid":"recibo-cargos-pend"}, porConfirmar.map(pendRow)),
+    !lista.length&&!(!qq&&porConfirmar.length)&&React.createElement("div",{className:"pr6-empty"}, qq?tf("pr6_sin_resultados",{q:q.trim()}):tf("pr6_sin_cargos",{bank:entOf(bank).label})),
     !qq&&cands.length>0&&recientes.length>0&&React.createElement("button",{type:"button",className:"pr6-more",onClick:function(){ setOtros(function(o){ return !o; }); }},
       otros?t("pr6_menos_cargos"):tf("pr6_otros_cargos",{bank:entOf(bank).label})),
     rechazo&&React.createElement("button",{type:"button",className:"pr6-btn pr6-btn-wide","data-act":"aun-no",onClick:aunNo},t("pr6_aun_no")));
@@ -1855,6 +1910,159 @@ function billGlyph(row){
 
 /* §2 variante A: `.settings-push` hub. Reconcile → BankPanel (Claude).
    Ajustes dispara `mc-open-bills` → PlanTab abre este push con state vivo (no snapshot). */
+// El acuse no viaja al JSON ni a la nube: solo identifica el resultado que React comprometió.
+const BILL_UNDO_COMMIT=Symbol("bill-undo-commit"), billUndoUploads=new Map();
+function billUndoCopy(x){
+  if(!x||typeof x!=="object") return x;
+  if(Array.isArray(x)) return x.map(billUndoCopy);
+  const out={}; Object.keys(x).forEach(function(k){ Object.defineProperty(out,k,{value:billUndoCopy(x[k]),enumerable:true,writable:true,configurable:true}); }); return out;
+}
+function billUndoPeriod(s){ return {day:madridYmdParts(Date.now()),month:startOfMonth().getTime(),start:budgetPeriodOf(s).startMs}; }
+function billUndoReview(s,id){
+  const rows=(s.fixed||[]).filter(function(x){ return x.id===id; });
+  if(rows.length!==1||(s.oneoffs||[]).some(function(x){ return x.id===id; })) return null;
+  const item=rows[0],ids=(item.reparto||[]).filter(function(x){ return x.via==="debt"; }).map(function(x){ return x.debtId; });
+  const debts=(s.debts||[]).filter(function(d){ return ids.indexOf(d.id)>=0; });
+  if(new Set(debts.map(function(d){ return d.id; })).size!==debts.length) return null;
+  return billUndoCopy({owner:s._historyOwner||null,simple:!!(s.settings&&s.settings.simpleMode),item:item,debts:debts,fixed:(s.fixed||[]).filter(function(f){ return f.id===id||(f.reparto||[]).some(function(x){ return ids.indexOf(x.debtId)>=0; }); }),period:billUndoPeriod(s)});
+}
+function billUndoExpense(e){
+  // Las etiquetas pueden cambiar sin que el cargo deje de ser el mismo; nunca se reponen.
+  const out=billUndoCopy(e); ["category","cat","note","tags","noteEdited","categoryEdited"].forEach(function(k){ delete out[k]; }); return out;
+}
+function billUndoRemove(s,review,fixes,now){
+  if(!review||!goalSyncEqual(review,billUndoReview(s,review.item.id))) return {state:s,error:true};
+  const r=sinCargoDelPlan(s,"fixed",review.item.id,now),next=conDescuentoFijado(fixes,deudasTrasReparto(s,r.state));
+  const preserve=!!r.subir.length||(s.expenses||[]).some(function(e){ return e.reciboId===review.item.id&&dateMs(e.date)>=startOfMonth().getTime()&&cargoDeRecibo(e,s); });
+  const debts=[];
+  (next.debts||[]).forEach(function(d){
+    const before=(s.debts||[]).find(function(x){ return x.id===d.id; });
+    // Cancelar el ajuste deja delta vacío, pero esa deuda sigue vinculada al recibo.
+    if(!before||(goalSyncEqual(before,d)&&!review.debts.some(function(x){ return x.id===d.id; }))) return;
+    const fields=[];
+    Array.from(new Set(Object.keys(before).concat(Object.keys(d)))).forEach(function(k){
+      const had=Object.prototype.hasOwnProperty.call(before,k),has=Object.prototype.hasOwnProperty.call(d,k);
+      if(had!==has||!goalSyncEqual(before[k],d[k])) fields.push({key:k,had:had,value:billUndoCopy(before[k])});
+    });
+    debts.push({id:d.id,after:billUndoCopy(d),fields:fields});
+  });
+  // Un vínculo huérfano también cuenta: reponerlo no debe descontar sobre una deuda nueva.
+  Array.from(new Set((review.item.reparto||[]).filter(function(x){ return x.via==="debt"; }).map(function(x){ return x.debtId; }))).forEach(function(id){
+    if(!debts.some(function(d){ return d.id===id; })) debts.push({id:id,after:null,fields:[]});
+  });
+  // SinCargo ya compensa las marcas; se evalúa de nuevo desde la cuenta ACTUAL con el delta
+  // completo, pues la cuota aceptada también entra en el saldo de una cuenta de fijos ya cobrada.
+  const balanced=preserve?conSaldoMostrado(s,Object.assign({},next,{accounts:s.accounts})):next;
+  return {state:balanced,subir:r.subir,undo:{owner:review.owner,item:billUndoCopy(review.item),debts:debts,expenses:r.subir.map(billUndoExpense),preserveBalance:preserve,period:billUndoPeriod(s),tomb:billUndoCopy(next.reciboBorrado[review.item.id]),at:next.reciboBorradoAt[review.item.id]}};
+}
+function billUndoRestore(s,undo,now){
+  const id=undo.item.id;
+  if((s._historyOwner||null)!==undo.owner||!goalSyncEqual(undo.period,billUndoPeriod(s))||(s.fixed||[]).concat(s.oneoffs||[]).some(function(f){ return f.id===id; })||
+    !goalSyncEqual(s.reciboBorrado&&s.reciboBorrado[id],undo.tomb)||!s.reciboBorradoAt||s.reciboBorradoAt[id]!==undo.at) return {state:s,error:true};
+  // Todo o nada: validar antes de reponer el recibo, marcas o compensaciones de saldo.
+  if(undo.debts.some(function(d){
+    const rows=(s.debts||[]).filter(function(x){ return x.id===d.id; });
+    return d.after===null?rows.length!==0:rows.length!==1||!goalSyncEqual(rows[0],d.after);
+  })) return {state:s,error:true};
+  let skipped=false;
+  const safe=undo.expenses.filter(function(e){
+    const rows=(s.expenses||[]).filter(function(x){ return x.id===e.id; });
+    const ok=rows.length===1&&goalSyncEqual(billUndoExpense(rows[0]),e)&&admiteMarcaDe(rows[0],undo.item)&&
+      !expenseIsTombstoned(rows[0],expenseDeletedSet(s))&&!reciboVetado(s,id,reciboNoIdentidad(rows[0]),rows[0].id)&&
+      !(s.expenses||[]).some(function(x){ return x.id!==e.id&&x.ent===e.ent&&x.date===e.date&&x.amount===e.amount&&x.merchant===e.merchant; });
+    if(!ok) skipped=true; return ok;
+  }).map(function(e){ return e.id; });
+  const guarded=Object.assign({},s,{reciboBorrado:Object.assign({},s.reciboBorrado,{[id]:Object.assign({},undo.tomb,{x:safe})})});
+  const r=conReciboEnPlan(guarded,"fixed",billUndoCopy(undo.item),now);
+  let changed=false;
+  const debts=(s.debts||[]).map(function(d){
+    const delta=undo.debts.find(function(x){ return x.id===d.id; });
+    if(!delta||!delta.fields.length) return d;
+    const restored=Object.assign({},d); delta.fields.forEach(function(f){ if(f.had) restored[f.key]=billUndoCopy(f.value); else delete restored[f.key]; });
+    changed=true; return restored;
+  });
+  const next=changed?Object.assign({},r.state,{debts:debts}):r.state;
+  const balanced=undo.preserveBalance?conSaldoMostrado(s,Object.assign({},next,{accounts:s.accounts})):next;
+  return {state:balanced,subir:r.subir,skipped:skipped};
+}
+function billUndoSend(rows,owner){
+  if(!cloud.enabled()||!owner||mcSandbox()) return Promise.resolve();
+  return Promise.all((rows||[]).map(function(e){
+    // La puerta existente busca por estos campos, no por id: retirar y reponer van en ese orden.
+    const key=JSON.stringify([owner,e.ent,e.date,e.amount,e.merchant]);
+    const next=(billUndoUploads.get(key)||Promise.resolve()).catch(function(){}).then(function(){
+      return cloud.session().then(function(session){ if(!session||session.user.id!==owner) throw new Error("bill-undo-owner"); return cloud.setExpenseRecibo(e); });
+    });
+    billUndoUploads.set(key,next);
+    next.catch(function(){}).then(function(){ if(billUndoUploads.get(key)===next) billUndoUploads.delete(key); });
+    return next;
+  }));
+}
+function useBillUndo(state,set,open,onRemoved,onNotice){
+  const [pending,setPending]=React.useState(null);
+  const committed=React.useRef(state),life=React.useRef(false),visible=React.useRef(open),busy=React.useRef(null),token=React.useRef(null);
+  React.useLayoutEffect(function(){ life.current=true; return function(){
+    life.current=false; if(busy.current) busy.current.cancelled=true; busy.current=null; token.current=null;
+  }; },[]);
+  React.useLayoutEffect(function(){
+    committed.current=state; visible.current=open;
+    if(pending&&!pending.operation.done){
+      const operation=pending.operation;
+      if(operation.until!=null&&Date.now()>=operation.until) operation.cancelled=true;
+      if(!pending.submitted&&open&&life.current&&!operation.cancelled){
+        // Solo la intención viaja en transición. Escribir desde este layout impide que React
+        // reutilice un cálculo eager encolado después de que la hoja se haya cerrado.
+        setPending(Object.assign({},pending,{submitted:true}));
+        set(function(s){
+          if(operation.cancelled) return s;
+          const r=pending.calculate(s); if(r.state===s) return s;
+          return Object.assign({},r.state,{[BILL_UNDO_COMMIT]:{operation:operation,owner:s._historyOwner||null,undo:r.undo,subir:r.subir,skipped:r.skipped}});
+        });
+      } else {
+        const ack=state[BILL_UNDO_COMMIT]; operation.done=true;
+        if(busy.current===operation) busy.current=null;
+        setPending(null);
+        if(pending.submitted&&ack&&ack.operation===operation){
+          billUndoSend(ack.subir,ack.owner).catch(function(){ if(life.current&&visible.current) onNotice("gb_undo_sync_error"); });
+          if(open&&life.current){
+            if(operation.kind==="remove"){
+              const tkn={undo:ack.undo,until:Date.now()+5000}; token.current=tkn; onRemoved(tkn);
+            } else if(ack.skipped) onNotice("gb_undo_partial");
+          }
+        } else if(open&&life.current&&!operation.cancelled) onNotice(operation.kind==="remove"?"gb_remove_changed":null,operation.kind==="remove");
+      }
+    }
+    if(!open){ if(busy.current) busy.current.cancelled=true; busy.current=null; token.current=null; }
+  });
+  const submit=function(operation,calculate){
+    React.startTransition(function(){ setPending({operation:operation,calculate:calculate,submitted:false}); });
+  };
+  return {
+    // El host de Plan sigue montado después de quitar: solo un cierre explícito cancela su intención.
+    cancel:function(){ if(busy.current) busy.current.cancelled=true; busy.current=null; token.current=null; },
+    remove:function(id){
+      if(busy.current||!life.current||!visible.current) return;
+      const operation={kind:"remove"},review=billUndoReview(committed.current,id); busy.current=operation;
+      if(!review){ busy.current=null; onNotice("gb_remove_changed",true); return; }
+      descuentoPregunta(committed.current,function(s){ return deudasTrasReparto(s,Object.assign({},s,{fixed:(s.fixed||[]).filter(function(f){ return f.id!==id; })})); }).then(function(fixes){
+        if(!life.current||!visible.current||busy.current!==operation) return;
+        const now=Date.now(); submit(operation,function(s){ return billUndoRemove(s,review,fixes,now); });
+      }).catch(function(){ if(busy.current===operation){ busy.current=null; if(life.current&&visible.current) onNotice("gb_remove_changed",true); } });
+    },
+    undo:function(tkn){
+      if(busy.current||!tkn||token.current!==tkn||!life.current||!visible.current) return false;
+      token.current=null; if(Date.now()>=tkn.until) return true;
+      const operation={kind:"undo",until:tkn.until},now=Date.now(); busy.current=operation;
+      submit(operation,function(s){ return billUndoRestore(s,tkn.undo,now); });
+      return true;
+    }
+  };
+}
+function BillUndoToast({onUndo,notice}){
+  return React.createElement("div",{className:"v4-undo-toast"+(notice?" v4-bills-saved":""),role:"status","data-testid":notice?"bills-saved":undefined},
+    React.createElement("span",null,notice||gbTxt("gb_removed")),
+    onUndo&&React.createElement("button",{type:"button",onClick:onUndo},t("f_undo")||"Deshacer"));
+}
 function BillsManagePush({open, onClose, state, set, totals, simple, editId, addNow}){
   const [stack,setStack]=React.useState(["hub"]);
   const [group,setGroup]=React.useState(null);
@@ -1871,6 +2079,15 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
   const [undoBill,setUndoBill]=React.useState(null);
   const undoTimer=React.useRef(null);
   const [savedBill,setSavedBill]=React.useState(null);
+  const fixedUndo=useBillUndo(state,set,open,function(token){
+    editOnly.current=false; setDetail(null); setPasos(null);
+    if(undoTimer.current) clearTimeout(undoTimer.current);
+    const snap={kind:"fixed",token:token}; setUndoBill(snap);
+    undoTimer.current=setTimeout(function(){ setUndoBill(function(current){ return current===snap?null:current; }); undoTimer.current=null; },5000);
+  },function(key,finish){
+    if(finish){ editOnly.current=false; setDetail(null); setPasos(null); }
+    setSavedBill({msg:t(key||"gb_undo_changed")});
+  });
   const rootRef=React.useRef(null);
   const subRef=React.useRef(null);
   const titleRef=React.useRef(null);
@@ -2054,9 +2271,9 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
   };
   const removeWithUndo=function(row){
     setSavedBill(null);
+    if(row.kind==="fixed"){ fixedUndo.remove(row.id); return; }
     const snap={kind:row.kind, item:Object.assign({},row.item)};
-    if(row.kind==="fixed") quitarReciboPreguntando(state,set,row.id);
-    else if(row.kind==="flow") removeFlowById(set,row.id);
+    if(row.kind==="flow") removeFlowById(set,row.id);
     else if(row.kind==="oneoff") removeOneoffById(set,row.id);
     else return;
     // Tras borrar se queda en Todos: ahí está el «Deshacer».
@@ -2068,9 +2285,9 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
   };
   const undoLastBill=function(){
     if(!undoBill) return;
+    if(undoBill.kind==="fixed"&&fixedUndo.undo(undoBill.token)===false) return;
     if(undoTimer.current){ clearTimeout(undoTimer.current); undoTimer.current=null; }
-    if(undoBill.kind==="fixed") addFixedItem(set,undoBill.item);
-    else if(undoBill.kind==="flow") addFlowItem(set,undoBill.item);
+    if(undoBill.kind==="flow") addFlowItem(set,undoBill.item);
     else if(undoBill.kind==="oneoff") addOneoffItem(set,undoBill.item);
     setUndoBill(null);
   };
@@ -2214,9 +2431,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
         React.createElement("span",null,
           React.createElement("strong",null,savedBill.msg||gbTxt("gb_saved_"+savedBill.kind)),
           !savedBill.msg&&React.createElement("small",null,savedBill.name))),
-      undoBill && React.createElement("div",{className:"v4-undo-toast",role:"status"},
-        React.createElement("span",null, gbTxt("gb_removed")),
-        React.createElement("button",{type:"button",onClick:undoLastBill}, t("f_undo")||"Deshacer"))
+      undoBill && React.createElement(BillUndoToast,{onUndo:undoLastBill})
     ),
     document.body);
 }
@@ -2419,14 +2634,8 @@ function descuentoAjustarGuardado(state,set,d){
     });
   });
 }
-/* Quitar un recibo con una parte que se descuenta: si la deuda no queda cuadrada (la bajada tecleada
-   no era cuota + descuento), se pregunta igual que al ponerlo (rev. lo-descuento R2). */
-function quitarReciboPreguntando(state,set,id){
-  descuentoPregunta(state,function(s){ return deudasTrasReparto(s,Object.assign({},s,{fixed:(s.fixed||[]).filter(function(e){ return e.id!==id; })})); }).then(function(fixes){
-    removeFixedById(set,id);
-    if(fixes.length) set(function(s){ return conDescuentoFijado(fixes,s); });
-  });
-}
+// Esta puerta también identifica el alcance beta: delega en el mismo controlador de Todos.
+function quitarReciboPreguntando(undo,id){ return undo.remove(id); }
 function rp4DiasMes(ym){ const Y=Math.floor((ym-1)/12), M=ym-Y*12; return new Date(Y,M,0).getDate(); }
 /* Un cargo de una sola vez de hoy o de antes este mes ya «se habría cobrado» por calendario sin
    ningún cargo detrás: lo de hoy sin cobro es cargo de hoy (decisión del dueño, t3). Se apunta

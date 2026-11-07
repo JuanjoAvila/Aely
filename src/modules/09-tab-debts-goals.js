@@ -146,6 +146,22 @@ function goalEditResult(g,form){
   return {item:JSON.stringify(next)===JSON.stringify(g)?g:next};
 }
 function planEditSame(a,b){ return JSON.stringify(a)===JSON.stringify(b); }
+function debtEditRateError(s,before,next){
+  if(Number(before&&before.apr)>0||!(Number(next&&next.apr)>0)) return "";
+  const linked=function(r){ return Array.isArray(r)&&r.some(function(x){ return x&&x.via==="debt"&&x.debtId===before.id; }); };
+  const p=madridYmdParts(Date.now()),cur=p.y*12+p.m;
+  // La relación sigue viva aunque el recibo esté pausado o aún no toque cobrarlo. Los repartos
+  // congelados de pagos anteriores se conservan: quitarlos no es requisito para cambiar la TAE.
+  const has=(s.fixed||[]).some(function(e){
+    if(linked(e.reparto)) return true;
+    return Object.keys(e.soloMes||{}).some(function(k){
+      const ym=Number(k),o=e.soloMes[k];
+      return Number.isInteger(ym)&&ym>=cur&&o&&linked(o.reparto)&&
+        (ym>cur||!fixedPaymentState(s,e,p.y,p.m,p.d).paid);
+    });
+  });
+  return has?"db_rate_discount_remove":"";
+}
 function debtEditTermChange(d,form,result){
   if(!result.item||d.months==null||planEditNumber(form.months,true)!==d.months||result.item.months===d.months) return null;
   return {before:d.months,after:result.item.months,leftBefore:debtLeft(d),leftAfter:debtLeft(result.item)};
@@ -162,6 +178,7 @@ function debtEditConfirmResult(state,debt,form,confirmed){
 function planEditCommit(s,field,before,next){
   const matches=(s[field]||[]).filter(function(x){ return x.id===before.id; });
   if(matches.length!==1||planEditSame(matches[0],next)||!planEditSame(matches[0],before)) return s;
+  if(field==="debts"&&debtEditRateError(s,matches[0],next)) return s;
   return Object.assign({},s,{[field]:s[field].map(function(x){ return x.id===before.id?next:x; })});
 }
 function usePlanEditSave({state,set,field,item,onClose,showToast,review}){
@@ -169,7 +186,7 @@ function usePlanEditSave({state,set,field,item,onClose,showToast,review}){
   const sending=useRef(false),outcome=useRef(null);
   useLayoutEffect(function(){
     if(!pending||!outcome.current) return;
-    if(outcome.current.error){ sending.current=false; setPending(null); setError("plan_edit_changed"); return; }
+    if(outcome.current.error){ sending.current=false; setPending(null); setError(typeof outcome.current.error==="string"?outcome.current.error:"plan_edit_changed"); return; }
     const rows=(state[field]||[]).filter(function(x){ return x.id===item.id; });
     // La hoja ya no se desmonta aquí sino tras bajar: durante esa salida otra escritura (la nube,
     // un sync) volvía a pasar por este efecto y repetía el cierre y el «Cambios guardados».
@@ -179,11 +196,17 @@ function usePlanEditSave({state,set,field,item,onClose,showToast,review}){
     if(sending.current) return;
     if(result.error){ setError(result.error); setRange(result.range||null); return; }
     const next=result.item;
+    const rateError=field==="debts"?debtEditRateError(state,item,next):"";
+    if(rateError){ setError(rateError); setRange(null); return; }
     sending.current=true; const response={error:false}; outcome.current=response; setError(""); setRange(null);
     // Pendiente y escritura comparten prioridad: un Guardar urgente se confirmaba antes de
     // rebasarse sobre una corrección ya en cola y desmontaba la hoja antes de poder avisar.
     React.startTransition(function(){ setPending(next); set(function(s){
       if(review&&!goalSyncEqual(planSyncConflict(s,field,item.id),review)){response.error=true;return s;}
+      // Un recibo puede llegar de la nube sin cambiar la deuda que abrió esta hoja.
+      const current=field==="debts"?(s.debts||[]).find(function(d){return d.id===item.id;}):null;
+      const rateError=field==="debts"?debtEditRateError(s,current||item,next):"";
+      if(rateError){response.error=rateError;return s;}
       let changed=field==="debts"&&review&&!(s.debts||[]).some(function(d){return d.id===item.id;})
         ?planSyncRecoverDebt(s,review,next):planEditCommit(s,field,item,next);
       const rows=(changed[field]||[]).filter(function(x){ return x.id===item.id; });

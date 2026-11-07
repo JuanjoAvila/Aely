@@ -1,3 +1,5 @@
+Candidata de entrada propia: writer singular setIncomeOwnTransfer en CLOUD_WRITES, CAS/ACK por fila y resultado parcial en operación secuencial. No incorpora marcas a source ni cambia schema; inversa individual. [Contrato y concurrencia](briefs/own-transfer-income-manual.md).
+
 ## Confirmación de traspaso propio (candidata, 01/11/2026)
 
 Antes de mostrar la pregunta, `cloud.canConfirmOwnTransfer` comprueba sesión y ambas filas por owner/UUID y foto exacta. Sólo hace lecturas; no llama a los guards de subida que pueden liquidar absorciones. Una identidad local válida puede diferir de la remota: no se busca un gemelo por parecido, no se realinea el UUID ni se remapea el orden. La acción sólo se pinta con una comprobación positiva del plan actual; mientras la lectura está pendiente, falla o supera diez segundos, o los UUID no coinciden, permanece ausente. La elegibilidad local se recalcula en cada render; una firma JSON del plan completo (propietario, ambas fotos íntegras y cuentas) conserva su referencia cuando sólo cambia estado ajeno, evitando repetir lecturas. Los cambios semánticos, de relaciones de pago, cuentas, propietario, modo o cierre invalidan la oferta y descartan respuestas anteriores, incluso si se reabre el mismo movimiento. Al pulsar vuelve a comprobar antes de abrir `askChoice`. El modo pruebas valida únicamente su pareja sintética y no consulta este sondeo remoto.
@@ -423,9 +425,10 @@ cobra el banco (`bankAmount`), también en los compartidos de antes sin reparto.
 53 € de Pepephone»), mientras que lo que sale del banco, el casado de la cuota y el recorrido
 siguen con `monthly`. Solo se ofrece en deudas sin interés (`deudaDescontable`): en una con TAE
 reescribir cuota y amortización apagaría el interés de la reconstrucción del patrimonio. Al poner,
-cambiar o quitar un descuento (también al borrar o deshacer el recibo:
-`removeFixedById`/`addFixedItem`), `deudasTrasReparto` mueve `monthly` y deja `amort`, pero solo si
-la deuda cuadraba antes del cambio (`amort` = `monthly` + lo que se descontaba). Una cuota bajada a
+cambiar o quitar un descuento, `deudasTrasReparto` mueve `monthly` y deja `amort`, pero solo si
+la deuda cuadraba antes del cambio (`amort` = `monthly` + lo que se descontaba). Al borrar,
+`useBillUndo` aplica `billUndoRemove` con ese ajuste; `billUndoRestore` valida el snapshot
+comprometido y restaura su delta al deshacer. Una cuota bajada a
 mano (197 que amortiza 250) no cuadra al poner el descuento y no se toca; ya puesto sí cuadra
 (197 + 53), así que al quitarlo o pasar esa parte a Bizum vuelve a 250 sin `amort`. Cambiar quién
 paga va por `fixedEditarRecibo` «Desde ahora»; si el banco cobra lo mismo, un mes ya pagado guarda
@@ -449,6 +452,17 @@ recargar. El recibo se quita o la persona sale del reparto según la acción ori
 acredita una escritura única en todas las rutas: quitar/añadir recibo y aplicar los ajustes
 siguen siendo llamadas separadas. Deshacer el ajuste aceptado al quitar un recibo requiere
 el cambio separado anotado en el backlog; estas pruebas no lo implementan.
+
+Editar deuda rechaza la transición de TAE desconocida/cero a positiva mientras haya una relación
+`via:"debt"` con su id en el reparto base, aunque esté pausada o sea futura. La guardia
+`debtEditRateError` también comprueba `soloMes.reparto` futuro o del mes actual pendiente;
+excluye los meses pasados y el actual ya pagado según `fixedPaymentState`, igual que el productor
+del histórico. Así, quitar el descuento permite poner TAE sin borrar repartos de pagos anteriores.
+Se comprueba antes de guardar y contra el estado fresco del updater, además de `planEditCommit`:
+el rechazo devuelve el mismo estado completo, conserva el borrador y muestra una línea que pide
+quitar primero el descuento del recibo compartido. No ajusta cuota, amortización ni plazo,
+ni repara registros con TAE positiva preexistente. Metas conserva su guardado habitual.
+
 El previsto a fin de mes de `totals` (`pendingByBank`, `projectedByBank`: ficha de cuenta y
 asistente) usa la misma regla que el recorrido (`fixedCargoBanco`). Un cliente viejo ignora los
 campos nuevos (los conserva con `Object.assign`) y ve tu parte y lo que cobra el banco, que son
@@ -1657,3 +1671,14 @@ El caller mensual de ingest acota su lectura y una copia de las reservas antes d
 - **Estado:** el de un primer inicio de sesión. `app_state` (sin gastos, `slimForCloud`) pasa por la cadena de `loadState`/`syncFromCloud`, y el histórico entero por `expensesFromRows` y la mezcla de `syncCloudExpenses`. El extracto local del banco (`bankTx`) no viaja a la nube: un recibo que el móvil da por pagado solo por ese extracto puede salir aquí como pendiente.
 - **Cifras:** con el bundle cargado por `load-pure-logic`, nunca con una copia. `mes.gastado` = `monthBudgetStats(...).spent` con la ventana de Gastos › Meses (el «gastado» del mes natural, también en modo Balance); `porCategoria` = `categorySpentByMonth` con la misma ventana, nombres de `catName`. `proximosCobros` = `planChargesMonth` (pausados y pagados fuera) de este mes desde hoy y del siguiente hasta hoy+30; lo vencido sin pagar no sale; sin día, `fecha:null` (solo el mes en curso); cuotas como `deuda`, el resto como `recibo` (Plan no distingue suscripciones). `cuentas` = `accountRowsInOrder` con `saldoCuentaMostrada`/`insumosSaldoGasto` y `leidoEn` de `saldoLeidoDelBanco` (null si no hay lectura externa).
 - **Formato v1:** `{version, generadoEn, mes:{gastado, porCategoria:[{cat, importe}]}, proximosCobros:[{nombre, importe, fecha, tipo}], cuentas:[{nombre, saldo, leidoEn}]}`, euros con dos decimales, sin IBAN, ids, correos ni tokens. Escritura atómica (temporal + rename). `tests/jarvis-resumen.test.mjs` fija formato, cifras por dos vías y ausencia de identificadores con un estado inventado y sin red.
+
+
+## Candidata: Deshacer recibo y ajustes de «Lo descuento»
+
+En Todos, retirar un recibo espera las preguntas por deuda: cada respuesta aceptada se aplica y cada cancelación conserva esa deuda. `billUndoRemove` compone retirada y ajustes en una única actualización. Las precondiciones incluyen el recibo, las deudas implicadas, los demás recibos que contribuyen a sus descuentos, el titular y la ventana temporal. Si cambian mientras se pregunta, no se aplican respuestas antiguas.
+
+El token local de Deshacer conserva el recibo y los campos realmente modificados de cada deuda, con su presencia anterior. Guarda además el posterior completo de todas las deudas vinculadas, incluso cuando cancelar el ajuste dejó su delta vacío. Un vínculo a una deuda ausente guarda también esa ausencia: si aparece durante la ventana, se rechaza todo; si sigue ausente, no se inventa una deuda. Incluye ajustes automáticos y campos derivados como `settledAt`/`archivedAt`; no restaura una cartera global. Antes de llamar a `conReciboEnPlan` o compensar saldos, comprueba presencia, unicidad e igualdad de todas esas deudas. Si cualquiera cambió, desapareció o se duplicó, no restaura nada: tampoco el recibo, las marcas ni otra deuda elegible; devuelve el mismo estado, sin envíos, y muestra un único aviso. Las deudas ajenas al recibo no bloquean. Un recibo recreado —también como puntual— o una lápida posterior también impiden la reposición. Se conserva la frontera de los gastos: las marcas solo vuelven a cargos cuya identidad y estado financiero siguen coincidiendo; etiquetas posteriores se conservan y las marcas omitidas tienen un aviso propio, distinto del rechazo total. Cuando procede reponer y la retirada compensaba un cargo marcado, el saldo se calcula sobre el delta completo recibo/deudas y las cuentas vigentes. El fallo al quitar tiene texto propio; los tres avisos son equivalentes en castellano, inglés y catalán.
+
+`useBillUndo` encola la intención local en una transición de React y solo escribe desde su layout si la hoja sigue abierta; acredita el commit mediante un símbolo no serializable y el estado observado en layout, también al rechazar una respuesta obsoleta. Los cinco segundos empiezan después de responder y comprometer el cambio; caducidad, doble toque, cierre y desmontaje invalidan el token o la presentación pendiente. Los efectos de nube quedan fuera del updater. La cola local por titular e identidad del cargo ordena retirada y reposición mediante la puerta existente `setExpenseRecibo`; un error produce aviso y no acredita sincronización remota. No introduce API de servidor ni promete atomicidad entre dispositivos. El acuse simbólico puede seguir retenido en memoria por las copias del estado: limpiarlo exigiría otra escritura general o cambiar su mecanismo de confirmación. Esa limpieza no trivial queda pendiente, sin añadir escrituras ni alterar la concurrencia en estos remates.
+
+Guardianes dirigidos: `tests/lo-descuento-undo.test.mjs` y `e2e/lo-descuento-undo.spec.mjs`, registrados en los runners. Candidata separada de la ampliación anterior de pruebas de Lo descuento: pendiente revisión de dinero e integración; no acredita beta servida ni aceptación móvil.

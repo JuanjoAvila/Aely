@@ -543,4 +543,169 @@ await check('UUID preflight: oferta válida no sustituye CAS final',async()=>{
   const s=fixture(),p=plan(s),c=client(s);assert.equal(await probe(c,s,p),true);
   c.rows[0].cat='salud';await assert.rejects(()=>run(c,s,p),/transfer row changed/);assert.deepEqual(c.ops,[]);
 });
+function incomeFixture(pair=true){const s=fixture();s.expenses[1].category='ingreso';if(!pair)s.expenses.shift();return s;}
+const incomePlan=s=>ctx.incomeOwnTransferPlan(s,s.expenses.find(e=>e.amount<0));
+function incomeClient(s,opts){const c=client(s,opts);c.rows.forEach((r,i)=>{r.nota=s.expenses[i].note||null;r.ob_name=s.expenses[i].obName||null;});return c;}
+function incomeMethod(name){
+  const found=core.match(new RegExp('async '+name+'\\(([^)]*)\\)\\s*\\{([\\s\\S]*?)\\n    \\},'));
+  assert.ok(found,'método real '+name);
+  return vm.runInContext('(async function('+found[1]+'){const sb=globalThis.__ownTransferSb;const obConfirmedCanUpload=globalThis.__sourceUploadGuard;const mcSandbox=()=>!!globalThis.__incomeSandbox;const mcSandboxTransition=()=>!!globalThis.__incomeTransition;'+found[2]+'\n})',ctx);
+}
+const incomeWrite=incomeMethod('setIncomeOwnTransfer'),incomeProbe=incomeMethod('canSetIncomeOwnTransfer');
+async function writeIncome(c,s,p=incomePlan(s),peer){ctx.__ownTransferSb=c.sb;return incomeWrite(p,()=>s,peer);}
+await check('ingreso propio manual: sin pareja no infiere por nombre y conserva source y dinero',async()=>{
+  const s=incomeFixture(false),before=plain(s),p=incomePlan(s),c=incomeClient(s);
+  assert.ok(p);assert.equal(ctx.incomeOwnTransferPeer(s,p),null);assert.deepEqual(plain(s),before);
+  ctx.__ownTransferSb=c.sb;assert.equal(await incomeProbe(p,()=>s),true);assert.equal(c.ops.length,0);
+  const ack=await writeIncome(c,s,p),next=ctx.applyIncomeOwnTransfer(s,p,100,ack);
+  assert.deepEqual(c.ops[0].patch,{cat:'traspaso'});assert.equal(c.ops.length,1);
+  for(const k of ['id','user_id','source','cat','fecha','importe','comercio','nota','ob_name'])assert.ok(c.ops[0].filters.some(([key,v])=>key===k&&v===(k==='cat'?'ingreso':c.rows[0][k])),'CAS '+k);
+  assert.deepEqual(plain(next),{...before,expenses:[{...before.expenses[0],category:'traspaso'}]});
+  assert.deepEqual(plain(s),before);assert.equal(ctx.refreshExpenseFromCloud(next.expenses[0],s.expenses[0],99).category,'traspaso');
+  assert.equal(ctx.refreshExpenseFromCloud(next.expenses[0],s.expenses[0],101).category,'ingreso');
+});
+for(const patch of [{merchant:'Nómina sintética'},{note:'SALARIO'},{concept:'haberes'},{obName:'PAYROLL'},{merchant:'BIZUM'},{note:'bizum'},{category:'bizum'},{amount:0},{amount:10},{amount:-10.005},{source:'manual'},{obAcc:'unknown'},{possibleDup:true},{obPending:true},{goalId:'g'},{debtId:'d'},{reciboId:'r'},{notePending:true},{catStale:['otros']},{uuidPreserved:{category:'ingreso'}}])await check('ingreso propio manual: excluye '+JSON.stringify(patch),()=>{
+  const s=incomeFixture(false);Object.assign(s.expenses[0],patch);assert.equal(incomePlan(s),null);
+  if(['merchant','note','concept','obName'].some(k=>Object.hasOwn(patch,k))){s.expenses[0].category='traspaso';assert.equal(incomePlan(s),null,'neutra no elude nómina/Bizum');}
+});
+await check('ingreso propio manual: nómina periódica excluida con regla compartida',()=>{
+  const s=incomeFixture(false);s.expenses[0].amount=-1500;s.flows=[{id:'salary-fixture',kind:'income',name:s.expenses[0].merchant,amount:1500,to:s.expenses[0].ent,day:21}];assert.equal(incomePlan(s),null);
+});
+for(const flow of [{kind:'transfer',amount:1500},{kind:'expense',amount:1500},{kind:'income',amount:1500,once:true},{kind:'income',amount:80}])await check('ingreso propio manual: flow no salarial no oculta entrada '+JSON.stringify(flow),()=>{
+  const s=incomeFixture(false);s.expenses[0].amount=-flow.amount;s.flows=[{id:'not-salary',name:s.expenses[0].merchant,to:s.expenses[0].ent,day:21,...flow}];assert.ok(incomePlan(s));
+});
+await check('ingreso propio manual: inversa individual sobrevive pull y no restaura salida',async()=>{
+  const s=incomeFixture(),p=incomePlan(s),peer=ctx.incomeOwnTransferPeer(s,p),c=incomeClient(s);
+  const first=await writeIncome(c,s,p);Object.assign(s,ctx.applyIncomeOwnTransfer(s,p,100,first));
+  const second=await writeIncome(c,s,p,peer);Object.assign(s,ctx.applyOwnTransferDecision(s,peer,'yes',101,second));
+  assert.deepEqual(c.ops.map(x=>x.patch),[{cat:'traspaso'},{cat:'traspaso'}]);
+  s.expenses=c.rows.map(r=>plain(ctx.expenseFromRow(r)));
+  const reverse=incomePlan(s);assert.equal(reverse.category,'ingreso');assert.equal(ctx.incomeOwnTransferPeer(s,reverse),null);
+  const ack=await writeIncome(c,s,reverse),next=ctx.applyIncomeOwnTransfer(s,reverse,102,ack);
+  assert.equal(next.expenses.find(e=>e.amount>0).category,'traspaso');assert.equal(next.expenses.find(e=>e.amount<0).category,'ingreso');
+  assert.equal(c.ops.length,3);assert.equal(c.ops[2].filters.find(x=>x[0]==='id')[1],p.incoming.id);
+  assert.equal(ctx.budgetStatsFromAmounts(180,80,1000,0,'mes',0).remaining,900);
+  assert.equal(ctx.budgetStatsFromAmounts(100,0,1000,0,'mes',0).remaining,900);
+  assert.equal(ctx.budgetStatsFromAmounts(100,80,1000,0,'mes',0).remaining,980,'contrato A es nueva decisión, no undo compuesto');
+});
+for(const [label,mutate] of [
+  ['otro céntimo',s=>s.expenses[0].amount=80.01],['mismo banco',s=>{s.expenses[0].ent=s.expenses[1].ent;}],
+  ['ambigua',s=>s.expenses.push({...s.expenses[0],id:uuid(8)})],['otra entrada ingreso',s=>s.expenses.push({...s.expenses[1],id:uuid(8)})],['otra entrada neutra',s=>s.expenses.push({...s.expenses[1],id:uuid(8),category:'traspaso'})],['NO previo',s=>s.expenses[0].ownTransferRejected=true],['nota salida pendiente',s=>s.expenses[0].notePending=true],
+  ['tercer día',s=>s.expenses[0].date='2026-10-18T12:00:00Z'],['Bizum saliente',s=>s.expenses[0].note='bizum']
+])await check('ingreso propio manual: '+label+' impide pareja pero no entrada',()=>{const s=incomeFixture();mutate(s);const p=incomePlan(s);assert.ok(p);assert.equal(ctx.incomeOwnTransferPeer(s,p),null);});
+for(const [a,b,expected] of [['2026-06-01T22:30:00Z','2026-06-04T21:30:00Z',true],['2026-06-01T21:30:00Z','2026-06-03T22:30:00Z',false],['2026-10-24T10:00:00Z','2026-10-26T11:00:00Z',true]])await check('ingreso propio manual: días Madrid '+a,()=>{
+  const s=incomeFixture();s.expenses[0].date=a;s.expenses[1].date=b;assert.equal(!!ctx.incomeOwnTransferPeer(s,incomePlan(s)),expected);
+});
+for(const [label,opts] of [['cero',{zero:true}],['error',{writeError:true}],['ACK vacío',{ack:[]}],['ACK null',{ack:null}],['ACK múltiple',{ack:[{},{}]}],['ACK incompleto',{ack:[{id:uuid(2),cat:'traspaso'}]}],['nota cambia antes CAS',{beforeUpdate:r=>{r[0].nota='Nómina';}}],['owner cambia',{afterUpdate:(_r,s)=>{s._historyOwner='other';}}]])await check('ingreso propio manual: '+label+' no confirma',async()=>{
+  const s=incomeFixture(false),p=incomePlan(s),c=incomeClient(s,opts);await assert.rejects(()=>writeIncome(c,s,p));assert.equal(s.expenses[0].category,'ingreso');assert.equal(c.ops.length,1);
+});
+for(const flag of ['__incomeSandbox','__incomeTransition','__denySourceUpload'])await check('ingreso propio manual: guard '+flag+' impide escritura',async()=>{
+  const s=incomeFixture(false),c=incomeClient(s);ctx[flag]=true;
+  try{await assert.rejects(()=>writeIncome(c,s));assert.equal(c.ops.length,0);}finally{ctx[flag]=false;}
+});
+for(const opts of [{expired:true},{authError:true},{ownerAt:()=>null},{ownerAt:()=> 'foreign-owner'}])await check('ingreso propio manual: sesión inválida '+JSON.stringify(opts),async()=>{
+  const s=incomeFixture(false),c=incomeClient(s,opts);await assert.rejects(()=>writeIncome(c,s));assert.equal(c.ops.length,0);
+});
+for(const [label,mutate] of [['owner',s=>s._historyOwner='foreign'],['account',s=>s.accounts=[]],['amount',s=>s.expenses[0].amount=-81],['note',s=>s.expenses[0].note='Bizum'],['category',s=>s.expenses[0].category='salud'],['tombstone',s=>s.deleted=[ctx.keyOfExpense(s.expenses[0])]]])await check('ingreso propio manual: foto cambia tras SELECT '+label,async()=>{
+  const s=incomeFixture(false),p=incomePlan(s),c=incomeClient(s,{afterRead:n=>{if(n===1)mutate(s);}});await assert.rejects(()=>writeIncome(c,s,p));assert.equal(c.ops.length,0);
+});
+await check('ingreso propio manual: prelectura exige nota y nombre originales, no simula columnas omitidas',async()=>{
+  for(const mutation of [r=>delete r.nota,r=>r.ob_name='Nómina',r=>r.nota='Bizum']){
+    const s=incomeFixture(false),p=incomePlan(s),c=incomeClient(s);mutation(c.rows[0]);ctx.__ownTransferSb=c.sb;
+    assert.equal(await incomeProbe(p,()=>s),false);await assert.rejects(()=>writeIncome(c,s,p));assert.equal(c.ops.length,0);
+  }
+});
+await check('ingreso propio manual: salida fallida no revierte entrada confirmada',async()=>{
+  const s=incomeFixture(),p=incomePlan(s),peer=ctx.incomeOwnTransferPeer(s,p),c=incomeClient(s,{zeroAt:2});
+  Object.assign(s,ctx.applyIncomeOwnTransfer(s,p,100,await writeIncome(c,s,p)));
+  await assert.rejects(()=>writeIncome(c,s,p,peer));assert.equal(s.expenses[1].category,'traspaso');assert.equal(s.expenses[0].category,'otros');assert.equal(c.ops.length,2);
+  assert.equal(c.rows[1].cat,'traspaso');assert.equal(c.rows[0].cat,'otros');
+});
+await check('ingreso propio manual: otra entrada aparece entre ACKs e impide segunda escritura',async()=>{
+  const s=incomeFixture(),p=incomePlan(s),peer=ctx.incomeOwnTransferPeer(s,p),c=incomeClient(s);
+  Object.assign(s,ctx.applyIncomeOwnTransfer(s,p,100,await writeIncome(c,s,p)));
+  s.expenses.push({...p.incoming,id:uuid(8),extId:'new-incoming'});
+  await assert.rejects(()=>writeIncome(c,s,p,peer));assert.equal(c.ops.length,1);assert.equal(c.rows[0].cat,'otros');assert.equal(c.rows[1].cat,'traspaso');
+});
+await check('ingreso propio manual: source propio con NO y ordinal sobrevive ambas decisiones',async()=>{
+  const s=incomeFixture(false);Object.assign(s.expenses[0],{ownTransferRejected:true,obOrd:2});const c=incomeClient(s),source=c.rows[0].source;
+  for(let n=0;n<2;n++){const p=incomePlan(s);Object.assign(s,ctx.applyIncomeOwnTransfer(s,p,100+n,await writeIncome(c,s,p)));assert.equal(c.rows[0].source,source);}
+  assert.match(source,/#ownno#n2$/);assert.equal(s.expenses[0].category,'ingreso');
+});
+function incomeCaller(s,c){
+  ctx.__ownTransferSb=c.sb;ctx.__incomeCallerState=s;ctx.__incomeCallerStatus={};ctx.__incomeCallerToasts=[];ctx.__incomeCallerUpdates=[];ctx.__incomeWrite=incomeWrite;ctx.__incomeProbe=incomeProbe;
+  const ui=fs.readFileSync('src/modules/04-tab-gastos.js','utf8'),found=ui.match(/const setIncomeTransfer=async function\(plan,peer\)\{[\s\S]*?\n  \};/);
+  assert.ok(found,'caller real de entrada');
+  return vm.runInContext('(function(){const withdrawalState={current:globalThis.__incomeCallerState},sourceActionMounted={current:true},sourceActionPending={current:{}},withdrawalPending={current:{}};const sourceActionBusy=id=>!!sourceActionPending.current[withdrawalState.current._historyOwner+"|"+id];const mcSandbox=()=>false,mcSandboxTransition=()=>false;const ReactDOM={flushSync:f=>f()};const set=f=>{globalThis.__incomeCallerUpdates.push(f);withdrawalState.current=f(withdrawalState.current);globalThis.__incomeCallerState=withdrawalState.current;};const setIncomeTransferStatus=f=>{globalThis.__incomeCallerStatus=f(globalThis.__incomeCallerStatus);};const showToast=x=>globalThis.__incomeCallerToasts.push(x),t=x=>x;const cloud={enabled:()=>true,canSetIncomeOwnTransfer:globalThis.__incomeProbe,setIncomeOwnTransfer:globalThis.__incomeWrite};'+found[0]+'return setIncomeTransfer;})()',ctx);
+}
+for(const [label,opts,writes,status] of [['completo',{},2,'done'],['segunda falla',{zeroAt:2},2,'partial'],['primera falla',{zeroAt:1},1,'error']])await check('ingreso propio manual: caller secuencial '+label,async()=>{
+  const s=incomeFixture(),p=incomePlan(s),peer=ctx.incomeOwnTransferPeer(s,p),c=incomeClient(s,opts),call=incomeCaller(s,c);
+  await call(p,peer);assert.equal(c.ops.length,writes);assert.equal(ctx.__incomeCallerStatus[owner+'|'+p.incoming.id].status,status);
+  assert.equal(ctx.__incomeCallerState.expenses[1].category,status==='error'?'ingreso':'traspaso');
+  assert.equal(ctx.__incomeCallerState.expenses[0].category,status==='done'?'traspaso':'otros');
+  assert.deepEqual(plain(ctx.__incomeCallerState.accounts),plain(s.accounts));
+});
+await check('ingreso propio manual: reader independiente de pareja remota ausente',async()=>{
+  const s=incomeFixture(),p=incomePlan(s),peer=ctx.incomeOwnTransferPeer(s,p),c=incomeClient(s);c.rows.shift();ctx.__ownTransferSb=c.sb;
+  assert.equal(await incomeProbe(p,()=>s),true);assert.equal(await incomeProbe(p,()=>s,peer),false);assert.equal(c.ops.length,0);
+});
+await check('ingreso propio manual: caller conserva parcial si UPDATE1 trae otro ingreso exacto',async()=>{
+  const s=incomeFixture(),p=incomePlan(s),peer=ctx.incomeOwnTransferPeer(s,p),c=incomeClient(s,{afterUpdate:(_rows,state)=>{state.expenses.push({...p.incoming,id:uuid(8),extId:'arrived-after-update'});}}),call=incomeCaller(s,c);
+  await call(p,peer);assert.equal(c.ops.length,1);assert.equal(ctx.__incomeCallerStatus[owner+'|'+p.incoming.id].status,'partial');
+  assert.equal(ctx.__incomeCallerState.expenses.find(e=>e.id===p.incoming.id).category,'traspaso');assert.equal(ctx.__incomeCallerState.expenses.find(e=>e.id===peer.outgoing.id).category,'otros');
+});
+await check('ingreso propio manual: replay React tras finally conserva ambas decisiones confirmadas',async()=>{
+  const s=incomeFixture(),p=incomePlan(s),peer=ctx.incomeOwnTransferPeer(s,p),c=incomeClient(s),call=incomeCaller(s,c);
+  await call(p,peer);const committed=plain(ctx.__incomeCallerState);assert.equal(ctx.__incomeCallerUpdates.length,2);
+  const replay=ctx.__incomeCallerUpdates.reduce((state,updater)=>updater(state),s);
+  assert.deepEqual(plain(replay),committed);assert.deepEqual(replay.expenses.map(e=>e.category),['traspaso','traspaso']);assert.equal(c.ops.length,2);
+});
+
+await check('PR352 rendimiento: emparejar entrada y salida con 2000 y 20000 filas',()=>{
+  const metrics=[];
+  const selected=process.env.AELY_OWN_TRANSFER_PERF_CASE;
+  assert.ok(!selected||/^(2000|20000):(outgoing|incoming)$/.test(selected),'caso de medida reconocido');
+  for(const size of [2000,20000])for(const direction of ['outgoing','incoming']){
+    if(selected&&selected!==size+':'+direction)continue;
+    const s=fixture();if(direction==='incoming')s.expenses[1].category='ingreso';
+    for(let i=2;i<size;i++)s.expenses.push({...s.expenses[i%2],id:uuid(i+10),amount:(i%2?-1:1)*(100+i/100),extId:'noise-'+i});
+    const before=JSON.stringify(s),p=direction==='incoming'?ctx.incomeOwnTransferPlan(s,s.expenses[1]):null;
+    const original={bank:ctx.ownTransferBankRow,day:ctx.ownTransferDay};let bank=0,day=0,irrelevantDays=0;
+    ctx.ownTransferBankRow=function(...args){bank++;return original.bank(...args);};
+    ctx.ownTransferDay=function(e){day++;if(e&&Math.abs(e.amount)!==80)irrelevantDays++;return original.day(e);};
+    const samples=[];
+    try{for(let n=0;n<3;n++){
+      const start=performance.now(),result=direction==='incoming'?ctx.incomeOwnTransferPeer(s,p):ctx.ownTransferPlan(s,s.expenses[0]);
+      samples.push(performance.now()-start);
+      assert.ok(result);assert.equal(result.outgoing.id,s.expenses[0].id);assert.equal(result.incoming.id,s.expenses[1].id);
+    }}finally{ctx.ownTransferBankRow=original.bank;ctx.ownTransferDay=original.day;}
+    let historyRowReads=0;
+    const track=rows=>new Proxy(rows,{get(target,key,receiver){
+      if(typeof key==='string'&&/^(0|[1-9]\d*)$/.test(key))historyRowReads++;
+      const value=Reflect.get(target,key,receiver);
+      if(['map','filter','slice','concat'].includes(key))return (...args)=>track(value.apply(receiver,args));
+      return value;
+    }});
+    const originalExpenses=s.expenses;s.expenses=track(originalExpenses);
+    try{
+      const measured=direction==='incoming'?ctx.incomeOwnTransferPeer(s,p):ctx.ownTransferPlan(s,s.expenses[0]);
+      assert.ok(measured);assert.equal(measured.outgoing.id,originalExpenses[0].id);assert.equal(measured.incoming.id,originalExpenses[1].id);
+    }finally{s.expenses=originalExpenses;}
+    assert.equal(JSON.stringify(s),before,'medir no modifica dinero ni filas');
+    metrics.push({size,direction,samplesMs:samples,medianMs:samples.slice().sort((a,b)=>a-b)[1],meanBankRows:bank/3,meanDays:day/3,irrelevantDays,historyRowReads,historyPassEquivalents:historyRowReads/size});
+  }
+  console.log('PR352_PERF '+JSON.stringify(metrics));
+  for(const m of metrics){
+    assert.ok(m.meanBankRows<=12,JSON.stringify(m)+' no recorre guardas caras de filas ajenas');
+    assert.equal(m.irrelevantDays,0,JSON.stringify(m)+' no convierte fechas de otros importes');
+    assert.ok(m.meanDays<=12,JSON.stringify(m)+' comparte fechas entre búsquedas de la misma pareja');
+  }
+});
+await check('PR352 índice: conserva UUID duplicado fuera del céntimo y salida ambigua corregida o rechazada',()=>{
+  for(const patch of [{amount:81},{category:'traspaso'},{ownTransferRejected:true}]){
+    const s=fixture();s.expenses.push({...s.expenses[0],...patch,id:patch.amount?s.expenses[0].id:uuid(99)});
+    assert.equal(plan(s),null);
+  }
+});
+
 console.log("own-transfer-confirm: "+count+" casos OK");
