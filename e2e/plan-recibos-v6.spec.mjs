@@ -182,3 +182,19 @@ test("píldora: si ningún banco con recibos tiene saldo conocido, no sale", asy
   await expect(recibos.getByTestId("plan-summary").locator(".serif.num")).toHaveText(await page.evaluate(() => eur(200)));
   await expect(recibos.getByTestId("plan-llega")).toHaveCount(0);
 });
+
+test("accesibilidad: cada fila de «Por pagar» y «Para revisar» lleva una frase completa en aria-label", async ({ page }) => {
+  // El nombre se corta con elipsis en pantalla; el lector lee nombre · banco · cuándo · importe (auditoría 2026-11-07).
+  const fixed = [recibo("a", "Agua", 30.5, 19), recibo("l1", "Luz", 55, 3)];
+  const recibos = await abrePlan(page, { accounts: [{ id: "bank", ent: "sabadell", role: "fijos", value: 3000 }], fixed, expenses: [] });
+  const agua = recibos.getByTestId("plan-due").locator('[data-recibo="fixed_a"]');
+  const etiqueta = await agua.getAttribute("aria-label");
+  expect(etiqueta).toContain("Agua");
+  expect(etiqueta).toContain("mañana");
+  expect(etiqueta).toContain(await page.evaluate(() => eur(30.5)));
+  const luz = recibos.getByTestId("plan-review").locator('[data-review="late"]');
+  const etiquetaLuz = await luz.getAttribute("aria-label");
+  expect(etiquetaLuz).toContain("Luz");
+  expect(etiquetaLuz).toContain("No ha llegado");
+  expect(etiquetaLuz).toContain(await page.evaluate(() => eur(55)));
+});

@@ -712,7 +712,10 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   };
   const dueRow=function(x){
     const n=diasHasta(x);
-    return withDayPrompt(x,React.createElement("button",{type:"button",className:"v4-charge pr6-row",key:x.id,"data-recibo":x.id,onClick:function(){ if(sig) abrirSig(x); else abrir(x); }},
+    // El nombre se corta con elipsis en la fila; el lector de pantalla lee la frase entera
+    // (nombre · banco · cuándo · importe) en vez de los trozos sueltos (auditoría 2026-11-07).
+    const lbl=[x.name,subOf(x),x.day!=null?cuando(x):"",(esVariable(x)?"≈ ":"")+eur(Math.abs(x.amount))].filter(Boolean).join(" · ");
+    return withDayPrompt(x,React.createElement("button",{type:"button",className:"v4-charge pr6-row",key:x.id,"data-recibo":x.id,"aria-label":lbl,onClick:function(){ if(sig) abrirSig(x); else abrir(x); }},
       React.createElement("span",{className:"dt","aria-hidden":"true"},
         React.createElement("span",{className:"d"}, x.day||"—"),
         React.createElement("span",{className:"m"}, monthShort((sig?sigM:month)-1))),
@@ -725,7 +728,8 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   };
   const revRow=function(x){
     const cobro=x.rv==="diff"||x.rv==="up";
-    return withDayPrompt(x,React.createElement("button",{type:"button",className:"v4-charge pr6-rev",key:x.id,"data-recibo":x.id,"data-review":x.rv,onClick:function(){ abrir(x); }},
+    const lbl=[x.name,enlaces[x.id]?tf("pr6_enlazado_x",{x:eur(Number(enlaces[x.id].x.amount))}):pr6Motivo(x),eur(cobro?x.cobrado:Math.abs(x.amount))].filter(Boolean).join(" · ");
+    return withDayPrompt(x,React.createElement("button",{type:"button",className:"v4-charge pr6-rev",key:x.id,"data-recibo":x.id,"data-review":x.rv,"aria-label":lbl,onClick:function(){ abrir(x); }},
       React.createElement("span",{className:"pr6-ico","aria-hidden":"true"},
         React.createElement("svg",{width:19,height:19,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.2,strokeLinecap:"round",strokeLinejoin:"round"},
           React.createElement("path",{d:PR6_ICO[x.rv]||PR6_ICO.unconf}))),
