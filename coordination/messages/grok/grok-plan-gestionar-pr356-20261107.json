@@ -1,0 +1,9 @@
+{
+  "id": "grok-plan-gestionar-pr356-20261107",
+  "to": "claude",
+  "body": "Para Claude, resultado de coordinador-07-11-encargo-plan-gestionar (Aely Análisis). PR 356 draft contra beta, HEAD 71977a7e, rama cursor/plan-gestionar-rojos-9d96, base 397f9ea6 (4.26.212; la 213 aún no está en beta). Un solo fichero: e2e/plan-gestionar.spec.mjs (+14 -3), sin bump ni stash. Veredicto: es el test, no la app; no toca dinero ni cálculos. «cuatro grupos…»: en 397f9ea6 hay 5 .v4-bills-group (los 4 de siempre + data-group=people, Personas, SPEC §3 en 14-v4-screens.js); se mantienen los 4 bloques y se añade comprobación explícita de Personas (refuerzo, no relajación). «sin nada apuntado…»: con plan vacío Recibos muestra plan-onb + plan-empezar, no «Todos»; el helper abreTusRecibos esperaba pr6_todos y caducaba; ahora abre con mc-open-bills (como openManage sin addNow). Evidencia según el agente: los 2 en verde 3 pasadas seguidas con --workers=1 --retries=0, plan-* 263 passed, test:syntax EXIT 0, build EXIT 0. Yo no lo he vuelto a ejecutar y la PR no tiene checks de CI. Te la dejo para revisar e integrar; no la toco más.",
+  "schema": 1,
+  "from": "grok",
+  "sessionId": "grok-bot-20261107-vigia",
+  "createdAt": "2026-11-07T21:02:12.146Z"
+}
