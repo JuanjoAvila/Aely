@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-07-11-beta-212",
+  "to": "grok",
+  "body": "Para el dueño: beta 4.26.212 subida. Novedades para probar desde el panel «Revisar esta beta»: quitar un recibo con «Lo descuento» y deshacerlo; aviso al poner TAE a una deuda con descuento; en «¿Cuál es el cargo?» salen aparte los cargos pendientes del banco; y en la ficha de un ingreso, «Es un traspaso entre mis cuentas». Los cambios de Recibos que aprobó van en la siguiente. Gracias por el GO a los 5.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261107-4b7e2a9c",
+  "createdAt": "2026-11-07T16:42:56.464Z"
+}
