@@ -159,8 +159,17 @@ async function abreTusRecibos(page) {
     await billsBtn.evaluate((el) => el.click());
   } else {
     await page.locator('.botnav-tab[data-tour="plan"]').click();
-    const nombre = await page.evaluate(() => t("pr6_todos"));
-    await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button", { name: nombre, exact: true }).click();
+    const recibos = page.locator('.v4-screen > [data-seg="recibos"]');
+    // Sin recibos apuntados Plan monta solo la tarjeta de primer uso: «Todos» no existe y
+    // «Empezar» abre Gestionar igual que openManage (revisión animaciones 2026-11).
+    const empezar = recibos.getByTestId("plan-empezar");
+    if (await empezar.count()) {
+      // «Empezar» dispara addNow y tapa el vacío con el alta; mc-open-bills es openManage.
+      await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-open-bills")));
+    } else {
+      const nombre = await page.evaluate(() => t("pr6_todos"));
+      await recibos.getByRole("button", { name: nombre, exact: true }).click();
+    }
   }
   await expect(hub(page)).toBeVisible();
 }
@@ -207,7 +216,9 @@ test("Gestionar abre «Tus recibos», sin la app vieja y sin segunda puerta al b
 test("cuatro grupos con su cuenta, y el de una sola vez no dice «al mes»", async ({ page }) => {
   await appLista(page);
   await abreTusRecibos(page);
-  await expect(hub(page).locator(".v4-bills-group")).toHaveCount(4);
+  // Cuatro bloques de recibos + Personas (SPEC §3) cuando hay fijos apuntados.
+  await expect(hub(page).locator(".v4-bills-group")).toHaveCount(5);
+  await expect(hub(page).locator('[data-group="people"]')).toContainText("Personas");
   await expect(grupo(page, "Servicios y suministros")).toContainText("3 recibos");
   await expect(grupo(page, "Cuotas de deuda")).toContainText(/1 cuota/);
   await expect(grupo(page, "Lo que entra y lo que mueves")).toBeVisible();
