@@ -1014,6 +1014,10 @@
   .pr6-fold{display:grid;grid-template-rows:0fr;opacity:0;margin-top:-8px;transition:grid-template-rows .35s var(--ease),opacity .25s ease;}
   .pr6-fold.open{grid-template-rows:1fr;opacity:1;}
   .pr6-fold-in{overflow:hidden;min-height:0;display:flex;flex-direction:column;gap:8px;}
+  /* Plegables y flechas con capa fija: si la capa nace al tocar (la transición de opacidad o de giro
+     la crea), lo que se cierra se ve en blanco el primer fotograma (vídeo del 7/11). */
+  .pr6-fold{will-change:opacity;}
+  .pr6-chev,.rp4-prog i::after{will-change:transform;}
   .pr6-sec .pr6-fold.open .pr6-fold-in{padding-top:8px;}
   .pr6-more{align-self:center;display:flex;align-items:center;gap:6px;min-height:44px;padding:0 16px;border:0;background:transparent;
     color:var(--mint-bright);font-size:15px;font-weight:700;cursor:pointer;}
@@ -1038,6 +1042,10 @@
   .v4-sheet.pr6-ficha{padding-left:0;padding-right:0;overflow-x:hidden;}
   .pr6-track{display:flex;align-items:flex-start;transition:transform .36s var(--ease);}
   .pr6-track.pick{transform:translateX(-100%);}
+  /* Capa propia desde el principio (ver `.rp4-body`): si nace al empezar a deslizar, la ficha se ve
+     en blanco un fotograma en el WebView. */
+  .pr6-ficha > .pr6-track{will-change:transform;}
+  .pr6-ficha > .pr6-track > .pr6-step{will-change:opacity;}
   .pr6-step{flex:0 0 100%;min-width:0;padding:0 20px;display:flex;flex-direction:column;gap:16px;max-height:0;overflow:hidden;opacity:0;
     transition:opacity .28s ease,max-height .36s var(--ease);}
   .pr6-step.on{max-height:none;overflow:visible;opacity:1;}
@@ -1085,9 +1093,16 @@
      el que no se ve se pliega en alto. El botón de abajo va pegado para que no lo tape el teclado. */
   /* Alto fijo: cada paso mide distinto y la hoja subía y bajaba de golpe al pasar de uno a otro
      (beta 4.26.200, «el botón de Siguiente hace cosas raras»). Ahora solo se mueve el carril. */
-  .v4-sheet.rp4{padding-bottom:0;height:88dvh;display:flex;flex-direction:column;}
-  .v4-sheet.rp4 > .rp4-track{flex:1 0 auto;}
-  .v4-sheet.rp4 > .rp4-foot{margin-top:auto;}
+  .v4-sheet.rp4{padding-bottom:0;height:88dvh;display:flex;flex-direction:column;overflow:hidden;}
+  /* Solo scrollea el cuerpo: la cabecera (Atrás y progreso) y el botón quedan fuera. Con el botón
+     pegado DENTRO del scroll, la hoja pasaba de no scrollear a scrollear al abrir «Más opciones» o
+     «En varios pagos»; Chromium crea entonces una capa nueva para el contenido y en su móvil (120 Hz)
+     la hoja y el «Siguiente» salían en blanco uno o dos fotogramas (vídeo del 7/11). El carril mide
+     siempre 1 px más que el cuerpo para que el scroll, y su capa, existan desde el principio; carril
+     y pasos van en capa propia por lo mismo: si nacen al empezar a deslizar, se ven en blanco. */
+  .rp4-body{flex:1 1 auto;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;}
+  .rp4-body > .rp4-track{min-height:calc(100% + 1px);will-change:transform;}
+  .rp4-track > .rp4-step{will-change:opacity;}
   .rp4-top{display:flex;align-items:center;gap:14px;padding:0 20px 10px;}
   .rp4-prog{flex:1;display:flex;gap:6px;}
   .rp4-prog i{flex:1;height:4px;border-radius:2px;background:var(--line);position:relative;overflow:hidden;}
@@ -1121,8 +1136,8 @@
   .rp4-mode{min-height:50px;padding:0 10px;border-radius:16px;font-size:15px;}
   .rp4-mode.on{border-color:var(--mint);background:var(--surface-2);color:var(--mint-bright);}
   .rp4-mode:disabled{opacity:.4;cursor:default;}
-  .rp4-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;scroll-margin-bottom:96px;}
-  .rp4-pagos,.rp4-msel{scroll-margin-bottom:96px;}
+  .rp4-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;scroll-margin-bottom:12px;}
+  .rp4-pagos,.rp4-msel{scroll-margin-bottom:12px;}
   .rp4-day{height:42px;border-radius:12px;border:0;background:var(--surface);color:var(--text);font:inherit;font-size:15px;font-weight:700;cursor:pointer;
     transition:background .2s ease,color .2s ease,transform .2s var(--ease);}
   .rp4-day.on{background:var(--mint);color:var(--on-mint);transform:scale(1.08);}
@@ -1149,7 +1164,7 @@
   .rp4-row:disabled{cursor:default;}
   .rp4-row-k{flex:none;font-size:14px;color:var(--muted);font-weight:700;}
   .rp4-row-v{flex:1;min-width:0;text-align:right;font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .rp4-foot{position:sticky;bottom:0;padding:10px 20px calc(14px + var(--safe-bottom));background:var(--bg-2);}
+  .rp4-foot{flex:none;padding:10px 20px calc(14px + var(--safe-bottom));background:var(--bg-2);}
   .rp4-cta{width:100%;height:52px;transition:background .28s var(--ease),color .28s var(--ease);}
   .rp4-cta.is-wait{background:color-mix(in srgb,var(--mint) 38%,var(--bg-2));pointer-events:none;}
   /* Personas y compartidos (tanda 5, SPEC §6-§7): rejilla de 5 columnas, no carrusel. */
@@ -1613,13 +1628,18 @@
        El tinte vive en el ::before y solo se anima su opacity: animar background-color de
        esta capa (pantalla completa) repintaba cada fotograma y en un OnePlus a 120 Hz se
        notaba (1/11/2026). El padre no pinta; el ::before queda detrás de la hoja porque
-       este fixed ya es contexto de apilamiento (z-index:80) y el -1 no se sale. Sin
-       will-change en reposo: la animación de opacity promociona la capa sola, y el cierre
-       lo pide solo mientras sale. */
+       este fixed ya es contexto de apilamiento (z-index:80) y el -1 no se sale. Con
+       will-change fijo: sin él la capa nacía con la animación de entrada y moría al acabar,
+       y ese repintado del velo entero se veía como un parpadeo al terminar de abrir la hoja
+       (capas medidas con CDP, 7/11). */
     background:transparent;pointer-events:auto;}
   .v4-sheet-back::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
-    background:rgba(8,28,20,.28);opacity:var(--sheet-veil,1);
+    background:rgba(8,28,20,.28);opacity:var(--sheet-veil,1);will-change:opacity;
     animation:sheetveil .42s cubic-bezier(.22,.61,.36,1);}
+  /* Hojas que se arrastran de lado con el dedo (Atrás por pasos): la capa del gesto existe desde que
+     se abren. Si nacía al empezar a arrastrar y moría al soltar, la hoja se veía en blanco al volver
+     a su sitio (vídeo del 7/11, «¿Cuándo se cobra?» → «¿Cuánto es?»). */
+  .v4-sheet-back.mc-edge-back{will-change:transform,opacity;}
   /* Congela la opacidad que se ve (la animación de entrada si no, gana a la transición)
      y al frame siguiente .v4-sheet-out la lleva a 0. */
   .v4-sheet-back.v4-sheet-hold::before{animation:none;transition:none;opacity:var(--sheet-veil,1);}
@@ -1823,7 +1843,11 @@
   html.sheet-open,html.sheet-open body{overflow:hidden;overscroll-behavior:none;}
   /* Solo .page (no .track/.viewport): overflow en el track + translateX de tabs ≠ Inicio
      clippea la página visible y deja el body oscuro detrás del + / editar gasto (2026-07-17). */
-  html.sheet-open .page{overflow:hidden !important;overscroll-behavior:none;touch-action:none;}
+  /* Sin `overflow:hidden`: pasar la página de scroller a no-scroller al abrir una hoja deshacía su
+     capa (y la de la barra de abajo, que va encima) y en su móvil la barra y el fondo salían en
+     blanco uno o dos fotogramas al abrir cualquier ficha (vídeo del 7/11). La página ya no recibe
+     toques con una hoja abierta (`.app-shell` sin pointer-events y el velo encima). */
+  html.sheet-open .page{overscroll-behavior:none;touch-action:none;}
   .v4-apuntar-amt{text-align:center;font-size:34px;font-weight:550;letter-spacing:-1px;padding:4px 0 10px;font-variant-numeric:tabular-nums;}
   .v4-input{width:100%;background:var(--sur);border:1px solid var(--line-soft);border-radius:12px;padding:11px 13px;font-size:15px;color:var(--text);margin-bottom:10px;}
   .v4-input:focus{border-color:var(--mint);outline:none;}
