@@ -108,6 +108,11 @@ test("alta: «En varios pagos» y «Solo una vez» no crean capas nuevas y Atrá
   // Con los pagos a la vista, Atrás y el progreso no se van por arriba (antes scrolleaban con todo).
   const sh = await hoja(page).boundingBox(), back = await hoja(page).locator('[data-act="back"]').boundingBox();
   expect(back.y).toBeGreaterThanOrEqual(sh.y);
+  // «¿Cuándo se cobra?» queda ENTERO dentro del cuerpo que scrollea, no cortado contra su borde (revisión 7/11).
+  await page.waitForTimeout(900);
+  const caja = await hoja(page).locator('[data-rp4-paso="2"] .rp4-h').boundingBox(), cuerpo = await hoja(page).locator(".rp4-body").boundingBox();
+  expect(caja.y, JSON.stringify({caja,cuerpo})).toBeGreaterThanOrEqual(cuerpo.y - 0.5);
+  expect(caja.y + caja.height).toBeLessThanOrEqual(cuerpo.y + cuerpo.height + 0.5);
   expect((await scroll()).sobra).toBeGreaterThan(0);
   expect((await capasNuevas(page, () => once.click())).filter((c) => VIGILADAS.test(c))).toEqual([]);
 });

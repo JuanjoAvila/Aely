@@ -108,6 +108,8 @@ for(const kind of ['debt','receipt','linked-debt'])test(kind+' payment evidence 
   const row=page.locator('div[data-seg="recibos"] .v4-charge').filter({hasText:name});
   // v6: lo pagado vive plegado en «Ya pagados»; se despliega como lo haría la persona.
   if(kind!=='debt')await page.locator('div[data-seg="recibos"] [data-testid="plan-paid"] .pr6-paid-h').click();
+  // «Para revisar» enseña solo la primera fila: el resto se despliega con «Ver los N», como lo haría la persona.
+  if(kind==='debt'){const more=page.locator('div[data-seg="recibos"] [data-testid="plan-review"] .pr6-more');if(await more.count()&&await more.first().getAttribute('aria-expanded')==='false')await more.first().click();}
   await expect(row).toBeVisible();await expect(row).toContainText(kind==='receipt'?'29,99':'197,00');
   await expect(row).toBeInViewport({ratio:0.9});
   if(kind==='debt'){

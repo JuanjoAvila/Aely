@@ -155,7 +155,8 @@ test("marca sin prueba y pendiente se separan sin anillo ni mensaje diagnóstico
   await expect(recibos.locator(".v4-card-hero")).toContainText(/999/);
   // v6: sin cargo del banco detrás va a «Para revisar» y no suma en lo pendiente (antes «Por confirmar»).
   await expect(recibos.getByTestId('plan-review').locator('[data-review="unconf"]')).toContainText(/Mini.*Sin cargo del banco.*1,00/s);
-  await expect(recibos).toContainText(/Ya pagado.*0,00/i);
+  // «Ya pagados» no sale mientras no haya ningún pago (cambio aprobado de a11y/orden de Recibos, 7/11): antes decía «Ya pagado 0,00».
+  await expect(recibos).not.toContainText(/Ya pagados?/i);
   await expect(recibos.locator('.v4-paid')).toHaveCount(0);
   await expect(recibos).not.toContainText(/%|sin contar compras del día a día/i);
 });
@@ -250,7 +251,8 @@ test("marca sin prueba → 0 previsto y confirmación separada, sin NaN ni diagn
   await expect(recibos.locator(".v4-card-hero")).toContainText(/0/);
   await expect(recibos).toContainText(/Nada pendiente|ya no sale/i);
   await expect(recibos.getByTestId('plan-review').locator('[data-review="unconf"]')).toContainText(/Luz.*Sin cargo del banco.*40,00/s);
-  await expect(recibos).toContainText(/Ya pagado.*0,00/i);
+  // «Ya pagados» no sale mientras no haya ningún pago (cambio aprobado de a11y/orden de Recibos, 7/11): antes decía «Ya pagado 0,00».
+  await expect(recibos).not.toContainText(/Ya pagados?/i);
   await expect(recibos.locator('.v4-paid')).toHaveCount(0);
   await expect(recibos).not.toContainText(/NaN|día ya|day already|dia ja/i);
 });
@@ -358,7 +360,8 @@ test("marca sin prueba sigue visible para confirmar y no añade nómina a los re
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   const recibos = page.locator(".v4-screen > [data-seg='recibos']");
   await expect(recibos.getByTestId('plan-review').locator('[data-review="unconf"]')).toContainText(/Luz.*Sin cargo del banco.*40,00/s);
-  await expect(recibos).toContainText(/Ya pagado.*0,00/i);
+  // «Ya pagados» no sale mientras no haya ningún pago (cambio aprobado de a11y/orden de Recibos, 7/11): antes decía «Ya pagado 0,00».
+  await expect(recibos).not.toContainText(/Ya pagados?/i);
   await expect(recibos.locator('.v4-paid')).toHaveCount(0);
   await expect(recibos).toContainText("Luz");
   await expect(recibos).not.toContainText("Nómina");
@@ -433,7 +436,7 @@ test("hojas de alta y edición por pasos son dialog con trap y restauran foco", 
   await openPlan(page, {
     fixed: [{ id: "luz", name: "Luz", amount: 40, freq: "mes", day: 28, account: "sabadell" }],
   });
-  await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button", { name: /^Todos$/ }).click();
+  await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button", { name: /^Gestionar$/ }).click();
   const hub = page.locator("[data-bills-manage]");
   await expect(hub).toBeVisible();
   await expect(hub).toHaveAttribute("role", "dialog");

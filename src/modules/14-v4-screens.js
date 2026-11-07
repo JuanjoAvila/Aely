@@ -2806,7 +2806,17 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
     clearTimeout(verT.current);
     verT.current=setTimeout(function(){
       const el=ref.current;
-      if(el) try{ el.scrollIntoView({block:"nearest",behavior:mcReduced()?"auto":"smooth"}); }catch(e){}
+      if(!el) return;
+      /* A la vista lo que hay que elegir SIN que el título del paso se salga por arriba: con «nearest» a secas
+         «¿Cuándo se cobra?» quedaba cortado a media altura contra el borde del cuerpo (revisión 7/11). */
+      try{
+        const body=el.closest(".rp4-body"), st=el.closest(".rp4-step"), h=st&&st.querySelector(".rp4-h");
+        if(!body||!h){ el.scrollIntoView({block:"nearest",behavior:mcReduced()?"auto":"smooth"}); return; }
+        const b=body.getBoundingClientRect(), e=el.getBoundingClientRect(), th=h.getBoundingClientRect();
+        let d=e.bottom>b.bottom-12?e.bottom-b.bottom+12:(e.top<b.top?e.top-b.top-8:0);
+        if(d>0) d=Math.min(d,Math.max(th.top-b.top-8,0));
+        if(d!==0) body.scrollBy({top:d,behavior:mcReduced()?"auto":"smooth"});
+      }catch(e){}
     },380);
   };
   const [f,setF]=useState(inicial);
