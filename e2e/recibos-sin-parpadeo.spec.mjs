@@ -163,3 +163,43 @@ test("abrir una ficha o «¿Te llega?» no rehace las capas de la página ni la 
   const llega = await capas(page, () => recibos.getByTestId("plan-llega").click());
   expect(llega.mueren).toEqual([]);
 });
+
+test("al bajar en Plan, nada pasa por debajo de la barra de estado", async ({ page }) => {
+  // En su móvil la barra de estado es transparente: el título, Recibos/Deudas/Metas y la tarjeta
+  // se veían bajo la hora y los iconos (vídeo del 7/11, 0:19-0:27).
+  const recibos = await abrePlan(page);
+  await page.addStyleTag({ content: ":root{--safe-top:40px !important}" });
+  await page.waitForTimeout(300);
+  await recibos.evaluate((el) => { el.closest(".page").scrollTop = 160; });
+  await page.waitForTimeout(300);
+  const arriba = await page.evaluate(() => {
+    const st = document.createElement("style"); st.textContent = ".v4-plan-techo,.v4-plan-techo::before{pointer-events:auto!important}"; document.head.appendChild(st);
+    const out = [10, 25, 38].map((y) => { const el = document.elementFromPoint(200, y); return el && el.closest(".v4-plan-techo") ? "techo" : (el && el.className) || "nada"; });
+    st.remove(); return out;
+  });
+  expect(arriba).toEqual(["techo", "techo", "techo"]);
+  await expect(recibos.getByTestId("plan-summary")).toBeVisible();
+});
+
+test("«Dic ›» y Deudas/Metas: la página no deja de scrollear y la vista no se apaga al entrar", async ({ page }) => {
+  // Con una vista corta la página dejaba de scrollear: su capa se deshacía (pantalla en blanco un
+  // instante en su móvil). Y la vista se remontaba desde opacidad 0: desaparecía un fotograma.
+  const recibos = await abrePlan(page);
+  await page.waitForTimeout(600);
+  const nav = recibos.getByTestId("plan-mes-nav");
+  const op = await page.evaluate(() => {
+    window.__op = []; window.__opOn = true;
+    const tick = () => { if (!window.__opOn) return; const v = document.querySelector('.page-live [data-seg="recibos"] .pr6-vistas');
+      window.__op.push(v ? +getComputedStyle(v).opacity : -1); requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
+  });
+  const ida = await capas(page, () => nav.click());
+  const opacidades = await page.evaluate(() => { window.__opOn = false; return window.__op; });
+  expect(ida.mueren.filter((c) => /page-scroll-host|pr6-vistas/.test(c))).toEqual([]);
+  expect(ida.nacen.filter((c) => /page-scroll-host|pr6-vistas/.test(c))).toEqual([]);
+  expect(Math.min(...opacidades), opacidades.join(" ")).toBeGreaterThanOrEqual(0.35);
+  for (const seg of ["deudas", "metas", "recibos"]) {
+    const r = await capas(page, () => page.locator('.v4-seg-btn[data-seg="' + seg + '"]').click());
+    expect(r.mueren.filter((c) => /page-scroll-host/.test(c)), seg).toEqual([]);
+  }
+});

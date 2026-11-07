@@ -173,11 +173,16 @@ test("«Dic ›»: tarjeta y lista del mes siguiente, sin revisar ni pagados; «
   const sum = recibos.getByTestId("plan-summary");
   const nav = sum.getByTestId("plan-mes-nav");
   await expect(nav).toHaveText("Dic ›");
-  await expect(recibos.getByTestId("plan-paid")).toHaveCount(1);
+  // Sin nada pagado aún no hay fila de «Ya pagados» (auditoría de Recibos, parte b).
+  await expect(recibos.getByTestId("plan-due")).toHaveCount(1);
+  await expect(recibos.getByTestId("plan-paid")).toHaveCount(0);
   await nav.click();
+  // (revisión) Entra de lado TODA la vista, no solo la tarjeta: el contenedor de tarjeta y lista
+  // se anima hacia la izquierda (el mes siguiente llega desde la derecha).
+  const entra = await recibos.locator(".pr6-vistas").evaluate((el) => el.getAnimations().map((a) => a.effect.getKeyframes()[0].transform));
+  expect(entra).toEqual(["translateX(16px)"]);
+  await expect(recibos.locator(".pr6-vistas").getByTestId("plan-due")).toHaveCount(1);
   await expect(sum).toHaveAttribute("data-vista", "sig");
-  // (revisión) Entra de lado TODA la vista, no solo la tarjeta.
-  await expect(recibos.locator(".pr6-vistas.anim.sig").getByTestId("plan-due")).toHaveCount(1);
   await expect(sum.locator(".v4-micro")).toHaveText(/Se te van en diciembre/i);
   await expect(sum.locator(".serif.num")).toHaveText(await eurDe(page, 102.99));
   await expect(recibos.getByTestId("plan-count")).toHaveText("3 recibos");
@@ -204,7 +209,7 @@ test("«Dic ›»: tarjeta y lista del mes siguiente, sin revisar ni pagados; «
   await nav.click();
   await expect(sum).toHaveAttribute("data-vista", "mes");
   await expect(sum.locator(".v4-micro")).toHaveText(/Queda por pagar en noviembre/i);
-  await expect(recibos.getByTestId("plan-paid")).toHaveCount(1);
+  await expect(recibos.getByTestId("plan-due").locator(".v4-charge")).not.toHaveCount(0);
 });
 
 test("«Dic ›» (revisión): el atrás vuelve primero a noviembre y salir de Plan también", async ({ page }) => {

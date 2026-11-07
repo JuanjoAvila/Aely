@@ -233,7 +233,10 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     return function(){ cancel=true; if(raf) cancelAnimationFrame(raf); };
   },[focoDeuda&&focoDeuda.ts, seg, segMounted.deudas]);
 
-  return React.createElement("div",{className:"v4-screen",ref:planScreenRef,"data-edge-capture":simple?null:"1"},
+  return React.createElement("div",{className:"v4-screen v4-plan",ref:planScreenRef,"data-edge-capture":simple?null:"1"},
+    // Fondo bajo la barra de estado: al bajar, el título, los botones y la tarjeta pasaban por
+    // debajo de la hora y los iconos (vídeo del dueño, 7/11). El mismo que la cabecera de Gastos.
+    React.createElement("div",{className:"v4-plan-techo","aria-hidden":"true"}),
     React.createElement("h1",{className:"v4-title serif"}, simple?t("v4s_plan_left_title"):t("v4_plan_title")),
     simple && React.createElement("div",{className:"v4-card v4-card-hero rise v4-plan-cover v4-plan-cover-simple","data-plan-state":coverTone,role:"group","aria-label":coverAria},
       React.createElement("div",{className:"v4-plan-simple-hero"},
@@ -819,6 +822,17 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   // La entrada lateral solo al cambiar: al abrir Plan la tarjeta ya sube con `rise`.
   const [vistaAnim,setVistaAnim]=useState(false);
   const irVista=function(v){ setDueOpen(false); setVistaAnim(true); setVista(v); };
+  /* La vista entra de lado animando SIEMPRE el mismo nodo (capa fija). Antes se remontaba con
+     `key` y una animación CSS: la capa nacía con la vista nueva y en su móvil la lista salía en
+     blanco el primer fotograma (barrido del 7/11). */
+  const vistasRef=useRef(null);
+  React.useLayoutEffect(function(){
+    const el=vistasRef.current;
+    if(!vistaAnim||!el||!el.animate||mcReduced()) return;
+    const a=el.animate([{opacity:.4,transform:"translateX("+(vista==="sig"?16:-16)+"px)"},{opacity:1,transform:"none"}],
+      {duration:320,easing:"cubic-bezier(.22,.61,.36,1)"});
+    return function(){ a.cancel(); };
+  },[vista]);
   const cambiarVista=function(){ irVista(sig?"mes":"sig"); };
   /* El mes siguiente es una capa más: el atrás (también el de la APK) vuelve primero al mes en
      curso. Y al salir de Recibos (otro segmento u otra pestaña) se vuelve al mes en curso: Plan
@@ -913,7 +927,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
                   React.createElement("span",null,l.l),React.createElement("span",{className:"num"},l.v));
               })))))),
     // Toda la vista entra de lado al cambiar de mes, no solo la tarjeta (feedback 28/10).
-    React.createElement("div",{className:"pr6-vistas"+(vistaAnim?" anim":"")+(sig?" sig":""),key:vista},
+    React.createElement("div",{className:"pr6-vistas",ref:vistasRef},
     tarjeta,
     !sig&&v.review.length>0&&React.createElement("section",{className:"pr6-sec","data-testid":"plan-review","aria-label":t("pr6_revisar")},
       React.createElement("div",{className:"pr6-sec-h"},
