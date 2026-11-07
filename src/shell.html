@@ -1014,9 +1014,9 @@
   .pr6-fold{display:grid;grid-template-rows:0fr;opacity:0;margin-top:-8px;transition:grid-template-rows .35s var(--ease),opacity .25s ease;}
   .pr6-fold.open{grid-template-rows:1fr;opacity:1;}
   .pr6-fold-in{overflow:hidden;min-height:0;display:flex;flex-direction:column;gap:8px;}
-  /* Plegables y flechas con capa fija: si la capa nace al tocar (la transición de opacidad o de giro
-     la crea), lo que se cierra se ve en blanco el primer fotograma (vídeo del 7/11). */
-  .pr6-fold{will-change:opacity;}
+  /* Flechas y barras de progreso con capa fija: son diminutas y así no nacen ni mueren en cada toque.
+     El plegable NO: cambia de alto en cada fotograma y con capa propia se repintaba entero en cada
+     uno (el doble de fotogramas lentos con la CPU a ×6, medido A/B el 7/11). */
   .pr6-chev,.rp4-prog i::after{will-change:transform;}
   .pr6-sec .pr6-fold.open .pr6-fold-in{padding-top:8px;}
   .pr6-more{align-self:center;display:flex;align-items:center;gap:6px;min-height:44px;padding:0 16px;border:0;background:transparent;
@@ -1899,9 +1899,13 @@
   html.ask-open .v4-cta{box-shadow:none;}
   .settings-push,.settings-slide{position:fixed;inset:0;z-index:70;background:var(--bg);max-width:520px;margin:0 auto;overflow-y:auto;
     padding:calc(var(--safe-top) + 12px) 18px calc(24px + var(--safe-bottom));
-    transform:translate3d(-100%,0,0);transition:transform .42s cubic-bezier(.32,.72,0,1);will-change:transform;
+    transform:translate3d(-100%,0,0);transition:transform .42s cubic-bezier(.32,.72,0,1),box-shadow .42s ease;will-change:transform;
     box-shadow:8px 0 32px rgba(0,0,0,.35);}
   .settings-push.open,.settings-slide.open{transform:translate3d(0,0,0);}
+  /* Cerrado, el cajón espera fuera por la izquierda y su sombra entraba 40 px en la pantalla: en
+     tema claro era una franja gris en el borde izquierdo de Recibos (auditoría, punto 7; 7/11).
+     Sin sombra mientras está fuera; al arrastrarlo o abrirlo vuelve con su fundido. */
+  .settings-push:not(.open):not(.dragging):not(.mc-page-dragging),.settings-slide:not(.open):not(.dragging){box-shadow:none;}
   /* Inversiones es una pantalla hija de Cartera: entra por la derecha y vuelve en la misma
      dirección que el gesto de borde, no como el cajón de Ajustes que nace a la izquierda. */
   .settings-push.v4-investments-push{transform:translate3d(100%,0,0);}

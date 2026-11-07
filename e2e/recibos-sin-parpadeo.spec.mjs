@@ -68,7 +68,8 @@ async function capas(page, fn) {
 }
 const capasNuevas = async (page, fn) => (await capas(page, fn)).nacen;
 // Lo que estaba a la vista y no puede pasar a capa nueva al tocar (en su móvil se veía en blanco).
-const VIGILADAS = /rp4-foot|v4-sheet|rp4-track|rp4-step|pr6-fold|pr6-chev/;
+// El plegable sí puede: nace transparente y darle capa fija costaba un repintado por fotograma.
+const VIGILADAS = /rp4-foot|v4-sheet|rp4-track|rp4-step|pr6-chev/;
 
 test("editar: «Más opciones» y pasar del resumen a «Nombre» no crean capas nuevas", async ({ page }) => {
   const recibos = await abrePlan(page);
@@ -103,7 +104,7 @@ test("alta: «En varios pagos» y «Solo una vez» no crean capas nuevas y Atrá
   expect(antes.botonDentro).toBe(false);
   expect(antes.sobra).toBeGreaterThan(0);
   const split = hoja(page).locator('[data-rp4-modo="split"]'), once = hoja(page).locator('[data-rp4-modo="once"]');
-  expect((await capasNuevas(page, () => split.click())).filter((c) => VIGILADAS.test(c) && !/open/.test(c))).toEqual([]);
+  expect((await capasNuevas(page, () => split.click())).filter((c) => VIGILADAS.test(c))).toEqual([]);
   // Con los pagos a la vista, Atrás y el progreso no se van por arriba (antes scrolleaban con todo).
   const sh = await hoja(page).boundingBox(), back = await hoja(page).locator('[data-act="back"]').boundingBox();
   expect(back.y).toBeGreaterThanOrEqual(sh.y);
@@ -202,4 +203,13 @@ test("«Dic ›» y Deudas/Metas: la página no deja de scrollear y la vista no 
     const r = await capas(page, () => page.locator('.v4-seg-btn[data-seg="' + seg + '"]').click());
     expect(r.mueren.filter((c) => /page-scroll-host/.test(c)), seg).toEqual([]);
   }
+});
+
+test("tema claro: el cajón cerrado no deja su sombra en el borde izquierdo", async ({ page }) => {
+  const recibos = await abrePlan(page);
+  await page.evaluate(() => document.documentElement.setAttribute("data-theme", "light"));
+  await expect(recibos.getByTestId("plan-summary")).toBeVisible();
+  const sombras = await page.evaluate(() => [...document.querySelectorAll(".settings-push:not(.open),.settings-slide:not(.open)")].map((el) => getComputedStyle(el).boxShadow));
+  expect(sombras.length).toBeGreaterThan(0);
+  expect(sombras.filter((x) => x !== "none")).toEqual([]);
 });
