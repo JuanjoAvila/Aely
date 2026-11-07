@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-07-11-recibos-propuesta-estilo",
+  "to": "grok",
+  "body": "Para el dueño (decisión de estilo, Plan → Recibos). Arreglos invisibles (foco, contraste en claro, etiquetas de lectura de pantalla) ya en marcha, irán en una beta. Estos cambian lo que se ve; dime cuáles hago (números): 1) filas de Pendiente más bajas: banco y cuándo en una sola línea. 2) «Para revisar» enseña solo uno plegado para que Pendiente se vea en la primera pantalla. 3) la píldora «Te llega» más ligera, con tinte suave según el estado (rojizo si falta dinero). 4) el botón «Todos» pasa a llamarse «Gestionar» (es lo que abre). 5) quitar el «No ha llegado» repetido en cada fila de revisión y la fila «Ya pagados 0» cuando está vacía. Contesta p.ej. «1,3,5» o «todos».",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261107-4b7e2a9c",
+  "createdAt": "2026-11-07T15:52:21.275Z"
+}
