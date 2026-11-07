@@ -983,7 +983,15 @@
   .pr6-pills{display:flex;gap:8px;}
   .pr6-pill{flex:1;min-width:0;display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border-radius:14px;
     background:var(--surface-2);color:var(--text);font-size:14px;font-weight:700;white-space:nowrap;}
-  .pr6-pill-ok{color:var(--mint-bright);font-weight:800;}
+  .pr6-pill-ok{color:var(--mint-bright);font-weight:700;}
+  /* «Te llega» / «Falta X» es la respuesta clave de la tarjeta: un tinte suave del estado (solo tokens) la distingue de una fila. */
+  .pr6-pill.ok{background:color-mix(in srgb,var(--mint-dim) 24%,transparent);}
+  .pr6-pill.falta{background:var(--coral-dim);}
+  /* «Ya pagados» aparece al haber el primer pago: fundido corto con la curva de siempre. */
+  .pr6-paid-in{animation:pr6PagadosIn .35s var(--ease) both;}
+  @keyframes pr6PagadosIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  @media (prefers-reduced-motion:reduce){ .pr6-paid-in{animation:none;} }
+  html.reduce-motion .pr6-paid-in{animation:none;}
   .pr6-sec{margin-top:22px;display:flex;flex-direction:column;gap:8px;}
   .pr6-sec-h{display:flex;align-items:center;justify-content:space-between;padding:0 4px;margin-bottom:0;font-size:17px;font-weight:800;}
   /* El botón «Todos» lleva 8 px de relleno propio: sin compensarlo el texto acababa ~16 px antes del borde de las tarjetas. */
