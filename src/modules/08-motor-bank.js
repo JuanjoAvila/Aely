@@ -2182,17 +2182,246 @@ function reconcileGemelosAutomaticos(s,prev){
   const cached=gemeloCache.get(rows);
   if(cached&&cached.gemelos===s.gemelos&&cached.deleted===s.deleted)return s;
   const old=prev&&gemeloCache.get(prev.expenses);
+  const sameMeta=!!(old&&prev.gemelos===s.gemelos&&prev.deleted===s.deleted);
+  // La lápida de verdad también sale de la absorción y del dueño del histórico, no solo
+  // de `deleted`. Si esas referencias cambian, copiar el índice dejaría el emparejado
+  // de una fila que ya no cuenta (07/11/2026).
+  const mismaAbsorcion=!!(prev&&prev.obAbsorbedPending===s.obAbsorbedPending&&prev.obAbsorbedConfirmed===s.obAbsorbedConfirmed&&prev._historyOwner===s._historyOwner);
   // Cambiar categoría, nota o tarjeta no invalida ningún emparejado ni calcula fechas.
-  if(old&&prev.gemelos===s.gemelos&&prev.deleted===s.deleted&&rows.length===prev.expenses.length&&rows.every(function(e,i){return gemeloMismosCampos(e,prev.expenses[i]);})){
+  if(sameMeta&&mismaAbsorcion&&rows.length===prev.expenses.length&&rows.every(function(e,i){return gemeloMismosCampos(e,prev.expenses[i]);})){
     gemeloCache.set(rows,{gemelos:s.gemelos,deleted:s.deleted,index:old.index});return s;
   }
-  const prior=old&&prev.gemelos===s.gemelos&&prev.deleted===s.deleted&&old.index;
-  const dirty=new Set(),index={ids:new Map(),groups:prior?new Map(prior.groups):new Map()};
-  rows.forEach(function(e){if(!e)return;index.ids.set(e.id,e);if(!prior||!gemeloMismosCampos(e,prior.ids.get(e.id))){dirty.add(gemeloDatos(e).grupo);if(prior&&prior.ids.has(e.id))dirty.add(gemeloDatos(prior.ids.get(e.id)).grupo);}});
-  if(prior)prior.ids.forEach(function(e,id){if(!index.ids.has(id))dirty.add(gemeloDatos(e).grupo);});
+  const prior=old&&old.index;
+  const dirty=new Set(),changed=new Set(),index={ids:new Map(),groups:prior?new Map(prior.groups):new Map()};
+  // Las pasadas que buscan un vínculo no pueden volver a leer las 20.000 filas: en una
+  // importación sin gemelos eso solo ya pasaba de 1,2× el reparto de la 212 (07/11/2026).
+  // El vínculo se anota en el mismo recorrido que arma el índice. Banco y aviso solo si
+  // hay decisiones: sin ellas no hay nada que localizar.
+  const gNow=s.gemelos||[],gPrev=(prev&&prev.gemelos)||[];
+  const hayDecision=gNow.length>0||gPrev.length>0;
+  let faltaAvisoId=false;
+  if(hayDecision){
+    const ver=function(list){ for(let i=0;i<list.length&&!faltaAvisoId;i++){ const g=list[i]; if(!g||!g.avisoId) faltaAvisoId=true; } };
+    ver(gNow); ver(gPrev);
+  }
+  let porAviso=null,byBank=hayDecision?new Map():null;
+  const enlazadas=[];
+  const filaPorId=function(id){ if(id==null||id==="") return null; return index.ids.get(id)||index.ids.get(String(id))||null; };
+  const asegurarAvisos=function(){
+    if(porAviso) return porAviso;
+    porAviso=new Map();
+    rows.forEach(function(e){ if(!e) return; const k=gemeloAvisoKey(e); if(k&&!porAviso.has(k)) porAviso.set(k,e); });
+    return porAviso;
+  };
+  rows.forEach(function(e){
+    if(!e)return;
+    index.ids.set(e.id,e);
+    if(e.possibleDupOf!=null||e.autoGemelo!=null||e.gemeloSeparado!=null) enlazadas.push(e);
+    if(faltaAvisoId){ if(!porAviso) porAviso=new Map(); const ak=gemeloAvisoKey(e); if(ak&&!porAviso.has(ak)) porAviso.set(ak,e); }
+    if(byBank&&gemeloBancoAutomatico(e)) byBank.set((expenseBankOf(e)||"")+"|"+keyOfExpense(e),e);
+    if(!prior||!gemeloMismosCampos(e,prior.ids.get(e.id))){
+      changed.add(e.id);
+      dirty.add(gemeloDatos(e).grupo);
+      if(prior&&prior.ids.has(e.id)) dirty.add(gemeloDatos(prior.ids.get(e.id)).grupo);
+    }
+  });
+  index.links=enlazadas;
+  if(prior)prior.ids.forEach(function(e,id){if(!index.ids.has(id)){changed.add(id);dirty.add(gemeloDatos(e).grupo);}});
+  function gemeloFirmaDecision(g){
+    if(!g||typeof g!=="object") return "\u0000";
+    return [g.avisoId||"",typeof g.aviso==="string"?g.aviso:"\u0000",typeof g.banco==="string"?g.banco:"\u0000",g.separado?1:0,g.auto?1:0,g.at||0,g.ent||"",g.bankRef||"",g.bankRefV||"",g.bankRefSign||""].join("\u0001");
+  }
+  function gemeloCuenta(list,firma){
+    const m=new Map();
+    (list||[]).forEach(function(x){ const f=firma(x); m.set(f,(m.get(f)||0)+1); });
+    return m;
+  }
+  function gemeloCuentasIguales(a,b){
+    if(a.size!==b.size) return false;
+    let ok=true;
+    a.forEach(function(v,k){ if(b.get(k)!==v) ok=false; });
+    return ok;
+  }
+  // null = no se puede acotar: hay que repartir todos los grupos. Un banco con nombre
+  // no entra en el mapa automático; la decisión solo aparta el aviso, y basta su grupo.
+  // byBank y porAviso salen del recorrido del índice: no se vuelve a leer el histórico.
+  function gemeloGruposDeDecision(g){
+    if(!g||typeof g.aviso!=="string"||typeof g.banco!=="string") return null;
+    let a=g.avisoId?filaPorId(g.avisoId):null;
+    if(!a) a=asegurarAvisos().get(g.aviso)||null;
+    if(!a) return null;
+    const ga=gemeloDatos(a).grupo;
+    if(!ga) return null;
+    const b=byBank&&byBank.get((g.ent||expenseBankOf(a)||"")+"|"+g.banco);
+    if(!b) return [ga];
+    const gb=gemeloDatos(b).grupo;
+    if(!gb) return null;
+    return ga===gb?[ga]:[ga,gb];
+  }
+  function gemeloGruposDeLapida(key,rows){
+    const s=String(key),seen=new Set(),out=[];
+    const add=function(g){ if(g&&!seen.has(g)){ seen.add(g); out.push(g); } };
+    const solo=Object.create(null); solo[s]=1;
+    rows.forEach(function(e){
+      if(!e||(e.amount===0&&esFilaDeBanco(e))) return;
+      if(expenseIsTombstoned(e,solo)) add(gemeloDatos(e).grupo);
+    });
+    if(!/\|#\d+$/.test(s)){
+      const m=s.match(/^(?:([^|]+)\|)?(\d{4}-\d{2}-\d{2})\|(-?[\d.]+)\|(.+)$/);
+      if(m&&sinComercioReal(m[4])){
+        const cents=Math.round(Number(m[3])*100),ent=m[1]||"";
+        if(Number.isFinite(cents)){
+          const tail="|"+cents;
+          rows.forEach(function(e){
+            const g=e&&gemeloDatos(e).grupo;
+            if(!g||g.slice(-tail.length)!==tail) return;
+            if(ent&&g.slice(0,ent.length+1)!==ent+"|") return;
+            add(g);
+          });
+        }
+      }
+    }
+    return out;
+  }
+  /* El `set` de la sync compara con el estado de ANTES de anotar los vínculos. Si además
+     las notas rehacen el array, gemelos y lápidas ya no son la misma referencia y el
+     índice se tiraba: otra pasada por todo el histórico (31/10/2026). El índice sigue
+     valiendo. Una lápida o un id que desaparece no vive siempre en el grupo de quien
+     le apunta: un manual sin banco no tiene grupo, y el banco que lo tenía de gemelo
+     seguiría oculto contra una fila ya borrada (07/11/2026). Se recalienta ese grupo,
+     y el otro lado de una decisión que toque un grupo ya sucio. Si una decisión no se
+     localiza en las filas, se recalienta todo — el mismo resultado de hoy, no otro.
+     Si la firma no cambia (una copia con el mismo contenido), no hace falta recalentar
+     todo: el aviso de cada decisión cuyo cargo sí se reparte entra en el mapa, aunque
+     el manual no tenga grupo. Sin eso, un aviso nuevo del mismo importe esconde el cargo
+     que el cálculo completo deja contando. La separación de un par roto no entra por
+     aquí: sin la misma referencia de gemelos el cálculo completo tampoco separaba. */
+  function gemeloIdsDeClave(key,list){
+    const solo=Object.create(null); solo[String(key)]=1; const out=[];
+    (list||[]).forEach(function(e){
+      if(!e||(e.amount===0&&esFilaDeBanco(e))) return;
+      if(expenseIsTombstoned(e,solo)) out.push(e);
+    });
+    return out;
+  }
+  function gemeloMarcarId(e){
+    if(!e||e.id==null) return;
+    changed.add(e.id); const g=gemeloDatos(e).grupo; if(g) dirty.add(g);
+  }
+  // `deleted` no es la única lápida: la absorción y el dueño del histórico también
+  // deciden qué fila cuenta. Un banco a cero ya está lápida siempre y no se atribuye
+  // a cada clave.
+  function gemeloMarcarLapidas(){
+    if(!prev||!prior) return;
+    const confirmadoIgual=prev.obAbsorbedConfirmed===s.obAbsorbedConfirmed&&prev._historyOwner===s._historyOwner;
+    const clavesIguales=prev.deleted===s.deleted&&prev.obAbsorbedPending===s.obAbsorbedPending&&prev._historyOwner===s._historyOwner;
+    if(confirmadoIgual&&clavesIguales) return;
+    if(!confirmadoIgual){
+      const da=expenseDeletedSet(prev),db=expenseDeletedSet(s);
+      const mira=function(e){
+        if(!e||e.id==null||(e.amount===0&&esFilaDeBanco(e))) return;
+        if(!!expenseIsTombstoned(e,da)!==!!expenseIsTombstoned(e,db)) gemeloMarcarId(e);
+      };
+      rows.forEach(mira); prior.ids.forEach(mira);
+    }
+    if(clavesIguales) return;
+    const ca=new Set(Object.keys(expenseDeletedSet(prev)||{})),cb=new Set(Object.keys(expenseDeletedSet(s)||{}));
+    const marcar=function(key){
+      gemeloIdsDeClave(key,rows).forEach(gemeloMarcarId);
+      prior.ids.forEach(function(e){
+        const solo=Object.create(null); solo[String(key)]=1;
+        if(e&&!(e.amount===0&&esFilaDeBanco(e))&&expenseIsTombstoned(e,solo)) gemeloMarcarId(e);
+      });
+    };
+    cb.forEach(function(k){ if(!ca.has(k)) marcar(k); });
+    ca.forEach(function(k){ if(!cb.has(k)) marcar(k); });
+  }
+  function gemeloMarcarApuntes(){
+    if(!changed.size) return;
+    const mira=function(e){
+      if(!e) return;
+      const refs=[e.possibleDupOf,e.autoGemelo,e.gemeloSeparado];
+      for(let i=0;i<refs.length;i++) if(refs[i]!=null&&(changed.has(refs[i])||changed.has(String(refs[i])))){ const g=gemeloDatos(e).grupo; if(g) dirty.add(g); return; }
+    };
+    // Solo filas que apuntan a alguien. Una fila suelta no puede ensuciar otro grupo.
+    enlazadas.forEach(mira);
+    if(prior){ if(prior.links) prior.links.forEach(mira); else prior.ids.forEach(mira); }
+  }
+  // Un vínculo cruza grupos. Si solo se recalienta uno, el otro lado conserva el
+  // importe que el cálculo completo ya ocultó, o al revés. Sin decisiones y sin
+  // vínculos no hay nada que cruzar: no se monta el mapa de bancos.
+  function gemeloPropagar(){
+    if(!hayDecision&&!enlazadas.length) return;
+    for(let guard=0;guard<8;guard++){
+      let grew=false;
+      const mark=function(g){ if(g&&!dirty.has(g)){ dirty.add(g); grew=true; } };
+      if(hayDecision){
+        [prev&&prev.gemelos,s&&s.gemelos].forEach(function(list){
+          (list||[]).forEach(function(g){
+            const grupos=gemeloGruposDeDecision(g);
+            if(!grupos||!grupos.some(function(k){ return dirty.has(k); })) return;
+            grupos.forEach(mark);
+          });
+        });
+      }
+      enlazadas.forEach(function(e){
+        const g=gemeloDatos(e).grupo;
+        if(!g||!dirty.has(g)) return;
+        [e.possibleDupOf,e.autoGemelo,e.gemeloSeparado].forEach(function(id){
+          if(id==null) return;
+          const otro=filaPorId(id);
+          if(otro) mark(gemeloDatos(otro).grupo);
+        });
+      });
+      if(!grew) return;
+    }
+    rows.forEach(function(e){ if(e) dirty.add(gemeloDatos(e).grupo); });
+  }
+  function gemeloSuciasPorDecision(dirty,rows,prev,s){
+    gemeloMarcarLapidas();
+    gemeloMarcarApuntes();
+    gemeloPropagar();
+    const firmaClave=function(k){ return String(k); };
+    const ga=gemeloCuenta(prev&&prev.gemelos,gemeloFirmaDecision),gb=gemeloCuenta(s&&s.gemelos,gemeloFirmaDecision);
+    const da=gemeloCuenta(prev&&prev.deleted,firmaClave),db=gemeloCuenta(s&&s.deleted,firmaClave);
+    if(gemeloCuentasIguales(ga,gb)&&gemeloCuentasIguales(da,db)) return true;
+    let ok=true;
+    const vistas=new Set();
+    const tocar=function(list){
+      (list||[]).forEach(function(g){
+        const f=gemeloFirmaDecision(g);
+        if((ga.get(f)||0)===(gb.get(f)||0)||vistas.has(f)) return;
+        vistas.add(f);
+        const grupos=gemeloGruposDeDecision(g);
+        if(!grupos){ ok=false; return; }
+        grupos.forEach(function(k){ dirty.add(k); });
+      });
+    };
+    tocar(prev&&prev.gemelos); tocar(s&&s.gemelos);
+    if(!ok) return false;
+    const vistasL=new Set();
+    const tocarL=function(list){
+      (list||[]).forEach(function(k){
+        const f=String(k);
+        if((da.get(f)||0)===(db.get(f)||0)||vistasL.has(f)) return;
+        vistasL.add(f);
+        gemeloGruposDeLapida(f,rows).forEach(function(g){ dirty.add(g); });
+      });
+    };
+    tocarL(prev&&prev.deleted); tocarL(s&&s.deleted);
+    return true;
+  }
+
+  // La sync de cada importación entra con la misma referencia de gemelos y de
+  // lápidas (sameMeta): el marcado de apuntes tiene que correr igual, no solo cuando
+  // cambia una decisión. Recalentar todo queda para la decisión que no se localiza.
+  if(prior){
+    const acotado=gemeloSuciasPorDecision(dirty,rows,prev,s);
+    if(!sameMeta&&!acotado) rows.forEach(function(e){ if(e) dirty.add(gemeloDatos(e).grupo); });
+  }
   dirty.forEach(function(k){index.groups.set(k,[]);});
   rows.forEach(function(e){if(e&&dirty.has(gemeloDatos(e).grupo))index.groups.get(gemeloDatos(e).grupo).push(e);});
-  if(prior){
+  if(prior&&sameMeta){
     const split=new Map();let decisions=s.gemelos;
     prior.ids.forEach(function(b){
       if(!b.autoGemelo)return;
@@ -2203,13 +2432,46 @@ function reconcileGemelosAutomaticos(s,prev){
     });
     if(split.size)return reconcileGemelosAutomaticos(Object.assign({},s,{gemelos:decisions,expenses:rows.map(function(e){return split.get(e.id)||e;})}));
   }
-  const workRows=[];dirty.forEach(function(k){workRows.push.apply(workRows,index.groups.get(k));});
+  const workRows=[];dirty.forEach(function(k){const g=index.groups.get(k);if(g)workRows.push.apply(workRows,g);});
+  // El manual sin banco no entra en ningún grupo. Si el banco sucio le apunta, tiene
+  // que estar en el mapa o el reparto parcial lo sustituye por el aviso del grupo.
+  // Y si ya no le apunta —se quitó el #dup, «no es el mismo», y la decisión se copió
+  // con el mismo contenido— el aviso sigue fuera. El parcial no ve la decisión, empareja
+  // el cargo con el aviso nuevo y el total baja ese importe. El cálculo completo, que sí
+  // tiene el manual, lo deja contando (07/11/2026).
+  const visto=new Set(); workRows.forEach(function(e){ if(e&&e.id!=null) visto.add(e.id); });
+  const extras=[];
+  workRows.forEach(function(e){
+    if(!e) return;
+    [e.possibleDupOf,e.autoGemelo,e.gemeloSeparado].forEach(function(id){
+      if(id==null||visto.has(id)) return;
+      const t=index.ids.get(id); if(!t||visto.has(t.id)) return;
+      visto.add(t.id); extras.push(t);
+    });
+  });
+  // Sin decisiones no hay nada que rescatar: montar el mapa recorrería el histórico
+  // en cada importación (el umbral de ob-iguales-ordinal, 07/11/2026).
+  if((s.gemelos||[]).length){
+    const bancosEnJuego=new Map();
+    const anotarBanco=function(e){ if(gemeloBancoAutomatico(e)) bancosEnJuego.set((expenseBankOf(e)||"")+"|"+keyOfExpense(e),e); };
+    workRows.forEach(anotarBanco); extras.forEach(anotarBanco);
+    const avisoDeDecision=function(g){
+      if(g.avisoId){ const hit=filaPorId(g.avisoId); if(hit) return hit; }
+      return asegurarAvisos().get(g.aviso)||null;
+    };
+    s.gemelos.forEach(function(g){
+      if(!g||typeof g.aviso!=="string"||typeof g.banco!=="string") return;
+      const a=avisoDeDecision(g); if(!a||a.id==null||visto.has(a.id)) return;
+      if(!bancosEnJuego.get((g.ent||expenseBankOf(a)||"")+"|"+g.banco)) return;
+      visto.add(a.id); extras.push(a);
+    });
+  }
   const ids={},porClave={},bancos={},groups=new Map(),used=new Set(),occupied=new Set(),destinos=new Map();
   const deleted=expenseDeletedSet(s),prevIds=new Set((prev&&prev.expenses||[]).map(function(e){return e.id;}));
-  workRows.forEach(function(e){
+  workRows.concat(extras).forEach(function(e){
     if(!e||expenseIsTombstoned(e,deleted))return;ids[e.id]=e;porClave[gemeloAvisoKey(e)]=e;
     if(gemeloBancoAutomatico(e))bancos[expenseBankOf(e)+"|"+keyOfExpense(e)]=e;
-    const d=gemeloDatos(e);if(!d.grupo)return;if(!groups.has(d.grupo))groups.set(d.grupo,[]);groups.get(d.grupo).push(e);
+    const d=gemeloDatos(e);if(!d.grupo||!dirty.has(d.grupo))return;if(!groups.has(d.grupo))groups.set(d.grupo,[]);groups.get(d.grupo).push(e);
   });
   let gemelos=s.gemelos||[];
   const reserve=function(b,a,auto){if(occupied.has(b.id)||used.has(a.id))return false;used.add(a.id);occupied.add(b.id);destinos.set(b.id,{id:a.id,auto:auto});return true;};
@@ -2269,7 +2531,21 @@ function reconcileGemelosAutomaticos(s,prev){
     if(expenses===rows)expenses=rows.slice();expenses[i]=n;
   });
   const out=expenses===rows?s:Object.assign({},s,{expenses:expenses});
-  if(expenses!==rows)expenses.forEach(function(e){if(e&&index.ids.get(e.id)!==e)index.ids.set(e.id,e);});
+  if(expenses!==rows){
+    const pos=new Map();
+    for(let i=0;i<enlazadas.length;i++){ const e=enlazadas[i]; if(e&&e.id!=null) pos.set(e.id,i); }
+    let hueco=false;
+    expenses.forEach(function(e){
+      if(!e) return;
+      if(index.ids.get(e.id)!==e) index.ids.set(e.id,e);
+      if(e.id==null) return;
+      const linked=e.possibleDupOf!=null||e.autoGemelo!=null||e.gemeloSeparado!=null;
+      const at=pos.get(e.id);
+      if(at!=null){ if(linked) enlazadas[at]=e; else { enlazadas[at]=null; hueco=true; } }
+      else if(linked) enlazadas.push(e);
+    });
+    index.links=hueco?enlazadas.filter(Boolean):enlazadas;
+  }
   dirty.forEach(function(k){index.groups.set(k,index.groups.get(k).map(function(e){return index.ids.get(e.id);}));});
   gemeloCache.set(out.expenses,{gemelos:out.gemelos,deleted:out.deleted,index:index});return out;
 }
