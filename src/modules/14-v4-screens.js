@@ -2802,7 +2802,7 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
   useEffect(function(){ return function(){ clearTimeout(espera.current); clearTimeout(verT.current); }; },[]);
   // Lo siguiente que hay que elegir, a la vista y sin salto: después de que el plegable se abra.
   const diasRef=useRef(null), mesesRef=useRef(null), pagosRef=useRef(null);
-  const mostrar=function(ref){
+  const mostrar=function(ref,conTitulo){
     clearTimeout(verT.current);
     verT.current=setTimeout(function(){
       const el=ref.current;
@@ -2814,7 +2814,8 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
         if(!body||!h){ el.scrollIntoView({block:"nearest",behavior:mcReduced()?"auto":"smooth"}); return; }
         const b=body.getBoundingClientRect(), e=el.getBoundingClientRect(), th=h.getBoundingClientRect();
         let d=e.bottom>b.bottom-12?e.bottom-b.bottom+12:(e.top<b.top?e.top-b.top-8:0);
-        if(d>0) d=Math.min(d,Math.max(th.top-b.top-8,0));
+        // Solo con «titulo»: en «En varios pagos» el título no se corta; al elegir meses/días lo que se elige manda.
+        if(d>0&&conTitulo) d=Math.min(d,Math.max(th.top-b.top-8,0));
         if(d!==0) body.scrollBy({top:d,behavior:mcReduced()?"auto":"smooth"});
       }catch(e){}
     },380);
@@ -3144,7 +3145,7 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
   const modo=function(k,label,disabled){
     const on=f.mode===k;
     return React.createElement("button",{type:"button",role:"radio","aria-checked":on?"true":"false",key:k,disabled:disabled,className:"rp4-mode"+(on?" on":""),"data-rp4-modo":k,
-      onClick:function(){ if(edit&&kind==="oneoff") return; setPadFor(null); upd({mode:on?"rec":k}); toca("when"); if(!on) mostrar(pagosRef); }}, label);
+      onClick:function(){ if(edit&&kind==="oneoff") return; setPadFor(null); upd({mode:on?"rec":k}); toca("when"); if(!on) mostrar(pagosRef,true); }}, label);
   };
   const p2=panel(2,[
     React.createElement("div",{key:"fr",className:"pr6-fold"+(f.mode==="rec"?" open":"")},
