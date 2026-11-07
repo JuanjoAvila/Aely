@@ -14131,7 +14131,8 @@
           "session",
           "decideOwnTransfer",
           "canConfirmOwnTransfer",
-          "setIncomeOwnTransfer"
+          "setIncomeOwnTransfer",
+          "canSetIncomeOwnTransfer"
         ]
       },
       {
@@ -17502,7 +17503,8 @@
           "session",
           "decideOwnTransfer",
           "canConfirmOwnTransfer",
-          "setIncomeOwnTransfer"
+          "setIncomeOwnTransfer",
+          "canSetIncomeOwnTransfer"
         ]
       },
       {
@@ -21393,7 +21395,8 @@
           "session",
           "decideOwnTransfer",
           "canConfirmOwnTransfer",
-          "setIncomeOwnTransfer"
+          "setIncomeOwnTransfer",
+          "canSetIncomeOwnTransfer"
         ]
       },
       {
@@ -24006,7 +24009,8 @@
           "session",
           "decideOwnTransfer",
           "canConfirmOwnTransfer",
-          "setIncomeOwnTransfer"
+          "setIncomeOwnTransfer",
+          "canSetIncomeOwnTransfer"
         ]
       },
       {
@@ -25793,7 +25797,8 @@
           "session",
           "decideOwnTransfer",
           "canConfirmOwnTransfer",
-          "setIncomeOwnTransfer"
+          "setIncomeOwnTransfer",
+          "canSetIncomeOwnTransfer"
         ]
       },
       {
@@ -103926,7 +103931,8 @@
           "session",
           "decideOwnTransfer",
           "canConfirmOwnTransfer",
-          "setIncomeOwnTransfer"
+          "setIncomeOwnTransfer",
+          "canSetIncomeOwnTransfer"
         ]
       },
       {
@@ -136960,7 +136966,8 @@
           "addExpense",
           "renameExpense",
           "canConfirmOwnTransfer",
-          "setIncomeOwnTransfer"
+          "setIncomeOwnTransfer",
+          "canSetIncomeOwnTransfer"
         ]
       },
       {
@@ -143674,6 +143681,7 @@
         "data": "cloud",
         "members": [
           "setIncomeOwnTransfer",
+          "canSetIncomeOwnTransfer",
           "decideOwnTransfer",
           "setExpenseCat",
           "setExpenseNote",
@@ -143684,7 +143692,15 @@
           "enabled",
           "logEvent",
           "session",
-          "canConfirmOwnTransfer"
+          "canConfirmOwnTransfer",
+          "confirmTrMonthlyInvestment",
+          "confirmExpenseWithdrawal",
+          "setExpenseDeuda",
+          "setExpenseNoCard",
+          "suggestCategory",
+          "deleteExpense",
+          "addExpense",
+          "renameExpense"
         ]
       },
       {

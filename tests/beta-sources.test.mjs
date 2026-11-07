@@ -6400,8 +6400,13 @@ test("Catálogo213 funde la zona Recibos en una tanda, retira las siete viejas c
     for(const k of Object.keys(scope))if(k!=="web")assert.deepEqual(ahora[k],scope[k],key+": "+k+" intacto");
     if(key===archiveId){assert.deepEqual(ahora.web,scope.web,key+": referencia fija, no crece");continue;}
     const previo=reancla(scope.web);
-    assert.deepEqual(ahora.web.slice(0,previo.length),previo,key+": lo anterior intacto");
-    assert.deepEqual(ahora.web,cierre(previo),key+": solo crece lo que el cierre de lectores exige, en su orden");
+    // Los miembros de nube que el guardián de métodos exige (canSetIncomeOwnTransfer de la PR 352 y los que lee Expenses) solo pueden AÑADIRSE al cierre vigilado: nunca se quita ninguno.
+    const esMiembros=u=>u.data==="cloud"&&u.members;
+    assert.equal(ahora.web.length,cierre(previo).length,key+": mismo número de unidades que el cierre");
+    const sinMiembros=web=>web.map(u=>esMiembros(u)?{...u,members:undefined}:u);
+    assert.deepEqual(sinMiembros(ahora.web.slice(0,previo.length)),sinMiembros(previo),key+": lo anterior intacto");
+    assert.deepEqual(sinMiembros(ahora.web),sinMiembros(cierre(previo)),key+": solo crece lo que el cierre de lectores exige, en su orden");
+    ahora.web.forEach((u,i)=>{if(esMiembros(u)&&i<previo.length)for(const m of previo[i].members)assert.ok(u.members.includes(m),key+": no pierde el miembro "+m);});
   }
   for(const key of ["plan-scroll-lento","vibracion-r6"])assert.notDeepEqual(scopes[key].web,integrated[key].web,key+": reanclado a v4-plan");
   const G=(({file,from,to})=>({file,from,to}))(integrated["recibo-quitar-deshacer"].web.find(u=>u.from&&u.from.includes("INC-0410 guardado: de aquí")));
