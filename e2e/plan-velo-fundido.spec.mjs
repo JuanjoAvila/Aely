@@ -88,7 +88,7 @@ async function grabar(page, kind) {
     else if (kind === "deben") document.querySelector('[data-testid="plan-deben"]').click();
     else if (kind === "pend") document.querySelector('[data-recibo="fixed_luz"]').click();
     else if (kind === "todos") {
-      const b = [...document.querySelectorAll('[data-testid="plan-due"] button')].find((x) => x.textContent.trim() === "Todos");
+      const b = [...document.querySelectorAll('[data-testid="plan-due"] button')].find((x) => x.textContent.trim() === "Gestionar");
       b.click();
     } else if (kind === "bill") document.querySelector('[data-bill-id="luz"]').click();
     else if (kind === "close") {
@@ -200,15 +200,15 @@ test("Pendiente: la ficha del recibo funde el velo al abrir y al cerrar", async 
 
 test("Todos: la ficha de un recibo funde el velo al abrir y al cerrar", async ({ page }) => {
   await abre(page);
-  await page.locator('[data-testid="plan-due"]').getByRole("button", { name: "Todos" }).click();
+  await page.locator('[data-testid="plan-due"]').getByRole("button", { name: "Gestionar" }).click();
   await expect(page.locator("[data-bills-manage]")).toBeVisible();
   await page.locator('[data-group="serv"]').click();
   await expect(page.locator('[data-bill-id="luz"]')).toBeVisible();
   const cdp = await frenar(page);
   try {
-    exigeEntrada(await grabar(page, "bill"), "Todos");
+    exigeEntrada(await grabar(page, "bill"), "Gestionar");
     await hojaQuieta(page);
-    exigeSalida(await grabar(page, "close"), "Todos");
+    exigeSalida(await grabar(page, "close"), "Gestionar");
   } finally {
     await cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 });
   }

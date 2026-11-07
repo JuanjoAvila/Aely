@@ -94,6 +94,7 @@ export const E2E_MAP = [
   { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibo-cargo-pendiente.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/recibo-cargo-pendiente.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/recibo-cargo-pendiente.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/plan-recibos-v6.spec.mjs"] },
   // Tanda 2: avisos nuevos, casos especiales de la ficha, posponer y Pausar. La pausa se lee en
   // el motor (`planChargesMonth`, totales de 11) y en la mezcla con la nube (00-core).
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-recibos-t2.spec.mjs"] },

@@ -34,7 +34,7 @@ const paso = (page, n) => hoja(page).locator('[data-rp4-paso="' + n + '"]');
 const teclea = async (page, n, digits) => { for (const d of digits) await paso(page, n).locator('.v4-keys button[aria-label="' + d + '"]').click(); };
 const siguiente = (page) => hoja(page).locator(".rp4-cta");
 async function abreAlta(page, recibos) {
-  await recibos.getByTestId("plan-due").getByRole("button", { name: "Todos" }).click();
+  await recibos.getByTestId("plan-due").getByRole("button", { name: "Gestionar" }).click();
   await page.locator('[data-bills-manage] [data-act="bill-add"]').first().click();
   await expect(hoja(page)).toHaveAttribute("data-paso", "0");
 }

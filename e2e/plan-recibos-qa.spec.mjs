@@ -53,7 +53,7 @@ const teclea = async (page, n, digits) => { for (const d of digits) await paso(p
 // Desplazamiento horizontal de la capa que se arrastra (el fondo de la hoja por pasos).
 const capaX = (page) => page.locator(".v4-sheet-back").filter({ has: hoja(page) }).evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).m41);
 async function abreAlta(page, recibos) {
-  await recibos.getByTestId("plan-due").getByRole("button", { name: "Todos" }).click();
+  await recibos.getByTestId("plan-due").getByRole("button", { name: "Gestionar" }).click();
   await page.locator('[data-bills-manage] [data-act="bill-add"]').first().click();
   await expect(hoja(page)).toHaveAttribute("data-paso", "0");
 }
@@ -380,7 +380,7 @@ test("«¿Y si gasto…?»: elegir otro banco no abre el teclado", async ({ page
 
 test("«¿Me lo puedo permitir?» se abre ya desplegado", async ({ page }) => {
   const recibos = await abre(page);
-  await recibos.getByTestId("plan-due").getByRole("button", { name: "Todos" }).click();
+  await recibos.getByTestId("plan-due").getByRole("button", { name: "Gestionar" }).click();
   await page.locator(".v4-bills-afford").click();
   const sim = page.getByTestId("afford-sim");
   await expect(sim).toBeVisible();

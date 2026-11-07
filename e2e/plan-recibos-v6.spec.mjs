@@ -42,12 +42,12 @@ test("tarjeta: suma lo pendiente; «Por pagar» enseña tres y «Ver los N» des
   await ver.click();
   await expect(due.locator(".v4-charge:not([inert] *)")).toHaveCount(5);
   await expect(due.getByRole("button", { name: /Ver menos/ })).toHaveAttribute("aria-expanded", "true");
-  // Nada pagado aún: la fila plegada está, con su cero, y no hay «Para revisar».
-  await expect(recibos.getByTestId("plan-paid")).toContainText(/Ya pagados.*0,00/);
+  // Nada pagado aún: «Ya pagados» no enseña una fila vacía, y no hay «Para revisar».
+  await expect(recibos.getByTestId("plan-paid")).toHaveCount(0);
   await expect(recibos.getByTestId("plan-review")).toHaveCount(0);
 });
 
-test("para revisar: no ha llegado y cuotas sin cargo del banco, como mucho tres a la vista", async ({ page }) => {
+test("para revisar: no ha llegado y cuotas sin cargo del banco, solo una a la vista", async ({ page }) => {
   // Día 3, 5, 8 y 12 con hoy 18 y sin cargo: pasado el margen, «No ha llegado». El 17 aún no.
   const fixed = [recibo("l1", "Luz", 55, 3), recibo("l2", "Gas", 32, 5), recibo("l3", "Móvil", 15, 8), recibo("l4", "Seguro coche", 41, 12),
     recibo("l5", "Alarma", 29.9, 17)];
@@ -55,8 +55,11 @@ test("para revisar: no ha llegado y cuotas sin cargo del banco, como mucho tres 
   const recibos = await abrePlan(page, { accounts: [{ id: "bank", ent: "sabadell", role: "fijos", value: 3000 }], fixed, debts, expenses: [] });
   const review = recibos.getByTestId("plan-review");
   await expect(review.locator(".v4-charge")).toHaveCount(5);
-  await expect(review.locator(".v4-charge:not([inert] *)")).toHaveCount(3);
+  await expect(review.locator(".v4-charge:not([inert] *)")).toHaveCount(1);
   await expect(review.locator('[data-review="late"]')).toHaveCount(4);
+  // La fila no repite «No ha llegado»: dice cuándo tocaba (el motivo entero va en el aria-label).
+  await expect(review.locator('[data-review="late"]').first()).not.toContainText("No ha llegado");
+  await expect(review.locator('[data-review="late"]').first()).toContainText("tocaba hace");
   await expect(review.locator('[data-review="unconf"]')).toContainText("Préstamo sintético");
   await expect(review.locator(".pr6-sec-h, .pr6-n").first()).toContainText("5");
   // Lo vencido sigue sumando en lo que queda por pagar; la cuota pagada por calendario no.
@@ -181,4 +184,20 @@ test("píldora: si ningún banco con recibos tiene saldo conocido, no sale", asy
   const recibos = await abrePlan(page, { accounts: [{ id: "bank", ent: "sabadell", role: "fijos", value: 3000 }], fixed, expenses: [] });
   await expect(recibos.getByTestId("plan-summary").locator(".serif.num")).toHaveText(await page.evaluate(() => eur(200)));
   await expect(recibos.getByTestId("plan-llega")).toHaveCount(0);
+});
+
+test("accesibilidad: cada fila de «Por pagar» y «Para revisar» lleva una frase completa en aria-label", async ({ page }) => {
+  // El nombre se corta con elipsis en pantalla; el lector lee nombre · banco · cuándo · importe (auditoría 2026-11-07).
+  const fixed = [recibo("a", "Agua", 30.5, 19), recibo("l1", "Luz", 55, 3)];
+  const recibos = await abrePlan(page, { accounts: [{ id: "bank", ent: "sabadell", role: "fijos", value: 3000 }], fixed, expenses: [] });
+  const agua = recibos.getByTestId("plan-due").locator('[data-recibo="fixed_a"]');
+  const etiqueta = await agua.getAttribute("aria-label");
+  expect(etiqueta).toContain("Agua");
+  expect(etiqueta).toContain("mañana");
+  expect(etiqueta).toContain(await page.evaluate(() => eur(30.5)));
+  const luz = recibos.getByTestId("plan-review").locator('[data-review="late"]');
+  const etiquetaLuz = await luz.getAttribute("aria-label");
+  expect(etiquetaLuz).toContain("Luz");
+  expect(etiquetaLuz).toContain("No ha llegado");
+  expect(etiquetaLuz).toContain(await page.evaluate(() => eur(55)));
 });

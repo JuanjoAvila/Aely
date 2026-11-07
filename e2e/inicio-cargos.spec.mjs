@@ -162,10 +162,11 @@ for(const lang of ["es","en","ca"]){
     await expect(page.locator(ESTE_MES).filter({hasText:"Agua"})).toHaveCount(1);
     await page.locator('.botnav-tab[data-tour="plan"]').click();
     await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:"Agua"})).toHaveCount(0);
-    await expect(page.locator('div[data-seg="recibos"] [data-review="late"]')).toContainText(labels[lang].late);
+    // «No ha llegado» ya no se repite en la fila (dice cuándo tocaba); el motivo entero va en su aria-label.
+    await expect(page.locator('div[data-seg="recibos"] [data-review="late"]')).toHaveAttribute("aria-label",new RegExp(labels[lang].late));
     await page.reload(); await dismissNews(page);
     await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:"Agua"})).toHaveCount(0);
-    await expect(page.locator('div[data-seg="recibos"] [data-review="late"]')).toContainText(labels[lang].late);
+    await expect(page.locator('div[data-seg="recibos"] [data-review="late"]')).toHaveAttribute("aria-label",new RegExp(labels[lang].late));
   });
   for(const [kind,tie,tolerant,duplicate] of [["nombre más específico",false,false],["empate real",true,false],["BOOK tolerante y gasto exacto",false,true],["identificador duplicado",false,false,true]]){
     test(lang+": un cargo no acredita dos recibos · "+kind,async({page})=>{
@@ -228,7 +229,7 @@ for(const lang of ["es","en","ca"]){
       await expect(row.locator('.dt .d')).toHaveText("25");
       await page.locator('.botnav-tab[data-tour="plan"]').click();
       await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:fixed.name})).toHaveCount(0);
-      await expect(page.locator('div[data-seg="recibos"] [data-review="late"]')).toContainText(labels[lang].late);
+      await expect(page.locator('div[data-seg="recibos"] [data-review="late"]')).toHaveAttribute("aria-label",new RegExp(labels[lang].late));
       expect(await page.evaluate(()=>{ const s=mcLoadRaw(mcStateKey()); return JSON.stringify([s.accounts,s.expenses,s.fixed]); })).toBe(before);
     });
   }
@@ -370,7 +371,7 @@ for(const lang of ["es","en","ca"]){
     await expect(block.locator('.dt .d')).toHaveText("25");
     await page.locator('.botnav-tab[data-tour="plan"]').click();
     await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:"Gas ficticio"})).toHaveCount(0);
-    await expect(page.locator('div[data-seg="recibos"] [data-review="late"]')).toContainText(labels[lang].late);
+    await expect(page.locator('div[data-seg="recibos"] [data-review="late"]')).toHaveAttribute("aria-label",new RegExp(labels[lang].late));
   });
   test(lang+": un movimiento pendiente no acredita el pago",async({page})=>{
     await open(page,lang,{bankTx:[Object.assign({},tx,{status:"PDNG"})]});

@@ -737,26 +737,37 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   };
   const dueRow=function(x){
     const n=diasHasta(x);
-    return withDayPrompt(x,React.createElement("button",{type:"button",className:"v4-charge pr6-row",key:x.id,"data-recibo":x.id,onClick:function(){ if(sig) abrirSig(x); else abrir(x); }},
+    // El nombre se corta con elipsis en la fila; el lector de pantalla lee la frase entera
+    // (nombre · banco · cuándo · importe) en vez de los trozos sueltos (auditoría 2026-11-07).
+    const lbl=[x.name,subOf(x),x.day!=null?cuando(x):"",(esVariable(x)?"≈ ":"")+eur(Math.abs(x.amount))].filter(Boolean).join(" · ");
+    return withDayPrompt(x,React.createElement("button",{type:"button",className:"v4-charge pr6-row",key:x.id,"data-recibo":x.id,"aria-label":lbl,onClick:function(){ if(sig) abrirSig(x); else abrir(x); }},
       React.createElement("span",{className:"dt","aria-hidden":"true"},
         React.createElement("span",{className:"d"}, x.day||"—"),
         React.createElement("span",{className:"m"}, monthShort((sig?sigM:month)-1))),
       React.createElement("span",{className:"nm"},
         React.createElement("span",{className:"pr6-nm"}, x.name,React.createElement(PlanConflictDot,{record:conflictOf(x)})),
-        React.createElement("span",{className:"sub"}, subOf(x)),
-        x.day!=null&&React.createElement("span",{className:"pr6-when"+(n!=null&&n<=1?" soon":"")}, cuando(x))),
+        // Banco y cuándo en una sola línea: la fila de tres líneas (93 px) llenaba la pantalla con cinco recibos.
+        React.createElement("span",{className:"sub pr6-sub1"}, subOf(x),
+          x.day!=null&&React.createElement(React.Fragment,null," · ",React.createElement("span",{className:"pr6-when"+(n!=null&&n<=1?" soon":"")}, cuando(x))))),
       // «Cambia cada mes» (alta por pasos): la cifra es una previsión, se marca con «≈».
       React.createElement("span",{className:"am num"}, (esVariable(x)?"≈ ":"")+eur(Math.abs(x.amount)))));
   };
+  // «No ha llegado» se repetía en cada fila y la sección ya dice que hay que revisarlo: en la fila
+  // solo va lo que la distingue (cuándo tocaba). El lector de pantalla sí oye el motivo entero.
+  const motivoFila=function(x){
+    if(enlaces[x.id]) return tf("pr6_enlazado_x",{x:eur(Number(enlaces[x.id].x.amount))});
+    return (x.rv==="late"&&cuando(x))||pr6Motivo(x);
+  };
   const revRow=function(x){
     const cobro=x.rv==="diff"||x.rv==="up";
-    return withDayPrompt(x,React.createElement("button",{type:"button",className:"v4-charge pr6-rev",key:x.id,"data-recibo":x.id,"data-review":x.rv,onClick:function(){ abrir(x); }},
+    const lbl=[x.name,enlaces[x.id]?tf("pr6_enlazado_x",{x:eur(Number(enlaces[x.id].x.amount))}):pr6Motivo(x),eur(cobro?x.cobrado:Math.abs(x.amount))].filter(Boolean).join(" · ");
+    return withDayPrompt(x,React.createElement("button",{type:"button",className:"v4-charge pr6-rev",key:x.id,"data-recibo":x.id,"data-review":x.rv,"aria-label":lbl,onClick:function(){ abrir(x); }},
       React.createElement("span",{className:"pr6-ico","aria-hidden":"true"},
         React.createElement("svg",{width:19,height:19,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.2,strokeLinecap:"round",strokeLinejoin:"round"},
           React.createElement("path",{d:PR6_ICO[x.rv]||PR6_ICO.unconf}))),
       React.createElement("span",{className:"nm"},
         React.createElement("span",{className:"pr6-nm"}, x.name,React.createElement(PlanConflictDot,{record:conflictOf(x)})),
-        React.createElement("span",{className:"sub pr6-why"}, enlaces[x.id]?tf("pr6_enlazado_x",{x:eur(Number(enlaces[x.id].x.amount))}):pr6Motivo(x))),
+        React.createElement("span",{className:"sub pr6-why"}, motivoFila(x))),
       // Lo cobrado de más o de menos se enseña tal cual lo cobró el banco.
       React.createElement("span",{className:"am num"}, eur(cobro?x.cobrado:Math.abs(x.amount)))));
   };
@@ -782,11 +793,12 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
           how)),
       React.createElement("span",{className:"am num"}, planChargeAmount(x))));
   };
-  // Como mucho tres a la vista; el resto se despliega debajo con «Ver los N» (SPEC §2.3–2.4).
-  const lista=function(items,render,open,setOpen,id){
-    const rest=items.slice(3);
+  // Como mucho tres a la vista (uno en «Para revisar», para que Pendiente asome en la primera pantalla); el resto se despliega debajo con «Ver los N» (SPEC §2.3–2.4).
+  const lista=function(items,render,open,setOpen,id,visibles){
+    const nVis=visibles||3;
+    const rest=items.slice(nVis);
     return React.createElement(React.Fragment,null,
-      items.slice(0,3).map(render),
+      items.slice(0,nVis).map(render),
       rest.length>0&&React.createElement("div",{className:"pr6-fold"+(open?" open":""),id:id},
         React.createElement("div",Object.assign({className:"pr6-fold-in"},plegado(open)), rest.map(render))),
       rest.length>0&&React.createElement("button",{type:"button",className:"pr6-more","aria-expanded":open?"true":"false","aria-controls":id,
@@ -838,7 +850,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
         : countLine&&React.createElement("div",{className:"pr6-count","data-testid":"plan-count"}, countLine),
       // «¿Te llega?» recorre el saldo de ESTE mes: en el siguiente no hay recorrido que enseñar.
       !sig&&(llega&&nPend>0||debenTotal>0.005)&&React.createElement("div",{className:"pr6-pills"},
-        llega&&nPend>0&&React.createElement("button",{type:"button",className:"pr6-pill"+(llega.ok?" ok":""),"data-testid":"plan-llega","aria-haspopup":"dialog",
+        llega&&nPend>0&&React.createElement("button",{type:"button",className:"pr6-pill "+(llega.ok?"ok":"falta"),"data-testid":"plan-llega","aria-haspopup":"dialog",
           onClick:function(){ setLlegaOpen(true); }},
           llega.ok&&React.createElement("span",{className:"pr6-pill-ok","aria-hidden":"true"},"✓"),
           llega.ok?t("pr6_llega"):tf("pr6_falta",{x:eur0(llega.falta)}),
@@ -906,7 +918,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     !sig&&v.review.length>0&&React.createElement("section",{className:"pr6-sec","data-testid":"plan-review","aria-label":t("pr6_revisar")},
       React.createElement("div",{className:"pr6-sec-h"},
         React.createElement("span",null, t("pr6_revisar"),React.createElement("span",{className:"pr6-n"}, v.review.length))),
-      lista(v.review,revRow,revOpen,setRevOpen,"pr6-rev-more")),
+      lista(v.review,revRow,revOpen,setRevOpen,"pr6-rev-more",1)),
     React.createElement("section",{className:"pr6-sec","data-testid":"plan-due","data-vista":vista,"aria-label":sig?pr6EnMes(sigM):t("v4_pendiente")},
       React.createElement("div",{className:"pr6-sec-h v4-section-h"},
         // «Pendiente» y no «Por pagar»: la petición del dueño del 26/10/2026 (la otra palabra
@@ -920,7 +932,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
         : (v.due.length===0
           ? React.createElement("div",{className:"pr6-empty"}, t("pr6_nada"))
           : lista(v.due,dueRow,dueOpen,setDueOpen,"pr6-due-more"))),
-    !sig&&nBills>0&&React.createElement("section",{className:"pr6-paid"+(paidOpen?" open":""),ref:paidRef,"data-testid":"plan-paid","aria-label":t("pr6_ya_pagados")},
+    !sig&&(v.paid.length>0||pausados.length>0)&&React.createElement("section",{className:"pr6-paid pr6-paid-in"+(paidOpen?" open":""),ref:paidRef,"data-testid":"plan-paid","aria-label":t("pr6_ya_pagados")},
       React.createElement("button",{type:"button",className:"pr6-paid-h","aria-expanded":paidOpen?"true":"false","aria-controls":"pr6-paid-list",
         onClick:function(){ setPaidOpen(function(o){ if(!o) verPlegado(paidRef.current); return !o; }); }},
         React.createElement("span",{className:"pr6-tick","aria-hidden":"true"},"✓"),
