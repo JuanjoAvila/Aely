@@ -350,7 +350,10 @@ const PRESUPUESTO = {
   // Plan Recibos v6 tandas 5 y 6 sobre la 4.26.200 (01/11): personas y compartidos (t5) y el resumen del
   // mes cerrado con su foto, «Dic ›» y el primer uso (t6) llevan el bundle a 1703 KiB minificado y 469 KiB gzip
   // medidos en la 4.26.205. SUBE (mandato 11/10: el tope de tamaño no bloquea) a 1760 / 490 KiB para las que faltan.
-  minificado: 1760 * 1024,
+  // Integración 4.26.212 (7/11): Deshacer al quitar recibo, guardia TAE, cargo pendiente y traspaso manual
+  // desde un ingreso llevan el bundle a 1780 KiB minificado y 488 KiB gzip; la CI de beta no llegó a publicar.
+  // Es lógica de dinero con sus textos en tres idiomas. SUBE (mandato 11/10) a 1860 / 520 KiB para el pulido de Recibos.
+  minificado: 1860 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -387,7 +390,7 @@ const PRESUPUESTO = {
   // corto por 252 B: 393 KiB (quedan 772 B); el crudo cabe en 1413 KiB con 294 B.
   // Integración 4.26.159 (con fin23-24): 1418 KiB minificado y 394 KiB gzip medidos en local; el gzip queda a 1 KiB. SUBE por producto: gzip 396 KiB (el minificado conserva 3 KiB de margen).
   // Mismo motivo que el minificado (Plan Recibos v6): 428 KiB medidos en la 188, tope con ~5 % de holgura.
-  gzip: 490 * 1024,
+  gzip: 520 * 1024, // 4.26.212: ver el comentario de minificado (488 KiB medidos).
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 
