@@ -311,6 +311,151 @@ test("invalidaciones: categoría, importe, borrado, grupo apretado, lápida, ví
   }
 });
 
+function mundoPequeno(){
+  const day = "2026-06-01T12:00:00.000Z";
+  const day2 = "2026-06-04T12:00:00.000Z";
+  return [
+    { id: "a3", date: day, amount: 14.5, merchant: "Café a3", category: "otros", source: "macrodroid", ent: "trade_republic" },
+    { id: "b14", date: day, amount: 14.5, merchant: "Movimiento", category: "otros", source: "ob", ent: "trade_republic" },
+    { id: "m1", date: day, amount: 14.5, merchant: "Nómina", category: "ingreso", source: "manual" },
+    { id: "b30", date: day2, amount: 30, merchant: "Movimiento", category: "otros", source: "ob", ent: "trade_republic" },
+    { id: "a30", date: day2, amount: 30, merchant: "Café 30", category: "otros", source: "macrodroid", ent: "trade_republic" }
+  ];
+}
+function presupuesto(s){
+  return Math.round((s.expenses || []).reduce(function(a, e){ return a + (ctx.expenseCountsBudget(e, s) ? e.amount : 0); }, 0) * 100);
+}
+test("borrar un manual enlazado y un vínculo de otro grupo coinciden con el cálculo completo", () => {
+  const bootP = ctx.reconcileGemelosAutomaticos(estado(mundoPequeno()));
+  const enlazado = bootP.expenses.map(function(e){ return e.id === "b14" ? Object.assign({}, e, { possibleDup: true, possibleDupOf: "m1" }) : e; });
+  const llamada = estado(enlazado);
+  const puesto = ctx.reconcileGemelosAutomaticos(llamada, bootP);
+  igual(puesto, completo(llamada, bootP), "el enlace al manual sin banco no se sustituye por el aviso del grupo");
+  const previo = completo(llamada, bootP);
+  const clave = ctx.expenseDeletionKey(previo.expenses.find(function(e){ return e.id === "m1"; }));
+  ["lapida", "fuera", "las dos"].forEach(function(modo){
+    const expenses = modo === "lapida" ? previo.expenses.slice() : previo.expenses.filter(function(e){ return e.id !== "m1"; });
+    const deleted = modo === "fuera" ? previo.deleted : [clave];
+    const st = Object.assign({}, previo, { expenses: expenses, deleted: deleted });
+    reset();
+    const inc = ctx.reconcileGemelosAutomaticos(st, previo);
+    const w = shot();
+    igual(inc, completo(st, previo), "borrar m1 (" + modo + "): b14 tiene que pasar al aviso de su grupo");
+    assert.equal(presupuesto(inc), presupuesto(completo(st, previo)), "el presupuesto de borrar m1 (" + modo + ")");
+    assert.ok(w.banks * 10 < bootWork.banks, "borrar m1 no reparte el histórico (" + w.banks + ")");
+  });
+  // R1: el banco de 30 € vive en otro grupo que el manual. El cálculo completo
+  // conserva ese enlace y, al borrar el manual, lo pasa a su aviso. En 561b8fe5 el
+  // banco se quedaba apuntando al manual.
+  const suelto = ctx.reconcileGemelosAutomaticos(estado(mundoPequeno()));
+  const cruce = suelto.expenses.map(function(e){ return e.id === "b30" ? Object.assign({}, e, { possibleDup: true, possibleDupOf: "m1" }) : e; });
+  const conCruce = estado(cruce);
+  const baseCruce = completo(conCruce, suelto);
+  assert.equal(baseCruce.expenses.find(function(e){ return e.id === "b30"; }).possibleDupOf, "m1", "el enlace entre grupos tiene que quedar en el manual");
+  const claveCruce = ctx.expenseDeletionKey(baseCruce.expenses.find(function(e){ return e.id === "m1"; }));
+  const stCruce = Object.assign({}, baseCruce, { deleted: [claveCruce], expenses: baseCruce.expenses.slice() });
+  const incCruce = ctx.reconcileGemelosAutomaticos(stCruce, baseCruce);
+  igual(incCruce, completo(stCruce, baseCruce), "vínculo entre grupos");
+  assert.equal(presupuesto(incCruce), presupuesto(completo(stCruce, baseCruce)));
+  assert.equal(incCruce.expenses.find(function(e){ return e.id === "b30"; }).possibleDupOf, "a30");
+  // R2: el bloque real de la sync parte de ese estado y tiene que heredar el arreglo.
+  const add = alta(40, 1);
+  reset();
+  const out = correr(add, incCruce, ctx.gemelosDeImportacion, ctx.pushGemelos, ctx.reconcileGemelosAutomaticos);
+  const trabajo = shot();
+  const estadoLlamada = Object.assign({}, out.invState, { expenses: add.concat(incCruce.expenses) });
+  igual(out.paired, completo(estadoLlamada, out.invState), "la sync real después del borrado");
+  assert.ok(trabajo.banks * 10 < bootWork.banks, "la sync real reparte " + trabajo.banks);
+  // R3: la absorción y el dueño cambian la lápida sin tocar `deleted`.
+  const owner = "11111111-1111-4111-8111-111111111111";
+  const conExt = incCruce.expenses.map(function(e){ return e.id === "b30" ? Object.assign({}, e, { extId: "ref-b30", obAcc: "ES1" }) : e; });
+  const conDueno = ctx.reconcileGemelosAutomaticos(Object.assign({}, incCruce, { expenses: conExt, _historyOwner: owner, obAbsorbedPending: [], obAbsorbedConfirmed: [] }), incCruce);
+  const fila = conDueno.expenses.find(function(e){ return e.id === "b30"; });
+  const abs = ctx.obAbsorptionKey(fila);
+  const otra = ctx.obAbsorptionKey(Object.assign({}, fila, { extId: "otra-ref" }));
+  const pending = [{ owner: owner, id: "22222222-2222-4222-8222-222222222222", key: abs, keepId: "33333333-3333-4333-8333-333333333333", keepKey: otra, merchant: "Movimiento", amount: 30 }];
+  assert.equal(ctx.obAbsorbedValid(pending[0], owner), true);
+  const stAbs = Object.assign({}, conDueno, { expenses: conDueno.expenses.slice(), obAbsorbedPending: pending });
+  igual(ctx.reconcileGemelosAutomaticos(stAbs, conDueno), completo(stAbs, conDueno), "obAbsorbedPending");
+  const stDueno = Object.assign({}, conDueno, { expenses: conDueno.expenses.slice(), _historyOwner: "44444444-4444-4444-8444-444444444444" });
+  igual(ctx.reconcileGemelosAutomaticos(stDueno, conDueno), completo(stDueno, conDueno), "_historyOwner");
+  const stConf = Object.assign({}, conDueno, { expenses: conDueno.expenses.slice(), obAbsorbedConfirmed: [] });
+  igual(ctx.reconcileGemelosAutomaticos(stConf, conDueno), completo(stConf, conDueno), "obAbsorbedConfirmed");
+});
+
+function mulberry32(seed){
+  let a = seed >>> 0;
+  return function(){
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+// Semillas fijas. Si una falla, el mensaje lleva la semilla y la cadena para repetirla.
+const SEMILLAS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+test("fuzz reproducible: cada semilla coincide con el cálculo completo", () => {
+  SEMILLAS.forEach(function(seed){
+    const rnd = mulberry32(seed);
+    const pick = function(list){ return list[Math.floor(rnd() * list.length)]; };
+    let prev = ctx.reconcileGemelosAutomaticos(estado(mundoPequeno()));
+    const chain = [];
+    for(let step = 0; step < 12; step++){
+      const op = Math.floor(rnd() * 7);
+      let expenses = prev.expenses.slice();
+      let deleted = (prev.deleted || []).slice();
+      let gemelos = (prev.gemelos || []).slice();
+      const live = expenses.filter(Boolean);
+      let label = "";
+      if(op === 0){
+        const amount = [3.5, 14.5, 30, 21][Math.floor(rnd() * 4)];
+        const id = "n" + seed + "-" + step;
+        expenses.unshift(banco(id, 20000 + step, amount));
+        label = "alta " + id + " " + amount;
+      } else if(op === 1){
+        const id = "v" + seed + "-" + step;
+        expenses.unshift(aviso(id, 21000 + step, pick(live).amount));
+        label = "aviso " + id;
+      } else if(op === 2){
+        const e = pick(live), otro = pick(live);
+        const i = expenses.findIndex(function(x){ return x.id === e.id; });
+        expenses[i] = Object.assign({}, e, { possibleDup: true, possibleDupOf: otro.id });
+        label = "enlace " + e.id + "->" + otro.id;
+      } else if(op === 3){
+        const e = pick(live);
+        deleted.push(ctx.expenseDeletionKey(e));
+        label = "lápida " + e.id;
+      } else if(op === 4 && live.length > 3){
+        const e = pick(live);
+        expenses = expenses.filter(function(x){ return x.id !== e.id; });
+        deleted.push(ctx.expenseDeletionKey(e));
+        label = "borrar " + e.id;
+      } else if(op === 5){
+        const e = pick(live);
+        const i = expenses.findIndex(function(x){ return x.id === e.id; });
+        const amount = [14.5, 30, 8, 40][Math.floor(rnd() * 4)];
+        expenses[i] = Object.assign({}, e, { amount: amount });
+        label = "importe " + e.id + " " + amount;
+      } else if(live.length > 1){
+        const a = pick(live), b = pick(live.filter(function(x){ return x.source === "ob"; }));
+        if(b){
+          gemelos = ctx.pushGemelos(gemelos, [Object.assign(ctx.gemeloDe(a, b), { at: step + 2 })]);
+          label = "decisión " + a.id + " " + b.id;
+        }
+      }
+      if(!label) continue;
+      chain.push(label);
+      const st = Object.assign({}, prev, { expenses: expenses, deleted: deleted, gemelos: gemelos });
+      const inc = ctx.reconcileGemelosAutomaticos(st, prev);
+      const full = completo(st, prev);
+      const donde = "semilla " + seed + " paso " + step + " [" + chain.join(" | ") + "]";
+      igual(inc, full, donde);
+      assert.equal(presupuesto(inc), presupuesto(full), "presupuesto " + donde);
+      prev = inc;
+    }
+  });
+});
+
 function mediana(xs){
   const s = xs.slice().sort(function(a, b){ return a - b; });
   return s[Math.floor(s.length / 2)];

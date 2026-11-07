@@ -2183,14 +2183,26 @@ function reconcileGemelosAutomaticos(s,prev){
   if(cached&&cached.gemelos===s.gemelos&&cached.deleted===s.deleted)return s;
   const old=prev&&gemeloCache.get(prev.expenses);
   const sameMeta=!!(old&&prev.gemelos===s.gemelos&&prev.deleted===s.deleted);
+  // La lápida de verdad también sale de la absorción y del dueño del histórico, no solo
+  // de `deleted`. Si esas referencias cambian, copiar el índice dejaría el emparejado
+  // de una fila que ya no cuenta (07/11/2026).
+  const mismaAbsorcion=!!(prev&&prev.obAbsorbedPending===s.obAbsorbedPending&&prev.obAbsorbedConfirmed===s.obAbsorbedConfirmed&&prev._historyOwner===s._historyOwner);
   // Cambiar categoría, nota o tarjeta no invalida ningún emparejado ni calcula fechas.
-  if(sameMeta&&rows.length===prev.expenses.length&&rows.every(function(e,i){return gemeloMismosCampos(e,prev.expenses[i]);})){
+  if(sameMeta&&mismaAbsorcion&&rows.length===prev.expenses.length&&rows.every(function(e,i){return gemeloMismosCampos(e,prev.expenses[i]);})){
     gemeloCache.set(rows,{gemelos:s.gemelos,deleted:s.deleted,index:old.index});return s;
   }
   const prior=old&&old.index;
-  const dirty=new Set(),index={ids:new Map(),groups:prior?new Map(prior.groups):new Map()};
-  rows.forEach(function(e){if(!e)return;index.ids.set(e.id,e);if(!prior||!gemeloMismosCampos(e,prior.ids.get(e.id))){dirty.add(gemeloDatos(e).grupo);if(prior&&prior.ids.has(e.id))dirty.add(gemeloDatos(prior.ids.get(e.id)).grupo);}});
-  if(prior)prior.ids.forEach(function(e,id){if(!index.ids.has(id))dirty.add(gemeloDatos(e).grupo);});
+  const dirty=new Set(),changed=new Set(),index={ids:new Map(),groups:prior?new Map(prior.groups):new Map()};
+  rows.forEach(function(e){
+    if(!e)return;
+    index.ids.set(e.id,e);
+    if(!prior||!gemeloMismosCampos(e,prior.ids.get(e.id))){
+      changed.add(e.id);
+      dirty.add(gemeloDatos(e).grupo);
+      if(prior&&prior.ids.has(e.id)) dirty.add(gemeloDatos(prior.ids.get(e.id)).grupo);
+    }
+  });
+  if(prior)prior.ids.forEach(function(e,id){if(!index.ids.has(id)){changed.add(id);dirty.add(gemeloDatos(e).grupo);}});
   function gemeloFirmaDecision(g){
     if(!g||typeof g!=="object") return "\u0000";
     return [g.avisoId||"",typeof g.aviso==="string"?g.aviso:"\u0000",typeof g.banco==="string"?g.banco:"\u0000",g.separado?1:0,g.auto?1:0,g.at||0,g.ent||"",g.bankRef||"",g.bankRefV||"",g.bankRefSign||""].join("\u0001");
@@ -2259,11 +2271,94 @@ function reconcileGemelosAutomaticos(s,prev){
   /* El `set` de la sync compara con el estado de ANTES de anotar los vínculos. Si además
      las notas rehacen el array, gemelos y lápidas ya no son la misma referencia y el
      índice se tiraba: otra pasada por todo el histórico (31/10/2026). El índice sigue
-     valiendo. Solo se recalientan los grupos del vínculo o la lápida que cambió; si una
-     decisión no se localiza en las filas, se recalienta todo — el mismo resultado de
-     hoy, no otro. La separación de un par roto no entra por aquí: sin la misma
-     referencia de gemelos el cálculo completo tampoco separaba. */
+     valiendo. Una lápida o un id que desaparece no vive siempre en el grupo de quien
+     le apunta: un manual sin banco no tiene grupo, y el banco que lo tenía de gemelo
+     seguiría oculto contra una fila ya borrada (07/11/2026). Se recalienta ese grupo,
+     y el otro lado de una decisión que toque un grupo ya sucio. Si una decisión no se
+     localiza en las filas, se recalienta todo — el mismo resultado de hoy, no otro.
+     La separación de un par roto no entra por aquí: sin la misma referencia de gemelos
+     el cálculo completo tampoco separaba. */
+  function gemeloIdsDeClave(key,list){
+    const solo=Object.create(null); solo[String(key)]=1; const out=[];
+    (list||[]).forEach(function(e){
+      if(!e||(e.amount===0&&esFilaDeBanco(e))) return;
+      if(expenseIsTombstoned(e,solo)) out.push(e);
+    });
+    return out;
+  }
+  function gemeloMarcarId(e){
+    if(!e||e.id==null) return;
+    changed.add(e.id); const g=gemeloDatos(e).grupo; if(g) dirty.add(g);
+  }
+  // `deleted` no es la única lápida: la absorción y el dueño del histórico también
+  // deciden qué fila cuenta. Un banco a cero ya está lápida siempre y no se atribuye
+  // a cada clave.
+  function gemeloMarcarLapidas(){
+    if(!prev||!prior) return;
+    const confirmadoIgual=prev.obAbsorbedConfirmed===s.obAbsorbedConfirmed&&prev._historyOwner===s._historyOwner;
+    const clavesIguales=prev.deleted===s.deleted&&prev.obAbsorbedPending===s.obAbsorbedPending&&prev._historyOwner===s._historyOwner;
+    if(confirmadoIgual&&clavesIguales) return;
+    if(!confirmadoIgual){
+      const da=expenseDeletedSet(prev),db=expenseDeletedSet(s);
+      const mira=function(e){
+        if(!e||e.id==null||(e.amount===0&&esFilaDeBanco(e))) return;
+        if(!!expenseIsTombstoned(e,da)!==!!expenseIsTombstoned(e,db)) gemeloMarcarId(e);
+      };
+      rows.forEach(mira); prior.ids.forEach(mira);
+    }
+    if(clavesIguales) return;
+    const ca=new Set(Object.keys(expenseDeletedSet(prev)||{})),cb=new Set(Object.keys(expenseDeletedSet(s)||{}));
+    const marcar=function(key){
+      gemeloIdsDeClave(key,rows).forEach(gemeloMarcarId);
+      prior.ids.forEach(function(e){
+        const solo=Object.create(null); solo[String(key)]=1;
+        if(e&&!(e.amount===0&&esFilaDeBanco(e))&&expenseIsTombstoned(e,solo)) gemeloMarcarId(e);
+      });
+    };
+    cb.forEach(function(k){ if(!ca.has(k)) marcar(k); });
+    ca.forEach(function(k){ if(!cb.has(k)) marcar(k); });
+  }
+  function gemeloMarcarApuntes(){
+    if(!changed.size) return;
+    const mira=function(e){
+      if(!e) return;
+      const refs=[e.possibleDupOf,e.autoGemelo,e.gemeloSeparado];
+      for(let i=0;i<refs.length;i++) if(refs[i]!=null&&(changed.has(refs[i])||changed.has(String(refs[i])))){ const g=gemeloDatos(e).grupo; if(g) dirty.add(g); return; }
+    };
+    rows.forEach(mira); prior.ids.forEach(mira);
+  }
+  // Un vínculo cruza grupos. Si solo se recalienta uno, el otro lado conserva el
+  // importe que el cálculo completo ya ocultó, o al revés.
+  function gemeloPropagar(){
+    const live=gemeloIndiceVivo(rows);
+    for(let guard=0;guard<8;guard++){
+      let grew=false;
+      const mark=function(g){ if(g&&!dirty.has(g)){ dirty.add(g); grew=true; } };
+      [prev&&prev.gemelos,s&&s.gemelos].forEach(function(list){
+        (list||[]).forEach(function(g){
+          const grupos=gemeloGruposDeDecision(g,live);
+          if(!grupos||!grupos.some(function(k){ return dirty.has(k); })) return;
+          grupos.forEach(mark);
+        });
+      });
+      rows.forEach(function(e){
+        if(!e) return;
+        const g=gemeloDatos(e).grupo;
+        if(!g||!dirty.has(g)) return;
+        [e.possibleDupOf,e.autoGemelo,e.gemeloSeparado].forEach(function(id){
+          if(id==null) return;
+          const otro=live.byId.get(String(id));
+          if(otro) mark(gemeloDatos(otro).grupo);
+        });
+      });
+      if(!grew) return;
+    }
+    rows.forEach(function(e){ if(e) dirty.add(gemeloDatos(e).grupo); });
+  }
   function gemeloSuciasPorDecision(dirty,rows,prev,s){
+    gemeloMarcarLapidas();
+    gemeloMarcarApuntes();
+    gemeloPropagar();
     const firmaClave=function(k){ return String(k); };
     const ga=gemeloCuenta(prev&&prev.gemelos,gemeloFirmaDecision),gb=gemeloCuenta(s&&s.gemelos,gemeloFirmaDecision);
     const da=gemeloCuenta(prev&&prev.deleted,firmaClave),db=gemeloCuenta(s&&s.deleted,firmaClave);
@@ -2296,8 +2391,12 @@ function reconcileGemelosAutomaticos(s,prev){
     return true;
   }
 
-  if(prior&&!sameMeta&&!gemeloSuciasPorDecision(dirty,rows,prev,s)){
-    rows.forEach(function(e){ if(e) dirty.add(gemeloDatos(e).grupo); });
+  // La sync de cada importación entra con la misma referencia de gemelos y de
+  // lápidas (sameMeta): el marcado de apuntes tiene que correr igual, no solo cuando
+  // cambia una decisión. Recalentar todo queda para la decisión que no se localiza.
+  if(prior){
+    const acotado=gemeloSuciasPorDecision(dirty,rows,prev,s);
+    if(!sameMeta&&!acotado) rows.forEach(function(e){ if(e) dirty.add(gemeloDatos(e).grupo); });
   }
   dirty.forEach(function(k){index.groups.set(k,[]);});
   rows.forEach(function(e){if(e&&dirty.has(gemeloDatos(e).grupo))index.groups.get(gemeloDatos(e).grupo).push(e);});
@@ -2312,13 +2411,25 @@ function reconcileGemelosAutomaticos(s,prev){
     });
     if(split.size)return reconcileGemelosAutomaticos(Object.assign({},s,{gemelos:decisions,expenses:rows.map(function(e){return split.get(e.id)||e;})}));
   }
-  const workRows=[];dirty.forEach(function(k){workRows.push.apply(workRows,index.groups.get(k));});
+  const workRows=[];dirty.forEach(function(k){const g=index.groups.get(k);if(g)workRows.push.apply(workRows,g);});
+  // El manual sin banco no entra en ningún grupo. Si el banco sucio le apunta, tiene
+  // que estar en el mapa o el reparto parcial lo sustituye por el aviso del grupo.
+  const visto=new Set(); workRows.forEach(function(e){ if(e&&e.id!=null) visto.add(e.id); });
+  const extras=[];
+  workRows.forEach(function(e){
+    if(!e) return;
+    [e.possibleDupOf,e.autoGemelo,e.gemeloSeparado].forEach(function(id){
+      if(id==null||visto.has(id)) return;
+      const t=index.ids.get(id); if(!t||visto.has(t.id)) return;
+      visto.add(t.id); extras.push(t);
+    });
+  });
   const ids={},porClave={},bancos={},groups=new Map(),used=new Set(),occupied=new Set(),destinos=new Map();
   const deleted=expenseDeletedSet(s),prevIds=new Set((prev&&prev.expenses||[]).map(function(e){return e.id;}));
-  workRows.forEach(function(e){
+  workRows.concat(extras).forEach(function(e){
     if(!e||expenseIsTombstoned(e,deleted))return;ids[e.id]=e;porClave[gemeloAvisoKey(e)]=e;
     if(gemeloBancoAutomatico(e))bancos[expenseBankOf(e)+"|"+keyOfExpense(e)]=e;
-    const d=gemeloDatos(e);if(!d.grupo)return;if(!groups.has(d.grupo))groups.set(d.grupo,[]);groups.get(d.grupo).push(e);
+    const d=gemeloDatos(e);if(!d.grupo||!dirty.has(d.grupo))return;if(!groups.has(d.grupo))groups.set(d.grupo,[]);groups.get(d.grupo).push(e);
   });
   let gemelos=s.gemelos||[];
   const reserve=function(b,a,auto){if(occupied.has(b.id)||used.has(a.id))return false;used.add(a.id);occupied.add(b.id);destinos.set(b.id,{id:a.id,auto:auto});return true;};
