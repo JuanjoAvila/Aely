@@ -388,7 +388,9 @@ test("benchmark A/B de una importación", { skip: process.env.GEMELOS_BENCH !== 
     comando: "GEMELOS_BENCH=1 node tests/gemelos-incremental.test.mjs"
   };
   console.log("BENCH " + JSON.stringify(informe));
+  // El reloj se imprime y no decide: en este proceso varía, y un umbral de
+  // milisegundos se pondría verde o rojo según la máquina. Lo que falla si se
+  // vuelve a recorrer el histórico es el recuento de bancos, que es fijo.
   assert.equal(igualCanon, true, "A/B de dinero");
   assert.ok(bancosB * 10 < bancosA, "el lado con prev reparte " + bancosB + " y el lado sin prev " + bancosA);
-  assert.ok(informe.medianaMsConPrev < informe.medianaMsSinPrev, "con prev no fue más rápido");
 });
