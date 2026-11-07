@@ -159,17 +159,8 @@ async function abreTusRecibos(page) {
     await billsBtn.evaluate((el) => el.click());
   } else {
     await page.locator('.botnav-tab[data-tour="plan"]').click();
-    const recibos = page.locator('.v4-screen > [data-seg="recibos"]');
-    // Sin recibos apuntados Plan monta solo la tarjeta de primer uso: «Todos» no existe y
-    // «Empezar» abre Gestionar igual que openManage (revisión animaciones 2026-11).
-    const empezar = recibos.getByTestId("plan-empezar");
-    if (await empezar.count()) {
-      // «Empezar» dispara addNow y tapa el vacío con el alta; mc-open-bills es openManage.
-      await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-open-bills")));
-    } else {
-      const nombre = await page.evaluate(() => t("pr6_todos"));
-      await recibos.getByRole("button", { name: nombre, exact: true }).click();
-    }
+    const nombre = await page.evaluate(() => t("pr6_todos"));
+    await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button", { name: nombre, exact: true }).click();
   }
   await expect(hub(page)).toBeVisible();
 }
@@ -216,7 +207,8 @@ test("Gestionar abre «Tus recibos», sin la app vieja y sin segunda puerta al b
 test("cuatro grupos con su cuenta, y el de una sola vez no dice «al mes»", async ({ page }) => {
   await appLista(page);
   await abreTusRecibos(page);
-  // Cuatro bloques de recibos + Personas (SPEC §3) cuando hay fijos apuntados.
+  // docs/design/plan-recibos/SPEC.md §3: cuatro secciones de contenido + fila Personas (§6)
+  // cuando hay al menos un fijo (`14-v4-screens.js`, tanda plan-recibos-t5).
   await expect(hub(page).locator(".v4-bills-group")).toHaveCount(5);
   await expect(hub(page).locator('[data-group="people"]')).toContainText("Personas");
   await expect(grupo(page, "Servicios y suministros")).toContainText("3 recibos");
@@ -992,13 +984,22 @@ test("Deshacer el borrado de un recibo con su cargo en Gastos lo deja como estab
 });
 
 test("sin nada apuntado: una tarjeta que explica", async ({ page }) => {
-  await appLista(page, { fixed: [], debts: [], flows: [], oneoffs: [] });
+  // Con el plan vacío no hay «Todos» (solo plan-onb + «Empezar») y «Empezar» abre el alta con
+  // addNow: al cerrar la hoja se cierra Gestionar entero (`closePasos` + editOnly). No hay puerta
+  // Plan→hub vacío sin pasar por el alta; el vacío de la tarjeta vive en Gestionar tras vaciarlo.
+  const min = { id: "solo", name: "Solo", amount: 1, freq: "mes", account: "sabadell", day: 1 };
+  await appLista(page, { fixed: [min], debts: [], flows: [], oneoffs: [] });
   await abreTusRecibos(page);
-  const empty=hub(page).locator(".v4-empty[data-bills-empty]");
+  await grupo(page, "Servicios y suministros").click();
+  await fila(page, "Solo").click();
+  await pasos(page).locator('[data-act="bill-remove"]').click();
+  await pasos(page).locator('[data-act="bill-remove"]').click();
+  await hub(page).locator(':scope > .v4-bills-push > [data-screen="bills-group"] > .settings-push-h .back').click();
+  const empty = hub(page).locator(".v4-empty[data-bills-empty]");
   await expect(empty).toContainText("Aún no hay recibos");
   await expect(empty).toContainText("Conecta tu banco y los detecto solos.");
-  await empty.getByRole("button",{name:/Añadir un recibo/}).click();
-  await expect(pasos(page)).toHaveAttribute("data-paso","0");
+  await empty.getByRole("button", { name: /Añadir un recibo/ }).click();
+  await expect(pasos(page)).toHaveAttribute("data-paso", "0");
 });
 
 test("buscar algo que no existe lo dice, y un nombre larguísimo no rompe el ancho", async ({ page }) => {
