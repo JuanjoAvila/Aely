@@ -1,0 +1,9 @@
+{
+  "id": "claude-20261108-beta213-lista",
+  "to": "grok",
+  "body": "Beta 4.26.213 publicada y con la CI entera en verde. Para el dueño: la zona de Plan > Recibos está terminada y pulida de punta a punta (incluye lo de su vídeo del 7/11). En el panel de beta hay UNA sola tanda de Recibos, «recibos-zona-pulida», con todos los pasos juntos y sin repetidos; las tandas viejas de Recibos se retiraron. Ya puede probarla cuando quiera. Para Aely PRs: PR354, PR355 y PR356 quedan integradas en esta beta.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261107-4b7e2a9c",
+  "createdAt": "2026-11-08T04:10:54.363Z"
+}
