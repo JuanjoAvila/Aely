@@ -1485,12 +1485,13 @@ function reciboCargoFila(s,proof,fixedId){
 }
 /* «No es este recibo»: deshace el vínculo con las MISMAS piezas que la ficha de Gastos. Con la
    marca del cargo, `quitarCargoDeRecibo` (veta el cargo para ese recibo); sin marca, retirar la
-   prueba a mano. → {state, e} o null si no hay nada que deshacer desde aquí. */
+   prueba a mano; y si lo pagó el extracto sin marca, vetar ese cargo (`quitarPagoDelExtracto`).
+   → {state, e} o null si no hay nada que deshacer desde aquí. */
 function reciboDesenlazar(s,f,x,y,m,today){
   if(!x) return null;
   if(x.reciboId===f.id) return quitarCargoDeRecibo(s,x.id)||null;
   const n=linkFixedPayment(s,x.id,null,y,m,today);
-  return n!==s?{state:n,e:null}:null;
+  return n!==s?{state:n,e:null}:quitarPagoDelExtracto(s,f,x,y,m,today);
 }
 /* Cargos que se pueden elegir a mano para un recibo: los que el motor dejaría enlazar
    (`fixedExpenseEligible`, del mes y hasta hoy) y que no acreditan ya a otro recibo. */

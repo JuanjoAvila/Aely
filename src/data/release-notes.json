@@ -1,5 +1,38 @@
 [
   {
+    "v": "4.26.214",
+    "d": "2026-11-08",
+    "t": {
+      "es": "Recibos: atrás paso a paso, hojas que se cierran tirando y pagos que se marcan solos",
+      "en": "Bills: step-by-step back, sheets that close by pulling down and payments that tick themselves",
+      "ca": "Rebuts: enrere pas a pas, fulls que es tanquen estirant i pagaments que es marquen sols"
+    },
+    "items": {
+      "es": [
+        "Recibos: «atrás» en el asistente para dar de alta un recibo va paso a paso, y la hoja se cierra tirando hacia abajo.",
+        "«Ya está pagado» vuelve a un tamaño normal, junto a Editar y Pausar.",
+        "«¿Me lo puedo permitir?» se escribe con fluidez, sin que la pantalla salte.",
+        "Al elegir los meses de un recibo se ven siempre los meses seleccionables.",
+        "Los recibos domiciliados se marcan como pagados solos cuando llega el cargo del banco."
+      ],
+      "en": [
+        "Bills: \"back\" in the new-bill wizard goes step by step, and the sheet closes by pulling it down.",
+        "\"It's paid\" is back to a normal size, next to Edit and Pause.",
+        "\"Can I afford it?\" is typed smoothly, without the screen jumping.",
+        "When choosing the months of a bill, the selectable months are always visible.",
+        "Direct-debit bills are marked as paid on their own when the bank charge arrives."
+      ],
+      "ca": [
+        "Rebuts: «enrere» a l'assistent per donar d'alta un rebut va pas a pas, i el full es tanca estirant cap avall.",
+        "«Ja està pagat» torna a una mida normal, al costat d'Editar i Pausar.",
+        "«M'ho puc permetre?» s'escriu amb fluïdesa, sense que la pantalla salti.",
+        "En triar els mesos d'un rebut es veuen sempre els mesos seleccionables.",
+        "Els rebuts domiciliats es marquen com a pagats sols quan arriba el càrrec del banc."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.213",
     "d": "2026-11-07",
     "t": {
@@ -53,7 +86,9 @@
             "14. Recibos → «Te deben» (si alguien te debe algo). BIEN: «Ya me lo ha pagado» es un botón pequeño a la derecha; al tocarlo pasa a «Te lo ha pagado · Deshacer» y «Queda por pagar» no se mueve. MAL: botón a todo el ancho o cambia lo que te queda por pagar.",
             "15. Recibos → «Te llega» → toca «¿Y si gasto…?»; luego Gestionar → «¿Me lo puedo permitir?» → toca el importe. BIEN: el teclado sale entero y la pantalla sube suave, sin tirones. MAL: no pasa nada, el teclado queda tapado o va a saltos.",
             "16. Gestionar → «+» → hasta «¿Cuándo se cobra?» y tira de la hoja hacia abajo desde el centro. BIEN: sigue al dedo; poco y vuelve a su sitio, mucho y se cierra bajando. MAL: no se mueve o la lista de días se estira.",
-            "17. Toca un recibo de «Pendiente». BIEN: «Ya está pagado» es un botón verde del tamaño de «Editar» y «Pausar», en la misma fila. MAL: ocupa todo el ancho."
+            "17. Toca un recibo de «Pendiente». BIEN: «Ya está pagado» es un botón verde del tamaño de «Editar» y «Pausar», en la misma fila. MAL: ocupa todo el ancho.",
+            "18. Plan → Recibos: un recibo cuyo cargo ya salió en el banco, aunque el banco lo llame de otra forma. BIEN: está en «Ya pagados» con el importe y el día del cargo, sin hacer nada. MAL: sigue en «Pendiente» o en «Para revisar».",
+            "19. Dos recibos del mismo importe y día, o un recibo devuelto por el banco. BIEN: ninguno se da por pagado solo. MAL: se marca el que no es, o un cargo paga dos recibos."
           ],
           "en": [
             "1. Plan → Bills. Scroll slowly to the bottom and back up. RIGHT: nothing passes under the clock and icons at the top (the title, Bills/Debts/Goals and the card hide under a strip the colour of the background); in light theme there is no grey strip on the left edge. WRONG: text or buttons show under the clock, or a grey shadow sticks to the left edge.",
@@ -72,7 +107,9 @@
             "14. Bills → \"Owed to you\" (if someone owes you something). RIGHT: \"They've paid me\" is a small button on the right; tapping it turns into \"Paid you · Undo\" and \"Still to pay\" does not move. WRONG: a full-width button, or what you have left to pay changes.",
             "15. Bills → \"You're covered\" → tap \"What if I spend…?\"; then Manage → \"Can I afford it?\" → tap the amount. RIGHT: the keyboard shows in full and the screen moves up smoothly, without stutter. WRONG: nothing happens, the keyboard is covered, or it moves in jerks.",
             "16. Manage → \"+\" → up to \"When is it charged?\" and pull the sheet down from the middle. RIGHT: it follows your finger; a little and it goes back, a lot and it closes downwards. WRONG: it doesn't move, or the list of days stretches.",
-            "17. Tap a bill in \"Pending\". RIGHT: \"It's paid\" is a green button the size of \"Edit\" and \"Pause\", in the same row. WRONG: it takes the full width."
+            "17. Tap a bill in \"Pending\". RIGHT: \"It's paid\" is a green button the size of \"Edit\" and \"Pause\", in the same row. WRONG: it takes the full width.",
+            "18. Plan → Bills: a bill whose charge is already in the bank, even if the bank names it differently. RIGHT: it is in \"Already paid\" with the amount and day of the charge, without doing anything. WRONG: it stays in \"Pending\" or \"To review\".",
+            "19. Two bills with the same amount and day, or a bill the bank returned. RIGHT: neither is marked paid on its own. WRONG: the wrong one is marked, or one charge pays two bills."
           ],
           "ca": [
             "1. Pla → Rebuts. Baixa a poc a poc fins a baix i torna a dalt. BÉ: res passa per sota de l'hora i les icones de dalt (el títol, Rebuts/Deutes/Metes i la targeta s'amaguen sota una franja del color del fons); en tema clar no hi ha cap franja grisa a la vora esquerra. MALAMENT: es veu text o botons sota l'hora, o una ombra grisa enganxada a la vora esquerra.",
@@ -91,7 +128,9 @@
             "14. Rebuts → «Et deuen» (si algú et deu alguna cosa). BÉ: «Ja m'ho ha pagat» és un botó petit a la dreta; en tocar-lo passa a «T'ho ha pagat · Desfer» i «Queda per pagar» no es mou. MALAMENT: botó a tota l'amplada o canvia el que et queda per pagar.",
             "15. Rebuts → «T'arriba» → toca «I si gasto…?»; després Gestionar → «M'ho puc permetre?» → toca l'import. BÉ: el teclat surt sencer i la pantalla puja suau, sense estrebades. MALAMENT: no passa res, el teclat queda tapat o va a salts.",
             "16. Gestionar → «+» → fins a «Quan es cobra?» i estira el full cap avall des del mig. BÉ: segueix el dit; poc i torna al seu lloc, molt i es tanca baixant. MALAMENT: no es mou o la llista de dies s'estira.",
-            "17. Toca un rebut de «Pendent». BÉ: «Ja està pagat» és un botó verd de la mida d'«Editar» i «Pausar», a la mateixa fila. MALAMENT: ocupa tota l'amplada."
+            "17. Toca un rebut de «Pendent». BÉ: «Ja està pagat» és un botó verd de la mida d'«Editar» i «Pausar», a la mateixa fila. MALAMENT: ocupa tota l'amplada.",
+            "18. Pla → Rebuts: un rebut el càrrec del qual ja ha sortit al banc, encara que el banc l'anomeni d'una altra manera. BÉ: és a «Ja pagats» amb l'import i el dia del càrrec, sense fer res. MALAMENT: continua a «Pendent» o a «Per revisar».",
+            "19. Dos rebuts del mateix import i dia, o un rebut que el banc ha retornat. BÉ: cap no es dona per pagat sol. MALAMENT: es marca el que no és, o un càrrec paga dos rebuts."
           ]
         }
       }

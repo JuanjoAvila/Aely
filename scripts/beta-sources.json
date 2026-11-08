@@ -1622,6 +1622,58 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseSourcePatch"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCasa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isAtmWithdrawal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -3272,6 +3324,54 @@
       {
         "file": "src/modules/00-core.js",
         "data": "ownTransferRecent"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCasa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isAtmWithdrawal"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "native": [
@@ -4752,6 +4852,54 @@
       {
         "file": "src/modules/00-core.js",
         "data": "ownTransferRecent"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCasa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isAtmWithdrawal"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "native": [
@@ -5712,6 +5860,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentPersistedDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_ALIAS_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "native": [
@@ -7221,6 +7409,58 @@
       {
         "file": "src/modules/00-core.js",
         "data": "ownTransferRecent"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCasa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isAtmWithdrawal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "native": [
@@ -8701,6 +8941,54 @@
       {
         "file": "src/modules/00-core.js",
         "data": "ownTransferRecent"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCasa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isAtmWithdrawal"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "native": [
@@ -10814,6 +11102,58 @@
       {
         "file": "src/modules/00-core.js",
         "data": "ownTransferRecent"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCasa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isAtmWithdrawal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -13689,6 +14029,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "ownTransferRecent"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -15075,6 +15447,54 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCasa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isAtmWithdrawal"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -16540,6 +16960,54 @@
       {
         "file": "src/modules/00-core.js",
         "data": "ownTransferRecent"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCasa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isAtmWithdrawal"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "native": [
@@ -17079,6 +17547,62 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_mcSandboxPinned"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCasa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isAtmWithdrawal"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "sinComercioReal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ]
   },
@@ -18650,6 +19174,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -22875,6 +23431,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "edge": [
@@ -25161,6 +25749,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -26949,6 +27569,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -27913,6 +28565,78 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentPersistedDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCasa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCargoCercano"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isAtmWithdrawal"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "sinComercioReal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_ALIAS_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
       }
     ],
     "unidades": true
@@ -29097,6 +29821,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -31252,6 +32008,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -32732,6 +33520,54 @@
       {
         "file": "src/modules/00-core.js",
         "data": "ownTransferRecent"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCasa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isAtmWithdrawal"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "native": [
@@ -34006,6 +34842,38 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseSourcePatch"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -35471,6 +36339,54 @@
       {
         "file": "src/modules/00-core.js",
         "data": "ownTransferRecent"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCasa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isAtmWithdrawal"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "native": [
@@ -36903,6 +37819,58 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseSourcePatch"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCasa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isAtmWithdrawal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -38170,6 +39138,38 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseSourcePatch"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "edge": [
@@ -40012,6 +41012,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "edge": [
@@ -41475,6 +42507,62 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentPersistedDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCasa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCargoCercano"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_ALIAS_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -43727,6 +44815,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "edge": [
@@ -45331,6 +46451,62 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentPersistedDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCasa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCargoCercano"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_ALIAS_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -46769,6 +47945,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -48784,6 +49992,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -49961,6 +51201,58 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentPersistedDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCasa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCargoCercano"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_ALIAS_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -52232,6 +53524,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "edge": [
@@ -54098,6 +55422,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -55714,6 +57070,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -57100,6 +58488,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -58395,6 +59815,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -59602,6 +61054,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -60882,6 +62366,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -61804,6 +63320,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -63004,6 +64552,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -64122,6 +65702,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -65745,6 +67357,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -66827,6 +68471,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -68101,6 +69777,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -69166,6 +70874,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -70426,6 +72166,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "native": [
@@ -71739,6 +73511,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -73445,6 +75249,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -74796,6 +76632,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -76060,6 +77928,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "native": [
@@ -77337,6 +79237,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -77790,6 +79722,70 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "REPARTO_VIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCasa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isAtmWithdrawal"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "sinComercioReal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
       }
     ],
     "unidades": true
@@ -78743,6 +80739,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -80922,6 +82950,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -83136,6 +85196,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -84666,6 +86758,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -85938,6 +88062,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "native": [
@@ -86897,6 +89053,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -88066,6 +90254,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -89280,6 +91500,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -90931,6 +93183,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "edge": [
@@ -92060,6 +94344,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -93222,6 +95538,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "edge": [
@@ -94448,6 +96796,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -96058,6 +98438,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -97725,6 +100137,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -99296,6 +101740,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -100862,6 +103338,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -102424,6 +104932,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -103782,6 +106322,62 @@
       {
         "file": "src/modules/00-core.js",
         "data": "ownTransferRecent"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCasa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCargoCercano"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isAtmWithdrawal"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_ALIAS_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -105494,6 +108090,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -107096,6 +109724,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -108665,6 +111325,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -110294,6 +112986,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -110681,6 +113405,70 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedCargoBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCasa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isAtmWithdrawal"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "sinComercioReal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
       }
     ],
     "unidades": true
@@ -111254,6 +114042,70 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "REPARTO_VIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCasa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isAtmWithdrawal"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "sinComercioReal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
       }
     ],
     "unidades": true
@@ -112928,6 +115780,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -114594,6 +117478,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -116120,6 +119036,42 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "quitarPagoDelExtracto"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -117473,6 +120425,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -118932,6 +121916,42 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "quitarPagoDelExtracto"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -120136,6 +123156,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "edge": [
@@ -121831,6 +124883,42 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "quitarPagoDelExtracto"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -123107,6 +126195,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -124214,6 +127334,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "native": [
@@ -124731,6 +127883,70 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "REPARTO_VIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCasa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isAtmWithdrawal"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "sinComercioReal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
       }
     ],
     "unidades": true
@@ -126203,6 +129419,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -127332,6 +130580,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -129213,6 +132493,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -130823,6 +134135,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -132417,6 +135761,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -132854,6 +136230,70 @@
       {
         "file": "src/modules/00-core.js",
         "data": "obConfirmedReadCache"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCasa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isAtmWithdrawal"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "sinComercioReal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
       }
     ],
     "native": [
@@ -134241,6 +137681,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -135330,6 +138802,38 @@
       {
         "file": "src/modules/00-core.js",
         "function": "ownTransferNear"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -136855,6 +140359,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -138457,6 +141993,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -139807,6 +143375,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -141317,6 +144917,38 @@
       {
         "file": "src/modules/00-core.js",
         "function": "mobilityCategoryOfNewMerchant"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -142391,6 +146023,38 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "reciboPagadoCon"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -143654,6 +147318,38 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "reciboNombreCasa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
       }
     ],
     "unidades": true
@@ -145193,6 +148889,38 @@
         "data": "MANUAL_BALANCE_TYPED"
       },
       {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
         "file": "src/modules/00-core.js",
         "function": "withNotaFallback"
       },
@@ -145706,6 +149434,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentPersistedDay"
       },
       {
@@ -145966,7 +149702,19 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "recFrase"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
       },
       {
         "file": "src/modules/00-core.js",
@@ -146133,6 +149881,18 @@
         "function": "saldoLoMandaPuenteNativo"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "isAtmWithdrawal"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCasa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaAliasKey"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "recSane"
       },
@@ -146199,6 +149959,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "flowEarlyBankMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catKey"
       },
       {
         "file": "src/modules/00-core.js",
@@ -146393,6 +150157,14 @@
         "data": "DEUDA_CAT"
       },
       {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
         "file": "src/modules/01-i18n.js",
         "data": "_pdCache"
       },
@@ -146470,6 +150242,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_MAX"
       },
       {
@@ -146507,10 +150287,6 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "CUOTA_MESES"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "data": "CUOTA_DIAS"
       },
       {
         "file": "src/modules/00-core.js",
@@ -146777,20 +150553,8 @@
         "function": "cuotasUsadas"
       },
       {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "cuotaCasa"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "cuotaAliasKey"
-      },
-      {
         "file": "src/modules/00-core.js",
         "function": "categoryOfNewMerchant"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "catKey"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -146799,10 +150563,6 @@
       {
         "file": "src/modules/00-core.js",
         "function": "autoCategoryKw"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "isAtmWithdrawal"
       },
       {
         "file": "src/modules/00-core.js",

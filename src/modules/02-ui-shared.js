@@ -1184,7 +1184,7 @@ function settingsDeps(settings, keys){
    sería una cifra vieja. Se declaran todos los que leen ellas y su cierre de llamadas, y el
    guardián (`tests/inicio-deps-ajustes.test.mjs`) muta cada uno y busca los que falten.
    `accountBalanceHistory` y `settings` van aparte (`netWorthHistoryKey`, `settingsDeps`). */
-const NET_WORTH_STATE=["_historyOwner","accounts","aportaciones","assetValueHistory","assets","bankDismissed","bankTx","debts","deleted","expenses","fixed","flows","fx","fxRates","invHistory","investments","obAbsorbedConfirmed","obAbsorbedPending","obAccounts","oneoffs","reciboBorrado","reciboNo","shared"];
+const NET_WORTH_STATE=["_historyOwner","accounts","aportaciones","assetValueHistory","assets","bankDismissed","bankTx","cuotaAlias","debts","deleted","expenses","fixed","flows","fx","fxRates","invHistory","investments","obAbsorbedConfirmed","obAbsorbedPending","obAccounts","oneoffs","reciboBorrado","reciboNo","shared"];
 const BUDGET_STATE=["_historyOwner","accounts","budget","deleted","expenses","fixed","flows","obAbsorbedConfirmed","obAbsorbedPending","oneoffs","reciboBorrado","reciboNo","reservaLog"];
 function stateDeps(state, keys){
   const s=state||{};
