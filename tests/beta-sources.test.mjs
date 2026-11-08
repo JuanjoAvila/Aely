@@ -349,7 +349,11 @@ const inicioOnly=process.argv.includes("--inicio-v42-only");
 // 40-70 min de la suite). El reparto sale del orden de aparición, así que N trozos cubren los mismos tests que uno.
 const shardM=/^(\d+)\/(\d+)$/.exec(process.env.BETA_SOURCES_SHARD||""),shardN=shardM?+shardM[2]:1,shardI=shardM?+shardM[1]-1:0;
 let shardSeq=0,shardRan=0;
-function test(name,fn){ if(only&&!name.includes(only))return; if(inicioOnly&&!name.startsWith("Inicio v4.2 ")&&!name.startsWith("Catálogo133 ")&&!name.startsWith("Retiro133 ")&&!name.startsWith("Retiro132 ")&&!name.startsWith("Catálogo132 ")&&!name.startsWith("Retiro131 ")&&!name.startsWith("Catálogo131 ")&&!name.startsWith("Retiro130 ")&&!name.startsWith("Catálogo130 ")&&!name.startsWith("Catálogo129 ")&&!name.startsWith("Catálogo128 ")&&!name.startsWith("Catálogo127 ")&&!name.startsWith("Catálogo126 ")&&!name.startsWith("Retiro126 ")&&!name.startsWith("Catálogo125 ")&&!name.startsWith("Retiro125 ")&&!name.startsWith("Catálogo124 ")&&!name.startsWith("Retiro124 ")&&!name.startsWith("Catálogo123 ")&&!name.startsWith("Catálogo122 ")&&!name.startsWith("Catálogo121 ")&&!name.startsWith("Catálogo120 ")&&!name.startsWith("Catálogo114 ")&&!name.startsWith("Catálogo117 ")&&!name.startsWith("Retiro117 ")&&!name.startsWith("Catálogo118 ")&&!name.startsWith("Splash117 ")&&!name.startsWith("Catálogo119 ")&&!name.startsWith("Retiro119 "))return;if(shardSeq++%shardN!==shardI)return;shardRan++;const t0=Date.now(),ms=()=>timing?" ["+(Date.now()-t0)+" ms]":"";try{fn();console.log("  ✓ "+name+ms());}catch(e){failed++;console.error("  ✗ "+name+ms()+"\n    "+e.message);} }
+// Los inventarios de mutantes recorren TODO el registro y son un solo test de más de 15 min: ninguno se puede
+// asignar entero a un trozo sin que ese trozo sea el cuello de botella. Corren en todos los trozos (`everyShard`) y
+// cada uno muta solo los alcances que le tocan (`mineScope`); el recuento del inventario sigue siendo el total.
+const mineScope=i=>i%shardN===shardI;
+function test(name,fn,everyShard){ if(only&&!name.includes(only))return; if(inicioOnly&&!name.startsWith("Inicio v4.2 ")&&!name.startsWith("Catálogo133 ")&&!name.startsWith("Retiro133 ")&&!name.startsWith("Retiro132 ")&&!name.startsWith("Catálogo132 ")&&!name.startsWith("Retiro131 ")&&!name.startsWith("Catálogo131 ")&&!name.startsWith("Retiro130 ")&&!name.startsWith("Catálogo130 ")&&!name.startsWith("Catálogo129 ")&&!name.startsWith("Catálogo128 ")&&!name.startsWith("Catálogo127 ")&&!name.startsWith("Catálogo126 ")&&!name.startsWith("Retiro126 ")&&!name.startsWith("Catálogo125 ")&&!name.startsWith("Retiro125 ")&&!name.startsWith("Catálogo124 ")&&!name.startsWith("Retiro124 ")&&!name.startsWith("Catálogo123 ")&&!name.startsWith("Catálogo122 ")&&!name.startsWith("Catálogo121 ")&&!name.startsWith("Catálogo120 ")&&!name.startsWith("Catálogo114 ")&&!name.startsWith("Catálogo117 ")&&!name.startsWith("Retiro117 ")&&!name.startsWith("Catálogo118 ")&&!name.startsWith("Splash117 ")&&!name.startsWith("Catálogo119 ")&&!name.startsWith("Retiro119 "))return;if(!everyShard&&shardSeq++%shardN!==shardI)return;shardRan++;const t0=Date.now(),ms=()=>timing?" ["+(Date.now()-t0)+" ms]":"";try{fn();console.log("  ✓ "+name+ms());}catch(e){failed++;console.error("  ✗ "+name+ms()+"\n    "+e.message);} }
 console.log("beta-sources");
 
 // La rayita comparte controlador y geometría con la barra: una aprobación de CSS aislada no
@@ -12957,19 +12961,23 @@ test("el recibo cambia con la fuente, nunca con un número de versión",()=>{
 });
 
 test("cada llamada de lógica, incluidas flechas y dependencias transitivas, mueve el digest",()=>{
-  const scopes=JSON.parse(read("scripts/beta-sources.json")),functions=logicFunctions(read);let total=0;
+  const scopes=JSON.parse(read("scripts/beta-sources.json")),functions=logicFunctions(read);let total=0,mutated=0;
+  let scopeIx=-1;
   for(const [id,scope] of Object.entries(scopes)){
+    const mine=mineScope(++scopeIx);
     const ctx=auditedScope(id,read),source=ctx.read,currentFunctions=ctx.archived?logicFunctions(source):functions;
+    const deps=scopeDependencies(ctx.scope,source,currentFunctions);total+=deps.length;
+    if(!mine)continue;
     const before=betaRevision(id,source,undefined,ctx.scope);
-    for(const fn of scopeDependencies(ctx.scope,source,currentFunctions)){
-      total++;
+    for(const fn of deps){
+      mutated++;
       const changed=betaRevision(id,f=>f===fn.file?mutateLogic(source(f),fn):source(f),undefined,ctx.scope);
       assert.notEqual(changed.web,before.web,id+": dependencia sin vigilar "+fn.name);
     }
   }
   assert.ok(total>=561,"el inventario no puede desaparecer en silencio");
-  console.log("    "+total+" dependencias mutadas, excepciones: "+Object.keys(benignCalls).join(","));
-});
+  console.log("    "+mutated+" de "+total+" dependencias mutadas, excepciones: "+Object.keys(benignCalls).join(","));
+},true);
 
 test("el lector ignora comentarios/textos/regex y detecta las funciones flecha",()=>{
   const text='/*\nfunction ficticia(){ return saldo(9); }\n*/\nfunction saldo(x){ return helper(x); }\nconst helper=x=>x+1;\n';
@@ -13031,18 +13039,22 @@ test("rechaza el repin coherente a HEAD aunque conserve el SHA histórico permit
 });
 
 test("cada dato leído transitivamente, incluidas cachés compartidas, mueve el digest",()=>{
-  const scopes=JSON.parse(read("scripts/beta-sources.json")),functions=logicFunctions(read),data=logicData(read);let total=0;
+  const scopes=JSON.parse(read("scripts/beta-sources.json")),functions=logicFunctions(read),data=logicData(read);let total=0,mutated=0;
+  let scopeIx=-1;
   for(const [id,scope] of Object.entries(scopes)){
+    const mine=mineScope(++scopeIx);
     const ctx=auditedScope(id,read),source=ctx.read,currentFunctions=ctx.archived?logicFunctions(source):functions,currentData=ctx.archived?logicData(source):data;
+    const values=scopeDataDependencies(ctx.scope,source,currentFunctions,currentData);total+=values.length;
+    if(!mine)continue;
     const before=betaRevision(id,source,undefined,ctx.scope);
-    for(const value of scopeDataDependencies(ctx.scope,source,currentFunctions,currentData)){
-      total++;let changed;try{changed=betaRevision(id,f=>f===value.file?mutateData(source(f),value):source(f),undefined,ctx.scope);}catch(error){assert.ok(["BETA_SCOPE_ABSENT","BETA_SCOPE_AMBIGUOUS"].includes(error.code),error.message);changed={web:"build abortado por ancla mutada"};}
+    for(const value of values){
+      mutated++;let changed;try{changed=betaRevision(id,f=>f===value.file?mutateData(source(f),value):source(f),undefined,ctx.scope);}catch(error){assert.ok(["BETA_SCOPE_ABSENT","BETA_SCOPE_AMBIGUOUS"].includes(error.code),error.message);changed={web:"build abortado por ancla mutada"};}
       assert.notEqual(changed.web,before.web,id+": dato sin vigilar "+value.name);
     }
   }
   assert.ok(total>=160,"el inventario de datos no puede desaparecer");
-  console.log("    "+total+" datos mutados, excepciones: "+Object.keys(benignData).join(","));
-});
+  console.log("    "+mutated+" de "+total+" datos mutados, excepciones: "+Object.keys(benignData).join(","));
+},true);
 test("datos distingue propiedades, comentarios y textos; recoge múltiples inicializadores",()=>{
   const text='const A={n:1};\nvar CACHE=null, OTHER={};\nconst arrow=x=>x;\n';
   const data=logicData(()=>text,["fixture"]);

@@ -1241,7 +1241,10 @@ Tras v3.108.0 la lógica vive en **`src/modules/*.js`**. No edites `public/index
   todo sigue igual: `npm test` en local es la suite entera en serie.
   `unit` = build + unitarios sin beta-sources + Deno · `beta-sources` = solo ese fichero; con
   `--shard` corre uno de cada N tests por orden de aparición (`BETA_SOURCES_SHARD`) y un trozo que
-  no corre ninguno es rojo · `e2e` = e2e funcionales con `--shard` de Playwright
+  no corre ninguno es rojo. Los dos inventarios de mutantes («cada llamada de lógica…» y «cada
+  dato leído…») recorren todo el registro y solo el de lógica eran 22 de los 38 min en local:
+  corren en todos los trozos y cada uno muta solo los alcances que le tocan, con el recuento
+  mínimo (561 / 160) contado sobre el total · `e2e` = e2e funcionales con `--shard` de Playwright
   (`--pass-with-no-tests`: un plan de tres specs deja shards vacíos y eso es verde) · `e2e-perf` =
   los de rendimiento, con un worker y sin trocear. Cuántos shards: `ciJobs()` en
   `relevant-tests.mjs` (uno por cada ~12 ficheros de spec, hasta 8).
