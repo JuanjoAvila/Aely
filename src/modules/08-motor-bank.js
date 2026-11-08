@@ -174,7 +174,7 @@ function fixedPaymentContenders(s,y,m){
   return (s.fixed||[]).filter(function(f){ return occursIn(f,m,y); }).map(function(f){
     return fixedPaymentContender(f,y,m);
   }).concat((s.debts||[]).filter(debtActive).map(function(d){
-    return {name:d.name,bank:d.account||"sabadell",amount:d.bankAmount>0?d.bankAmount:(d.monthly||0)+debtBalloonIn(d,y,m),day:cleanDay(dayOf(d))};
+    return {name:d.name,bank:d.account||"sabadell",amount:d.bankAmount>0?d.bankAmount:(d.monthly||0)+debtBalloonIn(d,y,m),day:cleanDay(dayOf(d)),debt:d};
   }), (s.oneoffs||[]).filter(function(o){ return oneoffOccurs(o,y,m); }).map(function(o){
     return {name:o.name,bank:o.account||"sabadell",amount:o.bankAmount>0?o.bankAmount:o.amount,day:cleanDay(o.day)};
   }));
@@ -186,42 +186,73 @@ function fixedPaymentContender(f,y,m){
    le cobra el banco). Sabadell manda como comercio el acreedor SEPA o el concepto del adeudo, que
    casi nunca es el nombre que él le puso al recibo, y el motor solo acreditaba por nombre: el
    cargo estaba en el banco y el recibo seguía pendiente. Ya pasó con las cuotas (de cuatro
-   deudas, ninguna casaba por nombre, 14/9) y se resuelve con la regla de `cuotaCasa`: banco del
-   recibo, importe y día ±`CUOTA_DIAS`. Más estrecha que el nombre, a propósito:
-   · tolerancia de importe la de siempre (`recAmtClose`); 50 céntimos o más de diferencia salen en
-     «Para revisar» con las dos cifras, no en «Ya pagados»;
-   · una compra con tarjeta no es una domiciliación, ni una retirada de efectivo o un bizum;
-   · si el banco devuelve ese mismo importe después (recibo devuelto), no está pagado;
-   · nunca gana a un cargo que casa por nombre ni elige entre empates: quien llama exige un solo
-     cargo y un solo recibo, deuda o puntual que encaje (`fixedPaymentAutoOwner`).
+   deudas, ninguna casaba por nombre, 14/9) y se resuelve con la regla de `cuotaCasa` sin nombre:
+   banco del recibo, céntimo exacto y día ±`CUOTA_DIAS`, en el mismo mes. Sin el nombre no queda
+   nada que identifique el cargo, así que lleva las vallas que el nombre hacía innecesarias
+   (revisión del 8/11):
+   · solo un adeudo: el banco lo llama recibo, adeudo, domiciliación o SEPA; una transferencia,
+     un traspaso, un bizum, una tarjeta o sacar efectivo no pagan un recibo por coincidir;
+   · si en Gastos ese cargo ya es de otro (cuota de deuda, aportación a meta, traspaso o
+     inversión, ingreso, otro recibo, repetido o borrado), no es de este;
+   · si el banco devuelve ese importe después (recibo devuelto), no está pagado;
+   · nunca gana a un nombre ni elige entre empates (`fixedPaymentAutoOwner`); quien llama exige
+     además que haya llegado el día del recibo (`fixedPaymentState`, `fixedPaymentProof`).
    Revierte a sabiendas el «nunca solo por importe» de INC-3009-01: aquel arreglo dejó la
-   confirmación a mano y él vuelve a pedir que entre sola. */
+   confirmación a mano y él vuelve a pedir que entre sola. Si se cuela uno, «No es este recibo»
+   lo veta como a cualquier otro cargo (`reciboDesenlazar`). */
 const RECIBO_DEVUELTO_DIAS=45;
+const RECIBO_ADEUDO_RE=/\b(recibos?|adeudos?|domiciliaci\w*|domiciliad[oa]s?|sepa|direct debit|rebuts?)\b/;
+const RECIBO_NO_ADEUDO_RE=/\b(transferencias?|transfer|traspasos?|transf|bizum|disposicion|reintegro|nomina|abono|devolucion)\b/;
+function fixedPaymentAdeudo(tx){
+  var texto=recNorm([tx.merchant,tx.concept,tx.note].filter(Boolean).join(" "));
+  return !tx.card&&!isAtmWithdrawal(texto)&&RECIBO_ADEUDO_RE.test(texto)&&!RECIBO_NO_ADEUDO_RE.test(texto);
+}
 function fixedPaymentPorImporte(s,c,tx){
   var ds=String(tx&&tx.date||"").slice(0,10),d=recDay(ds),amount=Number(tx&&tx.amount);
-  if(!c||c.day==null||d==null||!tx||tx.card||tx.ent!==c.bank||!(amount>0)||!(Number(c.amount)>0)||!recAmtClose(Number(c.amount),amount)||Math.abs(d-c.day)>CUOTA_DIAS) return false;
-  // Sacar efectivo o mandar un bizum por el mismo importe no es pagar el recibo.
-  var texto=(tx.merchant||"")+" "+(tx.concept||"");
-  if(isAtmWithdrawal(texto)||/\b(disposicion|bizum)\b/.test(recNorm(texto))) return false;
-  var dia=Date.parse(ds+"T00:00:00Z")/864e5,devuelto=function(fecha){
-    var lag=Date.parse(String(fecha||"").slice(0,10)+"T00:00:00Z")/864e5-dia; return lag>=0&&lag<=RECIBO_DEVUELTO_DIAS;
-  };
-  return !(fixedPaymentDevoluciones(s).get(tx.ent+"|"+Math.round(amount*100))||[]).some(devuelto);
+  if(!c||c.day==null||d==null||!tx||tx.ent!==c.bank||!(amount>0)||Math.round(Number(c.amount)*100)!==Math.round(amount*100)||Math.abs(d-c.day)>CUOTA_DIAS) return false;
+  if(!fixedPaymentAdeudo(tx)) return false;
+  var idx=fixedPaymentFilasBanco(s),dia=Date.parse(ds+"T00:00:00Z")/864e5,cents=Math.round(amount*100);
+  var filas=(tx.id!=null&&String(tx.id)!==""?idx.ref.get(tx.ent+"|"+tx.id)||[]:[]).concat(idx.identity.get(fixedPaymentIdentity(tx.ent,tx))||[]);
+  var borrados=filas.length?expenseDeletedSet(s):null;
+  if(filas.some(function(x){
+    return x.debtId||metaDeGasto(x)||CAT_NEUTRAS[x.category]||x.category==="ingreso"||x.possibleDup||x.reciboId&&x.reciboId!==c.id||expenseIsTombstoned(x,borrados);
+  })) return false;
+  return !(idx.devoluciones.get(tx.ent+"|"+cents)||[]).some(function(fecha){ var lag=fecha-dia; return lag>=0&&lag<=RECIBO_DEVUELTO_DIAS; });
 }
-// Abonos por banco y céntimos, del extracto y de Gastos: el otro móvil puede no tener extracto.
-function fixedPaymentDevoluciones(s){
-  var cache=fixedPaymentDevoluciones.cache||(fixedPaymentDevoluciones.cache=new WeakMap()),key=Array.isArray(s.expenses)?s.expenses:null;
+/* ¿Puede ser de este recibo, deuda o puntual? Más ancho que el casado, a propósito: basta para
+   empatar. Sin día, el importe parecido basta; una cuota, con las mismas dos vías con que la casa
+   `cuotasDeDeudaPorMarcar` (también cruzando de mes): `cuotaCasa`, o el comercio que él ya le
+   enseñó (`cuotaAlias`) con su ventana de `CUOTA_ALIAS_DIAS`. */
+function fixedPaymentRivalPorImporte(s,c,tx){
+  var amount=Number(tx.amount),d=recDay(tx.date);
+  if(c.bank!==tx.ent||!(amount>0)) return false;
+  if(c.debt){
+    var ms=dateMs(String(tx.date).slice(0,10));
+    if(cuotaCasa(c.debt,tx.ent,amount,tx.merchant,ms)) return true;
+    var ak=cuotaAliasKey({merchant:tx.merchant,ent:tx.ent}),cc=cuotaCargoCercano(c.debt,ms);
+    if(ak&&s.cuotaAlias&&s.cuotaAlias[ak]===c.debt.id&&recAmtClose(cc.importe,amount)&&cc.dias<=CUOTA_ALIAS_DIAS) return true;
+  }
+  return recAmtClose(Number(c.amount),amount)&&(c.day==null||d!=null&&Math.abs(d-c.day)<=CUOTA_DIAS);
+}
+/* Las filas del banco de Gastos por referencia e identidad, y los abonos por céntimos (del
+   extracto y de Gastos: el otro móvil puede no tener extracto). Las fechas de Gastos, en el día
+   de la casa: una devolución guardada a medianoche de Madrid es del día siguiente en UTC. */
+function fixedPaymentFilasBanco(s){
+  var cache=fixedPaymentFilasBanco.cache||(fixedPaymentFilasBanco.cache=new WeakMap()),key=Array.isArray(s.expenses)?s.expenses:null;
   var hit=key&&cache.get(key);
-  if(hit&&hit.bankTx===s.bankTx) return hit.map;
-  var map=new Map(),add=function(bank,amount,date){
-    if(!bank||!(Number(amount)<0)) return;
-    var k=bank+"|"+Math.round(-Number(amount)*100),rows=map.get(k);
-    if(rows) rows.push(date);else map.set(k,[date]);
-  };
-  (s.bankTx||[]).forEach(function(tx){ if(tx) add(tx.ent,tx.amount,tx.date); });
-  (s.expenses||[]).forEach(function(x){ if(x&&(x.source==="ob"||x.source==="ob-hist")) add(expenseBankOf(x),x.amount,x.date); });
-  if(key) cache.set(key,{bankTx:s.bankTx,map:map});
-  return map;
+  if(hit&&hit.bankTx===s.bankTx) return hit.idx;
+  var idx={ref:new Map(),identity:new Map(),devoluciones:new Map()},push=function(map,k,v){ var rows=map.get(k);if(rows) rows.push(v);else map.set(k,[v]); };
+  var abono=function(bank,amount,dia){ if(bank&&Number(amount)<0&&isFinite(dia)) push(idx.devoluciones,bank+"|"+Math.round(-Number(amount)*100),dia); };
+  (s.bankTx||[]).forEach(function(tx){ if(tx) abono(tx.ent,tx.amount,Date.parse(String(tx.date||"").slice(0,10)+"T00:00:00Z")/864e5); });
+  (s.expenses||[]).forEach(function(x){
+    if(!x||x.source!=="ob"&&x.source!=="ob-hist") return;
+    var bank=expenseBankOf(x);if(!bank) return;
+    if(x.extId!=null&&String(x.extId)!=="") push(idx.ref,bank+"|"+x.extId,x);
+    push(idx.identity,fixedPaymentIdentity(bank,x),x);
+    if(Number(x.amount)<0){ var p=madridYmdParts(dateMs(x.date)); abono(bank,x.amount,Date.UTC(p.y,p.m-1,p.d)/864e5); }
+  });
+  if(key) cache.set(key,{bankTx:s.bankTx,idx:idx});
+  return idx;
 }
 function fixedPaymentUnique(s,e){
   // Un id repetido hacía que el ganador por nombre acreditara ambos registros (11/10).
@@ -236,10 +267,10 @@ function fixedPaymentBookRival(s,e,y,m,identity){
     fixedPaymentUnique(s,e)&&occursIn(e,m,y)&&fixedPaymentModelMatches(p,e,m)&&p.bank===accOf(e)&&
     p.identity===fixedPaymentIdentity(p.bank,p)&&!reciboVetado(s,e.id,identity)?p:null;
 }
-// `date` (solo con BOOK) abre el camino por importe y día: sin fecha no hay día que comparar.
-function fixedPaymentAutoOwner(s,e,y,m,bank,merchant,amount,category,book,identity,date){
+// `bookTx` (solo con BOOK: fecha, referencia y textos del cargo) abre el camino por importe y día.
+function fixedPaymentAutoOwner(s,e,y,m,bank,merchant,amount,category,book,identity,bookTx){
   if(!fixedPaymentUnique(s,e)) return false;
-  var name=recNorm(merchant),best=-2,winners=[],tx=book&&date?{ent:bank,date:date,amount:amount}:null;
+  var name=recNorm(merchant),best=-2,winners=[],tx=book&&bookTx&&bookTx.date?{ent:bank,id:bookTx.id,date:bookTx.date,amount:amount,merchant:merchant,concept:bookTx.concept,note:bookTx.note,card:bookTx.card}:null;
   fixedPaymentContenders(s,y,m).forEach(function(f){
     var other=book&&identity&&f.kind==="fixed"&&f.id!==e.id&&(s.fixed||[]).find(function(r){ return r.id===f.id; });
     var rival=other&&fixedPaymentBookRival(s,other,y,m,identity);
@@ -251,9 +282,8 @@ function fixedPaymentAutoOwner(s,e,y,m,bank,merchant,amount,category,book,identi
       // El BOOK identifica el banco: un homónimo ajeno no puede negar su cargo propio.
       if(f.bank!==bank) return;
       porNombre=recNameMatch(f.name,merchant)&&recAmtClose(f.amount,amount);
-      // Por importe compite cualquiera que encaje; sin día conocido, con el importe basta para
-      // empatar: no sabemos que no sea suyo.
-      if(!porNombre&&!(tx&&(f.day==null?recAmtClose(Number(f.amount),Number(amount)):fixedPaymentPorImporte(s,f,tx)))) return;
+      // Por importe, el recibo propio tiene que casar entero; los demás empatan con parecerse.
+      if(!porNombre&&!(tx&&(f.kind==="fixed"&&f.id===e.id?fixedPaymentPorImporte(s,f,tx):fixedPaymentRivalPorImporte(s,f,tx)))) return;
     } else if(!full||!exact||f.bank!==bank&&f.category&&category&&category!=="otros"&&category!==f.category) return;
     // Resolver antes de leer o guardar evita que el feed de un banco adelante al nombre
     // genérico y el cargo guardado acredite después otro recibo (revisión10/10). Lo que solo
@@ -340,9 +370,11 @@ function fixedPaymentProof(s,e,y,m,today){
       return fixedPaymentIdentity(tx.ent,tx)===p.identity&&(tx.possibleDup||String(tx.status||"").toUpperCase()!=="BOOK");
     })) return null;
     if((s.accounts||[]).filter(function(a){ return a.ent===p.bank&&accFixed(a); }).length!==1||
-      !fixedPaymentAutoOwner(owners,owner,y,m,p.bank,p.merchant,p.amount,null,true,p.identity,p.date)) return null;
-    // La prueba que se ganó por importe se revalida igual: dos cargos que encajan no son de nadie.
+      !fixedPaymentAutoOwner(owners,owner,y,m,p.bank,p.merchant,p.amount,null,true,p.identity,{id:String(p.key||"").slice(p.bank.length+1),date:p.date,concept:p.concept,note:p.note})) return null;
+    // La prueba que se ganó por importe se revalida igual: dos cargos que encajan no son de nadie,
+    // y antes del día del recibo no lo paga (no adelanta `paidYm` ni el saldo previsto).
     var porNombre=recNameMatch(owner.name,p.merchant)&&recAmtClose(target,Number(p.amount)),self=Object.assign(fixedPaymentContender(e,y,m),{amount:target});
+    if(!porNombre&&!(self.day!=null&&self.day<=today)) return null;
     if((s.bankTx||[]).filter(function(tx){
       return tx.ent===p.bank&&String(tx.status||"").toUpperCase()==="BOOK"&&fixedPaymentDate(fixedPaymentBookDate(s,fixedPaymentBookRecord(tx)),y,m,today)&&Number(tx.amount)>0&&
         (porNombre?recNameMatch(owner.name,tx.merchant)&&recAmtClose(target,Number(tx.amount)):!tx.possibleDup&&fixedPaymentPorImporte(s,self,tx));
@@ -580,6 +612,10 @@ function reconcileFixedPaymentProofs(s,y,m,today){
     if(!tx) return e;
     changed=true;
     var p={kind:"book",key:tx.ent+"|"+(tx.id||[tx.date,tx.amount,tx.merchant].join("|")),identity:fixedPaymentIdentity(tx.ent,tx),date:tx.date,bank:tx.ent,merchant:tx.merchant,amount:Number(tx.amount),model:fixedPaymentModel(e,m)};
+    // Sin el nombre, lo que dice que es un adeudo va en el concepto: la prueba lo lleva para que el
+    // otro móvil, sin extracto, la revalide igual.
+    if(tx.concept) p.concept=tx.concept;
+    if(tx.note) p.note=tx.note;
     var chargeDate=fixedPaymentBookDate(s,p);if(chargeDate!==String(p.date).slice(0,10)) p.chargeDate=chargeDate;
     p=fixedPaymentBind(p,e,m);
     return Object.assign({},e,{paymentProofs:Object.assign({},e.paymentProofs,{[ym]:p})});
@@ -633,7 +669,8 @@ function fixedPaymentState(s,e,y,m,today){
   // distinto, ese es su cargo (factura que sube) y no otro que cuadre por casualidad.
   if(!matches.length&&!delMes.some(function(tx){ return recNameMatch(e.name,tx.merchant); })){
     var self=Object.assign(fixedPaymentContender(e,y,m),{amount:target});
-    matches=delMes.filter(function(tx){ return fixedPaymentPorImporte(s,self,tx); });
+    // Antes de su día no: un cargo parecido de antes no adelanta el pago ni el saldo previsto.
+    matches=self.day!=null&&self.day<=today?delMes.filter(function(tx){ return fixedPaymentPorImporte(s,self,tx); }):[];
   }
   var paidDay=fixedPaymentPersistedDay(s,e,y,m,today),persisted=paidDay!=null;
   var tx=matches.length===1?matches[0]:null;
@@ -647,7 +684,7 @@ function fixedPaymentState(s,e,y,m,today){
     // El feed solo identifica entidad: exige una cuenta y un único ganador antes de
     // guardarlo. Una cuota o un puntual también pueden reclamar este mismo cargo.
     var accounts=(s.accounts||[]).filter(function(a){ return a.ent===bank&&accFixed(a); });
-    if(accounts.length!==1||!fixedPaymentAutoOwner(s,e,y,m,bank,tx.merchant,Number(tx.amount),null,true,fixedPaymentIdentity(tx.ent,tx),tx.date)) tx=null;
+    if(accounts.length!==1||!fixedPaymentAutoOwner(s,e,y,m,bank,tx.merchant,Number(tx.amount),null,true,fixedPaymentIdentity(tx.ent,tx),tx)) tx=null;
   }
   var proof=fixedPaymentProof(s,e,y,m,today),expense=null;
   // El extracto es local, pero Gastos conserva el cargo importado o notificado. El
@@ -3288,6 +3325,30 @@ function quitarCargoDeRecibo(s, expenseId, ahora){
   const sin=Object.assign({}, s, { expenses:s.expenses.map(function(x){ return x===orig ? e : x; }), fixed:fixed },
     reciboNoPon(s, reciboNoClaves(id, reciboNoIdentidad(orig), orig.id), true, ahora||Date.now()));
   return { state:conSaldoMostrado(s, sin), e:e };
+}
+/* «No es este recibo» cuando lo pagó el extracto sin marca en la fila (revisión del 8/11/2026):
+   el camino por importe no marca la fila y la prueba BOOK no la quitaba nadie, así que un cargo
+   equivocado se quedaba «Ya pagado» en los dos móviles y bloqueaba enlazar el bueno. Se veta ese
+   cargo para ese recibo (`reciboNo` viaja en el estado y el otro móvil deja de aceptarlo) y se
+   retira la prueba y la marca de pago que salieron de él. Solo si el recibo está pagado con ESE
+   cargo. → {state, e:null} o null. */
+function quitarPagoDelExtracto(s, f, x, y, m, today, ahora){
+  const fijo=f && (s.fixed||[]).find(function(r){ return r && r.id===f.id; });
+  if(!fijo || !x) return null;
+  const st=fixedPaymentState(s, fijo, y, m, today), identidad=reciboPagadoCon(st);
+  if(!identidad || !(st.bankTx || st.proof && st.proof.kind==="book") || identidad!==fixedPaymentIdentity(expenseBankOf(x), x)) return null;
+  const claves=reciboNoClaves(fijo.id, reciboNoIdentidad(x), x.id);
+  if(claves.indexOf(fijo.id+"|"+identidad)<0) claves.push(fijo.id+"|"+identidad);
+  const ym=y*12+m;
+  const fixed=(s.fixed||[]).map(function(e){
+    if(e!==fijo) return e;
+    const n=Object.assign({}, e), proofs=Object.assign({}, e.paymentProofs);
+    [ym, ym+1].forEach(function(k){ if(proofs[k] && proofs[k].identity===identidad) delete proofs[k]; });
+    n.paymentProofs=proofs;
+    if(e.paidYm===ym){ delete n.paidYm; delete n.paidDay; }
+    return n;
+  });
+  return { state:conSaldoMostrado(s, Object.assign({}, s, { fixed:fixed }, reciboNoPon(s, claves, true, ahora||Date.now()))), e:null };
 }
 // La marca viaja en `source` y solo `ob`/`ob-hist` saben llevarla; y solo del banco del recibo.
 // La usan quien la repone y el diálogo que lo anuncia, para que digan lo mismo.
