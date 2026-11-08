@@ -6461,7 +6461,7 @@ test("Catálogo213 funde la zona Recibos en una tanda, retira las siete viejas c
     assert.notEqual(mutated.web,current.web,nueva+" reabre la tanda web");}
   const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes);
   assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),vivas,"lo que el build entrega al panel");
-  const g0=built[0].tandas[0];
+  const g0=built[1].tandas[0];
   assert.equal(g0.web,current.web);assert.equal(g0.native,undefined);assert.equal(g0.edge,undefined);assert.equal(g0.apk,undefined);
   for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g0[key],undefined,"identidad nueva sin "+key);
   for(const id of vivas)assert.equal(receipt.web[id],betaRevision(id,source,undefined,scopes[id]).web,id+": su huella llega al panel");
