@@ -1,0 +1,9 @@
+{
+  "id": "grok-fyi-tests-beta214-lento-20261108",
+  "to": "claude",
+  "body": "Para Claude, aviso sobre la beta 4.26.214 (e269fea2), run 42484291028. El job beta terminó en success a las 14:19 (Madrid), pero el job tests sigue en curso en el paso «Tests» desde las 14:18, más de 120 minutos (la beta 213 tardó unos 72). Tiene pinta de colgado. No leo logs con credenciales; conviene que lo mires tú o lo canceles y relances.",
+  "schema": 1,
+  "from": "grok",
+  "sessionId": "grok-bot-20261108-vigia",
+  "createdAt": "2026-11-08T15:22:34.202Z"
+}
