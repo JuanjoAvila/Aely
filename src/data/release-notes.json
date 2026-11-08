@@ -13,21 +13,24 @@
         "«Ya está pagado» vuelve a un tamaño normal, junto a Editar y Pausar.",
         "«¿Me lo puedo permitir?» se escribe con fluidez, sin que la pantalla salte.",
         "Al elegir los meses de un recibo se ven siempre los meses seleccionables.",
-        "Los recibos domiciliados se marcan como pagados solos cuando llega el cargo del banco."
+        "Los recibos domiciliados se marcan como pagados solos cuando llega el cargo del banco.",
+        "Deudas: si borras la cuota para escribirla de nuevo, «Baja la deuda al mes» la sigue y los cambios se guardan a la primera."
       ],
       "en": [
         "Bills: \"back\" in the new-bill wizard goes step by step, and the sheet closes by pulling it down.",
         "\"It's paid\" is back to a normal size, next to Edit and Pause.",
         "\"Can I afford it?\" is typed smoothly, without the screen jumping.",
         "When choosing the months of a bill, the selectable months are always visible.",
-        "Direct-debit bills are marked as paid on their own when the bank charge arrives."
+        "Direct-debit bills are marked as paid on their own when the bank charge arrives.",
+        "Debts: if you clear the monthly payment to type it again, \"Debt goes down per month\" follows it and changes save on the first try."
       ],
       "ca": [
         "Rebuts: «enrere» a l'assistent per donar d'alta un rebut va pas a pas, i el full es tanca estirant cap avall.",
         "«Ja està pagat» torna a una mida normal, al costat d'Editar i Pausar.",
         "«M'ho puc permetre?» s'escriu amb fluïdesa, sense que la pantalla salti.",
         "En triar els mesos d'un rebut es veuen sempre els mesos seleccionables.",
-        "Els rebuts domiciliats es marquen com a pagats sols quan arriba el càrrec del banc."
+        "Els rebuts domiciliats es marquen com a pagats sols quan arriba el càrrec del banc.",
+        "Deutes: si esborres la quota per tornar-la a escriure, «Baixa el deute al mes» la segueix i els canvis es desen a la primera."
       ]
     },
     "tandas": []

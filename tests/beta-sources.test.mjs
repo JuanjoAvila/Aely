@@ -6442,6 +6442,9 @@ test("Catálogo213 funde la zona Recibos en una tanda, retira las siete viejas c
   // Vídeo del 8/11: atrás baja la hoja de Recibos en vez de sacarla de lado (`useEdgePageClose` con
   // `hoja`, `stepBack` del alta), y eso mueve las dos huellas que vigilan el atrás de las hojas.
   Object.assign(expectedMoves,{"inc-0810-backclose-handover":["web"],"teclado-atras-conserva":["web"]});
+  // INC1810 en la 214: «Baja la deuda al mes» sigue a la cuota también con el texto a medias
+  // (`DebtEditSheet`), y eso mueve las cuatro huellas de Deudas que leen ese editor.
+  Object.assign(expectedMoves,{"deudas-aviso-plazo":["web"],"deudas-guardar-motivo":["web"],"deudas-metas-hoja-sin-parpadeo":["web"],"deudas-plazo-cuota-cuadran":["web"]});
   const moved={};
   for(const [key,scope] of Object.entries(integrated)){
     if(key===archiveId)continue;

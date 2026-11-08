@@ -355,7 +355,10 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,showToast,review,recover
         // Se ve antes de guardar: el plazo nuevo mueve lo que baja (si va por libre de la cuota).
         if(key==="months"){ const a=debtEditAmortDePlazo(debt,f); if(a!=null) f.amort=a; }
         // Ligada y sin tocar, lo que baja sigue a la cuota en pantalla: lo que se ve es lo que se guarda.
-        if(key==="monthly"&&!form.amortSet&&form.amort!==undefined&&planEditNumber(form.amort,true)===planEditNumber(form.monthly)) f.amort=e.target.value;
+        // El texto igual también cuenta como ligada: con la cuota a medio teclear (vacía para
+        // reescribirla, o mal formada) los dos números son NaN/null, NaN!==NaN soltaba el vínculo y
+        // «Baja la deuda» se quedaba con lo de a medias e impedía guardar (INC1810, beta 4.26.213).
+        if(key==="monthly"&&!form.amortSet&&form.amort!==undefined&&(String(form.amort).trim()===String(form.monthly).trim()||planEditNumber(form.amort,true)===planEditNumber(form.monthly))) f.amort=e.target.value;
         if(key==="amort") f.amortSet=true;
         setForm(f); }})); };
   return React.createElement(PlanEditSheet,{title:t("db_edit_title"),onClose:onClose,closer:closer},React.createElement("div",{className:"add-form"},

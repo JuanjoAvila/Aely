@@ -4,8 +4,13 @@ import fs from "node:fs";
 
 const settingsNames={es:"Ir a Ajustes",en:"Go to Settings",ca:"Ves a Ajustos"};
 
-async function start(page,lang,previous=false){
-  await seedLoggedInDashboard(page,{settings:{autoPrices:false,theme:"green",lang}});
+// Con Plan vacío, Recibos enseña el primer uso («Empezar» abre el alta directa) y no hay
+// «Gestionar» (diseño de la v6 t6, 31/10). Los ensayos de Recibos miran el alta ENCIMA del hub,
+// así que siembran un recibo para que el hub exista y se llegue a él como lo hace la familia.
+const unRecibo=[{id:"bh-agua",name:"Agua sintética",amount:30,freq:"mes",day:19,account:"sabadell"}];
+
+async function start(page,lang,previous=false,fixed){
+  await seedLoggedInDashboard(page,Object.assign({settings:{autoPrices:false,theme:"green",lang}},fixed?{fixed}:{}));
   let previousUrl;
   if(previous){
     await page.goto("/privacy.html");
@@ -148,7 +153,7 @@ test("Ask de Perfil cancela el diálogo una vez y conserva Perfil",async({page})
 for(const method of ["ui","browser","native"]){
   test(`Recibos: tres retrocesos de pasos conservan el hub y cancelan sin guardar: ${method}`,async({page})=>{
     if(method==="native") await nativeButton(page);
-    await start(page,"es");const url=page.url(),before=await financial(page);
+    await start(page,"es",false,unRecibo);const url=page.url(),before=await financial(page);
     await page.locator('.botnav-tab[data-tour="plan"]').click();
     await expect(page.locator('.botnav-tab[data-tour="plan"]')).toHaveClass(/active/);
     const manage=await page.evaluate(()=>t("pr6_todos"));
@@ -290,10 +295,10 @@ async function ux13Settled(page){
   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
 }
 
-async function ux13Start(page,method){
+async function ux13Start(page,method,fixed){
   if(method!=="browser") await nativeButton(page);
   await ux13Viewport(page);
-  const previous=await start(page,"es",true),url=page.url();
+  const previous=await start(page,"es",true,fixed),url=page.url();
   return {previous,url,before:await financial(page)};
 }
 
@@ -382,7 +387,7 @@ async function ux13Edge(page,phase,progress=0){
 
 for(const hideBeforeInvoke of [false,true]){
   test(`UX13: predictivo conserva alta y hub al ocultar teclado: hideAntesInvoke=${hideBeforeInvoke}`,async({page})=>{
-    const {previous,url,before}=await ux13Start(page,"native");
+    const {previous,url,before}=await ux13Start(page,"native",unRecibo);
     const {hub,wizard,input}=await ux13Bills(page);
     const transform=await wizard.evaluate(el=>el.parentElement.style.transform);
     await ux13Edge(page,"start");await ux13Edge(page,"progress",0.55);
@@ -409,7 +414,7 @@ for(const hideBeforeInvoke of [false,true]){
 }
 
 test("UX13: cancelar predictivo con teclado conserva hoja, valor y geometría",async({page})=>{
-  const {url,before}=await ux13Start(page,"native");const {wizard,input}=await ux13Bills(page);
+  const {url,before}=await ux13Start(page,"native",unRecibo);const {wizard,input}=await ux13Bills(page);
   const x=await wizard.evaluate(el=>el.parentElement.getBoundingClientRect().x);
   await ux13Edge(page,"start");await ux13Edge(page,"progress",0.4);
   expect(await wizard.evaluate(el=>el.parentElement.getBoundingClientRect().x)).toBeCloseTo(x,1);
