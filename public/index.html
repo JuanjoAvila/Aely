@@ -19646,12 +19646,56 @@ function fixedPaymentFeedClear(s,identity){
 }
 function fixedPaymentContenders(s,y,m){
   return (s.fixed||[]).filter(function(f){ return occursIn(f,m,y); }).map(function(f){
-    return {id:f.id,kind:"fixed",name:f.name,category:f.category,bank:accOf(f),amount:f.bankAmount>0?f.bankAmount:occAmountIn(f,m,y)};
+    return fixedPaymentContender(f,y,m);
   }).concat((s.debts||[]).filter(debtActive).map(function(d){
-    return {name:d.name,bank:d.account||"sabadell",amount:d.bankAmount>0?d.bankAmount:(d.monthly||0)+debtBalloonIn(d,y,m)};
+    return {name:d.name,bank:d.account||"sabadell",amount:d.bankAmount>0?d.bankAmount:(d.monthly||0)+debtBalloonIn(d,y,m),day:cleanDay(dayOf(d))};
   }), (s.oneoffs||[]).filter(function(o){ return oneoffOccurs(o,y,m); }).map(function(o){
-    return {name:o.name,bank:o.account||"sabadell",amount:o.bankAmount>0?o.bankAmount:o.amount};
+    return {name:o.name,bank:o.account||"sabadell",amount:o.bankAmount>0?o.bankAmount:o.amount,day:cleanDay(o.day)};
   }));
+}
+function fixedPaymentContender(f,y,m){
+  return {id:f.id,kind:"fixed",name:f.name,category:f.category,bank:accOf(f),amount:f.bankAmount>0?f.bankAmount:occAmountIn(f,m,y),day:cleanDay(dayIn(f,m,y))};
+}
+/* EL CARGO DEL RECIBO SIN SU NOMBRE (queja del 8/11/2026: «Ya pagados» no se enlazaba con lo que
+   le cobra el banco). Sabadell manda como comercio el acreedor SEPA o el concepto del adeudo, que
+   casi nunca es el nombre que él le puso al recibo, y el motor solo acreditaba por nombre: el
+   cargo estaba en el banco y el recibo seguía pendiente. Ya pasó con las cuotas (de cuatro
+   deudas, ninguna casaba por nombre, 14/9) y se resuelve con la regla de `cuotaCasa`: banco del
+   recibo, importe y día ±`CUOTA_DIAS`. Más estrecha que el nombre, a propósito:
+   · tolerancia de importe la de siempre (`recAmtClose`); 50 céntimos o más de diferencia salen en
+     «Para revisar» con las dos cifras, no en «Ya pagados»;
+   · una compra con tarjeta no es una domiciliación, ni una retirada de efectivo o un bizum;
+   · si el banco devuelve ese mismo importe después (recibo devuelto), no está pagado;
+   · nunca gana a un cargo que casa por nombre ni elige entre empates: quien llama exige un solo
+     cargo y un solo recibo, deuda o puntual que encaje (`fixedPaymentAutoOwner`).
+   Revierte a sabiendas el «nunca solo por importe» de INC-3009-01: aquel arreglo dejó la
+   confirmación a mano y él vuelve a pedir que entre sola. */
+const RECIBO_DEVUELTO_DIAS=45;
+function fixedPaymentPorImporte(s,c,tx){
+  var ds=String(tx&&tx.date||"").slice(0,10),d=recDay(ds),amount=Number(tx&&tx.amount);
+  if(!c||c.day==null||d==null||!tx||tx.card||tx.ent!==c.bank||!(amount>0)||!(Number(c.amount)>0)||!recAmtClose(Number(c.amount),amount)||Math.abs(d-c.day)>CUOTA_DIAS) return false;
+  // Sacar efectivo o mandar un bizum por el mismo importe no es pagar el recibo.
+  var texto=(tx.merchant||"")+" "+(tx.concept||"");
+  if(isAtmWithdrawal(texto)||/\b(disposicion|bizum)\b/.test(recNorm(texto))) return false;
+  var dia=Date.parse(ds+"T00:00:00Z")/864e5,devuelto=function(fecha){
+    var lag=Date.parse(String(fecha||"").slice(0,10)+"T00:00:00Z")/864e5-dia; return lag>=0&&lag<=RECIBO_DEVUELTO_DIAS;
+  };
+  return !(fixedPaymentDevoluciones(s).get(tx.ent+"|"+Math.round(amount*100))||[]).some(devuelto);
+}
+// Abonos por banco y céntimos, del extracto y de Gastos: el otro móvil puede no tener extracto.
+function fixedPaymentDevoluciones(s){
+  var cache=fixedPaymentDevoluciones.cache||(fixedPaymentDevoluciones.cache=new WeakMap()),key=Array.isArray(s.expenses)?s.expenses:null;
+  var hit=key&&cache.get(key);
+  if(hit&&hit.bankTx===s.bankTx) return hit.map;
+  var map=new Map(),add=function(bank,amount,date){
+    if(!bank||!(Number(amount)<0)) return;
+    var k=bank+"|"+Math.round(-Number(amount)*100),rows=map.get(k);
+    if(rows) rows.push(date);else map.set(k,[date]);
+  };
+  (s.bankTx||[]).forEach(function(tx){ if(tx) add(tx.ent,tx.amount,tx.date); });
+  (s.expenses||[]).forEach(function(x){ if(x&&(x.source==="ob"||x.source==="ob-hist")) add(expenseBankOf(x),x.amount,x.date); });
+  if(key) cache.set(key,{bankTx:s.bankTx,map:map});
+  return map;
 }
 function fixedPaymentUnique(s,e){
   // Un id repetido hacía que el ganador por nombre acreditara ambos registros (11/10).
@@ -19666,22 +19710,29 @@ function fixedPaymentBookRival(s,e,y,m,identity){
     fixedPaymentUnique(s,e)&&occursIn(e,m,y)&&fixedPaymentModelMatches(p,e,m)&&p.bank===accOf(e)&&
     p.identity===fixedPaymentIdentity(p.bank,p)&&!reciboVetado(s,e.id,identity)?p:null;
 }
-function fixedPaymentAutoOwner(s,e,y,m,bank,merchant,amount,category,book,identity){
+// `date` (solo con BOOK) abre el camino por importe y día: sin fecha no hay día que comparar.
+function fixedPaymentAutoOwner(s,e,y,m,bank,merchant,amount,category,book,identity,date){
   if(!fixedPaymentUnique(s,e)) return false;
-  var name=recNorm(merchant),best=-1,winners=[];
+  var name=recNorm(merchant),best=-2,winners=[],tx=book&&date?{ent:bank,date:date,amount:amount}:null;
   fixedPaymentContenders(s,y,m).forEach(function(f){
     var other=book&&identity&&f.kind==="fixed"&&f.id!==e.id&&(s.fixed||[]).find(function(r){ return r.id===f.id; });
     var rival=other&&fixedPaymentBookRival(s,other,y,m,identity);
     if(rival) f=Object.assign({},f,{name:rival.receiptName});
     var n=recNorm(f.name),full=recFrase(n,name);
     var exact=Math.round(Number(f.amount)*100)===Math.round(Number(amount)*100);
+    var porNombre=true;
     if(book){
       // El BOOK identifica el banco: un homónimo ajeno no puede negar su cargo propio.
-      if(f.bank!==bank||!recNameMatch(f.name,merchant)||!recAmtClose(f.amount,amount)) return;
+      if(f.bank!==bank) return;
+      porNombre=recNameMatch(f.name,merchant)&&recAmtClose(f.amount,amount);
+      // Por importe compite cualquiera que encaje; sin día conocido, con el importe basta para
+      // empatar: no sabemos que no sea suyo.
+      if(!porNombre&&!(tx&&(f.day==null?recAmtClose(Number(f.amount),Number(amount)):fixedPaymentPorImporte(s,f,tx)))) return;
     } else if(!full||!exact||f.bank!==bank&&f.category&&category&&category!=="otros"&&category!==f.category) return;
     // Resolver antes de leer o guardar evita que el feed de un banco adelante al nombre
-    // genérico y el cargo guardado acredite después otro recibo (revisión10/10).
-    var score=full?n.length:0;
+    // genérico y el cargo guardado acredite después otro recibo (revisión10/10). Lo que solo
+    // casa por importe queda por debajo de cualquier nombre.
+    var score=full?n.length:porNombre?0:-1;
     if(score>best){ best=score; winners=[f]; }
     else if(score===best) winners.push(f);
   });
@@ -19763,9 +19814,12 @@ function fixedPaymentProof(s,e,y,m,today){
       return fixedPaymentIdentity(tx.ent,tx)===p.identity&&(tx.possibleDup||String(tx.status||"").toUpperCase()!=="BOOK");
     })) return null;
     if((s.accounts||[]).filter(function(a){ return a.ent===p.bank&&accFixed(a); }).length!==1||
-      !fixedPaymentAutoOwner(owners,owner,y,m,p.bank,p.merchant,p.amount,null,true,p.identity)) return null;
+      !fixedPaymentAutoOwner(owners,owner,y,m,p.bank,p.merchant,p.amount,null,true,p.identity,p.date)) return null;
+    // La prueba que se ganó por importe se revalida igual: dos cargos que encajan no son de nadie.
+    var porNombre=recNameMatch(owner.name,p.merchant)&&recAmtClose(target,Number(p.amount)),self=Object.assign(fixedPaymentContender(e,y,m),{amount:target});
     if((s.bankTx||[]).filter(function(tx){
-      return tx.ent===p.bank&&String(tx.status||"").toUpperCase()==="BOOK"&&fixedPaymentDate(fixedPaymentBookDate(s,fixedPaymentBookRecord(tx)),y,m,today)&&Number(tx.amount)>0&&recNameMatch(owner.name,tx.merchant)&&recAmtClose(target,Number(tx.amount));
+      return tx.ent===p.bank&&String(tx.status||"").toUpperCase()==="BOOK"&&fixedPaymentDate(fixedPaymentBookDate(s,fixedPaymentBookRecord(tx)),y,m,today)&&Number(tx.amount)>0&&
+        (porNombre?recNameMatch(owner.name,tx.merchant)&&recAmtClose(target,Number(tx.amount)):!tx.possibleDup&&fixedPaymentPorImporte(s,self,tx));
     }).length>1) return null;
   }
   // La identidad elegida viaja en app_state, incluso si este móvil no tiene extracto. No cambia
@@ -19873,8 +19927,9 @@ function fixedPaymentChargeOwner(s,x,e,y,m,today){
         var q=fixedPaymentStoredProof(s,f,Y,M);
         if(q&&q.kind==="book"&&q.key===ref&&fixedPaymentBookSameRef(s,q,x)&&fixedPaymentProof(s,f,Y,M,T)===q) return true;
         // El extracto solo cuenta si es lo que acredita ese recibo: con su propia prueba, el BOOK
-        // que además casa por nombre no le suma otro pago.
-        if(accOf(f)!==bank||!txs.some(function(tx){ return fixedPaymentBookDate(s,fixedPaymentBookRecord(tx)).slice(0,7)===Y+"-"+String(M).padStart(2,"0")&&recNameMatch(f.name,tx.merchant); })) return false;
+        // que además casa por nombre (o por importe y día) no le suma otro pago.
+        var c=fixedPaymentContender(f,Y,M);
+        if(accOf(f)!==bank||!txs.some(function(tx){ return fixedPaymentBookDate(s,fixedPaymentBookRecord(tx)).slice(0,7)===Y+"-"+String(M).padStart(2,"0")&&(recNameMatch(f.name,tx.merchant)||fixedPaymentPorImporte(s,c,tx)); })) return false;
         var st=fixedPaymentState(s,f,Y,M,T);
         return !st.proof&&txs.indexOf(st.bankTx)>=0;
       })||null;
@@ -20041,12 +20096,19 @@ function fixedPaymentPersistedDay(s,e,y,m,today){
 function fixedPaymentState(s,e,y,m,today){
   var day=dayIn(e,m,y),ym=y+"-"+String(m).padStart(2,"0");
   var target=typeof e.bankAmount==="number"&&e.bankAmount>0?e.bankAmount:occAmountIn(e,m,y);
-  var bank=accOf(e),matches=(s.bankTx||[]).filter(function(tx){
+  var bank=accOf(e),delMes=(s.bankTx||[]).filter(function(tx){
     if(!tx||tx.ent!==bank||tx.possibleDup||String(tx.status||"").toUpperCase()!=="BOOK") return false;
     var ds=fixedPaymentBookDate(s,fixedPaymentBookRecord(tx)),d=recDay(ds);
     if(!/^\d{4}-\d{2}-\d{2}$/.test(ds)||ds.slice(0,7)!==ym||d==null||d>today||d>new Date(y,m,0).getDate()) return false;
-    return Number(tx.amount)>0&&recNameMatch(e.name,tx.merchant)&&recAmtClose(target,Number(tx.amount))&&!reciboVetado(s,e.id,fixedPaymentIdentity(tx.ent,tx));
+    return Number(tx.amount)>0&&!reciboVetado(s,e.id,fixedPaymentIdentity(tx.ent,tx));
   });
+  var matches=delMes.filter(function(tx){ return recNameMatch(e.name,tx.merchant)&&recAmtClose(target,Number(tx.amount)); });
+  // Por importe y día solo si ningún cargo del mes lleva su nombre: con nombre e importe
+  // distinto, ese es su cargo (factura que sube) y no otro que cuadre por casualidad.
+  if(!matches.length&&!delMes.some(function(tx){ return recNameMatch(e.name,tx.merchant); })){
+    var self=Object.assign(fixedPaymentContender(e,y,m),{amount:target});
+    matches=delMes.filter(function(tx){ return fixedPaymentPorImporte(s,self,tx); });
+  }
   var paidDay=fixedPaymentPersistedDay(s,e,y,m,today),persisted=paidDay!=null;
   var tx=matches.length===1?matches[0]:null;
   if(tx){
@@ -20059,7 +20121,7 @@ function fixedPaymentState(s,e,y,m,today){
     // El feed solo identifica entidad: exige una cuenta y un único ganador antes de
     // guardarlo. Una cuota o un puntual también pueden reclamar este mismo cargo.
     var accounts=(s.accounts||[]).filter(function(a){ return a.ent===bank&&accFixed(a); });
-    if(accounts.length!==1||!fixedPaymentAutoOwner(s,e,y,m,bank,tx.merchant,Number(tx.amount),null,true,fixedPaymentIdentity(tx.ent,tx))) tx=null;
+    if(accounts.length!==1||!fixedPaymentAutoOwner(s,e,y,m,bank,tx.merchant,Number(tx.amount),null,true,fixedPaymentIdentity(tx.ent,tx),tx.date)) tx=null;
   }
   var proof=fixedPaymentProof(s,e,y,m,today),expense=null;
   // El extracto es local, pero Gastos conserva el cargo importado o notificado. El
@@ -29370,7 +29432,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="93d1a2d1770d765f83c638a8e38ac6dcc35aee4c6f2127b5cb84587ef57cbb9e";
+var _rnSha="5e3a1efc7e0e226ee3174aff82dccb41264a9a0ac4646619fdb302a7ae3115e3";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

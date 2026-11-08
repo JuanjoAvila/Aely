@@ -71,6 +71,9 @@ export const E2E_MAP = [
   // Recibos sin fotogramas en blanco: capas que nacen/mueren al tocar y carril de pasos (vídeo 7/11).
   { file: "src/shell.html", specs: ["e2e/recibos-sin-parpadeo.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-sin-parpadeo.spec.mjs"] },
+  // «Ya pagados» con el cargo del banco que no lleva el nombre del recibo (queja 8/11/2026).
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-ya-pagados-banco.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-ya-pagados-banco.spec.mjs"] },
   { file: "src/modules/06-sync-brokers.js", specs: ["e2e/fin22-cartera-divisa.spec.mjs"] },
   { file: "src/modules/10-app-components.js", specs: ["e2e/fin22-cartera-divisa.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/fin22-cartera-divisa.spec.mjs"] },

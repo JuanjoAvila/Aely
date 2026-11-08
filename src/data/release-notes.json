@@ -51,7 +51,9 @@
             "12. Plan → Recibos → «Ya pagados» → un recibo pagado → Editar → cambia solo el nombre → Guardar. BIEN: sigue en «Ya pagados» con el mismo importe y día, y «Queda por pagar» no se mueve. MAL: vuelve a pendiente o cambia la cifra.",
             "13. Gestionar → un recibo → «Ya no lo tengo» → confirma. BIEN: sale «Recibo quitado» con «Deshacer»; al pulsarlo vuelve igual que estaba. MAL: no hay «Deshacer» o no vuelve.",
             "14. Recibos → «Te deben» (si alguien te debe algo). BIEN: «Ya me lo ha pagado» es un botón pequeño a la derecha; al tocarlo pasa a «Te lo ha pagado · Deshacer» y «Queda por pagar» no se mueve. MAL: botón a todo el ancho o cambia lo que te queda por pagar.",
-            "15. Recibos → «Te llega» → toca «¿Y si gasto…?»; luego Gestionar → «¿Me lo puedo permitir?». BIEN: el teclado sale entero y la hoja sube suave. MAL: no pasa nada o el teclado queda tapado."
+            "15. Recibos → «Te llega» → toca «¿Y si gasto…?»; luego Gestionar → «¿Me lo puedo permitir?». BIEN: el teclado sale entero y la hoja sube suave. MAL: no pasa nada o el teclado queda tapado.",
+            "16. Plan → Recibos: un recibo cuyo cargo ya salió en el banco, aunque el banco lo llame de otra forma. BIEN: está en «Ya pagados» con el importe y el día del cargo, sin hacer nada. MAL: sigue en «Pendiente» o en «Para revisar».",
+            "17. Dos recibos del mismo importe y día, o un recibo devuelto por el banco. BIEN: ninguno se da por pagado solo. MAL: se marca el que no es, o un cargo paga dos recibos."
           ],
           "en": [
             "1. Plan → Bills. Scroll slowly to the bottom and back up. RIGHT: nothing passes under the clock and icons at the top (the title, Bills/Debts/Goals and the card hide under a strip the colour of the background); in light theme there is no grey strip on the left edge. WRONG: text or buttons show under the clock, or a grey shadow sticks to the left edge.",
@@ -68,7 +70,9 @@
             "12. Plan → Bills → \"Already paid\" → a paid bill → Edit → change only the name → Save. RIGHT: it stays in \"Already paid\" with the same amount and day, and \"Still to pay\" does not move. WRONG: it goes back to pending or the figure changes.",
             "13. Manage → a bill → \"I don't have it anymore\" → confirm. RIGHT: \"Bill removed\" shows with \"Undo\"; pressing it brings it back as it was. WRONG: no \"Undo\", or it does not come back.",
             "14. Bills → \"Owed to you\" (if someone owes you something). RIGHT: \"They've paid me\" is a small button on the right; tapping it turns into \"Paid you · Undo\" and \"Still to pay\" does not move. WRONG: a full-width button, or what you have left to pay changes.",
-            "15. Bills → \"You're covered\" → tap \"What if I spend…?\"; then Manage → \"Can I afford it?\". RIGHT: the keypad shows in full and the sheet rises smoothly. WRONG: nothing happens, or the keypad is covered."
+            "15. Bills → \"You're covered\" → tap \"What if I spend…?\"; then Manage → \"Can I afford it?\". RIGHT: the keypad shows in full and the sheet rises smoothly. WRONG: nothing happens, or the keypad is covered.",
+            "16. Plan → Bills: a bill whose charge is already in the bank, even if the bank names it differently. RIGHT: it is in \"Already paid\" with the amount and day of the charge, without doing anything. WRONG: it stays in \"Pending\" or \"To review\".",
+            "17. Two bills with the same amount and day, or a bill the bank returned. RIGHT: neither is marked paid on its own. WRONG: the wrong one is marked, or one charge pays two bills."
           ],
           "ca": [
             "1. Pla → Rebuts. Baixa a poc a poc fins a baix i torna a dalt. BÉ: res passa per sota de l'hora i les icones de dalt (el títol, Rebuts/Deutes/Metes i la targeta s'amaguen sota una franja del color del fons); en tema clar no hi ha cap franja grisa a la vora esquerra. MALAMENT: es veu text o botons sota l'hora, o una ombra grisa enganxada a la vora esquerra.",
@@ -85,7 +89,9 @@
             "12. Pla → Rebuts → «Ja pagats» → un rebut pagat → Editar → canvia només el nom → Desa. BÉ: continua a «Ja pagats» amb el mateix import i dia, i «Queda per pagar» no es mou. MALAMENT: torna a pendent o canvia la xifra.",
             "13. Gestionar → un rebut → «Ja no el tinc» → confirma. BÉ: surt «Rebut tret» amb «Desfer»; en prémer-lo torna igual que estava. MALAMENT: no hi ha «Desfer» o no torna.",
             "14. Rebuts → «Et deuen» (si algú et deu alguna cosa). BÉ: «Ja m'ho ha pagat» és un botó petit a la dreta; en tocar-lo passa a «T'ho ha pagat · Desfer» i «Queda per pagar» no es mou. MALAMENT: botó a tota l'amplada o canvia el que et queda per pagar.",
-            "15. Rebuts → «T'arriba» → toca «I si gasto…?»; després Gestionar → «M'ho puc permetre?». BÉ: el teclat surt sencer i el full puja suau. MALAMENT: no passa res o el teclat queda tapat."
+            "15. Rebuts → «T'arriba» → toca «I si gasto…?»; després Gestionar → «M'ho puc permetre?». BÉ: el teclat surt sencer i el full puja suau. MALAMENT: no passa res o el teclat queda tapat.",
+            "16. Pla → Rebuts: un rebut el càrrec del qual ja ha sortit al banc, encara que el banc l'anomeni d'una altra manera. BÉ: és a «Ja pagats» amb l'import i el dia del càrrec, sense fer res. MALAMENT: continua a «Pendent» o a «Per revisar».",
+            "17. Dos rebuts del mateix import i dia, o un rebut que el banc ha retornat. BÉ: cap no es dona per pagat sol. MALAMENT: es marca el que no és, o un càrrec paga dos rebuts."
           ]
         }
       }

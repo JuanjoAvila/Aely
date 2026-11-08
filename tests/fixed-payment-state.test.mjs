@@ -26,9 +26,12 @@ assert.equal(check().paid,true,"el pago BOOK vence a wait");
 assert.equal(check().day,25);
 assert.equal(check({bankTx:[]}).overdue,true,"pasar el día no acredita pago");
 assert.equal(check({bankTx:[]},Object.assign({},fixed,{wait:undefined})).paid,false);
-for(const patch of [{status:"PDNG"},{status:""},{status:undefined},{date:"2026-10-25"},{date:"2026-08-25"},{date:"2026-09-31"},{ent:"revolut"},{amount:-42},{amount:99},{merchant:"Compra distinta"},{possibleDup:true}]){
+for(const patch of [{status:"PDNG"},{status:""},{status:undefined},{date:"2026-10-25"},{date:"2026-08-25"},{date:"2026-09-31"},{ent:"revolut"},{amount:-42},{amount:99},{merchant:"Compra distinta",card:true},{merchant:"Compra distinta",date:"2026-09-20"},{possibleDup:true}]){
   assert.equal(check({bankTx:[Object.assign({},tx,patch)]}).paid,false,JSON.stringify(patch));
 }
+// Sin su nombre, el cargo del banco del recibo con su importe y su día sí lo paga (queja del
+// 8/11/2026); con tarjeta o cinco días lejos, no (arriba).
+assert.equal(check({bankTx:[Object.assign({},tx,{merchant:"Compra distinta"})]}).paid,true,"banco, importe y día");
 assert.equal(check({bankTx:[Object.assign({},tx,{date:"2026-09-29"})]},fixed,9,2026,28).paid,false,"fecha bancaria futura");
 assert.equal(check({bankTx:[tx,Object.assign({},tx,{id:"other"})]}).paid,false,"dos pagos compatibles son ambiguos");
 assert.equal(check({fixed:[fixed,Object.assign({},fixed,{id:"other"})]}).paid,false,"dos recibos compatibles son ambiguos");
@@ -54,10 +57,14 @@ assert.equal(JSON.stringify(edited.accounts),JSON.stringify(base.accounts));
 console.log("fixed-payment-state: OK");
 
 // Nombres distintos y otro banco: se confirma la identidad, nunca solo el importe (rechazo 30/9).
+// Desde el 8/11/2026 el extracto del MISMO banco del recibo sí acredita por importe y día; un
+// cargo de otro banco sigue necesitando la confirmación a mano.
 const otherName=Object.assign({},tx,{merchant:"PROVEEDOR SINTETICO SA"});
 const expense={id:"cargo",date:"2026-09-25T12:00:00.000Z",merchant:otherName.merchant,amount:42,ent:"revolut",source:"wallet",category:"otros"};
 const unlinked=Object.assign({},base,{bankTx:[],expenses:[expense]});
-assert.equal(check({bankTx:[otherName],expenses:[expense]}).paid,false,"importe 1:1 no acredita identidad");
+assert.equal(check({bankTx:[],expenses:[expense]}).paid,false,"importe 1:1 de otro banco no acredita identidad");
+assert.equal(check({bankTx:[Object.assign({},otherName,{ent:"revolut"})],expenses:[expense]}).paid,false,"extracto de otro banco tampoco");
+assert.equal(check({bankTx:[otherName],expenses:[expense]}).paid,true,"extracto del banco del recibo: importe y día");
 const confirmed=c.linkFixedPayment(unlinked,expense.id,fixed.id,2026,9,30);
 assert.notEqual(confirmed,unlinked);
 assert.equal(c.fixedPaymentState(confirmed,confirmed.fixed[0],2026,9,30).paid,true,"confirmación explícita con nombre y banco distintos");
@@ -108,7 +115,12 @@ assert.equal(imported.length,1,"ruta R1: nombre diferente entra en Gastos");
 const r1=Object.assign({},fromImport,{expenses:imported});
 const linkedR1=c.linkFixedPayment(r1,imported[0].id,fixed.id,2026,9,30);
 assert.equal(c.fixedPaymentState(linkedR1,linkedR1.fixed[0],2026,9,30).paid,true,"R1 también requiere identidad explícita");
-assert.equal(c.reconcileFixedPaymentProofs(fromImport,2026,9,30),fromImport,"importe solo no se persiste");
+// Importe y día del banco del recibo se persisten como cualquier BOOK (8/11/2026); de otro banco, no.
+const persistedByAmount=c.reconcileFixedPaymentProofs(fromImport,2026,9,30);
+assert.equal(persistedByAmount.fixed[0].paymentProofs[2026*12+9].kind,"book","importe y día del banco del recibo se persisten");
+assert.equal(c.fixedPaymentState(c.slimForCloud(persistedByAmount),persistedByAmount.fixed[0],2026,9,30).paid,true,"y viajan sin extracto");
+const fromOtherBank=Object.assign({},fromImport,{bankTx:[Object.assign({},otherName,{ent:"revolut"})]});
+assert.equal(c.reconcileFixedPaymentProofs(fromOtherBank,2026,9,30),fromOtherBank,"importe de otro banco no se persiste");
 assert.equal(c.linkFixedPayment(Object.assign({},unlinked,{expenses:[expense,Object.assign({},expense,{id:"dup"})]}),expense.id,fixed.id,2026,9,30).fixed,unlinked.fixed,"dos filas iguales no se acreditan");
 const expected={identity:c.fixedPaymentIdentity(expense.ent,expense),model:c.fixedPaymentModel(fixed,9)};
 const race=Object.assign({},unlinked,{expenses:[Object.assign({},expense,{merchant:"OTRO CARGO SINTETICO"})]});
@@ -586,7 +598,7 @@ const paymentGuards=[
     assert.equal(ctx.fixedPaymentState(traveled,traveled.fixed[1],2026,9,30).paid,true,"prueba explícita vigente");
     assert.equal(ctx.fixedPaymentState(traveled,traveled.fixed[0],2026,9,30).paid,false,"BOOK no puede reutilizar el cargo ya vinculado");
   }},
-  {id:"book-sin-banco",from:'f.bank!==bank||!recNameMatch(f.name,merchant)',to:'!recNameMatch(f.name,merchant)',check(ctx){
+  {id:"book-sin-banco",from:'if(f.bank!==bank) return;',to:'',check(ctx){
     const other=Object.assign({},fixed,{account:"revolut"}),state=Object.assign({},base,{fixed:[other]});
     assert.equal(ctx.fixedPaymentAutoOwner(state,other,2026,9,"sabadell",tx.merchant,42,null,true),false,"modo BOOK exige banco propio");
   }}

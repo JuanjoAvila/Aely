@@ -229,6 +229,7 @@ const steps = [
   ["recibo-cargo-pendiente", ["node", "tests/recibo-cargo-pendiente.test.mjs"]],
   ["fixed-day-reconcile", ["node", "tests/fixed-day-reconcile.test.mjs"]],
   ["fixed-payment-state", ["node", "tests/fixed-payment-state.test.mjs"]],
+  ["recibos-ya-pagados-banco", ["node", "--test", "tests/recibos-ya-pagados-banco.test.mjs"]],
   ["recibos-renombrar", ["node", "tests/recibos-renombrar.test.mjs"]],
   ["recibos-t4-book-edit-state", ["node", "--test", "tests/recibos-t4-book-edit-state.test.mjs"]],
   ["recibos-book-rival", ["node", "tests/recibos-book-rival.test.mjs"]],
