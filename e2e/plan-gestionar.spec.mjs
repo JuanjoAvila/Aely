@@ -377,7 +377,9 @@ test("¿Me lo puedo permitir? vuelve arrastrando desde el centro", async ({ page
   await expect(titulo(page)).toHaveText("Tus recibos");
 });
 
-test("la ficha de un recibo vuelve de lado sin mover su lista", async ({ page }) => {
+// Es una hoja inferior: con el dedo a medio camino no sale de lado enseñando el fondo; al soltar
+// baja como subió (vídeo del dueño, 8/11). El gesto completo, en recibos-gestos.spec.mjs.
+test("la ficha de un recibo se cierra con atrás sin moverse de lado ni mover su lista", async ({ page }) => {
   await appLista(page);
   await abreTusRecibos(page);
   await grupo(page, "Servicios y suministros").click();
@@ -385,9 +387,7 @@ test("la ficha de un recibo vuelve de lado sin mover su lista", async ({ page })
   const fondo=page.locator(".v4-sheet-back").filter({has:pasos(page)});
   await expect(fondo).toBeVisible();
   await page.evaluate(() => { const e=new Event("mcNativeEdgeBack"); e.phase="progress"; e.progress=.5; window.dispatchEvent(e); });
-  const pos=await fondo.evaluate((el)=>({x:new DOMMatrix(getComputedStyle(el).transform).m41,w:innerWidth}));
-  expect(pos.x).toBeGreaterThan(pos.w*.45);
-  expect(pos.x).toBeLessThan(pos.w*.55);
+  expect(await fondo.evaluate((el)=>new DOMMatrix(getComputedStyle(el).transform).m41)).toBe(0);
   await expect(hub(page).locator(":scope > .v4-bills-push")).toBeVisible();
   await page.evaluate(() => { const e=new Event("mcNativeEdgeBack"); e.phase="invoke"; e.progress=1; window.dispatchEvent(e); });
   await expect(pasos(page)).toHaveCount(0,{timeout:1600});
@@ -755,23 +755,24 @@ test("la ola nativa vuelve por todos los pasos de un recibo sin crear nada", asy
       const e=new Event("mcNativeEdgeBack"); e.phase=ph; e.progress=p; window.dispatchEvent(e);
     },[phase,progress]);
   };
+  // Hoja inferior: el gesto nunca la saca de lado (vídeo del dueño, 8/11); cada atrás vuelve un paso.
   const x=async()=>fondo.evaluate((el)=>new DOMMatrix(getComputedStyle(el).transform).m41);
   await native("progress",.5);
-  expect(await x()).toBeGreaterThan(150);
+  expect(await x()).toBe(0);
   await native("cancel",0);
   await expect.poll(x).toBe(0);
   await expect(hoja).toHaveAttribute("data-paso","3");
 
   for(const prev of ["2","1","0"]){
     await native("progress",.5);
-    expect(await x()).toBeGreaterThan(150);
+    expect(await x()).toBe(0);
     await native("invoke",1);
     await expect(hoja).toHaveAttribute("data-paso",prev,{timeout:1600});
     await expect.poll(x).toBe(0);
   }
   await expect(pasoN(page, 0).locator('[data-rp4="name"]')).toHaveValue("Basuras");
   await native("progress",.5);
-  expect(await x()).toBeGreaterThan(150);
+  expect(await x()).toBe(0);
   await native("invoke",1);
   await expect(hoja).toHaveCount(0,{timeout:1600});
   await expect(titulo(page)).toHaveText("Tus recibos");

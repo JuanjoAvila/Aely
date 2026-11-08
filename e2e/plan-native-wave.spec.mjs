@@ -70,12 +70,15 @@ test('native wave: ficha permite el gesto vertical en el borde superior del cont
     await swipe(page,300,400,0,100,'touchCancel');await capture('sheet-after-cancel');
     const c=await page.context().newCDPSession(page);await c.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:300,y:400}]});await c.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:300,y:450}]});await page.evaluate(()=>new Promise(r=>requestAnimationFrame(r)));
     const during=await capture('sheet-top-edge-during');await c.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]});await c.detach();await settle(page);
-    expect(during.sheet.scroll).toBe(0);expect(during.sheet.transform,'el contenido al borde debe dejar el movimiento vertical al navegador').toBe('none');
+    // Con el contenido arriba del todo, tirar hacia abajo es de la hoja (vídeo del dueño, 8/11): la sigue el dedo.
+    expect(during.sheet.scroll).toBe(0);expect(Number((during.sheet.transform.match(/matrix\((?:[^,]+,){5}\s*([-\d.]+)\)/)||[])[1]||0),'arriba del todo, la bajada mueve la hoja').toBeGreaterThan(20);
+    await expect.poll(()=>page.locator('[data-sheet="bill"]').evaluate(e=>getComputedStyle(e).transform)).toBe('none');
     // El candado compartido usa pan-x pan-y: permite scroll nativo en ambos ejes.
     expect(during.sheet.willChange).toBe('auto');expect(during.sheet.overscroll).toBe('auto');expect(during.sheet.touch).toMatch(/auto|pan-y/);
     for(let i=0;i<3;i++)await swipe(page,300,600,0,-350);
     const bottom=await capture('sheet-bottom');expect(bottom.sheet.scroll).toBe(bottom.sheet.max);
-    for(let i=0;i<3;i++)await swipe(page,300,250,0,350);
+    // Subir el contenido hasta arriba sin un tirón de más: ese ya cerraría la hoja.
+    for(let i=0;i<3&&(await capture('sheet-up')).sheet.scroll>0;i++)await swipe(page,300,250,0,350);
     const top=await capture('sheet-top');expect(top.sheet.scroll).toBe(0);expect(top.sheet.transform).toBe('none');
     const handle=await page.locator('[data-sheet="bill"] .v4-sheet-handle').boundingBox();
     await swipe(page,handle.x+handle.width/2,handle.y+handle.height/2,0,130);
@@ -122,7 +125,7 @@ test('native wave: alta desplazable conserva el formulario, los bordes y el regr
     const add=page.locator('[data-sheet="recibo-pasos"]');await expect(add).toBeVisible();await add.locator('input').fill('Borrador sintético');await add.locator('[data-act="next"]').tap();await expect(add).toHaveAttribute('data-paso','1');await settle(page);
     const opened=await capture('add-amount');expect(opened.sheet.max).toBeGreaterThan(0);
     /* El pie (.rp4-foot) ya no va dentro del scroll y ocupa abajo: el arrastre empieza DENTRO de .rp4-body (y=380), no sobre el pie. */await swipe(page,360,380,0,-250);await swipe(page,360,380,0,-250);const bottom=await capture('add-bottom');expect(bottom.sheet.scroll).toBe(bottom.sheet.max);
-    await swipe(page,360,160,0,250);await swipe(page,360,160,0,250);const top=await capture('add-top');expect(top.sheet.scroll).toBe(0);expect(top.sheet.transform).toBe('none');expect(top.sheet.willChange).toBe('auto');
+    for(let i=0;i<2&&(await capture('add-up')).sheet.scroll>0;i++)await swipe(page,360,160,0,250);const top=await capture('add-top');expect(top.sheet.scroll).toBe(0);expect(top.sheet.transform).toBe('none');expect(top.sheet.willChange).toBe('auto');
     const c=await page.context().newCDPSession(page);await c.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:360,y:200}]});await c.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:360,y:240}]});await page.evaluate(()=>new Promise(r=>requestAnimationFrame(r)));const edge=await capture('add-top-edge');await c.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]});await c.detach();expect(edge.sheet.transform).toBe('none');
     await page.goBack();await expect(add).toHaveAttribute('data-paso','0');await expect(add.locator('input')).toHaveValue('Borrador sintético');await page.goBack();await expect(add).toHaveCount(0);await settle(page);const returned=await capture('add-return');
     expect(returned.child.scroll).toBe(before.child.scroll);expect(returned.plan.scroll).toBe(before.plan.scroll);

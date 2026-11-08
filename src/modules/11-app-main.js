@@ -3897,10 +3897,18 @@ function App(){
     navSinBlurTrasTransicion();
   },[tab]);
   // Contrapartida de medir en píxeles: un porcentaje se re-resolvía solo al girar el móvil, y un
-  // píxel no. Si cambia el ancho (rotación, teclado, barra del navegador), se tira la medida
+  // píxel no. Si cambia el ancho (rotación, ventana partida), se tira la medida
   // cacheada y se vuelve a colocar el carrusel. Fuera del gesto, para no medir con el dedo puesto.
   useEffect(function(){
+    /* El teclado solo cambia el ALTO, y la colocación va en px de ancho: no hay nada que recolocar.
+       Salir y volver a entrar al host re-renderizaba App dos veces y recalculaba los estilos de
+       toda la página en cada paso del teclado al subir: «¿Me lo puedo permitir?» iba a tirones al
+       tocar el importe (vídeo del dueño, 8/11). */
+    let ancho=trackAnchoAhora();
     const alRedimensionar=function(){
+      const w=trackAnchoAhora();
+      if(w===ancho) return;
+      ancho=w;
       trackW.current=0;
       if(trackRef.current&&!dragging.current){
         // Snap sin animar: el ancho nuevo cambia el destino en px; animar desde el viejo salta.

@@ -1845,7 +1845,10 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
     pausaChips.push({key:"h"+k,label:tf("pr6_hasta",{m:mes}),go:function(){ set(function(s){ return fixedPausa(s,f.id,desde,hasta); }); cerrarCon(tf("pr6_pausado_toast",{name:row.name,m:mes})); }});
   });
   const posponible=rv==="late"||especial;
+  /* «Ya está pagado» va en la fila de acciones, con el tamaño de las demás: suelto ocupaba todo el
+     ancho con la altura de la CTA de un paso y se comía la ficha (vídeo del dueño, 8/11). */
   const botones=[];
+  if(!confirmado&&f&&rv!=="ghost") botones.push(React.createElement("button",{type:"button",key:"pg",className:"pr6-btn pr6-btn-main","data-act":"pagado",onClick:function(){ setRechazo(false); setElegido(null); setOtros(false); setQ(""); setPaso(1); }},t("pr6_ya_pagado_btn")));
   if(desenlace&&!especial) botones.push(React.createElement("button",{type:"button",key:"no",className:"pr6-btn","data-act":"no-es",onClick:function(){ setRechazo(true); setElegido(null); setOtros(false); setQ(""); setPaso(1); }},t("pr6_no_es_este")));
   if(f||oneoffId) botones.push(React.createElement("button",{type:"button",key:"ed",className:"pr6-btn","data-act":"editar",onClick:function(){ onEdit(f?f.id:oneoffId); }},t("pr6_editar")));
   if(f) botones.push(React.createElement("button",{type:"button",key:"pa",className:"pr6-btn","data-act":"pausar","aria-expanded":pausa?"true":"false",onClick:function(){ setPausa(function(o){ return !o; }); }},t("pr6_pausar")));
@@ -1871,11 +1874,10 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
       React.createElement("span",{className:"pr6-ring on","aria-hidden":"true"},"✓")),
     par.length>0&&React.createElement("div",{className:"pr6-btns","data-testid":"recibo-par"},par),
     baja&&React.createElement("a",{className:"pr6-baja",href:baja.url,target:"_blank",rel:"noopener noreferrer","data-testid":"recibo-baja"}, tf("pr6_baja",{name:baja.name})),
-    !confirmado&&f&&rv!=="ghost"&&React.createElement("button",{type:"button",className:"pr6-cta","data-act":"pagado",onClick:function(){ setRechazo(false); setElegido(null); setOtros(false); setQ(""); setPaso(1); }},t("pr6_ya_pagado_btn")),
     f&&React.createElement("div",{className:"pr6-fold"+(pausa?" open":"")},
       React.createElement("div",Object.assign({className:"pr6-fold-in pr6-pausa","data-testid":"recibo-pausa"},pausa?null:{"aria-hidden":"true",inert:""}),
         pausaChips.map(function(c){ return React.createElement("button",{type:"button",key:c.key,className:"chip","data-pausa":c.key,onClick:c.go},c.label); }))),
-    botones.length>0&&React.createElement("div",{className:"pr6-btns"},botones),
+    botones.length>0&&React.createElement("div",{className:"pr6-btns pr6-acts"},botones),
     posponible&&React.createElement("button",{type:"button",className:"pr6-more","data-act":"posponer",onClick:function(){ if(onPosponer) onPosponer(row); swipe.close(); }},t("pr6_manana_btn")));
   const lista=qq?encontrados:cands.concat(otros||!cands.length?recientes:[]);
   const elegirPanel=f&&React.createElement("div",{className:"pr6-step"+(paso===1?" on":""),"aria-hidden":paso===1?null:"true",inert:paso===1?undefined:""},
@@ -2487,7 +2489,8 @@ function BillsItemSheet({row, state, set, banks, simple, onClose, onRemove,revie
   const titleRef=React.useRef(null);
   const sideRef=React.useRef(null);
   const swipe=useSheetSwipe(true,onClose,{nativeScroll:true});
-  const side=useEdgePageClose(true,onClose,true,sideRef,{plainScroll:true});
+  // Hoja inferior: atrás la baja, no la saca de lado (vídeo del dueño, 8/11).
+  const side=useEdgePageClose(true,onClose,true,sideRef,{plainScroll:true,hoja:swipe.close});
   const sheetRef=swipe.sheetRef;
   const titleId="bills-item-title";
   React.useEffect(function(){ if(!review)setAmount(""); },[row.id]);
@@ -2864,13 +2867,14 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
     if(padRef.current!=null){ setPadFor(null); return true; }
     setPadFor(null); setGone(false);
     const r=rastro.current;
-    if(!r.length){ onCloseRef.current&&onCloseRef.current(); return false; }
+    // En el primer paso atrás cierra, y la hoja baja como subió (sin animar desaparecía de golpe).
+    if(!r.length){ swipe.close(); return false; }
     const n=r.pop(); pasoRef.current=n; setPaso(n); return true;
   },[]);
   const atrasRef=useRef(atras); atrasRef.current=atras;
   useBackClose(true,function(){ atrasRef.current(); },paso);
   // Tercer argumento verdadero y distinto en cada paso: con el paso 0 a secas el gesto quedaba apagado.
-  const side=useEdgePageClose(true,atras,"p"+paso,sideRef,{plainScroll:true,soloPaso:function(){ return rastro.current.length>0; }});
+  const side=useEdgePageClose(true,atras,"p"+paso,sideRef,{plainScroll:true,hoja:swipe.close,soloPaso:function(){ return rastro.current.length>0; }});
   // El paso de llegada se ve desde arriba: el carril cambia de contenido, no de sitio.
   const bodyRef=useRef(null), trackRef=useRef(null);
   usePasosCarril(trackRef,bodyRef,paso);
@@ -3350,7 +3354,7 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, onSa
   stepRef.current=step; formRef.current=form;
   const stepBack=React.useCallback(function(){
     const cur=stepRef.current, f=formRef.current||{};
-    if(cur==="what"){ onCloseRef.current&&onCloseRef.current(); return false; }
+    if(cur==="what"){ swipe.close(); return false; }
     if(cur==="amount") setStep("what");
     else if(cur==="freq"||cur==="monthyear") setStep("amount");
     else if(cur==="months") setStep("freq");
@@ -3361,8 +3365,9 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, onSa
   const stepBackRef=React.useRef(stepBack);
   stepBackRef.current=stepBack;
   useBackClose(true,function(){ stepBackRef.current(); },step);
-  // El primer paso ya sale con la ola: el callback de Atrás desmonta sin otra salida vertical.
-  const side=useEdgePageClose(true,stepBack,step,sideRef,{plainScroll:true});
+  // El primer paso ya sale con la ola: la de bajada de la hoja (`hoja`), nunca de lado; los demás
+  // vuelven un paso con su transición (vídeo del dueño, 8/11).
+  const side=useEdgePageClose(true,stepBack,step,sideRef,{plainScroll:true,hoja:swipe.close,soloPaso:function(){ return stepRef.current!=="what"; }});
   React.useLayoutEffect(function(){
     // El fondo persiste entre pasos; cada Atrás debe dejar el anterior centrado y listo para otro.
     const el=sideRef.current; if(!el) return;
