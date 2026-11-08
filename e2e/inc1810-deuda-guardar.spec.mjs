@@ -83,3 +83,21 @@ test('INC1810: teclear la cuota de un préstamo no ligado no arrastra lo que baj
  await save(page).click();await expect(sheet(page)).toHaveCount(0);
  await expect.poll(()=>page.evaluate(()=>{const d=JSON.parse(localStorage.getItem('micartera_v3')).debts[0];return {monthly:d.monthly,amort:d.amort};})).toEqual({monthly:255,amort:250});
 });
+
+// Revisión de la 4.26.214: una cuota guardada con tres decimales y sin bajada propia es ligada (la
+// bajada abre a 197,33); con igualdad exacta la hoja la abría suelta y la bajada en pantalla se
+// quedaba atrás al teclear la cuota.
+test('INC1810: cuota con tres decimales y sin bajada propia abre ligada y la bajada la sigue',async({page})=>{
+ const fina={id:'rv214b',name:'Financiación sintética',value:2000,original:2000,monthly:197.333,day:25,asOf:2026*12+9,apr:null};
+ await page.clock.install({time:new Date('2026-10-18T12:00:00Z')});
+ await seedLoggedInDashboard(page,{__seedOnce:true,debts:[fina],expenses:[],settings:{lang:'es',autoPrices:false,theme:'green',reservaRules:[]}});
+ await page.goto('/');await page.waitForFunction(()=>!document.getElementById('mc-load'));await dismissNews(page);
+ await page.locator('.botnav-tab[data-tour="plan"]').click();await page.getByRole('tab',{name:'Deudas',exact:true}).click();
+ await page.locator('[data-debt-id="rv214b"] .plan-item-open').click();await expect(sheet(page)).toBeVisible();
+ const q=sheet(page).locator('[data-debt-field="monthly"]'),a=sheet(page).locator('[data-debt-field="amort"]');
+ await expect(a).toHaveValue('197.33');
+ await q.fill('');await q.pressSequentially('210');
+ await expect(a).toHaveValue('210');
+ await save(page).click();await expect(sheet(page)).toHaveCount(0);
+ await expect.poll(()=>page.evaluate(()=>{const d=JSON.parse(localStorage.getItem('micartera_v3')).debts[0];return {monthly:d.monthly,amort:d.amort??null};})).toEqual({monthly:210,amort:null});
+});

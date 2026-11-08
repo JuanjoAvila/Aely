@@ -306,8 +306,14 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,showToast,review,recover
   /* Si «Baja la deuda» va ligada a la cuota se decide UNA vez, con la deuda tal y como se abre. Antes
      se decidía en cada tecla comparando los dos campos en vivo: en un préstamo familiar (paga 197,
      baja 250) la cuota pasaba un instante por «250» al teclearla, la bajada se enganchaba y se
-     guardaba sin sus 250 (revisión independiente de la 4.26.214). */
-  const tied=useRef(form.amort!==undefined&&planEditNumber(form.amort,true)===planEditNumber(form.monthly)).current;
+     guardaba sin sus 250 (revisión independiente de la 4.26.214). Con la misma tolerancia que el
+     guardado (`quotaIsAmort`): una cuota guardada con tres decimales (197,333) y sin bajada propia
+     abre la bajada a 197,33 y es la misma ligadura. */
+  const tied=useRef(function(){
+    if(form.amort===undefined) return false;
+    const a=planEditNumber(form.amort,true),m=planEditNumber(form.monthly);
+    return Number.isFinite(a)&&Number.isFinite(m)?Math.abs(a-m)<=0.005:a===m;
+  }()).current;
   const dayRef=useRef(null);
   useEffect(function(){
     if(initialFocus!=="day"||recovery) return;

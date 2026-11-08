@@ -6350,10 +6350,10 @@ test("Catálogo213 funde la zona Recibos en una tanda, retira las siete viejas c
   const source=f=>nl(read(f)),old=f=>nl(sourceBeta212(f));
   assert.equal(before[0].v,"4.26.212");
   const notes=JSON.parse(source("src/data/release-notes.json"));
-  assert.equal(notes[0].v,"4.26.214");assert.deepEqual(notes[0].tandas,[],"la 214 no lleva tanda propia: la zona Recibos sigue en la 213");const n213=notes[1];assert.equal(n213.v,"4.26.213");assert.equal(notes.length,before.length+2);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
+  assert.equal(notes[0].v,"4.26.215");assert.deepEqual(notes[0].tandas,[],"la 215 (Deudas) no lleva tanda propia");assert.equal(notes[1].v,"4.26.214");assert.deepEqual(notes[1].tandas,[],"la 214 no lleva tanda propia: la zona Recibos sigue en la 213");const n213=notes[2];assert.equal(n213.v,"4.26.213");assert.equal(notes.length,before.length+3);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
   // Todo lo anterior intacto salvo las siete tandas retiradas, que dejan la propiedad como lista vacía.
   const esperado=before.map(n=>{const out=structuredClone(n);if(retiradas[n.v])out.tandas=(n.tandas||[]).filter(g=>!retiradas[n.v].includes(g.id));return out;});
-  assert.deepEqual(notes.slice(2),esperado);
+  assert.deepEqual(notes.slice(3),esperado);
   for(const [v,ids] of Object.entries(retiradas)){
     const vieja=before.find(n=>n.v===v),ahora=notes.find(n=>n.v===v);
     assert.ok(Array.isArray(ahora.tandas),v+": la propiedad tandas sigue ahí");
@@ -6442,7 +6442,7 @@ test("Catálogo213 funde la zona Recibos en una tanda, retira las siete viejas c
   // Vídeo del 8/11: atrás baja la hoja de Recibos en vez de sacarla de lado (`useEdgePageClose` con
   // `hoja`, `stepBack` del alta), y eso mueve las dos huellas que vigilan el atrás de las hojas.
   Object.assign(expectedMoves,{"inc-0810-backclose-handover":["web"],"teclado-atras-conserva":["web"]});
-  // INC1810 en la 214: «Baja la deuda al mes» sigue a la cuota también con el texto a medias
+  // INC1810 (4.26.215): «Baja la deuda al mes» sigue a la cuota también con el texto a medias
   // (`DebtEditSheet`), y eso mueve las cuatro huellas de Deudas que leen ese editor.
   Object.assign(expectedMoves,{"deudas-aviso-plazo":["web"],"deudas-guardar-motivo":["web"],"deudas-metas-hoja-sin-parpadeo":["web"],"deudas-plazo-cuota-cuadran":["web"]});
   const moved={};
@@ -6464,7 +6464,7 @@ test("Catálogo213 funde la zona Recibos en una tanda, retira las siete viejas c
     assert.notEqual(mutated.web,current.web,nueva+" reabre la tanda web");}
   const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes);
   assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),vivas,"lo que el build entrega al panel");
-  const g0=built[1].tandas[0];
+  const g0=built[2].tandas[0];
   assert.equal(g0.web,current.web);assert.equal(g0.native,undefined);assert.equal(g0.edge,undefined);assert.equal(g0.apk,undefined);
   for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g0[key],undefined,"identidad nueva sin "+key);
   for(const id of vivas)assert.equal(receipt.web[id],betaRevision(id,source,undefined,scopes[id]).web,id+": su huella llega al panel");
