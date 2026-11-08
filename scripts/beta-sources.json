@@ -145191,6 +145191,26 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_TYPED"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withNotaFallback"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_isMissingDivisaCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_isMissingObNameCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcDivisaCols"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcObNameCol"
       }
     ],
     "unidades": true

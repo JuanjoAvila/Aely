@@ -38,7 +38,8 @@ for(const lang of ['es','en','ca']){
     // vive en «Para revisar» con su estado explícito (antes PlanBills pintaba el banco en la fila).
     const s=paymentFixture('debt'),tree=c.PlanRecibos({state:s,totals,manageOpen:false,setManageOpen(){},setManageEdit(){},showToast(){}});
     const row=nodes(find(tree,'plan-review')).find(n=>/v4-charge/.test(n.props.className||'')&&text(n).includes('Luz'));
-    assert(row);assert(text(row).includes(translate('pr6_no_llegado')));assert(!text(find(tree,'plan-due')).includes('Luz'));
+    // Por diseño la fila ya no repite «No ha llegado» (la sección lo dice y la fila enseña cuándo tocaba); el motivo sigue entero en el aria-label.
+    assert(row);assert(row.props['aria-label'].includes(translate('pr6_no_llegado')));assert.equal(row.props['data-review'],'late');assert(!text(find(tree,'plan-due')).includes('Luz'));
   });
   check('A2 known negative balance precedes all-paid phrase '+lang,()=>{
     const s=paymentFixture('debt');s.fixed=[];s.accounts[0].value=-80;
