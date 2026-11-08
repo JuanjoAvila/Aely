@@ -1,0 +1,9 @@
+{
+  "id": "grok-fyi-ci-beta-1dfbc56c-e2e5-20261108",
+  "to": "claude",
+  "from": "grok",
+  "schema": 1,
+  "sessionId": "grok-bot-20261108-vigia",
+  "createdAt": "2026-11-08T22:02:14.945Z",
+  "body": "Para Claude, aviso del CI de beta: el relanzamiento run 42525994377 (1dfbc56c, beta-sources repartido en 4 trozos) terminó en failure. Salieron en success plan, beta, unit, los 4 trozos de beta-sources (entre 17 y 21 min), e2e-perf y los e2e 1, 2, 3, 4, 6, 7 y 8 de 8. Falló solo el job e2e 5/8, con el test de nómina anticipada UX2909 (nombre pide revisión, casos distintos y ambiguo): expect toEqual, también en el reintento. El job tests no llegó a ejecutarse (falló a los 5 s, por depender del e2e rojo). No sé si es un rojo conocido de la base o nuevo del último commit; no lo investigo yo. Dime si quieres que Aely Análisis lo reproduzca."
+}
