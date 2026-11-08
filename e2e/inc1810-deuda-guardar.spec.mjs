@@ -65,3 +65,21 @@ test('INC1810: campo mal formado muestra error, conserva borrador y permite corr
  await expect(field).toHaveValue('1,2,3');await expect(save(page)).toBeEnabled();expect(await saved(page)).toEqual(before);
  await field.fill('200');await save(page).click();await expect(sheet(page)).toHaveCount(0);await reload(page,before);
 });
+
+// Revisión de la 4.26.214: en un préstamo NO ligado (paga 197, baja 250), teclear la cuota pasando
+// un instante por «250» enganchaba «Baja la deuda» a la cuota y se guardaba sin sus 250. El vínculo
+// se decide al abrir la hoja, no tecla a tecla.
+test('INC1810: teclear la cuota de un préstamo no ligado no arrastra lo que baja la deuda',async({page})=>{
+ const libre={id:'rv214',name:'Préstamo familiar sintético',value:2500,original:2500,monthly:197,amort:250,day:25,asOf:2026*12+9,apr:null};
+ await page.clock.install({time:new Date('2026-10-18T12:00:00Z')});
+ await seedLoggedInDashboard(page,{__seedOnce:true,debts:[libre],expenses:[],settings:{lang:'es',autoPrices:false,theme:'green',reservaRules:[]}});
+ await page.goto('/');await page.waitForFunction(()=>!document.getElementById('mc-load'));await dismissNews(page);
+ await page.locator('.botnav-tab[data-tour="plan"]').click();await page.getByRole('tab',{name:'Deudas',exact:true}).click();
+ await page.locator('[data-debt-id="rv214"] .plan-item-open').click();await expect(sheet(page)).toBeVisible();
+ const q=sheet(page).locator('[data-debt-field="monthly"]'),a=sheet(page).locator('[data-debt-field="amort"]');
+ await expect(a).toHaveValue('250');
+ await q.fill('');await q.pressSequentially('250');await q.press('Backspace');await q.pressSequentially('5');
+ await expect(q).toHaveValue('255');await expect(a).toHaveValue('250');
+ await save(page).click();await expect(sheet(page)).toHaveCount(0);
+ await expect.poll(()=>page.evaluate(()=>{const d=JSON.parse(localStorage.getItem('micartera_v3')).debts[0];return {monthly:d.monthly,amort:d.amort};})).toEqual({monthly:255,amort:250});
+});
