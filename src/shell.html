@@ -1064,7 +1064,12 @@
   .pr6-cta{height:48px;border-radius:14px;border:0;background:var(--mint);color:var(--on-mint);font-size:15px;font-weight:800;cursor:pointer;}
   .pr6-btns{display:flex;gap:8px;}
   .pr6-btn{flex:1;min-width:0;height:44px;border-radius:14px;border:1px solid var(--line);background:transparent;color:var(--text);font-size:14px;font-weight:700;cursor:pointer;}
-  .pr6-btn-wide{flex:none;width:100%;height:50px;}
+  .pr6-btn-wide{flex:none;width:100%;height:44px;}
+  /* Acciones de un recibo: cada botón mide lo que dice y la fila parte si no caben (en catalán o
+     con letra grande). La principal se distingue por el color, no por ocupar la pantalla. */
+  .pr6-acts{flex-wrap:wrap;}
+  .pr6-acts .pr6-btn{flex:1 1 auto;padding:0 14px;white-space:nowrap;}
+  .pr6-btn.pr6-btn-main{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
   .pr6-back{width:40px;height:40px;flex:none;border-radius:20px;border:1px solid var(--line-soft);background:var(--surface-2);color:var(--text);font-size:22px;line-height:1;cursor:pointer;}
   .pr6-search{height:52px;border-radius:16px;background:var(--bg);border:1px solid var(--line-soft);color:var(--text);padding:0 16px;font-size:16px;outline:none;}
   .pr6-lbl{font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:-6px;}
@@ -1154,6 +1159,10 @@
   .rp4-mes{height:32px;padding:0 10px;border-radius:16px;font-size:13px;text-transform:capitalize;}
   .rp4-mes.on{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
   .rp4-mes:disabled{opacity:.35;cursor:default;}
+  /* «¿En qué meses?» usa el selector de siempre, con el texto apagado de un mes deshabilitado: en
+     el mismo paso que los meses de «En varios pagos» parecía que no se podían tocar. Mismo tono. */
+  .rp4-msel .mchip{background:var(--surface);color:var(--text);font-size:13px;}
+  .rp4-msel .mchip.on{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
   .rp4-dia-row{display:flex;align-items:center;justify-content:center;gap:18px;}
   .rp4-step-btn{width:44px;height:44px;border-radius:22px;border:1px solid var(--line);background:var(--surface);color:var(--text);font-size:22px;font-weight:700;cursor:pointer;
     touch-action:manipulation;-webkit-user-select:none;user-select:none;}

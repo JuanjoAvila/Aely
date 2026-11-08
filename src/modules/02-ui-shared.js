@@ -1786,6 +1786,8 @@ function useEdgePageClose(open,onClose,on,ref,opts){
     // atrás («si tiras para atrás se buguea todo», beta 4.26.200).
     if(opts.soloPaso&&opts.soloPaso()){ reset(); cb.current&&cb.current(); return; }
     stopRest();
+    // Una hoja inferior se va como entró, hacia abajo: quien la monta pasa su cierre animado.
+    if(opts.hoja){ opts.hoja(); return; }
     const el=ref.current;
     if(!el||mcReduced()){ cb.current&&cb.current(); return; }
     busy.current=true;
@@ -1800,6 +1802,8 @@ function useEdgePageClose(open,onClose,on,ref,opts){
   };
   const reset=function(){
     stopRest();
+    // Sin movimiento lateral no hay nada que devolver (ver `move`).
+    if(opts.hoja) return;
     const el=ref.current; if(!el) return;
     el.classList.remove("mc-page-dragging");
     if(mcReduced()){
@@ -1823,6 +1827,10 @@ function useEdgePageClose(open,onClose,on,ref,opts){
     }
   };
   const move=function(x,p){
+    /* Una hoja inferior no acompaña al dedo de lado: se veía la lista de detrás y dos pasos a la
+       vez, y luego volvía de golpe (vídeo del dueño, 8/11). Atrás vuelve un paso con el carril o
+       la baja; el gesto solo decide si se suelta o se cancela. */
+    if(opts.hoja) return;
     const el=ref.current; if(!el||busy.current||mcReduced()) return;
     stopRest();
     el.classList.add("mc-page-dragging");
@@ -1965,15 +1973,27 @@ function useSheetSwipe(open, onClose, opts){
       if(lockHeld.current){ lockHeld.current=false; mcSheetUnlock(); }
     };
   },[open]);
+  /* React escucha touchmove en pasivo: su preventDefault no frena al scroller, y al tirar de la
+     hoja desde el cuerpo el contenido se estiraba (la ola de Android) a la vez que bajaba. Este,
+     nativo y decidido en el mismo toque, se queda la bajada solo cuando el scroller ya está arriba. */
+  useEffect(function(){
+    const el=opts.nativeScroll&&open?sheetRef.current:null;
+    if(!el) return undefined;
+    const tm=function(e){
+      const t=e.touches&&e.touches[0], sc=scrollHost.current;
+      if(!t||!armed.current||closing.current||!sc||sc.scrollTop>0) return;
+      const ddy=t.clientY-startY.current, ddx=t.clientX-startX.current;
+      if(ddy>0&&Math.abs(ddx)<=ddy&&e.cancelable) e.preventDefault();
+    };
+    el.addEventListener("touchmove",tm,{passive:false});
+    return function(){ el.removeEventListener("touchmove",tm); };
+  },[open]);
   const onTouchStart=function(e){
     // Portal a body pero el árbol React sigue bajo la tab: sin esto el swipe de tabs
     // del viewport se come el scroll horizontal de chips (editar gasto ≠ Apuntar — 2026-07-17).
     if(e&&e.stopPropagation) e.stopPropagation();
     if(closing.current) return;
     if(!(e.touches&&e.touches[0])) return;
-    // En las fichas de Gestionar, el contenido conserva el overscroll del navegador.
-    // El asa sigue permitiendo bajar la hoja; el gesto lateral de Atrás es independiente.
-    if(opts.nativeScroll&&!(e.target&&e.target.closest&&e.target.closest(".v4-sheet-handle"))) return;
     armed.current=true;
     dragging.current=true; dy.current=0; axis.current=null;
     startY.current=e.touches[0].clientY; startX.current=e.touches[0].clientX;
@@ -1982,6 +2002,16 @@ function useSheetSwipe(open, onClose, opts){
        un scroll normal hacia arriba en un tirón de cierre de toda la ficha. */
     const target=e.target&&e.target.closest?e.target.closest(".v4-sheet-body"):null;
     scrollHost.current=target&&sheetRef.current&&sheetRef.current.contains(target)?target:sheetRef.current;
+    /* Las fichas de Recibos scrollean por dentro (`.rp4-body`) y antes solo bajaban desde el asa:
+       desde el cuerpo no había forma de tirarlas («no se puede tirar hacia abajo», vídeo del dueño,
+       8/11). Manda el scroller de verdad: arriba del todo, la bajada es de la hoja. */
+    if(opts.nativeScroll){
+      let sc=sheetRef.current;
+      for(let n=e.target;n&&n!==sheetRef.current&&n.nodeType===1;n=n.parentElement){
+        if(n.scrollHeight>n.clientHeight+1&&/(auto|scroll)/.test(getComputedStyle(n).overflowY)){ sc=n; break; }
+      }
+      scrollHost.current=sc;
+    }
   };
   const onTouchMove=function(e){
     if(e&&e.stopPropagation) e.stopPropagation();

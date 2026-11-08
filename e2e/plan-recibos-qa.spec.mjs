@@ -72,16 +72,15 @@ test("hoja por pasos: Atrás vuelve un paso sin que la hoja salga volando, tambi
   await cta(page).click();
   await expect(hoja(page)).toHaveAttribute("data-paso", "1");
   await page.waitForTimeout(450);
-  // Arrastrar hacia la derecha y soltar: la hoja acompaña al dedo y vuelve a su sitio un paso atrás.
+  // Arrastrar hacia la derecha y soltar: la hoja NO acompaña al dedo de lado (se veía el fondo y dos
+  // pasos a la vez, vídeo del dueño 8/11); al soltar vuelve un paso con el carril.
   const cdp = await page.context().newCDPSession(page);
   await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 120, y: 300 }] });
   for (const x of [160, 220, 280, 330]) await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x, y: 302 }] });
-  expect(await capaX(page)).toBeGreaterThan(150);
+  expect(await capaX(page)).toBe(0);
   await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
   await expect(hoja(page)).toHaveAttribute("data-paso", "0", { timeout: 300 });
-  await page.waitForTimeout(150);
-  expect(await capaX(page)).toBeLessThan(120);
-  await expect.poll(() => capaX(page), { timeout: 600 }).toBeLessThan(2);
+  expect(await capaX(page)).toBe(0);
   await expect(hoja(page)).toBeVisible();
   // En el primer paso, Atrás sí cierra.
   await hoja(page).locator('[data-act="back"]').click();
