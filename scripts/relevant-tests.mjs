@@ -31,7 +31,7 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
  *  acotar a una pantalla sin mentir. */
 export const CORE = [
   "scripts/verify-selective106.mjs",
-  "scripts/beta-source-code.mjs", "scripts/beta-revisions.mjs", "scripts/beta-archives.json", "scripts/beta-sources.json", "scripts/build-app.mjs", "scripts/load-pure-logic.mjs",
+  "scripts/beta-source-code.mjs", "scripts/beta-revisions.mjs", "scripts/build-app.mjs", "scripts/load-pure-logic.mjs",
   "src/modules/00-core.js",
   "src/modules/01-i18n.js",
   "src/modules/02-ui-shared.js",
@@ -43,6 +43,18 @@ export const CORE = [
   // Reparar el guardián de revisión tras un CI fallido no puede publicar la unión
   // pendiente sólo con Node y saltarse sus pantallas (publicador109, 8/10/2026).
   "tests/beta-veredictos.test.mjs",
+];
+
+/** REGISTROS DE TESTS: los alcances del panel de beta (8/11/2026). Antes estaban en CORE y casi
+ *  cada tanda los toca, así que casi cada beta salía con los 2005 e2e. No son lógica de la app: el
+ *  build los lee solo para sellar las huellas del panel «Revisar esta beta». Por eso corren TODOS
+ *  los unitarios (beta-revisions los lee al importarse, y casi todos los tests pasan por ahí) y los
+ *  e2e que pintan ese panel y sus notas. Lo que sí es código del build (beta-revisions,
+ *  beta-source-code, build-app) sigue en CORE. */
+export const TEST_REGISTRY = ["scripts/beta-sources.json", "scripts/beta-archives.json"];
+export const TEST_REGISTRY_SPECS = [
+  "e2e/revisar-beta.spec.mjs", "e2e/beta-panel-reopen.spec.mjs",
+  "e2e/inicio-offline.spec.mjs", "e2e/ajustes-versiones.spec.mjs",
 ];
 
 /**
@@ -530,6 +542,7 @@ export function planFromFiles(files) {
     else if (isSrc(f)) kinds.add("src");
     else if (isE2e(f)) kinds.add("e2e");
     else if (isUnitTest(f)) kinds.add("unit");
+    else if (TEST_REGISTRY.includes(f)) kinds.add("registry");
     else if (f.startsWith("scripts/")) kinds.add("scripts");
     else kinds.add("other");
   }
@@ -585,11 +598,13 @@ export function planFromFiles(files) {
 
   // Un cambio de pantalla también puede romper persistencia / swipe / frames.
   if (srcFiles.length) CROSSCUTTING.forEach((s) => specs.add(s));
+  if (kinds.has("registry")) TEST_REGISTRY_SPECS.forEach((s) => specs.add(s));
 
   const e2e = specs.size ? [...specs].sort() : "none";
   return {
     reason: srcFiles.length
       ? ("src/e2e acotado: " + (srcFiles[0] || e2eFiles[0]))
+      : kinds.has("registry") ? "registro de tests: " + rest.find((f) => TEST_REGISTRY.includes(f))
       : "specs e2e tocados",
     build: true,
     deno: kinds.has("supabase"),
@@ -597,6 +612,28 @@ export function planFromFiles(files) {
     e2e,
     steps: "all",
   };
+}
+
+/* REPARTO DE LA CI EN PARALELO (8/11/2026). En serie, la suite entera de beta eran ~3,5 h. Los
+   jobs de beta.yml leen esto de GITHUB_OUTPUT: qué trozos hacen falta y en cuántas máquinas.
+   E2E: un shard por cada ~12 ficheros de spec, hasta E2E_SHARDS (los 212 de hoy → 8), más un job
+   aparte para los de rendimiento, que se miden con un worker y sin vecinos. Un plan acotado a tres
+   specs no levanta ocho Chromium para nada. */
+export const E2E_SHARDS = 8;
+export const BETA_SOURCES_SHARDS = 4;
+export function ciJobs(plan, specsEnDisco) {
+  const steps = plan.steps === "all" || !plan.steps ? "all" : plan.steps;
+  const betaSources = steps === "all" || steps.includes("beta-sources");
+  const unit = steps === "all" || steps.some((s) => s !== "beta-sources") || plan.deno !== false;
+  let e2e = [];
+  if (plan.playwright !== false && plan.e2e !== "none") {
+    const count = plan.e2e === "all" || !plan.e2e ? specsEnDisco : plan.e2e.length;
+    const n = Math.min(E2E_SHARDS, Math.max(1, Math.ceil(count / 12)));
+    for (let i = 1; i <= n; i++) e2e.push({ part: "e2e", shard: i + "/" + n });
+    e2e.push({ part: "e2e-perf", shard: "" });
+  }
+  const bs = betaSources ? Array.from({ length: BETA_SOURCES_SHARDS }, (_, i) => (i + 1) + "/" + BETA_SOURCES_SHARDS) : [];
+  return { unit, betaSources, bs, e2e };
 }
 
 export function filesFromGit(before, sha) {
@@ -658,6 +695,15 @@ if (self.toLowerCase() === invoked.toLowerCase()) {
     fs.appendFileSync(ghOut, "playwright=" + plan.playwright + "\n");
     fs.appendFileSync(ghOut, "deno=" + plan.deno + "\n");
     fs.appendFileSync(ghOut, "reason=" + plan.reason.replace(/\r|\n/g, " ") + "\n");
+    const specsEnDisco = fs.readdirSync(path.join(root, "e2e"), { recursive: true })
+      .filter((p) => String(p).endsWith(".spec.mjs")).length;
+    const jobs = ciJobs(plan, specsEnDisco);
+    // El plan entero en una línea: cada job lo vuelve a escribir en su máquina en vez de recalcularlo.
+    fs.appendFileSync(ghOut, "plan=" + JSON.stringify(plan) + "\n");
+    fs.appendFileSync(ghOut, "unit=" + jobs.unit + "\n");
+    fs.appendFileSync(ghOut, "beta_sources=" + JSON.stringify(jobs.bs) + "\n");
+    fs.appendFileSync(ghOut, "e2e=" + JSON.stringify(jobs.e2e) + "\n");
+    console.log("  CI: unit=" + jobs.unit + "  beta-sources=" + jobs.bs.length + " trozos  e2e=" + jobs.e2e.length + " jobs");
   }
   const summary = process.env.GITHUB_STEP_SUMMARY;
   if (summary) {

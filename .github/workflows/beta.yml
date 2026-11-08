@@ -22,6 +22,7 @@ permissions:
 jobs:
   beta:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     # Solo publicar va en cola: dos publicaciones a la vez pisarían la release.
     concurrency:
       group: beta-publicar
@@ -42,8 +43,8 @@ jobs:
       # 55? recórtalo pero ya; prefiero que salte en beta y tener más cosas ahí más rápido»).
       # La suite entera con Chromium eran ~50 de los ~55 minutos, y la beta solo la lleva su
       # móvil: para eso existe el canal. Aquí queda lo mínimo para no servir un bundle que no
-      # arranca; la suite corre EN PARALELO en el job `tests` de abajo y avisa en rojo, pero no
-      # frena. La red de seguridad antes de la familia sigue entera: promote y test.yml de main.
+      # arranca; la suite corre EN PARALELO en los jobs de abajo (veredicto en `tests`) y avisa en
+      # rojo, pero no frena. La red de seguridad antes de la familia sigue entera: promote y test.yml de main.
       - name: Sintaxis del bundle
         run: npm run test:syntax
 
@@ -190,13 +191,28 @@ jobs:
           echo "Llega SOLO a los móviles con el canal beta activado (Ajustes → Dev → Pruebas)." >> $GITHUB_STEP_SUMMARY
           echo "La estable de GitHub Pages no se ha tocado." >> $GITHUB_STEP_SUMMARY
 
-  # La suite que antes bloqueaba la publicación. Un push nuevo cancela la pasada del anterior:
-  # lo que interesa es el veredicto de la cabeza de beta, no el de un commit ya superado.
-  tests:
+  # LA SUITE, EN PARALELO (8/11/2026). Antes era un solo job `tests` que lo corría todo en serie:
+  # con el plan «TODOS», ~1 h de beta-sources y ~2 h de los 2005 e2e con dos workers, 3,5 h para
+  # saber si una beta estaba bien. Ahora `plan` decide qué hace falta (relevant-tests) y lo reparte:
+  # unitarios en una máquina, beta-sources en trozos y los e2e en shards de Playwright, todo a la
+  # vez. El job `tests` del final sigue existiendo con ese nombre, porque es el que se mira antes
+  # de promocionar: solo sale verde si todos los trozos que tocaban salieron verdes.
+  #
+  # Cada job tiene su propio grupo de concurrencia: un push nuevo cancela el mismo trozo de la
+  # pasada anterior, que es lo que interesa (el veredicto de la cabeza de beta, no el de un commit
+  # ya superado), sin cancelar nunca la publicación del job `beta` de arriba.
+  plan:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     concurrency:
-      group: beta-tests
+      group: beta-tests-plan
       cancel-in-progress: true
+    outputs:
+      plan: ${{ steps.plan.outputs.plan }}
+      deno: ${{ steps.plan.outputs.deno }}
+      unit: ${{ steps.plan.outputs.unit }}
+      beta_sources: ${{ steps.plan.outputs.beta_sources }}
+      e2e: ${{ steps.plan.outputs.e2e }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -206,11 +222,8 @@ jobs:
         with:
           node-version: 20
 
-      - name: Instalar dependencias
-        run: npm ci
-
       # Una beta que no arranca no sirve de nada para probar. PERO no hace falta la suite
-      # de 139 e2e para un commit de documentación: `relevant-tests` recorta por carpetas
+      # de 2005 e2e para un commit de documentación: `relevant-tests` recorta por carpetas
       # (docs → sin Chromium; ingest → Deno; Gastos → sus specs). Si se toca el núcleo
       # (motor, i18n, shell, el runner) o un workflow, corre TODO. Promote y test.yml
       # de main NO usan esto — ahí la red de seguridad es la suite entera.
@@ -222,13 +235,86 @@ jobs:
           GITHUB_SHA: ${{ github.sha }}
         run: node scripts/relevant-tests.mjs --ci
 
+  unit:
+    needs: plan
+    if: needs.plan.outputs.unit == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    concurrency:
+      group: beta-tests-unit
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Instalar dependencias
+        run: npm ci
       - uses: denoland/setup-deno@v2
-        if: steps.plan.outputs.deno == 'true'
+        if: needs.plan.outputs.deno == 'true'
         with:
           deno-version: v2.x
+      - name: Unitarios y Deno (sin beta-sources)
+        env:
+          PLAN: ${{ needs.plan.outputs.plan }}
+        run: |
+          printf '%s' "$PLAN" > relevant-plan.json
+          node scripts/run-tests.mjs --plan relevant-plan.json --part unit
 
+  beta-sources:
+    needs: plan
+    if: needs.plan.outputs.beta_sources != '[]' && needs.plan.outputs.beta_sources != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(needs.plan.outputs.beta_sources) }}
+    concurrency:
+      group: beta-tests-beta-sources-${{ strategy.job-index }}
+      cancel-in-progress: true
+    name: beta-sources (${{ matrix.shard }})
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Instalar dependencias
+        run: npm ci
+      - name: beta-sources, un trozo
+        env:
+          PLAN: ${{ needs.plan.outputs.plan }}
+        run: |
+          printf '%s' "$PLAN" > relevant-plan.json
+          node scripts/run-tests.mjs --plan relevant-plan.json --part beta-sources --shard ${{ matrix.shard }}
+
+  e2e:
+    needs: plan
+    if: needs.plan.outputs.e2e != '[]' && needs.plan.outputs.e2e != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.e2e) }}
+    concurrency:
+      group: beta-tests-e2e-${{ strategy.job-index }}
+      cancel-in-progress: true
+    name: ${{ matrix.part }} ${{ matrix.shard }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Instalar dependencias
+        run: npm ci
       - name: Chromium (Playwright)
-        if: steps.plan.outputs.playwright == 'true'
         run: |
           # El repo de Google Chrome sirve a veces un indice apt con el hash cambiado y tumba
           # `--with-deps` (9/9/2026: dos runs seguidos de la beta). No usamos Chrome, solo el
@@ -239,6 +325,37 @@ jobs:
           sudo rm -f /etc/apt/sources.list.d/google*.list /etc/apt/sources.list.d/google*.sources || true
           sudo grep -rl "dl.google.com" /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null | xargs -r sudo rm -f || true
           npx playwright install chromium --with-deps
+      - name: e2e, un trozo
+        env:
+          PLAN: ${{ needs.plan.outputs.plan }}
+          PART: ${{ matrix.part }}
+          SHARD: ${{ matrix.shard }}
+        run: |
+          printf '%s' "$PLAN" > relevant-plan.json
+          node scripts/run-tests.mjs --plan relevant-plan.json --part "$PART" ${SHARD:+--shard "$SHARD"}
 
-      - name: Tests
-        run: node scripts/run-tests.mjs --plan relevant-plan.json
+  # El veredicto único. `always()` para que un trozo rojo no lo deje en «skipped», que en la lista
+  # de Actions se lee como «no ha pasado nada»: si un trozo que tocaba falla o se cancela, rojo.
+  tests:
+    needs: [plan, unit, beta-sources, e2e]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    concurrency:
+      group: beta-tests-resultado
+      cancel-in-progress: true
+    steps:
+      - name: Resultado de todos los trozos
+        env:
+          PLAN: ${{ needs.plan.result }}
+          UNIT: ${{ needs.unit.result }}
+          BETA_SOURCES: ${{ needs.beta-sources.result }}
+          E2E: ${{ needs.e2e.result }}
+        run: |
+          echo "plan=$PLAN unit=$UNIT beta-sources=$BETA_SOURCES e2e=$E2E"
+          echo "### Suite de beta: plan=$PLAN · unit=$UNIT · beta-sources=$BETA_SOURCES · e2e=$E2E" >> $GITHUB_STEP_SUMMARY
+          test "$PLAN" = success || { echo "::error::el plan no salió"; exit 1; }
+          for r in "$UNIT" "$BETA_SOURCES" "$E2E"; do
+            # skipped = el plan no lo pedía; cualquier otra cosa que no sea success es rojo.
+            case "$r" in success|skipped) ;; *) echo "::error::hay un trozo en $r"; exit 1 ;; esac
+          done

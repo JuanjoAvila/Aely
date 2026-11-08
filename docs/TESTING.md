@@ -1209,17 +1209,44 @@ Tras v3.108.0 la lógica vive en **`src/modules/*.js`**. No edites `public/index
 
 ## CI
 
-- `.github/workflows/test.yml` — push/PR a **main**: suite **entera**
-- `.github/workflows/promote-beta.yml` — al subir a producción: suite **entera**
+- `.github/workflows/test.yml` — push/PR a **main**: suite **entera**, repartida en paralelo
+  desde el 8/11/2026 (ver «Trozos» abajo): `unit` (build + unitarios + Deno + privacidad, sin
+  beta-sources), `beta-sources (i/4)`, `e2e i/8` + `e2e-perf`, y el veredicto en `test`, que solo
+  sale verde si salen todos. Las matrices van escritas a mano y `tests/relevant-tests` comprueba
+  que cuadran con `E2E_SHARDS` / `BETA_SOURCES_SHARDS`.
+- `.github/workflows/promote-beta.yml` — al subir a producción: suite **entera**, todavía **en
+  serie** en el mismo job que hace el merge (~3,5 h). Repartirla exige fijar el SHA probado
+  (los jobs de tests leerían `origin/beta` en un momento y el merge en otro) y mantener el
+  `GITHUB_REF_NAME=beta` de docs-frescura en cada trozo; sin poder ensayarlo fuera de producción
+  se deja anotado, no hecho.
 - `tests/wait-promote-deploy.test.mjs` — reproduce un deploy cuya suite supera diez minutos,
   un fallo real y la comprobación del sello de Pages; se ejecuta desde `scripts/run-tests.mjs`.
 - `.github/workflows/beta.yml` — push a **beta**: desde el 11/10/2026 **publicar no espera a la
   suite** (orden del dueño: 55 min por beta era inasumible). El job `beta` solo pasa
-  `test:syntax` y publica (~5 min); la suite corre en paralelo en el job `tests`, que avisa en
-  rojo sin frenar. Un rojo ahí hay que mirarlo igual: la beta ya está en su móvil.
-  El job `tests` usa el recorte por carpetas (`scripts/relevant-tests.mjs`).
+  `test:syntax` y publica (~5 min); la suite corre en paralelo y el veredicto queda en el job
+  `tests`, que avisa en rojo sin frenar. Un rojo ahí hay que mirarlo igual: la beta ya está en su
+  móvil. Desde el 8/11/2026 `tests` es un agregador: el job `plan` saca el recorte por carpetas
+  (`scripts/relevant-tests.mjs --ci`, que escribe el plan y el reparto en `GITHUB_OUTPUT`) y a la
+  vez corren `unit`, `beta-sources (i/4)` y la matriz `e2e i/N` + `e2e-perf`; `tests` sale rojo si
+  cualquiera de los que tocaban falla o se cancela (`skipped` = el plan no lo pedía).
   Docs → sin Chromium. Ingest → Deno, sin e2e. Gastos → sus specs + transversales (persistencia,
   swipe, frames). Núcleo (motor, i18n, shell, runner) o un workflow → todo.
+  Los **registros de tests** del panel (`scripts/beta-sources.json`, `scripts/beta-archives.json`,
+  lista `TEST_REGISTRY`) ya no son núcleo: casi cada tanda los toca y cada beta salía con los 2005
+  e2e. Lanzan todos los unitarios (beta-revisions los lee al importarse) y los e2e del panel
+  (`TEST_REGISTRY_SPECS`: revisar-beta, beta-panel-reopen, inicio-offline, ajustes-versiones). El
+  código que el build usa para sellar el panel (`beta-revisions.mjs`, `beta-source-code.mjs`,
+  `build-app.mjs`) sigue en `CORE`.
+- **Trozos** (`node scripts/run-tests.mjs --part <trozo> [--shard i/N]`, 8/11/2026). Sin `--part`
+  todo sigue igual: `npm test` en local es la suite entera en serie.
+  `unit` = build + unitarios sin beta-sources + Deno · `beta-sources` = solo ese fichero; con
+  `--shard` corre uno de cada N tests por orden de aparición (`BETA_SOURCES_SHARD`) y un trozo que
+  no corre ninguno es rojo · `e2e` = e2e funcionales con `--shard` de Playwright
+  (`--pass-with-no-tests`: un plan de tres specs deja shards vacíos y eso es verde) · `e2e-perf` =
+  los de rendimiento, con un worker y sin trocear. Cuántos shards: `ciJobs()` en
+  `relevant-tests.mjs` (uno por cada ~12 ficheros de spec, hasta 8).
+  Ojo: los e2e ya no esperan a que los unitarios salgan verdes (antes, un unitario rojo se saltaba
+  los e2e). Ahora corren igual y el rojo de `tests` dice cuál de los trozos falló.
   El guardián `beta-veredictos` también exige la suite completa: corregir su fixture tras
   un publicador fallido no permite servir una unión pendiente sin abrir sus pantallas.
   **Si añades un e2e o un módulo de `src/`**, una línea en `E2E_MAP` / `CROSSCUTTING` / `CORE`

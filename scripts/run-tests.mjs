@@ -23,6 +23,31 @@ function loadPlan() {
 const plan = loadPlan();
 if (plan.reason) console.log("── plan: " + plan.reason + " ──");
 
+/* TROZOS PARA LA CI EN PARALELO (8/11/2026). En serie, la suite entera de beta eran ~3,5 h en una
+   sola máquina: ~1 h de beta-sources y ~2 h de los 2005 e2e con dos workers. Con `--part` cada job
+   de Actions corre solo su trozo y `--shard=i/N` reparte beta-sources o los e2e entre varios.
+   Sin `--part` todo sigue como siempre: `npm test` en local no cambia.
+     all           build + unitarios + Deno + e2e (lo de siempre)
+     unit          build + unitarios SIN beta-sources + Deno
+     beta-sources  build + solo beta-sources (con --shard, uno de cada N tests)
+     e2e           build + e2e funcionales (con --shard, el trozo i de N de Playwright)
+     e2e-perf      build + e2e de rendimiento, con un worker */
+function argOf(name) {
+  const eq = process.argv.find((a) => a.startsWith(name + "="));
+  if (eq) return eq.slice(name.length + 1);
+  const i = process.argv.indexOf(name);
+  return i >= 0 ? process.argv[i + 1] : null;
+}
+const PARTS = ["all", "unit", "beta-sources", "e2e", "e2e-perf"];
+const part = argOf("--part") || "all";
+const shard = argOf("--shard") || "";
+if (!PARTS.includes(part)) { console.error("--part tiene que ser " + PARTS.join(" | ") + " (llegó «" + part + "»)"); process.exit(2); }
+const shardOk = /^(\d+)\/(\d+)$/.exec(shard);
+if (shard && (!shardOk || +shardOk[1] < 1 || +shardOk[1] > +shardOk[2])) { console.error("--shard va como i/N con 1 ≤ i ≤ N (llegó «" + shard + "»)"); process.exit(2); }
+// Un trozo sin --part no tiene sentido: «la suite entera, pero un octavo» sería un verde a medias.
+if (shard && !["beta-sources", "e2e"].includes(part)) { console.error("--shard solo vale con --part=beta-sources o --part=e2e"); process.exit(2); }
+if (part !== "all") console.log("── trozo: " + part + (shard ? " " + shard : "") + " ──");
+
 if (plan.build !== false) {
   console.log("── build-app ──");
   const started = performance.now();
@@ -355,13 +380,20 @@ if (denoHuerfanos.length) {
 }
 
 let failed = false;
-const runSteps = plan.steps === "all" || !plan.steps
+const planSteps = plan.steps === "all" || !plan.steps
   ? steps
   : steps.filter(([name]) => plan.steps.includes(name));
+const runSteps = part === "all" ? planSteps
+  : part === "unit" ? planSteps.filter(([name]) => name !== "beta-sources")
+  : part === "beta-sources" ? planSteps.filter(([name]) => name === "beta-sources")
+  : [];
+if (part === "beta-sources" && !runSteps.length) console.log("\n── beta-sources ── (el plan no lo pide)");
 for (const [name, cmd] of runSteps) {
-  console.log(`\n── ${name} ──`);
+  console.log(`\n── ${name}${name === "beta-sources" && shard ? " " + shard : ""} ──`);
   const started = performance.now();
-  const r = spawnSync(cmd[0], cmd.slice(1), { cwd: root, stdio: "inherit", shell: process.platform === "win32" });
+  // El trozo de beta-sources lo elige el propio test (BETA_SOURCES_SHARD): solo él sabe qué es un test.
+  const env = name === "beta-sources" && shard ? { ...process.env, BETA_SOURCES_SHARD: shard } : process.env;
+  const r = spawnSync(cmd[0], cmd.slice(1), { cwd: root, stdio: "inherit", env, shell: process.platform === "win32" });
   recordTime(name, started);
   if (r.status !== 0) {
     failed = true;
@@ -369,7 +401,7 @@ for (const [name, cmd] of runSteps) {
   }
 }
 
-if (plan.deno !== false) {
+if (plan.deno !== false && (part === "all" || part === "unit")) {
   console.log("\n── ingest-deno ──");
   const denoTests = denoEnLista;
   for (const testFile of denoTests) {
@@ -411,7 +443,10 @@ if (plan.deno !== false) {
   console.log("\n── ingest-deno ── (omitido)");
 }
 
-if (!failed && plan.playwright !== false && plan.e2e !== "none") {
+const e2ePart = part === "all" || part === "e2e" || part === "e2e-perf";
+if (!e2ePart) {
+  console.log("\n── playwright-e2e ── (otro trozo)");
+} else if (!failed && plan.playwright !== false && plan.e2e !== "none") {
   console.log("\n── playwright-e2e ──");
   const specs = plan.e2e === "all" || !plan.e2e
     ? fs.readdirSync(path.join(root, "e2e"), { recursive: true })
@@ -433,8 +468,14 @@ if (!failed && plan.playwright !== false && plan.e2e !== "none") {
   // daba 108/109 ms en dos completas y pasaba aislado (15/9). Medir después conserva
   // el umbral real; los funcionales siguen en paralelo y ningún caso del plan se pierde.
   const isPerf = p => p.replaceAll("\\", "/").endsWith("/tr-emparejado-rendimiento.spec.mjs") || p.replaceAll("\\", "/").endsWith("/dashboard-memo-profile.spec.mjs") || p.replaceAll("\\", "/").endsWith("/inicio-v42-rendimiento.spec.mjs") || /(?:^|\/)rendimiento(?:-(?:tabs|sostenido))?\.spec\.mjs$/.test(p.replaceAll("\\", "/"));
-  const groups = [["playwright-e2e", specs.filter(p => !isPerf(p)), []],
-    ["playwright-perf", specs.filter(isPerf), ["--workers=1"]]];
+  // En un trozo, un shard puede quedarse sin specs (plan acotado a pocos ficheros): eso es un
+  // verde legítimo, no un «No tests found». Rendimiento NUNCA se trocea: va en su propio job.
+  const groups = [
+    ...(part !== "e2e-perf" ? [["playwright-e2e", specs.filter(p => !isPerf(p)),
+      shard ? ["--shard=" + shard, "--pass-with-no-tests"] : []]] : []),
+    ...(part !== "e2e" ? [["playwright-perf", specs.filter(isPerf), ["--workers=1"]]] : []),
+  ];
+  if (part === "e2e-perf" && !groups[0][1].length) console.log("  (el plan no trae specs de rendimiento)");
   const reports = [];
   fs.rmSync(path.join(root, "test-results", "playwright.json"), { force: true });
   for (const [name, selected, extra] of groups) {

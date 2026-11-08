@@ -21,8 +21,74 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  # LA SUITE ENTERA, EN PARALELO (8/11/2026). En `main` no se recorta nada: siempre todo. Pero ya
+  # no en serie en una sola máquina (~3,5 h con beta-sources y los 2005 e2e): unitarios + Deno en un
+  # job, beta-sources en trozos y los e2e en shards de Playwright, a la vez. La cobertura es la
+  # misma — cada trozo corre lo suyo de la suite entera y `test` solo sale verde si salen todos.
+  unit:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Tests (build + unit + Deno, sin beta-sources)
+        run: node scripts/run-tests.mjs --part unit
+
+      - name: Privacidad
+        run: node scripts/guard-privacy.mjs
+
+  beta-sources:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        # Los mismos trozos que BETA_SOURCES_SHARDS en scripts/relevant-tests.mjs.
+        shard: ["1/4", "2/4", "3/4", "4/4"]
+    name: beta-sources (${{ matrix.shard }})
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Instalar dependencias
+        run: npm ci
+      - name: beta-sources, un trozo
+        run: node scripts/run-tests.mjs --part beta-sources --shard ${{ matrix.shard }}
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        # Los mismos shards que E2E_SHARDS en scripts/relevant-tests.mjs, y rendimiento aparte.
+        include:
+          - { part: e2e, shard: "1/8" }
+          - { part: e2e, shard: "2/8" }
+          - { part: e2e, shard: "3/8" }
+          - { part: e2e, shard: "4/8" }
+          - { part: e2e, shard: "5/8" }
+          - { part: e2e, shard: "6/8" }
+          - { part: e2e, shard: "7/8" }
+          - { part: e2e, shard: "8/8" }
+          - { part: e2e-perf, shard: "" }
+    name: ${{ matrix.part }} ${{ matrix.shard }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -47,15 +113,29 @@ jobs:
           sudo grep -rl "dl.google.com" /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null | xargs -r sudo rm -f || true
           npx playwright install chromium --with-deps
 
-      - uses: denoland/setup-deno@v2
-        with:
-          deno-version: v2.x
+      - name: E2E, un trozo
+        env:
+          PART: ${{ matrix.part }}
+          SHARD: ${{ matrix.shard }}
+        run: node scripts/run-tests.mjs --part "$PART" ${SHARD:+--shard "$SHARD"}
 
-      - name: Tests (build + unit + Deno + E2E)
-        run: node scripts/run-tests.mjs
-
-      - name: Privacidad
-        run: node scripts/guard-privacy.mjs
+  # El veredicto único con el nombre de siempre: verde solo si TODOS los trozos salieron verdes.
+  test:
+    needs: [unit, beta-sources, e2e]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Resultado de todos los trozos
+        env:
+          UNIT: ${{ needs.unit.result }}
+          BETA_SOURCES: ${{ needs.beta-sources.result }}
+          E2E: ${{ needs.e2e.result }}
+        run: |
+          echo "unit=$UNIT beta-sources=$BETA_SOURCES e2e=$E2E"
+          for r in "$UNIT" "$BETA_SOURCES" "$E2E"; do
+            test "$r" = success || { echo "::error::hay un trozo en $r"; exit 1; }
+          done
 
   # Un gate de catálogo/versión puede impedir llegar al navegador en la suite completa.
   # Esta prueba manual acredita su spec y EXIT por separado; el job test conserva TODOS sus gates.
