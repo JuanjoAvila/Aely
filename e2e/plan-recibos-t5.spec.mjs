@@ -36,7 +36,7 @@ const paso = (page, n) => hoja(page).locator('[data-rp4-paso="' + n + '"]');
 const persona = (page) => page.locator('.v4-sheet[data-sheet="persona"]');
 const teclea = async (zona, digits) => { for (const d of digits) await zona.locator('.v4-keys button[aria-label="' + d + '"]').click(); };
 async function abreTodos(page, recibos) {
-  await recibos.getByTestId("plan-due").getByRole("button", { name: "Gestionar" }).click();
+  await recibos.getByTestId("plan-due").getByTestId("plan-todos").click();
   await expect(page.locator("[data-bills-manage]")).toBeVisible();
 }
 

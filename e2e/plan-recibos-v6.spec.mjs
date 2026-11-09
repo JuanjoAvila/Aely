@@ -47,7 +47,7 @@ test("tarjeta: suma lo pendiente; «Por pagar» enseña tres y «Ver los N» des
   await expect(recibos.getByTestId("plan-review")).toHaveCount(0);
 });
 
-test("para revisar: no ha llegado y cuotas sin cargo del banco, solo una a la vista", async ({ page }) => {
+test("para revisar: no ha llegado y cuotas sin cargo del banco, tres a la vista", async ({ page }) => {
   // Día 3, 5, 8 y 12 con hoy 18 y sin cargo: pasado el margen, «No ha llegado». El 17 aún no.
   const fixed = [recibo("l1", "Luz", 55, 3), recibo("l2", "Gas", 32, 5), recibo("l3", "Móvil", 15, 8), recibo("l4", "Seguro coche", 41, 12),
     recibo("l5", "Alarma", 29.9, 17)];
@@ -55,7 +55,7 @@ test("para revisar: no ha llegado y cuotas sin cargo del banco, solo una a la vi
   const recibos = await abrePlan(page, { accounts: [{ id: "bank", ent: "sabadell", role: "fijos", value: 3000 }], fixed, debts, expenses: [] });
   const review = recibos.getByTestId("plan-review");
   await expect(review.locator(".v4-charge")).toHaveCount(5);
-  await expect(review.locator(".v4-charge:not([inert] *)")).toHaveCount(1);
+  await expect(review.locator(".v4-charge:not([inert] *)")).toHaveCount(3);
   await expect(review.locator('[data-review="late"]')).toHaveCount(4);
   // La fila no repite «No ha llegado»: dice cuándo tocaba (el motivo entero va en el aria-label).
   await expect(review.locator('[data-review="late"]').first()).not.toContainText("No ha llegado");

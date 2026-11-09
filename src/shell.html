@@ -980,7 +980,9 @@
   .pr6-sum{display:flex;flex-direction:column;gap:12px;}
   .pr6-sum .pr6-big{font-size:46px;font-weight:600;letter-spacing:-1px;line-height:1;}
   .pr6-count{font-size:14px;color:var(--muted);}
-  .pr6-pills{display:flex;gap:8px;}
+  .pr6-pills{display:flex;gap:8px;container:pr6pildoras / inline-size;}
+  /* A 360 px «Te deben 10,00 €» y su flecha se salían de la píldora: sin la flecha el texto cabe entero. */
+  @container pr6pildoras (max-width:19.5em){ .pr6-pills .pr6-pill-go{display:none;} }
   .pr6-pill{flex:1;min-width:0;display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border-radius:14px;
     background:var(--surface-2);color:var(--text);font-size:14px;font-weight:700;white-space:nowrap;}
   .pr6-pill-ok{color:var(--mint-bright);font-weight:700;}
@@ -996,6 +998,9 @@
   .pr6-sec-h{display:flex;align-items:center;justify-content:space-between;padding:0 4px;margin-bottom:0;font-size:17px;font-weight:800;}
   /* El botón «Todos» lleva 8 px de relleno propio: sin compensarlo el texto acababa ~16 px antes del borde de las tarjetas. */
   .pr6-sec-h button.link{margin-right:-8px;}
+  .pr6-sec-h button.pr6-todos{display:flex;align-items:center;gap:4px;font-size:15px;color:var(--mint-bright);}
+  /* Traspasos y entradas: la misma tarjeta que Pendiente, pero no se tocan. */
+  .pr6-sec div.v4-charge.pr6-row{cursor:default;}
   .pr6-n{margin-left:8px;font-size:14px;font-weight:700;color:var(--muted);}
   .pr6-sec .v4-charge.pr6-row,.pr6-sec .v4-charge.pr6-rev{width:100%;gap:14px;padding:12px 16px 12px 12px;border:1px solid var(--line-soft);
     border-radius:20px;background:var(--surface);color:inherit;font:inherit;text-align:left;cursor:pointer;}
@@ -1006,6 +1011,9 @@
   .pr6-row .nm,.pr6-rev .nm,.pr6-prow .nm{display:flex;flex-direction:column;gap:2px;font-weight:600;font-size:16px;}
   .pr6-nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .pr6-row .sub,.pr6-rev .sub{font-size:13px;margin-top:0;}
+  .pr6-sub-cat{display:flex;min-width:0;white-space:nowrap;}
+  .pr6-cat{min-width:0;overflow:hidden;text-overflow:ellipsis;}
+  .pr6-bk{flex:none;margin-left:.3em;}
   .pr6-when{font-size:13px;font-weight:700;color:var(--muted);}
   .pr6-when.soon{color:var(--text);}
   .pr6-row .am,.pr6-rev .am{font-size:19px;font-weight:600;white-space:nowrap;}
@@ -1022,14 +1030,27 @@
   .pr6-more{align-self:center;display:flex;align-items:center;gap:6px;min-height:44px;padding:0 16px;border:0;background:transparent;
     color:var(--mint-bright);font-size:15px;font-weight:700;cursor:pointer;}
   .pr6-chev{flex:none;transition:transform .3s var(--ease);}
-  .pr6-more[aria-expanded="true"] .pr6-chev,.pr6-paid-h[aria-expanded="true"] .pr6-chev{transform:rotate(180deg);}
+  .pr6-more[aria-expanded="true"] .pr6-chev{transform:rotate(180deg);}
   .pr6-empty{padding:14px 16px;border-radius:20px;background:var(--surface);border:1px solid var(--line-soft);font-size:15px;font-weight:700;}
   .pr6-paid{margin-top:14px;background:var(--surface);border:1px solid var(--line-soft);border-radius:20px;overflow:hidden;}
   .pr6-paid-h{width:100%;display:flex;align-items:center;gap:12px;min-height:56px;padding:0 16px;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer;}
   .pr6-tick{width:28px;height:28px;flex:none;border-radius:14px;background:var(--surface-2);color:var(--mint-bright);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;}
-  .pr6-paid-t{flex:1;font-size:16px;font-weight:700;}
-  .pr6-paid-t .pr6-n{margin-left:4px;}
-  .pr6-paid-amt{font-size:15px;font-weight:700;color:var(--muted);}
+  /* Una línea pase lo que pase (letra del sistema al 110 %, 360 px): si no cabe, se acorta la palabra
+     con «…» y el número de pagados, el importe y «Ver» se quedan enteros. */
+  .pr6-paid-t{flex:1;min-width:0;display:flex;align-items:baseline;white-space:nowrap;font-size:16px;font-weight:700;}
+  .pr6-paid-l{min-width:0;overflow:hidden;text-overflow:ellipsis;}
+  .pr6-paid-t .pr6-n{flex:none;margin-left:4px;}
+  .pr6-paid-amt{flex:none;white-space:nowrap;font-size:15px;font-weight:700;color:var(--muted);}
+  .pr6-paid-v{flex:none;min-width:52px;text-align:right;white-space:nowrap;font-size:14px;font-weight:700;color:var(--mint-bright);}
+  /* Donde «Ver» no cabe (360 px, o 412 px con la letra grande) la flecha ocupa su sitio: 14 px en vez
+     de 52 y se sigue viendo que se despliega. Medido en «em» para que la letra del sistema cuente. */
+  .pr6-paid{container:pr6pagados / inline-size;}
+  .pr6-paid-h .pr6-chev{display:none;color:var(--mint-bright);}
+  .pr6-paid-h[aria-expanded="true"] .pr6-chev{transform:rotate(180deg);}
+  @container pr6pagados (max-width:21.6em){
+    .pr6-paid-h .pr6-paid-v{display:none;}
+    .pr6-paid-h .pr6-chev{display:block;}
+  }
   .pr6-paid .pr6-fold{margin-top:0;}
   .pr6-paid .pr6-fold-in{gap:0;}
   .pr6-paid .v4-charge.pr6-prow{width:100%;padding:11px 16px;gap:12px;border:0;border-top:1px solid var(--line-soft);background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;}
@@ -1130,6 +1151,12 @@
   .rp4-sug.on{border-color:var(--mint);background:var(--surface-2);}
   .rp4-sug-i{font-size:18px;line-height:1;}
   .rp4-amt{display:flex;flex-direction:column;align-items:center;gap:8px;padding:6px 0 4px;}
+  /* El nombre, en un renglón y centrado: uno largo ocupaba dos, alineados a la izquierda, y empujaba
+     «¿Cuánto es?» por debajo de la barra de progreso (auditoría 9/11). */
+  .rp4-amt > .rp4-dim{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  /* En pantallas bajas (393×727) el paso del importe no cabía por 19 px y al tocar las teclas de abajo
+     el cuerpo se desplazaba y tapaba el título: teclas algo más bajas y el paso entero a la vista. */
+  @media (max-height:760px){ .v4-sheet.rp4 .v4-keys button{height:50px;} }
   .rp4-amt-v{font-size:44px;font-weight:600;border-radius:12px;padding:0 8px;transition:background .2s ease;}
   .rp4-amt-v.fresh{background:var(--surface-2);}
   .rp4-var,.rp4-mode,.rp4-mes{border:1px solid var(--line-soft);background:var(--surface);color:var(--text);font:inherit;font-weight:700;cursor:pointer;
@@ -1227,9 +1254,10 @@
   .pr6-ll-in{min-height:40px;margin:-6px 0;padding:0;border:0;background:transparent;color:var(--muted);font:inherit;text-align:left;cursor:pointer;}
   .pr6-ll-tip{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:var(--bg);font-size:14px;font-weight:700;}
   .pr6-ll-wi{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:18px;border:1px dashed var(--line);}
-  .pr6-ll-wr{display:flex;align-items:center;gap:6px;}
-  .pr6-ll-wr .chip{height:46px;padding:0 12px;border-radius:14px;font-size:14px;font-weight:700;}
-  .pr6-ll-amt{flex:1;min-width:0;height:46px;border-radius:14px;border:1px solid var(--line);background:var(--bg);color:var(--text);padding:0 14px;
+  .pr6-ll-wr{display:flex;flex-wrap:wrap;align-items:center;gap:6px;}
+  .pr6-ll-bks{flex:1 0 auto;display:flex;gap:6px;}
+  .pr6-ll-wr .chip{flex:1 1 auto;height:46px;padding:0 12px;border-radius:14px;font-size:14px;font-weight:700;}
+  .pr6-ll-amt{flex:2 1 9em;min-width:9em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;height:46px;border-radius:14px;border:1px solid var(--line);background:var(--bg);color:var(--text);padding:0 14px;
     font-size:17px;font-weight:600;text-align:left;cursor:pointer;transition:border-color .2s ease;}
   .pr6-ll-amt.on{border-color:var(--mint);}
   .pr6-ll-amt.ph{color:var(--muted);}
@@ -1251,7 +1279,8 @@
      entera desaparecía de golpe un fotograma antes de entrar. Capa fija para que no nazca al tocar. */
   .pr6-vistas{will-change:transform,opacity;}
   .pr6-sum-h{display:flex;align-items:center;gap:2px;}
-  .pr6-sum-h .v4-micro{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  /* A 360 px «QUEDA POR PAGAR EN NOVIE…» perdía el mes: mejor en dos renglones que cortado. */
+  .pr6-sum-h .v4-micro{flex:1;min-width:0;line-height:1.45;}
   .pr6-mes-nav{flex:none;min-width:44px;min-height:44px;margin:-12px -10px -12px 0;padding:0 10px;border:0;background:transparent;color:var(--mint-bright);
     font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;}
   .pr6-cz{display:grid;grid-template-rows:1fr;transition:grid-template-rows .38s var(--ease),opacity .25s ease;}
@@ -1344,6 +1373,8 @@
   html[data-theme="light"] .pr6-more,
   html[data-theme="light"] .pr6-tick,
   html[data-theme="light"] .pr6-baja,
+  html[data-theme="light"] .pr6-paid-v,
+  html[data-theme="light"] .pr6-paid-h .pr6-chev,
   html[data-theme="light"] .pr6-ll-row .num.pos,
   html[data-theme="light"] .profile-handle,
   html[data-theme="light"] .profile-row .pr-edit,

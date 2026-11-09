@@ -6377,14 +6377,15 @@ test("Catálogo213 funde la zona Recibos en una tanda, retira las siete viejas c
     assert.equal(n213.items[lang].length,4,lang+": cuatro puntos familiares");
     for(const text of [n213.t[lang],...n213.items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
     const steps=n213.tandas[0].items[lang];
-    // Pasos 16 y 17 (tirar la hoja hacia abajo, «Ya está pagado» en su fila) y 18-19 («Ya pagados» con el cargo del banco), vídeo y queja del 8/11.
-    assert.equal(steps.length,19,lang+": diecinueve pasos");
+    // Pasos 16 y 17 (tirar la hoja hacia abajo, «Ya está pagado» en su fila) y 18-19 («Ya pagados» con el cargo del banco), vídeo y queja del 8/11;
+    // 20-22, la portada como el prototipo (auditoría del 9/11).
+    assert.equal(steps.length,22,lang+": veintidós pasos");
     assert.ok(steps.every((s,i)=>s.startsWith((i+1)+". ")),lang+": pasos numerados");
     for(const step of steps)assert.ok(/MAL|WRONG|MALAMENT/.test(step)&&/BIEN|RIGHT|BÉ/.test(step),lang+": cada paso dice qué es MAL y qué es BIEN");
   }
   // Los rótulos que cita el guion existen en 01-i18n.js, en su idioma.
   const i18n=source("src/modules/01-i18n.js");
-  for(const [lang,rows] of [["es",[["pr6_todos","Gestionar"],["pr6_ya_pagado_btn","Ya está pagado"],["rp5_mas","Más opciones"],["rp4_split","En varios pagos"],["rp4_once","Solo una vez"],["gb_freq_y","Una vez al año"],["gb_removed","Recibo quitado"],["pr6_ya_no","Ya no lo tengo"],["pr6_ya_me_lo_ha_pagado","Ya me lo ha pagado"],["pr6_si_gasto","¿Y si gasto…?"],["gb_afford","¿Me lo puedo permitir?"]]],["en",[["pr6_todos","Manage"],["pr6_ya_pagado_btn","It's paid"],["rp5_mas","More options"],["rp4_split","In several payments"],["rp4_once","Just once"],["gb_freq_y","Once a year"],["gb_removed","Bill removed"],["pr6_ya_no","I don't have it anymore"],["pr6_ya_me_lo_ha_pagado","They've paid me"],["pr6_si_gasto","What if I spend…?"],["gb_afford","Can I afford it?"]]],["ca",[["pr6_todos","Gestionar"],["pr6_ya_pagado_btn","Ja està pagat"],["rp5_mas","Més opcions"],["rp4_split","En diversos pagaments"],["rp4_once","Només una vegada"],["gb_freq_y","Un cop l'any"],["gb_removed","Rebut tret"],["pr6_ya_no","Ja no el tinc"],["pr6_ya_me_lo_ha_pagado","Ja m'ho ha pagat"],["pr6_si_gasto","I si gasto…?"],["gb_afford","M'ho puc permetre?"]]]]){
+  for(const [lang,rows] of [["es",[["pr6_todos","Todos"],["pr6_ya_pagado_btn","Ya está pagado"],["rp5_mas","Más opciones"],["rp4_split","En varios pagos"],["rp4_once","Solo una vez"],["gb_freq_y","Una vez al año"],["gb_removed","Recibo quitado"],["pr6_ya_no","Ya no lo tengo"],["pr6_ya_me_lo_ha_pagado","Ya me lo ha pagado"],["pr6_si_gasto","¿Y si gasto…?"],["gb_afford","¿Me lo puedo permitir?"]]],["en",[["pr6_todos","All"],["pr6_ya_pagado_btn","It's paid"],["rp5_mas","More options"],["rp4_split","In several payments"],["rp4_once","Just once"],["gb_freq_y","Once a year"],["gb_removed","Bill removed"],["pr6_ya_no","I don't have it anymore"],["pr6_ya_me_lo_ha_pagado","They've paid me"],["pr6_si_gasto","What if I spend…?"],["gb_afford","Can I afford it?"]]],["ca",[["pr6_todos","Tots"],["pr6_ya_pagado_btn","Ja està pagat"],["rp5_mas","Més opcions"],["rp4_split","En diversos pagaments"],["rp4_once","Només una vegada"],["gb_freq_y","Un cop l'any"],["gb_removed","Rebut tret"],["pr6_ya_no","Ja no el tinc"],["pr6_ya_me_lo_ha_pagado","Ja m'ho ha pagat"],["pr6_si_gasto","I si gasto…?"],["gb_afford","M'ho puc permetre?"]]]]){
     for(const [k,x] of rows){
       assert.ok(i18n.includes(k+":\""+x+"\""),lang+": el rótulo «"+x+"» existe en 01-i18n.js");
       assert.ok(n213.tandas[0].items[lang].some(s=>s.includes(x)),lang+": el guion cita «"+x+"»");

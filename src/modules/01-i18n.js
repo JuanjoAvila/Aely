@@ -139,7 +139,7 @@ const LANG = {
     v4_pendiente:"Pendiente",
     v4_ver_mas:"Ver más · {n}", v4_ver_menos:"Ver menos",
     // Plan › Recibos v6 (SPEC docs/design/plan-recibos): una línea útil o nada.
-    pr6_revisar:"Para revisar", pr6_ya_pagados:"Ya pagados", pr6_todos:"Gestionar", pr6_ver_los:"Ver los {n}",
+    pr6_revisar:"Para revisar", pr6_ya_pagados:"Ya pagados", pr6_todos:"Todos", pr6_ver_los:"Ver los {n}", pr6_ver:"Ver", pr6_ocultar:"Ocultar",
     pr6_count:"{n} recibos", pr6_count_one:"1 recibo", pr6_count_week:"{n} esta semana", pr6_all_paid:"Todo pagado", pr6_nada:"Nada pendiente este mes",
     pr6_llega:"Te llega", pr6_falta:"Falta {x}", pr6_no_llegado:"No ha llegado",
     pr6_hoy:"hoy", pr6_manana:"mañana", pr6_en_dias:"en {n} días", pr6_tocaba_ayer:"tocaba ayer", pr6_tocaba:"tocaba hace {n} días",
@@ -479,7 +479,7 @@ const LANG = {
     v4s_row_from:"from {bank}", v4s_row_debt:"the {name} installment", v4s_row_income:"into {bank}", v4s_row_to:"moving to {bank}", v4s_row_invest:"setting aside to invest in {bank}",
     v4_pendiente:"Pending",
     v4_ver_mas:"See more · {n}", v4_ver_menos:"See less",
-    pr6_revisar:"To review", pr6_ya_pagados:"Already paid", pr6_todos:"Manage", pr6_ver_los:"See all {n}",
+    pr6_revisar:"To review", pr6_ya_pagados:"Already paid", pr6_todos:"All", pr6_ver_los:"See all {n}", pr6_ver:"Show", pr6_ocultar:"Hide",
     pr6_count:"{n} bills", pr6_count_one:"1 bill", pr6_count_week:"{n} this week", pr6_all_paid:"All paid", pr6_nada:"Nothing left this month",
     pr6_llega:"You're covered", pr6_falta:"Short {x}", pr6_no_llegado:"Hasn't arrived",
     pr6_hoy:"today", pr6_manana:"tomorrow", pr6_en_dias:"in {n} days", pr6_tocaba_ayer:"due yesterday", pr6_tocaba:"due {n} days ago",
@@ -806,7 +806,7 @@ const LANG = {
     v4s_row_from:"surt de {bank}", v4s_row_debt:"la quota de {name}", v4s_row_income:"t'entra a {bank}", v4s_row_to:"el que passes a {bank}", v4s_row_invest:"el que apartes per invertir a {bank}",
     v4_pendiente:"Pendent",
     v4_ver_mas:"Veure més · {n}", v4_ver_menos:"Veure menys",
-    pr6_revisar:"Per revisar", pr6_ya_pagados:"Ja pagats", pr6_todos:"Gestionar", pr6_ver_los:"Veure'ls tots ({n})",
+    pr6_revisar:"Per revisar", pr6_ya_pagados:"Ja pagats", pr6_todos:"Tots", pr6_ver_los:"Veure'ls tots ({n})", pr6_ver:"Veure", pr6_ocultar:"Amagar",
     pr6_count:"{n} rebuts", pr6_count_one:"1 rebut", pr6_count_week:"{n} aquesta setmana", pr6_all_paid:"Tot pagat", pr6_nada:"Res pendent aquest mes",
     pr6_llega:"T'arriba", pr6_falta:"Falten {x}", pr6_no_llegado:"No ha arribat",
     pr6_hoy:"avui", pr6_manana:"demà", pr6_en_dias:"d'aquí a {n} dies", pr6_tocaba_ayer:"tocava ahir", pr6_tocaba:"tocava fa {n} dies",
@@ -1895,7 +1895,7 @@ Object.assign(LANG.es,{
   af_fin_name_ph:"¿Qué es? (ej. iPhone)", af_fin_create:"➕ Crear la deuda · {x}/mes", af_fin_created:"✓ Deuda creada · la verás en Plan → Deudas",
   af_fin_hint:"Cuota estimada al 0%. Si lleva intereses, crea la deuda y ponle la TAE en Plan → Deudas.",
   fj_debt_tag:"cuota de deuda", fj_fixed_tag:"gasto fijo",
-  fj_income_tag:"ingreso (entra)", fj_transfer_tag:"transferencia",
+  fj_transfer_tag:"transferencia",
   fj_permonth:"{x}/mes", fj_edit:"Editar", fj_save:"Guardar", fj_fixed:"Recibo",
   fj_day:"día", 
   ask_ok:"Aceptar", ask_all:"Todo · {x}",
@@ -1960,7 +1960,7 @@ Object.assign(LANG.en,{
   af_fin_name_ph:"What is it? (e.g. iPhone)", af_fin_create:"➕ Create the debt · {x}/mo", af_fin_created:"✓ Debt created · see Plan → Debts",
   af_fin_hint:"Instalment estimated at 0%. If it carries interest, create the debt and set the APR in Plan → Debts.",
   fj_debt_tag:"debt payment", fj_fixed_tag:"fixed cost",
-  fj_income_tag:"income (in)", fj_transfer_tag:"transfer",
+  fj_transfer_tag:"transfer",
   fj_permonth:"{x}/mo", fj_edit:"Edit", fj_save:"Save", fj_fixed:"Bill",
   fj_day:"day", 
   ask_ok:"OK", ask_all:"All · {x}",
@@ -2025,7 +2025,7 @@ Object.assign(LANG.ca,{
   af_fin_name_ph:"Què és? (ex. iPhone)", af_fin_create:"➕ Crear el deute · {x}/mes", af_fin_created:"✓ Deute creat · el veuràs a Pla → Deutes",
   af_fin_hint:"Quota estimada al 0%. Si porta interessos, crea el deute i posa-li la TAE a Pla → Deutes.",
   fj_debt_tag:"quota de deute", fj_fixed_tag:"despesa fixa",
-  fj_income_tag:"ingrés (entra)", fj_transfer_tag:"transferència",
+  fj_transfer_tag:"transferència",
   fj_permonth:"{x}/mes", fj_edit:"Edita", fj_save:"Desa", fj_fixed:"Rebut",
   fj_day:"dia", 
   ask_ok:"D'acord", ask_all:"Tot · {x}",
@@ -4372,7 +4372,7 @@ Object.assign(LANG.ca, {
 });
 // Plan › Recibos v6, tanda 5: personas, recibos compartidos, «Te deben» y «Lo descuento» (SPEC §5-§6).
 Object.assign(LANG.es,{
-  pr6_pagas_mas:"pagas {a} + {b} de {from}", pr6_te_han_pagado:"te han pagado {a} de {n}", pr6_tu_parte:"Tu parte {x}",
+  pr6_pagas_mas:"pagas {a} + {b} de {from}", pr6_te_han_pagado:"te han pagado {a} de {n}", pr6_su_parte_ok:"ya te ha pagado su parte", pr6_su_parte_falta:"falta su parte", pr6_tu_parte:"Tu parte {x}",
   pr6_te_deben:"Te deben {x}", pr6_te_deben_t:"Te deben", pr6_te_han_pagado_todos:"Te han pagado todos",
   pr6_ya_me_lo_ha_pagado:"Ya me lo ha pagado", pr6_te_lo_ha_pagado:"Te lo ha pagado",
   pe_title:"Personas", pe_sub:"{n} personas", pe_sub_one:"{n} persona", pe_add:"Añadir una persona", pe_nueva:"Nueva persona", pe_nombre:"Nombre",
@@ -4384,7 +4384,7 @@ Object.assign(LANG.es,{
   rp5_rehacer:"Estas partes ya no cuadraban: revísalas y guarda", pe_viejo_ajustar:"En {name} ajustarás las partes antes de guardar"
 });
 Object.assign(LANG.en,{
-  pr6_pagas_mas:"you pay {a} + {b} from {from}", pr6_te_han_pagado:"{a} of {n} have paid you", pr6_tu_parte:"Your share {x}",
+  pr6_pagas_mas:"you pay {a} + {b} from {from}", pr6_te_han_pagado:"{a} of {n} have paid you", pr6_su_parte_ok:"their share is paid", pr6_su_parte_falta:"their share is pending", pr6_tu_parte:"Your share {x}",
   pr6_te_deben:"You're owed {x}", pr6_te_deben_t:"You're owed", pr6_te_han_pagado_todos:"Everyone has paid you",
   pr6_ya_me_lo_ha_pagado:"They've paid me", pr6_te_lo_ha_pagado:"Paid you",
   pe_title:"People", pe_sub:"{n} people", pe_sub_one:"{n} person", pe_add:"Add a person", pe_nueva:"New person", pe_nombre:"Name",
@@ -4396,7 +4396,7 @@ Object.assign(LANG.en,{
   rp5_rehacer:"These shares no longer added up: check them and save", pe_viejo_ajustar:"You'll adjust the shares of {name} before saving"
 });
 Object.assign(LANG.ca,{
-  pr6_pagas_mas:"pagues {a} + {b} de {from}", pr6_te_han_pagado:"t'han pagat {a} de {n}", pr6_tu_parte:"La teva part {x}",
+  pr6_pagas_mas:"pagues {a} + {b} de {from}", pr6_te_han_pagado:"t'han pagat {a} de {n}", pr6_su_parte_ok:"ja t'ha pagat la seva part", pr6_su_parte_falta:"falta la seva part", pr6_tu_parte:"La teva part {x}",
   pr6_te_deben:"Et deuen {x}", pr6_te_deben_t:"Et deuen", pr6_te_han_pagado_todos:"T'han pagat tots",
   pr6_ya_me_lo_ha_pagado:"Ja m'ho ha pagat", pr6_te_lo_ha_pagado:"T'ho ha pagat",
   pe_title:"Persones", pe_sub:"{n} persones", pe_sub_one:"{n} persona", pe_add:"Afegir una persona", pe_nueva:"Persona nova", pe_nombre:"Nom",

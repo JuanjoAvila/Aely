@@ -705,10 +705,23 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     return item&&planSyncConflict(state,kind,item.id);
   };
   const subOf=function(x){
-    if(x.kind==="debt"||x.kind==="balloon") return (enlaces[x.id]?tf("pr6_enlazado_x",{x:eur(Number(enlaces[x.id].x.amount))}):t("fj_debt_tag"))+" · "+(x.descuento?pr6PagasMas(x):entOf(x.bank).label);
+    /* Con lo descontado de otro recibo, «pagas 197 € + 53 € de Pepephone» ya dice que es una cuota:
+       delante de «cuota de deuda ·» la línea se iba a tres renglones (auditoría 9/11, P2-1). */
+    if(x.kind==="debt"||x.kind==="balloon") return enlaces[x.id]
+      ? tf("pr6_enlazado_x",{x:eur(Number(enlaces[x.id].x.amount))})+" · "+(x.descuento?pr6PagasMas(x):entOf(x.bank).label)
+      : (x.descuento?pr6PagasMas(x):t("fj_debt_tag")+" · "+entOf(x.bank).label);
     const f=/^fixed_/.test(String(x.id))&&(state.fixed||[]).find(function(e){ return "fixed_"+e.id===x.id; });
     return (f&&f.category&&CAT[f.category]?catName(f.category)+" · ":"")+entOf(x.bank).label
-      +(x.teDeben?" · "+tf("pr6_te_han_pagado",{a:x.teDeben.pagados,n:x.teDeben.n}):"");
+      +(x.teDeben?" · "+pr6TeHanPagado(x.teDeben):"");
+  };
+  /* En la fila, «categoría · banco» en un renglón: si no cabe se acorta la categoría y el banco se
+     queda («Impuestos y multas · Sabadell» partía la fila en cuatro a 360 px). */
+  const subNode=function(x){
+    const f=!x.teDeben&&/^fixed_/.test(String(x.id))&&(state.fixed||[]).find(function(e){ return "fixed_"+e.id===x.id; });
+    if(!(f&&f.category&&CAT[f.category])) return React.createElement("span",{className:"sub"}, subOf(x));
+    return React.createElement("span",{className:"sub pr6-sub-cat"},
+      React.createElement("span",{className:"pr6-cat"}, catName(f.category)),
+      React.createElement("span",{className:"pr6-bk"}, "· "+entOf(x.bank).label));
   };
   // Días que faltan; en la vista del mes siguiente, contados de calendario hasta ese día.
   const diasHasta=function(x){
@@ -749,9 +762,10 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
         React.createElement("span",{className:"m"}, monthShort((sig?sigM:month)-1))),
       React.createElement("span",{className:"nm"},
         React.createElement("span",{className:"pr6-nm"}, x.name,React.createElement(PlanConflictDot,{record:conflictOf(x)})),
-        // Banco y cuándo en una sola línea: la fila de tres líneas (93 px) llenaba la pantalla con cinco recibos.
-        React.createElement("span",{className:"sub pr6-sub1"}, subOf(x),
-          x.day!=null&&React.createElement(React.Fragment,null," · ",React.createElement("span",{className:"pr6-when"+(n!=null&&n<=1?" soon":"")}, cuando(x))))),
+        /* Tres líneas, como el prototipo (SPEC §2.4): «categoría · banco» y, debajo, cuándo. Con las dos
+           en una se partían a media frase («· en / 3 días») a 360 px; a la vista solo hay tres filas. */
+        subNode(x),
+        x.day!=null&&React.createElement("span",{className:"pr6-when"+(n!=null&&n<=1?" soon":"")}, cuando(x))),
       // «Cambia cada mes» (alta por pasos): la cifra es una previsión, se marca con «≈».
       React.createElement("span",{className:"am num"}, (esVariable(x)?"≈ ":"")+eur(Math.abs(x.amount)))));
   };
@@ -796,12 +810,11 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
           how)),
       React.createElement("span",{className:"am num"}, planChargeAmount(x))));
   };
-  // Como mucho tres a la vista (uno en «Para revisar», para que Pendiente asome en la primera pantalla); el resto se despliega debajo con «Ver los N» (SPEC §2.3–2.4).
-  const lista=function(items,render,open,setOpen,id,visibles){
-    const nVis=visibles||3;
-    const rest=items.slice(nVis);
+  // Como mucho tres a la vista; el resto se despliega debajo con «Ver los N» (SPEC §2.3–2.4).
+  const lista=function(items,render,open,setOpen,id){
+    const rest=items.slice(3);
     return React.createElement(React.Fragment,null,
-      items.slice(0,nVis).map(render),
+      items.slice(0,3).map(render),
       rest.length>0&&React.createElement("div",{className:"pr6-fold"+(open?" open":""),id:id},
         React.createElement("div",Object.assign({className:"pr6-fold-in"},plegado(open)), rest.map(render))),
       rest.length>0&&React.createElement("button",{type:"button",className:"pr6-more","aria-expanded":open?"true":"false","aria-controls":id,
@@ -813,7 +826,6 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   const countLine=nPend>0
     ? tf(nPend===1?"pr6_count_one":"pr6_count",{n:nPend})+(v.week>0?" · "+tf("pr6_count_week",{n:v.week}):"")
     : (nBills>0?t("pr6_all_paid"):"");
-  const paidTotalLabel=v.paidChanged?tf("v4_charge_expected",{x:eur(v.paidTotal)}):eur(v.paidTotal);
   const fichaRow=ficha&&(pack.pendingBills.concat(pack.paidBills).find(function(x){ return x.id===ficha.id; })||null);
   // Pausar o borrar desde la ficha saca el recibo del mes antes de que la hoja termine de irse:
   // sin olvidarla, reaparecía abierta en cuanto el recibo volvía al mes.
@@ -891,9 +903,10 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     const bancos=Array.from(new Set(importables.map(function(d){ return entOf(d.bank).label; })));
     return React.createElement(React.Fragment,null,
       React.createElement("section",{className:"v4-card rise pr6-onb","data-testid":"plan-onb"},
+        // La flecha que da la vuelta es de «cargos que se repiten»; sin ninguno, el «+» de empezar uno.
         React.createElement("span",{className:"pr6-onb-ico","aria-hidden":"true"},
           React.createElement("svg",{width:22,height:22,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.2,strokeLinecap:"round",strokeLinejoin:"round"},
-            React.createElement("path",{d:"M21 12a9 9 0 11-3-6.7L21 8M21 3v5h-5"}))),
+            React.createElement("path",{d:importables.length?"M21 12a9 9 0 11-3-6.7L21 8M21 3v5h-5":"M12 5v14M5 12h14"}))),
         React.createElement("span",{className:"pr6-onb-t"},
           React.createElement("span",{className:"serif pr6-onb-n"}, importables.length?tf(importables.length===1?"pr6_onb_1":"pr6_onb_n",{n:importables.length}):t("pr6_onb_vacio")),
           bancos.length>0&&React.createElement("span",{className:"pr6-onb-s"}, tf("pr6_onb_en",{x:pr6Lista(bancos)}))),
@@ -932,13 +945,15 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     !sig&&v.review.length>0&&React.createElement("section",{className:"pr6-sec","data-testid":"plan-review","aria-label":t("pr6_revisar")},
       React.createElement("div",{className:"pr6-sec-h"},
         React.createElement("span",null, t("pr6_revisar"),React.createElement("span",{className:"pr6-n"}, v.review.length))),
-      lista(v.review,revRow,revOpen,setRevOpen,"pr6-rev-more",1)),
+      lista(v.review,revRow,revOpen,setRevOpen,"pr6-rev-more")),
     React.createElement("section",{className:"pr6-sec","data-testid":"plan-due","data-vista":vista,"aria-label":sig?pr6EnMes(sigM):t("v4_pendiente")},
       React.createElement("div",{className:"pr6-sec-h v4-section-h"},
         // «Pendiente» y no «Por pagar»: la petición del dueño del 26/10/2026 (la otra palabra
         // necesitaba una línea de ayuda debajo para entenderse) sigue en pie con el rediseño.
         React.createElement("span",null, sig?pr6Cap(pr6EnMes(sigM)):t("v4_pendiente")),
-        React.createElement("button",{type:"button",className:"link",onClick:openManage}, t("pr6_todos"))),
+        React.createElement("button",{type:"button",className:"link pr6-todos","data-testid":"plan-todos",onClick:openManage}, t("pr6_todos"),
+          React.createElement("svg",{width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
+            React.createElement("path",{d:"M9 6l6 6-6 6"})))),
       sig
         ? (sigN===0
           ? React.createElement("div",{className:"pr6-empty"}, tf("pr6_nada_sig",{month:monthLong(sigM-1)}))
@@ -949,9 +964,14 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     !sig&&(v.paid.length>0||pausados.length>0)&&React.createElement("section",{className:"pr6-paid pr6-paid-in"+(paidOpen?" open":""),ref:paidRef,"data-testid":"plan-paid","aria-label":t("pr6_ya_pagados")},
       React.createElement("button",{type:"button",className:"pr6-paid-h","aria-expanded":paidOpen?"true":"false","aria-controls":"pr6-paid-list",
         onClick:function(){ setPaidOpen(function(o){ if(!o) verPlegado(paidRef.current); return !o; }); }},
-        React.createElement("span",{className:"pr6-tick","aria-hidden":"true"},"✓"),
-        React.createElement("span",{className:"pr6-paid-t"}, t("pr6_ya_pagados"),React.createElement("span",{className:"pr6-n"},"· "+v.paid.length)),
-        React.createElement("span",{className:"pr6-paid-amt num"}, paidTotalLabel),
+        React.createElement("span",{className:"pr6-tick","aria-hidden":"true"},
+          React.createElement("svg",{width:15,height:15,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:3,strokeLinecap:"round",strokeLinejoin:"round"},
+            React.createElement("path",{d:"M5 12.5l4.5 4.5L19 7.5"}))),
+        /* Una sola línea, como el prototipo: «Previsto» y el chevron la partían en dos con la letra
+           del sistema al 110 % (su captura del 9/11). Lo que se cobró distinto ya lo dice su fila. */
+        React.createElement("span",{className:"pr6-paid-t"}, React.createElement("span",{className:"pr6-paid-l"}, t("pr6_ya_pagados")),React.createElement("span",{className:"pr6-n"},"· "+v.paid.length)),
+        React.createElement("span",{className:"pr6-paid-amt num"}, eur(v.paidTotal)),
+        React.createElement("span",{className:"pr6-paid-v","aria-hidden":"true"}, paidOpen?t("pr6_ocultar"):t("pr6_ver")),
         pr6Chev()),
       React.createElement("div",{className:"pr6-fold"+(paidOpen?" open":""),id:"pr6-paid-list"},
         React.createElement("div",Object.assign({className:"pr6-fold-in"},plegado(paidOpen)), v.paid.map(paidRow), pausados.map(pausadoRow)))),
@@ -959,10 +979,10 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
        «¿Te llega?», pero quitarlos de la portada deja sin verlos de un vistazo a quien los miraba
        aquí; la SPEC no los pinta ni los descarta, así que eso lo decide el dueño. Son de ESTE mes:
        en la vista del siguiente no salen. */
-    !sig&&pack.transfersPending.length>0&&React.createElement("div",{className:"v4-section","data-testid":"plan-transfers"},
-      React.createElement("div",{className:"v4-section-h"},t("v4_plan_transfers")),pack.transfersPending.map(function(x){ return planRecibosFlowRow(x,month); })),
-    !sig&&(pack.incomePending||[]).length>0&&React.createElement("div",{className:"v4-section"},
-      React.createElement("div",{className:"v4-section-h"},React.createElement("span",null,t("v4_aun_entrara"))),
+    !sig&&pack.transfersPending.length>0&&React.createElement("section",{className:"pr6-sec","data-testid":"plan-transfers"},
+      React.createElement("div",{className:"pr6-sec-h"},React.createElement("span",null,t("v4_plan_transfers"))),pack.transfersPending.map(function(x){ return planRecibosFlowRow(x,month); })),
+    !sig&&(pack.incomePending||[]).length>0&&React.createElement("section",{className:"pr6-sec","data-testid":"plan-income"},
+      React.createElement("div",{className:"pr6-sec-h"},React.createElement("span",null,t("v4_aun_entrara"))),
       pack.incomePending.map(function(x){ return planRecibosFlowRow(x,month); }))),
     importar,
     llegaOpen&&React.createElement(LlegaSheet,{state:state,set:set,totals:totals,pack:pack,onClose:function(){ setLlegaOpen(false); }}),
@@ -1122,17 +1142,24 @@ function pr6Chev(){
   return React.createElement("svg",{className:"pr6-chev",width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
     React.createElement("path",{d:"M6 9l6 6 6-6"}));
 }
+/* Traspasos y entradas con la misma tarjeta que Pendiente: sueltos, con otra alineación y otro
+   tamaño, parecían de otra pantalla. La entrada ya lleva «+» en verde: «ingreso (entra)» sobraba. */
 function planRecibosFlowRow(x,month){
   const income=x.amount<0;
-  const tag=x.kind==="income"?t("fj_income_tag"):t("fj_transfer_tag");
-  return React.createElement("div",{className:"v4-charge",key:x.id},
-    React.createElement("div",{className:"dt"},
-      React.createElement("div",{className:"d"}, x.day||"—"),
-      React.createElement("div",{className:"m"}, monthShort(month-1))),
-    React.createElement("div",{className:"nm"},
-      React.createElement("div",null, x.name),
-      React.createElement("div",{className:"sub"}, tag+(x.bank?" · "+entOf(x.bank).label:""))),
-    React.createElement("div",{className:"am"+(income?" pos":"")}, income?"+":"",eur(Math.abs(x.amount))));
+  const sub=[x.kind==="income"?"":t("fj_transfer_tag"),x.bank?entOf(x.bank).label:""].filter(Boolean).join(" · ");
+  return React.createElement("div",{className:"v4-charge pr6-row",key:x.id,"data-flujo":x.id},
+    React.createElement("span",{className:"dt","aria-hidden":"true"},
+      React.createElement("span",{className:"d"}, x.day||"—"),
+      React.createElement("span",{className:"m"}, monthShort(month-1))),
+    React.createElement("span",{className:"nm"},
+      React.createElement("span",{className:"pr6-nm"}, x.name),
+      sub&&React.createElement("span",{className:"sub"}, sub)),
+    React.createElement("span",{className:"am num"+(income?" pos":"")}, income?"+":"",eur(Math.abs(x.amount))));
+}
+/* «te han pagado 0 de 1» no se entendía (¿uno de qué?). Con una sola persona se dice su parte. */
+function pr6TeHanPagado(d){
+  if(d.n===1) return t(d.pagados?"pr6_su_parte_ok":"pr6_su_parte_falta");
+  return tf("pr6_te_han_pagado",{a:d.pagados,n:d.n});
 }
 /* Personas y compartidos (Plan › Recibos v6, tanda 5; SPEC §5-§6). El modelo vive en 08
    (`repartoVigente`, `teDebenMes`, `deudaDescuentoMes`…); aquí solo se pinta y se escribe con él. */
@@ -1306,6 +1333,11 @@ function LlegaSheet({state, set, totals, pack, onClose}){
   const conSaldo=base.filter(function(b){ return b.known; });
   const [raw,setRaw]=useState("");
   const [teclado,setTeclado]=useState(false);
+  /* El teclado (plegado) se monta cuando la hoja ya ha subido, no con ella: sus teclas se maquetaban
+     en el mismo fotograma de la entrada y con la CPU a ×6 ese fotograma duraba 200 ms (auditoría
+     9/11). Si se toca el importe antes, nace en ese momento. */
+  const [tecladoListo,setTecladoListo]=useState(false);
+  useEffect(function(){ const id=setTimeout(function(){ setTecladoListo(true); },520); return function(){ clearTimeout(id); }; },[]);
   /* Con tres o cuatro bancos el «¿Y si gasto…?» queda al fondo y el teclado se abría por debajo
      de lo que se ve: «se ve la zona pero al tocar no hace nada» (beta 4.26.200). Se toca en
      cualquier punto de la zona y el teclado sube a la vista, suave, cuando termina de abrirse. */
@@ -1385,15 +1417,17 @@ function LlegaSheet({state, set, totals, pack, onClose}){
             React.createElement("div",{className:"pr6-ll-wr"},
               React.createElement("button",{type:"button",className:"serif num pr6-ll-amt"+(teclado?" on":"")+(raw?"":" ph"),"aria-expanded":teclado?"true":"false","data-testid":"llega-gasto-amt",
                 onClick:function(){ setTeclado(function(o){ return !o; }); }}, raw?eur(amt):t("pr6_importe")),
-              conSaldo.length>1&&conSaldo.map(function(b){
+              // Los bancos van juntos: si no caben al lado del importe bajan enteros a su renglón y el
+              // importe no se aplasta (a 393 px con tres bancos medía 47 px y «900,00 €» se partía).
+              conSaldo.length>1&&React.createElement("div",{className:"pr6-ll-bks"}, conSaldo.map(function(b){
                 const on=b.bank===gBank;
                 return React.createElement("button",{type:"button",key:b.bank,className:"chip"+(on?" active":""),"aria-pressed":on?"true":"false","data-bank":b.bank,onClick:function(){ setGBank(b.bank); }}, entOf(b.bank).label);
-              })),
+              }))),
             elegido&&React.createElement("span",{className:"pr6-ll-wt"+(elegido.min<-0.005?"":" ok"),"data-testid":"llega-gasto-txt"},
               elegido.min<-0.005?tf("pr6_no_llega",{x:eur(-elegido.min)}):tf("pr6_si_llega",{x:eur(elegido.min)})),
             React.createElement("div",{className:"pr6-fold"+(teclado?" open":"")},
               React.createElement("div",Object.assign({className:"pr6-fold-in"},teclado?null:{"aria-hidden":"true",inert:""}),
-                React.createElement(NumPad,{value:raw,onChange:setRaw})))))),
+                (tecladoListo||teclado)&&React.createElement(NumPad,{value:raw,onChange:setRaw})))))),
       flujo!=null&&React.createElement(NominaSheet,{key:flujo,flowId:flujo,state:state,set:set,totals:totals,onClose:function(){ setFlujo(null); }})),
     document.body);
 }

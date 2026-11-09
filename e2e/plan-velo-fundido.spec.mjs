@@ -200,7 +200,7 @@ test("Pendiente: la ficha del recibo funde el velo al abrir y al cerrar", async 
 
 test("Todos: la ficha de un recibo funde el velo al abrir y al cerrar", async ({ page }) => {
   await abre(page);
-  await page.locator('[data-testid="plan-due"]').getByRole("button", { name: "Gestionar" }).click();
+  await page.locator('[data-testid="plan-due"]').getByTestId("plan-todos").click();
   await expect(page.locator("[data-bills-manage]")).toBeVisible();
   await page.locator('[data-group="serv"]').click();
   await expect(page.locator('[data-bill-id="luz"]')).toBeVisible();

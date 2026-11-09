@@ -33,7 +33,7 @@ test("TAE tras quitar descuento desde persona conserva histórico pagado",async(
   const sheet=await open(page,{fixed:[{...bill,day:10,paidYm:YM,paidDay:10,soloMes:{[YM]:{amt:50,reparto:[share]}}}]});await sheet.locator('[data-debt-field="apr"]').fill("2.5");await sheet.locator("button.btn-primary.btn-block").click();await expect(sheet).toContainText(messages.es);
   await sheet.getByRole("button",{name:"Cancelar",exact:true}).click();await expect(sheet).toHaveCount(0);
   await page.locator('.v4-seg-btn').filter({hasText:"Recibos"}).click();
-  await page.locator('[data-seg="recibos"]').getByRole("button",{name:"Gestionar",exact:true}).click();await page.locator('[data-bills-manage] [data-group="people"]').click();
+  await page.locator('[data-seg="recibos"]').getByTestId("plan-todos").click();await page.locator('[data-bills-manage] [data-group="people"]').click();
   await page.locator('[data-bills-manage] [data-persona="pe_fam"]').click();
   const persona=page.locator('.v4-sheet[data-sheet="persona"]');await persona.locator('[data-pe="via"] button').filter({hasText:"Bizum"}).click();await persona.locator('[data-act="persona-guardar"]').click();await expect(persona).toHaveCount(0);
   const removed=(await snapshot(page)).state;expect(removed.fixed[0].reparto[0].via).toBe("bizum");
