@@ -63,11 +63,22 @@ async function scrollHub(page) {
   expect((await geometry(page)).parent.scrollTop, "el caso necesita el padre desplazado con el dedo").toBeGreaterThan(10);
   // Un fling puede seguir activo aunque ya esté contra el borde. Detenerlo con un toque
   // neutro real antes de pedir navegación: el primer toque de Android/Chromium lo consume.
-  // Desde la v6 las filas de Tus recibos ocupan todo el ancho: el punto neutro se busca (el margen
-  // izquierdo del hub suele serlo) en vez de fijarlo.
-  const neutral = await page.evaluate(() => { for (const y of [180, 220, 260, 140]) for (const x of [330, 8, 200]) {
-    const el = document.elementFromPoint(x, y); if (el && !el.closest("button,input,select,textarea,a,label")) return { x, y }; } return null; });
-  expect(neutral).not.toBeNull(); await page.touchscreen.tap(neutral.x, neutral.y); await page.waitForTimeout(180);
+  // Desde la v6 las filas de Tus recibos ocupan todo el ancho: el punto neutro se busca en vez de
+  // fijarlo. Y no basta con que el píxel exacto sea neutro: Chromium ajusta el toque al botón más
+  // cercano, así que en la CI (Linux, otras fuentes) un hueco de pocos px entre filas acababa
+  // abriendo la cuota de al lado, Gestionar se iba y el tap siguiente esperaba hasta el minuto
+  // (beta 216, 9/11). Se exige un margen de 24 px sin nada pulsable alrededor.
+  const neutral = await page.evaluate(() => {
+    const live = "button,input,select,textarea,a,label,[role=button],[role=radio]";
+    const calm = (x, y) => { for (let dx = -24; dx <= 24; dx += 8) for (let dy = -24; dy <= 24; dy += 8) {
+      const el = document.elementFromPoint(x + dx, y + dy); if (!el || el.closest(live)) return false; } return true; };
+    for (let y = 140; y <= 600; y += 8) for (const x of [200, 330, 100]) if (calm(x, y)) return { x, y };
+    return null; });
+  expect(neutral, "hace falta un hueco sin nada pulsable a 24 px para frenar la inercia").not.toBeNull();
+  await page.touchscreen.tap(neutral.x, neutral.y); await page.waitForTimeout(180);
+  // Si el toque cayera en algo, que falle aquí diciendo por qué y no un minuto después.
+  await expect(root(page), "el toque neutro no debe navegar").toHaveAttribute("data-screen", "bills-home");
+  expect((await geometry(page)).parent.inlineTransform, "el toque neutro no debe cerrar Gestionar").toBe("");
 }
 async function category(page, info) {
   await root(page).evaluate(el => {
