@@ -1674,6 +1674,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedPagadoFuera"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedMarcadoAMano"
       }
     ],
     "unidades": true
@@ -3372,6 +3380,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedPagadoFuera"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedMarcadoAMano"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
       }
     ],
     "native": [
@@ -4900,6 +4920,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedPagadoFuera"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedMarcadoAMano"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
       }
     ],
     "native": [
@@ -7461,6 +7493,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedPagadoFuera"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedMarcadoAMano"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
       }
     ],
     "native": [
@@ -8989,6 +9033,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedPagadoFuera"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedMarcadoAMano"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
       }
     ],
     "native": [
@@ -11105,6 +11161,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -11154,6 +11214,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedPagadoFuera"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedMarcadoAMano"
       }
     ],
     "unidades": true
@@ -14061,6 +14129,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedPagadoFuera"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedMarcadoAMano"
       }
     ],
     "unidades": true
@@ -17008,6 +17084,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedPagadoFuera"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedMarcadoAMano"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
       }
     ],
     "native": [
@@ -17550,6 +17638,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -17603,6 +17695,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedPagadoFuera"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedMarcadoAMano"
       }
     ]
   },
@@ -32040,6 +32140,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedPagadoFuera"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedMarcadoAMano"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
       }
     ],
     "unidades": true
@@ -33568,6 +33680,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedPagadoFuera"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedMarcadoAMano"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
       }
     ],
     "native": [
@@ -36387,6 +36511,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedPagadoFuera"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedMarcadoAMano"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
       }
     ],
     "native": [
@@ -37871,6 +38007,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedPagadoFuera"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedMarcadoAMano"
       }
     ],
     "unidades": true
@@ -42563,6 +42707,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedPagadoFuera"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedMarcadoAMano"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
       }
     ],
     "unidades": true
@@ -46507,6 +46663,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedPagadoFuera"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedMarcadoAMano"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
       }
     ],
     "unidades": true
@@ -79841,6 +80009,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -83098,6 +83270,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedPagadoFuera"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedMarcadoAMano"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
       }
     ],
     "unidades": true
@@ -85327,6 +85511,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
@@ -85344,6 +85532,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedPagadoFuera"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedMarcadoAMano"
       }
     ],
     "unidades": true
@@ -113155,7 +113351,7 @@
       {
         "file": "src/modules/11-app-main.js",
         "from": "    state.fixed.forEach(e=>{ if(fijoDelMes(e)) acc(",
-        "to": "isPaidIn(e,curMonth,today,curYear,state)); });",
+        "to": "isPaidIn(e,curMonth,today,curYear,state)||fixedPagadoFuera(state,e,curYear,curMonth,today)); });",
         "includeTo": true
       },
       {
@@ -113585,6 +113781,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "_mcMadridYmdFmt"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedPagadoFuera"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedMarcadoAMano"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
       }
     ],
     "unidades": true
@@ -114158,6 +114366,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "REPARTO_VIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -119159,6 +119371,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedMarcarAMano"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -119176,6 +119392,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "FIXED_A_MANO_MESES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -120541,6 +120761,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -122039,6 +122263,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedMarcarAMano"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -122056,6 +122284,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "FIXED_A_MANO_MESES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -125006,6 +125238,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedMarcarAMano"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -125023,6 +125259,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "FIXED_A_MANO_MESES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -126314,6 +126554,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedMarcarAMano"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -126331,6 +126575,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "FIXED_A_MANO_MESES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -128002,6 +128250,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -128160,7 +128412,7 @@
       {
         "file": "src/modules/11-app-main.js",
         "from": "    // --- MOTOR DINÁMICO: cargos de fijos que tocan ESTE mes, por banco ---",
-        "to": "    state.fixed.forEach(e=>{ if(fijoDelMes(e)) acc(occAmountIn(e,curMonth,curYear),accOf(e),isPaidIn(e,curMonth,today,curYear,state)); });",
+        "to": "    state.fixed.forEach(e=>{ if(fijoDelMes(e)) acc(occAmountIn(e,curMonth,curYear),accOf(e),isPaidIn(e,curMonth,today,curYear,state)||fixedPagadoFuera(state,e,curYear,curMonth,today)); });",
         "includeTo": true
       },
       {
@@ -129579,6 +129831,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedPagadoFuera"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedMarcadoAMano"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
       }
     ],
     "unidades": true
@@ -132624,6 +132888,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -134266,6 +134534,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedMarcarAMano"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "deudaDescuentoDe"
       },
       {
@@ -134294,6 +134566,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "data": "FIXED_A_MANO_MESES"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_SOLAPES"
       },
       {
@@ -134307,6 +134583,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedPagadoFuera"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedMarcadoAMano"
       }
     ],
     "unidades": true
@@ -135912,6 +136196,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -136385,6 +136673,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -136446,6 +136738,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "_mcMadridYmdFmt"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedPagadoFuera"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedMarcadoAMano"
       }
     ],
     "native": [
@@ -137833,6 +138133,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -140514,6 +140818,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedMarcarAMano"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "deudaDescuentoDe"
       },
       {
@@ -140539,6 +140847,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "FIXED_A_MANO_MESES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -145092,6 +145404,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedMarcarAMano"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -145113,6 +145429,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_SOLAPES"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "FIXED_A_MANO_MESES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -147497,6 +147817,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedMarcarAMano"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -147514,6 +147838,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "FIXED_A_MANO_MESES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -149301,6 +149629,10 @@
         "function": "fixedPausa"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "teDebenMes"
       },
@@ -149378,6 +149710,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedMarcarAMano"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "repartoVigente"
       },
       {
@@ -149411,10 +149747,6 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "recNorm"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "goalSyncEqual"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -149483,6 +149815,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "mcPersistCommit"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -149679,10 +150015,6 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedExpenseKey"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentEvidence"
       },
       {
         "file": "src/modules/00-core.js",
@@ -150223,6 +150555,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "CATEGORIES"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "FIXED_A_MANO_MESES"
       },
       {
         "file": "src/modules/00-core.js",

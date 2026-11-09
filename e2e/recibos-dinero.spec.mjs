@@ -3,8 +3,7 @@ import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
 /* Plan › Recibos: lo que mueve dinero o cifras (auditoría 9/11/2026). «Lo pagué de otra forma»
    (SPEC §2.6.3) con Desmarcar y Deshacer, devolver un recibo saltado con Deshacer y el aviso de
-   dónde cae, «Ya no lo tengo» con Deshacer, el día 31 en un mes de 30 y cuántos recibos hay detrás
-   de la cifra de Gestionar. Todo sale del estado sembrado: se mira el DOM y lo guardado. */
+   dónde cae, «Ya no lo tengo» con Deshacer y el día 31 en un mes de 30. Todo sale del estado sembrado: se mira el DOM y lo guardado. */
 const settings = { autoPrices: false, theme: "green", lang: "es", simpleMode: false, expenseBanks: ["sabadell"] };
 const cuenta = [{ id: "bank", ent: "sabadell", role: "fijos", value: 3000 }];
 const recibo = (id, name, amount, day, extra) => Object.assign({ id, name, amount, freq: "mes", day, account: "sabadell" }, extra);

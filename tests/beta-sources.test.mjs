@@ -6349,7 +6349,7 @@ test("Catálogo207 histórico rehace la tanda de t6 con la frase del dueño sobr
 
 // 4.26.213 (07/11/2026): tres piezas sobre la beta 4.26.212 servida SIN veredicto (397f9ea68, sigue la APK 64), solo web: el pulido de Plan › Recibos del vídeo del dueño (claude/recibos-zona, 2a93a526e), el arnés e2e con ACK común (PR 354, 0bf335b7) y los gemelos incrementales (PR 355, 8359d9bb, revisión de dinero GO).
 // UNA sola tanda para toda la zona Recibos (recibos-zona-pulida, quince pasos; diecisiete con los dos de «Ya pagados» del 8/11): exigencia del dueño, sin pasos duplicados. Las siete viejas de la zona se retiran con tandas: [] (nunca borrando la propiedad); recibo-cargo-pendiente (necesita un cargo pendiente real del banco), deuda-tae-con-descuento, traspaso-ingreso-manual y las de Deudas y avisos siguen aparte.
-// Registro: UN descriptor nuevo; los anteriores solo crecen por el final con el cierre de lectores exacto. Única excepción al «lo anterior intacto»: el ancla «className:"v4-screen"» de plan-scroll-lento y vibracion-r6, porque Plan pasa a "v4-screen v4-plan".
+// Registro: UN descriptor nuevo; los anteriores solo crecen por el final con el cierre de lectores exacto. Excepciones al «lo anterior intacto»: el ancla «className:"v4-screen"» de plan-scroll-lento y vibracion-r6, porque Plan pasa a "v4-screen v4-plan"; y (4.26.216) el final del motor dinámico de 11 en recibo-vinculo-saldo y plan-recibos-t4, que añade fixedPagadoFuera.
 test("Catálogo213 funde la zona Recibos en una tanda, retira las siete viejas con tandas: [], conserva el resto y declara las huellas que mueve",()=>{
   const nueva="recibos-zona-pulida";
   const retiradas={"4.26.212":["recibo-quitar-deshacer"],"4.26.211":["recibo-anual-mes","plan-velo-fundido"],"4.26.207":["plan-recibos-t6"],"4.26.204":["plan-recibos-t5"],"4.26.203":["plan-recibos-qa"],"4.26.202":["plan-recibos-guardar-pagado"]};
@@ -6358,10 +6358,10 @@ test("Catálogo213 funde la zona Recibos en una tanda, retira las siete viejas c
   const source=f=>nl(read(f)),old=f=>nl(sourceBeta212(f));
   assert.equal(before[0].v,"4.26.212");
   const notes=JSON.parse(source("src/data/release-notes.json"));
-  assert.equal(notes[0].v,"4.26.215");assert.deepEqual(notes[0].tandas,[],"la 215 (Deudas) no lleva tanda propia");assert.equal(notes[1].v,"4.26.214");assert.deepEqual(notes[1].tandas,[],"la 214 no lleva tanda propia: la zona Recibos sigue en la 213");const n213=notes[2];assert.equal(n213.v,"4.26.213");assert.equal(notes.length,before.length+3);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
+  assert.equal(notes[0].v,"4.26.216");assert.deepEqual(notes[0].tandas,[],"la 216 (auditoría de Recibos) no lleva tanda propia: sus pasos van en la de la 213");assert.equal(notes[1].v,"4.26.215");assert.deepEqual(notes[1].tandas,[],"la 215 (Deudas) no lleva tanda propia");assert.equal(notes[2].v,"4.26.214");assert.deepEqual(notes[2].tandas,[],"la 214 no lleva tanda propia: la zona Recibos sigue en la 213");const n213=notes[3];assert.equal(n213.v,"4.26.213");assert.equal(notes.length,before.length+4);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
   // Todo lo anterior intacto salvo las siete tandas retiradas, que dejan la propiedad como lista vacía.
   const esperado=before.map(n=>{const out=structuredClone(n);if(retiradas[n.v])out.tandas=(n.tandas||[]).filter(g=>!retiradas[n.v].includes(g.id));return out;});
-  assert.deepEqual(notes.slice(3),esperado);
+  assert.deepEqual(notes.slice(4),esperado);
   for(const [v,ids] of Object.entries(retiradas)){
     const vieja=before.find(n=>n.v===v),ahora=notes.find(n=>n.v===v);
     assert.ok(Array.isArray(ahora.tandas),v+": la propiedad tandas sigue ahí");
@@ -6406,7 +6406,15 @@ test("Catálogo213 funde la zona Recibos en una tanda, retira las siete viejas c
     }
     return web;
   };
-  const reancla=web=>JSON.parse(JSON.stringify(web).split("className:\\\"v4-screen\\\",ref:planScreenRef").join("className:\\\"v4-screen v4-plan\\\",ref:planScreenRef"));
+  // 4.26.216: la línea del motor dinámico de 11 que acaba en isPaidIn(...) añade «|| fixedPagadoFuera(...)» (lo pagado de otra
+  // forma no queda pendiente en el banco), y con ella se reanclan recibo-vinculo-saldo y plan-recibos-t4, que la vigilaban.
+  const PAGADO_FUERA="isPaidIn(e,curMonth,today,curYear,state)||fixedPagadoFuera(state,e,curYear,curMonth,today)); });";
+  const reancla=web=>JSON.parse(JSON.stringify(web).split("className:\\\"v4-screen\\\",ref:planScreenRef").join("className:\\\"v4-screen v4-plan\\\",ref:planScreenRef").split("isPaidIn(e,curMonth,today,curYear,state)); });").join(PAGADO_FUERA));
+  // fixedPagadoFuera y fixedMarcadoAMano viven en 07, que el cierre automático no sigue: los vigilan a mano los descriptores
+  // cuyo código de 07 u 11 los llama (monthNetForAccount, los avisos de la víspera y el motor dinámico de `totals`), y el
+  // cierre recoge después lo que leen de 08 (fixedPaymentEvidence, fixedPaymentState).
+  const F07="src/modules/07-tab-patri-fijos.js",aMano=["fixedPagadoFuera","fixedMarcadoAMano"].map(function_=>({file:F07,function:function_}));
+  const vecinosAMano=["inc-3009-01-cargos","fin05-widget-reentrada","fin05-pago-cerrada","widget-banco","widget-app-cerrada","inc-2909-02-inicio-natural","inc-3009-nomina-anticipada","inc-2909-01-widget-periodo","inc-0210-01-plan-cuota","inicio-grafica-vuelve","widget-pago-app-cerrada","widget-ciclo-puente","recibos-cargo-unico","inicio-patrimonio-flujos","inicio-mes-pasado-mismo-dia","recibos-cifra-cuadra","cartera-sin-lagazo","recibo-vinculo-saldo","plan-recibos-t5","pro03-aviso-te-llega","plan-recibos-t4"];
   for(const [key,scope] of Object.entries(integrated)){
     const ahora=scopes[key];
     assert.deepEqual(Object.keys(ahora),Object.keys(scope),key+": mismas claves");
@@ -6417,7 +6425,9 @@ test("Catálogo213 funde la zona Recibos en una tanda, retira las siete viejas c
     const esMiembros=u=>u.data==="cloud"&&u.members;
     // Lectores de columnas opcionales que el guardián transitivo exige a traspaso-ingreso-manual (withNotaFallback y sus _isMissing*/_mc*Cols): se añaden al final (CI beta 42423014322).
     const extra=key==="traspaso-ingreso-manual"?[...["withNotaFallback","_isMissingDivisaCol","_isMissingObNameCol"].map(function_=>({file:"src/modules/00-core.js",function:function_})),...["_mcDivisaCols","_mcObNameCol"].map(data=>({file:"src/modules/00-core.js",data}))]:[];
-    const esperada=cierre(previo).concat(extra);
+    let cerrado=cierre(previo);
+    if(vecinosAMano.includes(key))cerrado=cierre(cerrado.concat(aMano.filter(u=>!cerrado.some(v=>v.file===u.file&&v.function===u.function))));
+    const esperada=cerrado.concat(extra);
     assert.equal(ahora.web.length,esperada.length,key+": mismo número de unidades que el cierre");
     const sinMiembros=web=>web.map(u=>esMiembros(u)?{...u,members:undefined}:u);
     assert.deepEqual(sinMiembros(ahora.web.slice(0,previo.length)),sinMiembros(previo),key+": lo anterior intacto");
@@ -6425,6 +6435,8 @@ test("Catálogo213 funde la zona Recibos en una tanda, retira las siete viejas c
     ahora.web.forEach((u,i)=>{if(esMiembros(u)&&i<previo.length)for(const m of previo[i].members)assert.ok(u.members.includes(m),key+": no pierde el miembro "+m);});
   }
   for(const key of ["plan-scroll-lento","vibracion-r6"])assert.notDeepEqual(scopes[key].web,integrated[key].web,key+": reanclado a v4-plan");
+  for(const key of ["recibo-vinculo-saldo","plan-recibos-t4"])assert.ok(JSON.stringify(scopes[key].web).includes(PAGADO_FUERA),key+": reanclado a fixedPagadoFuera");
+  for(const key of vecinosAMano)for(const u of aMano)assert.ok(scopes[key].web.some(v=>v.file===u.file&&v.function===u.function),key+" vigila "+u.function);
   const G=(({file,from,to})=>({file,from,to}))(integrated["recibo-quitar-deshacer"].web.find(u=>u.from&&u.from.includes("INC-0410 guardado: de aquí")));
   const fn=(file,names)=>names.map(function_=>({file,function:function_}));
   const css=from=>({file:SH,from,to:"}"});
@@ -6474,7 +6486,7 @@ test("Catálogo213 funde la zona Recibos en una tanda, retira las siete viejas c
     assert.notEqual(mutated.web,current.web,nueva+" reabre la tanda web");}
   const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes);
   assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),vivas,"lo que el build entrega al panel");
-  const g0=built[2].tandas[0];
+  const g0=built[3].tandas[0];
   assert.equal(g0.web,current.web);assert.equal(g0.native,undefined);assert.equal(g0.edge,undefined);assert.equal(g0.apk,undefined);
   for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g0[key],undefined,"identidad nueva sin "+key);
   for(const id of vivas)assert.equal(receipt.web[id],betaRevision(id,source,undefined,scopes[id]).web,id+": su huella llega al panel");

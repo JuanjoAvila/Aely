@@ -1,5 +1,35 @@
 [
   {
+    "v": "4.26.216",
+    "d": "2026-11-09",
+    "t": {
+      "es": "Recibos: como en el diseño, y «Lo pagué de otra forma»",
+      "en": "Bills: just like the design, and \"I paid it another way\"",
+      "ca": "Rebuts: com al disseny, i «Ho vaig pagar d'una altra manera»"
+    },
+    "items": {
+      "es": [
+        "Plan → Recibos se ve como en el diseño: «Ya pagados» en una sola línea aunque tengas la letra grande, «Para revisar» enseña hasta tres y cada recibo pendiente dice su categoría, su banco y cuándo se cobra.",
+        "«Todos ›» abre la pantalla nueva «Tus recibos»: lo que se te va cada mes (o al año, tocando la tarjeta), un buscador, un botón por banco y todo en secciones: recibos, cuotas de deuda, pagos de una sola vez y personas. Avisa si pagas dos plataformas de música o de series.",
+        "Si pagaste un recibo en efectivo, por Bizum o con otra tarjeta, «Ya está pagado» → «Lo pagué de otra forma» lo da por pagado este mes; se puede deshacer o desmarcar.",
+        "Arreglos: un recibo del día 31 se cobra el último día en los meses más cortos; volver a poner un recibo que habías saltado se puede deshacer y te dice dónde queda; «¿Y si gasto…?» y «¿Cuánto es?» ya no cortan el importe ni el nombre, y «¿Te llega?» se abre más rápido."
+      ],
+      "en": [
+        "Plan → Bills looks like the design: \"Already paid\" on a single line even with large text, \"To review\" shows up to three and each pending bill shows its category, its bank and when it is charged.",
+        "\"All ›\" opens the new \"Your bills\" screen: what goes out every month (or per year, by tapping the card), a search box, a button per bank and everything in sections: bills, debt payments, one-off payments and people. It warns you if you pay for two music or TV platforms.",
+        "If you paid a bill in cash, by Bizum or with another card, \"It's paid\" → \"I paid it another way\" marks it paid for this month; you can undo or unmark it.",
+        "Fixes: a bill on the 31st is charged on the last day in shorter months; putting back a bill you had skipped can be undone and tells you where it lands; \"What if I spend…?\" and \"How much is it?\" no longer cut off the amount or the name, and \"You're covered\" opens faster."
+      ],
+      "ca": [
+        "Pla → Rebuts es veu com al disseny: «Ja pagats» en una sola línia encara que tinguis la lletra gran, «Per revisar» mostra fins a tres i cada rebut pendent diu la seva categoria, el seu banc i quan es cobra.",
+        "«Tots ›» obre la pantalla nova «Els teus rebuts»: el que se't va cada mes (o a l'any, tocant la targeta), un cercador, un botó per banc i tot en seccions: rebuts, quotes de deute, pagaments d'una sola vegada i persones. Avisa si pagues dues plataformes de música o de sèries.",
+        "Si vas pagar un rebut en efectiu, per Bizum o amb una altra targeta, «Ja està pagat» → «Ho vaig pagar d'una altra manera» el dona per pagat aquest mes; es pot desfer o desmarcar.",
+        "Arranjaments: un rebut del dia 31 es cobra l'últim dia als mesos més curts; tornar a posar un rebut que havies saltat es pot desfer i et diu on queda; «I si gasto…?» i «Quant és?» ja no tallen l'import ni el nom, i «T'arriba» s'obre més de pressa."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.215",
     "d": "2026-11-08",
     "t": {
