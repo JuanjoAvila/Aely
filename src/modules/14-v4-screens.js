@@ -932,7 +932,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
           tf("pr6_te_deben",{x:eur(debenTotal)}),
           React.createElement("svg",{className:"pr6-pill-go",width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
             React.createElement("path",{d:"M9 6l6 6-6 6"}))))));
-  const manage=React.createElement(BillsManagePush,{key:"manage-bills",open:manageOpen,onClose:function(){ setManageOpen(false); setManageEdit(null); setAddNow(0); },state:state,set:set,totals:totals,simple:false,editId:manageEdit,addNow:addNow});
+  const manage=React.createElement(BillsManagePush,{key:"manage-bills",open:manageOpen,onClose:function(){ setManageOpen(false); setManageEdit(null); setAddNow(0); },state:state,set:set,totals:totals,simple:false,editId:manageEdit,addNow:addNow,onGoDebts:onGoDebts});
   /* La hoja de importar vive fuera de la rama del primer uso: al añadir, el plan deja de estar
      vacío y, dentro de esa rama, la hoja se desmontaba de golpe; el segundo toque de un doble
      toque caía entonces en el «+» de abajo (revisión 31/10/2026). Ahora cierra con su animación y
@@ -2023,9 +2023,6 @@ function gbTxt(key, vars){
   // texto y podía tapar una traducción ausente en vez de dejar que i18n-keys la detectase.
   return vars?tf(key,vars):t(key);
 }
-function gbSub(key, n){
-  return gbTxt(n===1?key+"_one":key, {n:n});
-}
 
 /* En una lista de recibos el logo del banco dice de dónde sale, no QUÉ es, y mezclaba todas las
    filas a ojos de quien solo quiere encontrar luz, agua o teléfono (feedback del padre, 23/9).
@@ -2202,10 +2199,14 @@ function BillUndoToast({onUndo,notice}){
     React.createElement("span",null,notice||gbTxt("gb_removed")),
     onUndo&&React.createElement("button",{type:"button",onClick:onUndo},t("f_undo")||"Deshacer"));
 }
-function BillsManagePush({open, onClose, state, set, totals, simple, editId, addNow}){
+function BillsManagePush({open, onClose, state, set, totals, simple, editId, addNow, onGoDebts}){
   const [stack,setStack]=React.useState(["hub"]);
-  const [group,setGroup]=React.useState(null);
   const [q,setQ]=React.useState("");
+  // Tus recibos (SPEC §3): cifras al año, banco elegido en los chips, secciones desplegadas y el aviso que se va.
+  const [anual,setAnual]=React.useState(false);
+  const [banco,setBanco]=React.useState(null);
+  const [abiertos,setAbiertos]=React.useState({});
+  const [solapeSale,setSolapeSale]=React.useState(null);
   const [detail,setDetail]=React.useState(null);
   const [reviewBill,setReviewBill]=React.useState(null);
   const [addStep,setAddStep]=React.useState(null);
@@ -2238,7 +2239,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
   const hadSheetRef=React.useRef(false);
   const view=stack[stack.length-1];
   const pageSwipe=useEdgePageClose(!!open,onClose,view==="hub"&&!detail&&!addStep&&!pasos&&!persona,rootRef,{plainScroll:true});
-  const sub=useEdgePageClose(!!open,function(){ setStack(["hub"]); setGroup(null); },view!=="hub"&&!detail&&!addStep&&!pasos&&!persona,subRef,{plainScroll:true});
+  const sub=useEdgePageClose(!!open,function(){ setStack(["hub"]); },view!=="hub"&&!detail&&!addStep&&!pasos&&!persona,subRef,{plainScroll:true});
   const cm=totals.curMonth, cy=totals.curYear;
   // Ola nativa (INC-2709-03, 19/10): Android solo la pinta en el scroller RAÍZ, y Chromium
   // promociona un `fixed` a pantalla completa como raíz implícita SOLO si es el único candidato
@@ -2255,7 +2256,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
   React.useEffect(function(){
     if(!open){
       editOnly.current=false;
-      setStack(["hub"]); setGroup(null); setQ(""); setDetail(null); setAddStep(null); setPasos(null); setPersona(null);
+      setStack(["hub"]); setQ(""); setAnual(false); setBanco(null); setAbiertos({}); setSolapeSale(null); setDetail(null); setAddStep(null); setPasos(null); setPersona(null);
       if(undoTimer.current){ clearTimeout(undoTimer.current); undoTimer.current=null; }
       setUndoBill(null);
       setSavedBill(null);
@@ -2283,7 +2284,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
   const onCloseRef=React.useRef(onClose); onCloseRef.current=onClose;
   React.useEffect(function(){
     if(!open||editId==null) return;
-    const r=billsGroupRows(state,"serv",cm,cy).concat(billsGroupRows(state,"once",cm,cy))
+    const r=billsGroupRows(state,"serv",cm,cy).concat(billsGroupRows(state,"prox",cm,cy))
       .find(function(x){ return String(x.id)===String(editId); });
     if(r){ editOnly.current=true; abrirFila(r); }
   },[open,editId]);
@@ -2310,9 +2311,9 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
     setDetail(r);
   };
   useBackClose(!!open, pop);
-  // El hub conserva su entrada y cada pantalla hija añade otra. Antes toda la pila compartía
+  // El hub conserva su entrada y la pantalla hija añade otra. Antes toda la pila compartía
   // una sola: el primer Atrás volvía al hub, pero el segundo ya sacaba de Plan (QA 2026-09-16).
-  useBackClose(!!open && (view==="list"||view==="afford"||view==="people"), pop);
+  useBackClose(!!open && view==="afford", pop);
   // Dialog a11y: foco inicial/restore SOLO al abrir/cerrar el hub (deps=[open]).
   // Si remonta al cambiar detail/addStep, el cleanup restaura foco y el rAF roba el h1
   // detrás de la ficha (Claude BAJA + Codex 2100Z).
@@ -2355,7 +2356,9 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
       var el=openerRef.current;
       var id=requestAnimationFrame(function(){
         if(el&&typeof el.focus==="function"&&(!rootRef.current||rootRef.current.contains(el))){
-          try{ el.focus(); }catch(err){}
+          // Sin desplazar: con las secciones en la misma pantalla, el foco devuelto movía la lista
+          // hasta el «Añadir» o la fila tocada al cerrar la hoja.
+          try{ el.focus({preventScroll:true}); }catch(err){}
         }
       });
       hadSheetRef.current=false;
@@ -2364,7 +2367,28 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
     hadSheetRef.current=sheet;
     return undefined;
   },[detail, addStep, pasos, open]);
-  const hero=billsHeroTotal(state,totals);
+  /* Tus recibos (SPEC §3, prototipo del 26/10): secciones planas en vez de los grupos de la v4.1
+     que abrían otra pantalla. Las filas salen de `billsGroupRows` y cada sección suma su
+     `monthly`, la misma cuenta que `billsHeroTotal`: la cifra de arriba ES la suma de Recibos y
+     Cuotas, no otra fórmula que pueda descuadrarse. El banco filtra también la cifra; buscar no. */
+  const mg=open?(function(){
+    const pasa=function(r){ return !banco||r.bank===banco; };
+    const de=function(g){ return billsGroupRows(state,g,cm,cy); };
+    const todas={serv:de("serv").sort(function(a,b){ return (cleanDay(a.item.day)||32)-(cleanDay(b.item.day)||32); }),
+      debt:de("debt").sort(function(a,b){ return (cleanDay(a.item.day)||32)-(cleanDay(b.item.day)||32); }),once:de("prox"),"in":de("in")};
+    const bancos=[];
+    ["serv","debt","once","in"].forEach(function(g){ todas[g].forEach(function(r){ if(r.bank&&bancos.indexOf(r.bank)<0) bancos.push(r.bank); }); });
+    const filtradas={}, suma={};
+    Object.keys(todas).forEach(function(g){
+      filtradas[g]=todas[g].filter(pasa);
+      suma[g]=filtradas[g].reduce(function(a,r){ return a+Math.round(Math.abs(Number(r.monthly)||0)*100); },0)/100;
+    });
+    return {todas:todas,filas:filtradas,suma:suma,bancos:bancos.length>1?bancos:[]};
+  })():null;
+  const k12=anual?12:1;
+  // Cerrado, la misma cifra sin filtros (`billsHeroTotal`): al abrir sale ya en su valor y no
+  // cuenta desde 0 (quien tocaba enseguida se quedaba con una cifra a medias, beta 4.26.150).
+  const hero=mg?Math.round((mg.suma.serv+mg.suma.debt)*k12*100)/100:billsHeroTotal(state,totals);
   const shownHero=useCountUp(hero,!!open);
   if(!open) return null;
   const banks=Array.from(new Set((state.accounts||[]).map(function(a){ return a.ent; }).filter(Boolean)));
@@ -2373,33 +2397,18 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
     const r=accRole(a); return r==="fijos"||r==="ambos"||!a.role;
   });
   const bankList=billBanks.length?billBanks.map(function(a){ return a.ent; }):banks;
-  const nAll=billsCountAll(state,cm,cy);
-  const groupMeta=function(id){
-    const n=billsGroupRows(state,id,cm,cy).length;
-    const total=billsGroupMonthly(state,id,cm,cy);
-    if(id==="serv") return {id:id,emoji:"💡",title:gbTxt("gb_g_serv"),sub:gbSub("gb_g_serv_sub",n),total:total,n:n};
-    if(id==="debt") return {id:id,emoji:"💳",title:gbTxt("gb_g_debt"),
-      sub:simple?gbTxt(n===1?"gb_g_debt_sub_simple_one":"gb_g_debt_sub_simple",{n:n}):gbSub("gb_g_debt_sub",n),total:total,n:n};
-    if(id==="in") return {id:id,emoji:"💰",title:gbTxt("gb_g_in"),sub:gbTxt("gb_g_in_sub"),total:total,n:n};
-    return {id:id,emoji:"📅",title:gbTxt("gb_g_once"),sub:gbSub("gb_g_once_sub",n),total:total,n:n,once:true};
-  };
-  const groups=["serv","debt","in","once"].map(groupMeta);
   const personas=personasDe(state);
-  /* La ola representa exactamente la cifra «se te van cada mes»: servicios y cuotas. Ingresos
-     y cargos puntuales siguen en sus grupos, pero meterlos aquí falsearía el reparto del total. */
-  const heroGroups=groups.filter(function(g){ return (g.id==="serv"||g.id==="debt")&&g.total>0; });
   const push=function(v){ setStack(function(s){ return s.concat([v]); }); };
-  const openGroup=function(id){ setGroup(id); setQ(""); push("list"); };
   const openDetail=function(row){
     openerRef.current=document.activeElement;
     setSavedBill(null);
     abrirFila(row);
   };
-  const startAdd=function(kind){
+  const startAdd=function(kind,nombre){
     openerRef.current=document.activeElement;
     setSavedBill(null);
-    if(!simple&&(kind==="fixed"||kind==="oneoff")){ setPasos({mode:"add",once:kind==="oneoff",n:Date.now()}); return; }
-    setAddForm({name:"",amount:"",freq:"mes",months:[],day:"",when:"",account:bankList[0]||"sabadell",kind:kind||"fixed",
+    if(!simple&&(kind==="fixed"||kind==="oneoff")){ setPasos({mode:"add",once:kind==="oneoff",nombre:nombre||"",n:Date.now()}); return; }
+    setAddForm({name:nombre||"",amount:"",freq:"mes",months:[],day:"",when:"",account:bankList[0]||"sabadell",kind:kind||"fixed",
       month:cm, year:cy, flowKind:"income"});
     setAddStep("what");
   };
@@ -2430,123 +2439,208 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
     else if(undoBill.kind==="oneoff") addOneoffItem(set,undoBill.item);
     setUndoBill(null);
   };
-  const listRows=(function(){
-    if(view!=="list"&&view!=="hub") return [];
-    let rows=group?billsGroupRows(state,group,cm,cy):[];
-    if(view==="hub"&&q.trim()){
-      const qq=q.trim().toLowerCase();
-      rows=["serv","debt","in","once"].reduce(function(a,g){ return a.concat(billsGroupRows(state,g,cm,cy)); },[])
-        .filter(function(r){ return String(r.name||"").toLowerCase().indexOf(qq)>=0; });
-    } else if(q.trim()){
-      const qq=q.trim().toLowerCase();
-      rows=rows.filter(function(r){ return String(r.name||"").toLowerCase().indexOf(qq)>=0; });
-    }
-    return rows.map(function(r){
-      if(r.kind==="debt") return Object.assign({},r,{locked:!simple});
-      return r;
-    });
-  })();
-  const billRow=function(r){
-    const attrs={"data-bill-id":r.id};
-    if(r.locked) attrs["data-locked"]="1";
-    return React.createElement("button",Object.assign({type:"button",className:"v4-mov v4-bills-row",key:r.kind+"_"+r.id,onClick:function(){ openDetail(r); }},attrs),
-      React.createElement("div",{className:"tile v4-bill-kind-icon","data-bill-icon":billGlyph(r),"aria-hidden":"true"}, billGlyph(r)),
-      React.createElement("div",{className:"nm"},
-        React.createElement("div",{className:"nm-title"}, r.name||"—",React.createElement(PlanConflictDot,{record:planSyncConflict(state,r.kind==="debt"?"debts":r.kind,r.id)})),
-        React.createElement("div",{className:"meta"}, r.kind==="debt"&&r.descuento>0?pr6PagasMas({bankAmt:r.cash,descuento:deudaDescuentoMes(state,r.item,cy,cm,totals.today)})
-          :r.locked?gbTxt("gb_locked"):entOf(r.bank).label+(pr6PausaTxt(r,cy*12+cm)?" · "+pr6PausaTxt(r,cy*12+cm):""))),
-      React.createElement("div",{className:"am num"+(r.income?" pos":"")}, (r.income?"+":"")+eur(Math.abs(r.monthly||0))));
+  /* Buscar por nombre (sin acentos) o por el principio del importe («39,9» encuentra 39,90 €),
+     como el prototipo. Mientras se busca, todo a la vista y sin avisos ni personas. */
+  const sinTilde=function(x){ return String(x||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,""); };
+  const qq=sinTilde(q.trim());
+  const casa=function(r){
+    if(!qq) return true;
+    if(sinTilde(r.name).indexOf(qq)>=0) return true;
+    if(!/^[\d.,]+$/.test(qq)) return false;
+    const a=Math.abs(Number(r.monthly)||0).toFixed(2), qn=qq.replace(/\./g,"");
+    return a.indexOf(qn.replace(",","."))===0||a.replace(".",",").indexOf(qn)===0;
   };
-  const head=function(title,active){
+  const lower=function(x){ return CURLANG==="en"?x:String(x).toLowerCase(); };
+  const amt=function(x,variable){ return (variable?"≈ ":"")+eur(x); };
+  // El próximo cobro de un recibo (de este mes en adelante): su día, su mes y su importe.
+  const proximo=function(e){
+    for(let i=0;i<12;i++){
+      const m=(cm-1+i)%12+1, y=cy+Math.floor((cm-1+i)/12);
+      if(occursIn(e,m,y)) return {m:m,y:y,day:cleanDay(dayIn(e,m,y)),amt:occAmountIn(e,m,y)};
+    }
+    return {m:cm,y:cy,day:cleanDay(e.day),amt:Number(e.amount)||0};
+  };
+  const fila=function(r){
+    const e=r.item||{};
+    if(r.kind==="fixed"){
+      const nx=proximo(e), sch=hasSchedule(e), anualF=e.freq==="año"||e.freq==="anual";
+      const fr=sch?pr6Lista(e.schedule.slice().sort(function(a,b){ return a.m-b.m; }).map(function(x){ return (cleanDay(x.day)||"—")+" "+lower(monthShort(x.m-1)); }))
+        :(e.freq&&e.freq!=="mes"&&e.freq!=="mensual"?lower(gbTxt((RP4_FREQS.find(function(f){ return f[0]===e.freq; })||[0,"gb_freq_y"])[1])):"");
+      const pausa=pr6PausaTxt(r,cy*12+cm);
+      return {d1:nx.day||"—",d2:sch||anualF?monthShort(nx.m-1):t("mg_dia"),paused:!!pausa,
+        sub:pausa||[e.category&&CAT[e.category]?catName(e.category):"",entOf(r.bank).label,fr,repartoVigente(e)?t("mg_compartido"):""].filter(Boolean).join(" · "),
+        amt:amt(anual?Math.abs(Number(r.monthly)||0)*12:nx.amt,e.variable)};
+    }
+    if(r.kind==="debt"){
+      const from=r.descuento>0?deudaDescuentoDe(state,e):[];
+      return {d1:cleanDay(e.day)||"—",d2:t("mg_dia"),
+        sub:entOf(r.bank).label+(from.length?" · "+tf("mg_mas",{a:eur(r.cash),b:eur(r.descuento),from:pr6Lista(from)}):""),
+        amt:eur(Math.abs(Number(r.monthly)||0)*k12)};
+    }
+    if(r.kind==="oneoff") return {d1:cleanDay(e.day)||"—",d2:monthShort((Number(e.month)||cm)-1),
+      sub:[e.category&&CAT[e.category]?catName(e.category):"",entOf(r.bank).label].filter(Boolean).join(" · "),amt:eur(Math.abs(Number(r.monthly)||0))};
+    return {d1:cleanDay(e.day)||"—",d2:t("mg_dia"),income:r.income,
+      sub:t(r.income?"fj_income_tag":"fj_transfer_tag")+" · "+entOf(r.bank).label,
+      amt:(r.income?"+":"")+eur(Math.abs(Number(r.monthly)||0))};
+  };
+  const tocarFila=function(r){
+    // Una cuota se cambia en Deudas (SPEC §3): se cierra esto y se llega a su tarjeta.
+    if(r.kind==="debt"&&onGoDebts&&!simple){ const id=r.id; pageSwipe.close(); setTimeout(function(){ onGoDebts(id); },320); return; }
+    openDetail(Object.assign({},r,r.kind==="debt"?{locked:!simple}:null));
+  };
+  const filaEl=function(r){
+    const f=fila(r);
+    return React.createElement("button",{type:"button",className:"v4-charge pr6-row v4-bills-row"+(f.paused?" pr6-mg-off":""),key:r.kind+"_"+r.id,
+      "data-bill-id":r.id,"data-kind":r.kind,"aria-label":[r.name,f.sub,f.amt].filter(Boolean).join(" · "),onClick:function(){ tocarFila(r); }},
+      React.createElement("span",{className:"dt","aria-hidden":"true"},
+        React.createElement("span",{className:"d serif num"}, f.d1),
+        React.createElement("span",{className:"m"}, f.d2)),
+      React.createElement("span",{className:"nm"},
+        React.createElement("span",{className:"pr6-nm"}, r.name||"—",React.createElement(PlanConflictDot,{record:planSyncConflict(state,r.kind==="debt"?"debts":r.kind,r.id)})),
+        React.createElement("span",{className:"sub"}, f.sub)),
+      React.createElement("span",{className:"am serif num"+(f.income?" pos":"")}, f.amt));
+  };
+  const plus=React.createElement("svg",{width:15,height:15,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.6,strokeLinecap:"round","aria-hidden":"true"},
+    React.createElement("path",{d:"M12 5v14M5 12h14"}));
+  const seccion=function(id,titulo,derecha,add){
+    const rows=mg.filas[id].filter(casa);
+    if(!rows.length&&(qq||id!=="serv")) return null;
+    const abierto=!!qq||!!abiertos[id], resto=qq?[]:rows.slice(4);
+    return React.createElement("section",{className:"pr6-sec pr6-mg-sec",key:id,"data-mg-sec":id,"aria-label":titulo},
+      React.createElement("div",{className:"pr6-sec-h"},
+        React.createElement("span",{className:"pr6-mg-st"},
+          React.createElement("span",null,titulo),
+          React.createElement("span",{className:"pr6-mg-ss num","data-mg-sum":id}, derecha)),
+        add&&React.createElement("button",{type:"button",className:"link pr6-mg-add","data-act":add.act,"aria-label":add.label,onClick:add.go}, plus,t("mg_anadir"))),
+      (qq?rows:rows.slice(0,4)).map(filaEl),
+      resto.length>0&&React.createElement("div",{className:"pr6-fold"+(abierto?" open":""),id:"mg-mas-"+id},
+        React.createElement("div",Object.assign({className:"pr6-fold-in"},abierto?null:{"aria-hidden":"true",inert:""}), resto.map(filaEl))),
+      resto.length>0&&React.createElement("button",{type:"button",className:"pr6-more","aria-expanded":abierto?"true":"false","aria-controls":"mg-mas-"+id,"data-mg-more":id,
+        onClick:function(){ setAbiertos(function(o){ return Object.assign({},o,{[id]:!o[id]}); }); }},
+        abierto?t("v4_ver_menos"):tf("pr6_ver_los",{n:rows.length}), pr6Chev()));
+  };
+  const porMes=function(x){ return tf(anual?"mg_por_ano":"mg_por_mes",{x:eur(x*k12)}); };
+  const secciones=[
+    seccion("serv",t("mg_recibos"),porMes(mg.suma.serv),{act:"bill-add",label:t("mg_add_recibo"),go:function(){ startAdd("fixed"); }}),
+    seccion("debt",gbTxt("gb_g_debt"),porMes(mg.suma.debt),null),
+    seccion("once",t("mg_una_vez"),t("mg_no_repiten"),{act:"bill-add-once",label:t("mg_add_once"),go:function(){ startAdd("oneoff"); }}),
+    // Entradas y traspasos no están en el prototipo, pero solo aquí se dan de alta y se cambian:
+    // sin esta sección se quedaban sin puerta (AGENTS §7). No suman a lo que se te va.
+    seccion("in",gbTxt("gb_g_in"),gbTxt("gb_g_in_sub"),{act:"bill-add-flow",label:t("mg_add_flow"),go:function(){ startAdd("flow"); }})
+  ].filter(Boolean);
+  const nadaQ=!!qq&&secciones.length===0;
+  /* Solapes (SPEC §3): detector prudente en 08 (`recibosSolapes`). La × lo guarda en `settings`
+     como el resumen del mes cerrado, para que no vuelva en el otro móvil; si cambia qué recibos
+     se solapan, la clave cambia y el aviso vuelve. */
+  const solapesNo=(state.settings&&state.settings.recSolapesNo)||[];
+  const solapes=qq?[]:recibosSolapes(state).filter(function(o){ return solapesNo.indexOf(o.key)<0; });
+  const quitarSolape=function(o){
+    setSolapeSale(o.key);
+    setTimeout(function(){
+      setSolapeSale(null);
+      set(function(s){ const prev=(s.settings&&s.settings.recSolapesNo)||[]; if(prev.indexOf(o.key)>=0) return s;
+        return Object.assign({},s,{settings:Object.assign({},s.settings||{},{recSolapesNo:prev.concat([o.key]).slice(-20)})}); });
+    },mcReduced()?0:380);
+  };
+  const ICO_SOLAPE={musica:"M9 18V5l11-2v13M9 18a3 3 0 11-6 0 3 3 0 016 0zM20 16a3 3 0 11-6 0 3 3 0 016 0z",series:"M4 5h16v11H4zM8 20h8M12 16v4"};
+  const solapeEl=function(o){
+    const n=o.nombres.length, lista=pr6Lista(o.nombres);
+    const titulo=o.tipo==="musica"?tf("mg_ov_musica",{list:lista}):tf("mg_ov_series",{n:n,list:lista});
+    const sub=tf(n===2?(o.tipo==="musica"?"mg_ov_m2":"mg_ov_v2"):(o.tipo==="musica"?"mg_ov_mn":"mg_ov_vn"),{x:eur(o.mensual),n:n});
+    const sale=solapeSale===o.key;
+    return React.createElement("div",Object.assign({className:"pr6-cz"+(sale?" fuera":""),key:o.key},sale?{"aria-hidden":"true",inert:""}:null),
+      React.createElement("div",{className:"pr6-cz-in"},
+        React.createElement("div",{className:"pr6-cerr pr6-mg-ov","data-solape":o.tipo},
+          React.createElement("div",{className:"pr6-cerr-h"},
+            React.createElement("span",{className:"pr6-cerr-ico","aria-hidden":"true"},
+              React.createElement("svg",{width:16,height:16,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.2,strokeLinecap:"round",strokeLinejoin:"round"},
+                React.createElement("path",{d:ICO_SOLAPE[o.tipo]}))),
+            React.createElement("span",{className:"pr6-cerr-t"},
+              React.createElement("span",{className:"pr6-cerr-n"}, titulo),
+              React.createElement("span",{className:"num pr6-cerr-l"}, sub)),
+            React.createElement("button",{type:"button",className:"pr6-cerr-x","aria-label":t("mg_ov_x"),"data-act":"solape-x",onClick:function(){ quitarSolape(o); }},
+              React.createElement("svg",{width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
+                React.createElement("path",{d:"M6 6l12 12M18 6L6 18"})))))));
+  };
+  // Personas (SPEC §3/§6): con quién compartes recibos; tocar abre su ficha, «Añadir» una nueva.
+  const personasEl=!qq&&(state.fixed||[]).length>0&&React.createElement("section",{className:"pr6-sec pr6-mg-sec","data-mg-sec":"people","aria-label":gbTxt("pe_title")},
+    React.createElement("div",{className:"pr6-sec-h"},
+      React.createElement("span",{className:"pr6-mg-st"},
+        React.createElement("span",null,gbTxt("pe_title")),
+        React.createElement("span",{className:"pr6-mg-ss"}, t("mg_personas_sub"))),
+      React.createElement("button",{type:"button",className:"link pr6-mg-add","data-act":"persona-add","aria-label":gbTxt("pe_add"),
+        onClick:function(){ openerRef.current=document.activeElement; setPersona({}); }}, plus,t("mg_anadir"))),
+    personas.length>0&&React.createElement("div",{className:"pr6-mg-pl","data-testid":"pe-lista"},
+      personas.map(function(p){
+        const total=p.recibos.reduce(function(a,r){ return a+Math.round(r.amt*100); },0)/100;
+        const d=p.via==="debt"&&(state.debts||[]).find(function(o){ return o.id===p.debtId; });
+        const sub=tf("mg_persona_sub",{list:pr6Lista(p.recibos.map(function(r){ return r.name; })),x:eur(total)})+(d?" · "+tf("mg_se_descuenta",{x:d.name}):"");
+        return React.createElement("button",{type:"button",className:"pr6-mg-pe",key:p.id,"data-persona":p.id,"aria-label":p.n+" · "+sub,
+          onClick:function(){ openerRef.current=document.activeElement; setPersona({pid:p.id}); }},
+          React.createElement("span",{className:"pe-ava","aria-hidden":"true"}, pr6Inicial(p.n)),
+          React.createElement("span",{className:"nm"},
+            React.createElement("span",{className:"pr6-nm"}, p.n),
+            React.createElement("span",{className:"sub"}, sub)),
+          React.createElement("svg",{className:"pr6-mg-go",width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
+            React.createElement("path",{d:"M9 6l6 6-6 6"})));
+      })));
+  const head=function(title,active,mg){
     // La pantalla padre queda pintada debajo mientras la hija acompaña al dedo. Solo el título
     // activo recibe el foco y etiqueta el diálogo; así no duplicamos IDs ni tabulamos por detrás.
-    return React.createElement("div",{className:"settings-push-h"},
-      React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:pop},"‹"),
+    // La cabecera grande del prototipo es la de Tus recibos; la de «¿Me lo puedo permitir?» sigue
+    // la de siempre, que no parte el título en dos líneas.
+    return React.createElement("div",{className:"settings-push-h"+(mg?" pr6-mg-h":"")},
+      React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:pop},
+        React.createElement("svg",{width:20,height:20,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.2,strokeLinecap:"round",strokeLinejoin:"round","aria-hidden":"true"},
+          React.createElement("path",{d:"M19 12H5M11 6l-6 6 6 6"}))),
       React.createElement("h1",{id:active&&"bills-manage-title",tabIndex:-1,ref:active?titleRef:null}, title));
   };
   const hub=React.createElement("div",{className:"v4-bills-hub","data-screen":"bills-home",inert:view!=="hub"?"":undefined},
-    head(gbTxt("gb_title"),view==="hub"),
-    React.createElement("div",{className:"v4-card v4-card-hero v4-bills-hero","data-bills-hero":"1"},
-      React.createElement("div",{className:"v4-micro"}, gbTxt("gb_hero_label")),
-      React.createElement("div",{className:"serif num v4-bills-hero-amt","data-bills-total":"1"}, eur(shownHero)),
-      React.createElement("div",{className:"v4-bills-hero-sub"}, gbSub("gb_hero_sub",billsCountHero(state))),
-      hero>0 && React.createElement("div",{className:"v4-stackbar v4-bills-hero-bar","data-bills-wave":"1","aria-hidden":"true"},
-        heroGroups.map(function(g,i){
-          const colors=["var(--mint)","var(--blue)"];
-          return React.createElement("i",{key:g.id,style:{flex:Math.max(.02,g.total/hero*100),background:colors[i%colors.length]}});
-        }))),
-    React.createElement("div",{className:"v4-bills-search-row"},
-      React.createElement("input",{className:"v4-bills-search","data-bills-search":"1",value:q,placeholder:gbTxt("gb_search"),
-        onChange:function(e){ setQ(e.target.value); }}),
-      React.createElement("button",{type:"button",className:"v4-bills-add","data-act":"bill-add",onClick:function(){ startAdd("fixed"); },
-        "aria-label":gbTxt("gb_add")},"+")),
-    q.trim()
-      ? React.createElement("div",{className:"v4-bills-list"},
-          listRows.length===0 && React.createElement("div",{className:"v4-bills-empty","data-bills-noresults":"1"}, gbTxt("gb_search_empty")),
-          listRows.map(billRow))
-      : React.createElement("div",{className:"v4-bills-groups"},
-          groups.filter(function(g){ return g.n>0; }).map(function(g){
-            return React.createElement("button",{type:"button",className:"v4-bills-group",key:g.id,"data-group":g.id,onClick:function(){ openGroup(g.id); }},
-              React.createElement("div",{className:"v4-bills-group-tile"}, g.emoji),
-              React.createElement("div",{className:"v4-bills-group-copy"},
-                React.createElement("div",{className:"v4-bills-group-t"}, g.title),
-                React.createElement("div",{className:"v4-bills-group-s"}, g.sub)),
-              React.createElement("div",{className:"v4-bills-group-amt serif num"},
-                eur(g.total), React.createElement("span",null, g.once?" "+gbTxt("gb_this_month"):" "+gbTxt("gb_per_month"))),
-              React.createElement("span",{className:"v4-bills-group-chev"},"›"));
-          }),
-          // Personas (SPEC §3): con quién compartes recibos; aquí se añaden y se editan.
-          (state.fixed||[]).length>0 && React.createElement("button",{type:"button",className:"v4-bills-group",key:"people","data-group":"people",onClick:function(){ setQ(""); push("people"); }},
-            React.createElement("div",{className:"v4-bills-group-tile"},"👥"),
-            React.createElement("div",{className:"v4-bills-group-copy"},
-              React.createElement("div",{className:"v4-bills-group-t"}, gbTxt("pe_title")),
-              React.createElement("div",{className:"v4-bills-group-s"}, personas.length?gbSub("pe_sub",personas.length):gbTxt("pe_add"))),
-            React.createElement("span",{className:"v4-bills-group-chev"},"›")),
-          nAll===0 && React.createElement("div",{className:"v4-empty","data-bills-empty":"1"},
-            React.createElement("div",{className:"em"},"🧾"),
-            React.createElement("div",{className:"ti"}, gbTxt("gb_empty")),
-            React.createElement("div",{className:"ph"}, gbTxt("gb_empty_sub")),
-            React.createElement("button",{type:"button",className:"v4-cta cta","data-act":"bill-empty-add",onClick:function(){ startAdd("fixed"); }}, gbTxt("gb_add")))),
-    React.createElement("button",{type:"button",className:"v4-bills-afford","data-bills-afford":"1",onClick:function(){ push("afford"); }},
+    head(gbTxt("gb_title"),view==="hub",true),
+    // Tocar la tarjeta pasa de lo de cada mes a lo del año (y vuelta), también en filas y secciones.
+    React.createElement("button",{type:"button",className:"v4-card v4-card-hero pr6-sum pr6-mg-sum","data-bills-hero":"1","aria-pressed":anual?"true":"false",
+      onClick:function(){ setAnual(function(a){ return !a; }); }},
+      React.createElement("span",{className:"v4-micro pr6-mg-lbl"}, anual?t("mg_al_ano"):gbTxt("gb_hero_label"),
+        React.createElement("svg",{width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round",strokeLinejoin:"round","aria-hidden":"true"},
+          React.createElement("path",{d:"M7 4L3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7"}))),
+      React.createElement("span",{className:"serif num pr6-big v4-bills-hero-amt","data-bills-total":"1"}, eur(shownHero)),
+      mg.suma.debt>0&&mg.suma.serv>0&&React.createElement("span",{className:"pr6-count num","data-bills-desglose":"1"},
+        tf("mg_desglose",{a:eur(mg.suma.serv*k12),b:eur(mg.suma.debt*k12)}))),
+    React.createElement("label",{className:"pr6-mg-q"},
+      React.createElement("svg",{width:18,height:18,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round","aria-hidden":"true"},
+        React.createElement("circle",{cx:11,cy:11,r:7}),React.createElement("path",{d:"M20 20l-3.5-3.5"})),
+      React.createElement("input",{type:"search",className:"pr6-mg-qi","data-bills-search":"1",value:q,placeholder:gbTxt("gb_search"),"aria-label":gbTxt("gb_search"),
+        onChange:function(e){ setQ(e.target.value); }})),
+    mg.bancos.length>0&&React.createElement("div",{className:"v4-chips pr6-mg-chips",role:"radiogroup","aria-label":t("mg_cuenta")},
+      [null].concat(mg.bancos).map(function(b){
+        const on=banco===b;
+        return React.createElement("button",{type:"button",role:"radio","aria-checked":on?"true":"false",className:"v4-chip"+(on?" on":""),key:b||"todas","data-mg-bank":b||"todas",
+          onClick:function(){ setBanco(b); }}, b?entOf(b).label:t("mg_todas"));
+      })),
+    secciones.slice(0,3),
+    solapes.map(solapeEl),
+    personasEl,
+    secciones.slice(3),
+    nadaQ&&React.createElement("div",{className:"pr6-mg-nada","data-bills-noresults":"1"},
+      React.createElement("span",null, tf("mg_nada",{q:q.trim()})),
+      React.createElement("button",{type:"button",className:"pr6-cta","data-act":"bill-add-q",onClick:function(){ startAdd("fixed",q.trim().charAt(0).toUpperCase()+q.trim().slice(1)); }},
+        plus,tf("mg_anadir_q",{q:q.trim()}))),
+    // «¿Me lo puedo permitir?» no está en el prototipo pero vive aquí (fila 99 del BACKLOG): conserva su puerta.
+    !qq&&React.createElement("button",{type:"button",className:"v4-bills-afford","data-bills-afford":"1",onClick:function(){ push("afford"); }},
       React.createElement("div",{className:"v4-bills-afford-t"}, gbTxt("gb_afford")),
       React.createElement("div",{className:"v4-bills-afford-s"}, gbTxt("gb_afford_sub")))
   );
-  const listView=React.createElement("div",{className:"v4-bills-hub","data-screen":"bills-group","data-group":group||""},
-    head((groups.find(function(g){ return g.id===group; })||{}).title||gbTxt("gb_title"),view==="list"),
-    React.createElement("div",{className:"v4-bills-search-row"},
-      React.createElement("input",{className:"v4-bills-search","data-bills-search":"1",value:q,placeholder:gbTxt("gb_search"),
-        onChange:function(e){ setQ(e.target.value); }}),
-      group!=="debt" && React.createElement("button",{type:"button",className:"v4-bills-add","data-act":"bill-add",onClick:function(){
-        startAdd(group==="in"?"flow":(group==="once"?"oneoff":"fixed"));
-      },"aria-label":gbTxt("gb_add")},"+")),
-    React.createElement("div",{className:"v4-bills-list"},
-      listRows.map(billRow),
-      listRows.length===0 && React.createElement("div",{className:"v4-bills-empty","data-bills-empty":"1"}, gbTxt("gb_empty")))
-  );
-  const peopleView=React.createElement("div",{className:"v4-bills-hub","data-screen":"bills-people"},
-    head(gbTxt("pe_title"),view==="people"),
-    React.createElement("div",{className:"v4-bills-list","data-testid":"pe-lista"},
-      personas.map(function(p){
-        const total=p.recibos.reduce(function(a,r){ return a+Math.round(r.amt*100); },0)/100;
-        return React.createElement("button",{type:"button",className:"v4-mov v4-bills-row",key:p.id,"data-persona":p.id,onClick:function(){ openerRef.current=document.activeElement; setPersona({pid:p.id}); }},
-          React.createElement("div",{className:"tile pe-ava","aria-hidden":"true"}, pr6Inicial(p.n)),
-          React.createElement("div",{className:"nm"},
-            React.createElement("div",{className:"nm-title"}, p.n),
-            React.createElement("div",{className:"meta"}, peViaTxt(state,p)+" · "+p.recibos.map(function(r){ return r.name; }).join(", "))),
-          React.createElement("div",{className:"am num"}, eur(total)));
-      }),
-      React.createElement("button",{type:"button",className:"pr6-more","data-act":"persona-add",onClick:function(){ openerRef.current=document.activeElement; setPersona({}); }}, "+ "+gbTxt("pe_add"))));
   const affordView=React.createElement("div",{className:"v4-bills-hub","data-screen":"bills-afford"},
     head(gbTxt("gb_afford"),view==="afford"),
     React.createElement("div",{className:"v4-bills-afford-body"},
       React.createElement(AffordSim,{state:state,totals:totals,set:set})));
-  const screenAttr=view==="list"?"bills-group":view==="afford"?"bills-afford":view==="people"?"bills-people":"bills-home";
+  const screenAttr=view==="afford"?"bills-afford":"bills-home";
   return ReactDOM.createPortal(
     React.createElement(React.Fragment,null,
       React.createElement("div",{ref:rootRef,className:"settings-push open v4-bills-push mc-page-enter","data-bills-manage":"1","data-screen":screenAttr,"data-covered":view!=="hub"?"1":null,
         role:"dialog","aria-modal":"true","aria-labelledby":"bills-manage-title"},
         hub,
-        view!=="hub" && React.createElement("div",{ref:subRef,className:"settings-push open v4-bills-push mc-page-enter"}, view==="list"?listView:view==="people"?peopleView:affordView)),
+        view!=="hub" && React.createElement("div",{ref:subRef,className:"settings-push open v4-bills-push mc-page-enter"}, affordView)),
       persona && React.createElement(PersonaSheet,{key:persona.pid||"nueva",pid:persona.pid,state:state,set:set,totals:totals,onClose:function(){ setPersona(null); },
         onCompartidoViejo:function(id,p){ const r=billsGroupRows(state,"serv",cm,cy).find(function(x){ return x.id===id; }); if(r) setPasos({mode:"edit",row:r,conPersona:p,n:Date.now()}); }}),
       detail && (detail.kind==="fixed"&&planSyncConflict(state,"fixed",detail.id)&&!reviewBill?React.createElement(PlanConflictSheet,{
@@ -2562,7 +2656,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
         onClose:closeAdd, set:set, onSaved:confirmSaved
       }),
       pasos && React.createElement(ReciboPasos,{key:pasos.mode+"_"+(pasos.row?pasos.row.kind+pasos.row.id:"n")+"_"+pasos.n,
-        mode:pasos.mode, row:pasos.row, once:pasos.once, conPersona:pasos.conPersona, state:state, set:set, totals:totals, banks:bankList,
+        mode:pasos.mode, row:pasos.row, once:pasos.once, nombre:pasos.nombre, conPersona:pasos.conPersona, state:state, set:set, totals:totals, banks:bankList,
         onClose:closePasos, onSaved:confirmSaved, onRemove:removeWithUndo,
         onEditOther:function(id){ const r=billsGroupRows(state,"serv",cm,cy).find(function(x){ return x.id===id; }); if(r) setPasos({mode:"edit",row:r,n:Date.now()}); }
       }),
@@ -2873,7 +2967,7 @@ function usePasosCarril(trackRef, scrollRef, paso){
     return function(){ clearTimeout(t); fin(); };
   },[paso]);
 }
-function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, onClose, onSaved, onEditOther, onRemove}){
+function ReciboPasos({mode, row, once, nombre, conPersona, state, set, totals, banks, onClose, onSaved, onEditOther, onRemove}){
   const edit=mode==="edit";
   const y=totals.curYear, m=totals.curMonth, today=totals.today, cur=y*12+m;
   const kind=edit?row.kind:(once?"oneoff":"fixed");
@@ -2890,7 +2984,8 @@ function ReciboPasos({mode, row, once, conPersona, state, set, totals, banks, on
   const inicial=React.useMemo(function(){
     // El último día del mes ya no queda «desde mañana» en este mes: se empieza en el siguiente.
     // Con el mes en curso marcado (y desactivado) el −/+ daba el día 32 (beta, 31/10/2026).
-    if(!edit) return {name:"",category:"",amount:"",variable:false,mode:once?"once":"rec",freq:"mes",months:[],day:null,
+    // «Añadir "x" como recibo» desde el buscador de Tus recibos llega con el nombre puesto.
+    if(!edit) return {name:nombre||"",category:"",amount:"",variable:false,mode:once?"once":"rec",freq:"mes",months:[],day:null,
       once:{ym:today>=rp4DiasMes(cur)?cur+1:cur,day:null},plan:null,account:banks[0]||"sabadell",reparto:[]};
     if(kind==="oneoff") return {name:it.name||"",category:"",amount:rp4Raw(it.amount),variable:false,mode:"once",freq:"mes",months:[],day:it.day||null,
       once:{ym:(Number(it.year)||y)*12+(Number(it.month)||m),day:cleanDay(it.day)||1},plan:null,account:it.account||banks[0]||"sabadell",reparto:[]};

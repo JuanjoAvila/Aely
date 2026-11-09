@@ -39,7 +39,7 @@ async function begin(page, info) {
   // escritura natural de metadatos a la navegación ni rebajar el oracle de persistencia.
   await page.waitForFunction(() => JSON.parse(localStorage.getItem("micartera_v3") || "{}").lastBackup === "2026-09-26", null, { timeout: 15000 });
   await page.locator('.botnav-tab[data-tour="plan"]').tap();
-  await page.locator('.v4-screen > [data-seg="recibos"] [data-testid="plan-todos"]').tap();
+  await page.locator('.v4-screen > [data-seg="recibos"] button.link').filter({ hasText: /^(Gestionar|Todos)\b/ }).tap();
   await expect(root(page)).toBeVisible(); await page.waitForTimeout(650);
   await info.attach("served-html-sha.json", { body: JSON.stringify({ htmlSHA, CPUThrottlingCalls: 0 }), contentType: "application/json" });
 }
@@ -63,8 +63,11 @@ async function scrollHub(page) {
   expect((await geometry(page)).parent.scrollTop, "el caso necesita el padre desplazado con el dedo").toBeGreaterThan(10);
   // Un fling puede seguir activo aunque ya esté contra el borde. Detenerlo con un toque
   // neutro real antes de pedir navegación: el primer toque de Android/Chromium lo consume.
-  const neutral = await page.evaluate(() => !document.elementFromPoint(330, 180)?.closest("button,input,select,textarea,a"));
-  expect(neutral).toBe(true); await page.touchscreen.tap(330, 180); await page.waitForTimeout(180);
+  // Desde la v6 las filas de Tus recibos ocupan todo el ancho: el punto neutro se busca (el margen
+  // izquierdo del hub suele serlo) en vez de fijarlo.
+  const neutral = await page.evaluate(() => { for (const y of [180, 220, 260, 140]) for (const x of [330, 8, 200]) {
+    const el = document.elementFromPoint(x, y); if (el && !el.closest("button,input,select,textarea,a,label")) return { x, y }; } return null; });
+  expect(neutral).not.toBeNull(); await page.touchscreen.tap(neutral.x, neutral.y); await page.waitForTimeout(180);
 }
 async function category(page, info) {
   await root(page).evaluate(el => {
@@ -73,7 +76,8 @@ async function category(page, info) {
       window.__olaTap.push({ type, target: e.target.className, group: e.target.closest("[data-group]")?.dataset.group });
     }, { capture: true, passive: true });
   });
-  await root(page).locator('button.v4-bills-group[data-group="serv"]').tap();
+  // Desde la v6 (SPEC §3) la única pantalla hija de Tus recibos es «¿Me lo puedo permitir?».
+  await root(page).locator('button.v4-bills-afford').tap();
   try { await expect(child(page)).toBeVisible(); } finally {
     await info.attach("category-touch-events.json", { body: JSON.stringify(await page.evaluate(() => window.__olaTap)), contentType: "application/json" });
   }

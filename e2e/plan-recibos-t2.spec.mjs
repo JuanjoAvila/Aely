@@ -226,8 +226,7 @@ test("pausar: un recibo ya pagado no sale del mes; uno pendiente «Solo este mes
   await expect.poll(async () => (await guardado(page, "gym")).pausedUntil).toBeUndefined();
 
   // En Todos se ve hasta cuándo está pausado.
-  await recibos.getByTestId("plan-due").getByTestId("plan-todos").click();
-  await page.locator(".v4-bills-group").filter({ hasText: "Servicios y suministros" }).click();
-  await expect(page.locator('[data-screen="bills-group"] [data-bill-id="agua"]')).toContainText("pausado hasta dic");
-  await expect(page.locator('[data-screen="bills-group"] [data-bill-id="gym"]')).not.toContainText("pausado");
+  await recibos.getByTestId("plan-due").getByRole("button", { name: /^(Gestionar|Todos)\b/ }).click();
+  await expect(page.locator('[data-bills-manage] [data-bill-id="agua"]')).toContainText("pausado hasta dic");
+  await expect(page.locator('[data-bills-manage] [data-bill-id="gym"]')).not.toContainText("pausado");
 });

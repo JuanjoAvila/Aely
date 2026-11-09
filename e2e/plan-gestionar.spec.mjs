@@ -50,13 +50,13 @@ async function iniciarDiagnosticoBusqueda(page){
   await page.evaluate(()=>{
     const label=value=>typeof value!=="string"?null:{kind:value===""?"empty":value==="zzzz"?"zzzz":"other",length:value.length};
     const element=el=>el?{tag:el.tagName,
-      classes:["v4-bills-search","v4-bills-group","settings-push-h","back","v4-title"].filter(c=>el.classList?.contains(c))}:null;
+      classes:["pr6-mg-qi","pr6-mg-sec","settings-push-h","back","v4-title"].filter(c=>el.classList?.contains(c))}:null;
     const snapshot=()=>{
-      const hub=document.querySelector("[data-bills-manage]"),search=hub?.querySelector("input.v4-bills-search");
+      const hub=document.querySelector("[data-bills-manage]"),search=hub?.querySelector("input[data-bills-search]");
       return {hubCount:document.querySelectorAll("[data-bills-manage]").length,
-        searchCount:hub?.querySelectorAll("input.v4-bills-search").length||0,
+        searchCount:hub?.querySelectorAll("input[data-bills-search]").length||0,
         value:label(search?.value),active:element(document.activeElement),searchFocused:!!search&&document.activeElement===search,
-        groupCount:hub?.querySelectorAll(".v4-bills-group").length||0,
+        groupCount:hub?.querySelectorAll("[data-mg-sec]").length||0,
         noResultsCount:hub?.querySelectorAll("[data-bills-noresults]").length||0};
     };
     const d={events:[],dropped:0,snapshot};
@@ -143,7 +143,8 @@ async function renombra(page, nombre) {
   await guardaPasos(page);
 }
 const tituloHoja = (sheet) => sheet.locator(".settings-push-h h1");
-const grupo = (page, texto) => hub(page).locator(".v4-bills-group").filter({ hasText: texto });
+// Tus recibos v6 (SPEC §3): secciones planas en la misma pantalla, sin pantallas hijas por grupo.
+const seccion = (page, id) => hub(page).locator(`[data-mg-sec="${id}"]`);
 const fila = (page, texto) => hub(page).locator(".v4-bills-row").filter({ hasText: texto });
 
 async function abreTusRecibos(page) {
@@ -204,67 +205,65 @@ test("Gestionar abre «Tus recibos», sin la app vieja y sin segunda puerta al b
   expect(scrollCss.scrollHeight).toBeGreaterThan(scrollCss.clientHeight);
 });
 
-test("cuatro grupos con su cuenta, y el de una sola vez no dice «al mes»", async ({ page }) => {
+test("secciones con su cuenta, y la de una sola vez no dice «al mes» ni suma a la cifra", async ({ page }) => {
   await appLista(page);
   await abreTusRecibos(page);
-  // docs/design/plan-recibos/SPEC.md §3: cuatro secciones de contenido + fila Personas (§6)
-  // cuando hay al menos un fijo (`14-v4-screens.js`, tanda plan-recibos-t5).
-  await expect(hub(page).locator(".v4-bills-group")).toHaveCount(5);
-  await expect(hub(page).locator('[data-group="people"]')).toContainText("Personas");
-  await expect(grupo(page, "Servicios y suministros")).toContainText("3 recibos");
-  await expect(grupo(page, "Cuotas de deuda")).toContainText(/1 cuota/);
-  await expect(grupo(page, "Lo que entra y lo que mueves")).toBeVisible();
-  const once = grupo(page, "Cargos de una sola vez");
-  await expect(once).toContainText("este mes");
+  // docs/design/plan-recibos/SPEC.md §3: Recibos, Cuotas, De una sola vez, Personas (con un fijo)
+  // y, fuera del prototipo pero con su única puerta aquí, Lo que entra y lo que mueves.
+  for (const id of ["serv", "debt", "once", "people", "in"]) await expect(seccion(page, id)).toHaveCount(1);
+  await expect(seccion(page, "serv").locator(".v4-bills-row")).toHaveCount(3);
+  await expect(seccion(page, "debt").locator(".v4-bills-row")).toHaveCount(1);
+  await expect(seccion(page, "people")).toContainText("Personas");
+  const once = seccion(page, "once");
+  await expect(once).toContainText("no se repiten");
   await expect(once).not.toContainText("al mes");
-  await expect(hub(page).locator(".v4-bills-hero-amt")).toHaveText(/\d/);
-  // La ola solo reparte la cifra que sale cada mes: servicios y cuotas, no ingresos ni puntuales.
-  await expect(hub(page).locator(".v4-bills-hero-bar i")).toHaveCount(2);
+  // La cifra es lo que se va cada mes: recibos y cuotas, no ingresos ni puntuales.
+  const n = (x) => Math.round(Number(String(x).replace(/[^\d,]/g, "").replace(",", ".")) * 100);
+  const partes = n(await seccion(page, "serv").locator('[data-mg-sum="serv"]').innerText()) + n(await seccion(page, "debt").locator('[data-mg-sum="debt"]').innerText());
+  await expect.poll(async () => n(await hub(page).locator(".v4-bills-hero-amt").innerText())).toBe(partes);
 });
 
-test("cada recibo lleva un icono de lo que es, no el logo del banco", async ({ page }) => {
+test("cada recibo lleva su día, no el logo del banco", async ({ page }) => {
   await appLista(page);
   await abreTusRecibos(page);
-  await grupo(page, "Servicios y suministros").click();
-  await expect(fila(page, "Luz").locator('[data-bill-icon="⚡"]')).toHaveCount(1);
-  await expect(fila(page, "Agua").locator('[data-bill-icon="💧"]')).toHaveCount(1);
+  await expect(fila(page, "Luz").locator(".dt")).toHaveText("5DÍA");
+  // IBI va en dos pagos: la casilla dice el mes del próximo.
+  await expect(fila(page, "IBI").locator(".dt .m")).not.toHaveText("DÍA");
   await expect(hub(page).locator(".v4-bills-row .mono-logo img")).toHaveCount(0);
 });
 
-test("la ola vuelve a empezar cada vez que se abre Gestionar y la cifra sale ya en su valor", async ({ page }) => {
+test("la cifra sale ya en su valor al volver a abrir Gestionar", async ({ page }) => {
   await appLista(page);
   await abreTusRecibos(page);
   const amount=hub(page).locator(".v4-bills-hero-amt");
-  const wave=hub(page).locator(".v4-bills-hero-bar i").first();
-  await expect(wave).toHaveCSS("animation-name","v4bar");
-  await wave.evaluate((el) => { window.__billsWaveNode=el; });
+  await expect.poll(async()=>Number((await amount.innerText()).replace(/[^0-9]/g,""))).toBeGreaterThan(0);
+  await page.waitForTimeout(1200);
   const finalText=await amount.innerText();
-  expect(Number(finalText.replace(/[^0-9]/g,""))).toBeGreaterThan(0);
   await hub(page).locator(".settings-push-h .back").click();
   await expect(hub(page)).toHaveCount(0);
 
   await abreTusRecibos(page);
-  // Ya no cuenta desde 0: quien toca un grupo enseguida se quedaba con una cifra a medias
-  // (1518,65 por 1526,87, beta 4.26.150). La ola sí se repite.
+  // Ya no cuenta desde 0: quien toca enseguida se quedaba con una cifra a medias
+  // (1518,65 por 1526,87, beta 4.26.150).
   await expect(hub(page).locator(".v4-bills-hero-amt")).toHaveText(finalText);
-  expect(await hub(page).locator(".v4-bills-hero-bar i").first().evaluate((el) => el!==window.__billsWaveNode)).toBe(true);
 });
 
 test("los importes mensuales largos caben y siguen sin subrayado", async ({ page }) => {
   await page.setViewportSize({width:360,height:740});
   await appLista(page,{settings:{season:"otono"},fixed:[{id:"alto",name:"Recibo extraordinario",amount:1234567.89,freq:"mes",account:"sabadell"}],debts:[],flows:[],oneoffs:[]});
   await abreTusRecibos(page);
-  const amount=grupo(page,"Servicios y suministros").locator(".v4-bills-group-amt");
-  await expect(amount).toContainText(/1[.\s]234[.\s]567/);
-  const fit=await amount.evaluate((el)=>{
-    const box=el.getBoundingClientRect(), parent=el.parentElement.getBoundingClientRect(), cs=getComputedStyle(el);
-    return {left:box.left,right:box.right,parentLeft:parent.left,parentRight:parent.right,
-      scrollWidth:el.scrollWidth,clientWidth:el.clientWidth,decoration:cs.textDecorationLine};
-  });
-  expect(fit.left).toBeGreaterThanOrEqual(fit.parentLeft-1);
-  expect(fit.right).toBeLessThanOrEqual(fit.parentRight+1);
-  expect(fit.scrollWidth).toBeLessThanOrEqual(fit.clientWidth+1);
-  expect(fit.decoration).toBe("none");
+  for (const amount of [seccion(page,"serv").locator('[data-mg-sum="serv"]'), fila(page,"Recibo extraordinario").locator(".am")]) {
+    await expect(amount).toContainText(/1[.\s]234[.\s]567/);
+    const fit=await amount.evaluate((el)=>{
+      const box=el.getBoundingClientRect(), parent=el.parentElement.getBoundingClientRect(), cs=getComputedStyle(el);
+      return {left:box.left,right:box.right,parentLeft:parent.left,parentRight:parent.right,
+        scrollWidth:el.scrollWidth,clientWidth:el.clientWidth,decoration:cs.textDecorationLine};
+    });
+    expect(fit.left).toBeGreaterThanOrEqual(fit.parentLeft-1);
+    expect(fit.right).toBeLessThanOrEqual(fit.parentRight+1);
+    expect(fit.scrollWidth).toBeLessThanOrEqual(fit.clientWidth+1);
+    expect(fit.decoration).toBe("none");
+  }
 });
 
 for (const lang of ["es", "en", "ca"]) {
@@ -276,8 +275,7 @@ for (const lang of ["es", "en", "ca"]) {
     if (lang !== "es") expect(txt).not.toMatch(/Tus recibos|Servicios y suministros|Cargos de una sola vez/);
     // La ficha de «lo que entra» también ofrece el tipo de día: antes reaparecía «Un día fijo»
     // al profundizar aunque el hub estuviera limpio (revisión cruzada Cursor 2026-09-17).
-    await hub(page).locator(".v4-bills-group").nth(2).click();
-    await hub(page).locator(".v4-bills-row").first().click();
+    await seccion(page, "in").locator(".v4-bills-row").first().click();
     const detailTxt = await ficha(page).innerText();
     expect(detailTxt).not.toMatch(/fij[oa]s?\b|flujo|concilia|modelad|traspaso|\bfixed\b|reconcil|\bfixes\b|\bflux\b|traspàs/i);
   });
@@ -286,8 +284,8 @@ for (const lang of ["es", "en", "ca"]) {
 test("atrás de Android quita UNA pantalla cada vez", async ({ page }) => {
   await appLista(page);
   await abreTusRecibos(page);
-  await grupo(page, "Servicios y suministros").click();
-  await expect(titulo(page)).toHaveText("Servicios y suministros");
+  await hub(page).locator(".v4-bills-afford").click();
+  await expect(titulo(page)).toHaveText("¿Me lo puedo permitir?");
 
   await page.goBack();
   await expect(titulo(page)).toHaveText("Tus recibos");
@@ -326,18 +324,19 @@ test("Gestionar también vuelve arrastrando desde el centro de toda la pantalla"
   await abreTusRecibos(page);
   const pantalla=hub(page);
   const cdp=await page.context().newCDPSession(page);
-  await cdp.send("Input.dispatchTouchEvent",{type:"touchStart",touchPoints:[{x:150,y:250}]});
-  await cdp.send("Input.dispatchTouchEvent",{type:"touchMove",touchPoints:[{x:340,y:250}]});
+  // En la tarjeta de arriba: a la altura del buscador el gesto es del campo de texto, no de la página.
+  await cdp.send("Input.dispatchTouchEvent",{type:"touchStart",touchPoints:[{x:150,y:180}]});
+  await cdp.send("Input.dispatchTouchEvent",{type:"touchMove",touchPoints:[{x:340,y:180}]});
   const moved=await pantalla.evaluate((el)=>new DOMMatrix(getComputedStyle(el).transform).m41);
   expect(moved).toBeGreaterThan(180);
   await cdp.send("Input.dispatchTouchEvent",{type:"touchEnd",touchPoints:[]});
   await expect(pantalla).toHaveCount(0,{timeout:1600});
 });
 
-test("Servicios acompaña el atrás nativo y deja Tus recibos debajo", async ({ page }) => {
+test("¿Me lo puedo permitir? acompaña el atrás nativo y deja Tus recibos debajo", async ({ page }) => {
   await appLista(page);
   await abreTusRecibos(page);
-  await grupo(page, "Servicios y suministros").click();
+  await hub(page).locator(".v4-bills-afford").click();
   const hija=hub(page).locator(":scope > .v4-bills-push");
   await expect(hija).toBeVisible();
   await expect(hub(page).locator(':scope > [data-screen="bills-home"]')).toHaveAttribute("inert","");
@@ -351,7 +350,7 @@ test("Servicios acompaña el atrás nativo y deja Tus recibos debajo", async ({ 
   await expect(titulo(page)).toHaveText("Tus recibos");
 
   // El hook vive mientras Gestionar siga abierto: volver a entrar tiene que rearmar busy.
-  await grupo(page, "Servicios y suministros").click();
+  await hub(page).locator(".v4-bills-afford").click();
   await hub(page).locator(".settings-push-h .back").last().evaluate((el)=>el.click());
   await expect(titulo(page)).toHaveText("Tus recibos");
 });
@@ -382,16 +381,15 @@ test("¿Me lo puedo permitir? vuelve arrastrando desde el centro", async ({ page
 test("la ficha de un recibo se cierra con atrás sin moverse de lado ni mover su lista", async ({ page }) => {
   await appLista(page);
   await abreTusRecibos(page);
-  await grupo(page, "Servicios y suministros").click();
   await fila(page, "Luz").click();
   const fondo=page.locator(".v4-sheet-back").filter({has:pasos(page)});
   await expect(fondo).toBeVisible();
   await page.evaluate(() => { const e=new Event("mcNativeEdgeBack"); e.phase="progress"; e.progress=.5; window.dispatchEvent(e); });
   expect(await fondo.evaluate((el)=>new DOMMatrix(getComputedStyle(el).transform).m41)).toBe(0);
-  await expect(hub(page).locator(":scope > .v4-bills-push")).toBeVisible();
+  await expect(hub(page).locator('[data-screen="bills-home"]')).toBeVisible();
   await page.evaluate(() => { const e=new Event("mcNativeEdgeBack"); e.phase="invoke"; e.progress=1; window.dispatchEvent(e); });
   await expect(pasos(page)).toHaveCount(0,{timeout:1600});
-  await expect(titulo(page)).toHaveText("Servicios y suministros");
+  await expect(titulo(page)).toHaveText("Tus recibos");
 });
 
 test("el atrás nativo anima la salida de Tus recibos antes de desmontarla", async ({ page }) => {
@@ -409,17 +407,13 @@ test("renombrar no aplana el importe por mes, los meses ni el día hábil", asyn
   await appLista(page);
   await abreTusRecibos(page);
 
-  await grupo(page, "Servicios y suministros").click();
   await fila(page, "IBI").click();
   await expect(pasoN(page, 4).locator('[data-rp4-fila="1"]')).toContainText("en 2 pagos");
   await renombra(page, "IBI casa");
 
   await fila(page, "Agua").click();
   await renombra(page, "Agua del pueblo");
-  await hub(page).locator(".settings-push-h .back").last().evaluate((el)=>el.click());
-  await expect(titulo(page)).toHaveText("Tus recibos");
 
-  await grupo(page, "Lo que entra y lo que mueves").click();
   await fila(page, "Nómina").click();
   await expect(ficha(page).locator(".v4-ficha-op.on")).toContainText("Último día hábil");
   await ficha(page).locator("input.v4-bills-search").first().fill("Nómina de papá");
@@ -468,14 +462,12 @@ test("cambiar el día de un recibo cobrado conserva su fecha real", { annotation
   });
 
   await abreTusRecibos(page);
-  await grupo(page, "Servicios y suministros").click();
   await fila(page, "Iberdrola luz").click();
   await cambiaDia(page, 27);
   await expect.poll(async () => {
     const fijo=((await estado(page)).fixed||[]).find((x)=>x.id==="luz")||{};
     return [fijo.day,fijo.paidDay];
   }).toEqual([27,24]);
-  await hub(page).locator(':scope > .v4-bills-push > [data-screen="bills-group"] > .settings-push-h .back').click();
   await expect(titulo(page)).toHaveText("Tus recibos");
   await hub(page).locator(':scope > [data-screen="bills-home"] > .settings-push-h .back').click();
   await expect(hub(page)).toHaveCount(0);
@@ -522,14 +514,12 @@ test("cambiar al día de hoy un recibo aún no cobrado lo mantiene pendiente", {
   });
 
   await abreTusRecibos(page);
-  await grupo(page, "Servicios y suministros").click();
   await fila(page, "Iberdrola luz").click();
   await cambiaDia(page, 25);
   await expect.poll(async () => {
     const fijo=((await estado(page)).fixed||[]).find((x)=>x.id==="luz")||{};
     return [fijo.day,fijo.wait,fijo.paidYm||null];
   }).toEqual([25,2026*12+9,null]);
-  await hub(page).locator(':scope > .v4-bills-push > [data-screen="bills-group"] > .settings-push-h .back').click();
   await expect(titulo(page)).toHaveText("Tus recibos");
   await hub(page).locator(':scope > [data-screen="bills-home"] > .settings-push-h .back').click();
   await expect(hub(page)).toHaveCount(0);
@@ -577,14 +567,12 @@ test("cambiar Pepegas del 20 al 25 a la una no reutiliza el extracto de ayer", {
   });
 
   await abreTusRecibos(page);
-  await grupo(page, "Servicios y suministros").click();
   await fila(page, "Pepegas").click();
   await cambiaDia(page, 25);
   await expect.poll(async () => {
     const fijo=((await estado(page)).fixed||[]).find((x)=>x.id==="pepegas")||{};
     return [fijo.day,fijo.wait||null];
   }).toEqual([25,null]);
-  await hub(page).locator(':scope > .v4-bills-push > [data-screen="bills-group"] > .settings-push-h .back').click();
   await expect(titulo(page)).toHaveText("Tus recibos");
   await hub(page).locator(':scope > [data-screen="bills-home"] > .settings-push-h .back').click();
 
@@ -607,7 +595,6 @@ test("cambiar Pepegas del 20 al 25 a la una no reutiliza el extracto de ayer", {
 test("editar un recibo: dos toques en Guardar escriben una sola vez y la hoja sale animando", async ({ page }) => {
   await appLista(page);
   await abreTusRecibos(page);
-  await grupo(page, "Servicios y suministros").click();
   await fila(page, "Luz").click();
   await expect(pasos(page)).toHaveAttribute("data-modo", "edit");
   await pasos(page).locator('[data-rp4-fila="1"]').click();
@@ -626,7 +613,6 @@ test("editar un recibo: dos toques en Guardar escriben una sola vez y la hoja sa
 test("Listo confirma a la vista, guarda una sola vez y después cierra", async ({ page }) => {
   await appLista(page);
   await abreTusRecibos(page);
-  await grupo(page, "Lo que entra y lo que mueves").click();
   await fila(page, "Nómina").click();
 
   const hoja=ficha(page);
@@ -654,7 +640,6 @@ test("Listo confirma a la vista, guarda una sola vez y después cierra", async (
 test("el cierre pendiente de un guardado no cierra la ficha siguiente", async ({ page }) => {
   await appLista(page, { flows: flows.concat([{ id: "extra", name: "Extra", amount: 100, kind: "income", to: "sabadell", day: 5 }]) });
   await abreTusRecibos(page);
-  await grupo(page, "Lo que entra y lo que mueves").click();
   await fila(page, "Nómina").click();
   const hoja=ficha(page);
   await hoja.getByRole("button",{name:"1",exact:true}).click();
@@ -670,14 +655,11 @@ test("el cierre pendiente de un guardado no cierra la ficha siguiente", async ({
 test("Reducir animaciones cierra la ficha sin esperar la transición", async ({ page }) => {
   await appLista(page, { settings: { reduceMotion: true } });
   await abreTusRecibos(page);
-  await grupo(page, "Lo que entra y lo que mueves").click();
   await fila(page, "Nómina").click();
   const hoja=ficha(page);
   await hoja.locator(".settings-push-h .back").click();
   await expect(hoja).toHaveCount(0,{timeout:250});
   // La hoja por pasos de un recibo, igual.
-  await hub(page).locator(':scope > .v4-bills-push > [data-screen="bills-group"] > .settings-push-h .back').click();
-  await grupo(page, "Servicios y suministros").click();
   await fila(page, "Luz").click();
   await pasos(page).locator('[data-act="back"]').click();
   await expect(pasos(page)).toHaveCount(0,{timeout:250});
@@ -686,7 +668,7 @@ test("Reducir animaciones cierra la ficha sin esperar la transición", async ({ 
 test("alta por pasos: cada dos meses pregunta EN QUÉ meses y el teclado empieza vacío", async ({ page }) => {
   await appLista(page);
   await abreTusRecibos(page);
-  await hub(page).locator(".v4-bills-add").first().click();
+  await hub(page).locator('[data-act="bill-add"]').click();
 
   await expect(pasoN(page, 0).locator("h2")).toHaveText("¿Qué recibo es?");
   await pasoN(page, 0).locator('[data-rp4="name"]').fill("Basuras");
@@ -738,7 +720,7 @@ test("alta por pasos: cada dos meses pregunta EN QUÉ meses y el teclado empieza
 test("la ola nativa vuelve por todos los pasos de un recibo sin crear nada", async ({ page }) => {
   await appLista(page);
   await abreTusRecibos(page);
-  await hub(page).locator(".v4-bills-add").first().click();
+  await hub(page).locator('[data-act="bill-add"]').click();
   const hoja=pasos(page);
   const fondo=page.locator(".v4-sheet-back").filter({has:hoja});
   await pasoN(page, 0).locator('[data-rp4="name"]').fill("Basuras");
@@ -785,8 +767,7 @@ test("la ola nativa vuelve por el mes del cargo único y por la clase del ingres
   const back=async function(){
     await page.evaluate(()=>{ const e=new Event("mcNativeEdgeBack"); e.phase="invoke"; e.progress=1; window.dispatchEvent(e); });
   };
-  await grupo(page,"Cargos de una sola vez").click();
-  await hub(page).locator(".v4-bills-add").last().click();
+  await hub(page).locator('[data-act="bill-add-once"]').click();
   await pasoN(page, 0).locator('[data-rp4="name"]').fill("Dentista");
   await pasos(page).locator(".rp4-cta").click();
   await pasoN(page, 1).locator(".v4-keys").getByRole("button",{name:"9",exact:true}).click();
@@ -806,9 +787,7 @@ test("la ola nativa vuelve por el mes del cargo único y por la clase del ingres
   await expect(pasos(page)).toHaveCount(0);
   expect(((await estado(page)).oneoffs||[]).filter((o)=>o.name==="Dentista")).toHaveLength(0);
 
-  await hub(page).locator(':scope > .v4-bills-push > [data-screen="bills-group"] > .settings-push-h .back').click();
-  await hub(page).locator('.v4-bills-group[data-group="in"]').click();
-  await hub(page).locator(".v4-bills-add").last().click();
+  await hub(page).locator('[data-act="bill-add-flow"]').click();
   await alta(page).locator("input.v4-bills-search").fill("Nómina prueba");
   await alta(page).locator(".v4-cta").click();
   await alta(page).getByRole("button",{name:"9",exact:true}).click();
@@ -829,8 +808,7 @@ test("la ola nativa vuelve por el mes del cargo único y por la clase del ingres
 test("un cargo de una sola vez se apunta por mes y año, no por periodicidad", async ({ page }) => {
   await appLista(page);
   await abreTusRecibos(page);
-  await grupo(page, "Cargos de una sola vez").click();
-  await hub(page).locator(".v4-bills-add").last().click();
+  await hub(page).locator('[data-act="bill-add-once"]').click();
 
   await pasoN(page, 0).locator('[data-rp4="name"]').fill("Dentista");
   await pasos(page).locator(".rp4-cta").click();
@@ -853,15 +831,14 @@ test("un cargo de una sola vez se apunta por mes y año, no por periodicidad", a
 });
 
 for (const caso of [
-  { kind:"fixed", lang:"es", name:"Basuras", title:"Recibo añadido", amount:35, field:"fixed" },
-  { kind:"oneoff", lang:"en", name:"Dentist", title:"One-off charge added", amount:90, field:"oneoffs", group:"once" },
-  { kind:"flow", lang:"ca", name:"Nòmina prova", title:"Ingrés afegit", amount:120, field:"flows", group:"in" },
+  { kind:"fixed", lang:"es", name:"Basuras", title:"Recibo añadido", amount:35, field:"fixed", add:"bill-add" },
+  { kind:"oneoff", lang:"en", name:"Dentist", title:"One-off charge added", amount:90, field:"oneoffs", add:"bill-add-once" },
+  { kind:"flow", lang:"ca", name:"Nòmina prova", title:"Ingrés afegit", amount:120, field:"flows", add:"bill-add-flow" },
 ]) {
   test(`el alta de ${caso.kind} enseña qué se guardó en ${caso.lang}`, async ({ page }) => {
     await appLista(page, { settings:{lang:caso.lang} });
     await abreTusRecibos(page);
-    if(caso.group) await hub(page).locator(`.v4-bills-group[data-group="${caso.group}"]`).click();
-    await hub(page).locator(".v4-bills-add").last().click();
+    await hub(page).locator(`[data-act="${caso.add}"]`).click();
     if(caso.kind==="flow"){
       await alta(page).locator("input.v4-bills-search").fill(caso.name);
       await alta(page).locator('[data-act="next"]').click();
@@ -900,18 +877,18 @@ for (const caso of [
 test("en modo sencillo las cuotas se cambian aquí: Deudas no existe", async ({ page }) => {
   await appLista(page, { settings: { simpleMode: true } });
   await abreTusRecibos(page);
-  await expect(grupo(page, "Cuotas de deuda")).not.toContainText("Deudas");
-  await grupo(page, "Cuotas de deuda").click();
+  await expect(seccion(page, "debt")).not.toContainText("Deudas");
   await fila(page, "Préstamo coche").click();
   await expect(ficha(page)).not.toContainText(/en Deudas/);
   await expect(ficha(page).locator(".v4-keys, .v4-numpad, input").first()).toBeVisible();
 });
 
-test("fuera del modo sencillo las cuotas dicen dónde se cambian", async ({ page }) => {
+test("fuera del modo sencillo una cuota lleva a Deudas, que es donde se cambia", async ({ page }) => {
   await appLista(page);
   await abreTusRecibos(page);
-  await grupo(page, "Cuotas de deuda").click();
-  await expect(fila(page, "Préstamo coche")).toContainText(/en Deudas/);
+  await fila(page, "Préstamo coche").click();
+  await expect(hub(page)).toHaveCount(0);
+  await expect(page.locator('.v4-seg-btn[data-seg="deudas"]')).toHaveAttribute("aria-selected", "true");
 });
 
 test("una deuda con plazo numérico abre su cuota sin perder importe ni plazo", async ({ page }) => {
@@ -924,28 +901,38 @@ test("una deuda con plazo numérico abre su cuota sin perder importe ni plazo", 
   await appLista(page,{ fixed:[], debts:[deuda], flows:[], oneoffs:[], expenses:[pago],
     settings:{expenseBanks:["sabadell"]} });
   await abreTusRecibos(page);
-  await grupo(page,"Cuotas de deuda").click();
   await expect(fila(page,"Préstamo de prueba")).toContainText("100,00");
+  // Fuera del modo sencillo la cuota lleva a Deudas (SPEC §3); su ficha de aquí es la del modo sencillo.
   await fila(page,"Préstamo de prueba").click();
-  await expect(ficha(page)).toBeVisible();
-  await expect(ficha(page)).toContainText("100,00");
-  await ficha(page).locator('[data-act="back"]').click();
-  await expect(ficha(page)).toHaveCount(0);
-  await expect(fila(page,"Préstamo de prueba")).toBeVisible();
+  await expect(hub(page)).toHaveCount(0);
+  await expect(page.locator('.v4-seg-btn[data-seg="deudas"]')).toHaveAttribute("aria-selected", "true");
   expect(crashes).toEqual([]);
   expect((await estado(page)).debts[0].months).toBe(24);
-  await hub(page).locator(':scope > .v4-bills-push > [data-screen="bills-group"] > .settings-push-h .back').click();
-  await hub(page).locator(':scope > .v4-bills-hub > .settings-push-h .back').click();
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   const filaPago=await gastosGrisFila(page,"Cuota de prueba");
   await expect(page.locator(".gx-gris-it").filter({hasText:"Cuota de prueba"})).toHaveCount(1);
   await expect(filaPago).toContainText("Préstamo de prueba");
 });
 
+test("en modo sencillo una deuda con plazo numérico abre su ficha sin romperse", async ({ page }) => {
+  // En deudas, `months` es el plazo NUMÉRICO (crash real al abrir una cuota, 2026-09-27).
+  const deuda={ id:"plazo", name:"Préstamo de prueba", monthly:100, value:2400, original:2400, anchor:2400, months:24, account:"sabadell", day:10 };
+  const crashes=[];
+  page.on("pageerror",function(err){ crashes.push(err.message); });
+  await appLista(page,{ fixed:[], debts:[deuda], flows:[], oneoffs:[], settings:{ simpleMode:true } });
+  await abreTusRecibos(page);
+  await fila(page,"Préstamo de prueba").click();
+  await expect(ficha(page)).toBeVisible();
+  await expect(ficha(page)).toContainText("100,00");
+  await ficha(page).locator('[data-act="back"]').click();
+  await expect(ficha(page)).toHaveCount(0);
+  expect(crashes).toEqual([]);
+  expect((await estado(page)).debts[0].months).toBe(24);
+});
+
 test("quitar un recibo tiene Deshacer y vuelve con el MISMO id", async ({ page }) => {
   await appLista(page);
   await abreTusRecibos(page);
-  await grupo(page, "Servicios y suministros").click();
   await fila(page, "Luz").click();
   await pasos(page).locator('[data-act="bill-remove"]').click();
   await pasos(page).locator('[data-act="bill-remove"]').click();
@@ -970,7 +957,6 @@ test("Deshacer el borrado de un recibo con su cargo en Gastos lo deja como estab
     return { luz: (s.fixed || []).filter((f) => f.id === "luz").length, marca: ((s.expenses || []).find((e) => e.id === "c-luz") || {}).reciboId || null, borrado: Object.keys(s.reciboBorrado || {}) }; });
   await expect.poll(foto).toEqual({ luz: 1, marca: "luz", borrado: [] });
   await abreTusRecibos(page);
-  await grupo(page, "Servicios y suministros").click();
   await fila(page, "Luz").click();
   await pasos(page).locator('[data-act="bill-remove"]').click();
   await pasos(page).locator('[data-act="bill-remove"]').click();
@@ -984,22 +970,19 @@ test("Deshacer el borrado de un recibo con su cargo en Gastos lo deja como estab
   expect(await foto()).toEqual({ luz: 1, marca: "luz", borrado: [] });
 });
 
-test("sin nada apuntado: una tarjeta que explica", async ({ page }) => {
+test("sin nada apuntado: Recibos sigue ofreciendo «Añadir»", async ({ page }) => {
   // Con el plan vacío no hay «Todos» (solo plan-onb + «Empezar») y «Empezar» abre el alta con
   // addNow: al cerrar la hoja se cierra Gestionar entero (`closePasos` + editOnly). No hay puerta
   // Plan→hub vacío sin pasar por el alta; el vacío de la tarjeta vive en Gestionar tras vaciarlo.
   const min = { id: "solo", name: "Solo", amount: 1, freq: "mes", account: "sabadell", day: 1 };
   await appLista(page, { fixed: [min], debts: [], flows: [], oneoffs: [] });
   await abreTusRecibos(page);
-  await grupo(page, "Servicios y suministros").click();
   await fila(page, "Solo").click();
   await pasos(page).locator('[data-act="bill-remove"]').click();
   await pasos(page).locator('[data-act="bill-remove"]').click();
-  await hub(page).locator(':scope > .v4-bills-push > [data-screen="bills-group"] > .settings-push-h .back').click();
-  const empty = hub(page).locator(".v4-empty[data-bills-empty]");
-  await expect(empty).toContainText("Aún no hay recibos");
-  await expect(empty).toContainText("Conecta tu banco y los detecto solos.");
-  await empty.getByRole("button", { name: /Añadir un recibo/ }).click();
+  // Sin recibos, la sección sigue con su «Añadir» (SPEC §3; textos mínimos, sin párrafo).
+  await expect(seccion(page, "serv").locator(".v4-bills-row")).toHaveCount(0);
+  await seccion(page, "serv").getByRole("button", { name: "Añadir un recibo" }).click();
   await expect(pasos(page)).toHaveAttribute("data-paso", "0");
 });
 
@@ -1009,16 +992,15 @@ test("buscar algo que no existe lo dice, y un nombre larguísimo no rompe el anc
   await iniciarDiagnosticoBusqueda(page);
   await abreTusRecibos(page);
 
-  const buscar = hub(page).locator("input.v4-bills-search").first();
+  const buscar = hub(page).locator("input[data-bills-search]").first();
   await buscar.fill("zzzz");
   await diagnosticoBusqueda(page,"after-fill-zzzz");
-  await expect(hub(page).locator(".v4-bills-empty")).toContainText("No hay ningún recibo con ese nombre.");
+  await expect(hub(page).locator("[data-bills-noresults]")).toContainText("Nada con «zzzz»");
   await diagnosticoBusqueda(page,"before-fill-empty");
   await buscar.fill("");
   await diagnosticoBusqueda(page,"after-fill-empty");
 
   await diagnosticoBusqueda(page,"before-group-click");
-  await grupo(page, "Servicios y suministros").click();
   const f = fila(page, "Seguro del hogar");
   await expect(f).toBeVisible();
   const box = await f.boundingBox();

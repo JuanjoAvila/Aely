@@ -1371,6 +1371,9 @@
   html[data-theme="light"] .pr6-mes-nav,
   html[data-theme="light"] .pr6-pill-ok,
   html[data-theme="light"] .pr6-more,
+  html[data-theme="light"] .pr6-mg-add,
+  html[data-theme="light"] .pr6-mg-lbl svg,
+  html[data-theme="light"] .pr6-mg-sec .pr6-row .am.pos,
   html[data-theme="light"] .pr6-tick,
   html[data-theme="light"] .pr6-baja,
   html[data-theme="light"] .pr6-paid-v,
@@ -1842,30 +1845,10 @@
   /* Un píxel de recorrido conserva la ola también con una cartera vacía, sin alterar el aspecto. */
   .v4-bills-hub{max-width:520px;min-height:calc(100% + 1px);margin:0 auto;animation:v4BillsIn .28s cubic-bezier(.32,.72,0,1) both;}
   @keyframes v4BillsIn{from{opacity:.35;transform:translate3d(16px,0,0)}to{opacity:1;transform:translate3d(0,0,0)}}
-  .v4-bills-hero{margin-bottom:14px;}
-  .v4-bills-hero-amt{font-size:clamp(32px,10vw,40px);font-weight:550;letter-spacing:-1px;margin-top:6px;}
-  .v4-bills-hero-sub{margin-top:8px;color:var(--muted);font-size:12.5px;line-height:1.4;}
-  .v4-bills-hero-bar{margin-top:14px;}
-  .v4-bills-search-row{display:flex;gap:8px;align-items:center;margin:4px 0 12px;}
   .v4-bills-search{flex:1;min-height:46px;padding:0 14px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);color:var(--text);font-size:14px;}
   .v4-bills-search:focus{border-color:var(--mint);outline:none;}
   .v4-bills-add{flex:0 0 46px;width:46px;height:46px;border-radius:14px;border:0;background:linear-gradient(160deg,var(--mint-hi),var(--mint));color:#06120C;font-size:24px;font-weight:800;}
-  .v4-bills-groups{display:flex;flex-direction:column;gap:8px;}
-  .v4-bills-group{display:flex;align-items:center;gap:11px;min-height:64px;padding:10px 12px;border-radius:18px;background:var(--sur);border:1px solid var(--line-soft);text-align:left;color:var(--text);}
-  .v4-bills-group-tile{width:42px;height:42px;border-radius:14px;background:var(--sur2);display:grid;place-items:center;font-size:20px;flex:0 0 auto;}
-  .v4-bills-group-copy{min-width:0;flex:1;}
-  .v4-bills-group-t{font-size:14.5px;font-weight:800;line-height:1.25;}
-  .v4-bills-group-s{font-size:11.5px;color:var(--muted-2);margin-top:2px;}
-  .v4-bills-group-amt{flex:0 0 auto;min-width:max-content;text-align:right;font-size:clamp(13px,4.2vw,17px);font-weight:550;line-height:1.15;white-space:nowrap;}
-  .v4-bills-group-amt span{display:block;font-family:inherit;font-size:10.5px;color:var(--muted-2);font-weight:700;white-space:nowrap;}
-  /* Los importes no son titulares decorativos: el subrayado de temporada parecía un enlace y
-     restaba espacio justo a las cifras largas (feedback 18/9). */
-  html[data-season] .v4-bills-group-amt.serif.num{text-decoration:none;}
-  .v4-bills-group-chev{color:var(--muted-2);font-size:18px;flex:0 0 auto;}
-  .v4-bills-list{display:flex;flex-direction:column;gap:6px;}
   .v4-bills-row{width:100%;text-align:left;}
-  .v4-bill-kind-icon{background:var(--sur2);border:1px solid var(--line-soft);font-size:21px;}
-  .v4-bills-empty{padding:18px 8px;color:var(--muted);font-size:13px;line-height:1.45;text-align:center;}
   .v4-bills-afford,.v4-bills-recon{width:100%;margin-top:12px;padding:14px 16px;border-radius:18px;border:1px solid rgba(230,195,106,.35);background:rgba(230,195,106,.08);text-align:left;color:var(--text);}
   .v4-bills-afford-t{font-size:14.5px;font-weight:800;}
   .v4-bills-afford-s{margin-top:3px;font-size:12.5px;color:var(--muted);line-height:1.4;}
@@ -1873,6 +1856,49 @@
   .v4-bills-banks{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
   .v4-bills-bank{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:6px 10px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);color:var(--text);font-size:12.5px;font-weight:700;}
   .v4-bills-bank.on{border-color:var(--mint);background:rgba(95,208,138,.1);}
+  /* Tus recibos v6 (SPEC §3, prototipo): cabecera con flecha redonda, tarjeta que alterna mes/año,
+     buscador con lupa, chips de banco y secciones planas. Todo con los tokens y las piezas .pr6-*
+     de la portada de Recibos para que las dos pantallas se lean como una. */
+  .v4-bills-push .pr6-mg-h{gap:12px;margin-bottom:12px;}
+  .v4-bills-push .pr6-mg-h .back{border-radius:22px;background:var(--surface);}
+  .v4-bills-push .pr6-mg-h h1{font-size:28px;font-weight:500;}
+  .pr6-mg-sum{width:100%;padding:18px;gap:10px;text-align:left;color:inherit;font:inherit;cursor:pointer;}
+  .pr6-mg-lbl{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;}
+  .pr6-mg-lbl svg{flex:none;color:var(--mint-bright);}
+  .pr6-mg-sum .pr6-big{font-size:clamp(36px,11vw,44px);margin-top:0;}
+  .pr6-mg-q{display:flex;align-items:center;gap:12px;height:56px;margin-top:20px;padding:0 18px;border-radius:18px;background:var(--surface);border:1px solid var(--line-soft);color:var(--muted);}
+  .pr6-mg-q:focus-within{border-color:var(--mint);}
+  .pr6-mg-qi{flex:1;min-width:0;height:100%;border:0;background:transparent;color:var(--text);font:500 16px 'Manrope',sans-serif;outline:none;}
+  .pr6-mg-qi::-webkit-search-cancel-button{display:none;}
+  .pr6-mg-chips{margin:12px 0 0;padding-bottom:2px;}
+  .pr6-mg-sec{margin-top:24px;}
+  .pr6-mg-st{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;}
+  .pr6-mg-ss{font-size:13px;font-weight:500;color:var(--muted);}
+  .pr6-mg-add{display:flex;align-items:center;gap:5px;flex:none;color:var(--mint-bright)!important;font-size:15px!important;font-weight:700!important;}
+  .pr6-mg-sec .pr6-row .dt{width:46px;height:48px;border-radius:13px;}
+  .pr6-mg-sec .pr6-row .dt .d{font-size:19px;font-weight:600;line-height:1;}
+  .pr6-mg-sec .pr6-row .dt .m{font-size:10px;font-weight:800;text-transform:uppercase;}
+  .pr6-mg-sec .pr6-row .nm{min-width:0;flex:1;font-size:15px;}
+  .pr6-mg-sec .pr6-row .sub{font-size:12px;color:var(--muted);}
+  .pr6-mg-sec .pr6-row .am{font-size:17px;}
+  .pr6-mg-sec .pr6-row .am.pos{color:var(--mint-bright);}
+  .pr6-mg-sec .pr6-row.pr6-mg-off{opacity:.5;}
+  .pr6-mg-ov{margin:24px 0 0;}
+  .pr6-cz + .pr6-cz .pr6-mg-ov{margin-top:12px;}
+  .pr6-mg-ov .pr6-cerr-l{white-space:normal;}
+  .pr6-mg-pl{background:var(--surface);border:1px solid var(--line-soft);border-radius:18px;overflow:hidden;}
+  .pr6-mg-pe{width:100%;display:flex;align-items:center;gap:12px;min-height:58px;padding:10px 16px;border:0;border-top:1px solid var(--line-soft);background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;}
+  .pr6-mg-pe:first-child{border-top:0;}
+  .pr6-mg-pe .pe-ava{width:34px;height:34px;background:var(--surface-2);border:0;color:var(--mint-bright);font-size:14px;}
+  .pr6-mg-pe .nm{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;font-size:15px;font-weight:700;}
+  .pr6-mg-pe .sub{font-size:12px;font-weight:500;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .pr6-mg-go{flex:none;color:var(--muted);}
+  .pr6-mg-pe:focus-visible,.pr6-mg-sum:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}
+  .pr6-mg-nada{display:flex;flex-direction:column;align-items:center;gap:14px;padding:28px 0 8px;color:var(--muted);font-size:15px;text-align:center;}
+  .pr6-mg-nada .pr6-cta{display:flex;align-items:center;gap:8px;padding:0 18px;}
+  /* Los importes no son titulares decorativos: el subrayado de temporada parecía un enlace y
+     restaba espacio justo a las cifras largas (feedback 18/9). */
+  html[data-season] .v4-bills-push .serif.num{text-decoration:none;}
   @media (prefers-reduced-motion:reduce){
     .v4-bills-push{transition:none !important;}
     .v4-bills-hub{animation:none !important;}

@@ -24,7 +24,7 @@ const alta = (page) => page.locator('.v4-sheet[data-sheet="recibo-pasos"]');
 const paso = (page, n) => alta(page).locator('[data-rp4-paso="' + n + '"]');
 const num = (s) => Number(String(s).replace(/[^\d,]/g, "").replace(",", "."));
 const cifra = async (page) => num(await hub(page).locator(".v4-bills-hero-amt").innerText());
-const grupo = async (page, id) => num(await hub(page).locator(`.v4-bills-group[data-group="${id}"] .v4-bills-group-amt`).innerText());
+const grupo = async (page, id) => num(await hub(page).locator(`[data-mg-sum="${id}"]`).innerText());
 
 test("la cabecera cuenta los cobros marcados y el alta dice lo que se cobrará", async ({ page }) => {
   await seedLoggedInDashboard(page, { accounts, fixed, debts: [], flows: [], oneoffs: [], budget: 1000 });
@@ -40,7 +40,7 @@ test("la cabecera cuenta los cobros marcados y el alta dice lo que se cobrará",
   expect(await cifra(page)).toBeCloseTo(A_MANO, 2);
   expect(await grupo(page, "serv")).toBeCloseTo(A_MANO, 2);
 
-  await hub(page).locator(".v4-bills-add").first().click();
+  await hub(page).locator('[data-act="bill-add"]').click();
   await paso(page, 0).locator('[data-rp4="name"]').fill("Seguro coche");
   await alta(page).locator(".rp4-cta").click();
   for (const k of ["6", "0", "0"]) await paso(page, 1).locator(".v4-keys").getByRole("button", { name: k, exact: true }).click();

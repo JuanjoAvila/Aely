@@ -31,9 +31,8 @@ async function abrePlan(page) {
 }
 async function abreAlta(page) {
   await abrePlan(page);
-  await page.locator('.v4-screen > [data-seg="recibos"]').getByTestId("plan-todos").click();
-  await page.locator(hub + ' button[data-group="serv"]').click();
-  await page.locator(hub + ' > .settings-push [data-act="bill-add"]').click();
+  await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button", { name: /^(Gestionar|Todos)\b/ }).click();
+  await page.locator(hub + ' [data-act="bill-add"]').click();
   await expect(hoja(page)).toHaveAttribute("data-paso", "0");
   // La entrada (`sheetup`) tiene que haber terminado: si no, el transform que se lee es el suyo.
   await page.waitForTimeout(600);
@@ -66,7 +65,7 @@ test("atrás del sistema vuelve un paso sin sacar la hoja de lado, y en el prime
   expect(saliendo.y).toBeGreaterThan(10);
   expect((await mat(fondo(page))).x).toBe(0);
   await expect(hoja(page)).toHaveCount(0, { timeout: 1600 });
-  await expect(page.locator(hub + " > .settings-push")).toBeVisible();
+  await expect(page.locator(hub + ' [data-screen="bills-home"]')).toBeVisible();
 });
 
 test("la hoja se tira hacia abajo desde el cuerpo: vuelve si no pasa del umbral y se cierra si pasa", async ({ page, browserName }) => {
@@ -127,7 +126,7 @@ test("«Ya está pagado» va en la fila de acciones con su tamaño, no ocupa la 
 
 test("abrir el teclado en «¿Me lo puedo permitir?» no recoloca toda la app en cada paso", async ({ page }) => {
   await abrePlan(page);
-  await page.locator('.v4-screen > [data-seg="recibos"]').getByTestId("plan-todos").click();
+  await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button", { name: /^(Gestionar|Todos)\b/ }).click();
   await page.locator(hub + " .v4-bills-afford").click();
   const importe = page.locator('[data-testid="afford-sim"] input').first();
   await expect(importe).toBeVisible();

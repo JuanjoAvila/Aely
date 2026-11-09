@@ -59,7 +59,7 @@ for(const lang of ["es","en","ca"]){
     expect(before.bill.day).toBe(25);expect(before.bill.paymentProofs[2026*12+9].kind).toBe("expense");expect(before.paid).toBe(true);expect(before.net).toBe(linked.net);
     const manage=await page.evaluate(()=>t("pr6_todos"));
     await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button",{name:manage,exact:true}).click();
-    const hub=page.locator('[data-bills-manage]');await hub.locator('.v4-bills-group').first().click();
+    const hub=page.locator('[data-bills-manage]');
     await editarDia(page,hub,bill.name,28);
     await expect.poll(()=>page.evaluate(()=>mcLoadRaw(mcStateKey()).fixed[0].day)).toBe(28);
     await expect.poll(()=>page.evaluate(()=>mcLoadRaw(mcStateKey()).fixed[0].paidDay)).toBe(25);
@@ -109,7 +109,7 @@ for(const lang of ["es","en","ca"]){
     const before=await page.evaluate(()=>{const s=mcLoadRaw(mcStateKey());return monthNetForAccount(s,"sabadell",2026,9,15);});
     const manage=await page.evaluate(()=>t("pr6_todos"));
     await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button",{name:manage,exact:true}).click();
-    const hub=page.locator('[data-bills-manage]');await hub.locator('.v4-bills-group').first().click();
+    const hub=page.locator('[data-bills-manage]');
     await editarDia(page,hub,bill.name,25);
     await expect.poll(()=>page.evaluate(()=>mcLoadRaw(mcStateKey()).fixed[0].paidDay)).toBe(12);
     const saved=await page.evaluate(()=>{const s=mcLoadRaw(mcStateKey());return {bill:s.fixed[0],net:monthNetForAccount(s,"sabadell",2026,9,15)};});
@@ -137,15 +137,12 @@ for(const lang of ["es","en","ca"]){
     const manage=await page.evaluate(()=>t("pr6_todos"));
     await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button",{name:manage,exact:true}).click();
     const hub=page.locator('[data-bills-manage]');
-    await hub.locator('.v4-bills-group').first().click();
     await editarDia(page,hub,fixed.name,26);
     await expect.poll(()=>page.evaluate(()=>mcLoadRaw(mcStateKey()).fixed[0].day)).toBe(26);
     const edited=await page.evaluate(()=>mcLoadRaw(mcStateKey()).fixed[0]);
     expect(edited.day).toBe(26);
     expect(edited.paidYm).toBeUndefined();
     expect(edited.paidDay).toBeUndefined();
-    await hub.locator(':scope > .v4-bills-push > [data-screen="bills-group"] > .settings-push-h .back').click();
-    await expect(hub.locator(':scope > .v4-bills-push')).toHaveCount(0);
     await hub.locator(':scope > [data-screen="bills-home"] > .settings-push-h .back').click();
     await expect(hub).toHaveCount(0);
     await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:fixed.name})).toHaveCount(1);

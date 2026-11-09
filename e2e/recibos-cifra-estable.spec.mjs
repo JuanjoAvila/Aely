@@ -30,7 +30,7 @@ const hub = (page) => page.locator("[data-bills-manage]");
 const ficha = (page) => page.locator('.v4-sheet[data-sheet="recibo-pasos"]');
 const num = (s) => Number(String(s).replace(/[^\d,]/g, "").replace(",", "."));
 const cifra = async (page) => num(await hub(page).locator(".v4-bills-hero-amt").innerText());
-const grupo = async (page, id) => num(await hub(page).locator(`.v4-bills-group[data-group="${id}"] .v4-bills-group-amt`).innerText());
+const grupo = async (page, id) => num(await hub(page).locator(`[data-mg-sum="${id}"]`).innerText());
 
 test("la cabecera cuadra con sus grupos y con la cuenta a mano, antes y después de mirar el IBI", async ({ page }) => {
   await seedLoggedInDashboard(page, { accounts, fixed, debts, flows: [], oneoffs: [], budget: 1000 });
@@ -51,13 +51,10 @@ test("la cabecera cuadra con sus grupos y con la cuenta a mano, antes y después
 
   const guardado = () => page.evaluate(() => { const s = JSON.parse(localStorage.getItem("micartera_v3")); return JSON.stringify([s.fixed, s.debts]); });
   const datosAntes = await guardado();
-  await hub(page).locator('.v4-bills-group[data-group="serv"]').click();
   await hub(page).locator(".v4-bills-row").filter({ hasText: "IBI" }).click();
   await expect(ficha(page)).toBeVisible();
   await ficha(page).locator('[data-act="back"]').evaluate((el) => el.click());
   await expect(ficha(page)).toHaveCount(0, { timeout: 3000 });
-  await hub(page).locator(".settings-push-h .back").last().evaluate((el) => el.click());
-  await expect(hub(page).locator('.settings-push [data-screen="bills-group"]')).toHaveCount(0, { timeout: 3000 });
 
   expect(await cifra(page)).toBeCloseTo(antes, 2);
   expect(await guardado()).toBe(datosAntes);

@@ -106,17 +106,6 @@ test("un recibo del día 31 en noviembre se cobra el 30, y vence ese día", asyn
   expect(await page.evaluate(() => { const s = mcLoadRaw(mcStateKey()), e = s.fixed[0]; return [dayIn(e, 11, 2026), isPaidIn(e, 11, 30, 2026, s)]; })).toEqual([30, true]);
 });
 
-test("Gestionar cuenta solo lo que suma en su cifra: recibos y cuotas, no la nómina ni los traspasos", async ({ page }) => {
-  const recibos = await abrePlan(page, {
-    fixed: [recibo("luz", "Luz", 50, 25), recibo("agua", "Agua", 30, 26)],
-    debts: [{ id: "hip", name: "Hipoteca", value: 90000, original: 120000, monthly: 600, amort: 300, asOf: 2026 * 12 + 10, day: 5, account: "sabadell" }],
-    flows: [{ id: "nom", kind: "income", name: "Nómina", amount: 2000, day: 28, to: "sabadell" },
-      { id: "tr", kind: "transfer", name: "A Revolut", amount: 200, day: 15, from: "sabadell", to: "revolut" }]
-  });
-  await recibos.getByTestId("plan-due").locator(".pr6-sec-h .link").click();
-  await expect(page.locator(".v4-bills-hero-sub")).toContainText("De 3 recibos");
-});
-
 const saldoVisto = (page) => page.evaluate(() => { const s = mcLoadRaw(mcStateKey()), i = insumosSaldoGasto(s); return s.accounts.map((a) => +saldoCuentaMostrada(a, i).toFixed(2)); });
 
 test("lo pagado de otra forma no lo resta ningún sitio del banco y marcarlo no mueve el saldo", async ({ page }) => {

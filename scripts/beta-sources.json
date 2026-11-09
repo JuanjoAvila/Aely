@@ -73513,6 +73513,22 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "monthShort"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catName"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "deudaDescuentoDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recibosSolapes"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -73525,6 +73541,10 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "catOf"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
@@ -73534,7 +73554,27 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_SOLAPES"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "INGRESO_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "INVERSION_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "TRASPASO_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DEUDA_CAT"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -76634,6 +76674,18 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "catName"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "deudaDescuentoDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recibosSolapes"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -76646,6 +76698,10 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "catOf"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
@@ -76655,7 +76711,27 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_SOLAPES"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "INGRESO_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "INVERSION_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "TRASPASO_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DEUDA_CAT"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -79239,6 +79315,22 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "monthShort"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catName"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "deudaDescuentoDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recibosSolapes"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -79251,6 +79343,10 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "catOf"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
@@ -79260,7 +79356,27 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_SOLAPES"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "INGRESO_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "INVERSION_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "TRASPASO_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DEUDA_CAT"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -129422,6 +129538,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "deudaDescuentoDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recibosSolapes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -129439,6 +129563,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_SOLAPES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -134138,6 +134266,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "deudaDescuentoDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recibosSolapes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -134155,6 +134291,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_SOLAPES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -135764,6 +135904,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "deudaDescuentoDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recibosSolapes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -135781,6 +135929,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_SOLAPES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -140362,6 +140514,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "deudaDescuentoDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recibosSolapes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -140379,6 +140539,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_SOLAPES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -144920,6 +145084,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "deudaDescuentoDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recibosSolapes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -144937,6 +145109,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_SOLAPES"
       },
       {
         "file": "src/modules/08-motor-bank.js",

@@ -88,6 +88,11 @@ export const E2E_MAP = [
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/recibos-gestos.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/recibos-gestos.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-gestos.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-gestionar-v6.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-gestionar-v6.spec.mjs"] },
+  { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/recibos-gestionar-v6.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/recibos-gestionar-v6.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/recibos-gestionar-v6.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/recibos-gestos.spec.mjs"] },
   // «Ya pagados» con el cargo del banco que no lleva el nombre del recibo (queja 8/11/2026).
   { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-ya-pagados-banco.spec.mjs"] },
