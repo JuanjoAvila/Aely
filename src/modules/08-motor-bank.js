@@ -234,6 +234,49 @@ function fixedPaymentRivalPorImporte(s,c,tx){
   }
   return recAmtClose(Number(c.amount),amount)&&(c.day==null||d!=null&&Math.abs(d-c.day)<=CUOTA_DIAS);
 }
+/* «COBRÓ DISTINTO» SIN SU NOMBRE (auditoría 9/11, P1-11). La luz de 54,26 € llega como «IBERDROLA
+   CLIENTES SAU» por 54,71 € el mismo día: sin nombre y sin el céntimo exacto el motor no la casa
+   (bien: por importe sin nombre se exige el céntimo) y el recibo se quedaba en «tocaba ayer» con el
+   cargo ya en el banco. Aquí NO se paga nada: se busca el cargo para preguntárselo en «Para
+   revisar» (SPEC §2.3) y solo él lo confirma o dice «No es este recibo». Por eso las vallas son las
+   del camino por importe más las de la ficha de Gastos, y un único candidato:
+   · recibo sin pagar, sin marca a mano ni pausa, con su día ya llegado;
+   · ningún cargo del mes lleva su nombre (ese sería el suyo, aunque cobre otra cifra);
+   · fila de Gastos del banco del recibo, contabilizada, a ±`CUOTA_DIAS`, con el importe parecido
+     (`recAmtClose`) pero no exacto (exacto ya lo casa `fixedPaymentPorImporte`);
+   · un adeudo (su texto o el del extracto con la misma identidad), libre (`fixedExpenseEligible`:
+     ni cuota, ni meta, ni traspaso, ni ingreso, ni repetido, ni borrado, ni de otro recibo), sin
+     marca de otro, sin veto y sin devolución detrás;
+   · nadie más lo puede reclamar: ni otro recibo, ni una cuota, ni un puntual del mismo banco.
+   → la fila de Gastos, o null. Solo lectura. */
+function fixedPaymentCobroDistinto(s,e,y,m,today){
+  if(!e||!fixedPaymentUnique(s,e)||!occursIn(e,m,y)||fixedPausedIn(e,y,m)||fixedMarcadoAMano(e,y,m)!=null) return null;
+  var day=cleanDay(dayIn(e,m,y)),target=e.bankAmount>0?e.bankAmount:occAmountIn(e,m,y),bank=accOf(e),ym=y+"-"+String(m).padStart(2,"0");
+  if(day==null||day>today||!(target>0)||fixedPaymentStoredProof(s,e,y,m)) return null;
+  if(fixedPaymentState(s,e,y,m,today).paid) return null;
+  var conNombre=function(texto){ return recNameMatch(e.name,texto); };
+  if((s.bankTx||[]).some(function(tx){ return tx&&tx.ent===bank&&String(tx.date||"").slice(0,7)===ym&&Number(tx.amount)>0&&conNombre(tx.merchant); })) return null;
+  var filas=[];
+  fixedPaymentExpenses(s,ym).identity.forEach(function(list){ list.forEach(function(x){ filas.push(x); }); });
+  if(filas.some(function(x){ return x&&expenseBankOf(x)===bank&&Number(x.amount)>0&&conNombre(x.obName!=null?x.obName:x.merchant); })) return null;
+  var idx=fixedPaymentFilasBanco(s),tc=Math.round(target*100),usados=new Set();
+  (s.fixed||[]).forEach(function(o){ if(o.id!==e.id&&occursIn(o,m,y)){ var id=reciboPagadoCon(fixedPaymentState(s,o,y,m,today)); if(id) usados.add(id); } });
+  var rivales=fixedPaymentContenders(s,y,m).filter(function(c){ return !(c.kind==="fixed"&&c.id===e.id)&&c.bank===bank; });
+  var cands=filas.filter(function(x){
+    if(!x||x.source!=="ob"&&x.source!=="ob-hist"||x.obPending||String(x.status||"").toUpperCase()!=="BOOK"||x.reciboId) return false;
+    var amount=Number(x.amount),cents=Math.round(amount*100),d=recDay(x.date);
+    if(expenseBankOf(x)!==bank||!(amount>0)||cents===tc||!recAmtClose(target,amount)||d==null||d>today||Math.abs(d-day)>CUOTA_DIAS) return false;
+    var identity=fixedPaymentIdentity(bank,x);
+    if(usados.has(identity)||reciboVetado(s,e.id,reciboNoIdentidad(x),x.id)||!fixedExpenseEligible(s,x,e,y,m,today)) return false;
+    var txs=(s.bankTx||[]).filter(function(tx){ return tx&&tx.ent===bank&&(fixedPaymentIdentity(tx.ent,tx)===identity||x.extId!=null&&String(x.extId)!==""&&String(tx.id)===String(x.extId)); });
+    if(!fixedPaymentAdeudo(x)&&!txs.some(fixedPaymentAdeudo)) return false;
+    var dia=Date.parse(String(x.date).slice(0,10)+"T00:00:00Z")/864e5;
+    if((idx.devoluciones.get(bank+"|"+cents)||[]).some(function(f){ var lag=f-dia; return lag>=0&&lag<=RECIBO_DEVUELTO_DIAS; })) return false;
+    var txLike={ent:bank,date:String(x.date).slice(0,10),amount:amount,merchant:x.obName!=null?x.obName:x.merchant};
+    return !rivales.some(function(c){ return recNameMatch(c.name,txLike.merchant)||fixedPaymentRivalPorImporte(s,c,txLike); });
+  });
+  return cands.length===1?cands[0]:null;
+}
 /* Las filas del banco de Gastos por referencia e identidad, y los abonos por céntimos (del
    extracto y de Gastos: el otro móvil puede no tener extracto). Las fechas de Gastos, en el día
    de la casa: una devolución guardada a medianoche de Madrid es del día siguiente en UTC. */
