@@ -36,7 +36,7 @@ const paso = (page, n) => hoja(page).locator('[data-rp4-paso="' + n + '"]');
 const persona = (page) => page.locator('.v4-sheet[data-sheet="persona"]');
 const teclea = async (zona, digits) => { for (const d of digits) await zona.locator('.v4-keys button[aria-label="' + d + '"]').click(); };
 async function abreTodos(page, recibos) {
-  await recibos.getByTestId("plan-due").getByRole("button", { name: "Gestionar" }).click();
+  await recibos.getByTestId("plan-due").getByRole("button", { name: /^(Gestionar|Todos)\b/ }).click();
   await expect(page.locator("[data-bills-manage]")).toBeVisible();
 }
 
@@ -141,7 +141,6 @@ test("Personas: renombrar, «Lo descuento» con una deuda que cuadra y borrar co
   const plana = { id: "mama", name: "Mamá", monthly: 250, value: 5000, account: "sabadell", day: 20, asOf: YM - 1 };
   const recibos = await abrePlan(page, { fixed: [recibo("pepe", "Pepephone", 85, 20), luz], debts: [plana] });
   await abreTodos(page, recibos);
-  await page.locator('[data-bills-manage] [data-group="people"]').click();
   await page.locator('[data-act="persona-add"]').click();
   await persona(page).locator('[data-pe="name"]').fill("Familia");
   await persona(page).locator('[data-pe="via"] button', { hasText: "Lo descuento" }).click();
@@ -155,7 +154,7 @@ test("Personas: renombrar, «Lo descuento» con una deuda que cuadra y borrar co
   expect(s.debts[0]).toMatchObject({ monthly: 207.5, amort: 250 });
   const lista = page.getByTestId("pe-lista");
   await expect(lista.locator('[data-persona]')).toHaveCount(1);
-  await expect(lista).toContainText("Lo descuento · Mamá");
+  await expect(lista).toContainText("se descuenta de Mamá");
   // Renombrar.
   await lista.locator("[data-persona]").click();
   await persona(page).locator('[data-pe="name"]').fill("Familia Ávila");
@@ -185,7 +184,6 @@ test("un compartido de antes (sin decir con quién) no se convierte solo y su im
   await expect(total(recibos)).toHaveText("72,00 €");
   await expect(recibos.getByTestId("plan-deben")).toHaveCount(0);
   await abreTodos(page, recibos);
-  await page.locator('[data-bills-manage] [data-group="serv"]').click();
   await page.locator('[data-bill-id="pepe"]').click();
   await expect(hoja(page)).toHaveAttribute("data-modo", "edit");
   await expect(paso(page, 4).locator('[data-rp4-fila="1"]')).toBeDisabled();
@@ -202,7 +200,6 @@ test("un compartido de antes (sin decir con quién) no se convierte solo y su im
 /* Remates de la revisión de la tanda 5 (rev-recibos-t5, NO-GO). Cada uno falla sin su arreglo. */
 const editarRecibo = async (page, recibos, id) => {
   await abreTodos(page, recibos);
-  await page.locator('[data-bills-manage] [data-group="serv"]').click();
   await page.locator('[data-bill-id="' + id + '"]').click();
   await expect(hoja(page)).toHaveAttribute("data-modo", "edit");
 };
@@ -234,7 +231,6 @@ test("R1: «Lo descuento» no ofrece una deuda con interés", async ({ page }) =
   const hipo = { id: "hipo", name: "Hipoteca", monthly: 600, value: 90000, apr: 2.5, account: "sabadell", day: 1, asOf: YM - 1 };
   const recibos = await abrePlan(page, { fixed: [recibo("pepe", "Pepephone", 85, 20)], debts: [hipo, Object.assign({}, mama, { monthly: 250, amort: undefined })] });
   await abreTodos(page, recibos);
-  await page.locator('[data-bills-manage] [data-group="people"]').click();
   await page.locator('[data-act="persona-add"]').click();
   await persona(page).locator('[data-pe="via"] button', { hasText: "Lo descuento" }).click();
   await expect(persona(page).locator('[data-pe="deuda"] button')).toHaveText(["Mamá"]);
@@ -288,7 +284,6 @@ test("uso: Personas › Añadir ofrece los compartidos de antes sin cambiar tu p
   const agua = recibo("agua", "Agua", 40, 10, { freq: "bimestral" });
   const recibos = await abrePlan(page, { fixed: [viejo, agua, luz], debts: [Object.assign({}, mama, { monthly: 250, amort: undefined })] });
   await abreTodos(page, recibos);
-  await page.locator('[data-bills-manage] [data-group="people"]').click();
   await page.locator('[data-act="persona-add"]').click();
   await persona(page).locator('[data-pe="via"] button', { hasText: "Lo descuento" }).click();
   await expect(persona(page).locator('[data-pe="recibos"] button', { hasText: "Agua" })).toBeDisabled();
@@ -314,7 +309,6 @@ test("R2-1: «Lo descuento» en un compartido de antes deja ajustar la parte: Ma
   const viejo = recibo("pepe", "Pepephone", 22, 20, { bankAmount: 85 });
   const recibos = await abrePlan(page, { fixed: [viejo, luz], debts: [mama] });
   await abreTodos(page, recibos);
-  await page.locator('[data-bills-manage] [data-group="people"]').click();
   await page.locator('[data-act="persona-add"]').click();
   await persona(page).locator('[data-pe="name"]').fill("Familia");
   await persona(page).locator('[data-pe="via"] button', { hasText: "Lo descuento" }).click();

@@ -118,7 +118,6 @@ async function abreEditPaso2DesdeReview(page, bill) {
 
 async function abreEditPaso2DesdeTodosServ(page, bill) {
   const hub = await abreTusRecibos(page, { fixed: [bill, ...fixedBase] });
-  await hub.locator('[data-group="serv"]').click();
   await hub.locator('[data-bill-id="' + bill.id + '"]').click();
   await expect(hoja(page)).toHaveAttribute("data-modo", "edit");
   await paso(page, 4).locator('[data-rp4-fila="2"]').click();

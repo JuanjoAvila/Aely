@@ -1072,6 +1072,15 @@ function deudaDescuentoBase(s,d){
   });
   return c/100;
 }
+// Y de qué recibos sale ese descuento, para decirlo junto a la cuota («+ 53 € de Pepephone» en Tus recibos).
+function deudaDescuentoDe(s,d){
+  const from=[];
+  (s.fixed||[]).forEach(function(e){
+    const r=repartoVigente(e);
+    if(r&&r.some(function(x){ return x.debtId===d.id&&repartoDescuentaDe(s,x,e); })&&from.indexOf(e.name)<0) from.push(e.name);
+  });
+  return from;
+}
 /* Al poner, cambiar o quitar un «Lo descuento», la cuota que sale del banco cambia con él, pero
    solo si la deuda cuadraba ANTES del cambio (lo que amortiza = cuota + lo que se descontaba).
    La cuota ya bajada a mano (el préstamo familiar que paga 197 y amortiza 250) no cuadra al
@@ -5568,8 +5577,39 @@ function billsGroupRows(state, group, curMonth, curYear){
         return {kind:"flow",id:f.id,item:f,name:f.name,monthly:inc?(f.amount||0):-(f.amount||0),bank:inc?(f.to||"sabadell"):(f.from||"sabadell"),income:inc};
       });
   }
-  return (state.oneoffs||[]).filter(function(o){ return oneoffOccurs(o,curYear,curMonth); })
-    .map(function(o){ return {kind:"oneoff",id:o.id,item:o,name:o.name,monthly:o.amount||0,bank:o.account||"sabadell",once:true}; });
+  /* «De una sola vez» de Tus recibos enseña también los que vienen (SPEC §3: «no se repiten»), no
+     solo los de este mes; los ya pasados no. Ninguno entra en lo que «se te va cada mes». */
+  const ym=curYear*12+curMonth;
+  const once=group==="prox"
+    ? (state.oneoffs||[]).filter(function(o){ return o&&(Number(o.year)*12+Number(o.month))>=ym; })
+        .sort(function(a,b){ return (a.year*12+a.month)-(b.year*12+b.month)||(cleanDay(a.day)||0)-(cleanDay(b.day)||0); })
+    : (state.oneoffs||[]).filter(function(o){ return oneoffOccurs(o,curYear,curMonth); });
+  return once.map(function(o){ return {kind:"oneoff",id:o.id,item:o,name:o.name,monthly:o.amount||0,bank:o.account||"sabadell",once:true}; });
+}
+/* Avisos de solapes de Tus recibos (SPEC §3): dos o más servicios DISTINTOS de música, o de series,
+   entre tus recibos. Solo nombres que no admiten duda: «Prime» a secas o «Movistar» pueden ser
+   envíos o el teléfono, y «Max» cualquier cosa; esos no cuentan. Mejor callar un solape que
+   inventarlo. `mensual` es lo que se te va al mes por esos recibos (tu parte, `fixedMonthlyOf`). */
+const RECIBO_SOLAPES=[
+  {tipo:"musica",servicios:[["spotify",/spotify/],["youtube",/youtube\s*(premium|music)/],["apple-music",/apple\s*music/],["amazon-music",/amazon\s*music/],["tidal",/\btidal\b/],["deezer",/deezer/]]},
+  {tipo:"series",servicios:[["netflix",/netflix/],["disney",/disney/],["hbo",/\bhbo\b/],["prime-video",/prime\s*video/],["filmin",/filmin/],["skyshowtime",/skyshowtime/],["apple-tv",/apple\s*tv/],["atresplayer",/atresplayer/]]}
+];
+function recibosSolapes(state){
+  const out=[];
+  RECIBO_SOLAPES.forEach(function(g){
+    const vistos={}, recibos=[];
+    (state.fixed||[]).forEach(function(e){
+      const n=String((e&&e.name)||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+      const s=g.servicios.find(function(x){ return x[1].test(n); });
+      if(!s) return;
+      vistos[s[0]]=1; recibos.push(e);
+    });
+    if(Object.keys(vistos).length<2) return;
+    const c=recibos.reduce(function(a,e){ return a+Math.round(fixedMonthlyOf(e)*100); },0);
+    out.push({tipo:g.tipo, key:g.tipo+":"+recibos.map(function(e){ return e.id; }).sort().join(","),
+      nombres:recibos.map(function(e){ return e.name; }), mensual:c/100});
+  });
+  return out;
 }
 function billsGroupMonthly(state, group, curMonth, curYear){
   return billsGroupRows(state,group,curMonth,curYear).reduce(function(a,r){ return a+Math.abs(Number(r.monthly)||0); },0);

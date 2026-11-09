@@ -1245,14 +1245,14 @@ Object.assign(LANG.ca,{
 //     el que lo lee no lleva finanzas. Los _one existen porque «De 1 recibos» se lee roto. ---
 Object.assign(LANG.es,{
   gb_title:"Tus recibos", gb_hero_label:"SE TE VAN CADA MES",
-  gb_hero_sub:"De {n} recibos. Los que no son mensuales ya están repartidos a su parte de cada mes.",
-  gb_hero_sub_one:"De 1 recibo. Si no es mensual, ya está repartido a su parte de cada mes.", gb_search:"Buscar un recibo",
-  gb_search_empty:"No hay ningún recibo con ese nombre.", gb_per_month:"al mes", gb_g_serv:"Servicios y suministros",
-  gb_g_serv_sub:"{n} recibos · luz, agua, móvil, suscripciones", gb_g_serv_sub_one:"1 recibo · luz, agua, móvil, suscripciones",
-  gb_g_debt:"Cuotas de deuda", gb_g_debt_sub:"{n} cuotas · se cambian en Deudas", gb_g_debt_sub_one:"1 cuota · se cambia en Deudas",
-  gb_g_debt_sub_simple:"{n} cuotas · tócala para cambiarla", gb_g_debt_sub_simple_one:"1 cuota · tócala para cambiarla", gb_g_in:"Lo que entra y lo que mueves", gb_g_in_sub:"Nómina y pasos entre tus cuentas",
-  gb_g_once:"Cargos de una sola vez", gb_g_once_sub:"{n} este mes", gb_g_once_sub_one:"1 este mes", gb_this_month:"este mes",
-  gb_add:"+ Añadir un recibo", gb_locked:"Se cambia en Deudas", gb_step_what:"¿Qué es?",
+  
+  gb_search:"Buscar un recibo",
+  
+  
+  gb_g_debt:"Cuotas de deuda", 
+  gb_g_in:"Lo que entra y lo que mueves", gb_g_in_sub:"Nómina y pasos entre tus cuentas",
+  
+  gb_locked:"Se cambia en Deudas", gb_step_what:"¿Qué es?",
   gb_step_how_much:"¿Cuánto?", gb_step_how_often:"¿Cada cuánto?", gb_months_q:"¿En qué meses?", gb_step_monthyear:"¿Qué mes?",
   gb_step_when:"¿Qué día?", gb_step_account:"¿De qué cuenta sale?", gb_when_first:"Primer día hábil", gb_when_last:"Último día hábil",
   gb_freq_m:"Cada mes", gb_freq_2m:"Cada dos meses", 
@@ -1260,7 +1260,7 @@ Object.assign(LANG.es,{
   gb_freq_y:"Una vez al año", 
   gb_preview_each:"Se cobrarán {each} en {months} ({total} al año): {x} al mes repartidos.",
   gb_preview_nomonth:"Serán {x} al mes repartidos ({total} al año). Falta elegir en qué mes se cobra.",
-  gb_preview_m:"Serán {x} cada mes.", gb_empty:"Aún no hay recibos", gb_empty_sub:"Conecta tu banco y los detecto solos.",
+  gb_preview_m:"Serán {x} cada mes.", 
   gb_afford:"¿Me lo puedo permitir?",
   gb_afford_sub:"Dime un importe y un día y te digo si te cabe este mes.", gb_del:"Quitar este recibo", gb_removed:"Recibo quitado", gb_undo_changed:"No se ha deshecho nada porque hay cambios posteriores.", gb_undo_partial:"Hay cambios posteriores que no se han deshecho.", gb_remove_changed:"No se ha podido quitar el recibo. Revisa los cambios e inténtalo de nuevo.", gb_undo_sync_error:"Cambio guardado; no se ha podido sincronizar la marca del cargo.",
   gb_bill_locked_amt:"Este recibo cambia de importe según el mes: cámbialo en cada mes.",
@@ -1268,22 +1268,22 @@ Object.assign(LANG.es,{
 });
 Object.assign(LANG.en,{
   gb_title:"Your bills", gb_hero_label:"GOES OUT EVERY MONTH",
-  gb_hero_sub:"From {n} bills. The ones that aren't monthly are already spread into their monthly share.",
-  gb_hero_sub_one:"From 1 bill. If it isn't monthly, it's already spread into its monthly share.", gb_search:"Search a bill",
-  gb_search_empty:"No bill with that name.", gb_per_month:"a month", gb_g_serv:"Utilities and services",
-  gb_g_serv_sub:"{n} bills · power, water, phone, subscriptions", gb_g_serv_sub_one:"1 bill · power, water, phone, subscriptions",
-  gb_g_debt:"Debt instalments", gb_g_debt_sub:"{n} instalments · changed in Debts", gb_g_debt_sub_one:"1 instalment · changed in Debts",
-  gb_g_debt_sub_simple:"{n} instalments · tap one to change it", gb_g_debt_sub_simple_one:"1 instalment · tap it to change it", gb_g_in:"What comes in and what you move",
-  gb_g_in_sub:"Salary and moves between your accounts", gb_g_once:"One-off charges", gb_g_once_sub:"{n} this month", gb_g_once_sub_one:"1 this month",
-  gb_this_month:"this month", gb_add:"+ Add a bill", gb_locked:"Changed in Debts", 
+  
+  gb_search:"Search a bill",
+  
+  
+  gb_g_debt:"Debt instalments", 
+  gb_g_in:"What comes in and what you move",
+  gb_g_in_sub:"Salary and moves between your accounts", 
+  gb_locked:"Changed in Debts", 
   gb_step_what:"What is it?", gb_step_how_much:"How much?", gb_step_how_often:"How often?", gb_months_q:"In which months?",
   gb_step_monthyear:"Which month?", gb_step_when:"Which day?", gb_step_account:"Which account does it come out of?", gb_when_first:"First working day",
   gb_when_last:"Last working day", gb_freq_m:"Every month", gb_freq_2m:"Every two months",
   gb_freq_3m:"Every three months", 
   gb_freq_6m:"Every six months", gb_freq_y:"Once a year",
   gb_preview_each:"{each} will be charged in {months} ({total} a year): {x} a month spread out.",
-  gb_preview_nomonth:"That's {x} a month spread out ({total} a year). Pick the month it's charged in.", gb_preview_m:"That's {x} every month.", gb_empty:"No bills yet",
-  gb_empty_sub:"Connect your bank and I'll spot them for you.", 
+  gb_preview_nomonth:"That's {x} a month spread out ({total} a year). Pick the month it's charged in.", gb_preview_m:"That's {x} every month.", 
+  
   gb_afford:"Can I afford it?", gb_afford_sub:"Give me an amount and a day and I'll tell you if it fits this month.",
   gb_del:"Remove this bill", gb_removed:"Bill removed", gb_undo_changed:"Nothing was undone because there are later changes.", gb_undo_partial:"There are later changes that have not been undone.", gb_remove_changed:"The bill could not be removed. Review the changes and try again.", gb_undo_sync_error:"Change saved; the payment label could not be synced.",
   gb_bill_locked_amt:"This bill's amount changes by month: change it in each month.",
@@ -1291,22 +1291,22 @@ Object.assign(LANG.en,{
 });
 Object.assign(LANG.ca,{
   gb_title:"Els teus rebuts", gb_hero_label:"SE'T VAN CADA MES",
-  gb_hero_sub:"De {n} rebuts. Els que no són mensuals ja estan repartits a la seva part de cada mes.",
-  gb_hero_sub_one:"D'1 rebut. Si no és mensual, ja està repartit a la seva part de cada mes.", gb_search:"Cerca un rebut",
-  gb_search_empty:"No hi ha cap rebut amb aquest nom.", gb_per_month:"al mes", gb_g_serv:"Serveis i subministraments",
-  gb_g_serv_sub:"{n} rebuts · llum, aigua, mòbil, subscripcions", gb_g_serv_sub_one:"1 rebut · llum, aigua, mòbil, subscripcions",
-  gb_g_debt:"Quotes de deute", gb_g_debt_sub:"{n} quotes · es canvien a Deutes", gb_g_debt_sub_one:"1 quota · es canvia a Deutes",
-  gb_g_debt_sub_simple:"{n} quotes · toca-la per canviar-la", gb_g_debt_sub_simple_one:"1 quota · toca-la per canviar-la", gb_g_in:"El que entra i el que mous",
-  gb_g_in_sub:"Nòmina i passos entre els teus comptes", gb_g_once:"Càrrecs d'una sola vegada", gb_g_once_sub:"{n} aquest mes",
-  gb_g_once_sub_one:"1 aquest mes", gb_this_month:"aquest mes", gb_add:"+ Afegir un rebut", gb_locked:"Es canvia a Deutes",
+  
+  gb_search:"Cerca un rebut",
+  
+  
+  gb_g_debt:"Quotes de deute", 
+  gb_g_in:"El que entra i el que mous",
+  gb_g_in_sub:"Nòmina i passos entre els teus comptes", 
+  gb_locked:"Es canvia a Deutes",
   gb_step_what:"Què és?", gb_step_how_much:"Quant?", gb_step_how_often:"Cada quant?", gb_months_q:"En quins mesos?",
   gb_step_monthyear:"Quin mes?", gb_step_when:"Quin dia?", gb_step_account:"De quin compte surt?", gb_when_first:"Primer dia feiner",
   gb_when_last:"Últim dia feiner", gb_freq_m:"Cada mes", gb_freq_2m:"Cada dos mesos",
   gb_freq_3m:"Cada tres mesos", 
   gb_freq_6m:"Cada sis mesos", gb_freq_y:"Un cop l'any",
   gb_preview_each:"Es cobraran {each} a {months} ({total} l'any): {x} al mes repartits.",
-  gb_preview_nomonth:"Seran {x} al mes repartits ({total} l'any). Falta triar en quin mes es cobra.", gb_preview_m:"Seran {x} cada mes.", gb_empty:"Encara no hi ha rebuts",
-  gb_empty_sub:"Connecta el teu banc i els detecto sols.", 
+  gb_preview_nomonth:"Seran {x} al mes repartits ({total} l'any). Falta triar en quin mes es cobra.", gb_preview_m:"Seran {x} cada mes.", 
+  
   gb_afford:"M'ho puc permetre?", gb_afford_sub:"Digue'm un import i un dia i et dic si t'hi cap aquest mes.", gb_del:"Treu aquest rebut",
   gb_removed:"Rebut tret", gb_undo_changed:"No s’ha desfet res perquè hi ha canvis posteriors.", gb_undo_partial:"Hi ha canvis posteriors que no s’han desfet.", gb_remove_changed:"No s’ha pogut treure el rebut. Revisa els canvis i torna-ho a provar.", gb_undo_sync_error:"Canvi desat; no s’ha pogut sincronitzar la marca del càrrec.", gb_bill_locked_amt:"L'import d'aquest rebut canvia segons el mes: canvia'l a cada mes.",
   gb_when_day:"Un dia concret", gb_save_ok:"Desat", gb_saved_fixed:"Rebut afegit", gb_saved_oneoff:"Càrrec puntual afegit", gb_saved_income:"Ingrés afegit", gb_saved_transfer:"Traspàs afegit", gb_next:"Següent", gb_recon:"Quadren amb el banc?", gb_flow_income:"El que cobres", gb_flow_move:"Pas entre els teus comptes", gb_month:"Mes", gb_year:"Any", gb_add_btn:"Afegeix",
@@ -4375,7 +4375,7 @@ Object.assign(LANG.es,{
   pr6_pagas_mas:"pagas {a} + {b} de {from}", pr6_te_han_pagado:"te han pagado {a} de {n}", pr6_tu_parte:"Tu parte {x}",
   pr6_te_deben:"Te deben {x}", pr6_te_deben_t:"Te deben", pr6_te_han_pagado_todos:"Te han pagado todos",
   pr6_ya_me_lo_ha_pagado:"Ya me lo ha pagado", pr6_te_lo_ha_pagado:"Te lo ha pagado",
-  pe_title:"Personas", pe_sub:"{n} personas", pe_sub_one:"{n} persona", pe_add:"Añadir una persona", pe_nueva:"Nueva persona", pe_nombre:"Nombre",
+  pe_title:"Personas", pe_add:"Añadir una persona", pe_nueva:"Nueva persona", pe_nombre:"Nombre",
   pe_como_paga:"¿Cómo te paga?", pe_bizum:"Bizum", pe_transfer:"Transferencia", pe_debt:"Lo descuento", pe_descuenta_de:"Su parte se descuenta de",
   pe_recibos:"Sus recibos", pe_que_recibos:"¿Qué recibos comparte?", pe_sin_recibos:"Ningún recibo se puede compartir", pe_borrar:"Borrar", pe_seguro:"¿Seguro? Sale de todos sus recibos",
   rp5_mas:"Más opciones", rp5_con_alguien:"¿Lo pagas con alguien?", rp5_no_admite:"Solo se comparte un recibo de cada mes o cada pocos meses",
@@ -4387,7 +4387,7 @@ Object.assign(LANG.en,{
   pr6_pagas_mas:"you pay {a} + {b} from {from}", pr6_te_han_pagado:"{a} of {n} have paid you", pr6_tu_parte:"Your share {x}",
   pr6_te_deben:"You're owed {x}", pr6_te_deben_t:"You're owed", pr6_te_han_pagado_todos:"Everyone has paid you",
   pr6_ya_me_lo_ha_pagado:"They've paid me", pr6_te_lo_ha_pagado:"Paid you",
-  pe_title:"People", pe_sub:"{n} people", pe_sub_one:"{n} person", pe_add:"Add a person", pe_nueva:"New person", pe_nombre:"Name",
+  pe_title:"People", pe_add:"Add a person", pe_nueva:"New person", pe_nombre:"Name",
   pe_como_paga:"How do they pay you?", pe_bizum:"Bizum", pe_transfer:"Bank transfer", pe_debt:"I deduct it", pe_descuenta_de:"Their share is deducted from",
   pe_recibos:"Their bills", pe_que_recibos:"Which bills do they share?", pe_sin_recibos:"No bill can be shared", pe_borrar:"Delete", pe_seguro:"Sure? They leave all their bills",
   rp5_mas:"More options", rp5_con_alguien:"Do you pay it with someone?", rp5_no_admite:"Only a monthly bill or one every few months can be shared",
@@ -4399,13 +4399,47 @@ Object.assign(LANG.ca,{
   pr6_pagas_mas:"pagues {a} + {b} de {from}", pr6_te_han_pagado:"t'han pagat {a} de {n}", pr6_tu_parte:"La teva part {x}",
   pr6_te_deben:"Et deuen {x}", pr6_te_deben_t:"Et deuen", pr6_te_han_pagado_todos:"T'han pagat tots",
   pr6_ya_me_lo_ha_pagado:"Ja m'ho ha pagat", pr6_te_lo_ha_pagado:"T'ho ha pagat",
-  pe_title:"Persones", pe_sub:"{n} persones", pe_sub_one:"{n} persona", pe_add:"Afegir una persona", pe_nueva:"Persona nova", pe_nombre:"Nom",
+  pe_title:"Persones", pe_add:"Afegir una persona", pe_nueva:"Persona nova", pe_nombre:"Nom",
   pe_como_paga:"Com et paga?", pe_bizum:"Bizum", pe_transfer:"Transferència", pe_debt:"Ho descompto", pe_descuenta_de:"La seva part es descompta de",
   pe_recibos:"Els seus rebuts", pe_que_recibos:"Quins rebuts comparteix?", pe_sin_recibos:"Cap rebut es pot compartir", pe_borrar:"Esborrar", pe_seguro:"Segur? Surt de tots els seus rebuts",
   rp5_mas:"Més opcions", rp5_con_alguien:"El pagues amb algú?", rp5_no_admite:"Només es comparteix un rebut de cada mes o de cada pocs mesos",
   rp5_otra:"Una altra", rp5_importe_de:"Part de {name}", rp5_quitar:"Treure {name}", rp5_tu_parte:"La teva part",
   rp5_supera:"Les parts superen l'import: no et queda part", rp5_descuento_mensual:"«Ho descompto» només en rebuts de cada mes",
   rp5_rehacer:"Aquestes parts ja no quadraven: revisa-les i desa", pe_viejo_ajustar:"A {name} ajustaràs les parts abans de desar"
+});
+// Tus recibos (Gestionar) según la SPEC §3 del rediseño de Recibos: secciones planas, mes/año y solapes.
+Object.assign(LANG.es,{
+  mg_al_ano:"SE TE VAN AL AÑO", mg_desglose:"recibos {a} + cuotas {b}", mg_por_mes:"{x}/mes", mg_por_ano:"{x}/año",
+  mg_cuenta:"Cuenta", mg_todas:"Todas", mg_recibos:"Recibos", mg_anadir:"Añadir", mg_dia:"DÍA", mg_compartido:"compartido",
+  mg_add_recibo:"Añadir un recibo", mg_add_once:"Añadir un cargo de una sola vez", mg_add_flow:"Añadir lo que entra o lo que mueves",
+  mg_una_vez:"De una sola vez", mg_no_repiten:"no se repiten", mg_mas:"{a} + {b} de {from}",
+  mg_personas_sub:"con quien compartes recibos", mg_persona_sub:"{list} · {x} al mes", mg_se_descuenta:"se descuenta de {x}",
+  mg_nada:"Nada con «{q}»", mg_anadir_q:"Añadir «{q}» como recibo",
+  mg_ov_musica:"{list} incluyen música", mg_ov_series:"{n} plataformas de series: {list}",
+  mg_ov_m2:"{x} al mes entre los dos", mg_ov_mn:"{x} al mes entre los {n}", mg_ov_v2:"{x} al mes entre las dos", mg_ov_vn:"{x} al mes entre las {n}",
+  mg_ov_x:"Ocultar este aviso"
+});
+Object.assign(LANG.en,{
+  mg_al_ano:"GOES OUT EVERY YEAR", mg_desglose:"bills {a} + instalments {b}", mg_por_mes:"{x}/month", mg_por_ano:"{x}/year",
+  mg_cuenta:"Account", mg_todas:"All", mg_recibos:"Bills", mg_anadir:"Add", mg_dia:"DAY", mg_compartido:"shared",
+  mg_add_recibo:"Add a bill", mg_add_once:"Add a one-off charge", mg_add_flow:"Add what comes in or what you move",
+  mg_una_vez:"One-off", mg_no_repiten:"they don't repeat", mg_mas:"{a} + {b} from {from}",
+  mg_personas_sub:"who you share bills with", mg_persona_sub:"{list} · {x} a month", mg_se_descuenta:"deducted from {x}",
+  mg_nada:"Nothing matching “{q}”", mg_anadir_q:"Add “{q}” as a bill",
+  mg_ov_musica:"{list} include music", mg_ov_series:"{n} streaming services: {list}",
+  mg_ov_m2:"{x} a month for the two", mg_ov_mn:"{x} a month for the {n}", mg_ov_v2:"{x} a month for the two", mg_ov_vn:"{x} a month for the {n}",
+  mg_ov_x:"Hide this notice"
+});
+Object.assign(LANG.ca,{
+  mg_al_ano:"SE'T VAN A L'ANY", mg_desglose:"rebuts {a} + quotes {b}", mg_por_mes:"{x}/mes", mg_por_ano:"{x}/any",
+  mg_cuenta:"Compte", mg_todas:"Tots", mg_recibos:"Rebuts", mg_anadir:"Afegir", mg_dia:"DIA", mg_compartido:"compartit",
+  mg_add_recibo:"Afegir un rebut", mg_add_once:"Afegir un càrrec d'una sola vegada", mg_add_flow:"Afegir el que entra o el que mous",
+  mg_una_vez:"D'una sola vegada", mg_no_repiten:"no es repeteixen", mg_mas:"{a} + {b} de {from}",
+  mg_personas_sub:"amb qui comparteixes rebuts", mg_persona_sub:"{list} · {x} al mes", mg_se_descuenta:"es descompta de {x}",
+  mg_nada:"Res amb «{q}»", mg_anadir_q:"Afegir «{q}» com a rebut",
+  mg_ov_musica:"{list} inclouen música", mg_ov_series:"{n} plataformes de sèries: {list}",
+  mg_ov_m2:"{x} al mes entre els dos", mg_ov_mn:"{x} al mes entre els {n}", mg_ov_v2:"{x} al mes entre les dues", mg_ov_vn:"{x} al mes entre les {n}",
+  mg_ov_x:"Amaga aquest avís"
 });
 // «Lo descuento» que no cuadra con su deuda y lo que baja una deuda sin interés (feedback 1/11/2026).
 Object.assign(LANG.es,{

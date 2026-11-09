@@ -63,16 +63,17 @@ test("Gestionar plan y su categoría son el ÚNICO candidato a scroller raíz, c
   await expect(page.locator(plan)).toBeVisible();
   await expect.poll(() => candidates(page), { message: "referencia: Plan, donde la ola sí sale" }).toEqual(["plan"]);
 
-  await page.locator('.v4-screen > [data-seg="recibos"] button.link').filter({ hasText: /^Gestionar$/ }).tap();
+  await page.locator('.v4-screen > [data-seg="recibos"] button.link').filter({ hasText: /^(Gestionar|Todos)\b/ }).tap();
   await expect(page.locator(hub)).toBeVisible(); await quieto(page);
   // Plan tapado deja de desplazar con el dedo, pero `hidden` guarda su posición para la vuelta.
   const planTop = await page.evaluate((s) => { const p = document.querySelector(s); p.scrollTop = 40; return p.scrollTop; }, plan);
   expect(planTop).toBeGreaterThan(0);
   await expect.poll(() => candidates(page), { message: "Gestionar: Plan debajo no puede seguir compitiendo" }).toEqual(["hub"]);
 
-  await page.locator(hub + ' button[data-group="serv"]').tap();
+  // Desde la v6 (SPEC §3) la única pantalla hija de Tus recibos es «¿Me lo puedo permitir?».
+  await page.locator(hub + ' .v4-bills-afford').tap();
   await expect(page.locator(child)).toBeVisible(); await quieto(page);
-  await expect.poll(() => candidates(page), { message: "categoría: ni Plan ni el hub" }).toEqual(["child"]);
+  await expect.poll(() => candidates(page), { message: "pantalla hija: ni Plan ni el hub" }).toEqual(["child"]);
 
   await page.keyboard.press("Escape");
   await expect(page.locator(child)).toHaveCount(0); await quieto(page);

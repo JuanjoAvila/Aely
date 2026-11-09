@@ -59,7 +59,7 @@ test("FIN25 R2 Gestionar conserva la cifra mensual y los datos al ignorar meses 
   const hub=page.locator("[data-bills-manage]");
   await expect(hub).toBeVisible();
   await expect(hub.locator(".v4-bills-hero-amt")).toHaveText("28,25 €");
-  await expect(hub.locator('.v4-bills-group[data-group="serv"] .v4-bills-group-amt')).toContainText("28,25 €");
+  await expect(hub.locator('[data-mg-sum="serv"]')).toContainText("28,25 €");
   expect(await page.evaluate(() => mcLoadRaw(mcStateKey()).fixed)).toEqual(fixed);
   await page.reload();
   await expect(page.locator(".botnav")).toBeVisible();

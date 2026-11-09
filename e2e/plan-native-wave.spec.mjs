@@ -32,23 +32,22 @@ async function begin(page,info,many=false){
   await page.evaluate(()=>{window.__waveEvents=[];for(const type of ['scroll','touchstart','touchmove','touchend','touchcancel','focusin'])document.addEventListener(type,e=>{const el=e.target;queueMicrotask(()=>window.__waveEvents.push({type,target:el.className||el.tagName,scroll:el.scrollTop,prevented:e.defaultPrevented,t:performance.now()}));},{capture:true,passive:true});});
 }
 async function record(page,info,run){const before=await raw(page);const phases=[];const capture=async name=>{const s=await snap(page);phases.push({name,...s});return s;};try{await run(capture);}finally{const after=await raw(page);await info.attach('observations.json',{body:JSON.stringify({phases,events:await page.evaluate(()=>window.__waveEvents),before,after,financialExact:JSON.stringify(before)===JSON.stringify(after)},null,2),contentType:'application/json'});expect(after).toEqual(before);}}
-async function manage(page){await page.locator('.v4-screen > [data-seg="recibos"] button.link').filter({hasText: /^Gestionar$/}).tap();await expect(page.locator(hub)).toBeVisible();await settle(page);}
+// Tus recibos v6 (SPEC §3): las filas viven en secciones del propio hub; se centra la fila antes de tocarla.
+async function filaDe(page,sec,i=0){const r=page.locator(hub+' [data-mg-sec="'+sec+'"] .v4-bills-row').nth(i);await r.evaluate(e=>e.scrollIntoView({block:'center'}));await settle(page);await r.tap();}
+async function manage(page){await page.locator('.v4-screen > [data-seg="recibos"] button.link').filter({hasText: /^(Gestionar|Todos)\b/}).tap();await expect(page.locator(hub)).toBeVisible();await settle(page);}
 
-test('native wave: categoría conserva un solo dueño del scroll en ambos bordes',async({page},info)=>{
+test('native wave: Tus recibos conserva un solo dueño del scroll en ambos bordes',async({page},info)=>{
   await begin(page,info);await record(page,info,async capture=>{
-    await capture('restPlan');await manage(page);await capture('manage');
-    await swipe(page,220,580,0,-380);await capture('hub-scrolled');
-    await page.locator(hub+' button[data-group="serv"]').tap();await expect(page.locator(child)).toBeVisible();await settle(page);
-    const opened=await capture('category-open');
-    for(let i=0;i<7;i++)await swipe(page,220,600,0,-450);
-    const bottom=await capture('category-bottom');
-    await swipe(page,220,600,0,-450);const beyond=await capture('category-beyond-bottom');
-    expect(bottom.child.scroll).toBeGreaterThan(0);expect(beyond.child.scroll).toBeCloseTo(beyond.child.max,0);
-    expect(beyond.hub.scroll,'el gesto al fondo no debe mover la pantalla que queda detrás').toBe(opened.hub.scroll);
-    expect(beyond.root.scroll).toBe(0);expect(beyond.child.overscroll).toBe('auto');
-    for(let i=0;i<7;i++)await swipe(page,220,180,0,450);
-    await swipe(page,220,180,0,450);const top=await capture('category-beyond-top');
-    expect(top.child.scroll).toBe(0);expect(top.hub.scroll,'el borde superior pertenece a la hija, sin desplazar el hub').toBe(opened.hub.scroll);
+    await capture('restPlan');await manage(page);const opened=await capture('manage');
+    for(let i=0;i<8;i++)await swipe(page,220,600,0,-450);
+    const bottom=await capture('hub-bottom');
+    await swipe(page,220,600,0,-450);const beyond=await capture('hub-beyond-bottom');
+    expect(bottom.hub.scroll).toBeGreaterThan(0);expect(beyond.hub.scroll).toBeCloseTo(beyond.hub.max,0);
+    expect(beyond.plan.scroll,'el gesto al fondo no debe mover Plan, que queda detrás').toBe(opened.plan.scroll);
+    expect(beyond.root.scroll).toBe(0);expect(beyond.hub.overscroll).toBe('auto');
+    for(let i=0;i<8;i++)await swipe(page,220,180,0,450);
+    await swipe(page,220,180,0,450);const top=await capture('hub-beyond-top');
+    expect(top.hub.scroll).toBe(0);expect(top.plan.scroll,'el borde superior es de Tus recibos, sin desplazar Plan').toBe(opened.plan.scroll);
   });
 });
 test('close jump: volver conserva scroll y anclas de Plan desde Gestionar desplazado',async({page},info)=>{
@@ -65,8 +64,7 @@ test('close jump: volver conserva scroll y anclas de Plan desde Gestionar despla
 });
 test('native wave: ficha permite el gesto vertical en el borde superior del contenido',async({page},info)=>{
   await begin(page,info);await record(page,info,async capture=>{
-    await manage(page);await page.locator(hub+' button[data-group="in"]').tap();await expect(page.locator(child)).toBeVisible();await settle(page);
-    await page.locator(child+' .v4-bills-row').first().tap();await expect(page.locator('[data-sheet="bill"]')).toBeVisible();await settle(page);await capture('sheet-open');
+    await manage(page);await filaDe(page,'in');await expect(page.locator('[data-sheet="bill"]')).toBeVisible();await settle(page);await capture('sheet-open');
     await swipe(page,300,400,0,100,'touchCancel');await capture('sheet-after-cancel');
     const c=await page.context().newCDPSession(page);await c.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:300,y:400}]});await c.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:300,y:450}]});await page.evaluate(()=>new Promise(r=>requestAnimationFrame(r)));
     const during=await capture('sheet-top-edge-during');await c.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]});await c.detach();await settle(page);
@@ -85,22 +83,20 @@ test('native wave: ficha permite el gesto vertical en el borde superior del cont
     await expect(page.locator('[data-sheet="bill"]')).toHaveCount(0);
   });
 });
-test('close jump: ficha desplazada vuelve a la misma categoría y Plan',async({page},info)=>{
+test('close jump: ficha desplazada vuelve al mismo sitio de Tus recibos y Plan',async({page},info)=>{
   await begin(page,info,true);await record(page,info,async capture=>{
-    await manage(page);await swipe(page,220,580,0,-380);await page.locator(hub+' button[data-group="in"]').tap();await expect(page.locator(child)).toBeVisible();await settle(page);
-    await swipe(page,220,600,0,-400);const before=await capture('category-before-detail');
+    await manage(page);await page.locator(hub+' [data-mg-sec="in"]').evaluate(e=>e.scrollIntoView({block:'center'}));await settle(page);const before=await capture('hub-before-detail');
     // Elegir una fila realmente visible sin desplazamiento de Playwright al enfocarla.
-    const idx=await page.locator(child+' .v4-bills-row').evaluateAll(els=>els.findIndex(e=>{const r=e.getBoundingClientRect();return r.top>180&&r.bottom<600;}));expect(idx).toBeGreaterThanOrEqual(0);
-    await page.locator(child+' .v4-bills-row').nth(idx).tap();await expect(page.locator('[data-sheet="bill"]')).toBeVisible();await settle(page);
+    const idx=await page.locator(hub+' [data-mg-sec="in"] .v4-bills-row').evaluateAll(els=>els.findIndex(e=>{const r=e.getBoundingClientRect();return r.top>180&&r.bottom<600;}));expect(idx).toBeGreaterThanOrEqual(0);
+    await page.locator(hub+' [data-mg-sec="in"] .v4-bills-row').nth(idx).tap();await expect(page.locator('[data-sheet="bill"]')).toBeVisible();await settle(page);
     await swipe(page,300,600,0,-350);const scrolled=await capture('detail-scrolled');expect(scrolled.sheet.scroll).toBeGreaterThan(0);
-    await page.keyboard.press('Escape');await expect(page.locator('[data-sheet="bill"]')).toHaveCount(0);await settle(page);const after=await capture('category-return');
-    expect(after.child.scroll).toBe(before.child.scroll);expect(after.hub.scroll).toBe(before.hub.scroll);expect(after.plan.scroll).toBe(before.plan.scroll);expect(after.anchor.top).toBeCloseTo(before.anchor.top,0);
+    await page.keyboard.press('Escape');await expect(page.locator('[data-sheet="bill"]')).toHaveCount(0);await settle(page);const after=await capture('hub-return');
+    expect(after.hub.scroll).toBe(before.hub.scroll);expect(after.plan.scroll).toBe(before.plan.scroll);expect(after.anchor.top).toBeCloseTo(before.anchor.top,0);
   });
 });
 test('close jump: cancelar un segundo toque no devuelve la ficha que ya está saliendo',async({page},info)=>{
   await begin(page,info);await record(page,info,async capture=>{
-    await manage(page);await page.locator(hub+' button[data-group="in"]').tap();await expect(page.locator(child)).toBeVisible();await settle(page);
-    await page.locator(child+' .v4-bills-row').first().tap();await expect(page.locator('[data-sheet="bill"]')).toBeVisible();await settle(page);
+    await manage(page);await filaDe(page,'in');await expect(page.locator('[data-sheet="bill"]')).toBeVisible();await settle(page);
     await swipe(page,300,600,0,-350);const before=await capture('scrolled-before-close');expect(before.sheet.scroll).toBeGreaterThan(0);
     await page.evaluate(()=>{window.__exitFrames=[];function frame(){const s=document.querySelector('[data-sheet="bill"]'),p=document.querySelector('.page-scroll-host'),a=document.querySelector('.v4-screen > [data-seg="recibos"]');window.__exitFrames.push({t:performance.now(),y:s?.getBoundingClientRect().y,scroll:s?.scrollTop,transform:s?.style.transform,plan:p.scrollTop,anchor:a.getBoundingClientRect().y});if(s)requestAnimationFrame(frame);}requestAnimationFrame(frame);});
     const c=await page.context().newCDPSession(page);await page.touchscreen.tap(200,30);
@@ -120,50 +116,40 @@ test('close jump: cancelar un segundo toque no devuelve la ficha que ya está sa
 });
 test('native wave: alta desplazable conserva el formulario, los bordes y el regreso',async({page},info)=>{
   await page.setViewportSize({width:393,height:500});await begin(page,info);await record(page,info,async capture=>{
-    await manage(page);await page.locator(hub+' button[data-group="serv"]').tap();await expect(page.locator(child)).toBeVisible();await settle(page);
-    const before=await capture('category-before-add');await page.locator(child+' [data-act="bill-add"]').tap();
+    await manage(page);await page.locator(hub+' [data-act="bill-add"]').evaluate(e=>e.scrollIntoView({block:'center'}));await settle(page);
+    const before=await capture('hub-before-add');await page.locator(hub+' [data-act="bill-add"]').tap();
     const add=page.locator('[data-sheet="recibo-pasos"]');await expect(add).toBeVisible();await add.locator('input').fill('Borrador sintético');await add.locator('[data-act="next"]').tap();await expect(add).toHaveAttribute('data-paso','1');await settle(page);
     const opened=await capture('add-amount');expect(opened.sheet.max).toBeGreaterThan(0);
     /* El pie (.rp4-foot) ya no va dentro del scroll y ocupa abajo: el arrastre empieza DENTRO de .rp4-body (y=380), no sobre el pie. */await swipe(page,360,380,0,-250);await swipe(page,360,380,0,-250);const bottom=await capture('add-bottom');expect(bottom.sheet.scroll).toBe(bottom.sheet.max);
     for(let i=0;i<2&&(await capture('add-up')).sheet.scroll>0;i++)await swipe(page,360,160,0,250);const top=await capture('add-top');expect(top.sheet.scroll).toBe(0);expect(top.sheet.transform).toBe('none');expect(top.sheet.willChange).toBe('auto');
     const c=await page.context().newCDPSession(page);await c.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:360,y:200}]});await c.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:360,y:240}]});await page.evaluate(()=>new Promise(r=>requestAnimationFrame(r)));const edge=await capture('add-top-edge');await c.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]});await c.detach();expect(edge.sheet.transform).toBe('none');
     await page.goBack();await expect(add).toHaveAttribute('data-paso','0');await expect(add.locator('input')).toHaveValue('Borrador sintético');await page.goBack();await expect(add).toHaveCount(0);await settle(page);const returned=await capture('add-return');
-    expect(returned.child.scroll).toBe(before.child.scroll);expect(returned.plan.scroll).toBe(before.plan.scroll);
-    await page.goBack();await expect(page.locator(child)).toHaveCount(0);await page.goBack();await expect(page.locator(hub)).toHaveCount(0);
-  });
-});
-for(const group of ['debt','in','once'])test('native wave: inventario y regreso del grupo '+group,async({page},info)=>{
-  await page.setViewportSize({width:393,height:500});await begin(page,info,true);await record(page,info,async capture=>{
-    await manage(page);await swipe(page,220,430,0,-250);const before=await capture('hub-before-group');await page.locator(hub+' button[data-group="'+group+'"]').tap();await expect(page.locator(child)).toBeVisible();await settle(page);
-    const opened=await capture('group-open');expect(opened.child.overflow).toBe('auto');expect(opened.child.overscroll).toBe('auto');expect(opened.child.touch).toBe('auto');expect(opened.child.transform).toBe('none');expect(opened.child.top).toBe(0);
-    expect(opened.child.max).toBeGreaterThan(200);
-    for(let i=0;i<6;i++)await swipe(page,300,440,0,-320);const bottom=await capture('group-bottom');expect(bottom.child.scroll).toBe(bottom.child.max);
-    for(let i=0;i<6;i++)await swipe(page,300,130,0,320);const top=await capture('group-top');expect(top.child.scroll).toBe(0);
-    await page.goBack();await expect(page.locator(child)).toHaveCount(0);await settle(page);const after=await capture('group-return');expect(after.hub.scroll).toBe(before.hub.scroll);expect(after.plan.scroll).toBe(before.plan.scroll);
+    expect(returned.hub.scroll).toBe(before.hub.scroll);expect(returned.plan.scroll).toBe(before.plan.scroll);
+    await page.goBack();await expect(page.locator(hub)).toHaveCount(0);
   });
 });
 test('native wave: cancelar Atrás lateral de la ficha limpia la capa al reposar',async({page},info)=>{
   await begin(page,info);await record(page,info,async capture=>{
-    await manage(page);await page.locator(hub+' button[data-group="in"]').tap();await expect(page.locator(child)).toBeVisible();await settle(page);await page.locator(child+' .v4-bills-row').first().tap();await expect(page.locator('[data-sheet="bill"]')).toBeVisible();await settle(page);
+    await manage(page);await filaDe(page,'in');await expect(page.locator('[data-sheet="bill"]')).toBeVisible();await settle(page);
     const back=page.locator('.v4-sheet-back').filter({has:page.locator('[data-sheet="bill"]')});
     await swipe(page,160,400,65,0,'touchCancel');
     await expect.poll(()=>back.evaluate(e=>getComputedStyle(e).transform)).toBe('none');await capture('lateral-cancel-rest');
-    await swipe(page,140,400,210,0);await expect(page.locator('[data-sheet="bill"]')).toHaveCount(0);await expect(page.locator(child)).toBeVisible();
+    await swipe(page,140,400,210,0);await expect(page.locator('[data-sheet="bill"]')).toHaveCount(0);await expect(page.locator(hub)).toBeVisible();
   });
 });
 // La hoja por pasos de un recibo (tanda 4): el mismo gesto lateral, con el borde superior libre
-// para el navegador y el regreso a la misma categoría sin mover la lista.
+// para el navegador y el regreso a Tus recibos sin mover la lista.
 test('native wave: hoja por pasos de un recibo cancela y vuelve de lado sin mover su lista',async({page},info)=>{
   await begin(page,info);await record(page,info,async capture=>{
-    await manage(page);await page.locator(hub+' button[data-group="serv"]').tap();await expect(page.locator(child)).toBeVisible();await settle(page);
+    await manage(page);await page.locator(hub+' [data-mg-sec="serv"] .v4-bills-row').first().evaluate(e=>e.scrollIntoView({block:'center'}));await settle(page);
     const before=await capture('serv-before-pasos');
-    await page.locator(child+' .v4-bills-row').first().tap();const hoja=page.locator('[data-sheet="recibo-pasos"]');await expect(hoja).toBeVisible();await settle(page);
+    await page.locator(hub+' [data-mg-sec="serv"] .v4-bills-row').first().tap();const hoja=page.locator('[data-sheet="recibo-pasos"]');await expect(hoja).toBeVisible();await settle(page);
     const open=await capture('pasos-open');expect(open.sheet.transform).toBe('none');expect(open.sheet.willChange).toBe('auto');expect(open.sheet.touch).toMatch(/auto|pan-y/);
     const back=page.locator('.v4-sheet-back').filter({has:hoja});
     await swipe(page,160,400,65,0,'touchCancel');
     await expect.poll(()=>back.evaluate(e=>getComputedStyle(e).transform)).toBe('none');await expect(hoja).toHaveAttribute('data-paso','4');
-    await swipe(page,140,400,210,0);await expect(hoja).toHaveCount(0);await expect(page.locator(child)).toBeVisible();await settle(page);
-    const after=await capture('serv-after-pasos');expect(after.child.scroll).toBe(before.child.scroll);expect(after.plan.scroll).toBe(before.plan.scroll);
+    await swipe(page,140,400,210,0);await expect(hoja).toHaveCount(0);await expect(page.locator(hub)).toBeVisible();await settle(page);
+    const after=await capture('serv-after-pasos');expect(after.hub.scroll).toBe(before.hub.scroll);expect(after.plan.scroll).toBe(before.plan.scroll);
   });
 });
 test('native wave: simulador conserva geometría y vuelve un nivel',async({page},info)=>{

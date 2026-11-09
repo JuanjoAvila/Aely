@@ -413,8 +413,8 @@ test("Modo sencillo: Ajustes › Dinero desde Inicio frío abre BillsManage vivo
   await expect(hub).toHaveAttribute("aria-modal", "true");
   await expect(page.locator('.botnav-tab.active')).toHaveAttribute("data-tour", "plan");
   await expect(hub).toContainText(/40/);
-  await expect(hub).toContainText(/1 recibo/i);
-  await hub.locator(".v4-bills-add").first().click();
+  await expect(hub.locator(".v4-bills-row")).toHaveCount(1);
+  await hub.locator('[data-act="bill-add"]').click();
   const alta = page.locator('.v4-sheet[data-sheet="bill-add"]');
   await expect(alta).toBeVisible();
   await alta.locator("input.v4-bills-search").fill("NetflixVivo");
@@ -436,11 +436,11 @@ test("hojas de alta y edición por pasos son dialog con trap y restauran foco", 
   await openPlan(page, {
     fixed: [{ id: "luz", name: "Luz", amount: 40, freq: "mes", day: 28, account: "sabadell" }],
   });
-  await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button", { name: /^Gestionar$/ }).click();
+  await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button", { name: /^(Gestionar|Todos)\b/ }).click();
   const hub = page.locator("[data-bills-manage]");
   await expect(hub).toBeVisible();
   await expect(hub).toHaveAttribute("role", "dialog");
-  const addBtn = hub.locator(".v4-bills-add").first();
+  const addBtn = hub.locator('[data-act="bill-add"]');
   await addBtn.focus();
   await addBtn.click();
   const alta = page.locator('.v4-sheet[data-sheet="recibo-pasos"]');
@@ -463,8 +463,7 @@ test("hojas de alta y edición por pasos son dialog con trap y restauran foco", 
   await expect(alta).toHaveCount(0);
   await expect(hub).toBeVisible();
   await expect(addBtn).toBeFocused();
-  // Ficha de un recibo (entrar al grupo → fila)
-  await hub.locator(".v4-bills-group").filter({ hasText: /Servicios y suministros/i }).click();
+  // Ficha de un recibo (la fila, en la misma pantalla)
   const fila = hub.locator(".v4-bills-row").filter({ hasText: "Luz" });
   await fila.focus();
   await fila.click();

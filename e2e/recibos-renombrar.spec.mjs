@@ -19,7 +19,7 @@ for(const legacy of [false,true])for(const name of ["IBI","Impuesto de vivienda"
     await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:"Ibi"})).toHaveCount(1);
     const manage=await page.evaluate(()=>t("pr6_todos"));
     await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button",{name:manage,exact:true}).click();
-    const hub=page.locator('[data-bills-manage]');await hub.locator('.v4-bills-group').first().click();
+    const hub=page.locator('[data-bills-manage]');
     await hub.locator('.v4-bills-row').filter({hasText:"Ibi"}).click();
     // Renombrar es la hoja por pasos (Plan › Recibos v6, tanda 4): resumen → Nombre → Guardar.
     const pasos=page.locator('.v4-sheet[data-sheet="recibo-pasos"]');
