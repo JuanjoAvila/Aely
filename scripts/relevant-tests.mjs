@@ -127,6 +127,12 @@ export const E2E_MAP = [
   { file: "src/modules/11-app-main.js", specs: ["e2e/plan-recibos-t2.spec.mjs"] },
   { file: "src/modules/00-core.js", specs: ["e2e/plan-recibos-t2.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/plan-recibos-t2.spec.mjs"] },
+  // Dinero de Recibos (auditoría 9/11): «Lo pagué de otra forma» vive en el motor (08) y la ficha
+  // (14); el día 31 recortado, en `dayIn` (07); los textos, en 01.
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-dinero.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-dinero.spec.mjs"] },
+  { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/recibos-dinero.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/recibos-dinero.spec.mjs"] },
   // Tanda 3: hoja «¿Te llega?». El recorrido es `minWalk` (08) con `pendingWalkEvents` (08, con la
   // pausa y el día de 07) y lo alimenta `totals` (11); la
   // nómina se edita con `patchFlowById` (08) y la hoja tiene su CSS en el shell.
