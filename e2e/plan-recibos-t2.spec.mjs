@@ -60,8 +60,8 @@ test("para revisar: cada aviso en su caso y por prioridad (no cobrados antes que
   await expect(review.locator('[data-review="diff"]')).toContainText("Esperabas 60,00 €");
   await expect(review.locator('[data-review="diff"]')).toContainText("61,00 €");
   await expect(review.locator('[data-review="up"]')).toContainText("Ha subido 1,00 €");
-  // Una a la vista y el resto tras «Ver los 4».
-  await expect(review.locator(".v4-charge:not([inert] *)")).toHaveCount(1);
+  // Tres a la vista, como el prototipo (SPEC §2.3), y el cuarto tras «Ver los 4».
+  await expect(review.locator(".v4-charge:not([inert] *)")).toHaveCount(3);
   await review.getByRole("button", { name: /Ver los 4/ }).click();
   await expect(review.locator(".v4-charge:not([inert] *)")).toHaveCount(4);
   // Lo cobrado (gas, Netflix) no suma en lo que queda; lo no cobrado (luz, mascota) sí.
@@ -70,8 +70,7 @@ test("para revisar: cada aviso en su caso y por prioridad (no cobrados antes que
 
 test("ficha: cobró distinto → «Solo este mes» lo deja como pagado con ese cargo", async ({ page }) => {
   const recibos = await abrePlan(page, cuatroAvisos());
-  // «Para revisar» enseña solo una fila: el resto está tras «Ver los N».
-  await recibos.getByTestId("plan-review").getByRole("button", { name: /Ver los/ }).click();
+  // «Cobró distinto» es el tercero: se ve sin desplegar «Ver los N».
   await recibos.getByTestId("plan-review").locator('[data-review="diff"]').click();
   const ficha = page.locator('.v4-sheet[data-sheet="recibo"]');
   await expect(ficha.getByTestId("recibo-nota")).toHaveText("Cobró 61,00 € · esperabas 60,00 €");
@@ -93,8 +92,6 @@ test("ficha: cobró distinto → «Solo este mes» lo deja como pagado con ese c
 test("ficha: cobró distinto → «Desde ahora» cambia el importe sin devolver el pago a pendiente", async ({ page }) => {
   const recibos = await abrePlan(page, cuatroAvisos());
   const antes = await saldoVisto(page);
-  // «Para revisar» enseña solo una fila: el resto está tras «Ver los N».
-  await recibos.getByTestId("plan-review").getByRole("button", { name: /Ver los/ }).click();
   await recibos.getByTestId("plan-review").locator('[data-review="diff"]').click();
   const ficha = page.locator('.v4-sheet[data-sheet="recibo"]');
   await ficha.getByRole("button", { name: "Desde ahora" }).click();
@@ -229,7 +226,7 @@ test("pausar: un recibo ya pagado no sale del mes; uno pendiente «Solo este mes
   await expect.poll(async () => (await guardado(page, "gym")).pausedUntil).toBeUndefined();
 
   // En Todos se ve hasta cuándo está pausado.
-  await recibos.getByTestId("plan-due").getByRole("button", { name: "Gestionar" }).click();
+  await recibos.getByTestId("plan-due").getByTestId("plan-todos").click();
   await page.locator(".v4-bills-group").filter({ hasText: "Servicios y suministros" }).click();
   await expect(page.locator('[data-screen="bills-group"] [data-bill-id="agua"]')).toContainText("pausado hasta dic");
   await expect(page.locator('[data-screen="bills-group"] [data-bill-id="gym"]')).not.toContainText("pausado");

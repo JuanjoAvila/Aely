@@ -31,7 +31,7 @@ async function open(page,overrides={},realTimers=false,detail=false){
     const remove=page.locator('[data-sheet="recibo"] [data-act="quitar"]');
     await remove.click();await remove.click();return;
   }
-  await page.locator('.page-live [data-seg="recibos"]').getByTestId('plan-due').getByRole('button',{name:'Gestionar',exact:true}).click();
+  await page.locator('.page-live [data-seg="recibos"]').getByTestId('plan-due').getByTestId('plan-todos').click();
   await page.locator('[data-bills-manage] [data-group="serv"]').click();
   await page.locator('[data-bill-id="undo-bill"]').click();
   await page.locator('.v4-sheet[data-sheet="recibo-pasos"] [data-act="bill-remove"]').click();

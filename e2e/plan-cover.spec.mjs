@@ -436,7 +436,7 @@ test("hojas de alta y edición por pasos son dialog con trap y restauran foco", 
   await openPlan(page, {
     fixed: [{ id: "luz", name: "Luz", amount: 40, freq: "mes", day: 28, account: "sabadell" }],
   });
-  await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button", { name: /^Gestionar$/ }).click();
+  await page.locator('.v4-screen > [data-seg="recibos"]').getByTestId("plan-todos").click();
   const hub = page.locator("[data-bills-manage]");
   await expect(hub).toBeVisible();
   await expect(hub).toHaveAttribute("role", "dialog");
